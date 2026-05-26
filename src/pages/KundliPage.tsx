@@ -5,7 +5,8 @@ import { calculateKundliWithPlaceSun } from "../core/KundliEngine";
 import { chartYogasWithPolarity, type YogaId } from "../core/KundliInsightsEngine";
 import { getDailyPrediction } from "../core/PredictionEngine";
 import { generateDashaTimeline, type DashaEntry } from "../core/DashaBhuktiEngine";
-import { exportSvgAsPdf, exportSvgAsPng } from "../core/ExportUtils";
+import { exportSvgAsPdf, exportSvgAsPng, exportElementAsPdf, exportElementAsPng } from "../core/ExportUtils";
+
 import { analytics } from "../core/analytics";
 import { saveKundli } from "../db/indexedDb";
 import { useAppStore } from "../stores/appStore";
@@ -13,11 +14,12 @@ import { useKundliViewerStore } from "../stores/kundliViewerStore";
 import KundliChart from "../components/kundli/KundliChart";
 import TraditionalSouthPatrika from "../components/kundli/TraditionalSouthPatrika";
 import { DashaBhuktiExplorer, LifetimeDashaBar } from "../components/kundli/DashaLifetimeChart";
-import BirthDateCascadePicker from "../components/BirthDateCascadePicker";
+import DatePicker from "../components/DatePicker";
 import BirthTimePicker from "../components/BirthTimePicker";
 import LocationSelector, { type SelectedLocation } from "../components/LocationSelector";
 import MapLocationPicker from "../components/MapLocationPicker";
 import Card from "../components/ui/Card";
+import GrahaSpinner from "../components/ui/GrahaSpinner";
 import { buildNarrativeSummary, fetchKundliNarrative, NarrativeApiError } from "../services/kundliNarrativeApi";
 import { localizeNarrativeText } from "../services/localizeContent";
 import { formatPickerDateLocalYmd } from "../core/birthTime";
@@ -49,6 +51,7 @@ export default function KundliPage(): JSX.Element {
   const clearKundliSession = useKundliViewerStore((s) => s.clearSession);
   const kundliSession = useKundliViewerStore((s) => s.session);
   const svgHostRef = useRef<HTMLDivElement>(null);
+  const exportContainerRef = useRef<HTMLDivElement>(null);
   const [form, setForm] = useState<KundliInput>({
     name: "",
     birthDate: "",
@@ -293,7 +296,7 @@ export default function KundliPage(): JSX.Element {
         </select>
         <div className="md:col-span-2">
           <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-amber-900/70">{t("kundli.birthDate")}</p>
-          <BirthDateCascadePicker value={birthDatePicker} onChange={setBirthDatePicker} />
+          <DatePicker selected={birthDatePicker} onChange={setBirthDatePicker} />
         </div>
         <div className="md:col-span-2">
           <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-emerald-900/70">{t("kundli.birthTime")}</p>
@@ -325,7 +328,7 @@ export default function KundliPage(): JSX.Element {
         />
       </div>
       <p className="mt-2 text-xs leading-relaxed text-slate-600">{t("kundli.pincodeHint")}</p>
-      {pinResolving ? <p className="text-xs text-emerald-800">{t("location.loading")}</p> : null}
+      {pinResolving ? <GrahaSpinner size="sm" message={t("location.loading")} /> : null}
       <div className="mt-3 flex flex-wrap gap-2">
         <button
           type="button"
@@ -395,8 +398,13 @@ export default function KundliPage(): JSX.Element {
           type="button"
           className="jk-btn rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-indigo-950"
           onClick={async () => {
-            const svg = svgHostRef.current?.querySelector("svg");
-            if (svg) await exportSvgAsPng(svg as SVGSVGElement, `kundli-${form.name || "chart"}`);
+            const el = exportContainerRef.current;
+            if (el) {
+              await exportElementAsPng(el, `kundli-${form.name || "chart"}`);
+            } else {
+              const svg = svgHostRef.current?.querySelector("svg");
+              if (svg) await exportSvgAsPng(svg as SVGSVGElement, `kundli-${form.name || "chart"}`);
+            }
           }}
         >
           {t("kundli.download")}
@@ -405,8 +413,13 @@ export default function KundliPage(): JSX.Element {
           type="button"
           className="jk-btn rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-indigo-950"
           onClick={async () => {
-            const svg = svgHostRef.current?.querySelector("svg");
-            if (svg) await exportSvgAsPdf(svg as SVGSVGElement, `kundli-${form.name || "chart"}`);
+            const el = exportContainerRef.current;
+            if (el) {
+              await exportElementAsPdf(el, `kundli-${form.name || "chart"}`);
+            } else {
+              const svg = svgHostRef.current?.querySelector("svg");
+              if (svg) await exportSvgAsPdf(svg as SVGSVGElement, `kundli-${form.name || "chart"}`);
+            }
           }}
         >
           {t("kundli.downloadPdf")}
@@ -479,23 +492,26 @@ export default function KundliPage(): JSX.Element {
           </button>
         </div>
       )}
-      <div ref={svgHostRef} className="mt-4">
-        <KundliChart
-          kundli={result}
-          chartStyle={chartStyle}
-          personName={form.name}
-          gothra={gotraDisplay}
-        />
-      </div>
-      {result?.birthSunTimes && (
-        <p className="mt-3 text-xs text-slate-600">
-          {t("kundli.birthSunriseLine", {
-            sunrise: result.birthSunTimes.sunrise,
-            sunset: result.birthSunTimes.sunset,
-            source: t(`kundli.sunSource.${result.birthSunTimes.source}` as "kundli.sunSource.api")
-          })}
-        </p>
-      )}
+      {result && birthDatePicker && birthTimeHm.trim() ? (
+        <div
+          ref={exportContainerRef}
+          id="kundli-pdf-export-root"
+          className="mt-4 p-4 rounded-2xl border border-amber-500/20 bg-[#fffdf8] shadow-sm text-slate-800"
+        >
+          <h2 className="text-xl font-extrabold text-indigo-950 text-center mb-3">
+            {form.name ? `${form.name}'s Janma Patrika` : "Janma Patrika"}
+          </h2>
+          <div ref={svgHostRef}>
+            <KundliChart
+              kundli={result}
+              chartStyle={chartStyle}
+              personName={form.name}
+              gothra={gotraDisplay}
+            />
+          </div>
+        </div>
+      ) : null}
+      
       {chartYogas.length > 0 && (
         <div className="mt-4 rounded-xl border border-indigo-100 bg-indigo-50/40 p-3">
           <p className="text-sm font-semibold text-indigo-950">{t("kundli.chartYogasTitle")}</p>
@@ -547,7 +563,7 @@ export default function KundliPage(): JSX.Element {
           >
             {t("kundli.detailsAboutMe")}
           </button>
-          {narrativeLoading && <p className="text-sm text-slate-600">{t("kundli.detailsLoading")}</p>}
+          {narrativeLoading && <GrahaSpinner message={t("kundli.detailsLoading")} />}
           {narrativeError && <p className="text-sm text-red-700">{narrativeError}</p>}
           {narrative && <p className="rounded-xl border border-slate-200 bg-white p-3 text-sm leading-relaxed text-slate-800">{narrative}</p>}
         </div>

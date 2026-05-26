@@ -18,6 +18,7 @@ import {
 import type { PredictionOutput } from "../core/AstroTypes";
 import { useAppStore } from "../stores/appStore";
 import Card from "../components/ui/Card";
+import GrahaSpinner from "../components/ui/GrahaSpinner";
 
 type Tab = "daily" | "weekly" | "monthly";
 
@@ -159,7 +160,7 @@ export default function PredictionsPage(): JSX.Element {
   if (empty === null) {
     return (
       <Card>
-        <p className="text-sm text-slate-600">{t("common.loading")}</p>
+      <GrahaSpinner />
       </Card>
     );
   }
@@ -217,7 +218,7 @@ export default function PredictionsPage(): JSX.Element {
           <p className="mt-2 text-xs text-red-800">{t("predictions.loadErrorHint")}</p>
         </div>
       ) : null}
-      {loading ? <p className="text-sm text-slate-600">{t("common.loading")}</p> : null}
+      {loading ? <GrahaSpinner /> : null}
       {!loading && prediction ? (
         <div className="space-y-2 text-sm text-slate-800">
           <h3 className="text-lg font-semibold text-indigo-950">{prediction.title}</h3>

@@ -86,3 +86,38 @@ export const exportSvgAsPdf = async (svgElement: SVGSVGElement, fileName: string
   await analytics.track("chart_exported_pdf");
 };
 
+export const exportElementAsPng = async (element: HTMLElement, fileName: string): Promise<void> => {
+  const canvas = await html2canvas(element, {
+    scale: 2,
+    useCORS: true,
+    backgroundColor: "#fffdf8",
+    logging: false
+  });
+  const pngData = canvas.toDataURL("image/png");
+  const anchor = document.createElement("a");
+  anchor.href = pngData;
+  anchor.download = `${fileName}.png`;
+  anchor.click();
+  await analytics.track("chart_exported");
+};
+
+export const exportElementAsPdf = async (element: HTMLElement, fileName: string): Promise<void> => {
+  const canvas = await html2canvas(element, {
+    scale: 2,
+    useCORS: true,
+    backgroundColor: "#fffdf8",
+    logging: false
+  });
+  const pngData = canvas.toDataURL("image/png");
+  const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
+  const pageW = pdf.internal.pageSize.getWidth();
+  const pageH = pdf.internal.pageSize.getHeight();
+  const margin = 36;
+  const drawW = pageW - margin * 2;
+  const drawH = (canvas.height * drawW) / canvas.width;
+  pdf.addImage(pngData, "PNG", margin, margin, drawW, Math.min(drawH, pageH - margin * 2));
+  pdf.save(`${fileName}.pdf`);
+  await analytics.track("chart_exported_pdf");
+};
+
+

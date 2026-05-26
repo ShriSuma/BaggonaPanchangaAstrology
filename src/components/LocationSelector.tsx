@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import GrahaSpinner from "./ui/GrahaSpinner";
 import {
   fetchDistricts,
   fetchStates,
@@ -226,7 +227,11 @@ export default function LocationSelector({ onChange, filterPincode }: Props): JS
         ))}
       </select>
 
-      {loading && <p className="col-span-full text-xs text-slate-600">{t("location.loading")}</p>}
+      {loading && (
+        <div className="col-span-full py-2">
+          <GrahaSpinner size="sm" message={t("location.loading")} />
+        </div>
+      )}
     </div>
   );
 }

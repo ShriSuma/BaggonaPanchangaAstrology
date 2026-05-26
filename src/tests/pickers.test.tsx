@@ -8,7 +8,9 @@ import { enGB, hi, kn, ta, te } from "date-fns/locale";
 describe("Date and time pickers", () => {
   it("Date picker renders", () => {
     render(<DatePicker selected={null} onChange={vi.fn()} />);
-    expect(screen.getByPlaceholderText("DD/MM/YYYY")).toBeInTheDocument();
+    expect(screen.getByLabelText("Birth Year")).toBeInTheDocument();
+    expect(screen.getByLabelText("Birth Month")).toBeInTheDocument();
+    expect(screen.getByLabelText("Birth Day")).toBeInTheDocument();
   });
 
   it("Locale changes update locale mapping", async () => {

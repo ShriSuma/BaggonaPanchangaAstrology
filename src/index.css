@@ -3,38 +3,57 @@
 @tailwind utilities;
 
 :root {
-  --jk-page-bg-start: #fff8f0;
-  --jk-page-bg-mid: #e8e4f5;
-  --jk-page-bg-end: #c9d4f0;
-  --jk-card-bg: #fffdf8;
+  --jk-page-bg-start: #fffbeb;
+  --jk-page-bg-mid: #fef3c7;
+  --jk-page-bg-end: #e0e7ff;
+  --jk-card-bg: rgba(255, 255, 255, 0.82);
   --jk-card-fg: #1e1b4b;
-  --jk-card-border: rgba(120, 83, 30, 0.12);
-  --jk-card-shadow: 0 10px 40px rgba(30, 27, 75, 0.08);
-  --jk-accent: #b45309;
-  --jk-accent-soft: rgba(180, 83, 9, 0.12);
-  --jk-nav-bg: rgba(255, 253, 248, 0.92);
-  --jk-nav-border: rgba(30, 27, 75, 0.08);
+  --jk-card-border: rgba(217, 119, 6, 0.22);
+  --jk-card-shadow: 0 10px 30px -5px rgba(180, 83, 9, 0.08), 0 1px 3px rgba(0, 0, 0, 0.02);
+  --jk-accent: #d97706;
+  --jk-accent-soft: rgba(217, 119, 6, 0.08);
+  --jk-nav-bg: rgba(255, 255, 255, 0.85);
+  --jk-nav-border: rgba(217, 119, 6, 0.12);
 }
 
 body {
   margin: 0;
   min-height: 100vh;
   background: linear-gradient(165deg, var(--jk-page-bg-start) 0%, var(--jk-page-bg-mid) 45%, var(--jk-page-bg-end) 100%);
+  background-attachment: fixed;
   color: var(--jk-card-fg);
   font-family: "Inter", system-ui, Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
 * {
   box-sizing: border-box;
 }
 
+/* Card hover glow & glassmorphism transition */
+section {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
+}
+
+section:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 40px -10px rgba(180, 83, 9, 0.12), 0 0 2px rgba(217, 119, 6, 0.2);
+  border-color: rgba(217, 119, 6, 0.35);
+}
+
 .jk-btn {
-  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.15s ease;
 }
 
 .jk-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(30, 27, 75, 0.1);
+  transform: translateY(-1.5px);
+  box-shadow: 0 8px 20px rgba(217, 119, 6, 0.15);
+}
+
+.jk-btn:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 /* Leaflet map picker (no Google key) */
@@ -46,7 +65,7 @@ body {
   width: 16px;
   height: 16px;
   border-radius: 9999px;
-  background: #b45309;
+  background: #d97706;
   border: 2px solid #fff;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25), 0 2px 6px rgba(0, 0, 0, 0.2);
 }
@@ -56,8 +75,39 @@ body {
   color: #1565c0;
 }
 
-.jk-btn:active:not(:disabled) {
-  transform: translateY(0);
+/* Planetary Orbits loading animation keyframes */
+@keyframes spin-clockwise {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spin-counterclockwise {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-clockwise 25s linear infinite;
+}
+
+.animate-spin-orbit-1 {
+  animation: spin-clockwise 3s linear infinite;
+}
+
+.animate-spin-orbit-2 {
+  animation: spin-counterclockwise 6s linear infinite;
+}
+
+.animate-spin-orbit-3 {
+  animation: spin-clockwise 12s linear infinite;
 }
 
 @keyframes jk-melapak-burst {
@@ -89,6 +139,8 @@ body {
 .jk-datepicker-popper .react-datepicker {
   font-size: 1rem;
   border-radius: 0.75rem;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+  border: 1px solid rgba(217, 119, 6, 0.2);
 }
 .jk-datepicker-calendar .react-datepicker__day {
   width: 2.25rem;
@@ -98,7 +150,7 @@ body {
 }
 .jk-datepicker-calendar .react-datepicker__day-name {
   width: 2.25rem;
-  line-height: 2rem;
+  line-height: 2.25rem;
   margin: 0.2rem;
 }
 .jk-touch-input {
@@ -110,3 +162,89 @@ body {
     width: min(100vw - 1.5rem, 22rem);
   }
 }
+
+/* Cosmic Game Animations */
+.cosmic-bg {
+  background: radial-gradient(circle at 50% 15%, #181249 0%, #08061a 100%);
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.5rem;
+}
+
+.cosmic-card {
+  background: rgba(20, 15, 55, 0.75);
+  border: 1.5px solid rgba(245, 158, 11, 0.28);
+  box-shadow: 0 12px 40px rgba(7, 5, 25, 0.65), 0 0 25px rgba(245, 158, 11, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 1.25rem;
+  color: #f1f5f9 !important;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease;
+}
+
+.cosmic-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 45px rgba(7, 5, 25, 0.8), 0 0 35px rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.5);
+}
+
+.cosmic-card h1, .cosmic-card h2, .cosmic-card h3 {
+  color: #fbbf24 !important;
+  text-shadow: 0 0 10px rgba(251, 191, 36, 0.25);
+}
+
+.cosmic-card p, .cosmic-card span, .cosmic-card label {
+  color: #e2e8f0 !important;
+}
+
+/* Seamless floating stars background animation */
+.stars-container {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.stars-layer-1 {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: white;
+  box-shadow: 10vw 20vh white, 30vw 45vh rgba(255,255,255,0.7), 60vw 15vh white, 85vw 70vh white, 45vw 80vh rgba(255,255,255,0.8), 15vw 90vh white, 75vw 35vh white, 90vw 25vh white;
+  animation: float-stars-up 35s linear infinite;
+  opacity: 0.45;
+  inset: 0;
+}
+
+.stars-layer-2 {
+  position: absolute;
+  width: 1.5px;
+  height: 1.5px;
+  background: white;
+  box-shadow: 5vw 80vh white, 25vw 20vh rgba(255,255,255,0.5), 55vw 50vh white, 70vw 85vh white, 95vw 10vh white, 40vw 60vh white, 80vw 40vh white;
+  animation: float-stars-up 55s linear infinite;
+  opacity: 0.35;
+  inset: 0;
+}
+
+.stars-layer-3 {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: #fbbf24;
+  border-radius: 50%;
+  box-shadow: 20vw 10vh rgba(251,191,36,0.5), 50vw 30vh rgba(251,191,36,0.4), 80vw 65vh rgba(251,191,36,0.5), 35vw 75vh rgba(251,191,36,0.3);
+  animation: float-stars-up 75s linear infinite;
+  opacity: 0.55;
+  inset: 0;
+}
+
+@keyframes float-stars-up {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-100%);
+  }
+}
+

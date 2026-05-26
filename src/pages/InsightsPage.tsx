@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { getLatestKundliRecord, type KundliRecord } from "../db/indexedDb";
 import { useAppStore } from "../stores/appStore";
 import Card from "../components/ui/Card";
+import GrahaSpinner from "../components/ui/GrahaSpinner";
 import YogaDetailDialog from "../components/YogaDetailDialog";
 import InsightTabPanel, { type InsightTabId } from "../components/insights/InsightTabPanel";
 import { computeDoshaLifeReport } from "../core/DoshaLifeEngine";
@@ -129,7 +130,7 @@ export default function InsightsPage(): JSX.Element {
   if (record === undefined) {
     return (
       <Card>
-        <p className="text-sm text-slate-600">{t("common.loading")}</p>
+      <GrahaSpinner />
       </Card>
     );
   }

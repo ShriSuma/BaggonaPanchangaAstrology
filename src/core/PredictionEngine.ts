@@ -223,9 +223,10 @@ export const getDailyPrediction = (
 
   let signals = baseTone === "positive" ? 1 : baseTone === "neutral" ? 0 : -1;
   const wh = natalHouseOfPlanet(kundli, lord);
+  const rashiIdx = kundli.planets.find((p) => p.name === lord)?.rashi.index;
   if (wh && isKendra(wh)) signals += 1;
   if (wh && (wh === 6 || wh === 8 || wh === 12)) signals -= 1;
-  if (wh) signals += Math.round(planetHouseScore(lord, wh) / 2);
+  if (wh) signals += Math.round(planetHouseScore(lord, wh, rashiIdx) / 2);
   signals += Math.round(natalHousePredictionSignal(kundli, lord) / 2);
 
   const careerArea = lifeAreaInsight(kundli, "career");

@@ -35,12 +35,39 @@ export const isTrikonaHouse = (h: number): boolean => (TRIKONA_HOUSES as readonl
 export const isDusthanaHouse = (h: number): boolean => (DUSTHANA_HOUSES as readonly number[]).includes(h);
 
 /** Score −2…+2 for a graha in a bhāva from lagna (whole-sign). */
-export const planetHouseScore = (planet: PlanetName, house: number): number => {
+export const planetHouseScore = (planet: PlanetName, house: number, rashiIndex?: number): number => {
   const rated = PLANET_HOUSE_RATINGS[planet]?.[house];
   let score = ratingToScore(rated);
   if (isKendraHouse(house) && score >= 0) score += 1;
   if (isTrikonaHouse(house) && score >= 0) score += 1;
   if (isDusthanaHouse(house) && score <= 0) score -= 1;
+
+  if (rashiIndex !== undefined) {
+    const exalt: Partial<Record<PlanetName, number>> = {
+      [PN.Sun]: 0,
+      [PN.Moon]: 1,
+      [PN.Mars]: 9,
+      [PN.Mercury]: 5,
+      [PN.Jupiter]: 3,
+      [PN.Venus]: 11,
+      [PN.Saturn]: 6
+    };
+    const neecha: Partial<Record<PlanetName, number>> = {
+      [PN.Sun]: 6,
+      [PN.Moon]: 7,
+      [PN.Mars]: 3,
+      [PN.Mercury]: 11,
+      [PN.Jupiter]: 9,
+      [PN.Venus]: 5,
+      [PN.Saturn]: 0
+    };
+    if (exalt[planet] === rashiIndex) {
+      score += 1;
+    } else if (neecha[planet] === rashiIndex) {
+      score -= 1;
+    }
+  }
+
   return Math.max(-2, Math.min(2, score));
 };
 
@@ -52,7 +79,7 @@ export const planetHouseInsight = (k: KundliOutput, planet: PlanetName): PlanetH
   return {
     planet,
     house: p.house,
-    score: planetHouseScore(planet, p.house),
+    score: planetHouseScore(planet, p.house, p.rashi.index),
     rating,
     houseThemes: hk?.themes ?? []
   };
@@ -69,7 +96,7 @@ export const houseLordPlacementScore = (k: KundliOutput, house: number): number 
   const lord = lordOfHouse(k, house);
   const lp = k.planets.find((p) => p.name === lord);
   if (!lp) return 0;
-  return planetHouseScore(lord, lp.house);
+  return planetHouseScore(lord, lp.house, lp.rashi.index);
 };
 
 const areaNote = (area: keyof typeof LIFE_AREA_HOUSES, score: number): string => {
