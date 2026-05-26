@@ -6,7 +6,7 @@ import { hydrateMissingTranslations } from "../services/i18nHydrate";
 import type { AyanamsaModel, NodeType } from "../core/AstroTypes";
 
 export type SupportedLanguage = "en" | "hi" | "kn" | "te" | "ta";
-export type AppPage = "home" | "kundli" | "predictions" | "insights" | "settings" | "melapak";
+export type AppPage = "home" | "kundli" | "predictions" | "insights" | "settings" | "melapak" | "baggona";
 
 const DEFAULT_LAT = 19.076;
 const DEFAULT_LNG = 72.8777;

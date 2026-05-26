@@ -9,6 +9,7 @@ import MelapakPage from "./pages/MelapakPage";
 import PredictionsPage from "./pages/PredictionsPage";
 import SettingsPage from "./pages/SettingsPage";
 import InsightsPage from "./pages/InsightsPage";
+import BaggonaPredictionsPage from "./pages/BaggonaPredictionsPage";
 import { useAppStore } from "./stores/appStore";
 
 export default function App(): JSX.Element {
@@ -38,6 +39,7 @@ export default function App(): JSX.Element {
       <Layout>
         {currentPage === "home" && <HomePage />}
         {currentPage === "kundli" && <KundliPage />}
+        {currentPage === "baggona" && <BaggonaPredictionsPage />}
         {currentPage === "predictions" && <PredictionsPage />}
         {currentPage === "insights" && <InsightsPage />}
         {currentPage === "melapak" && <MelapakPage />}

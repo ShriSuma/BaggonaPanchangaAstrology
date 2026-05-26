@@ -102,6 +102,7 @@ export default function Layout({ children }: Props): JSX.Element {
       <nav className="fixed bottom-0 left-0 right-0 z-40 flex overflow-x-auto border-t border-[color:var(--jk-nav-border)] bg-[color:var(--jk-nav-bg)] pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_24px_rgba(30,27,75,0.06)] backdrop-blur-md">
         <TabButton page="home" icon="⌂" label={t("nav.home")} />
         <TabButton page="kundli" icon="◈" label={t("nav.kundli")} />
+        <TabButton page="baggona" icon="📜" label={t("nav.baggona")} />
         <TabButton page="predictions" icon="✦" label={t("nav.predictions")} />
         <TabButton page="insights" icon="☍" label={t("nav.insights")} />
         <TabButton page="melapak" icon="💞" label={t("nav.melapak")} />
