@@ -23,7 +23,7 @@ describe("TraditionalBaggonaEngine calculations for Gokarna test case", () => {
 
     expect(res.sunNakshatra).toBe("Rohini");
     expect(res.sunNakshatraKn).toBe("ರೋಹಿಣಿ");
-    expect(res.sunNakshatraGhati).toBe(51);
+    expect(res.sunNakshatraGhati).toBe(471);
     expect(res.sunNakshatraVighati).toBe(9);
 
     expect(res.moonNakshatra).toBe("Hasta");
@@ -31,10 +31,10 @@ describe("TraditionalBaggonaEngine calculations for Gokarna test case", () => {
     expect(res.moonNakshatraGhati).toBe(30);
     expect(res.moonNakshatraVighati).toBe(34);
 
-    expect(res.yoga).toBe("Siddhi");
-    expect(res.yogaKn).toBe("ಸಿದ್ಧಿ");
-    expect(res.yogaGhati).toBe(5);
-    expect(res.yogaVighati).toBe(55);
+    expect(res.yoga).toBe("Vyatipata");
+    expect(res.yogaKn).toBe("ವ್ಯತೀಪಾತ");
+    expect(res.yogaGhati).toBe(58);
+    expect(res.yogaVighati).toBe(3);
 
     expect(res.karana).toBe("Vanija");
     expect(res.karanaKn).toBe("ವಣಿಜ");
@@ -91,28 +91,28 @@ describe("TraditionalBaggonaEngine calculations for Gokarna test case", () => {
 
     expect(res.sunNakshatra).toBe("Swati");
     expect(res.sunNakshatraKn).toBe("ಸ್ವಾತಿ");
-    expect(res.sunNakshatraGhati).toBe(10);
+    expect(res.sunNakshatraGhati).toBe(790);
     expect(res.sunNakshatraVighati).toBe(34);
 
-    expect(res.moonNakshatra).toBe("Pushya");
-    expect(res.moonNakshatraKn).toBe("ಪುಷ್ಯ");
-    expect(res.moonNakshatraGhati).toBe(1);
-    expect(res.moonNakshatraVighati).toBe(59);
+    expect(res.moonNakshatra).toBe("Ashlesha");
+    expect(res.moonNakshatraKn).toBe("ಆಶ್ಲೇಷಾ");
+    expect(res.moonNakshatraGhati).toBe(68);
+    expect(res.moonNakshatraVighati).toBe(44);
 
-    expect(res.yoga).toBe("Sadhya");
-    expect(res.yogaKn).toBe("ಸಾಧ್ಯ");
-    expect(res.yogaGhati).toBe(1);
-    expect(res.yogaVighati).toBe(6);
+    expect(res.yoga).toBe("Shubha");
+    expect(res.yogaKn).toBe("ಶುಭ");
+    expect(res.yogaGhati).toBe(62);
+    expect(res.yogaVighati).toBe(41);
 
-    expect(res.karana).toBe("Taitila");
-    expect(res.karanaKn).toBe("ತೈತಿಲ");
-    expect(res.karanaGhati).toBe(13);
-    expect(res.karanaVighati).toBe(51);
+    expect(res.karana).toBe("Garaja");
+    expect(res.karanaKn).toBe("ಗರಜ");
+    expect(res.karanaGhati).toBe(46);
+    expect(res.karanaVighati).toBe(34);
 
     expect(res.vishaGhati.ghati).toBe(37);
     expect(res.vishaGhati.vighati).toBe(35);
 
-    expect(res.amrithaGhati.ghati).toBe(4);
+    expect(res.amrithaGhati.ghati).toBe(64);
     expect(res.amrithaGhati.vighati).toBe(17);
 
     expect(res.divaGhati.ghati).toBe(29);

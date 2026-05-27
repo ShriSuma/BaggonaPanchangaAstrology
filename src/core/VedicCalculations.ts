@@ -270,7 +270,7 @@ export const getVishaAndAmrithaGhati = (
     if (ms < 0) ms += 24 * 60 * 60 * 1000; // wrap around 24 hours
     const totalVighati = Math.floor(ms / 24_000);
     return {
-      ghati: Math.floor(totalVighati / 60) % 60,
+      ghati: Math.floor(totalVighati / 60),
       vighati: totalVighati % 60
     };
   };
