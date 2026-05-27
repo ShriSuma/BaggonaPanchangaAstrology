@@ -53,9 +53,10 @@ export default function SouthIndianChart({ kundli, personName, gothra }: Props):
     <svg
       data-testid="south-chart"
       viewBox={`0 0 ${size} ${size}`}
-      className="mx-auto h-auto max-h-[min(90vw,420px)] w-full max-w-[420px] bg-white shadow-sm"
+      className="mx-auto h-auto max-h-[min(90vw,420px)] w-full max-w-[420px] bg-[#fffdf8] border border-amber-500/20 shadow-md rounded-xl"
       role="img"
       aria-label={t("kundli.southChartAria")}
+      style={{ colorScheme: "light", background: "#fffdf8" }}
     >
       {/* Static frame: single SVG asset (inlined for PNG/PDF export) */}
       <g data-testid="south-chart-frame" dangerouslySetInnerHTML={{ __html: frameInner }} />
@@ -73,7 +74,7 @@ export default function SouthIndianChart({ kundli, personName, gothra }: Props):
               y={y + 2}
               width={cw - 4}
               height={cw - 4}
-              fill={isLagna ? "rgba(255, 247, 237, 0.72)" : "rgba(255, 253, 251, 0.35)"}
+              fill={isLagna ? "#fff8e1" : "#ffffff"}
               stroke="none"
             />
             <text x={x + 6} y={y + 14} fontSize="9" fill="#7f1d1d" fontWeight="600">
@@ -96,7 +97,7 @@ export default function SouthIndianChart({ kundli, personName, gothra }: Props):
         y={cr.y + 1}
         width={cr.width - 2}
         height={cr.height - 2}
-        fill="rgba(255, 254, 249, 0.88)"
+        fill="#fdfaf2"
         stroke="none"
       />
       <foreignObject x={cr.x + 6} y={cr.y + 6} width={cr.width - 12} height={cr.height - 12}>
@@ -217,12 +218,6 @@ export default function SouthIndianChart({ kundli, personName, gothra }: Props):
           );
         }
       })}
-
-      <path
-        d={`M ${m + 8} ${m + 8} L ${m + 14} ${m + 12} L ${m + 8} ${m + 16} Z`}
-        fill="#991b1b"
-        transform={`translate(${size - m - 20}, ${m})`}
-      />
     </svg>
   );
 }

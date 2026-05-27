@@ -18,7 +18,8 @@ import SouthIndianChart from "../components/kundli/SouthIndianChart";
 import { RASHIS, NAKSHATRAS, PlanetName, type PlanetPosition, type KundliOutput } from "../core/AstroTypes";
 import { siderealLongitudes } from "../core/EphemerisEngine";
 import { degreeToRashi, degreeToNakshatra, degreeToNakshatraPada } from "../core/AstroMath";
-import { wallClockBirthToUtc } from "../core/birthTime";
+import { wallClockBirthToUtc, ageDecimalYearsAt } from "../core/birthTime";
+import { findBhuktiAtAge } from "../core/DashaBhuktiEngine";
 
 type SubTab = "personal" | "overview" | "planets" | "houses" | "yogas" | "gochara";
 
@@ -166,10 +167,10 @@ export default function BaggonaPredictionsPage(): JSX.Element {
     if (!record || !traditionalData) return [];
 
     const days = [];
-    const birthDateObj = new Date(record.birthDate);
+    const todayObj = new Date();
 
     for (let i = 0; i < 15; i++) {
-      const d = new Date(birthDateObj);
+      const d = new Date(todayObj);
       d.setDate(d.getDate() + i);
       const yyyy = d.getFullYear();
       const mm = String(d.getMonth() + 1).padStart(2, '0');
@@ -208,7 +209,7 @@ export default function BaggonaPredictionsPage(): JSX.Element {
           degree: long % 30,
           rashi: degreeToRashi(long),
           nakshatra: degreeToNakshatra(long),
-          house: (degreeToRashi(long).index - record.kundliData.lagnaRashi.index + 12) % 12 + 1
+          house: (degreeToRashi(long).index - record.kundliData.moonSign.index + 12) % 12 + 1
         };
       });
 
@@ -222,7 +223,7 @@ export default function BaggonaPredictionsPage(): JSX.Element {
         houses: record.kundliData.houses,
         moonSign: transitMoonSign,
         sunSign: transitSunSign,
-        lagnaRashi: record.kundliData.lagnaRashi,
+        lagnaRashi: record.kundliData.moonSign, // Set Moon sign as Lagna for correct clockwise counting
         moonPada: transitMoonPada
       };
 
@@ -236,6 +237,16 @@ export default function BaggonaPredictionsPage(): JSX.Element {
         sat: (degreeToRashi(transitLongs.saturn).index - birthMoonIdx + 12) % 12 + 1
       };
 
+      // Running Dasha & Bhukti at this transit day's UTC time
+      const transitAge = ageDecimalYearsAt(
+        record.birthDate,
+        record.birthTime,
+        record.latitude,
+        record.longitude,
+        noonUtc
+      );
+      const activeDb = findBhuktiAtAge(record.kundliData, transitAge);
+
       days.push({
         date: dateStr,
         weekday: transitPanchanga.weekday,
@@ -247,7 +258,9 @@ export default function BaggonaPredictionsPage(): JSX.Element {
         sunrise: transitPanchanga.sunrise,
         sunset: transitPanchanga.sunset,
         kundli: transitKundli,
-        planetHouses: planetTransitHouses
+        planetHouses: planetTransitHouses,
+        dashaLord: activeDb ? activeDb.maha.planet : null,
+        bhuktiLord: activeDb ? activeDb.bhukti : null
       });
     }
 
@@ -359,11 +372,11 @@ export default function BaggonaPredictionsPage(): JSX.Element {
         if (lang === "te") return "12 భావాలు";
         return "12 Houses";
       case "yogas":
-        if (lang === "kn") return "ಯೋಗ & ಆಯುಷ್ಯ";
-        if (lang === "hi") return "योग और आयु";
-        if (lang === "ta") return "யோகம் & ஆயுள்";
-        if (lang === "te") return "యోగం & ಆయుష్షు";
-        return "Yogas & Ayush";
+        if (lang === "kn") return "ಯೋಗ, ದೋಷ & ಆಯುಷ್ಯ";
+        if (lang === "hi") return "योग, दोष और आयु";
+        if (lang === "ta") return "யோகம், தோஷம் & ஆயுள்";
+        if (lang === "te") return "యోగం, దోషం & ಆಯುಷ್షు";
+        return "Yogas, Doshas & Ayush";
       case "gochara":
         if (lang === "kn") return "೧೫ ದಿನಗಳ ಗೋಚಾರ";
         if (lang === "hi") return "15 दिवसीय गोचर";
@@ -643,22 +656,41 @@ export default function BaggonaPredictionsPage(): JSX.Element {
 
           {tab === "planets" && (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {predictions.planets.map((sec, i) => (
-                <div
-                  key={`planet-${i}`}
-                  className="rounded-2xl border border-indigo-100 bg-gradient-to-b from-white to-indigo-50/10 p-4 shadow-sm transition-all hover:border-amber-500/25 hover:shadow-md"
-                >
-                  <h3 className="flex items-center gap-2 text-sm font-bold text-indigo-950">
-                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-500/10 text-xs text-amber-600">
-                      🪐
-                    </span>
-                    {sec.title}
-                  </h3>
-                  <p className="mt-2.5 text-xs leading-relaxed text-slate-700 md:text-sm text-justify">
-                    {sec.description}
-                  </p>
-                </div>
-              ))}
+              {predictions.planets.map((sec, i) => {
+                let cardColor = "border-amber-200 bg-amber-50/15";
+                let badgeColor = "bg-amber-100 text-amber-800";
+                if (sec.status === "positive") {
+                  cardColor = "border-emerald-200 bg-emerald-50/15";
+                  badgeColor = "bg-emerald-100 text-emerald-800";
+                } else if (sec.status === "caution") {
+                  cardColor = "border-rose-200 bg-rose-50/15";
+                  badgeColor = "bg-rose-100 text-rose-800";
+                }
+
+                return (
+                  <div
+                    key={`planet-${i}`}
+                    className={`rounded-2xl border p-4 shadow-sm transition-all hover:shadow-md ${cardColor}`}
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-2 pb-1.5 border-b border-black/5">
+                      <h3 className="flex items-center gap-2 text-xs font-extrabold text-indigo-950 uppercase tracking-wide">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-black/5 text-xs">
+                          🪐
+                        </span>
+                        {sec.title}
+                      </h3>
+                      {sec.score !== undefined && (
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${badgeColor}`}>
+                          {isKn ? `ಬಲ: ${sec.score}/100` : `Strength: ${sec.score}/100`}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs leading-relaxed text-slate-700 md:text-sm text-justify">
+                      {sec.description}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
           )}
 
@@ -670,30 +702,88 @@ export default function BaggonaPredictionsPage(): JSX.Element {
                 </p>
               </div>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                {predictions.houses.map((sec, i) => (
-                  <div
-                    key={`house-${i}`}
-                    className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:border-amber-500/20 hover:shadow-md"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-50 text-[10px] font-bold text-indigo-900">
-                        {i + 1}
-                      </span>
-                      <h3 className="text-xs font-extrabold text-indigo-950 uppercase tracking-wide">
-                        {sec.title}
-                      </h3>
+                {predictions.houses.map((sec, i) => {
+                  let cardColor = "border-amber-200 bg-amber-50/15";
+                  let badgeColor = "bg-amber-100 text-amber-800";
+                  if (sec.status === "positive") {
+                    cardColor = "border-emerald-200 bg-emerald-50/15";
+                    badgeColor = "bg-emerald-100 text-emerald-800";
+                  } else if (sec.status === "caution") {
+                    cardColor = "border-rose-200 bg-rose-50/15";
+                    badgeColor = "bg-rose-100 text-rose-800";
+                  }
+
+                  return (
+                    <div
+                      key={`house-${i}`}
+                      className={`rounded-2xl border p-4 shadow-sm transition-all hover:shadow-md flex flex-col justify-between ${cardColor}`}
+                    >
+                      <div>
+                        <div className="flex items-center justify-between gap-2 mb-3 pb-1.5 border-b border-black/5">
+                          <div className="flex items-center gap-2">
+                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-950 text-[10px] font-bold text-white">
+                              {i + 1}
+                            </span>
+                            <h3 className="text-xs font-extrabold text-indigo-950 uppercase tracking-wide">
+                              {sec.title}
+                            </h3>
+                          </div>
+                          {sec.score !== undefined && (
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${badgeColor}`}>
+                              {isKn ? `ಬಲ: ${sec.score}/100` : `Strength: ${sec.score}/100`}
+                            </span>
+                          )}
+                        </div>
+
+                        <p className="text-xs leading-relaxed text-slate-700 md:text-sm text-justify mb-3">
+                          {sec.description}
+                        </p>
+
+                        <div className="space-y-2 mt-3 pt-3 border-t border-dashed border-black/10">
+                          {sec.whatIsGood && (
+                            <div className="text-xs">
+                              <span className="font-bold text-emerald-800">{isKn ? "✨ ಸಕಾರಾತ್ಮಮ ಅಂಶಗಳು: " : "✨ Positive Influences: "}</span>
+                              <span className="text-slate-700">{sec.whatIsGood}</span>
+                            </div>
+                          )}
+
+                          {sec.whatIsWrong && (
+                            <div className="text-xs">
+                              <span className="font-bold text-rose-800">{isKn ? "⚠️ ಸವಾಲುಗಳು/ಅಡೆತಡೆಗಳು: " : "⚠️ Potential Challenges: "}</span>
+                              <span className="text-slate-700">{sec.whatIsWrong}</span>
+                            </div>
+                          )}
+
+                          {sec.worstPlanet && (
+                            <div className="text-xs">
+                              <span className="font-bold text-rose-900">{isKn ? "🪐 ಪೀಡಿತ ಗ್ರಹ: " : "🪐 Afflicted Graha: "}</span>
+                              <span className="text-rose-950 font-bold bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200/50 inline-block mt-0.5">{sec.worstPlanet}</span>
+                            </div>
+                          )}
+
+                          {sec.remedy && (
+                            <div className="text-xs bg-indigo-50/50 border border-indigo-100 rounded-lg p-2 mt-2">
+                              <span className="font-bold text-indigo-900">{isKn ? "📿 ಪರಿಹಾರ/ಆರಾಧನೆ: " : "📿 Remedy & Advice: "}</span>
+                              <span className="text-indigo-950 font-medium text-[11px] block mt-0.5">{sec.remedy}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <p className="mt-2 text-xs leading-relaxed text-slate-700 md:text-sm text-justify">
-                      {sec.description}
-                    </p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
 
           {tab === "yogas" && (
             <div className="space-y-4">
+              {/* Yogas Section */}
+              <div className="rounded-xl bg-amber-50/50 p-2 text-center border border-amber-500/15">
+                <p className="text-[11px] font-semibold text-amber-950 uppercase tracking-wide">
+                  {isKn ? "ಜಾತಕದಲ್ಲಿನ ಯೋಗಗಳು" : "Auspicious Yogas in Chart"}
+                </p>
+              </div>
               {predictions.yogas.map((sec, i) => (
                 <div
                   key={`yoga-${i}`}
@@ -707,6 +797,64 @@ export default function BaggonaPredictionsPage(): JSX.Element {
                   </p>
                 </div>
               ))}
+
+              {/* Doshas Section */}
+              <div className="rounded-xl bg-rose-50/50 p-2 text-center border border-rose-500/15 mt-6">
+                <p className="text-[11px] font-semibold text-rose-950 uppercase tracking-wide">
+                  {isKn ? "ದೋಷಗಳ ವಿಶ್ಲೇಷಣೆ (ಕುಜ ಮತ್ತು ಶನಿ ದೋಷ)" : "Dosha Evaluation (Kuja & Shani)"}
+                </p>
+              </div>
+              {predictions.doshas && predictions.doshas.map((sec, i) => {
+                let cardColor = "border-amber-200 bg-amber-50/15";
+                let badgeColor = "bg-amber-100 text-amber-800";
+                if (sec.status === "positive") {
+                  cardColor = "border-emerald-200 bg-emerald-50/15";
+                  badgeColor = "bg-emerald-100 text-emerald-800";
+                } else if (sec.status === "caution") {
+                  cardColor = "border-rose-200 bg-rose-50/15";
+                  badgeColor = "bg-rose-100 text-rose-800";
+                }
+
+                return (
+                  <div
+                    key={`dosha-${i}`}
+                    className={`rounded-2xl border p-4 shadow-sm transition-all hover:shadow-md ${cardColor}`}
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-2 pb-1.5 border-b border-black/5">
+                      <h3 className="flex items-center gap-2 text-sm font-bold text-indigo-950">
+                        <span>{sec.status === "caution" ? "⚠️" : "✨"}</span> {sec.title}
+                      </h3>
+                      {sec.score !== undefined && (
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${badgeColor}`}>
+                          {isKn ? `ಅಂಕ: ${sec.score}/100` : `Score: ${sec.score}/100`}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs leading-relaxed text-slate-800 md:text-sm text-justify">
+                      {sec.description}
+                    </p>
+                    {sec.whatIsWrong && sec.status === "caution" && (
+                      <div className="mt-2 text-xs">
+                        <span className="font-bold text-rose-800">{isKn ? "ತೊಂದರೆಗಳು: " : "Afflictions: "}</span>
+                        <span className="text-slate-700">{sec.whatIsWrong}</span>
+                      </div>
+                    )}
+                    {sec.remedy && sec.status === "caution" && (
+                      <div className="mt-2 text-xs bg-indigo-50/50 border border-indigo-100 rounded-lg p-2">
+                        <span className="font-bold text-indigo-900">{isKn ? "ಪರಿಹಾರ: " : "Remedy: "}</span>
+                        <span className="text-indigo-950 font-medium block mt-0.5">{sec.remedy}</span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+
+              {/* Longevity Section */}
+              <div className="rounded-xl bg-emerald-50/50 p-2 text-center border border-emerald-500/15 mt-6">
+                <p className="text-[11px] font-semibold text-emerald-950 uppercase tracking-wide">
+                  {isKn ? "ಆಯುಷ್ಯ ವಿಶ್ಲೇಷಣೆ" : "Ayush (Longevity) Evaluation"}
+                </p>
+              </div>
               {predictions.longevity.map((sec, i) => (
                 <div
                   key={`longevity-${i}`}
@@ -815,8 +963,8 @@ export default function BaggonaPredictionsPage(): JSX.Element {
                         />
                         <p className="mt-3 text-[10px] text-slate-500 text-center">
                           {isKn 
-                            ? "* ಲಗ್ನ (ಲ) ಮತ್ತು ಭಾವಗಳು ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನಕ್ಕೆ ಅನುಗುಣವಾಗಿವೆ."
-                            : "* Lagna (L) and houses are rendered relative to your birth Lagna."}
+                            ? "* ಲಗ್ನ (ಲ) ಸ್ಥಾನವನ್ನು ನಿಮ್ಮ ಜನ್ಮ ಚಂದ್ರ ರಾಶಿ (ಚಂದ್ರ ಲಗ್ನ) ಎಂದು ಪರಿಗಣಿಸಿ, ಭಾವಗಳನ್ನು ಪ್ರದಕ್ಷಿಣಾಕಾರವಾಗಿ (clockwise) ತೋರಿಸಲಾಗಿದೆ."
+                            : "* The Moon sign (Chandra Lagna) is set as the starting Lagna cell, with houses counting clockwise."}
                         </p>
                       </div>
                     </div>
@@ -849,6 +997,20 @@ export default function BaggonaPredictionsPage(): JSX.Element {
                               badgeClass = "bg-rose-100 text-rose-800";
                             }
 
+                            const getPlanetEnum = (name: string): PlanetName => {
+                              switch (name) {
+                                case "Sun": return PlanetName.Sun;
+                                case "Moon": return PlanetName.Moon;
+                                case "Mars": return PlanetName.Mars;
+                                case "Jupiter": return PlanetName.Jupiter;
+                                case "Saturn": return PlanetName.Saturn;
+                                default: return PlanetName.Sun;
+                              }
+                            };
+                            const pEnum = getPlanetEnum(pName);
+                            const isDashaLord = day.dashaLord === pEnum;
+                            const isBhuktiLord = day.bhuktiLord === pEnum;
+
                             return (
                               <div
                                 key={pName}
@@ -866,6 +1028,23 @@ export default function BaggonaPredictionsPage(): JSX.Element {
                                 <p className="text-xs leading-relaxed text-slate-700">
                                   {statusInfo.desc}
                                 </p>
+                                {(isDashaLord || isBhuktiLord) && (
+                                  <div className="mt-2.5 rounded-lg bg-amber-500/10 border border-amber-500/25 p-2 text-[10px] text-amber-900 font-bold leading-normal">
+                                    {isDashaLord && isBhuktiLord ? (
+                                      isKn 
+                                        ? `* ಈ ಗೋಚಾರವು ಅತ್ಯಂತ ಮುಖ್ಯವಾಗಿದೆ ಏಕೆಂದರೆ ${statusInfo.name} ಗ್ರಹವು ನಿಮ್ಮ ಸದ್ಯದ ಮಹಾದಶೆ ಮತ್ತು ಭುಕ್ತಿ ಎರಡರ ಅಧಿಪತಿಯಾಗಿದೆ. ಇದು ಫಲಗಳನ್ನು ತೀವ್ರವಾಗಿ ಸಕ್ರಿಯಗೊಳಿಸುತ್ತದೆ.`
+                                        : `* Highly Critical: ${pName} is both your active Mahadasha and Bhukti Lord. This transit will bring highly intensified events during this period.`
+                                    ) : isDashaLord ? (
+                                      isKn
+                                        ? `* ಈ ಗೋಚಾರವು ಪ್ರಮುಖವಾಗಿದೆ ಏಕೆಂದರೆ ${statusInfo.name} ನಿಮ್ಮ ಸದ್ಯದ ಮಹಾದಶಾದಿಪತಿಯಾಗಿದೆ. ಇದು ಈ ಅವಧಿಯ ಪ್ರಮುಖ ಘಟನೆಗಳನ್ನು ನೇರವಾಗಿ ಪ್ರಭಾವಿಸುತ್ತದೆ.`
+                                        : `* Significant: ${pName} is your active Mahadasha Lord. Its transit shapes the major theme of this period.`
+                                    ) : (
+                                      isKn
+                                        ? `* ${statusInfo.name} ನಿಮ್ಮ ಪ್ರಸ್ತುತ ಭುಕ್ತಿ (ಅಂತರ್ದಶೆ) ಅಧಿಪತಿಯಾಗಿರುವುದರಿಂದ, ಈ ಸಂಚಾರವು ತಕ್ಷಣದ ದೈನಂದಿನ ಫಲಗಳನ್ನು ನೀಡಲು ಸಕ್ರಿಯವಾಗಿರುತ್ತದೆ.`
+                                        : `* Active: ${pName} is your current Bhukti Lord, meaning this transit's day-to-day effects are actively manifesting.`
+                                    )}
+                                  </div>
+                                )}
                               </div>
                             );
                           })}

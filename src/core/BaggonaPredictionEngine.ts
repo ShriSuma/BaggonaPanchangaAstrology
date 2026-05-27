@@ -5,10 +5,20 @@ import { translateTexts } from "../services/translationService";
 import { generateBhuktiTimeline } from "./DashaBhuktiEngine";
 import { siderealLongitudes } from "./EphemerisEngine";
 import { degreeToRashi } from "./AstroMath";
+import { planetHouseScore, houseLordPlacementScore, lordOfHouse } from "./ChartPredictionKnowledge";
+import { signLord } from "./KundliInsightsEngine";
 
 export interface BaggonaPredictionSection {
   title: string;
   description: string;
+  score?: number;
+  status?: "positive" | "neutral" | "caution";
+  whatIsGood?: string;
+  whatIsWrong?: string;
+  remedy?: string;
+  worstPlanet?: string;
+  houseLord?: string;
+  occupants?: string;
 }
 
 export interface BaggonaPredictions {
@@ -17,6 +27,7 @@ export interface BaggonaPredictions {
   houses: BaggonaPredictionSection[];
   yogas: BaggonaPredictionSection[];
   longevity: BaggonaPredictionSection[];
+  doshas: BaggonaPredictionSection[];
 }
 
 export interface PersonalReadingSection {
@@ -497,6 +508,37 @@ export function generateBaggonaPredictions(
     let title = `${pName} - The Cosmic Guide`;
     let description = "";
 
+    const lord = signLord(rIdx);
+    const isOwnSign = lord === p.name;
+    const rel = isOwnSign ? null : naturalRelation(p.name, lord);
+
+    let baseScore = 60;
+    if (isExalted) {
+      baseScore += 30;
+    } else if (isDebilitated) {
+      baseScore -= 30;
+    } else if (isOwnSign) {
+      baseScore += 20;
+    } else if (rel === "mitra") {
+      baseScore += 10;
+    } else if (rel === "shatru") {
+      baseScore -= 15;
+    }
+
+    const house = p.house;
+    if ([1, 4, 7, 10].includes(house)) {
+      baseScore += 10;
+    } else if ([5, 9].includes(house)) {
+      baseScore += 10;
+    } else if ([6, 8, 12].includes(house)) {
+      if (!isExalted && !isOwnSign) {
+        baseScore -= 15;
+      }
+    }
+
+    const planetScore = Math.max(15, Math.min(98, baseScore));
+    const planetStatus = planetScore >= 70 ? "positive" : planetScore < 50 ? "caution" : "neutral";
+
     if (isKn) {
       title = `${pName} - ಆತ್ಮದ ಪ್ರೇರಕಶಕ್ತಿ`;
       if (isExalted) {
@@ -504,7 +546,7 @@ export function generateBaggonaPredictions(
       } else if (isDebilitated) {
         description = `${pName} ಗ್ರಹವು ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ${rName} ರಾಶಿಯಲ್ಲಿ ನೀಚ (ದುರ್ಬಲ) ಸ್ಥಾನದಲ್ಲಿದೆ. ಇದು ಜೀವನದಲ್ಲಿ ಶಿಸ್ತು, ಕಠಿಣ ಪರಿಶ್ರಮ ಮತ್ತು ಸಹನೆಯನ್ನು ಕಲಿಸುವ ಕಾಲವಾಗಿದೆ. ಈ ಗ್ರಹವು ${caste} ವರ್ಣವನ್ನು ಪ್ರತಿನಿಧಿಸುತ್ತದೆ ಮತ್ತು ${gender} ತತ್ವದ ಶಕ್ತಿಯನ್ನು ಹೊಂದಿದೆ. ಈ ಗ್ರಹದ ನಕಾರಾತ್ಮಕ ಪರಿಣಾಮಗಳನ್ನು ಕಡಿಮೆ ಮಾಡಲು ಹಾಗೂ ಒಳಗಿನ ಆತ್ಮಬಲವನ್ನು ಹೆಚ್ಚಿಸಲು ${temple} ಭಕ್ತಿಯಿಂದ ಆರಾಧಿಸುವುದು ಅತ್ಯಂತ ಶ್ರೇಯಸ್ಕರವಾಗಿದೆ. ಈ ಸ್ಥಾನದಿಂದಾಗಿ ನಿಮ್ಮಲ್ಲಿ ${appearance} ಸ್ವಭಾವಗಳು ಗೋಚರಿಸುತ್ತವೆ.`;
       } else {
-        description = `${pName} ಗ್ರಹವು ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ${rName} ರಾಶಿಯಲ್ಲಿ (ಭಾವ ${p.house} ರಲ್ಲಿ) ಸ್ಥಿರವಾಗಿ ನೆಲೆಸಿದೆ. ಇದು ನಿಮ್ಮ ಬದುಕಿನಲ್ಲಿ ಉತ್ತಮ ಸಮತೋಲನವನ್ನು ತರುತ್ತದೆ. ಈ ಗ್ರಹವು ${caste} ವರ್ಣವನ್ನು ಪ್ರತಿನಿಧಿಸುತ್ತದೆ ಮತ್ತು ${gender} ತತ್ವದ ಶಕ್ತಿಯನ್ನು ಹೊಂದಿದೆ. ನಿಮ್ಮ ದೈನಂದಿನ ಜೀವನದ ಶುಭಫಲಗಳಿಗಾಗಿ ${temple} ಭಕ್ತಿಯಿಂದ ಪ್ರಾರ್ಥಿಸುವುದು ನಿಮಗೆ ಸದಾ ಪ್ರಗತಿಯನ್ನು ನೀಡುತ್ತದೆ. ನಿಮ್ಮ ಸ್ವಭಾವವು ${appearance} ಯಿಂದ ಕೂಡಿರಲಿದೆ.`;
+        description = `${pName} ಗ್ರಹವು ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ${rName} ರಾಶಿಯಲ್ಲಿ (ಭಾವ ${p.house} ರಲ್ಲಿ) ಸ್ಥಿರವಾಗಿ ನೆಲೆಸಿದೆ. ಇದು ನಿಮ್ಮ ಬದುಕಿನಲ್ಲಿ ಉತ್ತಮ ಸಮತೋಲನವನ್ನು تರುತ್ತದೆ. ಈ ಗ್ರಹವು ${caste} ವರ್ಣವನ್ನು ಪ್ರತಿನಿಧಿಸುತ್ತದೆ ಮತ್ತು ${gender} ತತ್ವದ ಶಕ್ತಿಯನ್ನು ಹೊಂದಿದೆ. ನಿಮ್ಮ ದೈನಂದಿನ ಜೀವನದ ಶುಭಫಲಗಳಿಗಾಗಿ ${temple} ಭಕ್ತಿಯಿಂದ ಪ್ರಾರ್ಥಿಸುವುದು ನಿಮಗೆ ಸದಾ ಪ್ರಗತಿಯನ್ನು ನೀಡುತ್ತದೆ. ನಿಮ್ಮ ಸ್ವಭಾವವು ${appearance} ಯಿಂದ ಕೂಡಿರಲಿದೆ.`;
       }
     } else if (isHi) {
       title = `${pName} - कॉस्मिक मार्गदर्शक`;
@@ -526,7 +568,7 @@ export function generateBaggonaPredictions(
       description = `${pName} is ${statusPhrase} It belongs to the ${caste} caste, exhibits ${gender} energy, and represents the temple of Lord ${temple}. Physical and behavioral traits include: ${appearance}`;
     }
 
-    planets.push({ title, description });
+    planets.push({ title, description, score: planetScore, status: planetStatus });
   }
 
   // --- 3. 12 BHAVAS (DVADASHA BHAVA) ---
@@ -537,51 +579,259 @@ export function generateBaggonaPredictions(
       ? occupants.map((p) => getPlanetName(p.name)).join(", ")
       : "";
 
+    const lord = lordOfHouse(kundli, h);
+    const lordName = getPlanetName(lord);
+    const lordPl = kundli.planets.find(p => p.name === lord);
+    const lordRashiName = lordPl ? getRashiName(lordPl.rashi.index) : "";
+    const lordHouse = lordPl ? lordPl.house : 1;
+
+    let score = houseLordPlacementScore(kundli, h);
+    for (const p of occupants) {
+      score += planetHouseScore(p.name, p.house, p.rashi.index);
+    }
+    score = Math.max(-4, Math.min(4, score));
+    const status = score >= 1 ? "positive" : score <= -1 ? "caution" : "neutral";
+
+    // 100-point mapping
+    const getHouseScore100 = (s: number): number => {
+      if (s === -4) return 15;
+      if (s === -3) return 25;
+      if (s === -2) return 35;
+      if (s === -1) return 45;
+      if (s === 0) return 60;
+      if (s === 1) return 72;
+      if (s === 2) return 80;
+      if (s === 3) return 88;
+      return 96; // 4
+    };
+    const houseScore100 = getHouseScore100(score);
+
+    // Identify worst planet
+    let worstPlanetName = "";
+    let lowestPlanetScore = 100;
+    for (const p of occupants) {
+      const pScore = planetHouseScore(p.name, p.house, p.rashi.index);
+      if (pScore < lowestPlanetScore) {
+        lowestPlanetScore = pScore;
+        worstPlanetName = getPlanetName(p.name);
+      }
+    }
+    if (occupants.length === 0 && houseLordPlacementScore(kundli, h) <= -1) {
+      worstPlanetName = getPlanetName(lord);
+    }
+
+    let whatIsGood = "";
+    let whatIsWrong = "";
+    let remedy = "";
+
+    if (isKn) {
+      const knGoods = [
+        "ಉತ್ತಮ ದೈಹಿಕ ಆರೋಗ್ಯ, ಉನ್ನತ ಆತ್ಮವಿಶ್ವಾಸ, ಆಕರ್ಷಕ ವ್ಯಕ್ತಿತ್ವ ಮತ್ತು ದೃಢ ನಿರ್ಧಾರಗಳು.",
+        "ಸ್ಥಿರವಾದ ಹಣಕಾಸಿನ ಆದಾಯ, ಆಕರ್ಷಕ ಮಾತುಗಾರಿಕೆ ಕಲೆ, ಕೌಟುಂಬಿಕ ಸುಖ ಮತ್ತು ಆಸ್ತಿಯ ಲಾಭ.",
+        "ಅಸಾಧಾರಣ ಧೈರ್ಯ, ಉತ್ತಮ ಸಂವಹನ ಕಲೆ, ಸಹೋದರರಿಂದ ಸಹಾಯ ಮತ್ತು ಸ್ವಯಂ ಪ್ರಯತ್ನದಲ್ಲಿ ಯಶಸ್ಸು.",
+        "ತಾಯಿಯೊಂದಿಗೆ ಉತ್ತಮ ಬಾಂಧವ್ಯ, ಸ್ವಂತ ಮನೆ ಮತ್ತು ಸುಖಕರ ವಾಹನ ಯೋಗ, ನೆಮ್ಮದಿಯ ಜೀವನ.",
+        "ತೀಕ್ಷ್ಣ ಬುದ್ಧಿಶಕ್ತಿ, ಕಲಾತ್ಮಕ ಪ್ರತಿಭೆ, ಮಕ್ಕಳಿಂದ ಸಂತೋಷ ಮತ್ತು ಅದೃಷ್ಟದ ಒಲವು.",
+        "ಶತ್ರುಗಳು ಹಾಗೂ ಸ್ಪರ್ಧಿಗಳ ಮೇಲೆ ವಿಜಯ, ಸಾಲಮುಕ್ತ ಜೀವನ ಮತ್ತು ಉತ್ತಮ ರೋಗನಿರೋಧಕ ಶಕ್ತಿ.",
+        "ಉತ್ತಮ ಗುಣದ ಸಂಗಾತಿ, ಸುಖಕರ ವೈವಾಹಿಕ ಜೀವನ, ವ್ಯಾಪಾರ ಪಾಲುದಾರಿಕೆಯಲ್ಲಿ ಲಾಭ ಮತ್ತು ಸಾಮಾಜಿಕ ಗೌರವ.",
+        "ದೀರ್ಘಾಯುಷ್ಯ, ಅನಿರೀಕ್ಷಿತ ಧನಲಾಭ, ಆಧ್ಯಾತ್ಮಿಕ ಹಾಗೂ ಸಂಶೋಧನಾ ಜ್ಞಾನದ ವೃದ್ಧಿ.",
+        "ಉತ್ತಮ ಅದೃಷ್ಟ, ತಂದೆಯ ಸಂಪೂರ್ಣ ಬೆಂಬಲ, ಧರ್ಮ ಹಾಗೂ ಆಧ್ಯಾತ್ಮದಲ್ಲಿ ಆಸಕ್ತಿ, ಯಾತ್ರೆಯ ಸುಯೋಗ.",
+        "ಉದ್ಯೋಗದಲ್ಲಿ ತೇಜಸ್ಸು, ಪ್ರಮೋಷನ್ ಮತ್ತು ನಾಯಕತ್ವದ ಗುಣಗಳು, ಸಮಾಜದಲ್ಲಿ ಕೀರ್ತಿ ಹಾಗೂ ಗೌರವ.",
+        "ಹಲವಾರು ಮೂಲಗಳಿಂದ ಆದಾಯ, ಹಿರಿಯ ಸಹೋದರರಿಂದ ಲಾಭ, ಆಸೆಗಳ ಈಡೇರಿಕೆ ಮತ್ತು ಒಳ್ಳೆ ಸ್ನೇಹಿತರ ವಲಯ.",
+        "ಆಧ್ಯಾತ್ಮಿಕ ಉನ್ನತಿ, ವಿದೇಶ ಪ್ರಯಾಣದ ಯೋಗ, ಉತ್ತಮ ನಿದ್ರೆ ಹಾಗೂ ದಾನ-ಧರ್ಮಗಳಿಗೆ ಸದ್ವ್ಯಯ."
+      ];
+      const knWrongs = [
+        "ಪದೇ ಪದೇ ದೈಹಿಕ ಆಯಾಸ, ಸಣ್ಣಪುಟ್ಟ ಆರೋಗ್ಯ ಸಮಸ್ಯೆಗಳು, ನಂಬಿಕೆಯ ಕೊರತೆ ಮತ್ತು ಗೊಂದಲಮಯ ನಿರ್ಧಾರಗಳು.",
+        "ಆರ್ಥಿಕ ಹಿನ್ನಡೆಗಳು, ಕುಟುಂಬದಲ್ಲಿ ಭಿನ್ನಾಭಿಪ್ರಾಯಗಳು ಮತ್ತು ಕಣ್ಣಿನ ದೃಷ್ಟಿ ಅಥವಾ ಹಲ್ಲುಗಳ ತೊಂದರೆ.",
+        "ಸಹೋದರರೊಂದಿಗೆ ಭಿನ್ನಾಭಿಪ್ರಾಯಗಳು, ಮಾನಸಿಕ ಅಂಜಿಕೆ, ನಿಷ್ಪ್ರಯೋಜಕ ಪ್ರಯಾಣಗಳು ಮತ್ತು ಕಠಿಣ ಶ್ರಮಕ್ಕೆ ವಿಳಂಬ ಫಲ.",
+        "ತಾಯಿಯ ಆರೋಗ್ಯದ ಏರುಪೇರು, ಮನೆ ಅಥವಾ ಆಸ್ತಿಗೆ ಸಂಬಂಧಿಸಿದ ವಿವಾದಗಳು, ಮಾನಸಿಕ ನೆಮ್ಮದಿಯ ಕೊರತೆ.",
+        "ಸಂತಾನ ಭಾಗ್ಯದಲ್ಲಿ ವಿಳಂಬ ಅಥವಾ ಮಕ್ಕಳ ಆರೋಗ್ಯದ ಕಾಳಜಿ, ಶಿಕ್ಷಣದಲ್ಲಿ ಏಕಾಗ್ರತೆಯ ಕೊರತೆ, ಜೂಜಾಟದಲ್ಲಿ ನಷ್ಟ.",
+        "ಸಾಲಬಾಧೆ ಹೆಚ್ಚಾಗುವುದು, ದೀರ್ಘಕಾಲದ ಆರೋಗ್ಯ समस्याಗಳು, ನಂಬಿದವರಿಂದ ಮೋಸ ಹಾಗೂ ಕೋರ್ಟ್ ವ್ಯವಹಾರಗಳ ಚಿಂತೆ.",
+        "ವೈವಾಹಿಕ ಜೀವನದಲ್ಲಿ ಸಾಮರಸ್ಯದ ಕೊರತೆ, ಮದುವೆಯಲ್ಲಿ ವಿಳಂಬ, ವ್ಯಾಪಾರಸ್ಥರಲ್ಲಿ ಗೊಂದಲಗಳು.",
+        "ಅನಿರೀಕ್ಷಿತ ಸವಾಲುಗಳು, ಅಪಘಾತಗಳ ಭಯ, ದೀರ್ಘಕಾಲದ ದೈಹಿಕ ಅಸ್ವಸ್ಥತೆ ಮತ್ತು ವಿಪರೀತ ಮಾನಸಿಕ ಬೇಸರ.",
+        "ಅವಕಾಶಗಳು ಕೈತಪ್ಪುವುದು, ತಂದೆಯೊಂದಿಗೆ ಭಿನ್ನಾಭಿಪ್ರಾಯಗಳು, ಉನ್ನತ ಶಿಕ್ಷಣದಲ್ಲಿ ಅಡೆತಡೆಗಳು.",
+        "ಉದ್ಯೋಗದಲ್ಲಿ ಅಸ್ಥಿರತೆ, ಉದ್ಯೋಗ ನಷ್ಟದ ಭೀತಿ, ಕಠಿಣ ಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಮನ್ನಣೆ ಸಿಗದಿರುವುದು.",
+        "ಆದಾಯದಲ್ಲಿ ಏರಿಳಿತಗಳು, ಧನ ನಷ್ಟದ ಮುನ್ಸೂಚನೆ, ನಂಬಿದ ಸ್ನೇಹಿತರಿಂದ ವಂಚನೆ.",
+        "ಅತಿಯಾದ ಹಣಕಾಸಿನ ಖರ್ಚು, ಆಸ್ಪತ್ರೆ ವೆಚ್ಚಗಳು, ನಿದ್ರಾಹೀನತೆ ಮತ್ತು ಒಂಟಿತನದ ಭಾವನೆ."
+      ];
+      const knRemedies = [
+        "ಪ್ರತಿದಿನ ಬೆಳಿಗ್ಗೆ ಸೂರ್ಯನಿಗೆ ತರ್ಪಣ ನೀಡಿ ಅಥವಾ ಶಿವನಿಗೆ ಜಲಾಭಿಷೇಕ ಮಾಡಿ.",
+        "ಶುಕ್ರವಾರದಂದು ಮಹಾಲಕ್ಷ್ಮಿ ದೇವಿಗೆ ಪ್ರಾರ್ಥನೆ ಸಲ್ಲಿಸಿ ಹಾಗೂ ಹಸುವಿಗೆ ಹುಲ್ಲು ನೀಡಿ.",
+        "ಮಂಗಳವಾರದಂದು ಆಂಜನೇಯ ಸ್ವಾಮಿ ದೇವಸ್ಥಾನಕ್ಕೆ ಭೇಟಿ ನೀಡಿ ಪ್ರಾರ್ಥಿಸಿ.",
+        "ತಾಯಿಯ ಆಶೀರ್ವಾದ ಪಡೆಯಿರಿ ಮತ್ತು ಸೋಮವಾರದಂದು ದುರ್ಗಾ ದೇವಿಯನ್ನು ಆರಾಧಿಸಿ.",
+        "ಪ್ರತಿದಿನ ಗಣಪತಿಗೆ ಪ್ರಾರ್ಥನೆ ಮಾಡಿ ಹಾಗೂ ಗಾಯತ್ರಿ ಮಂತ್ರ ಜಪಿಸಿ.",
+        "ಸುಬ್ರಹ್ಮಣ್ಯ ಸ್ವಾಮಿಯ ಆರಾಧನೆ ಮಾಡಿ ಹಾಗೂ ಶನಿವಾರದಂದು ಬೀದಿ ನಾಯಿಗಳಿಗೆ ಆಹಾರ ನೀಡಿ.",
+        "ಶಿವ-ಪಾರ್ವತಿ ಕಲ್ಯಾಣ ಆರಾಧನೆ ಮಾಡಿ ಹಾಗೂ ಶುಕ್ರವಾರ ದೇವಸ್ಥಾನಕ್ಕೆ ಭೇಟಿ ನೀಡಿ.",
+        "ಮಹಾಮೃತ್ಯುಂಜಯ ಮಂತ್ರವನ್ನು ಜಪಿಸಿ ಅಥವಾ ಕಾಲಭೈರವನ ಆರಾಧನೆ ಮಾಡಿ.",
+        "ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಪಠಣ ಮಾಡಿ ಮತ್ತು ನಿಮ್ಮ ಗುರು ಹಿರಿಯರನ್ನು ಗೌರವಿಸಿ.",
+        "ಶನಿವಾರ ಶನಿದೇವನಿಗೆ ಎಳ್ಳೆಣ್ಣೆ ದೀಪ ಹಚ್ಚಿ ಹಾಗೂ ಬಡವರಿಗೆ ಸಹಾಯ ಮಾಡಿ.",
+        "ಪಕ್ಷಿಗಳಿಗೆ ಧಾನ್ಯಗಳನ್ನು ಹಾಕಿ ಹಾಗೂ ದಾನ ಧರ್ಮಗಳನ್ನು ಮಾಡಿ.",
+        "ದಾನ ಶಾಲೆಗಳಿಗೆ ಅಥವಾ ಅನಾಥಾಲಯಕ್ಕೆ ಸಹಾಯ ಮಾಡಿ ಹಾಗೂ ಮಲಗುವ ಮುನ್ನ ಧ್ಯಾನ ಮಾಡಿ."
+      ];
+
+      whatIsGood = knGoods[h - 1]!;
+      whatIsWrong = knWrongs[h - 1]!;
+      remedy = knRemedies[h - 1]!;
+    } else if (isHi) {
+      const hiGoods = [
+        "उत्कृष्ट शारीरिक स्वास्थ्य, मजबूत इच्छाशक्ति, आत्मविश्वास से भरपूर दृष्टिकोण और आकर्षक व्यक्तित्व।",
+        "स्थिर धन संचय, मधुर और प्रभावशाली वाणी, पारिवारिक सुख और संपत्ति का लाभ।",
+        "अदम्य साहस, उत्कृष्ट संचार कौशल, छोटे भाई-बहनों का सहयोग और आत्म-प्रयासों में सफलता।",
+        "माता के साथ गहरा प्रेम, सुखद वाहन और गृह सुख, मानसिक शांति।",
+        "तेज बुद्धि, कलात्मक प्रतिभा, बच्चों से सुख और पूर्व जन्म के पुण्यों से भाग्य का साथ।",
+        "शत्रुओं पर विजय, मजबूत रोग प्रतिरोधक क्षमता, ऋणमुक्ति और व्यावसायिक उत्कृष्टता।",
+        "प्यारा और सहयोगी जीवनसाथी, सुखी वैवाहिक जीवन, साझेदारी के व्यवसाय में लाभ और सामाजिक मान-सम्मान।",
+        "दीर्घायु, अचानक धन लाभ या पैतृक संपत्ति, गहन अनुसंधान या गुप्त विधाओं में रुचि।",
+        "उत्कृष्ट भाग्य, पिता का सहयोग, धर्म और अध्यात्म में रुचि, तीर्थयात्रा का योग।",
+        "करियर में तीव्र प्रगति, व्यावसायिक नेतृत्व, समाज में उच्च पद-प्रतिष्ठा और मान-सम्मान।",
+        "आय के एक से अधिक स्रोत, बड़े भाई-बहनों से लाभ, इच्छाओं की पूर्ति और अच्छा मित्र मंडली।",
+        "आद्यात्मिक उन्नति, विदेश यात्रा या प्रवास के योग, गहरी नींद और पुण्य कार्यों में व्यय।"
+      ];
+      const hiWrongs = [
+        "शारीरिक कमजोरी, थकान, आत्मविश्वास की कमी और जीवन में सही दिशा का अभाव।",
+        "अचानक वित्तीय नुकसान, पारिवारिक विवाद, वाणी दोष या नेत्र/दंत पीड़ा।",
+        "भाई-बहनों से वैचारिक मतभेद, मानसिक भय, व्यर्थ की यात्राएं और प्रयासों के फल में देरी।",
+        "माता के स्वास्थ्य में उतार-चढ़ाव, संपत्ति या भूमि विवाद, घरेलू कलह और मानसिक चिंता।",
+        "संतान पक्ष को लेकर चिंता, शिक्षा में बाधा, सट्टा या शेयर बाजार में अप्रत्याशित नुकसान।",
+        "सजा या ऋण का बढ़ना, पुरानी बीमारियां, कानूनी विवाद और गुप्त शत्रुओं की परेशानी।",
+        "दांपत्य जीवन में तनाव, विवाह में देरी, व्यापारिक साझेदार से मतभेद।",
+        "अचानक आने वाली बाधाएं, दुर्घटना का भय, दीर्घकालिक बीमारियां और मानसिक अवसाद।",
+        "महत्वपूर्ण समय पर भाग्य का साथ न मिलना, पिता से अनबन, उच्च शिक्षा में रुकावटें।",
+        "नौकरी में अस्थिरता, पद खोने का भय, वरिष्ठ अधिकारियों से मतभेद और असंतोष।",
+        "आय में अनिश्चितता, महत्वाकांक्षाओं का पूरा न होना, मित्रों से विश्वासघात।",
+        "अनावश्यक रूप से अत्यधिक खर्च, अस्पताल का व्यय, अनिद्रा और अकेलापन।"
+      ];
+      const hiRemedies = [
+        "रोज सुबह सूर्य को अर्घ्य दें या भगवान शिव का जलाभिषेक करें।",
+        "शुक्रवार को देवी लक्ष्मी की पूजा करें और गाय को हरी घास खिलाएं।",
+        "मंगलवार को हनुमान चालीसा का पाठ करें और भाई-बहनों की मदद करें।",
+        "माता का आशीर्वाद लें और सोमवार को मां दुर्गा की पूजा करें।",
+        "भगवान गणेश की आराधना करें और गायत्री मंत्र का जाप करें।",
+        "भगवान कार्तिकेय की पूजा करें और शनिवार को कुत्ते को भोजन दें।",
+        "शिव-पार्वती की संयुक्त पूजा करें और शुक्रवार को मिठाई का दान करें।",
+        "महामृत्युंजय मंत्र का जाप करें या काल भैरव की आराधना करें।",
+        "विष्णु सहस्रनाम का पाठ करें और गुरुजनों का आदर करें।",
+        "शनिवार को शनि देव के मंदिर में सरसों के तेल का दीपक जलाएं।",
+        "पक्षियों को दाना डालें और गरीबों की सहायता करें।",
+        "अनाथालय में दान दें और सोने से पहले ध्यान (मेडिटेशन) करें।"
+      ];
+
+      whatIsGood = hiGoods[h - 1]!;
+      whatIsWrong = hiWrongs[h - 1]!;
+      remedy = hiRemedies[h - 1]!;
+    } else {
+      const enGoods = [
+        "Excellent physical health, strong self-confidence, magnetic personality, and clear determination.",
+        "Steady wealth accumulation, persuasive and sweet speech, family harmony, and ancestral asset gains.",
+        "Exceptional courage, clear communication skills, support from siblings, and success in self-efforts.",
+        "Deep emotional bond with mother, luxury vehicles, comfortable real estate assets, and mental peace.",
+        "Sharp intellect, creative talents, success/happiness from children, and past-life luck support.",
+        "Victory over rivals, robust immunity, capability to clear debts, and dedicated work service.",
+        "Loving and supportive spouse, happy marriage, highly profitable partnerships, and respect in society.",
+        "Long lifespan, sudden financial gains/inheritance, interest in deep research or occult sciences.",
+        "Strong fortune, active support from father, spiritual/dharmic inclination, and travel success.",
+        "Rapid career growth, professional leadership, high status in society, and honors.",
+        "Multiple streams of income, gains from elder siblings, fulfillment of long-term desires, and good friends.",
+        "Spiritual progress, foreign travel/settlement success, peaceful sleep, and charity expenditures."
+      ];
+      const enWrongs = [
+        "Physical fatigue, minor health issues, lack of self-confidence, and feeling of confusion.",
+        "Unexpected financial delays, disputes within family, speech challenges, and eye/teeth concerns.",
+        "Friction with siblings, sudden anxiety, fruitlessness of travels, and delayed outcomes of hard work.",
+        "Mother's weak health, property or land disputes, vehicle maintenance issues, and domestic stress.",
+        "Delay or concerns about children, academic setbacks, and financial losses in speculative actions.",
+        "Mounting debts, chronic health issues, legal worries, and hidden enemies causing stress.",
+        "Marital friction, delay in marriage, partnership trust issues, and public misunderstandings.",
+        "Sudden obstacles, risk of minor accidents, prolonged health concerns, and emotional blockages.",
+        "Lack of luck at critical times, differences with father, delayed higher studies, or travel fatigue.",
+        "Career instability, job loss worries, lack of professional appreciation, and friction with superiors.",
+        "Income fluctuations, delays in dream fulfillment, betrayal by friends, or sibling disputes.",
+        "High hospital expenses, uncontrolled waste of money, sleep disorders, and isolation."
+      ];
+      const enRemedies = [
+        "Offer Arghya to the Sun at sunrise or perform water offering to Lord Shiva.",
+        "Worship Goddess Lakshmi on Fridays and feed green grass to cows.",
+        "Recite Hanuman Chalisa on Tuesdays and assist younger siblings.",
+        "Respect your mother daily and worship Goddess Durga on Mondays.",
+        "Pray to Lord Ganesha daily and chant the Gayatri Mantra.",
+        "Worship Lord Subramanya (Kartikeya) and feed stray dogs on Saturdays.",
+        "Worship Lord Shiva and Goddess Parvati together, and donate sweets on Fridays.",
+        "Chant the Mahamrityunjaya Mantra or worship Lord Kala Bhairava.",
+        "Recite Sri Vishnu Sahasranama and respect your teachers/elders.",
+        "Light a sesame oil lamp for Lord Saturn on Saturdays and perform selfless service.",
+        "Feed birds with grains and contribute to charitable causes.",
+        "Donate to orphanages or shelter homes, and practice meditation before sleep."
+      ];
+
+      whatIsGood = enGoods[h - 1]!;
+      whatIsWrong = enWrongs[h - 1]!;
+      remedy = enRemedies[h - 1]!;
+    }
+
     let title = "";
     let description = "";
 
     if (isKn) {
       title = BHAVA_NAMES_KN[h - 1]!;
       const sigs = BHAVA_SIGNIFICATIONS_KN[h - 1]!;
-      if (occupants.length > 0) {
-        const hasBenefics = occupants.some(p => p.name === PN.Jupiter || p.name === PN.Venus || p.name === PN.Moon || p.name === PN.Mercury);
-        if (hasBenefics) {
-          description = `ಈ ಭಾವವು ${sigs} ಸೂಚಿಸುತ್ತದೆ. ಪ್ರಸ್ತುತ ಈ ಭಾವದಲ್ಲಿ ${occupantsStr} ರವರ ಶುಭ ಪ್ರಭಾವವಿದೆ. ಈ ಶುಭ ಗ್ರಹಗಳ ಇರುವಿಕೆಯು ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಈ ಕ್ಷೇತ್ರಗಳಿಗೆ ಸಂಬಂಧಿಸಿದಂತೆ ಸಮೃದ್ಧಿ, ಸೌಂದರ್ಯ ಮತ್ತು ಹರ್ಷದಾಯಕ ಪ್ರಗತಿಯನ್ನು ಕರುಣಿಸುತ್ತದೆ.`;
-        } else {
-          description = `ಈ ಭಾವವು ${sigs} ಸೂಚಿಸುತ್ತದೆ. ಪ್ರಸ್ತುತ ಇಲ್ಲಿ ${occupantsStr} ರವರ ತೀಕ್ಷ್ಣ ಪ್ರಭಾವವಿದೆ. ಇದು ನಿಮ್ಮ ಬದುಕಿನಲ್ಲಿ ಈ ಕ್ಷೇತ್ರಗಳಿಗೆ ಹೆಚ್ಚಿನ ಶಿಸ್ತು, ಪರಿಶ್ರಮ ಮತ್ತು ಸವಾಲುಗಳನ್ನು ಜಯಿಸುವ ಅದ್ಭುತ ಶಕ್ತಿಯನ್ನು ನೀಡುತ್ತದೆ.`;
-        }
+      let lordText = `ಈ ಭಾವದ ಅಧಿಪತಿ ${lordName} ಗ್ರಹವಾಗಿದ್ದು, ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ${lordHouse}ನೇ ಮನೆಯಲ್ಲಿ (${lordRashiName} ರಾಶಿಯಲ್ಲಿ) ನೆಲೆಸಿದ್ದಾರೆ. `;
+      let occupantText = occupants.length > 0
+        ? `ಈ ಭಾವದಲ್ಲಿ ${occupantsStr} ರವರ ಉಪಸ್ಥಿತಿಯಿದೆ. `
+        : `ಈ ಭಾವದಲ್ಲಿ ಯಾವುದೇ ಗ್ರಹಗಳು ನೆಲೆಸಿಲ್ಲ, ಇದು ಶಾಂತವಾಗಿದೆ. `;
+      let analysisText = "";
+      if (status === "positive") {
+        analysisText = `ಇದು ಅತ್ಯಂತ ಬಲಶಾಲಿ ಭಾವವಾಗಿದ್ದು, ಜಾತಕದ ಈ ಭಾಗಕ್ಕೆ ಹೆಚ್ಚಿನ ಶುಭ ಫಲಗಳನ್ನು ತರುತ್ತದೆ. ನಿಮಗೆ ${sigs} ಕ್ಷೇತ್ರಗಳಲ್ಲಿ ಯಶಸ್ಸು, ಸಂಪತ್ತು ಮತ್ತು ಸಂತೋಷ ಸಿಗಲಿದೆ.`;
+      } else if (status === "caution") {
+        analysisText = `ಈ ಭಾವವು ಸವಾಲುಗಳು ಮತ್ತು ಶ್ರಮವನ್ನು ಸೂಚಿಸುತ್ತದೆ. ${sigs} ವಿಷಯಗಳಲ್ಲಿ ಅಡೆತಡೆಗಳು, ಖರ್ಚುಗಳು ಅಥವಾ ಕಳವಳಗಳು ಕಾಣಿಸಿಕೊಳ್ಳಬಹುದು. ಪರಿಹಾರಕ್ಕಾಗಿ ಸೂಕ್ತ ದೈವಾರಾಧನೆ ಮತ್ತು ತಾಳ್ಮೆ ಅತ್ಯಗತ್ಯ.`;
       } else {
-        description = `ಈ ಭಾವವು ${sigs} ಸೂಚಿಸುತ್ತದೆ. ಈ ಮನೆಯಲ್ಲಿ ಯಾವುದೇ ಗ್ರಹಗಳಿಲ್ಲದ ಕಾರಣ, ಇದು ಪ್ರಶಾಂತವಾಗಿದೆ. ಈ ಭಾವದ ಅಧಿಪತಿಯ ರಕ್ಷಣಾತ್ಮಕ ನೋಟದಿಂದಾಗಿ ಇಲ್ಲಿನ ವಿಷಯಗಳು ಕಾಲಕ್ಕೆ ತಕ್ಕಂತೆ ನೈಸರ್ಗಿಕವಾಗಿ ಮತ್ತು ಸಕಾರಾತ್ಮಕವಾಗಿ ವೃದ್ಧಿಯಾಗಲಿವೆ.`;
+        analysisText = `ಈ ಭಾವವು ಮಧ್ಯಮ ಹಾಗೂ ಸಮತೋಲಿತವಾಗಿದೆ. ${sigs} ವಿಷಯಗಳು ನಿಮ್ಮ ಸ್ವಂತ ಪ್ರಯತ್ನದಿಂದ ಹಂತಹಂತವಾಗಿ ಸುಧಾರಿಸುತ್ತವೆ. ಕಠಿಣ ಪರಿಶ್ರಮ ಮತ್ತು ನಿಯಮಿತ ದಿನಚರಿ ಸಕಾರಾತ್ಮಕತೆಯನ್ನು ತರುತ್ತದೆ.`;
       }
+      description = `ಭಾವ ವಿವರಣೆ: ಈ ಭಾವವು ${sigs} ಸೂಚಿಸುತ್ತದೆ. ${lordText}${occupantText}${analysisText}`;
     } else if (isHi) {
       title = BHAVA_NAMES_HI[h - 1]!;
       const sigs = BHAVA_SIGNIFICATIONS_HI[h - 1]!;
-      if (occupants.length > 0) {
-        const hasBenefics = occupants.some(p => p.name === PN.Jupiter || p.name === PN.Venus || p.name === PN.Moon || p.name === PN.Mercury);
-        if (hasBenefics) {
-          description = `यह भाव ${sigs} दर्शाता है। वर्तमान में इस भाव में ${occupantsStr} की शुभ उपस्थिति है। इन कल्याणकारी ग्रहों की कृपा से आपके जीवन के इस क्षेत्र में सुख, समृद्धि और निरंतर उन्नति का मार्ग प्रशस्त होगा।`;
-        } else {
-          description = `यह भाव ${sigs} दर्शाता है। वर्तमान में इस भाव में ${occupantsStr} की सक्रिय ऊर्जा का प्रभाव है। यह आपको संबंधित क्षेत्रों में अधिक अनुशासित रहने, संघर्ष करने और अंततः विजय प्राप्त करने की शक्ति प्रदान करेगा।`;
-        }
+      let lordText = `इस भाव के स्वामी ${lordName} हैं, जो आपकी कुंडली के ${lordHouse}वें भाव (${lordRashiName} राशि) में स्थित हैं। `;
+      let occupantText = occupants.length > 0
+        ? `इस भाव में ${occupantsStr} विराजमान हैं। `
+        : `यह भाव वर्तमान में रिक्त है। `;
+      let analysisText = "";
+      if (status === "positive") {
+        analysisText = `यह अत्यंत शुभ और मजबूत भाव है। आपको ${sigs} के क्षेत्रों में सफलता, धन और अनुकूल परिणाम प्राप्त होंगे।`;
+      } else if (status === "caution") {
+        analysisText = `यह भाव कुछ चुनौतियों को दर्शाता है। ${sigs} से संबंधित मामलों में संघर्ष, व्यय या विलंब देखने को मिल सकता है।`;
       } else {
-        description = `यह भाव ${sigs} दर्शाता है। इस भाव में कोई ग्रह न होने से यह स्थान रिक्त और शांत है। इसके स्वामी ग्रह के अनुकूल प्रभाव से आपके जीवन में इस क्षेत्र का विकास प्राकृतिक, संतुलित और शुभ रहेगा।`;
+        analysisText = `यह भाव सामान्य और संतुलित है। ${sigs} के मामले आपके व्यक्तिगत प्रयासों से धीरे-धीरे सुधरेंगे।`;
       }
+      description = `भाव फल: यह भाव ${sigs} को दर्शाता है। ${lordText}${occupantText}${analysisText}`;
     } else {
       title = BHAVA_NAMES_EN[h - 1]!;
       const sigs = BHAVA_SIGNIFICATIONS_EN[h - 1]!;
-      if (occupants.length > 0) {
-        const hasBenefics = occupants.some(p => p.name === PN.Jupiter || p.name === PN.Venus || p.name === PN.Moon || p.name === PN.Mercury);
-        if (hasBenefics) {
-          description = `This house governs ${sigs}. The gentle presence of ${occupantsStr} here acts as a source of harmony, joy, and growth, encouraging ease and success in these areas of your life.`;
-        } else {
-          description = `This house governs ${sigs}. The presence of ${occupantsStr} introduces a highly active, challenging energy, prompting you to build resilience, work diligently, and overcome obstacles.`;
-        }
+      let lordText = `The lord of this house is ${lordName}, placed in House ${lordHouse} (${lordRashiName} Rashi). `;
+      let occupantText = occupants.length > 0
+        ? `It is occupied by ${occupantsStr}. `
+        : `It is unoccupied. `;
+      let analysisText = "";
+      if (status === "positive") {
+        analysisText = `This indicates a very strong and auspicious house. You will experience significant ease, progress, and success in matters related to ${sigs.toLowerCase()}.`;
+      } else if (status === "caution") {
+        analysisText = `This indicates a challenging or afflicted house. You may face obstacles, delayed results, or friction in matters related to ${sigs.toLowerCase()}. Guard against rash decisions and practice patience.`;
       } else {
-        description = `This house governs ${sigs}. It is currently unoccupied, indicating a quiet and steady development of these matters under the supportive aspect of the house lord.`;
+        analysisText = `This house has average, balanced strength. Matters of ${sigs.toLowerCase()} will progress steadily based on your personal effort and continuous application.`;
       }
+      description = `Signification: This house governs ${sigs}. ${lordText}${occupantText}${analysisText}`;
     }
 
-    houses.push({ title, description });
+    houses.push({
+      title,
+      description,
+      score: houseScore100,
+      status,
+      whatIsGood,
+      whatIsWrong,
+      remedy,
+      worstPlanet: worstPlanetName,
+      houseLord: lordName,
+      occupants: occupantsStr
+    });
   }
 
   // --- 4. YOGAS & AYUSH ---
@@ -696,12 +946,121 @@ export function generateBaggonaPredictions(
 
   longevity.push({ title, description });
 
+  // --- 5. DOSHA CHECK (KUJA DOSHA & SHANI DOSHA) ---
+  const doshas: BaggonaPredictionSection[] = [];
+
+  const mars = kundli.planets.find((p) => p.name === PN.Mars);
+  const moon = kundli.planets.find((p) => p.name === PN.Moon);
+  const venus = kundli.planets.find((p) => p.name === PN.Venus);
+  const saturn = kundli.planets.find((p) => p.name === PN.Saturn);
+
+  if (mars) {
+    const marsLagnaHouse = mars.house;
+    const marsMoonHouse = moon ? ((mars.rashi.index - moon.rashi.index + 12) % 12 + 1) : 1;
+    const marsVenusHouse = venus ? ((mars.rashi.index - venus.rashi.index + 12) % 12 + 1) : 1;
+
+    const fromLagna = [1, 2, 4, 7, 8, 12].includes(marsLagnaHouse);
+    const fromMoon = [1, 2, 4, 7, 8, 12].includes(marsMoonHouse);
+    const fromVenus = [1, 2, 4, 7, 8, 12].includes(marsVenusHouse);
+
+    const hasKujaDosha = fromLagna || fromMoon || fromVenus;
+
+    let kujaTitle = isKn ? "ಮಂಗಳ ದೋಷ (ಕುಜ ದೋಷ) ವಿಶ್ಲೇಷಣೆ" : isHi ? "मंगल दोष (कुज दोष) विश्लेषण" : "Kuja Dosha (Manglik) Analysis";
+    let kujaDesc = "";
+    let kujaStatus: "positive" | "neutral" | "caution" = "neutral";
+    let kujaScore = 100;
+
+    if (hasKujaDosha) {
+      kujaStatus = "caution";
+      kujaScore = 35; // Red status
+
+      const detailsEn = [];
+      const detailsKn = [];
+      const detailsHi = [];
+      if (fromLagna) { detailsEn.push(`Lagna (House ${marsLagnaHouse})`); detailsKn.push(`ಲಗ್ನದಿಂದ (${marsLagnaHouse}ನೇ ಮನೆ)`); detailsHi.push(`लग्न से (${marsLagnaHouse}वां भाव)`); }
+      if (fromMoon) { detailsEn.push(`Moon (House ${marsMoonHouse})`); detailsKn.push(`ಚಂದ್ರನಿಂದ (${marsMoonHouse}ನೇ ಮನೆ)`); detailsHi.push(`चंद्र से (${marsMoonHouse}वां भाव)`); }
+      if (fromVenus) { detailsEn.push(`Venus (House ${marsVenusHouse})`); detailsKn.push(`ಶುಕ್ರನಿಂದ (${marsVenusHouse}ನೇ ಮನೆ)`); detailsHi.push(`शुक्र से (${marsVenusHouse}वां भाव)`); }
+
+      if (isKn) {
+        kujaDesc = `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಮಂಗಳ ಗ್ರಹದ ಪ್ರಭಾವದಿಂದಾಗಿ ಕುಜ ದೋಷ ಕಂಡುಬರುತ್ತದೆ. ಇದು ${detailsKn.join(", ")} ರೂಪುಗೊಂಡಿದೆ. ಸಾಂಪ್ರದಾಯಿಕ ವೈದಿಕ ನಿಯಮಗಳ ಪ್ರಕಾರ, ಕುಜ ದೋಷವು ಮದುವೆಯಲ್ಲಿ ವಿಳಂಬ, ಸಂಗಾತಿಯೊಂದಿಗೆ ಸಣ್ಣಪುಟ್ಟ ಭಿನ್ನಾಭಿಪ್ರಾಯಗಳು ಅಥವಾ ಕೋಪದ ಪ್ರವೃತ್ತಿಯನ್ನು ತರಬಹುದು. ಪರಿಹಾರಕ್ಕಾಗಿ ಪ್ರತಿದಿನ ಆಂಜನೇಯ ಸ್ವಾಮಿಯನ್ನು ಪ್ರಾರ್ಥಿಸಿ, ಮಂಗಳವಾರ ಸುಬ್ರಹ್ಮಣ್ಯ ಸ್ವಾಮಿಗೆ ಪೂಜೆ ಸಲ್ಲಿಸಿ ಮತ್ತು ಕೆಂಪು ಮಸೂರ ಬೇಳೆಯನ್ನು ದಾನ ಮಾಡಿ.`;
+      } else if (isHi) {
+        kujaDesc = `आपकी कुंडली में मंगल के प्रभाव के कारण कुज दोष (मांगलिक दोष) पाया गया है। यह स्थिति ${detailsHi.join(", ")} बनी है। ज्योतिष शास्त्र के अनुसार, इसके प्रभाव से विवाह में देरी, वैचारिक मतभेद या अधिक क्रोध आ सकता है। निवारण के लिए हनुमान चालीसा का पाठ करें, मंगलवार को कार्तिकेय जी की आराधना करें और मसूर दाल का दान करें।`;
+      } else {
+        kujaDesc = `Kuja Dosha (Manglik Dosha) is observed in your chart due to the placement of Mars from ${detailsEn.join(", ")}. In Vedic astrology, this can bring intensity to relationships, potential marriage delays, or sudden disagreements. Remedies include worshipping Lord Hanuman daily, performing Kartikeya pooja on Tuesdays, and donating red lentils.`;
+      }
+    } else {
+      kujaStatus = "positive";
+      kujaScore = 95; // Green status
+      if (isKn) {
+        kujaDesc = `ಶುಭ ಸುದ್ದಿ! ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಯಾವುದೇ ಮಂಗಳ ದೋಷ (ಕುಜ ದೋಷ) ಕಂಡುಬರುವುದಿಲ್ಲ. ನಿಮ್ಮ ಜಾತಕವು ಈ ಸವಾಲುಗಳಿಂದ ಮುಕ್ತವಾಗಿದ್ದು, ವೈವಾಹಿಕ ಮತ್ತು ಸಾಮಾಜಿಕ ಜೀವನದಲ್ಲಿ ಉತ್ತಮ ಸಮತೋಲನವನ್ನು ತರುತ್ತದೆ.`;
+      } else if (isHi) {
+        kujaDesc = `शुभ समाचार! आपकी कुंडली में कोई भी मंगल दोष (कुज दोष) नहीं पाया गया है। आपकी कुंडली इस प्रभाव से पूर्णतः मुक्त है, जो आपके वैवाहिक और सामाजिक जीवन के लिए अत्यंत अनुकूल है।`;
+      } else {
+        kujaDesc = `Excellent news! No Kuja Dosha (Manglik Dosha) is detected in your birth chart. Your chart is free from these astrological afflictions, ensuring smooth relationship energy and marital harmony.`;
+      }
+    }
+
+    doshas.push({
+      title: kujaTitle,
+      description: kujaDesc,
+      status: kujaStatus,
+      score: kujaScore,
+      whatIsGood: !hasKujaDosha ? (isKn ? "ಸಂಬಂಧಗಳಲ್ಲಿ ಮಧುರತೆ ಮತ್ತು ಸೌಹಾರ್ದತೆ ಇರುತ್ತದೆ." : isHi ? "रिश्तों में मधुरता और सामंजस्य बना रहेगा।" : "Ensures harmony, emotional stability, and relationship dynamics.") : "",
+      whatIsWrong: hasKujaDosha ? (isKn ? "ಕೋಪದ ಪ್ರವೃತ್ತಿ ಮತ್ತು ಸಂಬಂಧಗಳಲ್ಲಿ ಅನಾವಶ್ಯಕ ಉದ್ವೇಗ." : isHi ? "क्रोध की प्रवृत्ति और संबंधों में तनाव।" : "Potential delays in marriage and sudden arguments.") : "",
+      remedy: hasKujaDosha ? (isKn ? "ಮಂಗಳವಾರ ಕೆಂಪು ಬಟ್ಟೆಯನ್ನು ಧರಿಸಿ ಅಥವಾ ಹನುಮಾನ್ ಚಾಲೀಸಾವನ್ನು ಜಪಿಸಿ." : isHi ? "मंगलवार को हनुमान चालीसा का पाठ करें।" : "Recite Hanuman Chalisa or worship Lord Subramanya.") : ""
+    });
+  }
+
+  if (saturn) {
+    const saturnLagnaHouse = saturn.house;
+    const hasSaturnDosha = [1, 4, 7, 8, 10].includes(saturnLagnaHouse);
+
+    let shaniTitle = isKn ? "ಶನಿ ದೋಷ (ಬಲ ವಿಶ್ಲೇಷಣೆ)" : isHi ? "शनि दोष (बल विश्लेषण)" : "Saturn (Shani) Influence & Dosha Check";
+    let shaniDesc = "";
+    let shaniStatus: "positive" | "neutral" | "caution" = "neutral";
+    let shaniScore = 100;
+
+    if (hasSaturnDosha) {
+      shaniStatus = "caution";
+      shaniScore = 45; // Red/Yellow status
+
+      if (isKn) {
+        shaniDesc = `ನಿಮ್ಮ ಜನ್ಮ ಜಾತಕದಲ್ಲಿ ಶನಿಯು ${saturnLagnaHouse}ನೇ ಭಾವದಲ್ಲಿದೆ. ಇದು ಜಾತಕದಲ್ಲಿ ಶನಿ ಪ್ರಭಾವವನ್ನು ಸೂಚಿಸುತ್ತದೆ. ಶನಿಯು ಈ ಸ್ಥಾನಗಳಲ್ಲಿ ಶಿಸ್ತು, ಕರ್ತವ್ಯದ ಪ್ರಜ್ಞೆ ಮತ್ತು ನಿಧಾನಗತಿಯ ಪ್ರಗತಿಯನ್ನು ನೀಡುತ್ತಾನೆ. ಸವಾಲುಗಳನ್ನು ಎದುರಿಸಲು ತಾಳ್ಮೆ ಅಗತ್ಯವಾಗಿದೆ. ಶನಿವಾರದಂದು ಶನಿದೇವನಿಗೆ ಎಳ್ಳೆಣ್ಣೆ ದೀಪವನ್ನು ಹಚ್ಚಿ, ಹನುಮಾನ್ ಚಾಲೀಸಾ ಪಠಿಸಿ ಮತ್ತು ನಿರ್ಗತಿಕರಿಗೆ ಸಹಾಯ ಮಾಡಿ.`;
+      } else if (isHi) {
+        shaniDesc = `आपकी कुंडली में शनि देव ${saturnLagnaHouse}वें भाव में स्थित हैं, जो एक विशेष प्रभाव (शनि दोष/प्रभाव) को दर्शाता है। यह स्थिति आपको जीवन में कड़ी मेहनत, अनुशासन और धैर्य बनाए रखने की सीख देती है। शनिवार को पीपल के पेड़ के नीचे सरसों के तेल का दीपक जलाएं और गरीब लोगों की सहायता करें।`;
+      } else {
+        shaniDesc = `Saturn is placed in the ${saturnLagnaHouse}th house of your natal chart. In Vedic astrology, this creates a strong Saturnian learning curve. It demands discipline, absolute patience, and constant hard work before rewarding you. Remedies include lighting a sesame oil lamp on Saturdays, reciting Shani Chalisa, and aiding the poor.`;
+      }
+    } else {
+      shaniStatus = "positive";
+      shaniScore = 85; // Green status
+      if (isKn) {
+        shaniDesc = `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಶನಿಯು ಯಾವುದೇ ದೋಷಕಾರಕ ಭಾವದಲ್ಲಿಲ್ಲ. ಶನಿಯು ಶುಭ ಸ್ಥಾನದಲ್ಲಿದ್ದು, ಉದ್ಯೋಗದಲ್ಲಿ ಸ್ಥಿರತೆ ಹಾಗೂ ಆರ್ಥಿಕ ಶಿಸ್ತನ್ನು ಬೆಂಬಲಿಸುತ್ತಾನೆ.`;
+      } else if (isHi) {
+        shaniDesc = `आपकी कुंडली में शनि देव किसी भी नकारात्मक या दोषपूर्ण भाव में नहीं हैं। शनि की यह स्थिति आपके करियर में स्थिरता और वित्तीय अनुशासन को बढ़ावा देने वाली है।`;
+      } else {
+        shaniDesc = `No negative Shani Dosha is active in your natal chart. Saturn is in a balanced position, providing structure, discipline, and steady professional growth without major delays.`;
+      }
+    }
+
+    doshas.push({
+      title: shaniTitle,
+      description: shaniDesc,
+      status: shaniStatus,
+      score: shaniScore,
+      whatIsGood: !hasSaturnDosha ? (isKn ? "ವೃತ್ತಿಜೀವನದಲ್ಲಿ ಸುಗಮ ಯಶಸ್ಸು ಮತ್ತು ಹಣಕಾಸಿನ ಸ್ಥಿರತೆ." : isHi ? "करियर में सुचारू सफलता और वित्तीय स्थिरता।" : "Smooth career progress and steady financial discipline.") : "",
+      whatIsWrong: hasSaturnDosha ? (isKn ? "ಪ್ರತಿ ಕೆಲಸದಲ್ಲಿ ವಿಳಂಬ ಮತ್ತು ಮಾನಸಿಕ ಅಸಮಾಧಾನ." : isHi ? "कार्यों में देरी और मानसिक असंतोष।" : "Delayed results and heavy workload pressures.") : "",
+      remedy: hasSaturnDosha ? (isKn ? "ಶನಿವಾರ ಸಾಸಿವೆ ಅಥವಾ ಎಳ್ಳೆಣ್ಣೆಯ ದೀಪ ಹಚ್ಚಿ." : isHi ? "शनिवार को पीपल के वृक्ष के नीचे तेल का दीपक जलाएं।" : "Light a sesame oil lamp on Saturday evenings.") : ""
+    });
+  }
+
   return {
     overview,
     planets,
     houses,
     yogas,
-    longevity
+    longevity,
+    doshas
   };
 }
 
@@ -1101,7 +1460,7 @@ export async function translateBaggonaPredictions(
   }
 
   const flatStrings: string[] = [];
-  const mappings: { type: keyof BaggonaPredictions; index: number; field: "title" | "description" }[] = [];
+  const mappings: { type: keyof BaggonaPredictions; index: number; field: keyof BaggonaPredictionSection }[] = [];
 
   const addSection = (sectionName: keyof BaggonaPredictions, list: BaggonaPredictionSection[]) => {
     list.forEach((sec, idx) => {
@@ -1109,6 +1468,18 @@ export async function translateBaggonaPredictions(
       mappings.push({ type: sectionName, index: idx, field: "title" });
       flatStrings.push(sec.description);
       mappings.push({ type: sectionName, index: idx, field: "description" });
+      if (sec.whatIsGood) {
+        flatStrings.push(sec.whatIsGood);
+        mappings.push({ type: sectionName, index: idx, field: "whatIsGood" });
+      }
+      if (sec.whatIsWrong) {
+        flatStrings.push(sec.whatIsWrong);
+        mappings.push({ type: sectionName, index: idx, field: "whatIsWrong" });
+      }
+      if (sec.remedy) {
+        flatStrings.push(sec.remedy);
+        mappings.push({ type: sectionName, index: idx, field: "remedy" });
+      }
     });
   };
 
@@ -1117,6 +1488,7 @@ export async function translateBaggonaPredictions(
   addSection("houses", pred.houses);
   addSection("yogas", pred.yogas);
   addSection("longevity", pred.longevity);
+  addSection("doshas", pred.doshas || []);
 
   const translated = await translateTexts(flatStrings, targetLang);
 
@@ -1125,13 +1497,15 @@ export async function translateBaggonaPredictions(
     planets: pred.planets.map(x => ({ ...x })),
     houses: pred.houses.map(x => ({ ...x })),
     yogas: pred.yogas.map(x => ({ ...x })),
-    longevity: pred.longevity.map(x => ({ ...x }))
+    longevity: pred.longevity.map(x => ({ ...x })),
+    doshas: (pred.doshas || []).map(x => ({ ...x }))
   };
 
   mappings.forEach((map, i) => {
     const list = next[map.type] as BaggonaPredictionSection[];
     const item = list[map.index]!;
-    item[map.field] = translated[i] ?? item[map.field];
+    const field = map.field;
+    (item as any)[field] = translated[i] ?? item[field];
   });
 
   return next;
