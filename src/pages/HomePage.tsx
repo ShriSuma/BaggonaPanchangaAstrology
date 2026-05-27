@@ -349,7 +349,7 @@ export default function HomePage(): JSX.Element {
       setDisplayLng(lng);
       const ymd = calendarYmdForPanchangPin(new Date(), lat, lng, pincodeStore);
       const anchor = panchangSolarAnchorDate(new Date(), lat, lng, pincodeStore);
-      const cacheKey = `${ymd}_${lat.toFixed(2)},${lng.toFixed(2)},v6-${ayanamsaModel}`;
+      const cacheKey = `${ymd}_${lat.toFixed(2)},${lng.toFixed(2)},v7-${ayanamsaModel}`;
       const cached = await getPanchangCache(ymd, cacheKey);
       let p =
         cached ??
@@ -551,18 +551,32 @@ export default function HomePage(): JSX.Element {
 
         {panchang && !loading && (
           <div data-testid="panchang-card" className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-            {/* Tithi card */}
-            <div className="cosmic-card flex items-center justify-between p-3.5">
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-amber-500/80">
-                  {t("panchang.tithi")}
-                </p>
-                <p className="text-sm font-extrabold mt-0.5 text-white">
-                  {displayPanchangValue("tithi", panchang.tithi, i18n.language, t)}
-                </p>
-              </div>
-              <span className="text-2xl opacity-80">🌙</span>
-            </div>
+             {/* Tithi card */}
+             <div className="cosmic-card flex items-center justify-between p-3.5">
+               <div>
+                 <p className="text-[10px] font-bold uppercase tracking-wider text-amber-500/80">
+                   {t("panchang.tithi")}
+                 </p>
+                 <p className="text-sm font-extrabold mt-0.5 text-white">
+                   {displayPanchangValue("tithi", panchang.tithi, i18n.language, t)}
+                 </p>
+                 {panchang.tithiEndTime && panchang.tithiNext && (
+                   <p className="text-[10px] text-amber-100/90 mt-1 italic font-semibold">
+                     {i18n.language === "kn"
+                       ? `(${panchang.tithiEndTime} ರವರೆಗೆ, ನಂತರ ಉಪರಿ ${panchang.tithiNextKn})`
+                       : i18n.language === "hi"
+                       ? `(${panchang.tithiEndTime} तक, फिर उपरि ${panchang.tithiNext})`
+                       : i18n.language === "te"
+                       ? `(${panchang.tithiEndTime} వరకు, ఆపై ఉపరి ${panchang.tithiNext})`
+                       : i18n.language === "ta"
+                       ? `(${panchang.tithiEndTime} வரை, பின்னர் உபரி ${panchang.tithiNext})`
+                       : `(up to ${panchang.tithiEndTime}, then Upari ${panchang.tithiNext})`
+                     }
+                   </p>
+                 )}
+               </div>
+               <span className="text-2xl opacity-80">🌙</span>
+             </div>
 
             {/* Nakshatra card */}
             <div className="cosmic-card flex items-center justify-between p-3.5">

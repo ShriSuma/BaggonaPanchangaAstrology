@@ -75,6 +75,7 @@ export type KundliOutput = {
 
 export type PanchangOutput = {
   tithi: string;
+  tithiKn?: string;
   nakshatra: string;
   yoga: string;
   karana: string;
@@ -82,6 +83,9 @@ export type PanchangOutput = {
   sunrise: string;
   sunset: string;
   moonrise: string;
+  tithiEndTime?: string;
+  tithiNext?: string;
+  tithiNextKn?: string;
 };
 
 export type RahuKaalOutput = {

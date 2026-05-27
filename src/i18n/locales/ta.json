@@ -10,7 +10,8 @@
     "predictions": "பலன்கள்",
     "insights": "உட்பார்வை",
     "melapak": "மேலாபக்",
-    "settings": "அமைப்புகள்"
+    "settings": "அமைப்புகள்",
+    "muhurtha": "சுப முகூர்த்தம்"
   },
   "layout": {
     "offlineMode": "நீங்கள் ஆஃப்லைனில் உள்ளீர்கள். சேமித்த குண்டலி மற்றும் பஞ்சாங்கத் தேக்கம் வேலை செய்யும்."
@@ -120,7 +121,7 @@
     "dashaBalanceYmd": "{{years}} y, {{months}} m, {{days}} d (approx.)",
     "viewPredictions": "பலன்களைக் காண்க",
     "viewInsights": "விளக்கப்படம் நுண்ணறிவு மற்றும் யோகாக்கள்",
-    "closeChart": "விளக்கப்படம் மூடு",
+    "resetChart": "மீட்டமை",
     "detailsAboutMe": "என்னைப் பற்றிய விவரங்கள்",
     "detailsLoading": "கதை தயாராகிறது…",
     "detailsError": "கதை ஏற்ற முடியவில்லை.",

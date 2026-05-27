@@ -88,12 +88,16 @@ export default function KundliPage(): JSX.Element {
   const [pinResolving, setPinResolving] = useState(false);
   const pinResolveGen = useRef(0);
   const [locationEpoch, setLocationEpoch] = useState(0);
+  const lastResolvedPinRef = useRef<string>(kundliSession?.input?.pincode || "");
 
   /** When PIN changes, resolve village + lat/lng immediately (not only via dropdown). */
   useEffect(() => {
     const pin = form.pincode?.trim() ?? "";
     if (!/^[1-9]\d{5}$/.test(pin)) {
       setPinResolving(false);
+      return;
+    }
+    if (pin === lastResolvedPinRef.current) {
       return;
     }
     const gen = ++pinResolveGen.current;
@@ -116,6 +120,7 @@ export default function KundliPage(): JSX.Element {
         }));
         setLocationCore(core);
         setResult(null);
+        lastResolvedPinRef.current = place.pincode;
         void setDefaultLocation(
           place.lat,
           place.lng,
@@ -143,6 +148,7 @@ export default function KundliPage(): JSX.Element {
   /** Restore chart from in-memory session when returning to this tab. */
   useEffect(() => {
     if (!kundliSession) return;
+    lastResolvedPinRef.current = kundliSession.input.pincode || "";
     setForm(kundliSession.input);
     setResult(kundliSession.result);
     const bd = parseYmdToDate(kundliSession.birthDateYmd);
@@ -474,7 +480,7 @@ export default function KundliPage(): JSX.Element {
               setNarrativeError("");
             }}
           >
-            {t("kundli.closeChart")}
+            {t("kundli.resetChart")}
           </button>
           <button
             type="button"

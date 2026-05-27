@@ -10,7 +10,8 @@
     "predictions": "ఫలితాలు",
     "insights": "అంతర్దృష్టి",
     "melapak": "మేలాపక్",
-    "settings": "సెట్టింగ్స్"
+    "settings": "సెట్టింగ్స్",
+    "muhurtha": "శుభ ముహూర్తం"
   },
   "layout": {
     "offlineMode": "మీరు ఆఫ్‌లైన్‌లో ఉన్నారు. సేవ్ చేసిన కుండలి మరియు క్యాష్ పంచాంగం పనిచేస్తాయి."
@@ -120,7 +121,7 @@
     "dashaBalanceYmd": "{{years}} y, {{months}} m, {{days}} d (approx.)",
     "viewPredictions": "ఫలితాలు చూడండి",
     "viewInsights": "చార్ట్ అంతర్దృష్టులు & యోగాలు",
-    "closeChart": "చార్ట్ మూసివేయి",
+    "resetChart": "రీసెట్ చేయి",
     "detailsAboutMe": "నా గురించి వివరాలు",
     "detailsLoading": "కథనం సిద్ధమవుతోంది…",
     "detailsError": "కథనం లోడ్ కాలేదు.",

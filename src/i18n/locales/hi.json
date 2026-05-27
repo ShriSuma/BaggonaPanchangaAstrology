@@ -10,7 +10,8 @@
     "predictions": "भविष्यफल",
     "insights": "अंतर्दृष्टि",
     "melapak": "मेलापक",
-    "settings": "सेटिंग्स"
+    "settings": "सेटिंग्स",
+    "muhurtha": "शुभ मुहूर्त"
   },
   "layout": {
     "offlineMode": "आप ऑफलाइन हैं। सहेजी कुंडली और कैश पंचांग काम करते रहेंगे।"
@@ -120,7 +121,7 @@
     "dashaBalanceYmd": "{{years}} y, {{months}} m, {{days}} d (approx.)",
     "viewPredictions": "भविष्यफल देखें",
     "viewInsights": "चार्ट अंतर्दृष्टि और योग",
-    "closeChart": "चार्ट बंद करें",
+    "resetChart": "रीसेट करें",
     "detailsAboutMe": "मेरे बारे में विवरण",
     "detailsLoading": "कथा तैयार हो रही है…",
     "detailsError": "कथा लोड नहीं हो सकी।",

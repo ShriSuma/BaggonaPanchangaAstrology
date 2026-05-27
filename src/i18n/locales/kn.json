@@ -10,7 +10,8 @@
     "predictions": "ಭವಿಷ್ಯ",
     "insights": "ಒಳನೋಟ",
     "melapak": "ಮೇಲಾಪಕ್",
-    "settings": "ಸೆಟ್ಟಿಂಗ್ಸ್"
+    "settings": "ಸೆಟ್ಟಿಂಗ್ಸ್",
+    "muhurtha": "ಮುಹೂರ್ತ"
   },
   "layout": {
     "offlineMode": "ನೀವು ಆಫ್‌ಲೈನ್‌ನಲ್ಲಿದ್ದೀರಿ. ಉಳಿಸಿದ ಕುಂಡಲಿ ಮತ್ತು ಕ್ಯಾಶ್ ಪಂಚಾಂಗ ಕೆಲಸ ಮಾಡುತ್ತದೆ."
@@ -120,7 +121,7 @@
     "dashaBalanceYmd": "{{years}} ವ, {{months}} ತಿ, {{days}} ದಿ (೩೬೦-ದಿನ ಸವನ)",
     "viewPredictions": "ಭವಿಷ್ಯ ವೀಕ್ಷಿಸಿ",
     "viewInsights": "ಚಾರ್ಟ್ ಒಳನೋಟಗಳು ಮತ್ತು ಯೋಗಗಳು",
-    "closeChart": "ಚಾರ್ಟ್ ಮುಚ್ಚಿ",
+    "resetChart": "ಮರುಹೊಂದಿಸಿ",
     "detailsAboutMe": "ನನ್ನ ಬಗ್ಗೆ ವಿವರಗಳು",
     "detailsLoading": "ಕಥನ ಸಿದ್ಧವಾಗುತ್ತಿದೆ…",
     "detailsError": "ಕಥನ ಲೋಡ್ ಆಗಲಿಲ್ಲ.",

@@ -67,6 +67,9 @@ export interface TraditionalBaggonaPanchanga {
   dashaYears?: number;
   dashaMonths?: number;
   dashaDays?: number;
+  tithiEndTime?: string;
+  tithiNext?: string;
+  tithiNextKn?: string;
 }
 
 const TITHIS_EN = [
@@ -312,6 +315,11 @@ export function calculateTraditionalBaggona(
   const dashaMonths = Math.floor(r1 / 30);
   const dashaDays = r1 % 30;
 
+  const tithiEndTime = getFormatTime(tithiEnd);
+  const nextTithiIdx = (tithiIdx + 1) % 30;
+  const tithiNext = TITHIS_EN[nextTithiIdx] ?? "";
+  const tithiNextKn = TITHIS_KN[nextTithiIdx] ?? "";
+
   return {
     shakaYear,
     samvatsara,
@@ -357,6 +365,9 @@ export function calculateTraditionalBaggona(
     dashaLord,
     dashaYears,
     dashaMonths,
-    dashaDays
+    dashaDays,
+    tithiEndTime,
+    tithiNext,
+    tithiNextKn
   };
 }

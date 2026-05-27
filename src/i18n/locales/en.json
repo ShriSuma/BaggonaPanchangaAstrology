@@ -10,7 +10,8 @@
     "predictions": "Predictions",
     "insights": "Insights",
     "melapak": "Match",
-    "settings": "Settings"
+    "settings": "Settings",
+    "muhurtha": "Muhurtham"
   },
   "layout": {
     "offlineMode": "You are offline. Saved charts and cached Panchang still work."
@@ -120,7 +121,7 @@
     "dashaBalanceYmd": "{{years}} y, {{months}} m, {{days}} d (savana 360-day)",
     "viewPredictions": "View predictions",
     "viewInsights": "Chart insights & yogas",
-    "closeChart": "Close chart",
+    "resetChart": "Reset",
     "detailsAboutMe": "Details about me",
     "detailsLoading": "Preparing your narrative…",
     "detailsError": "Could not load narrative.",
