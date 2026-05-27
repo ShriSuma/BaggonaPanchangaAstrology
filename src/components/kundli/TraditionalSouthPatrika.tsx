@@ -328,7 +328,7 @@ export default function TraditionalSouthPatrika({
               className="absolute right-0 top-[6%] z-10 max-w-[1rem] text-[8px] font-bold leading-tight text-black"
               style={{ writingMode: "vertical-rl" }}
             >
-              {t("kundli.patrikaSolar")}
+          {t("kundli.patrikaSolar")}
             </div>
             <div
               className="absolute right-0 top-[42%] z-10 max-w-[1rem] text-[8px] font-bold leading-tight text-black"
@@ -382,8 +382,16 @@ export default function TraditionalSouthPatrika({
                     <span className="text-[7px] font-bold uppercase tracking-wide text-neutral-500">
                       {t(rashiTKey(rashi.sanskrit) as "rashis.Mesha")}
                     </span>
-                    <div className="flex flex-1 flex-col items-center justify-center gap-0.5 text-center text-[10px] font-bold leading-tight">
-                      {cells}
+                    <div className="flex flex-1 items-center justify-center min-h-0">
+                      <div
+                        className={`grid w-full gap-x-1 gap-y-0.5 justify-center leading-none text-center font-bold ${
+                          cells.length > 3
+                            ? "grid-cols-2 text-[7.5px]"
+                            : "grid-cols-1 text-[9.5px]"
+                        }`}
+                      >
+                        {cells}
+                      </div>
                     </div>
                   </div>
                 );

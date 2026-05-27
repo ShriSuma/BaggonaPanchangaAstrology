@@ -149,23 +149,73 @@ export default function SouthIndianChart({ kundli, personName, gothra }: Props):
           lines.push(`${t("kundli.maandiShort")} ${formatPatrikaNavamsaOnly(kundli.maandi.degree, lang)}`);
         }
         if (!lines.length) return null;
-        return (
-          <text
-            key={`p-${rashi.index}`}
-            data-testid={`south-house-${rashi.index}`}
-            x={x + cw / 2}
-            y={y + 26}
-            fontSize="10"
-            fill="#1e1b4b"
-            textAnchor="middle"
-          >
-            {lines.map((line, i) => (
-              <tspan key={i} x={x + cw / 2} dy={i === 0 ? 0 : 12}>
-                {line}
-              </tspan>
-            ))}
-          </text>
-        );
+
+        const lineCount = lines.length;
+        if (lineCount > 3) {
+          const leftLines = lines.filter((_, i) => i % 2 === 0);
+          const rightLines = lines.filter((_, i) => i % 2 !== 0);
+          const maxColLines = Math.max(leftLines.length, rightLines.length);
+
+          const fontSize = maxColLines > 3 ? 7.5 : 8.5;
+          const dy = maxColLines > 3 ? 9 : 11;
+          const startY = maxColLines > 3 ? 18 : 22;
+
+          const leftX = x + 6;
+          const rightX = x + cw - 6;
+
+          return (
+            <g key={`p-${rashi.index}`} data-testid={`south-house-${rashi.index}`}>
+              <text
+                x={leftX}
+                y={y + startY}
+                fontSize={fontSize}
+                fill="#1e1b4b"
+                textAnchor="start"
+              >
+                {leftLines.map((line, i) => (
+                  <tspan key={i} x={leftX} dy={i === 0 ? 0 : dy}>
+                    {line}
+                  </tspan>
+                ))}
+              </text>
+              <text
+                x={rightX}
+                y={y + startY}
+                fontSize={fontSize}
+                fill="#1e1b4b"
+                textAnchor="end"
+              >
+                {rightLines.map((line, i) => (
+                  <tspan key={i} x={rightX} dy={i === 0 ? 0 : dy}>
+                    {line}
+                  </tspan>
+                ))}
+              </text>
+            </g>
+          );
+        } else {
+          const fontSize = 9.5;
+          const dy = 11;
+          const startY = lineCount === 3 ? 20 : lineCount === 2 ? 26 : 32;
+
+          return (
+            <text
+              key={`p-${rashi.index}`}
+              data-testid={`south-house-${rashi.index}`}
+              x={x + cw / 2}
+              y={y + startY}
+              fontSize={fontSize}
+              fill="#1e1b4b"
+              textAnchor="middle"
+            >
+              {lines.map((line, i) => (
+                <tspan key={i} x={x + cw / 2} dy={i === 0 ? 0 : dy}>
+                  {line}
+                </tspan>
+              ))}
+            </text>
+          );
+        }
       })}
 
       <path

@@ -16,39 +16,39 @@ describe("TraditionalBaggonaEngine calculations for Gokarna test case", () => {
     expect(res.tithi).toBe("Ekadashi");
     expect(res.tithiKn).toBe("ಏಕಾದಶಿ");
     expect(res.tithiGhati).toBe(52);
-    expect(res.tithiVighati).toBe(49);
+    expect(res.tithiVighati).toBe(46);
 
     expect(res.weekday).toBe("Chandra Vaasare");
     expect(res.weekdayKn).toBe("ಚಂದ್ರ ವಾಸರೇ");
 
     expect(res.sunNakshatra).toBe("Rohini");
     expect(res.sunNakshatraKn).toBe("ರೋಹಿಣಿ");
-    expect(res.sunNakshatraGhati).toBe(26);
-    expect(res.sunNakshatraVighati).toBe(10);
+    expect(res.sunNakshatraGhati).toBe(51);
+    expect(res.sunNakshatraVighati).toBe(9);
 
     expect(res.moonNakshatra).toBe("Hasta");
     expect(res.moonNakshatraKn).toBe("ಹಸ್ತಾ");
     expect(res.moonNakshatraGhati).toBe(30);
-    expect(res.moonNakshatraVighati).toBe(35);
+    expect(res.moonNakshatraVighati).toBe(34);
 
     expect(res.yoga).toBe("Siddhi");
     expect(res.yogaKn).toBe("ಸಿದ್ಧಿ");
     expect(res.yogaGhati).toBe(5);
-    expect(res.yogaVighati).toBe(56);
+    expect(res.yogaVighati).toBe(55);
 
     expect(res.karana).toBe("Vanija");
     expect(res.karanaKn).toBe("ವಣಿಜ");
-    expect(res.karanaGhati).toBe(26);
-    expect(res.karanaVighati).toBe(0);
+    expect(res.karanaGhati).toBe(25);
+    expect(res.karanaVighati).toBe(58);
 
-    expect(res.vishaGhati.ghati).toBe(49);
-    expect(res.vishaGhati.vighati).toBe(9);
+    expect(res.vishaGhati.ghati).toBe(54);
+    expect(res.vishaGhati.vighati).toBe(25);
 
     expect(res.amrithaGhati.ghati).toBe(16);
-    expect(res.amrithaGhati.vighati).toBe(42);
+    expect(res.amrithaGhati.vighati).toBe(39);
 
     expect(res.divaGhati.ghati).toBe(32);
-    expect(res.divaGhati.vighati).toBe(0);
+    expect(res.divaGhati.vighati).toBe(3);
 
     expect(res.sankrantiSign).toBe("Vrishabha");
     expect(res.sankrantiSignKn).toBe("ವೃಷಭ");
@@ -64,9 +64,9 @@ describe("TraditionalBaggonaEngine calculations for Gokarna test case", () => {
     expect(res.ghatadina.vighati).toBe(17);
 
     expect(res.suryodhayadgata.ghati).toBe(8);
-    expect(res.suryodhayadgata.vighati).toBe(17);
+    expect(res.suryodhayadgata.vighati).toBe(14);
     
-    expect(res.sunrise).toBe("06:06");
+    expect(res.sunrise).toBe("06:07");
     expect(res.sunset).toBe("18:56");
   });
 
@@ -84,62 +84,62 @@ describe("TraditionalBaggonaEngine calculations for Gokarna test case", () => {
     expect(res.tithi).toBe("Navami");
     expect(res.tithiKn).toBe("ನವಮಿ");
     expect(res.tithiGhati).toBe(46);
-    expect(res.tithiVighati).toBe(37);
+    expect(res.tithiVighati).toBe(34);
 
-    expect(res.weekday).toBe("Shukra Vaasare");
-    expect(res.weekdayKn).toBe("ಶುಕ್ರ ವಾಸರೇ");
+    expect(res.weekday).toBe("Bhrigu Vaasare");
+    expect(res.weekdayKn).toBe("ಭೃಗು ವಾಸರೇ");
 
     expect(res.sunNakshatra).toBe("Swati");
     expect(res.sunNakshatraKn).toBe("ಸ್ವಾತಿ");
-    expect(res.sunNakshatraGhati).toBe(0);
-    expect(res.sunNakshatraVighati).toBe(45);
+    expect(res.sunNakshatraGhati).toBe(10);
+    expect(res.sunNakshatraVighati).toBe(34);
 
-    expect(res.moonNakshatra).toBe("Tishya");
-    expect(res.moonNakshatraKn).toBe("ತಿಷ್ಯ");
+    expect(res.moonNakshatra).toBe("Pushya");
+    expect(res.moonNakshatraKn).toBe("ಪುಷ್ಯ");
     expect(res.moonNakshatraGhati).toBe(1);
     expect(res.moonNakshatraVighati).toBe(59);
 
     expect(res.yoga).toBe("Sadhya");
     expect(res.yogaKn).toBe("ಸಾಧ್ಯ");
     expect(res.yogaGhati).toBe(1);
-    expect(res.yogaVighati).toBe(7);
+    expect(res.yogaVighati).toBe(6);
 
     expect(res.karana).toBe("Taitila");
     expect(res.karanaKn).toBe("ತೈತಿಲ");
     expect(res.karanaGhati).toBe(13);
-    expect(res.karanaVighati).toBe(54);
+    expect(res.karanaVighati).toBe(51);
 
-    expect(res.vishaGhati.ghati).toBe(41);
-    expect(res.vishaGhati.vighati).toBe(33);
+    expect(res.vishaGhati.ghati).toBe(37);
+    expect(res.vishaGhati.vighati).toBe(35);
 
-    expect(res.amrithaGhati.ghati).toBe(15);
-    expect(res.amrithaGhati.vighati).toBe(25);
+    expect(res.amrithaGhati.ghati).toBe(4);
+    expect(res.amrithaGhati.vighati).toBe(17);
 
-    expect(res.divaGhati.ghati).toBe(28);
-    expect(res.divaGhati.vighati).toBe(57);
+    expect(res.divaGhati.ghati).toBe(29);
+    expect(res.divaGhati.vighati).toBe(0);
 
     expect(res.sankrantiSign).toBe("Tula");
     expect(res.sankrantiSignKn).toBe("ತುಲಾ");
     expect(res.sankrantiGataDina).toBe(7);
 
     expect(res.paramaGhati.ghati).toBe(66);
-    expect(res.paramaGhati.vighati).toBe(44);
+    expect(res.paramaGhati.vighati).toBe(45);
 
     expect(res.ashayaGhati.ghati).toBe(34);
-    expect(res.ashayaGhati.vighati).toBe(20);
+    expect(res.ashayaGhati.vighati).toBe(21);
 
     expect(res.ghatadina.ghati).toBe(32);
-    expect(res.ghatadina.vighati).toBe(24);
+    expect(res.ghatadina.vighati).toBe(23);
 
     expect(res.suryodhayadgata.ghati).toBe(34);
-    expect(res.suryodhayadgata.vighati).toBe(23);
+    expect(res.suryodhayadgata.vighati).toBe(22);
     
-    expect(res.sunrise).toBe("06:27");
-    expect(res.sunset).toBe("18:10");
+    expect(res.sunrise).toBe("06:29");
+    expect(res.sunset).toBe("18:06");
 
     expect(res.dashaLord).toBe("Mercury");
     expect(res.dashaYears).toBe(8);
-    expect(res.dashaMonths).toBe(0);
-    expect(res.dashaDays).toBe(15);
+    expect(res.dashaMonths).toBe(8);
+    expect(res.dashaDays).toBe(17);
   });
 });

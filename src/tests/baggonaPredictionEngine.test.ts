@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { calculateKundli } from "../core/KundliEngine";
 import { calculateTraditionalBaggona } from "../core/TraditionalBaggonaEngine";
-import { generateBaggonaPredictions } from "../core/BaggonaPredictionEngine";
+import { generateBaggonaPredictions, generatePersonalReading } from "../core/BaggonaPredictionEngine";
 
 describe("BaggonaPredictionEngine", () => {
   it("computes traditional predictions for Pramod (31-May-1993)", () => {
@@ -32,6 +32,14 @@ describe("BaggonaPredictionEngine", () => {
     expect(jupiterPred).toBeDefined();
     expect(jupiterPred?.description).toContain("Brahmana (Priest/Intellectual)");
     expect(jupiterPred?.description).toContain("Shiva (Guru)");
+
+    // Test Personal Reading
+    const personal = generatePersonalReading(k, birth);
+    expect(personal.cosmicProfile.length).toBeGreaterThan(0);
+    expect(personal.todaysTransits.length).toBeGreaterThan(0);
+    expect(personal.currentLifeChapter.cycle).toBeDefined();
+    expect(personal.upcomingChapters.chapter1.cycle).toBeDefined();
+    expect(personal.upcomingChapters.chapter2.cycle).toBeDefined();
   });
 
   it("computes traditional predictions for Vidyashree (24-Oct-1997)", () => {
@@ -51,5 +59,13 @@ describe("BaggonaPredictionEngine", () => {
     expect(preds.houses.length).toBe(12);
     expect(preds.yogas.length).toBeGreaterThan(0);
     expect(preds.longevity.length).toBeGreaterThan(0);
+
+    // Test Personal Reading
+    const personal = generatePersonalReading(k, birth);
+    expect(personal.cosmicProfile.length).toBeGreaterThan(0);
+    expect(personal.todaysTransits.length).toBeGreaterThan(0);
+    expect(personal.currentLifeChapter.cycle).toBeDefined();
+    expect(personal.upcomingChapters.chapter1.cycle).toBeDefined();
+    expect(personal.upcomingChapters.chapter2.cycle).toBeDefined();
   });
 });

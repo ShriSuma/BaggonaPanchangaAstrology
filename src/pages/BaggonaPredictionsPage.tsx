@@ -1,30 +1,155 @@
 import { useEffect, useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { getLatestKundliRecord, type KundliRecord } from "../db/indexedDb";
+import { useKundliViewerStore } from "../stores/kundliViewerStore";
 import { calculateTraditionalBaggona } from "../core/TraditionalBaggonaEngine";
-import { generateBaggonaPredictions, translateBaggonaPredictions, type BaggonaPredictions } from "../core/BaggonaPredictionEngine";
+import {
+  generateBaggonaPredictions,
+  translateBaggonaPredictions,
+  type BaggonaPredictions,
+  generatePersonalReading,
+  translatePersonalReading,
+  type PersonalReadingOutput
+} from "../core/BaggonaPredictionEngine";
 import { useAppStore } from "../stores/appStore";
 import Card from "../components/ui/Card";
 import GrahaSpinner from "../components/ui/GrahaSpinner";
 
-type SubTab = "overview" | "planets" | "houses" | "yogas";
+import SouthIndianChart from "../components/kundli/SouthIndianChart";
+import { RASHIS, NAKSHATRAS, PlanetName, type PlanetPosition, type KundliOutput } from "../core/AstroTypes";
+import { siderealLongitudes } from "../core/EphemerisEngine";
+import { degreeToRashi, degreeToNakshatra, degreeToNakshatraPada } from "../core/AstroMath";
+import { wallClockBirthToUtc } from "../core/birthTime";
+
+type SubTab = "personal" | "overview" | "planets" | "houses" | "yogas" | "gochara";
+
+const rashiTKey = (sanskrit: string): string => `rashis.${sanskrit.replace(/\s+/g, "")}`;
+
+const getPlanetTransitStatus = (pName: string, house: number, isKn: boolean) => {
+  const names: Record<string, { en: string; kn: string }> = {
+    Sun: { en: "Sun (Surya)", kn: "ಸೂರ್ಯ (ರವಿ)" },
+    Moon: { en: "Moon (Chandra)", kn: "ಚಂದ್ರ" },
+    Mars: { en: "Mars (Mangala)", kn: "ಮಂಗಳ" },
+    Jupiter: { en: "Jupiter (Guru)", kn: "ಗುರು" },
+    Saturn: { en: "Saturn (Shani)", kn: "ಶನಿ" }
+  };
+
+  const name = isKn ? names[pName]?.kn : names[pName]?.en;
+
+  if (pName === "Jupiter") {
+    const isGood = [2, 5, 7, 9, 11].includes(house);
+    const desc = isKn
+      ? isGood
+        ? `ಗುರು ಗೋಚರದಲ್ಲಿ ${house}ನೇ ಮನೆಯಲ್ಲಿದೆ - ಅತ್ಯಂತ ಶುಭ ಫಲಗಳು, ಕಲ್ಯಾಣ ಮತ್ತು ಧನಲಾಭ.`
+        : `ಗುರು ಗೋಚರದಲ್ಲಿ ${house}ನೇ ಮನೆಯಲ್ಲಿದೆ - ಸಾಮಾನ್ಯ ಪ್ರಗತಿ, ಜಾಗರೂಕತೆ ಇರಲಿ.`
+      : isGood
+        ? `Jupiter in ${house}th House - Highly Auspicious. Brings growth, wisdom, and financial success.`
+        : `Jupiter in ${house}th House - Neutral/Mixed. Normal progress with standard daily efforts.`;
+    return { name, house, desc, status: isGood ? "positive" : "neutral" };
+  }
+
+  if (pName === "Saturn") {
+    const isGood = [3, 6, 11].includes(house);
+    const isSadeSati = [12, 1, 2].includes(house);
+    const isAshtama = house === 8;
+    const isArdhaAshtama = house === 4;
+
+    let desc = "";
+    let status: "positive" | "neutral" | "caution" = "neutral";
+
+    if (isGood) {
+      status = "positive";
+      desc = isKn
+        ? `ಶನಿ ಗೋಚರದಲ್ಲಿ ${house}ನೇ ಮನೆಯಲ್ಲಿದೆ - ಅತ್ಯುತ್ತಮ ಯಶಸ್ಸು, ಶತ್ರುನಾಶ ಮತ್ತು ಉದ್ಯೋಗ ಸ್ಥಿರತೆ.`
+        : `Saturn in ${house}th House - Favorable. Brings career stability, victory over challenges, and long-term gains.`;
+    } else if (isSadeSati) {
+      status = "caution";
+      const phase = house === 12 ? "ಮೊದಲ ಹಂತ (ವ್ಯಯ ಶನಿ)" : house === 1 ? "ಮಧ್ಯ ಹಂತ (ಜನ್ಮ ಶನಿ)" : "ಕೊನೆಯ ಹಂತ (ದ್ವಿತೀಯ ಶನಿ)";
+      const phaseEn = house === 12 ? "1st Phase (12th House)" : house === 1 ? "Peak Phase (1st House)" : "3rd Phase (2nd House)";
+      desc = isKn
+        ? `ಶನಿ ಗೋಚರದಲ್ಲಿ ${house}ನೇ ಮನೆಯಲ್ಲಿದೆ - ಏಳೂವರೆ ಶನಿಯ ಪ್ರಭಾವ (${phase}). ತಾಳ್ಮೆ ಮತ್ತು ಶ್ರಮ ಅಗತ್ಯ.`
+        : `Saturn in ${house}th House - Sade Sati (${phaseEn}). Demands patience, focus on health, and avoiding major risks.`;
+    } else if (isAshtama) {
+      status = "caution";
+      desc = isKn
+        ? `ಶನಿ ಗೋಚರದಲ್ಲಿ ೮ನೇ ಮನೆಯಲ್ಲಿದೆ - ಅಷ್ಟಮ ಶನಿಯ ಪ್ರಭಾವ. ಆರೋಗ್ಯದಲ್ಲಿ ಜಾಗರೂಕತೆ ಇರಲಿ, ವಿವಾದಗಳನ್ನು ತಪ್ಪಿಸಿ.`
+        : `Saturn in 8th House - Ashtama Shani (Challenging). Take extra care of health and avoid workplace arguments.`;
+    } else if (isArdhaAshtama) {
+      status = "caution";
+      desc = isKn
+        ? `ಶನಿ ಗೋಚರದಲ್ಲಿ ೪ನೇ ಮನೆಯಲ್ಲಿದೆ - ಅರ್ಧಾಷ್ಟಮ ಶನಿಯ ಪ್ರಭಾವ. ಗೃಹ ಸುಖದ ಕೊರತೆ, ಮಾನಸಿಕ ಅಶಾಂತಿ ಸಾಧ್ಯತೆ.`
+        : `Saturn in 4th House - Ardha-Ashtama Shani. Focus on emotional peace and domestic stability.`;
+    } else {
+      desc = isKn
+        ? `ಶನಿ ಗೋಚರದಲ್ಲಿ ${house}ನೇ ಮನೆಯಲ್ಲಿದೆ - ಸಾಮಾನ್ಯ ಪ್ರಗತಿ, ವ್ಯವಹಾರದಲ್ಲಿ ಶ್ರದ್ಧೆಯ ಅಗತ್ಯವಿದೆ.`
+        : `Saturn in ${house}th House - Neutral. Requires consistent efforts and disciplined daily routine.`;
+    }
+    return { name, house, desc, status };
+  }
+
+  if (pName === "Mars") {
+    const isGood = [3, 6, 11].includes(house);
+    const desc = isKn
+      ? isGood
+        ? `ಮಂಗಳ ಗೋಚರದಲ್ಲಿ ${house}ನೇ ಮನೆಯಲ್ಲಿದೆ - ಧೈರ್ಯ, ಉದ್ಯೋಗದಲ್ಲಿ ಉತ್ಸಾಹ ಮತ್ತು ಶತ್ರುಜಯ.`
+        : `ಮಂಗಳ ಗೋಚರದಲ್ಲಿ ${house}ನೇ ಮನೆಯಲ್ಲಿದೆ - ಕೋಪದ ಹತೋಟಿ ಅತ್ಯಗತ್ಯ, ವಾದ-ವಿವಾದಗಳಿಂದ ದೂರವಿರಿ.`
+      : isGood
+        ? `Mars in ${house}th House - Favorable. High energy, success in competitions, and physical vitality.`
+        : `Mars in ${house}th House - Challenging. Guard against impulsive anger, sudden arguments, and driving hazards.`;
+    return { name, house, desc, status: isGood ? "positive" : "caution" };
+  }
+
+  if (pName === "Sun") {
+    const isGood = [3, 6, 10, 11].includes(house);
+    const desc = isKn
+      ? isGood
+        ? `ಸೂರ್ಯ ಗೋಚರದಲ್ಲಿ ${house}ನೇ ಮನೆಯಲ್ಲಿದೆ - ಗೌರವ ಪ್ರಾಪ್ತಿ, ಕೆಲಸದಲ್ಲಿ ಯಶಸ್ಸು ಮತ್ತು ಉತ್ತಮ ಆರೋಗ್ಯ.`
+        : `ಸೂರ್ಯ ಗೋಚರದಲ್ಲಿ ${house}ನೇ ಮನೆಯಲ್ಲಿದೆ - ಶಾರೀರಿಕ ಆಯಾಸ, ತಲೆನೋವು ಅಥವಾ ಉದ್ಯೋಗದಲ್ಲಿ ವಿಳಂಬ.`
+      : isGood
+        ? `Sun in ${house}th House - Favorable. Brings recognition, authority, and vitality.`
+        : `Sun in ${house}th House - Challenging. Suggestions of fatigue, low vital energy, or minor administrative delays.`;
+    return { name, house, desc, status: isGood ? "positive" : "neutral" };
+  }
+
+  const isGood = [1, 3, 6, 7, 10, 11].includes(house);
+  const desc = isKn
+    ? isGood
+      ? `ಚಂದ್ರ ಗೋಚರದಲ್ಲಿ ${house}ನೇ ಮನೆಯಲ್ಲಿದೆ - ಉತ್ತಮ ಭೋಜನ, ಮಾನಸಿಕ ತೃಪ್ತಿ ಮತ್ತು ಸುಖ.`
+      : `ಚಂದ್ರ ಗೋಚರದಲ್ಲಿ ${house}ನೇ ಮನೆಯಲ್ಲಿದೆ - ಮಾನಸಿಕ ಚಂಚಲತೆ, ಅನಾವಶ್ಯಕ ಚಿಂತೆ; ತಾಳ್ಮೆ ಇರಲಿ.`
+    : isGood
+      ? `Moon in ${house}th House - Favorable. Brings emotional comfort, clarity, and happy encounters.`
+      : `Moon in ${house}th House - Restless. Indicates emotional sensitivity, overthinking, or mood swings.`;
+  return { name, house, desc, status: isGood ? "positive" : "neutral" };
+};
 
 export default function BaggonaPredictionsPage(): JSX.Element {
   const { t, i18n } = useTranslation();
   const setPage = useAppStore((s) => s.setPage);
   const ayanamsaModel = useAppStore((s) => s.ayanamsaModel);
-  const [record, setRecord] = useState<KundliRecord | null | undefined>(undefined);
-  const [tab, setTab] = useState<SubTab>("overview");
+  const session = useKundliViewerStore((s) => s.session);
+
+  const record = useMemo(() => {
+    if (!session) return null;
+    return {
+      name: session.input.name || "Seeker",
+      birthDate: session.birthDateYmd,
+      birthTime: session.birthTimeHm,
+      latitude: session.input.latitude,
+      longitude: session.input.longitude,
+      kundliData: session.result,
+      gothra: session.input.gothra,
+      pincode: session.input.pincode
+    };
+  }, [session]);
+
+  const [tab, setTab] = useState<SubTab>("personal");
+  const [selectedDayIdx, setSelectedDayIdx] = useState<number>(0);
   const [predictions, setPredictions] = useState<BaggonaPredictions | null>(null);
+  const [personalReading, setPersonalReading] = useState<PersonalReadingOutput | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   
   const lang = i18n.language.split("-")[0] || "en";
   const isKn = lang === "kn";
-
-  useEffect(() => {
-    void getLatestKundliRecord().then((r) => setRecord(r ?? null));
-  }, []);
 
   const traditionalData = useMemo(() => {
     if (!record) return null;
@@ -37,9 +162,102 @@ export default function BaggonaPredictionsPage(): JSX.Element {
     );
   }, [record, ayanamsaModel]);
 
+  const gocharaDays = useMemo(() => {
+    if (!record || !traditionalData) return [];
+
+    const days = [];
+    const birthDateObj = new Date(record.birthDate);
+
+    for (let i = 0; i < 15; i++) {
+      const d = new Date(birthDateObj);
+      d.setDate(d.getDate() + i);
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      const dateStr = `${yyyy}-${mm}-${dd}`;
+
+      // Calculate Traditional Panchanga at Sunrise for the transit day
+      const transitPanchanga = calculateTraditionalBaggona(
+        dateStr,
+        "12:00",
+        record.latitude,
+        record.longitude,
+        ayanamsaModel
+      );
+
+      // Noon UTC for planetary positions
+      const noonUtc = wallClockBirthToUtc(dateStr, "12:00", record.latitude, record.longitude);
+      const transitLongs = siderealLongitudes(noonUtc, ayanamsaModel);
+
+      // Construct transit KundliOutput
+      const transitPlanets: PlanetPosition[] = [
+        PlanetName.Sun,
+        PlanetName.Moon,
+        PlanetName.Mars,
+        PlanetName.Mercury,
+        PlanetName.Jupiter,
+        PlanetName.Venus,
+        PlanetName.Saturn,
+        PlanetName.Rahu,
+        PlanetName.Ketu
+      ].map((pName) => {
+        const key = pName.toLowerCase() as keyof typeof transitLongs;
+        const long = transitLongs[key] as number;
+        return {
+          name: pName,
+          degree: long % 30,
+          rashi: degreeToRashi(long),
+          nakshatra: degreeToNakshatra(long),
+          house: (degreeToRashi(long).index - record.kundliData.lagnaRashi.index + 12) % 12 + 1
+        };
+      });
+
+      const transitMoonSign = degreeToRashi(transitLongs.moon);
+      const transitSunSign = degreeToRashi(transitLongs.sun);
+      const transitMoonPada = degreeToNakshatraPada(transitLongs.moon);
+
+      const transitKundli: KundliOutput = {
+        ascendant: record.kundliData.ascendant,
+        planets: transitPlanets,
+        houses: record.kundliData.houses,
+        moonSign: transitMoonSign,
+        sunSign: transitSunSign,
+        lagnaRashi: record.kundliData.lagnaRashi,
+        moonPada: transitMoonPada
+      };
+
+      // House transits relative to natal Moon sign (Chandra Lagna)
+      const birthMoonIdx = record.kundliData.moonSign.index;
+      const planetTransitHouses = {
+        sun: (degreeToRashi(transitLongs.sun).index - birthMoonIdx + 12) % 12 + 1,
+        moon: (degreeToRashi(transitLongs.moon).index - birthMoonIdx + 12) % 12 + 1,
+        mars: (degreeToRashi(transitLongs.mars).index - birthMoonIdx + 12) % 12 + 1,
+        jup: (degreeToRashi(transitLongs.jupiter).index - birthMoonIdx + 12) % 12 + 1,
+        sat: (degreeToRashi(transitLongs.saturn).index - birthMoonIdx + 12) % 12 + 1
+      };
+
+      days.push({
+        date: dateStr,
+        weekday: transitPanchanga.weekday,
+        weekdayKn: transitPanchanga.weekdayKn,
+        tithi: transitPanchanga.tithi,
+        tithiKn: transitPanchanga.tithiKn,
+        nakshatra: transitPanchanga.moonNakshatra,
+        nakshatraKn: transitPanchanga.moonNakshatraKn,
+        sunrise: transitPanchanga.sunrise,
+        sunset: transitPanchanga.sunset,
+        kundli: transitKundli,
+        planetHouses: planetTransitHouses
+      });
+    }
+
+    return days;
+  }, [record, traditionalData, ayanamsaModel]);
+
   useEffect(() => {
     if (!record || !traditionalData) {
       setPredictions(null);
+      setPersonalReading(null);
       return;
     }
 
@@ -48,18 +266,22 @@ export default function BaggonaPredictionsPage(): JSX.Element {
       setLoading(true);
       setLoadError(null);
       try {
-        // Generate the base English predictions from the Kundli & traditional Panchanga data
-        const basePreds = generateBaggonaPredictions(record.kundliData, traditionalData);
+        const basePreds = generateBaggonaPredictions(record.kundliData, traditionalData, lang);
+        const basePersonal = generatePersonalReading(record.kundliData, record, lang);
 
-        // Dynamically translate all strings to the target Indic language if active
         if (lang !== "en") {
-          const translatedPreds = await translateBaggonaPredictions(basePreds, lang);
+          const [translatedPreds, translatedPersonal] = await Promise.all([
+            translateBaggonaPredictions(basePreds, lang),
+            translatePersonalReading(basePersonal, lang)
+          ]);
           if (!cancelled) {
             setPredictions(translatedPreds);
+            setPersonalReading(translatedPersonal);
           }
         } else {
           if (!cancelled) {
             setPredictions(basePreds);
+            setPersonalReading(basePersonal);
           }
         }
       } catch (err) {
@@ -110,11 +332,89 @@ export default function BaggonaPredictionsPage(): JSX.Element {
     );
   }
 
+  const getTabLabel = (id: SubTab): string => {
+    switch (id) {
+      case "personal":
+        if (lang === "kn") return "ವೈಯಕ್ತಿಕ ಭವಿಷ್ಯ";
+        if (lang === "hi") return "व्यक्तिगत फल";
+        if (lang === "ta") return "தனிப்பட்ட பலன்கள்";
+        if (lang === "te") return "వ్యక్తిగత ఫలితాలు";
+        return "Personal Reading";
+      case "overview":
+        if (lang === "kn") return "ಮುಖ್ಯಾಂಶಗಳು";
+        if (lang === "hi") return "अवलोकन";
+        if (lang === "ta") return "கண்ணோட்டம்";
+        if (lang === "te") return "అవలోకనం";
+        return "Overview";
+      case "planets":
+        if (lang === "kn") return "ಗ್ರಹ ಬಲಗಳು";
+        if (lang === "hi") return "ग्रह बल";
+        if (lang === "ta") return "கிரக பலன்கள்";
+        if (lang === "te") return "ग्रह बलाలు";
+        return "Planets";
+      case "houses":
+        if (lang === "kn") return "ದ್ವಾದಶ ಭಾವಗಳು";
+        if (lang === "hi") return "12 भाव";
+        if (lang === "ta") return "12 பாவங்கள்";
+        if (lang === "te") return "12 భావాలు";
+        return "12 Houses";
+      case "yogas":
+        if (lang === "kn") return "ಯೋಗ & ಆಯುಷ್ಯ";
+        if (lang === "hi") return "योग और आयु";
+        if (lang === "ta") return "யோகம் & ஆயுள்";
+        if (lang === "te") return "యోగం & ಆయుష్షు";
+        return "Yogas & Ayush";
+      case "gochara":
+        if (lang === "kn") return "೧೫ ದಿನಗಳ ಗೋಚಾರ";
+        if (lang === "hi") return "15 दिवसीय गोचर";
+        if (lang === "ta") return "15 நாள் கோச்சாரம்";
+        if (lang === "te") return "15 రోజుల గోచారం";
+        return "15-Day Gochara";
+    }
+  };
+
+  const sectionTitleProfile =
+    lang === "kn" ? "ನಿಮ್ಮ ಕಾಸ್ಮಿಕ್ ಪ್ರೊಫೈಲ್ (ವಿವರಣೆ)" :
+    lang === "hi" ? "आपका कॉस्मिक प्रोफाइल (विवरण)" :
+    lang === "ta" ? "உங்கள் காஸ்மிக் சுயவிவரம்" :
+    lang === "te" ? "మీ కాಸ್మిక్ ప్రొఫైల్" :
+    "Your Cosmic Profile";
+
+  const sectionTitleTransit =
+    lang === "kn" ? "ಇಂದಿನ ಗ್ರಹ ಸಂಚಾರ (ಗೋಚಾರ)" :
+    lang === "hi" ? "आज का गोचर विवरण" :
+    lang === "ta" ? "இன்றைய கோச்சாரம்" :
+    lang === "te" ? "నేటి கிரக ಸంచారం (గోచారం)" :
+    "What's Happening Today (Current Transits)";
+
+  const sectionTitleChapter =
+    lang === "kn" ? "ನಿಮ್ಮ ಪ್ರಸ್ತುತ ಜೀವನದ ಅಧ್ಯಾಯ (ದಶಾ ಭುಕ್ತಿ)" :
+    lang === "hi" ? "आपका वर्तमान जीवन अध्याय" :
+    lang === "ta" ? "உங்கள் தற்போதைய வாழ்க்கை அத்தியாயம்" :
+    lang === "te" ? "మీ ప్రస్తుత జీవిత అధ్యాయం (దశా భుక్తి)" :
+    "Your Current Life Chapter (Running Dasha-Bhukthi)";
+
+  const activeUntilLabel =
+    lang === "kn" ? "ಅಲ್ಲಿಯವರೆಗೆ ಸಕ್ರಿಯ" :
+    lang === "hi" ? "तब तक सक्रिय" :
+    lang === "ta" ? "அதுவரை செயல்படும்" :
+    lang === "te" ? "అప్పటి వరకు క్రియాశీలం" :
+    "Active Until";
+
+  const upcomingTitle =
+    lang === "kn" ? "ನಿಮ್ಮ ಮುಂದಿನ ಜೀವನದ ಅಧ್ಯಾಯಗಳು (ಮುಂದಿನ 2 ಭುಕ್ತಿಗಳು)" :
+    lang === "hi" ? "आपके आगामी जीवन के अध्याय (अगले 2 भुक्ति)" :
+    lang === "ta" ? "உங்கள் வரவிருக்கும் வாழ்க்கை அத்தியாயங்கள் (அடுத்த 2 புக்தி)" :
+    lang === "te" ? "మీ రాబోయే జీవిత అధ్యాయాలు (తదుపరి 2 భుక్తులు)" :
+    "Your Upcoming Life Chapters (Next 2 Sub-periods)";
+
   const subTabs: { id: SubTab; label: string; icon: string }[] = [
-    { id: "overview", label: isKn ? "ಮುಖ್ಯಾಂಶಗಳು" : "Overview", icon: "✵" },
-    { id: "planets", label: isKn ? "ಗ್ರಹ ಬಲಗಳು" : "Planets", icon: "🪐" },
-    { id: "houses", label: isKn ? "ದ್ವಾದಶ ಭಾವಗಳು" : "12 Houses", icon: "☸" },
-    { id: "yogas", label: isKn ? "ಯೋಗ & ಆಯುಷ್ಯ" : "Yogas & Ayush", icon: "📜" }
+    { id: "personal", label: getTabLabel("personal"), icon: "✨" },
+    { id: "overview", label: getTabLabel("overview"), icon: "✵" },
+    { id: "planets", label: getTabLabel("planets"), icon: "🪐" },
+    { id: "houses", label: getTabLabel("houses"), icon: "☸" },
+    { id: "yogas", label: getTabLabel("yogas"), icon: "📜" },
+    { id: "gochara", label: getTabLabel("gochara"), icon: "📅" }
   ];
 
   return (
@@ -197,6 +497,132 @@ export default function BaggonaPredictionsPage(): JSX.Element {
 
       {!loading && predictions && (
         <div className="space-y-4 animate-fade-in">
+          {tab === "personal" && personalReading && (
+            <div className="space-y-6">
+              {/* 1. Cosmic Profile */}
+              {personalReading.cosmicProfile.map((sec, i) => (
+                <div
+                  key={`cosmic-${i}`}
+                  className="relative overflow-hidden rounded-2xl border border-indigo-100/80 bg-gradient-to-br from-indigo-50/40 via-white to-amber-50/20 p-5 shadow-sm transition-all hover:shadow-md dark:from-indigo-950/10 dark:via-slate-900/30 dark:to-amber-950/5"
+                >
+                  <div className="absolute top-0 right-0 -mt-4 -mr-4 h-16 w-16 rounded-full bg-indigo-500/5 blur-lg" />
+                  <div className="flex items-start gap-4">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-500/10 text-xl text-indigo-600">
+                      ✨
+                    </span>
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600/80">
+                        {sectionTitleProfile}
+                      </span>
+                      <h3 className="mt-0.5 text-base font-extrabold text-indigo-950">
+                        {sec.title}
+                      </h3>
+                      <p className="mt-3 text-xs leading-relaxed text-slate-700 md:text-sm text-justify">
+                        {sec.description}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {/* 2. Today's Transits */}
+              {personalReading.todaysTransits.map((sec, i) => (
+                <div
+                  key={`transit-${i}`}
+                  className="relative overflow-hidden rounded-2xl border border-amber-500/15 bg-gradient-to-br from-amber-50/40 via-white to-orange-50/20 p-5 shadow-sm transition-all hover:shadow-md dark:from-amber-950/10 dark:via-slate-900/30 dark:to-orange-950/5"
+                >
+                  <div className="absolute top-0 right-0 -mt-4 -mr-4 h-16 w-16 rounded-full bg-amber-500/5 blur-lg" />
+                  <div className="flex items-start gap-4">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-xl text-amber-600">
+                      🪐
+                    </span>
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600">
+                        {sectionTitleTransit}
+                      </span>
+                      <h3 className="mt-0.5 text-base font-extrabold text-indigo-950">
+                        {sec.title}
+                      </h3>
+                      <p className="mt-3 text-xs leading-relaxed text-slate-700 md:text-sm text-justify">
+                        {sec.description}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {/* 3. Current Life Chapter */}
+              <div className="relative overflow-hidden rounded-2xl border border-purple-200 bg-gradient-to-br from-purple-50/40 via-white to-indigo-50/20 p-5 shadow-sm transition-all hover:shadow-md dark:from-purple-950/10 dark:via-slate-900/30 dark:to-indigo-950/5">
+                <div className="absolute top-0 right-0 -mt-4 -mr-4 h-16 w-16 rounded-full bg-purple-500/5 blur-lg" />
+                <div className="flex items-start gap-4">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-500/10 text-xl text-purple-600">
+                    ⏳
+                  </span>
+                  <div className="flex-1">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-purple-600">
+                        {sectionTitleChapter}
+                      </span>
+                      <span className="inline-flex items-center rounded-full bg-purple-100 px-2.5 py-0.5 text-[10px] font-bold text-purple-800 dark:bg-purple-950/40 dark:text-purple-300">
+                        {activeUntilLabel}: {personalReading.currentLifeChapter.activeUntilAge}
+                      </span>
+                    </div>
+                    <h3 className="mt-1 text-base font-extrabold text-indigo-950">
+                      {personalReading.currentLifeChapter.cycle}
+                    </h3>
+                    <p className="mt-3 text-xs leading-relaxed text-slate-700 md:text-sm text-justify">
+                      {personalReading.currentLifeChapter.description}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. Upcoming Chapters */}
+              <div className="space-y-3">
+                <div className="rounded-xl bg-indigo-50/40 px-4 py-2 border border-indigo-100/50">
+                  <h4 className="text-xs font-bold text-indigo-900 uppercase tracking-wider">
+                    {upcomingTitle}
+                  </h4>
+                </div>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:shadow-md dark:bg-slate-900/10">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="inline-block rounded-lg bg-emerald-50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400">
+                        {lang === "kn" ? "ಮುಂದಿನ ಹಂತ ೧" : "Next Phase 1"}
+                      </span>
+                      <span className="text-[10px] font-bold text-slate-500">
+                        {personalReading.upcomingChapters.chapter1.ages}
+                      </span>
+                    </div>
+                    <h5 className="mt-2 text-sm font-bold text-indigo-950">
+                      {personalReading.upcomingChapters.chapter1.cycle}
+                    </h5>
+                    <p className="mt-2 text-xs leading-relaxed text-slate-600 text-justify">
+                      {personalReading.upcomingChapters.chapter1.description}
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:shadow-md dark:bg-slate-900/10">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="inline-block rounded-lg bg-amber-50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-700 dark:bg-amber-950/30 dark:text-amber-400">
+                        {lang === "kn" ? "ಮುಂದಿನ ಹಂತ ೨" : "Next Phase 2"}
+                      </span>
+                      <span className="text-[10px] font-bold text-slate-500">
+                        {personalReading.upcomingChapters.chapter2.ages}
+                      </span>
+                    </div>
+                    <h5 className="mt-2 text-sm font-bold text-indigo-950">
+                      {personalReading.upcomingChapters.chapter2.cycle}
+                    </h5>
+                    <p className="mt-2 text-xs leading-relaxed text-slate-600 text-justify">
+                      {personalReading.upcomingChapters.chapter2.description}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {tab === "overview" && (
             <div className="space-y-4">
               {predictions.overview.map((sec, i) => (
@@ -294,6 +720,161 @@ export default function BaggonaPredictionsPage(): JSX.Element {
                   </p>
                 </div>
               ))}
+            </div>
+          )}
+
+          {tab === "gochara" && (
+            <div className="space-y-6">
+              {/* Horizontal Date Picker */}
+              <div className="rounded-xl border border-amber-500/10 bg-amber-50/10 p-4 shadow-sm backdrop-blur-sm">
+                <h3 className="text-sm font-bold text-indigo-950 mb-3 flex items-center gap-2">
+                  <span>📅</span>
+                  {isKn ? "೧೫ ದಿನಗಳ ದೈನಂದಿನ ಗ್ರಹ ಸಂಚಾರ ವಿವರಗಳು" : "15-Day Daily Transit Calendar (Gochara)"}
+                </h3>
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-amber-500">
+                  {gocharaDays.map((day, idx) => {
+                    const isSelected = selectedDayIdx === idx;
+                    const dateObj = new Date(day.date);
+                    const formattedDate = dateObj.toLocaleDateString(lang === "kn" ? "kn-IN" : "en-IN", {
+                      month: "short",
+                      day: "numeric"
+                    });
+                    const dayLabel = isKn ? `ದಿನ ${idx + 1}` : `Day ${idx + 1}`;
+                    return (
+                      <button
+                        key={day.date}
+                        type="button"
+                        onClick={() => setSelectedDayIdx(idx)}
+                        className={`flex flex-col items-center justify-center shrink-0 rounded-xl px-4 py-2 text-xs font-bold transition-all border ${
+                          isSelected
+                            ? "bg-gradient-to-br from-amber-500 to-amber-600 border-amber-600 text-white shadow-md scale-95"
+                            : "bg-white border-slate-200 text-indigo-950 hover:bg-amber-500/10"
+                        }`}
+                      >
+                        <span className="opacity-80 text-[10px]">{dayLabel}</span>
+                        <span className="text-sm mt-0.5">{formattedDate}</span>
+                        <span className="text-[9px] mt-0.5 opacity-90">
+                          {isKn ? day.weekdayKn.split(" ")[0] : day.weekday.split(" ")[0]}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Day Details Grid */}
+              {gocharaDays[selectedDayIdx] && (() => {
+                const day = gocharaDays[selectedDayIdx];
+                const planetsToEvaluate = ["Jupiter", "Saturn", "Mars", "Sun", "Moon"];
+                return (
+                  <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+                    {/* Left Panel: Chart & Panchanga */}
+                    <div className="lg:col-span-5 space-y-4">
+                      {/* Daily Panchanga Info */}
+                      <div className="rounded-2xl border border-indigo-100 bg-white p-4 shadow-sm">
+                        <h4 className="text-xs font-bold text-indigo-950 uppercase tracking-wider mb-3 pb-2 border-b border-slate-100">
+                          {isKn ? "ಪಂಚಾಂಗ ವಿವರಗಳು" : "Panchanga Details"}
+                        </h4>
+                        <div className="space-y-2 text-xs text-slate-700">
+                          <div className="flex justify-between">
+                            <span className="font-semibold text-slate-500">{isKn ? "ದಿನಾಂಕ" : "Date"}:</span>
+                            <span className="font-bold text-indigo-950">{day.date}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-semibold text-slate-500">{isKn ? "ವಾರ" : "Weekday"}:</span>
+                            <span className="font-bold text-indigo-950">{isKn ? day.weekdayKn : day.weekday}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-semibold text-slate-500">{isKn ? "ತಿಥಿ (ಸೂರ್ಯೋದಯಕ್ಕೆ)" : "Tithi (at Sunrise)"}:</span>
+                            <span className="font-bold text-amber-700">{isKn ? day.tithiKn : day.tithi}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-semibold text-slate-500">{isKn ? "ನಕ್ಷತ್ರ (ಸೂರ್ಯೋದಯಕ್ಕೆ)" : "Nakshatra (at Sunrise)"}:</span>
+                            <span className="font-bold text-amber-700">{isKn ? day.nakshatraKn : day.nakshatra}</span>
+                          </div>
+                          <div className="flex justify-between pt-1 border-t border-slate-100">
+                            <span className="font-semibold text-slate-500">{isKn ? "ಸೂರ್ಯೋದಯ" : "Sunrise"}:</span>
+                            <span className="font-bold text-slate-800">☀️ {day.sunrise}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-semibold text-slate-500">{isKn ? "ಸೂರ್ಯಾಸ್ತ" : "Sunset"}:</span>
+                            <span className="font-bold text-slate-800">🌙 {day.sunset}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Gochara Kundli Chart */}
+                      <div className="rounded-2xl border border-amber-500/15 bg-white p-4 shadow-sm flex flex-col items-center">
+                        <h4 className="text-xs font-bold text-indigo-950 uppercase tracking-wider mb-4">
+                          {isKn ? "ಗೋಚಾರ ಕುಂಡಲಿ (ಸಂಚಾರ)" : "Gochara Transit Kundli"}
+                        </h4>
+                        <SouthIndianChart
+                          kundli={day.kundli}
+                          personName={isKn ? "ಗೋಚಾರ ಸಂಚಾರ" : "Transit Chart"}
+                          gothra={record.gothra}
+                        />
+                        <p className="mt-3 text-[10px] text-slate-500 text-center">
+                          {isKn 
+                            ? "* ಲಗ್ನ (ಲ) ಮತ್ತು ಭಾವಗಳು ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನಕ್ಕೆ ಅನುಗುಣವಾಗಿವೆ."
+                            : "* Lagna (L) and houses are rendered relative to your birth Lagna."}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Right Panel: Gocharafala Predictions */}
+                    <div className="lg:col-span-7 space-y-4">
+                      <div className="rounded-2xl border border-indigo-100 bg-white p-4 shadow-sm">
+                        <h4 className="text-xs font-bold text-indigo-950 uppercase tracking-wider mb-4 pb-2 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2">
+                          <span>{isKn ? "ಚಂದ್ರ ಲಗ್ನದಿಂದ ಗೋಚಾರ ಫಲ" : "Gocharafala from Chandra Lagna"}</span>
+                          <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold">
+                            {isKn 
+                              ? `ಜನ್ಮ ಚಂದ್ರ ರಾಶಿ: ${t(rashiTKey(record.kundliData.moonSign.sanskrit) as "rashis.Mesha")}` 
+                              : `Birth Moon Sign: ${record.kundliData.moonSign.english}`}
+                          </span>
+                        </h4>
+
+                        <div className="space-y-4">
+                          {planetsToEvaluate.map((pName) => {
+                            const pKey = (pName === "Jupiter" ? "jup" : pName === "Saturn" ? "sat" : pName.toLowerCase()) as keyof typeof day.planetHouses;
+                            const house = day.planetHouses[pKey];
+                            const statusInfo = getPlanetTransitStatus(pName, house, isKn);
+
+                            let borderClass = "border-slate-200 bg-slate-50/30";
+                            let badgeClass = "bg-slate-100 text-slate-800";
+                            if (statusInfo.status === "positive") {
+                              borderClass = "border-emerald-200 bg-emerald-50/20";
+                              badgeClass = "bg-emerald-100 text-emerald-800";
+                            } else if (statusInfo.status === "caution") {
+                              borderClass = "border-rose-200 bg-rose-50/20";
+                              badgeClass = "bg-rose-100 text-rose-800";
+                            }
+
+                            return (
+                              <div
+                                key={pName}
+                                className={`rounded-xl border p-4 transition-all hover:shadow-sm ${borderClass}`}
+                              >
+                                <div className="flex justify-between items-center mb-2">
+                                  <span className="font-bold text-sm text-indigo-950 flex items-center gap-1.5">
+                                    <span>{pName === "Saturn" ? "🪐" : pName === "Sun" ? "☀️" : pName === "Moon" ? "🌙" : "✨"}</span>
+                                    {statusInfo.name}
+                                  </span>
+                                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${badgeClass}`}>
+                                    {isKn ? `${house}ನೇ ಮನೆ` : `House ${house}`}
+                                  </span>
+                                </div>
+                                <p className="text-xs leading-relaxed text-slate-700">
+                                  {statusInfo.desc}
+                                </p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           )}
         </div>

@@ -35,15 +35,15 @@ const EN_MASAS = [
 
 // Visha Ghati starting points for 27 Nakshatras
 const VISHA_GHATI_START: Record<number, number> = {
-  0: 50, 1: 24, 2: 30, 3: 40, 4: 14, 5: 11, 6: 30, 7: 20, 8: 32, 9: 30,
-  10: 20, 11: 18, 12: 22, 13: 20, 14: 14, 15: 14, 16: 10, 17: 14, 18: 20, 19: 24,
+  0: 50, 1: 24, 2: 30, 3: 40, 4: 14, 5: 21, 6: 30, 7: 20, 8: 32, 9: 30,
+  10: 20, 11: 18, 12: 21, 13: 20, 14: 14, 15: 14, 16: 10, 17: 14, 18: 20, 19: 24,
   20: 20, 21: 10, 22: 10, 23: 18, 24: 16, 25: 24, 26: 30
 };
 
 const AMRITHA_GHATI_START: Record<number, number> = {
-  0: 54, 1: 52, 2: 38, 3: 35, 4: 54, 5: 44, 6: 56, 7: 54, 8: 44, 9: 40,
-  10: 45, 11: 44, 12: 38, 13: 38, 14: 34, 15: 38, 16: 44, 17: 48, 18: 44, 19: 54,
-  20: 34, 21: 32, 22: 40, 23: 48, 24: 54, 25: 42, 26: 48
+  0: 42, 1: 48, 2: 54, 3: 52, 4: 38, 5: 35, 6: 54, 7: 44, 8: 56, 9: 54,
+  10: 44, 11: 42, 12: 45, 13: 44, 14: 38, 15: 38, 16: 34, 17: 38, 18: 44, 19: 48,
+  20: 44, 21: 34, 22: 34, 23: 42, 24: 40, 25: 48, 26: 54
 };
 
 export const isAngleBetween = (target: number, a: number, b: number): boolean => {
@@ -294,8 +294,63 @@ export const getDivaGhati = (
   };
 };
 
-// Sankranti Gata Dina
-export const getSankrantiGataDina = (sunDegree: number): number => {
-  const inSign = sunDegree % 30;
-  return Math.floor(inSign) + 1;
+// Sankranti Gata Dina (Calendar days difference since the day of the last Sankranti in the local timezone)
+import { inferBirthTimezoneIana } from "./birthTime";
+import { calendarYmdInTimeZone } from "./placeTime";
+
+export const getSankrantiGataDina = (
+  birthUtc: Date,
+  model: AyanamsaModel,
+  latitude: number,
+  longitude: number
+): number => {
+  const getSunLong = (d: Date) => normalizeDegree(siderealLongitudes(d, model).sun);
+  const sunLong = getSunLong(birthUtc);
+  const currIdx = Math.floor(sunLong / 30);
+  const targetDeg = currIdx * 30;
+  
+  // Search backward in 12-hour steps up to 35 days (70 steps)
+  const step = 12 * 60 * 60 * 1000;
+  let current = birthUtc;
+  let prevLong = getSunLong(current);
+  let sankrantiTime = birthUtc;
+  
+  for (let i = 0; i < 70; i++) {
+    const nextTime = new Date(current.getTime() - step);
+    const nextLong = getSunLong(nextTime);
+    
+    let crossed = false;
+    if (prevLong >= nextLong) {
+      crossed = targetDeg >= nextLong && targetDeg <= prevLong;
+    } else {
+      crossed = targetDeg >= nextLong || targetDeg <= prevLong;
+    }
+    
+    if (crossed) {
+      let low = nextTime.getTime();
+      let high = current.getTime();
+      for (let iter = 0; iter < 15; iter++) {
+        const mid = (low + high) / 2;
+        const midLong = getSunLong(new Date(mid));
+        if (midLong >= targetDeg) {
+          high = mid;
+        } else {
+          low = mid;
+        }
+      }
+      sankrantiTime = new Date((low + high) / 2);
+      break;
+    }
+    prevLong = nextLong;
+    current = nextTime;
+  }
+  
+  const tz = inferBirthTimezoneIana(latitude, longitude);
+  const sankrantiYmd = calendarYmdInTimeZone(sankrantiTime, tz);
+  const birthYmd = calendarYmdInTimeZone(birthUtc, tz);
+  
+  const sDate = new Date(sankrantiYmd);
+  const bDate = new Date(birthYmd);
+  const diffDays = Math.round((bDate.getTime() - sDate.getTime()) / (24 * 60 * 60 * 1000));
+  return diffDays; // 0-based calendar days passed. In traditional panchang, Sankranti day is day 0, next is day 1, etc.
 };
