@@ -354,7 +354,7 @@ export default function TraditionalSouthPatrika({
                 if (rashi.index === kundli.lagnaRashi.index) {
                   cells.push(
                     <span key="lagna" className="jk-patrika-ink block">
-                      {t("kundli.lagMark", { defaultValue: "ಲ" })}{formatChartHouseNumber(patrikaNavamshaFromDegree(kundli.ascendant), lang)}
+                      {t("kundli.lagnaPatrika")}{formatChartHouseNumber(patrikaNavamshaFromDegree(kundli.ascendant), lang)}
                     </span>
                   );
                 }
@@ -372,6 +372,20 @@ export default function TraditionalSouthPatrika({
                     </span>
                   );
                 }
+                
+                let textClass = "text-[9.5px]";
+                if (cells.length === 2) {
+                  textClass = "text-[9.0px]";
+                } else if (cells.length === 3) {
+                  textClass = "text-[8.4px]";
+                } else if (cells.length === 4) {
+                  textClass = "text-[7.6px]";
+                } else if (cells.length === 5) {
+                  textClass = "text-[7.0px]";
+                } else if (cells.length >= 6) {
+                  textClass = "text-[6.2px]";
+                }
+
                 return (
                   <div
                     key={rashi.index}
@@ -384,11 +398,7 @@ export default function TraditionalSouthPatrika({
                     </span>
                     <div className="flex flex-1 items-center justify-center min-h-0">
                       <div
-                        className={`grid w-full gap-x-1 gap-y-0.5 justify-center leading-none text-center font-bold ${
-                          cells.length > 3
-                            ? "grid-cols-2 text-[7.5px]"
-                            : "grid-cols-1 text-[9.5px]"
-                        }`}
+                        className={`grid grid-cols-1 w-full gap-y-0.5 justify-center leading-none text-center font-bold ${textClass}`}
                       >
                         {cells}
                       </div>

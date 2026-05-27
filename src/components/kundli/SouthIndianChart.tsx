@@ -85,7 +85,7 @@ export default function SouthIndianChart({ kundli, personName, gothra }: Props):
             </text>
             {isLagna && (
               <text x={x + cw - 8} y={y + 22} fontSize="9" fill="#b45309" textAnchor="end" fontWeight="700">
-                {t("kundli.lagnaMark")}
+                {t("kundli.lagnaPatrika")}
               </text>
             )}
           </g>
@@ -152,71 +152,50 @@ export default function SouthIndianChart({ kundli, personName, gothra }: Props):
         if (!lines.length) return null;
 
         const lineCount = lines.length;
-        if (lineCount > 3) {
-          const leftLines = lines.filter((_, i) => i % 2 === 0);
-          const rightLines = lines.filter((_, i) => i % 2 !== 0);
-          const maxColLines = Math.max(leftLines.length, rightLines.length);
+        let fontSize = 9.5;
+        let dy = 11;
+        let startY = 32;
 
-          const fontSize = maxColLines > 3 ? 7.5 : 8.5;
-          const dy = maxColLines > 3 ? 9 : 11;
-          const startY = maxColLines > 3 ? 18 : 22;
-
-          const leftX = x + 6;
-          const rightX = x + cw - 6;
-
-          return (
-            <g key={`p-${rashi.index}`} data-testid={`south-house-${rashi.index}`}>
-              <text
-                x={leftX}
-                y={y + startY}
-                fontSize={fontSize}
-                fill="#1e1b4b"
-                textAnchor="start"
-              >
-                {leftLines.map((line, i) => (
-                  <tspan key={i} x={leftX} dy={i === 0 ? 0 : dy}>
-                    {line}
-                  </tspan>
-                ))}
-              </text>
-              <text
-                x={rightX}
-                y={y + startY}
-                fontSize={fontSize}
-                fill="#1e1b4b"
-                textAnchor="end"
-              >
-                {rightLines.map((line, i) => (
-                  <tspan key={i} x={rightX} dy={i === 0 ? 0 : dy}>
-                    {line}
-                  </tspan>
-                ))}
-              </text>
-            </g>
-          );
-        } else {
-          const fontSize = 9.5;
-          const dy = 11;
-          const startY = lineCount === 3 ? 20 : lineCount === 2 ? 26 : 32;
-
-          return (
-            <text
-              key={`p-${rashi.index}`}
-              data-testid={`south-house-${rashi.index}`}
-              x={x + cw / 2}
-              y={y + startY}
-              fontSize={fontSize}
-              fill="#1e1b4b"
-              textAnchor="middle"
-            >
-              {lines.map((line, i) => (
-                <tspan key={i} x={x + cw / 2} dy={i === 0 ? 0 : dy}>
-                  {line}
-                </tspan>
-              ))}
-            </text>
-          );
+        if (lineCount === 2) {
+          fontSize = 9.0;
+          dy = 10.5;
+          startY = 26;
+        } else if (lineCount === 3) {
+          fontSize = 8.5;
+          dy = 9.8;
+          startY = 22;
+        } else if (lineCount === 4) {
+          fontSize = 7.6;
+          dy = 8.8;
+          startY = 18;
+        } else if (lineCount === 5) {
+          fontSize = 7.0;
+          dy = 8.0;
+          startY = 16;
+        } else if (lineCount >= 6) {
+          fontSize = 6.2;
+          dy = 7.2;
+          startY = 15;
         }
+
+        return (
+          <text
+            key={`p-${rashi.index}`}
+            data-testid={`south-house-${rashi.index}`}
+            x={x + cw / 2}
+            y={y + startY}
+            fontSize={fontSize}
+            fill="#1e1b4b"
+            textAnchor="middle"
+            fontWeight="500"
+          >
+            {lines.map((line, i) => (
+              <tspan key={i} x={x + cw / 2} dy={i === 0 ? 0 : dy}>
+                {line}
+              </tspan>
+            ))}
+          </text>
+        );
       })}
     </svg>
   );
