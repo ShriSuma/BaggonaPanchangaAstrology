@@ -4,6 +4,7 @@ import { calculateTraditionalBaggona } from "../core/TraditionalBaggonaEngine";
 import { generateBaggonaPredictions, calculateGocharaPredictions, generatePersonalReading, housesRuledByPlanet } from "../core/BaggonaPredictionEngine";
 import { generateJayashreePredictionBase } from "../core/JayashreePredictionEngine";
 import { PlanetName, type KundliOutput } from "../core/AstroTypes";
+import { generateBhuktiTimeline } from "../core/DashaBhuktiEngine";
 
 describe("BaggonaAstrologyRules", () => {
   const birth = {
@@ -24,6 +25,18 @@ describe("BaggonaAstrologyRules", () => {
     // Kataka Lagna Benefics: Moon, Mars, Jupiter. Malefics: Saturn, Mercury, Venus.
     // Let's verify Sun (non-lord benefic/malefic) vs Mars (Benefic) vs Saturn (Malefic) strength adjustments
     expect(preds.planets.length).toBe(9);
+
+    // Verify that Kendra-Trikona Raja Yoga is found (Moon & Jupiter conjoin in Virgo)
+    const ktYoga = preds.yogas.find(y => y.title.includes("Kendra-Trikona Raja Yoga"));
+    expect(ktYoga).toBeDefined();
+    expect(ktYoga?.description).toContain("Moon");
+    expect(ktYoga?.description).toContain("Jupiter");
+
+    // Verify that Raja Yoga Bhanga is found in doshas (Mars aspects 8th lord Saturn)
+    const ryBhanga = preds.doshas.find(d => d.title.includes("Raja Yoga Bhanga"));
+    expect(ryBhanga).toBeDefined();
+    expect(ryBhanga?.description).toContain("Saturn");
+    expect(ryBhanga?.description).toContain("Mars");
   });
 
   it("verifies Saturn aspect-based house score modifications", () => {
@@ -112,5 +125,30 @@ describe("BaggonaAstrologyRules", () => {
     const preds = generateBaggonaPredictions(k, trad, "en");
     const mercuryPred = preds.planets.find(p => p.title.toLowerCase().includes("mercury"));
     expect(mercuryPred?.description).toContain("Trishadaya");
+  });
+
+  it("verifies Dasha Sandhi caution alerts", () => {
+    const k = calculateKundli(birth, { ayanamsaModel: "lahiri" });
+    const trad = calculateTraditionalBaggona(birth.birthDate, birth.birthTime, birth.latitude, birth.longitude, "lahiri");
+
+    const timeline = generateBhuktiTimeline(k, 100);
+    let transitionAge = 0;
+    for (let i = 0; i < timeline.length - 1; i++) {
+      if (timeline[i].maha === PlanetName.Mars && timeline[i+1].maha === PlanetName.Rahu) {
+        transitionAge = timeline[i].endAge;
+        break;
+      }
+    }
+
+    if (transitionAge > 0) {
+      const today = new Date();
+      const birthMs = today.getTime() - transitionAge * 365.25 * 24 * 60 * 60 * 1000;
+      const mockBirthDate = new Date(birthMs).toISOString().split('T')[0];
+      
+      const preds = generateBaggonaPredictions(k, trad, "en", { birthDate: mockBirthDate });
+      const sandhiDosha = preds.doshas.find(d => d.title.includes("Dasha Sandhi"));
+      expect(sandhiDosha).toBeDefined();
+      expect(sandhiDosha?.status).toBe("caution");
+    }
   });
 });

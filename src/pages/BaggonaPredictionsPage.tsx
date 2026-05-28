@@ -290,7 +290,7 @@ export default function BaggonaPredictionsPage(): JSX.Element {
       setLoading(true);
       setLoadError(null);
       try {
-        const basePreds = generateBaggonaPredictions(record.kundliData, traditionalData, lang);
+        const basePreds = generateBaggonaPredictions(record.kundliData, traditionalData, lang, record);
         const basePersonal = generatePersonalReading(record.kundliData, record, lang);
         const jayashree = await generateJayashreePrediction(record.kundliData, record, lang);
 

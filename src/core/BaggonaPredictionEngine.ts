@@ -498,12 +498,12 @@ const LAGNA_RULES: Record<number, LagnaRule> = {
     yogasKn: "ಶನಿ (9ನೇ ಅಧಿಪತಿ) ಮತ್ತು ಗುರು (10ನೇ ಅಧಿಪತಿ) संबंधವಿದ್ದಲ್ಲಿ ರಾಜಯೋಗ ಭಂಗವಾಗುತ್ತದೆ; ಏಕೆಂದರೆ ಗುರುವು ಇಲ್ಲಿ 7ನೇ ಮನೆಯ (ಮಾರಕ) ಅಧಿಪತ್ಯದ ದೋಷವನ್ನೂ ಹೊಂದಿರುತ್ತಾನೆ."
   },
   3: { // Karka
-    beneficsEn: "Jupiter and Sun are benefic.",
-    beneficsKn: "ಗುರು ಮತ್ತು ರವಿ ಅತ್ಯಂತ ಶುಭ ಫಲಗಳನ್ನು ನೀಡುತ್ತಾರೆ.",
-    maleficsEn: "Venus, Saturn, and Mercury are malefic. Saturn and Moon association can yield inauspicious results.",
-    maleficsKn: "ಶುಕ್ರ, ಶನಿ ಮತ್ತು ಬುಧ ಅಶುಭರು. ಶನಿ ಮತ್ತು ಚಂದ್ರನ ಸಂಬಂಧವು ಅಶುಭ ಫಲ ನೀಡಬಹುದು.",
-    yogasEn: "Jupiter and Sun conjunction creates strong professional growth.",
-    yogasKn: "ಗುರು ಮತ್ತು ರವಿಯ ಯುತಿಯು ಆಡಳಿತ ಹಾಗೂ ಉನ್ನತ ಅಧಿಕಾರ ನೀಡುತ್ತದೆ."
+    beneficsEn: "Jupiter and Mars are functional benefics and Rajayogakarakas.",
+    beneficsKn: "ಗುರು ಮತ್ತು ಮಂಗಳರು ಶುಭರು ಹಾಗೂ ರಾಜಯೋಗಕಾರಕರು.",
+    maleficsEn: "Venus, Saturn, and Mercury are malefic.",
+    maleficsKn: "ಶುಕ್ರ, ಶನಿ ಮತ್ತು ಬುಧ ಅಶುಭರು.",
+    yogasEn: "Jupiter and Mars conjunction/mutual aspect creates a powerful Raja Yoga.",
+    yogasKn: "ಗುರು ಮತ್ತು ಮಂಗಳ ಗ್ರಹಗಳ ಯುತಿ ಅಥವಾ ಪರಸ್ಪರ ದೃಷ್ಟಿಯು ಅತ್ಯಂತ ಪ್ರಬಲ ರಾಜಯೋಗವನ್ನು ಉಂಟುಮಾಡುತ್ತದೆ."
   },
   4: { // Simha
     beneficsEn: "Sun and Mars are benefic.",
@@ -647,6 +647,12 @@ export function getDetailedPlanetInsight(
           ? "\n\n[ರಾಜಯೋಗ ಭಂಗ ವಿಚಾರ]: ಮಿಥುನ ಲಗ್ನಕ್ಕೆ ಶನಿ (೯ನೇ ಅಧಿಪತಿ) ಮತ್ತು ಗುರು (೧೦ನೇ ಅಧಿಪತಿ) ಸಂಬಂಧವಿದ್ದಲ್ಲಿ ರಾಜಯೋಗ ಭಂಗವಾಗುತ್ತದೆ; ಏಕೆಂದರೆ ಗುರುವು ಇಲ್ಲಿ ೭ನೇ ಮನೆಯ (ಮಾರಕ) ಅಧಿಪತ್ಯದ ದೋಷವನ್ನೂ ಹೊಂದಿರುತ್ತಾನೆ."
           : "\n\n[Raja Yoga Bhanga Subtlety]: For Gemini Lagna, while Saturn (9L) and Jupiter (10L) rule auspicious houses, their conjunction/aspect causes Raja Yoga Bhanga because Jupiter also holds the 7th house (Maraka) lordship.";
       }
+    } else if (lagnaIdx === 3) {
+      if (planet === PN.Mars || planet === PN.Saturn) {
+        text += isKn
+          ? "\n\n[ರಾಜಯೋಗ ಭಂಗ ವಿಚಾರ]: ಕಟಕ ಲಗ್ನಕ್ಕೆ ಮಂಗಳನು ಯೋಗಕಾರಕನಾಗಿದ್ದರೂ, ೮ನೇ ಅಧಿಪತಿಯಾದ ಶನಿಯೊಂದಿಗಿನ ದೃಷ್ಟಿ/ಯುತಿ ಸಂಬಂಧದಿಂದಾಗಿ ರಾಜಯೋಗ ಭಂಗ ಉಂಟಾಗಬಹುದು. ಇದು ನಿಮ್ಮ ಕೆಲಸಗಳಲ್ಲಿ ಕೊನೆಯ ಕ್ಷಣದಲ್ಲಿ ಅಡೆತಡೆಗಳನ್ನು ತರಬಹುದು."
+          : "\n\n[Raja Yoga Bhanga Subtlety]: For Cancer Lagna, while Mars is the primary Yogakaraka, its association or aspect with the 8th lord Saturn triggers a Raja Yoga Bhanga, which might introduce sudden hurdles or delays near completion.";
+      }
     }
   }
 
@@ -661,13 +667,67 @@ export function getDetailedPlanetInsight(
   return text;
 }
 
+const HOUSE_KARAKAS_INFO: Record<number, { en: string; kn: string; hi: string }> = {
+  1: { en: "Sun (represents soul, vitality, self-confidence, and identity)", kn: "ಸೂರ್ಯ (ಆತ್ಮಕಾರಕ, ಆತ್ಮವಿಶ್ವಾಸ ಮತ್ತು ದೈಹಿಕ ಶಕ್ತಿ)", hi: "सूर्य (आत्मा, आत्मविश्वास और शारीरिक ऊर्जा)" },
+  2: { en: "Jupiter (represents wealth, family, speech, and wisdom)", kn: "ಗುರು (ಧನಕಾರಕ, ಕೌಟುಂಬಿಕ ಅಭಿವೃದ್ಧಿ, ವಿದ್ಯಾಭ್ಯಾಸ)", hi: "गुरु (धन, वाणी और पारिवारिक समृद्धि)" },
+  3: { en: "Mars (represents courage, physical strength, and younger siblings)", kn: "ಮಂಗಳ (ಧೈರ್ಯ, ಸಾಹಸ ಮತ್ತು ಒಡಹುಟ್ಟಿದವರು)", hi: "मंगल (साहस, पुरुषार्थ और छोटे भाई-बहन)" },
+  4: { en: "Moon and Mercury (represent mother, mental happiness, and education)", kn: "ಚಂದ್ರ ಮತ್ತು ಬುಧ (ಮಾತೃ ಕಾರಕ, ಮನಸ್ಸು, ಸುಖ ಮತ್ತು ವಿದ್ಯೆ)", hi: "चंद्र और बुध (माता, मानसिक सुख और विद्या)" },
+  5: { en: "Jupiter (represents children, intellect, and memory)", kn: "ಗುರು (ಪುತ್ರಕಾರಕ, ತೀಕ್ಷ್ಣ ಬುದ್ಧಿಶಕ್ತಿ, ಜ್ಞಾನ)", hi: "गुरु (संतान, बुद्धि और ज्ञान)" },
+  6: { en: "Mars and Saturn (represent obstacles, service, and debt control)", kn: "ಮಂಗಳ ಮತ್ತು ಶನಿ (ರೋಗ, ಶತ್ರು ನಿಯಂತ್ರಣ, ಸೇವಾ ಮನೋಭಾವ)", hi: "मंगल और शनि (ऋण, शत्रु और सेवा)" },
+  7: { en: "Venus (represents marriage, spouse, and partnership relations)", kn: "ಶುಕ್ರ (ಕಲತ್ರಕಾರಕ, ದಾಂಪತ್ಯ ಸುಖ, ಪಾಲುದಾರಿಕೆ)", hi: "शुक्र (विवाह, जीवनसाथी और साझेदारी)" },
+  8: { en: "Saturn (represents longevity, transformations, and deep secrets)", kn: "ಶನಿ (ಆಯುಷ್ಯಕಾರಕ, ಗೂಢ ವಿಷಯಗಳು, ಆಕಸ್ಮಿಕಗಳು)", hi: "शनि (आयु, गुप्त विद्या और अचानक बदलाव)" },
+  9: { en: "Jupiter and Sun (represent fortune, higher education, father, and dharma)", kn: "ಗುರು ಮತ್ತು ಸೂರ್ಯ (ಭಾಗ್ಯಕಾರಕ, ತಂದೆಯ ಮಾರ್ಗದರ್ಶನ, ಧರ್ಮ ಶ್ರದ್ಧೆ)", hi: "गुरु और सूर्य (भाग्य, पिता और धर्म)" },
+  10: { en: "Sun, Mercury, Jupiter, and Saturn (represent career, public image, authority, and karma)", kn: "ಸೂರ್ಯ, ಬುಧ, ಗುರು ಮತ್ತು ಶನಿ (ಕರ್ಮಕಾರಕರು, ವೃತ್ತಿ ಗೌರವ, ಕೀರ್ತಿ)", hi: "सूर्य, बुध, गुरु और शनि (आजीविका, पद-प्रतिष्ठा और कर्म)" },
+  11: { en: "Jupiter (represents income streams, gains, and fulfillment of desires)", kn: "ಗುರು (ಲಾಭಕಾರಕ, ಆರ್ಥಿಕ ಪ್ರಗತಿ, ಸಕಲ ಸಂಪತ್ತು)", hi: "गुरु (लाभ, इच्छा पूर्ति और आय के स्रोत)" },
+  12: { en: "Saturn (represents expenditure, liberation, and foreign connections)", kn: "ಶನಿ (ಮೋಕ್ಷಕಾರಕ, ವ್ಯಯ ನಿಯಂತ್ರಣ, ವಿಶ್ರಾಂತಿ)", hi: "शनि (मोक्ष, व्यय और विदेश संबंध)" }
+};
+
+function arePlanetsAssociated(p1Name: PlanetName, p2Name: PlanetName, kundli: KundliOutput): boolean {
+  const p1 = kundli.planets.find(p => p.name === p1Name);
+  const p2 = kundli.planets.find(p => p.name === p2Name);
+  if (!p1 || !p2) return false;
+
+  if (p1.house === p2.house) return true;
+
+  const p1House = p1.house;
+  const p2House = p2.house;
+  const p1Aspects = [(p1House + 6 - 1) % 12 + 1];
+  if (p1Name === PN.Saturn) {
+    p1Aspects.push((p1House + 2 - 1) % 12 + 1);
+    p1Aspects.push((p1House + 9 - 1) % 12 + 1);
+  } else if (p1Name === PN.Mars) {
+    p1Aspects.push((p1House + 3 - 1) % 12 + 1);
+    p1Aspects.push((p1House + 7 - 1) % 12 + 1);
+  } else if (p1Name === PN.Jupiter) {
+    p1Aspects.push((p1House + 4 - 1) % 12 + 1);
+    p1Aspects.push((p1House + 8 - 1) % 12 + 1);
+  }
+  if (p1Aspects.includes(p2House)) return true;
+
+  const p2Aspects = [(p2House + 6 - 1) % 12 + 1];
+  if (p2Name === PN.Saturn) {
+    p2Aspects.push((p2House + 2 - 1) % 12 + 1);
+    p2Aspects.push((p2House + 9 - 1) % 12 + 1);
+  } else if (p2Name === PN.Mars) {
+    p2Aspects.push((p2House + 3 - 1) % 12 + 1);
+    p2Aspects.push((p2House + 7 - 1) % 12 + 1);
+  } else if (p2Name === PN.Jupiter) {
+    p2Aspects.push((p2House + 4 - 1) % 12 + 1);
+    p2Aspects.push((p2House + 8 - 1) % 12 + 1);
+  }
+  if (p2Aspects.includes(p1House)) return true;
+
+  return false;
+}
+
 /**
  * Generate predictions based on the Traditional Baggona PDF Rules
  */
 export function generateBaggonaPredictions(
   kundli: KundliOutput,
   panchanga: TraditionalBaggonaPanchanga,
-  lang: string = "en"
+  lang: string = "en",
+  birth?: { birthDate: string }
 ): BaggonaPredictions {
   const isKn = lang === "kn";
   const isHi = lang === "hi";
@@ -1195,13 +1255,15 @@ export function generateBaggonaPredictions(
         : `ಈ ಭಾವದಲ್ಲಿ ಯಾವುದೇ ಗ್ರಹಗಳು ನೆಲೆಸಿಲ್ಲ, ಇದು ಶಾಂತವಾಗಿದೆ. `;
       let analysisText = "";
       if (status === "positive") {
-        analysisText = `ಇದು ಅತ್ಯಂತ ಬಲಶಾಲಿ ಭಾವವಾಗಿದ್ದು, ಜಾತಕದ ಈ ಭಾಗಕ್ಕೆ ಹೆಚ್ಚಿನ ಶುಭ ಫಲಗಳನ್ನು ತರುತ್ತದೆ. ನಿಮಗೆ ${sigs} ಕ್ಷೇತ್ರಗಳಲ್ಲಿ ಯಶಸ್ಸು, ಸಂಪತ್ತು ಮತ್ತು ಸಂತೋಷ ಸಿಗಲಿದೆ.`;
+        analysisText = `ಇದು ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ಅತ್ಯಂತ ಬಲಶಾಲಿ ಹಾಗೂ ಶುಭದಾಯಕವಾದ ಭಾವವಾಗಿದೆ. ಈ ಸ್ಥಾನದಲ್ಲಿರುವ ಗ್ರಹಗಳ ಅನುಕೂಲಕರ ಜೋಡಣೆಯು ನಿಮಗೆ ${sigs} ಕ್ಷೇತ್ರಗಳಲ್ಲಿ ಸುಲಭ ಯಶಸ್ಸು, ಶೀಘ್ರ ಪ್ರಗತಿ ಮತ್ತು ಅತ್ಯುತ್ತಮ ಫಲیتಾಂಶಗಳನ್ನು ನೀಡುತ್ತದೆ. ಈ ವಿಷಯಗಳಲ್ಲಿ ನಿಮ್ಮ ಪ್ರಯತ್ನಗಳು ಯಶಸ್ವಿಯಾಗುತ್ತವೆ ಹಾಗೂ ಸಮಾಜದಲ್ಲಿ ಗೌರವ ತರುತ್ತವೆ.`;
       } else if (status === "caution") {
-        analysisText = `ಈ ಭಾವವು ಸವಾಲುಗಳು ಮತ್ತು ಶ್ರಮವನ್ನು ಸೂಚಿಸುತ್ತದೆ. ${sigs} ವಿಷಯಗಳಲ್ಲಿ ಅಡೆತಡೆಗಳು, ಖರ್ಚುಗಳು ಅಥವಾ ಕಳವಳಗಳು ಕಾಣಿಸಿಕೊಳ್ಳಬಹುದು. ಪರಿಹಾರಕ್ಕಾಗಿ ಸೂಕ್ತ ದೈವಾರಾಧನೆ ಮತ್ತು ತಾಳ್ಮೆ ಅತ್ಯಗತ್ಯ.`;
+        analysisText = `ಈ ಭಾವವು ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಕೆಲವು ಸವಾಲುಗಳು ಮತ್ತು ಸೂಕ್ಷ್ಮ ಪರಿಸ್ಥಿತಿಯನ್ನು ಸೂಚಿಸುತ್ತದೆ. ನಿಮಗೆ ${sigs} ವಿಷಯಗಳಲ್ಲಿ ಹಠಾತ್ ಅಡೆತಡೆಗಳು, ನಿಧಾನಗತಿಯ ಪ್ರಗತಿ ಅಥವಾ ಭಿನ್ನಾಭಿಪ್ರಾಯಗಳು ಎದುರಾಗಬಹುದು. ಇದನ್ನು ಒಂದು ಕಲಿಕೆಯ ಹಂತವೆಂದು ಪರಿಗಣಿಸಿ, ಅವಸರದ ನಿರ್ಧಾರಗಳನ್ನು ತಡೆದು ತಾಳ್ಮೆಯಿಂದ ವರ್ತಿಸುವುದು ಹಿತಕರ.`;
       } else {
-        analysisText = `ಈ ಭಾವವು ಮಧ್ಯಮ ಹಾಗೂ ಸಮತೋಲಿತವಾಗಿದೆ. ${sigs} ವಿಷಯಗಳು ನಿಮ್ಮ ಸ್ವಂತ ಪ್ರಯತ್ನದಿಂದ ಹಂತಹಂತವಾಗಿ ಸುಧಾರಿಸುತ್ತವೆ. ಕಠಿಣ ಪರಿಶ್ರಮ ಮತ್ತು ನಿಯಮಿತ ದಿನಚರಿ ಸಕಾರಾತ್ಮಕತೆಯನ್ನು ತರುತ್ತದೆ.`;
+        analysisText = `ಈ ಭಾವವು ಮಧ್ಯಮ ಶಕ್ತಿಯನ್ನು ಹೊಂದಿದ್ದು ಅತ್ಯಂತ ಸಮತೋಲಿತವಾಗಿದೆ. ${sigs} ಕ್ಕೆ ಸಂಬಂಧಿಸಿದ ವಿಷಯಗಳು ನಿಮ್ಮ ವೈಯಕ್ತಿಕ ಪ್ರಯತ್ನಗಳು, ಪರಿಶ್ರಮ ಮತ್ತು ಶಿಸ್ತಿನ ಆಧಾರದ ಮೇಲೆ ಹಂತಹಂತವಾಗಿ ಸುಧಾರಿಸುತ್ತವೆ. ಇಲ್ಲಿ ಹಠಾತ್ ಏರಿಳಿತಗಳಿಲ್ಲದೆ ಸ್ಥಿರವಾದ ಫಲಗಳು ಲಭಿಸುತ್ತವೆ.`;
       }
-      description = `ಭಾವ ವಿವರಣೆ: ಈ ಭಾವವು ${sigs} ಸೂಚಿಸುತ್ತದೆ. ${lordText}${occupantText}${analysisText}`;
+      const karakaText = `\n\n[ಭಾವ ಕಾರಕ]: ಈ ಮನೆಗೆ ನೈಸರ್ಗಿಕ ಕಾರಕ ಗ್ರಹ ${HOUSE_KARAKAS_INFO[h].kn} ಆಗಿದೆ. ಜಾತಕದಲ್ಲಿ ಈ ಕಾರಕ ಗ್ರಹದ ಬಲವನ್ನು ನೋಡುವುದು ಈ ಭಾವದ ಪೂರ್ಣ ಫಲಗಳನ್ನು ಅರಿಯಲು ಅಗತ್ಯವಾಗಿರುತ್ತದೆ.`;
+      const lordPlacementText = `\n\n[ಭಾವಾಧಿಪತಿ ಸ್ಥಿತಿ ವಿವರಣೆ]: ಈ ಭಾವದ ಅಧಿಪತಿಯಾದ ${lordName} ಜಾತಕದ ${lordHouse}ನೇ ಭಾವದಲ್ಲಿ ನೆಲೆಸಿರುವುದು ನಿಮ್ಮ ಜೀವನದ ಪ್ರಮುಖ ಶಕ್ತಿಯನ್ನು ${lordHouse}ನೇ ಮನೆಗೆ ಸಂಬಂಧಿಸಿದ ವಿಷಯಗಳ ಕಡೆಗೆ ತಿರುಗಿಸುತ್ತದೆ. ಇದು ಆ ಭಾವದ ಕಾರಕತ್ವಗಳನ್ನು ಸಕ್ರಿಯಗೊಳಿಸುತ್ತದೆ.`;
+      description = `ಭಾವ ವಿವರಣೆ: ಈ ಭಾವವು ${sigs} ಸೂಚಿಸುತ್ತದೆ. ${lordText}${occupantText}${analysisText}${karakaText}${lordPlacementText}`;
     } else if (isHi) {
       title = BHAVA_NAMES_HI[h - 1]!;
       const sigs = BHAVA_SIGNIFICATIONS_HI[h - 1]!;
@@ -1211,13 +1273,15 @@ export function generateBaggonaPredictions(
         : `यह भाव वर्तमान में रिक्त है। `;
       let analysisText = "";
       if (status === "positive") {
-        analysisText = `यह अत्यंत शुभ और मजबूत भाव है। आपको ${sigs} के क्षेत्रों में सफलता, धन और अनुकूल परिणाम प्राप्त होंगे।`;
+        analysisText = `यह आपकी जन्म कुंडली में अत्यंत बलवान और शुभ फल देने वाला भाव है। ग्रहों की अनुकूल स्थिति के कारण आपको ${sigs} के क्षेत्रों में विशेष सफलता, प्रगति और लाभ प्राप्त होंगे। आपके प्रयास सही दिशा में आगे बढ़ेंगे और सकारात्मक परिणाम सामने आएंगे।`;
       } else if (status === "caution") {
-        analysisText = `यह भाव कुछ चुनौतियों को दर्शाता है। ${sigs} से संबंधित मामलों में संघर्ष, व्यय या विलंब देखने को मिल सकता है।`;
+        analysisText = `यह भाव आपकी कुंडली में कुछ संघर्ष या चुनौतियों को दर्शाता है। आपको ${sigs} से संबंधित मामलों में उतार-चढ़ाव, कार्यों में देरी या वैचारिक मतभेद का सामना करना पड़ सकता है। कोई भी बड़ा निर्णय लेने में जल्दबाजी न करें और धैर्य से काम लें।`;
       } else {
-        analysisText = `यह भाव सामान्य और संतुलित है। ${sigs} के मामले आपके व्यक्तिगत प्रयासों से धीरे-धीरे सुधरेंगे।`;
+        analysisText = `यह भाव सामान्य और संतुलित प्रभाव देने वाला है। ${sigs} से जुड़े मामलों में प्रगति आपके व्यक्तिगत प्रयासों और निरंतरता पर निर्भर करेगी। इसमें कोई बड़ा नकारात्मक प्रभाव नहीं है, अतः मेहनत से आप अच्छे परिणाम पा सकते हैं।`;
       }
-      description = `भाव फल: यह भाव ${sigs} को दर्शाता है। ${lordText}${occupantText}${analysisText}`;
+      const karakaText = `\n\n[भाव कारक]: इस भाव के नैसर्गिक कारक ${HOUSE_KARAKAS_INFO[h].hi} हैं। आपकी कुंडली में इस कारक ग्रह की स्थिति इस भाव के फलों को मुख्य रूप से प्रभावित करती है।`;
+      const lordPlacementText = `\n\n[भावेष स्थिति फल]: इस भाव के स्वामी (${lordName}) कुंडली के ${lordHouse}वें भाव में स्थित हैं। यह संयोजन आपके जीवन के मुख्य उद्देश्यों और अनुभवों को ${lordHouse}वें भाव के विषयों से जोड़ता है।`;
+      description = `भाव फल: यह भाव ${sigs} को दर्शाता है। ${lordText}${occupantText}${analysisText}${karakaText}${lordPlacementText}`;
     } else {
       title = BHAVA_NAMES_EN[h - 1]!;
       const sigs = BHAVA_SIGNIFICATIONS_EN[h - 1]!;
@@ -1227,13 +1291,15 @@ export function generateBaggonaPredictions(
         : `It is unoccupied. `;
       let analysisText = "";
       if (status === "positive") {
-        analysisText = `This indicates a very strong and auspicious house. You will experience significant ease, progress, and success in matters related to ${sigs.toLowerCase()}.`;
+        analysisText = `This indicates an exceptionally strong, robust, and highly auspicious house in your birth chart. The cosmic alignment here promises substantial ease, rapid progress, and outstanding success in matters related to ${sigs.toLowerCase()}. You will find that opportunities in these spheres arrive naturally, and your efforts are magnified with positive outcomes.`;
       } else if (status === "caution") {
-        analysisText = `This indicates a challenging or afflicted house. You may face obstacles, delayed results, or friction in matters related to ${sigs.toLowerCase()}. Guard against rash decisions and practice patience.`;
+        analysisText = `This indicates a challenging, afflicted, or sensitive house in your chart. You are likely to face temporary hurdles, slow progress, or recurring friction in matters related to ${sigs.toLowerCase()}. Astrologically, this is a karmic classroom prompting you to act with extra prudence, avoid hasty decisions, and cultivate persistent patience to transform these obstacles into growth.`;
       } else {
-        analysisText = `This house has average, balanced strength. Matters of ${sigs.toLowerCase()} will progress steadily based on your personal effort and continuous application.`;
+        analysisText = `This house is moderately placed, exhibiting a balanced, average strength. Matters governed by ${sigs.toLowerCase()} will progress steadily but will depend primarily on your conscious effort, self-discipline, and dedicated actions. It is a stable area of life where neither major sudden losses nor effortless fortunes are indicated.`;
       }
-      description = `Signification: This house governs ${sigs}. ${lordText}${occupantText}${analysisText}`;
+      const karakaText = `\n\n[Natural House Karaka]: The natural significator for this house is ${HOUSE_KARAKAS_INFO[h].en}. Analyzing this Karaka's position in your chart is essential to unlock the full potential of this bhava.`;
+      const lordPlacementText = `\n\n[Lord Placement Detail]: The ruler of this house (${lordName}) is posited in House ${lordHouse}. This links the core themes of the ${h}th house to the experiences governed by the ${lordHouse}th house, driving your life focus and actions towards those areas.`;
+      description = `Signification: This house governs ${sigs}. ${lordText}${occupantText}${analysisText}${karakaText}${lordPlacementText}`;
     }
 
     // Adjust score if Saturn is posited or aspecting
@@ -1535,6 +1601,193 @@ export function generateBaggonaPredictions(
     });
   }
 
+  // --- Kendra-Trikona Raja Yoga and Raja Yoga Bhanga detection ---
+  const lagnaIdx = kundli.lagnaRashi.index;
+  const planetsList: PlanetName[] = [
+    PN.Sun, PN.Moon, PN.Mars, PN.Mercury, PN.Jupiter, PN.Venus, PN.Saturn
+  ];
+  const kendraLords: Record<PlanetName, number[]> = {} as any;
+  const trikonaLords: Record<PlanetName, number[]> = {} as any;
+  let lordOf8: PlanetName | null = null;
+
+  for (const p of planetsList) {
+    const ruled = housesRuledByPlanet(p, lagnaIdx);
+    const kendras = ruled.filter(h => [1, 4, 7, 10].includes(h));
+    const trikonas = ruled.filter(h => [1, 5, 9].includes(h));
+    if (kendras.length > 0) kendraLords[p] = kendras;
+    if (trikonas.length > 0) trikonaLords[p] = trikonas;
+    if (ruled.includes(8)) {
+      lordOf8 = p;
+    }
+  }
+
+  const yogakarakas: PlanetName[] = [];
+  for (const p of planetsList) {
+    const ruled = housesRuledByPlanet(p, lagnaIdx);
+    const rulesKendra = ruled.some(h => [1, 4, 7, 10].includes(h));
+    const rulesTrikona = ruled.some(h => [1, 5, 9].includes(h));
+    if (rulesKendra && rulesTrikona) {
+      yogakarakas.push(p);
+    }
+  }
+
+  const activeYogas: Array<{ p1: PlanetName; p2: PlanetName; houses1: number[]; houses2: number[] }> = [];
+  for (let i = 0; i < planetsList.length; i++) {
+    for (let j = i + 1; j < planetsList.length; j++) {
+      const p1 = planetsList[i];
+      const p2 = planetsList[j];
+      
+      const p1RulesKendra = kendraLords[p1] !== undefined;
+      const p2RulesTrikona = trikonaLords[p2] !== undefined;
+      
+      const p2RulesKendra = kendraLords[p2] !== undefined;
+      const p1RulesTrikona = trikonaLords[p1] !== undefined;
+
+      if ((p1RulesKendra && p2RulesTrikona) || (p2RulesKendra && p1RulesTrikona)) {
+        if (arePlanetsAssociated(p1, p2, kundli)) {
+          activeYogas.push({
+            p1,
+            p2,
+            houses1: housesRuledByPlanet(p1, lagnaIdx),
+            houses2: housesRuledByPlanet(p2, lagnaIdx)
+          });
+        }
+      }
+    }
+  }
+
+  let bhangaTriggered = false;
+  const bhangaDetails: string[] = [];
+  
+  if (lordOf8) {
+    for (const yk of yogakarakas) {
+      if (arePlanetsAssociated(yk, lordOf8, kundli)) {
+        bhangaTriggered = true;
+        bhangaDetails.push(
+          isKn
+            ? `ಯೋಗಕಾರಕ ಗ್ರಹವಾದ ${getPlanetName(yk)} ಗ್ರಹವು ೮ನೇ ಭಾವಾಧಿಪತಿಯಾದ ${getPlanetName(lordOf8)}ನೊಂದಿಗೆ ಸಂಬಂಧ ಹೊಂದಿದ್ದು ರಾಜಯೋಗ ಭಂಗವನ್ನು ಉಂಟುಮಾಡುತ್ತದೆ.`
+            : `The Rajayogakaraka planet ${getPlanetName(yk)} is associated with the 8th house lord ${getPlanetName(lordOf8)}, causing a Raja Yoga Bhanga.`
+        );
+      }
+    }
+
+    for (const yoga of activeYogas) {
+      if (arePlanetsAssociated(yoga.p1, lordOf8, kundli) || arePlanetsAssociated(yoga.p2, lordOf8, kundli)) {
+        bhangaTriggered = true;
+        bhangaDetails.push(
+          isKn
+            ? `ರಾಜಯೋಗವನ್ನು ರೂಪಿಸುವ ${getPlanetName(yoga.p1)} ಮತ್ತು ${getPlanetName(yoga.p2)} ಗ್ರಹಗಳ ಜೋಡಿಯು ೮ನೇ ಭಾವಾಧಿಪತಿಯಾದ ${getPlanetName(lordOf8)}ನೊಂದಿಗೆ ಸಂಬಂಧ ಹೊಂದಿದ್ದು, ಇದರಿಂದ ರಾಜಯೋಗ ಭಂಗವು ಉಂಟಾಗುತ್ತದೆ.`
+            : `The Raja Yoga forming pair ${getPlanetName(yoga.p1)} & ${getPlanetName(yoga.p2)} is associated with the 8th house lord ${getPlanetName(lordOf8)}, causing a Raja Yoga Bhanga.`
+        );
+      }
+    }
+  }
+
+  for (const yoga of activeYogas) {
+    const p1Name = getPlanetName(yoga.p1);
+    const p2Name = getPlanetName(yoga.p2);
+    const h1List = yoga.houses1.join(", ");
+    const h2List = yoga.houses2.join(", ");
+    
+    const title = isKn 
+      ? `ಕೇಂದ್ರ-ತ್ರಿಕೋಣ ರಾಜಯೋಗ (${p1Name} ಮತ್ತು ${p2Name})`
+      : `Kendra-Trikona Raja Yoga (${p1Name} and ${p2Name})`;
+      
+    const description = isKn
+      ? `ಅದ್ಭುತ ಯೋಗ! ಕೇಂದ್ರದ ಅಧಿಪತಿಯಾದ ${p1Name} (ಮನೆಗಳು: ${h1List}) ಮತ್ತು ತ್ರಿಕೋಣದ ಅಧಿಪತಿಯಾದ ${p2Name} (ಮನೆಗಳು: ${h2List}) ಜಾತಕದಲ್ಲಿ ಯುತಿ ಅಥವಾ ದೃಷ್ಟಿ ಸಂಬಂಧವನ್ನು ಹೊಂದಿದ್ದಾರೆ. ಇದು ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಯಶಸ್ಸು, ಸೌಭಾಗ್ಯ, ಸಮಾಜದಲ್ಲಿ ಗೌರವ ಮತ್ತು ಉನ್ನತ ಅಂತಸ್ತನ್ನು ತರಲಿದೆ.`
+      : `Highly auspicious yoga! The Kendra lord ${p1Name} (houses: ${h1List}) and the Trikona lord ${p2Name} (houses: ${h2List}) are conjoined or aspecting each other. This combination promises success, name and fame, social status, and overall prosperity.`;
+      
+    yogas.push({ title, description });
+  }
+
+  for (const yk of yogakarakas) {
+    const ykName = getPlanetName(yk);
+    const ruled = housesRuledByPlanet(yk, lagnaIdx).join(", ");
+    const title = isKn ? `ಲಗ್ನ ಯೋಗಕಾರಕ ಗ್ರಹ ಬಲ (${ykName})` : `Lagna Yogakaraka Power (${ykName})`;
+    const description = isKn
+      ? `ನಿಮ್ಮ ಲಗ್ನಕ್ಕೆ ಅತ್ಯಂತ ಪ್ರಮುಖವಾದ ಯೋಗಕಾರಕ ಗ್ರಹ ${ykName} (ಮನೆಗಳು: ${ruled}) ಆಗಿದೆ. ಇದು ಕೇಂದ್ರ ಹಾಗೂ ತ್ರಿಕೋಣ ಎರಡೂ ಮನೆಗಳ ಆಧಿಪತ್ಯವನ್ನು ಹೊಂದಿದ್ದು, ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಪ್ರಬಲ ಪ್ರಗತಿ ಮತ್ತು ಯಶಸ್ಸನ್ನು ತರುವ ಅದ್ಭುತ ಶಕ್ತಿಯನ್ನು ಹೊಂದಿದೆ.`
+      : `The planet ${ykName} (houses: ${ruled}) acts as the key Yogakaraka for your Lagna. Ruling both a Kendra and a Trikona, it acts as a powerhouse of progress, status, and material success in your life chart.`;
+    yogas.push({ title, description });
+  }
+
+  if (bhangaTriggered) {
+    const title = isKn ? "ರಾಜಯೋಗ ಭಂಗ ದೋಷ (Raja Yoga Bhanga)" : "Raja Yoga Bhanga Dosha (Nullification of Yoga)";
+    const description = isKn
+      ? `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಶುಭ ರಾಜಯೋಗಗಳಿದ್ದರೂ, ೮ನೇ ಮನೆಯ (ಆಯುಷ್ಯ/ರಂಧ್ರ ಭಾವ) ಅಧಿಪತಿಯಾದ ${getPlanetName(lordOf8!)}ನೊಂದಿಗಿನ ಸಂಬಂಧದಿಂದಾಗಿ ರಾಜಯೋಗದ ಪೂರ್ಣ ಫಲಗಳು ಲಭಿಸಲು ಅಡೆತಡೆಗಳು ಉಂಟಾಗಬಹುದು. ಇದು ಪರಿಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಫಲ ಸಿಗದಿರುವುದು ಅಥವಾ ಕೊನೆ ಕ್ಷಣದಲ್ಲಿ ಯಶಸ್ಸು ತಪ್ಪುವುದನ್ನು ಸೂಚಿಸುತ್ತದೆ. (${bhangaDetails.join(" ")})`
+      : `Although your chart forms auspicious Raja Yogas, their association with the 8th lord ${getPlanetName(lordOf8!)} triggers a Raja Yoga Bhanga. This indicates that while opportunities will come, there may be obstacles, sudden delays, or a feeling that success is slipping away at the last moment. (${bhangaDetails.join(" ")})`;
+      
+    doshas.push({
+      title,
+      description,
+      status: "caution",
+      score: 55,
+      whatIsGood: isKn ? "ನಿರಂತರ ಪ್ರಯತ್ನದಿಂದ ಯಶಸ್ಸು ಸಾಧ್ಯ." : "Encourages perseverance and deep spiritual grounding.",
+      whatIsWrong: isKn ? "ಕೊನೆಯ ಕ್ಷಣದಲ್ಲಿ ಯಶಸ್ಸು ತಪ್ಪುವುದು ಮತ್ತು ಅಡೆತಡೆಗಳು." : "Sudden hurdles or delays in enjoying the fruits of success.",
+      remedy: isKn 
+        ? "ಶನಿವಾರದಂದು ದೇವಸ್ಥಾನದಲ್ಲಿ ದೀಪ ಹಚ್ಚಿ ಹಾಗೂ ಬಡವರಿಗೆ ಸಹಾಯ ಮಾಡಿ." 
+        : "Perform charity on Saturdays and worship Lord Shiva or Lord Ganesha to remove obstacles."
+    });
+  }
+
+  let currentAge = 0;
+  if (birth && birth.birthDate) {
+    const birthDate = new Date(birth.birthDate);
+    const today = new Date();
+    const diffMs = today.getTime() - birthDate.getTime();
+    currentAge = diffMs / (1000 * 60 * 60 * 24 * 365.25);
+  }
+
+  if (currentAge > 0) {
+    const timeline = generateBhuktiTimeline(kundli, 100);
+    let venusSunTransitionAge: number | null = null;
+    let marsRahuTransitionAge: number | null = null;
+    let rahuJupiterTransitionAge: number | null = null;
+
+    for (let i = 0; i < timeline.length - 1; i++) {
+      const current = timeline[i];
+      const next = timeline[i + 1];
+      if (current.maha !== next.maha) {
+        const transitionAge = current.endAge;
+        if (current.maha === PN.Venus && next.maha === PN.Sun) {
+          venusSunTransitionAge = transitionAge;
+        } else if (current.maha === PN.Mars && next.maha === PN.Rahu) {
+          marsRahuTransitionAge = transitionAge;
+        } else if (current.maha === PN.Rahu && next.maha === PN.Jupiter) {
+          rahuJupiterTransitionAge = transitionAge;
+        }
+      }
+    }
+
+    let activeSandhi: { nameEn: string; nameKn: string; transitionAge: number } | null = null;
+    if (venusSunTransitionAge !== null && Math.abs(currentAge - venusSunTransitionAge) <= 1.0) {
+      activeSandhi = { nameEn: "Venus to Sun", nameKn: "ಶುಕ್ರ ದೆಸೆಯಿಂದ ರವಿ ದೆಸೆ", transitionAge: venusSunTransitionAge };
+    } else if (marsRahuTransitionAge !== null && Math.abs(currentAge - marsRahuTransitionAge) <= 1.0) {
+      activeSandhi = { nameEn: "Mars to Rahu", nameKn: "ಮಂಗಳ ದೆಸೆಯಿಂದ ರಾಹು ದೆಸೆ", transitionAge: marsRahuTransitionAge };
+    } else if (rahuJupiterTransitionAge !== null && Math.abs(currentAge - rahuJupiterTransitionAge) <= 1.0) {
+      activeSandhi = { nameEn: "Rahu to Jupiter", nameKn: "ರಾಹು ದೆಸೆಯಿಂದ ಗುರು ದೆಸೆ", transitionAge: rahuJupiterTransitionAge };
+    }
+
+    if (activeSandhi) {
+      const ageStr = activeSandhi.transitionAge.toFixed(1);
+      const title = isKn ? "ದೆಶಾ ಸಂಧಿ ಕಾಲ (ಮಹಾದೆಸೆ ಬದಲಾವಣೆ)" : "Dasha Sandhi (Mahadasha Transition)";
+      const description = isKn
+        ? `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಪ್ರಸ್ತುತ ${activeSandhi.nameKn} ಪರಿವರ್ತನೆಯ ಹಂತವು ಕಂಡುಬಂದಿದೆ (ವಯಸ್ಸು ${ageStr} ರ ಸುಮಾರಿಗೆ ±೧ ವರ್ಷದ ದೆಶಾ ಸಂಧಿ ಕಾಲ). ಈ ಅವಧಿಯಲ್ಲಿ ಗ್ರಹಗಳ ಶಕ್ತಿಯು ಬದಲಾಗುವುದರಿಂದ ಮಾನಸಿಕ ಅಸ್ಥಿರತೆ, ಆಕಸ್ಮಿಕ ಬದಲಾವಣೆಗಳು ಅಥವಾ ದೈಹಿಕ ಆಯಾಸ ಉಂಟಾಗಬಹುದು. ತಾಳ್ಮೆ ಮತ್ತು ಪ್ರಾರ್ಥನೆ ಅತ್ಯಗತ್ಯ.`
+        : `You are currently within a crucial transition phase of your life (within ±1 year of the ${activeSandhi.nameEn} Mahadasha transition at age ${ageStr}). Astrologically, this period is known as Dasha Sandhi, where the life energy shifts from one planet to another, often bringing emotional turbulence, sudden life shifts, or unsettled health. Maintaining patience and routine is highly advised.`;
+
+      doshas.push({
+        title,
+        description,
+        status: "caution",
+        score: 50,
+        whatIsGood: isKn ? "ಹೊಸ ಸಕಾರಾತ್ಮಕ ಬದಲಾವಣೆಗಳಿಗೆ ನಾಂದಿ." : "Prepares you for a new long-term chapter of life.",
+        whatIsWrong: isKn ? "ಮಾನಸಿಕ ಅಸ್ಥಿರತೆ ಮತ್ತು ನಿರ್ಧಾರಗಳಲ್ಲಿ ಗೊಂದಲ." : "Emotional turbulence and unsettled energy during the transition.",
+        remedy: isKn 
+          ? "ಪ್ರತಿದಿನ ಶಿವ ಪಂಚಾಕ್ಷರಿ ಮಂತ್ರ ಜಪಿಸಿ ಅಥವಾ ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಕೇಳಿ." 
+          : "Chant Shiva Panchakshari Mantra or listen to Vishnu Sahasranama daily to ground your energy."
+      });
+    }
+  }
+
   return {
     overview,
     planets,
@@ -1596,14 +1849,20 @@ export function buildMonthlyPredictionText(
       let impact = "";
       if (pl === PN.Saturn) {
         impact = isKn 
-          ? "ಅಪಜಯ ಮತ್ತು ಮಾನಸಿಕ-ದೈಹಿಕ ಒತ್ತಡ (Sade Sati/Ashtama Shani)" 
-          : "setbacks and physical-mental stress (Sade Sati/Ashtama Shani)";
+          ? "ಅಪಜಯ, ದೀರ್ಘಕಾಲದ ಆಲಸ್ಯ, ಮಾನಸಿಕ ತೊಂದರೆಗಳು ಮತ್ತು ಅನಾವಶ್ಯಕ ಶಾರೀರಿಕ-ಮಾನಸಿಕ ಒತ್ತಡ (Sade Sati ಅಥವಾ Ashtama Shani ಪ್ರಭಾವ). ಪ್ರತಿಯೊಂದು ಕೆಲಸದಲ್ಲೂ ಅಡೆತಡೆಗಳು ಎದುರಾಗಬಹುದು, ತಾಳ್ಮೆಯಿಂದ ಪ್ರಯತ್ನ ಮುಂದುವರಿಸಿ." 
+          : "setbacks, physical-mental stress, and prolonged delays in your plans (Sade Sati or Ashtama Shani influence). Daily tasks might demand twice the energy, requiring high perseverance.";
       } else if (pl === PN.Sun) {
-        impact = isKn ? "ಅಧಿಕಾರಿಗಳೊಂದಿಗೆ ಭಿನ್ನಾಭಿಪ್ರಾಯ ಮತ್ತು ಕೀರ್ತಿ ನಷ್ಟ" : "friction with authorities and loss of reputation";
+        impact = isKn 
+          ? "ಅಧಿಕಾರಿಗಳೊಂದಿಗೆ ಭಿನ್ನಾಭಿಪ್ರಾಯ, ಉದ್ಯೋಗದಲ್ಲಿ ಕಿರಿಕಿರಿ, ಅನಾವಶ್ಯಕ ವಾದಗಳು ಮತ್ತು ಕೀರ್ತಿ ನಷ್ಟ. ಸರ್ಕಾರದ ಕೆಲಸಗಳಲ್ಲಿ ವಿಳಂಬವಾಗಬಹುದು, ತಾಳ್ಮೆಯಿಂದ ವರ್ತಿಸುವುದು ಉತ್ತಮ." 
+          : "friction with superiors, career disturbances, unnecessary arguments, and potential loss of reputation. Government or legal matters could face unexpected delays.";
       } else if (pl === PN.Mars) {
-        impact = isKn ? "ವಾದ-ವಿವಾದಗಳು, ಆಕಸ್ಮಿಕ ನಷ್ಟ ಮತ್ತು ದೈಹಿಕ ತೊಂದರೆಗಳು" : "disputes, sudden losses, and physical discomforts";
+        impact = isKn 
+          ? "ಕೋಪದ ಪ್ರವೃತ್ತಿ ಹೆಚ್ಚಾಗುವುದು, ವಾದ-ವಿವಾದಗಳು, ಆಕಸ್ಮಿಕ ಅಪಘಾತಗಳು ಅಥವಾ ಗಾಯಗಳ ಭಯ, ಹಣಕಾಸಿನ ನಷ್ಟ ಮತ್ತು ತಲೆನೋವು/ರಕ್ತದೊತ್ತಡದ ತೊಂದರೆಗಳು. ವಾಹನ ಚಾಲನೆಯಲ್ಲಿ ಜಾಗರೂಕರಾಗಿರಿ." 
+          : "increased aggression, disputes, risk of minor injuries or accidents, sudden financial losses, and physical discomforts like high blood pressure or headaches. Practice self-control.";
       } else if (pl === PN.Jupiter) {
-        impact = isKn ? "ಜ್ಞಾನನಾಶ, ನಿರ್ಧಾರಗಳಲ್ಲಿ ಗೊಂದಲ ಮತ್ತು ಧನಹಾನಿ" : "temporary confusion, bad decisions, and wealth delays";
+        impact = isKn 
+          ? "ಬುದ್ಧಿಭ್ರಮಣೆ, ಜ್ಞಾನನಾಶ, ನಿರ್ಧಾರಗಳನ್ನು ತೆಗೆದುಕೊಳ್ಳುವಲ್ಲಿ ತೀವ್ರ ಗೊಂದಲ, ಕೌಟುಂಬಿಕ ಸುಖದಲ್ಲಿ ಕೊರತೆ ಮತ್ತು ಧನಸಹಾಯ ದೊರೆಯುವಲ್ಲಿ ವಿಳಂಬ. ದೈವಿಕ ಆರಾಧನೆ ಮತ್ತು ಗುರುಗಳ ಮಾರ್ಗದರ್ಶನ ಅಗತ್ಯ." 
+          : "temporary confusion, errors in judgement, delays in financial inflow, and minor domestic worries. Worshipping your spiritual guide or teacher will clear the path.";
       }
 
       if (isDebilitated) {
@@ -1620,13 +1879,21 @@ export function buildMonthlyPredictionText(
     } else {
       let goodImpact = "";
       if (pl === PN.Jupiter && [2, 5, 7, 9, 11].includes(tHouse)) {
-        goodImpact = isKn ? "ದೈವಿಕ ಆಶೀರ್ವಾದ, ಧನಯೋಗ ಮತ್ತು ಶುಭ ಕಾರ್ಯಗಳು" : "divine blessings, wealth inflow, and auspicious events";
+        goodImpact = isKn 
+          ? "ಗುರು ಗ್ರಹವು ೨, ೫, ೭, ೯ ಅಥವಾ ೧೧ನೇ ಮನೆಯಲ್ಲಿ ಸಂಚರಿಸುತ್ತಿರುವುದು ದೈವಿಕ ಅನುಗ್ರಹವನ್ನು ತರುತ್ತದೆ. ಕೌಟುಂಬಿಕ ಶಾಂತಿ, ಮದುವೆಯ ಯೋಗ, ಉನ್ನತ ಜ್ಞಾನಾರ್ಜನೆ ಮತ್ತು ಆಕಸ್ಮಿಕ ಧನಲಾಭ ಉಂಟಾಗಲಿದೆ. ಸಮಾಜದಲ್ಲಿ ನಿಮ್ಮ ಕೀರ್ತಿ ಹೆಚ್ಚುತ್ತದೆ." 
+          : "Jupiter transiting the auspicious 2nd, 5th, 7th, 9th, or 11th house marks a highly favorable cycle of prosperity, wisdom, and overall harmony. It brings relationship ease, family support, intellectual breakthroughs, and successful outcomes in your endeavours.";
       } else if (pl === PN.Sun && [3, 6, 10, 11].includes(tHouse)) {
-        goodImpact = isKn ? "ವೃತ್ತಿಜೀವನದಲ್ಲಿ ಉನ್ನತಿ ಮತ್ತು ಸಮಾಜದಲ್ಲಿ ಮನ್ನಣೆ" : "career growth and social recognition";
+        goodImpact = isKn 
+          ? "ರವಿ ೩, ೬, ೧೦ ಅಥವಾ ೧೧ನೇ ಮನೆಯಲ್ಲಿ ಚಲಿಸುತ್ತಿರುವುದು ನಿಮ್ಮ ನಾಯಕತ್ವ ಗುಣವನ್ನು ಹೆಚ್ಚಿಸುತ್ತದೆ ಮತ್ತು ಸಮಾಜದಲ್ಲಿ ಗೌರವವನ್ನು ತರುತ್ತದೆ. ವೃತ್ತಿಜೀವನದಲ್ಲಿ ಪ್ರಮೋಷನ್ ಸಿಗುವ ಸಾಧ್ಯತೆಯಿರುತ್ತದೆ. ಸರ್ಕಾರಿ ಕೆಲಸಗಳು ಯಶಸ್ವಿಯಾಗುತ್ತವೆ." 
+          : "The Sun's transit through auspicious houses (3rd, 6th, 10th, or 11th) boosts your confidence, leadership capabilities, and career prospects. You are likely to receive support from superiors, governmental agencies, or gain a prominent status in your professional circle.";
       } else if (pl === PN.Mars && [3, 6, 11].includes(tHouse)) {
-        goodImpact = isKn ? "ಧೈರ್ಯ, ಸಾಹಸಗಳು ಮತ್ತು ಶತ್ರುಗಳ ಮೇಲೆ ವಿಜಯ" : "courage, dynamic action, and victory over obstacles";
+        goodImpact = isKn 
+          ? "ಮಂಗಳ ೩, ೬ ಅಥವಾ ೧೧ನೇ ಮನೆಯಲ್ಲಿ ಚಲಿಸುತ್ತಿರುವುದು ನಿಮಗೆ ಅದ್ಭುತ ಧೈರ್ಯ ಹಾಗೂ ಸಾಹಸ ಪ್ರವೃತ್ತಿಯನ್ನು ನೀಡುತ್ತದೆ. ಕ್ರೀಡೆ, ಸೈನ್ಯ ಅಥವಾ ತಾಂತ್ರಿಕ ಕ್ಷೇತ್ರಗಳಲ್ಲಿ ಕೆಲಸ ಮಾಡುವವರಿಗೆ ಯಶಸ್ಸು ಸಿಗಲಿದೆ. ಶತ್ರುಗಳ ಸಂಚು ವಿಫಲವಾಗುತ್ತದೆ." 
+          : "Mars transiting through the 3rd, 6th, or 11th house fills you with high courage, competitive energy, and victory over adversaries. It is an excellent transit for taking initiatives, starting new projects, and solving long-pending issues.";
       } else if (pl === PN.Saturn && [3, 6, 11].includes(tHouse)) {
-        goodImpact = isKn ? "ದೀರ್ಘಕಾಲದ ಯಶಸ್ಸು, ಶಿಸ್ತು ಮತ್ತು ಆರ್ಥಿಕ ಪ್ರಗತಿ" : "long-term success, discipline, and steady financial growth";
+        goodImpact = isKn 
+          ? "ಶನಿಯು ೩, ೬ ಅಥವಾ ೧೧ನೇ ಮನೆಯಲ್ಲಿ ಸಂಚರಿಸುತ್ತಿರುವುದು ನಿಮ್ಮ ಆರ್ಥಿಕ ಸ್ಥಿತಿಯನ್ನು ಸುಧಾರಿಸುತ್ತದೆ ಮತ್ತು ಶತ್ರುಗಳ ಮೇಲೆ ಜಯ ನೀಡುತ್ತದೆ. ದೀರ್ಘಕಾಲದ ಪ್ರಯತ್ನಗಳಿಗೆ ಅಂತಿಮವಾಗಿ ಯಶಸ್ಸು ದೊರೆಯಲಿದೆ. ಉದ್ಯೋಗದಲ್ಲಿ ಸ್ಥಿರತೆ ಹಾಗೂ ಆಸ್ತಿಯ ಲಾಭ ಉಂಟಾಗಲಿದೆ." 
+          : "Saturn's transit through the growth houses (3rd, 6th, or 11th) brings professional stability, victory over competitors, and steady financial growth. Your structured efforts over the past months will now start showing concrete progress and recognition in your field.";
       }
 
       if (goodImpact) {
@@ -1662,24 +1929,24 @@ export function buildMonthlyPredictionText(
   }
 
   if (isKn) {
-    text += `【ಜನ್ಮ ಕುಂಡಲಿ ಮತ್ತು ಗೋಚಾರ ಸಮನ್ವಯ】\n${natalContext}\n\n`;
+    text += `ಜನ್ಮ ಕುಂಡಲಿ ಮತ್ತು ಗೋಚಾರ ಸಮನ್ವಯ:\n${natalContext}\n\n`;
     if (supportives.length > 0) {
-      text += `【ಶುಭ ಗೋಚಾರ ಪ್ರಭಾವಗಳು】:\n` + supportives.map(s => `• ${s}`).join("\n") + `\n\n`;
+      text += `ಶುಭ ಗೋಚಾರ ಪ್ರಭಾವಗಳು:\n` + supportives.map(s => `• ${s}`).join("\n") + `\n\n`;
     }
     if (challenges.length > 0) {
-      text += `【ಸವಾಲುಗಳು ಮತ್ತು ಗೋಚಾರ ದೋಷಗಳು】:\n` + challenges.map(c => `• ${c}`).join("\n") + `\n\n`;
-      text += `【ಪರಿಹಾರಗಳು】: ಶನಿ ಮತ್ತು ಇತರ ದೋಷಗಳ ನಿವಾರಣೆಗೆ ಶಿವ ದರ್ಶನ, ಹನುಮಾನ್ ಚಾಲೀಸಾ ಪಠಣ ಮತ್ತು ಬಡವರಿಗೆ ಆಹಾರ ದಾನ ಮಾಡುವುದು ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ ಪರಿಹಾರ ಮಾರ್ಗಗಳಾಗಿವೆ.`;
+      text += `ಸವಾಲುಗಳು ಮತ್ತು ಗೋಚಾರ ದೋಷಗಳು:\n` + challenges.map(c => `• ${c}`).join("\n") + `\n\n`;
+      text += `ಪರಿಹಾರಗಳು: ಶನಿ ಮತ್ತು ಇತರ ದೋಷಗಳ ನಿವಾರಣೆಗೆ ಶಿವ ದರ್ಶನ, ಹನುಮಾನ್ ಚಾಲೀಸಾ ಪಠಣ ಮತ್ತು ಬಡವರಿಗೆ ಆಹಾರ ದಾನ ಮಾಡುವುದು ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ ಪರಿಹಾರ ಮಾರ್ಗಗಳಾಗಿವೆ.`;
     } else {
       text += `ಈ ತಿಂಗಳಿನಲ್ಲಿ ಯಾವುದೇ ಪ್ರಮುಖ ಗೋಚಾರ ದೋಷಗಳಿಲ್ಲ. ಧಾರ್ಮಿಕ ಕಾರ್ಯಗಳಲ್ಲಿ ತೊಡಗಿಕೊಳ್ಳುವುದು ಮತ್ತು ದಾನ-ಧರ್ಮ ಮಾಡುವುದು ನಿಮಗೆ ಸರ್ವತೋಮುಖ ಏಳಿಗೆ ತರುತ್ತದೆ.`;
     }
   } else {
-    text += `[Natal & Transit Synthesis]\n${natalContext}\n\n`;
+    text += `Natal & Transit Synthesis:\n${natalContext}\n\n`;
     if (supportives.length > 0) {
-      text += `[Auspicious Transits]:\n` + supportives.map(s => `• ${s}`).join("\n") + `\n\n`;
+      text += `Auspicious Transits:\n` + supportives.map(s => `• ${s}`).join("\n") + `\n\n`;
     }
     if (challenges.length > 0) {
-      text += `[Transit Challenges]:\n` + challenges.map(c => `• ${c}`).join("\n") + `\n\n`;
-      text += `[Remedies & Precautions]: Worship Lord Shiva, chant Hanuman Chalisa daily for physical and mental protection, and help the weaker sections of society to ease the karmic flow.`;
+      text += `Transit Challenges:\n` + challenges.map(c => `• ${c}`).join("\n") + `\n\n`;
+      text += `Remedies & Precautions:\nWorship Lord Shiva, chant Hanuman Chalisa daily for physical and mental protection, and help the weaker sections of society to ease the karmic flow.`;
     } else {
       text += `No major negative transits are active. Cultivating discipline and engaging in charity will bring peace and prosperity.`;
     }
