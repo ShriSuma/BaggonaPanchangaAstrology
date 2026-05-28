@@ -173,7 +173,7 @@ export function calculateTraditionalBaggona(
     const ms = endTime.getTime() - sunriseUtc.getTime();
     const totalVighati = Math.floor(ms / 24_000);
     return {
-      ghati: Math.max(0, Math.floor(totalVighati / 60)),
+      ghati: Math.max(0, Math.floor(totalVighati / 60)) % 60,
       vighati: Math.max(0, totalVighati % 60)
     };
   };

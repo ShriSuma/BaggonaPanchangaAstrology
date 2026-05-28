@@ -620,7 +620,10 @@ export default function KundliPage(): JSX.Element {
           <tbody>
             {result.planets.map((planet) => (
               <tr key={planet.name}>
-                <td>{t(`planets.${planet.name}` as "planets.Sun")}</td>
+                <td>
+                  {t(`planets.${planet.name}` as "planets.Sun")}
+                  {planet.isRetrograde ? (i18n.language.startsWith("kn") ? " (ವ)" : " (R)") : ""}
+                </td>
                 <td>{patrikaNavamshaFromDegree(planet.degree)}</td>
                 <td>{formatNavamsaPada(planet.degree, i18n.language)}</td>
                 <td>{formatRashiAmsha(planet.degree, i18n.language)}</td>

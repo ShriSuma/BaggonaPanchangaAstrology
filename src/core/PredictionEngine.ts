@@ -99,10 +99,7 @@ export const getDynamicPrediction = (
   const name = personName || "Seeker";
 
   // Determine language code (en, kn, hi, te, ta)
-  let lang = t("nav.home") === "ಮನೆ" ? "kn" : "en";
-  if (t("nav.home") === "होम") lang = "hi";
-  if (t("nav.home") === "ఇల్లు") lang = "te";
-  if (t("nav.home") === "முகப்பு") lang = "ta";
+  const lang = ((t as any).i18n?.resolvedLanguage || (t as any).i18n?.language || "en").split("-")[0];
 
   // Calculate transits
   const transits = getTransitHouses(targetDate, natalMoonRashiIdx, model);

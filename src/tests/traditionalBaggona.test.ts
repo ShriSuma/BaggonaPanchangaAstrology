@@ -23,7 +23,7 @@ describe("TraditionalBaggonaEngine calculations for Gokarna test case", () => {
 
     expect(res.sunNakshatra).toBe("Rohini");
     expect(res.sunNakshatraKn).toBe("ರೋಹಿಣಿ");
-    expect(res.sunNakshatraGhati).toBe(471);
+    expect(res.sunNakshatraGhati).toBe(51);
     expect(res.sunNakshatraVighati).toBe(9);
 
     expect(res.moonNakshatra).toBe("Hasta");
@@ -91,17 +91,17 @@ describe("TraditionalBaggonaEngine calculations for Gokarna test case", () => {
 
     expect(res.sunNakshatra).toBe("Swati");
     expect(res.sunNakshatraKn).toBe("ಸ್ವಾತಿ");
-    expect(res.sunNakshatraGhati).toBe(790);
+    expect(res.sunNakshatraGhati).toBe(10);
     expect(res.sunNakshatraVighati).toBe(34);
 
     expect(res.moonNakshatra).toBe("Ashlesha");
     expect(res.moonNakshatraKn).toBe("ಆಶ್ಲೇಷಾ");
-    expect(res.moonNakshatraGhati).toBe(68);
+    expect(res.moonNakshatraGhati).toBe(8);
     expect(res.moonNakshatraVighati).toBe(44);
 
     expect(res.yoga).toBe("Shubha");
     expect(res.yogaKn).toBe("ಶುಭ");
-    expect(res.yogaGhati).toBe(62);
+    expect(res.yogaGhati).toBe(2);
     expect(res.yogaVighati).toBe(41);
 
     expect(res.karana).toBe("Garaja");
@@ -112,7 +112,7 @@ describe("TraditionalBaggonaEngine calculations for Gokarna test case", () => {
     expect(res.vishaGhati.ghati).toBe(37);
     expect(res.vishaGhati.vighati).toBe(35);
 
-    expect(res.amrithaGhati.ghati).toBe(64);
+    expect(res.amrithaGhati.ghati).toBe(4);
     expect(res.amrithaGhati.vighati).toBe(17);
 
     expect(res.divaGhati.ghati).toBe(29);

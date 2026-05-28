@@ -45,6 +45,7 @@ export type PlanetPosition = {
   rashi: Rashi;
   nakshatra: Nakshatra;
   house: number;
+  isRetrograde?: boolean;
 };
 
 export type KundliOutput = {

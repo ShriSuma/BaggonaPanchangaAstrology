@@ -143,7 +143,7 @@ export default function SouthIndianChart({ kundli, personName, gothra }: Props):
           lines.push(`${t("kundli.lagnaPatrika")} ${formatPatrikaNavamsaOnly(kundli.ascendant, lang)}`);
         }
         for (const pl of planetsHere) {
-          const label = t(`planets.${pl.name}`);
+          const label = t(`planets.${pl.name}`) + (pl.isRetrograde ? (lang.startsWith("kn") ? " (ವ)" : " (R)") : "");
           lines.push(`${label} ${formatPatrikaNavamsaOnly(pl.degree, lang)}`);
         }
         if (kundli.maandi && kundli.maandi.rashi.index === rashi.index) {

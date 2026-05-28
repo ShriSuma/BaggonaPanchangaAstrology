@@ -1,23 +1,123 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 368 368" fill="none" aria-hidden="true">
-  <!-- South Indian 4×4 grid with 2×2 centre merged; m=28, cell=78 (matches southIndianLayout.ts) -->
-  <g stroke="#991b1b" stroke-width="2.4" stroke-linecap="square" stroke-linejoin="miter">
-    <rect x="28" y="28" width="312" height="312" />
-    <line x1="28" y1="106" x2="340" y2="106" />
-    <line x1="28" y1="262" x2="340" y2="262" />
-    <line x1="106" y1="28" x2="106" y2="106" />
-    <line x1="184" y1="28" x2="184" y2="106" />
-    <line x1="262" y1="28" x2="262" y2="106" />
-    <line x1="106" y1="340" x2="106" y2="262" />
-    <line x1="184" y1="340" x2="184" y2="262" />
-    <line x1="262" y1="340" x2="262" y2="262" />
-    <line x1="28" y1="184" x2="106" y2="184" />
-    <line x1="262" y1="184" x2="340" y2="184" />
-    <line x1="106" y1="106" x2="106" y2="262" />
-    <line x1="262" y1="106" x2="262" y2="262" />
-    <line x1="106" y1="106" x2="262" y2="106" />
-    <line x1="106" y1="262" x2="262" y2="262" />
+  <defs>
+    <!-- Metallic gold gradients -->
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#bf953f" class="shimmer-stop-1" />
+      <stop offset="25%" stop-color="#fcf6ba" />
+      <stop offset="50%" stop-color="#b38728" class="shimmer-stop-2" />
+      <stop offset="75%" stop-color="#fbf5b7" />
+      <stop offset="100%" stop-color="#aa771c" />
+    </linearGradient>
+    <linearGradient id="goldGradLine" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#b38728" />
+      <stop offset="50%" stop-color="#fdf6c7" />
+      <stop offset="100%" stop-color="#aa771c" />
+    </linearGradient>
+    <filter id="goldGlow" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feComponentTransfer in="blur" result="glow1">
+        <feFuncA type="linear" slope="0.4"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode in="glow1" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <style>
+    @keyframes goldShimmer {
+      0%, 100% { stop-color: #bf953f; }
+      50% { stop-color: #fdf6c7; }
+    }
+    .shimmer-stop-1 {
+      animation: goldShimmer 6s infinite ease-in-out;
+    }
+    .shimmer-stop-2 {
+      animation: goldShimmer 6s infinite ease-in-out;
+      animation-delay: -3s;
+    }
+    .grid-line {
+      stroke: url(#goldGradLine);
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      opacity: 0.95;
+    }
+    .outer-border-gold {
+      stroke: url(#goldGrad);
+      stroke-width: 2.8;
+      filter: drop-shadow(0px 0px 4px rgba(191,149,63,0.35));
+    }
+    .inner-border-accent {
+      stroke: #7f1d1d;
+      stroke-width: 0.8;
+      opacity: 0.4;
+    }
+    .corner-motif {
+      fill: url(#goldGrad);
+      stroke: #aa771c;
+      stroke-width: 0.5;
+      opacity: 0.9;
+      transform-origin: center;
+      transition: transform 0.4s ease;
+    }
+    .corner-motif:hover {
+      transform: scale(1.15);
+    }
+    /* Simple breathing animation for corner stars */
+    @keyframes breathe {
+      0%, 100% { opacity: 0.85; filter: drop-shadow(0 0 1px rgba(191,149,63,0.3)); }
+      50% { opacity: 1; filter: drop-shadow(0 0 4px rgba(252,246,186,0.8)); }
+    }
+    .corner-star {
+      animation: breathe 3s infinite ease-in-out;
+    }
+  </style>
+
+  <!-- Corner Ornaments (Vedic Star / Diamond Motifs) -->
+  <g class="corner-star">
+    <!-- Top-Left -->
+    <path d="M 8,8 Q 18,18 28,8 Q 18,18 8,28 Q 18,18 8,8 Z" class="corner-motif" />
+    <circle cx="18" cy="18" r="2.5" fill="#7f1d1d" opacity="0.8" />
+    <!-- Top-Right -->
+    <path d="M 360,8 Q 350,18 340,8 Q 350,18 360,28 Q 350,18 360,8 Z" class="corner-motif" />
+    <circle cx="350" cy="18" r="2.5" fill="#7f1d1d" opacity="0.8" />
+    <!-- Bottom-Left -->
+    <path d="M 8,360 Q 18,350 28,360 Q 18,350 8,340 Q 18,350 8,360 Z" class="corner-motif" />
+    <circle cx="18" cy="350" r="2.5" fill="#7f1d1d" opacity="0.8" />
+    <!-- Bottom-Right -->
+    <path d="M 360,360 Q 350,350 340,360 Q 350,350 360,340 Q 350,350 360,360 Z" class="corner-motif" />
+    <circle cx="350" cy="350" r="2.5" fill="#7f1d1d" opacity="0.8" />
   </g>
-  <g stroke="#b91c1c" stroke-width="1.2" stroke-opacity="0.45">
-    <rect x="29" y="29" width="310" height="310" />
+
+  <!-- Outer Double Borders -->
+  <rect x="25" y="25" width="318" height="318" rx="2" class="outer-border-gold" />
+  <rect x="28" y="28" width="312" height="312" class="inner-border-accent" />
+
+  <!-- South Indian Grid Lines (matches southIndianLayout.ts) -->
+  <g stroke-linecap="round" stroke-linejoin="miter">
+    <!-- Horizontal separators -->
+    <line x1="28" y1="106" x2="340" y2="106" class="grid-line" />
+    <line x1="28" y1="262" x2="340" y2="262" class="grid-line" />
+    
+    <!-- Top row vertical lines -->
+    <line x1="106" y1="28" x2="106" y2="106" class="grid-line" />
+    <line x1="184" y1="28" x2="184" y2="106" class="grid-line" />
+    <line x1="262" y1="28" x2="262" y2="106" class="grid-line" />
+    
+    <!-- Bottom row vertical lines -->
+    <line x1="106" y1="340" x2="106" y2="262" class="grid-line" />
+    <line x1="184" y1="340" x2="184" y2="262" class="grid-line" />
+    <line x1="262" y1="340" x2="262" y2="262" class="grid-line" />
+    
+    <!-- Middle row horizontal lines -->
+    <line x1="28" y1="184" x2="106" y2="184" class="grid-line" />
+    <line x1="262" y1="184" x2="340" y2="184" class="grid-line" />
+    
+    <!-- Center block box border -->
+    <line x1="106" y1="106" x2="106" y2="262" class="grid-line" />
+    <line x1="262" y1="106" x2="262" y2="262" class="grid-line" />
+    <line x1="106" y1="106" x2="262" y2="106" class="grid-line" />
+    <line x1="106" y1="262" x2="262" y2="262" class="grid-line" />
   </g>
 </svg>

@@ -9,7 +9,8 @@ import {
 import {
   ascendantTropicalDegrees,
   meanObliquityDegrees,
-  siderealLongitudes
+  siderealLongitudes,
+  isPlanetRetrograde
 } from "./EphemerisEngine";
 import {
   calculateLocalSiderealTime,
@@ -111,7 +112,8 @@ export const calculateKundli = (input: KundliInput, options?: CalculateKundliOpt
       degree,
       rashi: degreeToRashi(degree),
       nakshatra: degreeToNakshatra(degree),
-      house: bhavaFromAscendant(ascendant, degree)
+      house: bhavaFromAscendant(ascendant, degree),
+      isRetrograde: isPlanetRetrograde(planet, birthUtc)
     };
   });
 

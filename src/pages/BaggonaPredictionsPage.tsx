@@ -10,6 +10,10 @@ import {
   translatePersonalReading,
   type PersonalReadingOutput
 } from "../core/BaggonaPredictionEngine";
+import {
+  generateJayashreePrediction,
+  type JayashreePrediction
+} from "../core/JayashreePredictionEngine";
 import { useAppStore } from "../stores/appStore";
 import Card from "../components/ui/Card";
 import GrahaSpinner from "../components/ui/GrahaSpinner";
@@ -21,7 +25,7 @@ import { degreeToRashi, degreeToNakshatra, degreeToNakshatraPada } from "../core
 import { wallClockBirthToUtc, ageDecimalYearsAt } from "../core/birthTime";
 import { findBhuktiAtAge } from "../core/DashaBhuktiEngine";
 
-type SubTab = "personal" | "overview" | "planets" | "houses" | "yogas" | "gochara";
+type SubTab = "personal" | "jayashree" | "overview" | "planets" | "houses" | "yogas" | "gochara";
 
 const rashiTKey = (sanskrit: string): string => `rashis.${sanskrit.replace(/\s+/g, "")}`;
 
@@ -146,6 +150,7 @@ export default function BaggonaPredictionsPage(): JSX.Element {
   const [selectedDayIdx, setSelectedDayIdx] = useState<number>(0);
   const [predictions, setPredictions] = useState<BaggonaPredictions | null>(null);
   const [personalReading, setPersonalReading] = useState<PersonalReadingOutput | null>(null);
+  const [jayashreeReading, setJayashreeReading] = useState<JayashreePrediction | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -276,6 +281,7 @@ export default function BaggonaPredictionsPage(): JSX.Element {
     if (!record || !traditionalData) {
       setPredictions(null);
       setPersonalReading(null);
+      setJayashreeReading(null);
       return;
     }
 
@@ -286,6 +292,7 @@ export default function BaggonaPredictionsPage(): JSX.Element {
       try {
         const basePreds = generateBaggonaPredictions(record.kundliData, traditionalData, lang);
         const basePersonal = generatePersonalReading(record.kundliData, record, lang);
+        const jayashree = await generateJayashreePrediction(record.kundliData, record, lang);
 
         if (lang !== "en") {
           const [translatedPreds, translatedPersonal] = await Promise.all([
@@ -295,11 +302,13 @@ export default function BaggonaPredictionsPage(): JSX.Element {
           if (!cancelled) {
             setPredictions(translatedPreds);
             setPersonalReading(translatedPersonal);
+            setJayashreeReading(jayashree);
           }
         } else {
           if (!cancelled) {
             setPredictions(basePreds);
             setPersonalReading(basePersonal);
+            setJayashreeReading(jayashree);
           }
         }
       } catch (err) {
@@ -390,7 +399,8 @@ export default function BaggonaPredictionsPage(): JSX.Element {
         if (lang === "ta") return "15 நாள் கோச்சாரம்";
         if (lang === "te") return "15 రోజుల గోచారం";
         return "15-Day Gochara";
-
+      case "jayashree":
+        return t("predictions.jayashree");
     }
   };
 
@@ -431,6 +441,7 @@ export default function BaggonaPredictionsPage(): JSX.Element {
 
   const subTabs: { id: SubTab; label: string; icon: string }[] = [
     { id: "personal", label: getTabLabel("personal"), icon: "✨" },
+    { id: "jayashree", label: getTabLabel("jayashree"), icon: "🎙️" },
     { id: "overview", label: getTabLabel("overview"), icon: "✵" },
     { id: "planets", label: getTabLabel("planets"), icon: "🪐" },
     { id: "houses", label: getTabLabel("houses"), icon: "☸" },
@@ -639,6 +650,104 @@ export default function BaggonaPredictionsPage(): JSX.Element {
                       {personalReading.upcomingChapters.chapter2.description}
                     </p>
                   </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {tab === "jayashree" && jayashreeReading && (
+            <div className="space-y-6">
+              {/* Jayashree's voice intro */}
+              <div className="relative overflow-hidden rounded-2xl border border-amber-500/20 bg-gradient-to-r from-amber-950 via-slate-900 to-indigo-950 p-6 text-white shadow-xl">
+                <div className="absolute right-0 top-0 -mt-8 -mr-8 h-28 w-28 rounded-full bg-amber-500/10 blur-xl" />
+                <div className="relative z-10">
+                  <span className="inline-block rounded-full bg-amber-500/20 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-300 border border-amber-500/30">
+                    🎙️ {t("predictions.jayashree")}
+                  </span>
+                  <p className="mt-3 text-sm leading-relaxed text-slate-200 text-justify">
+                    {jayashreeReading.intro}
+                  </p>
+                  <p className="mt-2 text-xs leading-relaxed text-amber-300 font-bold">
+                    {jayashreeReading.dashaContext}
+                  </p>
+                </div>
+              </div>
+
+              {/* Reading Sections */}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {/* Education */}
+                <div className="rounded-2xl border border-amber-500/10 bg-white p-5 shadow-sm transition-all duration-300 hover:shadow-md hover:border-amber-500/20">
+                  <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 text-sm">
+                      🎓
+                    </span>
+                    <h4 className="text-xs font-extrabold text-indigo-950 uppercase tracking-wide">
+                      {isKn ? "ವಿದ್ಯಾಭ್ಯಾಸ ಮತ್ತು ಶಿಕ್ಷಣ" : "Education & Academic Prospects"}
+                    </h4>
+                  </div>
+                  <p className="text-xs leading-relaxed text-slate-700 text-justify">
+                    {jayashreeReading.education}
+                  </p>
+                </div>
+
+                {/* Career */}
+                <div className="rounded-2xl border border-amber-500/10 bg-white p-5 shadow-sm transition-all duration-300 hover:shadow-md hover:border-amber-500/20">
+                  <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 text-sm">
+                      💼
+                    </span>
+                    <h4 className="text-xs font-extrabold text-indigo-950 uppercase tracking-wide">
+                      {isKn ? "ಉದ್ಯೋಗ ಮತ್ತು ವೃತ್ತಿಜೀವನ" : "Career & Employment Opportunities"}
+                    </h4>
+                  </div>
+                  <p className="text-xs leading-relaxed text-slate-700 text-justify">
+                    {jayashreeReading.career}
+                  </p>
+                </div>
+
+                {/* Health */}
+                <div className="rounded-2xl border border-amber-500/10 bg-white p-5 shadow-sm transition-all duration-300 hover:shadow-md hover:border-amber-500/20">
+                  <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-rose-50 text-rose-600 text-sm">
+                      🩺
+                    </span>
+                    <h4 className="text-xs font-extrabold text-indigo-950 uppercase tracking-wide">
+                      {isKn ? "ಆರೋಗ್ಯ ಮತ್ತು ದೈಹಿಕ ಸ್ಥಿತಿ" : "Health & Well-being"}
+                    </h4>
+                  </div>
+                  <p className="text-xs leading-relaxed text-slate-700 text-justify">
+                    {jayashreeReading.health}
+                  </p>
+                </div>
+
+                {/* Finance */}
+                <div className="rounded-2xl border border-amber-500/10 bg-white p-5 shadow-sm transition-all duration-300 hover:shadow-md hover:border-amber-500/20">
+                  <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 text-sm">
+                      💰
+                    </span>
+                    <h4 className="text-xs font-extrabold text-indigo-950 uppercase tracking-wide">
+                      {isKn ? "ಹಣಕಾಸು ಮತ್ತು ಸಂಪತ್ತು" : "Finance & Wealth Management"}
+                    </h4>
+                  </div>
+                  <p className="text-xs leading-relaxed text-slate-700 text-justify">
+                    {jayashreeReading.finance}
+                  </p>
+                </div>
+
+                {/* Housing */}
+                <div className="rounded-2xl border border-amber-500/10 bg-white p-5 shadow-sm transition-all duration-300 hover:shadow-md hover:border-amber-500/20 sm:col-span-2">
+                  <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-50 text-amber-600 text-sm">
+                      🏠
+                    </span>
+                    <h4 className="text-xs font-extrabold text-indigo-950 uppercase tracking-wide">
+                      {isKn ? "ಗೃಹ ಮತ್ತು ವಾಸಸ್ಥಳ" : "Housing & Residence"}
+                    </h4>
+                  </div>
+                  <p className="text-xs leading-relaxed text-slate-700 text-justify">
+                    {jayashreeReading.housing}
+                  </p>
                 </div>
               </div>
             </div>

@@ -82,6 +82,51 @@ export const DEBILITATION_SIGNS: Record<PlanetName, number> = {
   [PN.Ketu]: 1        // Vrishabha
 };
 
+export const HOUSE_KARAKAS: Record<number, PlanetName[]> = {
+  1: [PN.Sun],
+  2: [PN.Jupiter],
+  3: [PN.Mars],
+  4: [PN.Moon, PN.Mercury],
+  5: [PN.Jupiter],
+  6: [PN.Saturn, PN.Mars],
+  7: [PN.Venus],
+  8: [PN.Saturn],
+  9: [PN.Sun, PN.Jupiter],
+  10: [PN.Jupiter, PN.Sun, PN.Mercury, PN.Saturn],
+  11: [PN.Jupiter],
+  12: [PN.Saturn]
+};
+
+export const BENEFIC_LORDS_BY_LAGNA: Record<number, PlanetName[]> = {
+  0: [PN.Jupiter, PN.Sun], // Aries (Mesha)
+  1: [PN.Saturn, PN.Sun], // Taurus (Vrishabha)
+  2: [PN.Venus, PN.Mercury], // Gemini (Mithuna)
+  3: [PN.Jupiter, PN.Mars], // Cancer (Kataka)
+  4: [PN.Mars], // Leo (Simha)
+  5: [PN.Venus, PN.Mercury], // Virgo (Kanya)
+  6: [PN.Saturn, PN.Mercury], // Libra (Tula)
+  7: [PN.Jupiter, PN.Sun, PN.Moon], // Scorpio (Vrischika)
+  8: [PN.Mars, PN.Sun], // Sagittarius (Dhanus)
+  9: [PN.Venus, PN.Mercury], // Capricorn (Makara)
+  10: [PN.Venus], // Aquarius (Kumbha)
+  11: [PN.Mars, PN.Moon] // Pisces (Meena)
+};
+
+export const MALEFIC_LORDS_BY_LAGNA: Record<number, PlanetName[]> = {
+  0: [PN.Saturn, PN.Mercury, PN.Venus], // Aries
+  1: [PN.Jupiter, PN.Venus, PN.Moon], // Taurus
+  2: [PN.Mars, PN.Jupiter, PN.Sun], // Gemini
+  3: [PN.Venus, PN.Saturn, PN.Mercury], // Cancer
+  4: [PN.Saturn, PN.Mercury, PN.Venus], // Leo
+  5: [PN.Mars, PN.Jupiter, PN.Moon], // Virgo
+  6: [PN.Jupiter, PN.Sun, PN.Mars], // Libra
+  7: [PN.Mercury, PN.Venus, PN.Saturn], // Scorpio
+  8: [PN.Venus], // Sagittarius
+  9: [PN.Mars, PN.Jupiter, PN.Moon], // Capricorn
+  10: [PN.Mars, PN.Jupiter, PN.Moon], // Aquarius
+  11: [PN.Saturn, PN.Venus, PN.Mercury, PN.Sun] // Pisces
+};
+
 // 2. Graha Castes & Genders
 export const GRAHA_CASTES: Record<PlanetName, string> = {
   [PN.Sun]: "Kshatriya (Warrior)",
@@ -525,6 +570,15 @@ export function generateBaggonaPredictions(
       baseScore -= 15;
     }
 
+    const lagnaIdx = kundli.lagnaRashi.index;
+    const beneficsForLagna = BENEFIC_LORDS_BY_LAGNA[lagnaIdx] || [];
+    const maleficsForLagna = MALEFIC_LORDS_BY_LAGNA[lagnaIdx] || [];
+    if (beneficsForLagna.includes(p.name)) {
+      baseScore += 10;
+    } else if (maleficsForLagna.includes(p.name)) {
+      baseScore -= 10;
+    }
+
     const house = p.house;
     if ([1, 4, 7, 10].includes(house)) {
       baseScore += 10;
@@ -546,7 +600,7 @@ export function generateBaggonaPredictions(
       } else if (isDebilitated) {
         description = `${pName} ಗ್ರಹವು ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ${rName} ರಾಶಿಯಲ್ಲಿ ನೀಚ (ದುರ್ಬಲ) ಸ್ಥಾನದಲ್ಲಿದೆ. ಇದು ಜೀವನದಲ್ಲಿ ಶಿಸ್ತು, ಕಠಿಣ ಪರಿಶ್ರಮ ಮತ್ತು ಸಹನೆಯನ್ನು ಕಲಿಸುವ ಕಾಲವಾಗಿದೆ. ಈ ಗ್ರಹವು ${caste} ವರ್ಣವನ್ನು ಪ್ರತಿನಿಧಿಸುತ್ತದೆ ಮತ್ತು ${gender} ತತ್ವದ ಶಕ್ತಿಯನ್ನು ಹೊಂದಿದೆ. ಈ ಗ್ರಹದ ನಕಾರಾತ್ಮಕ ಪರಿಣಾಮಗಳನ್ನು ಕಡಿಮೆ ಮಾಡಲು ಹಾಗೂ ಒಳಗಿನ ಆತ್ಮಬಲವನ್ನು ಹೆಚ್ಚಿಸಲು ${temple} ಭಕ್ತಿಯಿಂದ ಆರಾಧಿಸುವುದು ಅತ್ಯಂತ ಶ್ರೇಯಸ್ಕರವಾಗಿದೆ. ಈ ಸ್ಥಾನದಿಂದಾಗಿ ನಿಮ್ಮಲ್ಲಿ ${appearance} ಸ್ವಭಾವಗಳು ಗೋಚರಿಸುತ್ತವೆ.`;
       } else {
-        description = `${pName} ಗ್ರಹವು ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ${rName} ರಾಶಿಯಲ್ಲಿ (ಭಾವ ${p.house} ರಲ್ಲಿ) ಸ್ಥಿರವಾಗಿ ನೆಲೆಸಿದೆ. ಇದು ನಿಮ್ಮ ಬದುಕಿನಲ್ಲಿ ಉತ್ತಮ ಸಮತೋಲನವನ್ನು تರುತ್ತದೆ. ಈ ಗ್ರಹವು ${caste} ವರ್ಣವನ್ನು ಪ್ರತಿನಿಧಿಸುತ್ತದೆ ಮತ್ತು ${gender} ತತ್ವದ ಶಕ್ತಿಯನ್ನು ಹೊಂದಿದೆ. ನಿಮ್ಮ ದೈನಂದಿನ ಜೀವನದ ಶುಭಫಲಗಳಿಗಾಗಿ ${temple} ಭಕ್ತಿಯಿಂದ ಪ್ರಾರ್ಥಿಸುವುದು ನಿಮಗೆ ಸದಾ ಪ್ರಗತಿಯನ್ನು ನೀಡುತ್ತದೆ. ನಿಮ್ಮ ಸ್ವಭಾವವು ${appearance} ಯಿಂದ ಕೂಡಿರಲಿದೆ.`;
+        description = `${pName} ಗ್ರಹವು ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ${rName} ರಾಶಿಯಲ್ಲಿ (ಭಾವ ${p.house} ರಲ್ಲಿ) ಸ್ಥಿರವಾಗಿ ನೆಲೆಸಿದೆ. ಇದು ನಿಮ್ಮ ಬದುಕಿನಲ್ಲಿ ಉತ್ತಮ ಸಮತೋಲನವನ್ನು ತರುತ್ತದೆ. ಈ ಗ್ರಹವು ${caste} ವರ್ಣವನ್ನು ಪ್ರತಿನಿಧಿಸುತ್ತದೆ ಮತ್ತು ${gender} ತತ್ವದ ಶಕ್ತಿಯನ್ನು ಹೊಂದಿದೆ. ನಿಮ್ಮ ದೈನಂದಿನ ಜೀವನದ ಶುಭಫಲಗಳಿಗಾಗಿ ${temple} ಭಕ್ತಿಯಿಂದ ಪ್ರಾರ್ಥಿಸುವುದು ನಿಮಗೆ ಸದಾ ಪ್ರಗತಿಯನ್ನು ನೀಡುತ್ತದೆ. ನಿಮ್ಮ ಸ್ವಭಾವವು ${appearance} ಯಿಂದ ಕೂಡಿರಲಿದೆ.`;
       }
     } else if (isHi) {
       title = `${pName} - कॉस्मिक मार्गदर्शक`;
@@ -566,6 +620,134 @@ export function generateBaggonaPredictions(
       }
 
       description = `${pName} is ${statusPhrase} It belongs to the ${caste} caste, exhibits ${gender} energy, and represents the temple of Lord ${temple}. Physical and behavioral traits include: ${appearance}`;
+    }
+
+    if (p.name === PN.Saturn) {
+      const saturnRashi = p.rashi.index;
+      let strengthEn = "";
+      let strengthKn = "";
+      let strengthHi = "";
+      if (saturnRashi === 6) {
+        strengthEn = "Saturn is EXALTED in Libra, giving great patience, authority, and status. ";
+        strengthKn = "ಶನಿಯು ತುಲಾ ರಾಶಿಯಲ್ಲಿ ಉಚ್ಛನಾಗಿದ್ದು, ಅಪಾರ ತಾಳ್ಮೆ, ಅಧಿಕಾರ ಮತ್ತು ಗೌರವವನ್ನು ನೀಡುತ್ತಾನೆ. ";
+        strengthHi = "शनि तुला राशि में उच्च के हैं, जो अत्यधिक धैर्य, अधिकार और सम्मान प्रदान करते हैं। ";
+      } else if (saturnRashi === 9 || saturnRashi === 10) {
+        strengthEn = "Saturn is in its OWN sign, providing stability, discipline, and solid foundations. ";
+        strengthKn = "ಶನಿಯು ಸ್ವಕ್ಷೇತ್ರದಲ್ಲಿದ್ದು (ಮಕರ/ಕುಂಭ), ಜೀವನದಲ್ಲಿ ಸ್ಥಿರತೆ, ಶಿಸ್ತು ಮತ್ತು ಭದ್ರ ಬುನಾದಿಯನ್ನು ನೀಡುತ್ತಾನೆ. ";
+        strengthHi = "शनि अपने स्वराशि (मकर/कुंभ) में हैं, जो स्थिरता, अनुशासन और मजबूत आधार प्रदान करते हैं। ";
+      } else if ([1, 2, 5].includes(saturnRashi)) {
+        strengthEn = "Saturn is in a FRIEND'S sign, making its challenges smoother and easier to navigate. ";
+        strengthKn = "ಶನಿಯು ಮಿತ್ರಕ್ಷೇತ್ರದಲ್ಲಿದ್ದು, ಸವಾಲುಗಳನ್ನು ಸುಲಭವಾಗಿ ಎದುರಿಸಲು ಸಹಾಯ ಮಾಡುತ್ತಾನೆ. ";
+        strengthHi = "शनि मित्र राशि में हैं, जिससे आने वाली चुनौतियाँ अपेक्षाकृत सरल और अनुकूल हो जाती हैं। ";
+      } else if (saturnRashi === 0) {
+        strengthEn = "Saturn is DEBILITATED in Aries, indicating that heavy labor, obstacles, and intense life lessons will shape your path. ";
+        strengthKn = "ಶನಿಯು ಮೇಷ ರಾಶಿಯಲ್ಲಿ ನೀಚನಾಗಿದ್ದು, ಬದುಕಿನಲ್ಲಿ ಶ್ರಮ, ತೀವ್ರ ಅಡೆತಡೆಗಳು ಹಾಗೂ ಪಾಠಗಳು ಹೆಚ್ಚು ಪ್ರಭಾವ ಬೀರುತ್ತವೆ. ";
+        strengthHi = "शनि मेष राशि में नीच के हैं, जो इंगित करते हैं कि आपके जीवन में कड़ा संघर्ष, बाधाएं और महत्वपूर्ण सबक प्रभाव डालेंगे। ";
+      } else {
+        strengthEn = "Saturn is in a challenging/enemy sign, requiring dedication and discipline. ";
+        strengthKn = "ಶನಿಯು ಶತ್ರು ರಾಶಿಯಲ್ಲಿದ್ದು, ಜೀವನದಲ್ಲಿ ಸದಾ ಶಿಸ್ತು ಮತ್ತು ಕರ್ತವ್ಯ ಪ್ರಜ್ಞೆಯನ್ನು ಬಯಸುತ್ತಾನೆ. ";
+        strengthHi = "शनि शत्रु राशि में हैं, जो जीवन में निरंतर अनुशासन और समर्पण की मांग करते हैं। ";
+      }
+
+      const careersEn: Record<number, string> = {
+        0: "A career path involving engineering, technical sectors, hard physical labor, or the working-class sector.",
+        1: "A career path in banking, finance, LIC, or the food industry.",
+        2: "A career path in media, publication, writing, logistics, or transport/travel.",
+        3: "Vocation related to cooking service, food industry, housing/real estate, with a focus on resolving mother-related pending karma.",
+        4: "Vocation in politics, education, biological sciences, or government service/administration.",
+        5: "Vocation in accounting, auditing, legal litigation, or medicine.",
+        6: "Career in partnership businesses, banking, marketing, or judicial/court services.",
+        7: "A path in secret service, CID, cyber security, astrology, or geology/underground research.",
+        8: "Vocation in temples, religious institutions, trusts, or as a judge/legal advisor.",
+        9: "A leadership role, company management, administrative head, or social service.",
+        10: "Vocation in network administration, finance, income tax, or revenue departments.",
+        11: "A path as a doctor, lecturer, manager of ashrams, or charitable trusts."
+      };
+      const careersKn: Record<number, string> = {
+        0: "ಎಂಜಿನಿಯರಿಂಗ್, ತಾಂತ್ರಿಕ ವಲಯ, ಕಠಿಣ ದೈಹಿಕ ಶ್ರಮ ಅಥವಾ ಕಾರ್ಮಿಕ ವಲಯದ ಕೆಲಸ.",
+        1: "ಬ್ಯಾಂಕಿಂಗ್, ಹಣಕಾಸು (Finance), LIC ಅಥವಾ ಆಹಾರ ಉದ್ಯಮ.",
+        2: "ಮಾಧ್ಯಮ, ಪ್ರಕಾಶನ, ಬರವಣಿಗೆ, ಲಾಜಿಸ್ಟಿಕ್ಸ್ ಅಥವಾ ಸಾರಿಗೆ/ಪ್ರಯಾಣ.",
+        3: "ಅಡುಗೆ ಸೇವೆ, ಆಹಾರ ಉದ್ಯಮ, ಮನೆ/ಸ್ಥಿರ ಆಸ್ತಿಗೆ ಸಂಬಂಧಿಸಿದ ಕೆಲಸ ಮತ್ತು ತಾಯಿಗೆ ಸಂಬಂಧಪಟ್ಟ ಬಾಕಿ ಕರ್ಮದ ಪರಿಹಾರ.",
+        4: "ರಾಜಕೀಯ, ಶಿಕ್ಷಣ, ಜೀವಶಾಸ್ತ್ರ ಅಥವಾ ಸರ್ಕಾರಿ ಸೇವೆ/ಆಡಳಿತ.",
+        5: "ಅಕೌಂಟಿಂಗ್, ಆಡಿಟಿಂಗ್, ಕಾನೂನು ಮೊಕದ್ದಮೆ (Litigation) ಅಥವಾ ವೈದ್ಯಕೀಯ ಕ್ಷೇತ್ರ.",
+        6: "ಪಾಲುದಾರಿಕೆ ವ್ಯವಹಾರ, ಬ್ಯಾಂಕ್, ಮಾರ್ಕೆಟಿಂಗ್ ಅಥವಾ ನ್ಯಾಯಾಲಯದ ಕೆಲಸ.",
+        7: "ರಹಸ್ಯ ಸೇವೆ, ಸಿಐಡಿ, ಸೈಬರ್ ಭದ್ರತೆ, ಜ್ಯೋತಿಷ್ಯ ಅಥವಾ ಭೂಗರ್ಭ ಶಾಸ್ತ್ರ/ಸಂಶೋಧನೆ.",
+        8: "ದೇವಸ್ಥಾನ, ಧಾರ್ಮಿಕ ಸಂಸ್ಥೆಗಳು, ಟ್ರಸ್ಟ್‌ಗಳು ಅಥವಾ ನ್ಯಾಯಾಧೀಶ/ಕಾನೂನು ಸಲಹೆಗಾರ.",
+        9: "ನಾಯಕತ್ವದ ಪಾತ್ರ, ಕಂಪನಿ ನಿರ್ವಹಣೆ, ಆಡಳಿತ ಮುಖ್ಯಸ್ಥ ಅಥವಾ ಸಮಾಜ ಸೇವೆ.",
+        10: "ನೆಟ್‌ವರ್ಕ್ ಆಡಳಿತ, ಹಣಕಾಸು, ಆದಾಯ ತೆರಿಗೆ ಅಥವಾ ಕಂದಾಯ ಇಲಾಖೆ.",
+        11: "ವೈದ್ಯರು, ಉಪನ್ಯಾಸಕರು, ಆಶ್ರಮಗಳ ನಿರ್ವಹಣೆ ಅಥವಾ ಚಾರಿಟೇಬಲ್ ಟ್ರಸ್ಟ್‌ಗಳು."
+      };
+      const careersHi: Record<number, string> = {
+        0: "इंजीनियरिंग, तकनीकी क्षेत्र, कठिन शारीरिक श्रम या श्रमिक क्षेत्र का कार्य।",
+        1: "बैंकिंग, वित्त (फाइनेंस), एलआईसी (LIC) या खाद्य उद्योग।",
+        2: "मीडिया, प्रकाशन, लेखन, लॉजिस्टिक्स या परिवहन/यात्रा क्षेत्र।",
+        3: "पाक कला/रसोई सेवा, खाद्य उद्योग, आवास/रियल एस्टेट, और माता से संबंधित लंबित कर्मों का निवारण।",
+        4: "राजनीति, शिक्षा, जीव विज्ञान या सरकारी सेवा/प्रशासन।",
+        5: "अकाउंटिंग, ऑडिटिंग, कानूनी मुकदमेबाजी या चिकित्सा क्षेत्र।",
+        6: "साझेदारी व्यवसाय, बैंक, मार्केटिंग या अदालती/न्यायिक सेवा।",
+        7: "खुफिया सेवा (CID), साइबर सुरक्षा, ज्योतिष या भूविज्ञान/भूमिगत अनुसंधान।",
+        8: "मंदिर, धार्मिक संस्थान, ट्रस्ट या न्यायाधीश/कानूनी सलाहकार।",
+        9: "नेतৃত্ব भूमिका, कंपनी प्रबंधन, प्रशासनिक प्रमुख या समाज सेवा।",
+        10: "नेटवर्क प्रशासन, वित्त, आयकर या राजस्व विभाग।",
+        11: "डॉक्टर, व्याख्याता (लेक्चरर), आश्रमों का प्रबंधन या धर्मार्थ ट्रस्ट।"
+      };
+
+      const careerEn = careersEn[saturnRashi] || "";
+      const careerKn = careersKn[saturnRashi] || "";
+      const careerHi = careersHi[saturnRashi] || "";
+
+      const conjoined = kundli.planets.filter(other => other.name !== PN.Saturn && other.house === p.house);
+      let conjEn = "";
+      let conjKn = "";
+      let conjHi = "";
+
+      for (const other of conjoined) {
+        if (other.name === PN.Sun) {
+          conjEn += "Saturn is conjoined with the Sun, indicating potential health delays or administrative trials. ";
+          conjKn += "ಶನಿಯು ಸೂರ್ಯನೊಂದಿಗೆ ಯುತಿಯಾಗಿದ್ದು, ಆರೋಗ್ಯದ ಏರುಪೇರು ಅಥವಾ ಅಧಿಕಾರಿಗಳಿಂದ ಸವಾಲುಗಳನ್ನು ಸೂಚಿಸುತ್ತದೆ. ";
+          conjHi += "शनि सूर्य के साथ युति में हैं, जो स्वास्थ्य संबंधी चिंताओं या प्रशासनिक बाधाओं को दर्शाता है। ";
+        } else if (other.name === PN.Moon) {
+          conjEn += "Saturn is conjoined with the Moon, representing public service inclination or mother's focus. ";
+          conjKn += "ಶನಿಯು ಚಂದ್ರನೊಂದಿಗೆ ಯುತಿಯಾಗಿದ್ದು, ಸಾರ್ವಜನಿಕ ಸೇವೆ ಅಥವಾ ತಾಯಿಯ ಕಡೆಯ ಕಾಳಜಿಯನ್ನು ತೋರಿಸುತ್ತದೆ. ";
+          conjHi += "शनि चंद्रमा के साथ युति में हैं, जो माता के कार्यक्षेत्र, जनसेवा या समाज सेवा को इंगित करता है। ";
+        } else if (other.name === PN.Mercury) {
+          conjEn += "Saturn is conjoined with Mercury, pointing to traveler, communicator, logistics, or social worker roles. ";
+          conjKn += "ಶನಿಯು ಬುಧನೊಂದಿಗೆ ಯುತಿಯಾಗಿದ್ದು, ನಿರಂತರ ಪ್ರಯಾಣ, ಸಂವಹನ, ಸಾಗಣೆ (Logistics) ಅಥವಾ ಸಮಾಜ ಸೇವೆಯನ್ನು ಸೂಚಿಸುತ್ತದೆ. ";
+          conjHi += "शनि बुध के साथ युति में हैं, जो निरंतर यात्रा, संचार, लॉजिस्टिक्स या समाज सेवा को दर्शाता है। ";
+        } else if (other.name === PN.Rahu || other.name === PN.Ketu) {
+          conjEn += "Saturn is conjoined with Rahu/Ketu, indicating pending karma and tasks carried over from past births. ";
+          conjKn += "ಶನಿಯು ರಾಹು/ಕೇತುಗಳೊಂದಿಗೆ ಯುತಿಯಾಗಿದ್ದು, ಹಿಂದಿನ ಜನ್ಮದ ಬಾಕಿ ಇರುವ ಕರ್ಮಗಳನ್ನು ಹಾಗೂ ಸಾಲಗಳನ್ನು ತೀರಿಸಲು ಬಂದಿರುವುದನ್ನು ಸೂಚಿಸುತ್ತದೆ. ";
+          conjHi += "शनि राहु/केतु के साथ युति में हैं, जो पिछले जन्म के लंबित कर्मों (Pending Karma) और दायित्वों को दर्शाता है। ";
+        }
+      }
+
+      const positiveDashaHouses = [2, 4, 5, 7, 9, 10];
+      const isDashaPositive = positiveDashaHouses.includes(p.house);
+      const dashaEn = isDashaPositive
+        ? `Since Saturn is in your ${p.house}th house, Saturn Dasha (major period) will yield highly positive results, stability, and growth. `
+        : `Since Saturn is in your ${p.house}th house, Saturn Dasha may require extra patience, discipline, and hard work. `;
+      const dashaKn = isDashaPositive
+        ? `ಶನಿಯು ನಿಮ್ಮ ಜಾತಕದ ${p.house}ನೇ ಮನೆಯಲ್ಲಿರುವುದರಿಂದ, ಶನಿ ದಶೆಯು ನಿಮಗೆ ಉತ್ತಮ ಫಲಗಳು, ಸ್ಥಿರತೆ ಮತ್ತು ಪ್ರಗತಿಯನ್ನು ನೀಡುತ್ತದೆ. `
+        : `ಶನಿಯು ನಿಮ್ಮ ಜಾತಕದ ${p.house}ನೇ ಮನೆಯಲ್ಲಿರುವುದರಿಂದ, ಶನಿ ದಶೆಯಲ್ಲಿ ಹೆಚ್ಚಿನ ತಾಳ್ಮೆ, ಶಿಸ್ತು ಮತ್ತು ಶ್ರಮ ಬೇಕಾಗುತ್ತದೆ. `;
+      const dashaHi = isDashaPositive
+        ? `चूंकि शनि आपकी कुंडली के ${p.house}वें भाव में हैं, इसलिए शनि की महादशा आपको उत्तम फल, स्थिरता और उन्नति प्रदान करेगी। `
+        : `चूंकि शनि आपकी कुंडली के ${p.house}वें भाव में हैं, इसलिए शनि की महादशा में आपको अधिक धैर्य, अनुशासन और कड़े परिश्रम की आवश्यकता होगी। `;
+
+      const adviceEn = "Saturn expects dedicated service to parents. Remedial actions include Shiva worship, chanting Hanuman Chalisa, and performing acts of charity.";
+      const adviceKn = "ಶನಿಯು ತಂದೆ-ತಾಯಿಯ ಸೇವೆಯನ್ನು ಬಯಸುತ್ತಾನೆ. ಪರಿಹಾರಕ್ಕಾಗಿ ಪ್ರತಿದಿನ ಶಿವನ ಆರಾಧನೆ, ಹನುಮಾನ್ ಚಾಲೀಸಾ ಪಠಣ ಮತ್ತು ಬಡವರಿಗೆ ಸಹಾಯ ಮಾಡುವುದು ಶ್ರೇಯಸ್ಕರ.";
+      const adviceHi = "शनि माता-पिता की सेवा की अपेक्षा करते हैं। शनिवार को कष्टों के निवारण हेतु शिव आराधना, हनुमान चालीसा पाठ और दान-पुण्य करना चाहिए।";
+
+      const extraSaturnTextEn = `\n\n[Saturn Strength]: ${strengthEn}\n[Saturn Dasha]: ${dashaEn}\n[Saturn Career Path]: ${careerEn}\n${conjEn ? `[Saturn Conjunctions]: ${conjEn}\n` : ""}[Saturn Guidance]: ${adviceEn}`;
+      const extraSaturnTextKn = `\n\n[ಶನಿ ಬಲ]: ${strengthKn}\n[ಶನಿ ದಶಾ]: ${dashaKn}\n[ಶನಿ ಕರ್ಮ ಮತ್ತು ವೃತ್ತಿ]: ${careerKn}\n${conjKn ? `[ಶನಿ ಯುತಿಗಳು]: ${conjKn}\n` : ""}[ಶನಿ ಪರಿಹಾರಗಳು]: ${adviceKn}`;
+      const extraSaturnTextHi = `\n\n[शनि बल]: ${strengthHi}\n[शनि महादशा]: ${dashaHi}\n[शनि करियर पथ]: ${careerHi}\n${conjHi ? `[शनि युति]: ${conjHi}\n` : ""}[शनि उपाय]: ${adviceHi}`;
+
+      if (isKn) {
+        description += extraSaturnTextKn;
+      } else if (isHi) {
+        description += extraSaturnTextHi;
+      } else {
+        description += extraSaturnTextEn;
+      }
     }
 
     planets.push({ title, description, score: planetScore, status: planetStatus });
@@ -820,10 +1002,65 @@ export function generateBaggonaPredictions(
       description = `Signification: This house governs ${sigs}. ${lordText}${occupantText}${analysisText}`;
     }
 
+    // Adjust score if Saturn is posited or aspecting
+    const saturnPl = kundli.planets.find(p => p.name === PN.Saturn);
+    let finalScore = score;
+    if (saturnPl) {
+      const saturnHouse = saturnPl.house;
+      const h3 = (saturnHouse + 2) > 12 ? (saturnHouse + 2) - 12 : saturnHouse + 2;
+      const h7 = (saturnHouse + 6) > 12 ? (saturnHouse + 6) - 12 : saturnHouse + 6;
+      const h10 = (saturnHouse + 9) > 12 ? (saturnHouse + 9) - 12 : saturnHouse + 9;
+      if ([saturnHouse, h3, h7, h10].includes(h)) {
+        finalScore -= 1;
+      }
+    }
+    const finalScore100 = getHouseScore100(Math.max(-4, Math.min(4, finalScore)));
+
+    if (saturnPl) {
+      const saturnHouse = saturnPl.house;
+      const h3 = (saturnHouse + 2) > 12 ? (saturnHouse + 2) - 12 : saturnHouse + 2;
+      const h7 = (saturnHouse + 6) > 12 ? (saturnHouse + 6) - 12 : saturnHouse + 6;
+      const h10 = (saturnHouse + 9) > 12 ? (saturnHouse + 9) - 12 : saturnHouse + 9;
+
+      if (h === saturnHouse) {
+        if (isKn) {
+          description += " ಶನಿಯು ಈ ಭಾವದಲ್ಲಿ ನೆಲೆಸಿದ್ದು, ಶಿಸ್ತು ಮತ್ತು ಕರ್ತವ್ಯ ಪ್ರಜ್ಞೆಯನ್ನು ನೀಡುತ್ತಾನೆ (Saturn is posited).";
+        } else if (isHi) {
+          description += " शनि इस भाव में स्थित हैं, जो अनुशासन और जिम्मेदारी लाते हैं (Saturn is posited)।";
+        } else {
+          description += " Saturn is posited in this house, bringing discipline and structural delays.";
+        }
+      } else if (h === h3) {
+        if (isKn) {
+          description += " ಶನಿಯು ಈ ಭಾವದ ಮೇಲೆ ತನ್ನ ೩ನೇ ದೃಷ್ಟಿಯನ್ನು ಬೀರಿದ್ದಾನೆ (Saturn casts its 3rd aspect).";
+        } else if (isHi) {
+          description += " शनि की ३वीं दृष्टि इस भाव पर पड़ रही है (Saturn casts its 3rd aspect)।";
+        } else {
+          description += " Saturn casts its 3rd aspect on this house, demanding extra efforts.";
+        }
+      } else if (h === h7) {
+        if (isKn) {
+          description += " ಶನಿಯು ಈ ಭಾವದ ಮೇಲೆ ತನ್ನ ೭ನೇ ದೃಷ್ಟಿಯನ್ನು ಬೀರಿದ್ದಾನೆ (Saturn casts its 7th aspect).";
+        } else if (isHi) {
+          description += " शनि की ७वीं दृष्टि इस भाव पर पड़ रही है (Saturn casts its 7th aspect)।";
+        } else {
+          description += " Saturn casts its 7th aspect on this house, requiring patience.";
+        }
+      } else if (h === h10) {
+        if (isKn) {
+          description += " ಶನಿಯು ಈ ಭಾವದ ಮೇಲೆ ತನ್ನ ೧೦ನೇ ದೃಷ್ಟಿಯನ್ನು ಬೀರಿದ್ದಾನೆ (Saturn casts its 10th aspect).";
+        } else if (isHi) {
+          description += " शनि की १०वीं दृष्टि इस भाव पर पड़ रही है (Saturn casts its 10th aspect)।";
+        } else {
+          description += " Saturn casts its 10th aspect on this house, indicating duty and focus.";
+        }
+      }
+    }
+
     houses.push({
       title,
       description,
-      score: houseScore100,
+      score: finalScore100,
       status,
       whatIsGood,
       whatIsWrong,
@@ -1589,3 +1826,104 @@ export async function translatePersonalReading(
 
   return next;
 }
+
+export async function calculateGocharaPredictions(
+  k: KundliOutput,
+  transitKundli: KundliOutput,
+  activeDashaLord: PlanetName,
+  activeBhuktiLord: PlanetName,
+  lang: string = "en"
+): Promise<Array<{
+  planet: PlanetName;
+  title: string;
+  status: "positive" | "caution" | "neutral";
+  remedy: string;
+  probability: number;
+}>> {
+  const isKn = lang === "kn";
+  const isHi = lang === "hi";
+
+  const result: Array<{
+    planet: PlanetName;
+    title: string;
+    status: "positive" | "caution" | "neutral";
+    remedy: string;
+    probability: number;
+  }> = [];
+
+  for (const p of transitKundli.planets) {
+    const house = (p.rashi.index - k.moonSign.index + 12) % 12 + 1;
+    let title = `${p.name} Transit`;
+    let status: "positive" | "caution" | "neutral" = "neutral";
+    let remedy = "";
+
+    if (p.name === PN.Saturn) {
+      if ([12, 1, 2].includes(house)) {
+        status = "caution";
+        const phase = house === 12 ? "1st Phase" : house === 1 ? "Peak Phase" : "3rd Phase";
+        title = `Saturn Sade Sati (${phase})`;
+        remedy = isKn 
+          ? "ಪ್ರತಿದಿನ ಶಿವನ ಆರಾಧನೆ ಮಾಡಿ ಮತ್ತು ಶನಿವಾರ ಬಡವರಿಗೆ ದಾನ ನೀಡಿ." 
+          : isHi 
+            ? "शनिवार को शनि देव के मंदिर में तेल अर्पित करें और हनुमान चालीसा का पाठ करें।" 
+            : "Chant Shiva prayers or Hanuman Chalisa and donate to the needy on Saturdays.";
+      } else if (house === 8) {
+        status = "caution";
+        title = "Ashtama Shani Transit";
+        remedy = "Perform prayers to Lord Shiva and practice patience.";
+      } else if (house === 4) {
+        status = "caution";
+        title = "Ardha-Ashtama Shani Transit";
+        remedy = "Maintain domestic peace and worship Lord Ganesha.";
+      } else if ([3, 6, 11].includes(house)) {
+        status = "positive";
+        title = "Favorable Saturn Transit";
+        remedy = "Perform acts of service to sustain positive energy.";
+      } else {
+        status = "neutral";
+        title = "Neutral Saturn Transit";
+        remedy = "Stay disciplined and continue regular work.";
+      }
+    } else if (p.name === PN.Jupiter) {
+      const isGood = [2, 5, 7, 9, 11].includes(house);
+      status = isGood ? "positive" : "neutral";
+      title = isGood ? "Favorable Jupiter Transit" : "Neutral Jupiter Transit";
+      remedy = isGood ? "Worship Lord Shiva or Guru" : "Respect elders and teachers";
+    } else {
+      const isGood = [3, 6, 11].includes(house);
+      status = isGood ? "positive" : "neutral";
+      title = `${p.name} Transit in House ${house}`;
+      remedy = "Perform standard daily prayers";
+    }
+
+    let probability = 75;
+    if (p.name === activeDashaLord) {
+      probability += 15;
+    }
+    if (p.name === activeBhuktiLord) {
+      probability += 10;
+    }
+
+    const lagnaIdx = k.lagnaRashi.index;
+    const benefics = BENEFIC_LORDS_BY_LAGNA[lagnaIdx] || [];
+    const malefics = MALEFIC_LORDS_BY_LAGNA[lagnaIdx] || [];
+    if (benefics.includes(p.name)) {
+      probability += 5;
+    } else if (malefics.includes(p.name)) {
+      probability -= 5;
+    }
+
+    probability = Math.max(15, Math.min(98, probability));
+
+    result.push({
+      planet: p.name,
+      title,
+      status,
+      remedy,
+      probability
+    });
+  }
+
+  return result;
+}
+

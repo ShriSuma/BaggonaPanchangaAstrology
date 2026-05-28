@@ -4,13 +4,12 @@ import { computeMaandi } from "../core/MaandiEngine";
 import { rashiAmshaFromDegree } from "../core/localeNumbers";
 
 describe("MaandiEngine", () => {
-  it("Gokarna morning birth — Maandi in Kanyā (early Gulika segment)", () => {
+  it("Gokarna morning birth — Mandi in Kanyā (traditional Mandi Ghati)", () => {
     const birth = new Date("1993-05-31T09:25:00+05:30");
     const sun = sunTimesSyncForBirth(birth, 14.5479, 74.3187, "581326");
     const m = computeMaandi(birth, 14.5479, 74.3187, "581326", "lahiri", sun);
     expect(m.rashi.sanskrit).toBe("Kanya");
-    expect(rashiAmshaFromDegree(m.degree)).toBeGreaterThanOrEqual(3);
-    expect(rashiAmshaFromDegree(m.degree)).toBeLessThanOrEqual(5);
+    expect(rashiAmshaFromDegree(m.degree)).toBe(12);
   });
 
   it("returns degree in range and a non-empty window label", () => {

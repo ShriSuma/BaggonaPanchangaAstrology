@@ -117,3 +117,32 @@ export const siderealLongitudes = (
 
   return { jdUt, ayanamsa, sun, moon, mars, mercury, jupiter, venus, saturn, rahu, ketu };
 };
+
+const bodyMap: Record<string, Astronomy.Body> = {
+  Sun: Astronomy.Body.Sun,
+  Moon: Astronomy.Body.Moon,
+  Mars: Astronomy.Body.Mars,
+  Mercury: Astronomy.Body.Mercury,
+  Jupiter: Astronomy.Body.Jupiter,
+  Venus: Astronomy.Body.Venus,
+  Saturn: Astronomy.Body.Saturn
+};
+
+export const isPlanetRetrograde = (planetName: string, date: Date): boolean => {
+  const body = bodyMap[planetName];
+  if (!body || body === Astronomy.Body.Sun || body === Astronomy.Body.Moon) {
+    return false;
+  }
+  const v1 = Astronomy.GeoVector(body, date, true);
+  const e1 = Astronomy.Ecliptic(v1);
+  const l1 = e1.elon;
+  
+  const nextDate = new Date(date.getTime() + 10 * 60 * 1000); // 10 mins later
+  const v2 = Astronomy.GeoVector(body, nextDate, true);
+  const e2 = Astronomy.Ecliptic(v2);
+  const l2 = e2.elon;
+  
+  const diff = (l2 - l1 + 360) % 360;
+  return diff > 180;
+};
+

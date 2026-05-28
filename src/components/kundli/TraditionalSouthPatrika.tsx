@@ -359,9 +359,10 @@ export default function TraditionalSouthPatrika({
                   );
                 }
                 for (const pl of planetsHere) {
+                  const retStr = pl.isRetrograde ? (isKn ? " (ವ)" : " (R)") : "";
                   cells.push(
                     <span key={pl.name} className="jk-patrika-ink block">
-                      {t(`planets.${pl.name}` as "planets.Sun")} {formatChartHouseNumber(patrikaNavamshaFromDegree(pl.degree), lang)}
+                      {t(`planets.${pl.name}` as "planets.Sun")}{retStr} {formatChartHouseNumber(patrikaNavamshaFromDegree(pl.degree), lang)}
                     </span>
                   );
                 }
