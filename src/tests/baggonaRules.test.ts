@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { calculateKundli } from "../core/KundliEngine";
 import { calculateTraditionalBaggona } from "../core/TraditionalBaggonaEngine";
-import { generateBaggonaPredictions, calculateGocharaPredictions } from "../core/BaggonaPredictionEngine";
+import { generateBaggonaPredictions, calculateGocharaPredictions, generatePersonalReading, housesRuledByPlanet } from "../core/BaggonaPredictionEngine";
 import { generateJayashreePredictionBase } from "../core/JayashreePredictionEngine";
 import { PlanetName, type KundliOutput } from "../core/AstroTypes";
 
@@ -93,5 +93,24 @@ describe("BaggonaAstrologyRules", () => {
     expect(saturnPred?.status).toBe("caution");
     expect(saturnPred?.remedy).toBeDefined();
     expect(saturnPred?.probability).toBeGreaterThanOrEqual(80); // base (80) + malefic/benefic lord adjustments + dasha lord boost (15) etc.
+  });
+
+  it("verifies housesRuledByPlanet and new detailed rules / monthly summary", () => {
+    const k = calculateKundli(birth, { ayanamsaModel: "lahiri" });
+    const trad = calculateTraditionalBaggona(birth.birthDate, birth.birthTime, birth.latitude, birth.longitude, "lahiri");
+    
+    const marsHouses = housesRuledByPlanet(PlanetName.Mars, 3);
+    expect(marsHouses).toContain(10);
+    expect(marsHouses).toContain(5);
+
+    const personal = generatePersonalReading(k, birth, "en");
+    expect(personal.monthlySummary).toBeDefined();
+    expect(personal.monthlySummary?.length).toBe(2);
+    expect(personal.monthlySummary?.[0].title).toBeDefined();
+    expect(personal.monthlySummary?.[0].description).toBeDefined();
+    
+    const preds = generateBaggonaPredictions(k, trad, "en");
+    const mercuryPred = preds.planets.find(p => p.title.toLowerCase().includes("mercury"));
+    expect(mercuryPred?.description).toContain("Trishadaya");
   });
 });

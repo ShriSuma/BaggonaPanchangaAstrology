@@ -55,6 +55,7 @@ export interface PersonalReadingOutput {
       description: string;
     };
   };
+  monthlySummary?: PersonalReadingSection[];
 }
 
 // 1. Planetary Exaltation / Debilitation details
@@ -354,33 +355,33 @@ const BHAVA_NAMES_HI = [
 ];
 
 const BHAVA_SIGNIFICATIONS_EN = [
-  "your physical health, self-expression, and general character",
-  "family life, wealth accumulation, speech, and early education",
-  "your courage, siblings, short travels, and self-efforts",
-  "mother, happiness, home, vehicles, and assets",
-  "intellect, children, creativity, and past good deeds",
-  "handling debts, health concerns, and overcoming enemies",
-  "marriage, spouse, partnership, and public life",
-  "longevity, inheritance, sudden changes, and secrets",
-  "fortune, father, higher learning, and spiritual dharma",
-  "career development, social status, and professional efforts",
+  "body condition, shape, health, head, progress, and personality",
+  "family, wealth, speech, right eye, and especially Occult Sciences",
+  "courage, younger siblings, prowess, and ear health",
+  "mother, house, land, vehicles, and education",
+  "children, intellect, talent, and poorvapunya",
+  "disease, debt, enemies, and maternal uncle's relation",
+  "spouse, marriage, partnership, and foreign travel",
+  "longevity, death mode, hidden diseases, and sudden losses",
+  "fortune, dharma, father, and gurus",
+  "career, fame, authority, and status",
   "income, gains, elder siblings, and wishes",
-  "expenditure, spiritual release, foreign travels, and sleep"
+  "expense, loss, imprisonment, and moksha"
 ];
 
 const BHAVA_SIGNIFICATIONS_KN = [
-  "ನಿಮ್ಮ ದೈಹಿಕ ಆರೋಗ್ಯ, ಆತ್ಮವಿಶ್ವಾಸ, ರೂಪ ಮತ್ತು ಒಟ್ಟಾರೆ ವ್ಯಕ್ತಿತ್ವವನ್ನು",
-  "ಕುಟುಂಬದ ಸುಖ, ಸಂಪತ್ತಿನ ಗಳಿಕೆ, ಮಧುರ ಮಾತು ಮತ್ತು ಪ್ರಾಥಮಿಕ ಶಿಕ್ಷಣವನ್ನು",
-  "ನಿಮ್ಮ ಸಹೋದರರ ಬಾಂಧವ್ಯ, ಆಂತರಿಕ ಧೈರ್ಯ, ಕಿರು ಪ್ರಯಾಣಗಳು ಮತ್ತು ಸ್ವಪ್ರಯತ್ನವನ್ನು",
-  "ತಾಯಿಯ ವಾತ್ಸಲ್ಯ, ಮನೆಯ ನೆಮ್ಮದಿ, ವಾಹನ ಸುಖ ಮತ್ತು ಸ್ಥಿರ ಆಸ್ತಿಪಾಸ್ತಿಯನ್ನು",
-  "ನಿಮ್ಮ ಬುದ್ಧಿಶಕ್ತಿ, ಮಕ್ಕಳ ಯೋಗ, ಸೃಜನಶೀಲತೆ ಮತ್ತು ಪೂರ್ವಜನ್ಮದ ಪುಣ್ಯ ಫಲಗಳನ್ನು",
-  "ಆರೋಗ್ಯದ ಕಾಳಜಿ, ಋಣಮುಕ್ತಿ ಮತ್ತು ಸವಾಲುಗಳನ್ನು ಎದುರಿಸುವ ಶಕ್ತಿಯನ್ನು",
-  "ವಿವಾಹ ಯೋಗ, ಸಂಗಾತಿಯೊಂದಿಗಿನ ಸಂಬಂಧ, ಒಡನಾಟ ಮತ್ತು ಪಾಲುದಾರಿಕೆಯನ್ನು",
-  "ಆಯಸ್ಸು, ಹಠಾತ್ ಬದಲಾವಣೆಗಳು, ಪಿತ್ರಾರ್ಜಿತ ಆಸ್ತಿ ಮತ್ತು ನಿಗೂಢ ಜ್ಞಾನವನ್ನು",
-  "ಅದೃಷ್ಟದ ಒಲವು, ತಂದೆಯವರ ಮಾರ್ಗದರ್ಶನ, ಉನ್ನತ ವಿದ್ಯಾಭ್ಯಾಸ ಮತ್ತು ಧರ್ಮದ ನಂಬಿಕೆಯನ್ನು",
-  "ನಿಮ್ಮ ಉದ್ಯೋಗ, ಸಮಾಜದಲ್ಲಿನ ಕೀರ್ತಿ, ಯಶಸ್ಸು ಮತ್ತು ಕರ್ಮ ಕ್ಷೇತ್ರವನ್ನು",
-  "ಆದಾಯದ ಮೂಲಗಳು, ಆಸೆಗಳ ಈಡೇರಿಕೆ, ಹಿರಿಯ ಒಡಹುಟ್ಟಿದವರ ಬೆಂಬಲ ಮತ್ತು ಲಾಭವನ್ನು",
-  "ಆರೋಗ್ಯಕರ ವೆಚ್ಚಗಳು, ಆಧ್ಯಾತ್ಮಿಕ ಮುಕ್ತಿ, ವಿದೇಶಿ ಪ್ರವಾಸಗಳು ಮತ್ತು ಶಾಂತಿಯುತ ನಿದ್ರೆಯನ್ನು"
+  "ದೇಹದ ಸ್ಥಿತಿ, ರೂಪ, ಆರೋಗ್ಯ, ತಲೆ, ಪ್ರಗತಿ ಮತ್ತು ವ್ಯಕ್ತಿತ್ವ",
+  "ಕುಟುಂಬ, ಸಂಪತ್ತು, ಮಾತು, ಬಲಗಣ್ಣು ಮತ್ತು ಅತ್ಯಂತ ಪ್ರಮುಖವಾಗಿ ಗೂಢವಿದ್ಯೆ (Occult Sciences)",
+  "ಧೈರ್ಯ, ಕಿರು ಸಹೋದರರು, ಪರಾಕ್ರಮ ಮತ್ತು ಕಿವಿ",
+  "ತಾಯಿ, ಮನೆ, ಭೂಮಿ, ವಾಹನ ಸುಖ ಮತ್ತು ವಿದ್ಯಾಭ್ಯಾಸ",
+  "ಸಂತಾನ, ಬುದ್ಧಿಶಕ್ತಿ, ಪ್ರತಿಭೆ ಮತ್ತು ಪೂರ್ವಜನ್ಮದ ಪುಣ್ಯ",
+  "ರೋಗ, ಸಾಲ, ಶತ್ರುಗಳು ಮತ್ತು ಸೋದರಮಾವ (Maternal Uncle)",
+  "ಸಂಗಾತಿ, ವಿವಾಹ, ಪಾಲುದಾರಿಕೆ ಮತ್ತು ವಿದೇಶ ಪ್ರಯಾಣ",
+  "ಆಯುಷ್ಯ, ಮರಣದ ರೀತಿ, ಗುಪ್ತ ರೋಗಗಳು ಮತ್ತು ಆಕಸ್ಮಿಕ ನಷ್ಟ",
+  "ಅದೃಷ್ಟ, ಧರ್ಮ, ತಂದೆ ಮತ್ತು ಗುರುಗಳು",
+  "ವೃತ್ತಿ, ಕೀರ್ತಿ, ಅಧಿಕಾರ ಮತ್ತು ಸಾಮಾಜಿಕ ಅಂತಸ್ತು",
+  "ಆದಾಯ, ಲಾಭ, ಹಿರಿಯ ಸಹೋದರರು ಮತ್ತು ಇಷ್ಟಾರ್ಥ ಸಿದ್ಧಿ",
+  "ಖರ್ಚು, ನಷ್ಟ, ಜೈಲು ವಾಸ ಮತ್ತು ಮೋಕ್ಷ"
 ];
 
 const BHAVA_SIGNIFICATIONS_HI = [
@@ -445,6 +446,220 @@ export const getPlanetAppearance = (p: PlanetName): string => {
     case PN.Ketu: return "Intense look, philosophical demeanor, interested in spiritual matters, and healing skills.";
   }
 };
+
+export function housesRuledByPlanet(planet: PlanetName, lagnaIdx: number): number[] {
+  const ruledRashis: Record<PlanetName, number[]> = {
+    [PN.Sun]: [4],
+    [PN.Moon]: [3],
+    [PN.Mars]: [0, 7],
+    [PN.Mercury]: [2, 5],
+    [PN.Jupiter]: [8, 11],
+    [PN.Venus]: [1, 6],
+    [PN.Saturn]: [9, 10],
+    [PN.Rahu]: [],
+    [PN.Ketu]: []
+  };
+  const rashis = ruledRashis[planet] || [];
+  return rashis.map(r => ((r - lagnaIdx + 12) % 12) + 1);
+}
+
+interface LagnaRule {
+  beneficsEn: string;
+  beneficsKn: string;
+  maleficsEn: string;
+  maleficsKn: string;
+  yogasEn: string;
+  yogasKn: string;
+}
+
+const LAGNA_RULES: Record<number, LagnaRule> = {
+  0: { // Mesha
+    beneficsEn: "Sun and Moon are highly benefic.",
+    beneficsKn: "ರವಿ ಮತ್ತು ಚಂದ್ರ ಶುಭರು.",
+    maleficsEn: "Saturn, Mercury, and Jupiter yield inauspicious results.",
+    maleficsKn: "ಶನಿ, ಬುಧ ಮತ್ತು ಗುರು ಅಶುಭ ಫಲ ನೀಡುತ್ತಾರೆ.",
+    yogasEn: "Sun and Moon conjunction brings auspicious growth.",
+    yogasKn: "ರವಿ ಮತ್ತು ಚಂದ್ರನ ಜೋಡಣೆಯು ಉತ್ತಮ ಯಶಸ್ಸನ್ನು ನೀಡುತ್ತದೆ."
+  },
+  1: { // Vrishabha
+    beneficsEn: "Saturn and Mercury are the key benefics. Saturn acts as a powerful benefic for this Lagna.",
+    beneficsKn: "ಶನಿ ಮತ್ತು ಬುಧರು ಪ್ರಮುಖ ಶುಭರು. ಶನಿಯು ಈ ಲಗ್ನಕ್ಕೆ ಪ್ರಬಲ ಶುಭ ಗ್ರಹ.",
+    maleficsEn: "Jupiter, Venus, and Moon are malefic.",
+    maleficsKn: "ಗುರು, ಶುಕ್ರ ಮತ್ತು ಚಂದ್ರರು ಅಶುಭರು.",
+    yogasEn: "Saturn and Mercury conjunction is Rajayogakaraka, bringing wealth and status.",
+    yogasKn: "ಶನಿ ಮತ್ತು ಬುಧ ರಾಜಯೋಗಕಾರಕರು. ಇದು ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಕೀರ್ತಿ ಮತ್ತು ಗೌರವ ನೀಡುತ್ತದೆ."
+  },
+  2: { // Mithuna
+    beneficsEn: "Saturn and Mercury are benefic.",
+    beneficsKn: "ಶನಿ ಮತ್ತು ಬುಧನ ಯೋಗ ಶುಭ ಫಲ ನೀಡುತ್ತದೆ.",
+    maleficsEn: "Mars, Jupiter, and Sun are malefic.",
+    maleficsKn: "ಕುಜ, ಗುರು ಮತ್ತು ರವಿ ಅಶುಭರು.",
+    yogasEn: "Saturn (9th lord) and Mercury yield auspicious results. However, if Saturn and Jupiter (10th lord) associate, it causes a Raja Yoga Bhanga because Jupiter rules the 7th house (Maraka).",
+    yogasKn: "ಶನಿ (9ನೇ ಅಧಿಪತಿ) ಮತ್ತು ಗುರು (10ನೇ ಅಧಿಪತಿ) संबंधವಿದ್ದಲ್ಲಿ ರಾಜಯೋಗ ಭಂಗವಾಗುತ್ತದೆ; ಏಕೆಂದರೆ ಗುರುವು ಇಲ್ಲಿ 7ನೇ ಮನೆಯ (ಮಾರಕ) ಅಧಿಪತ್ಯದ ದೋಷವನ್ನೂ ಹೊಂದಿರುತ್ತಾನೆ."
+  },
+  3: { // Karka
+    beneficsEn: "Jupiter and Sun are benefic.",
+    beneficsKn: "ಗುರು ಮತ್ತು ರವಿ ಅತ್ಯಂತ ಶುಭ ಫಲಗಳನ್ನು ನೀಡುತ್ತಾರೆ.",
+    maleficsEn: "Venus, Saturn, and Mercury are malefic. Saturn and Moon association can yield inauspicious results.",
+    maleficsKn: "ಶುಕ್ರ, ಶನಿ ಮತ್ತು ಬುಧ ಅಶುಭರು. ಶನಿ ಮತ್ತು ಚಂದ್ರನ ಸಂಬಂಧವು ಅಶುಭ ಫಲ ನೀಡಬಹುದು.",
+    yogasEn: "Jupiter and Sun conjunction creates strong professional growth.",
+    yogasKn: "ಗುರು ಮತ್ತು ರವಿಯ ಯುತಿಯು ಆಡಳಿತ ಹಾಗೂ ಉನ್ನತ ಅಧಿಕಾರ ನೀಡುತ್ತದೆ."
+  },
+  4: { // Simha
+    beneficsEn: "Sun and Mars are benefic.",
+    beneficsKn: "ರವಿ ಮತ್ತು ಮಂಗಳರು ಶುಭರು.",
+    maleficsEn: "Saturn, Mercury, and Venus are malefic.",
+    maleficsKn: "ಶನಿ, ಬುಧ ಮತ್ತು ಶುಕ್ರ ಅಶುಭರು.",
+    yogasEn: "Sun and Mars association is a powerful Rajayogakaraka, yielding power and authority.",
+    yogasKn: "ರವಿ ಮತ್ತು ಮಂಗಳನ ಸಂಬಂಧ ರಾಜಯೋಗಕಾರಕವಾಗಿದ್ದು, ಅಧಿಕಾರ ನೀಡುತ್ತದೆ."
+  },
+  5: { // Kanya
+    beneficsEn: "Mercury and Venus are Rajayogakarakas.",
+    beneficsKn: "ಬುಧ ಮತ್ತು ಶುಕ್ರರು ರಾಜಯೋಗಕಾರಕರು.",
+    maleficsEn: "Mars, Jupiter, and Moon are malefic.",
+    maleficsKn: "ಕುಜ, ಗುರು ಮತ್ತು ಚಂದ್ರ ಅಶುಭರು.",
+    yogasEn: "Mercury and Venus conjunction is Rajayogakaraka, bringing high intelligence and wealth.",
+    yogasKn: "ಬುಧ ಮತ್ತು ಶುಕ್ರನ ಯೋಗ ರಾಜಯೋಗಕಾರಕವಾಗಿದ್ದು, ಬುದ್ಧಿಶಕ್ತಿ ಹಾಗೂ ಐಶ್ವರ್ಯ ನೀಡುತ್ತದೆ."
+  },
+  6: { // Tula
+    beneficsEn: "Saturn and Mercury are key benefics.",
+    beneficsKn: "ಶನಿ ಮತ್ತು ಬುಧರು ಅತ್ಯಂತ ಶುಭ ಗ್ರಹಗಳು.",
+    maleficsEn: "Jupiter, Sun, and Mars are malefic.",
+    maleficsKn: "ಗುರು, ರವಿ ಮತ್ತು ಕುಜ ಅಶುಭರು.",
+    yogasEn: "Saturn and Mercury conjunction yields amazing Raja Yoga.",
+    yogasKn: "ಶನಿ ಮತ್ತು ಬುಧನ ಸಂಯೋಜನೆ ಅದ್ಭುತ ರಾಜಯೋಗ ನೀಡುತ್ತದೆ."
+  },
+  7: { // Vrischika
+    beneficsEn: "Jupiter and Sun are benefic.",
+    beneficsKn: "ಗುರು ಮತ್ತು ರವಿ ಶುಭ ಫಲ ನೀಡುತ್ತಾರೆ.",
+    maleficsEn: "Mercury, Venus, and Saturn are malefic.",
+    maleficsKn: "ಬುಧ, ಶುಕ್ರ ಮತ್ತು ಶನಿ ಅಶುಭರು.",
+    yogasEn: "Sun and Jupiter conjunction yields progress and status.",
+    yogasKn: "ರವಿ ಮತ್ತು ಗುರುವಿನ ಸಂಯೋಗವು ಪ್ರಗತಿ ಹಾಗೂ ಜ್ಞಾನವನ್ನು ವೃದ್ಧಿಸುತ್ತದೆ."
+  },
+  8: { // Dhanu
+    beneficsEn: "Sun, Mars, and Mercury are benefic.",
+    beneficsKn: "ರವಿ, ಕುಜ ಮತ್ತು ಬುಧರು ಶುಭರು.",
+    maleficsEn: "Venus is malefic.",
+    maleficsKn: "ಶುಕ್ರ ಅಶುಭ ಫಲ ನೀಡುತ್ತಾನೆ.",
+    yogasEn: "Sun and Mercury conjunction, or Sun and Mars association yields strong Raja Yoga.",
+    yogasKn: "ರವಿ ಮತ್ತು ಬುಧನ ಯೋಗ ಅಥವಾ ರವಿ ಮತ್ತು ಕುಜನ ಸಂಯೋಜನೆ ರಾಜಯೋಗ ನೀಡುತ್ತದೆ."
+  },
+  9: { // Makara
+    beneficsEn: "Venus and Mercury are Rajayogakarakas. Saturn is benefic as Lagna Lord.",
+    beneficsKn: "ಶುಕ್ರ ಮತ್ತು ಬುಧ ರಾಜಯೋಗಕಾರಕರು. ಶನಿಯು ಲಗ್ನಾಧಿಪತಿಯಾಗಿ ಶುಭ ಫಲ ನೀಡುತ್ತಾನೆ.",
+    maleficsEn: "Mars, Jupiter, and Moon are malefic.",
+    maleficsKn: "ಕುಜ, ಗುರು ಮತ್ತು ಚಂದ್ರ ಅಶುಭರು.",
+    yogasEn: "Venus and Mercury conjunction creates standard luxury and comfort yogas.",
+    yogasKn: "ಶುಕ್ರ ಮತ್ತು ಬುಧನ ಯುತಿಯು ವಾಹನ ಹಾಗೂ ಆಸ್ತಿ ಸುಖ ನೀಡುತ್ತದೆ."
+  },
+  10: { // Kumbha
+    beneficsEn: "Venus and Saturn are benefic.",
+    beneficsKn: "ಶುಕ್ರ ಮತ್ತು ಶನಿಯು ಶುಭ ಫಲ ನೀಡುತ್ತಾರೆ.",
+    maleficsEn: "Jupiter, Mars, and Moon are malefic.",
+    maleficsKn: "ಗುರು, ಕುಜ ಮತ್ತು ಚಂದ್ರ ಅಶುಭರು.",
+    yogasEn: "Venus and Saturn association creates a powerful Raja Yoga.",
+    yogasKn: "ಶುಕ್ರ ಮತ್ತು ಶನಿಯ ಸಂಬಂಧವು ಪ್ರಬಲ ರಾಜಯೋಗವನ್ನು ಸೃಷ್ಟಿಸುತ್ತದೆ."
+  },
+  11: { // Meena
+    beneficsEn: "Mars and Moon are benefic.",
+    beneficsKn: "ಕುಜ ಮತ್ತು ಚಂದ್ರರು ಶುಭರು.",
+    maleficsEn: "Saturn, Venus, Mercury, and Sun are malefic.",
+    maleficsKn: "ಶನಿ, ಶುಕ್ರ, ಬುಧ ಮತ್ತು ರವಿ ಅಶುಭರು.",
+    yogasEn: "Mars and Moon association is highly auspicious (Chandra-Mangala Yoga).",
+    yogasKn: "ಕುಜ ಮತ್ತು ಚಂದ್ರನ ಯೋಗವು ಶುಭಪ್ರದವಾಗಿದ್ದು, ಆರ್ಥಿಕ ಉನ್ನತಿ ನೀಡುತ್ತದೆ."
+  }
+};
+
+const PLANET_DISEASES_EN: Record<PlanetName, string> = {
+  [PN.Sun]: "Heart disease, bone (asthi) defects, and stomach ailments.",
+  [PN.Moon]: "Mental anxiety, blood disorders, and cold-related infections.",
+  [PN.Mars]: "High blood pressure, surgical interventions, burns, and high fever.",
+  [PN.Mercury]: "Nervous weakness, skin diseases, and communication or speech disorders.",
+  [PN.Jupiter]: "Digestive issues, ear aches, and memory weakness.",
+  [PN.Venus]: "Venereal or genital diseases, and vision/eye defects.",
+  [PN.Saturn]: "Vata-related ailments, chronic leg pain, joint issues, and risk of paralysis.",
+  [PN.Rahu]: "Fear of poisoning, foot/ankle issues, and undiagnosed or mysterious diseases.",
+  [PN.Ketu]: "Mental distress, severe lack of immunity, and viral infections."
+};
+
+const PLANET_DISEASES_KN: Record<PlanetName, string> = {
+  [PN.Sun]: "ಹೃದಯ ಸಂಬಂಧಿ ಕಾಯಿಲೆ, ಅಸ್ಥಿ (ಮೂಳೆ) ದೋಷ ಮತ್ತು ಉದರ ವ್ಯಾಧಿ.",
+  [PN.Moon]: "ಮಾನಸಿಕ ಅಶಾಂತಿ, ರಕ್ತದ ದೋಷ ಮತ್ತು ಶೀತ ಸಂಬಂಧಿತ ಸಮಸ್ಯೆಗಳು.",
+  [PN.Mars]: "ಅಧಿಕ ರಕ್ತದೊತ್ತಡ, ಶಸ್ತ್ರಚಿಕಿತ್ಸೆಗಳು, ಸುಟ್ಟ ಗಾಯಗಳು ಮತ್ತು ಜ್ವರ.",
+  [PN.Mercury]: "ನರಗಳ ದೌರ್ಬಲ್ಯ, ಚರ್ಮ ರೋಗ ಮತ್ತು ಸಂವಹನ ದೋಷಗಳು.",
+  [PN.Jupiter]: "ಜೀರ್ಣಕ್ರಿಯೆ ಅಡೆತಡೆ, ಕಿವಿ ನೋವು ಮತ್ತು ನೆನಪಿನ ಶಕ್ತಿ ಕುಂದುವುದು.",
+  [PN.Venus]: "ಗುಹ್ಯ ರೋಗಗಳು ಮತ್ತು ಕಣ್ಣಿನ ದೃಷ್ಟಿ ದೋಷ.",
+  [PN.Saturn]: "ವಾತ ರೋಗ, ದೀರ್ಘಕಾಲದ ಕಾಲು ನೋವು ಮತ್ತು ಪಾರ್ಶ್ವವಾಯು.",
+  [PN.Rahu]: "ವಿಷಭಯ, ಪಾದಗಳ ಸಮಸ್ಯೆ ಮತ್ತು ಗುರುತಿಸಲಾಗದ ರೋಗಗಳು.",
+  [PN.Ketu]: "ಮಾನಸಿಕ ಕ್ಲೇಶ ಮತ್ತು ರೋಗನಿರೋಧಕ ಶಕ್ತಿಯ ತೀವ್ರ ಕೊರತೆ."
+};
+
+export function getDetailedPlanetInsight(
+  planet: PlanetName,
+  house: number,
+  rashiIdx: number,
+  lagnaIdx: number,
+  isOwnSign: boolean,
+  isExalted: boolean,
+  isDebilitated: boolean,
+  isKn: boolean
+): string {
+  let text = "";
+
+  // 1. Ashtamadhipatya rules
+  const ruledHouses = housesRuledByPlanet(planet, lagnaIdx);
+  const rules8 = ruledHouses.includes(8);
+  if (rules8) {
+    if (lagnaIdx === 0 && planet === PN.Mars) {
+      text += isKn
+        ? "\n\n[ಅಷ್ಟಮಾದಿಪತ್ಯ ವಿಚಾರ]: ಮೇಷ ಲಗ್ನಕ್ಕೆ ಲಗ್ನಾಧಿಪತಿಯಾದ ಮಂಗಳನೇ ಅಷ್ಟಮಕ್ಕೂ ಅಧಿಪತಿಯಾಗುವುದರಿಂದ, ಇಲ್ಲಿ ಮಂಗಳನಿಗೆ ಅಷ್ಟಮಾದಿಪತ್ಯದ ದೋಷವು ಅನ್ವಯಿಸುವುದಿಲ್ಲ. ಮಂಗಳನು ನಿಮ್ಮನ್ನು ರಕ್ಷಿಸುತ್ತಾನೆ ಮತ್ತು ಶುಭ ಫಲಗಳನ್ನು ನೀಡುತ್ತಾನೆ."
+        : "\n\n[Ashtamadhipatya Rule]: For Aries Lagna, the Lagna Lord Mars is also the 8th Lord. Therefore, Mars does not suffer from Ashtamadhipatya dosha; it protects you and yields auspicious results.";
+    } else if (lagnaIdx === 6 && planet === PN.Venus) {
+      text += isKn
+        ? "\n\n[ಅಷ್ಟಮಾದಿಪತ್ಯ ವಿಚಾರ]: ತುಲಾ ಲಗ್ನಕ್ಕೆ ಲಗ್ನಾಧಿಪತಿಯಾದ ಶುಕ್ರನೇ ಅಷ್ಟಮಕ್ಕೂ ಅಧಿಪತಿಯಾಗುವುದರಿಂದ, ಇಲ್ಲಿ ಶುಕ್ರನಿಗೆ ಅಷ್ಟಮಾದಿಪತ್ಯದ ದೋಷವು ಅನ್ವಯಿಸುವುದಿಲ್ಲ. ಶುಕ್ರನು ನಿಮ್ಮನ್ನು ರಕ್ಷಿಸುತ್ತಾನೆ ಮತ್ತು ಶುಭ ಫಲಗಳನ್ನು ನೀಡುತ್ತಾನೆ."
+        : "\n\n[Ashtamadhipatya Rule]: For Libra Lagna, the Lagna Lord Venus is also the 8th Lord. Therefore, Venus does not suffer from Ashtamadhipatya dosha; it protects you and yields auspicious results.";
+    } else if (planet === PN.Sun || planet === PN.Moon) {
+      text += isKn
+        ? "\n\n[ಅಷ್ಟಮಾದಿಪತ್ಯ ವಿಚಾರ]: ಶಾಸ್ತ್ರದ ನಿಯಮದಂತೆ ಸೂರ್ಯ ಮತ್ತು ಚಂದ್ರ ಗ್ರಹಗಳಿಗೆ ಅಷ್ಟಮ ಸ್ಥಾನದ ಅಧಿಪತ್ಯದ ದೋಷವಿರುವುದಿಲ್ಲ."
+        : "\n\n[Ashtamadhipatya Rule]: As per astrological texts, the Sun and Moon are completely exempt from Ashtamadhipatya dosha.";
+    } else {
+      text += isKn
+        ? "\n\n[ಅಷ್ಟಮಾದಿಪತ್ಯ ವಿಚಾರ]: ಈ ಗ್ರಹವು ೮ನೇ ಮನೆಯ ಅಧಿಪತಿಯಾಗಿರುವುದರಿಂದ ಸಾಧಾರಣವಾಗಿ ಫಲನಿರ್ಣಯದಲ್ಲಿ ಅಶುಭ ನೀಡುವ ಪ್ರವೃತ್ತಿ ಹೊಂದಿರುತ್ತದೆ. ಇದು ಅನಿರೀಕ್ಷಿತ ಅಡೆತಡೆಗಳು ಅಥವಾ ಆಯುಷ್ಯಕ್ಕೆ ಸಂಬಂಧಿಸಿದ ವಿಚಾರಗಳಲ್ಲಿ ತಾಳ್ಮೆಯನ್ನು ಬಯಸುತ್ತದೆ."
+        : "\n\n[Ashtamadhipatya Rule]: Ruling the 8th house, this planet generally tends to bring challenges, unexpected delays, or health fluctuations.";
+    }
+  }
+
+  // 2. Trishadaya rules (3, 6, 11)
+  const rulesTrishadaya = ruledHouses.some(h => [3, 6, 11].includes(h));
+  if (rulesTrishadaya) {
+    text += isKn
+      ? "\n\n[ತ್ರಿಷಡಾಯ ಅಧಿಪತಿ ಪ್ರಭಾವ]: ಈ ಗ್ರಹವು ೩, ೬ ಅಥವಾ ೧೧ನೇ ಮನೆಯ (ತ್ರಿಷಡಾಯ) ಅಧಿಪತಿಯಾಗಿದ್ದು, ತನ್ನ ದಶಾ-ಭುಕ್ತಿಗಳಲ್ಲಿ ಸಂಘರ್ಷ, ರೋಗ ಮತ್ತು ಅಡೆತಡೆಗಳನ್ನು ಉಂಟುಮಾಡುವ ಪ್ರವೃತ್ತಿ ಹೊಂದಿರುತ್ತದೆ."
+      : "\n\n[Trishadaya Lord Influence]: This planet rules a Trishadaya house (3rd, 6th, or 11th). Consequently, in its Dasha-Bhukti, it is prone to bring struggles, conflicts, obstacles, or health challenges.";
+  }
+
+  // 3. Raja Yoga & Bhanga
+  const rulesLagna = LAGNA_RULES[lagnaIdx];
+  if (rulesLagna) {
+    if (lagnaIdx === 2) {
+      if (planet === PN.Jupiter || planet === PN.Saturn) {
+        text += isKn
+          ? "\n\n[ರಾಜಯೋಗ ಭಂಗ ವಿಚಾರ]: ಮಿಥುನ ಲಗ್ನಕ್ಕೆ ಶನಿ (೯ನೇ ಅಧಿಪತಿ) ಮತ್ತು ಗುರು (೧೦ನೇ ಅಧಿಪತಿ) ಸಂಬಂಧವಿದ್ದಲ್ಲಿ ರಾಜಯೋಗ ಭಂಗವಾಗುತ್ತದೆ; ಏಕೆಂದರೆ ಗುರುವು ಇಲ್ಲಿ ೭ನೇ ಮನೆಯ (ಮಾರಕ) ಅಧಿಪತ್ಯದ ದೋಷವನ್ನೂ ಹೊಂದಿರುತ್ತಾನೆ."
+          : "\n\n[Raja Yoga Bhanga Subtlety]: For Gemini Lagna, while Saturn (9L) and Jupiter (10L) rule auspicious houses, their conjunction/aspect causes Raja Yoga Bhanga because Jupiter also holds the 7th house (Maraka) lordship.";
+      }
+    }
+  }
+
+  // 4. Medical Astrology
+  const disease = isKn ? PLANET_DISEASES_KN[planet] : PLANET_DISEASES_EN[planet];
+  if (disease) {
+    text += isKn
+      ? `\n\n[ವೈದ್ಯಕೀಯ ಜ್ಯೋತಿಷ್ಯ (Roga Vichara)]: ಕಾಲಪುರುಷನ ಅಂಗವಿಭಾಗದಲ್ಲಿ ಈ ಗ್ರಹವು ಪ್ರಭಾವ ಬೀರುತ್ತದೆ. ಇದು ಮುಖ್ಯವಾಗಿ ${disease}`
+      : `\n\n[Medical Astrology (Roga Vichara)]: In the Kalapurusha body division, this planet affects specific functions. It is associated with: ${disease}`;
+  }
+
+  return text;
+}
 
 /**
  * Generate predictions based on the Traditional Baggona PDF Rules
@@ -748,6 +963,25 @@ export function generateBaggonaPredictions(
       } else {
         description += extraSaturnTextEn;
       }
+    }
+
+    const extraInsight = getDetailedPlanetInsight(
+      p.name,
+      p.house,
+      rIdx,
+      lagnaIdx,
+      isOwnSign,
+      isExalted,
+      isDebilitated,
+      isKn
+    );
+    description += extraInsight;
+
+    const lagnaLord = signLord(lagnaIdx);
+    if (p.name === lagnaLord && [6, 8, 12].includes(p.house)) {
+      description += isKn
+        ? "\n\n[ಲಗ್ನಾಧಿಪತಿಯ ದೌರ್ಬಲ್ಯ]: ಲಗ್ನಾಧಿಪತಿಯು ಜಾತಕದ ದುಸ್ಥಾನಗಳಲ್ಲಿ (೬, ೮ ಅಥವಾ ೧೨ನೇ ಭಾವ) ನೆಲೆಸಿರುವುದರಿಂದ ನಿಮ್ಮ ಒಟ್ಟಾರೆ ಆರೋಗ್ಯ ಹಾಗೂ ರೋಗನಿರೋಧಕ ಶಕ್ತಿಯು ಕ್ಷೀಣಿಸುವ ಸಾಧ್ಯತೆಯಿರುತ್ತದೆ. ಸೂಕ್ತ ಕಾಳಜಿ ಮತ್ತು ಶಿವಾರಾಧನೆ ಅತ್ಯಗತ್ಯ."
+        : "\n\n[Lagna Lord Weakness]: Since your Lagna Lord is posited in a dusthana (6th, 8th, or 12th house), your overall health and immunity might be compromised. Extra care, a disciplined lifestyle, and spiritual practices are recommended.";
     }
 
     planets.push({ title, description, score: planetScore, status: planetStatus });
@@ -1057,6 +1291,16 @@ export function generateBaggonaPredictions(
       }
     }
 
+    const karakas = HOUSE_KARAKAS[h] || [];
+    const karakaNames = karakas.map(k => getPlanetName(k)).join(", ");
+    if (isKn) {
+      description += `\n\n[ಭಾವ ಕಾರಕತ್ವ (Significators)]: ಈ ಭಾವಕ್ಕೆ ಕಾರಕ ಗ್ರಹಗಳು: ${karakaNames}.`;
+    } else if (isHi) {
+      description += `\n\n[भाव कारकत्व (Significators)]: इस भाव के कारक ग्रह हैं: ${karakaNames}।`;
+    } else {
+      description += `\n\n[House Karakas (Significators)]: Significator planets for this house: ${karakaNames}.`;
+    }
+
     houses.push({
       title,
       description,
@@ -1299,6 +1543,149 @@ export function generateBaggonaPredictions(
     longevity,
     doshas
   };
+}
+
+export function getTransitsForDate(
+  moonSignIdx: number,
+  date: Date,
+  ayanamsaModel: any = "lahiri"
+): Record<PlanetName, { rashiIndex: number; house: number }> {
+  const longs = siderealLongitudes(date, ayanamsaModel);
+  const out = {} as Record<PlanetName, { rashiIndex: number; house: number }>;
+  
+  const planetsList: PlanetName[] = [
+    PN.Sun, PN.Moon, PN.Mars, PN.Mercury, PN.Jupiter, PN.Venus, PN.Saturn, PN.Rahu, PN.Ketu
+  ];
+  
+  for (const name of planetsList) {
+    const deg = longs[name.toLowerCase() as keyof typeof longs] ?? 0;
+    const rIndex = degreeToRashi(deg).index;
+    const house = ((rIndex - moonSignIdx + 12) % 12) + 1;
+    out[name] = { rashiIndex: rIndex, house };
+  }
+  return out;
+}
+
+export function buildMonthlyPredictionText(
+  kundli: KundliOutput,
+  transits: Record<PlanetName, { rashiIndex: number; house: number }>,
+  lang: string
+): string {
+  const isKn = lang === "kn";
+  const getPlanetName = (p: PlanetName): string => {
+    if (isKn) return PLANETS_KN[p] ?? p;
+    return PLANETS_EN[p] ?? p;
+  };
+
+  let text = "";
+
+  const targetPlanets = [PN.Saturn, PN.Sun, PN.Mars, PN.Jupiter];
+  const challenges: string[] = [];
+  const supportives: string[] = [];
+
+  for (const pl of targetPlanets) {
+    const tData = transits[pl];
+    if (!tData) continue;
+    const tHouse = tData.house;
+    const rIdx = tData.rashiIndex;
+
+    const isDebilitated = DEBILITATION_SIGNS[pl] === rIdx;
+    const isEnemy = naturalRelation(pl, signLord(rIdx)) === "shatru";
+
+    if ([1, 8, 12].includes(tHouse)) {
+      let impact = "";
+      if (pl === PN.Saturn) {
+        impact = isKn 
+          ? "ಅಪಜಯ ಮತ್ತು ಮಾನಸಿಕ-ದೈಹಿಕ ಒತ್ತಡ (Sade Sati/Ashtama Shani)" 
+          : "setbacks and physical-mental stress (Sade Sati/Ashtama Shani)";
+      } else if (pl === PN.Sun) {
+        impact = isKn ? "ಅಧಿಕಾರಿಗಳೊಂದಿಗೆ ಭಿನ್ನಾಭಿಪ್ರಾಯ ಮತ್ತು ಕೀರ್ತಿ ನಷ್ಟ" : "friction with authorities and loss of reputation";
+      } else if (pl === PN.Mars) {
+        impact = isKn ? "ವಾದ-ವಿವಾದಗಳು, ಆಕಸ್ಮಿಕ ನಷ್ಟ ಮತ್ತು ದೈಹಿಕ ತೊಂದರೆಗಳು" : "disputes, sudden losses, and physical discomforts";
+      } else if (pl === PN.Jupiter) {
+        impact = isKn ? "ಜ್ಞಾನನಾಶ, ನಿರ್ಧಾರಗಳಲ್ಲಿ ಗೊಂದಲ ಮತ್ತು ಧನಹಾನಿ" : "temporary confusion, bad decisions, and wealth delays";
+      }
+
+      if (isDebilitated) {
+        impact += isKn 
+          ? " (ಗ್ರಹವು ಗೋಚಾರದಲ್ಲಿ ನೀಚ ಸ್ಥಾನದಲ್ಲಿರುವುದರಿಂದ ಇದರ ಅಶುಭ ಫಲಗಳು ಹತ್ತಾರು ಪಟ್ಟು ಹೆಚ್ಚಾಗುತ್ತವೆ!)" 
+          : " (as the planet is debilitated in transit, its negative effects are multiplied tenfold!)";
+      } else if (isEnemy) {
+        impact += isKn 
+          ? " (ಗ್ರಹವು ಶತ್ರು ಕ್ಷೇತ್ರದಲ್ಲಿದೆ)" 
+          : " (planet is transiting an enemy field)";
+      }
+
+      challenges.push(`${getPlanetName(pl)} (${tHouse}ನೇ ಮನೆ): ${impact}`);
+    } else {
+      let goodImpact = "";
+      if (pl === PN.Jupiter && [2, 5, 7, 9, 11].includes(tHouse)) {
+        goodImpact = isKn ? "ದೈವಿಕ ಆಶೀರ್ವಾದ, ಧನಯೋಗ ಮತ್ತು ಶುಭ ಕಾರ್ಯಗಳು" : "divine blessings, wealth inflow, and auspicious events";
+      } else if (pl === PN.Sun && [3, 6, 10, 11].includes(tHouse)) {
+        goodImpact = isKn ? "ವೃತ್ತಿಜೀವನದಲ್ಲಿ ಉನ್ನತಿ ಮತ್ತು ಸಮಾಜದಲ್ಲಿ ಮನ್ನಣೆ" : "career growth and social recognition";
+      } else if (pl === PN.Mars && [3, 6, 11].includes(tHouse)) {
+        goodImpact = isKn ? "ಧೈರ್ಯ, ಸಾಹಸಗಳು ಮತ್ತು ಶತ್ರುಗಳ ಮೇಲೆ ವಿಜಯ" : "courage, dynamic action, and victory over obstacles";
+      } else if (pl === PN.Saturn && [3, 6, 11].includes(tHouse)) {
+        goodImpact = isKn ? "ದೀರ್ಘಕಾಲದ ಯಶಸ್ಸು, ಶಿಸ್ತು ಮತ್ತು ಆರ್ಥಿಕ ಪ್ರಗತಿ" : "long-term success, discipline, and steady financial growth";
+      }
+
+      if (goodImpact) {
+        if (isDebilitated) {
+          goodImpact += isKn 
+            ? " (ಆದರೆ ಗ್ರಹವು ನೀಚನಾಗಿರುವುದರಿಂದ ಶುಭ ಫಲಗಳು ತೀವ್ರವಾಗಿ ಕ್ಷೀಣಿಸುತ್ತವೆ)" 
+            : " (but since the planet is debilitated, its benefic results are highly diminished)";
+        } else if (isEnemy) {
+          goodImpact += isKn 
+            ? " (ಗ್ರಹವು ಶತ್ರು ಕ್ಷೇತ್ರದಲ್ಲಿದ್ದು ಶುಭ ಫಲ ಕಡಿಮೆಯಾಗಬಹುದು)" 
+            : " (planet is in an enemy field, slightly reducing its benefic effects)";
+        }
+        supportives.push(`${getPlanetName(pl)} (${tHouse}ನೇ ಮನೆ): ${goodImpact}`);
+      }
+    }
+  }
+
+  const lagnaIdx = kundli.lagnaRashi.index;
+  const lagnaLord = signLord(lagnaIdx);
+  const natalLagnaLordPl = kundli.planets.find(p => p.name === lagnaLord);
+  const lagnaLordHouse = natalLagnaLordPl ? natalLagnaLordPl.house : 1;
+  const isLagnaLordWeak = [6, 8, 12].includes(lagnaLordHouse);
+
+  let natalContext = "";
+  if (isLagnaLordWeak) {
+    natalContext = isKn
+      ? `ಜನ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ನಿಮ್ಮ ಲಗ್ನಾಧಿಪತಿಯಾದ ${getPlanetName(lagnaLord)} ದುಸ್ಥಾನದಲ್ಲಿದ್ದು (${lagnaLordHouse}ನೇ ಮನೆ) ರೋಗನಿರೋಧಕ ಶಕ್ತಿಯನ್ನು ಕಡಿಮೆ ಮಾಡುವುದರಿಂದ, ಗೋಚಾರದ ಸವಾಲುಗಳನ್ನು ಎದುರಿಸಲು ಶಿವಾರಾಧನೆ ಹಾಗೂ ಹೆಚ್ಚಿನ ಆತ್ಮಬಲ ಅತ್ಯಗತ್ಯ.`
+      : `Since your natal Lagna Lord (${getPlanetName(lagnaLord)}) is placed in a dusthana (${lagnaLordHouse} house), your overall immunity and resistance are weaker; hence, you must handle transit challenges with caution and spiritual discipline.`;
+  } else {
+    natalContext = isKn
+      ? `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನಾಧಿಪತಿಯು ಬಲಶಾಲಿಯಾಗಿದ್ದು, ಗೋಚಾರದ ಅಶುಭ ಪ್ರಭಾವಗಳಿಂದ ನಿಮ್ಮನ್ನು ರಕ್ಷಿಸಲು ಶ್ರೀರಕ್ಷೆಯಾಗಿ ನಿಲ್ಲುತ್ತಾನೆ.`
+      : `Your natal Lagna Lord is well-placed and strong, providing a protective shield that buffers you against negative transit influences.`;
+  }
+
+  if (isKn) {
+    text += `【ಜನ್ಮ ಕುಂಡಲಿ ಮತ್ತು ಗೋಚಾರ ಸಮನ್ವಯ】\n${natalContext}\n\n`;
+    if (supportives.length > 0) {
+      text += `【ಶುಭ ಗೋಚಾರ ಪ್ರಭಾವಗಳು】:\n` + supportives.map(s => `• ${s}`).join("\n") + `\n\n`;
+    }
+    if (challenges.length > 0) {
+      text += `【ಸವಾಲುಗಳು ಮತ್ತು ಗೋಚಾರ ದೋಷಗಳು】:\n` + challenges.map(c => `• ${c}`).join("\n") + `\n\n`;
+      text += `【ಪರಿಹಾರಗಳು】: ಶನಿ ಮತ್ತು ಇತರ ದೋಷಗಳ ನಿವಾರಣೆಗೆ ಶಿವ ದರ್ಶನ, ಹನುಮಾನ್ ಚಾಲೀಸಾ ಪಠಣ ಮತ್ತು ಬಡವರಿಗೆ ಆಹಾರ ದಾನ ಮಾಡುವುದು ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ ಪರಿಹಾರ ಮಾರ್ಗಗಳಾಗಿವೆ.`;
+    } else {
+      text += `ಈ ತಿಂಗಳಿನಲ್ಲಿ ಯಾವುದೇ ಪ್ರಮುಖ ಗೋಚಾರ ದೋಷಗಳಿಲ್ಲ. ಧಾರ್ಮಿಕ ಕಾರ್ಯಗಳಲ್ಲಿ ತೊಡಗಿಕೊಳ್ಳುವುದು ಮತ್ತು ದಾನ-ಧರ್ಮ ಮಾಡುವುದು ನಿಮಗೆ ಸರ್ವತೋಮುಖ ಏಳಿಗೆ ತರುತ್ತದೆ.`;
+    }
+  } else {
+    text += `[Natal & Transit Synthesis]\n${natalContext}\n\n`;
+    if (supportives.length > 0) {
+      text += `[Auspicious Transits]:\n` + supportives.map(s => `• ${s}`).join("\n") + `\n\n`;
+    }
+    if (challenges.length > 0) {
+      text += `[Transit Challenges]:\n` + challenges.map(c => `• ${c}`).join("\n") + `\n\n`;
+      text += `[Remedies & Precautions]: Worship Lord Shiva, chant Hanuman Chalisa daily for physical and mental protection, and help the weaker sections of society to ease the karmic flow.`;
+    } else {
+      text += `No major negative transits are active. Cultivating discipline and engaging in charity will bring peace and prosperity.`;
+    }
+  }
+
+  return text;
 }
 
 /**
@@ -1677,11 +2064,35 @@ export function generatePersonalReading(
     };
   }
 
+  const monthlySummary: PersonalReadingSection[] = [];
+  const nextMonth = new Date(today);
+  nextMonth.setDate(today.getDate() + 30);
+
+  const thisMonthName = today.toLocaleString(lang === "kn" ? "kn-IN" : "en-US", { month: "long" });
+  const nextMonthName = nextMonth.toLocaleString(lang === "kn" ? "kn-IN" : "en-US", { month: "long" });
+
+  const thisTransits = getTransitsForDate(moonIdx, today, "lahiri");
+  const nextTransits = getTransitsForDate(moonIdx, nextMonth, "lahiri");
+
+  const thisMonthDesc = buildMonthlyPredictionText(kundli, thisTransits, lang);
+  const nextMonthDesc = buildMonthlyPredictionText(kundli, nextTransits, lang);
+
+  const thisMonthTitle = isKn 
+    ? `${thisMonthName} ${today.getFullYear()} ರ ಫಲ ಮುನ್ಸೂಚನೆ` 
+    : `Forecast for ${thisMonthName} ${today.getFullYear()}`;
+  const nextMonthTitle = isKn 
+    ? `${nextMonthName} ${nextMonth.getFullYear()} ರ ಫಲ ಮುನ್ಸೂಚನೆ` 
+    : `Forecast for ${nextMonthName} ${nextMonth.getFullYear()}`;
+
+  monthlySummary.push({ title: thisMonthTitle, description: thisMonthDesc });
+  monthlySummary.push({ title: nextMonthTitle, description: nextMonthDesc });
+
   return {
     cosmicProfile,
     todaysTransits,
     currentLifeChapter,
-    upcomingChapters
+    upcomingChapters,
+    monthlySummary
   };
 }
 
@@ -1776,6 +2187,15 @@ export async function translatePersonalReading(
     mappings.push({ path: `todaysTransits.${idx}.description` });
   });
 
+  if (reading.monthlySummary) {
+    reading.monthlySummary.forEach((sec, idx) => {
+      flatStrings.push(sec.title);
+      mappings.push({ path: `monthlySummary.${idx}.title` });
+      flatStrings.push(sec.description);
+      mappings.push({ path: `monthlySummary.${idx}.description` });
+    });
+  }
+
   flatStrings.push(reading.currentLifeChapter.cycle);
   mappings.push({ path: "currentLifeChapter.cycle" });
   flatStrings.push(reading.currentLifeChapter.description);
@@ -1809,6 +2229,13 @@ export async function translatePersonalReading(
       const idx = Number(parts[1]);
       const field = parts[2] as "title" | "description";
       next.todaysTransits[idx]![field] = val;
+    } else if (map.path.startsWith("monthlySummary")) {
+      const parts = map.path.split(".");
+      const idx = Number(parts[1]);
+      const field = parts[2] as "title" | "description";
+      if (!next.monthlySummary) next.monthlySummary = [];
+      if (!next.monthlySummary[idx]) next.monthlySummary[idx] = { title: "", description: "" };
+      next.monthlySummary[idx]![field] = val;
     } else if (map.path === "currentLifeChapter.cycle") {
       next.currentLifeChapter.cycle = val;
     } else if (map.path === "currentLifeChapter.description") {

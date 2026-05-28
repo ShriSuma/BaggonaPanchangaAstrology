@@ -531,6 +531,49 @@ export default function BaggonaPredictionsPage(): JSX.Element {
         <div className="space-y-4 animate-fade-in">
           {tab === "personal" && personalReading && (
             <div className="space-y-6">
+              {/* Summary Section */}
+              {personalReading.monthlySummary && (
+                <div className="space-y-4">
+                  <div className="rounded-xl bg-gradient-to-r from-indigo-900 via-slate-900 to-indigo-950 px-5 py-4 border border-indigo-500/20 text-white shadow-md relative overflow-hidden">
+                    <div className="absolute right-0 top-0 -mt-6 -mr-6 h-20 w-20 rounded-full bg-indigo-500/10 blur-xl animate-pulse" />
+                    <h4 className="text-sm font-extrabold uppercase tracking-wider flex items-center gap-2 text-indigo-200">
+                      <span>📊</span> {isKn ? "ಸಾರಾಂಶ (ಈ ತಿಂಗಳು ಮತ್ತು ಮುಂದಿನ ತಿಂಗಳ ಭವಿಷ್ಯ)" : "Summary (This Month & Next Month Prediction)"}
+                    </h4>
+                    <p className="mt-2 text-xs leading-relaxed text-indigo-100/90 text-justify">
+                      {isKn
+                        ? "ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿ (Natal Chart) ಮತ್ತು ಪ್ರಸ್ತುತ ಸಂಚರಿಸುವ ಗೋಚಾರ ಕುಂಡಲಿ (Transit Chart) ಎರಡನ್ನೂ ಸಮಗ್ರವಾಗಿ ಜೋಡಿಸಿ ಈ ಸಾರಾಂಶವನ್ನು ಸಿದ್ಧಪಡಿಸಲಾಗಿದೆ. ಇದು ಈ ತಿಂಗಳು ಮತ್ತು ಮುಂದಿನ ತಿಂಗಳ ಮುಖ್ಯ ವಿದ್ಯಮಾನಗಳನ್ನು ಸಂಶ್ಲೇಷಿಸುತ್ತದೆ."
+                        : "This dynamic summary blends your birth chart (Janma Kundali) with the current transits (Gochara Kundali) to offer a precise and synthesized roadmap for this month and next month."}
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    {personalReading.monthlySummary.map((sec, i) => (
+                      <div
+                        key={`monthly-summary-${i}`}
+                        className="relative overflow-hidden rounded-2xl border border-indigo-100/80 bg-gradient-to-br from-indigo-50/40 via-white to-amber-50/20 p-5 shadow-sm transition-all hover:shadow-md dark:from-indigo-950/10 dark:via-slate-900/30 dark:to-amber-950/5"
+                      >
+                        <div className="absolute top-0 right-0 -mt-4 -mr-4 h-16 w-16 rounded-full bg-indigo-500/5 blur-lg" />
+                        <div className="flex items-start gap-4">
+                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-500/10 text-xl text-indigo-600">
+                            📅
+                          </span>
+                          <div>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600/80">
+                              {isKn ? "ಮಾಸಿಕ ಸಾರಾಂಶ" : "Monthly Summary"}
+                            </span>
+                            <h3 className="mt-0.5 text-base font-extrabold text-indigo-950">
+                              {sec.title}
+                            </h3>
+                            <p className="mt-3 text-xs leading-relaxed text-slate-700 md:text-sm text-justify whitespace-pre-line">
+                              {sec.description}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* 1. Cosmic Profile */}
               {personalReading.cosmicProfile.map((sec, i) => (
                 <div
