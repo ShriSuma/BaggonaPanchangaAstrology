@@ -2621,3 +2621,128 @@ export async function calculateGocharaPredictions(
   return result;
 }
 
+export async function getComprehensiveKundaliPrediction(
+  k: KundliOutput,
+  transitKundli?: KundliOutput,
+  lang: string = "en"
+): Promise<import("./AstroTypes").KundaliPrediction> {
+  const isKn = lang === "kn";
+  const lagnaIdx = k.lagnaRashi.index;
+
+  // 1. Lagna Phal
+  const rules = LAGNA_RULES[lagnaIdx];
+  const lagnaAnalysis = {
+    benefics: rules ? (isKn ? [rules.beneficsKn] : [rules.beneficsEn]) : [],
+    malefics: rules ? (isKn ? [rules.maleficsKn] : [rules.maleficsEn]) : [],
+    description: isKn ? `ನಿಮ್ಮ ಲಗ್ನ ${RASHIS_KN[lagnaIdx]}` : `Your Lagna is ${RASHIS_EN[lagnaIdx]}`
+  };
+
+  // 2. Yogas & Doshas
+  const yogas: string[] = [];
+  const doshas: string[] = [];
+
+  if (rules) {
+    yogas.push(isKn ? rules.yogasKn : rules.yogasEn);
+  }
+
+  // Kendradhipati Dosha: For Gemini (2) & Virgo (5) -> Jupiter, For Sagittarius (8) & Pisces (11) -> Mercury
+  if ((lagnaIdx === 2 || lagnaIdx === 5) && k.planets.some(p => p.name === PN.Jupiter && [1, 4, 7, 10].includes(p.house))) {
+    doshas.push(isKn ? "ಗುರುವಿಗೆ ಕೇಂದ್ರಾಧಿಪತ್ಯ ದೋಷವಿದೆ." : "Jupiter suffers from Kendradhipati Dosha.");
+  }
+  if ((lagnaIdx === 8 || lagnaIdx === 11) && k.planets.some(p => p.name === PN.Mercury && [1, 4, 7, 10].includes(p.house))) {
+    doshas.push(isKn ? "ಬುಧನಿಗೆ ಕೇಂದ್ರಾಧಿಪತ್ಯ ದೋಷವಿದೆ." : "Mercury suffers from Kendradhipati Dosha.");
+  }
+
+  // Sade Sati & Chandrashtama
+  if (transitKundli) {
+    const saturnTransit = transitKundli.planets.find(p => p.name === PN.Saturn);
+    if (saturnTransit) {
+      const saturnHouseFromMoon = (saturnTransit.rashi.index - k.moonSign.index + 12) % 12 + 1;
+      if ([12, 1, 2].includes(saturnHouseFromMoon)) {
+        doshas.push(isKn ? "ಏಳರೆ ಶನಿ (ಸಾಡೇ ಸಾತಿ) ನಡೆಯುತ್ತಿದೆ." : "Sade Sati (7.5 years of Saturn) is active.");
+      }
+    }
+    const moonTransit = transitKundli.planets.find(p => p.name === PN.Moon);
+    if (moonTransit) {
+      const moonHouseFromMoon = (moonTransit.rashi.index - k.moonSign.index + 12) % 12 + 1;
+      if (moonHouseFromMoon === 8) {
+        doshas.push(isKn ? "ಚಂದ್ರಾಷ್ಟಮ ದೋಷವಿದೆ (ಎಚ್ಚರಿಕೆ ವಹಿಸಿ)." : "Chandrashtama Dosha active (transit Moon in 8th from natal Moon).");
+      }
+    }
+  }
+
+  // 3. Career & Saturn
+  const saturn = k.planets.find(p => p.name === PN.Saturn);
+  let careerSaturn = "";
+  if (saturn) {
+    const saturnRashi = saturn.rashi.index;
+    if ([1, 6].includes(saturnRashi)) careerSaturn = isKn ? "ಆರ್ಥಿಕ ಅಥವಾ ಆಹಾರ ಉದ್ಯಮದಲ್ಲಿ ಯಶಸ್ಸು." : "Success in finance or food industry.";
+    else if ([2, 5].includes(saturnRashi)) careerSaturn = isKn ? "ಬರವಣಿಗೆ, ಲೆಕ್ಕಪತ್ರ ಅಥವಾ ಶಿಕ್ಷಣದಲ್ಲಿ ಯಶಸ್ಸು." : "Success in writing, accounting, or education.";
+    else careerSaturn = isKn ? "ಶನಿಯ ರಾಶಿಯ ಆಧಾರದ ಮೇಲೆ ವೃತ್ತಿ (ಸಾಧಾರಣ ಫಲ)." : "Career path influenced by Saturn's sign.";
+  }
+
+  // 4. Saturn Conjunctions
+  const saturnConjunctions: string[] = [];
+  if (saturn) {
+    const conjunctPlanets = k.planets.filter(p => p.name !== PN.Saturn && p.house === saturn.house);
+    for (const cp of conjunctPlanets) {
+      if (cp.name === PN.Sun) saturnConjunctions.push(isKn ? "ಶನಿ-ರವಿ ಯುತಿ: ತಂದೆಯೊಂದಿಗೆ ಭಿನ್ನಾಭಿಪ್ರಾಯ." : "Saturn-Sun conjunction: Conflicts with authority or father.");
+      if (cp.name === PN.Moon) saturnConjunctions.push(isKn ? "ಶನಿ-ಚಂದ್ರ ಯುತಿ (ಪುನರ್ಫೂ ದೋಷ): ಮಾನಸಿಕ ಒತ್ತಡ." : "Saturn-Moon conjunction (Punaphoo Dosha): Mental stress.");
+      if (cp.name === PN.Mercury) saturnConjunctions.push(isKn ? "ಶನಿ-ಬುಧ ಯುತಿ: ತಾಂತ್ರಿಕ ಅಥವಾ ಲೆಕ್ಕಪತ್ರ ವೃತ್ತಿ." : "Saturn-Mercury conjunction: Technical or accounting profession.");
+      if (cp.name === PN.Rahu) saturnConjunctions.push(isKn ? "ಶನಿ-ರಾಹು ಯುತಿ (ಶಾಪಿತ ದೋಷ): ಅಡೆತಡೆಗಳು." : "Saturn-Rahu conjunction (Shrapit Dosha): Obstacles.");
+      if (cp.name === PN.Ketu) saturnConjunctions.push(isKn ? "ಶನಿ-ಕೇತು ಯುತಿ: ವೈರಾಗ್ಯ ಅಥವಾ ಆಧ್ಯಾತ್ಮಿಕ ಒಲವು." : "Saturn-Ketu conjunction: Detachment or spiritual inclination.");
+    }
+  }
+
+  // 5. Saturn Aspects & Vipareeta Shani
+  const saturnAspects: string[] = [];
+  let vipareetaShani: string | null = null;
+  if (saturn) {
+    const aspect3 = (saturn.house + 2) % 12 || 12;
+    const aspect7 = (saturn.house + 6) % 12 || 12;
+    const aspect10 = (saturn.house + 9) % 12 || 12;
+    saturnAspects.push(isKn ? `${aspect3}ನೇ ಮನೆಗೆ ದೃಷ್ಟಿ (ವಿಳಂಬ).` : `Aspect on ${aspect3}th house (delays).`);
+    saturnAspects.push(isKn ? `${aspect7}ನೇ ಮನೆಗೆ ದೃಷ್ಟಿ (ವಿಳಂಬ).` : `Aspect on ${aspect7}th house (delays).`);
+    saturnAspects.push(isKn ? `${aspect10}ನೇ ಮನೆಗೆ ದೃಷ್ಟಿ (ವಿಳಂಬ).` : `Aspect on ${aspect10}th house (delays).`);
+
+    if ([2, 4, 5, 7, 9, 10].includes(saturn.house)) {
+      vipareetaShani = isKn ? "ವಿಪರೀತ ಶನಿ: ಆರಂಭದಲ್ಲಿ ಕಷ್ಟ, ನಂತರ ಅದ್ಭುತ ಯಶಸ್ಸು." : "Vipareeta Shani: Initial struggles followed by great success.";
+    }
+  }
+
+  // 6. Health (Roga Vichara)
+  const healthVichara: string[] = [];
+  for (const p of k.planets) {
+    if ([6, 8, 12].includes(p.house)) {
+      const disease = isKn ? PLANET_DISEASES_KN[p.name] : PLANET_DISEASES_EN[p.name];
+      if (disease) healthVichara.push(`${isKn ? PLANETS_KN[p.name] : PLANETS_EN[p.name]}: ${disease}`);
+    }
+  }
+
+  // 7. Gochara Alerts
+  const gocharaAlerts: string[] = [];
+  if (transitKundli) {
+    for (const pName of [PN.Saturn, PN.Sun, PN.Mars, PN.Jupiter]) {
+      const tp = transitKundli.planets.find(p => p.name === pName);
+      if (tp) {
+        const houseFromMoon = (tp.rashi.index - k.moonSign.index + 12) % 12 + 1;
+        if ([1, 8, 12].includes(houseFromMoon)) {
+          gocharaAlerts.push(isKn 
+            ? `${PLANETS_KN[pName]} ಗೋಚಾರದಲ್ಲಿ ಚಂದ್ರನಿಂದ ${houseFromMoon}ನೇ ಮನೆಯಲ್ಲಿದೆ (ಎಚ್ಚರಿಕೆ).` 
+            : `Transit ${PLANETS_EN[pName]} is in ${houseFromMoon}th from Moon (caution).`);
+        }
+      }
+    }
+  }
+
+  return {
+    lagnaAnalysis,
+    yogasAndDoshas: { yogas, doshas },
+    careerSaturn,
+    saturnConjunctions,
+    saturnAspects,
+    vipareetaShani,
+    healthVichara,
+    gocharaAlerts
+  };
+}

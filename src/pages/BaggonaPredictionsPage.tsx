@@ -8,8 +8,10 @@ import {
   type BaggonaPredictions,
   generatePersonalReading,
   translatePersonalReading,
-  type PersonalReadingOutput
+  type PersonalReadingOutput,
+  getComprehensiveKundaliPrediction
 } from "../core/BaggonaPredictionEngine";
+import type { KundaliPrediction } from "../core/AstroTypes";
 import {
   generateJayashreePrediction,
   type JayashreePrediction
@@ -25,7 +27,7 @@ import { degreeToRashi, degreeToNakshatra, degreeToNakshatraPada } from "../core
 import { wallClockBirthToUtc, ageDecimalYearsAt } from "../core/birthTime";
 import { findBhuktiAtAge } from "../core/DashaBhuktiEngine";
 
-type SubTab = "personal" | "jayashree" | "overview" | "planets" | "houses" | "yogas" | "gochara";
+type SubTab = "kundali" | "personal" | "jayashree" | "overview" | "planets" | "houses" | "yogas" | "gochara";
 
 const rashiTKey = (sanskrit: string): string => `rashis.${sanskrit.replace(/\s+/g, "")}`;
 
@@ -146,11 +148,12 @@ export default function BaggonaPredictionsPage(): JSX.Element {
     };
   }, [session]);
 
-  const [tab, setTab] = useState<SubTab>("personal");
+  const [tab, setTab] = useState<SubTab>("kundali");
   const [selectedDayIdx, setSelectedDayIdx] = useState<number>(0);
   const [predictions, setPredictions] = useState<BaggonaPredictions | null>(null);
   const [personalReading, setPersonalReading] = useState<PersonalReadingOutput | null>(null);
   const [jayashreeReading, setJayashreeReading] = useState<JayashreePrediction | null>(null);
+  const [kundaliPrediction, setKundaliPrediction] = useState<KundaliPrediction | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -282,6 +285,7 @@ export default function BaggonaPredictionsPage(): JSX.Element {
       setPredictions(null);
       setPersonalReading(null);
       setJayashreeReading(null);
+      setKundaliPrediction(null);
       return;
     }
 
@@ -293,6 +297,7 @@ export default function BaggonaPredictionsPage(): JSX.Element {
         const basePreds = generateBaggonaPredictions(record.kundliData, traditionalData, lang, record);
         const basePersonal = generatePersonalReading(record.kundliData, record, lang);
         const jayashree = await generateJayashreePrediction(record.kundliData, record, lang);
+        const baseKundali = await getComprehensiveKundaliPrediction(record.kundliData, gocharaDays[0]?.kundli, lang);
 
         if (lang !== "en") {
           const [translatedPreds, translatedPersonal] = await Promise.all([
@@ -303,12 +308,14 @@ export default function BaggonaPredictionsPage(): JSX.Element {
             setPredictions(translatedPreds);
             setPersonalReading(translatedPersonal);
             setJayashreeReading(jayashree);
+            setKundaliPrediction(baseKundali);
           }
         } else {
           if (!cancelled) {
             setPredictions(basePreds);
             setPersonalReading(basePersonal);
             setJayashreeReading(jayashree);
+            setKundaliPrediction(baseKundali);
           }
         }
       } catch (err) {
@@ -363,6 +370,12 @@ export default function BaggonaPredictionsPage(): JSX.Element {
 
   const getTabLabel = (id: SubTab): string => {
     switch (id) {
+      case "kundali":
+        if (lang === "kn") return "ಜನ್ಮ ಕುಂಡಲಿ ವಿಶ್ಲೇಷಣೆ";
+        if (lang === "hi") return "जन्म कुण्डली विश्लेषण";
+        if (lang === "ta") return "ஜன்ம குண்டலி";
+        if (lang === "te") return "జన్మ కుండలి";
+        return "Janma Kundali";
       case "personal":
         if (lang === "kn") return "ವೈಯಕ್ತಿಕ ಭವಿಷ್ಯ";
         if (lang === "hi") return "व्यक्तिगत फल";
@@ -440,6 +453,7 @@ export default function BaggonaPredictionsPage(): JSX.Element {
     "Your Upcoming Life Chapters (Next 2 Sub-periods)";
 
   const subTabs: { id: SubTab; label: string; icon: string }[] = [
+    { id: "kundali", label: getTabLabel("kundali"), icon: "🕉️" },
     { id: "personal", label: getTabLabel("personal"), icon: "✨" },
     { id: "jayashree", label: getTabLabel("jayashree"), icon: "🎙️" },
     { id: "overview", label: getTabLabel("overview"), icon: "✵" },
@@ -529,6 +543,114 @@ export default function BaggonaPredictionsPage(): JSX.Element {
 
       {!loading && predictions && (
         <div className="space-y-4 animate-fade-in">
+          {tab === "kundali" && kundaliPrediction && (
+            <div className="space-y-6">
+              {/* Lagna Phal */}
+              <div className="rounded-2xl border border-indigo-100/80 bg-white p-5 shadow-sm">
+                <h4 className="text-sm font-extrabold text-indigo-950 flex items-center gap-2">
+                  <span>✨</span> {isKn ? "ಲಗ್ನ ಫಲ" : "Lagna Phal"}
+                </h4>
+                <p className="mt-2 text-xs font-bold text-indigo-800">{kundaliPrediction.lagnaAnalysis.description}</p>
+                <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="rounded-xl bg-emerald-50 p-3 border border-emerald-100">
+                    <p className="text-[10px] uppercase font-bold text-emerald-800">{isKn ? "ಶುಭ ಗ್ರಹಗಳು" : "Benefic Planets"}</p>
+                    <ul className="mt-1 space-y-1 text-xs text-emerald-900">
+                      {kundaliPrediction.lagnaAnalysis.benefics.map((b, i) => <li key={i}>• {b}</li>)}
+                    </ul>
+                  </div>
+                  <div className="rounded-xl bg-rose-50 p-3 border border-rose-100">
+                    <p className="text-[10px] uppercase font-bold text-rose-800">{isKn ? "ಅಶುಭ ಗ್ರಹಗಳು" : "Malefic Planets"}</p>
+                    <ul className="mt-1 space-y-1 text-xs text-rose-900">
+                      {kundaliPrediction.lagnaAnalysis.malefics.map((m, i) => <li key={i}>• {m}</li>)}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* Yogas & Doshas */}
+              <div className="rounded-2xl border border-amber-100/80 bg-white p-5 shadow-sm">
+                <h4 className="text-sm font-extrabold text-amber-950 flex items-center gap-2">
+                  <span>📜</span> {isKn ? "ಯೋಗಗಳು ಮತ್ತು ದೋಷಗಳು" : "Yogas & Doshas"}
+                </h4>
+                <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="rounded-xl bg-amber-50 p-3 border border-amber-100">
+                    <p className="text-[10px] uppercase font-bold text-amber-800">{isKn ? "ಯೋಗಗಳು" : "Yogas"}</p>
+                    {kundaliPrediction.yogasAndDoshas.yogas.length > 0 ? (
+                      <ul className="mt-1 space-y-1 text-xs text-amber-900">
+                        {kundaliPrediction.yogasAndDoshas.yogas.map((y, i) => <li key={i}>• {y}</li>)}
+                      </ul>
+                    ) : (
+                      <p className="mt-1 text-xs text-amber-700">{isKn ? "ಯಾವುದೇ ಪ್ರಮುಖ ಯೋಗಗಳಿಲ್ಲ." : "No major yogas found."}</p>
+                    )}
+                  </div>
+                  <div className="rounded-xl bg-rose-50 p-3 border border-rose-100">
+                    <p className="text-[10px] uppercase font-bold text-rose-800">{isKn ? "ದೋಷಗಳು" : "Doshas"}</p>
+                    {kundaliPrediction.yogasAndDoshas.doshas.length > 0 ? (
+                      <ul className="mt-1 space-y-1 text-xs text-rose-900">
+                        {kundaliPrediction.yogasAndDoshas.doshas.map((d, i) => <li key={i}>• {d}</li>)}
+                      </ul>
+                    ) : (
+                      <p className="mt-1 text-xs text-emerald-700">{isKn ? "ಯಾವುದೇ ದೋಷಗಳಿಲ್ಲ." : "No doshas found."}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Career & Saturn */}
+              <div className="rounded-2xl border border-blue-100/80 bg-white p-5 shadow-sm">
+                <h4 className="text-sm font-extrabold text-blue-950 flex items-center gap-2">
+                  <span>💼</span> {isKn ? "ವೃತ್ತಿ ಮತ್ತು ಕರ್ಮ (ಶನಿಯ ಪ್ರಭಾವ)" : "Career & Karma (Saturn's Influence)"}
+                </h4>
+                <p className="mt-2 text-xs leading-relaxed text-slate-700">{kundaliPrediction.careerSaturn}</p>
+                {kundaliPrediction.saturnConjunctions.length > 0 && (
+                  <div className="mt-3 rounded-xl bg-slate-50 p-3 border border-slate-100">
+                    <p className="text-[10px] uppercase font-bold text-slate-800">{isKn ? "ಶನಿಯ ಯುತಿಗಳು" : "Saturn Conjunctions"}</p>
+                    <ul className="mt-1 space-y-1 text-xs text-slate-700">
+                      {kundaliPrediction.saturnConjunctions.map((c, i) => <li key={i}>• {c}</li>)}
+                    </ul>
+                  </div>
+                )}
+                <div className="mt-3 rounded-xl bg-slate-50 p-3 border border-slate-100">
+                  <p className="text-[10px] uppercase font-bold text-slate-800">{isKn ? "ಶನಿಯ ದೃಷ್ಟಿ (ವಿಳಂಬಗಳು)" : "Saturn Aspects (Delays)"}</p>
+                  <ul className="mt-1 space-y-1 text-xs text-slate-700">
+                    {kundaliPrediction.saturnAspects.map((a, i) => <li key={i}>• {a}</li>)}
+                  </ul>
+                  {kundaliPrediction.vipareetaShani && (
+                    <p className="mt-2 text-xs font-bold text-emerald-600">⭐ {kundaliPrediction.vipareetaShani}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Health & Transits */}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="rounded-2xl border border-rose-100/80 bg-white p-5 shadow-sm">
+                  <h4 className="text-sm font-extrabold text-rose-950 flex items-center gap-2">
+                    <span>🩺</span> {isKn ? "ರೋಗ ವಿಚಾರ" : "Health (Roga Vichara)"}
+                  </h4>
+                  {kundaliPrediction.healthVichara.length > 0 ? (
+                    <ul className="mt-2 space-y-2 text-xs text-slate-700">
+                      {kundaliPrediction.healthVichara.map((h, i) => <li key={i}>• {h}</li>)}
+                    </ul>
+                  ) : (
+                    <p className="mt-2 text-xs text-slate-600">{isKn ? "ಯಾವುದೇ ಪ್ರಮುಖ ಗ್ರಹ ದೋಷಗಳಿಲ್ಲ." : "No major health warnings based on 6, 8, 12 placements."}</p>
+                  )}
+                </div>
+                <div className="rounded-2xl border border-purple-100/80 bg-white p-5 shadow-sm">
+                  <h4 className="text-sm font-extrabold text-purple-950 flex items-center gap-2">
+                    <span>⚠️</span> {isKn ? "ಗೋಚಾರ ಎಚ್ಚರಿಕೆಗಳು" : "Transit Alerts"}
+                  </h4>
+                  {kundaliPrediction.gocharaAlerts.length > 0 ? (
+                    <ul className="mt-2 space-y-2 text-xs text-rose-700 font-medium">
+                      {kundaliPrediction.gocharaAlerts.map((a, i) => <li key={i}>• {a}</li>)}
+                    </ul>
+                  ) : (
+                    <p className="mt-2 text-xs text-emerald-700 font-medium">{isKn ? "ಪ್ರಸ್ತುತ ಯಾವುದೇ ಕಠಿಣ ಗೋಚಾರ ದೋಷಗಳಿಲ್ಲ." : "No harsh transit warnings at the moment."}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           {tab === "personal" && personalReading && (
             <div className="space-y-6">
               {/* Summary Section */}

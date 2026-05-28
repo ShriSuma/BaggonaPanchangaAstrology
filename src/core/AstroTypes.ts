@@ -116,6 +116,24 @@ export type PredictionOutput = {
   integratedReading?: string;
 };
 
+export type KundaliPrediction = {
+  lagnaAnalysis: {
+    benefics: string[];
+    malefics: string[];
+    description: string;
+  };
+  yogasAndDoshas: {
+    yogas: string[];
+    doshas: string[];
+  };
+  careerSaturn: string;
+  saturnConjunctions: string[];
+  saturnAspects: string[];
+  vipareetaShani: string | null;
+  healthVichara: string[];
+  gocharaAlerts: string[];
+};
+
 export const RASHIS: Rashi[] = [
   { index: 0, sanskrit: "Mesha", english: "Aries" },
   { index: 1, sanskrit: "Vrishabha", english: "Taurus" },
