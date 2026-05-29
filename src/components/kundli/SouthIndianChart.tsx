@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import type { KundliOutput, PlanetName, PlanetPosition } from "../../core/AstroTypes";
 import { RASHIS } from "../../core/AstroTypes";
-import { formatPatrikaNavamsaOnly } from "../../core/localeNumbers";
+import { formatChartHouseNumber, formatPatrikaNavamsaOnly, patrikaMaandiBracket } from "../../core/localeNumbers";
 import southIndianFrameSvg from "../../assets/south-indian-kundli-frame.svg?raw";
 import {
   CHART_LAYOUT,
@@ -126,7 +126,7 @@ export default function SouthIndianChart({ kundli, personName, gothra }: Props):
           {kundli.maandi ? (
             <p className="text-[9px] text-slate-600">
               <span className="font-semibold">{t("kundli.maandi")}:</span> {t(rashiTKey(kundli.maandi.rashi.sanskrit) as "rashis.Mesha")}{" "}
-              {formatPatrikaNavamsaOnly(kundli.maandi.degree, i18n.language)}
+              ({formatChartHouseNumber(patrikaMaandiBracket(kundli.maandi.rashi.index), i18n.language)})
               <span className="block text-[8px]">({kundli.maandi.windowLabel})</span>
             </p>
           ) : null}
@@ -147,7 +147,7 @@ export default function SouthIndianChart({ kundli, personName, gothra }: Props):
           lines.push(`${label} ${formatPatrikaNavamsaOnly(pl.degree, lang)}`);
         }
         if (kundli.maandi && kundli.maandi.rashi.index === rashi.index) {
-          lines.push(`${t("kundli.maandiShort")} ${formatPatrikaNavamsaOnly(kundli.maandi.degree, lang)}`);
+          lines.push(`${t("kundli.maandiShort")} (${formatChartHouseNumber(patrikaMaandiBracket(kundli.maandi.rashi.index), lang)})`);
         }
         if (!lines.length) return null;
 

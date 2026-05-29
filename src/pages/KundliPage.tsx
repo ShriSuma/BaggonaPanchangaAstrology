@@ -6,6 +6,7 @@ import { chartYogasWithPolarity, type YogaId } from "../core/KundliInsightsEngin
 import { getDailyPrediction } from "../core/PredictionEngine";
 import { generateDashaTimeline, type DashaEntry } from "../core/DashaBhuktiEngine";
 import { exportSvgAsPdf, exportSvgAsPng, exportElementAsPdf, exportElementAsPng } from "../core/ExportUtils";
+import { calculateTraditionalBaggona } from "../core/TraditionalBaggonaEngine";
 
 import { analytics } from "../core/analytics";
 import { saveKundli } from "../db/indexedDb";
@@ -18,6 +19,7 @@ import DatePicker from "../components/DatePicker";
 import BirthTimePicker from "../components/BirthTimePicker";
 import LocationSelector, { type SelectedLocation } from "../components/LocationSelector";
 import MapLocationPicker from "../components/MapLocationPicker";
+import { GokarnaKundaliTemplate } from "../components/template/GokarnaKundaliTemplate";
 import Card from "../components/ui/Card";
 import GrahaSpinner from "../components/ui/GrahaSpinner";
 import { buildNarrativeSummary, fetchKundliNarrative, NarrativeApiError } from "../services/kundliNarrativeApi";
@@ -52,6 +54,7 @@ export default function KundliPage(): JSX.Element {
   const kundliSession = useKundliViewerStore((s) => s.session);
   const svgHostRef = useRef<HTMLDivElement>(null);
   const exportContainerRef = useRef<HTMLDivElement>(null);
+  const traditionalExportRef = useRef<HTMLDivElement>(null);
   const [form, setForm] = useState<KundliInput>({
     name: "",
     birthDate: "",
@@ -241,6 +244,18 @@ export default function KundliPage(): JSX.Element {
     () => (result ? chartYogasWithPolarity(result) : []),
     [result]
   );
+
+  const traditionalData = useMemo(() => {
+    if (!birthDatePicker || !birthTimeHm.trim()) return null;
+    const dateStr = formatPickerDateLocalYmd(birthDatePicker);
+    return calculateTraditionalBaggona(
+      dateStr,
+      birthTimeHm.trim(),
+      form.latitude,
+      form.longitude,
+      ayanamsaModel
+    );
+  }, [birthDatePicker, birthTimeHm, form.latitude, form.longitude, ayanamsaModel]);
 
   const gotraDisplay = useMemo(() => {
     const v = (form.gothra ?? "").trim();
@@ -434,6 +449,18 @@ export default function KundliPage(): JSX.Element {
           type="button"
           className="jk-btn rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-indigo-950"
           onClick={async () => {
+            const el = traditionalExportRef.current;
+            if (el) {
+              await exportElementAsPdf(el, `traditional-kundli-${form.name || "chart"}`);
+            }
+          }}
+        >
+          {t("kundli.downloadTraditionalPdf", "Download Traditional PDF")}
+        </button>
+        <button
+          type="button"
+          className="jk-btn rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-indigo-950"
+          onClick={async () => {
             if ((navigator as Navigator & { share?: (data: ShareData) => Promise<void> }).share) {
               await navigator.share?.({ text: summaryText, title: t("app.title") });
             } else {
@@ -515,6 +542,21 @@ export default function KundliPage(): JSX.Element {
               gothra={gotraDisplay}
             />
           </div>
+        </div>
+      ) : null}
+      
+      {result && birthDatePicker && birthTimeHm.trim() ? (
+        <div style={{ position: "absolute", left: "-9999px", top: "-9999px", width: "794px", minHeight: "1123px" }}>
+          <div ref={traditionalExportRef} style={{ width: "100%", height: "100%", backgroundColor: "#fbf8f1" }}>
+            <GokarnaKundaliTemplate
+            kundli={result}
+            personName={form.name}
+            parentsName={""}
+            birthDateObj={birthDatePicker}
+            isDayBirth={true}
+            panchanga={traditionalData}
+            gothra={gotraDisplay}
+          /></div>
         </div>
       ) : null}
       

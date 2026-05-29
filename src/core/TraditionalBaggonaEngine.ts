@@ -178,47 +178,47 @@ export function calculateTraditionalBaggona(
     };
   };
 
-  // Find longitudes at the moment of birth for birth chart Panchanga elements
-  const longsBirth = siderealLongitudes(birthUtc, ayanamsaModel);
-  const moonBirth = normalizeDegree(longsBirth.moon);
-  const sunBirth = normalizeDegree(longsBirth.sun);
+  // Find longitudes at sunrise for the day's Panchanga elements
+  const longsSunrise = siderealLongitudes(sunriseUtc, ayanamsaModel);
+  const moonSunrise = normalizeDegree(longsSunrise.moon);
+  const sunSunrise = normalizeDegree(longsSunrise.sun);
 
-  const elongationBirth = normalizeDegree(moonBirth - sunBirth);
-  const sumBirth = normalizeDegree(moonBirth + sunBirth);
+  const elongationSunrise = normalizeDegree(moonSunrise - sunSunrise);
+  const sumSunrise = normalizeDegree(moonSunrise + sunSunrise);
 
-  const tithiIdx = Math.floor(elongationBirth / 12) % 30;
+  const tithiIdx = Math.floor(elongationSunrise / 12) % 30;
   const tithi = TITHIS_EN[tithiIdx] ?? "";
   const tithiKn = TITHIS_KN[tithiIdx] ?? "";
 
   const paksha = tithiIdx < 15 ? "Shukla" : "Krishna";
   const pakshaKn = tithiIdx < 15 ? "ಶುಕ್ಲ" : "ಕೃಷ್ಣ";
 
-  const wdIdx = vedicWeekdayAtBirth(birthUtc, sunriseUtc, latitude, longitude);
+  const wdIdx = vedicWeekdayAtBirth(sunriseUtc, sunriseUtc, latitude, longitude);
   const weekday = WEEKDAYS_EN[wdIdx] ?? "";
   const weekdayKn = WEEKDAYS_KN[wdIdx] ?? "";
 
-  const sunNakIdx = Math.floor(sunBirth / (360 / 27)) % 27;
+  const sunNakIdx = Math.floor(sunSunrise / (360 / 27)) % 27;
   const sunNakshatra = NAKSHATRAS_EN[sunNakIdx] ?? "";
   const sunNakshatraKn = NAKSHATRAS_KN[sunNakIdx] ?? "";
 
-  const moonNakIdx = Math.floor(moonBirth / (360 / 27)) % 27;
+  const moonNakIdx = Math.floor(moonSunrise / (360 / 27)) % 27;
   const moonNakshatra = NAKSHATRAS_EN[moonNakIdx] ?? "";
   const moonNakshatraKn = NAKSHATRAS_KN[moonNakIdx] ?? "";
 
-  const yogaIdx = Math.floor(sumBirth / (360 / 27)) % 27;
+  const yogaIdx = Math.floor(sumSunrise / (360 / 27)) % 27;
   const yoga = YOGAS_EN[yogaIdx] ?? "";
   const yogaKn = YOGAS_KN[yogaIdx] ?? "";
 
-  // Karana calculation based on Birth elongation (Vedic mapping of 60 half-tithis)
-  const halfTithiIdxBirth = Math.floor(elongationBirth / 6) % 60;
+  // Karana calculation based on Sunrise elongation
+  const halfTithiIdxSunrise = Math.floor(elongationSunrise / 6) % 60;
   let karanaIdx = 0;
-  if (halfTithiIdxBirth === 0) {
+  if (halfTithiIdxSunrise === 0) {
     karanaIdx = 10; // Kintughna
-  } else if (halfTithiIdxBirth >= 1 && halfTithiIdxBirth <= 56) {
-    karanaIdx = (halfTithiIdxBirth - 1) % 7; // Movable Karanas
-  } else if (halfTithiIdxBirth === 57) {
+  } else if (halfTithiIdxSunrise >= 1 && halfTithiIdxSunrise <= 56) {
+    karanaIdx = (halfTithiIdxSunrise - 1) % 7; // Movable Karanas
+  } else if (halfTithiIdxSunrise === 57) {
     karanaIdx = 7; // Shakuni
-  } else if (halfTithiIdxBirth === 58) {
+  } else if (halfTithiIdxSunrise === 58) {
     karanaIdx = 8; // Chatushpada
   } else {
     karanaIdx = 9; // Naga
@@ -226,11 +226,11 @@ export function calculateTraditionalBaggona(
   const karana = KARANAS_EN[karanaIdx] ?? "";
   const karanaKn = KARANAS_KN[karanaIdx] ?? "";
 
-  const tithiEnd = getTithiEnd(birthUtc, ayanamsaModel);
-  const nakshatraEnd = getNakshatraEnd(birthUtc, ayanamsaModel);
-  const yogaEnd = getYogaEnd(birthUtc, ayanamsaModel);
-  const karanaEnd = getKaranaEnd(birthUtc, ayanamsaModel);
-  const sunNakshatraEnd = getSunNakshatraEnd(birthUtc, ayanamsaModel);
+  const tithiEnd = getTithiEnd(sunriseUtc, ayanamsaModel);
+  const nakshatraEnd = getNakshatraEnd(sunriseUtc, ayanamsaModel);
+  const yogaEnd = getYogaEnd(sunriseUtc, ayanamsaModel);
+  const karanaEnd = getKaranaEnd(sunriseUtc, ayanamsaModel);
+  const sunNakshatraEnd = getSunNakshatraEnd(sunriseUtc, ayanamsaModel);
 
   const tEnd = getEndGhati(tithiEnd);
   const sEnd = getEndGhati(sunNakshatraEnd);

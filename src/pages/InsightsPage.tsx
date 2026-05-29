@@ -273,7 +273,7 @@ export default function InsightsPage(): JSX.Element {
                     />
                   </div>
                   <p className="mt-3 text-sm leading-relaxed text-slate-800">
-                    {aiHouseTexts?.[hp.house - 1] ?? hp.prediction}
+                    {(aiHouseTexts?.[hp.house - 1] ?? hp.prediction).replace(/[\[\]*#_]/g, "").trim()}
                   </p>
                   <p className="mt-2 text-xs text-slate-500">
                     <span className="font-medium text-slate-600">{t("reading.houseBodyLabel")}: </span>

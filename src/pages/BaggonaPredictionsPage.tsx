@@ -19,6 +19,7 @@ import {
 import { useAppStore } from "../stores/appStore";
 import Card from "../components/ui/Card";
 import GrahaSpinner from "../components/ui/GrahaSpinner";
+import AudioPlayerButton from "../components/ui/AudioPlayerButton";
 
 import SouthIndianChart from "../components/kundli/SouthIndianChart";
 import { RASHIS, NAKSHATRAS, PlanetName, type PlanetPosition, type KundliOutput } from "../core/AstroTypes";
@@ -157,7 +158,19 @@ export default function BaggonaPredictionsPage(): JSX.Element {
   const [loading, setLoading] = useState<boolean>(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
+  const [jayashreeLoading, setJayashreeLoading] = useState<boolean>(false);
+  const [jayashreeDataReady, setJayashreeDataReady] = useState<boolean>(false);
 
+  useEffect(() => {
+    if (tab === "jayashree" && !jayashreeDataReady) {
+      setJayashreeLoading(true);
+      const timer = setTimeout(() => {
+        setJayashreeLoading(false);
+        setJayashreeDataReady(true);
+      }, 3500); // 3.5 seconds loading for Jayashree
+      return () => clearTimeout(timer);
+    }
+  }, [tab, jayashreeDataReady]);
   
   const lang = i18n.language.split("-")[0] || "en";
   const isKn = lang === "kn";
@@ -820,15 +833,35 @@ export default function BaggonaPredictionsPage(): JSX.Element {
             </div>
           )}
 
-          {tab === "jayashree" && jayashreeReading && (
-            <div className="space-y-6">
+          {tab === "jayashree" && jayashreeLoading && (
+            <div className="flex flex-col items-center justify-center p-12 text-center">
+              <div className="relative mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-amber-500/20 to-indigo-900/20 shadow-inner">
+                <div className="absolute inset-0 rounded-full border-4 border-amber-500/30 border-t-amber-500 animate-spin"></div>
+                <span className="text-3xl">🎙️</span>
+              </div>
+              <h3 className="mb-2 text-xl font-bold text-indigo-950">
+                {isKn ? "ಜಯಶ್ರೀ ಪಂಡಿತ್ ನಿಮ್ಮ ಜಾತಕವನ್ನು ಪರಿಶೀಲಿಸುತ್ತಿದ್ದಾರೆ..." : "Jayashree Pandit is analyzing your Kundali..."}
+              </h3>
+              <p className="max-w-md text-sm text-slate-600">
+                {isKn 
+                  ? "ಕಳೆದ ೬೦ ವರ್ಷಗಳಿಂದ ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದಲ್ಲಿ ಅಪಾರ ಅನುಭವ ಹೊಂದಿರುವ ಜಯಶ್ರೀಯವರು, ನಿಮ್ಮ ಗ್ರಹಗತಿಗಳ ಆಳವಾದ ವಿಶ್ಲೇಷಣೆ ಮಾಡುತ್ತಿದ್ದಾರೆ. ದಯವಿಟ್ಟು ನಿರೀಕ್ಷಿಸಿ." 
+                  : "With over 60 years of profound experience in Jyotishya, Jayashree is currently reading your planetary positions. Please wait."}
+              </p>
+            </div>
+          )}
+
+          {tab === "jayashree" && !jayashreeLoading && jayashreeDataReady && jayashreeReading && (
+            <div className="space-y-6 animate-fade-in-up">
               {/* Jayashree's voice intro */}
               <div className="relative overflow-hidden rounded-2xl border border-amber-500/20 bg-gradient-to-r from-amber-950 via-slate-900 to-indigo-950 p-6 text-white shadow-xl">
                 <div className="absolute right-0 top-0 -mt-8 -mr-8 h-28 w-28 rounded-full bg-amber-500/10 blur-xl" />
                 <div className="relative z-10">
-                  <span className="inline-block rounded-full bg-amber-500/20 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-300 border border-amber-500/30">
-                    🎙️ {t("predictions.jayashree")}
-                  </span>
+                  <div className="flex justify-between items-center">
+                    <span className="inline-block rounded-full bg-amber-500/20 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-300 border border-amber-500/30">
+                      🎙️ {t("predictions.jayashree")}
+                    </span>
+                    <AudioPlayerButton text={`${jayashreeReading.intro} ${jayashreeReading.dashaContext}`} lang={isKn ? "kn-IN" : "en-IN"} className="text-amber-300 hover:bg-amber-500/20 hover:text-white" />
+                  </div>
                   <p className="mt-3 text-sm leading-relaxed text-slate-200 text-justify">
                     {jayashreeReading.intro}
                   </p>
@@ -846,9 +879,10 @@ export default function BaggonaPredictionsPage(): JSX.Element {
                     <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 text-sm">
                       🎓
                     </span>
-                    <h4 className="text-xs font-extrabold text-indigo-950 uppercase tracking-wide">
+                    <h4 className="flex-1 text-xs font-extrabold text-indigo-950 uppercase tracking-wide">
                       {isKn ? "ವಿದ್ಯಾಭ್ಯಾಸ ಮತ್ತು ಶಿಕ್ಷಣ" : "Education & Academic Prospects"}
                     </h4>
+                    <AudioPlayerButton text={jayashreeReading.education} lang={isKn ? "kn-IN" : "en-IN"} />
                   </div>
                   <p className="text-xs leading-relaxed text-slate-700 text-justify">
                     {jayashreeReading.education}
@@ -861,9 +895,10 @@ export default function BaggonaPredictionsPage(): JSX.Element {
                     <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 text-sm">
                       💼
                     </span>
-                    <h4 className="text-xs font-extrabold text-indigo-950 uppercase tracking-wide">
+                    <h4 className="flex-1 text-xs font-extrabold text-indigo-950 uppercase tracking-wide">
                       {isKn ? "ಉದ್ಯೋಗ ಮತ್ತು ವೃತ್ತಿಜೀವನ" : "Career & Employment Opportunities"}
                     </h4>
+                    <AudioPlayerButton text={jayashreeReading.career} lang={isKn ? "kn-IN" : "en-IN"} />
                   </div>
                   <p className="text-xs leading-relaxed text-slate-700 text-justify">
                     {jayashreeReading.career}
@@ -876,9 +911,10 @@ export default function BaggonaPredictionsPage(): JSX.Element {
                     <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-rose-50 text-rose-600 text-sm">
                       🩺
                     </span>
-                    <h4 className="text-xs font-extrabold text-indigo-950 uppercase tracking-wide">
+                    <h4 className="flex-1 text-xs font-extrabold text-indigo-950 uppercase tracking-wide">
                       {isKn ? "ಆರೋಗ್ಯ ಮತ್ತು ದೈಹಿಕ ಸ್ಥಿತಿ" : "Health & Well-being"}
                     </h4>
+                    <AudioPlayerButton text={jayashreeReading.health} lang={isKn ? "kn-IN" : "en-IN"} />
                   </div>
                   <p className="text-xs leading-relaxed text-slate-700 text-justify">
                     {jayashreeReading.health}
@@ -891,9 +927,10 @@ export default function BaggonaPredictionsPage(): JSX.Element {
                     <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 text-sm">
                       💰
                     </span>
-                    <h4 className="text-xs font-extrabold text-indigo-950 uppercase tracking-wide">
+                    <h4 className="flex-1 text-xs font-extrabold text-indigo-950 uppercase tracking-wide">
                       {isKn ? "ಹಣಕಾಸು ಮತ್ತು ಸಂಪತ್ತು" : "Finance & Wealth Management"}
                     </h4>
+                    <AudioPlayerButton text={jayashreeReading.finance} lang={isKn ? "kn-IN" : "en-IN"} />
                   </div>
                   <p className="text-xs leading-relaxed text-slate-700 text-justify">
                     {jayashreeReading.finance}
@@ -906,9 +943,10 @@ export default function BaggonaPredictionsPage(): JSX.Element {
                     <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-50 text-amber-600 text-sm">
                       🏠
                     </span>
-                    <h4 className="text-xs font-extrabold text-indigo-950 uppercase tracking-wide">
+                    <h4 className="flex-1 text-xs font-extrabold text-indigo-950 uppercase tracking-wide">
                       {isKn ? "ಗೃಹ ಮತ್ತು ವಾಸಸ್ಥಳ" : "Housing & Residence"}
                     </h4>
+                    <AudioPlayerButton text={jayashreeReading.housing} lang={isKn ? "kn-IN" : "en-IN"} />
                   </div>
                   <p className="text-xs leading-relaxed text-slate-700 text-justify">
                     {jayashreeReading.housing}
