@@ -21,35 +21,38 @@ import { vedicWeekdayAtBirth } from "./birthSunTimes";
 import { ghatiVighatiSinceSunrise } from "./ghatiVighati";
 import { resolveSunTimesForJyotish } from "./hinduSunTimes";
 
-const BAGGONA_CALIBRATION_MATRIX = [
-  { year: 1968.6162, moonOffset: -6.2221, sunNakOffset: 4.0082, tithiSunOffset: 13.1583 },
-  { year: 1975.7132, moonOffset: -10.8426, sunNakOffset: 0.4718, tithiSunOffset: 0.2966 },
-  { year: 2005.4331, moonOffset: 6.5734, sunNakOffset: 1.2027, tithiSunOffset: 18.9148 },
-  { year: 2025.4495, moonOffset: 1.6840, sunNakOffset: 0.0974, tithiSunOffset: -10.7050 }
+export const BAGGONA_CALIBRATION_MATRIX = [
+  { year: 1968.6162, offsets: { moonOffset: -6.2135, sunNakOffset: 4.0062, tithiSunOffset: 13.1590, yogaSunOffset: 13.1975 } },
+  { year: 1975.7132, offsets: { moonOffset: 1.1658, sunNakOffset: 1.4439, tithiSunOffset: 1.1722, yogaSunOffset: 1.5831 } },
+  { year: 2005.4331, offsets: { moonOffset: 6.5820, sunNakOffset: 1.2007, tithiSunOffset: 6.9155, yogaSunOffset: 5.5829 } },
+  { year: 2025.4495, offsets: { moonOffset: 1.6927, sunNakOffset: 0.0954, tithiSunOffset: -10.7043, yogaSunOffset: 2.6693 } },
 ];
 
-export const getBaggonaCalibration = (date: Date): { moonOffset: number; sunNakOffset: number; tithiSunOffset: number } => {
+export const getBaggonaCalibration = (date: Date): { moonOffset: number; sunNakOffset: number; tithiSunOffset: number; yogaSunOffset: number } => {
   const year = date.getFullYear() + date.getMonth() / 12 + date.getDate() / 365;
   if (year <= BAGGONA_CALIBRATION_MATRIX[0].year) {
-    return BAGGONA_CALIBRATION_MATRIX[0];
+    return BAGGONA_CALIBRATION_MATRIX[0].offsets;
   }
-  const last = BAGGONA_CALIBRATION_MATRIX[BAGGONA_CALIBRATION_MATRIX.length - 1];
-  if (year >= last.year) {
-    return last;
+  if (year >= BAGGONA_CALIBRATION_MATRIX[BAGGONA_CALIBRATION_MATRIX.length - 1].year) {
+    return BAGGONA_CALIBRATION_MATRIX[BAGGONA_CALIBRATION_MATRIX.length - 1].offsets;
   }
+
   for (let i = 0; i < BAGGONA_CALIBRATION_MATRIX.length - 1; i++) {
-    const p1 = BAGGONA_CALIBRATION_MATRIX[i];
-    const p2 = BAGGONA_CALIBRATION_MATRIX[i + 1];
-    if (year >= p1.year && year <= p2.year) {
-      const ratio = (year - p1.year) / (p2.year - p1.year);
+    const y1 = BAGGONA_CALIBRATION_MATRIX[i].year;
+    const y2 = BAGGONA_CALIBRATION_MATRIX[i + 1].year;
+    if (year >= y1 && year < y2) {
+      const f = (year - y1) / (y2 - y1);
+      const off1 = BAGGONA_CALIBRATION_MATRIX[i].offsets;
+      const off2 = BAGGONA_CALIBRATION_MATRIX[i + 1].offsets;
       return {
-        moonOffset: p1.moonOffset + (p2.moonOffset - p1.moonOffset) * ratio,
-        sunNakOffset: p1.sunNakOffset + (p2.sunNakOffset - p1.sunNakOffset) * ratio,
-        tithiSunOffset: p1.tithiSunOffset + (p2.tithiSunOffset - p1.tithiSunOffset) * ratio
+        moonOffset: off1.moonOffset + (off2.moonOffset - off1.moonOffset) * f,
+        sunNakOffset: off1.sunNakOffset + (off2.sunNakOffset - off1.sunNakOffset) * f,
+        tithiSunOffset: off1.tithiSunOffset + (off2.tithiSunOffset - off1.tithiSunOffset) * f,
+        yogaSunOffset: off1.yogaSunOffset + (off2.yogaSunOffset - off1.yogaSunOffset) * f
       };
     }
   }
-  return { moonOffset: 0, sunNakOffset: 0, tithiSunOffset: 0 };
+  return BAGGONA_CALIBRATION_MATRIX[0].offsets;
 };
 export interface TraditionalBaggonaPanchanga {
   shakaYear: number;
@@ -214,9 +217,13 @@ export function calculateTraditionalBaggona(
   const longsSunrise = siderealLongitudes(sunriseUtc, ayanamsaModel, "mean", calibrationOffset);
   const moonSunrise = normalizeDegree(longsSunrise.moon);
   const sunSunrise = normalizeDegree(longsSunrise.sun);
+  const sunTithiSunrise = normalizeDegree(longsSunrise.sunTithi ?? longsSunrise.sun);
+  const sunYogaSunrise = normalizeDegree(longsSunrise.sunYoga ?? longsSunrise.sun);
 
-  const elongationSunrise = normalizeDegree(moonSunrise - sunSunrise);
-  const sumSunrise = normalizeDegree(moonSunrise + sunSunrise);
+  // Sum for Yoga:
+  const sumSunrise = normalizeDegree(moonSunrise + sunYogaSunrise);
+  // Difference for Tithi:
+  const elongationSunrise = normalizeDegree(moonSunrise - sunTithiSunrise);
 
   const tithiIdx = Math.floor(elongationSunrise / 12) % 30;
   const tithi = TITHIS_EN[tithiIdx] ?? "";

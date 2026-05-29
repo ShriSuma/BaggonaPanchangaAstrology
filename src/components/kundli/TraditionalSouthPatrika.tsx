@@ -196,6 +196,9 @@ export default function TraditionalSouthPatrika({
           }}
         >
           <div className="mb-3 text-center">
+            <div className="mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-full border-[1.5px] border-black">
+              <span className="leading-none text-[14px] text-black" style={{ transform: "translateY(-1px)" }}>ॐ</span>
+            </div>
             <p className="text-sm font-bold tracking-wider text-black">|| ಶ್ರೀ ಭಾಸ್ಕರಾಯ ನಮಃ ||</p>
             <p className="mt-1 text-[9px] italic leading-tight text-neutral-800">
               ಜನನೀ ಜನ್ಮ ಸೌಖ್ಯಾನಾಂ ವರ್ಧನೀ ಕುಲಸಂಪದಾಂ । ಪದವೀ ಪೂರ್ವಪುಣ್ಯಾನಾಂ ಲಿಖ್ಯತೇ ಜನ್ಮಪತ್ರಿಕಾ ॥

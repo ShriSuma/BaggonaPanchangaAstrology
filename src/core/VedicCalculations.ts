@@ -132,13 +132,13 @@ export const getTithiEnd = (birthUtc: Date, model: AyanamsaModel, calibrationOff
   );
 };
 
-export const getYogaEnd = (birthUtc: Date, model: AyanamsaModel, calibrationOffset?: { moonOffset: number, sunNakOffset: number, tithiSunOffset: number }): Date => {
+export const getYogaEnd = (birthUtc: Date, model: AyanamsaModel, calibrationOffset?: { moonOffset: number, sunNakOffset: number, tithiSunOffset: number, yogaSunOffset?: number }): Date => {
   return findBoundaryCrossing(
     birthUtc,
     model,
     (d) => {
       const l = siderealLongitudes(d, model, "mean", calibrationOffset);
-      return normalizeDegree(l.moon + (l.sunTithi ?? l.sun));
+      return normalizeDegree(l.moon + (l.sunYoga ?? l.sun));
     },
     360 / 27,
     true
