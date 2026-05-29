@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
+import AudioPlayerButton from "../components/ui/AudioPlayerButton";
 import { getLatestKundliRecord, type KundliRecord } from "../db/indexedDb";
 import { useAppStore } from "../stores/appStore";
 import Card from "../components/ui/Card";
@@ -175,6 +176,20 @@ export default function InsightsPage(): JSX.Element {
     </span>
   );
 
+  const sanitizeText = (text: string) => {
+    if (!text) return "";
+    let cleaned = text;
+    try {
+      const parsed = JSON.parse(text);
+      if (Array.isArray(parsed)) {
+        cleaned = parsed.join(" ");
+      }
+    } catch (e) {
+      // not JSON, continue
+    }
+    return cleaned.replace(/[\[\]*#_"]/g, "").replace(/\s+/g, " ").trim();
+  };
+
   return (
     <Card key={i18n.language}>
       <h2 className="text-xl font-bold text-indigo-950">{t("insights.title")}</h2>
@@ -256,8 +271,9 @@ export default function InsightsPage(): JSX.Element {
                         {t(`reading.houseSections.h${hp.house}` as "reading.houseSections.h1")}
                       </p>
                     </div>
-                    <span className="rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-bold text-indigo-900">
+                    <span className="rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-bold text-indigo-900 flex items-center gap-2">
                       {t("reading.scoreLabel", { score: hp.score, stars: hp.stars })}
+                      <AudioPlayerButton text={sanitizeText(aiHouseTexts?.[hp.house - 1] ?? hp.prediction)} lang={i18n.language === "kn" ? "kn-IN" : "en-IN"} />
                     </span>
                   </div>
                   <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
@@ -273,7 +289,7 @@ export default function InsightsPage(): JSX.Element {
                     />
                   </div>
                   <p className="mt-3 text-sm leading-relaxed text-slate-800">
-                    {(aiHouseTexts?.[hp.house - 1] ?? hp.prediction).replace(/[\[\]*#_]/g, "").trim()}
+                    {sanitizeText(aiHouseTexts?.[hp.house - 1] ?? hp.prediction)}
                   </p>
                   <p className="mt-2 text-xs text-slate-500">
                     <span className="font-medium text-slate-600">{t("reading.houseBodyLabel")}: </span>

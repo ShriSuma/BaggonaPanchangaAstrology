@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import type { KundliOutput, PlanetPosition } from "../../core/AstroTypes";
-import { formatNavamsaPada } from "../../core/localeNumbers";
+import { formatNavamsaPada, formatChartHouseNumber } from "../../core/localeNumbers";
 import type { TraditionalBaggonaPanchanga } from "../../core/TraditionalBaggonaEngine";
 
 type Props = {
@@ -77,7 +77,7 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
   const displayH = h % 12 || 12;
 
   const moonDegree = kundli.planets.find((p) => p.name === "Moon")?.degree || 0;
-  const pada = formatNavamsaPada(moonDegree, "kn").slice(-1); // extract the digit
+  const pada = formatChartHouseNumber(kundli.moonPada, "kn"); // 1, 2, 3, or 4
   
   const moonNakshatra = kundli.planets.find((p) => p.name === "Moon")?.nakshatra.sanskrit || "";
 
@@ -151,13 +151,15 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
         <div style={{ 
           display: "grid", 
           gridTemplateColumns: "1fr 1fr 1fr", 
-          gap: "8px", 
-          fontSize: "14px", 
-          lineHeight: "1.6", 
+          gap: "4px", 
+          fontSize: "13px", 
+          lineHeight: "1.5", 
           marginBottom: "15px",
           border: "2px solid #000",
-          padding: "10px",
-          backgroundColor: "#ffffff"
+          padding: "5px 10px",
+          backgroundColor: "#ffffff",
+          whiteSpace: "nowrap",
+          overflow: "hidden"
         }}>
           <div><b>ಶಕವರ್ಷ:</b> {shakaYear} {samvatsara}</div>
           <div><b>ಮಾಸ:</b> {masa}</div>
@@ -179,7 +181,7 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
           <div><b>ಇಷ್ಟ:</b> {ishta}</div>
           <div><b>ಗತ:</b> {gata}</div>
           
-          <div style={{ gridColumn: "1 / span 3", borderTop: "1px dashed #ccc", paddingTop: "5px", marginTop: "2px" }}>
+          <div style={{ gridColumn: "1 / span 3", borderTop: "1px dashed #ccc", paddingTop: "5px", marginTop: "2px", whiteSpace: "normal" }}>
             <b>ಸೂರ್ಯೋದಯಾದಿ:</b> {suryodayadi} &nbsp;|&nbsp; 
             <b>ಜನ್ಮಕಾಲ:</b> ({birthTimeLabel} ಘಂಟೆ {displayH} ಮಿ {m.toString().padStart(2, "0")}) &nbsp;|&nbsp; 
             <b>ದಶಾಸಿಲ್ಕು:</b> {dashaBalance}
@@ -300,7 +302,7 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
         {/* Footer */}
         <div style={{ textAlign: "center", fontSize: "15px", paddingTop: "5px", color: "#000" }}>
           <div style={{ fontWeight: "bold" }}>
-            ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಆಧಾರ ಜಾತಕ ಕರ್ತರು : ಶ್ರೀರಾಮ್ ಪಂಡಿತ್
+            ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಕರ್ತರು : ಶ್ರೀರಾಮ್ ಪಂಡಿತ್
           </div>
           <div style={{ marginTop: "4px" }}>
             ಮೊಬೈಲ್ - 9972339362
