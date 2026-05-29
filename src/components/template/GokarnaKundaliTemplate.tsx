@@ -286,6 +286,7 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
                 </div>
               );
             })}
+          </div>
         </div>
 
         {/* Bottom Details Section */}
