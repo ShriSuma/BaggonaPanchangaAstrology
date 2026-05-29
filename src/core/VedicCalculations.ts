@@ -243,7 +243,6 @@ export const getLocalizedMasa = (lang: string, index: number, isAdhika: boolean)
   return prefix + name;
 };
 
-// Visha Ghati and Amritha Ghati relative to sunrise of the day
 export const getVishaAndAmrithaGhati = (
   birthUtc: Date,
   model: AyanamsaModel,
@@ -252,31 +251,54 @@ export const getVishaAndAmrithaGhati = (
   vishaGhati: { ghati: number; vighati: number };
   amrithaGhati: { ghati: number; vighati: number };
 } => {
-  const start = getNakshatraStart(birthUtc, model);
-  const end = getNakshatraEnd(birthUtc, model);
-  const dur = end.getTime() - start.getTime();
+  let searchTime = new Date(sunriseUtc.getTime());
   
-  const moonDeg = siderealLongitudes(birthUtc, model).moon;
-  const nakIdx = Math.floor(moonDeg / (360 / 27)) % 27;
+  let vishaStart: Date | null = null;
+  let amrithaStart: Date | null = null;
   
-  const vishaOffset = VISHA_GHATI_START[nakIdx] ?? 20;
-  const amrithaOffset = AMRITHA_GHATI_START[nakIdx] ?? 38;
-  
-  const vishaStart = new Date(start.getTime() + (vishaOffset / 60) * dur);
-  const amrithaStart = new Date(start.getTime() + (amrithaOffset / 60) * dur);
+  for (let i = 0; i < 3; i++) {
+    // Find Nakshatra ending at or after searchTime
+    const end = getNakshatraEnd(searchTime, model);
+    // Find start of this Nakshatra
+    const start = getNakshatraStart(searchTime, model);
+    
+    const dur = end.getTime() - start.getTime();
+    
+    // Identify Nakshatra index for the ending Nakshatra
+    const endDeg = siderealLongitudes(end, model).moon;
+    const nakIdx = Math.floor((endDeg - 0.0001) / (360 / 27)) % 27;
+    
+    const vOffset = VISHA_GHATI_START[nakIdx] ?? 20;
+    const aOffset = AMRITHA_GHATI_START[nakIdx] ?? 38;
+    
+    const vTime = new Date(start.getTime() + (vOffset / 60) * dur);
+    const aTime = new Date(start.getTime() + (aOffset / 60) * dur);
+    
+    if (!vishaStart && vTime.getTime() >= sunriseUtc.getTime()) {
+      vishaStart = vTime;
+    }
+    if (!amrithaStart && aTime.getTime() >= sunriseUtc.getTime()) {
+      amrithaStart = aTime;
+    }
+    
+    if (vishaStart && amrithaStart) break;
+    
+    // Move to next Nakshatra
+    searchTime = new Date(end.getTime() + 2 * 60 * 60 * 1000);
+  }
   
   const toGhatiVighati = (t: Date) => {
     const ms = Math.max(0, t.getTime() - sunriseUtc.getTime());
     const totalVighati = Math.floor(ms / 24_000);
     return {
-      ghati: Math.floor(totalVighati / 60) % 60,
+      ghati: Math.floor(totalVighati / 60),
       vighati: totalVighati % 60
     };
   };
   
   return {
-    vishaGhati: toGhatiVighati(vishaStart),
-    amrithaGhati: toGhatiVighati(amrithaStart)
+    vishaGhati: vishaStart ? toGhatiVighati(vishaStart) : { ghati: 0, vighati: 0 },
+    amrithaGhati: amrithaStart ? toGhatiVighati(amrithaStart) : { ghati: 0, vighati: 0 }
   };
 };
 

@@ -247,15 +247,14 @@ export default function KundliPage(): JSX.Element {
 
   const traditionalData = useMemo(() => {
     if (!birthDatePicker || !birthTimeHm.trim()) return null;
-    const dateStr = formatPickerDateLocalYmd(birthDatePicker);
     return calculateTraditionalBaggona(
-      dateStr,
-      birthTimeHm.trim(),
+      form.date,
+      form.time,
       form.latitude,
       form.longitude,
-      ayanamsaModel
+      form.ayanamsa
     );
-  }, [birthDatePicker, birthTimeHm, form.latitude, form.longitude, ayanamsaModel]);
+  }, [form.date, form.time, form.latitude, form.longitude, form.ayanamsa]);
 
   const gotraDisplay = useMemo(() => {
     const v = (form.gothra ?? "").trim();
@@ -384,108 +383,13 @@ export default function KundliPage(): JSX.Element {
         }}
       />
       {error && <p className="mt-2 text-sm text-red-700">{error}</p>}
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="mt-4 flex justify-center">
         <button
           type="button"
-          className="jk-btn rounded-xl bg-[color:var(--jk-accent)] px-4 py-2 text-sm font-semibold text-white shadow-sm"
+          className="jk-btn rounded-xl bg-indigo-950 px-8 py-3 text-sm font-bold tracking-wide text-white shadow-md hover:bg-indigo-900 transition-colors"
           onClick={() => void onGenerate()}
         >
           {t("kundli.generate")}
-        </button>
-        <button
-          type="button"
-          className="jk-btn rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-indigo-950"
-          onClick={async () => {
-            if (!result || !birthDatePicker || !birthTimeHm.trim()) return;
-            if (!form.pincode || !/^[1-9]\d{5}$/.test(form.pincode.trim())) {
-              setError(t("kundli.pincodeRequired"));
-              return;
-            }
-            const birthDate = formatPickerDateLocalYmd(birthDatePicker);
-            const birthTime = birthTimeHm.trim();
-            const payload: KundliInput = {
-              ...form,
-              birthDate,
-              birthTime,
-              pincode: form.pincode && /^\d{6}$/.test(form.pincode) ? form.pincode : undefined
-            };
-            const id = await saveKundli(payload, result);
-            setSavedId(id);
-          }}
-        >
-          {t("kundli.save")}
-        </button>
-        <button
-          type="button"
-          className="jk-btn rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-indigo-950"
-          onClick={async () => {
-            const el = exportContainerRef.current;
-            if (el) {
-              await exportElementAsPng(el, `kundli-${form.name || "chart"}`);
-            } else {
-              const svg = svgHostRef.current?.querySelector("svg");
-              if (svg) await exportSvgAsPng(svg as SVGSVGElement, `kundli-${form.name || "chart"}`);
-            }
-          }}
-        >
-          {t("kundli.download")}
-        </button>
-        <button
-          type="button"
-          className="jk-btn rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-indigo-950"
-          onClick={async () => {
-            const el = exportContainerRef.current;
-            if (el) {
-              await exportElementAsPdf(el, `kundli-${form.name || "chart"}`);
-            } else {
-              const svg = svgHostRef.current?.querySelector("svg");
-              if (svg) await exportSvgAsPdf(svg as SVGSVGElement, `kundli-${form.name || "chart"}`);
-            }
-          }}
-        >
-          {t("kundli.downloadPdf")}
-        </button>
-        <button
-          type="button"
-          className="jk-btn rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-indigo-950"
-          onClick={async () => {
-            const el = traditionalExportRef.current;
-            if (el) {
-              await exportElementAsPdf(el, `traditional-kundli-${form.name || "chart"}`);
-            }
-          }}
-        >
-          {t("kundli.downloadTraditionalPdf", "Download Traditional PDF")}
-        </button>
-        <button
-          type="button"
-          className="jk-btn rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-indigo-950"
-          onClick={async () => {
-            if ((navigator as Navigator & { share?: (data: ShareData) => Promise<void> }).share) {
-              await navigator.share?.({ text: summaryText, title: t("app.title") });
-            } else {
-              await navigator.clipboard.writeText(summaryText);
-            }
-          }}
-        >
-          {t("kundli.share")}
-        </button>
-      </div>
-      <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-slate-700">
-        <span className="font-medium text-indigo-900">{t("settings.chartStyle")}:</span>
-        <button
-          type="button"
-          className={`jk-btn rounded-lg border px-3 py-1 ${chartStyle === "north" ? "border-[color:var(--jk-accent)] bg-[color:var(--jk-accent-soft)]" : "border-slate-200 bg-white"}`}
-          onClick={() => void setChartStyle("north")}
-        >
-          {t("settings.chartNorth")}
-        </button>
-        <button
-          type="button"
-          className={`jk-btn rounded-lg border px-3 py-1 ${chartStyle === "south" ? "border-[color:var(--jk-accent)] bg-[color:var(--jk-accent-soft)]" : "border-slate-200 bg-white"}`}
-          onClick={() => void setChartStyle("south")}
-        >
-          {t("settings.chartSouth")}
         </button>
       </div>
       {savedId && (
@@ -493,55 +397,54 @@ export default function KundliPage(): JSX.Element {
           {t("kundli.savedPrefix")} ({savedId})
         </p>
       )}
-      {result && (
-        <div className="mt-2 flex flex-wrap gap-3">
-          <button
-            type="button"
-            className="jk-btn rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-800"
-            onClick={() => {
-              clearKundliSession();
-              setResult(null);
-              setDailyPrediction("");
-              setDasha([]);
-              setNarrative("");
-              setNarrativeError("");
-            }}
-          >
-            {t("kundli.resetChart")}
-          </button>
-          <button
-            type="button"
-            className="jk-btn text-sm font-medium text-[color:var(--jk-accent)] underline-offset-2 hover:underline"
-            onClick={() => setPage("predictions")}
-          >
-            {t("kundli.viewPredictions")}
-          </button>
-          <button
-            type="button"
-            className="jk-btn text-sm font-medium text-[color:var(--jk-accent)] underline-offset-2 hover:underline"
-            onClick={() => setPage("insights")}
-          >
-            {t("kundli.viewInsights")}
-          </button>
-        </div>
-      )}
+      {/* Buttons removed as per user request */}
+      {/* Standalone KundliChart removed to avoid duplication with Jataka details */}
+      
       {result && birthDatePicker && birthTimeHm.trim() ? (
-        <div
-          ref={exportContainerRef}
-          id="kundli-pdf-export-root"
-          className="mt-4 p-4 rounded-2xl border border-amber-500/20 bg-[#fffdf8] shadow-sm text-slate-800"
-        >
-          <h2 className="text-xl font-extrabold text-indigo-950 text-center mb-3">
-            {form.name ? `${form.name}'s Janma Patrika` : "Janma Patrika"}
-          </h2>
-          <div ref={svgHostRef}>
-            <KundliChart
-              kundli={result}
-              chartStyle={chartStyle}
-              personName={form.name}
-              gothra={gotraDisplay}
-            />
+        <div className="mt-8 space-y-6">
+          <div className="flex justify-center mb-6">
+            <button
+              type="button"
+              className="jk-btn rounded-xl bg-amber-500 px-8 py-4 text-base font-extrabold tracking-wide text-indigo-950 shadow-lg hover:bg-amber-400 hover:scale-[1.02] transition-all"
+              onClick={async () => {
+                const el = traditionalExportRef.current;
+                if (el) {
+                  await exportElementAsPdf(el, `baggona-janana-kundali-${form.name || "chart"}`);
+                }
+              }}
+            >
+              Baggoona Panchanga Janan Kundali Download
+            </button>
           </div>
+
+          <div className="rounded-2xl border border-indigo-100 bg-white shadow-sm overflow-hidden">
+             <div className="bg-indigo-50/50 p-4 border-b border-indigo-100 text-center">
+                 <h3 className="text-lg font-bold text-indigo-950">{t("kundli.jatakaDetails", "Jataka & Panchanga Details")}</h3>
+             </div>
+             <div className="p-4 overflow-x-auto flex justify-center">
+                <TraditionalSouthPatrika
+                  kundli={result}
+                  personName={form.name}
+                  gothra={gotraDisplay}
+                  birthDate={formatPickerDateLocalYmd(birthDatePicker)}
+                  birthTime={birthTimeHm.trim()}
+                  latitude={form.latitude}
+                  longitude={form.longitude}
+                  placeLabel={placeDisplay}
+                  pincode={form.pincode}
+                  ayanamsaModel={ayanamsaModel}
+                />
+             </div>
+          </div>
+          
+          <div className="rounded-2xl border border-amber-100 bg-amber-50/30 shadow-sm overflow-hidden p-4">
+             <h3 className="text-lg font-bold text-indigo-950 mb-3 text-center">{t("kundli.dashaTitle", "Dasha Bhukti Timeline")}</h3>
+             <LifetimeDashaBar kundli={result} maxAge={120} />
+             <div className="mt-4">
+               <DashaBhuktiExplorer kundli={result} maxAge={120} />
+             </div>
+          </div>
+
         </div>
       ) : null}
       
@@ -560,124 +463,7 @@ export default function KundliPage(): JSX.Element {
           /></div>
         </div>
       ) : null}
-      
-      {chartYogas.length > 0 && (
-        <div className="mt-4 rounded-xl border border-indigo-100 bg-indigo-50/40 p-3">
-          <p className="text-sm font-semibold text-indigo-950">{t("kundli.chartYogasTitle")}</p>
-          <ul className="mt-2 space-y-1 text-sm text-slate-800">
-            {chartYogas.map(({ id, polarity }) => (
-              <li key={id}>
-                <span
-                  className={
-                    polarity === "benefic" ? "font-medium text-emerald-800" : "font-medium text-amber-900"
-                  }
-                >
-                  {t(`insights.yogaTitles.${id}` as "insights.yogaTitles.gajakesari")}
-                </span>
-                <span className="text-slate-600">
-                  {" "}
-                  — {t(polarity === "benefic" ? "kundli.yogaBenefic" : "kundli.yogaMalefic")}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-      {result && chartStyle === "south" && birthDatePicker && birthTimeHm.trim() ? (
-        <TraditionalSouthPatrika
-          kundli={result}
-          personName={form.name}
-          gothra={gotraDisplay}
-          birthDate={formatPickerDateLocalYmd(birthDatePicker)}
-          birthTime={birthTimeHm.trim()}
-          latitude={form.latitude}
-          longitude={form.longitude}
-          placeLabel={placeDisplay}
-          pincode={form.pincode}
-          ayanamsaModel={ayanamsaModel}
-        />
-      ) : null}
-      {result && (
-        <div className="mt-4 space-y-2">
-          {!narrativeReady && (
-            <p className="text-xs text-slate-600">
-              {!narrativeConsent ? t("kundli.detailsNarrativeNeedConsent") : t("kundli.detailsNarrativeNeedUrl")}
-            </p>
-          )}
-          <button
-            type="button"
-            disabled={!result || narrativeLoading || !narrativeReady}
-            className="jk-btn rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-950 disabled:cursor-not-allowed disabled:opacity-50"
-            onClick={() => void onDetailsAboutMe()}
-          >
-            {t("kundli.detailsAboutMe")}
-          </button>
-          {narrativeLoading && <GrahaSpinner message={t("kundli.detailsLoading")} />}
-          {narrativeError && <p className="text-sm text-red-700">{narrativeError}</p>}
-          {narrative && <p className="rounded-xl border border-slate-200 bg-white p-3 text-sm leading-relaxed text-slate-800">{narrative}</p>}
-        </div>
-      )}
-      {result?.nameSyllableHint ? (
-        <div className="mt-4 rounded-xl border border-amber-100 bg-amber-50/50 p-3 text-xs text-slate-800">
-          <p className="font-semibold text-indigo-950">{t("kundli.syllableHintTitle")}</p>
-          <p className="mt-1">{t("kundli.syllableHintBody")}</p>
-          <p className="mt-2 font-medium">{result.nameSyllableHint}</p>
-        </div>
-      ) : null}
-      {dailyPrediction && (
-        <div className="mt-4 rounded-xl border border-indigo-100 bg-indigo-50/50 p-3 text-sm text-slate-800">
-          <p className="font-semibold text-indigo-950">{t("kundli.todayPrediction")}</p>
-          <p className="mt-1">{dailyPrediction}</p>
-        </div>
-      )}
-      {dasha.length > 0 && result ? (
-        <div className="mt-4 space-y-4 rounded-xl border border-amber-100 bg-amber-50/60 p-3 text-sm text-slate-800">
-          <p className="font-semibold text-indigo-950">{t("kundli.dashaTitle")}</p>
-          <LifetimeDashaBar kundli={result} maxAge={120} />
-          {birthDatePicker && birthTimeHm.trim() ? (
-            <DashaBhuktiExplorer kundli={result} maxAge={120} />
-          ) : null}
-          <div className="grid gap-1 md:grid-cols-2">
-            {dasha.map((entry) => (
-              <p key={`${entry.planet}-${entry.startAge}`}>
-                {t(`planets.${entry.planet}` as "planets.Sun")}: {entry.startAge.toFixed(2)} – {entry.endAge.toFixed(2)}{" "}
-                {t("kundli.dashaYearsUnit")}
-              </p>
-            ))}
-          </div>
-        </div>
-      ) : null}
-      {result && (
-        <table className="mt-4 w-full text-left text-xs text-slate-800">
-          <thead className="text-indigo-950">
-            <tr>
-              <th className="py-1 pr-2">{t("kundli.planetTable.planet")}</th>
-              <th className="py-1 pr-2">{t("kundli.planetTable.patrikaAmsha")}</th>
-              <th className="py-1 pr-2">{t("kundli.planetTable.navamsha")}</th>
-              <th className="py-1 pr-2">{t("kundli.planetTable.dvadashamsha")}</th>
-              <th className="py-1 pr-2">{t("kundli.planetTable.rashi")}</th>
-              <th className="py-1 pr-2">{t("kundli.planetTable.nakshatra")}</th>
-              <th className="py-1">{t("kundli.planetTable.house")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {result.planets.map((planet) => (
-              <tr key={planet.name}>
-                <td>
-                  {t(`planets.${planet.name}` as "planets.Sun")}
-                  {planet.isRetrograde ? (i18n.language.startsWith("kn") ? " (ವ)" : " (R)") : ""}
-                </td>
-                <td>{patrikaNavamshaFromDegree(planet.degree)}</td>
-                <td>{formatNavamsaPada(planet.degree, i18n.language)}</td>
-                <td>{formatRashiAmsha(planet.degree, i18n.language)}</td>
-                <td>{t(`rashis.${planet.rashi.sanskrit}` as "rashis.Mesha")}</td>
-                <td>{t(`nakshatras.${planet.nakshatra.sanskrit.replace(/\s+/g, "")}` as "nakshatras.Ashwini")}</td>
-                <td>{planet.house}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+
     </Card>
   );
 }

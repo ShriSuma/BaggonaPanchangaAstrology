@@ -156,6 +156,29 @@ export async function fetchShuddhaMuhurthas(
     const weekdayIdx = vedicWeekdayAtBirth(currentUtc, sunriseUtc, latitude, longitude);
 
     // --- PURITY CHECKS ---
+    let purityScore = 100;
+    const disqualifications: string[] = [];
+
+    // 0. Combustion (Moudhya) Check for Jupiter & Venus
+    const jupiterDist = Math.abs(normalizeDegree(longToday.sun - longToday.jupiter));
+    const isJupiterCombust = Math.min(jupiterDist, 360 - jupiterDist) <= 11;
+    
+    const venusDist = Math.abs(normalizeDegree(longToday.sun - longToday.venus));
+    const isVenusCombust = Math.min(venusDist, 360 - venusDist) <= 10;
+
+    if (isJupiterCombust || isVenusCombust) {
+      purityScore -= 50; // Critical violation
+      disqualifications.push("Combustion (Moudhya)");
+    }
+
+    // 0.5. Solar Month Exclusions (Kharmas / Dhanurmasa / Meenamasa)
+    const sunSignIdx = Math.floor(longToday.sun / 30);
+    const isKharmas = sunSignIdx === 8 || sunSignIdx === 11; // 8 = Sagittarius, 11 = Pisces
+    if (isKharmas) {
+      purityScore -= 40; // Critical violation
+      disqualifications.push("Kharmas (Dhanu/Meena Masa)");
+    }
+
     // 1. Avoid Rikta tithis (4th, 9th, 14th of both pakshas: indices 3, 8, 13, 18, 23, 28) and Amavasya (index 29).
     const isTithiPure = ![3, 8, 13, 18, 23, 28, 29].includes(tithiIdx);
 
@@ -173,44 +196,44 @@ export async function fetchShuddhaMuhurthas(
     // 5. Avoid Vishti/Bhadra Karana (6) and fixed malefic Karanas (7, 8, 9)
     const isKaranaPure = ![6, 7, 8, 9].includes(karanaIdx);
 
-    const isEverythingPure = isTithiPure && isNakPure && isWeekdayPure && isYogaPure && isKaranaPure;
+    if (!isTithiPure) { purityScore -= 20; disqualifications.push("Inauspicious Tithi"); }
+    if (!isNakPure) { purityScore -= 20; disqualifications.push("Inauspicious Nakshatra"); }
+    if (!isWeekdayPure) { purityScore -= 15; disqualifications.push("Inauspicious Weekday"); }
+    if (!isYogaPure) { purityScore -= 10; disqualifications.push("Inauspicious Yoga"); }
+    if (!isKaranaPure) { purityScore -= 10; disqualifications.push("Inauspicious Karana"); }
+
+    if (weekdayIdx === 0) purityScore -= 5; // Sunday
+    if (tithiIdx === 7 || tithiIdx === 22) purityScore -= 10; // Ashtami
+    if (tithiIdx === 14) purityScore -= 5; // Purnima
+
+    const isEverythingPure = purityScore >= 95;
 
     if (isEverythingPure) {
       const types: ("marriage" | "housewarming" | "upanayana" | "general")[] = [];
 
       // Marriage (Vivaha) Specific Rules
-      // Nakshatras: Rohini, Mrigashira, Uttara Phalguni, Hasta, Anuradha, Uttara Ashadha, Uttara Bhadrapada, Revati.
       const marriageNaks = [3, 4, 11, 12, 16, 20, 25, 26];
-      // Tithis: Dwitiya, Tritiya, Panchami, Saptami, Dashami, Ekadashi, Trayodashi
       const shubhaTithis = [1, 2, 4, 6, 9, 10, 12, 16, 17, 19, 21, 24, 25, 27];
       if (marriageNaks.includes(moonNakIdx) && shubhaTithis.includes(tithiIdx) && [1, 3, 4, 5].includes(weekdayIdx)) {
         types.push("marriage");
       }
 
       // Housewarming (Griha Pravesha) Specific Rules
-      // Nakshatras: Rohini, Mrigashira, Chitra, Anuradha, Uttara Phalguni, Uttara Ashadha, Uttara Bhadrapada, Revati, Shravana, Dhanishta, Shatabhisha.
       const gpNaks = [3, 4, 11, 12, 13, 16, 20, 21, 22, 23, 25, 26];
       if (gpNaks.includes(moonNakIdx) && shubhaTithis.includes(tithiIdx) && [1, 3, 4, 5].includes(weekdayIdx)) {
         types.push("housewarming");
       }
 
       // Upanayana Specific Rules
-      // Nakshatras: Rohini, Mrigashira, Pushya, Hasta, Chitra, Anuradha, Shravana, Dhanishta, Shatabhisha, Revati.
       const upaNaks = [3, 4, 7, 12, 13, 16, 21, 22, 23, 26];
       if (upaNaks.includes(moonNakIdx) && [0, 3, 4, 5].includes(weekdayIdx)) {
         types.push("upanayana");
       }
 
-      // If matches none but is generally pure, it falls under general auspicious activities.
+      // General fallback
       if (types.length === 0) {
         types.push("general");
       }
-
-      // Compute a Purity Score (100 is base, deduct slightly if weekday is Sunday or some minor neutral indicators)
-      let purityScore = 100;
-      if (weekdayIdx === 0) purityScore -= 5; // Sunday
-      if (tithiIdx === 7 || tithiIdx === 22) purityScore -= 10; // Ashtami (sometimes neutral)
-      if (tithiIdx === 14) purityScore -= 5; // Purnima (good but intense)
 
       list.push({
         date: dateStr,

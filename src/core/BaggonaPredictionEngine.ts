@@ -102,7 +102,7 @@ export const BENEFIC_LORDS_BY_LAGNA: Record<number, PlanetName[]> = {
   0: [PN.Jupiter, PN.Sun], // Aries (Mesha)
   1: [PN.Saturn, PN.Sun], // Taurus (Vrishabha)
   2: [PN.Venus, PN.Mercury], // Gemini (Mithuna)
-  3: [PN.Jupiter, PN.Mars], // Cancer (Kataka)
+  3: [PN.Jupiter, PN.Mars], // Cancer (Karka)
   4: [PN.Mars], // Leo (Simha)
   5: [PN.Venus, PN.Mercury], // Virgo (Kanya)
   6: [PN.Saturn, PN.Mercury], // Libra (Tula)
@@ -171,7 +171,7 @@ const RASHIS_EN = [
   "Mesha", "Vrishabha", "Mithuna", "Karka", "Simha", "Kanya", "Tula", "Vrischika", "Dhanu", "Makara", "Kumbha", "Meena"
 ];
 const RASHIS_KN = [
-  "ಮೇಷ", "ವೃಷಭ", "ಮಿಥುನ", "ಕಟಕ", "ಸಿಂಹ", "ಕನ್ಯಾ", "ತುಲಾ", "ವೃಶ್ಚಿಕ", "ಧನುಸ್ಸು", "ಮಕರ", "ಕುಂಭ", "ಮೀನ"
+  "ಮೇಷ", "ವೃಷಭ", "ಮಿಥುನ", "ಕರ್ಕ", "ಸಿಂಹ", "ಕನ್ಯಾ", "ತುಲಾ", "ವೃಶ್ಚಿಕ", "ಧನುಸ್ಸು", "ಮಕರ", "ಕುಂಭ", "ಮೀನ"
 ];
 const RASHIS_HI = [
   "मेष", "वृषभ", "मिथुन", "कर्क", "सिंह", "कन्या", "तुला", "वृश्चिक", "धनु", "मकर", "कुंभ", "मीन"
@@ -190,7 +190,7 @@ const PLANETS_EN: Record<PlanetName, string> = {
 };
 
 const PLANETS_KN: Record<PlanetName, string> = {
-  [PN.Sun]: "ಸೂರ್ಯ",
+  [PN.Sun]: "ರವಿ",
   [PN.Moon]: "ಚಂದ್ರ",
   [PN.Mars]: "ಮಂಗಳ",
   [PN.Mercury]: "ಬುಧ",
@@ -621,7 +621,7 @@ export function getDetailedPlanetInsight(
         : "\n\n[Ashtamadhipatya Rule]: For Libra Lagna, the Lagna Lord Venus is also the 8th Lord. Therefore, Venus does not suffer from Ashtamadhipatya dosha; it protects you and yields auspicious results.";
     } else if (planet === PN.Sun || planet === PN.Moon) {
       text += isKn
-        ? "\n\nಅಷ್ಟಮಾದಿಪತ್ಯ ವಿಚಾರ: ಶಾಸ್ತ್ರದ ನಿಯಮದಂತೆ ಸೂರ್ಯ ಮತ್ತು ಚಂದ್ರ ಗ್ರಹಗಳಿಗೆ ಅಷ್ಟಮ ಸ್ಥಾನದ ಅಧಿಪತ್ಯದ ದೋಷವಿರುವುದಿಲ್ಲ."
+        ? "\n\nಅಷ್ಟಮಾದಿಪತ್ಯ ವಿಚಾರ: ಶಾಸ್ತ್ರದ ನಿಯಮದಂತೆ ರವಿ ಮತ್ತು ಚಂದ್ರ ಗ್ರಹಗಳಿಗೆ ಅಷ್ಟಮ ಸ್ಥಾನದ ಅಧಿಪತ್ಯದ ದೋಷವಿರುವುದಿಲ್ಲ."
         : "\n\n[Ashtamadhipatya Rule]: As per astrological texts, the Sun and Moon are completely exempt from Ashtamadhipatya dosha.";
     } else {
       text += isKn
@@ -650,7 +650,7 @@ export function getDetailedPlanetInsight(
     } else if (lagnaIdx === 3) {
       if (planet === PN.Mars || planet === PN.Saturn) {
         text += isKn
-          ? "\n\n[ರಾಜಯೋಗ ಭಂಗ ವಿಚಾರ]: ಕಟಕ ಲಗ್ನಕ್ಕೆ ಮಂಗಳನು ಯೋಗಕಾರಕನಾಗಿದ್ದರೂ, ೮ನೇ ಅಧಿಪತಿಯಾದ ಶನಿಯೊಂದಿಗಿನ ದೃಷ್ಟಿ/ಯುತಿ ಸಂಬಂಧದಿಂದಾಗಿ ರಾಜಯೋಗ ಭಂಗ ಉಂಟಾಗಬಹುದು. ಇದು ನಿಮ್ಮ ಕೆಲಸಗಳಲ್ಲಿ ಕೊನೆಯ ಕ್ಷಣದಲ್ಲಿ ಅಡೆತಡೆಗಳನ್ನು ತರಬಹುದು."
+          ? "\n\n[ರಾಜಯೋಗ ಭಂಗ ವಿಚಾರ]: ಕರ್ಕ ಲಗ್ನಕ್ಕೆ ಮಂಗಳನು ಯೋಗಕಾರಕನಾಗಿದ್ದರೂ, ೮ನೇ ಅಧಿಪತಿಯಾದ ಶನಿಯೊಂದಿಗಿನ ದೃಷ್ಟಿ/ಯುತಿ ಸಂಬಂಧದಿಂದಾಗಿ ರಾಜಯೋಗ ಭಂಗ ಉಂಟಾಗಬಹುದು. ಇದು ನಿಮ್ಮ ಕೆಲಸಗಳಲ್ಲಿ ಕೊನೆಯ ಕ್ಷಣದಲ್ಲಿ ಅಡೆತಡೆಗಳನ್ನು ತರಬಹುದು."
           : "\n\n[Raja Yoga Bhanga Subtlety]: For Cancer Lagna, while Mars is the primary Yogakaraka, its association or aspect with the 8th lord Saturn triggers a Raja Yoga Bhanga, which might introduce sudden hurdles or delays near completion.";
       }
     }
@@ -668,7 +668,7 @@ export function getDetailedPlanetInsight(
 }
 
 const HOUSE_KARAKAS_INFO: Record<number, { en: string; kn: string; hi: string }> = {
-  1: { en: "Sun (represents soul, vitality, self-confidence, and identity)", kn: "ಸೂರ್ಯ (ಆತ್ಮಕಾರಕ, ಆತ್ಮವಿಶ್ವಾಸ ಮತ್ತು ದೈಹಿಕ ಶಕ್ತಿ)", hi: "सूर्य (आत्मा, आत्मविश्वास और शारीरिक ऊर्जा)" },
+  1: { en: "Sun (represents soul, vitality, self-confidence, and identity)", kn: "ರವಿ (ಆತ್ಮಕಾರಕ, ಆತ್ಮವಿಶ್ವಾಸ ಮತ್ತು ದೈಹಿಕ ಶಕ್ತಿ)", hi: "सूर्य (आत्मा, आत्मविश्वास और शारीरिक ऊर्जा)" },
   2: { en: "Jupiter (represents wealth, family, speech, and wisdom)", kn: "ಗುರು (ಧನಕಾರಕ, ಕೌಟುಂಬಿಕ ಅಭಿವೃದ್ಧಿ, ವಿದ್ಯಾಭ್ಯಾಸ)", hi: "गुरु (धन, वाणी और पारिवारिक समृद्धि)" },
   3: { en: "Mars (represents courage, physical strength, and younger siblings)", kn: "ಮಂಗಳ (ಧೈರ್ಯ, ಸಾಹಸ ಮತ್ತು ಒಡಹುಟ್ಟಿದವರು)", hi: "मंगल (साहस, पुरुषार्थ और छोटे भाई-बहन)" },
   4: { en: "Moon and Mercury (represent mother, mental happiness, and education)", kn: "ಚಂದ್ರ ಮತ್ತು ಬುಧ (ಮಾತೃ ಕಾರಕ, ಮನಸ್ಸು, ಸುಖ ಮತ್ತು ವಿದ್ಯೆ)", hi: "चंद्र और बुध (माता, मानसिक सुख और विद्या)" },
@@ -676,8 +676,8 @@ const HOUSE_KARAKAS_INFO: Record<number, { en: string; kn: string; hi: string }>
   6: { en: "Mars and Saturn (represent obstacles, service, and debt control)", kn: "ಮಂಗಳ ಮತ್ತು ಶನಿ (ರೋಗ, ಶತ್ರು ನಿಯಂತ್ರಣ, ಸೇವಾ ಮನೋಭಾವ)", hi: "मंगल और शनि (ऋण, शत्रु और सेवा)" },
   7: { en: "Venus (represents marriage, spouse, and partnership relations)", kn: "ಶುಕ್ರ (ಕಲತ್ರಕಾರಕ, ದಾಂಪತ್ಯ ಸುಖ, ಪಾಲುದಾರಿಕೆ)", hi: "शुक्र (विवाह, जीवनसाथी और साझेदारी)" },
   8: { en: "Saturn (represents longevity, transformations, and deep secrets)", kn: "ಶನಿ (ಆಯುಷ್ಯಕಾರಕ, ಗೂಢ ವಿಷಯಗಳು, ಆಕಸ್ಮಿಕಗಳು)", hi: "शनि (आयु, गुप्त विद्या और अचानक बदलाव)" },
-  9: { en: "Jupiter and Sun (represent fortune, higher education, father, and dharma)", kn: "ಗುರು ಮತ್ತು ಸೂರ್ಯ (ಭಾಗ್ಯಕಾರಕ, ತಂದೆಯ ಮಾರ್ಗದರ್ಶನ, ಧರ್ಮ ಶ್ರದ್ಧೆ)", hi: "गुरु और सूर्य (भाग्य, पिता और धर्म)" },
-  10: { en: "Sun, Mercury, Jupiter, and Saturn (represent career, public image, authority, and karma)", kn: "ಸೂರ್ಯ, ಬುಧ, ಗುರು ಮತ್ತು ಶನಿ (ಕರ್ಮಕಾರಕರು, ವೃತ್ತಿ ಗೌರವ, ಕೀರ್ತಿ)", hi: "सूर्य, बुध, गुरु और शनि (आजीविका, पद-प्रतिष्ठा और कर्म)" },
+  9: { en: "Jupiter and Sun (represent fortune, higher education, father, and dharma)", kn: "ಗುರು ಮತ್ತು ರವಿ (ಭಾಗ್ಯಕಾರಕ, ತಂದೆಯ ಮಾರ್ಗದರ್ಶನ, ಧರ್ಮ ಶ್ರದ್ಧೆ)", hi: "गुरु और सूर्य (भाग्य, पिता और धर्म)" },
+  10: { en: "Sun, Mercury, Jupiter, and Saturn (represent career, public image, authority, and karma)", kn: "ರವಿ, ಬುಧ, ಗುರು ಮತ್ತು ಶನಿ (ಕರ್ಮಕಾರಕರು, ವೃತ್ತಿ ಗೌರವ, ಕೀರ್ತಿ)", hi: "सूर्य, बुध, गुरु और शनि (आजीविका, पद-प्रतिष्ठा और कर्म)" },
   11: { en: "Jupiter (represents income streams, gains, and fulfillment of desires)", kn: "ಗುರು (ಲಾಭಕಾರಕ, ಆರ್ಥಿಕ ಪ್ರಗತಿ, ಸಕಲ ಸಂಪತ್ತು)", hi: "गुरु (लाभ, इच्छा पूर्ति और आय के स्रोत)" },
   12: { en: "Saturn (represents expenditure, liberation, and foreign connections)", kn: "ಶನಿ (ಮೋಕ್ಷಕಾರಕ, ವ್ಯಯ ನಿಯಂತ್ರಣ, ವಿಶ್ರಾಂತಿ)", hi: "शनि (मोक्ष, व्यय और विदेश संबंध)" }
 };
@@ -871,7 +871,7 @@ export function generateBaggonaPredictions(
     if (isKn) {
       title = `${pName} - ಆತ್ಮದ ಪ್ರೇರಕಶಕ್ತಿ`;
       if (isExalted) {
-        description = `${pName} ಗ್ರಹವು ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ${rName} ರಾಶಿಯಲ್ಲಿ ಉಚ್ಛ (ಬಲಶಾಲಿ) ಸ್ಥಾನದಲ್ಲಿದೆ. ಇದು ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಈ ಗ್ರಹಕ್ಕೆ ಸಂಬಂಧಿಸಿದ ಅತ್ಯಂತ ಸಕಾರಾತ್ಮಕ ಗುಣಗಳನ್ನು ಜಾಗೃತಗೊಳಿಸುತ್ತದೆ. ಈ ಗ್ರಹವು ${caste} ವರ್ಣವನ್ನು ಪ್ರತಿನಿಧಿಸುತ್ತದೆ ಮತ್ತು ${gender} ತತ್ವದ ಶಕ್ತಿಯನ್ನು ಹೊಂದಿದೆ. ಸೂರ್ಯನ ತೇಜಸ್ಸನ್ನು ಹೆಚ್ಚಿಸಲು ಹಾಗೂ ಜೀವನದ ಶುಭಫಲಗಳಿಗಾಗಿ ${temple} ಭಕ್ತಿಯಿಂದ ಆರಾಧಿಸುವುದು ಅತ್ಯಂತ ಶ್ರೇಯಸ್ಕರವಾಗಿದೆ. ಈ ಸ್ಥಾನವು ನಿಮ್ಮಲ್ಲಿ ${appearance} ಗುಣಗಳನ್ನು ಹೆಚ್ಚಿಸುತ್ತದೆ.`;
+        description = `${pName} ಗ್ರಹವು ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ${rName} ರಾಶಿಯಲ್ಲಿ ಉಚ್ಛ (ಬಲಶಾಲಿ) ಸ್ಥಾನದಲ್ಲಿದೆ. ಇದು ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಈ ಗ್ರಹಕ್ಕೆ ಸಂಬಂಧಿಸಿದ ಅತ್ಯಂತ ಸಕಾರಾತ್ಮಕ ಗುಣಗಳನ್ನು ಜಾಗೃತಗೊಳಿಸುತ್ತದೆ. ಈ ಗ್ರಹವು ${caste} ವರ್ಣವನ್ನು ಪ್ರತಿನಿಧಿಸುತ್ತದೆ ಮತ್ತು ${gender} ತತ್ವದ ಶಕ್ತಿಯನ್ನು ಹೊಂದಿದೆ. ರವಿಯ ತೇಜಸ್ಸನ್ನು ಹೆಚ್ಚಿಸಲು ಹಾಗೂ ಜೀವನದ ಶುಭಫಲಗಳಿಗಾಗಿ ${temple} ಭಕ್ತಿಯಿಂದ ಆರಾಧಿಸುವುದು ಅತ್ಯಂತ ಶ್ರೇಯಸ್ಕರವಾಗಿದೆ. ಈ ಸ್ಥಾನವು ನಿಮ್ಮಲ್ಲಿ ${appearance} ಗುಣಗಳನ್ನು ಹೆಚ್ಚಿಸುತ್ತದೆ.`;
       } else if (isDebilitated) {
         description = `${pName} ಗ್ರಹವು ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ${rName} ರಾಶಿಯಲ್ಲಿ ನೀಚ (ದುರ್ಬಲ) ಸ್ಥಾನದಲ್ಲಿದೆ. ಇದು ಜೀವನದಲ್ಲಿ ಶಿಸ್ತು, ಕಠಿಣ ಪರಿಶ್ರಮ ಮತ್ತು ಸಹನೆಯನ್ನು ಕಲಿಸುವ ಕಾಲವಾಗಿದೆ. ಈ ಗ್ರಹವು ${caste} ವರ್ಣವನ್ನು ಪ್ರತಿನಿಧಿಸುತ್ತದೆ ಮತ್ತು ${gender} ತತ್ವದ ಶಕ್ತಿಯನ್ನು ಹೊಂದಿದೆ. ಈ ಗ್ರಹದ ನಕಾರಾತ್ಮಕ ಪರಿಣಾಮಗಳನ್ನು ಕಡಿಮೆ ಮಾಡಲು ಹಾಗೂ ಒಳಗಿನ ಆತ್ಮಬಲವನ್ನು ಹೆಚ್ಚಿಸಲು ${temple} ಭಕ್ತಿಯಿಂದ ಆರಾಧಿಸುವುದು ಅತ್ಯಂತ ಶ್ರೇಯಸ್ಕರವಾಗಿದೆ. ಈ ಸ್ಥಾನದಿಂದಾಗಿ ನಿಮ್ಮಲ್ಲಿ ${appearance} ಸ್ವಭಾವಗಳು ಗೋಚರಿಸುತ್ತವೆ.`;
       } else {
@@ -979,7 +979,7 @@ export function generateBaggonaPredictions(
       for (const other of conjoined) {
         if (other.name === PN.Sun) {
           conjEn += "Saturn is conjoined with the Sun, indicating potential health delays or administrative trials. ";
-          conjKn += "ಶನಿಯು ಸೂರ್ಯನೊಂದಿಗೆ ಯುತಿಯಾಗಿದ್ದು, ಆರೋಗ್ಯದ ಏರುಪೇರು ಅಥವಾ ಅಧಿಕಾರಿಗಳಿಂದ ಸವಾಲುಗಳನ್ನು ಸೂಚಿಸುತ್ತದೆ. ";
+          conjKn += "ಶನಿಯು ರವಿಯೊಂದಿಗೆ ಯುತಿಯಾಗಿದ್ದು, ಆರೋಗ್ಯದ ಏರುಪೇರು ಅಥವಾ ಅಧಿಕಾರಿಗಳಿಂದ ಸವಾಲುಗಳನ್ನು ಸೂಚಿಸುತ್ತದೆ. ";
           conjHi += "शनि सूर्य के साथ युति में हैं, जो स्वास्थ्य संबंधी चिंताओं या प्रशासनिक बाधाओं को दर्शाता है। ";
         } else if (other.name === PN.Moon) {
           conjEn += "Saturn is conjoined with the Moon, representing public service inclination or mother's focus. ";
@@ -1130,7 +1130,7 @@ export function generateBaggonaPredictions(
         "ಅತಿಯಾದ ಹಣಕಾಸಿನ ಖರ್ಚು, ಆಸ್ಪತ್ರೆ ವೆಚ್ಚಗಳು, ನಿದ್ರಾಹೀನತೆ ಮತ್ತು ಒಂಟಿತನದ ಭಾವನೆ."
       ];
       const knRemedies = [
-        "ಪ್ರತಿದಿನ ಬೆಳಿಗ್ಗೆ ಸೂರ್ಯನಿಗೆ ತರ್ಪಣ ನೀಡಿ ಅಥವಾ ಶಿವನಿಗೆ ಜಲಾಭಿಷೇಕ ಮಾಡಿ.",
+        "ಪ್ರತಿದಿನ ಬೆಳಿಗ್ಗೆ ರವಿಗೆ ತರ್ಪಣ ನೀಡಿ ಅಥವಾ ಶಿವನಿಗೆ ಜಲಾಭಿಷೇಕ ಮಾಡಿ.",
         "ಶುಕ್ರವಾರದಂದು ಮಹಾಲಕ್ಷ್ಮಿ ದೇವಿಗೆ ಪ್ರಾರ್ಥನೆ ಸಲ್ಲಿಸಿ ಹಾಗೂ ಹಸುವಿಗೆ ಹುಲ್ಲು ನೀಡಿ.",
         "ಮಂಗಳವಾರದಂದು ಆಂಜನೇಯ ಸ್ವಾಮಿ ದೇವಸ್ಥಾನಕ್ಕೆ ಭೇಟಿ ನೀಡಿ ಪ್ರಾರ್ಥಿಸಿ.",
         "ತಾಯಿಯ ಆಶೀರ್ವಾದ ಪಡೆಯಿರಿ ಮತ್ತು ಸೋಮವಾರದಂದು ದುರ್ಗಾ ದೇವಿಯನ್ನು ಆರಾಧಿಸಿ.",
@@ -1256,7 +1256,7 @@ export function generateBaggonaPredictions(
         if (p.name === PN.Rahu) dynamicWrong += " ರಾಹುವಿನಿಂದಾಗಿ ಗೊಂದಲ, ಅನಿರೀಕ್ಷಿತ ತಿರುವುಗಳು ಮತ್ತು ಭ್ರಮೆ ಮೂಡಬಹುದು.";
         if (p.name === PN.Ketu) dynamicWrong += " ಕೇತುವಿನ ಪ್ರಭಾವದಿಂದ ವಿರಕ್ತಿ, ಅಸಡ್ಡೆ ಮತ್ತು ಒಂಟಿತನ ಕಾಡಬಹುದು.";
         if (p.name === PN.Moon) dynamicGood += " ಚಂದ್ರನಿಂದಾಗಿ ಮನಸ್ಸಿಗೆ ಶಾಂತಿ, ಭಾವನಾತ್ಮಕ ಬೆಂಬಲ ಮತ್ತು ಸೌಮ್ಯತೆ ದೊರೆಯುತ್ತದೆ.";
-        if (p.name === PN.Sun) dynamicGood += " ಸೂರ್ಯನಿಂದಾಗಿ ನಾಯಕತ್ವ, ತೇಜಸ್ಸು ಮತ್ತು ಸರ್ಕಾರಿ/ಅಧಿಕೃತ ಕೆಲಸಗಳಲ್ಲಿ ಯಶಸ್ಸು ಸಿಗುತ್ತದೆ.";
+        if (p.name === PN.Sun) dynamicGood += " ರವಿಯಿಂದಾಗಿ ನಾಯಕತ್ವ, ತೇಜಸ್ಸು ಮತ್ತು ಸರ್ಕಾರಿ/ಅಧಿಕೃತ ಕೆಲಸಗಳಲ್ಲಿ ಯಶಸ್ಸು ಸಿಗುತ್ತದೆ.";
         if (p.name === PN.Mercury) dynamicGood += " ಬುಧನ ಪ್ರಭಾವದಿಂದ ಬುದ್ಧಿವಂತಿಕೆ, ವ್ಯಾಪಾರ ಕೌಶಲ್ಯ ಮತ್ತು ಸಂವಹನ ಶಕ್ತಿ ವೃದ್ಧಿಸುತ್ತದೆ.";
       } else if (isHi) {
         if (p.name === PN.Jupiter) dynamicGood += " गुरु ग्रह की उपस्थिति से ज्ञान, धन और शुभ फलों में वृद्धि होती है।";
@@ -2081,7 +2081,7 @@ export function generatePersonalReading(
     "ಮೇಷ ಲಗ್ನವು ನಿಮ್ಮನ್ನು ಕ್ರಿಯಾಶೀಲರನ್ನಾಗಿ, ಸಾಹಸಪ್ರಿಯರನ್ನಾಗಿ ಮತ್ತು ಸ್ವಾಭಿಮಾನಿಗಳನ್ನಾಗಿ ಮಾಡುತ್ತದೆ.",
     "ವೃಷಭ ಲಗ್ನವು ನಿಮಗೆ ಸ್ಥಿರತೆ, ತಾಳ್ಮೆ ಮತ್ತು ಅತ್ಯಂತ ನಂಬಿಕಸ್ಥ ಸ್ವಭಾವವನ್ನು ಕರುಣಿಸುತ್ತದೆ.",
     "ಮಿಥುನ ಲಗ್ನವು ನಿಮಗೆ ಬುದ್ಧಿವಂತಿಕೆ, ಹಾಸ್ಯಪ್ರಜ್ಞೆ ಮತ್ತು ಅತ್ಯುತ್ತಮ ಸಂವಹನ ಕಲೆಗಳನ್ನು ನೀಡುತ್ತದೆ.",
-    "ಕಟಕ ಲಗ್ನವು ನಿಮ್ಮಲ್ಲಿ ಆಳವಾದ ಸಹಾನುಭೂತಿ, ಅಂತಃಪ್ರಜ್ಞೆ ಮತ್ತು ತಾಯಿಯಂತಹ ಕಾಳಜಿಯನ್ನು ತುಂಬುತ್ತದೆ.",
+    "ಕರ್ಕ ಲಗ್ನವು ನಿಮ್ಮಲ್ಲಿ ಆಳವಾದ ಸಹಾನುಭೂತಿ, ಅಂತಃಪ್ರಜ್ಞೆ ಮತ್ತು ತಾಯಿಯಂತಹ ಕಾಳಜಿಯನ್ನು ತುಂಬುತ್ತದೆ.",
     "ಸಿಂಹ ಲಗ್ನವು ನಿಮಗೆ ನಾಯಕತ್ವ ಗುಣಗಳು, ತೇಜಸ್ವಿ ನಡೆ ಮತ್ತು ಉದಾರ ಮನಸ್ಸನ್ನು ನೀಡುತ್ತದೆ.",
     "ಕನ್ಯಾ ಲಗ್ನವು ನಿಮಗೆ ವಿಶ್ಲೇಷಣಾತ್ಮಕ ಬುದ್ಧಿ, ಶಿಸ್ತು ಮತ್ತು ಇತರರಿಗೆ ಸಹಾಯ ಮಾಡುವ ಒಲವನ್ನು ನೀಡುತ್ತದೆ.",
     "ತುಲಾ ಲಗ್ನವು ನಿಮ್ಮಲ್ಲಿ ಶಾಂತಿ, ಸೌಂದರ್ಯಪ್ರಜ್ಞೆ, ರಾಜತಾಂತ್ರಿಕತೆ ಮತ್ತು ಸಂಬಂಧಗಳ ಮೇಲಿನ ಪ್ರೀತಿಯನ್ನು ತುಂಬುತ್ತದೆ.",

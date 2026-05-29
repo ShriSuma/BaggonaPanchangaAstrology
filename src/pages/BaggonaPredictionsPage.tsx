@@ -34,7 +34,7 @@ const rashiTKey = (sanskrit: string): string => `rashis.${sanskrit.replace(/\s+/
 
 const getPlanetTransitStatus = (pName: string, house: number, isKn: boolean) => {
   const names: Record<string, { en: string; kn: string }> = {
-    Sun: { en: "Sun (Surya)", kn: "ಸೂರ್ಯ (ರವಿ)" },
+    Sun: { en: "Sun (Ravi)", kn: "ರವಿ" },
     Moon: { en: "Moon (Chandra)", kn: "ಚಂದ್ರ" },
     Mars: { en: "Mars (Mangala)", kn: "ಮಂಗಳ" },
     Jupiter: { en: "Jupiter (Guru)", kn: "ಗುರು" },
@@ -110,8 +110,8 @@ const getPlanetTransitStatus = (pName: string, house: number, isKn: boolean) => 
     const isGood = [3, 6, 10, 11].includes(house);
     const desc = isKn
       ? isGood
-        ? `ಸೂರ್ಯ ಗೋಚರದಲ್ಲಿ ${house}ನೇ ಮನೆಯಲ್ಲಿದೆ - ಗೌರವ ಪ್ರಾಪ್ತಿ, ಕೆಲಸದಲ್ಲಿ ಯಶಸ್ಸು ಮತ್ತು ಉತ್ತಮ ಆರೋಗ್ಯ.`
-        : `ಸೂರ್ಯ ಗೋಚರದಲ್ಲಿ ${house}ನೇ ಮನೆಯಲ್ಲಿದೆ - ಶಾರೀರಿಕ ಆಯಾಸ, ತಲೆನೋವು ಅಥವಾ ಉದ್ಯೋಗದಲ್ಲಿ ವಿಳಂಬ.`
+        ? `ರವಿ ಗೋಚರದಲ್ಲಿ ${house}ನೇ ಮನೆಯಲ್ಲಿದೆ - ಗೌರವ ಪ್ರಾಪ್ತಿ, ಕೆಲಸದಲ್ಲಿ ಯಶಸ್ಸು ಮತ್ತು ಉತ್ತಮ ಆರೋಗ್ಯ.`
+        : `ರವಿ ಗೋಚರದಲ್ಲಿ ${house}ನೇ ಮನೆಯಲ್ಲಿದೆ - ಶಾರೀರಿಕ ಆಯಾಸ, ತಲೆನೋವು ಅಥವಾ ಉದ್ಯೋಗದಲ್ಲಿ ವಿಳಂಬ.`
       : isGood
         ? `Sun in ${house}th House - Favorable. Brings recognition, authority, and vitality.`
         : `Sun in ${house}th House - Challenging. Suggestions of fatigue, low vital energy, or minor administrative delays.`;
@@ -420,11 +420,11 @@ export default function BaggonaPredictionsPage(): JSX.Element {
         if (lang === "te") return "యోగం, దోషం & ಆಯುಷ್షు";
         return "Yogas, Doshas & Ayush";
       case "gochara":
-        if (lang === "kn") return "೧೫ ದಿನಗಳ ಗೋಚಾರ";
+        if (lang === "kn") return "೧೫ ದಿನಗಳ ಗೋಚರ ಫಲ";
         if (lang === "hi") return "15 दिवसीय गोचर";
         if (lang === "ta") return "15 நாள் கோச்சாரம்";
         if (lang === "te") return "15 రోజుల గోచారం";
-        return "15-Day Gochara";
+        return "15-Day Gochara phala";
       case "jayashree":
         return t("predictions.jayashree");
     }
@@ -438,7 +438,7 @@ export default function BaggonaPredictionsPage(): JSX.Element {
     "Your Cosmic Profile";
 
   const sectionTitleTransit =
-    lang === "kn" ? "ಇಂದಿನ ಗ್ರಹ ಸಂಚಾರ (ಗೋಚಾರ)" :
+    lang === "kn" ? "ಇಂದಿನ ಗ್ರಹ ಸಂಚಾರ (ಗೋಚರ ಫಲ)" :
     lang === "hi" ? "आज का गोचर विवरण" :
     lang === "ta" ? "இன்றைய கோச்சாரம்" :
     lang === "te" ? "నేటి கிரக ಸంచారం (గోచారం)" :
@@ -650,14 +650,14 @@ export default function BaggonaPredictionsPage(): JSX.Element {
                 </div>
                 <div className="rounded-2xl border border-purple-100/80 bg-white p-5 shadow-sm">
                   <h4 className="text-sm font-extrabold text-purple-950 flex items-center gap-2">
-                    <span>⚠️</span> {isKn ? "ಗೋಚಾರ ಎಚ್ಚರಿಕೆಗಳು" : "Transit Alerts"}
+                    <span>⚠️</span> {isKn ? "ಗೋಚರ ಫಲ ಎಚ್ಚರಿಕೆಗಳು" : "Transit Alerts"}
                   </h4>
                   {kundaliPrediction.gocharaAlerts.length > 0 ? (
                     <ul className="mt-2 space-y-2 text-xs text-rose-700 font-medium">
                       {kundaliPrediction.gocharaAlerts.map((a, i) => <li key={i}>• {a}</li>)}
                     </ul>
                   ) : (
-                    <p className="mt-2 text-xs text-emerald-700 font-medium">{isKn ? "ಪ್ರಸ್ತುತ ಯಾವುದೇ ಕಠಿಣ ಗೋಚಾರ ದೋಷಗಳಿಲ್ಲ." : "No harsh transit warnings at the moment."}</p>
+                    <p className="mt-2 text-xs text-emerald-700 font-medium">{isKn ? "ಪ್ರಸ್ತುತ ಯಾವುದೇ ಕಠಿಣ ಗೋಚರ ಫಲ ದೋಷಗಳಿಲ್ಲ." : "No harsh transit warnings at the moment."}</p>
                   )}
                 </div>
               </div>
@@ -676,8 +676,8 @@ export default function BaggonaPredictionsPage(): JSX.Element {
                     </h4>
                     <p className="mt-2 text-xs leading-relaxed text-indigo-100/90 text-justify">
                       {isKn
-                        ? "ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿ (Natal Chart) ಮತ್ತು ಪ್ರಸ್ತುತ ಸಂಚರಿಸುವ ಗೋಚಾರ ಕುಂಡಲಿ (Transit Chart) ಎರಡನ್ನೂ ಸಮಗ್ರವಾಗಿ ಜೋಡಿಸಿ ಈ ಸಾರಾಂಶವನ್ನು ಸಿದ್ಧಪಡಿಸಲಾಗಿದೆ. ಇದು ಈ ತಿಂಗಳು ಮತ್ತು ಮುಂದಿನ ತಿಂಗಳ ಮುಖ್ಯ ವಿದ್ಯಮಾನಗಳನ್ನು ಸಂಶ್ಲೇಷಿಸುತ್ತದೆ."
-                        : "This dynamic summary blends your birth chart (Janma Kundali) with the current transits (Gochara Kundali) to offer a precise and synthesized roadmap for this month and next month."}
+                        ? "ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿ (Natal Chart) ಮತ್ತು ಪ್ರಸ್ತುತ ಸಂಚರಿಸುವ ಗೋಚರ ಫಲ ಕುಂಡಲಿ (Transit Chart) ಎರಡನ್ನೂ ಸಮಗ್ರವಾಗಿ ಜೋಡಿಸಿ ಈ ಸಾರಾಂಶವನ್ನು ಸಿದ್ಧಪಡಿಸಲಾಗಿದೆ. ಇದು ಈ ತಿಂಗಳು ಮತ್ತು ಮುಂದಿನ ತಿಂಗಳ ಮುಖ್ಯ ವಿದ್ಯಮಾನಗಳನ್ನು ಸಂಶ್ಲೇಷಿಸುತ್ತದೆ."
+                        : "This dynamic summary blends your birth chart (Janma Kundali) with the current transits (Gochara phala Kundali) to offer a precise and synthesized roadmap for this month and next month."}
                     </p>
                   </div>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -1198,7 +1198,7 @@ export default function BaggonaPredictionsPage(): JSX.Element {
               <div className="rounded-xl border border-amber-500/10 bg-amber-50/10 p-4 shadow-sm backdrop-blur-sm">
                 <h3 className="text-sm font-bold text-indigo-950 mb-3 flex items-center gap-2">
                   <span>📅</span>
-                  {isKn ? "೧೫ ದಿನಗಳ ದೈನಂದಿನ ಗ್ರಹ ಸಂಚಾರ ವಿವರಗಳು" : "15-Day Daily Transit Calendar (Gochara)"}
+                  {isKn ? "೧೫ ದಿನಗಳ ದೈನಂದಿನ ಗ್ರಹ ಸಂಚಾರ ವಿವರಗಳು" : "15-Day Daily Transit Calendar (Gochara phala)"}
                 </h3>
                 <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-amber-500">
                   {gocharaDays.map((day, idx) => {
@@ -1281,14 +1281,14 @@ export default function BaggonaPredictionsPage(): JSX.Element {
                         </div>
                       </div>
 
-                      {/* Gochara Kundli Chart */}
+                      {/* Gochara phala Kundli Chart */}
                       <div className="rounded-2xl border border-amber-500/15 bg-white p-4 shadow-sm flex flex-col items-center">
                         <h4 className="text-xs font-bold text-indigo-950 uppercase tracking-wider mb-4">
-                          {isKn ? "ಗೋಚಾರ ಕುಂಡಲಿ (ಸಂಚಾರ)" : "Gochara Transit Kundli"}
+                          {isKn ? "ಗೋಚರ ಫಲ ಕುಂಡಲಿ (ಸಂಚಾರ)" : "Gochara phala Transit Kundli"}
                         </h4>
                         <SouthIndianChart
                           kundli={day.kundli}
-                          personName={isKn ? "ಗೋಚಾರ ಸಂಚಾರ" : "Transit Chart"}
+                          personName={isKn ? "ಗೋಚರ ಫಲ ಸಂಚಾರ" : "Transit Chart"}
                           gothra={record.gothra}
                         />
                         <p className="mt-3 text-[10px] text-slate-500 text-center">
@@ -1299,11 +1299,11 @@ export default function BaggonaPredictionsPage(): JSX.Element {
                       </div>
                     </div>
 
-                    {/* Right Panel: Gocharafala Predictions */}
+                    {/* Right Panel: Gochara phala Predictions */}
                     <div className="lg:col-span-7 space-y-4">
                       <div className="rounded-2xl border border-indigo-100 bg-white p-4 shadow-sm">
                         <h4 className="text-xs font-bold text-indigo-950 uppercase tracking-wider mb-4 pb-2 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2">
-                          <span>{isKn ? "ಚಂದ್ರ ಲಗ್ನದಿಂದ ಗೋಚಾರ ಫಲ" : "Gocharafala from Chandra Lagna"}</span>
+                          <span>{isKn ? "ಚಂದ್ರ ಲಗ್ನದಿಂದ ಗೋಚರ ಫಲ" : "Gochara phala from Chandra Lagna"}</span>
                           <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold">
                             {isKn 
                               ? `ಜನ್ಮ ಚಂದ್ರ ರಾಶಿ: ${t(rashiTKey(record.kundliData.moonSign.sanskrit) as "rashis.Mesha")}` 
@@ -1362,11 +1362,11 @@ export default function BaggonaPredictionsPage(): JSX.Element {
                                   <div className="mt-2.5 rounded-lg bg-amber-500/10 border border-amber-500/25 p-2 text-[10px] text-amber-900 font-bold leading-normal">
                                     {isDashaLord && isBhuktiLord ? (
                                       isKn 
-                                        ? `* ಈ ಗೋಚಾರವು ಅತ್ಯಂತ ಮುಖ್ಯವಾಗಿದೆ ಏಕೆಂದರೆ ${statusInfo.name} ಗ್ರಹವು ನಿಮ್ಮ ಸದ್ಯದ ಮಹಾದಶೆ ಮತ್ತು ಭುಕ್ತಿ ಎರಡರ ಅಧಿಪತಿಯಾಗಿದೆ. ಇದು ಫಲಗಳನ್ನು ತೀವ್ರವಾಗಿ ಸಕ್ರಿಯಗೊಳಿಸುತ್ತದೆ.`
+                                        ? `* ಈ ಗೋಚರ ಫಲವು ಅತ್ಯಂತ ಮುಖ್ಯವಾಗಿದೆ ಏಕೆಂದರೆ ${statusInfo.name} ಗ್ರಹವು ನಿಮ್ಮ ಸದ್ಯದ ಮಹಾದಶೆ ಮತ್ತು ಭುಕ್ತಿ ಎರಡರ ಅಧಿಪತಿಯಾಗಿದೆ. ಇದು ಫಲಗಳನ್ನು ತೀವ್ರವಾಗಿ ಸಕ್ರಿಯಗೊಳಿಸುತ್ತದೆ.`
                                         : `* Highly Critical: ${pName} is both your active Mahadasha and Bhukti Lord. This transit will bring highly intensified events during this period.`
                                     ) : isDashaLord ? (
                                       isKn
-                                        ? `* ಈ ಗೋಚಾರವು ಪ್ರಮುಖವಾಗಿದೆ ಏಕೆಂದರೆ ${statusInfo.name} ನಿಮ್ಮ ಸದ್ಯದ ಮಹಾದಶಾದಿಪತಿಯಾಗಿದೆ. ಇದು ಈ ಅವಧಿಯ ಪ್ರಮುಖ ಘಟನೆಗಳನ್ನು ನೇರವಾಗಿ ಪ್ರಭಾವಿಸುತ್ತದೆ.`
+                                        ? `* ಈ ಗೋಚರ ಫಲವು ಪ್ರಮುಖವಾಗಿದೆ ಏಕೆಂದರೆ ${statusInfo.name} ನಿಮ್ಮ ಸದ್ಯದ ಮಹಾದಶಾದಿಪತಿಯಾಗಿದೆ. ಇದು ಈ ಅವಧಿಯ ಪ್ರಮುಖ ಘಟನೆಗಳನ್ನು ನೇರವಾಗಿ ಪ್ರಭಾವಿಸುತ್ತದೆ.`
                                         : `* Significant: ${pName} is your active Mahadasha Lord. Its transit shapes the major theme of this period.`
                                     ) : (
                                       isKn

@@ -54,7 +54,7 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
   const paksha = panchanga?.pakshaKn || "ಶುಕ್ಲ ಪಕ್ಷೇ";
   
   const tithi = panchanga ? `${panchanga.tithiKn} – ಘಟಿ ${formatChartHouseNumber(panchanga.tithiGhati, "kn")} ವಿ ${formatChartHouseNumber(panchanga.tithiVighati, "kn")}` : "ದ್ವಿತೀಯಾ (೨) – ಘಟಿ ೧೪ ವಿ ೩೭";
-  const vasara = panchanga ? `${panchanga.weekdayKn} – ರವಿ ನಕ್ಷತ್ರ ${panchanga.sunNakshatraKn}, ಘಟಿ ${formatChartHouseNumber(panchanga.sunNakshatraGhati, "kn")} ವಿ ${formatChartHouseNumber(panchanga.sunNakshatraVighati, "kn")}` : "ಚಂದ್ರ ವಾಸರೇ – ರವಿ ನಕ್ಷತ್ರ ಪೂರ್ವಾಭಾದ್ರ, ಘಟಿ ೩೯ ವಿ ೩೮";
+  const vasara = panchanga ? `${panchanga.weekdayKn} – ರವಿ ನಕ್ಷತ್ರ ${panchanga.sunNakshatraKn}, ಘಟಿ ${panchanga.sunNakshatraGhati} ವಿ ${panchanga.sunNakshatraVighati}` : "ಚಂದ್ರ ವಾಸರೇ – ರವಿ ನಕ್ಷತ್ರ ಪೂರ್ವಾಭಾದ್ರ, ಘಟಿ 39 ವಿ 38";
   const nakshatra = panchanga ? `${panchanga.moonNakshatraKn} – ಚಂದ್ರ ನಕ್ಷತ್ರ, ಘಟಿ ${formatChartHouseNumber(panchanga.moonNakshatraGhati, "kn")} ವಿ ${formatChartHouseNumber(panchanga.moonNakshatraVighati, "kn")}` : "ಆಶ್ಲೇಷ – ಚಂದ್ರ ನಕ್ಷತ್ರ, ಘಟಿ ೬೦ ವಿ ೦೦";
   const yoga = panchanga ? `${panchanga.yogaKn} – ಘಟಿ ${formatChartHouseNumber(panchanga.yogaGhati, "kn")} ವಿ ${formatChartHouseNumber(panchanga.yogaVighati, "kn")}` : "ವಿಷ್ಕಂಭ – ಘಟಿ ೧೯ ವಿ ೪೭";
   const karana = panchanga ? `${panchanga.karanaKn} – ಘಟಿ ${formatChartHouseNumber(panchanga.karanaGhati, "kn")} ವಿ ${formatChartHouseNumber(panchanga.karanaVighati, "kn")}` : "ಬಾಲವ – ಘಟಿ ೧೪ ವಿ ೪೯";
@@ -138,7 +138,9 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
             ಜನನಿ ಜನ್ಮ ಸೌಖ್ಯಾನಾಂ<br/>ವರ್ಧನೀ ಕುಲ ಸಂಪದಾಂ
           </div>
           <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-            <div style={{ width: "45px", height: "45px", borderRadius: "50%", border: "2px solid #000", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", fontWeight: "bold" }}>ಓಂ</div>
+            <div style={{ width: "45px", height: "45px", borderRadius: "50%", border: "2px solid #000", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", fontWeight: "bold", paddingBottom: "4px" }}>
+              <span>ಓಂ</span>
+            </div>
             <div style={{ fontSize: "16px", fontWeight: "bold", marginTop: "6px" }}>ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಜನನ ಪತ್ರಿಕೆ</div>
           </div>
           <div style={{ flex: 1, fontSize: "14px", fontWeight: "bold", textAlign: "right", lineHeight: "1.4" }}>
