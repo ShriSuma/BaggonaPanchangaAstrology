@@ -83,6 +83,7 @@ export type SiderealLongitudes = {
   jdUt: number;
   ayanamsa: number;
   sun: number;
+  sunTithi?: number;
   moon: number;
   mars: number;
   mercury: number;
@@ -97,14 +98,27 @@ export type SiderealLongitudes = {
 export const siderealLongitudes = (
   utc: Date,
   model: AyanamsaModel = "lahiri",
-  nodeType: NodeType = "mean"
+  nodeType: NodeType = "mean",
+  calibrationOffset?: { moonOffset: number, sunNakOffset: number, tithiSunOffset: number }
 ): SiderealLongitudes => {
   const jdUt = dateToJulianUt(utc);
   const ayanamsa =
     model === "lahiri" ? lahiriAyanamsaDegrees(jdUt) : trueChitrapakshaAyanamsaDegrees(utc);
 
-  const sun = normalizeDegree(tropicalGeoLongitude(Astronomy.Body.Sun, utc) - ayanamsa);
-  const moon = normalizeDegree(tropicalGeoLongitude(Astronomy.Body.Moon, utc) - ayanamsa);
+  let trueSun = tropicalGeoLongitude(Astronomy.Body.Sun, utc);
+  let trueMoon = tropicalGeoLongitude(Astronomy.Body.Moon, utc);
+  let trueSunTithi = trueSun;
+  
+  // Apply Baggona calibration if provided (Traditional Sunrise/Surya Siddhanta emulation)
+  if (calibrationOffset) {
+    trueMoon = normalizeDegree(trueMoon + calibrationOffset.moonOffset);
+    trueSunTithi = normalizeDegree(trueSun + calibrationOffset.tithiSunOffset);
+    trueSun = normalizeDegree(trueSun + calibrationOffset.sunNakOffset);
+  }
+
+  const siderealSun = normalizeDegree(trueSun - ayanamsa);
+  const siderealSunTithi = normalizeDegree(trueSunTithi - ayanamsa);
+  const siderealMoon = normalizeDegree(trueMoon - ayanamsa);
   const mars = normalizeDegree(tropicalGeoLongitude(Astronomy.Body.Mars, utc) - ayanamsa);
   const mercury = normalizeDegree(tropicalGeoLongitude(Astronomy.Body.Mercury, utc) - ayanamsa);
   const jupiter = normalizeDegree(tropicalGeoLongitude(Astronomy.Body.Jupiter, utc) - ayanamsa);
@@ -115,7 +129,7 @@ export const siderealLongitudes = (
   const rahu = normalizeDegree(nodeTropical - ayanamsa);
   const ketu = normalizeDegree(rahu + 180);
 
-  return { jdUt, ayanamsa, sun, moon, mars, mercury, jupiter, venus, saturn, rahu, ketu };
+  return { jdUt, ayanamsa, sun: siderealSun, sunTithi: siderealSunTithi, moon: siderealMoon, mars, mercury, jupiter, venus, saturn, rahu, ketu };
 };
 
 const bodyMap: Record<string, Astronomy.Body> = {
