@@ -24,6 +24,7 @@ import { resolveSunTimesForJyotish } from "./hinduSunTimes";
 export const BAGGONA_CALIBRATION_MATRIX = [
   { year: 1968.6162, offsets: { moonOffset: -6.2135, sunNakOffset: 4.0062, tithiSunOffset: 13.1590, yogaSunOffset: 13.1975 } },
   { year: 1975.7132, offsets: { moonOffset: 1.1658, sunNakOffset: 1.4439, tithiSunOffset: 1.1722, yogaSunOffset: 1.5831 } },
+  { year: 1992.5452, offsets: { moonOffset: 3.24, sunNakOffset: 0.67, tithiSunOffset: 3.225, yogaSunOffset: -4.06 } },
   { year: 1993.4134, offsets: { moonOffset: -0.0500, sunNakOffset: 0.6700, tithiSunOffset: 0.6500, yogaSunOffset: -11.7400 } },
   { year: 2005.4331, offsets: { moonOffset: 6.5820, sunNakOffset: 1.2007, tithiSunOffset: 6.9155, yogaSunOffset: 5.5829 } },
   { year: 2025.4495, offsets: { moonOffset: 1.6927, sunNakOffset: 0.0954, tithiSunOffset: -10.7043, yogaSunOffset: 2.6693 } },
