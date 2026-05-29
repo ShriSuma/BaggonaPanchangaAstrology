@@ -553,6 +553,7 @@ export default function KundliPage(): JSX.Element {
             personName={form.name}
             parentsName={""}
             birthDateObj={birthDatePicker}
+            birthTimeStr={birthTimeHm}
             isDayBirth={true}
             panchanga={traditionalData}
             gothra={gotraDisplay}

@@ -10,6 +10,7 @@ type Props = {
   parentsName: string;
   birthDateObj: Date;
   isDayBirth: boolean;
+  birthTimeStr?: string;
   panchanga: TraditionalBaggonaPanchanga | null;
   gothra?: string;
 };
@@ -32,6 +33,7 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
   personName,
   parentsName,
   birthDateObj,
+  birthTimeStr,
   isDayBirth,
   panchanga,
   gothra,
@@ -46,36 +48,43 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
   });
   const lagnaRashiId = kundli.lagnaRashi.index;
 
-  const shakaYear = panchanga ? `೧೯${panchanga.shakaYear.toString().substring(2)}` : "೧೯೫೦"; // Simple fallback, proper locale string better
+  const shakaYear = panchanga ? `೧೯${formatChartHouseNumber(panchanga.shakaYear % 100, "kn")}` : "೧೯೫೦"; // Simple fallback, proper locale string better
   const samvatsara = panchanga?.samvatsaraKn || "ಕೀಲಕ ಸಂವತ್ಸರೇ";
   const masa = panchanga?.masaKn || "ಚೈತ್ರ ಮಾಸೇ";
   const paksha = panchanga?.pakshaKn || "ಶುಕ್ಲ ಪಕ್ಷೇ";
   
-  const tithi = panchanga ? `${panchanga.tithiKn} – ಘಟಿ ${panchanga.tithiGhati} ವಿ ${panchanga.tithiVighati}` : "ದ್ವಿತೀಯಾ (೨) – ಘಟಿ ೧೪ ವಿ ೩೭";
-  const vasara = panchanga ? `${panchanga.weekdayKn} – ರವಿ ನಕ್ಷತ್ರ ${panchanga.sunNakshatraKn}, ಘಟಿ ${panchanga.sunNakshatraGhati} ವಿ ${panchanga.sunNakshatraVighati}` : "ಚಂದ್ರ ವಾಸರೇ – ರವಿ ನಕ್ಷತ್ರ ಪೂರ್ವಾಭಾದ್ರ, ಘಟಿ ೩೯ ವಿ ೩೮";
-  const nakshatra = panchanga ? `${panchanga.moonNakshatraKn} – ಚಂದ್ರ ನಕ್ಷತ್ರ, ಘಟಿ ${panchanga.moonNakshatraGhati} ವಿ ${panchanga.moonNakshatraVighati}` : "ಆಶ್ಲೇಷ – ಚಂದ್ರ ನಕ್ಷತ್ರ, ಘಟಿ ೬೦ ವಿ ೦೦";
-  const yoga = panchanga ? `${panchanga.yogaKn} – ಘಟಿ ${panchanga.yogaGhati} ವಿ ${panchanga.yogaVighati}` : "ವಿಷ್ಕಂಭ – ಘಟಿ ೧೯ ವಿ ೪೭";
-  const karana = panchanga ? `${panchanga.karanaKn} – ಘಟಿ ${panchanga.karanaGhati} ವಿ ${panchanga.karanaVighati}` : "ಬಾಲವ – ಘಟಿ ೧೪ ವಿ ೪೯";
+  const tithi = panchanga ? `${panchanga.tithiKn} – ಘಟಿ ${formatChartHouseNumber(panchanga.tithiGhati, "kn")} ವಿ ${formatChartHouseNumber(panchanga.tithiVighati, "kn")}` : "ದ್ವಿತೀಯಾ (೨) – ಘಟಿ ೧೪ ವಿ ೩೭";
+  const vasara = panchanga ? `${panchanga.weekdayKn} – ರವಿ ನಕ್ಷತ್ರ ${panchanga.sunNakshatraKn}, ಘಟಿ ${formatChartHouseNumber(panchanga.sunNakshatraGhati, "kn")} ವಿ ${formatChartHouseNumber(panchanga.sunNakshatraVighati, "kn")}` : "ಚಂದ್ರ ವಾಸರೇ – ರವಿ ನಕ್ಷತ್ರ ಪೂರ್ವಾಭಾದ್ರ, ಘಟಿ ೩೯ ವಿ ೩೮";
+  const nakshatra = panchanga ? `${panchanga.moonNakshatraKn} – ಚಂದ್ರ ನಕ್ಷತ್ರ, ಘಟಿ ${formatChartHouseNumber(panchanga.moonNakshatraGhati, "kn")} ವಿ ${formatChartHouseNumber(panchanga.moonNakshatraVighati, "kn")}` : "ಆಶ್ಲೇಷ – ಚಂದ್ರ ನಕ್ಷತ್ರ, ಘಟಿ ೬೦ ವಿ ೦೦";
+  const yoga = panchanga ? `${panchanga.yogaKn} – ಘಟಿ ${formatChartHouseNumber(panchanga.yogaGhati, "kn")} ವಿ ${formatChartHouseNumber(panchanga.yogaVighati, "kn")}` : "ವಿಷ್ಕಂಭ – ಘಟಿ ೧೯ ವಿ ೪೭";
+  const karana = panchanga ? `${panchanga.karanaKn} – ಘಟಿ ${formatChartHouseNumber(panchanga.karanaGhati, "kn")} ವಿ ${formatChartHouseNumber(panchanga.karanaVighati, "kn")}` : "ಬಾಲವ – ಘಟಿ ೧೪ ವಿ ೪೯";
   
-  const visha = panchanga ? `ಘಟಿ ${panchanga.vishaGhati.ghati} ವಿ ${panchanga.vishaGhati.vighati}` : "ಘಟಿ ೩೦ ವಿ ೩೨";
-  const amruta = panchanga ? `ಘಟಿ ${panchanga.amrithaGhati.ghati} ವಿ ${panchanga.amrithaGhati.vighati}` : "ಘಟಿ ೪೯ ವಿ ೩೨";
-  const diva = panchanga ? `ಘಟಿ ${panchanga.divaGhati.ghati} ವಿ ${panchanga.divaGhati.vighati}` : "ಘಟಿ ೩೦ ವಿ ೫೫";
-  const sankranti = panchanga ? `${panchanga.sankrantiSignKn} ಸಂಕ್ರಾಂತಿ, ಗತದಿನ ${panchanga.sankrantiGataDina}` : "ಮೀನ ಸಂಕ್ರಾಂತಿ, ಗತದಿನ ೧೩";
-  const parama = panchanga ? `ಘಟಿ ${panchanga.paramaGhati.ghati} ವಿ ${panchanga.paramaGhati.vighati}` : "ಘಟಿ ೬೪ ವಿ ೧೪";
-  const aishya = panchanga ? `ಘಟಿ ${panchanga.ashayaGhati.ghati} ವಿ ${panchanga.ashayaGhati.vighati}` : "ಘಟಿ ೧೦ ವಿ ೧೪";
-  const gata = panchanga ? `ಘಟಿ ${panchanga.ghatadina.ghati} ವಿ ${panchanga.ghatadina.vighati}` : "ಘಟಿ ೫೪ ವಿ ೦೦";
-  const suryodayadi = panchanga ? `ಘಟಿ ${panchanga.suryodhayadgata.ghati} ವಿ ${panchanga.suryodhayadgata.vighati}` : "ಘಟಿ ೦೨ ವಿ ೪೪";
+  const visha = panchanga ? `ಘಟಿ ${formatChartHouseNumber(panchanga.vishaGhati.ghati, "kn")} ವಿ ${formatChartHouseNumber(panchanga.vishaGhati.vighati, "kn")}` : "ಘಟಿ ೩೦ ವಿ ೩೨";
+  const amruta = panchanga ? `ಘಟಿ ${formatChartHouseNumber(panchanga.amrithaGhati.ghati, "kn")} ವಿ ${formatChartHouseNumber(panchanga.amrithaGhati.vighati, "kn")}` : "ಘಟಿ ೪೯ ವಿ ೩೨";
+  const diva = panchanga ? `ಘಟಿ ${formatChartHouseNumber(panchanga.divaGhati.ghati, "kn")} ವಿ ${formatChartHouseNumber(panchanga.divaGhati.vighati, "kn")}` : "ಘಟಿ ೩೦ ವಿ ೫೫";
+  const sankranti = panchanga ? `${panchanga.sankrantiSignKn} ಸಂಕ್ರಾಂತಿ, ಗತದಿನ ${formatChartHouseNumber(panchanga.sankrantiGataDina, "kn")}` : "ಮೀನ ಸಂಕ್ರಾಂತಿ, ಗತದಿನ ೧೩";
+  const parama = panchanga ? `ಘಟಿ ${formatChartHouseNumber(panchanga.paramaGhati.ghati, "kn")} ವಿ ${formatChartHouseNumber(panchanga.paramaGhati.vighati, "kn")}` : "ಘಟಿ ೬೪ ವಿ ೧೪";
+  const aishya = panchanga ? `ಘಟಿ ${formatChartHouseNumber(panchanga.ashayaGhati.ghati, "kn")} ವಿ ${formatChartHouseNumber(panchanga.ashayaGhati.vighati, "kn")}` : "ಘಟಿ ೧೦ ವಿ ೧೪";
+  const gata = panchanga ? `ಘಟಿ ${formatChartHouseNumber(panchanga.ghatadina.ghati, "kn")} ವಿ ${formatChartHouseNumber(panchanga.ghatadina.vighati, "kn")}` : "ಘಟಿ ೫೪ ವಿ ೦೦";
+  const suryodayadi = panchanga ? `ಘಟಿ ${formatChartHouseNumber(panchanga.suryodhayadgata.ghati, "kn")} ವಿ ${formatChartHouseNumber(panchanga.suryodhayadgata.vighati, "kn")}` : "ಘಟಿ ೦೨ ವಿ ೪೪";
   
   let dashaBalance = "ಬುಧ ದಶಾವರ್ಷ ೧೫ ಮಾಸ ೮ ದಿನ ೧೩";
   if (panchanga?.dashaLord) {
     const pName = t(`planets.${panchanga.dashaLord}`, { lng: "kn" });
-    dashaBalance = `${pName} ದಶಾವರ್ಷ ${panchanga.dashaYears} ಮಾಸ ${panchanga.dashaMonths} ದಿನ ${panchanga.dashaDays}`;
+    dashaBalance = `${pName} ದಶಾವರ್ಷ ${formatChartHouseNumber(panchanga.dashaYears!, "kn")} ಮಾಸ ${formatChartHouseNumber(panchanga.dashaMonths!, "kn")} ದಿನ ${formatChartHouseNumber(panchanga.dashaDays!, "kn")}`;
   }
   
   const birthTimeLabel = isDayBirth ? "ಹಗಲು" : "ರಾತ್ರಿ";
-  const h = birthDateObj.getHours();
-  const m = birthDateObj.getMinutes();
+  let h = birthDateObj.getHours();
+  let m = birthDateObj.getMinutes();
+  if (birthTimeStr && birthTimeStr.includes(":")) {
+    const parts = birthTimeStr.split(":");
+    h = parseInt(parts[0], 10) || h;
+    m = parseInt(parts[1], 10) || m;
+  }
   const displayH = h % 12 || 12;
+  const displayHKn = formatChartHouseNumber(displayH, "kn");
+  const displayMKn = formatChartHouseNumber(m, "kn").padStart(2, '೦');
 
   const moonDegree = kundli.planets.find((p) => p.name === "Moon")?.degree || 0;
   const pada = formatChartHouseNumber(kundli.moonPada, "kn"); // 1, 2, 3, or 4
@@ -164,12 +173,12 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
           <div><b>ಅಮೃತಘಟಿ:</b> {amruta}</div>
           <div><b>ದಿವಾ:</b> {diva}</div>
           <div><b>ಪರಮ:</b> {parama}</div>
-          <div><b>ಐಷ್ಯಕಾಲ:</b> {aishya}</div>
+          <div><b>ಆಷ್ಯಕಾಲ:</b> {aishya}</div>
           <div><b>ಗತಕಾಲ:</b> {gata}</div>
           
           <div style={{ flexBasis: "100%", borderTop: "1px dashed #ccc", paddingTop: "5px", marginTop: "2px" }}>
             <b>ಸೂರ್ಯೋದಯಾದಿ:</b> {suryodayadi} &nbsp;|&nbsp; 
-            <b>ಜನ್ಮಕಾಲ:</b> ({birthTimeLabel} ಘಂಟೆ {displayH} ಮಿ {m.toString().padStart(2, "0")}) &nbsp;|&nbsp; 
+            <b>ಜನ್ಮಕಾಲ:</b> ({birthTimeLabel} ಘಂಟೆ {displayHKn} ಮಿ {displayMKn}) &nbsp;|&nbsp; 
             <b>ದಶಾಸಿಲ್ಕು:</b> {dashaBalance}
             {parentsName ? <><br/>{parentsName} ಇವರ ಪುತ್ರ/ಪುತ್ರಿ.</> : null}
             {gothra ? ` ಗೋತ್ರ: ${gothra}` : null}
@@ -217,20 +226,12 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
                         <span>: {personName || "________________"}</span>
                       </div>
                       <div style={{ display: "flex", fontSize: "14px" }}>
-                        <span style={{ width: "80px" }}>ಯೋನಿ/ಗಣ</span>
-                        <span>: {moonNakshatra ? patrikaMetaForNakshatraIndex(kundli.planets.find(p => p.name === "Moon")?.nakshatra.index || 0).yoniKn : ""} / {moonNakshatra ? patrikaMetaForNakshatraIndex(kundli.planets.find(p => p.name === "Moon")?.nakshatra.index || 0).ganaKn : ""}</span>
-                      </div>
-                      <div style={{ display: "flex", fontSize: "14px" }}>
-                        <span style={{ width: "80px" }}>ನಾಡಿ/ಪಾದ</span>
-                        <span>: {moonNakshatra ? patrikaMetaForNakshatraIndex(kundli.planets.find(p => p.name === "Moon")?.nakshatra.index || 0).nadiKn : ""} / {pada}</span>
-                      </div>
-                      <div style={{ display: "flex" }}>
-                        <span style={{ width: "80px" }}>ರಾಶಿ</span>
-                        <span>: {t(`rashis.${kundli.moonSign.sanskrit}`, { lng: "kn" })}</span>
-                      </div>
-                      <div style={{ display: "flex", fontSize: "14px" }}>
                         <span style={{ width: "80px" }}>ಗೋತ್ರ</span>
                         <span>: {gothra || "________________"}</span>
+                      </div>
+                      <div style={{ display: "flex" }}>
+                        <span style={{ width: "80px" }}>ರಾಶಿ/ಪಾದ</span>
+                        <span>: {moonRashiName} / {pada}</span>
                       </div>
                     </div>
                   );
@@ -280,9 +281,9 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
 
         {/* Bottom Details Section */}
         <div style={{ borderTop: "2px solid #000", borderBottom: "2px solid #000", margin: "15px 0", padding: "10px 0", display: "flex", justifyContent: "space-around", fontSize: "15px", fontWeight: "bold" }}>
-          <div>ಗೋತ್ರ: {gothra ? gothra : "-"}</div>
-          <div>ಜನ್ಮ ರಾಶಿ: <span>{moonRashiName}</span></div>
-          <div>ಪಾದ: <span>{pada}</span></div>
+          <div>ಯೋನಿ: <span>{moonNakshatra ? patrikaMetaForNakshatraIndex(kundli.planets.find(p => p.name === "Moon")?.nakshatra.index || 0).yoniKn : "-"}</span></div>
+          <div>ಗಣ: <span>{moonNakshatra ? patrikaMetaForNakshatraIndex(kundli.planets.find(p => p.name === "Moon")?.nakshatra.index || 0).ganaKn : "-"}</span></div>
+          <div>ನಾಡಿ: <span>{moonNakshatra ? patrikaMetaForNakshatraIndex(kundli.planets.find(p => p.name === "Moon")?.nakshatra.index || 0).nadiKn : "-"}</span></div>
         </div>
 
         {/* Footer */}
