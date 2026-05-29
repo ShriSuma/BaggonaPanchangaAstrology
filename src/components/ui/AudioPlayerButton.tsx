@@ -4,9 +4,10 @@ interface AudioPlayerButtonProps {
   text: string;
   lang?: string;
   className?: string;
+  voiceType?: "default" | "jayashree" | "dramatic";
 }
 
-export default function AudioPlayerButton({ text, lang = "kn-IN", className = "" }: AudioPlayerButtonProps) {
+export default function AudioPlayerButton({ text, lang = "kn-IN", className = "", voiceType = "default" }: AudioPlayerButtonProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isSupported, setIsSupported] = useState(true);
 
@@ -37,8 +38,18 @@ export default function AudioPlayerButton({ text, lang = "kn-IN", className = ""
     const utterance = new SpeechSynthesisUtterance(text);
     // Use Kannada as default if available, fallback to provided lang
     utterance.lang = lang;
-    utterance.rate = 0.9; // slightly slower for better clarity
-    utterance.pitch = 1.0;
+    
+    // Add emotion based on voiceType
+    if (voiceType === "jayashree") {
+      utterance.rate = 0.85; // Slower, older, wiser
+      utterance.pitch = 0.8; // Deeper voice
+    } else if (voiceType === "dramatic") {
+      utterance.rate = 1.0; 
+      utterance.pitch = 1.2; // Higher, more energetic
+    } else {
+      utterance.rate = 0.95; // Default slightly slower for clarity
+      utterance.pitch = 1.0;
+    }
 
     utterance.onend = () => {
       setIsPlaying(false);

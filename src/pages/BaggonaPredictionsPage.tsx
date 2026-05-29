@@ -860,7 +860,7 @@ export default function BaggonaPredictionsPage(): JSX.Element {
                     <span className="inline-block rounded-full bg-amber-500/20 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-300 border border-amber-500/30">
                       🎙️ {t("predictions.jayashree")}
                     </span>
-                    <AudioPlayerButton text={`${jayashreeReading.intro} ${jayashreeReading.dashaContext}`} lang={isKn ? "kn-IN" : "en-IN"} className="text-amber-300 hover:bg-amber-500/20 hover:text-white" />
+                    <AudioPlayerButton text={`${jayashreeReading.intro} ${jayashreeReading.dashaContext}`} lang={isKn ? "kn-IN" : "en-IN"} voiceType="jayashree" className="text-amber-300 hover:bg-amber-500/20 hover:text-white" />
                   </div>
                   <p className="mt-3 text-sm leading-relaxed text-slate-200 text-justify">
                     {jayashreeReading.intro}
@@ -882,7 +882,7 @@ export default function BaggonaPredictionsPage(): JSX.Element {
                     <h4 className="flex-1 text-xs font-extrabold text-indigo-950 uppercase tracking-wide">
                       {isKn ? "ವಿದ್ಯಾಭ್ಯಾಸ ಮತ್ತು ಶಿಕ್ಷಣ" : "Education & Academic Prospects"}
                     </h4>
-                    <AudioPlayerButton text={jayashreeReading.education} lang={isKn ? "kn-IN" : "en-IN"} />
+                    <AudioPlayerButton text={jayashreeReading.education} lang={isKn ? "kn-IN" : "en-IN"} voiceType="jayashree" />
                   </div>
                   <p className="text-xs leading-relaxed text-slate-700 text-justify">
                     {jayashreeReading.education}
@@ -898,7 +898,7 @@ export default function BaggonaPredictionsPage(): JSX.Element {
                     <h4 className="flex-1 text-xs font-extrabold text-indigo-950 uppercase tracking-wide">
                       {isKn ? "ಉದ್ಯೋಗ ಮತ್ತು ವೃತ್ತಿಜೀವನ" : "Career & Employment Opportunities"}
                     </h4>
-                    <AudioPlayerButton text={jayashreeReading.career} lang={isKn ? "kn-IN" : "en-IN"} />
+                    <AudioPlayerButton text={jayashreeReading.career} lang={isKn ? "kn-IN" : "en-IN"} voiceType="jayashree" />
                   </div>
                   <p className="text-xs leading-relaxed text-slate-700 text-justify">
                     {jayashreeReading.career}
@@ -914,7 +914,7 @@ export default function BaggonaPredictionsPage(): JSX.Element {
                     <h4 className="flex-1 text-xs font-extrabold text-indigo-950 uppercase tracking-wide">
                       {isKn ? "ಆರೋಗ್ಯ ಮತ್ತು ದೈಹಿಕ ಸ್ಥಿತಿ" : "Health & Well-being"}
                     </h4>
-                    <AudioPlayerButton text={jayashreeReading.health} lang={isKn ? "kn-IN" : "en-IN"} />
+                    <AudioPlayerButton text={jayashreeReading.health} lang={isKn ? "kn-IN" : "en-IN"} voiceType="jayashree" />
                   </div>
                   <p className="text-xs leading-relaxed text-slate-700 text-justify">
                     {jayashreeReading.health}
@@ -930,7 +930,7 @@ export default function BaggonaPredictionsPage(): JSX.Element {
                     <h4 className="flex-1 text-xs font-extrabold text-indigo-950 uppercase tracking-wide">
                       {isKn ? "ಹಣಕಾಸು ಮತ್ತು ಸಂಪತ್ತು" : "Finance & Wealth Management"}
                     </h4>
-                    <AudioPlayerButton text={jayashreeReading.finance} lang={isKn ? "kn-IN" : "en-IN"} />
+                    <AudioPlayerButton text={jayashreeReading.finance} lang={isKn ? "kn-IN" : "en-IN"} voiceType="jayashree" />
                   </div>
                   <p className="text-xs leading-relaxed text-slate-700 text-justify">
                     {jayashreeReading.finance}
@@ -946,7 +946,7 @@ export default function BaggonaPredictionsPage(): JSX.Element {
                     <h4 className="flex-1 text-xs font-extrabold text-indigo-950 uppercase tracking-wide">
                       {isKn ? "ಗೃಹ ಮತ್ತು ವಾಸಸ್ಥಳ" : "Housing & Residence"}
                     </h4>
-                    <AudioPlayerButton text={jayashreeReading.housing} lang={isKn ? "kn-IN" : "en-IN"} />
+                    <AudioPlayerButton text={jayashreeReading.housing} lang={isKn ? "kn-IN" : "en-IN"} voiceType="jayashree" />
                   </div>
                   <p className="text-xs leading-relaxed text-slate-700 text-justify">
                     {jayashreeReading.housing}

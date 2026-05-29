@@ -80,6 +80,7 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
   const pada = formatChartHouseNumber(kundli.moonPada, "kn"); // 1, 2, 3, or 4
   
   const moonNakshatra = kundli.planets.find((p) => p.name === "Moon")?.nakshatra.sanskrit || "";
+  const moonRashiName = t(`rashis.${kundli.moonSign.sanskrit}`, { lng: "kn" });
 
   const lagnaAmsha = formatNavamsaPada(kundli.ascendant, "kn").slice(-1);
   const maandi = kundli.maandi;
@@ -126,20 +127,9 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
             || ಶ್ರೀ ||<br/>
             ಜನನಿ ಜನ್ಮ ಸೌಖ್ಯಾನಾಂ<br/>ವರ್ಧನೀ ಕುಲ ಸಂಪದಾಂ
           </div>
-          <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
-            <div style={{
-              width: "60px",
-              height: "60px",
-              borderRadius: "50%",
-              border: "2px solid #000",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "24px",
-              fontWeight: "bold"
-            }}>
-              ಓಂ
-            </div>
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ width: "45px", height: "45px", borderRadius: "50%", border: "2px solid #000", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", fontWeight: "bold" }}>ಓಂ</div>
+            <div style={{ fontSize: "16px", fontWeight: "bold", marginTop: "6px" }}>ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಜನನ ಪತ್ರಿಕೆ</div>
           </div>
           <div style={{ flex: 1, fontSize: "14px", fontWeight: "bold", textAlign: "right", lineHeight: "1.4" }}>
             || ಶ್ರೀ ||<br/>
@@ -149,43 +139,39 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
 
         {/* Panchanga Block */}
         <div style={{ 
-          display: "grid", 
-          gridTemplateColumns: "1fr 1fr 1fr", 
-          gap: "4px", 
-          fontSize: "13px", 
-          lineHeight: "1.5", 
+          display: "flex", 
+          flexWrap: "wrap",
+          gap: "8px 16px", 
+          fontSize: "14px", 
+          lineHeight: "1.6", 
           marginBottom: "15px",
           border: "2px solid #000",
-          padding: "5px 10px",
+          padding: "8px 12px",
           backgroundColor: "#ffffff",
-          whiteSpace: "nowrap",
-          overflow: "hidden"
+          fontFamily: "'Hind', sans-serif"
         }}>
           <div><b>ಶಕವರ್ಷ:</b> {shakaYear} {samvatsara}</div>
           <div><b>ಮಾಸ:</b> {masa}</div>
           <div><b>ಪಕ್ಷ:</b> {paksha}</div>
-          
           <div><b>ತಿಥಿ:</b> {tithi}</div>
-          <div><b style={{marginRight: "4px"}}>ವಾರ:</b>{vasara}</div>
+          <div><b>ವಾರ:</b> {vasara}</div>
           <div><b>ನಕ್ಷತ್ರ:</b> {nakshatra}</div>
-          
           <div><b>ಯೋಗ:</b> {yoga}</div>
           <div><b>ಕರಣ:</b> {karana}</div>
           <div><b>ಸಂಕ್ರಾಂತಿ:</b> {sankranti}</div>
-          
-          <div><b>ವಿಷ:</b> {visha}</div>
-          <div><b>ಅಮೃತ:</b> {amruta}</div>
+          <div><b>ವಿಷಘಟಿ:</b> {visha}</div>
+          <div><b>ಅಮೃತಘಟಿ:</b> {amruta}</div>
           <div><b>ದಿವಾ:</b> {diva}</div>
-          
           <div><b>ಪರಮ:</b> {parama}</div>
-          <div><b>ಇಷ್ಟ:</b> {ishta}</div>
-          <div><b>ಗತ:</b> {gata}</div>
+          <div><b>ಇಷ್ಟಕಾಲ:</b> {ishta}</div>
+          <div><b>ಗತಕಾಲ:</b> {gata}</div>
           
-          <div style={{ gridColumn: "1 / span 3", borderTop: "1px dashed #ccc", paddingTop: "5px", marginTop: "2px", whiteSpace: "normal" }}>
+          <div style={{ flexBasis: "100%", borderTop: "1px dashed #ccc", paddingTop: "5px", marginTop: "2px" }}>
             <b>ಸೂರ್ಯೋದಯಾದಿ:</b> {suryodayadi} &nbsp;|&nbsp; 
             <b>ಜನ್ಮಕಾಲ:</b> ({birthTimeLabel} ಘಂಟೆ {displayH} ಮಿ {m.toString().padStart(2, "0")}) &nbsp;|&nbsp; 
             <b>ದಶಾಸಿಲ್ಕು:</b> {dashaBalance}
             {parentsName ? <><br/>{parentsName} ಇವರ ಪುತ್ರ/ಪುತ್ರಿ.</> : null}
+            {gothra ? ` ಗೋತ್ರ: ${gothra}` : null}
           </div>
         </div>
 
@@ -292,20 +278,16 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
         </div>
 
         {/* Bottom Details Section */}
-        <div style={{ borderTop: "2px solid #000", borderBottom: "2px solid #000", margin: "15px 0", padding: "10px 0", display: "flex", justifyContent: "space-around", fontSize: "15px", fontWeight: "bold", color: "#000" }}>
-          <div>ಯೋನಿ: <span>ಮಾರ್ಜಾಲ</span></div>
-          <div>ಗಣ: <span>ರಾಕ್ಷಸ</span></div>
-          <div>ನಾಡಿ: <span>ಅಂತ್ಯ</span></div>
-          <div>ನಕ್ಷತ್ರ ನಾಮ: <span>ಡಿ</span></div>
+        <div style={{ borderTop: "2px solid #000", borderBottom: "2px solid #000", margin: "15px 0", padding: "10px 0", display: "flex", justifyContent: "space-around", fontSize: "15px", fontWeight: "bold" }}>
+          <div>ಗೋತ್ರ: {gothra ? gothra : "-"}</div>
+          <div>ಜನ್ಮ ರಾಶಿ: <span>{moonRashiName}</span></div>
+          <div>ಪಾದ: <span>{pada}</span></div>
         </div>
 
         {/* Footer */}
         <div style={{ textAlign: "center", fontSize: "15px", paddingTop: "5px", color: "#000" }}>
           <div style={{ fontWeight: "bold" }}>
-            ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಕರ್ತರು : ಶ್ರೀರಾಮ್ ಪಂಡಿತ್
-          </div>
-          <div style={{ marginTop: "4px" }}>
-            ಮೊಬೈಲ್ - 9972339362
+            ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಪುಸ್ತಕದ ಆಧಾರಿತ
           </div>
         </div>
       </div>
