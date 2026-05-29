@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { patrikaMetaForNakshatraIndex } from "../../core/nakshatraPatrikaMeta";
 import type { KundliOutput, PlanetPosition } from "../../core/AstroTypes";
-import { formatNavamsaPada, formatChartHouseNumber } from "../../core/localeNumbers";
+import { formatChartHouseNumber, patrikaNavamshaFromDegree } from "../../core/localeNumbers";
 import type { TraditionalBaggonaPanchanga } from "../../core/TraditionalBaggonaEngine";
 
 type Props = {
@@ -92,14 +92,14 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
   const moonNakshatra = kundli.planets.find((p) => p.name === "Moon")?.nakshatra.sanskrit || "";
   const moonRashiName = t(`rashis.${kundli.moonSign.sanskrit}`, { lng: "kn" });
 
-  const lagnaAmsha = formatNavamsaPada(kundli.ascendant, "kn").slice(-1);
+  const lagnaAmsha = formatChartHouseNumber(patrikaNavamshaFromDegree(kundli.ascendant), "kn");
   const maandi = kundli.maandi;
-  const maandiAmsha = maandi ? formatNavamsaPada(maandi.degree, "kn").slice(-1) : "";
+  const maandiAmsha = maandi ? formatChartHouseNumber(patrikaNavamshaFromDegree(maandi.degree), "kn") : "";
 
   const renderPlanetKn = (p: PlanetPosition) => {
     let base = t(`planets.${p.name}`, { lng: "kn" });
     if (p.isRetrograde) base += "(ವ)";
-    const amsha = formatNavamsaPada(p.degree, "kn").slice(-1);
+    const amsha = formatChartHouseNumber(patrikaNavamshaFromDegree(p.degree), "kn");
     return `${base}(${amsha})`;
   };
 

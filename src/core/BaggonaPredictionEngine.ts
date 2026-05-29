@@ -1242,6 +1242,61 @@ export function generateBaggonaPredictions(
       whatIsWrong = enWrongs[h - 1]!;
       remedy = enRemedies[h - 1]!;
     }
+    
+    // DYNAMIC RULE ENGINE: Apply Baggona Panchanga rules based on generated Kundali (occupants)
+    let dynamicGood = whatIsGood;
+    let dynamicWrong = whatIsWrong;
+    
+    for (const p of occupants) {
+      if (isKn) {
+        if (p.name === PN.Jupiter) dynamicGood += " ಗುರು ಗ್ರಹದ ಉಪಸ್ಥಿತಿಯಿಂದಾಗಿ ಜ್ಞಾನ, ಸಂಪತ್ತು ಮತ್ತು ಶುಭ ಫಲಗಳು ಹೆಚ್ಚಾಗುತ್ತವೆ.";
+        if (p.name === PN.Venus) dynamicGood += " ಶುಕ್ರನ ಪ್ರಭಾವದಿಂದ ಕಲೆ, ಸೌಂದರ್ಯ ಮತ್ತು ಐಷಾರಾಮಿ ಜೀವನ ಸುಗಮವಾಗುತ್ತದೆ.";
+        if (p.name === PN.Saturn) dynamicWrong += " ಶನಿಯ ಪ್ರಭಾವದಿಂದ ಕಾರ್ಯಗಳಲ್ಲಿ ವಿಳಂಬ ಮತ್ತು ಹೆಚ್ಚಿನ ಶ್ರಮದ ಅಗತ್ಯವಿರುತ್ತದೆ.";
+        if (p.name === PN.Mars) dynamicWrong += " ಮಂಗಳನ ಪ್ರಭಾವದಿಂದಾಗಿ ಕೋಪ, ಆತುರ ಮತ್ತು ವಿವಾದಗಳು ಎದುರಾಗಬಹುದು.";
+        if (p.name === PN.Rahu) dynamicWrong += " ರಾಹುವಿನಿಂದಾಗಿ ಗೊಂದಲ, ಅನಿರೀಕ್ಷಿತ ತಿರುವುಗಳು ಮತ್ತು ಭ್ರಮೆ ಮೂಡಬಹುದು.";
+        if (p.name === PN.Ketu) dynamicWrong += " ಕೇತುವಿನ ಪ್ರಭಾವದಿಂದ ವಿರಕ್ತಿ, ಅಸಡ್ಡೆ ಮತ್ತು ಒಂಟಿತನ ಕಾಡಬಹುದು.";
+        if (p.name === PN.Moon) dynamicGood += " ಚಂದ್ರನಿಂದಾಗಿ ಮನಸ್ಸಿಗೆ ಶಾಂತಿ, ಭಾವನಾತ್ಮಕ ಬೆಂಬಲ ಮತ್ತು ಸೌಮ್ಯತೆ ದೊರೆಯುತ್ತದೆ.";
+        if (p.name === PN.Sun) dynamicGood += " ಸೂರ್ಯನಿಂದಾಗಿ ನಾಯಕತ್ವ, ತೇಜಸ್ಸು ಮತ್ತು ಸರ್ಕಾರಿ/ಅಧಿಕೃತ ಕೆಲಸಗಳಲ್ಲಿ ಯಶಸ್ಸು ಸಿಗುತ್ತದೆ.";
+        if (p.name === PN.Mercury) dynamicGood += " ಬುಧನ ಪ್ರಭಾವದಿಂದ ಬುದ್ಧಿವಂತಿಕೆ, ವ್ಯಾಪಾರ ಕೌಶಲ್ಯ ಮತ್ತು ಸಂವಹನ ಶಕ್ತಿ ವೃದ್ಧಿಸುತ್ತದೆ.";
+      } else if (isHi) {
+        if (p.name === PN.Jupiter) dynamicGood += " गुरु ग्रह की उपस्थिति से ज्ञान, धन और शुभ फलों में वृद्धि होती है।";
+        if (p.name === PN.Venus) dynamicGood += " शुक्र के प्रभाव से कला, सौंदर्य और विलासितापूर्ण जीवन सुगम होता है।";
+        if (p.name === PN.Saturn) dynamicWrong += " शनि के प्रभाव से कार्यों में देरी और अधिक परिश्रम की आवश्यकता होती है।";
+        if (p.name === PN.Mars) dynamicWrong += " मंगल के प्रभाव से क्रोध, जल्दबाजी और विवादों का सामना करना पड़ सकता है।";
+        if (p.name === PN.Rahu) dynamicWrong += " राहु के कारण भ्रम, अप्रत्याशित बदलाव और मानसिक उलझन हो सकती है।";
+        if (p.name === PN.Ketu) dynamicWrong += " केतु के प्रभाव से वैराग्य, अलगाव और अकेलेपन की भावना आ सकती है।";
+        if (p.name === PN.Moon) dynamicGood += " चंद्रमा के कारण मन को शांति, भावनात्मक समर्थन और सौम्यता मिलती है।";
+        if (p.name === PN.Sun) dynamicGood += " सूर्य के कारण नेतृत्व, तेज और सरकारी/आधिकारिक कार्यों में सफलता मिलती है।";
+        if (p.name === PN.Mercury) dynamicGood += " बुध के प्रभाव से बुद्धिमत्ता, व्यापारिक कौशल और संचार शक्ति बढ़ती है।";
+      } else {
+        if (p.name === PN.Jupiter) dynamicGood += " Jupiter's presence enhances wisdom, wealth, and highly auspicious results.";
+        if (p.name === PN.Venus) dynamicGood += " Venus brings comfort, artistic inclination, and luxury into this area.";
+        if (p.name === PN.Saturn) dynamicWrong += " Saturn causes delays, demanding extra hard work and extreme patience.";
+        if (p.name === PN.Mars) dynamicWrong += " Mars may trigger sudden anger, impulsive actions, and conflicts here.";
+        if (p.name === PN.Rahu) dynamicWrong += " Rahu induces confusion, unexpected twists, and illusions in this domain.";
+        if (p.name === PN.Ketu) dynamicWrong += " Ketu brings a sense of detachment, isolation, and lack of worldly interest.";
+        if (p.name === PN.Moon) dynamicGood += " The Moon provides emotional support, mental peace, and gentleness.";
+        if (p.name === PN.Sun) dynamicGood += " The Sun brings leadership, vitality, and success in authoritative matters.";
+        if (p.name === PN.Mercury) dynamicGood += " Mercury significantly boosts intelligence, business acumen, and communication skills.";
+      }
+    }
+    
+    // Also append Lord rules if the house is empty
+    if (occupants.length === 0) {
+      if (isKn) {
+        dynamicGood += ` ಈ ಭಾವದ ಅಧಿಪತಿ ${lordName} ಆಗಿರುವುದರಿಂದ, ಇವರ ಅನುಗ್ರಹದಿಂದ ಸ್ಥಿರತೆ ಲಭಿಸುತ್ತದೆ.`;
+        dynamicWrong += ` ಆದಾಗ್ಯೂ, ${lordName}ನ ಸ್ಥಾನಮಾನದ ಆಧಾರದ ಮೇಲೆ ಫಲಿತಾಂಶಗಳು ಬದಲಾಗುತ್ತವೆ.`;
+      } else if (isHi) {
+        dynamicGood += ` इस भाव के स्वामी ${lordName} होने के कारण, उनकी कृपा से स्थिरता मिलती है।`;
+        dynamicWrong += ` हालांकि, ${lordName} की स्थिति के आधार पर परिणाम बदल सकते हैं।`;
+      } else {
+        dynamicGood += ` Being ruled by ${lordName}, this house inherently carries its stabilizing grace.`;
+        dynamicWrong += ` However, the outcomes heavily rely on ${lordName}'s placement elsewhere.`;
+      }
+    }
+
+    whatIsGood = dynamicGood;
+    whatIsWrong = dynamicWrong;
 
     let title = "";
     let description = "";

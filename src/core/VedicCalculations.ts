@@ -164,10 +164,10 @@ export const getSunNakshatraEnd = (birthUtc: Date, model: AyanamsaModel): Date =
   const currIdx = Math.floor(birthLong / (360 / 27));
   const targetDeg = ((currIdx + 1) * (360 / 27)) % 360;
   
-  const step = 12.0 * 60 * 60 * 1000;
+  const step = 24.0 * 60 * 60 * 1000;
   let current = birthUtc;
   let prevLong = birthLong;
-  for (let i = 0; i < 30; i++) {
+  for (let i = 0; i < 40; i++) {
     const nextTime = new Date(current.getTime() + step);
     const nextLong = getLong(nextTime);
     if (isAngleBetween(targetDeg, prevLong, nextLong)) {
@@ -266,8 +266,7 @@ export const getVishaAndAmrithaGhati = (
   const amrithaStart = new Date(start.getTime() + (amrithaOffset / 60) * dur);
   
   const toGhatiVighati = (t: Date) => {
-    let ms = t.getTime() - sunriseUtc.getTime();
-    if (ms < 0) ms += 24 * 60 * 60 * 1000; // wrap around 24 hours
+    const ms = Math.max(0, t.getTime() - sunriseUtc.getTime());
     const totalVighati = Math.floor(ms / 24_000);
     return {
       ghati: Math.floor(totalVighati / 60) % 60,
