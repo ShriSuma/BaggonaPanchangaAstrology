@@ -1,3 +1,4 @@
+import { format } from 'date-fns';
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { KundliInput, KundliOutput } from "../core/AstroTypes";
@@ -248,13 +249,13 @@ export default function KundliPage(): JSX.Element {
   const traditionalData = useMemo(() => {
     if (!birthDatePicker || !birthTimeHm.trim()) return null;
     return calculateTraditionalBaggona(
-      form.date,
-      form.time,
+      birthDatePicker ? format(birthDatePicker, 'yyyy-MM-dd') : "",
+      birthTimeHm,
       form.latitude,
       form.longitude,
-      form.ayanamsa
+      ayanamsaModel
     );
-  }, [form.date, form.time, form.latitude, form.longitude, form.ayanamsa]);
+  }, [birthDatePicker, birthTimeHm, form.latitude, form.longitude, ayanamsaModel]);
 
   const gotraDisplay = useMemo(() => {
     const v = (form.gothra ?? "").trim();

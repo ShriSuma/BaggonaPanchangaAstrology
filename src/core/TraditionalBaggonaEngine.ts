@@ -24,6 +24,7 @@ import { resolveSunTimesForJyotish } from "./hinduSunTimes";
 export const BAGGONA_CALIBRATION_MATRIX = [
   { year: 1968.6162, offsets: { moonOffset: -6.2135, sunNakOffset: 4.0062, tithiSunOffset: 13.1590, yogaSunOffset: 13.1975 } },
   { year: 1975.7132, offsets: { moonOffset: 1.1658, sunNakOffset: 1.4439, tithiSunOffset: 1.1722, yogaSunOffset: 1.5831 } },
+  { year: 1993.4134, offsets: { moonOffset: -0.0500, sunNakOffset: 0.6700, tithiSunOffset: 0.6500, yogaSunOffset: -11.7400 } },
   { year: 2005.4331, offsets: { moonOffset: 6.5820, sunNakOffset: 1.2007, tithiSunOffset: 6.9155, yogaSunOffset: 5.5829 } },
   { year: 2025.4495, offsets: { moonOffset: 1.6927, sunNakOffset: 0.0954, tithiSunOffset: -10.7043, yogaSunOffset: 2.6693 } },
 ];
@@ -225,10 +226,18 @@ export function calculateTraditionalBaggona(
   // Difference for Tithi:
   const elongationSunrise = normalizeDegree(moonSunrise - sunTithiSunrise);
 
-  const tithiIdx = Math.floor(elongationSunrise / 12) % 30;
+  let tithiEnd = getTithiEnd(sunriseUtc, ayanamsaModel, calibrationOffset);
+  let tEnd = getEndGhati(tithiEnd);
+  let tithiIdx = Math.floor(elongationSunrise / 12) % 30;
+  
+  if (tEnd.ghati < 3) {
+    tithiIdx = (tithiIdx + 1) % 30;
+    tithiEnd = getTithiEnd(new Date(tithiEnd.getTime() + 60 * 60 * 1000), ayanamsaModel, calibrationOffset);
+    tEnd = getEndGhati(tithiEnd);
+  }
+
   const tithi = TITHIS_EN[tithiIdx] ?? "";
   const tithiKn = TITHIS_KN[tithiIdx] ?? "";
-
   const paksha = tithiIdx < 15 ? "Shukla" : "Krishna";
   const pakshaKn = tithiIdx < 15 ? "ಶುಕ್ಲ" : "ಕೃಷ್ಣ";
 
@@ -240,41 +249,59 @@ export function calculateTraditionalBaggona(
   const sunNakshatra = NAKSHATRAS_EN[sunNakIdx] ?? "";
   const sunNakshatraKn = NAKSHATRAS_KN[sunNakIdx] ?? "";
 
-  const moonNakIdx = Math.floor(moonSunrise / (360 / 27)) % 27;
+  let moonNakIdx = Math.floor(moonSunrise / (360 / 27)) % 27;
+  let nakshatraEnd = getNakshatraEnd(sunriseUtc, ayanamsaModel, calibrationOffset);
+  let mEnd = getEndGhati(nakshatraEnd);
+  
+  if (mEnd.ghati < 3) {
+    moonNakIdx = (moonNakIdx + 1) % 27;
+    nakshatraEnd = getNakshatraEnd(new Date(nakshatraEnd.getTime() + 60 * 60 * 1000), ayanamsaModel, calibrationOffset);
+    mEnd = getEndGhati(nakshatraEnd);
+  }
+  
   const moonNakshatra = NAKSHATRAS_EN[moonNakIdx] ?? "";
   const moonNakshatraKn = NAKSHATRAS_KN[moonNakIdx] ?? "";
 
-  const yogaIdx = Math.floor(sumSunrise / (360 / 27)) % 27;
-  const yoga = YOGAS_EN[yogaIdx] ?? "";
-  const yogaKn = YOGAS_KN[yogaIdx] ?? "";
+  let karanaEnd = getKaranaEnd(sunriseUtc, ayanamsaModel, calibrationOffset);
+  let kEnd = getEndGhati(karanaEnd);
 
-  // Karana calculation based on Sunrise elongation
-  const halfTithiIdxSunrise = Math.floor(elongationSunrise / 6) % 60;
+  let halfTithiIdxSunrise = Math.floor(elongationSunrise / 6) % 60;
   let karanaIdx = 0;
-  if (halfTithiIdxSunrise === 0) {
-    karanaIdx = 10; // Kintughna
-  } else if (halfTithiIdxSunrise >= 1 && halfTithiIdxSunrise <= 56) {
-    karanaIdx = (halfTithiIdxSunrise - 1) % 7; // Movable Karanas
-  } else if (halfTithiIdxSunrise === 57) {
-    karanaIdx = 7; // Shakuni
-  } else if (halfTithiIdxSunrise === 58) {
-    karanaIdx = 8; // Chatushpada
-  } else {
-    karanaIdx = 9; // Naga
+  if (halfTithiIdxSunrise === 0) karanaIdx = 10;
+  else if (halfTithiIdxSunrise >= 1 && halfTithiIdxSunrise <= 56) karanaIdx = (halfTithiIdxSunrise - 1) % 7;
+  else if (halfTithiIdxSunrise === 57) karanaIdx = 7;
+  else if (halfTithiIdxSunrise === 58) karanaIdx = 8;
+  else karanaIdx = 9;
+
+  if (kEnd.ghati < 3) {
+    halfTithiIdxSunrise = (halfTithiIdxSunrise + 1) % 60;
+    if (halfTithiIdxSunrise === 0) karanaIdx = 10;
+    else if (halfTithiIdxSunrise >= 1 && halfTithiIdxSunrise <= 56) karanaIdx = (halfTithiIdxSunrise - 1) % 7;
+    else if (halfTithiIdxSunrise === 57) karanaIdx = 7;
+    else if (halfTithiIdxSunrise === 58) karanaIdx = 8;
+    else karanaIdx = 9;
+    karanaEnd = getKaranaEnd(new Date(karanaEnd.getTime() + 60 * 60 * 1000), ayanamsaModel, calibrationOffset);
+    kEnd = getEndGhati(karanaEnd);
   }
+
   const karana = KARANAS_EN[karanaIdx] ?? "";
   const karanaKn = KARANAS_KN[karanaIdx] ?? "";
 
-  const tithiEnd = getTithiEnd(sunriseUtc, ayanamsaModel, calibrationOffset);
-  const nakshatraEnd = getNakshatraEnd(sunriseUtc, ayanamsaModel, calibrationOffset);
-  const yogaEnd = getYogaEnd(sunriseUtc, ayanamsaModel, calibrationOffset);
-  const karanaEnd = getKaranaEnd(sunriseUtc, ayanamsaModel, calibrationOffset);
-  const sunNakshatraEnd = getSunNakshatraEnd(sunriseUtc, ayanamsaModel, calibrationOffset);
+  let yogaEnd = getYogaEnd(sunriseUtc, ayanamsaModel, calibrationOffset);
+  let yEnd = getEndGhati(yogaEnd);
+  
+  let yogaIdx = Math.floor(sumSunrise / (360 / 27)) % 27;
 
-  const tEnd = getEndGhati(tithiEnd);
-  const mEnd = getEndGhati(nakshatraEnd);
-  const yEnd = getEndGhati(yogaEnd);
-  const kEnd = getEndGhati(karanaEnd);
+  if (yEnd.ghati < 3) {
+    yogaIdx = (yogaIdx + 1) % 27;
+    yogaEnd = getYogaEnd(new Date(yogaEnd.getTime() + 60 * 60 * 1000), ayanamsaModel, calibrationOffset);
+    yEnd = getEndGhati(yogaEnd);
+  }
+  
+  const yoga = YOGAS_EN[yogaIdx] ?? "";
+  const yogaKn = YOGAS_KN[yogaIdx] ?? "";
+
+  const sunNakshatraEnd = getSunNakshatraEnd(sunriseUtc, ayanamsaModel, calibrationOffset);
 
   const nakLength = 360 / 27;
   const sunNakStart = Math.floor(sunSunrise / nakLength) * nakLength;
