@@ -1047,6 +1047,7 @@ export default function BaggonaPredictionsPage(): JSX.Element {
                             <h3 className="text-xs font-extrabold text-indigo-950 uppercase tracking-wide">
                               {sec.title}
                             </h3>
+                            <AudioPlayerButton text={sec.description} lang={isKn ? "kn-IN" : "en-IN"} voiceType="jayashree" />
                           </div>
                           {sec.score !== undefined && (
                             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${badgeColor}`}>

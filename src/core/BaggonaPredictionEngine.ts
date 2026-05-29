@@ -1261,8 +1261,8 @@ export function generateBaggonaPredictions(
       } else {
         analysisText = `ಈ ಭಾವವು ಮಧ್ಯಮ ಶಕ್ತಿಯನ್ನು ಹೊಂದಿದ್ದು ಅತ್ಯಂತ ಸಮತೋಲಿತವಾಗಿದೆ. ${sigs} ಕ್ಕೆ ಸಂಬಂಧಿಸಿದ ವಿಷಯಗಳು ನಿಮ್ಮ ವೈಯಕ್ತಿಕ ಪ್ರಯತ್ನಗಳು, ಪರಿಶ್ರಮ ಮತ್ತು ಶಿಸ್ತಿನ ಆಧಾರದ ಮೇಲೆ ಹಂತಹಂತವಾಗಿ ಸುಧಾರಿಸುತ್ತವೆ. ಇಲ್ಲಿ ಹಠಾತ್ ಏರಿಳಿತಗಳಿಲ್ಲದೆ ಸ್ಥಿರವಾದ ಫಲಗಳು ಲಭಿಸುತ್ತವೆ.`;
       }
-      const karakaText = `\n\n[ಭಾವ ಕಾರಕ]: ಈ ಮನೆಗೆ ನೈಸರ್ಗಿಕ ಕಾರಕ ಗ್ರಹ ${HOUSE_KARAKAS_INFO[h].kn} ಆಗಿದೆ. ಜಾತಕದಲ್ಲಿ ಈ ಕಾರಕ ಗ್ರಹದ ಬಲವನ್ನು ನೋಡುವುದು ಈ ಭಾವದ ಪೂರ್ಣ ಫಲಗಳನ್ನು ಅರಿಯಲು ಅಗತ್ಯವಾಗಿರುತ್ತದೆ.`;
-      const lordPlacementText = `\n\n[ಭಾವಾಧಿಪತಿ ಸ್ಥಿತಿ ವಿವರಣೆ]: ಈ ಭಾವದ ಅಧಿಪತಿಯಾದ ${lordName} ಜಾತಕದ ${lordHouse}ನೇ ಭಾವದಲ್ಲಿ ನೆಲೆಸಿರುವುದು ನಿಮ್ಮ ಜೀವನದ ಪ್ರಮುಖ ಶಕ್ತಿಯನ್ನು ${lordHouse}ನೇ ಮನೆಗೆ ಸಂಬಂಧಿಸಿದ ವಿಷಯಗಳ ಕಡೆಗೆ ತಿರುಗಿಸುತ್ತದೆ. ಇದು ಆ ಭಾವದ ಕಾರಕತ್ವಗಳನ್ನು ಸಕ್ರಿಯಗೊಳಿಸುತ್ತದೆ.`;
+      const karakaText = `\n\nಭಾವ ಕಾರಕ: ಈ ಮನೆಗೆ ನೈಸರ್ಗಿಕ ಕಾರಕ ಗ್ರಹ ${HOUSE_KARAKAS_INFO[h].kn} ಆಗಿದೆ. ಜಾತಕದಲ್ಲಿ ಈ ಕಾರಕ ಗ್ರಹದ ಬಲವನ್ನು ನೋಡುವುದು ಈ ಭಾವದ ಪೂರ್ಣ ಫಲಗಳನ್ನು ಅರಿಯಲು ಅಗತ್ಯವಾಗಿರುತ್ತದೆ.`;
+      const lordPlacementText = `\n\nಭಾವಾಧಿಪತಿ ಸ್ಥಿತಿ ವಿವರಣೆ: ಈ ಭಾವದ ಅಧಿಪತಿಯಾದ ${lordName} ಜಾತಕದ ${lordHouse}ನೇ ಭಾವದಲ್ಲಿ ನೆಲೆಸಿರುವುದು ನಿಮ್ಮ ಜೀವನದ ಪ್ರಮುಖ ಶಕ್ತಿಯನ್ನು ${lordHouse}ನೇ ಮನೆಗೆ ಸಂಬಂಧಿಸಿದ ವಿಷಯಗಳ ಕಡೆಗೆ ತಿರುಗಿಸುತ್ತದೆ. ಇದು ಆ ಭಾವದ ಕಾರಕತ್ವಗಳನ್ನು ಸಕ್ರಿಯಗೊಳಿಸುತ್ತದೆ.`;
       description = `ಭಾವ ವಿವರಣೆ: ಈ ಭಾವವು ${sigs} ಸೂಚಿಸುತ್ತದೆ. ${lordText}${occupantText}${analysisText}${karakaText}${lordPlacementText}`;
     } else if (isHi) {
       title = BHAVA_NAMES_HI[h - 1]!;
@@ -1279,8 +1279,8 @@ export function generateBaggonaPredictions(
       } else {
         analysisText = `यह भाव सामान्य और संतुलित प्रभाव देने वाला है। ${sigs} से जुड़े मामलों में प्रगति आपके व्यक्तिगत प्रयासों और निरंतरता पर निर्भर करेगी। इसमें कोई बड़ा नकारात्मक प्रभाव नहीं है, अतः मेहनत से आप अच्छे परिणाम पा सकते हैं।`;
       }
-      const karakaText = `\n\n[भाव कारक]: इस भाव के नैसर्गिक कारक ${HOUSE_KARAKAS_INFO[h].hi} हैं। आपकी कुंडली में इस कारक ग्रह की स्थिति इस भाव के फलों को मुख्य रूप से प्रभावित करती है।`;
-      const lordPlacementText = `\n\n[भावेष स्थिति फल]: इस भाव के स्वामी (${lordName}) कुंडली के ${lordHouse}वें भाव में स्थित हैं। यह संयोजन आपके जीवन के मुख्य उद्देश्यों और अनुभवों को ${lordHouse}वें भाव के विषयों से जोड़ता है।`;
+      const karakaText = `\n\nभाव कारक: इस भाव के नैसर्गिक कारक ${HOUSE_KARAKAS_INFO[h].hi} हैं। आपकी कुंडली में इस कारक ग्रह की स्थिति इस भाव के फलों को मुख्य रूप से प्रभावित करती है।`;
+      const lordPlacementText = `\n\nभावेष स्थिति फल: इस भाव के स्वामी (${lordName}) कुंडली के ${lordHouse}वें भाव में स्थित हैं। यह संयोजन आपके जीवन के मुख्य उद्देश्यों और अनुभवों को ${lordHouse}वें भाव के विषयों से जोड़ता है।`;
       description = `भाव फल: यह भाव ${sigs} को दर्शाता है। ${lordText}${occupantText}${analysisText}${karakaText}${lordPlacementText}`;
     } else {
       title = BHAVA_NAMES_EN[h - 1]!;
@@ -1297,8 +1297,8 @@ export function generateBaggonaPredictions(
       } else {
         analysisText = `This house is moderately placed, exhibiting a balanced, average strength. Matters governed by ${sigs.toLowerCase()} will progress steadily but will depend primarily on your conscious effort, self-discipline, and dedicated actions. It is a stable area of life where neither major sudden losses nor effortless fortunes are indicated.`;
       }
-      const karakaText = `\n\n[Natural House Karaka]: The natural significator for this house is ${HOUSE_KARAKAS_INFO[h].en}. Analyzing this Karaka's position in your chart is essential to unlock the full potential of this bhava.`;
-      const lordPlacementText = `\n\n[Lord Placement Detail]: The ruler of this house (${lordName}) is posited in House ${lordHouse}. This links the core themes of the ${h}th house to the experiences governed by the ${lordHouse}th house, driving your life focus and actions towards those areas.`;
+      const karakaText = `\n\nNatural House Karaka: The natural significator for this house is ${HOUSE_KARAKAS_INFO[h].en}. Analyzing this Karaka's position in your chart is essential to unlock the full potential of this bhava.`;
+      const lordPlacementText = `\n\nLord Placement Detail: The ruler of this house (${lordName}) is posited in House ${lordHouse}. This links the core themes of the ${h}th house to the experiences governed by the ${lordHouse}th house, driving your life focus and actions towards those areas.`;
       description = `Signification: This house governs ${sigs}. ${lordText}${occupantText}${analysisText}${karakaText}${lordPlacementText}`;
     }
 
@@ -1360,11 +1360,11 @@ export function generateBaggonaPredictions(
     const karakas = HOUSE_KARAKAS[h] || [];
     const karakaNames = karakas.map(k => getPlanetName(k)).join(", ");
     if (isKn) {
-      description += `\n\n[ಭಾವ ಕಾರಕತ್ವ (Significators)]: ಈ ಭಾವಕ್ಕೆ ಕಾರಕ ಗ್ರಹಗಳು: ${karakaNames}.`;
+      description += `\n\nಭಾವ ಕಾರಕತ್ವ (Significators): ಈ ಭಾವಕ್ಕೆ ಕಾರಕ ಗ್ರಹಗಳು: ${karakaNames}.`;
     } else if (isHi) {
-      description += `\n\n[भाव कारकत्व (Significators)]: इस भाव के कारक ग्रह हैं: ${karakaNames}।`;
+      description += `\n\nभाव कारकत्व (Significators): इस भाव के कारक ग्रह हैं: ${karakaNames}।`;
     } else {
-      description += `\n\n[House Karakas (Significators)]: Significator planets for this house: ${karakaNames}.`;
+      description += `\n\nHouse Karakas (Significators): Significator planets for this house: ${karakaNames}.`;
     }
 
     houses.push({

@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { patrikaMetaForNakshatraIndex } from "../../core/nakshatraPatrikaMeta";
 import type { KundliOutput, PlanetPosition } from "../../core/AstroTypes";
 import { formatNavamsaPada, formatChartHouseNumber } from "../../core/localeNumbers";
 import type { TraditionalBaggonaPanchanga } from "../../core/TraditionalBaggonaEngine";
@@ -61,7 +62,7 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
   const diva = panchanga ? `ಘಟಿ ${panchanga.divaGhati.ghati} ವಿ ${panchanga.divaGhati.vighati}` : "ಘಟಿ ೩೦ ವಿ ೫೫";
   const sankranti = panchanga ? `${panchanga.sankrantiSignKn} ಸಂಕ್ರಾಂತಿ, ಗತದಿನ ${panchanga.sankrantiGataDina}` : "ಮೀನ ಸಂಕ್ರಾಂತಿ, ಗತದಿನ ೧೩";
   const parama = panchanga ? `ಘಟಿ ${panchanga.paramaGhati.ghati} ವಿ ${panchanga.paramaGhati.vighati}` : "ಘಟಿ ೬೪ ವಿ ೧೪";
-  const ishta = panchanga ? `ಘಟಿ ${panchanga.suryodhayadgata.ghati} ವಿ ${panchanga.suryodhayadgata.vighati}` : "ಘಟಿ ೧೦ ವಿ ೧೪";
+  const aishya = panchanga ? `ಘಟಿ ${panchanga.ashayaGhati.ghati} ವಿ ${panchanga.ashayaGhati.vighati}` : "ಘಟಿ ೧೦ ವಿ ೧೪";
   const gata = panchanga ? `ಘಟಿ ${panchanga.ghatadina.ghati} ವಿ ${panchanga.ghatadina.vighati}` : "ಘಟಿ ೫೪ ವಿ ೦೦";
   const suryodayadi = panchanga ? `ಘಟಿ ${panchanga.suryodhayadgata.ghati} ವಿ ${panchanga.suryodhayadgata.vighati}` : "ಘಟಿ ೦೨ ವಿ ೪೪";
   
@@ -163,7 +164,7 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
           <div><b>ಅಮೃತಘಟಿ:</b> {amruta}</div>
           <div><b>ದಿವಾ:</b> {diva}</div>
           <div><b>ಪರಮ:</b> {parama}</div>
-          <div><b>ಇಷ್ಟಕಾಲ:</b> {ishta}</div>
+          <div><b>ಐಷ್ಯಕಾಲ:</b> {aishya}</div>
           <div><b>ಗತಕಾಲ:</b> {gata}</div>
           
           <div style={{ flexBasis: "100%", borderTop: "1px dashed #ccc", paddingTop: "5px", marginTop: "2px" }}>
@@ -215,21 +216,21 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
                         <span style={{ width: "80px" }}>ಹೆಸರು</span>
                         <span>: {personName || "________________"}</span>
                       </div>
-                      <div style={{ display: "flex" }}>
-                        <span style={{ width: "80px" }}>ನಕ್ಷತ್ರ</span>
-                        <span>: {t(`nakshatras.${moonNakshatra.replace(/\s+/g, "")}`, { lng: "kn" })}</span>
+                      <div style={{ display: "flex", fontSize: "14px" }}>
+                        <span style={{ width: "80px" }}>ಯೋನಿ/ಗಣ</span>
+                        <span>: {moonNakshatra ? patrikaMetaForNakshatraIndex(kundli.planets.find(p => p.name === "Moon")?.nakshatra.index || 0).yoniKn : ""} / {moonNakshatra ? patrikaMetaForNakshatraIndex(kundli.planets.find(p => p.name === "Moon")?.nakshatra.index || 0).ganaKn : ""}</span>
+                      </div>
+                      <div style={{ display: "flex", fontSize: "14px" }}>
+                        <span style={{ width: "80px" }}>ನಾಡಿ/ಪಾದ</span>
+                        <span>: {moonNakshatra ? patrikaMetaForNakshatraIndex(kundli.planets.find(p => p.name === "Moon")?.nakshatra.index || 0).nadiKn : ""} / {pada}</span>
                       </div>
                       <div style={{ display: "flex" }}>
                         <span style={{ width: "80px" }}>ರಾಶಿ</span>
                         <span>: {t(`rashis.${kundli.moonSign.sanskrit}`, { lng: "kn" })}</span>
                       </div>
-                      <div style={{ display: "flex" }}>
+                      <div style={{ display: "flex", fontSize: "14px" }}>
                         <span style={{ width: "80px" }}>ಗೋತ್ರ</span>
                         <span>: {gothra || "________________"}</span>
-                      </div>
-                      <div style={{ display: "flex" }}>
-                        <span style={{ width: "80px" }}>ಪಾದ</span>
-                        <span>: {pada}</span>
                       </div>
                     </div>
                   );
@@ -287,7 +288,7 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
         {/* Footer */}
         <div style={{ textAlign: "center", fontSize: "15px", paddingTop: "5px", color: "#000" }}>
           <div style={{ fontWeight: "bold" }}>
-            ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಪುಸ್ತಕದ ಆಧಾರಿತ
+            ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಕರ್ತರು
           </div>
         </div>
       </div>
