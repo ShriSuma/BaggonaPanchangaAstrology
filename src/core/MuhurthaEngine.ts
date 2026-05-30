@@ -5,6 +5,7 @@ import { resolveSunTimesForJyotish } from "./hinduSunTimes";
 import { vedicWeekdayAtBirth } from "./birthSunTimes";
 import type { AyanamsaModel } from "./AstroTypes";
 import { BaggonaAuthenticData, type AuthenticBaggonaMuhurtha } from "../data/BaggonaMuhurthas2026";
+import { evaluateBaggonaMuhurtha } from "./BaggonaMuhurthaEngine";
 
 export interface LagnaEntry {
   startTime: string; // HH:mm format
@@ -38,6 +39,9 @@ export interface MuhurthaEntry {
   purityScore: number; // Max of the lagnas or day purity
   lagnas: LagnaEntry[];
   isAuthenticMatch?: boolean; // Flag to indicate if this comes directly from the Baggona Panchanga text
+  baggonaCriteria?: any;
+  baggonaExplanation?: string;
+  baggonaExplanationKn?: string;
 }
 
 const TITHIS_EN = [
@@ -181,6 +185,8 @@ export async function fetchShuddhaMuhurthas(
 
     const weekdayIdx = vedicWeekdayAtBirth(currentUtc, sunriseUtc, latitude, longitude);
 
+    const baggonaEval = evaluateBaggonaMuhurtha(dateStr, latitude, longitude);
+
     // --- PHASE 1: BAGGONA PANCHANGA DAY FILTER (DINA SHUDDHI) ---
     // Rule 1: Moudhya Shuddhi (Combustion Check for Jupiter & Venus)
     const jupiterDist = Math.abs(normalizeDegree(longToday.sun - longToday.jupiter));
@@ -194,21 +200,11 @@ export async function fetchShuddhaMuhurthas(
     const isKharmas = sunSignIdx === 8 || sunSignIdx === 11; // Dhanus(8) or Meena(11)
     if (isKharmas) continue; // Reject Day: Kharmas
 
-    // Rule 3: Vara Shuddhi (Weekday Check)
-    if (TYAJYA_WEEKDAYS.includes(weekdayIdx)) continue; // Reject Day: Kuja Vara (Tuesday)
-
-    // Rule 4: Tithi Shuddhi (Lunar Day Check)
-    // Strict rejection of Amavasya. Rikta tithis (3,8,13) are kept permissive based on empirical data, but Amavasya is absolutely forbidden.
-    if (tithiIdx === 29) continue; // Reject Day: Amavasya
-
-    // Rule 5: Karana Shuddhi (Vishti / Bhadra Check)
-    if (karanaIdx === 6) continue; // Reject Day: Bhadra Karana
-
-    // Rule 6: Yoga Shuddhi (Inauspicious Yogas)
-    if (INAUSPICIOUS_YOGAS.includes(yogaIdx)) continue; // Reject Day: Inauspicious Nitya Yoga
-
-    // Rule 7: Nakshatra Shuddhi (Generic Tyajya)
-    if (TYAJYA_NAKSHATRAS.includes(moonNakIdx)) continue; // Reject Day: Ugra/Krura Nakshatra
+    // Use BaggonaMuhurthaEngine eval
+    if (!baggonaEval.isMuhurtha) {
+      // It's not a pure Baggona Muhurtha
+      continue;
+    }
 
     // --- PHASE 2: LAGNA GENERATOR FOR PURE DAYS ---
     // If the day is pure, find auspicious Lagnas during the day.
@@ -294,9 +290,12 @@ export async function fetchShuddhaMuhurthas(
         karanaName: KARANAS_EN[karanaIdx]!,
         karanaNameKn: KARANAS_KN[karanaIdx]!,
         types,
-        purityScore: Math.max(...lagnas.map(l => l.purityScore)),
+        purityScore: baggonaEval.score,
         lagnas,
-        isAuthenticMatch
+        isAuthenticMatch,
+        baggonaCriteria: baggonaEval.criteria,
+        baggonaExplanation: baggonaEval.criteria.reasons.join(". "),
+        baggonaExplanationKn: baggonaEval.criteria.reasons.join(". ")
       });
     }
   }

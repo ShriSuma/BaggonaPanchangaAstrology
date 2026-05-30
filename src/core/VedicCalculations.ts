@@ -256,8 +256,9 @@ export const getVishaAndAmrithaGhati = (
     const vOffset = VISHA_GHATI_START[nakIdx] ?? 20;
     const aOffset = AMRITHA_GHATI_START[nakIdx] ?? 38;
     
-    const vTime = new Date(start.getTime() + (vOffset / 60) * dur);
-    const aTime = new Date(start.getTime() + (aOffset / 60) * dur);
+    // Visha/Amritha ghatis are absolute ghatis (1 ghati = 24 minutes = 1440000 ms) from the start of the Nakshatra.
+    const vTime = new Date(start.getTime() + vOffset * 1440000);
+    const aTime = new Date(start.getTime() + aOffset * 1440000);
     
     if (!vishaStart && vTime.getTime() >= sunriseUtc.getTime()) {
       vishaStart = vTime;

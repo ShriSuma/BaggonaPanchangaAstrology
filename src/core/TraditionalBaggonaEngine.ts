@@ -210,7 +210,7 @@ export function calculateTraditionalBaggona(
     const ms = endTime.getTime() - sunriseUtc.getTime();
     const totalVighati = Math.floor(ms / 24_000);
     return {
-      ghati: Math.max(0, Math.floor(totalVighati / 60)) % 60,
+      ghati: Math.max(0, Math.floor(totalVighati / 60)),
       vighati: Math.max(0, totalVighati % 60)
     };
   };
@@ -230,12 +230,6 @@ export function calculateTraditionalBaggona(
   let tithiEnd = getTithiEnd(sunriseUtc, ayanamsaModel, calibrationOffset);
   let tEnd = getEndGhati(tithiEnd);
   let tithiIdx = Math.floor(elongationSunrise / 12) % 30;
-  
-  if (tEnd.ghati < 3) {
-    tithiIdx = (tithiIdx + 1) % 30;
-    tithiEnd = getTithiEnd(new Date(tithiEnd.getTime() + 60 * 60 * 1000), ayanamsaModel, calibrationOffset);
-    tEnd = getEndGhati(tithiEnd);
-  }
 
   const tithi = TITHIS_EN[tithiIdx] ?? "";
   const tithiKn = TITHIS_KN[tithiIdx] ?? "";
@@ -254,12 +248,6 @@ export function calculateTraditionalBaggona(
   let nakshatraEnd = getNakshatraEnd(sunriseUtc, ayanamsaModel, calibrationOffset);
   let mEnd = getEndGhati(nakshatraEnd);
   
-  if (mEnd.ghati < 3) {
-    moonNakIdx = (moonNakIdx + 1) % 27;
-    nakshatraEnd = getNakshatraEnd(new Date(nakshatraEnd.getTime() + 60 * 60 * 1000), ayanamsaModel, calibrationOffset);
-    mEnd = getEndGhati(nakshatraEnd);
-  }
-  
   const moonNakshatra = NAKSHATRAS_EN[moonNakIdx] ?? "";
   const moonNakshatraKn = NAKSHATRAS_KN[moonNakIdx] ?? "";
 
@@ -274,17 +262,6 @@ export function calculateTraditionalBaggona(
   else if (halfTithiIdxSunrise === 58) karanaIdx = 8;
   else karanaIdx = 9;
 
-  if (kEnd.ghati < 3) {
-    halfTithiIdxSunrise = (halfTithiIdxSunrise + 1) % 60;
-    if (halfTithiIdxSunrise === 0) karanaIdx = 10;
-    else if (halfTithiIdxSunrise >= 1 && halfTithiIdxSunrise <= 56) karanaIdx = (halfTithiIdxSunrise - 1) % 7;
-    else if (halfTithiIdxSunrise === 57) karanaIdx = 7;
-    else if (halfTithiIdxSunrise === 58) karanaIdx = 8;
-    else karanaIdx = 9;
-    karanaEnd = getKaranaEnd(new Date(karanaEnd.getTime() + 60 * 60 * 1000), ayanamsaModel, calibrationOffset);
-    kEnd = getEndGhati(karanaEnd);
-  }
-
   const karana = KARANAS_EN[karanaIdx] ?? "";
   const karanaKn = KARANAS_KN[karanaIdx] ?? "";
 
@@ -292,12 +269,6 @@ export function calculateTraditionalBaggona(
   let yEnd = getEndGhati(yogaEnd);
   
   let yogaIdx = Math.floor(sumSunrise / (360 / 27)) % 27;
-
-  if (yEnd.ghati < 3) {
-    yogaIdx = (yogaIdx + 1) % 27;
-    yogaEnd = getYogaEnd(new Date(yogaEnd.getTime() + 60 * 60 * 1000), ayanamsaModel, calibrationOffset);
-    yEnd = getEndGhati(yogaEnd);
-  }
   
   const yoga = YOGAS_EN[yogaIdx] ?? "";
   const yogaKn = YOGAS_KN[yogaIdx] ?? "";

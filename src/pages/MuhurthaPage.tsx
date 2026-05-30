@@ -361,6 +361,23 @@ export default function MuhurthaPage(): JSX.Element {
                           </div>
                         </div>
 
+                        {/* Baggona Muhurtha Explanation */}
+                        {m.baggonaCriteria && (
+                          <div className="space-y-2 bg-indigo-50/50 p-3 rounded-lg border border-indigo-100 mb-3">
+                            <h5 className="font-bold text-indigo-900/90 text-xs border-b border-indigo-900/10 pb-1">
+                              {isKn ? "ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ನಿಯಮಗಳು (ವೈಶಿಷ್ಟ್ಯಗಳು)" : "Baggona Panchanga Rules Applied"}
+                            </h5>
+                            <ul className="list-disc pl-4 space-y-1 text-[10px] text-indigo-900/80">
+                              {m.baggonaCriteria.reasons.map((reason: string, idx: number) => (
+                                <li key={idx}>✨ {reason}</li>
+                              ))}
+                            </ul>
+                            <div className="mt-2 pt-2 border-t border-indigo-900/10 font-bold text-indigo-950 text-xs text-right">
+                              {isKn ? "ಒಟ್ಟು ಶುದ್ಧತೆ: " : "Overall Purity: "} {m.purityScore}%
+                            </div>
+                          </div>
+                        )}
+
                         <div className="space-y-2">
                           <h5 className="font-bold text-indigo-900/90 text-xs border-b border-indigo-900/10 pb-1">
                             {isKn ? "ಶುಭ ಮುಹೂರ್ತ (ಲಗ್ನ) ಸಮಯಗಳು" : "Auspicious Lagna Timings"}
