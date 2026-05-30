@@ -293,110 +293,137 @@ export default function KundliPage(): JSX.Element {
 
   return (
     <Card>
-      <h2 className="text-2xl font-bold text-indigo-950">{t("kundli.formTitle")}</h2>
-      <p className="mt-1 text-sm text-slate-600">{t("kundli.subtitle")}</p>
-      <div className="mt-4 grid gap-3 md:grid-cols-2">
-        <input
-          placeholder={t("kundli.name")}
-          className="min-h-11 rounded-xl border border-slate-200 bg-white px-3 py-2 text-indigo-950 shadow-sm"
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
-        />
-        <select
-          aria-label={t("kundli.gothra")}
-          className="jk-touch-input min-h-[3rem] rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-base text-indigo-950 shadow-sm"
-          value={form.gothra ?? ""}
-          onChange={(e) => setForm({ ...form, gothra: e.target.value })}
-        >
-          <option value="">{t("kundli.gotraNone")}</option>
-          {GOTRA_OPTIONS.map((id) => (
-            <option key={id} value={id}>
-              {t(gotraI18nKey(id) as "gotras.Vasishtha")}
-            </option>
-          ))}
-        </select>
-        <div className="md:col-span-2">
-          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-amber-900/70">{t("kundli.birthDate")}</p>
-          <DatePicker selected={birthDatePicker} onChange={setBirthDatePicker} />
+      {!(result && birthDatePicker && birthTimeHm.trim()) ? (
+        <>
+          <h2 className="text-2xl font-bold text-indigo-950">{t("kundli.formTitle")}</h2>
+          <p className="mt-1 text-sm text-slate-600">{t("kundli.subtitle")}</p>
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            <input
+              placeholder={t("kundli.name")}
+              className="min-h-11 rounded-xl border border-slate-200 bg-white px-3 py-2 text-indigo-950 shadow-sm"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+            />
+            <select
+              aria-label={t("kundli.gothra")}
+              className="jk-touch-input min-h-[3rem] rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-base text-indigo-950 shadow-sm"
+              value={form.gothra ?? ""}
+              onChange={(e) => setForm({ ...form, gothra: e.target.value })}
+            >
+              <option value="">{t("kundli.gotraNone")}</option>
+              {GOTRA_OPTIONS.map((id) => (
+                <option key={id} value={id}>
+                  {t(gotraI18nKey(id) as "gotras.Vasishtha")}
+                </option>
+              ))}
+            </select>
+            <div className="md:col-span-2">
+              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-amber-900/70">{t("kundli.birthDate")}</p>
+              <DatePicker selected={birthDatePicker} onChange={setBirthDatePicker} />
+            </div>
+            <div className="md:col-span-2">
+              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-emerald-900/70">{t("kundli.birthTime")}</p>
+              <BirthTimePicker value={birthTimeHm} onChange={setBirthTimeHm} zoneHint={birthTimeZoneHint} />
+            </div>
+            <input
+              required
+              aria-required
+              placeholder={t("kundli.pincodePlaceholder")}
+              className="min-h-11 rounded-xl border border-slate-200 bg-white px-3 py-2 text-indigo-950 shadow-sm"
+              inputMode="numeric"
+              maxLength={6}
+              autoComplete="postal-code"
+              value={form.pincode ?? ""}
+              onChange={(e) => {
+                const v = e.target.value.replace(/\D/g, "").slice(0, 6);
+                setForm({ ...form, pincode: v.length ? v : undefined });
+              }}
+            />
+            <div className="flex min-h-11 items-center rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm text-slate-800">
+              {placeDisplay}
+            </div>
+            <input
+              placeholder={t("kundli.homePlaceName")}
+              className="min-h-11 rounded-xl border border-slate-200 bg-white px-3 py-2 text-indigo-950 shadow-sm md:col-span-2"
+              value={homePlaceName}
+              onChange={(e) => setHomePlaceName(e.target.value)}
+              onBlur={() => pushPlaceToStore(form.latitude, form.longitude, locationCore, form.pincode)}
+            />
+          </div>
+          <p className="mt-2 text-xs leading-relaxed text-slate-600">{t("kundli.pincodeHint")}</p>
+          {pinResolving ? <GrahaSpinner size="sm" message={t("location.loading")} /> : null}
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              className="jk-btn rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-indigo-950"
+              onClick={() => setMapOpen(true)}
+            >
+              {t("kundli.openMap")}
+            </button>
+          </div>
+          <div className="mt-3">
+            <LocationSelector
+              key={`loc-${form.pincode ?? ""}-${locationEpoch}`}
+              filterPincode={form.pincode && /^\d{6}$/.test(form.pincode) ? form.pincode : undefined}
+              onChange={(location: SelectedLocation) => {
+                setForm({ ...form, latitude: location.lat, longitude: location.lng, pincode: location.pincode });
+                const core = `${location.villageName} (${location.pincode})`;
+                setLocationCore(core);
+                setResult(null);
+                pushPlaceToStore(location.lat, location.lng, core, location.pincode);
+              }}
+            />
+          </div>
+          <MapLocationPicker
+            open={mapOpen}
+            onClose={() => setMapOpen(false)}
+            defaultLat={form.latitude}
+            defaultLng={form.longitude}
+            onConfirm={(lat, lng, label) => {
+              setForm({ ...form, latitude: lat, longitude: lng });
+              setLocationCore(label);
+              pushPlaceToStore(lat, lng, label, form.pincode && /^\d{6}$/.test(form.pincode) ? form.pincode : undefined);
+            }}
+          />
+          {error && <p className="mt-2 text-sm text-red-700">{error}</p>}
+          <div className="mt-4 flex justify-center">
+            <button
+              type="button"
+              className="jk-btn rounded-xl bg-indigo-950 px-8 py-3 text-sm font-bold tracking-wide text-white shadow-md hover:bg-indigo-900 transition-colors"
+              onClick={() => void onGenerate()}
+            >
+              {t("kundli.generate")}
+            </button>
+          </div>
+          {savedId && (
+            <p className="mt-2 text-xs text-emerald-800">
+              {t("kundli.savedPrefix")} ({savedId})
+            </p>
+          )}
+        </>
+      ) : (
+        <div className="flex flex-col sm:flex-row justify-between items-center bg-indigo-50/80 p-4 rounded-2xl border border-indigo-100 shadow-sm gap-4">
+          <div className="text-center sm:text-left">
+            <h3 className="text-xl font-extrabold text-indigo-950 capitalize">{form.name}</h3>
+            <p className="text-xs font-semibold text-slate-600 mt-1 uppercase tracking-wider">
+              {formatPickerDateLocalYmd(birthDatePicker)} • {birthTimeHm}
+            </p>
+            <p className="text-[10px] text-slate-500 mt-0.5">{placeDisplay}</p>
+          </div>
+          <button
+            type="button"
+            className="jk-btn rounded-xl bg-rose-500 hover:bg-rose-600 px-6 py-2.5 text-sm font-bold tracking-wide text-white shadow-md transition-all scale-100 active:scale-95"
+            onClick={() => {
+              clearKundliSession();
+              setResult(null);
+              setBirthDatePicker(null);
+              setBirthTimeHm("");
+              setForm({ ...form, name: "" });
+            }}
+          >
+            {i18n.language.startsWith("kn") ? "ಹೊಸ ಕುಂಡಲಿ ರಚಿಸಿ (Reset)" : "Reset / New Kundli"}
+          </button>
         </div>
-        <div className="md:col-span-2">
-          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-emerald-900/70">{t("kundli.birthTime")}</p>
-          <BirthTimePicker value={birthTimeHm} onChange={setBirthTimeHm} zoneHint={birthTimeZoneHint} />
-        </div>
-        <input
-          required
-          aria-required
-          placeholder={t("kundli.pincodePlaceholder")}
-          className="min-h-11 rounded-xl border border-slate-200 bg-white px-3 py-2 text-indigo-950 shadow-sm"
-          inputMode="numeric"
-          maxLength={6}
-          autoComplete="postal-code"
-          value={form.pincode ?? ""}
-          onChange={(e) => {
-            const v = e.target.value.replace(/\D/g, "").slice(0, 6);
-            setForm({ ...form, pincode: v.length ? v : undefined });
-          }}
-        />
-        <div className="flex min-h-11 items-center rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm text-slate-800">
-          {placeDisplay}
-        </div>
-        <input
-          placeholder={t("kundli.homePlaceName")}
-          className="min-h-11 rounded-xl border border-slate-200 bg-white px-3 py-2 text-indigo-950 shadow-sm md:col-span-2"
-          value={homePlaceName}
-          onChange={(e) => setHomePlaceName(e.target.value)}
-          onBlur={() => pushPlaceToStore(form.latitude, form.longitude, locationCore, form.pincode)}
-        />
-      </div>
-      <p className="mt-2 text-xs leading-relaxed text-slate-600">{t("kundli.pincodeHint")}</p>
-      {pinResolving ? <GrahaSpinner size="sm" message={t("location.loading")} /> : null}
-      <div className="mt-3 flex flex-wrap gap-2">
-        <button
-          type="button"
-          className="jk-btn rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-indigo-950"
-          onClick={() => setMapOpen(true)}
-        >
-          {t("kundli.openMap")}
-        </button>
-      </div>
-      <div className="mt-3">
-        <LocationSelector
-          key={`loc-${form.pincode ?? ""}-${locationEpoch}`}
-          filterPincode={form.pincode && /^\d{6}$/.test(form.pincode) ? form.pincode : undefined}
-          onChange={(location: SelectedLocation) => {
-            setForm({ ...form, latitude: location.lat, longitude: location.lng, pincode: location.pincode });
-            const core = `${location.villageName} (${location.pincode})`;
-            setLocationCore(core);
-            setResult(null);
-            pushPlaceToStore(location.lat, location.lng, core, location.pincode);
-          }}
-        />
-      </div>
-      <MapLocationPicker
-        open={mapOpen}
-        onClose={() => setMapOpen(false)}
-        defaultLat={form.latitude}
-        defaultLng={form.longitude}
-        onConfirm={(lat, lng, label) => {
-          setForm({ ...form, latitude: lat, longitude: lng });
-          setLocationCore(label);
-          pushPlaceToStore(lat, lng, label, form.pincode && /^\d{6}$/.test(form.pincode) ? form.pincode : undefined);
-        }}
-      />
-      {error && <p className="mt-2 text-sm text-red-700">{error}</p>}
-      <div className="mt-4 flex justify-center">
-        <button
-          type="button"
-          className="jk-btn rounded-xl bg-indigo-950 px-8 py-3 text-sm font-bold tracking-wide text-white shadow-md hover:bg-indigo-900 transition-colors"
-          onClick={() => void onGenerate()}
-        >
-          {t("kundli.generate")}
-        </button>
-      </div>
-      {savedId && (
-        <p className="mt-2 text-xs text-emerald-800">
-          {t("kundli.savedPrefix")} ({savedId})
-        </p>
       )}
       {/* Buttons removed as per user request */}
       {/* Standalone KundliChart removed to avoid duplication with Jataka details */}

@@ -31,11 +31,12 @@ export default function MuhurthaPage(): JSX.Element {
   const activeLabel = session ? session.placeLabel : placeLabel;
 
   const [muhurthas, setMuhurthas] = useState<MuhurthaEntry[]>([]);
-  const [selectedMuhurthaYear, setSelectedMuhurthaYear] = useState<number>(2026);
+  const [selectedMuhurthaYear, setSelectedMuhurthaYear] = useState<number>(new Date().getFullYear());
   const [selectedMuhurthaCategory, setSelectedMuhurthaCategory] = useState<
-    "all" | "marriage" | "housewarming" | "upanayana" | "general"
+    "all" | "marriage" | "housewarming" | "upanayana" | "choula" | "devapratishtha" | "general"
   >("all");
   const [selectedMonth, setSelectedMonth] = useState<number>(0); // 0 = All
+  const [authenticOnly, setAuthenticOnly] = useState<boolean>(false);
   const [loadingMuhurthas, setLoadingMuhurthas] = useState<boolean>(false);
   const [expandedEntryDate, setExpandedEntryDate] = useState<string | null>(null);
 
@@ -64,9 +65,13 @@ export default function MuhurthaPage(): JSX.Element {
           return false;
         }
       }
+      // 3. Filter by Authentic Match
+      if (authenticOnly && !m.isAuthenticMatch) {
+        return false;
+      }
       return true;
     });
-  }, [muhurthas, selectedMuhurthaCategory, selectedMonth]);
+  }, [muhurthas, selectedMuhurthaCategory, selectedMonth, authenticOnly]);
 
   return (
     <div className="space-y-6">
@@ -98,7 +103,7 @@ export default function MuhurthaPage(): JSX.Element {
               {isKn ? "ವರ್ಷ ಆಯ್ಕೆ" : "Select Year"}
             </h3>
             <div className="inline-flex rounded-xl bg-indigo-50/80 p-1 border border-indigo-100">
-              {[2026, 2027].map((y) => (
+              {[new Date().getFullYear(), new Date().getFullYear() + 1].map((y) => (
                 <button
                   key={y}
                   type="button"
@@ -124,7 +129,7 @@ export default function MuhurthaPage(): JSX.Element {
               {isKn ? "ಮುಹೂರ್ತದ ವಿಧ" : "Muhurtha Type"}
             </h3>
             <div className="flex flex-wrap gap-1.5 justify-start sm:justify-end">
-              {(["all", "marriage", "housewarming", "upanayana", "general"] as const).map((cat) => {
+              {(["all", "marriage", "housewarming", "upanayana", "choula", "devapratishtha", "general"] as const).map((cat) => {
                 const label =
                   cat === "all"
                     ? (isKn ? "ಎಲ್ಲಾ" : "All")
@@ -134,6 +139,10 @@ export default function MuhurthaPage(): JSX.Element {
                     ? (isKn ? "ಗೃಹಪ್ರವೇಶ 🏡" : "Housewarming 🏡")
                     : cat === "upanayana"
                     ? (isKn ? "ಉಪನಯನ 🪘" : "Upanayana 🪘")
+                    : cat === "choula"
+                    ? (isKn ? "ಚೌಲ ✂️" : "Choula ✂️")
+                    : cat === "devapratishtha"
+                    ? (isKn ? "ದೇವ ಪ್ರತಿಷ್ಠಾ 🕉️" : "Deva Pratishtha 🕉️")
                     : (isKn ? "ಶುಭ ಕಾರ್ಯ ✨" : "General ✨");
 
                 const isActive = selectedMuhurthaCategory === cat;
@@ -183,6 +192,33 @@ export default function MuhurthaPage(): JSX.Element {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Authentic Filter Toggle */}
+        <div className="border-t border-slate-100 pt-3 flex items-center justify-between sm:justify-start sm:gap-4">
+          <div>
+            <h3 className="text-xs font-bold text-indigo-900/80">
+              {isKn ? "ಬಗ್ಗೋಣ ದತ್ತಾಂಶ ಮಾತ್ರ" : "Authentic Baggona Only"}
+            </h3>
+            <p className="text-[9px] text-slate-500">
+              {isKn 
+                ? "ಕೇವಲ ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಮುದ್ರಿತ ಪ್ರತಿಯಲ್ಲಿರುವ ಮುಹೂರ್ತಗಳನ್ನು ಮಾತ್ರ ತೋರಿಸಿ." 
+                : "Show only dates explicitly found in the printed almanac."}
+            </p>
+          </div>
+          <button
+            type="button"
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 ${
+              authenticOnly ? 'bg-amber-500' : 'bg-slate-200'
+            }`}
+            onClick={() => setAuthenticOnly(!authenticOnly)}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                authenticOnly ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
         </div>
       </div>
 
@@ -240,6 +276,11 @@ export default function MuhurthaPage(): JSX.Element {
                 if (lang === "hi") typeLabel = "विवाह मुहूर्त";
                 if (lang === "te") typeLabel = "వివాహ ముహూర్తం";
                 if (lang === "ta") typeLabel = "திருமண முகூர்த்தம்";
+              } else if (m.types.includes("devapratishtha")) {
+                accentClass = "border-orange-400 bg-gradient-to-br from-orange-50/90 to-red-50/90 dark:from-orange-950/20 dark:to-red-950/10";
+                badgeClass = "bg-orange-100 text-orange-800 dark:bg-orange-950 dark:text-orange-300 border border-orange-200";
+                icon = "🕉️";
+                typeLabel = isKn ? "ದೇವ ಪ್ರತಿಷ್ಠಾ" : "Deva Pratishtha";
               } else if (m.types.includes("housewarming")) {
                 accentClass = "border-emerald-400 bg-gradient-to-br from-emerald-50/90 to-teal-50/90 dark:from-emerald-950/20 dark:to-teal-950/10";
                 badgeClass = "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200";
@@ -256,6 +297,11 @@ export default function MuhurthaPage(): JSX.Element {
                 if (lang === "hi") typeLabel = "उपनयन संस्कार";
                 if (lang === "te") typeLabel = "ఉపనయనం";
                 if (lang === "ta") typeLabel = "உபநயனம்";
+              } else if (m.types.includes("choula")) {
+                accentClass = "border-cyan-400 bg-gradient-to-br from-cyan-50/90 to-blue-50/90 dark:from-cyan-950/20 dark:to-blue-950/10";
+                badgeClass = "bg-cyan-100 text-cyan-800 dark:bg-cyan-950 dark:text-cyan-300 border border-cyan-200";
+                icon = "✂️";
+                typeLabel = isKn ? "ಚೌಲ" : "Choula";
               }
 
               return (
@@ -267,8 +313,13 @@ export default function MuhurthaPage(): JSX.Element {
                   onClick={() => setExpandedEntryDate(isExpanded ? null : m.date)}
                 >
                   {/* Card Header */}
-                  <div className="p-4 border-b border-black/5 bg-white/40">
-                    <div className="flex justify-between items-start gap-2">
+                  <div className="p-4 border-b border-black/5 bg-white/40 relative">
+                    {m.isAuthenticMatch && (
+                      <div className="absolute top-0 right-0 rounded-bl-xl bg-gradient-to-r from-amber-500 to-orange-500 px-3 py-1 text-[8px] font-bold text-white shadow-sm flex items-center gap-1 uppercase tracking-wider">
+                        📜 {isKn ? "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ದತ್ತಾಂಶ" : "Authentic Baggona"}
+                      </div>
+                    )}
+                    <div className="flex justify-between items-start gap-2 mt-3">
                       <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[9px] font-bold ${badgeClass}`}>
                         <span>{icon}</span> {typeLabel}
                       </span>
@@ -298,30 +349,44 @@ export default function MuhurthaPage(): JSX.Element {
 
                     {/* Expanded Details */}
                     {isExpanded && (
-                      <div className="mt-3 pt-3 border-t border-black/5 space-y-2 text-[11px] leading-relaxed text-slate-700 animate-slide-down bg-white/20 p-2 rounded-xl border border-black/5">
-                        <div className="flex justify-between">
-                          <span className="text-slate-500">{isKn ? "ಯೋಗ" : "Yoga"}</span>
-                          <span className="font-medium text-slate-900">
-                            {isKn ? m.yogaNameKn : m.yogaName}
-                          </span>
+                      <div className="mt-3 pt-3 border-t border-black/5 space-y-3 text-[11px] leading-relaxed text-slate-700 animate-slide-down bg-white/20 p-2 rounded-xl border border-black/5">
+                        <div className="grid grid-cols-2 gap-2 mb-3">
+                          <div className="flex flex-col">
+                            <span className="text-slate-400 text-[9px] uppercase tracking-wider">{isKn ? "ಯೋಗ" : "Yoga"}</span>
+                            <span className="font-medium text-slate-900">{isKn ? m.yogaNameKn : m.yogaName}</span>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-slate-400 text-[9px] uppercase tracking-wider">{isKn ? "ಕರಣ" : "Karana"}</span>
+                            <span className="font-medium text-slate-900">{isKn ? m.karanaNameKn : m.karanaName}</span>
+                          </div>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-slate-500">{isKn ? "ಕರಣ" : "Karana"}</span>
-                          <span className="font-medium text-slate-900">
-                            {isKn ? m.karanaNameKn : m.karanaName}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-slate-500">{isKn ? "ವಾಸರ" : "Day"}</span>
-                          <span className="font-medium text-slate-900">
-                            {isKn ? m.weekdayNameKn : m.weekdayName}
-                          </span>
-                        </div>
-                        <div className="mt-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-2.5 text-[10px] text-emerald-950 font-bold leading-normal">
-                          ✨{" "}
-                          {isKn
-                            ? `ಈ ದಿನವು ${m.tithiNameKn} ತಿಥಿ ಮತ್ತು ${m.nakshatraNameKn} ನಕ್ಷತ್ರದೊಂದಿಗೆ ಕೂಡಿದ್ದು ಪೂರ್ಣ ಶುದ್ಧ ಮುಹೂರ್ತವಾಗಿದೆ. ಭದ್ರ ಕರಣ ಮತ್ತು ಮಲಿನ್ ಯೋಗಗಳ ಸಂಪೂರ್ಣ ಅನುಪಸ್ಥಿತಿಯಿದ್ದು, ಕಾರ್ಯಗಳಿಗೆ ಸಿದ್ಧಿಯನ್ನು ಒದಗಿಸುತ್ತದೆ.`
-                            : `This day hosts pure ${m.tithiName} Tithi and auspicious ${m.nakshatraName} Nakshatra. It is free from Bhadra Karana and malefic Yogas, promising maximum success.`}
+
+                        <div className="space-y-2">
+                          <h5 className="font-bold text-indigo-900/90 text-xs border-b border-indigo-900/10 pb-1">
+                            {isKn ? "ಶುಭ ಮುಹೂರ್ತ (ಲಗ್ನ) ಸಮಯಗಳು" : "Auspicious Lagna Timings"}
+                          </h5>
+                          
+                          {m.lagnas && m.lagnas.length > 0 ? (
+                            m.lagnas.map((lagna, i) => (
+                              <div key={i} className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-3 relative">
+                                <div className="flex justify-between items-center mb-1">
+                                  <span className="font-bold text-emerald-950 text-xs">
+                                    {lagna.startTime} - {lagna.endTime}
+                                  </span>
+                                  <span className="text-[10px] font-bold bg-white/50 px-2 py-0.5 rounded-full text-emerald-800">
+                                    {isKn ? lagna.rashiNameKn : lagna.rashiName} {isKn ? "ಲಗ್ನ" : "Lagna"}
+                                  </span>
+                                </div>
+                                <p className="text-[10px] text-emerald-900/80 mt-1 leading-snug">
+                                  ✨ {isKn ? lagna.explanationKn : lagna.explanation}
+                                </p>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="rounded-lg bg-amber-500/10 border border-amber-500/20 p-2.5 text-[10px] text-amber-950">
+                              {isKn ? "ಯಾವುದೇ ನಿರ್ದಿಷ್ಟ ಶುದ್ಧ ಲಗ್ನ ಕಂಡುಬಂದಿಲ್ಲ." : "No specific pure Lagna found for this day."}
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}

@@ -100,19 +100,52 @@ export default function MelapakPage(): JSX.Element {
       <p className="mt-1 text-sm text-slate-600">{t("melapak.subtitle")}</p>
       <p className="mt-2 text-xs leading-relaxed text-slate-500">{t("melapak.disclaimer")}</p>
 
-      <div className="mt-4 grid gap-4 md:grid-cols-2">
-        <div className="rounded-xl border border-indigo-100 bg-indigo-50/40 p-3">
-          <h3 className="text-sm font-semibold text-indigo-950">{t("melapak.boy")}</h3>
-          <div className="mt-2 grid gap-2">
-            <DatePicker selected={boyDate} onChange={setBoyDate} placeholderText={t("kundli.birthDate")} />
-            <TimePicker selected={boyTime} onChange={setBoyTime} />
+      {/* Romantic Boy & Girl Input Cards */}
+      <div className="mt-6 grid gap-6 md:grid-cols-2 relative">
+        {/* Heart icon floating between cards on desktop */}
+        <div className="hidden md:flex absolute inset-0 items-center justify-center pointer-events-none z-10">
+          <div className="bg-white/80 p-3 rounded-full shadow-md backdrop-blur-sm border border-rose-100 animate-pulse">
+            <span className="text-2xl text-rose-400">💞</span>
           </div>
         </div>
-        <div className="rounded-xl border border-rose-100 bg-rose-50/40 p-3">
-          <h3 className="text-sm font-semibold text-indigo-950">{t("melapak.girl")}</h3>
-          <div className="mt-2 grid gap-2">
-            <DatePicker selected={girlDate} onChange={setGirlDate} placeholderText={t("kundli.birthDate")} />
-            <TimePicker selected={girlTime} onChange={setGirlTime} />
+
+        {/* Boy Card */}
+        <div className="relative overflow-hidden rounded-2xl border-2 border-indigo-100 bg-gradient-to-br from-indigo-50/80 to-blue-50/50 p-5 shadow-sm transition-all hover:shadow-md">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
+              <span className="text-sm">🤵</span>
+            </div>
+            <h3 className="text-lg font-bold text-indigo-950">{t("melapak.boy")}</h3>
+          </div>
+          <div className="mt-2 grid gap-3 relative z-10">
+            <div className="bg-white/60 p-2 rounded-xl backdrop-blur-sm border border-indigo-50">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-800/60 mb-1 ml-1">{t("kundli.birthDate")}</p>
+              <DatePicker selected={boyDate} onChange={setBoyDate} placeholderText={t("kundli.birthDate")} />
+            </div>
+            <div className="bg-white/60 p-2 rounded-xl backdrop-blur-sm border border-indigo-50">
+               <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-800/60 mb-1 ml-1">{t("kundli.birthTime")}</p>
+              <TimePicker selected={boyTime} onChange={setBoyTime} />
+            </div>
+          </div>
+        </div>
+
+        {/* Girl Card */}
+        <div className="relative overflow-hidden rounded-2xl border-2 border-rose-100 bg-gradient-to-br from-rose-50/80 to-pink-50/50 p-5 shadow-sm transition-all hover:shadow-md">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-rose-100 text-rose-600">
+              <span className="text-sm">👰</span>
+            </div>
+            <h3 className="text-lg font-bold text-rose-950">{t("melapak.girl")}</h3>
+          </div>
+          <div className="mt-2 grid gap-3 relative z-10">
+            <div className="bg-white/60 p-2 rounded-xl backdrop-blur-sm border border-rose-50">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-rose-800/60 mb-1 ml-1">{t("kundli.birthDate")}</p>
+              <DatePicker selected={girlDate} onChange={setGirlDate} placeholderText={t("kundli.birthDate")} />
+            </div>
+            <div className="bg-white/60 p-2 rounded-xl backdrop-blur-sm border border-rose-50">
+               <p className="text-[10px] font-bold uppercase tracking-wider text-rose-800/60 mb-1 ml-1">{t("kundli.birthTime")}</p>
+              <TimePicker selected={girlTime} onChange={setGirlTime} />
+            </div>
           </div>
         </div>
       </div>
@@ -169,13 +202,17 @@ export default function MelapakPage(): JSX.Element {
       />
 
       {error ? <p className="mt-2 text-sm text-red-700">{error}</p> : null}
-      <button
-        type="button"
-        className="jk-btn mt-4 rounded-xl bg-[color:var(--jk-accent)] px-4 py-2 text-sm font-semibold text-white"
-        onClick={onMatch}
-      >
-        {t("melapak.match")}
-      </button>
+      <div className="mt-8 flex justify-center">
+        <button
+          type="button"
+          className="jk-btn relative overflow-hidden rounded-full bg-gradient-to-r from-rose-500 to-pink-500 px-10 py-3.5 text-base font-extrabold tracking-wide text-white shadow-lg shadow-rose-500/30 transition-all hover:scale-105 hover:shadow-xl hover:shadow-rose-500/40 active:scale-95"
+          onClick={onMatch}
+        >
+          <span className="relative z-10 flex items-center gap-2">
+            ✨ {t("melapak.match")} ✨
+          </span>
+        </button>
+      </div>
 
       {melapak && boyK && girlK ? (
         <div className="mt-8 space-y-6">
