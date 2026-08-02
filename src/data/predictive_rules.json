@@ -1,0 +1,453 @@
+{
+  "planetary_specification": {
+    "source": "Hindu Predictive Astrology by B.V. Raman",
+    "graha_metadata": [
+      {
+        "planet": "Sun",
+        "sanskrit_name": "Surya",
+        "nature": "Satvikaguna",
+        "gender": "Male",
+        "element": "Fiery",
+        "caste": "Kshatriya",
+        "social_status": "King",
+        "representation": "Ego, Atma",
+        "colour": "Copper",
+        "direction": "East",
+        "digbala_bhava": 10,
+        "permanent_relations": {
+          "friends": ["Moon", "Mars", "Jupiter"],
+          "neutrals": ["Mercury"],
+          "enemies": ["Venus", "Saturn"]
+        }
+      },
+      {
+        "planet": "Moon",
+        "sanskrit_name": "Chandra",
+        "nature": "Satvikaguna",
+        "gender": "Female",
+        "element": "Watery",
+        "caste": "Vaisya",
+        "social_status": "Queen",
+        "representation": "Manas, Mind",
+        "colour": "White",
+        "direction": "South",
+        "digbala_bhava": 4,
+        "permanent_relations": {
+          "friends": ["Sun", "Mercury"],
+          "neutrals": ["Mars", "Jupiter", "Venus", "Saturn"],
+          "enemies": []
+        }
+      },
+      {
+        "planet": "Mars",
+        "sanskrit_name": "Kuja",
+        "nature": "Thamasaguna",
+        "gender": "Male",
+        "element": "Fiery",
+        "caste": "Kshatriya",
+        "social_status": "Commander-in-chief",
+        "representation": "Martial power",
+        "colour": "Blood red",
+        "direction": "South-West",
+        "digbala_bhava": 10,
+        "permanent_relations": {
+          "friends": ["Sun", "Moon", "Jupiter"],
+          "neutrals": ["Venus", "Saturn"],
+          "enemies": ["Mercury"]
+        }
+      },
+      {
+        "planet": "Mercury",
+        "sanskrit_name": "Budha",
+        "nature": "Rajasaguna",
+        "gender": "Eunuch",
+        "element": "Earthy",
+        "caste": "Sudra",
+        "social_status": "Yuvaraja",
+        "representation": "Eloquent speech",
+        "colour": "Green",
+        "direction": "North",
+        "digbala_bhava": 1,
+        "permanent_relations": {
+          "friends": ["Sun", "Venus"],
+          "neutrals": ["Mars", "Jupiter", "Saturn"],
+          "enemies": ["Moon"]
+        }
+      },
+      {
+        "planet": "Jupiter",
+        "sanskrit_name": "Guru",
+        "nature": "Satvikaguna",
+        "gender": "Male",
+        "element": "Ethereal",
+        "caste": "Brahmin",
+        "social_status": "Minister",
+        "representation": "Wisdom",
+        "colour": "Bright yellow",
+        "direction": "North-East",
+        "digbala_bhava": 1,
+        "permanent_relations": {
+          "friends": ["Sun", "Moon", "Mars"],
+          "neutrals": ["Saturn"],
+          "enemies": ["Mercury", "Venus"]
+        }
+      },
+      {
+        "planet": "Venus",
+        "sanskrit_name": "Sukra",
+        "nature": "Rajasaguna",
+        "gender": "Female",
+        "element": "Watery",
+        "caste": "Brahmin",
+        "social_status": "Minister",
+        "representation": "Sensual pleasures",
+        "colour": "Mixture of all colours",
+        "direction": "South-East",
+        "digbala_bhava": 4,
+        "permanent_relations": {
+          "friends": ["Mercury", "Saturn"],
+          "neutrals": ["Mars", "Jupiter"],
+          "enemies": ["Sun", "Moon"]
+        }
+      },
+      {
+        "planet": "Saturn",
+        "sanskrit_name": "Sani",
+        "nature": "Thamasaguna",
+        "gender": "Eunuch",
+        "element": "Airy",
+        "caste": "Antyaja",
+        "social_status": "Servant",
+        "representation": "Sorrows and miseries",
+        "colour": "Black",
+        "direction": "West",
+        "digbala_bhava": 7,
+        "permanent_relations": {
+          "friends": ["Mercury", "Venus"],
+          "neutrals": ["Jupiter"],
+          "enemies": ["Sun", "Moon", "Mars"]
+        }
+      }
+    ],
+    "predictive_logic_avastha": {
+      "deeptha": {
+        "condition": "Exaltation",
+        "prediction": "Gains from conveyances, respect from elders, fame, wealth and good progeny."
+      },
+      "swastha": {
+        "condition": "Own House",
+        "prediction": "Fame, wealth, position, lands, happiness and good children."
+      },
+      "muditha": {
+        "condition": "Friend's House",
+        "prediction": "Happiness."
+      },
+      "santha": {
+        "condition": "Auspicious Sub-division",
+        "prediction": "Strength and courage, helping relations, comfort and happiness."
+      },
+      "sakta": {
+        "condition": "Retrogression",
+        "prediction": "Courage, reputation, wealth and progeny."
+      },
+      "peedya": {
+        "condition": "Last quarter of a sign",
+        "prediction": "Prosecution, incarceration, pilfering habits and expulsion from country."
+      },
+      "deena": {
+        "condition": "Inimical House",
+        "prediction": "Jealousy, mental worry, brain trouble, sickness and degradation."
+      },
+      "vikala": {
+        "condition": "Combustion",
+        "prediction": "Diseases, orphanage, loss of wife and children and disgrace."
+      },
+      "khala": {
+        "condition": "Debilitation",
+        "prediction": "Losses, mean birth, troubles from various sources, quarrels with parents and relations, imprisonment and hating God and sacred literature."
+      },
+      "bhita": {
+        "condition": "Acceleration",
+        "prediction": "Losses from various sources, torture, foes, mean habits and danger in foreign countries."
+      }
+    },
+    "sign_classifications": {
+      "odd_signs": "Cruel, Masculine",
+      "even_signs": "Mild, Feminine",
+      "moveable_signs": [
+        "Aries",
+        "Cancer",
+        "Libra",
+        "Capricorn"
+      ],
+      "fixed_signs": [
+        "Taurus",
+        "Leo",
+        "Scorpio",
+        "Aquarius"
+      ],
+      "common_signs": [
+        "Gemini",
+        "Virgo",
+        "Sagittarius",
+        "Pisces"
+      ]
+    },
+    "bhava_classifications": {
+      "kendras": [1, 4, 7, 10],
+      "trikonas": [5, 9],
+      "upachayas": [3, 6, 10, 11],
+      "panaparas": [2, 5, 8, 11],
+      "apoklimas": [3, 6, 9, 12]
+    }
+  },
+  "life_domains": {
+    "marriage_and_relationships": {
+      "primary_bhava": 7,
+      "significator_karaka": "Venus",
+      "evaluations": {
+        "bhava_lord_placement": {
+          "in_own_house": "Spouse will be devoted, strong, and bring profound stability to the native's life.",
+          "in_kendra_1_4_7_10": "Early marriage; spouse brings fortune, public success, and domestic harmony.",
+          "in_trikona_5_9": "A highly fortunate and affectionate partnership, often resulting in wealthy and prosperous alliances.",
+          "in_dusthana_6_8_12": "Indicates delays in marriage, friction, temporary separations, or health issues for the partner."
+        },
+        "planets_occupying_bhava": {
+          "Jupiter": "A virtuous, wealthy, and philosophically inclined partner.",
+          "Venus": "A deeply romantic, passionate, and beautiful partner, though prone to excessive sensuality.",
+          "Mars": "Kuja Dosha. Indicates friction, argumentative nature in the home, or a highly active and assertive partner.",
+          "Saturn": "Delayed marriage. A mature, serious, or older partner. Requires patience but offers long-term loyalty."
+        }
+      }
+    },
+    "education_and_intellect": {
+      "primary_bhava": 4,
+      "secondary_bhava": 2,
+      "significator_karaka": ["Mercury", "Jupiter"],
+      "evaluations": {
+        "bhava_lord_placement": {
+          "in_kendra_or_trikona": "High academic achievements, continuous learning, and acquisition of degrees with honors.",
+          "in_dusthana_6_8_12": "Breaks in education, changes in subjects, or struggles to complete formal degrees despite high intelligence.",
+          "associated_with_mercury": "Exceptional analytical skills, highly suited for mathematics, engineering, or astrology."
+        },
+        "planets_occupying_bhava": {
+          "Mercury": "Brilliant intellect, rapid comprehension, and success in writing or communication.",
+          "Jupiter": "Profound wisdom, success in classical studies, law, or philosophy.",
+          "Rahu": "Unconventional education, success in foreign languages, or highly technical/obscure fields."
+        }
+      }
+    },
+    "children_and_progeny": {
+      "primary_bhava": 5,
+      "significator_karaka": "Jupiter",
+      "evaluations": {
+        "bhava_lord_placement": {
+          "in_own_house": "Blessed with good, intelligent, and prosperous children who bring joy.",
+          "in_kendra_1_4_7_10": "Children will achieve high status and outshine the parents in success.",
+          "in_dusthana_6_8_12": "Delays in childbirth, anxieties regarding children, or distance from progeny."
+        },
+        "planets_occupying_bhava": {
+          "Jupiter": "Excellent progeny, highly educated children. (Note: Karako Bhava Nasaya rule may apply if afflicted).",
+          "Sun": "Fewer children, but they will be highly ambitious, authoritative, and successful.",
+          "Ketu": "Obstacles in having children, or spiritual/unconventional paths regarding progeny."
+        }
+      }
+    },
+    "longevity_and_lifespan": {
+      "primary_bhava": 8,
+      "significator_karaka": "Saturn",
+      "longevity_categories": {
+        "balarishta": "0 to 8 years",
+        "alpayu": "8 to 32 years",
+        "madhyayu": "32 to 75 years",
+        "purnayu": "75 to 120 years"
+      },
+      "evaluations": {
+        "bhava_lord_placement": {
+          "in_eighth_house": "Vipareeta Raja Yoga. Highly protective of life span; grants Purnayu (long life).",
+          "in_kendra_with_benefics": "Grants a long, healthy life free from severe chronic illnesses.",
+          "afflicted_by_malefics": "Requires careful attention to health; potential for sudden shifts in vitality (Alpayu or Madhyayu indicators)."
+        },
+        "planets_occupying_bhava": {
+          "Saturn": "Ayush Karaka in Ayur Bhava extends the life span significantly, granting a long life.",
+          "Mars": "Prone to sudden accidents, surgeries, or injuries. Requires caution.",
+          "Jupiter": "A peaceful and natural end of life, often with spiritual awareness."
+        }
+      }
+    }
+  },
+  "engine_metadata": {
+    "purpose": "Comprehensive Life Problem Resolution and Predictive Engine",
+    "core_text": "Hindu Predictive Astrology - B.V. Raman"
+  },
+  "planetary_relationships": {
+    "explanation": "Calculates Mitrutva (Friendship), Shatrutva (Enmity), and Sama (Neutrality) affecting planetary strength.",
+    "matrix": {
+      "Sun": { "mitra": ["Moon", "Mars", "Jupiter"], "shatru": ["Venus", "Saturn"], "sama": ["Mercury"] },
+      "Moon": { "mitra": ["Sun", "Mercury"], "shatru": [], "sama": ["Mars", "Jupiter", "Venus", "Saturn"] },
+      "Mars": { "mitra": ["Sun", "Moon", "Jupiter"], "shatru": ["Mercury"], "sama": ["Venus", "Saturn"] },
+      "Mercury": { "mitra": ["Sun", "Venus"], "shatru": ["Moon"], "sama": ["Mars", "Jupiter", "Saturn"] },
+      "Jupiter": { "mitra": ["Sun", "Moon", "Mars"], "shatru": ["Mercury", "Venus"], "sama": ["Saturn"] },
+      "Venus": { "mitra": ["Mercury", "Saturn"], "shatru": ["Sun", "Moon"], "sama": ["Mars", "Jupiter"] },
+      "Saturn": { "mitra": ["Mercury", "Venus"], "shatru": ["Sun", "Moon", "Mars"], "sama": ["Jupiter"] }
+    }
+  },
+  "problem_resolution_domains": {
+    "mental_health_and_depression": {
+      "primary_karaka": "Moon",
+      "secondary_karaka": "Mercury",
+      "afflicting_planets": ["Saturn", "Rahu", "Ketu"],
+      "evaluations": {
+        "moon_afflicted_by_saturn": "Vish Yoga: The native is experiencing deep melancholy, pessimism, or clinical depression. A sense of isolation is prominent.",
+        "moon_afflicted_by_rahu": "Grahan Yoga: The mind is plagued by phobias, severe anxiety, overthinking, and irrational fears.",
+        "mercury_combust_or_debilitated": "Nervous exhaustion, inability to concentrate, and communication breakdowns leading to frustration."
+      },
+      "remedies": {
+        "moon_affliction": "Chant 'Om Som Somaya Namah'. Offer milk and water to a Shiva Linga on Mondays. Wear a Pearl in silver.",
+        "rahu_affliction": "Donate black sesame seeds. Avoid taking major life decisions during sudden emotional spikes."
+      }
+    },
+    "marriage_and_delays": {
+      "primary_bhava": 7,
+      "primary_karaka": "Venus",
+      "evaluations": {
+        "seventh_lord_in_dusthana": "Marriage is delayed due to karmic blockages or inability to find the right match.",
+        "mars_in_1_4_7_8_12": "Kuja Dosha (Manglik). Creates friction and misunderstandings. Best suited to marry another Manglik.",
+        "saturn_aspecting_seventh": "Marriage will happen late (usually after 28-30 years). Requires a mature approach to partnerships."
+      },
+      "remedies": {
+        "kuja_dosha": "Perform Kumbha Vivaha or daily recitation of Hanuman Chalisa.",
+        "venus_weak": "Respect women, donate white clothes on Fridays, and wear a Diamond or White Sapphire."
+      }
+    },
+    "career_and_unemployment": {
+      "primary_bhava": 10,
+      "primary_karaka": ["Sun", "Saturn", "Mercury"],
+      "evaluations": {
+        "tenth_lord_in_eighth": "Sudden breaks in career, job loss, or constant changes in profession.",
+        "saturn_afflicted_in_tenth": "The native faces immense struggle, lack of recognition, and hostile superiors despite hard work."
+      },
+      "remedies": {
+        "sun_weak": "Offer Arghya (water) to the Sun God every morning. Recite the Aditya Hridaya Stotram.",
+        "saturn_issues": "Light a mustard oil lamp under a Peepal tree on Saturdays. Serve the underprivileged."
+      }
+    },
+    "progeny_and_children": {
+      "primary_bhava": 5,
+      "primary_karaka": "Jupiter",
+      "evaluations": {
+        "fifth_lord_with_rahu": "Pitra Dosha. Indicates delays, miscarriages, or extreme worry regarding children.",
+        "jupiter_debilitated": "Karako Bhava Nasaya. The native desires children deeply but faces biological or circumstantial hurdles."
+      },
+      "remedies": {
+        "jupiter_weak": "Chant 'Om Brihaspataye Namah'. Donate yellow sweets on Thursdays. Wear a Yellow Sapphire."
+      }
+    }
+  },
+  "ayurdaya_longevity_logic": {
+    "explanation": "To be parsed by the code engine to calculate the threat to lifespan (Maraka).",
+    "maraka_sthanas_death_houses": [2, 7],
+    "dusthanas_illness_houses": [6, 8, 12],
+    "ayush_karaka": "Saturn",
+    "longevity_categories": {
+      "balarishta": {
+        "age_range": "0-8",
+        "conditions": "Moon heavily afflicted by malefics in Kendra, with no Jupiter aspect."
+      },
+      "alpayu": {
+        "age_range": "8-32",
+        "conditions": "8th lord debilitated, Ascendant lord weak, malefics in 8th house."
+      },
+      "madhyayu": {
+        "age_range": "32-75",
+        "conditions": "Mixed influences. Benefics and malefics equally distributed in Kendras and Trikonas."
+      },
+      "purnayu": {
+        "age_range": "75-120",
+        "conditions": "Saturn strong, 8th lord strong, Jupiter aspecting Ascendant."
+      }
+    },
+    "critical_periods": {
+      "rule_1": "The native faces extreme physical danger during the Dasha (major period) of the 2nd lord and Bhukti (sub-period) of the 7th lord.",
+      "rule_2": "If Saturn aspects the Maraka planet, the danger is amplified."
+    },
+    "remedies_for_health_danger": "Perform the Maha Mrityunjaya Mantra daily. Seek immediate medical counsel alongside spiritual practices."
+  },
+  "astrology_engine_core": {
+    "reference_source": "Hindu Predictive Astrology - B.V. Raman",
+    "version": "1.0_detailed_schema"
+  },
+  "bhava_karakatwas_house_significations": {
+    "house_1": {
+      "names": ["Lagna", "Ascendant", "Tanu Bhava"],
+      "signifies": ["Physical body", "General constitution", "Appearance", "Health", "Vitality", "Personality", "Early childhood"],
+      "primary_karaka": "Sun"
+    },
+    "house_2": {
+      "names": ["Dhana Bhava", "Vittasthana"],
+      "signifies": ["Accumulated wealth", "Family", "Speech", "Right eye", "Food", "Moveable property", "Death (Maraka)"],
+      "primary_karaka": "Jupiter"
+    },
+    "house_4": {
+      "names": ["Matru Bhava", "Sukhasthana"],
+      "signifies": ["Mother", "Domestic peace", "Immoveable property", "Vehicles", "Basic education", "Heart", "Hidden treasures"],
+      "primary_karakas": ["Moon", "Mercury", "Venus"]
+    },
+    "house_5": {
+      "names": ["Putra Bhava", "Vidyasthana"],
+      "signifies": ["Children", "Intelligence", "Emotions", "Speculation", "Higher education", "Past life merit (Purva Punya)"],
+      "primary_karaka": "Jupiter"
+    },
+    "house_7": {
+      "names": ["Kalatra Bhava", "Yuvatisthana"],
+      "signifies": ["Spouse", "Marriage", "Business partnerships", "Foreign travel", "Public enemies", "Death (Maraka)"],
+      "primary_karaka": "Venus"
+    },
+    "house_10": {
+      "names": ["Karma Bhava", "Rajyasthana"],
+      "signifies": ["Profession", "Career", "Fame", "Power", "Father", "Authority", "Government honors"],
+      "primary_karakas": ["Sun", "Mercury", "Jupiter", "Saturn"]
+    }
+  },
+  "bhava_lords_in_houses": {
+    "description": "Rules for when the ruler of one house is placed in another house.",
+    "first_lord_lagnesha": {
+      "in_house_1": "Native is strong, healthy, independent, and likely to be a leader or self-made person.",
+      "in_house_2": "Native is intensely focused on family and wealth accumulation. Will have good speech and financial success.",
+      "in_house_6": "Native will face debts, diseases, or enemies, but if the lord is strong, they will conquer them. Prone to military or medical careers.",
+      "in_house_10": "Native will attain great professional success, fame, and a highly respected position in society."
+    },
+    "seventh_lord_kalatranatha": {
+      "in_house_1": "The spouse will be a prominent figure in the native's life; native may marry someone known since childhood.",
+      "in_house_6": "Indicates sickly spouse, divorce, or intense friction in marriage. The spouse may be from a medical or legal background.",
+      "in_house_12": "Spouse may be from a foreign land, or there may be separation. Indicates high expenditure on account of the partner."
+    }
+  },
+  "planets_in_bhavas": {
+    "description": "Results of specific Grahas occupying specific Houses.",
+    "sun": {
+      "in_house_1": "Makes the native ambitious, authoritative, proud, and vital, but can cause thinning hair and a hot temper.",
+      "in_house_7": "Causes friction in marriage due to ego clashes. The spouse may be proud or dominant. Good for foreign travel.",
+      "in_house_10": "Highly excellent placement (Digbala). Brings government favor, high administrative positions, success, and fame."
+    },
+    "moon": {
+      "in_house_1": "Native is highly imaginative, emotional, moody, and deeply attached to their mother or home.",
+      "in_house_4": "Excellent for domestic happiness, owning good properties, and possessing a kind, nurturing heart.",
+      "in_house_8": "Balarishta (danger in childhood). Creates intense emotional turmoil, psychic sensitivity, and potential inheritance issues."
+    },
+    "saturn": {
+      "in_house_7": "Delays marriage. The spouse will be mature, older, hardworking, or serious. Unromantic but highly stable.",
+      "in_house_8": "Increases longevity (Ayushkaraka in Ayur Bhava). The native lives a long life but may face chronic, slow-moving health issues."
+    }
+  },
+  "special_yogas_combinations": {
+    "gaja_kesari_yoga": {
+      "condition": "Jupiter in a Kendra (1st, 4th, 7th, or 10th) from the Moon.",
+      "result": "The native will be brilliant, wealthy, eloquent, and highly respected in society. They will defeat their enemies."
+    },
+    "kuja_dosha": {
+      "condition": "Mars in the 1st, 4th, 7th, 8th, or 12th house from the Ascendant, Moon, or Venus.",
+      "result": "Causes severe friction, arguments, or danger in marriage. Requires mitigation (parihara) or marriage to another Manglik."
+    }
+  }
+}

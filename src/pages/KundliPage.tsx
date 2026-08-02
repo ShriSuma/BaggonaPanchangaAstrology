@@ -63,6 +63,7 @@ export default function KundliPage(): JSX.Element {
     latitude: defaultLat,
     longitude: defaultLng,
     gothra: "",
+    gender: "Male",
     pincode: pincodeStore || undefined
   });
   const [result, setResult] = useState<KundliOutput | null>(null);
@@ -317,6 +318,17 @@ export default function KundliPage(): JSX.Element {
                 </option>
               ))}
             </select>
+            <div className="md:col-span-2 flex gap-4 items-center">
+              <label className="text-sm font-semibold text-indigo-950 mr-2">{t("kundli.gender", "Gender")}:</label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="gender" value="Male" checked={form.gender === "Male"} onChange={() => setForm({ ...form, gender: "Male" })} className="text-indigo-600 focus:ring-indigo-500 w-4 h-4" />
+                <span className="text-sm text-slate-700">{t("gender.male", "Male")}</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="gender" value="Female" checked={form.gender === "Female"} onChange={() => setForm({ ...form, gender: "Female" })} className="text-indigo-600 focus:ring-indigo-500 w-4 h-4" />
+                <span className="text-sm text-slate-700">{t("gender.female", "Female")}</span>
+              </label>
+            </div>
             <div className="md:col-span-2">
               <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-amber-900/70">{t("kundli.birthDate")}</p>
               <DatePicker selected={birthDatePicker} onChange={setBirthDatePicker} />

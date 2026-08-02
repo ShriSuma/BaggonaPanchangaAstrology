@@ -22,8 +22,10 @@ const SKIP = (value) =>
 
 const walk = (enNode, targetNode, pathKeys, out) => {
   if (typeof enNode === "string") {
-    if (typeof targetNode === "string" && enNode === targetNode && !SKIP(enNode)) {
-      out.push({ pathKeys: [...pathKeys], english: enNode });
+    if ((typeof targetNode === "string" && enNode === targetNode) || typeof targetNode !== "string") {
+      if (!SKIP(enNode)) {
+        out.push({ pathKeys: [...pathKeys], english: enNode });
+      }
     }
     return;
   }

@@ -11,6 +11,8 @@ import SettingsPage from "./pages/SettingsPage";
 import InsightsPage from "./pages/InsightsPage";
 import BaggonaPredictionsPage from "./pages/BaggonaPredictionsPage";
 import MuhurthaPage from "./pages/MuhurthaPage";
+import VarshaBavishyaPage from "./pages/VarshaBavishyaPage";
+import RamanBhavishyaPage from "./pages/RamanBhavishyaPage";
 import { useAppStore } from "./stores/appStore";
 
 export default function App(): JSX.Element {
@@ -46,6 +48,8 @@ export default function App(): JSX.Element {
         {currentPage === "melapak" && <MelapakPage />}
         {currentPage === "settings" && <SettingsPage />}
         {currentPage === "muhurtha" && <MuhurthaPage />}
+        {currentPage === "varshabavishya" && <VarshaBavishyaPage />}
+        {currentPage === "ramanbhavishya" && <RamanBhavishyaPage />}
       </Layout>
     </ErrorBoundary>
   );
