@@ -16,20 +16,25 @@ type Props = {
   children: ReactNode;
 };
 
-const TabButton = ({ page, icon, label }: { page: AppPage; icon: string; label: string }) => {
+const TabButton = ({ page, icon, label, onClose }: { page: AppPage; icon: string; label: string; onClose?: () => void }) => {
   const currentPage = useAppStore((s) => s.currentPage);
   const setPage = useAppStore((s) => s.setPage);
   const active = currentPage === page;
   return (
     <button
       type="button"
-      className={`jk-btn flex min-w-[4.25rem] shrink-0 flex-col items-center py-2.5 text-[11px] font-medium sm:text-xs ${
-        active ? "text-[color:var(--jk-accent)]" : "text-slate-600"
+      className={`flex items-center w-full px-6 py-4 text-left transition-colors ${
+        active 
+          ? "bg-amber-50 dark:bg-amber-900/20 text-[color:var(--jk-accent)] border-r-4 border-[color:var(--jk-accent)]" 
+          : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
       }`}
-      onClick={() => setPage(page)}
+      onClick={() => {
+        setPage(page);
+        onClose?.();
+      }}
     >
-      <span aria-hidden>{icon}</span>
-      <span>{label}</span>
+      <span className="w-8 text-xl" aria-hidden>{icon}</span>
+      <span className="font-medium">{label}</span>
     </button>
   );
 };
@@ -43,6 +48,7 @@ export default function Layout({ children }: Props): JSX.Element {
   const placeLabel = useAppStore((s) => s.placeLabel);
   const ayanamsaModel = useAppStore((s) => s.ayanamsaModel);
   const [online, setOnline] = useState(navigator.onLine);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const session = useKundliViewerStore((s) => s.session);
 
@@ -85,7 +91,7 @@ export default function Layout({ children }: Props): JSX.Element {
   }, [notifications.dailyPanchang, notifications.rahuKaal, defaultLat, defaultLng, pincode, placeLabel, ayanamsaModel]);
 
   return (
-    <div className="min-h-screen pb-24 text-[color:var(--jk-card-fg)]">
+    <div className="min-h-screen text-[color:var(--jk-card-fg)] overflow-x-hidden relative">
       {!online && (
         <div
           className="border-b border-amber-200/80 bg-amber-50 px-4 py-2 text-center text-sm text-amber-950"
@@ -94,30 +100,76 @@ export default function Layout({ children }: Props): JSX.Element {
           {t("layout.offlineMode")}
         </div>
       )}
-      <header className="border-b border-[color:var(--jk-nav-border)] bg-[color:var(--jk-nav-bg)] px-4 py-3 text-center backdrop-blur-md">
-        <span className="text-lg font-semibold tracking-tight text-indigo-950">{t("app.title")}</span>
-        <p className="mt-0.5 text-xs text-slate-600">{t("app.subtitle")}</p>
+      
+      {/* Header with Hamburger */}
+      <header className="border-b border-[color:var(--jk-nav-border)] bg-[color:var(--jk-nav-bg)] px-4 py-3 backdrop-blur-md flex items-center">
+        <button 
+          onClick={() => setIsDrawerOpen(true)}
+          className="p-2 -ml-2 mr-2 text-slate-600 dark:text-slate-300 hover:text-amber-700 dark:hover:text-amber-400 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+          aria-label="Open Menu"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+        </button>
+        <div className="flex-1 text-center pr-8"> {/* pr-8 offsets the hamburger width to keep text strictly centered */}
+          <span className="text-lg font-semibold tracking-tight text-indigo-950 dark:text-indigo-100 block">{t("app.title")}</span>
+          <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400">{t("app.subtitle")}</p>
+        </div>
       </header>
-      <div className="mx-auto max-w-4xl px-4 pt-4">
+
+      <div className="mx-auto max-w-4xl px-4 pt-4 pb-12">
         <InstallPrompt />
         {children}
       </div>
-      <nav className="fixed bottom-0 left-0 right-0 z-40 flex overflow-x-auto border-t border-[color:var(--jk-nav-border)] bg-[color:var(--jk-nav-bg)] pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_24px_rgba(30,27,75,0.06)] backdrop-blur-md">
-        <TabButton page="home" icon="⌂" label={t("nav.home")} />
-        <TabButton page="kundli" icon="◈" label={t("nav.kundli")} />
-        {session && (
-          <>
-            <TabButton page="baggona" icon="📜" label={t("nav.baggona")} />
-            <TabButton page="predictions" icon="✦" label={t("nav.predictions")} />
-            <TabButton page="insights" icon="☍" label={t("nav.insights")} />
-            <TabButton page="ramanbhavishya" icon="📖" label={t("nav.ramanbhavishya", "Bhavishya")} />
-          </>
-        )}
-        <TabButton page="muhurtha" icon="🔔" label={t("nav.muhurtha")} />
-        <TabButton page="varshabavishya" icon="🔮" label={t("varsha.nav", "Varsha")} />
-        <TabButton page="melapak" icon="💞" label={t("nav.melapak")} />
-        <TabButton page="settings" icon="⚙" label={t("nav.settings")} />
-      </nav>
+
+      {/* Drawer Overlay */}
+      {isDrawerOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm transition-opacity" 
+          onClick={() => setIsDrawerOpen(false)}
+        />
+      )}
+      
+      {/* Side Drawer Navigation */}
+      <div 
+        className={`fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-slate-900 shadow-2xl transform transition-transform duration-300 ease-in-out ${
+          isDrawerOpen ? "translate-x-0" : "-translate-x-full"
+        } flex flex-col overflow-hidden`}
+      >
+        <div className="p-6 border-b border-amber-100 dark:border-slate-800 bg-amber-50/50 dark:bg-slate-900 flex justify-between items-center">
+          <div>
+            <h2 className="text-xl font-bold text-amber-900 dark:text-amber-100">{t("app.title")}</h2>
+            <p className="text-xs text-amber-700/70 dark:text-amber-400/70 mt-1 font-medium tracking-wide">NAVIGATION MENU</p>
+          </div>
+          <button onClick={() => setIsDrawerOpen(false)} className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+        
+        <nav className="flex-1 overflow-y-auto py-2">
+          <TabButton page="home" icon="⌂" label={t("nav.home")} onClose={() => setIsDrawerOpen(false)} />
+          <TabButton page="kundli" icon="◈" label={t("nav.kundli")} onClose={() => setIsDrawerOpen(false)} />
+          
+          {session && (
+            <>
+              <div className="px-6 py-3 mt-2 mb-1 text-xs font-bold text-amber-700/80 dark:text-amber-500/80 uppercase tracking-widest bg-amber-50/30 dark:bg-slate-800/30">
+                Premium Insights
+              </div>
+              <TabButton page="baggona" icon="📜" label={t("nav.baggona")} onClose={() => setIsDrawerOpen(false)} />
+              <TabButton page="predictions" icon="✦" label={t("nav.predictions")} onClose={() => setIsDrawerOpen(false)} />
+              <TabButton page="insights" icon="☍" label={t("nav.insights")} onClose={() => setIsDrawerOpen(false)} />
+              <TabButton page="ramanbhavishya" icon="📖" label={t("nav.ramanbhavishya", "Bhavishya")} onClose={() => setIsDrawerOpen(false)} />
+              <div className="my-2 border-t border-slate-100 dark:border-slate-800"></div>
+            </>
+          )}
+          {!session && <div className="my-2 border-t border-slate-100 dark:border-slate-800"></div>}
+          
+          <TabButton page="muhurtha" icon="🔔" label={t("nav.muhurtha")} onClose={() => setIsDrawerOpen(false)} />
+          <TabButton page="varshabavishya" icon="🔮" label={t("varsha.nav", "Varsha")} onClose={() => setIsDrawerOpen(false)} />
+          <TabButton page="melapak" icon="💞" label={t("nav.melapak")} onClose={() => setIsDrawerOpen(false)} />
+          <div className="my-2 border-t border-slate-100 dark:border-slate-800"></div>
+          <TabButton page="settings" icon="⚙" label={t("nav.settings")} onClose={() => setIsDrawerOpen(false)} />
+        </nav>
+      </div>
     </div>
   );
 }

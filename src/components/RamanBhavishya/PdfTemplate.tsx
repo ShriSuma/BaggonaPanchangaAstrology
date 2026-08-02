@@ -30,9 +30,10 @@ interface Props {
   session: KundliViewerSession | null;
   predictions: TranslatedPrediction[];
   translations: PdfTranslations;
+  deepInsights?: Record<string, string>;
 }
 
-export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predictions, translations }, ref) => {
+export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predictions, translations, deepInsights }, ref) => {
   if (!session) return null;
 
   const groupedPredictions = predictions.reduce((acc, pred) => {
@@ -116,6 +117,24 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
               {preds.map((pred, idx) => (
                 <p key={idx} className="text-xl leading-loose text-amber-950 text-justify font-medium">
                   {pred.translatedText}
+                </p>
+              ))}
+            </div>
+          </div>
+        ))}
+        
+        {deepInsights && Object.entries(deepInsights).map(([category, insightText]) => (
+          <div key={category} className="px-6 relative">
+            <div className="flex items-center gap-6 mb-8 mt-12">
+              <h2 className={`text-3xl font-bold ${primaryColorClass} leading-normal border-b-2 border-amber-700/30 pb-2`}>
+                {category}
+              </h2>
+            </div>
+            
+            <div className="space-y-10">
+              {insightText.split("\n\n").map((paragraph, idx) => (
+                <p key={idx} className="text-xl leading-loose text-amber-950 text-justify font-medium">
+                  {paragraph}
                 </p>
               ))}
             </div>

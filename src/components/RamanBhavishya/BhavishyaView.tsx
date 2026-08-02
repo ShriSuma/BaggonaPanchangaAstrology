@@ -11,6 +11,15 @@ import { useAppStore } from "../../stores/appStore";
 import { translateText } from "../../utils/translator";
 import { ageDecimalYearsAt } from "../../core/birthTime";
 import { findBhuktiAtAge } from "../../core/DashaBhuktiEngine";
+import { generateChatResponse } from "../../core/DynamicChatEngine";
+
+const DEEP_INSIGHT_CATEGORIES = [
+  { id: "lifespan", label: "Lifespan & Health" },
+  { id: "marriage", label: "Marriage & Relationships" },
+  { id: "children", label: "Children & Progeny" },
+  { id: "job", label: "Career & Profession" },
+  { id: "family", label: "Family & Wealth" },
+];
 
 export default function BhavishyaView() {
   const { predictions, isLoading } = usePredictionEngine();
@@ -20,6 +29,7 @@ export default function BhavishyaView() {
   
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [pdfTranslations, setPdfTranslations] = useState<PdfTranslations | null>(null);
+  const [pdfDeepInsights, setPdfDeepInsights] = useState<Record<string, string> | null>(null);
   
   const pdfRef = useRef<HTMLDivElement>(null);
 
@@ -99,6 +109,16 @@ export default function BhavishyaView() {
       };
       
       setPdfTranslations(translatedData);
+
+      // Generate deep insights
+      const deepInsights: Record<string, string> = {};
+      for (const cat of DEEP_INSIGHT_CATEGORIES) {
+        const rawText = generateChatResponse(session.result, currentBhuktiData || null, cat.id);
+        const translatedCat = await translateText(cat.label, language, "en");
+        const translatedText = await translateText(rawText, language, "kn");
+        deepInsights[translatedCat] = translatedText;
+      }
+      setPdfDeepInsights(deepInsights);
 
       // 2. Wait for React to flush the state to the hidden PdfTemplate component
       await new Promise(resolve => setTimeout(resolve, 300));
@@ -205,7 +225,7 @@ export default function BhavishyaView() {
       </div>
 
       {isGeneratingPdf && (
-        <div className="absolute inset-0 bg-amber-50/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center rounded-3xl animate-fade-in">
+        <div className="fixed inset-0 bg-amber-50/90 backdrop-blur-sm z-[100] flex flex-col items-center justify-center animate-fade-in">
           <div className="w-16 h-16 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mb-6 shadow-xl"></div>
           <p className="text-2xl text-amber-900 font-serif font-bold tracking-wide animate-pulse">
             Crafting your Patrika PDF...
@@ -243,13 +263,14 @@ export default function BhavishyaView() {
 
       {/* Hidden PDF Template Container */}
       <div className="absolute left-[-9999px] top-[-9999px] opacity-0 pointer-events-none">
-        {pdfTranslations && (
+        {pdfTranslations && pdfDeepInsights && (
           <PdfTemplate 
             ref={pdfRef} 
             theme="sunrise" 
             session={session} 
             predictions={predictions} 
             translations={pdfTranslations}
+            deepInsights={pdfDeepInsights}
           />
         )}
       </div>
