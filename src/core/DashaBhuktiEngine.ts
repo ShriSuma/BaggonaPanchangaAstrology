@@ -217,3 +217,19 @@ export const generateBhuktiTimeline = (kundli: KundliOutput, maxYears = 100): Bh
   }
   return flat.filter((b) => b.startAge < maxYears);
 };
+
+/**
+ * Evaluates whether a planet's period is generally favorable, unfavorable, or neutral.
+ * Based primarily on the planet's house placement in the Kundli.
+ */
+export const evaluatePlanetQuality = (planet: PlanetName, kundli: KundliOutput): "good" | "bad" | "neutral" => {
+  const p = kundli.planets.find(x => x.name === planet);
+  if (!p) return "neutral";
+  
+  const goodHouses = [1, 4, 5, 7, 9, 10, 11]; // Kendra, Trikona, Labha
+  const badHouses = [6, 8, 12]; // Dusthana
+  
+  if (goodHouses.includes(p.house)) return "good";
+  if (badHouses.includes(p.house)) return "bad"; // "ugly"
+  return "neutral";
+};

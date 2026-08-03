@@ -6,7 +6,10 @@ import { calculateKundliWithPlaceSun } from "../core/KundliEngine";
 import { chartYogasWithPolarity, type YogaId } from "../core/KundliInsightsEngine";
 import { getDailyPrediction } from "../core/PredictionEngine";
 import { generateDashaTimeline, type DashaEntry } from "../core/DashaBhuktiEngine";
-import { exportSvgAsPdf, exportSvgAsPng, exportElementAsPdf, exportElementAsPng } from "../core/ExportUtils";
+import { exportSvgAsPdf, exportSvgAsPng, exportElementAsPdf, exportElementAsPng, exportPanchangaWithDashaPdf, exportDashaPdf } from "../core/ExportUtils";
+import { DashaPdfTemplate } from "../components/kundli/DashaPdfTemplate";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 import { calculateTraditionalBaggona } from "../core/TraditionalBaggonaEngine";
 
 import { analytics } from "../core/analytics";
@@ -16,6 +19,7 @@ import { useKundliViewerStore } from "../stores/kundliViewerStore";
 import KundliChart from "../components/kundli/KundliChart";
 import TraditionalSouthPatrika from "../components/kundli/TraditionalSouthPatrika";
 import { DashaBhuktiExplorer, LifetimeDashaBar } from "../components/kundli/DashaLifetimeChart";
+import { DashaVisualization } from "../components/kundli/DashaVisualization";
 import DatePicker from "../components/DatePicker";
 import BirthTimePicker from "../components/BirthTimePicker";
 import LocationSelector, { type SelectedLocation } from "../components/LocationSelector";
@@ -50,12 +54,17 @@ export default function KundliPage(): JSX.Element {
   const ayanamsaModel = useAppStore((s) => s.ayanamsaModel);
   const nodeType = useAppStore((s) => s.nodeType);
   const setPage = useAppStore((s) => s.setPage);
-  const setKundliSession = useKundliViewerStore((s) => s.setSession);
-  const clearKundliSession = useKundliViewerStore((s) => s.clearSession);
   const kundliSession = useKundliViewerStore((s) => s.session);
+  const draftInput = useKundliViewerStore((s) => s.draftInput);
+  const setSession = useKundliViewerStore((s) => s.setSession);
+  const clearKundliSession = useKundliViewerStore((s) => s.clearSession);
   const svgHostRef = useRef<HTMLDivElement>(null);
   const exportContainerRef = useRef<HTMLDivElement>(null);
   const traditionalExportRef = useRef<HTMLDivElement>(null);
+  const dashaExportRef = useRef<HTMLDivElement>(null);
+  const [activeView, setActiveView] = useState<"jataka" | "dasha">("jataka");
+  const [dashaViewType, setDashaViewType] = useState<"grid" | "visualization">("grid");
+  const [isGeneratingDashaPdf, setIsGeneratingDashaPdf] = useState(false);
   const [form, setForm] = useState<KundliInput>({
     name: "",
     birthDate: "",
@@ -152,18 +161,166 @@ export default function KundliPage(): JSX.Element {
 
   /** Restore chart from in-memory session when returning to this tab. */
   useEffect(() => {
-    if (!kundliSession) return;
-    lastResolvedPinRef.current = kundliSession.input.pincode || "";
-    setForm(kundliSession.input);
-    setResult(kundliSession.result);
-    const bd = parseYmdToDate(kundliSession.birthDateYmd);
-    if (bd) setBirthDatePicker(bd);
-    setBirthTimeHm(kundliSession.birthTimeHm);
-    setHomePlaceName(kundliSession.homePlaceName);
-    setLocationCore(kundliSession.placeLabel);
-    setDasha(kundliSession.dasha);
-    setDailyPrediction(kundliSession.dailyPrediction);
-  }, [kundliSession]);
+    if (kundliSession) {
+      lastResolvedPinRef.current = kundliSession.input.pincode || "";
+      setForm(kundliSession.input);
+      setResult(kundliSession.result);
+      const bd = parseYmdToDate(kundliSession.birthDateYmd);
+      if (bd) setBirthDatePicker(bd);
+      setBirthTimeHm(kundliSession.birthTimeHm);
+      setHomePlaceName(kundliSession.homePlaceName);
+      setLocationCore(kundliSession.placeLabel);
+      setDasha(kundliSession.dasha);
+      setDailyPrediction(kundliSession.dailyPrediction);
+    } else if (draftInput) {
+      if (draftInput.input) {
+        lastResolvedPinRef.current = draftInput.input.pincode || "";
+        setForm(draftInput.input);
+      }
+      if (draftInput.birthDateYmd) {
+        const bd = parseYmdToDate(draftInput.birthDateYmd);
+        if (bd) setBirthDatePicker(bd);
+      }
+      if (draftInput.birthTimeHm) setBirthTimeHm(draftInput.birthTimeHm);
+      if (draftInput.homePlaceName) setHomePlaceName(draftInput.homePlaceName);
+      if (draftInput.placeLabel) setLocationCore(draftInput.placeLabel);
+    } else {
+      setResult(null);
+      setForm({
+        name: "",
+        birthDate: "",
+        birthTime: "",
+        latitude: defaultLat,
+        longitude: defaultLng,
+        gothra: "",
+        gender: "Male",
+        pincode: pincodeStore || undefined
+      });
+      setBirthDatePicker(null);
+      setBirthTimeHm("");
+      setHomePlaceName("");
+      setLocationCore(placeLabelStore);
+      setDasha([]);
+      setDailyPrediction("");
+    }
+  }, [kundliSession, draftInput, defaultLat, defaultLng, pincodeStore, placeLabelStore]);
+
+  const [dictatingField, setDictatingField] = useState<"name" | "gothra" | "date" | "time" | null>(null);
+  const startDictation = (field: "name" | "gothra" | "date" | "time") => {
+    // @ts-ignore
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Speech recognition is not supported in this browser. Try Chrome or Safari.");
+      return;
+    }
+    const recognition = new SpeechRecognition();
+    // Default to Kannada if selected, else English (India) to catch Indian names/accents
+    recognition.lang = i18n.language.startsWith('kn') ? 'kn-IN' : 'en-IN';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => setDictatingField(field);
+    recognition.onend = () => setDictatingField(null);
+    recognition.onerror = () => setDictatingField(null);
+
+    recognition.onresult = (event: any) => {
+      const text = event.results[0][0].transcript.toLowerCase();
+      console.log(`Dictated for ${field}:`, text);
+      
+      if (field === "name") {
+        let foundName = text.trim();
+        const nameMatch = text.match(/(?:name(?:\s+is)?|hesaru|ಹೆಸರು)\s+([a-z\u0C80-\u0CFF]+)/i);
+        if (nameMatch) foundName = nameMatch[1];
+        setForm(f => ({ ...f, name: foundName.charAt(0).toUpperCase() + foundName.slice(1) }));
+        return;
+      }
+      
+      if (field === "gothra") {
+        let foundGothra = text.trim();
+        const gothraMatch = text.match(/(?:gothra|ಗೋತ್ರ)\s+([a-z\u0C80-\u0CFF]+)|([a-z\u0C80-\u0CFF]+)\s+(?:gothra|ಗೋತ್ರ)/i);
+        if (gothraMatch) foundGothra = gothraMatch[1] || gothraMatch[2];
+        setForm(f => ({ ...f, gothra: foundGothra.charAt(0).toUpperCase() + foundGothra.slice(1) }));
+        return;
+      }
+
+      if (field === "date") {
+        let foundDate: Date | null = null;
+        const knMonths = ["ಜನವರಿ", "ಫೆಬ್ರವರಿ", "ಮಾರ್ಚ್", "ಏಪ್ರಿಲ್", "ಮೇ", "ಜೂನ್", "ಜುಲೈ", "ಆಗಸ್ಟ್", "ಸೆಪ್ಟೆಂಬರ್", "ಅಕ್ಟೋಬರ್", "ನವೆಂಬರ್", "ಡಿಸೆಂಬರ್"];
+        const enMonths = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december", "jan", "feb", "mar", "apr", "aug", "sep", "sept", "oct", "nov", "dec"];
+        
+        let realMonth = -1;
+        for (let i = 0; i < knMonths.length; i++) {
+          if (text.includes(knMonths[i])) { realMonth = i; break; }
+        }
+        if (realMonth === -1) {
+          for (let i = 0; i < enMonths.length; i++) {
+            if (text.includes(enMonths[i])) {
+              realMonth = new Date(Date.parse(enMonths[i] +" 1, 2012")).getMonth();
+              break;
+            }
+          }
+        }
+
+        if (realMonth !== -1) {
+          const yearMatch = text.match(/\b(19|20)\d{2}\b/);
+          const dayMatch = text.match(/\b(1st|2nd|3rd|\d{1,2}(th)?)\b/);
+          
+          if (yearMatch && dayMatch) {
+            const dayNum = parseInt(dayMatch[0].replace(/\D/g, ''), 10);
+            const yearNum = parseInt(yearMatch[0], 10);
+            if (dayNum >= 1 && dayNum <= 31) {
+              foundDate = new Date(yearNum, realMonth, dayNum, 12, 0, 0, 0);
+            }
+          }
+        }
+        if (foundDate) setBirthDatePicker(foundDate);
+        return;
+      }
+
+      if (field === "time") {
+        let foundTime = "";
+        const pat1 = /(ಬೆಳಿಗ್ಗೆ|ಮಧ್ಯಾಹ್ನ|ಸಂಜೆ|ರಾತ್ರಿ|am|pm)\s*(\d{1,2})(?:\s*:?\s*|\s+)(\d{2})?/i;
+        const pat2 = /\b(\d{1,2})(?:\s*:?\s*|\s+)(\d{2})?\s*(ಬೆಳಿಗ್ಗೆ|ಮಧ್ಯಾಹ್ನ|ಸಂಜೆ|ರಾತ್ರಿ|am|pm)/i;
+        const pat3 = /\b(\d{1,2}):(\d{2})\b/i;
+
+        let match = text.match(pat1);
+        let hr = 0, mn = 0, marker = "";
+        if (match) {
+            marker = match[1].toLowerCase();
+            hr = parseInt(match[2], 10);
+            mn = match[3] ? parseInt(match[3], 10) : 0;
+        } else {
+            match = text.match(pat2);
+            if (match) {
+                hr = parseInt(match[1], 10);
+                mn = match[2] ? parseInt(match[2], 10) : 0;
+                marker = match[3].toLowerCase();
+            } else {
+                match = text.match(pat3);
+                if (match) {
+                    hr = parseInt(match[1], 10);
+                    mn = parseInt(match[2], 10);
+                }
+            }
+        }
+
+        if (match) {
+          const isPM = marker === "pm" || marker === "ಮಧ್ಯಾಹ್ನ" || marker === "ಸಂಜೆ" || marker === "ರಾತ್ರಿ";
+          const isAM = marker === "am" || marker === "ಬೆಳಿಗ್ಗೆ";
+          
+          if (isPM && hr < 12) hr += 12;
+          if (isAM && hr === 12) hr = 0;
+          
+          if (hr >= 0 && hr <= 23 && mn >= 0 && mn <= 59) {
+            foundTime = `${hr.toString().padStart(2, '0')}:${mn.toString().padStart(2, '0')}`;
+          }
+        }
+        if (foundTime) setBirthTimeHm(foundTime);
+      }
+    };
+
+    recognition.start();
+  };
 
   /** Sync default place from settings when no active chart session (skip while PIN is resolving). */
   useEffect(() => {
@@ -216,7 +373,7 @@ export default function KundliPage(): JSX.Element {
     const predText = [dp.summary, dp.dashaLine, dp.timingLine].filter(Boolean).join("\n\n");
     setDailyPrediction(predText);
     setDasha(dashaTimeline);
-    setKundliSession({
+    setSession({
       result: output,
       input: payload,
       birthDateYmd: birthDate,
@@ -299,25 +456,52 @@ export default function KundliPage(): JSX.Element {
           <h2 className="text-2xl font-bold text-indigo-950">{t("kundli.formTitle")}</h2>
           <p className="mt-1 text-sm text-slate-600">{t("kundli.subtitle")}</p>
           <div className="mt-4 grid gap-3 md:grid-cols-2">
-            <input
-              placeholder={t("kundli.name")}
-              className="min-h-11 rounded-xl border border-slate-200 bg-white px-3 py-2 text-indigo-950 shadow-sm"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-            />
-            <select
-              aria-label={t("kundli.gothra")}
-              className="jk-touch-input min-h-[3rem] rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-base text-indigo-950 shadow-sm"
-              value={form.gothra ?? ""}
-              onChange={(e) => setForm({ ...form, gothra: e.target.value })}
-            >
-              <option value="">{t("kundli.gotraNone")}</option>
-              {GOTRA_OPTIONS.map((id) => (
-                <option key={id} value={id}>
-                  {t(gotraI18nKey(id) as "gotras.Vasishtha")}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <div className="flex justify-between items-end mb-1">
+                <p className="text-xs font-semibold uppercase tracking-wide text-indigo-900/70">{t("kundli.name")}</p>
+                <button
+                  type="button"
+                  title="Dictate Name"
+                  onClick={() => startDictation("name")}
+                  className={`text-xs flex items-center gap-1 font-semibold px-2 py-1 rounded-full ${dictatingField === "name" ? 'bg-rose-100 text-rose-600 animate-pulse' : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'} transition-colors`}
+                >
+                  <span role="img" aria-label="microphone">🎤</span> 
+                </button>
+              </div>
+              <input
+                placeholder={t("kundli.name")}
+                className="w-full min-h-11 rounded-xl border border-slate-200 bg-white px-3 py-2 text-indigo-950 shadow-sm"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+              />
+            </div>
+            
+            <div className="relative">
+              <div className="flex justify-between items-end mb-1">
+                <p className="text-xs font-semibold uppercase tracking-wide text-indigo-900/70">{t("kundli.gothra")}</p>
+                <button
+                  type="button"
+                  title="Dictate Gotra"
+                  onClick={() => startDictation("gothra")}
+                  className={`text-xs flex items-center gap-1 font-semibold px-2 py-1 rounded-full ${dictatingField === "gothra" ? 'bg-rose-100 text-rose-600 animate-pulse' : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'} transition-colors`}
+                >
+                  <span role="img" aria-label="microphone">🎤</span> 
+                </button>
+              </div>
+              <select
+                aria-label={t("kundli.gothra")}
+                className="w-full jk-touch-input min-h-[3rem] rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-base text-indigo-950 shadow-sm"
+                value={form.gothra ?? ""}
+                onChange={(e) => setForm({ ...form, gothra: e.target.value })}
+              >
+                <option value="">{t("kundli.gotraNone")}</option>
+                {GOTRA_OPTIONS.map((id) => (
+                  <option key={id} value={id}>
+                    {t(gotraI18nKey(id) as "gotras.Vasishtha")}
+                  </option>
+                ))}
+              </select>
+            </div>
             <div className="md:col-span-2 flex gap-4 items-center">
               <label className="text-sm font-semibold text-indigo-950 mr-2">{t("kundli.gender", "Gender")}:</label>
               <label className="flex items-center gap-2 cursor-pointer">
@@ -330,11 +514,31 @@ export default function KundliPage(): JSX.Element {
               </label>
             </div>
             <div className="md:col-span-2">
-              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-amber-900/70">{t("kundli.birthDate")}</p>
+              <div className="flex justify-between items-end mb-1">
+                <p className="text-xs font-semibold uppercase tracking-wide text-amber-900/70">{t("kundli.birthDate")}</p>
+                <button
+                  type="button"
+                  title="Dictate Date"
+                  onClick={() => startDictation("date")}
+                  className={`text-xs flex items-center gap-1 font-semibold px-2 py-1 rounded-full ${dictatingField === "date" ? 'bg-rose-100 text-rose-600 animate-pulse' : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'} transition-colors`}
+                >
+                  <span role="img" aria-label="microphone">🎤</span> 
+                </button>
+              </div>
               <DatePicker selected={birthDatePicker} onChange={setBirthDatePicker} />
             </div>
             <div className="md:col-span-2">
-              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-emerald-900/70">{t("kundli.birthTime")}</p>
+              <div className="flex justify-between items-end mb-1">
+                <p className="text-xs font-semibold uppercase tracking-wide text-emerald-900/70">{t("kundli.birthTime")}</p>
+                <button
+                  type="button"
+                  title="Dictate Time"
+                  onClick={() => startDictation("time")}
+                  className={`text-xs flex items-center gap-1 font-semibold px-2 py-1 rounded-full ${dictatingField === "time" ? 'bg-rose-100 text-rose-600 animate-pulse' : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'} transition-colors`}
+                >
+                  <span role="img" aria-label="microphone">🎤</span> 
+                </button>
+              </div>
               <BirthTimePicker value={birthTimeHm} onChange={setBirthTimeHm} zoneHint={birthTimeZoneHint} />
             </div>
             <input
@@ -428,12 +632,25 @@ export default function KundliPage(): JSX.Element {
             onClick={() => {
               clearKundliSession();
               setResult(null);
+              setForm({
+                name: "",
+                birthDate: "",
+                birthTime: "",
+                latitude: defaultLat,
+                longitude: defaultLng,
+                gothra: "",
+                gender: "Male",
+                pincode: pincodeStore || undefined
+              });
               setBirthDatePicker(null);
               setBirthTimeHm("");
-              setForm({ ...form, name: "" });
+              setHomePlaceName("");
+              setLocationCore(placeLabelStore);
+              setDasha([]);
+              setDailyPrediction("");
             }}
           >
-            {i18n.language.startsWith("kn") ? "ಹೊಸ ಕುಂಡಲಿ ರಚಿಸಿ (Reset)" : "Reset / New Kundli"}
+            {i18n.language.startsWith("kn") ? "ಮತ್ತೆ ಪರಿಶೀಲಿಸಿ (Edit)" : "Edit / Reset"}
           </button>
         </div>
       )}
@@ -442,48 +659,149 @@ export default function KundliPage(): JSX.Element {
       
       {result && birthDatePicker && birthTimeHm.trim() ? (
         <div className="mt-8 space-y-6">
-          <div className="flex justify-center mb-6">
+          <div className="flex flex-col md:flex-row justify-center items-center gap-4 mb-6">
             <button
               type="button"
-              className="jk-btn rounded-xl bg-amber-500 px-8 py-4 text-base font-extrabold tracking-wide text-indigo-950 shadow-lg hover:bg-amber-400 hover:scale-[1.02] transition-all"
-              onClick={async () => {
-                const el = traditionalExportRef.current;
-                if (el) {
-                  await exportElementAsPdf(el, `baggona-janana-kundali-${form.name || "chart"}`);
-                }
-              }}
+              className={`jk-btn rounded-xl px-8 py-3 text-base font-bold tracking-wide shadow-md transition-all ${
+                activeView === "jataka"
+                  ? "bg-indigo-600 text-white"
+                  : "bg-white text-indigo-900 border border-indigo-200 hover:bg-indigo-50"
+              }`}
+              onClick={() => setActiveView("jataka")}
             >
-              Baggoona Panchanga Janan Kundali Download
+              Jataka Details
+            </button>
+            <button
+              type="button"
+              className={`jk-btn rounded-xl px-8 py-3 text-base font-bold tracking-wide shadow-md transition-all ${
+                activeView === "dasha"
+                  ? "bg-indigo-600 text-white"
+                  : "bg-white text-indigo-900 border border-indigo-200 hover:bg-indigo-50"
+              }`}
+              onClick={() => setActiveView("dasha")}
+            >
+              Complete Dasha Bhukti
             </button>
           </div>
 
-          <div className="rounded-2xl border border-indigo-100 bg-white shadow-sm overflow-hidden">
-             <div className="bg-indigo-50/50 p-4 border-b border-indigo-100 text-center">
-                 <h3 className="text-lg font-bold text-indigo-950">{t("kundli.jatakaDetails", "Jataka & Panchanga Details")}</h3>
-             </div>
-             <div className="p-4 overflow-x-auto flex justify-center">
-                <TraditionalSouthPatrika
-                  kundli={result}
-                  personName={form.name}
-                  gothra={gotraDisplay}
-                  birthDate={formatPickerDateLocalYmd(birthDatePicker)}
-                  birthTime={birthTimeHm.trim()}
-                  latitude={form.latitude}
-                  longitude={form.longitude}
-                  placeLabel={placeDisplay}
-                  pincode={form.pincode}
-                  ayanamsaModel={ayanamsaModel}
-                />
-             </div>
-          </div>
+          {activeView === "jataka" && (
+            <div className="space-y-6 animate-fade-in">
+              <div className="flex justify-center mb-6">
+                <button
+                  type="button"
+                  className="jk-btn rounded-xl bg-amber-500 px-8 py-4 text-base font-extrabold tracking-wide text-indigo-950 shadow-lg hover:bg-amber-400 hover:scale-[1.02] transition-all"
+                  onClick={async () => {
+                    const el = traditionalExportRef.current;
+                    const dashaEl = dashaExportRef.current;
+                    if (el && dashaEl) {
+                      setIsGeneratingDashaPdf(true); // Re-using this state to show a spinner if desired, though we don't have a spinner on this button directly, we can use it to disable other things.
+                      try {
+                        // Small wait to ensure template is rendered
+                        await new Promise(r => setTimeout(r, 100));
+                        await exportPanchangaWithDashaPdf(el, dashaEl, `baggona-janana-kundali-${form.name || "chart"}`);
+                      } catch (e) {
+                        console.error("Combined PDF generation failed:", e);
+                      } finally {
+                        setIsGeneratingDashaPdf(false);
+                      }
+                    } else if (el) {
+                      await exportElementAsPdf(el, `baggona-janana-kundali-${form.name || "chart"}`);
+                    }
+                  }}
+                >
+                  Baggoona Panchanga Janan Kundali Download
+                </button>
+              </div>
+
+              <div className="rounded-2xl border border-indigo-100 bg-white shadow-sm overflow-hidden">
+                 <div className="bg-indigo-50/50 p-4 border-b border-indigo-100 text-center">
+                     <h3 className="text-lg font-bold text-indigo-950">{t("kundli.jatakaDetails", "Jataka & Panchanga Details")}</h3>
+                 </div>
+                 <div className="p-4 overflow-x-auto flex justify-center">
+                    <TraditionalSouthPatrika
+                      kundli={result}
+                      personName={form.name}
+                      gothra={gotraDisplay}
+                      birthDate={formatPickerDateLocalYmd(birthDatePicker)}
+                      birthTime={birthTimeHm.trim()}
+                      latitude={form.latitude}
+                      longitude={form.longitude}
+                      placeLabel={placeDisplay}
+                      pincode={form.pincode}
+                      ayanamsaModel={ayanamsaModel}
+                    />
+                 </div>
+              </div>
+            </div>
+          )}
           
-          <div className="rounded-2xl border border-amber-100 bg-amber-50/30 shadow-sm overflow-hidden p-4">
-             <h3 className="text-lg font-bold text-indigo-950 mb-3 text-center">{t("kundli.dashaTitle", "Dasha Bhukti Timeline")}</h3>
-             <LifetimeDashaBar kundli={result} maxAge={120} />
-             <div className="mt-4">
-               <DashaBhuktiExplorer kundli={result} maxAge={120} />
-             </div>
-          </div>
+          {activeView === "dasha" && (
+            <div className="space-y-6 animate-fade-in">
+              <div className="flex justify-center mb-6">
+                <button
+                  type="button"
+                  disabled={isGeneratingDashaPdf}
+                  className={`jk-btn flex items-center gap-2 rounded-xl bg-emerald-500 px-8 py-4 text-base font-extrabold tracking-wide text-white shadow-lg hover:bg-emerald-400 hover:scale-[1.02] transition-all ${isGeneratingDashaPdf ? 'opacity-75 cursor-wait' : ''}`}
+                  onClick={async () => {
+                    setIsGeneratingDashaPdf(true);
+                    try {
+                      // Small wait to ensure template is rendered
+                      await new Promise(r => setTimeout(r, 100));
+                      
+                      const el = dashaExportRef.current;
+                      if (el) {
+                        await exportDashaPdf(el, `Dasha_Bhukti_Timeline_${form.name || "chart"}`);
+                      }
+                    } catch (e) {
+                      console.error("PDF generation failed:", e);
+                    } finally {
+                      setIsGeneratingDashaPdf(false);
+                    }
+                  }}
+                >
+                  {isGeneratingDashaPdf ? (
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                  )}
+                  {isGeneratingDashaPdf ? "Generating PDF..." : "Download Complete Dasha Bhukti PDF"}
+                </button>
+              </div>
+
+              {/* Dasha View Toggle */}
+              <div className="flex justify-center mb-6">
+                <div className="inline-flex bg-white rounded-xl shadow-sm border border-slate-200 p-1">
+                  <button
+                    onClick={() => setDashaViewType("grid")}
+                    className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${dashaViewType === 'grid' ? 'bg-indigo-50 text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                  >
+                    {t("kundli.dashaGrid", "Grid View")}
+                  </button>
+                  <button
+                    onClick={() => setDashaViewType("visualization")}
+                    className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${dashaViewType === 'visualization' ? 'bg-indigo-50 text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                  >
+                    {t("kundli.dashaVisual", "Visualization")}
+                  </button>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-amber-100 bg-amber-50/30 shadow-sm overflow-hidden p-4">
+                 <h3 className="text-lg font-bold text-indigo-950 mb-3 text-center">{t("kundli.dashaTitle", "Dasha Bhukti Timeline (120 Years)")}</h3>
+                 <div className="p-4 bg-white rounded-xl">
+                   <div className="text-center mb-6 border-b border-slate-100 pb-4">
+                     <h2 className="text-2xl font-extrabold text-indigo-900">{form.name}</h2>
+                     <p className="text-sm font-medium text-slate-600 mt-1">
+                       Complete Dasha Bhukti Timeline (Birth to 120 Years)
+                     </p>
+                   </div>
+                   {kundliSession && dashaViewType === "grid" && <DashaBhuktiExplorer session={kundliSession} maxAge={120} />}
+                   {kundliSession && dashaViewType === "visualization" && <DashaVisualization session={kundliSession} maxAge={120} />}
+                 </div>
+              </div>
+              
+            </div>
+          )}
 
         </div>
       ) : null}
@@ -501,6 +819,12 @@ export default function KundliPage(): JSX.Element {
             panchanga={traditionalData}
             gothra={gotraDisplay}
           /></div>
+        </div>
+      ) : null}
+      {/* Hidden Dasha PDF Template Container */}
+      {result && birthDatePicker && birthTimeHm.trim() && kundliSession ? (
+        <div className="absolute left-[-9999px] top-[-9999px] opacity-0 pointer-events-none">
+          <DashaPdfTemplate ref={dashaExportRef} session={kundliSession} maxAge={120} />
         </div>
       ) : null}
 

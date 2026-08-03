@@ -180,6 +180,9 @@ export function calculateTraditionalBaggona(
 ): TraditionalBaggonaPanchanga {
   // Generic dynamic calculation for any other date/location
   const birthUtc = wallClockBirthToUtc(birthDate, birthTime, latitude, longitude);
+  if (isNaN(birthUtc.getTime())) {
+    return null as any; // Fail fast if Invalid Date
+  }
   let noonUtc = wallClockBirthToUtc(birthDate, "12:00", latitude, longitude);
   let scTimes = SunCalc.getTimes(noonUtc, latitude, longitude);
   let jyotish = resolveSunTimesForJyotish({ sunrise: scTimes.sunrise, sunset: scTimes.sunset }, latitude, longitude);

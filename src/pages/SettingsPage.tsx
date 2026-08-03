@@ -259,6 +259,21 @@ export default function SettingsPage(): JSX.Element {
         </p>
       </div>
 
+      <div className="mt-6 space-y-3 text-sm text-slate-700">
+        <p className="font-medium text-indigo-950">AI Astrologer API Key</p>
+        <p className="text-xs leading-relaxed text-slate-600">Enter your free Gemini API Key from Google AI Studio to unlock the AI Astrologer voice chatbot. Without this, you will enter mock mode.</p>
+        <input
+          type="text"
+          className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none"
+          placeholder="AIzaSy..."
+          value={useAppStore((s) => s.geminiApiKey)}
+          onChange={(e) => {
+            void useAppStore.getState().setGeminiApiKey(e.target.value);
+          }}
+        />
+        <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-xs text-amber-600 hover:underline">Get a free key here</a>
+      </div>
+
       <div className="mt-8 border-t border-slate-200 pt-4 text-xs text-slate-600">
         <p>
           <span className="font-medium text-indigo-900">{t("settings.version")}:</span> {APP_VERSION}

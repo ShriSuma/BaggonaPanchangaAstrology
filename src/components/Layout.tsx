@@ -102,18 +102,36 @@ export default function Layout({ children }: Props): JSX.Element {
       )}
       
       {/* Header with Hamburger */}
-      <header className="border-b border-[color:var(--jk-nav-border)] bg-[color:var(--jk-nav-bg)] px-4 py-3 backdrop-blur-md flex items-center">
+      <header className="border-b border-slate-800 bg-slate-950 px-4 py-3 shadow-md flex items-center">
         <button 
           onClick={() => setIsDrawerOpen(true)}
-          className="p-2 -ml-2 mr-2 text-slate-600 dark:text-slate-300 hover:text-amber-700 dark:hover:text-amber-400 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+          className="p-2 -ml-2 mr-2 text-amber-500 hover:text-amber-400 rounded-lg transition-colors focus:outline-none"
           aria-label="Open Menu"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
         </button>
-        <div className="flex-1 text-center pr-8"> {/* pr-8 offsets the hamburger width to keep text strictly centered */}
-          <span className="text-lg font-semibold tracking-tight text-indigo-950 dark:text-indigo-100 block">{t("app.title")}</span>
-          <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400">{t("app.subtitle")}</p>
+        <div className="flex-1 text-center">
+          <span className="text-lg font-semibold tracking-tight text-amber-400 block">{t("app.title")}</span>
+          <p className="mt-0.5 text-xs text-amber-100/70">{t("app.subtitle")}</p>
         </div>
+        {/* Reset / Edit Kundali button if a kundali exists */}
+        {session ? (
+          <button 
+            onClick={() => {
+              useKundliViewerStore.getState().clearSession();
+              useAppStore.getState().setPage("kundli");
+            }}
+            className="ml-auto flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-bold text-rose-600 bg-rose-50 border border-rose-200 rounded-lg shadow-sm hover:bg-rose-100 transition-colors"
+            title="Reset / Edit current Kundali"
+          >
+            <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <span className="hidden sm:inline">{t("app.reset", "Reset")}</span>
+          </button>
+        ) : (
+          <div className="w-10 ml-2" />
+        )}
       </header>
 
       <div className="mx-auto max-w-4xl px-4 pt-4 pb-12">
@@ -158,6 +176,7 @@ export default function Layout({ children }: Props): JSX.Element {
               <TabButton page="predictions" icon="✦" label={t("nav.predictions")} onClose={() => setIsDrawerOpen(false)} />
               <TabButton page="insights" icon="☍" label={t("nav.insights")} onClose={() => setIsDrawerOpen(false)} />
               <TabButton page="ramanbhavishya" icon="📖" label={t("nav.ramanbhavishya", "Bhavishya")} onClose={() => setIsDrawerOpen(false)} />
+              <TabButton page="aiaastrologer" icon="🤖" label={t("nav.aiaastrologer", "AI Astrologer")} onClose={() => setIsDrawerOpen(false)} />
               <div className="my-2 border-t border-slate-100 dark:border-slate-800"></div>
             </>
           )}

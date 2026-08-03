@@ -1,25 +1,31 @@
 import { useState, useEffect } from "react";
 import { useKundliViewerStore } from "../../stores/kundliViewerStore";
 import { useAppStore } from "../../stores/appStore";
-import { siderealLongitudes } from "../../core/EphemerisEngine";
-import { synthesizePredictions } from "../../core/PredictionSynthesizer";
-import type { SynthesizedPrediction } from "../../core/PredictionSynthesizer";
-import { PlanetName } from "../../core/AstroTypes";
 import { translateText } from "../../utils/translator";
-import { findBhuktiAtAge } from "../../core/DashaBhuktiEngine";
-import { ageDecimalYearsAt } from "../../core/birthTime";
-import { calculateDynamicLifeStagePredictions } from "../../core/DynamicLifeStageEngine";
+import { askGemini } from "../../core/GeminiEngine";
 
-export type TranslatedPrediction = SynthesizedPrediction & { 
+export type TranslatedPrediction = {
+  category: string;
+  text: string;
   translatedText: string;
   translatedCategory: string; 
 };
 
+const DEEP_INSIGHT_CATEGORIES = [
+  { id: "lifespan", label: "Lifespan & Health" },
+  { id: "marriage", label: "Marriage & Relationships" },
+  { id: "children", label: "Children & Progeny" },
+  { id: "job", label: "Career & Profession" },
+  { id: "family", label: "Family & Wealth" },
+];
+
 export function usePredictionEngine() {
   const session = useKundliViewerStore((state) => state.session);
   const language = useAppStore((state) => state.language);
+  const geminiApiKey = useAppStore((state) => state.geminiApiKey);
   const [predictions, setPredictions] = useState<TranslatedPrediction[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingText, setLoadingText] = useState("Translating cosmic energies into guidance...");
 
   useEffect(() => {
     async function loadPredictions() {
@@ -27,55 +33,30 @@ export function usePredictionEngine() {
       setIsLoading(true);
 
       try {
-        const now = new Date();
-        const ephemeris = siderealLongitudes(now, "lahiri", "true");
+        const contextStr = JSON.stringify({
+          lagna: session.result.lagnaRashi?.english || "Unknown",
+          moonSign: session.result.moonSign?.english || "Unknown",
+          nakshatra: session.result.planets?.find(p => p.name === "Moon")?.nakshatra?.english || "Unknown",
+          planets: (session.result.planets || []).map(p => `${p.name} in ${p.rashi?.english} (${p.house} house)`)
+        });
 
-        const getRashiIndex = (degree: number) => Math.floor(degree / 30) % 12;
+        const translated: TranslatedPrediction[] = [];
 
-        const gocharaPositions = [
-          { name: PlanetName.Saturn, rashiIndex: getRashiIndex(ephemeris.saturn) },
-          { name: PlanetName.Jupiter, rashiIndex: getRashiIndex(ephemeris.jupiter) },
-          { name: PlanetName.Rahu, rashiIndex: getRashiIndex(ephemeris.rahu) },
-          { name: PlanetName.Ketu, rashiIndex: getRashiIndex(ephemeris.ketu) },
-        ];
+        for (const cat of DEEP_INSIGHT_CATEGORIES) {
+          const translatedCategory = await translateText(cat.label, language, "en");
+          setLoadingText(`Consulting the stars for ${translatedCategory}...`);
 
-        // Find active Dasha and Bhukti based on exact age
-        const ageYears = ageDecimalYearsAt(
-          session.input.birthDate,
-          session.input.birthTime,
-          session.input.latitude,
-          session.input.longitude,
-          now
-        );
-
-        const currentBhuktiData = findBhuktiAtAge(session.result, ageYears);
-
-        // 1. Raman Engine Predictions
-        const ramanPredictions = synthesizePredictions(session.result, currentBhuktiData, gocharaPositions);
-        
-        // 2. Baggona Engine Predictions
-        const baggonaPredictions = calculateDynamicLifeStagePredictions(
-          session.result, 
-          currentBhuktiData || null, 
-          ageYears, 
-          session.input.gender || "Male"
-        );
-
-        // Combine both engines
-        const rawPredictions = [...ramanPredictions, ...baggonaPredictions];
-
-        const translated: TranslatedPrediction[] = await Promise.all(
-          rawPredictions.map(async (pred) => {
-            const sourceLang = pred.sourceLang || "en";
-            // Translate the category (which is always in English in the code)
-            const translatedCategory = await translateText(pred.category, language, "en");
-            
-            // Translate the text based on its native source language
-            const translatedText = await translateText(pred.text, language, sourceLang);
-            
-            return { ...pred, translatedText, translatedCategory };
-          })
-        );
+          const prompt = `Give a highly detailed, deeply insightful, and comprehensive personalized Vedic astrology reading specifically for the domain of ${cat.label} based on the given chart. Since this is a premium reading, provide exact predictions, thorough analysis of the planetary combinations, and long, descriptive explanations. Write at least 3 to 4 substantial paragraphs. Maintain a very simple, easy-to-understand, conversational style without using confusing astrological jargon or big technical words. If you are writing in Kannada, use a traditional Brahmin Kannada dialect (Havyaka/Madhwa/Smartha style) and strictly write in Kannada script (ಕನ್ನಡ ಲಿಪಿ) - do NOT use English letters or Kanglish. Highlight both the blessings and challenging aspects gently but accurately.`;
+          
+          const rawText = await askGemini(prompt, contextStr, geminiApiKey, language);
+          
+          translated.push({
+            category: cat.label,
+            text: rawText,
+            translatedCategory,
+            translatedText: rawText // Already translated by Gemini
+          });
+        }
 
         setPredictions(translated);
       } catch (e) {
@@ -86,7 +67,7 @@ export function usePredictionEngine() {
     }
 
     loadPredictions();
-  }, [session, language]);
+  }, [session, language, geminiApiKey]);
 
-  return { predictions, isLoading };
+  return { predictions, isLoading, loadingText };
 }

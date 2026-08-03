@@ -11,7 +11,7 @@ import { useAppStore } from "../../stores/appStore";
 import { translateText } from "../../utils/translator";
 import { ageDecimalYearsAt } from "../../core/birthTime";
 import { findBhuktiAtAge } from "../../core/DashaBhuktiEngine";
-import { generateChatResponse } from "../../core/DynamicChatEngine";
+
 
 const DEEP_INSIGHT_CATEGORIES = [
   { id: "lifespan", label: "Lifespan & Health" },
@@ -22,7 +22,7 @@ const DEEP_INSIGHT_CATEGORIES = [
 ];
 
 export default function BhavishyaView() {
-  const { predictions, isLoading } = usePredictionEngine();
+  const { predictions, isLoading, loadingText } = usePredictionEngine();
   const { t } = useTranslation();
   const session = useKundliViewerStore((state) => state.session);
   const language = useAppStore((state) => state.language);
@@ -112,11 +112,8 @@ export default function BhavishyaView() {
 
       // Generate deep insights
       const deepInsights: Record<string, string> = {};
-      for (const cat of DEEP_INSIGHT_CATEGORIES) {
-        const rawText = generateChatResponse(session.result, currentBhuktiData || null, cat.id);
-        const translatedCat = await translateText(cat.label, language, "en");
-        const translatedText = await translateText(rawText, language, "kn");
-        deepInsights[translatedCat] = translatedText;
+      for (const pred of predictions) {
+        deepInsights[pred.translatedCategory] = pred.translatedText;
       }
       setPdfDeepInsights(deepInsights);
 
@@ -160,7 +157,7 @@ export default function BhavishyaView() {
           <div className="absolute inset-0 border-4 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
         </div>
         <p className="text-amber-700 font-medium tracking-wide animate-pulse">
-          Translating cosmic energies into guidance...
+          {loadingText}
         </p>
       </div>
     );

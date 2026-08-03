@@ -119,5 +119,53 @@ export const exportElementAsPdf = async (element: HTMLElement, fileName: string)
   pdf.save(`${fileName}.pdf`);
   await analytics.track("chart_exported_pdf");
 };
+export const exportPanchangaWithDashaPdf = async (panchangaEl: HTMLElement, dashaEl: HTMLElement, fileName: string): Promise<void> => {
+  // Capture Panchanga
+  const pCanvas = await html2canvas(panchangaEl, {
+    scale: 2,
+    useCORS: true,
+    backgroundColor: "#fbf8f1",
+    logging: false
+  });
+  const pData = pCanvas.toDataURL("image/png");
+  const pdfW = 210;
+  const pH = (pCanvas.height * pdfW) / pCanvas.width;
+  
+  // Initialize PDF with Panchanga page size
+  const pdf = new jsPDF("p", "mm", [pdfW, pH]);
+  pdf.addImage(pData, "PNG", 0, 0, pdfW, pH);
 
+  // Capture Dasha
+  const dCanvas = await html2canvas(dashaEl, {
+    scale: 2,
+    useCORS: true,
+    backgroundColor: "#ffffff",
+    logging: false
+  });
+  const dData = dCanvas.toDataURL("image/png");
+  const dH = (dCanvas.height * pdfW) / dCanvas.width;
+  
+  // Add second page for Dasha with its specific size
+  pdf.addPage([pdfW, dH], "p");
+  pdf.addImage(dData, "PNG", 0, 0, pdfW, dH);
 
+  pdf.save(`${fileName}.pdf`);
+  await analytics.track("chart_exported_pdf_combined");
+};
+
+export const exportDashaPdf = async (dashaEl: HTMLElement, fileName: string): Promise<void> => {
+  const canvas = await html2canvas(dashaEl, {
+    scale: 2,
+    useCORS: true,
+    backgroundColor: "#ffffff",
+    logging: false
+  });
+  const data = canvas.toDataURL("image/png");
+  const pdfW = 210;
+  const pH = (canvas.height * pdfW) / canvas.width;
+  
+  const pdf = new jsPDF("p", "mm", [pdfW, pH]);
+  pdf.addImage(data, "PNG", 0, 0, pdfW, pH);
+  pdf.save(`${fileName}.pdf`);
+  await analytics.track("chart_exported_pdf");
+};

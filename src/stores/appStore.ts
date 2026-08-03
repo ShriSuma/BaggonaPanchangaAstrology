@@ -6,7 +6,7 @@ import { hydrateMissingTranslations } from "../services/i18nHydrate";
 import type { AyanamsaModel, NodeType } from "../core/AstroTypes";
 
 export type SupportedLanguage = "en" | "hi" | "kn" | "te" | "ta";
-export type AppPage = "home" | "kundli" | "predictions" | "insights" | "settings" | "melapak" | "baggona" | "muhurtha" | "varshabavishya" | "ramanbhavishya";
+export type AppPage = "home" | "kundli" | "predictions" | "insights" | "settings" | "melapak" | "baggona" | "muhurtha" | "varshabavishya" | "ramanbhavishya" | "aiaastrologer";
 
 const DEFAULT_LAT = 19.076;
 const DEFAULT_LNG = 72.8777;
@@ -42,6 +42,7 @@ type AppState = {
   narrativeConsent: boolean;
   ayanamsaModel: AyanamsaModel;
   nodeType: NodeType;
+  geminiApiKey: string;
   setPage: (page: AppPage) => void;
   setLanguage: (language: SupportedLanguage) => Promise<void>;
   setChartStyle: (style: "north" | "south") => Promise<void>;
@@ -52,6 +53,7 @@ type AppState = {
   setNarrativeConsent: (value: boolean) => Promise<void>;
   setAyanamsaModel: (value: AyanamsaModel) => Promise<void>;
   setNodeType: (value: NodeType) => Promise<void>;
+  setGeminiApiKey: (value: string) => Promise<void>;
   hydrateSettings: () => Promise<void>;
 };
 
@@ -76,6 +78,7 @@ export const useAppStore = create<AppState>()(
       narrativeConsent: false,
       ayanamsaModel: "lahiri",
       nodeType: "mean",
+      geminiApiKey: "",
       setPage: (page) => set({ currentPage: page }),
       setLanguage: async (language) => {
         localStorage.setItem("i18nextLng", language);
@@ -148,6 +151,10 @@ export const useAppStore = create<AppState>()(
         });
         set({ nodeType: value });
       },
+      setGeminiApiKey: async (value: string) => {
+        // We persist API key mainly via zustand persist in localStorage
+        set({ geminiApiKey: value });
+      },
       hydrateSettings: async () => {
         const consentFromLocalStorage = localStorage.getItem("jk-consent");
         const hasLocalConsent =
@@ -205,7 +212,8 @@ export const useAppStore = create<AppState>()(
         locationConfirmed: state.locationConfirmed,
         narrativeConsent: state.narrativeConsent,
         ayanamsaModel: state.ayanamsaModel,
-        nodeType: state.nodeType
+        nodeType: state.nodeType,
+        geminiApiKey: state.geminiApiKey
       })
     }
   )
