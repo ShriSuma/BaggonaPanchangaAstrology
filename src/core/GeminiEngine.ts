@@ -33,7 +33,7 @@ export async function askGemini(
   try {
     const genAI = new GoogleGenerativeAI(activeKey);
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-flash-latest",
+      model: "gemini-3.5-flash-lite",
       safetySettings: [
         { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
         { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
