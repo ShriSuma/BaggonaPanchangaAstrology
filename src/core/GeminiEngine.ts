@@ -78,4 +78,8 @@ Use the native script of the requested language (e.g., Kannada script for Kannad
     }
     
     return "Sorry, I encountered an error while consulting the stars. Please try again later.";
+  } catch (error) {
+    console.error("Gemini Engine Initialization Error:", error);
+    return "Sorry, I encountered an error while consulting the stars. Please check your API key or try again.";
+  }
 }
