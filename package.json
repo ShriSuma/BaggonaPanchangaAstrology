@@ -17,6 +17,7 @@
     "check": "npm run kill-ports && npm run test && echo \"\\n✅ Tests passed. Starting dev server...\\n\" && npm run dev"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "astronomy-engine": "^2.1.19",
     "date-fns": "^4.1.0",
     "dexie": "^4.0.11",
