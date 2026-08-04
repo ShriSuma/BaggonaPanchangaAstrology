@@ -1218,14 +1218,16 @@
     }
   },
   "ramanbhavishya": {
+    "title": "Raman Bhavishya",
     "lifeStageTab": "Life Stage Predictions",
     "askTab": "Ask the Astrologer",
     "yourPersonalReading": "Your Personal Reading",
-    "subtitle": "A deeply empathetic translation of your unique birth chart, your current life chapter, and the present cosmic environment."
-  },
-  "ramanbhavishya": {
-    "title": "Raman Bhavishya",
-    "yourPersonalReading": "Your Personal Reading",
-    "personalReadingDesc": "A deeply empathetic translation of your unique birth chart, your current life chapter, and the present cosmic environment."
+    "subtitle": "A deeply empathetic translation of your unique birth chart, your current life chapter, and the present cosmic environment.",
+    "personalReadingDesc": "A deeply empathetic translation of your unique birth chart, your current life chapter, and the present cosmic environment.",
+    "ashirvada": "Astrologer's Blessing",
+    "loadingInitial": "Translating cosmic energies into guidance...",
+    "loadingDeep": "Consulting the stars and analyzing all life stages in one go...",
+    "generatingPdf": "Crafting your Patrika PDF...",
+    "generatingPdfSub": "This may take a few moments"
   }
 }

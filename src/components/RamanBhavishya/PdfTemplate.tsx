@@ -115,27 +115,13 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
             
             <div className="space-y-10">
               {preds.map((pred, idx) => (
-                <p key={idx} className="text-xl leading-loose text-amber-950 text-justify font-medium">
-                  {pred.translatedText}
-                </p>
-              ))}
-            </div>
-          </div>
-        ))}
-        
-        {deepInsights && Object.entries(deepInsights).map(([category, insightText]) => (
-          <div key={category} className="px-6 relative">
-            <div className="flex items-center gap-6 mb-8 mt-12">
-              <h2 className={`text-3xl font-bold ${primaryColorClass} leading-normal border-b-2 border-amber-700/30 pb-2`}>
-                {category}
-              </h2>
-            </div>
-            
-            <div className="space-y-10">
-              {insightText.split("\n\n").map((paragraph, idx) => (
-                <p key={idx} className="text-xl leading-loose text-amber-950 text-justify font-medium">
-                  {paragraph}
-                </p>
+                <div key={idx} className="space-y-6">
+                  {pred.translatedText.split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
+                    <p key={pIdx} className="text-xl leading-loose text-amber-950 text-justify font-medium">
+                      {paragraph}
+                    </p>
+                  ))}
+                </div>
               ))}
             </div>
           </div>
@@ -151,6 +137,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
 
       {/* Astrologer's Ashirvada (Blessing) */}
       <div className="mt-16 text-center px-20">
+        <div className="text-6xl text-amber-600 mb-6 drop-shadow-md opacity-90" style={{ fontFamily: 'Noto Sans Devanagari, serif' }}>ॐ</div>
         <h3 className={`text-3xl font-bold mb-8 italic ${primaryColorClass} leading-normal`}>
           {translations.ashirvadaTitle}
         </h3>

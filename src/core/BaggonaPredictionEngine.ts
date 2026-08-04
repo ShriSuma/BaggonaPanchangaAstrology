@@ -56,6 +56,10 @@ export interface PersonalReadingOutput {
     };
   };
   monthlySummary?: PersonalReadingSection[];
+  progenyAnalysis?: {
+    status: string;
+    details: string;
+  };
 }
 
 // 1. Planetary Exaltation / Debilitation details
@@ -2409,12 +2413,39 @@ export function generatePersonalReading(
   monthlySummary.push({ title: thisMonthTitle, description: thisMonthDesc });
   monthlySummary.push({ title: nextMonthTitle, description: nextMonthDesc });
 
+  // --- Progeny (Children) Analysis ---
+  let progenyAnalysis = undefined;
+  if (preciseAge >= 25) {
+    const jupiter = kundli.planets.find(p => p.name === PN.Jupiter);
+    const jupiterHouse = jupiter?.house || 1;
+    const planetsInFifth = kundli.planets.filter(p => p.house === 5);
+    const maleficsInFifth = planetsInFifth.filter(p => [PN.Saturn, PN.Rahu, PN.Ketu, PN.Mars, PN.Sun].includes(p.name));
+    
+    let delayFactors = 0;
+    if ([6, 8, 12].includes(jupiterHouse)) delayFactors++;
+    if (jupiter?.rashi.index === 9) delayFactors++; // Jupiter in Capricorn (Debilitated)
+    delayFactors += maleficsInFifth.length;
+
+    if (delayFactors > 0) {
+      progenyAnalysis = {
+        status: "Delays or Still Trying",
+        details: `The chart indicates potential delays or ongoing efforts regarding progeny (childbirth) due to the presence of ${maleficsInFifth.length > 0 ? maleficsInFifth.map(p => p.name).join(", ") + " in the 5th house" : "a challenged Jupiter"}. The individual might currently not have a child or is still trying. Evaluate transits for the right timing and recommend specific planetary remedies.`
+      };
+    } else {
+      progenyAnalysis = {
+        status: "Smooth Progeny",
+        details: "The 5th house and Jupiter are relatively unafflicted, suggesting smooth childbirth and happiness from children when the time is right."
+      };
+    }
+  }
+
   return {
     cosmicProfile,
     todaysTransits,
     currentLifeChapter,
     upcomingChapters,
-    monthlySummary
+    monthlySummary,
+    progenyAnalysis
   };
 }
 

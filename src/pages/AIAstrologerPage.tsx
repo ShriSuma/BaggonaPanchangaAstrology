@@ -24,19 +24,37 @@ export default function AIAstrologerPage(): JSX.Element {
   const [inputText, setInputText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [isDictating, setIsDictating] = useState(false);
-  const [playingMsgId, setPlayingMsgId] = useState<string | null>(null);
   const [chartReady, setChartReady] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const hasGreeted = useRef(false);
   
   // Initialize AI Greeting
   useEffect(() => {
-    if (session) {
-      setChartReady(true);
-      addAIBubble(t("ai.greeting_ready", "Hello! I am your AI Astrologer. I have your chart ready. What would you like to ask?"));
-    } else {
-      addAIBubble(t("ai.greeting_need_data", "Namaskara! I am your AI Astrologer. Please tell me your Date of Birth and Time (for example: 31 May 1993 11:30 AM)."));
+    if (hasGreeted.current) return;
+    hasGreeted.current = true;
+
+    async function initGreeting() {
+      if (session) {
+        setChartReady(true);
+        const { translateText } = await import("../utils/translator");
+        const greeting = await translateText(
+          "Hello! I am your AI Astrologer. I have your chart ready. What would you like to ask?",
+          language,
+          "en"
+        );
+        addAIBubble(greeting);
+      } else {
+        const { translateText } = await import("../utils/translator");
+        const greeting = await translateText(
+          "Namaskara! I am your AI Astrologer. Please tell me your Date of Birth and Time (for example: 31 May 1993 11:30 AM).",
+          language,
+          "en"
+        );
+        addAIBubble(greeting);
+      }
     }
+    initGreeting();
   }, []);
 
   useEffect(() => {
@@ -46,53 +64,7 @@ export default function AIAstrologerPage(): JSX.Element {
   const addAIBubble = (text: string) => {
     const msgId = Date.now().toString();
     setMessages((prev) => [...prev, { id: msgId, sender: "astrologer", text }]);
-    playAudio(text, msgId);
   };
-
-  const getTtsLang = (langCode: string) => {
-    switch (langCode) {
-      case "kn": return "kn-IN";
-      case "hi": return "hi-IN";
-      case "te": return "te-IN";
-      case "ta": return "ta-IN";
-      case "ml": return "ml-IN";
-      case "en": return "en-IN";
-      default: return "en-US";
-    }
-  };
-
-  const playAudio = (text: string, msgId: string) => {
-    if (!window.speechSynthesis) return;
-
-    if (playingMsgId === msgId) {
-      window.speechSynthesis.cancel();
-      setPlayingMsgId(null);
-      return;
-    }
-
-    window.speechSynthesis.cancel();
-    setPlayingMsgId(msgId);
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = getTtsLang(language);
-    utterance.rate = 0.9;
-    
-    utterance.onend = () => setPlayingMsgId(null);
-    utterance.onerror = () => setPlayingMsgId(null);
-
-    window.speechSynthesis.speak(utterance);
-  };
-
-  const stopAudio = () => {
-    if (window.speechSynthesis) {
-      window.speechSynthesis.cancel();
-      setPlayingMsgId(null);
-    }
-  };
-
-  useEffect(() => {
-    return stopAudio;
-  }, []);
 
   const handleSend = async (textOverride?: string) => {
     const rawText = textOverride || inputText;
@@ -104,7 +76,6 @@ export default function AIAstrologerPage(): JSX.Element {
     setMessages((prev) => [...prev, { id: Date.now().toString(), sender: "user", text: rawText }]);
     setInputText("");
     setIsTyping(true);
-    stopAudio();
 
     if (!chartReady) {
       // Try to parse DOB/Time
@@ -267,29 +238,6 @@ export default function AIAstrologerPage(): JSX.Element {
               }`}
             >
               {msg.text}
-              
-              {/* Audio Button for Astrologer messages */}
-              {msg.sender === "astrologer" && (
-                <button 
-                  onClick={() => playAudio(msg.text, msg.id)}
-                  className={`absolute -bottom-3 -right-3 p-2 rounded-full shadow-md transition-all border ${
-                    playingMsgId === msg.id 
-                      ? "bg-indigo-500 text-white border-indigo-500 animate-pulse" 
-                      : "bg-white text-slate-500 hover:text-indigo-600 hover:border-indigo-300 border-slate-200 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-300"
-                  } opacity-0 group-hover:opacity-100 focus:opacity-100`}
-                  title={playingMsgId === msg.id ? "Stop reading" : "Listen to reading"}
-                >
-                  {playingMsgId === msg.id ? (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  ) : (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-                    </svg>
-                  )}
-                </button>
-              )}
             </div>
           </div>
         ))}

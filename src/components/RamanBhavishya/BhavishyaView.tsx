@@ -22,7 +22,7 @@ const DEEP_INSIGHT_CATEGORIES = [
 ];
 
 export default function BhavishyaView() {
-  const { predictions, isLoading, loadingText } = usePredictionEngine();
+  const { predictions, currentMindset, isLoading, loadingText, ashirvada } = usePredictionEngine();
   const { t } = useTranslation();
   const session = useKundliViewerStore((state) => state.session);
   const language = useAppStore((state) => state.language);
@@ -42,7 +42,7 @@ export default function BhavishyaView() {
       const moonPlanet = session.result.planets.find(p => p.name === 'Moon');
       const baseNakshatra = moonPlanet ? (moonPlanet.nakshatra.sanskrit || moonPlanet.nakshatra.english) : 'Unknown';
       
-      const ashirvadaText = `Based on your planetary alignments and current cosmic era, may the divine forces grant you strength, clarity, and peace. Trust in your inner resilience and allow the universe to guide your path.`;
+      const ashirvadaText = ashirvada || `Based on your planetary alignments and current cosmic era, may the divine forces grant you strength, clarity, and peace. Trust in your inner resilience and allow the universe to guide your path.`;
 
       // Get current Dasha/Bhukti
       const now = new Date();
@@ -225,13 +225,33 @@ export default function BhavishyaView() {
         <div className="fixed inset-0 bg-amber-50/90 backdrop-blur-sm z-[100] flex flex-col items-center justify-center animate-fade-in">
           <div className="w-16 h-16 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mb-6 shadow-xl"></div>
           <p className="text-2xl text-amber-900 font-serif font-bold tracking-wide animate-pulse">
-            Crafting your Patrika PDF...
+            {t("ramanbhavishya.generatingPdf", "Crafting your Patrika PDF...")}
           </p>
-          <p className="text-amber-700 mt-2 font-medium">This may take a few moments</p>
+          <p className="text-amber-700 mt-2 font-medium">{t("ramanbhavishya.generatingPdfSub", "This may take a few moments")}</p>
         </div>
       )}
 
       <div className="relative z-10 space-y-12">
+        {currentMindset && (
+          <div className="mb-12">
+            <h2 className="text-3xl font-serif text-amber-900 mb-8 text-center flex items-center justify-center gap-4">
+              <span className="w-12 h-[2px] bg-amber-200"></span>
+              <span className="tracking-wide font-bold">{currentMindset.translatedCategory}</span>
+              <span className="w-12 h-[2px] bg-amber-200"></span>
+            </h2>
+            <div className="bg-white p-8 rounded-3xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-amber-100 hover:border-amber-300 transition-all duration-500 relative overflow-hidden group hover:shadow-[0_8px_30px_rgba(245,158,11,0.1)]">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-amber-100/50 rounded-full blur-3xl pointer-events-none group-hover:bg-amber-200/50 transition-colors"></div>
+              <div className="relative z-10 space-y-4">
+                {currentMindset.translatedText.split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
+                  <p key={pIdx} className="text-slate-700 leading-relaxed text-[17px] font-medium whitespace-pre-line">
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         {Object.entries(groupedPredictions).map(([category, preds]) => (
           <div className="break-inside-avoid" key={category}>
             <h3 className="text-2xl font-serif text-amber-900 mb-6 flex items-center gap-3 border-b border-amber-200 pb-2 inline-flex">
@@ -246,16 +266,39 @@ export default function BhavishyaView() {
                 >
                   <div className="absolute top-0 right-0 w-64 h-64 bg-amber-100/50 rounded-full blur-3xl group-hover:bg-amber-200/50 transition-colors pointer-events-none"></div>
                   
-                  <div className="relative z-10">
-                    <p className="text-slate-700 leading-relaxed text-[17px] font-medium whitespace-pre-line">
-                      {pred.translatedText}
-                    </p>
+                  <div className="relative z-10 space-y-4">
+                    {pred.translatedText.split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
+                      <p key={pIdx} className="text-slate-700 leading-relaxed text-[17px] font-medium whitespace-pre-line">
+                        {paragraph}
+                      </p>
+                    ))}
                   </div>
                 </div>
               ))}
             </div>
           </div>
         ))}
+
+        {ashirvada && (
+          <div className="break-inside-avoid mt-8">
+            <div className="text-center mb-4">
+              <span className="text-5xl text-amber-600 drop-shadow-sm opacity-90 font-serif">ॐ</span>
+            </div>
+            <h3 className="text-2xl font-serif text-amber-900 mb-6 flex items-center justify-center gap-3 border-b border-amber-200 pb-2 inline-flex w-full">
+              <span className="tracking-wide font-bold">{t("ramanbhavishya.ashirvada", "Astrologer's Blessing")}</span>
+            </h3>
+            <div className="grid grid-cols-1 gap-6">
+              <div className="bg-white p-8 rounded-3xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-amber-100 hover:border-amber-300 transition-all duration-500 relative overflow-hidden group hover:shadow-[0_8px_30px_rgba(245,158,11,0.1)]">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-amber-100/50 rounded-full blur-3xl group-hover:bg-amber-200/50 transition-colors pointer-events-none"></div>
+                <div className="relative z-10 space-y-4">
+                  <p className="text-slate-700 leading-relaxed text-[17px] font-medium whitespace-pre-line italic">
+                    {ashirvada}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Hidden PDF Template Container */}
@@ -265,7 +308,7 @@ export default function BhavishyaView() {
             ref={pdfRef} 
             theme="sunrise" 
             session={session} 
-            predictions={predictions} 
+            predictions={currentMindset ? [currentMindset, ...predictions] : predictions} 
             translations={pdfTranslations}
             deepInsights={pdfDeepInsights}
           />
