@@ -20,9 +20,21 @@ export type PdfTranslations = {
   nakshatraValue: string;
   dashaPlanetValue: string;
   bhuktiPlanetValue: string;
+  characteristicsTitle: string;
+  darkSecretTitle: string;
   ashirvadaTitle: string;
   ashirvadaValue: string;
+  yogasTitle: string;
+  doshasTitle: string;
+  remedyTitle: string;
   footer: string;
+};
+
+export type PremiumData = {
+  characteristics?: { impact: string }[];
+  darkSecret?: { impact: string }[];
+  yogas: { name: string; impact: string }[];
+  doshas: { name: string; impact: string; remedy?: string }[];
 };
 
 interface Props {
@@ -31,9 +43,10 @@ interface Props {
   predictions: TranslatedPrediction[];
   translations: PdfTranslations;
   deepInsights?: Record<string, string>;
+  premiumData?: PremiumData;
 }
 
-export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predictions, translations, deepInsights }, ref) => {
+export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predictions, translations, deepInsights, premiumData }, ref) => {
   if (!session) return null;
 
   const groupedPredictions = predictions.reduce((acc, pred) => {
@@ -103,6 +116,55 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
         )}
       </div>
 
+      {/* Premium Data Section - Characteristics & Dark Secret */}
+      {premiumData && (
+        <div className="space-y-16 mb-20 relative">
+          {/* Characteristics Section */}
+          {premiumData.characteristics && premiumData.characteristics.length > 0 && (
+            <div className="px-6 relative">
+              <div className="flex items-center gap-6 mb-8">
+                <h2 className={`text-3xl font-bold ${primaryColorClass} leading-normal border-b-2 border-amber-700/30 pb-2`}>
+                  {translations.characteristicsTitle}
+                </h2>
+              </div>
+              <div className="space-y-10">
+                {premiumData.characteristics.map((char, idx) => (
+                  <div key={idx} className="space-y-6">
+                    {char.impact.split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
+                      <p key={pIdx} className="text-xl leading-loose text-amber-950 text-justify font-medium">
+                        {paragraph}
+                      </p>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Dark Secret Section */}
+          {premiumData.darkSecret && premiumData.darkSecret.length > 0 && (
+            <div className="px-6 relative mt-16">
+              <div className="flex items-center gap-6 mb-8">
+                <h2 className={`text-3xl font-bold text-slate-800 leading-normal border-b-2 border-slate-700/30 pb-2`}>
+                  {translations.darkSecretTitle}
+                </h2>
+              </div>
+              <div className="space-y-10">
+                {premiumData.darkSecret.map((ds, idx) => (
+                  <div key={idx} className="space-y-6">
+                    {ds.impact.split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
+                      <p key={pIdx} className="text-xl leading-loose text-amber-950 text-justify font-medium">
+                        {paragraph}
+                      </p>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Predictions Section */}
       <div className="space-y-16 mb-20 relative">
         {Object.entries(groupedPredictions).map(([category, preds]) => (
@@ -127,6 +189,64 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
           </div>
         ))}
       </div>
+
+      {/* Premium Data Section - Yogas & Doshas */}
+      {premiumData && (
+        <div className="space-y-16 mb-20 relative">
+
+          {premiumData.yogas && premiumData.yogas.length > 0 && (
+            <div className="px-6 relative mt-16">
+              <div className="flex items-center gap-6 mb-8">
+                <h2 className={`text-3xl font-bold ${primaryColorClass} leading-normal border-b-2 border-amber-700/30 pb-2`}>
+                  {translations.yogasTitle}
+                </h2>
+              </div>
+              <div className="space-y-10">
+                {premiumData.yogas.map((yoga, idx) => (
+                  <div key={idx} className="space-y-6">
+                    <h3 className="text-2xl font-bold text-amber-900 mb-2 bg-amber-200/60 inline-block px-3 py-1 rounded shadow-sm">{yoga.name}</h3>
+                    {yoga.impact.split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
+                      <p key={pIdx} className="text-xl leading-loose text-amber-950 text-justify font-medium">
+                        {paragraph}
+                      </p>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {premiumData.doshas && premiumData.doshas.length > 0 && (
+            <div className="px-6 relative mt-16">
+              <div className="flex items-center gap-6 mb-8">
+                <h2 className={`text-3xl font-bold text-rose-900 leading-normal border-b-2 border-rose-700/30 pb-2`}>
+                  {translations.doshasTitle}
+                </h2>
+              </div>
+              <div className="space-y-10">
+                {premiumData.doshas.map((dosha, idx) => (
+                  <div key={idx} className="space-y-6">
+                    <h3 className="text-2xl font-bold text-rose-900 mb-2">{dosha.name}</h3>
+                    {dosha.impact.split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
+                      <p key={pIdx} className="text-xl leading-loose text-amber-950 text-justify font-medium">
+                        {paragraph}
+                      </p>
+                    ))}
+                    {dosha.remedy && (
+                      <div className="mt-4 pt-4 border-t border-rose-200/40">
+                        <h4 className="text-xl font-bold text-rose-800 mb-2">{translations.remedyTitle}</h4>
+                        <p className="text-xl leading-loose text-amber-950 text-justify font-medium">
+                          {dosha.remedy}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Sanskrit Shloka at the End */}
       <div className={`my-16 text-center px-16 py-14 border-y-[3px] border-double ${borderColorClass} bg-amber-100/30`}>
