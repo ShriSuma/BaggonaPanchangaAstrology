@@ -198,8 +198,9 @@ Return ONLY a valid JSON string (no markdown, no codeblocks, no json wrapper) wi
         }
 
         setPredictions(translated);
-      } catch (e) {
+      } catch (e: any) {
         console.error("Error generating predictions:", e);
+        setPredictions([{ category: "Error", text: e.message || String(e), translatedCategory: "Error", translatedText: e.message || String(e) }]);
       } finally {
         setIsLoading(false);
       }

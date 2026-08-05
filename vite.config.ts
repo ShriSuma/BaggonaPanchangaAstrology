@@ -126,6 +126,48 @@ export default defineConfig(({ mode }) => {
             res.end(JSON.stringify({ error: e instanceof Error ? e.message : String(e) }));
           }
         });
+        server.middlewares.use("/api/premium-pdf-narrative", async (req, res) => {
+          if (req.method === "OPTIONS") {
+            res.statusCode = 204;
+            res.end();
+            return;
+          }
+          if (req.method !== "POST") {
+            res.statusCode = 405;
+            res.setHeader("Content-Type", "application/json");
+            res.end(JSON.stringify({ error: "Method not allowed" }));
+            return;
+          }
+          try {
+            const chunks: Buffer[] = [];
+            for await (const chunk of req) {
+              chunks.push(chunk as Buffer);
+            }
+            const body = JSON.parse(Buffer.concat(chunks).toString("utf8")) as {
+              prediction?: any;
+              lang?: string;
+            };
+            if (env.GEMINI_API_KEY) process.env.GEMINI_API_KEY = env.GEMINI_API_KEY;
+            if (env.OPENAI_API_KEY) process.env.OPENAI_API_KEY = env.OPENAI_API_KEY;
+            // @ts-expect-error server helper
+            const { generatePremiumPDFNarrative } = await import("./lib/premiumPdfCore.mjs");
+            const lang = String(body.lang ?? "en").split("-")[0];
+            const narrative = await generatePremiumPDFNarrative(body.prediction, lang, {
+              ...process.env,
+              GEMINI_API_KEY: env.GEMINI_API_KEY ?? process.env.GEMINI_API_KEY,
+              OPENAI_API_KEY: env.OPENAI_API_KEY ?? process.env.OPENAI_API_KEY,
+              GEMINI_MODEL: env.GEMINI_MODEL,
+              OPENAI_MODEL: env.OPENAI_MODEL
+            });
+            res.statusCode = 200;
+            res.setHeader("Content-Type", "application/json");
+            res.end(JSON.stringify({ narrative }));
+          } catch (e) {
+            res.statusCode = 502;
+            res.setHeader("Content-Type", "application/json");
+            res.end(JSON.stringify({ error: e instanceof Error ? e.message : String(e) }));
+          }
+        });
       }
     },
     VitePWA({

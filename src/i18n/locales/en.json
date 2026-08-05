@@ -1218,7 +1218,8 @@
     }
   },
   "ramanbhavishya": {
-    "title": "Raman Bhavishya",
+    "title": "Baggona Bhavishya",
+    "subtitle": "Intelligent Astrological Guide based on Baggona Panchanga's Predictive Logic",
     "lifeStageTab": "Life Stage Predictions",
     "askTab": "Ask the Astrologer",
     "yourPersonalReading": "Your Personal Reading",
@@ -1229,5 +1230,19 @@
     "loadingDeep": "Consulting the stars and analyzing all life stages in one go...",
     "generatingPdf": "Crafting your Patrika PDF...",
     "generatingPdfSub": "This may take a few moments"
+  },
+  "premiumPrediction": {
+    "priorityTopic_career": "Career & Employment",
+    "priorityMessage_career": "At your age, establishing your career is the most critical milestone. The 10th house energies require immediate activation.",
+    "mindfulRitual_career": "To balance your career energies, your ritual this week is to proactively connect with three people in your desired field.",
+    "priorityTopic_marriage": "Marriage & Partnership",
+    "priorityMessage_marriage": "At your age, securing a life partner is the primary focus. The 7th house energies indicate delays that can be overcome by shifting your approach.",
+    "mindfulRitual_marriage": "Your ritual this week is to let go of one rigid expectation you have for a partner. Open yourself to unexpected connections.",
+    "priorityTopic_family": "Progeny & Family Expansion",
+    "priorityMessage_family": "The expansion of your family is heavily highlighted right now. Jupiter transit is creating favorable conditions for growth.",
+    "mindfulRitual_family": "Focus on nurturing energy. Spend time caring for plants, pets, or young family members.",
+    "priorityTopic_health": "Health & Spiritual Retirement",
+    "priorityMessage_health": "At this stage in your life, your chart emphasizes physical well-being and spiritual withdrawal.",
+    "mindfulRitual_health": "Prioritize rest over obligation. Say no to one stressful demand this week."
   }
 }

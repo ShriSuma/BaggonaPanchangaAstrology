@@ -22,6 +22,9 @@ import GrahaSpinner from "../components/ui/GrahaSpinner";
 import AudioPlayerButton from "../components/ui/AudioPlayerButton";
 
 import SouthIndianChart from "../components/kundli/SouthIndianChart";
+import { generateMasterPrediction, type MasterPredictionResult } from "../core/MasterPredictionEngine";
+import { generatePDFFromElement } from "../utils/pdfGenerator";
+import { PremiumPDFTemplate } from "../components/pdf/PremiumPDFTemplate";
 import { RASHIS, NAKSHATRAS, PlanetName, type PlanetPosition, type KundliOutput } from "../core/AstroTypes";
 import { siderealLongitudes } from "../core/EphemerisEngine";
 import { degreeToRashi, degreeToNakshatra, degreeToNakshatraPada } from "../core/AstroMath";
@@ -160,6 +163,70 @@ export default function BaggonaPredictionsPage(): JSX.Element {
 
   const [jayashreeLoading, setJayashreeLoading] = useState<boolean>(false);
   const [jayashreeDataReady, setJayashreeDataReady] = useState<boolean>(false);
+
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState<boolean>(false);
+  const [pdfData, setPdfData] = useState<MasterPredictionResult | null>(null);
+
+  const handleDownloadPremiumPDF = async () => {
+    if (!record || !traditionalData) return;
+    setIsGeneratingPDF(true);
+    try {
+      const masterPrediction = await generateMasterPrediction(record.kundliData, {
+        name: record.name,
+        birthDate: record.birthDate,
+        birthTime: record.birthTime,
+        latitude: record.latitude,
+        longitude: record.longitude,
+        ayanamsaModel,
+        lang
+      });
+      
+      const response = await fetch("/api/premium-pdf-narrative", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prediction: masterPrediction, lang })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to generate narrative");
+      
+      masterPrediction.aiGeneratedNarrative = {
+        characteristics: data.narrative.characteristics || [],
+        darkSecret: data.narrative.darkSecret || [],
+        currentPhase: data.narrative.currentPhase || [],
+        next6Months: data.narrative.next6Months || [],
+        roadmap: data.narrative.roadmap?.map((r: any) => ({
+            month: r.month || "Future",
+            status: r.status || "Neutral",
+            prediction: r.prediction || JSON.stringify(r),
+            auspiciousDates: r.auspiciousDates || "",
+            activities: r.activities || ""
+        })) || [],
+        bhavishya: data.narrative.bhavishya || {},
+        yogas: data.narrative.yogas?.map((y: any) => ({ name: y.name, significance: y.significance })) || [],
+        doshas: data.narrative.doshas?.map((d: any) => ({ name: d.name, significance: d.significance, remedy: d.remedy || "" })) || [],
+        summary: data.narrative.summary || "",
+        ashirvada: data.narrative.ashirvada || ""
+      };
+      
+      setPdfData(masterPrediction);
+      
+      setTimeout(async () => {
+         try {
+           await generatePDFFromElement("premium-pdf-container", `${record.name.replace(/\s+/g, '_')}_Premium_Astrology.pdf`);
+         } catch (e) {
+           console.error("PDF Gen Error:", e);
+           alert("Failed to render PDF.");
+         } finally {
+           setPdfData(null);
+           setIsGeneratingPDF(false);
+         }
+      }, 1500);
+    } catch (e) {
+      console.error(e);
+      alert("Failed to generate PDF: " + String(e));
+      setIsGeneratingPDF(false);
+    }
+  };
 
   useEffect(() => {
     if (tab === "jayashree" && !jayashreeDataReady) {
@@ -468,7 +535,7 @@ export default function BaggonaPredictionsPage(): JSX.Element {
   const subTabs: { id: SubTab; label: string; icon: string }[] = [
     { id: "kundali", label: getTabLabel("kundali"), icon: "🕉️" },
     { id: "personal", label: getTabLabel("personal"), icon: "✨" },
-    { id: "jayashree", label: getTabLabel("jayashree"), icon: "🎙️" },
+    // { id: "jayashree", label: getTabLabel("jayashree"), icon: "🎙️" }, // Disabled for now per user feedback
     { id: "overview", label: getTabLabel("overview"), icon: "✵" },
     { id: "planets", label: getTabLabel("planets"), icon: "🪐" },
     { id: "houses", label: getTabLabel("houses"), icon: "☸" },
@@ -514,6 +581,29 @@ export default function BaggonaPredictionsPage(): JSX.Element {
               <p className="text-[10px] uppercase text-slate-400 font-semibold">{isKn ? "ನಕ್ಷತ್ರ" : "Nakshatra"}</p>
               <p className="mt-0.5 font-bold text-amber-300">{isKn ? traditionalData.moonNakshatraKn : traditionalData.moonNakshatra}</p>
             </div>
+          </div>
+          
+          <div className="mt-6 flex justify-end">
+            <button
+              type="button"
+              onClick={handleDownloadPremiumPDF}
+              disabled={isGeneratingPDF}
+              className={`flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-amber-500/20 transition-all ${
+                isGeneratingPDF ? "opacity-70 cursor-wait" : "hover:scale-105 active:scale-95"
+              }`}
+            >
+              {isGeneratingPDF ? (
+                <>
+                  <div className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                  <span>{isKn ? "ಸಿದ್ಧಪಡಿಸಲಾಗುತ್ತಿದೆ..." : "Generating Premium PDF..."}</span>
+                </>
+              ) : (
+                <>
+                  <span>📄</span>
+                  <span>{isKn ? "ಪ್ರೀಮಿಯಂ PDF ಡೌನ್‌ಲೋಡ್ (₹500)" : "Download Premium PDF Blueprint (₹500)"}</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
       </div>
@@ -1388,6 +1478,13 @@ export default function BaggonaPredictionsPage(): JSX.Element {
           )}
 
 
+        </div>
+      )}
+
+      {/* Premium PDF Hidden Container */}
+      {pdfData && (
+        <div style={{ position: "absolute", top: "-9999px", left: "-9999px", width: "794px" }}>
+          <PremiumPDFTemplate prediction={pdfData} lang={lang} />
         </div>
       )}
 

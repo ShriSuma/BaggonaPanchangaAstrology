@@ -47,6 +47,8 @@ export type PlanetPosition = {
   nakshatra: Nakshatra;
   house: number;
   isRetrograde?: boolean;
+  isDebilitated?: boolean;
+  isExalted?: boolean;
 };
 
 export type KundliOutput = {

@@ -1,6 +1,6 @@
 {
   "planetary_specification": {
-    "source": "Hindu Predictive Astrology by B.V. Raman",
+    "source": "Hindu Predictive Astrology by Baggona Panchanga",
     "graha_metadata": [
       {
         "planet": "Sun",
@@ -278,7 +278,7 @@
   },
   "engine_metadata": {
     "purpose": "Comprehensive Life Problem Resolution and Predictive Engine",
-    "core_text": "Hindu Predictive Astrology - B.V. Raman"
+    "core_text": "Hindu Predictive Astrology - Baggona Panchanga"
   },
   "planetary_relationships": {
     "explanation": "Calculates Mitrutva (Friendship), Shatrutva (Enmity), and Sama (Neutrality) affecting planetary strength.",
@@ -374,7 +374,7 @@
     "remedies_for_health_danger": "Perform the Maha Mrityunjaya Mantra daily. Seek immediate medical counsel alongside spiritual practices."
   },
   "astrology_engine_core": {
-    "reference_source": "Hindu Predictive Astrology - B.V. Raman",
+    "reference_source": "Hindu Predictive Astrology - Baggona Panchanga",
     "version": "1.0_detailed_schema"
   },
   "bhava_karakatwas_house_significations": {
