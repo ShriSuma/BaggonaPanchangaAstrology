@@ -111,20 +111,20 @@ export const findBoundaryCrossing = (
   return birthUtc;
 };
 
-export const getNakshatraEnd = (birthUtc: Date, model: AyanamsaModel, calibrationOffset?: { moonOffset: number, sunNakOffset: number, tithiSunOffset: number }): Date => {
-  return findBoundaryCrossing(birthUtc, model, (d) => siderealLongitudes(d, model, "mean", calibrationOffset).moon, 360 / 27, true);
+export const getNakshatraEnd = (birthUtc: Date, model: AyanamsaModel): Date => {
+  return findBoundaryCrossing(birthUtc, model, (d) => siderealLongitudes(d, model, "mean").moon, 360 / 27, true);
 };
 
-export const getNakshatraStart = (birthUtc: Date, model: AyanamsaModel, calibrationOffset?: { moonOffset: number, sunNakOffset: number, tithiSunOffset: number }): Date => {
-  return findBoundaryCrossing(birthUtc, model, (d) => siderealLongitudes(d, model, "mean", calibrationOffset).moon, 360 / 27, false);
+export const getNakshatraStart = (birthUtc: Date, model: AyanamsaModel): Date => {
+  return findBoundaryCrossing(birthUtc, model, (d) => siderealLongitudes(d, model, "mean").moon, 360 / 27, false);
 };
 
-export const getTithiEnd = (birthUtc: Date, model: AyanamsaModel, calibrationOffset?: { moonOffset: number, sunNakOffset: number, tithiSunOffset: number }): Date => {
+export const getTithiEnd = (birthUtc: Date, model: AyanamsaModel): Date => {
   return findBoundaryCrossing(
     birthUtc,
     model,
     (d) => {
-      const l = siderealLongitudes(d, model, "mean", calibrationOffset);
+      const l = siderealLongitudes(d, model, "mean");
       return normalizeDegree(l.moon - (l.sunTithi ?? l.sun));
     },
     12,
@@ -132,12 +132,12 @@ export const getTithiEnd = (birthUtc: Date, model: AyanamsaModel, calibrationOff
   );
 };
 
-export const getYogaEnd = (birthUtc: Date, model: AyanamsaModel, calibrationOffset?: { moonOffset: number, sunNakOffset: number, tithiSunOffset: number, yogaSunOffset?: number }): Date => {
+export const getYogaEnd = (birthUtc: Date, model: AyanamsaModel): Date => {
   return findBoundaryCrossing(
     birthUtc,
     model,
     (d) => {
-      const l = siderealLongitudes(d, model, "mean", calibrationOffset);
+      const l = siderealLongitudes(d, model, "mean");
       return normalizeDegree(l.moon + (l.sunYoga ?? l.sun));
     },
     360 / 27,
@@ -145,12 +145,12 @@ export const getYogaEnd = (birthUtc: Date, model: AyanamsaModel, calibrationOffs
   );
 };
 
-export const getKaranaEnd = (birthUtc: Date, model: AyanamsaModel, calibrationOffset?: { moonOffset: number, sunNakOffset: number, tithiSunOffset: number }): Date => {
+export const getKaranaEnd = (birthUtc: Date, model: AyanamsaModel): Date => {
   return findBoundaryCrossing(
     birthUtc,
     model,
     (d) => {
-      const l = siderealLongitudes(d, model, "mean", calibrationOffset);
+      const l = siderealLongitudes(d, model, "mean");
       return normalizeDegree(l.moon - (l.sunTithi ?? l.sun));
     },
     6,
@@ -158,8 +158,8 @@ export const getKaranaEnd = (birthUtc: Date, model: AyanamsaModel, calibrationOf
   );
 };
 
-export const getSunNakshatraEnd = (birthUtc: Date, model: AyanamsaModel, calibrationOffset?: { moonOffset: number, sunNakOffset: number, tithiSunOffset: number }): Date => {
-  const getLong = (d: Date) => siderealLongitudes(d, model, "mean", calibrationOffset).sun;
+export const getSunNakshatraEnd = (birthUtc: Date, model: AyanamsaModel): Date => {
+  const getLong = (d: Date) => siderealLongitudes(d, model, "mean").sun;
   return findBoundaryCrossing(birthUtc, model, getLong, 360 / 27, true);
 };
 
@@ -230,8 +230,7 @@ export const getLocalizedMasa = (lang: string, index: number, isAdhika: boolean)
 export const getVishaAndAmrithaGhati = (
   birthUtc: Date,
   model: AyanamsaModel,
-  sunriseUtc: Date,
-  calibrationOffset?: { moonOffset: number, sunNakOffset: number, tithiSunOffset: number }
+  sunriseUtc: Date
 ): {
   vishaGhati: { ghati: number; vighati: number };
   amrithaGhati: { ghati: number; vighati: number };
@@ -243,14 +242,14 @@ export const getVishaAndAmrithaGhati = (
   
   for (let i = 0; i < 3; i++) {
     // Find Nakshatra ending at or after searchTime
-    const end = getNakshatraEnd(searchTime, model, calibrationOffset);
+    const end = getNakshatraEnd(searchTime, model);
     // Find start of this Nakshatra
-    const start = getNakshatraStart(searchTime, model, calibrationOffset);
+    const start = getNakshatraStart(searchTime, model);
     
     const dur = end.getTime() - start.getTime();
     
     // Identify Nakshatra index for the ending Nakshatra
-    const endDeg = siderealLongitudes(end, model, "mean", calibrationOffset).moon;
+    const endDeg = siderealLongitudes(end, model, "mean").moon;
     const nakIdx = Math.floor((endDeg - 0.0001) / (360 / 27)) % 27;
     
     const vOffset = VISHA_GHATI_START[nakIdx] ?? 20;

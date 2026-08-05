@@ -99,8 +99,7 @@ export type SiderealLongitudes = {
 export const siderealLongitudes = (
   utc: Date,
   model: AyanamsaModel = "lahiri",
-  nodeType: NodeType = "mean",
-  calibrationOffset?: { moonOffset: number, sunNakOffset: number, tithiSunOffset: number, yogaSunOffset?: number }
+  nodeType: NodeType = "mean"
 ): SiderealLongitudes => {
   const jdUt = dateToJulianUt(utc);
   const ayanamsa =
@@ -110,18 +109,6 @@ export const siderealLongitudes = (
   let trueMoon = tropicalGeoLongitude(Astronomy.Body.Moon, utc);
   let trueSunTithi = trueSun;
   let trueSunYoga = trueSun;
-  
-  // Apply Baggona calibration if provided (Traditional Sunrise/Surya Siddhanta emulation)
-  if (calibrationOffset) {
-    trueMoon = normalizeDegree(trueMoon + calibrationOffset.moonOffset);
-    trueSunTithi = normalizeDegree(trueSun + calibrationOffset.tithiSunOffset);
-    if (calibrationOffset.yogaSunOffset !== undefined) {
-      trueSunYoga = normalizeDegree(trueSun + calibrationOffset.yogaSunOffset);
-    } else {
-      trueSunYoga = trueSunTithi; // fallback
-    }
-    trueSun = normalizeDegree(trueSun + calibrationOffset.sunNakOffset);
-  }
 
   const siderealSun = normalizeDegree(trueSun - ayanamsa);
   const siderealSunTithi = normalizeDegree(trueSunTithi - ayanamsa);

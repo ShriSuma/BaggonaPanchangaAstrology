@@ -173,15 +173,15 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
           <div><b>ಸಂಕ್ರಾಂತಿ:</b> {sankranti}</div>
           <div><b>ವಿಷಘಟಿ:</b> {visha}</div>
           <div><b>ಅಮೃತಘಟಿ:</b> {amruta}</div>
-          <div><b>ದಿವಾ:</b> {diva}</div>
-          <div><b>ಪರಮ:</b> {parama}</div>
-          <div><b>ಆಷ್ಯಕಾಲ:</b> {aishya}</div>
+          <div><b>ದಿವಾಘಟಿ:</b> {diva}</div>
+          <div><b>ಪರಮಘಟಿ:</b> {parama}</div>
+          <div><b>ಏಷ್ಯಕಾಲ:</b> {aishya}</div>
           <div><b>ಗತಕಾಲ:</b> {gata}</div>
           
           <div style={{ flexBasis: "100%", borderTop: "1px dashed #ccc", paddingTop: "5px", marginTop: "2px" }}>
             <b>ಸೂರ್ಯೋದಯಾದಿ:</b> {suryodayadi} &nbsp;|&nbsp; 
             <b>ಜನ್ಮಕಾಲ:</b> ({birthTimeLabel} ಘಂಟೆ {displayHKn} ಮಿ {displayMKn}) &nbsp;|&nbsp; 
-            <b>ದಶಾಸಿಲ್ಕು:</b> {dashaBalance}
+            <b>ದಶಾ ಭುಕ್ತಿ:</b> {dashaBalance}
             {parentsName ? <><br/>{parentsName} ಇವರ ಪುತ್ರ/ಪುತ್ರಿ.</> : null}
             {gothra ? ` ಗೋತ್ರ: ${gothra}` : null}
           </div>

@@ -21,41 +21,7 @@ import { vedicWeekdayAtBirth } from "./birthSunTimes";
 import { ghatiVighatiSinceSunrise } from "./ghatiVighati";
 import { resolveSunTimesForJyotish } from "./hinduSunTimes";
 
-export const BAGGONA_CALIBRATION_MATRIX = [
-  { year: 1968.6162, offsets: { moonOffset: -6.2135, sunNakOffset: 4.0062, tithiSunOffset: 13.1590, yogaSunOffset: 13.1975 } },
-  { year: 1975.7132, offsets: { moonOffset: 1.1658, sunNakOffset: 1.4439, tithiSunOffset: 1.1722, yogaSunOffset: 1.5831 } },
-  { year: 1992.5452, offsets: { moonOffset: 3.24, sunNakOffset: 0.67, tithiSunOffset: 3.225, yogaSunOffset: -4.06 } },
-  { year: 1993.4134, offsets: { moonOffset: -0.0500, sunNakOffset: 0.6700, tithiSunOffset: 0.6500, yogaSunOffset: -11.7400 } },
-  { year: 2005.4331, offsets: { moonOffset: 6.5820, sunNakOffset: 1.2007, tithiSunOffset: 6.9155, yogaSunOffset: 5.5829 } },
-  { year: 2025.4495, offsets: { moonOffset: 1.6927, sunNakOffset: 0.0954, tithiSunOffset: -10.7043, yogaSunOffset: 2.6693 } },
-];
 
-export const getBaggonaCalibration = (date: Date): { moonOffset: number; sunNakOffset: number; tithiSunOffset: number; yogaSunOffset: number } => {
-  const year = date.getFullYear() + date.getMonth() / 12 + date.getDate() / 365;
-  if (year <= BAGGONA_CALIBRATION_MATRIX[0].year) {
-    return BAGGONA_CALIBRATION_MATRIX[0].offsets;
-  }
-  if (year >= BAGGONA_CALIBRATION_MATRIX[BAGGONA_CALIBRATION_MATRIX.length - 1].year) {
-    return BAGGONA_CALIBRATION_MATRIX[BAGGONA_CALIBRATION_MATRIX.length - 1].offsets;
-  }
-
-  for (let i = 0; i < BAGGONA_CALIBRATION_MATRIX.length - 1; i++) {
-    const y1 = BAGGONA_CALIBRATION_MATRIX[i].year;
-    const y2 = BAGGONA_CALIBRATION_MATRIX[i + 1].year;
-    if (year >= y1 && year < y2) {
-      const f = (year - y1) / (y2 - y1);
-      const off1 = BAGGONA_CALIBRATION_MATRIX[i].offsets;
-      const off2 = BAGGONA_CALIBRATION_MATRIX[i + 1].offsets;
-      return {
-        moonOffset: off1.moonOffset + (off2.moonOffset - off1.moonOffset) * f,
-        sunNakOffset: off1.sunNakOffset + (off2.sunNakOffset - off1.sunNakOffset) * f,
-        tithiSunOffset: off1.tithiSunOffset + (off2.tithiSunOffset - off1.tithiSunOffset) * f,
-        yogaSunOffset: off1.yogaSunOffset + (off2.yogaSunOffset - off1.yogaSunOffset) * f
-      };
-    }
-  }
-  return BAGGONA_CALIBRATION_MATRIX[0].offsets;
-};
 export interface TraditionalBaggonaPanchanga {
   shakaYear: number;
   samvatsara: string;
@@ -198,7 +164,7 @@ export function calculateTraditionalBaggona(
     sunsetUtc = jyotish.sunset;
   }
 
-  const calibrationOffset = getBaggonaCalibration(sunriseUtc);
+
 
   const getFormatTime = (d: Date): string => {
     return d.toLocaleTimeString("en-IN", {
@@ -219,7 +185,7 @@ export function calculateTraditionalBaggona(
   };
 
   // Find longitudes at sunrise for the day's Panchanga elements
-  const longsSunrise = siderealLongitudes(sunriseUtc, ayanamsaModel, "mean", calibrationOffset);
+  const longsSunrise = siderealLongitudes(sunriseUtc, ayanamsaModel, "mean");
   const moonSunrise = normalizeDegree(longsSunrise.moon);
   const sunSunrise = normalizeDegree(longsSunrise.sun);
   const sunTithiSunrise = normalizeDegree(longsSunrise.sunTithi ?? longsSunrise.sun);
@@ -230,7 +196,7 @@ export function calculateTraditionalBaggona(
   // Difference for Tithi:
   const elongationSunrise = normalizeDegree(moonSunrise - sunTithiSunrise);
 
-  let tithiEnd = getTithiEnd(sunriseUtc, ayanamsaModel, calibrationOffset);
+  let tithiEnd = getTithiEnd(sunriseUtc, ayanamsaModel);
   let tEnd = getEndGhati(tithiEnd);
   let tithiIdx = Math.floor(elongationSunrise / 12) % 30;
 
@@ -248,13 +214,13 @@ export function calculateTraditionalBaggona(
   const sunNakshatraKn = NAKSHATRAS_KN[sunNakIdx] ?? "";
 
   let moonNakIdx = Math.floor(moonSunrise / (360 / 27)) % 27;
-  let nakshatraEnd = getNakshatraEnd(sunriseUtc, ayanamsaModel, calibrationOffset);
+  let nakshatraEnd = getNakshatraEnd(sunriseUtc, ayanamsaModel);
   let mEnd = getEndGhati(nakshatraEnd);
   
   const moonNakshatra = NAKSHATRAS_EN[moonNakIdx] ?? "";
   const moonNakshatraKn = NAKSHATRAS_KN[moonNakIdx] ?? "";
 
-  let karanaEnd = getKaranaEnd(sunriseUtc, ayanamsaModel, calibrationOffset);
+  let karanaEnd = getKaranaEnd(sunriseUtc, ayanamsaModel);
   let kEnd = getEndGhati(karanaEnd);
 
   let halfTithiIdxSunrise = Math.floor(elongationSunrise / 6) % 60;
@@ -268,7 +234,7 @@ export function calculateTraditionalBaggona(
   const karana = KARANAS_EN[karanaIdx] ?? "";
   const karanaKn = KARANAS_KN[karanaIdx] ?? "";
 
-  let yogaEnd = getYogaEnd(sunriseUtc, ayanamsaModel, calibrationOffset);
+  let yogaEnd = getYogaEnd(sunriseUtc, ayanamsaModel);
   let yEnd = getEndGhati(yogaEnd);
   
   let yogaIdx = Math.floor(sumSunrise / (360 / 27)) % 27;
@@ -276,7 +242,7 @@ export function calculateTraditionalBaggona(
   const yoga = YOGAS_EN[yogaIdx] ?? "";
   const yogaKn = YOGAS_KN[yogaIdx] ?? "";
 
-  const sunNakshatraEnd = getSunNakshatraEnd(sunriseUtc, ayanamsaModel, calibrationOffset);
+  const sunNakshatraEnd = getSunNakshatraEnd(sunriseUtc, ayanamsaModel);
 
   const nakLength = 360 / 27;
   const sunNakStart = Math.floor(sunSunrise / nakLength) * nakLength;
@@ -287,7 +253,7 @@ export function calculateTraditionalBaggona(
     vighati: Math.floor((passedGhati - Math.floor(passedGhati)) * 60)
   };
 
-  const { vishaGhati, amrithaGhati } = getVishaAndAmrithaGhati(birthUtc, ayanamsaModel, sunriseUtc, calibrationOffset) ?? { vishaGhati: { ghati: 0, vighati: 0 }, amrithaGhati: { ghati: 0, vighati: 0 } };
+  const { vishaGhati, amrithaGhati } = getVishaAndAmrithaGhati(birthUtc, ayanamsaModel, sunriseUtc) ?? { vishaGhati: { ghati: 0, vighati: 0 }, amrithaGhati: { ghati: 0, vighati: 0 } };
   const divaGhatiVal = getDivaGhati(sunriseUtc, sunsetUtc);
 
   const sunLong = normalizeDegree(siderealLongitudes(birthUtc, ayanamsaModel).sun);
