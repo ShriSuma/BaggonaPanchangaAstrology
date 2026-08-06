@@ -119,6 +119,7 @@ export default function BhavishyaView() {
         remedyTitle: await translateText("Recommended Remedy:", language),
         characteristicsTitle: await translateText("Characteristics (Vyaktitva)", language),
         darkSecretTitle: await translateText("The Dark Secret (Nigoodha Satya)", language),
+        timelineTitle: await translateText("6-Month Planetary Timeline", language),
       };
       
       setPdfTranslations(translatedData);
@@ -229,6 +230,7 @@ export default function BhavishyaView() {
         remedyTitle: await translateText("Recommended Remedy:", language),
         characteristicsTitle: await translateText("Characteristics (Vyaktitva)", language),
         darkSecretTitle: await translateText("The Dark Secret (Nigoodha Satya)", language),
+        timelineTitle: await translateText("6-Month Planetary Timeline", language),
       };
       
       setPdfTranslations(translatedData);
@@ -261,9 +263,9 @@ export default function BhavishyaView() {
       const promptYogas = `
       You are an expert Vedic astrologer. Generate highly engaging narrative in JSON format.
       The output must be strictly valid JSON and MUST be entirely in this language code: ${language}.
-      IMPORTANT: If the target language is Kannada (kn), Telugu (te), or Tamil (ta), you MUST use ONLY the native script of that language. Absolutely DO NOT use Devanagari/Hindi/Sanskrit script or English script in the output (e.g., do not write 'गज' for Gaja, write it in the native script). Translate all Yoga names strictly into the requested language script.
+      IMPORTANT: If the target language is Kannada (kn), Telugu (te), or Tamil (ta), you MUST use ONLY the native script of that language. ABSOLUTELY NO ENGLISH WORDS. DO NOT USE TRANSLITERATION (e.g., writing English words like 'maintaining', 'balance', 'career' in the native script). You must use pure native vocabulary. Translate all Yoga names strictly into the requested language script.
       
-      Data - Yogas: ${JSON.stringify(result.natalLayer.yogas)}
+      Data - Yogas: ${JSON.stringify(result.aiGeneratedNarrative?.yogas || [])}
       
       CRITICAL INSTRUCTION: For each Yoga, you MUST write at least TWO full, highly descriptive paragraphs for the 'impact' field.
       
@@ -281,9 +283,9 @@ export default function BhavishyaView() {
       const promptDoshas = `
       You are an expert Vedic astrologer. Generate highly engaging narrative in JSON format.
       The output must be strictly valid JSON and MUST be entirely in this language code: ${language}.
-      IMPORTANT: If the target language is Kannada (kn), Telugu (te), or Tamil (ta), you MUST use ONLY the native script of that language. Absolutely DO NOT use Devanagari/Hindi/Sanskrit script or English script in the output. Translate all Dosha names strictly into the requested language script.
+      IMPORTANT: If the target language is Kannada (kn), Telugu (te), or Tamil (ta), you MUST use ONLY the native script of that language. ABSOLUTELY NO ENGLISH WORDS. DO NOT USE TRANSLITERATION (e.g., writing English words like 'maintaining', 'balance', 'career' in the native script). You must use pure native vocabulary. Translate all Dosha names strictly into the requested language script.
       
-      Data - Doshas/Karmic Baggage: ${JSON.stringify(result.natalLayer.karmicBaggage)}
+      Data - Doshas/Karmic Baggage: ${JSON.stringify(result.aiGeneratedNarrative?.doshas || [])}
       Data - Shadow Self: ${JSON.stringify(result.natalLayer.shadowSelf)}
       Data - Planets: ${JSON.stringify(session.result.planets)}
       
@@ -304,7 +306,7 @@ export default function BhavishyaView() {
       const promptCharacteristics = `
       You are an expert Vedic astrologer. Generate highly engaging narrative in JSON format.
       The output must be strictly valid JSON and MUST be entirely in this language code: ${language}.
-      IMPORTANT: If the target language is Kannada (kn), Telugu (te), or Tamil (ta), you MUST use ONLY the native script of that language. Absolutely DO NOT use Devanagari/Hindi/Sanskrit script or English script in the output.
+      IMPORTANT: If the target language is Kannada (kn), Telugu (te), or Tamil (ta), you MUST use ONLY the native script of that language. ABSOLUTELY NO ENGLISH WORDS. DO NOT USE TRANSLITERATION (e.g., writing English words like 'maintaining', 'balance', 'career' in the native script). You must use pure native vocabulary.
       
       Data - Core Personality: ${JSON.stringify(predictions.filter(p => p.translatedCategory === "Core Personality" || p.translatedCategory === "Basic Nature" || p.category === "Basic Nature"))}
       Data - Karmic & Shadow: ${JSON.stringify(result.natalLayer)}
@@ -326,7 +328,7 @@ export default function BhavishyaView() {
       const promptDarkSecret = `
       You are an expert Vedic astrologer. Generate highly engaging narrative in JSON format.
       The output must be strictly valid JSON and MUST be entirely in this language code: ${language}.
-      IMPORTANT: If the target language is Kannada (kn), Telugu (te), or Tamil (ta), you MUST use ONLY the native script of that language. Absolutely DO NOT use Devanagari/Hindi/Sanskrit script or English script in the output.
+      IMPORTANT: If the target language is Kannada (kn), Telugu (te), or Tamil (ta), you MUST use ONLY the native script of that language. ABSOLUTELY NO ENGLISH WORDS. DO NOT USE TRANSLITERATION (e.g., writing English words like 'maintaining', 'balance', 'career' in the native script). You must use pure native vocabulary.
       
       Data - Shadow Self & Karmic Baggage: ${JSON.stringify(result.natalLayer.shadowSelf)}
       
@@ -336,30 +338,66 @@ export default function BhavishyaView() {
       {
         "darkSecret": [
           {
-            "impact": "Write EXACTLY TWO detailed paragraphs (separated by \n) explaining their dark secret."
+            "impact": "Write EXACTLY TWO detailed paragraphs (separated by \\n) explaining their dark secret."
           }
         ]
       }
       `;
 
-      const [resYogas, resDoshas, resCharacteristics, resDarkSecret] = await Promise.all([
+      const promptTimeline = `
+      You are an expert Vedic astrologer. Generate a highly engaging 6-Month Planetary Influence Timeline narrative in JSON format.
+      The output must be strictly valid JSON and MUST be entirely in this language code: ${language}.
+      IMPORTANT: If the target language is Kannada (kn), Telugu (te), or Tamil (ta), you MUST use ONLY the native script of that language. ABSOLUTELY NO ENGLISH WORDS. DO NOT USE TRANSLITERATION (e.g., writing English words like 'maintaining', 'balance', 'career' in the native script). You must use pure native vocabulary.
+      
+      Data - Next 12 Months Roadmap: ${JSON.stringify(result.timingLayer.twelveMonthRoadmap.slice(0, 6))}
+      
+      CRITICAL INSTRUCTION: Based strictly on the provided Roadmap data generated by our engine, highlight the top 3 or 4 major planetary transits or period changes that will influence the user's life over the next 6 months. For each entry, create ONE VERY LARGE, HIGHLY DETAILED PARAGRAPH explaining the exact astrological effects, challenges, and opportunities the user will face. Do not be concise; be extremely descriptive and comprehensive.
+      
+      Expected JSON Structure:
+      {
+        "timeline": [
+          {
+            "dateRange": "e.g. Oct 2026 - Nov 2026",
+            "impact": "One very large, highly detailed paragraph (at least 6-8 sentences) explaining the astrological influences..."
+          }
+        ]
+      }
+      `;
+
+      const [resYogas, resDoshas, resCharacteristics, resDarkSecret, resTimeline] = await Promise.all([
         askGemini("Generate Premium Yogas", promptYogas, geminiApiKey, language),
         askGemini("Generate Premium Doshas", promptDoshas, geminiApiKey, language),
         askGemini("Generate Characteristics", promptCharacteristics, geminiApiKey, language),
-        askGemini("Generate Dark Secret", promptDarkSecret, geminiApiKey, language)
+        askGemini("Generate Dark Secret", promptDarkSecret, geminiApiKey, language),
+        askGemini("Generate Planetary Timeline", promptTimeline, geminiApiKey, language)
       ]);
 
       const dataYogas = parseGeminiJSON(resYogas);
       const dataDoshas = parseGeminiJSON(resDoshas);
       const dataCharacteristics = parseGeminiJSON(resCharacteristics);
       const dataDarkSecret = parseGeminiJSON(resDarkSecret);
+      const dataTimeline = parseGeminiJSON(resTimeline);
 
-      setPremiumDataForPdf({
+      const premiumDataPayload = {
         characteristics: dataCharacteristics.characteristics || [],
         darkSecret: dataDarkSecret.darkSecret || [],
         yogas: dataYogas.yogas || [],
-        doshas: dataDoshas.doshas || []
-      });
+        doshas: dataDoshas.doshas || [],
+        timeline: dataTimeline.timeline || []
+      };
+
+      // Validation Step: Ensure no mandatory section is missing
+      if (
+        premiumDataPayload.characteristics.length === 0 ||
+        premiumDataPayload.darkSecret.length === 0 ||
+        premiumDataPayload.timeline.length === 0 ||
+        !ashirvadaText ||
+        predictions.length < 5
+      ) {
+        throw new Error("Incomplete data: One or more sections failed to generate properly. Please try again.");
+      }
+
+      setPremiumDataForPdf(premiumDataPayload);
       
       // Wait for React to flush the state to the hidden PdfTemplate component
       await new Promise(resolve => setTimeout(resolve, 1500));
@@ -515,6 +553,8 @@ export default function BhavishyaView() {
         </div>
       )}
 
+      {/* Detailed predictions hidden for now as per user request */}
+      {/* 
       <div className="relative z-10 space-y-12">
         {currentMindset && (
           <div className="mb-12">
@@ -584,6 +624,8 @@ export default function BhavishyaView() {
           </div>
         )}
       </div>
+      */
+      }
 
       {/* Hidden PDF Template Container */}
       <div className="absolute left-[-9999px] top-[-9999px] opacity-0 pointer-events-none">

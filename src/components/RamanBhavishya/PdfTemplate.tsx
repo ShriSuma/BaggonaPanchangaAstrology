@@ -27,6 +27,7 @@ export type PdfTranslations = {
   yogasTitle: string;
   doshasTitle: string;
   remedyTitle: string;
+  timelineTitle: string;
   footer: string;
 };
 
@@ -35,6 +36,7 @@ export type PremiumData = {
   darkSecret?: { impact: string }[];
   yogas: { name: string; impact: string }[];
   doshas: { name: string; impact: string; remedy?: string }[];
+  timeline?: { dateRange: string; impact: string }[];
 };
 
 interface Props {
@@ -130,7 +132,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
               <div className="space-y-10">
                 {premiumData.characteristics.map((char, idx) => (
                   <div key={idx} className="space-y-6">
-                    {char.impact.split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
+                    {(char.impact || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
                       <p key={pIdx} className="text-xl leading-loose text-amber-950 text-justify font-medium">
                         {paragraph}
                       </p>
@@ -152,7 +154,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
               <div className="space-y-10">
                 {premiumData.darkSecret.map((ds, idx) => (
                   <div key={idx} className="space-y-6">
-                    {ds.impact.split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
+                    {(ds.impact || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
                       <p key={pIdx} className="text-xl leading-loose text-amber-950 text-justify font-medium">
                         {paragraph}
                       </p>
@@ -178,7 +180,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
             <div className="space-y-10">
               {preds.map((pred, idx) => (
                 <div key={idx} className="space-y-6">
-                  {pred.translatedText.split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
+                  {(pred.translatedText || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
                     <p key={pIdx} className="text-xl leading-loose text-amber-950 text-justify font-medium">
                       {paragraph}
                     </p>
@@ -205,7 +207,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                 {premiumData.yogas.map((yoga, idx) => (
                   <div key={idx} className="space-y-6">
                     <h3 className="text-2xl font-bold text-amber-900 mb-2 bg-amber-200/60 inline-block px-3 py-1 rounded shadow-sm">{yoga.name}</h3>
-                    {yoga.impact.split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
+                    {(yoga.impact || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
                       <p key={pIdx} className="text-xl leading-loose text-amber-950 text-justify font-medium">
                         {paragraph}
                       </p>
@@ -227,7 +229,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                 {premiumData.doshas.map((dosha, idx) => (
                   <div key={idx} className="space-y-6">
                     <h3 className="text-2xl font-bold text-rose-900 mb-2">{dosha.name}</h3>
-                    {dosha.impact.split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
+                    {(dosha.impact || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
                       <p key={pIdx} className="text-xl leading-loose text-amber-950 text-justify font-medium">
                         {paragraph}
                       </p>
@@ -245,6 +247,38 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* 6-Month Planetary Timeline */}
+      {premiumData?.timeline && premiumData.timeline.length > 0 && (
+        <div className="space-y-12 mb-20 px-6 relative mt-16">
+          <div className="flex items-center gap-6 mb-10">
+            <h2 className={`text-3xl font-bold ${primaryColorClass} leading-normal border-b-2 border-amber-700/30 pb-2`}>
+              {translations.timelineTitle}
+            </h2>
+          </div>
+          <div className="space-y-8 relative before:absolute before:inset-0 before:ml-4 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-amber-700/40 before:to-transparent">
+            {premiumData.timeline.map((item, idx) => (
+              <div key={idx} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full border-4 border-amber-100 bg-amber-700 text-amber-50 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 absolute left-0 md:left-1/2 transform -translate-x-1/2 z-10">
+                  <div className="w-2 h-2 rounded-full bg-amber-200"></div>
+                </div>
+                <div className="w-[calc(100%-3rem)] md:w-[calc(50%-2.5rem)] bg-white/70 border border-amber-900/20 shadow-sm p-6 rounded-lg ml-12 md:ml-0">
+                  <div className="flex flex-col space-y-2 mb-3">
+                    <span className="text-amber-800 font-bold text-lg bg-amber-100/50 inline-block px-3 py-1 rounded w-fit border border-amber-900/10 shadow-sm">
+                      {item.dateRange}
+                    </span>
+                  </div>
+                  {(item.impact || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
+                    <p key={pIdx} className="text-xl leading-relaxed text-amber-950 font-medium text-justify">
+                      {paragraph}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

@@ -255,6 +255,11 @@ export async function generateMasterPrediction(
   const shloka = getRandomShlokaForGraha(mahaLord ?? fallbackLord);
   const aashirvada = getRandomAashirvada();
 
+  const aiGeneratedNarrative = {
+    yogas: bvRamanCore.yogas.map(y => ({ name: y.name, significance: y.description })),
+    doshas: bvRamanCore.doshas.map(d => ({ name: d.name, significance: d.description }))
+  };
+
   return {
     metadata: {
       name: context.name,
@@ -272,6 +277,7 @@ export async function generateMasterPrediction(
     masterSynthesis,
     pariharas,
     shloka,
-    aashirvada
+    aashirvada,
+    aiGeneratedNarrative
   };
 }

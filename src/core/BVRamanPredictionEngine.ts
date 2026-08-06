@@ -1,4 +1,4 @@
-import { PlanetName, type KundliOutput } from "./AstroTypes";
+import { PlanetName, type KundliOutput, type PlanetPosition } from "./AstroTypes";
 import { lordOfHouse, isKendraHouse, isTrikonaHouse, isDusthanaHouse } from "./ChartPredictionKnowledge";
 import { signLord } from "./KundliInsightsEngine";
 
@@ -17,43 +17,86 @@ export type BVRamanDignity = {
 export type BVRamanPrediction = {
   dignities: BVRamanDignity[];
   yogas: BVRamanYoga[];
+  doshas: BVRamanYoga[]; // Added Doshas explicitly
   dashaAnalysis: string;
   gocharaAnalysis: string;
 };
 
+// Exaltation and Debilitation logic remains the same
 const EXALTATION_RASHIS: Partial<Record<PlanetName, number>> = {
-  [PlanetName.Sun]: 0,     // Aries
-  [PlanetName.Moon]: 1,    // Taurus
-  [PlanetName.Mars]: 9,    // Capricorn
-  [PlanetName.Mercury]: 5, // Virgo
-  [PlanetName.Jupiter]: 3, // Cancer
-  [PlanetName.Venus]: 11,  // Pisces
-  [PlanetName.Saturn]: 6,  // Libra
+  [PlanetName.Sun]: 0,
+  [PlanetName.Moon]: 1,
+  [PlanetName.Mars]: 9,
+  [PlanetName.Mercury]: 5,
+  [PlanetName.Jupiter]: 3,
+  [PlanetName.Venus]: 11,
+  [PlanetName.Saturn]: 6,
 };
 
 const DEBILITATION_RASHIS: Partial<Record<PlanetName, number>> = {
-  [PlanetName.Sun]: 6,     // Libra
-  [PlanetName.Moon]: 7,    // Scorpio
-  [PlanetName.Mars]: 3,    // Cancer
-  [PlanetName.Mercury]: 11,// Pisces
-  [PlanetName.Jupiter]: 9, // Capricorn
-  [PlanetName.Venus]: 5,   // Virgo
-  [PlanetName.Saturn]: 0,  // Aries
+  [PlanetName.Sun]: 6,
+  [PlanetName.Moon]: 7,
+  [PlanetName.Mars]: 3,
+  [PlanetName.Mercury]: 11,
+  [PlanetName.Jupiter]: 9,
+  [PlanetName.Venus]: 5,
+  [PlanetName.Saturn]: 0,
 };
 
-/**
- * Evaluates planetary dignities according to classical Baggona Panchanga rules.
- */
+function isKendra(house: number, refHouse: number = 1): boolean {
+  const diff = (house - refHouse + 12) % 12;
+  return diff === 0 || diff === 3 || diff === 6 || diff === 9; // 1, 4, 7, 10
+}
+
+function isTrikona(house: number, refHouse: number = 1): boolean {
+  const diff = (house - refHouse + 12) % 12;
+  return diff === 0 || diff === 4 || diff === 8; // 1, 5, 9
+}
+
+function distance(fromHouse: number, toHouse: number): number {
+  return (toHouse - fromHouse + 12) % 12 + 1;
+}
+
+// Special aspects:
+function hasJupiterAspect(kundli: KundliOutput, targetHouse: number): boolean {
+  const jupiter = kundli.planets.find((p: PlanetPosition) => p.name === PlanetName.Jupiter);
+  if (!jupiter) return false;
+  const d = distance(jupiter.house, targetHouse);
+  return d === 5 || d === 7 || d === 9;
+}
+
+function hasMarsAspect(kundli: KundliOutput, targetHouse: number): boolean {
+  const mars = kundli.planets.find((p: PlanetPosition) => p.name === PlanetName.Mars);
+  if (!mars) return false;
+  const d = distance(mars.house, targetHouse);
+  return d === 4 || d === 7 || d === 8;
+}
+
+function hasSaturnAspect(kundli: KundliOutput, targetHouse: number): boolean {
+  const saturn = kundli.planets.find((p: PlanetPosition) => p.name === PlanetName.Saturn);
+  if (!saturn) return false;
+  const d = distance(saturn.house, targetHouse);
+  return d === 3 || d === 7 || d === 10;
+}
+
+// All planets aspect the 7th house
+function hasAspect(kundli: KundliOutput, aspectingPlanet: PlanetName, targetHouse: number): boolean {
+  if (aspectingPlanet === PlanetName.Jupiter) return hasJupiterAspect(kundli, targetHouse);
+  if (aspectingPlanet === PlanetName.Mars) return hasMarsAspect(kundli, targetHouse);
+  if (aspectingPlanet === PlanetName.Saturn) return hasSaturnAspect(kundli, targetHouse);
+  
+  const planet = kundli.planets.find((p: PlanetPosition) => p.name === aspectingPlanet);
+  if (!planet) return false;
+  return distance(planet.house, targetHouse) === 7;
+}
+
 function evaluateDignities(kundli: KundliOutput): BVRamanDignity[] {
   const dignities: BVRamanDignity[] = [];
-
   for (const planet of kundli.planets) {
     if (planet.name === PlanetName.Rahu || planet.name === PlanetName.Ketu) continue;
-
     const rashiIdx = planet.rashi.index;
     let status: BVRamanDignity["status"] = "Neutral";
     let description = `${planet.name} is placed in ${planet.rashi.english}.`;
-
     if (EXALTATION_RASHIS[planet.name] === rashiIdx) {
       status = "Exalted";
       description = `${planet.name} is Exalted (Ucha) in ${planet.rashi.english}, giving exceptional strength and highly positive results.`;
@@ -64,46 +107,64 @@ function evaluateDignities(kundli: KundliOutput): BVRamanDignity[] {
       status = "OwnHouse";
       description = `${planet.name} is in its Own House (Swakshetra) in ${planet.rashi.english}, making it very comfortable and strong.`;
     }
-
     if (status !== "Neutral") {
       dignities.push({ planet: planet.name, status, description });
     }
   }
-
   return dignities;
 }
 
-/**
- * Detects classical Yogas (Raja Yoga, Dhana Yoga) as defined in Hindu Predictive Astrology.
- */
-function evaluateYogas(kundli: KundliOutput): BVRamanYoga[] {
+export function evaluateYogasAndDoshas(kundli: KundliOutput): { yogas: BVRamanYoga[], doshas: BVRamanYoga[] } {
   const yogas: BVRamanYoga[] = [];
+  const doshas: BVRamanYoga[] = [];
   
-  const lagnaLord = lordOfHouse(kundli, 1);
-  const p9Lord = lordOfHouse(kundli, 9);
-  const p10Lord = lordOfHouse(kundli, 10);
-  const p5Lord = lordOfHouse(kundli, 5);
-  const p4Lord = lordOfHouse(kundli, 4);
+  const getLord = (h: number) => lordOfHouse(kundli, h);
+  const getPos = (pName: PlanetName) => kundli.planets.find((p: PlanetPosition) => p.name === pName);
+  
+  const p1Lord = getLord(1);
+  const p2Lord = getLord(2);
+  const p4Lord = getLord(4);
+  const p5Lord = getLord(5);
+  const p6Lord = getLord(6);
+  const p7Lord = getLord(7);
+  const p9Lord = getLord(9);
+  const p10Lord = getLord(10);
+  const p11Lord = getLord(11);
+  const p12Lord = getLord(12);
 
-  const lagnaLordPos = kundli.planets.find(p => p.name === lagnaLord);
-  const p9LordPos = kundli.planets.find(p => p.name === p9Lord);
-  const p10LordPos = kundli.planets.find(p => p.name === p10Lord);
-  
-  // Dharma-Karma Adhipati Yoga (Raja Yoga): Lord of 9th (Trikona) and 10th (Kendra) conjunct
+  const p1LordPos = getPos(p1Lord);
+  const p2LordPos = getPos(p2Lord);
+  const p4LordPos = getPos(p4Lord);
+  const p5LordPos = getPos(p5Lord);
+  const p6LordPos = getPos(p6Lord);
+  const p7LordPos = getPos(p7Lord);
+  const p9LordPos = getPos(p9Lord);
+  const p10LordPos = getPos(p10Lord);
+  const p11LordPos = getPos(p11Lord);
+  const p12LordPos = getPos(p12Lord);
+
+  const sun = getPos(PlanetName.Sun);
+  const moon = getPos(PlanetName.Moon);
+  const mars = getPos(PlanetName.Mars);
+  const mercury = getPos(PlanetName.Mercury);
+  const jupiter = getPos(PlanetName.Jupiter);
+  const venus = getPos(PlanetName.Venus);
+  const saturn = getPos(PlanetName.Saturn);
+  const rahu = getPos(PlanetName.Rahu);
+
+  const benefics = [PlanetName.Jupiter, PlanetName.Venus, PlanetName.Mercury, PlanetName.Moon];
+  const malefics = [PlanetName.Saturn, PlanetName.Mars, PlanetName.Rahu, PlanetName.Ketu, PlanetName.Sun];
+
+  // Dharma-Karma Adhipati Yoga
   if (p9LordPos && p10LordPos && p9LordPos.house === p10LordPos.house && p9LordPos.name !== p10LordPos.name) {
     yogas.push({
       name: "Dharma-Karma Adhipati Yoga",
-      description: `The lords of the 9th (${p9Lord}) and 10th (${p10Lord}) houses are conjunct in house ${p9LordPos.house}. According to Baggona Panchanga, this is a powerful Raja Yoga bestowing high status, success in career, and great fortune.`,
+      description: `The lords of the 9th and 10th houses are conjunct in house ${p9LordPos.house}. A powerful Raja Yoga bestowing high status, success in career, and great fortune.`,
       isFavorable: true,
     });
   }
 
-  // Dhana Yoga (Wealth): 2nd lord and 11th lord connection (e.g. conjunction)
-  const p2Lord = lordOfHouse(kundli, 2);
-  const p11Lord = lordOfHouse(kundli, 11);
-  const p2LordPos = kundli.planets.find(p => p.name === p2Lord);
-  const p11LordPos = kundli.planets.find(p => p.name === p11Lord);
-
+  // Dhana Yoga
   if (p2LordPos && p11LordPos && p2LordPos.house === p11LordPos.house && p2LordPos.name !== p11LordPos.name) {
     yogas.push({
       name: "Dhana Yoga",
@@ -112,38 +173,397 @@ function evaluateYogas(kundli: KundliOutput): BVRamanYoga[] {
     });
   }
 
-  // Gaja Kesari Yoga: Jupiter in Kendra from Moon
-  const jupiter = kundli.planets.find(p => p.name === PlanetName.Jupiter);
-  const moon = kundli.planets.find(p => p.name === PlanetName.Moon);
+  // Gaja Kesari / Kesari Yoga
   if (jupiter && moon) {
-    const diff = (jupiter.house - moon.house + 12) % 12;
-    if (diff === 0 || diff === 3 || diff === 6 || diff === 9) { // 1st, 4th, 7th, 10th from Moon
+    if (isKendra(jupiter.house, moon.house)) {
       yogas.push({
         name: "Gaja Kesari Yoga",
-        description: "Jupiter is in a Kendra (angular house) from the Moon. This highly auspicious yoga grants intelligence, lasting reputation, and prosperity.",
+        description: "Jupiter is in a Kendra from the Moon. Grants intelligence, lasting reputation, and possession of all worldly enjoyments.",
         isFavorable: true,
       });
     }
   }
 
-  return yogas;
+  // Chamara Yoga
+  let chamaraFormed = false;
+  if (p1LordPos && EXALTATION_RASHIS[p1Lord] === p1LordPos.rashi.index && isKendra(p1LordPos.house)) {
+    if (hasJupiterAspect(kundli, p1LordPos.house)) chamaraFormed = true;
+  }
+  // OR two benefics in Asc, 7, 10
+  const beneficsIn1_7_10 = kundli.planets.filter((p: PlanetPosition) => benefics.includes(p.name) && [1, 7, 10].includes(p.house));
+  if (beneficsIn1_7_10.length >= 2) chamaraFormed = true;
+  if (chamaraFormed) {
+    yogas.push({
+      name: "Chamara Yoga",
+      description: "The person will be greatly respected by rulers and the aristocracy, a good conversationalist, a profound scholar and lives a long life.",
+      isFavorable: true
+    });
+  }
+
+  // Shankha Yoga
+  let shankhaFormed = false;
+  if (p10LordPos && p1LordPos && p9LordPos) {
+    const isMoveable = (rashiIndex: number) => rashiIndex % 3 === 0;
+    if ((isMoveable(p10LordPos.rashi.index) || isMoveable(p1LordPos.rashi.index)) && EXALTATION_RASHIS[p9Lord] === p9LordPos.rashi.index) {
+       shankhaFormed = true; 
+    }
+  }
+  if (p5LordPos && p6LordPos && p1LordPos) {
+    if (isKendra(p5LordPos.house, p6LordPos.house) && (EXALTATION_RASHIS[p1Lord] === p1LordPos.rashi.index || signLord(p1LordPos.rashi.index) === p1LordPos.name)) {
+      shankhaFormed = true;
+    }
+  }
+  if (shankhaFormed) {
+    yogas.push({
+      name: "Shankha Yoga",
+      description: "Fond of pleasures, learned in sciences and philosophy, philanthropic, agreeable family surroundings, and long life.",
+      isFavorable: true
+    });
+  }
+
+  // Sreenatha Yoga
+  if (p7LordPos && EXALTATION_RASHIS[p7Lord] === p7LordPos.rashi.index && p7LordPos.house === 10) {
+    if (p10LordPos && p9LordPos && p10LordPos.house === p9LordPos.house) {
+      yogas.push({
+        name: "Sreenatha Yoga",
+        description: "Great respect, reputation, honourable living, much wealth and nice surroundings.",
+        isFavorable: true
+      });
+    }
+  }
+
+  // Bheri Yoga
+  let bheriFormed = false;
+  if (p10LordPos && [EXALTATION_RASHIS[p10Lord], p10LordPos.name].includes(signLord(p10LordPos.rashi.index))) { 
+    const planetsIn1_2_7_12 = kundli.planets.filter((p: PlanetPosition) => [1, 2, 7, 12].includes(p.house));
+    if (planetsIn1_2_7_12.length >= 3) bheriFormed = true;
+  }
+  if (p9LordPos && [EXALTATION_RASHIS[p9Lord], p9LordPos.name].includes(signLord(p9LordPos.rashi.index))) {
+    if (venus && p1LordPos && jupiter) {
+      if (isKendra(venus.house, jupiter.house) && isKendra(p1LordPos.house, jupiter.house)) bheriFormed = true;
+    }
+  }
+  if (bheriFormed) {
+    yogas.push({
+      name: "Bheri Yoga",
+      description: "Landed estates, free from encumbrance, high family traditions, courageous, expert in sciences and arts.",
+      isFavorable: true
+    });
+  }
+
+  // Sarada Yoga
+  let saradaFormed = false;
+  if (moon && jupiter && isTrikona(jupiter.house, moon.house)) {
+     if (mars && mercury && isTrikona(mars.house, mercury.house)) saradaFormed = true;
+     if (mercury && jupiter && distance(mercury.house, jupiter.house) === 11) saradaFormed = true;
+  }
+  if (p10LordPos && p10LordPos.house === 5 && mercury && isKendra(mercury.house) && sun && signLord(sun.rashi.index) === sun.name) {
+    saradaFormed = true;
+  }
+  if (saradaFormed) {
+    yogas.push({
+      name: "Sarada Yoga",
+      description: "Respector of preceptors, religiously inclined, praised by the royalty, saintly disposition and patron of fine arts.",
+      isFavorable: true
+    });
+  }
+
+  // Matsya Yoga
+  const planetsIn1 = kundli.planets.filter((p: PlanetPosition) => p.house === 1);
+  const planetsIn9 = kundli.planets.filter((p: PlanetPosition) => p.house === 9);
+  const planetsIn5 = kundli.planets.filter((p: PlanetPosition) => p.house === 5);
+  const planetsIn4 = kundli.planets.filter((p: PlanetPosition) => p.house === 4);
+  const planetsIn8 = kundli.planets.filter((p: PlanetPosition) => p.house === 8);
+  const hasMalefic = (arr: PlanetPosition[]) => arr.some((p: PlanetPosition) => malefics.includes(p.name));
+  const hasBenefic = (arr: PlanetPosition[]) => arr.some((p: PlanetPosition) => benefics.includes(p.name));
+  
+  if (hasMalefic(planetsIn1) && hasMalefic(planetsIn9) && hasBenefic(planetsIn5) && hasMalefic(planetsIn5) && hasMalefic(planetsIn4) && hasMalefic(planetsIn8)) {
+    yogas.push({
+      name: "Matsya Yoga",
+      description: "Lover of astrology, sympathetic temperament and religious nature.",
+      isFavorable: true
+    });
+  }
+
+  // Adhi Yoga
+  if (moon) {
+    const planetsIn678FromMoon = kundli.planets.filter((p: PlanetPosition) => [6, 7, 8].includes(distance(moon.house, p.house)));
+    const onlyBenefics = planetsIn678FromMoon.length > 0 && planetsIn678FromMoon.every((p: PlanetPosition) => benefics.includes(p.name));
+    if (onlyBenefics) {
+      yogas.push({
+        name: "Adhi Yoga",
+        description: "Commander, Minister or a king, foeless, long-lived and free from diseases.",
+        isFavorable: true
+      });
+    }
+  }
+
+  // Anapha, Sunapha, Durdhura, Kemadruma
+  if (moon) {
+    const planetsIn2FromMoon = kundli.planets.filter((p: PlanetPosition) => p.name !== PlanetName.Sun && p.name !== PlanetName.Rahu && p.name !== PlanetName.Ketu && distance(moon.house, p.house) === 2);
+    const planetsIn12FromMoon = kundli.planets.filter((p: PlanetPosition) => p.name !== PlanetName.Sun && p.name !== PlanetName.Rahu && p.name !== PlanetName.Ketu && distance(moon.house, p.house) === 12);
+    
+    if (planetsIn2FromMoon.length > 0 && planetsIn12FromMoon.length > 0) {
+      yogas.push({
+        name: "Durdhura Yoga",
+        description: "Enjoyment of all pleasures, conveyances, liberal, generous, commanding, dutiful and faithful children.",
+        isFavorable: true
+      });
+    } else if (planetsIn2FromMoon.length > 0) {
+      yogas.push({
+        name: "Sunapha Yoga",
+        description: "Self-made person, self-acquired wealth, intelligent and reputed.",
+        isFavorable: true
+      });
+    } else if (planetsIn12FromMoon.length > 0) {
+      yogas.push({
+        name: "Anapha Yoga",
+        description: "Commanding and majestic appearance, healthy, moral, renowned, and fond of sense pleasures.",
+        isFavorable: true
+      });
+    } else if (planetsIn2FromMoon.length === 0 && planetsIn12FromMoon.length === 0 && !kundli.planets.some((p: PlanetPosition) => p.name !== PlanetName.Sun && p.name !== PlanetName.Moon && p.name !== PlanetName.Rahu && p.name !== PlanetName.Ketu && isKendra(p.house, moon.house))) {
+      doshas.push({
+        name: "Kemadruma Yoga",
+        description: "No planets in 2nd and 12th from Moon. Misery and poverty throughout life, neutralising beneficial yogas unless cancelled.",
+        isFavorable: false
+      });
+    }
+  }
+
+  // Kahala Yoga
+  if (p4LordPos && jupiter && isKendra(p4LordPos.house, jupiter.house)) {
+    if (p1LordPos && (EXALTATION_RASHIS[p1Lord] === p1LordPos.rashi.index || signLord(p1LordPos.rashi.index) === p1LordPos.name)) {
+      yogas.push({
+        name: "Kahala Yoga",
+        description: "Stubbornness, courageous and adventurous, ruling towns and cities.",
+        isFavorable: true
+      });
+    }
+  }
+
+  // Vasi, Vesi, Obhayachari
+  if (sun) {
+    const planetsIn2FromSun = kundli.planets.filter((p: PlanetPosition) => p.name !== PlanetName.Moon && p.name !== PlanetName.Rahu && p.name !== PlanetName.Ketu && distance(sun.house, p.house) === 2);
+    const planetsIn12FromSun = kundli.planets.filter((p: PlanetPosition) => p.name !== PlanetName.Moon && p.name !== PlanetName.Rahu && p.name !== PlanetName.Ketu && distance(sun.house, p.house) === 12);
+    
+    if (planetsIn2FromSun.length > 0 && planetsIn12FromSun.length > 0) {
+      yogas.push({
+        name: "Obhayachari Yoga",
+        description: "Equal to a king, good, sympathetic and philanthropic.",
+        isFavorable: true
+      });
+    } else {
+      if (planetsIn2FromSun.some((p: PlanetPosition) => benefics.includes(p.name))) {
+        yogas.push({
+          name: "Vesi Yoga",
+          description: "Good conversationalist, fluent speaker, wealthy, courageous and extremely charitable.",
+          isFavorable: true
+        });
+      }
+      if (planetsIn12FromSun.length > 0) {
+        yogas.push({
+          name: "Vasi Yoga",
+          description: "Influential, rich and wealthy.",
+          isFavorable: true
+        });
+      }
+    }
+  }
+
+  // Khadga Yoga
+  if (p2LordPos && p9LordPos && p2LordPos.house === 9 && p9LordPos.house === 2) {
+    if (p1LordPos && (isKendra(p1LordPos.house) || isTrikona(p1LordPos.house))) {
+      yogas.push({
+        name: "Khadga Yoga",
+        description: "Religiously inclined, courageous, strong, penetrating intelligence.",
+        isFavorable: true
+      });
+    }
+  }
+
+  // Lakshmi Yoga
+  if (p9LordPos && (isKendra(p9LordPos.house) || isTrikona(p9LordPos.house)) && (EXALTATION_RASHIS[p9Lord] === p9LordPos.rashi.index || signLord(p9LordPos.rashi.index) === p9LordPos.name)) {
+    yogas.push({
+      name: "Lakshmi Yoga",
+      description: "Extremely handsome appearance, noble qualities, immense wealth, high reputation and honoured by aristocracy.",
+      isFavorable: true
+    });
+  } else if (p9LordPos && p1LordPos && p9LordPos.house === p1LordPos.house) {
+    yogas.push({
+      name: "Lakshmi Yoga",
+      description: "Extremely handsome appearance, noble qualities, immense wealth, high reputation and honoured by aristocracy.",
+      isFavorable: true
+    });
+  }
+
+  // Kusuma Yoga
+  if (venus && p10LordPos && moon && sun) {
+    const isFixed = (rashiIndex: number) => rashiIndex % 3 === 1;
+    if (isFixed(venus.rashi.index) && isKendra(venus.house) && isTrikona(moon.house) && sun.house === 10) {
+      yogas.push({
+        name: "Kusuma Yoga",
+        description: "Extremely liberal, war-like and possessed of unsullied reputation and good enjoyment.",
+        isFavorable: true
+      });
+    }
+  }
+
+  // Rajju Yoga
+  const isMoveableRashi = (rashiIndex: number) => rashiIndex % 3 === 0;
+  const allInMoveable = kundli.planets.filter((p: PlanetPosition) => p.name !== PlanetName.Rahu && p.name !== PlanetName.Ketu).every((p: PlanetPosition) => isMoveableRashi(p.rashi.index));
+  if (allInMoveable) {
+    doshas.push({
+      name: "Rajju Yoga",
+      description: "All planets in moveable signs. Frequent travels, resident in foreign country, unstable.",
+      isFavorable: false
+    });
+  }
+
+  // Brihadbija Yoga
+  if (rahu && mars && saturn && p1LordPos) {
+    if (rahu.house === 1 && mars.house === 1 && saturn.house === 1) {
+      doshas.push({
+        name: "Brihadbija Yoga",
+        description: "Rahu with Mars and Saturn in Ascendant. Prone to severe reproductive/venereal complaints.",
+        isFavorable: false
+      });
+    } else if (p1LordPos.house === 8 && rahu.house === 8) {
+      const otherMaleficsIn8 = kundli.planets.some((p: PlanetPosition) => p.house === 8 && p.name !== p1LordPos.name && p.name !== PlanetName.Rahu && malefics.includes(p.name));
+      if (otherMaleficsIn8) {
+        doshas.push({
+          name: "Brihadbija Yoga",
+          description: "Ascendant lord in 8th with Rahu and malefics. Prone to severe reproductive/venereal complaints.",
+          isFavorable: false
+        });
+      }
+    }
+  }
+
+  // Daridra Yoga
+  if (p1LordPos && p12LordPos && p1LordPos.house === 12 && p12LordPos.house === 1) {
+    doshas.push({
+      name: "Daridra Yoga",
+      description: "Exchange between 1st and 12th lords. Loss of wealth, financial struggles, and general poverty.",
+      isFavorable: false
+    });
+  }
+
+  // Asatyavadi Yoga
+  if (p2LordPos) {
+    const lordOf2ndHouseSign = signLord(p2LordPos.rashi.index);
+    if (lordOf2ndHouseSign === PlanetName.Saturn) {
+      doshas.push({
+        name: "Asatyavadi Yoga",
+        description: "Lord of the house occupied by the 2nd lord is Saturn. Likes falsehood and indulges in fraudulent schemes.",
+        isFavorable: false
+      });
+    }
+  }
+
+  // Gnana Yogas
+  // Lecturer/Orator
+  if (jupiter && hasAspect(kundli, PlanetName.Venus, jupiter.house)) { 
+     if (isKendra(jupiter.house) || isTrikona(jupiter.house)) {
+        yogas.push({
+          name: "Gnana Yoga (Lecturer/Orator)",
+          description: "Powerful Jupiter. The person becomes a great lecturer and orator.",
+          isFavorable: true
+        });
+     }
+  }
+  // Astrologer
+  if (mercury && venus && (moon || jupiter)) {
+    if (isKendra(mercury.house) && venus.house === 2 && ((moon && moon.house === 3) || (jupiter && jupiter.house === 3))) {
+      yogas.push({
+        name: "Gnana Yoga (Astrologer)",
+        description: "Mercury in Kendra, Venus in 2nd, Moon/Jupiter in 3rd. It makes the native a great astrologer.",
+        isFavorable: true
+      });
+    }
+  }
+  // Mathematician
+  if (mars && mercury && moon) {
+    if (mars.house === 2 && mercury.house === 2 && moon.house === 2) {
+      yogas.push({
+        name: "Gnana Yoga (Mathematician)",
+        description: "Makes a person a great mathematician.",
+        isFavorable: true
+      });
+    } else if (isKendra(mars.house) && isKendra(mercury.house) && isKendra(moon.house)) {
+      yogas.push({
+        name: "Gnana Yoga (Mathematician)",
+        description: "Makes a person a great mathematician.",
+        isFavorable: true
+      });
+    }
+  }
+
+  // --- Common Pancha Mahapurusha Yogas ---
+  const checkMahapurusha = (planet: PlanetName, yogaName: string) => {
+    const p = getPos(planet);
+    if (p && isKendra(p.house) && (EXALTATION_RASHIS[planet] === p.rashi.index || signLord(p.rashi.index) === planet)) {
+      yogas.push({
+        name: yogaName,
+        description: `${planet} is in Kendra in own/exaltation sign. Bestows exceptional leadership, fortune, and high character traits.`,
+        isFavorable: true
+      });
+    }
+  };
+  checkMahapurusha(PlanetName.Mars, "Ruchaka Yoga");
+  checkMahapurusha(PlanetName.Mercury, "Bhadra Yoga");
+  checkMahapurusha(PlanetName.Jupiter, "Hamsa Yoga");
+  checkMahapurusha(PlanetName.Venus, "Malavya Yoga");
+  checkMahapurusha(PlanetName.Saturn, "Sasa Yoga");
+
+  // --- Kuja Dosha (Manglik) ---
+  if (mars && [1, 2, 4, 7, 8, 12].includes(mars.house)) {
+    doshas.push({
+      name: "Kuja Dosha",
+      description: `Mars is placed in the ${mars.house} house. This forms Kuja (Manglik) Dosha, which can cause challenges or delays in marriage and partnerships.`,
+      isFavorable: false
+    });
+  }
+
+  // --- Guru Chandala Dosha ---
+  if (jupiter && rahu && jupiter.house === rahu.house) {
+    doshas.push({
+      name: "Guru Chandala Dosha",
+      description: "Jupiter and Rahu are conjunct. This dosha can cause confusion in morals, unconventional beliefs, and challenges with preceptors.",
+      isFavorable: false
+    });
+  }
+
+  // --- Kala Sarpa Dosha ---
+  if (rahu && kundli.planets.length > 2) { // just to be safe
+    let leftCount = 0;
+    let rightCount = 0;
+    for (const p of kundli.planets) {
+      if (p.name === PlanetName.Rahu || p.name === PlanetName.Ketu) continue;
+      const dist = distance(rahu.house, p.house);
+      if (dist > 1 && dist < 7) leftCount++;
+      if (dist > 7 && dist <= 12) rightCount++;
+    }
+    // Simplistic check for hemmed planets
+    if ((leftCount >= 7 && rightCount === 0) || (rightCount >= 7 && leftCount === 0)) {
+      doshas.push({
+        name: "Kala Sarpa Dosha",
+        description: "All major planets are hemmed between Rahu and Ketu. Can cause delays, unseen obstacles, and intense karmic lessons.",
+        isFavorable: false
+      });
+    }
+  }
+
+  return { yogas, doshas };
 }
 
-/**
- * Analyzes Dasha based on Mahadasha and Antardasha lords' mutual placements.
- */
 function analyzeDasha(kundli: KundliOutput, mahaLord: PlanetName, bhuktiLord: PlanetName): string {
   if (mahaLord === bhuktiLord) {
     return `Currently running the Mahadasha and Bhukti of ${mahaLord}. The pure effects of ${mahaLord} will be felt according to its house placement and dignity in your chart.`;
   }
-
-  const mahaPos = kundli.planets.find(p => p.name === mahaLord);
-  const bhuktiPos = kundli.planets.find(p => p.name === bhuktiLord);
-
+  const mahaPos = kundli.planets.find((p: PlanetPosition) => p.name === mahaLord);
+  const bhuktiPos = kundli.planets.find((p: PlanetPosition) => p.name === bhuktiLord);
   if (!mahaPos || !bhuktiPos) return "Dasha lords are not found in the chart.";
-
-  const mutualDistance = (bhuktiPos.house - mahaPos.house + 12) % 12 + 1; // 1-based
-
+  const mutualDistance = distance(mahaPos.house, bhuktiPos.house);
   if (mutualDistance === 6 || mutualDistance === 8 || mutualDistance === 12) {
     return `According to Baggona Panchanga, the Bhukti lord ${bhuktiLord} is in the ${mutualDistance}th house from the Mahadasha lord ${mahaLord} (a Shadashtaka or Dwirdwadasa relationship). This period may bring struggles, opposition, or unexpected changes, requiring patience.`;
   } else if (mutualDistance === 5 || mutualDistance === 9) {
@@ -151,21 +571,19 @@ function analyzeDasha(kundli: KundliOutput, mahaLord: PlanetName, bhuktiLord: Pl
   } else if (mutualDistance === 4 || mutualDistance === 7 || mutualDistance === 10) {
     return `The Bhukti lord ${bhuktiLord} is in a Kendra (angular - ${mutualDistance}th) position from the Mahadasha lord ${mahaLord}. This period will be dynamic and action-oriented, yielding solid achievements.`;
   }
-
   return `The Mahadasha of ${mahaLord} and Bhukti of ${bhuktiLord} will give mixed results based on their mutual relationship (${mutualDistance}th position) in the chart.`;
 }
 
 export function generateBVRamanPrediction(kundli: KundliOutput, mahaLord: PlanetName, bhuktiLord: PlanetName): BVRamanPrediction {
   const dignities = evaluateDignities(kundli);
-  const yogas = evaluateYogas(kundli);
+  const { yogas, doshas } = evaluateYogasAndDoshas(kundli);
   const dashaAnalysis = analyzeDasha(kundli, mahaLord, bhuktiLord);
-  
-  // Basic Gochara placeholder based on Saturn/Jupiter (Sade Sati, etc. could be expanded here)
   const gocharaAnalysis = `Baggona Panchanga emphasizes the transit (Gochara) of major slow-moving planets (Saturn and Jupiter) evaluated from your natal Moon sign (${kundli.moonSign.english}).`;
 
   return {
     dignities,
     yogas,
+    doshas,
     dashaAnalysis,
     gocharaAnalysis
   };

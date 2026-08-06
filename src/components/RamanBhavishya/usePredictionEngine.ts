@@ -124,7 +124,7 @@ Tone & Style Rules:
 - Maintain an empathetic yet realistic tone.
 - Ensure a seamless contrast between the external narrative (Paragraph 1) and the internal/emotional reality (Paragraph 2).
 - If writing in Kannada, use traditional Brahmin Kannada dialect (Havyaka/Madhwa/Smartha) and strictly use Kannada script (ಕನ್ನಡ ಲಿಪಿ). Highlight both blessings and challenging aspects gently.
-- CRITICAL LANGUAGE RULE: NEVER mix English letters, Latin characters, acronyms, or Latin numbers into the output. The response values MUST be 100% in the native script of the ${targetLanguage} language. Ensure grammar is flawless and sentences are fully complete without fragmented words or hanging characters.
+- CRITICAL LANGUAGE RULE: NEVER mix English letters, Latin characters, acronyms, or Latin numbers into the output. The response values MUST be 100% in the native script of the ${targetLanguage} language. DO NOT use transliteration (e.g., writing English words in native script). DO NOT mix words or scripts from other languages (e.g. if Kannada, do NOT use Telugu/Hindi characters). Ensure grammar is flawless and sentences are fully complete without fragmented words or hanging characters.
 - For "current_phase", emphasize what is happening right now based on the user's current Age (${ageInt}), their running Dasha (${dashaStr}), Bhukti (${bhuktiStr}), and the current life chapters provided in the personalReadings.
 - For "next_six_months", forecast the major events over the next 6 months based on the monthly summaries provided in the engine data.
 - For other categories (lifespan, marriage, children, job, family), extract the relevant information from the provided traditionalPredictions and personalReadings.
@@ -160,7 +160,7 @@ Write exactly 4 paragraphs:
 Rules:
 - MUST be based strictly on the provided engine data (Dasha, Bhukti, age, scores). Do not invent things from the internet. Use your intelligence to combine the rules and scores to find the accurate prediction.
 - It needs to come with beautiful, impressive details. The user should be shocked by the accuracy.
-- CRITICAL LANGUAGE RULE: NEVER mix English letters, Latin characters, acronyms, or Latin numbers into the output. The response values MUST be 100% in the native script of the ${targetLanguage} language. Ensure grammar is flawless and sentences are fully complete without fragmented words or hanging characters.
+- CRITICAL LANGUAGE RULE: NEVER mix English letters, Latin characters, acronyms, or Latin numbers into the output. The response values MUST be 100% in the native script of the ${targetLanguage} language. DO NOT use transliteration (e.g., writing English words in native script). DO NOT mix words or scripts from other languages (e.g. if Kannada, do NOT use Telugu/Hindi characters). Ensure grammar is flawless and sentences are fully complete without fragmented words or hanging characters.
 
 Respond EXCLUSIVELY in the ${targetLanguage} language.
 Return ONLY a valid JSON string (no markdown, no codeblocks, no json wrapper) with a single key "mindset" mapping to the 4-paragraph text:
