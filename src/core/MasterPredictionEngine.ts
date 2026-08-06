@@ -1,4 +1,4 @@
-import type { KundliOutput, PlanetName } from "./AstroTypes";
+import type { KundliOutput, PlanetName, AyanamsaModel } from "./AstroTypes";
 import { generateJayashreePrediction, type JayashreePrediction } from "./JayashreePredictionEngine";
 import { generateBVRamanPrediction, type BVRamanPrediction } from "./BVRamanPredictionEngine";
 import { generateBaggonaPredictions, type BaggonaPredictions } from "./BaggonaPredictionEngine";
@@ -76,7 +76,7 @@ export interface MasterEngineContext {
   isMarried?: boolean;
   hasChildren?: boolean;
   hasJob?: boolean;
-  ayanamsaModel?: "lahiri" | "drik_ganita";
+  ayanamsaModel?: AyanamsaModel;
   lang?: string; // e.g., 'en', 'kn', 'te', 'ta', 'hi'
 }
 

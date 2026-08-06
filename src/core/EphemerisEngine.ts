@@ -1,8 +1,7 @@
 import * as Astronomy from "astronomy-engine";
 import { dateToJulianUt, normalizeDegree } from "./AstroMath";
-import type { AyanamsaModel, NodeType } from "./AstroTypes";
-import { lahiriAyanamsaDegrees } from "./LahiriAyanamsa";
-import { trueChitrapakshaAyanamsaDegrees } from "./DrikGanitaAyanamsa";
+import { AyanamsaModel, NodeType, PlanetName } from "./AstroTypes";
+import { ayanamsaForModel } from "./Ayanamsa";
 
 const toRad = (deg: number): number => (deg * Math.PI) / 180;
 
@@ -102,8 +101,7 @@ export const siderealLongitudes = (
   nodeType: NodeType = "mean"
 ): SiderealLongitudes => {
   const jdUt = dateToJulianUt(utc);
-  const ayanamsa =
-    model === "lahiri" ? lahiriAyanamsaDegrees(jdUt) : trueChitrapakshaAyanamsaDegrees(utc);
+  const ayanamsa = ayanamsaForModel(utc, model);
 
   let trueSun = tropicalGeoLongitude(Astronomy.Body.Sun, utc);
   let trueMoon = tropicalGeoLongitude(Astronomy.Body.Moon, utc);

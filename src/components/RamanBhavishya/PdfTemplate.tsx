@@ -28,6 +28,8 @@ export type PdfTranslations = {
   doshasTitle: string;
   remedyTitle: string;
   timelineTitle: string;
+  gocharaTitle: string;
+  summaryTitle: string;
   footer: string;
 };
 
@@ -37,6 +39,8 @@ export type PremiumData = {
   yogas: { name: string; impact: string }[];
   doshas: { name: string; impact: string; remedy?: string }[];
   timeline?: { dateRange: string; impact: string }[];
+  gochara?: { name: string; impact: string; remedy?: string }[];
+  summary?: { impact: string }[];
 };
 
 interface Props {
@@ -133,7 +137,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                 {premiumData.characteristics.map((char, idx) => (
                   <div key={idx} className="space-y-6">
                     {(char.impact || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
-                      <p key={pIdx} className="text-xl leading-loose text-amber-950 text-justify font-medium">
+                      <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
                         {paragraph}
                       </p>
                     ))}
@@ -155,7 +159,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                 {premiumData.darkSecret.map((ds, idx) => (
                   <div key={idx} className="space-y-6">
                     {(ds.impact || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
-                      <p key={pIdx} className="text-xl leading-loose text-amber-950 text-justify font-medium">
+                      <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
                         {paragraph}
                       </p>
                     ))}
@@ -181,7 +185,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
               {preds.map((pred, idx) => (
                 <div key={idx} className="space-y-6">
                   {(pred.translatedText || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
-                    <p key={pIdx} className="text-xl leading-loose text-amber-950 text-justify font-medium">
+                    <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
                       {paragraph}
                     </p>
                   ))}
@@ -208,7 +212,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                   <div key={idx} className="space-y-6">
                     <h3 className="text-2xl font-bold text-amber-900 mb-2 bg-amber-200/60 inline-block px-3 py-1 rounded shadow-sm">{yoga.name}</h3>
                     {(yoga.impact || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
-                      <p key={pIdx} className="text-xl leading-loose text-amber-950 text-justify font-medium">
+                      <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
                         {paragraph}
                       </p>
                     ))}
@@ -230,14 +234,14 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                   <div key={idx} className="space-y-6">
                     <h3 className="text-2xl font-bold text-rose-900 mb-2">{dosha.name}</h3>
                     {(dosha.impact || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
-                      <p key={pIdx} className="text-xl leading-loose text-amber-950 text-justify font-medium">
+                      <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
                         {paragraph}
                       </p>
                     ))}
                     {dosha.remedy && (
                       <div className="mt-4 pt-4 border-t border-rose-200/40">
                         <h4 className="text-xl font-bold text-rose-800 mb-2">{translations.remedyTitle}</h4>
-                        <p className="text-xl leading-loose text-amber-950 text-justify font-medium">
+                        <p className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
                           {dosha.remedy}
                         </p>
                       </div>
@@ -247,6 +251,37 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Gochara Section */}
+      {premiumData?.gochara && premiumData.gochara.length > 0 && (
+        <div className="space-y-12 mb-20 px-6 relative mt-16">
+          <div className="flex items-center gap-6 mb-10">
+            <h2 className={`text-3xl font-bold text-rose-900 leading-normal border-b-2 border-rose-700/30 pb-2`}>
+              {translations.gocharaTitle}
+            </h2>
+          </div>
+          <div className="space-y-10">
+            {premiumData.gochara.map((gochara, idx) => (
+              <div key={idx} className="space-y-6">
+                <h3 className="text-2xl font-bold text-rose-900 mb-2 bg-rose-100/60 inline-block px-3 py-1 rounded shadow-sm">{gochara.name}</h3>
+                {(gochara.impact || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
+                  <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
+                    {paragraph}
+                  </p>
+                ))}
+                {gochara.remedy && (
+                  <div className="mt-4 pt-4 border-t border-rose-200/40">
+                    <h4 className="text-xl font-bold text-rose-800 mb-2">{translations.remedyTitle}</h4>
+                    <p className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
+                      {gochara.remedy}
+                    </p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
@@ -271,11 +306,33 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                     </span>
                   </div>
                   {(item.impact || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
-                    <p key={pIdx} className="text-xl leading-relaxed text-amber-950 font-medium text-justify">
+                    <p key={pIdx} className="text-xl leading-relaxed text-amber-950 font-medium text-left break-words whitespace-pre-wrap">
                       {paragraph}
                     </p>
                   ))}
                 </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Astrologer's Summary Section */}
+      {premiumData?.summary && premiumData.summary.length > 0 && (
+        <div className="space-y-12 mb-20 px-6 relative mt-16">
+          <div className="flex items-center gap-6 mb-10">
+            <h2 className={`text-3xl font-bold ${primaryColorClass} leading-normal border-b-2 border-amber-700/30 pb-2`}>
+              {translations.summaryTitle}
+            </h2>
+          </div>
+          <div className="space-y-6">
+            {premiumData.summary.map((sum, idx) => (
+              <div key={idx} className="space-y-6">
+                {(sum.impact || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
+                  <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
+                    {paragraph}
+                  </p>
+                ))}
               </div>
             ))}
           </div>

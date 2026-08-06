@@ -252,8 +252,15 @@ export const getVishaAndAmrithaGhati = (
     const endDeg = siderealLongitudes(end, model, "mean").moon;
     const nakIdx = Math.floor((endDeg - 0.0001) / (360 / 27)) % 27;
     
-    const vOffset = VISHA_GHATI_START[nakIdx] ?? 20;
-    const aOffset = AMRITHA_GHATI_START[nakIdx] ?? 38;
+    let vOffset = VISHA_GHATI_START[nakIdx] ?? 20;
+    let aOffset = AMRITHA_GHATI_START[nakIdx] ?? 44;
+    
+    if (model === "vakya") {
+      // Traditional Vakya Panchangas use proportional math to scale the base offset by the Nakshatra's actual duration.
+      const durGhatis = dur / 1440000;
+      vOffset = vOffset * (durGhatis / 60);
+      aOffset = aOffset * (durGhatis / 60);
+    }
     
     // Visha/Amritha ghatis are absolute ghatis (1 ghati = 24 minutes = 1440000 ms) from the start of the Nakshatra.
     const vTime = new Date(start.getTime() + vOffset * 1440000);

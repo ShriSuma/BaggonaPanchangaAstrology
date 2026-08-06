@@ -1,5 +1,5 @@
 /** Sidereal zero-point model: Lahiri linear Chitrapaksha vs. Drik (True Spica at 180°). */
-export type AyanamsaModel = "lahiri" | "drik_ganita";
+export type AyanamsaModel = "lahiri" | "drik_ganita" | "vakya";
 
 /** Rāhu/Ketu: mean node (most handwritten patrikās) vs. true (oscillating) node. */
 export type NodeType = "mean" | "true";

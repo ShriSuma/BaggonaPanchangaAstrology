@@ -16,15 +16,27 @@ export type TranslatedPrediction = {
   translatedCategory: string; 
 };
 
-const DEEP_INSIGHT_CATEGORIES = [
-  { id: "current_phase", label: "Current Phase (Age, Dasha & Gochara)" },
-  { id: "next_six_months", label: "Next 6 Months Predictions (Dasha, Bhukti & Gochara)" },
-  { id: "lifespan", label: "Lifespan & Health" },
-  { id: "marriage", label: "Marriage & Relationships" },
-  { id: "children", label: "Children & Progeny" },
-  { id: "job", label: "Career & Profession" },
-  { id: "family", label: "Family & Wealth" },
-];
+const getDeepInsightCategories = (age: number) => {
+  const base = [
+    { id: "current_phase", label: "Current Phase (Age, Dasha & Gochara)" },
+    { id: "next_six_months", label: "Next 6 Months Predictions (Dasha, Bhukti & Gochara)" },
+    { id: "lifespan", label: "Lifespan & Health" },
+    { id: "marriage", label: "Marriage & Relationships" }
+  ];
+  
+  if (age < 23) {
+    base.push({ id: "education_travel", label: "Education & Overseas Prospects" });
+  } else {
+    base.push({ id: "children", label: "Children & Progeny" });
+  }
+
+  base.push(
+    { id: "job", label: "Career & Profession" },
+    { id: "family", label: "Family & Wealth" }
+  );
+  
+  return base;
+};
 
 export function usePredictionEngine() {
   const session = useKundliViewerStore((state) => state.session);
@@ -127,7 +139,8 @@ Tone & Style Rules:
 - CRITICAL LANGUAGE RULE: NEVER mix English letters, Latin characters, acronyms, or Latin numbers into the output. The response values MUST be 100% in the native script of the ${targetLanguage} language. DO NOT use transliteration (e.g., writing English words in native script). DO NOT mix words or scripts from other languages (e.g. if Kannada, do NOT use Telugu/Hindi characters). Ensure grammar is flawless and sentences are fully complete without fragmented words or hanging characters.
 - For "current_phase", emphasize what is happening right now based on the user's current Age (${ageInt}), their running Dasha (${dashaStr}), Bhukti (${bhuktiStr}), and the current life chapters provided in the personalReadings.
 - For "next_six_months", forecast the major events over the next 6 months based on the monthly summaries provided in the engine data.
-- For other categories (lifespan, marriage, children, job, family), extract the relevant information from the provided traditionalPredictions and personalReadings.
+- For other categories (lifespan, marriage, ${ageInt < 23 ? 'education_travel' : 'children'}, job, family), extract the relevant information from the provided traditionalPredictions and personalReadings.
+${ageInt < 23 ? '- For "education_travel", write exactly 2 paragraphs about their education prospects and 1 paragraph about traveling, studying outside India, or getting a job overseas based on the engine data.' : ''}
 - For "ashirvada", generate a unique, emotionally resonant Ashirvada (blessing) in the selected language. Write it from the persona of a highly experienced astrologer with 30+ years of experience, offering deep blessings based on their Kundali and current Dasha/Dosha.
 
 Respond EXCLUSIVELY in the ${targetLanguage} language for the values (the keys must remain exactly as specified in English).
@@ -138,11 +151,11 @@ Return ONLY a valid JSON string (no markdown, no codeblocks, no json wrapper) wi
   "next_six_months": "...",
   "lifespan": "...",
   "marriage": "...",
-  "children": "...",
+  "${ageInt < 23 ? 'education_travel' : 'children'}": "...",
   "job": "...",
   "family": "...",
   "ashirvada": "..."
-}`;
+}\`;`;
 
         const mindsetPrompt = `Role & Expertise:
 You are an expert astrologer and intuitive psychologist. 
@@ -168,7 +181,8 @@ Return ONLY a valid JSON string (no markdown, no codeblocks, no json wrapper) wi
   "mindset": "..."
 }`;
         
-        const mockKeys = [...DEEP_INSIGHT_CATEGORIES.map(c => c.id), "ashirvada"];
+        const dynamicCategories = getDeepInsightCategories(ageInt);
+        const mockKeys = [...dynamicCategories.map(c => c.id), "ashirvada"];
 
         const [jsonResponse, mindsetResponse] = await Promise.all([
           askGeminiBatch(prompt, geminiApiKey, mockKeys),
@@ -185,7 +199,7 @@ Return ONLY a valid JSON string (no markdown, no codeblocks, no json wrapper) wi
           translatedText: mindsetResponse["mindset"] || "No prediction available."
         });
 
-        for (const cat of DEEP_INSIGHT_CATEGORIES) {
+        for (const cat of dynamicCategories) {
           const translatedCategory = await translateText(cat.label, language, "en");
           let rawText = jsonResponse[cat.id] || "No prediction available for this category.";
           

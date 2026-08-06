@@ -1,4 +1,4 @@
-import { PlanetName, type KundliOutput, type PlanetPosition } from "./AstroTypes";
+import { PlanetName, type KundliOutput, type PlanetPosition, type AyanamsaModel } from "./AstroTypes";
 import {
   vimshottariBalanceAtBirth,
   vimshottariBalanceYmdPatrika,
@@ -113,7 +113,7 @@ export function generateJayashreePredictionBase(
     birthTime: string;
     latitude: number;
     longitude: number;
-    ayanamsaModel?: "lahiri" | "drik_ganita";
+    ayanamsaModel?: AyanamsaModel;
   },
   lang: string = "kn"
 ): JayashreePrediction {
@@ -230,21 +230,21 @@ export function generateJayashreePredictionBase(
     const nakshatraKn = NAKSHATRAS_KN[moonNakshatraIdx] ?? "";
     const rashiKn = RASHIS_KN[natalMoonRashiIdx] ?? "";
     const lagnaKn = RASHIS_KN[lagnaRashiIdx] ?? "";
-    const birthLordKn = PLANETS_KN[birthLord];
-    const mahaLordKn = PLANETS_KN[mahaLord];
-    const bhuktiLordKn = PLANETS_KN[bhuktiLord];
+    const birthLordKn = PLANETS_KN[birthLord as PlanetName];
+    const mahaLordKn = PLANETS_KN[mahaLord as PlanetName];
+    const bhuktiLordKn = PLANETS_KN[bhuktiLord as PlanetName];
 
-    const p2LordKn = PLANETS_KN[p2Lord];
-    const p4LordKn = PLANETS_KN[p4Lord];
-    const p5LordKn = PLANETS_KN[p5Lord];
-    const p6LordKn = PLANETS_KN[p6Lord];
-    const p7LordKn = PLANETS_KN[p7Lord];
-    const p8LordKn = PLANETS_KN[p8Lord];
-    const p9LordKn = PLANETS_KN[p9Lord];
-    const p10LordKn = PLANETS_KN[p10Lord];
-    const p11LordKn = PLANETS_KN[p11Lord];
+    const p2LordKn = PLANETS_KN[p2Lord as PlanetName];
+    const p4LordKn = PLANETS_KN[p4Lord as PlanetName];
+    const p5LordKn = PLANETS_KN[p5Lord as PlanetName];
+    const p6LordKn = PLANETS_KN[p6Lord as PlanetName];
+    const p7LordKn = PLANETS_KN[p7Lord as PlanetName];
+    const p8LordKn = PLANETS_KN[p8Lord as PlanetName];
+    const p9LordKn = PLANETS_KN[p9Lord as PlanetName];
+    const p10LordKn = PLANETS_KN[p10Lord as PlanetName];
+    const p11LordKn = PLANETS_KN[p11Lord as PlanetName];
 
-    const intro = `ನಮಸ್ಕಾರ, ನಾನು ಜಯಶ್ರೀ ಪಂಡಿತ್. ಕಳೆದ ೬೦ ವರ್ಷಗಳಿಂದ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಮತ್ತು ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದಲ್ಲಿ ನನ್ನ ಅನುಭವವನ್ನು ಧಾರೆ ಎರೆದಿದ್ದೇನೆ. ಈಗ ನಾನು ನಿಮ್ಮ ಜಾತಕವನ್ನು ಪರಿಶೀಲಿಸುತ್ತಿದ್ದೇನೆ. ನೀವು ${nakshatraKn} ನಕ್ಷತ್ರ ${rashiKn} ರಾಶಿಯಲ್ಲಿ ಜನಿಸಿದ್ದೀರಿ. ನಿಮ್ಮ ಲಗ್ನವು ${lagnaKn} ಆಗಿದೆ. ನಿಮ್ಮ ಜಾತಕದ ಆಳವಾದ ವಿಶ್ಲೇಷಣೆಯನ್ನು ಈಗ ಪ್ರಾರಂಭಿಸೋಣ.`;
+    const intro = `ನಮಸ್ಕಾರ ${name}, ನಾನು ಜಯಶ್ರೀ ಪಂಡಿತ್. ಕಳೆದ ೬೦ ವರ್ಷಗಳಿಂದ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಮತ್ತು ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದಲ್ಲಿ ನನ್ನ ಅನುಭವವನ್ನು ಧಾರೆ ಎರೆದಿದ್ದೇನೆ. ಈಗ ನಾನು ನಿಮ್ಮ ಜಾತಕವನ್ನು ಪರಿಶೀಲಿಸುತ್ತಿದ್ದೇನೆ. ನೀವು ${nakshatraKn} ನಕ್ಷತ್ರ ${rashiKn} ರಾಶಿಯಲ್ಲಿ ಜನಿಸಿದ್ದೀರಿ. ನಿಮ್ಮ ಲಗ್ನವು ${lagnaKn} ಆಗಿದೆ. ನಿಮ್ಮ ಜಾತಕದ ಆಳವಾದ ವಿಶ್ಲೇಷಣೆಯನ್ನು ಈಗ ಪ್ರಾರಂಭಿಸೋಣ.`;
 
     const dashaContext = `ನಿಮ್ಮ ಜನ್ಮ ಸಮಯದ ಆಧಾರದ ಮೇಲೆ, ನೀವು ಜನಿಸಿದಾಗ ${birthLordKn} ದಶೆ ನಡೆಯುತ್ತಿತ್ತು. ಈಗ ನಿಮ್ಮ ಪ್ರಸ್ತುತ ವಯಸ್ಸಿಗೆ ಅನುಗುಣವಾಗಿ, ನಿಮಗೆ ${mahaLordKn} ಮಹಾದಶೆಯಲ್ಲಿ ${bhuktiLordKn} ಭುಕ್ತಿ ನಡೆಯುತ್ತಿದೆ. ಗ್ರಹಗಳ ಈ ಸಂಚಾರ ಮತ್ತು ದಶಾ-ಭುಕ್ತಿಯ ಪ್ರಭಾವವು ನಿಮ್ಮ ಜೀವನದ ಮುಂದಿನ ಹೆಜ್ಜೆಗಳನ್ನು ಹೇಗೆ ರೂಪಿಸುತ್ತದೆ ಎಂಬುದನ್ನು ನಾನು ವಿವರಿಸುತ್ತೇನೆ.`;
 
@@ -288,21 +288,21 @@ export function generateJayashreePredictionBase(
     const nakshatraEn = NAKSHATRAS_EN[moonNakshatraIdx] ?? "";
     const rashiEn = RASHIS_EN[natalMoonRashiIdx] ?? "";
     const lagnaEn = RASHIS_EN[lagnaRashiIdx] ?? "";
-    const birthLordEn = PLANETS_EN[birthLord];
-    const mahaLordEn = PLANETS_EN[mahaLord];
-    const bhuktiLordEn = PLANETS_EN[bhuktiLord];
+    const birthLordEn = PLANETS_EN[birthLord as PlanetName];
+    const mahaLordEn = PLANETS_EN[mahaLord as PlanetName];
+    const bhuktiLordEn = PLANETS_EN[bhuktiLord as PlanetName];
 
-    const p2LordEn = PLANETS_EN[p2Lord];
-    const p4LordEn = PLANETS_EN[p4Lord];
-    const p5LordEn = PLANETS_EN[p5Lord];
-    const p6LordEn = PLANETS_EN[p6Lord];
-    const p7LordEn = PLANETS_EN[p7Lord];
-    const p8LordEn = PLANETS_EN[p8Lord];
-    const p9LordEn = PLANETS_EN[p9Lord];
-    const p10LordEn = PLANETS_EN[p10Lord];
-    const p11LordEn = PLANETS_EN[p11Lord];
+    const p2LordEn = PLANETS_EN[p2Lord as PlanetName];
+    const p4LordEn = PLANETS_EN[p4Lord as PlanetName];
+    const p5LordEn = PLANETS_EN[p5Lord as PlanetName];
+    const p6LordEn = PLANETS_EN[p6Lord as PlanetName];
+    const p7LordEn = PLANETS_EN[p7Lord as PlanetName];
+    const p8LordEn = PLANETS_EN[p8Lord as PlanetName];
+    const p9LordEn = PLANETS_EN[p9Lord as PlanetName];
+    const p10LordEn = PLANETS_EN[p10Lord as PlanetName];
+    const p11LordEn = PLANETS_EN[p11Lord as PlanetName];
 
-    const intro = `Namaskara, I am Jayashree Pandit. With over 60 years of profound experience in Jyotishya and Baggona Panchanga, I am now looking at your horoscope. You were born in ${nakshatraEn} Nakshatra and ${rashiEn} Rashi. Your Ascendant (Lagna) is ${lagnaEn}. Let us dive deep into the detailed analysis of your birth chart.`;
+    const intro = `Namaskara ${name}, I am Jayashree Pandit. With over 60 years of profound experience in Jyotishya and Baggona Panchanga, I am now looking at your horoscope. You were born in ${nakshatraEn} Nakshatra and ${rashiEn} Rashi. Your Ascendant (Lagna) is ${lagnaEn}. Let us dive deep into the detailed analysis of your birth chart.`;
 
     const dashaContext = `Based on your exact birth time, you were born during the period of ${birthLordEn} Dasha. At your current age, you are going through the Mahadasha of ${mahaLordEn} and the Antardasha (Bhukti) of ${bhuktiLordEn}. Let me explain how this current planetary period, combined with ongoing transits, will shape your life path.`;
 
@@ -357,7 +357,7 @@ export async function generateJayashreePrediction(
     birthTime: string;
     latitude: number;
     longitude: number;
-    ayanamsaModel?: "lahiri" | "drik_ganita";
+    ayanamsaModel?: AyanamsaModel;
   },
   lang: string = "kn"
 ): Promise<JayashreePrediction> {

@@ -11,7 +11,8 @@ import { DashaPdfTemplate } from "../components/kundli/DashaPdfTemplate";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { calculateTraditionalBaggona } from "../core/TraditionalBaggonaEngine";
-
+import { translateText } from "../utils/translator";
+import { patrikaMetaForNakshatraIndex as import_patrikaMetaForNakshatraIndex } from "../core/nakshatraPatrikaMeta";
 import { analytics } from "../core/analytics";
 import { saveKundli } from "../db/indexedDb";
 import { useAppStore } from "../stores/appStore";
@@ -64,6 +65,10 @@ export default function KundliPage(): JSX.Element {
   const dashaExportRef = useRef<HTMLDivElement>(null);
   const [activeView, setActiveView] = useState<"jataka" | "dasha">("jataka");
   const [dashaViewType, setDashaViewType] = useState<"grid" | "visualization">("grid");
+
+  const [pdfLanguage, setPdfLanguage] = useState<string>(i18n.language);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [dynamicValues, setDynamicValues] = useState<Record<string, string>>({});
   const [isGeneratingDashaPdf, setIsGeneratingDashaPdf] = useState(false);
   const [form, setForm] = useState<KundliInput>({
     name: "",
@@ -686,30 +691,87 @@ export default function KundliPage(): JSX.Element {
 
           {activeView === "jataka" && (
             <div className="space-y-6 animate-fade-in">
-              <div className="flex justify-center mb-6">
+              <div className="flex flex-col items-center justify-center mb-6">
+                
+                {/* PDF Language Selection */}
+                <div className="flex flex-col items-center mb-4">
+                  <label className="text-sm font-semibold text-indigo-900 mb-2">{t("selectPdfLanguage", "Select PDF Language")}:</label>
+                  <div className="flex flex-wrap justify-center gap-4">
+                    {[
+                      { code: "kn", label: "Kannada" },
+                      { code: "ta", label: "Tamil" },
+                      { code: "te", label: "Telugu" },
+                      { code: "hi", label: "Hindi" },
+                      { code: "en", label: "English" }
+                    ].map(lang => (
+                      <label key={lang.code} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="pdfLanguage"
+                          value={lang.code}
+                          checked={pdfLanguage === lang.code}
+                          onChange={(e) => setPdfLanguage(e.target.value)}
+                          className="w-4 h-4 text-indigo-600 border-indigo-300 focus:ring-indigo-500"
+                        />
+                        <span className="text-sm font-medium text-slate-700">{lang.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
                 <button
                   type="button"
-                  className="jk-btn rounded-xl bg-amber-500 px-8 py-4 text-base font-extrabold tracking-wide text-indigo-950 shadow-lg hover:bg-amber-400 hover:scale-[1.02] transition-all"
+                  disabled={isTranslating || isGeneratingDashaPdf}
+                  className={`jk-btn rounded-xl bg-amber-500 px-8 py-4 text-base font-extrabold tracking-wide text-indigo-950 shadow-lg hover:bg-amber-400 hover:scale-[1.02] transition-all flex items-center justify-center gap-2 ${(isTranslating || isGeneratingDashaPdf) ? 'opacity-70 cursor-not-allowed' : ''}`}
                   onClick={async () => {
                     const el = traditionalExportRef.current;
                     const dashaEl = dashaExportRef.current;
-                    if (el && dashaEl) {
-                      setIsGeneratingDashaPdf(true); // Re-using this state to show a spinner if desired, though we don't have a spinner on this button directly, we can use it to disable other things.
+                    
+                    if (el) {
                       try {
-                        // Small wait to ensure template is rendered
-                        await new Promise(r => setTimeout(r, 100));
-                        await exportPanchangaWithDashaPdf(el, dashaEl, `baggona-janana-kundali-${form.name || "chart"}`);
+                        setIsTranslating(true);
+                        
+                        const newVals: Record<string, string> = {};
+                        if (pdfLanguage !== "kn" && traditionalData) {
+                           const yoniMeta = import_patrikaMetaForNakshatraIndex(result.planets.find((p: any) => p.name === "Moon")?.nakshatra.index || 0);
+                           
+                           const keys = [
+                             "samvatsara", "masa", "paksha", "tithi", "weekday", "sunNakshatra", "moonNakshatra", "yoga", "karana", "sankrantiSign",
+                             "yoni", "gana", "nadi", "label_yoni", "label_gana", "label_nadi", "label_footer"
+                           ];
+                           const texts = [
+                             traditionalData.samvatsaraKn, traditionalData.masaKn, traditionalData.pakshaKn, traditionalData.tithiKn, traditionalData.weekdayKn, 
+                             traditionalData.sunNakshatraKn, traditionalData.moonNakshatraKn, traditionalData.yogaKn, traditionalData.karanaKn, traditionalData.sankrantiSignKn,
+                             yoniMeta.yoniKn, yoniMeta.ganaKn, yoniMeta.nadiKn, "ಯೋನಿ", "ಗಣ", "ನಾಡಿ", "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಕರ್ತರು"
+                           ];
+                           
+                           const translated = await Promise.all(texts.map(txt => translateText(txt, pdfLanguage === "en" ? "en-US" : pdfLanguage + "-IN")));
+                           
+                           keys.forEach((k, i) => newVals[k] = translated[i]);
+                        }
+                        setDynamicValues(newVals);
+                        
+                        // Small wait to ensure template is rendered with new state
+                        await new Promise(r => setTimeout(r, 500));
+                        
+                        if (dashaEl) {
+                          setIsGeneratingDashaPdf(true);
+                          await exportPanchangaWithDashaPdf(el, dashaEl, `baggona-janana-kundali-${form.name || "chart"}`);
+                          setIsGeneratingDashaPdf(false);
+                        } else {
+                          await exportElementAsPdf(el, `baggona-janana-kundali-${form.name || "chart"}`);
+                        }
                       } catch (e) {
-                        console.error("Combined PDF generation failed:", e);
-                      } finally {
+                        console.error("PDF generation failed:", e);
                         setIsGeneratingDashaPdf(false);
+                      } finally {
+                        setIsTranslating(false);
                       }
-                    } else if (el) {
-                      await exportElementAsPdf(el, `baggona-janana-kundali-${form.name || "chart"}`);
                     }
                   }}
                 >
-                  Baggoona Panchanga Janan Kundali Download
+                  {isTranslating ? <div className="w-5 h-5 border-2 border-indigo-950 border-t-transparent rounded-full animate-spin"></div> : null}
+                  {isTranslating ? "Translating..." : "Baggoona Panchanga Janan Kundali Download"}
                 </button>
               </div>
 
@@ -818,6 +880,8 @@ export default function KundliPage(): JSX.Element {
             isDayBirth={true}
             panchanga={traditionalData}
             gothra={gotraDisplay}
+            pdfLanguage={pdfLanguage}
+            dynamicValues={dynamicValues}
           /></div>
         </div>
       ) : null}

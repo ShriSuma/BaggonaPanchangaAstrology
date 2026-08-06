@@ -1,5 +1,5 @@
 import Dexie, { type Table } from "dexie";
-import type { KundliInput, KundliOutput, PanchangOutput, PredictionOutput } from "../core/AstroTypes";
+import type { AyanamsaModel, KundliInput, KundliOutput, PanchangOutput, PredictionOutput, NodeType } from "../core/AstroTypes";
 
 export type SettingsRecord = {
   id?: number;
@@ -22,9 +22,9 @@ export type SettingsRecord = {
   /** Allow POSTing chart summary to optional narrative API. */
   narrativeConsent?: boolean;
   /** Sidereal zero-point for charts, panchānga, and predictions. */
-  ayanamsaModel?: "lahiri" | "drik_ganita";
+  ayanamsaModel?: AyanamsaModel;
   /** Rāhu/Ketu node: mean (patrikā) vs true (modern software). */
-  nodeType?: "mean" | "true";
+  nodeType?: NodeType;
 };
 
 export type KundliRecord = {

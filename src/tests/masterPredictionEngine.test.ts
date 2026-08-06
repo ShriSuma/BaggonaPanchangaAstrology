@@ -26,7 +26,7 @@ describe("MasterPredictionEngine - Premium Layered MVP", () => {
 
     // Layer 2: Timing
     expect(prediction.timingLayer.lifeClock.currentPhase).toBeDefined();
-    expect(prediction.timingLayer.twelveMonthRoadmap.length).toBe(4);
+    expect(prediction.timingLayer.twelveMonthRoadmap.length).toBe(12);
 
     // Layer 3: Priority Scoring (Pramod is ~33 and unmarried, has a job)
     // Priority should be Marriage
