@@ -1,0 +1,22 @@
+--- src/core/MasterPredictionEngine.ts
++++ src/core/MasterPredictionEngine.ts
+@@ -194,6 +194,9 @@
+   baggonaTraditional: BaggonaPredictions;
+   masterSynthesis: {                  // Layer 3
+     priorityTopic: string;
+     priorityMessage: string;
+     mindfulRitual: string;
+     career: string;
+     finance: string;
+     health: string;
+     relationships: string;
+   };
+   pariharas: PariharaOutput;
+   aiGeneratedNarrative?: {
+     secretRevelation?: string;
++    personality?: string[];
++    currentPhase?: string[];
++    priority?: string[];
+     yogas?: { name: string; impact: string; example: string }[];
+     doshas?: { name: string; impact: string; example: string; remedy: string }[];
+     lifeMetrics?: {

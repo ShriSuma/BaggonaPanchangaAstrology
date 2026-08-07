@@ -1,0 +1,498 @@
+diff --git a/src/components/RamanBhavishya/usePredictionEngine.ts b/src/components/RamanBhavishya/usePredictionEngine.ts
+index 18eea25..7b9a950 100644
+--- a/src/components/RamanBhavishya/usePredictionEngine.ts
++++ b/src/components/RamanBhavishya/usePredictionEngine.ts
+@@ -2,7 +2,9 @@ import { useState, useEffect } from "react";
+ import { useKundliViewerStore } from "../../stores/kundliViewerStore";
+ import { useAppStore } from "../../stores/appStore";
+ import { translateText } from "../../utils/translator";
+-import { askGemini } from "../../core/GeminiEngine";
++import { askGeminiJson } from "../../core/GeminiEngine";
++import { ageDecimalYearsAt } from "../../core/birthTime";
++import { findBhuktiAtAge } from "../../core/DashaBhuktiEngine";
+ 
+ export type TranslatedPrediction = {
+   category: string;
+@@ -12,6 +14,8 @@ export type TranslatedPrediction = {
+ };
+ 
+ const DEEP_INSIGHT_CATEGORIES = [
++  { id: "current_phase", label: "Current Phase (Age, Dasha & Gochara)" },
++  { id: "next_six_months", label: "Next 6 Months Predictions (Dasha, Bhukti & Gochara)" },
+   { id: "lifespan", label: "Lifespan & Health" },
+   { id: "marriage", label: "Marriage & Relationships" },
+   { id: "children", label: "Children & Progeny" },
+@@ -33,22 +37,79 @@ export function usePredictionEngine() {
+       setIsLoading(true);
+ 
+       try {
++        const now = new Date();
++        const ageYears = ageDecimalYearsAt(
++          session.input.birthDate,
++          session.input.birthTime,
++          session.input.latitude,
++          session.input.longitude,
++          now
++        );
++        const currentBhuktiData = findBhuktiAtAge(session.result, ageYears);
++
++        const dashaStr = currentBhuktiData ? currentBhuktiData.maha.planet : "Unknown";
++        const bhuktiStr = currentBhuktiData ? currentBhuktiData.bhukti : "Unknown";
++        const ageInt = Math.floor(ageYears);
++        const genderStr = session.input.gender || "Unknown";
++
+         const contextStr = JSON.stringify({
+           lagna: session.result.lagnaRashi?.english || "Unknown",
+           moonSign: session.result.moonSign?.english || "Unknown",
+           nakshatra: session.result.planets?.find(p => p.name === "Moon")?.nakshatra?.english || "Unknown",
+-          planets: (session.result.planets || []).map(p => `${p.name} in ${p.rashi?.english} (${p.house} house)`)
++          planets: (session.result.planets || []).map(p => `${p.name} in ${p.rashi?.english} (${p.house} house)`),
++          currentAge: ageInt,
++          gender: genderStr,
++          runningDasha: dashaStr,
++          runningBhukti: bhuktiStr,
+         });
+ 
+         const translated: TranslatedPrediction[] = [];
+ 
++        setLoadingText("Consulting the stars and analyzing all life stages in one go...");
++
++        const languageNames: Record<string, string> = {
++          "en": "English",
++          "hi": "Hindi",
++          "kn": "Kannada",
++          "te": "Telugu",
++          "ta": "Tamil",
++          "ml": "Malayalam"
++        };
++        const targetLanguage = languageNames[language.split('-')[0]] || "English";
++        
++        const prompt = `You are a highly knowledgeable Vedic Astrologer providing an empathetic reading.
++Do not use markdown formatting like asterisks or hashtags since your response might be read aloud via text-to-speech.
++
++Here is the user's astrological data computed by our engine:
++${contextStr}
++
++Provide a highly detailed, deeply insightful, and comprehensive personalized Vedic astrology reading based on the given chart.
++Provide exact predictions, thorough analysis of the planetary combinations, and long, descriptive explanations. Write at least 3 to 4 substantial paragraphs per category.
++
++IMPORTANT INSTRUCTIONS:
++1. Ensure the wording and phrasing are unique for each section. DO NOT repeat the same sentences or similar words across different sections. Make it highly randomized and varied.
++2. Maintain a very simple, easy-to-understand, conversational style without using confusing astrological jargon. 
++3. If writing in Kannada, use traditional Brahmin Kannada dialect (Havyaka/Madhwa/Smartha) and strictly use Kannada script (ಕನ್ನಡ ಲಿಪಿ). Highlight both blessings and challenging aspects gently.
++4. For "current_phase", strongly emphasize what is happening right now based on the user's current Age (${ageInt}), typical milestones for their gender (${genderStr}) at this age, their running Dasha (${dashaStr}), Bhukti (${bhuktiStr}), and general Gochara (transit) effects for their Moon sign.
++5. For "next_six_months", explicitly forecast the major events, opportunities, and challenges the user can expect over the next 6 months. Analyze how the ongoing Dasha (${dashaStr}) and Bhukti (${bhuktiStr}), along with current planetary transits (Gochara) interacting with their Janma Kundali (birth chart), will shape their life in the near future.
++6. Respond EXCLUSIVELY in the ${targetLanguage} language for the values (the keys must remain exactly as specified in English).
++
++Return the result as a valid JSON object with the exact following English keys:
++{
++  "current_phase": "...",
++  "next_six_months": "...",
++  "lifespan": "...",
++  "marriage": "...",
++  "children": "...",
++  "job": "...",
++  "family": "..."
++}`;
++
++        const jsonResponse = await askGeminiJson(prompt, geminiApiKey);
++
+         for (const cat of DEEP_INSIGHT_CATEGORIES) {
+           const translatedCategory = await translateText(cat.label, language, "en");
+-          setLoadingText(`Consulting the stars for ${translatedCategory}...`);
+-
+-          const prompt = `Give a highly detailed, deeply insightful, and comprehensive personalized Vedic astrology reading specifically for the domain of ${cat.label} based on the given chart. Since this is a premium reading, provide exact predictions, thorough analysis of the planetary combinations, and long, descriptive explanations. Write at least 3 to 4 substantial paragraphs. Maintain a very simple, easy-to-understand, conversational style without using confusing astrological jargon or big technical words. If you are writing in Kannada, use a traditional Brahmin Kannada dialect (Havyaka/Madhwa/Smartha style) and strictly write in Kannada script (ಕನ್ನಡ ಲಿಪಿ) - do NOT use English letters or Kanglish. Highlight both the blessings and challenging aspects gently but accurately.`;
+-          
+-          const rawText = await askGemini(prompt, contextStr, geminiApiKey, language);
++          const rawText = jsonResponse[cat.id] || "No prediction available for this category.";
+           
+           translated.push({
+             category: cat.label,
+diff --git a/src/core/GeminiEngine.ts b/src/core/GeminiEngine.ts
+index 32619ec..ed3a24b 100644
+--- a/src/core/GeminiEngine.ts
++++ b/src/core/GeminiEngine.ts
+@@ -1,4 +1,40 @@
+ import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
++import { useAppStore } from "../stores/appStore";
++
++const MAX_DAILY_REQUESTS = 100;
++
++function checkApiLimit(): string | null {
++  const store = useAppStore.getState();
++  if (store.apiLimitResetTime && Date.now() < store.apiLimitResetTime) {
++    const resetDate = new Date(store.apiLimitResetTime);
++    return `Your daily limit of ${MAX_DAILY_REQUESTS} requests has been reached. Please retry after ${resetDate.toLocaleTimeString()}.`;
++  }
++  if (store.apiRequestsToday >= MAX_DAILY_REQUESTS) {
++    const tomorrow = new Date();
++    tomorrow.setDate(tomorrow.getDate() + 1);
++    tomorrow.setHours(0, 0, 0, 0);
++    store.setApiLimitResetTime(tomorrow.getTime());
++    return `Your daily limit of ${MAX_DAILY_REQUESTS} requests has been reached. Please retry tomorrow.`;
++  }
++  return null;
++}
++
++function handleApiError(error: any, delay: number, retries: number) {
++  if ((error.status === 429 || error.status === 503) && retries > 1) {
++    console.warn(`API Overloaded (${error.status}). Retrying in ${delay}ms...`);
++    return { shouldRetry: true };
++  } else if (error.status === 429) {
++    const store = useAppStore.getState();
++    const tomorrow = new Date();
++    tomorrow.setDate(tomorrow.getDate() + 1);
++    tomorrow.setHours(0, 0, 0, 0);
++    store.setApiLimitResetTime(tomorrow.getTime());
++    return { shouldRetry: false, errorText: `Your daily limit of ${MAX_DAILY_REQUESTS} requests has been reached. Please retry tomorrow.` };
++  } else {
++    console.error("Gemini AI Error:", error);
++    return { shouldRetry: false, errorText: "Sorry, I encountered an error while consulting the stars. Please check your API key or try again." };
++  }
++}
+ 
+ export async function askGemini(
+   question: string,
+@@ -6,6 +42,9 @@ export async function askGemini(
+   apiKey: string,
+   language: string
+ ): Promise<string> {
++  const limitMsg = checkApiLimit();
++  if (limitMsg) return limitMsg;
++
+   const languageNames: Record<string, string> = {
+     "en": "English",
+     "hi": "Hindi",
+@@ -16,13 +55,10 @@ export async function askGemini(
+   };
+   
+   const targetLanguage = languageNames[language.split('-')[0]] || "English";
+-  
+   const activeKey = (apiKey || import.meta.env.VITE_GEMINI_API_KEY || "").trim();
+ 
+   if (!activeKey) {
+-    // Mock Mode for testing without API key
+     await new Promise((resolve) => setTimeout(resolve, 1500));
+-    
+     if (targetLanguage === "Kannada") {
+       return `ನಮಸ್ಕಾರ. ನೀವು API ಕೀಲಿಯನ್ನು ಒದಗಿಸಿಲ್ಲವಾದ್ದರಿಂದ ನಾನು ಅಣಕು ಪ್ರತಿಕ್ರಿಯೆಯನ್ನು ನೀಡುತ್ತಿದ್ದೇನೆ. ನಿಮ್ಮ ಪ್ರಶ್ನೆ: "${question}". ದಯವಿಟ್ಟು ಸೆಟ್ಟಿಂಗ್ಸ್‌ನಲ್ಲಿ ಜೆಮಿನಿ ಕೀಲಿಯನ್ನು ಹಾಕಿ.`;
+     } else {
+@@ -33,7 +69,7 @@ export async function askGemini(
+   try {
+     const genAI = new GoogleGenerativeAI(activeKey);
+     const model = genAI.getGenerativeModel({ 
+-      model: "gemini-3.5-flash-lite",
++      model: "gemini-1.5-flash",
+       safetySettings: [
+         { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+         { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
+@@ -62,24 +98,93 @@ Use the native script of the requested language (e.g., Kannada script for Kannad
+     while (retries > 0) {
+       try {
+         const result = await model.generateContent(prompt);
++        useAppStore.getState().incrementApiUsage();
+         const response = await result.response;
+         return response.text().trim();
+       } catch (error: any) {
+-        if (error.status === 429 && retries > 1) {
+-          console.warn(`Rate limited by Gemini API. Retrying in ${delay}ms...`);
++        const handleResult = handleApiError(error, delay, retries);
++        if (handleResult.shouldRetry) {
+           await new Promise(resolve => setTimeout(resolve, delay));
+           retries--;
+           delay *= 2;
+         } else {
+-          console.error("Gemini AI Error:", error);
+-          return "Sorry, I encountered an error while consulting the stars. Please check your API key or try again.";
++          return handleResult.errorText!;
+         }
+       }
+     }
+-    
+     return "Sorry, I encountered an error while consulting the stars. Please try again later.";
+   } catch (error) {
+     console.error("Gemini Engine Initialization Error:", error);
+     return "Sorry, I encountered an error while consulting the stars. Please check your API key or try again.";
+   }
+ }
++
++export async function askGeminiJson(
++  prompt: string,
++  apiKey: string
++): Promise<any> {
++  const limitMsg = checkApiLimit();
++  if (limitMsg) throw new Error(limitMsg);
++
++  const activeKey = (apiKey || import.meta.env.VITE_GEMINI_API_KEY || "").trim();
++  if (!activeKey) throw new Error("API Key is missing");
++
++  try {
++    const genAI = new GoogleGenerativeAI(activeKey);
++    const model = genAI.getGenerativeModel({ 
++      model: "gemini-1.5-flash",
++      generationConfig: {
++        responseMimeType: "application/json",
++      },
++      safetySettings: [
++        { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
++        { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
++        { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
++        { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
++      ]
++    });
++
++    let retries = 3;
++    let delay = 3000;
++
++    while (retries > 0) {
++      try {
++        const result = await model.generateContent(prompt);
++        useAppStore.getState().incrementApiUsage();
++        const response = await result.response;
++        return JSON.parse(response.text().trim());
++      } catch (error: any) {
++        const handleResult = handleApiError(error, delay, retries);
++        if (handleResult.shouldRetry) {
++          await new Promise(resolve => setTimeout(resolve, delay));
++          retries--;
++          delay *= 2;
++        } else {
++          throw new Error(handleResult.errorText!);
++        }
++      }
++    }
++    throw new Error("Failed to get JSON response after retries.");
++  } catch (error: any) {
++    console.error("Gemini JSON Error:", error);
++    throw new Error(error.message || "Failed to parse JSON from AI");
++  }
++}
++
++export async function parseVoiceDictation(
++  fieldType: "gothra" | "date" | "time",
++  spokenText: string,
++  apiKey: string
++): Promise<any> {
++  let prompt = "";
++  if (fieldType === "gothra") {
++    prompt = `Extract the Gotra name from the spoken text. Return a JSON object like {"gothra": "Vashistha"}. Spoken text: "${spokenText}"`;
++  } else if (fieldType === "date") {
++    prompt = `Extract the Date from the spoken text. Return a JSON object with year, month (1-12), and day. For example {"year": 1993, "month": 5, "day": 31}. Spoken text: "${spokenText}"`;
++  } else if (fieldType === "time") {
++    prompt = `Extract the Time from the spoken text in 24-hour format. Return a JSON object with hour (0-23) and minute (0-59). For example {"hour": 13, "minute": 30}. Spoken text: "${spokenText}"`;
++  }
++  
++  return askGeminiJson(prompt, apiKey);
++}
++
+diff --git a/src/pages/KundliPage.tsx b/src/pages/KundliPage.tsx
+index b8dfec8..10f6a38 100644
+--- a/src/pages/KundliPage.tsx
++++ b/src/pages/KundliPage.tsx
+@@ -34,6 +34,7 @@ import { GOTRA_OPTIONS, gotraI18nKey } from "../data/gotras";
+ import { formatNavamsaPada, formatRashiAmsha, patrikaNavamshaFromDegree } from "../core/localeNumbers";
+ import { isRoughIndiaRegion } from "../core/placeTime";
+ import { resolvePlaceFromPincode } from "../services/locationApi";
++import { parseVoiceDictation } from "../core/GeminiEngine";
+ 
+ const parseYmdToDate = (ymd: string): Date | null => {
+   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd.trim());
+@@ -53,6 +54,7 @@ export default function KundliPage(): JSX.Element {
+   const narrativeConsent = useAppStore((s) => s.narrativeConsent);
+   const ayanamsaModel = useAppStore((s) => s.ayanamsaModel);
+   const nodeType = useAppStore((s) => s.nodeType);
++  const geminiApiKey = useAppStore((s) => s.geminiApiKey);
+   const setPage = useAppStore((s) => s.setPage);
+   const kundliSession = useKundliViewerStore((s) => s.session);
+   const draftInput = useKundliViewerStore((s) => s.draftInput);
+@@ -223,7 +225,7 @@ export default function KundliPage(): JSX.Element {
+     recognition.onend = () => setDictatingField(null);
+     recognition.onerror = () => setDictatingField(null);
+ 
+-    recognition.onresult = (event: any) => {
++    recognition.onresult = async (event: any) => {
+       const text = event.results[0][0].transcript.toLowerCase();
+       console.log(`Dictated for ${field}:`, text);
+       
+@@ -234,88 +236,43 @@ export default function KundliPage(): JSX.Element {
+         setForm(f => ({ ...f, name: foundName.charAt(0).toUpperCase() + foundName.slice(1) }));
+         return;
+       }
+-      
+-      if (field === "gothra") {
+-        let foundGothra = text.trim();
+-        const gothraMatch = text.match(/(?:gothra|ಗೋತ್ರ)\s+([a-z\u0C80-\u0CFF]+)|([a-z\u0C80-\u0CFF]+)\s+(?:gothra|ಗೋತ್ರ)/i);
+-        if (gothraMatch) foundGothra = gothraMatch[1] || gothraMatch[2];
+-        setForm(f => ({ ...f, gothra: foundGothra.charAt(0).toUpperCase() + foundGothra.slice(1) }));
+-        return;
+-      }
+-
+-      if (field === "date") {
+-        let foundDate: Date | null = null;
+-        const knMonths = ["ಜನವರಿ", "ಫೆಬ್ರವರಿ", "ಮಾರ್ಚ್", "ಏಪ್ರಿಲ್", "ಮೇ", "ಜೂನ್", "ಜುಲೈ", "ಆಗಸ್ಟ್", "ಸೆಪ್ಟೆಂಬರ್", "ಅಕ್ಟೋಬರ್", "ನವೆಂಬರ್", "ಡಿಸೆಂಬರ್"];
+-        const enMonths = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december", "jan", "feb", "mar", "apr", "aug", "sep", "sept", "oct", "nov", "dec"];
+-        
+-        let realMonth = -1;
+-        for (let i = 0; i < knMonths.length; i++) {
+-          if (text.includes(knMonths[i])) { realMonth = i; break; }
+-        }
+-        if (realMonth === -1) {
+-          for (let i = 0; i < enMonths.length; i++) {
+-            if (text.includes(enMonths[i])) {
+-              realMonth = new Date(Date.parse(enMonths[i] +" 1, 2012")).getMonth();
+-              break;
+-            }
+-          }
+-        }
+ 
+-        if (realMonth !== -1) {
+-          const yearMatch = text.match(/\b(19|20)\d{2}\b/);
+-          const dayMatch = text.match(/\b(1st|2nd|3rd|\d{1,2}(th)?)\b/);
++      if (["gothra", "date", "time"].includes(field)) {
++        try {
++          const parsed = await parseVoiceDictation(field as "gothra" | "date" | "time", text, geminiApiKey);
+           
+-          if (yearMatch && dayMatch) {
+-            const dayNum = parseInt(dayMatch[0].replace(/\D/g, ''), 10);
+-            const yearNum = parseInt(yearMatch[0], 10);
+-            if (dayNum >= 1 && dayNum <= 31) {
+-              foundDate = new Date(yearNum, realMonth, dayNum, 12, 0, 0, 0);
++          if (field === "gothra" && parsed.gothra) {
++            const spokenGotra = parsed.gothra.toLowerCase();
++            let matchedId = "";
++            for (const id of GOTRA_OPTIONS) {
++              if (id.toLowerCase() === spokenGotra) {
++                matchedId = id;
++                break;
++              }
++              const localized = t(gotraI18nKey(id) as any).toLowerCase();
++              if (localized === spokenGotra) {
++                matchedId = id;
++                break;
++              }
+             }
+-          }
+-        }
+-        if (foundDate) setBirthDatePicker(foundDate);
+-        return;
+-      }
+-
+-      if (field === "time") {
+-        let foundTime = "";
+-        const pat1 = /(ಬೆಳಿಗ್ಗೆ|ಮಧ್ಯಾಹ್ನ|ಸಂಜೆ|ರಾತ್ರಿ|am|pm)\s*(\d{1,2})(?:\s*:?\s*|\s+)(\d{2})?/i;
+-        const pat2 = /\b(\d{1,2})(?:\s*:?\s*|\s+)(\d{2})?\s*(ಬೆಳಿಗ್ಗೆ|ಮಧ್ಯಾಹ್ನ|ಸಂಜೆ|ರಾತ್ರಿ|am|pm)/i;
+-        const pat3 = /\b(\d{1,2}):(\d{2})\b/i;
+-
+-        let match = text.match(pat1);
+-        let hr = 0, mn = 0, marker = "";
+-        if (match) {
+-            marker = match[1].toLowerCase();
+-            hr = parseInt(match[2], 10);
+-            mn = match[3] ? parseInt(match[3], 10) : 0;
+-        } else {
+-            match = text.match(pat2);
+-            if (match) {
+-                hr = parseInt(match[1], 10);
+-                mn = match[2] ? parseInt(match[2], 10) : 0;
+-                marker = match[3].toLowerCase();
++            if (matchedId) {
++              setForm(f => ({ ...f, gothra: matchedId }));
+             } else {
+-                match = text.match(pat3);
+-                if (match) {
+-                    hr = parseInt(match[1], 10);
+-                    mn = parseInt(match[2], 10);
+-                }
++              setForm(f => ({ ...f, gothra: parsed.gothra.charAt(0).toUpperCase() + parsed.gothra.slice(1) }));
+             }
+-        }
++          }
+ 
+-        if (match) {
+-          const isPM = marker === "pm" || marker === "ಮಧ್ಯಾಹ್ನ" || marker === "ಸಂಜೆ" || marker === "ರಾತ್ರಿ";
+-          const isAM = marker === "am" || marker === "ಬೆಳಿಗ್ಗೆ";
+-          
+-          if (isPM && hr < 12) hr += 12;
+-          if (isAM && hr === 12) hr = 0;
+-          
+-          if (hr >= 0 && hr <= 23 && mn >= 0 && mn <= 59) {
+-            foundTime = `${hr.toString().padStart(2, '0')}:${mn.toString().padStart(2, '0')}`;
++          if (field === "date" && parsed.year && parsed.month && parsed.day) {
++            setBirthDatePicker(new Date(parsed.year, parsed.month - 1, parsed.day, 12, 0, 0, 0));
++          }
++
++          if (field === "time" && parsed.hour !== undefined && parsed.minute !== undefined) {
++            setBirthTimeHm(`${parsed.hour.toString().padStart(2, '0')}:${parsed.minute.toString().padStart(2, '0')}`);
+           }
++        } catch (error) {
++          console.error(`AI parsing failed for ${field}:`, error);
++          // Optional: Add a toast notification here if parsing fails
+         }
+-        if (foundTime) setBirthTimeHm(foundTime);
+       }
+     };
+ 
+diff --git a/src/stores/appStore.ts b/src/stores/appStore.ts
+index f839dac..a614e49 100644
+--- a/src/stores/appStore.ts
++++ b/src/stores/appStore.ts
+@@ -43,6 +43,9 @@ type AppState = {
+   ayanamsaModel: AyanamsaModel;
+   nodeType: NodeType;
+   geminiApiKey: string;
++  apiRequestsToday: number;
++  lastApiRequestDate: string;
++  apiLimitResetTime: number | null;
+   setPage: (page: AppPage) => void;
+   setLanguage: (language: SupportedLanguage) => Promise<void>;
+   setChartStyle: (style: "north" | "south") => Promise<void>;
+@@ -54,6 +57,8 @@ type AppState = {
+   setAyanamsaModel: (value: AyanamsaModel) => Promise<void>;
+   setNodeType: (value: NodeType) => Promise<void>;
+   setGeminiApiKey: (value: string) => Promise<void>;
++  incrementApiUsage: () => void;
++  setApiLimitResetTime: (time: number | null) => void;
+   hydrateSettings: () => Promise<void>;
+ };
+ 
+@@ -79,6 +84,9 @@ export const useAppStore = create<AppState>()(
+       ayanamsaModel: "lahiri",
+       nodeType: "mean",
+       geminiApiKey: "",
++      apiRequestsToday: 0,
++      lastApiRequestDate: "",
++      apiLimitResetTime: null,
+       setPage: (page) => set({ currentPage: page }),
+       setLanguage: async (language) => {
+         localStorage.setItem("i18nextLng", language);
+@@ -155,6 +163,18 @@ export const useAppStore = create<AppState>()(
+         // We persist API key mainly via zustand persist in localStorage
+         set({ geminiApiKey: value });
+       },
++      incrementApiUsage: () => {
++        const today = new Date().toISOString().split("T")[0];
++        set((state) => {
++          if (state.lastApiRequestDate !== today) {
++            return { lastApiRequestDate: today, apiRequestsToday: 1 };
++          }
++          return { apiRequestsToday: state.apiRequestsToday + 1 };
++        });
++      },
++      setApiLimitResetTime: (time: number | null) => {
++        set({ apiLimitResetTime: time });
++      },
+       hydrateSettings: async () => {
+         const consentFromLocalStorage = localStorage.getItem("jk-consent");
+         const hasLocalConsent =
+@@ -213,7 +233,10 @@ export const useAppStore = create<AppState>()(
+         narrativeConsent: state.narrativeConsent,
+         ayanamsaModel: state.ayanamsaModel,
+         nodeType: state.nodeType,
+-        geminiApiKey: state.geminiApiKey
++        geminiApiKey: state.geminiApiKey,
++        apiRequestsToday: state.apiRequestsToday,
++        lastApiRequestDate: state.lastApiRequestDate,
++        apiLimitResetTime: state.apiLimitResetTime
+       })
+     }
+   )

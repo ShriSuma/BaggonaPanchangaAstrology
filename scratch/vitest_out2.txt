@@ -1,0 +1,82 @@
+
+ RUN  v3.2.4 /Users/shreesuma/AntigravityProjects/BaggonaPanchangaAstrology/BaggonaPanchangaAstrology
+
+stdout | src/tests/test_5_kundalis.test.ts > Calculate 5 Panchangas
+
+=== Testing 1968 Keelaka, Ashvayuja Krishna Dvitiya, Sunday 5:10 AM (1968-10-20) ===
+Tithi: Ekadashi (40-57)
+Nakshatra: Purva Phalguni (36-10)
+Yoga: Indra (53-14)
+Karana: Bava (12-56)
+Sun Nak: Chitra (57-51)
+Visha Ghati: 54-10
+Amritha Ghati: 21-47
+Diva Ghati: 29-9
+Parama Ghati: 57-27
+Yeshya Ghati: 10-46
+Gatadina: 46-40
+Suryodayadita: 56-42
+
+=== Testing 1971 Virodhikrut, Ashadha Shukla Triteeya, Thursday 7:20 PM (1971-06-24) ===
+Tithi: Pratipada (48-36)
+Nakshatra: Ardra (4-50)
+Yoga: Dhruva (17-45)
+Karana: Kintughna (18-38)
+Sun Nak: Ardra (21-8)
+Visha Ghati: 34-50
+Amritha Ghati: 58-50
+Diva Ghati: 32-12
+Parama Ghati: 61-21
+Yeshya Ghati: 18-33
+Gatadina: 42-48
+Suryodayadita: 32-55
+
+=== Testing 1992 Angeerasa, Jyeshtha Shukla Shasthi, Sunday 1:34 PM (1992-06-07) ===
+Tithi: Saptami (22-57)
+Nakshatra: Purva Phalguni (49-50)
+Yoga: Harshana (11-54)
+Karana: Vanija (22-57)
+Sun Nak: Mrigashira (0-29)
+Visha Ghati: 13-20
+Amritha Ghati: 37-20
+Diva Ghati: 32-8
+Parama Ghati: 56-40
+Yeshya Ghati: 45-1
+Gatadina: 11-39
+Suryodayadita: 18-36
+
+=== Testing 1993 Shrimukha, Ashvayuja Krishna Ekadashi, Friday 2:44 PM (1993-10-15) ===
+Tithi: Amavasya (29-28)
+Nakshatra: Hasta (6-12)
+Yoga: Indra (30-15)
+Karana: Chatushpada (4-14)
+Sun Nak: Chitra (23-42)
+Visha Ghati: 26-12
+Amritha Ghati: 50-12
+Diva Ghati: 29-17
+Parama Ghati: 52-31
+Yeshya Ghati: 38-41
+Gatadina: 13-49
+Suryodayadita: 20-39
+
+=== Testing 2005 Parthiva, Ashadha Shukla Shasthi, Tuesday 3:30 PM (2005-07-12) ===
+Tithi: Shashthi (63-38)
+Nakshatra: Uttara Phalguni (35-29)
+Yoga: Parigha (41-39)
+Karana: Kaulava (31-27)
+Sun Nak: Punarvasu (31-44)
+Visha Ghati: 56-29
+Amritha Ghati: 10-53
+Diva Ghati: 32-3
+Parama Ghati: 66-5
+Yeshya Ghati: 44-43
+Gatadina: 21-22
+Suryodayadita: 23-7
+
+ ✓ src/tests/test_5_kundalis.test.ts (1 test) 213ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  23:18:02
+   Duration  1.34s (transform 207ms, setup 122ms, collect 305ms, tests 213ms, environment 387ms, prepare 53ms)
+

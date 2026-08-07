@@ -1,0 +1,1 @@
+import { MasterPredictionEngine } from "../src/core/MasterPredictionEngine"; const engine = new MasterPredictionEngine(); const k = engine.generatePrediction("1992-07-18", "03:36", 14.5479, 74.3187); console.log("Lagna:", k.kundli.ascendantRashi.nameEn, "Rashi:", k.kundli.moonRashi.nameEn, "Nakshatra:", k.kundli.moonNakshatra.nameEn);

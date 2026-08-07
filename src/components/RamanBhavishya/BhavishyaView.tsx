@@ -12,6 +12,7 @@ import { translateText } from "../../utils/translator";
 import { ageDecimalYearsAt } from "../../core/birthTime";
 import { findBhuktiAtAge } from "../../core/DashaBhuktiEngine";
 import { generateMasterPrediction } from "../../core/MasterPredictionEngine";
+import { detectAffairIndicators } from "../../core/layers/NatalLayer";
 import { askGemini } from "../../core/GeminiEngine";
 import { PremiumPDFTemplate } from "../pdf/PremiumPDFTemplate";
 import { generatePDFFromElement } from "../../utils/pdfGenerator";
@@ -337,20 +338,60 @@ export default function BhavishyaView() {
       }
       `;
 
+      // Affair indicator detection using B.V. Raman classical rules
+      const affairResult = detectAffairIndicators(session.result);
+      const affairSection = (affairResult.hasAffairIndicators && affairResult.confidence !== "low")
+        ? `SPECIAL INSTRUCTION — AFFAIR/SECRET RELATIONSHIP INDICATORS: The classical Vedic kundali of this person contains ${affairResult.confidence}-confidence indicators of secret relationship tendencies based on B.V. Raman's rules. These are: ${affairResult.indicators.join("; ")}. You MUST include ONE dedicated paragraph about this — framed in respectful, dignified, astrological language. Do NOT use crude or judgemental words. Use phrases like "the stars reveal a hidden longing", "the planetary arrangement suggests a complex inner romantic world", or "karmic ties outside the primary relationship" — always frame it as a soul-level karmic pattern, not a moral judgement. If the person is not married, frame this as "secret romantic attractions" or "complex emotional entanglements".`
+        : `DO NOT add any section about affairs or secret relationships — the classical kundali does not confirm such indicators.`;
+
+      // Random style seed ensures different wording every generation
+      const darkSecretStyleSeeds = [
+        "Use a mystical, prophetic tone as if reading from an ancient palm leaf manuscript.",
+        "Use a compassionate but unflinching tone — speak as a wise elder who has seen everything.",
+        "Use a dramatic, story-like narration — as if revealing a secret that has been buried for decades.",
+        "Use a poetic, metaphor-rich style — weave in images from nature, fire, water, and shadow.",
+        "Use a direct, unvarnished tone — piercing and clear, leaving no room for comfortable illusions.",
+        "Use a psychological, introspective tone — as if the astrologer is also a skilled counsellor.",
+        "Use a spiritual tone — referencing karma, past lives, and soul evolution throughout.",
+        "Use a cinematic, suspense-building style — build tension before revealing the core truth.",
+        "Use an empathetic, healing-oriented tone — acknowledge the pain while revealing the pattern.",
+        "Use a scholarly tone referencing classical Vedic concepts while remaining deeply personal."
+      ];
+      const darkSecretSeed = darkSecretStyleSeeds[Math.floor(Math.random() * darkSecretStyleSeeds.length)];
+
+      // Precise planet positions for this specific chart
+      const planetPositions = session.result.planets.map(p => `${p.name} in House ${p.house} (${p.rashi?.english || ''})`).join(", ");
+
       const promptDarkSecret = `
-      You are an expert Vedic astrologer. Generate highly engaging narrative in JSON format.
+      You are an expert Vedic astrologer revealing the NIGUDA RAHASYA (Hidden Truth) of a specific individual's birth chart. Generate in JSON format.
       The output must be strictly valid JSON and MUST be entirely in this language code: ${pdfLanguage}.
-      IMPORTANT: If the target language is Kannada (kn), Telugu (te), or Tamil (ta), you MUST use ONLY the native script of that language. ABSOLUTELY NO ENGLISH WORDS. DO NOT USE TRANSLITERATION (e.g., writing English words like 'maintaining', 'balance', 'career' in the native script). You must use pure native vocabulary.
+      IMPORTANT: If the target language is Kannada (kn), Telugu (te), or Tamil (ta), you MUST use ONLY the native script of that language. ABSOLUTELY NO ENGLISH WORDS. DO NOT USE TRANSLITERATION. You must use pure native vocabulary. All astrological terms must be rendered in the target script.
       
-      Data - Shadow Self & Karmic Baggage: ${JSON.stringify(result.natalLayer.shadowSelf)}
+      NARRATION STYLE THIS TIME: ${darkSecretSeed}
       
-      CRITICAL INSTRUCTION: Expose the darkest secret, hidden flaws, or karmic baggage of this person. Write EXACTLY 2 paragraphs. Be deep and mystical.
+      CHART-SPECIFIC DATA (use these exact placements — do NOT use generic statements):
+      - Lagna (Ascendant): ${session.result.lagnaRashi?.sanskrit || session.result.lagnaRashi?.english || 'Unknown'}
+      - Moon Sign: ${session.result.moonSign?.sanskrit || 'Unknown'}
+      - Exact Planetary Positions: ${planetPositions}
+      - Shadow Self (from engine): Title: "${result.natalLayer.shadowSelf.title}" | Core Truth: "${result.natalLayer.shadowSelf.bluntTruth}"
+      - Karmic Baggage (from engine): "${result.natalLayer.karmicBaggage.description}" | Soul Purpose: "${result.natalLayer.karmicBaggage.soulPurpose}"
+      - Running Mahadasha: ${result.metadata.runningMahadasha} | Running Bhukti: ${result.metadata.runningBhukti}
+      
+      ${affairSection}
+      
+      CRITICAL INSTRUCTIONS:
+      1. You MUST reference the SPECIFIC planetary positions listed above — not generic astrology statements.
+      2. The first paragraph must reveal the DEEPEST hidden psychological shadow or karmic pattern of this person, rooted in the exact chart data.
+      3. The second paragraph must reveal how this shadow manifests practically in their life, relationships, or behaviour — and what karmic lesson it is asking them to face.
+      4. If the affair section is included, it forms a natural third paragraph.
+      5. Write with power, specificity, and emotional depth. Every sentence must be unique to THIS chart.
+      6. Do NOT start both paragraphs with the same phrase. Vary your sentence structures.
       
       Expected JSON Structure:
       {
         "darkSecret": [
           {
-            "impact": "Write EXACTLY TWO detailed paragraphs (separated by \\n) explaining their dark secret."
+            "impact": "Write EXACTLY TWO (or THREE if affair section applies) detailed paragraphs separated by \\n. Each paragraph must be chart-specific, deeply personal, and powerfully written."
           }
         ]
       }
@@ -604,7 +645,40 @@ export default function BhavishyaView() {
       const promptYogas = `You are an expert Vedic astrologer. Based on the provided data, generate 4-6 Yogas (planetary combinations) in JSON format. Language: ${pdfLanguage}. Data: ${JSON.stringify(result.aiGeneratedNarrative?.yogas || [])}. Return { "yogas": [{ "name": "", "impact": "", "remedy": "" }] }.`;
       const promptDoshas = `You are an expert Vedic astrologer. Based on the provided data, generate 3-4 Doshas in JSON format. Language: ${pdfLanguage}. Data: ${JSON.stringify(result.aiGeneratedNarrative?.doshas || [])}. Return { "doshas": [{ "name": "", "impact": "", "remedy": "" }] }.`;
       const promptCharacteristics = `You are an expert Vedic astrologer. Based on this Kundli, generate 5-7 core personality characteristics. Language: ${pdfLanguage}. Data: ${JSON.stringify(result.aiGeneratedNarrative)}. Return { "characteristics": [{ "trait": "", "description": "" }] }.`;
-      const promptDarkSecret = `You are an expert Vedic astrologer. Reveal 2-3 deep karmic truths or hidden patterns. Language: ${pdfLanguage}. Data: ${JSON.stringify(result.aiGeneratedNarrative)}. Return { "darkSecret": [{ "title": "", "revelation": "" }] }.`;
+      // Affair indicator detection for A4 PDF (B.V. Raman classical rules)
+      const a4AffairResult = detectAffairIndicators(session.result);
+      const a4AffairSection = (a4AffairResult.hasAffairIndicators && a4AffairResult.confidence !== "low")
+        ? `SPECIAL INSTRUCTION: This chart contains ${a4AffairResult.confidence}-confidence secret relationship indicators (B.V. Raman): ${a4AffairResult.indicators.join("; ")}. Add ONE paragraph about this — framed respectfully as a karmic soul-pattern, using dignified astrological language. Never judgemental, always compassionate.`
+        : `DO NOT include any affair/secret relationship content — the kundali does not confirm such indicators.`;
+      const a4StyleSeeds = [
+        "Use a mystical, prophetic tone — as if reading an ancient palm leaf.",
+        "Use a compassionate but unflinching elder's voice.",
+        "Use rich metaphors from nature, fire, water, and shadow.",
+        "Use a direct, unvarnished, piercing clarity.",
+        "Use a spiritual karma-and-past-life framing throughout.",
+        "Use cinematic tension — build suspense, then reveal.",
+        "Use an empathetic, healing-focused voice.",
+        "Use a psychological, introspective, counsellor-like tone.",
+        "Use a dramatic story-like narration.",
+        "Use scholarly Vedic references while remaining personal."
+      ];
+      const a4DarkSecretSeed = a4StyleSeeds[Math.floor(Math.random() * a4StyleSeeds.length)];
+      const a4PlanetPositions = session.result.planets.map((p: {name: string; house: number; rashi?: {english?: string}}) => `${p.name} in House ${p.house} (${p.rashi?.english || ''})`).join(", ");
+      const promptDarkSecret = `
+      You are an expert Vedic astrologer revealing the NIGUDA RAHASYA of a specific birth chart. Generate in JSON format.
+      The output must be strictly valid JSON and MUST be entirely in language code: ${pdfLanguage}.
+      IMPORTANT: For Kannada (kn), Telugu (te), Tamil (ta) — use ONLY the native script. ABSOLUTELY NO ENGLISH or transliteration. Pure native vocabulary only.
+      NARRATION STYLE THIS TIME: ${a4DarkSecretSeed}
+      CHART DATA (reference these specifically):
+      - Lagna: ${session.result.lagnaRashi?.sanskrit || session.result.lagnaRashi?.english || 'Unknown'}
+      - Moon Sign: ${session.result.moonSign?.sanskrit || 'Unknown'}
+      - Planetary Positions: ${a4PlanetPositions}
+      - Shadow Self: "${result.natalLayer.shadowSelf.bluntTruth}"
+      - Karmic Baggage: "${result.natalLayer.karmicBaggage.description}"
+      - Dasha: ${result.metadata.runningMahadasha} / ${result.metadata.runningBhukti}
+      ${a4AffairSection}
+      CRITICAL: Reference the specific planetary positions. Paragraph 1 = deepest hidden shadow/pattern. Paragraph 2 = how it manifests in life and what karmic lesson is being asked. If affair applies, add Paragraph 3. Never generic. Always chart-specific and powerfully written.
+      Return: { "darkSecret": [{ "impact": "Paragraphs separated by \\n" }] }`;
       const promptGochara = `You are an expert Vedic astrologer. Analyze 3-4 key current planetary transits. Language: ${pdfLanguage}. Data: ${JSON.stringify(result.timingLayer?.twelveMonthRoadmap?.slice(0, 3) || [])}. Return { "gochara": [{ "planet": "", "transit": "", "impact": "" }] }.`;
       const promptSummary = `You are an expert Vedic astrologer. Write a 2-3 paragraph final summary blending Yogas, Doshas, and Timeline. Language: ${pdfLanguage}. Data - Yogas: ${JSON.stringify(result.aiGeneratedNarrative?.yogas || [])}. Return { "summary": [{ "impact": "" }] }.`;
       const promptTimeline = `You are an expert Vedic astrologer. Generate a 6-Month Planetary Influence Timeline. Language: ${pdfLanguage}. Data: ${JSON.stringify(result.timingLayer?.twelveMonthRoadmap?.slice(0, 6) || [])}. Return { "timeline": [{ "dateRange": "", "impact": "" }] }.`;
