@@ -42,6 +42,12 @@ export default function BhavishyaView() {
 
   const pdfRef = useRef<HTMLDivElement>(null);
   const premiumPdfRef = useRef<HTMLDivElement>(null);
+  const a4PdfRef = useRef<HTMLDivElement>(null);
+
+  const [isGeneratingA4Pdf, setIsGeneratingA4Pdf] = useState(false);
+  const [a4PremiumDataForPdf, setA4PremiumDataForPdf] = useState<PremiumData | null>(null);
+  const [a4PdfTranslations, setA4PdfTranslations] = useState<PdfTranslations | null>(null);
+  const [a4PdfDeepInsights, setA4PdfDeepInsights] = useState<Record<string, string> | null>(null);
 
   const generatePDF = async () => {
     setIsGeneratingPdf(true);
@@ -146,7 +152,7 @@ export default function BhavishyaView() {
         logging: false
       });
       
-      const imgData = canvas.toDataURL("image/png");
+      const imgData = canvas.toDataURL("image/jpeg", 0.75);
       
       // Fixed width in mm (A4 width = 210)
       const pdfWidth = 210; 
@@ -154,9 +160,9 @@ export default function BhavishyaView() {
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       
       // Create a PDF with a CUSTOM page height so it NEVER cuts off the content across multiple pages!
-      const pdf = new jsPDF("p", "mm", [pdfWidth, pdfHeight]);
+      const pdf = new jsPDF({ orientation: "p", unit: "mm", format: [pdfWidth, pdfHeight], compress: true });
       
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
       pdf.save(`Baggona_Prediction_${session?.input.name.replace(/\s+/g, '_') || 'Reading'}.pdf`);
       
     } catch (error: any) {
@@ -473,14 +479,14 @@ export default function BhavishyaView() {
         logging: false
       });
       
-      const imgData = canvas.toDataURL("image/png");
+      const imgData = canvas.toDataURL("image/jpeg", 0.75);
       
       const pdfWidth = 210; 
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       
-      const pdf = new jsPDF("p", "mm", [pdfWidth, pdfHeight]);
+      const pdf = new jsPDF({ orientation: "p", unit: "mm", format: [pdfWidth, pdfHeight], compress: true });
       
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
       const langNames: Record<string, string> = { "kn": "Kannada", "ta": "Tamil", "te": "Telugu", "hi": "Hindi", "en": "English" };
       const langName = langNames[pdfLanguage] || "English";
       pdf.save(`Baggona_Panchanga_Prediction_${langName}_${session?.input.name.replace(/\s+/g, '_') || 'Reading'}.pdf`);
@@ -491,6 +497,159 @@ export default function BhavishyaView() {
     } finally {
       setIsGeneratingPremiumPdf(false);
       setPremiumDataForPdf(null); // Cleanup
+    }
+  };
+
+  // A4 Multi-Page PDF: same content as Premium, split into proper A4 pages
+  const generateA4PDF = async () => {
+    setIsGeneratingA4Pdf(true);
+    try {
+      if (!session) throw new Error("No session");
+
+      // Reuse the same heavy data-fetch as generatePremiumPDF
+      const now = new Date();
+      const ageYears = ageDecimalYearsAt(
+        session.input.birthDate,
+        session.input.birthTime,
+        session.input.latitude,
+        session.input.longitude,
+        now
+      );
+      const currentBhuktiData = findBhuktiAtAge(session.result, ageYears);
+
+      let formattedDob = "";
+      try {
+        const { parseISO, format: dateFnsFormat } = await import("date-fns");
+        formattedDob = dateFnsFormat(parseISO(session.input.birthDate), "dd MMM yyyy");
+      } catch {
+        formattedDob = session.input.birthDate;
+      }
+      const dobWithTime = `${formattedDob}, ${session.input.birthTime}`;
+
+      const { translateText: tx } = await import("../../utils/translator");
+      const translatedData: PdfTranslations = {
+        title: await tx("Baggona Panchanga Prediction", pdfLanguage),
+        subtitle: await tx("Personalized Cosmic Reading", pdfLanguage),
+        nameLabel: await tx("Name", pdfLanguage),
+        nameValue: session.input.name,
+        dobLabel: await tx("Birth Details", pdfLanguage),
+        dobValue: await tx(dobWithTime, pdfLanguage),
+        lagnaLabel: await tx("Birth Lagna (Ascendant)", pdfLanguage),
+        lagnaValue: await tx(session.result.lagnaRashi?.sanskrit || "Unknown", pdfLanguage),
+        moonLabel: await tx("Moon Sign (Rashi)", pdfLanguage),
+        moonValue: await tx(session.result.moonSign?.sanskrit || "Unknown", pdfLanguage),
+        nakshatraLabel: await tx("Nakshatra", pdfLanguage),
+        nakshatraValue: await tx(
+          session.result.planets.find(p => p.name === "Moon")?.nakshatra?.sanskrit || "Unknown",
+          pdfLanguage
+        ),
+        eraLabel: await tx("Current Cosmic Era", pdfLanguage),
+        dashaLabel: await tx("Dasha", pdfLanguage),
+        bhuktiLabel: await tx("Bhukti", pdfLanguage),
+        dashaPlanetValue: currentBhuktiData ? await tx(currentBhuktiData.maha.planet, pdfLanguage) : "",
+        bhuktiPlanetValue: currentBhuktiData ? await tx(currentBhuktiData.bhukti, pdfLanguage) : "",
+        characteristicsTitle: await tx("Characteristics of the Person", pdfLanguage),
+        darkSecretTitle: await tx("The Dark Secret", pdfLanguage),
+        ashirvadaTitle: await tx("Astrologer's Blessing (Ashirvada)", pdfLanguage),
+        ashirvadaValue: await tx(ashirvada || "", pdfLanguage),
+        yogasTitle: await tx("Special Planetary Combinations (Yogas)", pdfLanguage),
+        doshasTitle: await tx("Karmic Challenges (Doshas)", pdfLanguage),
+        remedyTitle: await tx("Remedy", pdfLanguage),
+        timelineTitle: await tx("Next 6-12 Months Timeline", pdfLanguage),
+        gocharaTitle: await tx("Current Planetary Transits (Gochara)", pdfLanguage),
+        summaryTitle: await tx("Astrologer's Summary", pdfLanguage),
+        footer: await tx("Generated gracefully by Baggona Panchanga Astrology Engine", pdfLanguage),
+      };
+
+      const deepInsightsArr = await Promise.all(
+        DEEP_INSIGHT_CATEGORIES.map(async cat => {
+          const pred = predictions.find(p =>
+            p.translatedCategory?.toLowerCase().includes(cat.id) ||
+            p.category?.toLowerCase().includes(cat.id)
+          );
+          return [
+            cat.id,
+            await tx(pred?.text || `No ${cat.label} insights available.`, pdfLanguage)
+          ];
+        })
+      );
+      const deepInsights = Object.fromEntries(deepInsightsArr);
+
+      setA4PdfTranslations(translatedData);
+      setA4PdfDeepInsights(deepInsights);
+
+      // Also fetch Premium AI content
+      const result = await generateMasterPrediction(
+        session.result,
+        {
+          name: session.input.name,
+          birthDate: session.input.birthDate,
+          birthTime: session.input.birthTime,
+          latitude: session.input.latitude,
+          longitude: session.input.longitude,
+          lang: pdfLanguage
+        }
+      );
+
+      const parseGeminiJSON = (raw: string): Record<string, unknown> => {
+        try {
+          const match = raw.match(/```json\s*([\s\S]*?)\s*```/) || raw.match(/({[\s\S]*})/);
+          return match ? JSON.parse(match[1]) : JSON.parse(raw);
+        } catch {
+          return {};
+        }
+      };
+
+      const ashirvadaText = ashirvada || "May the stars guide your path.";
+      const promptYogas = `You are an expert Vedic astrologer. Based on the provided data, generate 4-6 Yogas (planetary combinations) in JSON format. Language: ${pdfLanguage}. Data: ${JSON.stringify(result.aiGeneratedNarrative?.yogas || [])}. Return { "yogas": [{ "name": "", "impact": "", "remedy": "" }] }.`;
+      const promptDoshas = `You are an expert Vedic astrologer. Based on the provided data, generate 3-4 Doshas in JSON format. Language: ${pdfLanguage}. Data: ${JSON.stringify(result.aiGeneratedNarrative?.doshas || [])}. Return { "doshas": [{ "name": "", "impact": "", "remedy": "" }] }.`;
+      const promptCharacteristics = `You are an expert Vedic astrologer. Based on this Kundli, generate 5-7 core personality characteristics. Language: ${pdfLanguage}. Data: ${JSON.stringify(result.aiGeneratedNarrative)}. Return { "characteristics": [{ "trait": "", "description": "" }] }.`;
+      const promptDarkSecret = `You are an expert Vedic astrologer. Reveal 2-3 deep karmic truths or hidden patterns. Language: ${pdfLanguage}. Data: ${JSON.stringify(result.aiGeneratedNarrative)}. Return { "darkSecret": [{ "title": "", "revelation": "" }] }.`;
+      const promptGochara = `You are an expert Vedic astrologer. Analyze 3-4 key current planetary transits. Language: ${pdfLanguage}. Data: ${JSON.stringify(result.timingLayer?.twelveMonthRoadmap?.slice(0, 3) || [])}. Return { "gochara": [{ "planet": "", "transit": "", "impact": "" }] }.`;
+      const promptSummary = `You are an expert Vedic astrologer. Write a 2-3 paragraph final summary blending Yogas, Doshas, and Timeline. Language: ${pdfLanguage}. Data - Yogas: ${JSON.stringify(result.aiGeneratedNarrative?.yogas || [])}. Return { "summary": [{ "impact": "" }] }.`;
+      const promptTimeline = `You are an expert Vedic astrologer. Generate a 6-Month Planetary Influence Timeline. Language: ${pdfLanguage}. Data: ${JSON.stringify(result.timingLayer?.twelveMonthRoadmap?.slice(0, 6) || [])}. Return { "timeline": [{ "dateRange": "", "impact": "" }] }.`;
+
+      const [resYogas, resDoshas, resCharacteristics, resDarkSecret, resTimeline, resGochara, resSummary] = await Promise.all([
+        askGemini("Generate Yogas", promptYogas, geminiApiKey, pdfLanguage),
+        askGemini("Generate Doshas", promptDoshas, geminiApiKey, pdfLanguage),
+        askGemini("Generate Characteristics", promptCharacteristics, geminiApiKey, pdfLanguage),
+        askGemini("Generate Dark Secret", promptDarkSecret, geminiApiKey, pdfLanguage),
+        askGemini("Generate Timeline", promptTimeline, geminiApiKey, pdfLanguage),
+        askGemini("Generate Gochara", promptGochara, geminiApiKey, pdfLanguage),
+        askGemini("Generate Summary", promptSummary, geminiApiKey, pdfLanguage)
+      ]);
+
+      const premiumDataPayload: PremiumData = {
+        characteristics: parseGeminiJSON(resCharacteristics).characteristics as PremiumData["characteristics"] || [],
+        darkSecret: parseGeminiJSON(resDarkSecret).darkSecret as PremiumData["darkSecret"] || [],
+        yogas: parseGeminiJSON(resYogas).yogas as PremiumData["yogas"] || [],
+        doshas: parseGeminiJSON(resDoshas).doshas as PremiumData["doshas"] || [],
+        timeline: parseGeminiJSON(resTimeline).timeline as PremiumData["timeline"] || [],
+        gochara: parseGeminiJSON(resGochara).gochara as PremiumData["gochara"] || [],
+        summary: parseGeminiJSON(resSummary).summary as PremiumData["summary"] || []
+      };
+
+      setA4PremiumDataForPdf(premiumDataPayload);
+
+      // Wait for React to fully render the hidden template (fonts, Kundli chart, etc.)
+      await new Promise(resolve => setTimeout(resolve, 2500));
+
+      if (!a4PdfRef.current) throw new Error("A4 PDF ref not found");
+
+      const langNames: Record<string, string> = { "kn": "Kannada", "ta": "Tamil", "te": "Telugu", "hi": "Hindi", "en": "English" };
+      const langName = langNames[pdfLanguage] || "English";
+      await generatePDFFromElement(
+        "a4-premium-pdf-container",
+        `Baggona_A4_Premium_${langName}_${session.input.name.replace(/\s+/g, "_")}.pdf`
+      );
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || "Failed to generate A4 PDF. Please try again.");
+    } finally {
+      setIsGeneratingA4Pdf(false);
+      setA4PremiumDataForPdf(null);
+      setA4PdfTranslations(null);
+      setA4PdfDeepInsights(null);
     }
   };
 
@@ -577,7 +736,7 @@ export default function BhavishyaView() {
           <div className="flex flex-col sm:flex-row gap-3">
           <button 
             onClick={generatePDF}
-            disabled={isGeneratingPdf || isGeneratingPremiumPdf}
+            disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingA4Pdf}
             className={`group flex items-center justify-center gap-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-6 py-3 rounded-xl font-bold transition-all duration-300 shadow-[0_5px_15px_rgba(245,158,11,0.2)] hover:shadow-[0_8px_20px_rgba(245,158,11,0.3)] border border-amber-400 shrink-0 ${isGeneratingPdf ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}
           >
             {isGeneratingPdf ? (
@@ -592,7 +751,7 @@ export default function BhavishyaView() {
 
           <button 
             onClick={generatePremiumPDF}
-            disabled={isGeneratingPdf || isGeneratingPremiumPdf}
+            disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingA4Pdf}
             className={`group flex items-center justify-center gap-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-bold transition-all duration-300 shadow-[0_5px_15px_rgba(79,70,229,0.3)] hover:shadow-[0_8px_20px_rgba(79,70,229,0.4)] border border-indigo-400 shrink-0 ${isGeneratingPremiumPdf ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}
           >
             {isGeneratingPremiumPdf ? (
@@ -601,6 +760,19 @@ export default function BhavishyaView() {
               <span className="text-lg">📄✨</span>
             )}
             {isGeneratingPremiumPdf ? "Crafting Premium..." : "Premium PDF"}
+          </button>
+
+          <button 
+            onClick={generateA4PDF}
+            disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingA4Pdf}
+            className={`group flex items-center justify-center gap-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-6 py-3 rounded-xl font-bold transition-all duration-300 shadow-[0_5px_15px_rgba(5,150,105,0.3)] hover:shadow-[0_8px_20px_rgba(5,150,105,0.4)] border border-emerald-400 shrink-0 ${isGeneratingA4Pdf ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}
+          >
+            {isGeneratingA4Pdf ? (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            ) : (
+              <span className="text-lg">📑</span>
+            )}
+            {isGeneratingA4Pdf ? "Crafting A4 PDF..." : "Premium A4 PDF"}
           </button>
         </div>
       </div>
@@ -612,6 +784,26 @@ export default function BhavishyaView() {
             <div className="w-16 h-16 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mb-4"></div>
             <p className="text-indigo-900 font-bold text-lg">Preparing your PDF...</p>
             <p className="text-slate-500 text-sm mt-2">This may take a few moments.</p>
+          </div>
+        </div>
+      )}
+
+      {isGeneratingA4Pdf && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-emerald-950/80 backdrop-blur-sm">
+          <div className="flex flex-col items-center p-8 bg-white rounded-3xl shadow-2xl border-4 border-emerald-500 max-w-xs w-full mx-4 text-center">
+            <div className="relative w-32 h-32 mb-6 overflow-hidden rounded-full bg-sky-100 border-4 border-emerald-200 shadow-inner flex items-end justify-center">
+              <div className="absolute inset-x-0 bottom-0 h-1/2 bg-emerald-600/20 rounded-t-full" />
+              <div className="w-16 h-16 bg-gradient-to-t from-emerald-400 to-teal-300 rounded-full animate-[rise_3s_ease-in-out_infinite] shadow-[0_0_30px_rgba(52,211,153,0.8)]" />
+              <style>{`
+                @keyframes rise {
+                  0% { transform: translateY(40px) scale(0.8); opacity: 0.5; }
+                  50% { transform: translateY(-10px) scale(1.1); opacity: 1; }
+                  100% { transform: translateY(40px) scale(0.8); opacity: 0.5; }
+                }
+              `}</style>
+            </div>
+            <h3 className="text-xl font-bold text-indigo-950 mb-2">Generating A4 Blueprint...</h3>
+            <p className="text-xs text-slate-600 font-medium animate-pulse">Composing multi-page A4 document...</p>
           </div>
         </div>
       )}
@@ -742,6 +934,22 @@ export default function BhavishyaView() {
             translations={pdfTranslations}
             deepInsights={pdfDeepInsights}
             premiumData={premiumDataForPdf}
+          />
+        )}
+      </div>
+
+      {/* Hidden A4 Multi-Page Premium PDF Template Container */}
+      {/* NOTE: Must use visibility:hidden NOT opacity:0 — html2canvas needs element to be painted */}
+      <div id="a4-premium-pdf-container" style={{ position: "fixed", left: "-9999px", top: 0, visibility: "hidden", pointerEvents: "none" }}>
+        {a4PdfTranslations && a4PdfDeepInsights && a4PremiumDataForPdf && (
+          <PdfTemplate
+            ref={a4PdfRef}
+            theme="sunrise"
+            session={session}
+            predictions={currentMindset ? [currentMindset, ...predictions] : predictions}
+            translations={a4PdfTranslations}
+            deepInsights={a4PdfDeepInsights}
+            premiumData={a4PremiumDataForPdf}
           />
         )}
       </div>

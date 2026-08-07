@@ -67,18 +67,19 @@ export default function VarshaBavishyaPage() {
     
     try {
       const canvas = await html2canvas(contentRef.current, { scale: 2, useCORS: true });
-      const imgData = canvas.toDataURL("image/png");
+      const imgData = canvas.toDataURL("image/jpeg", 0.75);
       
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "mm",
         format: "a4",
+        compress: true
       });
       
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
       pdf.save(`Varsha_Bavishya_${prediction.year}_${prediction.rashi.english}.pdf`);
     } catch (e) {
       console.error("Failed to generate PDF", e);

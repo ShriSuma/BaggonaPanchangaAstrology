@@ -25,6 +25,9 @@ import SouthIndianChart from "../components/kundli/SouthIndianChart";
 import { generateMasterPrediction, type MasterPredictionResult } from "../core/MasterPredictionEngine";
 import { generatePDFFromElement } from "../utils/pdfGenerator";
 import { PremiumPDFTemplate } from "../components/pdf/PremiumPDFTemplate";
+import { generateSixMonthCalendarData, generatePrasadBagData, type SixMonthCalendarData, type PrasadBagData } from "../core/PremiumOfferingsEngine";
+import { Next6MonthsCalendarTemplate } from "../components/pdf/Next6MonthsCalendarTemplate";
+import { PrasadBagInsertTemplate } from "../components/pdf/PrasadBagInsertTemplate";
 import { RASHIS, NAKSHATRAS, PlanetName, type PlanetPosition, type KundliOutput } from "../core/AstroTypes";
 import { siderealLongitudes } from "../core/EphemerisEngine";
 import { degreeToRashi, degreeToNakshatra, degreeToNakshatraPada } from "../core/AstroMath";
@@ -167,6 +170,12 @@ export default function BaggonaPredictionsPage(): JSX.Element {
   const [isGeneratingPDF, setIsGeneratingPDF] = useState<boolean>(false);
   const [pdfData, setPdfData] = useState<MasterPredictionResult | null>(null);
 
+  const [isGenerating6MonthPDF, setIsGenerating6MonthPDF] = useState<boolean>(false);
+  const [sixMonthPdfData, setSixMonthPdfData] = useState<SixMonthCalendarData | null>(null);
+
+  const [isGeneratingPrasadPDF, setIsGeneratingPrasadPDF] = useState<boolean>(false);
+  const [prasadPdfData, setPrasadPdfData] = useState<PrasadBagData | null>(null);
+
   const handleDownloadPremiumPDF = async () => {
     if (!record || !traditionalData) return;
     setIsGeneratingPDF(true);
@@ -225,6 +234,70 @@ export default function BaggonaPredictionsPage(): JSX.Element {
       console.error(e);
       alert("Failed to generate PDF: " + String(e));
       setIsGeneratingPDF(false);
+    }
+  };
+
+  const handleDownload6MonthPDF = async () => {
+    if (!record || !traditionalData) return;
+    setIsGenerating6MonthPDF(true);
+    try {
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
+      const data = await generateSixMonthCalendarData(
+        record.kundliData,
+        record.name,
+        record.birthDate,
+        record.birthTime,
+        record.latitude,
+        record.longitude,
+        apiKey,
+        lang
+      );
+      setSixMonthPdfData(data);
+      setTimeout(async () => {
+         try {
+           await generatePDFFromElement("six-month-pdf-container", `${record.name.replace(/\s+/g, '_')}_6_Month_Calendar.pdf`);
+         } catch (e) {
+           console.error("PDF Gen Error:", e);
+           alert("Failed to render PDF.");
+         } finally {
+           setSixMonthPdfData(null);
+           setIsGenerating6MonthPDF(false);
+         }
+      }, 1500);
+    } catch (e) {
+      console.error(e);
+      alert("Failed to generate PDF: " + String(e));
+      setIsGenerating6MonthPDF(false);
+    }
+  };
+
+  const handleDownloadPrasadPDF = async () => {
+    if (!record || !traditionalData) return;
+    setIsGeneratingPrasadPDF(true);
+    try {
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
+      const data = await generatePrasadBagData(
+        record.kundliData,
+        record.name,
+        apiKey,
+        lang
+      );
+      setPrasadPdfData(data);
+      setTimeout(async () => {
+         try {
+           await generatePDFFromElement("prasad-pdf-container", `${record.name.replace(/\s+/g, '_')}_Prasad_Card.pdf`);
+         } catch (e) {
+           console.error("PDF Gen Error:", e);
+           alert("Failed to render PDF.");
+         } finally {
+           setPrasadPdfData(null);
+           setIsGeneratingPrasadPDF(false);
+         }
+      }, 1500);
+    } catch (e) {
+      console.error(e);
+      alert("Failed to generate PDF: " + String(e));
+      setIsGeneratingPrasadPDF(false);
     }
   };
 
@@ -583,11 +656,11 @@ export default function BaggonaPredictionsPage(): JSX.Element {
             </div>
           </div>
           
-          <div className="mt-6 flex justify-end">
+          <div className="mt-6 flex flex-col sm:flex-row flex-wrap justify-end gap-3">
             <button
               type="button"
               onClick={handleDownloadPremiumPDF}
-              disabled={isGeneratingPDF}
+              disabled={isGeneratingPDF || isGenerating6MonthPDF || isGeneratingPrasadPDF}
               className={`flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-amber-500/20 transition-all ${
                 isGeneratingPDF ? "opacity-70 cursor-wait" : "hover:scale-105 active:scale-95"
               }`}
@@ -601,6 +674,48 @@ export default function BaggonaPredictionsPage(): JSX.Element {
                 <>
                   <span>📄</span>
                   <span>{isKn ? "ಪ್ರೀಮಿಯಂ PDF ಡೌನ್‌ಲೋಡ್ (₹500)" : "Download Premium PDF Blueprint (₹500)"}</span>
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleDownload6MonthPDF}
+              disabled={isGeneratingPDF || isGenerating6MonthPDF || isGeneratingPrasadPDF}
+              className={`flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-500/20 transition-all ${
+                isGenerating6MonthPDF ? "opacity-70 cursor-wait" : "hover:scale-105 active:scale-95"
+              }`}
+            >
+              {isGenerating6MonthPDF ? (
+                <>
+                  <div className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                  <span>{isKn ? "ಕ್ಯಾಲೆಂಡರ್ ಸಿದ್ಧಪಡಿಸಲಾಗುತ್ತಿದೆ..." : "Generating 6-Month Calendar..."}</span>
+                </>
+              ) : (
+                <>
+                  <span>📅</span>
+                  <span>{isKn ? "೬ ತಿಂಗಳ ಕ್ಯಾಲೆಂಡರ್ ಡೌನ್‌ಲೋಡ್ (₹250)" : "Download 6-Month Calendar (₹250)"}</span>
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleDownloadPrasadPDF}
+              disabled={isGeneratingPDF || isGenerating6MonthPDF || isGeneratingPrasadPDF}
+              className={`flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-emerald-500/20 transition-all ${
+                isGeneratingPrasadPDF ? "opacity-70 cursor-wait" : "hover:scale-105 active:scale-95"
+              }`}
+            >
+              {isGeneratingPrasadPDF ? (
+                <>
+                  <div className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                  <span>{isKn ? "ಪ್ರಸಾದ ಕಾರ್ಡ್ ಸಿದ್ಧಪಡಿಸಲಾಗುತ್ತಿದೆ..." : "Generating Prasad Card..."}</span>
+                </>
+              ) : (
+                <>
+                  <span>📿</span>
+                  <span>{isKn ? "ಪ್ರಸಾದ ಕಾರ್ಡ್ ಡೌನ್‌ಲೋಡ್ (₹100)" : "Download Prasad Card (₹100)"}</span>
                 </>
               )}
             </button>
@@ -1483,8 +1598,20 @@ export default function BaggonaPredictionsPage(): JSX.Element {
 
       {/* Premium PDF Hidden Container */}
       {pdfData && (
-        <div style={{ position: "absolute", top: "-9999px", left: "-9999px", width: "794px" }}>
+        <div id="premium-pdf-container" style={{ position: "absolute", top: "-9999px", left: "-9999px", width: "794px" }}>
           <PremiumPDFTemplate prediction={pdfData} lang={lang} />
+        </div>
+      )}
+
+      {sixMonthPdfData && (
+        <div id="six-month-pdf-container" style={{ position: "absolute", top: "-9999px", left: "-9999px", width: "794px" }}>
+          <Next6MonthsCalendarTemplate data={sixMonthPdfData} kundli={record.kundliData} personName={record.name} pdfLanguage={lang} />
+        </div>
+      )}
+
+      {prasadPdfData && (
+        <div id="prasad-pdf-container" style={{ position: "absolute", top: "-9999px", left: "-9999px", width: "500px" }}>
+          <PrasadBagInsertTemplate data={prasadPdfData} kundli={record.kundliData} personName={record.name} pdfLanguage={lang} />
         </div>
       )}
 

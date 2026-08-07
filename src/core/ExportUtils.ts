@@ -63,24 +63,24 @@ export const exportSvgAsPdf = async (svgElement: SVGSVGElement, fileName: string
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    const pngData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
+    const pngData = canvas.toDataURL("image/jpeg", 0.75);
+    const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4", compress: true });
     const pageW = pdf.internal.pageSize.getWidth();
     const margin = 36;
     const drawW = pageW - margin * 2;
     const drawH = (canvas.height * drawW) / canvas.width;
-    pdf.addImage(pngData, "PNG", margin, margin, drawW, drawH);
+    pdf.addImage(pngData, "JPEG", margin, margin, drawW, drawH);
     pdf.save(`${fileName}.pdf`);
   } catch {
     const fallbackRoot = (svgElement.parentElement ?? svgElement) as unknown as HTMLElement;
     const canvas = await html2canvas(fallbackRoot);
-    const pngData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
+    const pngData = canvas.toDataURL("image/jpeg", 0.75);
+    const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4", compress: true });
     const pageW = pdf.internal.pageSize.getWidth();
     const margin = 36;
     const drawW = pageW - margin * 2;
     const drawH = (canvas.height * drawW) / canvas.width;
-    pdf.addImage(pngData, "PNG", margin, margin, drawW, drawH);
+    pdf.addImage(pngData, "JPEG", margin, margin, drawW, drawH);
     pdf.save(`${fileName}.pdf`);
   }
   await analytics.track("chart_exported_pdf");
@@ -108,14 +108,14 @@ export const exportElementAsPdf = async (element: HTMLElement, fileName: string)
     backgroundColor: "#fffdf8",
     logging: false
   });
-  const pngData = canvas.toDataURL("image/png");
-  const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
+  const pngData = canvas.toDataURL("image/jpeg", 0.75);
+  const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4", compress: true });
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
   const margin = 36;
   const drawW = pageW - margin * 2;
   const drawH = (canvas.height * drawW) / canvas.width;
-  pdf.addImage(pngData, "PNG", margin, margin, drawW, Math.min(drawH, pageH - margin * 2));
+  pdf.addImage(pngData, "JPEG", margin, margin, drawW, Math.min(drawH, pageH - margin * 2));
   pdf.save(`${fileName}.pdf`);
   await analytics.track("chart_exported_pdf");
 };
@@ -127,13 +127,13 @@ export const exportPanchangaWithDashaPdf = async (panchangaEl: HTMLElement, dash
     backgroundColor: "#fbf8f1",
     logging: false
   });
-  const pData = pCanvas.toDataURL("image/png");
+  const pData = pCanvas.toDataURL("image/jpeg", 0.75);
   const pdfW = 210;
   const pH = (pCanvas.height * pdfW) / pCanvas.width;
   
   // Initialize PDF with Panchanga page size
-  const pdf = new jsPDF("p", "mm", [pdfW, pH]);
-  pdf.addImage(pData, "PNG", 0, 0, pdfW, pH);
+  const pdf = new jsPDF({ orientation: "p", unit: "mm", format: [pdfW, pH], compress: true });
+  pdf.addImage(pData, "JPEG", 0, 0, pdfW, pH);
 
   // Capture Dasha
   const dCanvas = await html2canvas(dashaEl, {
@@ -142,12 +142,12 @@ export const exportPanchangaWithDashaPdf = async (panchangaEl: HTMLElement, dash
     backgroundColor: "#ffffff",
     logging: false
   });
-  const dData = dCanvas.toDataURL("image/png");
+  const dData = dCanvas.toDataURL("image/jpeg", 0.75);
   const dH = (dCanvas.height * pdfW) / dCanvas.width;
   
   // Add second page for Dasha with its specific size
   pdf.addPage([pdfW, dH], "p");
-  pdf.addImage(dData, "PNG", 0, 0, pdfW, dH);
+  pdf.addImage(dData, "JPEG", 0, 0, pdfW, dH);
 
   pdf.save(`${fileName}.pdf`);
   await analytics.track("chart_exported_pdf_combined");
@@ -160,12 +160,12 @@ export const exportDashaPdf = async (dashaEl: HTMLElement, fileName: string): Pr
     backgroundColor: "#ffffff",
     logging: false
   });
-  const data = canvas.toDataURL("image/png");
+  const data = canvas.toDataURL("image/jpeg", 0.75);
   const pdfW = 210;
   const pH = (canvas.height * pdfW) / canvas.width;
   
-  const pdf = new jsPDF("p", "mm", [pdfW, pH]);
-  pdf.addImage(data, "PNG", 0, 0, pdfW, pH);
+  const pdf = new jsPDF({ orientation: "p", unit: "mm", format: [pdfW, pH], compress: true });
+  pdf.addImage(data, "JPEG", 0, 0, pdfW, pH);
   pdf.save(`${fileName}.pdf`);
   await analytics.track("chart_exported_pdf");
 };
