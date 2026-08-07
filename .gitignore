@@ -7,3 +7,11 @@ coverage
 .env.*
 !.env.example
 .vercel
+
+# Secret/test files - never commit these
+list_models.mjs
+list_models_prod.mjs
+test_*.mjs
+scratch/test_api_key.js
+scratch/venv/
+*.mjs

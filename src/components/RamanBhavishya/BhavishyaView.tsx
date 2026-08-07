@@ -341,61 +341,28 @@ export default function BhavishyaView() {
       // Affair indicator detection using B.V. Raman classical rules
       const affairResult = detectAffairIndicators(session.result);
       const affairSection = (affairResult.hasAffairIndicators && affairResult.confidence !== "low")
-        ? `SPECIAL INSTRUCTION — AFFAIR/SECRET RELATIONSHIP INDICATORS: The classical Vedic kundali of this person contains ${affairResult.confidence}-confidence indicators of secret relationship tendencies based on B.V. Raman's rules. These are: ${affairResult.indicators.join("; ")}. You MUST include ONE dedicated paragraph about this — framed in respectful, dignified, astrological language. Do NOT use crude or judgemental words. Use phrases like "the stars reveal a hidden longing", "the planetary arrangement suggests a complex inner romantic world", or "karmic ties outside the primary relationship" — always frame it as a soul-level karmic pattern, not a moral judgement. If the person is not married, frame this as "secret romantic attractions" or "complex emotional entanglements".`
-        : `DO NOT add any section about affairs or secret relationships — the classical kundali does not confirm such indicators.`;
+        ? `Also include a brief paragraph about: the chart has ${affairResult.confidence}-confidence classical indicators of complex hidden romantic patterns (${affairResult.indicators.slice(0, 2).join("; ")}). Frame it respectfully as a karmic soul-pattern — dignified, astrological language, never judgemental.`
+        : `Do NOT add any affair or secret relationship content.`;
 
-      // Random style seed ensures different wording every generation
       const darkSecretStyleSeeds = [
-        "Use a mystical, prophetic tone as if reading from an ancient palm leaf manuscript.",
-        "Use a compassionate but unflinching tone — speak as a wise elder who has seen everything.",
-        "Use a dramatic, story-like narration — as if revealing a secret that has been buried for decades.",
-        "Use a poetic, metaphor-rich style — weave in images from nature, fire, water, and shadow.",
-        "Use a direct, unvarnished tone — piercing and clear, leaving no room for comfortable illusions.",
-        "Use a psychological, introspective tone — as if the astrologer is also a skilled counsellor.",
-        "Use a spiritual tone — referencing karma, past lives, and soul evolution throughout.",
-        "Use a cinematic, suspense-building style — build tension before revealing the core truth.",
-        "Use an empathetic, healing-oriented tone — acknowledge the pain while revealing the pattern.",
-        "Use a scholarly tone referencing classical Vedic concepts while remaining deeply personal."
+        "mystical prophetic tone", "compassionate elder's voice", "dramatic story-like narration",
+        "poetic metaphor-rich style", "direct unvarnished piercing clarity",
+        "psychological introspective tone", "spiritual karma framing",
+        "cinematic suspense-building", "empathetic healing voice", "scholarly Vedic tone"
       ];
       const darkSecretSeed = darkSecretStyleSeeds[Math.floor(Math.random() * darkSecretStyleSeeds.length)];
+      const planetPositions = session.result.planets.map(p => `${p.name} H${p.house}`).join(", ");
 
-      // Precise planet positions for this specific chart
-      const planetPositions = session.result.planets.map(p => `${p.name} in House ${p.house} (${p.rashi?.english || ''})`).join(", ");
-
-      const promptDarkSecret = `
-      You are an expert Vedic astrologer revealing the NIGUDA RAHASYA (Hidden Truth) of a specific individual's birth chart. Generate in JSON format.
-      The output must be strictly valid JSON and MUST be entirely in this language code: ${pdfLanguage}.
-      IMPORTANT: If the target language is Kannada (kn), Telugu (te), or Tamil (ta), you MUST use ONLY the native script of that language. ABSOLUTELY NO ENGLISH WORDS. DO NOT USE TRANSLITERATION. You must use pure native vocabulary. All astrological terms must be rendered in the target script.
-      
-      NARRATION STYLE THIS TIME: ${darkSecretSeed}
-      
-      CHART-SPECIFIC DATA (use these exact placements — do NOT use generic statements):
-      - Lagna (Ascendant): ${session.result.lagnaRashi?.sanskrit || session.result.lagnaRashi?.english || 'Unknown'}
-      - Moon Sign: ${session.result.moonSign?.sanskrit || 'Unknown'}
-      - Exact Planetary Positions: ${planetPositions}
-      - Shadow Self (from engine): Title: "${result.natalLayer.shadowSelf.title}" | Core Truth: "${result.natalLayer.shadowSelf.bluntTruth}"
-      - Karmic Baggage (from engine): "${result.natalLayer.karmicBaggage.description}" | Soul Purpose: "${result.natalLayer.karmicBaggage.soulPurpose}"
-      - Running Mahadasha: ${result.metadata.runningMahadasha} | Running Bhukti: ${result.metadata.runningBhukti}
-      
+      const promptDarkSecret = `You are an expert Vedic astrologer. Reveal the NIGUDA RAHASYA (hidden karmic truth) of this specific birth chart. Output ONLY valid JSON.
+      Language: ${pdfLanguage}. ${pdfLanguage === 'kn' || pdfLanguage === 'te' || pdfLanguage === 'ta' ? 'Use ONLY native script — no English words, no transliteration.' : ''}
+      Style: ${darkSecretSeed}.
+      Chart: Lagna=${session.result.lagnaRashi?.sanskrit || 'Unknown'}, Moon=${session.result.moonSign?.sanskrit || 'Unknown'}, Planets: ${planetPositions}.
+      Shadow: "${result.natalLayer.shadowSelf.bluntTruth.substring(0, 150)}"
+      Karma: "${result.natalLayer.karmicBaggage.soulPurpose.substring(0, 150)}"
+      Dasha: ${result.metadata.runningMahadasha}/${result.metadata.runningBhukti}.
       ${affairSection}
-      
-      CRITICAL INSTRUCTIONS:
-      1. You MUST reference the SPECIFIC planetary positions listed above — not generic astrology statements.
-      2. The first paragraph must reveal the DEEPEST hidden psychological shadow or karmic pattern of this person, rooted in the exact chart data.
-      3. The second paragraph must reveal how this shadow manifests practically in their life, relationships, or behaviour — and what karmic lesson it is asking them to face.
-      4. If the affair section is included, it forms a natural third paragraph.
-      5. Write with power, specificity, and emotional depth. Every sentence must be unique to THIS chart.
-      6. Do NOT start both paragraphs with the same phrase. Vary your sentence structures.
-      
-      Expected JSON Structure:
-      {
-        "darkSecret": [
-          {
-            "impact": "Write EXACTLY TWO (or THREE if affair section applies) detailed paragraphs separated by \\n. Each paragraph must be chart-specific, deeply personal, and powerfully written."
-          }
-        ]
-      }
-      `;
+      Write 2 paragraphs (or 3 if affair applies) — chart-specific, powerful, deeply personal. Vary sentence structure.
+      Return ONLY: {"darkSecret":[{"impact":"para1\\npara2"}]}`;
 
       
       const gocharaPositions = session.result.planets.map(p => `${p.name} in ${p.rashi.english}`);
@@ -481,29 +448,22 @@ export default function BhavishyaView() {
       const dataGochara = parseGeminiJSON(resGochara);
       const dataSummary = parseGeminiJSON(resSummary);
 
+
+      // Graceful fallbacks — never throw if one section fails; generate what we have
+      const fallbackDarkSecret = [{ impact: `${result.natalLayer.shadowSelf.bluntTruth}\n${result.natalLayer.karmicBaggage.soulPurpose}` }];
       const premiumDataPayload = {
-        characteristics: dataCharacteristics.characteristics || [],
-        darkSecret: dataDarkSecret.darkSecret || [],
-        yogas: dataYogas.yogas || [],
-        doshas: dataDoshas.doshas || [],
-        timeline: dataTimeline.timeline || [],
-        gochara: dataGochara.gochara || [],
-        summary: dataSummary.summary || []
+        characteristics: dataCharacteristics.characteristics?.length > 0 ? dataCharacteristics.characteristics : [{ impact: result.masterSynthesis.overallTone || "Planetary influences shape your unique personality." }],
+        darkSecret: dataDarkSecret.darkSecret?.length > 0 ? dataDarkSecret.darkSecret : fallbackDarkSecret,
+        yogas: dataYogas.yogas?.length > 0 ? dataYogas.yogas : (result.aiGeneratedNarrative?.yogas?.map(y => ({ name: y.name, impact: String(y.significance || ""), remedy: "" })) || [{ name: "Dasha Yoga", impact: result.masterSynthesis.overallTone, remedy: "" }]),
+        doshas: dataDoshas.doshas?.length > 0 ? dataDoshas.doshas : (result.aiGeneratedNarrative?.doshas?.map(d => ({ name: d.name, impact: String(d.significance || ""), remedy: d.remedy || "" })) || [{ name: "Karmic Challenge", impact: result.natalLayer.karmicBaggage.description, remedy: result.natalLayer.karmicBaggage.soulPurpose }]),
+        timeline: dataTimeline.timeline?.length > 0 ? dataTimeline.timeline : result.timingLayer.twelveMonthRoadmap.slice(0, 4).map(r => ({ dateRange: r.month, impact: r.prediction })),
+        gochara: dataGochara.gochara?.length > 0 ? dataGochara.gochara : [{ name: result.timingLayer.lifeClock.currentPhase, impact: result.timingLayer.lifeClock.description, remedy: result.timingLayer.lifeClock.emotionalValidation }],
+        summary: dataSummary.summary?.length > 0 ? dataSummary.summary : [{ impact: result.masterSynthesis.overallTone }]
       };
 
-      // Validation Step: Ensure no mandatory section is missing
-      if (
-        premiumDataPayload.characteristics.length === 0 ||
-        premiumDataPayload.darkSecret.length === 0 ||
-        premiumDataPayload.timeline.length === 0 ||
-        premiumDataPayload.yogas.length === 0 ||
-        premiumDataPayload.doshas.length === 0 ||
-        premiumDataPayload.gochara.length === 0 ||
-        premiumDataPayload.summary.length === 0 ||
-        !ashirvadaText ||
-        predictions.length < 5
-      ) {
-        throw new Error("Incomplete data: One or more sections failed to generate properly. Please try again.");
+      // Only hard-fail if truly no chart data at all (no predictions from engine)
+      if (predictions.length < 3) {
+        throw new Error("Chart data is insufficient. Please regenerate the Kundali and try again.");
       }
 
       setPremiumDataForPdf(premiumDataPayload);
