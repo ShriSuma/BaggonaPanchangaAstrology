@@ -169,6 +169,8 @@ export default function BaggonaPredictionsPage(): JSX.Element {
 
   const [isGeneratingPDF, setIsGeneratingPDF] = useState<boolean>(false);
   const [pdfData, setPdfData] = useState<MasterPredictionResult | null>(null);
+  /** Age in decimal years of the person at the time of PDF generation — used to age-gate the Niguda section */
+  const [pdfAgeYears, setPdfAgeYears] = useState<number | undefined>(undefined);
 
   const [isGenerating6MonthPDF, setIsGenerating6MonthPDF] = useState<boolean>(false);
   const [sixMonthPdfData, setSixMonthPdfData] = useState<SixMonthCalendarData | null>(null);
@@ -180,6 +182,16 @@ export default function BaggonaPredictionsPage(): JSX.Element {
     if (!record || !traditionalData) return;
     setIsGeneratingPDF(true);
     try {
+      // Compute age (decimal years) to age-gate the Niguda Rahasya section
+      const currentAgeYears = ageDecimalYearsAt(
+        record.birthDate,
+        record.birthTime,
+        record.latitude,
+        record.longitude,
+        new Date()
+      );
+      setPdfAgeYears(currentAgeYears);
+
       const masterPrediction = await generateMasterPrediction(record.kundliData, {
         name: record.name,
         birthDate: record.birthDate,
@@ -1599,7 +1611,7 @@ export default function BaggonaPredictionsPage(): JSX.Element {
       {/* Premium PDF Hidden Container */}
       {pdfData && (
         <div id="premium-pdf-container" style={{ position: "absolute", top: "-9999px", left: "-9999px", width: "794px" }}>
-          <PremiumPDFTemplate prediction={pdfData} lang={lang} />
+          <PremiumPDFTemplate prediction={pdfData} lang={lang} ageYears={pdfAgeYears} />
         </div>
       )}
 

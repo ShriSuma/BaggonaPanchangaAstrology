@@ -10,9 +10,13 @@ interface PremiumPDFTemplateProps {
   prediction: MasterPredictionResult;
   lang?: string;
   session?: KundliViewerSession | null;
+  /** Person's current age in decimal years. When <= 12, the Niguda (Dark Secret) section is omitted. */
+  ageYears?: number;
 }
 
-export const PremiumPDFTemplate: React.FC<PremiumPDFTemplateProps> = ({ prediction, lang = "en", session }) => {
+export const PremiumPDFTemplate: React.FC<PremiumPDFTemplateProps> = ({ prediction, lang = "en", session, ageYears }) => {
+  // Children (age <= 12) do not receive the Niguda Rahasya (Dark Secret) section
+  const isChild = typeof ageYears === "number" && ageYears <= 12;
   const { t: translate } = useTranslation();
   const isKn = lang.startsWith("kn");
 
@@ -351,8 +355,8 @@ export const PremiumPDFTemplate: React.FC<PremiumPDFTemplateProps> = ({ predicti
         </div>
       )}
 
-      {/* CHAPTER II: Dark Secret */}
-      {darkSecret.length > 0 && (
+      {/* CHAPTER II: Dark Secret (Niguda Rahasya) — hidden for children aged 12 and below */}
+      {!isChild && darkSecret.length > 0 && (
         <div className="pdf-page">
             <div className="chapter-num">{t.chapter} II</div>
             <h2>{t.darkSecretTitle}</h2>
