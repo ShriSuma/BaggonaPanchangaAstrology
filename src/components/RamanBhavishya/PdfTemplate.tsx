@@ -31,6 +31,15 @@ export type PdfTranslations = {
   gocharaTitle: string;
   summaryTitle: string;
   footer: string;
+  /**
+   * Opening greeting. Optional so the older non-premium exports, which do not
+   * build one, keep working unchanged.
+   */
+  introTitle?: string;
+  introGreeting?: string;
+  introPrepared?: string;
+  introRunning?: string;
+  introBegin?: string;
 };
 
 export type PremiumData = {
@@ -125,6 +134,42 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
           </div>
         )}
       </div>
+
+      {/* ── Introduction / Greeting ───────────────────────────────────────── */}
+      {translations.introGreeting && (
+        <div className={`${sectionClass} mx-16 mt-6 mb-2 border-y-2 border-double ${borderColorClass} bg-amber-100/20`}>
+          {translations.introTitle && (
+            <h2 className={`text-2xl font-bold ${primaryColorClass} leading-normal mb-6 tracking-wide`}>
+              {translations.introTitle}
+            </h2>
+          )}
+          <p className="text-3xl font-bold text-amber-900 leading-normal mb-8">
+            {translations.introGreeting}
+          </p>
+          <div className="space-y-6">
+            {translations.introPrepared && (
+              <p className="text-xl leading-loose text-amber-950 font-medium break-words">
+                {translations.introPrepared}
+              </p>
+            )}
+            {translations.introRunning && (
+              <p className="text-xl leading-loose text-amber-950 font-medium break-words">
+                {translations.introRunning}
+              </p>
+            )}
+            {translations.introBegin && (
+              <p className="text-xl leading-loose text-amber-900 font-bold italic break-words">
+                {translations.introBegin}
+              </p>
+            )}
+          </div>
+          <div className="flex items-center justify-center gap-4 opacity-70 mt-10">
+            <span className="w-16 h-0.5 bg-amber-700"></span>
+            <span className="text-xl text-amber-700">✧</span>
+            <span className="w-16 h-0.5 bg-amber-700"></span>
+          </div>
+        </div>
+      )}
 
       {/* ── Characteristics Section ───────────────────────────────────────── */}
       {premiumData?.characteristics && premiumData.characteristics.length > 0 && (

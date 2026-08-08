@@ -1,10 +1,23 @@
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 
+export type AskGeminiOptions = {
+  /**
+   * Send `contextData` to the model exactly as written instead of wrapping it in
+   * the generic reading shell below. Callers that build a full prompt of their own
+   * need this: the wrapper repeats its persona on every call, and when seven
+   * sections share one persona the model returns seven near-identical openings.
+   */
+  raw?: boolean;
+  /** Raised above the default to keep repeat downloads from reading the same. */
+  temperature?: number;
+};
+
 export async function askGemini(
   question: string,
   contextData: string,
   apiKey: string,
-  language: string
+  language: string,
+  options: AskGeminiOptions = {}
 ): Promise<string> {
   const languageNames: Record<string, string> = {
     "en": "English",
@@ -34,6 +47,9 @@ export async function askGemini(
     const genAI = new GoogleGenerativeAI(activeKey);
     const model = genAI.getGenerativeModel({ 
       model: "gemini-3.5-flash-lite",
+      ...(options.temperature !== undefined
+        ? { generationConfig: { temperature: options.temperature, topP: 0.95 } }
+        : {}),
       safetySettings: [
         { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
         { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
@@ -42,7 +58,7 @@ export async function askGemini(
       ]
     });
 
-    const prompt = `
+    const prompt = options.raw ? contextData : `
 You are a highly knowledgeable Vedic Astrologer providing an empathetic reading.
 Do not use markdown formatting like asterisks or hashtags since your response might be read aloud via text-to-speech.
 

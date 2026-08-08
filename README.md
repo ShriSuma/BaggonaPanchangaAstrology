@@ -56,6 +56,12 @@ A premium section that turns a saved Janana Patrika into a recommended seva, a p
 
 See **[SEVA_AND_PRASADA.md](./SEVA_AND_PRASADA.md)** for the scoring methodology, the seva recommendation rules, the language-purity design and the printing guide.
 
+## Premium PDF
+
+The Premium PDF on the Bhavishya page now honours its **PDF Language** radio button across the whole document, opens with a greeting naming the reader and their running Mahadasha and Bhukti, and feeds the full chart — natal positions, dasha, live transits, engine yogas, doshas and pariharas — into every AI chapter.
+
+See **[PREMIUM_PDF.md](./PREMIUM_PDF.md)** for the language-purity design, the fix for repeated wording between reprints, the Gochara accuracy fix, and where `src/core/AstroEngine.ts` went.
+
 ## 🔄 Development Workflow (MANDATORY)
 
 Every code change MUST follow this process:

@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { format, parseISO } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { usePredictionEngine } from "./usePredictionEngine";
@@ -14,8 +14,30 @@ import { findBhuktiAtAge } from "../../core/DashaBhuktiEngine";
 import { generateMasterPrediction } from "../../core/MasterPredictionEngine";
 import { detectAffairIndicators } from "../../core/layers/NatalLayer";
 import { askGemini } from "../../core/GeminiEngine";
+import { getTransitsForDate } from "../../core/BaggonaPredictionEngine";
+import type { PlanetName } from "../../core/AstroTypes";
 import { PremiumPDFTemplate } from "../pdf/PremiumPDFTemplate";
 import { generatePDFFromElement } from "../../utils/pdfGenerator";
+import {
+  type GrahaKey,
+  tp,
+  pick,
+  GRAHA_L5,
+  RASHI_L5,
+  NAKSHATRA_L5,
+  formatBirthLine,
+  greetingLine,
+  runningPeriodSentence,
+  newRunId
+} from "../../features/premiumPdf/premiumPdfLocale";
+import {
+  buildPremiumPrompts,
+  type NatalPlacement,
+  type TransitPlacement
+} from "../../features/premiumPdf/premiumPrompts";
+
+/** `PlanetName` is a string enum, so it needs a nudge to become the locale key. */
+const toGraha = (planet: PlanetName | string): GrahaKey => String(planet) as GrahaKey;
 
 
 const DEEP_INSIGHT_CATEGORIES = [
@@ -39,7 +61,16 @@ export default function BhavishyaView() {
   const [isGeneratingPremiumPdf, setIsGeneratingPremiumPdf] = useState(false);
   const [pdfLanguage, setPdfLanguage] = useState(language);
   const [premiumDataForPdf, setPremiumDataForPdf] = useState<PremiumData | null>(null);
+  const [premiumPredictions, setPremiumPredictions] = useState<TranslatedPrediction[] | null>(null);
   const geminiApiKey = useAppStore((state) => state.geminiApiKey);
+  const ayanamsaModel = useAppStore((state) => state.ayanamsaModel);
+
+  // Follow the app language until the reader picks a PDF language of their own,
+  // then leave their choice alone.
+  const pdfLanguagePicked = useRef(false);
+  useEffect(() => {
+    if (!pdfLanguagePicked.current) setPdfLanguage(language);
+  }, [language]);
 
   const pdfRef = useRef<HTMLDivElement>(null);
   const premiumPdfRef = useRef<HTMLDivElement>(null);
@@ -183,10 +214,11 @@ export default function BhavishyaView() {
     try {
       if (!session) throw new Error("No session");
 
+      // Everything below follows the PDF language radio button, never the app language.
+      const lang = pdfLanguage;
+      const runId = newRunId();
+
       const moonPlanet = session.result.planets.find(p => p.name === 'Moon');
-      const baseNakshatra = moonPlanet ? (moonPlanet.nakshatra.sanskrit || moonPlanet.nakshatra.english) : 'Unknown';
-      
-      const ashirvadaText = ashirvada || `Based on your planetary alignments and current cosmic era, may the divine forces grant you strength, clarity, and peace. Trust in your inner resilience and allow the universe to guide your path.`;
 
       const now = new Date();
       const ageYears = ageDecimalYearsAt(
@@ -197,59 +229,66 @@ export default function BhavishyaView() {
         now
       );
       const currentBhuktiData = findBhuktiAtAge(session.result, ageYears);
+      const mahaLord = currentBhuktiData ? toGraha(currentBhuktiData.maha.planet) : null;
+      const bhuktiLord = currentBhuktiData ? toGraha(currentBhuktiData.bhukti) : null;
 
-      let dashaPlanetValue = "";
-      let bhuktiPlanetValue = "";
-
-      if (currentBhuktiData) {
-        dashaPlanetValue = await translateText(currentBhuktiData.maha.planet, language);
-        bhuktiPlanetValue = await translateText(currentBhuktiData.bhukti, language);
-      }
-
-      let formattedDob = "";
-      try {
-        const dobDate = parseISO(session.input.birthDate);
-        formattedDob = format(dobDate, "dd MMM yyyy");
-      } catch (e) {
-        formattedDob = session.input.birthDate;
-      }
-      const dobWithTime = `${formattedDob}, ${session.input.birthTime}`;
+      const ashirvadaSource = ashirvada
+        || "May the divine forces grant you strength, clarity and peace, and may you trust your own resilience.";
 
       const translatedData: PdfTranslations = {
-        title: await translateText("Baggona Panchanga", language),
-        subtitle: await translateText("Detailed Astrology Reading", language),
-        nameLabel: await translateText("Name", language),
-        nameValue: await translateText(session.input.name, language),
-        dobLabel: await translateText("Birth Details", language),
-        dobValue: await translateText(dobWithTime, language),
-        lagnaLabel: await translateText("Birth Lagna (Ascendant)", language),
-        lagnaValue: await translateText(session.result.lagnaRashi?.sanskrit || 'Unknown', language),
-        moonLabel: await translateText("Moon Sign (Rashi)", language),
-        moonValue: await translateText(session.result.moonSign.sanskrit, language),
-        nakshatraLabel: await translateText("Nakshatra", language),
-        nakshatraValue: await translateText(baseNakshatra, language),
-        eraLabel: await translateText("Current Cosmic Era", language),
-        dashaLabel: await translateText("Dasha", language),
-        bhuktiLabel: await translateText("Bhukti", language),
-        dashaPlanetValue,
-        bhuktiPlanetValue,
-        ashirvadaTitle: await translateText("Astrologer's Blessing (Ashirvada)", language),
-        ashirvadaValue: await translateText(ashirvadaText, language),
-        footer: await translateText("Generated gracefully by Baggona Panchanga Astrology Engine", language),
-        yogasTitle: await translateText("Special Planetary Combinations (Yogas)", language),
-        doshasTitle: await translateText("Karmic Challenges (Doshas)", language),
-        remedyTitle: await translateText("Recommended Remedy:", language),
-        characteristicsTitle: await translateText("Characteristics (Vyaktitva)", language),
-        darkSecretTitle: await translateText("The Dark Secret (Nigoodha Satya)", language),
-        timelineTitle: await translateText("6-Month Planetary Timeline", language),
-        gocharaTitle: await translateText("Current Transit Effects (Gochara)", language),
-        summaryTitle: await translateText("Astrologer's Summary", language),
+        title: tp("title", lang),
+        subtitle: tp("subtitle", lang),
+        nameLabel: tp("nameLabel", lang),
+        nameValue: session.input.name, // a person's name is never put through a translator
+        dobLabel: tp("dobLabel", lang),
+        dobValue: formatBirthLine(lang, session.input.birthDate, session.input.birthTime),
+        lagnaLabel: tp("lagnaLabel", lang),
+        lagnaValue: session.result.lagnaRashi ? pick(RASHI_L5[session.result.lagnaRashi.index], lang) : "",
+        moonLabel: tp("moonLabel", lang),
+        moonValue: pick(RASHI_L5[session.result.moonSign.index], lang),
+        nakshatraLabel: tp("nakshatraLabel", lang),
+        nakshatraValue: moonPlanet ? pick(NAKSHATRA_L5[moonPlanet.nakshatra.index], lang) : "",
+        eraLabel: tp("eraLabel", lang),
+        dashaLabel: tp("dashaLabel", lang),
+        bhuktiLabel: tp("bhuktiLabel", lang),
+        dashaPlanetValue: mahaLord ? pick(GRAHA_L5[mahaLord], lang) : "",
+        bhuktiPlanetValue: bhuktiLord ? pick(GRAHA_L5[bhuktiLord], lang) : "",
+        ashirvadaTitle: tp("ashirvadaTitle", lang),
+        ashirvadaValue: await translateText(ashirvadaSource, lang),
+        footer: tp("footer", lang),
+        yogasTitle: tp("yogasTitle", lang),
+        doshasTitle: tp("doshasTitle", lang),
+        remedyTitle: tp("remedyTitle", lang),
+        characteristicsTitle: tp("characteristicsTitle", lang),
+        darkSecretTitle: tp("darkSecretTitle", lang),
+        timelineTitle: tp("timelineTitle", lang),
+        gocharaTitle: tp("gocharaTitle", lang),
+        summaryTitle: tp("summaryTitle", lang),
+        introTitle: tp("introTitle", lang),
+        introGreeting: greetingLine(lang, session.input.name),
+        introPrepared: tp("introPrepared", lang),
+        introRunning: mahaLord && bhuktiLord ? runningPeriodSentence(lang, mahaLord, bhuktiLord) : "",
+        introBegin: tp("introBegin", lang),
       };
-      
+
       setPdfTranslations(translatedData);
 
+      // The life-stage cards were written for the app language. If the reader asked for a
+      // different one, carry them across so the finished book is in a single language.
+      const sourcePredictions = currentMindset ? [currentMindset, ...predictions] : predictions;
+      const localisedPredictions: TranslatedPrediction[] = lang === language
+        ? sourcePredictions
+        : await Promise.all(
+            sourcePredictions.map(async (pred) => ({
+              ...pred,
+              translatedCategory: await translateText(pred.translatedCategory, lang),
+              translatedText: await translateText(pred.translatedText, lang),
+            }))
+          );
+      setPremiumPredictions(localisedPredictions);
+
       const deepInsights: Record<string, string> = {};
-      for (const pred of predictions) {
+      for (const pred of localisedPredictions) {
         deepInsights[pred.translatedCategory] = pred.translatedText;
       }
       setPdfDeepInsights(deepInsights);
@@ -260,7 +299,7 @@ export default function BhavishyaView() {
         birthTime: session.input.birthTime,
         latitude: session.input.latitude,
         longitude: session.input.longitude,
-        lang: language
+        lang
       });
       
       const parseGeminiJSON = (text: string) => {
@@ -273,171 +312,73 @@ export default function BhavishyaView() {
         }
       };
 
-      const promptYogas = `
-      You are an expert Vedic astrologer. Generate highly engaging narrative in JSON format.
-      The output must be strictly valid JSON and MUST be entirely in this language code: ${pdfLanguage}.
-      IMPORTANT: If the target language is Kannada (kn), Telugu (te), or Tamil (ta), you MUST use ONLY the native script of that language. ABSOLUTELY NO ENGLISH WORDS. DO NOT USE TRANSLITERATION (e.g., writing English words like 'maintaining', 'balance', 'career' in the native script). You must use pure native vocabulary. Translate all Yoga names strictly into the requested language script.
-      
-      Data - Yogas: ${JSON.stringify(result.aiGeneratedNarrative?.yogas || [])}
-      
-      CRITICAL INSTRUCTION: For each Yoga, you MUST write at least TWO full, highly descriptive paragraphs for the 'impact' field.
-      
-      Expected JSON Structure:
-      {
-        "yogas": [
-          {
-            "name": "Yoga Name",
-            "impact": "Write AT LEAST TWO detailed paragraphs explaining how it impacts them emotionally and practically."
-          }
-        ]
-      }
-      `;
-      
-      const promptDoshas = `
-      You are an expert Vedic astrologer. Generate highly engaging narrative in JSON format.
-      The output must be strictly valid JSON and MUST be entirely in this language code: ${pdfLanguage}.
-      IMPORTANT: If the target language is Kannada (kn), Telugu (te), or Tamil (ta), you MUST use ONLY the native script of that language. ABSOLUTELY NO ENGLISH WORDS. DO NOT USE TRANSLITERATION (e.g., writing English words like 'maintaining', 'balance', 'career' in the native script). You must use pure native vocabulary. Translate all Dosha names strictly into the requested language script.
-      
-      Data - Doshas/Karmic Baggage: ${JSON.stringify(result.aiGeneratedNarrative?.doshas || [])}
-      Data - Shadow Self: ${JSON.stringify(result.natalLayer.shadowSelf)}
-      Data - Planets: ${JSON.stringify(session.result.planets)}
-      
-      CRITICAL INSTRUCTION: Analyze the planetary data and karmic baggage to identify AT LEAST 2 doshas or deep karmic challenges (such as Mangalik, Kala Sarpa, Kemadruma, Rahu/Ketu afflictions, etc). For each Dosha, you MUST write at least TWO full, highly descriptive paragraphs for the 'impact' field. If no traditional dosha is found, identify strong negative planetary influences and frame them as Doshas. YOU MUST RETURN AT LEAST TWO DOSHAS.
-      
-      Expected JSON Structure:
-      {
-        "doshas": [
-          {
-            "name": "Dosha Name",
-            "impact": "Write AT LEAST TWO detailed paragraphs explaining how it is causing suffering.",
-            "remedy": "Actionable remedy to resolve this."
-          }
-        ]
-      }
-      `;
-
-      const promptCharacteristics = `
-      You are an expert Vedic astrologer. Generate highly engaging narrative in JSON format.
-      The output must be strictly valid JSON and MUST be entirely in this language code: ${pdfLanguage}.
-      IMPORTANT: If the target language is Kannada (kn), Telugu (te), or Tamil (ta), you MUST use ONLY the native script of that language. ABSOLUTELY NO ENGLISH WORDS. DO NOT USE TRANSLITERATION (e.g., writing English words like 'maintaining', 'balance', 'career' in the native script). You must use pure native vocabulary.
-      
-      Data - Core Personality: ${JSON.stringify(predictions.filter(p => p.translatedCategory === "Core Personality" || p.translatedCategory === "Basic Nature" || p.category === "Basic Nature"))}
-      Data - Karmic & Shadow: ${JSON.stringify(result.natalLayer)}
-      Data - Planets: ${JSON.stringify(session.result.planets)}
-      
-      CRITICAL INSTRUCTION: Analyze the basic nature and personality deeply. Write EXACTLY 2 paragraphs explaining the deep personality traits, behavior, and true nature of the person based on the above data.
-      You MUST explicitly mention if the person has any negative traits, bad influences, addictions (like alcohol, gambling, or bad habits), or a tendency to lie/deceive, based on the karmic and planetary afflictions. Be ruthlessly honest.
-      
-      Expected JSON Structure:
-      {
-        "characteristics": [
-          {
-            "impact": "Write EXACTLY TWO detailed paragraphs (separated by \\n) explaining their personality, including any dark or addictive tendencies."
-          }
-        ]
-      }
-      `;
-
       // Affair indicator detection using B.V. Raman classical rules
       const affairResult = detectAffairIndicators(session.result);
-      const affairSection = (affairResult.hasAffairIndicators && affairResult.confidence !== "low")
-        ? `Also include a brief paragraph about: the chart has ${affairResult.confidence}-confidence classical indicators of complex hidden romantic patterns (${affairResult.indicators.slice(0, 2).join("; ")}). Frame it respectfully as a karmic soul-pattern — dignified, astrological language, never judgemental.`
-        : `Do NOT add any affair or secret relationship content.`;
+      const affairNote = (affairResult.hasAffairIndicators && affairResult.confidence !== "low")
+        ? `The chart carries ${affairResult.confidence}-confidence classical indicators of hidden romantic complexity (${affairResult.indicators.slice(0, 2).join("; ")}). Give this one short paragraph, framed as a karmic soul-pattern in dignified language. Never judgemental.`
+        : `This chart shows no confirmed indicator of a secret relationship. Do not raise the subject at all.`;
 
-      const darkSecretStyleSeeds = [
-        "mystical prophetic tone", "compassionate elder's voice", "dramatic story-like narration",
-        "poetic metaphor-rich style", "direct unvarnished piercing clarity",
-        "psychological introspective tone", "spiritual karma framing",
-        "cinematic suspense-building", "empathetic healing voice", "scholarly Vedic tone"
-      ];
-      const darkSecretSeed = darkSecretStyleSeeds[Math.floor(Math.random() * darkSecretStyleSeeds.length)];
-      const planetPositions = session.result.planets.map(p => `${p.name} H${p.house}`).join(", ");
+      // Real transit positions for today, counted from the birth Moon. The old prompt
+      // passed the natal chart under a "current transits" label, so every Gochara
+      // chapter was written against the wrong sky.
+      const liveTransits = getTransitsForDate(session.result.moonSign.index, now, ayanamsaModel);
+      const transits: TransitPlacement[] = Object.entries(liveTransits).map(([planet, pos]) => ({
+        graha: toGraha(planet),
+        rashiIndex: pos.rashiIndex,
+        houseFromMoon: pos.house
+      }));
 
-      const promptDarkSecret = `You are an expert Vedic astrologer. Reveal the NIGUDA RAHASYA (hidden karmic truth) of this specific birth chart. Output ONLY valid JSON.
-      Language: ${pdfLanguage}. ${pdfLanguage === 'kn' || pdfLanguage === 'te' || pdfLanguage === 'ta' ? 'Use ONLY native script — no English words, no transliteration.' : ''}
-      Style: ${darkSecretSeed}.
-      Chart: Lagna=${session.result.lagnaRashi?.sanskrit || 'Unknown'}, Moon=${session.result.moonSign?.sanskrit || 'Unknown'}, Planets: ${planetPositions}.
-      Shadow: "${result.natalLayer.shadowSelf.bluntTruth.substring(0, 150)}"
-      Karma: "${result.natalLayer.karmicBaggage.soulPurpose.substring(0, 150)}"
-      Dasha: ${result.metadata.runningMahadasha}/${result.metadata.runningBhukti}.
-      ${affairSection}
-      Write 2 paragraphs (or 3 if affair applies) — chart-specific, powerful, deeply personal. Vary sentence structure.
-      Return ONLY: {"darkSecret":[{"impact":"para1\\npara2"}]}`;
+      const natalPlanets: NatalPlacement[] = session.result.planets.map(p => ({
+        graha: toGraha(p.name),
+        rashiIndex: p.rashi.index,
+        house: p.house,
+        retrograde: p.isRetrograde,
+        debilitated: p.isDebilitated,
+        exalted: p.isExalted
+      }));
 
-      
-      const gocharaPositions = session.result.planets.map(p => `${p.name} in ${p.rashi.english}`);
-      const promptGochara = `
-      You are an expert Vedic astrologer. Generate highly engaging narrative in JSON format.
-      The output must be strictly valid JSON and MUST be entirely in this language code: ${pdfLanguage}.
-      IMPORTANT: If the target language is Kannada (kn), Telugu (te), or Tamil (ta), you MUST use ONLY the native script of that language. ABSOLUTELY NO ENGLISH WORDS. DO NOT USE TRANSLITERATION (e.g., writing English words like 'maintaining', 'balance', 'career' in the native script). You must use pure native vocabulary. Translate all Gochara names strictly into the requested language script.
-      Specifically, the "name" field of the Gochara effect MUST be completely translated into the target language. Do not use English names for Gochara effects.
+      const prompts = buildPremiumPrompts({
+        lang,
+        runId,
+        name: session.input.name,
+        ageYears,
+        lagnaRashiIndex: session.result.lagnaRashi?.index ?? null,
+        moonRashiIndex: session.result.moonSign.index,
+        moonNakshatraIndex: moonPlanet?.nakshatra.index ?? null,
+        sunRashiIndex: session.result.sunSign?.index ?? null,
+        natalPlanets,
+        transits,
+        mahaLord,
+        bhuktiLord,
+        bhuktiEndsAtAge: currentBhuktiData?.bhuktiEndAge ?? null,
+        engineYogas: result.aiGeneratedNarrative?.yogas ?? [],
+        engineDoshas: result.aiGeneratedNarrative?.doshas ?? [],
+        pariharas: (result.pariharas ?? []).map(
+          p => `${p.doshaName}: ${p.poojaName} (${p.whenToDo}, ${p.whereToDo})`
+        ),
+        shadowSelf: result.natalLayer.shadowSelf.bluntTruth,
+        karmicBaggage: result.natalLayer.karmicBaggage.soulPurpose,
+        lifePhase: result.timingLayer.lifeClock.currentPhase,
+        overallTone: result.masterSynthesis.overallTone,
+        careerNote: result.masterSynthesis.career,
+        financeNote: result.masterSynthesis.finance,
+        roadmap: result.timingLayer.twelveMonthRoadmap,
+        affairNote
+      });
 
-      Data - Moon Sign (Natal): ${session.result.moonSign.sanskrit}
-      Data - Current Transit Positions (Gochara): ${JSON.stringify(gocharaPositions)}
-      
-      CRITICAL INSTRUCTION: Analyze the current transits (Gochara) from the natal Moon sign. Identify ALL major transit effects currently active for this person (e.g., Sade Sati, Ashtama Shani, Guru Balam, Rahu/Ketu transits, etc.). DO NOT limit to just 1 or 2. For EVERY active major transit effect, you MUST write at least TWO full, highly descriptive paragraphs. Create a highly engaging, story-driven explanation of what this transit means for them right now, and a practical remedy.
-      
-      Expected JSON Structure:
-      {
-        "gochara": [
-          {
-            "name": "Translate the name of the transit effect (e.g., Sade Sati, Ashtama Shani) strictly into the target language. NO ENGLISH.",
-            "impact": "Write EXACTLY TWO highly detailed paragraphs...",
-            "remedy": "A practical remedy"
-          }
-        ]
-      }
-      `;
-
-      const promptSummary = `
-      You are an expert Vedic astrologer. Generate highly engaging narrative in JSON format.
-      The output must be strictly valid JSON and MUST be entirely in this language code: ${pdfLanguage}.
-      IMPORTANT: If the target language is Kannada (kn), Telugu (te), or Tamil (ta), you MUST use ONLY the native script of that language. ABSOLUTELY NO ENGLISH WORDS. DO NOT USE TRANSLITERATION (e.g., writing English words like 'maintaining', 'balance', 'career' in the native script). You must use pure native vocabulary.
-      
-      Data - Yogas: ${JSON.stringify(result.aiGeneratedNarrative?.yogas || [])}
-      Data - Doshas: ${JSON.stringify(result.aiGeneratedNarrative?.doshas || [])}
-      Data - Timeline: ${JSON.stringify(result.timingLayer.twelveMonthRoadmap.slice(0, 6))}
-      
-      CRITICAL INSTRUCTION: Write a final Astrologer's Summary (2 to 3 paragraphs) summarizing their entire life reading, blending the Yogas, Doshas, and upcoming Timeline into a cohesive, encouraging conclusion.
-      
-      Expected JSON Structure:
-      {
-        "summary": [
-          {
-            "impact": "Write 2 to 3 paragraphs summarizing the reading."
-          }
-        ]
-      }
-      `;
-
-      const promptTimeline = `
-      You are an expert Vedic astrologer. Generate a highly engaging 6-Month Planetary Influence Timeline narrative in JSON format.
-      The output must be strictly valid JSON and MUST be entirely in this language code: ${pdfLanguage}.
-      IMPORTANT: If the target language is Kannada (kn), Telugu (te), or Tamil (ta), you MUST use ONLY the native script of that language. ABSOLUTELY NO ENGLISH WORDS. DO NOT USE TRANSLITERATION (e.g., writing English words like 'maintaining', 'balance', 'career' in the native script). You must use pure native vocabulary.
-      
-      Data - Next 12 Months Roadmap: ${JSON.stringify(result.timingLayer.twelveMonthRoadmap.slice(0, 6))}
-      
-      CRITICAL INSTRUCTION: Based strictly on the provided Roadmap data generated by our engine, highlight the top 3 or 4 major planetary transits or period changes that will influence the user's life over the next 6 months. For each entry, create ONE VERY LARGE, HIGHLY DETAILED PARAGRAPH explaining the exact astrological effects, challenges, and opportunities the user will face. Do not be concise; be extremely descriptive and comprehensive.
-      
-      Expected JSON Structure:
-      {
-        "timeline": [
-          {
-            "dateRange": "e.g. Oct 2026 - Nov 2026",
-            "impact": "One very large, highly detailed paragraph (at least 6-8 sentences) explaining the astrological influences..."
-          }
-        ]
-      }
-      `;
+      // `raw` keeps each chapter's own persona intact instead of burying it under the
+      // shared wrapper, and the temperature stops repeat downloads reading identically.
+      const ask = (label: string, prompt: string) =>
+        askGemini(label, prompt, geminiApiKey, lang, { raw: true, temperature: 1 });
 
       const [resYogas, resDoshas, resCharacteristics, resDarkSecret, resTimeline, resGochara, resSummary] = await Promise.all([
-        askGemini("Generate Premium Yogas", promptYogas, geminiApiKey, pdfLanguage),
-        askGemini("Generate Premium Doshas", promptDoshas, geminiApiKey, pdfLanguage),
-        askGemini("Generate Characteristics", promptCharacteristics, geminiApiKey, pdfLanguage),
-        askGemini("Generate Dark Secret", promptDarkSecret, geminiApiKey, pdfLanguage),
-        askGemini("Generate Planetary Timeline", promptTimeline, geminiApiKey, pdfLanguage),
-        askGemini("Generate Gochara", promptGochara, geminiApiKey, pdfLanguage),
-        askGemini("Generate Summary", promptSummary, geminiApiKey, pdfLanguage)
+        ask("Generate Premium Yogas", prompts.yogas),
+        ask("Generate Premium Doshas", prompts.doshas),
+        ask("Generate Characteristics", prompts.characteristics),
+        ask("Generate Dark Secret", prompts.darkSecret),
+        ask("Generate Planetary Timeline", prompts.timeline),
+        ask("Generate Gochara", prompts.gochara),
+        ask("Generate Summary", prompts.summary)
       ]);
 
       const dataYogas = parseGeminiJSON(resYogas);
@@ -498,6 +439,7 @@ export default function BhavishyaView() {
     } finally {
       setIsGeneratingPremiumPdf(false);
       setPremiumDataForPdf(null); // Cleanup
+      setPremiumPredictions(null);
     }
   };
 
@@ -760,7 +702,10 @@ export default function BhavishyaView() {
                   name="pdfLang" 
                   value={lang.code} 
                   checked={pdfLanguage === lang.code} 
-                  onChange={() => setPdfLanguage(lang.code as "en" | "hi" | "kn" | "te" | "ta")} 
+                  onChange={() => {
+                    pdfLanguagePicked.current = true;
+                    setPdfLanguage(lang.code as "en" | "hi" | "kn" | "te" | "ta");
+                  }} 
                   className="w-4 h-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
                 />
                 <span className="text-sm font-medium text-slate-700 uppercase">{lang.name}</span>
@@ -964,7 +909,7 @@ export default function BhavishyaView() {
             ref={premiumPdfRef} 
             theme="sunrise" 
             session={session} 
-            predictions={currentMindset ? [currentMindset, ...predictions] : predictions} 
+            predictions={premiumPredictions ?? (currentMindset ? [currentMindset, ...predictions] : predictions)} 
             translations={pdfTranslations}
             deepInsights={pdfDeepInsights}
             premiumData={premiumDataForPdf}
