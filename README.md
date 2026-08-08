@@ -50,6 +50,12 @@ South chart and downloaded patrikā **do not show degree/minute text** on grahas
 
 For **legal-grade** agreement with a given desktop program, match their **ayanāṃśa**, **node type**, **house system**, and **timezone**; this app documents its choices above.
 
+## Seva and Prasada (Gokarna Kshetra)
+
+A premium section that turns a saved Janana Patrika into a recommended seva, a personal six-month calendar and a printable Prasada kit. It is gated on an active chart session, computed entirely on the device, and hand-translated into all five languages with no runtime translation.
+
+See **[SEVA_AND_PRASADA.md](./SEVA_AND_PRASADA.md)** for the scoring methodology, the seva recommendation rules, the language-purity design and the printing guide.
+
 ## 🔄 Development Workflow (MANDATORY)
 
 Every code change MUST follow this process:

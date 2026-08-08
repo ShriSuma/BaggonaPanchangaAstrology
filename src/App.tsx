@@ -14,6 +14,7 @@ import MuhurthaPage from "./pages/MuhurthaPage";
 import VarshaBavishyaPage from "./pages/VarshaBavishyaPage";
 import RamanBhavishyaPage from "./pages/RamanBhavishyaPage";
 import AIAstrologerPage from "./pages/AIAstrologerPage";
+import SevaPage from "./pages/SevaPage";
 import { useAppStore } from "./stores/appStore";
 
 export default function App(): JSX.Element {
@@ -52,6 +53,7 @@ export default function App(): JSX.Element {
         {currentPage === "varshabavishya" && <VarshaBavishyaPage />}
         {currentPage === "ramanbhavishya" && <RamanBhavishyaPage />}
         {currentPage === "aiaastrologer" && <AIAstrologerPage />}
+        {currentPage === "seva" && <SevaPage />}
       </Layout>
     </ErrorBoundary>
   );
