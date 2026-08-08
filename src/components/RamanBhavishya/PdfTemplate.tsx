@@ -71,7 +71,8 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
   const shloka = "असतो मा सद्गमय। तमसो मा ज्योतिर्गमय। मृत्योर्मा अमृतं गमय॥";
 
   // Section padding shared across all sections for consistency
-  const sectionClass = "pdf-section px-6 py-10 relative";
+  // px-14 = 56px horizontal clearance from edge — keeps all content well inside the border lines
+  const sectionClass = "pdf-section px-14 py-10 relative";
 
   return (
     <div 
@@ -83,7 +84,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
       <div className={`absolute inset-8 border border-dashed ${borderColorClass} pointer-events-none opacity-60`} />
 
       {/* ── Cover / Header Section ────────────────────────────────────────── */}
-      <div className="pdf-section text-center mt-12 mb-8 px-16 pt-10 pb-8">
+      <div className="pdf-section text-center mt-12 mb-8 px-20 pt-10 pb-8">
         <h1 className={`text-4xl font-bold mb-6 uppercase ${primaryColorClass} px-10 leading-normal`}>{translations.title}</h1>
         <p className="text-2xl italic opacity-90 mb-8">{translations.subtitle}</p>
         <div className="flex items-center justify-center gap-4 opacity-70">
@@ -94,7 +95,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
       </div>
 
       {/* ── User Details Box ──────────────────────────────────────────────── */}
-      <div className={`pdf-section grid grid-cols-2 gap-y-10 gap-x-12 mb-4 mx-12 p-12 border-[3px] double ${borderColorClass} bg-amber-100/30`}>
+      <div className={`pdf-section grid grid-cols-2 gap-y-10 gap-x-12 mb-4 mx-16 p-12 border-[3px] double ${borderColorClass} bg-amber-100/30`}>
         <div className="flex flex-col border-b border-dashed border-amber-900/20 pb-4">
           <span className={`text-xl uppercase font-bold opacity-80 mb-2 ${primaryColorClass}`}>{translations.nameLabel}</span>
           <span className="text-2xl font-bold text-amber-950">{translations.nameValue}</span>
@@ -318,14 +319,14 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
       )}
 
       {/* ── Sanskrit Shloka ───────────────────────────────────────────────── */}
-      <div className={`pdf-section my-4 text-center mx-12 px-16 py-14 border-y-[3px] border-double ${borderColorClass} bg-amber-100/30`}>
+      <div className={`pdf-section my-4 text-center mx-16 px-20 py-14 border-y-[3px] border-double ${borderColorClass} bg-amber-100/30`}>
         <p className="text-3xl font-bold leading-loose text-amber-900" style={{ fontFamily: 'Noto Sans Devanagari, serif' }}>
           {shloka}
         </p>
       </div>
 
       {/* ── Astrologer's Blessing ─────────────────────────────────────────── */}
-      <div className="pdf-section mt-4 text-center px-20 pb-16">
+      <div className="pdf-section mt-4 text-center px-20 pb-20">
         <div className="text-6xl text-amber-600 mb-6 drop-shadow-md opacity-90" style={{ fontFamily: 'Noto Sans Devanagari, serif' }}>ॐ</div>
         <h3 className={`text-3xl font-bold mb-8 italic ${primaryColorClass} leading-normal`}>
           {translations.ashirvadaTitle}
