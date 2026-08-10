@@ -1,31 +1,33 @@
 ---
 name: baggona-astrology-master
-description: Master skill for the Baggona Panchanga Astrology project. Contains strict guidelines on API models, architecture, and UI structure to avoid repeating previous mistakes.
+description: Master skill for the Baggona Panchanga Astrology project. Defines strict rules on API model selection (gemini-3.5-flash-lite), quota protection, project architecture, 5-language locale system, and development guidelines.
 ---
 
 # Baggona Astrology Master Skill
 
-This skill contains the master instructions and constraints for the Baggona Panchanga Astrology project. YOU MUST FOLLOW THESE RULES strictly when generating predictions, editing files, or handling API models.
+This is the primary authority skill for the Baggona Panchanga Astrology codebase. Activate or reference this skill when performing core architecture changes, API integrations, engine updates, or multi-language features.
 
-## 1. API Models & Rate Limiting
-- **CRITICAL**: The user is subject to strict rate limits (e.g., 20 requests per day) with standard Gemini models (like `gemini-1.5-flash`).
-- To circumvent this and ensure the application remains functional, the project exclusively uses `gemini-3.5-flash-lite` as the standard model in the codebase (e.g., in `src/core/GeminiEngine.ts`).
-- **NEVER** "fix" or change `gemini-3.5-flash-lite` back to `gemini-1.5-flash` or any other model unless explicitly instructed by the user. Doing so will immediately break the UI and PDF generation with rate limit errors or model availability errors.
+## 1. API Quota & Rate Limit Protection (CRITICAL)
+- **Model Standard**: Codebase MUST exclusively use `gemini-3.5-flash-lite` for all Gemini AI calls (e.g. in `src/core/GeminiEngine.ts` and `BhavishyaView.tsx`).
+- **DO NOT CHANGE MODEL**: Never change `gemini-3.5-flash-lite` to `gemini-1.5-flash` or `gemini-2.0-flash`. Standard models trigger strict rate limits (e.g., 20 requests/day) and lock the user out for days.
+- **3-Attempt Automatic Retry**: All Gemini requests must implement an automatic 3-retry loop with exponential backoff (2s, 3s, 4.5s) to handle transient 429 / 503 errors gracefully.
+- **API Call Conservation**: Batch API requests or execute sequentially where needed to avoid concurrency throttle. Never fire duplicate calls for data already computed by the local C++/JS engines (`TraditionalBaggonaEngine.ts` / `BaggonaPredictionEngine.ts`).
 
-## 2. Architecture & File Naming
-- The project is built using React, Vite, and TypeScript.
-- The original core engine `BvRamanPredictionEngine.ts` has been renamed to `BaggonaPredictionEngine.ts` across the project. Do not reintroduce B.V. Raman naming.
-- All translations should seamlessly fall back to `gtx` (Google Translate free endpoint) if no `GOOGLE_TRANSLATE_API_KEY` is present.
-- Premium PDF generation uses `lib/premiumPdfCore.mjs` and `PremiumPDFTemplate.tsx`.
+## 2. 5-Language Native Locale Engine
+- The project supports **5 Indian & Global Languages**: Kannada (`kn`), Telugu (`te`), Tamil (`ta`), Hindi (`hi`), and English (`en`).
+- **No Machine Translation Leaks**: Hand-authored 5-language dictionaries (`premiumPdfLocale.ts`, `sevaLocale.ts`) MUST be used for names, Grahas, Rashis, Nakshatras, Weekdays, and Section Headers.
+- **Proper Nouns**: User names (`session.input.name`) are NEVER machine-translated.
+- **Greeting Line**: Use `greetingLine(lang, name)` which returns pure native script (e.g., `ನಮಸ್ಕಾರ ಪ್ರಮೋದ್ ಕೊಡಗಿ,`).
 
-## 3. Tool Usage Best Practices
-- Avoid using regex for string replacements via python scripts. Use `replace_file_content` or standard python `replace()` to avoid escape character issues.
-- Do not run `cat` in bash to create/append to files.
-- Thoroughly check `useEffect` and `useState` dependencies when dealing with API fetch logic in the UI components like `BhavishyaView.tsx`.
-- Surface API errors clearly in the UI. If `setPredictions` catches an error, ensure it renders properly instead of just failing silently to "No predictions available".
+## 3. Architecture & Code Structure
+- **Framework**: React 18, Vite 5, Tailwind CSS, TypeScript.
+- **Engines**: 
+  - `TraditionalBaggonaEngine.ts`: Offline 100% mathematical Panchanga, Vara, Tithi, Nakshatra, Yoga, Karana, Dasha/Bhukti calculator.
+  - `GeminiEngine.ts`: Gemini API interface for AI narrative predictions.
+  - `BaggonaPredictionEngine.ts`: Classical B.V. Raman prediction rules.
+- **State Management**: Zustand store (`useKundliViewerStore`, `useAppStore`).
 
-## 4. UI & Features
-- The Raman Bhavishya section is completely focused on "Life Stage Predictions" combined with Premium PDF.
-- PDF downloads use `html2canvas` and `jsPDF`. The `PremiumPDFTemplate` is rendered hidden off-screen until needed.
-
-Always remember: Do not modify the API model string unless you are 100% sure the user has access to it and rate limit restrictions won't break the experience.
+## 4. Verification & Testing Protocol
+- Always run `npm run build` to verify zero TypeScript errors before declaring a task complete.
+- Test dev server using `npm run dev -- --port 5173`.
+- Commit all changes to the active release branch (`release/seva-and-prasada` or feature branch).
