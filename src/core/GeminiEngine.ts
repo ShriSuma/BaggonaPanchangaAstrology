@@ -73,27 +73,29 @@ Use the native script of the requested language (e.g., Kannada script for Kannad
 `;
 
     let retries = 3;
-    let delay = 3000;
+    let delay = 2000;
 
     while (retries > 0) {
       try {
         const result = await model.generateContent(prompt);
         const response = await result.response;
-        return response.text().trim();
+        const text = response.text().trim();
+        if (text) return text;
+        throw new Error("Empty response from AI model");
       } catch (error: any) {
-        if (error.status === 429 && retries > 1) {
-          console.warn(`Rate limited by Gemini API. Retrying in ${delay}ms...`);
+        retries--;
+        if (retries > 0) {
+          console.warn(`[Gemini Retry] Attempt failed (${error.message || error}). Retrying in ${delay}ms... (${retries} attempts left)`);
           await new Promise(resolve => setTimeout(resolve, delay));
-          retries--;
-          delay *= 2;
+          delay *= 1.5;
         } else {
-          console.error("Gemini AI Error:", error);
-          return "Sorry, I encountered an error while consulting the stars. Please check your API key or try again.";
+          console.error("Gemini AI Error after 3 retries:", error);
+          throw error;
         }
       }
     }
     
-    return "Sorry, I encountered an error while consulting the stars. Please try again later.";
+    throw new Error("Failed to generate response after 3 retries.");
   } catch (error) {
     console.error("Gemini Engine Initialization Error:", error);
     return "Sorry, I encountered an error while consulting the stars. Please check your API key or try again.";

@@ -15,9 +15,11 @@ import { generateMasterPrediction } from "../../core/MasterPredictionEngine";
 import { detectAffairIndicators } from "../../core/layers/NatalLayer";
 import { askGemini } from "../../core/GeminiEngine";
 import { getTransitsForDate } from "../../core/BaggonaPredictionEngine";
+import { calculateTraditionalBaggona } from "../../core/TraditionalBaggonaEngine";
 import type { PlanetName } from "../../core/AstroTypes";
 import { PremiumPDFTemplate } from "../pdf/PremiumPDFTemplate";
 import { generatePDFFromElement } from "../../utils/pdfGenerator";
+import { WEEKDAY_L5 } from "../../features/seva/sevaLocale";
 import {
   type GrahaKey,
   tp,
@@ -28,6 +30,7 @@ import {
   formatBirthLine,
   greetingLine,
   runningPeriodSentence,
+  buildComprehensiveIntro,
   newRunId
 } from "../../features/premiumPdf/premiumPdfLocale";
 import {
@@ -231,6 +234,7 @@ export default function BhavishyaView() {
       const currentBhuktiData = findBhuktiAtAge(session.result, ageYears);
       const mahaLord = currentBhuktiData ? toGraha(currentBhuktiData.maha.planet) : null;
       const bhuktiLord = currentBhuktiData ? toGraha(currentBhuktiData.bhukti) : null;
+      const panchanga = calculateTraditionalBaggona(session.birthDateYmd, session.birthTimeHm, session.input.latitude, session.input.longitude);
 
       const ashirvadaSource = ashirvada
         || "May the divine forces grant you strength, clarity and peace, and may you trust your own resilience.";
@@ -266,7 +270,17 @@ export default function BhavishyaView() {
         summaryTitle: tp("summaryTitle", lang),
         introTitle: tp("introTitle", lang),
         introGreeting: greetingLine(lang, session.input.name),
-        introPrepared: tp("introPrepared", lang),
+        introPrepared: buildComprehensiveIntro(lang, {
+          name: session.input.name,
+          lagna: session.result.lagnaRashi ? pick(RASHI_L5[session.result.lagnaRashi.index], lang) : "",
+          moonSign: pick(RASHI_L5[session.result.moonSign.index], lang),
+          nakshatra: moonPlanet ? pick(NAKSHATRA_L5[moonPlanet.nakshatra.index], lang) : "",
+          birthWeekday: pick(WEEKDAY_L5[panchanga.weekdayIndex], lang),
+          birthDateFormatted: formatBirthLine(lang, session.input.birthDate, session.input.birthTime).split(",")[0],
+          birthTime: session.input.birthTime,
+          mahaLord: mahaLord ? pick(GRAHA_L5[mahaLord], lang) : "",
+          bhuktiLord: bhuktiLord ? pick(GRAHA_L5[bhuktiLord], lang) : ""
+        }),
         introRunning: mahaLord && bhuktiLord ? runningPeriodSentence(lang, mahaLord, bhuktiLord) : "",
         introBegin: tp("introBegin", lang),
       };
@@ -389,22 +403,68 @@ export default function BhavishyaView() {
       const dataGochara = parseGeminiJSON(resGochara);
       const dataSummary = parseGeminiJSON(resSummary);
 
-
-      // Graceful fallbacks — never throw if one section fails; generate what we have
-      const fallbackDarkSecret = [{ impact: `${result.natalLayer.shadowSelf.bluntTruth}\n${result.natalLayer.karmicBaggage.soulPurpose}` }];
-      const premiumDataPayload = {
-        characteristics: dataCharacteristics.characteristics?.length > 0 ? dataCharacteristics.characteristics : [{ impact: result.masterSynthesis.overallTone || "Planetary influences shape your unique personality." }],
-        darkSecret: dataDarkSecret.darkSecret?.length > 0 ? dataDarkSecret.darkSecret : fallbackDarkSecret,
-        yogas: dataYogas.yogas?.length > 0 ? dataYogas.yogas : (result.aiGeneratedNarrative?.yogas?.map(y => ({ name: y.name, impact: String(y.significance || ""), remedy: "" })) || [{ name: "Dasha Yoga", impact: result.masterSynthesis.overallTone, remedy: "" }]),
-        doshas: dataDoshas.doshas?.length > 0 ? dataDoshas.doshas : (result.aiGeneratedNarrative?.doshas?.map(d => ({ name: d.name, impact: String(d.significance || ""), remedy: d.remedy || "" })) || [{ name: "Karmic Challenge", impact: result.natalLayer.karmicBaggage.description, remedy: result.natalLayer.karmicBaggage.soulPurpose }]),
-        timeline: dataTimeline.timeline?.length > 0 ? dataTimeline.timeline : result.timingLayer.twelveMonthRoadmap.slice(0, 4).map(r => ({ dateRange: r.month, impact: r.prediction })),
-        gochara: dataGochara.gochara?.length > 0 ? dataGochara.gochara : [{ name: result.timingLayer.lifeClock.currentPhase, impact: result.timingLayer.lifeClock.description, remedy: result.timingLayer.lifeClock.emotionalValidation }],
-        summary: dataSummary.summary?.length > 0 ? dataSummary.summary : [{ impact: result.masterSynthesis.overallTone }]
+      const ensureValidSection = async (
+        items: any[] | undefined,
+        fallbackText: string
+      ): Promise<{ name?: string; impact: string; remedy?: string; dateRange?: string }[]> => {
+        const validItems = (items || []).filter(item => (item?.impact || "").trim().length > 15);
+        if (validItems.length > 0) {
+          return validItems;
+        }
+        const translatedFallback = await translateText(fallbackText, lang);
+        return [{ impact: translatedFallback }];
       };
 
-      // Only hard-fail if truly no chart data at all (no predictions from engine)
-      if (predictions.length < 3) {
-        throw new Error("Chart data is insufficient. Please regenerate the Kundali and try again.");
+      const rawCharFallback = `${result.masterSynthesis.overallTone || 'Planetary positions shape a dynamic personality.'}\n\n${result.natalLayer.shadowSelf.bluntTruth || ''}`;
+      const rawSecretFallback = `${result.natalLayer.shadowSelf.bluntTruth || 'Inner drive shapes deep character.'}\n\n${result.natalLayer.karmicBaggage.soulPurpose || ''}`;
+      const rawSummaryFallback = `${result.masterSynthesis.overallTone || 'A balanced planetary outlook for the future.'}\n\n${result.masterSynthesis.career || ''}\n\n${result.masterSynthesis.finance || ''}`;
+
+      const finalCharacteristics = await ensureValidSection(dataCharacteristics.characteristics, rawCharFallback);
+      const finalDarkSecret = await ensureValidSection(dataDarkSecret.darkSecret, rawSecretFallback);
+      const finalSummary = await ensureValidSection(dataSummary.summary, rawSummaryFallback);
+
+      const finalYogas = (dataYogas.yogas || []).filter((y: any) => (y?.impact || "").trim().length > 10).length > 0
+        ? dataYogas.yogas
+        : (result.aiGeneratedNarrative?.yogas?.map(y => ({ name: y.name, impact: String(y.significance || ""), remedy: "" })) || [{ name: "Dasha Yoga", impact: result.masterSynthesis.overallTone, remedy: "" }]);
+
+      const finalDoshas = (dataDoshas.doshas || []).filter((d: any) => (d?.impact || "").trim().length > 10).length > 0
+        ? dataDoshas.doshas
+        : (result.aiGeneratedNarrative?.doshas?.map(d => ({ name: d.name, impact: String(d.significance || ""), remedy: d.remedy || "" })) || [{ name: "Karmic Challenge", impact: result.natalLayer.karmicBaggage.description, remedy: result.natalLayer.karmicBaggage.soulPurpose }]);
+
+      const finalTimeline = (dataTimeline.timeline || []).filter((t: any) => (t?.impact || "").trim().length > 10).length > 0
+        ? dataTimeline.timeline
+        : result.timingLayer.twelveMonthRoadmap.slice(0, 4).map(r => ({ dateRange: r.month, impact: r.prediction }));
+
+      const finalGochara = (dataGochara.gochara || []).filter((g: any) => (g?.impact || "").trim().length > 10).length > 0
+        ? dataGochara.gochara
+        : [{ name: result.timingLayer.lifeClock.currentPhase, impact: result.timingLayer.lifeClock.description, remedy: result.timingLayer.lifeClock.emotionalValidation }];
+
+      const premiumDataPayload = {
+        characteristics: finalCharacteristics,
+        darkSecret: finalDarkSecret,
+        yogas: finalYogas,
+        doshas: finalDoshas,
+        timeline: finalTimeline,
+        gochara: finalGochara,
+        summary: finalSummary
+      };
+
+      // Strict Audit Guard: Verify all 7 sections have valid text content
+      const requiredSections = [
+        { name: "Characteristics", items: finalCharacteristics },
+        { name: "Dark Secret", items: finalDarkSecret },
+        { name: "Yogas", items: finalYogas },
+        { name: "Doshas", items: finalDoshas },
+        { name: "Timeline", items: finalTimeline },
+        { name: "Gochara", items: finalGochara },
+        { name: "Summary", items: finalSummary }
+      ];
+
+      const emptyOrInvalid = requiredSections.filter(sec => !sec.items || sec.items.length === 0 || !sec.items.some((i: any) => (i.impact || "").trim().length > 10));
+
+      if (emptyOrInvalid.length > 0) {
+        console.error("[PDF Generation Guard Failure] Missing section content:", emptyOrInvalid.map(e => e.name));
+        throw new Error(`Incomplete PDF: The ${emptyOrInvalid.map(e => e.name).join(", ")} section(s) could not be generated cleanly. Please click download again.`);
       }
 
       setPremiumDataForPdf(premiumDataPayload);
@@ -459,6 +519,8 @@ export default function BhavishyaView() {
         now
       );
       const currentBhuktiData = findBhuktiAtAge(session.result, ageYears);
+      const a4MoonPlanet = session.result.planets.find(p => p.name === "Moon");
+      const a4Panchanga = calculateTraditionalBaggona(session.birthDateYmd, session.birthTimeHm, session.input.latitude, session.input.longitude);
 
       let formattedDob = "";
       try {
@@ -502,6 +564,21 @@ export default function BhavishyaView() {
         gocharaTitle: await tx("Current Planetary Transits (Gochara)", pdfLanguage),
         summaryTitle: await tx("Astrologer's Summary", pdfLanguage),
         footer: await tx("Generated gracefully by Baggona Panchanga Astrology Engine", pdfLanguage),
+        introTitle: tp("introTitle", pdfLanguage),
+        introGreeting: greetingLine(pdfLanguage, session.input.name),
+        introPrepared: buildComprehensiveIntro(pdfLanguage, {
+          name: session.input.name,
+          lagna: session.result.lagnaRashi ? pick(RASHI_L5[session.result.lagnaRashi.index], pdfLanguage) : "",
+          moonSign: pick(RASHI_L5[session.result.moonSign.index], pdfLanguage),
+          nakshatra: a4MoonPlanet ? pick(NAKSHATRA_L5[a4MoonPlanet.nakshatra.index], pdfLanguage) : "",
+          birthWeekday: pick(WEEKDAY_L5[a4Panchanga.weekdayIndex], pdfLanguage),
+          birthDateFormatted: formatBirthLine(pdfLanguage, session.input.birthDate, session.input.birthTime).split(",")[0],
+          birthTime: session.input.birthTime,
+          mahaLord: currentBhuktiData ? pick(GRAHA_L5[toGraha(currentBhuktiData.maha.planet)], pdfLanguage) : "",
+          bhuktiLord: currentBhuktiData ? pick(GRAHA_L5[toGraha(currentBhuktiData.bhukti)], pdfLanguage) : ""
+        }),
+        introRunning: currentBhuktiData ? runningPeriodSentence(pdfLanguage, toGraha(currentBhuktiData.maha.planet), toGraha(currentBhuktiData.bhukti)) : "",
+        introBegin: tp("introBegin", pdfLanguage),
       };
 
       const deepInsightsArr = await Promise.all(
@@ -566,21 +643,30 @@ export default function BhavishyaView() {
       ];
       const a4DarkSecretSeed = a4StyleSeeds[Math.floor(Math.random() * a4StyleSeeds.length)];
       const a4PlanetPositions = session.result.planets.map((p: {name: string; house: number; rashi?: {english?: string}}) => `${p.name} in House ${p.house} (${p.rashi?.english || ''})`).join(", ");
-      const promptDarkSecret = `
-      You are an expert Vedic astrologer revealing the NIGUDA RAHASYA of a specific birth chart. Generate in JSON format.
-      The output must be strictly valid JSON and MUST be entirely in language code: ${pdfLanguage}.
-      IMPORTANT: For Kannada (kn), Telugu (te), Tamil (ta) — use ONLY the native script. ABSOLUTELY NO ENGLISH or transliteration. Pure native vocabulary only.
-      NARRATION STYLE THIS TIME: ${a4DarkSecretSeed}
-      CHART DATA (reference these specifically):
-      - Lagna: ${session.result.lagnaRashi?.sanskrit || session.result.lagnaRashi?.english || 'Unknown'}
-      - Moon Sign: ${session.result.moonSign?.sanskrit || 'Unknown'}
-      - Planetary Positions: ${a4PlanetPositions}
-      - Shadow Self: "${result.natalLayer.shadowSelf.bluntTruth}"
-      - Karmic Baggage: "${result.natalLayer.karmicBaggage.description}"
-      - Dasha: ${result.metadata.runningMahadasha} / ${result.metadata.runningBhukti}
-      ${a4AffairSection}
-      CRITICAL: Reference the specific planetary positions. Paragraph 1 = deepest hidden shadow/pattern. Paragraph 2 = how it manifests in life and what karmic lesson is being asked. If affair applies, add Paragraph 3. Never generic. Always chart-specific and powerfully written.
-      Return: { "darkSecret": [{ "impact": "Paragraphs separated by \\n" }] }`;
+      const promptDarkSecret = `You are a wise astrologer who can see the deepest hidden truth about this person — the truth they carry silently inside, never speak about to family or society, but feel in every quiet moment. This is their NIGUDA RAHASYA.
+
+OUTPUT LANGUAGE: ${pdfLanguage}.${pdfLanguage === 'kn' ? ' Write ONLY in Kannada script. Every single word must be pure Kannada. No English, no transliteration.' : pdfLanguage === 'te' ? ' Write ONLY in Telugu script. Every word must be pure Telugu.' : pdfLanguage === 'ta' ? ' Write ONLY in Tamil script. Every word must be pure Tamil.' : pdfLanguage === 'hi' ? ' Write ONLY in Hindi (Devanagari). Every word must be pure Hindi.' : ' Write in clear, simple English.'}
+
+THIS PERSON'S HIDDEN TRUTH (use all of this as the foundation):
+- Shadow pattern: ${result.natalLayer.shadowSelf.bluntTruth}
+- Hidden wound: ${result.natalLayer.shadowSelf.description}
+- Soul wound: ${result.natalLayer.karmicBaggage.description}
+- What they keep avoiding: ${result.natalLayer.karmicBaggage.soulPurpose}
+- Lagna: ${session.result.lagnaRashi?.sanskrit || session.result.lagnaRashi?.english || 'Unknown'}, Moon: ${session.result.moonSign?.sanskrit || 'Unknown'}
+- Key Planet Placements: ${a4PlanetPositions}
+- Running Dasha / Bhukti: ${result.metadata.runningMahadasha} / ${result.metadata.runningBhukti}
+${a4AffairSection}
+
+STRICT WRITING RULES — FOLLOW EVERY RULE WITHOUT EXCEPTION:
+1. Write EXACTLY 2 paragraphs. Both paragraphs must be FULLY COMPLETE — no sentence may be cut in the middle.
+2. PARAGRAPH 1 — THE SECRET THEY CARRY: Reveal the one deep truth this person hides from everyone. The private pain, fear, or wound they guard carefully from family, friends, and society. Base it on the shadow data above. Speak directly to them using "you". Be specific, emotionally honest. It must feel like a private revelation that shocks because it is TRUE — not because it is dramatic.
+3. PARAGRAPH 2 — HOW IT SHAPES THEIR LIFE: Show how this hidden truth silently controls their relationships, choices, and happiness — without them realising it. Name the pattern that keeps repeating. End with one powerful, compassionate sentence that tells them: it is time to face this.
+4. Use SIMPLE words that any person can read and feel. No astrological jargon in the output paragraphs. No planet names in the body text.
+5. Every sentence must be grammatically complete. Never cut a sentence mid-thought.
+6. Tone: like a private, confidential letter from someone who truly sees their soul — shocking, intimate, and compassionate.
+
+Return ONLY this JSON (no extra text before or after):
+{"darkSecret":[{"impact":"COMPLETE PARAGRAPH 1\\nCOMPLETE PARAGRAPH 2"}]}`;
       const promptGochara = `You are an expert Vedic astrologer. Analyze 3-4 key current planetary transits. Language: ${pdfLanguage}. Data: ${JSON.stringify(result.timingLayer?.twelveMonthRoadmap?.slice(0, 3) || [])}. Return { "gochara": [{ "planet": "", "transit": "", "impact": "" }] }.`;
       const promptSummary = `You are an expert Vedic astrologer. Write a 2-3 paragraph final summary blending Yogas, Doshas, and Timeline. Language: ${pdfLanguage}. Data - Yogas: ${JSON.stringify(result.aiGeneratedNarrative?.yogas || [])}. Return { "summary": [{ "impact": "" }] }.`;
       const promptTimeline = `You are an expert Vedic astrologer. Generate a 6-Month Planetary Influence Timeline. Language: ${pdfLanguage}. Data: ${JSON.stringify(result.timingLayer?.twelveMonthRoadmap?.slice(0, 6) || [])}. Return { "timeline": [{ "dateRange": "", "impact": "" }] }.`;

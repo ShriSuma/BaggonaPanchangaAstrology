@@ -36,6 +36,7 @@ export interface TraditionalBaggonaPanchanga {
   tithiVighati: number;
   weekday: string;
   weekdayKn: string;
+  weekdayIndex: number;
   sunNakshatra: string;
   sunNakshatraKn: string;
   sunNakshatraGhati: number;
@@ -335,6 +336,7 @@ export function calculateTraditionalBaggona(
     tithiVighati: tEnd.vighati,
     weekday,
     weekdayKn,
+    weekdayIndex: wdIdx,
     sunNakshatra,
     sunNakshatraKn,
     sunNakshatraGhati: sEnd.ghati,

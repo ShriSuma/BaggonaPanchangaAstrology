@@ -131,7 +131,7 @@ export const PDF_T: Record<string, L5> = {
     hi: "आगामी छह माह का फल"
   },
   gocharaTitle: {
-    en: "Current Transits",
+    en: "Current Planetary Transits",
     kn: "ಪ್ರಸ್ತುತ ಗೋಚಾರ ಫಲ",
     te: "ప్రస్తుత గోచార ఫలితం",
     ta: "தற்போதைய கோசார பலன்",
@@ -151,15 +151,6 @@ export const PDF_T: Record<string, L5> = {
     ta: "ஆசீர்வாதம்",
     hi: "आशीर्वाद"
   },
-  footer: {
-    en: "Prepared with care by Baggona Panchanga, Gokarna",
-    kn: "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ, ಗೋಕರ್ಣ — ಶ್ರದ್ಧೆಯಿಂದ ಸಿದ್ಧಪಡಿಸಲಾಗಿದೆ",
-    te: "బగ్గోణ పంచాంగం, గోకర్ణ — శ్రద్ధతో సిద్ధం చేయబడినది",
-    ta: "பக்கோண பஞ்சாங்கம், கோகர்ணம் — சிரத்தையுடன் தயாரிக்கப்பட்டது",
-    hi: "बग्गोण पंचांग, गोकर्ण — श्रद्धापूर्वक तैयार किया गया"
-  },
-
-  /* Introduction block */
   introTitle: {
     en: "A Word Before We Begin",
     kn: "ಆರಂಭಕ್ಕೂ ಮೊದಲು ಒಂದು ಮಾತು",
@@ -197,9 +188,6 @@ export const tp = (key: keyof typeof PDF_T | string, lang: string): string => {
 
 /* ------------------------------------------------------------------ *
  * The running-period sentence
- *
- * Kept as a per-language sentence template rather than glued-together
- * fragments, because word order differs across these five languages.
  * ------------------------------------------------------------------ */
 
 const RUNNING_SENTENCE: L5 = {
@@ -225,6 +213,42 @@ export const greetingLine = (lang: string, name: string): string => {
   const trimmed = (name || "").trim();
   if (!trimmed) return `${hello},`;
   return lang === "hi" ? `${hello} ${trimmed} जी,` : `${hello} ${trimmed},`;
+};
+
+/* ------------------------------------------------------------------ *
+ * Comprehensive Chart Introduction Sentence (5-Language Templated)
+ * ------------------------------------------------------------------ */
+
+export interface ChartIntroDetails {
+  name: string;
+  lagna: string;
+  moonSign: string;
+  nakshatra: string;
+  birthWeekday: string;
+  birthDateFormatted: string;
+  birthTime: string;
+  mahaLord?: string;
+  bhuktiLord?: string;
+}
+
+const COMPREHENSIVE_INTRO_TEMPLATE: L5 = {
+  en: "I have carefully analyzed your Janma Kundali. You were born under {lagna} Lagna, {moonSign} Rashi, and {nakshatra} Nakshatra on a {birthWeekday} ({birthDateFormatted} at {birthTime}). Currently, you are passing through {maha} Mahadasha and {bhukti} Bhukti. Based on these precise cosmic alignments, your detailed birth chart analysis is presented below.",
+  kn: "ನಾನು ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಅತ್ಯಂತ ಶ್ರದ್ಧೆಯಿಂದ ಪರಿಶೀಲಿಸಿದ್ದೇನೆ. ನೀವು {birthWeekday} ({birthDateFormatted} ಸಮಯ {birthTime}) ದಿನದಂದು {lagna} ಲಗ್ನ, {moonSign} ರಾಶಿ ಮತ್ತು {nakshatra} ನಕ್ಷತ್ರದಲ್ಲಿ ಜನಿಸಿದ್ದೀರಿ. ಪ್ರಸ್ತುತ ನೀವು {maha} ಮಹಾದಶೆಯಲ್ಲಿ {bhukti} ಭುಕ್ತಿಯಲ್ಲಿ ನಡೆಯುತ್ತಿದ್ದೀರಿ. ಈ ಗ್ರಹ ಸ್ಥಿತಿಗಳ ಆಧಾರದ ಮೇಲೆ ನಿಮ್ಮ ಜಾತಕದ ವಿಸ್ತೃತ ಫಲಗಳನ್ನು ಕೆಳಗೆ ನೀಡಲಾಗಿದೆ.",
+  te: "నేను మీ జన్మ కుండలిని అత్యంత శ్రద్ధతో పరిశీలించాను. మీరు {birthWeekday} ({birthDateFormatted} సమయం {birthTime}) రోజున {lagna} లగ్నం, {moonSign} రాశి మరియు {nakshatra} నక్షత్రంలో జన్మించారు. ప్రస్తుతం మీరు {maha} మహాదశలో {bhukti} భుక్తిలో నడుస్తున్నారు. ఈ గ్రహ స్థితుల ఆధారంగా మీ జాతక ఫలితాలు క్రింద వివరించబడ్డాయి.",
+  ta: "நான் உங்கள் ஜென்ம ஜாதகத்தை மிகவும் கவனமாக ஆராய்ந்துள்ளேன். நீங்கள் {birthWeekday} ({birthDateFormatted} நேரம் {birthTime}) அன்று {lagna} லக்னம், {moonSign} ராசி மற்றும் {nakshatra} நட்சத்திரத்தில் அவதரித்துள்ளீர்கள். தற்போது நீங்கள் {maha} மகாதசையில் {bhukti} புக்தியில் நடந்து கொண்டிருக்கிறீர்கள். இதன் அடிப்படையில் உங்கள் விரிவான ஜாதக பலன்கள் கீழே வழங்கப்பட்டுள்ளன.",
+  hi: "मैंने आपकी जन्म कुंडली का अत्यंत सूक्ष्मता से विश्लेषण किया है। आपका जन्म {birthWeekday} ({birthDateFormatted} समय {birthTime}) को {lagna} लग्न, {moonSign} राशि एवं {nakshatra} नक्षत्र में हुआ था। वर्तमान में आप {maha} महादशा एवं {bhukti} भुक्ति के प्रभाव में हैं। इन ग्रहों के आधार पर आपका विस्तृत फल नीचे प्रस्तुत है।"
+};
+
+export const buildComprehensiveIntro = (lang: string, details: ChartIntroDetails): string => {
+  return pick(COMPREHENSIVE_INTRO_TEMPLATE, lang)
+    .replace("{lagna}", details.lagna || "")
+    .replace("{moonSign}", details.moonSign || "")
+    .replace("{nakshatra}", details.nakshatra || "")
+    .replace("{birthWeekday}", details.birthWeekday || "")
+    .replace("{birthDateFormatted}", details.birthDateFormatted || "")
+    .replace("{birthTime}", details.birthTime || "")
+    .replace("{maha}", details.mahaLord || "")
+    .replace("{bhukti}", details.bhuktiLord || "");
 };
 
 /* ------------------------------------------------------------------ *
