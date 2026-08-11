@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import Card from "../components/ui/Card";
 import PrasadaKit from "../components/seva/PrasadaKit";
 import SevaCalendar from "../components/seva/SevaCalendar";
+import SevaCalendarSyncModal from "../components/seva/SevaCalendarSyncModal";
 import SevaDayDetail from "../components/seva/SevaDayDetail";
 import SevaRecommendations from "../components/seva/SevaRecommendations";
 import { T, pick } from "../features/seva/sevaLocale";
@@ -32,6 +33,7 @@ export default function SevaPage(): JSX.Element {
 
   const [tab, setTab] = useState<SevaTab>("seva");
   const [selectedYmd, setSelectedYmd] = useState("");
+  const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
 
   // Land on today once the six months are ready.
   useEffect(() => {
@@ -120,19 +122,29 @@ export default function SevaPage(): JSX.Element {
             {pick(T.pageSubtitle!, lang)}
           </p>
 
-          <div className="mt-4 flex flex-wrap gap-2">
-            <IdentityChip label={pick(T.labelName!, lang)} value={identity.personName} />
-            <IdentityChip
-              label={pick(T.labelRashi!, lang)}
-              value={rashiName(identity.rashiIndex, lang)}
-            />
-            <IdentityChip
-              label={pick(T.labelNakshatra!, lang)}
-              value={nakshatraName(identity.nakshatraIndex, lang)}
-            />
-            {identity.gotra && (
-              <IdentityChip label={pick(T.labelGotra!, lang)} value={identity.gotra} />
-            )}
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap gap-2">
+              <IdentityChip label={pick(T.labelName!, lang)} value={identity.personName} />
+              <IdentityChip
+                label={pick(T.labelRashi!, lang)}
+                value={rashiName(identity.rashiIndex, lang)}
+              />
+              <IdentityChip
+                label={pick(T.labelNakshatra!, lang)}
+                value={nakshatraName(identity.nakshatraIndex, lang)}
+              />
+              {identity.gotra && (
+                <IdentityChip label={pick(T.labelGotra!, lang)} value={identity.gotra} />
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setIsSyncModalOpen(true)}
+              className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-700 to-amber-800 px-4 py-2 text-xs font-bold text-amber-50 shadow-md transition hover:from-amber-800 hover:to-amber-900"
+            >
+              <span>📲</span> {pick(T.syncCalendarTitle!, lang)}
+            </button>
           </div>
         </div>
       </Card>
@@ -164,11 +176,20 @@ export default function SevaPage(): JSX.Element {
       {tab === "calendar" && (
         <>
           <Card>
-            <div className="mb-3">
-              <h3 className="font-serif text-xl font-semibold text-amber-950">
-                {pick(T.tabCalendar!, lang)}
-              </h3>
-              <p className="mt-1 text-xs text-amber-900/60">{pick(T.tapDay!, lang)}</p>
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h3 className="font-serif text-xl font-semibold text-amber-950">
+                  {pick(T.tabCalendar!, lang)}
+                </h3>
+                <p className="mt-1 text-xs text-amber-900/60">{pick(T.tapDay!, lang)}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsSyncModalOpen(true)}
+                className="flex items-center gap-1.5 rounded-lg border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-900 shadow-sm transition hover:bg-amber-100"
+              >
+                <span>📲</span> {pick(T.syncCalendarTitle!, lang)}
+              </button>
             </div>
             <SevaCalendar
               rhythm={rhythm}
@@ -258,6 +279,15 @@ export default function SevaPage(): JSX.Element {
           />
         </Card>
       )}
+
+      {/* 6-Month Calendar & QR Code Sync Modal */}
+      <SevaCalendarSyncModal
+        days={rhythm.days}
+        personName={identity.personName}
+        lang={lang}
+        isOpen={isSyncModalOpen}
+        onClose={() => setIsSyncModalOpen(false)}
+      />
     </div>
   );
 }

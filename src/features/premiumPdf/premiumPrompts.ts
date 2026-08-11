@@ -287,13 +287,14 @@ Engine roadmap for the coming months:
 ${roadmapText || "  (not available)"}
 
 YOUR TASK
-Pick the three or four turning points in the next six months from the roadmap above.
-For each, give a 'dateRange' and ONE long, generous paragraph of at least six sentences:
-which graha causes the shift, what it opens, what it closes, what to attempt and what to postpone.
-Be concrete about the area of life. Do not repeat the same advice in two entries.
+Provide EXACTLY SIX (6) entries in the 'timeline' array — one entry for EACH of the 6 months listed in the roadmap above.
+For EACH month entry:
+- 'dateRange': Write the month name and year in the target language native script (${input.lang}).
+- 'impact': Write ONE detailed, generous paragraph of at least 4-5 sentences detailing the planetary influence, financial/career/health predictions, and guidance for that month.
+Ensure all 6 months are covered sequentially without skipping any month.
 
 ${JSON_RULE}
-{"timeline":[{"dateRange":"month range","impact":"one long detailed paragraph"}]}`;
+{"timeline":[{"dateRange":"month and year in target script","impact":"one long detailed paragraph"}]}`;
 
   const summary = `${header(
     input,

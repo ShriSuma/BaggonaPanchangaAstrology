@@ -5,6 +5,7 @@ import type { KundliViewerSession } from "../../stores/kundliViewerStore";
 import { calculateTraditionalBaggona } from "../../core/TraditionalBaggonaEngine";
 import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
+import { stripJayashreeIntro } from "../../features/premiumPdf/premiumPdfLocale";
 
 interface PremiumPDFTemplateProps {
   prediction: MasterPredictionResult;
@@ -63,7 +64,8 @@ export const PremiumPDFTemplate: React.FC<PremiumPDFTemplateProps> = ({ predicti
   const bhavishya = narrative.bhavishya || {};
   const yogas = narrative.yogas || [];
   const doshas = narrative.doshas || [];
-  const summaryText = narrative.summary || "";
+  const rawSummaryText = narrative.summary || "";
+  const summaryText = stripJayashreeIntro(rawSummaryText);
   const ashirvadaText = narrative.ashirvada || "";
 
   return (

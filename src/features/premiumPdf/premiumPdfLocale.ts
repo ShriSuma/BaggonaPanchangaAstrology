@@ -251,6 +251,24 @@ export const buildComprehensiveIntro = (lang: string, details: ChartIntroDetails
     .replace("{bhukti}", details.bhuktiLord || "");
 };
 
+/**
+ * Ensures that Jayashree Pandit self-introduction strings never leak into PDF outputs.
+ */
+export function stripJayashreeIntro(text: string): string {
+  if (!text) return "";
+  return text
+    .replace(/ನಮಸ್ಕಾರ[\s\S]*?ಧಾರೆ ಎರೆದಿದ್ದೇನೆ[।\.]?/gi, "")
+    .replace(/ನಾನು ಜಯಶ್ರೀ ಪಂಡಿತ್[\s\S]*?ಪರಿಶೀಲಿಸುತ್ತಿದ್ದೇನೆ[।\.]?/gi, "")
+    .replace(/ಕಳೆದ ೬೦ ವರ್ಷಗಳಿಂದ[\s\S]*?ಆರಂಭಿಸೋಣ[।\.]?/gi, "")
+    .replace(/Namaskara[\s\S]*?horoscope[.\!]?/gi, "")
+    .replace(/I am Jayashree Pandit[\s\S]*?horoscope[.\!]?/gi, "")
+    .replace(/With over 60 years of profound experience[\s\S]*?birth chart[.\!]?/gi, "")
+    .replace(/Jayashree Pandit/gi, "")
+    .replace(/ಜಯಶ್ರೀ ಪಂಡಿತ್/gi, "")
+    .replace(/^\s*\n+/gm, "\n")
+    .trim();
+}
+
 /* ------------------------------------------------------------------ *
  * Birth line — built from the month table instead of a translator,
  * so "25 March 1990, 10:30" never comes back as a mangled phrase.

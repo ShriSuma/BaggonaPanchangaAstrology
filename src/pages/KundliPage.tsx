@@ -420,6 +420,32 @@ export default function KundliPage(): JSX.Element {
     );
   }, [birthDatePicker, birthTimeHm, form.latitude, form.longitude, ayanamsaModel]);
 
+  const isDayBirthComputed = useMemo(() => {
+    if (!birthDatePicker) return true;
+    const h = birthDatePicker.getHours();
+    const m = birthDatePicker.getMinutes();
+    const birthMins = h * 60 + m;
+
+    let sunriseMins = 6 * 60;
+    let sunsetMins = 18 * 60;
+
+    if (traditionalData?.sunrise && traditionalData.sunrise.includes(":")) {
+      const parts = traditionalData.sunrise.split(":");
+      const sh = parseInt(parts[0] || "6", 10);
+      const sm = parseInt(parts[1] || "0", 10);
+      if (!isNaN(sh) && !isNaN(sm)) sunriseMins = sh * 60 + sm;
+    }
+
+    if (traditionalData?.sunset && traditionalData.sunset.includes(":")) {
+      const parts = traditionalData.sunset.split(":");
+      const sh = parseInt(parts[0] || "18", 10);
+      const sm = parseInt(parts[1] || "0", 10);
+      if (!isNaN(sh) && !isNaN(sm)) sunsetMins = sh * 60 + sm;
+    }
+
+    return birthMins >= sunriseMins && birthMins < sunsetMins;
+  }, [birthDatePicker, traditionalData?.sunrise, traditionalData?.sunset]);
+
   const gotraDisplay = useMemo(() => {
     const v = (form.gothra ?? "").trim();
     if (!v) return "";
@@ -877,7 +903,7 @@ export default function KundliPage(): JSX.Element {
             parentsName={""}
             birthDateObj={birthDatePicker}
             birthTimeStr={birthTimeHm}
-            isDayBirth={true}
+            isDayBirth={isDayBirthComputed}
             panchanga={traditionalData}
             gothra={gotraDisplay}
             pdfLanguage={pdfLanguage}

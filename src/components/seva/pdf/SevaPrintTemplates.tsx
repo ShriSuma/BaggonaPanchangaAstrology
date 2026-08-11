@@ -428,6 +428,8 @@ export type LetterPrintProps = {
   primarySeva: SevaRecommendation | undefined;
   sevaDate: string;
   rhythm: RhythmResult;
+  panditName?: string;
+  qrDataUrl?: string;
 };
 
 export const SevaLetterPrint = ({
@@ -435,11 +437,14 @@ export const SevaLetterPrint = ({
   identity,
   primarySeva,
   sevaDate,
-  rhythm
+  rhythm,
+  panditName,
+  qrDataUrl
 }: LetterPrintProps): JSX.Element => {
   const paragraph: React.CSSProperties = {
     fontSize: 14,
-    lineHeight: 2,
+    lineHeight: 1.8,
+    letterSpacing: "normal",
     color: INK,
     marginTop: 14,
     textAlign: "justify"
@@ -560,16 +565,36 @@ export const SevaLetterPrint = ({
           </div>
         </div>
 
-        <p style={{ ...paragraph, textAlign: "center", fontWeight: 600, marginTop: 20 }}>
+        <p style={{ ...paragraph, textAlign: "center", fontWeight: 600, marginTop: 18 }}>
           {pick(LETTER_L5.closing!, lang)}
         </p>
 
-        <div style={{ marginTop: 26, textAlign: "right" }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: GOLD }}>
-            {pick(LETTER_L5.signature!, lang)}
-          </div>
-          <div style={{ fontSize: 10, color: INK_SOFT, marginTop: 3 }}>
-            {rhythm.startYmd} — {rhythm.endYmd}
+        {/* QR Code Phone Sync Badge & Priest Signature */}
+        <div style={{ marginTop: 22, display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: `1.5px solid ${GOLD_LIGHT}`, paddingTop: 16 }}>
+          {qrDataUrl && (
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <img
+                src={qrDataUrl}
+                alt="Calendar Sync QR Code"
+                style={{ width: 84, height: 84, borderRadius: 8, border: `1px solid ${GOLD_LIGHT}`, padding: 4, backgroundColor: "#FFFFFF" }}
+              />
+              <div style={{ fontSize: 10, color: INK_SOFT, lineHeight: 1.5, maxWidth: 260 }}>
+                <div style={{ fontWeight: 700, color: GOLD, fontSize: 11 }}>📲 {pick(T.scanQrTitle!, lang)}</div>
+                <div style={{ marginTop: 2 }}>{pick(T.scanQrDesc!, lang)}</div>
+              </div>
+            </div>
+          )}
+
+          <div style={{ textAlign: "right", marginLeft: "auto" }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: GOLD }}>
+              {panditName ? `${pick(T.namaskaraHeader!, lang)} ${panditName}` : pick(LETTER_L5.signature!, lang)}
+            </div>
+            <div style={{ fontSize: 11, color: INK_SOFT, marginTop: 2 }}>
+              {pick(LETTER_L5.signature!, lang)}
+            </div>
+            <div style={{ fontSize: 9.5, color: INK_SOFT, marginTop: 2 }}>
+              {rhythm.startYmd} — {rhythm.endYmd}
+            </div>
           </div>
         </div>
       </div>
@@ -588,6 +613,8 @@ export type PrasadaCardPrintProps = {
   today: RhythmDay;
   bestDays: RhythmDay[];
   moneyDays: RhythmDay[];
+  panditName?: string;
+  qrDataUrl?: string;
 };
 
 export const SevaPrasadaCardPrint = ({
@@ -596,7 +623,9 @@ export const SevaPrasadaCardPrint = ({
   rhythm,
   today,
   bestDays,
-  moneyDays
+  moneyDays,
+  panditName,
+  qrDataUrl
 }: PrasadaCardPrintProps): JSX.Element => {
   const listBox = (title: string, days: RhythmDay[], accent: string): JSX.Element => (
     <div
@@ -765,6 +794,21 @@ export const SevaPrasadaCardPrint = ({
         </div>
       </div>
 
+      {qrDataUrl && (
+        <div style={{ marginTop: 16, display: "flex", alignItems: "center", justifyContent: "center", gap: 14, border: `1.5px solid ${GOLD_LIGHT}`, borderRadius: 12, backgroundColor: "#FFFFFF", padding: "10px 16px" }}>
+          <img
+            src={qrDataUrl}
+            alt="Calendar Sync QR Code"
+            style={{ width: 72, height: 72, borderRadius: 6, border: `1px solid ${GOLD_LIGHT}`, padding: 3 }}
+          />
+          <div style={{ textAlign: "left", fontSize: 10, color: INK_SOFT, lineHeight: 1.4 }}>
+            <div style={{ fontWeight: 700, color: GOLD, fontSize: 11 }}>📲 {pick(T.scanQrTitle!, lang)}</div>
+            <div>{pick(T.scanQrDesc!, lang)}</div>
+            {panditName && <div style={{ fontWeight: 600, color: INK, marginTop: 2 }}>{pick(T.namaskaraHeader!, lang)} {panditName}</div>}
+          </div>
+        </div>
+      )}
+
       <OrnamentRule />
 
       <div style={{ fontSize: 9.5, lineHeight: 1.6, color: INK_SOFT, textAlign: "center" }}>
@@ -783,7 +827,7 @@ export const SevaPrasadaCardPrint = ({
           letterSpacing: 2
         }}
       >
-        {pick(LETTER_L5.signature!, lang)}
+        {panditName ? `${pick(T.namaskaraHeader!, lang)} ${panditName} · ${pick(LETTER_L5.signature!, lang)}` : pick(LETTER_L5.signature!, lang)}
       </div>
     </div>
   );

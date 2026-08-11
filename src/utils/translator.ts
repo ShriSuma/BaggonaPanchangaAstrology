@@ -15,6 +15,15 @@ export async function translateText(text: string, targetLanguageCode: string, so
     return localMatch;
   }
 
+  // 2. Chunk long multi-paragraph texts to avoid HTTP 414 Request-URI Too Long errors
+  if (text.length > 350 && text.includes("\n")) {
+    const paragraphs = text.split(/\n+/).filter(p => p.trim().length > 0);
+    const translatedChunks = await Promise.all(
+      paragraphs.map(p => translateText(p, targetLanguageCode, sourceLang))
+    );
+    return translatedChunks.join("\n\n");
+  }
+
   try {
     const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${targetLanguageCode}&dt=t&q=${encodeURIComponent(text)}`;
     const response = await fetch(url);

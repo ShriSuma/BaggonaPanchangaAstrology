@@ -31,7 +31,8 @@ import {
   greetingLine,
   runningPeriodSentence,
   buildComprehensiveIntro,
-  newRunId
+  newRunId,
+  stripJayashreeIntro
 } from "../../features/premiumPdf/premiumPdfLocale";
 import {
   buildPremiumPrompts,
@@ -41,6 +42,22 @@ import {
 
 /** `PlanetName` is a string enum, so it needs a nudge to become the locale key. */
 const toGraha = (planet: PlanetName | string): GrahaKey => String(planet) as GrahaKey;
+
+const asText = (value: string | string[] | undefined): string =>
+  Array.isArray(value) ? value.join(" ") : value ?? "";
+
+const ensureValidSection = async (
+  items: any[] | undefined,
+  fallbackText: string,
+  targetLang: string
+): Promise<{ name?: string; impact: string; remedy?: string; dateRange?: string }[]> => {
+  const validItems = (items || []).filter(item => (item?.impact || "").trim().length > 10);
+  if (validItems.length > 0) {
+    return validItems;
+  }
+  const translatedFallback = await translateText(fallbackText, targetLang);
+  return [{ impact: translatedFallback }];
+};
 
 
 const DEEP_INSIGHT_CATEGORIES = [
@@ -295,8 +312,8 @@ export default function BhavishyaView() {
         : await Promise.all(
             sourcePredictions.map(async (pred) => ({
               ...pred,
-              translatedCategory: await translateText(pred.translatedCategory, lang),
-              translatedText: await translateText(pred.translatedText, lang),
+              translatedCategory: await translateText(pred.category, lang),
+              translatedText: await translateText(pred.text, lang),
             }))
           );
       setPremiumPredictions(localisedPredictions);
@@ -373,7 +390,7 @@ export default function BhavishyaView() {
         shadowSelf: result.natalLayer.shadowSelf.bluntTruth,
         karmicBaggage: result.natalLayer.karmicBaggage.soulPurpose,
         lifePhase: result.timingLayer.lifeClock.currentPhase,
-        overallTone: result.masterSynthesis.overallTone,
+        overallTone: stripJayashreeIntro(result.masterSynthesis.overallTone),
         careerNote: result.masterSynthesis.career,
         financeNote: result.masterSynthesis.finance,
         roadmap: result.timingLayer.twelveMonthRoadmap,
@@ -403,41 +420,63 @@ export default function BhavishyaView() {
       const dataGochara = parseGeminiJSON(resGochara);
       const dataSummary = parseGeminiJSON(resSummary);
 
-      const ensureValidSection = async (
-        items: any[] | undefined,
-        fallbackText: string
-      ): Promise<{ name?: string; impact: string; remedy?: string; dateRange?: string }[]> => {
-        const validItems = (items || []).filter(item => (item?.impact || "").trim().length > 15);
-        if (validItems.length > 0) {
-          return validItems;
-        }
-        const translatedFallback = await translateText(fallbackText, lang);
-        return [{ impact: translatedFallback }];
-      };
-
-      const rawCharFallback = `${result.masterSynthesis.overallTone || 'Planetary positions shape a dynamic personality.'}\n\n${result.natalLayer.shadowSelf.bluntTruth || ''}`;
+      const rawCharFallback = stripJayashreeIntro(`${result.masterSynthesis.overallTone || 'Planetary positions shape a dynamic personality.'}\n\n${result.natalLayer.shadowSelf.bluntTruth || ''}`);
       const rawSecretFallback = `${result.natalLayer.shadowSelf.bluntTruth || 'Inner drive shapes deep character.'}\n\n${result.natalLayer.karmicBaggage.soulPurpose || ''}`;
-      const rawSummaryFallback = `${result.masterSynthesis.overallTone || 'A balanced planetary outlook for the future.'}\n\n${result.masterSynthesis.career || ''}\n\n${result.masterSynthesis.finance || ''}`;
+      const rawSummaryFallback = stripJayashreeIntro(`${result.masterSynthesis.overallTone || 'A balanced planetary outlook for the future.'}\n\n${result.masterSynthesis.career || ''}\n\n${result.masterSynthesis.finance || ''}`);
 
-      const finalCharacteristics = await ensureValidSection(dataCharacteristics.characteristics, rawCharFallback);
-      const finalDarkSecret = await ensureValidSection(dataDarkSecret.darkSecret, rawSecretFallback);
-      const finalSummary = await ensureValidSection(dataSummary.summary, rawSummaryFallback);
+      const finalCharacteristics = await ensureValidSection(dataCharacteristics.characteristics, rawCharFallback, lang);
+      const finalDarkSecret = await ensureValidSection(dataDarkSecret.darkSecret, rawSecretFallback, lang);
+      const finalSummary = await ensureValidSection(dataSummary.summary, rawSummaryFallback, lang);
 
+      const rawYogasFallback = await Promise.all(
+        (result.aiGeneratedNarrative?.yogas || [{ name: "Dasha Yoga", significance: stripJayashreeIntro(result.masterSynthesis.overallTone) }]).map(async y => ({
+          name: await translateText(y.name, lang),
+          impact: await translateText(stripJayashreeIntro(asText(y.significance) || result.masterSynthesis.overallTone), lang)
+        }))
+      );
       const finalYogas = (dataYogas.yogas || []).filter((y: any) => (y?.impact || "").trim().length > 10).length > 0
         ? dataYogas.yogas
-        : (result.aiGeneratedNarrative?.yogas?.map(y => ({ name: y.name, impact: String(y.significance || ""), remedy: "" })) || [{ name: "Dasha Yoga", impact: result.masterSynthesis.overallTone, remedy: "" }]);
+        : rawYogasFallback;
 
+      const rawDoshasFallback = await Promise.all(
+        (result.aiGeneratedNarrative?.doshas || [{ name: "Karmic Challenge", significance: result.natalLayer.karmicBaggage.description, remedy: result.natalLayer.karmicBaggage.soulPurpose }]).map(async d => ({
+          name: await translateText(d.name, lang),
+          impact: await translateText(asText(d.significance) || result.natalLayer.karmicBaggage.description, lang),
+          remedy: await translateText(d.remedy || result.natalLayer.karmicBaggage.soulPurpose, lang)
+        }))
+      );
       const finalDoshas = (dataDoshas.doshas || []).filter((d: any) => (d?.impact || "").trim().length > 10).length > 0
         ? dataDoshas.doshas
-        : (result.aiGeneratedNarrative?.doshas?.map(d => ({ name: d.name, impact: String(d.significance || ""), remedy: d.remedy || "" })) || [{ name: "Karmic Challenge", impact: result.natalLayer.karmicBaggage.description, remedy: result.natalLayer.karmicBaggage.soulPurpose }]);
+        : rawDoshasFallback;
 
-      const finalTimeline = (dataTimeline.timeline || []).filter((t: any) => (t?.impact || "").trim().length > 10).length > 0
-        ? dataTimeline.timeline
-        : result.timingLayer.twelveMonthRoadmap.slice(0, 4).map(r => ({ dateRange: r.month, impact: r.prediction }));
+      const engineRoadmap6 = result.timingLayer.twelveMonthRoadmap.slice(0, 6);
+      const fallbackTimeline = await Promise.all(
+        engineRoadmap6.map(async r => ({
+          dateRange: await translateText(r.month, lang),
+          impact: await translateText(r.prediction, lang)
+        }))
+      );
 
+      const validTimelineItems = (dataTimeline.timeline || []).filter((t: any) => (t?.impact || "").trim().length > 10);
+      const finalTimeline = validTimelineItems.length >= 4
+        ? await Promise.all(
+            validTimelineItems.map(async (t: any) => ({
+              ...t,
+              dateRange: await translateText(t.dateRange || "", lang)
+            }))
+          )
+        : fallbackTimeline;
+
+      const rawGocharaFallback = await Promise.all([
+        {
+          name: await translateText(result.timingLayer.lifeClock.currentPhase || "Current Transit Phase", lang),
+          impact: await translateText(result.timingLayer.lifeClock.description || result.masterSynthesis.overallTone, lang),
+          remedy: await translateText(result.timingLayer.lifeClock.emotionalValidation || "", lang)
+        }
+      ]);
       const finalGochara = (dataGochara.gochara || []).filter((g: any) => (g?.impact || "").trim().length > 10).length > 0
         ? dataGochara.gochara
-        : [{ name: result.timingLayer.lifeClock.currentPhase, impact: result.timingLayer.lifeClock.description, remedy: result.timingLayer.lifeClock.emotionalValidation }];
+        : rawGocharaFallback;
 
       const premiumDataPayload = {
         characteristics: finalCharacteristics,
@@ -463,8 +502,7 @@ export default function BhavishyaView() {
       const emptyOrInvalid = requiredSections.filter(sec => !sec.items || sec.items.length === 0 || !sec.items.some((i: any) => (i.impact || "").trim().length > 10));
 
       if (emptyOrInvalid.length > 0) {
-        console.error("[PDF Generation Guard Failure] Missing section content:", emptyOrInvalid.map(e => e.name));
-        throw new Error(`Incomplete PDF: The ${emptyOrInvalid.map(e => e.name).join(", ")} section(s) could not be generated cleanly. Please click download again.`);
+        console.warn("[PDF Generation Guard] Using fallbacks for missing sections:", emptyOrInvalid.map(e => e.name));
       }
 
       setPremiumDataForPdf(premiumDataPayload);
@@ -681,14 +719,68 @@ Return ONLY this JSON (no extra text before or after):
         askGemini("Generate Summary", promptSummary, geminiApiKey, pdfLanguage)
       ]);
 
+      const parsedChar = parseGeminiJSON(resCharacteristics).characteristics as PremiumData["characteristics"];
+      const parsedSecret = parseGeminiJSON(resDarkSecret).darkSecret as PremiumData["darkSecret"];
+      const parsedYogas = parseGeminiJSON(resYogas).yogas as PremiumData["yogas"];
+      const parsedDoshas = parseGeminiJSON(resDoshas).doshas as PremiumData["doshas"];
+      const parsedTimeline = parseGeminiJSON(resTimeline).timeline as PremiumData["timeline"];
+      const parsedGochara = parseGeminiJSON(resGochara).gochara as PremiumData["gochara"];
+      const parsedSummary = parseGeminiJSON(resSummary).summary as PremiumData["summary"];
+
+      const rawCharFallback = `${result.masterSynthesis.overallTone || 'Planetary positions shape a dynamic personality.'}\n\n${result.natalLayer.shadowSelf.bluntTruth || ''}`;
+      const rawSecretFallback = `${result.natalLayer.shadowSelf.bluntTruth || 'Inner drive shapes deep character.'}\n\n${result.natalLayer.karmicBaggage.soulPurpose || ''}`;
+      const rawSummaryFallback = `${result.masterSynthesis.overallTone || 'A balanced planetary outlook for the future.'}\n\n${result.masterSynthesis.career || ''}\n\n${result.masterSynthesis.finance || ''}`;
+
+      const finalChar = await ensureValidSection(parsedChar, rawCharFallback, pdfLanguage);
+      const finalSecret = await ensureValidSection(parsedSecret, rawSecretFallback, pdfLanguage);
+      const finalSum = await ensureValidSection(parsedSummary, rawSummaryFallback, pdfLanguage);
+
+      const rawYogasFallback = await Promise.all(
+        (result.aiGeneratedNarrative?.yogas || [{ name: "Dasha Yoga", significance: result.masterSynthesis.overallTone }]).map(async y => ({
+          name: await translateText(y.name, pdfLanguage),
+          impact: await translateText(asText(y.significance) || result.masterSynthesis.overallTone, pdfLanguage)
+        }))
+      );
+      const finalYogas = (parsedYogas || []).filter((y: any) => (y?.impact || "").trim().length > 10).length > 0 ? parsedYogas : rawYogasFallback;
+
+      const rawDoshasFallback = await Promise.all(
+        (result.aiGeneratedNarrative?.doshas || [{ name: "Karmic Challenge", significance: result.natalLayer.karmicBaggage.description, remedy: result.natalLayer.karmicBaggage.soulPurpose }]).map(async d => ({
+          name: await translateText(d.name, pdfLanguage),
+          impact: await translateText(asText(d.significance) || result.natalLayer.karmicBaggage.description, pdfLanguage),
+          remedy: await translateText(d.remedy || result.natalLayer.karmicBaggage.soulPurpose, pdfLanguage)
+        }))
+      );
+      const finalDoshas = (parsedDoshas || []).filter((d: any) => (d?.impact || "").trim().length > 10).length > 0 ? parsedDoshas : rawDoshasFallback;
+
+      const engineRoadmap6 = result.timingLayer.twelveMonthRoadmap.slice(0, 6);
+      const fallbackTimeline = await Promise.all(
+        engineRoadmap6.map(async r => ({
+          dateRange: await translateText(r.month, pdfLanguage),
+          impact: await translateText(r.prediction, pdfLanguage)
+        }))
+      );
+      const validTimelineItems = (parsedTimeline || []).filter((t: any) => (t?.impact || "").trim().length > 10);
+      const finalTimeline = validTimelineItems.length >= 4
+        ? await Promise.all(validTimelineItems.map(async (t: any) => ({ ...t, dateRange: await translateText(t.dateRange || "", pdfLanguage) })))
+        : fallbackTimeline;
+
+      const rawGocharaFallback = await Promise.all([
+        {
+          name: await translateText(result.timingLayer.lifeClock.currentPhase || "Current Transit Phase", pdfLanguage),
+          impact: await translateText(result.timingLayer.lifeClock.description || result.masterSynthesis.overallTone, pdfLanguage),
+          remedy: await translateText(result.timingLayer.lifeClock.emotionalValidation || "", pdfLanguage)
+        }
+      ]);
+      const finalGochara = (parsedGochara || []).filter((g: any) => (g?.impact || "").trim().length > 10).length > 0 ? parsedGochara : rawGocharaFallback;
+
       const premiumDataPayload: PremiumData = {
-        characteristics: parseGeminiJSON(resCharacteristics).characteristics as PremiumData["characteristics"] || [],
-        darkSecret: parseGeminiJSON(resDarkSecret).darkSecret as PremiumData["darkSecret"] || [],
-        yogas: parseGeminiJSON(resYogas).yogas as PremiumData["yogas"] || [],
-        doshas: parseGeminiJSON(resDoshas).doshas as PremiumData["doshas"] || [],
-        timeline: parseGeminiJSON(resTimeline).timeline as PremiumData["timeline"] || [],
-        gochara: parseGeminiJSON(resGochara).gochara as PremiumData["gochara"] || [],
-        summary: parseGeminiJSON(resSummary).summary as PremiumData["summary"] || []
+        characteristics: finalChar,
+        darkSecret: finalSecret,
+        yogas: finalYogas,
+        doshas: finalDoshas,
+        timeline: finalTimeline,
+        gochara: finalGochara,
+        summary: finalSum
       };
 
       setA4PremiumDataForPdf(premiumDataPayload);

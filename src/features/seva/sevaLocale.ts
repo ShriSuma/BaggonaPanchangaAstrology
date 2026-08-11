@@ -35,6 +35,23 @@ export const LANGUAGE_OWN_NAME: Record<SevaLang, string> = {
   hi: "हिन्दी"
 };
 
+/** Time of day period labels across 5 languages: Morning / Afternoon / Evening / Night */
+export const TIME_OF_DAY_L5 = {
+  morning: { en: "Morning", kn: "ಬೆಳಿಗ್ಗೆ", te: "ಉದయం", ta: "காலை", hi: "सुबह" },
+  afternoon: { en: "Afternoon", kn: "ಮಧ್ಯಾಹ್ನ", te: "మధ్యాహ్నం", ta: "மதியம்", hi: "दोपहर" },
+  evening: { en: "Evening", kn: "ಸಂಜೆ", te: "సాయంత్రం", ta: "மாலை", hi: "शाम" },
+  night: { en: "Night", kn: "ರಾತ್ರಿ", te: "రాత్రి", ta: "இரவு", hi: "रात्रि" }
+};
+
+export const getTimeOfDayLabel = (hour: number, lang: string): string => {
+  let period: "morning" | "afternoon" | "evening" | "night" = "morning";
+  if (hour >= 5 && hour < 12) period = "morning";
+  else if (hour >= 12 && hour < 17) period = "afternoon";
+  else if (hour >= 17 && hour < 20) period = "evening";
+  else period = "night";
+  return pick(TIME_OF_DAY_L5[period], lang);
+};
+
 /* ------------------------------------------------------------------ *
  * Rashi (12) — indexed 0..11 to match RASHIS in AstroTypes
  * ------------------------------------------------------------------ */
@@ -480,7 +497,31 @@ export const T: Record<string, L5> = {
   preparedBy: { en: "Prepared at Gokarna Kshetra", kn: "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದಲ್ಲಿ ಸಿದ್ಧಪಡಿಸಲಾಗಿದೆ", te: "గోకర్ణ క్షేత్రంలో సిద్ధం చేయబడింది", ta: "கோகர்ண க்ஷேத்திரத்தில் தயாரிக்கப்பட்டது", hi: "गोकर्ण क्षेत्र में तैयार किया गया" },
   calendarTitle: { en: "Six-Month Personal Calendar", kn: "ಆರು ತಿಂಗಳ ವೈಯಕ್ತಿಕ ಕ್ಯಾಲೆಂಡರ್", te: "ఆరు నెలల వ్యక్తిగత క్యాలెండర్", ta: "ஆறு மாத தனிப்பட்ட நாட்காட்டி", hi: "छह महीने का व्यक्तिगत कैलेंडर" },
   letterTitle: { en: "Letter of Blessing", kn: "ಆಶೀರ್ವಾದ ಪತ್ರ", te: "ఆశీర్వాద పత్రం", ta: "ஆசீர்வாதக் கடிதம்", hi: "आशीर्वाद पत्र" },
-  prasadaCardTitle: { en: "Prasada Card", kn: "ಪ್ರಸಾದ ಕಾರ್ಡ್", te: "ప్రసాద కార్డు", ta: "பிரசாத அட்டை", hi: "प्रसाद कार्ड" }
+  prasadaCardTitle: { en: "Prasada Card", kn: "ಪ್ರಸಾದ ಕಾರ್ಡ್", te: "ప్రసాద కార్డు", ta: "பிரசாத அட்டை", hi: "प्रसाद कार्ड" },
+
+  syncCalendarTitle: { en: "Sync Calendar to Phone & QR Code", kn: "ಫೋನ್ ಕ್ಯಾಲೆಂಡರ್ ಮತ್ತು QR ಕೋಡ್ ಸಿಂಕ್", te: "ఫోన్ క్యాలెండర్ మరియు QR ಕೋಡ್ ಸಿಂಕ್", ta: "போன் காலண்டர் மற்றும் QR குறியீடு ஒத்திசைவு", hi: "फोन कैलेंडर और QR कोड सिंक" },
+  syncCalendarSub: {
+    en: "Scan QR code or click to import 6-month daily guidance & mantras into Google Calendar or Apple Calendar with daily notifications.",
+    kn: "ದೈನಂದಿನ ಅಧಿಸೂಚನೆಗಳೊಂದಿಗೆ Google Calendar ಅಥವಾ Apple Calendar ಗೆ 6 ತಿಂಗಳ ದೈನಂದಿನ ಮಾರ್ಗದರ್ಶನ ಮತ್ತು ಮಂತ್ರಗಳನ್ನು ಸೇರಿಸಲು QR ಕೋಡ್ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ಅಥವಾ ಕ್ಲಿಕ್ ಮಾಡಿ.",
+    te: "రోజువారీ నోటిఫికేషన్‌లతో Google Calendar లేదా Apple Calendar కి 6 నెలల మార్గదర్శకాలను మరియు మంత్రాలను జోడించడానికి QR కోడ్‌ను స్కాన్ చేయండి లేదా క్లిక్ చేయండి.",
+    ta: "தினசரி அறிவிப்புகளுடன் Google Calendar அல்லது Apple Calendar இல் 6 மாத வழிகாட்டுதல்களையும் மந்திரங்களையும் சேர்க்க QR குறியீட்டை ஸ்கேன் செய்யவும் அல்லது கிளிக் செய்யவும்.",
+    hi: "दैनिक सूचनाओं के साथ Google Calendar या Apple Calendar में 6 महीने के दैनिक मार्गदर्शन और मंत्रों को जोड़ने के लिए QR कोड स्कैन करें या क्लिक करें。"
+  },
+  panditNameLabel: { en: "Pandit / Priest Name", kn: "ಪಂಡಿತ್ / ಅರ್ಚಕರ ಹೆಸರು", te: "ಪಂಡಿಟ್ / ಅರ್ಚಕುಲ ಪೇರು", ta: "பண்டிட் / அர்ச்சகர் பெயர்", hi: "पंडित / पुजारी का नाम" },
+  notificationTimeLabel: { en: "Daily Notification Time", kn: "ದೈನಂದಿನ ಅಧಿಸೂಚನೆ ಸಮಯ", te: "ದಿನಚರ್ಯ ನೋಟಿಫಿಕೇಷನ್ ಸಮಯಂ", ta: "தினசரி அறிவிப்பு நேரம்", hi: "दैनिक सूचना समय" },
+  scanQrTitle: { en: "Scan QR Code on Mobile Phone", kn: "ಮೊಬೈಲ್‌ನಲ್ಲಿ QR ಕೋಡ್ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ", te: "ಮೊಬೈಲ್‌ನಲ್ಲಿ QR ಕೋಡ್ ಸ್ಕಾನ್ ಚೇಯಂಡಿ", ta: "மொபைலில் QR குறியீட்டை ஸ்கேன் செய்யுங்கள்", hi: "मोबाइल पर QR कोड स्कैन करें" },
+  scanQrDesc: {
+    en: "Use your iPhone or Android camera to instantly subscribe & import 180 days of daily Panchanga reminders into your calendar.",
+    kn: "ನಿಮ್ಮ iPhone ಅಥವಾ Android ಕ್ಯಾಮೆರಾ ಬಳಸಿ 180 ದಿನಗಳ ದೈನಂದಿನ ಪಂಚಾಂಗ ನೆನಪೋಲೆಗಳನ್ನು ತಕ್ಷಣ ನಿಮ್ಮ ಕ್ಯಾಲೆಂಡರ್‌ಗೆ ಸೇರಿಸಿ.",
+    te: "మీ iPhone లేదా Android కెమెరాను ఉపయోగించి 180 రోజుల దినచర్య పంచాంగ జ్ఞాపికలను వెంటనే మీ క్యాలెండర్‌కు జోడించండి.",
+    ta: "உங்கள் iPhone அல்லது Android கேமராவைப் பயன்படுத்தி 180 நாட்களின் பஞ்சாங்க நினைவூட்டல்களை உங்கள் நாட்காட்டியில் சேர்க்கவும்.",
+    hi: "अपने iPhone या Android कैमरे का उपयोग करके 180 दिनों के दैनिक पंचांग रिमाइंडर्स को तुरंत अपने कैलेंडर में जोड़ें。"
+  },
+  addToGoogleCalendar: { en: "Add to Google Calendar", kn: "Google Calendar ಗೆ ಸೇರಿಸಿ", te: "Google Calendar ಕು ಜೋಡಿಂದಿ", ta: "Google Calendar இல் சேர்க்கவும்", hi: "Google Calendar में जोड़ें" },
+  downloadIcsFile: { en: "Download .ics Calendar File", kn: ".ics ಕ್ಯಾಲೆಂಡರ್ ಫೈಲ್ ಡೌನ್‌ಲೋಡ್", te: ".ics ಕ್ಯಾಲಂಡರ್ ಫೈಲ್ ಡೌನ್‌ಲೋಡ್", ta: ".ics காலண்டர் கோப்பைப் பதிவிறக்கு", hi: ".ics कैलेंडर फ़ाइल डाउनलोड करें" },
+  namaskaraHeader: { en: "Namaskara from", kn: "ಅವರಿಂದ ನಮಸ್ಕಾರ", te: "ನುಂಡಿ ನಮಸ್ಕಾರಂ", ta: "அவர்களிடமிருந்து வணக்கம்", hi: "की ओर से नमस्कार" },
+  micListening: { en: "Listening...", kn: "ಆಲಿಸಲಾಗುತ್ತಿದೆ...", te: "ವಿಂಟೋಂದಿ...", ta: "கேட்கிறது...", hi: "सुन रहा है..." },
+  micSpeak: { en: "Click mic to speak priest name", kn: "ಅರ್ಚಕರ ಹೆಸರು ಹೇಳಲು ಮೈಕ್ ಒತ್ತಿರಿ", te: "ಅರ್ಚಕುನಿ ಪೇರು ಚೆಪ್ಪಡಾನಿಕಿ ಮೈಕ್ ನೊಕ್ಕಂಡಿ", ta: "அர்ச்சகர் பெயரைச் சொல்ல மைக் அழுத்தவும்", hi: "पुजारी का नाम बोलने के लिए माइक दबाएँ" }
 };
 
 /** Shorthand for interface strings. */

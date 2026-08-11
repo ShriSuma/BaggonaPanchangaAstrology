@@ -279,26 +279,32 @@ const VRATA_LINE: Record<string, L5> = {
 export const dayExplanation = (day: RhythmDay, lang: string): string[] => {
   const lines: string[] = [];
 
-  const tara = TARA_L5[day.tara.tara - 1]!;
-  lines.push(
-    pick(TARA_LINE, lang)
-      .replace("{name}", pick(tara.name, lang))
-      .replace("{meaning}", pick(tara.meaning, lang))
-  );
+  if (day.tara?.tara) {
+    const tara = TARA_L5[day.tara.tara - 1] ?? TARA_L5[0]!;
+    lines.push(
+      pick(TARA_LINE, lang)
+        .replace("{name}", pick(tara.name, lang))
+        .replace("{meaning}", pick(tara.meaning, lang))
+    );
+  }
 
-  const chandraQuality = day.chandra.isChandrashtama
-    ? CHANDRASHTAMA_LINE
-    : day.chandra.isFavourable
-      ? CHANDRA_GOOD
-      : day.chandra.score >= 50
-        ? CHANDRA_MIXED
-        : CHANDRA_WEAK;
+  if (day.chandra) {
+    const chandraQuality = day.chandra.isChandrashtama
+      ? CHANDRASHTAMA_LINE
+      : day.chandra.isFavourable
+        ? CHANDRA_GOOD
+        : day.chandra.score >= 50
+          ? CHANDRA_MIXED
+          : CHANDRA_WEAK;
 
-  lines.push(
-    `${withNumber(CHANDRA_LINE, lang, day.chandra.house)} ${pick(chandraQuality, lang)}`
-  );
+    lines.push(
+      `${withNumber(CHANDRA_LINE, lang, day.chandra.house)} ${pick(chandraQuality, lang)}`
+    );
+  }
 
-  lines.push(pick(TITHI_GROUP_LINE[day.tithiGroup], lang));
+  if (day.tithiGroup && TITHI_GROUP_LINE[day.tithiGroup]) {
+    lines.push(pick(TITHI_GROUP_LINE[day.tithiGroup], lang));
+  }
 
   const varaTemplate = day.energyScore >= 60 ? VARA_LINE : VARA_LINE_PLAIN;
   lines.push(

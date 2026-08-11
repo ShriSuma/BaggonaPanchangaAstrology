@@ -1,7 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import QRCode from "qrcode";
 import type { RhythmDay, RhythmResult } from "../../core/DailyRhythmEngine";
 import type { SevaRecommendation } from "../../core/GokarnaSevaEngine";
 import type { SevaId } from "../../data/gokarnaSevas";
+import { generateSevaICalendarString } from "../../features/seva/icsCalendarGenerator";
 import { T, pick, type L5 } from "../../features/seva/sevaLocale";
 import { todayYmd } from "../../features/seva/sevaPresentation";
 import { generatePDFFromElement } from "../../utils/pdfGenerator";
@@ -104,6 +106,67 @@ export default function PrasadaKit({
   const [busy, setBusy] = useState<string | null>(null);
   const [sevaDate, setSevaDate] = useState(todayYmd());
   const [sevaId, setSevaId] = useState<SevaId | "">(recommendations[0]?.seva.id ?? "");
+  const [panditName, setPanditName] = useState("Chaitanya Pandit");
+  const [notificationTime, setNotificationTime] = useState("08:00");
+  const [qrDataUrl, setQrDataUrl] = useState<string>("");
+  const [isListening, setIsListening] = useState<boolean>(false);
+
+  // Speech Recognition for Priest Name Mic Button
+  const handleMicClick = () => {
+    const SpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognitionClass) {
+      alert("Speech recognition is not supported in this browser. Please type the priest name manually.");
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognitionClass();
+      const speechLangMap: Record<string, string> = {
+        kn: "kn-IN",
+        te: "te-IN",
+        ta: "ta-IN",
+        hi: "hi-IN",
+        en: "en-IN"
+      };
+      recognition.lang = speechLangMap[lang] || "en-IN";
+      recognition.interimResults = false;
+
+      recognition.onstart = () => setIsListening(true);
+      recognition.onresult = (event) => {
+        const transcript = event.results[0]?.[0]?.transcript;
+        if (transcript) setPanditName(transcript);
+      };
+      recognition.onerror = () => setIsListening(false);
+      recognition.onend = () => setIsListening(false);
+      recognition.start();
+    } catch {
+      setIsListening(false);
+    }
+  };
+
+  // Generate QR Code data URL for print templates
+  useEffect(() => {
+    if (rhythm.days.length === 0) return;
+    const icsContent = generateSevaICalendarString({
+      days: rhythm.days,
+      lang,
+      panditName,
+      notificationTime,
+      personName: identity.personName
+    });
+
+    const dataUri = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsContent)}`;
+    QRCode.toDataURL(dataUri, {
+      margin: 2,
+      width: 280,
+      color: {
+        dark: "#78350F",
+        light: "#FFFFFF"
+      }
+    })
+      .then((url) => setQrDataUrl(url))
+      .catch((err) => console.error("Error generating print QR code:", err));
+  }, [rhythm, lang, panditName, notificationTime, identity.personName]);
 
   const chosenSeva = useMemo(
     () => recommendations.find((r) => r.seva.id === sevaId) ?? recommendations[0],
@@ -189,8 +252,8 @@ export default function PrasadaKit({
         ))}
       </div>
 
-      {/* Seva record for the letter */}
-      <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-4">
+      {/* Seva & Priest Record for the Letter and Print Cards */}
+      <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-4 space-y-3">
         <div className="text-xs font-bold uppercase tracking-wide text-amber-800/70">
           {pick(T.sevaMarkDone!, lang)}
           <span className="ml-2 font-normal normal-case tracking-normal text-amber-700/60">
@@ -198,7 +261,7 @@ export default function PrasadaKit({
           </span>
         </div>
 
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2">
           <label className="block">
             <span className="mb-1 block text-[11px] font-medium text-amber-800/70">
               {pick(T.sevaPerformed!, lang)}
@@ -227,6 +290,53 @@ export default function PrasadaKit({
               className="w-full rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm text-amber-950"
             />
           </label>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2 pt-2 border-t border-amber-200/60">
+          <div>
+            <span className="mb-1 block text-[11px] font-medium text-amber-800/70">
+              {pick(T.panditNameLabel!, lang)}
+            </span>
+            <div className="relative flex items-center">
+              <input
+                type="text"
+                value={panditName}
+                onChange={(e) => setPanditName(e.target.value)}
+                placeholder="e.g. Chaitanya Pandit"
+                className="w-full rounded-lg border border-amber-300 bg-white px-3 py-2 pr-9 text-sm text-amber-950"
+              />
+              <button
+                type="button"
+                onClick={handleMicClick}
+                title={isListening ? pick(T.micListening!, lang) : pick(T.micSpeak!, lang)}
+                className={`absolute right-1.5 rounded-md p-1 transition ${
+                  isListening
+                    ? "animate-pulse bg-red-500 text-white"
+                    : "bg-amber-100 text-amber-800 hover:bg-amber-200"
+                }`}
+              >
+                🎙️
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <span className="mb-1 block text-[11px] font-medium text-amber-800/70">
+              {pick(T.notificationTimeLabel!, lang)}
+            </span>
+            <select
+              value={notificationTime}
+              onChange={(e) => setNotificationTime(e.target.value)}
+              className="w-full rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm text-amber-950"
+            >
+              <option value="05:00">05:00 AM</option>
+              <option value="06:00">06:00 AM</option>
+              <option value="07:00">07:00 AM</option>
+              <option value="08:00">08:00 AM (Default)</option>
+              <option value="09:00">09:00 AM</option>
+              <option value="10:00">10:00 AM</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -276,6 +386,8 @@ export default function PrasadaKit({
           primarySeva={chosenSeva}
           sevaDate={sevaDate}
           rhythm={rhythm}
+          panditName={panditName}
+          qrDataUrl={qrDataUrl}
         />
       </div>
 
@@ -287,6 +399,8 @@ export default function PrasadaKit({
           today={today}
           bestDays={bestDays}
           moneyDays={moneyDays}
+          panditName={panditName}
+          qrDataUrl={qrDataUrl}
         />
       </div>
     </div>

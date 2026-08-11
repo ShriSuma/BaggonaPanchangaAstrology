@@ -7,6 +7,7 @@ import { getCellForRashiIndex } from "./southIndianLayout";
 import { formatChartHouseNumber, formatGhatiVighati, patrikaNavamshaFromDegree } from "../../core/localeNumbers";
 import { calculateTraditionalBaggona } from "../../core/TraditionalBaggonaEngine";
 import { vimshottariBalanceAtBirth, vimshottariBalanceYmdPatrika } from "../../core/DashaBhuktiEngine";
+import { NAKSHATRA_L5, RASHI_L5, pick, getTimeOfDayLabel } from "../../features/seva/sevaLocale";
 
 type Props = {
   kundli: KundliOutput;
@@ -98,6 +99,40 @@ export default function TraditionalSouthPatrika({
   const dashaDays = traditionalData.dashaDays !== undefined ? traditionalData.dashaDays : dashaBalYmd.d;
   const dashaLord = traditionalData.dashaLord !== undefined ? traditionalData.dashaLord : dashaBal.lord;
 
+  const isDayBirth = useMemo(() => {
+    if (!birthTime || !birthTime.includes(":")) return true;
+    const parts = birthTime.split(":");
+    const h = parseInt(parts[0], 10) || 0;
+    const m = parseInt(parts[1], 10) || 0;
+    const birthMins = h * 60 + m;
+
+    let sunriseMins = 6 * 60;
+    let sunsetMins = 18 * 60;
+
+    if (traditionalData.sunrise && traditionalData.sunrise.includes(":")) {
+      const sp = traditionalData.sunrise.split(":");
+      const sh = parseInt(sp[0], 10);
+      const sm = parseInt(sp[1], 10);
+      if (!isNaN(sh) && !isNaN(sm)) sunriseMins = sh * 60 + sm;
+    }
+
+    if (traditionalData.sunset && traditionalData.sunset.includes(":")) {
+      const sp = traditionalData.sunset.split(":");
+      const sh = parseInt(sp[0], 10);
+      const sm = parseInt(sp[1], 10);
+      if (!isNaN(sh) && !isNaN(sm)) sunsetMins = sh * 60 + sm;
+    }
+
+    return birthMins >= sunriseMins && birthMins < sunsetMins;
+  }, [birthTime, traditionalData.sunrise, traditionalData.sunset]);
+
+  const hourNum = useMemo(() => {
+    if (!birthTime || !birthTime.includes(":")) return 0;
+    return parseInt(birthTime.split(":")[0], 10) || 0;
+  }, [birthTime]);
+
+  const timeOfDayText = useMemo(() => getTimeOfDayLabel(hourNum, lang), [hourNum, lang]);
+
   const paragraphText = isKn ? (
     `ಸ್ವಸ್ತಿ ಶ್ರೀಮಜ್ಜಯಾಭ್ಯುದಯ ನೃಪಶಾಲೀವಾಹನ ಗತಶಕವರ್ಷ ${formatChartHouseNumber(traditionalData.shakaYear, "kn")} ${traditionalData.samvatsaraKn} ಸಂವತ್ಸರೇ, ${traditionalData.masaKn} ಮಾಸೇ, ${traditionalData.pakshaKn} ಪಕ್ಷೇ, ${traditionalData.tithiKn} ತಿಥೌ, ${traditionalData.weekdayKn}, ಘಟಿ ${formatChartHouseNumber(traditionalData.tithiGhati, "kn")} ವಿಘಟಿ ${formatChartHouseNumber(traditionalData.tithiVighati, "kn")}, ರವಿ ನ. ${traditionalData.sunNakshatraKn} ಘಟಿ ${formatChartHouseNumber(traditionalData.sunNakshatraGhati, "kn")} ವಿಘಟಿ ${formatChartHouseNumber(traditionalData.sunNakshatraVighati, "kn")}, ಚಂದ್ರ ನ. ${traditionalData.moonNakshatraKn} ಘಟಿ ${formatChartHouseNumber(traditionalData.moonNakshatraGhati, "kn")} ವಿಘಟಿ ${formatChartHouseNumber(traditionalData.moonNakshatraVighati, "kn")}, ${traditionalData.yogaKn} ಯೋಗ ಘಟಿ ${formatChartHouseNumber(traditionalData.yogaGhati, "kn")} ವಿಘಟಿ ${formatChartHouseNumber(traditionalData.yogaVighati, "kn")}, ಕರಣ ${traditionalData.karanaKn} ಘಟಿ ${formatChartHouseNumber(traditionalData.karanaGhati, "kn")} ವಿಘಟಿ ${formatChartHouseNumber(traditionalData.karanaVighati, "kn")}, ವಿಷಘಟಿ ${formatChartHouseNumber(traditionalData.vishaGhati.ghati, "kn")} ವಿಘಟಿ ${formatChartHouseNumber(traditionalData.vishaGhati.vighati, "kn")}, ಅಮೃತಘಟಿ ${formatChartHouseNumber(traditionalData.amrithaGhati.ghati, "kn")} ವಿಘಟಿ ${formatChartHouseNumber(traditionalData.amrithaGhati.vighati, "kn")}, ದಿವಾಘಟಿ ${formatChartHouseNumber(traditionalData.divaGhati.ghati, "kn")} ವಿಘಟಿ ${formatChartHouseNumber(traditionalData.divaGhati.vighati, "kn")}, ಸಂಕ್ರಾಂತಿ ${traditionalData.sankrantiSignKn} ಗತದಿನ ${formatChartHouseNumber(traditionalData.sankrantiGataDina, "kn")} ${traditionalData.moonNakshatraKn}, ಪರಮ ಘಟಿ ${formatChartHouseNumber(traditionalData.paramaGhati.ghati, "kn")} ವಿಘಟಿ ${formatChartHouseNumber(traditionalData.paramaGhati.vighati, "kn")} ಐಷ್ಯಘಟಿ ${formatChartHouseNumber(traditionalData.ashayaGhati.ghati, "kn")} ವಿಘಟಿ ${formatChartHouseNumber(traditionalData.ashayaGhati.vighati, "kn")} ಗತಘಟಿ ${formatChartHouseNumber(traditionalData.ghatadina.ghati, "kn")} ವಿಘಟಿ ${formatChartHouseNumber(traditionalData.ghatadina.vighati, "kn")} ಏವಂ ಪಂಚಾಂಗಮ್ ।`
   ) : (
@@ -105,9 +140,9 @@ export default function TraditionalSouthPatrika({
   );
 
   const birthGhatiText = isKn ? (
-    `ಅಸ್ಮಿನ್ ಶುಭದಿನೇ ಸೂರ್ಯೋದಯಾದ್ಯಾತ ಘಟಿ ${formatChartHouseNumber(traditionalData.suryodhayadgata.ghati, "kn")}, ವಿಘಟಿ ${formatChartHouseNumber(traditionalData.suryodhayadgata.vighati, "kn")} (ಹಗಲು) ಘಂಟೆ ${formatChartHouseNumber(Number(birthTime.split(":")[0]), "kn")} ಮಿ ${formatChartHouseNumber(Number(birthTime.split(":")[1]), "kn")} ತತ್ಕಾಲೇ, ಶ್ರೀ ${t(rashiTKey(kundli.lagnaRashi.sanskrit))} ಲಗ್ನಸ್ಥೇ ಜನ್ಮಕಾಲೇ...`
+    `ಅಸ್ಮಿನ್ ಶುಭದಿನೇ ಸೂರ್ಯೋದಯಾದ್ಯಾತ ಘಟಿ ${formatChartHouseNumber(traditionalData.suryodhayadgata.ghati, "kn")}, ವಿಘಟಿ ${formatChartHouseNumber(traditionalData.suryodhayadgata.vighati, "kn")} (${timeOfDayText}) ಘಂಟೆ ${formatChartHouseNumber(Number(birthTime.split(":")[0]), "kn")} ಮಿ ${formatChartHouseNumber(Number(birthTime.split(":")[1]), "kn")} ತತ್ಕಾಲೇ, ಶ್ರೀ ${RASHI_L5[kundli.lagnaRashi.index] ? pick(RASHI_L5[kundli.lagnaRashi.index], "kn") : t(rashiTKey(kundli.lagnaRashi.sanskrit))} ಲಗ್ನಸ್ಥೇ ಜನ್ಮಕಾಲೇ...`
   ) : (
-    `On this auspicious day, sunrise-passed Ghati ${traditionalData.suryodhayadgata.ghati}, Vighati ${traditionalData.suryodhayadgata.vighati} (Day), at clock time ${birthTime}, Sri ${t(rashiTKey(kundli.lagnaRashi.sanskrit))} Lagna at birth...`
+    `On this auspicious day, sunrise-passed Ghati ${traditionalData.suryodhayadgata.ghati}, Vighati ${traditionalData.suryodhayadgata.vighati} (${timeOfDayText}), at clock time ${birthTime}, Sri ${RASHI_L5[kundli.lagnaRashi.index] ? pick(RASHI_L5[kundli.lagnaRashi.index], lang) : t(rashiTKey(kundli.lagnaRashi.sanskrit))} Lagna at birth...`
   );
 
   const dashaText = isKn ? (
@@ -416,11 +451,20 @@ export default function TraditionalSouthPatrika({
                   {labelRow("kundli.patrikaName", personName)}
                   {labelRow(
                     "kundli.patrikaNakshatra",
-                    moon ? t(nakSanTKey(moon.nakshatra.sanskrit) as "nakshatras.Ashwini") : "—"
+                    moon
+                      ? (NAKSHATRA_L5[moon.nakshatra.index]
+                          ? pick(NAKSHATRA_L5[moon.nakshatra.index], lang)
+                          : t(nakSanTKey(moon.nakshatra.sanskrit) as "nakshatras.Ashwini"))
+                      : "—"
                   )}
-                  {labelRow("kundli.patrikaRashi", t(rashiTKey(kundli.moonSign.sanskrit) as "rashis.Mesha"))}
+                  {labelRow(
+                    "kundli.patrikaRashi",
+                    RASHI_L5[kundli.moonSign.index]
+                      ? pick(RASHI_L5[kundli.moonSign.index], lang)
+                      : t(rashiTKey(kundli.moonSign.sanskrit) as "rashis.Mesha")
+                  )}
                   {labelRow("kundli.patrikaGotra", gothra ?? "")}
-                  {labelRow("kundli.patrikaPada", String(kundli.moonPada))}
+                  {labelRow("kundli.patrikaPada", formatChartHouseNumber(kundli.moonPada && kundli.moonPada >= 1 ? kundli.moonPada : 1, lang))}
                 </div>
               </div>
             </div>

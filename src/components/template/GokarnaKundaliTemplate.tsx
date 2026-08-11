@@ -4,6 +4,7 @@ import type { KundliOutput, PlanetPosition } from "../../core/AstroTypes";
 import { formatChartHouseNumber, patrikaNavamshaFromDegree } from "../../core/localeNumbers";
 import type { TraditionalBaggonaPanchanga } from "../../core/TraditionalBaggonaEngine";
 import { localTranslations } from "../../utils/localTranslations";
+import { NAKSHATRA_L5, RASHI_L5, pick, getTimeOfDayLabel } from "../../features/seva/sevaLocale";
 
 type Props = {
   kundli: KundliOutput;
@@ -87,7 +88,6 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
     dashaBalance = `${pName} ${getLabel("Dasha Bhukti")} ${formatChartHouseNumber(panchanga.dashaYears!, pdfLanguage)} ${getLabel("Masa")} ${formatChartHouseNumber(panchanga.dashaMonths!, pdfLanguage)} ${getLabel("Dina")} ${formatChartHouseNumber(panchanga.dashaDays!, pdfLanguage)}`;
   }
   
-  const birthTimeLabel = isDayBirth ? getLabel("Day") : getLabel("Night");
   let h = birthDateObj.getHours();
   let m = birthDateObj.getMinutes();
   if (birthTimeStr && birthTimeStr.includes(":")) {
@@ -95,15 +95,26 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
     h = parseInt(parts[0], 10) || h;
     m = parseInt(parts[1], 10) || m;
   }
+  const timeOfDayLabel = getTimeOfDayLabel(h, pdfLanguage);
   const displayH = h % 12 || 12;
   const displayHKn = formatChartHouseNumber(displayH, pdfLanguage);
   const displayMKn = formatChartHouseNumber(m, pdfLanguage).padStart(2, pdfLanguage === "kn" ? '೦' : '0');
 
   const moonDegree = kundli.planets.find((p) => p.name === "Moon")?.degree || 0;
-  const pada = formatChartHouseNumber(kundli.moonPada, pdfLanguage); 
+  const safeMoonPada = kundli.moonPada && kundli.moonPada >= 1 ? kundli.moonPada : 1;
+  const pada = formatChartHouseNumber(safeMoonPada, pdfLanguage); 
   
-  const moonNakshatra = kundli.planets.find((p) => p.name === "Moon")?.nakshatra.sanskrit || "";
-  const moonRashiName = getValue("moonRashiName", getLabel(kundli.moonSign.sanskrit));
+  const moonPlanet = kundli.planets.find((p) => p.name === "Moon");
+  const moonNakshatra = moonPlanet?.nakshatra.sanskrit || "";
+  const moonNakshatraIndex = moonPlanet?.nakshatra.index ?? -1;
+  const moonNakshatraName = NAKSHATRA_L5[moonNakshatraIndex]
+    ? pick(NAKSHATRA_L5[moonNakshatraIndex], pdfLanguage)
+    : getValue("moonNakshatraName", getLabel(moonPlanet?.nakshatra.sanskrit || ""));
+
+  const moonRashiIndex = kundli.moonSign.index;
+  const moonRashiName = RASHI_L5[moonRashiIndex]
+    ? pick(RASHI_L5[moonRashiIndex], pdfLanguage)
+    : getValue("moonRashiName", getLabel(kundli.moonSign.sanskrit));
 
   const lagnaAmsha = formatChartHouseNumber(patrikaNavamshaFromDegree(kundli.ascendant), pdfLanguage);
   const maandi = kundli.maandi;
@@ -124,7 +135,7 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
         backgroundColor: "#ffffff",
         padding: "20px",
         boxSizing: "border-box",
-        fontFamily: "'Hind', sans-serif",
+        fontFamily: "'Hind', 'Noto Sans Kannada', sans-serif",
         color: "#000000",
         display: "flex",
         flexDirection: "column",
@@ -174,7 +185,7 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
           border: "2px solid #000",
           padding: "8px 12px",
           backgroundColor: "#ffffff",
-          fontFamily: "'Hind', sans-serif"
+          fontFamily: "'Hind', 'Noto Sans Kannada', sans-serif"
         }}>
           <div><b>{getLabel("Shaka Varsha")}:</b> {shakaYear} {samvatsara}</div>
           <div><b>{getLabel("Masa")}:</b> {masa}</div>
@@ -196,7 +207,7 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
             <b>{getLabel("Sunrise")}:</b> {panchanga?.sunrise} &nbsp;|&nbsp; 
             <b>{getLabel("Sunset")}:</b> {panchanga?.sunset} &nbsp;|&nbsp; 
             <b>{getLabel("Suryodayadi")}:</b> {suryodayadi} &nbsp;|&nbsp; 
-            <b>{getLabel("Janma Kala")}:</b> ({birthTimeLabel} {getLabel("Hour")} {displayHKn} {getLabel("Min")} {displayMKn}) <br/> 
+            <b>{getLabel("Janma Kala")}:</b> ({timeOfDayLabel} {getLabel("Hour")} {displayHKn} {getLabel("Min")} {displayMKn}) <br/> 
             <b>{getLabel("Dasha Bhukti")}:</b> {dashaBalance}
             {parentsName ? <><br/>{parentsName}</> : null}
             {gothra ? ` | ${getLabel("Gotra")}: ${gothra}` : null}
@@ -233,23 +244,31 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
                         display: "flex",
                         flexDirection: "column",
                         justifyContent: "center",
-                        padding: "20px",
-                        fontSize: "17px",
+                        padding: "16px 20px",
+                        fontSize: "13px",
                         fontWeight: "bold",
-                        lineHeight: "2",
+                        lineHeight: "1.6",
                       }}
                     >
-                      <div style={{ display: "flex", whiteSpace: "nowrap" }}>
-                        <span style={{ width: "95px" }}>{getLabel("Name")}</span>
+                      <div style={{ display: "flex", alignItems: "center", whiteSpace: "nowrap", marginBottom: "4px" }}>
+                        <span style={{ width: "95px", display: "inline-block" }}>{getLabel("Name")}</span>
                         <span>: {personName || "________________"}</span>
                       </div>
-                      <div style={{ display: "flex", fontSize: "14px", marginTop: "4px", whiteSpace: "nowrap" }}>
-                        <span style={{ width: "95px" }}>{getLabel("Gotra")}</span>
+                      <div style={{ display: "flex", alignItems: "center", whiteSpace: "nowrap", marginBottom: "4px" }}>
+                        <span style={{ width: "95px", display: "inline-block" }}>{getLabel("Gotra")}</span>
                         <span>: {gothra || "________________"}</span>
                       </div>
-                      <div style={{ display: "flex", marginTop: "4px", whiteSpace: "nowrap" }}>
-                        <span style={{ width: "95px" }}>{getLabel("Rashi/Pada")}</span>
-                        <span>: {moonRashiName} / {pada}</span>
+                      <div style={{ display: "flex", alignItems: "center", whiteSpace: "nowrap", marginBottom: "4px" }}>
+                        <span style={{ width: "95px", display: "inline-block" }}>{getLabel("Rashi")}</span>
+                        <span>: {moonRashiName}</span>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", whiteSpace: "nowrap", marginBottom: "4px" }}>
+                        <span style={{ width: "95px", display: "inline-block" }}>{getLabel("Nakshatra")}</span>
+                        <span>: {moonNakshatraName}</span>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", whiteSpace: "nowrap" }}>
+                        <span style={{ width: "95px", display: "inline-block" }}>{getLabel("Pada")}</span>
+                        <span>: {pada}</span>
                       </div>
                     </div>
                   );
