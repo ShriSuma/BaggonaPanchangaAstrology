@@ -569,21 +569,8 @@ export const SevaLetterPrint = ({
           {pick(LETTER_L5.closing!, lang)}
         </p>
 
-        {/* QR Code Phone Sync Badge & Priest Signature */}
-        <div style={{ marginTop: 22, display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: `1.5px solid ${GOLD_LIGHT}`, paddingTop: 16 }}>
-          {qrDataUrl && (
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <img
-                src={qrDataUrl}
-                alt="Calendar Sync QR Code"
-                style={{ width: 84, height: 84, borderRadius: 8, border: `1px solid ${GOLD_LIGHT}`, padding: 4, backgroundColor: "#FFFFFF" }}
-              />
-              <div style={{ fontSize: 10, color: INK_SOFT, lineHeight: 1.5, maxWidth: 260 }}>
-                <div style={{ fontWeight: 700, color: GOLD, fontSize: 11 }}>📲 {pick(T.scanQrTitle!, lang)}</div>
-                <div style={{ marginTop: 2 }}>{pick(T.scanQrDesc!, lang)}</div>
-              </div>
-            </div>
-          )}
+        {/* Priest Signature */}
+        <div style={{ marginTop: 22, display: "flex", alignItems: "center", justifyContent: "flex-end", borderTop: `1.5px solid ${GOLD_LIGHT}`, paddingTop: 16 }}>
 
           <div style={{ textAlign: "right", marginLeft: "auto" }}>
             <div style={{ fontSize: 15, fontWeight: 700, color: GOLD }}>
@@ -603,7 +590,84 @@ export const SevaLetterPrint = ({
 };
 
 /* ------------------------------------------------------------------ *
- * Sheet 4 — the prasada card that travels inside the packet
+ * Sheet 4 — the QR Code Sync Instructions Card
+ * ------------------------------------------------------------------ */
+
+export const SevaQRCodePrint = ({
+  lang,
+  identity,
+  qrDataUrl
+}: {
+  lang: string;
+  identity: Identity;
+  qrDataUrl?: string;
+}): JSX.Element => {
+  return (
+    <div className="pdf-page" style={pageStyle}>
+      <div
+        style={{
+          border: `3px solid ${GOLD}`,
+          borderRadius: 16,
+          padding: "40px",
+          minHeight: PAGE_H - 76,
+          boxSizing: "border-box",
+          backgroundColor: PAPER,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          textAlign: "center"
+        }}
+      >
+        <div style={{ fontSize: 26, fontWeight: 700, color: INK, marginBottom: 12 }}>
+          {pick(T.qrPrintHeader!, lang)}
+        </div>
+        <div style={{ fontSize: 15, color: INK_SOFT, marginBottom: 40 }}>
+          {pick(T.scanQrDesc!, lang)}
+        </div>
+
+        {qrDataUrl && (
+          <div
+            style={{
+              padding: 16,
+              backgroundColor: "#FFFFFF",
+              border: `2px solid ${GOLD_LIGHT}`,
+              borderRadius: 16,
+              display: "inline-block",
+              marginBottom: 40,
+              boxShadow: "0 10px 25px rgba(0,0,0,0.05)"
+            }}
+          >
+            <img src={qrDataUrl} alt="QR Code" style={{ width: 300, height: 300 }} />
+          </div>
+        )}
+
+        <div style={{ textAlign: "left", display: "inline-block", backgroundColor: PANEL, padding: "24px 32px", borderRadius: 16, border: `1px solid ${GOLD_LIGHT}` }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: GOLD, marginBottom: 16, textTransform: "uppercase", letterSpacing: 1 }}>
+            {pick(T.scanQrTitle!, lang)}
+          </div>
+          <div style={{ fontSize: 18, color: INK, lineHeight: 2 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+              <span style={{ fontSize: 24 }}>📱</span> {pick(T.qrPrintStep1!, lang)}
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+              <span style={{ fontSize: 24 }}>📷</span> {pick(T.qrPrintStep2!, lang)}
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+              <span style={{ fontSize: 24 }}>🔗</span> {pick(T.qrPrintStep3!, lang)}
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <span style={{ fontSize: 24 }}>✅</span> {pick(T.qrPrintStep4!, lang)}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ------------------------------------------------------------------ *
+ * Sheet 5 — the prasada card that travels inside the packet
  * ------------------------------------------------------------------ */
 
 export type PrasadaCardPrintProps = {

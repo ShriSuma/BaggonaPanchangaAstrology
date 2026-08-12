@@ -74,7 +74,7 @@ export const useSevaData = (): { data: SevaData | null; loading: boolean } => {
           longitude,
           new Date(),
           {
-            days: 180,
+            days: 90,
             ayanamsaModel,
             nodeType,
             utcOffsetMinutes: offsetMinutesFor(latitude, longitude)

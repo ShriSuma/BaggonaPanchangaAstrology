@@ -10,7 +10,8 @@ import { generatePDFFromElement } from "../../utils/pdfGenerator";
 import {
   SevaCalendarPrint,
   SevaLetterPrint,
-  SevaPrasadaCardPrint
+  SevaPrasadaCardPrint,
+  SevaQRCodePrint
 } from "./pdf/SevaPrintTemplates";
 
 type Identity = {
@@ -387,6 +388,11 @@ export default function PrasadaKit({
           sevaDate={sevaDate}
           rhythm={rhythm}
           panditName={panditName}
+          qrDataUrl={qrDataUrl}
+        />
+        <SevaQRCodePrint
+          lang={lang}
+          identity={identity}
           qrDataUrl={qrDataUrl}
         />
       </div>

@@ -45,7 +45,7 @@ export type CalendarGeneratorOptions = {
 };
 
 /**
- * Builds a full RFC 5545 .ics payload string containing all 180 days of guidance.
+ * Builds a full RFC 5545 .ics payload string containing all 90 days of guidance.
  */
 export function generateSevaICalendarString(options: CalendarGeneratorOptions): string {
   const { days, lang, panditName, notificationTime, personName } = options;

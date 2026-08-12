@@ -511,11 +511,46 @@ export const T: Record<string, L5> = {
   notificationTimeLabel: { en: "Daily Notification Time", kn: "ದೈನಂದಿನ ಅಧಿಸೂಚನೆ ಸಮಯ", te: "ದಿನಚರ್ಯ ನೋಟಿಫಿಕೇಷನ್ ಸಮಯಂ", ta: "தினசரி அறிவிப்பு நேரம்", hi: "दैनिक सूचना समय" },
   scanQrTitle: { en: "Scan QR Code on Mobile Phone", kn: "ಮೊಬೈಲ್‌ನಲ್ಲಿ QR ಕೋಡ್ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ", te: "ಮೊಬೈಲ್‌ನಲ್ಲಿ QR ಕೋಡ್ ಸ್ಕಾನ್ ಚೇಯಂಡಿ", ta: "மொபைலில் QR குறியீட்டை ஸ்கேன் செய்யுங்கள்", hi: "मोबाइल पर QR कोड स्कैन करें" },
   scanQrDesc: {
-    en: "Use your iPhone or Android camera to instantly subscribe & import 180 days of daily Panchanga reminders into your calendar.",
-    kn: "ನಿಮ್ಮ iPhone ಅಥವಾ Android ಕ್ಯಾಮೆರಾ ಬಳಸಿ 180 ದಿನಗಳ ದೈನಂದಿನ ಪಂಚಾಂಗ ನೆನಪೋಲೆಗಳನ್ನು ತಕ್ಷಣ ನಿಮ್ಮ ಕ್ಯಾಲೆಂಡರ್‌ಗೆ ಸೇರಿಸಿ.",
-    te: "మీ iPhone లేదా Android కెమెరాను ఉపయోగించి 180 రోజుల దినచర్య పంచాంగ జ్ఞాపికలను వెంటనే మీ క్యాలెండర్‌కు జోడించండి.",
-    ta: "உங்கள் iPhone அல்லது Android கேமராவைப் பயன்படுத்தி 180 நாட்களின் பஞ்சாங்க நினைவூட்டல்களை உங்கள் நாட்காட்டியில் சேர்க்கவும்.",
-    hi: "अपने iPhone या Android कैमरे का उपयोग करके 180 दिनों के दैनिक पंचांग रिमाइंडर्स को तुरंत अपने कैलेंडर में जोड़ें。"
+    en: "Use your iPhone or Android camera to instantly subscribe & import 90 days of daily Panchanga reminders into your calendar.",
+    kn: "ನಿಮ್ಮ iPhone ಅಥವಾ Android ಕ್ಯಾಮೆರಾ ಬಳಸಿ 90 ದಿನಗಳ ದೈನಂದಿನ ಪಂಚಾಂಗ ನೆನಪೋಲೆಗಳನ್ನು ತಕ್ಷಣ ನಿಮ್ಮ ಕ್ಯಾಲೆಂಡರ್‌ಗೆ ಸೇರಿಸಿ.",
+    te: "మీ iPhone లేదా Android కెమెరాను ఉపయోగించి 90 రోజుల దినచర్య పంచాంగ జ్ఞాపికలను వెంటనే మీ క్యాలెండర్‌కు జోడించండి.",
+    ta: "உங்கள் iPhone அல்லது Android கேமராவைப் பயன்படுத்தி 90 நாட்களின் பஞ்சாங்க நினைவூட்டல்களை உங்கள் நாட்காட்டியில் சேர்க்கவும்.",
+    hi: "अपने iPhone या Android कैमरे का उपयोग करके 90 दिनों के दैनिक पंचांग रिमाइंडर्स को तुरंत अपने कैलेंडर में जोड़ें।"
+  },
+  qrPrintHeader: {
+    en: "Baggona Panchanga Astrology for next 90 days",
+    kn: "ಮುಂದಿನ 90 ದಿನಗಳ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ",
+    te: "తదుపరి 90 రోజులకు బగ్గోణ పంచాంగ జ్యోతిష్యం",
+    ta: "அடுத்த 90 நாட்களுக்கான பக்கோனா பஞ்சாங்க ஜோதிடம்",
+    hi: "अगले 90 दिनों के लिए बग्गोना पंचांग ज्योतिष"
+  },
+  qrPrintStep1: {
+    en: "1. Open your phone camera",
+    kn: "೧. ನಿಮ್ಮ ಫೋನಿನ ಕ್ಯಾಮೆರಾ ತೆರೆಯಿರಿ",
+    te: "౧. మీ ఫోన్ కెమెరాను తెరవండి",
+    ta: "௧. உங்கள் ஃபோன் கேமராவைத் திறக்கவும்",
+    hi: "१. अपने फोन का कैमरा खोलें"
+  },
+  qrPrintStep2: {
+    en: "2. Point it at the QR code above",
+    kn: "೨. ಮೇಲಿನ ಕ್ಯೂಆರ್ ಕೋಡ್ ಕಡೆಗೆ ತೋರಿಸಿ",
+    te: "౨. పై ఉన్న క్యూఆర్ కోడ్ వైపు చూపించండి",
+    ta: "௨. மேலே உள்ள QR குறியீட்டைக் காட்டுங்கள்",
+    hi: "२. इसे ऊपर दिए गए क्यूआर कोड की ओर करें"
+  },
+  qrPrintStep3: {
+    en: "3. Tap the link that appears on your screen",
+    kn: "೩. ಸ್ಕ್ರೀನ್ ಮೇಲೆ ಕಾಣುವ ಲಿಂಕ್ ಕ್ಲಿಕ್ ಮಾಡಿ",
+    te: "౩. స్క్రీన్‌పై కనిపించే లింక్‌ను నొక్కండి",
+    ta: "௩. திரையில் தோன்றும் இணைப்பைத் தட்டவும்",
+    hi: "३. स्क्रीन पर दिखने वाले लिंक को दबाएं"
+  },
+  qrPrintStep4: {
+    en: "4. Click 'Add' to save the calendar",
+    kn: "೪. ಕ್ಯಾಲೆಂಡರ್ ಸೇರಿಸಲು 'Add' ಅಥವಾ 'ಸೇರಿಸು' ಒತ್ತಿರಿ",
+    te: "౪. క్యాలెండర్‌ను జోడించడానికి 'Add' నొక్కండి",
+    ta: "௪. காலெண்டரைச் சேர்க்க 'Add' ஐ அழுத்தவும்",
+    hi: "४. कैलेंडर जोड़ने के लिए 'Add' पर क्लिक करें"
   },
   addToGoogleCalendar: { en: "Add to Google Calendar", kn: "Google Calendar ಗೆ ಸೇರಿಸಿ", te: "Google Calendar ಕು ಜೋಡಿಂದಿ", ta: "Google Calendar இல் சேர்க்கவும்", hi: "Google Calendar में जोड़ें" },
   downloadIcsFile: { en: "Download .ics Calendar File", kn: ".ics ಕ್ಯಾಲೆಂಡರ್ ಫೈಲ್ ಡೌನ್‌ಲೋಡ್", te: ".ics ಕ್ಯಾಲಂಡರ್ ಫೈಲ್ ಡೌನ್‌ಲೋಡ್", ta: ".ics காலண்டர் கோப்பைப் பதிவிறக்கு", hi: ".ics कैलेंडर फ़ाइल डाउनलोड करें" },
