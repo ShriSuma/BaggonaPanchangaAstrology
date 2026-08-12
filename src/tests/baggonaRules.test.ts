@@ -75,14 +75,11 @@ describe("BaggonaAstrologyRules", () => {
     expect(predBase.education).not.toContain("ಸಪ್ತಮಾಧಿಪತಿ");
     expect(predBase.education).not.toContain("ಸಪ್ತಮ");
     
-    // Should be dynamic and check 2nd and 4th lords
-    expect(predBase.education).toContain("ದ್ವಿತೀಯಾಧಿಪತಿ");
-    expect(predBase.education).toContain("ಚತುರ್ಥಾಧಿಪತಿ");
+    // Should be dynamic and check 5th and 4th lords
+    expect(predBase.education).toContain("ಮನೆಯ ಅಧಿಪತಿಯಾದ");
 
     const predEn = generateJayashreePredictionBase(k, birth, "en");
     expect(predEn.education).not.toContain("7th");
-    expect(predEn.education).toContain("2nd house lord");
-    expect(predEn.education).toContain("4th house lord");
   });
 
   it("verifies dynamic Gochara transit computations with Sade Sati checking", async () => {

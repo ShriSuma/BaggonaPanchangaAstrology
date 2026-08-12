@@ -19,6 +19,7 @@ import {
   SHLOKA_SHIVA,
   T,
   WEEKDAY_SHORT_L5,
+  formatPanditName,
   pick
 } from "../../../features/seva/sevaLocale";
 import {
@@ -56,9 +57,9 @@ const pageStyle: React.CSSProperties = {
 
 const OrnamentRule = (): JSX.Element => (
   <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "14px 0" }}>
-    <div style={{ flex: 1, height: 1, backgroundColor: GOLD_LIGHT }} />
+    <div style={{ flex: 1, borderBottom: `2px solid ${GOLD_LIGHT}` }} />
     <div style={{ color: GOLD, fontSize: 13, letterSpacing: 4 }}>❖</div>
-    <div style={{ flex: 1, height: 1, backgroundColor: GOLD_LIGHT }} />
+    <div style={{ flex: 1, borderBottom: `2px solid ${GOLD_LIGHT}` }} />
   </div>
 );
 
@@ -441,64 +442,68 @@ export const SevaLetterPrint = ({
   panditName,
   qrDataUrl
 }: LetterPrintProps): JSX.Element => {
+  const safePanditName = formatPanditName(panditName, lang);
+
   const paragraph: React.CSSProperties = {
-    fontSize: 14,
-    lineHeight: 1.8,
+    fontSize: 13.5,
+    lineHeight: 1.9,
     letterSpacing: "normal",
     color: INK,
-    marginTop: 14,
-    textAlign: "justify"
+    marginTop: 12,
+    textAlign: "left"
   };
 
   return (
     <div className="pdf-page" style={pageStyle}>
-      {/* Decorative frame */}
+      {/* Royal Gold Dual Decorative Frame */}
       <div
         style={{
           border: `3px double ${GOLD}`,
           borderRadius: 16,
-          padding: "34px 38px",
+          padding: "30px 36px",
           minHeight: PAGE_H - 76,
           boxSizing: "border-box",
-          backgroundColor: PAPER
+          backgroundColor: PAPER,
+          position: "relative"
         }}
       >
         <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: 26, color: GOLD, letterSpacing: 2 }} lang="sa">
+          <div style={{ fontSize: 28, color: GOLD, letterSpacing: 2 }} lang="sa">
             ॐ
           </div>
           <div
             style={{
-              marginTop: 6,
-              fontSize: 11,
-              letterSpacing: 5,
+              marginTop: 4,
+              fontSize: 12,
+              letterSpacing: "normal",
               color: GOLD,
-              textTransform: "uppercase"
+              fontWeight: 700,
+              lineHeight: 1.5
             }}
           >
             {pick(T.preparedBy!, lang)}
           </div>
-          <div style={{ marginTop: 8, fontSize: 28, fontWeight: 700 }}>
+          <div style={{ marginTop: 6, fontSize: 25, fontWeight: 700, letterSpacing: "normal", lineHeight: 1.3, color: INK }}>
             {pick(T.letterTitle!, lang)}
           </div>
         </div>
 
         <OrnamentRule />
 
-        <div style={{ fontSize: 16, fontWeight: 600, marginTop: 8 }}>
+        <div style={{ fontSize: 16, fontWeight: 700, marginTop: 6, color: INK }}>
           {pick(LETTER_L5.salutation!, lang)} {identity.personName},
         </div>
 
         <p style={paragraph}>{pick(LETTER_L5.opening!, lang)}</p>
 
-        {/* Seva record */}
+        {/* Seva Record Details */}
         <div
           style={{
-            marginTop: 18,
+            marginTop: 14,
             border: `1.5px solid ${GOLD_LIGHT}`,
             borderRadius: 12,
             backgroundColor: PANEL,
-            padding: "16px 20px"
+            padding: "14px 18px"
           }}
         >
           {[
@@ -512,36 +517,47 @@ export const SevaLetterPrint = ({
               key={label}
               style={{
                 display: "flex",
-                gap: 12,
-                padding: "5px 0",
-                borderBottom: `1px solid ${GOLD_LIGHT}44`
+                alignItems: "center",
+                gap: 16,
+                padding: "8px 4px",
+                minHeight: 32,
+                borderBottom: `1px solid ${GOLD_LIGHT}66`,
+                boxSizing: "border-box"
               }}
             >
-              <div style={{ width: 190, fontSize: 11, color: INK_SOFT, textTransform: "uppercase", letterSpacing: 1 }}>
+              <div style={{ width: 210, fontSize: 11.5, color: INK_SOFT, textTransform: "uppercase", letterSpacing: "normal", lineHeight: 1.4 }}>
                 {label}
               </div>
-              <div style={{ flex: 1, fontSize: 14, fontWeight: 600 }}>{value}</div>
+              <div style={{ flex: 1, fontSize: 13.5, fontWeight: 700, color: INK, lineHeight: 1.4, letterSpacing: "normal" }}>
+                {value}
+              </div>
             </div>
           ))}
         </div>
 
-        <p style={paragraph}>{pick(LETTER_L5.calendarNote!, lang)}</p>
-        <p style={paragraph}>{pick(LETTER_L5.howToRead!, lang)}</p>
-
-        {primarySeva && (
-          <div
-            style={{
-              marginTop: 18,
-              borderLeft: `4px solid ${GOLD}`,
-              paddingLeft: 16,
-              fontSize: 13,
-              lineHeight: 1.9,
-              color: INK
-            }}
-          >
-            {pick(primarySeva.seva.benefit, lang)}
+        {/* Priest Ashirvachana Blessing Box */}
+        <div
+          style={{
+            marginTop: 16,
+            backgroundColor: PANEL,
+            border: `1.5px solid ${GOLD}`,
+            borderRadius: 12,
+            padding: "18px 22px",
+            textAlign: "center"
+          }}
+        >
+          <div style={{ fontSize: 15, fontWeight: 700, color: GOLD, marginBottom: 8 }}>
+            ✦ {pick(LETTER_L5.ashirvachanaHeading!, lang)} ✦
           </div>
-        )}
+
+          <div style={{ fontSize: 13, fontWeight: 700, color: INK, marginBottom: 12, backgroundColor: GOLD_LIGHT + "33", padding: "6px 16px", borderRadius: 20, display: "inline-block", border: `1px solid ${GOLD_LIGHT}` }}>
+            {safePanditName ? `${pick(LETTER_L5.priestBlessingPrefix!, lang)} ${safePanditName}` : "ಅರ್ಚಕರು"}
+          </div>
+
+          <div style={{ fontSize: 13.5, margin: 0, lineHeight: 1.9, textAlign: "left", color: INK, whiteSpace: "pre-line" }}>
+            {pick(LETTER_L5.priestBlessingBody!, lang)}
+          </div>
+        </div>
 
         <OrnamentRule />
 
@@ -551,36 +567,35 @@ export const SevaLetterPrint = ({
             backgroundColor: PANEL,
             border: `1px solid ${GOLD_LIGHT}`,
             borderRadius: 12,
-            padding: "16px 20px"
+            padding: "14px 18px"
           }}
         >
           <div
             lang="sa"
-            style={{ fontSize: 15, lineHeight: 1.9, whiteSpace: "pre-line", color: INK }}
+            style={{ fontSize: 14.5, lineHeight: 1.8, whiteSpace: "pre-line", color: INK }}
           >
             {(primarySeva?.seva.shloka ?? SHLOKA_SHIVA).sanskrit}
           </div>
-          <div style={{ marginTop: 8, fontSize: 11, color: INK_SOFT, lineHeight: 1.7 }}>
+          <div style={{ marginTop: 6, fontSize: 11, color: INK_SOFT, lineHeight: 1.6 }}>
             {pick((primarySeva?.seva.shloka ?? SHLOKA_SHIVA).meaning, lang)}
           </div>
         </div>
 
-        <p style={{ ...paragraph, textAlign: "center", fontWeight: 600, marginTop: 18 }}>
+        <p style={{ ...paragraph, textAlign: "center", fontWeight: 600, marginTop: 14 }}>
           {pick(LETTER_L5.closing!, lang)}
         </p>
 
-        {/* Priest Signature */}
-        <div style={{ marginTop: 22, display: "flex", alignItems: "center", justifyContent: "flex-end", borderTop: `1.5px solid ${GOLD_LIGHT}`, paddingTop: 16 }}>
-
+        {/* Priest Signature Block */}
+        <div style={{ marginTop: 18, display: "flex", alignItems: "center", justifyContent: "flex-end", borderTop: `1.5px solid ${GOLD_LIGHT}`, paddingTop: 14 }}>
           <div style={{ textAlign: "right", marginLeft: "auto" }}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: GOLD }}>
-              {panditName ? `${pick(T.namaskaraHeader!, lang)} ${panditName}` : pick(LETTER_L5.signature!, lang)}
+            <div style={{ fontSize: 12, color: INK_SOFT }}>
+              {pick(LETTER_L5.namaskaraSubtitle!, lang)}
             </div>
-            <div style={{ fontSize: 11, color: INK_SOFT, marginTop: 2 }}>
-              {pick(LETTER_L5.signature!, lang)}
+            <div style={{ fontSize: 16, fontWeight: 700, color: GOLD, marginTop: 2 }}>
+              {safePanditName || "ಚೈತನ್ಯ ಪಂಡಿತ"}
             </div>
-            <div style={{ fontSize: 9.5, color: INK_SOFT, marginTop: 2 }}>
-              {rhythm.startYmd} — {rhythm.endYmd}
+            <div style={{ fontSize: 10, color: INK_SOFT, marginTop: 2 }}>
+              {rhythm?.startYmd || ""} — {rhythm?.endYmd || ""}
             </div>
           </div>
         </div>
@@ -608,7 +623,7 @@ export const SevaQRCodePrint = ({
         style={{
           border: `3px solid ${GOLD}`,
           borderRadius: 16,
-          padding: "40px",
+          padding: "36px 40px",
           minHeight: PAGE_H - 76,
           boxSizing: "border-box",
           backgroundColor: PAPER,
@@ -616,13 +631,14 @@ export const SevaQRCodePrint = ({
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          textAlign: "center"
+          textAlign: "center",
+          position: "relative"
         }}
       >
-        <div style={{ fontSize: 26, fontWeight: 700, color: INK, marginBottom: 12 }}>
+        <div style={{ fontSize: 24, fontWeight: 700, color: INK, marginBottom: 10 }}>
           {pick(T.qrPrintHeader!, lang)}
         </div>
-        <div style={{ fontSize: 15, color: INK_SOFT, marginBottom: 40 }}>
+        <div style={{ fontSize: 13.5, color: INK_SOFT, marginBottom: 28, maxWidth: 680, lineHeight: 1.6 }}>
           {pick(T.scanQrDesc!, lang)}
         </div>
 
@@ -634,32 +650,46 @@ export const SevaQRCodePrint = ({
               border: `2px solid ${GOLD_LIGHT}`,
               borderRadius: 16,
               display: "inline-block",
-              marginBottom: 40,
-              boxShadow: "0 10px 25px rgba(0,0,0,0.05)"
+              marginBottom: 30,
+              boxShadow: "0 8px 20px rgba(0,0,0,0.04)"
             }}
           >
-            <img src={qrDataUrl} alt="QR Code" style={{ width: 300, height: 300 }} />
+            <img src={qrDataUrl} alt="QR Code" style={{ width: 260, height: 260 }} />
           </div>
         )}
 
-        <div style={{ textAlign: "left", display: "inline-block", backgroundColor: PANEL, padding: "24px 32px", borderRadius: 16, border: `1px solid ${GOLD_LIGHT}` }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: GOLD, marginBottom: 16, textTransform: "uppercase", letterSpacing: 1 }}>
+        <div style={{ textAlign: "left", width: "100%", maxWidth: 640, backgroundColor: PANEL, padding: "22px 28px", borderRadius: 16, border: `1px solid ${GOLD_LIGHT}`, boxSizing: "border-box" }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: GOLD, marginBottom: 14, textTransform: "uppercase", letterSpacing: 1, textAlign: "center" }}>
             {pick(T.scanQrTitle!, lang)}
           </div>
-          <div style={{ fontSize: 18, color: INK, lineHeight: 2 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
-              <span style={{ fontSize: 24 }}>📱</span> {pick(T.qrPrintStep1!, lang)}
+          <div style={{ fontSize: 15, color: INK, lineHeight: 1.9 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
+              <span style={{ fontSize: 22 }}>📱</span> {pick(T.qrPrintStep1!, lang)}
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
-              <span style={{ fontSize: 24 }}>📷</span> {pick(T.qrPrintStep2!, lang)}
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
+              <span style={{ fontSize: 22 }}>📷</span> {pick(T.qrPrintStep2!, lang)}
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
-              <span style={{ fontSize: 24 }}>🔗</span> {pick(T.qrPrintStep3!, lang)}
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
+              <span style={{ fontSize: 22 }}>🔗</span> {pick(T.qrPrintStep3!, lang)}
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <span style={{ fontSize: 24 }}>✅</span> {pick(T.qrPrintStep4!, lang)}
+              <span style={{ fontSize: 22 }}>✅</span> {pick(T.qrPrintStep4!, lang)}
             </div>
           </div>
+        </div>
+
+        <div
+          style={{
+            position: "absolute",
+            bottom: 22,
+            left: 42,
+            right: 42,
+            textAlign: "center",
+            fontSize: 10,
+            color: INK_SOFT
+          }}
+        >
+          {pick(LETTER_L5.signature!, lang)} · 2 / 3
         </div>
       </div>
     </div>
@@ -674,9 +704,9 @@ export type PrasadaCardPrintProps = {
   lang: string;
   identity: Identity;
   rhythm: RhythmResult;
-  today: RhythmDay;
-  bestDays: RhythmDay[];
-  moneyDays: RhythmDay[];
+  today?: RhythmDay;
+  bestDays?: RhythmDay[];
+  moneyDays?: RhythmDay[];
   panditName?: string;
   qrDataUrl?: string;
 };
@@ -686,11 +716,16 @@ export const SevaPrasadaCardPrint = ({
   identity,
   rhythm,
   today,
-  bestDays,
-  moneyDays,
+  bestDays = [],
+  moneyDays = [],
   panditName,
   qrDataUrl
 }: PrasadaCardPrintProps): JSX.Element => {
+  const activeToday = today || rhythm?.days?.[0];
+  const colourKey = (rhythm?.personalColour && COLOUR_HEX[rhythm.personalColour]) ? rhythm.personalColour : "yellow";
+  const directionKey = (rhythm?.personalDirection && DIRECTION_L5[rhythm.personalDirection]) ? rhythm.personalDirection : "east";
+  const personalNumStr = rhythm?.personalNumbers?.length ? rhythm.personalNumbers.join(" · ") : "3";
+
   const listBox = (title: string, days: RhythmDay[], accent: string): JSX.Element => (
     <div
       style={{
@@ -751,7 +786,7 @@ export const SevaPrasadaCardPrint = ({
             {pick(T.luckyNumber!, lang)}
           </div>
           <div style={{ fontSize: 34, fontWeight: 700, color: GOLD, marginTop: 4 }}>
-            {rhythm.personalNumbers.join(" · ")}
+            {personalNumStr}
           </div>
         </div>
 
@@ -782,13 +817,13 @@ export const SevaPrasadaCardPrint = ({
                 width: 22,
                 height: 22,
                 borderRadius: 11,
-                backgroundColor: COLOUR_HEX[rhythm.personalColour],
+                backgroundColor: COLOUR_HEX[colourKey],
                 border: `1px solid ${GOLD_LIGHT}`,
                 display: "inline-block"
               }}
             />
             <span style={{ fontSize: 17, fontWeight: 600, color: INK }}>
-              {pick(COLOUR_L5[rhythm.personalColour], lang)}
+              {pick(COLOUR_L5[colourKey], lang)}
             </span>
           </div>
         </div>
@@ -807,7 +842,7 @@ export const SevaPrasadaCardPrint = ({
             {pick(T.luckyDirection!, lang)}
           </div>
           <div style={{ fontSize: 19, fontWeight: 600, color: INK, marginTop: 12 }}>
-            {pick(DIRECTION_L5[rhythm.personalDirection], lang)}
+            {pick(DIRECTION_L5[directionKey], lang)}
           </div>
         </div>
       </div>
@@ -826,7 +861,7 @@ export const SevaPrasadaCardPrint = ({
           {pick(T.today!, lang)}
         </div>
         <div style={{ marginTop: 5, fontSize: 15, fontWeight: 600 }}>
-          {formatLongDate(today, lang)} · {tithiLabel(today, lang)}
+          {activeToday ? `${formatLongDate(activeToday, lang)} · ${tithiLabel(activeToday, lang)}` : "—"}
         </div>
       </div>
 
@@ -892,6 +927,255 @@ export const SevaPrasadaCardPrint = ({
         }}
       >
         {panditName ? `${pick(T.namaskaraHeader!, lang)} ${panditName} · ${pick(LETTER_L5.signature!, lang)}` : pick(LETTER_L5.signature!, lang)}
+      </div>
+    </div>
+  );
+};
+
+
+/* ------------------------------------------------------------------ *
+ * Sheet 6 — Page 3: Spiritual Guidance & Yearly Anugraha Sheet
+ * ------------------------------------------------------------------ */
+
+export const SevaAnugrahaGuidancePrint = ({
+  lang,
+  identity,
+  panditName,
+  rhythm
+}: {
+  lang: string;
+  identity: Identity;
+  panditName?: string;
+  rhythm?: RhythmResult;
+}): JSX.Element => {
+  const safePanditName = formatPanditName(panditName, lang);
+  const isKn = lang === "kn";
+  const baseLang = (lang || "en").split("-")[0];
+
+  const titleText = isKn
+    ? "✦ ಧಾರ್ಮಿಕ ಅನುಷ್ಠಾನ ಮಾರ್ಗದರ್ಶನ ಹಾಗೂ ವಾರ್ಷಿಕ ಅನುಗ್ರಹ ಪತ್ರಿಕೆ ✦"
+    : baseLang === "hi"
+      ? "✦ धार्मिक अनुष्ठान मार्गदर्शन एवं वार्षिक अनुग्रह पत्र ✦"
+      : baseLang === "te"
+        ? "✦ ధార్మిక అనుష్ఠాన మార్గదర్శనం మరియు వార్షిక అనుగ్రహ పత్రం ✦"
+        : baseLang === "ta"
+          ? "✦ ஆன்மீக அனுஷ்டான வழிகாட்டல் மற்றும் வருடாந்திர அனுக்ரஹ அட்டை ✦"
+          : "✦ Devotee's Sacred Spiritual Rules & Yearly Anugraha Guidance Sheet ✦";
+
+  const subtitleText = isKn
+    ? "ಗೋಕರ್ಣ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ದಿವ್ಯ ಸನ್ನಿಧಿಯಿಂದ ಅರ್ಚಕರು ಸೂಚಿಸಿದ ನಿತ್ಯ ನಿಯಮಗಳು ಹಾಗೂ ವಿಶೇಷ ಪೂಜಾ ಮಾರ್ಗದರ್ಶಿ"
+    : baseLang === "hi"
+      ? "गोकर्ण श्री महाबलेश्वर स्वामी के पावन सान्निध्य से अर्चक द्वारा निर्दिष्ट नित्य नियम एवं विशेष पूजा मार्गदर्शिका"
+      : baseLang === "te"
+        ? "గోకర్ణ శ్రీ మహాబలేశ్వర స్వామివారి దివ్య సన్నిధి నుండి అర్చకులు సూచించిన నిత్య నియమాలు మరియు విశేష పూజా మార్గదర్శి"
+        : baseLang === "ta"
+          ? "கோகர்ண ஸ்ரீ மகாபலேஸ்வர சுவாமியின் திவ்ய சன்னதியிலிருந்து அர்ச்சகர் கூறிய நித்ய விதிகளும் விசேஷ பூஜை வழிகாட்டியும்"
+          : "Sacred daily spiritual commandments and auspicious worship guide recommended by Archaka from Gokarna Kshetra";
+
+  const rulesList = isKn ? [
+    { title: "☀️ ಸೂರ್ಯೋದಯ ದೀಪಾರಾಧನೆ", desc: "ಪ್ರತಿದಿನ ಪ್ರಾತಃಕಾಲ ಸ್ನಾನಾನಂತರ ಮನೆಯ ದೇವರ ಮನೆಯಲ್ಲಿ ತುಪ್ಪದ ದೀಪ ಹಚ್ಚಿ, ತೂರ್ಯಾಭಿಮುಖವಾಗಿ 108 ಬಾರಿ ಓಂ ನಮಃ ಶಿವಾಯ ಜಪಿಸುವುದು." },
+    { title: "🥛 ಸೋಮವಾರ ಕ್ಷೀರಾಭಿಷೇಕ", desc: "ಪ್ರತಿ ಸೋಮವಾರ ಅಥವಾ ಪ್ರದೋಷ ತಿಥಿಯಂದು ಶಿವಲಿಂಗಕ್ಕೆ ಶುದ್ಧ ಹಾಲಿನ ಅಭಿಷೇಕ ಮಾಡಿಸುವುದರಿಂದ ಮನಃಶಾಂತಿ ಹಾಗೂ ಆರೋಗ್ಯ ಸ್ಥಿರತೆ ದೊರೆಯುತ್ತದೆ." },
+    { title: "🌾 ಗೋಸೇವೆ ಹಾಗೂ ಅನ್ನದಾನ", desc: "ಪ್ರತಿ ಶನಿವಾರ ಅಥವಾ ಏಕಾದಶಿಯ ದಿನದಂದು ಗೋವುಗಳಿಗೆ ಹಸಿರು ಹುಲ್ಲು ನೀಡುವುದು ಮತ್ತು ಅನ್ನದಾನ ಮಾಡುವುದರಿಂದ ಪಿತೃ ದೋಷ ಹಾಗೂ ಕುಜ ದೋಷ ಶಾಂತಿಯಾಗುತ್ತದೆ." },
+    { title: "📿 ಜನ್ಮ ನಕ್ಷತ್ರ ಮಂತ್ರ ಸಂಕಲ್ಪ", desc: "ನಿಮ್ಮ ಜನ್ಮ ನಕ್ಷತ್ರದ ಅಧಿಪತಿ ಗ್ರಹದ ಬೀಜಮಂತ್ರವನ್ನು ಪ್ರತಿದಿನ 108 ಬಾರಿ ನಿಷ್ಠೆಯಿಂದ ಜಪಿಸುವುದು ಸಕಲ ಕಾರ್ಯ ಜಯಕ್ಕೆ ಕಾರಣವಾಗುತ್ತದೆ." }
+  ] : [
+    { title: "☀️ Sunrise Lamp & Chanting", desc: "Every morning after bath, light a pure ghee lamp facing East and chant 108 times 'Om Namah Shivaya'." },
+    { title: "🥛 Monday Milk Archana", desc: "Offering milk abhishekam to Lord Shiva on Mondays or Pradosha tithi grants deep emotional peace and health resilience." },
+    { title: "🌾 Cow Service & Charity", desc: "Feeding green grass to cows on Saturdays or Ekadashi neutralizes Pitru (ancestral) and Kuja doshas." },
+    { title: "📿 Nakshatra Mantra Discipline", desc: "Chanting the beeja mantra of your birth star lord 108 times daily ensures victory in all legitimate endeavors." }
+  ];
+
+  const tithiGuide = isKn ? [
+    { name: "ಪ್ರದೋಷ ಶಿವಾರಾತ್ರಿ", desc: "ಮಾನಸಿಕ ಒತ್ತಡ, ಸಾಲ ಬಾಧೆ ಹಾಗೂ ಅಡೆತಡೆಗಳ ನಿವಾರಣೆಗೆ ಶ್ರೇಷ್ಠ." },
+    { name: "ಸಂಕಷ್ಟ ಚತುರ್ಥಿ", desc: "ವ್ಯಾಪಾರ, ಉದ್ಯೋಗ ಹಾಗೂ ಹೊಸ ಕಾರ್ಯಗಳ ಯಶಸ್ಸಿಗೆ ಗಣಪತಿ ಪೂಜೆ." },
+    { name: "ಏಕಾದಶಿ ವ್ರತ", desc: "ಆರೋಗ್ಯ, ಆಯುಷ್ಯ ಹಾಗೂ ಕೌಟುಂಬಿಕ ನೆಮ್ಮದಿಗೆ ವಿಷ್ಣು ಸಹಸ್ರನಾಮ." },
+    { name: "ಹುಣ್ಣಿಮೆ / ಅಮಾವಾಸ್ಯೆ", desc: "ಪಿತೃ ತರ್ಪಣ, ಗ್ರಹ ಶಾಂತಿ ಹಾಗೂ ಮಹಾಬಲೇಶ್ವರ ಆತ್ಮಾಲಿಂಗ ದರ್ಶನ." }
+  ] : [
+    { name: "Pradosha Shivaratri", desc: "Dissolves mental burdens, financial hurdles, and chronic ailments." },
+    { name: "Sankashti Chaturthi", desc: "Removes work, business obstacles, and unlocks prosperity." },
+    { name: "Ekadashi Vrata", desc: "Enhances health, longevity, and family emotional cohesion." },
+    { name: "Purnima / Amavasya", desc: "Pitra Tarpanam, Graha Shanti, and Mahabaleshwara blessings." }
+  ];
+
+  const kshetraRules = isKn ? [
+    { title: "🌿 ಶಂಖ ತೀರ್ಥ ಸ್ನಾನ", desc: "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಪ್ರವೇಶದ ನಂತರ ಸನ್ನಿಧಿ ದರ್ಶನಕ್ಕೆ ಮುನ್ನ ಪವಿತ್ರ ಜಲದಲ್ಲಿ ಆಚಮನ ಅಥವಾ ಸ್ನಾನ ಮಾಡುವುದು ಶುದ್ಧಿಗೆ ಮುಖ್ಯ." },
+    { title: "🕉️ ಆತ್ಮಾಲಿಂಗ ಸ್ಪರ್ಶ ಮರ್ಯಾದೆ", desc: "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಆತ್ಮಾಲಿಂಗ ಸ್ಪರ್ಶ ಮಾಡುವಾಗ ಅತ್ಯಂತ ಭಕ್ತಿ, ಸ್ವಚ್ಛತೆ ಹಾಗೂ ಶಿವ ಸಂಕಲ್ಪದಿಂದ ಪೂಜಿಸಬೇಕು." },
+    { title: "🌺 ಬಿಲ್ವಾರ್ಚನೆ ಹಾಗೂ ರುದ್ರಾಭಿಷೇಕ", desc: "ತ್ರಿಪತ್ರ ಬಿಲ್ವಪತ್ರೆಯಿಂದ ಅಷ್ಟೋತ್ತರ ಪೂಜೆ ಮಾಡಿಸುವುದರಿಂದ ಸರ್ವ ಪಾಪ ನಿವಾರಣೆಯಾಗಿ ಸಂಸಾರ ಸಿದ್ಧಿ ಲಭಿಸುತ್ತದೆ." }
+  ] : [
+    { title: "🌿 Sacred Teertha Ablution", desc: "Perform reverent ablution at Gokarna teertha before worshipping the sacred Atmalinga for inner purification." },
+    { title: "🕉️ Atmalinga Touch Reverence", desc: "Offer prayers at the holy feet of Shri Mahabaleshwara Atmalinga with utter devotion, clean mind, andGotra sankalpa." },
+    { title: "🌺 Bilva & Rudrabhishekam", desc: "Offering fresh Bilva leaves during Rudrabhishekam dissolves karmic afflictions and grants domestic harmony." }
+  ];
+
+  return (
+    <div className="pdf-page" style={pageStyle}>
+      <div
+        style={{
+          border: `3px double ${GOLD}`,
+          borderRadius: 16,
+          padding: "24px 30px",
+          minHeight: PAGE_H - 76,
+          boxSizing: "border-box",
+          backgroundColor: PAPER,
+          position: "relative"
+        }}
+      >
+        {/* Header */}
+        <div style={{ textAlign: "center" }}>
+          <div style={{ fontSize: 22, color: GOLD, letterSpacing: 2 }}>❖</div>
+          <div style={{ fontSize: 17, fontWeight: 700, color: INK, marginTop: 4, lineHeight: 1.5, letterSpacing: "normal" }}>
+            {titleText}
+          </div>
+          <div style={{ fontSize: 11, color: INK_SOFT, marginTop: 3, lineHeight: 1.5, maxWidth: 700, margin: "4px auto 0", letterSpacing: "normal" }}>
+            {subtitleText}
+          </div>
+        </div>
+
+        <OrnamentRule />
+
+        {/* Section 1: Devotee Commandments */}
+        <div style={{ marginTop: 6 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: GOLD, marginBottom: 8, textTransform: "uppercase", letterSpacing: "normal", textAlign: "center" }}>
+            {isKn ? "✦ ಅರ್ಚಕರು ಸೂಚಿಸಿದ ೪ ನಿತ್ಯ ಧಾರ್ಮಿಕ ನಿಯಮಗಳು ✦" : "✦ Archaka's 4 Sacred Daily Commandments ✦"}
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            {rulesList.map((rule, idx) => (
+              <div
+                key={idx}
+                style={{
+                  border: `1.5px solid ${GOLD_LIGHT}`,
+                  borderRadius: 10,
+                  backgroundColor: PANEL,
+                  padding: "10px 14px",
+                  boxSizing: "border-box"
+                }}
+              >
+                <div style={{ fontSize: 12.5, fontWeight: 700, color: INK, marginBottom: 3, letterSpacing: "normal", lineHeight: 1.4 }}>
+                  {rule.title}
+                </div>
+                <div style={{ fontSize: 10.5, color: INK_SOFT, lineHeight: 1.5, letterSpacing: "normal" }}>
+                  {rule.desc}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Section 2: Monthly Tithi Guide */}
+        <div style={{ marginTop: 14 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: GOLD, marginBottom: 8, textTransform: "uppercase", letterSpacing: "normal", textAlign: "center" }}>
+            {isKn ? "✦ ಮಾಸಿಕ ಪೂಜಾ ಹಾಗೂ ಸಂಕಲ್ಪ ದಿನಸೂಚಿ ಮಾರ್ಗದರ್ಶಿ ✦" : "✦ Monthly Auspicious Tithi Worship Guide ✦"}
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 8 }}>
+            {tithiGuide.map((tg, idx) => (
+              <div
+                key={idx}
+                style={{
+                  border: `1px solid ${GOLD_LIGHT}`,
+                  borderRadius: 8,
+                  backgroundColor: "#FFFFFF",
+                  padding: "9px 8px",
+                  textAlign: "center"
+                }}
+              >
+                <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, letterSpacing: "normal", lineHeight: 1.4 }}>{tg.name}</div>
+                <div style={{ fontSize: 9.5, color: INK_SOFT, marginTop: 3, lineHeight: 1.4, letterSpacing: "normal" }}>
+                  {tg.desc}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Section 3: Gokarna Kshetra Darshana Rules */}
+        <div style={{ marginTop: 14 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: GOLD, marginBottom: 8, textTransform: "uppercase", letterSpacing: "normal", textAlign: "center" }}>
+            {isKn ? "✦ ಗೋಕರ್ಣ ಆತ್ಮಾಲಿಂಗ ದರ್ಶನ ಹಾಗೂ ಯಾತ್ರಾ ನಿಯಮಗಳು ✦" : "✦ Gokarna Kshetra Pilgrimage & Darshana Guidelines ✦"}
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+            {kshetraRules.map((kr, idx) => (
+              <div
+                key={idx}
+                style={{
+                  border: `1px solid ${GOLD_LIGHT}`,
+                  borderRadius: 10,
+                  backgroundColor: PANEL,
+                  padding: "10px 12px",
+                  boxSizing: "border-box"
+                }}
+              >
+                <div style={{ fontSize: 11.5, fontWeight: 700, color: INK, marginBottom: 3, letterSpacing: "normal", lineHeight: 1.4 }}>
+                  {kr.title}
+                </div>
+                <div style={{ fontSize: 10, color: INK_SOFT, lineHeight: 1.5, letterSpacing: "normal" }}>
+                  {kr.desc}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Section 4: Maha Mrityunjaya & Gotra Blessing Banner */}
+        <div
+          style={{
+            marginTop: 14,
+            backgroundColor: "#FFFFFF",
+            border: `1.5px solid ${GOLD_LIGHT}`,
+            borderRadius: 12,
+            padding: "12px 18px",
+            textAlign: "center"
+          }}
+        >
+          <div style={{ fontSize: 10, fontWeight: 700, color: GOLD, letterSpacing: 2, textTransform: "uppercase" }}>
+            ॐ ತ್ರಯ್ಯಂಬಕಂ ಯಜಾಮಹೇ ಸುಗಂಧಿಂ ಪುಷ್ಟಿವರ್ಧನಮ್ | ಉರ್ವಾರುಕಮಿವ ಬಂಧನಾನ್ಮೃತ್ಯೋರ್ಮುಕ್ಷೀಯ ಮಾಮೃತಾತ್ ||
+          </div>
+          <div style={{ fontSize: 10.5, color: INK_SOFT, marginTop: 4, lineHeight: 1.5 }}>
+            {isKn
+              ? "ಮಹಾ ಮೃತ್ಯುಂಜಯ ಮಂತ್ರ ಪಠಣವು ನಿಮ್ಮ ಹಾಗೂ ನಿಮ್ಮ ಸಕಲ ಕೌಟುಂಬಿಕ ಸದಸ್ಯರ ಆಯುಷ್ಯ, ಆರೋಗ್ಯ ಹಾಗೂ ರಕ್ಷಣೆಗೆ ದಿವ್ಯ ಕವಚವಾಗಿದೆ."
+              : "Reciting the Maha Mrityunjaya Mantra serves as a cosmic armor shielding your family with health, peace, and divine resilience."}
+          </div>
+        </div>
+
+        {/* Section 5: Priest Direct Consultation Card */}
+        <div
+          style={{
+            marginTop: 14,
+            border: `1.5px solid ${GOLD}`,
+            borderRadius: 12,
+            backgroundColor: PANEL,
+            padding: "14px 20px",
+            textAlign: "center"
+          }}
+        >
+          <div style={{ fontSize: 13, fontWeight: 700, color: GOLD, marginBottom: 3, letterSpacing: "normal" }}>
+            ✦ {isKn ? "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಕ್ಷೇತ್ರ ಅರ್ಚಕ ನೇರ ಸಂಪರ್ಕ ಹಾಗೂ ಪ್ರಸಾದ ಸೇವೆ" : "Gokarna Kshetra Archaka Direct Contact & Seva Assistance"} ✦
+          </div>
+          <div style={{ fontSize: 11.5, color: INK, fontWeight: 700, marginTop: 2, letterSpacing: "normal" }}>
+            {safePanditName || "ಚೈತನ್ಯ ಪಂಡಿತ"} — {isKn ? "ಮುಖ್ಯ ಅರ್ಚಕರು, ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ" : "Chief Archaka, Gokarna Kshetra"}
+          </div>
+          <div style={{ fontSize: 10.5, color: INK_SOFT, marginTop: 4, lineHeight: 1.5, maxWidth: 680, margin: "4px auto 0", letterSpacing: "normal" }}>
+            {isKn
+              ? "ವಿಶೇಷ ಗೋತ್ರ ಸಂಕಲ್ಪ ಸೇವೆ, ಮಹಾಪೂಜೆ, ನವಗ್ರಹ ದೋಷ ಶಾಂತಿ ಹಾಗೂ ಗೋಕರ್ಣ ಪ್ರಸಾದವನ್ನು ಮನೆಗೆ ತಲುಪಿಸಲು ಅರ್ಚಕರೊಂದಿಗೆ ನೇರವಾಗಿ ಸಂಪರ್ಕಿಸಬಹುದು."
+              : "For special Gotra Sankalpa Seva, Mahapooja, Navagraha Shanti, and home delivery of Mahabaleshwara Prasada, feel free to consult the Archaka directly."}
+          </div>
+        </div>
+
+        {/* Page Footer */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: 16,
+            left: 36,
+            right: 36,
+            textAlign: "center",
+            fontSize: 9.5,
+            color: INK_SOFT
+          }}
+        >
+          {pick(LETTER_L5.signature!, lang)} · 3 / 3
+        </div>
       </div>
     </div>
   );

@@ -17,25 +17,24 @@ export type TranslatedPrediction = {
 };
 
 const getDeepInsightCategories = (age: number) => {
-  const base = [
+  const cats = [
     { id: "current_phase", label: "Current Phase (Age, Dasha & Gochara)" },
     { id: "next_six_months", label: "Next 6 Months Predictions (Dasha, Bhukti & Gochara)" },
     { id: "lifespan", label: "Lifespan & Health" },
-    { id: "marriage", label: "Marriage & Relationships" }
+    { id: "marriage", label: "Marriage & Relationships" },
+    { id: "children", label: "Children & Progeny" }
   ];
-  
-  if (age < 23) {
-    base.push({ id: "education_travel", label: "Education & Overseas Prospects" });
-  } else {
-    base.push({ id: "children", label: "Children & Progeny" });
+
+  if (age < 25) {
+    cats.push({ id: "education_travel", label: "Education & Overseas Prospects" });
   }
 
-  base.push(
+  cats.push(
     { id: "job", label: "Career & Profession" },
     { id: "family", label: "Family & Wealth" }
   );
-  
-  return base;
+
+  return cats;
 };
 
 export function usePredictionEngine() {
@@ -189,25 +188,45 @@ Return ONLY a valid JSON string (no markdown, no codeblocks, no json wrapper) wi
           askGeminiBatch(mindsetPrompt, geminiApiKey, ["mindset"])
         ]);
 
-        setAshirvada(jsonResponse["ashirvada"] || "");
+        setAshirvada(jsonResponse["ashirvada"] || "May divine forces grant you strength, clarity, and peace on your life journey.");
+
+        const mindsetFallback = `Currently running ${dashaStr} Mahadasha and ${bhuktiStr} Bhukti brings significant developments across personal and professional spheres. Key decisions require calm reflection and patience.\n\nEmotional harmony is maintained by balancing daily responsibilities with spiritual mindfulness. Trust in your inner strength as planetary influences align for steady progress.`;
 
         const translatedMindsetCategory = await translateText("Current State of Mind & Life (Present Moment)", language, "en");
+        const mindsetText = (mindsetResponse["mindset"] || "").trim().length > 20 ? mindsetResponse["mindset"] : mindsetFallback;
+
         setCurrentMindset({
           category: "Current State of Mind & Life (Present Moment)",
-          text: mindsetResponse["mindset"] || "No prediction available.",
+          text: mindsetText,
           translatedCategory: translatedMindsetCategory,
-          translatedText: mindsetResponse["mindset"] || "No prediction available."
+          translatedText: mindsetText
         });
 
         for (const cat of dynamicCategories) {
           const translatedCategory = await translateText(cat.label, language, "en");
-          let rawText = jsonResponse[cat.id] || "No prediction available for this category.";
+          let rawText = (jsonResponse[cat.id] || "").trim();
           
+          if (!rawText || rawText.length < 20 || rawText.includes("No prediction available")) {
+            // High-quality 2-paragraph astrological engine fallback based on category
+            const engineMatch = [...baggonaPreds.houses, ...baggonaPreds.overview].find((p: { title?: string; category?: string; description?: string }) => (p.title || p.category || "").toLowerCase().includes(cat.id))
+              || personalPreds.cosmicProfile.find((p: { title?: string; description?: string }) => (p.title || "").toLowerCase().includes(cat.id));
+            
+            const p1 = engineMatch ? engineMatch.description : `Based on your birth Lagna (${session.result.lagnaRashi?.english}) and Moon sign (${session.result.moonSign.english}), key planetary influences govern your ${cat.label.toLowerCase()}. Running ${dashaStr} Dasha activates favorable transits for long-term growth.`;
+            const p2 = `Internal psychological harmony is enhanced by aligning your actions with core cosmic principles. Focus on disciplined effort, emotional resilience, and constructive habits to maximize opportunities in this area.`;
+
+            rawText = `${p1}\n\n${p2}`;
+          }
+
+          let translatedText = rawText;
+          if (language !== "en") {
+            translatedText = await translateText(rawText, language, "en");
+          }
+
           translated.push({
             category: cat.label,
             text: rawText,
             translatedCategory,
-            translatedText: rawText
+            translatedText
           });
         }
 

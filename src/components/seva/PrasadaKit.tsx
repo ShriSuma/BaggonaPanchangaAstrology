@@ -3,11 +3,12 @@ import QRCode from "qrcode";
 import type { RhythmDay, RhythmResult } from "../../core/DailyRhythmEngine";
 import type { SevaRecommendation } from "../../core/GokarnaSevaEngine";
 import type { SevaId } from "../../data/gokarnaSevas";
-import { generateSevaICalendarString } from "../../features/seva/icsCalendarGenerator";
+import { generateGoogleCalendarUrl, generateSevaICalendarString } from "../../features/seva/icsCalendarGenerator";
 import { T, pick, type L5 } from "../../features/seva/sevaLocale";
 import { todayYmd } from "../../features/seva/sevaPresentation";
 import { generatePDFFromElement } from "../../utils/pdfGenerator";
 import {
+  SevaAnugrahaGuidancePrint,
   SevaCalendarPrint,
   SevaLetterPrint,
   SevaPrasadaCardPrint,
@@ -114,7 +115,7 @@ export default function PrasadaKit({
 
   // Speech Recognition for Priest Name Mic Button
   const handleMicClick = () => {
-    const SpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechRecognitionClass = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognitionClass) {
       alert("Speech recognition is not supported in this browser. Please type the priest name manually.");
       return;
@@ -133,7 +134,7 @@ export default function PrasadaKit({
       recognition.interimResults = false;
 
       recognition.onstart = () => setIsListening(true);
-      recognition.onresult = (event) => {
+      recognition.onresult = (event: any) => {
         const transcript = event.results[0]?.[0]?.transcript;
         if (transcript) setPanditName(transcript);
       };
@@ -147,17 +148,15 @@ export default function PrasadaKit({
 
   // Generate QR Code data URL for print templates
   useEffect(() => {
-    if (rhythm.days.length === 0) return;
-    const icsContent = generateSevaICalendarString({
-      days: rhythm.days,
+    if (!rhythm?.days || rhythm.days.length === 0) return;
+    const targetUrl = generateGoogleCalendarUrl({
+      day: rhythm.days[0]!,
       lang,
       panditName,
-      notificationTime,
-      personName: identity.personName
+      notificationTime
     });
 
-    const dataUri = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsContent)}`;
-    QRCode.toDataURL(dataUri, {
+    QRCode.toDataURL(targetUrl, {
       margin: 2,
       width: 280,
       color: {
@@ -167,17 +166,17 @@ export default function PrasadaKit({
     })
       .then((url) => setQrDataUrl(url))
       .catch((err) => console.error("Error generating print QR code:", err));
-  }, [rhythm, lang, panditName, notificationTime, identity.personName]);
+  }, [rhythm, lang, panditName, notificationTime, identity?.personName]);
 
   const chosenSeva = useMemo(
-    () => recommendations.find((r) => r.seva.id === sevaId) ?? recommendations[0],
+    () => (recommendations || []).find((r) => r?.seva?.id === sevaId) ?? recommendations?.[0],
     [recommendations, sevaId]
   );
 
-  const today: RhythmDay = rhythm.days[0]!;
+  const today: RhythmDay | undefined = rhythm?.days?.[0];
 
   const bestDays = useMemo(
-    () => [...rhythm.days].sort((a, b) => b.energyScore - a.energyScore).slice(0, 6).sort((a, b) => a.ymd.localeCompare(b.ymd)),
+    () => [...(rhythm?.days || [])].sort((a, b) => b.energyScore - a.energyScore).slice(0, 6).sort((a, b) => a.ymd.localeCompare(b.ymd)),
     [rhythm]
   );
 
@@ -371,6 +370,20 @@ export default function PrasadaKit({
             void download("seva-print-card", safeFileName(identity.personName, "Prasada"), "card")
           }
         />
+        <Button
+          tag="summary"
+          tone="secondary"
+          label={pick({
+            en: "4-Paragraph Current Phase Summary PDF",
+            kn: "4-ಪ್ಯಾರಾಗ್ರಾಫ್ ಸಾರಾಂಶ PDF ಡೌನ್‌ಲೋಡ್",
+            te: "4-పారాగ్రాఫ్ సారాంశం PDF డౌన్‌లోడ్",
+            ta: "4-பத்தி சுருக்கம் PDF பதிவிறக்கு",
+            hi: "4-पैराग्राफ सारांश PDF डाउनलोड करें"
+          }, lang)}
+          onClick={() => {
+            window.location.hash = "#bhavishya";
+          }}
+        />
       </div>
 
       <p className="text-[11px] leading-relaxed text-amber-800/60">{pick(T.disclaimer!, lang)}</p>
@@ -394,6 +407,12 @@ export default function PrasadaKit({
           lang={lang}
           identity={identity}
           qrDataUrl={qrDataUrl}
+        />
+        <SevaAnugrahaGuidancePrint
+          lang={lang}
+          identity={identity}
+          panditName={panditName}
+          rhythm={rhythm}
         />
       </div>
 

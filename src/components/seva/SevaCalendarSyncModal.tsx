@@ -89,18 +89,14 @@ export default function SevaCalendarSyncModal({
   useEffect(() => {
     if (!isOpen || days.length === 0) return;
 
-    const icsContent = generateSevaICalendarString({
-      days,
+    const targetUrl = generateGoogleCalendarUrl({
+      day: days[0]!,
       lang,
       panditName,
-      notificationTime,
-      personName
+      notificationTime
     });
 
-    // Create Data URI for QR Code scanning
-    const dataUri = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsContent)}`;
-
-    QRCode.toDataURL(dataUri, {
+    QRCode.toDataURL(targetUrl, {
       margin: 2,
       width: 280,
       color: {

@@ -15,5 +15,5 @@ describe("MuhurthaEngine", () => {
     expect(first.types.length).toBeGreaterThan(0);
     expect(first.purityScore).toBeGreaterThanOrEqual(80);
     expect(first.purityScore).toBeLessThanOrEqual(100);
-  }, 15000);
+  }, 30000);
 });

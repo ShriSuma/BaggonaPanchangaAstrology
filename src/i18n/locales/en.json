@@ -11,7 +11,8 @@
     "insights": "Insights",
     "melapak": "Match",
     "settings": "Settings",
-    "muhurtha": "Muhurtham"
+    "muhurtha": "Muhurtham",
+    "ramanbhavishya": "Baggona Bhavishya"
   },
   "layout": {
     "offlineMode": "You are offline. Saved charts and cached Panchang still work."
@@ -1219,7 +1220,6 @@
   },
   "ramanbhavishya": {
     "title": "Baggona Bhavishya",
-    "subtitle": "Intelligent Astrological Guide based on Baggona Panchanga's Predictive Logic",
     "lifeStageTab": "Life Stage Predictions",
     "askTab": "Ask the Astrologer",
     "yourPersonalReading": "Your Personal Reading",

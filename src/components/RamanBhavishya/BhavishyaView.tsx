@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { usePredictionEngine } from "./usePredictionEngine";
 import type { TranslatedPrediction } from "./usePredictionEngine";
 import { PdfTemplate, PdfTranslations, PremiumData } from "./PdfTemplate";
+import { SummaryPdfTemplate, type SummaryPdfData } from "./SummaryPdfTemplate";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { useKundliViewerStore } from "../../stores/kundliViewerStore";
@@ -68,6 +69,81 @@ const DEEP_INSIGHT_CATEGORIES = [
   { id: "family", label: "Family & Wealth" },
 ];
 
+const QUESTION_TOPICS = [
+  { id: "general", label: { en: "General Overview", kn: "ಸಾಮಾನ್ಯ ಜೀವನ ಒಳನೋಟ", te: "సాధారణ అవలోకనం", ta: "பொதுவான பார்வை", hi: "सामान्य अवलोकन" } },
+  { id: "marriage", label: { en: "Marriage & Relationships", kn: "ವಿವಾಹ ಮತ್ತು ವೈವಾಹಿಕ ಜೀವನ", te: "వివాహం మరియు దాంపత్యం", ta: "திருமணம் மற்றும் உறவுகள்", hi: "विवाह एवं वैवाहिक जीवन" } },
+  { id: "job", label: { en: "Job & Career", kn: "ಉದ್ಯೋಗ ಮತ್ತು ವೃತ್ತಿ ಭವಿಷ್ಯ", te: "ఉద్యోగం మరియు కెరీర్", ta: "வேலை மற்றும் தொழில்", hi: "नौकरी और करियर" } },
+  { id: "education", label: { en: "Education & Studies", kn: "ಶಿಕ್ಷಣ ಮತ್ತು ವಿದ್ಯಾಭ್ಯಾಸ", te: "విద్య మరియు చదువు", ta: "கல்வி மற்றும் படிப்பு", hi: "शिक्षा और अध्ययन" } },
+  { id: "children", label: { en: "Children & Progeny", kn: "ಸಂತಾನ ಹಾಗೂ ಮಕ್ಕಳ ಯೋಗ", te: "సంతానం మరియు పిల్లలు", ta: "குழந்தைகள் மற்றும் சந்ததி", hi: "संतान एवं बच्चे" } },
+  { id: "family", label: { en: "Family & Home", kn: "ಕುಟುಂಬ ಮತ್ತು ಗೃಹ ಸೌಖ್ಯ", te: "కుటుంబం మరియు గృహ సౌఖ్యం", ta: "குடும்பம் மற்றும் வீடு", hi: "परिवार और गृह सुख" } },
+  { id: "wealth", label: { en: "Wealth & Money", kn: "ಧನ ಸಂಪತ್ತು ಮತ್ತು ಆರ್ಥಿಕ ಸ್ಥಿತಿ", te: "ధన సంపద మరియు ఆర్థిక స్థితి", ta: "செல்வம் மற்றும் பணம்", hi: "धन संपत्ति और आर्थिक स्थिति" } },
+  { id: "travel", label: { en: "Foreign Travel & Relocation", kn: "ವಿದೇಶ ಪ್ರಯಾಣ ಹಾಗೂ ಸ್ಥಳಾಂತರ", te: "విదేశీ ప్రయాణం మరియు స్థలాంతరం", ta: "வெளிநாட்டுப் பயணம் மற்றும் இடமாற்றம்", hi: "विदेश यात्रा और स्थानांतरण" } },
+  { id: "health", label: { en: "Health & Longevity", kn: "ಆರೋಗ್ಯ ಮತ್ತು ದೀರ್ಘಾಯುಷ್ಯ", te: "ఆరోగ్యం మరియు దీర్ఘాయుష్షు", ta: "ஆரோக்கியம் ಮತ್ತು ஆயுள்", hi: "स्वास्थ्य और दीर्घायु" } },
+];
+
+function buildPersonalizedMarriageText(lang: string, lagnaStr: string, moonStr: string, status: "unmarried" | "married"): string {
+  const baseLang = (lang || "en").split("-")[0];
+  if (status === "unmarried") {
+    if (baseLang === "kn") {
+      return `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${lagnaStr}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${moonStr}) ಆಧಾರದ ಮೇಲೆ, ಸಪ್ತಮ ಭಾವಾಧಿಪತಿಯ ಸ್ಥಾನ ಹಾಗೂ ಗುರು ಮತ್ತು ಶುಕ್ರ ಗ್ರಹಗಳ ಪ್ರಸ್ತುತ ಶುಭ ಸಂಚಾರವು ಮುಂದಿನ 12 ರಿಂದ 18 ತಿಂಗಳಲ್ಲಿ ಉನ್ನತ ವಿವಾಹ ಯೋಗವನ್ನು ಅತ್ಯಂತ ಪ್ರಬಲವಾಗಿ ಸಕ್ರಿಯಗೊಳಿಸುತ್ತದೆ. ಜಾತಕದ ಸಪ್ತಮ ಭಾವಕ್ಕೆ ಗುರುವಿನ ಅಮೃತ ದೃಷ್ಟಿಯು ಬೀಳುತ್ತಿರುವುದರಿಂದ, ಕೌಟುಂಬಿಕ ಮಾತುಕತೆಗಳು ಸರಾಗವಾಗಿ ಮುನ್ನಡೆದು ಶೀಘ್ರದಲ್ಲಿಯೇ ಕಲ್ಯಾಣ ಯೋಗ ಕೂಡಿ ಬರಲಿದೆ. ನಿಮ್ಮ ಗ್ರಹಗತಿಗಳ ಬಲದಿಂದಾಗಿ ಉಂಟಾಗುವ ಈ ಸಮಯವು ಕೌಟುಂಬಿಕ ಕಾರ್ಯಗಳಿಗೆ ಅತ್ಯಂತ ಪ್ರಶಸ್ತವಾದ ಕಾಲಘಟ್ಟವಾಗಿದೆ. ಜಾತಕದಲ್ಲಿ ವೈವಾಹಿಕ ಶುಭ ಯೋಗಗಳು ಸಕ್ರಿಯಗೊಳ್ಳುತ್ತಿದ್ದು, ಹಿರಿಯರ ಆಶೀರ್ವಾದದೊಂದಿಗೆ ಕಲ್ಯಾಣ ಕಾರ್ಯಗಳು ಶುಭವಾಗಿ ನೆರವೇರಲಿವೆ.\n\nನಿಮಗೆ ಲಭಿಸುವ ಜೀವನ ಸಂಗಾತಿಯು ಅತ್ಯಂತ ಶಿಸ್ತುಬದ್ಧ, ದೈವಭಕ್ತಿ ಉಳ್ಳವರು ಹಾಗೂ ಸಂಸ್ಕೃತಿಕ ಗೌರವ ಹೊಂದಿರುವ ಶ್ರೇಷ್ಠ ಕುಟುಂಬದ ಹಿನ್ನೆಲೆಯಿಂದ ಬರುವವರಾಗಿದ್ದಾರೆ. ಅವರ ಸೌಮ್ಯ ಸ್ವಭಾವ, ತರ್ಕಬದ್ಧ ಆಲೋಚನೆ ಹಾಗೂ ಉದ್ಯೋಗ ಅಥವಾ ಉದ್ಯಮ ಕ್ಷೇತ್ರದಲ್ಲಿನ ಯಶಸ್ಸು ನಿಮ್ಮ ಸಂಸಾರಕ್ಕೆ ಬಲ ತುಂಬಲಿದೆ. ಜಾತಕದ ದಿಕ್ಬಲ ನಿಯಮಗಳ ಪ್ರಕಾರ, ನಿಮ್ಮ ಜನ್ಮಸ್ಥಳದಿಂದ ಪೂರ್ವ ಅಥವಾ ಈಶಾನ್ಯ ದಿಕ್ಕಿನಿಂದ ಅತ್ಯುತ್ತಮ ಹಾಗೂ ಯೋಗ್ಯವಾದ ವೈವಾಹಿಕ ಸಂಬಂಧಗಳು ಒದಗಿಬರುವ ಶುಭ ಸಾಧ್ಯತೆಗಳು ದಟ್ಟವಾಗಿವೆ. ಸಂಗಾತಿಯ ಆಗಮನದಿಂದ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ನೆಮ್ಮದಿ ಹಾಗೂ ಸಕಲ ಸೌಭಾಗ್ಯಗಳು ವೃದ್ಧಿಯಾಗಲಿವೆ.\n\nವೈವಾಹಿಕ ಕಾರ್ಯಗಳಲ್ಲಿ ಕಂಡುಬರುವ ಸಣ್ಣಪುಟ್ಟ ವಿಳಂಬ ಅಥವಾ ಕುಜನ ದೋಷದ ಪ್ರಭಾವ ನಿವಾರಣೆಗಾಗಿ ಮಂಗಳವಾರ ಮತ್ತು ಶುಕ್ರವಾರದ ದಿನಗಳಲ್ಲಿ ಸುಬ್ರಹ್ಮಣ್ಯ ಸ್ವಾಮಿ ಮತ್ತು ಗೌರಿ ಪೂಜೆಯನ್ನು ನಿಷ್ಠೆಯಿಂದ ನೆರವೇರಿಸುವುದು ಶ್ರೇಷ್ಠವಾಗಿದೆ. ನಿತ್ಯವೂ ಪ್ರಾತಃಕಾಲದಲ್ಲಿ "ಓಂ ಶ್ರೀಂ ಗೌರ್ಯೈ ನಮಃ" ಹಾಗೂ "ಓಂ ಸಪ್ತಮಾಧಿಪತಯೇ ನಮಃ" ಮಂತ್ರಗಳನ್ನು 108 ಬಾರಿ ಜಪಿಸುವುದರಿಂದ ಮಂಗಲ ದೋಷ ಶಾಂತಿಯಾಗುತ್ತದೆ. ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಕ್ಷೇತ್ರದಲ್ಲಿ ಮಂಗಲ ಸೇವೆ ಸಮರ್ಪಿಸುವುದರಿಂದ ಸಕಲ ವಿಘ್ನಗಳು ನಿವಾರಣೆಯಾಗಿ ಶೀಘ್ರ ಕಲ್ಯಾಣ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ.`;
+    }
+    if (baseLang === "hi") {
+      return `आपकी जन्म लग्न (${lagnaStr}) और चंद्र राशि (${moonStr}) के अनुसार, सप्तमेश की स्थिति तथा गुरु और शुक्र का शुभ गोचर अगले 12 से 18 महीनों में विवाह योग को अत्यंत प्रबल रूप से सक्रिय करता है। सप्तम भाव पर बृहस्पति की अमृत दृष्टि से पारिवारिक चर्चाएं सुचारू रूप से आगे बढ़ेंगी और विवाह के प्रयास शीघ्र ही सफलता में परिणत होंगे। यह समय आपके जीवन में मांगलिक कार्यों के लिए अत्यंत शुभ और फलदायी सिद्ध होगा। ग्रहों के इस शुभ प्रभाव से वैवाहिक अड़चनें समाप्त होकर शीघ्र कल्याण योग बनेगा।\n\nआपके भावी जीवनसाथी एक अत्यंत संस्कारी, बुद्धिमान, अनुशासित तथा प्रतिष्ठित परिवार से संबंध रखने वाले होंगे। उनका सौम्य व्यवहार, तार्किक सोच और करियर या व्यवसाय में उनकी सफलता आपके दांपत्य जीवन को संबल प्रदान करेगी। ज्योतिषीय दिशा नियमों के अनुसार, आपके जन्मस्थान से पूर्व या उत्तर-पूर्व दिशा से अत्यंत योग्य और उत्तम विवाह प्रस्ताव आने की प्रबल संभावना है। जीवनसाथी के आगमन से आपके जीवन में सुख, समृद्धि और शांति का विस्तार होगा।\n\nविवाह में आ रहे किसी भी प्रकार के विलंब या मंगल दोष के प्रभाव के निवारण हेतु मंगलवार और शुक्रवार को श्री सुब्रह्मण्य स्वामी और गौरी माता की पूजा निष्ठापूर्वक करें। प्रतिदिन प्रातःकाल "ॐ श्रीं गौर्यै नमः" और "ॐ सप्तमेशाय नमः" मंत्र का 108 बार जाप करने से मंगल दोष शांत होता है। गोकर्ण क्षेत्र में मंगल सेवा समर्पित करने से समस्त बाधाएं दूर होकर शीघ्र विवाह योग सिद्ध होता है।`;
+    }
+    if (baseLang === "te") {
+      return `మీ జన్మ లగ్నం (${lagnaStr}) మరియు చంద్ర రాశి (${moonStr}) ఆధారంగా, 7వ అధిపతి స్థానం మరియు గురు, శుక్ర గ్రహాల శుభ గోచారం రాబోయే 12 నుండి 18 నెలల్లో వివాహ యోగాన్ని మిక్కిలి బలంగా సక్రియం చేస్తుంది. 7వ భావంపై గురు భగవానుని అమృత దృష్టి ప్రసరించడం వలన కుటుంబ సంభాషణలు సునాయాసంగా సాగి, త్వరలోనే కళ్యాణ యోగం కుదురుతుంది. ఈ సమయం మీ జీవితంలో శుభ కార్యాలకు ఎంతో అనుకూలమైనది. గ్రహాల అనుకూలత వలన వివాహ ప్రయత్నాలలో ఉన్న అడ్డంకులు తొలగిపోతాయి.\n\nమీకు లభించే జీవిత భాగస్వామి మిక్కిలి క్రమశిక్షణ, దైవభక్తి మరియు సాంస్కృతిక గౌరవం కలిగిన ఉదాత్తమైన కుటుంబ నేపథ్యం నుండి వచ్చేవారవుతారు. వారి సౌమ్య స్వభావం, తెలివితేటలు మరియు వృత్తి రంగంలో వారు సాధించే విజయం మీ దాంపత్యానికి గొప్ప బలాన్ని ఇస్తాయి. జాతక దిశా నియమాల ప్రకారం, మీ జన్మస్థలం నుండి తూర్పు లేదా ఈశాన్య దిశల నుండి అత్యుత్తమ వివాహ ప్రతిపాదనలు వచ్చే అవకాశాలు మెండుగా ఉన్నాయి. భాగస్వామి రాకతో మీ జీవితంలో సంతోషం పెరుగుతుంది.\n\nవివాహ ప్రయత్నాలలో ఎదురయ్యే ఆలస్యం లేదా కుజ దోష నివారణకు మంగళవారం మరియు శుక్రవారాల్లో శ్రీ సుబ్రహ్మణ్య స్వామి మరియు గౌరీ పూజలను భక్తిశ్రద్ధలతో నిర్వహించడం శ్రేయస్కరం. నిత్యం ఉదయాన్నే "ఓం శ్రీం గౌర్యై నమః" మరియు "ఓం సప్తమాధిపతయే నమః" మంత్రాలను 108 సార్లు జపించడం వలన మంగళ దోష నివారణ జరుగుతుంది. గోకర్ణ క్షేత్రంలో మంగళ సేవ సమర్పించడం ద్వారా శీఘ్ర వివాహ సిద్ధి లభిస్తుంది.`;
+    }
+    if (baseLang === "ta") {
+      return `உங்கள் லக்னம் (${lagnaStr}) மற்றும் சந்திர రాசி (${moonStr}) அடிப்படையில், 7 ஆம் அதிபதி மற்றும் குரு/சுக்கிரன் பெயர்ச்சி அடுத்த 12 முதல் 18 மாதங்களில் திருமண யோகத்தை மிகவும் வலுவாக உருவாக்குகிறது. 7 ஆம் இடத்தின் மீது குருவின் சுப பார்வை பதிவதால், குடும்பப் பேச்சுகள் சுமுகமாக நடந்து விரைவில் திருமண யோகம் கூடிவரும். இந்த காலகட்டம் உங்கள் வாழ்க்கையில் சுபகாரியங்களுக்கு மிகவும் உகந்ததாகும். கிரகங்களின் சுப பலத்தினால் திருமணத் தடைகள் விலகி நன்மைகள் நடக்கும்.\n\nஉங்களுக்கு அமையவிருக்கும் வாழ்க்கைத்துணை சிறந்த பண்பாடும், இறைநம்பிக்கையும், சமூக மரியாதையும் கொண்ட குடும்பத்தைச் சேர்ந்தவராக இருப்பார். அவரின் அமைதியான சுபாவம், அறிவாற்றல் மற்றும் தொழில் சார்ந்த வெற்றிகள் உங்கள் குடும்ப வாழ்க்கைக்கு பெரும் பலமாக அமையும். திசை பலன்களின்படி, உங்கள் பிறந்த இடத்திலிருந்து கிழக்கு அல்லது வடகிழக்கு திசையிலிருந்து நல்ல வரன்கள் வர வாய்ப்புள்ளது. வாழ்க்கைத்துணையின் வரவால் உங்கள் குடும்பத்தில் மகிழ்ச்சியும் அமைதியும் பெருகும்.\n\nதிருமண காரியங்களில் ஏற்படும் தாமதங்கள் மற்றும் செவ்வாய் தோஷ பலன்களைப் போக்க செவ்வாய் மற்றும் வெள்ளிக்கிழமைகளில் ஸ்ரீ சுப்பிரமணிய சுவாமி மற்றும் கௌரி அம்மன் வழிபாடு செய்வது மிகவும் நன்மையளிக்கும். தினமும் காலையில் "ஓம் ஸ்ரீம் கௌர்யை நமஹ" மந்திரத்தை 108 முறை ஜபித்து, கோகர்ண க்ஷேத்திரத்தில் மங்கள சேவை சமர்ப்பிப்பதன் மூலம் திருமண தடைகள் நீங்கி விரைவில் சுபயோகம் கூடிவரும்.`;
+    }
+    return `Based on your birth Lagna (${lagnaStr}) and Moon sign (${moonStr}), the position of your 7th house lord along with the benefic transits of Jupiter and Venus strongly activates a highly auspicious marriage window over the next 12 to 18 months. The divine aspect of Jupiter upon the 7th house ensures that family discussions progress smoothly and obstacles in finalizing proposals dissolve naturally. This period represents an exceptional planetary timing for sacred matrimony and long-term domestic happiness.\n\nYour future life partner will hail from an esteemed, culturally rooted, and highly respectable family background, embodying discipline, deep empathy, and strong moral principles. Their intellect, calm demeanor, and achievements in professional or business spheres will provide immense strength to your joint journey. According to directional planetary strength, auspicious alliance proposals are most likely to emerge from the East or North-East direction relative to your birthplace.\n\nTo overcome any subtle karmic delays or marital obstacles caused by Kuja/Manglik planetary afflictions, performing Gauri Pooja and Sri Subramanya Seva on Tuesdays and Fridays is highly recommended. Daily morning chanting of "Om Shreem Gauryai Namah" 108 times, alongside offering a Mangala Seva at Gokarna Mahabaleshwara Kshetra, will neutralize afflictions, remove delays, and grant early marital blessings.`;
+  } else {
+    // married
+    if (baseLang === "kn") {
+      return `ನಿಮ್ಮ ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿ ಪರಸ್ಪರ ನಂಬಿಕೆ, ಪ್ರೀತಿ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಸಾಮರಸ್ಯವು ದಿನದಿಂದ ದಿನಕ್ಕೆ ವೃದ್ಧಿಯಾಗುತ್ತದೆ. ಜಾತಕದಲ್ಲಿ ಸಪ್ತಮ ಭಾವಾಧಿಪತಿ ಹಾಗೂ ಶುಕ್ರ ಗ್ರಹದ ಬಲದಿಂದಾಗಿ ಕುಟುಂಬದಲ್ಲಿ ಶಾಂತಿ ಹಾಗೂ ಭದ್ರತೆ ನೆಲೆಸುತ್ತದೆ. ದಾಂಪತ್ಯದ ಈ ಸುಂದರ ಪಯಣದಲ್ಲಿ ಪರಸ್ಪರ ಗೌರವ ಹಾಗೂ ಬೆಂಬಲವು ನಿಮ್ಮ ಬಾಂಧವ್ಯವನ್ನು ಮತ್ತಷ್ಟು ಮಧುರಗೊಳಿಸಲಿದೆ. ಸಣ್ಣಪುಟ್ಟ ವ್ಯತ್ಯಾಸಗಳಿದ್ದರೂ ಗ್ರಹಗಳ ಅನುಗ್ರಹದಿಂದಾಗಿ ಕುಟುಂಬದಲ್ಲಿ ಸಂತೋಷ ನೆಲೆಸಲಿದೆ.\n\nಕೌಟುಂಬಿಕ ಹಾಗೂ ಆರ್ಥಿಕ ನಿರ್ಧಾರಗಳನ್ನು ಕೈಗೊಳ್ಳುವಾಗ ನಿಮ್ಮ ಸಂಗಾತಿಯ ಸಲಹೆ ಮತ್ತು ಅಭಿಪ್ರಾಯಗಳನ್ನು ಗೌರವಿಸುವುದು ದಾಂಪತ್ಯವನ್ನು ಮತ್ತಷ್ಟು ಭದ್ರಗೊಳಿಸುತ್ತದೆ. ಇಬ್ಬರೂ ಒಟ್ಟಾಗಿ ಕೈಗೊಳ್ಳುವ ಯೋಜನೆಯು ಭವಿಷ್ಯದ ಅಭಿವೃದ್ಧಿಗೆ ದಾರಿಯಾಗುತ್ತದೆ. ನಿಮ್ಮಿಬ್ಬರ ವೈಚಾರಿಕ ಸಾಮರಸ್ಯವು ಮಕ್ಕಳಿಗೂ ಹಾಗೂ ಮನೆ ಮಂದಿಗೂ ಉತ್ತಮ ಪ್ರೇರಣೆಯಾಗಲಿದೆ.\n\nದಾಂಪತ್ಯದಲ್ಲಿ ಒಮ್ಮೊಮ್ಮೆ ಕಂಡುಬರುವ ಸಣ್ಣಪುಟ್ಟ ಮನಸ್ತಾಪಗಳು ಅಥವಾ ತಪ್ಪು ತಿಳುವಳಿಕೆಗಳನ್ನು ಶಾಂತಚಿತ್ತದ ಮಾತುಕತೆಯ ಮೂಲಕ ಪರಿಹರಿಸಿಕೊಳ್ಳಿ. ಪ್ರತಿ ಶುಕ್ರವಾರ ಮನೆಯಲ್ಲಿ ದೇವಿಗೆ ದೀಪ ಹಚ್ಚಿ ಲಕ್ಷ್ಮೀ ನಾರಾಯಣ ಪೂಜೆ ಮಾಡಿಸುವುದು ಹಾಗೂ ಪ್ರಾರ್ಥಿಸುವುದು ಕೌಟುಂಬಿಕ ಸೌಖ್ಯ ಹಾಗೂ ಅಷ್ಟೈಶ್ವರ್ಯಗಳನ್ನು ಹೆಚ್ಚಿಸುತ್ತದೆ.`;
+    }
+    return `In your married life, mutual trust, affection, and domestic harmony will grow stronger day by day. The strength of the 7th house lord ensures long-term stability, peace, and security within the family. Respecting each other's perspectives will bring deep fulfillment to your matrimonial journey. Benefic planetary aspects shield your relationship from external misunderstandings.\n\nInvolving your spouse in key financial and family decisions will further fortify your relationship. Joint planning creates a prosperous roadmap for future growth and domestic stability. Your shared values will inspire warmth and cohesion among all family members.\n\nTo maintain enduring happiness and resolve occasional minor friction, open and empathetic communication is key. Performing Lakshmi Narayan Pooja on Fridays and maintaining a serene home altar will enhance prosperity and domestic bliss.`;
+  }
+}
+
+function buildPersonalizedChildrenText(lang: string, status: "no_children" | "has_children"): string {
+  const baseLang = (lang || "en").split("-")[0];
+  if (status === "no_children") {
+    if (baseLang === "kn") {
+      return `ನಿಮ್ಮ ಜಾತಕದ ಪಂಚಮ ಭಾವ ಹಾಗೂ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಶುಭ ದೃಷ್ಟಿಯು ಪುತ್ರ/ಪುತ್ರಿ ಸಂತಾನ ಯೋಗವನ್ನು ಅತ್ಯಂತ ಪ್ರಬಲವಾಗಿ ಸೂಚಿಸುತ್ತದೆ. ಪಂಚಮಾಧಿಪತಿ ಮತ್ತು ಗುರುವಿನ ಅನುಗ್ರಹವು ಕುಟುಂಬದ ವಂಶಾಭಿವೃದ್ಧಿ ಹಾಗೂ ಸಂತಾನ ಸೌಖ್ಯವನ್ನು ವೃದ್ಧಿಸುತ್ತದೆ. ಜಾತಕದಲ್ಲಿ ಪಂಚಮ ಭಾವವು ಬಲವಾಗಿರುವುದರಿಂದ ದೈವಿಕ ಅನುಗ್ರಹದಿಂದಾಗಿ ಮಂದಸ್ಮಿತ ಸಂತಾನ ಭಾಗ್ಯವು ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ. ಗ್ರಹಗಳ ಶುಭ ಬಲವು ನಿಮ್ಮ ಕುಟುಂಬದಲ್ಲಿ ನವೋಲ್ಲಾಸವನ್ನು ತರಲಿದೆ.\n\nಮುಂದಿನ 18 ತಿಂಗಳುಗಳಲ್ಲಿ ಶುಭ ಗ್ರಹಗಳ ಗೋಚಾರ ಸಂಚಾರವು ಸಂತಾನೋತ್ಪತ್ತಿಗೆ ಹಾಗೂ ಗರ್ಭಧಾರಣೆಗೆ ಅತ್ಯಂತ ಅನುಕೂಲಕರವಾದ ದಿವ್ಯ ಕಾಲಘಟ್ಟವನ್ನು ತೆರೆಯುತ್ತದೆ. ಈ ಅವಧಿಯಲ್ಲಿ ಕೈಗೊಳ್ಳುವ ವೈದ್ಯಕೀಯ ಹಾಗೂ ಆಧ್ಯಾತ್ಮಿಕ ಪ್ರಯತ್ನಗಳು ಯಶಸ್ವಿಯಾಗಿ ಫಲ ನೀಡಲಿವೆ. ಗರ್ಭಿಣಿಯರ ಆರೋಗ್ಯ ಸ್ಥಿರವಾಗಿರುತ್ತದೆ ಹಾಗೂ ಸಂತಾನ ನಿರೀಕ್ಷೆಯಲ್ಲಿರುವ ದಂಪತಿಗಳಿಗೆ ಶುಭ ವಾರ್ತೆ ಕೇಳಿಬರಲಿದೆ.\n\nಸಂತಾನ ಭಾಗ್ಯದಲ್ಲಿ ಕಂಡುಬರುವ ಸಣ್ಣಪುಟ್ಟ ವಿಳಂಬ ಅಥವಾ ದೋಷಗಳ ನಿವಾರಣೆಗಾಗಿ ನಿತ್ಯವೂ ಪ್ರಾತಃಕಾಲ ಶ್ರೀ ಸಂತಾನ ಗೋಪಾಲ ಕವಚ ಹಾಗೂ ಮಂತ್ರ ಪಠಣ ಮಾಡುವುದು ಶ್ರೇಷ್ಠ ಪರಿಹಾರವಾಗಿದೆ. ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದಲ್ಲಿ ಸುಬ್ರಹ್ಮಣ್ಯ ಹೋಮ ನೆರವೇರಿಸುವುದು ಹಾಗೂ ಪ್ರತಿ ಗುರುವಾರ ಶುದ್ಧ ಹಾಲಿನಿಂದ ಶಿವಲಿಂಗಕ್ಕೆ ಅಭಿಷೇಕ ಮಾಡಿಸುವುದು ಸಂತಾನ ಪ್ರತಿಬಂಧಕ ದೋಷಗಳನ್ನು ನಿವಾರಿಸಿ ಶೀಘ್ರ ಸಂತಾನ ಭಾಗ್ಯವನ್ನು ಕರುಣಿಸುತ್ತದೆ.`;
+    }
+    if (baseLang === "hi") {
+      return `आपकी कुंडली के पंचम भाव और देवगुरु बृहस्पति की शुभ दृष्टि संतान प्राप्ति के योग को अत्यंत प्रबल रूप से दर्शाती है। पंचमेश का बल तथा गुरु का आशीर्वाद परिवार वृद्धि एवं संतान सुख को बढ़ाता है। ग्रहों का यह शुभ प्रभाव आपके जीवन में वंश वृद्धि और दिव्य संतान प्राप्ति का मार्ग प्रशस्त करेगा।\n\nअगले 18 महीनों में अनुकूल ग्रहों का गोचर संतान गर्भाधान तथा स्वास्थ्य के लिए अत्यंत शुभ समय प्रदान करता है। इस अवधि में किए गए चिकित्सीय और आध्यात्मिक प्रयास पूर्ण सफलता प्रदान करेंगे। दंपति को शीघ्र ही शुभ समाचार प्राप्त होगा।\n\nसंतान प्राप्ति में आ रहे विलंब या सूक्ष्म दोषों के निवारण हेतु प्रतिदिन प्रातःकाल संतान गोपाल मंत्र का जाप करें। गोकर्ण क्षेत्र में सुब्रह्मण्य होम का आयोजन तथा प्रत्येक गुरुवार को शिवलिंग पर कच्चे दूध से अभिषेक करने से समस्त बाधाएं दूर होकर शीघ्र संतान सुख की प्राप्ति होती है।`;
+    }
+    if (baseLang === "te") {
+      return `మీ జాతకంలో 5వ భావం మరియు దేవగురు బృహస్పతి శుభ దృష్టి సంతాన ప్రాప్తి యోగాన్ని మిక్కిలి బలంగా సూచిస్తున్నాయి. పంచమాధిపతి బలంతో పాటు గురు భగవానుని అనుగ్రహం వంశాభివృద్ధిని మరియు సంతాన సౌఖ్యాన్ని పెంపొందిస్తుంది. దైవిక అనుగ్రహం వలన మీ కుటుంబంలో నూతన ఉత్సాహం నిండుతుంది.\n\nరాబోయే 18 నెలల్లో అనుకూల గ్రహ గోచారం సంతానోత్పత్తికి మరియు గర్భధారణకు ఎంతో అనుకూలమైన దివ్య కాలాన్ని అందిస్తుంది. ఈ సమయంలో చేసే ప్రయత్నాలు సంపూర్ణ ఫలితాలను ఇస్తాయి. సంతాన నిరీక్షణలో ఉన్న దంపతులకు త్వరలోనే తీపి కబురు అందుతుంది.\n\nసంతాన దోషాల నివారణకు ప్రతిరోజూ సంతాన గోపాల మంత్ర జపం చేయడం శ్రేష్ఠమైన పరిహారం. గోకర్ణ క్షేత్రంలో సుబ్రహ్మణ్య హోమం నిర్వహించడం మరియు ప్రతి గురువారం పాలు తో అభిషేకం చేయడం వలన సంతాన ప్రతిబంధకాలు తొలగి శీఘ్ర సంతాన ప్రాప్తి లభిస్తుంది.`;
+    }
+    if (baseLang === "ta") {
+      return `உங்கள் ஜாதகத்தில் 5 ஆம் இடம் மற்றும் குரு பகவானின் பார்வை குழந்தை பாக்கிய யோகத்தை மிகவும் வலுவாகக் காட்டுகிறது. 5 ஆம் அதிபதி மற்றும் குருவின் அருளால் வம்ச விருத்தியும் குழந்தை பாக்கியமும் உண்டாகும். இறை அருளால் உங்கள் குடும்பத்தில் மகிழ்ச்சியும் அமைதியும் பெருகும்.\n\nஅடுத்த 18 மாதங்களில் சாதகமான கோசார கிரகங்கள் குழந்தை பாக்கியத்திற்கும் கர்ப்பத்திற்கும் மிகவும் உகந்த காலத்தை உருவாக்குகின்றன. இந்த காலத்தில் மேற்கொள்ளும் ஆன்மீக மற்றும் மருத்துவ முயற்சிகள் முழு வெற்றி தரும். விரைவில் நல்ல செய்தி தேடிவரும்.\n\nகுழந்தை பாக்கிய தாமதத்தைப் போக்க தினமும் சந்தான கோபால மந்திரம் ஜபிக்கவும். கோகர்ண க்ஷேத்திரத்தில் சுப்பிரமணிய ஹோமம் செய்வது மற்றும் வியாழக்கிழமைகளில் பாலாபிஷேகம் செய்வது குழந்தை பாக்கிய தடைகளை நீக்கி சுபயோகம் தரும்.`;
+    }
+    return `The 5th house and Jupiter's benefic aspect indicate strong Santana Yoga (progeny blessings) in your birth chart. The blessings of Jupiter enhance family expansion and long-term parental happiness. Divine transit aspects protect and nurture your progeny aspirations.\n\nOver the next 18 months, favorable planetary transits create an ideal time window for child conception and maternal health. Medical and spiritual endeavors initiated during this period will yield successful results, bringing joyful news to your household.\n\nTo remove any subtle progeny obstacles or delays, chanting the Santana Gopala Mantra daily is highly effective. Performing Subramanya Seva / Homa at Gokarna Kshetra and offering milk archana on Thursdays will dissolve afflictions and grant early progeny blessings.`;
+  } else {
+    // has_children
+    if (baseLang === "kn") {
+      return `ನಿಮ್ಮ ಮಕ್ಕಳ ಶಿಕ್ಷಣ, ಬುದ್ಧಿಶಕ್ತಿ ಹಾಗೂ ಭವಿಷ್ಯದ ರಂಗಗಳಲ್ಲಿ ಉತ್ತಮ ಸಾಧನೆ ಮಾಡುವ ಶುಭ ಸೂಚನೆಗಳು ಜಾತಕದಲ್ಲಿ ಎದ್ದು ಕಾಣುತ್ತಿವೆ. ಪಂಚಮ ಭಾವದಲ್ಲಿ ಶುಭ ಗ್ರಹಗಳ ಪ್ರಭಾವದಿಂದಾಗಿ ಮಕ್ಕಳು ಸನ್ಮಾರ್ಗದಲ್ಲಿ ನಡೆಯುತ್ತಾರೆ ಹಾಗೂ ಶೈಕ್ಷಣಿಕ ಕ್ಷೇತ್ರದಲ್ಲಿ ಉತ್ತಮ ಸಾಧನೆ ಮೆರೆಯಲಿದ್ದಾರೆ. ಅವರ ಜ್ಞಾನಾರ್ಜನೆ ಹಾಗೂ ನಡವಳಿಕೆಯು ಕುಟುಂಬಕ್ಕೆ ಒಳ್ಳೆಯ ಕೀರ್ತಿಯನ್ನು ತರಲಿದೆ.\n\nಅವರ ಉನ್ನತ ವ್ಯಾಸಂಗ, ವೃತ್ತಿಜೀವನ ಹಾಗೂ ವೈಯಕ್ತಿಕ ಬೆಳವಣಿಗೆಗೆ ನಿಮ್ಮ ಪ್ರೀತಿ, ಬೆಂಬಲ ಮತ್ತು ಸರಿಯಾದ ಮಾರ್ಗದರ್ಶನವು ದಾರಿದೀಪವಾಗಲಿದೆ. ಮಕ್ಕಳೊಂದಿಗೆ ನಿಕಟ ಬಾಂಧವ್ಯವನ್ನು ಕಾಯ್ದುಕೊಳ್ಳುವುದು ಅವರ ಆತ್ಮವಿಶ್ವಾಸವನ್ನು ಹೆಚ್ಚಿಸುತ್ತದೆ.\n\nಮಕ್ಕಳ ಏಳಿಗೆ, ಏಕಾಗ್ರತೆ ಹಾಗೂ ದೀರ್ಘಾಯುಷ್ಯಕ್ಕಾಗಿ ಸರಸ್ವತಿ ಪೂಜೆ ಹಾಗೂ ಗಣಪತಿಗೆ ಅಥರ್ವಶೀರ್ಷ ಅಭಿಷೇಕ ಮಾಡಿಸುವುದು ಶ್ರೇಯಸ್ಕರ. ಪ್ರತಿ ಬುಧವಾರ ನವಗ್ರಹ ಪ್ರಾರ್ಥನೆ ಮಾಡುವುದರಿಂದ ಅವರ ವಿದ್ಯಾಭ್ಯಾಸದಲ್ಲಿ ಬರುವ ಅಡೆತಡೆಗಳು ನಿವಾರಣೆಯಾಗಲಿವೆ.`;
+    }
+    return `Your children show promising signs of excellence in education, intellect, and future career pursuits. The benefic influence on the 5th house guides them on a virtuous path, ensuring strong focus and academic achievements that bring honor to your family.\n\nYour parental guidance, emotional support, and encouragement will be instrumental in shaping their higher education and professional milestones. Maintaining clear, loving communication nurtures their self-confidence.\n\nTo ensure their continued progress, health, and academic focus, offering Saraswati Pooja and Ganapati Atharvashirsha Abhishekam is highly beneficial. Wednesday prayers to Lord Ganesha dissolve study distractions.`;
+  }
+}
+
+import PdfPersonalizationModal, { PersonalizationState } from "./PdfPersonalizationModal";
+import { MultiQuestionPdfTemplate, MultiQuestionItem } from "./MultiQuestionPdfTemplate";
+
+const MULTI_QUESTION_TOPICS = [
+  { id: "career", label: { en: "💼 Career & Promotion", kn: "💼 ಉದ್ಯೋಗ ಹಾಗೂ ಬಡ್ತಿ", te: "💼 ఉద్యోగం మరియు పదోన్నతి", ta: "💼 வேலை மற்றும் உயர்வு", hi: "💼 करियर और पदोन्नति" }, defaultQ: { en: "When will I get a job promotion or career growth?", kn: "ನನಗೆ ಯಾವಾಗ ಉದ್ಯೋಗದಲ್ಲಿ ಬಡ್ತಿ ಹಾಗೂ ವೃತ್ತಿ ಏಳಿಗೆ ದೊರೆಯಲಿದೆ?", te: "నాకు ఎప్పుడు ఉద్యోగంలో పదోన్నతి లభిస్తుంది?", ta: "எனக்கு எப்போது வேலையில் உயர்வு கிடைக்கும்?", hi: "मुझे करियर में पदोन्नति कब मिलेगी?" } },
+  { id: "marriage", label: { en: "💍 Marriage & Timing", kn: "💍 ವಿವಾಹ ಹಾಗೂ ಸಂಬಂಧ", te: "💍 వివాహం మరియు సమయం", ta: "திருமணம் மற்றும் காலம்", hi: "💍 विवाह और समय" }, defaultQ: { en: "What is the exact marriage timing window and spouse nature?", kn: "ನನ್ನ ಕಲ್ಯಾಣ ಯೋಗದ ನಿಖರ ಸಮಯ ಹಾಗೂ ಸಂಗಾತಿಯ ಗುಣಲಕ್ಷಣಗಳೇನು?", te: "నా వివాహ సమయం మరియు భాగస్వామి స్వభావం ఎలా ఉంటుంది?", ta: "என் திருமண காலம் மற்றும் வரனின் சுபாவம் எப்படி இருக்கும்?", hi: "विवाह का सटीक समय और जीवनसाथी का स्वभाव कैसा होगा?" } },
+  { id: "finance", label: { en: "💰 Wealth & Investment", kn: "💰 ಧನ ಲಾಭ ಹಾಗೂ ಸಂಪತ್ತು", te: "💰 ధన లాభం మరియు సంపద", ta: "💰 தன லாபம் மற்றும் செல்வம்", hi: "💰 धन लाभ और संपत्ति" }, defaultQ: { en: "How will my financial growth and property gains be?", kn: "ನನ್ನ ಆರ್ಥಿಕ ಸ್ಥಿತಿ ಹಾಗೂ ಆಸ್ತಿ ಗಳಿಕೆ ಹೇಗೆ ಇರಲಿದೆ?", te: "నా ఆర్థిక స్థితి మరియు ఆస్తి సమకూరుట ఎలా ఉంటుంది?", ta: "என் நிதி நிலையும் சொத்து சேர்க்கையும் எப்படி இருக்கும்?", hi: "मेरी वित्तीय स्थिति और संपत्ति लाभ कैसा रहेगा?" } },
+  { id: "travel", label: { en: "✈️ Foreign Travel & Visa", kn: "✈️ ವಿದೇಶ ಪ್ರಯಾಣ ಹಾಗೂ ವೀಸಾ", te: "✈️ విదేశీ ప్రయాణం మరియు వీసా", ta: "✈️ வெளிநாட்டுப் பயணம் மற்றும் விசா", hi: "✈️ विदेश यात्रा और वीजा" }, defaultQ: { en: "Is foreign settlement or overseas job travel indicated?", kn: "ನನಗೆ ವಿದೇಶಿ ಯೋಗ ಹಾಗೂ ಸ್ಥಳಾಂತರ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆಯೇ?", te: "నాకు విదేశీ ప్రయాణం మరియు ఉద్యోగ యోగం ఉందా?", ta: "எனக்கு வெளிநாட்டு வேலை வாய்ப்பு யோகம் உள்ளதா?", hi: "क्या मुझे विदेश यात्रा और वहां बसने का योग है?" } },
+  { id: "health", label: { en: "🩺 Health & Wellbeing", kn: "🩺 ಆರೋಗ್ಯ ಹಾಗೂ ಆಯುಷ್ಯ", te: "🩺 ఆరోగ్యం మరియు ఆయుష్షు", ta: "🩺 ஆரோக்கியம் மற்றும் ஆயுள்", hi: "🩺 स्वास्थ्य और दीर्घायु" }, defaultQ: { en: "What remedies are needed for health stability and peace?", kn: "ನನ್ನ ಆರೋಗ್ಯ ಸುಧಾರಣೆಗೆ ಯಾವ ಧಾರ್ಮಿಕ ಶಮನ ಪರಿಹಾರಗಳು ಅಗತ್ಯ?", te: "నా ఆరోగ్య శ్రేయస్సుకు ఏ పరిహారాలు చేయాలి?", ta: "என் ஆரோக்கியத்திற்கு என்ன பரிகாரங்கள் செய்ய வேண்டும்?", hi: "स्वास्थ्य स्थिरता के लिए क्या उपाय करने चाहिए?" } },
+  { id: "children", label: { en: "👶 Children & Progeny", kn: "👶 ಸಂತಾನ ಹಾಗೂ ಮಕ್ಕಳು", te: "👶 సంతానం మరియు పిల్లలు", ta: "👶 சந்ததி மற்றும் குழந்தைகள்", hi: "👶 संतान और बच्चे" }, defaultQ: { en: "What is the progeny blessing timing and children progress?", kn: "ನನ್ನ ಸಂತಾನ ಭಾಗ್ಯದ ಸಮಯ ಹಾಗೂ ಮಕ್ಕಳ ಭವಿಷ್ಯ ಹೇಗಿರಲಿದೆ?", te: "నా సంతాన ప్రాప్తి సమయం మరియు పిల్లల భవిష్యత్తు ఎలా ఉంటుంది?", ta: "என் குழந்தை பாக்கிய யோகமும் குழந்தைகளின் எதிர்காலமும் எப்படி இருக்கும்?", hi: "संतान प्राप्ति का समय और बच्चों का भविष्य कैसा रहेगा?" } },
+  { id: "property", label: { en: "🏠 House & Vehicle Purchase", kn: "🏠 ಮನೆ ಹಾಗೂ ವಾಹನ ಖರೀದಿ", te: "🏠 ఇల్లు మరియు వాహన కొనుగోలు", ta: "🏠 வீடு மற்றும் வாகனம் வாங்குதல்", hi: "🏠 मकान और वाहन खरीद" }, defaultQ: { en: "When will I purchase my own house or vehicle?", kn: "ನಾನು ಸ್ವಂತ ಮನೆ ಹಾಗೂ ವಾಹನವನ್ನು ಯಾವಾಗ ಖರೀದಿಸಲಿದ್ದೇನೆ?", te: "నేను సొಂತ ఇల్లు మరియు వాహನವನ್ನು ಯಾವಾಗ ಖರೀದಿಸಲಿದ್ದೇನೆ?", ta: "நான் சொந்த வீடும் வாகனமும் எப்போது வாங்குவேன்?", hi: "मैं अपना घर और वाहन कब खरीद पाऊंगा?" } }
+];
+
 export default function BhavishyaView() {
   const { predictions, currentMindset, isLoading, loadingText, ashirvada } = usePredictionEngine();
   const { t } = useTranslation();
@@ -79,6 +155,7 @@ export default function BhavishyaView() {
   const [pdfDeepInsights, setPdfDeepInsights] = useState<Record<string, string> | null>(null);
   
   const [isGeneratingPremiumPdf, setIsGeneratingPremiumPdf] = useState(false);
+  const [isPersonalizationModalOpen, setIsPersonalizationModalOpen] = useState(false);
   const [pdfLanguage, setPdfLanguage] = useState(language);
   const [premiumDataForPdf, setPremiumDataForPdf] = useState<PremiumData | null>(null);
   const [premiumPredictions, setPremiumPredictions] = useState<TranslatedPrediction[] | null>(null);
@@ -100,6 +177,590 @@ export default function BhavishyaView() {
   const [a4PremiumDataForPdf, setA4PremiumDataForPdf] = useState<PremiumData | null>(null);
   const [a4PdfTranslations, setA4PdfTranslations] = useState<PdfTranslations | null>(null);
   const [a4PdfDeepInsights, setA4PdfDeepInsights] = useState<Record<string, string> | null>(null);
+
+  const [isGeneratingSummaryPdf, setIsGeneratingSummaryPdf] = useState(false);
+  const [multiQuestions, setMultiQuestions] = useState<MultiQuestionItem[]>([]);
+  const [mqTopic, setMqTopic] = useState<string>("career");
+  const [mqInputText, setMqInputText] = useState<string>("");
+  const [isListeningMQ, setIsListeningMQ] = useState<boolean>(false);
+  const [isGeneratingMultiAnswers, setIsGeneratingMultiAnswers] = useState<boolean>(false);
+  const [isGeneratingMultiPdf, setIsGeneratingMultiPdf] = useState<boolean>(false);
+  const [multiPdfTranslations, setMultiPdfTranslations] = useState<PdfTranslations | null>(null);
+  const multiPdfRef = useRef<HTMLDivElement>(null);
+  const [summaryDataForPdf, setSummaryDataForPdf] = useState<SummaryPdfData | null>(null);
+  const [summaryPdfTranslations, setSummaryPdfTranslations] = useState<PdfTranslations | null>(null);
+  const summaryPdfRef = useRef<HTMLDivElement>(null);
+
+  const [qTopic, setQTopic] = useState("general");
+  const [qText, setQText] = useState("");
+  const [isListeningQ, setIsListeningQ] = useState(false);
+
+  const toggleQVoiceInput = () => {
+    const SpeechRecognitionClass = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognitionClass) {
+      alert("Voice input is not supported in this browser. Please use Chrome, Edge, or Safari.");
+      return;
+    }
+    if (isListeningQ) {
+      setIsListeningQ(false);
+      return;
+    }
+    try {
+      const recognition = new SpeechRecognitionClass();
+      const speechLangMap: Record<string, string> = { kn: "kn-IN", te: "te-IN", ta: "ta-IN", hi: "hi-IN", en: "en-IN" };
+      recognition.lang = speechLangMap[pdfLanguage] || "en-IN";
+      recognition.interimResults = false;
+      recognition.onstart = () => setIsListeningQ(true);
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0]?.[0]?.transcript;
+        if (transcript) setQText((prev) => (prev ? `${prev} ${transcript}` : transcript));
+        setIsListeningQ(false);
+      };
+      recognition.onerror = () => setIsListeningQ(false);
+      recognition.onend = () => setIsListeningQ(false);
+      recognition.start();
+    } catch {
+      setIsListeningQ(false);
+    }
+  };
+
+  const generateQuestionPDF = async () => {
+    if (!session || isGeneratingSummaryPdf) return;
+    setIsGeneratingSummaryPdf(true);
+
+    try {
+      const lang = pdfLanguage;
+      const moonPlanet = session.result.planets.find(p => p.name === 'Moon');
+      const now = new Date();
+      const ageYears = ageDecimalYearsAt(
+        session.input.birthDate,
+        session.input.birthTime,
+        session.input.latitude,
+        session.input.longitude,
+        now
+      );
+      const currentBhuktiData = findBhuktiAtAge(session.result, ageYears);
+      const mahaLord = currentBhuktiData ? toGraha(currentBhuktiData.maha.planet) : null;
+      const bhuktiLord = currentBhuktiData ? toGraha(currentBhuktiData.bhukti) : null;
+
+      const categoryObj = QUESTION_TOPICS.find(t => t.id === qTopic) || QUESTION_TOPICS[0];
+      const topicLabel = categoryObj.label[lang as keyof typeof categoryObj.label] || categoryObj.label.en;
+      const customQuery = qText.trim();
+      const questionTitle = customQuery ? customQuery : topicLabel;
+      const userPromptQuery = customQuery ? `[${topicLabel}] ${customQuery}` : topicLabel;
+
+      const liveTransits = getTransitsForDate(session.result.moonSign.index, now, ayanamsaModel);
+      const transitSummary = Object.entries(liveTransits).map(([planet, pos]) => `${planet} in House ${pos.house} from Moon`).join("; ");
+      const planetPositions = session.result.planets.map(p => `${p.name} in House ${p.house} (${p.rashi.english})`).join(', ');
+
+      const translatedData: PdfTranslations = {
+        title: tp("title", lang),
+        subtitle: questionTitle,
+        nameLabel: tp("nameLabel", lang),
+        nameValue: session.input.name,
+        dobLabel: tp("dobLabel", lang),
+        dobValue: formatBirthLine(lang, session.input.birthDate, session.input.birthTime),
+        lagnaLabel: tp("lagnaLabel", lang),
+        lagnaValue: session.result.lagnaRashi ? pick(RASHI_L5[session.result.lagnaRashi.index], lang) : "",
+        moonLabel: tp("moonLabel", lang),
+        moonValue: pick(RASHI_L5[session.result.moonSign.index], lang),
+        nakshatraLabel: tp("nakshatraLabel", lang),
+        nakshatraValue: moonPlanet ? pick(NAKSHATRA_L5[moonPlanet.nakshatra.index], lang) : "",
+        eraLabel: tp("eraLabel", lang),
+        dashaLabel: tp("dashaLabel", lang),
+        bhuktiLabel: tp("bhuktiLabel", lang),
+        dashaPlanetValue: mahaLord ? pick(GRAHA_L5[mahaLord], lang) : "",
+        bhuktiPlanetValue: bhuktiLord ? pick(GRAHA_L5[bhuktiLord], lang) : "",
+        ashirvadaTitle: tp("ashirvadaTitle", lang),
+        ashirvadaValue: await translateText("May divine wisdom guide your decisions and bring success.", lang),
+        footer: tp("footer", lang),
+        yogasTitle: tp("yogasTitle", lang),
+        doshasTitle: tp("doshasTitle", lang),
+        remedyTitle: tp("remedyTitle", lang),
+        characteristicsTitle: tp("characteristicsTitle", lang),
+        darkSecretTitle: tp("darkSecretTitle", lang),
+        timelineTitle: tp("timelineTitle", lang),
+        gocharaTitle: tp("gocharaTitle", lang),
+        summaryTitle: tp("summaryTitle", lang),
+        introTitle: tp("introTitle", lang),
+        introGreeting: greetingLine(lang, session.input.name),
+      };
+
+      setSummaryPdfTranslations(translatedData);
+
+      const qPrompt = `You are a world-class Vedic Astrologer. Generate a comprehensive 4-PARAGRAPH answer tailored EXCLUSIVELY to the user's specific query topic: "${userPromptQuery}".
+OUTPUT LANGUAGE: ${lang}.${lang === 'kn' ? ' Write ONLY in Kannada script.' : lang === 'te' ? ' Write ONLY in Telugu script.' : lang === 'ta' ? ' Write ONLY in Tamil script.' : lang === 'hi' ? ' Write ONLY in Hindi (Devanagari).' : ' Write in clear English.'}
+
+EXACT COMPUTED ASTROLOGICAL DATA:
+- Name: ${session.input.name}
+- Ascendant (Lagna): ${session.result.lagnaRashi?.english || 'Unknown'}
+- Moon Sign: ${session.result.moonSign.english}
+- Nakshatra: ${moonPlanet?.nakshatra.english || 'Unknown'}
+- Running Dasha/Bhukti: ${currentBhuktiData ? currentBhuktiData.maha.planet + ' - ' + currentBhuktiData.bhukti : 'Current Dasha'}
+- Planetary Placements: ${planetPositions}
+- Live Transit Positions: ${transitSummary}
+
+4-PARAGRAPH STRUCTURE REQUIRED:
+PARAGRAPH 1 (Kundali House Analysis): Analyze the relevant natal houses and planetary placements for ${topicLabel}.
+PARAGRAPH 2 (Dasha & Transit Influence): Analyze how current Dasha-Bhukti and live transits impact this specific topic right now.
+PARAGRAPH 3 (Specific Predictions & Timing): Provide clear predictions, expected timing, and outcomes regarding their question.
+PARAGRAPH 4 (Remedial Guidance & Blessing): Provide 2 specific remedies (Parihara/Mantra) and an encouraging astrologer's blessing.
+
+Return ONLY this JSON format:
+{
+  "paragraph1": "...",
+  "paragraph2": "...",
+  "paragraph3": "...",
+  "paragraph4": "..."
+}`;
+
+      let parsedSummary: SummaryPdfData | null = null;
+      try {
+        const rawRes = await askGemini(`Generate Question PDF: ${topicLabel}`, qPrompt, geminiApiKey, lang, { raw: true, temperature: 0.7 });
+        const jsonMatch = rawRes.match(/\{[\s\S]*\}/);
+        if (jsonMatch) parsedSummary = JSON.parse(jsonMatch[0]);
+      } catch (e) {
+        console.warn("Question PDF AI generation failed, using fallback", e);
+      }
+
+      if (!parsedSummary || !parsedSummary.paragraph1 || parsedSummary.paragraph1.length < 20) {
+        const p1 = await translateText(`Based on your birth chart, ${topicLabel} is governed by key planetary houses and aspects.`, lang);
+        const p2 = await translateText(`Your running Dasha and live transits trigger active developments in this chapter of your life.`, lang);
+        const p3 = await translateText(`Focused effort, patience, and strategic decision making will lead to positive outcomes.`, lang);
+        const p4 = await translateText(`Recommended Remedy: Perform morning prayer facing the favorable direction and offer light at your altar. May success attend your path.`, lang);
+        parsedSummary = { paragraph1: p1, paragraph2: p2, paragraph3: p3, paragraph4: p4 };
+      }
+
+      setSummaryDataForPdf(parsedSummary);
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      if (!summaryPdfRef.current) throw new Error("Summary PDF ref not found");
+
+      const containerEl = summaryPdfRef.current;
+      const parentEl = containerEl.parentElement;
+      const originalStyle = parentEl?.getAttribute("style") || "";
+      if (parentEl) {
+        parentEl.setAttribute("style", "position: fixed; left: 0; top: 0; z-index: -9999; pointer-events: none; opacity: 1; visibility: visible; width: 900px; background-color: #FFFFFF;");
+      }
+
+      await document.fonts.ready;
+      await new Promise(resolve => setTimeout(resolve, 400));
+
+      const canvas = await html2canvas(containerEl, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#FFFFFF",
+        allowTaint: true
+      });
+
+      if (parentEl) {
+        parentEl.setAttribute("style", originalStyle);
+      }
+
+      const imgData = canvas.toDataURL("image/jpeg", 0.75);
+      const pdfWidth = 210;
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      const pdf = new jsPDF({ orientation: "p", unit: "mm", format: [pdfWidth, pdfHeight], compress: true });
+      pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
+
+      const langNames: Record<string, string> = { kn: "Kannada", ta: "Tamil", te: "Telugu", hi: "Hindi", en: "English" };
+      const langName = langNames[pdfLanguage] || "English";
+      pdf.save(`Baggona_Question_${qTopic}_${langName}_${session.input.name.replace(/\s+/g, '_')}.pdf`);
+
+    } catch (err: any) {
+      console.error("Error generating Question PDF:", err);
+      alert(err.message || "Failed to generate Question PDF. Please try again.");
+    } finally {
+      setIsGeneratingSummaryPdf(false);
+      setSummaryDataForPdf(null);
+    }
+  };
+
+  const toggleMQVoiceInput = () => {
+    const SpeechClass = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechClass) {
+      alert("Speech recognition is not supported in this browser.");
+      return;
+    }
+    try {
+      const rec = new SpeechClass();
+      const langMap: Record<string, string> = { kn: "kn-IN", te: "te-IN", ta: "ta-IN", hi: "hi-IN", en: "en-IN" };
+      rec.lang = langMap[pdfLanguage] || "en-IN";
+      rec.interimResults = false;
+      rec.onstart = () => setIsListeningMQ(true);
+      rec.onresult = (e: any) => {
+        const transcript = e.results[0]?.[0]?.transcript;
+        if (transcript) setMqInputText(transcript);
+      };
+      rec.onerror = () => setIsListeningMQ(false);
+      rec.onend = () => setIsListeningMQ(false);
+      rec.start();
+    } catch {
+      setIsListeningMQ(false);
+    }
+  };
+
+  const handleAddMultiQuestion = (customQ?: string, topicId?: string) => {
+    const targetTopicId = topicId || mqTopic;
+    const topicObj = MULTI_QUESTION_TOPICS.find(t => t.id === targetTopicId) || MULTI_QUESTION_TOPICS[0];
+    const topicLabel = topicObj.label[pdfLanguage as keyof typeof topicObj.label] || topicObj.label.en;
+    const defaultText = topicObj.defaultQ[pdfLanguage as keyof typeof topicObj.defaultQ] || topicObj.defaultQ.en;
+    const textToAdd = (customQ || mqInputText).trim() || defaultText;
+
+    setMultiQuestions(prev => [
+      ...prev,
+      {
+        id: "mq_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
+        topicId: targetTopicId,
+        topicLabel,
+        questionText: textToAdd
+      }
+    ]);
+
+    setMqInputText("");
+  };
+
+  const handleRemoveMultiQuestion = (id: string) => {
+    setMultiQuestions(prev => prev.filter(q => q.id !== id));
+  };
+
+  const handleGenerateMultiAnswers = async () => {
+    if (!session || multiQuestions.length === 0 || isGeneratingMultiAnswers) return;
+    setIsGeneratingMultiAnswers(true);
+
+    const lang = pdfLanguage;
+    const moonPlanet = session.result.planets.find(p => p.name === 'Moon');
+    const now = new Date();
+    const ageYears = ageDecimalYearsAt(session.input.birthDate, session.input.birthTime, session.input.latitude, session.input.longitude, now);
+    const currentBhuktiData = findBhuktiAtAge(session.result, ageYears);
+
+    const updatedList = [...multiQuestions];
+
+    for (let i = 0; i < updatedList.length; i++) {
+      const q = updatedList[i];
+
+      // Ensure topic label and question text match the active pdfLanguage
+      const topicObj = MULTI_QUESTION_TOPICS.find(t => t.id === q.topicId);
+      if (topicObj) {
+        q.topicLabel = topicObj.label[lang as keyof typeof topicObj.label] || topicObj.label.en;
+      }
+
+      const qPrompt = `You are a world-class Vedic Astrologer. Generate a comprehensive 4-PARAGRAPH answer tailored EXCLUSIVELY to the user's specific query: "${q.questionText}" (Topic: ${q.topicLabel}).
+CRITICAL LANGUAGE MANDATE:
+- OUTPUT LANGUAGE: ${lang}.
+- ${lang === 'kn' ? 'Write ONLY in Kannada script. Zero English words.' : lang === 'te' ? 'Write ONLY in Telugu script. Zero English words.' : lang === 'ta' ? 'Write ONLY in Tamil script. Zero English words.' : lang === 'hi' ? 'Write ONLY in Hindi (Devanagari script). Zero English words.' : 'Write in clear English.'}
+
+EXACT COMPUTED ASTROLOGICAL DATA:
+- Name: ${session.input.name}
+- Ascendant (Lagna): ${session.result.lagnaRashi?.english || 'Unknown'} (${session.result.lagnaRashi ? pick(RASHI_L5[session.result.lagnaRashi.index], lang) : ''})
+- Moon Sign (Rashi): ${session.result.moonSign.english} (${pick(RASHI_L5[session.result.moonSign.index], lang)})
+- Nakshatra: ${moonPlanet?.nakshatra.english || 'Unknown'} (${moonPlanet ? pick(NAKSHATRA_L5[moonPlanet.nakshatra.index], lang) : ''})
+- Running Dasha/Bhukti: ${currentBhuktiData ? currentBhuktiData.maha.planet + ' - ' + currentBhuktiData.bhukti : 'Current Dasha'}
+- Current Age: ${ageYears.toFixed(1)} years
+
+REQUIRED 4-PARAGRAPH STRUCTURE:
+PARAGRAPH 1 (Natal House Analysis): Analyze the relevant natal houses and planetary placements for this question (at least 5-6 lines).
+PARAGRAPH 2 (Dasha & Gochara Transits): Analyze how current Dasha-Bhukti and live transits (Saturn, Jupiter, Rahu/Ketu) impact this specific topic (at least 5-6 lines).
+PARAGRAPH 3 (Specific Predictions & Timing Window): Provide clear predictions, expected timing, and specific outcomes regarding their question (at least 5-6 lines).
+PARAGRAPH 4 (Parihara & Recommended Remedies): Provide 2 specific remedies (Parihara/Mantra/Charity) and an encouraging astrologer's blessing.
+
+Return ONLY this JSON format:
+{
+  "p1": "...",
+  "p2": "...",
+  "p3": "...",
+  "remedy": "..."
+}`;
+
+      try {
+        const rawRes = await askGemini(`Generate Multi Question: ${q.topicLabel}`, qPrompt, geminiApiKey, lang, { raw: true, temperature: 0.7 });
+        const jsonMatch = rawRes.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          updatedList[i].answer = {
+            paragraph1: parsed.p1 || parsed.paragraph1 || "",
+            paragraph2: parsed.p2 || parsed.paragraph2 || "",
+            paragraph3: parsed.p3 || parsed.paragraph3 || "",
+            paragraph4: parsed.remedy || parsed.p4 || parsed.paragraph4 || ""
+          };
+        }
+      } catch (e) {
+        console.warn("Error generating answer for question", q.id, e);
+      }
+
+      if (!updatedList[i].answer || !updatedList[i].answer?.paragraph1) {
+        const p1 = await translateText(`Based on your birth Lagna and key natal house lords, planetary strength creates active focus around ${q.topicLabel}.`, lang);
+        const p2 = await translateText(`Your running Dasha period and Jupiter-Saturn Gochara transits trigger major developments over the next 12 to 18 months.`, lang);
+        const p3 = await translateText(`Strategic decisions aligned with ethical goals and patient effort will yield highly favorable outcomes and stability.`, lang);
+        const p4 = await translateText(`Recommended Remedy: Recite core planetary mantras 108 times daily facing East, offer light at your altar, and perform charity on auspicious days. May divine grace attend your path.`, lang);
+        updatedList[i].answer = { paragraph1: p1, paragraph2: p2, paragraph3: p3, paragraph4: p4 };
+      }
+    }
+
+    setMultiQuestions(updatedList);
+    setIsGeneratingMultiAnswers(false);
+  };
+
+  const generateMultiQuestionPDF = async () => {
+    if (!session || multiQuestions.length === 0 || isGeneratingMultiPdf) return;
+
+    if (multiQuestions.some(q => !q.answer)) {
+      await handleGenerateMultiAnswers();
+    }
+
+    setIsGeneratingMultiPdf(true);
+
+    try {
+      const lang = pdfLanguage;
+      const moonPlanet = session.result.planets.find(p => p.name === 'Moon');
+      const now = new Date();
+      const ageYears = ageDecimalYearsAt(session.input.birthDate, session.input.birthTime, session.input.latitude, session.input.longitude, now);
+      const currentBhuktiData = findBhuktiAtAge(session.result, ageYears);
+      const mahaLord = currentBhuktiData ? toGraha(currentBhuktiData.maha.planet) : null;
+      const bhuktiLord = currentBhuktiData ? toGraha(currentBhuktiData.bhukti) : null;
+
+      const ashirvadaSource = ashirvada || "May the divine forces grant you strength, clarity and peace.";
+
+      // Strictly translate Name if target language is non-English
+      let translatedName = session.input.name;
+      if (lang !== "en") {
+        try {
+          translatedName = await translateText(session.input.name, lang);
+        } catch {
+          translatedName = session.input.name;
+        }
+      }
+
+      const translatedData: PdfTranslations = {
+        title: tp("title", lang),
+        subtitle: await translateText("Special Multi-Question Astrological Predictions & Remedies Report", lang),
+        nameLabel: tp("nameLabel", lang),
+        nameValue: translatedName,
+        dobLabel: tp("dobLabel", lang),
+        dobValue: formatBirthLine(lang, session.input.birthDate, session.input.birthTime),
+        lagnaLabel: tp("lagnaLabel", lang),
+        lagnaValue: session.result.lagnaRashi ? pick(RASHI_L5[session.result.lagnaRashi.index], lang) : "",
+        moonLabel: tp("moonLabel", lang),
+        moonValue: pick(RASHI_L5[session.result.moonSign.index], lang),
+        nakshatraLabel: tp("nakshatraLabel", lang),
+        nakshatraValue: moonPlanet ? pick(NAKSHATRA_L5[moonPlanet.nakshatra.index], lang) : "",
+        eraLabel: tp("eraLabel", lang),
+        dashaLabel: tp("dashaLabel", lang),
+        bhuktiLabel: tp("bhuktiLabel", lang),
+        dashaPlanetValue: mahaLord ? pick(GRAHA_L5[mahaLord], lang) : "",
+        bhuktiPlanetValue: bhuktiLord ? pick(GRAHA_L5[bhuktiLord], lang) : "",
+        ashirvadaTitle: tp("ashirvadaTitle", lang),
+        ashirvadaValue: await translateText(ashirvadaSource, lang),
+        footer: tp("footer", lang),
+        yogasTitle: tp("yogasTitle", lang),
+        doshasTitle: tp("doshasTitle", lang),
+        remedyTitle: tp("remedyTitle", lang),
+        characteristicsTitle: tp("characteristicsTitle", lang),
+        darkSecretTitle: tp("darkSecretTitle", lang),
+        timelineTitle: tp("timelineTitle", lang),
+        gocharaTitle: tp("gocharaTitle", lang),
+        summaryTitle: tp("summaryTitle", lang),
+        introTitle: tp("introTitle", lang),
+        introGreeting: greetingLine(lang, session.input.name),
+      };
+
+      setMultiPdfTranslations(translatedData);
+
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      if (!multiPdfRef.current) throw new Error("Multi PDF ref not found");
+
+      const containerEl = multiPdfRef.current;
+      const parentEl = containerEl.parentElement;
+      const originalStyle = parentEl?.getAttribute("style") || "";
+      if (parentEl) {
+        parentEl.setAttribute("style", "position: fixed; left: 0; top: 0; z-index: -9999; pointer-events: none; opacity: 1; visibility: visible; width: 900px; background-color: #FFFFFF;");
+      }
+
+      await document.fonts.ready;
+      await new Promise(resolve => setTimeout(resolve, 400));
+
+      const canvas = await html2canvas(containerEl, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#FFFFFF",
+        allowTaint: true
+      });
+
+      if (parentEl) {
+        parentEl.setAttribute("style", originalStyle);
+      }
+
+      const imgData = canvas.toDataURL("image/jpeg", 0.75);
+      const pdfWidth = 210;
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      const pdf = new jsPDF({ orientation: "p", unit: "mm", format: [pdfWidth, pdfHeight], compress: true });
+      pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
+
+      const langNames: Record<string, string> = { kn: "Kannada", ta: "Tamil", te: "Telugu", hi: "Hindi", en: "English" };
+      const langName = langNames[pdfLanguage] || "English";
+      pdf.save(`Baggona_Multi_Question_${langName}_${session.input.name.replace(/\s+/g, '_')}.pdf`);
+
+    } catch (err: any) {
+      console.error("Error generating Multi-Question PDF:", err);
+      alert(err.message || "Failed to generate Multi-Question PDF. Please try again.");
+    } finally {
+      setIsGeneratingMultiPdf(false);
+    }
+  };
+
+  const generateSummaryPDF = async () => {
+    if (!session || isGeneratingSummaryPdf) return;
+    setIsGeneratingSummaryPdf(true);
+
+    try {
+      const lang = pdfLanguage;
+      const moonPlanet = session.result.planets.find(p => p.name === 'Moon');
+      const now = new Date();
+      const ageYears = ageDecimalYearsAt(
+        session.input.birthDate,
+        session.input.birthTime,
+        session.input.latitude,
+        session.input.longitude,
+        now
+      );
+      const currentBhuktiData = findBhuktiAtAge(session.result, ageYears);
+      const mahaLord = currentBhuktiData ? toGraha(currentBhuktiData.maha.planet) : null;
+      const bhuktiLord = currentBhuktiData ? toGraha(currentBhuktiData.bhukti) : null;
+
+      const ashirvadaSource = ashirvada || "May the divine forces grant you strength, clarity and peace.";
+
+      const translatedData: PdfTranslations = {
+        title: tp("title", lang),
+        subtitle: "",
+        nameLabel: tp("nameLabel", lang),
+        nameValue: session.input.name,
+        dobLabel: tp("dobLabel", lang),
+        dobValue: formatBirthLine(lang, session.input.birthDate, session.input.birthTime),
+        lagnaLabel: tp("lagnaLabel", lang),
+        lagnaValue: session.result.lagnaRashi ? pick(RASHI_L5[session.result.lagnaRashi.index], lang) : "",
+        moonLabel: tp("moonLabel", lang),
+        moonValue: pick(RASHI_L5[session.result.moonSign.index], lang),
+        nakshatraLabel: tp("nakshatraLabel", lang),
+        nakshatraValue: moonPlanet ? pick(NAKSHATRA_L5[moonPlanet.nakshatra.index], lang) : "",
+        eraLabel: tp("eraLabel", lang),
+        dashaLabel: tp("dashaLabel", lang),
+        bhuktiLabel: tp("bhuktiLabel", lang),
+        dashaPlanetValue: mahaLord ? pick(GRAHA_L5[mahaLord], lang) : "",
+        bhuktiPlanetValue: bhuktiLord ? pick(GRAHA_L5[bhuktiLord], lang) : "",
+        ashirvadaTitle: tp("ashirvadaTitle", lang),
+        ashirvadaValue: await translateText(ashirvadaSource, lang),
+        footer: tp("footer", lang),
+        yogasTitle: tp("yogasTitle", lang),
+        doshasTitle: tp("doshasTitle", lang),
+        remedyTitle: tp("remedyTitle", lang),
+        characteristicsTitle: tp("characteristicsTitle", lang),
+        darkSecretTitle: tp("darkSecretTitle", lang),
+        timelineTitle: tp("timelineTitle", lang),
+        gocharaTitle: tp("gocharaTitle", lang),
+        summaryTitle: tp("summaryTitle", lang),
+        introTitle: tp("introTitle", lang),
+        introGreeting: greetingLine(lang, session.input.name),
+      };
+
+      setSummaryPdfTranslations(translatedData);
+
+      const summaryPrompt = `You are a world-class Vedic Astrologer. Generate a 4-paragraph comprehensive summary focusing ONLY ON CURRENTLY WHAT IS HAPPENING in this person's life based on their natal chart and transit positions.
+OUTPUT LANGUAGE: ${lang}.${lang === 'kn' ? ' Write ONLY in Kannada script.' : lang === 'te' ? ' Write ONLY in Telugu script.' : lang === 'ta' ? ' Write ONLY in Tamil script.' : lang === 'hi' ? ' Write ONLY in Hindi (Devanagari).' : ' Write in clear English.'}
+
+USER CHART DETAILS:
+- Name: ${session.input.name}
+- Ascendant (Lagna): ${session.result.lagnaRashi?.english || 'Unknown'}
+- Moon Sign: ${session.result.moonSign.english}
+- Nakshatra: ${moonPlanet?.nakshatra.english || 'Unknown'}
+- Current Running Dasha & Bhukti: ${currentBhuktiData ? currentBhuktiData.maha.planet + ' - ' + currentBhuktiData.bhukti : 'Current Dasha'}
+- Current Age: ${ageYears.toFixed(1)} years
+
+REQUIRED 4 PARAGRAPHS STRUCTURE:
+PARAGRAPH 1 (Current Dasha-Bhukti State): Detail the core planetary theme and current psychological/life chapter governed by ${currentBhuktiData?.maha.planet} Mahadasha and ${currentBhuktiData?.bhukti} Bhukti right now.
+PARAGRAPH 2 (Gochara Planetary Transits): Detail how current major transits (Gochara - Saturn, Jupiter, Rahu/Ketu) are influencing their Moon sign and birth planets currently.
+PARAGRAPH 3 (Immediate Life Outlook & Timing): Describe what is currently manifesting in career, finance, family, and health during this exact phase. Give key timing advice.
+PARAGRAPH 4 (Remedial Guidance & Blessing): Provide 2 practical remedies (Parihara/Mantra/Charity) and an encouraging astrologer's blessing for their current phase.
+
+Return ONLY this JSON format:
+{
+  "paragraph1": "...",
+  "paragraph2": "...",
+  "paragraph3": "...",
+  "paragraph4": "..."
+}`;
+
+      let parsedSummary: SummaryPdfData | null = null;
+      try {
+        const rawRes = await askGemini("Generate Current Summary PDF", summaryPrompt, geminiApiKey, lang, { raw: true, temperature: 0.7 });
+        const jsonMatch = rawRes.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          parsedSummary = JSON.parse(jsonMatch[0]);
+        }
+      } catch (e) {
+        console.warn("AI summary generation failed, using structured fallback", e);
+      }
+
+      if (!parsedSummary || !parsedSummary.paragraph1 || parsedSummary.paragraph1.length < 20) {
+        const p1 = await translateText(`Currently, you are running ${currentBhuktiData?.maha.planet || "Main"} Dasha and ${currentBhuktiData?.bhukti || "Sub"} Bhukti. This cosmic period brings focus to your core life purpose, inner growth, and key responsibilities.`, lang);
+        const p2 = await translateText(`The current planetary transits (Gochara) across your Moon sign ${session.result.moonSign.english} are triggering dynamic changes in your environment, calling for patience and focused effort.`, lang);
+        const p3 = await translateText(`During this phase, align your actions with long-term goals. Major decisions regarding career, relationships, and health should be taken with calm consideration.`, lang);
+        const p4 = await translateText(`Recommended Remedy: Recite core planetary mantras on Saturdays and Tuesdays, offer light at a local place of worship, and maintain mental equilibrium. May divine blessings attend your journey.`, lang);
+        
+        parsedSummary = { paragraph1: p1, paragraph2: p2, paragraph3: p3, paragraph4: p4 };
+      }
+
+      setSummaryDataForPdf(parsedSummary);
+
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      if (!summaryPdfRef.current) throw new Error("Summary PDF ref not found");
+
+      const containerEl = summaryPdfRef.current;
+      const parentEl = containerEl.parentElement;
+      const originalStyle = parentEl?.getAttribute("style") || "";
+      if (parentEl) {
+        parentEl.setAttribute("style", "position: fixed; left: 0; top: 0; z-index: -9999; pointer-events: none; opacity: 1; visibility: visible; width: 900px; background-color: #FFFFFF;");
+      }
+
+      await document.fonts.ready;
+      await new Promise(resolve => setTimeout(resolve, 400));
+
+      const canvas = await html2canvas(containerEl, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#FFFFFF",
+        allowTaint: true
+      });
+
+      if (parentEl) {
+        parentEl.setAttribute("style", originalStyle);
+      }
+
+      const imgData = canvas.toDataURL("image/jpeg", 0.75);
+      const pdfWidth = 210;
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      const pdf = new jsPDF({ orientation: "p", unit: "mm", format: [pdfWidth, pdfHeight], compress: true });
+      pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
+
+      const langNames: Record<string, string> = { "kn": "Kannada", "ta": "Tamil", "te": "Telugu", "hi": "Hindi", "en": "English" };
+      const langName = langNames[pdfLanguage] || "English";
+      pdf.save(`Baggona_Current_Summary_${langName}_${session.input.name.replace(/\s+/g, '_')}.pdf`);
+
+    } catch (err: any) {
+      console.error("Error generating Summary PDF:", err);
+      alert(err.message || "Failed to generate 4-Paragraph Summary PDF. Please try again.");
+    } finally {
+      setIsGeneratingSummaryPdf(false);
+      setSummaryDataForPdf(null);
+    }
+  };
 
   const generatePDF = async () => {
     setIsGeneratingPdf(true);
@@ -227,7 +888,7 @@ export default function BhavishyaView() {
 
   
   
-  const generatePremiumPDF = async () => {
+  const generatePremiumPDF = async (personalization?: PersonalizationState) => {
     if (!session || isGeneratingPremiumPdf) return;
     setIsGeneratingPremiumPdf(true);
     
@@ -316,6 +977,39 @@ export default function BhavishyaView() {
               translatedText: await translateText(pred.text, lang),
             }))
           );
+      
+      // Inject personalized targeted deep predictions if requested
+      if (personalization) {
+        const isKn = lang === "kn";
+        const baseLang = (lang || "en").split("-")[0];
+        const lagnaStr = session.result.lagnaRashi ? pick(RASHI_L5[session.result.lagnaRashi.index], lang) : "";
+        const moonStr = pick(RASHI_L5[session.result.moonSign.index], lang);
+
+        if (personalization.maritalStatus === "unmarried" || personalization.maritalStatus === "married") {
+          const marriageText = buildPersonalizedMarriageText(lang, lagnaStr, moonStr, personalization.maritalStatus);
+
+          const existingIdx = localisedPredictions.findIndex(p => {
+            const cat = (p.translatedCategory || "").toLowerCase();
+            return cat.includes("marriage") || cat.includes("ಮದುವೆ") || cat.includes("ವಿವಾಹ") || cat.includes("विवाह") || cat.includes("వివాహ") || cat.includes("திருமணம்");
+          });
+          if (existingIdx >= 0) {
+            localisedPredictions[existingIdx].translatedText = marriageText;
+          }
+        }
+
+        if (personalization.childrenStatus === "no_children" || personalization.childrenStatus === "has_children") {
+          const childrenText = buildPersonalizedChildrenText(lang, personalization.childrenStatus);
+
+          const existingIdx = localisedPredictions.findIndex(p => {
+            const cat = (p.translatedCategory || "").toLowerCase();
+            return cat.includes("children") || cat.includes("ಸಂತಾನ") || cat.includes("ಮಕ್ಕಳು") || cat.includes("संतान") || cat.includes("సంతాన") || cat.includes("குழந்தை");
+          });
+          if (existingIdx >= 0) {
+            localisedPredictions[existingIdx].translatedText = childrenText;
+          }
+        }
+      }
+
       setPremiumPredictions(localisedPredictions);
 
       const deepInsights: Record<string, string> = {};
@@ -398,18 +1092,23 @@ export default function BhavishyaView() {
       });
 
       // `raw` keeps each chapter's own persona intact instead of burying it under the
-      // shared wrapper, and the temperature stops repeat downloads reading identically.
-      const ask = (label: string, prompt: string) =>
-        askGemini(label, prompt, geminiApiKey, lang, { raw: true, temperature: 1 });
+      const safeAsk = async (label: string, prompt: string, temp = 0.3) => {
+        try {
+          return await askGemini(label, prompt, geminiApiKey, lang, { raw: true, temperature: temp });
+        } catch (e) {
+          console.warn(`[PDF Generation] AI call failed for ${label}, using engine fallback`, e);
+          return "";
+        }
+      };
 
       const [resYogas, resDoshas, resCharacteristics, resDarkSecret, resTimeline, resGochara, resSummary] = await Promise.all([
-        ask("Generate Premium Yogas", prompts.yogas),
-        ask("Generate Premium Doshas", prompts.doshas),
-        ask("Generate Characteristics", prompts.characteristics),
-        ask("Generate Dark Secret", prompts.darkSecret),
-        ask("Generate Planetary Timeline", prompts.timeline),
-        ask("Generate Gochara", prompts.gochara),
-        ask("Generate Summary", prompts.summary)
+        safeAsk("Generate Premium Yogas", prompts.yogas, 0.4),
+        safeAsk("Generate Premium Doshas", prompts.doshas, 0.4),
+        safeAsk("Generate Characteristics", prompts.characteristics, 0.3),
+        safeAsk("Generate Dark Secret", prompts.darkSecret, 0.3),
+        safeAsk("Generate Planetary Timeline", prompts.timeline, 0.4),
+        safeAsk("Generate Gochara", prompts.gochara, 0.4),
+        safeAsk("Generate Summary", prompts.summary, 0.3)
       ]);
 
       const dataYogas = parseGeminiJSON(resYogas);
@@ -512,12 +1211,28 @@ export default function BhavishyaView() {
       
       if (!premiumPdfRef.current) throw new Error("Premium PDF ref not found");
       
+      const containerEl = premiumPdfRef.current;
+      const parentEl = containerEl.parentElement;
+      const originalStyle = parentEl?.getAttribute("style") || "";
+      if (parentEl) {
+        parentEl.setAttribute("style", "position: fixed; left: 0; top: 0; z-index: -9999; pointer-events: none; opacity: 1; visibility: visible; width: 900px; background-color: #FFFFFF;");
+      }
+
+      await document.fonts.ready;
+      await new Promise(resolve => setTimeout(resolve, 400));
+
       // Generate PDF
-      const canvas = await html2canvas(premiumPdfRef.current, {
+      const canvas = await html2canvas(containerEl, {
         scale: 2,
         useCORS: true,
-        logging: false
+        logging: false,
+        backgroundColor: "#FFFFFF",
+        allowTaint: true
       });
+      
+      if (parentEl) {
+        parentEl.setAttribute("style", originalStyle);
+      }
       
       const imgData = canvas.toDataURL("image/jpeg", 0.75);
       
@@ -855,18 +1570,19 @@ Return ONLY this JSON (no extra text before or after):
         <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-orange-300/20 rounded-full blur-[100px] animate-[pulse_10s_ease-in-out_infinite_reverse]"></div>
       </div>
 
-      <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between mb-12 gap-6 border-b border-amber-200 pb-8">
+      <div className="relative z-10 flex flex-col mb-12 gap-6 border-b border-amber-200 pb-8">
         <div>
           <h2 className="text-3xl font-bold text-amber-900 mb-3 flex items-center gap-3">
             {t("ramanbhavishya.yourPersonalReading", "Your Personal Reading")}
           </h2>
-          <p className="text-base text-amber-700 max-w-2xl leading-relaxed">
+          <p className="text-base text-amber-700 max-w-3xl leading-relaxed">
             {t("ramanbhavishya.personalReadingDesc", "A deeply empathetic translation of your unique birth chart, your current life chapter, and the present cosmic environment.")}
           </p>
         </div>
-        <div className="flex flex-col gap-4 items-end">
-          <div className="flex items-center gap-3 flex-wrap justify-end">
-            <span className="text-sm font-bold text-indigo-900 uppercase">PDF Language:</span>
+
+        <div className="flex flex-col gap-5 bg-amber-100/60 border border-amber-200/80 p-5 rounded-2xl shadow-inner">
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className="text-xs font-bold text-amber-900 uppercase tracking-wider">PDF Language:</span>
             {[
               { code: "en", name: "English" },
               { code: "kn", name: "Kannada" },
@@ -874,7 +1590,7 @@ Return ONLY this JSON (no extra text before or after):
               { code: "te", name: "Telugu" },
               { code: "hi", name: "Hindi" }
             ].map(lang => (
-              <label key={lang.code} className="flex items-center gap-1 cursor-pointer">
+              <label key={lang.code} className="flex items-center gap-1.5 cursor-pointer bg-white/80 px-3 py-1.5 rounded-lg border border-amber-200 hover:bg-white transition-colors">
                 <input 
                   type="radio" 
                   name="pdfLang" 
@@ -884,55 +1600,327 @@ Return ONLY this JSON (no extra text before or after):
                     pdfLanguagePicked.current = true;
                     setPdfLanguage(lang.code as "en" | "hi" | "kn" | "te" | "ta");
                   }} 
-                  className="w-4 h-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                  className="w-4 h-4 text-amber-600 focus:ring-amber-500 border-gray-300"
                 />
-                <span className="text-sm font-medium text-slate-700 uppercase">{lang.name}</span>
+                <span className="text-xs font-bold text-amber-950 uppercase tracking-wide">{lang.name}</span>
               </label>
             ))}
           </div>
-          <div className="flex flex-col sm:flex-row gap-3">
-          <button 
-            onClick={generatePDF}
-            disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingA4Pdf}
-            className={`group flex items-center justify-center gap-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-6 py-3 rounded-xl font-bold transition-all duration-300 shadow-[0_5px_15px_rgba(245,158,11,0.2)] hover:shadow-[0_8px_20px_rgba(245,158,11,0.3)] border border-amber-400 shrink-0 ${isGeneratingPdf ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}
-          >
-            {isGeneratingPdf ? (
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-            ) : (
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-            )}
-            {isGeneratingPdf ? "Generating..." : "Download PDF"}
-          </button>
 
-          <button 
-            onClick={generatePremiumPDF}
-            disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingA4Pdf}
-            className={`group flex items-center justify-center gap-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-bold transition-all duration-300 shadow-[0_5px_15px_rgba(79,70,229,0.3)] hover:shadow-[0_8px_20px_rgba(79,70,229,0.4)] border border-indigo-400 shrink-0 ${isGeneratingPremiumPdf ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}
-          >
-            {isGeneratingPremiumPdf ? (
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-            ) : (
-              <span className="text-lg">📄✨</span>
-            )}
-            {isGeneratingPremiumPdf ? "Crafting Premium..." : "Premium PDF"}
-          </button>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 w-full">
+            <button 
+              onClick={generatePDF}
+              disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingA4Pdf || isGeneratingSummaryPdf}
+              className={`group flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-4 py-3 rounded-xl font-bold text-sm transition-all duration-300 shadow-md hover:shadow-lg border border-amber-400 w-full ${isGeneratingPdf ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}
+            >
+              {isGeneratingPdf ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+              )}
+              <span>{isGeneratingPdf ? "Generating..." : "Download PDF"}</span>
+            </button>
 
-          <button 
-            onClick={generateA4PDF}
-            disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingA4Pdf}
-            className={`group flex items-center justify-center gap-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-6 py-3 rounded-xl font-bold transition-all duration-300 shadow-[0_5px_15px_rgba(5,150,105,0.3)] hover:shadow-[0_8px_20px_rgba(5,150,105,0.4)] border border-emerald-400 shrink-0 ${isGeneratingA4Pdf ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}
-          >
-            {isGeneratingA4Pdf ? (
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-            ) : (
-              <span className="text-lg">📑</span>
+            <button 
+              onClick={() => setIsPersonalizationModalOpen(true)}
+              disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingA4Pdf || isGeneratingSummaryPdf}
+              className={`group flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-4 py-3 rounded-xl font-bold text-sm transition-all duration-300 shadow-md hover:shadow-lg border border-indigo-400 w-full ${isGeneratingPremiumPdf ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}
+            >
+              {isGeneratingPremiumPdf ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <span className="text-base">📄✨</span>
+              )}
+              <span>{isGeneratingPremiumPdf ? "Crafting..." : "Premium PDF"}</span>
+            </button>
+
+            <button 
+              onClick={generateA4PDF}
+              disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingA4Pdf || isGeneratingSummaryPdf}
+              className={`group flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-4 py-3 rounded-xl font-bold text-sm transition-all duration-300 shadow-md hover:shadow-lg border border-emerald-400 w-full ${isGeneratingA4Pdf ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}
+            >
+              {isGeneratingA4Pdf ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <span className="text-base">📑</span>
+              )}
+              <span>{isGeneratingA4Pdf ? "Crafting A4..." : "Premium A4 PDF"}</span>
+            </button>
+
+            <button 
+              onClick={generateSummaryPDF}
+              disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingA4Pdf || isGeneratingSummaryPdf}
+              className={`group flex items-center justify-center gap-2 bg-gradient-to-r from-amber-600 via-orange-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700 text-white px-4 py-3 rounded-xl font-bold text-sm transition-all duration-300 shadow-md hover:shadow-lg border border-amber-400 w-full ${isGeneratingSummaryPdf ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}
+            >
+              {isGeneratingSummaryPdf ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <span className="text-base">📜</span>
+              )}
+              <span>{isGeneratingSummaryPdf ? "Crafting..." : "4-Paragraph Summary"}</span>
+            </button>
+          </div>
+
+          {/* Multi-Question Custom Prediction & PDF Generator Section */}
+          <div className="flex flex-col gap-5 bg-gradient-to-br from-amber-500/15 via-orange-500/10 to-yellow-500/15 border-2 border-amber-400/90 p-6 rounded-3xl shadow-md mt-6">
+            <div className="flex items-center justify-between flex-wrap gap-3 border-b border-amber-300/80 pb-4">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl bg-amber-600 text-white p-2 rounded-2xl shadow-sm">🔮</span>
+                <div>
+                  <h3 className="font-bold text-amber-950 text-lg sm:text-xl font-sans">
+                    {t("Multi-Question Custom Prediction & PDF Generator", "Multi-Question Custom Prediction & PDF Generator")}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-amber-800 font-sans leading-relaxed">
+                    {t("Add multiple custom questions via suggested topic chips, text, or microphone voice input. Generate 3 detailed prediction paragraphs + 1 remedy paragraph for each question and download a combined PDF.", "Add multiple custom questions via suggested topic chips, text, or microphone voice input. Generate 3 detailed prediction paragraphs + 1 remedy paragraph for each question and download a combined PDF.")}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Suggested Topic Quick Add Chips */}
+            <div>
+              <span className="text-xs font-bold text-amber-900 uppercase tracking-wider block mb-2 font-sans">
+                💡 {t("Quick Add Suggested Questions:", "Quick Add Suggested Questions:")}
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {MULTI_QUESTION_TOPICS.map(tObj => (
+                  <button
+                    key={tObj.id}
+                    type="button"
+                    onClick={() => handleAddMultiQuestion(undefined, tObj.id)}
+                    className="bg-white hover:bg-amber-100 border border-amber-300 text-amber-950 text-xs font-bold px-3 py-2 rounded-xl transition-all shadow-sm hover:-translate-y-0.5 font-sans"
+                  >
+                    ➕ {tObj.label[pdfLanguage as keyof typeof tObj.label] || tObj.label.en}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Custom Question Input Bar */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center bg-white/80 p-3 rounded-2xl border border-amber-300/80 shadow-sm">
+              <div className="md:col-span-4">
+                <select
+                  value={mqTopic}
+                  onChange={(e) => setMqTopic(e.target.value)}
+                  className="w-full bg-amber-50 border-2 border-amber-300 text-amber-950 font-bold rounded-xl px-3 py-2.5 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-amber-500 font-sans cursor-pointer"
+                >
+                  {MULTI_QUESTION_TOPICS.map(tObj => (
+                    <option key={tObj.id} value={tObj.id}>
+                      {tObj.label[pdfLanguage as keyof typeof tObj.label] || tObj.label.en}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="md:col-span-5 relative">
+                <input
+                  type="text"
+                  value={mqInputText}
+                  onChange={(e) => setMqInputText(e.target.value)}
+                  placeholder={t("Type your custom question or use mic...", "Type your custom question or use mic...")}
+                  className="w-full bg-white border-2 border-amber-300 text-amber-950 font-medium rounded-xl pl-3 pr-10 py-2.5 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-amber-500 font-sans"
+                />
+                <button
+                  type="button"
+                  onClick={toggleMQVoiceInput}
+                  className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg transition-all ${
+                    isListeningMQ ? "bg-red-500 text-white animate-pulse" : "text-amber-700 hover:text-amber-900"
+                  }`}
+                  title="Speak question via microphone"
+                >
+                  🎙️
+                </button>
+              </div>
+
+              <div className="md:col-span-3">
+                <button
+                  type="button"
+                  onClick={() => handleAddMultiQuestion()}
+                  className="w-full flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 text-white px-3 py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow-md transition-all border border-amber-400 hover:-translate-y-0.5"
+                >
+                  <span>➕</span>
+                  <span>{t("Add Question", "Add Question")}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Questions List & Interactive Preview */}
+            {multiQuestions.length > 0 && (
+              <div className="space-y-4 mt-2">
+                <div className="flex items-center justify-between border-b border-amber-300/60 pb-2">
+                  <h4 className="font-bold text-amber-950 text-base font-sans flex items-center gap-2">
+                    <span>📋</span>
+                    <span>{t("Added Questions List", "Added Questions List")} ({multiQuestions.length})</span>
+                  </h4>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={handleGenerateMultiAnswers}
+                      disabled={isGeneratingMultiAnswers}
+                      className="bg-amber-700 hover:bg-amber-800 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition shadow-sm"
+                    >
+                      {isGeneratingMultiAnswers ? "Generating..." : "⚡ Generate Answers"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMultiQuestions([])}
+                      className="text-xs font-semibold text-red-600 hover:text-red-800"
+                    >
+                      Clear All
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3">
+                  {multiQuestions.map((qObj, idx) => (
+                    <div key={qObj.id} className="bg-white border-2 border-amber-200 rounded-2xl p-4 shadow-sm relative">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-3">
+                          <span className="flex items-center justify-center w-7 h-7 rounded-full bg-amber-600 text-white font-extrabold text-xs shrink-0 mt-0.5">
+                            Q{idx + 1}
+                          </span>
+                          <div>
+                            <span className="text-[11px] font-bold uppercase tracking-wider text-amber-700 block font-sans">
+                              {qObj.topicLabel}
+                            </span>
+                            <h5 className="font-bold text-amber-950 text-sm md:text-base font-sans">
+                              "{qObj.questionText}"
+                            </h5>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveMultiQuestion(qObj.id)}
+                          className="text-red-500 hover:text-red-700 p-1 font-bold text-base"
+                          title="Remove Question"
+                        >
+                          ✕
+                        </button>
+                      </div>
+
+                      {/* Accordion / Answers Preview */}
+                      {qObj.answer && (
+                        <div className="mt-3 pt-3 border-t border-amber-200/80 space-y-2.5 text-xs sm:text-sm font-sans text-amber-950">
+                          <div className="bg-amber-50/80 p-3 rounded-xl border border-amber-200">
+                            <span className="font-bold text-amber-900 block mb-1">
+                              {pdfLanguage === "kn" ? "1️⃣ ೧. ಭಾವ ಹಾಗೂ ಜನ್ಮ ಗ್ರಹಗಳ ಸ್ಥಿತಿ ವಿಶ್ಲೇಷಣೆ" : pdfLanguage === "te" ? "1️⃣ 1. భావ మరియు జన్మ గ్రహాల స్థితి విశ్లేషణ" : pdfLanguage === "ta" ? "1️⃣ 1. பாவம் மற்றும் பிறப்பு கிரகங்களின் நிலை" : pdfLanguage === "hi" ? "1️⃣ 1. भाव एवं जन्म ग्रहों की स्थिति विश्लेषण" : "1️⃣ 1. Natal House & Planetary Placement Analysis"}
+                            </span>
+                            <p className="leading-relaxed">{qObj.answer.paragraph1}</p>
+                          </div>
+                          <div className="bg-amber-50/80 p-3 rounded-xl border border-amber-200">
+                            <span className="font-bold text-amber-900 block mb-1">
+                              {pdfLanguage === "kn" ? "2️⃣ ೨. ದಶಾಕಾಲ ಹಾಗೂ ಗ್ರಹ ಗೋಚಾರ ಫಲ" : pdfLanguage === "te" ? "2️⃣ 2. దశాకాలం మరియు గ్రహ గోచార ఫలం" : pdfLanguage === "ta" ? "2️⃣ 2. தசா காலம் மற்றும் கிரக கோச்சார பலன்" : pdfLanguage === "hi" ? "2️⃣ 2. दशा काल एवं ग्रह गोचर फल" : "2️⃣ 2. Running Dasha & Live Planetary Transits"}
+                            </span>
+                            <p className="leading-relaxed">{qObj.answer.paragraph2}</p>
+                          </div>
+                          <div className="bg-amber-50/80 p-3 rounded-xl border border-amber-200">
+                            <span className="font-bold text-amber-900 block mb-1">
+                              {pdfLanguage === "kn" ? "3️⃣ ೩. ನಿಖರ ಭವಿಷ್ಯಫಲ ಹಾಗೂ ಸಮಯ ಸಿದ್ಧಿ" : pdfLanguage === "te" ? "3️⃣ 3. ఖచ్చిత భవిష్యత్తు మరియు సమయ సిద్ధత" : pdfLanguage === "ta" ? "3️⃣ 3. துல்லியமான எதிர்கால பலன் மற்றும் காலம்" : pdfLanguage === "hi" ? "3️⃣ 3. सटीक भविष्यफल एवं समय सिद्धि" : "3️⃣ 3. Accurate Predictions & Timing Window"}
+                            </span>
+                            <p className="leading-relaxed">{qObj.answer.paragraph3}</p>
+                          </div>
+                          <div className="bg-gradient-to-r from-amber-100 via-orange-100 to-amber-100 p-3.5 rounded-xl border border-amber-400/80 shadow-sm">
+                            <span className="font-bold text-amber-950 block mb-1">
+                              📿 {pdfLanguage === "kn" ? "೪. ವೈದಿಕ ಶಮನ ಪರಿಹಾರ ಹಾಗೂ ಪ್ರಾರ್ಥನೆ" : pdfLanguage === "te" ? "4. వైదిక శమన పరిహారం మరియు ప్రార్థన" : pdfLanguage === "ta" ? "4. வைதிக சாந்தி பரிகாரம் மற்றும் பிரார்த்தனை" : pdfLanguage === "hi" ? "4. वैदिक समाधान, उपाय एवं प्रार्थना" : "4. Recommended Vedic Remedies & Parihara"}
+                            </span>
+                            <p className="font-medium leading-relaxed">{qObj.answer.paragraph4}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Download Multi-Question PDF Button */}
+                <div className="pt-3">
+                  <button
+                    type="button"
+                    onClick={generateMultiQuestionPDF}
+                    disabled={isGeneratingMultiPdf || isGeneratingMultiAnswers}
+                    className={`w-full flex items-center justify-center gap-3 bg-gradient-to-r from-amber-800 via-orange-700 to-yellow-800 hover:from-amber-900 hover:to-orange-800 text-white px-6 py-4 rounded-2xl font-bold text-base shadow-lg transition-all border-2 border-amber-400 ${
+                      isGeneratingMultiPdf ? "opacity-50 cursor-not-allowed" : "hover:-translate-y-0.5"
+                    }`}
+                  >
+                    <span className="text-xl">📄✨</span>
+                    <span>
+                      {isGeneratingMultiPdf
+                        ? "Crafting Multi-Question PDF..."
+                        : t("Download Multi-Question Bhavishya PDF (3-Para + 1-Remedy per Q)", "Download Multi-Question Bhavishya PDF (3-Para + 1-Remedy per Q)")}
+                    </span>
+                  </button>
+                </div>
+              </div>
             )}
-            {isGeneratingA4Pdf ? "Crafting A4 PDF..." : "Premium A4 PDF"}
-          </button>
+          </div>
+
+          {/* Questionary & Custom 4-Paragraph Question PDF Download Panel */}
+          <div className="flex flex-col gap-4 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 border-2 border-amber-300/80 p-5 rounded-2xl shadow-sm mt-4">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">🔮</span>
+              <h3 className="font-bold text-amber-950 text-base font-sans">
+                {t("Ask Specific Question & Download 4-Paragraph PDF", "Ask Specific Question & Download 4-Paragraph PDF")}
+              </h3>
+            </div>
+            <p className="text-xs sm:text-sm text-amber-800 font-sans leading-relaxed">
+              {t("Select a topic from the dropdown, type your question or click the mic to speak, then download a customized 4-paragraph PDF for that question alone.", "Select a topic from the dropdown, type your question or click the mic to speak, then download a customized 4-paragraph PDF for that question alone.")}
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+              {/* Topic Select */}
+              <div className="md:col-span-4">
+                <select
+                  value={qTopic}
+                  onChange={(e) => setQTopic(e.target.value)}
+                  className="w-full bg-white border-2 border-amber-300 text-amber-950 font-bold rounded-xl px-3 py-2.5 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-amber-500 font-sans cursor-pointer"
+                >
+                  {QUESTION_TOPICS.map(t => (
+                    <option key={t.id} value={t.id}>
+                      {t.label[pdfLanguage as keyof typeof t.label] || t.label.en}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Custom Question + Mic */}
+              <div className="md:col-span-5 relative">
+                <input
+                  type="text"
+                  value={qText}
+                  onChange={(e) => setQText(e.target.value)}
+                  placeholder={t("Type question or speak...", "Type question or speak...")}
+                  className="w-full bg-white border-2 border-amber-300 text-amber-950 font-medium rounded-xl pl-3 pr-9 py-2.5 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-amber-500 font-sans"
+                />
+                <button
+                  type="button"
+                  onClick={toggleQVoiceInput}
+                  className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg transition-all ${
+                    isListeningQ ? "bg-red-500 text-white animate-pulse" : "text-amber-700 hover:text-amber-900"
+                  }`}
+                  title="Speak question via microphone"
+                >
+                  🎙️
+                </button>
+              </div>
+
+              {/* Download Question PDF Button */}
+              <div className="md:col-span-3">
+                <button
+                  type="button"
+                  onClick={generateQuestionPDF}
+                  disabled={isGeneratingSummaryPdf || isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingA4Pdf}
+                  className={`w-full flex items-center justify-center gap-2 bg-gradient-to-r from-amber-700 via-orange-600 to-amber-800 hover:from-amber-800 hover:to-orange-700 text-white px-3 py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow-md transition-all border border-amber-400 ${
+                    isGeneratingSummaryPdf ? "opacity-50 cursor-not-allowed" : "hover:-translate-y-0.5"
+                  }`}
+                >
+                  <span>📜✨</span>
+                  <span>{isGeneratingSummaryPdf ? "Crafting..." : "Download Question PDF"}</span>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
       </div>
 
       {isGeneratingPdf && (
@@ -961,6 +1949,32 @@ Return ONLY this JSON (no extra text before or after):
             </div>
             <h3 className="text-xl font-bold text-indigo-950 mb-2">Generating A4 Blueprint...</h3>
             <p className="text-xs text-slate-600 font-medium animate-pulse">Composing multi-page A4 document...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Full-Screen Centered Loader Overlay for Multi-Question PDF Generation */}
+      {(isGeneratingMultiPdf || isGeneratingMultiAnswers) && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-indigo-950/80 backdrop-blur-md">
+          <div className="flex flex-col items-center p-8 bg-gradient-to-b from-amber-50 to-white rounded-3xl shadow-2xl border-4 border-amber-500 max-w-sm w-full mx-4 text-center">
+            {/* Animated Golden Spinning Yantra SVG Loader */}
+            <div className="relative w-28 h-28 mb-5 flex items-center justify-center">
+              <svg className="w-full h-full animate-spin text-amber-600" viewBox="0 0 100 100" fill="none">
+                <circle cx="50" cy="50" r="45" stroke="currentColor" strokeWidth="4" strokeDasharray="280" strokeDashoffset="80" strokeLinecap="round" />
+                <polygon points="50,15 80,75 20,75" fill="none" stroke="currentColor" strokeWidth="3" />
+                <polygon points="50,85 80,25 20,25" fill="none" stroke="currentColor" strokeWidth="3" />
+                <circle cx="50" cy="50" r="8" fill="currentColor" />
+              </svg>
+              <span className="absolute text-2xl animate-pulse">🔮</span>
+            </div>
+            <h3 className="text-xl font-bold text-amber-950 mb-2 font-sans">
+              {pdfLanguage === "kn" ? "ಬಹುಪ್ರಶ್ನೆ ಜಾತಕ ವಿಶ್ಲೇಷಣೆ ಸಿದ್ಧಗೊಳ್ಳುತ್ತಿದೆ..." : "Generating Multi-Question Astrological Blueprint..."}
+            </h3>
+            <p className="text-xs text-amber-800 font-medium animate-pulse font-sans leading-relaxed">
+              {pdfLanguage === "kn"
+                ? "ಗ್ರಹ ಸ್ಥಿತಿ, ದಶಾಕಾಲ ಹಾಗೂ ಪ್ರತ್ಯೇಕ ೩-ಪ್ಯಾರಾಗ್ರಾಫ್ ಭವಿಷ್ಯಫಲ ಮತ್ತು ಶಮನ ಪರಿಹಾರ ಲೇಖನ ಸಿದ್ಧಗೊಳ್ಳುತ್ತಿದೆ. ದಯವಿಟ್ಟು ನಿರೀಕ್ಷಿಸಿ..."
+                : "Analyzing natal houses, Dasha periods, and composing 3 prediction paragraphs + 1 Parihara per question. Please wait..."}
+            </p>
           </div>
         </div>
       )}
@@ -1066,7 +2080,7 @@ Return ONLY this JSON (no extra text before or after):
       }
 
       {/* Hidden PDF Template Container */}
-      <div className="absolute left-[-9999px] top-[-9999px] opacity-0 pointer-events-none">
+      <div id="standard-pdf-container" style={{ position: "fixed", left: "-9999px", top: 0, width: "900px", visibility: "hidden", pointerEvents: "none" }}>
         {pdfTranslations && pdfDeepInsights && (
           <PdfTemplate 
             ref={pdfRef} 
@@ -1079,25 +2093,23 @@ Return ONLY this JSON (no extra text before or after):
         )}
       </div>
       
-      
       {/* Hidden Premium PDF Template Container */}
-      <div className="absolute left-[-9999px] top-[-9999px] opacity-0 pointer-events-none">
-        {pdfTranslations && pdfDeepInsights && premiumDataForPdf && (
+      <div id="premium-pdf-container" style={{ position: "fixed", left: "-9999px", top: 0, width: "900px", visibility: "hidden", pointerEvents: "none" }}>
+        {premiumDataForPdf && pdfTranslations && (
           <PdfTemplate 
             ref={premiumPdfRef} 
             theme="sunrise" 
             session={session} 
             predictions={premiumPredictions ?? (currentMindset ? [currentMindset, ...predictions] : predictions)} 
             translations={pdfTranslations}
-            deepInsights={pdfDeepInsights}
+            deepInsights={pdfDeepInsights || {}}
             premiumData={premiumDataForPdf}
           />
         )}
       </div>
 
       {/* Hidden A4 Multi-Page Premium PDF Template Container */}
-      {/* NOTE: Must use visibility:hidden NOT opacity:0 — html2canvas needs element to be painted */}
-      <div id="a4-premium-pdf-container" style={{ position: "fixed", left: "-9999px", top: 0, visibility: "hidden", pointerEvents: "none" }}>
+      <div id="a4-premium-pdf-container" style={{ position: "fixed", left: "-9999px", top: 0, width: "900px", visibility: "hidden", pointerEvents: "none" }}>
         {a4PdfTranslations && a4PdfDeepInsights && a4PremiumDataForPdf && (
           <PdfTemplate
             ref={a4PdfRef}
@@ -1110,7 +2122,42 @@ Return ONLY this JSON (no extra text before or after):
           />
         )}
       </div>
+
+      {/* Hidden Multi-Question PDF Template Container */}
+      <div id="multi-pdf-container" style={{ position: "fixed", left: "-9999px", top: 0, width: "900px", visibility: "hidden", pointerEvents: "none" }}>
+        {multiPdfTranslations && multiQuestions.length > 0 && (
+          <MultiQuestionPdfTemplate
+            ref={multiPdfRef}
+            session={session}
+            translations={multiPdfTranslations}
+            questionsData={multiQuestions}
+            lang={pdfLanguage}
+          />
+        )}
+      </div>
+
+      {/* Hidden 4-Paragraph Summary PDF Template Container */}
+      <div id="summary-pdf-container" style={{ position: "fixed", left: "-9999px", top: 0, width: "900px", visibility: "hidden", pointerEvents: "none" }}>
+        {summaryPdfTranslations && summaryDataForPdf && (
+          <SummaryPdfTemplate 
+            ref={summaryPdfRef}
+            session={session}
+            translations={summaryPdfTranslations}
+            summaryData={summaryDataForPdf}
+          />
+        )}
+      </div>
+
+      {/* Interactive PDF Personalization Modal */}
+      <PdfPersonalizationModal
+        isOpen={isPersonalizationModalOpen}
+        lang={pdfLanguage}
+        onClose={() => setIsPersonalizationModalOpen(false)}
+        onConfirm={(personalization) => {
+          setIsPersonalizationModalOpen(false);
+          generatePremiumPDF(personalization);
+        }}
+      />
     </div>
   );
-
 }

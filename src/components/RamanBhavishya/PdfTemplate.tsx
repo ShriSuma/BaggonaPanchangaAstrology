@@ -114,14 +114,14 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
           {translations.subtitle}
         </p>
         <div className="flex items-center justify-center gap-6 opacity-80">
-          <span className="w-24 h-[1px] bg-gradient-to-r from-transparent via-amber-700 to-transparent"></span>
+          <div className="w-24 border-b-2 border-amber-700/60" />
           <span className="text-2xl text-amber-800 font-serif">ॐ</span>
-          <span className="w-24 h-[1px] bg-gradient-to-r from-transparent via-amber-700 to-transparent"></span>
+          <div className="w-24 border-b-2 border-amber-700/60" />
         </div>
       </div>
 
       {/* ── User Details Box (Ultra-Premium Royal Gold Parchment Card) ──────── */}
-      <div className="pdf-section mx-14 mb-8 relative rounded-xl border-2 border-amber-600/60 bg-gradient-to-b from-amber-50 via-orange-50/40 to-amber-100/80 p-8 shadow-md overflow-hidden">
+      <div className="pdf-section mx-14 mb-8 relative rounded-xl border-2 border-amber-600/60 bg-amber-100/50 p-8 shadow-md overflow-hidden">
         {/* Ornate Inner Frame */}
         <div className="absolute inset-2 border border-amber-700/30 rounded-lg pointer-events-none" />
         <div className="absolute inset-3 border border-dashed border-amber-700/20 rounded-lg pointer-events-none" />

@@ -77,40 +77,63 @@ export const MARK = {
  * ------------------------------------------------------------------ */
 
 /** "12 August 2026" written in the active script. */
-export const formatLongDate = (day: RhythmDay, lang: string): string =>
-  `${day.dayOfMonth} ${pick(MONTH_L5[day.monthIndex]!, lang)} ${day.year}`;
-
-export const formatMonthTitle = (monthIndex: number, year: number, lang: string): string =>
-  `${pick(MONTH_L5[monthIndex]!, lang)} ${year}`;
-
-export const weekdayName = (day: RhythmDay, lang: string): string =>
-  pick(WEEKDAY_L5[day.weekday]!, lang);
-
-/** Full tithi label, e.g. "Shukla Paksha Panchami" or simply "Purnima". */
-export const tithiLabel = (day: RhythmDay, lang: string): string => {
-  if (day.isPurnima) return pick(PURNIMA_L5, lang);
-  if (day.isAmavasya) return pick(AMAVASYA_L5, lang);
-  const name = pick(TITHI_L5[day.tithiInPaksha - 1] ?? TITHI_L5[0]!, lang);
-  return `${pick(PAKSHA_L5[day.paksha], lang)} ${name}`;
+export const formatLongDate = (day?: RhythmDay | null, lang: string = "en"): string => {
+  if (!day) return "";
+  const monthPhrase = MONTH_L5[day.monthIndex] || MONTH_L5[0];
+  return `${day.dayOfMonth} ${pick(monthPhrase, lang)} ${day.year}`;
 };
 
-export const nakshatraName = (index: number, lang: string): string =>
-  pick(NAKSHATRA_L5[index] ?? NAKSHATRA_L5[0]!, lang);
+export const formatMonthTitle = (monthIndex: number, year: number, lang: string = "en"): string => {
+  const monthPhrase = MONTH_L5[monthIndex] || MONTH_L5[0];
+  return `${pick(monthPhrase, lang)} ${year}`;
+};
 
-export const rashiName = (index: number, lang: string): string =>
-  pick(RASHI_L5[index] ?? RASHI_L5[0]!, lang);
+export const weekdayName = (day?: RhythmDay | null, lang: string = "en"): string => {
+  if (!day || day.weekday === undefined) return "";
+  const phrase = WEEKDAY_L5[day.weekday] || WEEKDAY_L5[0];
+  return pick(phrase, lang);
+};
 
-export const grahaName = (key: keyof typeof GRAHA_L5, lang: string): string =>
-  pick(GRAHA_L5[key], lang);
+/** Full tithi label, e.g. "Shukla Paksha Panchami" or simply "Purnima". */
+export const tithiLabel = (day?: RhythmDay | null, lang: string = "en"): string => {
+  if (!day) return "";
+  if (day.isPurnima) return pick(PURNIMA_L5, lang);
+  if (day.isAmavasya) return pick(AMAVASYA_L5, lang);
+  const tithiIdx = Math.max(0, (day.tithiInPaksha || 1) - 1);
+  const name = pick(TITHI_L5[tithiIdx] ?? TITHI_L5[0], lang);
+  const pakshaPhrase = PAKSHA_L5[day.paksha || "shukla"] || PAKSHA_L5["shukla"];
+  return `${pick(pakshaPhrase, lang)} ${name}`;
+};
 
-export const colourName = (day: RhythmDay, lang: string): string =>
-  pick(COLOUR_L5[day.luckyColour], lang);
+export const nakshatraName = (index: number = 0, lang: string = "en"): string => {
+  const safeIdx = Math.max(0, Math.min(index || 0, NAKSHATRA_L5.length - 1));
+  return pick(NAKSHATRA_L5[safeIdx], lang);
+};
 
-export const directionName = (day: RhythmDay, lang: string): string =>
-  pick(DIRECTION_L5[day.luckyDirection], lang);
+export const rashiName = (index: number = 0, lang: string = "en"): string => {
+  const safeIdx = Math.max(0, Math.min(index || 0, RASHI_L5.length - 1));
+  return pick(RASHI_L5[safeIdx], lang);
+};
 
-export const bandGuide = (day: RhythmDay, lang: string): string =>
-  pick(BAND_GUIDE_L5[day.band], lang);
+export const grahaName = (key: keyof typeof GRAHA_L5, lang: string = "en"): string => {
+  const phrase = GRAHA_L5[key];
+  return pick(phrase, lang);
+};
+
+export const colourName = (day?: RhythmDay | null, lang: string = "en"): string => {
+  if (!day || !day.luckyColour || !COLOUR_L5[day.luckyColour]) return "";
+  return pick(COLOUR_L5[day.luckyColour], lang);
+};
+
+export const directionName = (day?: RhythmDay | null, lang: string = "en"): string => {
+  if (!day || !day.luckyDirection || !DIRECTION_L5[day.luckyDirection]) return "";
+  return pick(DIRECTION_L5[day.luckyDirection], lang);
+};
+
+export const bandGuide = (day?: RhythmDay | null, lang: string = "en"): string => {
+  if (!day || !day.band || !BAND_GUIDE_L5[day.band]) return "";
+  return pick(BAND_GUIDE_L5[day.band], lang);
+};
 
 /* ------------------------------------------------------------------ *
  * Explanations — why a day scored the way it did

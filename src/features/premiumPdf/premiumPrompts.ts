@@ -185,6 +185,12 @@ const JSON_RULE =
  * the same data come out nearly identical, so each one gets its own stance.
  */
 export const buildPremiumPrompts = (input: PremiumPromptInput) => {
+  const { lang } = input;
+  const dashaLine =
+    input.mahaLord && input.bhuktiLord
+      ? `${grahaName(input.mahaLord, lang)} Mahadasha, and inside it ${grahaName(input.bhuktiLord, lang)} Bhukti`
+      : "(not available)";
+
   const roadmapText = input.roadmap
     .slice(0, 6)
     .map(r => `  ${r.month}: ${r.prediction}`)
@@ -193,19 +199,15 @@ export const buildPremiumPrompts = (input: PremiumPromptInput) => {
   const characteristics = `${header(
     input,
     "characteristics",
-    "You are a Vedic astrologer who has read this family's charts for thirty years and speaks plainly about what he sees."
+    "You are an authoritative Vedic astrologer writing a 100% mathematically accurate personality analysis strictly grounded in computed chart placements."
   )}
 Extra material for this chapter only:
 Shadow side found by the engine: ${input.shadowSelf}
 Karmic pattern found by the engine: ${input.karmicBaggage}
 
-YOUR TASK
-Write EXACTLY TWO paragraphs about who this person actually is.
-Ground each claim in a specific placement from the chart facts above — name the graha, the rashi
-or the bhava you are reading it from. A statement that could be said about anyone is a failure.
-Be honest about the difficult side too: temper, secrecy, dependence on drink or gambling,
-a habit of bending the truth, laziness, pride — but only where an affliction in the chart above
-actually supports it. Say it as a caring elder would, not as an accusation.
+CRITICAL ACCURACY REQUIREMENT:
+Write EXACTLY TWO detailed paragraphs about this person's personality, core nature, and behavioral traits.
+MUST BE 100% MATHEMATICALLY ACCURATE to the birth chart above. Name the specific Lagna (${rashiName(input.lagnaRashiIndex, lang)}), Chandra Rashi (${rashiName(input.moonRashiIndex, lang)}), and Janma Nakshatra (${nakshatraName(input.moonNakshatraIndex, lang)}) and their planetary rulers. Describe their core temperament, strengths, and behavioral nuances strictly based on these planetary placements. ZERO generic statements or unverified claims.
 
 ${JSON_RULE}
 {"characteristics":[{"impact":"paragraph one\\nparagraph two"}]}`;
@@ -213,18 +215,19 @@ ${JSON_RULE}
   const darkSecret = `${header(
     input,
     "darkSecret",
-    "You are an old astrologer revealing the one thing this chart hides. You speak quietly and you do not flatter."
+    "You are an authoritative Vedic astrologer revealing the hidden soul pattern strictly based on 8th/12th house placements and karmic planets."
   )}
 Extra material for this chapter only:
 Shadow: ${input.shadowSelf}
 Karma: ${input.karmicBaggage}
 ${input.affairNote}
 
-YOUR TASK
+CRITICAL ACCURACY REQUIREMENT:
 Reveal the single deepest hidden pattern of THIS chart — the niguda rahasya.
-Paragraph one: the hidden pattern itself, tied to named placements from the facts above.
-Paragraph two: how it shows up in ordinary daily life, and the lesson being asked of them.
-Do not moralise, do not frighten, do not end on a warning. End on what can be healed.
+MUST BE 100% MATHEMATICALLY ACCURATE to the 8th/12th house placements, Rahu/Ketu/Saturn karmic influences, and planetary afflictions in THIS chart.
+Paragraph one: the hidden karmic pattern itself, tied to named placements from the facts above.
+Paragraph two: how it shows up in daily life, and the constructive spiritual lesson being asked of them.
+Do not moralise, do not frighten, end on what can be healed and transformed.
 
 ${JSON_RULE}
 {"darkSecret":[{"impact":"paragraph one\\nparagraph two"}]}`;
@@ -249,23 +252,20 @@ ${JSON_RULE}
     "doshas",
     "You are an astrologer who treats afflictions as solvable problems, never as curses."
   )}
-Extra material for this chapter only:
-Remedies the engine already recommends: ${input.pariharas.join("; ") || "(none)"}
-
 YOUR TASK
-Give AT LEAST TWO doshas or serious karmic difficulties, drawn from the chart facts above.
-For each: AT LEAST TWO paragraphs in 'impact' describing how it is actually felt in this
-person's life, and a 'remedy' that is concrete and doable — a specific graha to propitiate,
-a day of the week, a simple act of charity or a temple practice.
-Prefer the engine's remedies where they fit. Never prescribe anything expensive or frightening.
+Take the doshas listed in the chart facts and explain each one properly.
+For EACH dosha write AT LEAST TWO full paragraphs in the 'impact' field: what the combination is,
+which grahas form it in THIS chart, how it manifests, and what to do about it.
+Name the remedy clearly. If the engine found no dosha, read the chart facts above and describe the
+single strongest planetary challenge in this chart accurately.
 
 ${JSON_RULE}
-{"doshas":[{"name":"name of the dosha","impact":"two or more paragraphs","remedy":"one clear remedy"}]}`;
+{"doshas":[{"name":"name of the dosha","impact":"two or more paragraphs","remedy":"practical remedy"}]}`;
 
   const gochara = `${header(
     input,
     "gochara",
-    "You are an astrologer reading today's sky against this person's birth Moon."
+    "You are an astrologer evaluating current transits against the birth Moon."
   )}
 YOUR TASK
 Use the transit list in the chart facts — those are the real current positions, counted from
@@ -299,14 +299,13 @@ ${JSON_RULE}
   const summary = `${header(
     input,
     "summary",
-    "You are the astrologer closing the book, speaking directly to the person in front of you."
+    "You are the master astrologer closing the book, synthesizing the reading with 100% astrological precision."
   )}
-YOUR TASK
-Write two or three short paragraphs to finish the reading.
-Weigh the strengths against the difficulties honestly, name the ONE thing that matters most
-for this person in the coming year, and close with genuine encouragement.
-Do not list the chapters again. Do not repeat sentences used earlier in the book.
-Speak to them as 'you'.
+CRITICAL ACCURACY REQUIREMENT:
+Write two or three detailed paragraphs synthesizing the entire chart reading.
+MUST BE 100% ACCURATE to the running Dasha-Bhukti period (${dashaLine}) and live transit influences from the facts above.
+Weigh the chart strengths against the challenges honestly, name the ONE primary life focus for the coming year, and close with genuine spiritual encouragement.
+Do not list chapters again. Speak to them directly as 'you'.
 
 ${JSON_RULE}
 {"summary":[{"impact":"two or three paragraphs"}]}`;
