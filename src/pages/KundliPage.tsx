@@ -14,7 +14,7 @@ import { calculateTraditionalBaggona } from "../core/TraditionalBaggonaEngine";
 import { translateText } from "../utils/translator";
 import { patrikaMetaForNakshatraIndex as import_patrikaMetaForNakshatraIndex } from "../core/nakshatraPatrikaMeta";
 import { analytics } from "../core/analytics";
-import { saveKundli } from "../db/indexedDb";
+import { saveKundli, recordDailyHit } from "../db/indexedDb";
 import { useAppStore } from "../stores/appStore";
 import { useKundliViewerStore } from "../stores/kundliViewerStore";
 import KundliChart from "../components/kundli/KundliChart";
@@ -393,6 +393,7 @@ export default function KundliPage(): JSX.Element {
     setNarrative("");
     setNarrativeError("");
     await analytics.track("kundli_generated");
+    await recordDailyHit();
   };
 
   const summaryText = useMemo(() => {

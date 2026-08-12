@@ -10,6 +10,7 @@ import { getPermissionStatus } from "../core/NotificationManager";
 import { scheduleDailyPanchang, scheduleRahuKaal } from "../core/NotificationScheduler";
 import { useAppStore, type AppPage } from "../stores/appStore";
 import { useKundliViewerStore } from "../stores/kundliViewerStore";
+import { useAuthStore } from "../features/auth/authStore";
 import { T, pick } from "../features/seva/sevaLocale";
 import InstallPrompt from "./InstallPrompt";
 
@@ -190,6 +191,18 @@ export default function Layout({ children }: Props): JSX.Element {
           <TabButton page="melapak" icon="💞" label={t("nav.melapak")} onClose={() => setIsDrawerOpen(false)} />
           <div className="my-2 border-t border-slate-100 dark:border-slate-800"></div>
           <TabButton page="settings" icon="⚙" label={t("nav.settings")} onClose={() => setIsDrawerOpen(false)} />
+          <div className="my-2 border-t border-slate-100 dark:border-slate-800"></div>
+          <button
+            type="button"
+            onClick={() => {
+              setIsDrawerOpen(false);
+              useAuthStore.getState().logout();
+            }}
+            className="flex items-center w-full px-6 py-4 text-left text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors font-medium"
+          >
+            <span className="w-8 text-xl" aria-hidden>🚪</span>
+            <span>Sign Out</span>
+          </button>
         </nav>
       </div>
     </div>

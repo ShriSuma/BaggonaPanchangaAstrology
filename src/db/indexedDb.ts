@@ -89,6 +89,20 @@ export type TranslationCacheRecord = {
   cachedAt: string;
 };
 
+export type UserRecord = {
+  id?: string;
+  username: string;
+  passwordHash: string;
+  createdAt: string;
+  lastLoginAt?: string;
+};
+
+export type DailyHitRecord = {
+  date: string;
+  count: number;
+  lastUpdated: string;
+};
+
 class AppDatabase extends Dexie {
   settings!: Table<SettingsRecord>;
   kundlis!: Table<KundliRecord>;
@@ -98,6 +112,8 @@ class AppDatabase extends Dexie {
   analyticsEvents!: Table<AnalyticsEventRecord>;
   geocodeCache!: Table<GeocodeCacheRecord>;
   translationCache!: Table<TranslationCacheRecord>;
+  users!: Table<UserRecord>;
+  dailyHits!: Table<DailyHitRecord>;
 
   constructor() {
     super("baggona-panchanga-db");
@@ -122,6 +138,18 @@ class AppDatabase extends Dexie {
       analyticsEvents: "++id,eventName,timestamp",
       geocodeCache: "placeName,cachedAt",
       translationCache: "id,lang,cachedAt"
+    });
+    this.version(9).stores({
+      settings: "++id,language,createdAt,consentChoice,analyticsEnabled,chartStyle",
+      kundlis: "id,userId,name,createdAt",
+      panchangCache: "id,date,location,cachedAt",
+      predictionCache: "id,kundliId,period,periodKey,cachedAt",
+      scheduledNotifications: "id,type,scheduledTime,fired",
+      analyticsEvents: "++id,eventName,timestamp",
+      geocodeCache: "placeName,cachedAt",
+      translationCache: "id,lang,cachedAt",
+      users: "id,username",
+      dailyHits: "date"
     });
   }
 }
@@ -337,3 +365,22 @@ export const setTranslationCache = async (
     cachedAt: new Date().toISOString()
   });
 };
+
+export const recordDailyHit = async (): Promise<number> => {
+  const today = new Date().toISOString().split("T")[0];
+  const existing = await db.dailyHits.get(today);
+  const newCount = (existing?.count ?? 0) + 1;
+  await db.dailyHits.put({
+    date: today,
+    count: newCount,
+    lastUpdated: new Date().toISOString()
+  });
+  return newCount;
+};
+
+export const getDailyHitsCount = async (dateStr?: string): Promise<number> => {
+  const targetDate = dateStr ?? new Date().toISOString().split("T")[0];
+  const record = await db.dailyHits.get(targetDate);
+  return record?.count ?? 0;
+};
+

@@ -16,6 +16,9 @@ import RamanBhavishyaPage from "./pages/RamanBhavishyaPage";
 import AIAstrologerPage from "./pages/AIAstrologerPage";
 import SevaPage from "./pages/SevaPage";
 import { useAppStore } from "./stores/appStore";
+import { useAuthStore } from "./features/auth/authStore";
+import { LoginPage } from "./components/auth/LoginPage";
+import { initDailyReportScheduler } from "./features/reports/dailyScheduler";
 
 export default function App(): JSX.Element {
   const currentPage = useAppStore((state) => state.currentPage);
@@ -23,14 +26,38 @@ export default function App(): JSX.Element {
   const consentResolved = useAppStore((state) => state.consentResolved);
   const setConsentResolved = useAppStore((state) => state.setConsentResolved);
 
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isLoading = useAuthStore((state) => state.isLoading);
+  const checkSession = useAuthStore((state) => state.checkSession);
+
   useEffect(() => {
     const run = async () => {
       await hydrateSettings();
+      await checkSession();
+      initDailyReportScheduler();
       await analytics.init();
       await analytics.track("app_loaded");
     };
     void run();
-  }, [hydrateSettings]);
+  }, [hydrateSettings, checkSession]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-amber-300">
+        <div className="flex items-center gap-3">
+          <svg className="animate-spin h-6 w-6 text-amber-400" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+          <span className="font-semibold text-sm">Loading Baggona Panchanga...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <LoginPage />;
+  }
 
   return (
     <ErrorBoundary>
