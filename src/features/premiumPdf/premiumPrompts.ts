@@ -207,10 +207,11 @@ Karmic pattern found by the engine: ${input.karmicBaggage}
 
 CRITICAL ACCURACY REQUIREMENT:
 Write EXACTLY TWO detailed paragraphs about this person's personality, core nature, and behavioral traits.
-MUST BE 100% MATHEMATICALLY ACCURATE to the birth chart above. Name the specific Lagna (${rashiName(input.lagnaRashiIndex, lang)}), Chandra Rashi (${rashiName(input.moonRashiIndex, lang)}), and Janma Nakshatra (${nakshatraName(input.moonNakshatraIndex, lang)}) and their planetary rulers. Describe their core temperament, strengths, and behavioral nuances strictly based on these planetary placements. ZERO generic statements or unverified claims.
+STRICT LENGTH RULE: EACH PARAGRAPH MUST CONTAIN AT LEAST 5 FULL, SUBSTANTIAL LINES OF TEXT (minimum 10 lines total for the section).
+MUST BE 100% MATHEMATICALLY ACCURATE to the birth chart above. Explicitly analyze their specific Lagna (${rashiName(input.lagnaRashiIndex, lang)}), Chandra Rashi (${rashiName(input.moonRashiIndex, lang)}), Janma Nakshatra (${nakshatraName(input.moonNakshatraIndex, lang)}), running ${dashaLine}, and current Gochara transits. Describe their core temperament, strengths, inner drive, and behavioral nuances strictly based on these planetary placements. ZERO generic statements or unverified claims.
 
 ${JSON_RULE}
-{"characteristics":[{"impact":"paragraph one\\nparagraph two"}]}`;
+{"characteristics":[{"impact":"paragraph one\\n\\nparagraph two"}]}`;
 
   const darkSecret = `${header(
     input,
@@ -223,14 +224,15 @@ Karma: ${input.karmicBaggage}
 ${input.affairNote}
 
 CRITICAL ACCURACY REQUIREMENT:
-Reveal the single deepest hidden pattern of THIS chart — the niguda rahasya.
-MUST BE 100% MATHEMATICALLY ACCURATE to the 8th/12th house placements, Rahu/Ketu/Saturn karmic influences, and planetary afflictions in THIS chart.
-Paragraph one: the hidden karmic pattern itself, tied to named placements from the facts above.
-Paragraph two: how it shows up in daily life, and the constructive spiritual lesson being asked of them.
+Reveal the single deepest hidden pattern of THIS chart — the niguda rahasya (hidden dark secret).
+STRICT LENGTH RULE: Write EXACTLY TWO PARAGRAPHS, and EACH PARAGRAPH MUST CONTAIN AT LEAST 5 FULL, SUBSTANTIAL LINES OF TEXT (minimum 10 lines total for the section).
+MUST BE 100% MATHEMATICALLY ACCURATE to the 8th/12th house placements, Rahu/Ketu/Saturn karmic influences, running ${dashaLine}, and planetary transits in THIS chart.
+Paragraph one: The hidden karmic pattern, subconscious vulnerabilities, and secret emotional struggles tied directly to named placements above.
+Paragraph two: How this pattern manifests in daily life, karmic relationships, and the precise spiritual remedy and transformation required to overcome it.
 Do not moralise, do not frighten, end on what can be healed and transformed.
 
 ${JSON_RULE}
-{"darkSecret":[{"impact":"paragraph one\\nparagraph two"}]}`;
+{"darkSecret":[{"impact":"paragraph one\\n\\nparagraph two"}]}`;
 
   const yogas = `${header(
     input,

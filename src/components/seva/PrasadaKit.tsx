@@ -105,6 +105,7 @@ export default function PrasadaKit({
   identity,
   lang
 }: Props): JSX.Element {
+  const [pdfLang, setPdfLang] = useState<string>(lang || "kn");
   const [busy, setBusy] = useState<string | null>(null);
   const [sevaDate, setSevaDate] = useState(todayYmd());
   const [sevaId, setSevaId] = useState<SevaId | "">(recommendations[0]?.seva.id ?? "");
@@ -151,7 +152,7 @@ export default function PrasadaKit({
     if (!rhythm?.days || rhythm.days.length === 0) return;
     const targetUrl = generateGoogleCalendarUrl({
       day: rhythm.days[0]!,
-      lang,
+      lang: pdfLang,
       panditName,
       notificationTime
     });
@@ -172,6 +173,27 @@ export default function PrasadaKit({
     () => (recommendations || []).find((r) => r?.seva?.id === sevaId) ?? recommendations?.[0],
     [recommendations, sevaId]
   );
+
+  
+  const handleDownloadIcs = () => {
+    if (!rhythm?.days || rhythm.days.length === 0) return;
+    const csStr = generateSevaICalendarString({
+      days: rhythm.days,
+      lang: pdfLang,
+      panditName,
+      notificationTime,
+      personName: identity.personName
+    });
+    const blob = new Blob([csStr], { type: "text/calendar;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = safeFileName(identity.personName, "Calendar-Sync.ics");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
 
   const today: RhythmDay | undefined = rhythm?.days?.[0];
 
@@ -340,16 +362,62 @@ export default function PrasadaKit({
         </div>
       </div>
 
+      {/* Language Selector Radio Group for Seva PDFs & Calendar Exports */}
+      <div className="rounded-xl border border-amber-300 bg-gradient-to-r from-amber-100/80 to-amber-50/90 p-4 space-y-2.5 shadow-sm">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-bold uppercase tracking-wide text-amber-900 flex items-center gap-1.5">
+            🌐 {pick({
+              en: "Document & Calendar Export Language",
+              kn: "ದಾಖಲೆ ಹಾಗೂ ಕ್ಯಾಲೆಂಡರ್ ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+              te: "డాక్యుమెంట్ మరియు క్యాలెండర్ భాషను ఎంచుకోండి",
+              ta: "ஆவணம் மற்றும் நாட்காட்டி மொழியைத் தேர்ந்தெடுக்கவும்",
+              hi: "दस्तावेज़ एवं कैलेंडर निर्यात भाषा चुनें"
+            }, pdfLang)}
+          </span>
+          <span className="text-[11px] font-medium text-amber-700 bg-amber-200/60 px-2 py-0.5 rounded-md">
+            100% Native Script
+          </span>
+        </div>
+        <div className="flex flex-wrap gap-2 pt-1">
+          {[
+            { code: "kn", name: "ಕನ್ನಡ" },
+            { code: "hi", name: "हिंदी" },
+            { code: "te", name: "తెలుగు" },
+            { code: "ta", name: "தமிழ்" },
+            { code: "en", name: "English" }
+          ].map((item) => (
+            <label
+              key={item.code}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold cursor-pointer transition ${
+                pdfLang === item.code
+                  ? "bg-amber-800 text-white border-amber-900 shadow-sm scale-105"
+                  : "bg-white text-amber-950 border-amber-300 hover:bg-amber-100/60"
+              }`}
+            >
+              <input
+                type="radio"
+                name="sevaPdfLang"
+                value={item.code}
+                checked={pdfLang === item.code}
+                onChange={() => setPdfLang(item.code)}
+                className="sr-only"
+              />
+              <span>{item.name}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
       {/* Downloads */}
       <div className="space-y-2.5">
         <Button
           tag="calendar"
           tone="primary"
-          label={pick(T.downloadCalendar!, lang)}
+          label={pick(T.downloadCalendar!, pdfLang)}
           onClick={() =>
             void download(
               "seva-print-calendar",
-              safeFileName(identity.personName, "Calendar"),
+              safeFileName(identity.personName, `Calendar-${pdfLang.toUpperCase()}`),
               "calendar"
             )
           }
@@ -357,45 +425,61 @@ export default function PrasadaKit({
         <Button
           tag="letter"
           tone="secondary"
-          label={pick(T.downloadMessage!, lang)}
+          label={pick(T.downloadMessage!, pdfLang)}
           onClick={() =>
-            void download("seva-print-letter", safeFileName(identity.personName, "Blessing"), "letter")
+            void download("seva-print-letter", safeFileName(identity.personName, `Blessing-${pdfLang.toUpperCase()}`), "letter")
           }
         />
         <Button
           tag="card"
           tone="secondary"
-          label={pick(T.downloadPrasada!, lang)}
+          label={pick(T.downloadPrasada!, pdfLang)}
           onClick={() =>
-            void download("seva-print-card", safeFileName(identity.personName, "Prasada"), "card")
+            void download("seva-print-card", safeFileName(identity.personName, `Prasada-${pdfLang.toUpperCase()}`), "card")
           }
         />
-        <Button
-          tag="summary"
-          tone="secondary"
-          label={pick({
-            en: "4-Paragraph Current Phase Summary PDF",
-            kn: "4-ಪ್ಯಾರಾಗ್ರಾಫ್ ಸಾರಾಂಶ PDF ಡೌನ್‌ಲೋಡ್",
-            te: "4-పారాగ్రాఫ్ సారాంశం PDF డౌన్‌లోడ్",
-            ta: "4-பத்தி சுருக்கம் PDF பதிவிறக்கு",
-            hi: "4-पैराग्राफ सारांश PDF डाउनलोड करें"
-          }, lang)}
-          onClick={() => {
-            window.location.hash = "#bhavishya";
-          }}
-        />
+        
+        {/* Calendar Sync Buttons */}
+        <div className="grid grid-cols-2 gap-2 pt-1">
+          <button
+            type="button"
+            onClick={() => {
+              if (!rhythm?.days?.[0]) return;
+              const gUrl = generateGoogleCalendarUrl({
+                day: rhythm.days[0],
+                lang: pdfLang,
+                panditName,
+                notificationTime
+              });
+              window.open(gUrl, "_blank");
+            }}
+            className="flex items-center justify-center gap-1.5 rounded-xl border border-amber-300 bg-white px-3 py-2.5 text-xs font-bold text-amber-900 hover:bg-amber-50 shadow-sm transition"
+          >
+            <span>📅</span>
+            <span>Google Calendar ({pdfLang.toUpperCase()})</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleDownloadIcs}
+            className="flex items-center justify-center gap-1.5 rounded-xl border border-amber-300 bg-white px-3 py-2.5 text-xs font-bold text-amber-900 hover:bg-amber-50 shadow-sm transition"
+          >
+            <span>📥</span>
+            <span>Apple / Outlook iCal ({pdfLang.toUpperCase()})</span>
+          </button>
+        </div>
       </div>
 
       <p className="text-[11px] leading-relaxed text-amber-800/60">{pick(T.disclaimer!, lang)}</p>
 
       {/* Off-screen print sources */}
       <div id="seva-print-calendar" style={hiddenHost} aria-hidden>
-        <SevaCalendarPrint rhythm={rhythm} lang={lang} identity={identity} />
+        <SevaCalendarPrint rhythm={rhythm} lang={pdfLang} identity={identity} />
       </div>
 
       <div id="seva-print-letter" style={hiddenHost} aria-hidden>
         <SevaLetterPrint
-          lang={lang}
+          lang={pdfLang}
           identity={identity}
           primarySeva={chosenSeva}
           sevaDate={sevaDate}
@@ -404,12 +488,12 @@ export default function PrasadaKit({
           qrDataUrl={qrDataUrl}
         />
         <SevaQRCodePrint
-          lang={lang}
+          lang={pdfLang}
           identity={identity}
           qrDataUrl={qrDataUrl}
         />
         <SevaAnugrahaGuidancePrint
-          lang={lang}
+          lang={pdfLang}
           identity={identity}
           panditName={panditName}
           rhythm={rhythm}
@@ -418,7 +502,7 @@ export default function PrasadaKit({
 
       <div id="seva-print-card" style={hiddenHost} aria-hidden>
         <SevaPrasadaCardPrint
-          lang={lang}
+          lang={pdfLang}
           identity={identity}
           rhythm={rhythm}
           today={today}

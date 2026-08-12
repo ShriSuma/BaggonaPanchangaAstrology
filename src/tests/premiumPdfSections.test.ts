@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { calculateKundli } from "../core/KundliEngine";
 import { calculateTraditionalBaggona } from "../core/TraditionalBaggonaEngine";
 import { generateBaggonaPredictions, generatePersonalReading } from "../core/BaggonaPredictionEngine";
-import { generateMasterPrediction } from "../core/MasterPredictionEngine";
+import { buildPremiumPrompts } from "../features/premiumPdf/premiumPrompts";
 import type { KundliInput } from "../core/AstroTypes";
 
 const pramodBirth: KundliInput = {
@@ -55,5 +55,38 @@ describe("Comprehensive PDF Section Completeness & 2-Paragraph Validation", () =
       expect(personalReadings.cosmicProfile.length).toBeGreaterThan(0);
       expect(personalReadings.currentLifeChapter.description.length).toBeGreaterThan(20);
     });
+  });
+
+  it("enforces strict 2-paragraph (5 lines each) prompt rules for characteristics and darkSecret", () => {
+    const prompts = buildPremiumPrompts({
+      lang: "kn",
+      runId: "test-run",
+      name: "Pramod",
+      ageYears: 32,
+      lagnaRashiIndex: 3,
+      moonRashiIndex: 5,
+      moonNakshatraIndex: 12,
+      sunRashiIndex: 1,
+      natalPlanets: [],
+      transits: [],
+      mahaLord: "Jupiter",
+      bhuktiLord: "Saturn",
+      bhuktiEndsAtAge: 35,
+      engineYogas: [],
+      engineDoshas: [],
+      pariharas: [],
+      shadowSelf: "Test shadow",
+      karmicBaggage: "Test karma",
+      lifePhase: "Test phase",
+      overallTone: "Test tone",
+      careerNote: "Test career",
+      financeNote: "Test finance",
+      roadmap: [],
+      affairNote: "Test affair"
+    });
+
+    expect(prompts.characteristics).toContain("EACH PARAGRAPH MUST CONTAIN AT LEAST 5 FULL, SUBSTANTIAL LINES OF TEXT");
+    expect(prompts.darkSecret).toContain("EACH PARAGRAPH MUST CONTAIN AT LEAST 5 FULL, SUBSTANTIAL LINES OF TEXT");
+    expect(prompts.darkSecret).toContain("niguda rahasya");
   });
 });
