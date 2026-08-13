@@ -7,11 +7,6 @@ import {
   generateNative90DayQrCalendarPayload,
   generateSevaICalendarString
 } from "../../features/seva/icsCalendarGenerator";
-import {
-  isNotificationEnabled,
-  requestNotificationPermission,
-  scheduleDailyNotification
-} from "../../features/seva/localNotificationEngine";
 import { T, pick } from "../../features/seva/sevaLocale";
 
 type Props = {
@@ -35,7 +30,6 @@ export default function SevaCalendarSyncModal({
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
   const [isListening, setIsListening] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
-  const [notifActive, setNotifActive] = useState<boolean>(isNotificationEnabled());
 
   const timeOptions = [
     { label: "05:00 AM", value: "05:00" },
@@ -137,22 +131,6 @@ export default function SevaCalendarSyncModal({
     navigator.clipboard.writeText(dataUri);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleEnableNotifications = async () => {
-    const granted = await requestNotificationPermission();
-    if (granted) {
-      scheduleDailyNotification({
-        panditName,
-        notificationTime,
-        lang,
-        personName
-      });
-      setNotifActive(true);
-      alert(`✅ 90-Day Daily Reminders Active! ${panditName} blessings will alert you daily at ${notificationTime} AM.`);
-    } else {
-      alert("⚠️ Notification permission was not granted. You can still scan the QR code to sync 90 days directly into your mobile Calendar app!");
-    }
   };
 
   return (
@@ -259,17 +237,9 @@ export default function SevaCalendarSyncModal({
               </p>
 
               <div className="pt-2">
-                <button
-                  type="button"
-                  onClick={handleEnableNotifications}
-                  className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition shadow-sm ${
-                    notifActive
-                      ? "bg-emerald-100 text-emerald-900 border border-emerald-300"
-                      : "bg-amber-600 text-white hover:bg-amber-700"
-                  }`}
-                >
-                  <span>{notifActive ? "✅ 90-Day Mobile Reminders Active" : "🔔 Enable Free Daily Mobile Reminders"}</span>
-                </button>
+                <div className="inline-block rounded-lg bg-amber-100/80 px-3 py-1.5 text-[11px] font-medium text-amber-900 border border-amber-300">
+                  ❖ {personName ? `Prepared for ${personName}` : "Kundali Sync"} · Native Google/Apple Calendar Sync
+                </div>
               </div>
             </div>
           </div>

@@ -9,11 +9,6 @@ import {
   generateNative90DayQrCalendarPayload,
   generateSevaICalendarString
 } from "../../features/seva/icsCalendarGenerator";
-import {
-  isNotificationEnabled,
-  requestNotificationPermission,
-  scheduleDailyNotification
-} from "../../features/seva/localNotificationEngine";
 import { T, pick, type L5 } from "../../features/seva/sevaLocale";
 import { todayYmd } from "../../features/seva/sevaPresentation";
 import { generatePDFFromElement } from "../../utils/pdfGenerator";
