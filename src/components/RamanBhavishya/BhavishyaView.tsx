@@ -1672,6 +1672,7 @@ function buildKundaliDarkSecretFallback(lang: string, lagnaStr: string, moonStr:
         characteristicsTitle: await tx("Characteristics of the Person", pdfLanguage),
         darkSecretTitle: await tx("The Dark Secret", pdfLanguage),
         currentPhaseTitle: tp("currentPhaseTitle", pdfLanguage),
+        currentPhaseGuidanceTitle: tp("currentPhaseGuidanceTitle", pdfLanguage),
         ashirvadaTitle: await tx("Astrologer's Blessing (Ashirvada)", pdfLanguage),
         ashirvadaValue: await tx(ashirvada || "", pdfLanguage),
         yogasTitle: await tx("Special Planetary Combinations (Yogas)", pdfLanguage),
