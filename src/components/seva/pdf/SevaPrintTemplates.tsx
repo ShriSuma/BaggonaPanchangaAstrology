@@ -952,7 +952,7 @@ export const SevaPrasadaCardPrint = ({
 
 
 /* ------------------------------------------------------------------ *
- * Sheet 6 — Page 3: Spiritual Guidance & Yearly Anugraha Sheet
+ * Sheet 6 — Page 3: Spiritual Guidance & Yearly Anugraha Sheet (100% Full Page)
  * ------------------------------------------------------------------ */
 
 export const SevaAnugrahaGuidancePrint = ({
@@ -968,7 +968,6 @@ export const SevaAnugrahaGuidancePrint = ({
 }): JSX.Element => {
   const safePanditName = formatPanditName(panditName, lang);
   const baseLang = (lang || "en").split("-")[0] as SevaLang;
-  const pickL5 = (dict: Record<string, L5>, key: string): string => pick(dict[key], lang);
 
   const TITLE_DICT: L5 = {
     kn: "✦ ಧಾರ್ಮಿಕ ಅನುಷ್ಠಾನ ಮಾರ್ಗದರ್ಶನ ಹಾಗೂ ವಾರ್ಷಿಕ ಅನುಗ್ರಹ ಪತ್ರಿಕೆ ✦",
@@ -979,11 +978,11 @@ export const SevaAnugrahaGuidancePrint = ({
   };
 
   const SUBTITLE_DICT: L5 = {
-    kn: "ಗೋಕರ್ಣ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ದಿವ್ಯ ಸನ್ನಿಧಿಯಿಂದ ಅರ್ಚಕರು ಸೂಚಿಸಿದ ನಿತ್ಯ ನಿಯಮಗಳು ಹಾಗೂ ವಿಶೇಷ ಪೂಜಾ ಮಾರ್ಗದರ್ಶಿ",
-    hi: "गोकर्ण श्री महाबलेश्वर स्वामी के पावन सान्निध्य से अर्चक द्वारा निर्दिष्ट नित्य नियम एवं विशेष पूजा मार्गदर्शिका",
-    te: "గోకర్ణ శ్రీ మహాబలేశ్వర స్వామివారి దివ్య సన్నిధి నుండి అర్చకులు సూచించిన నిత్య నియమాలు మరియు విశేష పూజా మార్గదర్శి",
-    ta: "கோகர்ண ஸ்ரீ மகாபலேஸ்வர சுவாமியின் திவ்ய சன்னதியிலிருந்து அர்ச்சகர் கூறிய நித்ய விதிகளும் விசேஷ பூஜை வழிகாட்டியும்",
-    en: "Sacred daily spiritual commandments and auspicious worship guide recommended by Archaka from Gokarna Kshetra"
+    kn: "ಗೋಕರ್ಣ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ದಿವ್ಯ ಸನ್ನಿಧಿಯಿಂದ ಅರ್ಚಕರು ಸೂಚಿಸಿದ ನಿತ್ಯ ನಿಯಮಗಳು, ದೈನಂದಿನ ಸ್ತೋತ್ರ ಜಪ ಹಾಗೂ ವಾರ್ಷಿಕ ಪೂಜಾ ಮಾರ್ಗದರ್ಶಿ",
+    hi: "गोकर्ण श्री महाबलेश्वर स्वामी के पावन सान्निध्य से अर्चक द्वारा निर्दिष्ट नित्य नियम, दैनिक स्तोत्र जप एवं वार्षिक पूजा मार्गदर्शिका",
+    te: "గోకర్ణ శ్రీ మహాబలేశ్వర స్వామివారి దివ్య సన్నిధి నుండి అర్చకులు సూచించిన నిత్య నియమాలు, దైనిక స్తోత్ర జపం మరియు వార్షిక పూజా మార్గదర్శి",
+    ta: "கோகர்ண ஸ்ரீ மகாபலேஸ்வர சுவாமியின் திவ்ய சன்னதியிலிருந்து அர்ச்சகர் கூறிய நித்ய விதிகளும், தினசரி தோத்திர ஜபமும், விசேஷ பூஜை வழிகாட்டியும்",
+    en: "Sacred daily spiritual commandments, stotra recitation discipline, and auspicious worship guide recommended by Archaka from Gokarna Kshetra"
   };
 
   const RULES_TITLE_DICT: L5 = {
@@ -998,41 +997,41 @@ export const SevaAnugrahaGuidancePrint = ({
     {
       title: { kn: "☀️ ಸೂರ್ಯೋದಯ ದೀಪಾರಾಧನೆ", hi: "☀️ सूर्योदय दीपाराधन", te: "☀️ సూర్యోదయ దీపారాధన", ta: "☀️ சூரியோதய தீபாராதனை", en: "☀️ Sunrise Lamp & Chanting" },
       desc: {
-        kn: "ಪ್ರತಿದಿನ ಪ್ರಾತಃಕಾಲ ಸ್ನಾನಾನಂತರ ಮನೆಯ ದೇವರ ಮನೆಯಲ್ಲಿ ತುಪ್ಪದ ದೀಪ ಹಚ್ಚಿ, ಪೂರ್ವಾಭಿಮುಖವಾಗಿ 108 ಬಾರಿ ಓಂ ನಮಃ ಶಿವಾಯ ಜಪಿಸುವುದು.",
-        hi: "प्रतिदिन प्रातः स्नान के पश्चात पूजा घर में शुद्ध घी का दीपक जलाकर पूर्व दिशा की ओर 108 बार ॐ नमः शिवाय का जाप करें।",
-        te: "ప్రతిరోజూ ఉదయం స్నానానంతరం పూజాగదిలో నెయ్యి దీపం వెలిగించి, తూర్పు ముఖంగా 108 సార్లు ఓం నమః శివాయ జపించండి.",
-        ta: "தினமும் காலையில் குளித்தபின் பூஜை அறையில் நெய் தீபம் ஏற்றி, கிழக்கு நோக்கி 108 முறை ஓம் நம சிவாய ஜபிக்கவும்.",
-        en: "Every morning after bath, light a pure ghee lamp facing East and chant 108 times 'Om Namah Shivaya'."
+        kn: "ಪ್ರತಿದಿನ ಪ್ರಾತಃಕಾಲ ಸ್ನಾನಾನಂತರ ಮನೆಯ ದೇವರ ಮನೆಯಲ್ಲಿ ತುಪ್ಪದ ದೀಪ ಹಚ್ಚಿ, ಪೂರ್ವಾಭಿಮುಖವಾಗಿ ಕುಳಿತು 108 ಬಾರಿ 'ಓಂ ನಮಃ ಶಿವಾಯ' ಜಪಿಸುವುದು. ಇದು ನಿತ್ಯ ಮಾನಸಿಕ ಉತ್ಸಾಹ, ಸಕಾರಾತ್ಮಕ ಶಕ್ತಿ ಹಾಗೂ ಸರ್ವ ಗ್ರಹ ಅನುಕೂಲತೆಯನ್ನು ತರುತ್ತದೆ.",
+        hi: "प्रतिदिन प्रातः स्नान के पश्चात पूजा घर में शुद्ध घी का दीपक जलाकर पूर्व दिशा की ओर बैठकर 108 बार 'ॐ नमः शिवाय' का जाप करें। यह नित्य मानसिक उत्साह, सकारात्मक ऊर्जा और समस्त ग्रहों की अनुकूलता प्रदान करता है।",
+        te: "ప్రతిరోజూ ఉదయం స్నానానంతరం పూజాగదిలో నెయ్యి దీపం వెలిగించి, తూర్పు ముఖంగా కూర్చుని 108 సార్లు 'ఓం నమః శివాయ' జపించండి. ఇది మానసిక ఉత్సాహం, ధనాత్మక శక్తి మరియు సర్వ గ్రహ అనుకూలతను కలిగిస్తుంది.",
+        ta: "தினமும் காலையில் குளித்தபின் பூஜை அறையில் நெய் தீபம் ஏற்றி, கிழக்கு நோக்கி அமர்ந்து 108 முறை 'ஓம் நம சிவாய' ஜபிக்கவும். இது மன உற்சாகம், நேர்மறை ஆற்றல் மற்றும் கிரக தோஷ நிவர்த்தி தரும்.",
+        en: "Every morning after bath, light a pure ghee lamp facing East and chant 108 times 'Om Namah Shivaya'. This attracts radiant solar vital energy, mental clarity, and dissolves daily planetary obstacles."
       }
     },
     {
       title: { kn: "🥛 ಸೋಮವಾರ ಕ್ಷೀರಾಭಿಷೇಕ", hi: "🥛 सोमवार दुग्धाभिषेक", te: "🥛 సోమవారం క్షీరాభిషేకం", ta: "🥛 திங்கள்கிழமை பாலாபிஷேகம்", en: "🥛 Monday Milk Archana" },
       desc: {
-        kn: "ಪ್ರತಿ ಸೋಮವಾರ ಅಥವಾ ಪ್ರದೋಷ ತಿಥಿಯಂದು ಶಿವಲಿಂಗಕ್ಕೆ ಶುದ್ಧ ಹಾಲಿನ ಅಭಿಷೇಕ ಮಾಡಿಸುವುದರಿಂದ ಮನಃಶಾಂತಿ ಹಾಗೂ ಆರೋಗ್ಯ ದೊರೆಯುತ್ತದೆ.",
-        hi: "प्रत्येक सोमवार या प्रदोष तिथि को शिवलिंग पर शुद्ध दूध से अभिषेक करने से मानसिक शांति और उत्तम स्वास्थ्य प्राप्त होता है।",
-        te: "ప్రతి సోమవారం లేదా ప్రదోష తిథినాడు శివలింగానికి పాలుతో అభిషేకం చేయడం వలన మనఃశాంతి మరియు ఆరోగ్యం లభిస్తాయి.",
-        ta: "ஒவ்வொரு திங்கள்கிழமை அல்லது பிரதோஷ திதியில் சிவலிங்கத்திற்கு பாலாபிஷேகம் செய்வது மன அமைதியும் ஆரோக்கியமும் தரும்.",
-        en: "Offering milk abhishekam to Lord Shiva on Mondays or Pradosha tithi grants deep emotional peace and health resilience."
+        kn: "ಪ್ರತಿ ಸೋಮವಾರ ಅಥವಾ ಪ್ರದೋಷ ತಿಥಿಯಂದು ಶಿವಲಿಂಗಕ್ಕೆ ಶುದ್ಧ ಹಾಲಿನ ಅಭಿಷೇಕ ಮಾಡಿಸಿ ಬಿಲ್ವಪತ್ರೆ ಸಮರ್ಪಿಸುವುದು. ಇದರಿಂದ ಚಂದ್ರ ದೋಷ ಶಮನವಾಗಿ ಮನಃಶಾಂತಿ, ಕೌಟುಂಬಿಕ ಸೌಹಾರ್ದ ಹಾಗೂ ಉತ್ತಮ ರೋಗನಿರೋಧಕ ಆರೋಗ್ಯ ಸಿದ್ಧಿಸುತ್ತದೆ.",
+        hi: "प्रत्येक सोमवार या प्रदोष तिथि को शिवलिंग पर शुद्ध दूध से अभिषेक कर बिल्वपत्र अर्पित करें। इससे चंद्र दोष शांत होकर मानसिक शांति, पारिवारिक सौहार्द और उत्तम स्वास्थ्य प्राप्त होता है।",
+        te: "ప్రతి సోమవారం లేదా ప్రదోష తిథినాడు శివలింగానికి పాలుతో అభిషేకం చేసి బిల్వపత్రం సమర్పించండి. దీనివలన చంద్ర దోషం శమించి మనఃశాంతి, కుటుంబ సౌఖ్యం మరియు ఆరోగ్యం లభిస్తాయి.",
+        ta: "ஒவ்வொரு திங்கள்கிழமை அல்லது பிரதோஷ திதியில் சிவலிங்கத்திற்கு பாலாபிஷேகம் செய்து வில்வபத்திரம் சாற்றவும். இதனால் சந்திர தோஷம் நீங்கி மன அமைதியும் குடும்ப யோகமும் ஆரோக்கியமும் கிட்டும்.",
+        en: "Offering pure milk abhishekam and fresh Bilva leaves to Lord Shiva on Mondays or Pradosha tithi alleviates lunar mind distress, bestowing emotional peace, domestic warmth, and robust health."
       }
     },
     {
       title: { kn: "🌾 ಗೋಸೇವೆ ಹಾಗೂ ಅನ್ನದಾನ", hi: "🌾 गोसेवा एवं अन्नदान", te: "🌾 గోసేవ మరియు అన్నదానం", ta: "🌾 பசு சேவை மற்றும் அன்னதானம்", en: "🌾 Cow Service & Charity" },
       desc: {
-        kn: "ಪ್ರತಿ ಶನಿವಾರ ಅಥವಾ ಏಕಾದಶಿಯ ದಿನದಂದು ಗೋವುಗಳಿಗೆ ಹಸಿರು ಹುಲ್ಲು ನೀಡುವುದು ಮತ್ತು ಅನ್ನದಾನ ಮಾಡುವುದರಿಂದ ದೋಷಗಳು ಶಾಂತಿಯಾಗುತ್ತದೆ.",
-        hi: "प्रत्येक शनिवार या एकादशी को गायों को हरा चारा खिलाने तथा अन्नदान करने से समस्त ग्रह दोष शांत होते हैं।",
-        te: "ప్రతి శనివారం లేదా ఏకాదశి నాడు గోవులకు పచ్చగడ్డి తినిపించడం మరియు అన్నదానం చేయడం వలన గ్రహ దోషాలు తొలగిపోతాయి.",
-        ta: "ஒவ்வொரு சனிக்கிழமை அல்லது ஏகாதசியன்று பசுக்களுக்கு அகத்திக்கீரை வழங்குவதும் அன்னதானமும் கிரக தோஷங்களை நீக்கும்.",
-        en: "Feeding green grass to cows on Saturdays or Ekadashi neutralizes Pitru (ancestral) and Kuja doshas."
+        kn: "ಪ್ರತಿ ಶನಿವಾರ ಅಥವಾ ಏಕಾದಶಿಯ ದಿನದಂದು ದೇಶಿಯ ಗೋವುಗಳಿಗೆ ಹಸಿರು ಹುಲ್ಲು ನೀಡುವುದು ಮತ್ತು ಬಡವರಿಗೆ ಅನ್ನದಾನ ಮಾಡುವುದು. ಇದು ಪಿತೃ ದೋಷ, ಕುಜ ದೋಷ ಹಾಗೂ ನಿವಾರಿಸಲಾಗದ ಗ್ರಹ ಪೀಡೆಗಳನ್ನು ಸಂಪೂರ್ಣ ಶಾಂತಿಗೊಳಿಸುತ್ತದೆ.",
+        hi: "प्रत्येक शनिवार या एकादशी को देसी गायों को हरा चारा खिलाएं तथा निर्धनों को अन्नदान करें। यह पितृ दोष, कुज दोष तथा कठिन ग्रह बाधाओं को पूर्णतः शांत करता है।",
+        te: "ప్రతి శనివారం లేదా ఏకాదశి నాడు ఆవులకు పచ్చగడ్డి తినిపించడం మరియు పేదలకు అన్నదానం చేయడం చేయండి. ఇది పితృ దోషం, కుజ దోషం మరియు తీవ్ర గ్రహ పీడలను తొలగిస్తుంది.",
+        ta: "ஒவ்வொரு சனிக்கிழமை அல்லது ஏகாதசியன்று பசுக்களுக்கு அகத்திக்கீரை வழங்குவதும் எளியோர்க்கு அன்னதானமும் செய்வது பித்ரு தோஷம், குஜ தோஷம் மற்றும் தீராத கிரக பிணிகளை நீக்கும்.",
+        en: "Feeding fresh green fodder to indigenous cows on Saturdays or Ekadashi and supporting food charity neutralizes severe Pitru (ancestral) karmas, Mars afflictions, and chronic financial strains."
       }
     },
     {
-      title: { kn: "📿 ಜನ್ಮ ನಕ್ಷತ್ರ ಮಂತ್ರ ಸಂಕಲ್ಪ", hi: "📿 जन्म नक्षत्र मंत्र संकल्प", te: "📿 జన్మ నక్షత్ర మంత్ర సంకల్పం", ta: "📿 ஜன்ம நட்சத்திர மந்திர சங்கல்பம்", en: "📿 Nakshatra Mantra Discipline" },
+      title: { kn: "📿 ಜನ್ಮ ನಕ್ಷತ್ರ ಮಂತ್ರ ಸಂಕಲ್ಪ", hi: "📿 जन्म नक्षत्र मंत्र संकल्प", te: "📿 జన్మ నక్షత్ర మంత్ర సంకల్పం", ta: "📿 ஜன்ம நட்சத்திர மந்திர சங்கல்பம்", en: "📿 Nakshatra Beeja Discipline" },
       desc: {
-        kn: "ನಿಮ್ಮ ಜನ್ಮ ನಕ್ಷತ್ರದ ಅಧಿಪತಿ ಗ್ರಹದ ಬೀಜಮಂತ್ರವನ್ನು ಪ್ರತಿದಿನ 108 ಬಾರಿ ನಿಷ್ಠೆಯಿಂದ ಜಪಿಸುವುದು ಸಕಲ ಕಾರ್ಯ ಜಯಕ್ಕೆ ಕಾರಣವಾಗುತ್ತದೆ.",
-        hi: "अपने जन्म नक्षत्र के स्वामी ग्रह के बीज मंत्र का प्रतिदिन 108 बार निष्ठापूर्वक जाप करने से कार्यों में सफलता मिलती है।",
-        te: "మీ జన్మ నక్షత్రాధిపతి గ్రహ బీజమంత్రాన్ని ప్రతిరోజూ 108 సార్లు జపించడం వలన సర్వకార్య జయం లభిస్తుంది.",
-        ta: "உங்கள் ஜன்ம நட்சத்திர அதிபதியின் பீஜ மந்திரத்தை தினமும் 108 முறை ஜபிப்பது சகல காரியங்களிலும் வெற்றி தரும்.",
-        en: "Chanting the beeja mantra of your birth star lord 108 times daily ensures victory in all legitimate endeavors."
+        kn: "ನಿಮ್ಮ ಜನ್ಮ ನಕ್ಷತ್ರದ ಅಧಿಪತಿ ಗ್ರಹದ ಮೂಲ ಬೀಜಮಂತ್ರವನ್ನು ಪ್ರತಿದಿನ 108 ಬಾರಿ ನಿಷ್ಠೆಯಿಂದ ಜಪಿಸುವುದು. ಇದು ನಿಮ್ಮ ಕಾರ್ಯ ಕ್ಷೇತ್ರದಲ್ಲಿ ಮಹತ್ತರ ಯಶಸ್ಸು, ಶತ್ರು ಜಯ ಹಾಗೂ ಅಪಾರ ಯಶಸ್ಸನ್ನು ಕರುಣಿಸುತ್ತದೆ.",
+        hi: "अपने जन्म नक्षत्र के स्वामी ग्रह के मूल बीज मंत्र का प्रतिदिन 108 बार निष्ठापूर्वक जाप करें। यह आपके कार्यक्षेत्र में महान सफलता, शत्रु विजय और निरंतर उन्नति प्रदान करता है।",
+        te: "మీ జన్మ నక్షత్రాధిపతి గ్రహ మూల బీజమంత్రాన్ని ప్రతిరోజూ 108 సార్లు నిష్ఠతో జపించండి. ఇది మీ ఉద్యోగ వ్యాపారాలలో గొప్ప విజయం, శత్రు జయం మరియు అభివృద్ధిని ప్రసాదిస్తుంది.",
+        ta: "உங்கள் ஜன்ம நட்சத்திர அதிபதியின் பீஜ மந்திரத்தை தினமும் 108 முறை ஜபித்து வரவும். இது தொழில், வியாபாரத்தில் பெரும் வெற்றி, எதிரி ஜெயம் மற்றும் தொடர் முன்னேற்றம் தரும்.",
+        en: "Chanting the sacred root beeja mantra of your birth star's ruling planet 108 times daily activates personal talent, ensures professional success, and protects against hidden adversity."
       }
     }
   ];
@@ -1049,41 +1048,41 @@ export const SevaAnugrahaGuidancePrint = ({
     {
       name: { kn: "ಪ್ರದೋಷ ಶಿವಾರಾತ್ರಿ", hi: "प्रदोष शिवरात्रि", te: "ప్రదోష శివరాత్రి", ta: "பிரதோஷ சிவராத்திரி", en: "Pradosha Shivaratri" },
       desc: {
-        kn: "ಮಾನಸಿಕ ಒತ್ತಡ, ಸಾಲ ಬಾಧೆ ಹಾಗೂ ಅಡೆತಡೆಗಳ ನಿವಾರಣೆಗೆ ಶ್ರೇಷ್ಠ.",
-        hi: "मानसिक तनाव, ऋण बाधा तथा रुकावटों के निवारण हेतु सर्वश्रेष्ठ।",
-        te: "మానసిక ఒత్తిడి, అప్పుల బాధలు మరియు అడ్డంకుల నివారణకు శ్రేష్ఠం.",
-        ta: "மன அழுத்தம், கடன் தொல்லை மற்றும் தடைகளை நீக்க சிறந்தது.",
-        en: "Dissolves mental burdens, financial hurdles, and chronic ailments."
+        kn: "ಪ್ರದೋಷ ಕಾಲದಲ್ಲಿ ಶಿವನಿಗೆ ಬಿಲ್ವಾರ್ಚನೆ ಹಾಗೂ ಸಂಜೆಯ ದೀಪಾರಾಧನೆ ಮಾಡುವುದರಿಂದ ಮಾನಸಿಕ ಒತ್ತಡ, ಸಾಲ ಬಾಧೆ ಹಾಗೂ ನಿರಂತರ ಅಡೆತಡೆಗಳು ಸಂಪೂರ್ಣ ಶಮನಗೊಳ್ಳುತ್ತವೆ.",
+        hi: "प्रदोष काल में शिवजी को बिल्वार्चन तथा सायं दीपाराधन करने से मानसिक तनाव, ऋण बाधा तथा निरंतर रुकावटें पूर्णतः शांत होती हैं।",
+        te: "ప్రదోష కాలంలో శివునికి బిల్వార్చన మరియు సాయంత్రం దీపారాధన చేయడం వలన మానసిక ఒత్తిడి, అప్పుల బాధలు మరియు అడ్డంకులు తొలగిపోతాయి.",
+        ta: "பிரதோஷ காலத்தில் சிவனுக்கு வில்வார்ச்சனையும் மாலை தீபாராதனையும் செய்வது மன அழுத்தம், கடன் தொல்லை மற்றும் தடைகளை முற்றுமாக நீக்கும்.",
+        en: "Worshipping Shiva with Bilva leaves during evening Pradosha window eliminates anxiety, financial debt burdens, and recurring setbacks."
       }
     },
     {
       name: { kn: "ಸಂಕಷ್ಟ ಚತುರ್ಥಿ", hi: "संकष्टी चतुर्थी", te: "సంకష్ట చతుర్థి", ta: "சங்கடஹர சதுர்த்தி", en: "Sankashti Chaturthi" },
       desc: {
-        kn: "ವ್ಯಾಪಾರ, ಉದ್ಯೋಗ ಹಾಗೂ ಹೊಸ ಕಾರ್ಯಗಳ ಯಶಸ್ಸಿಗೆ ಗಣಪತಿ ಪೂಜೆ.",
-        hi: "व्यापार, नौकरी और नए कार्यों की सफलता हेतु गणपति पूजा।",
-        te: "వ్యాపారం, ఉద్యోగం మరియు నూతన కార్యముల విజయానికి గణపతి పూజ.",
-        ta: "வியாபாரம், வேலை மற்றும் புதிய காரிய வெற்றிக்கு கணபதி பூஜை.",
-        en: "Removes work, business obstacles, and unlocks prosperity."
+        kn: "ಸಂಕಷ್ಟಹರ ಚತುರ್ಥಿಯಂದು ಗಣಪತಿಗೆ ದೂರ್ವಾ (ಗರಿಕೆ) ಅರ್ಚನೆ ಮಾಡುವುದರಿಂದ ವ್ಯಾಪಾರ, ಉದ್ಯೋಗ ಹಾಗೂ ನೂತನ ಕಾರ್ಯಗಳಲ್ಲಿ ಎದುರಾಗುವ ಸಕಲ ವಿಘ್ನಗಳು ನಿವಾರಣೆಯಾಗುತ್ತವೆ.",
+        hi: "संकष्टी चतुर्थी पर गणपति को दुर्वा (दूब) अर्पित करने से व्यापार, नौकरी तथा नए कार्यों में आने वाले समस्त विघ्न दूर होते हैं।",
+        te: "సంకష్ట చతుర్థి నాడు గణపతికి దూర్వా (గరికే) అర్చన చేయడం వలన వ్యాపారం, ఉద్యోగం మరియు నూతన కార్యములలో విఘ్నాలు తొలగిపోతాయి.",
+        ta: "சங்கடஹர சதுர்த்தியன்று கணபதிக்கு அருகம்புல் அர்ச்சனை செய்வது வியாபாரம், வேலை மற்றும் புதிய காரியங்களில் வரும் விக்னங்களை அகற்றும்.",
+        en: "Offering Durva grass to Lord Ganesha on Sankashti Chaturthi clears career roadblocks, business hindrances, and ensures project victory."
       }
     },
     {
       name: { kn: "ಏಕಾದಶಿ ವ್ರತ", hi: "एकादशी व्रत", te: "ఏకాదశి వ్రతం", ta: "ஏகாதசி விரதம்", en: "Ekadashi Vrata" },
       desc: {
-        kn: "ಆರೋಗ್ಯ, ಆಯುಷ್ಯ ಹಾಗೂ ಕೌಟುಂಬಿಕ ನೆಮ್ಮದಿಗೆ ವಿಷ್ಣು ಸಹಸ್ರನಾಮ.",
-        hi: "स्वास्थ्य, आयु और पारिवारिक सुख हेतु विष्णु सहस्रनाम पाठ।",
-        te: "ఆరోగ్యం, ఆయుష్షు మరియు కుటుంబ శాంతికి విష్ణు సహస్రనామం.",
-        ta: "ஆரோக்கியம், ஆயுள் மற்றும் குடும்ப அமைதிக்கு விஷ்ணு சகஸ்ரநாமம்.",
-        en: "Enhances health, longevity, and family emotional cohesion."
+        kn: "ಏಕಾದಶಿಯಂದು ಉಪವಾಸವಿದ್ದು ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಪಠಿಸುವುದರಿಂದ ಶರೀರ ಶೋಧನೆ, ದೀರ್ಘ ಆಯುಷ್ಯ, ಕೌಟುಂಬಿಕ ಸುಖ ಹಾಗೂ ಅಖಂಡ ಲಕ್ಷ್ಮೀ ಕೃಪೆ ಲಭಿಸುತ್ತದೆ.",
+        hi: "एकादशी पर उपवास रखकर विष्णु सहस्रनाम पाठ करने से शरीर शुद्धि, दीर्घ आयु, पारिवारिक सुख तथा अखंड लक्ष्मी कृपा प्राप्त होती है।",
+        te: "ఏకాదశి నాడు ఉపవాసముండి విష్ణు సహస్రనామం పఠించడం వలన శరీర శుద్ధి, ఆయుష్షు, కుటుంబ సౌఖ్యం మరియు లక్ష్మీ కటాక్షం లభిస్తాయి.",
+        ta: "ஏகாதசியன்று உபவாசம் இருந்து விஷ்ணு சகஸ்ரநாமம் ஜபிப்பது உடல் சுத்தி, நீண்ட ஆயுள், குடும்ப சுகம் மற்றும் அஷ்டலக்ஷ்மி கடாட்சம் தரும்.",
+        en: "Observing sacred Ekadashi fast and reciting Vishnu Sahasranama purifies bio-energies, grants longevity, and stabilizes household wealth."
       }
     },
     {
       name: { kn: "ಹುಣ್ಣಿಮೆ / ಅಮಾವಾಸ್ಯೆ", hi: "पूर्णिमा / अमावस्या", te: "పౌర్ణమి / అమావాస్య", ta: "பௌர்ணமி / அமாவாசை", en: "Purnima / Amavasya" },
       desc: {
-        kn: "ಪಿತೃ ತರ್ಪಣ, ಗ್ರಹ ಶಾಂತಿ ಹಾಗೂ ಮಹಾಬಲೇಶ್ವರ ಆತ್ಮಾಲಿಂಗ ದರ್ಶನ.",
-        hi: "पितृ तर्पण, ग्रह शांति तथा महाबलेश्वर आत्मालिंग दर्शन।",
-        te: "పితృ తర్పణం, గ్రహ శాంతి మరియు మహాబలేశ్వర ఆత్మలింగ దర్శనం.",
-        ta: "பித்ரு தர்பணம், கிரக சாந்தி மற்றும் மகாபலேஸ்வர ஆத்மலிங்க தரிசனம்.",
-        en: "Pitra Tarpanam, Graha Shanti, and Mahabaleshwara blessings."
+        kn: "ಹುಣ್ಣಿಮೆಯಂದು ಸತ್ಯನಾರಾಯಣ ಪೂಜೆ ಹಾಗೂ ಅಮಾವಾಸ್ಯೆಯಂದು ಪಿತೃ ತರ್ಪಣ, ಗ್ರಹ ಶಾಂತಿ ಮತ್ತು ಗೋಕರ್ಣ ಆತ್ಮಾಲಿಂಗ ಸ್ಮರಣೆಯು ಮನೆಗೆ ದಿವ್ಯ ರಕ್ಷಣೆ ನೀಡುತ್ತದೆ.",
+        hi: "पूर्णिमा को सत्यनारायण पूजा तथा अमावस्या को पितृ तर्पण, ग्रह शांति एवं गोकर्ण आत्मालिंग स्मरण घर को दिव्य सुरक्षा प्रदान करता है।",
+        te: "పౌర్ణమినాడు సత్యనారాయణ పూజ మరియు అమావాస్య నాడు పితృ తర్పణం, గ్రహ శాంతి, ఆత్మలింగ స్మరణ ఇంట దివ్య రక్షణను ఇస్తాయి.",
+        ta: "பௌர்ணமியில் சத்தியநாராயண பூஜையும் அமாவாசையில் பித்ரு தர்பணம், கிரக சாந்தியும் செய்வது குடும்பத்திற்கு திவ்ய பாதுகாப்பு தரும்.",
+        en: "Performing Satyanarayan Pooja on Purnima and Ancestral Tarpanam / Graha Shanti on Amavasya invokes powerful family lineage protection."
       }
     }
   ];
@@ -1098,43 +1097,94 @@ export const SevaAnugrahaGuidancePrint = ({
 
   const KSHETRA_RULES: { title: L5; desc: L5 }[] = [
     {
-      title: { kn: "🌿 ಶಂಖ ತೀರ್ಥ ಸ್ನಾನ", hi: "🌿 शंख तीर्थ स्नान", te: "🌿 శంఖ తీర్థ స్నానం", ta: "🌿 சங்கு தீர்த்த ஸ்நானம்", en: "🌿 Sacred Teertha Ablution" },
+      title: { kn: "🌿 ಶಂಖ ಹಾಗೂ ಕೋಟಿ ತೀರ್ಥ ಸ್ನಾನ", hi: "🌿 शंख एवं कोटि तीर्थ स्नान", te: "🌿 శంఖ మరియు కోటి తీర్థ స్నానం", ta: "🌿 சங்கு & கோடி தீர்த்த ஸ்நானம்", en: "🌿 Sacred Teertha Ablution" },
       desc: {
-        kn: "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಪ್ರವೇಶದ ನಂತರ ಸನ್ನಿಧಿ ದರ್ಶನಕ್ಕೆ ಮುನ್ನ ಪವಿತ್ರ ಜಲದಲ್ಲಿ ಆಚಮನ ಅಥವಾ ಸ್ನಾನ ಮಾಡುವುದು ಶುದ್ಧಿಗೆ ಮುಖ್ಯ.",
-        hi: "गोकर्ण क्षेत्र में प्रवेश के बाद दर्शन से पूर्व पवित्र जल से आचमन या स्नान करना आत्मशुद्धि के लिए आवश्यक है।",
-        te: "గోకర్ణ క్షేత్ర ప్రవేశం తర్వాత దర్శనానికి ముందు పవిత్ర జలంలో ఆచమనం లేదా స్నానం చేయడం శుద్ధికి ముఖ్యం.",
-        ta: "கோகர்ண க்ஷேத்திர பிரவேசத்திற்கு பின் தரிசனத்திற்கு முன் புனித தீர்த்தத்தில் ஆசமனம் செய்வது அவசியம்.",
-        en: "Perform reverent ablution at Gokarna teertha before worshipping the sacred Atmalinga for inner purification."
+        kn: "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಪ್ರವೇಶದ ನಂತರ ಮಹಾಬಲೇಶ್ವರ ದರ್ಶನಕ್ಕೆ ಮುನ್ನ ಕೋಟಿ ತೀರ್ಥದಲ್ಲಿ ಅಥವಾ ಸಮುದ್ರ ಸ್ನಾನ ಮಾಡಿ ಪವಿತ್ರ ಜಲದಲ್ಲಿ ಆಚಮನ ಮಾಡುವುದು ಕಾಯಿಕ ಹಾಗೂ ಮಾನಸಿಕ ಶುದ್ಧಿಗೆ ಅತ್ಯಗತ್ಯ.",
+        hi: "गोकर्ण क्षेत्र प्रवेश के पश्चात महाबलेश्वर दर्शन से पूर्व कोटि तीर्थ या समुद्र स्नान कर पवित्र जल से आचमन करना कायिक एवं मानसिक शुद्धि के लिए अनिवार्य है।",
+        te: "గోకర్ణ క్షేత్ర ప్రవేశం తర్వాత మహాబలేశ్వర దర్శనానికి ముందు కోటి తీర్థంలో లేదా సముద్ర స్నానం చేసి ఆచమనం చేయడం శారీరక, మానసిక శుద్ధికి ముఖ్యం.",
+        ta: "கோகர்ண க்ஷேத்திர பிரவேசத்திற்கு பின் தரிசனத்திற்கு முன் கோடி தீர்த்தம் அல்லது கடலில் ஸ்நானம் செய்து ஆசமனம் செய்வது உடல், மன சுத்திக்கு அவசியம்.",
+        en: "Upon entering Gokarna Kshetra, take sacred immersion at Koti Teertha or Ocean followed by holy Achamana to purify physical and subtle aura before Darshana."
       }
     },
     {
       title: { kn: "🕉️ ಆತ್ಮಾಲಿಂಗ ಸ್ಪರ್ಶ ಮರ್ಯಾದೆ", hi: "🕉️ आत्मालिंग स्पर्श मर्यादा", te: "🕉️ ఆత్మలింగ స్పర్శ మర్యాద", ta: "🕉️ ஆத்மலிங்க ஸ்பர்ச மரியாதை", en: "🕉️ Atmalinga Touch Reverence" },
       desc: {
-        kn: "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಆತ್ಮಾಲಿಂಗ ಸ್ಪರ್ಶ ಮಾಡುವಾಗ ಅತ್ಯಂತ ಭಕ್ತಿ, ಸ್ವಚ್ಛತೆ ಹಾಗೂ ಶಿವ ಸಂಕಲ್ಪದಿಂದ ಪೂಜಿಸಬೇಕು.",
-        hi: "श्री महाबलेश्वर आत्मालिंग का स्पर्श करते समय परम भक्ति, पवित्रता और शिव संकल्प से पूजन करें।",
-        te: "శ్రీ మహాబలేశ్వర ఆత్మలింగ స్పర్శ చేసేటప్పుడు అత్యంత భక్తి, శౌచం మరియు శివ సంకల్పంతో పూజించాలి.",
-        ta: "ஸ்ரீ மகாபலேஸ்வர ஆத்மலிங்க ஸ்பர்சம் செய்யும்போது மிகுந்த பக்தி, சுத்தம் மற்றும் சிவ சங்கல்பத்துடன் பூஜிக்கவும்.",
-        en: "Offer prayers at the holy feet of Shri Mahabaleshwara Atmalinga with utter devotion, clean mind, and Gotra sankalpa."
+        kn: "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರತ್ಯಕ್ಷ ಆತ್ಮಾಲಿಂಗ ಸ್ಪರ್ಶ ಮಾಡುವಾಗ ಅತ್ಯಂತ ನಿಷ್ಠೆ, ಶುದ್ಧ ವಸ್ತ್ರ, ಸಾತ್ವಿಕ ಭಾವ ಹಾಗೂ ಸ್ವ-ಗೋತ್ರ ಸಂಕಲ್ಪದಿಂದ ಪೂಜಿಸಿ ಶಿವ ಕೃಪೆಗೆ ಪಾತ್ರರಾಗಬೇಕು.",
+        hi: "श्री महाबलेश्वर प्रत्यक्ष आत्मालिंग का स्पर्श करते समय परम निष्ठा, पवित्र वस्त्र, सात्विक भाव और गोत्र संकल्प से पूजन कर शिव कृपा प्राप्त करें।",
+        te: "శ్రీ మహాబలేశ్వర ప్రత్యక్ష ఆత్మలింగ స్పర్శ చేసేటప్పుడు అత్యంత నిష్ఠ, శౌచం, సాత్విక భావం మరియు స్వగోత్ర సంకల్పంతో పూజించి శివానుగ్రహం పొందాలి.",
+        ta: "ஸ்ரீ மகாபலேஸ்வர ஆத்மலிங்க ஸ்பர்சம் செய்யும்போது மிகுந்த பக்தி, தூய ஆடை, சாத்விக பாவம் மற்றும் கோத்ர சங்கல்பத்துடன் பூஜிக்க வேண்டும்.",
+        en: "When reverently touching Lord Shiva's original Atmalinga at Gokarna, offer heart-felt prayers with clean attire, Gotra sankalpa, and pure devotion."
       }
     },
     {
       title: { kn: "🌺 ಬಿಲ್ವಾರ್ಚನೆ ಹಾಗೂ ರುದ್ರಾಭಿಷೇಕ", hi: "🌺 बिल्वार्चन एवं रुद्राभिषेक", te: "🌺 బిల్వార్చన మరియు రుద్రాభిషేకం", ta: "🌺 பில்வார்ச்சனை மற்றும் ருத்ராபிஷேகம்", en: "🌺 Bilva & Rudrabhishekam" },
       desc: {
-        kn: "ತ್ರಿಪತ್ರ ಬಿಲ್ವಪತ್ರೆಯಿಂದ ಅಷ್ಟೋತ್ತರ ಪೂಜೆ ಮಾಡಿಸುವುದರಿಂದ ಸರ್ವ ಪಾಪ ನಿವಾರಣೆಯಾಗಿ ಸಂಸಾರ ಸಿದ್ಧಿ ಲಭಿಸುತ್ತದೆ.",
-        hi: "त्रिदल बिल्वपत्र से अष्टोत्तर पूजा कराने से समस्त पापों का क्षय होकर पारिवारिक समृद्धि प्राप्त होती है।",
-        te: "త్రిపత్ర బిల్వపత్రంతో అష్టోత్తర పూజ చేయించడం వలన సర్వ పాప నివారణ జరిగి కుటుంబ సౌఖ్యం లభిస్తుంది.",
-        ta: "முப்பத்திர பில்வபத்திரத்தால் அஷ்டோத்தர பூஜை செய்வது சர்வதோஷ நிவர்த்தியும் குடும்ப யோகமும் தரும்.",
-        en: "Offering fresh Bilva leaves during Rudrabhishekam dissolves karmic afflictions and grants domestic harmony."
+        kn: "ತ್ರಿಪತ್ರ ಬಿಲ್ವಪತ್ರೆಯಿಂದ ಅಷ್ಟೋತ್ತರ ಅರ್ಚನೆ ಹಾಗೂ ಪಂಚಾಮೃತ ಸಮೇತ ಮಹಾ ರುದ್ರಾಭಿಷೇಕ ಮಾಡಿಸುವುದರಿಂದ ಸಮಸ್ತ ಜನ್ಮಾಂತರ ಪಾಪಗಳು ಕ್ಷಯವಾಗಿ ಸಂಸಾರ ಸುಖ ಲಭಿಸುತ್ತದೆ.",
+        hi: "त्रिदल बिल्वपत्र से अष्टोत्तर अर्चन तथा पंचामृत सहित महा रुद्राभिषेक कराने से समस्त जन्मांतर पाप नष्ट होकर संसार सुख प्राप्त होता है।",
+        te: "త్రిపత్ర బిల్వపత్రంతో అష్టోత్తర అర్చన మరియు పంచామృత రుద్రాభిషేకం చేయించడం వలన సర్వ పాపాలు నశించి కుటుంబ సౌఖ్యం సిద్ధిస్తుంది.",
+        ta: "முப்பத்திர பில்வபத்திரத்தால் அஷ்டோத்தர அர்ச்சனையும் பஞ்சாமிர்த ருத்ராபிஷேகமும் செய்வது ஜென்மாந்தர பாவங்களை நீக்கி குடும்ப யோகம் தரும்.",
+        en: "Sponsoring Ashtottara Bilvarchana and Panchamrita Mahabhishekam at Gokarna dissolves accumulated karmic heavy debts and brings lifelong prosperity."
+      }
+    }
+  ];
+
+  const STOTRA_TITLE_DICT: L5 = {
+    kn: "✦ ಚತುರ್ಕಾಲ ಧಾರ್ಮಿಕ ಸ್ತೋತ್ರ ಜಪ ಹಾಗೂ ನಿತ್ಯ ದೇವತಾ ಪ್ರಾರ್ಥನೆ ✦",
+    hi: "✦ चतुष्काल धार्मिक स्तोत्र जप एवं नित्य देवता प्रार्थना ✦",
+    te: "✦ చతుర్కాల ధార్మిక స్తోత్ర జపం మరియు నిత్య దేవతా ప్రార్థన ✦",
+    ta: "✦ நாற்கால ஆன்மீக தோத்திர ஜபமும் நித்ய தேவதா பிரார்த்தனையும் ✦",
+    en: "✦ 4-Time Daily Stotra Recitation & Sacred Deity Discipline ✦"
+  };
+
+  const STOTRA_LIST: { title: L5; desc: L5 }[] = [
+    {
+      title: { kn: "🌅 ಪ್ರಾತಃಕಾಲ: ಶಿವ ಪಂಚಾಕ್ಷರೀ ಸ್ತೋತ್ರ", hi: "🌅 प्रातःकाल: शिव पंचाक्षरी स्तोत्र", te: "🌅 ప్రాతఃకాలం: శివ పంచాక్షరీ స్తోత్రం", ta: "🌅 காலை: சிவ பஞ்சாட்சரி தோத்திரம்", en: "🌅 Morning: Shiva Panchakshari Stotra" },
+      desc: {
+        kn: "ಉದಯಕಾಲದಲ್ಲಿ 'ನಾಮಃ ಶಿವಾಯ' ಪಂಚಾಕ್ಷರೀ ಸ್ತೋತ್ರವನ್ನು ೧೧ ಬಾರಿ ಪಠಿಸುವುದರಿಂದ ಇಡೀ ದಿನ ಮನಸ್ಸಿನಲ್ಲಿ ಉಲ್ಲಾಸ, ಕಾರ್ಯಕ್ಷೇತ್ರದಲ್ಲಿ ಧೈರ್ಯ ಹಾಗೂ ಆತ್ಮಾಭಿಮಾನ ಹೆಚ್ಚುತ್ತದೆ.",
+        hi: "प्रातःकाल में 'नमः शिवाय' पंचाक्षरी स्तोत्र का ११ बार पाठ करने से दिनभर मन में उत्साह, कार्यक्षेत्र में धैर्य एवं आत्मविश्वास बढ़ता है।",
+        te: "ఉదయం 'నమః శివాయ' పంచాక్షరీ స్తోత్రమును 11 సార్లు పఠించడం వలన రోజంతా మనస్సులో ఉత్సాహం, ధైర్యం మరియు ఆత్మవిశ్వాసం పెరుగుతాయి.",
+        ta: "காலையில் 'நம சிவாய' பஞ்சாட்சரி தோத்திரத்தை 11 முறை ஜபிப்பது நாள் முழுவதும் மன அமைதி, தைரியம் மற்றும் தன்னம்பிக்கை தரும்.",
+        en: "Reciting Shiva Panchakshari Stotra 11 times at dawn fills your mind with invincible courage, positive focus, and radiant vitality throughout the day."
+      }
+    },
+    {
+      title: { kn: "☀️ ಮಧ್ಯಾಹ್ನ: ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಸ್ಮರಣೆ", hi: "☀️ मध्याह्न: विष्णु सहस्रनाम स्मरण", te: "☀️ మధ్యాహ్నం: విష్ణు సహస్రనామ స్మరణ", ta: "☀️ நண்பகல்: விஷ்ணு சகஸ்ரநாம ஸ்மரணம்", en: "☀️ Noon: Vishnu Sahasranama Remembrances" },
+      desc: {
+        kn: "ಮಧ್ಯಾಹ್ನದ ಸಮಯ ಅಥವಾ ಆಹಾರ ನೈವೇದ್ಯಕ್ಕೆ ಮುನ್ನ ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಅಥವಾ ಗಾಯತ್ರಿ ಧ್ಯಾನ ಮಾಡುವುದರಿಂದ ಆರ್ಥಿಕ ಸಮೃದ್ಧಿ, ಸದ್ಬುದ್ಧಿ ಹಾಗೂ ವ್ಯಾಪಾರ ವೃದ್ಧಿಯಾಗುತ್ತದೆ.",
+        hi: "मध्याह्न काल या भोजन से पूर्व विष्णु सहस्रनाम या गायत्री ध्यान करने से आर्थिक समृद्धि, सद्बुद्धि एवं व्यापार में निरंतर वृद्धि होती है।",
+        te: "మధ్యాహ్నం లేదా భోజనానికి ముందు విష్ణు సహస్రనామం లేదా గాయత్రీ ధ్యానం చేయడం వలన ఆర్థిక సమృద్ధి, సద్బుద్ధి మరియు వ్యాపార అభివృద్ధి లభిస్తాయి.",
+        ta: "நண்பகலில் அல்லது உணவுக்கு முன் விஷ்ணு சகஸ்ரநாமம் அல்லது காயத்ரி தியானம் செய்வது பொருளாதார வளர்ச்சி, நல்புத்தி தரும்.",
+        en: "Reciting Vishnu Sahasranama or Gayatri Dhyana around noon magnetizes steady financial influx, sharp intellect, and commercial growth."
+      }
+    },
+    {
+      title: { kn: "🌆 ಸಾಯಂಕಾಲ: ಪ್ರದೋಷ ದೀಪಾರಾಧನೆ", hi: "🌆 सायं: प्रदोष दीपाराधन एवं जप", te: "🌆 సాయంత్రం: ప్రదోష దీపారాధన", ta: "🌆 மாலை: பிரதோஷ தீபாராதனை", en: "🌆 Evening: Pradosha Lamp & Mantra" },
+      desc: {
+        kn: "ಸೂರ್ಯಾಸ್ತಮಯದ ನಂತರ ಮನೆಯ ದೇವರ ಮನೆಯಲ್ಲಿ ದೀಪ ಬೆಳಗಿಸಿ ಮೃತ್ಯುಂಜಯ ಮಂತ್ರ ಪಠಿಸುವುದು ಕೌಟುಂಬಿಕ ದೋಷಗಳನ್ನು ನಿವಾರಿಸಿ ದಿವ್ಯ ಕವಚವನ್ನು ನಿರ್ಮಿಸುತ್ತದೆ.",
+        hi: "सूर्यास्त के पश्चात पूजा घर में दीपक जलाकर मृत्युंजय मंत्र का पाठ करने से पारिवारिक दोष दूर होते हैं तथा दिव्य सुरक्षा कवच बनता है।",
+        te: "సాయంత్రం పూజాగదిలో దీపం వెలిగించి మృత్యుంజయ మంత్రం జపించడం వలన కుటుంబ దోషాలు తొలగి ఇంట దివ్య కవచం ఏర్పడుతుంది.",
+        ta: "மாலையில் பூஜை அறையில் தீபம் ஏற்றி மிருத்யுஞ்சய மந்திரம் ஜபிப்பது குடும்ப தோஷங்களை அகற்றி திவ்ய பாதுகாப்பு கவசம் அமைக்கும்.",
+        en: "Lighting an evening oil lamp and chanting Maha Mrityunjaya Mantra establishes a protective spiritual aura shielding your home against negativity."
+      }
+    },
+    {
+      title: { kn: "🌙 ರಾತ್ರಿ: ಕ್ಷಮಾ ಪ್ರಾರ್ಥನೆ ಹಾಗೂ ಶಾಂತಿ", hi: "🌙 रात्रि: क्षमा प्रार्थना एवं शांति", te: "🌙 రాత్రి: క్షమా ప్రార్థన మరియు శాంతి", ta: "🌙 இரவு: க்ஷமா பிரார்த்தனை & அமைதி", en: "🌙 Night: Peace & Forgiveness Prayer" },
+      desc: {
+        kn: "ನಿಿದ್ರೆಗಿಂತ ಮುನ್ನ ಗೋಕರ್ಣ ಆತ್ಮಾಲಿಂಗವನ್ನು ಸ್ಮರಿಸಿ 'ಶಂಭೋ ಮಹಾದೇವ' ಎಂದು ೯ ಬಾರಿ ಜಪಿಸುವುದು ಪ್ರಶಾಂತ ನಿದ್ರೆ ಹಾಗೂ ದಿವ್ಯ ಸ್ವಪ್ನ ಶಾಂತಿಯನ್ನು ನೀಡುತ್ತದೆ.",
+        hi: "शयन से पूर्व गोकर्ण आत्मालिंग का स्मरण कर 'शंभो महादेव' ९ बार बोलने से शांतिदायक निद्रा एवं दुःस्वप्न निवारण होता है।",
+        te: "నిద్రకు ముందు గోకర్ణ ఆత్మలింగాన్ని స్మరించి 'శంభో మహాదేవ' అని 9 సార్లు జపించడం ప్రశాంత నిద్రను, దుస్వప్న నివారణను ఇస్తుంది.",
+        ta: "இரவில் உறங்கும் முன் கோகர்ண ஆத்மலிங்கத்தை ஸ்மரித்து 'சம்போ மகாதேவா' என 9 முறை ஜபிப்பது நிம்மதியான தூக்கமும் மன அமைதியும் தரும்.",
+        en: "Before retiring at night, remembering Gokarna Atmalinga and mentally whispering 'Shambho Mahadeva' 9 times induces deep restful sleep and peace."
       }
     }
   ];
 
   const MANTHRA_DESC_DICT: L5 = {
-    kn: "ಮಹಾ ಮೃತ್ಯುಂಜಯ ಮಂತ್ರ ಪಠಣವು ನಿಮ್ಮ ಹಾಗೂ ನಿಮ್ಮ ಸಕಲ ಕೌಟುಂಬಿಕ ಸದಸ್ಯರ ಆಯುಷ್ಯ, ಆರೋಗ್ಯ ಹಾಗೂ ರಕ್ಷಣೆಗೆ ದಿವ್ಯ ಕವಚವಾಗಿದೆ.",
-    hi: "महामृत्युंजय मंत्र का पाठ आपके और आपके समस्त परिवार के लिए आयु, आरोग्य और सुरक्षा का दिव्य कवच है।",
-    te: "మహా మృత్యుంజయ మంత్ర జపం మీ మరియు మీ కుటుంబ సభ్యుల ఆయుష్షు, ఆరోగ్యం మరియు రక్షణకు దివ్య కవచం.",
-    ta: "மகா மிருத்யுஞ்சய மந்திர ஜபம் உங்கள் குடும்பத்தின் ஆயுள், ஆரோக்கியம் மற்றும் பாதுகாப்புக்கு திவ்ய கவசம்.",
-    en: "Reciting the Maha Mrityunjaya Mantra serves as a cosmic armor shielding your family with health, peace, and divine resilience."
+    kn: "ಮಹಾ ಮೃತ್ಯುಂಜಯ ಮಂತ್ರ ಪಠಣವು ನಿಮ್ಮ ಹಾಗೂ ನಿಮ್ಮ ಸಕಲ ಕೌಟುಂಬಿಕ ಸದಸ್ಯರ ಆಯುಷ್ಯ, ನಿರೋಗಿ ಆರೋಗ್ಯ, ಶತ್ರು ಭಯ ನಿವಾರಣೆ ಹಾಗೂ ರಕ್ಷಣೆಗೆ ದಿವ್ಯ ಶಿವ ಕವಚವಾಗಿದೆ.",
+    hi: "महामृत्युंजय मंत्र का पाठ आपके और आपके समस्त परिवार के लिए आयु, आरोग्य, भय निवारण और सुरक्षा का दिव्य शिव कवच है।",
+    te: "మహా మృత్యుంజయ మంత్ర జపం మీ మరియు మీ కుటుంబ సభ్యుల ఆయుష్షు, నిరోగి ఆరోగ్యం, భయ నివారణ మరియు రక్షణకు దివ్య శివ కవచం.",
+    ta: "மகா மிருத்யுஞ்சய மந்திர ஜபம் உங்கள் குடும்பத்தின் ஆயுள், ஆரோக்கியம், பய நிவர்த்தி மற்றும் பாதுகாப்புக்கு திவ்ய சிவ கவசம்.",
+    en: "Reciting the sacred Maha Mrityunjaya Mantra serves as an invincible cosmic armor shielding your family with supreme health, longevity, and divine resilience."
   };
 
   const SANKALPA_TITLE_DICT: L5 = {
@@ -1146,11 +1196,11 @@ export const SevaAnugrahaGuidancePrint = ({
   };
 
   const SANKALPA_DESC_DICT: L5 = {
-    kn: "ಪ್ರತಿದಿನ ಸಂಜೆ ಮನೆಯ ದೇವರ ಮನೆಯಲ್ಲಿ ಈಶ್ವರ ಹಾಗೂ ಜನ್ಮ ನಕ್ಷತ್ರ ದೇವತೆಯನ್ನು ಸ್ಮರಿಸಿ ಅರ್ಘ್ಯ ನೀಡುವುದು ಮತ್ತು 108 ಬಾರಿ ಮೂಲಮಂತ್ರ ಪಠಿಸುವುದು ಸಮಸ್ತ ಕುಟುಂಬಕ್ಕೆ ಸುಕ್ಷೇಮ ತರುತ್ತದೆ.",
-    hi: "प्रतिदिन सायं पूजा घर में भगवान शिव एवं जन्म नक्षत्र देवता का स्मरण कर अर्घ्य दें तथा 108 बार मूल मंत्र का पाठ करें।",
-    te: "ప్రతిరోజూ సాయంత్రం పూజాగదిలో ఈశ్వరుని మరియు జన్మ నక్షత్ర దేవతను స్మరించి అర్ఘ్యం ఇవ్వడం, 108 సార్లు మూలమంత్రం జపించడం కుటుంబానికి శుభకరం.",
-    ta: "தினமும் மாலையில் பூஜை அறையில் ஈஸ்வரனையும் நட்சத்திர தேவதையையும் ஸ்மரித்து அர்க்யம் கொடுப்பது குடும்பத்திற்கு க்ஷேமம் தரும்.",
-    en: "Offering daily evening Arghya and chanting 108 times the beeja mantra brings enduring prosperity, protection, and mental peace."
+    kn: "ಪ್ರತಿದಿನ ಸಂಜೆ ಮನೆಯ ದೇವರ ಮನೆಯಲ್ಲಿ ಈಶ್ವರ ಹಾಗೂ ಜನ್ಮ ನಕ್ಷತ್ರ ದೇವತೆಯನ್ನು ಸ್ಮರಿಸಿ ಶುದ್ಧ ಜಲದಿಂದ ಅರ್ಘ್ಯ ನೀಡುವುದು, ಧೂಪ-ದೀಪ ಬೆಳಗುವುದು ಮತ್ತು 108 ಬಾರಿ ಮೂಲಮಂತ್ರ ಪಠಿಸುವುದು ಸಮಸ್ತ ಕುಟುಂಬಕ್ಕೆ ಸುಕ್ಷೇಮ, ಆರ್ಥಿಕ ಸ್ಥಿರತೆ ಹಾಗೂ ಆಯುಷ್ಯ ವೃದ್ಧಿಯನ್ನು ತರುತ್ತದೆ.",
+    hi: "प्रतिदिन सायं पूजा घर में भगवान शिव एवं जन्म नक्षत्र देवता का स्मरण कर जल से अर्घ्य दें, धूप-दीप जलाएं तथा 108 बार मूल मंत्र का पाठ करें। यह समस्त परिवार को सुख-समृद्धि, आर्थिक स्थिरता एवं दीर्घायु प्रदान करता है।",
+    te: "ప్రతిరోజూ సాయంత్రం పూజాగదిలో ఈశ్వరుని మరియు జన్మ నక్షత్ర దేవతను స్మరించి అర్ఘ్యం ఇవ్వడం, ధూప-దీపాలు వెలిగించి 108 సార్లు మూలమంత్రం జపించడం కుటుంబానికి శుభం, ఆర్థిక స్థిరత్వం ఇస్తుంది.",
+    ta: "தினமும் மாலையில் பூஜை அறையில் ஈஸ்வரனையும் நட்சத்திர தேவதையையும் ஸ்மரித்து அர்க்யம் கொடுத்து, தூப-தீபம் ஏற்றி 108 முறை மூலமந்திரம் ஜபிப்பது குடும்பத்திற்கு க்ஷேமமும் பொருளாதார ஸ்திரத்தன்மையும் தரும்.",
+    en: "Offering daily evening Arghya, lighting dhoopa-deepa, and chanting 108 times the planetary beeja mantra brings enduring prosperity, financial stability, protection, and mental serenity."
   };
 
   const ARCHAKA_HEADER_DICT: L5 = {
@@ -1170,11 +1220,11 @@ export const SevaAnugrahaGuidancePrint = ({
   };
 
   const ARCHAKA_DESC_DICT: L5 = {
-    kn: "ವಿಶೇಷ ಗೋತ್ರ ಸಂಕಲ್ಪ ಸೇವೆ, ಮಹಾಪೂಜೆ, ನವಗ್ರಹ ದೋಷ ಶಾಂತಿ ಹಾಗೂ ಗೋಕರ್ಣ ಪ್ರಸಾದವನ್ನು ಮನೆಗೆ ತಲುಪಿಸಲು ಅರ್ಚಕರೊಂದಿಗೆ ನೇರವಾಗಿ ಸಂಪರ್ಕಿಸಬಹುದು.",
-    hi: "विशेष गोत्र संकल्प सेवा, महापूजा, नवग्रह दोष शांति तथा गोकर्ण प्रसाद घर मंगाने हेतु अर्चक से प्रत्यक्ष संपर्क करें।",
-    te: "విశేష గోత్ర సంకల్ప సేవ, మహాపూజ, నవగ్రహ దోష శాంతి మరియు గోకర్ణ ప్రసాదాన్ని ఇంటికి తెప్పించుకోవడానికి అర్చకులను నేరుగా సంప్రదించవచ్చు.",
-    ta: "விசேஷ கோத்ர சங்கல்ப சேவை, மகாபூஜை, நவகிரக தோஷ சாந்தி மற்றும் பிரசாதம் பெற அர்ச்சகரை நேரில் தொடர்புகொள்ளலாம்.",
-    en: "For special Gotra Sankalpa Seva, Mahapooja, Navagraha Shanti, and home delivery of Mahabaleshwara Prasada, consult the Archaka directly."
+    kn: "ವಿಶೇಷ ಗೋತ್ರ ಸಂಕಲ್ಪ ಸೇವೆ, ಮಹಾಪೂಜೆ, ನವಗ್ರಹ ದೋಷ ಶಾಂತಿ ಹಾಗೂ ಗೋಕರ್ಣ ಪ್ರಸಾದವನ್ನು ಮನೆಗೆ ತಲುಪಿಸಲು ಅರ್ಚಕರೊಂದಿಗೆ ನೇರವಾಗಿ ಸಂಪರ್ಕಿಸಬಹುದು. ವರ್ಷದ ಯಾವುದೇ ಸಮಯದಲ್ಲಿ ವಿಶೇಷ ಸಂಕಲ್ಪ ಪೂಜೆ ಕಾಯ್ದಿರಿಸಬಹುದು.",
+    hi: "विशेष गोत्र संकल्प सेवा, महापूजा, नवग्रह दोष शांति तथा गोकर्ण प्रसाद घर मंगाने हेतु अर्चक से प्रत्यक्ष संपर्क करें। वर्ष में किसी भी समय विशेष संकल्प पूजा बुक कर सकते हैं।",
+    te: "విశేష గోత్ర సంకల్ప సేవ, మహాపూజ, నవగ్రహ దోష శాంతి మరియు గోకర్ణ ప్రసాదాన్ని ఇంటికి తెప్పించుకోవడానికి అర్చకులను నేరుగా సంప్రదించవచ్చు. సంవత్సరంలో ఏ సమయంలోనైనా పూజలు బుక్ చేసుకోవచ్చు.",
+    ta: "விசேஷ கோத்ர சங்கல்ப சேவை, மகாபூஜை, நவகிரக தோஷ சாந்தி மற்றும் பிரசாதம் பெற அர்ச்சகரை நேரில் தொடர்புகொள்ளலாம். வருடத்தின் எந்த நேரத்திலும் விசேஷ சங்கல்ப பூஜைகளை முன்பதிவு செய்யலாம்.",
+    en: "For special Gotra Sankalpa Seva, Mahapooja, Navagraha Shanti, and doorstep home delivery of Mahabaleshwara Sacred Prasada, consult the Archaka directly at any time of the year."
   };
 
   return (
@@ -1183,7 +1233,7 @@ export const SevaAnugrahaGuidancePrint = ({
         style={{
           border: `3px double ${GOLD}`,
           borderRadius: 16,
-          padding: "20px 24px",
+          padding: "16px 20px",
           minHeight: PAGE_H - 76,
           boxSizing: "border-box",
           backgroundColor: PAPER,
@@ -1192,11 +1242,11 @@ export const SevaAnugrahaGuidancePrint = ({
       >
         {/* Header */}
         <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: 20, color: GOLD, letterSpacing: 2 }}>❖</div>
-          <div style={{ fontSize: 16, fontWeight: 700, color: INK, marginTop: 2, lineHeight: 1.6 }}>
+          <div style={{ fontSize: 18, color: GOLD, letterSpacing: 2 }}>❖</div>
+          <div style={{ fontSize: 15.5, fontWeight: 700, color: INK, marginTop: 1, lineHeight: 1.5 }}>
             {pick(TITLE_DICT, lang)}
           </div>
-          <div style={{ fontSize: 10.5, color: INK_SOFT, marginTop: 2, lineHeight: 1.6, maxWidth: 700, margin: "2px auto 0" }}>
+          <div style={{ fontSize: 10, color: INK_SOFT, marginTop: 2, lineHeight: 1.5, maxWidth: 720, margin: "2px auto 0" }}>
             {pick(SUBTITLE_DICT, lang)}
           </div>
         </div>
@@ -1204,12 +1254,12 @@ export const SevaAnugrahaGuidancePrint = ({
         <OrnamentRule />
 
         {/* Section 1: Devotee Commandments */}
-        <div style={{ marginTop: 4 }}>
-          <div style={{ fontSize: 11.5, fontWeight: 700, color: GOLD, marginBottom: 6, textTransform: "uppercase", textAlign: "center" }}>
+        <div style={{ marginTop: 8 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, marginBottom: 5, textTransform: "uppercase", textAlign: "center" }}>
             {pick(RULES_TITLE_DICT, lang)}
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 7 }}>
             {RULES_LIST.map((rule, idx) => (
               <div
                 key={idx}
@@ -1217,14 +1267,14 @@ export const SevaAnugrahaGuidancePrint = ({
                   border: `1.5px solid ${GOLD_LIGHT}`,
                   borderRadius: 8,
                   backgroundColor: PANEL,
-                  padding: "8px 12px",
+                  padding: "8px 11px",
                   boxSizing: "border-box"
                 }}
               >
-                <div style={{ fontSize: 11.5, fontWeight: 700, color: INK, marginBottom: 2, lineHeight: 1.5 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: INK, marginBottom: 3, lineHeight: 1.4 }}>
                   {pick(rule.title, lang)}
                 </div>
-                <div style={{ fontSize: 9.5, color: INK_SOFT, lineHeight: 1.6 }}>
+                <div style={{ fontSize: 9.5, color: INK_SOFT, lineHeight: 1.55 }}>
                   {pick(rule.desc, lang)}
                 </div>
               </div>
@@ -1233,8 +1283,8 @@ export const SevaAnugrahaGuidancePrint = ({
         </div>
 
         {/* Section 2: Monthly Tithi Guide */}
-        <div style={{ marginTop: 10 }}>
-          <div style={{ fontSize: 11.5, fontWeight: 700, color: GOLD, marginBottom: 6, textTransform: "uppercase", textAlign: "center" }}>
+        <div style={{ marginTop: 9 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, marginBottom: 5, textTransform: "uppercase", textAlign: "center" }}>
             {pick(TITHI_TITLE_DICT, lang)}
           </div>
 
@@ -1250,7 +1300,7 @@ export const SevaAnugrahaGuidancePrint = ({
                   textAlign: "center"
                 }}
               >
-                <div style={{ fontSize: 10.5, fontWeight: 700, color: GOLD, lineHeight: 1.5 }}>{pick(tg.name, lang)}</div>
+                <div style={{ fontSize: 10.5, fontWeight: 700, color: GOLD, lineHeight: 1.4 }}>{pick(tg.name, lang)}</div>
                 <div style={{ fontSize: 9, color: INK_SOFT, marginTop: 2, lineHeight: 1.5 }}>
                   {pick(tg.desc, lang)}
                 </div>
@@ -1260,12 +1310,12 @@ export const SevaAnugrahaGuidancePrint = ({
         </div>
 
         {/* Section 3: Gokarna Kshetra Darshana Rules */}
-        <div style={{ marginTop: 10 }}>
-          <div style={{ fontSize: 11.5, fontWeight: 700, color: GOLD, marginBottom: 6, textTransform: "uppercase", textAlign: "center" }}>
+        <div style={{ marginTop: 9 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, marginBottom: 5, textTransform: "uppercase", textAlign: "center" }}>
             {pick(KSHETRA_TITLE_DICT, lang)}
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 7 }}>
             {KSHETRA_RULES.map((kr, idx) => (
               <div
                 key={idx}
@@ -1273,14 +1323,14 @@ export const SevaAnugrahaGuidancePrint = ({
                   border: `1px solid ${GOLD_LIGHT}`,
                   borderRadius: 8,
                   backgroundColor: PANEL,
-                  padding: "8px 10px",
+                  padding: "7px 9px",
                   boxSizing: "border-box"
                 }}
               >
-                <div style={{ fontSize: 10.5, fontWeight: 700, color: INK, marginBottom: 2, lineHeight: 1.5 }}>
+                <div style={{ fontSize: 10.5, fontWeight: 700, color: INK, marginBottom: 2, lineHeight: 1.4 }}>
                   {pick(kr.title, lang)}
                 </div>
-                <div style={{ fontSize: 9, color: INK_SOFT, lineHeight: 1.6 }}>
+                <div style={{ fontSize: 9, color: INK_SOFT, lineHeight: 1.55 }}>
                   {pick(kr.desc, lang)}
                 </div>
               </div>
@@ -1288,62 +1338,91 @@ export const SevaAnugrahaGuidancePrint = ({
           </div>
         </div>
 
-        {/* Section 4: Maha Mrityunjaya & Gotra Blessing Banner */}
+        {/* Section 4: 4-Time Daily Stotra Recitation Guide */}
+        <div style={{ marginTop: 9 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, marginBottom: 5, textTransform: "uppercase", textAlign: "center" }}>
+            {pick(STOTRA_TITLE_DICT, lang)}
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 7 }}>
+            {STOTRA_LIST.map((st, idx) => (
+              <div
+                key={idx}
+                style={{
+                  border: `1px solid ${GOLD_LIGHT}`,
+                  borderRadius: 8,
+                  backgroundColor: "#FFFFFF",
+                  padding: "7px 10px",
+                  boxSizing: "border-box"
+                }}
+              >
+                <div style={{ fontSize: 10.5, fontWeight: 700, color: INK, marginBottom: 2, lineHeight: 1.4 }}>
+                  {pick(st.title, lang)}
+                </div>
+                <div style={{ fontSize: 9, color: INK_SOFT, lineHeight: 1.5 }}>
+                  {pick(st.desc, lang)}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Section 5: Maha Mrityunjaya & Gotra Blessing Banner */}
         <div
           style={{
-            marginTop: 10,
+            marginTop: 9,
             backgroundColor: "#FFFFFF",
             border: `1.5px solid ${GOLD_LIGHT}`,
-            borderRadius: 10,
-            padding: "10px 14px",
+            borderRadius: 8,
+            padding: "8px 12px",
             textAlign: "center"
           }}
         >
-          <div style={{ fontSize: 9.5, fontWeight: 700, color: GOLD, letterSpacing: 1.5, textTransform: "uppercase" }}>
-            ॐ ತ್ರಯ್ಯಂಬಕಂ ಯಜಾಮಹೇ ಸುಗಂಧಿಂ ಪುಷ್ಟಿವರ್ಧನಮ್ | ಉರ್ವಾರುಕಮಿವ ಬಂಧನಾನ್ಮೃತ್ಯೋರ್ಮುಕ್ಷೀಯ ಮಾಮೃತಾತ್ ||
+          <div style={{ fontSize: 9.5, fontWeight: 700, color: GOLD, letterSpacing: 1.2, textTransform: "uppercase" }}>
+            ॐ ತ್ರಯ್ಯಂಬಕಂ ಯಜಾಮಹೇ ಸುಗಂಧಿಂ ಪುಷ್ಟಿವර්ධನಮ್ | ಉರ್ವಾರಕಮಿವ ಬಂಧನಾನ್ಮೃತ್ಯೋರ್ಮುಕ್ಷೀಯ ಮಾಮೃತಾತ್ ||
           </div>
-          <div style={{ fontSize: 9.5, color: INK_SOFT, marginTop: 3, lineHeight: 1.6 }}>
+          <div style={{ fontSize: 9, color: INK_SOFT, marginTop: 2, lineHeight: 1.5 }}>
             {pick(MANTHRA_DESC_DICT, lang)}
           </div>
         </div>
 
-        {/* Section 5: Daily Pooja Sankalpa & Shanti Guide */}
+        {/* Section 6: Daily Pooja Sankalpa & Shanti Guide */}
         <div
           style={{
-            marginTop: 10,
+            marginTop: 9,
             backgroundColor: PANEL,
             border: `1px solid ${GOLD_LIGHT}`,
-            borderRadius: 10,
-            padding: "10px 14px",
+            borderRadius: 8,
+            padding: "8px 12px",
             textAlign: "center"
           }}
         >
           <div style={{ fontSize: 10.5, fontWeight: 700, color: GOLD, marginBottom: 2 }}>
             {pick(SANKALPA_TITLE_DICT, lang)}
           </div>
-          <div style={{ fontSize: 9.5, color: INK_SOFT, lineHeight: 1.6 }}>
+          <div style={{ fontSize: 9, color: INK_SOFT, lineHeight: 1.5 }}>
             {pick(SANKALPA_DESC_DICT, lang)}
           </div>
         </div>
 
-        {/* Section 6: Priest Direct Consultation Card */}
+        {/* Section 7: Priest Direct Consultation Card & Seal */}
         <div
           style={{
-            marginTop: 10,
+            marginTop: 9,
             border: `1.5px solid ${GOLD}`,
             borderRadius: 10,
             backgroundColor: "#FFFFFF",
-            padding: "10px 16px",
+            padding: "8px 14px",
             textAlign: "center"
           }}
         >
-          <div style={{ fontSize: 11.5, fontWeight: 700, color: GOLD, marginBottom: 2 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, marginBottom: 2 }}>
             {pick(ARCHAKA_HEADER_DICT, lang)}
           </div>
-          <div style={{ fontSize: 11, color: INK, fontWeight: 700, marginTop: 1 }}>
+          <div style={{ fontSize: 10.5, color: INK, fontWeight: 700, marginTop: 1 }}>
             {safePanditName || "ಚೈತನ್ಯ ಪಂಡಿತ"} — {pick(ARCHAKA_ROLE_DICT, lang)}
           </div>
-          <div style={{ fontSize: 9.5, color: INK_SOFT, marginTop: 2, lineHeight: 1.6, maxWidth: 680, margin: "2px auto 0" }}>
+          <div style={{ fontSize: 9, color: INK_SOFT, marginTop: 2, lineHeight: 1.5, maxWidth: 680, margin: "2px auto 0" }}>
             {pick(ARCHAKA_DESC_DICT, lang)}
           </div>
         </div>
@@ -1352,7 +1431,7 @@ export const SevaAnugrahaGuidancePrint = ({
         <div
           style={{
             position: "absolute",
-            bottom: 12,
+            bottom: 10,
             left: 36,
             right: 36,
             textAlign: "center",
