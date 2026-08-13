@@ -243,6 +243,23 @@ const MULTI_QUESTION_TOPICS = [
 
 
 
+export function buildKundaliCurrentPhaseFallback(
+  lang: string,
+  lagnaStr: string,
+  moonStr: string,
+  dashaName: string,
+  bhuktiName: string
+): string {
+  const baseLang = (lang || "en").split("-")[0];
+  if (baseLang === "kn") {
+    return `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${lagnaStr}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${moonStr}) ಆಧಾರದ ಮೇಲೆ, ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dashaName} ಮಹಾದಶಾ ಹಾಗೂ ${bhuktiName} ಭುಕ್ತಿ ಕಾಲಘಟ್ಟವು ನಿಮ್ಮ ವೈಯಕ್ತಿಕ ಹಾಗೂ ವೃತ್ತಿಜೀವನದಲ್ಲಿ ಅತ್ಯಂತ ಪ್ರಮುಖ ಬದಲಾವಣೆಗಳನ್ನು ಉಂಟುಮಾಡುತ್ತಿದೆ. ಗ್ರಹಗಳ ಪ್ರಚಲಿತ ಸಂಚಾರವು ನಿಮ್ಮ ದೈನಂದಿನ ಕಾರ್ಯಗಳಲ್ಲಿ ಜವಾಬ್ದಾರಿಯನ್ನು ಹೆಚ್ಚಿಸುತ್ತಿದ್ದು, ಹೊಸ ಅವಕಾಶಗಳಿಗೆ ಹಾದಿ ಮಾಡಿಕೊಡುತ್ತಿದೆ.\n\nಈ ಅವಧಿಯಲ್ಲಿ ನಿಮ್ಮ ಮನಸ್ಸಿನಲ್ಲಿ ಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಪ್ರತಿಫಲ ದೊರೆಯುತ್ತಿಲ್ಲವೆಂಬ ಸಣ್ಣಪುಟ್ಟ ಆತಂಕ ಅಥವಾ ಅಸ್ಥಿರತೆಯ ಭಾವನೆ ಮೂಡಬಹುದು. ಆದಾಗ್ಯೂ, ದೇವಗುರು ಹಾಗೂ ಶನಿ ಗ್ರಹಗಳ ಗೋಚಾರ ಬಲವು ನಿಮಗೆ ಧೈರ್ಯ, ಸಹನೆ ಹಾಗೂ ನಿಗ್ರಹ ಶಕ್ತಿಯನ್ನು ಕರುಣಿಸಲಿದೆ.\n\nಅಂತರಂಗದ ಮಟ್ಟದಲ್ಲಿ, ನೀವು ಭವಿಷ್ಯದ ಭದ್ರತೆ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಅಭ್ಯುದಯದ ಕುರಿತು ಆಳವಾಗಿ ಆಲೋಚಿಸುತ್ತಿದ್ದೀರಿ. ಹಳೆಯ ಸಮಸ್ಯೆಗಳನ್ನು ಬಗೆಹರಿಸಿ ಹೊಸ ಆರಂಭವನ್ನು ಮಾಡಲು ನಿಮ್ಮ ಸುಪ್ತ ಮನಸ್ಸು ಸಿದ್ಧವಾಗುತ್ತಿದೆ.\n\nಸತ್ಕರ್ಮಗಳ ಪಾಲನೆ, ನಿತ್ಯ ಪೂಜೆ ಹಾಗೂ ಗುರು-ಹಿರಿಯರ ಆಶೀರ್ವಾದವನ್ನು ಪಡೆಯುವುದರಿಂದ ಈ ಪ್ರಸ್ತುತ ಕಾಲಘಟ್ಟದ ಸಕಲ ಅಡೆತಡೆಗಳು ನಿವಾರಣೆಯಾಗಿ ನಿರಂತರ ಸಿದ್ಧಿ ಲಭಿಸಲಿದೆ.`;
+  }
+  if (baseLang === "hi") {
+    return `आपकी जन्म लग्न (${lagnaStr}) एवं चंद्र राशि (${moonStr}) के आधार पर, वर्तमान ${dashaName} महादशा एवं ${bhuktiName} भुक्ति का प्रभाव आपके जीवन में महत्वपूर्ण सकारात्मक परिवर्तन ला रहा है। दैनिक कार्यों में उत्तरदायित्व बढ़ने के साथ ही प्रगति के नए अवसर प्राप्त हो रहे हैं।\n\nइस समय मानसिक रूप से कभी-कभी अस्थिरता या चिंता का अनुभव हो सकता है। परंतु गुरु एवं शनि के गोचर प्रभाव से आपको धैर्य, आत्मबल और मानसिक स्पष्टता प्राप्त होगी।\n\nआंतरिक स्तर पर, आप भविष्य की सुरक्षा एवं पारिवारिक उन्नति के विषय में गंभीर विचार कर रहे हैं। पुरानी समस्याओं को सुलझाकर नए क्षितिज की ओर बढ़ने की दिशा बन रही है।\n\nनित्य पूजन, धर्म पालन एवं बड़ों के आशीर्वाद से वर्तमान समय की समस्त बाधाएं दूर होकर पूर्ण सफलता सिद्ध होगी।`;
+  }
+  return `Based on your birth Lagna (${lagnaStr}) and Moon sign (${moonStr}), your running ${dashaName} Mahadasha and ${bhuktiName} Bhukti activate significant developments in both personal and professional spheres. Daily responsibilities expand while opening doors to long-term growth.\n\nMentally, you may experience transient moments of impatience or reflection regarding your efforts. Favorable aspects from Jupiter and Saturn foster internal resilience and strategic clarity.\n\nAt a subconscious level, your primary focus revolves around long-term stability and family prosperity. Your inner self is preparing to resolve lingering issues and embrace constructive new beginnings.\n\nConsistent spiritual practices, disciplined action, and honoring mentors will neutralize minor planetary friction and ensure steady success during this phase.`;
+}
+
 export function enrichYogaDescription(
   name: string,
   impact: string,
@@ -1379,9 +1396,10 @@ function buildKundaliDarkSecretFallback(lang: string, lagnaStr: string, moonStr:
       };
 
       console.log("[PDF Generation] Initiating Batch 1 AI calls (Soul & Personality)...");
-      const [resCharacteristics, resDarkSecret, resYogas, resDoshas] = await Promise.all([
+      const [resCharacteristics, resDarkSecret, resCurrentPhase, resYogas, resDoshas] = await Promise.all([
         safeAsk("Generate Characteristics", prompts.characteristics, 0.3),
         safeAsk("Generate Dark Secret", prompts.darkSecret, 0.3),
+        safeAsk("Generate Current Phase", prompts.currentPhase, 0.3),
         safeAsk("Generate Premium Yogas", prompts.yogas, 0.4),
         safeAsk("Generate Premium Doshas", prompts.doshas, 0.4),
       ]);
@@ -1401,6 +1419,7 @@ function buildKundaliDarkSecretFallback(lang: string, lagnaStr: string, moonStr:
       const dataDoshas = parseGeminiJSON(resDoshas);
       const dataCharacteristics = parseGeminiJSON(resCharacteristics);
       const dataDarkSecret = parseGeminiJSON(resDarkSecret);
+      const dataCurrentPhase = parseGeminiJSON(resCurrentPhase);
       const dataTimeline = parseGeminiJSON(resTimeline);
       const dataGochara = parseGeminiJSON(resGochara);
       const dataSummary = parseGeminiJSON(resSummary);
@@ -1412,10 +1431,12 @@ function buildKundaliDarkSecretFallback(lang: string, lagnaStr: string, moonStr:
 
       const charFallbackText = buildKundaliCharacteristicsFallback(lang, lagnaStr, moonStr, dashaName, bhuktiName);
       const secretFallbackText = buildKundaliDarkSecretFallback(lang, lagnaStr, moonStr, dashaName, bhuktiName);
+      const currentPhaseFallbackText = buildKundaliCurrentPhaseFallback(lang, lagnaStr, moonStr, dashaName, bhuktiName);
       const rawSummaryFallback = stripJayashreeIntro(`${result.masterSynthesis.overallTone || 'A balanced planetary outlook for the future.'}\n\n${result.masterSynthesis.career || ''}\n\n${result.masterSynthesis.finance || ''}`);
 
       const finalCharacteristics = await ensureValidSection(dataCharacteristics.characteristics, charFallbackText, lang);
       const finalDarkSecret = await ensureValidSection(dataDarkSecret.darkSecret, secretFallbackText, lang);
+      const finalCurrentPhase = await ensureValidSection(dataCurrentPhase.currentPhase, currentPhaseFallbackText, lang);
       const finalSummary = await ensureValidSection(dataSummary.summary, rawSummaryFallback, lang);
 
       const rawYogasFallback = await Promise.all(
@@ -1476,6 +1497,7 @@ function buildKundaliDarkSecretFallback(lang: string, lagnaStr: string, moonStr:
       const premiumDataPayload = {
         characteristics: finalCharacteristics,
         darkSecret: finalDarkSecret,
+        currentPhase: finalCurrentPhase,
         yogas: finalYogas,
         doshas: finalDoshas,
         timeline: finalTimeline,

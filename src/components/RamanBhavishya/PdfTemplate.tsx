@@ -22,6 +22,7 @@ export type PdfTranslations = {
   bhuktiPlanetValue: string;
   characteristicsTitle: string;
   darkSecretTitle: string;
+  currentPhase?: string;
   ashirvadaTitle: string;
   ashirvadaValue: string;
   yogasTitle: string;
@@ -45,6 +46,7 @@ export type PdfTranslations = {
 export type PremiumData = {
   characteristics?: { impact: string }[];
   darkSecret?: { impact: string }[];
+  currentPhase?: { impact: string }[];
   yogas: { name: string; impact: string }[];
   doshas: { name: string; impact: string; remedy?: string }[];
   timeline?: { dateRange: string; impact: string }[];
@@ -242,6 +244,26 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
             {premiumData!.darkSecret!.map((ds, idx) => (
               <div key={idx} className="space-y-6">
                 {(ds.impact || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
+                  <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Current State of Mind & Life Phase Section ───────────────────── */}
+      {hasContent(premiumData?.currentPhase) && (
+        <div className={sectionClass}>
+          <h2 className="text-3xl font-bold text-amber-900 leading-normal border-b-2 border-amber-700/30 pb-2 mb-8">
+            {translations.currentPhase || "Current State of Mind & Life Phase"}
+          </h2>
+          <div className="space-y-10">
+            {premiumData!.currentPhase!.map((cp, idx) => (
+              <div key={idx} className="space-y-6">
+                {(cp.impact || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
                   <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
                     {paragraph}
                   </p>

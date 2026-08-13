@@ -298,6 +298,23 @@ Ensure all 6 months are covered sequentially without skipping any month.
 ${JSON_RULE}
 {"timeline":[{"dateRange":"month and year in target script","impact":"one long detailed paragraph"}]}`;
 
+  const currentPhase = `${header(
+    input,
+    "currentPhase",
+    "You are an intuitive Vedic astrologer and psychological expert evaluating the person's EXACT present state of mind, current life circumstances, and immediate planetary environment."
+  )}
+CRITICAL ACCURACY REQUIREMENT:
+Write EXACTLY FOUR (4) FULL, DETAILED PARAGRAPHS analyzing this person's current life phase based strictly on their age (${Math.floor(input.ageYears)}), Lagna (${rashiName(input.lagnaRashiIndex, lang)}), Chandra Rashi (${rashiName(input.moonRashiIndex, lang)}), running ${dashaLine}, and live Gochara transits from the facts above:
+- Paragraph 1: Precise current life situation and daily circumstances happening today (career status, home environment, recent developments).
+- Paragraph 2: Core emotions and psychological mindset right now (feelings of joy, stress, anticipation, or transition).
+- Paragraph 3: Subconscious thoughts, hidden desires, and internal motivations driving their current decisions.
+- Paragraph 4: Actionable astrological advice, planetary remedies, and mindset shifts required to navigate this phase smoothly.
+
+MUST BE 100% MATHEMATICALLY ACCURATE to the computed Dasha-Bhukti and transits provided above.
+
+${JSON_RULE}
+{"currentPhase":[{"impact":"paragraph 1\n\nparagraph 2\n\nparagraph 3\n\nparagraph 4"}]}`;
+
   const summary = `${header(
     input,
     "summary",
@@ -312,5 +329,5 @@ Do not list chapters again. Speak to them directly as 'you'.
 ${JSON_RULE}
 {"summary":[{"impact":"two or three paragraphs"}]}`;
 
-  return { characteristics, darkSecret, yogas, doshas, gochara, timeline, summary };
+  return { characteristics, darkSecret, currentPhase, yogas, doshas, gochara, timeline, summary };
 };
