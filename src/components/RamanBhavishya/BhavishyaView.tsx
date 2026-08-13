@@ -112,17 +112,18 @@ export function buildPersonalizedMarriageText(
   
   const house7SignIdx = (lagnaIndex + 6) % 12;
   const house7Lord = lDict[house7SignIdx] || lDict[0];
+  const house7SignName = pick(RASHI_L5[house7SignIdx], baseLang);
 
   if (status === "unmarried") {
     if (baseLang === "kn") {
-      return `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${lagnaStr}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${moonStr}) ಆಧಾರದ ಮೇಲೆ, ಸಪ್ತಮ ಭಾವಾಧಿಪತಿಯಾದ ${house7Lord} ಗ್ರಹದ ಬಲ ಹಾಗೂ ನಿಮ್ಮ ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dashaStr} ಮಹಾದಶಾ ಮತ್ತು ${bhuktiStr} ಭುಕ್ತಿ ಕಾಲಘಟ್ಟವು ಮುಂದಿನ 12 ರಿಂದ 18 ತಿಂಗಳಲ್ಲಿ ಉನ್ನತ ವಿವಾಹ ಯೋಗವನ್ನು ಅತ್ಯಂತ ಪ್ರಬಲವಾಗಿ ಸಕ್ರಿಯಗೊಳಿಸುತ್ತದೆ. ಜಾತಕದ ೭ನೇ ಮನೆಯ ಮೇಲೆ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಶುಭ ದೃಷ್ಟಿಯು ಬೀಳುತ್ತಿರುವುದರಿಂದ, ಕೌಟುಂಬಿಕ ಮಾತುಕತೆಗಳು ಅತ್ಯಂತ ಸರಾಗವಾಗಿ ಮುನ್ನಡೆದು ಶೀಘ್ರದಲ್ಲಿಯೇ ಶ್ರೇಷ್ಠ ಕಲ್ಯಾಣ ಯೋಗ ಕೂಡಿ ಬರಲಿದೆ. ನಿಮ್ಮ ಗ್ರಹಗತಿಗಳ ನಿಖರ ಲೆಕ್ಕಾಚಾರದಂತೆ ಈ ಅವಧಿಯು ವೈವಾಹಿಕ ಮುಹೂರ್ತಕ್ಕೆ ಅತ್ಯಂತ ಪ್ರಶಸ್ತವಾದ ಕಾಲವಾಗಿದೆ.
+      return `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${lagnaStr}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${moonStr}) ಆಧಾರದ ಮೇಲೆ, ನಿಮ್ಮ ೭ನೇ ಮನೆಯಾದ ${house7SignName} ರಾಶಿ ಹಾಗೂ ಅದರ ಅಧಿಪತಿಯಾದ ${house7Lord} ಗ್ರಹದ ಬಲ ಹಾಗೂ ನಿಮ್ಮ ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dashaStr} ಮಹಾದಶಾ ಮತ್ತು ${bhuktiStr} ಭುಕ್ತಿ ಕಾಲಘಟ್ಟವು ಮುಂದಿನ 12 ರಿಂದ 18 ತಿಂಗಳಲ್ಲಿ ಉನ್ನತ ವಿವಾಹ ಯೋಗವನ್ನು ಅತ್ಯಂತ ಪ್ರಬಲವಾಗಿ ಸಕ್ರಿಯಗೊಳಿಸುತ್ತದೆ. ಜಾತಕದ ೭ನೇ ಮನೆಯ ಮೇಲೆ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಶುಭ ದೃಷ್ಟಿಯು ಬೀಳುತ್ತಿರುವುದರಿಂದ, ಕೌಟುಂಬಿಕ ಮಾತುಕತೆಗಳು ಅತ್ಯಂತ ಸರಾಗವಾಗಿ ಮುನ್ನಡೆದು ಶೀಘ್ರದಲ್ಲಿಯೇ ಶ್ರೇಷ್ಠ ಕಲ್ಯಾಣ ಯೋಗ ಕೂಡಿ ಬರಲಿದೆ. ನಿಮ್ಮ ಗ್ರಹಗತಿಗಳ ನಿಖರ ಲೆಕ್ಕಾಚಾರದಂತೆ ಈ ಅವಧಿಯು ವೈವಾಹಿಕ ಮುಹೂರ್ತಕ್ಕೆ ಅತ್ಯಂತ ಪ್ರಶಸ್ತವಾದ ಕಾಲವಾಗಿದೆ.
 
 ನಿಮಗೆ ಲಭಿಸುವ ಜೀವನ ಸಂಗಾತಿಯು ಅತ್ಯಂತ ಶಿಸ್ತುಬದ್ಧ, ದೈವಭಕ್ತಿ ಉಳ್ಳವರು ಹಾಗೂ ಸಂಸ್ಕೃತಿಕ ಗೌರವ ಹೊಂದಿರುವ ಶ್ರೇಷ್ಠ ಕುಟುಂಬದ ಹಿನ್ನೆಲೆಯಿಂದ ಬರುವವರಾಗಿದ್ದಾರೆ. ಅವರ ಸೌಮ್ಯ ಸ್ವಭಾವ, ತರ್ಕಬದ್ಧ ಆಲೋಚನೆ ಹಾಗೂ ಉದ್ಯೋಗ ಅಥವಾ ಉದ್ಯಮ ಕ್ಷೇತ್ರದಲ್ಲಿನ ಯಶಸ್ಸು ನಿಮ್ಮ ಮುಂಬರುವ ಸಂಸಾರಕ್ಕೆ ಬಲ ತುಂಬಲಿದೆ. ಜಾತಕದ ದಿಕ್ಬಲ ನಿಯಮಗಳ ಪ್ರಕಾರ, ನಿಮ್ಮ ಜನ್ಮಸ್ಥಳದಿಂದ ಪೂರ್ವ ಅಥವಾ ಈಶಾನ್ಯ ದಿಕ್ಕಿನಿಂದ ಅತ್ಯುತ್ತಮ ಹಾಗೂ ಯೋಗ್ಯವಾದ ವೈವಾಹಿಕ ಸಂಬಂಧಗಳು ಒದಗಿಬರುವ ಶುಭ ಸಾಧ್ಯತೆಗಳು ದಟ್ಟವಾಗಿವೆ. ಸಂಗಾತಿಯ ಆಗಮನದಿಂದ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ನೆಮ್ಮದಿ ಹಾಗೂ ಸಕಲ ಸೌಭಾಗ್ಯಗಳು ವೃದ್ಧಿಯಾಗಲಿವೆ.
 
 ವೈವಾಹಿಕ ಕಾರ್ಯಗಳಲ್ಲಿ ಕಂಡುಬರುವ ಸಣ್ಣಪುಟ್ಟ ವಿಳಂಬ ಅಥವಾ ಕುಜನ ದೋಷದ ಪ್ರಭಾವ ನಿವಾರಣೆಗಾಗಿ ಮಂಗಳವಾರ ಮತ್ತು ಶುಕ್ರವಾರದ ದಿನಗಳಲ್ಲಿ ಸುಬ್ರಹ್ಮಣ್ಯ ಸ್ವಾಮಿ ಮತ್ತು ಗೌರಿ ಪೂಜೆಯನ್ನು ನಿಷ್ಠೆಯಿಂದ ನೆರವೇರಿಸುವುದು ಶ್ರೇಷ್ಠವಾಗಿದೆ. ನಿತ್ಯವೂ ಪ್ರಾತಃಕಾಲದಲ್ಲಿ "ಓಂ ಶ್ರೀಂ ಗೌರ್ಯೈ ನಮಃ" ಹಾಗೂ "ಓಂ ಸಪ್ತಮಾಧಿಪತಯೇ ನಮಃ" ಮಂತ್ರಗಳನ್ನು 108 ಬಾರಿ ಜಪಿಸುವುದರಿಂದ ಮಂಗಲ ದೋಷ ಶಾಂತಿಯಾಗುತ್ತದೆ. ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಕ್ಷೇತ್ರದಲ್ಲಿ ಮಂಗಲ ಸೇವೆ ಸಮರ್ಪಿಸುವುದರಿಂದ ಸಕಲ ವಿಘ್ನಗಳು ನಿವಾರಣೆಯಾಗಿ ಶೀಘ್ರ ಕಲ್ಯಾಣ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ.`;
     }
     if (baseLang === "hi") {
-      return `आपकी जन्म लग्न (${lagnaStr}) और चंद्र राशि (${moonStr}) के आधार पर, सप्तमेश ${house7Lord} की स्थिति तथा आपकी वर्तमान ${dashaStr} महादशा एवं ${bhuktiStr} भुक्ति का प्रभाव अगले 12 से 18 महीनों में विवाह योग को अत्यंत प्रबल रूप से सक्रिय करता है। सप्तम भाव पर देवगुरु बृहस्पति की अमृत दृष्टि से पारिवारिक चर्चाएं सुचारू रूप से आगे बढ़ेंगी और विवाह के प्रयास शीघ्र ही सफलता में परिणत होंगे। ग्रहों के इस निपुण प्रभाव से वैवाहिक अड़चनें समाप्त होकर शीघ्र कल्याण योग बनेगा।
+      return `आपकी जन्म लग्न (${lagnaStr}) और चंद्र राशि (${moonStr}) के आधार पर, आपके सप्तम भाव (${house7SignName}) के स्वामी ${house7Lord} की स्थिति तथा आपकी वर्तमान ${dashaStr} महादशा एवं ${bhuktiStr} भुक्ति का प्रभाव अगले 12 से 18 महीनों में विवाह योग को अत्यंत प्रबल रूप से सक्रिय करता है। सप्तम भाव पर देवगुरु बृहस्पति की अमृत दृष्टि से पारिवारिक चर्चाएं सुचारू रूप से आगे बढ़ेंगी और विवाह के प्रयास शीघ्र ही सफलता में परिणत होंगे। ग्रहों के इस निपुण प्रभाव से वैवाहिक अड़चनें समाप्त होकर शीघ्र कल्याण योग बनेगा।
 
 आपके भावी जीवनसाथी एक अत्यंत संस्कारी, बुद्धिमान, अनुशासित तथा प्रतिष्ठित परिवार से संबंध रखने वाले होंगे। उनका सौम्य व्यवहार, तार्किक सोच और करियर या व्यवसाय में उनकी सफलता आपके दांपत्य जीवन को संबल प्रदान करेगी। ज्योतिषीय दिशा नियमों के अनुसार, आपके जन्मस्थान से पूर्व या उत्तर-पूर्व दिशा से अत्यंत योग्य और उत्तम विवाह प्रस्ताव आने की प्रबल संभावना है। जीवनसाथी के आगमन से आपके जीवन में सुख, समृद्धि और शांति का विस्तार होगा।
 
@@ -2406,7 +2407,7 @@ Return ONLY this JSON (no extra text before or after):
             ref={pdfRef} 
             theme="sunrise" 
             session={session} 
-            predictions={currentMindset ? [currentMindset, ...predictions] : predictions} 
+            predictions={(currentMindset ? [currentMindset, ...predictions] : predictions).filter(p => p && p.category !== "Error" && p.translatedCategory !== "Error" && !(p.text || "").includes("Sorry, I encountered an error"))} 
             translations={pdfTranslations}
             deepInsights={pdfDeepInsights}
           />
@@ -2420,7 +2421,7 @@ Return ONLY this JSON (no extra text before or after):
             ref={premiumPdfRef} 
             theme="sunrise" 
             session={session} 
-            predictions={premiumPredictions ?? (currentMindset ? [currentMindset, ...predictions] : predictions)} 
+            predictions={(premiumPredictions ?? (currentMindset ? [currentMindset, ...predictions] : predictions)).filter(p => p && p.category !== "Error" && p.translatedCategory !== "Error" && !(p.text || "").includes("Sorry, I encountered an error"))} 
             translations={pdfTranslations}
             deepInsights={pdfDeepInsights || {}}
             premiumData={premiumDataForPdf}
@@ -2435,7 +2436,7 @@ Return ONLY this JSON (no extra text before or after):
             ref={a4PdfRef}
             theme="sunrise"
             session={session}
-            predictions={currentMindset ? [currentMindset, ...predictions] : predictions}
+            predictions={(currentMindset ? [currentMindset, ...predictions] : predictions).filter(p => p && p.category !== "Error" && p.translatedCategory !== "Error" && !(p.text || "").includes("Sorry, I encountered an error"))}
             translations={a4PdfTranslations}
             deepInsights={a4PdfDeepInsights}
             premiumData={a4PremiumDataForPdf}
