@@ -481,12 +481,38 @@ export default function KundliPage(): JSX.Element {
     }
   };
 
+  const fillTestKundali = () => {
+    const testDate = new Date(1993, 4, 31, 9, 25, 0);
+    setForm(f => ({
+      ...f,
+      name: "Pramod Kodgi",
+      birthDate: "1993-05-31",
+      birthTime: "09:25",
+      gothra: "Vasishtha",
+      gender: "Male"
+    }));
+    setBirthDatePicker(testDate);
+    setBirthTimeHm("09:25");
+  };
+
   return (
     <Card>
       {!(result && birthDatePicker && birthTimeHm.trim()) ? (
         <>
-          <h2 className="text-2xl font-bold text-indigo-950">{t("kundli.formTitle")}</h2>
-          <p className="mt-1 text-sm text-slate-600">{t("kundli.subtitle")}</p>
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
+            <div>
+              <h2 className="text-2xl font-bold text-indigo-950">{t("kundli.formTitle")}</h2>
+              <p className="mt-1 text-sm text-slate-600">{t("kundli.subtitle")}</p>
+            </div>
+            <button
+              type="button"
+              onClick={fillTestKundali}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-amber-300 bg-amber-50 text-xs font-bold text-amber-900 hover:bg-amber-100 shadow-sm transition"
+            >
+              <span>⚡</span>
+              <span>Fill Test Details (Pramod Kodgi)</span>
+            </button>
+          </div>
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             <div className="relative">
               <div className="flex justify-between items-end mb-1">
