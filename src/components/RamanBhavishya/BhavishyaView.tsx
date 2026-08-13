@@ -1434,7 +1434,13 @@ function buildKundaliDarkSecretFallback(lang: string, lagnaStr: string, moonStr:
         localisedPredictions = localisedPredictions.map(p => {
           const cat = (p.translatedCategory || p.category || "").toLowerCase();
           if ((cat.includes("marriage") || cat.includes("ಮದುವೆ") || cat.includes("ವಿವಾಹ") || cat.includes("विवाह") || cat.includes("వివాహ") || cat.includes("திருமணம்")) && (aiB.marriage || "").trim().length > 20) {
-            return { ...p, text: aiB.marriage, translatedText: aiB.marriage };
+            // Strip any accidental children paragraphs from Marriage text
+            const mParas = (aiB.marriage || "").split("\n").filter((pText: string) => {
+              const pLower = pText.toLowerCase();
+              return !pLower.includes("ಸಂತಾನ") && !pLower.includes("ಮಕ್ಕಳ") && !pLower.includes("ಪಂಚಮ ಭಾವ") && !pLower.includes("progeny") && !pLower.includes("children");
+            });
+            const cleanM = mParas.join("\n\n").trim() || aiB.marriage;
+            return { ...p, text: cleanM, translatedText: cleanM };
           }
           if ((cat.includes("children") || cat.includes("ಸಂತಾನ") || cat.includes("ಮಕ್ಕಳು") || cat.includes("संतान") || cat.includes("సంతాన") || cat.includes("குழந்தை")) && (aiB.children || "").trim().length > 20) {
             return { ...p, text: aiB.children, translatedText: aiB.children };

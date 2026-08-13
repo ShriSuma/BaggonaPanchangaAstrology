@@ -334,6 +334,7 @@ Provide a 100% personalized astrological reading for the following 5 life catego
 
 1. Marriage & Relationships (User Selected Status: ${maritalSel.toUpperCase()}):
    - 7th House Sign: ${h7SignName}.
+   - CRITICAL RULE: MUST CONTAIN ONLY MARRIAGE & RELATIONSHIP CONTENT. DO NOT INCLUDE ANY CHILDREN OR PROGENY CONTENT IN THIS ITEM.
    - ${maritalSel === "unmarried" 
        ? "Write EXACTLY TWO detailed paragraphs for UNMARRIED status: Paragraph 1 analyzes 7th house lord placement, Venus/Jupiter aspect, running " + dashaLine + ", and live transits to predict the exact 12-18 month marriage window, spouse's personality traits, and direction of arrival relative to birthplace. Paragraph 2 details Kuja/Manglik afflictions and exact daily remedies."
        : "Write EXACTLY TWO detailed paragraphs for MARRIED status: Paragraph 1 analyzes 7th house lord placement, running " + dashaLine + ", and transit influences on mutual trust and domestic harmony. Paragraph 2 details joint career/financial growth with spouse and Lakshmi Narayan home remedies."}
