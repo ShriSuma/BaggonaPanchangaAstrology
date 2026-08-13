@@ -241,6 +241,59 @@ const MULTI_QUESTION_TOPICS = [
 ];
 
 
+
+export function enrichYogaDescription(
+  name: string,
+  impact: string,
+  lang: string,
+  lagnaStr: string = "Lagna",
+  moonStr: string = "Moon Sign"
+): string {
+  const cleanImpact = (impact || "").trim();
+  if (cleanImpact.length >= 100) return cleanImpact;
+
+  const baseLang = (lang || "en").split("-")[0];
+  const lowerName = (name || "").toLowerCase();
+
+  if (lowerName.includes("gajakesari") || lowerName.includes("ಗಜಕೇಸರಿ") || lowerName.includes("गजकेसरी") || lowerName.includes("గజకేసరి") || lowerName.includes("கஜகேசரி")) {
+    if (baseLang === "kn") return `${cleanImpact} ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಗುರು ಹಾಗೂ ಚಂದ್ರರ ಪರಸ್ಪರ ಕೇಂದ್ರ ಸ್ಥಿತಿಯಿಂದ ಶ್ರೀ ಗಜಕೇಸರಿ ರಾಜಯೋಗ ಉಂಟಾಗಿದೆ. ಈ ಯೋಗದ ಶುಭ ಪ್ರಭಾವದಿಂದ ಸಮಾಜದಲ್ಲಿ ಉನ್ನತ ಗೌರವ, ಬುದ್ಧಿವಂತಿಕೆ, ಸ್ಥಿರ ಸಂಪತ್ತು ಹಾಗೂ ಸಕಲ ಸೌಭಾಗ್ಯಗಳು ಪ್ರಾಪ್ತಿಯಾಗಲಿವೆ. ಪ್ರಸ್ತುತ ಗ್ರಹಗಳ ಶುಭ ಬಲದಿಂದ ನಿಮ್ಮ ಶ್ರಮಕ್ಕೆ ತಕ್ಕ ರಾಜಮಾನ ಮರ್ಯಾದೆ ದೊರೆಯಲಿದೆ.`;
+    if (baseLang === "hi") return `${cleanImpact} आपकी कुंडली में गुरु एवं चंद्रमा के केंद्र स्थिति में होने से गजकेसरी राजयोग बना है। इसके शुभ प्रभाव से समाज में उच्च सम्मान, ज्ञान, स्थायी संपत्ति और सुख-समृद्धि की प्राप्ति होगी। वर्तमान ग्रह स्थिति से आपको कार्यक्षेत्र में विशेष सफलता मिलेगी।`;
+    if (baseLang === "te") return `${cleanImpact} మీ జాతకంలో గురుడు మరియు చంద్రుడు కేంద్ర స్థానంలో ఉండటం వల్ల గజకేసరి రాజయోగం ఏర్పడింది. దీని ప్రభావంతో సమాజంలో గౌరవం, బుద్ధికుశలత, స్థిరాస్తి మరియు సకల సౌఖ్యాలు లభిస్తాయి.`;
+    if (baseLang === "ta") return `${cleanImpact} உங்கள் ஜாதகத்தில் குரு மற்றும் சந்திரன் கேந்திரத்தில் இருப்பதன் மூலம் கஜகேசரி யோகம் உண்டாகிறது. இதனால் சமூகத்தில் மரியாதை, புத்தி கூர்மை, செல்வம் மற்றும் சகல சௌபாக்கியங்களும் கிடைக்கும்.`;
+    return `${cleanImpact} The auspicious alignment of Jupiter and Moon forms Gajakesari Yoga in your birth chart. This grants high social status, wisdom, financial stability, and long-term prosperity.`;
+  }
+
+  if (lowerName.includes("obhayachari") || lowerName.includes("ubhaya") || lowerName.includes("ಉಭಯಚಾರಿ") || lowerName.includes("उभयचारी") || lowerName.includes("ఉభయచారి") || lowerName.includes("உபயசாரி")) {
+    if (baseLang === "kn") return `${cleanImpact} ಸೂರ್ಯನ ಎರಡೂ ಪಾರ್ಶ್ವಗಳಲ್ಲಿ ಶುಭ ಗ್ರಹಗಳು ನೆಲೆಸಿರುವುದರಿಂದ ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಪ್ರಬಲ ಉಭಯಚಾರಿ ಯೋಗ ಸಿದ್ಧಿಸಿದೆ. ಈ ಯೋಗದ ಶುಭ ಪ್ರಭಾವದಿಂದ ನೀವು ಸದಾ ಸತ್ಯನಿಷ್ಠೆ, ಪರೋಪಕಾರ ಹಾಗೂ ಸಮಾಜಿಕ ಕೀರ್ತಿಯನ್ನು ಪಡೆಯುವಿರಿ. ನಿಮ್ಮ ವ್ಯಕ್ತಿತ್ವ ಹಾಗೂ ನಿರ್ಧಾರಗಳು ಕುಟುಂಬಕ್ಕೆ ಯಶಸ್ಸು ತರಲಿವೆ.`;
+    if (baseLang === "hi") return `${cleanImpact} सूर्य के दोनों ओर शुभ ग्रहों की उपस्थिति से आपकी कुंडली में उभयचारी योग बना है। इसके प्रभाव से आप समाज में उच्च प्रतिष्ठा, परोपकारी स्वभाव और राजा के समान मान-सम्मान प्राप्त करेंगे।`;
+    if (baseLang === "te") return `${cleanImpact} సూర్యునికి ఇరువైపులా శుభ గ్రహాలు ఉండటం వల్ల మీ జాతకంలో ఉభయచారి యోగం ఏర్పడింది. దీని వలన సమాజంలో మంచి పేరు, దయాగుణం మరియు సముచిత గౌరవం లభిస్తాయి.`;
+    if (baseLang === "ta") return `${cleanImpact} சூரியனின் இருபுறமும் சுப கிரகங்கள் இருப்பதால் உங்கள் ஜாதகத்தில் உபயசாரி யோகம் உண்டாகிறது. இதனால் புகழ், கருணை மற்றும் உயர்ந்த அந்தஸ்து கிடைக்கும்.`;
+    return `${cleanImpact} Benefic planets flanking the Sun create Obhayachari Yoga in your chart. This grants eloquent speech, royal status, charitable disposition, and enduring fame.`;
+  }
+
+  if (lowerName.includes("lakshmi") || lowerName.includes("ಲಕ್ಷ್ಮಿ") || lowerName.includes("लक्ष्मी") || lowerName.includes("లక్ష్మి") || lowerName.includes("லக்ஷ்மி")) {
+    if (baseLang === "kn") return `${cleanImpact} ಲಗ್ನಾಧಿಪತಿ ಹಾಗೂ ನವಮಾಧಿಪತಿಯ ಪರಸ್ಪರ ಶುಭ ಯೋಗದಿಂದ ಲಕ್ಷ್ಮಿ ಯೋಗ ಸಿದ್ಧಿಸಿದೆ. ಇದರ ಪ್ರಭಾವದಿಂದ ಅಪಾರ ಧನ ಲಾಭ, ಸುಂದರ ನೋಟ, ಆಸ್ತಿ ಗಳಿಕೆ ಹಾಗೂ ಶ್ರೀಮಂತರ ಸೌಹಾರ್ದತೆ ಲಭಿಸುತ್ತದೆ. ಪ್ರಸ್ತುತ ದಶಾ ಕಾಲವು ನಿರಂತರ ಸಂಪದಭಿವೃದ್ಧಿಯನ್ನು ಸೂಚಿಸುತ್ತಿದೆ.`;
+    if (baseLang === "hi") return `${cleanImpact} लग्नेश और नवमेश की शुभ स्थिति से आपकी कुंडली में महालक्ष्मी योग बना है। इसके प्रभाव से अपार धन-संपत्ति, वाहन सुख, और समाज में प्रतिष्ठित लोगों से सम्मान प्राप्त होगा।`;
+    if (baseLang === "te") return `${cleanImpact} లగ్నాధిపతి మరియు నవమాధిపతి శుభ యోగం వల్ల మహాలక్ష్మి యోగం సిద్ధించింది. దీని వలన ధన లాభం, వాహన యోగం మరియు సమాజంలో ఉన్నత గౌరవం లభిస్తాయి.`;
+    if (baseLang === "ta") return `${cleanImpact} லக்னாதிபதியும் நவமாதிபதியும் சுப யோகத்தில் இருப்பதால் மகாலக்ஷ்மி யோகம் உண்டாகிறது. இதனால் அபரிமிதமான செல்வம், வாகன யோகம் மற்றும் மரியாதை கிடைக்கும்.`;
+    return `${cleanImpact} The harmonious placement of the 1st and 9th house lords creates Mahalakshmi Yoga. This guarantees financial abundance, property gains, refined grace, and lifelong wealth.`;
+  }
+
+  if (baseLang === "kn") {
+    return `${cleanImpact} ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${lagnaStr}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${moonStr}) ಆಧಾರದ ಮೇಲೆ ಈ ಗ್ರಹ ಯೋಗವು ಅತ್ಯಂತ ಪ್ರಭಾವಶಾಲಿಯಾಗಿದೆ. ಈ ಯೋಗದ ಶುಭ ಬಲದಿಂದ ಜೀವನದ ವಿವಿಧ ಹಂತಗಳಲ್ಲಿ ಬರುವ ಅಡೆತಡೆಗಳು ಶಮನವಾಗಿ, ದೀರ್ಘಾವಧಿ ಯಶಸ್ಸು ಹಾಗೂ ಧನ-ಆರೋಗ್ಯ ವೃದ್ಧಿ ಸಿದ್ಧಿಸಲಿದೆ.`;
+  }
+  if (baseLang === "hi") {
+    return `${cleanImpact} आपकी लग्न (${lagnaStr}) एवं चंद्र राशि (${moonStr}) के आधार पर यह ग्रह योग अत्यधिक फलदायी है। इसके शुभ प्रभाव से जीवन की कठिनाइयां दूर होंगी तथा दीर्घकालिक सफलता एवं धन-आरोग्य की वृद्धि होगी।`;
+  }
+  if (baseLang === "te") {
+    return `${cleanImpact} మీ లగ్నం మరియు చంద్ర రాశి ఆధారంగా ఈ గ్రహ యోగం అత్యంత ప్రభావవంతమైనది. దీని శుభ బలంతో అడ్డంకులు తొలగి, సుదీర్ఘకాల విజయం మరియు ధన-ఆరోగ్య వృద్ధి లభిస్తాయి.`;
+  }
+  if (baseLang === "ta") {
+    return `${cleanImpact} உங்கள் லக்னம் மற்றும் சந்திர ராசி அடிப்படையில் இந்த யோகம் மிக சக்தி வாய்ந்தது. இதன் சுப பலனால் தடைகள் நீங்கி, நீண்டகால வெற்றியும் செல்வ ஆரோக்கியமும் கிடைக்கும்.`;
+  }
+  return `${cleanImpact} Based on your Ascendant (${lagnaStr}) and Moon Sign (${moonStr}), this planetary combination exerts a potent benefic influence. It neutralizes obstacles and guarantees long-term success, prosperity, and peace.`;
+}
+
 export function generateSmartQuestionHeader(questionText: string, lang: string): string {
   const q = questionText.toLowerCase();
   const isKn = lang === "kn";
@@ -1312,7 +1365,12 @@ function buildKundaliDarkSecretFallback(lang: string, lagnaStr: string, moonStr:
       // `raw` keeps each chapter's own persona intact instead of burying it under the
       const safeAsk = async (label: string, prompt: string, temp = 0.3) => {
         try {
-          return await askGemini(label, prompt, geminiApiKey, lang, { raw: true, temperature: temp });
+          const raw = await askGemini(label, prompt, geminiApiKey, lang, { raw: true, temperature: temp });
+          if (typeof raw === "string" && (raw.includes("Sorry, I encountered an error") || raw.includes("check your API key") || raw.includes("Error"))) {
+            console.warn(`[PDF Generation] Error string detected in AI response for ${label}, ignoring error text.`);
+            return "";
+          }
+          return raw;
         } catch (e) {
           console.warn(`[PDF Generation] AI call failed for ${label}, using engine fallback`, e);
           return "";
@@ -1365,9 +1423,14 @@ function buildKundaliDarkSecretFallback(lang: string, lagnaStr: string, moonStr:
           impact: await translateText(stripJayashreeIntro(asText(y.significance) || result.masterSynthesis.overallTone), lang)
         }))
       );
-      const finalYogas = toSafeArray(dataYogas.yogas).filter((y: any) => (y?.impact || "").trim().length > 10).length > 0
+      const rawYogasArray = toSafeArray(dataYogas.yogas).filter((y: any) => (y?.impact || "").trim().length > 10).length > 0
         ? dataYogas.yogas
         : rawYogasFallback;
+
+      const finalYogas = (rawYogasArray || []).map((y: any) => ({
+        ...y,
+        impact: enrichYogaDescription(y.name || y.trait || "", y.impact || "", lang, lagnaStr, moonStr)
+      }));
 
       const rawDoshasFallback = await Promise.all(
         (result.aiGeneratedNarrative?.doshas || [{ name: "Karmic Challenge", significance: result.natalLayer.karmicBaggage.description, remedy: result.natalLayer.karmicBaggage.soulPurpose }]).map(async d => ({
@@ -1434,6 +1497,15 @@ function buildKundaliDarkSecretFallback(lang: string, lagnaStr: string, moonStr:
 
       if (emptyOrInvalid.length > 0) {
         console.warn("[PDF Generation Guard] Using fallbacks for missing sections:", emptyOrInvalid.map(e => e.name));
+      }
+
+      // Strict Pre-Download Quality Audit Guard: Ensure ZERO error strings leak into PDF
+      const payloadAuditStr = JSON.stringify(premiumDataPayload).toLowerCase();
+      if (payloadAuditStr.includes("sorry, i encountered an error") || payloadAuditStr.includes("check your api key")) {
+        console.error("[PDF Quality Audit Rejection] Error string detected in payload. Healing with Master Engine fallbacks.");
+        premiumDataPayload.summary = [{ impact: rawSummaryFallback }];
+        premiumDataPayload.characteristics = [{ impact: charFallbackText }];
+        premiumDataPayload.darkSecret = [{ impact: secretFallbackText }];
       }
 
       setPremiumDataForPdf(premiumDataPayload);

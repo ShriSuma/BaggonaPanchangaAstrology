@@ -98,7 +98,7 @@ Use the native script of the requested language (e.g., Kannada script for Kannad
     throw new Error("Failed to generate response after 3 retries.");
   } catch (error) {
     console.error("Gemini Engine Initialization Error:", error);
-    return "Sorry, I encountered an error while consulting the stars. Please check your API key or try again.";
+    throw error;
   }
 }
 
