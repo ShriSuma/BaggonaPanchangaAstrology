@@ -47,12 +47,21 @@ const toGraha = (planet: PlanetName | string): GrahaKey => String(planet) as Gra
 const asText = (value: string | string[] | undefined): string =>
   Array.isArray(value) ? value.join(" ") : value ?? "";
 
+const toSafeArray = (val: any): any[] => {
+  if (!val) return [];
+  if (Array.isArray(val)) return val;
+  if (typeof val === "string") return [{ impact: val }];
+  if (typeof val === "object") return [val];
+  return [];
+};
+
 const ensureValidSection = async (
-  items: any[] | undefined,
+  items: any,
   fallbackText: string,
   targetLang: string
 ): Promise<{ name?: string; impact: string; remedy?: string; dateRange?: string }[]> => {
-  const validItems = (items || []).filter(item => (item?.impact || "").trim().length > 10);
+  const safeItems = toSafeArray(items);
+  const validItems = safeItems.filter(item => item && (item.impact || item.description || item.trait || "").trim().length > 10);
   if (validItems.length > 0) {
     return validItems;
   }
@@ -1356,7 +1365,7 @@ function buildKundaliDarkSecretFallback(lang: string, lagnaStr: string, moonStr:
           impact: await translateText(stripJayashreeIntro(asText(y.significance) || result.masterSynthesis.overallTone), lang)
         }))
       );
-      const finalYogas = (dataYogas.yogas || []).filter((y: any) => (y?.impact || "").trim().length > 10).length > 0
+      const finalYogas = toSafeArray(dataYogas.yogas).filter((y: any) => (y?.impact || "").trim().length > 10).length > 0
         ? dataYogas.yogas
         : rawYogasFallback;
 
@@ -1367,7 +1376,7 @@ function buildKundaliDarkSecretFallback(lang: string, lagnaStr: string, moonStr:
           remedy: await translateText(d.remedy || result.natalLayer.karmicBaggage.soulPurpose, lang)
         }))
       );
-      const finalDoshas = (dataDoshas.doshas || []).filter((d: any) => (d?.impact || "").trim().length > 10).length > 0
+      const finalDoshas = toSafeArray(dataDoshas.doshas).filter((d: any) => (d?.impact || "").trim().length > 10).length > 0
         ? dataDoshas.doshas
         : rawDoshasFallback;
 
@@ -1379,7 +1388,7 @@ function buildKundaliDarkSecretFallback(lang: string, lagnaStr: string, moonStr:
         }))
       );
 
-      const validTimelineItems = (dataTimeline.timeline || []).filter((t: any) => (t?.impact || "").trim().length > 10);
+      const validTimelineItems = toSafeArray(dataTimeline.timeline).filter((t: any) => (t?.impact || "").trim().length > 10);
       const finalTimeline = validTimelineItems.length >= 4
         ? await Promise.all(
             validTimelineItems.map(async (t: any) => ({
@@ -1396,7 +1405,7 @@ function buildKundaliDarkSecretFallback(lang: string, lagnaStr: string, moonStr:
           remedy: await translateText(result.timingLayer.lifeClock.emotionalValidation || "", lang)
         }
       ]);
-      const finalGochara = (dataGochara.gochara || []).filter((g: any) => (g?.impact || "").trim().length > 10).length > 0
+      const finalGochara = toSafeArray(dataGochara.gochara).filter((g: any) => (g?.impact || "").trim().length > 10).length > 0
         ? dataGochara.gochara
         : rawGocharaFallback;
 
@@ -1695,7 +1704,7 @@ Return ONLY this JSON (no extra text before or after):
           impact: await translateText(asText(y.significance) || result.masterSynthesis.overallTone, pdfLanguage)
         }))
       );
-      const finalYogas = (parsedYogas || []).filter((y: any) => (y?.impact || "").trim().length > 10).length > 0 ? parsedYogas : rawYogasFallback;
+      const finalYogas = toSafeArray(parsedYogas).filter((y: any) => (y?.impact || "").trim().length > 10).length > 0 ? parsedYogas : rawYogasFallback;
 
       const rawDoshasFallback = await Promise.all(
         (result.aiGeneratedNarrative?.doshas || [{ name: "Karmic Challenge", significance: result.natalLayer.karmicBaggage.description, remedy: result.natalLayer.karmicBaggage.soulPurpose }]).map(async d => ({
@@ -1704,7 +1713,7 @@ Return ONLY this JSON (no extra text before or after):
           remedy: await translateText(d.remedy || result.natalLayer.karmicBaggage.soulPurpose, pdfLanguage)
         }))
       );
-      const finalDoshas = (parsedDoshas || []).filter((d: any) => (d?.impact || "").trim().length > 10).length > 0 ? parsedDoshas : rawDoshasFallback;
+      const finalDoshas = toSafeArray(parsedDoshas).filter((d: any) => (d?.impact || "").trim().length > 10).length > 0 ? parsedDoshas : rawDoshasFallback;
 
       const engineRoadmap6 = result.timingLayer.twelveMonthRoadmap.slice(0, 6);
       const fallbackTimeline = await Promise.all(

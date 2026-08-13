@@ -96,4 +96,20 @@ describe("Seva & Prasada 5-Language & Calendar Accuracy Tests", () => {
       expect(res.length).toBeGreaterThan(10);
     });
   });
+
+  it("verifies Page 5 Data Visualization dictionary coverage for all 5 languages", () => {
+    const page5Titles = {
+      kn: "✦ ಗೋಕರ್ಣ ದಿವ್ಯ ಷಡ್ಗುಣ ಪಂಚಾಂಗ ಚಕ್ರ ಹಾಗೂ ವಾರ್ಷಿಕ ಶಕ್ತಿ ಶ್ರೇಣಿ ✦",
+      hi: "✦ गोकर्ण दिव्य षड्गुण पंचांग चक्र एवं वार्षिक शक्ति श्रेणी ✦",
+      te: "✦ గోకర్ణ దివ్య షడ్గుణ పంచాంగ చక్రం మరియు వార్షిక శక్తి శ్రేణి ✦",
+      ta: "✦ கோகர்ண திவ்ய ஷட்குண பஞ்சாங்க சக்கரம் மற்றும் வருடாந்திர சக்தி அட்டை ✦",
+      en: "✦ Gokarna Divine Panchanga Mandala & 6-Month Energy Visualization ✦"
+    };
+
+    languages.forEach((l) => {
+      const res = pick(page5Titles, l);
+      expect(res).toBeTruthy();
+      expect(res.length).toBeGreaterThan(10);
+    });
+  });
 });

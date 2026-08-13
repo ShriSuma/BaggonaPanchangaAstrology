@@ -10,6 +10,7 @@ import { generatePDFFromElement } from "../../utils/pdfGenerator";
 import {
   SevaAnugrahaGuidancePrint,
   SevaRemediesAnnualPrint,
+  SevaPanchangaVisualizerPrint,
   SevaCalendarPrint,
   SevaLetterPrint,
   SevaPrasadaCardPrint,
@@ -500,6 +501,12 @@ export default function PrasadaKit({
           rhythm={rhythm}
         />
         <SevaRemediesAnnualPrint
+          lang={pdfLang}
+          identity={identity}
+          panditName={panditName}
+          rhythm={rhythm}
+        />
+        <SevaPanchangaVisualizerPrint
           lang={pdfLang}
           identity={identity}
           panditName={panditName}
