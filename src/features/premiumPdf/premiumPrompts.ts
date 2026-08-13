@@ -342,8 +342,8 @@ Provide a 100% personalized astrological reading for the following 5 life catego
        ? "For FEMALE NATIVE: Analyze 7th House Lord + Jupiter (Jeevakaraka) + 8th House (Mangalya Sthana) for husband's characteristics, profession, and marital protection." 
        : "For MALE NATIVE: Analyze 7th House Lord + Venus (Shukrakaraka) for wife's characteristics, profession, and domestic harmony."}
    - ${maritalSel === "unmarried" 
-       ? "Write EXACTLY TWO detailed paragraphs for UNMARRIED status: Paragraph 1 analyzes 7th house lord placement, Venus/Jupiter aspect, running " + dashaLine + ", and live transits to predict the exact 12-18 month marriage window, spouse's personality traits, and direction of arrival relative to birthplace. Paragraph 2 details Kuja/Manglik afflictions and exact daily remedies."
-       : "Write EXACTLY TWO detailed paragraphs for MARRIED status: Paragraph 1 analyzes 7th house lord placement, running " + dashaLine + ", and transit influences on mutual trust and domestic harmony. Paragraph 2 details joint career/financial growth with spouse and Lakshmi Narayan home remedies."}
+       ? "Write EXACTLY THREE detailed paragraphs for UNMARRIED status: Paragraph 1 analyzes 7th house lord placement, Venus/Jupiter aspect, running " + dashaLine + ", and live transits to predict the exact 12-18 month marriage window and family timing. Paragraph 2 details spouse's personality, intellect, moral values, family background, profession, and direction of arrival relative to birthplace. Paragraph 3 details Kuja/Manglik planetary afflictions, subtle karmic delays, exact daily mantra remedies ('Om Shreem Gauryai Namah', 'Om Saptamadhipataye Namah'), Gauri/Subramanya Pooja, and Gokarna Mangala Seva."
+       : "Write EXACTLY THREE detailed paragraphs for MARRIED status: Paragraph 1 analyzes 7th house lord placement, running " + dashaLine + ", transit influences, and gender karaka (Venus for male, Jupiter/8th house for female) on mutual trust and domestic security. Paragraph 2 details deep mutual understanding and how partners have understood each other over time, mutual respect in key financial and family decisions, navigating life's milestones together with patience and empathy. Paragraph 3 details joint career/financial growth with spouse, household prosperity, resolving occasional minor friction with open communication, and Lakshmi Narayan home remedies."}
 
 2. Children & Progeny (User Selected Status: ${childrenSel.toUpperCase()}):
    - 5th House Sign: ${h5SignName}.
@@ -361,7 +361,7 @@ Provide a 100% personalized astrological reading for the following 5 life catego
    - Write TWO detailed paragraphs on 1st/6th house lords, physical vitality, immune strength, and wellness remedies.
 
 ${JSON_RULE}
-{"bhavishya":{"marriage":"two paragraphs","children":"two paragraphs","career":"two paragraphs","wealth":"two paragraphs","health":"two paragraphs"}}`;
+{"bhavishya":{"marriage":"three paragraphs","children":"two paragraphs","career":"two paragraphs","wealth":"two paragraphs","health":"two paragraphs"}}`;
 
   const summary = `${header(
     input,

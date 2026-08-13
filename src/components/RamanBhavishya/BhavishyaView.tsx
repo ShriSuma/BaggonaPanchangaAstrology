@@ -1267,10 +1267,11 @@ function buildKundaliDarkSecretFallback(lang: string, lagnaStr: string, moonStr:
           const marriageText = buildPersonalizedMarriageText(lang, lagnaStr, moonStr, personalization.maritalStatus, lagnaIdx, dashaName, bhuktiName, userGender as "Male" | "Female");
 
           const existingIdx = localisedPredictions.findIndex(p => {
-            const cat = (p.translatedCategory || "").toLowerCase();
+            const cat = `${p.translatedCategory || ''} ${p.category || ''}`.toLowerCase();
             return cat.includes("marriage") || cat.includes("ಮದುವೆ") || cat.includes("ವಿವಾಹ") || cat.includes("विवाह") || cat.includes("వివాహ") || cat.includes("திருமணம்");
           });
           if (existingIdx >= 0) {
+            localisedPredictions[existingIdx].text = marriageText;
             localisedPredictions[existingIdx].translatedText = marriageText;
           } else {
             localisedPredictions.push({
@@ -1286,10 +1287,11 @@ function buildKundaliDarkSecretFallback(lang: string, lagnaStr: string, moonStr:
           const childrenText = buildPersonalizedChildrenText(lang, personalization.childrenStatus, lagnaIdx, dashaName, bhuktiName);
 
           const existingIdx = localisedPredictions.findIndex(p => {
-            const cat = (p.translatedCategory || "").toLowerCase();
+            const cat = `${p.translatedCategory || ''} ${p.category || ''}`.toLowerCase();
             return cat.includes("children") || cat.includes("ಸಂತಾನ") || cat.includes("ಮಕ್ಕಳು") || cat.includes("संतान") || cat.includes("సంతాన") || cat.includes("குழந்தை");
           });
           if (existingIdx >= 0) {
+            localisedPredictions[existingIdx].text = childrenText;
             localisedPredictions[existingIdx].translatedText = childrenText;
           } else {
             localisedPredictions.push({
