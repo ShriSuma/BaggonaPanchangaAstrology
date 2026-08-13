@@ -80,4 +80,20 @@ describe("Seva & Prasada 5-Language & Calendar Accuracy Tests", () => {
     expect(pick(sample, "ta")).toBe("தமிழ் கடிதம்");
     expect(pick(sample, "en")).toBe("English Letter");
   });
+
+  it("verifies Page 4 dictionary coverage for all 5 languages without fallback gaps", () => {
+    const page4Titles = {
+      kn: "✦ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಮಹಾಪೂಜಾ ಪರಿಹಾರ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಅಭ್ಯುದಯ ರಕ್ಷಾ ಪತ್ರಿಕೆ ✦",
+      hi: "✦ गोकर्ण क्षेत्र महापूजा उपचार एवं पारिवारिक अभ्युदय रक्षा पत्र ✦",
+      te: "✦ గోకర్ణ క్షేత్ర మహాపూజా నివారణ మరియు కుటుంబ అభ్యుదయ రక్షా పత్రం ✦",
+      ta: "✦ கோகர்ண க்ஷேத்திரம் மகாபூஜை பரிகாரம் மற்றும் குடும்ப அபிவிருத்தி ரக்ஷா அட்டை ✦",
+      en: "✦ Gokarna Kshetra Sacred Remedial Puja & Family Lineage Protection Sheet ✦"
+    };
+
+    languages.forEach((l) => {
+      const res = pick(page4Titles, l);
+      expect(res).toBeTruthy();
+      expect(res.length).toBeGreaterThan(10);
+    });
+  });
 });

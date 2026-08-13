@@ -9,6 +9,7 @@ import { todayYmd } from "../../features/seva/sevaPresentation";
 import { generatePDFFromElement } from "../../utils/pdfGenerator";
 import {
   SevaAnugrahaGuidancePrint,
+  SevaRemediesAnnualPrint,
   SevaCalendarPrint,
   SevaLetterPrint,
   SevaPrasadaCardPrint,
@@ -493,6 +494,12 @@ export default function PrasadaKit({
           qrDataUrl={qrDataUrl}
         />
         <SevaAnugrahaGuidancePrint
+          lang={pdfLang}
+          identity={identity}
+          panditName={panditName}
+          rhythm={rhythm}
+        />
+        <SevaRemediesAnnualPrint
           lang={pdfLang}
           identity={identity}
           panditName={panditName}
