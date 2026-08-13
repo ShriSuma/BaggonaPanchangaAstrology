@@ -102,6 +102,13 @@ export const PDF_T: Record<string, L5> = {
     ta: "மறைபொருள் ரகசியம்",
     hi: "निगूढ़ रहस्य"
   },
+  currentPhaseTitle: {
+    en: "Current Mindset & Life Circumstances",
+    kn: "ಪ್ರಸ್ತುತ ಮನಸ್ಥಿತಿ ಮತ್ತು ಜೀವನ",
+    te: "ప్రస్తుత మనస్థితి మరియు జీవితం",
+    ta: "தற்போதைய மனநிலை மற்றும் வாழ்க்கை கட்டம்",
+    hi: "वर्तमान मनस्थिति एवं जीवन स्थिति"
+  },
   yogasTitle: {
     en: "Special Planetary Combinations",
     kn: "ವಿಶೇಷ ಗ್ರಹ ಯೋಗಗಳು",

@@ -1239,7 +1239,7 @@ function buildKundaliDarkSecretFallback(lang: string, lagnaStr: string, moonStr:
       // The life-stage cards were written for the app language. If the reader asked for a
       // different one, carry them across so the finished book is in a single language.
       const sourcePredictions = currentMindset ? [currentMindset, ...predictions] : predictions;
-      const localisedPredictions: TranslatedPrediction[] = lang === language
+      let localisedPredictions: TranslatedPrediction[] = lang === language
         ? sourcePredictions
         : await Promise.all(
             sourcePredictions.map(async (pred) => ({
@@ -1427,6 +1427,38 @@ function buildKundaliDarkSecretFallback(lang: string, lagnaStr: string, moonStr:
       const dataGochara = parseGeminiJSON(resGochara);
       const dataSummary = parseGeminiJSON(resSummary);
       const dataBhavishya = parseGeminiJSON(resBhavishya);
+
+      // If AI returned fresh personalized Bhavishya readings for Chapter V, override localisedPredictions
+      if (dataBhavishya?.bhavishya) {
+        const aiB = dataBhavishya.bhavishya;
+        localisedPredictions = localisedPredictions.map(p => {
+          const cat = (p.translatedCategory || p.category || "").toLowerCase();
+          if ((cat.includes("marriage") || cat.includes("ಮದುವೆ") || cat.includes("ವಿವಾಹ") || cat.includes("विवाह") || cat.includes("వివాహ") || cat.includes("திருமணம்")) && (aiB.marriage || "").trim().length > 20) {
+            return { ...p, text: aiB.marriage, translatedText: aiB.marriage };
+          }
+          if ((cat.includes("children") || cat.includes("ಸಂತಾನ") || cat.includes("ಮಕ್ಕಳು") || cat.includes("संतान") || cat.includes("సంతాన") || cat.includes("குழந்தை")) && (aiB.children || "").trim().length > 20) {
+            return { ...p, text: aiB.children, translatedText: aiB.children };
+          }
+          if ((cat.includes("career") || cat.includes("ಉದ್ಯೋಗ") || cat.includes("ವೃತ್ತಿ") || cat.includes("करियर")) && (aiB.career || "").trim().length > 20) {
+            return { ...p, text: aiB.career, translatedText: aiB.career };
+          }
+          if ((cat.includes("wealth") || cat.includes("ಸಂಪತ್ತು") || cat.includes("ಧನ") || cat.includes("धन")) && (aiB.wealth || "").trim().length > 20) {
+            return { ...p, text: aiB.wealth, translatedText: aiB.wealth };
+          }
+          if ((cat.includes("health") || cat.includes("ಆರೋಗ್ಯ") || cat.includes("स्वास्थ्य")) && (aiB.health || "").trim().length > 20) {
+            return { ...p, text: aiB.health, translatedText: aiB.health };
+          }
+          return p;
+        });
+
+        // Update deep insights map
+        const updatedDeepInsights: Record<string, string> = {};
+        for (const pred of localisedPredictions) {
+          updatedDeepInsights[pred.translatedCategory] = pred.translatedText;
+        }
+        setPdfDeepInsights(updatedDeepInsights);
+        setPremiumPredictions(localisedPredictions);
+      }
 
       const lagnaStr = session.result.lagnaRashi ? pick(RASHI_L5[session.result.lagnaRashi.index], lang) : "";
       const moonStr = pick(RASHI_L5[session.result.moonSign.index], lang);
@@ -1639,6 +1671,7 @@ function buildKundaliDarkSecretFallback(lang: string, lagnaStr: string, moonStr:
         bhuktiPlanetValue: currentBhuktiData ? await tx(currentBhuktiData.bhukti, pdfLanguage) : "",
         characteristicsTitle: await tx("Characteristics of the Person", pdfLanguage),
         darkSecretTitle: await tx("The Dark Secret", pdfLanguage),
+        currentPhaseTitle: tp("currentPhaseTitle", pdfLanguage),
         ashirvadaTitle: await tx("Astrologer's Blessing (Ashirvada)", pdfLanguage),
         ashirvadaValue: await tx(ashirvada || "", pdfLanguage),
         yogasTitle: await tx("Special Planetary Combinations (Yogas)", pdfLanguage),

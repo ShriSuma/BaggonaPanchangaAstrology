@@ -22,6 +22,7 @@ export type PdfTranslations = {
   bhuktiPlanetValue: string;
   characteristicsTitle: string;
   darkSecretTitle: string;
+  currentPhaseTitle?: string;
   currentPhase?: string;
   ashirvadaTitle: string;
   ashirvadaValue: string;
@@ -258,7 +259,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
       {hasContent(premiumData?.currentPhase) && (
         <div className={sectionClass}>
           <h2 className="text-3xl font-bold text-amber-900 leading-normal border-b-2 border-amber-700/30 pb-2 mb-8">
-            {translations.currentPhase || "Current State of Mind & Life Phase"}
+            {translations.currentPhaseTitle || translations.currentPhase || "ಪ್ರಸ್ತುತ ಮನಸ್ಥಿತಿ ಮತ್ತು ಜೀವನ"}
           </h2>
           <div className="space-y-10">
             {premiumData!.currentPhase!.map((cp, idx) => (
