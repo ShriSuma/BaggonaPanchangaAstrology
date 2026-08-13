@@ -4,8 +4,14 @@ import type { RhythmDay } from "../../core/DailyRhythmEngine";
 import {
   downloadIcsFile,
   generateGoogleCalendarUrl,
+  generateNative90DayQrCalendarPayload,
   generateSevaICalendarString
 } from "../../features/seva/icsCalendarGenerator";
+import {
+  isNotificationEnabled,
+  requestNotificationPermission,
+  scheduleDailyNotification
+} from "../../features/seva/localNotificationEngine";
 import { T, pick } from "../../features/seva/sevaLocale";
 
 type Props = {
@@ -29,6 +35,7 @@ export default function SevaCalendarSyncModal({
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
   const [isListening, setIsListening] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
+  const [notifActive, setNotifActive] = useState<boolean>(isNotificationEnabled());
 
   const timeOptions = [
     { label: "05:00 AM", value: "05:00" },
@@ -39,45 +46,27 @@ export default function SevaCalendarSyncModal({
     { label: "10:00 AM", value: "10:00" }
   ];
 
-  // Speech Recognition for Mic option
+  // Speech Recognition for Pandit Name (Voice Input)
   const handleMicClick = () => {
-    const SpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognitionClass) {
-      alert("Speech recognition is not supported in this browser. Please type the name manually.");
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      alert("Speech recognition is not supported in this browser.");
       return;
     }
 
     try {
-      const recognition = new SpeechRecognitionClass();
-      const speechLangMap: Record<string, string> = {
-        kn: "kn-IN",
-        te: "te-IN",
-        ta: "ta-IN",
-        hi: "hi-IN",
-        en: "en-IN"
-      };
-      recognition.lang = speechLangMap[lang] || "en-IN";
+      const recognition = new SpeechRecognition();
+      recognition.lang = lang === "kn" ? "kn-IN" : "en-US";
       recognition.interimResults = false;
-
-      recognition.onstart = () => {
-        setIsListening(true);
-      };
-
-      recognition.onresult = (event: SpeechRecognitionEvent) => {
+      recognition.onstart = () => setIsListening(true);
+      recognition.onresult = (event: any) => {
         const transcript = event.results[0]?.[0]?.transcript;
-        if (transcript) {
-          setPanditName(transcript);
-        }
+        if (transcript) setPanditName(transcript);
       };
-
-      recognition.onerror = () => {
-        setIsListening(false);
-      };
-
-      recognition.onend = () => {
-        setIsListening(false);
-      };
-
+      recognition.onerror = () => setIsListening(false);
+      recognition.onend = () => setIsListening(false);
       recognition.start();
     } catch (err) {
       console.error("Speech recognition error:", err);
@@ -85,18 +74,19 @@ export default function SevaCalendarSyncModal({
     }
   };
 
-  // Generate QR Code and .ics payload dynamically whenever options change
+  // Generate QR Code and native 90-day iCalendar payload whenever options change
   useEffect(() => {
     if (!isOpen || days.length === 0) return;
 
-    const targetUrl = generateGoogleCalendarUrl({
-      day: days[0]!,
+    const nativePayload = generateNative90DayQrCalendarPayload({
+      days,
       lang,
       panditName,
-      notificationTime
+      notificationTime,
+      personName
     });
 
-    QRCode.toDataURL(targetUrl, {
+    QRCode.toDataURL(nativePayload, {
       margin: 2,
       width: 280,
       color: {
@@ -147,6 +137,22 @@ export default function SevaCalendarSyncModal({
     navigator.clipboard.writeText(dataUri);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleEnableNotifications = async () => {
+    const granted = await requestNotificationPermission();
+    if (granted) {
+      scheduleDailyNotification({
+        panditName,
+        notificationTime,
+        lang,
+        personName
+      });
+      setNotifActive(true);
+      alert(`✅ 90-Day Daily Reminders Active! ${panditName} blessings will alert you daily at ${notificationTime} AM.`);
+    } else {
+      alert("⚠️ Notification permission was not granted. You can still scan the QR code to sync 90 days directly into your mobile Calendar app!");
+    }
   };
 
   return (
@@ -253,9 +259,17 @@ export default function SevaCalendarSyncModal({
               </p>
 
               <div className="pt-2">
-                <div className="inline-block rounded-lg bg-amber-100/80 px-3 py-1.5 text-[11px] font-medium text-amber-900">
-                  ❖ {personName ? `Prepared for ${personName}` : "Kundali Sync"} · {days.length} Days
-                </div>
+                <button
+                  type="button"
+                  onClick={handleEnableNotifications}
+                  className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition shadow-sm ${
+                    notifActive
+                      ? "bg-emerald-100 text-emerald-900 border border-emerald-300"
+                      : "bg-amber-600 text-white hover:bg-amber-700"
+                  }`}
+                >
+                  <span>{notifActive ? "✅ 90-Day Mobile Reminders Active" : "🔔 Enable Free Daily Mobile Reminders"}</span>
+                </button>
               </div>
             </div>
           </div>

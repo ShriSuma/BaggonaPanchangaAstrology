@@ -3,7 +3,17 @@ import QRCode from "qrcode";
 import type { RhythmDay, RhythmResult } from "../../core/DailyRhythmEngine";
 import type { SevaRecommendation } from "../../core/GokarnaSevaEngine";
 import type { SevaId } from "../../data/gokarnaSevas";
-import { generateGoogleCalendarUrl, generateSevaICalendarString } from "../../features/seva/icsCalendarGenerator";
+import {
+  downloadIcsFile,
+  generateGoogleCalendarUrl,
+  generateNative90DayQrCalendarPayload,
+  generateSevaICalendarString
+} from "../../features/seva/icsCalendarGenerator";
+import {
+  isNotificationEnabled,
+  requestNotificationPermission,
+  scheduleDailyNotification
+} from "../../features/seva/localNotificationEngine";
 import { T, pick, type L5 } from "../../features/seva/sevaLocale";
 import { todayYmd } from "../../features/seva/sevaPresentation";
 import { generatePDFFromElement } from "../../utils/pdfGenerator";
@@ -153,14 +163,15 @@ export default function PrasadaKit({
   // Generate QR Code data URL for print templates
   useEffect(() => {
     if (!rhythm?.days || rhythm.days.length === 0) return;
-    const targetUrl = generateGoogleCalendarUrl({
-      day: rhythm.days[0]!,
+    const nativeIcsPayload = generateNative90DayQrCalendarPayload({
+      days: rhythm.days,
       lang: pdfLang,
       panditName,
-      notificationTime
+      notificationTime,
+      personName: identity?.personName
     });
 
-    QRCode.toDataURL(targetUrl, {
+    QRCode.toDataURL(nativeIcsPayload, {
       margin: 2,
       width: 280,
       color: {
@@ -170,7 +181,7 @@ export default function PrasadaKit({
     })
       .then((url) => setQrDataUrl(url))
       .catch((err) => console.error("Error generating print QR code:", err));
-  }, [rhythm, lang, panditName, notificationTime, identity?.personName]);
+  }, [rhythm, pdfLang, panditName, notificationTime, identity?.personName]);
 
   const chosenSeva = useMemo(
     () => (recommendations || []).find((r) => r?.seva?.id === sevaId) ?? recommendations?.[0],

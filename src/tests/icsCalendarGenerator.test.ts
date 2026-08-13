@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { RhythmDay } from "../core/DailyRhythmEngine";
 import {
   generateGoogleCalendarUrl,
+  generateNative90DayQrCalendarPayload,
   generateSevaICalendarString
 } from "../features/seva/icsCalendarGenerator";
 
@@ -85,7 +86,7 @@ describe("icsCalendarGenerator", () => {
     expect(ics).toContain("Acharya Shastri");
   });
 
-  it("generates a valid Google Calendar Web link", () => {
+  it("generates a valid Google Calendar Web link with RRULE recur parameter", () => {
     const url = generateGoogleCalendarUrl({
       day: mockDays[0]!,
       lang: "kn",
@@ -96,5 +97,22 @@ describe("icsCalendarGenerator", () => {
     expect(url).toContain("https://calendar.google.com/calendar/render?action=TEMPLATE");
     expect(url).toContain("ctz=Asia%2FKolkata");
     expect(url).toContain("dates=20260811T080000%2F20260811T083000");
+    expect(url).toContain("recur=RRULE%3AFREQ%3DDAILY%3BCOUNT%3D90");
+  });
+
+  it("generates a native 90-day recurring iCalendar payload for mobile QR scanner", () => {
+    const payload = generateNative90DayQrCalendarPayload({
+      days: mockDays,
+      lang: "en",
+      panditName: "Pandit Chaitanya",
+      notificationTime: "08:00",
+      personName: "Pramod Kodagi"
+    });
+
+    expect(payload).toContain("BEGIN:VCALENDAR");
+    expect(payload).toContain("RRULE:FREQ=DAILY;COUNT=90");
+    expect(payload).toContain("SUMMARY:[Baggona Panchanga] Daily Seva & Stotra Reminder — Pandit Chaitanya");
+    expect(payload).toContain("DTSTART;TZID=Asia/Kolkata:20260811T080000");
+    expect(payload).toContain("END:VCALENDAR");
   });
 });

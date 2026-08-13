@@ -174,10 +174,83 @@ export function generateGoogleCalendarUrl(options: {
     text: summary,
     dates: `${dtStart}/${dtEnd}`,
     details: details,
+    recur: "RRULE:FREQ=DAILY;COUNT=90",
     ctz: "Asia/Kolkata"
   });
 
   return `${baseUrl}?${params.toString()}`;
+}
+
+/**
+ * Generates a compact RFC 5545 iCalendar payload with 90-day daily recurrence rule (RRULE:FREQ=DAILY;COUNT=90)
+ * specifically formatted for native QR code scanning on mobile devices.
+ * Scanning this QR code opens iOS Apple Calendar or Android Google Calendar directly
+ * without redirecting to a web browser URL.
+ */
+export function generateNative90DayQrCalendarPayload(options: {
+  days: RhythmDay[];
+  lang: string;
+  panditName: string;
+  notificationTime: string;
+  personName?: string;
+}): string {
+  const { days, lang, panditName, notificationTime, personName } = options;
+  const [hours, minutes] = (notificationTime || "08:00").split(":");
+  const hh = hours?.padStart(2, "0") || "08";
+  const mm = minutes?.padStart(2, "0") || "00";
+
+  const firstDay = days[0];
+  const startYmd = firstDay?.ymd ? formatYmdCompact(firstDay.ymd) : "20260101";
+  const dtStart = `${startYmd}T${hh}${mm}00`;
+
+  const endMinutes = (parseInt(mm, 10) + 30) % 60;
+  const endHours = parseInt(hh, 10) + Math.floor((parseInt(mm, 10) + 30) / 60);
+  const dtEnd = `${startYmd}T${String(endHours).padStart(2, "0")}${String(endMinutes).padStart(2, "0")}00`;
+
+  const safePandit = panditName?.trim() || "Pandit Chaitanya";
+
+  const summary = `[Baggona Panchanga] Daily Seva & Stotra Reminder — ${safePandit}`;
+  const descriptionParts: string[] = [
+    "Baggona Panchanga Daily Seva & Stotra Guidance",
+    `Chief Archaka: ${safePandit} (Gokarna Kshetra)`,
+    personName ? `Devotee: ${personName}` : "",
+    "----------------------------------------",
+    "90-Day Daily Spiritual Discipline:",
+    "1. Light Morning Ghee Lamp & Chant Om Namah Shivaya",
+    "2. Recite Daily Nakshatra & Graha Beeja Mantra",
+    "3. Check Baggona Panchanga App daily for your Tithi & Graha blessings",
+    "",
+    "Blessings from Gokarna Mahabaleshwara Kshetra!"
+  ].filter(Boolean);
+
+  const descriptionStr = descriptionParts.join("\n");
+  const nowIso = new Date().toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+
+  return [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//Baggona Panchanga Astrology//NONSGML Seva Calendar v1.0//EN",
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH",
+    `X-WR-CALNAME:${escapeIcsText(personName ? `Baggona Panchanga - ${personName}` : "Baggona Daily Reminders")}`,
+    "X-WR-TIMEZONE:Asia/Kolkata",
+    "BEGIN:VEVENT",
+    `UID:baggona-seva-90days-${startYmd}@baggona.app`,
+    `DTSTAMP:${nowIso}`,
+    `DTSTART;TZID=Asia/Kolkata:${dtStart}`,
+    `DTEND;TZID=Asia/Kolkata:${dtEnd}`,
+    "RRULE:FREQ=DAILY;COUNT=90",
+    `SUMMARY:${escapeIcsText(summary)}`,
+    `DESCRIPTION:${escapeIcsText(descriptionStr)}`,
+    "STATUS:CONFIRMED",
+    "BEGIN:VALARM",
+    "ACTION:DISPLAY",
+    `DESCRIPTION:${escapeIcsText(summary)}`,
+    "TRIGGER:-PT0M",
+    "END:VALARM",
+    "END:VEVENT",
+    "END:VCALENDAR"
+  ].join("\r\n");
 }
 
 /**
