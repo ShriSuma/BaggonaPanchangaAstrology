@@ -952,7 +952,7 @@ export const SevaPrasadaCardPrint = ({
 
 
 /* ------------------------------------------------------------------ *
- * Sheet 6 — Page 3: Spiritual Guidance & Yearly Anugraha Sheet (100% Full Page)
+ * Sheet 6 — Page 3: Spiritual Guidance & Yearly Anugraha Sheet (100% Full Page & Larger Fonts)
  * ------------------------------------------------------------------ */
 
 export const SevaAnugrahaGuidancePrint = ({
@@ -967,7 +967,6 @@ export const SevaAnugrahaGuidancePrint = ({
   rhythm?: RhythmResult;
 }): JSX.Element => {
   const safePanditName = formatPanditName(panditName, lang);
-  const baseLang = (lang || "en").split("-")[0] as SevaLang;
 
   const TITLE_DICT: L5 = {
     kn: "✦ ಧಾರ್ಮಿಕ ಅನುಷ್ಠಾನ ಮಾರ್ಗದರ್ಶನ ಹಾಗೂ ವಾರ್ಷಿಕ ಅನುಗ್ರಹ ಪತ್ರಿಕೆ ✦",
@@ -1029,7 +1028,7 @@ export const SevaAnugrahaGuidancePrint = ({
       desc: {
         kn: "ನಿಮ್ಮ ಜನ್ಮ ನಕ್ಷತ್ರದ ಅಧಿಪತಿ ಗ್ರಹದ ಮೂಲ ಬೀಜಮಂತ್ರವನ್ನು ಪ್ರತಿದಿನ 108 ಬಾರಿ ನಿಷ್ಠೆಯಿಂದ ಜಪಿಸುವುದು. ಇದು ನಿಮ್ಮ ಕಾರ್ಯ ಕ್ಷೇತ್ರದಲ್ಲಿ ಮಹತ್ತರ ಯಶಸ್ಸು, ಶತ್ರು ಜಯ ಹಾಗೂ ಅಪಾರ ಯಶಸ್ಸನ್ನು ಕರುಣಿಸುತ್ತದೆ.",
         hi: "अपने जन्म नक्षत्र के स्वामी ग्रह के मूल बीज मंत्र का प्रतिदिन 108 बार निष्ठापूर्वक जाप करें। यह आपके कार्यक्षेत्र में महान सफलता, शत्रु विजय और निरंतर उन्नति प्रदान करता है।",
-        te: "మీ జన్మ నక్షత్రాధిపతి గ్రహ మూల బీజమంత్రాన్ని ప్రతిరోజూ 108 సార్లు నిష్ఠతో జపించండి. ఇది మీ ఉద్యోగ వ్యాపారాలలో గొప్ప విజయం, శత్రు జయం మరియు అభివృద్ధిని ప్రసాదిస్తుంది.",
+        te: "మీ జన్మ నಕ್ಷత్రాధిపతి గ్రహ మూల బీజమంత్రాన్ని ప్రతిరోజూ 108 సార్లు నిష్ఠతో జపించండి. ఇది మీ ఉద్యోగ వ్యాపారాలలో గొప్ప విజయం, శత్రు జయం మరియు అభివృద్ధిని ప్రసాదిస్తుంది.",
         ta: "உங்கள் ஜன்ம நட்சத்திர அதிபதியின் பீஜ மந்திரத்தை தினமும் 108 முறை ஜபித்து வரவும். இது தொழில், வியாபாரத்தில் பெரும் வெற்றி, எதிரி ஜெயம் மற்றும் தொடர் முன்னேற்றம் தரும்.",
         en: "Chanting the sacred root beeja mantra of your birth star's ruling planet 108 times daily activates personal talent, ensures professional success, and protects against hidden adversity."
       }
@@ -1158,7 +1157,7 @@ export const SevaAnugrahaGuidancePrint = ({
       }
     },
     {
-      title: { kn: "🌆 ಸಾಯಂಕಾಲ: ಪ್ರದೋಷ ದೀಪಾರಾಧನೆ", hi: "🌆 सायं: प्रदोष दीपाराधन एवं जप", te: "🌆 సాయంత్రం: ప్రదోష దీపారాధన", ta: "🌆 மாலை: பிரதோஷ தீபாராதனை", en: "🌆 Evening: Pradosha Lamp & Mantra" },
+      title: { kn: "<ctrl42> ಸಾಯಂಕಾಲ: ಪ್ರದೋಷ ದೀಪಾರಾಧನೆ", hi: "<ctrl42> सायं: प्रदोष दीपाराधन एवं जप", te: "<ctrl42> సాయంత్రం: ప్రదోష దీపారాధన", ta: "<ctrl42> மாலை: பிரதோஷ தீபாராதனை", en: "<ctrl42> Evening: Pradosha Lamp & Mantra" },
       desc: {
         kn: "ಸೂರ್ಯಾಸ್ತಮಯದ ನಂತರ ಮನೆಯ ದೇವರ ಮನೆಯಲ್ಲಿ ದೀಪ ಬೆಳಗಿಸಿ ಮೃತ್ಯುಂಜಯ ಮಂತ್ರ ಪಠಿಸುವುದು ಕೌಟುಂಬಿಕ ದೋಷಗಳನ್ನು ನಿವಾರಿಸಿ ದಿವ್ಯ ಕವಚವನ್ನು ನಿರ್ಮಿಸುತ್ತದೆ.",
         hi: "सूर्यास्त के पश्चात पूजा घर में दीपक जलाकर मृत्युंजय मंत्र का पाठ करने से पारिवारिक दोष दूर होते हैं तथा दिव्य सुरक्षा कवच बनता है।",
@@ -1233,7 +1232,7 @@ export const SevaAnugrahaGuidancePrint = ({
         style={{
           border: `3px double ${GOLD}`,
           borderRadius: 16,
-          padding: "16px 20px",
+          padding: "20px 24px",
           minHeight: PAGE_H - 76,
           boxSizing: "border-box",
           backgroundColor: PAPER,
@@ -1242,11 +1241,11 @@ export const SevaAnugrahaGuidancePrint = ({
       >
         {/* Header */}
         <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: 18, color: GOLD, letterSpacing: 2 }}>❖</div>
-          <div style={{ fontSize: 15.5, fontWeight: 700, color: INK, marginTop: 1, lineHeight: 1.5 }}>
+          <div style={{ fontSize: 20, color: GOLD, letterSpacing: 2 }}>❖</div>
+          <div style={{ fontSize: 17, fontWeight: 700, color: INK, marginTop: 2, lineHeight: 1.5 }}>
             {pick(TITLE_DICT, lang)}
           </div>
-          <div style={{ fontSize: 10, color: INK_SOFT, marginTop: 2, lineHeight: 1.5, maxWidth: 720, margin: "2px auto 0" }}>
+          <div style={{ fontSize: 11, color: INK_SOFT, marginTop: 3, lineHeight: 1.6, maxWidth: 740, margin: "3px auto 0" }}>
             {pick(SUBTITLE_DICT, lang)}
           </div>
         </div>
@@ -1254,27 +1253,27 @@ export const SevaAnugrahaGuidancePrint = ({
         <OrnamentRule />
 
         {/* Section 1: Devotee Commandments */}
-        <div style={{ marginTop: 8 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, marginBottom: 5, textTransform: "uppercase", textAlign: "center" }}>
+        <div style={{ marginTop: 12 }}>
+          <div style={{ fontSize: 12.5, fontWeight: 700, color: GOLD, marginBottom: 7, textTransform: "uppercase", textAlign: "center" }}>
             {pick(RULES_TITLE_DICT, lang)}
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 7 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
             {RULES_LIST.map((rule, idx) => (
               <div
                 key={idx}
                 style={{
                   border: `1.5px solid ${GOLD_LIGHT}`,
-                  borderRadius: 8,
+                  borderRadius: 9,
                   backgroundColor: PANEL,
-                  padding: "8px 11px",
+                  padding: "10px 14px",
                   boxSizing: "border-box"
                 }}
               >
-                <div style={{ fontSize: 11, fontWeight: 700, color: INK, marginBottom: 3, lineHeight: 1.4 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: INK, marginBottom: 4, lineHeight: 1.4 }}>
                   {pick(rule.title, lang)}
                 </div>
-                <div style={{ fontSize: 9.5, color: INK_SOFT, lineHeight: 1.55 }}>
+                <div style={{ fontSize: 10.5, color: INK_SOFT, lineHeight: 1.65 }}>
                   {pick(rule.desc, lang)}
                 </div>
               </div>
@@ -1283,25 +1282,25 @@ export const SevaAnugrahaGuidancePrint = ({
         </div>
 
         {/* Section 2: Monthly Tithi Guide */}
-        <div style={{ marginTop: 9 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, marginBottom: 5, textTransform: "uppercase", textAlign: "center" }}>
+        <div style={{ marginTop: 12 }}>
+          <div style={{ fontSize: 12.5, fontWeight: 700, color: GOLD, marginBottom: 7, textTransform: "uppercase", textAlign: "center" }}>
             {pick(TITHI_TITLE_DICT, lang)}
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 6 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 8 }}>
             {TITHI_GUIDE.map((tg, idx) => (
               <div
                 key={idx}
                 style={{
                   border: `1px solid ${GOLD_LIGHT}`,
-                  borderRadius: 8,
+                  borderRadius: 9,
                   backgroundColor: "#FFFFFF",
-                  padding: "7px 6px",
+                  padding: "9px 8px",
                   textAlign: "center"
                 }}
               >
-                <div style={{ fontSize: 10.5, fontWeight: 700, color: GOLD, lineHeight: 1.4 }}>{pick(tg.name, lang)}</div>
-                <div style={{ fontSize: 9, color: INK_SOFT, marginTop: 2, lineHeight: 1.5 }}>
+                <div style={{ fontSize: 11.5, fontWeight: 700, color: GOLD, lineHeight: 1.4 }}>{pick(tg.name, lang)}</div>
+                <div style={{ fontSize: 10, color: INK_SOFT, marginTop: 3, lineHeight: 1.6 }}>
                   {pick(tg.desc, lang)}
                 </div>
               </div>
@@ -1310,27 +1309,27 @@ export const SevaAnugrahaGuidancePrint = ({
         </div>
 
         {/* Section 3: Gokarna Kshetra Darshana Rules */}
-        <div style={{ marginTop: 9 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, marginBottom: 5, textTransform: "uppercase", textAlign: "center" }}>
+        <div style={{ marginTop: 12 }}>
+          <div style={{ fontSize: 12.5, fontWeight: 700, color: GOLD, marginBottom: 7, textTransform: "uppercase", textAlign: "center" }}>
             {pick(KSHETRA_TITLE_DICT, lang)}
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 7 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 9 }}>
             {KSHETRA_RULES.map((kr, idx) => (
               <div
                 key={idx}
                 style={{
                   border: `1px solid ${GOLD_LIGHT}`,
-                  borderRadius: 8,
+                  borderRadius: 9,
                   backgroundColor: PANEL,
-                  padding: "7px 9px",
+                  padding: "9px 12px",
                   boxSizing: "border-box"
                 }}
               >
-                <div style={{ fontSize: 10.5, fontWeight: 700, color: INK, marginBottom: 2, lineHeight: 1.4 }}>
+                <div style={{ fontSize: 11.5, fontWeight: 700, color: INK, marginBottom: 3, lineHeight: 1.4 }}>
                   {pick(kr.title, lang)}
                 </div>
-                <div style={{ fontSize: 9, color: INK_SOFT, lineHeight: 1.55 }}>
+                <div style={{ fontSize: 10, color: INK_SOFT, lineHeight: 1.6 }}>
                   {pick(kr.desc, lang)}
                 </div>
               </div>
@@ -1339,27 +1338,27 @@ export const SevaAnugrahaGuidancePrint = ({
         </div>
 
         {/* Section 4: 4-Time Daily Stotra Recitation Guide */}
-        <div style={{ marginTop: 9 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, marginBottom: 5, textTransform: "uppercase", textAlign: "center" }}>
+        <div style={{ marginTop: 12 }}>
+          <div style={{ fontSize: 12.5, fontWeight: 700, color: GOLD, marginBottom: 7, textTransform: "uppercase", textAlign: "center" }}>
             {pick(STOTRA_TITLE_DICT, lang)}
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 7 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9 }}>
             {STOTRA_LIST.map((st, idx) => (
               <div
                 key={idx}
                 style={{
                   border: `1px solid ${GOLD_LIGHT}`,
-                  borderRadius: 8,
+                  borderRadius: 9,
                   backgroundColor: "#FFFFFF",
-                  padding: "7px 10px",
+                  padding: "9px 12px",
                   boxSizing: "border-box"
                 }}
               >
-                <div style={{ fontSize: 10.5, fontWeight: 700, color: INK, marginBottom: 2, lineHeight: 1.4 }}>
+                <div style={{ fontSize: 11.5, fontWeight: 700, color: INK, marginBottom: 3, lineHeight: 1.4 }}>
                   {pick(st.title, lang)}
                 </div>
-                <div style={{ fontSize: 9, color: INK_SOFT, lineHeight: 1.5 }}>
+                <div style={{ fontSize: 10, color: INK_SOFT, lineHeight: 1.6 }}>
                   {pick(st.desc, lang)}
                 </div>
               </div>
@@ -1370,18 +1369,18 @@ export const SevaAnugrahaGuidancePrint = ({
         {/* Section 5: Maha Mrityunjaya & Gotra Blessing Banner */}
         <div
           style={{
-            marginTop: 9,
+            marginTop: 12,
             backgroundColor: "#FFFFFF",
             border: `1.5px solid ${GOLD_LIGHT}`,
-            borderRadius: 8,
-            padding: "8px 12px",
+            borderRadius: 10,
+            padding: "10px 14px",
             textAlign: "center"
           }}
         >
-          <div style={{ fontSize: 9.5, fontWeight: 700, color: GOLD, letterSpacing: 1.2, textTransform: "uppercase" }}>
+          <div style={{ fontSize: 10.5, fontWeight: 700, color: GOLD, letterSpacing: 1.2, textTransform: "uppercase" }}>
             ॐ ತ್ರಯ್ಯಂಬಕಂ ಯಜಾಮಹೇ ಸುಗಂಧಿಂ ಪುಷ್ಟಿವර්ධನಮ್ | ಉರ್ವಾರಕಮಿವ ಬಂಧನಾನ್ಮೃತ್ಯೋರ್ಮುಕ್ಷೀಯ ಮಾಮೃತಾತ್ ||
           </div>
-          <div style={{ fontSize: 9, color: INK_SOFT, marginTop: 2, lineHeight: 1.5 }}>
+          <div style={{ fontSize: 10, color: INK_SOFT, marginTop: 3, lineHeight: 1.6 }}>
             {pick(MANTHRA_DESC_DICT, lang)}
           </div>
         </div>
@@ -1389,18 +1388,18 @@ export const SevaAnugrahaGuidancePrint = ({
         {/* Section 6: Daily Pooja Sankalpa & Shanti Guide */}
         <div
           style={{
-            marginTop: 9,
+            marginTop: 12,
             backgroundColor: PANEL,
             border: `1px solid ${GOLD_LIGHT}`,
-            borderRadius: 8,
-            padding: "8px 12px",
+            borderRadius: 10,
+            padding: "10px 14px",
             textAlign: "center"
           }}
         >
-          <div style={{ fontSize: 10.5, fontWeight: 700, color: GOLD, marginBottom: 2 }}>
+          <div style={{ fontSize: 11.5, fontWeight: 700, color: GOLD, marginBottom: 3 }}>
             {pick(SANKALPA_TITLE_DICT, lang)}
           </div>
-          <div style={{ fontSize: 9, color: INK_SOFT, lineHeight: 1.5 }}>
+          <div style={{ fontSize: 10, color: INK_SOFT, lineHeight: 1.6 }}>
             {pick(SANKALPA_DESC_DICT, lang)}
           </div>
         </div>
@@ -1408,21 +1407,21 @@ export const SevaAnugrahaGuidancePrint = ({
         {/* Section 7: Priest Direct Consultation Card & Seal */}
         <div
           style={{
-            marginTop: 9,
+            marginTop: 12,
             border: `1.5px solid ${GOLD}`,
-            borderRadius: 10,
+            borderRadius: 11,
             backgroundColor: "#FFFFFF",
-            padding: "8px 14px",
+            padding: "10px 16px",
             textAlign: "center"
           }}
         >
-          <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, marginBottom: 2 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: GOLD, marginBottom: 3 }}>
             {pick(ARCHAKA_HEADER_DICT, lang)}
           </div>
-          <div style={{ fontSize: 10.5, color: INK, fontWeight: 700, marginTop: 1 }}>
+          <div style={{ fontSize: 11.5, color: INK, fontWeight: 700, marginTop: 1 }}>
             {safePanditName || "ಚೈತನ್ಯ ಪಂಡಿತ"} — {pick(ARCHAKA_ROLE_DICT, lang)}
           </div>
-          <div style={{ fontSize: 9, color: INK_SOFT, marginTop: 2, lineHeight: 1.5, maxWidth: 680, margin: "2px auto 0" }}>
+          <div style={{ fontSize: 10, color: INK_SOFT, marginTop: 3, lineHeight: 1.6, maxWidth: 700, margin: "3px auto 0" }}>
             {pick(ARCHAKA_DESC_DICT, lang)}
           </div>
         </div>
@@ -1431,11 +1430,11 @@ export const SevaAnugrahaGuidancePrint = ({
         <div
           style={{
             position: "absolute",
-            bottom: 10,
+            bottom: 12,
             left: 36,
             right: 36,
             textAlign: "center",
-            fontSize: 9,
+            fontSize: 9.5,
             color: INK_SOFT
           }}
         >
@@ -1445,8 +1444,9 @@ export const SevaAnugrahaGuidancePrint = ({
     </div>
   );
 };
+
 /* ------------------------------------------------------------------ *
- * Sheet 7 — Page 4: Remedial Puja & Family Lineage Protection Sheet (100% Full Page)
+ * Sheet 7 — Page 4: Remedial Puja & Family Lineage Protection Sheet (100% Full Page & Larger Fonts)
  * ------------------------------------------------------------------ */
 
 export const SevaRemediesAnnualPrint = ({
@@ -1531,7 +1531,7 @@ export const SevaRemediesAnnualPrint = ({
         kn: "ಪಿತೃ ದೋಷ ಶಾಂತಿಗೆ ಮಹಾಲಯ ಅಮಾವಾಸ್ಯೆಯಂದು ಗೋಕರ್ಣ ರುದ್ರಪಾದ ತೀರ್ಥದಲ್ಲಿ ಪಿತೃ ತರ್ಪಣ, ಶ್ರಾದ್ಧ ಹಾಗೂ ಅನ್ನದಾನ ಮಾಡುವುದರಿಂದ ವಂಶ ವೃದ್ಧಿ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಸುಖ ಲಭಿಸುತ್ತದೆ.",
         hi: "पितृ दोष शांति हेतु महालया अमावस्या पर गोकर्ण रुद्रपाद तीर्थ में तर्पण, श्राद्ध एवं अन्नदान करने से वंश वृद्धि तथा पारिवारिक सुख मिलता है।",
         te: "పితృ దోష శాంతికి మహాలయ అమావాస్య నాడు గోకర్ణ రుద్రపాద తీర్థంలో తర్పణం, శ్రాద్ధం మరియు అన్నదానం చేయడం వలన వంశాభివృద్ధి లభిస్తుంది.",
-        ta: "பித்ரு தோஷ சாந்திக்கு மகாளய அமாவாசையன்று கோகர்ண ருத்ரபாத தீர்த்தத்தில் தர்பணமும் அன்னதானமும் செய்வது வம்ச விருத்தியை அளிக்கும்.",
+        ta: "பித்ரு தோஷ சாந்திக்கு மகாளய அமாவாசையன்று கோகர்ண ருத்ரபாத தீர்த்தத்தில் தர்பணமும் அன்னதானமும் செய்வது வம்ச சுபிட்சமும் தரும்.",
         en: "Performing Mahalaya Pitru Tarpanam and Shradha at Gokarna's sacred Rudrapada Teertha guarantees ancestral liberation and prospers descendants."
       }
     },
@@ -1699,7 +1699,7 @@ export const SevaRemediesAnnualPrint = ({
         style={{
           border: `3px double ${GOLD}`,
           borderRadius: 16,
-          padding: "16px 20px",
+          padding: "20px 24px",
           minHeight: PAGE_H - 76,
           boxSizing: "border-box",
           backgroundColor: PAPER,
@@ -1708,11 +1708,11 @@ export const SevaRemediesAnnualPrint = ({
       >
         {/* Header */}
         <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: 18, color: GOLD, letterSpacing: 2 }}>❖</div>
-          <div style={{ fontSize: 15.5, fontWeight: 700, color: INK, marginTop: 1, lineHeight: 1.5 }}>
+          <div style={{ fontSize: 20, color: GOLD, letterSpacing: 2 }}>❖</div>
+          <div style={{ fontSize: 17, fontWeight: 700, color: INK, marginTop: 2, lineHeight: 1.5 }}>
             {pick(TITLE_DICT, lang)}
           </div>
-          <div style={{ fontSize: 10, color: INK_SOFT, marginTop: 2, lineHeight: 1.5, maxWidth: 720, margin: "2px auto 0" }}>
+          <div style={{ fontSize: 11, color: INK_SOFT, marginTop: 3, lineHeight: 1.6, maxWidth: 740, margin: "3px auto 0" }}>
             {pick(SUBTITLE_DICT, lang)}
           </div>
         </div>
@@ -1720,27 +1720,27 @@ export const SevaRemediesAnnualPrint = ({
         <OrnamentRule />
 
         {/* Section 1: 12-Month Remedial Cycle */}
-        <div style={{ marginTop: 8 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, marginBottom: 5, textTransform: "uppercase", textAlign: "center" }}>
+        <div style={{ marginTop: 12 }}>
+          <div style={{ fontSize: 12.5, fontWeight: 700, color: GOLD, marginBottom: 7, textTransform: "uppercase", textAlign: "center" }}>
             {pick(CYCLE_TITLE_DICT, lang)}
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 7 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
             {CYCLE_LIST.map((cy, idx) => (
               <div
                 key={idx}
                 style={{
                   border: `1.5px solid ${GOLD_LIGHT}`,
-                  borderRadius: 8,
+                  borderRadius: 9,
                   backgroundColor: PANEL,
-                  padding: "8px 11px",
+                  padding: "10px 14px",
                   boxSizing: "border-box"
                 }}
               >
-                <div style={{ fontSize: 11, fontWeight: 700, color: INK, marginBottom: 3, lineHeight: 1.4 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: INK, marginBottom: 4, lineHeight: 1.4 }}>
                   {pick(cy.title, lang)}
                 </div>
-                <div style={{ fontSize: 9.5, color: INK_SOFT, lineHeight: 1.55 }}>
+                <div style={{ fontSize: 10.5, color: INK_SOFT, lineHeight: 1.65 }}>
                   {pick(cy.desc, lang)}
                 </div>
               </div>
@@ -1749,27 +1749,27 @@ export const SevaRemediesAnnualPrint = ({
         </div>
 
         {/* Section 2: Vastu & Wealth Energy Rules */}
-        <div style={{ marginTop: 9 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, marginBottom: 5, textTransform: "uppercase", textAlign: "center" }}>
+        <div style={{ marginTop: 12 }}>
+          <div style={{ fontSize: 12.5, fontWeight: 700, color: GOLD, marginBottom: 7, textTransform: "uppercase", textAlign: "center" }}>
             {pick(VASTU_TITLE_DICT, lang)}
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 9 }}>
             {VASTU_RULES.map((vr, idx) => (
               <div
                 key={idx}
                 style={{
                   border: `1px solid ${GOLD_LIGHT}`,
-                  borderRadius: 8,
+                  borderRadius: 9,
                   backgroundColor: "#FFFFFF",
-                  padding: "7px 9px",
+                  padding: "9px 12px",
                   boxSizing: "border-box"
                 }}
               >
-                <div style={{ fontSize: 10.5, fontWeight: 700, color: INK, marginBottom: 2, lineHeight: 1.4 }}>
+                <div style={{ fontSize: 11.5, fontWeight: 700, color: INK, marginBottom: 3, lineHeight: 1.4 }}>
                   {pick(vr.title, lang)}
                 </div>
-                <div style={{ fontSize: 9, color: INK_SOFT, lineHeight: 1.55 }}>
+                <div style={{ fontSize: 10, color: INK_SOFT, lineHeight: 1.6 }}>
                   {pick(vr.desc, lang)}
                 </div>
               </div>
@@ -1778,27 +1778,27 @@ export const SevaRemediesAnnualPrint = ({
         </div>
 
         {/* Section 3: 4-Corner Domestic Vastu Harmony Rules */}
-        <div style={{ marginTop: 9 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, marginBottom: 5, textTransform: "uppercase", textAlign: "center" }}>
+        <div style={{ marginTop: 12 }}>
+          <div style={{ fontSize: 12.5, fontWeight: 700, color: GOLD, marginBottom: 7, textTransform: "uppercase", textAlign: "center" }}>
             {pick(CORNER_TITLE_DICT, lang)}
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 7 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9 }}>
             {CORNER_LIST.map((cr, idx) => (
               <div
                 key={idx}
                 style={{
                   border: `1px solid ${GOLD_LIGHT}`,
-                  borderRadius: 8,
+                  borderRadius: 9,
                   backgroundColor: PANEL,
-                  padding: "7px 10px",
+                  padding: "9px 12px",
                   boxSizing: "border-box"
                 }}
               >
-                <div style={{ fontSize: 10.5, fontWeight: 700, color: INK, marginBottom: 2, lineHeight: 1.4 }}>
+                <div style={{ fontSize: 11.5, fontWeight: 700, color: INK, marginBottom: 3, lineHeight: 1.4 }}>
                   {pick(cr.title, lang)}
                 </div>
-                <div style={{ fontSize: 9, color: INK_SOFT, lineHeight: 1.5 }}>
+                <div style={{ fontSize: 10, color: INK_SOFT, lineHeight: 1.6 }}>
                   {pick(cr.desc, lang)}
                 </div>
               </div>
@@ -1809,18 +1809,18 @@ export const SevaRemediesAnnualPrint = ({
         {/* Section 4: Pitru Tarpanam & Ancestral Grace */}
         <div
           style={{
-            marginTop: 9,
+            marginTop: 12,
             backgroundColor: "#FFFFFF",
             border: `1.5px solid ${GOLD_LIGHT}`,
-            borderRadius: 8,
-            padding: "8px 12px",
+            borderRadius: 10,
+            padding: "10px 14px",
             textAlign: "center"
           }}
         >
-          <div style={{ fontSize: 10.5, fontWeight: 700, color: GOLD, marginBottom: 2 }}>
+          <div style={{ fontSize: 11.5, fontWeight: 700, color: GOLD, marginBottom: 3 }}>
             {pick(PITRU_TITLE_DICT, lang)}
           </div>
-          <div style={{ fontSize: 9, color: INK_SOFT, lineHeight: 1.5 }}>
+          <div style={{ fontSize: 10, color: INK_SOFT, lineHeight: 1.6 }}>
             {pick(PITRU_DESC_DICT, lang)}
           </div>
         </div>
@@ -1828,18 +1828,18 @@ export const SevaRemediesAnnualPrint = ({
         {/* Section 5: Gokarna Mahabaleshwara Prasada Preservation */}
         <div
           style={{
-            marginTop: 9,
+            marginTop: 12,
             backgroundColor: PANEL,
             border: `1px solid ${GOLD_LIGHT}`,
-            borderRadius: 8,
-            padding: "8px 12px",
+            borderRadius: 10,
+            padding: "10px 14px",
             textAlign: "center"
           }}
         >
-          <div style={{ fontSize: 10.5, fontWeight: 700, color: GOLD, marginBottom: 2 }}>
+          <div style={{ fontSize: 11.5, fontWeight: 700, color: GOLD, marginBottom: 3 }}>
             {pick(PRASADA_USE_TITLE_DICT, lang)}
           </div>
-          <div style={{ fontSize: 9, color: INK_SOFT, lineHeight: 1.5 }}>
+          <div style={{ fontSize: 10, color: INK_SOFT, lineHeight: 1.6 }}>
             {pick(PRASADA_USE_DESC_DICT, lang)}
           </div>
         </div>
@@ -1847,26 +1847,26 @@ export const SevaRemediesAnnualPrint = ({
         {/* Section 6: Chief Archaka Official Seal Badge */}
         <div
           style={{
-            marginTop: 9,
+            marginTop: 12,
             border: `1.5px solid ${GOLD}`,
-            borderRadius: 10,
+            borderRadius: 11,
             backgroundColor: "#FFFFFF",
-            padding: "8px 14px",
+            padding: "10px 16px",
             textAlign: "center",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            gap: 14
+            gap: 16
           }}
         >
           <div style={{ flex: 1, textAlign: "left" }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, marginBottom: 2 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: GOLD, marginBottom: 3 }}>
               {pick(SEAL_HEADER_DICT, lang)}
             </div>
-            <div style={{ fontSize: 10.5, color: INK, fontWeight: 700 }}>
+            <div style={{ fontSize: 11.5, color: INK, fontWeight: 700 }}>
               {safePanditName || "ಚೈತನ್ಯ ಪಂಡಿತ"} — {pick({ kn: "ಮುಖ್ಯ ಅರ್ಚಕರು, ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಕ್ಷೇತ್ರ", hi: "मुख्य अर्चक, गोकर्ण महाबलेश्वर क्षेत्र", te: "ముఖ్య అర్చకులు, గోకర్ణ మహాబలేశ్వర క్షేత్రం", ta: "முதன்மை அர்ச்சகர், கோகர்ண மகாபலேஸ்வர க்ஷேத்திரம்", en: "Chief Archaka, Gokarna Mahabaleshwara Kshetra" }, lang)}
             </div>
-            <div style={{ fontSize: 9, color: INK_SOFT, marginTop: 2, lineHeight: 1.5 }}>
+            <div style={{ fontSize: 10, color: INK_SOFT, marginTop: 3, lineHeight: 1.6 }}>
               {pick(SEAL_DESC_DICT, lang)}
             </div>
           </div>
@@ -1874,9 +1874,9 @@ export const SevaRemediesAnnualPrint = ({
           {/* Luxury Archaka Golden Stamp Emblem */}
           <div
             style={{
-              width: 76,
-              height: 76,
-              borderRadius: 38,
+              width: 80,
+              height: 80,
+              borderRadius: 40,
               border: `2px double ${GOLD}`,
               backgroundColor: "#FFFFFF",
               display: "flex",
@@ -1886,11 +1886,11 @@ export const SevaRemediesAnnualPrint = ({
               boxShadow: `0 0 10px rgba(180, 140, 60, 0.2)`
             }}
           >
-            <div style={{ fontSize: 15, color: GOLD }}>🕉️</div>
-            <div style={{ fontSize: 7, fontWeight: 700, color: INK, textTransform: "uppercase", marginTop: 2, textAlign: "center" }}>
+            <div style={{ fontSize: 16, color: GOLD }}>🕉️</div>
+            <div style={{ fontSize: 7.5, fontWeight: 700, color: INK, textTransform: "uppercase", marginTop: 2, textAlign: "center" }}>
               GOKARNA
             </div>
-            <div style={{ fontSize: 6, color: GOLD, textTransform: "uppercase" }}>
+            <div style={{ fontSize: 6.5, color: GOLD, textTransform: "uppercase" }}>
               CHIEF ARCHAKA
             </div>
           </div>
@@ -1900,11 +1900,11 @@ export const SevaRemediesAnnualPrint = ({
         <div
           style={{
             position: "absolute",
-            bottom: 10,
+            bottom: 12,
             left: 36,
             right: 36,
             textAlign: "center",
-            fontSize: 9,
+            fontSize: 9.5,
             color: INK_SOFT
           }}
         >
@@ -1916,7 +1916,7 @@ export const SevaRemediesAnnualPrint = ({
 };
 
 /* ------------------------------------------------------------------ *
- * Sheet 8 — Page 5: Gokarna Panchanga Divine Mandala & Graha Details (100% Full Page)
+ * Sheet 8 — Page 5: Gokarna Panchanga Divine Mandala & Graha Details (100% Full Page & Larger Fonts)
  * ------------------------------------------------------------------ */
 
 export type PoojaMahatmeData = {
@@ -2065,6 +2065,7 @@ export const SevaPoojaMahatmePrint = ({
     },
     {
       name: { kn: "🪐 ಶನಿ, ರಾಹು ಹಾಗೂ ಕೇತು (Shani, Rahu, Ketu)", hi: "🪐 शनि, राहु एवं केतु (Shani, Rahu, Ketu)", te: "🪐 శని, రాహువు మరియు కేతువు", ta: "🪐 சனி, ராகு & கேது", en: "🪐 Shani, Rahu & Ketu (Karmic Lords)" },
+      role: { kn: "ಕರ್ಮ ಹಾಗೂ ನ್ಯಾಯಕಾರಕ", hi: "कर्म एवं न्यायकारक", te: "కర్మ మరియు న్యాయకారకుడు", ta: "கர்மா & நியாய காரகர்", en: "Lifespan, Career Karma & Obstacle Resolution" },
       desc: {
         kn: "ಶನಿಯು ಆಯುಷ್ಯ, ಕರ್ಮ ಹಾಗೂ ನ್ಯಾಯದ ಅಧಿಪತಿ. ರಾಹು-ಕೇತುಗಳು ಜನ್ಮಾಂತರ ವೈರ, ಸರ್ಪ ದೋಷ ಹಾಗೂ ಅಡೆತಡೆಗಳ ಶಮನಕಾರಕ. ಶಿವ ಪೂಜೆಯು ಈ ಗ್ರಹಗಳನ್ನು ಶಾಂತಿಗೊಳಿಸುತ್ತದೆ.",
         hi: "शनि आयु, कर्म तथा न्याय के स्वामी हैं। राहु-केतु पूर्वजन्म बाधाओं तथा सर्प दोष के निवारक हैं। शिव पूजा से ये ग्रह शांत होते हैं।",
@@ -2129,7 +2130,7 @@ export const SevaPoojaMahatmePrint = ({
         style={{
           border: `3px double ${GOLD}`,
           borderRadius: 16,
-          padding: "16px 20px",
+          padding: "20px 24px",
           minHeight: PAGE_H - 76,
           boxSizing: "border-box",
           backgroundColor: PAPER,
@@ -2138,11 +2139,11 @@ export const SevaPoojaMahatmePrint = ({
       >
         {/* Header */}
         <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: 18, color: GOLD, letterSpacing: 2 }}>❖</div>
-          <div style={{ fontSize: 15.5, fontWeight: 700, color: INK, marginTop: 1, lineHeight: 1.5 }}>
+          <div style={{ fontSize: 20, color: GOLD, letterSpacing: 2 }}>❖</div>
+          <div style={{ fontSize: 17, fontWeight: 700, color: INK, marginTop: 2, lineHeight: 1.5 }}>
             {sevaTitle} — {pick({ kn: "ಪವಿತ್ರ ಮಹಾತ್ಮೆಯ, ೪-೪ ಗ್ರಹ ವಿವರಣೆ ಹಾಗೂ ಫಲಶ್ರುತಿ ಪತ್ರ", hi: "पवित्र माहात्म्य, ४-४ ग्रह विवरण एवं फलश्रुति पत्र", te: "పవిత్ర మాహాత్మ్యం, ౪-౪ గ్రహ వివరణ మరియు ఫలశ్రుతి పత్రం", ta: "புனித மகாத்மியம், 4-4 கிரக விவரம் மற்றும் பலன் பத்திரம்", en: "Sacred Consecration & 4-4 Graha Details Sheet" }, lang)}
           </div>
-          <div style={{ fontSize: 10, color: INK_SOFT, marginTop: 2, lineHeight: 1.5, maxWidth: 720, margin: "2px auto 0" }}>
+          <div style={{ fontSize: 11, color: INK_SOFT, marginTop: 3, lineHeight: 1.6, maxWidth: 740, margin: "3px auto 0" }}>
             {pick({ kn: "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಕ್ಷೇತ್ರದ ಮುಖ್ಯ ಅರ್ಚಕರ ಅಧಿಕೃತ ಪೂಜಾ ವಿವರಣೆ, ೮ ಗ್ರಹಗಳ ಪ್ರಭಾವ ಹಾಗೂ ಜಪ ವಿಧಾನ", hi: "श्री गोकर्ण महाबलेश्वर क्षेत्र के मुख्य अर्चक का आधिकारिक पूजन विवरण, ८ ग्रहों का प्रभाव एवं जप विधान", te: "శ్రీ గోకర్ణ మహాబలేశ్వర క్షేత్ర ప్రధాన అర్చకుల అధికారిక పూజా వివరణ, ౮ గ్రహాల ప్రభావం మరియు జప విధానం", ta: "ஸ்ரீ கோகர்ண மகாபலேஸ்வர க்ஷேத்திர முதன்மை அர்ச்சகரின் அதிகாரப்பூர்வ பூஜை விவரம் மற்றும் 8 கிரக விவரிக்கப்பட்ட பலன்கள்", en: "Official Temple Consecration, 4-4 Graha Planetary Consecration & Beeja Mantra Guide Narrated by Chief Archaka" }, lang)}
           </div>
         </div>
@@ -2150,20 +2151,20 @@ export const SevaPoojaMahatmePrint = ({
         <OrnamentRule />
 
         {/* Section 1: Sacred Pooja Mahatme Summary (3 Core Blocks) */}
-        <div style={{ marginTop: 6, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6 }}>
+        <div style={{ marginTop: 10, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
           <div
             style={{
               backgroundColor: PANEL,
               border: `1.5px solid ${GOLD_LIGHT}`,
-              borderRadius: 8,
-              padding: "7px 9px",
+              borderRadius: 9,
+              padding: "9px 12px",
               boxSizing: "border-box"
             }}
           >
-            <div style={{ fontSize: 10.5, fontWeight: 700, color: GOLD, marginBottom: 2 }}>
+            <div style={{ fontSize: 11.5, fontWeight: 700, color: GOLD, marginBottom: 3 }}>
               ೧. {pick({ kn: "ಪವಿತ್ರ ಪೂಜಾ ಹಿನ್ನೆಲೆ", hi: "१. पवित्र पूजा पृष्ठभूमि", te: "౧. పవిత్ర పూజా నేపథ్యం", ta: "1. புனித பூஜை வரலாறு", en: "1. Sacred Vedic Origin" }, lang)}
             </div>
-            <div style={{ fontSize: 9, color: INK, lineHeight: 1.5, textAlign: "justify" }}>
+            <div style={{ fontSize: 10, color: INK, lineHeight: 1.6, textAlign: "justify" }}>
               {wPooja}
             </div>
           </div>
@@ -2172,15 +2173,15 @@ export const SevaPoojaMahatmePrint = ({
             style={{
               backgroundColor: "#FFFFFF",
               border: `1.5px solid ${GOLD_LIGHT}`,
-              borderRadius: 8,
-              padding: "7px 9px",
+              borderRadius: 9,
+              padding: "9px 12px",
               boxSizing: "border-box"
             }}
           >
-            <div style={{ fontSize: 10.5, fontWeight: 700, color: GOLD, marginBottom: 2 }}>
+            <div style={{ fontSize: 11.5, fontWeight: 700, color: GOLD, marginBottom: 3 }}>
               ೨. {pick({ kn: "ಪೂಜಾ ಮುಖ್ಯ ಉದ್ದೇಶ", hi: "२. पूजा मुख्य उद्देश्य", te: "౨. పూజ ముఖ్య ఉద్దేశం", ta: "2. பூஜை முக்கிய நோக்கம்", en: "2. Planetary Purpose" }, lang)}
             </div>
-            <div style={{ fontSize: 9, color: INK, lineHeight: 1.5, textAlign: "justify" }}>
+            <div style={{ fontSize: 10, color: INK, lineHeight: 1.6, textAlign: "justify" }}>
               {yPooja}
             </div>
           </div>
@@ -2189,45 +2190,45 @@ export const SevaPoojaMahatmePrint = ({
             style={{
               backgroundColor: PANEL,
               border: `1.5px solid ${GOLD_LIGHT}`,
-              borderRadius: 8,
-              padding: "7px 9px",
+              borderRadius: 9,
+              padding: "9px 12px",
               boxSizing: "border-box"
             }}
           >
-            <div style={{ fontSize: 10.5, fontWeight: 700, color: "#047857", marginBottom: 2 }}>
+            <div style={{ fontSize: 11.5, fontWeight: 700, color: "#047857", marginBottom: 3 }}>
               ೩. {pick({ kn: "ದೈವಿಕ ಫಲಶ್ರುತಿ", hi: "३. दैवीय फलश्रुति", te: "౩. దైవిక ఫలశ్రుతి", ta: "3. தெய்வீக பலன்கள்", en: "3. Divine Blessings" }, lang)}
             </div>
-            <div style={{ fontSize: 9, color: INK, lineHeight: 1.5, textAlign: "justify" }}>
+            <div style={{ fontSize: 10, color: INK, lineHeight: 1.6, textAlign: "justify" }}>
               {bPooja}
             </div>
           </div>
         </div>
 
         {/* Section 2: 4 Primary Graha Position Cards (Group 1 - 4 Cards) */}
-        <div style={{ marginTop: 8 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, marginBottom: 4, textTransform: "uppercase", textAlign: "center" }}>
+        <div style={{ marginTop: 12 }}>
+          <div style={{ fontSize: 12.5, fontWeight: 700, color: GOLD, marginBottom: 6, textTransform: "uppercase", textAlign: "center" }}>
             ✦ ೪ ಮೂಲ ಗ್ರಹಗಳ ಸ್ಥಿತಿ ಹಾಗೂ ಗೋಕರ್ಣ ಪೂಜಾ ಪ್ರಭಾವ (Graha Group 1: 4 Cards) ✦
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9 }}>
             {GRAHA_GROUP_1.map((gr, idx) => (
               <div
                 key={idx}
                 style={{
                   border: `1px solid ${GOLD_LIGHT}`,
-                  borderRadius: 8,
+                  borderRadius: 9,
                   backgroundColor: "#FFFFFF",
-                  padding: "7px 9px",
+                  padding: "9px 12px",
                   boxSizing: "border-box"
                 }}
               >
-                <div style={{ fontSize: 10.5, fontWeight: 700, color: INK, marginBottom: 1, lineHeight: 1.3 }}>
+                <div style={{ fontSize: 11.5, fontWeight: 700, color: INK, marginBottom: 2, lineHeight: 1.4 }}>
                   {pick(gr.name, lang)}
                 </div>
-                <div style={{ fontSize: 8.5, fontWeight: 700, color: GOLD, marginBottom: 2 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: GOLD, marginBottom: 3 }}>
                   {pick(gr.role, lang)}
                 </div>
-                <div style={{ fontSize: 9, color: INK_SOFT, lineHeight: 1.5 }}>
+                <div style={{ fontSize: 10, color: INK_SOFT, lineHeight: 1.6 }}>
                   {pick(gr.desc, lang)}
                 </div>
               </div>
@@ -2236,30 +2237,30 @@ export const SevaPoojaMahatmePrint = ({
         </div>
 
         {/* Section 3: 4 Graha Beeja Mantras & Consecration Protocol (Group 2 - 4 Cards) */}
-        <div style={{ marginTop: 8 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, marginBottom: 4, textTransform: "uppercase", textAlign: "center" }}>
+        <div style={{ marginTop: 12 }}>
+          <div style={{ fontSize: 12.5, fontWeight: 700, color: GOLD, marginBottom: 6, textTransform: "uppercase", textAlign: "center" }}>
             ✦ ೪ ಗ್ರಹ ಬೀಜ ಮಂತ್ರ ಜಪ ಹಾಗೂ ದಿವ್ಯ ಕವಚ ವಿಧಾನ (Graha Group 2: 4 Cards) ✦
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9 }}>
             {GRAHA_GROUP_2.map((gm, idx) => (
               <div
                 key={idx}
                 style={{
                   border: `1px solid ${GOLD_LIGHT}`,
-                  borderRadius: 8,
+                  borderRadius: 9,
                   backgroundColor: PANEL,
-                  padding: "7px 9px",
+                  padding: "9px 12px",
                   boxSizing: "border-box"
                 }}
               >
-                <div style={{ fontSize: 10, fontWeight: 700, color: INK, marginBottom: 1, lineHeight: 1.3 }}>
+                <div style={{ fontSize: 11.5, fontWeight: 700, color: INK, marginBottom: 2, lineHeight: 1.4 }}>
                   {pick(gm.title, lang)}
                 </div>
-                <div style={{ fontSize: 8.5, fontWeight: 700, color: GOLD, letterSpacing: 0.5, marginBottom: 2 }}>
+                <div style={{ fontSize: 9.5, fontWeight: 700, color: GOLD, letterSpacing: 0.5, marginBottom: 3 }}>
                   {gm.mantra}
                 </div>
-                <div style={{ fontSize: 8.5, color: INK_SOFT, lineHeight: 1.45 }}>
+                <div style={{ fontSize: 9.5, color: INK_SOFT, lineHeight: 1.55 }}>
                   {pick(gm.desc, lang)}
                 </div>
               </div>
@@ -2270,35 +2271,35 @@ export const SevaPoojaMahatmePrint = ({
         {/* Section 4: Chief Archaka Official Seal Badge & Gold Emblem */}
         <div
           style={{
-            marginTop: 8,
+            marginTop: 12,
             border: `1.5px solid ${GOLD}`,
-            borderRadius: 10,
+            borderRadius: 11,
             backgroundColor: "#FFFFFF",
-            padding: "8px 14px",
+            padding: "10px 16px",
             textAlign: "center",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            gap: 14
+            gap: 16
           }}
         >
           <div style={{ flex: 1, textAlign: "left" }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, marginBottom: 2 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: GOLD, marginBottom: 3 }}>
               {pick(SEAL_HEADER_DICT, lang)}
             </div>
-            <div style={{ fontSize: 10.5, color: INK, fontWeight: 700 }}>
+            <div style={{ fontSize: 11.5, color: INK, fontWeight: 700 }}>
               {safePanditName || "ಚೈತನ್ಯ ಪಂಡಿತ"} — {pick({ kn: "ಪ್ರಧಾನ ಅರ್ಚಕರು, ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ", hi: "प्रधान अर्चक, गोकर्ण क्षेत्र", te: "ప్రధాన అర్చకులు, గోకర్ణ క్షేత్రం", ta: "பிரதான அர்ச்சகர், கோகர்ண க்ஷேத்திரம்", en: "Pradhana Archaka, Gokarna Kshetra" }, lang)}
             </div>
-            <div style={{ fontSize: 9, color: INK_SOFT, marginTop: 2, lineHeight: 1.5 }}>
+            <div style={{ fontSize: 10, color: INK_SOFT, marginTop: 3, lineHeight: 1.6 }}>
               {pick(SEAL_DESC_DICT, lang)}
             </div>
           </div>
 
           <div
             style={{
-              width: 74,
-              height: 74,
-              borderRadius: 37,
+              width: 80,
+              height: 80,
+              borderRadius: 40,
               border: `2px double ${GOLD}`,
               backgroundColor: PANEL,
               display: "flex",
@@ -2308,11 +2309,11 @@ export const SevaPoojaMahatmePrint = ({
               boxShadow: `0 0 10px rgba(180, 140, 60, 0.2)`
             }}
           >
-            <div style={{ fontSize: 15, color: GOLD }}>🕉️</div>
-            <div style={{ fontSize: 7, fontWeight: 700, color: INK, textTransform: "uppercase", marginTop: 2, textAlign: "center" }}>
+            <div style={{ fontSize: 16, color: GOLD }}>🕉️</div>
+            <div style={{ fontSize: 7.5, fontWeight: 700, color: INK, textTransform: "uppercase", marginTop: 2, textAlign: "center" }}>
               GOKARNA
             </div>
-            <div style={{ fontSize: 6, color: GOLD, textTransform: "uppercase" }}>
+            <div style={{ fontSize: 6.5, color: GOLD, textTransform: "uppercase" }}>
               CHIEF ARCHAKA
             </div>
           </div>
@@ -2322,11 +2323,11 @@ export const SevaPoojaMahatmePrint = ({
         <div
           style={{
             position: "absolute",
-            bottom: 10,
+            bottom: 12,
             left: 36,
             right: 36,
             textAlign: "center",
-            fontSize: 9,
+            fontSize: 9.5,
             color: INK_SOFT
           }}
         >
