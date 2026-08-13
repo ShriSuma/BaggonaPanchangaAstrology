@@ -1446,7 +1446,7 @@ export const SevaAnugrahaGuidancePrint = ({
   );
 };
 /* ------------------------------------------------------------------ *
- * Sheet 7 — Page 4: Remedial Puja & Family Lineage Protection Sheet
+ * Sheet 7 — Page 4: Remedial Puja & Family Lineage Protection Sheet (100% Full Page)
  * ------------------------------------------------------------------ */
 
 export const SevaRemediesAnnualPrint = ({
@@ -1471,11 +1471,11 @@ export const SevaRemediesAnnualPrint = ({
   };
 
   const SUBTITLE_DICT: L5 = {
-    kn: "೧೨ ಮಾಸಗಳ ಗ್ರಹ ದೋಷ ಶಮನ, ವಾಸ್ತು ಧರ್ಮ ಸೂತ್ರಗಳು ಹಾಗೂ ಕುಲದೇವರ ಪಿತೃ ಆಶೀರ್ವಾದ ಮಾರ್ಗದರ್ಶಿ",
-    hi: "१२ मासों के ग्रह दोष निवारण, वास्तु धर्म सूत्र तथा कुलदेवता एवं पितृ आशीर्वाद मार्गदर्शिका",
-    te: "໑௨ మాసముల గ్రహ దోష నివారణ, వాస్తు ధర్మ సూత్రాలు మరియు కులదేవత పితృ ఆశీర్వాద మార్గదర్శి",
-    ta: "12 மாதங்களின் கிரக தோஷ நிவர்த்தி, வாஸ்து தர்ம சூத்திரங்கள் மற்றும் குலதெய்வ பித்ரு ஆசீர்வாத வழிகாட்டி",
-    en: "Comprehensive 12-month planetary remedial cycle, domestic Vastu guidelines, and ancestral peace rules"
+    kn: "೧೨ ಮಾಸಗಳ ಗ್ರಹ ದೋಷ ಶಮನ, ನಾಲ್ಕು ದಿಕ್ಕುಗಳ ವಾಸ್ತು ಧರ್ಮ ಸೂತ್ರಗಳು ಹಾಗೂ ಕುಲದೇವರ ಪಿತೃ ಆಶೀರ್ವಾದ ಮಾರ್ಗದರ್ಶಿ",
+    hi: "१२ मासों के ग्रह दोष निवारण, चारों दिशाओं के वास्तु धर्म सूत्र तथा कुलदेवता एवं पितृ आशीर्वाद मार्गदर्शिका",
+    te: "໑௨ మాసముల గ్రహ దోష నివారణ, నలుగు దిక్కుల వాస్తు ధర్మ సూత్రాలు మరియు కులదేవత పితృ ఆశీర్వాద మార్గదర్శి",
+    ta: "12 மாதங்களின் கிரக தோஷ நிவர்த்தி, நான்கு திசைகளின் வாஸ்து தர்ம சூத்திரங்கள் மற்றும் குலதெய்வ பித்ரு ஆசீர்வாத வழிகாட்டி",
+    en: "Comprehensive 12-month planetary remedial cycle, 4-corner domestic Vastu rules, and ancestral lineage peace guidelines"
   };
 
   const CYCLE_TITLE_DICT: L5 = {
@@ -1496,11 +1496,11 @@ export const SevaRemediesAnnualPrint = ({
         en: "🌸 Chaitra - Vaisakha: Solar & Navaratri Worship"
       },
       desc: {
-        kn: "ಉದ್ಯೋಗಾಭಿವೃದ್ಧಿ ಹಾಗೂ ಆರೋಗ್ಯ ವೃದ್ಧಿಗೆ ವಸಂತ ನವರಾತ್ರಿ ಶ್ರೀ ಸೂಕ್ತ ಪೂಜೆ ಹಾಗೂ ಸೂರ್ಯಾಭಿಷೇಕ ಶ್ರೇಷ್ಠ.",
-        hi: "व्यापार वृद्धि और आरोग्य हेतु वसंत नवरात्रि श्री सूक्त पूजन तथा सूर्याभिषेक सर्वश्रेष्ठ है।",
-        te: "ఉద్యోగాభివృద్ధి మరియు ఆరోగ్యం కొరకు వసంత నవరాత్రి శ్రీ సూక్త పూజ మరియు సూర్యాభిషేకం శ్రేష్ఠం.",
-        ta: "தொழில் வளர்ச்சி மற்றும் ஆரோக்கியத்திற்கு வசந்த நவராத்திரி ஸ்ரீ சூக்த பூஜையும் சூரியாபிஷேகமும் சிறந்தது.",
-        en: "Spring Navaratri Lakshmi worship and Surya abhishekam boost professional growth and vitality."
+        kn: "ಉದ್ಯೋಗಾಭಿವೃದ್ಧಿ, ಹೊಸ ಉದ್ದಿಮೆ ಹಾಗೂ ಶಾರೀರಿಕ ಆರೋಗ್ಯ ವೃದ್ಧಿಗೆ ವಸಂತ ನವರಾತ್ರಿ ಶ್ರೀ ಸೂಕ್ತ ಮಹಾಪೂಜೆ, ಅಕ್ಷಯ ತದಿಗೆ ಹಾಗೂ ಮಹಾಬಲೇಶ್ವರ ಸೂರ್ಯಾಭಿಷೇಕ ಸೇವೆ ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ.",
+        hi: "व्यापार वृद्धि, नए उद्योग तथा शारीरिक आरोग्य हेतु वसंत नवरात्रि श्री सूक्त महापूजा, अक्षय तृतीया एवं महाबलेश्वर सूर्याभिषेक सेवा सर्वश्रेष्ठ है।",
+        te: "ఉద్యోగాభివృద్ధి, నూతన వ్యాపారం మరియు ఆరోగ్యం కొరకు వసంత నవరాత్రి శ్రీ సూక్త మహాపూజ, అక్షయ తృతీయ మరియు సూర్యాభిషేకం శ్రేష్ఠం.",
+        ta: "தொழில் வளர்ச்சி, புதிய முயற்சி மற்றும் ஆரோக்கியத்திற்கு வசந்த நவராத்திரி ஸ்ரீ சூக்த பூஜையும் அக்ஷய திருதியையும் சூரியாபிஷேகமும் சிறந்தது.",
+        en: "Spring Navaratri Sri Sukta Pooja, Akshaya Tritiya, and Surya Abhishekam at Gokarna catalyze professional expansion and vital vitality."
       }
     },
     {
@@ -1512,11 +1512,11 @@ export const SevaRemediesAnnualPrint = ({
         en: "🌊 Ashadha - Shravana: Rudrabhishekam & Serpent Remedies"
       },
       desc: {
-        kn: "ಕುಜ ದೋಷ, ಸರ್ಪ ದೋಷ ಹಾಗೂ ಸಂತಾನ ತಡೆ ನಿವಾರಣೆಗೆ ಪವಿತ್ರ ಶ್ರಾವಣ ಸೋಮವಾರ ರುದ್ರಾಭಿಷೇಕ.",
-        hi: "कुज दोष, सर्प दोष तथा संतान बाधा निवारण हेतु श्रावण सोमवार को रुद्राभिषेक कराएं।",
-        te: "కుజ దోషం, సర్ప దోషం మరియు సంతాన నివారణకు పవిత్ర శ్రావణ సోమవారం రుద్రాభిషేకం.",
-        ta: "செவ்வாய் தோஷம், நாக தோஷம் மற்றும் புத்திர தடையை நீக்க ஆடி/ஆவணி சோமவார ருத்ராபிஷேகம்.",
-        en: "Holy Shravana Mondays Rudrabhishekam dissolves Kuja (Mars) and Sarpa (Ketu) marital impediments."
+        kn: "ಕುಜ ದೋಷ, ಸರ್ಪ (ರಾಹು-ಕೇತು) ದೋಷ ಹಾಗೂ ಸಂತಾನ ತಡೆ ನಿವಾರಣೆಗೆ ಪವಿತ್ರ ಶ್ರಾವಣ ಸೋಮವಾರ ಮಹಾಬಲೇಶ್ವರ ಆತ್ಮಾಲಿಂಗಕ್ಕೆ ರುದ್ರಾಭಿಷೇಕ ಹಾಗೂ ನಾಗಪ್ರತಿಷ್ಠೆ ಸೇವೆ ಸಿದ್ಧಿಸುತ್ತದೆ.",
+        hi: "कुज दोष, सर्प (राहु-केतु) दोष तथा संतान बाधा निवारण हेतु श्रावण सोमवार को महाबलेश्वर आत्मालिंग पर रुद्राभिषेक तथा नागप्रतिष्ठा सेवा कराएं।",
+        te: "కుజ దోషం, సర్ప (రాహు-కేతు) దోషం మరియు సంతాన నివారణకు పవిత్ర శ్రావణ సోమవారం మహాబలేశ్వర ఆత్మలింగానికి రుద్రాభిషేకం మరియు నాగప్రతిష్ఠ చేయడం.",
+        ta: "செவ்வாய் தோஷம், நாக தோஷம் மற்றும் புத்திர தடையை நீக்க ஆடி/ஆவணி சோமவார ஆத்மலிங்க ருத்ராபிஷேகமும் நாக பிரதிஷ்டையும் சிறந்தது.",
+        en: "Holy Shravana Mondays Rudrabhishekam on Gokarna Atmalinga and Naga Shanti effectively dissolve Kuja (Mars) and Rahu-Ketu marital impediments."
       }
     },
     {
@@ -1528,11 +1528,11 @@ export const SevaRemediesAnnualPrint = ({
         en: "🌾 Bhadrapada - Ashvayuja: Pitru Tarpanam & Ancestral Grace"
       },
       desc: {
-        kn: "ಪಿತೃ ದೋಷ ಶಮನಕ್ಕೆ ಮಹಾಲಯ ಅಮಾವಾಸ್ಯೆಯಂದು ಗೋಕರ್ಣ ತೀರ್ಥದಲ್ಲಿ ಪಿತೃ ತರ್ಪಣ ಹಾಗೂ ಅನ್ನದಾನ ಮಾಡುವುದು.",
-        hi: "पितृ दोष शांति हेतु महालया अमावस्या पर गोकर्ण तीर्थ में तर्पण एवं अन्नदान करें।",
-        te: "పితృ దోష శాంతికి మహాలయ అమావాస్య నాడు గోకర్ణ తీర్థంలో తర్పణం మరియు అన్నదానం చేయడం.",
-        ta: "பித்ரு தோஷ சாந்திக்கு மகாளய அமாவாசையன்று கோகர்ண தீர்த்தத்தில் தர்பணமும் அன்னதானமும் செய்யவும்.",
-        en: "Performing Mahalaya Pitru Tarpanam at Gokarna Teertha invokes eternal blessings of departed ancestors."
+        kn: "ಪಿತೃ ದೋಷ ಶಾಂತಿಗೆ ಮಹಾಲಯ ಅಮಾವಾಸ್ಯೆಯಂದು ಗೋಕರ್ಣ ರುದ್ರಪಾದ ತೀರ್ಥದಲ್ಲಿ ಪಿತೃ ತರ್ಪಣ, ಶ್ರಾದ್ಧ ಹಾಗೂ ಅನ್ನದಾನ ಮಾಡುವುದರಿಂದ ವಂಶ ವೃದ್ಧಿ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಸುಖ ಲಭಿಸುತ್ತದೆ.",
+        hi: "पितृ दोष शांति हेतु महालया अमावस्या पर गोकर्ण रुद्रपाद तीर्थ में तर्पण, श्राद्ध एवं अन्नदान करने से वंश वृद्धि तथा पारिवारिक सुख मिलता है।",
+        te: "పితృ దోష శాంతికి మహాలయ అమావాస్య నాడు గోకర్ణ రుద్రపాద తీర్థంలో తర్పణం, శ్రాద్ధం మరియు అన్నదానం చేయడం వలన వంశాభివృద్ధి లభిస్తుంది.",
+        ta: "பித்ரு தோஷ சாந்திக்கு மகாளய அமாவாசையன்று கோகர்ண ருத்ரபாத தீர்த்தத்தில் தர்பணமும் அன்னதானமும் செய்வது வம்ச விருத்தியை அளிக்கும்.",
+        en: "Performing Mahalaya Pitru Tarpanam and Shradha at Gokarna's sacred Rudrapada Teertha guarantees ancestral liberation and prospers descendants."
       }
     },
     {
@@ -1544,11 +1544,11 @@ export const SevaRemediesAnnualPrint = ({
         en: "🪔 Kartika - Magha: Festival of Lights & Atmalinga Grace"
       },
       desc: {
-        kn: "ಕಾರ್ತಿಕ ಸೋಮವಾರ ಲಕ್ಷ ದೀಪೋತ್ಸವ ಹಾಗೂ ಮಹಾ ಶಿವರಾತ್ರಿಯಂದು ಆತ್ಮಾಲಿಂಗ ಸ್ಪರ್ಶ ಪೂಜೆಯಿಂದ ಐಶ್ವರ್ಯ ವೃದ್ಧಿ.",
-        hi: "कार्तिक सोमवार दीपदान तथा महाशिवरात्रि पर आत्मालिंग स्पर्श पूजन से सर्व समृद्धि मिलती है।",
-        te: "కార్తీక సోమవారం దీపారాధన మరియు మహా శివరాత్రి నాడు ఆత్మలింగ స్పర్శ పూజతో సర్వ సమృద్ధి.",
-        ta: "கார்த்திகை சோமவார தீப வழிபாடும் மகா சிவராத்திரி ஆத்மலிங்க தரிசனமும் ஐஸ்வர்யத்தை அளிக்கும்.",
-        en: "Lighting lamps during Kartika and visiting Gokarna on Maha Shivaratri opens gates of unshakeable prosperity."
+        kn: "ಕಾರ್ತಿಕ ಸೋಮವಾರ ಕೋಟಿ ದೀಪೋತ್ಸವ ಹಾಗೂ ಮಹಾ ಶಿವರಾತ್ರಿಯಂದು ಪ್ರತ್ಯಕ್ಷ ಆತ್ಮಾಲಿಂಗ ಸ್ಪರ್ಶ ಪೂಜೆ ಮಾಡಿಸುವುದರಿಂದ ಸಮಸ್ತ ಜನ್ಮಾಂತರ ಪಾಪ ಕ್ಷಯವಾಗಿ ಸಕಲ ಸಂಪತ್ತು ವೃದ್ಧಿಯಾಗುತ್ತದೆ.",
+        hi: "कार्तिक सोमवार दीपदान तथा महाशिवरात्रि पर प्रत्यक्ष आत्मालिंग स्पर्श पूजन कराने से समस्त जन्मांतर पाप नष्ट होकर अपार संपत्ति और सुख मिलता है।",
+        te: "కార్తీక సోమవారం దీపారాధన మరియు మహా శివరాత్రి నాడు ప్రత్యక్ష ఆత్మలింగ స్పర్శ పూజ చేయించడం వలన పాపాలు నశించి అష్టైశ్వర్యాలు సిద్ధిస్తాయి.",
+        ta: "கார்த்திகை சோமவார தீப வழிபாடும் மகா சிவராத்திரி ஆத்மலிங்க ஸ்பர்ச தரிசனமும் ஜென்ம பாவங்களை நீக்கி அஷ்டலக்ஷ்மி கடாட்சம் தரும்.",
+        en: "Lighting lamps during Kartika month and performing Atmalinga touch worship on Maha Shivaratri invokes supreme fortune and unshakeable prosperity."
       }
     }
   ];
@@ -1565,31 +1565,82 @@ export const SevaRemediesAnnualPrint = ({
     {
       title: { kn: "🚪 ಸಿಂಹದ್ವಾರ ಕುಂಕುಮ ಧಾರಣೆ", hi: "🚪 सिंहद्वार कुमकुम धारण", te: "🚪 సింహద్వారం కుంకుమ ధారణ", ta: "🚪 தலைவாசல் குங்கும திலகம்", en: "🚪 Main Entrance Sanctity" },
       desc: {
-        kn: "ಮನೆಯ ಮುಖ್ಯ ದ್ವಾರದಲ್ಲಿ ಪ್ರತಿದಿನ ಗೋಕರ್ಣ ಪ್ರಸಾದದ ಅರಿಶಿನ-ಕುಂಕುಮ ಇಡುವುದರಿಂದ ನಕಾರಾತ್ಮಕ ಶಕ್ತಿ ಬಾಧೆ ಶಮನವಾಗುತ್ತದೆ.",
-        hi: "घर के मुख्य द्वार पर प्रतिदिन गोकर्ण प्रसाद का हल्दी-कुमकुम लगाने से नकारात्मक ऊर्जा दूर होती है।",
-        te: "ఇంటి ముఖ్య ద్వారానికి ప్రతిరోజూ గోకర్ణ ప్రసాదం పసుపు-కుంకుమ అద్దడం వలన నకారాత్మక శక్తి తొలగిపోతుంది.",
-        ta: "வீட்டின் தலைவாசலில் தினமும் கோகர்ண பிரசாத மஞ்சள்-குங்குமம் வைப்பது துஷ்ட சக்திகளை விலக்கும்.",
-        en: "Applying sacred Gokarna Kumkuma at the main entrance shields the home from negative energy and evil eye."
+        kn: "ಮನೆಯ ಮುಖ್ಯ ದ್ವಾರದಲ್ಲಿ ಪ್ರತಿದಿನ ಗೋಕರ್ಣ ಪ್ರಸಾದದ ಪವಿತ್ರ ಅರಿಶಿನ-ಕುಂಕುಮ ಇಡುವುದರಿಂದ ನಕಾರಾತ್ಮಕ ಶಕ್ತಿ ಹಾಗೂ ದುಷ್ಟ ದೃಷ್ಟಿ ಬಾಧೆ ಸಂಪೂರ್ಣ ಶಮನವಾಗುತ್ತದೆ.",
+        hi: "घर के मुख्य द्वार पर प्रतिदिन गोकर्ण प्रसाद का पवित्र हल्दी-कुमकुम लगाने से नकारात्मक ऊर्जा तथा कुदृष्टि बाधा पूर्णतः दूर होती है।",
+        te: "ఇంటి ముఖ్య ద్వారానికి ప్రతిరోజూ గోకర్ణ ప్రసాదం పసుపు-కుంకుమ అద్దడం వలన నకారాత్మక శక్తి మరియు దిష్టి దోషాలు తొలగిపోతాయి.",
+        ta: "வீட்டின் தலைவாசலில் தினமும் கோகர்ண பிரசாத மஞ்சள்-குங்குமம் வைப்பது துஷ்ட சக்திகளையும் கண் திருஷ்டியையும் முற்றுமாக விலக்கும்.",
+        en: "Applying sacred Gokarna Kumkuma at the main entrance shields the home from negative subtle energy, evil eye, and environmental toxins."
       }
     },
     {
-      title: { kn: "🪔 ಪೂರ್ವ ದಿಕ್ಕು ದೇವತಾ ಸ್ಥಾನ", hi: "🪔 पूर्व दिशा देवता स्थान", te: "🪔 తూర్పు దిక్కు దేవతా స్థానం", ta: "🪔 கிழக்கு திசை பூஜை பீடம்", en: "🪔 East Facing Altar Alignment" },
+      title: { kn: "🪔 ಪೂರ್ವ-ಈಶಾನ್ಯ ದೇವತಾ ಸ್ಥಾನ", hi: "🪔 पूर्व-ईशान देवता स्थान", te: "🪔 తూర్పు-ఈశాన్యం దేవతా స్థానం", ta: "🪔 கிழக்கு-ஈசானியம் பூஜை பீடம்", en: "🪔 North-East Altar Sanctuary" },
       desc: {
-        kn: "ದೇವರ ಮನೆಯನ್ನು ಮನೆಯ ಈಶಾನ್ಯ ಅಥವಾ ಪೂರ್ವ ದಿಕ್ಕಿನಲ್ಲಿರಿಸಿ ಪೂರ್ವಾಭಿಮುಖವಾಗಿ ಪೂಜೆ ಮಾಡುವುದು ಅತ್ಯಂತ ಮಂಗಳಕರ.",
-        hi: "पूजा घर को पूर्व या ईशान कोण में स्थापित कर पूर्व दिशा की ओर मुख करके पूजन करना परम शुभ है।",
-        te: "పూజాగదిని ఈశాన్యం లేదా తూర్పు దిశలో ఉంచి తూర్పు ముఖంగా పూజించడం అత్యంత శుభకరం.",
-        ta: "பூஜை அறையை ஈசானியம் அல்லது கிழக்கில் அமைத்து கிழக்கு நோக்கி பூஜிப்பது மிக மங்கலமானது.",
-        en: "Positioning the family altar in North-East or East direction ensures divine vibrations and inner tranquility."
+        kn: "ದೇವರ ಮನೆಯನ್ನು ಮನೆಯ ಈಶಾನ್ಯ ಅಥವಾ ಪೂರ್ವ ದಿಕ್ಕಿನಲ್ಲಿರಿಸಿ ಪೂರ್ವಾಭಿಮುಖವಾಗಿ ಪೂಜೆ ಮಾಡುವುದು ಕೌಟುಂಬಿಕ ಸೌಹಾರ್ದ ಹಾಗೂ ಧನ ವೃದ್ಧಿಗೆ ಅತ್ಯಂತ ಮಂಗಳಕರ.",
+        hi: "पूजा घर को पूर्व या ईशान कोण में स्थापित कर पूर्व दिशा की ओर मुख करके पूजन करना पारिवारिक सौहार्द एवं धन वृद्धि के लिए परम शुभ है।",
+        te: "పూజాగదిని ఈశాన్యం లేదా తూర్పు దిశలో ఉంచి తూర్పు ముఖంగా పూజించడం కుటుంబ సౌఖ్యం మరియు ధనాభివృద్ధికి అత్యంత శుభకరం.",
+        ta: "பூஜை அறையை ஈசானியம் அல்லது கிழக்கில் அமைத்து கிழக்கு நோக்கி பூஜிப்பது குடும்ப அமைதியும் செல்வ வளர்ச்சியும் அளிக்கும்.",
+        en: "Positioning the sacred altar in the North-East or East window ensures clean divine vibrations, emotional harmony, and financial steadiness."
       }
     },
     {
-      title: { kn: "🌿 ಕರ್ಪೂರ ನೈವೇದ್ಯ ಧೂಪ", hi: "🌿 कर्पूर नैवेद्य धूप", te: "🌿 కర్పూర నైవేద్య ధూపం", ta: "🌿 கற்பூர ஆராதனை தூபம்", en: "🌿 Camphor Aarti & Incense Purification" },
+      title: { kn: "🌿 ಕರ್ಪೂರ ನೈವೇದ್ಯ ಧೂಪ", hi: "🌿 कर्पूर नैवेद्य धूप", te: "🌿 కర్పూర నైవేద్య ధూపం", ta: "🌿 கற்பூர ஆராதனை தூபம்", en: "🌿 Camphor Aarti & Incense Cleansing" },
       desc: {
-        kn: "ಪ್ರತಿದಿನ ಸಂಜೆ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ಮರಣೆಯೊಂದಿಗೆ ಕರ್ಪೂರ ಆರತಿ ಬೆಳಗುವುದರಿಂದ ಕೌಟುಂಬಿಕ ಕಲಹಗಳು ಶಾಂತಿಯಾಗುತ್ತದೆ.",
-        hi: "प्रतिदिन सायं श्री महाबलेश्वर स्मरण के साथ कर्पूर आरती करने से पारिवारिक कलह शांत होते हैं।",
-        te: "ప్రతిరోజూ సాయంత్రం శివ స్మరణతో కర్పూర హారతి వెలిగించడం వలన కుటుంబ కలహాలు శమిస్తాయి.",
-        ta: "தினமும் மாலையில் சிவ ஸ்மரணத்துடன் கற்பூர ஆரத்தி செய்வது குடும்ப சண்டைகளை நீக்கி அமைதி தரும்.",
-        en: "Lighting pure camphor every evening purifies domestic aura and resolves subtle interpersonal friction."
+        kn: "ಪ್ರತಿದಿನ ಸಂಜೆ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ಮರಣೆಯೊಂದಿಗೆ ಶುದ್ಧ ಕರ್ಪೂರ ಆರತಿ ಬೆಳಗುವುದರಿಂದ ಮನೆಯ ಗೃಹ ಕಲಹಗಳು ಹಾಗೂ ಮಾನಸಿಕ ಕಲ್ಮಷಗಳು ತಕ್ಷಣ ನಿವಾರಣೆಯಾಗುತ್ತವೆ.",
+        hi: "प्रतिदिन सायं श्री महाबलेश्वर स्मरण के साथ शुद्ध कर्पूर आरती करने से घर के कलह तथा मानसिक क्लेश तुरंत दूर होते हैं।",
+        te: "ప్రతిరోజూ సాయంత్రం శివ స్మరణతో కర్పూర హారతి వెలిగించడం వలన గృహ కలహాలు మరియు మనశ్చింతలు నివారించబడతాయి.",
+        ta: "தினமும் மாலையில் சிவ ஸ்மரணத்துடன் கற்பூர ஆரத்தி செய்வது குடும்ப சண்டைகளையும் மனக் கவலைகளையும் உடனே நீக்கும்.",
+        en: "Lighting pure camphor Aarti every evening purifies domestic subtle channels and resolves interpersonal stress among family members."
+      }
+    }
+  ];
+
+  const CORNER_TITLE_DICT: L5 = {
+    kn: "✦ ಚತುರ್ದಿಕ್ ವಾಸ್ತು ದೋಷ ಪರಿಹಾರ ಹಾಗೂ ಲಕ್ಷಣ ನಿಯಮಗಳು ✦",
+    hi: "✦ चतुर्दिक् वास्तु दोष निवारण एवं लक्षण नियम ✦",
+    te: "✦ చతుర్దిక్ వాస్తు దోష నివారణ మరియు లక్షణ నియమాలు ✦",
+    ta: "✦ நான்கு திசைகளின் வாஸ்து தோஷ பரிகார விதிகள் ✦",
+    en: "✦ 4-Corner Domestic Vastu Harmony & Prosperity Rules ✦"
+  };
+
+  const CORNER_LIST: { title: L5; desc: L5 }[] = [
+    {
+      title: { kn: "🌅 ಈಶಾನ್ಯ (North-East): ಜಲ ಹಾಗೂ ದೇವ ಸ್ಥಾನ", hi: "🌅 ईशान: जल एवं देव स्थान", te: "🌅 ఈశాన్యం: జలం మరియు దేవుని స్థానం", ta: "🌅 ஈசானியம்: ஜலம் மற்றும் தெய்வ ஸ்தானம்", en: "🌅 North-East (Ishanya): Water & Deity Altar" },
+      desc: {
+        kn: "ಈಶಾನ್ಯ ಮೂಲೆಯನ್ನು ಸದಾ ಪವಿತ್ರವಾಗಿ, ಸ್ವಚ್ಛವಾಗಿ ಹಾಗೂ ಭಾರವಿಲ್ಲದೆ ಇಡಬೇಕು. ಇಲ್ಲಿ ಕುಡಿಯುವ ನೀರು ಹಾಗೂ ಪೂಜಾ ಸ್ಥಾಪನೆ ಮಾಡುವುದು ಬುದ್ಧಿ ವೃದ್ಧಿ ನೀಡುತ್ತದೆ.",
+        hi: "ईशान कोण को सदैव पवित्र, स्वच्छ तथा हल्का रखना चाहिए। यहाँ पीने का पानी तथा पूजा घर स्थापित करना बुद्धि एवं ज्ञान बढ़ाता है।",
+        te: "ఈశాన్య మూలను సదా పవిత్రంగా, శుభ్రంగా ఉంచాలి. ఇక్కడ మంచి నీరు మరియు పూజా స్థానం ఏర్పాటు చేయడం సద్బుద్ధిని ఇస్తుంది.",
+        ta: "ஈசானிய மூலையை எப்போதும் தூய்மையாகவும் எடையில்லாமலும் வைக்க வேண்டும். இங்கு குடிநீரும் பூஜையும் அமைப்பது புத்தி கூர்மை தரும்.",
+        en: "Keep the North-East zone pristine, bright, and unburdened. Installing holy water or altar here boosts intellectual focus and peace."
+      }
+    },
+    {
+      title: { kn: "☀️ ಆಗ್ನೇಯ (South-East): ಅಗ್ನಿ ಹಾಗೂ ಪಾಕಶಾಲೆ", hi: "☀️ आग्नेय: अग्नि एवं पाकशाला", te: "☀️ ఆగ్నేయం: అగ్ని మరియు వంటగది", ta: "☀️ ஆக்னேயம்: அக்னி மற்றும் சமையலறை", en: "☀️ South-East (Agneya): Kitchen Fire & Energy" },
+      desc: {
+        kn: "ಆಗ್ನೇಯ ಮೂಲೆಯಲ್ಲಿ ಅಡಿಗೆ ಮನೆ ಅಥವಾ ದೀಪ ಸ್ಥಾನವಿರುವುದು ಉತ್ತಮ. ಇದು ಗೃಹಿಣಿಯರ ಆರೋಗ್ಯ, ಜಠರಾಗ್ನಿ ಉತ್ತೇಜನ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಉತ್ಸಾಹವನ್ನು ಕಾಯುತ್ತದೆ.",
+        hi: "आग्नेय कोण में रसोईघर अथवा दीप स्थान होना उत्तम है। यह गृहलक्ष्मी के स्वास्थ्य, पाचन शक्ति तथा घर में ऊर्जा बनाए रखता है।",
+        te: "ఆగ్నేయ మూలలో వంటగది లేదా దీప స్థానం ఉండటం శ్రేష్ఠం. ఇది గృహిణి ఆరోగ్యం మరియు ఇంట్లో ఉత్సాహాన్ని కాపాడుతుంది.",
+        ta: "ஆக்னேய மூலையில் சமையலறை அல்லது தீப ஸ்தானம் அமைவது நல்லது. இது இல்லத்தரசியின் ஆரோக்கியத்தையும் சுபிட்சத்தையும் காக்கும்.",
+        en: "Locating kitchen or lamp altar in the South-East corner enhances digestive fire, female family vitality, and dynamic energy."
+      }
+    },
+    {
+      title: { kn: "🌾 ನೈಋತ್ಯ (South-West): ಸ್ಥಿರತೆ ಹಾಗೂ ಮಾಲೀಕ ಸ್ಥಾನ", hi: "🌾 नैऋत्य: स्थिरता एवं स्वामी स्थान", te: "🌾 నైరుతి: స్థిరత్వం మరియు యజమాని స్థానం", ta: "🌾 நைருதி: ஸ்திரத்தன்மை & எஜமானர் ஸ்தானம்", en: "🌾 South-West (Nirruthi): Master Bedroom & Stability" },
+      desc: {
+        kn: "ನೈಋತ್ಯ ಮೂಲೆಯು ಮನೆಯಲ್ಲಿ ಅತ್ಯಂತ ಭಾರವಾಗಿರಬೇಕು. ಇಲ್ಲಿ ಗೃಹಯಜಮಾನರ ಮಲಗುವ ಕೋಣೆ ಹಾಗೂ ಧನ ಸಂಗ್ರಹವಿರುವುದು ಕೌಟುಂಬಿಕ ಸ್ಥಿರತೆ ನೀಡುತ್ತದೆ.",
+        hi: "नैऋत्य कोण घर में सबसे भारी होना चाहिए। यहाँ गृहस्वामी का शयनकक्ष तथा तिजोरी होना पारिवारिक स्थायित्व एवं समृद्धि प्रदान करता है।",
+        te: "నైరుతి మూల ఇంట్లో అత్యంత బరువుగా ఉండాలి. ఇక్కడ యజమాని పడుకునే గది మరియు బీరువా ఉండటం కుటుంబ స్థిరత్వాన్ని ఇస్తుంది.",
+        ta: "நைருதி மூலை வீட்டின் அதிக எடையுள்ள பகுதியாக இருக்க வேண்டும். இங்கு தலைவரின் அறையும் பணப்பெட்டியும் அமைவது நிலைத்தன்மை தரும்.",
+        en: "The South-West zone should be solid and heavy. Master bedroom and wealth vault here ground family stability and authority."
+      }
+    },
+    {
+      title: { kn: "🌬️ ವಾಯುವ್ಯ (North-West): ವಾಯು ಹಾಗೂ ಆವಕ ಸ್ಥಾನ", hi: "🌬️ वायव्य: वायु एवं धन आगमन स्थान", te: "🌬️ వాయువ్యం: వాయువు మరియు ధనాగమన స్థానం", ta: "🌬️ வாயுக் கோணம்: காற்று மற்றும் வரவு ஸ்தானம்", en: "🌬️ North-West (Vayavya): Air Flow & Financial Influx" },
+      desc: {
+        kn: "ವಾಯುವ್ಯ ಮೂಲೆಯನ್ನು ಚಲನಶೀಲವಾಗಿ ಹಾಗೂ ವಾತಾಯನ ಯುಕ್ತವಾಗಿಡಬೇಕು. ಇದು ಹೊಸ ಉದ್ಯೋಗ ಅವಕಾಶಗಳು, ಅತಿಥಿ ಸತ್ಕಾರ ಹಾಗೂ ಸಕಾಲಿಕ ಆವಕವನ್ನು ಉತ್ತೇಜಿಸುತ್ತದೆ.",
+        hi: "वायव्य कोण को गतिशील तथा वायु प्रवाह युक्त रखना चाहिए। यह नए रोजगार के अवसर, अतिथि सत्कार तथा धन के समय पर आगमन को बढ़ाता है।",
+        te: "వాయువ్య మూలను గాలి ప్రసరించేలా ఉంచాలి. ఇది నూతన ఉద్యోగ అవకాశాలు, అతిథి సత్కారం మరియు ధనాగమనాన్ని ప్రోత్సహిస్తుంది.",
+        ta: "வாயுக் கோணத்தை காற்று வீசும் வகையில் அமைக்க வேண்டும். இது புதிய வாய்ப்புகள், விருந்தோம்பல் மற்றும் பண வரவை தூண்டும்.",
+        en: "Keep the North-West zone well-ventilated and dynamic. It accelerates financial turnover, guest hospitality, and career mobility."
       }
     }
   ];
@@ -1603,11 +1654,11 @@ export const SevaRemediesAnnualPrint = ({
   };
 
   const PITRU_DESC_DICT: L5 = {
-    kn: "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರವು ರುದ್ರಪಾದ ಕ್ಷೇತ್ರವಾಗಿದ್ದು, ಇಲ್ಲಿ ಪಿತೃ ಶ್ರಾದ್ಧ ಹಾಗೂ ಸಂಪ್ರೋಕ್ಷಣ ಸೇವೆ ನೆರವೇರಿಸುವುದರಿಂದ ಏಳು ತಲೆಮಾರಿನ ಪಿತೃಗಳಿಗೆ ಮುಕ್ತಿ ದೊರೆತು, ಸಂತತಿ ಹಾಗೂ ಧನ ವೃದ್ಧಿ ಲಭಿಸುತ್ತದೆ.",
-    hi: "गोकर्ण क्षेत्र रुद्रपाद तीर्थ है, यहाँ पितृ श्राद्ध एवं तर्पण सेवा कराने से सात पीढ़ियों के पितरों को सद्गति मिलती है तथा वंश वृद्धि होती है।",
-    te: "గోకర్ణ క్షేత్రం రుద్రపాద క్షేత్రం, ఇక్కడ పితృ శ్రాద్ధం మరియు తర్పణ సేవ చేయడం వలన ఏడు తరాల పితృదేవతలకు ముక్తి లభించి వంశాభివృద్ధి జరుగుతుంది.",
-    ta: "கோகர்ண க்ஷேத்திரம் ருத்ரபாத தீர்த்தமாகும். இங்கு பித்ரு சிரார்த்தமும் தர்பணமும் செய்வது 7 தலைமுறை பித்ருக்களுக்கு முக்தியும் வம்ச விருத்தியும் தரும்.",
-    en: "Gokarna is the revered Rudrapada Kshetra; performing ancestral rites here guarantees liberation to 7 generations and prospers children."
+    kn: "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರವು ಪರಮ ಪವಿತ್ರ ರುದ್ರಪಾದ ಕ್ಷೇತ್ರವಾಗಿದ್ದು, ಇಲ್ಲಿ ಪಿತೃ ಶ್ರಾದ್ಧ, ಬಲಿ ಹಾಗೂ ಸಂಪ್ರೋಕ್ಷಣ ಸೇವೆ ನೆರವೇರಿಸುವುದರಿಂದ ಏಳು ತಲೆಮಾರಿನ ಪಿತೃಗಳಿಗೆ ಮುಕ್ತಿ ದೊರೆತು, ಸಂತತಿ ಹಾಗೂ ಧನ-ಧಾನ್ಯ ಸಮೃದ್ಧಿ ಲಭಿಸುತ್ತದೆ.",
+    hi: "गोकर्ण क्षेत्र परम पवित्र रुद्रपाद तीर्थ है, यहाँ पितृ श्राद्ध, बलि एवं तर्पण कराने से सात पीढ़ियों के पितरों को सद्गति मिलती है तथा वंश एवं धन-धान्य समृद्धि प्राप्त होती है।",
+    te: "గోకర్ణ క్షేత్రం పరమ పవిత్ర రుద్రపాద క్షేత్రం, ఇక్కడ పితృ శ్రాద్ధం మరియు తర్పణం చేయడం వలన ఏడు తరాల పితృదేవతలకు ముక్తి లభించి వంశాభివృద్ధి జరుగుతుంది.",
+    ta: "கோகர்ண க்ஷேத்திரம் ருத்ரபாத தீர்த்தமாகும். இங்கு பித்ரு சிரார்த்தமும் தர்பணமும் செய்வது 7 தலைமுறை பித்ருக்களுக்கு முக்தியும் வம்ச சுபிட்சமும் தரும்.",
+    en: "Gokarna is the ancient, highly sacred Rudrapada Kshetra. Performing ancestral rites here guarantees liberation to 7 ancestral generations and bestows lineage prosperity."
   };
 
   const PRASADA_USE_TITLE_DICT: L5 = {
@@ -1619,23 +1670,23 @@ export const SevaRemediesAnnualPrint = ({
   };
 
   const PRASADA_USE_DESC_DICT: L5 = {
-    kn: "ಲಭಿಸಿದ ವಿಭೂತಿ ಹಾಗೂ ನಾಣ್ಯ ಪ್ರಸಾದವನ್ನು ಮನೆಯ ದೇವರ ಪೆಟ್ಟಿಗೆಯಲ್ಲಿರಿಸಿ, ಮುಖ್ಯ ಕಾರ್ಯಗಳಿಗೆ ತೆರಳುವಾಗ ವಿಭೂತಿಯನ್ನು ಹಣೆಗೆ ಧರಿಸುವುದು ನಿರಂತರ ಜಯವನ್ನು ನೀಡುತ್ತದೆ.",
-    hi: "प्राप्त विभूति तथा प्रसाद सिक्के को पूजा घर अथवा तिजोरी में रखें। महत्वपूर्ण कार्य हेतु निकलते समय विभूति धारण करने से विजय मिलती है।",
-    te: "లభించిన విభూతి మరియు ప్రసాద నాణేన్ని పూజాగదిలో లేదా బీరువాలో ఉంచండి. ముఖ్యమైన పనులకు వెళ్ళేటప్పుడు విభూతి ధరించడం వలన విజయం లభిస్తుంది.",
-    ta: "பெற்ற விபூதி மற்றும் பிரசாத நாணயத்தை பூஜை பெட்டியில் வைக்கவும். முக்கிய காரியங்களுக்குச் செல்லும்போது விபூதி அணிவது வெற்றி தரும்.",
-    en: "Keep sacred Gokarna Vibhuti and blessed coins in your home locker/altar. Applying Vibhuti before journeys ensures divine protection."
+    kn: "ಲಭಿಸಿದ ಪವಿತ್ರ ವಿಭೂತಿ, ಕುಂಕುಮ ಹಾಗೂ ನಾಣ್ಯ ಪ್ರಸಾದವನ್ನು ಮನೆಯ ದೇವರ ಪೆಟ್ಟಿಗೆ ಅಥವಾ ಧನ ತಿಜೋರಿಯಲ್ಲಿ ಸ್ಥಾಪಿಸಿ. ಶುಭ ಕಾರ್ಯಗಳಿಗೆ ತೆರಳುವಾಗ ವಿಭೂತಿ ಧರಿಸುವುದರಿಂದ ಸಮಸ್ತ ಕಾರ್ಯಗಳಲ್ಲಿ ನಿರಂತರ ಜಯ ಲಭಿಸುತ್ತದೆ.",
+    hi: "प्राप्त पवित्र विभूति, कुमकुम तथा प्रसाद सिक्के को पूजा घर अथवा धन तिजोरी में स्थापित करें। शुभ कार्य हेतु निकलते समय विभूति धारण करने से सर्व कार्यों में निरंतर विजय मिलती है।",
+    te: "లభించిన విభూతి, కుంకుమ మరియు ప్రసాద నాణేన్ని పూజాగదిలో లేదా బీరువాలో ఉంచండి. శుభ కార్యాలకు వెళ్ళేటప్పుడు విభూతి ధరించడం వలన విజయం లభిస్తుంది.",
+    ta: "பெற்ற விபூதி, குங்குமம் மற்றும் பிரசாத நாணயத்தை பூஜை பெட்டியில் வைக்கவும். சுப காரியங்களுக்குச் செல்லும்போது விபூதி அணிவது வெற்றி தரும்.",
+    en: "Store sacred Gokarna Vibhuti, Kumkuma, and blessed Prasada coin in your family altar or safe. Applying Vibhuti before journeys ensures divine protection and success."
   };
 
   const SEAL_HEADER_DICT: L5 = {
     kn: "✦ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಕ್ಷೇತ್ರ ಪ್ರಧಾನ ಅರ್ಚಕರ ಹಸ್ತದ ಸೀಲು ಹಾಗೂ ನವೀಕರಣ ಮುದ್ರೆ ✦",
     hi: "✦ गोकर्ण महाबलेश्वर क्षेत्र मुख्य अर्चक प्रत्यक्ष सील एवं नवीकरण मुद्रा ✦",
-    te: "✦ గోకర్ణ మహాబలేశ్వర క్షేత్ర ప్రధాన అర్చకుల సాలు మరియు నవీకరణ ముద్ర ✦",
+    te: "✦ గోకర్ణ మహాబలేశ్వర క్షేత్ర ప్రధాన అర్చకుల సీలు మరియు నవీకరణ ముద్ర ✦",
     ta: "✦ கோகர்ண மகாபலேஸ்வர க்ஷேத்திர முதன்மை அர்ச்சகர் சீல் மற்றும் புதுப்பித்தல் ✦",
     en: "✦ Chief Archaka Official Seal & Annual Seva Renewal Badge ✦"
   };
 
   const SEAL_DESC_DICT: L5 = {
-    kn: "ಈ ಪತ್ರಿಕೆಯು ಗೋಕರ್ಣ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ದಿವ್ಯ ಸಂಕಲ್ಪ ಪತ್ರಿಕೆಯಾಗಿದ್ದು, ಪ್ರತivarಷ ಸಂಕಲ್ಪ ನವೀಕರಣಕ್ಕೆ ಹಾಗೂ ಬಂಧು-ಮಿತ್ರರ ಪೂಜಾ ಮಾರ್ಗದರ್ಶನಕ್ಕೆ ಸಂಪರ್ಕಿಸಬಹುದು.",
+    kn: "ಈ ಪತ್ರಿಕೆಯು ಗೋಕರ್ಣ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ದಿವ್ಯ ಸಂಕಲ್ಪ ಪತ್ರಿಕೆಯಾಗಿದ್ದು, ಪ್ರತಿವರ್ಷ ಸಂಕಲ್ಪ ನವೀಕರಣಕ್ಕೆ ಹಾಗೂ ಬಂಧು-ಮಿತ್ರರ ಪೂಜಾ ಮಾರ್ಗದರ್ಶನಕ್ಕೆ ಸಂಪರ್ಕಿಸಬಹುದು.",
     hi: "यह पत्र गोकर्ण श्री महाबलेश्वर स्वामी का दिव्य संकल्प पत्र है। प्रतिवर्ष संकल्प नवीकरण तथा परिजनों के पूजन हेतु अर्चक से संपर्क करें।",
     te: "ఈ పత్రం గోకర్ణ శ్రీ మహాబలేశ్వర స్వామివారి దివ్య సంకల్ప పత్రం. ప్రతి సంవత్సరం సంకల్ప నవీకరణ మరియు బంధువుల పూజల కొరకు సంప్రదించండి.",
     ta: "இந்த அட்டை கோகர்ண ஸ்ரீ மகாபலேஸ்வர சுவாமியின் திவ்ய சங்கல்ப அட்டையாகும். வருடாந்திர புதுப்பித்தல் மற்றும் பூஜைகளுக்கு அர்ச்சகரைத் தொடர்புகொள்ளலாம்.",
@@ -1648,7 +1699,7 @@ export const SevaRemediesAnnualPrint = ({
         style={{
           border: `3px double ${GOLD}`,
           borderRadius: 16,
-          padding: "20px 24px",
+          padding: "16px 20px",
           minHeight: PAGE_H - 76,
           boxSizing: "border-box",
           backgroundColor: PAPER,
@@ -1657,11 +1708,11 @@ export const SevaRemediesAnnualPrint = ({
       >
         {/* Header */}
         <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: 20, color: GOLD, letterSpacing: 2 }}>❖</div>
-          <div style={{ fontSize: 15.5, fontWeight: 700, color: INK, marginTop: 2, lineHeight: 1.6 }}>
+          <div style={{ fontSize: 18, color: GOLD, letterSpacing: 2 }}>❖</div>
+          <div style={{ fontSize: 15.5, fontWeight: 700, color: INK, marginTop: 1, lineHeight: 1.5 }}>
             {pick(TITLE_DICT, lang)}
           </div>
-          <div style={{ fontSize: 10, color: INK_SOFT, marginTop: 2, lineHeight: 1.6, maxWidth: 700, margin: "2px auto 0" }}>
+          <div style={{ fontSize: 10, color: INK_SOFT, marginTop: 2, lineHeight: 1.5, maxWidth: 720, margin: "2px auto 0" }}>
             {pick(SUBTITLE_DICT, lang)}
           </div>
         </div>
@@ -1669,12 +1720,12 @@ export const SevaRemediesAnnualPrint = ({
         <OrnamentRule />
 
         {/* Section 1: 12-Month Remedial Cycle */}
-        <div style={{ marginTop: 4 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, marginBottom: 6, textTransform: "uppercase", textAlign: "center" }}>
+        <div style={{ marginTop: 8 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, marginBottom: 5, textTransform: "uppercase", textAlign: "center" }}>
             {pick(CYCLE_TITLE_DICT, lang)}
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 7 }}>
             {CYCLE_LIST.map((cy, idx) => (
               <div
                 key={idx}
@@ -1682,14 +1733,14 @@ export const SevaRemediesAnnualPrint = ({
                   border: `1.5px solid ${GOLD_LIGHT}`,
                   borderRadius: 8,
                   backgroundColor: PANEL,
-                  padding: "8px 12px",
+                  padding: "8px 11px",
                   boxSizing: "border-box"
                 }}
               >
-                <div style={{ fontSize: 11, fontWeight: 700, color: INK, marginBottom: 2, lineHeight: 1.5 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: INK, marginBottom: 3, lineHeight: 1.4 }}>
                   {pick(cy.title, lang)}
                 </div>
-                <div style={{ fontSize: 9.5, color: INK_SOFT, lineHeight: 1.6 }}>
+                <div style={{ fontSize: 9.5, color: INK_SOFT, lineHeight: 1.55 }}>
                   {pick(cy.desc, lang)}
                 </div>
               </div>
@@ -1698,12 +1749,12 @@ export const SevaRemediesAnnualPrint = ({
         </div>
 
         {/* Section 2: Vastu & Wealth Energy Rules */}
-        <div style={{ marginTop: 10 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, marginBottom: 6, textTransform: "uppercase", textAlign: "center" }}>
+        <div style={{ marginTop: 9 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, marginBottom: 5, textTransform: "uppercase", textAlign: "center" }}>
             {pick(VASTU_TITLE_DICT, lang)}
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6 }}>
             {VASTU_RULES.map((vr, idx) => (
               <div
                 key={idx}
@@ -1711,14 +1762,14 @@ export const SevaRemediesAnnualPrint = ({
                   border: `1px solid ${GOLD_LIGHT}`,
                   borderRadius: 8,
                   backgroundColor: "#FFFFFF",
-                  padding: "8px 10px",
+                  padding: "7px 9px",
                   boxSizing: "border-box"
                 }}
               >
-                <div style={{ fontSize: 10.5, fontWeight: 700, color: INK, marginBottom: 2, lineHeight: 1.5 }}>
+                <div style={{ fontSize: 10.5, fontWeight: 700, color: INK, marginBottom: 2, lineHeight: 1.4 }}>
                   {pick(vr.title, lang)}
                 </div>
-                <div style={{ fontSize: 9, color: INK_SOFT, lineHeight: 1.6 }}>
+                <div style={{ fontSize: 9, color: INK_SOFT, lineHeight: 1.55 }}>
                   {pick(vr.desc, lang)}
                 </div>
               </div>
@@ -1726,57 +1777,86 @@ export const SevaRemediesAnnualPrint = ({
           </div>
         </div>
 
-        {/* Section 3: Pitru Tarpanam & Ancestral Grace */}
+        {/* Section 3: 4-Corner Domestic Vastu Harmony Rules */}
+        <div style={{ marginTop: 9 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, marginBottom: 5, textTransform: "uppercase", textAlign: "center" }}>
+            {pick(CORNER_TITLE_DICT, lang)}
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 7 }}>
+            {CORNER_LIST.map((cr, idx) => (
+              <div
+                key={idx}
+                style={{
+                  border: `1px solid ${GOLD_LIGHT}`,
+                  borderRadius: 8,
+                  backgroundColor: PANEL,
+                  padding: "7px 10px",
+                  boxSizing: "border-box"
+                }}
+              >
+                <div style={{ fontSize: 10.5, fontWeight: 700, color: INK, marginBottom: 2, lineHeight: 1.4 }}>
+                  {pick(cr.title, lang)}
+                </div>
+                <div style={{ fontSize: 9, color: INK_SOFT, lineHeight: 1.5 }}>
+                  {pick(cr.desc, lang)}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Section 4: Pitru Tarpanam & Ancestral Grace */}
         <div
           style={{
-            marginTop: 10,
-            backgroundColor: PANEL,
-            border: `1px solid ${GOLD_LIGHT}`,
-            borderRadius: 10,
-            padding: "10px 14px",
+            marginTop: 9,
+            backgroundColor: "#FFFFFF",
+            border: `1.5px solid ${GOLD_LIGHT}`,
+            borderRadius: 8,
+            padding: "8px 12px",
             textAlign: "center"
           }}
         >
           <div style={{ fontSize: 10.5, fontWeight: 700, color: GOLD, marginBottom: 2 }}>
             {pick(PITRU_TITLE_DICT, lang)}
           </div>
-          <div style={{ fontSize: 9.5, color: INK_SOFT, lineHeight: 1.6 }}>
+          <div style={{ fontSize: 9, color: INK_SOFT, lineHeight: 1.5 }}>
             {pick(PITRU_DESC_DICT, lang)}
           </div>
         </div>
 
-        {/* Section 4: Gokarna Mahabaleshwara Prasada Preservation */}
+        {/* Section 5: Gokarna Mahabaleshwara Prasada Preservation */}
         <div
           style={{
-            marginTop: 10,
-            backgroundColor: "#FFFFFF",
-            border: `1.5px solid ${GOLD_LIGHT}`,
-            borderRadius: 10,
-            padding: "10px 14px",
+            marginTop: 9,
+            backgroundColor: PANEL,
+            border: `1px solid ${GOLD_LIGHT}`,
+            borderRadius: 8,
+            padding: "8px 12px",
             textAlign: "center"
           }}
         >
           <div style={{ fontSize: 10.5, fontWeight: 700, color: GOLD, marginBottom: 2 }}>
             {pick(PRASADA_USE_TITLE_DICT, lang)}
           </div>
-          <div style={{ fontSize: 9.5, color: INK_SOFT, lineHeight: 1.6 }}>
+          <div style={{ fontSize: 9, color: INK_SOFT, lineHeight: 1.5 }}>
             {pick(PRASADA_USE_DESC_DICT, lang)}
           </div>
         </div>
 
-        {/* Section 5: Chief Archaka Official Seal Badge */}
+        {/* Section 6: Chief Archaka Official Seal Badge */}
         <div
           style={{
-            marginTop: 10,
+            marginTop: 9,
             border: `1.5px solid ${GOLD}`,
             borderRadius: 10,
-            backgroundColor: PANEL,
-            padding: "10px 16px",
+            backgroundColor: "#FFFFFF",
+            padding: "8px 14px",
             textAlign: "center",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            gap: 16
+            gap: 14
           }}
         >
           <div style={{ flex: 1, textAlign: "left" }}>
@@ -1786,7 +1866,7 @@ export const SevaRemediesAnnualPrint = ({
             <div style={{ fontSize: 10.5, color: INK, fontWeight: 700 }}>
               {safePanditName || "ಚೈತನ್ಯ ಪಂಡಿತ"} — {pick({ kn: "ಮುಖ್ಯ ಅರ್ಚಕರು, ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಕ್ಷೇತ್ರ", hi: "मुख्य अर्चक, गोकर्ण महाबलेश्वर क्षेत्र", te: "ముఖ్య అర్చకులు, గోకర్ణ మహాబలేశ్వర క్షేత్రం", ta: "முதன்மை அர்ச்சகர், கோகர்ண மகாபலேஸ்வர க்ஷேத்திரம்", en: "Chief Archaka, Gokarna Mahabaleshwara Kshetra" }, lang)}
             </div>
-            <div style={{ fontSize: 9, color: INK_SOFT, marginTop: 2, lineHeight: 1.6 }}>
+            <div style={{ fontSize: 9, color: INK_SOFT, marginTop: 2, lineHeight: 1.5 }}>
               {pick(SEAL_DESC_DICT, lang)}
             </div>
           </div>
@@ -1794,9 +1874,9 @@ export const SevaRemediesAnnualPrint = ({
           {/* Luxury Archaka Golden Stamp Emblem */}
           <div
             style={{
-              width: 80,
-              height: 80,
-              borderRadius: 40,
+              width: 76,
+              height: 76,
+              borderRadius: 38,
               border: `2px double ${GOLD}`,
               backgroundColor: "#FFFFFF",
               display: "flex",
@@ -1806,11 +1886,11 @@ export const SevaRemediesAnnualPrint = ({
               boxShadow: `0 0 10px rgba(180, 140, 60, 0.2)`
             }}
           >
-            <div style={{ fontSize: 16, color: GOLD }}>🕉️</div>
-            <div style={{ fontSize: 7.5, fontWeight: 700, color: INK, textTransform: "uppercase", marginTop: 2, textAlign: "center" }}>
+            <div style={{ fontSize: 15, color: GOLD }}>🕉️</div>
+            <div style={{ fontSize: 7, fontWeight: 700, color: INK, textTransform: "uppercase", marginTop: 2, textAlign: "center" }}>
               GOKARNA
             </div>
-            <div style={{ fontSize: 6.5, color: GOLD, textTransform: "uppercase" }}>
+            <div style={{ fontSize: 6, color: GOLD, textTransform: "uppercase" }}>
               CHIEF ARCHAKA
             </div>
           </div>
@@ -1820,7 +1900,7 @@ export const SevaRemediesAnnualPrint = ({
         <div
           style={{
             position: "absolute",
-            bottom: 12,
+            bottom: 10,
             left: 36,
             right: 36,
             textAlign: "center",
@@ -1836,7 +1916,7 @@ export const SevaRemediesAnnualPrint = ({
 };
 
 /* ------------------------------------------------------------------ *
- * Sheet 8 — Page 5: Gokarna Panchanga Divine Mandala & Visual Blueprint
+ * Sheet 8 — Page 5: Gokarna Panchanga Divine Mandala & Graha Details (100% Full Page)
  * ------------------------------------------------------------------ */
 
 export type PoojaMahatmeData = {
@@ -1866,7 +1946,6 @@ export const SevaPoojaMahatmePrint = ({
     const isGanapati = sevaTitle.toLowerCase().includes("ganapati") || sevaTitle.includes("ಗಣಪತಿ") || sevaTitle.includes("गणपति") || sevaTitle.includes("గణపతి") || sevaTitle.includes("கணபதி");
     const isRudra = sevaTitle.toLowerCase().includes("rudra") || sevaTitle.includes("ರುದ್ರ") || sevaTitle.includes("रुद्र") || sevaTitle.includes("రుద్ర") || sevaTitle.includes("ருத்ர");
     const isMrityunjaya = sevaTitle.toLowerCase().includes("mrityunjaya") || sevaTitle.includes("ಮೃತ್ಯುಂಜಯ") || sevaTitle.includes("मृत्युंजय") || sevaTitle.includes("మృత్యుంజయ") || sevaTitle.includes("மிருத்யுஞ்ஜய");
-    const isLakshmi = sevaTitle.toLowerCase().includes("lakshmi") || sevaTitle.includes("ಲಕ್ಷ್ಮಿ") || sevaTitle.includes("लक्ष्मी") || sevaTitle.includes("లక్ష్మి") || sevaTitle.includes("லட்சுமி");
 
     if (isGanapati) {
       return {
@@ -1949,143 +2028,308 @@ export const SevaPoojaMahatmePrint = ({
   const yPooja = mahatmeData?.whyDoPooja || defaultMahatme.whyDoPooja;
   const bPooja = mahatmeData?.benefitsPooja || defaultMahatme.benefitsPooja;
 
+  // 4 Primary Graha Position Cards (Group 1)
+  const GRAHA_GROUP_1: { name: L5; role: L5; desc: L5 }[] = [
+    {
+      name: { kn: "☀️ ಸೂರ್ಯ ಹಾಗೂ ಚಂದ್ರ (Surya & Chandra)", hi: "☀️ सूर्य एवं चंद्र (Surya & Chandra)", te: "☀️ సూర్యుడు మరియు చంద్రుడు", ta: "☀️ சூரியன் & சந்திரன்", en: "☀️ Surya & Chandra (Sun & Moon)" },
+      role: { kn: "ಆತ್ಮಕಾರಕ ಹಾಗೂ ಮನಃಕಾರಕ", hi: "आत्मकारक एवं मनःकारक", te: "ఆత్మకారకుడు మరియు మనఃకారకుడు", ta: "ஆத்மகாரகர் & மனோகாரகர்", en: "Soul, Vitality & Emotional Mind" },
+      desc: {
+        kn: "ಸೂರ್ಯನು ಪಿತೃ, ಆರೋಗ್ಯ ಹಾಗೂ ಆತ್ಮವಿಶ್ವಾಸದ ಅಧಿಪತಿ. ಚಂದ್ರನು ಮಾನಸಿಕ ಪ್ರಶಾಂತತೆ, ಕೌಟುಂಬಿಕ ಸುಖ ಹಾಗೂ ಪ್ರೀತಿಯ ಕಾರಕ. ಗೋಕರ್ಣ ಪೂಜೆಯಿಂದ ಸೂರ್ಯ-ಚಂದ್ರರ ಪ್ರಸನ್ನತೆ ಲಭಿಸುತ್ತದೆ.",
+        hi: "सूर्य पिता, स्वास्थ्य तथा आत्मविश्वास के स्वामी हैं। चंद्र मानसिक शांति तथा पारिवारिक सुख के कारक हैं। गोकर्ण पूजन से दोनों की कृपा मिलती है।",
+        te: "సూర్యుడు ఆరోగ్యం, ఆత్మవిశ్వాసానికి అధిపతి. చంద్రుడు మనఃశాంతి, కుటుంబ సౌఖ్యానికి కారకుడు. గోకర్ణ పూజతో వీరి అనుగ్రహం లభిస్తుంది.",
+        ta: "சூரியன் ஆரோக்கியம், தன்னம்பிக்கை அதிபதி. சந்திரன் மன அமைதி, குடும்ப சுக காரகர். கோகர்ண பூஜையால் இருவரின் அருள் கிட்டும்.",
+        en: "Surya governs soul vitality, authority, and immunity. Chandra rules mind peace, domestic joy, and emotional stability."
+      }
+    },
+    {
+      name: { kn: "⚔️ ಕುಜ ಹಾಗೂ ಬುಧ (Kuja & Budha)", hi: "⚔️ कुज एवं बुध (Kuja & Budha)", te: "⚔️ కుజుడు మరియు బుధుడు", ta: "⚔️ செவ்வாய் & புதன்", en: "⚔️ Kuja & Budha (Mars & Mercury)" },
+      role: { kn: "ಧೈರ್ಯ ಹಾಗೂ ಬುದ್ಧಿಕಾರಕ", hi: "धैर्य एवं बुद्धिकारक", te: "ధైర్యం మరియు బుద్ధికారకుడు", ta: "தைரியம் & புத்தி காரகர்", en: "Courage, Intellect & Speech" },
+      desc: {
+        kn: "ಕುಜನು ಧೈರ್ಯ, ಆಸ್ತಿ ಹಾಗೂ ರಕ್ತಬಲದ ಕಾರಕ. ಬುಧನು ವ್ಯಾಪಾರ, ಶಿಕ್ಷಣ, ಗಣಿತ ಹಾಗೂ ವಾಗ್ಮಿತ್ವದ ಅಧಿಪತಿ. ಈ ಇಬ್ಬರು ಗ್ರಹಗಳ ಬಲದಿಂದ ಕಾರ್ಯ ಯಶಸ್ಸು ಲಭಿಸುತ್ತದೆ.",
+        hi: "कुज साहस, भूमि तथा शक्ति के कारक हैं। बुध व्यापार, शिक्षा तथा वाणी के स्वामी हैं। इन दोनों के बल से कार्यों में महान सफलता मिलती है।",
+        te: "కుజుడు ధైర్యం, భూమికి కారకుడు. బుధుడు వ్యాపారం, విద్య, వాక్చాతుర్యానికి అధిపతి. వీరి బలంతో సమస్త కార్యజయం లభిస్తుంది.",
+        ta: "செவ்வாய் தைரியம், பூமி காரகர். புதன் வியாபாரம், கல்வி, வாக்கு அதிபதி. இருவரின் பலத்தால் காரிய வெற்றி நிச்சயம்.",
+        en: "Kuja injects enterprise, property luck, and physical drive. Budha bestows analytical intellect, eloquence, and commercial success."
+      }
+    },
+    {
+      name: { kn: "📿 ಗುರು ಹಾಗೂ ಶುಕ್ರ (Guru & Shukra)", hi: "📿 गुरु एवं शुक्र (Guru & Shukra)", te: "📿 గురుడు మరియు శుక్రుడు", ta: "📿 குரு & சுக்கிரன்", en: "📿 Guru & Shukra (Jupiter & Venus)" },
+      role: { kn: "ಜ್ಞಾನ ಹಾಗೂ ಭಾಗ್ಯಕಾರಕ", hi: "ज्ञान एवं भाग्यकारक", te: "జ్ఞానం మరియు భాగ్యకారకుడు", ta: "ஞானம் & பாக்ய காரகர்", en: "Wisdom, Wealth & Marriage" },
+      desc: {
+        kn: "ಬೃಹಸ್ಪತಿಯು ಧರ್ಮ, ಸಂತಾನ, ಜ್ಞಾನ ಹಾಗೂ ಧನ ಭಾಗ್ಯದ ಅಧಿಪತಿ. ಶುಕ್ರನು ಕಳತ್ರ (ವಿವಾಹ), ಸೌಂದರ್ಯ ಹಾಗೂ ಸರ್ವ ಭೋಗದ ಕಾರಕ. ಈ ಪೂಜೆಯು ಗುರು-ಶುಕ್ರರ ಸಿದ್ಧಿ ನೀಡುತ್ತದೆ.",
+        hi: "बृहस्पति धर्म, संतान, ज्ञान तथा धन भाग्योदय के स्वामी हैं। शुक्र विवाह, सौंदर्य तथा समस्त सुखों के कारक हैं। पूजन से दोनों की सिद्धि होती है।",
+        te: "గురుడు ధర్మం, సంతానం, ధన భాగ్యానికి అధిపతి. శుక్రుడు వివాహం, భోగభాగ్యాలకు కారకుడు. పూజ ద్వారా వీరి కృపాకటాక్షం లభిస్తుంది.",
+        ta: "குரு தர்மம், புத்திர பாக்கியம், தன அதிபதி. சுக்கிரன் திருமணம், போக பாக்கிய காரகர். பூஜையால் இருவரின் சித்தி கிடைக்கும்.",
+        en: "Guru bestows spiritual wisdom, progeny luck, and fortune. Shukra activates marital harmony, luxury, and artistic creativity."
+      }
+    },
+    {
+      name: { kn: "🪐 ಶನಿ, ರಾಹು ಹಾಗೂ ಕೇತು (Shani, Rahu, Ketu)", hi: "🪐 शनि, राहु एवं केतु (Shani, Rahu, Ketu)", te: "🪐 శని, రాహువు మరియు కేతువు", ta: "🪐 சனி, ராகு & கேது", en: "🪐 Shani, Rahu & Ketu (Karmic Lords)" },
+      desc: {
+        kn: "ಶನಿಯು ಆಯುಷ್ಯ, ಕರ್ಮ ಹಾಗೂ ನ್ಯಾಯದ ಅಧಿಪತಿ. ರಾಹು-ಕೇತುಗಳು ಜನ್ಮಾಂತರ ವೈರ, ಸರ್ಪ ದೋಷ ಹಾಗೂ ಅಡೆತಡೆಗಳ ಶಮನಕಾರಕ. ಶಿವ ಪೂಜೆಯು ಈ ಗ್ರಹಗಳನ್ನು ಶಾಂತಿಗೊಳಿಸುತ್ತದೆ.",
+        hi: "शनि आयु, कर्म तथा न्याय के स्वामी हैं। राहु-केतु पूर्वजन्म बाधाओं तथा सर्प दोष के निवारक हैं। शिव पूजा से ये ग्रह शांत होते हैं।",
+        te: "శని ఆయుష్షు, కర్మాధిపతి. రాహు-కేతువులు పూర్వజన్మ దోషాలు, సర్ప దోష నివారకులు. శివ పూజతో ఈ గ్రహాలు శాంతిస్తాయి.",
+        ta: "சனி ஆயுள், கர்மாதிபதி. ராகு-கேது பூர்வஜென்ம தோஷ அகற்றுபவர்கள். சிவ பூஜையால் இவர்கள் சாந்தமடைவர்.",
+        en: "Shani guides career karma and lifespan. Rahu-Ketu govern past-life karmic knots; Gokarna Shiva Pooja completely neutralizes their harsh transits."
+      }
+    }
+  ];
+
+  // 4 Graha Beeja Mantras & Consecration Protocol (Group 2)
+  const GRAHA_GROUP_2: { title: L5; mantra: string; desc: L5 }[] = [
+    {
+      title: { kn: "☀️ ೧. ಸೂರ್ಯ ಗ್ರಹ ಬೀಜ ಮಂತ್ರ ಜಪ", hi: "☀️ १. सूर्य ग्रह बीज मंत्र जप", te: "☀️ ౧. సూర్య గ్రహ బీజ మంత్ర జపం", ta: "☀️ 1. சூரிய கிரக பீஜ மந்திர ஜபம்", en: "☀️ 1. Surya Beeja Mantra Consecration" },
+      mantra: "ॐ ह्रां ह्रीं सः सूर्याय नमः (Om Hram Hrim Sah Suryaya Namah)",
+      desc: {
+        kn: "ಪ್ರತಿದಿನ ರವಿವಾರ ಪ್ರಾತಃಕಾಲ ೧೦೮ ಬಾರಿ ಸೂರ್ಯ ಬೀಜಮಂತ್ರ ಜಪಿಸುವುದರಿಂದ ಶಾರೀರಿಕ ತೇಜಸ್ಸು, ಕಣ್ಣಿನ ದೃಷ್ಟಿ ಹಾಗೂ ರಾಜಕೀಯ ರಕ್ಷಣೆ ಸಿದ್ಧಿಸುತ್ತದೆ.",
+        hi: "प्रतिदिन रविवार प्रातः १०८ बार सूर्य बीजमंत्र का पाठ करने से शरीर में तेज, नेत्र ज्योति तथा राजकीय सफलता मिलती है।",
+        te: "ప్రతిరోజూ ఆదివారం ఉదయం 108 సార్లు సూర్య బీజమంత్రం జపించడం వలన శరీర తేజస్సు, ఆరోగ్య రక్షణ లభిస్తాయి.",
+        ta: "ஞாயிறுதோறும் 108 முறை சூரிய பீஜ மந்திரம் ஜபிப்பது உடல் பிரகாசம், கண் பார்வை மற்றும் அரச காரிய வெற்றி தரும்.",
+        en: "Chanting Surya Beeja Mantra 108 times on Sunday mornings boosts immunity, vital radiance, and professional recognition."
+      }
+    },
+    {
+      title: { kn: "🕉️ ೨. ಮಹಾದೇವ ರುದ್ರ ಗಾಯತ್ರೀ ಜಪ", hi: "🕉️ २. महादेव रुद्र गायत्री जप", te: "🕉️ ౨. మహదేవ రుద్ర గాయత్రీ జపం", ta: "🕉️ 2. மகாதேவ ருத்ர காயத்ரி ஜபம்", en: "🕉️ 2. Shiva Rudra Gayatri Mantra" },
+      mantra: "ॐ तत्पुरुषाय विद्महे महादेवाय धीमहि तन्नो रुद्रः प्रचोदयात्",
+      desc: {
+        kn: "ರುದ್ರ ಗಾಯತ್ರೀ ಮಂತ್ರ ಪಠಣವು ಸಕಲ ದುಷ್ಟ ಗ್ರಹಗಳ ಬಾಧೆ, ಭ್ರಮೆ ಹಾಗೂ ನಕಾರಾತ್ಮಕ ಚಿಂತನೆಗಳನ್ನು ತಕ್ಷಣ ಭಸ್ಮೀಭೂತಗೊಳಿಸಿ ಜ್ಞಾನ ನೀಡುತ್ತದೆ.",
+        hi: "रुद्र गायत्री मंत्र का पाठ समस्त दुष्ट ग्रहों की बाधा, भ्रम तथा नकारात्मक विचारों को तुरंत भस्म कर ज्ञान प्रदान करता है।",
+        te: "రుద్ర గాయత్రీ మంత్ర పఠనం దుష్ట గ్రహ పీడలు, భ్రమలను తొలగించి జ్ఞానాన్ని ప్రసాదిస్తుంది.",
+        ta: "ருத்ர காயத்ரி மந்திர ஜபம் துஷ்ட கிரக பீடைகளை எரித்து ஞானத்தையும் அமைதியையும் தரும்.",
+        en: "Reciting Rudra Gayatri Mantra purifies mind channels, burns negative planetary vibrations, and brings spiritual illumination."
+      }
+    },
+    {
+      title: { kn: "📿 ೩. ಮಹಾ ಮೃತ್ಯುಂಜಯ ಸಂಜೀವಿನೀ ಜಪ", hi: "📿 ३. महामृत्युंजय संजीवनी जप", te: "📿 ౩. మహా మృత్యుంజయ సంజీవినీ జపం", ta: "📿 3. மகா மிருத்யுஞ்சய சஞ்சீவினி ஜபம்", en: "📿 3. Maha Mrityunjaya Sanjeevini Mantra" },
+      mantra: "ॐ त्र्यम्बकं यजामहे सुगन्धिं पुष्टिवर्धनम् उर्वारुकमिव बन्धनान्मृत्योर्मुक्षीय माऽमृतात्",
+      desc: {
+        kn: "ಅಷ್ಟೋತ್ತರ ಶತ (೧೦೮) ಮೃತ್ಯುಂಜಯ ಜಪವು ಅಪಮೃತ್ಯು ಭಯ, ಆಸ್ಪತ್ರೆ ಖರ್ಚು ಹಾಗೂ ಗಂಡಾಂತರಗಳಿಂದ ಕೌಟುಂಬಿಕ ಸದಸ್ಯರಿಗೆ ಕವಚ ರಕ್ಷಣೆ ನೀಡುತ್ತದೆ.",
+        hi: "१०८ बार मृत्युंजय जप करने से अकाल मृत्यु भय, रोग व्यय तथा दुर्घटनाओं से परिवार को अखंड सुरक्षा मिलती है।",
+        te: "108 సార్లు మృత్యుంజయ జపం చేయడం వలన అకాల మృత్యు భయం, అనారోగ్య ఖర్చులు తొలగి కుటుంబానికి రక్షణ కలుగుతుంది.",
+        ta: "108 முறை மிருத்யுஞ்சய ஜபம் செய்வது அகால பயம், மருத்துவ செலவுகள் நீங்கி குடும்பத்திற்கு பாதுகாப்பு தரும்.",
+        en: "Chanting Maha Mrityunjaya Mantra 108 times surrounds family members with divine healing protection against accidents and illness."
+      }
+    },
+    {
+      title: { kn: "🌌 ೪. ನವಗ್ರಹ ದೋಷ ನಿವಾರಣ ಸ್ತೋತ್ರ", hi: "🌌 ४. नवग्रह दोष निवारण स्तोत्र", te: "🌌 ౪. నవగ్రహ దోష నివారణ స్తోత్రం", ta: "🌌 4. நவகிரக தோஷ நிவர்த்தி தோத்திரம்", en: "🌌 4. Navagraha Shanti Stotra Mantra" },
+      mantra: "नमः सूर्याय सोमाय मङ्गलाय बुधाय च। गुरुशुक्रशनिभ्यश्च राहवे केतवे नमः॥",
+      desc: {
+        kn: "ಪ್ರತಿದಿನ ನವಗ್ರಹ ಸ್ತೋತ್ರ ಪಠಿಸುವುದರಿಂದ ೯ ಗ್ರಹಗಳ ಪೀಡೆ ಶಾಂತಿಯಾಗಿ ಕೌಟುಂಬಿಕ ಭಾಗ್ಯೋದಯ, ಶಾಂತಿ ಹಾಗೂ ಐಶ್ವರ್ಯ ಸಿದ್ಧಿಸುತ್ತದೆ.",
+        hi: "प्रतिदिन नवग्रह स्तोत्र का पाठ करने से सभी ९ ग्रहों की पीड़ा शांत होकर पारिवारिक भाग्योदय एवं समृद्धि मिलती है।",
+        te: "ప్రతిరోజూ నవగ్రహ స్తోత్రం పఠించడం వలన 9 గ్రహాల పీడ శమించి కుటుంబ భాగ్యోదయం కలుగుతుంది.",
+        ta: "தினமும் நவகிரக தோத்திரம் ஜபிப்பது 9 கிரகங்களின் பீடையையும் போக்கி குடும்ப சுபிட்சம் தரும்.",
+        en: "Daily Navagraha Stotra recitation balances all 9 planetary forces, ensuring smooth career progress, wealth, and family well-being."
+      }
+    }
+  ];
+
   return (
     <div className="pdf-page" style={pageStyle}>
       <div
         style={{
           border: `3px double ${GOLD}`,
           borderRadius: 16,
-          padding: "36px 40px",
+          padding: "16px 20px",
           minHeight: PAGE_H - 76,
           boxSizing: "border-box",
           backgroundColor: PAPER,
-          position: "relative",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between"
+          position: "relative"
         }}
       >
-        <div>
-          {/* Header */}
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 22, color: GOLD, letterSpacing: 2 }}>❖</div>
-            <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginTop: 4, lineHeight: 1.5 }}>
-              {sevaTitle} — {pick({ kn: "ಪವಿತ್ರ ಮಹಾತ್ಮೆಯ ಹಾಗೂ ಫಲಶ್ರುತಿ ಪತ್ರ", hi: "पवित्र माहात्म्य एवं फलश्रुति पत्र", te: "పవిత్ర మాహాత్మ్యం మరియు ఫలశ్రుతి పత్రం", ta: "புனித மகாத்மியம் மற்றும் பலன் பத்திரம்", en: "Sacred Significance & Divine Blessing Consecration" }, lang)}
-            </div>
-            <div style={{ fontSize: 13, color: INK_SOFT, marginTop: 4, lineHeight: 1.6 }}>
-              {pick({ kn: "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಕ್ಷೇತ್ರದ ಮುಖ್ಯ ಅರ್ಚಕರ ಅಧಿಕೃತ ಪೂಜಾ ವಿವರಣೆ ಹಾಗೂ ಪ್ರಸಾದ ಮಹಾತ್ಮೆ", hi: "श्री गोकर्ण महाबलेश्वर क्षेत्र के मुख्य अर्चक का आधिकारिक पूजन विवरण", te: "శ్రీ గోకర్ణ మహాబలేశ్వర క్షేత్ర ప్రధాన అర్చకుల అధికారిక పూజా వివరణ", ta: "ஸ்ரீ கோகர்ண மகாபலேஸ்வர க்ஷேத்திர முதன்மை அர்ச்சகரின் அதிகாரப்பூர்வ பூஜை விவரம்", en: "Official Temple Consecration & Spiritual Significance Narrated by Pradhana Archaka" }, lang)}
-            </div>
+        {/* Header */}
+        <div style={{ textAlign: "center" }}>
+          <div style={{ fontSize: 18, color: GOLD, letterSpacing: 2 }}>❖</div>
+          <div style={{ fontSize: 15.5, fontWeight: 700, color: INK, marginTop: 1, lineHeight: 1.5 }}>
+            {sevaTitle} — {pick({ kn: "ಪವಿತ್ರ ಮಹಾತ್ಮೆಯ, ೪-೪ ಗ್ರಹ ವಿವರಣೆ ಹಾಗೂ ಫಲಶ್ರುತಿ ಪತ್ರ", hi: "पवित्र माहात्म्य, ४-४ ग्रह विवरण एवं फलश्रुति पत्र", te: "పవిత్ర మాహాత్మ్యం, ౪-౪ గ్రహ వివరణ మరియు ఫలశ్రుతి పత్రం", ta: "புனித மகாத்மியம், 4-4 கிரக விவரம் மற்றும் பலன் பத்திரம்", en: "Sacred Consecration & 4-4 Graha Details Sheet" }, lang)}
           </div>
+          <div style={{ fontSize: 10, color: INK_SOFT, marginTop: 2, lineHeight: 1.5, maxWidth: 720, margin: "2px auto 0" }}>
+            {pick({ kn: "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಕ್ಷೇತ್ರದ ಮುಖ್ಯ ಅರ್ಚಕರ ಅಧಿಕೃತ ಪೂಜಾ ವಿವರಣೆ, ೮ ಗ್ರಹಗಳ ಪ್ರಭಾವ ಹಾಗೂ ಜಪ ವಿಧಾನ", hi: "श्री गोकर्ण महाबलेश्वर क्षेत्र के मुख्य अर्चक का आधिकारिक पूजन विवरण, ८ ग्रहों का प्रभाव एवं जप विधान", te: "శ్రీ గోకర్ణ మహాబలేశ్వర క్షేత్ర ప్రధాన అర్చకుల అధికారిక పూజా వివరణ, ౮ గ్రహాల ప్రభావం మరియు జప విధానం", ta: "ஸ்ரீ கோகர்ண மகாபலேஸ்வர க்ஷேத்திர முதன்மை அர்ச்சகரின் அதிகாரப்பூர்வ பூஜை விவரம் மற்றும் 8 கிரக விவரிக்கப்பட்ட பலன்கள்", en: "Official Temple Consecration, 4-4 Graha Planetary Consecration & Beeja Mantra Guide Narrated by Chief Archaka" }, lang)}
+          </div>
+        </div>
 
-          <OrnamentRule />
+        <OrnamentRule />
 
-          {/* Section 1: What is this Pooja */}
+        {/* Section 1: Sacred Pooja Mahatme Summary (3 Core Blocks) */}
+        <div style={{ marginTop: 6, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6 }}>
           <div
             style={{
-              marginTop: 18,
               backgroundColor: PANEL,
-              border: `1.5px solid ${GOLD}`,
-              borderRadius: 12,
-              padding: "18px 24px"
+              border: `1.5px solid ${GOLD_LIGHT}`,
+              borderRadius: 8,
+              padding: "7px 9px",
+              boxSizing: "border-box"
             }}
           >
-            <div style={{ fontSize: 15, fontWeight: 800, color: GOLD, marginBottom: 8 }}>
-              ೧. {pick({ kn: "ಈ ಪೂಜೆಯ ಪವಿತ್ರ ಹಿನ್ನೆಲೆ ಹಾಗೂ ಮಹತ್ವ", hi: "१. इस पूजा का पवित्र महात्म्य एवं पृष्ठभूमि", te: "౧. ఈ పూజ యొక్క పవిత్ర నేపథ్యం మరియు ప్రాముఖ్యత", ta: "1. இந்த பூஜையின் புனித வரலாறு மற்றும் முக்கியத்துவம்", en: "1. Sacred Vedic Origin & Significance of this Pooja" }, lang)}
+            <div style={{ fontSize: 10.5, fontWeight: 700, color: GOLD, marginBottom: 2 }}>
+              ೧. {pick({ kn: "ಪವಿತ್ರ ಪೂಜಾ ಹಿನ್ನೆಲೆ", hi: "१. पवित्र पूजा पृष्ठभूमि", te: "౧. పవిత్ర పూజా నేపథ్యం", ta: "1. புனித பூஜை வரலாறு", en: "1. Sacred Vedic Origin" }, lang)}
             </div>
-            <div style={{ fontSize: 14, color: INK, lineHeight: 1.85, textAlign: "justify" }}>
+            <div style={{ fontSize: 9, color: INK, lineHeight: 1.5, textAlign: "justify" }}>
               {wPooja}
             </div>
           </div>
 
-          {/* Section 2: Why do this Pooja */}
           <div
             style={{
-              marginTop: 20,
               backgroundColor: "#FFFFFF",
               border: `1.5px solid ${GOLD_LIGHT}`,
-              borderRadius: 12,
-              padding: "18px 24px"
+              borderRadius: 8,
+              padding: "7px 9px",
+              boxSizing: "border-box"
             }}
           >
-            <div style={{ fontSize: 15, fontWeight: 800, color: GOLD, marginBottom: 8 }}>
-              ೨. {pick({ kn: "ಪೂಜೆ ಸಲ್ಲಿಸುವ ಮುಖ್ಯ ಉದ್ದೇಶ ಹಾಗೂ ಪ್ರಭಾವ", hi: "२. पूजा का मुख्य उद्देश्य एवं ग्रह शांति प्रभाव", te: "౨. పూజ సమర్పించు ముఖ్య ఉద్దేశం మరియు ప్రభావం", ta: "2. பூஜை செய்வதன் முக்கிய நோக்கம் மற்றும் தாக்கம்", en: "2. Purpose of the Seva & Planetary Protection" }, lang)}
+            <div style={{ fontSize: 10.5, fontWeight: 700, color: GOLD, marginBottom: 2 }}>
+              ೨. {pick({ kn: "ಪೂಜಾ ಮುಖ್ಯ ಉದ್ದೇಶ", hi: "२. पूजा मुख्य उद्देश्य", te: "౨. పూజ ముఖ్య ఉద్దేశం", ta: "2. பூஜை முக்கிய நோக்கம்", en: "2. Planetary Purpose" }, lang)}
             </div>
-            <div style={{ fontSize: 14, color: INK, lineHeight: 1.85, textAlign: "justify" }}>
+            <div style={{ fontSize: 9, color: INK, lineHeight: 1.5, textAlign: "justify" }}>
               {yPooja}
             </div>
           </div>
 
-          {/* Section 3: Divine Benefits & Blessings */}
           <div
             style={{
-              marginTop: 20,
               backgroundColor: PANEL,
-              border: `1.5px solid ${GOLD}`,
-              borderRadius: 12,
-              padding: "18px 24px"
+              border: `1.5px solid ${GOLD_LIGHT}`,
+              borderRadius: 8,
+              padding: "7px 9px",
+              boxSizing: "border-box"
             }}
           >
-            <div style={{ fontSize: 15, fontWeight: 800, color: "#047857", marginBottom: 8 }}>
-              ೩. {pick({ kn: "ದೈವಿಕ ಅನುಗ್ರಹ ಹಾಗೂ ಲಭಿಸುವ ಸಕಲ ಫಲಶ್ರುತಿಗಳು", hi: "३. दैवीय अनुग्रह एवं प्राप्य फलश्रुति", te: "౩. దైవిక అనుగ్రహం మరియు లభించు సకల ఫలశ్రుతి", ta: "3. தெய்வீக அருள் மற்றும் கிடைக்கும் பலன்கள்", en: "3. Divine Blessings & Long-Term Spiritual Benefits" }, lang)}
+            <div style={{ fontSize: 10.5, fontWeight: 700, color: "#047857", marginBottom: 2 }}>
+              ೩. {pick({ kn: "ದೈವಿಕ ಫಲಶ್ರುತಿ", hi: "३. दैवीय फलश्रुति", te: "౩. దైవిక ఫలశ్రుతి", ta: "3. தெய்வீக பலன்கள்", en: "3. Divine Blessings" }, lang)}
             </div>
-            <div style={{ fontSize: 14, color: INK, lineHeight: 1.85, textAlign: "justify" }}>
+            <div style={{ fontSize: 9, color: INK, lineHeight: 1.5, textAlign: "justify" }}>
               {bPooja}
             </div>
           </div>
         </div>
 
-        {/* Section 4: Chief Archaka Official Seal Badge */}
+        {/* Section 2: 4 Primary Graha Position Cards (Group 1 - 4 Cards) */}
+        <div style={{ marginTop: 8 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, marginBottom: 4, textTransform: "uppercase", textAlign: "center" }}>
+            ✦ ೪ ಮೂಲ ಗ್ರಹಗಳ ಸ್ಥಿತಿ ಹಾಗೂ ಗೋಕರ್ಣ ಪೂಜಾ ಪ್ರಭಾವ (Graha Group 1: 4 Cards) ✦
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+            {GRAHA_GROUP_1.map((gr, idx) => (
+              <div
+                key={idx}
+                style={{
+                  border: `1px solid ${GOLD_LIGHT}`,
+                  borderRadius: 8,
+                  backgroundColor: "#FFFFFF",
+                  padding: "7px 9px",
+                  boxSizing: "border-box"
+                }}
+              >
+                <div style={{ fontSize: 10.5, fontWeight: 700, color: INK, marginBottom: 1, lineHeight: 1.3 }}>
+                  {pick(gr.name, lang)}
+                </div>
+                <div style={{ fontSize: 8.5, fontWeight: 700, color: GOLD, marginBottom: 2 }}>
+                  {pick(gr.role, lang)}
+                </div>
+                <div style={{ fontSize: 9, color: INK_SOFT, lineHeight: 1.5 }}>
+                  {pick(gr.desc, lang)}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Section 3: 4 Graha Beeja Mantras & Consecration Protocol (Group 2 - 4 Cards) */}
+        <div style={{ marginTop: 8 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, marginBottom: 4, textTransform: "uppercase", textAlign: "center" }}>
+            ✦ ೪ ಗ್ರಹ ಬೀಜ ಮಂತ್ರ ಜಪ ಹಾಗೂ ದಿವ್ಯ ಕವಚ ವಿಧಾನ (Graha Group 2: 4 Cards) ✦
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+            {GRAHA_GROUP_2.map((gm, idx) => (
+              <div
+                key={idx}
+                style={{
+                  border: `1px solid ${GOLD_LIGHT}`,
+                  borderRadius: 8,
+                  backgroundColor: PANEL,
+                  padding: "7px 9px",
+                  boxSizing: "border-box"
+                }}
+              >
+                <div style={{ fontSize: 10, fontWeight: 700, color: INK, marginBottom: 1, lineHeight: 1.3 }}>
+                  {pick(gm.title, lang)}
+                </div>
+                <div style={{ fontSize: 8.5, fontWeight: 700, color: GOLD, letterSpacing: 0.5, marginBottom: 2 }}>
+                  {gm.mantra}
+                </div>
+                <div style={{ fontSize: 8.5, color: INK_SOFT, lineHeight: 1.45 }}>
+                  {pick(gm.desc, lang)}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Section 4: Chief Archaka Official Seal Badge & Gold Emblem */}
         <div
           style={{
-            marginTop: 24,
-            border: `2px solid ${GOLD}`,
-            borderRadius: 14,
+            marginTop: 8,
+            border: `1.5px solid ${GOLD}`,
+            borderRadius: 10,
             backgroundColor: "#FFFFFF",
-            padding: "16px 24px",
+            padding: "8px 14px",
+            textAlign: "center",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            gap: 20
+            gap: 14
           }}
         >
           <div style={{ flex: 1, textAlign: "left" }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: GOLD, marginBottom: 2 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, marginBottom: 2 }}>
               {pick(SEAL_HEADER_DICT, lang)}
             </div>
-            <div style={{ fontSize: 15, color: INK, fontWeight: 800 }}>
+            <div style={{ fontSize: 10.5, color: INK, fontWeight: 700 }}>
               {safePanditName || "ಚೈತನ್ಯ ಪಂಡಿತ"} — {pick({ kn: "ಪ್ರಧಾನ ಅರ್ಚಕರು, ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ", hi: "प्रधान अर्चक, गोकर्ण क्षेत्र", te: "ప్రధాన అర్చకులు, గోకర్ణ క్షేత్రం", ta: "பிரதான அர்ச்சகர், கோகர்ண க்ஷேத்திரம்", en: "Pradhana Archaka, Gokarna Kshetra" }, lang)}
             </div>
-            <div style={{ fontSize: 12, color: INK_SOFT, marginTop: 4, lineHeight: 1.6 }}>
+            <div style={{ fontSize: 9, color: INK_SOFT, marginTop: 2, lineHeight: 1.5 }}>
               {pick(SEAL_DESC_DICT, lang)}
             </div>
           </div>
 
           <div
             style={{
-              width: 90,
-              height: 90,
-              borderRadius: 45,
+              width: 74,
+              height: 74,
+              borderRadius: 37,
               border: `2px double ${GOLD}`,
               backgroundColor: PANEL,
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              boxShadow: `0 0 12px rgba(180, 140, 60, 0.25)`
+              boxShadow: `0 0 10px rgba(180, 140, 60, 0.2)`
             }}
           >
-            <div style={{ fontSize: 20, color: GOLD }}>🕉️</div>
-            <div style={{ fontSize: 8.5, fontWeight: 800, color: INK, textTransform: "uppercase", marginTop: 2, textAlign: "center" }}>
+            <div style={{ fontSize: 15, color: GOLD }}>🕉️</div>
+            <div style={{ fontSize: 7, fontWeight: 700, color: INK, textTransform: "uppercase", marginTop: 2, textAlign: "center" }}>
               GOKARNA
             </div>
-            <div style={{ fontSize: 7, color: GOLD, textTransform: "uppercase" }}>
+            <div style={{ fontSize: 6, color: GOLD, textTransform: "uppercase" }}>
               CHIEF ARCHAKA
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div style={{ textAlign: "center", fontSize: 11, color: INK_SOFT, marginTop: 10 }}>
+        <div
+          style={{
+            position: "absolute",
+            bottom: 10,
+            left: 36,
+            right: 36,
+            textAlign: "center",
+            fontSize: 9,
+            color: INK_SOFT
+          }}
+        >
           {pick(LETTER_L5.signature!, lang)} · 5 / 5
         </div>
       </div>
