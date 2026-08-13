@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { buildPersonalizedMarriageText, buildPersonalizedChildrenText } from '../components/RamanBhavishya/BhavishyaView';
+import { cleanEnglishFromRegionalText } from '../features/premiumPdf/premiumPdfLocale';
 
 function assertMarriageChildrenCriteria(text: string, expectedParams: string[]) {
   const paragraphs = text.split(/\n\n+/).filter(p => p.trim().length > 30);
@@ -19,11 +20,9 @@ describe('Marriage & Children Dynamic Kundali Accuracy Tests', () => {
     const text = buildPersonalizedMarriageText('kn', 'ಕರ್ಕ (Karka)', 'ತುಲಾ (Tula)', 'unmarried', 3, 'ಶುಕ್ರ (Venus)', 'ರಾಹು (Rahu)');
     expect(text).toBeTypeOf('string');
     
-    // Assert 3 paragraphs
     const paragraphs = text.split(/\n\n+/).filter(p => p.trim().length > 30);
     expect(paragraphs.length).toBe(3);
 
-    // Validate strict criteria inclusion
     assertMarriageChildrenCriteria(text, ['ಕರ್ಕ (Karka)', 'ತುಲಾ (Tula)', 'ಶುಕ್ರ (Venus)', 'ರಾಹು (Rahu)', 'ಶನಿ']);
   });
 
@@ -55,6 +54,13 @@ describe('Marriage & Children Dynamic Kundali Accuracy Tests', () => {
     expect(paragraphs.length).toBe(3);
 
     assertMarriageChildrenCriteria(text, ['Venus (Shukra)']);
+  });
+
+  it('cleanEnglishFromRegionalText replaces stray English leak words with pure Kannada script', () => {
+    const rawLeak = "ನಿಮ್ಮಲ್ಲಿ ವಿಪರೀತ ಧೈರ್ಯ, ಮೂanaditude ಹಾಗೂ ಸ್ವಾವಲಂಬನೆಯನ್ನು ತಂದಿದ್ದರೂ ಸಹ...";
+    const cleaned = cleanEnglishFromRegionalText(rawLeak, 'kn');
+    expect(cleaned).not.toContain("ಮೂanaditude");
+    expect(cleaned).toContain("ಮನಸ್ಥಿತಿ");
   });
 
   it('fails with explicit error message if paragraph count or criteria are missing', () => {

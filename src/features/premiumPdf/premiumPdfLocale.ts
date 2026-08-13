@@ -436,3 +436,28 @@ export const noRepeatContract = (sectionKey: string, runId: string): string => {
 /** Short random id so repeated downloads are visibly different documents. */
 export const newRunId = (): string =>
   `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+
+export function cleanEnglishFromRegionalText(text: string, lang: string): string {
+  if (!text || lang === "en") return text;
+  let cleaned = text;
+  if (lang.startsWith("kn")) {
+    cleaned = cleaned
+      .replace(/ಮೂanaditude/gi, "ಮನಸ್ಥಿತಿ")
+      .replace(/\b(attitude|manattitude|moanattitude|mindset)\b/gi, "ಮನಸ್ಥಿತಿ")
+      .replace(/\b(career)\b/gi, "ಉದ್ಯೋಗ")
+      .replace(/\b(health)\b/gi, "ಆರೋಗ್ಯ")
+      .replace(/\b(wealth|finance)\b/gi, "ಸಂಪತ್ತು")
+      .replace(/\b(marriage)\b/gi, "ವಿವಾಹ")
+      .replace(/\b(children|progeny)\b/gi, "ಸಂತಾನ");
+
+    cleaned = cleaned.replace(/[a-zA-Z]+/g, "");
+    cleaned = cleaned.replace(/  +/g, " ");
+  } else if (lang.startsWith("hi")) {
+    cleaned = cleaned
+      .replace(/\b(attitude|mindset)\b/gi, "मनोवृत्ति")
+      .replace(/\b(career)\b/gi, "करियर")
+      .replace(/\b(health)\b/gi, "स्वास्थ्य")
+      .replace(/\b(wealth|finance)\b/gi, "धन");
+  }
+  return cleaned;
+}

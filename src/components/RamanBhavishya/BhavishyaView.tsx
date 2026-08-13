@@ -22,6 +22,7 @@ import { PremiumPDFTemplate } from "../pdf/PremiumPDFTemplate";
 import { generatePDFFromElement } from "../../utils/pdfGenerator";
 import { WEEKDAY_L5 } from "../../features/seva/sevaLocale";
 import {
+  cleanEnglishFromRegionalText,
   type GrahaKey,
   tp,
   pick,
@@ -1466,6 +1467,10 @@ function buildKundaliDarkSecretFallback(lang: string, lagnaStr: string, moonStr:
         for (const pred of localisedPredictions) {
           updatedDeepInsights[pred.translatedCategory] = pred.translatedText;
         }
+        localisedPredictions = localisedPredictions.map(p => ({
+          ...p,
+          translatedText: cleanEnglishFromRegionalText(p.translatedText, lang)
+        }));
         setPdfDeepInsights(updatedDeepInsights);
         setPremiumPredictions(localisedPredictions);
       }
