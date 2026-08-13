@@ -504,14 +504,16 @@ export default function KundliPage(): JSX.Element {
               <h2 className="text-2xl font-bold text-indigo-950">{t("kundli.formTitle")}</h2>
               <p className="mt-1 text-sm text-slate-600">{t("kundli.subtitle")}</p>
             </div>
-            <button
-              type="button"
-              onClick={fillTestKundali}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-amber-300 bg-amber-50 text-xs font-bold text-amber-900 hover:bg-amber-100 shadow-sm transition"
-            >
-              <span>⚡</span>
-              <span>Fill Test Details (Pramod Kodgi)</span>
-            </button>
+            {import.meta.env.DEV && (
+              <button
+                type="button"
+                onClick={fillTestKundali}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-amber-300 bg-amber-50 text-xs font-bold text-amber-900 hover:bg-amber-100 shadow-sm transition"
+              >
+                <span>⚡</span>
+                <span>Fill Test Details (Pramod Kodgi)</span>
+              </button>
+            )}
           </div>
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             <div className="relative">
