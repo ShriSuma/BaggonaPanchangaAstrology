@@ -231,6 +231,38 @@ const MULTI_QUESTION_TOPICS = [
   { id: "property", label: { en: "🏠 House & Vehicle Purchase", kn: "🏠 ಮನೆ ಹಾಗೂ ವಾಹನ ಖರೀದಿ", te: "🏠 ఇల్లు మరియు వాహన కొనుగోలు", ta: "🏠 வீடு மற்றும் வாகனம் வாங்குதல்", hi: "🏠 मकान और वाहन खरीद" }, defaultQ: { en: "When will I purchase my own house or vehicle?", kn: "ನಾನು ಸ್ವಂತ ಮನೆ ಹಾಗೂ ವಾಹನವನ್ನು ಯಾವಾಗ ಖರೀದಿಸಲಿದ್ದೇನೆ?", te: "నేను సొಂತ ఇల్లు మరియు వాహನವನ್ನು ಯಾವಾಗ ಖರೀದಿಸಲಿದ್ದೇನೆ?", ta: "நான் சொந்த வீடும் வாகனமும் எப்போது வாங்குவேன்?", hi: "मैं अपना घर और वाहन कब खरीद पाऊंगा?" } }
 ];
 
+
+export function generateSmartQuestionHeader(questionText: string, lang: string): string {
+  const q = questionText.toLowerCase();
+  const isKn = lang === "kn";
+  const isTe = lang === "te";
+  const isTa = lang === "ta";
+  const isHi = lang === "hi";
+
+  if (q.includes("house") || q.includes("property") || q.includes("home") || q.includes("land") || q.includes("flat") || q.includes(" site") || q.includes("ಮನೆ") || q.includes("ಆಸ್ತಿ") || q.includes("ಇಲ್ಲು")) {
+    return isKn ? "🏠 ಗೃಹ ಹಾಗೂ ಆಸ್ತಿ ಯೋಗ (House & Property)" : isTe ? "🏠 గృహ మరియు ఆస్తి యోగం (House & Property)" : isTa ? "🏠 வீடு மற்றும் சொத்து யோகம் (House & Property)" : isHi ? "🏠 गृह एवं संपत्ति योग (House & Property)" : "🏠 House, Property & Land Acquisition";
+  }
+  if (q.includes("job") || q.includes("career") || q.includes("promote") || q.includes("promotion") || q.includes("salary") || q.includes("work") || q.includes("ಉದ್ಯೋಗ") || q.includes("ಬಡ್ತಿ") || q.includes("ವೃತ್ತಿ")) {
+    return isKn ? "💼 ಉದ್ಯೋಗ ಹಾಗೂ ವೃತ್ತಿ ಏಳಿಗೆ (Career & Promotion)" : isTe ? "💼 ఉద్యోగం మరియు పదోన్నతి (Career & Promotion)" : isTa ? "💼 வேலை மற்றும் தொழில் உயர்வு (Career & Promotion)" : isHi ? "💼 करियर एवं पदोन्नति योग (Career & Promotion)" : "💼 Career Growth & Job Promotion Timing";
+  }
+  if (q.includes("marri") || q.includes("wedding") || q.includes("spouse") || q.includes("wife") || q.includes("husband") || q.includes("ವಿವಾಹ") || q.includes("ಮದುವೆ") || q.includes("వివాహం")) {
+    return isKn ? "💍 ವಿವಾಹ ಯೋಗ ಹಾಗೂ ಸಂಗಾತಿ (Marriage Timing)" : isTe ? "💍 వివాహ యోగం మరియు భాగస్వామి (Marriage Timing)" : isTa ? "💍 திருமண யோகம் மற்றும் வரன் (Marriage Timing)" : isHi ? "💍 विवाह योग एवं जीवनसाथी (Marriage Timing)" : "💍 Marriage Timing & Spouse Nature";
+  }
+  if (q.includes("money") || q.includes("wealth") || q.includes("finance") || q.includes("invest") || q.includes("ಧನ") || q.includes("ಸಂಪತ್ತು") || q.includes("ಹಣ")) {
+    return isKn ? "💰 ಧನ ಆಸ್ತಿ ಹಾಗೂ ಆರ್ಥಿಕ ಯೋಗ (Wealth & Finance)" : isTe ? "💰 ధన సంపద మరియు ఆర్థిక యోగం (Wealth & Finance)" : isTa ? "💰 தன லாபம் மற்றும் செல்வம் (Wealth & Finance)" : isHi ? "💰 धन संपत्ति एवं आर्थिक योग (Wealth & Finance)" : "💰 Wealth, Finance & Investment Gains";
+  }
+  if (q.includes("child") || q.includes("baby") || q.includes("progeny") || q.includes("son") || q.includes("daughter") || q.includes("ಸಂತಾನ") || q.includes("ಮಕ್ಕಳು")) {
+    return isKn ? "👶 ಸಂತಾನ ಭಾಗ್ಯ ಹಾಗೂ ಮಕ್ಕಳ ಭವಿಷ್ಯ (Progeny Blessings)" : isTe ? "👶 సంతాన ప్రాప్తి మరియు పిల్లలు (Progeny Blessings)" : isTa ? "👶 சந்ததி யோகம் மற்றும் குழந்தைகள் (Progeny Blessings)" : isHi ? "👶 संतान योग एवं बच्चों का भविष्य (Progeny Blessings)" : "👶 Progeny Timing & Children Wellbeing";
+  }
+  if (q.includes("foreign") || q.includes("visa") || q.includes("travel") || q.includes("abroad") || q.includes("ವಿದೇಶ") || q.includes("ಸ್ಥಳಾಂತರ")) {
+    return isKn ? "✈️ ವಿದೇಶ ಯೋಗ ಹಾಗೂ ಸ್ಥಳಾಂತರ (Foreign Travel & Visa)" : isTe ? "✈️ విదేశీ ప్రయాణం మరియు వీసా (Foreign Travel & Visa)" : isTa ? "✈️ வெளிநாட்டுப் பயணம் (Foreign Travel & Visa)" : isHi ? "✈️ विदेश यात्रा एवं स्थानांतरण (Foreign Travel & Visa)" : "✈️ Foreign Travel, Visa & Relocation";
+  }
+  if (q.includes("health") || q.includes("disease") || q.includes("cure") || q.includes("ಆರೋಗ್ಯ")) {
+    return isKn ? "🩺 ಆರೋಗ್ಯ ಹಾಗೂ ಆಯುಷ್ಯ ಶಮನ (Health & Wellbeing)" : isTe ? "🩺 ఆరోగ్యం మరియు ఆయుష్షు (Health & Wellbeing)" : isTa ? "🩺 ஆரோக்கியம் மற்றும் ஆயுள் (Health & Wellbeing)" : isHi ? "🩺 स्वास्थ्य एवं आरोग्य (Health & Wellbeing)" : "🩺 Health Stability & Vedic Remedies";
+  }
+  return isKn ? "✦ ವೈಯಕ್ತಿಕ ಜಾತಕ ಪ್ರಶ್ನೆ (Personalized Query)" : isTe ? "✦ వ్యక్తిగత ప్రశ్న (Personalized Query)" : isTa ? "✦ தனிப்பட்ட கேள்வி (Personalized Query)" : isHi ? "✦ व्यक्तिगत प्रश्न (Personalized Query)" : "✦ Personalized Astrological Inquiry";
+}
+
 export default function BhavishyaView() {
   const { predictions, currentMindset, isLoading, loadingText, ashirvada } = usePredictionEngine();
   const { t } = useTranslation();
@@ -490,21 +522,42 @@ Return ONLY this JSON format:
   };
 
   const handleAddMultiQuestion = (customQ?: string, topicId?: string) => {
-    const targetTopicId = topicId || mqTopic;
-    const topicObj = MULTI_QUESTION_TOPICS.find(t => t.id === targetTopicId) || MULTI_QUESTION_TOPICS[0];
-    const topicLabel = topicObj.label[pdfLanguage as keyof typeof topicObj.label] || topicObj.label.en;
-    const defaultText = topicObj.defaultQ[pdfLanguage as keyof typeof topicObj.defaultQ] || topicObj.defaultQ.en;
-    const textToAdd = (customQ || mqInputText).trim() || defaultText;
+    const customText = (customQ || mqInputText).trim();
+    const isCustomTextProvided = Boolean(customText);
 
-    setMultiQuestions(prev => [
-      ...prev,
-      {
-        id: "mq_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
-        topicId: targetTopicId,
-        topicLabel,
-        questionText: textToAdd
-      }
-    ]);
+    if (isCustomTextProvided) {
+      // User typed in the text box -> IGNORE dropdown completely!
+      const smartHeader = generateSmartQuestionHeader(customText, pdfLanguage);
+      setMultiQuestions(prev => [
+        ...prev,
+        {
+          id: "mq_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
+          topicId: "custom",
+          topicLabel: smartHeader,
+          smartHeader: smartHeader,
+          isCustomQuestion: true,
+          questionText: customText
+        }
+      ]);
+    } else {
+      // No custom text -> Use dropdown selection
+      const targetTopicId = topicId || mqTopic;
+      const topicObj = MULTI_QUESTION_TOPICS.find(t => t.id === targetTopicId) || MULTI_QUESTION_TOPICS[0];
+      const topicLabel = topicObj.label[pdfLanguage as keyof typeof topicObj.label] || topicObj.label.en;
+      const defaultText = topicObj.defaultQ[pdfLanguage as keyof typeof topicObj.defaultQ] || topicObj.defaultQ.en;
+
+      setMultiQuestions(prev => [
+        ...prev,
+        {
+          id: "mq_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
+          topicId: targetTopicId,
+          topicLabel: topicLabel,
+          smartHeader: topicLabel,
+          isCustomQuestion: false,
+          questionText: defaultText
+        }
+      ]);
+    }
 
     setMqInputText("");
   };
@@ -528,29 +581,45 @@ Return ONLY this JSON format:
     for (let i = 0; i < updatedList.length; i++) {
       const q = updatedList[i];
 
-      // Ensure topic label and question text match the active pdfLanguage
-      const topicObj = MULTI_QUESTION_TOPICS.find(t => t.id === q.topicId);
-      if (topicObj) {
-        q.topicLabel = topicObj.label[lang as keyof typeof topicObj.label] || topicObj.label.en;
+      if (q.isCustomQuestion) {
+        q.smartHeader = generateSmartQuestionHeader(q.questionText, lang);
+        q.topicLabel = q.smartHeader;
+      } else {
+        const topicObj = MULTI_QUESTION_TOPICS.find(t => t.id === q.topicId);
+        if (topicObj) {
+          q.topicLabel = topicObj.label[lang as keyof typeof topicObj.label] || topicObj.label.en;
+          q.smartHeader = q.topicLabel;
+        }
       }
 
-      const qPrompt = `You are a world-class Vedic Astrologer. Generate a comprehensive 4-PARAGRAPH answer tailored EXCLUSIVELY to the user's specific query: "${q.questionText}" (Topic: ${q.topicLabel}).
+      // Compute Master Engine house analysis for the question
+      const planetPositions = session.result.planets.map(p => `${p.name} in House ${p.house} (${p.rashi.english})`).join(', ');
+      const lagnaLord = RASHI_LORDS_L5[lang]?.[session.result.lagnaRashi?.index ?? 0] || 'Lagna Lord';
+      const house10Lord = RASHI_LORDS_L5[lang]?.[((session.result.lagnaRashi?.index ?? 0) + 9) % 12] || '10th Lord';
+      const house7Lord = RASHI_LORDS_L5[lang]?.[((session.result.lagnaRashi?.index ?? 0) + 6) % 12] || '7th Lord';
+      const house5Lord = RASHI_LORDS_L5[lang]?.[((session.result.lagnaRashi?.index ?? 0) + 4) % 12] || '5th Lord';
+      const house4Lord = RASHI_LORDS_L5[lang]?.[((session.result.lagnaRashi?.index ?? 0) + 3) % 12] || '4th Lord';
+      const house2Lord = RASHI_LORDS_L5[lang]?.[((session.result.lagnaRashi?.index ?? 0) + 1) % 12] || '2nd Lord';
+
+      const qPrompt = `You are a world-class Vedic Astrologer. Generate a comprehensive, 4-PARAGRAPH answer tailored EXCLUSIVELY to the user's query: "${q.questionText}" (Header: ${q.smartHeader || q.topicLabel}).
 CRITICAL LANGUAGE MANDATE:
 - OUTPUT LANGUAGE: ${lang}.
 - ${lang === 'kn' ? 'Write ONLY in Kannada script. Zero English words.' : lang === 'te' ? 'Write ONLY in Telugu script. Zero English words.' : lang === 'ta' ? 'Write ONLY in Tamil script. Zero English words.' : lang === 'hi' ? 'Write ONLY in Hindi (Devanagari script). Zero English words.' : 'Write in clear English.'}
 
-EXACT COMPUTED ASTROLOGICAL DATA:
+MASTER ENGINE COMPUTED KUNDALI DATA:
 - Name: ${session.input.name}
-- Ascendant (Lagna): ${session.result.lagnaRashi?.english || 'Unknown'} (${session.result.lagnaRashi ? pick(RASHI_L5[session.result.lagnaRashi.index], lang) : ''})
-- Moon Sign (Rashi): ${session.result.moonSign.english} (${pick(RASHI_L5[session.result.moonSign.index], lang)})
+- Lagna: ${session.result.lagnaRashi?.english || 'Unknown'} (Lord: ${lagnaLord})
+- Moon Sign: ${session.result.moonSign.english} (${pick(RASHI_L5[session.result.moonSign.index], lang)})
 - Nakshatra: ${moonPlanet?.nakshatra.english || 'Unknown'} (${moonPlanet ? pick(NAKSHATRA_L5[moonPlanet.nakshatra.index], lang) : ''})
+- Key House Lords: 10th Lord (Career): ${house10Lord}, 7th Lord (Marriage): ${house7Lord}, 5th Lord (Progeny): ${house5Lord}, 4th Lord (Property): ${house4Lord}, 2nd Lord (Wealth): ${house2Lord}
+- Planetary Placements: ${planetPositions}
 - Running Dasha/Bhukti: ${currentBhuktiData ? currentBhuktiData.maha.planet + ' - ' + currentBhuktiData.bhukti : 'Current Dasha'}
 - Current Age: ${ageYears.toFixed(1)} years
 
 REQUIRED 4-PARAGRAPH STRUCTURE:
-PARAGRAPH 1 (Natal House Analysis): Analyze the relevant natal houses and planetary placements for this question (at least 5-6 lines).
+PARAGRAPH 1 (Natal House Analysis): Analyze the relevant natal houses, house lords, and planetary placements from the chart for this specific query (at least 5-6 lines).
 PARAGRAPH 2 (Dasha & Gochara Transits): Analyze how current Dasha-Bhukti and live transits (Saturn, Jupiter, Rahu/Ketu) impact this specific topic (at least 5-6 lines).
-PARAGRAPH 3 (Specific Predictions & Timing Window): Provide clear predictions, expected timing, and specific outcomes regarding their question (at least 5-6 lines).
+PARAGRAPH 3 (Specific Predictions & Timing Window): Provide clear predictions, expected timing, and specific outcomes regarding their query (at least 5-6 lines).
 PARAGRAPH 4 (Parihara & Recommended Remedies): Provide 2 specific remedies (Parihara/Mantra/Charity) and an encouraging astrologer's blessing.
 
 Return ONLY this JSON format:
@@ -1578,14 +1647,30 @@ Return ONLY this JSON (no extra text before or after):
       const promptSummary = `You are an expert Vedic astrologer. Write a 2-3 paragraph final summary blending Yogas, Doshas, and Timeline. Language: ${pdfLanguage}. Data - Yogas: ${JSON.stringify(result.aiGeneratedNarrative?.yogas || [])}. Return { "summary": [{ "impact": "" }] }.`;
       const promptTimeline = `You are an expert Vedic astrologer. Generate a 6-Month Planetary Influence Timeline. Language: ${pdfLanguage}. Data: ${JSON.stringify(result.timingLayer?.twelveMonthRoadmap?.slice(0, 6) || [])}. Return { "timeline": [{ "dateRange": "", "impact": "" }] }.`;
 
-      const [resYogas, resDoshas, resCharacteristics, resDarkSecret, resTimeline, resGochara, resSummary] = await Promise.all([
-        askGemini("Generate Yogas", promptYogas, geminiApiKey, pdfLanguage),
-        askGemini("Generate Doshas", promptDoshas, geminiApiKey, pdfLanguage),
-        askGemini("Generate Characteristics", promptCharacteristics, geminiApiKey, pdfLanguage),
-        askGemini("Generate Dark Secret", promptDarkSecret, geminiApiKey, pdfLanguage),
-        askGemini("Generate Timeline", promptTimeline, geminiApiKey, pdfLanguage),
-        askGemini("Generate Gochara", promptGochara, geminiApiKey, pdfLanguage),
-        askGemini("Generate Summary", promptSummary, geminiApiKey, pdfLanguage)
+      const safeAskA4 = async (label: string, prompt: string, temp = 0.3) => {
+        try {
+          return await askGemini(label, prompt, geminiApiKey, pdfLanguage, { raw: true, temperature: temp });
+        } catch (e) {
+          console.warn(`[A4 PDF Generation] AI call failed for ${label}, using engine fallback`, e);
+          return "";
+        }
+      };
+
+      console.log("[A4 PDF Generation] Initiating Batch 1 AI calls (Characteristics, Secret, Yogas)...");
+      const [resCharacteristics, resDarkSecret, resYogas] = await Promise.all([
+        safeAskA4("Generate Characteristics", promptCharacteristics, 0.3),
+        safeAskA4("Generate Dark Secret", promptDarkSecret, 0.3),
+        safeAskA4("Generate Yogas", promptYogas, 0.4)
+      ]);
+
+      await new Promise(r => setTimeout(r, 400));
+
+      console.log("[A4 PDF Generation] Initiating Batch 2 AI calls (Doshas, Timeline, Gochara, Summary)...");
+      const [resDoshas, resTimeline, resGochara, resSummary] = await Promise.all([
+        safeAskA4("Generate Doshas", promptDoshas, 0.4),
+        safeAskA4("Generate Timeline", promptTimeline, 0.4),
+        safeAskA4("Generate Gochara", promptGochara, 0.4),
+        safeAskA4("Generate Summary", promptSummary, 0.3)
       ]);
 
       const parsedChar = parseGeminiJSON(resCharacteristics).characteristics as PremiumData["characteristics"];

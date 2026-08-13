@@ -6,6 +6,8 @@ export type MultiQuestionItem = {
   id: string;
   topicId: string;
   topicLabel: string;
+  smartHeader?: string;
+  isCustomQuestion?: boolean;
   questionText: string;
   answer?: {
     paragraph1: string; // House & Kundali Analysis
@@ -171,7 +173,7 @@ export const MultiQuestionPdfTemplate = forwardRef<HTMLDivElement, Props>(({ ses
                   </span>
                   <div>
                     <span className="text-xs font-bold uppercase tracking-wider text-amber-200 block font-sans">
-                      {q.topicLabel}
+                      {q.smartHeader || q.topicLabel}
                     </span>
                     <h3 className="text-lg md:text-xl font-bold text-white font-sans tracking-normal leading-snug">
                       "{q.questionText}"
