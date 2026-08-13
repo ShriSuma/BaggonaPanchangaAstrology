@@ -1356,6 +1356,8 @@ function buildKundaliDarkSecretFallback(lang: string, lagnaStr: string, moonStr:
         runId,
         name: session.input.name,
         ageYears,
+        maritalStatus: (personalization?.maritalStatus === "unmarried" || personalization?.maritalStatus === "married") ? personalization.maritalStatus : undefined,
+        hasChildren: (personalization?.childrenStatus === "no_children" || personalization?.childrenStatus === "has_children") ? personalization.childrenStatus : undefined,
         lagnaRashiIndex: session.result.lagnaRashi?.index ?? null,
         moonRashiIndex: session.result.moonSign.index,
         moonNakshatraIndex: moonPlanet?.nakshatra.index ?? null,
@@ -1408,10 +1410,11 @@ function buildKundaliDarkSecretFallback(lang: string, lagnaStr: string, moonStr:
       await new Promise(r => setTimeout(r, 400));
 
       console.log("[PDF Generation] Initiating Batch 2 AI calls (Timeline & Transits)...");
-      const [resTimeline, resGochara, resSummary] = await Promise.all([
+      const [resTimeline, resGochara, resSummary, resBhavishya] = await Promise.all([
         safeAsk("Generate Planetary Timeline", prompts.timeline, 0.4),
         safeAsk("Generate Gochara", prompts.gochara, 0.4),
-        safeAsk("Generate Summary", prompts.summary, 0.3)
+        safeAsk("Generate Summary", prompts.summary, 0.3),
+        safeAsk("Generate Bhavishya Life Areas", prompts.bhavishya, 0.3)
       ]);
       console.log("[PDF Generation] Batch 2 AI calls completed successfully.");
 
@@ -1423,6 +1426,7 @@ function buildKundaliDarkSecretFallback(lang: string, lagnaStr: string, moonStr:
       const dataTimeline = parseGeminiJSON(resTimeline);
       const dataGochara = parseGeminiJSON(resGochara);
       const dataSummary = parseGeminiJSON(resSummary);
+      const dataBhavishya = parseGeminiJSON(resBhavishya);
 
       const lagnaStr = session.result.lagnaRashi ? pick(RASHI_L5[session.result.lagnaRashi.index], lang) : "";
       const moonStr = pick(RASHI_L5[session.result.moonSign.index], lang);

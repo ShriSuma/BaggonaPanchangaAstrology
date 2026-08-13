@@ -56,6 +56,8 @@ export type PremiumPromptInput = {
   runId: string;
   name: string;
   ageYears: number;
+  maritalStatus?: "unmarried" | "married";
+  hasChildren?: "no_children" | "has_children";
 
   lagnaRashiIndex: number | null;
   moonRashiIndex: number | null;
@@ -315,6 +317,45 @@ MUST BE 100% MATHEMATICALLY ACCURATE to the computed Dasha-Bhukti and transits p
 ${JSON_RULE}
 {"currentPhase":[{"impact":"paragraph 1\n\nparagraph 2\n\nparagraph 3\n\nparagraph 4"}]}`;
 
+  const maritalSel = input.maritalStatus || "unmarried";
+  const childrenSel = input.hasChildren || "no_children";
+  const h7Idx = input.lagnaRashiIndex !== null ? (input.lagnaRashiIndex + 6) % 12 : 6;
+  const h7SignName = rashiName(h7Idx, lang);
+  const h5Idx = input.lagnaRashiIndex !== null ? (input.lagnaRashiIndex + 4) % 12 : 4;
+  const h5SignName = rashiName(h5Idx, lang);
+
+  const bhavishya = `${header(
+    input,
+    "bhavishya",
+    "You are an authoritative Vedic astrologer analyzing specific life areas based strictly on 7th house lord, 5th house lord, 10th house lord, and 2nd house lord."
+  )}
+CRITICAL PERSONALIZED ACCURACY REQUIREMENT:
+Provide a 100% personalized astrological reading for the following 5 life categories based on this chart's exact placements:
+
+1. Marriage & Relationships (User Selected Status: ${maritalSel.toUpperCase()}):
+   - 7th House Sign: ${h7SignName}.
+   - ${maritalSel === "unmarried" 
+       ? "Write EXACTLY TWO detailed paragraphs for UNMARRIED status: Paragraph 1 analyzes 7th house lord placement, Venus/Jupiter aspect, running " + dashaLine + ", and live transits to predict the exact 12-18 month marriage window, spouse's personality traits, and direction of arrival relative to birthplace. Paragraph 2 details Kuja/Manglik afflictions and exact daily remedies."
+       : "Write EXACTLY TWO detailed paragraphs for MARRIED status: Paragraph 1 analyzes 7th house lord placement, running " + dashaLine + ", and transit influences on mutual trust and domestic harmony. Paragraph 2 details joint career/financial growth with spouse and Lakshmi Narayan home remedies."}
+
+2. Children & Progeny (User Selected Status: ${childrenSel.toUpperCase()}):
+   - 5th House Sign: ${h5SignName}.
+   - ${childrenSel === "no_children"
+       ? "Write EXACTLY TWO detailed paragraphs for NO CHILDREN status: Paragraph 1 analyzes 5th house lord placement, Jupiter (Putrakaraka) aspect, running " + dashaLine + ", and 18-month transits for conception, maternal health, and Santana Yoga timing. Paragraph 2 details Santana Gopala Mantra chanting and Subramanya Seva remedies."
+       : "Write EXACTLY TWO detailed paragraphs for HAS CHILDREN status: Paragraph 1 analyzes 5th house lord placement and planetary influences on children's academic success and talents. Paragraph 2 details their future growth, parental guidance, and family harmony."}
+
+3. Career & Profession:
+   - Write TWO detailed paragraphs on 10th house lord, job stability, promotions, and business growth.
+
+4. Wealth & Family:
+   - Write TWO detailed paragraphs on 2nd/11th house lords, financial accumulation, property gains, and family harmony.
+
+5. Health & Vitality:
+   - Write TWO detailed paragraphs on 1st/6th house lords, physical vitality, immune strength, and wellness remedies.
+
+${JSON_RULE}
+{"bhavishya":{"marriage":"two paragraphs","children":"two paragraphs","career":"two paragraphs","wealth":"two paragraphs","health":"two paragraphs"}}`;
+
   const summary = `${header(
     input,
     "summary",
@@ -329,5 +370,5 @@ Do not list chapters again. Speak to them directly as 'you'.
 ${JSON_RULE}
 {"summary":[{"impact":"two or three paragraphs"}]}`;
 
-  return { characteristics, darkSecret, currentPhase, yogas, doshas, gochara, timeline, summary };
+  return { characteristics, darkSecret, currentPhase, bhavishya, yogas, doshas, gochara, timeline, summary };
 };
