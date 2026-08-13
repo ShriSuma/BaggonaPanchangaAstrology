@@ -105,7 +105,8 @@ export function buildPersonalizedMarriageText(
   status: "unmarried" | "married",
   lagnaIndex: number = 0,
   dashaStr: string = "Running Dasha",
-  bhuktiStr: string = "Sub Dasha"
+  bhuktiStr: string = "Sub Dasha",
+  gender: "Male" | "Female" = "Male"
 ): string {
   const baseLang = (lang || "en").split("-")[0];
   const lDict = RASHI_LORDS_L5[baseLang] || RASHI_LORDS_L5.en;
@@ -1261,7 +1262,8 @@ function buildKundaliDarkSecretFallback(lang: string, lagnaStr: string, moonStr:
         const bhuktiName = bhuktiLord ? pick(GRAHA_L5[bhuktiLord], lang) : "Bhukti";
 
         if (personalization.maritalStatus === "unmarried" || personalization.maritalStatus === "married") {
-          const marriageText = buildPersonalizedMarriageText(lang, lagnaStr, moonStr, personalization.maritalStatus, lagnaIdx, dashaName, bhuktiName);
+          const userGender = (session.input as any).gender || "Male";
+          const marriageText = buildPersonalizedMarriageText(lang, lagnaStr, moonStr, personalization.maritalStatus, lagnaIdx, dashaName, bhuktiName, userGender as "Male" | "Female");
 
           const existingIdx = localisedPredictions.findIndex(p => {
             const cat = (p.translatedCategory || "").toLowerCase();
@@ -1351,10 +1353,12 @@ function buildKundaliDarkSecretFallback(lang: string, lagnaStr: string, moonStr:
         exalted: p.isExalted
       }));
 
+      const userGender = (session.input as any).gender || "Male";
       const prompts = buildPremiumPrompts({
         lang,
         runId,
         name: session.input.name,
+        gender: userGender as "Male" | "Female",
         ageYears,
         maritalStatus: (personalization?.maritalStatus === "unmarried" || personalization?.maritalStatus === "married") ? personalization.maritalStatus : undefined,
         hasChildren: (personalization?.childrenStatus === "no_children" || personalization?.childrenStatus === "has_children") ? personalization.childrenStatus : undefined,
