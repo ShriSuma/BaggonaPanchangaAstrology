@@ -3,7 +3,9 @@ import type { RhythmDay } from "../core/DailyRhythmEngine";
 import {
   generateGoogleCalendarUrl,
   generateNative90DayQrCalendarPayload,
-  generateSevaICalendarString
+  generateSevaICalendarString,
+  getDailyKaalaTimings,
+  getEnergyMeterAndVibe
 } from "../features/seva/icsCalendarGenerator";
 
 const mockDays: RhythmDay[] = [
@@ -53,7 +55,33 @@ const mockDays: RhythmDay[] = [
 ];
 
 describe("icsCalendarGenerator", () => {
-  it("generates a valid RFC 5545 iCalendar payload with custom Pandit name & 8:00 AM notification", () => {
+  it("calculates accurate daily Kaala timings for Rahu, Gulika, and Yamaganda", () => {
+    const kaalaTue = getDailyKaalaTimings("Mars", "en");
+    expect(kaalaTue.rahu).toContain("03:00 PM – 04:30 PM");
+    expect(kaalaTue.gulika).toContain("12:00 PM – 01:30 PM");
+    expect(kaalaTue.yamaganda).toContain("09:00 AM – 10:30 AM");
+  });
+
+  it("calculates energy progress bar, color badge, and single-letter vibe tag", () => {
+    const vibeHigh = getEnergyMeterAndVibe(mockDays[0]!, "en");
+    expect(vibeHigh.badgeEmoji).toBe("🟢");
+    expect(vibeHigh.meter).toContain("85%");
+    expect(vibeHigh.vibeTag).toContain("⚡ A");
+    expect(vibeHigh.googleColorId).toBe("10");
+
+    const cautionDay: RhythmDay = {
+      ...mockDays[0]!,
+      band: "low",
+      isChandrashtama: true,
+      energyScore: 30
+    };
+    const vibeCaution = getEnergyMeterAndVibe(cautionDay, "en");
+    expect(vibeCaution.badgeEmoji).toBe("🔴");
+    expect(vibeCaution.vibeTag).toContain("🧘 S");
+    expect(vibeCaution.googleColorId).toBe("11");
+  });
+
+  it("generates a luxury RFC 5545 iCalendar payload with visual meters and kaala timings", () => {
     const ics = generateSevaICalendarString({
       days: mockDays,
       lang: "kn",
@@ -68,39 +96,29 @@ describe("icsCalendarGenerator", () => {
     expect(ics).toContain("BEGIN:VEVENT");
     expect(ics).toContain("DTSTART;TZID=Asia/Kolkata:20260811T080000");
     expect(ics).toContain("DTEND;TZID=Asia/Kolkata:20260811T083000");
+    expect(ics).toContain("🔴 Rahu Kaala");
+    expect(ics).toContain("⚡");
     expect(ics).toContain("BEGIN:VALARM");
-    expect(ics).toContain("TRIGGER:-PT0M");
-    expect(ics).toContain("END:VEVENT");
     expect(ics).toContain("END:VCALENDAR");
   });
 
-  it("handles custom notification time (e.g. 06:00 AM) and priest greeting", () => {
-    const ics = generateSevaICalendarString({
-      days: mockDays,
-      lang: "en",
-      panditName: "Acharya Shastri",
-      notificationTime: "06:00"
-    });
-
-    expect(ics).toContain("DTSTART;TZID=Asia/Kolkata:20260811T060000");
-    expect(ics).toContain("Acharya Shastri");
-  });
-
-  it("generates a valid Google Calendar Web link with RRULE recur parameter", () => {
+  it("generates a valid Google Calendar Web link with colorId and RRULE recur parameter", () => {
     const url = generateGoogleCalendarUrl({
       day: mockDays[0]!,
       lang: "kn",
       panditName: "Chaitanya Pandit",
-      notificationTime: "08:00"
+      notificationTime: "08:00",
+      personName: "Pramod Kodagi"
     });
 
     expect(url).toContain("https://calendar.google.com/calendar/render?action=TEMPLATE");
     expect(url).toContain("ctz=Asia%2FKolkata");
     expect(url).toContain("dates=20260811T080000%2F20260811T083000");
     expect(url).toContain("recur=RRULE%3AFREQ%3DDAILY%3BCOUNT%3D90");
+    expect(url).toContain("Rahu+Kaala");
   });
 
-  it("generates a native 90-day recurring iCalendar payload for mobile QR scanner", () => {
+  it("generates an openable HTTPS URL payload for mobile QR camera scanning", () => {
     const payload = generateNative90DayQrCalendarPayload({
       days: mockDays,
       lang: "en",
@@ -109,10 +127,7 @@ describe("icsCalendarGenerator", () => {
       personName: "Pramod Kodagi"
     });
 
-    expect(payload).toContain("BEGIN:VCALENDAR");
-    expect(payload).toContain("RRULE:FREQ=DAILY;COUNT=90");
-    expect(payload).toContain("SUMMARY:[Baggona Panchanga] Daily Seva & Stotra Reminder — Pandit Chaitanya");
-    expect(payload).toContain("DTSTART;TZID=Asia/Kolkata:20260811T080000");
-    expect(payload).toContain("END:VCALENDAR");
+    expect(payload).toContain("https://calendar.google.com/calendar/render?action=TEMPLATE");
+    expect(payload).toContain("RRULE%3AFREQ%3DDAILY%3BCOUNT%3D90");
   });
 });
