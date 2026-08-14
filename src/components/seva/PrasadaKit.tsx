@@ -216,9 +216,29 @@ export default function PrasadaKit({
   const download = async (elementId: string, fileName: string, tag: string): Promise<void> => {
     setBusy(tag);
     try {
+      if (rhythm?.days?.length) {
+        const nativeIcsPayload = generateNative90DayQrCalendarPayload({
+          days: rhythm.days,
+          lang: pdfLang,
+          panditName,
+          notificationTime,
+          personName: identity?.personName
+        });
+        const currentQr = await QRCode.toDataURL(nativeIcsPayload, {
+          margin: 2,
+          width: 280,
+          color: {
+            dark: "#78350F",
+            light: "#FFFFFF"
+          }
+        });
+        setQrDataUrl(currentQr);
+        // Wait for React to re-render DOM with the generated QR image
+        await new Promise((resolve) => setTimeout(resolve, 250));
+      }
       await generatePDFFromElement(elementId, fileName);
-    } catch {
-      // Leave the button available so the person can try again.
+    } catch (err) {
+      console.error("PDF generation error:", err);
     } finally {
       setBusy(null);
     }
