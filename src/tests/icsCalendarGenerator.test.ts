@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { RhythmDay } from "../core/DailyRhythmEngine";
 import {
+  formatPanditGreeting,
   generateGoogleCalendarUrl,
   generateNative90DayQrCalendarPayload,
   generateSevaICalendarString,
@@ -129,5 +130,15 @@ describe("icsCalendarGenerator", () => {
 
     expect(payload).toContain("https://calendar.google.com/calendar/render?action=TEMPLATE");
     expect(payload).toContain("RRULE%3AFREQ%3DDAILY%3BCOUNT%3D90");
+  });
+
+  it("formats grammatically correct priest greetings in all 5 languages", () => {
+    expect(formatPanditGreeting("Chaitanya Pandit", "kn")).toBe("Chaitanya Pandit ಅವರಿಂದ ನಮಸ್ಕಾರಗಳು,");
+    expect(formatPanditGreeting("Chaitanya Pandit", "hi")).toBe("Chaitanya Pandit जी की ओर से सादर प्रणाम,");
+    expect(formatPanditGreeting("Chaitanya Pandit", "te")).toBe("Chaitanya Pandit గారి నుండి నమస్కారాలు,");
+    expect(formatPanditGreeting("Chaitanya Pandit", "ta")).toBe("Chaitanya Pandit அவர்களின் அன்பு வணக்கங்கள்,");
+    expect(formatPanditGreeting("Chaitanya Pandit", "en")).toBe("With warm greetings from Chaitanya Pandit,");
+
+    expect(formatPanditGreeting("", "kn")).toBe("ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಕ್ಷೇತ್ರದಿಂದ ನಮಸ್ಕಾರಗಳು,");
   });
 });

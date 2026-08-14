@@ -70,26 +70,36 @@ export default function SevaCalendarSyncModal({
 
   // Generate QR Code and native 90-day iCalendar payload whenever options change
   useEffect(() => {
-    if (!isOpen || days.length === 0) return;
+    if (!isOpen) return;
 
-    const nativePayload = generateNative90DayQrCalendarPayload({
-      days,
-      lang,
-      panditName,
-      notificationTime,
-      personName
-    });
+    try {
+      const nativePayload = generateNative90DayQrCalendarPayload({
+        days: days || [],
+        lang,
+        panditName,
+        notificationTime,
+        personName
+      });
 
-    QRCode.toDataURL(nativePayload, {
-      margin: 2,
-      width: 280,
-      color: {
-        dark: "#78350F", // Amber dark tone
-        light: "#FFFFFF"
-      }
-    })
-      .then((url) => setQrDataUrl(url))
-      .catch((err) => console.error("Error generating QR code:", err));
+      QRCode.toDataURL(nativePayload, {
+        margin: 2,
+        width: 280,
+        color: {
+          dark: "#78350F", // Amber dark tone
+          light: "#FFFFFF"
+        }
+      })
+        .then((url) => setQrDataUrl(url))
+        .catch((err) => {
+          console.error("Error generating QR code:", err);
+          QRCode.toDataURL("https://calendar.google.com/calendar", { margin: 2, width: 280 })
+            .then((fallbackUrl) => setQrDataUrl(fallbackUrl));
+        });
+    } catch (e) {
+      console.error("Error in QR payload generation:", e);
+      QRCode.toDataURL("https://calendar.google.com/calendar", { margin: 2, width: 280 })
+        .then((fallbackUrl) => setQrDataUrl(fallbackUrl));
+    }
   }, [days, lang, panditName, notificationTime, personName, isOpen]);
 
   if (!isOpen) return null;

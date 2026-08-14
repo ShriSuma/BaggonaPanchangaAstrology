@@ -171,9 +171,7 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
 
     const summaryStr = `${vibe.badgeEmoji} [Baggona] ${formatLongDate(day, lang)} - ${tithiLabel(day, lang)} | ${vibe.badgeText}`;
 
-    const greetingLine = panditName.trim()
-      ? `${pick(T.namaskaraHeader, lang)} ${panditName.trim()},`
-      : "Namaskara from Baggona Gokarna Kshetra,";
+    const greetingLine = formatPanditGreeting(panditName, lang);
 
     const whyList = dayExplanation(day, lang)
       .map((line) => `• ${line}`)
@@ -258,6 +256,28 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
   return lines.join("\r\n");
 }
 
+export function formatPanditGreeting(panditName: string, lang: string): string {
+  const p = panditName.trim();
+  const isKn = lang.startsWith("kn");
+  const isHi = lang.startsWith("hi");
+  const isTe = lang.startsWith("te");
+  const isTa = lang.startsWith("ta");
+
+  if (!p) {
+    if (isKn) return "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಕ್ಷೇತ್ರದಿಂದ ನಮಸ್ಕಾರಗಳು,";
+    if (isHi) return "गोकर्ण महाबलेश्वर क्षेत्र की ओर से सादर प्रणाम,";
+    if (isTe) return "గోకర్ణ మహాబలేశ్వర క్షేత్రం నుండి నమస్కారాలు,";
+    if (isTa) return "கோகர்ண மகாபலேஸ்வர க்ஷேத்திரத்திலிருந்து அன்பு வணக்கங்கள்,";
+    return "Warm greetings from Baggona Gokarna Kshetra,";
+  }
+
+  if (isKn) return `${p} ಅವರಿಂದ ನಮಸ್ಕಾರಗಳು,`;
+  if (isHi) return `${p} जी की ओर से सादर प्रणाम,`;
+  if (isTe) return `${p} గారి నుండి నమస్కారాలు,`;
+  if (isTa) return `${p} அவர்களின் அன்பு வணக்கங்கள்,`;
+  return `With warm greetings from ${p},`;
+}
+
 /**
  * Generates a Google Calendar Web Intent URL for a specific day with 15-year Google Calendar formatting & colorId.
  */
@@ -285,9 +305,7 @@ export function generateGoogleCalendarUrl(options: {
 
   const summary = `${vibe.badgeEmoji} [Baggona] ${formatLongDate(day, lang)} - ${tithiLabel(day, lang)} | ${vibe.badgeText}`;
 
-  const greetingLine = panditName.trim()
-    ? `${pick(T.namaskaraHeader, lang)} ${panditName.trim()},`
-    : "Namaskara from Baggona Gokarna Kshetra,";
+  const greetingLine = formatPanditGreeting(panditName, lang);
 
   const details = [
     "========================================",
