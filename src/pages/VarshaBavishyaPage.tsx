@@ -14,7 +14,7 @@ export default function VarshaBavishyaPage() {
   const [prediction, setPrediction] = useState<VarshaPrediction | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
-  
+
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -26,34 +26,34 @@ export default function VarshaBavishyaPage() {
 
   const handlePlayAudio = () => {
     if (!prediction) return;
-    
+
     if (isSpeaking) {
       window.speechSynthesis.cancel();
       setIsSpeaking(false);
       return;
     }
-    
+
     const fullText = prediction.paragraphs.flat().map(p => t(p)).join(". ");
     const utterance = new SpeechSynthesisUtterance(fullText);
-    
-    utterance.lang = i18n.language === "kn" ? "kn-IN" : 
-                     i18n.language === "hi" ? "hi-IN" : 
-                     i18n.language === "te" ? "te-IN" : 
-                     i18n.language === "ta" ? "ta-IN" : "en-US";
-                     
+
+    utterance.lang = i18n.language === "kn" ? "kn-IN" :
+      i18n.language === "hi" ? "hi-IN" :
+        i18n.language === "te" ? "te-IN" :
+          i18n.language === "ta" ? "ta-IN" : "en-US";
+
     utterance.onend = () => setIsSpeaking(false);
     utterance.onerror = () => setIsSpeaking(false);
-    
+
     window.speechSynthesis.speak(utterance);
     setIsSpeaking(true);
   };
 
   const handleGenerate = () => {
     if (selectedRashi === null) return;
-    
+
     setIsGenerating(true);
     setPrediction(null);
-    
+
     // Simulate a brief calculation delay for UX
     setTimeout(() => {
       const calcPrediction = calculateVarshaBavishya(selectedYear, selectedRashi);
@@ -64,21 +64,21 @@ export default function VarshaBavishyaPage() {
 
   const handleDownloadPdf = async () => {
     if (!contentRef.current || !prediction) return;
-    
+
     try {
       const canvas = await html2canvas(contentRef.current, { scale: 2, useCORS: true });
       const imgData = canvas.toDataURL("image/jpeg", 0.75);
-      
+
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "mm",
         format: "a4",
         compress: true
       });
-      
+
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      
+
       pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
       pdf.save(`Varsha_Bavishya_${prediction.year}_${prediction.rashi.english}.pdf`);
     } catch (e) {
@@ -111,7 +111,7 @@ export default function VarshaBavishyaPage() {
               {t("varsha.select_year", "Select Year")}
             </label>
             <div className="flex items-center gap-3 bg-white p-2 rounded-xl border border-slate-200">
-              <button 
+              <button
                 onClick={() => setSelectedYear(y => y - 1)}
                 className="w-10 h-10 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-bold transition-colors"
               >
@@ -120,7 +120,7 @@ export default function VarshaBavishyaPage() {
               <div className="flex-1 text-center text-xl font-extrabold text-indigo-950">
                 {selectedYear}
               </div>
-              <button 
+              <button
                 onClick={() => setSelectedYear(y => y + 1)}
                 className="w-10 h-10 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-bold transition-colors"
               >
@@ -215,7 +215,7 @@ export default function VarshaBavishyaPage() {
                 </div>
               ))}
             </div>
-            
+
             <div className="mt-8 text-center text-[10px] text-slate-400 italic pt-4 border-t border-slate-100">
               Generated dynamically based on planetary transits.
             </div>

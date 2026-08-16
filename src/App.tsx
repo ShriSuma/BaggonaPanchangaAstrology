@@ -19,8 +19,11 @@ import { useAppStore } from "./stores/appStore";
 import { useAuthStore } from "./features/auth/authStore";
 import { LoginPage } from "./components/auth/LoginPage";
 import { initDailyReportScheduler } from "./features/reports/dailyScheduler";
+import DailyDarshanaPage from "./pages/DailyDarshanaPage";
 
 export default function App(): JSX.Element {
+  const isDailyRoute = typeof window !== "undefined" && window.location.pathname.startsWith("/daily");
+
   const currentPage = useAppStore((state) => state.currentPage);
   const hydrateSettings = useAppStore((state) => state.hydrateSettings);
   const consentResolved = useAppStore((state) => state.consentResolved);
@@ -40,6 +43,10 @@ export default function App(): JSX.Element {
     };
     void run();
   }, [hydrateSettings, checkSession]);
+
+  if (isDailyRoute) {
+    return <DailyDarshanaPage />;
+  }
 
   if (isLoading) {
     return (

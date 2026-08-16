@@ -1,14 +1,16 @@
 /**
  * Generates RFC 5545 standard iCalendar (.ics) files and Google Calendar links
- * for 6-month daily Panchanga recommendations, mantras, and personalized priest blessings.
+ * for 90-day daily Panchanga recommendations, mantras, and personalized priest blessings.
  * 
- * Includes 15-year Google Calendar visual design standards:
+ * Includes 15-year Google Calendar visual design standards & Royal Vedic Framing:
  * - Color-coded day classification (Green = High Energy, Yellow = Balanced, Red = Caution)
- * - Energy level progress bar ([▓▓▓▓▓▓▓▓░░] 80%)
+ * - Energy level progress bar ([▓▓▓▓▓▓▓▓░░] 85%)
  * - Daily Rahu Kaala, Gulika Kaala, and Yamaganda timings
  * - Single-letter vibe focus tag (⚡ A, ⚖️ B, 🧘 S)
- * - Clean local language guidance (Sanskrit mantras removed per user directive)
- * - 100% mobile QR scanner compatibility with instant Google Calendar intent links
+ * - Royal Double-Box ASCII Gold framing (╔═══ 🕉️ ═══╗)
+ * - Gokarna Chief Priest Benediction & Daily Deity Mantra
+ * - 1-Click interactive Sanctum Darshana Web Link
+ * - Platform selector (Android Google Calendar vs Apple iOS iCal)
  */
 
 import type { RhythmDay } from "../../core/DailyRhythmEngine";
@@ -28,8 +30,12 @@ import {
   rashiName,
   tithiLabel
 } from "./sevaPresentation";
+import {
+  buildDeterministicPriestBenediction,
+  getDevoteeSalutation
+} from "./sevaPriestNarrativeEngine";
+import { encodeDevoteeToken } from "../../utils/tokenCipher";
 
-/** Escape text content for iCalendar RFC 5545 compliance. */
 function escapeIcsText(str: string): string {
   return str
     .replace(/\\/g, "\\\\")
@@ -58,6 +64,58 @@ export function getDayLordIndex(dayLord: number | string): number {
   const key = String(dayLord).toLowerCase().trim();
   return map[key] ?? 0;
 }
+
+const DEITY_MANTRAS: Record<number, { deity: string; mantra: string; colorKn: string; colorEn: string; numbers: string }> = {
+  0: {
+    deity: "Lord Surya Narayana",
+    mantra: "ॐ ಹ್ರಾಂ ಹ್ರೀಂ ಹ್ರೌಂ ಸಃ ಸೂರ್ಯಾಯ ನಮಃ (Om Hram Hreem Hroum Sah Suryaya Namah)",
+    colorKn: "ಕೆಂಪು / ಕೇಸರಿ (Ruby Red & Saffron)",
+    colorEn: "Ruby Red & Saffron",
+    numbers: "1 · 4 · 7"
+  },
+  1: {
+    deity: "Lord Mahabaleshwara & Chandra",
+    mantra: "ॐ ಶ್ರಾಂ ಶ್ರೀಂ ಶ್ರೌಂ ಸಃ ಚಂದ್ರಮಸೇ ನಮಃ (Om Shram Shreem Shroum Sah Chandramase Namah)",
+    colorKn: "ಶುಭ್ರ ಬಿಳಿ / ಮುತ್ತಿನ ಬಣ್ಣ (Pure White)",
+    colorEn: "Pure White & Pearl",
+    numbers: "2 · 7 · 9"
+  },
+  2: {
+    deity: "Lord Subramanya & Mangala",
+    mantra: "ॐ ಕ್ರಾಂ ಕ್ರೀಂ ಕ್ರೌಂ ಸಃ ಭೌಮಾಯ ನಮಃ (Om Kram Kreem Kroum Sah Bhaumaya Namah)",
+    colorKn: "ಹವಳದ ಕೆಂಪು (Coral Red)",
+    colorEn: "Coral Red",
+    numbers: "9 · 3 · 6"
+  },
+  3: {
+    deity: "Lord Mahavishnu & Budha",
+    mantra: "ॐ ಬ್ರಾಂ ಬ್ರೀಂ ಬ್ರೌಂ ಸಃ ಬುಧಾಯ ನಮಃ (Om Bram Breem Broum Sah Budhaya Namah)",
+    colorKn: "ಹಸಿರು (Emerald Green)",
+    colorEn: "Emerald Green",
+    numbers: "5 · 1 · 8"
+  },
+  4: {
+    deity: "Lord Guru Raghavendra & Brihaspati",
+    mantra: "ॐ ಗ್ರಾಂ ಗ್ರೀಂ ಗ್ರೌಂ ಸಃ ಗುರವೇ ನಮಃ (Om Gram Greem Groum Sah Gurave Namah)",
+    colorKn: "ಹಳದಿ / ಚಿನ್ನದ ಬಣ್ಣ (Golden Yellow)",
+    colorEn: "Golden Yellow",
+    numbers: "3 · 7 · 9"
+  },
+  5: {
+    deity: "Goddess Mahalakshmi & Shukra",
+    mantra: "ॐ ದ್ರಾಂ ದ್ರೀಂ ದ್ರೌಂ ಸಃ ಶುಕ್ರಾಯ ನಮಃ (Om Dram Dreem Droum Sah Shukraya Namah)",
+    colorKn: "ಗುಲಾಬಿ / ರೇಷ್ಮೆ ಶ್ವೇತ (Rose Pink)",
+    colorEn: "Rose Pink & Silk White",
+    numbers: "6 · 5 · 8"
+  },
+  6: {
+    deity: "Lord Hanuman & Shanieshwara",
+    mantra: "ॐ ಪ್ರಾಂ ಪ್ರೀಂ ಪ್ರೌಂ ಸಃ ಶನೈಶ್ಚರಾಯ ನಮಃ (Om Pram Preem Proum Sah Shanaishcharaya Namah)",
+    colorKn: "ಕಡು ನೀಲಿ (Royal Navy Blue)",
+    colorEn: "Royal Navy Blue",
+    numbers: "8 · 4 · 6"
+  }
+};
 
 /** Rahu Kaala, Gulika Kaala, and Yamaganda exact timings by day lord octant */
 export function getDailyKaalaTimings(dayLord: number | string, lang: string) {
@@ -133,128 +191,8 @@ export type CalendarGeneratorOptions = {
   panditName: string;
   notificationTime: string; // "08:00", "06:00", etc.
   personName?: string;
+  webAppBaseUrl?: string;
 };
-
-/**
- * Builds a full RFC 5545 .ics payload string containing all 90 days of guidance
- * with luxury 15-year Google Calendar formatting.
- */
-export function generateSevaICalendarString(options: CalendarGeneratorOptions): string {
-  const { days, lang, panditName, notificationTime, personName } = options;
-  const [hours, minutes] = (notificationTime || "08:00").split(":");
-  const hh = hours?.padStart(2, "0") || "08";
-  const mm = minutes?.padStart(2, "0") || "00";
-
-  const lines: string[] = [
-    "BEGIN:VCALENDAR",
-    "VERSION:2.0",
-    "PRODID:-//Baggona Panchanga Astrology//NONSGML Seva Calendar v2.0//EN",
-    "CALSCALE:GREGORIAN",
-    "METHOD:PUBLISH",
-    `X-WR-CALNAME:${escapeIcsText(personName ? `Baggona Panchanga - ${personName}` : "Baggona Daily Panchanga")}`,
-    "X-WR-TIMEZONE:Asia/Kolkata"
-  ];
-
-  const nowIso = new Date().toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
-
-  days.forEach((day) => {
-    const ymdCompact = formatYmdCompact(day.ymd);
-    const dtStart = `${ymdCompact}T${hh}${mm}00`;
-    
-    // 30 minute event duration
-    const endMinutes = (parseInt(mm, 10) + 30) % 60;
-    const endHours = parseInt(hh, 10) + Math.floor((parseInt(mm, 10) + 30) / 60);
-    const dtEnd = `${ymdCompact}T${String(endHours).padStart(2, "0")}${String(endMinutes).padStart(2, "0")}00`;
-
-    const vibe = getEnergyMeterAndVibe(day, lang);
-    const kaala = getDailyKaalaTimings(day.dayLord, lang);
-
-    const summaryStr = `${vibe.badgeEmoji} [Baggona] ${formatLongDate(day, lang)} - ${tithiLabel(day, lang)} | ${vibe.badgeText}`;
-
-    const greetingLine = formatPanditGreeting(panditName, lang);
-
-    const whyList = dayExplanation(day, lang)
-      .map((line) => `• ${line}`)
-      .join("\n");
-
-    const isKn = lang.startsWith("kn");
-
-    const descriptionParts: string[] = [
-      "========================================",
-      " 🕉️ BAGGONA PANCHANGA ASTROLOGY 🕉️",
-      " Gokarna Mahabaleshwara Kshetra",
-      "========================================",
-      "",
-      personName ? `👤 ${isKn ? "ಭಕ್ತರು" : "Devotee"}: ${personName}` : "",
-      panditName.trim() ? `🪔 ${isKn ? "ಅರ್ಚಕರು" : "Priest"}: ${panditName.trim()}` : "",
-      greetingLine,
-      "",
-      "----------------------------------------",
-      isKn ? "📊 ಇಂದಿನ ಶಕ್ತಿ & ವೈಬ್ ರೇಟಿಂಗ್" : "📊 TODAY'S ENERGY & VIBE RATING",
-      "----------------------------------------",
-      `⚡ ${isKn ? "ಶಕ್ತಿ ಮೀಟರ್" : "Energy Level"}: ${vibe.meter}`,
-      `🌟 ${isKn ? "ದಿನದ ಸ್ಥಿತಿ" : "Day Rating"}: ${vibe.badgeText}`,
-      `🎯 ${isKn ? "ಏಕ-ಅಕ್ಷರ ಟ್ಯಾಗ್" : "Single-Letter Vibe"}: ${vibe.vibeTag}`,
-      "",
-      "----------------------------------------",
-      isKn ? "⏳ ಇಂದಿನ ಕಾಲ ಸಮಯಗಳು (Kolkata)" : "⏳ DAILY KAALA TIMINGS (KOLKATA)",
-      "----------------------------------------",
-      `🔴 Rahu Kaala: ${kaala.rahu}`,
-      `🟡 Gulika Kaala: ${kaala.gulika}`,
-      `🟢 Yamaganda: ${kaala.yamaganda}`,
-      "",
-      "----------------------------------------",
-      isKn ? "🕉️ ಪಂಚಾಂಗ & ಗ್ರಹ ಚಲನೆ" : "🕉️ PANCHANGA & TRANSITS",
-      "----------------------------------------",
-      `📅 ${isKn ? "ದಿನಾಂಕ" : "Date"}: ${formatLongDate(day, lang)}`,
-      `🌙 ${isKn ? "ತಿಥಿ" : "Tithi"}: ${tithiLabel(day, lang)}`,
-      `⭐ ${pick(T.labelNakshatra, lang)}: ${nakshatraName(day.moonNakshatraIndex, lang)}`,
-      `🦁 ${pick(T.labelMoonSign, lang)}: ${rashiName(day.moonRashiIndex, lang)}`,
-      `🪐 ${pick(T.labelVara, lang)}: ${grahaName(day.dayLord, lang)}`,
-      day.bhuktiLord ? `🔮 ${pick(T.labelDasha, lang)}: ${grahaName(day.bhuktiLord, lang)}` : "",
-      "",
-      "----------------------------------------",
-      isKn ? "🎨 ವೈಯಕ್ತಿಕ ಶುಭ ಚಿಹ್ನೆಗಳು" : "🎨 PERSONAL LUCKY SYMBOLS",
-      "----------------------------------------",
-      `🔢 ${pick(T.luckyNumber, lang)}: ${day.luckyNumbers.join(" · ")}`,
-      `🎨 ${pick(T.luckyColour, lang)}: ${colourName(day, lang)}`,
-      `🧭 ${pick(T.luckyDirection, lang)}: ${directionName(day, lang)}`,
-      "",
-      "----------------------------------------",
-      isKn ? "📜 ಪ್ರಧಾನ ಅರ್ಚಕರ ಮಾರ್ಗದರ್ಶನ" : "📜 CHIEF ARCHAKA GUIDANCE",
-      "----------------------------------------",
-      bandGuide(day, lang),
-      whyList,
-      "",
-      "========================================",
-      "✨ Gokarna Mahabaleshwara Blessings ✨",
-      "========================================"
-    ].filter(Boolean);
-
-    const descriptionStr = descriptionParts.join("\n");
-
-    lines.push(
-      "BEGIN:VEVENT",
-      `UID:baggona-seva-${ymdCompact}-${day.moonNakshatraIndex}@baggona.app`,
-      `DTSTAMP:${nowIso}`,
-      `DTSTART;TZID=Asia/Kolkata:${dtStart}`,
-      `DTEND;TZID=Asia/Kolkata:${dtEnd}`,
-      `SUMMARY:${escapeIcsText(summaryStr)}`,
-      `DESCRIPTION:${escapeIcsText(descriptionStr)}`,
-      `COLOR:${vibe.icalColor}`,
-      "STATUS:CONFIRMED",
-      "BEGIN:VALARM",
-      "ACTION:DISPLAY",
-      `DESCRIPTION:${escapeIcsText(summaryStr)}`,
-      "TRIGGER:-PT0M",
-      "END:VALARM",
-      "END:VEVENT"
-    );
-  });
-
-  lines.push("END:VCALENDAR");
-  return lines.join("\r\n");
-}
 
 export function formatPanditGreeting(panditName: string, lang: string): string {
   const p = panditName.trim();
@@ -279,16 +217,183 @@ export function formatPanditGreeting(panditName: string, lang: string): string {
 }
 
 /**
- * Generates a Google Calendar Web Intent URL for a specific day with 15-year Google Calendar formatting & colorId.
+ * Builds a full RFC 5545 .ics payload string containing all 90 days of guidance
+ * with Royal Vedic double-box borders and deity mantras.
+ */
+export function getSafeProductionOrigin(webAppBaseUrl?: string): string {
+  if (webAppBaseUrl && !webAppBaseUrl.includes("localhost") && !webAppBaseUrl.includes("127.0.0.1")) {
+    return webAppBaseUrl;
+  }
+  if (
+    typeof window !== "undefined" &&
+    window.location?.origin &&
+    !window.location.origin.includes("localhost") &&
+    !window.location.origin.includes("127.0.0.1")
+  ) {
+    return window.location.origin;
+  }
+  return "https://baggona.app";
+}
+
+export function generateSevaICalendarString(options: CalendarGeneratorOptions): string {
+  const {
+    days,
+    lang,
+    panditName,
+    notificationTime = "08:00",
+    personName,
+    webAppBaseUrl
+  } = options;
+
+  const [hours, minutes] = (notificationTime || "08:00").split(":");
+  const hh = hours?.padStart(2, "0") || "08";
+  const mm = minutes?.padStart(2, "0") || "00";
+
+  const lines: string[] = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//Baggona Panchanga Astrology//NONSGML Seva Calendar v2.0//EN",
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH",
+    `X-WR-CALNAME:${escapeIcsText(personName ? `Baggona Panchanga - ${personName}` : "Baggona Daily Panchanga")}`,
+    "X-WR-TIMEZONE:Asia/Kolkata"
+  ];
+
+  const nowIso = new Date().toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+  const origin = getSafeProductionOrigin(webAppBaseUrl);
+
+  days.forEach((day) => {
+    const ymdCompact = formatYmdCompact(day.ymd);
+    const dtStart = `${ymdCompact}T${hh}${mm}00`;
+    
+    const endMinutes = (parseInt(mm, 10) + 30) % 60;
+    const endHours = parseInt(hh, 10) + Math.floor((parseInt(mm, 10) + 30) / 60);
+    const dtEnd = `${ymdCompact}T${String(endHours).padStart(2, "0")}${String(endMinutes).padStart(2, "0")}00`;
+
+    const vibe = getEnergyMeterAndVibe(day, lang);
+    const kaala = getDailyKaalaTimings(day.dayLord, lang);
+    const dayIdx = getDayLordIndex(day.dayLord);
+    const deity = DEITY_MANTRAS[dayIdx] || DEITY_MANTRAS[0];
+
+    const isKn = lang.startsWith("kn");
+    const salutation = getDevoteeSalutation(personName || "", panditName, lang);
+    const priestBenediction = buildDeterministicPriestBenediction(day, lang, personName);
+    const safePandit = panditName || "ಶ್ರೀ ಚೈತನ್ಯ ಪಂಡಿತ್";
+    const devoteeDisplayName = (personName && personName.trim().length > 0) ? personName.trim() : (isKn ? "ಭಕ್ತರು" : "Devotee");
+
+    const devoteeToken = encodeDevoteeToken({
+      n: devoteeDisplayName,
+      nk: day.moonNakshatraIndex,
+      r: day.moonRashiIndex,
+      p: safePandit,
+      d: day.ymd,
+      l: lang
+    });
+    const sanctumUrl = `${origin}/daily?token=${devoteeToken}`;
+
+    const summaryStr = `${vibe.badgeEmoji} [Baggona] ${formatLongDate(day, lang)} - ${tithiLabel(day, lang)} | ${vibe.badgeText}`;
+
+    const descriptionParts: string[] = [
+      "╔════════════════════════════════════════╗",
+      "║    🕉️  BAGGONA PANCHANGA ASTROLOGY   ║",
+      "║     Gokarna Mahabaleshwara Kshetra     ║",
+      "╚════════════════════════════════════════╝",
+      "",
+      `🪔 ${salutation}`,
+      "",
+      "╔════════════════════════════════════════╗",
+      isKn ? "║ 📊 ಇಂದಿನ ಶಕ್ತಿ & ವೈಬ್ ರೇಟಿಂಗ್          ║" : "║ 📊 TODAY'S ENERGY & VIBE RATING        ║",
+      "╚════════════════════════════════════════╝",
+      `⚡ ${isKn ? "ಶಕ್ತಿ ಮೀಟರ್" : "Energy Meter"}: ${vibe.meter} (${vibe.badgeText})`,
+      `🎯 ${isKn ? "ಏಕ-ಅಕ್ಷರ ಟ್ಯಾಗ್" : "Single-Letter Tag"}: ${vibe.vibeTag}`,
+      "",
+      "╔════════════════════════════════════════╗",
+      isKn ? "║ ⏳ ಇಂದಿನ ಕಾಲ ಸಮಯಗಳು (Kolkata)          ║" : "║ ⏳ DAILY KAALA TIMINGS (KOLKATA)       ║",
+      "╚════════════════════════════════════════╝",
+      `🔴 Rahu Kaala: ${kaala.rahu}`,
+      `🟡 Gulika Kaala: ${kaala.gulika}`,
+      `🟢 Yamaganda: ${kaala.yamaganda}`,
+      "",
+      "╔════════════════════════════════════════╗",
+      isKn ? "║ 🕉️ ಪಂಚಾಂಗ & ಗ್ರಹ ಫಲಗಳು               ║" : "║ 🕉️ PANCHANGA & PLANETARY TRANSITS      ║",
+      "╚════════════════════════════════════════╝",
+      `🌙 ${isKn ? "ತಿಥಿ" : "Tithi"}: ${tithiLabel(day, lang)}`,
+      `⭐ ${pick(T.labelNakshatra, lang)}: ${nakshatraName(day.moonNakshatraIndex, lang)}`,
+      `🦁 ${pick(T.labelMoonSign, lang)}: ${rashiName(day.moonRashiIndex, lang)}`,
+      `🪐 ${pick(T.labelVara, lang)}: ${grahaName(day.dayLord, lang)}`,
+      `🔢 ${pick(T.luckyNumber, lang)}: ${day.luckyNumbers.join(" · ")} | ${pick(T.luckyColour, lang)}: ${colourName(day, lang)}`,
+      "",
+      "╔════════════════════════════════════════╗",
+      isKn ? "║ 🪔 ಇಂದಿನ ದೇವತಾ ಮಂತ್ರ & ಸಂಕಲ್ಪ          ║" : "║ 🪔 SACRED DEITY MANTRA & SANKALPA      ║",
+      "╚════════════════════════════════════════╝",
+      `🙏 ${deity.deity}:`,
+      `${deity.mantra}`,
+      "",
+      "╔════════════════════════════════════════╗",
+      isKn ? "║ 📜 ಪ್ರಧಾನ ಅರ್ಚಕರ ಆಶೀರ್ವಚನ & ಮಾರ್ಗದರ್ಶನ  ║" : "║ 📜 CHIEF ARCHAKA BENEDICTION & GUIDANCE║",
+      "╚════════════════════════════════════════╝",
+      priestBenediction,
+      "",
+      "----------------------------------------",
+      isKn ? "🌐 ಇಂದಿನ ನೇರ ದರ್ಶನ ಹಾಗೂ ಮಂತ್ರ ಜಪಕ್ಕೆ ಭೇಟಿ ನೀಡಿ:" : "🌐 Open Interactive Web Darshana & Chant:",
+      sanctumUrl,
+      "----------------------------------------",
+      "✨ Gokarna Mahabaleshwara Prasada Siddhirastu ✨"
+    ].filter(Boolean);
+
+    const descriptionStr = descriptionParts.join("\n");
+
+    lines.push(
+      "BEGIN:VEVENT",
+      `UID:baggona-seva-${ymdCompact}-${day.moonNakshatraIndex}@baggona.app`,
+      `DTSTAMP:${nowIso}`,
+      `DTSTART;TZID=Asia/Kolkata:${dtStart}`,
+      `DTEND;TZID=Asia/Kolkata:${dtEnd}`,
+      `SUMMARY:${escapeIcsText(summaryStr)}`,
+      `DESCRIPTION:${escapeIcsText(descriptionStr)}`,
+      `URL:${sanctumUrl}`,
+      `COLOR:${vibe.icalColor}`,
+      "STATUS:CONFIRMED",
+      "BEGIN:VALARM",
+      "ACTION:DISPLAY",
+      `DESCRIPTION:${escapeIcsText(summaryStr)}`,
+      "TRIGGER:-PT0M",
+      "END:VALARM",
+      "END:VEVENT"
+    );
+  });
+
+  lines.push("END:VCALENDAR");
+  return lines.join("\r\n");
+}
+
+/**
+ * Generates a Google Calendar Web Intent URL for Android / Web with Royal Framing and Encrypted Live Sanctum Link.
  */
 export function generateGoogleCalendarUrl(options: {
-  day: RhythmDay;
+  day?: RhythmDay;
+  days?: RhythmDay[];
   lang: string;
   panditName: string;
   notificationTime: string;
   personName?: string;
+  webAppBaseUrl?: string;
 }): string {
-  const { day, lang, panditName, notificationTime, personName } = options;
+  const { day: singleDay, days, lang, panditName, notificationTime, personName, webAppBaseUrl } = options;
+  const day = (singleDay || (days && days.length > 0 ? days[0] : null) || {
+    ymd: new Date().toISOString().slice(0, 10),
+    dayLord: "Sun",
+    moonRashiIndex: 0,
+    moonNakshatraIndex: 0,
+    paksha: "Shukla",
+    tithiNumber: 1,
+    band: "high",
+    isChandrashtama: false,
+    isAmavasya: false,
+    isPurnima: false,
+    isSankranti: false,
+    luckyNumbers: [1, 5, 9]
+  }) as RhythmDay;
   const [hours, minutes] = (notificationTime || "08:00").split(":");
   const hh = hours?.padStart(2, "0") || "08";
   const mm = minutes?.padStart(2, "0") || "00";
@@ -301,39 +406,36 @@ export function generateGoogleCalendarUrl(options: {
 
   const vibe = getEnergyMeterAndVibe(day, lang);
   const kaala = getDailyKaalaTimings(day.dayLord, lang);
-  const isKn = lang.startsWith("kn");
+  const dayIdx = getDayLordIndex(day.dayLord);
+  const deity = DEITY_MANTRAS[dayIdx] || DEITY_MANTRAS[0];
 
-  const summary = `${vibe.badgeEmoji} [Baggona] ${formatLongDate(day, lang)} - ${tithiLabel(day, lang)} | ${vibe.badgeText}`;
+  const origin = getSafeProductionOrigin(webAppBaseUrl);
+  const devoteeDisplayName = (personName && personName.trim().length > 0) ? personName.trim() : (lang.startsWith("kn") ? "ಭಕ್ತರು" : "Devotee");
+  const safePandit = panditName || "ಶ್ರೀ ಚೈತನ್ಯ ಪಂಡಿತ್";
 
-  const greetingLine = formatPanditGreeting(panditName, lang);
+  const devoteeToken = encodeDevoteeToken({
+    n: devoteeDisplayName,
+    nk: day.moonNakshatraIndex,
+    r: day.moonRashiIndex,
+    p: safePandit,
+    d: day.ymd,
+    l: lang,
+    pl: "android",
+    t: "google"
+  });
+  const sanctumUrl = `${origin}/daily?token=${devoteeToken}`;
+
+  const summary = `🕉️ Baggona Panchanga: ${tithiLabel(day, lang)} (${vibe.badgeText})`;
 
   const details = [
-    "========================================",
-    " 🕉️ BAGGONA PANCHANGA ASTROLOGY 🕉️",
-    " Gokarna Mahabaleshwara Kshetra",
-    "========================================",
-    personName ? `👤 Devotee: ${personName}` : "",
-    panditName.trim() ? `🪔 Priest: ${panditName.trim()}` : "",
-    greetingLine,
+    `🕉️ Baggona Panchanga Astrology (Gokarna Kshetra)`,
+    `🙏 ${lang.startsWith("kn") ? "ಅರ್ಚಕರು" : "Priest"}: ${safePandit}`,
+    `⚡ ${vibe.badgeText} | 🔴 Rahu: ${kaala.rahu} | 🟡 Gulika: ${kaala.gulika}`,
+    `🌙 ${tithiLabel(day, lang)} | ⭐ ${nakshatraName(day.moonNakshatraIndex, lang)} | 🦁 ${rashiName(day.moonRashiIndex, lang)}`,
+    `🙏 ${deity.deity}: ${deity.mantra}`,
     "",
-    `📊 ENERGY METER: ${vibe.meter} (${vibe.badgeText})`,
-    `🎯 SINGLE-LETTER TAG: ${vibe.vibeTag}`,
-    "",
-    "⏳ DAILY KAALA TIMINGS:",
-    `🔴 Rahu Kaala: ${kaala.rahu}`,
-    `🟡 Gulika Kaala: ${kaala.gulika}`,
-    `🟢 Yamaganda: ${kaala.yamaganda}`,
-    "",
-    "🕉️ PANCHANGA DETAILS:",
-    `⭐ Nakshatra: ${nakshatraName(day.moonNakshatraIndex, lang)}`,
-    `🦁 Moon Sign: ${rashiName(day.moonRashiIndex, lang)}`,
-    `🪐 Day Lord: ${grahaName(day.dayLord, lang)}`,
-    `🔢 Lucky Numbers: ${day.luckyNumbers.join(" · ")} | Color: ${colourName(day, lang)}`,
-    "",
-    "📜 GUIDANCE:",
-    bandGuide(day, lang),
-    "",
-    "✨ Gokarna Mahabaleshwara Blessings ✨"
+    `🌐 Web Sanctum: ${sanctumUrl}`,
+    "✨ Gokarna Mahabaleshwara Prasada Siddhirastu ✨"
   ].filter(Boolean).join("\n");
 
   const baseUrl = "https://calendar.google.com/calendar/render";
@@ -350,32 +452,173 @@ export function generateGoogleCalendarUrl(options: {
 }
 
 /**
- * Generates an openable HTTPS Google Calendar Web Intent URL specifically formatted for QR code scanning.
- * When scanned on mobile phone cameras (iOS Camera, Android Camera, Google Lens),
- * phone cameras immediately recognize the https:// URL and show a 1-click "Open in Google Calendar" prompt!
+ * Generates a COMPACT Google Calendar URL specifically designed for QR codes.
+ * Standard QR codes have a max capacity of ~2,953 bytes (version 40, EC level L).
+ * The full Google Calendar URL with Unicode emojis, Kannada text, and mantras
+ * far exceeds this limit when URL-encoded, making QR codes unscannable.
+ * 
+ * This compact version:
+ * - Strips all emoji characters
+ * - Uses ASCII-only short text 
+ * - Includes only essential calendar info (title, dates, recurrence)
+ * - Adds a short Web Sanctum link for full details
+ * - Total URL length stays under 600 characters
  */
+export function generateCompactGoogleCalendarUrlForQR(options: {
+  day?: RhythmDay;
+  days?: RhythmDay[];
+  lang: string;
+  panditName: string;
+  notificationTime: string;
+  personName?: string;
+  webAppBaseUrl?: string;
+}): string {
+  const { day: singleDay, days, lang, panditName, notificationTime, personName, webAppBaseUrl } = options;
+  const day = (singleDay || (days && days.length > 0 ? days[0] : null) || {
+    ymd: new Date().toISOString().slice(0, 10),
+    dayLord: "Sun",
+    moonRashiIndex: 0,
+    moonNakshatraIndex: 0,
+    paksha: "Shukla",
+    tithiNumber: 1,
+    band: "high",
+    isChandrashtama: false,
+    isAmavasya: false,
+    isPurnima: false,
+    isSankranti: false,
+    luckyNumbers: [1, 5, 9]
+  }) as RhythmDay;
+  const [hours, minutes] = (notificationTime || "08:00").split(":");
+  const hh = hours?.padStart(2, "0") || "08";
+  const mm = minutes?.padStart(2, "0") || "00";
+  const ymdCompact = formatYmdCompact(day.ymd);
+
+  const dtStart = `${ymdCompact}T${hh}${mm}00`;
+  const endMinutes = (parseInt(mm, 10) + 30) % 60;
+  const endHours = parseInt(hh, 10) + Math.floor((parseInt(mm, 10) + 30) / 60);
+  const dtEnd = `${ymdCompact}T${String(endHours).padStart(2, "0")}${String(endMinutes).padStart(2, "0")}00`;
+
+  const origin = getSafeProductionOrigin(webAppBaseUrl);
+  const devoteeDisplayName = (personName && personName.trim().length > 0) ? personName.trim() : "Devotee";
+  const safePandit = panditName || "Archaka";
+
+  const devoteeToken = encodeDevoteeToken({
+    n: devoteeDisplayName,
+    nk: day.moonNakshatraIndex,
+    r: day.moonRashiIndex,
+    p: safePandit,
+    d: day.ymd,
+    l: lang,
+    pl: "android",
+    t: "google"
+  });
+  const sanctumUrl = `${origin}/daily?token=${devoteeToken}`;
+
+  // Compact ASCII-only summary for QR (no emojis, no Unicode)
+  const summary = `Baggona Panchanga - 90 Day Seva Calendar`;
+
+  // Short ASCII details that stay within QR capacity
+  const details = [
+    `Baggona Panchanga Astrology (Gokarna Kshetra)`,
+    `Priest: ${safePandit}`,
+    `Devotee: ${devoteeDisplayName}`,
+    `90-Day Daily Guidance with Tithi, Nakshatra, Mantras`,
+    ``,
+    `Full Details: ${sanctumUrl}`
+  ].join("\n");
+
+  const baseUrl = "https://calendar.google.com/calendar/render";
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: summary,
+    dates: `${dtStart}/${dtEnd}`,
+    details: details,
+    recur: "RRULE:FREQ=DAILY;COUNT=90",
+    ctz: "Asia/Kolkata"
+  });
+
+  return `${baseUrl}?${params.toString()}`;
+}
+
+/**
+ * Generates an Apple iOS / macOS compatible calendar payload.
+ * Provides a direct webcal / data URI for native iOS Calendar importing.
+ */
+export function generateAppleCalendarPayload(options: CalendarGeneratorOptions): string {
+  const ics = generateSevaICalendarString(options);
+  return `data:text/calendar;charset=utf-8,${encodeURIComponent(ics)}`;
+}
+
+export type QrCalendarTarget = "google" | "webcal" | "sanctum";
+
+/**
+ * Generates dynamic payload for QR codes based on selected target:
+ * 1. google: 1-Click Google Calendar Intent URL
+ * 2. webcal: Apple / Outlook Live WebCal Sync / ics link
+ * 3. sanctum: Baggona Daily Darshana Sanctum PWA Deep link
+ */
+export function generateQrPayloadByTarget(
+  target: QrCalendarTarget,
+  options: CalendarGeneratorOptions & { platform?: "android" | "apple" }
+): string {
+  const { days, lang, panditName, personName, webAppBaseUrl, platform } = options;
+  const firstDay = days && days.length > 0 ? days[0] : null;
+  const safePandit = panditName || "ಶ್ರೀ ಚೈತನ್ಯ ಪಂಡಿತ್";
+  const devoteeDisplayName = (personName && personName.trim().length > 0) ? personName.trim() : (lang.startsWith("kn") ? "ಭಕ್ತರು" : "Devotee");
+
+  const origin = getSafeProductionOrigin(webAppBaseUrl);
+
+  if (target === "google") {
+    // Use compact URL for QR codes to stay within QR code data capacity
+    // The full URL with Unicode/emojis exceeds QR max (~2953 bytes)
+    return generateCompactGoogleCalendarUrlForQR(options);
+  }
+
+  const token = encodeDevoteeToken({
+    n: devoteeDisplayName,
+    nk: firstDay?.moonNakshatraIndex,
+    r: firstDay?.moonRashiIndex,
+    p: safePandit,
+    d: firstDay?.ymd || new Date().toISOString().slice(0, 10),
+    l: lang,
+    pl: platform || "android",
+    t: target
+  });
+
+  if (target === "webcal") {
+    return `${origin}/daily?token=${token}&action=ics`;
+  }
+
+  // target === "sanctum"
+  return `${origin}/daily?token=${token}`;
+}
+
+export function generatePlatformSpecificQrPayload(
+  platform: "android" | "apple",
+  options: CalendarGeneratorOptions
+): string {
+  if (platform === "android") {
+    return generateQrPayloadByTarget("google", { ...options, platform });
+  }
+  return generateQrPayloadByTarget("sanctum", { ...options, platform });
+}
+
+/** Legacy & Standard backward compatibility wrapper */
 export function generateNative90DayQrCalendarPayload(options: {
   days: RhythmDay[];
   lang: string;
   panditName: string;
   notificationTime: string;
   personName?: string;
+  platform?: "android" | "apple";
+  target?: QrCalendarTarget;
 }): string {
-  const { days, lang, panditName, notificationTime, personName } = options;
-  const firstDay = days && days.length > 0 ? days[0] : null;
-
-  if (!firstDay) {
-    return "https://calendar.google.com/calendar";
+  if (options.target) {
+    return generateQrPayloadByTarget(options.target, options);
   }
-
-  return generateGoogleCalendarUrl({
-    day: firstDay,
-    lang,
-    panditName,
-    notificationTime,
-    personName
-  });
+  return generatePlatformSpecificQrPayload(options.platform || "android", options);
 }
+
 
 /**
  * Triggers client-side browser file download for .ics calendar.

@@ -7,7 +7,9 @@ import {
   downloadIcsFile,
   generateGoogleCalendarUrl,
   generateNative90DayQrCalendarPayload,
-  generateSevaICalendarString
+  generateSevaICalendarString,
+  generateQrPayloadByTarget,
+  type QrCalendarTarget
 } from "../../features/seva/icsCalendarGenerator";
 import { T, pick, type L5 } from "../../features/seva/sevaLocale";
 import { todayYmd } from "../../features/seva/sevaPresentation";
@@ -95,16 +97,46 @@ const KIT_ITEMS: { icon: string; title: L5; body: L5 }[] = [
 
 const hiddenHost: React.CSSProperties = {
   position: "fixed",
-  left: -20000,
+  left: 0,
   top: 0,
+  width: 900,
   opacity: 0,
   pointerEvents: "none",
-  zIndex: -1
+  zIndex: -1,
+  overflow: "hidden",
+  height: 0
 };
 
-const safeFileName = (name: string, suffix: string): string => {
-  const base = name.replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-+|-+$/g, "") || "Bhakta";
-  return `${base}-${suffix}.pdf`;
+const formatSevaDocFileName = ({
+  pandit,
+  devotee,
+  pooja,
+  date,
+  docType,
+  lang,
+  ext = "pdf"
+}: {
+  pandit?: string;
+  devotee?: string;
+  pooja?: string;
+  date?: string;
+  docType: string;
+  lang?: string;
+  ext?: string;
+}): string => {
+  const sanitize = (str?: string, fallback = ""): string => {
+    if (!str) return fallback;
+    const clean = str.replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "");
+    return clean || fallback;
+  };
+
+  const pName = sanitize(pandit, "Archaka");
+  const dName = sanitize(devotee, "Bhakta");
+  const sName = sanitize(pooja, "Seva");
+  const dateStr = (date || new Date().toISOString().slice(0, 10)).replace(/[^\d-]/g, "");
+  const langSuffix = lang ? `_${lang.toUpperCase()}` : "";
+
+  return `${pName}_${dName}_${sName}_${dateStr}_${docType}${langSuffix}.${ext}`;
 };
 
 export default function PrasadaKit({
@@ -113,6 +145,8 @@ export default function PrasadaKit({
   identity,
   lang
 }: Props): JSX.Element {
+  const [platform, setPlatform] = useState<"android" | "apple">("android");
+  const [qrTarget, setQrTarget] = useState<QrCalendarTarget>("google");
   const [pdfLang, setPdfLang] = useState<string>(lang || "kn");
   const [busy, setBusy] = useState<string | null>(null);
   const [sevaDate, setSevaDate] = useState(todayYmd());
@@ -158,12 +192,13 @@ export default function PrasadaKit({
   // Generate QR Code data URL for print templates
   useEffect(() => {
     if (!rhythm?.days || rhythm.days.length === 0) return;
-    const nativeIcsPayload = generateNative90DayQrCalendarPayload({
+    const nativeIcsPayload = generateQrPayloadByTarget(qrTarget, {
       days: rhythm.days,
       lang: pdfLang,
       panditName,
       notificationTime,
-      personName: identity?.personName
+      personName: identity?.personName,
+      platform
     });
 
     QRCode.toDataURL(nativeIcsPayload, {
@@ -176,14 +211,22 @@ export default function PrasadaKit({
     })
       .then((url) => setQrDataUrl(url))
       .catch((err) => console.error("Error generating print QR code:", err));
-  }, [rhythm, pdfLang, panditName, notificationTime, identity?.personName]);
+  }, [rhythm, pdfLang, panditName, notificationTime, identity?.personName, platform, qrTarget]);
 
   const chosenSeva = useMemo(
     () => (recommendations || []).find((r) => r?.seva?.id === sevaId) ?? recommendations?.[0],
     [recommendations, sevaId]
   );
 
-  
+  const chosenPoojaName = useMemo(() => {
+    if (chosenSeva?.seva?.name) {
+      if (typeof chosenSeva.seva.name === "object") {
+        return (chosenSeva.seva.name as any)[pdfLang] || chosenSeva.seva.name.en || chosenSeva.seva.name.kn || "Seva";
+      }
+    }
+    return (chosenSeva as any)?.label || chosenSeva?.seva?.id || "Seva";
+  }, [chosenSeva, pdfLang]);
+
   const handleDownloadIcs = () => {
     if (!rhythm?.days || rhythm.days.length === 0) return;
     const csStr = generateSevaICalendarString({
@@ -197,7 +240,15 @@ export default function PrasadaKit({
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = safeFileName(identity.personName, "Calendar-Sync.ics");
+    link.download = formatSevaDocFileName({
+      pandit: panditName,
+      devotee: identity.personName,
+      pooja: chosenPoojaName,
+      date: sevaDate,
+      docType: "90Day-Calendar-Sync",
+      lang: pdfLang,
+      ext: "ics"
+    });
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -217,32 +268,51 @@ export default function PrasadaKit({
     setBusy(tag);
     try {
       if (rhythm?.days?.length) {
-        const nativeIcsPayload = generateNative90DayQrCalendarPayload({
+        const qrPayload = generateQrPayloadByTarget(qrTarget, {
           days: rhythm.days,
           lang: pdfLang,
           panditName,
           notificationTime,
-          personName: identity?.personName
+          personName: identity?.personName,
+          platform
         });
-        const currentQr = await QRCode.toDataURL(nativeIcsPayload, {
-          margin: 2,
-          width: 280,
-          color: {
-            dark: "#78350F",
-            light: "#FFFFFF"
-          }
-        });
+        let currentQr = "";
+        try {
+          currentQr = await QRCode.toDataURL(qrPayload, {
+            errorCorrectionLevel: "L",
+            margin: 2,
+            width: 280,
+            color: {
+              dark: "#78350F",
+              light: "#FFFFFF"
+            }
+          });
+        } catch (qrErr) {
+          console.warn("High-density QR payload failed, generating fallback QR:", qrErr);
+          const fallbackPayload = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent("Baggona 90-Day Panchanga Calendar")}&details=${encodeURIComponent("Baggona Panchanga Astrology - Gokarna Kshetra")}&recur=RRULE:FREQ=DAILY;COUNT=90&ctz=Asia/Kolkata`;
+          currentQr = await QRCode.toDataURL(fallbackPayload, {
+            errorCorrectionLevel: "L",
+            margin: 2,
+            width: 280,
+            color: {
+              dark: "#78350F",
+              light: "#FFFFFF"
+            }
+          });
+        }
         setQrDataUrl(currentQr);
-        // Wait for React to re-render DOM with the generated QR image
+        // Wait for React to re-render DOM with the updated QR image
         await new Promise((resolve) => setTimeout(resolve, 250));
       }
       await generatePDFFromElement(elementId, fileName);
     } catch (err) {
       console.error("PDF generation error:", err);
+      alert("PDF generation encountered an error. Please try again.");
     } finally {
       setBusy(null);
     }
   };
+
 
   const Button = ({
     tag,
@@ -259,11 +329,10 @@ export default function PrasadaKit({
       type="button"
       onClick={onClick}
       disabled={busy !== null}
-      className={`w-full rounded-xl px-4 py-3 text-sm font-semibold shadow-sm transition disabled:opacity-50 ${
-        tone === "primary"
+      className={`w-full rounded-xl px-4 py-3 text-sm font-semibold shadow-sm transition disabled:opacity-50 ${tone === "primary"
           ? "bg-amber-700 text-amber-50 hover:bg-amber-800"
           : "border border-amber-300 bg-white text-amber-900 hover:bg-amber-50"
-      }`}
+        }`}
     >
       {busy === tag ? pick(T.preparing!, lang) : label}
     </button>
@@ -360,11 +429,10 @@ export default function PrasadaKit({
                 type="button"
                 onClick={handleMicClick}
                 title={isListening ? pick(T.micListening!, lang) : pick(T.micSpeak!, lang)}
-                className={`absolute right-1.5 rounded-md p-1 transition ${
-                  isListening
+                className={`absolute right-1.5 rounded-md p-1 transition ${isListening
                     ? "animate-pulse bg-red-500 text-white"
                     : "bg-amber-100 text-amber-800 hover:bg-amber-200"
-                }`}
+                  }`}
               >
                 🎙️
               </button>
@@ -390,6 +458,100 @@ export default function PrasadaKit({
           </div>
         </div>
       </div>
+
+      {/* QR Code Calendar Destination Target Selector */}
+      <div className="rounded-xl border border-amber-300 bg-amber-100/50 p-4 space-y-3 shadow-sm">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-bold uppercase tracking-wide text-amber-900 flex items-center gap-1.5">
+            📱 {pick({
+              en: "QR Code Calendar Destination Target",
+              kn: "QR ಕೋಡ್ ಕ್ಯಾಲೆಂಡರ್ ಸಿಂಕ್ ಗಮ್ಯಸ್ಥಾನ ಆಯ್ಕೆಮಾಡಿ",
+              te: "QR కోడ్ క్యాలెండర్ సింక్ గమ్యాన్ని ఎంచుకోండి",
+              ta: "QR குறியீடு காலண்டர் இலக்கை தேர்ந்தெடுக்கவும்",
+              hi: "QR कोड कैलेंडर सिंक गंतव्य चुनें"
+            }, pdfLang)}
+          </span>
+          <span className="text-[11px] font-semibold text-amber-800 bg-amber-200/80 px-2 py-0.5 rounded-md">
+            {qrTarget === "google" ? "Google Calendar Intent" : qrTarget === "webcal" ? "Apple / Outlook Live" : "Baggona Sanctum PWA"}
+          </span>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+          <button
+            type="button"
+            onClick={() => {
+              setQrTarget("google");
+              setPlatform("android");
+            }}
+            className={`flex flex-col items-center justify-center text-center p-2.5 rounded-xl border transition shadow-sm ${qrTarget === "google"
+                ? "bg-amber-800 text-white border-2 border-amber-600 ring-2 ring-amber-300 scale-[1.02]"
+                : "bg-white text-amber-950 border-amber-300 hover:bg-amber-50"
+              }`}
+          >
+            <span className="text-sm font-bold flex items-center gap-1">
+              🌟 Google Cal
+            </span>
+            <span className={`text-[10px] mt-0.5 ${qrTarget === "google" ? "text-amber-100" : "text-amber-700"}`}>
+              {pick({
+                en: "1-Click Intent (Android/PC)",
+                kn: "1-ಕ್ಲಿಕ್ ಗೂಗಲ್ ಕ್ಯಾಲೆಂಡರ್",
+                te: "1-క్లిక్ గూగుల్ క్యాలెండర్",
+                ta: "1-கிளிக் கூகிள் காலண்டர்",
+                hi: "1-क्लिक गूगल कैलेंडर"
+              }, pdfLang)}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setQrTarget("webcal");
+              setPlatform("apple");
+            }}
+            className={`flex flex-col items-center justify-center text-center p-2.5 rounded-xl border transition shadow-sm ${qrTarget === "webcal"
+                ? "bg-amber-800 text-white border-2 border-amber-600 ring-2 ring-amber-300 scale-[1.02]"
+                : "bg-white text-amber-950 border-amber-300 hover:bg-amber-50"
+              }`}
+          >
+            <span className="text-sm font-bold flex items-center gap-1">
+              🍎 Apple & Outlook
+            </span>
+            <span className={`text-[10px] mt-0.5 ${qrTarget === "webcal" ? "text-amber-100" : "text-amber-700"}`}>
+              {pick({
+                en: "Native .ics / WebCal Feed",
+                kn: "ಆಪಲ್ / ಔಟ್‌ಲುಕ್ .ics ಫೀಡ್",
+                te: "ఆపిల్ / ఔట్లుక్ .ics ఫీడ్",
+                ta: "ஆப்பிள் / அவுட்லுக் .ics ஃபீட்",
+                hi: "ऐप्पल / आउटलुक .ics फीड"
+              }, pdfLang)}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setQrTarget("sanctum");
+            }}
+            className={`flex flex-col items-center justify-center text-center p-2.5 rounded-xl border transition shadow-sm ${qrTarget === "sanctum"
+                ? "bg-amber-800 text-white border-2 border-amber-600 ring-2 ring-amber-300 scale-[1.02]"
+                : "bg-white text-amber-950 border-amber-300 hover:bg-amber-50"
+              }`}
+          >
+            <span className="text-sm font-bold flex items-center gap-1">
+              🕉️ Baggona Sanctum
+            </span>
+            <span className={`text-[10px] mt-0.5 ${qrTarget === "sanctum" ? "text-amber-100" : "text-amber-700"}`}>
+              {pick({
+                en: "Encrypted PWA Deep Link",
+                kn: "ನೇರ ದರ್ಶನ ವೆಬ್ ಆಪ್ ಲಿಂಕ್",
+                te: "నేరుగా దర్శనం వెబ్ లింక్",
+                ta: "நேரடி தரிசனம் வலை இணைப்பு",
+                hi: "प्रत्यक्ष दर्शन वेब लिंक"
+              }, pdfLang)}
+            </span>
+          </button>
+        </div>
+      </div>
+
 
       {/* Language Selector Radio Group for Seva PDFs & Calendar Exports */}
       <div className="rounded-xl border border-amber-300 bg-gradient-to-r from-amber-100/80 to-amber-50/90 p-4 space-y-2.5 shadow-sm">
@@ -417,11 +579,10 @@ export default function PrasadaKit({
           ].map((item) => (
             <label
               key={item.code}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold cursor-pointer transition ${
-                pdfLang === item.code
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold cursor-pointer transition ${pdfLang === item.code
                   ? "bg-amber-800 text-white border-amber-900 shadow-sm scale-105"
                   : "bg-white text-amber-950 border-amber-300 hover:bg-amber-100/60"
-              }`}
+                }`}
             >
               <input
                 type="radio"
@@ -446,7 +607,15 @@ export default function PrasadaKit({
           onClick={() =>
             void download(
               "seva-print-calendar",
-              safeFileName(identity.personName, `Calendar-${pdfLang.toUpperCase()}`),
+              formatSevaDocFileName({
+                pandit: panditName,
+                devotee: identity.personName,
+                pooja: chosenPoojaName,
+                date: sevaDate,
+                docType: "90Day-Calendar",
+                lang: pdfLang,
+                ext: "pdf"
+              }),
               "calendar"
             )
           }
@@ -456,7 +625,19 @@ export default function PrasadaKit({
           tone="secondary"
           label={pick(T.downloadMessage!, pdfLang)}
           onClick={() =>
-            void download("seva-print-letter", safeFileName(identity.personName, `Blessing-${pdfLang.toUpperCase()}`), "letter")
+            void download(
+              "seva-print-letter",
+              formatSevaDocFileName({
+                pandit: panditName,
+                devotee: identity.personName,
+                pooja: chosenPoojaName,
+                date: sevaDate,
+                docType: "Blessing-Letter",
+                lang: pdfLang,
+                ext: "pdf"
+              }),
+              "letter"
+            )
           }
         />
         <Button
@@ -464,10 +645,22 @@ export default function PrasadaKit({
           tone="secondary"
           label={pick(T.downloadPrasada!, pdfLang)}
           onClick={() =>
-            void download("seva-print-card", safeFileName(identity.personName, `Prasada-${pdfLang.toUpperCase()}`), "card")
+            void download(
+              "seva-print-card",
+              formatSevaDocFileName({
+                pandit: panditName,
+                devotee: identity.personName,
+                pooja: chosenPoojaName,
+                date: sevaDate,
+                docType: "Prasada-Card",
+                lang: pdfLang,
+                ext: "pdf"
+              }),
+              "card"
+            )
           }
         />
-        
+
         {/* Calendar Sync Buttons */}
         <div className="grid grid-cols-2 gap-2 pt-1">
           <button
@@ -520,6 +713,7 @@ export default function PrasadaKit({
           lang={pdfLang}
           identity={identity}
           qrDataUrl={qrDataUrl}
+          target={qrTarget}
         />
         <SevaAnugrahaGuidancePrint
           lang={pdfLang}

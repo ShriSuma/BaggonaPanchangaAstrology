@@ -19,40 +19,37 @@ import type { RhythmResult, RhythmDay } from "../core/DailyRhythmEngine";
 const mockIdentity = {
   personName: "ಚೈತನ್ಯ ಕುಮಾರ್",
   rashiIndex: 3,
-  nakshatraIndex: 7
+  nakshatraIndex: 7,
+  gotra: "Kashyapa",
+  placeLabel: "Gokarna"
 };
 
-const mockDay: RhythmDay = {
+const mockDay = {
   ymd: "2026-08-14",
-  dayLord: 5,
-  tithiIndex: 1,
+  dayLord: "Venus",
   moonRashiIndex: 3,
   moonNakshatraIndex: 7,
   band: "high",
   energyScore: 88,
-  isGoodDay: true,
   isMoneyDay: true,
   isChandrashtama: false,
   isAmavasya: false,
   luckyNumbers: [3, 7, 9],
-  favourableColours: ["#B45309"],
-  colourName: "ಕೇಸರಿ / ಗೋಲ್ಡ್",
-  directionIndex: 0
-};
+  luckyColour: "white",
+  luckyDirection: "east"
+} as unknown as RhythmDay;
 
 const mockRhythm: RhythmResult = {
-  days: [mockDay],
-  summary: {
-    totalDays: 90,
-    highDaysCount: 45,
-    mediumDaysCount: 30,
-    lowDaysCount: 15
-  },
   startYmd: "2026-08-14",
   endYmd: "2026-11-12",
-  highCount: 45,
-  mediumCount: 30,
-  lowCount: 15
+  days: [mockDay],
+  months: [],
+  janmaNakshatraIndex: 7,
+  janmaRashiIndex: 3,
+  janmaRashiLord: "Moon",
+  personalNumbers: [3, 7, 9],
+  personalColour: "white",
+  personalDirection: "northwest"
 };
 
 describe("Seva PDF 5-Page Suite & QR Code Verification", () => {
@@ -65,9 +62,9 @@ describe("Seva PDF 5-Page Suite & QR Code Verification", () => {
       personName: mockIdentity.personName
     });
 
-    expect(payload).toContain("https://calendar.google.com/calendar/render");
-    expect(payload).toContain("RRULE%3AFREQ%3DDAILY%3BCOUNT%3D90");
-    expect(payload).toContain("Asia%2FKolkata");
+    expect(payload).toContain("https://calendar.google.com/calendar/render?action=TEMPLATE");
+    expect(payload).toContain("recur=RRULE%3AFREQ%3DDAILY%3BCOUNT%3D90");
+    expect(payload).toContain("ctz=Asia%2FKolkata");
   });
 
   it("renders SevaQRCodePrint with provided QR Code data URL without blank placeholder", async () => {
@@ -113,6 +110,8 @@ describe("Seva PDF 5-Page Suite & QR Code Verification", () => {
           identity={mockIdentity}
           panditName="Pandit Shreedhara"
           rhythm={mockRhythm}
+          primarySeva={{ id: "archana", name: { kn: "ಅರ್ಚನೆ", en: "Archana", hi: "अर्चना", te: "అర్చన", ta: "அர்ச்சனை" } } as any}
+          sevaDate="2026-08-14"
         />
       );
       u1();
@@ -168,8 +167,8 @@ describe("Seva PDF 5-Page Suite & QR Code Verification", () => {
     );
 
     expect(screen.getByText(/೧೨ ಮಾಸಗಳ ಶ್ರೇಷ್ಠ ಪೂಜಾ ಪರಿಹಾರ/i)).toBeInTheDocument();
-    expect(screen.getByText(/ಗೃಹ ಶಾಂತಿ ಹಾಗೂ ವಾಸ್ತು ದೋಷ/i)).toBeInTheDocument();
-    expect(screen.getByText(/ಚತುರ್ದಿಕ್ ವಾಸ್ತು ದೋಷ ಪರಿಹಾರ/i)).toBeInTheDocument();
+    expect(screen.getByText(/ಗೃಹ ಶಾಂತಿ ಹಾಗೂ ವಾಸ್ತು ಧರ್ಮ ಸೂತ್ರಗಳು/i)).toBeInTheDocument();
+    expect(screen.getByText(/ಸಿಂಹದ್ವಾರ ಕುಂಕುಮ ಧಾರಣೆ/i)).toBeInTheDocument();
     expect(screen.getByText(/ಪಿತೃ ತರ್ಪಣ ಹಾಗೂ ಕುಲದೇವರ/i)).toBeInTheDocument();
     expect(screen.getByText(/೪ \/ ೫|4 \/ 5/)).toBeInTheDocument();
   });
@@ -184,10 +183,10 @@ describe("Seva PDF 5-Page Suite & QR Code Verification", () => {
     );
 
     expect(screen.getByText(/೧\. ಪೂಜಾ ಮಹಾ ಸಂಕಲ್ಪ/i)).toBeInTheDocument();
-    expect(screen.getByText(/೨\. ಪೂಜೆಯ ಪರಮ ಕಾರಣ/i)).toBeInTheDocument();
+    expect(screen.getByText(/೨\. ಪೂಜೆಯ ಕಾರಣ/i)).toBeInTheDocument();
     expect(screen.getByText(/೩\. ದಿವ್ಯ ಫಲಶ್ರುತಿ/i)).toBeInTheDocument();
     expect(screen.getByText(/೪ ಮೂಲ ಗ್ರಹಗಳ ಸ್ಥಿತಿ/i)).toBeInTheDocument();
-    expect(screen.getByText(/೪ ಗ್ರಹ ಬೀಜ ಮಂತ್ರ ಜಪ/i)).toBeInTheDocument();
+    expect(screen.getByText(/೪ ಗ್ರಹ ರಕ್ಷಾ ಬೀಜ ಮಂತ್ರ ಜಪ/i)).toBeInTheDocument();
     expect(screen.getByText(/೫ \/ ೫|5 \/ 5/)).toBeInTheDocument();
   });
 });

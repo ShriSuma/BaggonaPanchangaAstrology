@@ -4,10 +4,18 @@ import {
   formatPanditGreeting,
   generateGoogleCalendarUrl,
   generateNative90DayQrCalendarPayload,
+  generatePlatformSpecificQrPayload,
   generateSevaICalendarString,
+  generateQrPayloadByTarget,
   getDailyKaalaTimings,
   getEnergyMeterAndVibe
 } from "../features/seva/icsCalendarGenerator";
+import {
+  buildDeterministicPriestBenediction,
+  generatePriestDayNarrative,
+  getDevoteeSalutation
+} from "../features/seva/sevaPriestNarrativeEngine";
+import { decodeDevoteeToken } from "../utils/tokenCipher";
 
 const mockDays: RhythmDay[] = [
   {
@@ -72,7 +80,7 @@ describe("icsCalendarGenerator", () => {
 
     const cautionDay: RhythmDay = {
       ...mockDays[0]!,
-      band: "low",
+      band: "rest",
       isChandrashtama: true,
       energyScore: 30
     };
@@ -82,7 +90,7 @@ describe("icsCalendarGenerator", () => {
     expect(vibeCaution.googleColorId).toBe("11");
   });
 
-  it("generates a luxury RFC 5545 iCalendar payload with visual meters and kaala timings", () => {
+  it("generates a luxury RFC 5545 iCalendar payload with royal ASCII framing, deity mantras, and kaala timings", () => {
     const ics = generateSevaICalendarString({
       days: mockDays,
       lang: "kn",
@@ -97,13 +105,16 @@ describe("icsCalendarGenerator", () => {
     expect(ics).toContain("BEGIN:VEVENT");
     expect(ics).toContain("DTSTART;TZID=Asia/Kolkata:20260811T080000");
     expect(ics).toContain("DTEND;TZID=Asia/Kolkata:20260811T083000");
+    expect(ics).toContain("╔════════════════════════════════════════╗");
+    expect(ics).toContain("BAGGONA PANCHANGA ASTROLOGY");
     expect(ics).toContain("🔴 Rahu Kaala");
     expect(ics).toContain("⚡");
+    expect(ics).toContain("/daily?token=bgn_v1_");
     expect(ics).toContain("BEGIN:VALARM");
     expect(ics).toContain("END:VCALENDAR");
   });
 
-  it("generates a valid Google Calendar Web link with colorId and RRULE recur parameter", () => {
+  it("generates a valid Google Calendar Web link with royal ASCII art and RRULE recur parameter", () => {
     const url = generateGoogleCalendarUrl({
       day: mockDays[0]!,
       lang: "kn",
@@ -116,20 +127,47 @@ describe("icsCalendarGenerator", () => {
     expect(url).toContain("ctz=Asia%2FKolkata");
     expect(url).toContain("dates=20260811T080000%2F20260811T083000");
     expect(url).toContain("recur=RRULE%3AFREQ%3DDAILY%3BCOUNT%3D90");
-    expect(url).toContain("Rahu+Kaala");
+    expect(url).toContain("token%3Dbgn_v1_");
   });
 
-  it("generates an openable HTTPS URL payload for mobile QR camera scanning", () => {
-    const payload = generateNative90DayQrCalendarPayload({
+  it("generates platform-specific and multi-target QR code payloads with encrypted tokens", () => {
+    const googlePayload = generateQrPayloadByTarget("google", {
       days: mockDays,
       lang: "en",
       panditName: "Pandit Chaitanya",
       notificationTime: "08:00",
       personName: "Pramod Kodagi"
     });
+    expect(googlePayload).toContain("https://calendar.google.com/calendar/render?action=TEMPLATE");
+    expect(googlePayload).toContain("recur=RRULE%3AFREQ%3DDAILY%3BCOUNT%3D90");
 
-    expect(payload).toContain("https://calendar.google.com/calendar/render?action=TEMPLATE");
-    expect(payload).toContain("RRULE%3AFREQ%3DDAILY%3BCOUNT%3D90");
+    const webcalPayload = generateQrPayloadByTarget("webcal", {
+      days: mockDays,
+      lang: "en",
+      panditName: "Pandit Chaitanya",
+      notificationTime: "08:00",
+      personName: "Pramod Kodagi"
+    });
+    expect(webcalPayload).toContain("https://baggona.app/daily?token=bgn_v1_");
+    expect(webcalPayload).toContain("&action=ics");
+
+    const sanctumPayload = generateQrPayloadByTarget("sanctum", {
+      days: mockDays,
+      lang: "en",
+      panditName: "Pandit Chaitanya",
+      notificationTime: "08:00",
+      personName: "Pramod Kodagi"
+    });
+    expect(sanctumPayload).toContain("https://baggona.app/daily?token=bgn_v1_");
+
+    // Decode token and verify data integrity
+    const token = sanctumPayload.split("token=")[1]!;
+    const decoded = decodeDevoteeToken(token);
+    expect(decoded?.n).toBe("Pramod Kodagi");
+    expect(decoded?.p).toBe("Pandit Chaitanya");
+    expect(decoded?.d).toBe("2026-08-11");
+    expect(decoded?.nk).toBe(6);
+    expect(decoded?.r).toBe(3);
   });
 
   it("formats grammatically correct priest greetings in all 5 languages", () => {
@@ -140,5 +178,45 @@ describe("icsCalendarGenerator", () => {
     expect(formatPanditGreeting("Chaitanya Pandit", "en")).toBe("With warm greetings from Chaitanya Pandit,");
 
     expect(formatPanditGreeting("", "kn")).toBe("ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಕ್ಷೇತ್ರದಿಂದ ನಮಸ್ಕಾರಗಳು,");
+  });
+});
+
+describe("sevaPriestNarrativeEngine", () => {
+  it("generates 5-language native script Chief Priest salutations", () => {
+    expect(getDevoteeSalutation("Pramod", "Chaitanya Pandit", "kn")).toContain("ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ಪ್ರಧಾನ ಅರ್ಚಕರಾದ Chaitanya Pandit");
+    expect(getDevoteeSalutation("Pramod", "Chaitanya Pandit", "hi")).toContain("गोकर्ण महाबलेश्वर क्षेत्र के प्रधान अर्चक");
+    expect(getDevoteeSalutation("Pramod", "Chaitanya Pandit", "te")).toContain("గోకర్ణ మహాబలేశ్వర క్షేత్ర ప్రధాన అర్చకులు");
+    expect(getDevoteeSalutation("Pramod", "Chaitanya Pandit", "ta")).toContain("கோகர்ண மகாபலேஸ்வரர் ஆலய தலைமை அர்ச்சகர்");
+    expect(getDevoteeSalutation("Pramod", "Chaitanya Pandit", "en")).toContain("With divine blessings from Chief Priest");
+  });
+
+  it("generates deterministic priest benedictions for high and caution days in all languages", () => {
+    const highDay = mockDays[0]!;
+    const knText = buildDeterministicPriestBenediction(highDay, "kn", "Pramod");
+    expect(knText).toContain("ಶುಭ ಯೋಗ ಕೂಡಿಬಂದಿರುವ ಶುಭದಿನ");
+
+    const cautionDay: RhythmDay = {
+      ...highDay,
+      band: "rest",
+      isChandrashtama: true,
+      energyScore: 25
+    };
+    const cautionKn = buildDeterministicPriestBenediction(cautionDay, "kn", "Pramod");
+    expect(cautionKn).toContain("ಶಾಂತ ಹಾಗೂ ಜಾಗರೂಕತೆಯಿಂದ ಇರಬೇಕಾದ ದಿನವಾಗಿದೆ");
+    expect(cautionKn).toContain("ಆತ್ಮಲಿಂಗ ಸ್ಮರಣೆ");
+  });
+
+  it("generates full Priest narrative bundle including deity mantra and sanctum link", async () => {
+    const bundle = await generatePriestDayNarrative({
+      day: mockDays[0]!,
+      lang: "kn",
+      panditName: "Chaitanya Pandit",
+      personName: "Pramod",
+      webAppBaseUrl: "https://baggona.app"
+    });
+
+    expect(bundle.deityMantra).toContain("ಭೌಮಾಯ ನಮಃ");
+    expect(bundle.kaalaTimings.rahu).toBeDefined();
+    expect(bundle.webSanctumUrl).toBe("https://baggona.app/daily?date=2026-08-11&lang=kn&name=Pramod");
   });
 });

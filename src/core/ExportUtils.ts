@@ -130,7 +130,7 @@ export const exportPanchangaWithDashaPdf = async (panchangaEl: HTMLElement, dash
   const pData = pCanvas.toDataURL("image/jpeg", 0.75);
   const pdfW = 210;
   const pH = (pCanvas.height * pdfW) / pCanvas.width;
-  
+
   // Initialize PDF with Panchanga page size
   const pdf = new jsPDF({ orientation: "p", unit: "mm", format: [pdfW, pH], compress: true });
   pdf.addImage(pData, "JPEG", 0, 0, pdfW, pH);
@@ -144,7 +144,7 @@ export const exportPanchangaWithDashaPdf = async (panchangaEl: HTMLElement, dash
   });
   const dData = dCanvas.toDataURL("image/jpeg", 0.75);
   const dH = (dCanvas.height * pdfW) / dCanvas.width;
-  
+
   // Add second page for Dasha with its specific size
   pdf.addPage([pdfW, dH], "p");
   pdf.addImage(dData, "JPEG", 0, 0, pdfW, dH);
@@ -163,7 +163,7 @@ export const exportDashaPdf = async (dashaEl: HTMLElement, fileName: string): Pr
   const data = canvas.toDataURL("image/jpeg", 0.75);
   const pdfW = 210;
   const pH = (canvas.height * pdfW) / canvas.width;
-  
+
   const pdf = new jsPDF({ orientation: "p", unit: "mm", format: [pdfW, pH], compress: true });
   pdf.addImage(data, "JPEG", 0, 0, pdfW, pH);
   pdf.save(`${fileName}.pdf`);

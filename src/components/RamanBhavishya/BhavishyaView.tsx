@@ -111,7 +111,7 @@ export function buildPersonalizedMarriageText(
 ): string {
   const baseLang = (lang || "en").split("-")[0];
   const lDict = RASHI_LORDS_L5[baseLang] || RASHI_LORDS_L5.en;
-  
+
   const house7SignIdx = (lagnaIndex + 6) % 12;
   const house7Lord = lDict[house7SignIdx] || lDict[0];
   const house7SignName = pick(RASHI_L5[house7SignIdx], baseLang);
@@ -176,7 +176,7 @@ export function buildPersonalizedChildrenText(
 ): string {
   const baseLang = (lang || "en").split("-")[0];
   const lDict = RASHI_LORDS_L5[baseLang] || RASHI_LORDS_L5.en;
-  
+
   const house5SignIdx = (lagnaIndex + 4) % 12;
   const house5Lord = lDict[house5SignIdx] || lDict[0];
 
@@ -350,11 +350,11 @@ export default function BhavishyaView() {
   const { t } = useTranslation();
   const session = useKundliViewerStore((state) => state.session);
   const language = useAppStore((state) => state.language);
-  
+
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [pdfTranslations, setPdfTranslations] = useState<PdfTranslations | null>(null);
   const [pdfDeepInsights, setPdfDeepInsights] = useState<Record<string, string> | null>(null);
-  
+
   const [isGeneratingPremiumPdf, setIsGeneratingPremiumPdf] = useState(false);
   const [isPersonalizationModalOpen, setIsPersonalizationModalOpen] = useState(false);
   const [pdfLanguage, setPdfLanguage] = useState(language);
@@ -948,7 +948,7 @@ Return ONLY this JSON format:
         const p2 = await translateText(`The current planetary transits (Gochara) across your Moon sign ${session.result.moonSign.english} are triggering dynamic changes in your environment, calling for patience and focused effort.`, lang);
         const p3 = await translateText(`During this phase, align your actions with long-term goals. Major decisions regarding career, relationships, and health should be taken with calm consideration.`, lang);
         const p4 = await translateText(`Recommended Remedy: Recite core planetary mantras on Saturdays and Tuesdays, offer light at a local place of worship, and maintain mental equilibrium. May divine blessings attend your journey.`, lang);
-        
+
         parsedSummary = { paragraph1: p1, paragraph2: p2, paragraph3: p3, paragraph4: p4 };
       }
 
@@ -1002,13 +1002,13 @@ Return ONLY this JSON format:
 
   const generatePDF = async () => {
     setIsGeneratingPdf(true);
-    
+
     try {
       if (!session) throw new Error("No session");
 
       const moonPlanet = session.result.planets.find(p => p.name === 'Moon');
       const baseNakshatra = moonPlanet ? (moonPlanet.nakshatra.sanskrit || moonPlanet.nakshatra.english) : 'Unknown';
-      
+
       const ashirvadaText = ashirvada || `Based on your planetary alignments and current cosmic era, may the divine forces grant you strength, clarity, and peace. Trust in your inner resilience and allow the universe to guide your path.`;
 
       // Get current Dasha/Bhukti
@@ -1038,7 +1038,7 @@ Return ONLY this JSON format:
       } catch (e) {
         formattedDob = session.input.birthDate;
       }
-      
+
       // Combine Date and Time
       const dobWithTime = `${formattedDob}, ${session.input.birthTime}`;
 
@@ -1046,29 +1046,29 @@ Return ONLY this JSON format:
       const translatedData: PdfTranslations = {
         title: await translateText("Baggona Panchanga Prediction", language),
         subtitle: await translateText("Personalized Cosmic Reading", language),
-        
+
         nameLabel: await translateText("Name", language),
         nameValue: await translateText(session.input.name, language),
-        
+
         dobLabel: await translateText("Birth Details", language),
         dobValue: await translateText(dobWithTime, language), // Translates the whole "25 Mar 1990, 10:30" string naturally
-        
+
         lagnaLabel: await translateText("Birth Lagna (Ascendant)", language),
         lagnaValue: await translateText(session.result.lagnaRashi?.sanskrit || 'Unknown', language),
-        
+
         moonLabel: await translateText("Moon Sign (Rashi)", language),
         moonValue: await translateText(session.result.moonSign.sanskrit, language),
-        
+
         nakshatraLabel: await translateText("Nakshatra", language),
         nakshatraValue: await translateText(baseNakshatra, language),
-        
+
         eraLabel: await translateText("Current Cosmic Era", language),
         dashaLabel: await translateText("Dasha", language),
         bhuktiLabel: await translateText("Bhukti", language),
-        
+
         dashaPlanetValue,
         bhuktiPlanetValue,
-        
+
         ashirvadaTitle: await translateText("Astrologer's Blessing (Ashirvada)", language),
         ashirvadaValue: await translateText(ashirvadaText, language),
         footer: await translateText("Generated gracefully by Baggona Panchanga Astrology Engine", language),
@@ -1081,7 +1081,7 @@ Return ONLY this JSON format:
         gocharaTitle: await translateText("Current Transit Effects (Gochara)", language),
         summaryTitle: await translateText("Astrologer's Summary", language),
       };
-      
+
       setPdfTranslations(translatedData);
 
       // Generate deep insights
@@ -1093,29 +1093,29 @@ Return ONLY this JSON format:
 
       // 2. Wait for React to flush the state to the hidden PdfTemplate component
       await new Promise(resolve => setTimeout(resolve, 300));
-      
+
       if (!pdfRef.current) throw new Error("PDF ref not found");
-      
+
       // 3. Generate PDF
       const canvas = await html2canvas(pdfRef.current, {
         scale: 2, // High resolution
         useCORS: true,
         logging: false
       });
-      
+
       const imgData = canvas.toDataURL("image/jpeg", 0.75);
-      
+
       // Fixed width in mm (A4 width = 210)
-      const pdfWidth = 210; 
+      const pdfWidth = 210;
       // Calculate dynamic height based on the canvas aspect ratio
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      
+
       // Create a PDF with a CUSTOM page height so it NEVER cuts off the content across multiple pages!
       const pdf = new jsPDF({ orientation: "p", unit: "mm", format: [pdfWidth, pdfHeight], compress: true });
-      
+
       pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
       pdf.save(`Baggona_Prediction_${session?.input.name.replace(/\s+/g, '_') || 'Reading'}.pdf`);
-      
+
     } catch (error: any) {
       console.error("Error generating PDF:", error);
       alert(error.message || "Failed to generate complete PDF. Please try again.");
@@ -1124,47 +1124,47 @@ Return ONLY this JSON format:
     }
   };
 
-  
-  
-  function buildKundaliCharacteristicsFallback(lang: string, lagnaStr: string, moonStr: string, dashaStr: string, bhuktiStr: string): string {
-  const baseLang = (lang || "en").split("-")[0];
-  if (baseLang === "kn") {
-    return `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${lagnaStr}), ಚಂದ್ರ ರಾಶಿ (${moonStr}) ಹಾಗೂ ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dashaStr} ಮಹಾದಶೆಯ ಶುಭ ಪ್ರಭಾವವು ನಿಮ್ಮ ವ್ಯಕ್ತಿತ್ವಕ್ಕೆ ವಿಶಿಷ್ಟವಾದ ತೇಜಸ್ಸು ಹಾಗೂ ಬಲವನ್ನು ತುಂಬುತ್ತದೆ. ನೀವು ಸ್ವಾಭಾವಿಕವಾಗಿಯೇ ಉನ್ನತ ತರ್ಕಜ್ಞಾನ, ದೃಢ ಮನೋಬಲ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಜವಾಬ್ದಾರಿಗಳನ್ನು ಅತ್ಯಂತ ಶಿಸ್ತಿನಿಂದ ನಿರ್ವಹಿಸುವ ನಾಯಕತ್ವ ಗುಣಗಳನ್ನು ಹೊಂದಿದ್ದೀರಿ. ಗ್ರಹಗಳ ಬಲವಾದ ಸ್ಥಿತಿಯಿಂದಾಗಿ ನಿಮ್ಮ ನಿರ್ಧಾರಗಳಲ್ಲಿ ಸ್ಪಷ್ಟತೆ ಹಾಗೂ ಭವಿಷ್ಯದ ಯೋಜನೆಗಳಲ್ಲಿ ದೂರದರ್ಶಿತ್ವ ಎದ್ದು ಕಾಣುತ್ತದೆ. ಸಮಾಜದಲ್ಲಿ ಧಾರ್ಮಿಕ ಗೌರವ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಮೌಲ್ಯಗಳನ್ನು ಕಾಯ್ದುಕೊಂಡು ನಡೆಯುವುದು ನಿಮ್ಮ ವ್ಯಕ್ತಿತ್ವದ ಮುಖ್ಯ ಲಕ್ಷಣವಾಗಿದೆ.\n\nಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${bhuktiStr} ಭುಕ್ತಿ ಕಾಲವು ನಿಮ್ಮ ಆಂತರಿಕ ಚೇತನವನ್ನು ಮತ್ತಷ್ಟು ಜಾಗೃತಗೊಳಿಸಲಿದೆ. ಈ ಅವಧಿಯಲ್ಲಿ ನಿಮ್ಮ ಮನಸ್ಸಿನಲ್ಲಿ ನವೀನ ಆಲೋಚನೆಗಳು ಮೂಡಿಬರಲಿದ್ದು, ಕೈಗೊಂಡ ಕಾರ್ಯಗಳಲ್ಲಿ ಸತತ ಪ್ರಯತ್ನ ಹಾಗೂ ಶ್ರಮಕ್ಕೆ ತಕ್ಕಂತೆ ಶ್ರೇಷ್ಠ ಗೌರವ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ. ಗ್ರಹಗಳ ಅನುಕೂಲಕರ ಸಂಚಾರವು ನಿಮ್ಮ ಉದ್ಯೋಗ, ವೈಯಕ್ತಿಕ ಸಂಬಂಧಗಳು ಹಾಗೂ ಸಾಮಾಜಿಕ ಸಂಪರ್ಕಗಳಲ್ಲಿ ಹೊಸ ಉತ್ಸಾಹ ಹಾಗೂ ಸ್ಥಿರತೆಯನ್ನು ತರಲಿದೆ. ನಿಮ್ಮ ಮಾತಿನ ವೈಖರಿ ಹಾಗೂ ಸೌಮ್ಯ ಸ್ವಭಾವವು ಎಲ್ಲರ ಮೆಚ್ಚುಗೆಗೆ ಪಾತ್ರವಾಗಲಿದೆ.`;
-  }
-  if (baseLang === "hi") {
-    return `आपकी जन्म लग्न (${lagnaStr}), चंद्र राशि (${moonStr}) और वर्तमान ${dashaStr} महादशा का प्रभाव आपके व्यक्तित्व को अत्यंत प्रभावशाली और दूरदर्शी बनाता है। आप प्राकृतिक रूप से उच्च तार्किक क्षमता, दृढ इच्छाशक्ति और पारिवारिक उत्तरदायित्वों को निष्ठापूर्वक निभाने वाले गुणों से संपन्न हैं। ग्रहों के इस शुभ प्रभाव से आपके निर्णयों में स्पष्टता और जीवन में दीर्घकालिक लक्ष्यों के प्रति अटूट समर्पण दिखाई देता है।\n\nवर्तमान ${bhuktiStr} भुक्ति का प्रभाव आपकी आंतरिक ऊर्जा को और मजबूत करेगा। इस समय आपके मन में नए विचार और योजनाएं आकार लेंगी, जिससे आपके करियर और सामाजिक जीवन में सम्मान और सफलता की प्राप्ति होगी। ग्रहों का गोचर आपके व्यक्तिगत संबंधों और पेशेवर क्षेत्र में नई ऊर्जा का संचार करेगा। आपका सौम्य व्यवहार और बुद्धिमत्ता आपको हर क्षेत्र में आगे बढ़ाएगी।`;
-  }
-  if (baseLang === "te") {
-    return `మీ జన్మ లగ్నం (${lagnaStr}), చంద్ర రాశి (${moonStr}) మరియు ప్రస్తుత ${dashaStr} మహాతశ ప్రభావం మీ వ్యక్తిత్వానికి విశేషమైన తేజస్సును మరియు మానసిక బలాన్ని అందిస్తాయి. మీరు సహజంగానే అత్యున్నత తార్కిక జ్ఞానం, స్థిరమైన సంకల్ప బలం మరియు కుటుంబ బాధ్యతలను క్రమశిక్షణతో నిర్వహించే నాయకత్వ లక్షణాలను కలిగి ఉన్నారు. గ్రహాల అనుకూలత వలన మీ నిర్ణయాలలో స్పష్టత కనిపిస్తుంది.\n\nప్రస్తుత ${bhuktiStr} భుక్తి కాలం మీ అంతర్గత చైతన్యాన్ని మరింత నింపుతుంది. ఈ సమయంలో మీ ఆలోచనలు సత్ఫలితాలను ఇస్తాయి, అలాగే మీ శ్రమకు తగిన గౌరవం మరియు గుర్తింపు లభిస్తాయి. గ్రహాల గోచార బలం మీ ఉద్యోగం మరియు వ్యక్తిగత జీవితంలో నూతన ఉత్సాహాన్ని మరియు స్థిరత్వాన్ని తీసుకువస్తుంది. మీ సౌమ్య స్వభావం అందరి ఆదరాభిమానాలను పొందుతుంది.`;
-  }
-  if (baseLang === "ta") {
-    return `உங்கள் லக்னம் (${lagnaStr}), சந்திர ராசி (${moonStr}) மற்றும் தற்போதைய ${dashaStr} தசா காலம் உங்கள் ஆளுமைக்கு மிகுந்த வலிமையையும் நற்பெயரையும் தருகிறது. நீங்கள் இயற்கையாகவே சிறந்த அறிவாற்றலும், தெளிவான சிந்தனையும், குடும்பப் பொறுப்புகளை சீராக நிறைவேற்றும் நற்பண்புகளையும் கொண்டவர். கிரகங்களின் சுப பலத்தால் உங்கள் முடிவுகள் தெளிவுடனும் தொலைநோக்குப் பார்வையுடனும் இருக்கும்.\n\nதற்போதைய ${bhuktiStr} புக்தி காலம் உங்கள் உள்மன ஆற்றலை மேலும் உயர்த்தும். இந்த காலத்தில் உங்கள் முயற்சிகளுக்கு ஏற்ற பலனும் சமூகத்தில் நன்மதிப்பும் கிடைக்கும். கிரகங்களின் சுப பெயர்ச்சி உங்கள் தொழில் மற்றும் தனிப்பட்ட வாழ்க்கையில் புதிய புத்துணர்ச்சியையும் நிலையான வளர்ச்சியையும் தரும்.`;
-  }
-  return `Based on your birth Lagna (${lagnaStr}), Moon sign (${moonStr}), and running ${dashaStr} Mahadasha, your personality is imbued with strong intellect, resilience, and natural leadership capabilities. You possess a sharp analytical mind and a deeply rooted sense of responsibility toward your family and professional pursuits. The planetary strength endows you with strategic clarity, enabling you to navigate complex life situations with grace and determination.\n\nYour current ${bhuktiStr} Bhukti sub-period further activates your inner drive and psychological expansion. During this cosmic phase, creative thoughts and long-term aspirations take tangible shape. Benefic planetary transits foster meaningful connections, professional recognition, and personal fulfillment, ensuring that your actions inspire respect and harmony among your peers.`;
-}
 
-function buildKundaliDarkSecretFallback(lang: string, lagnaStr: string, moonStr: string, dashaStr: string, bhuktiStr: string): string {
-  const baseLang = (lang || "en").split("-")[0];
-  if (baseLang === "kn") {
-    return `ನಿಮ್ಮ ಜಾತಕದ ಅಷ್ಟಮ ಹಾಗೂ ದ್ವಾದಶ ಭಾವಗಳ ಕರ್ಮಿಕ ಸಂರಚನೆ, ರಾಹು-ಕೇತುಗಳ ಸ್ಥಿತಿ ಹಾಗೂ ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dashaStr} ದಶೆಯ ಆಂತರಿಕ ಪ್ರಭಾವವು ನಿಮ್ಮ ಆತ್ಮದ ಆಳದಲ್ಲಿ ಅಡಗಿರುವ ಗೂಢ ರಹಸ್ಯವನ್ನು ಸೂಚಿಸುತ್ತದೆ. ನೀವು ಹೊರನೋಟಕ್ಕೆ ಅತ್ಯಂತ ಶಾಂತ ಹಾಗೂ ಧೈರ್ಯಶಾಲಿಯಾಗಿ ಕಂಡುಬಂದರೂ, ಒಳಗಿನ ಮನಸ್ಸಿನಲ್ಲಿ ಹಳೆಯ ಘಟನೆಗಳ ಕಲ್ಪನೆ, ಅನಗತ್ಯ ಭೀತಿ ಅಥವಾ ಭಾವನಾತ್ಮಕ ಒಂಟಿತನದ ಅನಿಸಿಕೆಗಳು ಒಮ್ಮೊಮ್ಮೆ ಬಾಧಿಸಬಹುದು. ಇತರರಿಗೆ ಸಹಾಯ ಮಾಡುವ ಗುಣವಿದ್ದರೂ, ನಿಮ್ಮ ಸ್ವಂತ ನೋವುಗಳನ್ನು ಯಾರೊಂದಿಗೂ ಹಂಚಿಕೊಳ್ಳದೆ ಒಳಗಡೆಯೇ ಮುಚ್ಚಿಡುವ ಪ್ರವೃತ್ತಿ ನಿಮ್ಮಲ್ಲಿದೆ.\n\nಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${bhuktiStr} ಭುಕ್ತಿ ಕಾಲವು ಈ ಕರ್ಮಿಕ ಮಾನಸಿಕ ಸಂಕೋಲೆಗಳಿಂದ ಮುಕ್ತಿ ಪಡೆಯುವ ಸುಸಮಯವಾಗಿದೆ. ನಿಮ್ಮ ಆಂತರಿಕ ಭಯಗಳನ್ನು ನಿವಾರಿಸಿಕೊಳ್ಳಲು ನಿತ್ಯವೂ ಧ್ಯಾನ, ನವಗ್ರಹ ಸ್ತೋತ್ರ ಪಠಣ ಹಾಗೂ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದಲ್ಲಿ ಮಹಾ ಮೃತ್ಯುಂಜಯ ಜಪ ನೆರವೇರಿಸುವುದು ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ ಶಮನ ಪರಿಹಾರವಾಗಿದೆ. ನಿಮ್ಮ ಆಧ್ಯಾತ್ಮಿಕ ಅರಿವು ಜಾಗೃತಗೊಂಡಾಗ, ಈ ಮಾನಸಿಕ ಸಂಕಟಗಳು ದೂರವಾಗಿ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಅಪಾರ ಆತ್ಮಶಾಂತಿ ಹಾಗೂ ಶಾಶ್ವತ ಸಿದ್ಧಿ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ.`;
+
+  function buildKundaliCharacteristicsFallback(lang: string, lagnaStr: string, moonStr: string, dashaStr: string, bhuktiStr: string): string {
+    const baseLang = (lang || "en").split("-")[0];
+    if (baseLang === "kn") {
+      return `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${lagnaStr}), ಚಂದ್ರ ರಾಶಿ (${moonStr}) ಹಾಗೂ ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dashaStr} ಮಹಾದಶೆಯ ಶುಭ ಪ್ರಭಾವವು ನಿಮ್ಮ ವ್ಯಕ್ತಿತ್ವಕ್ಕೆ ವಿಶಿಷ್ಟವಾದ ತೇಜಸ್ಸು ಹಾಗೂ ಬಲವನ್ನು ತುಂಬುತ್ತದೆ. ನೀವು ಸ್ವಾಭಾವಿಕವಾಗಿಯೇ ಉನ್ನತ ತರ್ಕಜ್ಞಾನ, ದೃಢ ಮನೋಬಲ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಜವಾಬ್ದಾರಿಗಳನ್ನು ಅತ್ಯಂತ ಶಿಸ್ತಿನಿಂದ ನಿರ್ವಹಿಸುವ ನಾಯಕತ್ವ ಗುಣಗಳನ್ನು ಹೊಂದಿದ್ದೀರಿ. ಗ್ರಹಗಳ ಬಲವಾದ ಸ್ಥಿತಿಯಿಂದಾಗಿ ನಿಮ್ಮ ನಿರ್ಧಾರಗಳಲ್ಲಿ ಸ್ಪಷ್ಟತೆ ಹಾಗೂ ಭವಿಷ್ಯದ ಯೋಜನೆಗಳಲ್ಲಿ ದೂರದರ್ಶಿತ್ವ ಎದ್ದು ಕಾಣುತ್ತದೆ. ಸಮಾಜದಲ್ಲಿ ಧಾರ್ಮಿಕ ಗೌರವ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಮೌಲ್ಯಗಳನ್ನು ಕಾಯ್ದುಕೊಂಡು ನಡೆಯುವುದು ನಿಮ್ಮ ವ್ಯಕ್ತಿತ್ವದ ಮುಖ್ಯ ಲಕ್ಷಣವಾಗಿದೆ.\n\nಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${bhuktiStr} ಭುಕ್ತಿ ಕಾಲವು ನಿಮ್ಮ ಆಂತರಿಕ ಚೇತನವನ್ನು ಮತ್ತಷ್ಟು ಜಾಗೃತಗೊಳಿಸಲಿದೆ. ಈ ಅವಧಿಯಲ್ಲಿ ನಿಮ್ಮ ಮನಸ್ಸಿನಲ್ಲಿ ನವೀನ ಆಲೋಚನೆಗಳು ಮೂಡಿಬರಲಿದ್ದು, ಕೈಗೊಂಡ ಕಾರ್ಯಗಳಲ್ಲಿ ಸತತ ಪ್ರಯತ್ನ ಹಾಗೂ ಶ್ರಮಕ್ಕೆ ತಕ್ಕಂತೆ ಶ್ರೇಷ್ಠ ಗೌರವ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ. ಗ್ರಹಗಳ ಅನುಕೂಲಕರ ಸಂಚಾರವು ನಿಮ್ಮ ಉದ್ಯೋಗ, ವೈಯಕ್ತಿಕ ಸಂಬಂಧಗಳು ಹಾಗೂ ಸಾಮಾಜಿಕ ಸಂಪರ್ಕಗಳಲ್ಲಿ ಹೊಸ ಉತ್ಸಾಹ ಹಾಗೂ ಸ್ಥಿರತೆಯನ್ನು ತರಲಿದೆ. ನಿಮ್ಮ ಮಾತಿನ ವೈಖರಿ ಹಾಗೂ ಸೌಮ್ಯ ಸ್ವಭಾವವು ಎಲ್ಲರ ಮೆಚ್ಚುಗೆಗೆ ಪಾತ್ರವಾಗಲಿದೆ.`;
+    }
+    if (baseLang === "hi") {
+      return `आपकी जन्म लग्न (${lagnaStr}), चंद्र राशि (${moonStr}) और वर्तमान ${dashaStr} महादशा का प्रभाव आपके व्यक्तित्व को अत्यंत प्रभावशाली और दूरदर्शी बनाता है। आप प्राकृतिक रूप से उच्च तार्किक क्षमता, दृढ इच्छाशक्ति और पारिवारिक उत्तरदायित्वों को निष्ठापूर्वक निभाने वाले गुणों से संपन्न हैं। ग्रहों के इस शुभ प्रभाव से आपके निर्णयों में स्पष्टता और जीवन में दीर्घकालिक लक्ष्यों के प्रति अटूट समर्पण दिखाई देता है।\n\nवर्तमान ${bhuktiStr} भुक्ति का प्रभाव आपकी आंतरिक ऊर्जा को और मजबूत करेगा। इस समय आपके मन में नए विचार और योजनाएं आकार लेंगी, जिससे आपके करियर और सामाजिक जीवन में सम्मान और सफलता की प्राप्ति होगी। ग्रहों का गोचर आपके व्यक्तिगत संबंधों और पेशेवर क्षेत्र में नई ऊर्जा का संचार करेगा। आपका सौम्य व्यवहार और बुद्धिमत्ता आपको हर क्षेत्र में आगे बढ़ाएगी।`;
+    }
+    if (baseLang === "te") {
+      return `మీ జన్మ లగ్నం (${lagnaStr}), చంద్ర రాశి (${moonStr}) మరియు ప్రస్తుత ${dashaStr} మహాతశ ప్రభావం మీ వ్యక్తిత్వానికి విశేషమైన తేజస్సును మరియు మానసిక బలాన్ని అందిస్తాయి. మీరు సహజంగానే అత్యున్నత తార్కిక జ్ఞానం, స్థిరమైన సంకల్ప బలం మరియు కుటుంబ బాధ్యతలను క్రమశిక్షణతో నిర్వహించే నాయకత్వ లక్షణాలను కలిగి ఉన్నారు. గ్రహాల అనుకూలత వలన మీ నిర్ణయాలలో స్పష్టత కనిపిస్తుంది.\n\nప్రస్తుత ${bhuktiStr} భుక్తి కాలం మీ అంతర్గత చైతన్యాన్ని మరింత నింపుతుంది. ఈ సమయంలో మీ ఆలోచనలు సత్ఫలితాలను ఇస్తాయి, అలాగే మీ శ్రమకు తగిన గౌరవం మరియు గుర్తింపు లభిస్తాయి. గ్రహాల గోచార బలం మీ ఉద్యోగం మరియు వ్యక్తిగత జీవితంలో నూతన ఉత్సాహాన్ని మరియు స్థిరత్వాన్ని తీసుకువస్తుంది. మీ సౌమ్య స్వభావం అందరి ఆదరాభిమానాలను పొందుతుంది.`;
+    }
+    if (baseLang === "ta") {
+      return `உங்கள் லக்னம் (${lagnaStr}), சந்திர ராசி (${moonStr}) மற்றும் தற்போதைய ${dashaStr} தசா காலம் உங்கள் ஆளுமைக்கு மிகுந்த வலிமையையும் நற்பெயரையும் தருகிறது. நீங்கள் இயற்கையாகவே சிறந்த அறிவாற்றலும், தெளிவான சிந்தனையும், குடும்பப் பொறுப்புகளை சீராக நிறைவேற்றும் நற்பண்புகளையும் கொண்டவர். கிரகங்களின் சுப பலத்தால் உங்கள் முடிவுகள் தெளிவுடனும் தொலைநோக்குப் பார்வையுடனும் இருக்கும்.\n\nதற்போதைய ${bhuktiStr} புக்தி காலம் உங்கள் உள்மன ஆற்றலை மேலும் உயர்த்தும். இந்த காலத்தில் உங்கள் முயற்சிகளுக்கு ஏற்ற பலனும் சமூகத்தில் நன்மதிப்பும் கிடைக்கும். கிரகங்களின் சுப பெயர்ச்சி உங்கள் தொழில் மற்றும் தனிப்பட்ட வாழ்க்கையில் புதிய புத்துணர்ச்சியையும் நிலையான வளர்ச்சியையும் தரும்.`;
+    }
+    return `Based on your birth Lagna (${lagnaStr}), Moon sign (${moonStr}), and running ${dashaStr} Mahadasha, your personality is imbued with strong intellect, resilience, and natural leadership capabilities. You possess a sharp analytical mind and a deeply rooted sense of responsibility toward your family and professional pursuits. The planetary strength endows you with strategic clarity, enabling you to navigate complex life situations with grace and determination.\n\nYour current ${bhuktiStr} Bhukti sub-period further activates your inner drive and psychological expansion. During this cosmic phase, creative thoughts and long-term aspirations take tangible shape. Benefic planetary transits foster meaningful connections, professional recognition, and personal fulfillment, ensuring that your actions inspire respect and harmony among your peers.`;
   }
-  if (baseLang === "hi") {
-    return `आपकी कुंडली के अष्टम और द्वादश भाव का कर्मिक प्रभाव, राहू-केतु की स्थिति तथा वर्तमान ${dashaStr} महादशा आपके भीतर एक गहरे आध्यात्मिक और रहस्यात्मक अनुभव का संकेत देती है। बाहर से शांत और सुदृढ़ दिखने के बावजूद, आपके मन के भीतर कभी-कभी अतीत की स्मृतियां, अज्ञात चिंताएं या भावनात्मक अकेलापन महसूस हो सकता है। आप अपने दुखों को दूसरों से साझा किए बिना स्वयं के भीतर समेटने की प्रवृत्ति रखते हैं।\n\nवर्तमान ${bhuktiStr} भुक्ति का समय इस कर्मिक दबाव को दूर कर आत्म-साक्षात्कार प्राप्त करने का दिव्य अवसर है। प्रतिदिन ध्यान, नवग्रह पाठ और गोकर्ण क्षेत्र में महामृत्युंजय जाप कराने से यह आंतरिक चिंताएं समाप्त होंगी। जैसे-जैसे आपकी आध्यात्मिक चेतना बढ़ेगी, आपको असीम मानसिक शांति और सर्वतोमुखी प्रगति की प्राप्ति होगी।`;
+
+  function buildKundaliDarkSecretFallback(lang: string, lagnaStr: string, moonStr: string, dashaStr: string, bhuktiStr: string): string {
+    const baseLang = (lang || "en").split("-")[0];
+    if (baseLang === "kn") {
+      return `ನಿಮ್ಮ ಜಾತಕದ ಅಷ್ಟಮ ಹಾಗೂ ದ್ವಾದಶ ಭಾವಗಳ ಕರ್ಮಿಕ ಸಂರಚನೆ, ರಾಹು-ಕೇತುಗಳ ಸ್ಥಿತಿ ಹಾಗೂ ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dashaStr} ದಶೆಯ ಆಂತರಿಕ ಪ್ರಭಾವವು ನಿಮ್ಮ ಆತ್ಮದ ಆಳದಲ್ಲಿ ಅಡಗಿರುವ ಗೂಢ ರಹಸ್ಯವನ್ನು ಸೂಚಿಸುತ್ತದೆ. ನೀವು ಹೊರನೋಟಕ್ಕೆ ಅತ್ಯಂತ ಶಾಂತ ಹಾಗೂ ಧೈರ್ಯಶಾಲಿಯಾಗಿ ಕಂಡುಬಂದರೂ, ಒಳಗಿನ ಮನಸ್ಸಿನಲ್ಲಿ ಹಳೆಯ ಘಟನೆಗಳ ಕಲ್ಪನೆ, ಅನಗತ್ಯ ಭೀತಿ ಅಥವಾ ಭಾವನಾತ್ಮಕ ಒಂಟಿತನದ ಅನಿಸಿಕೆಗಳು ಒಮ್ಮೊಮ್ಮೆ ಬಾಧಿಸಬಹುದು. ಇತರರಿಗೆ ಸಹಾಯ ಮಾಡುವ ಗುಣವಿದ್ದರೂ, ನಿಮ್ಮ ಸ್ವಂತ ನೋವುಗಳನ್ನು ಯಾರೊಂದಿಗೂ ಹಂಚಿಕೊಳ್ಳದೆ ಒಳಗಡೆಯೇ ಮುಚ್ಚಿಡುವ ಪ್ರವೃತ್ತಿ ನಿಮ್ಮಲ್ಲಿದೆ.\n\nಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${bhuktiStr} ಭುಕ್ತಿ ಕಾಲವು ಈ ಕರ್ಮಿಕ ಮಾನಸಿಕ ಸಂಕೋಲೆಗಳಿಂದ ಮುಕ್ತಿ ಪಡೆಯುವ ಸುಸಮಯವಾಗಿದೆ. ನಿಮ್ಮ ಆಂತರಿಕ ಭಯಗಳನ್ನು ನಿವಾರಿಸಿಕೊಳ್ಳಲು ನಿತ್ಯವೂ ಧ್ಯಾನ, ನವಗ್ರಹ ಸ್ತೋತ್ರ ಪಠಣ ಹಾಗೂ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದಲ್ಲಿ ಮಹಾ ಮೃತ್ಯುಂಜಯ ಜಪ ನೆರವೇರಿಸುವುದು ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ ಶಮನ ಪರಿಹಾರವಾಗಿದೆ. ನಿಮ್ಮ ಆಧ್ಯಾತ್ಮಿಕ ಅರಿವು ಜಾಗೃತಗೊಂಡಾಗ, ಈ ಮಾನಸಿಕ ಸಂಕಟಗಳು ದೂರವಾಗಿ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಅಪಾರ ಆತ್ಮಶಾಂತಿ ಹಾಗೂ ಶಾಶ್ವತ ಸಿದ್ಧಿ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ.`;
+    }
+    if (baseLang === "hi") {
+      return `आपकी कुंडली के अष्टम और द्वादश भाव का कर्मिक प्रभाव, राहू-केतु की स्थिति तथा वर्तमान ${dashaStr} महादशा आपके भीतर एक गहरे आध्यात्मिक और रहस्यात्मक अनुभव का संकेत देती है। बाहर से शांत और सुदृढ़ दिखने के बावजूद, आपके मन के भीतर कभी-कभी अतीत की स्मृतियां, अज्ञात चिंताएं या भावनात्मक अकेलापन महसूस हो सकता है। आप अपने दुखों को दूसरों से साझा किए बिना स्वयं के भीतर समेटने की प्रवृत्ति रखते हैं।\n\nवर्तमान ${bhuktiStr} भुक्ति का समय इस कर्मिक दबाव को दूर कर आत्म-साक्षात्कार प्राप्त करने का दिव्य अवसर है। प्रतिदिन ध्यान, नवग्रह पाठ और गोकर्ण क्षेत्र में महामृत्युंजय जाप कराने से यह आंतरिक चिंताएं समाप्त होंगी। जैसे-जैसे आपकी आध्यात्मिक चेतना बढ़ेगी, आपको असीम मानसिक शांति और सर्वतोमुखी प्रगति की प्राप्ति होगी।`;
+    }
+    if (baseLang === "te") {
+      return `మీ జాతకంలో 8వ మరియు 12వ భావాల కర్మియా ప్రభావం, రాహు-కేతువుల స్థానం మరియు ప్రస్తుత ${dashaStr} మహాతశ మీ అంతరంగంలో దాగివున్న లోతైన ఆత్మ సంకేతాన్ని తెలియజేస్తున్నాయి. పైకి ఎంతో శాంతంగా కనిపించినప్పటికీ, అంతరంగంలో గత సంఘటనల భావనలు లేదా అనవసరమైన ఆందోళనలు బాధించవచ్చు. మీ బాధలను ఇతరులతో పంచుకోకుండా మీలోనే ఉంచుకునే స్వభావం ఉంటుంది.\n\nప్రస్తుత ${bhuktiStr} భుక్తి కాలం ఈ రకమైన మానసిక భారాల నుండి విముక్తి పొందడానికి అనుకూలమైనది. రోజూ ధ్యానం చేయడం, నవగ్రహ ప్రార్థనలు మరియు గోకర్ణ క్షేత్రంలో మహా మృత్యుంజయ జపం జరిపించడం వలన మానసిక ప్రశాంతత చేకూరుతుంది. ఆధ్యాత్మిక మార్గంలో ప్రయాణించడం ద్వారా శాశ్వత ఆనందం లభిస్తుంది.`;
+    }
+    if (baseLang === "ta") {
+      return `உங்கள் ஜாதகத்தின் 8 மற்றும் 12 ஆம் இடங்களின் கர்ம வினைகள், ராகு-கேது அமைப்புகள் மற்றும் தற்போதைய ${dashaStr} தசா காலம் உங்கள் மனதின் ஆழத்தில் மறைந்துள்ள ஆன்மீக இரகசியத்தை உணர்த்துகிறது. வெளியில் அமைதியாகத் தெரிந்தாலும், மனதிற்குள் சில பழைய நினைவுகளும் தேவையற்ற கவலைகளும் அவ்வப்போது எழக்கூடும். உங்கள் துன்பங்களை பிறரிடம் கூறாமல் மனதிற்குள்ளேயே வைத்துக்கொள்ளும் குணம் உண்டு.\n\nதற்போதைய ${bhuktiStr} புக்தி காலம் இந்த மன அழுத்தங்களில் இருந்து விடுபட சிறந்த காலமாகும். தினமும் தியானம் செய்வது, நவகிரக வழிபாடு மற்றும் கோகர்ண க்ஷேத்திரத்தில் மகா மிருத்யுஞ்சய ஜெபம் செய்வது மன அமைதியையும் ஆன்மீக வளர்ச்சியையும் தரும்.`;
+    }
+    return `The karmic alignment of your 8th and 12th houses, the nodal axis of Rahu-Ketu, and your running ${dashaStr} Mahadasha point to a deep, transformative soul pattern—the Niguda Rahasya. Externally, you present an unshakeable poise and fortitude; however, internally, you periodically grapple with unspoken emotional vulnerabilities, residual past impressions, or a silent feeling of psychological isolation. You tend to bear heavy personal burdens internally without leaning on others.\n\nYour current ${bhuktiStr} Bhukti provides a potent astrological window for karmic resolution and emotional liberation. Engaging in daily meditation, chanting the Navagraha Stotram, and sponsoring a Maha Mrityunjaya Japa at Gokarna Kshetra will dissolve underlying anxieties. Transmuting these hidden emotional patterns into spiritual wisdom will unlock profound inner serenity and enduring peace of mind.`;
   }
-  if (baseLang === "te") {
-    return `మీ జాతకంలో 8వ మరియు 12వ భావాల కర్మియా ప్రభావం, రాహు-కేతువుల స్థానం మరియు ప్రస్తుత ${dashaStr} మహాతశ మీ అంతరంగంలో దాగివున్న లోతైన ఆత్మ సంకేతాన్ని తెలియజేస్తున్నాయి. పైకి ఎంతో శాంతంగా కనిపించినప్పటికీ, అంతరంగంలో గత సంఘటనల భావనలు లేదా అనవసరమైన ఆందోళనలు బాధించవచ్చు. మీ బాధలను ఇతరులతో పంచుకోకుండా మీలోనే ఉంచుకునే స్వభావం ఉంటుంది.\n\nప్రస్తుత ${bhuktiStr} భుక్తి కాలం ఈ రకమైన మానసిక భారాల నుండి విముక్తి పొందడానికి అనుకూలమైనది. రోజూ ధ్యానం చేయడం, నవగ్రహ ప్రార్థనలు మరియు గోకర్ణ క్షేత్రంలో మహా మృత్యుంజయ జపం జరిపించడం వలన మానసిక ప్రశాంతత చేకూరుతుంది. ఆధ్యాత్మిక మార్గంలో ప్రయాణించడం ద్వారా శాశ్వత ఆనందం లభిస్తుంది.`;
-  }
-  if (baseLang === "ta") {
-    return `உங்கள் ஜாதகத்தின் 8 மற்றும் 12 ஆம் இடங்களின் கர்ம வினைகள், ராகு-கேது அமைப்புகள் மற்றும் தற்போதைய ${dashaStr} தசா காலம் உங்கள் மனதின் ஆழத்தில் மறைந்துள்ள ஆன்மீக இரகசியத்தை உணர்த்துகிறது. வெளியில் அமைதியாகத் தெரிந்தாலும், மனதிற்குள் சில பழைய நினைவுகளும் தேவையற்ற கவலைகளும் அவ்வப்போது எழக்கூடும். உங்கள் துன்பங்களை பிறரிடம் கூறாமல் மனதிற்குள்ளேயே வைத்துக்கொள்ளும் குணம் உண்டு.\n\nதற்போதைய ${bhuktiStr} புக்தி காலம் இந்த மன அழுத்தங்களில் இருந்து விடுபட சிறந்த காலமாகும். தினமும் தியானம் செய்வது, நவகிரக வழிபாடு மற்றும் கோகர்ண க்ஷேத்திரத்தில் மகா மிருத்யுஞ்சய ஜெபம் செய்வது மன அமைதியையும் ஆன்மீக வளர்ச்சியையும் தரும்.`;
-  }
-  return `The karmic alignment of your 8th and 12th houses, the nodal axis of Rahu-Ketu, and your running ${dashaStr} Mahadasha point to a deep, transformative soul pattern—the Niguda Rahasya. Externally, you present an unshakeable poise and fortitude; however, internally, you periodically grapple with unspoken emotional vulnerabilities, residual past impressions, or a silent feeling of psychological isolation. You tend to bear heavy personal burdens internally without leaning on others.\n\nYour current ${bhuktiStr} Bhukti provides a potent astrological window for karmic resolution and emotional liberation. Engaging in daily meditation, chanting the Navagraha Stotram, and sponsoring a Maha Mrityunjaya Japa at Gokarna Kshetra will dissolve underlying anxieties. Transmuting these hidden emotional patterns into spiritual wisdom will unlock profound inner serenity and enduring peace of mind.`;
-}
 
 
   const generatePremiumPDF = async (personalization?: PersonalizationState) => {
     if (!session || isGeneratingPremiumPdf) return;
     setIsGeneratingPremiumPdf(true);
-    
+
     try {
       if (!session) throw new Error("No session");
 
@@ -1244,13 +1244,13 @@ function buildKundaliDarkSecretFallback(lang: string, lagnaStr: string, moonStr:
       let localisedPredictions: TranslatedPrediction[] = lang === language
         ? sourcePredictions
         : await Promise.all(
-            sourcePredictions.map(async (pred) => ({
-              ...pred,
-              translatedCategory: await translateText(pred.category, lang),
-              translatedText: await translateText(pred.text, lang),
-            }))
-          );
-      
+          sourcePredictions.map(async (pred) => ({
+            ...pred,
+            translatedCategory: await translateText(pred.category, lang),
+            translatedText: await translateText(pred.text, lang),
+          }))
+        );
+
       // Inject personalized targeted deep predictions if requested
       if (personalization) {
         const isKn = lang === "kn";
@@ -1320,12 +1320,12 @@ function buildKundaliDarkSecretFallback(lang: string, lagnaStr: string, moonStr:
         longitude: session.input.longitude,
         lang
       });
-      
+
       const parseGeminiJSON = (text: string) => {
         try {
           const match = text.match(/\{[\s\S]*\}/);
           return match ? JSON.parse(match[0]) : {};
-        } catch(e) {
+        } catch (e) {
           console.error("JSON parse error from Gemini:", e);
           return {};
         }
@@ -1529,11 +1529,11 @@ function buildKundaliDarkSecretFallback(lang: string, lagnaStr: string, moonStr:
       const validTimelineItems = toSafeArray(dataTimeline.timeline).filter((t: any) => (t?.impact || "").trim().length > 10);
       const finalTimeline = validTimelineItems.length >= 4
         ? await Promise.all(
-            validTimelineItems.map(async (t: any) => ({
-              ...t,
-              dateRange: await translateText(t.dateRange || "", lang)
-            }))
-          )
+          validTimelineItems.map(async (t: any) => ({
+            ...t,
+            dateRange: await translateText(t.dateRange || "", lang)
+          }))
+        )
         : fallbackTimeline;
 
       const rawGocharaFallback = await Promise.all([
@@ -1585,12 +1585,12 @@ function buildKundaliDarkSecretFallback(lang: string, lagnaStr: string, moonStr:
       }
 
       setPremiumDataForPdf(premiumDataPayload);
-      
+
       // Wait for React to flush the state to the hidden PdfTemplate component
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
+
       if (!premiumPdfRef.current) throw new Error("Premium PDF ref not found");
-      
+
       const containerEl = premiumPdfRef.current;
       const parentEl = containerEl.parentElement;
       const originalStyle = parentEl?.getAttribute("style") || "";
@@ -1609,18 +1609,18 @@ function buildKundaliDarkSecretFallback(lang: string, lagnaStr: string, moonStr:
         backgroundColor: "#FFFFFF",
         allowTaint: true
       });
-      
+
       if (parentEl) {
         parentEl.setAttribute("style", originalStyle);
       }
-      
+
       const imgData = canvas.toDataURL("image/jpeg", 0.75);
-      
-      const pdfWidth = 210; 
+
+      const pdfWidth = 210;
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      
+
       const pdf = new jsPDF({ orientation: "p", unit: "mm", format: [pdfWidth, pdfHeight], compress: true });
-      
+
       pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
       const langNames: Record<string, string> = { "kn": "Kannada", "ta": "Tamil", "te": "Telugu", "hi": "Hindi", "en": "English" };
       const langName = langNames[pdfLanguage] || "English";
@@ -1777,7 +1777,7 @@ function buildKundaliDarkSecretFallback(lang: string, lagnaStr: string, moonStr:
         "Use scholarly Vedic references while remaining personal."
       ];
       const a4DarkSecretSeed = a4StyleSeeds[Math.floor(Math.random() * a4StyleSeeds.length)];
-      const a4PlanetPositions = session.result.planets.map((p: {name: string; house: number; rashi?: {english?: string}}) => `${p.name} in House ${p.house} (${p.rashi?.english || ''})`).join(", ");
+      const a4PlanetPositions = session.result.planets.map((p: { name: string; house: number; rashi?: { english?: string } }) => `${p.name} in House ${p.house} (${p.rashi?.english || ''})`).join(", ");
       const promptDarkSecret = `You are a wise astrologer who can see the deepest hidden truth about this person — the truth they carry silently inside, never speak about to family or society, but feel in every quiet moment. This is their NIGUDA RAHASYA.
 
 OUTPUT LANGUAGE: ${pdfLanguage}.${pdfLanguage === 'kn' ? ' Write ONLY in Kannada script. Every single word must be pure Kannada. No English, no transliteration.' : pdfLanguage === 'te' ? ' Write ONLY in Telugu script. Every word must be pure Telugu.' : pdfLanguage === 'ta' ? ' Write ONLY in Tamil script. Every word must be pure Tamil.' : pdfLanguage === 'hi' ? ' Write ONLY in Hindi (Devanagari). Every word must be pure Hindi.' : ' Write in clear, simple English.'}
@@ -1961,7 +1961,7 @@ Return ONLY this JSON (no extra text before or after):
 
   return (
     <div className="p-4 sm:p-8 max-w-5xl mx-auto animate-fade-in bg-amber-50 rounded-3xl shadow-[0_0_50px_rgba(245,158,11,0.15)] border border-amber-200 relative overflow-hidden">
-      
+
       {/* Decorative animated moving background elements for Golden Theme */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] bg-amber-300/20 rounded-full blur-[120px] animate-[pulse_8s_ease-in-out_infinite]"></div>
@@ -1989,15 +1989,15 @@ Return ONLY this JSON (no extra text before or after):
               { code: "hi", name: "Hindi" }
             ].map(lang => (
               <label key={lang.code} className="flex items-center gap-1.5 cursor-pointer bg-white/80 px-3 py-1.5 rounded-lg border border-amber-200 hover:bg-white transition-colors">
-                <input 
-                  type="radio" 
-                  name="pdfLang" 
-                  value={lang.code} 
-                  checked={pdfLanguage === lang.code} 
+                <input
+                  type="radio"
+                  name="pdfLang"
+                  value={lang.code}
+                  checked={pdfLanguage === lang.code}
                   onChange={() => {
                     pdfLanguagePicked.current = true;
                     setPdfLanguage(lang.code as "en" | "hi" | "kn" | "te" | "ta");
-                  }} 
+                  }}
                   className="w-4 h-4 text-amber-600 focus:ring-amber-500 border-gray-300"
                 />
                 <span className="text-xs font-bold text-amber-950 uppercase tracking-wide">{lang.name}</span>
@@ -2006,7 +2006,7 @@ Return ONLY this JSON (no extra text before or after):
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 w-full">
-            <button 
+            <button
               onClick={generatePDF}
               disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingA4Pdf || isGeneratingSummaryPdf}
               className={`group flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-4 py-3 rounded-xl font-bold text-sm transition-all duration-300 shadow-md hover:shadow-lg border border-amber-400 w-full ${isGeneratingPdf ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}
@@ -2021,7 +2021,7 @@ Return ONLY this JSON (no extra text before or after):
               <span>{isGeneratingPdf ? "Generating..." : "Download PDF"}</span>
             </button>
 
-            <button 
+            <button
               onClick={() => setIsPersonalizationModalOpen(true)}
               disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingA4Pdf || isGeneratingSummaryPdf}
               className={`group flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-4 py-3 rounded-xl font-bold text-sm transition-all duration-300 shadow-md hover:shadow-lg border border-indigo-400 w-full ${isGeneratingPremiumPdf ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}
@@ -2034,7 +2034,7 @@ Return ONLY this JSON (no extra text before or after):
               <span>{isGeneratingPremiumPdf ? "Crafting..." : "Premium PDF"}</span>
             </button>
 
-            <button 
+            <button
               onClick={generateA4PDF}
               disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingA4Pdf || isGeneratingSummaryPdf}
               className={`group flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-4 py-3 rounded-xl font-bold text-sm transition-all duration-300 shadow-md hover:shadow-lg border border-emerald-400 w-full ${isGeneratingA4Pdf ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}
@@ -2047,7 +2047,7 @@ Return ONLY this JSON (no extra text before or after):
               <span>{isGeneratingA4Pdf ? "Crafting A4..." : "Premium A4 PDF"}</span>
             </button>
 
-            <button 
+            <button
               onClick={generateSummaryPDF}
               disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingA4Pdf || isGeneratingSummaryPdf}
               className={`group flex items-center justify-center gap-2 bg-gradient-to-r from-amber-600 via-orange-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700 text-white px-4 py-3 rounded-xl font-bold text-sm transition-all duration-300 shadow-md hover:shadow-lg border border-amber-400 w-full ${isGeneratingSummaryPdf ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}
@@ -2123,9 +2123,8 @@ Return ONLY this JSON (no extra text before or after):
                 <button
                   type="button"
                   onClick={toggleMQVoiceInput}
-                  className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg transition-all ${
-                    isListeningMQ ? "bg-red-500 text-white animate-pulse" : "text-amber-700 hover:text-amber-900"
-                  }`}
+                  className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg transition-all ${isListeningMQ ? "bg-red-500 text-white animate-pulse" : "text-amber-700 hover:text-amber-900"
+                    }`}
                   title="Speak question via microphone"
                 >
                   🎙️
@@ -2237,9 +2236,8 @@ Return ONLY this JSON (no extra text before or after):
                     type="button"
                     onClick={generateMultiQuestionPDF}
                     disabled={isGeneratingMultiPdf || isGeneratingMultiAnswers}
-                    className={`w-full flex items-center justify-center gap-3 bg-gradient-to-r from-amber-800 via-orange-700 to-yellow-800 hover:from-amber-900 hover:to-orange-800 text-white px-6 py-4 rounded-2xl font-bold text-base shadow-lg transition-all border-2 border-amber-400 ${
-                      isGeneratingMultiPdf ? "opacity-50 cursor-not-allowed" : "hover:-translate-y-0.5"
-                    }`}
+                    className={`w-full flex items-center justify-center gap-3 bg-gradient-to-r from-amber-800 via-orange-700 to-yellow-800 hover:from-amber-900 hover:to-orange-800 text-white px-6 py-4 rounded-2xl font-bold text-base shadow-lg transition-all border-2 border-amber-400 ${isGeneratingMultiPdf ? "opacity-50 cursor-not-allowed" : "hover:-translate-y-0.5"
+                      }`}
                   >
                     <span className="text-xl">📄✨</span>
                     <span>
@@ -2293,9 +2291,8 @@ Return ONLY this JSON (no extra text before or after):
                 <button
                   type="button"
                   onClick={toggleQVoiceInput}
-                  className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg transition-all ${
-                    isListeningQ ? "bg-red-500 text-white animate-pulse" : "text-amber-700 hover:text-amber-900"
-                  }`}
+                  className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg transition-all ${isListeningQ ? "bg-red-500 text-white animate-pulse" : "text-amber-700 hover:text-amber-900"
+                    }`}
                   title="Speak question via microphone"
                 >
                   🎙️
@@ -2308,9 +2305,8 @@ Return ONLY this JSON (no extra text before or after):
                   type="button"
                   onClick={generateQuestionPDF}
                   disabled={isGeneratingSummaryPdf || isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingA4Pdf}
-                  className={`w-full flex items-center justify-center gap-2 bg-gradient-to-r from-amber-700 via-orange-600 to-amber-800 hover:from-amber-800 hover:to-orange-700 text-white px-3 py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow-md transition-all border border-amber-400 ${
-                    isGeneratingSummaryPdf ? "opacity-50 cursor-not-allowed" : "hover:-translate-y-0.5"
-                  }`}
+                  className={`w-full flex items-center justify-center gap-2 bg-gradient-to-r from-amber-700 via-orange-600 to-amber-800 hover:from-amber-800 hover:to-orange-700 text-white px-3 py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow-md transition-all border border-amber-400 ${isGeneratingSummaryPdf ? "opacity-50 cursor-not-allowed" : "hover:-translate-y-0.5"
+                    }`}
                 >
                   <span>📜✨</span>
                   <span>{isGeneratingSummaryPdf ? "Crafting..." : "Download Question PDF"}</span>
@@ -2480,25 +2476,25 @@ Return ONLY this JSON (no extra text before or after):
       {/* Hidden PDF Template Container */}
       <div id="standard-pdf-container" style={{ position: "fixed", left: "-9999px", top: 0, width: "900px", visibility: "hidden", pointerEvents: "none" }}>
         {pdfTranslations && pdfDeepInsights && (
-          <PdfTemplate 
-            ref={pdfRef} 
-            theme="sunrise" 
-            session={session} 
-            predictions={(currentMindset ? [currentMindset, ...predictions] : predictions).filter(p => p && p.category !== "Error" && p.translatedCategory !== "Error" && !(p.text || "").includes("Sorry, I encountered an error"))} 
+          <PdfTemplate
+            ref={pdfRef}
+            theme="sunrise"
+            session={session}
+            predictions={(currentMindset ? [currentMindset, ...predictions] : predictions).filter(p => p && p.category !== "Error" && p.translatedCategory !== "Error" && !(p.text || "").includes("Sorry, I encountered an error"))}
             translations={pdfTranslations}
             deepInsights={pdfDeepInsights}
           />
         )}
       </div>
-      
+
       {/* Hidden Premium PDF Template Container */}
       <div id="premium-pdf-container" style={{ position: "fixed", left: "-9999px", top: 0, width: "900px", visibility: "hidden", pointerEvents: "none" }}>
         {premiumDataForPdf && pdfTranslations && (
-          <PdfTemplate 
-            ref={premiumPdfRef} 
-            theme="sunrise" 
-            session={session} 
-            predictions={(premiumPredictions ?? (currentMindset ? [currentMindset, ...predictions] : predictions)).filter(p => p && p.category !== "Error" && p.translatedCategory !== "Error" && !(p.text || "").includes("Sorry, I encountered an error"))} 
+          <PdfTemplate
+            ref={premiumPdfRef}
+            theme="sunrise"
+            session={session}
+            predictions={(premiumPredictions ?? (currentMindset ? [currentMindset, ...predictions] : predictions)).filter(p => p && p.category !== "Error" && p.translatedCategory !== "Error" && !(p.text || "").includes("Sorry, I encountered an error"))}
             translations={pdfTranslations}
             deepInsights={pdfDeepInsights || {}}
             premiumData={premiumDataForPdf}
@@ -2537,7 +2533,7 @@ Return ONLY this JSON (no extra text before or after):
       {/* Hidden 4-Paragraph Summary PDF Template Container */}
       <div id="summary-pdf-container" style={{ position: "fixed", left: "-9999px", top: 0, width: "900px", visibility: "hidden", pointerEvents: "none" }}>
         {summaryPdfTranslations && summaryDataForPdf && (
-          <SummaryPdfTemplate 
+          <SummaryPdfTemplate
             ref={summaryPdfRef}
             session={session}
             translations={summaryPdfTranslations}
