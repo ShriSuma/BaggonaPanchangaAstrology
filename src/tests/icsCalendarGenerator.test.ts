@@ -105,10 +105,12 @@ describe("icsCalendarGenerator", () => {
     expect(ics).toContain("BEGIN:VEVENT");
     expect(ics).toContain("DTSTART;TZID=Asia/Kolkata:20260811T080000");
     expect(ics).toContain("DTEND;TZID=Asia/Kolkata:20260811T083000");
-    expect(ics).toContain("╔════════════════════════════════════════╗");
-    expect(ics).toContain("BAGGONA PANCHANGA ASTROLOGY");
+    expect(ics).toContain("✦ ──── 🕉️ BAGGONA PANCHANGA ──── ✦");
+    expect(ics).toContain("Pramod Kodagi");
     expect(ics).toContain("🔴 Rahu Kaala");
     expect(ics).toContain("⚡");
+    expect(ics).toContain("ತಾರಾಬಲ");
+    expect(ics).toContain("ಚಂದ್ರಬಲ");
     expect(ics).toContain("/daily?token=bgn_v1_");
     expect(ics).toContain("BEGIN:VALARM");
     expect(ics).toContain("END:VCALENDAR");
@@ -138,8 +140,8 @@ describe("icsCalendarGenerator", () => {
       notificationTime: "08:00",
       personName: "Pramod Kodagi"
     });
-    expect(googlePayload).toContain("https://calendar.google.com/calendar/render?action=TEMPLATE");
-    expect(googlePayload).toContain("recur=RRULE%3AFREQ%3DDAILY%3BCOUNT%3D90");
+    expect(googlePayload).toContain("/daily?token=bgn_v1_");
+    expect(googlePayload).toContain("action=ics90");
 
     const webcalPayload = generateQrPayloadByTarget("webcal", {
       days: mockDays,

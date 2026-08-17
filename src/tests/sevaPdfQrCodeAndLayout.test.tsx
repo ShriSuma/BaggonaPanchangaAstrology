@@ -62,9 +62,8 @@ describe("Seva PDF 5-Page Suite & QR Code Verification", () => {
       personName: mockIdentity.personName
     });
 
-    expect(payload).toContain("https://calendar.google.com/calendar/render?action=TEMPLATE");
-    expect(payload).toContain("recur=RRULE%3AFREQ%3DDAILY%3BCOUNT%3D90");
-    expect(payload).toContain("ctz=Asia%2FKolkata");
+    expect(payload).toContain("/daily?token=bgn_v1_");
+    expect(payload).toContain("action=ics90");
   });
 
   it("renders SevaQRCodePrint with provided QR Code data URL without blank placeholder", async () => {
