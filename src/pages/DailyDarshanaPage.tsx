@@ -307,6 +307,8 @@ export default function DailyDarshanaPage(): JSX.Element {
           personName: decoded.n || devoteeName
         });
         setGeneratedIcs(payloadStr);
+        const fileNameStr = `Baggona-Panchanga-90Day-${(decoded.n || devoteeName || "Devotee").replace(/\s+/g, "-")}.ics`;
+        downloadIcsFile(fileNameStr, payloadStr);
       } catch (err) {
         console.error("Error generating 90-day ICS payload:", err);
       }

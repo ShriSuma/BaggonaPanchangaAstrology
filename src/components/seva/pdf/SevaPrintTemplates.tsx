@@ -34,6 +34,7 @@ import {
   formatMonthTitle,
   tithiLabel
 } from "../../../features/seva/sevaPresentation";
+import { getPriestProfile } from "../../../features/seva/sevaPriestDirectory";
 
 /* ------------------------------------------------------------------ *
  * Shared palette and primitives
@@ -1395,6 +1396,10 @@ export const SevaRemediesAnnualPrint = ({
   rhythm?: RhythmResult;
 }): JSX.Element => {
   const safePanditName = formatPanditName(panditName, lang);
+  const priestProfile = getPriestProfile(panditName);
+  const priestNameLocalized = priestProfile.name[lang as keyof typeof priestProfile.name] || safePanditName;
+  const priestTitleLocalized = priestProfile.title[lang as keyof typeof priestProfile.title] || priestProfile.title.en;
+  const priestSealTextLocalized = priestProfile.sealText[lang as keyof typeof priestProfile.sealText] || priestProfile.sealText.en;
 
   const TITLE_DICT: L5 = {
     kn: "✦ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಮಹಾಪೂಜಾ ಪರಿಹಾರ ಹಾಗೂ ಕೌಟುಂಬಿಕ ರಕ್ಷಾ ಪತ್ರಿಕೆ ✦",
@@ -1674,7 +1679,7 @@ export const SevaRemediesAnnualPrint = ({
               {pick({ kn: "✦ ಮುಖ್ಯ ಅರ್ಚಕರ ಅಧಿಕೃತ ಮುದ್ರೆ ಹಾಗೂ ಆಶೀರ್ವಾದ ✦", hi: "✦ मुख्य अर्चक आधिकारिक मुहर एवं आशीर्वाद ✦", te: "✦ ముఖ్య అర్చకుల అధికారిక ముద్ర మరియు ఆశీర్వాదం ✦", ta: "✦ முதன்மை அர்ச்சகர் அதிகாரப்பூர்வ முத்திரை & ஆசீர்வாதம் ✦", en: "✦ Chief Archaka Official Seal & Benediction ✦" }, lang)}
             </div>
             <div style={{ fontSize: 12, color: INK, fontWeight: 700, lineHeight: 1.6, letterSpacing: "normal" }}>
-              {safePanditName || "ಚೈತನ್ಯ ಪಂಡಿತ"} — {pick({ kn: "ಮುಖ್ಯ ಅರ್ಚಕರು, ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಕ್ಷೇತ್ರ", hi: "मुख्य अर्चक, गोकर्ण महाबलेश्वर क्षेत्र", te: "ముఖ్య అర్చకులు, గోకర్ణ మహాబలేశ్వర క్షేత్రం", ta: "முதன்மை அர்ச்சகர், கோகர்ண மகாபலேஸ்வர க்ஷேத்திரம்", en: "Chief Archaka, Gokarna Mahabaleshwara Kshetra" }, lang)}
+              {priestNameLocalized} — {priestTitleLocalized}
             </div>
             <div style={{ fontSize: 11, color: INK_SOFT, marginTop: 3, lineHeight: 1.75, letterSpacing: "normal" }}>
               {pick({ kn: "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ದಿವ್ಯ ಕೃಪೆಯು ನಿಮ್ಮ ಸಮಸ್ತ ಕುಟುಂಬಕ್ಕೆ ಸದಾ ರಕ್ಷಣೆ, ಸುಖ-ಸಂತೋಷ ಹಾಗೂ ನಿರಂತರ ಆಯುರಾರೋಗ್ಯವನ್ನು ಕರುಣಿಸಲಿ ಎಂದು ಪ್ರಾರ್ಥಿಸುತ್ತೇವೆ.", hi: "श्री महाबलेश्वर स्वामी की दिव्य कृपा आपके संपूर्ण परिवार को सदा सुख, शांति एवं उत्तम स्वास्थ्य प्रदान करे।", te: "శ్రీ మహాబలేశ్వర స్వామివారి దివ్య కృప మీ కుటుంబానికి సదా ఆయురారోగ్యాలు, సుఖశాంతులను ప్రసాదించుగాక.", ta: "ஸ்ரீ மகாபலேஸ்வர சுவாமியின் திவ்ய அருள் உங்கள் குடும்பத்திற்கு எந்நாளும் நல்வாழ்வும் ஆரோக்கியமும் தரட்டும்.", en: "May the divine grace of Shri Mahabaleshwara always protect your family with enduring peace, joy, and vitality." }, lang)}
@@ -1695,12 +1700,9 @@ export const SevaRemediesAnnualPrint = ({
               boxShadow: `0 0 10px rgba(180, 140, 60, 0.2)`
             }}
           >
-            <div style={{ fontSize: 16, color: GOLD }}>🕉️</div>
-            <div style={{ fontSize: 7.5, fontWeight: 700, color: INK, textTransform: "uppercase", marginTop: 1, textAlign: "center" }}>
-              GOKARNA
-            </div>
-            <div style={{ fontSize: 6.5, color: GOLD, textTransform: "uppercase" }}>
-              ARCHAKA
+            <div style={{ fontSize: 18, color: priestProfile.sealColor || GOLD }}>{priestProfile.sealSymbol}</div>
+            <div style={{ fontSize: 7, fontWeight: 700, color: INK, textTransform: "uppercase", marginTop: 1, textAlign: "center", padding: "0 2px", lineHeight: 1.1 }}>
+              {priestSealTextLocalized}
             </div>
           </div>
         </div>
@@ -1748,6 +1750,10 @@ export const SevaPoojaMahatmePrint = ({
   mahatmeData?: PoojaMahatmeData;
 }): JSX.Element => {
   const safePanditName = formatPanditName(panditName, lang);
+  const priestProfile = getPriestProfile(panditName);
+  const priestNameLocalized = priestProfile.name[lang as keyof typeof priestProfile.name] || safePanditName;
+  const priestTitleLocalized = priestProfile.title[lang as keyof typeof priestProfile.title] || priestProfile.title.en;
+  const priestSealTextLocalized = priestProfile.sealText[lang as keyof typeof priestProfile.sealText] || priestProfile.sealText.en;
   const sevaTitle = primarySeva?.seva ? pick(primarySeva.seva.name, lang) : pick({ kn: "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಪೂಜೆ", hi: "श्री गोकर्ण महापूजा", te: "శ్రీ గోకర్ణ మహాపూజ", ta: "ஸ்ரீ கோகர்ண மகாபூஜை", en: "Shri Gokarna Maha Seva" }, lang);
 
   // Fallback Mahatme generator for offline/error handling across all 5 languages
@@ -2103,7 +2109,7 @@ export const SevaPoojaMahatmePrint = ({
               {pick({ kn: "✦ ಪ್ರಧಾನ ಅರ್ಚಕರ ಅಧಿಕೃತ ಮುದ್ರೆ ಹಾಗೂ ಆಶೀರ್ವಾದ ✦", hi: "✦ प्रधान अर्चक आधिकारिक मुहर एवं आशीर्वाद ✦", te: "✦ ప్రధాన అర్చకుల అధికారిక ముద్ర మరియు ఆశీర్వాదం ✦", ta: "✦ பிரதான அர்ச்சகர் அதிகாரப்பூர்வ முத்திரை & ஆசீர்வாதம் ✦", en: "✦ Chief Archaka Official Seal & Benediction ✦" }, lang)}
             </div>
             <div style={{ fontSize: 12, color: INK, fontWeight: 700, lineHeight: 1.6, letterSpacing: "normal" }}>
-              {safePanditName || "ಚೈತನ್ಯ ಪಂಡಿತ"} — {pick({ kn: "ಪ್ರಧಾನ ಅರ್ಚಕರು, ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ", hi: "प्रधान अर्चक, गोकर्ण क्षेत्र", te: "ప్రధాన అర్చకులు, గోకర్ణ క్షేత్రం", ta: "பிரதான அர்ச்சகர், கோகர்ண க்ஷேத்திரம்", en: "Pradhana Archaka, Gokarna Kshetra" }, lang)}
+              {priestNameLocalized} — {priestTitleLocalized}
             </div>
             <div style={{ fontSize: 11, color: INK_SOFT, marginTop: 3, lineHeight: 1.75, letterSpacing: "normal" }}>
               {pick({ kn: "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ದಿವ್ಯ ಕೃಪೆಯು ನಿಮ್ಮ ಸಮಸ್ತ ಕುಟುಂಬಕ್ಕೆ ಸದಾ ರಕ್ಷಣೆ, ಸುಖ-ಸಂತೋಷ ಹಾಗೂ ನಿರಂತರ ಆಯುರಾರೋಗ್ಯವನ್ನು ಕರುಣಿಸಲಿ ಎಂದು ಪ್ರಾರ್ಥಿಸುತ್ತೇವೆ.", hi: "श्री महाबलेश्वर स्वामी की दिव्य कृपा आपके संपूर्ण परिवार को सदा सुख, शांति एवं उत्तम स्वास्थ्य प्रदान करे।", te: "శ్రీ మహాబలేశ్వర స్వామివారి దివ్య కృప మీ కుటుంబానికి సదా ఆయురారోగ్యాలు, సుఖశాంతులను ప్రసాదించుగాక.", ta: "ஸ்ரீ மகாபலேஸ்வர சுவாமியின் திவ்ய அருள் உங்கள் குடும்பத்திற்கு எந்நாளும் நல்வாழ்வும் ஆரோக்கியமும் தரட்டும்.", en: "May the divine grace of Shri Mahabaleshwara always protect your family with enduring peace, joy, and vitality." }, lang)}
@@ -2124,12 +2130,9 @@ export const SevaPoojaMahatmePrint = ({
               boxShadow: `0 0 10px rgba(180, 140, 60, 0.2)`
             }}
           >
-            <div style={{ fontSize: 16, color: GOLD }}>🕉️</div>
-            <div style={{ fontSize: 7.5, fontWeight: 700, color: INK, textTransform: "uppercase", marginTop: 1, textAlign: "center" }}>
-              GOKARNA
-            </div>
-            <div style={{ fontSize: 6.5, color: GOLD, textTransform: "uppercase" }}>
-              ARCHAKA
+            <div style={{ fontSize: 18, color: priestProfile.sealColor || GOLD }}>{priestProfile.sealSymbol}</div>
+            <div style={{ fontSize: 7, fontWeight: 700, color: INK, textTransform: "uppercase", marginTop: 1, textAlign: "center", padding: "0 2px", lineHeight: 1.1 }}>
+              {priestSealTextLocalized}
             </div>
           </div>
         </div>

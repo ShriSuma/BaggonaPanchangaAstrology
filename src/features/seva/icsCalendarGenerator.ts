@@ -332,7 +332,7 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
     const kshetraTitle = isKn ? "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ" : isHi ? "गोकर्ण क्षेत्र" : isTe ? "గోకర్ణ క్షేత్రం" : isTa ? "கோகர்ண க்ஷேத்திரம்" : "Gokarna Kshetra";
     const priestLabel = isKn ? "ಮುಖ್ಯ ಅರ್ಚಕರು" : isHi ? "मुख्य अर्चक" : isTe ? "ముఖ్య అర్చకులు" : isTa ? "முதன்மை அர்ச்சகர்" : "Chief Priest";
 
-    const summaryStr = `${vibe.badgeEmoji} [${priestFirstName}] ${panchangaTitle}: ${tithiLabel(day, lang)} (${vibe.badgeText})`;
+    const summaryStr = `${vibe.badgeEmoji} [${tithiLabel(day, lang)}] ${localizedPandit} - ${panchangaTitle} (${vibe.badgeText})`;
 
     const taraNum = day.tara?.tara || 2;
     const taraInfo = getTaraBalaInfo(taraNum, lang);
@@ -383,14 +383,25 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
     const descriptionStr = descriptionParts.join("\n");
 
     const sanitizedDevotee = devoteeDisplayName.toLowerCase().replace(/[^\w]/g, "");
-    const dayUid = `baggona-day-${day.ymd}-${index}-${sanitizedDevotee || "devotee"}@baggona.app`;
+    const seriesUid = `baggona-90day-series-${sanitizedDevotee || "devotee"}@baggona.app`;
 
-    const eventLines = [
+    const eventLines: string[] = [
       "BEGIN:VEVENT",
-      `UID:${dayUid}`,
-      `DTSTAMP:${nowIso}`,
-      `DTSTART;TZID=Asia/Kolkata:${dtStart}`,
-      `DTEND;TZID=Asia/Kolkata:${dtEnd}`,
+      `UID:${seriesUid}`,
+      `DTSTAMP:${nowIso}`
+    ];
+
+    if (index === 0) {
+      eventLines.push("RRULE:FREQ=DAILY;COUNT=90");
+      eventLines.push(`DTSTART;TZID=Asia/Kolkata:${dtStart}`);
+      eventLines.push(`DTEND;TZID=Asia/Kolkata:${dtEnd}`);
+    } else {
+      eventLines.push(`RECURRENCE-ID;TZID=Asia/Kolkata:${dtStart}`);
+      eventLines.push(`DTSTART;TZID=Asia/Kolkata:${dtStart}`);
+      eventLines.push(`DTEND;TZID=Asia/Kolkata:${dtEnd}`);
+    }
+
+    eventLines.push(
       `SUMMARY:${escapeIcsText(summaryStr)}`,
       `DESCRIPTION:${escapeIcsText(descriptionStr)}`,
       `URL:${sanctumUrl}`,
@@ -402,7 +413,7 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
       "TRIGGER:-PT0M",
       "END:VALARM",
       "END:VEVENT"
-    ];
+    );
 
     lines.push(...eventLines);
   });
@@ -478,7 +489,7 @@ export function generateGoogleCalendarUrl(options: {
   const priestLabel = isKn ? "ಮುಖ್ಯ ಅರ್ಚಕರು" : isHi ? "मुख्य अर्चक" : isTe ? "ముఖ్య అర్చకులు" : isTa ? "முதன்மை அர்ச்சகர்" : "Chief Priest";
   const devoteeLabel = isKn ? "ಭಕ್ತರು" : isHi ? "भक्त" : isTe ? "భక్తులు" : isTa ? "பக்தர்" : "Devotee";
 
-  const summary = `🟢 [${localizedPandit}] ${panchangaTitle}: ${tithiLabel(day, lang)} (${vibe.badgeText})`;
+  const summary = `${vibe.badgeEmoji} [${tithiLabel(day, lang)}] ${localizedPandit} - ${panchangaTitle} (${vibe.badgeText})`;
 
   const taraNum = day.tara?.tara || 2;
   const taraInfo = getTaraBalaInfo(taraNum, lang);
