@@ -10,6 +10,12 @@ import {
 } from "../../features/seva/icsCalendarGenerator";
 import { encodeDevoteeToken } from "../../utils/tokenCipher";
 import { T, pick } from "../../features/seva/sevaLocale";
+import {
+  getAllPriests,
+  addCustomPriest,
+  getPriestProfile,
+  type PriestProfile
+} from "../../features/seva/sevaPriestDirectory";
 
 type Props = {
   days: RhythmDay[];
@@ -28,7 +34,14 @@ export default function SevaCalendarSyncModal({
 }: Props): JSX.Element | null {
   const [target, setTarget] = useState<QrCalendarTarget>("google");
   const [platform, setPlatform] = useState<"android" | "apple">("android");
-  const [panditName, setPanditName] = useState("Chaitanya Pandit");
+  const [priestsList, setPriestsList] = useState<PriestProfile[]>(() => getAllPriests());
+  const [selectedPriestId, setSelectedPriestId] = useState<string>("chaitanya-pandit");
+  const [customInputMode, setCustomInputMode] = useState<boolean>(false);
+  const [newPriestName, setNewPriestName] = useState<string>("");
+
+  const activePriest = useMemo(() => getPriestProfile(selectedPriestId), [selectedPriestId, priestsList]);
+  const panditName = activePriest.name[lang as keyof typeof activePriest.name] || activePriest.name.en;
+
   const [notificationTime, setNotificationTime] = useState("08:00");
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
   const [isListening, setIsListening] = useState<boolean>(false);
@@ -85,7 +98,11 @@ export default function SevaCalendarSyncModal({
       recognition.onstart = () => setIsListening(true);
       recognition.onresult = (event: any) => {
         const transcript = event.results[0]?.[0]?.transcript;
-        if (transcript) setPanditName(transcript);
+        if (transcript) {
+          const added = addCustomPriest(transcript);
+          setPriestsList(getAllPriests());
+          setSelectedPriestId(added.id);
+        }
       };
       recognition.onerror = () => setIsListening(false);
       recognition.onend = () => setIsListening(false);
@@ -267,41 +284,103 @@ export default function SevaCalendarSyncModal({
 
           {/* Customization controls */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {/* Pandit Name Input with Mic Button */}
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-amber-900/80">
-                {pick(T.panditNameLabel!, lang)}
+            {/* Pre-defined Priest Dropdown Selector & Dynamic Custom Addition */}
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-bold uppercase tracking-wider text-amber-900/80 mb-1">
+                {lang.startsWith("kn") ? "ಅರ್ಚಕರ ಆಯ್ಕೆ (Priest Selection)" : "Select Priest / Archaka"}
               </label>
-              <div className="relative mt-1 flex items-center">
-                <input
-                  type="text"
-                  value={panditName}
-                  onChange={(e) => setPanditName(e.target.value)}
-                  placeholder="e.g. Chaitanya Pandit"
-                  className="w-full rounded-xl border border-amber-300 bg-white px-3 py-2 pr-10 text-sm font-medium text-amber-950 shadow-sm focus:border-amber-600 focus:outline-none focus:ring-1 focus:ring-amber-600"
-                />
-                <button
-                  type="button"
-                  onClick={handleMicClick}
-                  title={isListening ? pick(T.micListening!, lang) : pick(T.micSpeak!, lang)}
-                  className={`absolute right-2 rounded-lg p-1.5 transition ${
-                    isListening
-                      ? "animate-pulse bg-red-500 text-white"
-                      : "bg-amber-100 text-amber-800 hover:bg-amber-200"
-                  }`}
-                >
-                  🎙️
-                </button>
-              </div>
-              {isListening && (
-                <span className="mt-1 block text-[11px] font-semibold text-red-600">
-                  {pick(T.micListening!, lang)}
-                </span>
+              {!customInputMode ? (
+                <div className="flex gap-2">
+                  <select
+                    value={selectedPriestId}
+                    onChange={(e) => {
+                      if (e.target.value === "ADD_NEW") {
+                        setCustomInputMode(true);
+                      } else {
+                        setSelectedPriestId(e.target.value);
+                      }
+                    }}
+                    className="w-full rounded-xl border border-amber-300 bg-white px-3 py-2 text-sm font-semibold text-amber-950 shadow-sm focus:border-amber-600 focus:outline-none"
+                  >
+                    {priestsList.map((p) => {
+                      const name = p.name[lang as keyof typeof p.name] || p.name.en;
+                      const title = p.title[lang as keyof typeof p.title] || p.title.en;
+                      return (
+                        <option key={p.id} value={p.id}>
+                          {p.sealSymbol} {name} ({title})
+                        </option>
+                      );
+                    })}
+                    <option value="ADD_NEW">➕ {lang.startsWith("kn") ? "ಹೊಸ ಅರ್ಚಕರನ್ನು ಸೇರಿಸಿ..." : "Add New Priest..."}</option>
+                  </select>
+                  <button
+                    type="button"
+                    onClick={handleMicClick}
+                    title={isListening ? pick(T.micListening!, lang) : pick(T.micSpeak!, lang)}
+                    className={`rounded-xl p-2 transition ${
+                      isListening
+                        ? "animate-pulse bg-red-500 text-white"
+                        : "bg-amber-100 text-amber-800 hover:bg-amber-200 border border-amber-300"
+                    }`}
+                  >
+                    🎙️
+                  </button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newPriestName}
+                    onChange={(e) => setNewPriestName(e.target.value)}
+                    placeholder={lang.startsWith("kn") ? "ಅರ್ಚಕರ ಹೆಸರು ಟೈಪ್ ಮಾಡಿ..." : "Enter Priest Name..."}
+                    className="w-full rounded-xl border border-amber-300 bg-white px-3 py-2 text-sm font-semibold text-amber-950 shadow-sm focus:border-amber-600"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (newPriestName.trim()) {
+                        const added = addCustomPriest(newPriestName.trim());
+                        setPriestsList(getAllPriests());
+                        setSelectedPriestId(added.id);
+                        setNewPriestName("");
+                        setCustomInputMode(false);
+                      }
+                    }}
+                    className="rounded-xl bg-amber-800 px-3.5 py-2 text-xs font-bold text-white hover:bg-amber-900 shadow-sm"
+                  >
+                    {lang.startsWith("kn") ? "ಸೇರಿಸಿ" : "Add"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCustomInputMode(false)}
+                    className="rounded-xl border border-amber-300 bg-amber-100 px-3 py-2 text-xs font-bold text-amber-900"
+                  >
+                    ✕
+                  </button>
+                </div>
               )}
+
+              {/* Dynamic Priest Seal Badge & Shloka Card */}
+              <div className="mt-2 rounded-xl border border-amber-300/80 bg-amber-100/60 p-2.5 shadow-sm">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl" style={{ color: activePriest.sealColor }}>{activePriest.sealSymbol}</span>
+                  <div>
+                    <div className="text-xs font-bold text-amber-950">
+                      {activePriest.sealText[lang as keyof typeof activePriest.sealText] || activePriest.sealText.en}
+                    </div>
+                    <div className="text-[11px] font-medium text-amber-800/80">
+                      {activePriest.title[lang as keyof typeof activePriest.title] || activePriest.title.en}
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-1.5 border-t border-amber-200/80 pt-1 text-[11px] italic text-amber-900">
+                  "{activePriest.shloka.sanskrit}"
+                </div>
+              </div>
             </div>
 
             {/* Notification Time Dropdown */}
-            <div>
+            <div className="sm:col-span-2">
               <label className="block text-xs font-bold uppercase tracking-wider text-amber-900/80">
                 {pick(T.notificationTimeLabel!, lang)}
               </label>

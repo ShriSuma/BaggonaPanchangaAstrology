@@ -109,20 +109,20 @@ function getDayLordIdx(dayLord: number | string): number {
 
 /** Get localized greeting addressed to the devotee */
 export function getDevoteeSalutation(personName: string, panditName: string, lang: string): string {
-  const name = personName?.trim() || (lang.startsWith("kn") ? "ಭಕ್ತರೇ" : "Bhakta");
+  const name = personName?.trim() || (lang.startsWith("kn") ? "ಅಭೀಷ್ಟ ದೇವತಾ ಭಕ್ತರು" : "Devotee");
   const pName = panditName?.trim() || "Chaitanya Pandit";
 
   switch (lang) {
     case "kn":
-      return `ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ಪ್ರಧಾನ ಅರ್ಚಕರಾದ ${pName} ಅವರಿಂದ ಆತ್ಮೀಯ ಭಕ್ತರಾದ ${name} ಅವರಿಗೆ ಸಸ್ನೇಹ ನಮಸ್ಕಾರಗಳು ಹಾಗೂ ಮಂತ್ರಾಕ್ಷತೆ ಆಶೀರ್ವಾದಗಳು.`;
+      return `ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ಪ್ರಧಾನ ಅರ್ಚಕರಾದ ${pName} ಅವರಿಂದ ${name} ಅವರಿಗೆ ಸಸ್ನೇಹ ನಮಸ್ಕಾರಗಳು ಹಾಗೂ ಮಂತ್ರಾಕ್ಷತೆ ಆಶೀರ್ವಾದಗಳು.`;
     case "hi":
-      return `गोकर्ण महाबलेश्वर क्षेत्र के प्रधान अर्चक ${pName} जी की ओर से आदरणीय भक्त ${name} को सादर प्रणाम एवं सस्नेह आशीर्वचन।`;
+      return `गोकर्ण महाबलेश्वर क्षेत्र के प्रधान अर्चक ${pName} जी की ओर से ${name} जी को सादर प्रणाम एवं सस्नेह आशीर्वचन।`;
     case "te":
-      return `గోకర్ణ మహాబలేశ్వర క్షేత్ర ప్రధాన అర్చకులు ${pName} గారి నుండి భక్తులు ${name} గారికి హృదయపూర్వక నమస్కారములు మరియు మంత్రాక్షత ఆశీస్సులు.`;
+      return `గోకర్ణ మహాబలేశ్వర క్షేత్ర ప్రధాన అర్చకులు ${pName} గారి నుండి ${name} గారికి హృదయపూర్వక నమస్కారములు మరియు మంత్రాక్షత ఆశీస్సులు.`;
     case "ta":
-      return `கோகர்ண மகாபலேஸ்வரர் ஆலய தலைமை அர்ச்சகர் ${pName} அவர்களின் அன்பான வணக்கங்கள் மற்றும் ஆசீர்வாதங்கள், அன்பிற்குரிய ${name}.`;
+      return `கோகர்ண மகாபலேஸ்வரர் ஆலய தலைமை அர்ச்சகர் ${pName} அவர்களின் அன்பான வணக்கங்கள் மற்றும் ஆசீர்வாதங்கள், ${name}.`;
     default:
-      return `With divine blessings from Chief Priest ${pName} of Gokarna Mahabaleshwara Kshetra to esteemed devotee ${name}.`;
+      return `With divine blessings from Chief Priest ${pName} of Gokarna Mahabaleshwara Kshetra to ${name}.`;
   }
 }
 

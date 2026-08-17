@@ -296,15 +296,6 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
   const nowIso = new Date().toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
   const origin = getSafeProductionOrigin(webAppBaseUrl);
 
-  const seriesSeed = `${personName || "devotee"}-${days[0]?.ymd || "2026-01-01"}`;
-  let hash = 0;
-  for (let i = 0; i < seriesSeed.length; i++) {
-    hash = (hash << 5) - hash + seriesSeed.charCodeAt(i);
-    hash |= 0;
-  }
-  const seriesHash = Math.abs(hash).toString(36);
-  const seriesUid = `baggona-90day-series-${seriesHash}@baggona.app`;
-
   days.forEach((day, index) => {
     const ymdCompact = formatYmdCompact(day.ymd);
     const dtStart = `${ymdCompact}T${hh}${mm}00`;
@@ -324,6 +315,7 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
     const isTa = lang.startsWith("ta");
 
     const localizedPandit = getLocalizedPanditName(panditName, lang);
+    const priestFirstName = localizedPandit.split(/\s+/)[0] || localizedPandit;
     const devoteeDisplayName = (personName && personName.trim().length > 0) ? personName.trim() : (isKn ? "ಭಕ್ತರು" : "Devotee");
 
     const devoteeToken = encodeDevoteeToken({
@@ -336,12 +328,11 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
     });
     const sanctumUrl = `${origin}/daily?token=${devoteeToken}`;
 
-    const panchangaTitle = isKn ? "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ" : isHi ? "बग्गोण पंचांग" : isTe ? "బగ్గోణ పంచాంగం" : isTa ? "பக்கோண பஞ்சாங்கம்" : "Baggona Panchanga";
+    const panchangaTitle = isKn ? "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ" : isHi ? "बग्गोण पंचांग" : isTe ? "బగ్గోణ పంచాಂಗం" : isTa ? "பக்கோண பஞ்சாங்கம்" : "Baggona Panchanga";
     const kshetraTitle = isKn ? "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ" : isHi ? "गोकर्ण क्षेत्र" : isTe ? "గోకర్ణ క్షేత్రం" : isTa ? "கோகர்ண க்ஷேத்திரம்" : "Gokarna Kshetra";
     const priestLabel = isKn ? "ಮುಖ್ಯ ಅರ್ಚಕರು" : isHi ? "मुख्य अर्चक" : isTe ? "ముఖ్య అర్చకులు" : isTa ? "முதன்மை அர்ச்சகர்" : "Chief Priest";
-    const devoteeLabel = isKn ? "ಭಕ್ತರು" : isHi ? "भक्त" : isTe ? "భక్తులు" : isTa ? "பக்தர்" : "Devotee";
 
-    const summaryStr = `${vibe.badgeEmoji} [${localizedPandit}] ${panchangaTitle}: ${tithiLabel(day, lang)} (${vibe.badgeText})`;
+    const summaryStr = `${vibe.badgeEmoji} [${priestFirstName}] ${panchangaTitle}: ${tithiLabel(day, lang)} (${vibe.badgeText})`;
 
     const taraNum = day.tara?.tara || 2;
     const taraInfo = getTaraBalaInfo(taraNum, lang);
@@ -359,7 +350,7 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
       `🕉️ ${panchangaTitle} - ${kshetraTitle}`,
       "",
       `🙏 ${priestLabel}: ${localizedPandit}`,
-      `👤 ${devoteeLabel}: ${devoteeDisplayName}`,
+      `👤 ${devoteeDisplayName}`,
       "",
       `⚡ ${isKn ? "ದಿನದ ಸ್ಥಿತಿ" : "Status"}: ${vibe.badgeText} (${day.energyScore || 85}%) | ${vibe.vibeTag}`,
       "",
@@ -391,20 +382,15 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
 
     const descriptionStr = descriptionParts.join("\n");
 
+    const sanitizedDevotee = devoteeDisplayName.toLowerCase().replace(/[^\w]/g, "");
+    const dayUid = `baggona-day-${day.ymd}-${index}-${sanitizedDevotee || "devotee"}@baggona.app`;
+
     const eventLines = [
       "BEGIN:VEVENT",
-      `UID:${seriesUid}`,
-      `RECURRENCE-ID;TZID=Asia/Kolkata:${dtStart}`,
+      `UID:${dayUid}`,
       `DTSTAMP:${nowIso}`,
       `DTSTART;TZID=Asia/Kolkata:${dtStart}`,
-      `DTEND;TZID=Asia/Kolkata:${dtEnd}`
-    ];
-
-    if (index === 0) {
-      eventLines.push(`RRULE:FREQ=DAILY;COUNT=${days.length}`);
-    }
-
-    eventLines.push(
+      `DTEND;TZID=Asia/Kolkata:${dtEnd}`,
       `SUMMARY:${escapeIcsText(summaryStr)}`,
       `DESCRIPTION:${escapeIcsText(descriptionStr)}`,
       `URL:${sanctumUrl}`,
@@ -416,7 +402,7 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
       "TRIGGER:-PT0M",
       "END:VALARM",
       "END:VEVENT"
-    );
+    ];
 
     lines.push(...eventLines);
   });

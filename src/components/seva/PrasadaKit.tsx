@@ -26,6 +26,13 @@ import {
   SevaPrasadaCardPrint,
   SevaQRCodePrint
 } from "./pdf/SevaPrintTemplates";
+import {
+  getAllPriests,
+  addCustomPriest,
+  getPriestProfile,
+  getHardcodedPoojaVidhiDetails,
+  type PriestProfile
+} from "../../features/seva/sevaPriestDirectory";
 
 type Identity = {
   personName: string;
@@ -152,8 +159,19 @@ export default function PrasadaKit({
   const [pdfLang, setPdfLang] = useState<string>(lang || "kn");
   const [busy, setBusy] = useState<string | null>(null);
   const [sevaDate, setSevaDate] = useState(todayYmd());
-  const [sevaId, setSevaId] = useState<SevaId | "">(recommendations[0]?.seva.id ?? "");
-  const [panditName, setPanditName] = useState("Chaitanya Pandit");
+  const [sevaId, setSevaId] = useState<SevaId>(recommendations[0]?.seva.id ?? "rudrabhisheka");
+  const [priestsList, setPriestsList] = useState<PriestProfile[]>(() => getAllPriests());
+  const [selectedPriestId, setSelectedPriestId] = useState<string>("chaitanya-pandit");
+  const [customInputMode, setCustomInputMode] = useState<boolean>(false);
+  const [newPriestName, setNewPriestName] = useState<string>("");
+
+  const activePriest = useMemo(() => getPriestProfile(selectedPriestId), [selectedPriestId, priestsList]);
+  const panditName = activePriest.name[pdfLang as keyof typeof activePriest.name] || activePriest.name.en;
+
+  const poojaVidhiDetails = useMemo(() => {
+    return getHardcodedPoojaVidhiDetails(sevaId || "rudrabhisheka", pdfLang, selectedPriestId);
+  }, [sevaId, pdfLang, selectedPriestId, priestsList]);
+
   const [notificationTime, setNotificationTime] = useState("08:00");
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
   const [isListening, setIsListening] = useState<boolean>(false);
@@ -185,7 +203,11 @@ export default function PrasadaKit({
       recognition.onstart = () => setIsListening(true);
       recognition.onresult = (event: any) => {
         const transcript = event.results[0]?.[0]?.transcript;
-        if (transcript) setPanditName(transcript);
+        if (transcript) {
+          const added = addCustomPriest(transcript);
+          setPriestsList(getAllPriests());
+          setSelectedPriestId(added.id);
+        }
       };
       recognition.onerror = () => setIsListening(false);
       recognition.onend = () => setIsListening(false);
@@ -471,30 +493,98 @@ export default function PrasadaKit({
           </label>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 pt-2 border-t border-amber-200/60">
+        <div className="pt-2 border-t border-amber-200/60 space-y-3">
           <div>
-            <span className="mb-1 block text-[11px] font-medium text-amber-800/70">
-              {pick(T.panditNameLabel!, lang)}
+            <span className="mb-1 block text-[11px] font-bold text-amber-900/80 uppercase tracking-wider">
+              {lang.startsWith("kn") ? "ಅರ್ಚಕರ ಆಯ್ಕೆ (Priest Selection)" : "Select Priest / Archaka"}
             </span>
-            <div className="relative flex items-center">
-              <input
-                type="text"
-                value={panditName}
-                onChange={(e) => setPanditName(e.target.value)}
-                placeholder="e.g. Chaitanya Pandit"
-                className="w-full rounded-lg border border-amber-300 bg-white px-3 py-2 pr-9 text-sm text-amber-950"
-              />
-              <button
-                type="button"
-                onClick={handleMicClick}
-                title={isListening ? pick(T.micListening!, lang) : pick(T.micSpeak!, lang)}
-                className={`absolute right-1.5 rounded-md p-1 transition ${isListening
-                    ? "animate-pulse bg-red-500 text-white"
-                    : "bg-amber-100 text-amber-800 hover:bg-amber-200"
+            {!customInputMode ? (
+              <div className="flex gap-2">
+                <select
+                  value={selectedPriestId}
+                  onChange={(e) => {
+                    if (e.target.value === "ADD_NEW") {
+                      setCustomInputMode(true);
+                    } else {
+                      setSelectedPriestId(e.target.value);
+                    }
+                  }}
+                  className="w-full rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm font-semibold text-amber-950 shadow-sm focus:border-amber-600 focus:outline-none"
+                >
+                  {priestsList.map((p) => {
+                    const name = p.name[pdfLang as keyof typeof p.name] || p.name.en;
+                    const title = p.title[pdfLang as keyof typeof p.title] || p.title.en;
+                    return (
+                      <option key={p.id} value={p.id}>
+                        {p.sealSymbol} {name} ({title})
+                      </option>
+                    );
+                  })}
+                  <option value="ADD_NEW">➕ {lang.startsWith("kn") ? "ಹೊಸ ಅರ್ಚಕರನ್ನು ಸೇರಿಸಿ..." : "Add New Priest..."}</option>
+                </select>
+                <button
+                  type="button"
+                  onClick={handleMicClick}
+                  title={isListening ? pick(T.micListening!, lang) : pick(T.micSpeak!, lang)}
+                  className={`rounded-lg p-2 transition ${
+                    isListening
+                      ? "animate-pulse bg-red-500 text-white"
+                      : "bg-amber-100 text-amber-800 hover:bg-amber-200 border border-amber-300"
                   }`}
-              >
-                🎙️
-              </button>
+                >
+                  🎙️
+                </button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newPriestName}
+                  onChange={(e) => setNewPriestName(e.target.value)}
+                  placeholder={lang.startsWith("kn") ? "ಅರ್ಚಕರ ಹೆಸರು ಟೈಪ್ ಮಾಡಿ..." : "Enter Priest Name..."}
+                  className="w-full rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm font-semibold text-amber-950"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (newPriestName.trim()) {
+                      const added = addCustomPriest(newPriestName.trim());
+                      setPriestsList(getAllPriests());
+                      setSelectedPriestId(added.id);
+                      setNewPriestName("");
+                      setCustomInputMode(false);
+                    }
+                  }}
+                  className="rounded-lg bg-amber-800 px-3 py-2 text-xs font-bold text-white hover:bg-amber-900"
+                >
+                  {lang.startsWith("kn") ? "ಸೇರಿಸಿ" : "Add"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCustomInputMode(false)}
+                  className="rounded-lg border border-amber-300 bg-amber-100 px-2 py-2 text-xs font-bold text-amber-900"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+
+            {/* Dynamic Seal Badge */}
+            <div className="mt-2 rounded-xl border border-amber-300/80 bg-amber-100/60 p-2.5 shadow-sm flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl" style={{ color: activePriest.sealColor }}>{activePriest.sealSymbol}</span>
+                <div>
+                  <div className="text-xs font-bold text-amber-950">
+                    {activePriest.sealText[pdfLang as keyof typeof activePriest.sealText] || activePriest.sealText.en}
+                  </div>
+                  <div className="text-[11px] font-medium text-amber-800/80">
+                    {activePriest.title[pdfLang as keyof typeof activePriest.title] || activePriest.title.en}
+                  </div>
+                </div>
+              </div>
+              <div className="text-right text-[11px] italic text-amber-900 max-w-[240px]">
+                "{activePriest.shloka.sanskrit}"
+              </div>
             </div>
           </div>
 
@@ -516,6 +606,54 @@ export default function PrasadaKit({
             </select>
           </div>
         </div>
+
+        {/* Hardcoded Multi-Language Pooja Vidhi Details Table Card */}
+        {poojaVidhiDetails && (
+          <div className="mt-4 rounded-xl border border-amber-300 bg-amber-50 p-4 shadow-sm space-y-3">
+            <div className="flex items-center justify-between border-b border-amber-200 pb-2">
+              <h4 className="font-bold text-sm text-amber-950 flex items-center gap-1.5">
+                <span>🪔</span>
+                <span>{poojaVidhiDetails.poojaName} - {lang.startsWith("kn") ? "ಪೂಜಾ ವಿಧಿ ಹಾಗೂ ವಿವರಣೆ" : "Pooja Vidhi & Sacred Details"}</span>
+              </h4>
+              <span className="text-xs font-semibold px-2 py-0.5 rounded bg-amber-200 text-amber-900">
+                {activePriest.sealSymbol} {panditName}
+              </span>
+            </div>
+
+            <div className="grid gap-2 text-xs text-amber-900 sm:grid-cols-2">
+              <div className="rounded-lg bg-white/80 p-2.5 border border-amber-200">
+                <span className="font-bold text-amber-950 block mb-0.5">
+                  ⏱️ {lang.startsWith("kn") ? "ಅಭೀಷ್ಟ ಮುಹೂರ್ತ (Auspicious Timing):" : "Auspicious Timing:"}
+                </span>
+                <span>{poojaVidhiDetails.auspiciousTime}</span>
+              </div>
+              <div className="rounded-lg bg-white/80 p-2.5 border border-amber-200">
+                <span className="font-bold text-amber-950 block mb-0.5">
+                  🌟 {lang.startsWith("kn") ? "ಪೂಜಾ ಫಲ (Spiritual Benefit):" : "Spiritual Benefit:"}
+                </span>
+                <span>{poojaVidhiDetails.fruit}</span>
+              </div>
+            </div>
+
+            <div className="rounded-lg bg-white/90 p-3 border border-amber-200 space-y-1.5 text-xs text-amber-950">
+              <span className="font-bold text-amber-950 block mb-1">
+                📋 {lang.startsWith("kn") ? "ಪೂಜಾ ವಿಧಾನದ ಹಂತಗಳು (Step-by-Step Pooja Vidhi Procedure):" : "Step-by-Step Pooja Vidhi Procedure:"}
+              </span>
+              <ol className="list-decimal list-inside space-y-1 text-amber-900 leading-relaxed">
+                {poojaVidhiDetails.steps.map((step: string, idx: number) => (
+                  <li key={idx}>{step}</li>
+                ))}
+              </ol>
+            </div>
+
+            <div className="rounded-lg bg-amber-100/80 p-2.5 border border-amber-300/60 text-xs text-amber-950">
+              <span className="font-bold text-amber-950 block mb-0.5">
+                💐 {lang.startsWith("kn") ? "ಅಗತ್ಯ ಪೂಜಾ ದ್ರವ್ಯಗಳು ಹಾಗೂ ನೈವೇದ್ಯ (Required Items & Offerings):" : "Required Items & Offerings:"}
+              </span>
+              <span>{poojaVidhiDetails.requiredItems}</span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* QR Code Calendar Destination Target Selector */}
