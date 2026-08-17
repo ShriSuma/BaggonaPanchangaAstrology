@@ -1328,7 +1328,7 @@ export const SevaAnugrahaGuidancePrint = ({
               textAlign: "center"
             }}
           >
-            <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, letterSpacing: "normal" }}>
+            <div style={{ fontSize: 11.5, color: GOLD, letterSpacing: "normal" }}>
               <div>ॐ ತ್ರ್ಯಂಬಕಂ ಯಜಾಮಹೇ ಸುಗಂಧಿಂ ಪುಷ್ಟಿವರ್ಧನಮ್ |</div>
               <div>ಉರ್ವಾರುಕಮಿವ ಬಂಧನಾನ್ಮೃತ್ಯೋರ್ಮುಕ್ಷೀಯ ಮಾಮೃತಾತ್ ||</div>
             </div>
