@@ -594,7 +594,9 @@ export function generateQrPayloadByTarget(
     }
     
     // Google Calendar web subscription URL (Production)
-    return `https://calendar.google.com/calendar/r?cid=webcal://${originHost}/api/calendar?token=${token}`;
+    // CRITICAL: URL-encode the entire webcal target URL so query parameters like ?token= aren't stripped by Google's URL parser!
+    const feedUrl = `webcal://${originHost}/api/calendar?token=${token}`;
+    return `https://calendar.google.com/calendar/r?cid=${encodeURIComponent(feedUrl)}`;
   }
 
   const token = encodeDevoteeToken({

@@ -5,7 +5,7 @@
       "destination": "https://api.sunrise-sunset.org/json"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
   ]
