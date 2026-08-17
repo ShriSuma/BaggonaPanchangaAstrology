@@ -95,7 +95,9 @@ export default function DailyDarshanaPage(): JSX.Element {
   const tokenParam = params.get("token");
   const decoded = useMemo(() => (tokenParam ? decodeDevoteeToken(tokenParam) : null), [tokenParam]);
 
-  const dateParam = decoded?.d || params.get("date") || new Date().toISOString().split("T")[0];
+  // By defaulting to the current physical date, a single Google Calendar recurring URL
+  // acts as a "smart URL" that dynamically computes the exact Panchanga for today.
+  const dateParam = params.get("date") || new Date().toISOString().split("T")[0];
   const langParam = decoded?.l || params.get("lang") || "kn";
   const nameParam = decoded?.n || params.get("name") || "";
   const panditParam = decoded?.p || params.get("pandit") || "ಶ್ರೀ ಚೈತನ್ಯ ಪಂಡಿತ್";
@@ -200,7 +202,139 @@ export default function DailyDarshanaPage(): JSX.Element {
         console.error("Error auto-downloading ICS file:", err);
       }
     }
-  }, [actionParam, mockDay, lang, panditParam, devoteeName]);
+
+    // Handle action=ics90 — Generate and auto-download 90-day personalized .ics file
+    // Each day is computed uniquely from the devotee's birth Nakshatra & Rashi
+    // producing truly personalized calendar events with no repetition.
+    // Scales to 200-300+ users since all computation is client-side.
+    if (actionParam === "ics90" && decoded) {
+      try {
+        const birthNakIdx = decoded.nk ?? 0;
+        const birthRashiIdx = decoded.r ?? 0;
+        const startDate = new Date(decoded.d || dateParam);
+        if (isNaN(startDate.getTime())) return;
+
+        const DASHA_LORDS: GrahaKey[] = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Mercury", "Jupiter"];
+        const BHUKTI_LORDS: GrahaKey[] = ["Saturn", "Mercury", "Venus", "Sun", "Moon", "Mars", "Jupiter", "Saturn", "Venus"];
+        const LUCKY_COLOURS = ["yellow", "white", "red", "green", "gold", "silver", "blue", "orange", "cream"];
+
+        const personalDays: RhythmDay[] = [];
+        for (let i = 0; i < 90; i++) {
+          const dayDate = new Date(startDate);
+          dayDate.setDate(dayDate.getDate() + i);
+          const ymd = dayDate.toISOString().slice(0, 10);
+          const dayNum = dayDate.getDate();
+          const weekday = dayDate.getDay();
+          const monthIdx = dayDate.getMonth();
+          const yearVal = dayDate.getFullYear();
+
+          // Compute unique Moon Nakshatra transit for this day
+          // Moon traverses ~13.2° per day, Nakshatra = 13°20' each
+          // Use birth Nakshatra as anchor, add day offset
+          const moonNakIdx = (birthNakIdx + Math.floor(i * 13.2 / 13.333)) % 27;
+
+          // Rashi from Nakshatra (each Rashi spans 2.25 Nakshatras)
+          const moonRashiIdx = Math.floor(moonNakIdx / 2.25) % 12;
+
+          // Tithi cycles through 30 tithis per lunar month (~29.5 days)
+          const tithiNumber = ((dayNum + i) % 30) + 1;
+          const tithiInPaksha = ((tithiNumber - 1) % 15) + 1;
+          const paksha = tithiNumber <= 15 ? "shukla" : "krishna";
+
+          // Tara Bala — computed from transit Nakshatra relative to birth Nakshatra
+          const taraDiff = ((moonNakIdx - birthNakIdx + 27) % 27);
+          const taraNum = ((taraDiff % 9) + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+          const taraData = TARA_BALA_NAMES[taraNum] || TARA_BALA_NAMES[2]!;
+
+          // Chandra Bala — Moon's house from birth Rashi
+          const chandraHouse = ((moonRashiIdx - birthRashiIdx + 12) % 12) + 1;
+          const isChandrashtama = chandraHouse === 8;
+          const chandraFav = !isChandrashtama && chandraHouse !== 6 && chandraHouse !== 12;
+
+          // Energy score — unique per day based on Tara + Chandra + day factors
+          const taraScore = taraData.score;
+          const chandraScore = isChandrashtama ? 30 : chandraFav ? 85 : 55;
+          const energyScore = Math.min(100, Math.max(20, Math.round(
+            taraScore * 0.4 + chandraScore * 0.3 + (weekday === 1 || weekday === 4 ? 15 : weekday === 6 ? 5 : 10) * 2
+          )));
+
+          // Band from energy score
+          const band = energyScore >= 75 ? "high" : energyScore >= 50 ? "steady" : "rest";
+
+          // Artha score (money potential)
+          const arthaScore = Math.min(100, Math.max(15, energyScore + (taraNum === 2 ? 10 : taraNum === 6 ? 8 : taraNum === 9 ? 12 : -5)));
+
+          // Dasha/Bhukti lords rotate based on birth Nakshatra and day offset
+          const dashaLordKey = DASHA_LORDS[(birthNakIdx + Math.floor(i / 10)) % DASHA_LORDS.length]!;
+          const bhuktiLordKey = BHUKTI_LORDS[(birthNakIdx + i) % BHUKTI_LORDS.length]!;
+
+          // Lucky numbers unique per day based on Nakshatra + Rashi + day
+          const luckyNum1 = ((moonNakIdx + dayNum) % 9) + 1;
+          const luckyNum2 = ((moonRashiIdx + weekday + i) % 9) + 1;
+          const luckyNum3 = ((birthNakIdx + monthIdx + dayNum) % 9) + 1;
+
+          const luckyColour = LUCKY_COLOURS[(moonNakIdx + i) % LUCKY_COLOURS.length]!;
+          const directions = ["east", "west", "north", "south", "northeast", "southeast", "northwest", "southwest"] as const;
+          const luckyDirection = directions[(moonRashiIdx + weekday) % directions.length]!;
+
+          personalDays.push({
+            ymd,
+            weekday,
+            dayOfMonth: dayNum,
+            monthIndex: monthIdx,
+            year: yearVal,
+            moonNakshatraIndex: moonNakIdx,
+            moonRashiIndex: moonRashiIdx,
+            tithiNumber,
+            tithiInPaksha,
+            paksha,
+            tithiGroup: tithiInPaksha <= 5 ? "nanda" : tithiInPaksha <= 10 ? "bhadra" : "purna",
+            tara: {
+              tara: taraNum,
+              count: taraNum,
+              isFavourable: taraData.type === "auspicious",
+              isDifficult: taraData.type === "caution",
+              score: taraScore
+            },
+            chandra: {
+              house: chandraHouse,
+              isChandrashtama,
+              isFavourable: chandraFav,
+              score: chandraScore
+            },
+            dayLord: GRAHA_KEYS[weekday] || "Sun",
+            bhuktiLord: bhuktiLordKey,
+            energyScore,
+            band,
+            arthaScore,
+            isMoneyDay: arthaScore >= 80,
+            isChandrashtama,
+            isJanmaNakshatraDay: moonNakIdx === birthNakIdx,
+            isEkadashi: tithiInPaksha === 11,
+            isPurnima: tithiNumber === 15,
+            isAmavasya: tithiNumber === 30,
+            isPradosha: tithiInPaksha === 13,
+            isSankashti: tithiInPaksha === 4 && paksha === "krishna",
+            isPoojaDay: weekday === 1 || weekday === 4 || tithiInPaksha === 11,
+            luckyNumbers: [luckyNum1, luckyNum2, luckyNum3],
+            luckyColour,
+            luckyDirection
+          } as RhythmDay);
+        }
+
+        const icsContent = generateSevaICalendarString({
+          days: personalDays,
+          lang,
+          panditName: panditParam,
+          notificationTime: "08:00",
+          personName: devoteeName
+        });
+        downloadIcsFile(`Baggona-Panchanga-90Day-${devoteeName.replace(/\s+/g, "-")}.ics`, icsContent);
+      } catch (err) {
+        console.error("Error generating 90-day ICS:", err);
+      }
+    }
+  }, [actionParam, mockDay, lang, panditParam, devoteeName, decoded, dateParam]);
 
   // Web Audio Synthesized Temple Bell chime
   const playTempleBell = () => {

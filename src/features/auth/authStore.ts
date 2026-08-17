@@ -1,15 +1,24 @@
 import { create } from "zustand";
 import { db, type UserRecord } from "../../db/indexedDb";
+import CryptoJS from "crypto-js";
 
 /**
- * SHA-256 password hashing using Browser SubtleCrypto API
+ * SHA-256 password hashing using Browser SubtleCrypto API with crypto-js fallback for non-secure contexts (HTTP)
  */
 export async function hashPassword(password: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+  if (typeof crypto !== "undefined" && crypto.subtle) {
+    try {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(password);
+      const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+    } catch (e) {
+      console.warn("SubtleCrypto failed, falling back to crypto-js", e);
+    }
+  }
+  // Fallback for non-secure contexts (e.g., mobile testing on local network IP like http://192.168.x.x)
+  return CryptoJS.SHA256(password).toString(CryptoJS.enc.Hex);
 }
 
 const AUTH_STORAGE_KEY = "baggona_auth_session";

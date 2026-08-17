@@ -568,10 +568,33 @@ export function generateQrPayloadByTarget(
 
   const origin = getSafeProductionOrigin(webAppBaseUrl);
 
+  const originHost = origin.replace("https://", "").replace("http://", "");
+  const isLocalHost = originHost.includes("localhost") || originHost.startsWith("192.168.") || originHost.startsWith("127.0.") || originHost.startsWith("10.");
+
   if (target === "google") {
-    // Use compact URL for QR codes to stay within QR code data capacity
-    // The full URL with Unicode/emojis exceeds QR max (~2953 bytes)
-    return generateCompactGoogleCalendarUrlForQR(options);
+    // Generate a webcal feed URL for the Google Calendar subscription.
+    // This allows Google Calendar to fetch the 90 unique events (with colors) natively.
+    const token = encodeDevoteeToken({
+      n: devoteeDisplayName,
+      nk: firstDay?.moonNakshatraIndex,
+      r: firstDay?.moonRashiIndex,
+      p: safePandit,
+      d: firstDay?.ymd || new Date().toISOString().slice(0, 10),
+      l: lang,
+      pl: platform || "android",
+      t: "google"
+    });
+    
+    // CRITICAL: Google Calendar's web subscription feature requires the URL to be publicly accessible
+    // over the internet (because Google's servers fetch the .ics file, not the user's phone).
+    // If testing locally (e.g. 192.168.x.x), we MUST fallback to downloading the file directly
+    // so the user can tap it and add to calendar locally.
+    if (isLocalHost) {
+      return `${origin}/daily?token=${token}&action=ics90`;
+    }
+    
+    // Google Calendar web subscription URL (Production)
+    return `https://calendar.google.com/calendar/r?cid=webcal://${originHost}/api/calendar?token=${token}`;
   }
 
   const token = encodeDevoteeToken({
@@ -586,7 +609,8 @@ export function generateQrPayloadByTarget(
   });
 
   if (target === "webcal") {
-    return `${origin}/daily?token=${token}&action=ics`;
+    // Apple Calendar native subscription URL
+    return `webcal://${originHost}/api/calendar?token=${token}`;
   }
 
   // target === "sanctum"

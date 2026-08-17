@@ -3,6 +3,10 @@
     {
       "source": "/api/sunrise-sunset",
       "destination": "https://api.sunrise-sunset.org/json"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }

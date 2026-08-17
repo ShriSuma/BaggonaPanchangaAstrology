@@ -26,6 +26,7 @@ import {
   type SevaLang,
   type L5
 } from "../../../features/seva/sevaLocale";
+import { transliterateName } from "../../../utils/transliterator";
 import {
   BAND_STYLE,
   MARK,
@@ -72,7 +73,9 @@ const pageStyle: React.CSSProperties = {
   padding: "38px 42px",
   fontFamily: "'Noto Sans', 'Nirmala UI', 'Segoe UI', system-ui, sans-serif",
   color: INK,
-  position: "relative"
+  position: "relative",
+  lineHeight: 1.8,
+  letterSpacing: "normal"
 };
 
 const OrnamentRule = (): JSX.Element => (
@@ -127,7 +130,7 @@ const SheetHeader = ({
       }}
     >
       {[
-        [pick(T.labelName!, lang), identity.personName],
+        [pick(T.labelName!, lang), (identity as any).aiTransliteratedName || transliterateName(identity.personName, lang)],
         [pick(T.labelRashi!, lang), pick(RASHI_L5[identity.rashiIndex]!, lang)],
         [pick(T.labelNakshatra!, lang), pick(NAKSHATRA_L5[identity.nakshatraIndex]!, lang)],
         ...(identity.gotra ? [[pick(T.labelGotra!, lang), identity.gotra]] : [])
@@ -397,14 +400,15 @@ export const SevaCalendarPrint = ({ rhythm, lang, identity }: CalendarPrintProps
             style={{
               marginTop: 8,
               fontSize: 15,
-              lineHeight: 1.8,
-              color: INK,
-              whiteSpace: "pre-line"
+              lineHeight: 2.4,
+              color: INK
             }}
           >
-            {SHLOKA_SHIVA.sanskrit}
+            {SHLOKA_SHIVA.sanskrit.split('\n').map((line, i) => (
+              <div key={i}>{line}</div>
+            ))}
           </div>
-          <div style={{ marginTop: 8, fontSize: 11, color: INK_SOFT, lineHeight: 1.6 }}>
+          <div style={{ marginTop: 8, fontSize: 11, color: INK_SOFT, lineHeight: 1.8 }}>
             {pick(SHLOKA_SHIVA.meaning, lang)}
           </div>
         </div>
@@ -511,7 +515,7 @@ export const SevaLetterPrint = ({
         <OrnamentRule />
 
         <div style={{ fontSize: 16, fontWeight: 700, marginTop: 6, color: INK }}>
-          {pick(LETTER_L5.salutation!, lang)} {identity.personName},
+          {pick(LETTER_L5.salutation!, lang)} {(identity as any).aiTransliteratedName || transliterateName(identity.personName, lang)},
         </div>
 
         <p style={paragraph}>{pick(LETTER_L5.opening!, lang)}</p>
@@ -592,11 +596,13 @@ export const SevaLetterPrint = ({
         >
           <div
             lang="sa"
-            style={{ fontSize: 14.5, lineHeight: 1.8, whiteSpace: "pre-line", color: INK }}
+            style={{ fontSize: 14.5, lineHeight: 2.4, color: INK }}
           >
-            {(primarySeva?.seva?.shloka ?? (primarySeva as any)?.shloka ?? SHLOKA_SHIVA).sanskrit}
+            {(primarySeva?.seva?.shloka ?? (primarySeva as any)?.shloka ?? SHLOKA_SHIVA).sanskrit.split('\n').map((line: string, i: number) => (
+              <div key={i}>{line}</div>
+            ))}
           </div>
-          <div style={{ marginTop: 6, fontSize: 11, color: INK_SOFT, lineHeight: 1.6 }}>
+          <div style={{ marginTop: 6, fontSize: 11, color: INK_SOFT, lineHeight: 1.8 }}>
             {pick((primarySeva?.seva?.shloka ?? (primarySeva as any)?.shloka ?? SHLOKA_SHIVA).meaning, lang)}
           </div>
         </div>
@@ -678,10 +684,10 @@ export const SevaQRCodePrint = ({
         }}
       >
         <div>
-          <div style={{ fontSize: 22, fontWeight: 700, color: INK, marginBottom: 6, lineHeight: 1.4 }}>
+          <div style={{ fontSize: 22, fontWeight: 700, color: INK, marginBottom: 6 }}>
             {pick(T.qrPrintHeader!, lang)}
           </div>
-          <div style={{ fontSize: 13, color: INK_SOFT, marginBottom: 12, maxWidth: 660, lineHeight: 1.6 }}>
+          <div style={{ fontSize: 13, color: INK_SOFT, marginBottom: 12, maxWidth: 660 }}>
             {pick(T.scanQrDesc!, lang)}
           </div>
         </div>
@@ -704,7 +710,7 @@ export const SevaQRCodePrint = ({
               QR Code Consecrating...
             </div>
           )}
-          <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, marginTop: 8, letterSpacing: 0.3 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, marginTop: 8 }}>
             {target === "google"
               ? (lang.startsWith("kn") ? "🌟 ಗೂಗಲ್ ಕ್ಯಾಲೆಂಡರ್ 90-ದಿನಗಳ ನೇರ ಸಿಂಕ್" : "🌟 Google Calendar 90-Day Live Sync")
               : target === "webcal"
@@ -715,10 +721,10 @@ export const SevaQRCodePrint = ({
         </div>
 
         <div style={{ textAlign: "left", width: "100%", maxWidth: 640, backgroundColor: PANEL, padding: "16px 22px", borderRadius: 14, border: `1.5px solid ${GOLD_LIGHT}`, boxSizing: "border-box" }}>
-          <div style={{ fontSize: 13.5, fontWeight: 700, color: GOLD, marginBottom: 10, textTransform: "uppercase", letterSpacing: 0.5, textAlign: "center" }}>
+          <div style={{ fontSize: 13.5, fontWeight: 700, color: GOLD, marginBottom: 10, textTransform: "uppercase", textAlign: "center" }}>
             {pick(T.scanQrTitle!, lang)}
           </div>
-          <div style={{ fontSize: 13.5, color: INK, lineHeight: 1.65 }}>
+          <div style={{ fontSize: 13.5, color: INK }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
               <span style={{ fontSize: 20 }}>📱</span> {pick(T.qrPrintStep1!, lang)}
             </div>
@@ -1212,7 +1218,6 @@ export const SevaAnugrahaGuidancePrint = ({
           justifyContent: "space-between"
         }}
       >
-        <div>
           {/* Header */}
           <div style={{ textAlign: "center" }}>
             <div style={{ fontSize: 20, color: GOLD, letterSpacing: 2 }}>❖</div>
@@ -1323,14 +1328,14 @@ export const SevaAnugrahaGuidancePrint = ({
               textAlign: "center"
             }}
           >
-            <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, letterSpacing: 0.5 }}>
-              ॐ ತ್ರ್ಯಂಬಕಂ ಯಜಾಮಹೇ ಸುಗಂಧಿಂ ಪುಷ್ಟಿವರ್ಧನಮ್ | ಉರ್ವಾರುಕಮಿವ ಬಂಧನಾನ್ಮೃತ್ಯೋರ್ಮುಕ್ಷೀಯ ಮಾಮೃತಾತ್ ||
+            <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, letterSpacing: "normal" }}>
+              <div>ॐ ತ್ರ್ಯಂಬಕಂ ಯಜಾಮಹೇ ಸುಗಂಧಿಂ ಪುಷ್ಟಿವರ್ಧನಮ್ |</div>
+              <div>ಉರ್ವಾರುಕಮಿವ ಬಂಧನಾನ್ಮೃತ್ಯೋರ್ಮುಕ್ಷೀಯ ಮಾಮೃತಾತ್ ||</div>
             </div>
             <div style={{ fontSize: 10, color: INK_SOFT, marginTop: 3, lineHeight: 1.55 }}>
               {pick(MANTHRA_DESC_DICT, lang)}
             </div>
           </div>
-        </div>
 
         {/* Section 5: Priest Direct Consultation Card & Seal */}
         <div
@@ -1529,7 +1534,7 @@ export const SevaRemediesAnnualPrint = ({
         style={{
           border: `3px double ${GOLD}`,
           borderRadius: 16,
-          padding: "20px 24px",
+          padding: "24px 28px",
           minHeight: PAGE_H - 76,
           boxSizing: "border-box",
           backgroundColor: PAPER,
@@ -1539,14 +1544,13 @@ export const SevaRemediesAnnualPrint = ({
           justifyContent: "space-between"
         }}
       >
-        <div>
           {/* Header */}
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 20, color: GOLD, letterSpacing: 2 }}>❖</div>
-            <div style={{ fontSize: 17, fontWeight: 700, color: INK, marginTop: 2, lineHeight: 1.45 }}>
+            <div style={{ fontSize: 20, color: GOLD, letterSpacing: "normal" }}>❖</div>
+            <div style={{ fontSize: 18.5, fontWeight: 700, color: INK, marginTop: 3, lineHeight: 1.6, letterSpacing: "normal" }}>
               {pick(TITLE_DICT, lang)}
             </div>
-            <div style={{ fontSize: 11, color: INK_SOFT, marginTop: 3, lineHeight: 1.6, maxWidth: 720, margin: "3px auto 0" }}>
+            <div style={{ fontSize: 12, color: INK_SOFT, marginTop: 4, lineHeight: 1.8, maxWidth: 760, margin: "4px auto 0", letterSpacing: "normal" }}>
               {pick(SUBTITLE_DICT, lang)}
             </div>
           </div>
@@ -1559,7 +1563,7 @@ export const SevaRemediesAnnualPrint = ({
               {pick(CYCLE_TITLE_DICT, lang)}
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               {CYCLE_LIST.map((cy, idx) => (
                 <div
                   key={idx}
@@ -1567,14 +1571,14 @@ export const SevaRemediesAnnualPrint = ({
                     border: `1.5px solid ${GOLD_LIGHT}`,
                     borderRadius: 9,
                     backgroundColor: PANEL,
-                    padding: "10px 14px",
+                    padding: "12px 16px",
                     boxSizing: "border-box"
                   }}
                 >
-                  <div style={{ fontSize: 12, fontWeight: 700, color: INK, marginBottom: 3, lineHeight: 1.4 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: INK, marginBottom: 4, lineHeight: 1.5, letterSpacing: "normal" }}>
                     {pick(cy.title, lang)}
                   </div>
-                  <div style={{ fontSize: 10.5, color: INK_SOFT, lineHeight: 1.6 }}>
+                  <div style={{ fontSize: 11.5, color: INK_SOFT, lineHeight: 1.8, letterSpacing: "normal" }}>
                     {pick(cy.desc, lang)}
                   </div>
                 </div>
@@ -1588,7 +1592,7 @@ export const SevaRemediesAnnualPrint = ({
               {pick(VASTU_TITLE_DICT, lang)}
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 9 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
               {VASTU_RULES.map((vr, idx) => (
                 <div
                   key={idx}
@@ -1596,14 +1600,14 @@ export const SevaRemediesAnnualPrint = ({
                     border: `1px solid ${GOLD_LIGHT}`,
                     borderRadius: 9,
                     backgroundColor: "#FFFFFF",
-                    padding: "10px 12px",
+                    padding: "12px 14px",
                     boxSizing: "border-box"
                   }}
                 >
-                  <div style={{ fontSize: 11.5, fontWeight: 700, color: INK, marginBottom: 3, lineHeight: 1.4 }}>
+                  <div style={{ fontSize: 12.5, fontWeight: 700, color: INK, marginBottom: 4, lineHeight: 1.5, letterSpacing: "normal" }}>
                     {pick(vr.title, lang)}
                   </div>
-                  <div style={{ fontSize: 10, color: INK_SOFT, lineHeight: 1.55 }}>
+                  <div style={{ fontSize: 11, color: INK_SOFT, lineHeight: 1.75, letterSpacing: "normal" }}>
                     {pick(vr.desc, lang)}
                   </div>
                 </div>
@@ -1625,7 +1629,7 @@ export const SevaRemediesAnnualPrint = ({
             <div style={{ fontSize: 11.5, fontWeight: 700, color: GOLD, marginBottom: 3 }}>
               ✦ {pick({ kn: "ಪಿತೃ ತರ್ಪಣ ಹಾಗೂ ಕುಲದೇವರ ಆಶೀರ್ವಾದ", hi: "पितृ तर्पण एवं कुलदेवता आशीर्वाद", te: "పితృ తర్పణం మరియు కులదేవత ఆశీర్వాదం", ta: "பித்ரு தர்பணம் & குலதெய்வ ஆசீர்வாதம்", en: "Ancestral Peace & Clan Deity Grace Guidelines" }, lang)} ✦
             </div>
-            <div style={{ fontSize: 10, color: INK_SOFT, lineHeight: 1.55 }}>
+            <div style={{ fontSize: 11.5, color: INK_SOFT, lineHeight: 1.8, letterSpacing: "normal" }}>
               {pick({ kn: "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರವು ಪರಮ ಪವಿತ್ರ ರುದ್ರಪಾದ ಕ್ಷೇತ್ರವಾಗಿದ್ದು, ಇಲ್ಲಿ ಪಿತೃ ಶ್ರಾದ್ಧ, ತರ್ಪಣ ಮಾಡುವುದರಿಂದ ಏಳು ತಲೆಮಾರಿನ ಪಿತೃಗಳಿಗೆ ಮುಕ್ತಿ ದೊರೆತು, ಸಂತತಿ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಸಮೃದ್ಧಿ ಲಭಿಸುತ್ತದೆ.", hi: "गोकर्ण क्षेत्र परम पवित्र रुद्रपाद तीर्थ है, यहाँ पितृ तर्पण कराने से सात पीढ़ियों के पितरों को सद्गति मिलती है तथा वंश समृद्धि प्राप्त होती है।", te: "గోకర్ణ క్షేత్రం పరమ పవిత్ర రుద్రపాద క్షేత్రం, ఇక్కడ పితృ తర్పణం చేయడం వలన ఏడు తరాల పితృదేవతలకు ముక్తి లభించి వంశాభివృద్ధి జరుగుతుంది.", ta: "கோகர்ண க்ஷேத்திரம் ருத்ரபாத தீர்த்தமாகும். இங்கு பித்ரு தர்பணம் செய்வது 7 தலைமுறை பித்ருக்களுக்கு முக்தியும் வம்ச சுபிட்சமும் தரும்.", en: "Gokarna is the highly sacred Rudrapada Kshetra. Performing ancestral rites here guarantees liberation to 7 generations and bestows family prosperity." }, lang)}
             </div>
           </div>
@@ -1644,11 +1648,10 @@ export const SevaRemediesAnnualPrint = ({
             <div style={{ fontSize: 11.5, fontWeight: 700, color: GOLD, marginBottom: 3 }}>
               ✦ {pick({ kn: "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸಾದ ರಕ್ಷಣೆ ಹಾಗೂ ವಿನಿಯೋಗ", hi: "गोकर्ण महाबलेश्वर प्रसाद उपयोग एवं संरक्षण", te: "గోకర్ణ మహాబలేశ్వర ప్రసాదం వినియోగం మరియు సంరక్షణ", ta: "கோகர்ண மகாபலேஸ்வர பிரசாத உபயோகம் & பாதுகாப்பு", en: "Gokarna Mahabaleshwara Sacred Prasada Preservation" }, lang)} ✦
             </div>
-            <div style={{ fontSize: 10, color: INK_SOFT, lineHeight: 1.55 }}>
+            <div style={{ fontSize: 11.5, color: INK_SOFT, lineHeight: 1.8, letterSpacing: "normal" }}>
               {pick({ kn: "ಲಭಿಸಿದ ಪವಿತ್ರ ವಿಭೂತಿ, ಕುಂಕುಮ ಹಾಗೂ ನಾಣ್ಯ ಪ್ರಸಾದವನ್ನು ಮನೆಯ ದೇವರ ಮನೆಯಲ್ಲಿ ಅಥವಾ ತಿಜೋರಿಯಲ್ಲಿ ಸ್ಥಾಪಿಸಿ. ಶುಭ ಕಾರ್ಯಗಳಿಗೆ ತೆರಳುವಾಗ ವಿಭೂತಿ ಧರಿಸುವುದು ಸಕಲ ಕಾರ್ಯಗಳಲ್ಲಿ ಜಯ ನೀಡುತ್ತದೆ.", hi: "प्राप्त पवित्र विभूति, कुमकुम तथा प्रसाद सिक्के को पूजा घर अथवा तिजोरी में रखें। शुभ कार्य हेतु निकलते समय विभूति धारण करने से सर्व कार्यों में विजय मिलती है।", te: "లభించిన విభూతి, కుంకుమ మరియు ప్రసాద నాణేన్ని పూజాగదిలో ఉంచండి. శుభ కార్యాలకు వెళ్ళేటప్పుడు విభూతి ధరించడం వలన విజయం లభిస్తుంది.", ta: "பெற்ற விபூதி, குங்குமம் மற்றும் பிரசாத நாணயத்தை பூஜை அறையில் வைக்கவும். சுப காரியங்களுக்குச் செல்லும்போது விபூதி அணிவது வெற்றி தரும்.", en: "Store sacred Gokarna Vibhuti, Kumkuma, and blessed Prasada coin in your altar. Applying Vibhuti before journeys ensures divine protection and success." }, lang)}
             </div>
           </div>
-        </div>
 
         {/* Section 5: Chief Archaka Official Seal Badge */}
         <div
@@ -1667,13 +1670,13 @@ export const SevaRemediesAnnualPrint = ({
           }}
         >
           <div style={{ flex: 1, textAlign: "left" }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: GOLD, marginBottom: 2 }}>
+            <div style={{ fontSize: 12.5, fontWeight: 700, color: GOLD, marginBottom: 3, letterSpacing: "normal", lineHeight: 1.5 }}>
               {pick({ kn: "✦ ಮುಖ್ಯ ಅರ್ಚಕರ ಅಧಿಕೃತ ಮುದ್ರೆ ಹಾಗೂ ಆಶೀರ್ವಾದ ✦", hi: "✦ मुख्य अर्चक आधिकारिक मुहर एवं आशीर्वाद ✦", te: "✦ ముఖ్య అర్చకుల అధికారిక ముద్ర మరియు ఆశీర్వాదం ✦", ta: "✦ முதன்மை அர்ச்சகர் அதிகாரப்பூர்வ முத்திரை & ஆசீர்வாதம் ✦", en: "✦ Chief Archaka Official Seal & Benediction ✦" }, lang)}
             </div>
-            <div style={{ fontSize: 11.5, color: INK, fontWeight: 700 }}>
+            <div style={{ fontSize: 12, color: INK, fontWeight: 700, lineHeight: 1.6, letterSpacing: "normal" }}>
               {safePanditName || "ಚೈತನ್ಯ ಪಂಡಿತ"} — {pick({ kn: "ಮುಖ್ಯ ಅರ್ಚಕರು, ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಕ್ಷೇತ್ರ", hi: "मुख्य अर्चक, गोकर्ण महाबलेश्वर क्षेत्र", te: "ముఖ్య అర్చకులు, గోకర్ణ మహాబలేశ్వర క్షేత్రం", ta: "முதன்மை அர்ச்சகர், கோகர்ண மகாபலேஸ்வர க்ஷேத்திரம்", en: "Chief Archaka, Gokarna Mahabaleshwara Kshetra" }, lang)}
             </div>
-            <div style={{ fontSize: 10, color: INK_SOFT, marginTop: 2, lineHeight: 1.55 }}>
+            <div style={{ fontSize: 11, color: INK_SOFT, marginTop: 3, lineHeight: 1.75, letterSpacing: "normal" }}>
               {pick({ kn: "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ದಿವ್ಯ ಕೃಪೆಯು ನಿಮ್ಮ ಸಮಸ್ತ ಕುಟುಂಬಕ್ಕೆ ಸದಾ ರಕ್ಷಣೆ, ಸುಖ-ಸಂತೋಷ ಹಾಗೂ ನಿರಂತರ ಆಯುರಾರೋಗ್ಯವನ್ನು ಕರುಣಿಸಲಿ ಎಂದು ಪ್ರಾರ್ಥಿಸುತ್ತೇವೆ.", hi: "श्री महाबलेश्वर स्वामी की दिव्य कृपा आपके संपूर्ण परिवार को सदा सुख, शांति एवं उत्तम स्वास्थ्य प्रदान करे।", te: "శ్రీ మహాబలేశ్వర స్వామివారి దివ్య కృప మీ కుటుంబానికి సదా ఆయురారోగ్యాలు, సుఖశాంతులను ప్రసాదించుగాక.", ta: "ஸ்ரீ மகாபலேஸ்வர சுவாமியின் திவ்ய அருள் உங்கள் குடும்பத்திற்கு எந்நாளும் நல்வாழ்வும் ஆரோக்கியமும் தரட்டும்.", en: "May the divine grace of Shri Mahabaleshwara always protect your family with enduring peace, joy, and vitality." }, lang)}
             </div>
           </div>
@@ -1710,7 +1713,7 @@ export const SevaRemediesAnnualPrint = ({
             left: 36,
             right: 36,
             textAlign: "center",
-            fontSize: 9.5,
+            fontSize: 10,
             color: INK_SOFT
           }}
         >
@@ -1936,7 +1939,7 @@ export const SevaPoojaMahatmePrint = ({
         style={{
           border: `3px double ${GOLD}`,
           borderRadius: 16,
-          padding: "20px 24px",
+          padding: "24px 28px",
           minHeight: PAGE_H - 76,
           boxSizing: "border-box",
           backgroundColor: PAPER,
@@ -1946,14 +1949,13 @@ export const SevaPoojaMahatmePrint = ({
           justifyContent: "space-between"
         }}
       >
-        <div>
           {/* Header */}
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 20, color: GOLD, letterSpacing: 2 }}>❖</div>
-            <div style={{ fontSize: 17, fontWeight: 700, color: INK, marginTop: 2, lineHeight: 1.45 }}>
+            <div style={{ fontSize: 20, color: GOLD, letterSpacing: "normal" }}>❖</div>
+            <div style={{ fontSize: 18.5, fontWeight: 700, color: INK, marginTop: 3, lineHeight: 1.6, letterSpacing: "normal" }}>
               ✦ {sevaTitle} — {pick({ kn: "ಮಹಾಪೂಜಾ ಮಹಿಮೆ ಹಾಗೂ ದಿವ್ಯ ಫಲಶ್ರುತಿ", hi: "महापूजा महिमा एवं दिव्य फलश्रुति", te: "మహాపూజా మహిమ మరియు దివ్య ఫలశ్రుతి", ta: "மகாபூஜை மகிமை மற்றும் திவ்ய பலன்கள்", en: "Sacred Pooja Significance & Divine Blessings" }, lang)} ✦
             </div>
-            <div style={{ fontSize: 11, color: INK_SOFT, marginTop: 3, lineHeight: 1.6 }}>
+            <div style={{ fontSize: 12, color: INK_SOFT, marginTop: 4, lineHeight: 1.8, maxWidth: 760, margin: "4px auto 0", letterSpacing: "normal" }}>
               {pick({ kn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ನೆರವೇರಿದ ಪೂಜೆಯ ವಿಸ್ತಾರ ವಿವರ ಹಾಗೂ ನವಗ್ರಹ ಫಲಾವಳಿ", hi: "श्री क्षेत्र गोकर्ण महाबलेश्वर सन्निधि में संपन्न पूजा का विस्तृत विवरण एवं नवग्रह फलादेश", te: "శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర సన్నిధిలో నిర్వహించిన పూజ విశేషాలు మరియు నవగ్రహ ఫలాలు", ta: "ஸ்ரீ க்ஷேத்திர கோகர்ண மகாபலேஸ்வர சந்நிதியில் நடைபெற்ற பூஜையின் விவரங்கள் மற்றும் நவகிரக பலன்கள்", en: "Detailed spiritual exposition, planetary blessings, and divine fruits of the sacred Gokarna Seva" }, lang)}
             </div>
           </div>
@@ -1968,14 +1970,14 @@ export const SevaPoojaMahatmePrint = ({
                   border: `1.5px solid ${GOLD_LIGHT}`,
                   borderRadius: 9,
                   backgroundColor: PANEL,
-                  padding: "10px 14px",
+                  padding: "12px 14px",
                   boxSizing: "border-box"
                 }}
               >
-                <div style={{ fontSize: 12, fontWeight: 700, color: GOLD, marginBottom: 4, lineHeight: 1.4 }}>
+                <div style={{ fontSize: 12.5, fontWeight: 700, color: GOLD, marginBottom: 4, lineHeight: 1.5, letterSpacing: "normal" }}>
                   {pick({ kn: "೧. ಪೂಜಾ ಮಹಾ ಸಂಕಲ್ಪ", hi: "१. पूजा महा संकल्प", te: "౧. పూజా మహా సంకల్పం", ta: "1. பூஜை மகா சங்கல்பம்", en: "1. What is this Sacred Seva?" }, lang)}
                 </div>
-                <div style={{ fontSize: 10.5, color: INK, lineHeight: 1.6 }}>
+                <div style={{ fontSize: 11, color: INK, lineHeight: 1.75, letterSpacing: "normal" }}>
                   {wPooja}
                 </div>
               </div>
@@ -1985,14 +1987,14 @@ export const SevaPoojaMahatmePrint = ({
                   border: `1.5px solid ${GOLD_LIGHT}`,
                   borderRadius: 9,
                   backgroundColor: "#FFFFFF",
-                  padding: "10px 14px",
+                  padding: "12px 14px",
                   boxSizing: "border-box"
                 }}
               >
-                <div style={{ fontSize: 12, fontWeight: 700, color: GOLD, marginBottom: 4, lineHeight: 1.4 }}>
+                <div style={{ fontSize: 12.5, fontWeight: 700, color: GOLD, marginBottom: 4, lineHeight: 1.5, letterSpacing: "normal" }}>
                   {pick({ kn: "೨. ಪೂಜೆಯ ಕಾರಣ", hi: "२. पूजा का कारण", te: "౨. పూజకు కారణం", ta: "2. பூஜையின் முக்கிய காரணம்", en: "2. Why is this Seva Performed?" }, lang)}
                 </div>
-                <div style={{ fontSize: 10.5, color: INK, lineHeight: 1.6 }}>
+                <div style={{ fontSize: 11, color: INK, lineHeight: 1.75, letterSpacing: "normal" }}>
                   {yPooja}
                 </div>
               </div>
@@ -2002,14 +2004,14 @@ export const SevaPoojaMahatmePrint = ({
                   border: `1.5px solid ${GOLD_LIGHT}`,
                   borderRadius: 9,
                   backgroundColor: PANEL,
-                  padding: "10px 14px",
+                  padding: "12px 14px",
                   boxSizing: "border-box"
                 }}
               >
-                <div style={{ fontSize: 12, fontWeight: 700, color: GOLD, marginBottom: 4, lineHeight: 1.4 }}>
+                <div style={{ fontSize: 12.5, fontWeight: 700, color: GOLD, marginBottom: 4, lineHeight: 1.5, letterSpacing: "normal" }}>
                   {pick({ kn: "೩. ದಿವ್ಯ ಫಲಶ್ರುತಿ", hi: "३. दिव्य फलश्रुति", te: "౩. దివ్య ఫలశ్రుతి", ta: "3. திவ்ய பலன்கள்", en: "3. Sacred Fruits & Benefits" }, lang)}
                 </div>
-                <div style={{ fontSize: 10.5, color: INK, lineHeight: 1.6 }}>
+                <div style={{ fontSize: 11, color: INK, lineHeight: 1.75, letterSpacing: "normal" }}>
                   {bPooja}
                 </div>
               </div>
@@ -2022,7 +2024,7 @@ export const SevaPoojaMahatmePrint = ({
               ✦ {pick({ kn: "೪ ಮೂಲ ಗ್ರಹಗಳ ಸ್ಥಿತಿ ಹಾಗೂ ಗೋಕರ್ಣ ಪೂಜಾ ಪ್ರಭಾವ", hi: "४ मूल ग्रहों की स्थिति एवं गोकर्ण पूजा प्रभाव", te: "౪ మూల గ్రహాల స్థితి మరియు గోకర్ణ పూజా ప్రభావం", ta: "4 மூல கிரகங்களின் நிலையும் கோகர்ண பூஜை பலனும்", en: "4 Primary Planetary Positions & Gokarna Pooja Grace" }, lang)} ✦
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               {GRAHA_GROUP_1.map((gr, idx) => (
                 <div
                   key={idx}
@@ -2034,13 +2036,13 @@ export const SevaPoojaMahatmePrint = ({
                     boxSizing: "border-box"
                   }}
                 >
-                  <div style={{ fontSize: 12, fontWeight: 700, color: INK, marginBottom: 2, lineHeight: 1.4 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: INK, marginBottom: 3, lineHeight: 1.5, letterSpacing: "normal" }}>
                     {pick(gr.name, lang)}
                   </div>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: GOLD, marginBottom: 2 }}>
+                  <div style={{ fontSize: 11.5, fontWeight: 700, color: GOLD, marginBottom: 3, lineHeight: 1.5, letterSpacing: "normal" }}>
                     {pick(gr.role, lang)}
                   </div>
-                  <div style={{ fontSize: 10, color: INK_SOFT, lineHeight: 1.55 }}>
+                  <div style={{ fontSize: 11, color: INK_SOFT, lineHeight: 1.75, letterSpacing: "normal" }}>
                     {pick(gr.desc, lang)}
                   </div>
                 </div>
@@ -2054,7 +2056,7 @@ export const SevaPoojaMahatmePrint = ({
               ✦ {pick({ kn: "೪ ಗ್ರಹ ರಕ್ಷಾ ಬೀಜ ಮಂತ್ರ ಜಪ ಹಾಗೂ ದಿವ್ಯ ಕವಚ", hi: "४ ग्रह रक्षा बीज मंत्र जप एवं दिव्य कवच", te: "౪ గ్రహ రక్షా బీజ మంత్ర జపం మరియు దివ్య కవచం", ta: "4 கிரக ரக்ஷா பீஜ மந்திர ஜபமும் திவ்ய கவசமும்", en: "4 Protective Planetary Beeja Mantras & Spiritual Shield" }, lang)} ✦
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               {GRAHA_GROUP_2.map((gm, idx) => (
                 <div
                   key={idx}
@@ -2066,20 +2068,19 @@ export const SevaPoojaMahatmePrint = ({
                     boxSizing: "border-box"
                   }}
                 >
-                  <div style={{ fontSize: 12, fontWeight: 700, color: INK, marginBottom: 2, lineHeight: 1.4 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: INK, marginBottom: 3, lineHeight: 1.5, letterSpacing: "normal" }}>
                     {pick(gm.title, lang)}
                   </div>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: GOLD, marginBottom: 2 }}>
+                  <div style={{ fontSize: 11.5, fontWeight: 700, color: GOLD, marginBottom: 3, lineHeight: 1.5, letterSpacing: "normal" }}>
                     {gm.mantra}
                   </div>
-                  <div style={{ fontSize: 10, color: INK_SOFT, lineHeight: 1.55 }}>
+                  <div style={{ fontSize: 11, color: INK_SOFT, lineHeight: 1.75, letterSpacing: "normal" }}>
                     {pick(gm.desc, lang)}
                   </div>
                 </div>
               ))}
             </div>
           </div>
-        </div>
 
         {/* Section 4: Chief Archaka Official Seal Badge */}
         <div
@@ -2098,13 +2099,13 @@ export const SevaPoojaMahatmePrint = ({
           }}
         >
           <div style={{ flex: 1, textAlign: "left" }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: GOLD, marginBottom: 2 }}>
+            <div style={{ fontSize: 12.5, fontWeight: 700, color: GOLD, marginBottom: 3, letterSpacing: "normal", lineHeight: 1.5 }}>
               {pick({ kn: "✦ ಪ್ರಧಾನ ಅರ್ಚಕರ ಅಧಿಕೃತ ಮುದ್ರೆ ಹಾಗೂ ಆಶೀರ್ವಾದ ✦", hi: "✦ प्रधान अर्चक आधिकारिक मुहर एवं आशीर्वाद ✦", te: "✦ ప్రధాన అర్చకుల అధికారిక ముద్ర మరియు ఆశీర్వాదం ✦", ta: "✦ பிரதான அர்ச்சகர் அதிகாரப்பூர்வ முத்திரை & ஆசீர்வாதம் ✦", en: "✦ Chief Archaka Official Seal & Benediction ✦" }, lang)}
             </div>
-            <div style={{ fontSize: 11.5, color: INK, fontWeight: 700 }}>
+            <div style={{ fontSize: 12, color: INK, fontWeight: 700, lineHeight: 1.6, letterSpacing: "normal" }}>
               {safePanditName || "ಚೈತನ್ಯ ಪಂಡಿತ"} — {pick({ kn: "ಪ್ರಧಾನ ಅರ್ಚಕರು, ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ", hi: "प्रधान अर्चक, गोकर्ण क्षेत्र", te: "ప్రధాన అర్చకులు, గోకర్ణ క్షేత్రం", ta: "பிரதான அர்ச்சகர், கோகர்ண க்ஷேத்திரம்", en: "Pradhana Archaka, Gokarna Kshetra" }, lang)}
             </div>
-            <div style={{ fontSize: 10, color: INK_SOFT, marginTop: 2, lineHeight: 1.55 }}>
+            <div style={{ fontSize: 11, color: INK_SOFT, marginTop: 3, lineHeight: 1.75, letterSpacing: "normal" }}>
               {pick({ kn: "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ದಿವ್ಯ ಕೃಪೆಯು ನಿಮ್ಮ ಸಮಸ್ತ ಕುಟುಂಬಕ್ಕೆ ಸದಾ ರಕ್ಷಣೆ, ಸುಖ-ಸಂತೋಷ ಹಾಗೂ ನಿರಂತರ ಆಯುರಾರೋಗ್ಯವನ್ನು ಕರುಣಿಸಲಿ ಎಂದು ಪ್ರಾರ್ಥಿಸುತ್ತೇವೆ.", hi: "श्री महाबलेश्वर स्वामी की दिव्य कृपा आपके संपूर्ण परिवार को सदा सुख, शांति एवं उत्तम स्वास्थ्य प्रदान करे।", te: "శ్రీ మహాబలేశ్వర స్వామివారి దివ్య కృప మీ కుటుంబానికి సదా ఆయురారోగ్యాలు, సుఖశాంతులను ప్రసాదించుగాక.", ta: "ஸ்ரீ மகாபலேஸ்வர சுவாமியின் திவ்ய அருள் உங்கள் குடும்பத்திற்கு எந்நாளும் நல்வாழ்வும் ஆரோக்கியமும் தரட்டும்.", en: "May the divine grace of Shri Mahabaleshwara always protect your family with enduring peace, joy, and vitality." }, lang)}
             </div>
           </div>
@@ -2141,7 +2142,7 @@ export const SevaPoojaMahatmePrint = ({
             left: 36,
             right: 36,
             textAlign: "center",
-            fontSize: 9.5,
+            fontSize: 10,
             color: INK_SOFT
           }}
         >

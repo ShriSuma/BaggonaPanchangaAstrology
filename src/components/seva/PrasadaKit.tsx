@@ -14,6 +14,8 @@ import {
 import { T, pick, type L5 } from "../../features/seva/sevaLocale";
 import { todayYmd } from "../../features/seva/sevaPresentation";
 import { generatePDFFromElement } from "../../utils/pdfGenerator";
+import { SEVA_CATALOG } from "../../data/gokarnaSevas";
+import { transliterateNameWithAI, fetchPoojaDetailsWithAI } from "../../features/seva/sevaGenAI";
 import {
   SevaAnugrahaGuidancePrint,
   SevaRemediesAnnualPrint,
@@ -156,6 +158,10 @@ export default function PrasadaKit({
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
   const [isListening, setIsListening] = useState<boolean>(false);
 
+  // GenAI dynamic fetched data
+  const [transliteratedDevoteeName, setTransliteratedDevoteeName] = useState<string>("");
+  const [aiPoojaDetails, setAiPoojaDetails] = useState<{what: string, why: string, benefit: string} | null>(null);
+
   // Speech Recognition for Priest Name Mic Button
   const handleMicClick = () => {
     const SpeechRecognitionClass = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -213,10 +219,23 @@ export default function PrasadaKit({
       .catch((err) => console.error("Error generating print QR code:", err));
   }, [rhythm, pdfLang, panditName, notificationTime, identity?.personName, platform, qrTarget]);
 
-  const chosenSeva = useMemo(
-    () => (recommendations || []).find((r) => r?.seva?.id === sevaId) ?? recommendations?.[0],
-    [recommendations, sevaId]
-  );
+  const chosenSeva = useMemo(() => {
+    // 1. Check if it's a recommendation
+    const rec = recommendations?.find((r) => r?.seva?.id === sevaId);
+    if (rec) return rec;
+    
+    // 2. Check if it's in the catalog (manually selected)
+    if (sevaId && SEVA_CATALOG[sevaId as keyof typeof SEVA_CATALOG]) {
+      return { 
+        seva: SEVA_CATALOG[sevaId as keyof typeof SEVA_CATALOG],
+        score: 0,
+        reasons: []
+      };
+    }
+    
+    // 3. Fallback
+    return recommendations?.[0];
+  }, [recommendations, sevaId]);
 
   const chosenPoojaName = useMemo(() => {
     if (chosenSeva?.seva?.name) {
@@ -226,6 +245,46 @@ export default function PrasadaKit({
     }
     return (chosenSeva as any)?.label || chosenSeva?.seva?.id || "Seva";
   }, [chosenSeva, pdfLang]);
+
+  // Fetch AI details whenever a new Pooja is selected or the PDF language changes
+  useEffect(() => {
+    let cancelled = false;
+    
+    async function getAIData() {
+      if (!chosenPoojaName) return;
+      
+      setBusy(pick(T.loading!, lang) || "Generating customized text with AI...");
+      try {
+        const details = await fetchPoojaDetailsWithAI(chosenPoojaName, pdfLang);
+        if (!cancelled) setAiPoojaDetails(details);
+      } catch (err) {
+        console.error("Failed to fetch AI pooja details", err);
+      } finally {
+        if (!cancelled) setBusy(null);
+      }
+    }
+    
+    getAIData();
+    return () => { cancelled = true; };
+  }, [chosenPoojaName, pdfLang, lang]);
+
+  // Fetch AI transliterated name
+  useEffect(() => {
+    let cancelled = false;
+    if (!identity?.personName) return;
+    
+    async function getTransliteration() {
+      try {
+        const name = await transliterateNameWithAI(identity.personName, pdfLang);
+        if (!cancelled) setTransliteratedDevoteeName(name);
+      } catch (err) {
+        console.error("Transliteration failed", err);
+      }
+    }
+    getTransliteration();
+    return () => { cancelled = true; };
+  }, [identity?.personName, pdfLang]);
+
 
   const handleDownloadIcs = () => {
     if (!rhythm?.days || rhythm.days.length === 0) return;
@@ -388,12 +447,12 @@ export default function PrasadaKit({
             </span>
             <select
               value={sevaId}
-              onChange={(e) => setSevaId(e.target.value as SevaId)}
+              onChange={(e) => setSevaId(e.target.value as any)}
               className="w-full rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm text-amber-950"
             >
-              {recommendations.map((r) => (
-                <option key={r.seva.id} value={r.seva.id}>
-                  {pick(r.seva.name, lang)}
+              {Object.values(SEVA_CATALOG).map((s) => (
+                <option key={s.id} value={s.id}>
+                  {pick(s.name, lang)}
                 </option>
               ))}
             </select>
@@ -696,7 +755,16 @@ export default function PrasadaKit({
 
       {/* Off-screen print sources */}
       <div id="seva-print-calendar" style={hiddenHost} aria-hidden>
-        <SevaCalendarPrint rhythm={rhythm} lang={pdfLang} identity={identity} />
+        <SevaCalendarPrint 
+          rhythm={rhythm} 
+          lang={pdfLang} 
+          identity={{
+            ...identity,
+            aiTransliteratedName: transliteratedDevoteeName,
+            aiPoojaDetails: aiPoojaDetails || undefined,
+            sevaId: sevaId
+          } as any} 
+        />
       </div>
 
       <div id="seva-print-letter" style={hiddenHost} aria-hidden>
@@ -732,6 +800,15 @@ export default function PrasadaKit({
           identity={identity}
           panditName={panditName}
           primarySeva={chosenSeva}
+          mahatmeData={
+            aiPoojaDetails
+              ? {
+                  whatIsPooja: aiPoojaDetails.what,
+                  whyDoPooja: aiPoojaDetails.why,
+                  benefitsPooja: aiPoojaDetails.benefit
+                }
+              : undefined
+          }
         />
       </div>
 

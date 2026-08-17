@@ -168,6 +168,34 @@ export default defineConfig(({ mode }) => {
             res.end(JSON.stringify({ error: e instanceof Error ? e.message : String(e) }));
           }
         });
+        
+        server.middlewares.use("/api/calendar", async (req, res) => {
+          try {
+            // @ts-expect-error local dev proxy for Vercel API
+            const handlerModule = await import("../api/calendar.ts");
+            const url = new URL(req.url || "/", `http://${req.headers.host}`);
+            (req as any).query = Object.fromEntries(url.searchParams.entries());
+            
+            // Mock Vercel response object for simple send()
+            (res as any).status = (code: number) => {
+              res.statusCode = code;
+              return res;
+            };
+            (res as any).send = (body: string) => {
+              res.end(body);
+            };
+            (res as any).json = (body: any) => {
+              res.setHeader("Content-Type", "application/json");
+              res.end(JSON.stringify(body));
+            };
+            
+            await handlerModule.default(req, res);
+          } catch (e) {
+            res.statusCode = 502;
+            res.setHeader("Content-Type", "text/plain");
+            res.end(e instanceof Error ? e.message : String(e));
+          }
+        });
       }
     },
     VitePWA({
