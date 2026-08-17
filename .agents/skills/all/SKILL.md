@@ -23,7 +23,11 @@ When the user enters `/ALL`, `/all`, `/All`, or mentions `ALL`, display this com
 - **Description**: Instructions and rules for the Baggona Bhavishya (Life Stage Predictions) Page, AI narrative engine, PDF Language selector, and UI error handling.
 - **Example When to Use**: Mention `@baggona-bhavishya-ui` when adding new prediction buttons, modifying `BhavishyaView.tsx`, or tuning UI state logic.
 
-### 4. `ALL`
+### 4. `baggona-seva-prasada-guard`
+- **Description**: Master instructions, layout protection rules, 5-page Ashirvada PDF download layout, QR code scannability, Indic font rendering, and vertical layout stacking for Seva & Prasada pages.
+- **Example When to Use**: Mention `@baggona-seva-prasada-guard` whenever modifying Seva & Prasada pages, PDF download utilities, or QR code generators.
+
+### 5. `ALL`
 - **Description**: Complete catalog of all Antigravity skills, descriptions, and example trigger scenarios.
 - **Example When to Use**: Type `/ALL`, `/all`, or `/All` whenever you need a full list of all available agent capabilities.
 
