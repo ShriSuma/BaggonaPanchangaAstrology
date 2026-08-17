@@ -383,29 +383,19 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
     const descriptionStr = descriptionParts.join("\n");
 
     const sanitizedDevotee = devoteeDisplayName.toLowerCase().replace(/[^\w]/g, "");
-    const seriesUid = `baggona-90day-series-${sanitizedDevotee || "devotee"}@baggona.app`;
+    const dayUid = `baggona-day-${day.ymd}-${index}-${sanitizedDevotee || "devotee"}@baggona.app`;
 
     const eventLines: string[] = [
       "BEGIN:VEVENT",
-      `UID:${seriesUid}`,
-      `DTSTAMP:${nowIso}`
-    ];
-
-    if (index === 0) {
-      eventLines.push("RRULE:FREQ=DAILY;COUNT=90");
-      eventLines.push(`DTSTART;TZID=Asia/Kolkata:${dtStart}`);
-      eventLines.push(`DTEND;TZID=Asia/Kolkata:${dtEnd}`);
-    } else {
-      eventLines.push(`RECURRENCE-ID;TZID=Asia/Kolkata:${dtStart}`);
-      eventLines.push(`DTSTART;TZID=Asia/Kolkata:${dtStart}`);
-      eventLines.push(`DTEND;TZID=Asia/Kolkata:${dtEnd}`);
-    }
-
-    eventLines.push(
+      `UID:${dayUid}`,
+      `DTSTAMP:${nowIso}`,
+      `DTSTART;TZID=Asia/Kolkata:${dtStart}`,
+      `DTEND;TZID=Asia/Kolkata:${dtEnd}`,
       `SUMMARY:${escapeIcsText(summaryStr)}`,
       `DESCRIPTION:${escapeIcsText(descriptionStr)}`,
       `URL:${sanctumUrl}`,
       `COLOR:${vibe.icalColor}`,
+      "CATEGORIES:Baggona Panchanga",
       "STATUS:CONFIRMED",
       "BEGIN:VALARM",
       "ACTION:DISPLAY",
@@ -413,7 +403,7 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
       "TRIGGER:-PT0M",
       "END:VALARM",
       "END:VEVENT"
-    );
+    ];
 
     lines.push(...eventLines);
   });
