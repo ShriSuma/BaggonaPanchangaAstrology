@@ -356,3 +356,87 @@ export const todayYmd = (utcOffsetMinutes = 330): string => {
   const d = String(shifted.getUTCDate()).padStart(2, "0");
   return `${y}-${m}-${d}`;
 };
+
+export type DailyFocusPoint = {
+  icon: string;
+  category: string;
+  text: string;
+  type: "positive" | "warning" | "neutral";
+};
+
+export function getDailyActionableGuidance(day: RhythmDay, lang: string = "en"): DailyFocusPoint[] {
+  const isKn = lang.startsWith("kn");
+  const isHi = lang.startsWith("hi");
+  const isTe = lang.startsWith("te");
+  const isTa = lang.startsWith("ta");
+
+  const points: DailyFocusPoint[] = [];
+
+  // 1. Vehicle & Asset Purchase Point
+  if (day.isMoneyDay || (day.tara?.isFavourable && day.chandra?.isFavourable)) {
+    points.push({
+      icon: "🚗",
+      category: isKn ? "ವಾಹನ ಹಾಗೂ ಆಸ್ತಿ ಖರೀದಿ" : isHi ? "वाहन एवं संपत्ति क्रय" : isTe ? "వాహన & ఆస్తి కొనుగోలు" : isTa ? "வாகனம் & சொத்து வாங்குதல்" : "Vehicle & Asset Purchase",
+      text: isKn ? "ಇಂದು ನೂತನ ವಾಹನ ಖರೀದಿ, ಹಣಕಾಸು ಒಪ್ಪಂದಗಳು ಹಾಗೂ ಹೂಡಿಕೆಗೆ ಅತ್ಯಂತ ಶುಭಕರವಾಗಿದೆ." : isHi ? "आज नए वाहन की खरीदारी, वित्तीय सौदों एवं निवेश के लिए अत्यंत शुभ दिन है।" : isTe ? "ఈ రోజు కొత్త వాహనం కొనుగోలు, ఆర్థిక ఒప్పందాలకు చాలా శుభప్రదం." : isTa ? "இன்று புதிய வாகனம் வாங்குவதற்கும் நிதி ஒப்பந்தங்களுக்கும் மிகவும் உகந்த நாள்." : "Highly auspicious today for new vehicle purchase, financial investments, and business deals.",
+      type: "positive"
+    });
+  } else if (day.isChandrashtama || day.band === "rest") {
+    points.push({
+      icon: "🚗",
+      category: isKn ? "ವಾಹನ ಹಾಗೂ ಆಸ್ತಿ ಖರೀದಿ" : isHi ? "वाहन एवं संपत्ति क्रय" : isTe ? "వాహన & ఆస్తి కొనుగోలు" : isTa ? "வாகனம் & சொத்து வாங்குதல்" : "Vehicle & Asset Purchase",
+      text: isKn ? "ಇಂದು ದೊಡ್ಡ ಮಟ್ಟದ ವಾಹನ ನೋಂದಣಿ ಅಥವಾ ಆಸ್ತಿ ಒಪ್ಪಂದಗಳನ್ನು ಮುಂದೂಡುವುದು ಸೂಕ್ತ." : isHi ? "आज बड़ी वाहन डिलीवरी या संपत्ति समझौतों को स्थगित करना उचित रहेगा।" : isTe ? "ఈ రోజు భారీ వాహన డెలివరీ లేదా ఆస్తి ఒప్పందాలను వాయిదా వేయడం మంచిది." : isTa ? "இன்று புதிய வாகனம் எடுப்பது அல்லது சொத்து ஒப்பந்தங்களை ஒத்திவைப்பது நல்லது." : "Exercise caution today; defer major vehicle registration or large asset agreements.",
+      type: "warning"
+    });
+  } else {
+    points.push({
+      icon: "🚗",
+      category: isKn ? "ವಾಹನ ಹಾಗೂ ಆಸ್ತಿ ಖರೀದಿ" : isHi ? "वाहन एवं संपत्ति क्रय" : isTe ? "వాహన & ఆస్తి కొనుగోలు" : isTa ? "வாகனம் & சொத்து வாங்குதல்" : "Vehicle & Asset Purchase",
+      text: isKn ? "ಸಾಮಾನ್ಯ ವಾಹನ ಸಂಚಾರಕ್ಕೆ ಶುಭ. ಮಧ್ಯಾಹ್ನದ ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ ಪ್ರಯಾಣ ಬೆಳೆಸಿ." : isHi ? "सामान्य वाहन उपयोग के लिए शुभ। दोपहर के शुभ मुहूर्त में यात्रा करें।" : isTe ? "సాధారణ వాహన ప్రయాణానికి మంచిది. మధ్యాహ్న శుభ ముహూర్తంలో ప్రయాణించండి." : isTa ? "சாதாரண வாகன பயணத்திற்கு நல்லது. மதிய சுப முகூர்த்தத்தில் பயணம் செய்யவும்." : "Moderate day for vehicle use and travel. Plan key tasks during auspicious hours.",
+      type: "neutral"
+    });
+  }
+
+  // 2. Financial Growth / Money Point
+  if (day.arthaScore >= 80 || day.isMoneyDay) {
+    points.push({
+      icon: "💰",
+      category: isKn ? "ಧನ ಅಭಿವೃದ್ಧಿ & ವ್ಯಾಪಾರ" : isHi ? "धन वृद्धि एवं व्यापार" : isTe ? "ధన లాభం & వ్యాపారం" : isTa ? "தன லாபம் & வியாபாரம்" : "Financial Growth & Business",
+      text: isKn ? "ಲಕ್ಷ್ಮಿ ಕೃಪೆಯಿದ್ದು, ಹಳೆಯ ಬಾಕಿ ವಸೂಲಾತಿ ಹಾಗೂ ಹೊಸ ಆದಾಯ ಮೂಲಗಳು ತೆರೆದುಕೊಳ್ಳಲಿವೆ." : isHi ? "लक्ष्मी कृपा से बकाया धन की वसूली तथा आय के नए स्रोत खुलने की संभावना है।" : isTe ? "లక్ష్మీ కటాక్షంతో పాత బాకీల వసూలు మరియు నూతన ఆదాయ మార్గాలు సుగమమవుతాయి." : isTa ? "லஷ்மி கடாட்சத்தால் பழைய பாக்கிகள் வசூலாகும், புதிய வருமான வழிகள் திறக்கும்." : "Strong financial influx indicated; auspicious for recovering dues and launching ventures.",
+      type: "positive"
+    });
+  } else {
+    points.push({
+      icon: "💰",
+      category: isKn ? "ಧನ ಅಭಿವೃದ್ಧಿ & ವ್ಯಾಪಾರ" : isHi ? "धन वृद्धि एवं व्यापार" : isTe ? "ధన లాభం & వ్యాపారం" : isTa ? "தன லாபம் & வியாபாரம்" : "Financial Growth & Business",
+      text: isKn ? "ಅನಗತ್ಯ ಖರ್ಚುಗಳನ್ನು ನಿಯಂತ್ರಿಸಿ, ಸಾಲ ನೀಡುವ ಮುನ್ನ ಎಚ್ಚರ ವಹಿಸಿ." : isHi ? "अनावश्यक खर्चों पर नियंत्रण रखें, लेन-देन में सतर्कता बरतें।" : isTe ? "అవసరం లేని ఖర్చులను అదుపులో ఉంచుకోండి, అప్పు ఇచ్చేటప్పుడు జాగ్రత్త వహించండి." : isTa ? "தேவையற்ற செலவுகளைக் கட்டுப்படுத்துங்கள், கடன் கொடுப்பதை தவிர்க்கவும்." : "Maintain balanced expenditure; double-check financial terms before committing.",
+      type: "neutral"
+    });
+  }
+
+  // 3. Mental State / Manas Point
+  if (day.chandra?.isFavourable && !day.isChandrashtama) {
+    points.push({
+      icon: "🧠",
+      category: isKn ? "ಮನಃಸ್ಥಿತಿ & ಏಕಾಗ್ರತೆ (ಮನಸ್ಸು)" : isHi ? "मानसिक स्थिति एवं शांति (मन)" : isTe ? "మానసిక స్థితి & ప్రశాంతత (మనస్సు)" : isTa ? "மன நிலை & அமைதி (மனம்)" : "Mind State & Peace (Manas)",
+      text: isKn ? "ಚಂದ್ರಬಲ ಉತ್ತಮವಾಗಿದ್ದು, ಚಿತ್ತ ಏಕಾಗ್ರತೆ ಹಾಗೂ ಪ್ರಸನ್ನತೆಯಿಂದ ಕೆಲಸ ಕಾರ್ಯಗಳು ಪೂರ್ಣಗೊಳ್ಳಲಿವೆ." : isHi ? "चंद्रबल उत्तम रहने से मन शांत, एकाग्र और प्रफुल्लित रहेगा।" : isTe ? "చంద్రబలం బాగుండటంతో మనస్సు ప్రశాంతంగా, ఏకాగ్రతతో ఉంటుంది." : isTa ? "சந்திரபலம் சிறப்பாக இருப்பதால் மனம் அமைதியாகவும் தெளிவுடனும் இருக்கும்." : "Moon energy is strong (Chitta Ekagrata); clear decision-making and mental peace guaranteed.",
+      type: "positive"
+    });
+  } else {
+    points.push({
+      icon: "🧠",
+      category: isKn ? "ಮನಃಸ್ಥಿತಿ & ಏಕಾಗ್ರತೆ (ಮನಸ್ಸು)" : isHi ? "मानसिक स्थिति एवं शांति (मन)" : isTe ? "మానసిక స్థితి & ప్రశాంతత (మనస్సు)" : isTa ? "மன நிலை & அமைதி (மனம்)" : "Mind State & Peace (Manas)",
+      text: isKn ? "ಚಂದ್ರಾಷ್ಟಮ ಪ್ರಭಾವದಿಂದ ಮನಸ್ಸಿನಲ್ಲಿ ಸಣ್ಣ ಚಾಂಚಲ್ಯವಿರಬಹುದು, ಧ್ಯಾನ ಹಾಗೂ ಶಿವನಾಮ ಜಪ ಮಾಡಿ." : isHi ? "चंचलता से बचने के लिए ओम नमः शिवाय का जाप एवं ध्यान करें।" : isTe ? "మనస్సు చంచలంగా ఉండే అవకాశం ఉంది, శివ నామ స్మరణ చేయండి." : isTa ? "மனதில் சிறு சஞ்சலம் வரலாம், தியானம் மற்றும் சிவ நாம ஜபம் செய்யவும்." : "Mind may feel slightly restless (Chandrashtama sensitivity); practice calm meditation & mantra chanting.",
+      type: "warning"
+    });
+  }
+
+  // 4. Spiritual & Daily Harmony Point
+  points.push({
+    icon: "🪔",
+    category: isKn ? "ದೈವಿಕ ಸಂಕಲ್ಪ & ಪೂಜೆ" : isHi ? "दैवीय संकल्प एवं पूजा" : isTe ? "దైవిక సంకల్పం & పూజ" : isTa ? "தெய்வீக சங்கல்பம் & பூஜை" : "Spiritual Harmony",
+    text: isKn ? "ಇಂದಿನ ದೇವತಾ ಸ್ಮರಣೆಯೊಂದಿಗೆ ಕಾರ್ಯಾರಂಭ ಮಾಡಿ. ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಅನುಗ್ರಹ ನಿಮ್ಮ ಮೇಲಿದೆ." : isHi ? "इष्ट देव का स्मरण करके कार्य प्रारंभ करें। गोकर्ण महाबलेश्वर की असीम कृपा आप पर है।" : isTe ? "ఇష్ట దైవ ప్రార్థనతో దినచర్య ప్రారంభించండి. గోకర్ణ మహాబలేశ్వర అనుగ్రహం ఉంటుంది." : isTa ? "இஷ்ட தெய்வ வழிபாட்டுடன் நாளைத் தொடங்குங்கள். கோகர்ண மகாபலேஸ்வரர் அருள் உண்டு." : "Begin your day with the sacred deity mantra. Gokarna Mahabaleshwara blessings stay with you.",
+    type: "positive"
+  });
+
+  return points;
+}

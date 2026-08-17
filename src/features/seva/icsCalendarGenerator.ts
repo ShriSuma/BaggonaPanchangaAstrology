@@ -294,7 +294,16 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
   const nowIso = new Date().toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
   const origin = getSafeProductionOrigin(webAppBaseUrl);
 
-  days.forEach((day) => {
+  const seriesSeed = `${personName || "devotee"}-${days[0]?.ymd || "2026-01-01"}`;
+  let hash = 0;
+  for (let i = 0; i < seriesSeed.length; i++) {
+    hash = (hash << 5) - hash + seriesSeed.charCodeAt(i);
+    hash |= 0;
+  }
+  const seriesHash = Math.abs(hash).toString(36);
+  const seriesUid = `baggona-90day-series-${seriesHash}@baggona.app`;
+
+  days.forEach((day, index) => {
     const ymdCompact = formatYmdCompact(day.ymd);
     const dtStart = `${ymdCompact}T${hh}${mm}00`;
     
@@ -378,12 +387,20 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
 
     const descriptionStr = descriptionParts.join("\n");
 
-    lines.push(
+    const eventLines = [
       "BEGIN:VEVENT",
-      `UID:baggona-seva-${ymdCompact}-${day.moonNakshatraIndex}@baggona.app`,
+      `UID:${seriesUid}`,
+      `RECURRENCE-ID;TZID=Asia/Kolkata:${dtStart}`,
       `DTSTAMP:${nowIso}`,
       `DTSTART;TZID=Asia/Kolkata:${dtStart}`,
-      `DTEND;TZID=Asia/Kolkata:${dtEnd}`,
+      `DTEND;TZID=Asia/Kolkata:${dtEnd}`
+    ];
+
+    if (index === 0) {
+      eventLines.push(`RRULE:FREQ=DAILY;COUNT=${days.length}`);
+    }
+
+    eventLines.push(
       `SUMMARY:${escapeIcsText(summaryStr)}`,
       `DESCRIPTION:${escapeIcsText(descriptionStr)}`,
       `URL:${sanctumUrl}`,
@@ -396,6 +413,8 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
       "END:VALARM",
       "END:VEVENT"
     );
+
+    lines.push(...eventLines);
   });
 
   lines.push("END:VCALENDAR");
