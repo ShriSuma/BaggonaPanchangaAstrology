@@ -21,6 +21,7 @@ import Card from "../components/ui/Card";
 import GrahaSpinner from "../components/ui/GrahaSpinner";
 import { displayPanchangValue } from "../i18n/panchangLabels";
 import { resolvePlaceFromPincode } from "../services/locationApi";
+import { T_VARAMAHALAKSHMI, pickL5 } from "../features/varamahalakshmi/varamahalakshmiLocale";
 
 // 1. Starfield Nebula Background component
 const Starfield = () => (
@@ -544,6 +545,33 @@ export default function HomePage(): JSX.Element {
 
         {/* Sunrise/Sunset animated arc */}
         {sunrise && sunset && <CelestialArc sunrise={sunrise} sunset={sunset} timezone={pinCivilTz} />}
+
+        {/* 🌸 Featured Festival Banner: Varamahalakshmi Vratha */}
+        <div className="relative overflow-hidden rounded-2xl border-2 border-amber-400/90 bg-gradient-to-r from-amber-600 via-amber-700 to-amber-900 p-4 text-amber-50 shadow-lg">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-400/20 text-2xl border border-amber-300/40">
+                🌸
+              </span>
+              <div>
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-400/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-200">
+                  <span>🪔</span> {pickL5(T_VARAMAHALAKSHMI.festivalTitle, (i18n.language as any) || "kn")}
+                </div>
+                <h3 className="font-serif text-base font-bold text-amber-100 mt-0.5">
+                  {pickL5(T_VARAMAHALAKSHMI.bestSthiraWindow, (i18n.language as any) || "kn")}
+                </h3>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setPage("varamahalakshmi")}
+              className="w-full sm:w-auto flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-300 px-4 py-2 text-xs font-bold text-amber-950 shadow hover:from-amber-300 hover:to-amber-200 transition-all transform active:scale-95 whitespace-nowrap"
+            >
+              <span>ಪ್ರವೇಶಿಸಿ / View Festival Guide</span>
+              <span>→</span>
+            </button>
+          </div>
+        </div>
 
         {/* Main Panchang display Grid */}
         {loading && <GrahaSpinner />}

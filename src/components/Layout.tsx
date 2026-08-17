@@ -12,6 +12,7 @@ import { useAppStore, type AppPage } from "../stores/appStore";
 import { useKundliViewerStore } from "../stores/kundliViewerStore";
 import { useAuthStore } from "../features/auth/authStore";
 import { T, pick } from "../features/seva/sevaLocale";
+import { T_VARAMAHALAKSHMI, pickL5 } from "../features/varamahalakshmi/varamahalakshmiLocale";
 import InstallPrompt from "./InstallPrompt";
 
 type Props = {
@@ -168,6 +169,7 @@ export default function Layout({ children }: Props): JSX.Element {
         
         <nav className="flex-1 overflow-y-auto py-2">
           <TabButton page="home" icon="⌂" label={t("nav.home")} onClose={() => setIsDrawerOpen(false)} />
+          <TabButton page="varamahalakshmi" icon="🌸" label={pickL5(T_VARAMAHALAKSHMI.festivalTitle, language)} onClose={() => setIsDrawerOpen(false)} />
           <TabButton page="kundli" icon="◈" label={t("nav.kundli")} onClose={() => setIsDrawerOpen(false)} />
           
           {session && (

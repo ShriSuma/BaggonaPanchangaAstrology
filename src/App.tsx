@@ -15,6 +15,7 @@ import VarshaBavishyaPage from "./pages/VarshaBavishyaPage";
 import RamanBhavishyaPage from "./pages/RamanBhavishyaPage";
 import AIAstrologerPage from "./pages/AIAstrologerPage";
 import SevaPage from "./pages/SevaPage";
+import VaramahalakshmiPage from "./pages/VaramahalakshmiPage";
 import { useAppStore } from "./stores/appStore";
 import { useAuthStore } from "./features/auth/authStore";
 import { LoginPage } from "./components/auth/LoginPage";
@@ -88,6 +89,7 @@ export default function App(): JSX.Element {
         {currentPage === "ramanbhavishya" && <RamanBhavishyaPage />}
         {currentPage === "aiaastrologer" && <AIAstrologerPage />}
         {currentPage === "seva" && <SevaPage />}
+        {currentPage === "varamahalakshmi" && <VaramahalakshmiPage />}
       </Layout>
     </ErrorBoundary>
   );
