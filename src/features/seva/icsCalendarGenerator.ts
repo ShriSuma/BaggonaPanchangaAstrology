@@ -357,15 +357,20 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
 
     const descriptionParts: string[] = [
       `🕉️ ${panchangaTitle} - ${kshetraTitle}`,
+      "",
       `🙏 ${priestLabel}: ${localizedPandit}`,
       `👤 ${devoteeLabel}: ${devoteeDisplayName}`,
       "",
       `⚡ ${isKn ? "ದಿನದ ಸ್ಥಿತಿ" : "Status"}: ${vibe.badgeText} (${day.energyScore || 85}%) | ${vibe.vibeTag}`,
       "",
       futureTitle,
+      "",
       `🚗 ${isKn ? "ವಾಹನ & ಆಸ್ತಿ" : "Vehicle & Asset"}: ${vehicleText}`,
+      "",
       `💰 ${isKn ? "ಧನ & ವ್ಯಾಪಾರ" : "Finance & Business"}: ${financeText}`,
+      "",
       `🧠 ${isKn ? "ಮನಃಸ್ಥಿತಿ & ಶಾಂತಿ" : "Mind & Peace"}: ${mindText}`,
+      "",
       `🪔 ${isKn ? "ದೈವಿಕ ಕೃಪೆ" : "Spiritual Harmony"}: ${spiritualText}`,
       "",
       `🌟 ${isKn ? "ತಾರಾಬಲ" : "Tara Bala"}: ${taraInfo}`,
@@ -382,7 +387,7 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
       sanctumUrl,
       "",
       "✨ Gokarna Mahabaleshwara Prasada Siddhirastu ✨"
-    ].filter(Boolean);
+    ];
 
     const descriptionStr = descriptionParts.join("\n");
 
@@ -503,15 +508,20 @@ export function generateGoogleCalendarUrl(options: {
 
   const details = [
     `🕉️ ${panchangaTitle} - ${kshetraTitle}`,
+    "",
     `🙏 ${priestLabel}: ${localizedPandit}`,
     `👤 ${devoteeLabel}: ${devoteeDisplayName}`,
     "",
     `⚡ ${isKn ? "ದಿನದ ಸ್ಥಿತಿ" : "Status"}: ${vibe.badgeText} (${day.energyScore || 85}%) | ${vibe.vibeTag}`,
     "",
     futureTitle,
+    "",
     `🚗 ${isKn ? "ವಾಹನ & ಆಸ್ತಿ" : "Vehicle & Asset"}: ${vehicleText}`,
+    "",
     `💰 ${isKn ? "ಧನ & ವ್ಯಾಪಾರ" : "Finance & Business"}: ${financeText}`,
+    "",
     `🧠 ${isKn ? "ಮನಃಸ್ಥಿತಿ & ಶಾಂತಿ" : "Mind & Peace"}: ${mindText}`,
+    "",
     `🪔 ${isKn ? "ದೈವಿಕ ಕೃಪೆ" : "Spiritual Harmony"}: ${spiritualText}`,
     "",
     `🌟 ${isKn ? "ತಾರಾಬಲ" : "Tara Bala"}: ${taraInfo}`,
@@ -528,7 +538,7 @@ export function generateGoogleCalendarUrl(options: {
     sanctumUrl,
     "",
     "✨ Gokarna Mahabaleshwara Prasada Siddhirastu ✨"
-  ].filter(Boolean).join("\n");
+  ].join("\n");
 
   const baseUrl = "https://calendar.google.com/calendar/render";
   const params = new URLSearchParams({
