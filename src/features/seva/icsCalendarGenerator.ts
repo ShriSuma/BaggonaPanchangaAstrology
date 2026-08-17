@@ -571,34 +571,6 @@ export function generateQrPayloadByTarget(
   const originHost = origin.replace("https://", "").replace("http://", "");
   const isLocalHost = originHost.includes("localhost") || originHost.startsWith("192.168.") || originHost.startsWith("127.0.") || originHost.startsWith("10.");
 
-  if (target === "google") {
-    // Generate a webcal feed URL for the Google Calendar subscription.
-    // This allows Google Calendar to fetch the 90 unique events (with colors) natively.
-    const token = encodeDevoteeToken({
-      n: devoteeDisplayName,
-      nk: firstDay?.moonNakshatraIndex,
-      r: firstDay?.moonRashiIndex,
-      p: safePandit,
-      d: firstDay?.ymd || new Date().toISOString().slice(0, 10),
-      l: lang,
-      pl: platform || "android",
-      t: "google"
-    });
-    
-    // CRITICAL: Google Calendar's web subscription feature requires the URL to be publicly accessible
-    // over the internet (because Google's servers fetch the .ics file, not the user's phone).
-    // If testing locally (e.g. 192.168.x.x), we MUST fallback to downloading the file directly
-    // so the user can tap it and add to calendar locally.
-    if (isLocalHost) {
-      return `${origin}/daily?token=${token}&action=ics90`;
-    }
-    
-    // Google Calendar web subscription URL (Production)
-    // CRITICAL: URL-encode the entire webcal target URL so query parameters like ?token= aren't stripped by Google's URL parser!
-    const feedUrl = `webcal://${originHost}/api/calendar?token=${token}`;
-    return `https://calendar.google.com/calendar/r?cid=${encodeURIComponent(feedUrl)}`;
-  }
-
   const token = encodeDevoteeToken({
     n: devoteeDisplayName,
     nk: firstDay?.moonNakshatraIndex,
@@ -610,9 +582,10 @@ export function generateQrPayloadByTarget(
     t: target
   });
 
-  if (target === "webcal") {
-    // Apple Calendar native subscription URL
-    return `webcal://${originHost}/api/calendar?token=${token}`;
+  if (target === "google" || target === "webcal") {
+    // Instant 90-day native calendar import engine
+    // Triggers direct .ics calendar import on devotee's phone without waiting 24h for Google crawler
+    return `${origin}/daily?token=${token}&action=ics90`;
   }
 
   // target === "sanctum"

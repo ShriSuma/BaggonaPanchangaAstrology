@@ -132,6 +132,8 @@ export default function DailyDarshanaPage(): JSX.Element {
     }
   };
 
+  const [generatedIcs, setGeneratedIcs] = useState<string | null>(null);
+
   const dayLordIdx = useMemo(() => {
     const d = new Date(dateParam);
     return isNaN(d.getDay()) ? 1 : d.getDay();
@@ -329,6 +331,7 @@ export default function DailyDarshanaPage(): JSX.Element {
           notificationTime: "08:00",
           personName: devoteeName
         });
+        setGeneratedIcs(icsContent);
         downloadIcsFile(`Baggona-Panchanga-90Day-${devoteeName.replace(/\s+/g, "-")}.ics`, icsContent);
       } catch (err) {
         console.error("Error generating 90-day ICS:", err);
@@ -486,6 +489,44 @@ export default function DailyDarshanaPage(): JSX.Element {
         padding: "28px 20px",
         boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1)"
       }}>
+        {actionParam === "ics90" && (
+          <div style={{
+            background: "linear-gradient(135deg, rgba(217, 119, 6, 0.3), rgba(180, 83, 9, 0.4))",
+            border: "1.5px solid #f59e0b",
+            borderRadius: 16,
+            padding: "16px 20px",
+            marginBottom: 20,
+            textAlign: "center"
+          }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: "#fef08a", marginBottom: 6 }}>
+              📅 90-Day Personalized Calendar Events Ready!
+            </div>
+            <div style={{ fontSize: 13, color: "#e2e8f0", marginBottom: 12 }}>
+              {isKn ? "ನಿಮ್ಮ ಫೋನ್ ಕ್ಯಾಲೆಂಡರ್‌ಗೆ 90 ದಿನಗಳ ಫಲಗಳನ್ನು ಸೇರಿಸಲು ಕೆಳಗಿನ ಬಟನ್ ಒತ್ತಿ" : "Tap the button below to import all 90 personalized daily events into Google Calendar / Phone Calendar."}
+            </div>
+            <button
+              onClick={() => {
+                if (generatedIcs) {
+                  downloadIcsFile(`Baggona-Panchanga-90Day-${devoteeName.replace(/\s+/g, "-")}.ics`, generatedIcs);
+                }
+              }}
+              style={{
+                background: "linear-gradient(135deg, #f59e0b, #d97706)",
+                color: "#1e1b4b",
+                border: "none",
+                padding: "10px 22px",
+                borderRadius: 12,
+                fontWeight: 700,
+                fontSize: 14,
+                cursor: "pointer",
+                boxShadow: "0 4px 12px rgba(245, 158, 11, 0.4)"
+              }}
+            >
+              📥 {isKn ? ".ics ಕ್ಯಾಲೆಂಡರ್ ಡೌನ್‌ಲೋಡ್ / ಸೇರಿಸಿ" : "Add 90 Days to Google / Phone Calendar"}
+            </button>
+          </div>
+        )}
+
         {/* Kshetra Temple Header */}
         <div style={{ textAlign: "center", marginBottom: 20 }}>
           <div style={{
