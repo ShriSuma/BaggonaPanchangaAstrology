@@ -94,6 +94,31 @@ export const weekdayName = (day?: RhythmDay | null, lang: string = "en"): string
   return pick(phrase, lang);
 };
 
+/** Formats the Priest (Pandit) Name in the active language script. */
+export function getLocalizedPanditName(rawPanditName?: string | null, lang: string = "en"): string {
+  const p = (rawPanditName || "").trim();
+  const isKn = lang.startsWith("kn");
+  const isHi = lang.startsWith("hi");
+  const isTe = lang.startsWith("te");
+  const isTa = lang.startsWith("ta");
+
+  const isChaitanya = !p || /chaitanya|ಚೈತನ್ಯ|चैतन्य|చైతన్య|சைதன்யா|archaka|priest|ಅರ್ಚಕರು/i.test(p);
+
+  if (isChaitanya) {
+    if (isKn) return "ಪಂಡಿತ್ ಶ್ರೀ ಚೈತನ್ಯ ಶರ್ಮಾ";
+    if (isHi) return "पंडित श्री चैतन्य शर्मा";
+    if (isTe) return "పండిట్ శ్రీ చైతన్య శర్మ";
+    if (isTa) return "பண்டிட் ஸ்ரீ சைதன்யா ஷர்மா";
+    return "Pandit Shri Chaitanya Sharma";
+  }
+
+  if (isKn) return p.startsWith("ಪಂಡಿತ್") ? p : `ಪಂಡಿತ್ ಶ್ರೀ ${p}`;
+  if (isHi) return p.startsWith("पंडित") ? p : `पंडित श्री ${p}`;
+  if (isTe) return p.startsWith("పండిట్") ? p : `పండిట్ శ్రీ ${p}`;
+  if (isTa) return p.startsWith("பண்டிட்") ? p : `பண்டிட் శ్రీ ${p}`;
+  return p.toLowerCase().startsWith("pandit") ? p : `Pandit Shri ${p}`;
+}
+
 /** Full tithi label, e.g. "Shukla Paksha Panchami" or simply "Purnima". */
 export const tithiLabel = (day?: RhythmDay | null, lang: string = "en"): string => {
   if (!day) return "";

@@ -20,7 +20,7 @@ import { getDailyKaalaTimings, getEnergyMeterAndVibe, generateSevaICalendarStrin
 import { decodeDevoteeToken } from "../utils/tokenCipher";
 import type { RhythmDay } from "../core/DailyRhythmEngine";
 import type { TaraNumber } from "../core/TaraBalaEngine";
-import { nakshatraName, rashiName, grahaName, colourName, tithiLabel, getDailyActionableGuidance, formatLongDate } from "../features/seva/sevaPresentation";
+import { nakshatraName, rashiName, grahaName, colourName, tithiLabel, getDailyActionableGuidance, formatLongDate, getLocalizedPanditName } from "../features/seva/sevaPresentation";
 import type { GrahaKey, ColourKey } from "../features/seva/sevaLocale";
 import { T, pick } from "../features/seva/sevaLocale";
 
@@ -105,6 +105,10 @@ export default function DailyDarshanaPage(): JSX.Element {
   const actionParam = params.get("action");
 
   const [lang, setLang] = useState<string>(langParam);
+  const isKn = lang.startsWith("kn");
+  const isHi = lang.startsWith("hi");
+  const isTe = lang.startsWith("te");
+  const isTa = lang.startsWith("ta");
   const [activeTab, setActiveTab] = useState<"darshana" | "kundali" | "gochara" | "dasha">("darshana");
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -186,7 +190,8 @@ export default function DailyDarshanaPage(): JSX.Element {
   const kaala = useMemo(() => getDailyKaalaTimings(dayLordIdx, lang), [dayLordIdx, lang]);
   const vibe = useMemo(() => getEnergyMeterAndVibe(mockDay, lang), [mockDay, lang]);
   const devoteeName = nameParam || storedSession?.form?.name || (lang.startsWith("kn") ? "ಭಕ್ತರು" : "Devotee");
-  const salutation = useMemo(() => getDevoteeSalutation(devoteeName, panditParam, lang), [devoteeName, panditParam, lang]);
+  const localizedPandit = useMemo(() => getLocalizedPanditName(panditParam, lang), [panditParam, lang]);
+  const salutation = useMemo(() => getDevoteeSalutation(devoteeName, localizedPandit, lang), [devoteeName, localizedPandit, lang]);
   const benediction = useMemo(() => buildDeterministicPriestBenediction(mockDay, lang, devoteeName), [mockDay, lang, devoteeName]);
   const actionableGuidance = useMemo(() => getDailyActionableGuidance(mockDay, lang), [mockDay, lang]);
 
@@ -380,7 +385,7 @@ export default function DailyDarshanaPage(): JSX.Element {
     ];
   }, [storedSession]);
 
-  const isKn = lang.startsWith("kn");
+  // Language flags defined at top level component scope
 
   return (
     <div style={{
@@ -773,7 +778,7 @@ export default function DailyDarshanaPage(): JSX.Element {
                 alignItems: "center",
                 gap: 8
               }}>
-                📜 {panditParam} - {isKn ? "ಪ್ರಧಾನ ಅರ್ಚಕರ ಆಶೀರ್ವಚನ & ಮಾರ್ಗದರ್ಶನ" : "Chief Priest Benediction & Guidance"}
+                📜 {localizedPandit} - {isKn ? "ಪ್ರಧಾನ ಅರ್ಚಕರ ಆಶೀರ್ವಚನ & ಮಾರ್ಗದರ್ಶನ" : isHi ? "मुख्य अर्चक का आशीर्वाद एवं मार्गदर्शन" : isTe ? "ముఖ్య అర్చకుల ఆశీర్వచనం & మార్గదర్శకత్వం" : isTa ? "முதன்மை அர்ச்சகரின் ஆசி & வழிகாட்டுதல்" : "Chief Priest Benediction & Guidance"}
               </h2>
               <p style={{
                 margin: 0,

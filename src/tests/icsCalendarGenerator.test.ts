@@ -105,7 +105,7 @@ describe("icsCalendarGenerator", () => {
     expect(ics).toContain("BEGIN:VEVENT");
     expect(ics).toContain("DTSTART;TZID=Asia/Kolkata:20260811T080000");
     expect(ics).toContain("DTEND;TZID=Asia/Kolkata:20260811T083000");
-    expect(ics).toContain("✦ ──── 🕉️ BAGGONA PANCHANGA ──── ✦");
+    expect(ics).toContain("🕉️ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ - ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ");
     expect(ics).toContain("Pramod Kodagi");
     expect(ics).toContain("🔴 Rahu Kaala");
     expect(ics).toContain("⚡");

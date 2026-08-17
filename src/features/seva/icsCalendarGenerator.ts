@@ -25,6 +25,8 @@ import {
   dayExplanation,
   directionName,
   formatLongDate,
+  getDailyActionableGuidance,
+  getLocalizedPanditName,
   grahaName,
   nakshatraName,
   rashiName,
@@ -317,71 +319,68 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
     const deity = DEITY_MANTRAS[dayIdx] || DEITY_MANTRAS[0];
 
     const isKn = lang.startsWith("kn");
-    const salutation = getDevoteeSalutation(personName || "", panditName, lang);
-    const priestBenediction = buildDeterministicPriestBenediction(day, lang, personName);
-    const safePandit = panditName || "ಶ್ರೀ ಚೈತನ್ಯ ಪಂಡಿತ್";
+    const isHi = lang.startsWith("hi");
+    const isTe = lang.startsWith("te");
+    const isTa = lang.startsWith("ta");
+
+    const localizedPandit = getLocalizedPanditName(panditName, lang);
     const devoteeDisplayName = (personName && personName.trim().length > 0) ? personName.trim() : (isKn ? "ಭಕ್ತರು" : "Devotee");
 
     const devoteeToken = encodeDevoteeToken({
       n: devoteeDisplayName,
       nk: day.moonNakshatraIndex,
       r: day.moonRashiIndex,
-      p: safePandit,
+      p: localizedPandit,
       d: day.ymd,
       l: lang
     });
     const sanctumUrl = `${origin}/daily?token=${devoteeToken}`;
 
-    const summaryStr = `${vibe.badgeEmoji} [Baggona] ${formatLongDate(day, lang)} - ${tithiLabel(day, lang)} | ${vibe.badgeText}`;
+    const panchangaTitle = isKn ? "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ" : isHi ? "बग्गोण पंचांग" : isTe ? "బగ్గోణ పంచాంగం" : isTa ? "பக்கோண பஞ்சாங்கம்" : "Baggona Panchanga";
+    const kshetraTitle = isKn ? "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ" : isHi ? "गोकर्ण क्षेत्र" : isTe ? "గోకర్ణ క్షేత్రం" : isTa ? "கோகர்ண க்ஷேத்திரம்" : "Gokarna Kshetra";
+    const priestLabel = isKn ? "ಮುಖ್ಯ ಅರ್ಚಕರು" : isHi ? "मुख्य अर्चक" : isTe ? "ముఖ్య అర్చకులు" : isTa ? "முதன்மை அர்ச்சகர்" : "Chief Priest";
+    const devoteeLabel = isKn ? "ಭಕ್ತರು" : isHi ? "भक्त" : isTe ? "భక్తులు" : isTa ? "பக்தர்" : "Devotee";
+
+    const summaryStr = `${vibe.badgeEmoji} [${localizedPandit}] ${panchangaTitle}: ${tithiLabel(day, lang)} (${vibe.badgeText})`;
 
     const taraNum = day.tara?.tara || 2;
     const taraInfo = getTaraBalaInfo(taraNum, lang);
     const chandraInfo = getChandraBalaInfo(day.chandra?.house || 11, day.isChandrashtama, lang);
-    const bhuktiLord = day.bhuktiLord || day.dayLord;
-    const dashaText = `${grahaName(day.dayLord, lang)} Dasha | ${grahaName(bhuktiLord, lang)} Bhukti`;
+
+    const guidancePoints = getDailyActionableGuidance(day, lang);
+    const vehicleText = guidancePoints.find(p => p.icon === "🚗")?.text || "";
+    const financeText = guidancePoints.find(p => p.icon === "💰")?.text || "";
+    const mindText = guidancePoints.find(p => p.icon === "🧠")?.text || "";
+    const spiritualText = guidancePoints.find(p => p.icon === "🪔")?.text || "";
+
+    const futureTitle = isKn ? "🔮 ಭವಿಷ್ಯದ ಪ್ರಮುಖ 4 ಮಾರ್ಗದರ್ಶನಗಳು:" : isHi ? "🔮 भविष्य का मुख्य 4 मार्गदर्शन:" : isTe ? "🔮 భవిష్యత్తు ముఖ్య 4 మార్గదర్శకాలు:" : isTa ? "🔮 எதிர்கால முக்கிய 4 வழிகாட்டுதல்கள்:" : "🔮 Key Future Actionable Focus Points:";
 
     const descriptionParts: string[] = [
-      "✦ ──── 🕉️ BAGGONA PANCHANGA ──── ✦",
-      "🏛️ Gokarna Mahabaleshwara Sacred Sanctum",
-      "────────────────────────────────",
+      `🕉️ ${panchangaTitle} - ${kshetraTitle}`,
+      `🙏 ${priestLabel}: ${localizedPandit}`,
+      `👤 ${devoteeLabel}: ${devoteeDisplayName}`,
       "",
-      `🪔 ${salutation}`,
+      `⚡ ${isKn ? "ದಿನದ ಸ್ಥಿತಿ" : "Status"}: ${vibe.badgeText} (${day.energyScore || 85}%) | ${vibe.vibeTag}`,
       "",
-      isKn ? "── 🔮 ಕುಂಡಲಿ & ಗೋಚಾರ ಫಲಗಳು ──" : "── 🔮 KUNDALI & GOCHARA TRANSITS ──",
-      `👤 ${isKn ? "ಭಕ್ತರ ಹೆಸರು" : "Devotee"}: ${devoteeDisplayName}`,
-      `⭐ ${isKn ? "ಗೋಚಾರ ನಕ್ಷತ್ರ" : "Transit Star"}: ${nakshatraName(day.moonNakshatraIndex, lang)}`,
-      `🦁 ${isKn ? "ಗೋಚಾರ ರಾಶಿ" : "Transit Rashi"}: ${rashiName(day.moonRashiIndex, lang)}`,
-      `🪐 ${isKn ? "ದಶಾ-ಭುಕ್ತಿ" : "Dasha-Bhukti"}: ${dashaText}`,
+      futureTitle,
+      `🚗 ${isKn ? "ವಾಹನ & ಆಸ್ತಿ" : "Vehicle & Asset"}: ${vehicleText}`,
+      `💰 ${isKn ? "ಧನ & ವ್ಯಾಪಾರ" : "Finance & Business"}: ${financeText}`,
+      `🧠 ${isKn ? "ಮನಃಸ್ಥಿತಿ & ಶಾಂತಿ" : "Mind & Peace"}: ${mindText}`,
+      `🪔 ${isKn ? "ದೈವಿಕ ಕೃಪೆ" : "Spiritual Harmony"}: ${spiritualText}`,
+      "",
       `🌟 ${isKn ? "ತಾರಾಬಲ" : "Tara Bala"}: ${taraInfo}`,
       `🌙 ${isKn ? "ಚಂದ್ರಬಲ" : "Chandra Bala"}: ${chandraInfo}`,
       "",
-      isKn ? "── 📊 ಶಕ್ತಿ & ಧನ ರೇಟಿಂಗ್ ──" : "── 📊 ENERGY & ARTHA RATING ──",
-      `⚡ ${isKn ? "ಶಕ್ತಿ ಮೀಟರ್" : "Energy Meter"}: ${vibe.meter} (${vibe.badgeText})`,
-      `🎯 ${isKn ? "ವೈಬ್ ಟ್ಯಾಗ್" : "Vibe Tag"}: ${vibe.vibeTag}`,
-      `💰 ${isKn ? "ಆರ್ಥಿಕ ಶಕ್ತಿ" : "Financial Potential"}: ${day.arthaScore || 80}%`,
-      "",
-      isKn ? "── ⏳ ಇಂದಿನ ಕಾಲ ಸಮಯಗಳು (Kolkata) ──" : "── ⏳ DAILY KAALA TIMINGS (KOLKATA) ──",
+      `⏳ ${isKn ? "ಇಂದಿನ ಕಾಲ ಸಮಯಗಳು (Kolkata)" : "Daily Kaala Timings (Kolkata)"}:`,
       `🔴 Rahu Kaala: ${kaala.rahu}`,
-      `🟡 Gulika Kaala: ${kaala.gulika}`,
       `🟢 Yamaganda: ${kaala.yamaganda}`,
       "",
-      isKn ? "── 🕉️ ಪಂಚಾಂಗ ವಿವರಗಳು ──" : "── 🕉️ PANCHANGA DETAILS ──",
-      `🌙 ${isKn ? "ತಿಥಿ" : "Tithi"}: ${tithiLabel(day, lang)}`,
-      `🪐 ${pick(T.labelVara, lang)}: ${grahaName(day.dayLord, lang)}`,
-      `🔢 ${pick(T.luckyNumber, lang)}: ${(day.luckyNumbers || [3, 6, 9]).join(" · ")}`,
-      `🎨 ${pick(T.luckyColour, lang)}: ${colourName(day, lang)} | 🧭 ${pick(T.luckyDirection, lang)}: ${directionName(day, lang)}`,
-      "",
-      isKn ? "── 🪔 ದೇವತಾ ಮಂತ್ರ & ಸಂಕಲ್ಪ ──" : "── 🪔 DEITY MANTRA & SANKALPA ──",
       `🙏 ${deity.deity}:`,
       `${deity.mantra}`,
       "",
-      isKn ? "── 📜 ಅರ್ಚಕರ ಮಾರ್ಗದರ್ಶನ ──" : "── 📜 CHIEF ARCHAKA BENEDICTION ──",
-      priestBenediction,
-      "",
-      "────────────────────────────────",
-      isKn ? "🌐 ಇಂದಿನ ನೇರ ದರ್ಶನ ಹಾಗೂ ಮಂತ್ರ ಜಪಕ್ಕೆ ಭೇಟಿ ನೀಡಿ:" : "🌐 Open Interactive Web Darshana & Chant:",
+      isKn ? "🌐 ಸಂಪೂರ್ಣ ಪಂಚಾಂಗ, ಜಾತಕ ಹಾಗೂ ಲೈವ್ ದರ್ಶನಕ್ಕಾಗಿ ಇಲ್ಲ ಭೇಟಿ ನೀಡಿ:" : "🌐 Click here for Full Panchanga, Kundali & Live Darshana:",
       sanctumUrl,
-      "────────────────────────────────",
+      "",
       "✨ Gokarna Mahabaleshwara Prasada Siddhirastu ✨"
     ].filter(Boolean);
 
@@ -463,15 +462,19 @@ export function generateGoogleCalendarUrl(options: {
   const dayIdx = getDayLordIndex(day.dayLord);
   const deity = DEITY_MANTRAS[dayIdx] || DEITY_MANTRAS[0];
 
-  const origin = getSafeProductionOrigin(webAppBaseUrl);
-  const devoteeDisplayName = (personName && personName.trim().length > 0) ? personName.trim() : (lang.startsWith("kn") ? "ಭಕ್ತರು" : "Devotee");
-  const safePandit = panditName || "ಶ್ರೀ ಚೈತನ್ಯ ಪಂಡಿತ್";
+  const isKn = lang.startsWith("kn");
+  const isHi = lang.startsWith("hi");
+  const isTe = lang.startsWith("te");
+  const isTa = lang.startsWith("ta");
+
+  const localizedPandit = getLocalizedPanditName(panditName, lang);
+  const devoteeDisplayName = (personName && personName.trim().length > 0) ? personName.trim() : (isKn ? "ಭಕ್ತರು" : "Devotee");
 
   const devoteeToken = encodeDevoteeToken({
     n: devoteeDisplayName,
     nk: day.moonNakshatraIndex,
     r: day.moonRashiIndex,
-    p: safePandit,
+    p: localizedPandit,
     d: day.ymd,
     l: lang,
     pl: "android",
@@ -479,27 +482,51 @@ export function generateGoogleCalendarUrl(options: {
   });
   const sanctumUrl = `${origin}/daily?token=${devoteeToken}`;
 
-  const summary = `🕉️ Baggona Panchanga: ${tithiLabel(day, lang)} (${vibe.badgeText})`;
+  const panchangaTitle = isKn ? "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ" : isHi ? "बग्गोण पंचांग" : isTe ? "బగ్గోణ పంచాంగం" : isTa ? "பக்கோண பஞ்சாங்கம்" : "Baggona Panchanga";
+  const kshetraTitle = isKn ? "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ" : isHi ? "गोकर्ण क्षेत्र" : isTe ? "గోకర్ణ క్షేత్రం" : isTa ? "கோகர்ண க்ஷேத்திரம்" : "Gokarna Kshetra";
+  const priestLabel = isKn ? "ಮುಖ್ಯ ಅರ್ಚಕರು" : isHi ? "मुख्य अर्चक" : isTe ? "ముఖ్య అర్చకులు" : isTa ? "முதன்மை அர்ச்சகர்" : "Chief Priest";
+  const devoteeLabel = isKn ? "ಭಕ್ತರು" : isHi ? "भक्त" : isTe ? "భక్తులు" : isTa ? "பக்தர்" : "Devotee";
 
-  const isKn = lang.startsWith("kn");
+  const summary = `🟢 [${localizedPandit}] ${panchangaTitle}: ${tithiLabel(day, lang)} (${vibe.badgeText})`;
+
   const taraNum = day.tara?.tara || 2;
   const taraInfo = getTaraBalaInfo(taraNum, lang);
   const chandraInfo = getChandraBalaInfo(day.chandra?.house || 11, day.isChandrashtama, lang);
-  const bhuktiLord = day.bhuktiLord || day.dayLord;
-  const dashaText = `${grahaName(day.dayLord, lang)} Dasha | ${grahaName(bhuktiLord, lang)} Bhukti`;
+
+  const guidancePoints = getDailyActionableGuidance(day, lang);
+  const vehicleText = guidancePoints.find(p => p.icon === "🚗")?.text || "";
+  const financeText = guidancePoints.find(p => p.icon === "💰")?.text || "";
+  const mindText = guidancePoints.find(p => p.icon === "🧠")?.text || "";
+  const spiritualText = guidancePoints.find(p => p.icon === "🪔")?.text || "";
+
+  const futureTitle = isKn ? "🔮 ಭವಿಷ್ಯದ ಪ್ರಮುಖ 4 ಮಾರ್ಗದರ್ಶನಗಳು:" : isHi ? "🔮 भविष्य का मुख्य 4 मार्गदर्शन:" : isTe ? "🔮 భవిష్యత్తు ముఖ్య 4 మార్గదర్శకాలు:" : isTa ? "🔮 எதிர்கால முக்கிய 4 வழிகாட்டுதல்கள்:" : "🔮 Key Future Actionable Focus Points:";
 
   const details = [
-    `🕉️ Baggona Panchanga Astrology (Gokarna Kshetra)`,
-    `🙏 ${isKn ? "ಅರ್ಚಕರು" : "Priest"}: ${safePandit}`,
-    `👤 ${isKn ? "ಭಕ್ತರು" : "Devotee"}: ${devoteeDisplayName}`,
-    `🪐 ${isKn ? "ದಶಾ-ಭುಕ್ತಿ" : "Dasha-Bhukti"}: ${dashaText}`,
+    `🕉️ ${panchangaTitle} - ${kshetraTitle}`,
+    `🙏 ${priestLabel}: ${localizedPandit}`,
+    `👤 ${devoteeLabel}: ${devoteeDisplayName}`,
+    "",
+    `⚡ ${isKn ? "ದಿನದ ಸ್ಥಿತಿ" : "Status"}: ${vibe.badgeText} (${day.energyScore || 85}%) | ${vibe.vibeTag}`,
+    "",
+    futureTitle,
+    `🚗 ${isKn ? "ವಾಹನ & ಆಸ್ತಿ" : "Vehicle & Asset"}: ${vehicleText}`,
+    `💰 ${isKn ? "ಧನ & ವ್ಯಾಪಾರ" : "Finance & Business"}: ${financeText}`,
+    `🧠 ${isKn ? "ಮನಃಸ್ಥಿತಿ & ಶಾಂತಿ" : "Mind & Peace"}: ${mindText}`,
+    `🪔 ${isKn ? "ದೈವಿಕ ಕೃಪೆ" : "Spiritual Harmony"}: ${spiritualText}`,
+    "",
     `🌟 ${isKn ? "ತಾರಾಬಲ" : "Tara Bala"}: ${taraInfo}`,
     `🌙 ${isKn ? "ಚಂದ್ರಬಲ" : "Chandra Bala"}: ${chandraInfo}`,
-    `⚡ ${vibe.badgeText} | 🔴 Rahu: ${kaala.rahu} | 🟡 Gulika: ${kaala.gulika}`,
-    `🌙 ${tithiLabel(day, lang)} | ⭐ ${nakshatraName(day.moonNakshatraIndex, lang)} | 🦁 ${rashiName(day.moonRashiIndex, lang)}`,
-    `🙏 ${deity.deity}: ${deity.mantra}`,
     "",
-    `🌐 Web Sanctum: ${sanctumUrl}`,
+    `⏳ ${isKn ? "ಇಂದಿನ ಕಾಲ ಸಮಯಗಳು (Kolkata)" : "Daily Kaala Timings (Kolkata)"}:`,
+    `🔴 Rahu Kaala: ${kaala.rahu}`,
+    `🟢 Yamaganda: ${kaala.yamaganda}`,
+    "",
+    `🙏 ${deity.deity}:`,
+    `${deity.mantra}`,
+    "",
+    isKn ? "🌐 ಸಂಪೂರ್ಣ ಪಂಚಾಂಗ, ಜಾತಕ ಹಾಗೂ ಲೈವ್ ದರ್ಶನಕ್ಕಾಗಿ ಇಲ್ಲ ಭೇಟಿ ನೀಡಿ:" : "🌐 Click here for Full Panchanga, Kundali & Live Darshana:",
+    sanctumUrl,
+    "",
     "✨ Gokarna Mahabaleshwara Prasada Siddhirastu ✨"
   ].filter(Boolean).join("\n");
 
