@@ -1,12 +1,22 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { hashPassword, useAuthStore } from "../features/auth/authStore";
+import { HARDCODED_MFA_EMAIL } from "../features/auth/mfaEmailService";
 import { getMsUntil11PMIST, sendDailyReportEmail, REPORT_EMAIL_RECIPIENT } from "../features/reports/dailyScheduler";
 import { db, recordDailyHit, getDailyHitsCount } from "../db/indexedDb";
 
-describe("Authentication Store & Password Hashing", () => {
+describe("Authentication Store & Multi-Factor Authentication (MFA)", () => {
   beforeEach(async () => {
     await db.users.clear();
-    useAuthStore.setState({ isAuthenticated: false, currentUser: null, isLoading: false });
+    useAuthStore.setState({
+      isAuthenticated: false,
+      currentUser: null,
+      isLoading: false,
+      step: "credentials",
+      pendingUsername: null,
+      pendingUserId: null,
+      activeOtp: null,
+      otpExpiresAt: null
+    });
   });
 
   it("hashes password accurately using SHA-256", async () => {
@@ -15,9 +25,33 @@ describe("Authentication Store & Password Hashing", () => {
     expect(hash.length).toBe(64); // SHA-256 hex string length
   });
 
-  it("seeds default user and logs in with valid credentials", async () => {
-    const res = await useAuthStore.getState().login("baggona", "jayashree123007");
+  it("seeds default user and logs in directly when skipMfa is enabled", async () => {
+    const res = await useAuthStore.getState().login("baggona", "jayashree123007", { skipMfa: true });
     expect(res.success).toBe(true);
+    expect(useAuthStore.getState().isAuthenticated).toBe(true);
+    expect(useAuthStore.getState().currentUser).toBe("baggona");
+  });
+
+  it("triggers 2-step MFA flow and dispatches 6-digit OTP to spshreepandit@gmail.com", async () => {
+    const store = useAuthStore.getState();
+    const res = await store.login("baggona", "jayashree123007");
+    expect(res.success).toBe(true);
+    expect(res.requiresMfa).toBe(true);
+    expect(useAuthStore.getState().step).toBe("mfa_pending");
+    expect(useAuthStore.getState().mfaEmail).toBe(HARDCODED_MFA_EMAIL);
+
+    const generatedOtp = useAuthStore.getState().activeOtp;
+    expect(generatedOtp).toBeDefined();
+    expect(generatedOtp).toMatch(/^\d{6}$/);
+
+    // Verify invalid OTP code rejection
+    const invalidRes = await useAuthStore.getState().verifyMfaOtp("000000");
+    expect(invalidRes.success).toBe(false);
+    expect(useAuthStore.getState().isAuthenticated).toBe(false);
+
+    // Verify valid OTP code acceptance
+    const validRes = await useAuthStore.getState().verifyMfaOtp(generatedOtp!);
+    expect(validRes.success).toBe(true);
     expect(useAuthStore.getState().isAuthenticated).toBe(true);
     expect(useAuthStore.getState().currentUser).toBe("baggona");
   });
