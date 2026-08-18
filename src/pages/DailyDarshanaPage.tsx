@@ -754,11 +754,11 @@ export default function DailyDarshanaPage(): JSX.Element {
     return calculateDeterministicRhythmDay(dateParam, birthNakIdx, birthRashiIdx, startDateStr);
   }, [dateParam, decoded]);
 
+  const vibe = useMemo(() => getEnergyMeterAndVibe(mockDay, lang), [mockDay, lang]);
+
   // Dynamic 3-Color Theme based on deterministic Energy Score & Caution state
   const dayTheme = useMemo(() => {
-    const score = mockDay.energyScore ?? 60;
-    const isCaution = mockDay.isChandrashtama || mockDay.band === "rest" || score < 50;
-    if (isCaution) {
+    if (vibe.badgeEmoji === "🔴") {
       return {
         cardBg: "linear-gradient(135deg, rgba(127, 29, 29, 0.75) 0%, rgba(69, 10, 10, 0.85) 100%)",
         border: "2px solid #EF4444",
@@ -768,7 +768,7 @@ export default function DailyDarshanaPage(): JSX.Element {
         barGradient: "linear-gradient(90deg, #DC2626, #EF4444)"
       };
     }
-    if (mockDay.band === "high" || score >= 75) {
+    if (vibe.badgeEmoji === "🟢") {
       return {
         cardBg: "linear-gradient(135deg, rgba(6, 78, 59, 0.75) 0%, rgba(2, 44, 34, 0.85) 100%)",
         border: "2px solid #10B981",
@@ -786,9 +786,8 @@ export default function DailyDarshanaPage(): JSX.Element {
       accent: "#F59E0B",
       barGradient: "linear-gradient(90deg, #D97706, #F59E0B)"
     };
-  }, [mockDay]);
+  }, [vibe]);
 
-  const vibe = useMemo(() => getEnergyMeterAndVibe(mockDay, lang), [mockDay, lang]);
   const kaala = useMemo(() => getDailyKaalaTimings(mockDay.dayLord, lang, dateParam, decoded?.lt, decoded?.lg, decoded?.pc), [mockDay.dayLord, lang, dateParam, decoded]);
   const localizedPandit = useMemo(() => getLocalizedPanditName(panditParam, lang), [panditParam, lang]);
   

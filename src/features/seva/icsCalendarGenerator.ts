@@ -417,12 +417,12 @@ export function calculateDeterministicRhythmDay(
 
   const taraVal = (((transitNak - birthNakIdx + 27) % 9) + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
   const isTaraFav = [2, 4, 6, 8, 9].includes(taraVal);
+  const isDifficultTara = [3, 5, 7].includes(taraVal);
 
   const houseOffset = ((transitRashi - birthRashiIdx + 12) % 12) + 1;
   const isChandraFav = [1, 3, 6, 7, 10, 11].includes(houseOffset);
   const isChandrashtamaDay = houseOffset === 8;
 
-  const isDifficultTara = [3, 5, 7].includes(taraVal);
   const baseScore = (isTaraFav ? 45 : 20) + (isChandraFav ? 40 : 15) + (isChandrashtamaDay ? -25 : 5);
   const scoreVal = Math.max(15, Math.min(98, baseScore));
   const bandType: "high" | "steady" | "rest" = (isChandrashtamaDay || isDifficultTara || scoreVal < 50) ? "rest" : (isTaraFav && isChandraFav && scoreVal >= 75) ? "high" : "steady";
