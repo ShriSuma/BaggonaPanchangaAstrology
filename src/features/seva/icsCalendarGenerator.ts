@@ -477,7 +477,7 @@ export function calculateDeterministicRhythmDay(
   } as unknown as RhythmDay;
 }
 
-/** Energy level, day color classification, progress bar & single-letter vibe tag */
+/** Action suitability level, day color classification, progress bar & single-letter vibe tag */
 export function getEnergyMeterAndVibe(day: RhythmDay, lang: string) {
   const code = (lang || "en").slice(0, 2);
   const band = String(day.band || "").toLowerCase();
@@ -485,16 +485,16 @@ export function getEnergyMeterAndVibe(day: RhythmDay, lang: string) {
   const isCaution = day.isChandrashtama || day.isAmavasya || band === "low" || score < 50;
 
   if (isCaution) {
-    const badgeText = code === "kn" ? "🔴 ಎಚ್ಚರಿಕೆಯ ದಿನ"
-                    : code === "hi" ? "🔴 सावधान दिवस"
-                    : code === "te" ? "🔴 హెచ్చరిక రోజు"
-                    : code === "ta" ? "🔴 எச்சரிக்கை நாள்"
-                    : "🔴 CAUTION DAY";
-    const vibeTag = code === "kn" ? "🧘 S (ಶಾಂತಿ / ಶ್ರಮ ತಪ್ಪಿಸಿ)"
-                  : code === "hi" ? "🧘 S (शांति / संयम रखें)"
-                  : code === "te" ? "🧘 S (శాంతి / జాగ్రత్త వహించండి)"
-                  : code === "ta" ? "🧘 S (சாந்தி / கவனம் தேவை)"
-                  : "🧘 S (Shanti / Exercise Care)";
+    const badgeText = code === "kn" ? "🔴 ಮುನ್ನೆಚ್ಚರಿಕೆಯಿಂದ ಪ್ರಯಾಣಿಸಿ & ಜಪಿಸಿ"
+                    : code === "hi" ? "🔴 सतर्कता से यात्रा करें एवं जपें"
+                    : code === "te" ? "🔴 జాగ్రత్తగా ప్రయాణించండి & జపించండి"
+                    : code === "ta" ? "🔴 கவனத்துடன் பயணம் & ஜபம்"
+                    : "🔴 MINDFUL TRAVEL & PROTECTION PRAYER";
+    const vibeTag = code === "kn" ? "🧘 S (ಸುರಕ್ಷಿತ ಪ್ರಯಾಣ / ಜಾಗರೂಕತೆ)"
+                  : code === "hi" ? "🧘 S (सुरक्षित यात्रा / संयम)"
+                  : code === "te" ? "🧘 S (సురక్షిత ప్రయాణం / జాగ్రత్త)"
+                  : code === "ta" ? "🧘 S (பாதுகாப்பான பயணம் / கவனம்)"
+                  : "🧘 S (Mindful Travel / Care)";
     return {
       badgeEmoji: "🔴",
       badgeText,
@@ -506,16 +506,16 @@ export function getEnergyMeterAndVibe(day: RhythmDay, lang: string) {
   }
 
   if (band === "high" || score >= 75) {
-    const badgeText = code === "kn" ? "🟢 ಉತ್ತಮ ಶಕ್ತಿ ದಿನ"
-                    : code === "hi" ? "🟢 उच्च ऊर्जा दिवस"
-                    : code === "te" ? "🟢 అత్యుత్తమ శక్తి రోజు"
-                    : code === "ta" ? "🟢 மிகச்சிறந்த ஆற்றல் நாள்"
-                    : "🟢 HIGH ENERGY DAY";
-    const vibeTag = code === "kn" ? "⚡ A (ಕ್ರಿಯೆ / ಯಶಸ್ಸು)"
-                  : code === "hi" ? "⚡ A (कार्य / सफलता)"
-                  : code === "te" ? "⚡ A (కార్యం / విజయం)"
-                  : code === "ta" ? "⚡ A (செயல் / வெற்றி)"
-                  : "⚡ A (Action / Growth)";
+    const badgeText = code === "kn" ? "🟢 ಶುಭ ಕಾರ್ಯ, ನೂತನ ವಾಹನ ಹಾಗೂ ಧನ ಅಭಿವೃದ್ಧಿಗೆ ಪ್ರಶಸ್ತ"
+                    : code === "hi" ? "🟢 नए कार्य, वाहन क्रय एवं धन वृद्धि हेतु शुभ"
+                    : code === "te" ? "🟢 నూతన కార్యం, వాహన కొనుగోలు & ధన లాభానికి శుభప్రదం"
+                    : code === "ta" ? "🟢 புதிய காரியம், வாகனம் & தன லாபத்திற்கு உகந்தது"
+                    : "🟢 AUSPICIOUS FOR NEW WORK, VEHICLES & PURCHASES";
+    const vibeTag = code === "kn" ? "⚡ A (ನವಾರಂಭ / ವಾಹನ ಯೋಗ)"
+                  : code === "hi" ? "⚡ A (नया कार्य / वाहन योग)"
+                  : code === "te" ? "⚡ A (నూతన కార్యం / వాహనం)"
+                  : code === "ta" ? "⚡ A (புதிய தொடக்கம் / வாகனம்)"
+                  : "⚡ A (New Venture / Vehicle / Growth)";
     return {
       badgeEmoji: "🟢",
       badgeText,
@@ -526,16 +526,16 @@ export function getEnergyMeterAndVibe(day: RhythmDay, lang: string) {
     };
   }
 
-  const badgeText = code === "kn" ? "🟡 ಸಮತೋಲಿತ ದಿನ"
-                  : code === "hi" ? "🟡 संतुलित दिवस"
-                  : code === "te" ? "🟡 సమతుల్య రోజు"
-                  : code === "ta" ? "🟡 சமநிலையான நாள்"
-                  : "🟡 BALANCED DAY";
+  const badgeText = code === "kn" ? "🟡 ನಿತ್ಯ ಕರ್ಮ ಹಾಗೂ ಸಾಮಾನ್ಯ ಕಾರ್ಯಕ್ಕೆ ಸೂಕ್ತ"
+                  : code === "hi" ? "🟡 दैनिक कार्य एवं सामान्य गतिविधियों हेतु उपयुक्त"
+                  : code === "te" ? "🟡 దైనిక కార్యం & సాధారణ పనులకు అనుకూలం"
+                  : code === "ta" ? "🟡 அன்றாட வேலைகள் & சாதாரண பணிக்கு ஏற்றது"
+                  : "🟡 SUITABLE FOR ROUTINE WORK & PLANNED TASKS";
   const vibeTag = code === "kn" ? "⚖️ B (ಸಮತೋಲನ / ಕರ್ತವ್ಯ)"
                 : code === "hi" ? "⚖️ B (संतुलन / कर्तव्य)"
                 : code === "te" ? "⚖️ B (సమతుల్యత / విధి)"
                 : code === "ta" ? "⚖️ B (சமநிலை / கடமை)"
-                : "⚖️ B (Balance / Routine)";
+                : "⚖️ B (Routine Work / Safe Transit)";
   return {
     badgeEmoji: "🟡",
     badgeText,

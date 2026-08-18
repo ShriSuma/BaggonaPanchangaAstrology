@@ -33,6 +33,7 @@ import {
   getHardcodedPoojaVidhiDetails,
   type PriestProfile
 } from "../../features/seva/sevaPriestDirectory";
+import { fetchVillagesByPincode } from "../../services/locationApi";
 
 type Identity = {
   personName: string;
@@ -171,8 +172,42 @@ export default function PrasadaKit({
   }, [sevaId, pdfLang, selectedPriestId, priestsList]);
 
   const [notificationTime, setNotificationTime] = useState("08:00");
+  const [pincode, setPincode] = useState<string>("581326");
+  const [pincodeLocation, setPincodeLocation] = useState<{ villageName: string; lat: number; lng: number }>({
+    villageName: "Gokarna",
+    lat: 14.5479,
+    lng: 74.3187
+  });
+  const [pinStatusMsg, setPinStatusMsg] = useState<string | null>(null);
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
   const [isListening, setIsListening] = useState<boolean>(false);
+
+  // Auto-resolve pincode coordinates and location name
+  useEffect(() => {
+    let cancelled = false;
+    if (/^\d{6}$/.test(pincode)) {
+      fetchVillagesByPincode(pincode).then((vList) => {
+        if (cancelled) return;
+        if (vList && vList.length > 0) {
+          const v = vList[0];
+          setPincodeLocation({
+            villageName: v.name,
+            lat: v.lat || 14.5479,
+            lng: v.lng || 74.3187
+          });
+          setPinStatusMsg(null);
+        } else {
+          setPincodeLocation({ villageName: "Gokarna Kshetra", lat: 14.5479, lng: 74.3187 });
+          setPinStatusMsg(pdfLang.startsWith("kn") ? "ಪಿನ್‌ಕೋಡ್ ಸ್ಥಳ ಪತ್ತೆಯಾಗಿಲ್ಲ, ಗೋಕರ್ಣ ಬಳಸಿ ಮುಂದುವರಿಯುತ್ತಿದೆ" : "Location pin resolved to default Gokarna Kshetra");
+        }
+      }).catch(() => {
+        if (!cancelled) setPinStatusMsg(null);
+      });
+    } else {
+      setPinStatusMsg(pdfLang.startsWith("kn") ? "ಸರಿಯಾದ 6-ಅಂಕಿಯ ಪಿನ್‌ಕೋಡ್ ನಮೂದಿಸಿ" : "Enter a valid 6-digit Pincode");
+    }
+    return () => { cancelled = true; };
+  }, [pincode, pdfLang]);
 
   // GenAI dynamic fetched data
   const [transliteratedDevoteeName, setTransliteratedDevoteeName] = useState<string>("");
@@ -224,7 +259,11 @@ export default function PrasadaKit({
       panditName,
       notificationTime,
       personName: identity?.personName,
-      platform
+      platform,
+      pincode,
+      lat: pincodeLocation.lat,
+      lng: pincodeLocation.lng,
+      locationName: pincodeLocation.villageName
     });
 
     QRCode.toDataURL(nativeIcsPayload, {
@@ -237,7 +276,7 @@ export default function PrasadaKit({
     })
       .then((url) => setQrDataUrl(url))
       .catch((err) => console.error("Error generating print QR code:", err));
-  }, [rhythm, pdfLang, panditName, notificationTime, identity?.personName, platform, qrTarget]);
+  }, [rhythm, pdfLang, panditName, notificationTime, identity?.personName, platform, qrTarget, pincode, pincodeLocation]);
 
   const chosenSeva = useMemo(() => {
     // 1. Check if it's a recommendation
@@ -313,7 +352,11 @@ export default function PrasadaKit({
       lang: pdfLang,
       panditName,
       notificationTime,
-      personName: identity.personName
+      personName: identity.personName,
+      pincode,
+      lat: pincodeLocation.lat,
+      lng: pincodeLocation.lng,
+      locationName: pincodeLocation.villageName
     });
     const blob = new Blob([csStr], { type: "text/calendar;charset=utf-8" });
     const url = URL.createObjectURL(blob);
@@ -353,7 +396,11 @@ export default function PrasadaKit({
           panditName,
           notificationTime,
           personName: identity?.personName,
-          platform
+          platform,
+          pincode,
+          lat: pincodeLocation.lat,
+          lng: pincodeLocation.lng,
+          locationName: pincodeLocation.villageName
         });
         let currentQr = "";
         try {
@@ -488,6 +535,39 @@ export default function PrasadaKit({
               onChange={(e) => setSevaDate(e.target.value)}
               className="w-full rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm text-amber-950"
             />
+          </label>
+        </div>
+
+        {/* Pincode & Location Resolution Textbox */}
+        <div className="pt-2 border-t border-amber-200/60">
+          <label className="block">
+            <span className="mb-1 block text-[11px] font-bold text-amber-900/80 uppercase tracking-wider">
+              📍 {pdfLang.startsWith("kn") ? "ಸ್ಥಳದ ಪಿನ್‌ಕೋಡ್ (Pincode for Ashirvada Letter & Calendar)" : "Location Pincode (For Ashirvada Letter & Calendar)"}
+            </span>
+            <div className="flex gap-2 items-center">
+              <input
+                type="text"
+                maxLength={6}
+                value={pincode}
+                onChange={(e) => setPincode(e.target.value.replace(/\D/g, ""))}
+                placeholder={pdfLang.startsWith("kn") ? "ಉದಾ: 581326" : "e.g. 581326"}
+                className="w-full rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm font-semibold text-amber-950 shadow-sm focus:border-amber-600 focus:outline-none"
+              />
+              <span className="text-xs font-bold text-amber-800 bg-amber-200/80 px-2.5 py-2 rounded-lg shrink-0">
+                {pincodeLocation.villageName}
+              </span>
+            </div>
+            {pincodeLocation && !pinStatusMsg && (
+              <div className="mt-1 text-[11px] font-medium text-emerald-800 flex items-center gap-1">
+                <span>✓</span>
+                <span>{pincodeLocation.villageName} (PIN: {pincode}, Lat: {pincodeLocation.lat.toFixed(2)}, Lng: {pincodeLocation.lng.toFixed(2)})</span>
+              </div>
+            )}
+            {pinStatusMsg && (
+              <div className="mt-1 text-[11px] font-medium text-amber-800 italic">
+                {pinStatusMsg}
+              </div>
+            )}
           </label>
         </div>
 
