@@ -553,7 +553,7 @@ export function getEnergyMeterAndVibe(day: RhythmDay, lang: string) {
                   : "🟡 SUITABLE FOR ROUTINE WORK & PLANNED TASKS";
   const vibeTag = code === "kn" ? "⚖️ B (ಸಮತೋಲನ / ಕರ್ತವ್ಯ)"
                 : code === "hi" ? "⚖️ B (संतुलन / कर्तव्य)"
-                : code === "te" ? "⚖️ B (సమతుల్యత / విధి)"
+                : code === "te" ? "⚖️ B (సమతుల್ಯత / విధి)"
                 : code === "ta" ? "⚖️ B (சமநிலை / கடமை)"
                 : "⚖️ B (Routine Work / Safe Transit)";
   return {
@@ -716,39 +716,43 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
     const spiritualText = guidancePoints.find(p => p.icon === "🪔")?.text || "";
 
     const descriptionParts: string[] = [
-      `🕉️ ${labels.panchangaTitle} - ${labels.kshetraTitle}`,
-      "",
-      `🙏 ${labels.priestLabel}: ${localizedPandit}`,
+      `---`,
+      `  🕉️ ${labels.panchangaTitle.toUpperCase()} - ${labels.kshetraTitle.toUpperCase()} 🕉️`,
+      `---`,
       `👤 ${labels.devoteeLabel}: ${devoteeDisplayName}`,
+      `🙏 ${labels.priestLabel}: ${localizedPandit}`,
       `📍 ${labels.locationLabel}: ${locationName} (${pincode})`,
-      "",
-      `⚡ ${labels.statusLabel}: ${vibe.badgeText} (${day.energyScore || 85}%) | ${vibe.vibeTag}`,
-      "",
-      labels.futureTitle,
-      "",
+      `---`,
+      `📊 ${labels.statusLabel.toUpperCase()}`,
+      `---`,
+      `• ${labels.statusLabel}: ${vibe.badgeText} (${day.energyScore || 85}%)`,
+      `• Energy Meter: ${vibe.meter}`,
+      `• Daily Vibe   : ${vibe.vibeTag}`,
+      `---`,
+      `${labels.futureTitle}`,
+      `---`,
       `🚗 ${labels.vehicleLabel}: ${vehicleText}`,
-      "",
       `💰 ${labels.financeLabel}: ${financeText}`,
-      "",
       `🧠 ${labels.mindLabel}: ${mindText}`,
-      "",
       `🪔 ${labels.spiritualLabel}: ${spiritualText}`,
-      "",
+      `---`,
       `🌟 ${labels.taraLabel}: ${taraInfo}`,
       `🌙 ${labels.chandraLabel}: ${chandraInfo}`,
-      "",
-      `🌅 ${labels.sunriseLabel}: ${kaala.sunrise} | 🌇 ${labels.sunsetLabel}: ${kaala.sunset}`,
-      `⏳ ${labels.kaalaHeading}:`,
-      `🔴 Rahu Kaala: ${kaala.rahu}`,
-      `🟢 Yamaganda: ${kaala.yamaganda}`,
-      "",
-      `🙏 ${deity.deity}:`,
+      `---`,
+      `⏳ ${labels.kaalaHeading.toUpperCase()}`,
+      `---`,
+      `🌅 ${labels.sunriseLabel}: ${kaala.sunrise}  |  🌇 ${labels.sunsetLabel}: ${kaala.sunset}`,
+      `🔴 Rahu Kaala : ${kaala.rahu}`,
+      `🟢 Yamaganda  : ${kaala.yamaganda}`,
+      `---`,
+      `🪔 ${deity.deity.toUpperCase()}`,
+      `---`,
       `${deity.mantra}`,
-      "",
-      labels.visitLabel,
-      sanctumUrl,
-      "",
-      "✨ Gokarna Mahabaleshwara Prasada Siddhirastu ✨"
+      `---`,
+      `${labels.visitLabel}`,
+      `👉 ${sanctumUrl}`,
+      `---`,
+      `✨ Gokarna Mahabaleshwara Prasada Siddhirastu ✨`
     ];
 
     const descriptionStr = descriptionParts.join("\n");
@@ -757,6 +761,8 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
     const eventLines: string[] = [
       "BEGIN:VEVENT",
       `UID:${dayUid}`,
+      `RELATED-TO;RELTYPE=PARENT:baggona-series-${sanitizedDevoteeToken}@baggona.app`,
+      `X-BAGBONA-SERIES-ID:${sanitizedDevoteeToken}`,
       `DTSTAMP:${nowIso}`,
       `DTSTART;TZID=Asia/Kolkata:${dtStart}`,
       `DTEND;TZID=Asia/Kolkata:${dtEnd}`,

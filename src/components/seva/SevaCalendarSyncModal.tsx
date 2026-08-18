@@ -562,6 +562,19 @@ export default function SevaCalendarSyncModal({
             </div>
           </div>
 
+          {/* Delete All Events Series Tip */}
+          <div className="rounded-xl border border-amber-300/80 bg-amber-50/90 p-2.5 text-[11px] leading-relaxed text-amber-900 shadow-sm flex items-start gap-2">
+            <span className="text-base shrink-0">💡</span>
+            <div>
+              <span className="font-bold text-amber-950">
+                {lang.startsWith("kn") ? "ಕ್ಯಾಲೆಂಡರ್ 1-ಕ್ಲಿಕ್ ಅಳಿಸುವಿಕೆ ಸುಳಿವು:" : "1-Click Delete All Series Tip:"}
+              </span>{" "}
+              {lang.startsWith("kn")
+                ? "ಗೂಗಲ್ ಕ್ಯಾಲೆಂಡರ್ ಅಥವಾ ಆಪಲ್ ಕ್ಯಾಲೆಂಡರ್‌ನಲ್ಲಿ ಯಾವುದೇ ದಿನಾಂಕದ ಈವೆಂಟ್ ಅನ್ನು ತೆರೆದು 'Delete all events in series' ಕ್ಲಿಕ್ ಮಾಡುವ ಮೂಲಕ 90 ದಿನಗಳನ್ನು 1 ಕ್ಲಿಕ್‌ನಲ್ಲಿ ಸುಲಭವಾಗಿ ಅಳಿಸಬಹುದು."
+                : "In Google Calendar or Apple Calendar, open any daily event and select 'Delete all events in series' to clean all 90 days with 1 click."}
+            </div>
+          </div>
+
           {/* Actions */}
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <button
