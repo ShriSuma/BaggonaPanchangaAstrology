@@ -101,7 +101,7 @@ describe("icsCalendarGenerator", () => {
 
     expect(ics).toContain("BEGIN:VCALENDAR");
     expect(ics).toContain("VERSION:2.0");
-    expect(ics).toContain("X-WR-CALNAME:Baggona Panchanga - Pramod Kodagi");
+    expect(ics).toContain("X-WR-CALNAME:ಬಗ್ಗೋಣ ಪಂಚಾಂಗ - Pramod Kodagi");
     expect(ics).toContain("BEGIN:VEVENT");
     expect(ics).toContain("DTSTART;TZID=Asia/Kolkata:20260811T080000");
     expect(ics).toContain("DTEND;TZID=Asia/Kolkata:20260811T083000");
@@ -138,7 +138,8 @@ describe("icsCalendarGenerator", () => {
       lang: "en",
       panditName: "Pandit Chaitanya",
       notificationTime: "08:00",
-      personName: "Pramod Kodagi"
+      personName: "Pramod Kodagi",
+      webAppBaseUrl: "https://baggona.app"
     });
     expect(googlePayload).toContain("/daily?token=bgn_v1_");
     expect(googlePayload).toContain("action=ics90");
@@ -148,17 +149,19 @@ describe("icsCalendarGenerator", () => {
       lang: "en",
       panditName: "Pandit Chaitanya",
       notificationTime: "08:00",
-      personName: "Pramod Kodagi"
+      personName: "Pramod Kodagi",
+      webAppBaseUrl: "https://baggona.app"
     });
     expect(webcalPayload).toContain("https://baggona.app/daily?token=bgn_v1_");
-    expect(webcalPayload).toContain("&action=ics");
+    expect(webcalPayload).toContain("action=ics90");
 
     const sanctumPayload = generateQrPayloadByTarget("sanctum", {
       days: mockDays,
       lang: "en",
       panditName: "Pandit Chaitanya",
       notificationTime: "08:00",
-      personName: "Pramod Kodagi"
+      personName: "Pramod Kodagi",
+      webAppBaseUrl: "https://baggona.app"
     });
     expect(sanctumPayload).toContain("https://baggona.app/daily?token=bgn_v1_");
 
@@ -173,10 +176,10 @@ describe("icsCalendarGenerator", () => {
   });
 
   it("formats grammatically correct priest greetings in all 5 languages", () => {
-    expect(formatPanditGreeting("Chaitanya Pandit", "kn")).toBe("Chaitanya Pandit ಅವರಿಂದ ನಮಸ್ಕಾರಗಳು,");
-    expect(formatPanditGreeting("Chaitanya Pandit", "hi")).toBe("Chaitanya Pandit जी की ओर से सादर प्रणाम,");
-    expect(formatPanditGreeting("Chaitanya Pandit", "te")).toBe("Chaitanya Pandit గారి నుండి నమస్కారాలు,");
-    expect(formatPanditGreeting("Chaitanya Pandit", "ta")).toBe("Chaitanya Pandit அவர்களின் அன்பு வணக்கங்கள்,");
+    expect(formatPanditGreeting("Chaitanya Pandit", "kn")).toBe("ಚೈತನ್ಯ ಪಂಡಿತ್ ಅವರಿಂದ ನಮಸ್ಕಾರಗಳು,");
+    expect(formatPanditGreeting("Chaitanya Pandit", "hi")).toBe("चैतन्य पंडित जी की ओर से सादर प्रणाम,");
+    expect(formatPanditGreeting("Chaitanya Pandit", "te")).toBe("చైతన్య పండిత్ గారి నుండి నమస్కారాలు,");
+    expect(formatPanditGreeting("Chaitanya Pandit", "ta")).toBe("சைதன்யா பண்டிட் அவர்களின் அன்பு வணக்கங்கள்,");
     expect(formatPanditGreeting("Chaitanya Pandit", "en")).toBe("With warm greetings from Chaitanya Pandit,");
 
     expect(formatPanditGreeting("", "kn")).toBe("ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಕ್ಷೇತ್ರದಿಂದ ನಮಸ್ಕಾರಗಳು,");
