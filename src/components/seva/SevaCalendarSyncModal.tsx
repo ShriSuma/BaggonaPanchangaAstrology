@@ -36,7 +36,7 @@ export default function SevaCalendarSyncModal({
   const [target, setTarget] = useState<QrCalendarTarget>("google");
   const [platform, setPlatform] = useState<"android" | "apple">("android");
   const [priestsList, setPriestsList] = useState<PriestProfile[]>(() => getAllPriests());
-  const [selectedPriestId, setSelectedPriestId] = useState<string>("chaitanya-pandit");
+  const [selectedPriestId, setSelectedPriestId] = useState<string>("shreeram-pandit");
   const [customInputMode, setCustomInputMode] = useState<boolean>(false);
   const [newPriestName, setNewPriestName] = useState<string>("");
 

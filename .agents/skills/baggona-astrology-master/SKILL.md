@@ -31,3 +31,11 @@ This is the primary authority skill for the Baggona Panchanga Astrology codebase
 - Always run `npm run build` to verify zero TypeScript errors before declaring a task complete.
 - Test dev server using `npm run dev -- --port 5173`.
 - Commit all changes to the active release branch (`release/seva-and-prasada` or feature branch).
+
+## 5. Calendar & Daily Darshana Guard Rules
+- **Deterministic Math**: Always use `calculateDeterministicRhythmDay` in `icsCalendarGenerator.ts` to ensure calendar `.ics` entries and `DailyDarshanaPage.tsx` deep link data match 100% deterministically.
+- **Dynamic 3-Color Coding**: Green for High Energy (≥75%), Yellow for Balanced (50%–74%), Red for Caution (<50% or Chandrashtama/Difficult Tara).
+- **Priest Name**: Default priest MUST ALWAYS be **Shreeram Pandit** (`"ಶ್ರೀರಾಮ್ ಪಂಡಿತ್"`). Direct call action MUST state: *"If you need a calendar, call Shreeram Pandit: 9972339362"*.
+- **Gold Banner Graphic**: `/public/baggona_panchanga_gold_banner.jpg` MUST contain `Baggona Panchanga` text embedded inside the image.
+- **Reference Guard Skill**: For full details, see `.agents/skills/baggona-calendar-guard/SKILL.md`.
+

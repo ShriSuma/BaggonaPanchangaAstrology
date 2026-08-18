@@ -33,7 +33,7 @@ type Props = {
 export default function SevaDayDetail({
   day,
   lang,
-  priestName = "Pandit Chaitanya (Chief Archaka)"
+  priestName = "Shreeram Pandit (Chief Archaka)"
 }: Props): JSX.Element {
   const style = BAND_STYLE[day.band];
   const vibe = getEnergyMeterAndVibe(day, lang);

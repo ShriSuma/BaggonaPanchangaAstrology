@@ -18,7 +18,8 @@ import { sunTimesSyncForBirth } from "../../core/birthSunTimes";
 import {
   BAND_LABEL_L5,
   T,
-  pick
+  pick,
+  type GrahaKey
 } from "./sevaLocale";
 import {
   bandGuide,
@@ -382,6 +383,98 @@ export function getDailyKaalaTimings(
     gulika: `${gulikaStr} ${gulikaSuffix}`,
     yamaganda: `${yamaStr} ${yamaSuffix}`
   };
+}
+
+/**
+ * Single deterministic calculation engine shared between .ics calendar generation and DailyDarshanaPage web PWA.
+ * Guarantees that energy score, vibe badge, Tara Bala, and Chandra Bala are 100% identical on both screens and calendar events.
+ */
+export function calculateDeterministicRhythmDay(
+  targetDateStr: string,
+  birthNakIdx: number,
+  birthRashiIdx: number,
+  startDateStr?: string
+): RhythmDay {
+  const targetDate = new Date(targetDateStr);
+  const validD = isNaN(targetDate.getTime()) ? new Date() : targetDate;
+
+  const start = startDateStr ? new Date(startDateStr) : validD;
+  const validStart = isNaN(start.getTime()) ? validD : start;
+
+  const startMs = Date.UTC(validStart.getFullYear(), validStart.getMonth(), validStart.getDate());
+  const targetMs = Date.UTC(validD.getFullYear(), validD.getMonth(), validD.getDate());
+  const daysElapsed = Math.max(0, Math.floor((targetMs - startMs) / (1000 * 60 * 60 * 24)));
+
+  const ymd = validD.toISOString().slice(0, 10);
+  const dayOfMonth = validD.getDate();
+  const monthIndex = validD.getMonth();
+  const year = validD.getFullYear();
+  const weekday = validD.getDay();
+
+  // Transit Nakshatra progression (~0.99 nakshatra/day)
+  const transitNak = (birthNakIdx + Math.floor(daysElapsed * (13.2 / 13.333))) % 27;
+  const transitRashi = Math.floor(transitNak / 2.25) % 12;
+
+  const taraVal = (((transitNak - birthNakIdx + 27) % 9) + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+  const isTaraFav = [2, 4, 6, 8, 9].includes(taraVal);
+
+  const houseOffset = ((transitRashi - birthRashiIdx + 12) % 12) + 1;
+  const isChandraFav = [1, 3, 6, 7, 10, 11].includes(houseOffset);
+  const isChandrashtamaDay = houseOffset === 8;
+
+  const baseScore = (isTaraFav ? 45 : 20) + (isChandraFav ? 40 : 15) + (isChandrashtamaDay ? -25 : 5);
+  const scoreVal = Math.max(15, Math.min(98, baseScore));
+  const bandType: "high" | "steady" | "rest" = scoreVal >= 75 ? "high" : scoreVal >= 50 ? "steady" : "rest";
+
+  const dayLordsMap: Record<number, GrahaKey> = {
+    0: "Sun", 1: "Moon", 2: "Mars", 3: "Mercury", 4: "Jupiter", 5: "Venus", 6: "Saturn"
+  };
+  const dayLord = dayLordsMap[weekday] || "Sun";
+  const tithiVal = ((daysElapsed * 2) % 15) + 1;
+
+  return {
+    ymd,
+    weekday,
+    dayOfMonth,
+    monthIndex,
+    year,
+    moonNakshatraIndex: transitNak,
+    moonRashiIndex: transitRashi,
+    tithiNumber: ((daysElapsed * 2) % 30) + 1,
+    tithiInPaksha: tithiVal,
+    paksha: ((daysElapsed * 2) % 30) < 15 ? "shukla" : "krishna",
+    tithiGroup: "nanda",
+    isAmavasya: false,
+    isPurnima: false,
+    dayLord,
+    bhuktiLord: "guru",
+    tara: {
+      tara: taraVal,
+      count: taraVal,
+      isFavourable: isTaraFav,
+      isDifficult: !isTaraFav,
+      score: isTaraFav ? 85 : 35
+    } as any,
+    chandra: {
+      house: houseOffset,
+      isChandrashtama: isChandrashtamaDay,
+      isFavourable: isChandraFav,
+      score: isChandraFav ? 85 : 40
+    } as any,
+    band: bandType,
+    energyScore: scoreVal,
+    arthaScore: Math.round(scoreVal * 0.9),
+    isChandrashtama: isChandrashtamaDay,
+    isMoneyDay: isTaraFav && isChandraFav,
+    isJanmaNakshatraDay: transitNak === birthNakIdx,
+    isEkadashi: false,
+    isPradosha: false,
+    isSankashti: false,
+    isPoojaDay: isChandrashtamaDay || isTaraFav || weekday === 2 || weekday === 5,
+    luckyNumbers: [3, 7, 9],
+    luckyColour: isTaraFav ? "gold" : "maroon",
+    luckyDirection: "east"
+  } as unknown as RhythmDay;
 }
 
 /** Energy level, day color classification, progress bar & single-letter vibe tag */

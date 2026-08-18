@@ -16,7 +16,7 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import { getDevoteeSalutation, buildDeterministicPriestBenediction } from "../features/seva/sevaPriestNarrativeEngine";
-import { getDailyKaalaTimings, getEnergyMeterAndVibe, generateSevaICalendarString, downloadIcsFile, getDayLordIndex } from "../features/seva/icsCalendarGenerator";
+import { getDailyKaalaTimings, getEnergyMeterAndVibe, generateSevaICalendarString, downloadIcsFile, getDayLordIndex, calculateDeterministicRhythmDay } from "../features/seva/icsCalendarGenerator";
 import { decodeDevoteeToken } from "../utils/tokenCipher";
 import type { RhythmDay } from "../core/DailyRhythmEngine";
 import { nakshatraName, rashiName, tithiLabel, getDailyActionableGuidance, formatLongDate, getLocalizedPanditName } from "../features/seva/sevaPresentation";
@@ -89,7 +89,7 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     shareWhatsapp: "ವಾಟ್ಸಾಪ್‌ನಲ್ಲಿ ಹಂಚಿಕೊಳ್ಳಿ",
     copyLink: "ಲಿಂಕ್ ಕಾಪಿ ಮಾಡಿ",
     copied: "ಕಾಪಿ ಆಗಿದೆ! ✓",
-    callPandit: "ಶ್ರೀ ಚೈತನ್ಯ ಪಂಡಿತ್ ಅವರಿಗೆ ಕರೆ ಮಾಡಿ",
+    callPandit: "ಕ್ಯಾಲೆಂಡರ್ ಬೇಕಿದ್ದಲ್ಲಿ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರಿಗೆ ಕರೆ ಮಾಡಿ: 9972339362",
     panditRole: "ಮುಖ್ಯ ಅರ್ಚಕರು - ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ",
     callNow: "ನೇರ ಕರೆ: 9972339362",
     downloadIcs: "೯೦ ದಿನಗಳ ಪಂಚಾಂಗ ಕ್ಯಾಲೆಂಡರ್ ಪಡೆಯಿರಿ (.ics)",
@@ -160,7 +160,7 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     shareWhatsapp: "Share on WhatsApp",
     copyLink: "Copy Sanctum Link",
     copied: "Copied! ✓",
-    callPandit: "Call Sri Chaitanya Pandit",
+    callPandit: "If you need a calendar, call Shreeram Pandit: 9972339362",
     panditRole: "Chief Archaka - Gokarna Kshetra",
     callNow: "Call Directly: +91 9972339362",
     downloadIcs: "Download 90-Day Calendar (.ics)",
@@ -231,7 +231,7 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     shareWhatsapp: "व्हाट्सएप पर शेयर करें",
     copyLink: "लिंक कॉपी करें",
     copied: "कॉपी हो गया! ✓",
-    callPandit: "श्री चैतन्य पंडित जी से संपर्क करें",
+    callPandit: "यदि आपको कैलेंडर चाहिए तो श्रीराम पंडित जी को कॉल करें: 9972339362",
     panditRole: "मुख्य अर्चक - गोकर्ण क्षेत्र",
     callNow: "सीधा कॉल करें: 9972339362",
     downloadIcs: "90-दिवसीय पंचांग कैलेंडर डाउनलोड करें (.ics)",
@@ -302,7 +302,7 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     shareWhatsapp: "వాట్సాప్‌లో షేర్ చేయండి",
     copyLink: "లింక్ కాపీ చేయండి",
     copied: "కాపీ అయింది! ✓",
-    callPandit: "శ్రీ చైతన్య పండితులు గారిని సంప్రదించండి",
+    callPandit: "క్యాలెండర్ కావాలంటే శ్రీరామ్ పండితులు గారికి కాల్ చేయండి: 9972339362",
     panditRole: "ముఖ్య అర్చకులు - గోకర్ణ క్షేత్రం",
     callNow: "నేరుగా కాల్ చేయండి: 9972339362",
     downloadIcs: "90 రోజుల పంచాంగ క్యాలెండర్ పొందండి (.ics)",
@@ -373,7 +373,7 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     shareWhatsapp: "வாட்ஸ்அப்பில் பகிர்க",
     copyLink: "லிங்க் நகல் செய்க",
     copied: "நகலெடுக்கப்பட்டது! ✓",
-    callPandit: "ஸ்ரீ சைதன்ய பண்டிதர் அவர்களை தொடர்புகொள்க",
+    callPandit: "காலண்டர் தேவைப்பட்டால் ஸ்ரீராம் பண்டிதர் அவர்களுக்கு அழைக்கவும்: 9972339362",
     panditRole: "முதன்மை அர்ச்சகர் - கோகர்ண க்ஷேத்திரம்",
     callNow: "நேரடி அழைப்பு: 9972339362",
     downloadIcs: "90 நாட்களுக்கான பஞ்சாங்க காலண்டர் பெறுக (.ics)",
@@ -686,7 +686,7 @@ export default function DailyDarshanaPage(): JSX.Element {
   const dateParam = params.get("date") || new Date().toISOString().split("T")[0];
   const langParam = (decoded?.l || params.get("lang") || "kn") as SevaLang;
   const nameParam = decoded?.n || params.get("name") || "";
-  const panditParam = decoded?.p || params.get("pandit") || "ಶ್ರೀ ಚೈತನ್ಯ ಪಂಡಿತ್";
+  const panditParam = decoded?.p || params.get("pandit") || "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್";
 
   const [lang, setLang] = useState<SevaLang>(langParam);
   const dict = useMemo(() => DARSHANA_LABELS[lang] || DARSHANA_LABELS.en, [lang]);
@@ -736,77 +736,45 @@ export default function DailyDarshanaPage(): JSX.Element {
   }, [decoded, dateParam]);
 
   const mockDay: RhythmDay = useMemo(() => {
-    const d = new Date(dateParam);
-    const validD = isNaN(d.getTime()) ? new Date() : d;
-    const dayNum = validD.getDate();
-    const yearNum = validD.getFullYear();
-    const monthNum = validD.getMonth();
-    const dayOfWeek = validD.getDay();
-
-    const birthNakIdx = decoded?.nk !== undefined ? decoded.nk : ((dayNum * 2) % 27);
+    const startDateStr = decoded?.d || dateParam || new Date().toISOString().split("T")[0];
+    const birthNakIdx = decoded?.nk !== undefined ? decoded.nk : 0;
     const birthRashiIdx = decoded?.r !== undefined ? decoded.r : Math.floor(birthNakIdx / 2.25);
+    return calculateDeterministicRhythmDay(dateParam, birthNakIdx, birthRashiIdx, startDateStr);
+  }, [dateParam, decoded]);
 
-    const safeOffset = Math.max(0, Math.min(89, daysElapsed));
-    const transitNak = (birthNakIdx + safeOffset) % 27;
-    const transitRashi = (birthRashiIdx + Math.floor(safeOffset / 2.25)) % 12;
-
-    const taraVal = (((transitNak - birthNakIdx + 27) % 9) + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
-    const isTaraFav = [2, 4, 6, 8, 9].includes(taraVal);
-
-    const houseOffset = ((transitRashi - birthRashiIdx + 12) % 12) + 1;
-    const isChandraFav = [1, 3, 6, 7, 10, 11].includes(houseOffset);
-    const isChandrashtamaDay = houseOffset === 8;
-
-    const scoreVal = (isTaraFav ? 45 : 20) + (isChandraFav ? 40 : 15) + (isChandrashtamaDay ? -25 : 5);
-    const finalEnergy = Math.max(25, Math.min(98, scoreVal));
-
-    const bandType: "high" | "steady" | "rest" = finalEnergy >= 75 ? "high" : finalEnergy >= 50 ? "steady" : "rest";
-    const tithiVal = ((dayNum % 15) + 1);
-
+  // Dynamic 3-Color Theme based on deterministic Energy Score & Caution state
+  const dayTheme = useMemo(() => {
+    const score = mockDay.energyScore ?? 60;
+    const isCaution = mockDay.isChandrashtama || mockDay.band === "rest" || score < 50;
+    if (isCaution) {
+      return {
+        cardBg: "linear-gradient(135deg, rgba(127, 29, 29, 0.75) 0%, rgba(69, 10, 10, 0.85) 100%)",
+        border: "2px solid #EF4444",
+        badgeBg: "rgba(239, 68, 68, 0.25)",
+        badgeColor: "#FCA5A5",
+        accent: "#EF4444",
+        barGradient: "linear-gradient(90deg, #DC2626, #EF4444)"
+      };
+    }
+    if (mockDay.band === "high" || score >= 75) {
+      return {
+        cardBg: "linear-gradient(135deg, rgba(6, 78, 59, 0.75) 0%, rgba(2, 44, 34, 0.85) 100%)",
+        border: "2px solid #10B981",
+        badgeBg: "rgba(16, 185, 129, 0.25)",
+        badgeColor: "#6EE7B7",
+        accent: "#10B981",
+        barGradient: "linear-gradient(90deg, #059669, #10B981)"
+      };
+    }
     return {
-      ymd: dateParam,
-      weekday: dayOfWeek,
-      dayOfMonth: dayNum,
-      monthIndex: monthNum,
-      year: yearNum,
-      moonNakshatraIndex: transitNak,
-      moonRashiIndex: transitRashi,
-      tithiNumber: tithiVal,
-      tithiInPaksha: tithiVal,
-      paksha: dayNum <= 15 ? "shukla" : "krishna",
-      tithiGroup: "nanda",
-      isAmavasya: false,
-      isPurnima: false,
-      dayLord: dayOfWeek === 0 ? "Sun" : dayOfWeek === 1 ? "Moon" : dayOfWeek === 2 ? "Mars" : dayOfWeek === 3 ? "Mercury" : dayOfWeek === 4 ? "Jupiter" : dayOfWeek === 5 ? "Venus" : "Saturn",
-      bhuktiLord: "Venus",
-      tara: {
-        tara: taraVal,
-        count: taraVal,
-        isFavourable: isTaraFav,
-        isDifficult: !isTaraFav,
-        score: isTaraFav ? 90 : 35
-      },
-      chandra: {
-        house: houseOffset,
-        isChandrashtama: isChandrashtamaDay,
-        isFavourable: isChandraFav,
-        score: isChandraFav ? 85 : 40
-      },
-      band: bandType,
-      energyScore: finalEnergy,
-      arthaScore: Math.round(finalEnergy * 0.9),
-      isChandrashtama: isChandrashtamaDay,
-      isMoneyDay: isTaraFav && isChandraFav,
-      isJanmaNakshatraDay: transitNak === birthNakIdx,
-      isEkadashi: false,
-      isPradosha: false,
-      isSankashti: false,
-      isPoojaDay: dayOfWeek === 2 || dayOfWeek === 5,
-      luckyNumbers: [3, 7, 9],
-      luckyColour: "yellow",
-      luckyDirection: "east"
-    } as RhythmDay;
-  }, [dateParam, decoded, daysElapsed]);
+      cardBg: "linear-gradient(135deg, rgba(146, 64, 14, 0.7) 0%, rgba(69, 26, 3, 0.8) 100%)",
+      border: "2px solid #F59E0B",
+      badgeBg: "rgba(245, 158, 11, 0.25)",
+      badgeColor: "#FDE68A",
+      accent: "#F59E0B",
+      barGradient: "linear-gradient(90deg, #D97706, #F59E0B)"
+    };
+  }, [mockDay]);
 
   const vibe = useMemo(() => getEnergyMeterAndVibe(mockDay, lang), [mockDay, lang]);
   const kaala = useMemo(() => getDailyKaalaTimings(mockDay.dayLord, lang, dateParam, decoded?.lt, decoded?.lg, decoded?.pc), [mockDay.dayLord, lang, dateParam, decoded]);
@@ -1268,32 +1236,32 @@ export default function DailyDarshanaPage(): JSX.Element {
         {/* ── TAB 1: SACRED SANCTUM & DARSHANA ── */}
         {activeTab === "darshana" && (
           <div>
-            {/* Vibe Status Card */}
+            {/* Dynamic 3-Color Vibe Status Card */}
             <div style={{
-              background: "linear-gradient(135deg, rgba(120, 53, 15, 0.4) 0%, rgba(69, 26, 3, 0.4) 100%)",
-              border: "1.5px solid #F59E0B",
+              background: dayTheme.cardBg,
+              border: dayTheme.border,
               borderRadius: 16,
               padding: 16,
               marginBottom: 16,
-              boxShadow: "0 6px 20px rgba(0,0,0,0.4)"
+              boxShadow: "0 6px 20px rgba(0,0,0,0.5)"
             }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
                 <span style={{ fontSize: 12, fontWeight: 700, color: "#FDE68A", textTransform: "uppercase" }}>
                   ⚡ {dict.status}
                 </span>
-                <span style={{ fontSize: 13, fontWeight: 800, color: "#FCD34D", background: "rgba(245, 158, 11, 0.2)", padding: "2px 8px", borderRadius: 10 }}>
+                <span style={{ fontSize: 13, fontWeight: 800, color: dayTheme.badgeColor, background: dayTheme.badgeBg, padding: "2px 8px", borderRadius: 10, border: `1px solid ${dayTheme.accent}` }}>
                   {vibe.vibeTag}
                 </span>
               </div>
               <div style={{ fontSize: 18, fontWeight: 900, color: "#FFFFFF", marginBottom: 6 }}>
                 {vibe.badgeEmoji} {vibe.badgeText} ({mockDay.energyScore}%)
               </div>
-              {/* Energy Bar */}
-              <div style={{ background: "rgba(255,255,255,0.1)", borderRadius: 8, height: 8, overflow: "hidden", marginBottom: 8 }}>
-                <div style={{ background: "linear-gradient(90deg, #F59E0B, #10B981)", height: "100%", width: `${mockDay.energyScore}%` }} />
+              {/* Dynamic Energy Bar */}
+              <div style={{ background: "rgba(255,255,255,0.15)", borderRadius: 8, height: 8, overflow: "hidden", marginBottom: 8 }}>
+                <div style={{ background: dayTheme.barGradient, height: "100%", width: `${mockDay.energyScore}%` }} />
               </div>
               <div style={{ fontSize: 12, color: "#E5E7EB", lineHeight: 1.5 }}>
-                🌟 {dict.taraBala}: <strong style={{ color: "#FDE68A" }}>{mockDay.tara.isFavourable ? (lang === "kn" ? "ಅನುಕೂಲಕರ" : "Favourable") : (lang === "kn" ? "ಗಮನಹರಿಸಿ" : "Caution")}</strong> | 🌙 {dict.chandraBala}: <strong style={{ color: "#FDE68A" }}>{mockDay.chandra.score}%</strong>
+                🌟 {dict.taraBala}: <strong style={{ color: dayTheme.badgeColor }}>{mockDay.tara.isFavourable ? (lang === "kn" ? "ಅನುಕೂಲಕರ" : "Favourable") : (lang === "kn" ? "ಎಚ್ಚರಿಕೆ" : "Caution")}</strong> | 🌙 {dict.chandraBala}: <strong style={{ color: dayTheme.badgeColor }}>{mockDay.chandra.score}%</strong>
               </div>
             </div>
 

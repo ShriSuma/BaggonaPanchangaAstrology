@@ -139,7 +139,7 @@ const formatSevaDocFileName = ({
     return clean || fallback;
   };
 
-  const pName = sanitize(pandit, "Sri_Chaitanya_Pandit");
+  const pName = sanitize(pandit, "Shreeram_Pandit");
   const dName = sanitize(devotee, "Devotee");
   const dateStr = (date || new Date().toISOString().slice(0, 10)).replace(/[^\d-]/g, "");
 
@@ -159,7 +159,7 @@ export default function PrasadaKit({
   const [sevaDate, setSevaDate] = useState(todayYmd());
   const [sevaId, setSevaId] = useState<SevaId>(recommendations[0]?.seva.id ?? "rudrabhisheka");
   const [priestsList, setPriestsList] = useState<PriestProfile[]>(() => getAllPriests());
-  const [selectedPriestId, setSelectedPriestId] = useState<string>("chaitanya-pandit");
+  const [selectedPriestId, setSelectedPriestId] = useState<string>("shreeram-pandit");
   const [customInputMode, setCustomInputMode] = useState<boolean>(false);
   const [newPriestName, setNewPriestName] = useState<string>("");
 
