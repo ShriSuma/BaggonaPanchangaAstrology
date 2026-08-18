@@ -422,10 +422,10 @@ export function calculateDeterministicRhythmDay(
   const isChandraFav = [1, 3, 6, 7, 10, 11].includes(houseOffset);
   const isChandrashtamaDay = houseOffset === 8;
 
-  const isDifficultTara = [1, 3, 5, 7].includes(taraVal);
+  const isDifficultTara = [3, 5, 7].includes(taraVal);
   const baseScore = (isTaraFav ? 45 : 20) + (isChandraFav ? 40 : 15) + (isChandrashtamaDay ? -25 : 5);
   const scoreVal = Math.max(15, Math.min(98, baseScore));
-  const bandType: "high" | "steady" | "rest" = (isChandrashtamaDay || isDifficultTara || scoreVal < 50) ? "rest" : scoreVal >= 75 ? "high" : "steady";
+  const bandType: "high" | "steady" | "rest" = (isChandrashtamaDay || isDifficultTara || scoreVal < 50) ? "rest" : (isTaraFav && isChandraFav && scoreVal >= 75) ? "high" : "steady";
 
   const dayLordsMap: Record<number, GrahaKey> = {
     0: "Sun", 1: "Moon", 2: "Mars", 3: "Mercury", 4: "Jupiter", 5: "Venus", 6: "Saturn"
@@ -487,7 +487,7 @@ export function getEnergyMeterAndVibe(day: RhythmDay, lang: string) {
     day.isChandrashtama ||
     day.isAmavasya ||
     Boolean(day.tara?.isDifficult) ||
-    [1, 3, 5, 7].includes((day.tara?.tara as number) || 0) ||
+    [3, 5, 7].includes((day.tara?.tara as number) || 0) ||
     band === "rest" ||
     band === "low" ||
     score < 50;

@@ -21,6 +21,8 @@ import { decodeDevoteeToken } from "../utils/tokenCipher";
 import type { RhythmDay } from "../core/DailyRhythmEngine";
 import { nakshatraName, rashiName, tithiLabel, getDailyActionableGuidance, formatLongDate, getLocalizedPanditName } from "../features/seva/sevaPresentation";
 import { RASHI_L5, NAKSHATRA_L5, GRAHA_L5, LANGUAGE_OWN_NAME, pick, type SevaLang } from "../features/seva/sevaLocale";
+import { calculateKundliWithPlaceSun } from "../core/KundliEngine";
+import type { KundliOutput } from "../core/AstroTypes";
 
 // Comprehensive 5-Language Dictionary for DailyDarshanaPage
 const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
@@ -747,8 +749,8 @@ export default function DailyDarshanaPage(): JSX.Element {
 
   const mockDay: RhythmDay = useMemo(() => {
     const startDateStr = decoded?.d || dateParam || new Date().toISOString().split("T")[0];
-    const birthNakIdx = decoded?.nk !== undefined ? decoded.nk : 0;
-    const birthRashiIdx = decoded?.r !== undefined ? decoded.r : Math.floor(birthNakIdx / 2.25);
+    const birthNakIdx = decoded?.nk !== undefined ? decoded.nk : 12; // Pramod: Hasta (12)
+    const birthRashiIdx = decoded?.r !== undefined ? decoded.r : 5;   // Pramod: Kanya (5)
     return calculateDeterministicRhythmDay(dateParam, birthNakIdx, birthRashiIdx, startDateStr);
   }, [dateParam, decoded]);
 
@@ -792,20 +794,77 @@ export default function DailyDarshanaPage(): JSX.Element {
   
   const devoteeDisplayName = useMemo(() => {
     if (nameParam && nameParam.trim().length > 0) return nameParam.trim();
-    if (lang === "kn") return "ರಾಘವೇಂದ್ರ ವೈದ್ಯ";
-    if (lang === "hi") return "राघवेंद्र वैद्य";
-    if (lang === "te") return "రాఘవేంద్ర వైద్య";
-    if (lang === "ta") return "ராகவேந்திர வைத்யா";
-    return "Raghavendra Vaidya";
-  }, [nameParam, lang]);
+    if (decoded?.n && decoded.n.trim().length > 0) return decoded.n.trim();
+    if (storedSession?.name && storedSession.name.trim().length > 0) return storedSession.name.trim();
+    if (lang === "kn") return "ಪ್ರಮೋದ್ ಕುಡ್ಗಿ";
+    if (lang === "hi") return "प्रमोद कुड्गी";
+    if (lang === "te") return "ప్రమోద్ కుడ్గి";
+    if (lang === "ta") return "பிரமோத் குட்கி";
+    return "Pramod Kudgi";
+  }, [nameParam, decoded, storedSession, lang]);
 
   const benediction = useMemo(() => buildDeterministicPriestBenediction(mockDay, lang, devoteeDisplayName), [mockDay, lang, devoteeDisplayName]);
 
   // 100% 5-Language Actionable Guidance
   const actionableGuidance = useMemo(() => getDailyActionableGuidance(mockDay, lang), [mockDay, lang]);
 
+  // Dynamic Live Planetary Calculation for Birth Chart & Gochara Transits
+  const [birthKundli, setBirthKundli] = useState<KundliOutput | null>(null);
+  const [transitKundli, setTransitKundli] = useState<KundliOutput | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    async function loadKundlis() {
+      try {
+        const dob = (decoded as any)?.dob || decoded?.d || storedSession?.birthDate || "1993-05-31";
+        const tob = (decoded as any)?.tob || decoded?.tm || storedSession?.birthTime || "09:25";
+        const lat = decoded?.lt ?? storedSession?.latitude ?? 14.5479;
+        const lng = decoded?.lg ?? storedSession?.longitude ?? 74.3187;
+        const pc = decoded?.pc || storedSession?.pincode || "581326";
+
+        const bK = await calculateKundliWithPlaceSun({
+          name: devoteeDisplayName,
+          birthDate: dob,
+          birthTime: tob,
+          latitude: lat,
+          longitude: lng,
+          pincode: pc
+        }, { ayanamsaModel: "lahiri" });
+
+        const targetYmd = dateParam || new Date().toISOString().split("T")[0];
+        const tK = await calculateKundliWithPlaceSun({
+          name: "Transit",
+          birthDate: targetYmd,
+          birthTime: "06:00",
+          latitude: lat,
+          longitude: lng,
+          pincode: pc
+        }, { ayanamsaModel: "lahiri" });
+
+        if (active) {
+          setBirthKundli(bK);
+          setTransitKundli(tK);
+        }
+      } catch (e) {
+        console.warn("Live Kundli calculation notice:", e);
+      }
+    }
+    void loadKundlis();
+    return () => { active = false; };
+  }, [decoded, storedSession, dateParam, devoteeDisplayName]);
+
   // Gochara Planet Placements for South Indian Grid
   const gocharaPlacements = useMemo(() => {
+    if (transitKundli) {
+      const map: Record<number, string[]> = {};
+      transitKundli.planets.forEach((p) => {
+        const rIdx = p.rashi.index;
+        if (!map[rIdx]) map[rIdx] = [];
+        const gName = GRAHA_L5[p.name as keyof typeof GRAHA_L5]?.[lang] || p.name;
+        map[rIdx].push(gName);
+      });
+      return map;
+    }
     return {
       0: [GRAHA_L5.Sun[lang], GRAHA_L5.Mercury[lang]], // Mesha
       1: [GRAHA_L5.Jupiter[lang]],                      // Vrishabha
@@ -814,20 +873,30 @@ export default function DailyDarshanaPage(): JSX.Element {
       10: [GRAHA_L5.Saturn[lang]],                       // Kumbha
       11: [GRAHA_L5.Rahu[lang], GRAHA_L5.Mars[lang]]     // Meena
     };
-  }, [lang]);
+  }, [transitKundli, lang]);
 
-  // Birth Planet Placements for Janma Kundali Grid
+  // Birth Planet Placements for Janma Kundali Grid (Pramod Kudgi: Lagna Karka, Moon/Guru Kanya, Sun/Ketu Vrishabha, Venus Mesha, Mercury Mithuna, Saturn Kumbha, Rahu Vrischika)
   const birthPlacements = useMemo(() => {
+    if (birthKundli) {
+      const map: Record<number, string[]> = {};
+      birthKundli.planets.forEach((p) => {
+        const rIdx = p.rashi.index;
+        if (!map[rIdx]) map[rIdx] = [];
+        const gName = GRAHA_L5[p.name as keyof typeof GRAHA_L5]?.[lang] || p.name;
+        map[rIdx].push(gName);
+      });
+      return map;
+    }
     return {
-      1: [GRAHA_L5.Moon[lang]],
-      3: [GRAHA_L5.Sun[lang], GRAHA_L5.Mercury[lang]],
-      4: [GRAHA_L5.Venus[lang]],
-      6: [GRAHA_L5.Mars[lang]],
-      8: [GRAHA_L5.Jupiter[lang]],
-      10: [GRAHA_L5.Saturn[lang]],
-      11: [GRAHA_L5.Rahu[lang]]
+      0: [GRAHA_L5.Venus[lang]],
+      1: [GRAHA_L5.Sun[lang], GRAHA_L5.Ketu[lang]],
+      2: [GRAHA_L5.Mercury[lang]],
+      3: [GRAHA_L5.Mars[lang]],
+      5: [GRAHA_L5.Moon[lang], GRAHA_L5.Jupiter[lang]],
+      7: [GRAHA_L5.Rahu[lang]],
+      10: [GRAHA_L5.Saturn[lang]]
     };
-  }, [lang]);
+  }, [birthKundli, lang]);
 
   // Multi-harmonic Authentic Temple Bell Synthesis ("THAAANNN...")
   const playTempleBell = () => {
@@ -1032,22 +1101,20 @@ export default function DailyDarshanaPage(): JSX.Element {
             ✨ {dict.panchangaTitle} ✨
           </div>
 
-          {/* Gold Banner Graphic (Hidden when coming from Calendar redirect) */}
-          {!isFromCalendarRedirect && (
-            <img
-              src="/baggona_panchanga_gold_banner.jpg"
-              alt="Baggona Panchanga Banner"
-              style={{
-                width: "100%",
-                maxHeight: 140,
-                objectFit: "cover",
-                borderRadius: 12,
-                border: "1.5px solid #F59E0B",
-                marginBottom: 8,
-                display: "block"
-              }}
-            />
-          )}
+          {/* Gold Banner Graphic (Always Visible on Top) */}
+          <img
+            src="/baggona_panchanga_gold_banner.jpg"
+            alt="Baggona Panchanga Banner"
+            style={{
+              width: "100%",
+              maxHeight: 140,
+              objectFit: "cover",
+              borderRadius: 12,
+              border: "1.5px solid #F59E0B",
+              marginBottom: 8,
+              display: "block"
+            }}
+          />
 
           {/* Subtitle Under Banner Image */}
           <div style={{ fontSize: 12, color: "#D1D5DB", fontStyle: "italic", marginBottom: 12 }}>
@@ -1064,29 +1131,31 @@ export default function DailyDarshanaPage(): JSX.Element {
             🛕 {dict.kshetraTitle}
           </div>
 
-          {/* 1-Tap 90-Day Calendar Download Button */}
-          <div style={{ marginTop: 10 }}>
-            <button
-              onClick={handleDownload90DayIcs}
-              style={{
-                background: "linear-gradient(135deg, #10B981, #047857)",
-                color: "#FFFFFF",
-                border: "1px solid #6EE7B7",
-                padding: "8px 16px",
-                borderRadius: 20,
-                fontSize: 12,
-                fontWeight: 800,
-                cursor: "pointer",
-                boxShadow: "0 4px 12px rgba(16, 185, 129, 0.4)",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6
-              }}
-            >
-              <span>📅</span>
-              <span>{downloadedNotice ? dict.icsDownloaded : dict.downloadIcs}</span>
-            </button>
-          </div>
+          {/* 1-Tap 90-Day Calendar Download Button (Hidden when coming from Calendar redirect) */}
+          {!isFromCalendarRedirect && (
+            <div style={{ marginTop: 10 }}>
+              <button
+                onClick={handleDownload90DayIcs}
+                style={{
+                  background: "linear-gradient(135deg, #10B981, #047857)",
+                  color: "#FFFFFF",
+                  border: "1px solid #6EE7B7",
+                  padding: "8px 16px",
+                  borderRadius: 20,
+                  fontSize: 12,
+                  fontWeight: 800,
+                  cursor: "pointer",
+                  boxShadow: "0 4px 12px rgba(16, 185, 129, 0.4)",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6
+                }}
+              >
+                <span>📅</span>
+                <span>{downloadedNotice ? dict.icsDownloaded : dict.downloadIcs}</span>
+              </button>
+            </div>
+          )}
 
           {/* 5-Language Switcher */}
           <div style={{
@@ -1209,27 +1278,42 @@ export default function DailyDarshanaPage(): JSX.Element {
       {/* Main Content Area */}
       <main style={{ maxWidth: 600, margin: "0 auto", padding: "16px 12px" }}>
         
-        {/* Devotee Greeting Header */}
+        {/* Devotee Greeting Header (Pavitra Darshana Sannidhi) */}
         <div style={{
-          background: "rgba(45, 20, 7, 0.85)",
-          border: "1px solid rgba(212, 175, 55, 0.3)",
+          background: "linear-gradient(135deg, rgba(69, 26, 3, 0.95) 0%, rgba(28, 10, 0, 0.95) 100%)",
+          border: "2px solid #D4AF37",
           borderRadius: 16,
-          padding: "14px 16px",
+          padding: "16px 18px",
           marginBottom: 16,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          boxShadow: "0 4px 15px rgba(0,0,0,0.3)"
+          boxShadow: "0 6px 20px rgba(0,0,0,0.5)",
+          position: "relative",
+          overflow: "hidden"
         }}>
-          <div>
-            <div style={{ fontSize: 11, color: "#F59E0B", fontWeight: 700, textTransform: "uppercase" }}>
-              🙏 {dict.welcome}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div>
+              <div style={{ fontSize: 11, color: "#F59E0B", fontWeight: 800, textTransform: "uppercase", letterSpacing: 1 }}>
+                🙏 {dict.welcome}
+              </div>
+              <div style={{ fontSize: 20, fontWeight: 900, color: "#FDE68A", marginTop: 4, letterSpacing: 0.5 }}>
+                {devoteeDisplayName}
+              </div>
+              <div style={{ fontSize: 12, color: "#E5E7EB", marginTop: 4, display: "flex", alignItems: "center", gap: 6 }}>
+                <span>🗓️ {formatLongDate(mockDay, lang)}</span>
+                <span style={{ color: "#F59E0B" }}>•</span>
+                <span style={{ color: "#86EFAC", fontWeight: 700 }}>🛕 {dict.kshetraTitle}</span>
+              </div>
             </div>
-            <div style={{ fontSize: 16, fontWeight: 800, color: "#FDE68A", marginTop: 2 }}>
-              {devoteeDisplayName}
-            </div>
-            <div style={{ fontSize: 12, color: "#D1D5DB", marginTop: 2 }}>
-              🗓️ {formatLongDate(mockDay, lang)}
+            <div style={{
+              background: "rgba(212, 175, 55, 0.15)",
+              border: "1px solid #D4AF37",
+              borderRadius: 12,
+              padding: "8px 12px",
+              textAlign: "center"
+            }}>
+              <div style={{ fontSize: 20 }}>🪔</div>
+              <div style={{ fontSize: 10, color: "#FDE68A", fontWeight: 800, marginTop: 2 }}>
+                {lang === "kn" ? "ಆಶೀರ್ವಾದ" : "Blest"}
+              </div>
             </div>
           </div>
         </div>
@@ -1386,19 +1470,19 @@ export default function DailyDarshanaPage(): JSX.Element {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontSize: 12 }}>
                 <div style={{ background: "rgba(0,0,0,0.3)", padding: 8, borderRadius: 8 }}>
                   <span style={{ color: "#F59E0B" }}>{dict.lagna}:</span>{" "}
-                  <strong>{RASHI_L5[storedSession?.result?.ascendant?.index || 4]?.[lang] || "Simha"}</strong>
+                  <strong>{RASHI_L5[birthKundli?.ascendant ?? 3]?.[lang] || (lang === "kn" ? "ಕರ್ಕಾಟಕ" : "Karka")}</strong>
                 </div>
                 <div style={{ background: "rgba(0,0,0,0.3)", padding: 8, borderRadius: 8 }}>
                   <span style={{ color: "#F59E0B" }}>{dict.rashi}:</span>{" "}
-                  <strong>{RASHI_L5[mockDay.moonRashiIndex]?.[lang] || "Vrishabha"}</strong>
+                  <strong>{RASHI_L5[birthKundli ? (birthKundli.planets.find(p=>p.name==='Moon')?.rashi.index ?? 5) : 5]?.[lang] || (lang === "kn" ? "ಕನ್ಯಾ" : "Kanya")}</strong>
                 </div>
                 <div style={{ background: "rgba(0,0,0,0.3)", padding: 8, borderRadius: 8 }}>
                   <span style={{ color: "#F59E0B" }}>{dict.nakshatra}:</span>{" "}
-                  <strong>{NAKSHATRA_L5[mockDay.moonNakshatraIndex]?.[lang] || "Rohini"}</strong>
+                  <strong>{NAKSHATRA_L5[birthKundli ? (birthKundli.planets.find(p=>p.name==='Moon')?.nakshatra.index ?? 12) : 12]?.[lang] || (lang === "kn" ? "ಹಸ್ತಾ" : "Hasta")}</strong>
                 </div>
                 <div style={{ background: "rgba(0,0,0,0.3)", padding: 8, borderRadius: 8 }}>
                   <span style={{ color: "#F59E0B" }}>{dict.rashiLord}:</span>{" "}
-                  <strong>{GRAHA_L5.Venus[lang]}</strong>
+                  <strong>{GRAHA_L5.Mercury[lang]}</strong>
                 </div>
               </div>
             </div>
@@ -1406,8 +1490,8 @@ export default function DailyDarshanaPage(): JSX.Element {
             {/* Visual South-Indian Birth Kundali Chart */}
             <SouthIndianKundaliGrid
               lang={lang}
-              highlightRashiIndex={mockDay.moonRashiIndex}
-              lagnaRashiIndex={4}
+              highlightRashiIndex={birthKundli ? (birthKundli.planets.find(p=>p.name==='Moon')?.rashi.index ?? 5) : 5}
+              lagnaRashiIndex={birthKundli?.ascendant ?? 3}
               planetPlacements={birthPlacements}
               title={dict.tabKundali}
               isGochara={false}
@@ -1435,34 +1519,55 @@ export default function DailyDarshanaPage(): JSX.Element {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                    <td style={{ padding: "6px 4px", fontWeight: 700 }}>{GRAHA_L5.Sun[lang]}</td>
-                    <td style={{ padding: "6px 4px" }}>{RASHI_L5[3][lang]}</td>
-                    <td style={{ padding: "6px 4px" }}>12</td>
-                    <td style={{ padding: "6px 4px" }}>14° 22'</td>
-                    <td style={{ padding: "6px 4px", color: "#10B981" }}>Swakshetra</td>
-                  </tr>
-                  <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                    <td style={{ padding: "6px 4px", fontWeight: 700 }}>{GRAHA_L5.Moon[lang]}</td>
-                    <td style={{ padding: "6px 4px" }}>{RASHI_L5[mockDay.moonRashiIndex][lang]}</td>
-                    <td style={{ padding: "6px 4px" }}>{mockDay.chandra.house}</td>
-                    <td style={{ padding: "6px 4px" }}>22° 10'</td>
-                    <td style={{ padding: "6px 4px", color: "#F59E0B" }}>Ucha</td>
-                  </tr>
-                  <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                    <td style={{ padding: "6px 4px", fontWeight: 700 }}>{GRAHA_L5.Jupiter[lang]}</td>
-                    <td style={{ padding: "6px 4px" }}>{RASHI_L5[1][lang]}</td>
-                    <td style={{ padding: "6px 4px" }}>10</td>
-                    <td style={{ padding: "6px 4px" }}>18° 05'</td>
-                    <td style={{ padding: "6px 4px", color: "#10B981" }}>Mitra</td>
-                  </tr>
-                  <tr>
-                    <td style={{ padding: "6px 4px", fontWeight: 700 }}>{GRAHA_L5.Saturn[lang]}</td>
-                    <td style={{ padding: "6px 4px" }}>{RASHI_L5[10][lang]}</td>
-                    <td style={{ padding: "6px 4px" }}>7</td>
-                    <td style={{ padding: "6px 4px" }}>08° 45'</td>
-                    <td style={{ padding: "6px 4px", color: "#10B981" }}>Swakshetra</td>
-                  </tr>
+                  {birthKundli?.planets ? (
+                    birthKundli.planets.map((p) => {
+                      const gName = GRAHA_L5[p.name as keyof typeof GRAHA_L5]?.[lang] || p.name;
+                      const rName = RASHI_L5[p.rashi.index]?.[lang] || p.rashi.sanskrit;
+                      const houseNum = p.house;
+                      const degStr = `${Math.floor(p.degree)}° ${Math.round((p.degree % 1) * 60)}'`;
+                      const statusStr = p.isRetrograde ? (lang === "kn" ? "ವಕ್ರ" : "Retro") : (lang === "kn" ? "ಶುಭ" : "Direct");
+                      return (
+                        <tr key={p.name} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                          <td style={{ padding: "6px 4px", fontWeight: 700 }}>{gName}</td>
+                          <td style={{ padding: "6px 4px" }}>{rName}</td>
+                          <td style={{ padding: "6px 4px" }}>{houseNum}</td>
+                          <td style={{ padding: "6px 4px" }}>{degStr}</td>
+                          <td style={{ padding: "6px 4px", color: p.isRetrograde ? "#F59E0B" : "#10B981" }}>{statusStr}</td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <>
+                      <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                        <td style={{ padding: "6px 4px", fontWeight: 700 }}>{GRAHA_L5.Sun[lang]}</td>
+                        <td style={{ padding: "6px 4px" }}>{RASHI_L5[1][lang]}</td>
+                        <td style={{ padding: "6px 4px" }}>11</td>
+                        <td style={{ padding: "6px 4px" }}>15° 57'</td>
+                        <td style={{ padding: "6px 4px", color: "#10B981" }}>Swakshetra</td>
+                      </tr>
+                      <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                        <td style={{ padding: "6px 4px", fontWeight: 700 }}>{GRAHA_L5.Moon[lang]}</td>
+                        <td style={{ padding: "6px 4px" }}>{RASHI_L5[5][lang]}</td>
+                        <td style={{ padding: "6px 4px" }}>3</td>
+                        <td style={{ padding: "6px 4px" }}>17° 59'</td>
+                        <td style={{ padding: "6px 4px", color: "#F59E0B" }}>Ucha</td>
+                      </tr>
+                      <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                        <td style={{ padding: "6px 4px", fontWeight: 700 }}>{GRAHA_L5.Jupiter[lang]}</td>
+                        <td style={{ padding: "6px 4px" }}>{RASHI_L5[5][lang]}</td>
+                        <td style={{ padding: "6px 4px" }}>3</td>
+                        <td style={{ padding: "6px 4px" }}>10° 59'</td>
+                        <td style={{ padding: "6px 4px", color: "#10B981" }}>Mitra</td>
+                      </tr>
+                      <tr>
+                        <td style={{ padding: "6px 4px", fontWeight: 700 }}>{GRAHA_L5.Saturn[lang]}</td>
+                        <td style={{ padding: "6px 4px" }}>{RASHI_L5[10][lang]}</td>
+                        <td style={{ padding: "6px 4px" }}>8</td>
+                        <td style={{ padding: "6px 4px" }}>06° 28'</td>
+                        <td style={{ padding: "6px 4px", color: "#10B981" }}>Swakshetra</td>
+                      </tr>
+                    </>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -1475,8 +1580,8 @@ export default function DailyDarshanaPage(): JSX.Element {
             {/* Visual South-Indian Gochara Transit Chart Grid */}
             <SouthIndianKundaliGrid
               lang={lang}
-              highlightRashiIndex={mockDay.moonRashiIndex}
-              lagnaRashiIndex={4}
+              highlightRashiIndex={transitKundli ? (transitKundli.planets.find(p=>p.name==='Moon')?.rashi.index ?? mockDay.moonRashiIndex) : mockDay.moonRashiIndex}
+              lagnaRashiIndex={birthKundli?.ascendant ?? 3}
               planetPlacements={gocharaPlacements}
               title={dict.gocharaChartTitle}
               isGochara={true}
