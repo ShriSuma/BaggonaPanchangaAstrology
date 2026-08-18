@@ -219,8 +219,8 @@ describe("Devotee 90-Day Token Consistency & Expiry Engine", () => {
     // 3. Verify notification time selection (10:00 AM)
     expect(icsContent).toContain("DTSTART;TZID=Asia/Kolkata:20260818T100000");
 
-    // 4. Verify banner image URL is excluded from calendar event description per user mandate
-    expect(icsContent).not.toContain("baggona_panchanga_gold_banner.jpg");
+    // 4. Verify banner image URL is attached via RFC 5545 ATTACH header (not in text description)
+    expect(icsContent).toContain("ATTACH;FMTTYPE=image/jpeg:");
     expect(icsContent).toContain("X-ALT-DESC;FMTTYPE=text/html:");
   });
 });

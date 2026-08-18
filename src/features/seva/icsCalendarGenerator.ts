@@ -686,7 +686,7 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
     const vibe = getEnergyMeterAndVibe(day, lang);
     const sanctumUrl = `${origin}/daily?token=${baseToken}`;
 
-    const summaryStr = `${vibe.badgeEmoji} [${tithiLabel(day, lang)}] ${localizedPandit} - ${labels.panchangaTitle} (${vibe.badgeText})`;
+    const summaryStr = `🛕 Temple Puja & Astrology | ${vibe.badgeEmoji} [${tithiLabel(day, lang)}] ${localizedPandit} - ${labels.panchangaTitle} (${vibe.badgeText})`;
 
     const descriptionParts: string[] = [
       `🕉️ ${labels.panchangaTitle} - ${labels.kshetraTitle}`,
@@ -714,10 +714,12 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
       `SUMMARY:${escapeIcsText(summaryStr)}`,
       `DESCRIPTION:${escapeIcsText(descriptionStr)}`,
       `X-ALT-DESC;FMTTYPE=text/html:${escapeIcsText(htmlDescriptionStr)}`,
+      `ATTACH;FMTTYPE=image/jpeg:${origin}/baggona_panchanga_gold_banner.jpg`,
+      `IMAGE;VALUE=URI:${origin}/baggona_panchanga_gold_banner.jpg`,
       `URL:${sanctumUrl}`,
       `COLOR:${vibe.icalColor}`,
       `X-GOOGLE-CALENDAR-COLOR:${vibe.googleColorId}`,
-      "CATEGORIES:Baggona Panchanga,Gokarna Kshetra,Astrology",
+      "CATEGORIES:Temple,Puja,Pooja,Astrology,Worship,Daily Ritual,Gokarna Kshetra,Baggona Panchanga",
       "STATUS:CONFIRMED",
       "BEGIN:VALARM",
       "ACTION:DISPLAY",
@@ -827,7 +829,7 @@ export function generateGoogleCalendarUrl(options: {
   const priestLabel = isKn ? "ಮುಖ್ಯ ಅರ್ಚಕರು" : isHi ? "मुख्य अर्चक" : isTe ? "ముఖ్య అర్చకులు" : isTa ? "முதன்மை அர்ச்சகர்" : "Chief Priest";
   const devoteeLabel = isKn ? "ಭಕ್ತರ ಹೆಸರು" : isHi ? "भक्त का नाम" : isTe ? "భక్తుని పేరు" : isTa ? "பக்தர் பெயர்" : "Devotee";
 
-  const summary = `${vibe.badgeEmoji} [${tithiLabel(day, lang)}] ${localizedPandit} - ${panchangaTitle} (${vibe.badgeText})`;
+  const summary = `🛕 Temple Puja & Astrology | ${vibe.badgeEmoji} [${tithiLabel(day, lang)}] ${localizedPandit} - ${panchangaTitle} (${vibe.badgeText})`;
 
   const taraNum = day.tara?.tara || 2;
   const taraInfo = getTaraBalaInfo(taraNum, lang);
