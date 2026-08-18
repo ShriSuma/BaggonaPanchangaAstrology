@@ -236,7 +236,7 @@ export default function DailyDarshanaPage(): JSX.Element {
     };
   }, [dateParam, decoded, daysElapsed]);
 
-  const kaala = useMemo(() => getDailyKaalaTimings(dayLordIdx, lang), [dayLordIdx, lang]);
+  const kaala = useMemo(() => getDailyKaalaTimings(dayLordIdx, lang, dateParam, decoded?.lt, decoded?.lg, decoded?.pc), [dayLordIdx, lang, dateParam, decoded]);
   const vibe = useMemo(() => getEnergyMeterAndVibe(mockDay, lang), [mockDay, lang]);
   const devoteeName = nameParam || storedSession?.form?.name || (lang.startsWith("kn") ? "ಭಕ್ತರು" : "Devotee");
   const localizedPandit = useMemo(() => getLocalizedPanditName(panditParam, lang), [panditParam, lang]);
@@ -922,9 +922,14 @@ export default function DailyDarshanaPage(): JSX.Element {
                 color: "#78350F",
                 display: "flex",
                 alignItems: "center",
+                justifyContent: "space-between",
+                flexWrap: "wrap",
                 gap: 8
               }}>
-                ⏳ {isKn ? "ಇಂದಿನ ಕಾಲ ಸಮಯಗಳು (Kolkata Time)" : "Daily Kaala Timings (Kolkata Time)"}
+                <span>⏳ {isKn ? `ಇಂದಿನ ಕಾಲ ಸಮಯಗಳು (${decoded?.loc || "Gokarna"})` : `Local Daily Kaala Timings (${decoded?.loc || "Gokarna"})`}</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#B45309" }}>
+                  🌅 {kaala.sunrise} | 🌇 {kaala.sunset}
+                </span>
               </h2>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, fontSize: 13 }}>
                 <div style={{ background: "#FEF2F2", border: "1px solid #FCA5A5", padding: "10px 12px", borderRadius: 12, textAlign: "center" }}>

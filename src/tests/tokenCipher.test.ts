@@ -36,6 +36,25 @@ describe("tokenCipher Security & Privacy Engine", () => {
     expect(decoded?.target).toBe("google");
   });
 
+  it("encodes and decodes PIN code, Latitude, Longitude, and Location Name", () => {
+    const payload: DevoteeTokenPayload = {
+      name: "Srinivas Rao",
+      pincode: "500001",
+      lat: 17.3850,
+      lng: 78.4867,
+      locationName: "Hyderabad",
+      lang: "kn"
+    };
+
+    const token = encodeDevoteeToken(payload);
+    const decoded = decodeDevoteeToken(token);
+    expect(decoded).not.toBeNull();
+    expect(decoded?.pincode).toBe("500001");
+    expect(decoded?.lat).toBeCloseTo(17.3850);
+    expect(decoded?.lng).toBeCloseTo(78.4867);
+    expect(decoded?.locationName).toBe("Hyderabad");
+  });
+
   it("handles complex Indic Unicode scripts (Kannada, Telugu, Tamil, Hindi)", () => {
     const payload: DevoteeTokenPayload = {
       name: "ಪ್ರಮೋದ ಕುಮಾರ್ / సురేష్ / ரமேஷ் / अमित",

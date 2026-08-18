@@ -34,6 +34,14 @@ export interface DevoteeTokenPayload {
   pl?: "android" | "apple";
   target?: "google" | "webcal" | "sanctum";
   t?: "google" | "webcal" | "sanctum";
+  pincode?: string;
+  pc?: string;
+  lat?: number;
+  lt?: number;
+  lng?: number;
+  lg?: number;
+  locationName?: string;
+  loc?: string;
 }
 
 const TOKEN_PREFIX = "bgn_v1_";
@@ -89,6 +97,10 @@ export function encodeDevoteeToken(payload: DevoteeTokenPayload): string {
     const rawSeva = payload.sevaType ?? payload.s ?? "";
     const rawPlatform = payload.platform ?? payload.pl ?? "android";
     const rawTarget = payload.target ?? payload.t ?? "sanctum";
+    const rawPin = payload.pincode ?? payload.pc ?? "581326";
+    const rawLat = payload.lat ?? payload.lt ?? 14.54;
+    const rawLng = payload.lng ?? payload.lg ?? 74.31;
+    const rawLoc = payload.locationName ?? payload.loc ?? "Gokarna";
 
     const compactObj = {
       n: rawName,
@@ -101,7 +113,11 @@ export function encodeDevoteeToken(payload: DevoteeTokenPayload): string {
       tm: rawTime,
       s: rawSeva,
       pl: rawPlatform,
-      t: rawTarget
+      t: rawTarget,
+      pc: rawPin,
+      lt: rawLat,
+      lg: rawLng,
+      loc: rawLoc
     };
 
     const jsonStr = JSON.stringify(compactObj);
@@ -130,6 +146,10 @@ export function decodeDevoteeToken(token: string): (DevoteeTokenPayload & {
   s?: string;
   pl: "android" | "apple";
   t: "google" | "webcal" | "sanctum";
+  pc: string;
+  lt: number;
+  lg: number;
+  loc: string;
 }) | null {
   if (!token || typeof token !== "string") return null;
 
@@ -162,6 +182,10 @@ export function decodeDevoteeToken(token: string): (DevoteeTokenPayload & {
     const sevaType = parsed.s || undefined;
     const platform = parsed.pl || "android";
     const target = parsed.t || "sanctum";
+    const pincode = parsed.pc || "581326";
+    const lat = typeof parsed.lt === "number" ? parsed.lt : 14.54;
+    const lng = typeof parsed.lg === "number" ? parsed.lg : 74.31;
+    const locationName = parsed.loc || "Gokarna";
 
     return {
       name,
@@ -185,7 +209,15 @@ export function decodeDevoteeToken(token: string): (DevoteeTokenPayload & {
       platform,
       pl: platform,
       target,
-      t: target
+      t: target,
+      pincode,
+      pc: pincode,
+      lat,
+      lt: lat,
+      lng,
+      lg: lng,
+      locationName,
+      loc: locationName
     };
   } catch (err) {
     console.warn("Failed to decode token:", err);

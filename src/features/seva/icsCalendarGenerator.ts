@@ -14,6 +14,7 @@
  */
 
 import type { RhythmDay } from "../../core/DailyRhythmEngine";
+import { sunTimesSyncForBirth } from "../../core/birthSunTimes";
 import {
   BAND_LABEL_L5,
   T,
@@ -151,32 +152,85 @@ export function getChandraBalaInfo(house: number, isChandrashtama: boolean, lang
   return isKn ? `${house}ನೇ ಮನೆ - 🟡 ಸಾಮಾನ್ಯ ಚಂದ್ರಬಲ` : `${house}th House - 🟡 Moderate Chandra Bala`;
 }
 
-/** Rahu Kaala, Gulika Kaala, and Yamaganda exact timings by day lord octant */
-export function getDailyKaalaTimings(dayLord: number | string, lang: string) {
+/** Rahu Kaala, Gulika Kaala, and Yamaganda exact timings by location and day lord octant */
+export function getDailyKaalaTimings(
+  dayLord: number | string,
+  lang: string,
+  dateStr?: string,
+  lat?: number,
+  lng?: number,
+  pincode?: string
+) {
   const idx = getDayLordIndex(dayLord);
-  const timings = [
-    // 0: Sun
-    { rahu: "04:30 PM – 06:00 PM", gulika: "03:00 PM – 04:30 PM", yama: "12:00 PM – 01:30 PM" },
-    // 1: Mon
-    { rahu: "07:30 AM – 09:00 AM", gulika: "01:30 PM – 03:00 PM", yama: "10:30 AM – 12:00 PM" },
-    // 2: Tue
-    { rahu: "03:00 PM – 04:30 PM", gulika: "12:00 PM – 01:30 PM", yama: "09:00 AM – 10:30 AM" },
-    // 3: Wed
-    { rahu: "12:00 PM – 01:30 PM", gulika: "10:30 AM – 12:00 PM", yama: "07:30 AM – 09:00 AM" },
-    // 4: Thu
-    { rahu: "01:30 PM – 03:00 PM", gulika: "09:00 AM – 10:30 AM", yama: "06:00 AM – 07:30 AM" },
-    // 5: Fri
-    { rahu: "10:30 AM – 12:00 PM", gulika: "07:30 AM – 09:00 AM", yama: "03:00 PM – 04:30 PM" },
-    // 6: Sat
-    { rahu: "09:00 AM – 10:30 AM", gulika: "06:00 AM – 07:30 AM", yama: "01:30 PM – 03:00 PM" }
-  ];
-  const t = timings[idx] || timings[0];
   const isKn = lang.startsWith("kn");
 
+  let sunriseStr = "06:00 AM";
+  let sunsetStr = "06:30 PM";
+  let rahuStr = "";
+  let gulikaStr = "";
+  let yamaStr = "";
+
+  if (dateStr && typeof lat === "number" && typeof lng === "number" && Number.isFinite(lat) && Number.isFinite(lng)) {
+    try {
+      const dateObj = new Date(`${dateStr}T12:00:00Z`);
+      const sun = sunTimesSyncForBirth(dateObj, lat, lng, pincode || "");
+
+      const formatTime = (d: Date) => {
+        const hours = d.getHours();
+        const minutes = d.getMinutes();
+        const ampm = hours >= 12 ? "PM" : "AM";
+        const h12 = hours % 12 || 12;
+        return `${String(h12).padStart(2, "0")}:${String(minutes).padStart(2, "0")} ${ampm}`;
+      };
+
+      sunriseStr = formatTime(sun.sunrise);
+      sunsetStr = formatTime(sun.sunset);
+
+      const sunriseMs = sun.sunrise.getTime();
+      const sunsetMs = sun.sunset.getTime();
+      const daySpanMs = Math.max(sunsetMs - sunriseMs, 3600000);
+      const octantMs = daySpanMs / 8;
+
+      const rahuOctantMap = [8, 2, 7, 5, 6, 4, 3];
+      const gulikaOctantMap = [7, 6, 5, 4, 3, 2, 1];
+      const yamaOctantMap = [5, 4, 3, 2, 1, 7, 6];
+
+      const getWindowStr = (octantPeriod: number) => {
+        const start = new Date(sunriseMs + (octantPeriod - 1) * octantMs);
+        const end = new Date(sunriseMs + octantPeriod * octantMs);
+        return `${formatTime(start)} – ${formatTime(end)}`;
+      };
+
+      rahuStr = getWindowStr(rahuOctantMap[idx] || 8);
+      gulikaStr = getWindowStr(gulikaOctantMap[idx] || 7);
+      yamaStr = getWindowStr(yamaOctantMap[idx] || 5);
+    } catch {
+      /* fallback to standard Kolkata offsets */
+    }
+  }
+
+  if (!rahuStr) {
+    const timings = [
+      { rahu: "04:30 PM – 06:00 PM", gulika: "03:00 PM – 04:30 PM", yama: "12:00 PM – 01:30 PM" },
+      { rahu: "07:30 AM – 09:00 AM", gulika: "01:30 PM – 03:00 PM", yama: "10:30 AM – 12:00 PM" },
+      { rahu: "03:00 PM – 04:30 PM", gulika: "12:00 PM – 01:30 PM", yama: "09:00 AM – 10:30 AM" },
+      { rahu: "12:00 PM – 01:30 PM", gulika: "10:30 AM – 12:00 PM", yama: "07:30 AM – 09:00 AM" },
+      { rahu: "01:30 PM – 03:00 PM", gulika: "09:00 AM – 10:30 AM", yama: "06:00 AM – 07:30 AM" },
+      { rahu: "10:30 AM – 12:00 PM", gulika: "07:30 AM – 09:00 AM", yama: "03:00 PM – 04:30 PM" },
+      { rahu: "09:00 AM – 10:30 AM", gulika: "06:00 AM – 07:30 AM", yama: "01:30 PM – 03:00 PM" }
+    ];
+    const t = timings[idx] || timings[0];
+    rahuStr = t.rahu;
+    gulikaStr = t.gulika;
+    yamaStr = t.yama;
+  }
+
   return {
-    rahu: `${t.rahu} ${isKn ? "(ಹೊಸ ಕಾರ್ಯ ತಪ್ಪಿಸಿ)" : "(Avoid New Start)"}`,
-    gulika: `${t.gulika} ${isKn ? "(ಶುಭ ಕಾರ್ಯಕ್ಕೆ ಉತ್ತಮ)" : "(Favorable for Action)"}`,
-    yamaganda: `${t.yama} ${isKn ? "(ಪ್ರಾರ್ಥನೆಗೆ ಸೂಕ್ತ)" : "(Good for Prayer)"}`
+    sunrise: sunriseStr,
+    sunset: sunsetStr,
+    rahu: `${rahuStr} ${isKn ? "(ಹೊಸ ಕಾರ್ಯ ತಪ್ಪಿಸಿ)" : "(Avoid New Start)"}`,
+    gulika: `${gulikaStr} ${isKn ? "(ಶುಭ ಕಾರ್ಯಕ್ಕೆ ಉತ್ತಮ)" : "(Favorable for Action)"}`,
+    yamaganda: `${yamaStr} ${isKn ? "(ಪ್ರಾರ್ಥನೆಗೆ ಸೂಕ್ತ)" : "(Good for Prayer)"}`
   };
 }
 
@@ -226,6 +280,10 @@ export type CalendarGeneratorOptions = {
   notificationTime: string; // "08:00", "06:00", etc.
   personName?: string;
   webAppBaseUrl?: string;
+  pincode?: string;
+  lat?: number;
+  lng?: number;
+  locationName?: string;
 };
 
 export function formatPanditGreeting(panditName: string, lang: string): string {
@@ -276,7 +334,11 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
     panditName,
     notificationTime = "08:00",
     personName,
-    webAppBaseUrl
+    webAppBaseUrl,
+    pincode = "581326",
+    lat = 14.54,
+    lng = 74.31,
+    locationName = "Gokarna"
   } = options;
 
   const [hours, minutes] = (notificationTime || "08:00").split(":");
@@ -309,7 +371,11 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
     p: localizedPandit,
     d: startDateStr,
     l: lang,
-    tm: notificationTime
+    tm: notificationTime,
+    pc: pincode,
+    lt: lat,
+    lg: lng,
+    loc: locationName
   });
   const sanitizedDevoteeToken = baseToken.replace(/[^a-zA-Z0-9]/g, "").slice(0, 32);
   const seriesUid = `baggona-90day-series-${sanitizedDevoteeToken}@baggona.app`;
@@ -323,7 +389,7 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
     const dtEnd = `${ymdCompact}T${String(endHours).padStart(2, "0")}${String(endMinutes).padStart(2, "0")}00`;
 
     const vibe = getEnergyMeterAndVibe(day, lang);
-    const kaala = getDailyKaalaTimings(day.dayLord, lang);
+    const kaala = getDailyKaalaTimings(day.dayLord, lang, day.ymd, lat, lng, pincode);
     const dayIdx = getDayLordIndex(day.dayLord);
     const deity = DEITY_MANTRAS[dayIdx] || DEITY_MANTRAS[0];
 
@@ -340,7 +406,11 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
       p: localizedPandit,
       d: day.ymd,
       l: lang,
-      tm: notificationTime
+      tm: notificationTime,
+      pc: pincode,
+      lt: lat,
+      lg: lng,
+      loc: locationName
     });
     const sanctumUrl = `${origin}/daily?token=${devoteeToken}`;
 
@@ -366,6 +436,7 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
       "",
       `🙏 ${priestLabel}: ${localizedPandit}`,
       `👤 ${devoteeDisplayName}`,
+      `📍 ${isKn ? "ಸ್ಥಳ" : "Location"}: ${locationName} (${pincode}) [Lat: ${lat.toFixed(2)}°, Lng: ${lng.toFixed(2)}°]`,
       "",
       `⚡ ${isKn ? "ದಿನದ ಸ್ಥಿತಿ" : "Status"}: ${vibe.badgeText} (${day.energyScore || 85}%) | ${vibe.vibeTag}`,
       "",
@@ -441,8 +512,24 @@ export function generateGoogleCalendarUrl(options: {
   notificationTime: string;
   personName?: string;
   webAppBaseUrl?: string;
+  pincode?: string;
+  lat?: number;
+  lng?: number;
+  locationName?: string;
 }): string {
-  const { day: singleDay, days, lang, panditName, notificationTime, personName, webAppBaseUrl } = options;
+  const {
+    day: singleDay,
+    days,
+    lang,
+    panditName,
+    notificationTime,
+    personName,
+    webAppBaseUrl,
+    pincode = "581326",
+    lat = 14.54,
+    lng = 74.31,
+    locationName = "Gokarna"
+  } = options;
   const day = (singleDay || (days && days.length > 0 ? days[0] : null) || {
     ymd: new Date().toISOString().slice(0, 10),
     dayLord: "Sun",
@@ -468,7 +555,7 @@ export function generateGoogleCalendarUrl(options: {
   const dtEnd = `${ymdCompact}T${String(endHours).padStart(2, "0")}${String(endMinutes).padStart(2, "0")}00`;
 
   const vibe = getEnergyMeterAndVibe(day, lang);
-  const kaala = getDailyKaalaTimings(day.dayLord, lang);
+  const kaala = getDailyKaalaTimings(day.dayLord, lang, day.ymd, lat, lng, pincode);
   const dayIdx = getDayLordIndex(day.dayLord);
   const deity = DEITY_MANTRAS[dayIdx] || DEITY_MANTRAS[0];
 
@@ -493,7 +580,11 @@ export function generateGoogleCalendarUrl(options: {
     l: lang,
     tm: notificationTime,
     pl: "android",
-    t: "google"
+    t: "google",
+    pc: pincode,
+    lt: lat,
+    lg: lng,
+    loc: locationName
   });
   const origin = getSafeProductionOrigin(webAppBaseUrl);
   const sanctumUrl = `${origin}/daily?token=${devoteeToken}`;
@@ -522,6 +613,7 @@ export function generateGoogleCalendarUrl(options: {
     "",
     `🙏 ${priestLabel}: ${localizedPandit}`,
     `👤 ${devoteeLabel}: ${devoteeDisplayName}`,
+    `📍 ${isKn ? "ಸ್ಥಳ" : "Location"}: ${locationName} (${pincode}) [Lat: ${lat.toFixed(2)}°, Lng: ${lng.toFixed(2)}°]`,
     "",
     `⚡ ${isKn ? "ದಿನದ ಸ್ಥಿತಿ" : "Status"}: ${vibe.badgeText} (${day.energyScore || 85}%) | ${vibe.vibeTag}`,
     "",
@@ -538,7 +630,8 @@ export function generateGoogleCalendarUrl(options: {
     `🌟 ${isKn ? "ತಾರಾಬಲ" : "Tara Bala"}: ${taraInfo}`,
     `🌙 ${isKn ? "ಚಂದ್ರಬಲ" : "Chandra Bala"}: ${chandraInfo}`,
     "",
-    `⏳ ${isKn ? "ಇಂದಿನ ಕಾಲ ಸಮಯಗಳು (Kolkata)" : "Daily Kaala Timings (Kolkata)"}:`,
+    `🌅 ${isKn ? "ಸೂರ್ಯೋದಯ" : "Sunrise"}: ${kaala.sunrise} | 🌇 ${isKn ? "ಸೂರ್ಯಾಸ್ತ" : "Sunset"}: ${kaala.sunset}`,
+    `⏳ ${isKn ? "ಇಂದಿನ ಸ್ಥಳೀಯ ಕಾಲ ಸಮಯಗಳು" : "Local Daily Kaala Timings"}:`,
     `🔴 Rahu Kaala: ${kaala.rahu}`,
     `🟢 Yamaganda: ${kaala.yamaganda}`,
     "",
@@ -585,8 +678,24 @@ export function generateCompactGoogleCalendarUrlForQR(options: {
   notificationTime: string;
   personName?: string;
   webAppBaseUrl?: string;
+  pincode?: string;
+  lat?: number;
+  lng?: number;
+  locationName?: string;
 }): string {
-  const { day: singleDay, days, lang, panditName, notificationTime, personName, webAppBaseUrl } = options;
+  const {
+    day: singleDay,
+    days,
+    lang,
+    panditName,
+    notificationTime,
+    personName,
+    webAppBaseUrl,
+    pincode = "581326",
+    lat = 14.54,
+    lng = 74.31,
+    locationName = "Gokarna"
+  } = options;
   const day = (singleDay || (days && days.length > 0 ? days[0] : null) || {
     ymd: new Date().toISOString().slice(0, 10),
     dayLord: "Sun",
@@ -675,15 +784,23 @@ export function generateQrPayloadByTarget(
   target: QrCalendarTarget,
   options: CalendarGeneratorOptions & { platform?: "android" | "apple" }
 ): string {
-  const { days, lang, panditName, personName, webAppBaseUrl, platform } = options;
+  const {
+    days,
+    lang,
+    panditName,
+    personName,
+    webAppBaseUrl,
+    platform,
+    pincode = "581326",
+    lat = 14.54,
+    lng = 74.31,
+    locationName = "Gokarna"
+  } = options;
   const firstDay = days && days.length > 0 ? days[0] : null;
   const safePandit = panditName || "ಶ್ರೀ ಚೈತನ್ಯ ಪಂಡಿತ್";
   const devoteeDisplayName = (personName && personName.trim().length > 0) ? personName.trim() : (lang.startsWith("kn") ? "ಭಕ್ತರು" : "Devotee");
 
   const origin = getSafeProductionOrigin(webAppBaseUrl);
-
-  const originHost = origin.replace("https://", "").replace("http://", "");
-  const isLocalHost = originHost.includes("localhost") || originHost.startsWith("192.168.") || originHost.startsWith("127.0.") || originHost.startsWith("10.");
 
   const token = encodeDevoteeToken({
     n: devoteeDisplayName,
@@ -693,7 +810,11 @@ export function generateQrPayloadByTarget(
     d: firstDay?.ymd || new Date().toISOString().slice(0, 10),
     l: lang,
     pl: platform || "android",
-    t: target
+    t: target,
+    pc: pincode,
+    lt: lat,
+    lg: lng,
+    loc: locationName
   });
 
   if (target === "google" || target === "webcal") {

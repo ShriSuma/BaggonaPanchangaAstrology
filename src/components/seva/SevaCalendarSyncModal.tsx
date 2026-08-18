@@ -16,6 +16,7 @@ import {
   getPriestProfile,
   type PriestProfile
 } from "../../features/seva/sevaPriestDirectory";
+import { resolvePlaceFromPincode, getCoordinates } from "../../services/locationApi";
 
 type Props = {
   days: RhythmDay[];
@@ -41,6 +42,48 @@ export default function SevaCalendarSyncModal({
 
   const activePriest = useMemo(() => getPriestProfile(selectedPriestId), [selectedPriestId, priestsList]);
   const panditName = activePriest.name[lang as keyof typeof activePriest.name] || activePriest.name.en;
+
+  const [pincodeInput, setPincodeInput] = useState<string>("581326");
+  const [locationName, setLocationName] = useState<string>("Gokarna");
+  const [lat, setLat] = useState<number>(14.54);
+  const [lng, setLng] = useState<number>(74.31);
+  const [isResolvingPin, setIsResolvingPin] = useState<boolean>(false);
+  const [pinMessage, setPinMessage] = useState<string>("");
+
+  const handlePinResolve = async (pinOrQuery: string) => {
+    const clean = pinOrQuery.trim();
+    if (!clean) return;
+    setIsResolvingPin(true);
+    setPinMessage("");
+
+    try {
+      if (/^[1-9]\d{5}$/.test(clean)) {
+        const resolved = await resolvePlaceFromPincode(clean);
+        if (resolved && Number.isFinite(resolved.lat) && Number.isFinite(resolved.lng)) {
+          setLocationName(resolved.villageName || `PIN ${clean}`);
+          setLat(resolved.lat);
+          setLng(resolved.lng);
+          setPinMessage(`✓ Verified: ${resolved.villageName || clean}`);
+          setIsResolvingPin(false);
+          return;
+        }
+      }
+      const coords = await getCoordinates(clean);
+      if (coords && Number.isFinite(coords.lat) && Number.isFinite(coords.lng)) {
+        setLocationName(clean.split(",")[0]?.trim() || clean);
+        setLat(coords.lat);
+        setLng(coords.lng);
+        setPinMessage(`✓ Verified: ${clean}`);
+      } else {
+        setPinMessage("⚠️ Using default Gokarna coordinates");
+      }
+    } catch (err) {
+      console.error("PIN resolution error:", err);
+      setPinMessage("⚠️ Using default Gokarna coordinates");
+    } finally {
+      setIsResolvingPin(false);
+    }
+  };
 
   const [notificationTime, setNotificationTime] = useState("08:00");
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
@@ -76,9 +119,13 @@ export default function SevaCalendarSyncModal({
       l: lang,
       tm: notificationTime,
       pl: platform,
-      t: target
+      t: target,
+      pc: pincodeInput,
+      lt: lat,
+      lg: lng,
+      loc: locationName
     });
-  }, [days, personName, lang, panditName, platform, target, notificationTime]);
+  }, [days, personName, lang, panditName, platform, target, notificationTime, pincodeInput, lat, lng, locationName]);
 
   const webSanctumUrl = `${origin}/daily?token=${devoteeToken}`;
 
@@ -126,7 +173,11 @@ export default function SevaCalendarSyncModal({
         notificationTime,
         personName,
         platform,
-        webAppBaseUrl: origin
+        webAppBaseUrl: origin,
+        pincode: pincodeInput,
+        lat,
+        lng,
+        locationName
       });
 
       QRCode.toDataURL(payload, {
@@ -152,7 +203,7 @@ export default function SevaCalendarSyncModal({
       QRCode.toDataURL(fallback, { errorCorrectionLevel: "L", margin: 2, width: 280 })
         .then((fallbackUrl) => setQrDataUrl(fallbackUrl));
     }
-  }, [days, lang, panditName, notificationTime, personName, platform, target, isOpen, webSanctumUrl, origin]);
+  }, [days, lang, panditName, notificationTime, personName, platform, target, isOpen, webSanctumUrl, origin, pincodeInput, lat, lng, locationName]);
 
   if (!isOpen) return null;
 
@@ -165,7 +216,11 @@ export default function SevaCalendarSyncModal({
       panditName,
       notificationTime,
       personName,
-      webAppBaseUrl: origin
+      webAppBaseUrl: origin,
+      pincode: pincodeInput,
+      lat,
+      lng,
+      locationName
     });
     const safePujari = (panditName || "Archaka").replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "");
     const safeDevotee = (personName || "Bhakta").replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "");
@@ -182,7 +237,11 @@ export default function SevaCalendarSyncModal({
       panditName,
       notificationTime,
       personName,
-      webAppBaseUrl: origin
+      webAppBaseUrl: origin,
+      pincode: pincodeInput,
+      lat,
+      lng,
+      locationName
     });
     window.open(url, "_blank");
   };
@@ -193,7 +252,11 @@ export default function SevaCalendarSyncModal({
       lang,
       panditName,
       notificationTime,
-      personName
+      personName,
+      pincode: pincodeInput,
+      lat,
+      lng,
+      locationName
     });
     const dataUri = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsContent)}`;
     navigator.clipboard.writeText(dataUri);
@@ -285,6 +348,44 @@ export default function SevaCalendarSyncModal({
 
           {/* Customization controls */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {/* PIN Code / Location Input Card */}
+            <div className="sm:col-span-2 rounded-2xl border border-amber-300/80 bg-amber-100/50 p-3 shadow-inner">
+              <label className="block text-xs font-bold uppercase tracking-wider text-amber-950 mb-1">
+                📍 {lang.startsWith("kn") ? "ಪಿನ್ ಕೋಡ್ / ನಿಮ್ಮ ಸ್ಥಳ (PIN Code / Location)" : "Devotee PIN Code / Location"}
+              </label>
+              <p className="text-[11px] text-amber-900/80 mb-2">
+                {lang.startsWith("kn")
+                  ? "ನಿಮ್ಮ ಸ್ಥಳದ ಸೂರ್ಯೋದಯ, ಸೂರ್ಯಾಸ್ತ, ತಿಥಿ, ನಕ್ಷತ್ರ ಹಾಗೂ ರಾಹುಕಾಲ ಸರಿಯಾಗಿ ಲೆಕ್ಕಾಚಾರ ಮಾಡಲು PIN Code ಅಥವಾ ನಗರದ ಹೆಸರು ನಮೂದಿಸಿ."
+                  : "Enter your PIN code or city name to calculate location-accurate Tithi, Nakshatra, Sunrise, Sunset, and Rahu Kaala."}
+              </p>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={pincodeInput}
+                  onChange={(e) => setPincodeInput(e.target.value)}
+                  onBlur={() => handlePinResolve(pincodeInput)}
+                  placeholder="e.g. 581326, 500001, Hyderabad, London..."
+                  className="w-full rounded-xl border border-amber-300 bg-white px-3 py-2 text-sm font-bold text-amber-950 shadow-sm focus:border-amber-600 focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => handlePinResolve(pincodeInput)}
+                  disabled={isResolvingPin}
+                  className="rounded-xl bg-amber-800 px-4 py-2 text-xs font-bold text-white hover:bg-amber-900 transition shadow-sm shrink-0"
+                >
+                  {isResolvingPin ? "⌛..." : (lang.startsWith("kn") ? "ಅನ್ವಯಿಸಿ" : "Apply")}
+                </button>
+              </div>
+              {pinMessage && (
+                <div className="mt-1.5 text-[11px] font-semibold text-amber-900 flex items-center justify-between">
+                  <span>{pinMessage}</span>
+                  <span className="text-[10px] text-amber-700/80 font-mono">
+                    [{lat.toFixed(2)}°, {lng.toFixed(2)}°]
+                  </span>
+                </div>
+              )}
+            </div>
+
             {/* Pre-defined Priest Dropdown Selector & Dynamic Custom Addition */}
             <div className="sm:col-span-2">
               <label className="block text-xs font-bold uppercase tracking-wider text-amber-900/80 mb-1">
