@@ -154,4 +154,75 @@ describe("Devotee 90-Day Token Consistency & Expiry Engine", () => {
     expect(decodedB?.n).toBe("Devotee B");
     expect(decodedB?.nk).toBe(18);
   });
+
+  it("verifies 1-click series delete UID grouping, RECURRENCE-ID entries, and sacred gold banner attachments in ics file", () => {
+    const days: RhythmDay[] = Array.from({ length: 90 }, (_, i) => {
+      const date = new Date("2026-08-18");
+      date.setDate(date.getDate() + i);
+      return {
+        ymd: date.toISOString().slice(0, 10),
+        year: date.getFullYear(),
+        monthIndex: date.getMonth(),
+        dayOfMonth: date.getDate(),
+        weekday: date.getDay(),
+        tithiNumber: (i % 15) + 1,
+        tithiInPaksha: (i % 15) + 1,
+        paksha: i % 30 < 15 ? "shukla" : "krishna",
+        tithiGroup: "purna",
+        moonNakshatraIndex: (3 + i) % 27,
+        moonRashiIndex: Math.floor((3 + i) / 2.25) % 12,
+        tara: { tara: 2, count: 2, isFavourable: true, isDifficult: false, score: 95 },
+        chandra: { house: 1, isChandrashtama: false, isFavourable: true, score: 90 },
+        dayLord: "Sun",
+        bhuktiLord: "Jupiter",
+        energyScore: 85,
+        band: "high",
+        arthaScore: 90,
+        isMoneyDay: true,
+        isChandrashtama: false,
+        isJanmaNakshatraDay: i === 0,
+        isEkadashi: false,
+        isAmavasya: false,
+        isPurnima: false,
+        isPradosha: false,
+        isSankashti: false,
+        isPoojaDay: true,
+        luckyNumbers: [3, 6, 9],
+        luckyColour: "yellow",
+        luckyDirection: "east"
+      };
+    });
+
+    const icsContent = generateSevaICalendarString({
+      days,
+      lang: "kn",
+      panditName: "ಶ್ರೀ ಚೈತನ್ಯ ಪಂಡಿತ್",
+      notificationTime: "10:00",
+      personName: "ರಾಘವೇಂದ್ರ ವೈದ್ಯ"
+    });
+
+    // 1. Verify 1-click series UID grouping
+    expect(icsContent).toContain("UID:baggona-90day-series-");
+    
+    // Count UID occurrences — all 90 days must share the EXACT same series UID
+    const uidMatches = icsContent.match(/UID:baggona-90day-series-[A-Za-z0-9]+@baggona\.app/g);
+    expect(uidMatches).not.toBeNull();
+    expect(uidMatches?.length).toBe(90);
+    // All 90 UID strings must be identical to form 1 recurring series!
+    const uniqueUids = new Set(uidMatches);
+    expect(uniqueUids.size).toBe(1);
+
+    // 2. Verify RECURRENCE-ID entries for instances 1..89
+    expect(icsContent).toContain("RECURRENCE-ID;TZID=Asia/Kolkata:");
+    const recurrenceMatches = icsContent.match(/RECURRENCE-ID;TZID=Asia\/Kolkata:/g);
+    expect(recurrenceMatches?.length).toBe(89);
+
+    // 3. Verify notification time selection (10:00 AM)
+    expect(icsContent).toContain("DTSTART;TZID=Asia/Kolkata:20260818T100000");
+
+    // 4. Verify sacred gold banner illustration attachment & X-ALT-DESC
+    expect(icsContent).toContain("ATTACH;FMTTYPE=image/jpeg:");
+    expect(icsContent).toContain("baggona_panchanga_gold_banner.jpg");
+    expect(icsContent).toContain("X-ALT-DESC;FMTTYPE=text/html:");
+  });
 });

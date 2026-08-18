@@ -26,6 +26,8 @@ export interface DevoteeTokenPayload {
   d?: string;
   lang?: string;
   l?: string;
+  time?: string;
+  tm?: string;
   sevaType?: string;
   s?: string;
   platform?: "android" | "apple";
@@ -83,6 +85,7 @@ export function encodeDevoteeToken(payload: DevoteeTokenPayload): string {
     const rawPandit = payload.pandit ?? payload.p ?? "ಶ್ರೀ ಚೈತನ್ಯ ಪಂಡಿತ್";
     const rawDate = payload.date ?? payload.d ?? new Date().toISOString().split("T")[0];
     const rawLang = payload.lang ?? payload.l ?? "kn";
+    const rawTime = payload.time ?? payload.tm ?? "08:00";
     const rawSeva = payload.sevaType ?? payload.s ?? "";
     const rawPlatform = payload.platform ?? payload.pl ?? "android";
     const rawTarget = payload.target ?? payload.t ?? "sanctum";
@@ -95,6 +98,7 @@ export function encodeDevoteeToken(payload: DevoteeTokenPayload): string {
       p: rawPandit,
       d: rawDate,
       l: rawLang,
+      tm: rawTime,
       s: rawSeva,
       pl: rawPlatform,
       t: rawTarget
@@ -122,6 +126,7 @@ export function decodeDevoteeToken(token: string): (DevoteeTokenPayload & {
   p: string;
   d: string;
   l: string;
+  tm: string;
   s?: string;
   pl: "android" | "apple";
   t: "google" | "webcal" | "sanctum";
@@ -153,6 +158,7 @@ export function decodeDevoteeToken(token: string): (DevoteeTokenPayload & {
     const pandit = parsed.p || "ಶ್ರೀ ಚೈತನ್ಯ ಪಂಡಿತ್";
     const date = parsed.d || new Date().toISOString().split("T")[0];
     const lang = parsed.l || "kn";
+    const time = parsed.tm || "08:00";
     const sevaType = parsed.s || undefined;
     const platform = parsed.pl || "android";
     const target = parsed.t || "sanctum";
@@ -172,6 +178,8 @@ export function decodeDevoteeToken(token: string): (DevoteeTokenPayload & {
       d: date,
       lang,
       l: lang,
+      time,
+      tm: time,
       sevaType,
       s: sevaType,
       platform,

@@ -296,6 +296,24 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
   const nowIso = new Date().toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
   const origin = getSafeProductionOrigin(webAppBaseUrl);
 
+  const startDateStr = days[0]?.ymd || new Date().toISOString().slice(0, 10);
+  const birthNakIdx = days[0]?.moonNakshatraIndex ?? 0;
+  const birthRashiIdx = days[0]?.moonRashiIndex ?? 0;
+  const localizedPandit = getLocalizedPanditName(panditName, lang);
+  const devoteeDisplayName = (personName && personName.trim().length > 0) ? personName.trim() : (lang.startsWith("kn") ? "ಭಕ್ತರು" : "Devotee");
+
+  const baseToken = encodeDevoteeToken({
+    n: devoteeDisplayName,
+    nk: birthNakIdx,
+    r: birthRashiIdx,
+    p: localizedPandit,
+    d: startDateStr,
+    l: lang,
+    tm: notificationTime
+  });
+  const sanitizedDevoteeToken = baseToken.replace(/[^a-zA-Z0-9]/g, "").slice(0, 32);
+  const seriesUid = `baggona-90day-series-${sanitizedDevoteeToken}@baggona.app`;
+
   days.forEach((day, index) => {
     const ymdCompact = formatYmdCompact(day.ymd);
     const dtStart = `${ymdCompact}T${hh}${mm}00`;
@@ -314,27 +332,20 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
     const isTe = lang.startsWith("te");
     const isTa = lang.startsWith("ta");
 
-    const localizedPandit = getLocalizedPanditName(panditName, lang);
-    const priestFirstName = localizedPandit.split(/\s+/)[0] || localizedPandit;
-    const devoteeDisplayName = (personName && personName.trim().length > 0) ? personName.trim() : (isKn ? "ಭಕ್ತರು" : "Devotee");
-
-    const startDateStr = days[0]?.ymd || new Date().toISOString().slice(0, 10);
-    const birthNakIdx = days[0]?.moonNakshatraIndex ?? day.moonNakshatraIndex;
-    const birthRashiIdx = days[0]?.moonRashiIndex ?? day.moonRashiIndex;
-
+    const priestLabel = isKn ? "ಮುಖ್ಯ ಅರ್ಚಕರು" : isHi ? "मुख्य अर्चक" : isTe ? "ముఖ్య అర్చకులు" : isTa ? "முதன்மை அர்ச்சகர்" : "Chief Priest";
     const devoteeToken = encodeDevoteeToken({
       n: devoteeDisplayName,
-      nk: birthNakIdx,
-      r: birthRashiIdx,
+      nk: day.moonNakshatraIndex ?? birthNakIdx,
+      r: day.moonRashiIndex ?? birthRashiIdx,
       p: localizedPandit,
-      d: startDateStr,
-      l: lang
+      d: day.ymd,
+      l: lang,
+      tm: notificationTime
     });
     const sanctumUrl = `${origin}/daily?token=${devoteeToken}`;
 
     const panchangaTitle = isKn ? "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ" : isHi ? "बग्गोण पंचांग" : isTe ? "బగ్గోణ పంచాಂಗం" : isTa ? "பக்கோண பஞ்சாங்கம்" : "Baggona Panchanga";
     const kshetraTitle = isKn ? "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ" : isHi ? "गोकर्ण क्षेत्र" : isTe ? "గోకర్ణ క్షేత్రం" : isTa ? "கோகர்ண க்ஷேத்திரம்" : "Gokarna Kshetra";
-    const priestLabel = isKn ? "ಮುಖ್ಯ ಅರ್ಚಕರು" : isHi ? "मुख्य अर्चक" : isTe ? "ముఖ్య అర్చకులు" : isTa ? "முதன்மை அர்ச்சகர்" : "Chief Priest";
 
     const summaryStr = `${vibe.badgeEmoji} [${tithiLabel(day, lang)}] ${localizedPandit} - ${panchangaTitle} (${vibe.badgeText})`;
 
@@ -385,21 +396,24 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
     ];
 
     const descriptionStr = descriptionParts.join("\n");
-
-    const sanitizedDevotee = devoteeDisplayName.toLowerCase().replace(/[^\w]/g, "");
-    const dayUid = `baggona-day-${day.ymd}-${index}-${sanitizedDevotee || "devotee"}@baggona.app`;
+    const bannerUrl = `${origin}/baggona_panchanga_gold_banner.jpg`;
+    const htmlDescriptionStr = `<html><body style="font-family:sans-serif;"><div style="background-color:#501b11; padding:16px; border-radius:12px; text-align:center; color:#fff8e7; border:2px solid #f59e0b;"><img src="${bannerUrl}" alt="Baggona Panchanga Gold Banner" style="width:100%; max-width:550px; border-radius:8px; display:block; margin:0 auto 12px auto;" /><h2 style="color:#fde68a; margin:0 0 4px 0;">${panchangaTitle} - ${kshetraTitle}</h2><p style="color:#f59e0b; margin:0 0 12px 0;">${priestLabel}: ${localizedPandit} • ${devoteeDisplayName}</p></div><br/>${descriptionParts.slice(4).join("<br/>")}</body></html>`;
 
     const eventLines: string[] = [
       "BEGIN:VEVENT",
-      `UID:${dayUid}`,
+      `UID:${seriesUid}`,
+      ...(index > 0 ? [`RECURRENCE-ID;TZID=Asia/Kolkata:${dtStart}`] : []),
       `DTSTAMP:${nowIso}`,
       `DTSTART;TZID=Asia/Kolkata:${dtStart}`,
       `DTEND;TZID=Asia/Kolkata:${dtEnd}`,
       `SUMMARY:${escapeIcsText(summaryStr)}`,
       `DESCRIPTION:${escapeIcsText(descriptionStr)}`,
+      `X-ALT-DESC;FMTTYPE=text/html:${escapeIcsText(htmlDescriptionStr)}`,
+      `ATTACH;FMTTYPE=image/jpeg:${bannerUrl}`,
       `URL:${sanctumUrl}`,
       `COLOR:${vibe.icalColor}`,
-      "CATEGORIES:Baggona Panchanga",
+      `X-GOOGLE-CALENDAR-COLOR:${vibe.googleColorId}`,
+      "CATEGORIES:Baggona Panchanga,Gokarna Kshetra,Astrology",
       "STATUS:CONFIRMED",
       "BEGIN:VALARM",
       "ACTION:DISPLAY",
@@ -477,15 +491,17 @@ export function generateGoogleCalendarUrl(options: {
     p: localizedPandit,
     d: startDateStr,
     l: lang,
+    tm: notificationTime,
     pl: "android",
     t: "google"
   });
+  const origin = getSafeProductionOrigin(webAppBaseUrl);
   const sanctumUrl = `${origin}/daily?token=${devoteeToken}`;
 
-  const panchangaTitle = isKn ? "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ" : isHi ? "बग्गोण पंचांग" : isTe ? "బగ్గోణ పంచాంగం" : isTa ? "பக்கோண பஞ்சாங்கம்" : "Baggona Panchanga";
+  const panchangaTitle = isKn ? "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ" : isHi ? "बग्गोण पंचांग" : isTe ? "బగ్గోణ పంచాಂಗం" : isTa ? "பக்கோண பஞ்சாங்கம்" : "Baggona Panchanga";
   const kshetraTitle = isKn ? "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ" : isHi ? "गोकर्ण क्षेत्र" : isTe ? "గోకర్ణ క్షేత్రం" : isTa ? "கோகர்ண க்ஷேத்திரம்" : "Gokarna Kshetra";
   const priestLabel = isKn ? "ಮುಖ್ಯ ಅರ್ಚಕರು" : isHi ? "मुख्य अर्चक" : isTe ? "ముఖ్య అర్చకులు" : isTa ? "முதன்மை அர்ச்சகர்" : "Chief Priest";
-  const devoteeLabel = isKn ? "ಭಕ್ತರು" : isHi ? "भक्त" : isTe ? "భక్తులు" : isTa ? "பக்தர்" : "Devotee";
+  const devoteeLabel = isKn ? "ಭಕ್ತರ ಹೆಸರು" : isHi ? "भक्त का नाम" : isTe ? "భక్తుని పేరు" : isTa ? "பக்தர் பெயர்" : "Devotee";
 
   const summary = `${vibe.badgeEmoji} [${tithiLabel(day, lang)}] ${localizedPandit} - ${panchangaTitle} (${vibe.badgeText})`;
 
@@ -606,6 +622,7 @@ export function generateCompactGoogleCalendarUrlForQR(options: {
     p: safePandit,
     d: day.ymd,
     l: lang,
+    tm: notificationTime,
     pl: "android",
     t: "google"
   });

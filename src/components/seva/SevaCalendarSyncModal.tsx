@@ -74,10 +74,11 @@ export default function SevaCalendarSyncModal({
       p: panditName,
       d: selectedDay?.ymd || new Date().toISOString().slice(0, 10),
       l: lang,
+      tm: notificationTime,
       pl: platform,
       t: target
     });
-  }, [days, personName, lang, panditName, platform, target]);
+  }, [days, personName, lang, panditName, platform, target, notificationTime]);
 
   const webSanctumUrl = `${origin}/daily?token=${devoteeToken}`;
 

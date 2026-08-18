@@ -347,11 +347,12 @@ export default function DailyDarshanaPage(): JSX.Element {
           });
         }
 
+        const selectedTime = decoded.tm || params.get("time") || "08:00";
         const payloadStr = generateSevaICalendarString({
           days: personalDays,
           lang,
           panditName: decoded.p || panditParam,
-          notificationTime: "08:00",
+          notificationTime: selectedTime,
           personName: decoded.n || devoteeName
         });
         setGeneratedIcs(payloadStr);
