@@ -943,7 +943,7 @@ export default function KundliPage(): JSX.Element {
       {/* Hidden Dasha PDF Template Container */}
       {result && birthDatePicker && birthTimeHm.trim() && kundliSession ? (
         <div className="absolute left-[-9999px] top-[-9999px] opacity-0 pointer-events-none">
-          <DashaPdfTemplate ref={dashaExportRef} session={kundliSession} maxAge={120} />
+          <DashaPdfTemplate ref={dashaExportRef} session={kundliSession} maxAge={120} pdfLanguage={pdfLanguage} />
         </div>
       ) : null}
 

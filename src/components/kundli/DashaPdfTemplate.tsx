@@ -3,35 +3,136 @@ import type { KundliViewerSession } from "../../stores/kundliViewerStore";
 import { generateDashaTimeline, generateBhuktisInMahadasha } from "../../core/DashaBhuktiEngine";
 import { PlanetName } from "../../core/AstroTypes";
 import { format, parseISO, addDays, differenceInDays } from "date-fns";
-import { useTranslation } from "react-i18next";
+import { RASHI_L5, pick } from "../../features/seva/sevaLocale";
 
 type Props = {
   session: KundliViewerSession;
   maxAge?: number;
+  pdfLanguage?: string;
 };
 
-const planetBarColor: Record<PlanetName, string> = {
-  [PlanetName.Sun]: "bg-amber-500",
-  [PlanetName.Moon]: "bg-slate-400",
-  [PlanetName.Mars]: "bg-red-600",
-  [PlanetName.Mercury]: "bg-emerald-500",
-  [PlanetName.Jupiter]: "bg-orange-400",
-  [PlanetName.Venus]: "bg-pink-400",
-  [PlanetName.Saturn]: "bg-indigo-700",
-  [PlanetName.Rahu]: "bg-violet-600",
-  [PlanetName.Ketu]: "bg-teal-600",
+type LangCode = "kn" | "en" | "te" | "ta" | "hi";
+
+const DASHA_PDF_I18N: Record<LangCode, {
+  shlokaLeft1: string;
+  shlokaLeft2: string;
+  shlokaLeft3: string;
+  shlokaRight1: string;
+  shlokaRight2: string;
+  shlokaRight3: string;
+  om: string;
+  title: string;
+  nameLabel: string;
+  dobLabel: string;
+  lagnaLabel: string;
+  rashiLabel: string;
+  mahadasha: string;
+  bhukti: string;
+  shubhamastu: string;
+  footerAuthor: string;
+}> = {
+  kn: {
+    shlokaLeft1: "|| ಶ್ರೀ ||",
+    shlokaLeft2: "ಜನನಿ ಜನ್ಮ ಸೌಖ್ಯಾನಾಂ",
+    shlokaLeft3: "ವರ್ಧನೀ ಕುಲ ಸಂಪದಾಂ",
+    shlokaRight1: "|| ಶ್ರೀ ||",
+    shlokaRight2: "ಪದವೀ ಪೂರ್ವ ಪುಣ್ಯಾನಾಂ",
+    shlokaRight3: "ಲಿಖ್ಯತೇ ಜನ್ಮ ಪತ್ರಿಕಾ",
+    om: "ಓಂ",
+    title: "ವಿಂಶೋತ್ತರಿ ದಶಾ ಭುಕ್ತಿ",
+    nameLabel: "ಹೆಸರು:",
+    dobLabel: "ಜನ್ಮ ದಿನಾಂಕ:",
+    lagnaLabel: "ಲಗ್ನ:",
+    rashiLabel: "ರಾಶಿ:",
+    mahadasha: "ಮಹಾದಶೆ",
+    bhukti: "ಭುಕ್ತಿ",
+    shubhamastu: "ಶುಭಮಸ್ತು (Shubhamastu)",
+    footerAuthor: "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಕರ್ತರು",
+  },
+  en: {
+    shlokaLeft1: "|| Sri ||",
+    shlokaLeft2: "Janani Janma Saukhyanam",
+    shlokaLeft3: "Vardhani Kula Sampadam",
+    shlokaRight1: "|| Sri ||",
+    shlokaRight2: "Padavi Poorva Punyanam",
+    shlokaRight3: "Likhyate Janma Patrika",
+    om: "Om",
+    title: "Vimshottari Dasha Bhukti",
+    nameLabel: "Name:",
+    dobLabel: "Date of Birth:",
+    lagnaLabel: "Lagna:",
+    rashiLabel: "Rashi:",
+    mahadasha: "Mahadasha",
+    bhukti: "Bhukti",
+    shubhamastu: "Shubhamastu",
+    footerAuthor: "Baggona Panchanga Author",
+  },
+  te: {
+    shlokaLeft1: "|| శ్రీ ||",
+    shlokaLeft2: "జననీ జన్మ సౌఖ్యానాం",
+    shlokaLeft3: "వర్ధనీ కుల సంపదాం",
+    shlokaRight1: "|| శ్రీ ||",
+    shlokaRight2: "పదవీ పూర్వ పుణ్యానాం",
+    shlokaRight3: "లిఖ్యతే జన్మ పత్రికా",
+    om: "ఓం",
+    title: "వింశోత్తరి దశ భుక్తి",
+    nameLabel: "పేరు:",
+    dobLabel: "జనన తేదీ:",
+    lagnaLabel: "లగ్నం:",
+    rashiLabel: "రాశి:",
+    mahadasha: "మహాదశ",
+    bhukti: "భుక్తి",
+    shubhamastu: "శుభమస్తు (Shubhamastu)",
+    footerAuthor: "బగ్గోణ పంచాంగ కర్తలు",
+  },
+  ta: {
+    shlokaLeft1: "|| ஸ்ரீ ||",
+    shlokaLeft2: "ஜனனி ஜன்ம சௌக்யானாம்",
+    shlokaLeft3: "வர்தனி குல சம்பதாம்",
+    shlokaRight1: "|| ஸ்ரீ ||",
+    shlokaRight2: "பதவி பூர்வ புண்யானாம்",
+    shlokaRight3: "லிக்யதே ஜன்ம பத்ரிகா",
+    om: "ஓம்",
+    title: "விம்சோத்தரி தசை புக்தி",
+    nameLabel: "பெயர்:",
+    dobLabel: "பிறந்த தேதி:",
+    lagnaLabel: "லக்னம்:",
+    rashiLabel: "ராசி:",
+    mahadasha: "மகா தசை",
+    bhukti: "புக்தி",
+    shubhamastu: "சுபமஸ்து (Shubhamastu)",
+    footerAuthor: "பக்கோன பஞ்சாங்கம் கர்த்தா",
+  },
+  hi: {
+    shlokaLeft1: "|| श्री ||",
+    shlokaLeft2: "जननी जन्म सौख्यानां",
+    shlokaLeft3: "वर्धनी कुल संपदां",
+    shlokaRight1: "|| श्री ||",
+    shlokaRight2: "पदवी पूर्व पुण्यानां",
+    shlokaRight3: "लिख्यते जन्म पत्रिका",
+    om: "ॐ",
+    title: "विंशोत्तरी दशा भुक्ति",
+    nameLabel: "नाम:",
+    dobLabel: "जन्म तिथि:",
+    lagnaLabel: "लग्न:",
+    rashiLabel: "राशि:",
+    mahadasha: "महादशा",
+    bhukti: "भुक्ति",
+    shubhamastu: "शुभमस्तु (Shubhamastu)",
+    footerAuthor: "बग्गोण पंचांग कर्ता",
+  },
 };
 
-const planetColors: Record<PlanetName, { bg: string; border: string; text: string }> = {
-  [PlanetName.Sun]: { bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-900" },
-  [PlanetName.Moon]: { bg: "bg-slate-50", border: "border-slate-300", text: "text-slate-900" },
-  [PlanetName.Mars]: { bg: "bg-red-50", border: "border-red-200", text: "text-red-900" },
-  [PlanetName.Mercury]: { bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-900" },
-  [PlanetName.Jupiter]: { bg: "bg-orange-50", border: "border-orange-200", text: "text-orange-900" },
-  [PlanetName.Venus]: { bg: "bg-pink-50", border: "border-pink-200", text: "text-pink-900" },
-  [PlanetName.Saturn]: { bg: "bg-indigo-50", border: "border-indigo-200", text: "text-indigo-900" },
-  [PlanetName.Rahu]: { bg: "bg-violet-50", border: "border-violet-200", text: "text-violet-900" },
-  [PlanetName.Ketu]: { bg: "bg-teal-50", border: "border-teal-200", text: "text-teal-900" },
+const PLANET_NAMES_L5: Record<PlanetName, Record<LangCode, string>> = {
+  [PlanetName.Sun]: { en: "Sun", kn: "ಸೂರ್ಯ", te: "సూర్య", ta: "சூரியன்", hi: "सूर्य" },
+  [PlanetName.Moon]: { en: "Moon", kn: "ಚಂದ್ರ", te: "చంద్ర", ta: "சந்திரன்", hi: "चंद्र" },
+  [PlanetName.Mars]: { en: "Mars", kn: "ಕುಜ", te: "కుజ", ta: "செவ்வாய்", hi: "मंगल" },
+  [PlanetName.Mercury]: { en: "Mercury", kn: "ಬುಧ", te: "బుధ", ta: "புதன்", hi: "बुध" },
+  [PlanetName.Jupiter]: { en: "Jupiter", kn: "ಗುರು", te: "గురు", ta: "குரு", hi: "गुरु" },
+  [PlanetName.Venus]: { en: "Venus", kn: "ಶುಕ್ರ", te: "శుక్ర", ta: "சுக்கிரன்", hi: "शुक्र" },
+  [PlanetName.Saturn]: { en: "Saturn", kn: "ಶನಿ", te: "శని", ta: "సని", hi: "शनि" },
+  [PlanetName.Rahu]: { en: "Rahu", kn: "ರಾಹು", te: "రాహు", ta: "ராகு", hi: "राहु" },
+  [PlanetName.Ketu]: { en: "Ketu", kn: "ಕೇತು", te: "కేతు", ta: "கேது", hi: "केतु" },
 };
 
 function formatDateFromAge(birthDateStr: string, ageInYears: number): string {
@@ -45,8 +146,19 @@ function formatDateFromAge(birthDateStr: string, ageInYears: number): string {
   }
 }
 
-export const DashaPdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, maxAge = 120 }, ref) => {
-  const { t } = useTranslation();
+export const DashaPdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, maxAge = 120, pdfLanguage = "kn" }, ref) => {
+  const langKey: LangCode = (pdfLanguage || "kn").split("-")[0] as LangCode;
+  const validLang: LangCode = ["kn", "en", "te", "ta", "hi"].includes(langKey) ? langKey : "kn";
+
+  const labels = DASHA_PDF_I18N[validLang];
+
+  const lagnaName = session.result.lagnaRashi ? pick(RASHI_L5[session.result.lagnaRashi.index], validLang) : "";
+  const moonSignName = session.result.moonSign ? pick(RASHI_L5[session.result.moonSign.index], validLang) : "";
+
+  const getPlanetName = (p: PlanetName): string => {
+    return PLANET_NAMES_L5[p]?.[validLang] || p;
+  };
+
   const timeline = generateDashaTimeline(session.result, maxAge);
   const birthDateStr = session.input.birthDate;
 
@@ -84,18 +196,20 @@ export const DashaPdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, ma
         {/* Header Section with Shlokas */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
           <div style={{ flex: 1, fontSize: "14px", fontWeight: "bold", textAlign: "left", lineHeight: "1.4" }}>
-            || ಶ್ರೀ ||<br/>
-            ಜನನಿ ಜನ್ಮ ಸೌಖ್ಯಾನಾಂ<br/>ವರ್ಧನೀ ಕುಲ ಸಂಪದಾಂ
+            {labels.shlokaLeft1}<br/>
+            {labels.shlokaLeft2}<br/>
+            {labels.shlokaLeft3}
           </div>
           <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
             <div style={{ width: "45px", height: "45px", borderRadius: "50%", border: "2px solid #000", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", fontWeight: "bold", paddingBottom: "4px" }}>
-              <span>ಓಂ</span>
+              <span>{labels.om}</span>
             </div>
-            <div style={{ fontSize: "18px", fontWeight: "bold", marginTop: "8px" }}>ವಿಂಶೋತ್ತರಿ ದಶಾ ಭುಕ್ತಿ</div>
+            <div style={{ fontSize: "18px", fontWeight: "bold", marginTop: "8px" }}>{labels.title}</div>
           </div>
           <div style={{ flex: 1, fontSize: "14px", fontWeight: "bold", textAlign: "right", lineHeight: "1.4" }}>
-            || ಶ್ರೀ ||<br/>
-            ಪದವೀ ಪೂರ್ವ ಪುಣ್ಯಾನಾಂ<br/>ಲಿಖ್ಯತೇ ಜನ್ಮ ಪತ್ರಿಕಾ
+            {labels.shlokaRight1}<br/>
+            {labels.shlokaRight2}<br/>
+            {labels.shlokaRight3}
           </div>
         </div>
 
@@ -110,10 +224,10 @@ export const DashaPdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, ma
           fontSize: "15px",
           fontWeight: "bold"
         }}>
-          <div>ಹೆಸರು: {session.input.name}</div>
-          <div>ಜನ್ಮ ದಿನಾಂಕ: {formatDateFromAge(birthDateStr, 0)}</div>
-          <div>ಲಗ್ನ: {t(`rashis.${session.result.lagnaRashi?.sanskrit}`, session.result.lagnaRashi?.english)}</div>
-          <div>ರಾಶಿ: {t(`rashis.${session.result.moonSign?.sanskrit}`, session.result.moonSign?.english)}</div>
+          <div>{labels.nameLabel} {session.input.name}</div>
+          <div>{labels.dobLabel} {formatDateFromAge(birthDateStr, 0)}</div>
+          <div>{labels.lagnaLabel} {lagnaName}</div>
+          <div>{labels.rashiLabel} {moonSignName}</div>
         </div>
 
         {/* Tabular Content */}
@@ -149,7 +263,7 @@ export const DashaPdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, ma
                   marginBottom: "10px"
                 }}>
                   <div style={{ fontSize: "20px", fontWeight: "bold" }}>
-                    {t(`planets.${maha.planet}`)} {t("kundli.dashaMaha", "Mahadasha")}
+                    {getPlanetName(maha.planet)} {labels.mahadasha}
                   </div>
                   <div style={{ fontSize: "16px", fontWeight: "bold" }}>
                     {formatDateFromAge(birthDateStr, maha.startAge)} — {formatDateFromAge(birthDateStr, maha.endAge)}
@@ -177,7 +291,7 @@ export const DashaPdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, ma
                         }}
                       >
                         <div style={{ fontWeight: "bold", fontSize: "15px" }}>
-                          {t(`planets.${bhukti.planet}`)} ಭುಕ್ತಿ
+                          {getPlanetName(bhukti.planet)} {labels.bhukti}
                         </div>
                         <div style={{ fontSize: "14px", fontFamily: "monospace", fontWeight: "bold" }}>
                           {formatDateFromAge(birthDateStr, Math.max(bStart, currentAgeInYears))} - {formatDateFromAge(birthDateStr, bEnd)}
@@ -193,8 +307,8 @@ export const DashaPdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, ma
 
         {/* Footer */}
         <div style={{ textAlign: "center", fontSize: "16px", marginTop: "30px", borderTop: "2px solid #000", paddingTop: "10px" }}>
-          <div style={{ fontWeight: "bold" }}>ಶುಭಮಸ್ತು (Shubhamastu)</div>
-          <div style={{ fontSize: "14px", marginTop: "5px" }}>ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಕರ್ತರು</div>
+          <div style={{ fontWeight: "bold" }}>{labels.shubhamastu}</div>
+          <div style={{ fontSize: "14px", marginTop: "5px" }}>{labels.footerAuthor}</div>
         </div>
       </div>
     </div>
@@ -202,3 +316,4 @@ export const DashaPdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, ma
 });
 
 DashaPdfTemplate.displayName = "DashaPdfTemplate";
+
