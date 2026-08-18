@@ -16,13 +16,14 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import { getDevoteeSalutation, buildDeterministicPriestBenediction } from "../features/seva/sevaPriestNarrativeEngine";
-import { getDailyKaalaTimings, getEnergyMeterAndVibe, generateSevaICalendarString, downloadIcsFile, getDayLordIndex, calculateDeterministicRhythmDay } from "../features/seva/icsCalendarGenerator";
+import { getDailyKaalaTimings, getEnergyMeterAndVibe, generateSevaICalendarString, downloadIcsFile, getDayLordIndex, calculateDeterministicRhythmDay, getTaraBalaInfo, getChandraBalaInfo } from "../features/seva/icsCalendarGenerator";
 import { decodeDevoteeToken } from "../utils/tokenCipher";
 import type { RhythmDay } from "../core/DailyRhythmEngine";
 import { nakshatraName, rashiName, tithiLabel, getDailyActionableGuidance, formatLongDate, getLocalizedPanditName } from "../features/seva/sevaPresentation";
 import { RASHI_L5, NAKSHATRA_L5, GRAHA_L5, LANGUAGE_OWN_NAME, pick, type SevaLang } from "../features/seva/sevaLocale";
 import { calculateKundliWithPlaceSun } from "../core/KundliEngine";
 import type { KundliOutput } from "../core/AstroTypes";
+import { transliterateName } from "../utils/transliterator";
 
 // Comprehensive 5-Language Dictionary for DailyDarshanaPage
 const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
@@ -77,8 +78,8 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     rahuKetuDesc: "ಕಾರ್ಮಿಕ ಶುದ್ಧೀಕರಣ ಹಾಗೂ ಆಧ್ಯಾತ್ಮಿಕ ಸಾಧನೆಗೆ ಪ್ರಶಸ್ತ. ಶ್ರೀ ದುರ್ಗಾ ಹಾಗೂ ಗಣಪತಿ ಆರಾಧನೆ ಶ್ರೇಷ್ಠ.",
     remediesTitle: "ವೈದಿಕ ಪರಿಹಾರಗಳು & ಆರಾಧನೆಗಳು",
     dashaHeader: "ಪ್ರಸ್ತುತ ಚಾಲ್ತಿಯಲ್ಲಿರುವ ವಿಂಶೋತ್ತರಿ ದಶಾ ಕಾಲ",
-    activePhase: "ಗುರು ಮಹಾದಶಾ · ಶುಕ್ರ ಅಂತರ್ದಶಾ",
-    dashaPeriod: "ಅವಧಿ: 2024 ರಿಂದ 2027 (ಶುಭ ಫಲದಾಯಕ ಕಾಲ)",
+    activePhase: "ರಾಹು ಮಹಾದಶಾ · ಶುಕ್ರ ಅಂತರ್ದಶಾ",
+    dashaPeriod: "ಅವಧಿ: 2023 ರಿಂದ 2026 (ಶುಭ ಫಲದಾಯಕ ಕಾಲ)",
     dashaPhalaTitle: "ದಶಾ ಫಲ ವಿವರಣೆ",
     careerTitle: "ಉದ್ಯೋಗ & ಪದೋನ್ನತಿ",
     careerDesc: "ಗುರು-ಶುಕ್ರರ ಶುಭ ಯೋಗದಿಂದ ಉದ್ಯೋಗದಲ್ಲಿ ಗೌರವ, ನೂತನ ಅವಕಾಶಗಳು ಹಾಗೂ ವೃತ್ತಿಪರ ಯಶಸ್ಸು ಉಂಟಾಗಲಿದೆ.",
@@ -148,8 +149,8 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     rahuKetuDesc: "Karmic transformation axis active. Regular prayer to Sri Durga and Lord Ganesha grants clarity and protection.",
     remediesTitle: "Prescribed Vedic Remedies & Pujas",
     dashaHeader: "Active Vimshottari Dasha Phase",
-    activePhase: "Jupiter Mahadasha · Venus Antardasha",
-    dashaPeriod: "Period: 2024 to 2027 (Auspicious Phase)",
+    activePhase: "Rahu Mahadasha · Venus (Shukra) Antardasha",
+    dashaPeriod: "Period: 2023 to 2026 (Auspicious Phase)",
     dashaPhalaTitle: "Comprehensive Dasha Phala Insights",
     careerTitle: "Career & Profession",
     careerDesc: "Jupiter-Venus harmony fosters professional recognition, new growth opportunities, and executive success.",
@@ -219,8 +220,8 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     rahuKetuDesc: "आध्यात्मिक उन्नति एवं कर्म शुद्धि का समय। दुर्गा व गणेश उपासना करें।",
     remediesTitle: "वैदिक उपाय एवं पूजा संकल्प",
     dashaHeader: "वर्तमान विंशोत्तरी दशा",
-    activePhase: "गुरु महादशा · शुक्र अंतर्दशा",
-    dashaPeriod: "अवधि: 2024 से 2027 (शुभ फलदायी)",
+    activePhase: "राहु महादशा · शुक्र अंतर्दशा",
+    dashaPeriod: "अवधि: 2023 से 2026 (शुभ फलदायी)",
     dashaPhalaTitle: "दशा फल विश्लेषण",
     careerTitle: "करियर एवं पदोन्नति",
     careerDesc: "गुरु-शुक्र के योग से कार्यक्षेत्र में सम्मान एवं नए अवसर प्राप्त होंगे।",
@@ -290,8 +291,8 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     rahuKetuDesc: "కర్మ క్షయం మరియు జ్ఞాన ప్రాప్తికి అనుకూలం. దుర్గా, గణపతి ఆరాధన శ్రేష్టం.",
     remediesTitle: "వైదిక పరిహారాలు & పూజలు",
     dashaHeader: "ప్రస్తుత వింశోత్తరీ దశా కాలం",
-    activePhase: "గురు మహర్దశ · శుక్ర అంతర్దశ",
-    dashaPeriod: "వ్యవధి: 2024 నుండి 2027 (శుభ ఫలదాయకం)",
+    activePhase: "రాహు మహాదశ · శుక్ర అంతర్దశ",
+    dashaPeriod: "వ్యవధి: 2023 నుండి 2026 (శుభ ఫలదాయకం)",
     dashaPhalaTitle: "దశా ఫల విశ్లేషణ",
     careerTitle: "ఉద్యోగం & వృత్తి",
     careerDesc: "గురు-శుక్రుల యోగం వల్ల ఉద్యోగంలో గౌరవం, నూతన అవకాశాలు పొందుతారు.",
@@ -358,11 +359,10 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     shaniTransitTitle: "சனி கோச்சாரம் (Saturn Transit)",
     shaniTransitDesc: "சனி பகவான் நற்பலன்களை வழங்கி உழைப்பிற்கு ஏற்ற முன்னேற்றம் தருவார்.",
     rahuKetuTitle: "ரஹு-கேது கோச்சாரம் (Rahu-Ketu Axis)",
-    rahuKetuDesc: "கர்ம வினைகள் அகலும் காலம். துர்க்கை மற்றும் விநாயகர் வழிபாடு நன்மைகளைத் தரும்.",
     remediesTitle: "வைதீக பரிகாரங்கள் & பூஜைகள்",
     dashaHeader: "தற்போது நடக்கும் விம்சொத்தரி தசா காலம்",
-    activePhase: "குரு மகாதசை · சுக்கிர புத்தி",
-    dashaPeriod: "காலம்: 2024 முதல் 2027 (சுப பலன் காலம்)",
+    activePhase: "ராகு மகாதிசை · சுக்கிரன் புக்தி",
+    dashaPeriod: "காலம்: 2023 முதல் 2026 (சுப பலன் காலம்)",
     dashaPhalaTitle: "தசா பலன் பகுப்பாய்வு",
     careerTitle: "தொழில் & பதவி உயர்வு",
     careerDesc: "குரு-சுக்கிர சேர்க்கையால் தொழிலில் நற்பெயர், புதிய வாய்ப்புகள் உருவாகும்.",
@@ -591,10 +591,10 @@ const SouthIndianKundaliGrid: React.FC<RashiGridProps> = ({
         }}>
           <div style={{ fontSize: 18 }}>🛕</div>
           <div style={{ fontSize: 11, fontWeight: 900, color: "#FDE68A", marginTop: 2 }}>
-            {isGochara ? "ಗೋಚಾರ ಬಿಂಬ" : "ಜನ್ಮ ಚಕ್ರ"}
+            {isGochara ? (lang === "kn" ? "ಗೋಚಾರ ಬಿಂಬ (ಚಂದ್ರ ಲಗ್ನ)" : "Gochara Transit (Chandra Lagna)") : "ಜನ್ಮ ಚಕ್ರ"}
           </div>
           <div style={{ fontSize: 9, color: "#F59E0B", marginTop: 2 }}>
-            {isGochara ? "Gochara Transit" : "South Indian Grid"}
+            {isGochara ? (lang === "kn" ? "ಕನ್ಯಾ ರಾಶಿ ಮೂಲ ಬಿಂದು" : "Chandra Lagna Baseline") : "South Indian Grid"}
           </div>
         </div>
 
@@ -637,7 +637,7 @@ const SouthIndianKundaliGrid: React.FC<RashiGridProps> = ({
                 </span>
                 {isLagna && (
                   <span style={{ fontSize: 8, fontWeight: 900, color: "#10B981", background: "rgba(16, 185, 129, 0.2)", padding: "0 3px", borderRadius: 2 }}>
-                    Lagna
+                    {isGochara ? (lang === "kn" ? "ಚಂದ್ರ ಲಗ್ನ" : "Chandra Lagna") : "Lagna"}
                   </span>
                 )}
                 {isMoonRashi && !isLagna && (
@@ -793,14 +793,12 @@ export default function DailyDarshanaPage(): JSX.Element {
   const localizedPandit = useMemo(() => getLocalizedPanditName(panditParam, lang), [panditParam, lang]);
   
   const devoteeDisplayName = useMemo(() => {
-    if (nameParam && nameParam.trim().length > 0) return nameParam.trim();
-    if (decoded?.n && decoded.n.trim().length > 0) return decoded.n.trim();
-    if (storedSession?.name && storedSession.name.trim().length > 0) return storedSession.name.trim();
-    if (lang === "kn") return "ಪ್ರಮೋದ್ ಕುಡ್ಗಿ";
-    if (lang === "hi") return "प्रमोद कुड्गी";
-    if (lang === "te") return "ప్రమోద్ కుడ్గి";
-    if (lang === "ta") return "பிரமோத் குட்கி";
-    return "Pramod Kudgi";
+    let raw = "";
+    if (nameParam && nameParam.trim().length > 0) raw = nameParam.trim();
+    else if (decoded?.n && decoded.n.trim().length > 0) raw = decoded.n.trim();
+    else if (storedSession?.name && storedSession.name.trim().length > 0) raw = storedSession.name.trim();
+    else raw = "Pramod Kudgi";
+    return transliterateName(raw, lang);
   }, [nameParam, decoded, storedSession, lang]);
 
   const benediction = useMemo(() => buildDeterministicPriestBenediction(mockDay, lang, devoteeDisplayName), [mockDay, lang, devoteeDisplayName]);
@@ -1309,8 +1307,9 @@ export default function DailyDarshanaPage(): JSX.Element {
               <div style={{ background: "rgba(255,255,255,0.15)", borderRadius: 8, height: 8, overflow: "hidden", marginBottom: 8 }}>
                 <div style={{ background: dayTheme.barGradient, height: "100%", width: `${mockDay.energyScore}%` }} />
               </div>
-              <div style={{ fontSize: 12, color: "#E5E7EB", lineHeight: 1.5 }}>
-                🌟 {dict.taraBala}: <strong style={{ color: dayTheme.badgeColor }}>{mockDay.tara.isFavourable ? (lang === "kn" ? "ಅನುಕೂಲಕರ" : "Favourable") : (lang === "kn" ? "ಎಚ್ಚರಿಕೆ" : "Caution")}</strong> | 🌙 {dict.chandraBala}: <strong style={{ color: dayTheme.badgeColor }}>{mockDay.chandra.score}%</strong>
+              <div style={{ fontSize: 12, color: "#E5E7EB", lineHeight: 1.5, display: "flex", flexDirection: "column", gap: 4, marginTop: 6 }}>
+                <div>🌟 {dict.taraBala}: <strong style={{ color: dayTheme.badgeColor }}>{getTaraBalaInfo(mockDay.tara?.tara || 2, lang)}</strong></div>
+                <div>🌙 {dict.chandraBala}: <strong style={{ color: dayTheme.badgeColor }}>{getChandraBalaInfo(mockDay.chandra?.house || 11, mockDay.isChandrashtama, lang)} ({mockDay.energyScore}%)</strong></div>
               </div>
             </div>
 
@@ -1408,7 +1407,15 @@ export default function DailyDarshanaPage(): JSX.Element {
               marginBottom: 16
             }}>
               <div style={{ fontSize: 13, fontWeight: 800, color: "#FDE68A", marginBottom: 6 }}>
-                📜 {dict.priestBenediction}
+                📜 {lang === "kn"
+                  ? `ಪ್ರಧಾನ ಅರ್ಚಕ ${localizedPandit} ಅವರ ಆಶೀರ್ವಚನ ಹಾಗೂ ಆಶೀರ್ವಾದ`
+                  : lang === "hi"
+                  ? `मुख्य अर्चक ${localizedPandit} का पावन आशीर्वाद`
+                  : lang === "te"
+                  ? `ప్రధాన అర్చకులు ${localizedPandit} గారి ఆశీర్వచనం మరియు ఆశీర్వాదం`
+                  : lang === "ta"
+                  ? `முதன்மை அர்ச்சகர் ${localizedPandit} அவர்களின் புனித ஆசி`
+                  : `Chief Priest ${localizedPandit}'s Sacred Benediction & Blessings`}
               </div>
               <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: "#E5E7EB", fontStyle: "italic" }}>
                 "{benediction}"
@@ -1544,8 +1551,8 @@ export default function DailyDarshanaPage(): JSX.Element {
             {/* Visual South-Indian Gochara Transit Chart Grid */}
             <SouthIndianKundaliGrid
               lang={lang}
-              highlightRashiIndex={transitKundli ? (transitKundli.planets.find(p=>p.name==='Moon')?.rashi.index ?? mockDay.moonRashiIndex) : mockDay.moonRashiIndex}
-              lagnaRashiIndex={birthKundli?.ascendant ?? 3}
+              highlightRashiIndex={birthKundli ? (birthKundli.planets.find(p=>p.name==='Moon')?.rashi.index ?? 5) : 5}
+              lagnaRashiIndex={birthKundli ? (birthKundli.planets.find(p=>p.name==='Moon')?.rashi.index ?? 5) : 5}
               planetPlacements={gocharaPlacements}
               title={dict.gocharaChartTitle}
               isGochara={true}
@@ -1723,8 +1730,14 @@ export default function DailyDarshanaPage(): JSX.Element {
         }}>
           <div style={{ fontSize: 13, color: "#FDE68A", fontWeight: 800, marginBottom: 4 }}>
             {lang === "kn"
-              ? "ಪಂಚಾಂಗ ಜಾತಕ ವಿವರಗಳು ಹಾಗೂ ಪೂಜಾ ಮಾಹಿತಿಗಾಗಿ ಪ್ರಧಾನ ಅರ್ಚಕರನ್ನು ಸಂಪರ್ಕಿಸಿ:"
-              : "For Panchanga, Horoscopes & Seva Details, Contact Chief Priest:"}
+              ? "ಈ ಕ್ಯಾಲೆಂಡರ್ ಪಡೆಯಲು ಅಥವಾ ನಿಮ್ಮ ಇಂದಿನ ಜೀವನದ ಜಾತಕದ ವಿವರಗಳನ್ನು ಪಡೆಯಲು ಈ ಕೆಳಗಿನ ಪ್ರಧಾನ ಅರ್ಚಕರನ್ನು ಸಂಪರ್ಕಿಸಿ:"
+              : lang === "hi"
+              ? "यह कैलेंडर प्राप्त करने या अपने वर्तमान जीवन से संबंधित विवरण व फलादेश पाने के लिए मुख्य अर्चक से संपर्क करें:"
+              : lang === "te"
+              ? "ఈ క్యాలెండర్ పొందుటకు లేదా మీ ప్రస్తుత జీవిత జాతక ఫలాల వివరాలు పొందుటకు ఈ క్రింది ప్రధాన అర్చకుడిని సంప్రదించండి:"
+              : lang === "ta"
+              ? "இந்த காலண்டரைப் பெற அல்லது உங்களின் தற்போதைய வாழ்க்கை பலன்களைப் பெற கீழே உள்ள முதன்மை அர்ச்சகரைத் தொடர்பு கொள்ளவும்:"
+              : "To get this calendar or to get current life related details/predictions, you can contact Chief Priest:"}
           </div>
           <div style={{ fontSize: 16, color: "#FFFFFF", fontWeight: 900, marginBottom: 10 }}>
             🛕 {localizedPandit} (Shreeram Pandit)

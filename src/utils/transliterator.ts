@@ -3,6 +3,12 @@ export function transliterateName(englishName: string, lang: string): string {
   if (!englishName || lang.startsWith('en')) return englishName;
   
   const commonMap: Record<string, Record<string, string>> = {
+    "Pramod Kudgi": {
+      "kn": "ಪ್ರಮೋದ್ ಕುಡ್ಗಿ",
+      "hi": "प्रमोद कुड्गी",
+      "te": "ప్రమోద్ కుడ్గి",
+      "ta": "பிரமோத் குட்கி"
+    },
     "Pramod Kodgi": {
       "kn": "ಪ್ರಮೋದ್ ಕೊಡ್ಗಿ",
       "hi": "प्रमोद कोडगी",
@@ -14,6 +20,24 @@ export function transliterateName(englishName: string, lang: string): string {
       "hi": "प्रमोद कोडिगी",
       "te": "ప్రమోద్ కొడిగి",
       "ta": "பிரமோத் கொடிகீ"
+    },
+    "Pramod": {
+      "kn": "ಪ್ರಮೋದ್",
+      "hi": "प्रमोद",
+      "te": "ప్రమోద్",
+      "ta": "பிரமோத்"
+    },
+    "Kudgi": {
+      "kn": "ಕುಡ್ಗಿ",
+      "hi": "कुड्गी",
+      "te": "కుడ్గి",
+      "ta": "குட்கி"
+    },
+    "Shreeram Pandit": {
+      "kn": "ಶ್ರೀರಾಮ ಪಂಡಿತ್",
+      "hi": "श्रीराम पंडित",
+      "te": "శ్రీరామ్ పండిట్",
+      "ta": "ஸ்ரீராம் பண்டிட்"
     },
     "Chaitanya Pandit": {
       "kn": "ಚೈತನ್ಯ ಪಂಡಿತ್",
