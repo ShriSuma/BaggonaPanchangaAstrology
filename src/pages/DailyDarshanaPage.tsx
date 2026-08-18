@@ -21,7 +21,10 @@ import { decodeDevoteeToken } from "../utils/tokenCipher";
 import type { RhythmDay } from "../core/DailyRhythmEngine";
 import { nakshatraName, rashiName, tithiLabel, getDailyActionableGuidance, formatLongDate, getLocalizedPanditName } from "../features/seva/sevaPresentation";
 import { RASHI_L5, NAKSHATRA_L5, GRAHA_L5, LANGUAGE_OWN_NAME, pick, type SevaLang } from "../features/seva/sevaLocale";
-import { calculateKundliWithPlaceSun } from "../core/KundliEngine";
+import { calculateKundli } from "../core/KundliEngine";
+import { findBhuktiAtAge } from "../core/DashaBhuktiEngine";
+import { signLord } from "../core/KundliInsightsEngine";
+import { normalizeDegree } from "../core/AstroMath";
 import type { KundliOutput } from "../core/AstroTypes";
 import { transliterateName } from "../utils/transliterator";
 
@@ -680,6 +683,248 @@ const SouthIndianKundaliGrid: React.FC<RashiGridProps> = ({
   );
 };
 
+// 100% Dynamic 5-Language Gochara Transit Predictions Generator
+function getDynamicGocharaPredictions(
+  transitKundli: KundliOutput | null,
+  moonRashiIdx: number,
+  lang: SevaLang
+): {
+  guruTitle: string;
+  guruDesc: string;
+  shaniTitle: string;
+  shaniDesc: string;
+  rahuKetuTitle: string;
+  rahuKetuDesc: string;
+} {
+  const code = lang || "en";
+  if (!transitKundli) {
+    return {
+      guruTitle: DARSHANA_LABELS[code]?.guruTransitTitle || "Jupiter Transit",
+      guruDesc: DARSHANA_LABELS[code]?.guruTransitDesc || "",
+      shaniTitle: DARSHANA_LABELS[code]?.shaniTransitTitle || "Saturn Transit",
+      shaniDesc: DARSHANA_LABELS[code]?.shaniTransitDesc || "",
+      rahuKetuTitle: DARSHANA_LABELS[code]?.rahuKetuTitle || "Rahu-Ketu Transit",
+      rahuKetuDesc: DARSHANA_LABELS[code]?.rahuKetuDesc || ""
+    };
+  }
+
+  const guruPlanet = transitKundli.planets.find(p => p.name === "Jupiter");
+  const shaniPlanet = transitKundli.planets.find(p => p.name === "Saturn");
+  const rahuPlanet = transitKundli.planets.find(p => p.name === "Rahu");
+  const ketuPlanet = transitKundli.planets.find(p => p.name === "Ketu");
+
+  const guruRashiIdx = guruPlanet?.rashi.index ?? 1;
+  const shaniRashiIdx = shaniPlanet?.rashi.index ?? 10;
+  const rahuRashiIdx = rahuPlanet?.rashi.index ?? 11;
+  const ketuRashiIdx = ketuPlanet?.rashi.index ?? 5;
+
+  const guruHouse = ((guruRashiIdx - moonRashiIdx + 12) % 12) + 1;
+  const shaniHouse = ((shaniRashiIdx - moonRashiIdx + 12) % 12) + 1;
+  const rahuHouse = ((rahuRashiIdx - moonRashiIdx + 12) % 12) + 1;
+  const ketuHouse = ((ketuRashiIdx - moonRashiIdx + 12) % 12) + 1;
+
+  const guruRashiName = RASHI_L5[guruRashiIdx]?.[code] || RASHI_L5[guruRashiIdx]?.en || "";
+  const shaniRashiName = RASHI_L5[shaniRashiIdx]?.[code] || RASHI_L5[shaniRashiIdx]?.en || "";
+  const rahuRashiName = RASHI_L5[rahuRashiIdx]?.[code] || RASHI_L5[rahuRashiIdx]?.en || "";
+  const ketuRashiName = RASHI_L5[ketuRashiIdx]?.[code] || RASHI_L5[ketuRashiIdx]?.en || "";
+
+  // Guru (Jupiter) Phala
+  const guruAuspicious = [2, 5, 7, 9, 11].includes(guruHouse);
+  let guruDesc = "";
+  if (code === "kn") {
+    guruDesc = `ಗುರುವು ${guruRashiName} ರಾಶಿಯಲ್ಲಿ ಅಧಿವಾಸಿಸುತ್ತಿದ್ದು, ನಿಮ್ಮ ಚಂದ್ರ ರಾಶಿಯಿಂದ ${guruHouse}ನೇ ಭಾವದಲ್ಲಿದ್ದಾನೆ. ${
+      guruAuspicious
+        ? "ಇದು ಅತ್ಯಂತ ಶುಭ ಫಲದಾಯಕ ಸ್ಥಾನವಾಗಿದ್ದು, ವಿದ್ಯಾಭ್ಯಾಸ, ಆರ್ಥಿಕ ಪ್ರಗತಿ, ಶುಭ ಸಮಾರಂಭಗಳು ಹಾಗೂ ಸತ್ಸಂಗ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ."
+        : "ಈ ಸಮಯದಲ್ಲಿ ತಾಳ್ಮೆ ಹಾಗೂ ವಿವೇಚನೆ ಅಗತ್ಯ. ಶ್ರೀ ಗುರು ರಾಘವೇಂದ್ರ ಸ್ವಾಮಿ ಅಥವಾ ದಕ್ಷಿಣಾಮೂರ್ತಿ ಪೂಜೆಯಿಂದ ಸಕಾರಾತ್ಮಕ ಶಕ್ತಿ ವೃದ್ಧಿಸಲಿದೆ."
+    }`;
+  } else if (code === "hi") {
+    guruDesc = `गुरु ${guruRashiName} राशि में गोचर करते हुए आपकी राशि से ${guruHouse}वें भाव में हैं। ${
+      guruAuspicious
+        ? "यह अत्यंत शुभ स्थिति है, जिससे ज्ञान वृद्धि, धन लाभ और सुख-समृद्धि प्राप्त होगी।"
+        : "संयम और ध्यान आवश्यक है। श्री गुरुदेव का ध्यान करने से बाधाएं दूर होंगी।"
+    }`;
+  } else if (code === "te") {
+    guruDesc = `గురు గ్రహం ${guruRashiName} రాశిలో సంచరిస్తూ మీ రాశి నుండి ${guruHouse}వ స్థానంలో ఉన్నారు. ${
+      guruAuspicious
+        ? "ఇది అత్యంత అనుకూల స్థానం. జ్ఞాన సమపార్జన, ధన ప్రాప్తి మరియు శుభ కార్యాలు జరుగుతాయి."
+        : "శాంతం, వివేకం అవసరం. శ్రీ గురు దేవాలయ దర్శనం శుభకరం."
+    }`;
+  } else if (code === "ta") {
+    guruDesc = `குரு பகவான் ${guruRashiName} ராசியில் உங்கள் ராசிக்கு ${guruHouse}ஆம் இடத்தில் கோச்சாரம் செய்கிறார். ${
+      guruAuspicious
+        ? "இது மிகச் சிறந்த சுப பலன்களைத் தரும். தன லாபம், கல்வி மேம்பாடு மற்றும் சுப நிகழ்ச்சிகள் நடக்கும்."
+        : "பொறுமையுடன் செயல்படவும். குரு பகவானை வழிபட நன்மை உண்டாகும்."
+    }`;
+  } else {
+    guruDesc = `Jupiter transits in ${guruRashiName} in the ${guruHouse}th house from your Moon sign. ${
+      guruAuspicious
+        ? "This is highly favorable, bringing financial progress, wisdom, auspicious events, and spiritual peace."
+        : "Requires patient execution. Prayers to Sri Guru & Lord Dakshinamurthy bring divine protection and balance."
+    }`;
+  }
+
+  // Shani (Saturn) Phala
+  const isSadeSati = [12, 1, 2].includes(shaniHouse);
+  const isKantaka = [4, 8].includes(shaniHouse);
+  const shaniAuspicious = [3, 6, 11].includes(shaniHouse);
+  let shaniDesc = "";
+  if (code === "kn") {
+    shaniDesc = `ಶನಿಯು ${shaniRashiName} ರಾಶಿಯಲ್ಲಿ ಸಂಚರಿಸುತ್ತಿದ್ದು, ನಿಮ್ಮ ಚಂದ್ರ ರಾಶಿಯಿಂದ ${shaniHouse}ನೇ ಭಾವದಲ್ಲಿದ್ದಾನೆ. ${
+      isSadeSati
+        ? "ಇದು ಸಾಡೇಸಾತಿ (ಏಳೂವರೆ ಶನಿ) ಕಾಲವಾಗಿದ್ದು, ಶಿಸ್ತು, ಕಾಯಕ ನಿಷ್ಠೆ ಮತ್ತು ಹನುಮಾನ್ ಚಾಲೀಸಾ ಪಠಣದಿಂದ ಸಂಕಷ್ಟ ಪರಿಹಾರವಾಗಲಿದೆ."
+        : isKantaka
+        ? "ಇದು ಅರ್ಧಾಷ್ಟಮ / ಅಷ್ಟಮ ಶನಿ ಕಾಲ. ಆರೋಗ್ಯ ಮತ್ತು ವಾಹನ ಚಾಲನೆಯಲ್ಲಿ ಜಾಗ್ರತೆ ವಹಿಸಿ, ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಆರಾಧನೆ ಮಾಡಿ."
+        : shaniAuspicious
+        ? "ಇದು ಅತ್ಯುತ್ತಮ ಶುಭ ಶನಿ ಗೋಚಾರ. ಶತ್ರು ಜಯ, ಕಾರ್ಯ ಸಿದ್ಧಿ ಮತ್ತು ಸುಸ್ಥಿರ ಆರ್ಥಿಕ ಸುಧಾರಣೆ ಲಭಿಸಲಿದೆ."
+        : "ಸಾಮಾನ್ಯ ಫಲದಾಯಕ ಕಾಲ. ನಿರಂತರ ಪರಿಶ್ರಮ ಮತ್ತು ಪ್ರಾಮಾಣಿಕ ಕಾರ್ಯಕ್ಕೆ ತಕ್ಕ ಯಶಸ್ಸು ಕಡ್ಡಾಯ."
+    }`;
+  } else if (code === "hi") {
+    shaniDesc = `शनि देव ${shaniRashiName} राशि में आपकी राशि से ${shaniHouse}वें भाव में स्थित हैं। ${
+      isSadeSati
+        ? "यह साढ़ेसाती का समय है। हनुमान जी की साधना और कड़े अनुशासन से सभी कार्य सिद्ध होंगे।"
+        : isKantaka
+        ? "यह ढैय्या का प्रभाव है। स्वास्थ्य और वाहन चलाने में सावधानी रखें।"
+        : shaniAuspicious
+        ? "यह अत्यंत शुभ गोचर है। शत्रु विजय, कार्य सिद्धि और स्थायी प्रगति होगी।"
+        : "मेहनत का पूर्ण फल मिलेगा। धैर्यपूर्वक आगे बढ़ें।"
+    }`;
+  } else if (code === "te") {
+    shaniDesc = `శని భగవానుడు ${shaniRashiName} రాశిలో మీ రాశి నుండి ${shaniHouse}వ భావంలో ఉన్నారు. ${
+      isSadeSati
+        ? "ఇది సాడేసాతీ కాలం. శ్రమ, క్రమశిక్షణ మరియు హనుమాన్ ఉపాసన ద్వారా శుభ ఫలితాలు పొందుతారు."
+        : isKantaka
+        ? "ఇది అష్టమ శని ప్రభావం. ఆరోగ్యం విషయంలో శ్రద్ధ వహించండి."
+        : shaniAuspicious
+        ? "ఇది అత్యంత అనుకూల సంచారం. విజయ ప్రాప్తి మరియు స్థిరాస్తి అభివృద్ధి."
+        : "సహనం మరియు శ్రమతో అను అనుకూలతలు సాధిస్తారు."
+    }`;
+  } else if (code === "ta") {
+    shaniDesc = `சனீஸ்வர பகவான் ${shaniRashiName} ராசியில் உங்கள் ராசிக்கு ${shaniHouse}ஆம் இடத்தில் உள்ளார். ${
+      isSadeSati
+        ? "இது ஏழரை சனி காலம். அனுமன் வழிபாடும், உழைப்பும் நற்பலன் தரும்."
+        : isKantaka
+        ? "இது அஷ்டம சனி காலம். உடல் ஆரோக்கியத்தில் கவனம் தேவை."
+        : shaniAuspicious
+        ? "மிகச் சிறந்த சுப கோச்சாரம். வெற்றி மற்றும் தொழில் வளர்ச்சி உண்டாகும்."
+        : "நல் உழைப்புக்கேற்ற பலன் நிச்சயமாய் கிடைக்கும்."
+    }`;
+  } else {
+    shaniDesc = `Saturn transits in ${shaniRashiName} in the ${shaniHouse}th house from your Moon sign. ${
+      isSadeSati
+        ? "Sade Sati phase active. Honest work, discipline, and Sri Hanuman Chalisa bring immense resilience and victory."
+        : isKantaka
+        ? "Ashtama/Kantaka Shani phase. Exercise care in travel & health; worship Lord Shiva."
+        : shaniAuspicious
+        ? "Highly auspicious transit! Brings stability, overcoming hurdles, and solid financial growth."
+        : "Steady phase rewarding hard work and ethical conduct."
+    }`;
+  }
+
+  // Rahu-Ketu Axis
+  let rahuKetuDesc = "";
+  if (code === "kn") {
+    rahuKetuDesc = `ರಾಹುವು ${rahuRashiName} (${rahuHouse}ನೇ ಭಾವ) ಹಾಗೂ ಕೇತುವು ${ketuRashiName} (${ketuHouse}ನೇ ಭಾವ) ಸಂಚಾರದಲ್ಲಿದ್ದಾರೆ. ಶ್ರೀ ದುರ್ಗಾದೇವಿ ಹಾಗೂ ಮಹಾಗಣಪತಿ ಪೂಜೆಯಿಂದ ಮನಃಶಾಂತಿ ಮತ್ತು ಕೌಶಲ್ಯ ವೃದ್ಧಿಯಾಗಲಿದೆ.`;
+  } else if (code === "hi") {
+    rahuKetuDesc = `राहु ${rahuRashiName} (${rahuHouse}वें भाव) और केतु ${ketuRashiName} (${ketuHouse}वें भाव) में हैं। श्री दुर्गा और गणेश जी की पूजा से शांति प्राप्त होगी।`;
+  } else if (code === "te") {
+    rahuKetuDesc = `రాహువు ${rahuRashiName} (${rahuHouse}వ ఇల్లు), కేతువు ${ketuRashiName} (${ketuHouse}వ ఇల్లు) సంచారంలో ఉన్నారు. దుర్గా, గణపతి ఆరాధన శ్రేయస్కరం.`;
+  } else if (code === "ta") {
+    rahuKetuDesc = `ரஹு ${rahuRashiName} (${rahuHouse}ஆம் இடம்), கேது ${ketuRashiName} (${ketuHouse}ஆம் இடம்) கோச்சாரத்தில் உள்ளனர். துர்க்கை & கணபதி வழிபாடு சிறப்பு.`;
+  } else {
+    rahuKetuDesc = `Rahu transits in ${rahuRashiName} (${rahuHouse}th house) & Ketu in ${ketuRashiName} (${ketuHouse}th house). Regular prayers to Goddess Durga and Lord Ganesha provide spiritual protection and clarity.`;
+  }
+
+  return {
+    guruTitle: `${GRAHA_L5.Jupiter[code] || "Jupiter"} Transit (${guruRashiName})`,
+    guruDesc,
+    shaniTitle: `${GRAHA_L5.Saturn[code] || "Saturn"} Transit (${shaniRashiName})`,
+    shaniDesc,
+    rahuKetuTitle: `${GRAHA_L5.Rahu[code] || "Rahu"}-${GRAHA_L5.Ketu[code] || "Ketu"} Axis`,
+    rahuKetuDesc
+  };
+}
+
+// 100% Dynamic 5-Language Dasha-Bhukti Predictions Generator
+function getDynamicDashaPredictions(
+  birthKundli: KundliOutput,
+  targetDateStr: string,
+  lang: SevaLang,
+  birthDateStr: string
+): {
+  activePhase: string;
+  dashaPeriod: string;
+  careerDesc: string;
+  wealthDesc: string;
+  familyDesc: string;
+  healthDesc: string;
+} {
+  const code = lang || "en";
+  const birthDate = new Date(birthDateStr);
+  const targetDate = new Date(targetDateStr);
+  const birthYear = isNaN(birthDate.getFullYear()) ? 1993 : birthDate.getFullYear();
+
+  let ageYears = 30;
+  if (!isNaN(birthDate.getTime()) && !isNaN(targetDate.getTime())) {
+    ageYears = Math.max(0, (targetDate.getTime() - birthDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25));
+  }
+
+  const bhuktiInfo = findBhuktiAtAge(birthKundli, ageYears);
+
+  const mahaPlanet = bhuktiInfo?.maha.planet || "Rahu";
+  const bhuktiPlanet = bhuktiInfo?.bhukti || "Venus";
+
+  const mahaName = GRAHA_L5[mahaPlanet as keyof typeof GRAHA_L5]?.[code] || mahaPlanet;
+  const bhuktiName = GRAHA_L5[bhuktiPlanet as keyof typeof GRAHA_L5]?.[code] || bhuktiPlanet;
+
+  const startYear = Math.floor(birthYear + (bhuktiInfo?.bhuktiStartAge ?? 0));
+  const endYear = Math.floor(birthYear + (bhuktiInfo?.bhuktiEndAge ?? 3));
+
+  const activePhase = `${mahaName} ${code === "kn" ? "ಮಹಾದಶಾ" : code === "hi" ? "महादशा" : code === "te" ? "మహాదశ" : code === "ta" ? "மகாதிசை" : "Mahadasha"} · ${bhuktiName} ${code === "kn" ? "ಅಂತರ್ದಶಾ" : code === "hi" ? "अंतर्दशा" : code === "te" ? "అంతర్దశ" : code === "ta" ? "புக்தி" : "Antardasha"}`;
+
+  const dashaPeriod = `${code === "kn" ? "ಅವಧಿ" : code === "hi" ? "अवधि" : code === "te" ? "వ్యవధి" : code === "ta" ? "காலம்" : "Period"}: ${startYear} - ${endYear}`;
+
+  let careerDesc = "";
+  let wealthDesc = "";
+  let familyDesc = "";
+  let healthDesc = "";
+
+  if (code === "kn") {
+    careerDesc = `${mahaName} ಮಹಾದಶಾ ಹಾಗೂ ${bhuktiName} ಅಂತರ್ದಶಾ ಅವಧಿಯಲ್ಲಿ ನಿಮ್ಮ ವೃತ್ತಿ ಕ್ಷೇತ್ರದಲ್ಲಿ ನೂತನ ಅವಕಾಶಗಳು, ಉದ್ಯೋಗ ಬಡ್ತಿ ಮತ್ತು ಹಿರಿಯರ ಸಹಕಾರ ಲಭಿಸಲಿದೆ.`;
+    wealthDesc = `${mahaName}-${bhuktiName} ಯೋಗದಿಂದ ಹಣಕಾಸಿನ ಹರಿವು ವೃದ್ಧಿಸಲಿದ್ದು, ಆಸ್ತಿ ಖರೀದಿ ಹಾಗೂ ಹೂಡಿಕೆಗಳಿಗೆ ಸೂಕ್ತ ಫಲ ಸಿಗಲಿದೆ.`;
+    familyDesc = `ಕುಟುಂಬದಲ್ಲಿ ಶುಭ ಸಮಾರಂಭಗಳ ಆಯೋಜನೆ, ಗೃಹ ಶಾಂತಿ ಹಾಗೂ ಆಪ್ತರೊಂದಿಗೆ ಸೌಹಾರ್ದಯುತ ಬಾಂಧವ್ಯ ನೆಲೆಸಲಿದೆ.`;
+    healthDesc = `ಸಾತ್ವಿಕ ಜೀವನಶೈಲಿ, ಧ್ಯಾನ ಹಾಗೂ ದೇವತಾ ಆರಾಧನೆಯಿಂದ ಶಾರೀರಿಕ ಮತ್ತು ಮಾನಸಿಕ ಚೈತನ್ಯ ಕಾಯ್ದುಕೊಳ್ಳಬಹುದು.`;
+  } else if (code === "hi") {
+    careerDesc = `${mahaName} महादशा एवं ${bhuktiName} अंतर्दशा के प्रभाव से कार्यक्षेत्र में पदोन्नति, नया उत्तरदायित्व और सम्मान प्राप्त होगा।`;
+    wealthDesc = `${mahaName}-${bhuktiName} काल में आर्थिक स्थिति सुदृढ़ होगी और संपत्ति में वृद्धि होगी।`;
+    familyDesc = `परिवार में मांगलिक कार्य और सुख-शांति का माहौल रहेगा।`;
+    healthDesc = `उत्तम स्वास्थ्य और मानसिक प्रसन्नता बनी रहेगी। नियमित योग-ध्यान करें।`;
+  } else if (code === "te") {
+    careerDesc = `${mahaName} మహాదశ మరియు ${bhuktiName} అంతర్దశ వల్ల ఉద్యోగంలో పదోన్నతి, నూతన అవకాశాలు లభిస్తాయి.`;
+    wealthDesc = `ఆర్థిక లాభాలు, స్థిరాస్తి సముపార్జన మరియు పెట్టుబడులకు అనుకూల సమయం.`;
+    familyDesc = `కుటుంబంలో శుభ కార్యాలు, సంతోషకరమైన వాతావరణం ఉంటుంది.`;
+    healthDesc = `మంచి ఆరోగ్యం మరియు మనఃశాంతి లభిస్తుంది. ఆధ్యాత్మిక చింతన పెంచుకోండి.`;
+  } else if (code === "ta") {
+    careerDesc = `${mahaName} மகாதிசை மற்றும் ${bhuktiName} புக்தி காலத்தில் தொழிலில் புதிய வாய்ப்புகளும், உயர் அதிகாரிகளின் ஆதரவும் கிடைக்கும்.`;
+    wealthDesc = `நிதி நிலை சிறக்கும். நிலம், வீடு வாங்க சுப யோகம் உண்டாகும்.`;
+    familyDesc = `குடும்பத்தில் சுப காரியங்கள் மற்றும் மகிழ்ச்சியான சூழ்நிலை நிலவும்.`;
+    healthDesc = `சிறந்த உடலாரோக்கியம் மற்றும் மன நிம்மதி கிடைக்கும்.`;
+  } else {
+    careerDesc = `The ${mahaName} Mahadasha and ${bhuktiName} Antardasha period brings professional growth, executive leadership opportunities, and recognition.`;
+    wealthDesc = `Favorable alignment for asset acquisition, strategic investments, and overall financial stability.`;
+    familyDesc = `Auspicious celebrations, domestic harmony, and supportive relationships with family and well-wishers.`;
+    healthDesc = `Sustained physical and mental vitality. Meditation and balanced lifestyle bring inner peace.`;
+  }
+
+  return {
+    activePhase,
+    dashaPeriod,
+    careerDesc,
+    wealthDesc,
+    familyDesc,
+    healthDesc
+  };
+}
+
 export default function DailyDarshanaPage(): JSX.Element {
   const params = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : new URLSearchParams();
   const tokenParam = params.get("token");
@@ -747,12 +992,93 @@ export default function DailyDarshanaPage(): JSX.Element {
     return Math.floor((targetMs - startMs) / (1000 * 60 * 60 * 24));
   }, [decoded, dateParam]);
 
+  const kaala = useMemo(() => getDailyKaalaTimings(dayLordIdx, lang, dateParam, decoded?.lt, decoded?.lg, decoded?.pc), [dayLordIdx, lang, dateParam, decoded]);
+  const localizedPandit = useMemo(() => getLocalizedPanditName(panditParam, lang), [panditParam, lang]);
+  
+  const devoteeDisplayName = useMemo(() => {
+    let raw = "";
+    if (nameParam && nameParam.trim().length > 0) raw = nameParam.trim();
+    else if (decoded?.n && decoded.n.trim().length > 0) raw = decoded.n.trim();
+    else if (storedSession?.name && storedSession.name.trim().length > 0) raw = storedSession.name.trim();
+    else raw = lang === "kn" ? "ಭಕ್ತರು" : "Devotee";
+    return transliterateName(raw, lang);
+  }, [nameParam, decoded, storedSession, lang]);
+
+  // Extract dynamic birth inputs for the specific user from decoded token payload / stored session
+  const birthDateStr = useMemo(() => {
+    return (decoded as any)?.dob || decoded?.d || storedSession?.birthDate || "1993-05-31";
+  }, [decoded, storedSession]);
+
+  const birthTimeStr = useMemo(() => {
+    return (decoded as any)?.tob || decoded?.tm || storedSession?.birthTime || "09:25";
+  }, [decoded, storedSession]);
+
+  const userLat = useMemo(() => {
+    return decoded?.lt ?? decoded?.lat ?? storedSession?.latitude ?? 14.5479;
+  }, [decoded, storedSession]);
+
+  const userLng = useMemo(() => {
+    return decoded?.lg ?? decoded?.lng ?? storedSession?.longitude ?? 74.3187;
+  }, [decoded, storedSession]);
+
+  const userPincode = useMemo(() => {
+    return decoded?.pc || storedSession?.pincode || "581326";
+  }, [decoded, storedSession]);
+
+  // 100% Dynamic Synchronous Birth Kundli calculation for the specific user
+  const birthKundli = useMemo<KundliOutput>(() => {
+    return calculateKundli({
+      name: devoteeDisplayName,
+      birthDate: birthDateStr,
+      birthTime: birthTimeStr,
+      latitude: userLat,
+      longitude: userLng,
+      pincode: userPincode
+    });
+  }, [devoteeDisplayName, birthDateStr, birthTimeStr, userLat, userLng, userPincode]);
+
+  // 100% Dynamic Synchronous Transit Kundli calculation for TODAY
+  const transitKundli = useMemo<KundliOutput>(() => {
+    const targetYmd = dateParam || new Date().toISOString().split("T")[0];
+    return calculateKundli({
+      name: "Transit",
+      birthDate: targetYmd,
+      birthTime: "06:00",
+      latitude: userLat,
+      longitude: userLng,
+      pincode: userPincode
+    });
+  }, [dateParam, userLat, userLng, userPincode]);
+
+  // Derived user astro indices
+  const ascendantRashiIdx = useMemo(() => {
+    return Math.floor(normalizeDegree(birthKundli.ascendant) / 30) % 12;
+  }, [birthKundli]);
+
+  const moonPlanet = useMemo(() => {
+    return birthKundli.planets.find((p) => p.name === "Moon") || birthKundli.planets[1];
+  }, [birthKundli]);
+
+  const moonRashiIdx = useMemo(() => {
+    return moonPlanet?.rashi.index ?? decoded?.r ?? 5;
+  }, [moonPlanet, decoded]);
+
+  const moonNakshatraIdx = useMemo(() => {
+    return moonPlanet?.nakshatra.index ?? decoded?.nk ?? 12;
+  }, [moonPlanet, decoded]);
+
+  const rashiLordPlanet = useMemo(() => {
+    return signLord(moonRashiIdx);
+  }, [moonRashiIdx]);
+
+  const rashiLordLocalized = useMemo(() => {
+    return GRAHA_L5[rashiLordPlanet as keyof typeof GRAHA_L5]?.[lang] || rashiLordPlanet;
+  }, [rashiLordPlanet, lang]);
+
   const mockDay: RhythmDay = useMemo(() => {
     const startDateStr = decoded?.d || dateParam || new Date().toISOString().split("T")[0];
-    const birthNakIdx = decoded?.nk !== undefined ? decoded.nk : 12; // Pramod: Hasta (12)
-    const birthRashiIdx = decoded?.r !== undefined ? decoded.r : 5;   // Pramod: Kanya (5)
-    return calculateDeterministicRhythmDay(dateParam, birthNakIdx, birthRashiIdx, startDateStr);
-  }, [dateParam, decoded]);
+    return calculateDeterministicRhythmDay(dateParam, moonNakshatraIdx, moonRashiIdx, startDateStr);
+  }, [dateParam, decoded, moonNakshatraIdx, moonRashiIdx]);
 
   const vibe = useMemo(() => getEnergyMeterAndVibe(mockDay, lang), [mockDay, lang]);
 
@@ -788,112 +1114,44 @@ export default function DailyDarshanaPage(): JSX.Element {
     };
   }, [vibe]);
 
-  const kaala = useMemo(() => getDailyKaalaTimings(mockDay.dayLord, lang, dateParam, decoded?.lt, decoded?.lg, decoded?.pc), [mockDay.dayLord, lang, dateParam, decoded]);
-  const localizedPandit = useMemo(() => getLocalizedPanditName(panditParam, lang), [panditParam, lang]);
-  
-  const devoteeDisplayName = useMemo(() => {
-    let raw = "";
-    if (nameParam && nameParam.trim().length > 0) raw = nameParam.trim();
-    else if (decoded?.n && decoded.n.trim().length > 0) raw = decoded.n.trim();
-    else if (storedSession?.name && storedSession.name.trim().length > 0) raw = storedSession.name.trim();
-    else raw = "Pramod Kudgi";
-    return transliterateName(raw, lang);
-  }, [nameParam, decoded, storedSession, lang]);
-
   const benediction = useMemo(() => buildDeterministicPriestBenediction(mockDay, lang, devoteeDisplayName), [mockDay, lang, devoteeDisplayName]);
 
   // 100% 5-Language Actionable Guidance
   const actionableGuidance = useMemo(() => getDailyActionableGuidance(mockDay, lang), [mockDay, lang]);
 
-  // Dynamic Live Planetary Calculation for Birth Chart & Gochara Transits
-  const [birthKundli, setBirthKundli] = useState<KundliOutput | null>(null);
-  const [transitKundli, setTransitKundli] = useState<KundliOutput | null>(null);
-
-  useEffect(() => {
-    let active = true;
-    async function loadKundlis() {
-      try {
-        const dob = (decoded as any)?.dob || storedSession?.birthDate || "1993-05-31";
-        const tob = (decoded as any)?.tob || storedSession?.birthTime || "09:25";
-        const lat = decoded?.lt ?? storedSession?.latitude ?? 14.5479;
-        const lng = decoded?.lg ?? storedSession?.longitude ?? 74.3187;
-        const pc = decoded?.pc || storedSession?.pincode || "581326";
-
-        const bK = await calculateKundliWithPlaceSun({
-          name: devoteeDisplayName,
-          birthDate: dob,
-          birthTime: tob,
-          latitude: lat,
-          longitude: lng,
-          pincode: pc
-        }, { ayanamsaModel: "lahiri" });
-
-        const targetYmd = dateParam || new Date().toISOString().split("T")[0];
-        const tK = await calculateKundliWithPlaceSun({
-          name: "Transit",
-          birthDate: targetYmd,
-          birthTime: "06:00",
-          latitude: lat,
-          longitude: lng,
-          pincode: pc
-        }, { ayanamsaModel: "lahiri" });
-
-        if (active) {
-          setBirthKundli(bK);
-          setTransitKundli(tK);
-        }
-      } catch (e) {
-        console.warn("Live Kundli calculation notice:", e);
-      }
-    }
-    void loadKundlis();
-    return () => { active = false; };
-  }, [decoded, storedSession, dateParam, devoteeDisplayName]);
-
   // Gochara Planet Placements for South Indian Grid
   const gocharaPlacements = useMemo(() => {
-    if (transitKundli) {
-      const map: Record<number, string[]> = {};
-      transitKundli.planets.forEach((p) => {
-        const rIdx = p.rashi.index;
-        if (!map[rIdx]) map[rIdx] = [];
-        const gName = GRAHA_L5[p.name as keyof typeof GRAHA_L5]?.[lang] || p.name;
-        map[rIdx].push(gName);
-      });
-      return map;
-    }
-    return {
-      0: [GRAHA_L5.Sun[lang], GRAHA_L5.Mercury[lang]], // Mesha
-      1: [GRAHA_L5.Jupiter[lang]],                      // Vrishabha
-      3: [GRAHA_L5.Moon[lang]],                         // Karka
-      6: [GRAHA_L5.Ketu[lang]],                         // Tula
-      10: [GRAHA_L5.Saturn[lang]],                       // Kumbha
-      11: [GRAHA_L5.Rahu[lang], GRAHA_L5.Mars[lang]]     // Meena
-    };
+    const map: Record<number, string[]> = {};
+    transitKundli.planets.forEach((p) => {
+      const rIdx = p.rashi.index;
+      if (!map[rIdx]) map[rIdx] = [];
+      const gName = GRAHA_L5[p.name as keyof typeof GRAHA_L5]?.[lang] || p.name;
+      map[rIdx].push(gName);
+    });
+    return map;
   }, [transitKundli, lang]);
 
-  // Birth Planet Placements for Janma Kundali Grid (Pramod Kudgi: Lagna Karka, Moon/Guru Kanya, Sun/Ketu Vrishabha, Venus Mesha, Mercury Mithuna, Saturn Kumbha, Rahu Vrischika)
+  // Birth Planet Placements for Janma Kundali Grid
   const birthPlacements = useMemo(() => {
-    if (birthKundli) {
-      const map: Record<number, string[]> = {};
-      birthKundli.planets.forEach((p) => {
-        const rIdx = p.rashi.index;
-        if (!map[rIdx]) map[rIdx] = [];
-        const gName = GRAHA_L5[p.name as keyof typeof GRAHA_L5]?.[lang] || p.name;
-        map[rIdx].push(gName);
-      });
-      return map;
-    }
-    return {
-      0: [GRAHA_L5.Venus[lang]],
-      1: [GRAHA_L5.Sun[lang], GRAHA_L5.Ketu[lang]],
-      2: [GRAHA_L5.Mercury[lang]],
-      3: [GRAHA_L5.Mars[lang]],
-      5: [GRAHA_L5.Moon[lang], GRAHA_L5.Jupiter[lang]],
-      7: [GRAHA_L5.Rahu[lang]],
-      10: [GRAHA_L5.Saturn[lang]]
-    };
+    const map: Record<number, string[]> = {};
+    birthKundli.planets.forEach((p) => {
+      const rIdx = p.rashi.index;
+      if (!map[rIdx]) map[rIdx] = [];
+      const gName = GRAHA_L5[p.name as keyof typeof GRAHA_L5]?.[lang] || p.name;
+      map[rIdx].push(gName);
+    });
+    return map;
   }, [birthKundli, lang]);
+
+  // Dynamic Gochara Predictions
+  const gocharaPredictions = useMemo(() => {
+    return getDynamicGocharaPredictions(transitKundli, moonRashiIdx, lang);
+  }, [transitKundli, moonRashiIdx, lang]);
+
+  // Dynamic Dasha Predictions
+  const dashaPredictions = useMemo(() => {
+    return getDynamicDashaPredictions(birthKundli, dateParam, lang, birthDateStr);
+  }, [birthKundli, dateParam, lang, birthDateStr]);
 
   // Multi-harmonic Authentic Temple Bell Synthesis ("THAAANNN...")
   const playTempleBell = () => {
@@ -1442,19 +1700,19 @@ export default function DailyDarshanaPage(): JSX.Element {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontSize: 12 }}>
                 <div style={{ background: "rgba(0,0,0,0.3)", padding: 8, borderRadius: 8 }}>
                   <span style={{ color: "#F59E0B" }}>{dict.lagna}:</span>{" "}
-                  <strong>{RASHI_L5[birthKundli?.ascendant ?? 3]?.[lang] || (lang === "kn" ? "ಕರ್ಕಾಟಕ" : "Karka")}</strong>
+                  <strong>{RASHI_L5[ascendantRashiIdx]?.[lang] || RASHI_L5[ascendantRashiIdx]?.en}</strong>
                 </div>
                 <div style={{ background: "rgba(0,0,0,0.3)", padding: 8, borderRadius: 8 }}>
                   <span style={{ color: "#F59E0B" }}>{dict.rashi}:</span>{" "}
-                  <strong>{RASHI_L5[birthKundli ? (birthKundli.planets.find(p=>p.name==='Moon')?.rashi.index ?? 5) : 5]?.[lang] || (lang === "kn" ? "ಕನ್ಯಾ" : "Kanya")}</strong>
+                  <strong>{RASHI_L5[moonRashiIdx]?.[lang] || RASHI_L5[moonRashiIdx]?.en}</strong>
                 </div>
                 <div style={{ background: "rgba(0,0,0,0.3)", padding: 8, borderRadius: 8 }}>
                   <span style={{ color: "#F59E0B" }}>{dict.nakshatra}:</span>{" "}
-                  <strong>{NAKSHATRA_L5[birthKundli ? (birthKundli.planets.find(p=>p.name==='Moon')?.nakshatra.index ?? 12) : 12]?.[lang] || (lang === "kn" ? "ಹಸ್ತಾ" : "Hasta")}</strong>
+                  <strong>{NAKSHATRA_L5[moonNakshatraIdx]?.[lang] || NAKSHATRA_L5[moonNakshatraIdx]?.en}</strong>
                 </div>
                 <div style={{ background: "rgba(0,0,0,0.3)", padding: 8, borderRadius: 8 }}>
                   <span style={{ color: "#F59E0B" }}>{dict.rashiLord}:</span>{" "}
-                  <strong>{GRAHA_L5.Mercury[lang]}</strong>
+                  <strong>{rashiLordLocalized}</strong>
                 </div>
               </div>
             </div>
@@ -1462,8 +1720,8 @@ export default function DailyDarshanaPage(): JSX.Element {
             {/* Visual South-Indian Birth Kundali Chart */}
             <SouthIndianKundaliGrid
               lang={lang}
-              highlightRashiIndex={birthKundli ? (birthKundli.planets.find(p=>p.name==='Moon')?.rashi.index ?? 5) : 5}
-              lagnaRashiIndex={birthKundli?.ascendant ?? 3}
+              highlightRashiIndex={moonRashiIdx}
+              lagnaRashiIndex={ascendantRashiIdx}
               planetPlacements={birthPlacements}
               title={dict.tabKundali}
               isGochara={false}
@@ -1491,55 +1749,25 @@ export default function DailyDarshanaPage(): JSX.Element {
                   </tr>
                 </thead>
                 <tbody>
-                  {birthKundli?.planets ? (
-                    birthKundli.planets.map((p) => {
-                      const gName = GRAHA_L5[p.name as keyof typeof GRAHA_L5]?.[lang] || p.name;
-                      const rName = RASHI_L5[p.rashi.index]?.[lang] || p.rashi.sanskrit;
-                      const houseNum = p.house;
-                      const degStr = `${Math.floor(p.degree)}° ${Math.round((p.degree % 1) * 60)}'`;
-                      const statusStr = p.isRetrograde ? (lang === "kn" ? "ವಕ್ರ" : "Retro") : (lang === "kn" ? "ಶುಭ" : "Direct");
-                      return (
-                        <tr key={p.name} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                          <td style={{ padding: "6px 4px", fontWeight: 700 }}>{gName}</td>
-                          <td style={{ padding: "6px 4px" }}>{rName}</td>
-                          <td style={{ padding: "6px 4px" }}>{houseNum}</td>
-                          <td style={{ padding: "6px 4px" }}>{degStr}</td>
-                          <td style={{ padding: "6px 4px", color: p.isRetrograde ? "#F59E0B" : "#10B981" }}>{statusStr}</td>
-                        </tr>
-                      );
-                    })
-                  ) : (
-                    <>
-                      <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                        <td style={{ padding: "6px 4px", fontWeight: 700 }}>{GRAHA_L5.Sun[lang]}</td>
-                        <td style={{ padding: "6px 4px" }}>{RASHI_L5[1][lang]}</td>
-                        <td style={{ padding: "6px 4px" }}>11</td>
-                        <td style={{ padding: "6px 4px" }}>15° 57'</td>
-                        <td style={{ padding: "6px 4px", color: "#10B981" }}>Swakshetra</td>
+                  {birthKundli.planets.map((p) => {
+                    const gName = GRAHA_L5[p.name as keyof typeof GRAHA_L5]?.[lang] || p.name;
+                    const rName = RASHI_L5[p.rashi.index]?.[lang] || p.rashi.sanskrit;
+                    const houseNum = p.house;
+                    const degInSign = p.degree % 30;
+                    const degStr = `${Math.floor(degInSign)}° ${Math.round((degInSign % 1) * 60)}'`;
+                    const statusStr = p.isRetrograde
+                      ? (lang === "kn" ? "ವಕ್ರ" : lang === "hi" ? "वक्री" : lang === "te" ? "వక్రి" : lang === "ta" ? "வக்ரம்" : "Retro")
+                      : (lang === "kn" ? "ಋಜು" : lang === "hi" ? "मार्गी" : lang === "te" ? "మార్గి" : lang === "ta" ? "நேர்" : "Direct");
+                    return (
+                      <tr key={p.name} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                        <td style={{ padding: "6px 4px", fontWeight: 700 }}>{gName}</td>
+                        <td style={{ padding: "6px 4px" }}>{rName}</td>
+                        <td style={{ padding: "6px 4px" }}>{houseNum}</td>
+                        <td style={{ padding: "6px 4px" }}>{degStr}</td>
+                        <td style={{ padding: "6px 4px", color: p.isRetrograde ? "#F59E0B" : "#10B981" }}>{statusStr}</td>
                       </tr>
-                      <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                        <td style={{ padding: "6px 4px", fontWeight: 700 }}>{GRAHA_L5.Moon[lang]}</td>
-                        <td style={{ padding: "6px 4px" }}>{RASHI_L5[5][lang]}</td>
-                        <td style={{ padding: "6px 4px" }}>3</td>
-                        <td style={{ padding: "6px 4px" }}>17° 59'</td>
-                        <td style={{ padding: "6px 4px", color: "#F59E0B" }}>Ucha</td>
-                      </tr>
-                      <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                        <td style={{ padding: "6px 4px", fontWeight: 700 }}>{GRAHA_L5.Jupiter[lang]}</td>
-                        <td style={{ padding: "6px 4px" }}>{RASHI_L5[5][lang]}</td>
-                        <td style={{ padding: "6px 4px" }}>3</td>
-                        <td style={{ padding: "6px 4px" }}>10° 59'</td>
-                        <td style={{ padding: "6px 4px", color: "#10B981" }}>Mitra</td>
-                      </tr>
-                      <tr>
-                        <td style={{ padding: "6px 4px", fontWeight: 700 }}>{GRAHA_L5.Saturn[lang]}</td>
-                        <td style={{ padding: "6px 4px" }}>{RASHI_L5[10][lang]}</td>
-                        <td style={{ padding: "6px 4px" }}>8</td>
-                        <td style={{ padding: "6px 4px" }}>06° 28'</td>
-                        <td style={{ padding: "6px 4px", color: "#10B981" }}>Swakshetra</td>
-                      </tr>
-                    </>
-                  )}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -1552,8 +1780,8 @@ export default function DailyDarshanaPage(): JSX.Element {
             {/* Visual South-Indian Gochara Transit Chart Grid */}
             <SouthIndianKundaliGrid
               lang={lang}
-              highlightRashiIndex={birthKundli ? (birthKundli.planets.find(p=>p.name==='Moon')?.rashi.index ?? 5) : 5}
-              lagnaRashiIndex={birthKundli ? (birthKundli.planets.find(p=>p.name==='Moon')?.rashi.index ?? 5) : 5}
+              highlightRashiIndex={moonRashiIdx}
+              lagnaRashiIndex={moonRashiIdx}
               planetPlacements={gocharaPlacements}
               title={dict.gocharaChartTitle}
               isGochara={true}
@@ -1574,30 +1802,30 @@ export default function DailyDarshanaPage(): JSX.Element {
               {/* Guru Gochara */}
               <div style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(245, 158, 11, 0.3)", padding: 12, borderRadius: 12, marginBottom: 10 }}>
                 <div style={{ fontSize: 13, fontWeight: 800, color: "#F59E0B", marginBottom: 4 }}>
-                  🟡 {dict.guruTransitTitle}
+                  🟡 {gocharaPredictions.guruTitle}
                 </div>
                 <div style={{ fontSize: 12, color: "#E5E7EB", lineHeight: 1.5 }}>
-                  {dict.guruTransitDesc}
+                  {gocharaPredictions.guruDesc}
                 </div>
               </div>
 
               {/* Shani Gochara */}
               <div style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(99, 102, 241, 0.3)", padding: 12, borderRadius: 12, marginBottom: 10 }}>
                 <div style={{ fontSize: 13, fontWeight: 800, color: "#A5B4FC", marginBottom: 4 }}>
-                  🔵 {dict.shaniTransitTitle}
+                  🔵 {gocharaPredictions.shaniTitle}
                 </div>
                 <div style={{ fontSize: 12, color: "#E5E7EB", lineHeight: 1.5 }}>
-                  {dict.shaniTransitDesc}
+                  {gocharaPredictions.shaniDesc}
                 </div>
               </div>
 
               {/* Rahu-Ketu Axis */}
               <div style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(239, 68, 68, 0.3)", padding: 12, borderRadius: 12 }}>
                 <div style={{ fontSize: 13, fontWeight: 800, color: "#FCA5A5", marginBottom: 4 }}>
-                  🔴 {dict.rahuKetuTitle}
+                  🔴 {gocharaPredictions.rahuKetuTitle}
                 </div>
                 <div style={{ fontSize: 12, color: "#E5E7EB", lineHeight: 1.5 }}>
-                  {dict.rahuKetuDesc}
+                  {gocharaPredictions.rahuKetuDesc}
                 </div>
               </div>
             </div>
@@ -1620,10 +1848,10 @@ export default function DailyDarshanaPage(): JSX.Element {
                 ⏳ {dict.dashaHeader}
               </div>
               <div style={{ fontSize: 18, fontWeight: 900, color: "#FFFFFF", marginTop: 4 }}>
-                {dict.activePhase}
+                {dashaPredictions.activePhase}
               </div>
               <div style={{ fontSize: 12, color: "#FCD34D", marginTop: 4 }}>
-                {dict.dashaPeriod}
+                {dashaPredictions.dashaPeriod}
               </div>
             </div>
 
@@ -1635,7 +1863,7 @@ export default function DailyDarshanaPage(): JSX.Element {
                   💼 {dict.careerTitle}
                 </div>
                 <div style={{ fontSize: 12, color: "#E5E7EB", lineHeight: 1.5 }}>
-                  {dict.careerDesc}
+                  {dashaPredictions.careerDesc}
                 </div>
               </div>
 
@@ -1645,7 +1873,7 @@ export default function DailyDarshanaPage(): JSX.Element {
                   💰 {dict.wealthTitle}
                 </div>
                 <div style={{ fontSize: 12, color: "#E5E7EB", lineHeight: 1.5 }}>
-                  {dict.wealthDesc}
+                  {dashaPredictions.wealthDesc}
                 </div>
               </div>
 
@@ -1655,7 +1883,7 @@ export default function DailyDarshanaPage(): JSX.Element {
                   🏡 {dict.familyTitle}
                 </div>
                 <div style={{ fontSize: 12, color: "#E5E7EB", lineHeight: 1.5 }}>
-                  {dict.familyDesc}
+                  {dashaPredictions.familyDesc}
                 </div>
               </div>
 
@@ -1665,7 +1893,7 @@ export default function DailyDarshanaPage(): JSX.Element {
                   🌿 {dict.healthTitle}
                 </div>
                 <div style={{ fontSize: 12, color: "#E5E7EB", lineHeight: 1.5 }}>
-                  {dict.healthDesc}
+                  {dashaPredictions.healthDesc}
                 </div>
               </div>
             </div>
