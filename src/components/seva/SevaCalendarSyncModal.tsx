@@ -222,10 +222,10 @@ export default function SevaCalendarSyncModal({
       lng,
       locationName
     });
-    const safePujari = (panditName || "Archaka").replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "");
-    const safeDevotee = (personName || "Bhakta").replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "");
+    const safePujari = (panditName || "Sri_Chaitanya_Pandit").replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "");
+    const safeDevotee = (personName || "Devotee").replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "");
     const safeDate = (selectedDay?.ymd || new Date().toISOString().slice(0, 10)).replace(/[^\d-]/g, "");
-    const filename = `${safePujari}_${safeDevotee}_90Day_Panchanga_${safeDate}_${lang.toUpperCase()}.ics`;
+    const filename = `${safePujari}_${safeDevotee}_${safeDate}.ics`;
     downloadIcsFile(filename, icsContent);
   };
 

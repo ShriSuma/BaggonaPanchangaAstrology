@@ -168,3 +168,22 @@ Before committing changes to any Seva & Prasada files:
   - [ ] On-screen QR code in sync modal scans cleanly on mobile phone.
   - [ ] QR code printed on Page 5 of the downloaded PDF scans cleanly.
   - [ ] Scanned QR opens valid Google Calendar 90-day event or Sanctum URL.
+
+---
+
+## 8. Download Filename Standardisation Guard
+
+Whenever a calendar file (`.ics`) or Aashirvada PDF document (`.pdf`) is generated and downloaded in Seva & Prasada or Daily Darshana pages, the filename MUST strictly adhere to the following standard format:
+
+### Naming Convention
+`${Priest_Name}_${Devotee_Name}_${Date}.${ext}`
+
+### Rules & Examples
+1. **Sanitization Logic**:
+   - `str.replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "")`
+   - Spaces and non-alphanumeric characters are replaced with single underscores.
+2. **Calendar Download (`.ics`)**:
+   - `Sri_Chaitanya_Pandit_Pramod_Kodagi_2026-08-18.ics`
+3. **Ashirvada PDF Download (`.pdf`)**:
+   - `Sri_Chaitanya_Pandit_Pramod_Kodagi_2026-08-18.pdf`
+

@@ -255,7 +255,11 @@ export default function DailyDarshanaPage(): JSX.Element {
           notificationTime: "08:00",
           personName: devoteeName
         });
-        downloadIcsFile(`Baggona-Panchanga-${mockDay.ymd}.ics`, icsContent);
+        const safePujari = (localizedPandit || panditParam || "Sri_Chaitanya_Pandit").replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "");
+        const safeDevotee = (devoteeName || nameParam || "Devotee").replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "");
+        const safeDate = (mockDay?.ymd || dateParam || new Date().toISOString().slice(0, 10)).replace(/[^\d-]/g, "");
+        const filename = `${safePujari}_${safeDevotee}_${safeDate}.ics`;
+        downloadIcsFile(filename, icsContent);
       } catch (err) {
         console.error("Error auto-downloading ICS file:", err);
       }
@@ -357,7 +361,10 @@ export default function DailyDarshanaPage(): JSX.Element {
           personName: decoded.n || devoteeName
         });
         setGeneratedIcs(payloadStr);
-        const fileNameStr = `Baggona-Panchanga-90Day-${(decoded.n || devoteeName || "Devotee").replace(/\s+/g, "-")}.ics`;
+        const safePujari = (decoded.p || panditParam || "Sri_Chaitanya_Pandit").replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "");
+        const safeDevotee = (decoded.n || devoteeName || "Devotee").replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "");
+        const safeDate = (decoded.d || dateParam || new Date().toISOString().slice(0, 10)).replace(/[^\d-]/g, "");
+        const fileNameStr = `${safePujari}_${safeDevotee}_${safeDate}.ics`;
         downloadIcsFile(fileNameStr, payloadStr);
       } catch (err) {
         console.error("Error generating 90-day ICS payload:", err);

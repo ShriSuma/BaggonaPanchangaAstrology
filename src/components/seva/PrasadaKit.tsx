@@ -129,7 +129,7 @@ const formatSevaDocFileName = ({
   devotee?: string;
   pooja?: string;
   date?: string;
-  docType: string;
+  docType?: string;
   lang?: string;
   ext?: string;
 }): string => {
@@ -139,13 +139,11 @@ const formatSevaDocFileName = ({
     return clean || fallback;
   };
 
-  const pName = sanitize(pandit, "Archaka");
-  const dName = sanitize(devotee, "Bhakta");
-  const sName = sanitize(pooja, "Seva");
+  const pName = sanitize(pandit, "Sri_Chaitanya_Pandit");
+  const dName = sanitize(devotee, "Devotee");
   const dateStr = (date || new Date().toISOString().slice(0, 10)).replace(/[^\d-]/g, "");
-  const langSuffix = lang ? `_${lang.toUpperCase()}` : "";
 
-  return `${pName}_${dName}_${sName}_${dateStr}_${docType}${langSuffix}.${ext}`;
+  return `${pName}_${dName}_${dateStr}.${ext}`;
 };
 
 export default function PrasadaKit({
