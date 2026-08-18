@@ -688,6 +688,16 @@ export default function DailyDarshanaPage(): JSX.Element {
   const nameParam = decoded?.n || params.get("name") || "";
   const panditParam = decoded?.p || params.get("pandit") || "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್";
 
+  const isFromCalendarRedirect = useMemo(() => {
+    return (
+      params.get("fromCal") === "1" ||
+      params.get("fromCal") === "true" ||
+      params.get("action") === "ics" ||
+      params.get("action") === "ics90" ||
+      Boolean(tokenParam)
+    );
+  }, [params, tokenParam]);
+
   const [lang, setLang] = useState<SevaLang>(langParam);
   const dict = useMemo(() => DARSHANA_LABELS[lang] || DARSHANA_LABELS.en, [lang]);
 
@@ -968,7 +978,12 @@ export default function DailyDarshanaPage(): JSX.Element {
         personName: devoteeDisplayName
       });
 
-      downloadIcsFile(`Baggona_90Days_${devoteeDisplayName.replace(/\s+/g, "_")}.ics`, ics);
+      const sanitizeName = (str: string) => str.replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "");
+      const cleanPandit = sanitizeName(localizedPandit) || "Shreeram_Pandit";
+      const cleanDevotee = sanitizeName(devoteeDisplayName) || "Devotee";
+      const cleanDate = startDateStr.replace(/[^\d-]/g, "");
+
+      downloadIcsFile(`${cleanPandit}_${cleanDevotee}_${cleanDate}.ics`, ics);
       setDownloadedNotice(true);
     } catch (err) {
       console.error("Download ICS error:", err);
@@ -1017,20 +1032,22 @@ export default function DailyDarshanaPage(): JSX.Element {
             ✨ {dict.panchangaTitle} ✨
           </div>
 
-          {/* Gold Banner Graphic */}
-          <img
-            src="/baggona_panchanga_gold_banner.jpg"
-            alt="Baggona Panchanga Banner"
-            style={{
-              width: "100%",
-              maxHeight: 140,
-              objectFit: "cover",
-              borderRadius: 12,
-              border: "1.5px solid #F59E0B",
-              marginBottom: 8,
-              display: "block"
-            }}
-          />
+          {/* Gold Banner Graphic (Hidden when coming from Calendar redirect) */}
+          {!isFromCalendarRedirect && (
+            <img
+              src="/baggona_panchanga_gold_banner.jpg"
+              alt="Baggona Panchanga Banner"
+              style={{
+                width: "100%",
+                maxHeight: 140,
+                objectFit: "cover",
+                borderRadius: 12,
+                border: "1.5px solid #F59E0B",
+                marginBottom: 8,
+                display: "block"
+              }}
+            />
+          )}
 
           {/* Subtitle Under Banner Image */}
           <div style={{ fontSize: 12, color: "#D1D5DB", fontStyle: "italic", marginBottom: 12 }}>
@@ -1215,22 +1232,6 @@ export default function DailyDarshanaPage(): JSX.Element {
               🗓️ {formatLongDate(mockDay, lang)}
             </div>
           </div>
-
-          <button
-            onClick={() => setShowContactModal(true)}
-            style={{
-              background: "linear-gradient(135deg, #D97706, #B45309)",
-              color: "#FFFFFF",
-              border: "1px solid #FDE68A",
-              padding: "8px 12px",
-              borderRadius: 12,
-              fontSize: 11,
-              fontWeight: 800,
-              cursor: "pointer"
-            }}
-          >
-            📞 {dict.callPandit}
-          </button>
         </div>
 
         {/* ── TAB 1: SACRED SANCTUM & DARSHANA ── */}
@@ -1640,6 +1641,46 @@ export default function DailyDarshanaPage(): JSX.Element {
           </div>
         </div>
 
+        {/* Dedicated Priest Contact Section at Bottom */}
+        <div style={{
+          background: "linear-gradient(135deg, rgba(217, 119, 6, 0.2), rgba(120, 53, 15, 0.35))",
+          border: "1.5px solid #F59E0B",
+          borderRadius: 16,
+          padding: "16px 20px",
+          marginTop: 20,
+          marginBottom: 16,
+          textAlign: "center",
+          boxShadow: "0 4px 16px rgba(0,0,0,0.4)"
+        }}>
+          <div style={{ fontSize: 13, color: "#FDE68A", fontWeight: 800, marginBottom: 4 }}>
+            {lang === "kn"
+              ? "ಪಂಚಾಂಗ ಜಾತಕ ವಿವರಗಳು ಹಾಗೂ ಪೂಜಾ ಮಾಹಿತಿಗಾಗಿ ಪ್ರಧಾನ ಅರ್ಚಕರನ್ನು ಸಂಪರ್ಕಿಸಿ:"
+              : "For Panchanga, Horoscopes & Seva Details, Contact Chief Priest:"}
+          </div>
+          <div style={{ fontSize: 16, color: "#FFFFFF", fontWeight: 900, marginBottom: 10 }}>
+            🛕 {localizedPandit} (Shreeram Pandit)
+          </div>
+          <button
+            onClick={() => setShowContactModal(true)}
+            style={{
+              background: "linear-gradient(135deg, #10B981, #047857)",
+              color: "#FFFFFF",
+              border: "1px solid #6EE7B7",
+              padding: "10px 24px",
+              borderRadius: 16,
+              fontSize: 14,
+              fontWeight: 900,
+              cursor: "pointer",
+              boxShadow: "0 4px 12px rgba(16, 185, 129, 0.3)",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8
+            }}
+          >
+            <span>📞</span>
+            <span>{dict.callPandit}: 9972339362</span>
+          </button>
+        </div>
       </main>
 
       {/* Priest Direct Contact Modal */}

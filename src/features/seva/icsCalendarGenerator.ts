@@ -422,9 +422,10 @@ export function calculateDeterministicRhythmDay(
   const isChandraFav = [1, 3, 6, 7, 10, 11].includes(houseOffset);
   const isChandrashtamaDay = houseOffset === 8;
 
+  const isDifficultTara = [1, 3, 5, 7].includes(taraVal);
   const baseScore = (isTaraFav ? 45 : 20) + (isChandraFav ? 40 : 15) + (isChandrashtamaDay ? -25 : 5);
   const scoreVal = Math.max(15, Math.min(98, baseScore));
-  const bandType: "high" | "steady" | "rest" = scoreVal >= 75 ? "high" : scoreVal >= 50 ? "steady" : "rest";
+  const bandType: "high" | "steady" | "rest" = (isChandrashtamaDay || isDifficultTara || scoreVal < 50) ? "rest" : scoreVal >= 75 ? "high" : "steady";
 
   const dayLordsMap: Record<number, GrahaKey> = {
     0: "Sun", 1: "Moon", 2: "Mars", 3: "Mercury", 4: "Jupiter", 5: "Venus", 6: "Saturn"
@@ -482,7 +483,14 @@ export function getEnergyMeterAndVibe(day: RhythmDay, lang: string) {
   const code = (lang || "en").slice(0, 2);
   const band = String(day.band || "").toLowerCase();
   const score = day.energyScore ?? (band === "high" ? 85 : band === "medium" ? 60 : 35);
-  const isCaution = day.isChandrashtama || day.isAmavasya || band === "low" || score < 50;
+  const isCaution =
+    day.isChandrashtama ||
+    day.isAmavasya ||
+    Boolean(day.tara?.isDifficult) ||
+    [1, 3, 5, 7].includes((day.tara?.tara as number) || 0) ||
+    band === "rest" ||
+    band === "low" ||
+    score < 50;
 
   if (isCaution) {
     const badgeText = code === "kn" ? "🔴 ಮುನ್ನೆಚ್ಚರಿಕೆಯಿಂದ ಪ್ರಯಾಣಿಸಿ & ಜಪಿಸಿ"
@@ -698,7 +706,7 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
       "",
       `🙏 ${labels.priestLabel}: ${localizedPandit}`,
       `👤 ${labels.devoteeLabel}: ${devoteeDisplayName}`,
-      `📍 ${labels.locationLabel}: ${locationName} (${pincode}) [Lat: ${lat.toFixed(2)}°, Lng: ${lng.toFixed(2)}°]`,
+      `📍 ${labels.locationLabel}: ${locationName} (${pincode})`,
       "",
       `⚡ ${labels.statusLabel}: ${vibe.badgeText} (${day.energyScore || 85}%) | ${vibe.vibeTag}`,
       "",
