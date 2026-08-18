@@ -816,8 +816,8 @@ export default function DailyDarshanaPage(): JSX.Element {
     let active = true;
     async function loadKundlis() {
       try {
-        const dob = (decoded as any)?.dob || decoded?.d || storedSession?.birthDate || "1993-05-31";
-        const tob = (decoded as any)?.tob || decoded?.tm || storedSession?.birthTime || "09:25";
+        const dob = (decoded as any)?.dob || storedSession?.birthDate || "1993-05-31";
+        const tob = (decoded as any)?.tob || storedSession?.birthTime || "09:25";
         const lat = decoded?.lt ?? storedSession?.latitude ?? 14.5479;
         const lng = decoded?.lg ?? storedSession?.longitude ?? 74.3187;
         const pc = decoded?.pc || storedSession?.pincode || "581326";
@@ -990,61 +990,25 @@ export default function DailyDarshanaPage(): JSX.Element {
       const startDate = new Date(startDateStr);
       const validStart = isNaN(startDate.getTime()) ? new Date() : startDate;
       
-      const birthNakIdx = decoded?.nk !== undefined ? decoded.nk : 0;
-      const birthRashiIdx = decoded?.r !== undefined ? decoded.r : Math.floor(birthNakIdx / 2.25);
+      const birthNakIdx = (birthKundli ? birthKundli.planets.find(p => p.name === 'Moon')?.nakshatra.index : undefined) ?? (decoded?.nk !== undefined ? decoded.nk : 12);
+      const birthRashiIdx = (birthKundli ? birthKundli.planets.find(p => p.name === 'Moon')?.rashi.index : undefined) ?? (decoded?.r !== undefined ? decoded.r : 5);
       
       const days: RhythmDay[] = [];
       for (let i = 0; i < 90; i++) {
         const d = new Date(validStart);
         d.setDate(d.getDate() + i);
         const ymd = d.toISOString().split("T")[0];
-        const weekday = d.getDay();
-        const dayLord = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"][weekday] as any;
-        const transitNak = (birthNakIdx + Math.floor(i * 13.2 / 13.333)) % 27;
-        const transitRashi = Math.floor(transitNak / 2.25) % 12;
-        const taraIdx = (((transitNak - birthNakIdx + 27) % 9) + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
-
-        days.push({
-          ymd,
-          weekday,
-          dayOfMonth: d.getDate(),
-          monthIndex: d.getMonth(),
-          year: d.getFullYear(),
-          dayLord,
-          moonRashiIndex: transitRashi,
-          moonNakshatraIndex: transitNak,
-          paksha: (i % 30 < 15) ? "shukla" : "krishna",
-          tithiNumber: (i % 15) + 1,
-          tithiInPaksha: (i % 15) + 1,
-          taraBala: taraIdx,
-          band: [2, 4, 6, 8, 9].includes(taraIdx) ? "high" : "steady",
-          luckyNumbers: [1, 5, 9],
-          isChandrashtama: false,
-          isAmavasya: false,
-          isPurnima: false,
-          isSankranti: false,
-          tara: { tara: taraIdx, count: taraIdx, isFavourable: true, isDifficult: false, score: 85 },
-          chandra: { house: 1, isChandrashtama: false, isFavourable: true, score: 80 },
-          energyScore: 85,
-          arthaScore: 80,
-          isMoneyDay: true,
-          isJanmaNakshatraDay: false,
-          isEkadashi: false,
-          isPradosha: false,
-          isSankashti: false,
-          isPoojaDay: weekday === 2 || weekday === 5,
-          tithiGroup: "nanda",
-          bhuktiLord: "Venus",
-          luckyColour: "yellow",
-          luckyDirection: "east"
-        } as unknown as RhythmDay);
+        const rhythmDay = calculateDeterministicRhythmDay(ymd, birthNakIdx, birthRashiIdx, startDateStr);
+        days.push(rhythmDay);
       }
 
       const ics = generateSevaICalendarString({
         days,
         lang,
         panditName: localizedPandit,
-        personName: devoteeDisplayName
+        personName: devoteeDisplayName,
+        birthNakshatraIndex: birthNakIdx,
+        birthRashiIndex: birthRashiIdx
       });
 
       const sanitizeName = (str: string) => str.replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "");
@@ -1100,21 +1064,6 @@ export default function DailyDarshanaPage(): JSX.Element {
           <div style={{ fontSize: 13, fontWeight: 900, color: "#FDE68A", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 8 }}>
             ✨ {dict.panchangaTitle} ✨
           </div>
-
-          {/* Gold Banner Graphic (Always Visible on Top) */}
-          <img
-            src="/baggona_panchanga_gold_banner.jpg"
-            alt="Baggona Panchanga Banner"
-            style={{
-              width: "100%",
-              maxHeight: 140,
-              objectFit: "cover",
-              borderRadius: 12,
-              border: "1.5px solid #F59E0B",
-              marginBottom: 8,
-              display: "block"
-            }}
-          />
 
           {/* Subtitle Under Banner Image */}
           <div style={{ fontSize: 12, color: "#D1D5DB", fontStyle: "italic", marginBottom: 12 }}>

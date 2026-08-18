@@ -565,6 +565,8 @@ export interface CalendarGeneratorOptions {
   lat?: number;
   lng?: number;
   locationName?: string;
+  birthNakshatraIndex?: number;
+  birthRashiIndex?: number;
 }
 
 export function getSafeProductionOrigin(webAppBaseUrl?: string): string {
@@ -606,7 +608,9 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
     pincode = "581326",
     lat = 14.54,
     lng = 74.31,
-    locationName = "Gokarna"
+    locationName = "Gokarna",
+    birthNakshatraIndex,
+    birthRashiIndex
   } = options;
 
   const [hours, minutes] = (notificationTime || "08:00").split(":");
@@ -638,8 +642,8 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
   const origin = getSafeProductionOrigin(webAppBaseUrl);
 
   const startDateStr = days[0]?.ymd || new Date().toISOString().slice(0, 10);
-  const birthNakIdx = days[0]?.moonNakshatraIndex ?? 0;
-  const birthRashiIdx = days[0]?.moonRashiIndex ?? 0;
+  const birthNakIdx = birthNakshatraIndex ?? (days[0] as any)?.janmaNakshatraIndex ?? days[0]?.moonNakshatraIndex ?? 12;
+  const birthRashiIdx = birthRashiIndex ?? (days[0] as any)?.janmaRashiIndex ?? days[0]?.moonRashiIndex ?? 5;
   const localizedPandit = getLocalizedPanditName(panditName, lang);
   const devoteeDisplayName = (personName && personName.trim().length > 0) ? personName.trim() : labels.defaultDevotee;
 
