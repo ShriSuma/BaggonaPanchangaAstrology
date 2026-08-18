@@ -690,9 +690,11 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
 
     const descriptionParts: string[] = [
       `🕉️ ${labels.panchangaTitle} - ${labels.kshetraTitle}`,
-      `👤 ${labels.devoteeLabel}: ${devoteeDisplayName}`,
-      `🙏 ${labels.priestLabel}: ${localizedPandit}`,
-      `⚡ ${labels.statusLabel}: ${vibe.badgeText} (${day.energyScore || 85}%) | ${vibe.vibeTag}`,
+      "----------------------------------------",
+      `📌 ${labels.devoteeLabel.padEnd(16)} : ${devoteeDisplayName}`,
+      `🙏 ${labels.priestLabel.padEnd(16)} : ${localizedPandit}`,
+      `⚡ ${labels.statusLabel.padEnd(16)} : ${vibe.badgeText} (${day.energyScore || 85}%) | ${vibe.vibeTag}`,
+      "----------------------------------------",
       "",
       `${labels.visitLabel}`,
       `👉 ${sanctumUrl}`,
@@ -701,7 +703,7 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
     ];
 
     const descriptionStr = descriptionParts.join("\n");
-    const htmlDescriptionStr = `<html><body style="font-family:sans-serif;"><div style="background-color:#501b11; padding:16px; border-radius:12px; text-align:center; color:#fff8e7; border:2px solid #f59e0b;"><h2 style="color:#fde68a; margin:0 0 4px 0;">${labels.panchangaTitle} - ${labels.kshetraTitle}</h2><p style="color:#f59e0b; margin:0 0 12px 0;">${labels.priestLabel}: ${localizedPandit} • ${devoteeDisplayName}</p></div><br/>${descriptionParts.slice(3).join("<br/>")}</body></html>`;
+    const htmlDescriptionStr = `<html><body style="font-family:sans-serif; background-color:#1c0a00; color:#fff8e7; padding:12px;"><div style="background-color:#501b11; border:2px solid #f59e0b; border-radius:12px; padding:16px; margin-bottom:16px;"><h2 style="color:#fde68a; margin:0 0 12px 0; font-size:16px; text-align:center;">🕉️ ${labels.panchangaTitle} - ${labels.kshetraTitle}</h2><table style="width:100%; border-collapse:collapse; font-size:13px;"><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b; width:40%;">👤 ${labels.devoteeLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${devoteeDisplayName}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🙏 ${labels.priestLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${localizedPandit}</td></tr><tr><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">⚡ ${labels.statusLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${vibe.badgeText} (${day.energyScore || 85}%) | ${vibe.vibeTag}</td></tr></table></div><br/><br/><div style="text-align:center; margin-top:12px;"><p style="color:#fde68a; font-weight:bold; margin-bottom:8px;">${labels.visitLabel}</p><a href="${sanctumUrl}" style="display:inline-block; background:#d97706; color:#ffffff; text-decoration:none; padding:10px 18px; border-radius:8px; font-weight:bold;">👉 Open Live Web Sanctum</a></div><br/><p style="text-align:center; color:#f59e0b; font-size:12px;">✨ Gokarna Mahabaleshwara Prasada Siddhirastu ✨</p></body></html>`;
 
     const eventLines: string[] = [
       "BEGIN:VEVENT",
@@ -845,9 +847,11 @@ export function generateGoogleCalendarUrl(options: {
 
   const details = [
     `🕉️ ${panchangaTitle} - ${kshetraTitle}`,
-    `👤 ${devoteeLabel}: ${devoteeDisplayName}`,
-    `🙏 ${priestLabel}: ${localizedPandit}`,
-    `⚡ ${isKn ? "ದಿನದ ಸ್ಥಿತಿ" : "Status"}: ${vibe.badgeText} (${day.energyScore || 85}%) | ${vibe.vibeTag}`,
+    "----------------------------------------",
+    `📌 ${devoteeLabel.padEnd(16)} : ${devoteeDisplayName}`,
+    `🙏 ${priestLabel.padEnd(16)} : ${localizedPandit}`,
+    `⚡ ${(isKn ? "ದಿನದ ಸ್ಥಿತಿ" : "Status").padEnd(16)} : ${vibe.badgeText} (${day.energyScore || 85}%) | ${vibe.vibeTag}`,
+    "----------------------------------------",
     "",
     isKn ? "🌐 ಸಂಪೂರ್ಣ ಪಂಚಾಂಗ, ಜಾತಕ ಹಾಗೂ ಲೈವ್ ದರ್ಶನಕ್ಕಾಗಿ ಇಲ್ಲ ಭೇಟಿ ನೀಡಿ:" : "🌐 Click here for Full Panchanga, Kundali & Live Darshana:",
     `👉 ${sanctumUrl}`,

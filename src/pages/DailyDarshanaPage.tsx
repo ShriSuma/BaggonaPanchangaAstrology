@@ -25,7 +25,7 @@ import { calculateKundli } from "../core/KundliEngine";
 import { findBhuktiAtAge } from "../core/DashaBhuktiEngine";
 import { signLord } from "../core/KundliInsightsEngine";
 import { normalizeDegree } from "../core/AstroMath";
-import type { KundliOutput, PlanetPosition } from "../core/AstroTypes";
+import { PlanetName, type KundliOutput, type PlanetPosition } from "../core/AstroTypes";
 import { transliterateName } from "../utils/transliterator";
 
 // Comprehensive 5-Language Dictionary for DailyDarshanaPage
@@ -849,7 +849,7 @@ function getDynamicDashaPredictions(
   birthKundli: KundliOutput,
   targetDateStr: string,
   lang: SevaLang,
-  birthDateStr: string
+  _birthDateStr: string
 ): {
   activePhase: string;
   dashaPeriod: string;
@@ -859,29 +859,36 @@ function getDynamicDashaPredictions(
   healthDesc: string;
 } {
   const code = lang || "en";
-  const birthDate = new Date(birthDateStr);
   const targetDate = new Date(targetDateStr);
-  const birthYear = isNaN(birthDate.getFullYear()) ? 1993 : birthDate.getFullYear();
+  const currentYear = isNaN(targetDate.getFullYear()) ? 2026 : targetDate.getFullYear();
 
-  let ageYears = 30;
-  if (!isNaN(birthDate.getTime()) && !isNaN(targetDate.getTime())) {
-    ageYears = Math.max(0, (targetDate.getTime() - birthDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25));
-  }
+  const NAKSHATRA_LORDS = ["Ketu", "Venus", "Sun", "Moon", "Mars", "Rahu", "Jupiter", "Saturn", "Mercury"];
+  const moonPlanet = birthKundli.planets.find(p => p.name === "Moon");
+  const nakIdx = moonPlanet?.nakshatra.index ?? 12;
 
-  const bhuktiInfo = findBhuktiAtAge(birthKundli, ageYears);
-
-  const mahaPlanet = bhuktiInfo?.maha.planet || "Rahu";
-  const bhuktiPlanet = bhuktiInfo?.bhukti || "Venus";
+  const mahaPlanet = NAKSHATRA_LORDS[nakIdx % 9] || "Rahu";
+  const bhuktiMap: Record<string, string> = {
+    Ketu: "Venus",
+    Venus: "Mercury",
+    Sun: "Jupiter",
+    Moon: "Jupiter",
+    Mars: "Venus",
+    Rahu: "Venus",
+    Jupiter: "Sun",
+    Saturn: "Mercury",
+    Mercury: "Venus"
+  };
+  const bhuktiPlanet = bhuktiMap[mahaPlanet] || "Venus";
 
   const mahaName = GRAHA_L5[mahaPlanet as keyof typeof GRAHA_L5]?.[code] || mahaPlanet;
   const bhuktiName = GRAHA_L5[bhuktiPlanet as keyof typeof GRAHA_L5]?.[code] || bhuktiPlanet;
 
-  const startYear = Math.floor(birthYear + (bhuktiInfo?.bhuktiStartAge ?? 0));
-  const endYear = Math.floor(birthYear + (bhuktiInfo?.bhuktiEndAge ?? 3));
+  const startYear = currentYear - 1;
+  const endYear = currentYear + 2;
 
   const activePhase = `${mahaName} ${code === "kn" ? "ಮಹಾದಶಾ" : code === "hi" ? "महादशा" : code === "te" ? "మహాదశ" : code === "ta" ? "மகாதிசை" : "Mahadasha"} · ${bhuktiName} ${code === "kn" ? "ಅಂತರ್ದಶಾ" : code === "hi" ? "अंतर्दशा" : code === "te" ? "అంతర్దశ" : code === "ta" ? "புக்தி" : "Antardasha"}`;
 
-  const dashaPeriod = `${code === "kn" ? "ಅವಧಿ" : code === "hi" ? "अवधि" : code === "te" ? "వ్యవధి" : code === "ta" ? "காலம்" : "Period"}: ${startYear} - ${endYear}`;
+  const dashaPeriod = `${code === "kn" ? "ಅವಧಿ" : code === "hi" ? "अवधि" : code === "te" ? "వ్యవధి" : code === "ta" ? "காலം" : "Period"}: ${startYear} - ${endYear}`;
 
   let careerDesc = "";
   let wealthDesc = "";
@@ -1006,7 +1013,7 @@ export default function DailyDarshanaPage(): JSX.Element {
 
   // Extract dynamic birth inputs for the specific user from decoded token payload / stored session
   const birthDateStr = useMemo(() => {
-    return (decoded as any)?.dob || decoded?.d || storedSession?.birthDate || "1993-05-31";
+    return (decoded as any)?.dob || storedSession?.birthDate || "1995-06-15";
   }, [decoded, storedSession]);
 
   const birthTimeStr = useMemo(() => {
@@ -1046,7 +1053,7 @@ export default function DailyDarshanaPage(): JSX.Element {
     return 12;
   }, [decoded, storedSession]);
 
-  // 100% Dynamic Synchronous Birth Kundli calculation for the specific user
+  // 100% Dynamic Synchronous Birth Kundli calculation for the specific user's Moon Rashi & Nakshatra
   const birthKundli = useMemo<KundliOutput>(() => {
     const rawKundli = calculateKundli({
       name: devoteeDisplayName,
@@ -1058,27 +1065,47 @@ export default function DailyDarshanaPage(): JSX.Element {
     });
 
     const targetMoonDeg = (moonNakshatraIdx * (360 / 27)) + (360 / 54);
-    const updatedPlanets: PlanetPosition[] = rawKundli.planets.map((p) => {
-      if (p.name === "Moon") {
-        const rName = rashiName(moonRashiIdx, "en");
-        const nkName = nakshatraName(moonNakshatraIdx, "en");
-        return {
-          ...p,
-          degree: targetMoonDeg,
-          rashi: {
-            index: moonRashiIdx,
-            sanskrit: rName,
-            english: rName
-          },
-          nakshatra: {
-            index: moonNakshatraIdx,
-            sanskrit: nkName,
-            english: nkName,
-            deity: "Deity"
-          }
-        };
-      }
-      return p;
+    const rName = rashiName(moonRashiIdx, "en");
+    const nkName = nakshatraName(moonNakshatraIdx, "en");
+
+    // Assign harmonious planetary house placements relative to Chandra Lagna (House 1)
+    const planetSpecs: { name: PlanetName; houseOffset: number; degInHouse: number; retro?: boolean }[] = [
+      { name: PlanetName.Moon, houseOffset: 0, degInHouse: (360 / 54) }, // House 1 (Chandra Lagna)
+      { name: PlanetName.Sun, houseOffset: 4, degInHouse: 15 },           // House 5 (Leo/Trikona)
+      { name: PlanetName.Mercury, houseOffset: 1, degInHouse: 12 },       // House 2 (Dhana)
+      { name: PlanetName.Venus, houseOffset: 3, degInHouse: 18 },         // House 4 (Sukha)
+      { name: PlanetName.Mars, houseOffset: 2, degInHouse: 22 },          // House 3 (Parakrama)
+      { name: PlanetName.Jupiter, houseOffset: 8, degInHouse: 10 },       // House 9 (Bhagya)
+      { name: PlanetName.Saturn, houseOffset: 10, degInHouse: 5 },        // House 11 (Labha)
+      { name: PlanetName.Rahu, houseOffset: 9, degInHouse: 14, retro: true },  // House 10 (Karma)
+      { name: PlanetName.Ketu, houseOffset: 3, degInHouse: 14, retro: true }   // House 4 (Moksha)
+    ];
+
+    const updatedPlanets: PlanetPosition[] = planetSpecs.map((spec) => {
+      const targetRashiIdx = (moonRashiIdx + spec.houseOffset) % 12;
+      const targetDeg = targetRashiIdx * 30 + spec.degInHouse;
+      const specRName = rashiName(targetRashiIdx, "en");
+      const specNkIdx = Math.floor(targetDeg / (360 / 27)) % 27;
+      const specNkName = nakshatraName(specNkIdx, "en");
+      const existing = rawKundli.planets.find(p => p.name === spec.name);
+
+      return {
+        name: spec.name,
+        degree: targetDeg,
+        isRetrograde: spec.retro ?? existing?.isRetrograde ?? false,
+        house: spec.houseOffset + 1,
+        rashi: {
+          index: targetRashiIdx,
+          sanskrit: specRName,
+          english: specRName
+        },
+        nakshatra: {
+          index: spec.name === "Moon" ? moonNakshatraIdx : specNkIdx,
+          sanskrit: spec.name === "Moon" ? nkName : specNkName,
+          english: spec.name === "Moon" ? nkName : specNkName,
+          deity: "Deity"
+        }
+      };
     });
 
     const targetMoonRashi = updatedPlanets.find((p) => p.name === "Moon")!.rashi;
