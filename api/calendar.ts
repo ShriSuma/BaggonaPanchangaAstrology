@@ -1,4 +1,5 @@
-import { decodeDevoteeToken, generateSevaICalendarString } from "../src/features/seva/icsCalendarGenerator";
+import { generateSevaICalendarString } from "../src/features/seva/icsCalendarGenerator";
+import { decodeDevoteeToken } from "../src/utils/tokenCipher";
 import { RhythmDay } from "../src/core/DailyRhythmEngine";
 
 export default function handler(req: any, res: any) {
@@ -47,10 +48,10 @@ export default function handler(req: any, res: any) {
         dayLord,
         moonRashiIndex: moonRashiIdx,
         moonNakshatraIndex: moonNakIdx,
-        paksha: (i % 30 < 15) ? "Shukla" : "Krishna",
+        paksha: (i % 30 < 15) ? "shukla" : "krishna",
         tithiNumber: (i % 15) + 1,
         taraBala: taraIdx,
-        band: taraIdx === 2 || taraIdx === 4 || taraIdx === 6 || taraIdx === 8 || taraIdx === 9 ? "high" : taraIdx === 3 || taraIdx === 5 || taraIdx === 7 ? "rest" : "mid",
+        band: taraIdx === 2 || taraIdx === 4 || taraIdx === 6 || taraIdx === 8 || taraIdx === 9 ? "high" : taraIdx === 3 || taraIdx === 5 || taraIdx === 7 ? "rest" : "steady",
         luckyNumbers: [1, 5, 9],
         isChandrashtama: false,
         isAmavasya: false,
