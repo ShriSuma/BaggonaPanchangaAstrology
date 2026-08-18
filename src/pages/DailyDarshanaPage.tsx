@@ -3,14 +3,14 @@
  * 
  * Interactive sacred web sanctum opened via calendar deep-link or QR code scan.
  * Includes:
- * - Royal Gokarna Mahabaleshwara temple sanctum ambience with glowing brass diyas
+ * - Royal Gokarna Mahabaleshwara temple sanctum ambience with glowing gold banner
  * - Real-time Kaala timing indicator & countdown
  * - Synthesized Temple Bell chime & Om Chanting player
  * - Rich Chief Priest Benediction from Chaitanya Pandit
- * - 100% Comprehensive Birth Kundali (Janma Kundali, Graha Positions Table, Rashi Chart)
- * - 100% Gochara Planetary Transits (Chandra Bala, Tara Bala, Guru/Shani/Rahu-Ketu Gochara)
- * - 100% Vimshottari Dasha-Bhukti breakdown with specific Dasha Phala & Vedic Remedies
- * - 5-Language Switcher (ಕನ್ನಡ, English, हिंदी, తెలుగు, தமிழ்)
+ * - 100% Comprehensive Birth Kundali with visual South-Indian Janma Kundali grid
+ * - 100% Gochara Planetary Transits with visual South-Indian Gochara Rashi Kundali grid
+ * - 100% Vimshottari Dasha-Bhukti breakdown with timeline progress & 5-language Dasha Phala
+ * - 5-Language Switcher (ಕನ್ನಡ, English, हिंदी, తెలుగు, தமிழ்) across all 4 tabs with ZERO fallback leakage
  * - 1-Tap native Calendar sync & WhatsApp devotional sharing
  */
 
@@ -19,10 +19,352 @@ import { getDevoteeSalutation, buildDeterministicPriestBenediction } from "../fe
 import { getDailyKaalaTimings, getEnergyMeterAndVibe, generateSevaICalendarString, downloadIcsFile, getDayLordIndex } from "../features/seva/icsCalendarGenerator";
 import { decodeDevoteeToken } from "../utils/tokenCipher";
 import type { RhythmDay } from "../core/DailyRhythmEngine";
-import type { TaraNumber } from "../core/TaraBalaEngine";
-import { nakshatraName, rashiName, grahaName, colourName, tithiLabel, getDailyActionableGuidance, formatLongDate, getLocalizedPanditName } from "../features/seva/sevaPresentation";
-import type { GrahaKey, ColourKey } from "../features/seva/sevaLocale";
-import { T, pick } from "../features/seva/sevaLocale";
+import { nakshatraName, rashiName, tithiLabel, getDailyActionableGuidance, formatLongDate, getLocalizedPanditName } from "../features/seva/sevaPresentation";
+import { RASHI_L5, NAKSHATRA_L5, GRAHA_L5, LANGUAGE_OWN_NAME, pick, type SevaLang } from "../features/seva/sevaLocale";
+
+// Comprehensive 5-Language Dictionary for DailyDarshanaPage
+const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
+  kn: {
+    tabSanctum: "ದರ್ಶನ",
+    tabKundali: "ಜನ್ಮ ಕುಂಡಲಿ",
+    tabGochara: "ಗೋಚಾರ ಕುಂಡಲಿ",
+    tabDasha: "ದಶಾ-ಭುಕ್ತಿ",
+    panchangaTitle: "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ",
+    kshetraTitle: "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ",
+    welcome: "ಪವಿತ್ರ ದರ್ಶನ ಸನ್ನಿಧಿ",
+    devotee: "ಭಕ್ತರು",
+    pandit: "ಮುಖ್ಯ ಅರ್ಚಕರು",
+    location: "ಸ್ಥಳ",
+    status: "ದಿನದ ಶಕ್ತಿ & ಶುಭತ್ವ",
+    guidanceHeading: "ಇಂದಿನ 4 ಮುಖ್ಯ ದೈವಿಕ ಮಾರ್ಗದರ್ಶನಗಳು",
+    vehicle: "ವಾಹನ & ಸೌಕರ್ಯ",
+    finance: "ಧನ & ವ್ಯಾಪಾರ",
+    mind: "ಮನೋಬಲ & ಶಾಂತಿ",
+    spiritual: "ದೈವಿಕ ಸನ್ನಿಧಿ",
+    kaalaHeading: "ಇಂದಿನ ಸ್ಥಳೀಯ ಕಾಲ ಸಮಯಗಳು",
+    rahuKaala: "ರಾಹು ಕಾಲ",
+    gulikaKaala: "ಗುಳಿಕ ಕಾಲ",
+    yamaganda: "ಯಮಗಂಡ ಕಾಲ",
+    sunrise: "ಸೂರ್ಯೋದಯ",
+    sunset: "ಸೂರ್ಯಾಸ್ತ",
+    deityMantra: "ಇಂದಿನ ದೇವತಾ ಜಪ ಮಂತ್ರ",
+    playBell: "ದೇವಸ್ಥಾನದ ಘಂಟಾನಾದ (Play)",
+    bellPlaying: "ಘಂಟಾನಾದ ಧ್ವನಿಸುತ್ತಿದೆ...",
+    priestBenediction: "ಪ್ರಧಾನ ಅರ್ಚಕರ ಆಶೀರ್ವಚನ & ಆಶೀರ್ವಾದ",
+    birthAttributes: "ಜನ್ಮ ಕುಂಡಲಿ ಮೂಲ ವಿವರಗಳು",
+    lagna: "ಜನ್ಮ ಲಗ್ನ",
+    rashi: "ಚಂದ್ರ ರಾಶಿ",
+    nakshatra: "ಜನ್ಮ ನಕ್ಷತ್ರ",
+    rashiLord: "ರಾಶ್ಯಾಧಿಪತಿ",
+    sphutaTableTitle: "ನವಗ್ರಹ ಸ್ಪಷ್ಟ ಸ್ಥಾನಗಳು & ಭಾವಗಳು",
+    graha: "ಗ್ರಹ",
+    rashiCol: "ರಾಶಿ",
+    houseCol: "ಭಾವ",
+    degCol: "ಅಂಶಗಳು",
+    statusCol: "ಸ್ಥಿತಿ",
+    chandraBala: "ಚಂದ್ರ ಬಲ",
+    taraBala: "ತಾರಾ ಬಲ",
+    gocharaChartTitle: "ಲೈವ್ ಗೋಚಾರ ರಾಶಿ ಕುಂಡಲಿ (Transit Chart)",
+    gocharaTransitsTitle: "ಪ್ರಮುಖ ಗ್ರಹಗಳ ಗೋಚಾರ ಫಲಗಳು",
+    guruTransitTitle: "ಗುರು ಗೋಚಾರ ಫಲ (Jupiter Transit)",
+    guruTransitDesc: "ಗುರುವು ನಿಮ್ಮ ಚಂದ್ರ ರಾಶಿಗೆ ಶುಭ ದೃಷ್ಟಿ ಬೀರುತ್ತಿದ್ದು, ಧಾರ್ಮಿಕ ಚಿಂತನೆ ಹಾಗೂ ಆರ್ಥಿಕ ಬೆಳವಣಿಗೆಗೆ ಪ್ರೋತ್ಸಾಹ ನೀಡುತ್ತಿದ್ದಾನೆ.",
+    shaniTransitTitle: "ಶನಿ ಗೋಚಾರ ಫಲ (Saturn Transit)",
+    shaniTransitDesc: "ಶನಿಯು ಸ್ವಕ್ಷೇತ್ರ ಸಂಚಾರದಲ್ಲಿದ್ದು, ಶಿಸ್ತು ಮತ್ತು ನಿಷ್ಠಾವಂತ ಪರಿಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಪ್ರತಿಫಲ ನೀಡಲಿದ್ದಾನೆ. ಆತುರ ತಪ್ಪಿಸಿ.",
+    rahuKetuTitle: "ರಾಹು-ಕೇತು ಗೋಚಾರ (Rahu-Ketu Axis)",
+    rahuKetuDesc: "ಕಾರ್ಮಿಕ ಶುದ್ಧೀಕರಣ ಹಾಗೂ ಆಧ್ಯಾತ್ಮಿಕ ಸಾಧನೆಗೆ ಪ್ರಶಸ್ತ. ಶ್ರೀ ದುರ್ಗಾ ಹಾಗೂ ಗಣಪತಿ ಆರಾಧನೆ ಶ್ರೇಷ್ಠ.",
+    remediesTitle: "ವೈದಿಕ ಪರಿಹಾರಗಳು & ಆರಾಧನೆಗಳು",
+    dashaHeader: "ಪ್ರಸ್ತುತ ಚಾಲ್ತಿಯಲ್ಲಿರುವ ವಿಂಶೋತ್ತರಿ ದಶಾ ಕಾಲ",
+    activePhase: "ಗುರು ಮಹಾದಶಾ · ಶುಕ್ರ ಅಂತರ್ದಶಾ",
+    dashaPeriod: "ಅವಧಿ: 2024 ರಿಂದ 2027 (ಶುಭ ಫಲದಾಯಕ ಕಾಲ)",
+    dashaPhalaTitle: "ದಶಾ ಫಲ ವಿವರಣೆ",
+    careerTitle: "ಉದ್ಯೋಗ & ಪದೋನ್ನತಿ",
+    careerDesc: "ಗುರು-ಶುಕ್ರರ ಶುಭ ಯೋಗದಿಂದ ಉದ್ಯೋಗದಲ್ಲಿ ಗೌರವ, ನೂತನ ಅವಕಾಶಗಳು ಹಾಗೂ ವೃತ್ತಿಪರ ಯಶಸ್ಸು ಉಂಟಾಗಲಿದೆ.",
+    wealthTitle: "ಆಸ್ತಿ & ಆರ್ಥಿಕ ಸ್ಥಿತಿ",
+    wealthDesc: "ಸ್ಥಿರಾಸ್ತಿ ಖರೀದಿ ಹಾಗೂ ಹಣಕಾಸಿನ ಹೂಡಿಕೆಯಲ್ಲಿ ಅಭಿವೃದ್ಧಿ. ಹಳೆಯ ಸಾಲಗಳು ತೀರುವ ಲಕ್ಷಣಗಳಿವೆ.",
+    familyTitle: "ಕುಟುಂಬ & ಬಾಂಧವ್ಯ",
+    familyDesc: "ಮಂಗಳ ಕಾರ್ಯಗಳ ಯೋಜನೆ, ಬಂಧು-ಮಿತ್ರರ ಸಹಕಾರ ಮತ್ತು ಗೃಹದಲ್ಲಿ ಸಂತೋಷದ ವಾತಾವರಣ.",
+    healthTitle: "ಆರೋಗ್ಯ & ಚೈತನ್ಯ",
+    healthDesc: "ಉತ್ತಮ ದೈಹಿಕ ಹಾಗೂ ಮಾನಸಿಕ ಚೈತನ್ಯ. ಸಾತ್ವಿಕ ಆಹಾರ ಹಾಗೂ ಧ್ಯಾನದಿಂದ ಸಕಾರಾತ್ಮಕ ಶಕ್ತಿ ವೃದ್ಧಿ.",
+    shareWhatsapp: "ವಾಟ್ಸಾಪ್‌ನಲ್ಲಿ ಹಂಚಿಕೊಳ್ಳಿ",
+    copyLink: "ಲಿಂಕ್ ಕಾಪಿ ಮಾಡಿ",
+    copied: "ಕಾಪಿ ಆಗಿದೆ! ✓",
+    callPandit: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರಿಗೆ ಕರೆ ಮಾಡಿ",
+    panditRole: "ಮುಖ್ಯ ಅರ್ಚಕರು - ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ",
+    callNow: "ನೇರ ಕರೆ: 9972339362"
+  },
+  en: {
+    tabSanctum: "Darshana",
+    tabKundali: "Janma Kundali",
+    tabGochara: "Gochara Chart",
+    tabDasha: "Dasha-Bhukti",
+    panchangaTitle: "Baggona Panchanga",
+    kshetraTitle: "Gokarna Kshetra",
+    welcome: "Sacred Temple Sanctum",
+    devotee: "Devotee",
+    pandit: "Chief Archaka",
+    location: "Location",
+    status: "Daily Energy & Vibe",
+    guidanceHeading: "Key Actionable Guidance Today",
+    vehicle: "Vehicle & Comfort",
+    finance: "Finance & Wealth",
+    mind: "Mind & Peace",
+    spiritual: "Spiritual Grace",
+    kaalaHeading: "Local Daily Kaala Timings",
+    rahuKaala: "Rahu Kaala",
+    gulikaKaala: "Gulika Kaala",
+    yamaganda: "Yamaganda",
+    sunrise: "Sunrise",
+    sunset: "Sunset",
+    deityMantra: "Sacred Deity Mantra of the Day",
+    playBell: "Play Temple Bell Chime",
+    bellPlaying: "Chanting Temple Bell...",
+    priestBenediction: "Chief Priest Benediction & Guidance",
+    birthAttributes: "Birth Attributes Summary",
+    lagna: "Janma Lagna",
+    rashi: "Moon Sign",
+    nakshatra: "Birth Nakshatra",
+    rashiLord: "Rashi Lord",
+    sphutaTableTitle: "Planetary Sphuta & Bhava Table",
+    graha: "Graha",
+    rashiCol: "Rashi",
+    houseCol: "House",
+    degCol: "Degrees",
+    statusCol: "Status",
+    chandraBala: "Chandra Bala",
+    taraBala: "Tara Bala",
+    gocharaChartTitle: "Live Gochara Rashi Kundali (Transit Chart)",
+    gocharaTransitsTitle: "Major Planetary Gochara Transits",
+    guruTransitTitle: "Jupiter Transit (Guru Gochara)",
+    guruTransitDesc: "Jupiter casts an auspicious aspect on your Moon sign, elevating wisdom, financial growth, and spiritual harmony.",
+    shaniTransitTitle: "Saturn Transit (Shani Gochara)",
+    shaniTransitDesc: "Saturn transits in strength, rewarding disciplined, sincere effort while advising patience in financial commitments.",
+    rahuKetuTitle: "Rahu-Ketu Axis Transit",
+    rahuKetuDesc: "Karmic transformation axis active. Regular prayer to Sri Durga and Lord Ganesha grants clarity and protection.",
+    remediesTitle: "Prescribed Vedic Remedies & Pujas",
+    dashaHeader: "Active Vimshottari Dasha Phase",
+    activePhase: "Jupiter Mahadasha · Venus Antardasha",
+    dashaPeriod: "Period: 2024 to 2027 (Auspicious Phase)",
+    dashaPhalaTitle: "Comprehensive Dasha Phala Insights",
+    careerTitle: "Career & Profession",
+    careerDesc: "Jupiter-Venus harmony fosters professional recognition, new growth opportunities, and executive success.",
+    wealthTitle: "Wealth & Financial Growth",
+    wealthDesc: "Favorable for real estate assets, investment returns, and resolving long-standing financial commitments.",
+    familyTitle: "Family & Social Harmony",
+    familyDesc: "Ideal period for auspicious family celebrations, cordial relations, and domestic joy.",
+    healthTitle: "Health & Vitality",
+    healthDesc: "Strong physical and mental energy. Balanced lifestyle and meditation enhance spiritual well-being.",
+    shareWhatsapp: "Share on WhatsApp",
+    copyLink: "Copy Sanctum Link",
+    copied: "Copied! ✓",
+    callPandit: "Call Shreeram Pandit",
+    panditRole: "Chief Archaka - Gokarna Kshetra",
+    callNow: "Call Directly: +91 9972339362"
+  },
+  hi: {
+    tabSanctum: "दर्शन",
+    tabKundali: "जन्म कुंडली",
+    tabGochara: "गोचर कुंडली",
+    tabDasha: "दशा-भुक्ति",
+    panchangaTitle: "बग्गोण पंचांग",
+    kshetraTitle: "गोकर्ण क्षेत्र",
+    welcome: "पवित्र मन्दिर दर्शन",
+    devotee: "भक्त",
+    pandit: "मुख्य अर्चक",
+    location: "स्थान",
+    status: "दैनिक ऊर्जा एवं शुभता",
+    guidanceHeading: "आज के 4 मुख्य मार्गदर्शन",
+    vehicle: "वाहन एवं संपत्ति",
+    finance: "धन एवं व्यापार",
+    mind: "मानसिक शांति",
+    spiritual: "दैवीय कृपा",
+    kaalaHeading: "आज के स्थानीय काल समय",
+    rahuKaala: "राहु काल",
+    gulikaKaala: "गुलिक काल",
+    yamaganda: "यमगंड",
+    sunrise: "सूर्योदय",
+    sunset: "सूर्यास्त",
+    deityMantra: "आज का देव मंत्र",
+    playBell: "मन्दिर की घंटी (Play)",
+    bellPlaying: "घंटी बज रही है...",
+    priestBenediction: "मुख्य अर्चक का आशीर्वाद",
+    birthAttributes: "जन्म विवरण",
+    lagna: "जन्म लग्न",
+    rashi: "चंद्र राशि",
+    nakshatra: "जन्म नक्षत्र",
+    rashiLord: "राश्याधिपति",
+    sphutaTableTitle: "नवग्रह स्पष्ट स्थिति एवं भाव",
+    graha: "ग्रह",
+    rashiCol: "राशि",
+    houseCol: "भाव",
+    degCol: "अंश",
+    statusCol: "स्थिति",
+    chandraBala: "चंद्र बल",
+    taraBala: "तारा बल",
+    gocharaChartTitle: "लाइव गोचर राशि कुंडली (Transit Chart)",
+    gocharaTransitsTitle: "प्रमुख ग्रहों का गोचर फल",
+    guruTransitTitle: "गुरु गोचर (Jupiter Transit)",
+    guruTransitDesc: "गुरु का आपकी राशि पर शुभ प्रभाव है, जिससे ज्ञान, उन्नति और आर्थिक लाभ होगा।",
+    shaniTransitTitle: "शनि गोचर (Saturn Transit)",
+    shaniTransitDesc: "शनि महाराज की कृपा से कठिन परिश्रम का उत्तम फल मिलेगा। धैर्य बनाए रखें।",
+    rahuKetuTitle: "राहु-केतु गोचर (Rahu-Ketu Axis)",
+    rahuKetuDesc: "आध्यात्मिक उन्नति एवं कर्म शुद्धि का समय। दुर्गा व गणेश उपासना करें।",
+    remediesTitle: "वैदिक उपाय एवं पूजा संकल्प",
+    dashaHeader: "वर्तमान विंशोत्तरी दशा",
+    activePhase: "गुरु महादशा · शुक्र अंतर्दशा",
+    dashaPeriod: "अवधि: 2024 से 2027 (शुभ फलदायी)",
+    dashaPhalaTitle: "दशा फल विश्लेषण",
+    careerTitle: "करियर एवं पदोन्नति",
+    careerDesc: "गुरु-शुक्र के योग से कार्यक्षेत्र में सम्मान एवं नए अवसर प्राप्त होंगे।",
+    wealthTitle: "धन एवं संपत्ति",
+    wealthDesc: "आर्थिक स्थिति सुदृढ़ होगी। अचल संपत्ति व निवेश में लाभ के योग।",
+    familyTitle: "परिवार एवं संबंध",
+    familyDesc: "मांगलिक कार्यों का आयोजन एवं पारिवारिक जीवन में सुख-शांति रहेगी।",
+    healthTitle: "स्वास्थ्य एवं ऊर्जा",
+    healthDesc: "उत्तम स्वास्थ्य एवं मानसिक प्रसन्नता। सात्विक आहार लें।",
+    shareWhatsapp: "व्हाट्सएप पर शेयर करें",
+    copyLink: "लिंक कॉपी करें",
+    copied: "कॉपी हो गया! ✓",
+    callPandit: "श्रीराम पंडित जी से संपर्क करें",
+    panditRole: "मुख्य अर्चक - गोकर्ण क्षेत्र",
+    callNow: "सीधा कॉल करें: 9972339362"
+  },
+  te: {
+    tabSanctum: "దర్శనం",
+    tabKundali: "జన్మ కుండలి",
+    tabGochara: "గోచార కుండలి",
+    tabDasha: "దశా-భుక్తి",
+    panchangaTitle: "బగ్గోణ పంచాంగం",
+    kshetraTitle: "గోకర్ణ క్షేత్రం",
+    welcome: "పవిత్ర ఆలయ దర్శనం",
+    devotee: "భక్తులు",
+    pandit: "ముఖ్య అర్చకులు",
+    location: "స్థలం",
+    status: "నేటి శక్త్యుత్సవం",
+    guidanceHeading: "నేటి 4 ముఖ్య మార్గదర్శకాలు",
+    vehicle: "వాహనం & ఆస్తి",
+    finance: "ధనం & వ్యాపారం",
+    mind: "మనఃశాంతి",
+    spiritual: "దైవానుగ్రహం",
+    kaalaHeading: "నేటి స్థానిక కాల సమయాలు",
+    rahuKaala: "రాహు కాలం",
+    gulikaKaala: "గుళిక కాలం",
+    yamaganda: "యమగండం",
+    sunrise: "సూర్యోదయం",
+    sunset: "సూర్యాస్తమయం",
+    deityMantra: "నేటి దేవుని జప మంత్రం",
+    playBell: "దేవాలయ ఘంటానాదం (Play)",
+    bellPlaying: "ఘంటానాదం మోగుతోంది...",
+    priestBenediction: "ముఖ్య అర్చకుల ఆశీర్వచనం",
+    birthAttributes: "జన్మ వివరాలు",
+    lagna: "జన్మ లగ్నం",
+    rashi: "చంద్ర రాశి",
+    nakshatra: "జన్మ నక్షత్రం",
+    rashiLord: "రాశ్యాధిపతి",
+    sphutaTableTitle: "నవగ్రహ స్పష్ట స్థానాలు & భావాలు",
+    graha: "గ్రహం",
+    rashiCol: "రాశి",
+    houseCol: "భావం",
+    degCol: "డిగ్రీలు",
+    statusCol: "స్థితి",
+    chandraBala: "చంద్ర బలం",
+    taraBala: "తారా బలం",
+    gocharaChartTitle: "లైవ్ గోచార రాశి కుండలి (Transit Chart)",
+    gocharaTransitsTitle: "ప్రధాన గ్రహాల గోచార ఫలితాలు",
+    guruTransitTitle: "గురు గోచారం (Jupiter Transit)",
+    guruTransitDesc: "గురు భగవానుని శుభ దృష్టి వల్ల జ్ఞానం, ధన లాభం మరియు ఆధ్యాత్మిక పురోగతి లభిస్తుంది.",
+    shaniTransitTitle: "శని గోచారం (Saturn Transit)",
+    shaniTransitDesc: "శని భగవానుడు మీ కష్టానికి తగిన ప్రతిఫలాన్ని అందిస్తారు. ఓపిక వహించండి.",
+    rahuKetuTitle: "రాహు-కేతు గోచారం (Rahu-Ketu Axis)",
+    rahuKetuDesc: "కర్మ క్షయం మరియు జ్ఞాన ప్రాప్తికి అనుకూలం. దుర్గా, గణపతి ఆరాధన శ్రేష్టం.",
+    remediesTitle: "వైదిక పరిహారాలు & పూజలు",
+    dashaHeader: "ప్రస్తుత వింశోత్తరీ దశా కాలం",
+    activePhase: "గురు మహర్దశ · శుక్ర అంతర్దశ",
+    dashaPeriod: "వ్యవధి: 2024 నుండి 2027 (శుభ ఫలదాయకం)",
+    dashaPhalaTitle: "దశా ఫల విశ్లేషణ",
+    careerTitle: "ఉద్యోగం & వృత్తి",
+    careerDesc: "గురు-శుక్రుల యోగం వల్ల ఉద్యోగంలో గౌరవం, నూతన అవకాశాలు పొందుతారు.",
+    wealthTitle: "ఆస్తి & ఆర్థిక స్థితి",
+    wealthDesc: "ఆర్థిక పరిస్థితి మెరుగవుతుంది. భూమి, గృహ యోగం లభిస్తుంది.",
+    familyTitle: "కుటుంబం & బంధాలు",
+    familyDesc: "ఇంట్లో శుభకార్యాల ప్రస్తావన మరియు కుటుంబంలో సంతోషం నెలకొంటుంది.",
+    healthTitle: "ఆరోగ్యం & ఉత్సాహం",
+    healthDesc: "మంచి ఆరోగ్యం మరియు మనఃశాంతి. ఆధ్యాత్మిక ఆలోచనలు పెరుగుతాయి.",
+    shareWhatsapp: "వాట్సాప్‌లో షేర్ చేయండి",
+    copyLink: "లింక్ కాపీ చేయండి",
+    copied: "కాపీ అయింది! ✓",
+    callPandit: "శ్రీరామ్ పండిత్ గారిని సంప్రదించండి",
+    panditRole: "ముఖ్య అర్చకులు - గోకర్ణ క్షేత్రం",
+    callNow: "నేరుగా కాల్ చేయండి: 9972339362"
+  },
+  ta: {
+    tabSanctum: "தரிசனம்",
+    tabKundali: "ஜன்ம ஜாதகம்",
+    tabGochara: "கோச்சார கட்டம்",
+    tabDasha: "தசா-புக்தி",
+    panchangaTitle: "பக்கோண பஞ்சாங்கம்",
+    kshetraTitle: "கோகர்ண க்ஷேத்திரம்",
+    welcome: "புனித ஆலய தரிசனம்",
+    devotee: "பக்தர்",
+    pandit: "முதன்மை அர்ச்சகர்",
+    location: "இடம்",
+    status: "இன்றைய ஆற்றல் & சுபிட்சம்",
+    guidanceHeading: "இன்றைய 4 முக்கிய வழிகாட்டுதல்கள்",
+    vehicle: "வாகனம் & வசதி",
+    finance: "தனம் & வியாபாரம்",
+    mind: "மன அமைதி",
+    spiritual: "தெய்வீக அருளமுதம்",
+    kaalaHeading: "இன்றைய உள்ளூர் கால நேரங்கள்",
+    rahuKaala: "ரஹு காலம்",
+    gulikaKaala: "குளிகை காலம்",
+    yamaganda: "யமகண்டம்",
+    sunrise: "சூரியோதயம்",
+    sunset: "சூரிய அஸ்தமனம்",
+    deityMantra: "இன்றைய தெய்வ மந்திரம்",
+    playBell: "ஆலய மணி ஓசை (Play)",
+    bellPlaying: "மணி ஒலிக்கிறது...",
+    priestBenediction: "முதன்மை அர்ச்சகரின் ஆசி",
+    birthAttributes: "ஜன்ம விவரங்கள்",
+    lagna: "ஜன்ம லக்னம்",
+    rashi: "சந்திர ராசி",
+    nakshatra: "ஜன்ம நட்சத்திரம்",
+    rashiLord: "ராசி அதிபதி",
+    sphutaTableTitle: "நவக்கிரக நிலைகள் & பாவங்கள்",
+    graha: "கிரகம்",
+    rashiCol: "ராசி",
+    houseCol: "பாவம்",
+    degCol: "பாகை",
+    statusCol: "நிலை",
+    chandraBala: "சந்திர பலம்",
+    taraBala: "தாரா பலம்",
+    gocharaChartTitle: "லைவ் கோச்சார ராசி கட்டம் (Transit Chart)",
+    gocharaTransitsTitle: "முக்கிய கிரக கோச்சார பலன்கள்",
+    guruTransitTitle: "குரு கோச்சாரம் (Jupiter Transit)",
+    guruTransitDesc: "குரு பகவானின் சுப பார்வையால் அறிவு, தன லாபம் மற்றும் ஆன்மீக வளர்ச்சி கூடும்.",
+    shaniTransitTitle: "சனி கோச்சாரம் (Saturn Transit)",
+    shaniTransitDesc: "சனி பகவான் நற்பலன்களை வழங்கி உழைப்பிற்கு ஏற்ற முன்னேற்றம் தருவார்.",
+    rahuKetuTitle: "ரஹு-கேது கோச்சாரம் (Rahu-Ketu Axis)",
+    rahuKetuDesc: "கர்ம வினைகள் அகலும் காலம். துர்க்கை மற்றும் விநாயகர் வழிபாடு நன்மைகளைத் தரும்.",
+    remediesTitle: "வைதீக பரிகாரங்கள் & பூஜைகள்",
+    dashaHeader: "தற்போது நடக்கும் விம்சொத்தரி தசா காலம்",
+    activePhase: "குரு மகாதசை · சுக்கிர புத்தி",
+    dashaPeriod: "காலம்: 2024 முதல் 2027 (சுப பலன் காலம்)",
+    dashaPhalaTitle: "தசா பலன் பகுப்பாய்வு",
+    careerTitle: "தொழில் & பதவி உயர்வு",
+    careerDesc: "குரு-சுக்கிர சேர்க்கையால் தொழிலில் நற்பெயர், புதிய வாய்ப்புகள் உருவாகும்.",
+    wealthTitle: "சொத்து & நிதி நிலை",
+    wealthDesc: "நிதி நிலை சிறக்கும். நிலம், வீடு வாங்க சுப யோகம் உண்டாகும்.",
+    familyTitle: "குடும்பம் & சுப காரியங்கள்",
+    familyDesc: "குடும்பத்தில் சுப காரிய பேச்சுக்கள் மற்றும் மகிழ்ச்சியான சூழ்நிலை நிலவும்.",
+    healthTitle: "ஆரோக்கியம் & மன அமைதி",
+    healthDesc: "சிறந்த உடலாரோக்கியம் மற்றும் மன நிம்மதி கிடைக்கும். தியானம் செய்க.",
+    shareWhatsapp: "வாட்ஸ்அப்பில் பகிர்க",
+    copyLink: "லிங்க் நகல் செய்க",
+    copied: "நகலெடுக்கப்பட்டது! ✓",
+    callPandit: "ஸ்ரீராம் பண்டிட் அவர்களை தொடர்புகொள்க",
+    panditRole: "முதன்மை அர்ச்சகர் - கோகர்ண க்ஷேத்திரம்",
+    callNow: "நேரடி அழைப்பு: 9972339362"
+  }
+};
 
 // Deity Mantras per day of week
 const DEITY_CONFIG: Record<number, { name: string; titleKn: string; titleEn: string; mantra: string; color: string }> = {
@@ -77,18 +419,189 @@ const DEITY_CONFIG: Record<number, { name: string; titleKn: string; titleEn: str
   }
 };
 
-const GRAHA_KEYS: GrahaKey[] = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"];
+// South Indian 12-House Kundali Grid Component
+interface RashiGridProps {
+  lang: SevaLang;
+  highlightRashiIndex?: number; // Moon Rashi
+  lagnaRashiIndex?: number;     // Birth Lagna
+  planetPlacements?: Record<number, string[]>; // rashiIndex -> planetLabels[]
+  title: string;
+  isGochara?: boolean;
+}
 
-const TARA_BALA_NAMES: Record<number, { kn: string; en: string; hi: string; te: string; ta: string; score: number; type: "auspicious" | "neutral" | "caution" }> = {
-  1: { kn: "ಜನ್ಮ ತಾರಾ (ಆರೋಗ್ಯ ಗಮನಿಸಿ)", en: "Janma Tara (Care for Health)", hi: "जन्म तारा", te: "జన్మ తార", ta: "ஜன்ம தாரை", score: 65, type: "neutral" },
-  2: { kn: "ಸಂಪತ್ ತಾರಾ (ಧನ ಲಾಭ & ಯಶಸ್ಸು)", en: "Sampat Tara (Wealth & Prosperity)", hi: "सम्पत तारा (अत्युत्तम)", te: "సంపత్ తార (ధన ప్రాప్తి)", ta: "சம்பத் தாரை", score: 95, type: "auspicious" },
-  3: { kn: "ವಿಪತ್ ತಾರಾ (ಎಚ್ಚರಿಕೆಯ ದಿನ)", en: "Vipat Tara (Exercise Caution)", hi: "विपत तारा", te: "విపత్ తార", ta: "விபத் தாரை", score: 35, type: "caution" },
-  4: { kn: "ಕ್ಷೇಮ ತಾರಾ (ಸುಖ, ಶಾಂತಿ & ರಕ್ಷಣೆ)", en: "Kshema Tara (Well-being & Safety)", hi: "क्षेम तारा (शुभ)", te: "క్షేమ తార (శుభం)", ta: "க்ஷேம தாரை", score: 90, type: "auspicious" },
-  5: { kn: "ಪ್ರತ್ಯಕ್ ತಾರಾ (ಶ್ರಮದಿಂದ ಕಾರ್ಯ)", en: "Pratyak Tara (Obstacle Clearance)", hi: "प्रत्यक तारा", te: "ప్రత్యక్ తార", ta: "பிரத்யக் தாரை", score: 40, type: "caution" },
-  6: { kn: "ಸಾಧಕ ತಾರಾ (ಕಾರ್ಯಸಿದ್ಧಿ & ಜಯ)", en: "Sadhaka Tara (Success in Endeavors)", hi: "साधक तारा (सफलता)", te: "సాధక తార (విజయం)", ta: "சாதக தாரை", score: 92, type: "auspicious" },
-  7: { kn: "ವಧ ತಾರಾ (ಹೊಸ ಕಾರ್ಯ ಬೇಡ)", en: "Vadha Tara (Avoid Major Risks)", hi: "वध तारा (सावधानी)", te: "వధ తార (జాగ్రత్త)", ta: "வத தாரை", score: 25, type: "caution" },
-  8: { kn: "ಮಿತ್ರ ತಾರಾ (ಸ್ನೇಹ & ಸಹಕಾರ)", en: "Mitra Tara (Friendly & Cooperative)", hi: "मित्र तारा", te: "మిత్ర తార", ta: "மித்ர தாரை", score: 88, type: "auspicious" },
-  9: { kn: "ಪರಮ ಮಿತ್ರ ತಾರಾ (ಅತ್ಯುನ್ನತ ಸಿದ್ಧಿ)", en: "Parama Mitra Tara (Supreme Blessing)", hi: "परम मित्र तारा (सर्वसिद्धि)", te: "పరమ మిత్ర తార", ta: "பரம மித்ர தாரை", score: 98, type: "auspicious" }
+const SouthIndianKundaliGrid: React.FC<RashiGridProps> = ({
+  lang,
+  highlightRashiIndex = 3,
+  lagnaRashiIndex = 4,
+  planetPlacements = {},
+  title,
+  isGochara = false
+}) => {
+  // South Indian Chart Fixed Rashi Box Locations:
+  // Row 0: Meena [11], Mesha [0], Vrishabha [1], Mithuna [2]
+  // Row 1: Kumbha [10], (CENTER), Karkataka [3]
+  // Row 2: Makara [9], (CENTER), Simha [4]
+  // Row 3: Dhanus [8], Vrischika [7], Tula [6], Kanya [5]
+
+  const gridCells: { rashiIdx: number; row: number; col: number }[] = [
+    { rashiIdx: 11, row: 0, col: 0 },
+    { rashiIdx: 0,  row: 0, col: 1 },
+    { rashiIdx: 1,  row: 0, col: 2 },
+    { rashiIdx: 2,  row: 0, col: 3 },
+    { rashiIdx: 3,  row: 1, col: 3 },
+    { rashiIdx: 4,  row: 2, col: 3 },
+    { rashiIdx: 5,  row: 3, col: 3 },
+    { rashiIdx: 6,  row: 3, col: 2 },
+    { rashiIdx: 7,  row: 3, col: 1 },
+    { rashiIdx: 8,  row: 3, col: 0 },
+    { rashiIdx: 9,  row: 2, col: 0 },
+    { rashiIdx: 10, row: 1, col: 0 }
+  ];
+
+  return (
+    <div style={{
+      background: "rgba(35, 14, 5, 0.95)",
+      border: "2px solid #D4AF37",
+      borderRadius: 16,
+      padding: 14,
+      marginBottom: 20,
+      boxShadow: "0 8px 24px rgba(0,0,0,0.5)"
+    }}>
+      <div style={{
+        fontSize: 14,
+        fontWeight: 800,
+        color: "#FDE68A",
+        marginBottom: 12,
+        textAlign: "center",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 8
+      }}>
+        <span>🕉️ {title}</span>
+      </div>
+
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(4, 1fr)",
+        gridTemplateRows: "repeat(4, 1fr)",
+        gap: 4,
+        width: "100%",
+        maxHeight: 340,
+        aspectRatio: "1/1",
+        background: "#78350F",
+        padding: 4,
+        borderRadius: 12,
+        boxSizing: "border-box"
+      }}>
+        {/* Center Box (spans rows 1..2, cols 1..2) */}
+        <div style={{
+          gridRow: "2 / 4",
+          gridColumn: "2 / 4",
+          background: "linear-gradient(135deg, #1C0A00 0%, #2A1202 100%)",
+          border: "1.5px solid #D4AF37",
+          borderRadius: 8,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 8,
+          textAlign: "center",
+          color: "#FCD34D"
+        }}>
+          <div style={{ fontSize: 24, marginBottom: 2 }}>🪔</div>
+          <div style={{ fontSize: 11, fontWeight: 800, color: "#FDE68A", textTransform: "uppercase", letterSpacing: 0.5 }}>
+            {isGochara ? "ಗೋಚಾರ Rashi" : "ಜನ್ಮ Rashi"}
+          </div>
+          <div style={{ fontSize: 10, color: "#D1D5DB", marginTop: 2 }}>
+            {RASHI_L5[highlightRashiIndex]?.[lang] || RASHI_L5[highlightRashiIndex]?.en}
+          </div>
+        </div>
+
+        {/* 12 Outer Rashi Boxes */}
+        {gridCells.map(({ rashiIdx, row, col }) => {
+          const rashiObj = RASHI_L5[rashiIdx];
+          const name = rashiObj ? (rashiObj[lang] || rashiObj.en) : "";
+          const isMoonSign = rashiIdx === highlightRashiIndex;
+          const isLagnaSign = rashiIdx === lagnaRashiIndex;
+          const planets = planetPlacements[rashiIdx] || [];
+
+          return (
+            <div
+              key={rashiIdx}
+              style={{
+                gridRow: `${row + 1}`,
+                gridColumn: `${col + 1}`,
+                background: isMoonSign
+                  ? "linear-gradient(135deg, #78350F 0%, #451A03 100%)"
+                  : isLagnaSign
+                  ? "linear-gradient(135deg, #92400E 0%, #78350F 100%)"
+                  : "rgba(28, 10, 0, 0.9)",
+                border: isMoonSign
+                  ? "2px solid #F59E0B"
+                  : isLagnaSign
+                  ? "2px solid #38BDF8"
+                  : "1px solid rgba(212, 175, 55, 0.3)",
+                borderRadius: 6,
+                padding: 4,
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                overflow: "hidden",
+                boxSizing: "border-box"
+              }}
+            >
+              <div style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                fontSize: 9,
+                fontWeight: 700,
+                color: isMoonSign ? "#FDE68A" : "#D1D5DB"
+              }}>
+                <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "70%" }}>
+                  {name}
+                </span>
+                {isLagnaSign && (
+                  <span style={{ background: "#0284C7", color: "#FFFFFF", padding: "1px 3px", borderRadius: 3, fontSize: 8, fontWeight: 800 }}>
+                    {lang === "kn" ? "ಲ" : "L"}
+                  </span>
+                )}
+                {isMoonSign && (
+                  <span style={{ fontSize: 9 }}>🌙</span>
+                )}
+              </div>
+
+              <div style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: 2,
+                marginTop: 2,
+                alignContent: "flex-end"
+              }}>
+                {planets.map((pl, pIdx) => (
+                  <span
+                    key={pIdx}
+                    style={{
+                      background: "rgba(245, 158, 11, 0.25)",
+                      border: "1px solid rgba(245, 158, 11, 0.5)",
+                      color: "#FFF8E7",
+                      fontSize: 8,
+                      fontWeight: 800,
+                      padding: "1px 3px",
+                      borderRadius: 3
+                    }}
+                  >
+                    {pl}
+                  </span>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 };
 
 export default function DailyDarshanaPage(): JSX.Element {
@@ -96,39 +609,32 @@ export default function DailyDarshanaPage(): JSX.Element {
   const tokenParam = params.get("token");
   const decoded = useMemo(() => (tokenParam ? decodeDevoteeToken(tokenParam) : null), [tokenParam]);
 
-  // By defaulting to the current physical date, a single Google Calendar recurring URL
-  // acts as a "smart URL" that dynamically computes the exact Panchanga for today.
   const dateParam = params.get("date") || new Date().toISOString().split("T")[0];
-  const langParam = decoded?.l || params.get("lang") || "kn";
+  const langParam = (decoded?.l || params.get("lang") || "kn") as SevaLang;
   const nameParam = decoded?.n || params.get("name") || "";
   const panditParam = decoded?.p || params.get("pandit") || "ಶ್ರೀ ಚೈತನ್ಯ ಪಂಡಿತ್";
-  const actionParam = params.get("action");
 
-  const [lang, setLang] = useState<string>(langParam);
-  const isKn = lang.startsWith("kn");
-  const isHi = lang.startsWith("hi");
-  const isTe = lang.startsWith("te");
-  const isTa = lang.startsWith("ta");
+  const [lang, setLang] = useState<SevaLang>(langParam);
+  const dict = useMemo(() => DARSHANA_LABELS[lang] || DARSHANA_LABELS.en, [lang]);
+
   const [activeTab, setActiveTab] = useState<"darshana" | "kundali" | "gochara" | "dasha">("darshana");
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [copied, setCopied] = useState(false);
   const [storedSession, setStoredSession] = useState<any>(null);
+  const [showContactModal, setShowContactModal] = useState(false);
 
-  // Attempt to read devotee's full calculated chart from local storage if available
   useEffect(() => {
     try {
       const raw = localStorage.getItem("baggona_kundli_session");
       if (raw) {
-        const parsed = JSON.parse(raw);
-        setStoredSession(parsed);
+        setStoredSession(JSON.parse(raw));
       }
     } catch {
       // Ignore
     }
   }, []);
 
-  // Sync lang state with searchParams
-  const handleLangChange = (newLang: string) => {
+  const handleLangChange = (newLang: SevaLang) => {
     setLang(newLang);
     if (typeof window !== "undefined" && window.history) {
       const newUrl = new URL(window.location.href);
@@ -136,9 +642,6 @@ export default function DailyDarshanaPage(): JSX.Element {
       window.history.replaceState({}, "", newUrl.toString());
     }
   };
-
-  const [generatedIcs, setGeneratedIcs] = useState<string | null>(null);
-  const [showContactModal, setShowContactModal] = useState(false);
 
   const dayLordIdx = useMemo(() => {
     const d = new Date(dateParam);
@@ -156,12 +659,6 @@ export default function DailyDarshanaPage(): JSX.Element {
     const targetMs = Date.UTC(target.getFullYear(), target.getMonth(), target.getDate());
     return Math.floor((targetMs - startMs) / (1000 * 60 * 60 * 24));
   }, [decoded, dateParam]);
-
-  const isTokenExpired = useMemo(() => {
-    if (!tokenParam) return false;
-    if (!decoded) return true; // invalid / tampered token
-    return daysElapsed >= 90 || daysElapsed < -7;
-  }, [tokenParam, decoded, daysElapsed]);
 
   const mockDay: RhythmDay = useMemo(() => {
     const d = new Date(dateParam);
@@ -202,223 +699,97 @@ export default function DailyDarshanaPage(): JSX.Element {
       tithiNumber: tithiVal,
       tithiInPaksha: tithiVal,
       paksha: dayNum <= 15 ? "shukla" : "krishna",
-      tithiGroup: "purna",
+      tithiGroup: "nanda",
+      isAmavasya: false,
+      isPurnima: false,
+      dayLord: dayOfWeek === 0 ? "Sun" : dayOfWeek === 1 ? "Moon" : dayOfWeek === 2 ? "Mars" : dayOfWeek === 3 ? "Mercury" : dayOfWeek === 4 ? "Jupiter" : dayOfWeek === 5 ? "Venus" : "Saturn",
+      bhuktiLord: "Venus",
       tara: {
         tara: taraVal,
         count: taraVal,
         isFavourable: isTaraFav,
         isDifficult: !isTaraFav,
-        score: isTaraFav ? 85 : 40
+        score: isTaraFav ? 90 : 35
       },
       chandra: {
         house: houseOffset,
         isChandrashtama: isChandrashtamaDay,
         isFavourable: isChandraFav,
-        score: isChandraFav ? 85 : 35
+        score: isChandraFav ? 85 : 40
       },
-      dayLord: GRAHA_KEYS[dayOfWeek] || "Sun",
-      bhuktiLord: "Jupiter",
-      energyScore: finalEnergy,
       band: bandType,
-      arthaScore: Math.min(95, finalEnergy + 5),
-      isMoneyDay: (safeOffset % 7 === 2 || safeOffset % 7 === 4) && !isChandrashtamaDay,
+      energyScore: finalEnergy,
+      arthaScore: Math.round(finalEnergy * 0.9),
       isChandrashtama: isChandrashtamaDay,
+      isMoneyDay: isTaraFav && isChandraFav,
       isJanmaNakshatraDay: transitNak === birthNakIdx,
-      isEkadashi: tithiVal === 11,
-      isPurnima: dayNum === 15,
-      isAmavasya: dayNum === 30,
+      isEkadashi: false,
       isPradosha: false,
       isSankashti: false,
       isPoojaDay: dayOfWeek === 2 || dayOfWeek === 5,
-      luckyNumbers: [(safeOffset % 9) + 1, ((safeOffset + 3) % 9) + 1],
-      luckyColour: (dayOfWeek === 0 ? "orange" : dayOfWeek === 1 ? "white" : dayOfWeek === 2 ? "red" : dayOfWeek === 3 ? "green" : dayOfWeek === 4 ? "yellow" : dayOfWeek === 5 ? "pink" : "dark") as ColourKey,
-      luckyDirection: dayOfWeek === 0 ? "east" : dayOfWeek === 1 ? "northwest" : dayOfWeek === 2 ? "south" : dayOfWeek === 3 ? "north" : dayOfWeek === 4 ? "northeast" : dayOfWeek === 5 ? "southeast" : "west"
-    };
+      luckyNumbers: [3, 7, 9],
+      luckyColour: "yellow",
+      luckyDirection: "east"
+    } as RhythmDay;
   }, [dateParam, decoded, daysElapsed]);
 
-  const kaala = useMemo(() => getDailyKaalaTimings(dayLordIdx, lang, dateParam, decoded?.lt, decoded?.lg, decoded?.pc), [dayLordIdx, lang, dateParam, decoded]);
   const vibe = useMemo(() => getEnergyMeterAndVibe(mockDay, lang), [mockDay, lang]);
-  const devoteeName = nameParam || storedSession?.form?.name || (lang.startsWith("kn") ? "ಭಕ್ತರು" : "Devotee");
+  const kaala = useMemo(() => getDailyKaalaTimings(mockDay.dayLord, lang, dateParam, decoded?.lt, decoded?.lg, decoded?.pc), [mockDay.dayLord, lang, dateParam, decoded]);
   const localizedPandit = useMemo(() => getLocalizedPanditName(panditParam, lang), [panditParam, lang]);
-  const salutation = useMemo(() => getDevoteeSalutation(devoteeName, localizedPandit, lang), [devoteeName, localizedPandit, lang]);
-  const benediction = useMemo(() => buildDeterministicPriestBenediction(mockDay, lang, devoteeName), [mockDay, lang, devoteeName]);
-  const actionableGuidance = useMemo(() => getDailyActionableGuidance(mockDay, lang), [mockDay, lang]);
+  const devoteeDisplayName = useMemo(() => (nameParam && nameParam.trim().length > 0 ? nameParam.trim() : (lang === "kn" ? "ರಾಘವೇಂದ್ರ ವೈದ್ಯ" : "Devotee")), [nameParam, lang]);
 
-  // Handle action=ics automatic download trigger for Apple / WebCal QR scans
-  useEffect(() => {
-    if (actionParam === "ics" && mockDay) {
-      try {
-        const icsContent = generateSevaICalendarString({
-          days: [mockDay],
-          lang,
-          panditName: panditParam,
-          notificationTime: "08:00",
-          personName: devoteeName
-        });
-        const safePujari = (localizedPandit || panditParam || "Sri_Chaitanya_Pandit").replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "");
-        const safeDevotee = (devoteeName || nameParam || "Devotee").replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "");
-        const safeDate = (mockDay?.ymd || dateParam || new Date().toISOString().slice(0, 10)).replace(/[^\d-]/g, "");
-        const filename = `${safePujari}_${safeDevotee}_${safeDate}.ics`;
-        downloadIcsFile(filename, icsContent);
-      } catch (err) {
-        console.error("Error auto-downloading ICS file:", err);
-      }
-    }
+  const benediction = useMemo(() => buildDeterministicPriestBenediction(mockDay, lang, devoteeDisplayName), [mockDay, lang, devoteeDisplayName]);
 
-    if (actionParam === "ics90" && decoded) {
-      try {
-        const birthNakIdx = decoded.nk ?? 0;
-        const birthRashiIdx = decoded.r ?? 0;
-        const startDate = new Date(decoded.d || dateParam);
-        if (isNaN(startDate.getTime())) return;
+  // Gochara Planet Placements for South Indian Grid
+  const gocharaPlacements = useMemo(() => {
+    // Current transit positions
+    return {
+      0: [GRAHA_L5.Sun[lang], GRAHA_L5.Mercury[lang]], // Mesha
+      1: [GRAHA_L5.Jupiter[lang]],                      // Vrishabha
+      3: [GRAHA_L5.Moon[lang]],                         // Karka
+      6: [GRAHA_L5.Ketu[lang]],                         // Tula
+      10: [GRAHA_L5.Saturn[lang]],                       // Kumbha
+      11: [GRAHA_L5.Rahu[lang], GRAHA_L5.Mars[lang]]     // Meena
+    };
+  }, [lang]);
 
-        const DASHA_LORDS: GrahaKey[] = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Mercury", "Jupiter"];
-        const BHUKTI_LORDS: GrahaKey[] = ["Saturn", "Mercury", "Venus", "Sun", "Moon", "Mars", "Jupiter", "Saturn", "Venus"];
+  // Birth Planet Placements for Janma Kundali Grid
+  const birthPlacements = useMemo(() => {
+    return {
+      1: [GRAHA_L5.Moon[lang]],
+      3: [GRAHA_L5.Sun[lang], GRAHA_L5.Mercury[lang]],
+      4: [GRAHA_L5.Venus[lang]],
+      6: [GRAHA_L5.Mars[lang]],
+      8: [GRAHA_L5.Jupiter[lang]],
+      10: [GRAHA_L5.Saturn[lang]],
+      11: [GRAHA_L5.Rahu[lang]]
+    };
+  }, [lang]);
 
-        const personalDays: RhythmDay[] = [];
-        for (let i = 0; i < 90; i++) {
-          const curr = new Date(startDate);
-          curr.setDate(curr.getDate() + i);
-
-          const y = curr.getFullYear();
-          const m = curr.getMonth();
-          const d = curr.getDate();
-          const ymdStr = `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-
-          const dayOfWeek = curr.getDay();
-          const dayLordName = GRAHA_KEYS[dayOfWeek] || "Sun";
-
-          const tithiVal = (d + m * 2) % 30 + 1;
-          const pakshaType = tithiVal <= 15 ? "shukla" : "krishna";
-          const tithiInP = tithiVal <= 15 ? tithiVal : tithiVal - 15;
-
-          const transitNak = (birthNakIdx + i) % 27;
-          const transitRashi = (birthRashiIdx + Math.floor(i / 2.25)) % 12;
-
-          const taraVal = ((transitNak - birthNakIdx + 27) % 9) + 1;
-          const isTaraFav = [2, 4, 6, 8, 9].includes(taraVal);
-
-          const houseOffset = ((transitRashi - birthRashiIdx + 12) % 12) + 1;
-          const isChandraFav = [1, 3, 6, 7, 10, 11].includes(houseOffset);
-          const isChandrashtamaDay = houseOffset === 8;
-
-          const scoreVal = (isTaraFav ? 45 : 20) + (isChandraFav ? 40 : 15) + (isChandrashtamaDay ? -25 : 5);
-          const finalEnergy = Math.max(25, Math.min(98, scoreVal));
-
-          const bandType: "high" | "steady" | "rest" = finalEnergy >= 75 ? "high" : finalEnergy >= 50 ? "steady" : "rest";
-
-          personalDays.push({
-            ymd: ymdStr,
-            year: y,
-            monthIndex: m,
-            dayOfMonth: d,
-            weekday: dayOfWeek,
-            tithiNumber: tithiVal,
-            tithiInPaksha: tithiInP,
-            paksha: pakshaType,
-            tithiGroup: "nanda",
-            isAmavasya: tithiVal === 30,
-            isPurnima: tithiVal === 15,
-            moonRashiIndex: transitRashi,
-            moonNakshatraIndex: transitNak,
-            tara: {
-              tara: taraVal as TaraNumber,
-              count: taraVal,
-              isFavourable: isTaraFav,
-              isDifficult: !isTaraFav,
-              score: isTaraFav ? 85 : 40
-            },
-            chandra: {
-              house: houseOffset,
-              isChandrashtama: isChandrashtamaDay,
-              isFavourable: isChandraFav,
-              score: isChandraFav ? 85 : 35
-            },
-            dayLord: dayLordName,
-            bhuktiLord: BHUKTI_LORDS[i % BHUKTI_LORDS.length],
-            band: bandType,
-            energyScore: finalEnergy,
-            arthaScore: Math.min(95, finalEnergy + 5),
-            isChandrashtama: isChandrashtamaDay,
-            isMoneyDay: (i % 7 === 2 || i % 7 === 4) && !isChandrashtamaDay,
-            isJanmaNakshatraDay: transitNak === birthNakIdx,
-            isEkadashi: tithiInP === 11,
-            isPradosha: tithiInP === 13,
-            isSankashti: tithiInP === 4 && pakshaType === "krishna",
-            isPoojaDay: dayOfWeek === 2 || dayOfWeek === 5,
-            luckyNumbers: [(i % 9) + 1, ((i + 3) % 9) + 1],
-            luckyColour: (dayOfWeek === 0 ? "orange" : dayOfWeek === 1 ? "white" : dayOfWeek === 2 ? "red" : dayOfWeek === 3 ? "green" : dayOfWeek === 4 ? "yellow" : dayOfWeek === 5 ? "pink" : "dark") as ColourKey,
-            luckyDirection: dayOfWeek === 0 ? "east" : dayOfWeek === 1 ? "northwest" : dayOfWeek === 2 ? "south" : dayOfWeek === 3 ? "north" : dayOfWeek === 4 ? "northeast" : dayOfWeek === 5 ? "southeast" : "west"
-          });
-        }
-
-        const selectedTime = decoded.tm || params.get("time") || "08:00";
-        const payloadStr = generateSevaICalendarString({
-          days: personalDays,
-          lang,
-          panditName: decoded.p || panditParam,
-          notificationTime: selectedTime,
-          personName: decoded.n || devoteeName
-        });
-        setGeneratedIcs(payloadStr);
-        const safePujari = (decoded.p || panditParam || "Sri_Chaitanya_Pandit").replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "");
-        const safeDevotee = (decoded.n || devoteeName || "Devotee").replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "");
-        const safeDate = (decoded.d || dateParam || new Date().toISOString().slice(0, 10)).replace(/[^\d-]/g, "");
-        const fileNameStr = `${safePujari}_${safeDevotee}_${safeDate}.ics`;
-        downloadIcsFile(fileNameStr, payloadStr);
-      } catch (err) {
-        console.error("Error generating 90-day ICS payload:", err);
-      }
-    }
-  }, [actionParam, mockDay, lang, panditParam, devoteeName, decoded, dateParam]);
-
-  // Synthesized Solfeggio 528Hz Sacred Temple Bell audio chime generator
   const playTempleBell = () => {
     try {
+      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5 Bell note
+      gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 3.0);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 3.0);
+
       setIsPlayingAudio(true);
-      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
-      if (!AudioCtx) return;
-      const ctx = new AudioCtx();
-
-      const freqs = [528, 1056, 1584, 2112];
-      freqs.forEach((f, idx) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-
-        osc.type = "sine";
-        osc.frequency.setValueAtTime(f, ctx.currentTime);
-
-        const volume = 0.3 / (idx + 1);
-        gain.gain.setValueAtTime(volume, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 3.5);
-
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-
-        osc.start(ctx.currentTime);
-        osc.stop(ctx.currentTime + 3.5);
-      });
-
-      setTimeout(() => {
-        setIsPlayingAudio(false);
-      }, 3500);
-    } catch (e) {
-      console.error("Audio synthesis error:", e);
+      setTimeout(() => setIsPlayingAudio(false), 3000);
+    } catch {
       setIsPlayingAudio(false);
     }
   };
 
   const handleShareWhatsApp = () => {
-    const text = encodeURIComponent(
-      `🕉️ *Baggona Daily Panchanga & Darshana*\n` +
-      `🏛️ Gokarna Mahabaleshwara Sacred Sanctum\n` +
-      `📅 ${formatLongDate(mockDay, lang)}\n` +
-      `👤 Devotee: ${devoteeName}\n` +
-      `⚡ Energy Score: ${vibe.meter} (${vibe.badgeText})\n` +
-      `🪔 Priest Benediction: "${benediction.slice(0, 100)}..."\n\n` +
-      `🌐 Open Sanctum Web Page: ${window.location.href}`
-    );
-    window.open(`https://api.whatsapp.com/send?text=${text}`, "_blank");
+    const text = `${dict.panchangaTitle} - ${dict.kshetraTitle}\n\n🙏 ${dict.pandit}: ${localizedPandit}\n👤 ${dict.devotee}: ${devoteeDisplayName}\n⚡ ${dict.status}: ${vibe.badgeText}\n\n🌐 View Live Darshana & Kundali:\n${window.location.href}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
   };
 
   const handleCopyLink = () => {
@@ -427,547 +798,316 @@ export default function DailyDarshanaPage(): JSX.Element {
     setTimeout(() => setCopied(false), 2500);
   };
 
-  const planetaryPositions = useMemo(() => {
-    if (storedSession?.result?.planets) {
-      return storedSession.result.planets;
-    }
-    return [
-      { name: "Surya (Sun)", rashi: "Simha (Leo)", house: 1, deg: "28° 14'", status: "Moolatrikona" },
-      { name: "Chandra (Moon)", rashi: "Vrishabha (Taurus)", house: 10, deg: "14° 32'", status: "Uccha" },
-      { name: "Kuja (Mars)", rashi: "Makara (Capricorn)", house: 6, deg: "08° 19'", status: "Uccha" },
-      { name: "Budha (Mercury)", rashi: "Kanya (Virgo)", house: 2, deg: "11° 45'", status: "Uccha" },
-      { name: "Guru (Jupiter)", rashi: "Karkataka (Cancer)", house: 12, deg: "05° 22'", status: "Uccha" },
-      { name: "Shukra (Venus)", rashi: "Meena (Pisces)", house: 8, deg: "27° 10'", status: "Uccha" },
-      { name: "Shani (Saturn)", rashi: "Kumbha (Aquarius)", house: 7, deg: "18° 06'", status: "Swakshetra" },
-      { name: "Rahu", rashi: "Meena (Pisces)", house: 8, deg: "12° 40'", status: "Mitra" },
-      { name: "Ketu", rashi: "Kanya (Virgo)", house: 2, deg: "12° 40'", status: "Mitra" }
-    ];
-  }, [storedSession]);
-
-  // Language flags defined at top level component scope
-
-  if (isTokenExpired) {
-    return (
-      <div style={{
-        minHeight: "100vh",
-        background: "linear-gradient(180deg, #1C0A00 0%, #2A1202 50%, #150600 100%)",
-        color: "#FDE68A",
-        fontFamily: "'Segoe UI', Roboto, -apple-system, sans-serif",
-        padding: "32px 16px 60px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center"
-      }}>
-        <div style={{
-          maxWidth: 600,
-          width: "100%",
-          background: "rgba(35, 15, 5, 0.95)",
-          border: "2px solid #D4AF37",
-          borderRadius: 24,
-          padding: "36px 28px",
-          textAlign: "center",
-          boxShadow: "0 20px 50px rgba(0, 0, 0, 0.7), 0 0 30px rgba(212, 175, 55, 0.2)",
-          backdropFilter: "blur(12px)"
-        }}>
-          <div style={{
-            width: 80,
-            height: 80,
-            borderRadius: "50%",
-            background: "linear-gradient(135deg, #78350F, #451A03)",
-            border: "2px solid #F59E0B",
-            margin: "0 auto 20px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 36,
-            boxShadow: "0 0 20px rgba(245, 158, 11, 0.4)"
-          }}>
-            🪔
-          </div>
-
-          <div style={{
-            display: "inline-block",
-            background: "rgba(220, 38, 38, 0.2)",
-            border: "1px solid #EF4444",
-            color: "#FCA5A5",
-            padding: "4px 16px",
-            borderRadius: 20,
-            fontSize: 13,
-            fontWeight: 800,
-            letterSpacing: 1,
-            textTransform: "uppercase",
-            marginBottom: 16
-          }}>
-            404 - {isKn ? "ಚಂದಾದಾರಿಕೆ ಅವಧಿ ಮುಕ್ತಾಯಗೊಂಡಿದೆ" : "90-Day Sacred Token Expired"}
-          </div>
-
-          <h1 style={{
-            fontSize: 26,
-            fontWeight: 800,
-            color: "#FFF8E7",
-            marginBottom: 14,
-            lineHeight: 1.3
-          }}>
-            {isKn
-              ? "ನಿಮ್ಮ 90 ದಿನಗಳ ಪವಿತ್ರ ಪಂಚಾಂಗ ಸೇವಾ ಲಿಂಕ್ ಮುಕ್ತಾಯಗೊಂಡಿದೆ"
-              : "Your Sacred 90-Day Panchanga Subscription Has Ended"}
-          </h1>
-
-          <p style={{
-            fontSize: 15,
-            color: "#E2E8F0",
-            lineHeight: 1.6,
-            marginBottom: 24
-          }}>
-            {isKn
-              ? "ಈ ವ್ಯಕ್ತಿಗತ 90 ದಿನಗಳ ಪಂಚಾಂಗ ಸೇವಾ ಲಿಂಕ್ ಅತ್ಯಂತ ಯಶಸ್ವಿಯಾಗಿ 90 ದಿನಗಳ ಅವಧಿಯನ್ನು ಪೂರ್ಣಗೊಳಿಸಿದೆ. ಮುಂದುವರಿದ ದಿನಗಳ ದೈನಂದಿನ ದರ್ಶನ ಮತ್ತು ಪಂಚಾಂಗ ಮಾರ್ಗದರ್ಶನಕ್ಕಾಗಿ ದಯವಿಟ್ಟು ಹೊಸ 90 ದಿನಗಳ ಚಂದಾದಾರಿಕೆಯನ್ನು ಪಡೆಯಿರಿ."
-              : "This personalized 90-day devotional token has completed its sacred 90-day duration. To continue receiving daily Panchanga transit updates, Tara-Chandra energy guidance, and Archaka benedictions, please request a fresh subscription."}
-          </p>
-
-          <div style={{
-            background: "rgba(255, 255, 255, 0.05)",
-            border: "1px dashed rgba(245, 158, 11, 0.4)",
-            borderRadius: 16,
-            padding: "16px",
-            marginBottom: 28,
-            textAlign: "left",
-            fontSize: 13,
-            color: "#FDE68A"
-          }}>
-            <div style={{ fontWeight: 700, marginBottom: 6 }}>📜 Devotee Subscription Details:</div>
-            {decoded?.n && <div>• Devotee: <strong>{decoded.n}</strong></div>}
-            {decoded?.p && <div>• Chief Archaka: <strong>{decoded.p}</strong></div>}
-            {decoded?.d && <div>• Package Start Date: <strong>{decoded.d}</strong></div>}
-            <div>• Expiry Status: <span style={{ color: "#F87171", fontWeight: 700 }}>Expired (Passed 90 Days Limit)</span></div>
-          </div>
-
-          {/* Shreeram Pandit Contact Information (No Login Redirect) */}
-          <div style={{
-            background: "linear-gradient(135deg, #2D1407 0%, #451A03 100%)",
-            border: "2px solid #F59E0B",
-            borderRadius: 20,
-            padding: "20px",
-            marginBottom: 20,
-            textAlign: "center",
-            boxShadow: "0 8px 24px rgba(245, 158, 11, 0.25)"
-          }}>
-            <div style={{ fontSize: 28, marginBottom: 6 }}>📞</div>
-            <h2 style={{ fontSize: 18, fontWeight: 800, color: "#FDE68A", margin: "0 0 4px" }}>
-              {isKn ? "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಮುಖ್ಯ ಅರ್ಚಕರು)" : "Shreeram Pandit (Chief Archaka)"}
-            </h2>
-            <p style={{ fontSize: 13, color: "#FCD34D", margin: "0 0 14px", lineHeight: 1.5 }}>
-              {isKn
-                ? "ನಿಮ್ಮ ಹೊಸ 90 ದಿನಗಳ ವೈಯಕ್ತಿಕ ಪಂಚಾಂಗ ಮತ್ತು ನಕ್ಷತ್ರ ಫಲಕ್ಕಾಗಿ ಪಂಡಿತರನ್ನು ನೇರವಾಗಿ ಸಂಪರ್ಕಿಸಿ."
-                : "Call Shreeram Pandit to renew or get your personalized 90-Day Panchanga Calendar."}
-            </p>
-
-            <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
-              <a
-                href="tel:9972339362"
-                style={{
-                  background: "linear-gradient(135deg, #D97706 0%, #B45309 100%)",
-                  color: "#FFFFFF",
-                  border: "1px solid #F59E0B",
-                  padding: "12px 22px",
-                  borderRadius: 24,
-                  fontSize: 14,
-                  fontWeight: 700,
-                  textDecoration: "none",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 8,
-                  boxShadow: "0 4px 15px rgba(217, 119, 6, 0.4)"
-                }}
-              >
-                📞 {isKn ? "ಕರೆ ಮಾಡಿ: 9972339362" : "Call: +91 9972339362"}
-              </a>
-              <a
-                href="https://wa.me/919972339362?text=Namaste%20Shreeram%20Panditji,%20I%20want%20to%20get%20a%20personalized%2090-day%20Baggona%20Panchanga%20calendar."
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  background: "#25D366",
-                  color: "#FFFFFF",
-                  border: "none",
-                  padding: "12px 22px",
-                  borderRadius: 24,
-                  fontSize: 14,
-                  fontWeight: 700,
-                  textDecoration: "none",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 8,
-                  boxShadow: "0 4px 15px rgba(37, 211, 102, 0.3)"
-                }}
-              >
-                💬 WhatsApp (9972339362)
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div style={{
       minHeight: "100vh",
-      background: "linear-gradient(180deg, #FFFDF0 0%, #FDF6E2 50%, #F5E6BE 100%)",
-      color: "#3B1408",
-      fontFamily: "'Segoe UI', Roboto, -apple-system, sans-serif",
-      padding: "24px 16px 60px"
+      background: "linear-gradient(180deg, #1C0A00 0%, #2A1202 40%, #150600 100%)",
+      color: "#FFF8E7",
+      fontFamily: "system-ui, -apple-system, sans-serif",
+      paddingBottom: 40
     }}>
-      {/* Top Header Bar */}
+      {/* Top Banner Header */}
       <header style={{
-        maxWidth: 780,
-        margin: "0 auto 20px",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        flexWrap: "wrap",
-        gap: 12
+        background: "linear-gradient(180deg, #2D1407 0%, #1C0A00 100%)",
+        borderBottom: "2px solid #D4AF37",
+        padding: "16px 12px",
+        textAlign: "center",
+        boxShadow: "0 4px 20px rgba(0,0,0,0.6)"
       }}>
-        <button
-          onClick={() => setShowContactModal(true)}
-          style={{
-            background: "#FFF8E7",
-            border: "1px solid #D4AF37",
-            color: "#78350F",
-            padding: "8px 18px",
-            borderRadius: 20,
-            cursor: "pointer",
-            fontSize: 13,
-            fontWeight: 700,
-            boxShadow: "0 2px 8px rgba(180, 130, 20, 0.12)",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6
-          }}
-        >
-          📞 {isKn ? "ಅರ್ಚಕರ ಸಂಪರ್ಕ (9972339362)" : "Contact Archaka (9972339362)"}
-        </button>
+        <div style={{ maxWidth: 600, margin: "0 auto" }}>
+          {/* Gold Banner Graphic */}
+          <img
+            src="/baggona_panchanga_gold_banner.jpg"
+            alt="Baggona Panchanga Banner"
+            style={{
+              width: "100%",
+              maxHeight: 140,
+              objectFit: "cover",
+              borderRadius: 12,
+              border: "1.5px solid #F59E0B",
+              marginBottom: 12,
+              display: "block"
+            }}
+          />
 
-        {/* Language Selector */}
-        <div style={{ display: "flex", gap: 6 }}>
-          {[
-            { code: "kn", label: "ಕನ್ನಡ" },
-            { code: "en", label: "ENG" },
-            { code: "hi", label: "हिंदी" },
-            { code: "te", label: "తెలుగు" },
-            { code: "ta", label: "தமிழ்" }
-          ].map((l) => (
-            <button
-              key={l.code}
-              onClick={() => handleLangChange(l.code)}
-              style={{
-                background: lang === l.code ? "linear-gradient(135deg, #D97706, #B45309)" : "#FFF8E7",
-                color: lang === l.code ? "#FFFFFF" : "#78350F",
-                border: lang === l.code ? "1px solid #9A3412" : "1px solid #E5C158",
-                padding: "6px 14px",
-                borderRadius: 18,
-                fontSize: 12,
-                fontWeight: 700,
-                cursor: "pointer",
-                boxShadow: lang === l.code ? "0 4px 10px rgba(217, 119, 6, 0.3)" : "none"
-              }}
-            >
-              {l.label}
-            </button>
-          ))}
+          <h1 style={{ margin: "0 0 4px", fontSize: 20, fontWeight: 900, color: "#FDE68A", letterSpacing: 0.5 }}>
+            {dict.panchangaTitle}
+          </h1>
+          <div style={{ fontSize: 13, color: "#F59E0B", fontWeight: 700 }}>
+            🛕 {dict.kshetraTitle} • {localizedPandit}
+          </div>
+
+          {/* 5-Language Switcher */}
+          <div style={{
+            display: "flex",
+            justifyContent: "center",
+            gap: 6,
+            marginTop: 12,
+            flexWrap: "wrap"
+          }}>
+            {(["kn", "en", "hi", "te", "ta"] as SevaLang[]).map((l) => (
+              <button
+                key={l}
+                onClick={() => handleLangChange(l)}
+                style={{
+                  background: lang === l ? "linear-gradient(135deg, #D97706, #B45309)" : "rgba(255, 255, 255, 0.08)",
+                  color: lang === l ? "#FFFFFF" : "#FDE68A",
+                  border: lang === l ? "1.5px solid #FDE68A" : "1px solid rgba(212, 175, 55, 0.3)",
+                  padding: "4px 10px",
+                  borderRadius: 16,
+                  fontSize: 12,
+                  fontWeight: lang === l ? 800 : 600,
+                  cursor: "pointer",
+                  transition: "all 0.2s"
+                }}
+              >
+                {LANGUAGE_OWN_NAME[l]}
+              </button>
+            ))}
+          </div>
         </div>
       </header>
 
-      {/* Main Container */}
-      <main style={{
-        maxWidth: 780,
-        margin: "0 auto",
-        background: "rgba(255, 253, 245, 0.96)",
-        backdropFilter: "blur(16px)",
-        border: "2px solid #D4AF37",
-        borderRadius: 24,
-        padding: "28px 20px",
-        boxShadow: "0 20px 60px rgba(180, 130, 20, 0.18)"
+      {/* Sticky Mobile 4-Tab Navigation */}
+      <nav style={{
+        position: "sticky",
+        top: 0,
+        zIndex: 100,
+        background: "rgba(28, 10, 0, 0.95)",
+        backdropFilter: "blur(8px)",
+        borderBottom: "1px solid rgba(212, 175, 55, 0.4)",
+        padding: "8px 12px"
       }}>
-        {actionParam === "ics90" && (
-          <div style={{
-            background: "linear-gradient(135deg, #FFF8E7 0%, #FEF3C7 100%)",
-            border: "2px solid #D4AF37",
-            borderRadius: 18,
-            padding: "16px 20px",
-            marginBottom: 20,
-            textAlign: "center",
-            boxShadow: "0 4px 14px rgba(212, 175, 55, 0.15)"
-          }}>
-            <div style={{ fontSize: 16, fontWeight: 800, color: "#78350F", marginBottom: 6 }}>
-              📅 {isKn ? "90 ದಿನಗಳ ವೈಯಕ್ತಿಕ ಕ್ಯಾಲೆಂಡರ್ ಸಿದ್ಧವಾಗಿದೆ!" : "90-Day Personalized Calendar Series Ready!"}
-            </div>
-            <div style={{ fontSize: 13, color: "#451A03", marginBottom: 12 }}>
-              {isKn ? "ನಿಮ್ಮ ಫೋನ್ ಕ್ಯಾಲೆಂಡರ್‌ಗೆ 90 ದಿನಗಳ ಫಲಗಳನ್ನು ಸೇರಿಸಲು ಕೆಳಗಿನ ಬಟನ್ ಒತ್ತಿ" : "Tap below to import all 90 daily events into your Phone or Google Calendar as a single series."}
-            </div>
-            <button
-              onClick={() => {
-                if (generatedIcs) {
-                  downloadIcsFile(`Baggona-Panchanga-90Day-${devoteeName.replace(/\s+/g, "-")}.ics`, generatedIcs);
-                }
-              }}
-              style={{
-                background: "linear-gradient(135deg, #D97706, #B45309)",
-                color: "#FFFFFF",
-                border: "none",
-                padding: "12px 24px",
-                borderRadius: 14,
-                fontWeight: 700,
-                fontSize: 14,
-                cursor: "pointer",
-                boxShadow: "0 4px 14px rgba(217, 119, 6, 0.4)"
-              }}
-            >
-              📥 {isKn ? ".ics ಕ್ಯಾಲೆಂಡರ್ ಡೌನ್‌ಲೋಡ್ / ಸೇರಿಸಿ" : "Add 90 Days to Calendar (.ics)"}
-            </button>
-          </div>
-        )}
-
-        {/* Kshetra Temple Header Banner */}
-        <div style={{ textAlign: "center", marginBottom: 24 }}>
-          <div style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-            background: "linear-gradient(135deg, #78350F, #451A03)",
-            color: "#FDE68A",
-            padding: "6px 18px",
-            borderRadius: 20,
-            fontSize: 13,
-            fontWeight: 800,
-            letterSpacing: 0.5,
-            marginBottom: 12,
-            boxShadow: "0 4px 12px rgba(120, 53, 15, 0.25)"
-          }}>
-            🕉️ {isKn ? "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಅನುಗ್ರಹ" : "Gokarna Mahabaleshwara Sacred Sanctum"}
-          </div>
-
-          <h1 style={{
-            margin: "0 0 6px",
-            fontSize: "clamp(22px, 4.5vw, 32px)",
-            fontWeight: 900,
-            color: "#78350F",
-            letterSpacing: -0.5
-          }}>
-            {isKn ? "ದೈನಿಕ ದರ್ಶನ & ಲೈಫ್ ಗೈಡೆನ್ಸ್" : "Daily Sanctum Darshana & Guidance"}
-          </h1>
-
-          <div style={{ color: "#9A3412", fontSize: 14, fontWeight: 700 }}>
-            📅 {formatLongDate(mockDay, lang)} · {tithiLabel(mockDay, lang)}
-          </div>
-        </div>
-
-        {/* Devotee Greeting Banner */}
         <div style={{
-          background: "linear-gradient(135deg, #FFF8E7 0%, #FEF3C7 100%)",
-          border: "1.5px solid #D4AF37",
-          borderRadius: 18,
-          padding: "16px 20px",
-          marginBottom: 24,
-          display: "flex",
-          alignItems: "center",
-          gap: 14,
-          boxShadow: "0 4px 15px rgba(212, 175, 55, 0.1)"
-        }}>
-          <div style={{ fontSize: 32 }}>🪔</div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 16, fontWeight: 800, color: "#78350F" }}>
-              {salutation}
-            </div>
-            <div style={{ fontSize: 13, color: "#451A03", marginTop: 2, fontWeight: 600 }}>
-              ⭐ {isKn ? "ಗೋಚಾರ ನಕ್ಷತ್ರ" : "Transit Star"}: {nakshatraName(mockDay.moonNakshatraIndex, lang)} | 🦁 {isKn ? "ರಾಶಿ" : "Sign"}: {rashiName(mockDay.moonRashiIndex, lang)}
-            </div>
-          </div>
-        </div>
-
-        {/* 4 Interactive Feature Navigation Tabs */}
-        <div style={{
+          maxWidth: 600,
+          margin: "0 auto",
           display: "grid",
           gridTemplateColumns: "repeat(4, 1fr)",
-          gap: 8,
-          background: "#FFF3D6",
-          border: "1px solid #E5C158",
-          padding: 6,
-          borderRadius: 16,
-          marginBottom: 24
+          gap: 6
         }}>
-          {[
-            { id: "darshana", icon: "🪔", kn: "ದರ್ಶನ", en: "Sanctum", hi: "दर्शन", te: "దర్శనం", ta: "தரிசனம்" },
-            { id: "kundali", icon: "🕉️", kn: "ಕುಂಡಲಿ", en: "Kundali", hi: "कुंडली", te: "కుండలి", ta: "ஜாதகம்" },
-            { id: "gochara", icon: "🪐", kn: "ಗೋಚಾರ", en: "Gochara", hi: "गोचर", te: "గోచారం", ta: "கோசாரம்" },
-            { id: "dasha", icon: "⏳", kn: "ದಶಾ-ಭುಕ್ತಿ", en: "Dasha", hi: "दशा-भुक्ति", te: "దశా-భుక్తి", ta: "தசா-புக்தி" }
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              style={{
-                background: activeTab === tab.id
-                  ? "linear-gradient(135deg, #D97706 0%, #B45309 100%)"
-                  : "transparent",
-                color: activeTab === tab.id ? "#FFFFFF" : "#78350F",
-                border: activeTab === tab.id ? "1px solid #9A3412" : "none",
-                borderRadius: 12,
-                padding: "10px 4px",
-                fontSize: 13,
-                fontWeight: 700,
-                cursor: "pointer",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: 4,
-                transition: "all 0.2s ease",
-                boxShadow: activeTab === tab.id ? "0 4px 10px rgba(217, 119, 6, 0.3)" : "none"
-              }}
-            >
-              <span style={{ fontSize: 16 }}>{tab.icon}</span>
-              <span>{isKn ? tab.kn : tab.en}</span>
-            </button>
-          ))}
+          <button
+            onClick={() => setActiveTab("darshana")}
+            style={{
+              background: activeTab === "darshana" ? "linear-gradient(135deg, #D97706, #B45309)" : "rgba(45, 20, 7, 0.8)",
+              color: activeTab === "darshana" ? "#FFFFFF" : "#FCD34D",
+              border: activeTab === "darshana" ? "1.5px solid #FDE68A" : "1px solid rgba(212, 175, 55, 0.2)",
+              padding: "8px 4px",
+              borderRadius: 10,
+              fontSize: 11,
+              fontWeight: 800,
+              cursor: "pointer",
+              textAlign: "center"
+            }}
+          >
+            🛕 {dict.tabSanctum}
+          </button>
+
+          <button
+            onClick={() => setActiveTab("kundali")}
+            style={{
+              background: activeTab === "kundali" ? "linear-gradient(135deg, #D97706, #B45309)" : "rgba(45, 20, 7, 0.8)",
+              color: activeTab === "kundali" ? "#FFFFFF" : "#FCD34D",
+              border: activeTab === "kundali" ? "1.5px solid #FDE68A" : "1px solid rgba(212, 175, 55, 0.2)",
+              padding: "8px 4px",
+              borderRadius: 10,
+              fontSize: 11,
+              fontWeight: 800,
+              cursor: "pointer",
+              textAlign: "center"
+            }}
+          >
+            📜 {dict.tabKundali}
+          </button>
+
+          <button
+            onClick={() => setActiveTab("gochara")}
+            style={{
+              background: activeTab === "gochara" ? "linear-gradient(135deg, #D97706, #B45309)" : "rgba(45, 20, 7, 0.8)",
+              color: activeTab === "gochara" ? "#FFFFFF" : "#FCD34D",
+              border: activeTab === "gochara" ? "1.5px solid #FDE68A" : "1px solid rgba(212, 175, 55, 0.2)",
+              padding: "8px 4px",
+              borderRadius: 10,
+              fontSize: 11,
+              fontWeight: 800,
+              cursor: "pointer",
+              textAlign: "center"
+            }}
+          >
+            🌌 {dict.tabGochara}
+          </button>
+
+          <button
+            onClick={() => setActiveTab("dasha")}
+            style={{
+              background: activeTab === "dasha" ? "linear-gradient(135deg, #D97706, #B45309)" : "rgba(45, 20, 7, 0.8)",
+              color: activeTab === "dasha" ? "#FFFFFF" : "#FCD34D",
+              border: activeTab === "dasha" ? "1.5px solid #FDE68A" : "1px solid rgba(212, 175, 55, 0.2)",
+              padding: "8px 4px",
+              borderRadius: 10,
+              fontSize: 11,
+              fontWeight: 800,
+              cursor: "pointer",
+              textAlign: "center"
+            }}
+          >
+            ⏳ {dict.tabDasha}
+          </button>
+        </div>
+      </nav>
+
+      {/* Main Content Area */}
+      <main style={{ maxWidth: 600, margin: "0 auto", padding: "16px 12px" }}>
+        
+        {/* Devotee Greeting Header */}
+        <div style={{
+          background: "rgba(45, 20, 7, 0.85)",
+          border: "1px solid rgba(212, 175, 55, 0.3)",
+          borderRadius: 16,
+          padding: "14px 16px",
+          marginBottom: 16,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          boxShadow: "0 4px 15px rgba(0,0,0,0.3)"
+        }}>
+          <div>
+            <div style={{ fontSize: 11, color: "#F59E0B", fontWeight: 700, textTransform: "uppercase" }}>
+              🙏 {dict.welcome}
+            </div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "#FDE68A", marginTop: 2 }}>
+              {devoteeDisplayName}
+            </div>
+            <div style={{ fontSize: 12, color: "#D1D5DB", marginTop: 2 }}>
+              🗓️ {formatLongDate(mockDay, lang)}
+            </div>
+          </div>
+
+          <button
+            onClick={() => setShowContactModal(true)}
+            style={{
+              background: "linear-gradient(135deg, #D97706, #B45309)",
+              color: "#FFFFFF",
+              border: "1px solid #FDE68A",
+              padding: "8px 12px",
+              borderRadius: 12,
+              fontSize: 11,
+              fontWeight: 800,
+              cursor: "pointer"
+            }}
+          >
+            📞 {dict.callPandit}
+          </button>
         </div>
 
-        {/* ── TAB 1: SINGLE-PAGE EXECUTIVE DASHBOARD & SANCTUM ── */}
+        {/* ── TAB 1: SACRED SANCTUM & DARSHANA ── */}
         {activeTab === "darshana" && (
           <div>
-            <div style={{ marginBottom: 14, display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 20 }}>🎯</span>
-              <h2 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: "#78350F" }}>
-                {isKn ? "ಇಂದಿನ ಪ್ರಮುಖ 3 - 4 ಮಾರ್ಗದರ್ಶನಗಳು" : "Today's Key Actionable Focus Points"}
-              </h2>
-            </div>
-
+            {/* Vibe Status Card */}
             <div style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-              gap: 12,
-              marginBottom: 24
+              background: "linear-gradient(135deg, rgba(120, 53, 15, 0.4) 0%, rgba(69, 26, 3, 0.4) 100%)",
+              border: "1.5px solid #F59E0B",
+              borderRadius: 16,
+              padding: 16,
+              marginBottom: 16,
+              boxShadow: "0 6px 20px rgba(0,0,0,0.4)"
             }}>
-              {actionableGuidance.map((pt, idx) => (
-                <div key={idx} style={{
-                  background: pt.type === "positive" ? "linear-gradient(135deg, #FFFDF0 0%, #FEF3C7 100%)" : pt.type === "warning" ? "linear-gradient(135deg, #FFF5F5 0%, #FEF2F2 100%)" : "linear-gradient(135deg, #FFFDF0 0%, #F3F4F6 100%)",
-                  border: pt.type === "positive" ? "1.5px solid #D4AF37" : pt.type === "warning" ? "1.5px solid #FCA5A5" : "1.5px solid #E5C158",
-                  borderRadius: 16,
-                  padding: "16px 18px",
-                  boxShadow: "0 4px 12px rgba(180, 130, 20, 0.08)"
-                }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-                    <span style={{ fontSize: 24 }}>{pt.icon}</span>
-                    <span style={{ fontSize: 14, fontWeight: 800, color: pt.type === "warning" ? "#991B1B" : "#78350F" }}>
-                      {pt.category}
-                    </span>
-                  </div>
-                  <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: pt.type === "warning" ? "#7F1D1D" : "#451A03", fontWeight: 500 }}>
-                    {pt.text}
-                  </p>
-                </div>
-              ))}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#FDE68A", textTransform: "uppercase" }}>
+                  ⚡ {dict.status}
+                </span>
+                <span style={{ fontSize: 13, fontWeight: 800, color: "#FCD34D", background: "rgba(245, 158, 11, 0.2)", padding: "2px 8px", borderRadius: 10 }}>
+                  {vibe.vibeTag}
+                </span>
+              </div>
+              <div style={{ fontSize: 18, fontWeight: 900, color: "#FFFFFF", marginBottom: 6 }}>
+                {vibe.badgeEmoji} {vibe.badgeText} ({mockDay.energyScore}%)
+              </div>
+              {/* Energy Bar */}
+              <div style={{ background: "rgba(255,255,255,0.1)", borderRadius: 8, height: 8, overflow: "hidden", marginBottom: 8 }}>
+                <div style={{ background: "linear-gradient(90deg, #F59E0B, #10B981)", height: "100%", width: `${mockDay.energyScore}%` }} />
+              </div>
+              <div style={{ fontSize: 12, color: "#E5E7EB", lineHeight: 1.5 }}>
+                🌟 {dict.taraBala}: <strong style={{ color: "#FDE68A" }}>{mockDay.tara.isFavourable ? (lang === "kn" ? "ಅನುಕೂಲಕರ" : "Favourable") : (lang === "kn" ? "ಗಮನಹರಿಸಿ" : "Caution")}</strong> | 🌙 {dict.chandraBala}: <strong style={{ color: "#FDE68A" }}>{mockDay.chandra.score}%</strong>
+              </div>
             </div>
 
+            {/* Actionable Guidance Grid */}
             <div style={{
               display: "grid",
               gridTemplateColumns: "1fr 1fr",
-              gap: 12,
-              marginBottom: 24
+              gap: 10,
+              marginBottom: 16
             }}>
-              <div style={{
-                background: "linear-gradient(135deg, #FFF8E7 0%, #FEF3C7 100%)",
-                border: "1.5px solid #E5C158",
-                borderRadius: 16,
-                padding: 16,
-                boxShadow: "0 4px 12px rgba(180, 130, 20, 0.08)"
-              }}>
-                <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 0.8, color: "#9A3412", fontWeight: 700, marginBottom: 4 }}>
-                  ⚡ {isKn ? "ಶಕ್ತಿ ಮಟ್ಟ (Energy Level)" : "Daily Energy Meter"}
-                </div>
-                <div style={{ fontSize: 18, fontWeight: 900, color: "#D97706" }}>
-                  {vibe.meter} ({vibe.badgeText})
-                </div>
-                <div style={{ background: "#E5E7EB", borderRadius: 10, height: 8, marginTop: 8, overflow: "hidden" }}>
-                  <div style={{
-                    width: `${mockDay.energyScore}%`,
-                    background: "linear-gradient(90deg, #D97706, #10B981)",
-                    height: "100%",
-                    borderRadius: 10
-                  }} />
+              <div style={{ background: "rgba(45, 20, 7, 0.85)", border: "1px solid rgba(212, 175, 55, 0.25)", borderRadius: 14, padding: 12 }}>
+                <div style={{ fontSize: 11, color: "#F59E0B", fontWeight: 700, marginBottom: 4 }}>🚗 {dict.vehicle}</div>
+                <div style={{ fontSize: 12, color: "#FFF8E7", lineHeight: 1.4 }}>
+                  {mockDay.isChandrashtama ? (lang === "kn" ? "ಪ್ರಯಾಣದಲ್ಲಿ ಜಾಗರೂಕತೆ ವಹಿಸಿ" : "Drive carefully today") : (lang === "kn" ? "ನೂತನ ಯೋಜನೆಗೆ ಪ್ರಶಸ್ತ ದಿನ" : "Auspicious for vehicle & travels")}
                 </div>
               </div>
 
-              <div style={{
-                background: "linear-gradient(135deg, #FFF8E7 0%, #FEF3C7 100%)",
-                border: "1.5px solid #E5C158",
-                borderRadius: 16,
-                padding: 16,
-                boxShadow: "0 4px 12px rgba(180, 130, 20, 0.08)"
-              }}>
-                <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 0.8, color: "#9A3412", fontWeight: 700, marginBottom: 4 }}>
-                  🧠 {isKn ? "ಮನಃಸ್ಥಿತಿ (Manas State)" : "Mind Peace & Focus"}
+              <div style={{ background: "rgba(45, 20, 7, 0.85)", border: "1px solid rgba(212, 175, 55, 0.25)", borderRadius: 14, padding: 12 }}>
+                <div style={{ fontSize: 11, color: "#F59E0B", fontWeight: 700, marginBottom: 4 }}>💰 {dict.finance}</div>
+                <div style={{ fontSize: 12, color: "#FFF8E7", lineHeight: 1.4 }}>
+                  {mockDay.isMoneyDay ? (lang === "kn" ? "ಧನಲಾಭ & ಹೂಡಿಕೆಗೆ ಅತ್ಯುತ್ತಮ" : "Excellent for financial gains") : (lang === "kn" ? "ಸಾಮಾನ್ಯ ಧನಸ್ಥಿತಿ, ಹೂಡಿಕೆಯಲ್ಲಿ ಎಚ್ಚರಿಕೆ" : "Moderate finance phase")}
                 </div>
-                <div style={{ fontSize: 15, fontWeight: 800, color: "#78350F" }}>
-                  {mockDay.isChandrashtama ? (isKn ? "ಚಂದ್ರಾಷ್ಟಮ (ಶಾಂತವಾಗಿರಿ)" : "Restless (Stay Calm)") : (isKn ? "ಚಿತ್ತ ಏಕಾಗ್ರತೆ & ಪ್ರಸನ್ನತೆ" : "Chitta Ekagrata (Calm)")}
+              </div>
+
+              <div style={{ background: "rgba(45, 20, 7, 0.85)", border: "1px solid rgba(212, 175, 55, 0.25)", borderRadius: 14, padding: 12 }}>
+                <div style={{ fontSize: 11, color: "#F59E0B", fontWeight: 700, marginBottom: 4 }}>🧠 {dict.mind}</div>
+                <div style={{ fontSize: 12, color: "#FFF8E7", lineHeight: 1.4 }}>
+                  {mockDay.isChandrashtama ? (lang === "kn" ? "ಚಂದ್ರಾಷ್ಟಮ - ಪ್ರಶಾಂತವಾಗಿರಿ" : "Chandrashtama - Stay Calm") : (lang === "kn" ? "ಚಿತ್ತ ಏಕಾಗ್ರತೆ & ಸಕಾರಾತ್ಮಕ ಶಕ್ತಿ" : "Calm mind & positive focus")}
                 </div>
-                <div style={{ fontSize: 12, color: "#451A03", marginTop: 4, fontWeight: 600 }}>
-                  🌙 {isKn ? "ಚಂದ್ರಬಲ" : "Moon Strength"}: {mockDay.chandra.score}%
+              </div>
+
+              <div style={{ background: "rgba(45, 20, 7, 0.85)", border: "1px solid rgba(212, 175, 55, 0.25)", borderRadius: 14, padding: 12 }}>
+                <div style={{ fontSize: 11, color: "#F59E0B", fontWeight: 700, marginBottom: 4 }}>🪔 {dict.spiritual}</div>
+                <div style={{ fontSize: 12, color: "#FFF8E7", lineHeight: 1.4 }}>
+                  {lang === "kn" ? "ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ನಿರಂತರ ಅನುಗ್ರಹ" : "Blessings of Mahabaleshwara"}
                 </div>
               </div>
             </div>
 
+            {/* Local Kaala Timings */}
             <div style={{
-              background: "#FFF8E7",
-              border: "1.5px solid #E5C158",
-              borderRadius: 18,
-              padding: "18px 20px",
-              marginBottom: 24,
-              boxShadow: "0 4px 15px rgba(212, 175, 55, 0.1)"
+              background: "rgba(45, 20, 7, 0.85)",
+              border: "1px solid rgba(212, 175, 55, 0.3)",
+              borderRadius: 16,
+              padding: 16,
+              marginBottom: 16
             }}>
-              <h2 style={{
-                margin: "0 0 12px",
-                fontSize: 15,
-                fontWeight: 800,
-                color: "#78350F",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                flexWrap: "wrap",
-                gap: 8
-              }}>
-                <span>⏳ {isKn ? `ಇಂದಿನ ಕಾಲ ಸಮಯಗಳು (${decoded?.loc || "Gokarna"})` : `Local Daily Kaala Timings (${decoded?.loc || "Gokarna"})`}</span>
-                <span style={{ fontSize: 12, fontWeight: 700, color: "#B45309" }}>
-                  🌅 {kaala.sunrise} | 🌇 {kaala.sunset}
-                </span>
-              </h2>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, fontSize: 13 }}>
-                <div style={{ background: "#FEF2F2", border: "1px solid #FCA5A5", padding: "10px 12px", borderRadius: 12, textAlign: "center" }}>
-                  <div style={{ fontSize: 11, color: "#991B1B", fontWeight: 700 }}>🔴 Rahu Kaala</div>
-                  <div style={{ fontWeight: 800, color: "#7F1D1D", marginTop: 2 }}>{kaala.rahu}</div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "#FDE68A", marginBottom: 10, display: "flex", justifyContent: "space-between" }}>
+                <span>⏳ {dict.kaalaHeading}</span>
+                <span style={{ fontSize: 11, color: "#F59E0B" }}>🌅 {kaala.sunrise} | 🌇 {kaala.sunset}</span>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, fontSize: 11, textAlign: "center" }}>
+                <div style={{ background: "rgba(220, 38, 38, 0.15)", border: "1px solid rgba(220, 38, 38, 0.4)", padding: 8, borderRadius: 10 }}>
+                  <div style={{ color: "#FCA5A5", fontWeight: 700 }}>🔴 {dict.rahuKaala}</div>
+                  <div style={{ fontWeight: 800, color: "#FFFFFF", marginTop: 2 }}>{kaala.rahu}</div>
                 </div>
-                <div style={{ background: "#FEFCE8", border: "1px solid #FDE047", padding: "10px 12px", borderRadius: 12, textAlign: "center" }}>
-                  <div style={{ fontSize: 11, color: "#854D0E", fontWeight: 700 }}>🟡 Gulika Kaala</div>
-                  <div style={{ fontWeight: 800, color: "#713F12", marginTop: 2 }}>{kaala.gulika}</div>
+                <div style={{ background: "rgba(217, 119, 6, 0.15)", border: "1px solid rgba(217, 119, 6, 0.4)", padding: 8, borderRadius: 10 }}>
+                  <div style={{ color: "#FDE047", fontWeight: 700 }}>🟡 {dict.gulikaKaala}</div>
+                  <div style={{ fontWeight: 800, color: "#FFFFFF", marginTop: 2 }}>{kaala.gulika}</div>
                 </div>
-                <div style={{ background: "#F0FDF4", border: "1px solid #86EFAC", padding: "10px 12px", borderRadius: 12, textAlign: "center" }}>
-                  <div style={{ fontSize: 11, color: "#166534", fontWeight: 700 }}>🟢 Yamaganda</div>
-                  <div style={{ fontWeight: 800, color: "#14532D", marginTop: 2 }}>{kaala.yamaganda}</div>
+                <div style={{ background: "rgba(16, 185, 129, 0.15)", border: "1px solid rgba(16, 185, 129, 0.4)", padding: 8, borderRadius: 10 }}>
+                  <div style={{ color: "#86EFAC", fontWeight: 700 }}>🟢 {dict.yamaganda}</div>
+                  <div style={{ fontWeight: 800, color: "#FFFFFF", marginTop: 2 }}>{kaala.yamaganda}</div>
                 </div>
               </div>
             </div>
 
+            {/* Sacred Deity Mantra Card */}
             <div style={{
               background: "linear-gradient(135deg, #78350F 0%, #451A03 100%)",
               border: "2px solid #D4AF37",
-              borderRadius: 18,
-              padding: "22px 20px",
-              marginBottom: 24,
-              textAlign: "center",
-              boxShadow: "0 8px 20px rgba(120, 53, 15, 0.3)",
-              color: "#FDE68A"
+              borderRadius: 16,
+              padding: 18,
+              marginBottom: 16,
+              textAlign: "center"
             }}>
-              <div style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: 1, color: "#FDE68A", marginBottom: 6, fontWeight: 700 }}>
-                🪔 {isKn ? `ಇಂದಿನ ದೇವತಾ ಜಪ ಮಂತ್ರ (${deity.titleKn})` : `Sacred Deity Mantra of the Day (${deity.titleEn})`}
+              <div style={{ fontSize: 11, textTransform: "uppercase", color: "#FDE68A", fontWeight: 700, marginBottom: 4 }}>
+                🪔 {dict.deityMantra}
               </div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: "#FFFFFF", marginBottom: 14, lineHeight: 1.5 }}>
+              <div style={{ fontSize: 16, fontWeight: 900, color: "#FFFFFF", marginBottom: 12, lineHeight: 1.5 }}>
                 {deity.mantra}
               </div>
               <button
@@ -976,118 +1116,117 @@ export default function DailyDarshanaPage(): JSX.Element {
                   background: isPlayingAudio ? "#10B981" : "linear-gradient(135deg, #D97706, #B45309)",
                   color: "#FFFFFF",
                   border: "none",
-                  padding: "12px 24px",
-                  borderRadius: 24,
-                  fontSize: 13,
+                  padding: "10px 20px",
+                  borderRadius: 20,
+                  fontSize: 12,
                   fontWeight: 800,
                   cursor: "pointer",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 8,
                   boxShadow: "0 4px 14px rgba(217, 119, 6, 0.4)"
                 }}
               >
-                🔔 {isPlayingAudio ? (isKn ? "ಘಂಟಾನಾದ ಧ್ವನಿಸುತ್ತಿದೆ..." : "Chanting Temple Bell...") : (isKn ? "ದೇವಸ್ಥಾನದ ಘಂಟಾನಾದ (Play Bell)" : "Play Temple Chime")}
+                🔔 {isPlayingAudio ? dict.bellPlaying : dict.playBell}
               </button>
             </div>
 
+            {/* Chief Priest Benediction */}
             <div style={{
-              background: "#FFF8E7",
-              border: "1.5px solid #E5C158",
-              borderRadius: 18,
-              padding: "18px 20px",
-              marginBottom: 24,
-              boxShadow: "0 4px 15px rgba(212, 175, 55, 0.1)"
+              background: "rgba(45, 20, 7, 0.85)",
+              border: "1px solid rgba(212, 175, 55, 0.3)",
+              borderRadius: 16,
+              padding: 16,
+              marginBottom: 16
             }}>
-              <h2 style={{
-                margin: "0 0 10px",
-                fontSize: 15,
-                fontWeight: 800,
-                color: "#78350F",
-                display: "flex",
-                alignItems: "center",
-                gap: 8
-              }}>
-                📜 {localizedPandit} - {isKn ? "ಪ್ರಧಾನ ಅರ್ಚಕರ ಆಶೀರ್ವಚನ & ಮಾರ್ಗದರ್ಶನ" : isHi ? "मुख्य अर्चक का आशीर्वाद एवं मार्गदर्शन" : isTe ? "ముఖ్య అర్చకుల ఆశీర్వచనం & మార్గదర్శకత్వం" : isTa ? "முதன்மை அர்ச்சகரின் ஆசி & வழிகாட்டுதல்" : "Chief Priest Benediction & Guidance"}
-              </h2>
-              <p style={{
-                margin: 0,
-                fontSize: 14,
-                lineHeight: 1.7,
-                color: "#451A03",
-                fontStyle: "italic",
-                fontWeight: 500
-              }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "#FDE68A", marginBottom: 6 }}>
+                📜 {dict.priestBenediction}
+              </div>
+              <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: "#E5E7EB", fontStyle: "italic" }}>
                 "{benediction}"
               </p>
             </div>
           </div>
         )}
 
-        {/* ── TAB 2: 100% BIRTH KUNDALI DETAILS ── */}
+        {/* ── TAB 2: 100% BIRTH KUNDALI ── */}
         {activeTab === "kundali" && (
           <div>
+            {/* Birth Attributes Summary */}
             <div style={{
-              background: "#FFF8E7",
-              border: "1.5px solid #E5C158",
-              borderRadius: 18,
-              padding: 18,
-              marginBottom: 20,
-              boxShadow: "0 4px 12px rgba(180, 130, 20, 0.08)"
+              background: "rgba(45, 20, 7, 0.85)",
+              border: "1px solid rgba(212, 175, 55, 0.3)",
+              borderRadius: 16,
+              padding: 16,
+              marginBottom: 16
             }}>
-              <h2 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 800, color: "#78350F", display: "flex", alignItems: "center", gap: 8 }}>
-                🕉️ {isKn ? "ಜನ್ಮ ಕುಂಡಲಿ ಮೂಲ ವಿವರಗಳು (Birth Attributes)" : "100% Janma Kundali Attributes"}
-              </h2>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, fontSize: 13 }}>
-                <div style={{ background: "#FFFDF0", border: "1px solid #E5C158", padding: 12, borderRadius: 12 }}>
-                  <span style={{ color: "#78350F", fontWeight: 600 }}>{isKn ? "ಜನ್ಮ ಲಗ್ನ:" : "Janma Lagna:"}</span>{" "}
-                  <strong style={{ color: "#B45309" }}>{storedSession?.result?.ascendant?.english || "Simha (Leo)"}</strong>
+              <div style={{ fontSize: 14, fontWeight: 800, color: "#FDE68A", marginBottom: 10 }}>
+                📜 {dict.birthAttributes}
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontSize: 12 }}>
+                <div style={{ background: "rgba(0,0,0,0.3)", padding: 8, borderRadius: 8 }}>
+                  <span style={{ color: "#F59E0B" }}>{dict.lagna}:</span>{" "}
+                  <strong>{RASHI_L5[storedSession?.result?.ascendant?.index || 4]?.[lang] || "Simha"}</strong>
                 </div>
-                <div style={{ background: "#FFFDF0", border: "1px solid #E5C158", padding: 12, borderRadius: 12 }}>
-                  <span style={{ color: "#78350F", fontWeight: 600 }}>{isKn ? "ಚಂದ್ರ ರಾಶಿ:" : "Moon Sign:"}</span>{" "}
-                  <strong style={{ color: "#B45309" }}>{storedSession?.result?.moonSign?.english || "Vrishabha (Taurus)"}</strong>
+                <div style={{ background: "rgba(0,0,0,0.3)", padding: 8, borderRadius: 8 }}>
+                  <span style={{ color: "#F59E0B" }}>{dict.rashi}:</span>{" "}
+                  <strong>{RASHI_L5[mockDay.moonRashiIndex]?.[lang] || "Vrishabha"}</strong>
                 </div>
-                <div style={{ background: "#FFFDF0", border: "1px solid #E5C158", padding: 12, borderRadius: 12 }}>
-                  <span style={{ color: "#78350F", fontWeight: 600 }}>{isKn ? "ಜನ್ಮ ನಕ್ಷತ್ರ:" : "Birth Nakshatra:"}</span>{" "}
-                  <strong style={{ color: "#B45309" }}>{storedSession?.result?.nakshatra?.english || "Rohini 2nd Pada"}</strong>
+                <div style={{ background: "rgba(0,0,0,0.3)", padding: 8, borderRadius: 8 }}>
+                  <span style={{ color: "#F59E0B" }}>{dict.nakshatra}:</span>{" "}
+                  <strong>{NAKSHATRA_L5[mockDay.moonNakshatraIndex]?.[lang] || "Rohini"}</strong>
                 </div>
-                <div style={{ background: "#FFFDF0", border: "1px solid #E5C158", padding: 12, borderRadius: 12 }}>
-                  <span style={{ color: "#78350F", fontWeight: 600 }}>{isKn ? "ರಾಶ್ಯಾಧಿಪತಿ:" : "Rashi Lord:"}</span>{" "}
-                  <strong style={{ color: "#B45309" }}>Shukra (Venus)</strong>
+                <div style={{ background: "rgba(0,0,0,0.3)", padding: 8, borderRadius: 8 }}>
+                  <span style={{ color: "#F59E0B" }}>{dict.rashiLord}:</span>{" "}
+                  <strong>{GRAHA_L5.Venus[lang]}</strong>
                 </div>
               </div>
             </div>
 
+            {/* Visual South-Indian Birth Kundali Chart */}
+            <SouthIndianKundaliGrid
+              lang={lang}
+              highlightRashiIndex={mockDay.moonRashiIndex}
+              lagnaRashiIndex={4}
+              planetPlacements={birthPlacements}
+              title={dict.tabKundali}
+              isGochara={false}
+            />
+
+            {/* Planetary Sphuta Table */}
             <div style={{
-              background: "#FFFDF0",
-              border: "1.5px solid #E5C158",
-              borderRadius: 18,
-              padding: 18,
-              marginBottom: 24,
-              overflowX: "auto",
-              boxShadow: "0 4px 12px rgba(180, 130, 20, 0.08)"
+              background: "rgba(45, 20, 7, 0.85)",
+              border: "1px solid rgba(212, 175, 55, 0.3)",
+              borderRadius: 16,
+              padding: 14,
+              overflowX: "auto"
             }}>
-              <h2 style={{ margin: "0 0 12px", fontSize: 15, fontWeight: 800, color: "#78350F" }}>
-                🪐 {isKn ? "ನವಗ್ರಹ ಸ್ಪಷ್ಟ ಸ್ಥಾನಗಳು (Graha Sphutas & Bhavas)" : "Complete Planetary Sphuta Table"}
-              </h2>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, textAlign: "left" }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "#FDE68A", marginBottom: 8 }}>
+                🪐 {dict.sphutaTableTitle}
+              </div>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11, textAlign: "left" }}>
                 <thead>
-                  <tr style={{ borderBottom: "2px solid #E5C158", color: "#78350F" }}>
-                    <th style={{ padding: "8px 6px" }}>{isKn ? "ಗ್ರಹ" : "Graha"}</th>
-                    <th style={{ padding: "8px 6px" }}>{isKn ? "ರಾಶಿ" : "Rashi"}</th>
-                    <th style={{ padding: "8px 6px" }}>{isKn ? "ಭಾವ" : "House"}</th>
-                    <th style={{ padding: "8px 6px" }}>{isKn ? "ಅಂಶಗಳು" : "Deg"}</th>
-                    <th style={{ padding: "8px 6px" }}>{isKn ? "ಸ್ಥಿತಿ" : "Status"}</th>
+                  <tr style={{ borderBottom: "1px solid #D4AF37", color: "#F59E0B" }}>
+                    <th style={{ padding: 6 }}>{dict.graha}</th>
+                    <th style={{ padding: 6 }}>{dict.rashiCol}</th>
+                    <th style={{ padding: 6 }}>{dict.houseCol}</th>
+                    <th style={{ padding: 6 }}>{dict.degCol}</th>
+                    <th style={{ padding: 6 }}>{dict.statusCol}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {planetaryPositions.map((p: any, idx: number) => (
-                    <tr key={idx} style={{ borderBottom: "1px solid #FEF3C7" }}>
-                      <td style={{ padding: "10px 6px", fontWeight: 800, color: "#78350F" }}>{p.name}</td>
-                      <td style={{ padding: "10px 6px", color: "#451A03" }}>{p.rashi || "Simha"}</td>
-                      <td style={{ padding: "10px 6px", color: "#B45309", fontWeight: 700 }}>{p.house || idx + 1}</td>
-                      <td style={{ padding: "10px 6px", color: "#78350F" }}>{p.deg || "15° 00'"}</td>
-                      <td style={{ padding: "10px 6px", color: "#166534", fontWeight: 700 }}>{p.status || "Subha"}</td>
+                  {[
+                    { g: GRAHA_L5.Sun[lang], r: RASHI_L5[0][lang], h: 1, deg: "24° 12'", st: "Subha" },
+                    { g: GRAHA_L5.Moon[lang], r: RASHI_L5[1][lang], h: 2, deg: "15° 40'", st: "Ucca" },
+                    { g: GRAHA_L5.Mars[lang], r: RASHI_L5[6][lang], h: 7, deg: "08° 19'", st: "Sama" },
+                    { g: GRAHA_L5.Mercury[lang], r: RASHI_L5[0][lang], h: 1, deg: "18° 02'", st: "Subha" },
+                    { g: GRAHA_L5.Jupiter[lang], r: RASHI_L5[1][lang], h: 2, deg: "11° 50'", st: "Kendra" },
+                    { g: GRAHA_L5.Venus[lang], r: RASHI_L5[4][lang], h: 5, deg: "29° 05'", st: "Subha" },
+                    { g: GRAHA_L5.Saturn[lang], r: RASHI_L5[10][lang], h: 11, deg: "19° 33'", st: "Swakshetra" }
+                  ].map((row, i) => (
+                    <tr key={i} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                      <td style={{ padding: 6, fontWeight: 700, color: "#FFF8E7" }}>{row.g}</td>
+                      <td style={{ padding: 6, color: "#D1D5DB" }}>{row.r}</td>
+                      <td style={{ padding: 6, color: "#F59E0B", fontWeight: 700 }}>{row.h}</td>
+                      <td style={{ padding: 6, color: "#E5E7EB" }}>{row.deg}</td>
+                      <td style={{ padding: 6, color: "#10B981", fontWeight: 700 }}>{row.st}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -1096,216 +1235,222 @@ export default function DailyDarshanaPage(): JSX.Element {
           </div>
         )}
 
-        {/* ── TAB 3: 100% GOCHARA & TARA BALA ── */}
+        {/* ── TAB 3: 100% GOCHARA & TRANSITS ── */}
         {activeTab === "gochara" && (
           <div>
+            {/* Visual South-Indian Gochara Kundali Chart */}
+            <SouthIndianKundaliGrid
+              lang={lang}
+              highlightRashiIndex={mockDay.moonRashiIndex}
+              planetPlacements={gocharaPlacements}
+              title={dict.gocharaChartTitle}
+              isGochara={true}
+            />
+
             {/* Chandra Bala & Tara Bala Cards */}
-            <div style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 12,
-              marginBottom: 20
-            }}>
-              <div style={{
-                background: "rgba(16, 185, 129, 0.1)",
-                border: "1px solid rgba(16, 185, 129, 0.3)",
-                borderRadius: 14,
-                padding: 14
-              }}>
-                <div style={{ fontSize: 11, textTransform: "uppercase", color: "#6ee7b7", marginBottom: 4, fontWeight: 700 }}>
-                  🌙 {isKn ? "ಚಂದ್ರ ಬಲ (Chandra Bala)" : "Chandra Bala"}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16 }}>
+              <div style={{ background: "rgba(16, 185, 129, 0.15)", border: "1px solid rgba(16, 185, 129, 0.4)", borderRadius: 14, padding: 12 }}>
+                <div style={{ fontSize: 11, color: "#86EFAC", fontWeight: 700, textTransform: "uppercase" }}>
+                  🌙 {dict.chandraBala}
                 </div>
-                <div style={{ fontSize: 16, fontWeight: 800, color: "#ffffff" }}>
-                  {mockDay.chandra.score}% - {isKn ? "ಅನುಕೂಲಕರ (11ನೇ ಮನೆ)" : "Auspicious (11th House)"}
+                <div style={{ fontSize: 15, fontWeight: 900, color: "#FFFFFF", marginTop: 2 }}>
+                  {mockDay.chandra.score}%
                 </div>
-                <div style={{ fontSize: 12, color: "#cbd5e1", marginTop: 4 }}>
-                  {isKn ? "ಮನೋಬಲ ಹಾಗೂ ಕಾರ್ಯದಲ್ಲಿ ನೆಮ್ಮದಿ ತರಲಿದೆ." : "Brings mental clarity and progressive success."}
+                <div style={{ fontSize: 11, color: "#D1D5DB", marginTop: 4, lineHeight: 1.3 }}>
+                  {mockDay.isChandrashtama ? (lang === "kn" ? "ಚಂದ್ರಾಷ್ಟಮ - ಶಾಂತಿ ಕಾಪಾಡಿ" : "Rest & Caution") : (lang === "kn" ? "ಅನುಕೂಲಕರ ಚಂದ್ರಬಲ" : "Favourable Moon Strength")}
                 </div>
               </div>
 
-              <div style={{
-                background: "rgba(59, 130, 246, 0.1)",
-                border: "1px solid rgba(59, 130, 246, 0.3)",
-                borderRadius: 14,
-                padding: 14
-              }}>
-                <div style={{ fontSize: 11, textTransform: "uppercase", color: "#93c5fd", marginBottom: 4, fontWeight: 700 }}>
-                  ⭐ {isKn ? "ತಾರಾ ಬಲ (Tara Bala)" : "Tara Bala Strength"}
+              <div style={{ background: "rgba(59, 130, 246, 0.15)", border: "1px solid rgba(59, 130, 246, 0.4)", borderRadius: 14, padding: 12 }}>
+                <div style={{ fontSize: 11, color: "#93C5FD", fontWeight: 700, textTransform: "uppercase" }}>
+                  ⭐ {dict.taraBala}
                 </div>
-                <div style={{ fontSize: 15, fontWeight: 800, color: "#ffffff" }}>
-                  {TARA_BALA_NAMES[mockDay.tara.tara]?.kn || "ಸಂಪತ್ ತಾರಾ"}
+                <div style={{ fontSize: 14, fontWeight: 900, color: "#FFFFFF", marginTop: 2 }}>
+                  {mockDay.tara.isFavourable ? (lang === "kn" ? "ಸಂಪತ್ ತಾರಾ" : "Sampat Tara") : (lang === "kn" ? "ಜಾಗರೂಕತೆಯ ತಾರಾ" : "Caution Tara")}
                 </div>
-                <div style={{ fontSize: 12, color: "#cbd5e1", marginTop: 4 }}>
-                  {isKn ? "ಧನಾರ್ಜನೆ ಮತ್ತು ಹೊಸ ಯೋಜನೆಗಳಿಗೆ ಅತ್ಯುತ್ತಮ." : "Favorable for investments and new initiatives."}
+                <div style={{ fontSize: 11, color: "#D1D5DB", marginTop: 4, lineHeight: 1.3 }}>
+                  {mockDay.tara.isFavourable ? (lang === "kn" ? "ಕಾರ್ಯ ಸಿದ್ಧಿ & ಜಯ" : "High Success Rate") : (lang === "kn" ? "ಹೊಸ ಸಾಹಸ ಬೇಡ" : "Avoid Risks")}
                 </div>
               </div>
             </div>
 
-            {/* Major Planetary Gochara Transits */}
+            {/* Gochara Transit Descriptions */}
             <div style={{
-              background: "rgba(0, 0, 0, 0.3)",
-              border: "1px solid rgba(255, 255, 255, 0.1)",
+              background: "rgba(45, 20, 7, 0.85)",
+              border: "1px solid rgba(212, 175, 55, 0.3)",
               borderRadius: 16,
               padding: 16,
-              marginBottom: 24
+              marginBottom: 16
             }}>
-              <h2 style={{ margin: "0 0 12px", fontSize: 15, fontWeight: 700, color: "#f59e0b" }}>
-                🪐 {isKn ? "ಪ್ರಮುಖ ಗ್ರಹಗಳ ಗೋಚಾರ ಫಲಗಳು (Live Transits)" : "Major Planetary Gochara Transits"}
-              </h2>
-
-              <div style={{ display: "flex", flexDirection: "column", gap: 12, fontSize: 13 }}>
-                <div style={{ background: "rgba(255,255,255,0.03)", padding: 12, borderRadius: 10, borderLeft: "3px solid #f59e0b" }}>
-                  <div style={{ fontWeight: 700, color: "#fef08a" }}>👑 {isKn ? "ಗುರು ಗೋಚಾರ (Jupiter Transit)" : "Jupiter Gochara (Guru Transit)"}</div>
-                  <div style={{ color: "#cbd5e1", marginTop: 4, lineHeight: 1.5 }}>
-                    {isKn
-                      ? "ಗುರುವು ನಿಮ್ಮ ಚಂದ್ರ ರಾಶಿಗೆ ಶುಭ ದೃಷ್ಟಿ ಬೀರುತ್ತಿದ್ದು, ಆಧ್ಯಾತ್ಮಿಕ ಚಿಂತನೆ ಹಾಗೂ ಆರ್ಥಿಕ ಬೆಳವಣಿಗೆಗೆ ಪ್ರೋತ್ಸಾಹ ನೀಡುತ್ತಿದ್ದಾನೆ."
-                      : "Jupiter casts auspicious aspect on your Moon sign, elevating wisdom and professional prospects."}
-                  </div>
-                </div>
-
-                <div style={{ background: "rgba(255,255,255,0.03)", padding: 12, borderRadius: 10, borderLeft: "3px solid #38bdf8" }}>
-                  <div style={{ fontWeight: 700, color: "#7dd3fc" }}>⚖️ {isKn ? "ಶನಿ ಗೋಚಾರ (Saturn Transit - Shani Bala)" : "Saturn Gochara (Shani Transit)"}</div>
-                  <div style={{ color: "#cbd5e1", marginTop: 4, lineHeight: 1.5 }}>
-                    {isKn
-                      ? "ಶನಿಯು ಸ್ವಕ್ಷೇತ್ರ ಸಂಚಾರದಲ್ಲಿದ್ದು, ಶಿಸ್ತು ಮತ್ತು ನಿಷ್ಠಾವಂತ ಪರಿಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಪ್ರತಿಫಲ ನೀಡಲಿದ್ದಾನೆ. ಅನಗತ್ಯ ಆತುರ ತಪ್ಪಿಸಿ."
-                      : "Saturn transits in strength, rewarding disciplined efforts while advising against hasty financial decisions."}
-                  </div>
-                </div>
-
-                <div style={{ background: "rgba(255,255,255,0.03)", padding: 12, borderRadius: 10, borderLeft: "3px solid #a855f7" }}>
-                  <div style={{ fontWeight: 700, color: "#d8b4fe" }}>🐉 {isKn ? "ರಾಹು-ಕೇತು ಗೋಚಾರ (Rahu-Ketu Axis)" : "Rahu-Ketu Axis Transit"}</div>
-                  <div style={{ color: "#cbd5e1", marginTop: 4, lineHeight: 1.5 }}>
-                    {isKn
-                      ? "ಕಾರ್ಮಿಕ ಶುದ್ಧೀಕರಣ ಹಾಗೂ ಅನಿರೀಕ್ಷಿತ ಪ್ರಯಾಣಗಳ ಸಂಭವ. ಶ್ರೀ ದುರ್ಗಾ ಹಾಗೂ ಗಣಪತಿ ಆರಾಧನೆ ಶ್ರೇಷ್ಠ."
-                      : "Karmic transformation axis active. Regular prayer to Sri Durga and Ganesha brings peace and protection."}
-                  </div>
-                </div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: "#FDE68A", marginBottom: 12 }}>
+                🪐 {dict.gocharaTransitsTitle}
               </div>
-            </div>
-          </div>
-        )}
 
-        {/* ── TAB 4: 100% DASHA-BHUKTI BREAKDOWN ── */}
-        {activeTab === "dasha" && (
-          <div>
-            {/* Running Dasha Card */}
-            <div style={{
-              background: "linear-gradient(135deg, rgba(88, 28, 135, 0.4) 0%, rgba(30, 27, 75, 0.4) 100%)",
-              border: "1px solid #a855f7",
-              borderRadius: 16,
-              padding: 18,
-              marginBottom: 20
-            }}>
-              <div style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: 0.8, color: "#e9d5ff", marginBottom: 6 }}>
-                ⏳ {isKn ? "ಪ್ರಸ್ತುತ ಚಾಲ್ತಿಯಲ್ಲಿರುವ ವಿಂಶೋತ್ತರಿ ದಶಾ ಕಾಲ" : "Active Vimshottari Dasha Phase"}
-              </div>
-              <div style={{ fontSize: 20, fontWeight: 800, color: "#ffffff", marginBottom: 4 }}>
-                {isKn ? "ಗುರು ಮಹಾದಶಾ · ಶುಕ್ರ ಅಂತರ್ದಶಾ" : "Jupiter Mahadasha · Venus Antardasha"}
-              </div>
-              <div style={{ fontSize: 13, color: "#cbd5e1" }}>
-                {isKn ? "ಅವಧಿ: 2024 ರಿಂದ 2027 ರವರೆಗೆ (ಶುಭ ಫಲದಾಯಕ ಕಾಲ)" : "Active Period: 2024 to 2027 (Auspicious Phase)"}
-              </div>
-            </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, fontSize: 12, lineHeight: 1.5 }}>
+                <div style={{ background: "rgba(0,0,0,0.3)", padding: 10, borderRadius: 10, borderLeft: "3px solid #F59E0B" }}>
+                  <div style={{ fontWeight: 800, color: "#FCD34D" }}>👑 {dict.guruTransitTitle}</div>
+                  <div style={{ color: "#E5E7EB", marginTop: 2 }}>{dict.guruTransitDesc}</div>
+                </div>
 
-            {/* Dasha Phala Detailed Insights */}
-            <div style={{
-              background: "rgba(0, 0, 0, 0.3)",
-              border: "1px solid rgba(255, 255, 255, 0.1)",
-              borderRadius: 16,
-              padding: 16,
-              marginBottom: 20
-            }}>
-              <h2 style={{ margin: "0 0 12px", fontSize: 15, fontWeight: 700, color: "#f59e0b" }}>
-                📜 {isKn ? "ದಶಾ ಫಲ ವಿಶ್ಲೇಷಣೆ (Dasha Phala Insights)" : "Comprehensive Dasha Phala"}
-              </h2>
-              <div style={{ display: "flex", flexDirection: "column", gap: 10, fontSize: 13, lineHeight: 1.6, color: "#e2e8f0" }}>
-                <div>
-                  <strong style={{ color: "#38bdf8" }}>💼 {isKn ? "ಉದ್ಯೋಗ & ಧನಲಾಭ:" : "Career & Finance:"}</strong>{" "}
-                  {isKn
-                    ? "ಗುರು ಮತ್ತು ಶುಕ್ರರ ಸಂಯೋಗವು ಉದ್ಯೋಗದಲ್ಲಿ ಗೌರವ, ನೂತನ ಅವಕಾಶಗಳು ಹಾಗೂ ಸ್ಥಿರಾಸ್ತಿ ವೃದ್ಧಿಗೆ ಕಾರಣವಾಗಲಿದೆ."
-                    : "Jupiter-Venus harmony fosters professional recognition, financial growth, and real estate progress."}
+                <div style={{ background: "rgba(0,0,0,0.3)", padding: 10, borderRadius: 10, borderLeft: "3px solid #38BDF8" }}>
+                  <div style={{ fontWeight: 800, color: "#7DD3FC" }}>⚖️ {dict.shaniTransitTitle}</div>
+                  <div style={{ color: "#E5E7EB", marginTop: 2 }}>{dict.shaniTransitDesc}</div>
                 </div>
-                <div>
-                  <strong style={{ color: "#f472b6" }}>🏡 {isKn ? "ಕುಟುಂಬ & ವಿವಾಹ ಜೀವನ:" : "Family & Relationships:"}</strong>{" "}
-                  {isKn
-                    ? "ಮಂಗಳ ಕಾರ್ಯಗಳ ಚರ್ಚೆ, ಬಂಧು-ಮಿತ್ರರ ಸಹಕಾರ ಮತ್ತು ಗೃಹದಲ್ಲಿ ಸಂತೋಷದ ವಾತಾವರಣ ಉಂಟಾಗಲಿದೆ."
-                    : "Favorable for auspicious celebrations, family harmony, and cordial social relationships."}
-                </div>
-                <div>
-                  <strong style={{ color: "#86efac" }}>🌿 {isKn ? "ಆರೋಗ್ಯ & ಮನಃಶಾಂತಿ:" : "Health & Vitality:"}</strong>{" "}
-                  {isKn
-                    ? "ಉತ್ತಮ ಆರೋಗ್ಯವಿರಲಿದೆ. ಸಾತ್ವಿಕ ಆಹಾರ ಸೇವನೆ ಹಾಗೂ ನಿಯಮಿತ ಧ್ಯಾನವು ಇನ್ನಷ್ಟು ಸಕಾರಾತ್ಮಕ ಶಕ್ತಿ ನೀಡುತ್ತದೆ."
-                    : "Generally positive vitality. Sattvic diet and regular meditation enhance physical and mental calm."}
+
+                <div style={{ background: "rgba(0,0,0,0.3)", padding: 10, borderRadius: 10, borderLeft: "3px solid #A855F7" }}>
+                  <div style={{ fontWeight: 800, color: "#D8B4FE" }}>🐉 {dict.rahuKetuTitle}</div>
+                  <div style={{ color: "#E5E7EB", marginTop: 2 }}>{dict.rahuKetuDesc}</div>
                 </div>
               </div>
             </div>
 
-            {/* Recommended Vedic Remedies */}
+            {/* Prescribed Remedies */}
             <div style={{
-              background: "rgba(245, 158, 11, 0.08)",
-              border: "1px solid rgba(245, 158, 11, 0.25)",
+              background: "rgba(245, 158, 11, 0.1)",
+              border: "1px solid rgba(245, 158, 11, 0.3)",
               borderRadius: 16,
-              padding: 16,
-              marginBottom: 24
+              padding: 14
             }}>
-              <h2 style={{ margin: "0 0 10px", fontSize: 14, fontWeight: 700, color: "#fef08a" }}>
-                🪔 {isKn ? "ದಶಾ ಶಾಂತಿ & ವೈದಿಕ ಪರಿಹಾರಗಳು (Vedic Remedies)" : "Prescribed Vedic Remedies"}
-              </h2>
-              <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: "#cbd5e1", lineHeight: 1.7 }}>
-                <li>{isKn ? "ಗುರುವಾರ ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಪಾರಾಯಣ ಹಾಗೂ ಕಡಲೆಕಾಳು ದಾನ." : "Chant Vishnu Sahasranama on Thursdays & offer yellow lentils."}</li>
-                <li>{isKn ? "ಶುಕ್ರವಾರ ಮಹಾಲಕ್ಷ್ಮಿ ಅಷ್ಟೋತ್ತರ ಜಪ ಹಾಗೂ ಗೋಸೇವೆ." : "Offer prayers to Goddess Mahalakshmi on Fridays & feed cows."}</li>
-                <li>{isKn ? "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಗೆ ರುದ್ರಾಭಿಷೇಕ ಸಂಕಲ್ಪ." : "Sponsor Rudrabhisheka at Gokarna Mahabaleshwara temple."}</li>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "#FDE68A", marginBottom: 6 }}>
+                🪔 {dict.remediesTitle}
+              </div>
+              <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12, color: "#E5E7EB", lineHeight: 1.6 }}>
+                <li>{lang === "kn" ? "ಗುರುವಾರ ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಪಾರಾಯಣ" : "Chant Vishnu Sahasranama on Thursdays"}</li>
+                <li>{lang === "kn" ? "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಗೆ ರುದ್ರಾಭಿಷೇಕ ಸಂಕಲ್ಪ" : "Sponsor Rudrabhisheka at Gokarna Kshetra"}</li>
+                <li>{lang === "kn" ? "ನಿತ್ಯವೂ ಶ್ರೀ ಆಂಜನೇಯ ಚಾಲೀಸಾ ಪಠಣ" : "Recite Hanuman Chalisa daily for strength"}</li>
               </ul>
             </div>
           </div>
         )}
 
-        {/* Action Buttons: WhatsApp & Copy */}
+        {/* ── TAB 4: 100% DASHA-BHUKTI ── */}
+        {activeTab === "dasha" && (
+          <div>
+            {/* Active Dasha Header */}
+            <div style={{
+              background: "linear-gradient(135deg, rgba(147, 51, 234, 0.3) 0%, rgba(88, 28, 135, 0.3) 100%)",
+              border: "1.5px solid #A855F7",
+              borderRadius: 16,
+              padding: 16,
+              marginBottom: 16
+            }}>
+              <div style={{ fontSize: 11, textTransform: "uppercase", color: "#E9D5FF", fontWeight: 700, marginBottom: 4 }}>
+                ⏳ {dict.dashaHeader}
+              </div>
+              <div style={{ fontSize: 18, fontWeight: 900, color: "#FFFFFF", marginBottom: 4 }}>
+                {dict.activePhase}
+              </div>
+              <div style={{ fontSize: 12, color: "#D1D5DB", marginBottom: 8 }}>
+                {dict.dashaPeriod}
+              </div>
+
+              {/* Dasha Timeline Bar */}
+              <div style={{ background: "rgba(255,255,255,0.1)", borderRadius: 8, height: 8, overflow: "hidden" }}>
+                <div style={{ background: "linear-gradient(90deg, #A855F7, #EC4899)", height: "100%", width: "65%" }} />
+              </div>
+            </div>
+
+            {/* Dasha Phala 4 Categories */}
+            <div style={{
+              background: "rgba(45, 20, 7, 0.85)",
+              border: "1px solid rgba(212, 175, 55, 0.3)",
+              borderRadius: 16,
+              padding: 16,
+              marginBottom: 16
+            }}>
+              <div style={{ fontSize: 14, fontWeight: 800, color: "#FDE68A", marginBottom: 12 }}>
+                📜 {dict.dashaPhalaTitle}
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, fontSize: 12, lineHeight: 1.5 }}>
+                <div>
+                  <strong style={{ color: "#38BDF8" }}>💼 {dict.careerTitle}:</strong>{" "}
+                  <span style={{ color: "#E5E7EB" }}>{dict.careerDesc}</span>
+                </div>
+
+                <div>
+                  <strong style={{ color: "#F472B6" }}>💰 {dict.wealthTitle}:</strong>{" "}
+                  <span style={{ color: "#E5E7EB" }}>{dict.wealthDesc}</span>
+                </div>
+
+                <div>
+                  <strong style={{ color: "#86EFAC" }}>🏡 {dict.familyTitle}:</strong>{" "}
+                  <span style={{ color: "#E5E7EB" }}>{dict.familyDesc}</span>
+                </div>
+
+                <div>
+                  <strong style={{ color: "#FDE047" }}>🌿 {dict.healthTitle}:</strong>{" "}
+                  <span style={{ color: "#E5E7EB" }}>{dict.healthDesc}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Dasha Remedies */}
+            <div style={{
+              background: "rgba(168, 85, 247, 0.1)",
+              border: "1px solid rgba(168, 85, 247, 0.3)",
+              borderRadius: 16,
+              padding: 14
+            }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "#E9D5FF", marginBottom: 6 }}>
+                🪔 {dict.remediesTitle}
+              </div>
+              <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12, color: "#E5E7EB", lineHeight: 1.6 }}>
+                <li>{lang === "kn" ? "ಶುಕ್ರವಾರ ಮಹಾಲಕ್ಷ್ಮಿ ಆರಾಧನೆ & ಗೋಸೇವೆ" : "Worship Goddess Mahalakshmi on Fridays"}</li>
+                <li>{lang === "kn" ? "ಗುರುವಾರ ಬ್ರಾಹ್ಮಣರಿಗೆ ಕಡಲೆ ಧಾನ್ಯ ದಾನ" : "Offer yellow chana to learned priests on Thursdays"}</li>
+                <li>{lang === "kn" ? "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದಲ್ಲಿ ಸಂಕಲ್ಪ ಪೂಜೆ" : "Sponsor divine Seva at Gokarna Kshetra"}</li>
+              </ul>
+            </div>
+          </div>
+        )}
+
+        {/* Action Buttons: WhatsApp Share & Copy Link */}
         <div style={{
           display: "flex",
-          gap: 12,
+          gap: 10,
           justifyContent: "center",
           flexWrap: "wrap",
-          paddingTop: 12,
-          borderTop: "1px solid rgba(255, 255, 255, 0.08)"
+          marginTop: 20,
+          paddingTop: 16,
+          borderTop: "1px solid rgba(212, 175, 55, 0.2)"
         }}>
           <button
             onClick={handleShareWhatsApp}
             style={{
               background: "#25D366",
-              color: "#ffffff",
+              color: "#FFFFFF",
               border: "none",
-              padding: "12px 24px",
-              borderRadius: 24,
-              fontSize: 14,
-              fontWeight: 700,
+              padding: "10px 20px",
+              borderRadius: 20,
+              fontSize: 13,
+              fontWeight: 800,
               cursor: "pointer",
               display: "inline-flex",
               alignItems: "center",
-              gap: 8,
+              gap: 6,
               boxShadow: "0 4px 12px rgba(37, 211, 102, 0.3)"
             }}
           >
-            💬 {isKn ? "ವಾಟ್ಸಾಪ್‌ನಲ್ಲಿ ಹಂಚಿಕೊಳ್ಳಿ" : "Share on WhatsApp"}
+            💬 {dict.shareWhatsapp}
           </button>
 
           <button
             onClick={handleCopyLink}
             style={{
-              background: "rgba(255, 255, 255, 0.1)",
-              color: "#ffffff",
-              border: "1px solid rgba(255, 255, 255, 0.2)",
-              padding: "12px 24px",
-              borderRadius: 24,
-              fontSize: 14,
-              fontWeight: 600,
+              background: "rgba(255, 255, 255, 0.08)",
+              color: "#FFF8E7",
+              border: "1px solid rgba(212, 175, 55, 0.4)",
+              padding: "10px 20px",
+              borderRadius: 20,
+              fontSize: 13,
+              fontWeight: 700,
               cursor: "pointer",
               display: "inline-flex",
               alignItems: "center",
-              gap: 8
+              gap: 6
             }}
           >
-            🔗 {copied ? (isKn ? "ಕಾಪಿ ಆಗಿದೆ! ✓" : "Copied! ✓") : (isKn ? "ಲಿಂಕ್ ಕಾಪಿ ಮಾಡಿ" : "Copy Sanctum Link")}
+            🔗 {copied ? dict.copied : dict.copyLink}
           </button>
         </div>
       </main>
@@ -1313,19 +1458,19 @@ export default function DailyDarshanaPage(): JSX.Element {
       {/* Footer */}
       <footer style={{
         textAlign: "center",
-        marginTop: 32,
-        fontSize: 12,
-        color: "#64748b"
+        marginTop: 24,
+        fontSize: 11,
+        color: "#9CA3AF"
       }}>
         ✨ Gokarna Mahabaleshwara Prasada Siddhirastu · Baggona Panchanga Astrology ✨
       </footer>
 
-      {/* Shreeram Pandit Contact Modal */}
+      {/* Contact Pandit Modal */}
       {showContactModal && (
         <div style={{
           position: "fixed",
           inset: 0,
-          background: "rgba(0, 0, 0, 0.75)",
+          background: "rgba(0, 0, 0, 0.8)",
           backdropFilter: "blur(6px)",
           zIndex: 9999,
           display: "flex",
@@ -1336,9 +1481,9 @@ export default function DailyDarshanaPage(): JSX.Element {
           <div style={{
             background: "linear-gradient(135deg, #1C0A00 0%, #2A1202 100%)",
             border: "2px solid #F59E0B",
-            borderRadius: 24,
-            padding: "28px 24px",
-            maxWidth: 480,
+            borderRadius: 20,
+            padding: "24px 20px",
+            maxWidth: 440,
             width: "100%",
             textAlign: "center",
             color: "#FFF8E7",
@@ -1349,52 +1494,51 @@ export default function DailyDarshanaPage(): JSX.Element {
               onClick={() => setShowContactModal(false)}
               style={{
                 position: "absolute",
-                top: 14,
-                right: 16,
+                top: 12,
+                right: 14,
                 background: "transparent",
                 border: "none",
                 color: "#FDE68A",
-                fontSize: 22,
+                fontSize: 20,
                 cursor: "pointer"
               }}
             >
               ✕
             </button>
 
-            <div style={{ fontSize: 42, marginBottom: 10 }}>🪔</div>
+            <div style={{ fontSize: 36, marginBottom: 8 }}>🪔</div>
 
-            <h3 style={{ fontSize: 20, fontWeight: 800, color: "#FDE68A", margin: "0 0 6px" }}>
-              {isKn ? "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್" : "Shreeram Pandit"}
+            <h3 style={{ fontSize: 18, fontWeight: 900, color: "#FDE68A", margin: "0 0 4px" }}>
+              {lang === "kn" ? "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್" : "Shreeram Pandit"}
             </h3>
-            <div style={{ fontSize: 13, color: "#F59E0B", fontWeight: 700, marginBottom: 14 }}>
-              🕉️ {isKn ? "ಮುಖ್ಯ ಅರ್ಚಕರು - ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ" : "Chief Archaka - Gokarna Kshetra"}
+            <div style={{ fontSize: 12, color: "#F59E0B", fontWeight: 700, marginBottom: 12 }}>
+              🕉️ {dict.panditRole}
             </div>
 
-            <p style={{ fontSize: 14, color: "#E2E8F0", lineHeight: 1.6, marginBottom: 20 }}>
-              {isKn
+            <p style={{ fontSize: 13, color: "#E2E8F0", lineHeight: 1.5, marginBottom: 16 }}>
+              {lang === "kn"
                 ? "ನಿಮ್ಮ ಹೆಸರು, ಗೋತ್ರ ಹಾಗೂ ನಕ್ಷತ್ರಕ್ಕೆ ಅನುಗುಣವಾಗಿ ವೈಯಕ್ತಿಕ 90 ದಿನಗಳ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಸೇವಾ ಕ್ಯಾಲೆಂಡರ್ ಪಡೆಯಲು ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರನ್ನು ನೇರವಾಗಿ ಕರೆ ಮಾಡಿ."
                 : "Call Shreeram Pandit to get your personalized 90-Day Baggona Panchanga calendar tailored to your Name, Gotra & Nakshatra."}
             </p>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               <a
                 href="tel:9972339362"
                 style={{
                   background: "linear-gradient(135deg, #D97706, #B45309)",
                   color: "#FFFFFF",
-                  padding: "14px",
-                  borderRadius: 16,
+                  padding: 12,
+                  borderRadius: 14,
                   fontWeight: 800,
-                  fontSize: 15,
+                  fontSize: 14,
                   textDecoration: "none",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  gap: 10,
-                  boxShadow: "0 4px 15px rgba(217, 119, 6, 0.4)"
+                  gap: 8
                 }}
               >
-                📞 {isKn ? "ನೇರ ಕರೆ: 9972339362" : "Call Directly: +91 9972339362"}
+                📞 {dict.callNow}
               </a>
 
               <a
@@ -1404,16 +1548,15 @@ export default function DailyDarshanaPage(): JSX.Element {
                 style={{
                   background: "#25D366",
                   color: "#FFFFFF",
-                  padding: "14px",
-                  borderRadius: 16,
+                  padding: 12,
+                  borderRadius: 14,
                   fontWeight: 800,
-                  fontSize: 15,
+                  fontSize: 14,
                   textDecoration: "none",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  gap: 10,
-                  boxShadow: "0 4px 15px rgba(37, 211, 102, 0.3)"
+                  gap: 8
                 }}
               >
                 💬 WhatsApp Message (9972339362)

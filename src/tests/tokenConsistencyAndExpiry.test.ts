@@ -201,21 +201,20 @@ describe("Devotee 90-Day Token Consistency & Expiry Engine", () => {
       personName: "ರಾಘವೇಂದ್ರ ವೈದ್ಯ"
     });
 
-    // 1. Verify 1-click series UID grouping
-    expect(icsContent).toContain("UID:baggona-90day-series-");
+    // 1. Verify individual day UIDs for reliable 90-day calendar import
+    expect(icsContent).toContain("UID:baggona-day-");
     
-    // Count UID occurrences — all 90 days must share the EXACT same series UID
-    const uidMatches = icsContent.match(/UID:baggona-90day-series-[A-Za-z0-9]+@baggona\.app/g);
+    // Count UID occurrences — all 90 days must have their own unique day UID
+    const uidMatches = icsContent.match(/UID:baggona-day-[A-Za-z0-9-]+@baggona\.app/g);
     expect(uidMatches).not.toBeNull();
     expect(uidMatches?.length).toBe(90);
-    // All 90 UID strings must be identical to form 1 recurring series!
+    // All 90 UID strings must be distinct so every day imports reliably into mobile calendar apps!
     const uniqueUids = new Set(uidMatches);
-    expect(uniqueUids.size).toBe(1);
+    expect(uniqueUids.size).toBe(90);
 
-    // 2. Verify RECURRENCE-ID entries for instances 1..89
-    expect(icsContent).toContain("RECURRENCE-ID;TZID=Asia/Kolkata:");
-    const recurrenceMatches = icsContent.match(/RECURRENCE-ID;TZID=Asia\/Kolkata:/g);
-    expect(recurrenceMatches?.length).toBe(89);
+    // 2. Verify VTIMEZONE header for Asia/Kolkata
+    expect(icsContent).toContain("BEGIN:VTIMEZONE");
+    expect(icsContent).toContain("TZID:Asia/Kolkata");
 
     // 3. Verify notification time selection (10:00 AM)
     expect(icsContent).toContain("DTSTART;TZID=Asia/Kolkata:20260818T100000");
