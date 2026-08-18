@@ -1258,8 +1258,10 @@ export default function DailyDarshanaPage(): JSX.Element {
               <div style={{ fontSize: 20, fontWeight: 900, color: "#FDE68A", marginTop: 4, letterSpacing: 0.5 }}>
                 {devoteeDisplayName}
               </div>
-              <div style={{ fontSize: 12, color: "#E5E7EB", marginTop: 4, display: "flex", alignItems: "center", gap: 6 }}>
+              <div style={{ fontSize: 12, color: "#E5E7EB", marginTop: 4, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
                 <span>🗓️ {formatLongDate(mockDay, lang)}</span>
+                <span style={{ color: "#F59E0B" }}>•</span>
+                <span style={{ color: "#FDE68A", fontWeight: 700 }}>📜 {tithiLabel(mockDay, lang)}</span>
                 <span style={{ color: "#F59E0B" }}>•</span>
                 <span style={{ color: "#86EFAC", fontWeight: 700 }}>🛕 {dict.kshetraTitle}</span>
               </div>

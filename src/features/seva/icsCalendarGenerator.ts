@@ -39,6 +39,8 @@ import {
   getDevoteeSalutation
 } from "./sevaPriestNarrativeEngine";
 import { encodeDevoteeToken } from "../../utils/tokenCipher";
+import { siderealLongitudes } from "../../core/EphemerisEngine";
+import { normalizeDegree } from "../../core/AstroMath";
 
 function escapeIcsText(str: string): string {
   return str
@@ -398,22 +400,33 @@ export function calculateDeterministicRhythmDay(
   const targetDate = new Date(targetDateStr);
   const validD = isNaN(targetDate.getTime()) ? new Date() : targetDate;
 
-  const start = startDateStr ? new Date(startDateStr) : validD;
-  const validStart = isNaN(start.getTime()) ? validD : start;
-
-  const startMs = Date.UTC(validStart.getFullYear(), validStart.getMonth(), validStart.getDate());
-  const targetMs = Date.UTC(validD.getFullYear(), validD.getMonth(), validD.getDate());
-  const daysElapsed = Math.max(0, Math.floor((targetMs - startMs) / (1000 * 60 * 60 * 24)));
-
   const ymd = validD.toISOString().slice(0, 10);
   const dayOfMonth = validD.getDate();
   const monthIndex = validD.getMonth();
   const year = validD.getFullYear();
   const weekday = validD.getDay();
 
-  // Transit Nakshatra progression (~0.99 nakshatra/day)
-  const transitNak = (birthNakIdx + Math.floor(daysElapsed * (13.2 / 13.333))) % 27;
-  const transitRashi = Math.floor(transitNak / 2.25) % 12;
+  // Drik Ganita Ephemeris longitudes at 06:00 IST (00:30 UTC) for accurate daily Panchanga
+  const targetUtc = new Date(Date.UTC(year, monthIndex, dayOfMonth, 0, 30));
+  const longs = siderealLongitudes(targetUtc, "lahiri");
+  const moonLong = longs.moon;
+  const sunLong = longs.sun;
+
+  // Transit Nakshatra & Rashi from Moon sidereal longitude
+  const transitNak = Math.floor(moonLong / (360 / 27)) % 27;
+  const transitRashi = Math.floor(moonLong / 30) % 12;
+
+  // Elongation: Moon - Sun
+  const elongation = normalizeDegree(moonLong - sunLong);
+  const tithiNumber = Math.floor(elongation / 12) + 1; // 1 to 30
+  const paksha: "shukla" | "krishna" = tithiNumber <= 15 ? "shukla" : "krishna";
+  const tithiInPaksha = tithiNumber <= 15 ? tithiNumber : tithiNumber - 15; // 1 to 15
+
+  const isAmavasya = tithiNumber === 30;
+  const isPurnima = tithiNumber === 15;
+  const isEkadashi = tithiInPaksha === 11;
+  const isPradosha = tithiInPaksha === 13;
+  const isSankashti = paksha === "krishna" && tithiInPaksha === 4;
 
   const taraVal = (((transitNak - birthNakIdx + 27) % 9) + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
   const isTaraFav = [2, 4, 6, 8, 9].includes(taraVal);
@@ -431,7 +444,6 @@ export function calculateDeterministicRhythmDay(
     0: "Sun", 1: "Moon", 2: "Mars", 3: "Mercury", 4: "Jupiter", 5: "Venus", 6: "Saturn"
   };
   const dayLord = dayLordsMap[weekday] || "Sun";
-  const tithiVal = ((daysElapsed * 2) % 15) + 1;
 
   return {
     ymd,
@@ -441,12 +453,12 @@ export function calculateDeterministicRhythmDay(
     year,
     moonNakshatraIndex: transitNak,
     moonRashiIndex: transitRashi,
-    tithiNumber: ((daysElapsed * 2) % 30) + 1,
-    tithiInPaksha: tithiVal,
-    paksha: ((daysElapsed * 2) % 30) < 15 ? "shukla" : "krishna",
+    tithiNumber,
+    tithiInPaksha,
+    paksha,
     tithiGroup: "nanda",
-    isAmavasya: false,
-    isPurnima: false,
+    isAmavasya,
+    isPurnima,
     dayLord,
     bhuktiLord: "guru",
     tara: {
@@ -468,9 +480,9 @@ export function calculateDeterministicRhythmDay(
     isChandrashtama: isChandrashtamaDay,
     isMoneyDay: isTaraFav && isChandraFav,
     isJanmaNakshatraDay: transitNak === birthNakIdx,
-    isEkadashi: false,
-    isPradosha: false,
-    isSankashti: false,
+    isEkadashi,
+    isPradosha,
+    isSankashti,
     isPoojaDay: isChandrashtamaDay || isTaraFav || weekday === 2 || weekday === 5,
     luckyNumbers: [3, 7, 9],
     luckyColour: isTaraFav ? "gold" : "maroon",
@@ -493,16 +505,16 @@ export function getEnergyMeterAndVibe(day: RhythmDay, lang: string) {
     score < 50;
 
   if (isCaution) {
-    const badgeText = code === "kn" ? "🔴 ಮುನ್ನೆಚ್ಚರಿಕೆಯಿಂದ ಪ್ರಯಾಣಿಸಿ & ಜಪಿಸಿ"
-                    : code === "hi" ? "🔴 सतर्कता से यात्रा करें एवं जपें"
-                    : code === "te" ? "🔴 జాగ్రత్తగా ప్రయాణించండి & జపించండి"
-                    : code === "ta" ? "🔴 கவனத்துடன் பயணம் & ஜபம்"
-                    : "🔴 MINDFUL TRAVEL & PROTECTION PRAYER";
-    const vibeTag = code === "kn" ? "🧘 S (ಸುರಕ್ಷಿತ ಪ್ರಯಾಣ / ಜಾಗರೂಕತೆ)"
-                  : code === "hi" ? "🧘 S (सुरक्षित यात्रा / संयम)"
-                  : code === "te" ? "🧘 S (సురక్షిత ప్రయాణం / జాగ్రత్త)"
-                  : code === "ta" ? "🧘 S (பாதுகாப்பான பயணம் / கவனம்)"
-                  : "🧘 S (Mindful Travel / Care)";
+    const badgeText = code === "kn" ? "🔴 ಮುನ್ನೆಚ್ಚರಿಕೆಯ ನಡೆ ಹಾಗೂ ಜಾಗರೂಕತೆಯ ದಿನ"
+                    : code === "hi" ? "🔴 सतर्कता एवं सावधानी का दिन"
+                    : code === "te" ? "🔴 హెచ్చరిక & జాగ్రత్తల దినం"
+                    : code === "ta" ? "🔴 கவனம் & முன்னெச்சரிக்கை நாள்"
+                    : "🔴 DAY OF MINDFUL CAUTION & CARE";
+    const vibeTag = code === "kn" ? "🧘 S (ಹೆಚ್ಚಿನ ಜಾಗರೂಕತೆ / ಸಮಚಿತ್ತ)"
+                  : code === "hi" ? "🧘 S (विशेष सावधानी / संयम)"
+                  : code === "te" ? "🧘 S (జాగ్రత్త / సమన్వయం)"
+                  : code === "ta" ? "🧘 S (கவனம் / அமைதி)"
+                  : "🧘 S (Mindful Caution / Care)";
     return {
       badgeEmoji: "🔴",
       badgeText,
