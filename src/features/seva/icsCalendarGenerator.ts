@@ -674,10 +674,10 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
 
     const devoteeToken = encodeDevoteeToken({
       n: devoteeDisplayName,
-      nk: day.moonNakshatraIndex ?? birthNakIdx,
-      r: day.moonRashiIndex ?? birthRashiIdx,
+      nk: birthNakIdx,
+      r: birthRashiIdx,
       p: localizedPandit,
-      d: day.ymd,
+      d: startDateStr,
       l: lang,
       tm: notificationTime,
       pc: pincode,
