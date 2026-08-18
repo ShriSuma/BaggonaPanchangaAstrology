@@ -107,10 +107,7 @@ describe("icsCalendarGenerator", () => {
     expect(ics).toContain("DTEND;TZID=Asia/Kolkata:20260811T083000");
     expect(ics).toContain("🕉️ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ - ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ");
     expect(ics).toContain("Pramod Kodagi");
-    expect(ics).toContain("🔴 Rahu Kaala");
     expect(ics).toContain("⚡");
-    expect(ics).toContain("ತಾರಾಬಲ");
-    expect(ics).toContain("ಚಂದ್ರಬಲ");
     expect(ics).toContain("/daily?token=bgn_v1_");
     expect(ics).toContain("BEGIN:VALARM");
     expect(ics).toContain("END:VCALENDAR");

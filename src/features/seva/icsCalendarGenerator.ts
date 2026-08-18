@@ -684,79 +684,24 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
     const dtEnd = `${ymdCompact}T${String(endHours).padStart(2, "0")}${String(endMinutes).padStart(2, "0")}00`;
 
     const vibe = getEnergyMeterAndVibe(day, lang);
-    const kaala = getDailyKaalaTimings(day.dayLord, lang, day.ymd, lat, lng, pincode);
-    const dayIdx = getDayLordIndex(day.dayLord);
-    const deity = DEITY_MANTRAS[dayIdx] || DEITY_MANTRAS[0];
-
-    const devoteeToken = encodeDevoteeToken({
-      n: devoteeDisplayName,
-      nk: birthNakIdx,
-      r: birthRashiIdx,
-      p: localizedPandit,
-      d: startDateStr,
-      l: lang,
-      tm: notificationTime,
-      pc: pincode,
-      lt: lat,
-      lg: lng,
-      loc: locationName
-    });
-    const sanctumUrl = `${origin}/daily?token=${devoteeToken}`;
+    const sanctumUrl = `${origin}/daily?token=${baseToken}`;
 
     const summaryStr = `${vibe.badgeEmoji} [${tithiLabel(day, lang)}] ${localizedPandit} - ${labels.panchangaTitle} (${vibe.badgeText})`;
 
-    const taraNum = day.tara?.tara || 2;
-    const taraInfo = getTaraBalaInfo(taraNum, lang);
-    const chandraInfo = getChandraBalaInfo(day.chandra?.house || 11, day.isChandrashtama, lang);
-
-    const guidancePoints = getDailyActionableGuidance(day, lang);
-    const vehicleText = guidancePoints.find(p => p.icon === "🚗")?.text || "";
-    const financeText = guidancePoints.find(p => p.icon === "💰")?.text || "";
-    const mindText = guidancePoints.find(p => p.icon === "🧠")?.text || "";
-    const spiritualText = guidancePoints.find(p => p.icon === "🪔")?.text || "";
-
     const descriptionParts: string[] = [
-      `---`,
-      `  🕉️ ${labels.panchangaTitle.toUpperCase()} - ${labels.kshetraTitle.toUpperCase()} 🕉️`,
-      `---`,
+      `🕉️ ${labels.panchangaTitle} - ${labels.kshetraTitle}`,
       `👤 ${labels.devoteeLabel}: ${devoteeDisplayName}`,
       `🙏 ${labels.priestLabel}: ${localizedPandit}`,
-      `📍 ${labels.locationLabel}: ${locationName} (${pincode})`,
-      `---`,
-      `📊 ${labels.statusLabel.toUpperCase()}`,
-      `---`,
-      `• ${labels.statusLabel}: ${vibe.badgeText} (${day.energyScore || 85}%)`,
-      `• Energy Meter: ${vibe.meter}`,
-      `• Daily Vibe   : ${vibe.vibeTag}`,
-      `---`,
-      `${labels.futureTitle}`,
-      `---`,
-      `🚗 ${labels.vehicleLabel}: ${vehicleText}`,
-      `💰 ${labels.financeLabel}: ${financeText}`,
-      `🧠 ${labels.mindLabel}: ${mindText}`,
-      `🪔 ${labels.spiritualLabel}: ${spiritualText}`,
-      `---`,
-      `🌟 ${labels.taraLabel}: ${taraInfo}`,
-      `🌙 ${labels.chandraLabel}: ${chandraInfo}`,
-      `---`,
-      `⏳ ${labels.kaalaHeading.toUpperCase()}`,
-      `---`,
-      `🌅 ${labels.sunriseLabel}: ${kaala.sunrise}  |  🌇 ${labels.sunsetLabel}: ${kaala.sunset}`,
-      `🔴 Rahu Kaala : ${kaala.rahu}`,
-      `🟢 Yamaganda  : ${kaala.yamaganda}`,
-      `---`,
-      `🪔 ${deity.deity.toUpperCase()}`,
-      `---`,
-      `${deity.mantra}`,
-      `---`,
+      `⚡ ${labels.statusLabel}: ${vibe.badgeText} (${day.energyScore || 85}%) | ${vibe.vibeTag}`,
+      "",
       `${labels.visitLabel}`,
       `👉 ${sanctumUrl}`,
-      `---`,
-      `✨ Gokarna Mahabaleshwara Prasada Siddhirastu ✨`
+      "",
+      "✨ Gokarna Mahabaleshwara Prasada Siddhirastu ✨"
     ];
 
     const descriptionStr = descriptionParts.join("\n");
-    const htmlDescriptionStr = `<html><body style="font-family:sans-serif;"><div style="background-color:#501b11; padding:16px; border-radius:12px; text-align:center; color:#fff8e7; border:2px solid #f59e0b;"><h2 style="color:#fde68a; margin:0 0 4px 0;">${labels.panchangaTitle} - ${labels.kshetraTitle}</h2><p style="color:#f59e0b; margin:0 0 12px 0;">${labels.priestLabel}: ${localizedPandit} • ${devoteeDisplayName}</p></div><br/>${descriptionParts.slice(4).join("<br/>")}</body></html>`;
+    const htmlDescriptionStr = `<html><body style="font-family:sans-serif;"><div style="background-color:#501b11; padding:16px; border-radius:12px; text-align:center; color:#fff8e7; border:2px solid #f59e0b;"><h2 style="color:#fde68a; margin:0 0 4px 0;">${labels.panchangaTitle} - ${labels.kshetraTitle}</h2><p style="color:#f59e0b; margin:0 0 12px 0;">${labels.priestLabel}: ${localizedPandit} • ${devoteeDisplayName}</p></div><br/>${descriptionParts.slice(3).join("<br/>")}</body></html>`;
 
     const eventLines: string[] = [
       "BEGIN:VEVENT",
@@ -898,37 +843,12 @@ export function generateGoogleCalendarUrl(options: {
 
   const details = [
     `🕉️ ${panchangaTitle} - ${kshetraTitle}`,
-    `🖼️ Banner: ${origin}/baggona_panchanga_gold_banner.jpg`,
-    "",
-    `🙏 ${priestLabel}: ${localizedPandit}`,
     `👤 ${devoteeLabel}: ${devoteeDisplayName}`,
-    `📍 ${isKn ? "ಸ್ಥಳ" : "Location"}: ${locationName} (${pincode}) [Lat: ${lat.toFixed(2)}°, Lng: ${lng.toFixed(2)}°]`,
-    "",
+    `🙏 ${priestLabel}: ${localizedPandit}`,
     `⚡ ${isKn ? "ದಿನದ ಸ್ಥಿತಿ" : "Status"}: ${vibe.badgeText} (${day.energyScore || 85}%) | ${vibe.vibeTag}`,
     "",
-    futureTitle,
-    "",
-    `🚗 ${isKn ? "ವಾಹನ & ಆಸ್ತಿ" : "Vehicle & Asset"}: ${vehicleText}`,
-    "",
-    `💰 ${isKn ? "ಧನ & ವ್ಯಾಪಾರ" : "Finance & Business"}: ${financeText}`,
-    "",
-    `🧠 ${isKn ? "ಮನಃಸ್ಥಿತಿ & ಶಾಂತಿ" : "Mind & Peace"}: ${mindText}`,
-    "",
-    `🪔 ${isKn ? "ದೈವಿಕ ಕೃಪೆ" : "Spiritual Harmony"}: ${spiritualText}`,
-    "",
-    `🌟 ${isKn ? "ತಾರಾಬಲ" : "Tara Bala"}: ${taraInfo}`,
-    `🌙 ${isKn ? "ಚಂದ್ರಬಲ" : "Chandra Bala"}: ${chandraInfo}`,
-    "",
-    `🌅 ${isKn ? "ಸೂರ್ಯೋದಯ" : "Sunrise"}: ${kaala.sunrise} | 🌇 ${isKn ? "ಸೂರ್ಯಾಸ್ತ" : "Sunset"}: ${kaala.sunset}`,
-    `⏳ ${isKn ? "ಇಂದಿನ ಸ್ಥಳೀಯ ಕಾಲ ಸಮಯಗಳು" : "Local Daily Kaala Timings"}:`,
-    `🔴 Rahu Kaala: ${kaala.rahu}`,
-    `🟢 Yamaganda: ${kaala.yamaganda}`,
-    "",
-    `🙏 ${deity.deity}:`,
-    `${deity.mantra}`,
-    "",
     isKn ? "🌐 ಸಂಪೂರ್ಣ ಪಂಚಾಂಗ, ಜಾತಕ ಹಾಗೂ ಲೈವ್ ದರ್ಶನಕ್ಕಾಗಿ ಇಲ್ಲ ಭೇಟಿ ನೀಡಿ:" : "🌐 Click here for Full Panchanga, Kundali & Live Darshana:",
-    sanctumUrl,
+    `👉 ${sanctumUrl}`,
     "",
     "✨ Gokarna Mahabaleshwara Prasada Siddhirastu ✨"
   ].join("\n");
