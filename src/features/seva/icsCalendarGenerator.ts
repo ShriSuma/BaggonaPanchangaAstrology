@@ -703,10 +703,8 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
     const mindText = guidancePoints.find(p => p.icon === "🧠")?.text || "";
     const spiritualText = guidancePoints.find(p => p.icon === "🪔")?.text || "";
 
-    const bannerUrl = `${origin}/baggona_panchanga_gold_banner.jpg`;
     const descriptionParts: string[] = [
       `🕉️ ${labels.panchangaTitle} - ${labels.kshetraTitle}`,
-      `🖼️ Banner: ${bannerUrl}`,
       "",
       `🙏 ${labels.priestLabel}: ${localizedPandit}`,
       `👤 ${labels.devoteeLabel}: ${devoteeDisplayName}`,
@@ -742,7 +740,7 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
     ];
 
     const descriptionStr = descriptionParts.join("\n");
-    const htmlDescriptionStr = `<html><body style="font-family:sans-serif;"><div style="background-color:#501b11; padding:16px; border-radius:12px; text-align:center; color:#fff8e7; border:2px solid #f59e0b;"><img src="${bannerUrl}" alt="Baggona Panchanga Gold Banner" style="width:100%; max-width:550px; border-radius:8px; display:block; margin:0 auto 12px auto;" /><h2 style="color:#fde68a; margin:0 0 4px 0;">${labels.panchangaTitle} - ${labels.kshetraTitle}</h2><p style="color:#f59e0b; margin:0 0 12px 0;">${labels.priestLabel}: ${localizedPandit} • ${devoteeDisplayName}</p></div><br/>${descriptionParts.slice(5).join("<br/>")}</body></html>`;
+    const htmlDescriptionStr = `<html><body style="font-family:sans-serif;"><div style="background-color:#501b11; padding:16px; border-radius:12px; text-align:center; color:#fff8e7; border:2px solid #f59e0b;"><h2 style="color:#fde68a; margin:0 0 4px 0;">${labels.panchangaTitle} - ${labels.kshetraTitle}</h2><p style="color:#f59e0b; margin:0 0 12px 0;">${labels.priestLabel}: ${localizedPandit} • ${devoteeDisplayName}</p></div><br/>${descriptionParts.slice(4).join("<br/>")}</body></html>`;
 
     const eventLines: string[] = [
       "BEGIN:VEVENT",
@@ -753,7 +751,6 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
       `SUMMARY:${escapeIcsText(summaryStr)}`,
       `DESCRIPTION:${escapeIcsText(descriptionStr)}`,
       `X-ALT-DESC;FMTTYPE=text/html:${escapeIcsText(htmlDescriptionStr)}`,
-      `ATTACH;FMTTYPE=image/jpeg:${bannerUrl}`,
       `URL:${sanctumUrl}`,
       `COLOR:${vibe.icalColor}`,
       `X-GOOGLE-CALENDAR-COLOR:${vibe.googleColorId}`,

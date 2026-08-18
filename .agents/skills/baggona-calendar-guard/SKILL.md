@@ -37,7 +37,8 @@ All UI cards, progress bars, status badges, and `.ics` calendar events MUST dyna
 
 ## 4. Gold Banner Image Graphic Requirement
 
-- The header image `/public/baggona_panchanga_gold_banner.jpg` MUST display **Baggona Panchanga** (`ಬಗ್ಗೋಣ ಪಂಚಾಂಗ · BAGGONA PANCHANGA`) prominently inside the graphic image itself.
+- **DailyDarshanaPage.tsx Header Image**: The Gold Banner Graphic (`/baggona_panchanga_gold_banner.jpg`) is **MANDATORY on top of `DailyDarshanaPage.tsx`** (under the Panchanga title tag) and must NEVER be removed from the web page header.
+- **ICS Calendar Excluded URL**: The banner image URL (`baggona_panchanga_gold_banner.jpg`) MUST NOT be included as text or ATTACH properties inside exported `.ics` calendar events (to keep event descriptions clean across Google Calendar and Apple Calendar).
 
 ## 5. Pre-Push Build Validation Guard
 

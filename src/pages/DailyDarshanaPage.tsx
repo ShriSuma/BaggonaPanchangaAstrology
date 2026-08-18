@@ -1065,6 +1065,21 @@ export default function DailyDarshanaPage(): JSX.Element {
             ✨ {dict.panchangaTitle} ✨
           </div>
 
+          {/* Gold Banner Graphic (Mandatory Always Visible on Top) */}
+          <img
+            src="/baggona_panchanga_gold_banner.jpg"
+            alt="Baggona Panchanga Banner"
+            style={{
+              width: "100%",
+              maxHeight: 140,
+              objectFit: "cover",
+              borderRadius: 12,
+              border: "1.5px solid #F59E0B",
+              marginBottom: 8,
+              display: "block"
+            }}
+          />
+
           {/* Subtitle Under Banner Image */}
           <div style={{ fontSize: 12, color: "#D1D5DB", fontStyle: "italic", marginBottom: 12 }}>
             {dict.creationSubtitle}
