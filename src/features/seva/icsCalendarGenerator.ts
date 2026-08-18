@@ -402,7 +402,7 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
     const eventLines: string[] = [
       "BEGIN:VEVENT",
       `UID:${seriesUid}`,
-      ...(index > 0 ? [`RECURRENCE-ID;TZID=Asia/Kolkata:${dtStart}`] : []),
+      ...(index === 0 ? ["RRULE:FREQ=DAILY;COUNT=90"] : [`RECURRENCE-ID;TZID=Asia/Kolkata:${dtStart}`]),
       `DTSTAMP:${nowIso}`,
       `DTSTART;TZID=Asia/Kolkata:${dtStart}`,
       `DTEND;TZID=Asia/Kolkata:${dtEnd}`,

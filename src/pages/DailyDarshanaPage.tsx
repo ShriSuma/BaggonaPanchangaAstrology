@@ -138,6 +138,7 @@ export default function DailyDarshanaPage(): JSX.Element {
   };
 
   const [generatedIcs, setGeneratedIcs] = useState<string | null>(null);
+  const [showContactModal, setShowContactModal] = useState(false);
 
   const dayLordIdx = useMemo(() => {
     const d = new Date(dateParam);
@@ -159,7 +160,7 @@ export default function DailyDarshanaPage(): JSX.Element {
   const isTokenExpired = useMemo(() => {
     if (!tokenParam) return false;
     if (!decoded) return true; // invalid / tampered token
-    return daysElapsed < 0 || daysElapsed >= 90;
+    return daysElapsed >= 90 || daysElapsed < -7;
   }, [tokenParam, decoded, daysElapsed]);
 
   const mockDay: RhythmDay = useMemo(() => {
@@ -533,23 +534,68 @@ export default function DailyDarshanaPage(): JSX.Element {
             <div>• Expiry Status: <span style={{ color: "#F87171", fontWeight: 700 }}>Expired (Passed 90 Days Limit)</span></div>
           </div>
 
-          <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-            <button
-              onClick={() => { window.location.href = "/"; }}
-              style={{
-                background: "linear-gradient(135deg, #D97706 0%, #B45309 100%)",
-                color: "#FFFFFF",
-                border: "1px solid #F59E0B",
-                padding: "12px 24px",
-                borderRadius: 24,
-                fontSize: 14,
-                fontWeight: 700,
-                cursor: "pointer",
-                boxShadow: "0 4px 15px rgba(217, 119, 6, 0.4)"
-              }}
-            >
-              🪔 {isKn ? "ಹೊಸ ಚಂದಾದಾರಿಕೆ ಪಡೆಯಿರಿ" : "Subscribe New 90-Day Panchanga"}
-            </button>
+          {/* Shreeram Pandit Contact Information (No Login Redirect) */}
+          <div style={{
+            background: "linear-gradient(135deg, #2D1407 0%, #451A03 100%)",
+            border: "2px solid #F59E0B",
+            borderRadius: 20,
+            padding: "20px",
+            marginBottom: 20,
+            textAlign: "center",
+            boxShadow: "0 8px 24px rgba(245, 158, 11, 0.25)"
+          }}>
+            <div style={{ fontSize: 28, marginBottom: 6 }}>📞</div>
+            <h2 style={{ fontSize: 18, fontWeight: 800, color: "#FDE68A", margin: "0 0 4px" }}>
+              {isKn ? "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಮುಖ್ಯ ಅರ್ಚಕರು)" : "Shreeram Pandit (Chief Archaka)"}
+            </h2>
+            <p style={{ fontSize: 13, color: "#FCD34D", margin: "0 0 14px", lineHeight: 1.5 }}>
+              {isKn
+                ? "ನಿಮ್ಮ ಹೊಸ 90 ದಿನಗಳ ವೈಯಕ್ತಿಕ ಪಂಚಾಂಗ ಮತ್ತು ನಕ್ಷತ್ರ ಫಲಕ್ಕಾಗಿ ಪಂಡಿತರನ್ನು ನೇರವಾಗಿ ಸಂಪರ್ಕಿಸಿ."
+                : "Call Shreeram Pandit to renew or get your personalized 90-Day Panchanga Calendar."}
+            </p>
+
+            <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+              <a
+                href="tel:9972339362"
+                style={{
+                  background: "linear-gradient(135deg, #D97706 0%, #B45309 100%)",
+                  color: "#FFFFFF",
+                  border: "1px solid #F59E0B",
+                  padding: "12px 22px",
+                  borderRadius: 24,
+                  fontSize: 14,
+                  fontWeight: 700,
+                  textDecoration: "none",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  boxShadow: "0 4px 15px rgba(217, 119, 6, 0.4)"
+                }}
+              >
+                📞 {isKn ? "ಕರೆ ಮಾಡಿ: 9972339362" : "Call: +91 9972339362"}
+              </a>
+              <a
+                href="https://wa.me/919972339362?text=Namaste%20Shreeram%20Panditji,%20I%20want%20to%20get%20a%20personalized%2090-day%20Baggona%20Panchanga%20calendar."
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  background: "#25D366",
+                  color: "#FFFFFF",
+                  border: "none",
+                  padding: "12px 22px",
+                  borderRadius: 24,
+                  fontSize: 14,
+                  fontWeight: 700,
+                  textDecoration: "none",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  boxShadow: "0 4px 15px rgba(37, 211, 102, 0.3)"
+                }}
+              >
+                💬 WhatsApp (9972339362)
+              </a>
+            </div>
           </div>
         </div>
       </div>
@@ -575,7 +621,7 @@ export default function DailyDarshanaPage(): JSX.Element {
         gap: 12
       }}>
         <button
-          onClick={() => { window.location.href = "/"; }}
+          onClick={() => setShowContactModal(true)}
           style={{
             background: "#FFF8E7",
             border: "1px solid #D4AF37",
@@ -585,10 +631,13 @@ export default function DailyDarshanaPage(): JSX.Element {
             cursor: "pointer",
             fontSize: 13,
             fontWeight: 700,
-            boxShadow: "0 2px 8px rgba(180, 130, 20, 0.12)"
+            boxShadow: "0 2px 8px rgba(180, 130, 20, 0.12)",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6
           }}
         >
-          ← {isKn ? "ಮುಖಪುಟ" : "Home"}
+          📞 {isKn ? "ಅರ್ಚಕರ ಸಂಪರ್ಕ (9972339362)" : "Contact Archaka (9972339362)"}
         </button>
 
         {/* Language Selector */}
@@ -1258,6 +1307,109 @@ export default function DailyDarshanaPage(): JSX.Element {
       }}>
         ✨ Gokarna Mahabaleshwara Prasada Siddhirastu · Baggona Panchanga Astrology ✨
       </footer>
+
+      {/* Shreeram Pandit Contact Modal */}
+      {showContactModal && (
+        <div style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(0, 0, 0, 0.75)",
+          backdropFilter: "blur(6px)",
+          zIndex: 9999,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 16
+        }}>
+          <div style={{
+            background: "linear-gradient(135deg, #1C0A00 0%, #2A1202 100%)",
+            border: "2px solid #F59E0B",
+            borderRadius: 24,
+            padding: "28px 24px",
+            maxWidth: 480,
+            width: "100%",
+            textAlign: "center",
+            color: "#FFF8E7",
+            boxShadow: "0 20px 50px rgba(0,0,0,0.8)",
+            position: "relative"
+          }}>
+            <button
+              onClick={() => setShowContactModal(false)}
+              style={{
+                position: "absolute",
+                top: 14,
+                right: 16,
+                background: "transparent",
+                border: "none",
+                color: "#FDE68A",
+                fontSize: 22,
+                cursor: "pointer"
+              }}
+            >
+              ✕
+            </button>
+
+            <div style={{ fontSize: 42, marginBottom: 10 }}>🪔</div>
+
+            <h3 style={{ fontSize: 20, fontWeight: 800, color: "#FDE68A", margin: "0 0 6px" }}>
+              {isKn ? "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್" : "Shreeram Pandit"}
+            </h3>
+            <div style={{ fontSize: 13, color: "#F59E0B", fontWeight: 700, marginBottom: 14 }}>
+              🕉️ {isKn ? "ಮುಖ್ಯ ಅರ್ಚಕರು - ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ" : "Chief Archaka - Gokarna Kshetra"}
+            </div>
+
+            <p style={{ fontSize: 14, color: "#E2E8F0", lineHeight: 1.6, marginBottom: 20 }}>
+              {isKn
+                ? "ನಿಮ್ಮ ಹೆಸರು, ಗೋತ್ರ ಹಾಗೂ ನಕ್ಷತ್ರಕ್ಕೆ ಅನುಗುಣವಾಗಿ ವೈಯಕ್ತಿಕ 90 ದಿನಗಳ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಸೇವಾ ಕ್ಯಾಲೆಂಡರ್ ಪಡೆಯಲು ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರನ್ನು ನೇರವಾಗಿ ಕರೆ ಮಾಡಿ."
+                : "Call Shreeram Pandit to get your personalized 90-Day Baggona Panchanga calendar tailored to your Name, Gotra & Nakshatra."}
+            </p>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <a
+                href="tel:9972339362"
+                style={{
+                  background: "linear-gradient(135deg, #D97706, #B45309)",
+                  color: "#FFFFFF",
+                  padding: "14px",
+                  borderRadius: 16,
+                  fontWeight: 800,
+                  fontSize: 15,
+                  textDecoration: "none",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 10,
+                  boxShadow: "0 4px 15px rgba(217, 119, 6, 0.4)"
+                }}
+              >
+                📞 {isKn ? "ನೇರ ಕರೆ: 9972339362" : "Call Directly: +91 9972339362"}
+              </a>
+
+              <a
+                href="https://wa.me/919972339362?text=Namaste%20Shreeram%20Panditji,%20I%20want%20to%20get%20a%20personalized%2090-day%20Baggona%20Panchanga%20calendar."
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  background: "#25D366",
+                  color: "#FFFFFF",
+                  padding: "14px",
+                  borderRadius: 16,
+                  fontWeight: 800,
+                  fontSize: 15,
+                  textDecoration: "none",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 10,
+                  boxShadow: "0 4px 15px rgba(37, 211, 102, 0.3)"
+                }}
+              >
+                💬 WhatsApp Message (9972339362)
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
