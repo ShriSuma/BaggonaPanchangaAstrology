@@ -146,46 +146,94 @@ export default function DailyDarshanaPage(): JSX.Element {
 
   const deity = DEITY_CONFIG[dayLordIdx] || DEITY_CONFIG[1];
 
+  const daysElapsed = useMemo(() => {
+    const startDateStr = decoded?.d || dateParam;
+    const start = new Date(startDateStr);
+    const target = new Date(dateParam);
+    if (isNaN(start.getTime()) || isNaN(target.getTime())) return 0;
+    const startMs = Date.UTC(start.getFullYear(), start.getMonth(), start.getDate());
+    const targetMs = Date.UTC(target.getFullYear(), target.getMonth(), target.getDate());
+    return Math.floor((targetMs - startMs) / (1000 * 60 * 60 * 24));
+  }, [decoded, dateParam]);
+
+  const isTokenExpired = useMemo(() => {
+    if (!tokenParam) return false;
+    if (!decoded) return true; // invalid / tampered token
+    return daysElapsed < 0 || daysElapsed >= 90;
+  }, [tokenParam, decoded, daysElapsed]);
+
   const mockDay: RhythmDay = useMemo(() => {
     const d = new Date(dateParam);
-    const dayNum = isNaN(d.getDate()) ? 1 : d.getDate();
-    const nakIdx = decoded?.nk !== undefined ? decoded.nk : ((dayNum * 2) % 27);
-    const rashiIdx = decoded?.r !== undefined ? decoded.r : Math.floor(nakIdx / 2.25);
-    const taraIdx = (((nakIdx % 9) + 1) || 2) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+    const validD = isNaN(d.getTime()) ? new Date() : d;
+    const dayNum = validD.getDate();
+    const yearNum = validD.getFullYear();
+    const monthNum = validD.getMonth();
+    const dayOfWeek = validD.getDay();
+
+    const birthNakIdx = decoded?.nk !== undefined ? decoded.nk : ((dayNum * 2) % 27);
+    const birthRashiIdx = decoded?.r !== undefined ? decoded.r : Math.floor(birthNakIdx / 2.25);
+
+    const safeOffset = Math.max(0, Math.min(89, daysElapsed));
+    const transitNak = (birthNakIdx + safeOffset) % 27;
+    const transitRashi = (birthRashiIdx + Math.floor(safeOffset / 2.25)) % 12;
+
+    const taraVal = (((transitNak - birthNakIdx + 27) % 9) + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+    const isTaraFav = [2, 4, 6, 8, 9].includes(taraVal);
+
+    const houseOffset = ((transitRashi - birthRashiIdx + 12) % 12) + 1;
+    const isChandraFav = [1, 3, 6, 7, 10, 11].includes(houseOffset);
+    const isChandrashtamaDay = houseOffset === 8;
+
+    const scoreVal = (isTaraFav ? 45 : 20) + (isChandraFav ? 40 : 15) + (isChandrashtamaDay ? -25 : 5);
+    const finalEnergy = Math.max(25, Math.min(98, scoreVal));
+
+    const bandType: "high" | "steady" | "rest" = finalEnergy >= 75 ? "high" : finalEnergy >= 50 ? "steady" : "rest";
+    const tithiVal = ((dayNum % 15) + 1);
 
     return {
       ymd: dateParam,
-      weekday: isNaN(d.getDay()) ? 1 : d.getDay(),
+      weekday: dayOfWeek,
       dayOfMonth: dayNum,
-      monthIndex: isNaN(d.getMonth()) ? 0 : d.getMonth(),
-      year: isNaN(d.getFullYear()) ? 2026 : d.getFullYear(),
-      moonNakshatraIndex: nakIdx,
-      moonRashiIndex: rashiIdx,
-      tithiNumber: ((dayNum % 15) + 1),
-      tithiInPaksha: ((dayNum % 15) + 1),
+      monthIndex: monthNum,
+      year: yearNum,
+      moonNakshatraIndex: transitNak,
+      moonRashiIndex: transitRashi,
+      tithiNumber: tithiVal,
+      tithiInPaksha: tithiVal,
       paksha: dayNum <= 15 ? "shukla" : "krishna",
       tithiGroup: "purna",
-      tara: { tara: taraIdx, count: taraIdx, isFavourable: taraIdx !== 3 && taraIdx !== 5 && taraIdx !== 7, isDifficult: taraIdx === 3 || taraIdx === 7, score: TARA_BALA_NAMES[taraIdx]?.score || 85 },
-      chandra: { house: 11, isChandrashtama: false, isFavourable: true, score: 88 },
-      dayLord: GRAHA_KEYS[dayLordIdx] || "Sun",
+      tara: {
+        tara: taraVal,
+        count: taraVal,
+        isFavourable: isTaraFav,
+        isDifficult: !isTaraFav,
+        score: isTaraFav ? 85 : 40
+      },
+      chandra: {
+        house: houseOffset,
+        isChandrashtama: isChandrashtamaDay,
+        isFavourable: isChandraFav,
+        score: isChandraFav ? 85 : 35
+      },
+      dayLord: GRAHA_KEYS[dayOfWeek] || "Sun",
       bhuktiLord: "Jupiter",
-      energyScore: 85,
-      band: "high",
-      arthaScore: 82,
-      isMoneyDay: true,
-      isChandrashtama: false,
-      isJanmaNakshatraDay: false,
-      isEkadashi: false,
+      energyScore: finalEnergy,
+      band: bandType,
+      arthaScore: Math.min(95, finalEnergy + 5),
+      isMoneyDay: (safeOffset % 7 === 2 || safeOffset % 7 === 4) && !isChandrashtamaDay,
+      isChandrashtama: isChandrashtamaDay,
+      isJanmaNakshatraDay: transitNak === birthNakIdx,
+      isEkadashi: tithiVal === 11,
       isPurnima: dayNum === 15,
       isAmavasya: dayNum === 30,
       isPradosha: false,
       isSankashti: false,
-      isPoojaDay: true,
-      luckyNumbers: [3, 6, 9],
-      luckyColour: "yellow",
-      luckyDirection: "east"
+      isPoojaDay: dayOfWeek === 2 || dayOfWeek === 5,
+      luckyNumbers: [(safeOffset % 9) + 1, ((safeOffset + 3) % 9) + 1],
+      luckyColour: (dayOfWeek === 0 ? "orange" : dayOfWeek === 1 ? "white" : dayOfWeek === 2 ? "red" : dayOfWeek === 3 ? "green" : dayOfWeek === 4 ? "yellow" : dayOfWeek === 5 ? "pink" : "dark") as ColourKey,
+      luckyDirection: dayOfWeek === 0 ? "east" : dayOfWeek === 1 ? "northwest" : dayOfWeek === 2 ? "south" : dayOfWeek === 3 ? "north" : dayOfWeek === 4 ? "northeast" : dayOfWeek === 5 ? "southeast" : "west"
     };
-  }, [dateParam, dayLordIdx, decoded]);
+  }, [dateParam, decoded, daysElapsed]);
 
   const kaala = useMemo(() => getDailyKaalaTimings(dayLordIdx, lang), [dayLordIdx, lang]);
   const vibe = useMemo(() => getEnergyMeterAndVibe(mockDay, lang), [mockDay, lang]);
@@ -388,6 +436,124 @@ export default function DailyDarshanaPage(): JSX.Element {
   }, [storedSession]);
 
   // Language flags defined at top level component scope
+
+  if (isTokenExpired) {
+    return (
+      <div style={{
+        minHeight: "100vh",
+        background: "linear-gradient(180deg, #1C0A00 0%, #2A1202 50%, #150600 100%)",
+        color: "#FDE68A",
+        fontFamily: "'Segoe UI', Roboto, -apple-system, sans-serif",
+        padding: "32px 16px 60px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center"
+      }}>
+        <div style={{
+          maxWidth: 600,
+          width: "100%",
+          background: "rgba(35, 15, 5, 0.95)",
+          border: "2px solid #D4AF37",
+          borderRadius: 24,
+          padding: "36px 28px",
+          textAlign: "center",
+          boxShadow: "0 20px 50px rgba(0, 0, 0, 0.7), 0 0 30px rgba(212, 175, 55, 0.2)",
+          backdropFilter: "blur(12px)"
+        }}>
+          <div style={{
+            width: 80,
+            height: 80,
+            borderRadius: "50%",
+            background: "linear-gradient(135deg, #78350F, #451A03)",
+            border: "2px solid #F59E0B",
+            margin: "0 auto 20px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: 36,
+            boxShadow: "0 0 20px rgba(245, 158, 11, 0.4)"
+          }}>
+            🪔
+          </div>
+
+          <div style={{
+            display: "inline-block",
+            background: "rgba(220, 38, 38, 0.2)",
+            border: "1px solid #EF4444",
+            color: "#FCA5A5",
+            padding: "4px 16px",
+            borderRadius: 20,
+            fontSize: 13,
+            fontWeight: 800,
+            letterSpacing: 1,
+            textTransform: "uppercase",
+            marginBottom: 16
+          }}>
+            404 - {isKn ? "ಚಂದಾದಾರಿಕೆ ಅವಧಿ ಮುಕ್ತಾಯಗೊಂಡಿದೆ" : "90-Day Sacred Token Expired"}
+          </div>
+
+          <h1 style={{
+            fontSize: 26,
+            fontWeight: 800,
+            color: "#FFF8E7",
+            marginBottom: 14,
+            lineHeight: 1.3
+          }}>
+            {isKn
+              ? "ನಿಮ್ಮ 90 ದಿನಗಳ ಪವಿತ್ರ ಪಂಚಾಂಗ ಸೇವಾ ಲಿಂಕ್ ಮುಕ್ತಾಯಗೊಂಡಿದೆ"
+              : "Your Sacred 90-Day Panchanga Subscription Has Ended"}
+          </h1>
+
+          <p style={{
+            fontSize: 15,
+            color: "#E2E8F0",
+            lineHeight: 1.6,
+            marginBottom: 24
+          }}>
+            {isKn
+              ? "ಈ ವ್ಯಕ್ತಿಗತ 90 ದಿನಗಳ ಪಂಚಾಂಗ ಸೇವಾ ಲಿಂಕ್ ಅತ್ಯಂತ ಯಶಸ್ವಿಯಾಗಿ 90 ದಿನಗಳ ಅವಧಿಯನ್ನು ಪೂರ್ಣಗೊಳಿಸಿದೆ. ಮುಂದುವರಿದ ದಿನಗಳ ದೈನಂದಿನ ದರ್ಶನ ಮತ್ತು ಪಂಚಾಂಗ ಮಾರ್ಗದರ್ಶನಕ್ಕಾಗಿ ದಯವಿಟ್ಟು ಹೊಸ 90 ದಿನಗಳ ಚಂದಾದಾರಿಕೆಯನ್ನು ಪಡೆಯಿರಿ."
+              : "This personalized 90-day devotional token has completed its sacred 90-day duration. To continue receiving daily Panchanga transit updates, Tara-Chandra energy guidance, and Archaka benedictions, please request a fresh subscription."}
+          </p>
+
+          <div style={{
+            background: "rgba(255, 255, 255, 0.05)",
+            border: "1px dashed rgba(245, 158, 11, 0.4)",
+            borderRadius: 16,
+            padding: "16px",
+            marginBottom: 28,
+            textAlign: "left",
+            fontSize: 13,
+            color: "#FDE68A"
+          }}>
+            <div style={{ fontWeight: 700, marginBottom: 6 }}>📜 Devotee Subscription Details:</div>
+            {decoded?.n && <div>• Devotee: <strong>{decoded.n}</strong></div>}
+            {decoded?.p && <div>• Chief Archaka: <strong>{decoded.p}</strong></div>}
+            {decoded?.d && <div>• Package Start Date: <strong>{decoded.d}</strong></div>}
+            <div>• Expiry Status: <span style={{ color: "#F87171", fontWeight: 700 }}>Expired (Passed 90 Days Limit)</span></div>
+          </div>
+
+          <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+            <button
+              onClick={() => { window.location.href = "/"; }}
+              style={{
+                background: "linear-gradient(135deg, #D97706 0%, #B45309 100%)",
+                color: "#FFFFFF",
+                border: "1px solid #F59E0B",
+                padding: "12px 24px",
+                borderRadius: 24,
+                fontSize: 14,
+                fontWeight: 700,
+                cursor: "pointer",
+                boxShadow: "0 4px 15px rgba(217, 119, 6, 0.4)"
+              }}
+            >
+              🪔 {isKn ? "ಹೊಸ ಚಂದಾದಾರಿಕೆ ಪಡೆಯಿರಿ" : "Subscribe New 90-Day Panchanga"}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{

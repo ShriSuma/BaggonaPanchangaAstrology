@@ -318,12 +318,16 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
     const priestFirstName = localizedPandit.split(/\s+/)[0] || localizedPandit;
     const devoteeDisplayName = (personName && personName.trim().length > 0) ? personName.trim() : (isKn ? "ಭಕ್ತರು" : "Devotee");
 
+    const startDateStr = days[0]?.ymd || new Date().toISOString().slice(0, 10);
+    const birthNakIdx = days[0]?.moonNakshatraIndex ?? day.moonNakshatraIndex;
+    const birthRashiIdx = days[0]?.moonRashiIndex ?? day.moonRashiIndex;
+
     const devoteeToken = encodeDevoteeToken({
       n: devoteeDisplayName,
-      nk: day.moonNakshatraIndex,
-      r: day.moonRashiIndex,
+      nk: birthNakIdx,
+      r: birthRashiIdx,
       p: localizedPandit,
-      d: day.ymd,
+      d: startDateStr,
       l: lang
     });
     const sanctumUrl = `${origin}/daily?token=${devoteeToken}`;
@@ -462,12 +466,16 @@ export function generateGoogleCalendarUrl(options: {
   const localizedPandit = getLocalizedPanditName(panditName, lang);
   const devoteeDisplayName = (personName && personName.trim().length > 0) ? personName.trim() : (isKn ? "ಭಕ್ತರು" : "Devotee");
 
+  const startDateStr = (days && days.length > 0 ? days[0].ymd : day.ymd) || new Date().toISOString().slice(0, 10);
+  const birthNakIdx = (days && days.length > 0 ? days[0].moonNakshatraIndex : day.moonNakshatraIndex) ?? 0;
+  const birthRashiIdx = (days && days.length > 0 ? days[0].moonRashiIndex : day.moonRashiIndex) ?? 0;
+
   const devoteeToken = encodeDevoteeToken({
     n: devoteeDisplayName,
-    nk: day.moonNakshatraIndex,
-    r: day.moonRashiIndex,
+    nk: birthNakIdx,
+    r: birthRashiIdx,
     p: localizedPandit,
-    d: day.ymd,
+    d: startDateStr,
     l: lang,
     pl: "android",
     t: "google"
