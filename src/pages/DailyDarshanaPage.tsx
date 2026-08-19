@@ -71,13 +71,13 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     statusCol: "ಸ್ಥಿತಿ",
     chandraBala: "ಚಂದ್ರ ಬಲ",
     taraBala: "ತಾರಾ ಬಲ",
-    gocharaChartTitle: "ಲೈವ್ ಗೋಚಾರ ರಾಶಿ ಕುಂಡಲಿ (Transit Chart)",
+    gocharaChartTitle: "ಲೈವ್ ಗೋಚಾರ ರಾಶಿ ಕುಂಡಲಿ",
     gocharaTransitsTitle: "ಪ್ರಮುಖ ಗ್ರಹಗಳ ಗೋಚಾರ ಫಲಗಳು",
-    guruTransitTitle: "ಗುರು ಗೋಚಾರ ಫಲ (Jupiter Transit)",
+    guruTransitTitle: "ಗುರು ಗೋಚಾರ ಫಲ",
     guruTransitDesc: "ಗುರುವು ನಿಮ್ಮ ಚಂದ್ರ ರಾಶಿಗೆ ಶುಭ ದೃಷ್ಟಿ ಬೀರುತ್ತಿದ್ದು, ಧಾರ್ಮಿಕ ಚಿಂತನೆ ಹಾಗೂ ಆರ್ಥಿಕ ಬೆಳವಣಿಗೆಗೆ ಪ್ರೋತ್ಸಾಹ ನೀಡುತ್ತಿದ್ದಾನೆ.",
-    shaniTransitTitle: "ಶನಿ ಗೋಚಾರ ಫಲ (Saturn Transit)",
+    shaniTransitTitle: "ಶನಿ ಗೋಚಾರ ಫಲ",
     shaniTransitDesc: "ಶನಿಯು ಸ್ವಕ್ಷೇತ್ರ ಸಂಚಾರದಲ್ಲಿದ್ದು, ಶಿಸ್ತು ಮತ್ತು ನಿಷ್ಠಾವಂತ ಪರಿಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಪ್ರತಿಫಲ ನೀಡಲಿದ್ದಾನೆ. ಆತುರ ತಪ್ಪಿಸಿ.",
-    rahuKetuTitle: "ರಾಹು-ಕೇತು ಗೋಚಾರ (Rahu-Ketu Axis)",
+    rahuKetuTitle: "ರಾಹು-ಕೇತು ಗೋಚಾರ",
     rahuKetuDesc: "ಕಾರ್ಮಿಕ ಶುದ್ಧೀಕರಣ ಹಾಗೂ ಆಧ್ಯಾತ್ಮಿಕ ಸಾಧನೆಗೆ ಪ್ರಶಸ್ತ. ಶ್ರೀ ದುರ್ಗಾ ಹಾಗೂ ಗಣಪತಿ ಆರಾಧನೆ ಶ್ರೇಷ್ಠ.",
     remediesTitle: "ವೈದಿಕ ಪರಿಹಾರಗಳು & ಆರಾಧನೆಗಳು",
     dashaHeader: "ಪ್ರಸ್ತುತ ಚಾಲ್ತಿಯಲ್ಲಿರುವ ವಿಂಶೋತ್ತರಿ ದಶಾ ಕಾಲ",
@@ -213,13 +213,13 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     statusCol: "स्थिति",
     chandraBala: "चंद्र बल",
     taraBala: "तारा बल",
-    gocharaChartTitle: "लाइव गोचर राशि कुंडली (Transit Chart)",
+    gocharaChartTitle: "लाइव गोचर राशि कुंडली",
     gocharaTransitsTitle: "प्रमुख ग्रहों का गोचर फल",
-    guruTransitTitle: "गुरु गोचर (Jupiter Transit)",
+    guruTransitTitle: "गुरु गोचर",
     guruTransitDesc: "गुरु का आपकी राशि पर शुभ प्रभाव है, जिससे ज्ञान, उन्नति और आर्थिक लाभ होगा।",
-    shaniTransitTitle: "शनि गोचर (Saturn Transit)",
+    shaniTransitTitle: "शनि गोचर",
     shaniTransitDesc: "शनि महाराज की कृपा से कठिन परिश्रम का उत्तम फल मिलेगा। धैर्य बनाए रखें।",
-    rahuKetuTitle: "राहु-केतु गोचर (Rahu-Ketu Axis)",
+    rahuKetuTitle: "राहु-केतु गोचर",
     rahuKetuDesc: "आध्यात्मिक उन्नति एवं कर्म शुद्धि का समय। दुर्गा व गणेश उपासना करें।",
     remediesTitle: "वैदिक उपाय एवं पूजा संकल्प",
     dashaHeader: "वर्तमान विंशोत्तरी दशा",
@@ -284,13 +284,13 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     statusCol: "స్థితి",
     chandraBala: "చంద్ర బలం",
     taraBala: "తారా బలం",
-    gocharaChartTitle: "లైవ్ గోచార రాశి కుండలి (Transit Chart)",
+    gocharaChartTitle: "లైవ్ గోచార రాశి కుండలి",
     gocharaTransitsTitle: "ప్రధాన గ్రహాల గోచార ఫలితాలు",
-    guruTransitTitle: "గురు గోచారం (Jupiter Transit)",
+    guruTransitTitle: "గురు గోచారం",
     guruTransitDesc: "గురు భగవానుని శుభ దృష్టి వల్ల జ్ఞానం, ధన లాభం మరియు ఆధ్యాత్మిక పురోగతి లభిస్తుంది.",
-    shaniTransitTitle: "శని గోచారం (Saturn Transit)",
+    shaniTransitTitle: "శని గోచారం",
     shaniTransitDesc: "శని భగవానుడు మీ కష్టానికి తగిన ప్రతిఫలాన్ని అందిస్తారు. ఓపిక వహించండి.",
-    rahuKetuTitle: "రాహు-కేతు గోచారం (Rahu-Ketu Axis)",
+    rahuKetuTitle: "రాహు-కేతు గోచారం",
     rahuKetuDesc: "కర్మ క్షయం మరియు జ్ఞాన ప్రాప్తికి అనుకూలం. దుర్గా, గణపతి ఆరాధన శ్రేష్టం.",
     remediesTitle: "వైదిక పరిహారాలు & పూజలు",
     dashaHeader: "ప్రస్తుత వింశోత్తరీ దశా కాలం",
@@ -355,13 +355,13 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     statusCol: "நிலை",
     chandraBala: "சந்திர பலம்",
     taraBala: "தாரா பலம்",
-    gocharaChartTitle: "லைவ் கோச்சார ராசி கட்டம் (Transit Chart)",
+    gocharaChartTitle: "லைவ் கோச்சார ராசி கட்டம்",
     gocharaTransitsTitle: "முக்கிய கிரக கோச்சார பலன்கள்",
-    guruTransitTitle: "குரு கோச்சாரம் (Jupiter Transit)",
+    guruTransitTitle: "குரு கோச்சாரம்",
     guruTransitDesc: "குரு பகவானின் சுப பார்வையால் அறிவு, தன லாபம் மற்றும் ஆன்மீக வளர்ச்சி கூடும்.",
-    shaniTransitTitle: "சனி கோச்சாரம் (Saturn Transit)",
+    shaniTransitTitle: "சனி கோச்சாரம்",
     shaniTransitDesc: "சனி பகவான் நற்பலன்களை வழங்கி உழைப்பிற்கு ஏற்ற முன்னேற்றம் தருவார்.",
-    rahuKetuTitle: "ரஹு-கேது கோச்சாரம் (Rahu-Ketu Axis)",
+    rahuKetuTitle: "ரஹு-கேது கோச்சாரம்",
     remediesTitle: "வைதீக பரிகாரங்கள் & பூஜைகள்",
     dashaHeader: "தற்போது நடக்கும் விம்சொத்தரி தசா காலம்",
     activePhase: "ராகு மகாதிசை · சுக்கிரன் புக்தி",
@@ -834,12 +834,30 @@ function getDynamicGocharaPredictions(
     rahuKetuDesc = `Rahu transits in ${rahuRashiName} (${rahuHouse}th house) & Ketu in ${ketuRashiName} (${ketuHouse}th house). Regular prayers to Goddess Durga and Lord Ganesha provide spiritual protection and clarity.`;
   }
 
+  const guruTitle = code === "kn" ? `ಗುರು ಸಂಚಾರ (${guruRashiName})` :
+                    code === "hi" ? `गुरु गोचर (${guruRashiName})` :
+                    code === "te" ? `గురు గోచారము (${guruRashiName})` :
+                    code === "ta" ? `குரு பெயர்ச்சி (${guruRashiName})` :
+                    `Jupiter Transit (${guruRashiName})`;
+
+  const shaniTitle = code === "kn" ? `ಶನಿ ಸಂಚಾರ (${shaniRashiName})` :
+                     code === "hi" ? `शनि गोचर (${shaniRashiName})` :
+                     code === "te" ? `శని గోచారము (${shaniRashiName})` :
+                     code === "ta" ? `சனி பெயர்ச்சி (${shaniRashiName})` :
+                     `Saturn Transit (${shaniRashiName})`;
+
+  const rahuKetuTitle = code === "kn" ? `ರಾಹು-ಕೇತು ಸಂಚಾರ` :
+                        code === "hi" ? `राहु-केतु गोचर` :
+                        code === "te" ? `రాహు-కేతు గోచారము` :
+                        code === "ta" ? `ராகு-கேது பெயர்ச்சி` :
+                        `Rahu-Ketu Axis`;
+
   return {
-    guruTitle: `${GRAHA_L5.Jupiter[code] || "Jupiter"} Transit (${guruRashiName})`,
+    guruTitle,
     guruDesc,
-    shaniTitle: `${GRAHA_L5.Saturn[code] || "Saturn"} Transit (${shaniRashiName})`,
+    shaniTitle,
     shaniDesc,
-    rahuKetuTitle: `${GRAHA_L5.Rahu[code] || "Rahu"}-${GRAHA_L5.Ketu[code] || "Ketu"} Axis`,
+    rahuKetuTitle,
     rahuKetuDesc
   };
 }
