@@ -1105,6 +1105,10 @@ export default function DailyDarshanaPage(): JSX.Element {
     return decoded?.pc || storedSession?.pincode || "581326";
   }, [decoded, storedSession]);
 
+  const userLocationName = useMemo(() => {
+    return (decoded as any)?.loc || (decoded as any)?.location || storedSession?.placeName || "Gokarna";
+  }, [decoded, storedSession]);
+
   // 100% Dynamic Synchronous Birth Kundli calculation for the specific user's DOB, TOB, Lat, Lng
   const birthKundli = useMemo<KundliOutput>(() => {
     return calculateKundli({
@@ -1363,7 +1367,11 @@ export default function DailyDarshanaPage(): JSX.Element {
         birthNakshatraIndex: birthNakIdx,
         birthRashiIndex: birthRashiIdx,
         dob: birthDateStr,
-        tob: birthTimeStr
+        tob: birthTimeStr,
+        lat: userLat,
+        lng: userLng,
+        pincode: userPincode,
+        locationName: userLocationName
       });
 
       const sanitizeName = (str: string) => str.replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "");
