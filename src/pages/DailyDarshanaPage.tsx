@@ -955,7 +955,18 @@ export default function DailyDarshanaPage(): JSX.Element {
   const tokenParam = params.get("token");
   const decoded = useMemo(() => (tokenParam ? decodeDevoteeToken(tokenParam) : null), [tokenParam]);
 
-  const dateParam = params.get("date") || new Date().toISOString().split("T")[0];
+  const dateParam = useMemo(() => {
+    const urlDate = params.get("date") || decoded?.d;
+    if (urlDate && urlDate.trim().length > 0) return urlDate.trim();
+    // Location-based local date calculation using user's longitude
+    const userLongitude = decoded?.lg ?? decoded?.lng ?? 74.3187;
+    const now = new Date();
+    const localOffsetMinutes = Math.round(userLongitude * 4);
+    const utcMs = now.getTime() + (now.getTimezoneOffset() * 60000);
+    const localTime = new Date(utcMs + (localOffsetMinutes * 60000));
+    return localTime.toISOString().split("T")[0];
+  }, [params, decoded]);
+
   const langParam = (decoded?.l || params.get("lang") || "kn") as SevaLang;
   const nameParam = decoded?.n || params.get("name") || "";
   const panditParam = decoded?.p || params.get("pandit") || "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್";
@@ -974,7 +985,7 @@ export default function DailyDarshanaPage(): JSX.Element {
   const dict = useMemo(() => DARSHANA_LABELS[lang] || DARSHANA_LABELS.en, [lang]);
 
   const initialTab = useMemo(() => {
-    const rawTab = (decoded?.t || params.get("tab") || "").toLowerCase();
+    const rawTab = (params.get("tab") || (decoded as any)?.tab || "").toLowerCase();
     if (rawTab.includes("kund") || rawTab.includes("janma")) return "kundali";
     if (rawTab.includes("goch")) return "gochara";
     if (rawTab.includes("dash")) return "dasha";
@@ -1439,9 +1450,9 @@ export default function DailyDarshanaPage(): JSX.Element {
             {dict.creationSubtitle}
           </div>
 
-          {/* Main Prominent Heading - Priest Name */}
+          {/* Main Prominent Heading - Priest Name with Color Badge Emoji */}
           <h1 style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 900, color: "#FDE68A", letterSpacing: 0.5 }}>
-            {localizedPandit}
+            {vibe.badgeEmoji} [{tithiLabel(mockDay, lang)}] {localizedPandit}
           </h1>
           
           {/* Subheading - Gokarna Kshetra */}

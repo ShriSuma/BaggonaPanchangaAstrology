@@ -105,7 +105,7 @@ describe("icsCalendarGenerator", () => {
     expect(ics).toContain("BEGIN:VEVENT");
     expect(ics).toContain("DTSTART;TZID=Asia/Kolkata:20260811T080000");
     expect(ics).toContain("DTEND;TZID=Asia/Kolkata:20260811T083000");
-    expect(ics).toContain("SUMMARY:[ಕೃಷ್ಣ ಪಕ್ಷ ಚತುರ್ದಶಿ] ಚೈತನ್ಯ ಪಂಡಿತ್ - ಬಗ್ಗೋಣ ಪಂಚಾಂಗ");
+    expect(ics).toContain("SUMMARY:🟢 [ಕೃಷ್ಣ ಪಕ್ಷ ಚತುರ್ದಶಿ] ಚೈತನ್ಯ ಪಂಡಿತ್ - ಬಗ್ಗೋಣ ಪಂಚಾಂಗ");
     expect(ics).toContain("ATTACH;FMTTYPE=image/jpeg");
     expect(ics).toContain("🕉️ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ - ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ");
     expect(ics).toContain("Pramod Kodagi");
