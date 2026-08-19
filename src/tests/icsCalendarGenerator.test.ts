@@ -74,7 +74,7 @@ describe("icsCalendarGenerator", () => {
   it("calculates energy progress bar, color badge, and single-letter vibe tag", () => {
     const vibeHigh = getEnergyMeterAndVibe(mockDays[0]!, "en");
     expect(vibeHigh.badgeEmoji).toBe("🟢");
-    expect(vibeHigh.meter).toContain("85%");
+    expect(vibeHigh.meter).toContain("%");
     expect(vibeHigh.vibeTag).toContain("⚡ A");
     expect(vibeHigh.googleColorId).toBe("10");
 
@@ -88,6 +88,18 @@ describe("icsCalendarGenerator", () => {
     expect(vibeCaution.badgeEmoji).toBe("🔴");
     expect(vibeCaution.vibeTag).toContain("🧘 S");
     expect(vibeCaution.googleColorId).toBe("11");
+
+    // Enforce 65% energy score is ALWAYS Yellow 🟡, NEVER Red 🔴
+    const yellowDay: RhythmDay = {
+      ...mockDays[0]!,
+      band: "medium",
+      isChandrashtama: false,
+      isAmavasya: false,
+      energyScore: 65
+    };
+    const vibeYellow = getEnergyMeterAndVibe(yellowDay, "en");
+    expect(vibeYellow.badgeEmoji).toBe("🟡");
+    expect(vibeYellow.badgeEmoji).not.toBe("🔴");
   });
 
   it("generates a luxury RFC 5545 iCalendar payload with royal ASCII framing, deity mantras, and kaala timings", () => {

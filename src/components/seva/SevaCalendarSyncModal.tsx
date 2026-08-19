@@ -349,7 +349,7 @@ export default function SevaCalendarSyncModal({
           {/* Calendar Event Flair Illustration & Morning Reminder Preview Card */}
           <div className="relative overflow-hidden rounded-2xl border border-amber-300/80 shadow-md">
             <img
-              src="/calendar_event_flair.jpg"
+              src="/baggona_panchanga_gold_banner.jpg"
               alt="Calendar Event Flair Banner"
               className="w-full h-28 object-cover brightness-95"
             />

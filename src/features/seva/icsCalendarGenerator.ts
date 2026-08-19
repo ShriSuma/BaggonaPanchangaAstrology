@@ -521,13 +521,11 @@ export function getEnergyMeterAndVibe(day: RhythmDay, lang: string) {
   const code = (lang || "en").slice(0, 2);
   const band = String(day.band || "").toLowerCase();
   const score = day.energyScore ?? (band === "high" ? 85 : band === "medium" ? 60 : 35);
+  // STRICT RULE: Caution (Red 🔴) is ONLY triggered if score < 50 OR Chandrashtama OR Amavasya.
+  // 65% energy score is ALWAYS Yellow 🟡 (Balanced Routine Day), NEVER Red 🔴!
   const isCaution =
     day.isChandrashtama ||
     day.isAmavasya ||
-    Boolean(day.tara?.isDifficult) ||
-    [3, 5, 7].includes((day.tara?.tara as number) || 0) ||
-    band === "rest" ||
-    band === "low" ||
     score < 50;
 
   if (isCaution) {
@@ -544,14 +542,14 @@ export function getEnergyMeterAndVibe(day: RhythmDay, lang: string) {
     return {
       badgeEmoji: "🔴",
       badgeText,
-      meter: "[▓▓▓░░░░░░░] 30%",
+      meter: `[▓▓▓░░░░░░░] ${score}%`,
       vibeTag,
       googleColorId: "11",
       icalColor: "crimson"
     };
   }
 
-  if (band === "high" || score >= 75) {
+  if (band === "high" || score >= 70) {
     const badgeText = code === "kn" ? "🟢 ಶುಭ ಕಾರ್ಯ, ನೂತನ ವಾಹನ ಹಾಗೂ ಧನ ಅಭಿವೃದ್ಧಿಗೆ ಪ್ರಶಸ್ತ"
                     : code === "hi" ? "🟢 नए कार्य, वाहन क्रय एवं धन वृद्धि हेतु शुभ"
                     : code === "te" ? "🟢 నూతన కార్యం, వాహన కొనుగోలు & ధన లాభానికి శుభప్రదం"
@@ -565,7 +563,7 @@ export function getEnergyMeterAndVibe(day: RhythmDay, lang: string) {
     return {
       badgeEmoji: "🟢",
       badgeText,
-      meter: "[▓▓▓▓▓▓▓▓░░] 85%",
+      meter: `[▓▓▓▓▓▓▓▓░░] ${score}%`,
       vibeTag,
       googleColorId: "10",
       icalColor: "green"
@@ -585,7 +583,7 @@ export function getEnergyMeterAndVibe(day: RhythmDay, lang: string) {
   return {
     badgeEmoji: "🟡",
     badgeText,
-    meter: "[▓▓▓▓▓░░░░░] 60%",
+    meter: `[▓▓▓▓▓░░░░░] ${score}%`,
     vibeTag,
     googleColorId: "5",
     icalColor: "gold"
