@@ -278,7 +278,7 @@ export default function SevaDayDetail({
               {/* Yamaganda */}
               <div className="flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50/70 p-2.5">
                 <div className="flex items-center gap-2">
-                  <span className="text-base">🟢</span>
+                  <span className="text-base">⏳</span>
                   <div>
                     <div className="text-[11px] font-extrabold text-emerald-950">
                       {isKn ? "ಯಮಗಂಡ ಕಾಲ" : lang.startsWith("hi") ? "यमगंड काल" : lang.startsWith("te") ? "యమగండ కాలం" : lang.startsWith("ta") ? "யமகண்ட காலம்" : "Yamaganda Kaala"}

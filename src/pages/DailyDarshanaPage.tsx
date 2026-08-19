@@ -522,6 +522,7 @@ interface RashiGridProps {
   planetPlacements?: Record<number, string[]>; // rashiIndex -> planetLabels[]
   title: string;
   isGochara?: boolean;
+  devoteeName?: string;
 }
 
 const SouthIndianKundaliGrid: React.FC<RashiGridProps> = ({
@@ -530,7 +531,8 @@ const SouthIndianKundaliGrid: React.FC<RashiGridProps> = ({
   lagnaRashiIndex = 4,
   planetPlacements = {},
   title,
-  isGochara = false
+  isGochara = false,
+  devoteeName
 }) => {
   const gridCells: { rashiIdx: number; row: number; col: number }[] = [
     { rashiIdx: 11, row: 0, col: 0 },
@@ -597,8 +599,13 @@ const SouthIndianKundaliGrid: React.FC<RashiGridProps> = ({
           <div style={{ fontSize: 11, fontWeight: 900, color: "#FDE68A", marginTop: 2 }}>
             {isGochara ? (lang === "kn" ? "ಗೋಚಾರ ಬಿಂಬ (ಚಂದ್ರ ಲಗ್ನ)" : "Gochara Transit (Chandra Lagna)") : "ಜನ್ಮ ಚಕ್ರ"}
           </div>
+          {devoteeName && (
+            <div style={{ fontSize: 12, fontWeight: 900, color: "#FFFFFF", marginTop: 2, textShadow: "0 1px 3px rgba(0,0,0,0.8)" }}>
+              {devoteeName}
+            </div>
+          )}
           <div style={{ fontSize: 9, color: "#F59E0B", marginTop: 2 }}>
-            {isGochara ? (lang === "kn" ? "ಕನ್ಯಾ ರಾಶಿ ಮೂಲ ಬಿಂದು" : "Chandra Lagna Baseline") : "South Indian Grid"}
+            {isGochara ? (lang === "kn" ? "ಗೋಕರ್ಣ ಪಂಚಾಂಗ" : "Gokarna Panchanga") : "South Indian Grid"}
           </div>
         </div>
 
@@ -1821,6 +1828,7 @@ export default function DailyDarshanaPage(): JSX.Element {
               highlightRashiIndex={moonRashiIdx}
               lagnaRashiIndex={ascendantRashiIdx}
               planetPlacements={birthPlacements}
+              devoteeName={devoteeDisplayName}
               title={
                 lang === "kn"
                   ? `📜 ${devoteeDisplayName} ಅವರ ಜನ್ಮ ಕುಂಡಲಿ`
@@ -1895,6 +1903,7 @@ export default function DailyDarshanaPage(): JSX.Element {
               highlightRashiIndex={moonRashiIdx}
               lagnaRashiIndex={moonRashiIdx}
               planetPlacements={gocharaPlacements}
+              devoteeName={devoteeDisplayName}
               title={
                 lang === "kn"
                   ? `🌌 ${devoteeDisplayName} ಅವರ ಲೈವ್ ಗೋಚಾರ ಕುಂಡಲಿ`
@@ -2088,10 +2097,14 @@ export default function DailyDarshanaPage(): JSX.Element {
               ? "ఈ క్యాలెండర్ పొందుటకు లేదా మీ ప్రస్తుత జీవిత జాతక ఫలాల వివరాలు పొందుటకు ఈ క్రింది ప్రధాన అర్చకుడిని సంప్రదించండి:"
               : lang === "ta"
               ? "இந்த காலண்டரைப் பெற அல்லது உங்களின் தற்போதைய வாழ்க்கை பலன்களைப் பெற கீழே உள்ள முதன்மை அர்ச்சகரைத் தொடர்பு கொள்ளவும்:"
-              : "To get this calendar or to get current life related details/predictions, you can contact Chief Priest:"}
+              : "To get this calendar or to get current life related details/predictions, you can contact Chief Archaka:"}
           </div>
           <div style={{ fontSize: 16, color: "#FFFFFF", fontWeight: 900, marginBottom: 10 }}>
-            🛕 {localizedPandit} (Shreeram Pandit)
+            🛕 {lang === "kn" ? "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಪ್ರಧಾನ ಅರ್ಚಕರು)" :
+                lang === "hi" ? "श्रीराम पंडित (मुख्य अर्चक)" :
+                lang === "te" ? "శ్రీరామ్ పండిత్ (ప్రధాన అర్చకులు)" :
+                lang === "ta" ? "ஸ்ரீராம் பண்டிட் (முதன்மை அர்ச்சகர்)" :
+                "Shreeram Pandit (Chief Archaka)"}
           </div>
           <button
             onClick={() => setShowContactModal(true)}
