@@ -15,6 +15,7 @@
 
 import type { RhythmDay } from "../../core/DailyRhythmEngine";
 import { computeLocalFallback90DayPanchanga, type DayPanchangaAiItem } from "./panchanga90DayAiEngine";
+import { detectSpecialVrata } from "./specialVrataAlertEngine";
 import { sunTimesSyncForBirth } from "../../core/birthSunTimes";
 import {
   BAND_LABEL_L5,
@@ -874,7 +875,12 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
     const tithiFullStr = aiItem ? `${aiItem.paksha ? aiItem.paksha + " - " : ""}${aiItem.tithi}` : tithiLabel(day, lang);
     const nakName = aiItem?.nakshatra || nakshatraName(day.moonNakshatraIndex, lang as SevaLang);
 
-    const summaryStr = `${vibe.badgeEmoji} ${pakshaStr} - ${tithiOnlyStr} - ${localizedPandit} - ${labels.panchangaTitle}`;
+    // Detect Special Vrata (Amavasya, Ekadashi, Sankashti, Purnima, Festivals)
+    const vrata = detectSpecialVrata(day.ymd, lang);
+    const summaryPrefix = vrata.isSpecial
+      ? (vrata.category === "FESTIVAL" ? "🚩 " : "🕉️ ")
+      : "";
+    const summaryStr = `${summaryPrefix}${vibe.badgeEmoji} ${pakshaStr} - ${tithiOnlyStr} - ${localizedPandit} - ${labels.panchangaTitle}`;
 
     const kaalaRaw = getDailyKaalaTimings(day.dayLord, lang, day.ymd, lat, lng, pincode);
     const kaala = {
@@ -897,7 +903,19 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
       `👤 ${labels.devoteeLabel}: ${devoteeDisplayName}`,
       `🙏 ${labels.priestLabel}: ${localizedPandit}`,
       `📅 ${labels.tithiLabel}: ${tithiFullStr}`,
-      `⭐ ${labels.nakshatraLabel}: ${nakName}`,
+      `⭐ ${labels.nakshatraLabel}: ${nakName}`
+    ];
+
+    if (vrata.isSpecial) {
+      descriptionParts.push("----------------------------------------");
+      descriptionParts.push(`🔔 ${vrata.vrataName}`);
+      descriptionParts.push(`📜 ${vrata.sameDayNotice}`);
+      descriptionParts.push(`🍽️ Fasting Advice: ${vrata.fastingAdvice}`);
+      descriptionParts.push(`🕉️ Special Mantra: ${vrata.mantra}`);
+    }
+
+    descriptionParts.push(
+      "----------------------------------------",
       `🌅 ${labels.sunriseLabel}: ${kaala.sunrise}`,
       `🌇 ${labels.sunsetLabel}: ${kaala.sunset}`,
       `⚡ ${labels.statusLabel}: ${vibe.badgeText} (${day.energyScore || 85}%)`,
@@ -917,7 +935,7 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
       `👉 ${sanctumUrl}`,
       "----------------------------------------",
       "✨ Gokarna Mahabaleshwara Prasada Siddhirastu ✨"
-    ];
+    );
 
     const descriptionStr = descriptionParts.join("\n");
     const htmlDescriptionStr = `<html><body style="font-family:sans-serif; background-color:#1c0a00; color:#fff8e7; padding:12px;"><div style="background-color:#501b11; border:2px solid #f59e0b; border-radius:12px; padding:16px; margin-bottom:16px;"><h2 style="color:#fde68a; margin:0 0 12px 0; font-size:16px; text-align:center;">🕉️ ${labels.panchangaTitle} - ${labels.kshetraTitle}</h2><table style="width:100%; border-collapse:collapse; font-size:13px;"><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b; width:45%;">👤 ${labels.devoteeLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${devoteeDisplayName}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🙏 ${labels.priestLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${localizedPandit}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">📅 ${labels.tithiLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${tithiFullStr}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">⭐ ${labels.nakshatraLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${nakName}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🌅 ${labels.sunriseLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${kaala.sunrise}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🌇 ${labels.sunsetLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${kaala.sunset}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">⚡ ${labels.statusLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${vibe.badgeText} (${day.energyScore || 85}%)</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">✨ Details:</td><td style="padding:6px 4px; color:#fff8e7;">${vibe.vibeTag}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🎯 ${labels.taraLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${taraBalaStr}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🌙 ${labels.chandraLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${chandraBalaStr}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🔢 ${labels.luckyNumberLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${luckyNumsStr}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🎨 ${labels.luckyColorLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${localizedColor}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🧭 ${labels.luckyDirectionLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${localizedDirection}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🚫 ${labels.rahuLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${kaala.rahu}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">⏳ ${labels.gulikaLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${kaala.gulika}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">⌛ ${labels.yamagandaLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${kaala.yamaganda}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🛕 ${labels.deityLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${deity.deity}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">📜 Mantra:</td><td style="padding:6px 4px; color:#fff8e7;"><span style="font-size:11px; color:#fde68a;">${deity.mantra}</span></td></tr><tr><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🌐 Live Sanctum:</td><td style="padding:6px 4px; color:#fff8e7;"><a href="${sanctumUrl}" style="color:#6ee7b7; font-weight:bold;">Open Live Darshana</a></td></tr></table></div><div style="text-align:center; margin-top:12px;"><p style="color:#fde68a; font-weight:bold; margin-bottom:8px;">${labels.visitLabel}</p><a href="${sanctumUrl}" style="display:inline-block; background:#d97706; color:#ffffff; text-decoration:none; padding:10px 18px; border-radius:8px; font-weight:bold;">👉 Open Live Web Sanctum</a></div><br/><p style="text-align:center; color:#f59e0b; font-size:12px;">✨ Gokarna Mahabaleshwara Prasada Siddhirastu ✨</p></body></html>`;
@@ -964,6 +982,42 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
     ];
 
     lines.push(...eventLines);
+
+    // If day is a Special Vrata (Amavasya, Ekadashi, Sankashti, Purnima, Festival),
+    // add 1-Day Prior Previous Evening Eve Alert Event at 20:00 (8:00 PM IST)
+    if (vrata.isSpecial) {
+      const prevDate = new Date(new Date(day.ymd).getTime() - 86400000);
+      const prevYmd = prevDate.toISOString().slice(0, 10);
+      const prevYmdCompact = formatYmdCompact(prevYmd);
+      const eveUid = `baggona-eve-${prevYmdCompact}-${sanitizedDevoteeToken}@baggona.app`;
+      const eveDtStart = `${prevYmdCompact}T200000`; // 8:00 PM previous evening
+      const eveDtEnd = `${prevYmdCompact}T203000`;   // 8:30 PM IST
+
+      const eveLines: string[] = [
+        "BEGIN:VEVENT",
+        `UID:${eveUid}`,
+        `RELATED-TO;RELTYPE=PARENT:baggona-series-${sanitizedDevoteeToken}@baggona.app`,
+        `X-BAGBONA-SERIES-ID:${sanitizedDevoteeToken}`,
+        `DTSTAMP:${nowIso}`,
+        `DTSTART;TZID=Asia/Kolkata:${eveDtStart}`,
+        `DTEND;TZID=Asia/Kolkata:${eveDtEnd}`,
+        `SUMMARY:${escapeIcsText(vrata.eveAlertTitle)}`,
+        `DESCRIPTION:${escapeIcsText(`${vrata.eveAlertSummary}\n\nFasting Advice: ${vrata.fastingAdvice}\nSpecial Mantra: ${vrata.mantra}`)}`,
+        `ATTACH;FMTTYPE=image/jpeg:${origin}/calendar_event_flair.jpg`,
+        `URL:${sanctumUrl}`,
+        "COLOR:#d97706",
+        "X-GOOGLE-CALENDAR-COLOR:6",
+        "CATEGORIES:Vrata,Special Day,Eve Alert,Baggona Panchanga",
+        "STATUS:CONFIRMED",
+        "BEGIN:VALARM",
+        "ACTION:DISPLAY",
+        `DESCRIPTION:${escapeIcsText(vrata.eveAlertTitle)}`,
+        "TRIGGER:-PT15M",
+        "END:VALARM",
+        "END:VEVENT"
+      ];
+      lines.push(...eveLines);
+    }
   });
 
   lines.push("END:VCALENDAR");

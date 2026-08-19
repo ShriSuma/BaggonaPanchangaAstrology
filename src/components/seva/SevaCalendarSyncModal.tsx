@@ -19,6 +19,7 @@ import {
 } from "../../features/seva/sevaPriestDirectory";
 import { resolvePlaceFromPincode, getCoordinates } from "../../services/locationApi";
 import { fetch90DayAiPanchanga, type DayPanchangaAiItem } from "../../features/seva/panchanga90DayAiEngine";
+import { get90DaySpecialVratas, type SpecialVrataInfo } from "../../features/seva/specialVrataAlertEngine";
 
 type Props = {
   days: RhythmDay[];
@@ -68,6 +69,11 @@ export default function SevaCalendarSyncModal({
         setIsAiSyncing(false);
       });
   }, [isOpen, pincodeInput, locationName, lang, lat, lng, days]);
+
+  const specialVratas = useMemo(() => {
+    const startDateStr = days && days.length > 0 ? days[0].ymd : new Date().toISOString().slice(0, 10);
+    return get90DaySpecialVratas(startDateStr, lang);
+  }, [days, lang]);
 
   const handlePinResolve = async (pinOrQuery: string) => {
     const clean = pinOrQuery.trim();
@@ -451,6 +457,45 @@ export default function SevaCalendarSyncModal({
                 </span>
               </div>
             </div>
+
+            {/* 90-Day Special Vrata & Festival Highlights (1-Day Eve Alert) */}
+            {specialVratas.length > 0 && (
+              <div className="sm:col-span-2 rounded-2xl border border-amber-400/80 bg-gradient-to-br from-amber-500/10 via-amber-900/5 to-amber-500/10 p-3 shadow-sm">
+                <div className="flex items-center justify-between border-b border-amber-300/40 pb-2 mb-2">
+                  <div className="flex items-center gap-1.5 font-bold text-amber-950 text-xs">
+                    <span className="text-sm">🕉️</span>
+                    <span>
+                      {lang.startsWith("kn")
+                        ? `90-ದಿನಗಳ ಪವಿತ್ರ ವ್ರತ & ಹಬ್ಬಗಳು (${specialVratas.length} ವ್ರತಗಳು)`
+                        : `90-Day Sacred Vratas & Festivals (${specialVratas.length} Special Days)`}
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-800 text-amber-50 shadow-xs">
+                    1-DAY EVE ALERT
+                  </span>
+                </div>
+                <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin">
+                  {specialVratas.map((item) => (
+                    <div
+                      key={item.ymd}
+                      className="min-w-[150px] flex-shrink-0 rounded-xl bg-white/90 border border-amber-300/80 p-2 text-left shadow-xs"
+                    >
+                      <div className="flex items-center justify-between text-[10px] font-bold text-amber-800">
+                        <span>{item.ymd}</span>
+                        <span className="text-[9px] px-1 py-0.2 rounded bg-amber-100 text-amber-900">{item.category}</span>
+                      </div>
+                      <div className="text-[11px] font-extrabold text-amber-950 truncate mt-1" title={item.vrataName}>
+                        {item.vrataName}
+                      </div>
+                      <div className="text-[9px] font-semibold text-amber-700 mt-1 flex items-center gap-1">
+                        <span>🔔</span>
+                        <span>1-Day Prior Eve Alert</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Pre-defined Priest Dropdown Selector & Dynamic Custom Addition */}
             <div className="sm:col-span-2">
