@@ -1113,16 +1113,6 @@ export default function PrasadaKit({
           qrDataUrl={qrDataUrl}
         />
       </div>
-
-      <div id="seva-print-royal-booklet" style={hiddenHost} aria-hidden>
-        <RoyalBooklet8PageTemplate
-          lang={pdfLang as any}
-          identity={identity}
-          panditName={panditName}
-          rhythm={rhythm}
-          qrDataUrl={qrDataUrl}
-        />
-      </div>
     </div>
   );
 }

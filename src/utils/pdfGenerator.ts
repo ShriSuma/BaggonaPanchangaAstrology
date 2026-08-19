@@ -49,8 +49,10 @@ export async function generatePDFFromElement(elementId: string, fileName: string
     // Force pdf-page divs to stack vertically as block
     if (el.classList.contains("pdf-page")) {
       el.style.display = "block";
-      el.style.width = "900px";
-      el.style.pageBreakAfter = "auto";
+      if (!el.style.width || el.style.width === "100%") {
+        el.style.width = "794px";
+      }
+      el.style.pageBreakAfter = "always";
     }
     // Force pdf-section divs to stack vertically as block
     if (el.classList.contains("pdf-section")) {

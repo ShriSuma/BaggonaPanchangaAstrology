@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Card from "../components/ui/Card";
 import PrasadaKit from "../components/seva/PrasadaKit";
+import RoyalBookletTab from "../components/seva/RoyalBookletTab";
 import SevaCalendar from "../components/seva/SevaCalendar";
 import SevaCalendarSyncModal from "../components/seva/SevaCalendarSyncModal";
 import SevaDayDetail from "../components/seva/SevaDayDetail";
@@ -16,7 +17,7 @@ import { useSevaData } from "../features/seva/useSevaData";
 import { useAppStore } from "../stores/appStore";
 import { useKundliViewerStore } from "../stores/kundliViewerStore";
 
-type SevaTab = "seva" | "calendar" | "prasada";
+type SevaTab = "seva" | "calendar" | "prasada" | "royal";
 
 const IdentityChip = ({ label, value }: { label: string; value: string }): JSX.Element => (
   <div className="rounded-lg border border-amber-300/60 bg-white/70 px-3 py-1.5">
@@ -97,7 +98,17 @@ export default function SevaPage(): JSX.Element {
   const tabs: { id: SevaTab; label: string }[] = [
     { id: "seva", label: pick(T.tabSeva!, lang) },
     { id: "calendar", label: pick(T.tabCalendar!, lang) },
-    { id: "prasada", label: pick(T.tabPrasada!, lang) }
+    { id: "prasada", label: pick(T.tabPrasada!, lang) },
+    {
+      id: "royal",
+      label: pick({
+        kn: "👑 ೮ ಪುಟಗಳ ರಾಯಲ್ ಗ್ರಂಥ (₹1,200)",
+        hi: "👑 8-पृष्ठ रॉयल ग्रंथ (₹1,200)",
+        te: "👑 8-పేజీల రాయల్ గ్రంథం (₹1,200)",
+        ta: "👑 8-பக்க ராயல் நூல் (₹1,200)",
+        en: "👑 8-Page Royal Booklet (₹1,200)"
+      }, lang)
+    }
   ];
 
   const monthOfSelected = rhythm.months.find(
@@ -276,6 +287,16 @@ export default function SevaPage(): JSX.Element {
           <PrasadaKit
             rhythm={rhythm}
             recommendations={recommendations}
+            identity={identity}
+            lang={lang}
+          />
+        </Card>
+      )}
+
+      {tab === "royal" && (
+        <Card>
+          <RoyalBookletTab
+            rhythm={rhythm}
             identity={identity}
             lang={lang}
           />

@@ -741,12 +741,19 @@ export interface CalendarGeneratorOptions {
 
 export function getSafeProductionOrigin(webAppBaseUrl?: string): string {
   if (webAppBaseUrl && webAppBaseUrl.trim().length > 0 && webAppBaseUrl.startsWith("http")) {
+    // If explicitly provided a localhost URL, fallback to production domain for mobile QR scannability
+    if (webAppBaseUrl.includes("localhost") || webAppBaseUrl.includes("127.0.0.1")) {
+      return "https://baggona-panchanga.vercel.app";
+    }
     return webAppBaseUrl.trim().replace(/\/+$/, "");
   }
   if (typeof window !== "undefined" && window.location && window.location.origin) {
+    if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+      return "https://baggona-panchanga.vercel.app";
+    }
     return window.location.origin;
   }
-  return "https://baggona-astrology.web.app";
+  return "https://baggona-panchanga.vercel.app";
 }
 
 export function formatPanditGreeting(panditName: string, lang: string): string {
