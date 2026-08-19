@@ -1,6 +1,8 @@
 // Comprehensive 5-Language Transliteration Engine for Devotee Names
 
 const NAME_DICTIONARY: Record<string, Record<string, string>> = {
+  "gowtam": { kn: "ಗೌತಮ್", hi: "गौतम", te: "గౌతమ్", ta: "கௌதம்", en: "Gowtam" },
+  "gautam": { kn: "ಗೌತಮ್", hi: "गौतम", te: "గౌతమ్", ta: "கௌதம்", en: "Gautam" },
   "roja": { kn: "ರೋಜಾ", hi: "रोजा", te: "రోజా", ta: "ரோஜா", en: "Roja" },
   "swayam naik": { kn: "ಸ್ವಯಂ ನಾಯಕ್", hi: "स्वयं नायक", te: "స్వయం నాయక్", ta: "ஸ்வயம் நாயக்", en: "Swayam Naik" },
   "swayam": { kn: "ಸ್ವಯಂ", hi: "स्वयं", te: "స్ವయం", ta: "ஸ்வயம்", en: "Swayam" },
