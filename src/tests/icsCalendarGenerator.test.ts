@@ -92,7 +92,7 @@ describe("icsCalendarGenerator", () => {
     // Enforce 65% energy score is ALWAYS Yellow 🟡, NEVER Red 🔴
     const yellowDay: RhythmDay = {
       ...mockDays[0]!,
-      band: "medium",
+      band: "steady",
       isChandrashtama: false,
       isAmavasya: false,
       energyScore: 65
