@@ -27,7 +27,11 @@ When the user enters `/ALL`, `/all`, `/All`, or mentions `ALL`, display this com
 - **Description**: Master instructions, layout protection rules, 5-page Ashirvada PDF download layout, QR code scannability, Indic font rendering, and vertical layout stacking for Seva & Prasada pages.
 - **Example When to Use**: Mention `@baggona-seva-prasada-guard` whenever modifying Seva & Prasada pages, PDF download utilities, or QR code generators.
 
-### 5. `ALL`
+### 5. `baggona-daily-darshana-token-guard`
+- **Description**: Mandatory rules and layout/data validation guards for `DailyDarshanaPage.tsx` and `tokenCipher.ts`. Enforces authentic birth Kundli calculation (DOB/TOB), transit vs natal separation, Base64URL resilient decoding with `TextDecoder`, gold banner display with Kannada text `"॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ॥"`, 4-tab system integrity, and pre-push build validation.
+- **Example When to Use**: Mention `@baggona-daily-darshana-token-guard` whenever modifying `DailyDarshanaPage.tsx`, `tokenCipher.ts`, or testing devotee URL tokens.
+
+### 6. `ALL`
 - **Description**: Complete catalog of all Antigravity skills, descriptions, and example trigger scenarios.
 - **Example When to Use**: Type `/ALL`, `/all`, or `/All` whenever you need a full list of all available agent capabilities.
 
