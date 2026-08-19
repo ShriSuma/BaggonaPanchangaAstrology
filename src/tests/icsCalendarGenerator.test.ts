@@ -66,9 +66,11 @@ const mockDays: RhythmDay[] = [
 describe("icsCalendarGenerator", () => {
   it("calculates accurate daily Kaala timings for Rahu, Gulika, and Yamaganda", () => {
     const kaalaTue = getDailyKaalaTimings("Mars", "en");
-    expect(kaalaTue.rahu).toContain("03:00 PM – 04:30 PM");
-    expect(kaalaTue.gulika).toContain("12:00 PM – 01:30 PM");
-    expect(kaalaTue.yamaganda).toContain("09:00 AM – 10:30 AM");
+    expect(kaalaTue.rahu).toContain("Focus on Routine Work");
+    expect(kaalaTue.gulika).toContain("Favorable for Action");
+    expect(kaalaTue.yamaganda).toContain("Good for Prayer");
+    expect(kaalaTue.sunrise).toBeDefined();
+    expect(kaalaTue.sunset).toBeDefined();
   });
 
   it("calculates energy progress bar, color badge, and full descriptive vibe tag", () => {

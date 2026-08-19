@@ -114,6 +114,23 @@ export const tithiLabel = (day?: RhythmDay | null, lang: string = "en"): string 
   return `${pick(pakshaPhrase, lang)} ${name}`;
 };
 
+/** Tithi name only without Paksha, e.g. "Panchami", "Purnima", "Amavasya". */
+export const tithiOnlyLabel = (day?: RhythmDay | null, lang: string = "en"): string => {
+  if (!day) return "";
+  if (day.isPurnima) return pick(PURNIMA_L5, lang);
+  if (day.isAmavasya) return pick(AMAVASYA_L5, lang);
+  const tithiIdx = Math.max(0, (day.tithiInPaksha || 1) - 1);
+  return pick(TITHI_L5[tithiIdx] ?? TITHI_L5[0], lang);
+};
+
+/** Paksha name only, e.g. "Shukla Paksha" or "Krishna Paksha". */
+export const pakshaLabel = (day?: RhythmDay | null, lang: string = "en"): string => {
+  if (!day) return "";
+  const pakshaPhrase = PAKSHA_L5[day.paksha || "shukla"] || PAKSHA_L5["shukla"];
+  return pick(pakshaPhrase, lang);
+};
+
+
 export const nakshatraName = (index: number = 0, lang: string = "en"): string => {
   const safeIdx = Math.max(0, Math.min(index || 0, NAKSHATRA_L5.length - 1));
   return pick(NAKSHATRA_L5[safeIdx], lang);
