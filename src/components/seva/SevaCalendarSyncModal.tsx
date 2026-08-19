@@ -10,6 +10,7 @@ import {
   type QrCalendarTarget
 } from "../../features/seva/icsCalendarGenerator";
 import { encodeDevoteeToken } from "../../utils/tokenCipher";
+import { getUniversalBirthDetails } from "../../utils/universalDevoteeKundli";
 import { T, pick } from "../../features/seva/sevaLocale";
 import {
   getAllPriests,
@@ -135,6 +136,11 @@ export default function SevaCalendarSyncModal({
 
   const devoteeToken = useMemo(() => {
     const selectedDay = days && days.length > 0 ? days[0] : null;
+    const birthDetails = getUniversalBirthDetails({
+      name: personName,
+      nakshatraIndex: selectedDay?.moonNakshatraIndex,
+      rashiIndex: selectedDay?.moonRashiIndex
+    });
     return encodeDevoteeToken({
       n: personName || (lang.startsWith("kn") ? "ಭಕ್ತರು" : "Devotee"),
       nk: selectedDay?.moonNakshatraIndex,
@@ -148,7 +154,9 @@ export default function SevaCalendarSyncModal({
       pc: pincodeInput,
       lt: lat,
       lg: lng,
-      loc: locationName
+      loc: locationName,
+      dob: birthDetails.dob,
+      tob: birthDetails.tob
     });
   }, [days, personName, lang, panditName, platform, target, notificationTime, pincodeInput, lat, lng, locationName]);
 

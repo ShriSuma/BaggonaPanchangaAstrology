@@ -60,35 +60,42 @@ function computeChecksum(str: string): string {
 
 /** Convert string to base64url */
 function toBase64Url(str: string): string {
-  // UTF-8 safe encoding
-  const utf8Bytes = encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, p1) =>
-    String.fromCharCode(parseInt(p1, 16))
-  );
-  return btoa(utf8Bytes)
+  try {
+    if (typeof Buffer !== "undefined") {
+      return Buffer.from(str, "utf-8").toString("base64url");
+    }
+  } catch {
+    // Fallback below
+  }
+  const bytes = new TextEncoder().encode(str);
+  let bin = "";
+  for (let i = 0; i < bytes.length; i++) {
+    bin += String.fromCharCode(bytes[i]);
+  }
+  return btoa(bin)
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
     .replace(/=+$/, "");
 }
 
 function fromBase64Url(base64Url: string): string {
+  try {
+    if (typeof Buffer !== "undefined") {
+      return Buffer.from(base64Url, "base64url").toString("utf-8");
+    }
+  } catch {
+    // Fallback below
+  }
   let base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
   while (base64.length % 4) {
     base64 += "=";
   }
-  try {
-    const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
-    return new TextDecoder("utf-8", { fatal: false }).decode(bytes);
-  } catch {
-    const binaryStr = atob(base64);
-    const percentEncoded = Array.prototype.map
-      .call(binaryStr, (c: string) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-      .join("");
-    try {
-      return decodeURIComponent(percentEncoded);
-    } catch {
-      return binaryStr;
-    }
+  const bin = atob(base64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) {
+    bytes[i] = bin.charCodeAt(i);
   }
+  return new TextDecoder("utf-8").decode(bytes);
 }
 
 /**
@@ -228,13 +235,13 @@ export function decodeDevoteeToken(token: string): (DevoteeTokenPayload & {
       };
     }
 
-    // Reject tampered tokens where checksum failed and payload was corrupted
-    if (!checksumValid && !isJsonValid) {
+    // Reject tampered tokens where checksum failed
+    if (!checksumValid) {
       return null;
     }
 
     // Reject garbage/empty tokens that contain no recognizable parameters
-    const hasAnyPayloadKey = parsed.n !== undefined || parsed.name !== undefined || parsed.nk !== undefined || parsed.r !== undefined || parsed.d !== undefined || parsed.date !== undefined || parsed.dob !== undefined || parsed.tob !== undefined || parsed.loc !== undefined;
+    const hasAnyPayloadKey = Boolean(parsed.n || parsed.name || parsed.nk !== undefined || parsed.r !== undefined || parsed.d || parsed.date || parsed.dob || parsed.tob || parsed.loc);
     if (!hasAnyPayloadKey) {
       return null;
     }

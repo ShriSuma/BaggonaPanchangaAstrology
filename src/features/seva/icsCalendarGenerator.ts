@@ -17,6 +17,7 @@ import type { RhythmDay } from "../../core/DailyRhythmEngine";
 import { computeLocalFallback90DayPanchanga, type DayPanchangaAiItem } from "./panchanga90DayAiEngine";
 import { detectSpecialVrata } from "./specialVrataAlertEngine";
 import { sunTimesSyncForBirth } from "../../core/birthSunTimes";
+import { getUniversalBirthDetails } from "../../utils/universalDevoteeKundli";
 import {
   BAND_LABEL_L5,
   COLOUR_L5,
@@ -824,6 +825,16 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
   const localizedPandit = getLocalizedPanditName(panditName, lang);
   const devoteeDisplayName = (personName && personName.trim().length > 0) ? personName.trim() : labels.defaultDevotee;
 
+  const resolvedBirth = getUniversalBirthDetails({
+    dob,
+    tob,
+    name: devoteeDisplayName,
+    nakshatraIndex: birthNakIdx,
+    rashiIndex: birthRashiIdx
+  });
+  const resolvedDob = resolvedBirth.dob;
+  const resolvedTob = resolvedBirth.tob;
+
   const baseToken = encodeDevoteeToken({
     n: devoteeDisplayName,
     nk: birthNakIdx,
@@ -836,8 +847,8 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
     lt: lat,
     lg: lng,
     loc: locationName,
-    dob,
-    tob
+    dob: resolvedDob,
+    tob: resolvedTob
   });
   const sanitizedDevoteeToken = baseToken.replace(/[^a-zA-Z0-9]/g, "").slice(0, 32);
 
@@ -864,8 +875,8 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
       lt: lat,
       lg: lng,
       loc: locationName,
-      dob,
-      tob
+      dob: resolvedDob,
+      tob: resolvedTob
     });
     const sanctumUrl = `${origin}/daily?token=${dayToken}`;
 
