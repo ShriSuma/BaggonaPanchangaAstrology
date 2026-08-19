@@ -17,6 +17,7 @@ import {
   type PriestProfile
 } from "../../features/seva/sevaPriestDirectory";
 import { resolvePlaceFromPincode, getCoordinates } from "../../services/locationApi";
+import { fetch90DayAiPanchanga, type DayPanchangaAiItem } from "../../features/seva/panchanga90DayAiEngine";
 
 type Props = {
   days: RhythmDay[];
@@ -49,6 +50,23 @@ export default function SevaCalendarSyncModal({
   const [lng, setLng] = useState<number>(74.31);
   const [isResolvingPin, setIsResolvingPin] = useState<boolean>(false);
   const [pinMessage, setPinMessage] = useState<string>("");
+  const [aiPanchangaMap, setAiPanchangaMap] = useState<Record<string, DayPanchangaAiItem>>({});
+  const [isAiSyncing, setIsAiSyncing] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const startDateStr = days && days.length > 0 ? days[0].ymd : new Date().toISOString().slice(0, 10);
+    setIsAiSyncing(true);
+    fetch90DayAiPanchanga(pincodeInput, locationName, startDateStr, lang, lat, lng)
+      .then((map) => {
+        setAiPanchangaMap(map);
+        setIsAiSyncing(false);
+      })
+      .catch((err) => {
+        console.warn("AI 90-day sync error:", err);
+        setIsAiSyncing(false);
+      });
+  }, [isOpen, pincodeInput, locationName, lang, lat, lng, days]);
 
   const handlePinResolve = async (pinOrQuery: string) => {
     const clean = pinOrQuery.trim();
@@ -220,7 +238,8 @@ export default function SevaCalendarSyncModal({
       pincode: pincodeInput,
       lat,
       lng,
-      locationName
+      locationName,
+      aiPanchangaMap
     });
     const safePujari = (panditName || "Sri_Chaitanya_Pandit").replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "");
     const safeDevotee = (personName || "Devotee").replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "");
@@ -241,7 +260,8 @@ export default function SevaCalendarSyncModal({
       pincode: pincodeInput,
       lat,
       lng,
-      locationName
+      locationName,
+      aiPanchangaMap
     });
     window.open(url, "_blank");
   };
@@ -256,7 +276,8 @@ export default function SevaCalendarSyncModal({
       pincode: pincodeInput,
       lat,
       lng,
-      locationName
+      locationName,
+      aiPanchangaMap
     });
     const dataUri = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsContent)}`;
     navigator.clipboard.writeText(dataUri);
@@ -415,6 +436,19 @@ export default function SevaCalendarSyncModal({
                   </span>
                 </div>
               )}
+              <div className="mt-2 rounded-xl bg-amber-200/50 border border-amber-300/80 p-2 text-[11px] font-bold text-amber-950 flex items-center justify-between shadow-inner">
+                <span className="flex items-center gap-1.5">
+                  <span>✨</span>
+                  <span>
+                    {isAiSyncing
+                      ? (lang.startsWith("kn") ? "⌛ ಜೆಮಿನಿ AI 90-ದಿನಗಳ ಪಂಚಾಂಗ ಸಿಂಕ್ ಆಗುತ್ತಿದೆ..." : "⌛ Gemini AI 90-Day Panchanga Syncing...")
+                      : (lang.startsWith("kn") ? `✓ 90-ದಿನಗಳ AI ಪಂಚಾಂಗ ಸಿಂಕ್ ಸಕ್ರಿಯವಾಗಿದೆ (${pincodeInput})` : `✓ 90-Day AI Panchanga Location Synchronized (${pincodeInput})`)}
+                  </span>
+                </span>
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-800 text-amber-50">
+                  {lang.toUpperCase()}
+                </span>
+              </div>
             </div>
 
             {/* Pre-defined Priest Dropdown Selector & Dynamic Custom Addition */}
