@@ -26,6 +26,7 @@ import {
   SevaPrasadaCardPrint,
   SevaQRCodePrint
 } from "./pdf/SevaPrintTemplates";
+import { RoyalBooklet8PageTemplate } from "./pdf/RoyalBooklet8PageTemplate";
 import {
   getAllPriests,
   addCustomPriest,
@@ -942,6 +943,58 @@ export default function PrasadaKit({
           }
         />
 
+        {/* 👑 8-Page Royal Astrological Booklet (₹1,200 Plan) Premium Action Button */}
+        <div className="pt-2">
+          <button
+            type="button"
+            onClick={() =>
+              void download(
+                "seva-print-royal-booklet",
+                formatSevaDocFileName({
+                  pandit: panditName,
+                  devotee: identity.personName,
+                  pooja: chosenPoojaName,
+                  date: sevaDate,
+                  docType: "8Page-Royal-Booklet",
+                  lang: pdfLang,
+                  ext: "pdf"
+                }),
+                "royal-booklet"
+              )
+            }
+            className="w-full relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-700 via-yellow-600 to-amber-800 p-4 text-white shadow-xl hover:from-amber-800 hover:to-amber-900 border-2 border-amber-400 ring-2 ring-amber-300/50 transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 text-left">
+                <span className="text-3xl animate-pulse">👑</span>
+                <div>
+                  <div className="text-sm font-black tracking-wide text-amber-100 uppercase">
+                    {pick({
+                      kn: "೮ ಪುಟಗಳ ರಾಯಲ್ ಜ್ಯೋತಿಷ್ಯ ಗ್ರಂಥ ಪೂರ್ಣ ಡೌನ್‌ಲೋಡ್ (₹1,200 Plan)",
+                      hi: "8-पृष्ठ रॉयल ज्योतिष ग्रंथ डाउनलोड (₹1,200 Plan)",
+                      te: "8-పేజీల రాయల్ జ్యోతిష్య గ్రంథం డౌన్‌లోడ్ (₹1,200 Plan)",
+                      ta: "8-பக்க ராயல் ஜோதிட நூல் பதிவிறக்கம் (₹1,200 Plan)",
+                      en: "Download 8-Page Royal Astrological Booklet (₹1,200 Plan)"
+                    }, pdfLang)}
+                  </div>
+                  <div className="text-[11px] font-medium text-amber-200/90 mt-0.5">
+                    {pick({
+                      kn: "ಜನ್ಮ ಕುಂಡಲಿ, 20-ವರ್ಷಗಳ ದಶಾ ಫಲ, ಪ್ರಸ್ತುತ ಪರಿಸ್ಥಿತಿ, 90-ದಿನಗಳ ಕ್ಯಾಲೆಂಡರ್ & ಪೂಜಾ ಸ್ತೋತ್ರಗಳು",
+                      hi: "जन्म कुंडली, 20-वर्षीय दशा फल, वर्तमान स्थिति, 90-दिवसीय कैलेंडर व स्तोत्र",
+                      te: "జన్మ జాతకం, 20-సంవత్సరాల దశా ఫలాలు, ప్రస్తుత పరిస్థితి, 90-రోజుల క్యాలెండర్ & స్తోత్రాలు",
+                      ta: "ஜாதகம், 20-ஆண்டு திசை பலன்கள், தற்போதைய நிலை, 90-நாள் காலண்டர் & ஸ்தோத்திரங்கள்",
+                      en: "Janma Kundli, 20-Yr Dasha Timeline, Current Life Phase, 90-Day iCal & Altar Stotras"
+                    }, pdfLang)}
+                  </div>
+                </div>
+              </div>
+              <div className="shrink-0 bg-amber-950/40 px-3 py-1.5 rounded-xl border border-amber-300/40 text-xs font-bold text-amber-200">
+                🖨️ PDF
+              </div>
+            </div>
+          </button>
+        </div>
+
         {/* Calendar Sync Buttons */}
         <div className="grid grid-cols-2 gap-2 pt-1">
           <button
@@ -1043,6 +1096,16 @@ export default function PrasadaKit({
           bestDays={bestDays}
           moneyDays={moneyDays}
           panditName={panditName}
+          qrDataUrl={qrDataUrl}
+        />
+      </div>
+
+      <div id="seva-print-royal-booklet" style={hiddenHost} aria-hidden>
+        <RoyalBooklet8PageTemplate
+          lang={pdfLang as any}
+          identity={identity}
+          panditName={panditName}
+          rhythm={rhythm}
           qrDataUrl={qrDataUrl}
         />
       </div>
