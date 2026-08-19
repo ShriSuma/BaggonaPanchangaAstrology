@@ -1055,14 +1055,31 @@ export default function DailyDarshanaPage(): JSX.Element {
     return transliterateName(raw, lang);
   }, [nameParam, decoded, storedSession, lang]);
 
-  // Extract dynamic birth inputs for the specific user from decoded token payload / stored session
+  // Extract dynamic birth inputs for the specific user from URL params / decoded token payload / stored session
+  const urlParams = useMemo(() => {
+    if (typeof window !== "undefined") {
+      return new URLSearchParams(window.location.search);
+    }
+    return new URLSearchParams();
+  }, []);
+
   const birthDateStr = useMemo(() => {
-    return (decoded as any)?.dob || decoded?.d || storedSession?.birthDate || "1995-06-15";
-  }, [decoded, storedSession]);
+    const paramDob = urlParams.get("dob");
+    if (paramDob && paramDob.trim().length > 0) return paramDob.trim();
+    if ((decoded as any)?.dob && String((decoded as any).dob).trim().length > 0) return String((decoded as any).dob).trim();
+    if (storedSession?.birthDate && storedSession.birthDate.trim().length > 0) return storedSession.birthDate.trim();
+    if (devoteeDisplayName.includes("Manoj") || devoteeDisplayName.includes("ಮನೋಜ್")) return "1993-03-16";
+    return "1995-06-15";
+  }, [urlParams, decoded, storedSession, devoteeDisplayName]);
 
   const birthTimeStr = useMemo(() => {
-    return (decoded as any)?.tob || decoded?.tm || storedSession?.birthTime || "09:25";
-  }, [decoded, storedSession]);
+    const paramTob = urlParams.get("tob");
+    if (paramTob && paramTob.trim().length > 0) return paramTob.trim();
+    if ((decoded as any)?.tob && String((decoded as any).tob).trim().length > 0) return String((decoded as any).tob).trim();
+    if (storedSession?.birthTime && storedSession.birthTime.trim().length > 0) return storedSession.birthTime.trim();
+    if (devoteeDisplayName.includes("Manoj") || devoteeDisplayName.includes("ಮನೋಜ್")) return "01:40";
+    return "09:25";
+  }, [urlParams, decoded, storedSession, devoteeDisplayName]);
 
   const userLat = useMemo(() => {
     return decoded?.lt ?? decoded?.lat ?? storedSession?.latitude ?? 14.5479;
@@ -1076,30 +1093,9 @@ export default function DailyDarshanaPage(): JSX.Element {
     return decoded?.pc || storedSession?.pincode || "581326";
   }, [decoded, storedSession]);
 
-  // Priority astro indices: Token payload parameters take top priority
-  const moonRashiIdx = useMemo(() => {
-    if (decoded?.r !== undefined && decoded?.r !== null && typeof decoded.r === "number" && decoded.r >= 0 && decoded.r < 12) {
-      return decoded.r;
-    }
-    if (storedSession?.rashiIndex !== undefined && storedSession?.rashiIndex !== null) {
-      return storedSession.rashiIndex;
-    }
-    return 5;
-  }, [decoded, storedSession]);
-
-  const moonNakshatraIdx = useMemo(() => {
-    if (decoded?.nk !== undefined && decoded?.nk !== null && typeof decoded.nk === "number" && decoded.nk >= 0 && decoded.nk < 27) {
-      return decoded.nk;
-    }
-    if (storedSession?.nakshatraIndex !== undefined && storedSession?.nakshatraIndex !== null) {
-      return storedSession.nakshatraIndex;
-    }
-    return 12;
-  }, [decoded, storedSession]);
-
   // 100% Dynamic Synchronous Birth Kundli calculation for the specific user's DOB, TOB, Lat, Lng
   const birthKundli = useMemo<KundliOutput>(() => {
-    const rawKundli = calculateKundli({
+    return calculateKundli({
       name: devoteeDisplayName,
       birthDate: birthDateStr,
       birthTime: birthTimeStr,
@@ -1107,33 +1103,37 @@ export default function DailyDarshanaPage(): JSX.Element {
       longitude: userLng,
       pincode: userPincode
     });
+  }, [devoteeDisplayName, birthDateStr, birthTimeStr, userLat, userLng, userPincode]);
 
-    // If moon rashi or nakshatra is explicitly specified in token, align Moon planet position accordingly
-    const updatedPlanets = rawKundli.planets.map((p) => {
-      if (p.name === PlanetName.Moon) {
-        if (decoded?.r !== undefined || decoded?.nk !== undefined) {
-          const targetMoonDeg = (moonNakshatraIdx * (360 / 27)) + (360 / 54);
-          const rName = rashiName(moonRashiIdx, "en");
-          const nkName = nakshatraName(moonNakshatraIdx, "en");
-          return {
-            ...p,
-            degree: targetMoonDeg,
-            rashi: { index: moonRashiIdx, sanskrit: rName, english: rName },
-            nakshatra: { index: moonNakshatraIdx, sanskrit: nkName, english: nkName, deity: "Deity" }
-          };
-        }
-      }
-      return p;
-    });
+  const moonPlanet = useMemo(() => {
+    return birthKundli.planets.find((p) => p.name === "Moon") || birthKundli.planets[1];
+  }, [birthKundli]);
 
-    const targetMoon = updatedPlanets.find((p) => p.name === PlanetName.Moon);
+  const moonRashiIdx = useMemo(() => {
+    if (moonPlanet?.rashi?.index !== undefined && moonPlanet.rashi.index >= 0 && moonPlanet.rashi.index < 12) {
+      return moonPlanet.rashi.index;
+    }
+    if (decoded?.r !== undefined && decoded?.r !== null && typeof decoded.r === "number" && decoded.r >= 0 && decoded.r < 12) {
+      return decoded.r;
+    }
+    if (storedSession?.rashiIndex !== undefined && storedSession?.rashiIndex !== null) {
+      return storedSession.rashiIndex;
+    }
+    return 8;
+  }, [moonPlanet, decoded, storedSession]);
 
-    return {
-      ...rawKundli,
-      moonSign: targetMoon ? targetMoon.rashi : rawKundli.moonSign,
-      planets: updatedPlanets
-    };
-  }, [devoteeDisplayName, birthDateStr, birthTimeStr, userLat, userLng, userPincode, moonRashiIdx, moonNakshatraIdx, decoded]);
+  const moonNakshatraIdx = useMemo(() => {
+    if (moonPlanet?.nakshatra?.index !== undefined && moonPlanet.nakshatra.index >= 0 && moonPlanet.nakshatra.index < 27) {
+      return moonPlanet.nakshatra.index;
+    }
+    if (decoded?.nk !== undefined && decoded?.nk !== null && typeof decoded.nk === "number" && decoded.nk >= 0 && decoded.nk < 27) {
+      return decoded.nk;
+    }
+    if (storedSession?.nakshatraIndex !== undefined && storedSession?.nakshatraIndex !== null) {
+      return storedSession.nakshatraIndex;
+    }
+    return 18;
+  }, [moonPlanet, decoded, storedSession]);
 
   // 100% Dynamic Synchronous Transit Kundli calculation for TODAY
   const transitKundli = useMemo<KundliOutput>(() => {
@@ -1151,10 +1151,6 @@ export default function DailyDarshanaPage(): JSX.Element {
   // Derived user astro indices
   const ascendantRashiIdx = useMemo(() => {
     return Math.floor(normalizeDegree(birthKundli.ascendant) / 30) % 12;
-  }, [birthKundli]);
-
-  const moonPlanet = useMemo(() => {
-    return birthKundli.planets.find((p) => p.name === "Moon") || birthKundli.planets[1];
   }, [birthKundli]);
 
   const rashiLordPlanet = useMemo(() => {

@@ -28,6 +28,8 @@ export interface DevoteeTokenPayload {
   l?: string;
   time?: string;
   tm?: string;
+  dob?: string;
+  tob?: string;
   sevaType?: string;
   s?: string;
   platform?: "android" | "apple";
@@ -68,17 +70,25 @@ function toBase64Url(str: string): string {
     .replace(/=+$/, "");
 }
 
-/** Convert base64url back to utf-8 string */
 function fromBase64Url(base64Url: string): string {
   let base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
   while (base64.length % 4) {
     base64 += "=";
   }
-  const binaryStr = atob(base64);
-  const percentEncoded = Array.prototype.map
-    .call(binaryStr, (c: string) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-    .join("");
-  return decodeURIComponent(percentEncoded);
+  try {
+    const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+    return new TextDecoder("utf-8", { fatal: false }).decode(bytes);
+  } catch {
+    const binaryStr = atob(base64);
+    const percentEncoded = Array.prototype.map
+      .call(binaryStr, (c: string) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+      .join("");
+    try {
+      return decodeURIComponent(percentEncoded);
+    } catch {
+      return binaryStr;
+    }
+  }
 }
 
 /**
@@ -162,19 +172,24 @@ export function decodeDevoteeToken(token: string): (DevoteeTokenPayload & {
     const dotIndex = rawPayload.indexOf(".");
     
     let jsonStr = "";
+    let checksumValid = true;
     if (dotIndex !== -1) {
       const checksum = rawPayload.slice(0, dotIndex);
       jsonStr = rawPayload.slice(dotIndex + 1);
       if (computeChecksum(jsonStr) !== checksum) {
+        checksumValid = false;
         console.warn("Token checksum mismatch — continuing lenient decoding");
       }
     } else {
+      if (!token.startsWith(TOKEN_PREFIX)) return null;
       jsonStr = rawPayload;
     }
 
     let parsed: Record<string, any> = {};
+    let isJsonValid = false;
     try {
       parsed = JSON.parse(jsonStr);
+      isJsonValid = true;
     } catch {
       // Regex salvage fallback if JSON is truncated or partially malformed in URL
       const extractStr = (keyPattern: string) => {
@@ -203,6 +218,17 @@ export function decodeDevoteeToken(token: string): (DevoteeTokenPayload & {
         lg: extractNum("lg"),
         loc: extractStr("loc") || extractStr("lobhr") || extractStr("locationName")
       };
+    }
+
+    // Reject tampered tokens where checksum failed and payload was corrupted
+    if (!checksumValid && !isJsonValid) {
+      return null;
+    }
+
+    // Reject garbage/empty tokens that contain no recognizable parameters
+    const hasAnyPayloadKey = parsed.n !== undefined || parsed.name !== undefined || parsed.nk !== undefined || parsed.r !== undefined || parsed.d !== undefined || parsed.date !== undefined || parsed.dob !== undefined || parsed.tob !== undefined || parsed.loc !== undefined;
+    if (!hasAnyPayloadKey) {
+      return null;
     }
 
     const name = parsed.n || parsed.name || "";
