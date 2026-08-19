@@ -126,11 +126,11 @@ const DEITY_MANTRAS: Record<number, { deity: string; mantra: string; colorKn: st
 const TARA_NAMES_MAP: Record<number, Record<string, string>> = {
   1: { kn: "ಜನ್ಮ ತಾರಾ (ಆರೋಗ್ಯ ಗಮನಿಸಿ)", en: "Janma Tara (Care for Health)", hi: "जन्म तारा (स्वास्थ्य ध्यान रखें)", te: "జన్మ తార (ఆరోగ్యం శ్రద్ధ)", ta: "ஜன்ம தாரை (ஆரோக்கியம் கவனி)" },
   2: { kn: "ಸಂಪತ್ ತಾರಾ (ಧನ ಲಾಭ & ಯಶಸ್ಸು)", en: "Sampat Tara (Wealth & Success)", hi: "सम्पत तारा (धन लाभ और सफलता)", te: "సంపత్ తార (ధన ప్రాప్తి & విజయం)", ta: "சம்பத் தாரை (செல்வம் & வெற்றி)" },
-  3: { kn: "ವಿಪತ್ ತಾರಾ (ಎಚ್ಚರಿಕೆಯ ದಿನ)", en: "Vipat Tara (Exercise Caution)", hi: "विपत तारा (सावधानी रखें)", te: "विपत तारा (జాగ్రత్త సమయం)", ta: "விபத் தாரை (எச்சரிக்கை தேவை)" },
+  3: { kn: "ವಿಪತ್ ತಾರಾ (ವಿಶ್ರಾಂತಿ ಪಡೆದು ಸಾಧಾರಣ ಕೆಲಸ ಮಾಡಿ)", en: "Vipat Tara (Take rest & handle routine tasks)", hi: "विपत तारा (विश्राम लें व सामान्य कार्य करें)", te: "విపత్ తార (విశ్రాంతి తీసుకుని సాధారణ పనులు చేయండి)", ta: "விபத் தாரை (ஓய்வு எடுத்து சாதாரண பணி செய்க)" },
   4: { kn: "ಕ್ಷೇಮ ತಾರಾ (ಸುಖ & ರಕ್ಷಣೆ)", en: "Kshema Tara (Safety & Well-being)", hi: "क्षेम तारा (सुख व सुरक्षा)", te: "క్షేమ తార (క్షేమం & రక్షణ)", ta: "க்ஷேம தாரை (பாதுகாப்பு & நலம்)" },
   5: { kn: "ಪ್ರತ್ಯಕ್ ತಾರಾ (ಶ್ರಮದಿಂದ ಕಾರ್ಯ)", en: "Pratyak Tara (Obstacle Clearance)", hi: "प्रत्यक तारा (परिश्रम से कार्य)", te: "ప్రత్యక్ తార (శ్రమతో కార్యం)", ta: "பிரத்யக் தாரை (முயற்சி தேவை)" },
   6: { kn: "ಸಾಧಕ ತಾರಾ (ಕಾರ್ಯಸಿದ್ಧಿ & ಜಯ)", en: "Sadhaka Tara (Success in Endeavors)", hi: "साधक तारा (कार्यसिद्धि व विजय)", te: "సాధక తార (కార్యసిద్ధి & విజయం)", ta: "சாதக தாரை (காரிய சித்தி)" },
-  7: { kn: "ವಧ ತಾರಾ (ಹೊಸ ಕಾರ್ಯ ಬೇಡ)", en: "Vadha Tara (Avoid Major Risks)", hi: "वध तारा (जोखिम से बचें)", te: "వధ తార (ప్రమాదం నివారించండి)", ta: "வத தாரை (முக்கிய காரியம் தவிர்க)" },
+  7: { kn: "ವಧ ತಾರಾ (ದಿನನಿತ್ಯದ ಸಾಮಾನ್ಯ ಕಾರ್ಯಗಳಿಗೆ ಆದ್ಯತೆ ನೀಡಿ)", en: "Vadha Tara (Focus on daily routine & light tasks)", hi: "वध तारा (दिनचर्या के सामान्य कार्यों को प्राथमिकता दें)", te: "వధ తార (సాధారణ రోజువారీ పనులకు ప్రాధాన్యత ఇవ్వండి)", ta: "வத தாரை (அன்றாட சாதாரண பணிக்கு முன்னுரிமை தருக)" },
   8: { kn: "ಮಿತ್ರ ತಾರಾ (ಸ್ನೇಹ & ಸಹಕಾರ)", en: "Mitra Tara (Friendly & Cooperative)", hi: "मित्र तारा (मित्रता व सहयोग)", te: "మిత్ర తార (స్నేహం & సహకారం)", ta: "மித்ர தாரை (நட்பு & ஒத்துழைப்பு)" },
   9: { kn: "ಪರಮ ಮಿತ್ರ ತಾರಾ (ಅತ್ಯುನ್ನತ ಸಿದ್ಧಿ)", en: "Parama Mitra Tara (Supreme Blessing)", hi: "परम मित्र तारा (परम सिद्धि व कृपा)", te: "పరమ మిత్ర తార (అత్యున్నత సిద్ధి)", ta: "பரம மித்ர தாரை (பரம சித்தி)" }
 };
@@ -262,11 +262,11 @@ export function getTaraBalaInfo(taraNum: number, lang: string): string {
 export function getChandraBalaInfo(house: number, isChandrashtama: boolean, lang: string): string {
   const code = (lang || "en").slice(0, 2);
   if (isChandrashtama) {
-    if (code === "kn") return "8ನೇ ಮನೆ - 🔴 ಚಂದ್ರಾಷ್ಟಮ (ಎಚ್ಚರಿಕೆ ವಹಿಸಿ)";
-    if (code === "hi") return "8वां भाव - 🔴 चंद्राष्टम (सावधानी रखें)";
-    if (code === "te") return "8వ ఇల్లు - 🔴 చంద్రాష్టమం (జాగ్రత్త)";
-    if (code === "ta") return "8ஆம் இடம் - 🔴 சந்திராஷ்டமம் (கவனம்)";
-    return "8th House - 🔴 CHANDRASHTAMA (Exercise Care)";
+    if (code === "kn") return "8ನೇ ಮನೆ - 🔴 ಚಂದ್ರಾಷ್ಟಮ (ವಿಶ್ರಾಂತಿ & ದೈವ ಪ್ರಾರ್ಥನೆಗೆ ಸೂಕ್ತ)";
+    if (code === "hi") return "8वां भाव - 🔴 चंद्राष्टम (विश्राम व देव प्रार्थना हेतु उत्तम)";
+    if (code === "te") return "8వ ఇల్లు - 🔴 చంద్రాష్టమం (విశ్రాంతి & దైవ ప్రార్థనకు అనుకూలం)";
+    if (code === "ta") return "8ஆம் இடம் - 🔴 சந்திராஷ்டமம் (ஓய்வு & இறை பிரார்த்தனைக்கு நல்லது)";
+    return "8th House - 🔴 CHANDRASHTAMA (Ideal for rest & prayer)";
   }
   if (house === 11) {
     if (code === "kn") return "11ನೇ ಮನೆ - 🟢 ಲಾಭ ಸ್ಥಾನ (ಅತ್ಯುತ್ತಮ ಧನ ಲಾಭ)";
@@ -362,11 +362,11 @@ export function getDailyKaalaTimings(
     yamaStr = t.yama;
   }
 
-  const rahuSuffix = code === "kn" ? "(ಹೊಸ ಕಾರ್ಯ ತಪ್ಪಿಸಿ)"
-                   : code === "hi" ? "(नया कार्य टालें)"
-                   : code === "te" ? "(కొత్త పనులు వద్దు)"
-                   : code === "ta" ? "(புதிய காரியம் தவிர்க்க)"
-                   : "(Avoid New Start)";
+  const rahuSuffix = code === "kn" ? "(ಸಾಮಾನ್ಯ ಕೆಲಸ ಮಾಡಿ)"
+                   : code === "hi" ? "(सामान्य कार्य करें)"
+                   : code === "te" ? "(సాధారణ పనులు చేయండి)"
+                   : code === "ta" ? "(சாதாரண பணி செய்க)"
+                   : "(Focus on Routine Work)";
   const gulikaSuffix = code === "kn" ? "(ಶುಭ ಕಾರ್ಯಕ್ಕೆ ಉತ್ತಮ)"
                      : code === "hi" ? "(शुभ कार्य हेतु उत्तम)"
                      : code === "te" ? "(శుభ కార్యాలకు అనుకూలం)"
@@ -505,16 +505,16 @@ export function getEnergyMeterAndVibe(day: RhythmDay, lang: string) {
     score < 50;
 
   if (isCaution) {
-    const badgeText = code === "kn" ? "🔴 ಮುನ್ನೆಚ್ಚರಿಕೆಯ ನಡೆ ಹಾಗೂ ಜಾಗರೂಕತೆಯ ದಿನ"
-                    : code === "hi" ? "🔴 सतर्कता एवं सावधानी का दिन"
-                    : code === "te" ? "🔴 హెచ్చరిక & జాగ్రత్తల దినం"
-                    : code === "ta" ? "🔴 கவனம் & முன்னெச்சரிக்கை நாள்"
-                    : "🔴 DAY OF MINDFUL CAUTION & CARE";
-    const vibeTag = code === "kn" ? "🧘 S (ಹೆಚ್ಚಿನ ಜಾಗರೂಕತೆ / ಸಮಚಿತ್ತ)"
-                  : code === "hi" ? "🧘 S (विशेष सावधानी / संयम)"
-                  : code === "te" ? "🧘 S (జాగ్రత్త / సమన్వయం)"
-                  : code === "ta" ? "🧘 S (கவனம் / அமைதி)"
-                  : "🧘 S (Mindful Caution / Care)";
+    const badgeText = code === "kn" ? "🔴 ಇಂದು ವಿಶ್ರಾಂತಿ ಹಾಗೂ ಸಾಧಾರಣ ಕರ್ತವ್ಯದ ದಿನ (ಸಾಮಾನ್ಯ ಕೆಲಸ ನಿರ್ವಹಿಸಿ, ದೈವ ಚಿಂತನೆ ಮಾಡಿ)"
+                    : code === "hi" ? "🔴 आज विश्राम एवं सामान्य कार्यों का दिन (साधारण कार्य करें, ईश्वर चिंतन करें)"
+                    : code === "te" ? "🔴 నేడు విశ్రాంతి & సాధారణ పనుల దినం (సాధారణ పనులు చేయండి, దైవ ధ్యానం చేయండి)"
+                    : code === "ta" ? "🔴 இன்று ஓய்வு & சாதாரண பணிகளுக்கான நாள் (வழக்கமான பணி செய்க, இறை தியானம் கொள்க)"
+                    : "🔴 REST & ROUTINE DAY (Focus on normal tasks, rest & seek divine grace)";
+    const vibeTag = code === "kn" ? "🧘 S (ವಿಶ್ರಾಂತಿ / ಸಾಧಾರಣ ನಡಾವಳಿ)"
+                  : code === "hi" ? "🧘 S (विश्राम / सामान्य दिनचर्या)"
+                  : code === "te" ? "🧘 S (విశ్రాంతి / సాధారణ దినచర్య)"
+                  : code === "ta" ? "🧘 S (ஓய்வு / சாதாரண பணி)"
+                  : "🧘 S (Restful Focus / Routine Tasks)";
     return {
       badgeEmoji: "🔴",
       badgeText,
@@ -686,7 +686,7 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
     const vibe = getEnergyMeterAndVibe(day, lang);
     const sanctumUrl = `${origin}/daily?token=${baseToken}`;
 
-    const summaryStr = `🛕 Temple Puja & Astrology | ${vibe.badgeEmoji} [${tithiLabel(day, lang)}] ${localizedPandit} - ${labels.panchangaTitle} (${vibe.badgeText})`;
+    const summaryStr = `[${tithiLabel(day, lang)}] ${localizedPandit} - ${labels.panchangaTitle}`;
 
     const descriptionParts: string[] = [
       `🕉️ ${labels.panchangaTitle} - ${labels.kshetraTitle}`,
@@ -831,7 +831,7 @@ export function generateGoogleCalendarUrl(options: {
   const priestLabel = isKn ? "ಮುಖ್ಯ ಅರ್ಚಕರು" : isHi ? "मुख्य अर्चक" : isTe ? "ముఖ్య అర్చకులు" : isTa ? "முதன்மை அர்ச்சகர்" : "Chief Priest";
   const devoteeLabel = isKn ? "ಭಕ್ತರ ಹೆಸರು" : isHi ? "भक्त का नाम" : isTe ? "భక్తుని పేరు" : isTa ? "பக்தர் பெயர்" : "Devotee";
 
-  const summary = `🛕 Temple Puja & Astrology | ${vibe.badgeEmoji} [${tithiLabel(day, lang)}] ${localizedPandit} - ${panchangaTitle} (${vibe.badgeText})`;
+  const summary = `[${tithiLabel(day, lang)}] ${localizedPandit} - ${panchangaTitle}`;
 
   const taraNum = day.tara?.tara || 2;
   const taraInfo = getTaraBalaInfo(taraNum, lang);
