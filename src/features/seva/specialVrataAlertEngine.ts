@@ -209,8 +209,8 @@ export function detectSpecialVrata(ymd: string, lang = "kn"): SpecialVrataInfo {
     category = "FESTIVAL";
     festivalTitle = validCode === "kn" ? "🐘 ಶ್ರೀ ಗಣೇಶ ಚತುರ್ಥಿ ಮಹೋತ್ಸವ" : "🐘 Sri Ganesha Chaturthi Festival";
   }
-  // Sravana 2nd Friday (Baggona Panchanga Varamahalakshmi Vratha Canon)
-  else if (dateObj.getDay() === 5 && month === 7 && dayOfMonth >= 8 && dayOfMonth <= 14) {
+  // Sravana Varamahalakshmi Vratha (Friday August 21, 2026 / 2nd Friday of Shravana Masa)
+  else if ((dateObj.getDay() === 5 && month === 7 && dayOfMonth >= 15 && dayOfMonth <= 22) || ymd === "2026-08-21") {
     category = "FESTIVAL";
     festivalTitle = validCode === "kn" ? "🌸 ಶ್ರೀ ವರಮಹಾಲಕ್ಷ್ಮಿ ವ್ರತ ಮಹೋತ್ಸವ" :
                     validCode === "hi" ? "🌸 श्री वरमहालक्ष्मी व्रत महोत्सव" :

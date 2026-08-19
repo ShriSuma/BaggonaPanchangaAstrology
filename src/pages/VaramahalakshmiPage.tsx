@@ -62,7 +62,7 @@ export default function VaramahalakshmiPage(): JSX.Element {
   const priests = useMemo(() => getAllPriests(), []);
 
   const [activeTab, setActiveTab] = useState<"muhurtha" | "soubhagya" | "doragranthi" | "bagina" | "seva">("muhurtha");
-  const [selectedDate, setSelectedDate] = useState("2026-08-14"); // 2nd Friday of Shravana Masa (Baggona Panchanga Canon)
+  const [selectedDate, setSelectedDate] = useState("2026-08-21"); // Friday August 21, 2026 (Shravana Varamahalakshmi Vratha)
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [pdfSuccessMessage, setPdfSuccessMessage] = useState("");
 
@@ -108,7 +108,7 @@ export default function VaramahalakshmiPage(): JSX.Element {
     // Generate high resolution calendar QR Code
     const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
       "ಶ್ರೀ ವರಮಹಾಲಕ್ಷ್ಮಿ ವ್ರತ ಪೂಜೆ • Sthira Lagna Pooja"
-    )}&dates=20260814T063000Z/20260814T123000Z&details=${encodeURIComponent(
+    )}&dates=20260821T063000Z/20260821T123000Z&details=${encodeURIComponent(
       "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಪೀಠ - ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ | ಸ್ಥಿರ ಲಗ್ನ ಕಲಶ ಸ್ಥಾಪನೆ & ದೋರಗ್ರಂಥಿ ಪೂಜೆ"
     )}&location=${encodeURIComponent(placeLabel || "Gokarna Kshetra")}`;
 
