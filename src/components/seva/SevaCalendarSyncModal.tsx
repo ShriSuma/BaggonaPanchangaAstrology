@@ -346,6 +346,32 @@ export default function SevaCalendarSyncModal({
             </div>
           </div>
 
+          {/* Calendar Event Flair Illustration & Morning Reminder Preview Card */}
+          <div className="relative overflow-hidden rounded-2xl border border-amber-300/80 shadow-md">
+            <img
+              src="/calendar_event_flair.jpg"
+              alt="Calendar Event Flair Banner"
+              className="w-full h-28 object-cover brightness-95"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-slate-950/85 via-slate-900/40 to-transparent p-3 flex flex-col justify-between">
+              <div className="flex items-center gap-2">
+                <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-300 backdrop-blur-sm border border-amber-400/40">
+                  🎨 Mobile Calendar Event Flair & Morning Reminder
+                </span>
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-white tracking-wide drop-shadow-md">
+                  [Shukla Triteeya] Shreeram Pandit - Baggona Panchanga
+                </h4>
+                <p className="text-[11px] font-semibold text-amber-200/90 flex items-center gap-1.5 mt-0.5">
+                  <span>⏰ Morning Alarm ({notificationTime} AM)</span>
+                  <span>•</span>
+                  <span>🔔 Audible Ringtone Enabled</span>
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Customization controls */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {/* PIN Code / Location Input Card */}
