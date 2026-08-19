@@ -12,7 +12,7 @@ import {
 
 describe("Varamahalakshmi Engine & Festivals Test Suite", () => {
   it("calculates Sthira Lagna Muhurthas for festival day", () => {
-    const res = calculateVaramahalakshmiMuhurthas("2026-08-28", 14.53, 74.31, "lahiri");
+    const res = calculateVaramahalakshmiMuhurthas("2026-08-14", 14.53, 74.31, "lahiri");
     expect(res.muhurthas.length).toBeGreaterThanOrEqual(3);
     expect(res.bestWindow).toBeDefined();
     expect(res.bestWindow.isSthira).toBe(true);

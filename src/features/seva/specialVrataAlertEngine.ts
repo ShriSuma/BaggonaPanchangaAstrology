@@ -209,10 +209,14 @@ export function detectSpecialVrata(ymd: string, lang = "kn"): SpecialVrataInfo {
     category = "FESTIVAL";
     festivalTitle = validCode === "kn" ? "🐘 ಶ್ರೀ ಗಣೇಶ ಚತುರ್ಥಿ ಮಹೋತ್ಸವ" : "🐘 Sri Ganesha Chaturthi Festival";
   }
-  // Sravana Shukla Friday / Purnima (Varamahalakshmi)
-  else if (isShukla && (tithiInPaksha === 13 || tithiInPaksha === 14) && month === 7) {
+  // Sravana 2nd Friday (Baggona Panchanga Varamahalakshmi Vratha Canon)
+  else if (dateObj.getDay() === 5 && month === 7 && dayOfMonth >= 8 && dayOfMonth <= 14) {
     category = "FESTIVAL";
-    festivalTitle = validCode === "kn" ? "🌸 ಶ್ರೀ ವರಮಹಾಲಕ್ಷ್ಮಿ ವ್ರತ ಮಹೋತ್ಸವ" : "🌸 Sri Varamahalakshmi Vrata Festival";
+    festivalTitle = validCode === "kn" ? "🌸 ಶ್ರೀ ವರಮಹಾಲಕ್ಷ್ಮಿ ವ್ರತ ಮಹೋತ್ಸವ" :
+                    validCode === "hi" ? "🌸 श्री वरमहालक्ष्मी व्रत महोत्सव" :
+                    validCode === "te" ? "🌸 శ్రీ వరమహాలక్ష్మి వ్రత మహోత్సవం" :
+                    validCode === "ta" ? "🌸 ஸ்ரீ வரமகாலக்ஷ்மி விரத திருவிழா" :
+                    "🌸 Sri Varamahalakshmi Vrata Festival";
   }
   // Sravana Krishna Ashtami (Janmashtami)
   else if (!isShukla && tithiInPaksha === 8 && (month === 7 || month === 8)) {

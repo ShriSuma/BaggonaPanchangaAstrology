@@ -24,20 +24,33 @@ import {
   weekdayName
 } from "../../features/seva/sevaPresentation";
 
+import { useAppStore } from "../../stores/appStore";
+
 type Props = {
   day: RhythmDay;
   lang: string;
   priestName?: string;
+  lat?: number;
+  lng?: number;
 };
 
 export default function SevaDayDetail({
   day,
   lang,
-  priestName = "Shreeram Pandit (Chief Archaka)"
+  priestName = "Shreeram Pandit (Chief Archaka)",
+  lat,
+  lng
 }: Props): JSX.Element {
+  const storeLat = useAppStore((s) => s.defaultLat);
+  const storeLng = useAppStore((s) => s.defaultLng);
+  const storePincode = useAppStore((s) => s.pincode);
+
+  const activeLat = lat ?? storeLat;
+  const activeLng = lng ?? storeLng;
+
   const style = BAND_STYLE[day.band];
   const vibe = getEnergyMeterAndVibe(day, lang);
-  const kaala = getDailyKaalaTimings(day.dayLord, lang);
+  const kaala = getDailyKaalaTimings(day.dayLord, lang, day.ymd, activeLat, activeLng, storePincode);
 
   const isKn = lang.startsWith("kn");
 
@@ -208,7 +221,7 @@ export default function SevaDayDetail({
           </div>
         </div>
 
-        {/* PILLAR 2: Daily Kaala Muhurtha Timings (Kolkata IST) */}
+        {/* PILLAR 2: Daily Kaala Muhurtha Timings (Localized Location Times) */}
         <div className="flex flex-col gap-4 rounded-2xl border border-amber-200/90 bg-white/80 p-4 shadow-sm">
           {/* Step 3: Kaala Windows */}
           <div className="h-full rounded-xl border border-amber-100 bg-amber-50/40 p-3">
@@ -217,7 +230,11 @@ export default function SevaDayDetail({
                 3
               </span>
               <h3 className="text-xs font-bold uppercase tracking-wider text-amber-900">
-                {pick(T.kaalaTimingsTitle, lang) || "Daily Kaala Timings (Kolkata IST)"}
+                {isKn ? "ಇಂದಿನ ಕಾಲ ಸಮಯಗಳು (ಸ್ಥಳೀಯ ಸಮಯ)"
+                : lang.startsWith("hi") ? "आज के काल समय (स्थानीय समय)"
+                : lang.startsWith("te") ? "నేటి కాల సమయాలు (స్థానిక సమయం)"
+                : lang.startsWith("ta") ? "இன்றைய கால நேரங்கள்"
+                : "Daily Kaala Timings (Local Time)"}
               </h3>
             </div>
 
@@ -227,12 +244,16 @@ export default function SevaDayDetail({
                 <div className="flex items-center gap-2">
                   <span className="text-base">🔴</span>
                   <div>
-                    <div className="text-[11px] font-extrabold text-rose-950">Rahu Kaala</div>
-                    <div className="text-[10px] text-rose-800/80">{isKn ? "ಹೊಸ ಕಾರ್ಯ ತಪ್ಪಿಸಿ" : "Avoid starting new ventures"}</div>
+                    <div className="text-[11px] font-extrabold text-rose-950">
+                      {isKn ? "ರಾಹು ಕಾಲ" : lang.startsWith("hi") ? "राहु काल" : lang.startsWith("te") ? "రాహు కాలం" : lang.startsWith("ta") ? "ராகு காலம்" : "Rahu Kaala"}
+                    </div>
+                    <div className="text-[10px] text-rose-800/80">
+                      {isKn ? "ಹೊಸ ಕಾರ್ಯ ತಪ್ಪಿಸಿ" : lang.startsWith("hi") ? "नए कार्य से बचें" : lang.startsWith("te") ? "కొత్త పనులు వద్దు" : "Avoid starting new ventures"}
+                    </div>
                   </div>
                 </div>
                 <div className="rounded-lg bg-white px-2.5 py-1 font-mono text-xs font-bold text-rose-900 shadow-xs border border-rose-200">
-                  {kaala.rahu.split(" ")[0]} {kaala.rahu.split(" ")[1]} – {kaala.rahu.split(" ")[3]} {kaala.rahu.split(" ")[4]}
+                  {kaala.rahu}
                 </div>
               </div>
 
@@ -241,12 +262,16 @@ export default function SevaDayDetail({
                 <div className="flex items-center gap-2">
                   <span className="text-base">🟡</span>
                   <div>
-                    <div className="text-[11px] font-extrabold text-amber-950">Gulika Kaala</div>
-                    <div className="text-[10px] text-amber-800/80">{isKn ? "ಶುಭ ಕಾರ್ಯ & ಅಭಿವೃದ್ಧಿಗೆ ಶ್ರೇಷ್ಠ" : "Auspicious for asset growth & repeats"}</div>
+                    <div className="text-[11px] font-extrabold text-amber-950">
+                      {isKn ? "ಗುಳಿಕ ಕಾಲ" : lang.startsWith("hi") ? "गुलिक काल" : lang.startsWith("te") ? "గుళిక కాలం" : lang.startsWith("ta") ? "குளிகை காலம்" : "Gulika Kaala"}
+                    </div>
+                    <div className="text-[10px] text-amber-800/80">
+                      {isKn ? "ಶುಭ ಕಾರ್ಯ & ಅಭಿವೃದ್ಧಿಗೆ ಶ್ರೇಷ್ಠ" : lang.startsWith("hi") ? "शुभ कार्य हेतु उत्तम" : lang.startsWith("te") ? "శుభ కార్యాలకు అనుకూలం" : "Auspicious for asset growth"}
+                    </div>
                   </div>
                 </div>
                 <div className="rounded-lg bg-white px-2.5 py-1 font-mono text-xs font-bold text-amber-900 shadow-xs border border-amber-200">
-                  {kaala.gulika.split(" ")[0]} {kaala.gulika.split(" ")[1]} – {kaala.gulika.split(" ")[3]} {kaala.gulika.split(" ")[4]}
+                  {kaala.gulika}
                 </div>
               </div>
 
@@ -255,12 +280,16 @@ export default function SevaDayDetail({
                 <div className="flex items-center gap-2">
                   <span className="text-base">🟢</span>
                   <div>
-                    <div className="text-[11px] font-extrabold text-emerald-950">Yamaganda</div>
-                    <div className="text-[10px] text-emerald-800/80">{isKn ? "ಪ್ರಾರ್ಥನೆ & ಆತ್ಮಾವಲೋಕನಕ್ಕೆ ಸೂಕ್ತ" : "Ideal for prayer & routine duties"}</div>
+                    <div className="text-[11px] font-extrabold text-emerald-950">
+                      {isKn ? "ಯಮಗಂಡ ಕಾಲ" : lang.startsWith("hi") ? "यमगंड काल" : lang.startsWith("te") ? "యమగండ కాలం" : lang.startsWith("ta") ? "யமகண்ட காலம்" : "Yamaganda Kaala"}
+                    </div>
+                    <div className="text-[10px] text-emerald-800/80">
+                      {isKn ? "ಪ್ರಾರ್ಥನೆ & ನಿತ್ಯ ಕಾರ್ಯಕ್ಕೆ ಸೂಕ್ತ" : lang.startsWith("hi") ? "प्रार्थना एवं नित्य कार्य हेतु" : lang.startsWith("te") ? "ప్రార్థన & నిత్య పనులకు శ్రేష్టం" : "Ideal for prayer & routine duties"}
+                    </div>
                   </div>
                 </div>
                 <div className="rounded-lg bg-white px-2.5 py-1 font-mono text-xs font-bold text-emerald-900 shadow-xs border border-emerald-200">
-                  {kaala.yamaganda.split(" ")[0]} {kaala.yamaganda.split(" ")[1]} – {kaala.yamaganda.split(" ")[3]} {kaala.yamaganda.split(" ")[4]}
+                  {kaala.yamaganda}
                 </div>
               </div>
 
@@ -270,9 +299,11 @@ export default function SevaDayDetail({
                   <span className="text-base">🌟</span>
                   <div>
                     <div className="text-[11px] font-extrabold text-amber-950">
-                      {pick(T.abhijitMuhurthaLabel, lang) || "Abhijit Muhurtha"}
+                      {isKn ? "ಅಭಿಜಿತ್ ಮುಹೂರ್ತ" : lang.startsWith("hi") ? "अभिजित मुहूर्त" : lang.startsWith("te") ? "అభిజిత్ ముహూర్తం" : lang.startsWith("ta") ? "அபிஜித் முகூர்த்தம்" : "Abhijit Muhurtha"}
                     </div>
-                    <div className="text-[10px] text-amber-900/80">{isKn ? "ಸರ್ವ ಕಾರ್ಯ ಸಿದ್ಧಿ ಗೋಲ್ಡನ್ ವಿಂಡೋ" : "Golden window for success & all good work"}</div>
+                    <div className="text-[10px] text-amber-900/80">
+                      {isKn ? "ಸರ್ವ ಕಾರ್ಯ ಸಿದ್ಧಿ ಶ್ರೇಷ್ಠ ಮುಹೂರ್ತ" : lang.startsWith("hi") ? "सर्व कार्य सिद्धि शुभ मुहूर्त" : lang.startsWith("te") ? "సర్వ కార్య సిద్ధి శుభ ముహూర్తం" : "Golden window for success"}
+                    </div>
                   </div>
                 </div>
                 <div className="rounded-lg bg-amber-700 px-2.5 py-1 font-mono text-xs font-bold text-amber-50 shadow-xs">
