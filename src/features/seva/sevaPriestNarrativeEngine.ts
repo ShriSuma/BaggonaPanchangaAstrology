@@ -137,8 +137,8 @@ export function buildDeterministicPriestBenediction(day: RhythmDay, lang: string
   const isTa = lang.startsWith("ta");
 
   const band = String(day.band || "").toLowerCase();
-  const score = day.energyScore ?? (band === "high" ? 85 : band === "medium" ? 60 : 35);
-  const isCaution = day.isChandrashtama || day.isAmavasya || band === "low" || score < 50;
+  const score = day.energyScore ?? (band === "high" ? 85 : (band === "steady" || band === "medium" || band === "moderate") ? 65 : 35);
+  const isCaution = day.isChandrashtama || day.isAmavasya || band === "rest" || band === "low" || score < 50;
   const isHigh = !isCaution && (day.isMoneyDay || band === "high" || score >= 75);
 
   if (isKn) {

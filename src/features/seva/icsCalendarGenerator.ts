@@ -520,7 +520,7 @@ export function calculateDeterministicRhythmDay(
 export function getEnergyMeterAndVibe(day: RhythmDay, lang: string) {
   const code = (lang || "en").slice(0, 2);
   const band = String(day.band || "").toLowerCase();
-  const score = day.energyScore ?? (band === "high" ? 85 : band === "medium" ? 60 : 35);
+  const score = day.energyScore ?? (band === "high" ? 85 : (band === "steady" || band === "medium" || band === "moderate") ? 65 : 35);
   // STRICT RULE: Caution (Red 🔴) is ONLY triggered if score < 50 OR Chandrashtama OR Amavasya.
   // 65% energy score is ALWAYS Yellow 🟡 (Balanced Routine Day), NEVER Red 🔴!
   const isCaution =
