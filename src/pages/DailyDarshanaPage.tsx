@@ -1344,17 +1344,18 @@ export default function DailyDarshanaPage(): JSX.Element {
   const handleDownload90DayIcs = () => {
     try {
       const startDateStr = decoded?.d || dateParam || new Date().toISOString().split("T")[0];
-      const startDate = new Date(startDateStr);
-      const validStart = isNaN(startDate.getTime()) ? new Date() : startDate;
+      const parts = startDateStr.split("-").map(Number);
+      const sy = parts[0] || 2026;
+      const sm = (parts[1] || 1) - 1;
+      const sd = parts[2] || 1;
       
       const birthNakIdx = (birthKundli ? birthKundli.planets.find(p => p.name === 'Moon')?.nakshatra.index : undefined) ?? (decoded?.nk !== undefined ? decoded.nk : 12);
       const birthRashiIdx = (birthKundli ? birthKundli.planets.find(p => p.name === 'Moon')?.rashi.index : undefined) ?? (decoded?.r !== undefined ? decoded.r : 5);
       
       const days: RhythmDay[] = [];
       for (let i = 0; i < 90; i++) {
-        const d = new Date(validStart);
-        d.setDate(d.getDate() + i);
-        const ymd = d.toISOString().split("T")[0];
+        const noonUtc = new Date(Date.UTC(sy, sm, sd + i, 12, 0, 0));
+        const ymd = noonUtc.toISOString().slice(0, 10);
         const rhythmDay = calculateDeterministicRhythmDay(ymd, birthNakIdx, birthRashiIdx, startDateStr);
         days.push(rhythmDay);
       }

@@ -429,8 +429,19 @@ export function getDailyKaalaTimings(
   lng?: number,
   pincode?: string
 ) {
-  const idx = getDayLordIndex(dayLord);
   const code = (lang || "en").slice(0, 2);
+
+  // Derive exact weekday index (0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat) directly from dateStr in UTC
+  let idx = getDayLordIndex(dayLord);
+  if (dateStr) {
+    const parts = dateStr.split("-").map(Number);
+    if (parts.length === 3) {
+      const utcDate = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2], 12, 0, 0));
+      if (!isNaN(utcDate.getTime())) {
+        idx = utcDate.getUTCDay();
+      }
+    }
+  }
 
   let sunriseStr = "06:00 AM";
   let sunsetStr = "06:30 PM";
@@ -440,7 +451,8 @@ export function getDailyKaalaTimings(
 
   if (dateStr && typeof lat === "number" && typeof lng === "number" && Number.isFinite(lat) && Number.isFinite(lng)) {
     try {
-      const dateObj = new Date(`${dateStr}T12:00:00Z`);
+      const parts = dateStr.split("-").map(Number);
+      const dateObj = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2], 12, 0, 0));
       const sun = sunTimesSyncForBirth(dateObj, lat, lng, pincode || "");
 
       const formatTime = (d: Date) => {
@@ -469,9 +481,9 @@ export function getDailyKaalaTimings(
         return `${formatTime(start)} – ${formatTime(end)}`;
       };
 
-      rahuStr = getWindowStr(rahuOctantMap[idx] || 8);
-      gulikaStr = getWindowStr(gulikaOctantMap[idx] || 7);
-      yamaStr = getWindowStr(yamaOctantMap[idx] || 5);
+      rahuStr = getWindowStr(rahuOctantMap[idx] ?? 8);
+      gulikaStr = getWindowStr(gulikaOctantMap[idx] ?? 7);
+      yamaStr = getWindowStr(yamaOctantMap[idx] ?? 5);
     } catch {
       /* fallback to standard Kolkata offsets */
     }
@@ -528,14 +540,15 @@ export function calculateDeterministicRhythmDay(
   birthRashiIdx: number,
   startDateStr?: string
 ): RhythmDay {
-  const targetDate = new Date(targetDateStr);
-  const validD = isNaN(targetDate.getTime()) ? new Date() : targetDate;
+  const parts = targetDateStr.split("-").map(Number);
+  const year = parts[0] || 2026;
+  const monthIndex = (parts[1] || 1) - 1;
+  const dayOfMonth = parts[2] || 1;
 
-  const ymd = validD.toISOString().slice(0, 10);
-  const dayOfMonth = validD.getDate();
-  const monthIndex = validD.getMonth();
-  const year = validD.getFullYear();
-  const weekday = validD.getDay();
+  // Exact UTC noon anchor to guarantee ZERO timezone date shifts or weekday mismatches
+  const noonUtc = new Date(Date.UTC(year, monthIndex, dayOfMonth, 12, 0, 0));
+  const ymd = targetDateStr.trim().slice(0, 10);
+  const weekday = noonUtc.getUTCDay();
 
   // Drik Ganita Ephemeris longitudes at 06:00 IST (00:30 UTC) for accurate daily Panchanga
   const targetUtc = new Date(Date.UTC(year, monthIndex, dayOfMonth, 0, 30));

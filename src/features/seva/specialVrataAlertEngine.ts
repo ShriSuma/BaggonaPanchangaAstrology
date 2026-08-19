@@ -293,13 +293,14 @@ export function get90DaySpecialVratas(
   lang = "kn"
 ): SpecialVrataInfo[] {
   const specialList: SpecialVrataInfo[] = [];
-  const start = new Date(startDateYmd);
-  const validStart = isNaN(start.getTime()) ? new Date() : start;
+  const parts = startDateYmd.split("-").map(Number);
+  const sy = parts[0] || 2026;
+  const sm = (parts[1] || 1) - 1;
+  const sd = parts[2] || 1;
 
   for (let i = 0; i < 90; i++) {
-    const d = new Date(validStart);
-    d.setDate(d.getDate() + i);
-    const ymd = d.toISOString().slice(0, 10);
+    const noonUtc = new Date(Date.UTC(sy, sm, sd + i, 12, 0, 0));
+    const ymd = noonUtc.toISOString().slice(0, 10);
     const info = detectSpecialVrata(ymd, lang);
     if (info.isSpecial) {
       specialList.push(info);

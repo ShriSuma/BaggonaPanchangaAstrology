@@ -98,21 +98,15 @@ export function computeLocalFallback90DayPanchanga(
   lng = 74.31
 ): Panchanga90Map {
   const map: Panchanga90Map = {};
-  const startDate = new Date(startDateYmd);
-  const validStart = isNaN(startDate.getTime()) ? new Date() : startDate;
+  const parts = startDateYmd.split("-").map(Number);
+  const sy = parts[0] || 2026;
+  const sm = (parts[1] || 1) - 1;
+  const sd = parts[2] || 1;
 
   for (let i = 0; i < 90; i++) {
-    const d = new Date(validStart);
-    d.setDate(d.getDate() + i);
-    const ymd = d.toISOString().slice(0, 10);
-
-    const year = d.getFullYear();
-    const month = d.getMonth();
-    const dayOfMonth = d.getDate();
-    const weekday = d.getDay();
-
-    // 1. Calculate Ephemeris Moon/Sun longitudes for noon UTC
-    const noonUtc = new Date(Date.UTC(year, month, dayOfMonth, 12, 0, 0));
+    const noonUtc = new Date(Date.UTC(sy, sm, sd + i, 12, 0, 0));
+    const ymd = noonUtc.toISOString().slice(0, 10);
+    const weekday = noonUtc.getUTCDay();
     const coords = siderealLongitudes(noonUtc);
     const moonLon = coords.moon;
     const sunLon = coords.sun;
