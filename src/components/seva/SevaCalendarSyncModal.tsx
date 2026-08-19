@@ -271,7 +271,12 @@ export default function SevaCalendarSyncModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-900/60 p-4 backdrop-blur-sm">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-900/60 p-4 backdrop-blur-sm"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
       <div className="relative w-full max-w-xl overflow-hidden rounded-3xl border border-amber-300/60 bg-gradient-to-br from-amber-50/95 via-white to-orange-50/90 p-6 shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-amber-200/80 pb-4">
@@ -284,10 +289,10 @@ export default function SevaCalendarSyncModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full bg-amber-100 p-2 text-amber-800 transition hover:bg-amber-200"
-            aria-label="Close"
+            className="flex items-center gap-1 rounded-full bg-amber-200 px-3 py-1 text-xs font-bold text-amber-950 shadow transition hover:bg-amber-300"
+            aria-label="Close modal"
           >
-            ✕
+            ✕ {lang.startsWith("kn") ? "ಮುಚ್ಚಿ" : "Close"}
           </button>
         </div>
 
@@ -627,6 +632,17 @@ export default function SevaCalendarSyncModal({
               className="text-[11px] font-semibold text-amber-800 underline decoration-amber-400 underline-offset-4 transition hover:text-amber-950"
             >
               {copiedData ? "✓ Copied iCal Data to Clipboard!" : "📋 Copy Raw iCalendar Data"}
+            </button>
+          </div>
+
+          {/* Bottom Close Button */}
+          <div className="pt-3 border-t border-amber-200/80 flex justify-end">
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-full sm:w-auto rounded-xl border border-amber-400 bg-gradient-to-r from-amber-100 to-amber-200 px-6 py-2.5 text-xs font-bold text-amber-950 shadow hover:from-amber-200 hover:to-amber-300 transition"
+            >
+              ✕ {lang.startsWith("kn") ? "ಮುಚ್ಚಿ (ನಿರ್ಗಮಿಸಿ)" : "Close Modal"}
             </button>
           </div>
         </div>

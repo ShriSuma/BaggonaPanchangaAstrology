@@ -1820,49 +1820,53 @@ export default function DailyDarshanaPage(): JSX.Element {
               isGochara={false}
             />
 
-            {/* Planetary Sphuta Table */}
+            {/* Sacred Priest Ashirvada Card for Janana Kundali */}
             <div style={{
-              background: "rgba(45, 20, 7, 0.85)",
-              border: "1px solid rgba(212, 175, 55, 0.3)",
+              background: "linear-gradient(135deg, rgba(72, 30, 8, 0.95), rgba(45, 20, 7, 0.95))",
+              border: "1.5px solid #D4AF37",
               borderRadius: 16,
-              padding: 14,
-              overflowX: "auto"
+              padding: 18,
+              marginTop: 16,
+              boxShadow: "0 8px 24px rgba(0,0,0,0.5)"
             }}>
-              <div style={{ fontSize: 13, fontWeight: 800, color: "#FDE68A", marginBottom: 10 }}>
-                🌌 {dict.sphutaTableTitle}
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                <span style={{ fontSize: 24 }}>🪔</span>
+                <div>
+                  <div style={{ fontSize: 15, fontWeight: 900, color: "#FDE68A" }}>
+                    {lang === "kn"
+                      ? `ಪ್ರಧಾನ ಅರ್ಚಕರಾದ ${localizedPandit} ಅವರಿಂದ ${devoteeDisplayName} ಅವರಿಗೆ ಜನ್ಮ ಕುಂಡಲಿ ಆಶೀರ್ವಚನ`
+                      : lang === "hi"
+                      ? `मुख्य अर्चक ${localizedPandit} द्वारा ${devoteeDisplayName} हेतु जन्म कुंडली आशीर्वचन`
+                      : lang === "te"
+                      ? `ప్రధాన అర్చకులు ${localizedPandit} గారి నుండి ${devoteeDisplayName} గారికి జన్మ జాతక ఆశీర్వచనం`
+                      : lang === "ta"
+                      ? `முதன்மை அர்ச்சகர் ${localizedPandit} அவர்களின் ${devoteeDisplayName} அவர்களுக்கான ஜாதக ஆசி`
+                      : `Sacred Janma Kundali Benediction for ${devoteeDisplayName} by Chief Priest ${localizedPandit}`}
+                  </div>
+                  <div style={{ fontSize: 11, color: "#F59E0B", fontWeight: 700, marginTop: 2 }}>
+                    🛕 {dict.kshetraTitle}
+                  </div>
+                </div>
               </div>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, textAlign: "left" }}>
-                <thead>
-                  <tr style={{ borderBottom: "1px solid #78350F", color: "#F59E0B" }}>
-                    <th style={{ padding: "6px 4px" }}>{dict.graha}</th>
-                    <th style={{ padding: "6px 4px" }}>{dict.rashiCol}</th>
-                    <th style={{ padding: "6px 4px" }}>{dict.houseCol}</th>
-                    <th style={{ padding: "6px 4px" }}>{dict.degCol}</th>
-                    <th style={{ padding: "6px 4px" }}>{dict.statusCol}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {birthKundli.planets.map((p) => {
-                    const gName = GRAHA_L5[p.name as keyof typeof GRAHA_L5]?.[lang] || p.name;
-                    const rName = RASHI_L5[p.rashi.index]?.[lang] || p.rashi.sanskrit;
-                    const houseNum = p.house;
-                    const degInSign = p.degree % 30;
-                    const degStr = `${Math.floor(degInSign)}° ${Math.round((degInSign % 1) * 60)}'`;
-                    const statusStr = p.isRetrograde
-                      ? (lang === "kn" ? "ವಕ್ರ" : lang === "hi" ? "वक्री" : lang === "te" ? "వక్రి" : lang === "ta" ? "வக்ரம்" : "Retro")
-                      : (lang === "kn" ? "ಋಜು" : lang === "hi" ? "मार्गी" : lang === "te" ? "మార్గి" : lang === "ta" ? "நேர்" : "Direct");
-                    return (
-                      <tr key={p.name} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                        <td style={{ padding: "6px 4px", fontWeight: 700 }}>{gName}</td>
-                        <td style={{ padding: "6px 4px" }}>{rName}</td>
-                        <td style={{ padding: "6px 4px" }}>{houseNum}</td>
-                        <td style={{ padding: "6px 4px" }}>{degStr}</td>
-                        <td style={{ padding: "6px 4px", color: p.isRetrograde ? "#F59E0B" : "#10B981" }}>{statusStr}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+
+              <div style={{
+                background: "rgba(0, 0, 0, 0.35)",
+                border: "1px solid rgba(212, 175, 55, 0.3)",
+                borderRadius: 12,
+                padding: 14
+              }}>
+                <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: "#FFF8E7", fontStyle: "italic" }}>
+                  "${lang === "kn"
+                    ? `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಪ್ರಧಾನ ಅರ್ಚಕರಾದ ${localizedPandit} ಅವರು ${devoteeDisplayName} ಅವರಿಗೆ ತಿಳಿಸುವುದೇನೆಂದರೆ, ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನವು ${RASHI_L5[ascendantRashiIdx]?.kn || RASHI_L5[ascendantRashiIdx]?.en}, ಚಂದ್ರ ರಾಶಿಯು ${RASHI_L5[moonRashiIdx]?.kn || RASHI_L5[moonRashiIdx]?.en} ಹಾಗೂ ಜನ್ಮ ನಕ್ಷತ್ರವು ${NAKSHATRA_L5[moonNakshatraIdx]?.kn || NAKSHATRA_L5[moonNakshatraIdx]?.en} ಆಗಿದೆ. ರಾಶ್ಯಾಧಿಪತಿ ${rashiLordLocalized} ಅವರ ಮಂಗಳಕರ ಕೃಪಾಕಟಾಕ್ಷದಿಂದ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಸುಖ, ಶಾಂತಿ, ಆಯುರಾರೋಗ್ಯ ಹಾಗೂ ಸಕಲ ಅಭೀಷ್ಟಸಿದ್ಧಿಯಾಗಲಿ ಎಂದು ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯಲ್ಲಿ ಪ್ರಾರ್ಥಿಸಿ ಆಶೀರ್ವದಿಸಲಾಗಿದೆ.`
+                    : lang === "hi"
+                    ? `श्री क्षेत्र गोकर्ण के मुख्य अर्चक ${localizedPandit} द्वारा ${devoteeDisplayName} को पावन आशीर्वाद: आपका जन्म लग्न ${RASHI_L5[ascendantRashiIdx]?.hi || RASHI_L5[ascendantRashiIdx]?.en}, चंद्र राशि ${RASHI_L5[moonRashiIdx]?.hi || RASHI_L5[moonRashiIdx]?.en} तथा जन्म नक्षत्र ${NAKSHATRA_L5[moonNakshatraIdx]?.hi || NAKSHATRA_L5[moonNakshatraIdx]?.en} है। राशि स्वामी ${rashiLordLocalized} की कृपा से भगवान महाबलेश्वर आपका जीवन सुख, शांति और सफलता से परिपूर्ण करें।`
+                    : lang === "te"
+                    ? `శ్రీ క్షేత్ర గోకర్ణ ప్రధాన అర్చకులు ${localizedPandit} గారి ఆశీర్వచనం ${devoteeDisplayName} గారికి: మీ జన్మ లగ్నం ${RASHI_L5[ascendantRashiIdx]?.te || RASHI_L5[ascendantRashiIdx]?.en}, చంద్ర రాశి ${RASHI_L5[moonRashiIdx]?.te || RASHI_L5[moonRashiIdx]?.en} మరియు జన్మ నక్షత్రం ${NAKSHATRA_L5[moonNakshatraIdx]?.te || NAKSHATRA_L5[moonNakshatraIdx]?.en}. రాశ్యాధిపతి ${rashiLordLocalized} వారి అనుగ్రహంతో శ్రీ మహాబలేశ్వర స్వామి మీకు ఆయురారోగ్యాలు, ఐశ్వర్యం ప్రసాదించుగాక.`
+                    : lang === "ta"
+                    ? `ஸ்ரீ க்ஷேத்ர கோಕರ್ண முதன்மை அர்ச்சகர் ${localizedPandit} அவர்கள் ${devoteeDisplayName} அவர்களுக்கு வழங்கும் புனித ஆசி: உங்கள் ஜென்ம லக்னம் ${RASHI_L5[ascendantRashiIdx]?.ta || RASHI_L5[ascendantRashiIdx]?.en}, சந்திர ராசி ${RASHI_L5[moonRashiIdx]?.ta || RASHI_L5[moonRashiIdx]?.en} மற்றும் ஜென்ம நட்சத்திரம் ${NAKSHATRA_L5[moonNakshatraIdx]?.ta || NAKSHATRA_L5[moonNakshatraIdx]?.en}. ராசி அதிபதி ${rashiLordLocalized} அவர்களின் அருளாலும் ಶ್ರೀ ಮஹாபலேஸ்வரரின் அருளாலும் உங்கள் வாழ்வில் சகல நன்மைகளும் சேரட்டும்.`
+                    : `Chief Priest ${localizedPandit} of Sri Kshetra Gokarna conveys sacred blessings to ${devoteeDisplayName}: Your Janma Lagna is ${RASHI_L5[ascendantRashiIdx]?.en}, Moon Sign is ${RASHI_L5[moonRashiIdx]?.en}, and Birth Star is ${NAKSHATRA_L5[moonNakshatraIdx]?.en}. Under the auspicious grace of your Rashi Lord ${rashiLordLocalized}, may Lord Mahabaleshwara bless you with longevity, prosperity, harmony, and complete success in all your endeavors.`}"
+                </p>
+              </div>
             </div>
           </div>
         )}
@@ -2089,17 +2093,22 @@ export default function DailyDarshanaPage(): JSX.Element {
 
       {/* Priest Direct Contact Modal */}
       {showContactModal && (
-        <div style={{
-          position: "fixed",
-          inset: 0,
-          background: "rgba(0,0,0,0.75)",
-          backdropFilter: "blur(4px)",
-          zIndex: 1000,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: 16
-        }}>
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowContactModal(false);
+          }}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.75)",
+            backdropFilter: "blur(4px)",
+            zIndex: 1000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 16
+          }}
+        >
           <div style={{
             background: "linear-gradient(180deg, #2D1407 0%, #1C0A00 100%)",
             border: "2px solid #D4AF37",
