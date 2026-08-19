@@ -14,7 +14,7 @@
  */
 
 import type { RhythmDay } from "../../core/DailyRhythmEngine";
-import type { DayPanchangaAiItem } from "./panchanga90DayAiEngine";
+import { computeLocalFallback90DayPanchanga, type DayPanchangaAiItem } from "./panchanga90DayAiEngine";
 import { sunTimesSyncForBirth } from "../../core/birthSunTimes";
 import {
   BAND_LABEL_L5,
@@ -696,7 +696,81 @@ export function formatPanditGreeting(panditName: string, lang: string): string {
   return `With warm greetings from ${localized},`;
 }
 
+export interface CalendarPayloadValidationResult {
+  isValid: boolean;
+  missingDayCount: number;
+  reason?: string;
+}
+
+/**
+ * Mandatory 90-Day Calendar Zero-Blank Validation Guard.
+ * Inspects all 90 days of calendar payload to ensure 0 empty or error fields.
+ */
+export function validate90DayCalendarPayload(options: CalendarGeneratorOptions): CalendarPayloadValidationResult {
+  const { days, aiPanchangaMap } = options;
+
+  if (!days || days.length === 0) {
+    return {
+      isValid: false,
+      missingDayCount: 90,
+      reason: "Days payload array is empty"
+    };
+  }
+
+  let emptyCount = 0;
+  for (let i = 0; i < days.length; i++) {
+    const day = days[i];
+    if (!day || !day.ymd) {
+      emptyCount++;
+      continue;
+    }
+
+    const aiEntry = aiPanchangaMap ? aiPanchangaMap[day.ymd] : undefined;
+    const paksha = aiEntry?.paksha || (day as any).pakshaStr || (day as any).paksha;
+    const tithi = aiEntry?.tithi || (day as any).tithiFullStr || (day as any).tithi;
+    const nakshatra = aiEntry?.nakshatra || (day as any).nakName || (day as any).nakshatra;
+    const suryodaya = aiEntry?.suryodaya || (day as any).sunrise;
+    const suryasta = aiEntry?.suryasta || (day as any).sunset;
+
+    if (
+      !paksha || String(paksha).trim().length === 0 ||
+      !tithi || String(tithi).trim().length === 0 ||
+      !nakshatra || String(nakshatra).trim().length === 0 ||
+      !suryodaya || String(suryodaya).trim().length === 0 ||
+      !suryasta || String(suryasta).trim().length === 0
+    ) {
+      emptyCount++;
+    }
+  }
+
+  if (emptyCount > 0) {
+    return {
+      isValid: false,
+      missingDayCount: emptyCount,
+      reason: `${emptyCount} of ${days.length} days contain empty or missing Panchanga attributes`
+    };
+  }
+
+  return { isValid: true, missingDayCount: 0 };
+}
+
 export function generateSevaICalendarString(options: CalendarGeneratorOptions): string {
+  // Execute mandatory 90-Day Zero-Blank Validation Guard
+  const validation = validate90DayCalendarPayload(options);
+  if (!validation.isValid) {
+    console.warn("⚠️ 90-Day Calendar Zero-Blank Guard auto-healing missing fields:", validation.reason);
+    const startDateStr = options.days && options.days.length > 0 ? options.days[0].ymd : new Date().toISOString().slice(0, 10);
+    const fallbackMap = computeLocalFallback90DayPanchanga(
+      options.pincode || "581326",
+      options.locationName || "Gokarna",
+      startDateStr,
+      options.lang || "kn",
+      options.lat || 14.54,
+      options.lng || 74.31
+    );
+    options.aiPanchangaMap = { ...fallbackMap, ...options.aiPanchangaMap };
+  }
+
   const {
     days,
     lang,

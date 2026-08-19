@@ -18,6 +18,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { getDevoteeSalutation, buildDeterministicPriestBenediction } from "../features/seva/sevaPriestNarrativeEngine";
 import { getDailyKaalaTimings, getEnergyMeterAndVibe, generateSevaICalendarString, downloadIcsFile, getDayLordIndex, calculateDeterministicRhythmDay, getTaraBalaInfo, getChandraBalaInfo } from "../features/seva/icsCalendarGenerator";
 import { decodeDevoteeToken } from "../utils/tokenCipher";
+import { getUniversalBirthDetails } from "../utils/universalDevoteeKundli";
 import type { RhythmDay } from "../core/DailyRhythmEngine";
 import { nakshatraName, rashiName, tithiLabel, pakshaLabel, tithiOnlyLabel, getDailyActionableGuidance, formatLongDate, getLocalizedPanditName } from "../features/seva/sevaPresentation";
 import { RASHI_L5, NAKSHATRA_L5, GRAHA_L5, LANGUAGE_OWN_NAME, pick, type SevaLang } from "../features/seva/sevaLocale";
@@ -1063,23 +1064,25 @@ export default function DailyDarshanaPage(): JSX.Element {
     return new URLSearchParams();
   }, []);
 
-  const birthDateStr = useMemo(() => {
+  const resolvedBirth = useMemo(() => {
     const paramDob = urlParams.get("dob");
-    if (paramDob && paramDob.trim().length > 0) return paramDob.trim();
-    if ((decoded as any)?.dob && String((decoded as any).dob).trim().length > 0) return String((decoded as any).dob).trim();
-    if (storedSession?.birthDate && storedSession.birthDate.trim().length > 0) return storedSession.birthDate.trim();
-    if (devoteeDisplayName.includes("Manoj") || devoteeDisplayName.includes("ಮನೋಜ್")) return "1993-03-16";
-    return "1995-06-15";
+    const paramTob = urlParams.get("tob");
+    const tokenDob = (decoded as any)?.dob ? String((decoded as any).dob) : null;
+    const tokenTob = (decoded as any)?.tob ? String((decoded as any).tob) : null;
+    const sessionDob = storedSession?.birthDate || null;
+    const sessionTob = storedSession?.birthTime || null;
+    const tokenNak = decoded?.nk ?? (decoded as any)?.nakshatra ?? storedSession?.nakshatraIndex ?? null;
+
+    return getUniversalBirthDetails({
+      dob: paramDob || tokenDob || sessionDob,
+      tob: paramTob || tokenTob || sessionTob,
+      name: devoteeDisplayName,
+      nakshatraIndex: tokenNak
+    });
   }, [urlParams, decoded, storedSession, devoteeDisplayName]);
 
-  const birthTimeStr = useMemo(() => {
-    const paramTob = urlParams.get("tob");
-    if (paramTob && paramTob.trim().length > 0) return paramTob.trim();
-    if ((decoded as any)?.tob && String((decoded as any).tob).trim().length > 0) return String((decoded as any).tob).trim();
-    if (storedSession?.birthTime && storedSession.birthTime.trim().length > 0) return storedSession.birthTime.trim();
-    if (devoteeDisplayName.includes("Manoj") || devoteeDisplayName.includes("ಮನೋಜ್")) return "01:40";
-    return "09:25";
-  }, [urlParams, decoded, storedSession, devoteeDisplayName]);
+  const birthDateStr = resolvedBirth.dob;
+  const birthTimeStr = resolvedBirth.tob;
 
   const userLat = useMemo(() => {
     return decoded?.lt ?? decoded?.lat ?? storedSession?.latitude ?? 14.5479;
