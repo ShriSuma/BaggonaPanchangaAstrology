@@ -23,7 +23,13 @@ import { initDailyReportScheduler } from "./features/reports/dailyScheduler";
 import DailyDarshanaPage from "./pages/DailyDarshanaPage";
 
 export default function App(): JSX.Element {
-  const isDailyRoute = typeof window !== "undefined" && window.location.pathname.startsWith("/daily");
+  const isDailyRoute = typeof window !== "undefined" && (
+    window.location.pathname.startsWith("/daily") ||
+    window.location.pathname.startsWith("/darshana") ||
+    window.location.search.includes("token=") ||
+    window.location.search.includes("fromCal=") ||
+    window.location.search.includes("action=ics")
+  );
 
   const currentPage = useAppStore((state) => state.currentPage);
   const hydrateSettings = useAppStore((state) => state.hydrateSettings);

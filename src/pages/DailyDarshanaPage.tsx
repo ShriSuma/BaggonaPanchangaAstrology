@@ -993,6 +993,13 @@ export default function DailyDarshanaPage(): JSX.Element {
   }, [decoded, params]);
 
   const [activeTab, setActiveTab] = useState<"darshana" | "kundali" | "gochara" | "dasha">(initialTab);
+
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
+
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [copied, setCopied] = useState(false);
   const [downloadedNotice, setDownloadedNotice] = useState(false);
