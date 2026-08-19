@@ -733,35 +733,35 @@ function getDynamicGocharaPredictions(
   const guruAuspicious = [2, 5, 7, 9, 11].includes(guruHouse);
   let guruDesc = "";
   if (code === "kn") {
-    guruDesc = `ಗುರುವು ${guruRashiName} ರಾಶಿಯಲ್ಲಿ ಅಧಿವಾಸಿಸುತ್ತಿದ್ದು, ನಿಮ್ಮ ಚಂದ್ರ ರಾಶಿಯಿಂದ ${guruHouse}ನೇ ಭಾವದಲ್ಲಿದ್ದಾನೆ. ${
+    guruDesc = `ಗುರುವು ${guruRashiName} ರಾಶಿಯಲ್ಲಿ ನಿಮ್ಮ ಚಂದ್ರ ರಾಶಿಯಿಂದ ${guruHouse}ನೇ ಭಾವದಲ್ಲಿದ್ದಾನೆ.\n【ನಿರೀಕ್ಷಿಸಬಹುದಾದ ಫಲ】 ${
       guruAuspicious
-        ? "ಇದು ಅತ್ಯಂತ ಶುಭ ಫಲದಾಯಕ ಸ್ಥಾನವಾಗಿದ್ದು, ವಿದ್ಯಾಭ್ಯಾಸ, ಆರ್ಥಿಕ ಪ್ರಗತಿ, ಶುಭ ಸಮಾರಂಭಗಳು ಹಾಗೂ ಸತ್ಸಂಗ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ."
-        : "ಈ ಸಮಯದಲ್ಲಿ ತಾಳ್ಮೆ ಹಾಗೂ ವಿವೇಚನೆ ಅಗತ್ಯ. ಶ್ರೀ ಗುರು ರಾಘವೇಂದ್ರ ಸ್ವಾಮಿ ಅಥವಾ ದಕ್ಷಿಣಾಮೂರ್ತಿ ಪೂಜೆಯಿಂದ ಸಕಾರಾತ್ಮಕ ಶಕ್ತಿ ವೃದ್ಧಿಸಲಿದೆ."
-    }`;
+        ? "ಅತ್ಯಂತ ಶುಭ ಫಲದಾಯಕ ಸ್ಥಾನ! ಧನ ಲಾಭವೃದ್ಧಿ, ಉದ್ಯೋಗದಲ್ಲಿ ಬಡ್ತಿ, ವಿದ್ಯಾಭ್ಯಾಸದಲ್ಲಿ ಯಶಸ್ಸು ಹಾಗೂ ಗೃಹದಲ್ಲಿ ಮಂಗಳ ಕಾರ್ಯಗಳ ಆಯೋಜನೆ ನಡೆಯಲಿದೆ."
+        : "ಈ ಸಮಯದಲ್ಲಿ ತಾಳ್ಮೆ ಹಾಗೂ ವಿವೇಚನೆಯಿಂದ ನಿರ್ಧಾರ ಕೈಗೊಳ್ಳುವುದು ಸೂಕ್ತ. ಆತುರದ ಹೂಡಿಕೆಗಳನ್ನು ತಡೆದು ಕಾಯಕ ನಿಷ್ಠೆ ವಹಿಸಬೇಕು."
+    }\n【ಪರಿಹಾರ/ಆರಾಧನೆ】 ಶ್ರೀ ಗುರು ರಾಘವೇಂದ್ರ ಸ್ವಾಮಿ ಅಥವಾ ಶ್ರೀ ದಕ್ಷಿಣಾಮೂರ್ತಿ ಪೂಜೆ ಹಾಗೂ ಹಳದಿ ಹೂವುಗಳಿಂದ ದೇವತಾರಾಧನೆ ಅತ್ಯಂತ ಶ್ರೇಯಸ್ಕರ.`;
   } else if (code === "hi") {
-    guruDesc = `गुरु ${guruRashiName} राशि में गोचर करते हुए आपकी राशि से ${guruHouse}वें भाव में हैं। ${
+    guruDesc = `गुरु ${guruRashiName} राशि में आपकी राशि से ${guruHouse}वें भाव में हैं।\n【अपेक्षित प्रभाव】 ${
       guruAuspicious
-        ? "यह अत्यंत शुभ स्थिति है, जिससे ज्ञान वृद्धि, धन लाभ और सुख-समृद्धि प्राप्त होगी।"
-        : "संयम और ध्यान आवश्यक है। श्री गुरुदेव का ध्यान करने से बाधाएं दूर होंगी।"
-    }`;
+        ? "अत्यंत शुभ गोचर! कार्यक्षेत्र में उन्नति, धन लाभ, ज्ञान वृद्धि और परिवार में मांगलिक कार्य संपन्न होंगे।"
+        : "धैर्य और विवेक से कार्य करें। अनावश्यक व्यय और जल्दबाजी के निर्णयों से बचें।"
+    }\n【उपाय/पूजा】 श्री गुरु राघवेंद्र स्वामी एवं भगवान दक्षिणामूर्ति की पूजा और पीले पुष्पों का अर्पण अति कल्याणकारी है।`;
   } else if (code === "te") {
-    guruDesc = `గురు గ్రహం ${guruRashiName} రాశిలో సంచరిస్తూ మీ రాశి నుండి ${guruHouse}వ స్థానంలో ఉన్నారు. ${
+    guruDesc = `గురు గ్రహం ${guruRashiName} రాశిలో మీ రాశి నుండి ${guruHouse}వ స్థానంలో ఉన్నారు.\n【ఆశించే ఫలితాలు】 ${
       guruAuspicious
-        ? "ఇది అత్యంత అనుకూల స్థానం. జ్ఞాన సమపార్జన, ధన ప్రాప్తి మరియు శుభ కార్యాలు జరుగుతాయి."
-        : "శాంతం, వివేకం అవసరం. శ్రీ గురు దేవాలయ దర్శనం శుభకరం."
-    }`;
+        ? "అత్యంత శుభప్రదమైన సమయం! ధన లాభాలు, ఉద్యోగంలో పదోన్నతి, విద్యలో యశస్సు మరియు కుటుంబంలో శుభ కార్యాలు."
+        : "సహనంతో నిర్ణయాలు తీసుకోండి. తొందరపాటు పెట్టుబడులు నివారించండి."
+    }\n【పరిహారము/పూజ】 శ్రీ గురు రాఘవేంద్ర స్వామి లేదా శ్రీ దక్షిణామూర్తి ఆరాధన శ్రేయస్కరం.`;
   } else if (code === "ta") {
-    guruDesc = `குரு பகவான் ${guruRashiName} ராசியில் உங்கள் ராசிக்கு ${guruHouse}ஆம் இடத்தில் கோச்சாரம் செய்கிறார். ${
+    guruDesc = `குரு பகவான் ${guruRashiName} ராசியில் உங்கள் ராசிக்கு ${guruHouse}ஆம் இடத்தில் உள்ளார்.\n【எதிர்பார்க்கும் பலன்கள்】 ${
       guruAuspicious
-        ? "இது மிகச் சிறந்த சுப பலன்களைத் தரும். தன லாபம், கல்வி மேம்பாடு மற்றும் சுப நிகழ்ச்சிகள் நடக்கும்."
-        : "பொறுமையுடன் செயல்படவும். குரு பகவானை வழிபட நன்மை உண்டாகும்."
-    }`;
+        ? "மிகச் சிறந்த சுப கோச்சாரம்! தன லாபம், தொழில் வளர்ச்சி, கல்வி மேம்பாடு மற்றும் குடும்பத்தில் சுப நிகழ்ச்சிகள்."
+        : "அமைதியாகவும் நிதானமாகவும் செயல்படவும்."
+    }\n【பரிகாரம்/வழிபாடு】 ஸ்ரீ குரு ராகவேந்திரர் மற்றும் தட்சிணாமூர்த்தி வழிபாடு சிறந்தது.`;
   } else {
-    guruDesc = `Jupiter transits in ${guruRashiName} in the ${guruHouse}th house from your Moon sign. ${
+    guruDesc = `Jupiter transits in ${guruRashiName} in the ${guruHouse}th house from your Moon sign.\n【What to Expect】 ${
       guruAuspicious
-        ? "This is highly favorable, bringing financial progress, wisdom, auspicious events, and spiritual peace."
-        : "Requires patient execution. Prayers to Sri Guru & Lord Dakshinamurthy bring divine protection and balance."
-    }`;
+        ? "Highly favorable transit! Brings financial progress, career elevation, academic excellence, and domestic harmony."
+        : "Requires patient execution and avoiding impulsive investments. Maintain steady work discipline."
+    }\n【Remedy & Prayer】 Devotion to Sri Guru Raghavendra Swamy & Lord Dakshinamurthy with yellow flower offerings brings immense blessings.`;
   }
 
   // Shani (Saturn) Phala
@@ -770,69 +770,69 @@ function getDynamicGocharaPredictions(
   const shaniAuspicious = [3, 6, 11].includes(shaniHouse);
   let shaniDesc = "";
   if (code === "kn") {
-    shaniDesc = `ಶನಿಯು ${shaniRashiName} ರಾಶಿಯಲ್ಲಿ ಸಂಚರಿಸುತ್ತಿದ್ದು, ನಿಮ್ಮ ಚಂದ್ರ ರಾಶಿಯಿಂದ ${shaniHouse}ನೇ ಭಾವದಲ್ಲಿದ್ದಾನೆ. ${
+    shaniDesc = `ಶನಿಯು ${shaniRashiName} ರಾಶಿಯಲ್ಲಿ ನಿಮ್ಮ ಚಂದ್ರ ರಾಶಿಯಿಂದ ${shaniHouse}ನೇ ಭಾವದಲ್ಲಿದ್ದಾನೆ.\n【ನಿರೀಕ್ಷಿಸಬಹುದಾದ ಫಲ】 ${
       isSadeSati
-        ? "ಇದು ಸಾಡೇಸಾತಿ (ಏಳೂವರೆ ಶನಿ) ಕಾಲವಾಗಿದ್ದು, ಶಿಸ್ತು, ಕಾಯಕ ನಿಷ್ಠೆ ಮತ್ತು ಹನುಮಾನ್ ಚಾಲೀಸಾ ಪಠಣದಿಂದ ಸಂಕಷ್ಟ ಪರಿಹಾರವಾಗಲಿದೆ."
+        ? "ಸಾಡೇಸಾತಿ (ಏಳೂವರೆ ಶನಿ) ಪ್ರಭಾವ. ಪರಿಶ್ರಮ, ಧರ್ಮನಿಷ್ಠೆ ಹಾಗೂ ಕರ್ತವ್ಯ ಪ್ರಜ್ಞೆಯಿಂದ ಅಪಾರ ಯಶಸ್ಸು ಮತ್ತು ಸನ್ಮಾನ ಲಭಿಸಲಿದೆ."
         : isKantaka
-        ? "ಇದು ಅರ್ಧಾಷ್ಟಮ / ಅಷ್ಟಮ ಶನಿ ಕಾಲ. ಆರೋಗ್ಯ ಮತ್ತು ವಾಹನ ಚಾಲನೆಯಲ್ಲಿ ಜಾಗ್ರತೆ ವಹಿಸಿ, ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಆರಾಧನೆ ಮಾಡಿ."
+        ? "ಅರ್ಧಾಷ್ಟಮ / ಅಷ್ಟಮ ಶನಿ ಪ್ರಭಾವ. ಪ್ರಯಾಣ ಹಾಗೂ ಆರೋಗ್ಯದಲ್ಲಿ ಜಾಗ್ರತೆ ಅಗತ್ಯ, ನಕಾರಾತ್ಮಕ ಚಿಂತನೆಗಳಿಂದ ದೂರವಿರಿ."
         : shaniAuspicious
-        ? "ಇದು ಅತ್ಯುತ್ತಮ ಶುಭ ಶನಿ ಗೋಚಾರ. ಶತ್ರು ಜಯ, ಕಾರ್ಯ ಸಿದ್ಧಿ ಮತ್ತು ಸುಸ್ಥಿರ ಆರ್ಥಿಕ ಸುಧಾರಣೆ ಲಭಿಸಲಿದೆ."
-        : "ಸಾಮಾನ್ಯ ಫಲದಾಯಕ ಕಾಲ. ನಿರಂತರ ಪರಿಶ್ರಮ ಮತ್ತು ಪ್ರಾಮಾಣಿಕ ಕಾರ್ಯಕ್ಕೆ ತಕ್ಕ ಯಶಸ್ಸು ಕಡ್ಡಾಯ."
-    }`;
+        ? "ಅತ್ಯುತ್ತಮ ಶುಭ ಶನಿ ಸಂಚಾರ! ಶತ್ರು ಜಯ, ಕಾರ್ಯ ಸಿದ್ಧಿ, ಆಸ್ತಿ ವೃದ್ಧಿ ಹಾಗೂ ಸುಸ್ಥಿರ ಆರ್ಥಿಕ ಪ್ರಗತಿ ಲಭಿಸಲಿದೆ."
+        : "ನಿರಂತರ ಪರಿಶ್ರಮ ಮತ್ತು ಪ್ರಾಮಾಣಿಕ ಕಾರ್ಯಕ್ಕೆ ತಕ್ಕ ಯಶಸ್ಸು ನಿಶ್ಚಿತ."
+    }\n【ಪರಿಹಾರ/ಆರಾಧನೆ】 ಶನಿವಾರ ಶ್ರೀ ಹನುಮಾನ್ ಚಾಲೀಸಾ ಪಠಣ, ಶನಿ ದೇವಾಲಯದಲ್ಲಿ ಎಳ್ಳೆಣ್ಣೆ ದೀಪ ಬೆಳಗುವುದು ಹಾಗೂ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ದರ್ಶನ ಪಡೆಯುವುದು ಸೂಕ್ತ.`;
   } else if (code === "hi") {
-    shaniDesc = `शनि देव ${shaniRashiName} राशि में आपकी राशि से ${shaniHouse}वें भाव में स्थित हैं। ${
+    shaniDesc = `शनि देव ${shaniRashiName} राशि में आपकी राशि से ${shaniHouse}वें भाव में हैं।\n【अपेक्षित प्रभाव】 ${
       isSadeSati
-        ? "यह साढ़ेसाती का समय है। हनुमान जी की साधना और कड़े अनुशासन से सभी कार्य सिद्ध होंगे।"
+        ? "साढ़ेसाती का प्रभाव। कड़ी मेहनत, सत्यनिष्ठा और धैर्य से बड़ी सफलता मिलेगी।"
         : isKantaka
-        ? "यह ढैय्या का प्रभाव है। स्वास्थ्य और वाहन चलाने में सावधानी रखें।"
+        ? "ढैय्या/अष्टम शनि का प्रभाव। स्वास्थ्य और यात्रा में सावधानी बरतें।"
         : shaniAuspicious
-        ? "यह अत्यंत शुभ गोचर है। शत्रु विजय, कार्य सिद्धि और स्थायी प्रगति होगी।"
-        : "मेहनत का पूर्ण फल मिलेगा। धैर्यपूर्वक आगे बढ़ें।"
-    }`;
+        ? "अत्यंत शुभ गोचर! शत्रु विजय, संपत्ति वृद्धि और कार्य सिद्धि।"
+        : "मेहनत का पूर्ण फल मिलेगा।"
+    }\n【उपाय/पूजा】 शनिवार को हनुमान चालीसा का पाठ करें और तिल के तेल का दीपक जलाएं।`;
   } else if (code === "te") {
-    shaniDesc = `శని భగవానుడు ${shaniRashiName} రాశిలో మీ రాశి నుండి ${shaniHouse}వ భావంలో ఉన్నారు. ${
+    shaniDesc = `శని భగవానుడు ${shaniRashiName} రాశిలో మీ రాశి నుండి ${shaniHouse}వ భావంలో ఉన్నారు.\n【ఆశించే ఫలితాలు】 ${
       isSadeSati
-        ? "ఇది సాడేసాతీ కాలం. శ్రమ, క్రమశిక్షణ మరియు హనుమాన్ ఉపాసన ద్వారా శుభ ఫలితాలు పొందుతారు."
+        ? "సాడేసాతీ ప్రభావం. క్రమశిక్షణ, శ్రమ మరియు సత్యంతో గొప్ప విజయం లభిస్తుంది."
         : isKantaka
-        ? "ఇది అష్టమ శని ప్రభావం. ఆరోగ్యం విషయంలో శ్రద్ధ వహించండి."
+        ? "అష్టమ శని ప్రభావం. ఆరోగ్యం మరియు ప్రయాణాలలో జాగ్రత్త వహించండి."
         : shaniAuspicious
-        ? "ఇది అత్యంత అనుకూల సంచారం. విజయ ప్రాప్తి మరియు స్థిరాస్తి అభివృద్ధి."
-        : "సహనం మరియు శ్రమతో అను అనుకూలతలు సాధిస్తారు."
-    }`;
+        ? "అత్యంత అనుకూల సంచారం! కార్య సిద్ధి మరియు స్థిరాస్తి అభివృద్ధి."
+        : "శ్రమకు తగిన ప్రతిఫలం నిశ్చయం."
+    }\n【పరిహారము/పూజ】 హనుమాన్ చాలీసా పారాయణ మరియు నువ్వుల నూనె దీపారాధన శ్రేయస్కరం.`;
   } else if (code === "ta") {
-    shaniDesc = `சனீஸ்வர பகவான் ${shaniRashiName} ராசியில் உங்கள் ராசிக்கு ${shaniHouse}ஆம் இடத்தில் உள்ளார். ${
+    shaniDesc = `சனீஸ்வர பகவான் ${shaniRashiName} ராசியில் உங்கள் ராசிக்கு ${shaniHouse}ஆம் இடத்தில் உள்ளார்.\n【எதிர்பார்க்கும் பலன்கள்】 ${
       isSadeSati
-        ? "இது ஏழரை சனி காலம். அனுமன் வழிபாடும், உழைப்பும் நற்பலன் தரும்."
+        ? "ஏழரை சனி காலம். கடின உழைப்பும் நேர்மையும் பெரு வெற்றி தரும்."
         : isKantaka
-        ? "இது அஷ்டம சனி காலம். உடல் ஆரோக்கியத்தில் கவனம் தேவை."
+        ? "அஷ்டம சனி காலம். உடல் ஆரோக்கியத்திலும் பயணத்திலும் கவனம் தேவை."
         : shaniAuspicious
-        ? "மிகச் சிறந்த சுப கோச்சாரம். வெற்றி மற்றும் தொழில் வளர்ச்சி உண்டாகும்."
-        : "நல் உழைப்புக்கேற்ற பலன் நிச்சயமாய் கிடைக்கும்."
-    }`;
+        ? "சுப கோச்சாரம்! தொழில் வளர்ச்சி மற்றும் சுப பலன்கள்."
+        : "உழைப்புக்கேற்ற பலன் கிடைக்கும்."
+    }\n【பரிகாரம்/வழிபாடு】 அனுமன் சாலீசா பாராயணம் மற்றும் நல்லெண்ணெய் தீபம் ஏற்றவும்.`;
   } else {
-    shaniDesc = `Saturn transits in ${shaniRashiName} in the ${shaniHouse}th house from your Moon sign. ${
+    shaniDesc = `Saturn transits in ${shaniRashiName} in the ${shaniHouse}th house from your Moon sign.\n【What to Expect】 ${
       isSadeSati
-        ? "Sade Sati phase active. Honest work, discipline, and Sri Hanuman Chalisa bring immense resilience and victory."
+        ? "Sade Sati phase active. Honesty, discipline, and hard work lead to major long-term triumphs."
         : isKantaka
-        ? "Ashtama/Kantaka Shani phase. Exercise care in travel & health; worship Lord Shiva."
+        ? "Ashtama/Kantaka Shani phase. Exercise care in travel & health; maintain emotional calmness."
         : shaniAuspicious
-        ? "Highly auspicious transit! Brings stability, overcoming hurdles, and solid financial growth."
-        : "Steady phase rewarding hard work and ethical conduct."
-    }`;
+        ? "Highly auspicious transit! Overcoming competitors, career advancement, and wealth accumulation."
+        : "Steady phase rewarding honest effort."
+    }\n【Remedy & Prayer】 Chanting Sri Hanuman Chalisa & lighting a Sesame oil lamp on Saturdays bring victory.`;
   }
 
   // Rahu-Ketu Axis
   let rahuKetuDesc = "";
   if (code === "kn") {
-    rahuKetuDesc = `ರಾಹುವು ${rahuRashiName} (${rahuHouse}ನೇ ಭಾವ) ಹಾಗೂ ಕೇತುವು ${ketuRashiName} (${ketuHouse}ನೇ ಭಾವ) ಸಂಚಾರದಲ್ಲಿದ್ದಾರೆ. ಶ್ರೀ ದುರ್ಗಾದೇವಿ ಹಾಗೂ ಮಹಾಗಣಪತಿ ಪೂಜೆಯಿಂದ ಮನಃಶಾಂತಿ ಮತ್ತು ಕೌಶಲ್ಯ ವೃದ್ಧಿಯಾಗಲಿದೆ.`;
+    rahuKetuDesc = `ರಾಹುವು ${rahuRashiName} (${rahuHouse}ನೇ ಭಾವ) ಹಾಗೂ ಕೇತುವು ${ketuRashiName} (${ketuHouse}ನೇ ಭಾವ) ಸಂಚಾರದಲ್ಲಿದ್ದಾರೆ.\n【ನಿರೀಕ್ಷಿಸಬಹುದಾದ ಫಲ】 ರಾಹುವಿನ ಪ್ರಭಾವದಿಂದ ನೂತನ ಸೃಜನಾತ್ಮಕ ಆಲೋಚನೆಗಳು, ವಿದೇಶಿ/ದೂರದ ಸಂಪರ್ಕ ಹಾಗೂ ಬೌದ್ಧಿಕ ಪ್ರಗತಿ ಉಂಟಾಗಲಿದೆ. ಕೇತುವಿನ ಪ್ರಭಾವದಿಂದ ಆಧ್ಯಾತ್ಮಿಕ ಚಿಂತನೆ, ಅನಿರೀಕ್ಷಿತ ಧನಲಾಭ ಹಾಗೂ ಅಂತರ್ಜ್ಞಾನ ವೃದ್ಧಿಯಾಗಲಿದೆ.\n【ಪರಿಹಾರ/ಆರಾಧನೆ】 ಶ್ರೀ ದುರ್ಗಾದೇವಿ ಆರಾಧನೆ, ಶ್ರೀ ಮಹಾಗಣಪತಿ ಹೋಮ/ಪೂಜೆ ಹಾಗೂ ರಾಹು-ಕೇತು ಕವಚ ಪಠಣದಿಂದ ಪೂರ್ಣ ಅಭಯ ಮತ್ತು ಕೌಶಲ್ಯ ವೃದ್ಧಿಯಾಗಲಿದೆ.`;
   } else if (code === "hi") {
-    rahuKetuDesc = `राहु ${rahuRashiName} (${rahuHouse}वें भाव) और केतु ${ketuRashiName} (${ketuHouse}वें भाव) में हैं। श्री दुर्गा और गणेश जी की पूजा से शांति प्राप्त होगी।`;
+    rahuKetuDesc = `राहु ${rahuRashiName} (${rahuHouse}वें भाव) और केतु ${ketuRashiName} (${ketuHouse}वें भाव) में हैं।\n【अपेक्षित प्रभाव】 राहु के प्रभाव से नए विचार, दूरगामी योजनाएं और बौद्धिक विकास होगा। केतु के प्रभाव से आध्यात्मिक उन्नति और आकस्मिक लाभ मिलेगा।\n【उपाय/पूजा】 मां दुर्गा और श्री गणेश जी की नियमित पूजा से मानसिक शांति और सुरक्षा मिलेगी।`;
   } else if (code === "te") {
-    rahuKetuDesc = `రాహువు ${rahuRashiName} (${rahuHouse}వ ఇల్లు), కేతువు ${ketuRashiName} (${ketuHouse}వ ఇల్లు) సంచారంలో ఉన్నారు. దుర్గా, గణపతి ఆరాధన శ్రేయస్కరం.`;
+    rahuKetuDesc = `రాహువు ${rahuRashiName} (${rahuHouse}వ ఇల్లు), కేతువు ${ketuRashiName} (${ketuHouse}వ ఇల్లు) సంచారంలో ఉన్నారు.\n【ఆశించే ఫలితాలు】 రాహువు వల్ల నూతన ఆలోచనలు, మేధో సంపత్తి వృద్ధి చెందుతాయి. కేతువు వల్ల ఆధ్యాత్మిక చింతన, ఆకస్మిక ధన లాభాలు లభిస్తాయి.\n【పరిహారము/పూజ】 శ్రీ దుర్గాదేవి, శ్రీ మహాగణపతి ఆరాధన శ్రేయస్కరం.`;
   } else if (code === "ta") {
-    rahuKetuDesc = `ரஹு ${rahuRashiName} (${rahuHouse}ஆம் இடம்), கேது ${ketuRashiName} (${ketuHouse}ஆம் இடம்) கோச்சாரத்தில் உள்ளனர். துர்க்கை & கணபதி வழிபாடு சிறப்பு.`;
+    rahuKetuDesc = `ரஹு ${rahuRashiName} (${rahuHouse}ஆம் இடம்), கேது ${ketuRashiName} (${ketuHouse}ஆம் இடம்) கோச்சாரத்தில் உள்ளனர்.\n【எதிர்பார்க்கும் பலன்கள்】 ராகுவால் புதிய சிந்தனைகளும், கேதுவால் ஆன்மீக வளர்ச்சியும் திடீர் தன லாபமும் உண்டாகும்.\n【பரிகாரம்/வழிபாடு】 ஸ்ரீ துர்க்கை அம்மன் & கணபதி வழிபாடு மன நிம்மதியையும் பாதுகாப்பையும் தரும்.`;
   } else {
-    rahuKetuDesc = `Rahu transits in ${rahuRashiName} (${rahuHouse}th house) & Ketu in ${ketuRashiName} (${ketuHouse}th house). Regular prayers to Goddess Durga and Lord Ganesha provide spiritual protection and clarity.`;
+    rahuKetuDesc = `Rahu transits in ${rahuRashiName} (${rahuHouse}th house) & Ketu in ${ketuRashiName} (${ketuHouse}th house).\n【What to Expect】 Rahu stimulates creative ambition, strategic vision, and networking. Ketu enhances spiritual intuition, detachment from worry, and sudden unexpected gains.\n【Remedy & Prayer】 Regular prayers to Goddess Durga and Lord Ganesha provide spiritual protection, mental clarity, and success.`;
   }
 
   const guruTitle = code === "kn" ? `ಗುರು ಸಂಚಾರ (${guruRashiName})` :
@@ -863,12 +863,12 @@ function getDynamicGocharaPredictions(
   };
 }
 
-// 100% Dynamic 5-Language Dasha-Bhukti Predictions Generator
+// 100% Dynamic 5-Language Dasha-Bhukti Predictions Generator using Vimshottari Engine
 function getDynamicDashaPredictions(
   birthKundli: KundliOutput,
   targetDateStr: string,
   lang: SevaLang,
-  _birthDateStr: string
+  birthDateStr: string
 ): {
   activePhase: string;
   dashaPeriod: string;
@@ -879,35 +879,30 @@ function getDynamicDashaPredictions(
 } {
   const code = lang || "en";
   const targetDate = new Date(targetDateStr);
-  const currentYear = isNaN(targetDate.getFullYear()) ? 2026 : targetDate.getFullYear();
+  const birthDate = new Date(birthDateStr || "1993-03-16");
 
-  const NAKSHATRA_LORDS = ["Ketu", "Venus", "Sun", "Moon", "Mars", "Rahu", "Jupiter", "Saturn", "Mercury"];
-  const moonPlanet = birthKundli.planets.find(p => p.name === "Moon");
-  const nakIdx = moonPlanet?.nakshatra.index ?? 12;
+  const ageYears = isNaN(birthDate.getTime()) || isNaN(targetDate.getTime())
+    ? 31
+    : Math.max(0, (targetDate.getTime() - birthDate.getTime()) / (365.2425 * 86400 * 1000));
 
-  const mahaPlanet = NAKSHATRA_LORDS[nakIdx % 9] || "Rahu";
-  const bhuktiMap: Record<string, string> = {
-    Ketu: "Venus",
-    Venus: "Mercury",
-    Sun: "Jupiter",
-    Moon: "Jupiter",
-    Mars: "Venus",
-    Rahu: "Venus",
-    Jupiter: "Sun",
-    Saturn: "Mercury",
-    Mercury: "Venus"
-  };
-  const bhuktiPlanet = bhuktiMap[mahaPlanet] || "Venus";
+  const bhuktiInfo = findBhuktiAtAge(birthKundli, ageYears);
+
+  const mahaPlanet = bhuktiInfo?.maha.planet || "Jupiter";
+  const bhuktiPlanet = bhuktiInfo?.bhukti || "Venus";
 
   const mahaName = GRAHA_L5[mahaPlanet as keyof typeof GRAHA_L5]?.[code] || mahaPlanet;
   const bhuktiName = GRAHA_L5[bhuktiPlanet as keyof typeof GRAHA_L5]?.[code] || bhuktiPlanet;
 
-  const startYear = currentYear - 1;
-  const endYear = currentYear + 2;
+  const startYear = isNaN(birthDate.getTime()) || !bhuktiInfo
+    ? 2024
+    : new Date(birthDate.getTime() + bhuktiInfo.bhuktiStartAge * 365.2425 * 86400 * 1000).getFullYear();
+  const endYear = isNaN(birthDate.getTime()) || !bhuktiInfo
+    ? 2027
+    : new Date(birthDate.getTime() + bhuktiInfo.bhuktiEndAge * 365.2425 * 86400 * 1000).getFullYear();
 
   const activePhase = `${mahaName} ${code === "kn" ? "ಮಹಾದಶಾ" : code === "hi" ? "महादशा" : code === "te" ? "మహాదశ" : code === "ta" ? "மகாதிசை" : "Mahadasha"} · ${bhuktiName} ${code === "kn" ? "ಅಂತರ್ದಶಾ" : code === "hi" ? "अंतर्दशा" : code === "te" ? "అంతర్దశ" : code === "ta" ? "புக்தி" : "Antardasha"}`;
 
-  const dashaPeriod = `${code === "kn" ? "ಅವಧಿ" : code === "hi" ? "अवधि" : code === "te" ? "వ్యవధి" : code === "ta" ? "காலം" : "Period"}: ${startYear} - ${endYear}`;
+  const dashaPeriod = `${code === "kn" ? "ಅವಧಿ" : code === "hi" ? "अवधि" : code === "te" ? "వ్యవధి" : code === "ta" ? "காலம்" : "Period"}: ${startYear} - ${endYear}`;
 
   let careerDesc = "";
   let wealthDesc = "";
