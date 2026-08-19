@@ -95,7 +95,7 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     shareWhatsapp: "ವಾಟ್ಸಾಪ್‌ನಲ್ಲಿ ಹಂಚಿಕೊಳ್ಳಿ",
     copyLink: "ಲಿಂಕ್ ಕಾಪಿ ಮಾಡಿ",
     copied: "ಕಾಪಿ ಆಗಿದೆ! ✓",
-    callPandit: "ಕ್ಯಾಲೆಂಡರ್ ಬೇಕಿದ್ದಲ್ಲಿ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರಿಗೆ ಕರೆ ಮಾಡಿ: 9972339362",
+    callPandit: "ಕ್ಯಾಲೆಂಡರ್ ಬೇಕಿದ್ದಲ್ಲಿ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರಿಗೆ ಕರೆ ಮಾಡಿ",
     panditRole: "ಮುಖ್ಯ ಅರ್ಚಕರು - ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ",
     callNow: "ನೇರ ಕರೆ: 9972339362",
     downloadIcs: "೯೦ ದಿನಗಳ ಪಂಚಾಂಗ ಕ್ಯಾಲೆಂಡರ್ ಪಡೆಯಿರಿ (.ics)",
@@ -166,7 +166,7 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     shareWhatsapp: "Share on WhatsApp",
     copyLink: "Copy Sanctum Link",
     copied: "Copied! ✓",
-    callPandit: "If you need a calendar, call Shreeram Pandit: 9972339362",
+    callPandit: "If you need a calendar, call Shreeram Pandit",
     panditRole: "Chief Archaka - Gokarna Kshetra",
     callNow: "Call Directly: +91 9972339362",
     downloadIcs: "Download 90-Day Calendar (.ics)",
@@ -237,7 +237,7 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     shareWhatsapp: "व्हाट्सएप पर शेयर करें",
     copyLink: "लिंक कॉपी करें",
     copied: "कॉपी हो गया! ✓",
-    callPandit: "यदि आपको कैलेंडर चाहिए तो श्रीराम पंडित जी को कॉल करें: 9972339362",
+    callPandit: "यदि आपको कैलेंडर चाहिए तो श्रीराम पंडित जी को कॉल करें",
     panditRole: "मुख्य अर्चक - गोकर्ण क्षेत्र",
     callNow: "सीधा कॉल करें: 9972339362",
     downloadIcs: "90-दिवसीय पंचांग कैलेंडर डाउनलोड करें (.ics)",
@@ -308,7 +308,7 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     shareWhatsapp: "వాట్సాప్‌లో షేర్ చేయండి",
     copyLink: "లింక్ కాపీ చేయండి",
     copied: "కాపీ అయింది! ✓",
-    callPandit: "క్యాలెండర్ కావాలంటే శ్రీరామ్ పండితులు గారికి కాల్ చేయండి: 9972339362",
+    callPandit: "క్యాలెండర్ కావాలంటే శ్రీరామ్ పండితులు గారికి కాల్ చేయండి",
     panditRole: "ముఖ్య అర్చకులు - గోకర్ణ క్షేత్రం",
     callNow: "నేరుగా కాల్ చేయండి: 9972339362",
     downloadIcs: "90 రోజుల పంచాంగ క్యాలెండర్ పొందండి (.ics)",
@@ -378,7 +378,7 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     shareWhatsapp: "வாட்ஸ்அப்பில் பகிர்க",
     copyLink: "லிங்க் நகல் செய்க",
     copied: "நகலெடுக்கப்பட்டது! ✓",
-    callPandit: "காலண்டர் தேவைப்பட்டால் ஸ்ரீராம் பண்டிதர் அவர்களுக்கு அழைக்கவும்: 9972339362",
+    callPandit: "காலண்டர் தேவைப்பட்டால் ஸ்ரீராம் பண்டிதர் அவர்களுக்கு அழைக்கவும்",
     panditRole: "முதன்மை அர்ச்சகர் - கோகர்ண க்ஷேத்திரம்",
     callNow: "நேரடி அழைப்பு: 9972339362",
     downloadIcs: "90 நாட்களுக்கான பஞ்சாங்க காலண்டர் பெறுக (.ics)",
@@ -973,7 +973,15 @@ export default function DailyDarshanaPage(): JSX.Element {
   const [lang, setLang] = useState<SevaLang>(langParam);
   const dict = useMemo(() => DARSHANA_LABELS[lang] || DARSHANA_LABELS.en, [lang]);
 
-  const [activeTab, setActiveTab] = useState<"darshana" | "kundali" | "gochara" | "dasha">("darshana");
+  const initialTab = useMemo(() => {
+    const rawTab = (decoded?.t || params.get("tab") || "").toLowerCase();
+    if (rawTab.includes("kund") || rawTab.includes("janma")) return "kundali";
+    if (rawTab.includes("goch")) return "gochara";
+    if (rawTab.includes("dash")) return "dasha";
+    return "darshana";
+  }, [decoded, params]);
+
+  const [activeTab, setActiveTab] = useState<"darshana" | "kundali" | "gochara" | "dasha">(initialTab);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [copied, setCopied] = useState(false);
   const [downloadedNotice, setDownloadedNotice] = useState(false);
