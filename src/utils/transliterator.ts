@@ -123,14 +123,43 @@ function phoneticTransliterateWord(word: string, langCode: "kn" | "hi" | "te" | 
 }
 
 /**
+ * Detects the script of an input string (Kannada, Devanagari, Telugu, Tamil, or English).
+ */
+export function detectScript(text: string): "kn" | "hi" | "te" | "ta" | "en" {
+  if (/[\u0C80-\u0CFF]/.test(text)) return "kn";
+  if (/[\u0900-\u097F]/.test(text)) return "hi";
+  if (/[\u0C00-\u0C7F]/.test(text)) return "te";
+  if (/[\u0B80-\u0BFF]/.test(text)) return "ta";
+  return "en";
+}
+
+/**
  * Transliterates English/Indic names into the requested target language (kn, hi, te, ta, en).
  */
 export function transliterateName(inputName: string, targetLang: string): string {
   if (!inputName || !inputName.trim()) return inputName;
   const langCode = (targetLang ? targetLang.split("-")[0].toLowerCase() : "en") as "kn" | "hi" | "te" | "ta" | "en";
-  if (langCode === "en") return inputName.trim();
-
   const nameTrimmed = inputName.trim();
+  const inputScript = detectScript(nameTrimmed);
+
+  // If the input is already in the requested target script, return it untouched to prevent corruption
+  if (inputScript === langCode) {
+    return nameTrimmed;
+  }
+
+  if (langCode === "en") {
+    // If target is English and input is in Indic script, attempt reverse dictionary lookup
+    const lowerWhole = nameTrimmed.toLowerCase();
+    for (const map of Object.values(NAME_DICTIONARY)) {
+      for (const val of Object.values(map)) {
+        if (val.toLowerCase() === lowerWhole) {
+          return map.en || val;
+        }
+      }
+    }
+    return nameTrimmed;
+  }
+
   const lowerWhole = nameTrimmed.toLowerCase();
 
   // 1. Direct whole-name dictionary lookup
@@ -138,7 +167,7 @@ export function transliterateName(inputName: string, targetLang: string): string
     return NAME_DICTIONARY[lowerWhole][langCode];
   }
 
-  // Check if input is already in reverse dictionary
+  // Check if input matches any localized value in dictionary
   for (const map of Object.values(NAME_DICTIONARY)) {
     for (const val of Object.values(map)) {
       if (val.toLowerCase() === lowerWhole) {
@@ -161,6 +190,8 @@ export function transliterateName(inputName: string, targetLang: string): string
         }
       }
     }
+    // If the word itself is already in target script, keep it as is
+    if (detectScript(word) === langCode) return word;
     // 3. Fallback to phonetic character mapping if word not in dictionary
     return phoneticTransliterateWord(word, langCode);
   });

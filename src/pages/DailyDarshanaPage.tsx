@@ -893,16 +893,23 @@ function getDynamicDashaPredictions(
   const mahaName = GRAHA_L5[mahaPlanet as keyof typeof GRAHA_L5]?.[code] || mahaPlanet;
   const bhuktiName = GRAHA_L5[bhuktiPlanet as keyof typeof GRAHA_L5]?.[code] || bhuktiPlanet;
 
-  const startYear = isNaN(birthDate.getTime()) || !bhuktiInfo
-    ? 2024
-    : new Date(birthDate.getTime() + bhuktiInfo.bhuktiStartAge * 365.2425 * 86400 * 1000).getFullYear();
-  const endYear = isNaN(birthDate.getTime()) || !bhuktiInfo
-    ? 2027
-    : new Date(birthDate.getTime() + bhuktiInfo.bhuktiEndAge * 365.2425 * 86400 * 1000).getFullYear();
+  const startDateObj = isNaN(birthDate.getTime()) || !bhuktiInfo
+    ? new Date()
+    : new Date(birthDate.getTime() + bhuktiInfo.bhuktiStartAge * 365.2425 * 86400 * 1000);
+  const endDateObj = isNaN(birthDate.getTime()) || !bhuktiInfo
+    ? new Date()
+    : new Date(birthDate.getTime() + bhuktiInfo.bhuktiEndAge * 365.2425 * 86400 * 1000);
+
+  const startDateStr = startDateObj.toISOString().slice(0, 10);
+  const endDateStr = endDateObj.toISOString().slice(0, 10);
 
   const activePhase = `${mahaName} ${code === "kn" ? "ಮಹಾದಶಾ" : code === "hi" ? "महादशा" : code === "te" ? "మహాదశ" : code === "ta" ? "மகாதிசை" : "Mahadasha"} · ${bhuktiName} ${code === "kn" ? "ಅಂತರ್ದಶಾ" : code === "hi" ? "अंतर्दशा" : code === "te" ? "అంతర్దశ" : code === "ta" ? "புக்தி" : "Antardasha"}`;
 
-  const dashaPeriod = `${code === "kn" ? "ಅವಧಿ" : code === "hi" ? "अवधि" : code === "te" ? "వ్యవధి" : code === "ta" ? "காலம்" : "Period"}: ${startYear} - ${endYear}`;
+  const dashaPeriod = code === "kn" ? `ಪ್ರಾರಂಭ ದಿನಾಂಕ: ${startDateStr} | ಮುಕ್ತಾಯ ದಿನಾಂಕ: ${endDateStr}` :
+                      code === "hi" ? `प्रारंभ तिथि: ${startDateStr} | समाप्ति तिथि: ${endDateStr}` :
+                      code === "te" ? `ప్రారంభ తేది: ${startDateStr} | ముగింపు తేది: ${endDateStr}` :
+                      code === "ta" ? `தொடக்கம்: ${startDateStr} | முடிவு: ${endDateStr}` :
+                      `Start Date: ${startDateStr} | End Date: ${endDateStr}`;
 
   let careerDesc = "";
   let wealthDesc = "";
@@ -1814,7 +1821,17 @@ export default function DailyDarshanaPage(): JSX.Element {
               highlightRashiIndex={moonRashiIdx}
               lagnaRashiIndex={ascendantRashiIdx}
               planetPlacements={birthPlacements}
-              title={dict.tabKundali}
+              title={
+                lang === "kn"
+                  ? `📜 ${devoteeDisplayName} ಅವರ ಜನ್ಮ ಕುಂಡಲಿ`
+                  : lang === "hi"
+                  ? `📜 ${devoteeDisplayName} जी की जन्म कुंडली`
+                  : lang === "te"
+                  ? `📜 ${devoteeDisplayName} గారి జన్మ జాతక చక్రం`
+                  : lang === "ta"
+                  ? `📜 ${devoteeDisplayName} அவர்களின் ஜாதகக் கட்டம்`
+                  : `📜 Janma Kundali of ${devoteeDisplayName}`
+              }
               isGochara={false}
             />
 
@@ -1878,7 +1895,17 @@ export default function DailyDarshanaPage(): JSX.Element {
               highlightRashiIndex={moonRashiIdx}
               lagnaRashiIndex={moonRashiIdx}
               planetPlacements={gocharaPlacements}
-              title={dict.gocharaChartTitle}
+              title={
+                lang === "kn"
+                  ? `🌌 ${devoteeDisplayName} ಅವರ ಲೈವ್ ಗೋಚಾರ ಕುಂಡಲಿ`
+                  : lang === "hi"
+                  ? `🌌 ${devoteeDisplayName} जी की लाइव गोचर कुंडली`
+                  : lang === "te"
+                  ? `🌌 ${devoteeDisplayName} గారి లైవ్ గోచార జాతకం`
+                  : lang === "ta"
+                  ? `🌌 ${devoteeDisplayName} அவர்களின் கோச்சார ஜாதகம்`
+                  : `🌌 Live Gochara Transit Chart for ${devoteeDisplayName}`
+              }
               isGochara={true}
             />
 

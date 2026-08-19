@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { transliterateName } from "../utils/transliterator";
+import { transliterateName, detectScript } from "../utils/transliterator";
 import { decodeDevoteeToken, encodeDevoteeToken } from "../utils/tokenCipher";
 import { getUniversalBirthDetails } from "../utils/universalDevoteeKundli";
 import { calculateKundli } from "../core/KundliEngine";
@@ -12,6 +12,20 @@ describe("Daily Darshana Roja & Swayam Naik Token Verification", () => {
     expect(transliterateName("Roja", "te")).toBe("రోజా");
     expect(transliterateName("Roja", "ta")).toBe("ரோஜா");
     expect(transliterateName("Roja", "en")).toBe("Roja");
+  });
+
+  it("detects script accurately and preserves Indic input without double-translation corruption", () => {
+    expect(detectScript("ಗೌತಮ್")).toBe("kn");
+    expect(detectScript("Gowtam")).toBe("en");
+    expect(detectScript("गौतम")).toBe("hi");
+
+    // Input in Kannada should stay untouched when viewing in Kannada
+    expect(transliterateName("ಗೌತಮ್", "kn")).toBe("ಗೌತಮ್");
+    expect(transliterateName("ಸ್ವಯಂ ನಾಯಕ್", "kn")).toBe("ಸ್ವಯಂ ನಾಯಕ್");
+
+    // Input in Kannada translated to Hindi & English
+    expect(transliterateName("ಗೌತಮ್", "hi")).toBe("गौतम");
+    expect(transliterateName("ಗೌತಮ್", "en")).toBe("Gowtam");
   });
 
   it("encodes and decodes Roja token safely with exact DOB (13-Apr-1998) and TOB (12:45 PM)", () => {
