@@ -111,6 +111,8 @@ export function encodeDevoteeToken(payload: DevoteeTokenPayload): string {
     const rawLat = payload.lat ?? payload.lt ?? 14.54;
     const rawLng = payload.lng ?? payload.lg ?? 74.31;
     const rawLoc = payload.locationName ?? payload.loc ?? "Gokarna";
+    const rawDob = payload.dob ?? "";
+    const rawTob = payload.tob ?? "";
 
     const compactObj = {
       n: rawName,
@@ -127,7 +129,9 @@ export function encodeDevoteeToken(payload: DevoteeTokenPayload): string {
       pc: rawPin,
       lt: rawLat,
       lg: rawLng,
-      loc: rawLoc
+      loc: rawLoc,
+      ...(rawDob ? { dob: rawDob } : {}),
+      ...(rawTob ? { tob: rawTob } : {})
     };
 
     const jsonStr = JSON.stringify(compactObj);
@@ -160,6 +164,8 @@ export function decodeDevoteeToken(token: string): (DevoteeTokenPayload & {
   lt: number;
   lg: number;
   loc: string;
+  dob?: string;
+  tob?: string;
 }) | null {
   if (!token || typeof token !== "string") return null;
 
@@ -216,7 +222,9 @@ export function decodeDevoteeToken(token: string): (DevoteeTokenPayload & {
         pc: extractStr("pc"),
         lt: extractNum("lt"),
         lg: extractNum("lg"),
-        loc: extractStr("loc") || extractStr("lobhr") || extractStr("locationName")
+        loc: extractStr("loc") || extractStr("lobhr") || extractStr("locationName"),
+        dob: extractStr("dob"),
+        tob: extractStr("tob")
       };
     }
 
@@ -246,6 +254,8 @@ export function decodeDevoteeToken(token: string): (DevoteeTokenPayload & {
     const lat = typeof parsed.lt === "number" ? parsed.lt : (typeof parsed.lat === "number" ? parsed.lat : 14.54);
     const lng = typeof parsed.lg === "number" ? parsed.lg : (typeof parsed.lng === "number" ? parsed.lng : 74.31);
     const locationName = parsed.loc || parsed.lobhr || parsed.locationName || parsed.location || "Gokarna";
+    const dob = parsed.dob || undefined;
+    const tob = parsed.tob || undefined;
 
     return {
       name,
@@ -277,7 +287,9 @@ export function decodeDevoteeToken(token: string): (DevoteeTokenPayload & {
       lng,
       lg: lng,
       locationName,
-      loc: locationName
+      loc: locationName,
+      dob,
+      tob
     };
   } catch (err) {
     console.warn("Failed to decode token:", err);

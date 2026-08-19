@@ -19,7 +19,7 @@ import { getDevoteeSalutation, buildDeterministicPriestBenediction } from "../fe
 import { getDailyKaalaTimings, getEnergyMeterAndVibe, generateSevaICalendarString, downloadIcsFile, getDayLordIndex, calculateDeterministicRhythmDay, getTaraBalaInfo, getChandraBalaInfo } from "../features/seva/icsCalendarGenerator";
 import { decodeDevoteeToken } from "../utils/tokenCipher";
 import type { RhythmDay } from "../core/DailyRhythmEngine";
-import { nakshatraName, rashiName, tithiLabel, getDailyActionableGuidance, formatLongDate, getLocalizedPanditName } from "../features/seva/sevaPresentation";
+import { nakshatraName, rashiName, tithiLabel, pakshaLabel, tithiOnlyLabel, getDailyActionableGuidance, formatLongDate, getLocalizedPanditName } from "../features/seva/sevaPresentation";
 import { RASHI_L5, NAKSHATRA_L5, GRAHA_L5, LANGUAGE_OWN_NAME, pick, type SevaLang } from "../features/seva/sevaLocale";
 import { calculateKundli } from "../core/KundliEngine";
 import { findBhuktiAtAge } from "../core/DashaBhuktiEngine";
@@ -1349,7 +1349,9 @@ export default function DailyDarshanaPage(): JSX.Element {
         panditName: localizedPandit,
         personName: devoteeDisplayName,
         birthNakshatraIndex: birthNakIdx,
-        birthRashiIndex: birthRashiIdx
+        birthRashiIndex: birthRashiIdx,
+        dob: birthDateStr,
+        tob: birthTimeStr
       });
 
       const sanitizeName = (str: string) => str.replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "");
@@ -1426,12 +1428,17 @@ export default function DailyDarshanaPage(): JSX.Element {
             {dict.creationSubtitle}
           </div>
 
-          {/* Main Prominent Heading - Priest Name with Color Badge Emoji */}
-          <h1 style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 900, color: "#FDE68A", letterSpacing: 0.5 }}>
-            {vibe.badgeEmoji} [{tithiLabel(mockDay, lang)}] {localizedPandit}
+          {/* Main Prominent Heading - Line 1: Energy Badge Emoji + Paksha - Tithi (NO brackets!) */}
+          <h1 style={{ margin: "0 0 4px", fontSize: 20, fontWeight: 900, color: "#FDE68A", letterSpacing: 0.5 }}>
+            {vibe.badgeEmoji} {pakshaLabel(mockDay, lang)} - {tithiOnlyLabel(mockDay, lang)}
           </h1>
           
-          {/* Subheading - Gokarna Kshetra */}
+          {/* Line 2: Priest Name */}
+          <div style={{ fontSize: 16, color: "#FBBF24", fontWeight: 800, marginBottom: 4 }}>
+            {localizedPandit}
+          </div>
+
+          {/* Line 3: Gokarna Kshetra */}
           <div style={{ fontSize: 14, color: "#F59E0B", fontWeight: 700 }}>
             🛕 {dict.kshetraTitle}
           </div>

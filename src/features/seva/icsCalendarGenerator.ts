@@ -36,8 +36,10 @@ import {
   getLocalizedPanditName,
   grahaName,
   nakshatraName,
+  pakshaLabel,
   rashiName,
-  tithiLabel
+  tithiLabel,
+  tithiOnlyLabel
 } from "./sevaPresentation";
 import {
   buildDeterministicPriestBenediction,
@@ -660,6 +662,8 @@ export interface CalendarGeneratorOptions {
   locationName?: string;
   birthNakshatraIndex?: number;
   birthRashiIndex?: number;
+  dob?: string;
+  tob?: string;
 }
 
 export function getSafeProductionOrigin(webAppBaseUrl?: string): string {
@@ -703,7 +707,9 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
     lng = 74.31,
     locationName = "Gokarna",
     birthNakshatraIndex,
-    birthRashiIndex
+    birthRashiIndex,
+    dob,
+    tob
   } = options;
 
   const [hours, minutes] = (notificationTime || "08:00").split(":");
@@ -751,7 +757,9 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
     pc: pincode,
     lt: lat,
     lg: lng,
-    loc: locationName
+    loc: locationName,
+    dob,
+    tob
   });
   const sanitizedDevoteeToken = baseToken.replace(/[^a-zA-Z0-9]/g, "").slice(0, 32);
 
@@ -777,11 +785,13 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
       pc: pincode,
       lt: lat,
       lg: lng,
-      loc: locationName
+      loc: locationName,
+      dob,
+      tob
     });
     const sanctumUrl = `${origin}/daily?token=${dayToken}`;
 
-    const summaryStr = `${vibe.badgeEmoji} [${tithiLabel(day, lang)}] ${localizedPandit} - ${labels.panchangaTitle}`;
+    const summaryStr = `${vibe.badgeEmoji} ${pakshaLabel(day, lang)} - ${tithiOnlyLabel(day, lang)} - ${localizedPandit} - ${labels.panchangaTitle}`;
 
     const kaala = getDailyKaalaTimings(day.dayLord, lang, day.ymd, lat, lng, pincode);
     const deity = DEITY_MANTRAS[getDayLordIndex(day.dayLord)] || DEITY_MANTRAS[1];
@@ -886,6 +896,8 @@ export function generateGoogleCalendarUrl(options: {
   lat?: number;
   lng?: number;
   locationName?: string;
+  dob?: string;
+  tob?: string;
 }): string {
   const {
     day: singleDay,
@@ -898,7 +910,9 @@ export function generateGoogleCalendarUrl(options: {
     pincode = "581326",
     lat = 14.54,
     lng = 74.31,
-    locationName = "Gokarna"
+    locationName = "Gokarna",
+    dob,
+    tob
   } = options;
   const day = (singleDay || (days && days.length > 0 ? days[0] : null) || {
     ymd: new Date().toISOString().slice(0, 10),
@@ -954,7 +968,9 @@ export function generateGoogleCalendarUrl(options: {
     pc: pincode,
     lt: lat,
     lg: lng,
-    loc: locationName
+    loc: locationName,
+    dob: options.dob,
+    tob: options.tob
   });
   const origin = getSafeProductionOrigin(webAppBaseUrl);
   const sanctumUrl = `${origin}/daily?token=${devoteeToken}`;
@@ -964,7 +980,7 @@ export function generateGoogleCalendarUrl(options: {
   const priestLabel = isKn ? "ಮುಖ್ಯ ಅರ್ಚಕರು" : isHi ? "मुख्य अर्चक" : isTe ? "ముఖ్య అర్చకులు" : isTa ? "முதன்மை அர்ச்சகர்" : "Chief Priest";
   const devoteeLabel = isKn ? "ಭಕ್ತರ ಹೆಸರು" : isHi ? "भक्त का नाम" : isTe ? "భక్తుని పేరు" : isTa ? "பக்தர் பெயர்" : "Devotee";
 
-  const summary = `[${tithiLabel(day, lang)}] ${localizedPandit} - ${panchangaTitle}`;
+  const summary = `${vibe.badgeEmoji} ${pakshaLabel(day, lang)} - ${tithiOnlyLabel(day, lang)} - ${localizedPandit} - ${panchangaTitle}`;
 
   const taraNum = day.tara?.tara || 2;
   const taraInfo = getTaraBalaInfo(taraNum, lang);
@@ -1050,6 +1066,8 @@ export function generateCompactGoogleCalendarUrlForQR(options: {
   lat?: number;
   lng?: number;
   locationName?: string;
+  dob?: string;
+  tob?: string;
 }): string {
   const {
     day: singleDay,
@@ -1062,7 +1080,9 @@ export function generateCompactGoogleCalendarUrlForQR(options: {
     pincode = "581326",
     lat = 14.54,
     lng = 74.31,
-    locationName = "Gokarna"
+    locationName = "Gokarna",
+    dob,
+    tob
   } = options;
   const day = (singleDay || (days && days.length > 0 ? days[0] : null) || {
     ymd: new Date().toISOString().slice(0, 10),
@@ -1101,7 +1121,9 @@ export function generateCompactGoogleCalendarUrlForQR(options: {
     l: lang,
     tm: notificationTime,
     pl: "android",
-    t: "google"
+    t: "google",
+    dob,
+    tob
   });
   const sanctumUrl = `${origin}/daily?token=${devoteeToken}`;
 
@@ -1162,7 +1184,9 @@ export function generateQrPayloadByTarget(
     pincode = "581326",
     lat = 14.54,
     lng = 74.31,
-    locationName = "Gokarna"
+    locationName = "Gokarna",
+    dob,
+    tob
   } = options;
   const firstDay = days && days.length > 0 ? days[0] : null;
   const safePandit = panditName || "ಶ್ರೀ ಚೈತನ್ಯ ಪಂಡಿತ್";
@@ -1182,7 +1206,9 @@ export function generateQrPayloadByTarget(
     pc: pincode,
     lt: lat,
     lg: lng,
-    loc: locationName
+    loc: locationName,
+    dob,
+    tob
   });
 
   if (target === "google" || target === "webcal") {
