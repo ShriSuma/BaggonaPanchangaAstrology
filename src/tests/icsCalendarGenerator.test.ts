@@ -71,11 +71,11 @@ describe("icsCalendarGenerator", () => {
     expect(kaalaTue.yamaganda).toContain("09:00 AM – 10:30 AM");
   });
 
-  it("calculates energy progress bar, color badge, and single-letter vibe tag", () => {
+  it("calculates energy progress bar, color badge, and full descriptive vibe tag", () => {
     const vibeHigh = getEnergyMeterAndVibe(mockDays[0]!, "en");
     expect(vibeHigh.badgeEmoji).toBe("🟢");
     expect(vibeHigh.meter).toContain("%");
-    expect(vibeHigh.vibeTag).toContain("⚡ A");
+    expect(vibeHigh.vibeTag).toContain("High Energy & Auspicious Growth Day");
     expect(vibeHigh.googleColorId).toBe("10");
 
     const cautionDay: RhythmDay = {
@@ -86,7 +86,7 @@ describe("icsCalendarGenerator", () => {
     };
     const vibeCaution = getEnergyMeterAndVibe(cautionDay, "en");
     expect(vibeCaution.badgeEmoji).toBe("🔴");
-    expect(vibeCaution.vibeTag).toContain("🧘 S");
+    expect(vibeCaution.vibeTag).toContain("Restful Focus");
     expect(vibeCaution.googleColorId).toBe("11");
 
     // Enforce 65% energy score is ALWAYS Yellow 🟡, NEVER Red 🔴
