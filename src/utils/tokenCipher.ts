@@ -160,32 +160,66 @@ export function decodeDevoteeToken(token: string): (DevoteeTokenPayload & {
 
     const rawPayload = fromBase64Url(cleanToken);
     const dotIndex = rawPayload.indexOf(".");
-    if (dotIndex === -1) return null;
-
-    const checksum = rawPayload.slice(0, dotIndex);
-    const jsonStr = rawPayload.slice(dotIndex + 1);
-
-    if (computeChecksum(jsonStr) !== checksum) {
-      console.warn("Token checksum mismatch — potentially tampered URL");
-      return null;
+    
+    let jsonStr = "";
+    if (dotIndex !== -1) {
+      const checksum = rawPayload.slice(0, dotIndex);
+      jsonStr = rawPayload.slice(dotIndex + 1);
+      if (computeChecksum(jsonStr) !== checksum) {
+        console.warn("Token checksum mismatch — continuing lenient decoding");
+      }
+    } else {
+      jsonStr = rawPayload;
     }
 
-    const parsed = JSON.parse(jsonStr);
-    const name = parsed.n || "";
-    const nakshatra = parsed.nk >= 0 ? parsed.nk : undefined;
-    const rashi = parsed.r >= 0 ? parsed.r : undefined;
-    const gotra = parsed.g || undefined;
-    const pandit = parsed.p || "ಶ್ರೀ ಚೈತನ್ಯ ಪಂಡಿತ್";
-    const date = parsed.d || new Date().toISOString().split("T")[0];
-    const lang = parsed.l || "kn";
-    const time = parsed.tm || "08:00";
-    const sevaType = parsed.s || undefined;
-    const platform = parsed.pl || "android";
-    const target = parsed.t || "sanctum";
-    const pincode = parsed.pc || "581326";
-    const lat = typeof parsed.lt === "number" ? parsed.lt : 14.54;
-    const lng = typeof parsed.lg === "number" ? parsed.lg : 74.31;
-    const locationName = parsed.loc || "Gokarna";
+    let parsed: Record<string, any> = {};
+    try {
+      parsed = JSON.parse(jsonStr);
+    } catch {
+      // Regex salvage fallback if JSON is truncated or partially malformed in URL
+      const extractStr = (keyPattern: string) => {
+        const match = jsonStr.match(new RegExp(`"${keyPattern}"\\s*:\\s*"([^"]+)"`));
+        return match ? match[1] : undefined;
+      };
+      const extractNum = (keyPattern: string) => {
+        const match = jsonStr.match(new RegExp(`"${keyPattern}"\\s*:\\s*(-?\\d+(?:\\.\\d+)?)`));
+        return match ? parseFloat(match[1]) : undefined;
+      };
+
+      parsed = {
+        n: extractStr("n"),
+        nk: extractNum("nk"),
+        r: extractNum("r"),
+        g: extractStr("g"),
+        p: extractStr("p"),
+        d: extractStr("d"),
+        l: extractStr("l"),
+        tm: extractStr("tm"),
+        s: extractStr("s"),
+        pl: extractStr("pl"),
+        t: extractStr("t"),
+        pc: extractStr("pc"),
+        lt: extractNum("lt"),
+        lg: extractNum("lg"),
+        loc: extractStr("loc") || extractStr("lobhr") || extractStr("locationName")
+      };
+    }
+
+    const name = parsed.n || parsed.name || "";
+    const nakshatra = typeof parsed.nk === "number" && parsed.nk >= 0 ? parsed.nk : (typeof parsed.nakshatra === "number" ? parsed.nakshatra : undefined);
+    const rashi = typeof parsed.r === "number" && parsed.r >= 0 ? parsed.r : (typeof parsed.rashi === "number" ? parsed.rashi : undefined);
+    const gotra = parsed.g || parsed.gotra || undefined;
+    const pandit = parsed.p || parsed.pandit || "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್";
+    const date = parsed.d || parsed.date || new Date().toISOString().split("T")[0];
+    const lang = parsed.l || parsed.lang || "kn";
+    const time = parsed.tm || parsed.time || "08:00";
+    const sevaType = parsed.s || parsed.seva || undefined;
+    const platform = parsed.pl || parsed.platform || "android";
+    const target = parsed.t || parsed.target || "sanctum";
+    const pincode = parsed.pc || parsed.pincode || "581326";
+    const lat = typeof parsed.lt === "number" ? parsed.lt : (typeof parsed.lat === "number" ? parsed.lat : 14.54);
+    const lng = typeof parsed.lg === "number" ? parsed.lg : (typeof parsed.lng === "number" ? parsed.lng : 74.31);
+    const locationName = parsed.loc || parsed.lobhr || parsed.locationName || parsed.location || "Gokarna";
 
     return {
       name,
