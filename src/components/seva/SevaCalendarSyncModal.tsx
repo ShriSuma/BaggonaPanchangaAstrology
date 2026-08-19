@@ -25,6 +25,8 @@ import { get90DaySpecialVratas, type SpecialVrataInfo } from "../../features/sev
 type Props = {
   days: RhythmDay[];
   personName: string;
+  dob?: string;
+  tob?: string;
   lang: string;
   isOpen: boolean;
   onClose: () => void;
@@ -33,6 +35,8 @@ type Props = {
 export default function SevaCalendarSyncModal({
   days,
   personName,
+  dob,
+  tob,
   lang,
   isOpen,
   onClose
@@ -215,6 +219,28 @@ export default function SevaCalendarSyncModal({
     if (!isOpen) return;
 
     try {
+      const activeDob = dob || (() => {
+        try {
+          const stored = localStorage.getItem("baggona_kundli_session");
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            return parsed.birthDate || parsed.birthDateYmd;
+          }
+        } catch (e) {}
+        return undefined;
+      })();
+
+      const activeTob = tob || (() => {
+        try {
+          const stored = localStorage.getItem("baggona_kundli_session");
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            return parsed.birthTime || parsed.birthTimeHm;
+          }
+        } catch (e) {}
+        return undefined;
+      })();
+
       const payload = generateQrPayloadByTarget(target, {
         days: days || [],
         lang,
@@ -226,7 +252,9 @@ export default function SevaCalendarSyncModal({
         pincode: pincodeInput,
         lat,
         lng,
-        locationName
+        locationName,
+        dob: activeDob,
+        tob: activeTob
       });
 
       QRCode.toDataURL(payload, {

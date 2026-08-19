@@ -89,7 +89,9 @@ export default function SevaPage(): JSX.Element {
     gotra: data.gotra,
     rashiIndex: rhythm.janmaRashiIndex,
     nakshatraIndex: rhythm.janmaNakshatraIndex,
-    placeLabel: data.placeLabel
+    placeLabel: data.placeLabel,
+    dob: session?.birthDateYmd,
+    tob: session?.birthTimeHm
   };
 
   const tabs: { id: SevaTab; label: string }[] = [
@@ -284,6 +286,8 @@ export default function SevaPage(): JSX.Element {
       <SevaCalendarSyncModal
         days={rhythm.days}
         personName={identity.personName}
+        dob={identity.dob}
+        tob={identity.tob}
         lang={lang}
         isOpen={isSyncModalOpen}
         onClose={() => setIsSyncModalOpen(false)}

@@ -93,6 +93,8 @@ type Identity = {
   rashiIndex: number;
   nakshatraIndex: number;
   placeLabel: string;
+  dob?: string;
+  tob?: string;
 };
 
 const SheetHeader = ({

@@ -41,6 +41,8 @@ type Identity = {
   rashiIndex: number;
   nakshatraIndex: number;
   placeLabel: string;
+  dob?: string;
+  tob?: string;
 };
 
 type Props = {
@@ -263,7 +265,9 @@ export default function PrasadaKit({
       pincode,
       lat: pincodeLocation.lat,
       lng: pincodeLocation.lng,
-      locationName: pincodeLocation.villageName
+      locationName: pincodeLocation.villageName,
+      dob: identity?.dob,
+      tob: identity?.tob
     });
 
     QRCode.toDataURL(nativeIcsPayload, {
@@ -400,7 +404,9 @@ export default function PrasadaKit({
           pincode,
           lat: pincodeLocation.lat,
           lng: pincodeLocation.lng,
-          locationName: pincodeLocation.villageName
+          locationName: pincodeLocation.villageName,
+          dob: identity?.dob,
+          tob: identity?.tob
         });
         let currentQr = "";
         try {
