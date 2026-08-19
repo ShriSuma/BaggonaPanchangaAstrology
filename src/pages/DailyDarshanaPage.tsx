@@ -1050,7 +1050,7 @@ export default function DailyDarshanaPage(): JSX.Element {
 
   // Extract dynamic birth inputs for the specific user from decoded token payload / stored session
   const birthDateStr = useMemo(() => {
-    return (decoded as any)?.dob || storedSession?.birthDate || "1995-06-15";
+    return (decoded as any)?.dob || decoded?.d || storedSession?.birthDate || "1995-06-15";
   }, [decoded, storedSession]);
 
   const birthTimeStr = useMemo(() => {
@@ -1090,7 +1090,7 @@ export default function DailyDarshanaPage(): JSX.Element {
     return 12;
   }, [decoded, storedSession]);
 
-  // 100% Dynamic Synchronous Birth Kundli calculation for the specific user's Moon Rashi & Nakshatra
+  // 100% Dynamic Synchronous Birth Kundli calculation for the specific user's DOB, TOB, Lat, Lng
   const birthKundli = useMemo<KundliOutput>(() => {
     const rawKundli = calculateKundli({
       name: devoteeDisplayName,
@@ -1101,59 +1101,32 @@ export default function DailyDarshanaPage(): JSX.Element {
       pincode: userPincode
     });
 
-    const targetMoonDeg = (moonNakshatraIdx * (360 / 27)) + (360 / 54);
-    const rName = rashiName(moonRashiIdx, "en");
-    const nkName = nakshatraName(moonNakshatraIdx, "en");
-
-    // Assign harmonious planetary house placements relative to Chandra Lagna (House 1)
-    const planetSpecs: { name: PlanetName; houseOffset: number; degInHouse: number; retro?: boolean }[] = [
-      { name: PlanetName.Moon, houseOffset: 0, degInHouse: (360 / 54) }, // House 1 (Chandra Lagna)
-      { name: PlanetName.Sun, houseOffset: 4, degInHouse: 15 },           // House 5 (Leo/Trikona)
-      { name: PlanetName.Mercury, houseOffset: 1, degInHouse: 12 },       // House 2 (Dhana)
-      { name: PlanetName.Venus, houseOffset: 3, degInHouse: 18 },         // House 4 (Sukha)
-      { name: PlanetName.Mars, houseOffset: 2, degInHouse: 22 },          // House 3 (Parakrama)
-      { name: PlanetName.Jupiter, houseOffset: 8, degInHouse: 10 },       // House 9 (Bhagya)
-      { name: PlanetName.Saturn, houseOffset: 10, degInHouse: 5 },        // House 11 (Labha)
-      { name: PlanetName.Rahu, houseOffset: 9, degInHouse: 14, retro: true },  // House 10 (Karma)
-      { name: PlanetName.Ketu, houseOffset: 3, degInHouse: 14, retro: true }   // House 4 (Moksha)
-    ];
-
-    const updatedPlanets: PlanetPosition[] = planetSpecs.map((spec) => {
-      const targetRashiIdx = (moonRashiIdx + spec.houseOffset) % 12;
-      const targetDeg = targetRashiIdx * 30 + spec.degInHouse;
-      const specRName = rashiName(targetRashiIdx, "en");
-      const specNkIdx = Math.floor(targetDeg / (360 / 27)) % 27;
-      const specNkName = nakshatraName(specNkIdx, "en");
-      const existing = rawKundli.planets.find(p => p.name === spec.name);
-
-      return {
-        name: spec.name,
-        degree: targetDeg,
-        isRetrograde: spec.retro ?? existing?.isRetrograde ?? false,
-        house: spec.houseOffset + 1,
-        rashi: {
-          index: targetRashiIdx,
-          sanskrit: specRName,
-          english: specRName
-        },
-        nakshatra: {
-          index: spec.name === "Moon" ? moonNakshatraIdx : specNkIdx,
-          sanskrit: spec.name === "Moon" ? nkName : specNkName,
-          english: spec.name === "Moon" ? nkName : specNkName,
-          deity: "Deity"
+    // If moon rashi or nakshatra is explicitly specified in token, align Moon planet position accordingly
+    const updatedPlanets = rawKundli.planets.map((p) => {
+      if (p.name === PlanetName.Moon) {
+        if (decoded?.r !== undefined || decoded?.nk !== undefined) {
+          const targetMoonDeg = (moonNakshatraIdx * (360 / 27)) + (360 / 54);
+          const rName = rashiName(moonRashiIdx, "en");
+          const nkName = nakshatraName(moonNakshatraIdx, "en");
+          return {
+            ...p,
+            degree: targetMoonDeg,
+            rashi: { index: moonRashiIdx, sanskrit: rName, english: rName },
+            nakshatra: { index: moonNakshatraIdx, sanskrit: nkName, english: nkName, deity: "Deity" }
+          };
         }
-      };
+      }
+      return p;
     });
 
-    const targetMoonRashi = updatedPlanets.find((p) => p.name === "Moon")!.rashi;
+    const targetMoon = updatedPlanets.find((p) => p.name === PlanetName.Moon);
 
     return {
       ...rawKundli,
-      ascendant: (moonRashiIdx * 30 + 15),
-      moonSign: targetMoonRashi,
+      moonSign: targetMoon ? targetMoon.rashi : rawKundli.moonSign,
       planets: updatedPlanets
     };
-  }, [devoteeDisplayName, birthDateStr, birthTimeStr, userLat, userLng, userPincode, moonRashiIdx, moonNakshatraIdx]);
+  }, [devoteeDisplayName, birthDateStr, birthTimeStr, userLat, userLng, userPincode, moonRashiIdx, moonNakshatraIdx, decoded]);
 
   // 100% Dynamic Synchronous Transit Kundli calculation for TODAY
   const transitKundli = useMemo<KundliOutput>(() => {
