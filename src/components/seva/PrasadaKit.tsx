@@ -27,6 +27,7 @@ import {
   SevaQRCodePrint
 } from "./pdf/SevaPrintTemplates";
 import { RoyalBooklet8PageTemplate } from "./pdf/RoyalBooklet8PageTemplate";
+import { validateRoyalBookletData } from "../../features/seva/royalBookletValidator";
 import {
   getAllPriests,
   addCustomPriest,
@@ -394,6 +395,19 @@ export default function PrasadaKit({
   const download = async (elementId: string, fileName: string, tag: string): Promise<void> => {
     setBusy(tag);
     try {
+      if (elementId === "seva-print-royal-booklet") {
+        const valRes = validateRoyalBookletData(pdfLang, identity, rhythm, panditName);
+        if (!valRes.isValid) {
+          console.error("Royal Booklet Validation Errors:", valRes.errors);
+          alert(pdfLang.startsWith("kn")
+            ? `ದೋಷ: ${valRes.errors.join(", ")}`
+            : `Validation Error: ${valRes.errors.join(", ")}`
+          );
+          setBusy(null);
+          return;
+        }
+      }
+
       if (rhythm?.days?.length) {
         const qrPayload = generateQrPayloadByTarget(qrTarget, {
           days: rhythm.days,
