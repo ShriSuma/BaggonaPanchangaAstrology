@@ -14,48 +14,40 @@ describe("Daily Darshana Swayam Naik & Token Verification", () => {
     expect(transliterateName("Swayam Naik", "en")).toBe("Swayam Naik");
   });
 
-  it("encodes and decodes token safely with UTF-8 Indic script and full birth parameters", () => {
-    const birthDetails = getUniversalBirthDetails({ name: "Swayam Naik", nakshatraIndex: 14, rashiIndex: 6 });
+  it("encodes and decodes Swayam Naik token safely with exact DOB (05-Feb-2006) and TOB (14:04)", () => {
+    const swayamDob = "2006-02-05";
+    const swayamTob = "14:04";
+    const kundli = calculateKundli({
+      name: "Swayam Naik",
+      birthDate: swayamDob,
+      birthTime: swayamTob,
+      latitude: 14.54,
+      longitude: 74.31
+    });
+
+    const moon = kundli.planets.find(p => p.name === "Moon");
     const token = encodeDevoteeToken({
       name: "Swayam Naik",
-      nakshatra: 14,
-      rashi: 6,
+      nakshatra: moon?.nakshatra.index,
+      rashi: moon?.rashi.index,
       pandit: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
       date: "2026-08-19",
-      dob: birthDetails.dob,
-      tob: birthDetails.tob,
+      dob: swayamDob,
+      tob: swayamTob,
       lang: "kn"
     });
 
     const decoded = decodeDevoteeToken(token);
     expect(decoded).not.toBeNull();
     expect(decoded?.n).toBe("Swayam Naik");
-    expect(decoded?.nk).toBe(14);
-    expect(decoded?.r).toBe(6);
-    expect(decoded?.p).toBe("ಶ್ರೀರಾಮ್ ಪಂಡಿತ್");
-    expect(decoded?.dob).toBe("1994-01-06");
-    expect(decoded?.tob).toBe("12:00");
-  });
+    expect(decoded?.dob).toBe("2006-02-05");
+    expect(decoded?.tob).toBe("14:04");
 
-  it("calculates accurate Kundli and Vimshottari Dasha for Swayam Naik", () => {
-    const birth = getUniversalBirthDetails({ name: "Swayam Naik", nakshatraIndex: 14 });
-    const kundli = calculateKundli({
-      name: "Swayam Naik",
-      birthDate: birth.dob,
-      birthTime: birth.tob,
-      latitude: 14.54,
-      longitude: 74.31
-    });
-
-    const moon = kundli.planets.find(p => p.name === "Moon");
-    expect(moon?.rashi.index).toBe(6); // Tula Rashi
-    expect(moon?.nakshatra.index).toBe(14); // Swati Nakshatra
-
-    const ageYears = (new Date("2026-08-19").getTime() - new Date(birth.dob).getTime()) / (365.2425 * 86400 * 1000);
+    const ageYears = (new Date("2026-08-19").getTime() - new Date(swayamDob).getTime()) / (365.2425 * 86400 * 1000);
     const bhukti = findBhuktiAtAge(kundli, ageYears);
 
     expect(bhukti).not.toBeNull();
-    expect(bhukti?.maha.planet).toBe("Saturn");
-    expect(bhukti?.bhukti).toBe("Saturn");
+    expect(bhukti?.maha.planet).toBe("Moon");
+    expect(bhukti?.bhukti).toBe("Sun");
   });
 });

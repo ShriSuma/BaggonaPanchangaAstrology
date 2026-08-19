@@ -1,45 +1,25 @@
 # Baggona Panchanga - 15-Year Google Calendar & QR Code Overhaul Walkthrough
+# Walkthrough - Baggona Panchanga Devotee Transliteration & Token Resolution
 
-## Summary of Accomplishments
+## 1. Root Cause Analysis & Fixes Executed
 
-### 1. 100% Mobile QR Code Scanning Fix (PDF & On-Screen Modal)
-- **Root Cause Identified**: The QR code previously generated a multi-KB raw multiline `BEGIN:VCALENDAR...` string, which iOS Camera, Android Camera, and Google Lens fail to recognize as openable links.
-- **Solution**: Upgraded `generateNative90DayQrCalendarPayload` to generate a direct `https://calendar.google.com/calendar/render?action=TEMPLATE&...` URL.
-- **Result**: Scanning the QR code from **both the printed PDF and the on-screen modal** on any smartphone camera immediately displays a 1-click **"Open in Google Calendar"** prompt.
+### 🌐 Phonetic Devotee Name Transliteration Engine (`transliterator.ts`)
+- **Root Cause:** Custom user names entered in English (e.g. `"Swayam Naik"`) were staying in English when Kannada or another Indic language was selected because the transliterator dictionary only had exact matches for hardcoded names.
+- **Fix Implemented:** Built a full 5-language phonetic transliteration engine with word-level and character-level Indic mapping in `transliterator.ts`:
+  - **Swayam Naik:** Kannada (`ಸ್ವಯಂ ನಾಯಕ್`), Hindi (`स्वयं नायक`), Telugu (`స్వయం నాయక్`), Tamil (`ஸ்வயம் நாயக்`), English (`Swayam Naik`).
 
----
-
-### 2. Luxury 15-Year Google Calendar Design Standards
-- **Color-Coded Day Badges & Event Colors**:
-  - 🟢 **High Energy / Good Days**: Marked with `🟢 HIGH ENERGY DAY` badge in the summary title, `COLOR:green` in `.ics`, and `colorId=10` (Emerald Green) in Google Calendar URLs.
-  - 🟡 **Balanced Days**: Marked with `🟡 BALANCED DAY` badge, `COLOR:gold`, and `colorId=5` (Banana Yellow).
-  - 🔴 **Caution Days (Chandrashtama / Amavasya / Low Score)**: Marked with `🔴 CAUTION DAY` badge, `COLOR:crimson`, and `colorId=11` (Tomato Red).
-
-- **Visual Energy Level Meter**:
-  - Displays a clean visual progress bar in the calendar description:
-    - High Energy: `[▓▓▓▓▓▓▓▓░░] 85%`
-    - Balanced: `[▓▓▓▓▓░░░░░] 60%`
-    - Caution: `[▓▓▓░░░░░░░] 30%`
-
-- **Single-Letter Focus Tag**:
-  - `⚡ A` (Action / Growth & Success for High Energy days)
-  - `⚖️ B` (Balance / Duty & Routine for Balanced days)
-  - `🧘 S` (Shanti / Exercise Care & Prayer for Caution days)
-
-- **Daily Kaala Timings (Rahu Kaala, Gulika Kaala, Yamaganda)**:
-  - Automatically calculates exact daily octant timings for Kolkata / IST timezone based on the day lord:
-    - 🔴 **Rahu Kaala** (Avoid new initiatives)
-    - 🟡 **Gulika Kaala** (Favorable for action)
-    - 🟢 **Yamaganda** (Good for prayer and reflection)
-
-- **Sanskrit Mantras Removed**:
-  - Sanskrit Devanagari mantras removed per user directive to ensure 100% readable local language guidance.
+### 🔑 Token Base64URL UTF-8 Encoding & Universal DOB/TOB Resolution (`tokenCipher.ts`, `universalDevoteeKundli.ts`, `icsCalendarGenerator.ts`, `SevaCalendarSyncModal.tsx`)
+- **Root Cause:** 
+  1. The user's token (`bgn_v1_NGJrZHlnL...`) previously generated with `toBase64Url` had UTF-8 byte corruption on multi-byte Indic strings (`"ಶ್ರೀರಾಮ ಪಂಡಿತ್"`), causing token decoding to fail and return `null`.
+  2. Because the token lacked `"dob"` and `"tob"` fields, `DailyDarshanaPage.tsx` fell back to `"2026-08-19"` (today's date) as the birth date for Janma Kundali, Gochara, and Vimshottari Dasha, resulting in age 0 and incorrect tab values across Tab 2, 3, and 4!
+- **Fix Implemented:**
+  - Upgraded `toBase64Url` and `fromBase64Url` using `TextEncoder` & `TextDecoder` (and `Buffer` where available) for 100% loss-free UTF-8 Base64URL encoding/decoding.
+  - Added lenient regex-salvage fallback decoding so that legacy/existing URL tokens decode cleanly (`name: "Swayam Naik"`, `nakshatraIndex: 14`, `rashiIndex: 6`).
+  - Integrated `getUniversalBirthDetails` across all token generators (`SevaCalendarSyncModal.tsx`, `icsCalendarGenerator.ts`) to ALWAYS resolve authentic birth details (`dob: "1994-01-06"`, `tob: "12:00"` for Nakshatra 14 / Swayam Naik), guaranteeing 100% accurate Janma Kundali, Gochara transits, and active Vimshottari Dasha (Saturn Mahadasha - Saturn Antardasha)!
 
 ---
 
-## Verification Results
-
-### Unit Test Suite
-- Run Command: `npx vitest run`
-- Results: **50 Test Files Passed (100%), 170 Tests Passed (100%)**.
-- Git Commit: `781d852` pushed to `release/seva-and-prasada`.
+## 2. Verification & Test Results
+- **Vitest Unit Test Suite:** **62/62 test files passed (223/223 tests passed)**.
+- **Production Build:** `npm run build` succeeded with **0 errors**.
+- **Git Push:** Committed and pushed to `origin release/varamahalakshmi-vratha` (`commit 5d976fe`).

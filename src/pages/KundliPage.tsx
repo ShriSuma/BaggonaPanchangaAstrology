@@ -388,6 +388,20 @@ export default function KundliPage(): JSX.Element {
       dasha: dashaTimeline,
       dailyPrediction: predText
     });
+    try {
+      localStorage.setItem("baggona_kundli_session", JSON.stringify({
+        name: form.name,
+        birthDate: birthDate,
+        birthTime: birthTime,
+        nakshatraIndex: output.planets.find(p => p.name === "Moon")?.nakshatra.index,
+        rashiIndex: output.planets.find(p => p.name === "Moon")?.rashi.index,
+        pincode: form.pincode,
+        latitude: form.latitude,
+        longitude: form.longitude
+      }));
+    } catch {
+      // Ignore
+    }
     const id = await saveKundli(payload, output);
     setSavedId(id);
     setNarrative("");

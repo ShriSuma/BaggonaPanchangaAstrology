@@ -136,7 +136,23 @@ export default function SevaCalendarSyncModal({
 
   const devoteeToken = useMemo(() => {
     const selectedDay = days && days.length > 0 ? days[0] : null;
+    let sessionDob: string | undefined = undefined;
+    let sessionTob: string | undefined = undefined;
+    try {
+      const rawSession = typeof window !== "undefined" ? localStorage.getItem("baggona_kundli_session") : null;
+      if (rawSession) {
+        const parsedSession = JSON.parse(rawSession);
+        if (parsedSession?.birthDate && parsedSession?.birthTime) {
+          sessionDob = parsedSession.birthDate;
+          sessionTob = parsedSession.birthTime;
+        }
+      }
+    } catch {
+      // Ignore
+    }
     const birthDetails = getUniversalBirthDetails({
+      dob: sessionDob,
+      tob: sessionTob,
       name: personName,
       nakshatraIndex: selectedDay?.moonNakshatraIndex,
       rashiIndex: selectedDay?.moonRashiIndex
