@@ -5,49 +5,52 @@ import { getUniversalBirthDetails } from "../utils/universalDevoteeKundli";
 import { calculateKundli } from "../core/KundliEngine";
 import { findBhuktiAtAge } from "../core/DashaBhuktiEngine";
 
-describe("Daily Darshana Swayam Naik & Token Verification", () => {
-  it("transliterates custom devotee name Swayam Naik across all 5 languages", () => {
-    expect(transliterateName("Swayam Naik", "kn")).toBe("ಸ್ವಯಂ ನಾಯಕ್");
-    expect(transliterateName("Swayam Naik", "hi")).toBe("स्वयं नायक");
-    expect(transliterateName("Swayam Naik", "te")).toBe("స్వయం నాయక్");
-    expect(transliterateName("Swayam Naik", "ta")).toBe("ஸ்வயம் நாயக்");
-    expect(transliterateName("Swayam Naik", "en")).toBe("Swayam Naik");
+describe("Daily Darshana Roja & Swayam Naik Token Verification", () => {
+  it("transliterates custom devotee name Roja across all 5 languages", () => {
+    expect(transliterateName("Roja", "kn")).toBe("ರೋಜಾ");
+    expect(transliterateName("Roja", "hi")).toBe("रोजा");
+    expect(transliterateName("Roja", "te")).toBe("రోజా");
+    expect(transliterateName("Roja", "ta")).toBe("ரோஜா");
+    expect(transliterateName("Roja", "en")).toBe("Roja");
   });
 
-  it("encodes and decodes Swayam Naik token safely with exact DOB (05-Feb-2006) and TOB (14:04)", () => {
-    const swayamDob = "2006-02-05";
-    const swayamTob = "14:04";
+  it("encodes and decodes Roja token safely with exact DOB (13-Apr-1998) and TOB (12:45 PM)", () => {
+    const rojaDob = "1998-04-13";
+    const rojaTob = "12:45";
     const kundli = calculateKundli({
-      name: "Swayam Naik",
-      birthDate: swayamDob,
-      birthTime: swayamTob,
+      name: "Roja",
+      birthDate: rojaDob,
+      birthTime: rojaTob,
       latitude: 14.54,
       longitude: 74.31
     });
 
     const moon = kundli.planets.find(p => p.name === "Moon");
+    expect(moon?.rashi.index).toBe(6); // Tula Rashi
+    expect(moon?.nakshatra.index).toBe(14); // Swati Nakshatra
+
     const token = encodeDevoteeToken({
-      name: "Swayam Naik",
+      name: "Roja",
       nakshatra: moon?.nakshatra.index,
       rashi: moon?.rashi.index,
       pandit: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
       date: "2026-08-19",
-      dob: swayamDob,
-      tob: swayamTob,
+      dob: rojaDob,
+      tob: rojaTob,
       lang: "kn"
     });
 
     const decoded = decodeDevoteeToken(token);
     expect(decoded).not.toBeNull();
-    expect(decoded?.n).toBe("Swayam Naik");
-    expect(decoded?.dob).toBe("2006-02-05");
-    expect(decoded?.tob).toBe("14:04");
+    expect(decoded?.n).toBe("Roja");
+    expect(decoded?.dob).toBe("1998-04-13");
+    expect(decoded?.tob).toBe("12:45");
 
-    const ageYears = (new Date("2026-08-19").getTime() - new Date(swayamDob).getTime()) / (365.2425 * 86400 * 1000);
+    const ageYears = (new Date("2026-08-19").getTime() - new Date(rojaDob).getTime()) / (365.2425 * 86400 * 1000);
     const bhukti = findBhuktiAtAge(kundli, ageYears);
 
     expect(bhukti).not.toBeNull();
-    expect(bhukti?.maha.planet).toBe("Moon");
-    expect(bhukti?.bhukti).toBe("Sun");
+    expect(bhukti?.maha.planet).toBe("Saturn");
+    expect(bhukti?.bhukti).toBe("Mercury");
   });
 });

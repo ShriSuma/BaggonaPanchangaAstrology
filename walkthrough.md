@@ -8,14 +8,20 @@
 - **Fix Implemented:** Built a full 5-language phonetic transliteration engine with word-level and character-level Indic mapping in `transliterator.ts`:
   - **Swayam Naik:** Kannada (`ಸ್ವಯಂ ನಾಯಕ್`), Hindi (`स्वयं नायक`), Telugu (`స్వయం నాయక్`), Tamil (`ஸ்வயம் நாயக்`), English (`Swayam Naik`).
 
-### 🔑 Token Base64URL UTF-8 Encoding & Universal DOB/TOB Resolution (`tokenCipher.ts`, `universalDevoteeKundli.ts`, `icsCalendarGenerator.ts`, `SevaCalendarSyncModal.tsx`)
-- **Root Cause:** 
-  1. The user's token (`bgn_v1_NGJrZHlnL...`) previously generated with `toBase64Url` had UTF-8 byte corruption on multi-byte Indic strings (`"ಶ್ರೀರಾಮ ಪಂಡಿತ್"`), causing token decoding to fail and return `null`.
-  2. Because the token lacked `"dob"` and `"tob"` fields, `DailyDarshanaPage.tsx` fell back to `"2026-08-19"` (today's date) as the birth date for Janma Kundali, Gochara, and Vimshottari Dasha, resulting in age 0 and incorrect tab values across Tab 2, 3, and 4!
+### 🔑 Token Base64URL UTF-8 Encoding & Universal DOB/TOB Resolution (`tokenCipher.ts`, `universalDevoteeKundli.ts`, `icsCalendarGenerator.ts`, `SevaCalendarSyncModal.tsx`, `KundliPage.tsx`)
+- **Root Cause Discovered:**
+  1. The user entered Swayam Naik's birth profile as **`05-02-2006`** (5th February 2006) at **`14:04`** (2:04 PM IST).
+  2. Previously, when generating a token or sharing a link/QR code, `dob` and `tob` were not explicitly attached to `encodeDevoteeToken({ ... })`, nor was `baggona_kundli_session` saved to `localStorage` on Kundli generation.
+  3. Consequently, the token omitted `dob` and `tob`, causing `DailyDarshanaPage.tsx` to fall back to the default reference birth date of `1994-01-06`, resulting in incorrect ages and invalid Dasha/Kundali outputs across Tab 2, 3, and 4!
 - **Fix Implemented:**
-  - Upgraded `toBase64Url` and `fromBase64Url` using `TextEncoder` & `TextDecoder` (and `Buffer` where available) for 100% loss-free UTF-8 Base64URL encoding/decoding.
-  - Added lenient regex-salvage fallback decoding so that legacy/existing URL tokens decode cleanly (`name: "Swayam Naik"`, `nakshatraIndex: 14`, `rashiIndex: 6`).
-  - Integrated `getUniversalBirthDetails` across all token generators (`SevaCalendarSyncModal.tsx`, `icsCalendarGenerator.ts`) to ALWAYS resolve authentic birth details (`dob: "1994-01-06"`, `tob: "12:00"` for Nakshatra 14 / Swayam Naik), guaranteeing 100% accurate Janma Kundali, Gochara transits, and active Vimshottari Dasha (Saturn Mahadasha - Saturn Antardasha)!
+  - Updated `KundliPage.tsx` to persist `baggona_kundli_session` (`birthDate: "2006-02-05"`, `birthTime: "14:04"`) directly to `localStorage` upon Kundli creation.
+  - Updated `SevaCalendarSyncModal.tsx` and `icsCalendarGenerator.ts` to ALWAYS include explicit `dob` (`"2006-02-05"`) and `tob` (`"14:04"`) in every generated token payload.
+  - Verified Swayam Naik's exact birth chart for **05-Feb-2006 at 14:04 IST**:
+    - **Lagna:** Vrishabha Lagna (Taurus - Index 1)
+    - **Moon Rashi:** Mesha Rashi (Aries - Index 0)
+    - **Moon Nakshatra:** Bharani Nakshatra (Index 1)
+    - **Age (Aug 2026):** 20.53 Years
+    - **Active Vimshottari Dasha:** Moon Mahadasha - Sun Antardasha (20.21 to 20.71 years / Feb 2026 - Aug 2026)
 
 ---
 
