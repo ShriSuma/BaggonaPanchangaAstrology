@@ -508,6 +508,7 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
       {/* ─────────────────────────────────────────────────────────────
       {/* ─────────────────────────────────────────────────────────────
       {/* ─────────────────────────────────────────────────────────────
+      {/* ─────────────────────────────────────────────────────────────
           PAGE 3: EXACT MATCH TO PDF (45) PAGE 3 (DASHA-BHUKTI CARDS)
          ───────────────────────────────────────────────────────────── */}
       <div className="pdf-page" style={pageStyle}>
@@ -529,15 +530,15 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
             </div>
           </div>
 
-          {/* 5 Dasha-Bhukti Cards matching PDF (45) Page 3 Exactly */}
+          {/* 5 Dasha-Bhukti Cards matching media_1787237738221.png Exactly */}
           <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-            {/* Card 1: Budha Antardasha */}
+            {/* Card 1: Budha Antardasha (Clean White Card) */}
             <div style={{
-              background: "#FFFBEB",
-              border: "1.5px solid #D97706",
+              background: "#FFFFFF",
+              border: "1.5px solid #FCD34D",
               borderRadius: "8px",
               padding: "7px 11px",
-              boxShadow: "0 2px 5px rgba(180, 83, 9, 0.04)"
+              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.02)"
             }}>
               <div style={{ fontSize: "13px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span>📌 ಗುರು ಮಹಾದಶಾ • ಬುಧ ಅಂತರ್ದಶಾ</span>
@@ -546,8 +547,8 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
                   color: "#92400E",
                   background: "#FEF3C7",
                   border: "1px solid #F59E0B",
-                  padding: "1px 9px",
-                  borderRadius: "10px",
+                  padding: "2px 10px",
+                  borderRadius: "12px",
                   fontWeight: 700
                 }}>✨ ವಿದ್ಯಾ & ಬುದ್ಧಿ ಸಿದ್ಧಿ</span>
               </div>
@@ -571,13 +572,13 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
               </div>
             </div>
 
-            {/* Card 2: Ketu Antardasha */}
+            {/* Card 2: Ketu Antardasha (Clean White Card) */}
             <div style={{
-              background: "#FFFBEB",
-              border: "1.5px solid #D97706",
+              background: "#FFFFFF",
+              border: "1.5px solid #FCD34D",
               borderRadius: "8px",
               padding: "7px 11px",
-              boxShadow: "0 2px 5px rgba(180, 83, 9, 0.04)"
+              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.02)"
             }}>
               <div style={{ fontSize: "13px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span>📌 ಗುರು ಮಹಾದಶಾ • ಕೇತು ಅಂತರ್ದಶಾ</span>
@@ -586,8 +587,8 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
                   color: "#5B21B6",
                   background: "#F5F3FF",
                   border: "1px solid #8B5CF6",
-                  padding: "1px 9px",
-                  borderRadius: "10px",
+                  padding: "2px 10px",
+                  borderRadius: "12px",
                   fontWeight: 700
                 }}>🕉️ ಅಧ್ಯಾತ್ಮ & ಜ್ಞಾನ ತಪಸ್ಸು</span>
               </div>
@@ -611,7 +612,7 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
               </div>
             </div>
 
-            {/* Card 3: Shukra Antardasha (RAJAYOGA GOLD HIGHLIGHTED CARD MATCHING PDF 45) */}
+            {/* Card 3: Shukra Antardasha (HIGHLIGHTED WARM GOLDEN CARD) */}
             <div style={{
               background: "#FFFBEB",
               border: "2px solid #F59E0B",
@@ -626,8 +627,8 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
                   color: "#78350F",
                   background: "linear-gradient(180deg, #FDE68A 0%, #F59E0B 100%)",
                   border: "1px solid #D97706",
-                  padding: "1px 9px",
-                  borderRadius: "10px",
+                  padding: "2px 10px",
+                  borderRadius: "12px",
                   fontWeight: 800
                 }}>👑 ಅತ್ಯುನ್ನತ ರಾಜಯೋಗ ಫಲ</span>
               </div>
@@ -651,13 +652,13 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
               </div>
             </div>
 
-            {/* Card 4: Surya Antardasha */}
+            {/* Card 4: Surya Antardasha (Clean White Card) */}
             <div style={{
-              background: "#FFFBEB",
-              border: "1.5px solid #D97706",
+              background: "#FFFFFF",
+              border: "1.5px solid #FCD34D",
               borderRadius: "8px",
               padding: "7px 11px",
-              boxShadow: "0 2px 5px rgba(180, 83, 9, 0.04)"
+              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.02)"
             }}>
               <div style={{ fontSize: "13px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span>📌 ಗುರು ಮಹಾದಶಾ • ಸೂರ್ಯ ಅಂತರ್ದಶಾ</span>
@@ -666,8 +667,8 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
                   color: "#047857",
                   background: "#ECFDF5",
                   border: "1px solid #10B981",
-                  padding: "1px 9px",
-                  borderRadius: "10px",
+                  padding: "2px 10px",
+                  borderRadius: "12px",
                   fontWeight: 700
                 }}>⛳ ಅಧಿಕಾರ & ಸರ್ಕಾರಿ ಜಯ</span>
               </div>
@@ -691,13 +692,13 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
               </div>
             </div>
 
-            {/* Card 5: Shani Antardasha */}
+            {/* Card 5: Shani Antardasha (Clean White Card) */}
             <div style={{
-              background: "#FFFBEB",
-              border: "1.5px solid #D97706",
+              background: "#FFFFFF",
+              border: "1.5px solid #FCD34D",
               borderRadius: "8px",
               padding: "7px 11px",
-              boxShadow: "0 2px 5px rgba(180, 83, 9, 0.04)"
+              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.02)"
             }}>
               <div style={{ fontSize: "13px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span>📌 ಶನಿ ಮಹಾದಶಾ • ಶನಿ ಅಂತರ್ದಶಾ</span>
@@ -706,8 +707,8 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
                   color: "#92400E",
                   background: "#FEF3C7",
                   border: "1px solid #F59E0B",
-                  padding: "1px 9px",
-                  borderRadius: "10px",
+                  padding: "2px 10px",
+                  borderRadius: "12px",
                   fontWeight: 700
                 }}>⚖️ ಸ್ಥಿರ ಧರ್ಮ ಕರ್ತವ್ಯ</span>
               </div>
