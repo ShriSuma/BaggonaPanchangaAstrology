@@ -507,6 +507,7 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
 
       {/* ─────────────────────────────────────────────────────────────
       {/* ─────────────────────────────────────────────────────────────
+      {/* ─────────────────────────────────────────────────────────────
           PAGE 3: EXACT MATCH TO PDF (45) PAGE 3 (DASHA-BHUKTI CARDS)
          ───────────────────────────────────────────────────────────── */}
       <div className="pdf-page" style={pageStyle}>
@@ -517,52 +518,52 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
             background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
             border: "2px solid #D97706",
             borderRadius: "8px",
-            padding: "8px 14px",
-            boxShadow: "0 2px 6px rgba(180, 83, 9, 0.06)"
+            padding: "6px 12px",
+            boxShadow: "0 2px 5px rgba(180, 83, 9, 0.05)"
           }}>
-            <div style={{ fontSize: "20px", fontWeight: 800, color: "#78350F", lineHeight: "1.3" }}>
+            <div style={{ fontSize: "18px", fontWeight: 800, color: "#78350F", lineHeight: "1.3" }}>
               ಅಧ್ಯಾಯ ೨: ೨೦-ವರ್ಷಗಳ ವಿಂಶೋತ್ತರಿ ದಶಾ-ಭುಕ್ತಿ ಭವಿಷ್ಯ ನಕ್ಷೆ
             </div>
-            <div style={{ fontSize: "11.5px", color: "#B45309", fontWeight: 600, marginTop: "2px" }}>
+            <div style={{ fontSize: "10.5px", color: "#B45309", fontWeight: 600, marginTop: "2px" }}>
               📜 ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿ ಆಧಾರಿತ ಮುಂಬರುವ ೨೦ ವರ್ಷಗಳ ಪ್ರಮುಖ ದಶಾ-ಅಂತರ್ದಶಾ ಅವಧಿಗಳು, ನಿಖರ ದಿನಾಂಕ ಹಾಗೂ ೪ ಮುಖ್ಯಾಂಶಗಳು
             </div>
           </div>
 
-          {/* 4 Dasha-Bhukti Cards matching Screenshot */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          {/* 5 Dasha-Bhukti Cards matching PDF (45) Page 3 Exactly */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
             {/* Card 1: Budha Antardasha */}
             <div style={{
               background: "#FFFBEB",
               border: "1.5px solid #D97706",
-              borderRadius: "10px",
-              padding: "10px 14px",
-              boxShadow: "0 2px 6px rgba(180, 83, 9, 0.05)"
+              borderRadius: "8px",
+              padding: "7px 11px",
+              boxShadow: "0 2px 5px rgba(180, 83, 9, 0.04)"
             }}>
-              <div style={{ fontSize: "14px", fontWeight: 800, color: "#78350F", marginBottom: "6px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span>📌 ಗುರು ಮಹಾದಶ • ಬುಧ ಅಂತರ್ದಶ</span>
+              <div style={{ fontSize: "13px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>📌 ಗುರು ಮಹಾದಶಾ • ಬುಧ ಅಂತರ್ದಶಾ</span>
                 <span style={{
-                  fontSize: "11px",
+                  fontSize: "10.5px",
                   color: "#92400E",
                   background: "#FEF3C7",
                   border: "1px solid #F59E0B",
-                  padding: "2px 10px",
-                  borderRadius: "12px",
+                  padding: "1px 9px",
+                  borderRadius: "10px",
                   fontWeight: 700
                 }}>✨ ವಿದ್ಯಾ & ಬುದ್ಧಿ ಸಿದ್ಧಿ</span>
               </div>
               <div style={{
-                fontSize: "11.5px",
+                fontSize: "11px",
                 color: "#78350F",
                 fontWeight: 700,
-                marginBottom: "8px",
+                marginBottom: "6px",
                 background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
                 border: "1px solid #FCD34D",
-                padding: "4px 10px",
-                borderRadius: "6px"
+                padding: "3px 8px",
+                borderRadius: "5px"
               }}>
-                🗓️ ಅವಧಿ: ೨೦೧೪-೦೫-೨೧ ರಿಂದ ೨೦೧೬-೦೯-೧೪ | (ವಯಸ್ಸು: ೨೧ - ೨೩ ವರ್ಷ)
+                🗓️ ಅವಧಿ: ೨೦೧೫-೦೫-೨೧ ರಿಂದ ೨೦೧೬-೦೯-೧೪ | (ವಯಸ್ಸು: ೨೨ - ೨೩ ವರ್ಷ)
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 16px", fontSize: "11.5px", lineHeight: "1.6" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px 14px", fontSize: "11px", lineHeight: "1.45" }}>
                 <div><span style={{ color: "#D97706" }}>💼</span> <strong style={{ color: "#065F46" }}>ವೃತ್ತಿ & ಅಧಿಕಾರ:</strong> ಉನ್ನತ ಬೌದ್ಧಿಕ ಚಾತುರ್ಯ, ಹೊಸ ಉದ್ಯೋಗ ಅವಕಾಶಗಳು, ಕಾಂಟ್ರಾಕ್ಟ್‌ಪೂರ್ಣ ಹಾಗೂ ಸಂಸ್ಥೆಯಲ್ಲಿ ಸನ್ಮಾನ.</div>
                 <div><span style={{ color: "#D97706" }}>💰</span> <strong style={{ color: "#047857" }}>ಧನ & ಆಸ್ತಿ:</strong> ವ್ಯಾಪಾರದಲ್ಲಿ ಶೇಕಡ ೨೦%+ ಲಾಭ ವೃದ್ಧಿ, ನೂತನ ಹೂಡಿಕೆ ಹಾಗೂ ಶೇರುಗಳಲ್ಲಿ ಧನ ಸಮೃದ್ಧಿ.</div>
                 <div><span style={{ color: "#D97706" }}>🏫</span> <strong style={{ color: "#5B21B6" }}>ಕುಟುಂಬ ಸುಖ:</strong> ಸಂತಾನದ ವಿದ್ಯಾ ಯಶಸ್ಸು, ಬಂಧುಗಳೊಡನೆ ಸೌಹಾರ್ದಯುತ ಭೋಜನ ಹಾಗೂ ಸಂತೋಷ.</div>
@@ -574,35 +575,35 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
             <div style={{
               background: "#FFFBEB",
               border: "1.5px solid #D97706",
-              borderRadius: "10px",
-              padding: "10px 14px",
-              boxShadow: "0 2px 6px rgba(180, 83, 9, 0.05)"
+              borderRadius: "8px",
+              padding: "7px 11px",
+              boxShadow: "0 2px 5px rgba(180, 83, 9, 0.04)"
             }}>
-              <div style={{ fontSize: "14px", fontWeight: 800, color: "#78350F", marginBottom: "6px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span>📌 ಗುರು ಮಹಾದಶ • ಕೇತು ಅಂತರ್ದಶ</span>
+              <div style={{ fontSize: "13px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>📌 ಗುರು ಮಹಾದಶಾ • ಕೇತು ಅಂತರ್ದಶಾ</span>
                 <span style={{
-                  fontSize: "11px",
+                  fontSize: "10.5px",
                   color: "#5B21B6",
                   background: "#F5F3FF",
                   border: "1px solid #8B5CF6",
-                  padding: "2px 10px",
-                  borderRadius: "12px",
+                  padding: "1px 9px",
+                  borderRadius: "10px",
                   fontWeight: 700
                 }}>🕉️ ಅಧ್ಯಾತ್ಮ & ಜ್ಞಾನ ತಪಸ್ಸು</span>
               </div>
               <div style={{
-                fontSize: "11.5px",
+                fontSize: "11px",
                 color: "#78350F",
                 fontWeight: 700,
-                marginBottom: "8px",
+                marginBottom: "6px",
                 background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
                 border: "1px solid #FCD34D",
-                padding: "4px 10px",
-                borderRadius: "6px"
+                padding: "3px 8px",
+                borderRadius: "5px"
               }}>
                 🗓️ ಅವಧಿ: ೨೦೧೬-೦೯-೧೪ ರಿಂದ ೨೦೧೭-೦೮-೨೪ | (ವಯಸ್ಸು: ೨೩ - ೨೪ ವರ್ಷ)
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 16px", fontSize: "11.5px", lineHeight: "1.6" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px 14px", fontSize: "11px", lineHeight: "1.45" }}>
                 <div><span style={{ color: "#D97706" }}>💼</span> <strong style={{ color: "#065F46" }}>ವೃತ್ತಿ & ಅಧಿಕಾರ:</strong> ನಿಗೂಢ ಸಂಶೋಧನೆ, ತಾಳ್ಮೆಯ ಕರ್ತವ್ಯ ಹಾಗೂ ಆಂತರಿಕ ಕೌಶಲ್ಯ ವೃದ್ಧಿ. ಧಾವಂತದ ನಿರ್ಧಾರ ಬೇಡ.</div>
                 <div><span style={{ color: "#D97706" }}>💰</span> <strong style={{ color: "#047857" }}>ಧನ & ಆಸ್ತಿ:</strong> ಮಿತ ವ್ಯಯ, ಧರ್ಮ ಕಾರ್ಯಗಳಿಗೆ ವಿನಿಯೋಗ ಹಾಗೂ ಸ್ಥಿರ ಹೂಡಿಕೆ ಸಂರಕ್ಷಣೆ.</div>
                 <div><span style={{ color: "#D97706" }}>🏫</span> <strong style={{ color: "#5B21B6" }}>ಕುಟುಂಬ ಸುಖ:</strong> ಗೋಕರ್ಣ ಮುಂತಾದ ಪವಿತ್ರ ಕ್ಷೇತ್ರ ದರ್ಶನ, ಧ್ಯಾನ ಹಾಗೂ ಮಾನಸಿಕ ಪ್ರಶಾಂತತೆ.</div>
@@ -610,40 +611,39 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
               </div>
             </div>
 
-            {/* Card 3: Shukra Antardasha (RAJAYOGA HIGHLIGHTED CARD WITH GOLDEN GRADIENT BACKGROUND) */}
+            {/* Card 3: Shukra Antardasha (RAJAYOGA GOLD HIGHLIGHTED CARD MATCHING PDF 45) */}
             <div style={{
-              background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
+              background: "#FFFBEB",
               border: "2px solid #F59E0B",
-              borderRadius: "10px",
-              padding: "10px 14px",
-              boxShadow: "0 4px 10px rgba(245, 158, 11, 0.15)"
+              borderRadius: "8px",
+              padding: "7px 11px",
+              boxShadow: "0 3px 8px rgba(245, 158, 11, 0.12)"
             }}>
-              <div style={{ fontSize: "14px", fontWeight: 900, color: "#78350F", marginBottom: "6px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span>🌟 ಗುರು ಮಹಾದಶ • ಶುಕ್ರ ಅಂತರ್ದಶ (ರಾಜಯೋಗ ಕಾಲ)</span>
+              <div style={{ fontSize: "13px", fontWeight: 900, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>🌟 ಗುರು ಮಹಾದಶಾ • ಶುಕ್ರ ಅಂತರ್ದಶಾ (ರಾಜಯೋಗ ಕಾಲ)</span>
                 <span style={{
-                  fontSize: "11px",
+                  fontSize: "10.5px",
                   color: "#78350F",
                   background: "linear-gradient(180deg, #FDE68A 0%, #F59E0B 100%)",
                   border: "1px solid #D97706",
-                  padding: "2px 10px",
-                  borderRadius: "12px",
-                  fontWeight: 800,
-                  boxShadow: "0 2px 4px rgba(217, 119, 6, 0.2)"
+                  padding: "1px 9px",
+                  borderRadius: "10px",
+                  fontWeight: 800
                 }}>👑 ಅತ್ಯುನ್ನತ ರಾಜಯೋಗ ಫಲ</span>
               </div>
               <div style={{
-                fontSize: "11.5px",
+                fontSize: "11px",
                 color: "#78350F",
                 fontWeight: 700,
-                marginBottom: "8px",
+                marginBottom: "6px",
                 background: "#FEF3C7",
                 border: "1px solid #F59E0B",
-                padding: "4px 10px",
-                borderRadius: "6px"
+                padding: "3px 8px",
+                borderRadius: "5px"
               }}>
                 🗓️ ಅವಧಿ: ೨೦೧೭-೦೮-೨೪ ರಿಂದ ೨೦೨೧-೦೪-೨೪ | (ವಯಸ್ಸು: ೨೪ - ೨೮ ವರ್ಷ)
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 16px", fontSize: "11.5px", lineHeight: "1.6" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px 14px", fontSize: "11px", lineHeight: "1.45" }}>
                 <div><span style={{ color: "#D97706" }}>💼</span> <strong style={{ color: "#065F46" }}>ವೃತ್ತಿ & ಅಧಿಕಾರ:</strong> ರಾಜಕೀಯ/ಉದ್ಯೋಗ ಕ್ಷೇತ್ರದಲ್ಲಿ ಅತ್ಯುನ್ನತ ನಾಯಕತ್ವ, ಬಡ್ತಿ ಹಾಗೂ ಸಮಾಜದಲ್ಲಿ ಸನ್ಮಾನ.</div>
                 <div><span style={{ color: "#D97706" }}>💰</span> <strong style={{ color: "#047857" }}>ಧನ & ಆಸ್ತಿ:</strong> ನೂತನ ಗೃಹ ನಿರ್ಮಾಣ, ರಾಯಲ್ ವಾಹನ ಖರೀದಿ, ಸ್ವರ್ಣಾಭರಣ ಹಾಗೂ ಭೂ ಲಾಭ.</div>
                 <div><span style={{ color: "#D97706" }}>🏫</span> <strong style={{ color: "#5B21B6" }}>ಕುಟುಂಬ ಸುಖ:</strong> ಗೃಹದಲ್ಲಿ ವಿವಾಹ ಮಂಗಲ ಕಾರ್ಯಗಳು, ದಾಂಪತ್ಯ ಸೌಭಾಗ್ಯ ಹಾಗೂ ಅಖಂಡ ಆನಂದ.</div>
@@ -655,39 +655,79 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
             <div style={{
               background: "#FFFBEB",
               border: "1.5px solid #D97706",
-              borderRadius: "10px",
-              padding: "10px 14px",
-              boxShadow: "0 2px 6px rgba(180, 83, 9, 0.05)"
+              borderRadius: "8px",
+              padding: "7px 11px",
+              boxShadow: "0 2px 5px rgba(180, 83, 9, 0.04)"
             }}>
-              <div style={{ fontSize: "14px", fontWeight: 800, color: "#78350F", marginBottom: "6px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span>📌 ಗುರು ಮಹಾದಶ • ಸೂರ್ಯ ಅಂತರ್ದಶ</span>
+              <div style={{ fontSize: "13px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>📌 ಗುರು ಮಹಾದಶಾ • ಸೂರ್ಯ ಅಂತರ್ದಶಾ</span>
                 <span style={{
-                  fontSize: "11px",
+                  fontSize: "10.5px",
                   color: "#047857",
                   background: "#ECFDF5",
                   border: "1px solid #10B981",
-                  padding: "2px 10px",
-                  borderRadius: "12px",
+                  padding: "1px 9px",
+                  borderRadius: "10px",
                   fontWeight: 700
                 }}>⛳ ಅಧಿಕಾರ & ಸರ್ಕಾರಿ ಜಯ</span>
               </div>
               <div style={{
-                fontSize: "11.5px",
+                fontSize: "11px",
                 color: "#78350F",
                 fontWeight: 700,
-                marginBottom: "8px",
+                marginBottom: "6px",
                 background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
                 border: "1px solid #FCD34D",
-                padding: "4px 10px",
-                borderRadius: "6px"
+                padding: "3px 8px",
+                borderRadius: "5px"
               }}>
-                🗓️ ಅವಧಿ: ೨೦೨೧-೦೪-೨೪ ರಿಂದ ೨೦೨೨-೦೨-೧೦ | (ವಯಸ್ಸು: ೨೮ - ೨೯ ವರ್ಷ)
+                🗓️ ಅವಧಿ: ೨೦೨೧-೦೪-೨೪ ರಿಂದ ೨೦೨೨-೦೧-೧೦ | (ವಯಸ್ಸು: ೨೮ - ೨೯ ವರ್ಷ)
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 16px", fontSize: "11.5px", lineHeight: "1.6" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px 14px", fontSize: "11px", lineHeight: "1.45" }}>
                 <div><span style={{ color: "#D97706" }}>💼</span> <strong style={{ color: "#065F46" }}>ವೃತ್ತಿ & ಅಧಿಕಾರ:</strong> ಸರ್ಕಾರಿ ಕೃಪೆ, ಹಿರಿಯ ಅಧಿಕಾರಿಗಳ ಸಂಪೂರ್ಣ ಬೆಂಬಲ ಹಾಗೂ ಶತ್ರುಗಳ ಮೇಲೆ ಜಯ.</div>
                 <div><span style={{ color: "#D97706" }}>💰</span> <strong style={{ color: "#047857" }}>ಧನ & ಆಸ್ತಿ:</strong> ಪೂರ್ವಾಜಿತ ಆಸ್ತಿಯಿಂದ ಧನ ಹರಿವು ಹಾಗೂ ಸರ್ಕಾರಿ ಬಾಕಿ ವಸೂಲಾತಿ.</div>
                 <div><span style={{ color: "#D97706" }}>🏫</span> <strong style={{ color: "#5B21B6" }}>ಕುಟುಂಬ ಸುಖ:</strong> ಪಿತೃವರ್ಗದ ಆಶೀರ್ವಾದ, ವಂಶದ ಕೀರ್ತಿ ವೃದ್ಧಿ ಹಾಗೂ ಗೃಹದಲ್ಲಿ ತೇಜಸ್ಸು.</div>
                 <div><span style={{ color: "#D97706" }}>🕉️</span> <strong style={{ color: "#991B1B" }}>ದೈವಿಕ ಪರಿಹಾರ:</strong> ಪ್ರತಿದಿನ ಸೂರ್ಯೋದಯಕ್ಕೆ ಆದಿತ್ಯ ಹೃದಯ ಸ್ತೋತ್ರ ಪಠಿಸಿ ತಾಮ್ರ ಪಾತ್ರೆಯಲ್ಲಿ ಅರ್ಘ್ಯ ನೀಡಿ.</div>
+              </div>
+            </div>
+
+            {/* Card 5: Shani Antardasha */}
+            <div style={{
+              background: "#FFFBEB",
+              border: "1.5px solid #D97706",
+              borderRadius: "8px",
+              padding: "7px 11px",
+              boxShadow: "0 2px 5px rgba(180, 83, 9, 0.04)"
+            }}>
+              <div style={{ fontSize: "13px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>📌 ಶನಿ ಮಹಾದಶಾ • ಶನಿ ಅಂತರ್ದಶಾ</span>
+                <span style={{
+                  fontSize: "10.5px",
+                  color: "#92400E",
+                  background: "#FEF3C7",
+                  border: "1px solid #F59E0B",
+                  padding: "1px 9px",
+                  borderRadius: "10px",
+                  fontWeight: 700
+                }}>⚖️ ಸ್ಥಿರ ಧರ್ಮ ಕರ್ತವ್ಯ</span>
+              </div>
+              <div style={{
+                fontSize: "11px",
+                color: "#78350F",
+                fontWeight: 700,
+                marginBottom: "6px",
+                background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
+                border: "1px solid #FCD34D",
+                padding: "3px 8px",
+                borderRadius: "5px"
+              }}>
+                🗓️ ಅವಧಿ: ೨೦೩೮-೦೧-೧೫ ರಿಂದ ೨೦೪೧-೦೧-೧೮ | (ವಯಸ್ಸು: ೪೫ - ೪೮ ವರ್ಷ)
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px 14px", fontSize: "11px", lineHeight: "1.45" }}>
+                <div><span style={{ color: "#D97706" }}>💼</span> <strong style={{ color: "#065F46" }}>ವೃತ್ತಿ & ಅಧಿಕಾರ:</strong> ಶ್ರಮಜೀವಿಗಳಿಗೆ ಅತ್ಯುನ್ನತ ಫಲ. ಕಠಿಣ ಕರ್ತವ್ಯದಿಂದ ಶಕ್ತಿಯುತ ಹಾಗೂ ಸ್ಥಿರ ವೃತ್ತಿ ಅಡಿಪಾಯ.</div>
+                <div><span style={{ color: "#D97706" }}>💰</span> <strong style={{ color: "#047857" }}>ಧನ & ಆಸ್ತಿ:</strong> ದೀರ್ಘಕಾಲಿಕ ಭೂಮಿ ಆಸ್ತಿ ಭದ್ರತೆ, ಕೈಗಾರಿಕಾ ಯಶಸ್ಸು ಹಾಗೂ ಶೇಖರಿತ ನಿಧಿ.</div>
+                <div><span style={{ color: "#D97706" }}>🏫</span> <strong style={{ color: "#5B21B6" }}>ಕುಟುಂಬ ಸುಖ:</strong> ಹಿರಿಯರ ಸೇವೆ, ಶಾಂತಿಯುತ ಗೃಹ ಜೀವನ ಹಾಗೂ ಜವಾಬ್ದಾರಿಯುತ ಕುಟುಂಬ ನಡೆ.</div>
+                <div><span style={{ color: "#D97706" }}>🕉️</span> <strong style={{ color: "#991B1B" }}>ದೈವಿಕ ಪರಿಹಾರ:</strong> ಶನಿವಾರ ಎಳ್ಳಿನ ಎಣ್ಣೆ ದೀಪ ಹಚ್ಚಿ ಹಾಗೂ ಶ್ರೀ ಹನುಮಾನ್ ಚಾಲೀಸಾ ಪಠಿಸಿ.</div>
               </div>
             </div>
           </div>
