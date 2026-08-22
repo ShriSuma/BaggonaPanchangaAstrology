@@ -1000,68 +1000,69 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
       </div>
 
       {/* ─────────────────────────────────────────────────────────────
-          PAGE 5: EXACT MATCH TO PDF (45) PAGE 5
+      {/* ─────────────────────────────────────────────────────────────
+          PAGE 5: 100% A4 SHEET FULL-PAGE FILL WITH 2 FULL 4-LINE PARAGRAPHS PER CARD
          ───────────────────────────────────────────────────────────── */}
       <div className="pdf-page" style={pageStyle}>
-        <div style={frameStyle}>
+        <div style={{ ...frameStyle, gap: "12px" }}>
           {/* Header Box */}
           <div style={{
             textAlign: "center",
             background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
             border: "2px solid #D97706",
             borderRadius: "8px",
-            padding: "6px 12px",
-            boxShadow: "0 2px 5px rgba(180, 83, 9, 0.05)"
+            padding: "8px 14px",
+            boxShadow: "0 2px 6px rgba(180, 83, 9, 0.06)"
           }}>
             <div style={{ fontSize: "19px", fontWeight: 800, color: "#78350F", lineHeight: "1.3" }}>
               ಅಧ್ಯಾಯ ೪: ಜನ್ಮ ಕುಂಡಲಿ ಯೋಗಗಳು, ದೋಷಗಳು ಹಾಗೂ ಲೈವ್ ಗೋಚಾರ ಫಲಗಳು
             </div>
-            <div style={{ fontSize: "11px", color: "#B45309", fontWeight: 600, marginTop: "2px" }}>
+            <div style={{ fontSize: "11.5px", color: "#B45309", fontWeight: 600, marginTop: "3px" }}>
               📜 ನಿಮ್ಮ ಕುಂಡಲಿಯಲ್ಲಿರುವ ಪ್ರಮುಖ ರಾಜಯೋಗಗಳು, ಗ್ರಹ ದೋಷ ವಿವೇಚನೆ ಹಾಗೂ ಗೋಚಾರ ಫಲಗಳ ನಿಖರ ವಿಶ್ಲೇಷಣೆ
             </div>
           </div>
 
-          {/* Content Stack */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            {/* Card 1 */}
-            <div style={{ background: "#FEF3C7", border: "1.5px solid #D97706", borderRadius: "8px", padding: "8px 12px" }}>
-              <div style={{ fontSize: "13px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between" }}>
+          {/* Content Stack - 3 Luxurious Cards completely filling A4 */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            {/* Card 1: Main Rajayogas & Planetary Strengths */}
+            <div style={{ background: "#FFFDF5", border: "1.5px solid #D97706", borderRadius: "8px", padding: "12px 16px", boxShadow: "0 2px 5px rgba(0,0,0,0.03)" }}>
+              <div style={{ fontSize: "13.5px", fontWeight: 800, color: "#78350F", marginBottom: "8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span>✨ ಜನ್ಮ ಕುಂಡಲಿಯ ಮುಖ್ಯ ರಾಜಯೋಗಗಳು & ಶುಭ ಗ್ರಹ ಬಲ</span>
-                <span style={{ fontSize: "10.5px", color: "#92400E", background: "#FDE68A", padding: "1px 8px", borderRadius: "10px", fontWeight: 700 }}>ರಾಜಯೋಗ ವಿಶ್ಲೇಷಣೆ</span>
+                <span style={{ fontSize: "11px", color: "#92400E", background: "#FEF3C7", border: "1px solid #F59E0B", padding: "2px 10px", borderRadius: "12px", fontWeight: 700 }}>ರಾಜಯೋಗ ವಿಶ್ಲೇಷಣೆ</span>
               </div>
-              <div style={{ fontSize: "12px", lineHeight: "1.6", color: "#3F2A12", textAlign: "justify", marginBottom: "6px" }}>
-                {displayName} ಅವರ ಜನ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ದೇವಗುರು ಬೃಹಸ್ಪತಿ ಹಾಗೂ ಚಂದ್ರರ ಪರಸ್ಪರ ಶುಭ ದೃಷ್ಟಿಯಿಂದ 'ಗಜಕೇಸರಿ ರಾಜಯೋಗ' ಅತ್ಯಂತ ಸಕ್ರಿಯವಾಗಿದೆ. ಈ ದಿವ್ಯ ಯೋಗದ ಶುಭ ಪ್ರಭಾವದಿಂದ ಸಮಾಜದಲ್ಲಿ ಅಚಲ ಕೀರ್ತಿ, ಕಷ್ಟಗಳನ್ನು ಜಯಿಸುವ ಆಂತರಿಕ ಧೈರ್ಯ ಹಾಗೂ ಸ್ಥಿರ ಧನ ಸಂಪತ್ತು ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ. ವೃತ್ತಿ ರಂಗದಲ್ಲಿ ಎಂತಹ ಕಠಿಣ ಸವಾಲುಗಳು ಎದುರಾದರೂ ನಿಮ್ಮ ಬೌದ್ಧಿಕ ದಕ್ಷತೆಯಿಂದ ಉನ್ನತ ಸ್ಥಾನ ಗಳಿಸುವಿರಿ.
+              <div style={{ fontSize: "12px", lineHeight: "1.65", color: "#3F2A12", textAlign: "justify" }}>
+                {displayName} ಅವರ ಜನ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ದೇವಗುರು ಬೃಹಸ್ಪತಿ ಹಾಗೂ ಚಂದ್ರರ ಪವಿತ್ರ ಸಮಸಪ್ತಕ ದೃಷ್ಟಿ ಸಂಯೋಗದಿಂದ 'ಗಜಕೇಸರಿ ರಾಜಯೋಗ' ಅತ್ಯಂತ ಶಕ್ತಿಯುತವಾಗಿ ಜಾಗೃತಗೊಂಡಿದೆ. ಈ ದಿವ್ಯ ರಾಜಯೋಗದ ಅನುಗ್ರಹದಿಂದ ಸಮಾಜದಲ್ಲಿ ಗೌರವಾನ್ವಿತ ಸ್ಥಾನಮಾನ, ಆಪತ್ತಿನ ವೇಳೆಯಲ್ಲಿ ಜಯ ತಂದುಕೊಡುವ ದೈವಿಕ ರಕ್ಷಣೆ ಹಾಗೂ ಸ್ಥಿರವಾದ ಯಶಸ್ಸು ಲಭಿಸಲಿದೆ. ನಿಮ್ಮ ವೃತ್ತಿ ಅಥವಾ ವ್ಯಾಪಾರ ಕ್ಷೇತ್ರದಲ್ಲಿ ಎಂತಹ ಪ್ರಬಲ ಪ್ರತಿರೋಧಗಳು ಎದುರಾದರೂ, ಆಂತರಿಕ ಬೌದ್ಧಿಕ ದಕ್ಷತೆ ಹಾಗೂ ಧೈರ್ಯದಿಂದ ಎಲ್ಲವನ್ನೂ ಮೆಟ್ಟಿ ನಿಂತು ಅಗ್ರಸ್ಥಾನ ಗಳಿಸುವಿರಿ. ದೇವಗುರುವಿನ ಶುಭ ದೃಷ್ಟಿಯು ಮನಸ್ಸಿನಲ್ಲಿ ಸದಾ ಧಾರ್ಮಿಕ ಆಲೋಚನೆ ಹಾಗೂ ಸತ್ಯದ ಹಾದಿಯಲ್ಲಿ ನಡೆಯುವ ವಿವೇಕವನ್ನು ಜಾಗೃತವಾಗಿಡುತ್ತದೆ.
               </div>
-              <div style={{ fontSize: "12px", lineHeight: "1.6", color: "#3F2A12", textAlign: "justify", borderTop: "1px solid #FDE68A", paddingTop: "4px" }}>
-                ಸೂರ್ಯ ಹಾಗೂ ಬುಧರ ಸಂಯೋಜನೆಯಿಂದ 'ಬುಧಾದಿತ್ಯ ಯೋಗ' ಸಿದ್ಧಿಸಿದ್ದು, ತೀಕ್ಷ್ಣ ಗ್ರಹಣ ಶಕ್ತಿ, ನಿರ್ಧಾರ ತೆಗೆದುಕೊಳ್ಳುವ ಕೌಶಲ್ಯ ಹಾಗೂ ಆಡಳಿತಾತ್ಮಕ ಯಶಸ್ಸನ್ನು ಖಾತ್ರಿಪಡಿಸುತ್ತದೆ. ಧನ ಹಾಗೂ ಲಾಭ ಭಾವಗಳ ಶುಭ ದೃಷ್ಟಿಯಿಂದ ಸ್ಥಿರಾಸ್ತಿ ಖರೀದಿ, ಭೂಮಿ ಹೂಡಿಕೆ ಹಾಗೂ ಉದ್ಯೋಗ ಬಡ್ತಿಯಲ್ಲಿ ನಿರಂತರ ಧನ ಹರಿವು ಉಂಟಾಗಲಿದೆ. ಕೇಂದ್ರ-ತ್ರಿಕೋಣ ಭಾವಗಳ ಬಲದಿಂದ ದೈವಿಕ ಕೃಪೆ ಸದಾ ನಿಮ್ಮ ಜೊತೆಗಿರುತ್ತದೆ.
+              <div style={{ fontSize: "12px", lineHeight: "1.65", color: "#3F2A12", textAlign: "justify", marginTop: "8px", borderTop: "1px solid #FDE68A", paddingTop: "8px" }}>
+                🌟 ಲಗ್ನ ಹಾಗೂ ತ್ರಿಕೋಣ ಭಾವಗಳ ಅಧಿಪತಿಗಳ ಬಲವಾದ ಸಂಯೋಜನೆಯಿಂದ 'ಬುಧಾದಿತ್ಯ ಯೋಗ' ಹಾಗೂ 'ಲಕ್ಷ್ಮಿ ಯೋಗ' ಸಿದ್ಧಿಸಿದ್ದು, ತೀಕ್ಷ್ಣ ಗ್ರಹಣ ಶಕ್ತಿ, ಸಮಯೋಚಿತ ನಿರ್ಧಾರ ಹಾಗೂ ಅಪಾರ ಆರ್ಥಿಕ ಸಂಪತ್ತನ್ನು ಖಾತ್ರಿಪಡಿಸುತ್ತದೆ. ಧನ ಹಾಗೂ ಲಾಭ ಭಾವಗಳ ಮೇಲೆ ಶುಭ ಗ್ರಹಗಳ ಸೌಮ್ಯ ದೃಷ್ಟಿ ಇರುವ ಕಾರಣ ಸ್ಥಿರಾಸ್ತಿ ಖರೀದಿ, ನೂತನ ಗೃಹ ನಿರ್ಮಾಣ ಹಾಗೂ ಶೇರು/ಉದ್ಯೋಗ ಹೂಡಿಕೆಗಳಲ್ಲಿ ನಿರಂತರ ಧನ ಹರಿವು ಉಂಟಾಗಲಿದೆ. ಕೇಂದ್ರ-ತ್ರಿಕೋಣ ಭಾವಗಳ ಪುಣ್ಯ ಫಲದಿಂದಾಗಿ ಅತ್ಯಂತ ಕಷ್ಟಕರ ಸನ್ನಿವೇಶಗಳಲ್ಲೂ ಅಚಾನಕ್ ದೈವಿಕ ಸಹಾಯ ಹಾಗೂ ಹಿರಿಯ ಮಾರ್ಗದರ್ಶಕರ ಪ್ರೋತ್ಸಾಹ ಸದಾ ದೊರೆಯಲಿದ್ದು, ನಿಮ್ಮ ಜೀವನದ ಮಹತ್ವಾಕಾಂಕ್ಷೆಯ ಪ್ರತಿಯೊಂದು ಗುರಿಯೂ ಸಿದ್ದಿಯಾಗಲಿದೆ.
               </div>
             </div>
 
-            {/* Card 2 */}
-            <div style={{ background: "#FFF1F2", border: "1.5px solid #F43F5E", borderRadius: "8px", padding: "8px 12px" }}>
-              <div style={{ fontSize: "13px", fontWeight: 800, color: "#991B1B", marginBottom: "4px", display: "flex", justifyContent: "space-between" }}>
+            {/* Card 2: Dosha Analysis & Gokarna Remedy */}
+            <div style={{ background: "#FFF5F5", border: "1.5px solid #F43F5E", borderRadius: "8px", padding: "12px 16px", boxShadow: "0 2px 5px rgba(0,0,0,0.03)" }}>
+              <div style={{ fontSize: "13.5px", fontWeight: 800, color: "#991B1B", marginBottom: "8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span>⚠️ ಗ್ರಹ ದೋಷ ವಿವೇಚನೆ & ಸಿದ್ಧ ಗೋಕರ್ಣ ಪರಿಹಾರ</span>
-                <span style={{ fontSize: "10.5px", color: "#9F1239", background: "#FFE4E6", padding: "1px 8px", borderRadius: "10px", fontWeight: 700 }}>ಶಾಂತಿ & ಪೂಜಾ ವಿಧಿ</span>
+                <span style={{ fontSize: "11px", color: "#9F1239", background: "#FFE4E6", border: "1px solid #FB7185", padding: "2px 10px", borderRadius: "12px", fontWeight: 700 }}>ಶಾಂತಿ & ಪೂಜಾ ವಿಧಿ</span>
               </div>
-              <div style={{ fontSize: "12px", lineHeight: "1.6", color: "#881337", textAlign: "justify", marginBottom: "6px" }}>
-                ಕುಂಡಲಿಯಲ್ಲಿ ಶನಿ ಗ್ರಹ ಅಥವಾ ಮಾಂದಿಯ ಮಂದ ದೃಷ್ಟಿಯಿಂದ ಕೆಲಸ ಕಾರ್ಯಗಳಲ್ಲಿ ಮಧ್ಯಂತರ ವಿಳಂಬ, ಅನಗತ್ಯ ಮನೋವ್ಯಥೆ ಅಥವಾ ನಿದ್ರಾಹೀನತೆ ಉಂಟಾಗುವ ಸಾಧ್ಯತೆ ಇರುತ್ತದೆ. ಪರಿಹಾರಕ್ಕಾಗಿ ಪ್ರತಿ ಶನಿವಾರ ಶ್ರೀ ಆಂಜನೇಯ ಸ್ವಾಮಿ ದರ್ಶನ ಪಡೆದು, ಎಳ್ಳಿನ ಎಣ್ಣೆಯ ದೀಪಾರಾಧನೆ ಮಾಡುವುದು ಹಾಗೂ ಹನುಮಾನ್ ಚಾಲೀಸಾ ಪಠಿಸುವುದು ಅತ್ಯಂತ ಫಲಪ್ರದವಾಗಿದೆ.
+              <div style={{ fontSize: "12px", lineHeight: "1.65", color: "#881337", textAlign: "justify" }}>
+                ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ಮಂದಕಾರಕ ಶನಿ ಗ್ರಹ ಹಾಗೂ ಮಾಂದಿಯ ಮಂದ ದೃಷ್ಟಿಯ ಪ್ರಭಾವದಿಂದಾಗಿ ಕೆಲವು ಪ್ರಮುಖ ಕೆಲಸ ಕಾರ್ಯಗಳಲ್ಲಿ ಅನಿರೀಕ್ಷಿತ ವಿಳಂಬ, ಆಂತರಿಕ ಮನೋವ್ಯಥೆ ಅಥವಾ ನಿದ್ರಾಹೀನತೆಯಂತಹ ಸಣ್ಣಪುಟ್ಟ ಸಮಸ್ಯೆಗಳು ಎದುರಾಗುವ ಸಾಧ್ಯತೆ ಇರುತ್ತದೆ. ಎಷ್ಟೇ ಕಷ್ಟಪಟ್ಟು ಶ್ರಮಿಸಿದರೂ ಕೊನೆ ಗಳಿಗೆಯಲ್ಲಿ ಯಶಸ್ಸು ಕೈತಪ್ಪುವ ಭಾವನೆ ಅಥವಾ ಅನಗತ್ಯ ಮಾನಸಿಕ ಒತ್ತಡ ಮೂಡಬಹುದು. ಪರಿಹಾರಕ್ಕಾಗಿ ಪ್ರತಿ ಶನಿವಾರ ಶ್ರೀ ಆಂಜನೇಯ ಸ್ವಾಮಿ ದರ್ಶನ ಪಡೆದು, ಕಪ್ಪು ಎಳ್ಳಿನ ಎಣ್ಣೆಯ ದೀಪಾರಾಧನೆ ಮಾಡುವುದು, ಹನುಮಾನ್ ಚಾಲೀಸಾ ಪಠಣ ಹಾಗೂ ಬಡವರಿಗೆ ಆಹಾರ ದಾನ ಮಾಡುವುದು ಅತ್ಯಂತ ನಿವಾರಕ ಶಕ್ತಿಯನ್ನು ನೀಡುತ್ತದೆ.
               </div>
-              <div style={{ fontSize: "12px", lineHeight: "1.6", color: "#881337", textAlign: "justify", borderTop: "1px solid #FECDD3", paddingTop: "4px" }}>
-                ರಾಹು-ಕೇತು ಗ್ರಹಗಳ ಅಕ್ಷೀಯ ಸ್ಥಿತಿಯಿಂದ ಧನ ವ್ಯಯ ಅಥವಾ ಆಪ್ತರೊಂದಿಗೆ ಅನಗತ್ಯ ತಪ್ಪು ತಿಳುವಳಿಕೆ ಉಂಟಾಗದಂತೆ ಎಚ್ಚರ ಅಗತ್ಯ. ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ರುದ್ರಾಭಿಷೇಕ ಪೂಜೆ ಹಾಗೂ ನಾಗಬಲಿ ಸಂಕಲ್ಪ ಸೇವೆಯನ್ನು ನೆರವೇರಿಸುವುದರಿಂದ ಸಕಲ ಗ್ರಹ ದೋಷಗಳು ಸಂಪೂರ್ಣ ಶಮನಗೊಂಡು ಕುಟುಂಬಕ್ಕೆ ಅಭಯ ರಕ್ಷೆ ಲಭಿಸಲಿದೆ.
+              <div style={{ fontSize: "12px", lineHeight: "1.65", color: "#881337", textAlign: "justify", marginTop: "8px", borderTop: "1px solid #FECDD3", paddingTop: "8px" }}>
+                🕊️ ರಾಹು ಮತ್ತು ಕೇತು ಗ್ರಹಗಳ ಅಕ್ಷೀಯ ಸಂಚಾರದಿಂದಾಗಿ ಆರ್ಥಿಕ ವಹಿವಾಟುಗಳಲ್ಲಿ ಆತುರದ ನಿರ್ಧಾರ ಅಥವಾ ಆಪ್ತ ಬಾಂಧವರೊಂದಿಗೆ ಅನಗತ್ಯ ತಪ್ಪು ತಿಳುವಳಿಕೆಗಳು ಉಂಟಾಗದಂತೆ ವಿಶೇಷ ಎಚ್ಚರ ವಹಿಸುವುದು ಅವಶ್ಯಕವಾಗಿದೆ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ದಿವ್ಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸಂಕಲ್ಪಪೂರ್ವಕ 'ರುದ್ರಾಭಿಷೇಕ ಪೂಜೆ' ಹಾಗೂ 'ನಾಗಬಲಿ/ನವಗ್ರಹ ಶಾಂತಿ ಪೂಜೆ' ನೆರವೇರಿಸುವುದರಿಂದ ಜನ್ಮ ಕುಂಡಲಿಯ ಸಕಲ ದುಷ್ಟ ಗ್ರಹ ದೋಷಗಳು ಸಂಪೂರ್ಣವಾಗಿ ಶಮನಗೊಳ್ಳಲಿವೆ. ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಅರ್ಚಕರ ಆಶೀರ್ವಾದ ಬಲದಿಂದ ನಿಮ್ಮ ನಿತ್ಯ ಜೀವನದಲ್ಲಿ ಅಭಯ ರಕ್ಷೆ ಲಭಿಸಿ, ಅಖಂಡ ಕುಟುಂಬ ಸೌಖ್ಯ ನೆಲೆಸಲಿದೆ.
               </div>
             </div>
 
-            {/* Card 3 */}
-            <div style={{ background: "#FFFBEB", border: "1.5px solid #D97706", borderRadius: "8px", padding: "8px 12px" }}>
-              <div style={{ fontSize: "13px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between" }}>
+            {/* Card 3: Live Gochara Transits & Present Position */}
+            <div style={{ background: "#FFFBEB", border: "1.5px solid #D97706", borderRadius: "8px", padding: "12px 16px", boxShadow: "0 2px 5px rgba(0,0,0,0.03)" }}>
+              <div style={{ fontSize: "13.5px", fontWeight: 800, color: "#78350F", marginBottom: "8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span>🍃 ಲೈವ್ ಗೋಚಾರ ಗ್ರಹ ಫಲಗಳು & ವರ್ತಮಾನ ಸಂಚಾರ</span>
-                <span style={{ fontSize: "10.5px", color: "#92400E", background: "#FEF3C7", padding: "1px 8px", borderRadius: "10px", fontWeight: 700 }}>ಗೋಚಾರ ಫಲ</span>
+                <span style={{ fontSize: "11px", color: "#92400E", background: "#FEF3C7", border: "1px solid #F59E0B", padding: "2px 10px", borderRadius: "12px", fontWeight: 700 }}>ವರ್ತಮಾನ ಗೋಚಾರ</span>
               </div>
-              <div style={{ fontSize: "12px", lineHeight: "1.6", color: "#3F2A12", textAlign: "justify", marginBottom: "6px" }}>
-                ನಿಮ್ಮ ಜನ್ಮ ರಾಶಿಯಿಂದ ಶನಿ ಗ್ರಹದ ಪ್ರಸ್ತುತ ಗೋಚಾರ ಸಂಚಾರವು ಉದ್ಯೋಗ ಕ್ಷೇತ್ರದಲ್ಲಿ ಅತ್ಯಂತ ಶಿಸ್ತು, ತಾಳ್ಮೆ ಹಾಗೂ ನಿರಂತರ ನಿಷ್ಠೆಯನ್ನು ಬಯಸುತ್ತದೆ. ಆತುರದ ನಿರ್ಧಾರಗಳನ್ನು ಹೊರತುಪಡಿಸಿ, ಹಿರಿಯರ ಮಾರ್ಗದರ್ಶನದಲ್ಲಿ ಹೆಜ್ಜೆ ಇಡುವುದರಿಂದ ವೃತ್ತಿಯಲ್ಲಿ ಸುದೀರ್ಘ ಭದ್ರತೆ ಹಾಗೂ ನೂತನ ಅಧಿಕಾರ ಯೋಗ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ.
+              <div style={{ fontSize: "12px", lineHeight: "1.65", color: "#3F2A12", textAlign: "justify" }}>
+                ವರ್ತಮಾನ ಗೋಚಾರ ಗ್ರಹ ಸಂಚಾರದಲ್ಲಿ ಶನಿ ದೇವನ ಪ್ರಸ್ತುತ ಸ್ಥಾನವು ನಿಮ್ಮ ಕಾಯಕ ಕ್ಷೇತ್ರದಲ್ಲಿ ಶಿಸ್ತು, ಕಠಿಣ ಕರ್ತವ್ಯ ಪ್ರಜ್ಞೆ ಹಾಗೂ ತಾಳ್ಮೆಯ ಪರೀಕ್ಷೆಯನ್ನು ನಡೆಸುತ್ತಿದೆ. ಆತುರದ ಹೂಡಿಕೆ ಅಥವಾ ಶಾರ್ಟ್‌ಕಟ್ ಮಾರ್ಗಗಳನ್ನು ಸಂಪೂರ್ಣವಾಗಿ ತ್ಯಜಿಸಿ, ಹಿರಿಯ ಅನುಭವಿಗಳ ಮಾರ್ಗದರ್ಶನದಲ್ಲಿ ಶ್ರಮಿಸುವುದರಿಂದ ವೃತ್ತಿ ರಂಗದಲ್ಲಿ ಸುದೀರ್ಘ ಭದ್ರತೆ ಹಾಗೂ ಅತ್ಯುನ್ನತ ಆಡಳಿತಾತ್ಮಕ ಸ್ಥಾನಮಾನ ದೊರೆಯಲಿದೆ. ಗೋಚಾರ ಶನಿಯು ನಿಮ್ಮನ್ನು ಪರಿಪಕ್ವಗೊಳಿಸಿ, ಭವಿಷ್ಯದಲ್ಲಿ ಯಾರಿಗೂ ಅಲುಗಾಡಿಸಲು ಸಾಧ್ಯವಾಗದಂತಹ ಶಕ್ತಿಯುತ ಸುದೃಢ ಅಡಿಪಾಯವನ್ನು ನಿರ್ಮಿಸಿಕೊಡಲಿದ್ದಾನೆ.
               </div>
-              <div style={{ fontSize: "12px", lineHeight: "1.6", color: "#3F2A12", textAlign: "justify", borderTop: "1px solid #FDE68A", paddingTop: "4px" }}>
-                ಬೃಹಸ್ಪತಿ ಗ್ರಹದ ಅನುಕೂಲಕರ ಸಪ್ತಮ/ನವಮ ದೃಷ್ಟಿಯು ನಿಮ್ಮ ಕುಟುಂಬಕ್ಕೆ ಅಪಾರ ಧನ ಲಾಭ, ಸಂತಾನ ಶ್ರೇಯಸ್ಸು ಹಾಗೂ ಗೃಹದಲ್ಲಿ ಶುಭ ಮಂಗಳ ಕಾರ್ಯಗಳನ್ನು ತರಲಿದೆ. ಪ್ರಸ್ತುತ ಸಮಯವು ಪವಿತ್ರ ತೀರ್ಥಕ್ಷೇತ್ರ ದರ್ಶನ ಹಾಗೂ ಗೋಕರ್ಣ ಪಂಚಾಂಗದ ಶುಭ ದಿನಗಳಲ್ಲಿ ಪೂಜೆ ನೆರವೇರಿಸುವುದರಿಂದ ಅಖಂಡ ಧರ್ಮ ಸಿದ್ಧಿಯಾಗಲಿದೆ.
+              <div style={{ fontSize: "12px", lineHeight: "1.65", color: "#3F2A12", textAlign: "justify", marginTop: "8px", borderTop: "1px solid #FDE68A", paddingTop: "8px" }}>
+                🌿 ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಅನುಕೂಲಕರ ಗೋಚಾರ ಸಂಚಾರ ಹಾಗೂ ನವಮ ಶುಭ ದೃಷ್ಟಿಯು ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಆಶಾಭಾವನೆ, ಅಪಾರ ಧನ ಆಗಮನ ಹಾಗೂ ಗೃಹದಲ್ಲಿ ಸಾಂಸಾರಿಕ ಸಂತೋಷವನ್ನು ಹೆಚ್ಚಿಸಲಿದೆ. ಕುಟುಂಬದಲ್ಲಿ ಶುಭ ಮಂಗಳ ಕಾರ್ಯಗಳ ಆಯೋಜನೆ, ನೂತನ ಆಸ್ತಿ ಸಿದ್ಧಿ ಹಾಗೂ ಸಂತಾನ ಶ್ರೇಯಸ್ಸಿಗೆ ಅತ್ಯಂತ ಪೂರಕ ವಾತಾವರಣ ನಿರ್ಮಾಣಗೊಳ್ಳಲಿದೆ. ಪ್ರಸ್ತುತ ಸಮಯವು ಶ್ರೀ ಗೋಕರ್ಣ ಪಂಚಾಂಗದ ಪವಿತ್ರ ಮುಹೂರ್ತಗಳಲ್ಲಿ ದೇವತಾ ಸೇವೆಗಳನ್ನು ನೆರವೇರಿಸಲು ಅತ್ಯಂತ ಶ್ರೇಷ್ಠವಾಗಿದ್ದು, ಸಕಲ ಕಾರ್ಯಗಳಲ್ಲೂ ವಿಜಯಪ್ರದವಾದ ಶುಭ ಫಲಗಳು ಲಭಿಸಲಿವೆ.
               </div>
             </div>
           </div>
