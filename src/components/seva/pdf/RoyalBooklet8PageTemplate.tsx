@@ -1092,7 +1092,7 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
           PAGE 6: 100% NEXT 8 MONTHS (240 DAYS) ROADMAP (2 COLUMNS x 4 ROWS)
          ───────────────────────────────────────────────────────────── */}
       <div className="pdf-page" style={pageStyle}>
-        <div style={{ ...frameStyle, gap: "7px", padding: "16px" }}>
+        <div style={{ ...frameStyle, gap: "6px", padding: "16px" }}>
           {/* Header Box */}
           <div style={{
             textAlign: "center",
@@ -1102,10 +1102,10 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
             padding: "6px 12px",
             boxShadow: "0 2px 5px rgba(180, 83, 9, 0.05)"
           }}>
-            <div style={{ fontSize: "16.5px", fontWeight: 800, color: "#78350F", lineHeight: "1.2" }}>
+            <div style={{ fontSize: "17px", fontWeight: 800, color: "#78350F", lineHeight: "1.2" }}>
               ಅಧ್ಯಾಯ ೫: ಮುಂಬರುವ ೮ ತಿಂಗಳುಗಳ (೨೪೦ ದಿನಗಳು) ಸಮಗ್ರ ಜ್ಯೋತಿಷ್ಯ ಕಾರ್ಯಾಚರಣೆ ರೋಡ್‌ಮ್ಯಾಪ್
             </div>
-            <div style={{ fontSize: "10.5px", color: "#B45309", fontWeight: 600, marginTop: "2px" }}>
+            <div style={{ fontSize: "11px", color: "#B45309", fontWeight: 600, marginTop: "2px" }}>
               📜 ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿ, ಪ್ರಸ್ತುತ ಗೋಚಾರ ಗ್ರಹ ಬಲ ಹಾಗೂ ದಶಾ-ಅಂತರ್ದಶಾ ಆಧಾರಿತ ಮುಂಬರುವ ೮ ತಿಂಗಳ ನಿಖರ ಜ್ಯೋತಿಷ್ಯ ಮಾರ್ಗದರ್ಶನ
             </div>
           </div>
@@ -1122,7 +1122,7 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
             gap: "8px"
           }}>
             <div style={{ fontSize: "18px" }}>⚡</div>
-            <div style={{ fontSize: "10.5px", color: "#991B1B", lineHeight: "1.35" }}>
+            <div style={{ fontSize: "11px", color: "#991B1B", lineHeight: "1.35" }}>
               <strong style={{ color: "#7F1D1D" }}>ವಿಶೇಷ ಗೋಚಾರ & ದಶಾ ಸಂಧಿ ಜಾಗೃತಿ (೨೦೨೬-೨೦೨᱗):</strong> ಶನಿ ಅಂತರ್ದಶೆಯಿಂದ ಬುಧ ಅಂತರ್ದಶೆಗೆ ಪಾದಾರ್ಪಣೆ ಹಾಗೂ ಗೋಚಾರ ಬದಲಾವಣೆ ಕಾಲದಲ್ಲಿ ಮುಖ್ಯ ಆರ್ಥಿಕ ಒಪ್ಪಂದಗಳಲ್ಲಿ ತಾಳ್ಮೆ ವಹಿಸಿ, ಶ್ರೀ ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಪಠಿಸಿ.
             </div>
           </div>
@@ -1131,12 +1131,12 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "7px" }}>
             {/* Month 1 */}
             <div style={{ background: "#FFFFFF", border: "1.5px solid #FCD34D", borderRadius: "7px", padding: "8px 10px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div style={{ fontSize: "12px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span>🗓️ ೧ ನೇ ತಿಂಗಳು (ಸೆಪ್ಟೆಂಬರ್ ೨೦೨೬)</span>
-                <span style={{ fontSize: "10px", background: "#FEF3C7", border: "1px solid #F59E0B", color: "#92400E", padding: "1px 7px", borderRadius: "6px", fontWeight: 700 }}>ವೃತ್ತಿ ವೃದ್ಧಿ</span>
+                <span style={{ fontSize: "11px", background: "#FEF3C7", border: "1px solid #F59E0B", color: "#92400E", padding: "1px 8px 3px 8px", borderRadius: "6px", fontWeight: 700, display: "inline-flex", alignItems: "center", lineHeight: 1 }}>ವೃತ್ತಿ ವೃದ್ಧಿ</span>
               </div>
-              <div style={{ fontSize: "10.5px", lineHeight: "1.4", color: "#3F2A12" }}>
-                1. <strong style={{ color: "#065F46" }}>ಫಲಾಫಲ:</strong> ಗುರು ದೃಷ್ಟಿ ಬಲದಿಂದ ಕಾಯಕ ಕ್ಷೇತ್ರದಲ್ಲಿ ನೂತನ ಉನ್ನತ ಹುದ್ದೆಯ ಅವಕಾಶ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ. ಸಂಸ್ಥೆಯಲ್ಲಿ ನಿಮ್ಮ ಕಾರ್ಯಕ್ಷಮತೆಗೆ ಹಿರಿಯ ಅಧಿಕಾರಿಗಳಿಂದ ಪೂರ್ಣ ಮೆಚ್ಚುಗೆ ಹಾಗೂ ಕೃತಜ್ಞತೆ ಲಭ್ಯ.<br/>
+              <div style={{ fontSize: "11.5px", lineHeight: "1.45", color: "#3F2A12" }}>
+                1. <strong style={{ color: "#065F46" }}>ಫಲಾಫಲ:</strong> ಗುರು ದೃಷ್ಟಿ ಬಲದಿಂದ ಕಾಯಕ ಕ್ಷೇತ್ರದಲ್ಲಿ ನೂತನ ಉನ್ನತ ಹುದ್ದೆಯ ಅವಕಾಶ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ. ಸಂಸ್ಥೆಯಲ್ಲಿ ನಿಮ್ಮ ಕಾರ್ಯಕ್ಷಮತೆಗೆ ಹಿರಿಯ ಅಧಿಕಾರಿಗಳಿಂದ ಪೂರ್ಣ ಮೆಚ್ಚುಗೆ ಲಭ್ಯ.<br/>
                 2. <strong style={{ color: "#92400E" }}>ಆರ್ಥಿಕ:</strong> ವೃತ್ತಿಪರ ನಾಯಕತ್ವಕ್ಕೆ ಪೂರ್ಣ ಬೆಂಬಲ ಲಭ್ಯವಾಗಿ ಆರ್ಥಿಕ ಶ್ರೇಯಸ್ಸು ಉಂಟಾಗಲಿದೆ.<br/>
                 3. <strong style={{ color: "#D97706" }}>ಸವಾಲು:</strong> ಅಧಿಕ ಕೆಲಸದ ಒತ್ತಡದಿಂದ ವಿಶ್ರಾಂತಿಯ ಕೊರತೆ ಎದುರಾಗಬಹುದು; ಆರೋಗ್ಯ ಗಮನಿಸಿ.<br/>
                 4. <strong style={{ color: "#991B1B" }}>ಮಾರ್ಗದರ್ಶನ:</strong> ಸೂರ್ಯೋದಯಕ್ಕೆ ಅರ್ಘ್ಯ ನೀಡಿ, ಶ್ರೀ ಸೂರ್ಯ ನಮಸ್ಕಾರ ಮಾಡಿ.
@@ -1145,11 +1145,11 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
 
             {/* Month 2 */}
             <div style={{ background: "#ECFDF5", border: "1.5px solid #10B981", borderRadius: "7px", padding: "8px 10px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div style={{ fontSize: "12px", fontWeight: 800, color: "#065F46", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#065F46", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span>🗓️ ೨ ನೇ ತಿಂಗಳು (ಅಕ್ಟೋಬರ್ ೨೦೨೬)</span>
-                <span style={{ fontSize: "10px", background: "#D1FAE5", border: "1px solid #10B981", color: "#065F46", padding: "1px 7px", borderRadius: "6px", fontWeight: 700 }}>ಧನ ಸಮೃದ್ಧಿ</span>
+                <span style={{ fontSize: "11px", background: "#D1FAE5", border: "1px solid #10B981", color: "#065F46", padding: "1px 8px 3px 8px", borderRadius: "6px", fontWeight: 700, display: "inline-flex", alignItems: "center", lineHeight: 1 }}>ಧನ ಸಮೃದ್ಧಿ</span>
               </div>
-              <div style={{ fontSize: "10.5px", lineHeight: "1.4", color: "#064E3B" }}>
+              <div style={{ fontSize: "11.5px", lineHeight: "1.45", color: "#064E3B" }}>
                 1. <strong style={{ color: "#047857" }}>ಫಲಾಫಲ:</strong> ದ್ವಿತೀಯ ಭಾವ ಬಲದಿಂದ ೨೦%+ ಧನ ಲಾಭ ಹಾಗೂ ನೂತನ ಹೂಡಿಕೆಗಳು ಪೂರ್ಣ ಫಲಪ್ರದವಾಗಲಿವೆ. ಬಾಕಿ ಉಳಿದಿದ್ದ ಹಳೆಯ ಧನ ಸಂಗ್ರಹಣೆಯಲ್ಲಿ ಯಶಸ್ಸು ಸಿಗಲಿದೆ.<br/>
                 2. <strong style={{ color: "#065F46" }}>ಆರ್ಥಿಕ:</strong> ಹಣಕಾಸಿನ ಹರಿವು ಸುಗಮವಾಗಿ ಆರ್ಥಿಕ ಭದ್ರತೆ ಪೂರ್ಣ ವೃದ್ಧಿಯಾಗಲಿದೆ.<br/>
                 3. <strong style={{ color: "#D97706" }}>ಸವಾಲು:</strong> ಅನಗತ್ಯ ಖರ್ಚುಗಳ ಮೇಲೆ ನಿಗ್ರಹ ಅಗತ್ಯ; ಹಣಕಾಸಿನ ಶಿಸ್ತು ಕಾಪಾಡಿ.<br/>
@@ -1159,12 +1159,12 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
 
             {/* Month 3 */}
             <div style={{ background: "#F5F3FF", border: "1.5px solid #8B5CF6", borderRadius: "7px", padding: "8px 10px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div style={{ fontSize: "12px", fontWeight: 800, color: "#5B21B6", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#5B21B6", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span>🗓️ ೩ ನೇ ತಿಂಗಳು (ನವೆಂಬರ್ ೨೦೨೬)</span>
-                <span style={{ fontSize: "10px", background: "#EDE9FE", border: "1px solid #8B5CF6", color: "#5B21B6", padding: "1px 7px", borderRadius: "6px", fontWeight: 700 }}>ಕುಟುಂಬ ಸೌಖ್ಯ</span>
+                <span style={{ fontSize: "11px", background: "#EDE9FE", border: "1px solid #8B5CF6", color: "#5B21B6", padding: "1px 8px 3px 8px", borderRadius: "6px", fontWeight: 700, display: "inline-flex", alignItems: "center", lineHeight: 1 }}>ಕುಟುಂಬ ಸೌಖ್ಯ</span>
               </div>
-              <div style={{ fontSize: "10.5px", lineHeight: "1.4", color: "#4C1D95" }}>
-                1. <strong style={{ color: "#5B21B6" }}>ಫಲಾಫಲ:</strong> ಗೃಹದಲ್ಲಿ ಮಂಗಳ ಕಾರ್ಯಗಳ ಶುಭ ಯೋಜನೆ ಹಾಗೂ ಬಂಧುಮಿತ್ರರ ನಿಕಟ ಸಮಾಗಮ ಯೋಗ. ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿ ಪರಸ್ಪರ ನಂಬಿಕೆ ಹಾಗೂ ಕುಟುಂಬದಲ್ಲಿ ಸುಖ-ಶಾಂತಿ ನೆಲೆಸಲಿದೆ.<br/>
+              <div style={{ fontSize: "11.5px", lineHeight: "1.45", color: "#4C1D95" }}>
+                1. <strong style={{ color: "#5B21B6" }}>ಫಲಾಫಲ:</strong> ಗೃಹದಲ್ಲಿ ಮಂಗಳ ಕಾರ್ಯಗಳ ಶುಭ ಯೋಜನೆ ಹಾಗೂ ಬಂಧುಮಿತ್ರರ ನಿಕಟ ಸಮಾಗಮ ಯೋಗ. ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿ ಪರಸ್ಪರ ನಂಬಿಕೆ ಹಾಗೂ ಸುಖ-ಶಾಂತಿ ನೆಲೆಸಲಿದೆ.<br/>
                 2. <strong style={{ color: "#6D28D9" }}>ಸಂಬಂಧ:</strong> ಕುಟುಂಬದ ಎಲ್ಲಾ ಸದಸ್ಯರ ಸಹಕಾರ ಸಿಕ್ಕು ನೆಮ್ಮದಿಯ ವಾತಾವರಣ ಸೃಷ್ಟಿಯಾಗಲಿದೆ.<br/>
                 3. <strong style={{ color: "#D97706" }}>ಸವಾಲು:</strong> ಸಣ್ಣ ಭಿನ್ನಾಭಿಪ್ರಾಯಗಳನ್ನು ಪ್ರೀತಿ ಹಾಗೂ ತಾಳ್ಮೆಯಿಂದ ಬಗೆಹರಿಸಿ.<br/>
                 4. <strong style={{ color: "#991B1B" }}>ಮಾರ್ಗದರ್ಶನ:</strong> ಕುಲದೇವತಾ ಪ್ರಾರ್ಥನೆ ಹಾಗೂ ಕುಟುಂಬ ಸಮೇತ ತೀರ್ಥ ದರ್ಶನ ಮಾಡಿ.
@@ -1173,11 +1173,11 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
 
             {/* Month 4 */}
             <div style={{ background: "#FFFFFF", border: "1.5px solid #FCD34D", borderRadius: "7px", padding: "8px 10px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div style={{ fontSize: "12px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span>🗓️ ೪ ನೇ ತಿಂಗಳು (ಡಿಸೆಂಬರ್ ೨೦೨೬)</span>
-                <span style={{ fontSize: "10px", background: "#FEF3C7", border: "1px solid #F59E0B", color: "#92400E", padding: "1px 7px", borderRadius: "6px", fontWeight: 700 }}>ಆಸ್ತಿ & ವಾಹನ</span>
+                <span style={{ fontSize: "11px", background: "#FEF3C7", border: "1px solid #F59E0B", color: "#92400E", padding: "1px 8px 3px 8px", borderRadius: "6px", fontWeight: 700, display: "inline-flex", alignItems: "center", lineHeight: 1 }}>ಆಸ್ತಿ & ವಾಹನ</span>
               </div>
-              <div style={{ fontSize: "10.5px", lineHeight: "1.4", color: "#3F2A12" }}>
+              <div style={{ fontSize: "11.5px", lineHeight: "1.45", color: "#3F2A12" }}>
                 1. <strong style={{ color: "#065F46" }}>ಫಲಾಫಲ:</strong> ಚತುರ್ಥ ಸ್ಥಾನದ ಬಲದಿಂದ ಭೂಮಿ ಹಾಗೂ ಸ್ಥಿರಾಸ್ತಿ ವ್ಯವಹಾರಗಳಲ್ಲಿ ಅಂತಿಮ ಯಶಸ್ಸು ಪ್ರಾಪ್ತಿ. ನೂತನ ವಾಹನ ಅಥವಾ ಗೃಹೋಪಕರಣಗಳ ಖರೀದಿ ಯೋಗ ಸಿದ್ಧಿಸಲಿದೆ.<br/>
                 2. <strong style={{ color: "#92400E" }}>ಸಂಪತ್ತು:</strong> ಸ್ಥಿರಾಸ್ತಿಯ ಮೌಲ್ಯ ಹೆಚ್ಚಿ ಕುಟುಂಬದಲ್ಲಿ ಸಂತಸ ಉಂಟಾಗಲಿದೆ.<br/>
                 3. <strong style={{ color: "#D97706" }}>ಸವಾಲು:</strong> സ്വത്തു ನೋಂದಣಿ ಪತ್ರಗಳನ್ನು ಪರಿಶೀಲಿಸಿ ನಿರ್ಧಾರ ತಗೆದುಕೊಳ್ಳಿ.<br/>
@@ -1187,12 +1187,12 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
 
             {/* Month 5 (CAUTION / RED MONTH) */}
             <div style={{ background: "#FEF2F2", border: "1.5px solid #EF4444", borderRadius: "7px", padding: "8px 10px", boxShadow: "0 1px 3px rgba(239, 68, 68, 0.08)" }}>
-              <div style={{ fontSize: "12px", fontWeight: 800, color: "#991B1B", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#991B1B", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span>🗓️ ೫ ನೇ ತಿಂಗಳು (ಜನವರಿ ೨೦೨೭)</span>
-                <span style={{ fontSize: "10px", background: "#FEE2E2", border: "1px solid #EF4444", color: "#991B1B", padding: "1px 7px", borderRadius: "6px", fontWeight: 800 }}>⚠️ ಭುಕ್ತಿ ಸಂಧಿ - ಜಾಗೃತಿ</span>
+                <span style={{ fontSize: "11px", background: "#FEE2E2", border: "1px solid #EF4444", color: "#991B1B", padding: "1px 8px 3px 8px", borderRadius: "6px", fontWeight: 800, display: "inline-flex", alignItems: "center", lineHeight: 1 }}>⚠️ ಭುಕ್ತಿ ಸಂಧಿ - ಜಾಗೃತಿ</span>
               </div>
-              <div style={{ fontSize: "10.5px", lineHeight: "1.4", color: "#7F1D1D" }}>
-                1. <strong style={{ color: "#991B1B" }}>ಫಲಾಫಲ:</strong> ಶನಿ-ಬುಧ ಭುಕ್ತಿ ಸಂಧಿಯ ಕಾಲ; ಹೊಸ ಯೋಜನೆಗಳಿಗೆ ಸೂಕ್ತ ತಯಾರಿ ಹಾಗೂ ವಿವೇಕ ಅಗತ್ಯ. ಆತುರದ ನಿರ್ಧಾರಗಳನ್ನು ಸಂಪೂರ್ಣ ತಪ್ಪಿಸಿ ತಾಳ್ಮೆಯಿಂದ ಕರ್ತವ್ಯ ನಿರ್ವಹಿಸಿ.<br/>
+              <div style={{ fontSize: "11.5px", lineHeight: "1.45", color: "#7F1D1D" }}>
+                1. <strong style={{ color: "#991B1B" }}>ಫಲಾಫಲ:</strong> ಶನಿ-ಬುಧ ಭುಕ್ತಿ ಸಂಧಿಯ ಕಾಲ; ಹೊಸ ಯೋಜನೆಗಳಿಗೆ ಸೂಕ್ತ ತಯಾರಿ ಹಾಗೂ ವಿವೇಕ ಅಗತ್ಯ. ಆತುರದ ನಿರ್ಧಾರಗಳನ್ನು ಸಂಪೂರ್ಣ ತಪ್ಪಿಸಿ ತಾಳ್ಮೆಯಿಂದ ಇರಿ.<br/>
                 2. <strong style={{ color: "#7F1D1D" }}>ಉದ್ಯೋಗ:</strong> ಉದ್ಯೋಗ ಕ್ಷೇತ್ರದಲ್ಲಿ ಸ್ಥಿರತೆ ಕಾಯ್ದುಕೊಳ್ಳಲು ಸಂಯಮ ಅತ್ಯಗತ್ಯ.<br/>
                 3. <strong style={{ color: "#B91C1C" }}>ಸವಾಲು:</strong> ಮಾನಸಿಕ ಚಾಂಚಲ್ಯ ಹಾಗೂ ಸಣ್ಣ ವೈಚಾರಿಕ್ ಗೊಂದಲ ಎದುರಾಗಬಹುದು.<br/>
                 4. <strong style={{ color: "#991B1B" }}>ಮಾರ್ಗದರ್ಶನ:</strong> ಬುಧವಾರ ಶ್ರೀ ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಪಠಿಸಿ, ಹಸಿರು ಬೇಳೆ ದಾನ ಮಾಡಿ.
@@ -1201,11 +1201,11 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
 
             {/* Month 6 */}
             <div style={{ background: "#ECFDF5", border: "1.5px solid #10B981", borderRadius: "7px", padding: "8px 10px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div style={{ fontSize: "12px", fontWeight: 800, color: "#065F46", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#065F46", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span>🗓️ ೬ ನೇ ತಿಂಗಳು (ಫೆಬ್ರವರಿ ೨೦೨೭)</span>
-                <span style={{ fontSize: "10px", background: "#D1FAE5", border: "1px solid #10B981", color: "#065F46", padding: "1px 7px", borderRadius: "6px", fontWeight: 700 }}>ರಾಜಯೋಗ ಬಲ</span>
+                <span style={{ fontSize: "11px", background: "#D1FAE5", border: "1px solid #10B981", color: "#065F46", padding: "1px 8px 3px 8px", borderRadius: "6px", fontWeight: 700, display: "inline-flex", alignItems: "center", lineHeight: 1 }}>ರಾಜಯೋಗ ಬಲ</span>
               </div>
-              <div style={{ fontSize: "10.5px", lineHeight: "1.4", color: "#064E3B" }}>
+              <div style={{ fontSize: "11.5px", lineHeight: "1.45", color: "#064E3B" }}>
                 1. <strong style={{ color: "#065F46" }}>ಫಲಾಫಲ:</strong> ಬುಧ ಅಂತರ್ದಶೆಯ ಪೂರ್ಣ ಶುಭಾರಂಭ; ಬೌದ್ಧಿಕ ತೇಜಸ್ಸು ಹಾಗೂ ವಾಗ್ಬಲ ಪೂರ್ಣ ವೃದ್ಧಿ. ನೂತನ ಉದ್ಯೋಗ ಪ್ರಮೋಷನ್, ಸಂಬಳ ಏರಿಕೆ ಹಾಗೂ ವ್ಯಾಪಾರ ಶ್ರೇಯಸ್ಸು.<br/>
                 2. <strong style={{ color: "#047857" }}>ಉದ್ಯೋಗ:</strong> ಕಾಯಕ ಕ್ಷೇತ್ರದಲ್ಲಿ ನಿಮ್ಮ ಕಾರ್ಯಕ್ಕೆ ಪೂರ್ಣ ಮಾನ್ಯತೆ ದೊರೆಯಲಿದೆ.<br/>
                 3. <strong style={{ color: "#D97706" }}>ಸವಾಲು:</strong> ಹೆಚ್ಚುವರಿ ಜವಾಬ್ದಾರಿಗಳನ್ನು ಯೋಜನಾಬದ್ಧವಾಗಿ ನಿರ್ವಹಿಸಿ.<br/>
@@ -1215,11 +1215,11 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
 
             {/* Month 7 */}
             <div style={{ background: "#EFF6FF", border: "1.5px solid #3B82F6", borderRadius: "7px", padding: "8px 10px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div style={{ fontSize: "12px", fontWeight: 800, color: "#1E40AF", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#1E40AF", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span>🗓️ ೭ ನೇ ತಿಂಗಳು (ಮಾರ್ಚ್ ೨೦೨೭)</span>
-                <span style={{ fontSize: "10px", background: "#DBEAFE", border: "1px solid #3B82F6", color: "#1E40AF", padding: "1px 7px", borderRadius: "6px", fontWeight: 700 }}>ವಿದ್ಯಾ & ಬೌದ್ಧಿಕ</span>
+                <span style={{ fontSize: "11px", background: "#DBEAFE", border: "1px solid #3B82F6", color: "#1E40AF", padding: "1px 8px 3px 8px", borderRadius: "6px", fontWeight: 700, display: "inline-flex", alignItems: "center", lineHeight: 1 }}>ವಿದ್ಯಾ & ಬೌದ್ಧಿಕ</span>
               </div>
-              <div style={{ fontSize: "10.5px", lineHeight: "1.4", color: "#1E3A8A" }}>
+              <div style={{ fontSize: "11.5px", lineHeight: "1.45", color: "#1E3A8A" }}>
                 1. <strong style={{ color: "#1E40AF" }}>ಫಲಾಫಲ:</strong> ಪಂಚಮ ಸ್ಥಾನದ ಶುಭ ದೃಷ್ಟಿಯಿಂದ ನಿರ್ಧಾರಗಳಲ್ಲಿ ನಿಖರತೆ ಹಾಗೂ ಜ್ಞಾನ ವೃದ್ಧಿ. ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆ, ಸಂಶೋಧನೆ ಹಾಗೂ ಪ್ರಮುಖ ಪ್ರಾಜೆಕ್ಟ್‌ಗಳಲ್ಲಿ ಯಶಸ್ಸು.<br/>
                 2. <strong style={{ color: "#1D4ED8" }}>ಸಾಧನೆ:</strong> ಶೈಕ್ಷಣಿಕ ಹಾಗೂ ಬೌದ್ಧಿಕ ರಂಗದಲ್ಲಿ ನಿಮ್ಮ ಹೆಸರು ಬೆಳಗಲಿದೆ.<br/>
                 3. <strong style={{ color: "#D97706" }}>ಸವಾಲು:</strong> ಏಕಾಗ್ರತೆ ಕಾಯ್ದುಕೊಳ್ಳಲು ದಿನನಿತ್ಯದ ವೇಳಾಪಟ್ಟಿ ಪಾಲಿಸಿ.<br/>
@@ -1229,11 +1229,11 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
 
             {/* Month 8 (CAUTION / AMBER MONTH) */}
             <div style={{ background: "#FFFBEB", border: "1.5px solid #F59E0B", borderRadius: "7px", padding: "8px 10px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div style={{ fontSize: "12px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span>🗓️ ೮ ನೇ ತಿಂಗಳು (ಏಪ್ರಿಲ್ ೨೦೨೭)</span>
-                <span style={{ fontSize: "10px", background: "#FEF3C7", border: "1px solid #F59E0B", color: "#92400E", padding: "1px 7px", borderRadius: "6px", fontWeight: 700 }}>⚡ ಶತ್ರು ಜಯ & ರಕ್ಷಣೆ</span>
+                <span style={{ fontSize: "11px", background: "#FEF3C7", border: "1px solid #F59E0B", color: "#92400E", padding: "1px 8px 3px 8px", borderRadius: "6px", fontWeight: 700, display: "inline-flex", alignItems: "center", lineHeight: 1 }}>⚡ ಶತ್ರು ಜಯ & ರಕ್ಷಣೆ</span>
               </div>
-              <div style={{ fontSize: "10.5px", lineHeight: "1.4", color: "#3F2A12" }}>
+              <div style={{ fontSize: "11.5px", lineHeight: "1.45", color: "#3F2A12" }}>
                 1. <strong style={{ color: "#047857" }}>ಫಲಾಫಲ:</strong> ಷಷ್ಠ ಭಾವ ಜಯದಿಂದ ದೀರ್ಘಕಾಲದ ಆರೋಗ್ಯ ಸಮಸ್ಯೆಗಳಲ್ಲಿ ಗಮನಾರ್ಹ ಚೇತರಿಕೆ. ಹಳೆಯ ಸಾಲಗಳ ಪರಿಣಾಮಕಾರಿ ನಿವಾರಣೆ ಹಾಗೂ ಎದುರಾಳಿಗಳ ಶಮನವಾಗಲಿದೆ.<br/>
                 2. <strong style={{ color: "#92400E" }}>ಆರ್ಥಿಕ:</strong> ಹಳೆಯ ಬಾಕಿ ಸಾಲಗಳು ಮುಕ್ತಾಯವಾಗಿ ಆರ್ಥಿಕ ನಿರಾಳತೆ ದೊರೆಯಲಿದೆ.<br/>
                 3. <strong style={{ color: "#D97706" }}>ಸವಾಲು:</strong> ಸಣ್ಣಪುಟ್ಟ ಕಾಯಾಲೆಯಿಂದ ಪಾರಾಗಲು ಸೂಕ್ತ ಆಹಾರ ನಿಯಮ ಪಾಲಿಸಿ.<br/>
