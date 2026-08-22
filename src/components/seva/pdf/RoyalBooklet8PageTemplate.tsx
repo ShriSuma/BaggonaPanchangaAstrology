@@ -1102,57 +1102,138 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
             padding: "6px 12px",
             boxShadow: "0 2px 5px rgba(180, 83, 9, 0.05)"
           }}>
-            <div style={{ fontSize: "19px", fontWeight: 800, color: "#78350F", lineHeight: "1.3" }}>
-              ಅಧ್ಯಾಯ ೫: ದಾಂಪತ್ಯ, ಸಂತಾನ, ಧನ ಯೋಗ ಹಾಗೂ ಮುಂಬರುವ ೩ ತಿಂಗಳ ರೋಡ್‌ಮ್ಯಾಪ್
+            <div style={{ fontSize: "18.5px", fontWeight: 800, color: "#78350F", lineHeight: "1.3" }}>
+              ಅಧ್ಯಾಯ ೫: ಮುಂಬರುವ ೬ ತಿಂಗಳುಗಳ ನಿಖರ ಕಾರ್ಯಾಚರಣೆ ರೋಡ್‌ಮ್ಯಾಪ್
             </div>
-            <div style={{ fontSize: "11px", color: "#B45309", fontWeight: 600, marginTop: "2px" }}>
-              📜 ನಿಮ್ಮ ಕುಟುಂಬ ವೃದ್ಧಿ, ಐಶ್ವರ್ಯ ಯೋಗ ಹಾಗೂ ಮುಂಬರುವ ೯೦ ದಿನಗಳ ಕಾರ್ಯಾಚರಣೆಯ ಸ್ಪಷ್ಟ ಜ್ಯೋತಿಷ್ಯ ಮಾರ್ಗದರ್ಶನ
+            <div style={{ fontSize: "11.5px", color: "#B45309", fontWeight: 600, marginTop: "2px" }}>
+              📜 ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿ, ಪ್ರಸ್ತುತ ಗೋಚಾರ ಗ್ರಹ ಬಲ ಹಾಗೂ ದಶಾ-ಅಂತರ್ದಶಾ ಆಧಾರಿತ ಮುಂಬರುವ ೬ ತಿಂಗಳ ಸ್ಪಷ್ಟ ತಿಂಗಳವಾರು ಮಾರ್ಗದರ್ಶನ
             </div>
           </div>
 
-          {/* Content Stack */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            <div style={{ background: "#F5F3FF", border: "1.5px solid #8B5CF6", borderRadius: "8px", padding: "8px 12px" }}>
-              <div style={{ fontSize: "13px", fontWeight: 800, color: "#5B21B6", marginBottom: "4px" }}>
-                💒 ವಿವಾಹ & ದಾಂಪತ್ಯ ಸೌಭಾಗ್ಯ (Marriage & Domestic Harmony):
+          {/* Special Sandhi / Transition Alert Banner */}
+          <div style={{
+            background: "#FEF2F2",
+            border: "1.5px solid #EF4444",
+            borderRadius: "8px",
+            padding: "7px 12px",
+            boxShadow: "0 2px 5px rgba(239, 68, 68, 0.05)",
+            display: "flex",
+            alignItems: "center",
+            gap: "10px"
+          }}>
+            <div style={{ fontSize: "20px" }}>⚠️</div>
+            <div style={{ fontSize: "11.5px", color: "#991B1B", lineHeight: "1.4" }}>
+              <strong style={{ color: "#7F1D1D" }}>ವಿಶೇಷ ಗೋಚಾರ & ಭುಕ್ತಿ ಸಂಧಿ ಜಾಗೃತಿ (ಜನವರಿ ೨೦೨೭):</strong> ಶನಿ ಅಂತರ್ದಶೆಯಿಂದ ಬುಧ ಅಂತರ್ದಶೆಗೆ ಪಾದಾರ್ಪಣೆ ಮಾಡುವ ೫ನೇ ತಿಂಗಳ ಸಂಧಿ ಕಾಲದಲ್ಲಿ ಮುಖ್ಯ ಆರ್ಥಿಕ ಒಪ್ಪಂದಗಳಲ್ಲಿ ತಾಳ್ಮೆ ವಹಿಸಿ, ಶ್ರೀ ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಪಠಿಸಿ.
+            </div>
+          </div>
+
+          {/* 6-Month Detailed Grid (2 Columns x 3 Rows) */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "9px" }}>
+            {/* Month 1 */}
+            <div style={{
+              background: "#FFFFFF",
+              border: "1.5px solid #FCD34D",
+              borderRadius: "8px",
+              padding: "9px 12px",
+              boxShadow: "0 2px 5px rgba(0, 0, 0, 0.03)"
+            }}>
+              <div style={{ fontSize: "13px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>🗓️ ೧ ನೇ ತಿಂಗಳು (ಸೆಪ್ಟೆಂಬರ್ ೨೦೨೬)</span>
+                <span style={{ fontSize: "10.5px", background: "#FEF3C7", border: "1px solid #F59E0B", color: "#92400E", padding: "1px 8px", borderRadius: "10px", fontWeight: 700 }}>ವೃತ್ತಿ ವೃದ್ಧಿ</span>
               </div>
-              <div style={{ fontSize: "12px", lineHeight: "1.6", color: "#4C1D95", textAlign: "justify" }}>
-                ಸಪ್ತಮ ಭಾವೇಶ ಹಾಗೂ ಶುಕ್ರನ ಶುಭ ಯೋಗದಿಂದ ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿ ಪರಸ್ಪರ ಪ್ರೀತಿ, ಆತ್ಮೀಕ ಹೊಂದಾಣಿಕೆ ಹಾಗೂ ಗೃಹ ಸೌಹಾರ್ದತೆ ನೆಲೆಸಲಿದೆ. ಜೀವನ ಸಂಗತಿಯಿಂದ ಅಚಾನಕ್ ಸಹಕಾರ ಹಾಗೂ ಗೃಹದಲ್ಲಿ ಸದಾ ಶಾಂತಿ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ.
+              <div style={{ fontSize: "11.5px", lineHeight: "1.5", color: "#3F2A12" }}>
+                <strong style={{ color: "#065F46" }}>ಫಲಾಫಲ:</strong> ಗುರು ದೃಷ್ಟಿ ಬಲದಿಂದ ಕಾಯಕ ಕ್ಷೇತ್ರದಲ್ಲಿ ನೂತನ ಅವಕಾಶ, ಹಿರಿಯ ಅಧಿಕಾರಿಗಳಿಂದ ಮೆಚ್ಚುಗೆ ಹಾಗೂ ಕಾರ್ಯ ಯಶಸ್ಸು.<br/>
+                <strong style={{ color: "#991B1B" }}>ಮಾರ್ಗದರ್ಶನ:</strong> ಸೂರ್ಯೋದಯಕ್ಕೆ ಅರ್ಘ್ಯ ನೀಡಿ, ನೂತನ ಯೋಜನೆಗೆ ಚಾಲನೆ ನೀಡಿ.
               </div>
             </div>
 
-            <div style={{ background: "#ECFDF5", border: "1.5px solid #10B981", borderRadius: "8px", padding: "8px 12px" }}>
-              <div style={{ fontSize: "13px", fontWeight: 800, color: "#065F46", marginBottom: "4px" }}>
-                👶 ಸಂತಾನ ಭಾಗ್ಯ & ವಿದ್ಯಾ ಯಶಸ್ಸು (Progeny Potential & Education):
+            {/* Month 2 */}
+            <div style={{
+              background: "#FFFFFF",
+              border: "1.5px solid #FCD34D",
+              borderRadius: "8px",
+              padding: "9px 12px",
+              boxShadow: "0 2px 5px rgba(0, 0, 0, 0.03)"
+            }}>
+              <div style={{ fontSize: "13px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>🗓️ ೨ ನೇ ತಿಂಗಳು (ಅಕ್ಟೋಬರ್ ೨೦೨೬)</span>
+                <span style={{ fontSize: "10.5px", background: "#ECFDF5", border: "1px solid #10B981", color: "#065F46", padding: "1px 8px", borderRadius: "10px", fontWeight: 700 }}>ಧನ ಸಮೃದ್ಧಿ</span>
               </div>
-              <div style={{ fontSize: "12px", lineHeight: "1.6", color: "#064E3B", textAlign: "justify" }}>
-                ಪಂಚಮ ಭಾವೇಶ ಹಾಗೂ ಗುರು ಬೃಹಸ್ಪತಿಯ ಉಚ್ಚ ಅನುಗ್ರಹದಿಂದ ತೇಜಸ್ವಿ ಸಂತಾನ ಭಾಗ್ಯ ಹಾಗೂ ವಿದ್ಯಾಭ್ಯಾಸದಲ್ಲಿ ಉನ್ನತ ಯಶಸ್ಸು ಲಭಿಸಲಿದೆ. ಸಂತಾನದ ಬೆಳವಣಿಗೆಯಿಂದ ಕುಟುಂಬಕ್ಕೆ ಕೀರ್ತಿ ಹಾಗೂ ಸಂತೋಷ ಹೆಚ್ಚಾಗಲಿದೆ.
+              <div style={{ fontSize: "11.5px", lineHeight: "1.5", color: "#3F2A12" }}>
+                <strong style={{ color: "#047857" }}>ಫಲಾಫಲ:</strong> ದ್ವಿತೀಯ ಭಾವ ಬಲದಿಂದ ಶೇಕಡ ೨೦%+ ಧನ ಲಾಭ, ಆರ್ಥಿಕ ಸ್ಥಿರತೆ ಹಾಗೂ ಬಾಕಿ ಧನ ಸಂಗ್ರಹಣೆ ಯಶಸ್ವಿ.<br/>
+                <strong style={{ color: "#991B1B" }}>ಮಾರ್ಗದರ್ಶನ:</strong> ಶುಕ್ರವಾರ ಶ್ರೀ ಮಹಾಲಕ್ಷ್ಮಿ ಪೂಜೆ ಮಾಡಿ, ಹೂಡಿಕೆಯಲ್ಲಿ ವಿವೇಕ ವಹಿಸಿ.
               </div>
             </div>
 
-            <div style={{ background: "#ECFDF5", border: "1.5px solid #10B981", borderRadius: "8px", padding: "8px 12px" }}>
-              <div style={{ fontSize: "13px", fontWeight: 800, color: "#047857", marginBottom: "4px" }}>
-                💰 ಧನ & ಸ್ಥಿರಾಸ್ತಿ ಸೌಭಾಗ್ಯ (Wealth, Real Estate & Assets):
+            {/* Month 3 */}
+            <div style={{
+              background: "#FFFFFF",
+              border: "1.5px solid #FCD34D",
+              borderRadius: "8px",
+              padding: "9px 12px",
+              boxShadow: "0 2px 5px rgba(0, 0, 0, 0.03)"
+            }}>
+              <div style={{ fontSize: "13px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>🗓️ ೩ ನೇ ತಿಂಗಳು (ನವೆಂಬರ್ ೨೦೨೬)</span>
+                <span style={{ fontSize: "10.5px", background: "#F5F3FF", border: "1px solid #8B5CF6", color: "#5B21B6", padding: "1px 8px", borderRadius: "10px", fontWeight: 700 }}>ಕುಟುಂಬ ಸೌಖ್ಯ</span>
               </div>
-              <div style={{ fontSize: "12px", lineHeight: "1.6", color: "#064E3B", textAlign: "justify" }}>
-                ದ್ವಿತೀಯ ಹಾಗೂ ಏಕಾದಶ ಭಾವೇಶರ ಬಲದಿಂದ ಗೃಹ ನಿರ್ಮಾಣ, ನೂತನ ವಾಹನ ಖರೀದಿ ಹಾಗೂ ಹೂಡಿಕೆಗಳಲ್ಲಿ ಅಪಾರ ಧನ ಲಾಭ ಎದುರಾಗಲಿದೆ. ಕುಟುಂಬದ ಆರ್ಥಿಕ ಸ್ಥಿತಿ ಅತ್ಯಂತ ಭದ್ರವಾಗಲಿದೆ.
+              <div style={{ fontSize: "11.5px", lineHeight: "1.5", color: "#3F2A12" }}>
+                <strong style={{ color: "#5B21B6" }}>ಫಲಾಫಲ:</strong> ಗೃಹದಲ್ಲಿ ಮಂಗಳ ಕಾರ್ಯಗಳ ಯೋಜನೆ, ಬಂಧುಗಳ ಶುಭ ಸಮಾಗಮ ಹಾಗೂ ದಾಂಪತ್ಯ ಸೌಹಾರ್ದತೆ.<br/>
+                <strong style={{ color: "#991B1B" }}>ಮಾರ್ಗದರ್ಶನ:</strong> ಕುಲದೇವತಾ ದರ್ಶನ ಹಾಗೂ ಗೃಹದಲ್ಲಿ ಧಾರ್ಮಿಕ ಪ್ರಾರ್ಥನೆ.
               </div>
             </div>
 
-            <div style={{ background: "#FFFBEB", border: "1.5px solid #D97706", borderRadius: "8px", padding: "8px 12px" }}>
-              <div style={{ fontSize: "13px", fontWeight: 800, color: "#78350F", marginBottom: "6px" }}>
-                🗓️ ಮುಂಬರುವ ೩ ತಿಂಗಳ ಸ್ಪಷ್ಟ ಕಾರ್ಯಾಚರಣೆ ರೋಡ್‌ಮ್ಯಾಪ್ (Next 90 Days Roadmap):
+            {/* Month 4 */}
+            <div style={{
+              background: "#FFFFFF",
+              border: "1.5px solid #FCD34D",
+              borderRadius: "8px",
+              padding: "9px 12px",
+              boxShadow: "0 2px 5px rgba(0, 0, 0, 0.03)"
+            }}>
+              <div style={{ fontSize: "13px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>🗓️ ೪ ನೇ ತಿಂಗಳು (ಡಿಸೆಂಬರ್ ೨೦೨೬)</span>
+                <span style={{ fontSize: "10.5px", background: "#FEF3C7", border: "1px solid #F59E0B", color: "#92400E", padding: "1px 8px", borderRadius: "10px", fontWeight: 700 }}>ಆಸ್ತಿ & ವಾಹನ</span>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "6px", fontSize: "11.5px", lineHeight: "1.5" }}>
-                <div style={{ background: "#FEF3C7", padding: "6px 8px", borderRadius: "6px" }}>
-                  <strong style={{ color: "#78350F" }}>🚩 ೧ ನೇ ತಿಂಗಳು:</strong><br/>ನೂತನ ಯೋಜನೆಗಳಿಗೆ ಚಾಲನೆ, ಉದ್ಯೋಗದಲ್ಲಿ ಬಡ್ತಿ ಹಾಗೂ ಧನ ಹರಿವಿನಲ್ಲಿ ಹೆಚ್ಚಿನ ವೃದ್ಧಿ.
-                </div>
-                <div style={{ background: "#FEF3C7", padding: "6px 8px", borderRadius: "6px" }}>
-                  <strong style={{ color: "#78350F" }}>🚀 ೨ ನೇ ತಿಂಗಳು:</strong><br/>ಸ್ಥಿರಾಸ್ತಿ ವ್ಯವಹಾರಗಳಲ್ಲಿ ಯಶಸ್ವಿ ನಿರ್ಧಾರ, ಪ್ರಯಾಣ ಹಾಗೂ ಕುಟುಂಬ ಸೌಹಾರ್ದತೆ.
-                </div>
-                <div style={{ background: "#FEF3C7", padding: "6px 8px", borderRadius: "6px" }}>
-                  <strong style={{ color: "#78350F" }}>🕉️ ೩ ನೇ ತಿಂಗಳು:</strong><br/>ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ದರ್ಶನ, ಧಾರ್ಮಿಕ ಪೂಜೆ ಹಾಗೂ ಗೃಹದಲ್ಲಿ ಅಪಾರ ಸೌಭಾಗ್ಯ.
-                </div>
+              <div style={{ fontSize: "11.5px", lineHeight: "1.5", color: "#3F2A12" }}>
+                <strong style={{ color: "#065F46" }}>ಫಲಾಫಲ:</strong> ಚತುರ್ಥ ಸ್ಥಾನದ ಬಲದಿಂದ ಭೂಮಿ/ಸ್ಥಿರಾಸ್ತಿ ವ್ಯವಹಾರ ಯಶಸ್ಸು ಹಾಗೂ ನೂತನ ವಾಹನ/ಗೃಹೋಪಕರಣ ಖರೀದಿ.<br/>
+                <strong style={{ color: "#991B1B" }}>ಮಾರ್ಗದರ್ಶನ:</strong> ಶನಿವಾರ ಶ್ರೀ ಹನುಮಾನ್ ಚಾಲೀಸಾ ಪಠಿಸಿ, ಬಡವರಿಗೆ ದಾನ ಮಾಡಿ.
+              </div>
+            </div>
+
+            {/* Month 5 */}
+            <div style={{
+              background: "#FFFBEB",
+              border: "1.5px solid #F59E0B",
+              borderRadius: "8px",
+              padding: "9px 12px",
+              boxShadow: "0 2px 5px rgba(245, 158, 11, 0.05)"
+            }}>
+              <div style={{ fontSize: "13px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>🗓️ ೫ ನೇ ತಿಂಗಳು (ಜನವರಿ ೨೦೨೭)</span>
+                <span style={{ fontSize: "10.5px", background: "#FEF3C7", border: "1px solid #D97706", color: "#78350F", padding: "1px 8px", borderRadius: "10px", fontWeight: 800 }}>ಭುಕ್ತಿ ಸಂಧಿ</span>
+              </div>
+              <div style={{ fontSize: "11.5px", lineHeight: "1.5", color: "#3F2A12" }}>
+                <strong style={{ color: "#78350F" }}>ಫಲಾಫಲ:</strong> ಶನಿ-ಬುಧ ಭುಕ್ತಿ ಸಂಧಿಯ ಕಾಲ; ಹೊಸ ಯೋಜನೆಗಳಿಗೆ ಮುನ್ನುಡಿ, ಉದ್ಯೋಗದಲ್ಲಿ ಸ್ಥಿರತೆ ಹಾಗೂ ವಿವೇಕ ಪೂರ್ಣ ನಿರ್ಧಾರ.<br/>
+                <strong style={{ color: "#991B1B" }}>ಮಾರ್ಗದರ್ಶನ:</strong> ಬುಧವಾರ ಶ್ರೀ ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಪಠಿಸಿ, ಹಸಿರು ಬೇಳೆ ದಾನ ಮಾಡಿ.
+              </div>
+            </div>
+
+            {/* Month 6 */}
+            <div style={{
+              background: "#FFFFFF",
+              border: "1.5px solid #FCD34D",
+              borderRadius: "8px",
+              padding: "9px 12px",
+              boxShadow: "0 2px 5px rgba(0, 0, 0, 0.03)"
+            }}>
+              <div style={{ fontSize: "13px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>🗓️ ೬ ನೇ ತಿಂಗಳು (ಫೆಬ್ರವರಿ ೨೦೨೭)</span>
+                <span style={{ fontSize: "10.5px", background: "#ECFDF5", border: "1px solid #10B981", color: "#065F46", padding: "1px 8px", borderRadius: "10px", fontWeight: 700 }}>ರಾಜಯೋಗ ಬಲ</span>
+              </div>
+              <div style={{ fontSize: "11.5px", lineHeight: "1.5", color: "#3F2A12" }}>
+                <strong style={{ color: "#065F46" }}>ಫಲಾಫಲ:</strong> ಬುಧ ಅಂತರ್ದಶೆಯ ಪೂರ್ಣ ಶುಭಾರಂಭ; ಬೌದ್ಧಿಕ ತೇಜಸ್ಸು, ನೂತನ ಉದ್ಯೋಗ ಪ್ರಮೋಷನ್ ಹಾಗೂ ವ್ಯಾಪಾರ ಶ್ರೇಯಸ್ಸು.<br/>
+                <strong style={{ color: "#991B1B" }}>ಮಾರ್ಗದರ್ಶನ:</strong> ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಗೆ ಸಂಕಲ್ಪ ಪೂಜೆ ಸಲ್ಲಿಸಿ.
               </div>
             </div>
           </div>
