@@ -1089,24 +1089,24 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
       </div>
 
       {/* ─────────────────────────────────────────────────────────────
-          PAGE 6: 100% NEXT 12 MONTHS (365 DAYS) ROADMAP (4-LINE DETAILED CARDS)
+          PAGE 6: 100% NEXT 8 MONTHS (240 DAYS) ROADMAP (2 COLUMNS x 4 ROWS)
          ───────────────────────────────────────────────────────────── */}
       <div className="pdf-page" style={pageStyle}>
-        <div style={{ ...frameStyle, gap: "8px" }}>
+        <div style={{ ...frameStyle, gap: "10px" }}>
           {/* Header Box */}
           <div style={{
             textAlign: "center",
             background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
             border: "2px solid #D97706",
             borderRadius: "8px",
-            padding: "6px 12px",
+            padding: "8px 14px",
             boxShadow: "0 2px 5px rgba(180, 83, 9, 0.05)"
           }}>
-            <div style={{ fontSize: "18.5px", fontWeight: 800, color: "#78350F", lineHeight: "1.25" }}>
-              ಅಧ್ಯಾಯ ೫: ಮುಂಬರುವ ೧೨ ತಿಂಗಳುಗಳ (೩೬೫ ದಿನಗಳು) ಸಮಗ್ರ ಜ್ಯೋತಿಷ್ಯ ಕಾರ್ಯಾಚರಣೆ ರೋಡ್‌ಮ್ಯಾಪ್
+            <div style={{ fontSize: "18px", fontWeight: 800, color: "#78350F", lineHeight: "1.25" }}>
+              ಅಧ್ಯಾಯ ೫: ಮುಂಬರುವ ೮ ತಿಂಗಳುಗಳ (೨೪೦ ದಿನಗಳು) ಸಮಗ್ರ ಜ್ಯೋತಿಷ್ಯ ಕಾರ್ಯಾಚರಣೆ ರೋಡ್‌ಮ್ಯಾಪ್
             </div>
-            <div style={{ fontSize: "11.5px", color: "#B45309", fontWeight: 600, marginTop: "2px" }}>
-              📜 ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿ, ಪ್ರಸ್ತುತ ಗೋಚಾರ ಗ್ರಹ ಬಲ ಹಾಗೂ ದಶಾ-ಅಂತರ್ದಶಾ ಆಧಾರಿತ ಮುಂಬರುವ ೧೨ ತಿಂಗಳ ನಿಖರ ಜ್ಯೋತಿಷ್ಯ ಮಾರ್ಗದರ್ಶನ
+            <div style={{ fontSize: "11.5px", color: "#B45309", fontWeight: 600, marginTop: "3px" }}>
+              📜 ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿ, ಪ್ರಸ್ತುತ ಗೋಚಾರ ಗ್ರಹ ಬಲ ಹಾಗೂ ದಶಾ-ಅಂತರ್ದಶಾ ಆಧಾರಿತ ಮುಂಬರುವ ೮ ತಿಂಗಳ ನಿಖರ ಜ್ಯೋತಿಷ್ಯ ಮಾರ್ಗದರ್ಶನ
             </div>
           </div>
 
@@ -1115,185 +1115,129 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
             background: "#FEF2F2",
             border: "1.5px solid #EF4444",
             borderRadius: "8px",
-            padding: "6px 12px",
+            padding: "8px 14px",
             boxShadow: "0 2px 4px rgba(239, 68, 68, 0.05)",
             display: "flex",
             alignItems: "center",
             gap: "10px"
           }}>
-            <div style={{ fontSize: "20px" }}>⚡</div>
-            <div style={{ fontSize: "11px", color: "#991B1B", lineHeight: "1.35" }}>
+            <div style={{ fontSize: "22px" }}>⚡</div>
+            <div style={{ fontSize: "11.5px", color: "#991B1B", lineHeight: "1.4" }}>
               <strong style={{ color: "#7F1D1D" }}>ವಿಶೇಷ ಗೋಚಾರ & ದಶಾ ಸಂಧಿ ಜಾಗೃತಿ (೨೦೨೬-೨೦೨೭):</strong> ಶನಿ ಅಂತರ್ದಶೆಯಿಂದ ಬುಧ ಅಂತರ್ದಶೆಗೆ ಪಾದಾರ್ಪಣೆ ಹಾಗೂ ಗೋಚಾರ ಬದಲಾವಣೆ ಕಾಲದಲ್ಲಿ ಮುಖ್ಯ ಆರ್ಥಿಕ ಒಪ್ಪಂದಗಳಲ್ಲಿ ತಾಳ್ಮೆ ವಹಿಸಿ, ಶ್ರೀ ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಪಠಿಸಿ.
             </div>
           </div>
 
-          {/* 12-Month Detailed Grid (2 Columns x 6 Rows - 4 Lines Each) */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+          {/* 8-Month Detailed Grid (2 Columns x 4 Rows - Expanded 2-Line Phalaphala) */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
             {/* Month 1 */}
-            <div style={{ background: "#FFFFFF", border: "1.5px solid #FCD34D", borderRadius: "8px", padding: "8px 11px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ background: "#FFFFFF", border: "1.5px solid #FCD34D", borderRadius: "8px", padding: "10px 12px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+              <div style={{ fontSize: "13px", fontWeight: 800, color: "#78350F", marginBottom: "5px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span>🗓️ ೧ ನೇ ತಿಂಗಳು (ಸೆಪ್ಟೆಂಬರ್ ೨೦೨೬)</span>
-                <span style={{ fontSize: "10px", background: "#FEF3C7", border: "1px solid #F59E0B", color: "#92400E", padding: "1px 7px", borderRadius: "8px", fontWeight: 700 }}>ವೃತ್ತಿ ವೃದ್ಧಿ</span>
+                <span style={{ fontSize: "10.5px", background: "#FEF3C7", border: "1px solid #F59E0B", color: "#92400E", padding: "2px 8px", borderRadius: "8px", fontWeight: 700 }}>ವೃತ್ತಿ ವೃದ್ಧಿ</span>
               </div>
-              <div style={{ fontSize: "11px", lineHeight: "1.45", color: "#3F2A12" }}>
-                1. <strong style={{ color: "#065F46" }}>ಫಲಾಫಲ:</strong> ಗುರು ದೃಷ್ಟಿ ಬಲದಿಂದ ಕಾಯಕ ಕ್ಷೇತ್ರದಲ್ಲಿ ನೂತನ ಉನ್ನತ ಹುದ್ದೆಯ ಅವಕಾಶ ಪ್ರಾಪ್ತಿ.<br/>
-                2. <strong style={{ color: "#92400E" }}>ಆರ್ಥಿಕ:</strong> ಹಿರಿಯ ಅಧಿಕಾರಿಗಳ ಪ್ರಶಂಸೆ ಹಾಗೂ ವೃತ್ತಿಪರ ನಾಯಕತ್ವಕ್ಕೆ ಪೂರ್ಣ ಬೆಂಬಲ ಲಭ್ಯ.<br/>
-                3. <strong style={{ color: "#D97706" }}>ಸವಾಲು:</strong> ಅಧಿಕ ಕೆಲಸದ ಒತ್ತಡದಿಂದ ವಿಶ್ರಾಂತಿಯ ಕೊರತೆ ಎದುರಾಗಬಹುದು; ಆರೋಗ್ಯದ ಕಡೆ ಗಮನವಿರಲಿ.<br/>
-                4. <strong style={{ color: "#991B1B" }}>ಮಾರ್ಗದರ್ಶನ:</strong> ಸೂರ್ಯೋದಯಕ್ಕೆ ಅರ್ಘ್ಯ ನೀಡಿ, ಶ್ರೀ ಸೂರ್ಯ ನಮಸ್ಕಾರ ಹಾಗೂ ನೂತನ ಯೋಜನೆ ಚಾಲನೆ ಮಾಡಿ.
+              <div style={{ fontSize: "11.5px", lineHeight: "1.5", color: "#3F2A12" }}>
+                1. <strong style={{ color: "#065F46" }}>ಫಲಾಫಲ:</strong> ಗುರು ದೃಷ್ಟಿ ಬಲದಿಂದ ಕಾಯಕ ಕ್ಷೇತ್ರದಲ್ಲಿ ನೂತನ ಉನ್ನತ ಹುದ್ದೆಯ ಅವಕಾಶ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ. ಸಂಸ್ಥೆಯಲ್ಲಿ ನಿಮ್ಮ ಕಾರ್ಯಕ್ಷಮತೆಗೆ ಹಿರಿಯ ಅಧಿಕಾರಿಗಳಿಂದ ಪೂರ್ಣ ಮೆಚ್ಚುಗೆ ಹಾಗೂ ಕೃತಜ್ಞತೆ ಲಭ್ಯ.<br/>
+                2. <strong style={{ color: "#92400E" }}>ಆರ್ಥಿಕ:</strong> ವೃತ್ತಿಪರ ನಾಯಕತ್ವಕ್ಕೆ ಪೂರ್ಣ ಬೆಂಬಲ ಲಭ್ಯವಾಗಿ ಆರ್ಥಿಕ ಶ್ರೇಯಸ್ಸು ಉಂಟಾಗಲಿದೆ.<br/>
+                3. <strong style={{ color: "#D97706" }}>ಸವಾಲು:</strong> ಅಧಿಕ ಕೆಲಸದ ಒತ್ತಡದಿಂದ ವಿಶ್ರಾಂತಿಯ ಕೊರತೆ ಎದುರಾಗಬಹುದು; ಆರೋಗ್ಯ ಗಮನಿಸಿ.<br/>
+                4. <strong style={{ color: "#991B1B" }}>ಮಾರ್ಗದರ್ಶನ:</strong> ಸೂರ್ಯೋದಯಕ್ಕೆ ಅರ್ಘ್ಯ ನೀಡಿ, ಶ್ರೀ ಸೂರ್ಯ ನಮಸ್ಕಾರ ಮಾಡಿ.
               </div>
             </div>
 
             {/* Month 2 */}
-            <div style={{ background: "#ECFDF5", border: "1.5px solid #10B981", borderRadius: "8px", padding: "8px 11px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#065F46", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ background: "#ECFDF5", border: "1.5px solid #10B981", borderRadius: "8px", padding: "10px 12px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+              <div style={{ fontSize: "13px", fontWeight: 800, color: "#065F46", marginBottom: "5px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span>🗓️ ೨ ನೇ ತಿಂಗಳು (ಅಕ್ಟೋಬರ್ ೨೦೨೬)</span>
-                <span style={{ fontSize: "10px", background: "#D1FAE5", border: "1px solid #10B981", color: "#065F46", padding: "1px 7px", borderRadius: "8px", fontWeight: 700 }}>ಧನ ಸಮೃದ್ಧಿ</span>
+                <span style={{ fontSize: "10.5px", background: "#D1FAE5", border: "1px solid #10B981", color: "#065F46", padding: "2px 8px", borderRadius: "8px", fontWeight: 700 }}>ಧನ ಸಮೃದ್ಧಿ</span>
               </div>
-              <div style={{ fontSize: "11px", lineHeight: "1.45", color: "#064E3B" }}>
-                1. <strong style={{ color: "#047857" }}>ಫಲಾಫಲ:</strong> ದ್ವಿತೀಯ ಭಾವ ಬಲದಿಂದ ೨೦%+ ಧನ ಲಾಭ ಹಾಗೂ ನೂತನ ಹೂಡಿಕೆ ಫಲಪ್ರದ.<br/>
-                2. <strong style={{ color: "#065F46" }}>ಆರ್ಥಿಕ:</strong> ಹಳೆಯ ಬಾಕಿ ಧನ ಸಂಗ್ರಹಣೆ ಯಶಸ್ವಿ ಹಾಗೂ ಆರ್ಥಿಕ ಭದ್ರತೆ ವೃದ್ಧಿ.<br/>
+              <div style={{ fontSize: "11.5px", lineHeight: "1.5", color: "#064E3B" }}>
+                1. <strong style={{ color: "#047857" }}>ಫಲಾಫಲ:</strong> ದ್ವಿತೀಯ ಭಾವ ಬಲದಿಂದ ೨೦%+ ಧನ ಲಾಭ ಹಾಗೂ ನೂತನ ಹೂಡಿಕೆಗಳು ಪೂರ್ಣ ಫಲಪ್ರದವಾಗಲಿವೆ. ಬಾಕಿ ಉಳಿದಿದ್ದ ಹಳೆಯ ಧನ ಸಂಗ್ರಹಣೆಯಲ್ಲಿ ಯಶಸ್ಸು ಸಿಗಲಿದೆ.<br/>
+                2. <strong style={{ color: "#065F46" }}>ಆರ್ಥಿಕ:</strong> ಹಣಕಾಸಿನ ಹರಿವು ಸುಗಮವಾಗಿ ಆರ್ಥಿಕ ಭದ್ರತೆ ಪೂರ್ಣ ವೃದ್ಧಿಯಾಗಲಿದೆ.<br/>
                 3. <strong style={{ color: "#D97706" }}>ಸವಾಲು:</strong> ಅನಗತ್ಯ ಖರ್ಚುಗಳ ಮೇಲೆ ನಿಗ್ರಹ ಅಗತ್ಯ; ಹಣಕಾಸಿನ ಶಿಸ್ತು ಕಾಪಾಡಿ.<br/>
                 4. <strong style={{ color: "#991B1B" }}>ಮಾರ್ಗದರ್ಶನ:</strong> ಶುಕ್ರವಾರ ಶ್ರೀ ಮಹಾಲಕ್ಷ್ಮಿ ಪೂಜೆ ಮಾಡಿ, ಕನಕಧಾರಾ ಸ್ತೋತ್ರ ಪಠಿಸಿ.
               </div>
             </div>
 
             {/* Month 3 */}
-            <div style={{ background: "#F5F3FF", border: "1.5px solid #8B5CF6", borderRadius: "8px", padding: "8px 11px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#5B21B6", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ background: "#F5F3FF", border: "1.5px solid #8B5CF6", borderRadius: "8px", padding: "10px 12px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+              <div style={{ fontSize: "13px", fontWeight: 800, color: "#5B21B6", marginBottom: "5px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span>🗓️ ೩ ನೇ ತಿಂಗಳು (ನವೆಂಬರ್ ೨೦೨೬)</span>
-                <span style={{ fontSize: "10px", background: "#EDE9FE", border: "1px solid #8B5CF6", color: "#5B21B6", padding: "1px 7px", borderRadius: "8px", fontWeight: 700 }}>ಕುಟುಂಬ ಸೌಖ್ಯ</span>
+                <span style={{ fontSize: "10.5px", background: "#EDE9FE", border: "1px solid #8B5CF6", color: "#5B21B6", padding: "2px 8px", borderRadius: "8px", fontWeight: 700 }}>ಕುಟುಂಬ ಸೌಖ್ಯ</span>
               </div>
-              <div style={{ fontSize: "11px", lineHeight: "1.45", color: "#4C1D95" }}>
-                1. <strong style={{ color: "#5B21B6" }}>ಫಲಾಫಲ:</strong> ಗೃಹದಲ್ಲಿ ಮಂಗಳ ಕಾರ್ಯಗಳ ಶುಭ ಯೋಜನೆ ಹಾಗೂ ಬಂಧುಗಳ ನಿಕಟ ಸಮಾಗಮ.<br/>
-                2. <strong style={{ color: "#6D28D9" }}>ಸಂಬಂಧ:</strong> ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿ ಸೌಹಾರ್ದತೆ, ಪರಸ್ಪರ ನಂಬಿಕೆ ಹಾಗೂ ಕುಟುಂಬದ ನೆಮ್ಮದಿ.<br/>
-                3. <strong style={{ color: "#D97706" }}>ಸವಾಲು:</strong> ಕುಟುಂಬ ಸದಸ್ಯರ ಸಣ್ಣ ಭಿನ್ನಾಭಿಪ್ರಾಯಗಳನ್ನು ಪ್ರೀತಿಯಿಂದ ಬಗೆಹರಿಸಿ.<br/>
+              <div style={{ fontSize: "11.5px", lineHeight: "1.5", color: "#4C1D95" }}>
+                1. <strong style={{ color: "#5B21B6" }}>ಫಲಾಫಲ:</strong> ಗೃಹದಲ್ಲಿ ಮಂಗಳ ಕಾರ್ಯಗಳ ಶುಭ ಯೋಜನೆ ಹಾಗೂ ಬಂಧುಮಿತ್ರರ ನಿಕಟ ಸಮಾಗಮ ಯೋಗ. ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿ ಪರಸ್ಪರ ನಂಬಿಕೆ ಹಾಗೂ ಕುಟುಂಬದಲ್ಲಿ ಸುಖ-ಶಾಂತಿ ನೆಲೆಸಲಿದೆ.<br/>
+                2. <strong style={{ color: "#6D28D9" }}>ಸಂಬಂಧ:</strong> ಕುಟುಂಬದ ಎಲ್ಲಾ ಸದಸ್ಯರ ಸಹಕಾರ ಸಿಕ್ಕು ನೆಮ್ಮದಿಯ ವಾತಾವರಣ ಸೃಷ್ಟಿಯಾಗಲಿದೆ.<br/>
+                3. <strong style={{ color: "#D97706" }}>ಸವಾಲು:</strong> ಸಣ್ಣ ಭಿನ್ನಾಭಿಪ್ರಾಯಗಳನ್ನು ಪ್ರೀತಿ ಹಾಗೂ ತಾಳ್ಮೆಯಿಂದ ಬಗೆಹರಿಸಿ.<br/>
                 4. <strong style={{ color: "#991B1B" }}>ಮಾರ್ಗದರ್ಶನ:</strong> ಕುಲದೇವತಾ ಪ್ರಾರ್ಥನೆ ಹಾಗೂ ಕುಟುಂಬ ಸಮೇತ ತೀರ್ಥ ದರ್ಶನ ಮಾಡಿ.
               </div>
             </div>
 
             {/* Month 4 */}
-            <div style={{ background: "#FFFFFF", border: "1.5px solid #FCD34D", borderRadius: "8px", padding: "8px 11px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ background: "#FFFFFF", border: "1.5px solid #FCD34D", borderRadius: "8px", padding: "10px 12px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+              <div style={{ fontSize: "13px", fontWeight: 800, color: "#78350F", marginBottom: "5px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span>🗓️ ೪ ನೇ ತಿಂಗಳು (ಡಿಸೆಂಬರ್ ೨೦೨೬)</span>
-                <span style={{ fontSize: "10px", background: "#FEF3C7", border: "1px solid #F59E0B", color: "#92400E", padding: "1px 7px", borderRadius: "8px", fontWeight: 700 }}>ಆಸ್ತಿ & ವಾಹನ</span>
+                <span style={{ fontSize: "10.5px", background: "#FEF3C7", border: "1px solid #F59E0B", color: "#92400E", padding: "2px 8px", borderRadius: "8px", fontWeight: 700 }}>ಆಸ್ತಿ & ವಾಹನ</span>
               </div>
-              <div style={{ fontSize: "11px", lineHeight: "1.45", color: "#3F2A12" }}>
-                1. <strong style={{ color: "#065F46" }}>ಫಲಾಫಲ:</strong> ಚತುರ್ಥ ಸ್ಥಾನದ ಬಲದಿಂದ ಭೂಮಿ/ಸ್ಥಿರಾಸ್ತಿ ವ್ಯವಹಾರಗಳಲ್ಲಿ ಅಂತಿಮ ಯಶಸ್ಸು.<br/>
-                2. <strong style={{ color: "#92400E" }}>ಸಂಪತ್ತು:</strong> ನೂತನ ವಾಹನ ಅಥವಾ ಗೃಹೋಪಕರಣಗಳ ಖರೀದಿ ಯೋಗ ಪ್ರಾಪ್ತಿ.<br/>
-                3. <strong style={{ color: "#D97706" }}>ಸವಾಲು:</strong> ಸ್ವತ್ತು ನೋಂದಣಿ ಪತ್ರಗಳನ್ನು ಪರಿಶೀಲಿಸಿ ನಿರ್ಧಾರ ತಗೆದುಕೊಳ್ಳಿ.<br/>
+              <div style={{ fontSize: "11.5px", lineHeight: "1.5", color: "#3F2A12" }}>
+                1. <strong style={{ color: "#065F46" }}>ಫಲಾಫಲ:</strong> ಚತುರ್ಥ ಸ್ಥಾನದ ಬಲದಿಂದ ಭೂಮಿ ಹಾಗೂ ಸ್ಥಿರಾಸ್ತಿ ವ್ಯವಹಾರಗಳಲ್ಲಿ ಅಂತಿಮ ಯಶಸ್ಸು ಪ್ರಾಪ್ತಿ. ನೂತನ ವಾಹನ ಅಥವಾ ಗೃಹೋಪಕರಣಗಳ ಖರೀದಿ ಯೋಗ ಸಿದ್ಧಿಸಲಿದೆ.<br/>
+                2. <strong style={{ color: "#92400E" }}>ಸಂಪತ್ತು:</strong> ಸ್ಥಿರಾಸ್ತಿಯ ಮೌಲ್ಯ ಹೆಚ್ಚಿ ಕುಟುಂಬದಲ್ಲಿ ಸಂತಸ ಉಂಟಾಗಲಿದೆ.<br/>
+                3. <strong style={{ color: "#D97706" }}>ಸವಾಲು:</strong> സ്വത്തു ನೋಂದಣಿ ಪತ್ರಗಳನ್ನು ಪರಿಶೀಲಿಸಿ ನಿರ್ಧಾರ ತಗೆದುಕೊಳ್ಳಿ.<br/>
                 4. <strong style={{ color: "#991B1B" }}>ಮಾರ್ಗದರ್ಶನ:</strong> ಶನಿವಾರ ಶ್ರೀ ಹನುಮಾನ್ ಚಾಲೀಸಾ ಪಠಿಸಿ, ಬಡವರಿಗೆ ಅನ್ನದಾನ ಮಾಡಿ.
               </div>
             </div>
 
             {/* Month 5 (CAUTION / RED MONTH) */}
-            <div style={{ background: "#FEF2F2", border: "1.5px solid #EF4444", borderRadius: "8px", padding: "8px 11px", boxShadow: "0 1px 3px rgba(239, 68, 68, 0.08)" }}>
-              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#991B1B", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ background: "#FEF2F2", border: "1.5px solid #EF4444", borderRadius: "8px", padding: "10px 12px", boxShadow: "0 1px 3px rgba(239, 68, 68, 0.08)" }}>
+              <div style={{ fontSize: "13px", fontWeight: 800, color: "#991B1B", marginBottom: "5px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span>🗓️ ೫ ನೇ ತಿಂಗಳು (ಜನವರಿ ೨೦೨೭)</span>
-                <span style={{ fontSize: "10px", background: "#FEE2E2", border: "1px solid #EF4444", color: "#991B1B", padding: "1px 7px", borderRadius: "8px", fontWeight: 800 }}>⚠️ ಭುಕ್ತಿ ಸಂಧಿ - ಜಾಗೃತಿ</span>
+                <span style={{ fontSize: "10.5px", background: "#FEE2E2", border: "1px solid #EF4444", color: "#991B1B", padding: "2px 8px", borderRadius: "8px", fontWeight: 800 }}>⚠️ ಭುಕ್ತಿ ಸಂಧಿ - ಜಾಗೃತಿ</span>
               </div>
-              <div style={{ fontSize: "11px", lineHeight: "1.45", color: "#7F1D1D" }}>
-                1. <strong style={{ color: "#991B1B" }}>ಫಲಾಫಲ:</strong> ಶನಿ-ಬುಧ ಭುಕ್ತಿ ಸಂಧಿಯ ಕಾಲ; ಹೊಸ ಯೋಜನೆಗಳಿಗೆ ಸೂಕ್ತ ತಯಾರಿ ಹಾಗೂ ವಿವೇಕ ಅಗತ್ಯ.<br/>
-                2. <strong style={{ color: "#7F1D1D" }}>ಉದ್ಯೋಗ:</strong> ಕೆಲಸದ ಸ್ಥಳದಲ್ಲಿ ಸ್ಥಿರತೆ ಹಾಗೂ ಆತುರದ ನಿರ್ಧಾರಗಳನ್ನು ಸಂಪೂರ್ಣ ತಪ್ಪಿಸಿ.<br/>
+              <div style={{ fontSize: "11.5px", lineHeight: "1.5", color: "#7F1D1D" }}>
+                1. <strong style={{ color: "#991B1B" }}>ಫಲಾಫಲ:</strong> ಶನಿ-ಬುಧ ಭುಕ್ತಿ ಸಂಧಿಯ ಕಾಲ; ಹೊಸ ಯೋಜನೆಗಳಿಗೆ ಸೂಕ್ತ ತಯಾರಿ ಹಾಗೂ ವಿವೇಕ ಅಗತ್ಯ. ಆತುರದ ನಿರ್ಧಾರಗಳನ್ನು ಸಂಪೂರ್ಣ ತಪ್ಪಿಸಿ ತಾಳ್ಮೆಯಿಂದ ಕರ್ತವ್ಯ ನಿರ್ವಹಿಸಿ.<br/>
+                2. <strong style={{ color: "#7F1D1D" }}>ಉದ್ಯೋಗ:</strong> ಉದ್ಯೋಗ ಕ್ಷೇತ್ರದಲ್ಲಿ ಸ್ಥಿರತೆ ಕಾಯ್ದುಕೊಳ್ಳಲು ಸಂಯಮ ಅತ್ಯಗತ್ಯ.<br/>
                 3. <strong style={{ color: "#B91C1C" }}>ಸವಾಲು:</strong> ಮಾನಸಿಕ ಚಾಂಚಲ್ಯ ಹಾಗೂ ಸಣ್ಣ ವೈಚಾರಿಕ್ ಗೊಂದಲ ಎದುರಾಗಬಹುದು.<br/>
                 4. <strong style={{ color: "#991B1B" }}>ಮಾರ್ಗದರ್ಶನ:</strong> ಬುಧವಾರ ಶ್ರೀ ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಪಠಿಸಿ, ಹಸಿರು ಬೇಳೆ ದಾನ ಮಾಡಿ.
               </div>
             </div>
 
             {/* Month 6 */}
-            <div style={{ background: "#ECFDF5", border: "1.5px solid #10B981", borderRadius: "8px", padding: "8px 11px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#065F46", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ background: "#ECFDF5", border: "1.5px solid #10B981", borderRadius: "8px", padding: "10px 12px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+              <div style={{ fontSize: "13px", fontWeight: 800, color: "#065F46", marginBottom: "5px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span>🗓️ ೬ ನೇ ತಿಂಗಳು (ಫೆಬ್ರವರಿ ೨೦೨೭)</span>
-                <span style={{ fontSize: "10px", background: "#D1FAE5", border: "1px solid #10B981", color: "#065F46", padding: "1px 7px", borderRadius: "8px", fontWeight: 700 }}>ರಾಜಯೋಗ ಬಲ</span>
+                <span style={{ fontSize: "10.5px", background: "#D1FAE5", border: "1px solid #10B981", color: "#065F46", padding: "2px 8px", borderRadius: "8px", fontWeight: 700 }}>ರಾಜಯೋಗ ಬಲ</span>
               </div>
-              <div style={{ fontSize: "11px", lineHeight: "1.45", color: "#064E3B" }}>
-                1. <strong style={{ color: "#065F46" }}>ಫಲಾಫಲ:</strong> ಬುಧ ಅಂತರ್ದಶೆಯ ಪೂರ್ಣ ಶುಭಾರಂಭ; ಬೌದ್ಧಿಕ ತೇಜಸ್ಸು ಹಾಗೂ ವಾಗ್ಬಲ ವೃದ್ಧಿ.<br/>
-                2. <strong style={{ color: "#047857" }}>ಉದ್ಯೋಗ:</strong> ನೂತನ ಉದ್ಯೋಗ ಪ್ರಮೋಷನ್, ಸಂಬಳ ಏರಿಕೆ ಹಾಗೂ ವ್ಯಾಪಾರ ಶ್ರೇಯಸ್ಸು.<br/>
-                3. <strong style={{ color: "#D97706" }}>ಸವಾಲು:</strong> ವಿಸ್ತರಣೆಯ ಉತ್ಸಾಹದಲ್ಲಿ ಹೆಚ್ಚುವರಿ ಜವಾಬ್ದಾರಿಗಳನ್ನು ಸಮರ್ಥವಾಗಿ ನಿಭಾಯಿಸಿ.<br/>
+              <div style={{ fontSize: "11.5px", lineHeight: "1.5", color: "#064E3B" }}>
+                1. <strong style={{ color: "#065F46" }}>ಫಲಾಫಲ:</strong> ಬುಧ ಅಂತರ್ದಶೆಯ ಪೂರ್ಣ ಶುಭಾರಂಭ; ಬೌದ್ಧಿಕ ತೇಜಸ್ಸು ಹಾಗೂ ವಾಗ್ಬಲ ಪೂರ್ಣ ವೃದ್ಧಿ. ನೂತನ ಉದ್ಯೋಗ ಪ್ರಮೋಷನ್, ಸಂಬಳ ಏರಿಕೆ ಹಾಗೂ ವ್ಯಾಪಾರ ಶ್ರೇಯಸ್ಸು.<br/>
+                2. <strong style={{ color: "#047857" }}>ಉದ್ಯೋಗ:</strong> ಕಾಯಕ ಕ್ಷೇತ್ರದಲ್ಲಿ ನಿಮ್ಮ ಕಾರ್ಯಕ್ಕೆ ಪೂರ್ಣ ಮಾನ್ಯತೆ ದೊರೆಯಲಿದೆ.<br/>
+                3. <strong style={{ color: "#D97706" }}>ಸವಾಲು:</strong> ಹೆಚ್ಚುವರಿ ಜವಾಬ್ದಾರಿಗಳನ್ನು ಯೋಜನಾಬದ್ಧವಾಗಿ ನಿರ್ವಹಿಸಿ.<br/>
                 4. <strong style={{ color: "#991B1B" }}>ಮಾರ್ಗದರ್ಶನ:</strong> ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಗೆ ವಿಶೇಷ ಸಂಕಲ್ಪ ಪೂಜೆ ಸಲ್ಲಿಸಿ.
               </div>
             </div>
 
             {/* Month 7 */}
-            <div style={{ background: "#EFF6FF", border: "1.5px solid #3B82F6", borderRadius: "8px", padding: "8px 11px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#1E40AF", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ background: "#EFF6FF", border: "1.5px solid #3B82F6", borderRadius: "8px", padding: "10px 12px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+              <div style={{ fontSize: "13px", fontWeight: 800, color: "#1E40AF", marginBottom: "5px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span>🗓️ ೭ ನೇ ತಿಂಗಳು (ಮಾರ್ಚ್ ೨೦೨೭)</span>
-                <span style={{ fontSize: "10px", background: "#DBEAFE", border: "1px solid #3B82F6", color: "#1E40AF", padding: "1px 7px", borderRadius: "8px", fontWeight: 700 }}>ವಿದ್ಯಾ & ಬೌದ್ಧಿಕ</span>
+                <span style={{ fontSize: "10.5px", background: "#DBEAFE", border: "1px solid #3B82F6", color: "#1E40AF", padding: "2px 8px", borderRadius: "8px", fontWeight: 700 }}>ವಿದ್ಯಾ & ಬೌದ್ಧಿಕ</span>
               </div>
-              <div style={{ fontSize: "11px", lineHeight: "1.45", color: "#1E3A8A" }}>
-                1. <strong style={{ color: "#1E40AF" }}>ಫಲಾಫಲ:</strong> ಪಂಚಮ ಸ್ಥಾನದ ಶುಭ ದೃಷ್ಟಿಯಿಂದ ನಿರ್ಧಾರಗಳಲ್ಲಿ ನಿಖರತೆ ಹಾಗೂ ಜ್ಞಾನ ವೃದ್ಧಿ.<br/>
-                2. <strong style={{ color: "#1D4ED8" }}>ಸಾಧನೆ:</strong> ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆ, ಸಂಶೋಧನೆ ಹಾಗೂ ಪ್ರಾಜೆಕ್ಟ್‌ಗಳಲ್ಲಿ ಉತ್ತಮ ಯಶಸ್ಸು.<br/>
+              <div style={{ fontSize: "11.5px", lineHeight: "1.5", color: "#1E3A8A" }}>
+                1. <strong style={{ color: "#1E40AF" }}>ಫಲಾಫಲ:</strong> ಪಂಚಮ ಸ್ಥಾನದ ಶುಭ ದೃಷ್ಟಿಯಿಂದ ನಿರ್ಧಾರಗಳಲ್ಲಿ ನಿಖರತೆ ಹಾಗೂ ಜ್ಞಾನ ವೃದ್ಧಿ. ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆ, ಸಂಶೋಧನೆ ಹಾಗೂ ಪ್ರಮುಖ ಪ್ರಾಜೆಕ್ಟ್‌ಗಳಲ್ಲಿ ಯಶಸ್ಸು.<br/>
+                2. <strong style={{ color: "#1D4ED8" }}>ಸಾಧನೆ:</strong> ಶೈಕ್ಷಣಿಕ ಹಾಗೂ ಬೌದ್ಧಿಕ ರಂಗದಲ್ಲಿ ನಿಮ್ಮ ಹೆಸರು ಬೆಳಗಲಿದೆ.<br/>
                 3. <strong style={{ color: "#D97706" }}>ಸವಾಲು:</strong> ಏಕಾಗ್ರತೆ ಕಾಯ್ದುಕೊಳ್ಳಲು ದಿನನಿತ್ಯದ ವೇಳಾಪಟ್ಟಿ ಪಾಲಿಸಿ.<br/>
                 4. <strong style={{ color: "#991B1B" }}>ಮಾರ್ಗದರ್ಶನ:</strong> ಶ್ರೀ ಸರಸ್ವತಿ ದೇವಿ ಜಪ ಹಾಗೂ ಯೋಗ ಸಾಧನೆ ನಿರಂತರವಾಗಿ ಮಾಡಿ.
               </div>
             </div>
 
             {/* Month 8 (CAUTION / AMBER MONTH) */}
-            <div style={{ background: "#FFFBEB", border: "1.5px solid #F59E0B", borderRadius: "8px", padding: "8px 11px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ background: "#FFFBEB", border: "1.5px solid #F59E0B", borderRadius: "8px", padding: "10px 12px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+              <div style={{ fontSize: "13px", fontWeight: 800, color: "#78350F", marginBottom: "5px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span>🗓️ ೮ ನೇ ತಿಂಗಳು (ಏಪ್ರಿಲ್ ೨೦೨೭)</span>
-                <span style={{ fontSize: "10px", background: "#FEF3C7", border: "1px solid #F59E0B", color: "#92400E", padding: "1px 7px", borderRadius: "8px", fontWeight: 700 }}>⚡ ಶತ್ರು ಜಯ & ರಕ್ಷಣೆ</span>
+                <span style={{ fontSize: "10.5px", background: "#FEF3C7", border: "1px solid #F59E0B", color: "#92400E", padding: "2px 8px", borderRadius: "8px", fontWeight: 700 }}>⚡ ಶತ್ರು ಜಯ & ರಕ್ಷಣೆ</span>
               </div>
-              <div style={{ fontSize: "11px", lineHeight: "1.45", color: "#3F2A12" }}>
-                1. <strong style={{ color: "#047857" }}>ಫಲಾಫಲ:</strong> ಷಷ್ಠ ಭಾವ ಜಯದಿಂದ ದೀರ್ಘಕಾಲದ ಆರೋಗ್ಯ ಸಮಸ್ಯೆಗಳಲ್ಲಿ ಗಮನಾರ್ಹ ಚೇತರಿಕೆ.<br/>
-                2. <strong style={{ color: "#92400E" }}>ಆರ್ಥಿಕ:</strong> ಹಳೆಯ ಸಾಲಗಳ ಪರಿಣಾಮಕಾರಿ ನಿವಾರಣೆ ಹಾಗೂ ಎದುರಾಳಿಗಳ ಶಮನ.<br/>
+              <div style={{ fontSize: "11.5px", lineHeight: "1.5", color: "#3F2A12" }}>
+                1. <strong style={{ color: "#047857" }}>ಫಲಾಫಲ:</strong> ಷಷ್ಠ ಭಾವ ಜಯದಿಂದ ದೀರ್ಘಕಾಲದ ಆರೋಗ್ಯ ಸಮಸ್ಯೆಗಳಲ್ಲಿ ಗಮನಾರ್ಹ ಚೇತರಿಕೆ. ಹಳೆಯ ಸಾಲಗಳ ಪರಿಣಾಮಕಾರಿ ನಿವಾರಣೆ ಹಾಗೂ ಎದುರಾಳಿಗಳ ಶಮನವಾಗಲಿದೆ.<br/>
+                2. <strong style={{ color: "#92400E" }}>ಆರ್ಥಿಕ:</strong> ಹಳೆಯ ಬಾಕಿ ಸಾಲಗಳು ಮುಕ್ತಾಯವಾಗಿ ಆರ್ಥಿಕ ನಿರಾಳತೆ ದೊರೆಯಲಿದೆ.<br/>
                 3. <strong style={{ color: "#D97706" }}>ಸವಾಲು:</strong> ಸಣ್ಣಪುಟ್ಟ ಕಾಯಾಲೆಯಿಂದ ಪಾರಾಗಲು ಸೂಕ್ತ ಆಹಾರ ನಿಯಮ ಪಾಲಿಸಿ.<br/>
                 4. <strong style={{ color: "#991B1B" }}>ಮಾರ್ಗದರ್ಶನ:</strong> ಶ್ರೀ ಧನ್ವಂತರಿ ಹಾಗೂ ಸುಬ್ರಹ್ಮಣ್ಯ ಸ್ವಾಮಿ ಕವಚ ಪ್ರಾರ್ಥನೆ ಮಾಡಿ.
-              </div>
-            </div>
-
-            {/* Month 9 */}
-            <div style={{ background: "#FFFFFF", border: "1.5px solid #FCD34D", borderRadius: "8px", padding: "8px 11px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span>🗓️ ೯ ನೇ ತಿಂಗಳು (ಮೇ ೨೦೨೭)</span>
-                <span style={{ fontSize: "10px", background: "#FEF3C7", border: "1px solid #F59E0B", color: "#92400E", padding: "1px 7px", borderRadius: "8px", fontWeight: 700 }}>ವ್ಯಾಪಾರ & ಒಪ್ಪಂದ</span>
-              </div>
-              <div style={{ fontSize: "11px", lineHeight: "1.45", color: "#3F2A12" }}>
-                1. <strong style={{ color: "#065F46" }}>ಫಲಾಫಲ:</strong> ಸಪ್ತಮ ಭಾವ ಬಲದಿಂದ ಹೊರರಾಜ್ಯ ಹಾಗೂ ವಿದೇಶಿ ವ್ಯವಹಾರ ಬಾಂಧವ್ಯ ವೃದ್ಧಿ.<br/>
-                2. <strong style={{ color: "#92400E" }}>ವ್ಯಾಪಾರ:</strong> ನೂತನ ಪಾಲುದಾರಿಕೆ ಒಪ್ಪಂದಗಳು ಯಶಸ್ವಿಯಾಗಿ ಸಹಿ ಯಾಗಲಿವೆ.<br/>
-                3. <strong style={{ color: "#D97706" }}>ಸವಾಲು:</strong> ವ್ಯಾಪಾರ ಒಪ್ಪಂದಗಳ ನಿಯಮಗಳನ್ನು ಸ್ಪಷ್ಟವಾಗಿ ದಾಖಲಿಸಿ.<br/>
-                4. <strong style={{ color: "#991B1B" }}>ಮಾರ್ಗದರ್ಶನ:</strong> ನಿತ್ಯ ಶ್ರೀ ಸತ್ಯನಾರಾಯಣ ಸ್ವಾಮಿ ಪ್ರಾರ್ಥನೆ ಹಾಗೂ ಪ್ರಸಾದ ಸೇವನೆ ಮಾಡಿ.
-              </div>
-            </div>
-
-            {/* Month 10 */}
-            <div style={{ background: "#FFFFFF", border: "1.5px solid #FCD34D", borderRadius: "8px", padding: "8px 11px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span>🗓️ ೧೦ ನೇ ತಿಂಗಳು (ಜೂನ್ ೨೦೨೭)</span>
-                <span style={{ fontSize: "10px", background: "#FEF3C7", border: "1px solid #D97706", color: "#78350F", padding: "1px 7px", borderRadius: "8px", fontWeight: 700 }}>ಭಾಗ್ಯ ವೃದ್ಧಿ</span>
-              </div>
-              <div style={{ fontSize: "11px", lineHeight: "1.45", color: "#3F2A12" }}>
-                1. <strong style={{ color: "#78350F" }}>ಫಲಾಫಲ:</strong> ನವಮ ಭಾವ ಬಲದಿಂದ ಪುಣ್ಯ ಕ್ಷೇತ್ರ ಯಾತ್ರೆ ಹಾಗೂ ಧಾರ್ಮಿಕ ಚಟುವಟಿಕೆ.<br/>
-                2. <strong style={{ color: "#92400E" }}>ಧರ್ಮ:</strong> ಸಾಮಾಜಿಕ ಹಾಗೂ ಧಾರ್ಮಿಕ ಕಾರ್ಯಕ್ರಮಗಳ ನಾಯಕತ್ವ ವಹಿಸುವ ಯೋಗ.<br/>
-                3. <strong style={{ color: "#D97706" }}>ಸವಾಲು:</strong> ಹಿರಿಯರ ಆರೋಗ್ಯದ ಕಡೆಗೆ ವಿಶೇಷ ಕಾಳಜಿ ವಹಿಸುವುದು ಮುಖ್ಯ.<br/>
-                4. <strong style={{ color: "#991B1B" }}>ಮಾರ್ಗದರ್ಶನ:</strong> ತೀರ್ಥ ಕ್ಷೇತ್ರ ದರ್ಶನ ಹಾಗೂ ಬ್ರಾಹ್ಮಣ ಸೇವೆ ಸಲ್ಲಿಸಿ ಆಶೀರ್ವಾದ ಪಡೆಯಿರಿ.
-              </div>
-            </div>
-
-            {/* Month 11 */}
-            <div style={{ background: "#ECFDF5", border: "1.5px solid #10B981", borderRadius: "8px", padding: "8px 11px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#065F46", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span>🗓️ ೧೧ ನೇ ತಿಂಗಳು (ಜುಲೈ ೨೦೨೭)</span>
-                <span style={{ fontSize: "10px", background: "#D1FAE5", border: "1px solid #10B981", color: "#065F46", padding: "1px 7px", borderRadius: "8px", fontWeight: 700 }}>ಕೀರ್ತಿ & ಅಧಿಕಾರ</span>
-              </div>
-              <div style={{ fontSize: "11px", lineHeight: "1.45", color: "#064E3B" }}>
-                1. <strong style={{ color: "#065F46" }}>ಫಲಾಫಲ:</strong> ದಶಮ ಸ್ಥಾನದ ರವಿ-ಬುಧ ಯೋಗದಿಂದ ಸಮಾಜದಲ್ಲಿ ಕೀರ್ತಿ ಹಾಗೂ ಸ್ಥಾನಮಾನ.<br/>
-                2. <strong style={{ color: "#047857" }}>ಹುದ್ದೆ:</strong> ಸಂಸ್ಥೆಯಲ್ಲಿ ಪ್ರಮುಖ ಹುದ್ದೆಯ ಬಡ್ತಿ ಹಾಗೂ ಸಾರ್ವಜನಿಕ ಗೌರವ ಪ್ರಾಪ್ತಿ.<br/>
-                3. <strong style={{ color: "#D97706" }}>ಸವಾಲು:</strong> ಜವಾಬ್ದಾರಿಯ ಗೌರವ ಕಾಪಾಡಲು ವಿನಮ್ರತೆಯಿಂದ ವ್ಯವಹರಿಸಿ.<br/>
-                4. <strong style={{ color: "#991B1B" }}>ಮಾರ್ಗದರ್ಶನ:</strong> ಶ್ರೀ ರುದ್ರಾಭಿಷೇಕ ಸೇವೆ ಸಲ್ಲಿಸಿ, ದುರ್ಗಾ ಸ್ತೋತ್ರ ಪಠಿಸಿ.
-              </div>
-            </div>
-
-            {/* Month 12 */}
-            <div style={{ background: "#FEF3C7", border: "1.5px solid #D97706", borderRadius: "8px", padding: "8px 11px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span>🗓️ ೧೨ ನೇ ತಿಂಗಳು (ಆಗಸ್ಟ್ ೨೦೨೭)</span>
-                <span style={{ fontSize: "10px", background: "#FDE68A", border: "1px solid #D97706", color: "#78350F", padding: "1px 7px", borderRadius: "8px", fontWeight: 800 }}>ಪೂರ್ಣ ಲಾಭ & ಸಿದ್ಧಿ</span>
-              </div>
-              <div style={{ fontSize: "11px", lineHeight: "1.45", color: "#451A03" }}>
-                1. <strong style={{ color: "#047857" }}>ಫಲಾಫಲ:</strong> ಏಕಾದಶ ಭಾವ ಬಲದಿಂದ ವರ್ಷದ ಪೂರ್ಣ ಹೂಡಿಕೆ ಹಾಗೂ ಸಕಲ ಲಾಭ ಸಿದ್ಧಿ.<br/>
-                2. <strong style={{ color: "#78350F" }}>ಸೌಭಾಗ್ಯ:</strong> ಇಷ್ಟಾರ್ಥ ಸಿದ್ಧಿ, ಸರ್ವ ಕಾರ್ಯ ಯಶಸ್ಸು ಹಾಗೂ ಗೃಹದಲ್ಲಿ ಆನಂದ.<br/>
-                3. <strong style={{ color: "#D97706" }}>ಸವಾಲು:</strong> ಸಿದ್ಧಿಯ ಕೃತಜ್ಞತೆಯಾಗಿ ಸಮಾಜ ಸೇವೆ ಹಾಗೂ ಧರ್ಮ ಕಾರ್ಯ ಮುಂದುವರಿಸಿ.<br/>
-                4. <strong style={{ color: "#991B1B" }}>ಮಾರ್ಗದರ್ಶನ:</strong> ಗೋಕರ್ಣ ಮಹಾಪೂಜೆ ಹಾಗೂ ಮಹಾ ಅನ್ನದಾನ ಸಲ್ಲಿಸಿ.
               </div>
             </div>
           </div>
@@ -1303,7 +1247,7 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
             background: "linear-gradient(180deg, #78350F 0%, #451A03 100%)",
             border: "1.5px solid #D97706",
             borderRadius: "8px",
-            padding: "8px 12px",
+            padding: "8px 14px",
             textAlign: "center",
             boxShadow: "0 2px 6px rgba(120, 53, 15, 0.2)",
             marginTop: "auto"
