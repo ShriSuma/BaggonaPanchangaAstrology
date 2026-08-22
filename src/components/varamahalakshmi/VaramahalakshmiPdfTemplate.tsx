@@ -97,7 +97,7 @@ export default function VaramahalakshmiPdfTemplate({
           >
             <div>
               <div style={{ fontSize: "11px", textTransform: "uppercase", color: "#B45309", fontWeight: "bold" }}>
-                വ്രತಕರ್ತೃ / Devotee
+                ವ್ರತಕರ್ತೃ / Devotee
               </div>
               <div style={{ fontSize: "18px", fontWeight: "bold", color: "#78350F" }}>{analysis.personName}</div>
               <div style={{ fontSize: "12px", color: "#92400E" }}>
