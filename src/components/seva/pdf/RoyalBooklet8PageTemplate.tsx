@@ -612,7 +612,8 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
       {/* ─────────────────────────────────────────────────────────────
       {/* ─────────────────────────────────────────────────────────────
       {/* ─────────────────────────────────────────────────────────────
-          PAGE 3: PERFECT MID-ALIGNMENT & ENHANCED FONT SIZE MATCHING PDF (45)
+      {/* ─────────────────────────────────────────────────────────────
+          PAGE 3: BEAUTIFUL SPACIOUS LAYOUT BOXES WITH PERFECT MID-CENTERED TEXT
          ───────────────────────────────────────────────────────────── */}
       <div className="pdf-page" style={pageStyle}>
         <div style={{ ...frameStyle, gap: "10px" }}>
@@ -633,47 +634,46 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
             </div>
           </div>
 
-          {/* 5 Dasha-Bhukti Cards with Clean Lifted-UP Alignment */}
+          {/* 5 Dasha-Bhukti Cards with Spacious Rich Banners & Perfectly Centered Text */}
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
             {/* Card 1: Budha Antardasha (Clean White Card) */}
             <div style={{
               background: "#FFFFFF",
               border: "1.5px solid #FCD34D",
               borderRadius: "8px",
-              padding: "9px 14px 11px 14px",
+              padding: "10px 14px 12px 14px",
               boxShadow: "0 2px 5px rgba(0, 0, 0, 0.03)"
             }}>
-              <div style={{ fontSize: "14px", fontWeight: 800, color: "#78350F", marginBottom: "2px", display: "flex", justifyContent: "space-between", alignItems: "center", minHeight: "22px" }}>
-                <span style={{ display: "inline-flex", alignItems: "center", lineHeight: "1" }}>📌 ಗುರು ಮಹಾದಶಾ • ಬುಧ ಅಂತರ್ದಶಾ</span>
+              <div style={{ fontSize: "14px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ display: "inline-flex", alignItems: "center", lineHeight: "1.2" }}>📌 ಗುರು ಮಹಾದಶಾ • ಬುಧ ಅಂತರ್ದಶಾ</span>
                 <span style={{
                   fontSize: "11px",
                   color: "#92400E",
                   background: "#FEF3C7",
                   border: "1px solid #F59E0B",
-                  padding: "2px 10px",
-                  borderRadius: "12px",
+                  padding: "3px 12px",
+                  borderRadius: "14px",
                   fontWeight: 700,
                   display: "inline-flex",
                   alignItems: "center",
-                  lineHeight: "1",
-                  marginTop: "-3px"
+                  lineHeight: "1.2"
                 }}>✨ ವಿದ್ಯಾ & ಬುದ್ಧಿ ಸಿದ್ಧಿ</span>
               </div>
               <div style={{
                 fontSize: "11.5px",
                 color: "#78350F",
                 fontWeight: 700,
-                marginTop: "1px",
-                marginBottom: "6px",
+                marginTop: "2px",
+                marginBottom: "8px",
                 background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
                 border: "1px solid #FCD34D",
-                padding: "2.5px 8px",
-                borderRadius: "5px",
+                padding: "4px 10px",
+                borderRadius: "6px",
                 display: "flex",
                 alignItems: "center",
-                lineHeight: "1"
+                lineHeight: "1.35"
               }}>
-                <span style={{ display: "inline-flex", alignItems: "center" }}>🗓️ ಅವಧಿ: ೨೦೧೫-೦೫-೨೧ ರಿಂದ ೨೦೧೬-೦೯-೧೪ | (ವಯಸ್ಸು: ೨೨ - ೨೩ ವರ್ಷ)</span>
+                <span>🗓️ ಅವಧಿ: ೨೦೧೫-೦೫-೨೧ ರಿಂದ ೨೦೧೬-೦೯-೧೪ | (ವಯಸ್ಸು: ೨೨ - ೨೩ ವರ್ಷ)</span>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px 16px", fontSize: "12px", lineHeight: "1.5" }}>
                 <div><span style={{ color: "#D97706" }}>💼</span> <strong style={{ color: "#065F46" }}>ವೃತ್ತಿ & ಅಧಿಕಾರ:</strong> ಉನ್ನತ ಬೌದ್ಧಿಕ ಚಾತುರ್ಯ, ಹೊಸ ಉದ್ಯೋಗ ಅವಕಾಶಗಳು, ಕಾಂಟ್ರಾಕ್ಟ್‌ಪೂರ್ಣ ಹಾಗೂ ಸಂಸ್ಥೆಯಲ್ಲಿ ಸನ್ಮಾನ.</div>
@@ -688,40 +688,39 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
               background: "#FFFFFF",
               border: "1.5px solid #FCD34D",
               borderRadius: "8px",
-              padding: "9px 14px 11px 14px",
+              padding: "10px 14px 12px 14px",
               boxShadow: "0 2px 5px rgba(0, 0, 0, 0.03)"
             }}>
-              <div style={{ fontSize: "14px", fontWeight: 800, color: "#78350F", marginBottom: "2px", display: "flex", justifyContent: "space-between", alignItems: "center", minHeight: "22px" }}>
-                <span style={{ display: "inline-flex", alignItems: "center", lineHeight: "1" }}>📌 ಗುರು ಮಹಾದಶಾ • ಕೇತು ಅಂತರ್ದಶಾ</span>
+              <div style={{ fontSize: "14px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ display: "inline-flex", alignItems: "center", lineHeight: "1.2" }}>📌 ಗುರು ಮಹಾದಶಾ • ಕೇತು ಅಂತರ್ದಶಾ</span>
                 <span style={{
                   fontSize: "11px",
                   color: "#5B21B6",
                   background: "#F5F3FF",
                   border: "1px solid #8B5CF6",
-                  padding: "2px 10px",
-                  borderRadius: "12px",
+                  padding: "3px 12px",
+                  borderRadius: "14px",
                   fontWeight: 700,
                   display: "inline-flex",
                   alignItems: "center",
-                  lineHeight: "1",
-                  marginTop: "-3px"
+                  lineHeight: "1.2"
                 }}>🕉️ ಅಧ್ಯಾತ್ಮ & ಜ್ಞಾನ ತಪಸ್ಸು</span>
               </div>
               <div style={{
                 fontSize: "11.5px",
                 color: "#78350F",
                 fontWeight: 700,
-                marginTop: "1px",
-                marginBottom: "6px",
+                marginTop: "2px",
+                marginBottom: "8px",
                 background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
                 border: "1px solid #FCD34D",
-                padding: "2.5px 8px",
-                borderRadius: "5px",
+                padding: "4px 10px",
+                borderRadius: "6px",
                 display: "flex",
                 alignItems: "center",
-                lineHeight: "1"
+                lineHeight: "1.35"
               }}>
-                <span style={{ display: "inline-flex", alignItems: "center" }}>🗓️ ಅವಧಿ: ೨೦೧೬-೦೯-೧೪ ರಿಂದ ೨೦೧೭-೦೮-೨೪ | (ವಯಸ್ಸು: ೨೩ - ೨೪ ವರ್ಷ)</span>
+                <span>🗓️ ಅವಧಿ: ೨೦೧೬-೦೯-೧೪ ರಿಂದ ೨೦೧೭-೦೮-೨೪ | (ವಯಸ್ಸು: ೨೩ - ೨೪ ವರ್ಷ)</span>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px 16px", fontSize: "12px", lineHeight: "1.5" }}>
                 <div><span style={{ color: "#D97706" }}>💼</span> <strong style={{ color: "#065F46" }}>ವೃತ್ತಿ & ಅಧಿಕಾರ:</strong> ನಿಗೂಢ ಸಂಶೋಧನೆ, ತಾಳ್ಮೆಯ ಕರ್ತವ್ಯ ಹಾಗೂ ಆಂತರಿಕ ಕೌಶಲ್ಯ ವೃದ್ಧಿ. ಧಾವಂತದ ನಿರ್ಧಾರ ಬೇಡ.</div>
@@ -736,40 +735,39 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
               background: "#FFFBEB",
               border: "2px solid #F59E0B",
               borderRadius: "8px",
-              padding: "9px 14px 11px 14px",
+              padding: "10px 14px 12px 14px",
               boxShadow: "0 3px 8px rgba(245, 158, 11, 0.12)"
             }}>
-              <div style={{ fontSize: "14px", fontWeight: 900, color: "#78350F", marginBottom: "2px", display: "flex", justifyContent: "space-between", alignItems: "center", minHeight: "22px" }}>
-                <span style={{ display: "inline-flex", alignItems: "center", lineHeight: "1" }}>🌟 ಗುರು ಮಹಾದಶಾ • ಶುಕ್ರ ಅಂತರ್ದಶಾ (ರಾಜಯೋಗ ಕಾಲ)</span>
+              <div style={{ fontSize: "14px", fontWeight: 900, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ display: "inline-flex", alignItems: "center", lineHeight: "1.2" }}>🌟 ಗುರು ಮಹಾದಶಾ • ಶುಕ್ರ ಅಂತರ್ದಶಾ (ರಾಜಯೋಗ ಕಾಲ)</span>
                 <span style={{
                   fontSize: "11px",
                   color: "#78350F",
                   background: "linear-gradient(180deg, #FDE68A 0%, #F59E0B 100%)",
                   border: "1px solid #D97706",
-                  padding: "2px 10px",
-                  borderRadius: "12px",
+                  padding: "3px 12px",
+                  borderRadius: "14px",
                   fontWeight: 800,
                   display: "inline-flex",
                   alignItems: "center",
-                  lineHeight: "1",
-                  marginTop: "-3px"
+                  lineHeight: "1.2"
                 }}>👑 ಅತ್ಯುನ್ನತ ರಾಜಯೋಗ ಫಲ</span>
               </div>
               <div style={{
                 fontSize: "11.5px",
                 color: "#78350F",
                 fontWeight: 700,
-                marginTop: "1px",
-                marginBottom: "6px",
+                marginTop: "2px",
+                marginBottom: "8px",
                 background: "#FEF3C7",
                 border: "1px solid #F59E0B",
-                padding: "2.5px 8px",
-                borderRadius: "5px",
+                padding: "4px 10px",
+                borderRadius: "6px",
                 display: "flex",
                 alignItems: "center",
-                lineHeight: "1"
+                lineHeight: "1.35"
               }}>
-                <span style={{ display: "inline-flex", alignItems: "center" }}>🗓️ ಅವಧಿ: ೨೦೧೭-೦೮-೨೪ ರಿಂದ ೨೦೨೧-೦೪-೨೪ | (ವಯಸ್ಸು: ೨೪ - ೨೮ ವರ್ಷ)</span>
+                <span>🗓️ ಅವಧಿ: ೨೦೧೭-೦೮-೨೪ ರಿಂದ ೨೦೨೧-೦೪-೨೪ | (ವಯಸ್ಸು: ೨೪ - ೨೮ ವರ್ಷ)</span>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px 16px", fontSize: "12px", lineHeight: "1.5" }}>
                 <div><span style={{ color: "#D97706" }}>💼</span> <strong style={{ color: "#065F46" }}>ವೃತ್ತಿ & ಅಧಿಕಾರ:</strong> ರಾಜಕೀಯ/ಉದ್ಯೋಗ ಕ್ಷೇತ್ರದಲ್ಲಿ ಅತ್ಯುನ್ನತ ನಾಯಕತ್ವ, ಬಡ್ತಿ ಹಾಗೂ ಸಮಾಜದಲ್ಲಿ ಸನ್ಮಾನ.</div>
@@ -784,40 +782,39 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
               background: "#FFFFFF",
               border: "1.5px solid #FCD34D",
               borderRadius: "8px",
-              padding: "9px 14px 11px 14px",
+              padding: "10px 14px 12px 14px",
               boxShadow: "0 2px 5px rgba(0, 0, 0, 0.03)"
             }}>
-              <div style={{ fontSize: "14px", fontWeight: 800, color: "#78350F", marginBottom: "2px", display: "flex", justifyContent: "space-between", alignItems: "center", minHeight: "22px" }}>
-                <span style={{ display: "inline-flex", alignItems: "center", lineHeight: "1" }}>📌 ಗುರು ಮಹಾದಶಾ • ಸೂರ್ಯ ಅಂತರ್ದಶಾ</span>
+              <div style={{ fontSize: "14px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ display: "inline-flex", alignItems: "center", lineHeight: "1.2" }}>📌 ಗುರು ಮಹಾದಶಾ • ಸೂರ್ಯ ಅಂತರ್ದಶಾ</span>
                 <span style={{
                   fontSize: "11px",
                   color: "#047857",
                   background: "#ECFDF5",
                   border: "1px solid #10B981",
-                  padding: "2px 10px",
-                  borderRadius: "12px",
+                  padding: "3px 12px",
+                  borderRadius: "14px",
                   fontWeight: 700,
                   display: "inline-flex",
                   alignItems: "center",
-                  lineHeight: "1",
-                  marginTop: "-3px"
+                  lineHeight: "1.2"
                 }}>⛳ ಅಧಿಕಾರ & ಸರ್ಕಾರಿ ಜಯ</span>
               </div>
               <div style={{
                 fontSize: "11.5px",
                 color: "#78350F",
                 fontWeight: 700,
-                marginTop: "1px",
-                marginBottom: "6px",
+                marginTop: "2px",
+                marginBottom: "8px",
                 background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
                 border: "1px solid #FCD34D",
-                padding: "2.5px 8px",
-                borderRadius: "5px",
+                padding: "4px 10px",
+                borderRadius: "6px",
                 display: "flex",
                 alignItems: "center",
-                lineHeight: "1"
+                lineHeight: "1.35"
               }}>
-                <span style={{ display: "inline-flex", alignItems: "center" }}>🗓️ ಅವಧಿ: ೨೦೨೧-೦೪-೨೪ ರಿಂದ ೨೦೨೨-೦೧-೧೦ | (ವಯಸ್ಸು: ೨೮ - ೨೯ ವರ್ಷ)</span>
+                <span>🗓️ ಅವಧಿ: ೨೦೨೧-೦೪-೨೪ ರಿಂದ ೨೦೨೨-೦೧-೧೦ | (ವಯಸ್ಸು: ೨೮ - ೨೯ ವರ್ಷ)</span>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px 16px", fontSize: "12px", lineHeight: "1.5" }}>
                 <div><span style={{ color: "#D97706" }}>💼</span> <strong style={{ color: "#065F46" }}>ವೃತ್ತಿ & ಅಧಿಕಾರ:</strong> ಸರ್ಕಾರಿ ಕೃಪೆ, ಹಿರಿಯ ಅಧಿಕಾರಿಗಳ ಸಂಪೂರ್ಣ ಬೆಂಬಲ ಹಾಗೂ ಶತ್ರುಗಳ ಮೇಲೆ ಜಯ.</div>
@@ -832,40 +829,39 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
               background: "#FFFFFF",
               border: "1.5px solid #FCD34D",
               borderRadius: "8px",
-              padding: "9px 14px 11px 14px",
+              padding: "10px 14px 12px 14px",
               boxShadow: "0 2px 5px rgba(0, 0, 0, 0.03)"
             }}>
-              <div style={{ fontSize: "14px", fontWeight: 800, color: "#78350F", marginBottom: "2px", display: "flex", justifyContent: "space-between", alignItems: "center", minHeight: "22px" }}>
-                <span style={{ display: "inline-flex", alignItems: "center", lineHeight: "1" }}>📌 ಶನಿ ಮಹಾದಶಾ • ಶನಿ ಅಂತರ್ದಶಾ</span>
+              <div style={{ fontSize: "14px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ display: "inline-flex", alignItems: "center", lineHeight: "1.2" }}>📌 ಶನಿ ಮಹಾದಶಾ • ಶನಿ ಅಂತರ್ದಶಾ</span>
                 <span style={{
                   fontSize: "11px",
                   color: "#92400E",
                   background: "#FEF3C7",
                   border: "1px solid #F59E0B",
-                  padding: "2px 10px",
-                  borderRadius: "12px",
+                  padding: "3px 12px",
+                  borderRadius: "14px",
                   fontWeight: 700,
                   display: "inline-flex",
                   alignItems: "center",
-                  lineHeight: "1",
-                  marginTop: "-3px"
+                  lineHeight: "1.2"
                 }}>⚖️ ಸ್ಥಿರ ಧರ್ಮ ಕರ್ತವ್ಯ</span>
               </div>
               <div style={{
                 fontSize: "11.5px",
                 color: "#78350F",
                 fontWeight: 700,
-                marginTop: "1px",
-                marginBottom: "6px",
+                marginTop: "2px",
+                marginBottom: "8px",
                 background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
                 border: "1px solid #FCD34D",
-                padding: "2.5px 8px",
-                borderRadius: "5px",
+                padding: "4px 10px",
+                borderRadius: "6px",
                 display: "flex",
                 alignItems: "center",
-                lineHeight: "1"
+                lineHeight: "1.35"
               }}>
-                <span style={{ display: "inline-flex", alignItems: "center" }}>🗓️ ಅವಧಿ: ೨೦೩೮-೦೧-೧೫ ರಿಂದ ೨೦೪೧-೦೧-೧೮ | (ವಯಸ್ಸು: ೪೫ - ೪೮ ವರ್ಷ)</span>
+                <span>🗓️ ಅವಧಿ: ೨೦೩೮-೦೧-೧೫ ರಿಂದ ೨೦೪೧-೦೧-೧೮ | (ವಯಸ್ಸು: ೪೫ - ೪೮ ವರ್ಷ)</span>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px 16px", fontSize: "12px", lineHeight: "1.5" }}>
                 <div><span style={{ color: "#D97706" }}>💼</span> <strong style={{ color: "#065F46" }}>ವೃತ್ತಿ & ಅಧಿಕಾರ:</strong> ಶ್ರಮಜೀವಿಗಳಿಗೆ ಅತ್ಯುನ್ನತ ಫಲ. ಕಠಿಣ ಕರ್ತವ್ಯದಿಂದ ಶಕ್ತಿಯುತ ಹಾಗೂ ಸ್ಥಿರ ವೃತ್ತಿ ಅಡಿಪಾಯ.</div>
