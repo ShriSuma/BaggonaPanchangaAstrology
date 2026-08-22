@@ -1121,8 +1121,8 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
             alignItems: "center",
             gap: "8px"
           }}>
-            <div style={{ fontSize: "18px" }}>⚡</div>
-            <div style={{ fontSize: "11px", color: "#991B1B", lineHeight: "1.35" }}>
+            <div style={{ fontSize: "18px", transform: "translateY(-2px)" }}>⚡</div>
+            <div style={{ fontSize: "11px", color: "#991B1B", lineHeight: "1.4", transform: "translateY(-2px)" }}>
               <strong style={{ color: "#7F1D1D" }}>ವಿಶೇಷ ಗೋಚಾರ & ದಶಾ ಸಂಧಿ ಜಾಗೃತಿ (೨೦೨೬-೨೦೨᱗):</strong> ಶನಿ ಅಂತರ್ದಶೆಯಿಂದ ಬುಧ ಅಂತರ್ದಶೆಗೆ ಪಾದಾರ್ಪಣೆ ಹಾಗೂ ಗೋಚಾರ ಬದಲಾವಣೆ ಕಾಲದಲ್ಲಿ ಮುಖ್ಯ ಆರ್ಥಿಕ ಒಪ್ಪಂದಗಳಲ್ಲಿ ತಾಳ್ಮೆ ವಹಿಸಿ, ಶ್ರೀ ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಪಠಿಸಿ.
             </div>
           </div>
