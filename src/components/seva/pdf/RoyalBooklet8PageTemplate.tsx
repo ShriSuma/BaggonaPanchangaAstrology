@@ -613,7 +613,8 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
       {/* ─────────────────────────────────────────────────────────────
       {/* ─────────────────────────────────────────────────────────────
       {/* ─────────────────────────────────────────────────────────────
-          PAGE 3: BEAUTIFUL SPACIOUS LAYOUT BOXES WITH PERFECT MID-CENTERED TEXT
+      {/* ─────────────────────────────────────────────────────────────
+          PAGE 3: DYNAMIC 2026-2046 FUTURE 20-YEAR DASHA-BHUKTI PERIODS WITH LIFTED TOP ALIGNMENT
          ───────────────────────────────────────────────────────────── */}
       <div className="pdf-page" style={pageStyle}>
         <div style={{ ...frameStyle, gap: "10px" }}>
@@ -627,16 +628,16 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
             boxShadow: "0 2px 6px rgba(180, 83, 9, 0.06)"
           }}>
             <div style={{ fontSize: "19px", fontWeight: 800, color: "#78350F", lineHeight: "1.3" }}>
-              ಅಧ್ಯಾಯ ೨: ೨೦-ವರ್ಷಗಳ ವಿಂಶೋತ್ತರಿ ದಶಾ-ಭುಕ್ತಿ ಭವಿಷ್ಯ ನಕ್ಷೆ
+              ಅಧ್ಯಾಯ ೨: ಮುಂಬರುವ ೨೦-ವರ್ಷಗಳ ವಿಂಶೋತ್ತರಿ ದಶಾ-ಭುಕ್ತಿ ಭವಿಷ್ಯ ನಕ್ಷೆ
             </div>
             <div style={{ fontSize: "11.5px", color: "#B45309", fontWeight: 600, marginTop: "3px" }}>
-              📜 ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿ ಆಧಾರಿತ ಮುಂಬರುವ ೨೦ ವರ್ಷಗಳ ಪ್ರಮುಖ ದಶಾ-ಅಂತರ್ದಶಾ ಅವಧಿಗಳು, ನಿಖರ ದಿನಾಂಕ ಹಾಗೂ ೪ ಮುಖ್ಯಾಂಶಗಳು
+              📜 ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿ ಆಧಾರಿತ ಮುಂಬರುವ ೨೦೨೬ ರಿಂದ ೨೦೪೬ ರ ಪ್ರಮುಖ ದಶಾ-ಅಂತರ್ದಶಾ ಅವಧಿಗಳು, ನಿಖರ ದಿನಾಂಕ ಹಾಗೂ ೪ ಮುಖ್ಯಾಂಶಗಳು
             </div>
           </div>
 
-          {/* 5 Dasha-Bhukti Cards with Spacious Rich Banners & Perfectly Centered Text */}
+          {/* 5 Dasha-Bhukti Cards (Starting from 2026 Current/Future Age 33 to 53) */}
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            {/* Card 1: Budha Antardasha (Clean White Card) */}
+            {/* Card 1: Shani Antardasha (CURRENTLY RUNNING IN 2026 - Age 33) */}
             <div style={{
               background: "#FFFFFF",
               border: "1.5px solid #FCD34D",
@@ -645,7 +646,7 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
               boxShadow: "0 2px 5px rgba(0, 0, 0, 0.03)"
             }}>
               <div style={{ fontSize: "14px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ display: "inline-flex", alignItems: "center", lineHeight: "1.2" }}>📌 ಗುರು ಮಹಾದಶಾ • ಬುಧ ಅಂತರ್ದಶಾ</span>
+                <span style={{ display: "inline-flex", alignItems: "center", lineHeight: "1.1" }}>📌 ಗುರು ಮಹಾದಶಾ • ಶನಿ ಅಂತರ್ದಶಾ (ಪ್ರಸ್ತುತ ನಡವಳಿಕೆ)</span>
                 <span style={{
                   fontSize: "11px",
                   color: "#92400E",
@@ -656,8 +657,8 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
                   fontWeight: 700,
                   display: "inline-flex",
                   alignItems: "center",
-                  lineHeight: "1.2"
-                }}>✨ ವಿದ್ಯಾ & ಬುದ್ಧಿ ಸಿದ್ಧಿ</span>
+                  lineHeight: "1.1"
+                }}>⚖️ ಸ್ಥಿರ ಕರ್ಮ & ವೃತ್ತಿ ಭದ್ರತೆ</span>
               </div>
               <div style={{
                 fontSize: "11.5px",
@@ -673,17 +674,17 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
                 alignItems: "center",
                 lineHeight: "1.35"
               }}>
-                <span>🗓️ ಅವಧಿ: ೨೦೧೫-೦೫-೨೧ ರಿಂದ ೨೦೧೬-೦೯-೧೪ | (ವಯಸ್ಸು: ೨೨ - ೨೩ ವರ್ಷ)</span>
+                <span>🗓️ ಅವಧಿ: ೨೦೨೪-೦೭-೧೫ ರಿಂದ ೨೦೨೭-೦೧-೨೦ | (ವಯಸ್ಸು: ೩೧ - ೩೩ ವರ್ಷ - ಪ್ರಸ್ತುತ ನಡವಳಿಕೆ)</span>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px 16px", fontSize: "12px", lineHeight: "1.5" }}>
-                <div><span style={{ color: "#D97706" }}>💼</span> <strong style={{ color: "#065F46" }}>ವೃತ್ತಿ & ಅಧಿಕಾರ:</strong> ಉನ್ನತ ಬೌದ್ಧಿಕ ಚಾತುರ್ಯ, ಹೊಸ ಉದ್ಯೋಗ ಅವಕಾಶಗಳು, ಕಾಂಟ್ರಾಕ್ಟ್‌ಪೂರ್ಣ ಹಾಗೂ ಸಂಸ್ಥೆಯಲ್ಲಿ ಸನ್ಮಾನ.</div>
-                <div><span style={{ color: "#D97706" }}>💰</span> <strong style={{ color: "#047857" }}>ಧನ & ಆಸ್ತಿ:</strong> ವ್ಯಾಪಾರದಲ್ಲಿ ಶೇಕಡ ೨೦%+ ಲಾಭ ವೃದ್ಧಿ, ನೂತನ ಹೂಡಿಕೆ ಹಾಗೂ ಶೇರುಗಳಲ್ಲಿ ಧನ ಸಮೃದ್ಧಿ.</div>
-                <div><span style={{ color: "#D97706" }}>🏫</span> <strong style={{ color: "#5B21B6" }}>ಕುಟುಂಬ ಸುಖ:</strong> ಸಂತಾನದ ವಿದ್ಯಾ ಯಶಸ್ಸು, ಬಂಧುಗಳೊಡನೆ ಸೌಹಾರ್ದಯುತ ಭೋಜನ ಹಾಗೂ ಸಂತೋಷ.</div>
-                <div><span style={{ color: "#D97706" }}>🕉️</span> <strong style={{ color: "#991B1B" }}>ದೈವಿಕ ಪರಿಹಾರ:</strong> ಬುಧವಾರ ಶ್ರೀ ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಪಠಿಸಿ ಹಾಗೂ ಹಸಿರು ಬೇಳೆ ದಾನ ಮಾಡಿ.</div>
+                <div><span style={{ color: "#D97706" }}>💼</span> <strong style={{ color: "#065F46" }}>ವೃತ್ತಿ & ಅಧಿಕಾರ:</strong> ವೃತ್ತಿರಂಗದಲ್ಲಿ ಅತ್ಯುನ್ನತ ಜವಾಬ್ದಾರಿ, ಕರ್ತವ್ಯ ನಿಷ್ಠೆ ಹಾಗೂ ದೀರ್ಘಕಾಲಿಕ ಸ್ಥಿರತೆಯ ಅಡಿಪಾಯ.</div>
+                <div><span style={{ color: "#D97706" }}>💰</span> <strong style={{ color: "#047857" }}>ಧನ & ಆಸ್ತಿ:</strong> ಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಧನ ವೃದ್ಧಿ, ಭೂಮಿ/ಗೃಹ ಹೂಡಿಕೆಗಳ ಯೋಜನೆ ಹಾಗೂ ಶೇಖರಿತ ನಿಧಿ ಭದ್ರತೆ.</div>
+                <div><span style={{ color: "#D97706" }}>🏫</span> <strong style={{ color: "#5B21B6" }}>ಕುಟುಂಬ ಸುಖ:</strong> ಗೃಹದಲ್ಲಿ ಹಿರಿಯರ ಆಶೀರ್ವಾದ, ದಾಂಪತ್ಯ ಶಾಂತಿ ಹಾಗೂ ಜವಾಬ್ದಾರಿಯುತ ಕುಟುಂಬ ನಿರ್ವಹಣೆ.</div>
+                <div><span style={{ color: "#D97706" }}>🕉️</span> <strong style={{ color: "#991B1B" }}>ದೈವಿಕ ಪರಿಹಾರ:</strong> ಶನಿವಾರ ಶ್ರೀ ಹನುಮಾನ್ ಚಾಲೀಸಾ ಪಠಿಸಿ ಹಾಗೂ ಬಡವರಿಗೆ ಎಳ್ಳಿನ ದಾನ ಮಾಡಿ.</div>
               </div>
             </div>
 
-            {/* Card 2: Ketu Antardasha (Clean White Card) */}
+            {/* Card 2: Budha Antardasha (2027 - 2029, Age 33 - 36) */}
             <div style={{
               background: "#FFFFFF",
               border: "1.5px solid #FCD34D",
@@ -692,19 +693,19 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
               boxShadow: "0 2px 5px rgba(0, 0, 0, 0.03)"
             }}>
               <div style={{ fontSize: "14px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ display: "inline-flex", alignItems: "center", lineHeight: "1.2" }}>📌 ಗುರು ಮಹಾದಶಾ • ಕೇತು ಅಂತರ್ದಶಾ</span>
+                <span style={{ display: "inline-flex", alignItems: "center", lineHeight: "1.1" }}>📌 ಗುರು ಮಹಾದಶಾ • ಬುಧ ಅಂತರ್ದಶಾ</span>
                 <span style={{
                   fontSize: "11px",
-                  color: "#5B21B6",
-                  background: "#F5F3FF",
-                  border: "1px solid #8B5CF6",
+                  color: "#92400E",
+                  background: "#FEF3C7",
+                  border: "1px solid #F59E0B",
                   padding: "3px 12px",
                   borderRadius: "14px",
                   fontWeight: 700,
                   display: "inline-flex",
                   alignItems: "center",
-                  lineHeight: "1.2"
-                }}>🕉️ ಅಧ್ಯಾತ್ಮ & ಜ್ಞಾನ ತಪಸ್ಸು</span>
+                  lineHeight: "1.1"
+                }}>✨ ವಿದ್ಯಾ, ಧನ & ಬೌದ್ಧಿಕ ಸಿದ್ಧಿ</span>
               </div>
               <div style={{
                 fontSize: "11.5px",
@@ -720,17 +721,17 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
                 alignItems: "center",
                 lineHeight: "1.35"
               }}>
-                <span>🗓️ ಅವಧಿ: ೨೦೧೬-೦೯-೧೪ ರಿಂದ ೨೦೧೭-೦೮-೨೪ | (ವಯಸ್ಸು: ೨೩ - ೨೪ ವರ್ಷ)</span>
+                <span>🗓️ ಅವಧಿ: ೨೦೨೭-೦೧-೨೦ ರಿಂದ ೨೦೨೯-೦೪-೨೬ | (ವಯಸ್ಸು: ೩೩ - ೩೬ ವರ್ಷ)</span>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px 16px", fontSize: "12px", lineHeight: "1.5" }}>
-                <div><span style={{ color: "#D97706" }}>💼</span> <strong style={{ color: "#065F46" }}>ವೃತ್ತಿ & ಅಧಿಕಾರ:</strong> ನಿಗೂಢ ಸಂಶೋಧನೆ, ತಾಳ್ಮೆಯ ಕರ್ತವ್ಯ ಹಾಗೂ ಆಂತರಿಕ ಕೌಶಲ್ಯ ವೃದ್ಧಿ. ಧಾವಂತದ ನಿರ್ಧಾರ ಬೇಡ.</div>
-                <div><span style={{ color: "#D97706" }}>💰</span> <strong style={{ color: "#047857" }}>ಧನ & ಆಸ್ತಿ:</strong> ಮಿತ ವ್ಯಯ, ಧರ್ಮ ಕಾರ್ಯಗಳಿಗೆ ವಿನಿಯೋಗ ಹಾಗೂ ಸ್ಥಿರ ಹೂಡಿಕೆ ಸಂರಕ್ಷಣೆ.</div>
-                <div><span style={{ color: "#D97706" }}>🏫</span> <strong style={{ color: "#5B21B6" }}>ಕುಟುಂಬ ಸುಖ:</strong> ಗೋಕರ್ಣ ಮುಂತಾದ ಪವಿತ್ರ ಕ್ಷೇತ್ರ ದರ್ಶನ, ಧ್ಯಾನ ಹಾಗೂ ಮಾನಸಿಕ ಪ್ರಶಾಂತತೆ.</div>
-                <div><span style={{ color: "#D97706" }}>🕉️</span> <strong style={{ color: "#991B1B" }}>ದೈವಿಕ ಪರಿಹಾರ:</strong> ಶ್ರೀ ಗಣಪತಿ ಅಥರ್ವಶೀರ್ಷ ಪಠಿಸಿ ಹಾಗೂ ಸಂಕಷ್ಟಹರ ಚತುರ್ಥಿ ಪೂಜೆ ಮಾಡಿ.</div>
+                <div><span style={{ color: "#D97706" }}>💼</span> <strong style={{ color: "#065F46" }}>ವೃತ್ತಿ & ಅಧಿಕಾರ:</strong> ತೀಕ್ಷ್ಣ ಬೌದ್ಧಿಕ ಚಾತುರ್ಯ, ಉನ್ನತ ಉದ್ಯೋಗ ಪ್ರಮೋಷನ್ ಹಾಗೂ ನೂತನ ವ್ಯಾಪಾರ ಲಾಭ.</div>
+                <div><span style={{ color: "#D97706" }}>💰</span> <strong style={{ color: "#047857" }}>ಧನ & ಆಸ್ತಿ:</strong> ವ್ಯಾಪಾರದಲ್ಲಿ ೨೫%+ ಲಾಭ ವೃದ್ಧಿ, ಶೇರು ಹಾಗೂ ನೂತನ ಆಸ್ತಿ ಖರೀದಿಗಳಿಂದ ಧನ ಸಮೃದ್ಧಿ.</div>
+                <div><span style={{ color: "#D97706" }}>🏫</span> <strong style={{ color: "#5B21B6" }}>ಕುಟುಂಬ ಸುಖ:</strong> ಮಕ್ಕಳಿಗೆ ವಿದ್ಯಾ ಯಶಸ್ಸು, ಬಂಧುಗಳೊಡನೆ ಶುಭ ಭೋಜನ ಹಾಗೂ ಸಮಾಜದಲ್ಲಿ ಗೌರವ.</div>
+                <div><span style={{ color: "#D97706" }}>🕉️</span> <strong style={{ color: "#991B1B" }}>ದೈವಿಕ ಪರಿಹಾರ:</strong> ಬುಧವಾರ ಶ್ರೀ ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಪಠಿಸಿ ಹಾಗೂ ಹಸಿರು ಬೇಳೆ ದಾನ ಮಾಡಿ.</div>
               </div>
             </div>
 
-            {/* Card 3: Shukra Antardasha (HIGHLIGHTED WARM GOLDEN CARD) */}
+            {/* Card 3: Shukra Antardasha (HIGHLIGHTED WARM GOLDEN CARD - 2030 - 2033, Age 37 - 40) */}
             <div style={{
               background: "#FFFBEB",
               border: "2px solid #F59E0B",
@@ -739,7 +740,7 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
               boxShadow: "0 3px 8px rgba(245, 158, 11, 0.12)"
             }}>
               <div style={{ fontSize: "14px", fontWeight: 900, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ display: "inline-flex", alignItems: "center", lineHeight: "1.2" }}>🌟 ಗುರು ಮಹಾದಶಾ • ಶುಕ್ರ ಅಂತರ್ದಶಾ (ರಾಜಯೋಗ ಕಾಲ)</span>
+                <span style={{ display: "inline-flex", alignItems: "center", lineHeight: "1.1" }}>🌟 ಗುರು ಮಹಾದಶಾ • ಶುಕ್ರ ಅಂತರ್ದಶಾ (ಅತ್ಯುನ್ನತ ರಾಜಯೋಗ ಕಾಲ)</span>
                 <span style={{
                   fontSize: "11px",
                   color: "#78350F",
@@ -750,8 +751,8 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
                   fontWeight: 800,
                   display: "inline-flex",
                   alignItems: "center",
-                  lineHeight: "1.2"
-                }}>👑 ಅತ್ಯುನ್ನತ ರಾಜಯೋಗ ಫಲ</span>
+                  lineHeight: "1.1"
+                }}>👑 ಭವ್ಯ ರಾಜಯೋಗ & ಐಶ್ವರ್ಯ</span>
               </div>
               <div style={{
                 fontSize: "11.5px",
@@ -767,17 +768,17 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
                 alignItems: "center",
                 lineHeight: "1.35"
               }}>
-                <span>🗓️ ಅವಧಿ: ೨೦೧೭-೦೮-೨೪ ರಿಂದ ೨೦೨೧-೦೪-೨೪ | (ವಯಸ್ಸು: ೨೪ - ೨೮ ವರ್ಷ)</span>
+                <span>🗓️ ಅವಧಿ: ೨೦೩೦-೦೪-೦೧ ರಿಂದ ೨೦೩೩-೧೨-೦೧ | (ವಯಸ್ಸು: ೩೭ - ೪೦ ವರ್ಷ)</span>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px 16px", fontSize: "12px", lineHeight: "1.5" }}>
-                <div><span style={{ color: "#D97706" }}>💼</span> <strong style={{ color: "#065F46" }}>ವೃತ್ತಿ & ಅಧಿಕಾರ:</strong> ರಾಜಕೀಯ/ಉದ್ಯೋಗ ಕ್ಷೇತ್ರದಲ್ಲಿ ಅತ್ಯುನ್ನತ ನಾಯಕತ್ವ, ಬಡ್ತಿ ಹಾಗೂ ಸಮಾಜದಲ್ಲಿ ಸನ್ಮಾನ.</div>
-                <div><span style={{ color: "#D97706" }}>💰</span> <strong style={{ color: "#047857" }}>ಧನ & ಆಸ್ತಿ:</strong> ನೂತನ ಗೃಹ ನಿರ್ಮಾಣ, ರಾಯಲ್ ವಾಹನ ಖರೀದಿ, ಸ್ವರ್ಣಾಭರಣ ಹಾಗೂ ಭೂ ಲಾಭ.</div>
-                <div><span style={{ color: "#D97706" }}>🏫</span> <strong style={{ color: "#5B21B6" }}>ಕುಟುಂಬ ಸುಖ:</strong> ಗೃಹದಲ್ಲಿ ವಿವಾಹ ಮಂಗಲ ಕಾರ್ಯಗಳು, ದಾಂಪತ್ಯ ಸೌಭಾಗ್ಯ ಹಾಗೂ ಅಖಂಡ ಆನಂದ.</div>
+                <div><span style={{ color: "#D97706" }}>💼</span> <strong style={{ color: "#065F46" }}>ವೃತ್ತಿ & ಅಧಿಕಾರ:</strong> ನಾಯಕತ್ವದ ಅತ್ಯುನ್ನತ ಶಿಖರ, ರಾಜಕೀಯ/ಉದ್ಯೋಗ ಪ್ರಭಾವ ಹಾಗೂ ರಾಷ್ಟ್ರೀಯ ಸನ್ಮಾನ.</div>
+                <div><span style={{ color: "#D97706" }}>💰</span> <strong style={{ color: "#047857" }}>ಧನ & ಆಸ್ತಿ:</strong> ರಾಯಲ್ ವಾಹನ ಖರೀದಿ, ಸ್ವರ್ಣಾಭರಣ ಲಾಭ, ನೂತನ ಭವನ ನಿರ್ಮಾಣ ಹಾಗೂ ಐಶ್ವರ್ಯ.</div>
+                <div><span style={{ color: "#D97706" }}>🏫</span> <strong style={{ color: "#5B21B6" }}>ಕುಟುಂಬ ಸುಖ:</strong> ಗೃಹದಲ್ಲಿ ವೈಭವದ ಮಂಗಲೋತ್ಸವಗಳು, ದಾಂಪತ್ಯ ಸುಖ ಹಾಗೂ ಅಖಂಡ ಕುಟುಂಬ ಆನಂದ.</div>
                 <div><span style={{ color: "#D97706" }}>🕉️</span> <strong style={{ color: "#991B1B" }}>ದೈವಿಕ ಪರಿಹಾರ:</strong> ಶುಕ್ರವಾರ ಶ್ರೀ ಮಹಾಲಕ್ಷ್ಮಿ ಆರಾಧನೆ ಹಾಗೂ ತುಪ್ಪದ ದೀಪಾರಾಧನೆ ಮಾಡಿ.</div>
               </div>
             </div>
 
-            {/* Card 4: Surya Antardasha (Clean White Card) */}
+            {/* Card 4: Surya Antardasha (2033 - 2034, Age 40 - 41) */}
             <div style={{
               background: "#FFFFFF",
               border: "1.5px solid #FCD34D",
@@ -786,7 +787,7 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
               boxShadow: "0 2px 5px rgba(0, 0, 0, 0.03)"
             }}>
               <div style={{ fontSize: "14px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ display: "inline-flex", alignItems: "center", lineHeight: "1.2" }}>📌 ಗುರು ಮಹಾದಶಾ • ಸೂರ್ಯ ಅಂತರ್ದಶಾ</span>
+                <span style={{ display: "inline-flex", alignItems: "center", lineHeight: "1.1" }}>📌 ಗುರು ಮಹಾದಶಾ • ಸೂರ್ಯ ಅಂತರ್ದಶಾ</span>
                 <span style={{
                   fontSize: "11px",
                   color: "#047857",
@@ -797,8 +798,8 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
                   fontWeight: 700,
                   display: "inline-flex",
                   alignItems: "center",
-                  lineHeight: "1.2"
-                }}>⛳ ಅಧಿಕಾರ & ಸರ್ಕಾರಿ ಜಯ</span>
+                  lineHeight: "1.1"
+                }}>⛳ ಸರ್ಕಾರಿ ಗೌರವ & ಅಧಿಕಾರ ಜಯ</span>
               </div>
               <div style={{
                 fontSize: "11.5px",
@@ -814,17 +815,17 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
                 alignItems: "center",
                 lineHeight: "1.35"
               }}>
-                <span>🗓️ ಅವಧಿ: ೨೦೨೧-೦೪-೨೪ ರಿಂದ ೨೦೨೨-೦೧-೧೦ | (ವಯಸ್ಸು: ೨೮ - ೨೯ ವರ್ಷ)</span>
+                <span>🗓️ ಅವಧಿ: ೨೦೩೩-೧೨-೦೧ ರಿಂದ ೨೦೩೪-೦೯-೨೫ | (ವಯಸ್ಸು: ೪೦ - ೪೧ ವರ್ಷ)</span>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px 16px", fontSize: "12px", lineHeight: "1.5" }}>
-                <div><span style={{ color: "#D97706" }}>💼</span> <strong style={{ color: "#065F46" }}>ವೃತ್ತಿ & ಅಧಿಕಾರ:</strong> ಸರ್ಕಾರಿ ಕೃಪೆ, ಹಿರಿಯ ಅಧಿಕಾರಿಗಳ ಸಂಪೂರ್ಣ ಬೆಂಬಲ ಹಾಗೂ ಶತ್ರುಗಳ ಮೇಲೆ ಜಯ.</div>
-                <div><span style={{ color: "#D97706" }}>💰</span> <strong style={{ color: "#047857" }}>ಧನ & ಆಸ್ತಿ:</strong> ಪೂರ್ವಾಜಿತ ಆಸ್ತಿಯಿಂದ ಧನ ಹರಿವು ಹಾಗೂ ಸರ್ಕಾರಿ ಬಾಕಿ ವಸೂಲಾತಿ.</div>
-                <div><span style={{ color: "#D97706" }}>🏫</span> <strong style={{ color: "#5B21B6" }}>ಕುಟುಂಬ ಸುಖ:</strong> ಪಿತೃವರ್ಗದ ಆಶೀರ್ವಾದ, ವಂಶದ ಕೀರ್ತಿ ವೃದ್ಧಿ ಹಾಗೂ ಗೃಹದಲ್ಲಿ ತೇಜಸ್ಸು.</div>
-                <div><span style={{ color: "#D97706" }}>🕉️</span> <strong style={{ color: "#991B1B" }}>ದೈವಿಕ ಪರಿಹಾರ:</strong> ಪ್ರತಿದಿನ ಸೂರ್ಯೋದಯಕ್ಕೆ ಆದಿತ್ಯ ಹೃದಯ ಸ್ತೋತ್ರ ಪಠಿಸಿ ತಾಮ್ರ ಪಾತ್ರೆಯಲ್ಲಿ ಅರ್ಘ್ಯ ನೀಡಿ.</div>
+                <div><span style={{ color: "#D97706" }}>💼</span> <strong style={{ color: "#065F46" }}>ವೃತ್ತಿ & ಅಧಿಕಾರ:</strong> ಸರ್ಕಾರಿ ಕೃಪೆ, ಹಿರಿಯ ಅಧಿಕಾರಿಗಳ ಸಂಪೂರ್ಣ ಬೆಂಬಲ ಹಾಗೂ ಶತ್ರು ಜಯ.</div>
+                <div><span style={{ color: "#D97706" }}>💰</span> <strong style={{ color: "#047857" }}>ಧನ & ಆಸ್ತಿ:</strong> ಪೂರ್ವಾಜಿತ ಆಸ್ತಿಯಿಂದ ಧನ ಆಗಮನ ಹಾಗೂ ಸರ್ಕಾರಿ ಬಾಕಿ ನಿಧಿ ವಸೂಲಾತಿ.</div>
+                <div><span style={{ color: "#D97706" }}>🏫</span> <strong style={{ color: "#5B21B6" }}>ಕುಟುಂಬ ಸುಖ:</strong> ಪಿತೃವರ್ಗದ ಆಶೀರ್ವಾದ ಬಲ, ವಂಶದ ಕೀರ್ತಿ ವೃದ್ಧಿ ಹಾಗೂ ತೇಜಸ್ಸು.</div>
+                <div><span style={{ color: "#D97706" }}>🕉️</span> <strong style={{ color: "#991B1B" }}>ದೈವಿಕ ಪರಿಹಾರ:</strong> ದಿನನಿತ್ಯ ಆದಿತ್ಯ ಹೃದಯ ಸ್ತೋತ್ರ ಪಠಿಸಿ ತಾಮ್ರ ಪಾತ್ರೆಯಲ್ಲಿ ಸೂರ್ಯನಿಗೆ ಅರ್ಘ್ಯ ನೀಡಿ.</div>
               </div>
             </div>
 
-            {/* Card 5: Shani Antardasha (Clean White Card) */}
+            {/* Card 5: Shani Mahadasha Shani Antardasha (2038 - 2041, Age 45 - 48) */}
             <div style={{
               background: "#FFFFFF",
               border: "1.5px solid #FCD34D",
@@ -833,7 +834,7 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
               boxShadow: "0 2px 5px rgba(0, 0, 0, 0.03)"
             }}>
               <div style={{ fontSize: "14px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ display: "inline-flex", alignItems: "center", lineHeight: "1.2" }}>📌 ಶನಿ ಮಹಾದಶಾ • ಶನಿ ಅಂತರ್ದಶಾ</span>
+                <span style={{ display: "inline-flex", alignItems: "center", lineHeight: "1.1" }}>📌 ಶನಿ ಮಹಾದಶಾ • ಶನಿ ಅಂತರ್ದಶಾ</span>
                 <span style={{
                   fontSize: "11px",
                   color: "#92400E",
@@ -844,8 +845,8 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
                   fontWeight: 700,
                   display: "inline-flex",
                   alignItems: "center",
-                  lineHeight: "1.2"
-                }}>⚖️ ಸ್ಥಿರ ಧರ್ಮ ಕರ್ತವ್ಯ</span>
+                  lineHeight: "1.1"
+                }}>⚖️ ಸ್ಥಿರ ಧರ್ಮ & ಸುದೀರ್ಘ ಭದ್ರತೆ</span>
               </div>
               <div style={{
                 fontSize: "11.5px",
@@ -861,12 +862,12 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
                 alignItems: "center",
                 lineHeight: "1.35"
               }}>
-                <span>🗓️ ಅವಧಿ: ೨೦೩೮-೦೧-೧೫ ರಿಂದ ೨೦೪೧-೦೧-೧೮ | (ವಯಸ್ಸು: ೪೫ - ೪೮ ವರ್ಷ)</span>
+                <span>🗓️ ಅವಧಿ: ೨೦೩೮-೦೫-೧೫ ರಿಂದ ೨೦೪೧-೦೫-೧೮ | (ವಯಸ್ಸು: ೪೫ - ೪೮ ವರ್ಷ)</span>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px 16px", fontSize: "12px", lineHeight: "1.5" }}>
-                <div><span style={{ color: "#D97706" }}>💼</span> <strong style={{ color: "#065F46" }}>ವೃತ್ತಿ & ಅಧಿಕಾರ:</strong> ಶ್ರಮಜೀವಿಗಳಿಗೆ ಅತ್ಯುನ್ನತ ಫಲ. ಕಠಿಣ ಕರ್ತವ್ಯದಿಂದ ಶಕ್ತಿಯುತ ಹಾಗೂ ಸ್ಥಿರ ವೃತ್ತಿ ಅಡಿಪಾಯ.</div>
-                <div><span style={{ color: "#D97706" }}>💰</span> <strong style={{ color: "#047857" }}>ಧನ & ಆಸ್ತಿ:</strong> ದೀರ್ಘಕಾಲಿಕ ಭೂಮಿ ಆಸ್ತಿ ಭದ್ರತೆ, ಕೈಗಾರಿಕಾ ಯಶಸ್ಸು ಹಾಗೂ ಶೇಖರಿತ ನಿಧಿ.</div>
-                <div><span style={{ color: "#D97706" }}>🏫</span> <strong style={{ color: "#5B21B6" }}>ಕುಟುಂಬ ಸುಖ:</strong> ಹಿರಿಯರ ಸೇವೆ, ಶಾಂತಿಯುತ ಗೃಹ ಜೀವನ ಹಾಗೂ ಜವಾಬ್ದಾರಿಯುತ ಕುಟುಂಬ ನಡೆ.</div>
+                <div><span style={{ color: "#D97706" }}>💼</span> <strong style={{ color: "#065F46" }}>ವೃತ್ತಿ & ಅಧಿಕಾರ:</strong> ಶ್ರಮಜೀವಿಗಳಿಗೆ ಅತ್ಯುನ್ನತ ಕೃತಜ್ಞತೆ, ಸ್ಥಿರ ಉದ್ಯೋಗ ಸಾಮ್ರಾಜ್ಯ ಹಾಗೂ ಉನ್ನತ ಗೌರವ.</div>
+                <div><span style={{ color: "#D97706" }}>💰</span> <strong style={{ color: "#047857" }}>ಧನ & ಆಸ್ತಿ:</strong> ದೀರ್ಘಕಾಲಿಕ ಭೂಮಿ ಆಸ್ತಿ ಭದ್ರತೆ, ಬೃಹತ್ ಕೈಗಾರಿಕಾ ಯಶಸ್ಸು ಹಾಗೂ ಶೇಖರಿತ ಧನ.</div>
+                <div><span style={{ color: "#D97706" }}>🏫</span> <strong style={{ color: "#5B21B6" }}>ಕುಟುಂಬ ಸುಖ:</strong> ಹಿರಿಯರ ಸೇವೆ, ಪ್ರಶಾಂತ ಗೃಹ ಜೀವನ ಹಾಗೂ ಜವಾಬ್ದಾರಿಯುತ ಕುಟುಂಬ ಕೀರ್ತಿ.</div>
                 <div><span style={{ color: "#D97706" }}>🕉️</span> <strong style={{ color: "#991B1B" }}>ದೈವಿಕ ಪರಿಹಾರ:</strong> ಶನಿವಾರ ಎಳ್ಳಿನ ಎಣ್ಣೆ ದೀಪ ಹಚ್ಚಿ ಹಾಗೂ ಶ್ರೀ ಹನುಮಾನ್ ಚಾಲೀಸಾ ಪಠಿಸಿ.</div>
               </div>
             </div>
