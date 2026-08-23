@@ -1705,10 +1705,10 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
             padding: "6px 12px",
             boxShadow: "0 2px 5px rgba(180, 83, 9, 0.05)"
           }}>
-            <div style={{ fontSize: "19px", fontWeight: 800, color: "#78350F", lineHeight: "1.3" }}>
+            <div style={{ fontSize: "17.5px", fontWeight: 800, color: "#78350F", lineHeight: "1.2", marginBottom: "6px", transform: "translateY(-2px)" }}>
               ಅಧ್ಯಾಯ ೩: ವ್ಯಕ್ತಿತ್ವ, ನಿಗೂಢ ರಹಸ್ಯ ಹಾಗೂ ಪ್ರಸ್ತುತ ಜೀವನ ಶೈಲಿ
             </div>
-            <div style={{ fontSize: "11px", color: "#B45309", fontWeight: 600, marginTop: "2px" }}>
+            <div style={{ fontSize: "11px", color: "#B45309", fontWeight: 600, marginTop: "4px", lineHeight: "1.35", display: "block" }}>
               📜 ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ ಸ್ವಭಾವ, ಆಂತರಿಕ ನಿಗೂಢ ರಹಸ್ಯ, ಉಗ್ರತೆ ಹಾಗೂ ಪ್ರಸ್ತುತ ೪ ಜೀವನ ಘಟ್ಟಗಳ ನಿಖರ ವಿಶ್ಲೇಷಣೆ
             </div>
           </div>
