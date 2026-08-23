@@ -333,7 +333,7 @@ const PAGE1_DICT: Record<string, {
   padaText: string;
   blessingHeader: string;
   salutation: (name: string, pandit: string) => string;
-  para1: (rashi: string, nak: string, pada: number, lagna: string, dob: string, tob: string) => string;
+  para1: (rashi: string, nak: string, pada: number, lagna: string, dob?: string, tob?: string) => string;
   para2: string;
   para3: (name: string, rashiLord?: string, lagnaLord?: string) => string;
   footerMotto: string;
@@ -354,7 +354,7 @@ const PAGE1_DICT: Record<string, {
     padaText: "ನೇ ಪಾದ",
     blessingHeader: "🌸 ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ಪ್ರಧಾನ ಅರ್ಚಕರ ಆಶೀರ್ವಚನ & ದೈವಿಕ ಸಂಕಲ್ಪ:",
     salutation: (name, pandit) => `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಪವಿತ್ರ ಸನ್ನಿಧಾನದಿಂದ ಪ್ರಧಾನ ಅರ್ಚಕರಾದ ${pandit} ಅವರು ಆತ್ಮೀಯ ಭಕ್ತರಾದ ${name} ಅವರಿಗೆ ಸಲ್ಲಿಸುವ ಪವಿತ್ರ ಶುಭಾಶೀರ್ವಾದಗಳು.`,
-    para1: (rashi, nak, pada, lagna, dob, tob) => `ನಿಮ್ಮ ಪವಿತ್ರ ಜನನ ದಿನಾಂಕ ${dob} ಹಾಗೂ ಸಮಯ ${tob} ರ ಆಧಾರದ ಮೇಲೆ, ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದ ಅಥೆಂಟಿಕ್ ಪಂಚಾಂಗ ಗಣಿತದಿಂದ ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನವು ${lagna}, ಚಂದ್ರ ರಾಶಿಯು ${rashi} ಹಾಗೂ ಜನ್ಮ ನಕ್ಷತ್ರವು ${nak} (${pada}ನೇ ಪಾದ) ಎಂದು ನಿಖರವಾಗಿ ಸಿದ್ಧಪಡಿಸಲಾಗಿದೆ. ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯವು ಭಗವಂತನು ನಿಮ್ಮ ಆತ್ಮಕ್ಕೆ ನೀಡಿದ ದೈವಿಕ ದಾರಿ ದೀಪವಾಗಿದೆ.`,
+    para1: (rashi, nak, pada, lagna) => `ಶ್ರೀ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದ ಸಿದ್ಧ ಜನ್ಮ ಕುಂಡಲಿ ಗಣಿತದ ಆಧಾರದ ಮೇಲೆ, ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನವು (${lagna}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿಯು (${rashi}) ನಿಮ್ಮ ಆತ್ಮಕ್ಕೆ ಅತ್ಯಂತ ತೀಕ್ಷ್ಣವಾದ ಬುದ್ಧಿಶಕ್ತಿ, ಪ್ರಾಮಾಣಿಕ ಸದಾಚಾರ, ಆಳವಾದ ದೈವಿಕ ಚಿಂತನೆ ಹಾಗೂ ಉನ್ನತ ಧರ್ಮ ಶ್ರದ್ಧೆಯನ್ನು ಕರುಣಿಸಿದೆ. ನಿಮ್ಮ ಜನ್ಮ ನಕ್ಷತ್ರದ (${nak}) ಗ್ರಹ ಪ್ರಭಾವವು ಸವಾಲುಗಳನ್ನು ಜಾಣ್ಮೆಯಿಂದ ಎದುರಿಸಿ ಸಮಾಜದಲ್ಲಿ ಶ್ರೇಷ್ಠ ಗೌರವ ಹಾಗೂ ಸ್ವಂತ ಶ್ರಮದಿಂದ ಯಶಸ್ಸು ಸಾಧಿಸುವ ಅಪೂರ್ವ ವ್ಯಕ್ತಿತ್ವವನ್ನು ಪ್ರದರ್ಶಿಸುತ್ತದೆ.`,
     para2: "ಈ ೮ ಪುಟಗಳ ರಾಯಲ್ ವೈಯಕ್ತಿಕ ಗ್ರಂಥವನ್ನು ಕೇವಲ ನಿಮಗಾಗಿ ಸಿದ್ಧಪಡಿಸಲಾಗಿದೆ. ಮುಂದಿನ ಪುಟಗಳಲ್ಲಿ (ಪುಟ ೨-೮) ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿ, ನವಗ್ರಹ ಸ್ಪಷ್ಟ ಸ್ಥಾನಗಳು, ಪ್ರಸ್ತುತ ಗೋಚಾರ ಫಲಗಳು, ವಿಂಶೋತ್ತರಿ ದಶಾ-ಭುಕ್ತಿ ಕಾಲಮಾನ, ಸಂಧ್ಯಾ ಜಪ ವಿಧಿ ಹಾಗೂ ನಿಮ್ಮ ನಕ್ಷತ್ರದ ಸಿದ್ಧ ಮಂತ್ರಗಳನ್ನು ವಿವರಿಸಲಾಗಿದೆ.",
     para3: (name) => `${name} ಅವರ ಕುಂಡಲಿಯಲ್ಲಿರುವ ಗ್ರಹ ಬಲದ ಆಧಾರದ ಮೇಲೆ ಈ ಗ್ರಂಥವನ್ನು ಬರೆಯಲಾಗಿದ್ದು, ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಅನುಗ್ರಹದಿಂದ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಸರ್ವ ಪೀಡೆಗಳು ನಿವಾರಣೆಯಾಗಿ ಆಯುಷ್ಯ, ಆರೋಗ್ಯ, ಯಶಸ್ಸು ಹಾಗೂ ಅಷ್ಟೈಶ್ವರ್ಯ ಸಿದ್ಧಿಯಾಗಲಿ.`,
     footerMotto: '"ॐ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸಾದ ಸಿದ್ಧಿರಸ್ತು · ಸಕಲ ಕಲ್ಯಾಣಮಸ್ತು · ಸರ್ವೇ ಜನಾಃ ಸುಖಿನೋ ಭವಂತು"',
@@ -375,7 +375,7 @@ const PAGE1_DICT: Record<string, {
     padaText: "Pada",
     blessingHeader: "🌸 Chief Priest Benediction & Sacred Introduction from Gokarna Kshetra:",
     salutation: (name, pandit) => `From the holy sanctum of Sri Kshetra Gokarna Mahabaleshwara, Chief Priest ${pandit} conveys sacred blessings to Devotee ${name}.`,
-    para1: (rashi, nak, pada, lagna, dob, tob) => `Based on your exact birth time (${tob}) and date (${dob}), authentic planetary calculations at Gokarna establish your Janma Lagna as ${lagna}, Moon Sign as ${rashi}, and Birth Star as ${nak} (Pada ${pada}). Vedic Astrology is the divine lamp illuminating your soul's life purpose.`,
+    para1: (rashi, nak, pada, lagna) => `Based on authentic Gokarna natal planetary math, the cosmic alignment of your Lagna (${lagna}) and Moon Sign (${rashi}) endows you with sharp intellect, unshakeable integrity, intuitive wisdom, and noble ambition. The sacred resonance of your Birth Star (${nak}) reveals a resilient, highly respected personality capable of turning challenges into triumph through dedicated perseverance.`,
     para2: "This 8-page personal treatise has been consecrated specifically for YOU. Pages 2 through 8 detail your exact Janma Kundali, planetary positions, Gochara transits, Vimshottari Dasha timeline, daily Sandhya Japa, and birth star Beeja Mantras.",
     para3: (name) => `Every astrological reflection in this treatise is 100% personalized for ${name}. May Lord Gokarna Mahabaleshwara bless you with longevity, robust health, harmony, and complete fulfillment.`,
     footerMotto: '"Om Gokarna Mahabaleshwara Prasada Siddhirastu · Sarve Janah Sukhino Bhavantu"',
@@ -396,7 +396,7 @@ const PAGE1_DICT: Record<string, {
     padaText: "चरण",
     blessingHeader: "🌸 श्री गोकर्ण महाबलेश्वर क्षेत्र मुख्य अर्चक का आशीर्वाद पत्र:",
     salutation: (name, pandit) => `श्री गोकर्ण महाबलेश्वर धाम से मुख्य अर्चक ${pandit} द्वारा प्रिय भक्त ${name} को पावन शुभाशीर्वाद।`,
-    para1: (rashi, nak, pada, lagna, dob, tob) => `आपकी जन्म तिथि ${dob} एवं समय ${tob} के अनुसार गोकर्ण पंचांग द्वारा आपका लग्न ${lagna}, चंद्र राशि ${rashi} तथा नक्षत्र ${nak} (${pada} चरण) निर्धारित किया गया है। वैदिक ज्योतिष ईश्वर का दिव्य प्रकाश है।`,
+    para1: (rashi, nak, pada, lagna) => `श्री गोकर्ण धाम की प्रामाणिक जन्म कुंडली गणना के अनुसार, आपके लग्न (${lagna}) एवं चंद्र राशि (${rashi}) का शुभ प्रभाव आपको तीक्ष्ण बुद्धि, निष्ठा, सात्विक विचार एवं समाज में उच्च सम्मान प्रदान करता है। आपके जन्म नक्षत्र (${nak}) की ऊर्जा आपके अनुशासित एवं तेजस्वी व्यक्तित्व को दर्शाती है।`,
     para2: "यह 8-पृष्ठीय ग्रंथ विशेष रूप से आपके लिए तैयार किया गया है। आगे के पृष्ठों (2-8) में आपकी जन्म कुंडली, ग्रह स्थिति, गोचर फल, विंशोत्तरी दशा एवं सिद्ध मंत्रों का विस्तृत विवरण है।",
     para3: (name) => `${name} के लिए यह ग्रंथ सर्वथा प्रामाणिक एवं व्यक्तिगत है। भगवान महाबलेश्वर की कृपा से आपका जीवन सुख, शांति और समृद्धि से परिपूर्ण हो।`,
     footerMotto: '"ॐ गोकर्ण महाबलेश्वर प्रसाद सिद्धिरस्तु · सर्वे जनाः सुखिनो भवन्तु"',
@@ -417,7 +417,7 @@ const PAGE1_DICT: Record<string, {
     padaText: "వ పాదం",
     blessingHeader: "🌸 శ్రీ గోకర్ణ మహాబలేశ్వర స్వామి ప్రధాన అర్చకుల దివ్యాశీర్వచనం:",
     salutation: (name, pandit) => `శ్రీ గోకర్ణ మహాబలేశ్వర క్షేత్రం నుండి ప్రధాన అర్చకులు ${pandit} గారు భక్తులు ${name} గారికి అందించే పవిత్ర ఆశీస్సులు.`,
-    para1: (rashi, nak, pada, lagna, dob, tob) => `మీ జనన తేదీ ${dob} మరియు సమయం ${tob} ఆధారంగా మీ లగ్నం ${lagna}, చంద్ర రాశి ${rashi} మరియు నక్షత్రం ${nak} (${pada}వ పాదం) గా గణించబడింది. జ్యోతిష్యం భగవంతుని దివ్య కాంతి.`,
+    para1: (rashi, nak, pada, lagna) => `శ్రీ గోకర్ణ క్షేత్ర పవిత్ర జన్మ కుండలి గణన ప్రకారం, మీ లగ్నం (${lagna}) మరియు చంద్ర రాశి (${rashi}) గ్రహ బలం మీకు తీక్షణమైన బుద్ధికుశలత, సదాచారం మరియు సమాజంలో ఉన్నత గౌరవాన్ని ప్రసాదిస్తున్నాయి. మీ జన్మ నక్షత్రం (${nak}) మీ లయబద్ధమైన మరియు ధైర్యవంతమైన వ్యక్తిత్వాన్ని ప్రతిబింబిస్తుంది.`,
     para2: "ఈ 8 పేజీల దివ్య గ్రంథం కేవలం మీ కోసమే సిద్ధం చేయబడింది. తరువాతి పేజీలలో (2-8) మీ జన్మ కుండలి, గ్రహ స్థానాలు, గోచారం, దశ ఫలితాలు మరియు మంత్రాలు వివరించబడ్డాయి.",
     para3: (name) => `${name} గారికి ఈ గ్రంథం సంపూర్ణంగా అంకితం చేయబడింది. శ్రీ మహాబలేశ్వర స్వామి అనుగ్రహంతో మీకు ఆయురారోగ్యాలు, ఐశ్వర్యం సిద్ధించుగాక.`,
     footerMotto: '"ఓం గోకర్ణ మహాబలేశ్వర ప్రసాద సిద్ధిరస్తు · సర్వే జనాః సుఖినో భవంతు"',
@@ -438,7 +438,7 @@ const PAGE1_DICT: Record<string, {
     padaText: "ஆம் பாதம்",
     blessingHeader: "🌸 ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் ஆலய முதன்மை அர்ச்சகரின் புனித ஆசி மடல்:",
     salutation: (name, pandit) => `ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் ஆலயத்திலிருந்து முதன்மை அர்ச்சகர் ${pandit} பக்தர் ${name} அவர்களுக்கு வழங்கும் புனித ஆசிகள்.`,
-    para1: (rashi, nak, pada, lagna, dob, tob) => `உங்கள் பிறந்த தேதி ${dob} மற்றும் நேரம் ${tob} அடிப்படையில் உங்கள் லக்னம் ${lagna}, சந்திர ராசி ${rashi} மற்றும் நட்சத்திரம் ${nak} (பாதம் ${pada}) எனக் கணிக்கப்பட்டுள்ளது. ஜோதிடம் இறைவனின் திவ்ய வழிகாட்டி.`,
+    para1: (rashi, nak, pada, lagna) => `ஸ்ரீ கோகர்ண ஆலய புனித ஜாதக கணிதத்தின்படி, உங்கள் லக்னம் (${lagna}) மற்றும் சந்திர ராசி (${rashi}) அமைப்பானது உங்களுக்கு கூர்மையான அறிவுத்திறன், நற்பண்புகள் மற்றும் உயர் கௌரவத்தை வழங்கி அருள்கிறது. உங்கள் நட்சத்திரம் (${nak}) உங்களின் துணிச்சலான ஆளுமையை வெளிப்படுத்துகிறது.`,
     para2: "இந்த 8 பக்க தனிப்பட்ட நூல் உங்களுக்காகவே தயாரிக்கப்பட்டுள்ளது. அடுத்த பக்கங்களில் (2-8) உங்கள் ஜாதகம், கிரக நிலைகள், கோச்சாரம், தசா புக்தி மற்றும் மந்திரங்கள் விளக்கப்பட்டன.",
     para3: (name) => `${name} அவர்களின் வாழ்வில் ஸ்ரீ மகாபலேஸ்வரரின் அருளால் சகல நன்மைகளும், ஆரோக்கியமும், ஐஸ்வர்யமும் பெருகட்டும்.`,
     footerMotto: '"ஓம் கோకర్ண மகாபலேஸ்வர பிரசாத் சித்திரஸ்து · சர்வே ஜனா சுகினோ பவந்து"',
@@ -1010,9 +1010,7 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                   rashiName,
                   nakName,
                   pada,
-                  birthKundli?.lagnaRashi ? ((RASHI_L5[birthKundli.lagnaRashi.index] as any)?.[code] || (RASHI_L5[birthKundli.lagnaRashi.index] as any)?.kn || lagnaRashiName) : lagnaRashiName,
-                  dobStr,
-                  formatTimeWithAmPm(tobStr, isKn)
+                  birthKundli?.lagnaRashi ? ((RASHI_L5[birthKundli.lagnaRashi.index] as any)?.[code] || (RASHI_L5[birthKundli.lagnaRashi.index] as any)?.kn || lagnaRashiName) : lagnaRashiName
                 )}
               </div>
               <div>
