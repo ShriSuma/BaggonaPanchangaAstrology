@@ -1924,7 +1924,7 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
               <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span>🗓️ ೧ ನೇ ತಿಂಗಳು (ಸೆಪ್ಟೆಂಬರ್ ೨೦೨೬)</span>
                 <span style={{ fontSize: "11px", background: "#FEF3C7", border: "1px solid #F59E0B", color: "#92400E", padding: "3px 10px", borderRadius: "12px", fontWeight: 700, display: "inline-flex", alignItems: "center", height: "22px", boxSizing: "border-box" }}>
-                  <span style={{ transform: "translateY(-1.5px)", display: "inline-block" }}>ವೃತ್ತಿ ವೃದ್ಧಿ</span>
+                  <span style={{ transform: "translateY(-4px)", display: "inline-block" }}>ವೃತ್ತಿ ವೃದ್ಧಿ</span>
                 </span>
               </div>
               <div style={{ fontSize: "11.5px", lineHeight: "1.4", color: "#3F2A12" }}>
@@ -1940,7 +1940,7 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
               <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#065F46", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span>🗓️ ೨ ನೇ ತಿಂಗಳು (ಅಕ್ಟೋಬರ್ ೨೦೨೬)</span>
                 <span style={{ fontSize: "11px", background: "#D1FAE5", border: "1px solid #10B981", color: "#065F46", padding: "3px 10px", borderRadius: "12px", fontWeight: 700, display: "inline-flex", alignItems: "center", height: "22px", boxSizing: "border-box" }}>
-                  <span style={{ transform: "translateY(-1.5px)", display: "inline-block" }}>ಧನ ಸಮೃದ್ಧಿ</span>
+                  <span style={{ transform: "translateY(-4px)", display: "inline-block" }}>ಧನ ಸಮೃದ್ಧಿ</span>
                 </span>
               </div>
               <div style={{ fontSize: "11.5px", lineHeight: "1.4", color: "#064E3B" }}>
@@ -1956,7 +1956,7 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
               <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#5B21B6", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span>🗓️ ೩ ನೇ ತಿಂಗಳು (ನವೆಂಬರ್ ೨೦೨೬)</span>
                 <span style={{ fontSize: "11px", background: "#EDE9FE", border: "1px solid #8B5CF6", color: "#5B21B6", padding: "3px 10px", borderRadius: "12px", fontWeight: 700, display: "inline-flex", alignItems: "center", height: "22px", boxSizing: "border-box" }}>
-                  <span style={{ transform: "translateY(-1.5px)", display: "inline-block" }}>ಕುಟುಂಬ ಸೌಖ್ಯ</span>
+                  <span style={{ transform: "translateY(-4px)", display: "inline-block" }}>ಕುಟುಂಬ ಸೌಖ್ಯ</span>
                 </span>
               </div>
               <div style={{ fontSize: "11.5px", lineHeight: "1.4", color: "#4C1D95" }}>
@@ -1972,7 +1972,7 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
               <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span>🗓️ ೪ ನೇ ತಿಂಗಳು (ಡಿಸೆಂಬರ್ ೨೦೨೬)</span>
                 <span style={{ fontSize: "11px", background: "#FEF3C7", border: "1px solid #F59E0B", color: "#92400E", padding: "3px 10px", borderRadius: "12px", fontWeight: 700, display: "inline-flex", alignItems: "center", height: "22px", boxSizing: "border-box" }}>
-                  <span style={{ transform: "translateY(-1.5px)", display: "inline-block" }}>ಆಸ್ತಿ & ವಾಹನ</span>
+                  <span style={{ transform: "translateY(-4px)", display: "inline-block" }}>ಆಸ್ತಿ & ವಾಹನ</span>
                 </span>
               </div>
               <div style={{ fontSize: "11.5px", lineHeight: "1.4", color: "#3F2A12" }}>
@@ -1988,7 +1988,7 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
               <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#991B1B", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span>🗓️ ೫ ನೇ ತಿಂಗಳು (ಜನವರಿ ೨೦೨೭)</span>
                 <span style={{ fontSize: "11px", background: "#FEE2E2", border: "1px solid #EF4444", color: "#991B1B", padding: "3px 10px", borderRadius: "12px", fontWeight: 800, display: "inline-flex", alignItems: "center", height: "22px", boxSizing: "border-box" }}>
-                  <span style={{ transform: "translateY(-1.5px)", display: "inline-block" }}>⚠️ ಭುಕ್ತಿ ಸಂಧಿ - ಜಾಗೃತಿ</span>
+                  <span style={{ transform: "translateY(-4px)", display: "inline-block" }}>⚠️ ಭುಕ್ತಿ ಸಂಧಿ - ಜಾಗೃತಿ</span>
                 </span>
               </div>
               <div style={{ fontSize: "11.5px", lineHeight: "1.4", color: "#7F1D1D" }}>
@@ -2004,7 +2004,7 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
               <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#065F46", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span>🗓️ ೬ ನೇ ತಿಂಗಳು (ಫೆಬ್ರವರಿ ೨೦೨೭)</span>
                 <span style={{ fontSize: "11px", background: "#D1FAE5", border: "1px solid #10B981", color: "#065F46", padding: "3px 10px", borderRadius: "12px", fontWeight: 700, display: "inline-flex", alignItems: "center", height: "22px", boxSizing: "border-box" }}>
-                  <span style={{ transform: "translateY(-1.5px)", display: "inline-block" }}>ರಾಜಯೋಗ ಬಲ</span>
+                  <span style={{ transform: "translateY(-4px)", display: "inline-block" }}>ರಾಜಯೋಗ ಬಲ</span>
                 </span>
               </div>
               <div style={{ fontSize: "11.5px", lineHeight: "1.4", color: "#064E3B" }}>
@@ -2020,7 +2020,7 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
               <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#1E40AF", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span>🗓️ ೭ ನೇ ತಿಂಗಳು (ಮಾರ್ಚ್ ೨೦೨೭)</span>
                 <span style={{ fontSize: "11px", background: "#DBEAFE", border: "1px solid #3B82F6", color: "#1E40AF", padding: "3px 10px", borderRadius: "12px", fontWeight: 700, display: "inline-flex", alignItems: "center", height: "22px", boxSizing: "border-box" }}>
-                  <span style={{ transform: "translateY(-1.5px)", display: "inline-block" }}>ವಿದ್ಯಾ & ಬೌದ್ಧಿಕ</span>
+                  <span style={{ transform: "translateY(-4px)", display: "inline-block" }}>ವಿದ್ಯಾ & ಬೌದ್ಧಿಕ</span>
                 </span>
               </div>
               <div style={{ fontSize: "11.5px", lineHeight: "1.4", color: "#1E3A8A" }}>
@@ -2036,7 +2036,7 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
               <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span>🗓️ ೮ ನೇ ತಿಂಗಳು (ಏಪ್ರಿಲ್ ೨೦೨೭)</span>
                 <span style={{ fontSize: "11px", background: "#FEF3C7", border: "1px solid #F59E0B", color: "#92400E", padding: "3px 10px", borderRadius: "12px", fontWeight: 700, display: "inline-flex", alignItems: "center", height: "22px", boxSizing: "border-box" }}>
-                  <span style={{ transform: "translateY(-1.5px)", display: "inline-block" }}>⚡ ಶತ್ರು ಜಯ & ರಕ್ಷಣೆ</span>
+                  <span style={{ transform: "translateY(-4px)", display: "inline-block" }}>⚡ ಶತ್ರು ಜಯ & ರಕ್ಷಣೆ</span>
                 </span>
               </div>
               <div style={{ fontSize: "11.5px", lineHeight: "1.4", color: "#3F2A12" }}>
