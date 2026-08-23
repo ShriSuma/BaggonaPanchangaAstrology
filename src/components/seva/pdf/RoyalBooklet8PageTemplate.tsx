@@ -458,6 +458,7 @@ const PAGE1_DICT: Record<string, {
   lblDob: string;
   lblTob: string;
   lblPob: string;
+  valPob: string;
   padaText: string;
   blessingHeader: string;
   salutation: (name: string, pandit: string) => string;
@@ -479,7 +480,8 @@ const PAGE1_DICT: Record<string, {
     lblYoga: "ಜನ್ಮ ಯೋಗ",
     lblDob: "ಜನನ ದಿನಾಂಕ",
     lblTob: "ಜನನ ಸಮಯ",
-    lblPob: "ಜನನ ಸ್ಥಳ",
+    lblPob: "ಜ್ಯೋತಿಷ್ಯ ಗ್ರಂಥ ಸಿದ್ಧ ಕ್ಷೇತ್ರ",
+    valPob: "ಕಾರ್ ರಸ್ತೆ, ಗೋಕರ್ಣ, ಕುಮಟಾ, ಉತ್ತರ ಕನ್ನಡ, ಕರ್ನಾಟಕ",
     padaText: "ನೇ ಪಾದ",
     blessingHeader: "🌸 ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ಪ್ರಧಾನ ಅರ್ಚಕರ ಆಶೀರ್ವಚನ & ದೈವಿಕ ಸಂಕಲ್ಪ:",
     salutation: (name, pandit) => `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಪವಿತ್ರ ಸನ್ನಿಧಾನದಿಂದ ಪ್ರಧಾನ ಅರ್ಚಕರಾದ ${pandit} ಅವರು ಆತ್ಮೀಯ ಶ್ರೇಯೋಭಿಲಾಷಿಗಳಾದ ${name} ಅವರಿಗೆ ಸಲ್ಲಿಸುವ ಪವಿತ್ರ ಶುಭಾಶೀರ್ವಾದಗಳು.`,
@@ -504,7 +506,8 @@ const PAGE1_DICT: Record<string, {
     lblYoga: "Janma Yoga",
     lblDob: "Date of Birth",
     lblTob: "Time of Birth",
-    lblPob: "Place of Birth",
+    lblPob: "Astrology Book Sacred Place",
+    valPob: "Car Street, Gokarna, Kumta, Uttara Kannada, Karnataka",
     padaText: "Pada",
     blessingHeader: "🌸 Chief Priest Benediction & Sacred Introduction from Gokarna Kshetra:",
     salutation: (name, pandit) => `From the holy sanctum of Sri Kshetra Gokarna Mahabaleshwara, Chief Priest ${pandit} conveys sacred blessings to Esteemed Patron ${name}.`,
@@ -529,7 +532,8 @@ const PAGE1_DICT: Record<string, {
     lblYoga: "जन्म योग",
     lblDob: "जन्म तिथि",
     lblTob: "जन्म समय",
-    lblPob: "जन्म स्थान",
+    lblPob: "ज्योतिष ग्रंथ सिद्ध क्षेत्र",
+    valPob: "कार स्ट्रीट, गोकर्ण, कुमटा, उत्तर कन्नड़, कर्नाटक",
     padaText: "चरण",
     blessingHeader: "🌸 श्री गोकर्ण महाबलेश्वर क्षेत्र मुख्य अर्चक का आशीर्वाद पत्र:",
     salutation: (name, pandit) => `श्री गोकर्ण महाबलेश्वर धाम से मुख्य अर्चक ${pandit} द्वारा आदरणीय ${name} को पावन शुभाशीर्वाद।`,
@@ -554,7 +558,8 @@ const PAGE1_DICT: Record<string, {
     lblYoga: "జన్మ యోగం",
     lblDob: "జనన తేదీ",
     lblTob: "జనన సమయం",
-    lblPob: "జనన స్థలం",
+    lblPob: "జ్యోతిష్య గ్రంథ సిద్ధ క్షేత్రం",
+    valPob: "కార్ స్ట్రీట్, గోకర్ణ, కుమటా, ఉత్తర కన్నడ, కర్ణాటక",
     padaText: "వ పాదం",
     blessingHeader: "🌸 శ్రీ గోకర్ణ మహాబలేశ్వర స్వామి ప్రధాన అర్చకుల దివ్యాశీర్వచనం:",
     salutation: (name, pandit) => `శ్రీ గోకర్ణ మహాబలేశ్వర క్షేత్రం నుండి ప్రధాన అర్చకులు ${pandit} గారు మాన్యశ్రీ ${name} గారికి అందించే పవిత్ర ఆశీస్సులు.`,
@@ -579,7 +584,8 @@ const PAGE1_DICT: Record<string, {
     lblYoga: "ஜென்ம யோகம்",
     lblDob: "பிறந்த தேதி",
     lblTob: "பிறந்த நேரம்",
-    lblPob: "பிறந்த இடம்",
+    lblPob: "ஜோதிட நூல் புனித க்ஷேத்ரம்",
+    valPob: "கார் தெரு, கோகர்ணா, குமடா, உத்தர கன்னடா, கர்நாடகா",
     padaText: "ஆம் பாதம்",
     blessingHeader: "🌸 ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் ஆலய முதன்மை அர்ச்சகரின் புனித ஆசி மடல்:",
     salutation: (name, pandit) => `ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் ஆலயத்திலிருந்து முதன்மை அர்ச்சகர் ${pandit} மாண்புமிகு ${name} அவர்களுக்கு வழங்கும் புனித ஆசிகள்.`,
@@ -1142,7 +1148,7 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                 </div>
               </div>
 
-              {/* Card 7: Place of Birth */}
+              {/* Card 7: Astrology Book Sacred Place */}
               <div style={{
                 gridColumn: "span 2",
                 background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
@@ -1154,12 +1160,14 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                 gap: "8px",
                 boxShadow: "0 2px 5px rgba(180, 83, 9, 0.08)"
               }}>
-                <span style={{ fontSize: "17px" }}>📍</span>
+                <span style={{ fontSize: "17px" }}>🛕</span>
                 <div>
                   <strong style={{ color: "#B45309", fontSize: "11.5px", display: "block", fontWeight: 700 }}>
                     {(PAGE1_DICT[code] || PAGE1_DICT.en).lblPob}:
                   </strong>
-                  <span style={{ fontWeight: 700, color: "#78350F", fontSize: "13.5px" }}>{pobStr}</span>
+                  <span style={{ fontWeight: 700, color: "#78350F", fontSize: "13.5px" }}>
+                    {(PAGE1_DICT[code] || PAGE1_DICT.en).valPob}
+                  </span>
                 </div>
               </div>
             </div>
