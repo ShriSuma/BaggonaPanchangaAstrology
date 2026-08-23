@@ -1279,24 +1279,24 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                   color: "#92400E",
                   background: "#FEF3C7",
                   border: "1px solid #F59E0B",
-                  padding: "1px 12px 3px 12px",
+                  padding: "3px 12px",
                   borderRadius: "14px",
                   fontWeight: 700,
                   display: "inline-flex",
                   alignItems: "center",
                   lineHeight: "1.25",
-                  transform: "translateY(-2px)"
+                  transform: "translateY(-3px)"
                 }}>⚖️ ಸ್ಥಿರ ಕರ್ಮ & ವೃತ್ತಿ ಭದ್ರತೆ</span>
               </div>
               <div style={{
                 fontSize: "11.5px",
                 color: "#78350F",
                 fontWeight: 700,
-                marginTop: "6px",
+                marginTop: "7px",
                 marginBottom: "6px",
                 background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
                 border: "1px solid #FCD34D",
-                padding: "2px 10px 3px 10px",
+                padding: "4px 10px",
                 borderRadius: "6px",
                 display: "flex",
                 alignItems: "center",
@@ -1304,7 +1304,7 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
               }}>
                 <span>🗓️ ಅವಧಿ: ೨೦೨೪-೦೭-೧೫ ರಿಂದ ೨೦೨೭-೦೧-೨೦ | (ವಯಸ್ಸು: ೩೧ - ೩೩ ವರ್ಷ - ಪ್ರಸ್ತುತ ನಡವಳಿಕೆ)</span>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px 16px", fontSize: "12px", lineHeight: "1.5" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px 16px", fontSize: "12.5px", lineHeight: "1.5" }}>
                 <div><span style={{ color: "#D97706" }}>💼</span> <strong style={{ color: "#065F46" }}>ವೃತ್ತಿ & ಅಧಿಕಾರ:</strong> ವೃತ್ತಿರಂಗದಲ್ಲಿ ಅತ್ಯುನ್ನತ ಜವಾಬ್ದಾರಿ, ಕರ್ತವ್ಯ ನಿಷ್ಠೆ ಹಾಗೂ ದೀರ್ಘಕಾಲಿಕ ಸ್ಥಿರತೆಯ ಅಡಿಪಾಯ.</div>
                 <div><span style={{ color: "#D97706" }}>💰</span> <strong style={{ color: "#047857" }}>ಧನ & ಆಸ್ತಿ:</strong> ಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಧನ ವೃದ್ಧಿ, ಭೂಮಿ/ಗೃಹ ಹೂಡಿಕೆಗಳ ಯೋಜನೆ ಹಾಗೂ ಶೇಖರಿತ ನಿಧಿ ಭದ್ರತೆ.</div>
                 <div><span style={{ color: "#D97706" }}>🏫</span> <strong style={{ color: "#5B21B6" }}>ಕುಟುಂಬ ಸುಖ:</strong> ಗೃಹದಲ್ಲಿ ಹಿರಿಯರ ಆಶೀರ್ವಾದ, ದಾಂಪತ್ಯ ಶಾಂತಿ ಹಾಗೂ ಜವಾಬ್ದಾರಿಯುತ ಕುಟುಂಬ ನಿರ್ವಹಣೆ.</div>
@@ -1327,24 +1327,24 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                   color: "#92400E",
                   background: "#FEF3C7",
                   border: "1px solid #F59E0B",
-                  padding: "1px 12px 3px 12px",
+                  padding: "3px 12px",
                   borderRadius: "14px",
                   fontWeight: 700,
                   display: "inline-flex",
                   alignItems: "center",
                   lineHeight: "1.25",
-                  transform: "translateY(-2px)"
+                  transform: "translateY(-3px)"
                 }}>✨ ವಿದ್ಯಾ, ಧನ & ಬೌದ್ಧಿಕ ಸಿದ್ಧಿ</span>
               </div>
               <div style={{
                 fontSize: "11.5px",
                 color: "#78350F",
                 fontWeight: 700,
-                marginTop: "6px",
+                marginTop: "7px",
                 marginBottom: "6px",
                 background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
                 border: "1px solid #FCD34D",
-                padding: "2px 10px 3px 10px",
+                padding: "4px 10px",
                 borderRadius: "6px",
                 display: "flex",
                 alignItems: "center",
@@ -1352,7 +1352,7 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
               }}>
                 <span>🗓️ ಅವಧಿ: ೨೦೨೭-೦೧-೨೦ ರಿಂದ ೨೦೨೯-೦೪-೨೬ | (ವಯಸ್ಸು: ೩೩ - ೩೬ ವರ್ಷ)</span>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px 16px", fontSize: "12px", lineHeight: "1.5" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px 16px", fontSize: "12.5px", lineHeight: "1.5" }}>
                 <div><span style={{ color: "#D97706" }}>💼</span> <strong style={{ color: "#065F46" }}>ವೃತ್ತಿ & ಅಧಿಕಾರ:</strong> ತೀಕ್ಷ್ಣ ಬೌದ್ಧಿಕ ಚಾತುರ್ಯ, ಉನ್ನತ ಉದ್ಯೋಗ ಪ್ರಮೋಷನ್ ಹಾಗೂ ನೂತನ ವ್ಯಾಪಾರ ಲಾಭ.</div>
                 <div><span style={{ color: "#D97706" }}>💰</span> <strong style={{ color: "#047857" }}>ಧನ & ಆಸ್ತಿ:</strong> ವ್ಯಾಪಾರದಲ್ಲಿ ೨೫%+ ಲಾಭ ವೃದ್ಧಿ, ಶೇರು ಹಾಗೂ ನೂತನ ಆಸ್ತಿ ಖರೀದಿಗಳಿಂದ ಧನ ಸಮೃದ್ಧಿ.</div>
                 <div><span style={{ color: "#D97706" }}>🏫</span> <strong style={{ color: "#5B21B6" }}>ಕುಟುಂಬ ಸುಖ:</strong> ಮಕ್ಕಳಿಗೆ ವಿದ್ಯಾ ಯಶಸ್ಸು, ಬಂಧುಗಳೊಡನೆ ಶುಭ ಭೋಜನ ಹಾಗೂ ಸಮಾಜದಲ್ಲಿ ಗೌರವ.</div>
@@ -1375,13 +1375,13 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                   color: "#78350F",
                   background: "linear-gradient(180deg, #FDE68A 0%, #F59E0B 100%)",
                   border: "1px solid #D97706",
-                  padding: "1px 12px 3px 12px",
+                  padding: "3px 12px",
                   borderRadius: "14px",
                   fontWeight: 800,
                   display: "inline-flex",
                   alignItems: "center",
                   lineHeight: "1.25",
-                  transform: "translateY(-2px)"
+                  transform: "translateY(-3px)"
                 }}>👑 ಭವ್ಯ ರಾಜಯೋಗ & ಐಶ್ವರ್ಯ</span>
               </div>
               <div style={{
@@ -1400,7 +1400,7 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
               }}>
                 <span>🗓️ ಅವಧಿ: ೨೦೩೦-೦೪-೦೧ ರಿಂದ ೨೦೩೩-೧೨-೦೧ | (ವಯಸ್ಸು: ೩೭ - ೪೦ ವರ್ಷ)</span>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px 16px", fontSize: "12px", lineHeight: "1.5" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px 16px", fontSize: "12.5px", lineHeight: "1.5" }}>
                 <div><span style={{ color: "#D97706" }}>💼</span> <strong style={{ color: "#065F46" }}>ವೃತ್ತಿ & ಅಧಿಕಾರ:</strong> ನಾಯಕತ್ವದ ಅತ್ಯುನ್ನತ ಶಿಖರ, ರಾಜಕೀಯ/ಉದ್ಯೋಗ ಪ್ರಭಾವ ಹಾಗೂ ರಾಷ್ಟ್ರೀಯ ಸನ್ಮಾನ.</div>
                 <div><span style={{ color: "#D97706" }}>💰</span> <strong style={{ color: "#047857" }}>ಧನ & ಆಸ್ತಿ:</strong> ರಾಯಲ್ ವಾಹನ ಖರೀದಿ, ಸ್ವರ್ಣಾಭರಣ ಲಾಭ, ನೂತನ ಭವನ ನಿರ್ಮಾಣ ಹಾಗೂ ಐಶ್ವರ್ಯ.</div>
                 <div><span style={{ color: "#D97706" }}>🏫</span> <strong style={{ color: "#5B21B6" }}>ಕುಟುಂಬ ಸುಖ:</strong> ಗೃಹದಲ್ಲಿ ವೈಭವದ ಮಂಗಲೋತ್ಸವಗಳು, ದಾಂಪತ್ಯ ಸುಖ ಹಾಗೂ ಅಖಂಡ ಕುಟುಂಬ ಆನಂದ.</div>
@@ -1423,24 +1423,24 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                   color: "#047857",
                   background: "#ECFDF5",
                   border: "1px solid #10B981",
-                  padding: "1px 12px 3px 12px",
+                  padding: "3px 12px",
                   borderRadius: "14px",
                   fontWeight: 700,
                   display: "inline-flex",
                   alignItems: "center",
                   lineHeight: "1.25",
-                  transform: "translateY(-2px)"
+                  transform: "translateY(-3px)"
                 }}>⛳ ಸರ್ಕಾರಿ ಗೌರವ & ಅಧಿಕಾರ ಜಯ</span>
               </div>
               <div style={{
                 fontSize: "11.5px",
                 color: "#78350F",
                 fontWeight: 700,
-                marginTop: "6px",
+                marginTop: "7px",
                 marginBottom: "6px",
                 background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
                 border: "1px solid #FCD34D",
-                padding: "2px 10px 3px 10px",
+                padding: "4px 10px",
                 borderRadius: "6px",
                 display: "flex",
                 alignItems: "center",
@@ -1448,7 +1448,7 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
               }}>
                 <span>🗓️ ಅವಧಿ: ೨೦೩೩-೧೨-೦೧ ರಿಂದ ೨೦೩೪-೦೯-೨೫ | (ವಯಸ್ಸು: ೪೦ - ೪೧ ವರ್ಷ)</span>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px 16px", fontSize: "12px", lineHeight: "1.5" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px 16px", fontSize: "12.5px", lineHeight: "1.5" }}>
                 <div><span style={{ color: "#D97706" }}>💼</span> <strong style={{ color: "#065F46" }}>ವೃತ್ತಿ & ಅಧಿಕಾರ:</strong> ಸರ್ಕಾರಿ ಕೃಪೆ, ಹಿರಿಯ ಅಧಿಕಾರಿಗಳ ಸಂಪೂರ್ಣ ಬೆಂಬಲ ಹಾಗೂ ಶತ್ರು ಜಯ.</div>
                 <div><span style={{ color: "#D97706" }}>💰</span> <strong style={{ color: "#047857" }}>ಧನ & ಆಸ್ತಿ:</strong> ಪೂರ್ವಾಜಿತ ಆಸ್ತಿಯಿಂದ ಧನ ಆಗಮನ ಹಾಗೂ ಸರ್ಕಾರಿ ಬಾಕಿ ನಿಧಿ ವಸೂಲಾತಿ.</div>
                 <div><span style={{ color: "#D97706" }}>🏫</span> <strong style={{ color: "#5B21B6" }}>ಕುಟುಂಬ ಸುಖ:</strong> ಪಿತೃವರ್ಗದ ಆಶೀರ್ವಾದ ಬಲ, ವಂಶದ ಕೀರ್ತಿ ವೃದ್ಧಿ ಹಾಗೂ ತೇಜಸ್ಸು.</div>
@@ -1471,24 +1471,24 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                   color: "#92400E",
                   background: "#FEF3C7",
                   border: "1px solid #F59E0B",
-                  padding: "1px 12px 3px 12px",
+                  padding: "3px 12px",
                   borderRadius: "14px",
                   fontWeight: 700,
                   display: "inline-flex",
                   alignItems: "center",
                   lineHeight: "1.25",
-                  transform: "translateY(-2px)"
+                  transform: "translateY(-3px)"
                 }}>⚖️ ಸ್ಥಿರ ಧರ್ಮ & ಸುದೀರ್ಘ ಭದ್ರತೆ</span>
               </div>
               <div style={{
                 fontSize: "11.5px",
                 color: "#78350F",
                 fontWeight: 700,
-                marginTop: "6px",
+                marginTop: "7px",
                 marginBottom: "6px",
                 background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
                 border: "1px solid #FCD34D",
-                padding: "2px 10px 3px 10px",
+                padding: "4px 10px",
                 borderRadius: "6px",
                 display: "flex",
                 alignItems: "center",
@@ -1496,7 +1496,7 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
               }}>
                 <span>🗓️ ಅವಧಿ: ೨೦೩೮-೦೫-೧೫ ರಿಂದ ೨೦೪೧-೦೫-೧೮ | (ವಯಸ್ಸು: ೪೫ - ೪೮ ವರ್ಷ)</span>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px 16px", fontSize: "12px", lineHeight: "1.5" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px 16px", fontSize: "12.5px", lineHeight: "1.5" }}>
                 <div><span style={{ color: "#D97706" }}>💼</span> <strong style={{ color: "#065F46" }}>ವೃತ್ತಿ & ಅಧಿಕಾರ:</strong> ಶ್ರಮಜೀವಿಗಳಿಗೆ ಅತ್ಯುನ್ನತ ಕೃತಜ್ಞತೆ, ಸ್ಥಿರ ಉದ್ಯೋಗ ಸಾಮ್ರಾಜ್ಯ ಹಾಗೂ ಉನ್ನತ ಗೌರವ.</div>
                 <div><span style={{ color: "#D97706" }}>💰</span> <strong style={{ color: "#047857" }}>ಧನ & ಆಸ್ತಿ:</strong> ದೀರ್ಘಕಾಲಿಕ ಭೂಮಿ ಆಸ್ತಿ ಭದ್ರತೆ, ಬೃಹತ್ ಕೈಗಾರಿಕಾ ಯಶಸ್ಸು ಹಾಗೂ ಶೇಖರಿತ ಧನ.</div>
                 <div><span style={{ color: "#D97706" }}>🏫</span> <strong style={{ color: "#5B21B6" }}>ಕುಟುಂಬ ಸುಖ:</strong> ಹಿರಿಯರ ಸೇವೆ, ಪ್ರಶಾಂತ ಗೃಹ ಜೀವನ ಹಾಗೂ ಜವಾಬ್ದಾರಿಯುತ ಕುಟುಂಬ ಕೀರ್ತಿ.</div>
