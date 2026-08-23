@@ -58,17 +58,20 @@ const callTranslateApi = async (
   });
   const raw = await res.text();
   if (!res.ok) {
-    throw new TranslationError(raw || res.statusText, res.status);
+    console.warn(`Translation API rate limited or offline (${res.status}): ${raw || res.statusText} — using local fallback.`);
+    return texts; // Silent fallback to original texts to prevent HTTP 429 popups
   }
   let parsed: unknown;
   try {
     parsed = JSON.parse(raw) as unknown;
   } catch {
-    throw new TranslationError("Translation API returned invalid JSON", res.status);
+    console.warn("Translation API returned invalid JSON — using local fallback.");
+    return texts;
   }
   const translations = (parsed as { translations?: unknown }).translations;
   if (!Array.isArray(translations) || translations.length !== texts.length) {
-    throw new TranslationError("Translation API response shape mismatch", res.status);
+    console.warn("Translation API response shape mismatch — using local fallback.");
+    return texts;
   }
   return translations.map(String);
 };
