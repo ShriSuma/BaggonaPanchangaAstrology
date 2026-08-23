@@ -318,6 +318,87 @@ const formatTimeWithAmPm = (timeStr: string, isKn: boolean): string => {
 };
 
 
+
+const PAGE7_DICT: Record<string, {
+  chapterTitle: string;
+  subTitle: string;
+  personalIntroHeader: string;
+  personalIntroText: string;
+  installHeader: string;
+  step1: string;
+  step2: string;
+  step3: string;
+  qrCaption: string;
+  urlRedirectHeader: string;
+  urlRedirectText: string;
+}> = {
+  kn: {
+    chapterTitle: "ಅಧ್ಯಾಯ ೬: ವೈಯಕ್ತಿಕ ೯೦-ದಿನಗಳ ಪಂಚಾಂಗ ಕ್ಯಾಲೆಂಡರ್ & ದೈವಿಕ ಸಿಂಕ್ ಮಾರ್ಗದರ್ಶಿ",
+    subTitle: "ನಿಮ್ಮ ಮೊಬೈಲ್ ಲಾಕ್ ಸ್ಕ್ರೀನ್‌ಗೆ ೯೦ ದಿನಗಳ ವೈಯಕ್ತಿಕ ಪಂಚಾಂಗ ಸಿಂಕ್ ಮಾಡುವ ಸರಳ ಹಂತಗಳು",
+    personalIntroHeader: "✨ ವೈಯಕ್ತಿಕ ಜಾತಕ ಆಧಾರಿತ ೯೦-ದಿನಗಳ ಪಂಚಾಂಗ ವಿಶೇಷತೆ:",
+    personalIntroText: "ಈ ೯೦-ದಿನಗಳ ಪಂಚಾಂಗ ಕ್ಯಾಲೆಂಡರ್ ಹಾಗೂ QR ಕೋಡ್ ಅನ್ನು ಕೇವಲ ನಿಮಗಾಗಿ, ನಿಮ್ಮ ವೈಯಕ್ತಿಕ ಜಾತಕ ಮತ್ತು ಗೋಚಾರ ಗಣಿತದ ಆಧಾರದ ಮೇಲೆ ಪ್ರತಿಯೊಂದು ದಿನಕ್ಕೂ (Each Day for Next 90 Days) ವೈಯಕ್ತಿಕವಾಗಿ ಪ್ರತ್ಯೇಕವಾಗಿ ಸಿದ್ಧಪಡಿಸಲಾಗಿದೆ.",
+    installHeader: "📲 ನಿಮ್ಮ ಮೊಬೈಲ್‌ಗೆ ೯೦-ದಿನಗಳ ಪಂಚಾಂಗ ಇನ್‌ಸ್ಟಾಲ್ ಮಾಡುವ ಸರಳ ಹಂತಗಳು:",
+    step1: "ಹಂತ ೧: ಕೆಳಗಿನ QR ಕೋಡ್ ಅನ್ನು ನಿಮ್ಮ ಮೊಬೈಲ್ ಕ್ಯಾಮೆರಾದಿಂದ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ.",
+    step2: "ಹಂತ ೨: 'Add 90-Day Calendar (.ics)' ಆಯ್ಕೆಮಾಡಿ 'Add All' ಕ್ಲಿಕ್ ಮಾಡಿ ಸಿಂಕ್ ಮಾಡಿ.",
+    step3: "ಹಂತ ೩: ನಿಮ್ಮ ಮೊಬೈಲ್ ಕ್ಯಾಲೆಂಡರ್‌ನಲ್ಲಿ ಪ್ರತಿಯೊಂದು ದಿನದ ಶುಭ-ಅಶುಭ ಮುಹೂರ್ತ ಈವೆಂಟ್ ನೋಡಿ.",
+    qrCaption: "ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ೯೦-ದಿನಗಳ ವೈಯಕ್ತಿಕ ಪಂಚಾಂಗ ಸಿಂಕ್ ಮಾಡಿ",
+    urlRedirectHeader: "🌐 ಕ್ಯಾಲೆಂಡರ್ ಈವೆಂಟ್ URL ಲಿಂಕ್ ರೀಡೈರೆಕ್ಷನ್ ಸೂಚನೆ:",
+    urlRedirectText: "ನಿಮ್ಮ ಮೊಬೈಲ್ ಕ್ಯಾಲೆಂಡರ್‌ನಲ್ಲಿರುವ ಪ್ರತಿಯೊಂದು ದಿನದ Event ಒಳಗಡೆ ಇರುವ URL ಲಿಂಕ್ ಮೇಲೆ ಕ್ಲಿಕ್ ಮಾಡುವುದರಿಂದ, ನೀವು ನೇರವಾಗಿ ಇಂದಿನ ಜಾತಕ, ಗೋಚಾರ ಫಲ, ದಶಾ-ಭುಕ್ತಿ ಹಾಗೂ ೪ ಟ್ಯಾಬ್‌ಗಳುಳ್ಳ ಪವಿತ್ರ ದರ್ಶನ ಪುಟಕ್ಕೆ ರೀಡೈರೆಕ್ಟ್ ಆಗುತ್ತೀರಿ!"
+  },
+  en: {
+    chapterTitle: "Chapter 6: Personal 90-Day Panchanga Calendar & Divine Sync Guide",
+    subTitle: "Simple steps to sync 90-day personal astrological calendar to your mobile device",
+    personalIntroHeader: "✨ Personal Horoscope-Based 90-Day Calendar Speciality:",
+    personalIntroText: "This 90-Day Panchanga Calendar and QR Code have been crafted specifically for YOU, calculated day-by-day based on your personal birth chart for the next 90 days.",
+    installHeader: "📲 Simple steps to install 90-Day Calendar to your mobile:",
+    step1: "Step 1: Scan the QR code below using your smartphone camera.",
+    step2: "Step 2: Tap 'Add 90-Day Calendar (.ics)' and select 'Add All' to sync.",
+    step3: "Step 3: Open your mobile calendar to view daily personal muhurtha events.",
+    qrCaption: "Scan to sync 90-day personal Panchanga calendar",
+    urlRedirectHeader: "🌐 Calendar Event URL Redirection Guide:",
+    urlRedirectText: "Clicking the unique URL link inside each daily calendar event redirects you straight to your daily Darshana page featuring 4 interactive tabs (Kundli, Gochara, Dasha-Bhukti & Daily Panchanga)!"
+  },
+  hi: {
+    chapterTitle: "अध्याय 6: व्यक्तिगत 90-दिवसीय पंचांग कैलेंडर एवं दिव्य सिंक मार्गदर्शिका",
+    subTitle: "अपने मोबाइल में 90-दिवसीय पंचांग कैलेंडर सिंक करने के सरल चरण",
+    personalIntroHeader: "✨ व्यक्तिगत जन्म कुंडली आधारित 90-दिवसीय कैलेंडर विशेषता:",
+    personalIntroText: "यह 90-दिवसीय पंचांग कैलेंडर एवं QR कोड विशेष रूप से आपके लिए, आपकी जन्म कुंडली एवं गोचर के आधार पर आगामी 90 दिनों के लिए प्रतिदिन व्यक्तिगत रूप से तैयार किया गया है।",
+    installHeader: "📲 मोबाइल में 90-दिवसीय पंचांग सिंक करने के सरल चरण:",
+    step1: "चरण 1: अपने मोबाइल कैमरे से नीचे दिए गए QR कोड को स्कैन करें।",
+    step2: "चरण 2: 'Add 90-Day Calendar' पर टैप करके 'Add All' चुनें।",
+    step3: "चरण 3: अपने मोबाइल कैलेंडर में प्रतिदिन के शुभ-अशुभ मुहूर्त देखें।",
+    qrCaption: "स्कैन करके 90-दिवसीय व्यक्तिगत पंचांग सिंक करें",
+    urlRedirectHeader: "🌐 कैलेंडर इवेंट URL रीडायरेक्शन निर्देश:",
+    urlRedirectText: "प्रतिदिन के कैलेंडर इवेंट में दिए गए URL लिंक पर क्लिक करने से आप सीधे अपने 4-टैब दैनिक दर्शन पृष्ठ (कुंडली, गोचर, दशा-भुक्ति एवं पंचांग) पर पहुंच जाएंगे!"
+  },
+  te: {
+    chapterTitle: "అధ్యాయం 6: వ్యక్తిగత 90-రోజుల పంచాంగ క్యాలెండర్ & దివ్య సింక్ మార్గదర్శి",
+    subTitle: "మీ మొబైల్‌కి 90 రోజుల పంచాంగం సింక్ చేసుకునే సులువైన పద్ధతులు",
+    personalIntroHeader: "✨ వ్యక్తిగత జాతక ఆధారిత 90-రోజుల క్యాలెండర్ ప్రత్యేకత:",
+    personalIntroText: "ఈ 90-రోజుల పంచాంగ క్యాలెండర్ మరియు QR కోడ్ కేవలం మీ కోసమే, మీ వ్యక్తిగత జాతకం మరియు గోచార గణన ఆధారంగా రాబోయే 90 రోజులకు రోజువారీగా ప్రత్యేకంగా సిద్ధం చేయబడింది.",
+    installHeader: "📲 మొబైల్‌లో 90-రోజుల పంచాంగం ఇన్‌స్టాల్ చేసే పద్ధతులు:",
+    step1: "దశ 1: క్రింది QR కోడ్‌ను మీ మొబైల్ కెమెరాతో స్కాన్ చేయండి.",
+    step2: "దశ 2: 'Add 90-Day Calendar' పై టాప్ చేసి 'Add All' క్లిక్ చేయండి.",
+    step3: "దశ 3: మీ మొబైల్ క్యాలెండర్‌లో ప్రతి రోజు శుభ-అశుభ ముహూర్తాలు చూడండి.",
+    qrCaption: "స్కాన్ చేసి 90-రోజుల వ్యక్తిగత పంచాంగం సింక్ చేయండి",
+    urlRedirectHeader: "🌐 క్యాలెండర్ ఈవెంట్ URL రీడైరెక్షన్ వివరాలు:",
+    urlRedirectText: "మీ క్యాలెండర్ ఈవెంట్‌లోని URL లింక్‌పై క్లిక్ చేయడం ద్వారా మీరు నేరుగా 4 టాబ్‌లు (జాతకం, గోచారం, దశా-భుక్తి & పంచాంగం) ఉన్న పేజీకి రీడైరెక్ట్ అవుతారు!"
+  },
+  ta: {
+    chapterTitle: "அத்தியாயம் 6: தனிப்பட்ட 90-நாள் பஞ்சாங்க காலண்டர் & புனித சிங்க் வழிகாட்டி",
+    subTitle: "உங்கள் மொபைலில் 90-நாள் பஞ்சாங்கத்தை சிங்க் செய்வதற்கான எளிய முறைகள்",
+    personalIntroHeader: "✨ தனிப்பட்ட ஜாதக அடிப்படையிலான 90-நாள் காலண்டர் சிறப்பு:",
+    personalIntroText: "இந்த 90-நாள் பஞ்சாங்க காலண்டர் மற்றும் QR குறியீடு உங்களுக்காகவே, உங்கள் ஜாதக கணிதத்தின் அடிப்படையில் அடுத்த 90 நாட்களுக்கு ஒவ்வொரு நாளுக்கும் தனித்தனியாக தயாரிக்கப்பட்டுள்ளது.",
+    installHeader: "📲 மொபைலில் 90-நாள் பஞ்சாங்கம் நிறுவும் எளிய முறைகள்:",
+    step1: "படி 1: கீழே உள்ள QR குறியீட்டை மொபைல் கேமராவால் ஸ்கேன் செய்யவும்.",
+    step2: "படி 2: 'Add 90-Day Calendar' என்பதை கிளிக் செய்து 'Add All' தேர்வு செய்யவும்.",
+    step3: "படி 3: உங்கள் மொபைல் காலண்டரில் தினசரி சுப முகூர்த்தங்களை பார்க்கவும்.",
+    qrCaption: "ஸ்கேன் செய்து 90-நாள் பஞ்சாங்கம் சிங்க் செய்யவும்",
+    urlRedirectHeader: "🌐 காலண்டர் நிகழ்வு URL மறுவழிப்படுத்தும் வழிகாட்டி:",
+    urlRedirectText: "ஒவ்வொரு நாள் காலண்டர் நிகழ்விலும் உள்ள URL லிங்கை கிளிக் செய்வதன் மூலம், 4 தப்கள் (ஜாதகம், கோச்சாரம், தசா புக்தி & பஞ்சாங்கம்) கொண்ட பக்கத்திற்கு நேரடியாக செல்லலாம்!"
+  }
+};
+
 const PAGE1_DICT: Record<string, {
   sloka: string;
   title: string;
@@ -1313,8 +1394,8 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                   fontWeight: 700,
                   display: "inline-flex",
                   alignItems: "center",
-                  lineHeight: "1.25",
-                  transform: "translateY(-3px)"
+                  lineHeight: "1.2",
+                  transform: "translateY(-4px)"
                 }}>⚖️ ಸ್ಥಿರ ಕರ್ಮ & ವೃತ್ತಿ ಭದ್ರತೆ</span>
               </div>
               <div style={{
@@ -1361,8 +1442,8 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                   fontWeight: 700,
                   display: "inline-flex",
                   alignItems: "center",
-                  lineHeight: "1.25",
-                  transform: "translateY(-3px)"
+                  lineHeight: "1.2",
+                  transform: "translateY(-4px)"
                 }}>✨ ವಿದ್ಯಾ, ಧನ & ಬೌದ್ಧಿಕ ಸಿದ್ಧಿ</span>
               </div>
               <div style={{
@@ -1409,8 +1490,8 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                   fontWeight: 800,
                   display: "inline-flex",
                   alignItems: "center",
-                  lineHeight: "1.25",
-                  transform: "translateY(-3px)"
+                  lineHeight: "1.2",
+                  transform: "translateY(-4px)"
                 }}>👑 ಭವ್ಯ ರಾಜಯೋಗ & ಐಶ್ವರ್ಯ</span>
               </div>
               <div style={{
@@ -1457,8 +1538,8 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                   fontWeight: 700,
                   display: "inline-flex",
                   alignItems: "center",
-                  lineHeight: "1.25",
-                  transform: "translateY(-3px)"
+                  lineHeight: "1.2",
+                  transform: "translateY(-4px)"
                 }}>⛳ ಸರ್ಕಾರಿ ಗೌರವ & ಅಧಿಕಾರ ಜಯ</span>
               </div>
               <div style={{
@@ -1505,8 +1586,8 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                   fontWeight: 700,
                   display: "inline-flex",
                   alignItems: "center",
-                  lineHeight: "1.25",
-                  transform: "translateY(-3px)"
+                  lineHeight: "1.2",
+                  transform: "translateY(-4px)"
                 }}>⚖️ ಸ್ಥಿರ ಧರ್ಮ & ಸುದೀರ್ಘ ಭದ್ರತೆ</span>
               </div>
               <div style={{
