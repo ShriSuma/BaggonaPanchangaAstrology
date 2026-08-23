@@ -1394,9 +1394,8 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                   fontWeight: 700,
                   display: "inline-flex",
                   alignItems: "center",
-                  lineHeight: "1.2",
-                  transform: "translateY(-4px)"
-                }}>⚖️ ಸ್ಥಿರ ಕರ್ಮ & ವೃತ್ತಿ ಭದ್ರತೆ</span>
+                  lineHeight: "1.2"
+                }}><span style={{ transform: "translateY(-3px)", display: "inline-block" }}>⚖️ ಸ್ಥಿರ ಕರ್ಮ & ವೃತ್ತಿ ಭದ್ರತೆ</span></span>
               </div>
               <div style={{
                 fontSize: "11.5px",
@@ -1442,9 +1441,8 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                   fontWeight: 700,
                   display: "inline-flex",
                   alignItems: "center",
-                  lineHeight: "1.2",
-                  transform: "translateY(-4px)"
-                }}>✨ ವಿದ್ಯಾ, ಧನ & ಬೌದ್ಧಿಕ ಸಿದ್ಧಿ</span>
+                  lineHeight: "1.2"
+                }}><span style={{ transform: "translateY(-3px)", display: "inline-block" }}>✨ ವಿದ್ಯಾ, ಧನ & ಬೌದ್ಧಿಕ ಸಿದ್ಧಿ</span></span>
               </div>
               <div style={{
                 fontSize: "11.5px",
@@ -1586,9 +1584,8 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                   fontWeight: 700,
                   display: "inline-flex",
                   alignItems: "center",
-                  lineHeight: "1.2",
-                  transform: "translateY(-4px)"
-                }}>⚖️ ಸ್ಥಿರ ಧರ್ಮ & ಸುದೀರ್ಘ ಭದ್ರತೆ</span>
+                  lineHeight: "1.2"
+                }}><span style={{ transform: "translateY(-3px)", display: "inline-block" }}>⚖️ ಸ್ಥಿರ ಧರ್ಮ & ಸುದೀರ್ಘ ಭದ್ರತೆ</span></span>
               </div>
               <div style={{
                 fontSize: "11.5px",
