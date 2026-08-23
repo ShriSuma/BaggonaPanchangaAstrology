@@ -1027,29 +1027,7 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
               </div>
             </div>
 
-            {/* Ashirvachana Sacred Seal & Guarantee Emblem */}
-            <div style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              background: "#78350F",
-              color: "#FEF3C7",
-              borderRadius: "10px",
-              padding: "10px 16px",
-              border: "1.5px solid #D97706",
-              marginTop: "16px",
-              boxShadow: "0 2px 6px rgba(120, 53, 15, 0.25)"
-            }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <span style={{ fontSize: "20px" }}>💮</span>
-                <span style={{ fontSize: "12px", fontWeight: 800, color: "#FDE68A" }}>
-                  {isKn ? "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ಧರ್ಮಪೀಠದ ಅಭಯ ಮುದ್ರೆ" : "Sri Gokarna Kshetra Sacred Abhaya Mudra Seal"}
-                </span>
-              </div>
-              <div style={{ fontSize: "11.5px", fontWeight: 700, color: "#FEF3C7" }}>
-                ✨ {isKn ? "೧೦೦% ಸತ್ಯ ವೈಯಕ್ತಿಕ ಕುಂಡಲಿ ಗಣಿತ" : "100% Authentic Personal Horoscope"}
-              </div>
-            </div>
+
           </div>
 
           {/* Footer Banner */}
