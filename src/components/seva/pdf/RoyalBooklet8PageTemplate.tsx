@@ -1279,27 +1279,28 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                   color: "#92400E",
                   background: "#FEF3C7",
                   border: "1px solid #F59E0B",
-                  padding: "1px 12px 5px 12px",
+                  padding: "1px 12px 3px 12px",
                   borderRadius: "14px",
                   fontWeight: 700,
                   display: "inline-flex",
                   alignItems: "center",
-                  lineHeight: "1.4"
+                  lineHeight: "1.25",
+                  transform: "translateY(-2px)"
                 }}>⚖️ ಸ್ಥಿರ ಕರ್ಮ & ವೃತ್ತಿ ಭದ್ರತೆ</span>
               </div>
               <div style={{
                 fontSize: "11.5px",
                 color: "#78350F",
                 fontWeight: 700,
-                marginTop: "2px",
-                marginBottom: "8px",
+                marginTop: "6px",
+                marginBottom: "6px",
                 background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
                 border: "1px solid #FCD34D",
-                padding: "1px 10px 5px 10px",
+                padding: "2px 10px 3px 10px",
                 borderRadius: "6px",
                 display: "flex",
                 alignItems: "center",
-                lineHeight: "1.4"
+                lineHeight: "1.3"
               }}>
                 <span>🗓️ ಅವಧಿ: ೨೦೨೪-೦೭-೧೫ ರಿಂದ ೨೦೨೭-೦೧-೨೦ | (ವಯಸ್ಸು: ೩೧ - ೩೩ ವರ್ಷ - ಪ್ರಸ್ತುತ ನಡವಳಿಕೆ)</span>
               </div>
@@ -1326,27 +1327,28 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                   color: "#92400E",
                   background: "#FEF3C7",
                   border: "1px solid #F59E0B",
-                  padding: "1px 12px 5px 12px",
+                  padding: "1px 12px 3px 12px",
                   borderRadius: "14px",
                   fontWeight: 700,
                   display: "inline-flex",
                   alignItems: "center",
-                  lineHeight: "1.4"
+                  lineHeight: "1.25",
+                  transform: "translateY(-2px)"
                 }}>✨ ವಿದ್ಯಾ, ಧನ & ಬೌದ್ಧಿಕ ಸಿದ್ಧಿ</span>
               </div>
               <div style={{
                 fontSize: "11.5px",
                 color: "#78350F",
                 fontWeight: 700,
-                marginTop: "2px",
-                marginBottom: "8px",
+                marginTop: "6px",
+                marginBottom: "6px",
                 background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
                 border: "1px solid #FCD34D",
-                padding: "1px 10px 5px 10px",
+                padding: "2px 10px 3px 10px",
                 borderRadius: "6px",
                 display: "flex",
                 alignItems: "center",
-                lineHeight: "1.4"
+                lineHeight: "1.3"
               }}>
                 <span>🗓️ ಅವಧಿ: ೨೦೨೭-೦೧-೨೦ ರಿಂದ ೨೦೨೯-೦೪-೨೬ | (ವಯಸ್ಸು: ೩೩ - ೩೬ ವರ್ಷ)</span>
               </div>
@@ -1373,12 +1375,13 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                   color: "#78350F",
                   background: "linear-gradient(180deg, #FDE68A 0%, #F59E0B 100%)",
                   border: "1px solid #D97706",
-                  padding: "1px 12px 5px 12px",
+                  padding: "1px 12px 3px 12px",
                   borderRadius: "14px",
                   fontWeight: 800,
                   display: "inline-flex",
                   alignItems: "center",
-                  lineHeight: "1.4"
+                  lineHeight: "1.25",
+                  transform: "translateY(-2px)"
                 }}>👑 ಭವ್ಯ ರಾಜಯೋಗ & ಐಶ್ವರ್ಯ</span>
               </div>
               <div style={{
@@ -1389,11 +1392,11 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                 marginBottom: "8px",
                 background: "#FEF3C7",
                 border: "1px solid #F59E0B",
-                padding: "1px 10px 5px 10px",
+                padding: "2px 10px 3px 10px",
                 borderRadius: "6px",
                 display: "flex",
                 alignItems: "center",
-                lineHeight: "1.4"
+                lineHeight: "1.3"
               }}>
                 <span>🗓️ ಅವಧಿ: ೨೦೩೦-೦೪-೦೧ ರಿಂದ ೨೦೩೩-೧೨-೦೧ | (ವಯಸ್ಸು: ೩೭ - ೪೦ ವರ್ಷ)</span>
               </div>
@@ -1420,27 +1423,28 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                   color: "#047857",
                   background: "#ECFDF5",
                   border: "1px solid #10B981",
-                  padding: "1px 12px 5px 12px",
+                  padding: "1px 12px 3px 12px",
                   borderRadius: "14px",
                   fontWeight: 700,
                   display: "inline-flex",
                   alignItems: "center",
-                  lineHeight: "1.4"
+                  lineHeight: "1.25",
+                  transform: "translateY(-2px)"
                 }}>⛳ ಸರ್ಕಾರಿ ಗೌರವ & ಅಧಿಕಾರ ಜಯ</span>
               </div>
               <div style={{
                 fontSize: "11.5px",
                 color: "#78350F",
                 fontWeight: 700,
-                marginTop: "2px",
-                marginBottom: "8px",
+                marginTop: "6px",
+                marginBottom: "6px",
                 background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
                 border: "1px solid #FCD34D",
-                padding: "1px 10px 5px 10px",
+                padding: "2px 10px 3px 10px",
                 borderRadius: "6px",
                 display: "flex",
                 alignItems: "center",
-                lineHeight: "1.4"
+                lineHeight: "1.3"
               }}>
                 <span>🗓️ ಅವಧಿ: ೨೦೩೩-೧೨-೦೧ ರಿಂದ ೨೦೩೪-೦೯-೨೫ | (ವಯಸ್ಸು: ೪೦ - ೪೧ ವರ್ಷ)</span>
               </div>
@@ -1467,27 +1471,28 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                   color: "#92400E",
                   background: "#FEF3C7",
                   border: "1px solid #F59E0B",
-                  padding: "1px 12px 5px 12px",
+                  padding: "1px 12px 3px 12px",
                   borderRadius: "14px",
                   fontWeight: 700,
                   display: "inline-flex",
                   alignItems: "center",
-                  lineHeight: "1.4"
+                  lineHeight: "1.25",
+                  transform: "translateY(-2px)"
                 }}>⚖️ ಸ್ಥಿರ ಧರ್ಮ & ಸುದೀರ್ಘ ಭದ್ರತೆ</span>
               </div>
               <div style={{
                 fontSize: "11.5px",
                 color: "#78350F",
                 fontWeight: 700,
-                marginTop: "2px",
-                marginBottom: "8px",
+                marginTop: "6px",
+                marginBottom: "6px",
                 background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
                 border: "1px solid #FCD34D",
-                padding: "1px 10px 5px 10px",
+                padding: "2px 10px 3px 10px",
                 borderRadius: "6px",
                 display: "flex",
                 alignItems: "center",
-                lineHeight: "1.4"
+                lineHeight: "1.3"
               }}>
                 <span>🗓️ ಅವಧಿ: ೨೦೩೮-೦೫-೧೫ ರಿಂದ ೨೦೪೧-೦೫-೧೮ | (ವಯಸ್ಸು: ೪೫ - ೪೮ ವರ್ಷ)</span>
               </div>
