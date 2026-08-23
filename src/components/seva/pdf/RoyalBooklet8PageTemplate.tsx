@@ -327,6 +327,7 @@ const PAGE1_DICT: Record<string, {
   lblNakshatra: string;
   lblLagna: string;
   lblGotra: string;
+  lblYoga: string;
   lblDob: string;
   lblTob: string;
   lblPob: string;
@@ -348,6 +349,7 @@ const PAGE1_DICT: Record<string, {
     lblNakshatra: "ಜನ್ಮ ನಕ್ಷತ್ರ",
     lblLagna: "ಜನ್ಮ ಲಗ್ನ",
     lblGotra: "ಗೋತ್ರ",
+    lblYoga: "ಜನ್ಮ ಯೋಗ",
     lblDob: "ಜನನ ದಿನಾಂಕ",
     lblTob: "ಜನನ ಸಮಯ",
     lblPob: "ಜನನ ಸ್ಥಳ",
@@ -372,6 +374,7 @@ const PAGE1_DICT: Record<string, {
     lblNakshatra: "Birth Star",
     lblLagna: "Ascendant (Lagna)",
     lblGotra: "Gotra",
+    lblYoga: "Janma Yoga",
     lblDob: "Date of Birth",
     lblTob: "Time of Birth",
     lblPob: "Place of Birth",
@@ -396,6 +399,7 @@ const PAGE1_DICT: Record<string, {
     lblNakshatra: "जन्म नक्षत्र",
     lblLagna: "जन्म लग्न",
     lblGotra: "गोत्र",
+    lblYoga: "जन्म योग",
     lblDob: "जन्म तिथि",
     lblTob: "जन्म समय",
     lblPob: "जन्म स्थान",
@@ -420,6 +424,7 @@ const PAGE1_DICT: Record<string, {
     lblNakshatra: "జన్మ నక్షత్రం",
     lblLagna: "జన్మ లగ్నం",
     lblGotra: "గోత్రం",
+    lblYoga: "జన్మ యోగం",
     lblDob: "జనన తేదీ",
     lblTob: "జనన సమయం",
     lblPob: "జనన స్థలం",
@@ -444,6 +449,7 @@ const PAGE1_DICT: Record<string, {
     lblNakshatra: "ஜென்ம நட்சத்திரம்",
     lblLagna: "ஜென்ம லக்னம்",
     lblGotra: "கோத்ரம்",
+    lblYoga: "ஜென்ம யோகம்",
     lblDob: "பிறந்த தேதி",
     lblTob: "பிறந்த நேரம்",
     lblPob: "பிறந்த இடம்",
@@ -461,6 +467,27 @@ const PAGE1_DICT: Record<string, {
   }
 };
 
+
+const calculateBirthYoga = (kundli: any, isKn: boolean): string => {
+  if (!kundli || !kundli.planets) return isKn ? "ಸಿದ್ಧ" : "Siddha";
+  const sun = kundli.planets.find((p: any) => p.planet === "Sun")?.longitude ?? 0;
+  const moon = kundli.planets.find((p: any) => p.planet === "Moon")?.longitude ?? 0;
+  const sum = (sun + moon) % 360;
+  const yogaIdx = Math.floor(sum / (360 / 27)) % 27;
+  
+  const YOGAS_KN = [
+    "ವಿಷ್ಕಂಭ", "ಪ್ರೀತಿ", "ಆಯುಷ್ಮಾನ್", "ಸೌಭಾಗ್ಯ", "ಶೋಭನ", "ಅತಿಗಂಡ", "ಸುಕರ್ಮ", "ಧೃತಿ", "ಶೂಲ", "ಗಂಡ", 
+    "ವೃದ್ಧಿ", "ಧ್ರುವ", "ವ್ಯಾಘಾತ", "ಹರ್ಷಣ", "ವಜ್ರ", "ಸಿದ್ಧಿ", "ವ್ಯತೀಪಾತ", "ವರಿಯಾನ್", "ಪರಿಘ", "ಶಿವ", 
+    "ಸಿದ್ಧ", "ಸಾಧ್ಯ", "ಶುಭ", "ಶುಕ್ಲ", "ಬ್ರಹ್ಮ", "ಐಂದ್ರ", "ವೈಧೃತಿ"
+  ];
+  const YOGAS_EN = [
+    "Vishkambha", "Preeti", "Ayushman", "Saubhagya", "Shobhana", "Atiganda", "Sukarma", "Dhriti", "Shoola", "Ganda",
+    "Vriddhi", "Dhruva", "Vyaghata", "Harshana", "Vajra", "Siddhi", "Vyatipata", "Variyan", "Parigha", "Shiva",
+    "Siddha", "Sadhya", "Shubha", "Shukla", "Brahma", "Aindra", "Vaidriti"
+  ];
+  
+  return isKn ? (YOGAS_KN[yogaIdx] || "ಸಿದ್ಧ") : (YOGAS_EN[yogaIdx] || "Siddha");
+};
 
 const toKnDigits = (numOrStr: string | number): string => {
   const knDigits = ["೦", "೧", "೨", "೩", "೪", "೫", "೬", "೭", "೮", "೯"];
@@ -920,27 +947,29 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                 </div>
               </div>
 
-              {/* Card 4: Gotra (Only rendered if devotee provided a valid Gotra) */}
-              {hasGotra && (
-                <div style={{
-                  background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
-                  border: "1.5px solid #D97706",
-                  borderRadius: "10px",
-                  padding: "8px 12px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  boxShadow: "0 2px 5px rgba(180, 83, 9, 0.08)"
-                }}>
-                  <span style={{ fontSize: "17px" }}>🔱</span>
-                  <div>
-                    <strong style={{ color: "#B45309", fontSize: "11.5px", display: "block", fontWeight: 700 }}>
-                      {(PAGE1_DICT[code] || PAGE1_DICT.en).lblGotra}:
-                    </strong>
-                    <span style={{ fontWeight: 700, color: "#78350F", fontSize: "13.5px" }}>{finalGotra}</span>
-                  </div>
+              {/* Card 4: Gotra (if available) OR Birth Yoga fallback (if Gotra is missing) */}
+              <div style={{
+                background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
+                border: "1.5px solid #D97706",
+                borderRadius: "10px",
+                padding: "8px 12px",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                boxShadow: "0 2px 5px rgba(180, 83, 9, 0.08)"
+              }}>
+                <span style={{ fontSize: "17px" }}>{hasGotra ? "🔱" : "✨"}</span>
+                <div>
+                  <strong style={{ color: "#B45309", fontSize: "11.5px", display: "block", fontWeight: 700 }}>
+                    {hasGotra 
+                      ? (PAGE1_DICT[code] || PAGE1_DICT.en).lblGotra 
+                      : (PAGE1_DICT[code] || PAGE1_DICT.en).lblYoga}:
+                  </strong>
+                  <span style={{ fontWeight: 700, color: "#78350F", fontSize: "13.5px" }}>
+                    {hasGotra ? finalGotra : calculateBirthYoga(birthKundli, isKn)}
+                  </span>
                 </div>
-              )}
+              </div>
 
               {/* Card 5: Date of Birth */}
               <div style={{
@@ -988,7 +1017,7 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
 
               {/* Card 7: Place of Birth */}
               <div style={{
-                gridColumn: hasGotra ? "span 2" : "span 1",
+                gridColumn: "span 2",
                 background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
                 border: "1.5px solid #D97706",
                 borderRadius: "10px",
@@ -1292,8 +1321,8 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                 fontSize: "11.5px",
                 color: "#78350F",
                 fontWeight: 700,
-                marginTop: "7px",
-                marginBottom: "6px",
+                marginTop: "2px",
+                marginBottom: "8px",
                 background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
                 border: "1px solid #FCD34D",
                 padding: "4px 10px",
@@ -1302,7 +1331,7 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                 alignItems: "center",
                 lineHeight: "1.3"
               }}>
-                <span>🗓️ ಅವಧಿ: ೨೦೨೪-೦೭-೧೫ ರಿಂದ ೨೦೨೭-೦೧-೨೦ | (ವಯಸ್ಸು: ೩೧ - ೩೩ ವರ್ಷ - ಪ್ರಸ್ತುತ ನಡವಳಿಕೆ)</span>
+                <span style={{ transform: "translateY(-3px)", display: "inline-block" }}>🗓️ ಅವಧಿ: ೨೦೨೪-೦೭-೧೫ ರಿಂದ ೨೦೨೭-೦೧-೨೦ | (ವಯಸ್ಸು: ೩೧ - ೩೩ ವರ್ಷ - ಪ್ರಸ್ತುತ ನಡವಳಿಕೆ)</span>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px 16px", fontSize: "12.5px", lineHeight: "1.5" }}>
                 <div><span style={{ color: "#D97706" }}>💼</span> <strong style={{ color: "#065F46" }}>ವೃತ್ತಿ & ಅಧಿಕಾರ:</strong> ವೃತ್ತಿರಂಗದಲ್ಲಿ ಅತ್ಯುನ್ನತ ಜವಾಬ್ದಾರಿ, ಕರ್ತವ್ಯ ನಿಷ್ಠೆ ಹಾಗೂ ದೀರ್ಘಕಾಲಿಕ ಸ್ಥಿರತೆಯ ಅಡಿಪಾಯ.</div>
@@ -1340,8 +1369,8 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                 fontSize: "11.5px",
                 color: "#78350F",
                 fontWeight: 700,
-                marginTop: "7px",
-                marginBottom: "6px",
+                marginTop: "2px",
+                marginBottom: "8px",
                 background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
                 border: "1px solid #FCD34D",
                 padding: "4px 10px",
@@ -1350,7 +1379,7 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                 alignItems: "center",
                 lineHeight: "1.3"
               }}>
-                <span>🗓️ ಅವಧಿ: ೨೦೨೭-೦೧-೨೦ ರಿಂದ ೨೦೨೯-೦೪-೨೬ | (ವಯಸ್ಸು: ೩೩ - ೩೬ ವರ್ಷ)</span>
+                <span style={{ transform: "translateY(-3px)", display: "inline-block" }}>🗓️ ಅವಧಿ: ೨೦೨೭-೦೧-೨೦ ರಿಂದ ೨೦೨೯-೦೪-೨೬ | (ವಯಸ್ಸು: ೩೩ - ೩೬ ವರ್ಷ)</span>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px 16px", fontSize: "12.5px", lineHeight: "1.5" }}>
                 <div><span style={{ color: "#D97706" }}>💼</span> <strong style={{ color: "#065F46" }}>ವೃತ್ತಿ & ಅಧಿಕಾರ:</strong> ತೀಕ್ಷ್ಣ ಬೌದ್ಧಿಕ ಚಾತುರ್ಯ, ಉನ್ನತ ಉದ್ಯೋಗ ಪ್ರಮೋಷನ್ ಹಾಗೂ ನೂತನ ವ್ಯಾಪಾರ ಲಾಭ.</div>
@@ -1398,7 +1427,7 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                 alignItems: "center",
                 lineHeight: "1.3"
               }}>
-                <span>🗓️ ಅವಧಿ: ೨೦೩೦-೦೪-೦೧ ರಿಂದ ೨೦೩೩-೧೨-೦೧ | (ವಯಸ್ಸು: ೩೭ - ೪೦ ವರ್ಷ)</span>
+                <span style={{ transform: "translateY(-3px)", display: "inline-block" }}>🗓️ ಅವಧಿ: ೨೦೩೦-೦೪-೦೧ ರಿಂದ ೨೦೩೩-೧೨-೦೧ | (ವಯಸ್ಸು: ೩೭ - ೪೦ ವರ್ಷ)</span>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px 16px", fontSize: "12.5px", lineHeight: "1.5" }}>
                 <div><span style={{ color: "#D97706" }}>💼</span> <strong style={{ color: "#065F46" }}>ವೃತ್ತಿ & ಅಧಿಕಾರ:</strong> ನಾಯಕತ್ವದ ಅತ್ಯುನ್ನತ ಶಿಖರ, ರಾಜಕೀಯ/ಉದ್ಯೋಗ ಪ್ರಭಾವ ಹಾಗೂ ರಾಷ್ಟ್ರೀಯ ಸನ್ಮಾನ.</div>
@@ -1436,8 +1465,8 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                 fontSize: "11.5px",
                 color: "#78350F",
                 fontWeight: 700,
-                marginTop: "7px",
-                marginBottom: "6px",
+                marginTop: "2px",
+                marginBottom: "8px",
                 background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
                 border: "1px solid #FCD34D",
                 padding: "4px 10px",
@@ -1446,7 +1475,7 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                 alignItems: "center",
                 lineHeight: "1.3"
               }}>
-                <span>🗓️ ಅವಧಿ: ೨೦೩೩-೧೨-೦೧ ರಿಂದ ೨೦೩೪-೦೯-೨೫ | (ವಯಸ್ಸು: ೪೦ - ೪೧ ವರ್ಷ)</span>
+                <span style={{ transform: "translateY(-3px)", display: "inline-block" }}>🗓️ ಅವಧಿ: ೨೦೩೩-೧೨-೦೧ ರಿಂದ ೨೦೩೪-೦೯-೨೫ | (ವಯಸ್ಸು: ೪೦ - ೪೧ ವರ್ಷ)</span>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px 16px", fontSize: "12.5px", lineHeight: "1.5" }}>
                 <div><span style={{ color: "#D97706" }}>💼</span> <strong style={{ color: "#065F46" }}>ವೃತ್ತಿ & ಅಧಿಕಾರ:</strong> ಸರ್ಕಾರಿ ಕೃಪೆ, ಹಿರಿಯ ಅಧಿಕಾರಿಗಳ ಸಂಪೂರ್ಣ ಬೆಂಬಲ ಹಾಗೂ ಶತ್ರು ಜಯ.</div>
@@ -1484,8 +1513,8 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                 fontSize: "11.5px",
                 color: "#78350F",
                 fontWeight: 700,
-                marginTop: "7px",
-                marginBottom: "6px",
+                marginTop: "2px",
+                marginBottom: "8px",
                 background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
                 border: "1px solid #FCD34D",
                 padding: "4px 10px",
@@ -1494,7 +1523,7 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                 alignItems: "center",
                 lineHeight: "1.3"
               }}>
-                <span>🗓️ ಅವಧಿ: ೨೦೩೮-೦೫-೧೫ ರಿಂದ ೨೦೪೧-೦೫-೧೮ | (ವಯಸ್ಸು: ೪೫ - ೪೮ ವರ್ಷ)</span>
+                <span style={{ transform: "translateY(-3px)", display: "inline-block" }}>🗓️ ಅವಧಿ: ೨೦೩೮-೦೫-೧೫ ರಿಂದ ೨೦೪೧-೦೫-೧೮ | (ವಯಸ್ಸು: ೪೫ - ೪೮ ವರ್ಷ)</span>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px 16px", fontSize: "12.5px", lineHeight: "1.5" }}>
                 <div><span style={{ color: "#D97706" }}>💼</span> <strong style={{ color: "#065F46" }}>ವೃತ್ತಿ & ಅಧಿಕಾರ:</strong> ಶ್ರಮಜೀವಿಗಳಿಗೆ ಅತ್ಯುನ್ನತ ಕೃತಜ್ಞತೆ, ಸ್ಥಿರ ಉದ್ಯೋಗ ಸಾಮ್ರಾಜ್ಯ ಹಾಗೂ ಉನ್ನತ ಗೌರವ.</div>
