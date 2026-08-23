@@ -1280,15 +1280,18 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
           </div>
 
           {/* D1 Chart */}
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: "13px", fontWeight: 800, color: "#78350F", marginBottom: "4px" }}>
+          <div style={{ textAlign: "center", marginTop: "12px", marginBottom: "12px" }}>
+            <div style={{ fontSize: "13.5px", fontWeight: 800, color: "#78350F", marginBottom: "8px" }}>
               🌌 ದ್ವಾದಶ ಭಾವ ಕುಂಡಲಿ
             </div>
             <div style={{
               width: "360px",
               height: "300px",
               margin: "0 auto",
-              border: "2px solid #78350F",
+              border: "2px solid #D97706",
+              borderRadius: "16px",
+              overflow: "hidden",
+              boxShadow: "0 4px 10px rgba(180, 83, 9, 0.08)",
               display: "grid",
               gridTemplateColumns: "repeat(4, 1fr)",
               gridTemplateRows: "repeat(4, 1fr)",
@@ -1324,15 +1327,18 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
           </div>
 
           {/* D9 Chart */}
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: "13px", fontWeight: 800, color: "#78350F", marginBottom: "4px" }}>
+          <div style={{ textAlign: "center", marginTop: "12px", marginBottom: "12px" }}>
+            <div style={{ fontSize: "13.5px", fontWeight: 800, color: "#78350F", marginBottom: "8px" }}>
               ❇️ ನವಾಂಶ ಕುಂಡಲಿ
             </div>
             <div style={{
               width: "360px",
               height: "300px",
               margin: "0 auto",
-              border: "2px solid #78350F",
+              border: "2px solid #D97706",
+              borderRadius: "16px",
+              overflow: "hidden",
+              boxShadow: "0 4px 10px rgba(180, 83, 9, 0.08)",
               display: "grid",
               gridTemplateColumns: "repeat(4, 1fr)",
               gridTemplateRows: "repeat(4, 1fr)",
