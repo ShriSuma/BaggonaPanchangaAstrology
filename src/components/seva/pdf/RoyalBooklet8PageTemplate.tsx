@@ -1001,15 +1001,14 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
 
           {/* Full Page Width Chief Priest Ashirvachana & Sacred Guide Narrative - Larger Font */}
           <div style={{
-            flex: 1,
             background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
             border: "2px solid #D97706",
             borderRadius: "14px",
-            padding: "18px 22px",
+            padding: "16px 20px",
+            marginBottom: "12px",
             boxShadow: "0 4px 12px rgba(180, 83, 9, 0.07)",
             display: "flex",
             flexDirection: "column",
-            justifyContent: "space-between",
             position: "relative"
           }}>
             <div style={{ fontSize: "14px", fontWeight: 800, color: "#78350F", marginBottom: "12px", borderBottom: "1.5px dashed #D97706", paddingBottom: "6px" }}>
@@ -1045,16 +1044,16 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
 
           </div>
 
-          {/* Footer Banner - Moved up with clear bottom & top margins */}
+          {/* Footer Banner - Moved up substantially by ~30px with 24px bottom clearance */}
           <div style={{
             background: "linear-gradient(180deg, #78350F 0%, #451A03 100%)",
             border: "1.5px solid #D97706",
             borderRadius: "10px",
-            padding: "7px 12px",
+            padding: "8px 14px",
             textAlign: "center",
             boxShadow: "0 2px 6px rgba(120, 53, 15, 0.2)",
-            marginTop: "6px",
-            marginBottom: "14px"
+            marginTop: "8px",
+            marginBottom: "28px"
           }}>
             <div style={{ fontSize: "11px", fontWeight: 700, color: "#FEF3C7", lineHeight: "1.3" }}>
               {(PAGE1_DICT[code] || PAGE1_DICT.en).footerMotto}
