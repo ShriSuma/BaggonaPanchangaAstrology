@@ -340,23 +340,23 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
           PAGE 1: EXACT MATCH TO PDF (45) PAGE 1
          ───────────────────────────────────────────────────────────── */}
       <div className="pdf-page" style={pageStyle}>
-        <div style={frameStyle}>
+        <div style={{ ...frameStyle, padding: "12px 16px 16px 16px", gap: "7px" }}>
           {/* Top Sloka Banner Box */}
           <div style={{
             textAlign: "center",
             background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
             border: "2px solid #D97706",
-            borderRadius: "12px",
-            padding: "10px 16px",
-            boxShadow: "0 3px 8px rgba(180, 83, 9, 0.06)"
+            borderRadius: "10px",
+            padding: "6px 12px",
+            boxShadow: "0 2px 6px rgba(180, 83, 9, 0.05)"
           }}>
-            <div style={{ fontSize: "14px", fontWeight: 700, color: "#92400E", marginBottom: "2px", lineHeight: "1.5" }}>
+            <div style={{ fontSize: "12px", fontWeight: 700, color: "#92400E", marginBottom: "1px", lineHeight: "1.35" }}>
               ❖ ॥ ಶ್ರೀ ವಿನಾಯಕೋ ವಿಘ್ನಹರೋ ಧನಾಧ್ಯಕ್ಷೋ ಧನಪ್ರದಃ ॥ ❖
             </div>
-            <div style={{ fontSize: "25px", fontWeight: 800, color: "#78350F", lineHeight: "1.8", margin: "2px 0" }}>
+            <div style={{ fontSize: "21px", fontWeight: 800, color: "#78350F", lineHeight: "1.6", margin: "0" }}>
               ॥ ಭಾಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ॥
             </div>
-            <div style={{ fontSize: "13px", color: "#B45309", marginTop: "2px", fontWeight: 600, lineHeight: "1.4" }}>
+            <div style={{ fontSize: "11.5px", color: "#B45309", marginTop: "1px", fontWeight: 600, lineHeight: "1.3" }}>
               🕉️ ಶ್ರೀ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಪ್ರಧಾನ ಅರ್ಚಕರ ಪವಿತ್ರ ಅನುಗ್ರಹ ವೈಯಕ್ತಿಕ ಗ್ರಂಥ
             </div>
           </div>
@@ -365,17 +365,17 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
           <div style={{
             background: "#FFFBEB",
             border: "1.5px solid #D97706",
-            borderRadius: "12px",
-            padding: "12px 18px",
-            boxShadow: "0 3px 8px rgba(180, 83, 9, 0.06)"
+            borderRadius: "10px",
+            padding: "8px 14px",
+            boxShadow: "0 2px 6px rgba(180, 83, 9, 0.05)"
           }}>
-            <div style={{ fontSize: "14px", fontWeight: 800, color: "#B45309", textAlign: "center", marginBottom: "4px" }}>
+            <div style={{ fontSize: "12px", fontWeight: 800, color: "#B45309", textAlign: "center", marginBottom: "2px" }}>
               ❖ ಆತ್ಮೀಯ ಭಕ್ತರ ಜನ್ಮ ದಾಖಲೆ ವಿವರಣೆ:
             </div>
-            <div style={{ fontSize: "24px", fontWeight: 900, color: "#78350F", textAlign: "center", marginBottom: "10px", borderBottom: "1.5px dashed #D97706", paddingBottom: "8px" }}>
+            <div style={{ fontSize: "20px", fontWeight: 900, color: "#78350F", textAlign: "center", marginBottom: "6px", borderBottom: "1.5px dashed #D97706", paddingBottom: "4px" }}>
               {displayName}
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 16px", fontSize: "13px", lineHeight: "1.6" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px 12px", fontSize: "11.5px", lineHeight: "1.45" }}>
               <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>ಜನ್ಮ ರಾಶಿ:</strong> {rashiName}</div>
               <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>ಜನ್ಮ ನಕ್ಷತ್ರ:</strong> {nakName} ({pada} ನೇ ಪಾದ)</div>
               <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>ಜನ್ಮ ಲಗ್ನ:</strong> {lagnaRashiName}</div>
@@ -390,42 +390,42 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
           <div style={{
             background: "#FFFDF7",
             border: "1.5px solid #D97706",
-            borderRadius: "12px",
-            padding: "8px 12px",
-            boxShadow: "0 2px 6px rgba(180, 83, 9, 0.05)"
+            borderRadius: "10px",
+            padding: "6px 8px",
+            boxShadow: "0 2px 5px rgba(180, 83, 9, 0.04)"
           }}>
-            <div style={{ fontSize: "13px", fontWeight: 800, color: "#78350F", marginBottom: "6px", borderBottom: "1px dashed #FCD34D", paddingBottom: "4px" }}>
+            <div style={{ fontSize: "11.5px", fontWeight: 800, color: "#78350F", marginBottom: "4px", borderBottom: "1px dashed #FCD34D", paddingBottom: "2px" }}>
               ⭐ ಜನ್ಮ ಕುಂಡಲಿಯ ಪ್ರಮುಖ & ದೈವಿಕ ಜೀವನ ಭವಿಷ್ಯ ಮುಖ್ಯಾಂಶಗಳು:
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "7px", fontSize: "11.5px", lineHeight: "1.5" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px", fontSize: "9.8px", lineHeight: "1.4" }}>
               {/* Card 1 */}
-              <div style={{ background: "#FFFBEB", border: "1.5px solid #F59E0B", borderRadius: "8px", padding: "7px 9px" }}>
-                <strong style={{ color: "#B45309", display: "block", marginBottom: "2px", fontSize: "11.5px" }}>💼 {isKn ? "ವೃತ್ತಿ & ಅಧಿಕಾರ ಯಶಸ್ಸು:" : "Career & Authority Success:"}</strong>
+              <div style={{ background: "#FFFBEB", border: "1.5px solid #F59E0B", borderRadius: "7px", padding: "5px 7px" }}>
+                <strong style={{ color: "#B45309", display: "block", marginBottom: "1px", fontSize: "10.5px" }}>💼 {isKn ? "ವೃತ್ತಿ & ಅಧಿಕಾರ ಯಶಸ್ಸು:" : "Career & Authority Success:"}</strong>
                 <div style={{ textAlign: "justify", color: "#78350F" }}>{careerPrediction}</div>
               </div>
               {/* Card 2 */}
-              <div style={{ background: "#ECFDF5", border: "1.5px solid #10B981", borderRadius: "8px", padding: "7px 9px" }}>
-                <strong style={{ color: "#047857", display: "block", marginBottom: "2px", fontSize: "11.5px" }}>💰 {isKn ? "ಧನ & ಸ್ಥಿರಾಸ್ತಿ ಭಾಗ್ಯ:" : "Wealth & Asset Fortune:"}</strong>
+              <div style={{ background: "#ECFDF5", border: "1.5px solid #10B981", borderRadius: "7px", padding: "5px 7px" }}>
+                <strong style={{ color: "#047857", display: "block", marginBottom: "1px", fontSize: "10.5px" }}>💰 {isKn ? "ಧನ & ಸ್ಥಿರಾಸ್ತಿ ಭಾಗ್ಯ:" : "Wealth & Asset Fortune:"}</strong>
                 <div style={{ textAlign: "justify", color: "#064E3B" }}>{wealthPrediction}</div>
               </div>
               {/* Card 3 */}
-              <div style={{ background: "#FFF1F2", border: "1.5px solid #F43F5E", borderRadius: "8px", padding: "7px 9px" }}>
-                <strong style={{ color: "#991B1B", display: "block", marginBottom: "2px", fontSize: "11.5px" }}>🏫 {isKn ? "ಕುಟುಂಬ & ಮಂಗಲ ಕಾರ್ಯ:" : "Family & Auspicious Events:"}</strong>
+              <div style={{ background: "#FFF1F2", border: "1.5px solid #F43F5E", borderRadius: "7px", padding: "5px 7px" }}>
+                <strong style={{ color: "#991B1B", display: "block", marginBottom: "1px", fontSize: "10.5px" }}>🏫 {isKn ? "ಕುಟುಂಬ & ಮಂಗಲ ಕಾರ್ಯ:" : "Family & Auspicious Events:"}</strong>
                 <div style={{ textAlign: "justify", color: "#881337" }}>{familyPrediction}</div>
               </div>
               {/* Card 4 */}
-              <div style={{ background: "#F5F3FF", border: "1.5px solid #8B5CF6", borderRadius: "8px", padding: "7px 9px" }}>
-                <strong style={{ color: "#5B21B6", display: "block", marginBottom: "2px", fontSize: "11.5px" }}>💍 {isKn ? "ವಿವಾಹ & ದಾಂಪತ್ಯ ಸೌಭಾಗ್ಯ:" : "Marriage & Domestic Fortune:"}</strong>
+              <div style={{ background: "#F5F3FF", border: "1.5px solid #8B5CF6", borderRadius: "7px", padding: "5px 7px" }}>
+                <strong style={{ color: "#5B21B6", display: "block", marginBottom: "1px", fontSize: "10.5px" }}>💍 {isKn ? "ವಿವಾಹ & ದಾಂಪತ್ಯ ಸೌಭಾಗ್ಯ:" : "Marriage & Domestic Fortune:"}</strong>
                 <div style={{ textAlign: "justify", color: "#4C1D95" }}>{marriagePrediction}</div>
               </div>
               {/* Card 5 */}
-              <div style={{ background: "#F0FDFA", border: "1.5px solid #14B8A6", borderRadius: "8px", padding: "7px 9px" }}>
-                <strong style={{ color: "#0F766E", display: "block", marginBottom: "2px", fontSize: "11.5px" }}>👶 {isKn ? "ಸಂತಾನ & ವಿದ್ಯಾ ಯೋಗ:" : "Progeny & Education Yoga:"}</strong>
+              <div style={{ background: "#F0FDFA", border: "1.5px solid #14B8A6", borderRadius: "7px", padding: "5px 7px" }}>
+                <strong style={{ color: "#0F766E", display: "block", marginBottom: "1px", fontSize: "10.5px" }}>👶 {isKn ? "ಸಂತಾನ & ವಿದ್ಯಾ ಯೋಗ:" : "Progeny & Education Yoga:"}</strong>
                 <div style={{ textAlign: "justify", color: "#134E4A" }}>{progenyPrediction}</div>
               </div>
               {/* Card 6 */}
-              <div style={{ background: "#EFF6FF", border: "1.5px solid #3B82F6", borderRadius: "8px", padding: "7px 9px" }}>
-                <strong style={{ color: "#1E40AF", display: "block", marginBottom: "2px", fontSize: "11.5px" }}>🧘 {isKn ? "ಆರೋಗ್ಯ & ಗೋಕರ್ಣ ರಕ್ಷೆ:" : "Health & Gokarna Blessing:"}</strong>
+              <div style={{ background: "#EFF6FF", border: "1.5px solid #3B82F6", borderRadius: "7px", padding: "5px 7px" }}>
+                <strong style={{ color: "#1E40AF", display: "block", marginBottom: "1px", fontSize: "10.5px" }}>🧘 {isKn ? "ಆರೋಗ್ಯ & ಗೋಕರ್ಣ ರಕ್ಷೆ:" : "Health & Gokarna Blessing:"}</strong>
                 <div style={{ textAlign: "justify", color: "#1E3A8A" }}>{healthPrediction}</div>
               </div>
             </div>
@@ -435,14 +435,14 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
           <div style={{
             background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
             border: "2px solid #D97706",
-            borderRadius: "12px",
-            padding: "10px 14px",
-            boxShadow: "0 3px 8px rgba(180, 83, 9, 0.06)"
+            borderRadius: "10px",
+            padding: "7px 10px",
+            boxShadow: "0 2px 6px rgba(180, 83, 9, 0.05)"
           }}>
-            <div style={{ fontSize: "13px", fontWeight: 800, color: "#78350F", marginBottom: "4px", borderBottom: "1px dashed #D97706", paddingBottom: "3px" }}>
+            <div style={{ fontSize: "11.5px", fontWeight: 800, color: "#78350F", marginBottom: "2px", borderBottom: "1px dashed #D97706", paddingBottom: "2px" }}>
               🌸 ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ಶ್ರೇಷ್ಠ ಆಶೀರ್ವಾದ ಪತ್ರ:
             </div>
-            <div style={{ fontSize: "11.5px", lineHeight: "1.55", color: "#451A03", textAlign: "justify" }}>
+            <div style={{ fontSize: "9.8px", lineHeight: "1.42", color: "#451A03", textAlign: "justify" }}>
               ಶ್ರೀ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಪವಿತ್ರ ಸನ್ನಿಧಾನದಲ್ಲಿ ಹಾಗೂ ಪ್ರಧಾನ ಅರ್ಚಕರ ಅಭಯ ಹಸ್ತದೊಂದಿಗೆ {displayName} ಅವರ ಶ್ರೇಯೋಭಿವೃದ್ಧಿಗಾಗಿ ಸಿದ್ಧ ಸಂಕಲ್ಪ ಪೂಜೆ, ವಿಶೇಷ ನವಗ್ರಹ ಶಾಂತಿ ಹಾಗೂ ಮಹಾ ರುದ್ರಾಭಿಷೇಕ ಸೇವೆಯನ್ನು ಶ್ರದ್ಧಾ ಭಕ್ತಿಯಿಂದ ನೆರವೇರಿಸಲಾಗಿದೆ. ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ ಗ್ರಹ ಸ್ಥಿತಿ, ನಕ್ಷತ್ರ ಬಲ ಮತ್ತು ನವಮಾಂಶದ ಸಿದ್ಧಾಂತಗಳ ಆಧಾರದ ಮೇಲೆ ಈ ದೈವಿಕ ಜ್ಯೋತಿಷ್ಯ ಗ್ರಂಥವನ್ನು ಸಿದ್ಧಪಡಿಸಲಾಗಿದ್ದು, ಇದರಲ್ಲಿ ಪ್ರತಿಪಾದಿಸಲಾದ ದೈನಂದಿನ ಸಂಧ್ಯಾ ಜಪ, ವೈಯಕ್ತಿಕ ಮಂತ್ರಗಳು ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಪ್ರಸಾದ ಸೇವನೆಯಿಂದ ಸಕಲ ಗ್ರಹ ಪೀಡೆಗಳು ನಿವಾರಣೆಯಾಗಿ ಆಯುಷ್ಯ, ಆರೋಗ್ಯ, ದಿವ್ಯ ಯಶಸ್ಸು ಹಾಗೂ ಅಷ್ಟೈಶ್ವರ್ಯ ಸಿದ್ಧಿಯಾಗಲಿದೆ.
             </div>
           </div>
@@ -452,15 +452,16 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
             background: "linear-gradient(180deg, #78350F 0%, #451A03 100%)",
             border: "1.5px solid #D97706",
             borderRadius: "8px",
-            padding: "8px 12px",
+            padding: "6px 8px",
             textAlign: "center",
             boxShadow: "0 2px 6px rgba(120, 53, 15, 0.2)",
-            marginTop: "auto"
+            marginTop: "auto",
+            marginBottom: "4px"
           }}>
-            <div style={{ fontSize: "11.5px", fontWeight: 700, color: "#FEF3C7", lineHeight: "1.35" }}>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "#FEF3C7", lineHeight: "1.3" }}>
               "ॐ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸಾದ ಸಿದ್ಧಿರಸ್ತು · ಸಕಲ ಕಲ್ಯಾಣಮಸ್ತು · ಸರ್ವೇ ಜನಾಃ ಸುಖಿನೋ ಭವಂತು"
             </div>
-            <div style={{ fontSize: "10.5px", color: "#FDE68A", fontWeight: 600, marginTop: "2px", lineHeight: "1.3" }}>
+            <div style={{ fontSize: "9px", color: "#FDE68A", fontWeight: 600, marginTop: "1px", lineHeight: "1.2" }}>
               ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಪ್ರಧಾನ ಪಂಚಾಂಗ ಅರ್ಚಕರು · {priestStr} (ದೂರವಾಣಿ: +91 99723 39362)
             </div>
           </div>
