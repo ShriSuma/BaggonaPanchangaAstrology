@@ -472,10 +472,16 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
   const dobStr = identity?.dob || "1993-05-31";
   const tobStr = identity?.tob || "09:25";
   const pobStr = identity?.pob || (isKn ? "ಗೋಕರ್ಣ, ಕರ್ನಾಟಕ" : "Gokarna, Karnataka");
-  const rawGotra = identity?.gotra || "Vasistha";
-  const finalGotra = isKn 
-    ? (GOTRA_KN_MAP[rawGotra] || GOTRA_KN_MAP[identity?.gotra || ""] || "ವಸಿಷ್ಠ")
-    : rawGotra;
+  const rawGotra = identity?.gotra?.trim() || "";
+  const hasGotra = Boolean(
+    rawGotra && 
+    rawGotra.toLowerCase() !== "unknown" && 
+    rawGotra !== "ಅಜ್ಞಾತ" && 
+    rawGotra.toLowerCase() !== "none"
+  );
+  const finalGotra = hasGotra 
+    ? (isKn ? (GOTRA_KN_MAP[rawGotra] || rawGotra) : rawGotra)
+    : "";
 
   // Calculate authentic birth Kundli
   const birthKundli = React.useMemo(() => {
@@ -701,13 +707,13 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
       <div className="pdf-page" style={pageStyle}>
         <div style={{ ...frameStyle, padding: "20px 24px 22px 24px", gap: "16px" }}>
           
-          {/* Top Header Box with Gokarna Atmalinga Sacred Emblem - Clean Spacing & Zero Collision */}
+          {/* Top Header Box with Gokarna Atmalinga Sacred Emblem - Spacious & Zero Collision */}
           <div style={{
             textAlign: "center",
             background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
             border: "2px solid #D97706",
             borderRadius: "14px",
-            padding: "12px 18px",
+            padding: "14px 20px",
             boxShadow: "0 4px 10px rgba(180, 83, 9, 0.08)"
           }}>
             {/* Sloka Header Row */}
@@ -715,12 +721,12 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              gap: "12px",
-              marginBottom: "6px"
+              gap: "14px",
+              marginBottom: "8px"
             }}>
               <div style={{
-                width: "32px",
-                height: "32px",
+                width: "34px",
+                height: "34px",
                 borderRadius: "50%",
                 background: "linear-gradient(135deg, #78350F 0%, #D97706 100%)",
                 display: "flex",
@@ -734,18 +740,18 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                 🔱
               </div>
               <div style={{
-                fontSize: "12px",
+                fontSize: "12.5px",
                 fontWeight: 700,
                 color: "#92400E",
-                letterSpacing: "0.2px",
-                lineHeight: "1.4",
+                letterSpacing: "0.3px",
+                lineHeight: "1.6",
                 flex: 1
               }}>
                 {(PAGE1_DICT[code] || PAGE1_DICT.en).sloka}
               </div>
               <div style={{
-                width: "32px",
-                height: "32px",
+                width: "34px",
+                height: "34px",
                 borderRadius: "50%",
                 background: "linear-gradient(135deg, #D97706 0%, #78350F 100%)",
                 display: "flex",
@@ -760,14 +766,14 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
               </div>
             </div>
 
-            {/* Title & Subtitle with Clean Line-Height */}
+            {/* Title & Subtitle with Generous Line-Height to Prevent Font Collisions */}
             <div style={{
-              fontSize: "22px",
+              fontSize: "21px",
               fontWeight: 900,
               color: "#78350F",
-              lineHeight: "1.5",
-              margin: "4px 0 2px 0",
-              letterSpacing: "0.4px"
+              lineHeight: "1.9",
+              margin: "6px 0 4px 0",
+              letterSpacing: "0.5px"
             }}>
               {(PAGE1_DICT[code] || PAGE1_DICT.en).title}
             </div>
@@ -776,92 +782,94 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
               color: "#B45309",
               marginTop: "2px",
               fontWeight: 700,
-              lineHeight: "1.4"
+              lineHeight: "1.5"
             }}>
               {(PAGE1_DICT[code] || PAGE1_DICT.en).subTitle}
             </div>
           </div>
 
-          {/* Devotee Record Box - Creative Royal Card Layout */}
+          {/* Devotee Record Box - Executive Royal Amber Gold Parchment */}
           <div style={{
-            background: "linear-gradient(180deg, #FFFBEB 0%, #FFFDF7 100%)",
-            border: "2px solid #D97706",
+            background: "linear-gradient(180deg, #FEF3C7 0%, #FFFBEB 50%, #FEF3C7 100%)",
+            border: "2px solid #B45309",
             borderRadius: "14px",
-            padding: "14px 18px",
-            boxShadow: "0 4px 10px rgba(180, 83, 9, 0.06)"
+            padding: "16px 20px",
+            boxShadow: "0 4px 12px rgba(180, 83, 9, 0.1)"
           }}>
             {/* Header Title */}
             <div style={{
-              fontSize: "12.5px",
+              fontSize: "13px",
               fontWeight: 800,
-              color: "#B45309",
+              color: "#78350F",
               textAlign: "center",
-              marginBottom: "8px",
-              letterSpacing: "0.4px"
+              marginBottom: "10px",
+              letterSpacing: "0.5px"
             }}>
               {(PAGE1_DICT[code] || PAGE1_DICT.en).metadataHeader}
             </div>
 
-            {/* Creative Royal Name Plate */}
+            {/* Executive Royal Gold Crest Badge */}
             <div style={{
-              background: "linear-gradient(135deg, #FEF3C7 0%, #FDE68A 50%, #FEF3C7 100%)",
-              border: "1.5px solid #D97706",
-              borderRadius: "10px",
-              padding: "8px 16px",
+              background: "linear-gradient(135deg, #FDE68A 0%, #F59E0B 50%, #FDE68A 100%)",
+              border: "2px solid #B45309",
+              borderRadius: "12px",
+              padding: "10px 18px",
               textAlign: "center",
-              marginBottom: "12px",
-              boxShadow: "0 2px 6px rgba(180, 83, 9, 0.1)"
+              marginBottom: "14px",
+              boxShadow: "0 3px 8px rgba(180, 83, 9, 0.2)"
             }}>
-              <span style={{ fontSize: "16px", color: "#D97706", marginRight: "8px" }}>✨ 👑</span>
-              <span style={{ fontSize: "22px", fontWeight: 900, color: "#78350F", letterSpacing: "0.3px" }}>
+              <span style={{ fontSize: "18px", marginRight: "8px" }}>✨ 👑</span>
+              <span style={{ fontSize: "23px", fontWeight: 900, color: "#451A03", letterSpacing: "0.5px" }}>
                 {displayName}
               </span>
-              <span style={{ fontSize: "16px", color: "#D97706", marginLeft: "8px" }}>👑 ✨</span>
+              <span style={{ fontSize: "18px", marginLeft: "8px" }}>👑 ✨</span>
             </div>
 
             {/* Creative 2-Column Attribute Cards Grid */}
             <div style={{
               display: "grid",
               gridTemplateColumns: "1fr 1fr",
-              gap: "8px 12px",
-              fontSize: "12.5px",
-              lineHeight: "1.4"
+              gap: "10px 14px",
+              fontSize: "13px",
+              lineHeight: "1.45"
             }}>
               {/* Card 1: Janma Rashi */}
               <div style={{
-                background: "#FFFDF7",
-                border: "1px solid #FCD34D",
-                borderRadius: "8px",
-                padding: "7px 10px",
+                background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
+                border: "1.5px solid #D97706",
+                borderRadius: "10px",
+                padding: "8px 12px",
                 display: "flex",
                 alignItems: "center",
-                gap: "6px"
+                gap: "8px",
+                boxShadow: "0 2px 5px rgba(180, 83, 9, 0.08)"
               }}>
-                <span style={{ fontSize: "15px" }}>🌙</span>
+                <span style={{ fontSize: "17px" }}>🌙</span>
                 <div>
                   <strong style={{ color: "#B45309", fontSize: "11.5px", display: "block" }}>
                     {(PAGE1_DICT[code] || PAGE1_DICT.en).lblRashi}:
                   </strong>
-                  <span style={{ fontWeight: 800, color: "#78350F", fontSize: "13px" }}>{rashiName}</span>
+                  <span style={{ fontWeight: 900, color: "#78350F", fontSize: "13.5px" }}>{rashiName}</span>
                 </div>
               </div>
 
               {/* Card 2: Janma Nakshatra & Pada */}
               <div style={{
-                background: "#FFFDF7",
-                border: "1px solid #FCD34D",
-                borderRadius: "8px",
-                padding: "7px 10px",
+                background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
+                border: "1.5px solid #D97706",
+                borderRadius: "10px",
+                padding: "8px 12px",
                 display: "flex",
                 alignItems: "center",
-                gap: "6px"
+                gap: "8px",
+                boxShadow: "0 2px 5px rgba(180, 83, 9, 0.08)"
               }}>
-                <span style={{ fontSize: "15px" }}>⭐</span>
+                <span style={{ fontSize: "17px" }}>⭐</span>
                 <div>
                   <strong style={{ color: "#B45309", fontSize: "11.5px", display: "block" }}>
                     {(PAGE1_DICT[code] || PAGE1_DICT.en).lblNakshatra}:
                   </strong>
-                  <span style={{ fontWeight: 800, color: "#78350F", fontSize: "13px" }}>
+                  <span style={{ fontWeight: 900, color: "#78350F", fontSize: "13.5px" }}>
                     {nakName} ({isKn ? `${toKnDigits(pada)}ನೇ ಪಾದ` : `${pada} ${(PAGE1_DICT[code] || PAGE1_DICT.en).padaText}`})
                   </span>
                 </div>
@@ -869,60 +877,65 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
 
               {/* Card 3: Janma Lagna */}
               <div style={{
-                background: "#FFFDF7",
-                border: "1px solid #FCD34D",
-                borderRadius: "8px",
-                padding: "7px 10px",
+                background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
+                border: "1.5px solid #D97706",
+                borderRadius: "10px",
+                padding: "8px 12px",
                 display: "flex",
                 alignItems: "center",
-                gap: "6px"
+                gap: "8px",
+                boxShadow: "0 2px 5px rgba(180, 83, 9, 0.08)"
               }}>
-                <span style={{ fontSize: "15px" }}>🌅</span>
+                <span style={{ fontSize: "17px" }}>🌅</span>
                 <div>
                   <strong style={{ color: "#B45309", fontSize: "11.5px", display: "block" }}>
                     {(PAGE1_DICT[code] || PAGE1_DICT.en).lblLagna}:
                   </strong>
-                  <span style={{ fontWeight: 800, color: "#78350F", fontSize: "13px" }}>
+                  <span style={{ fontWeight: 900, color: "#78350F", fontSize: "13.5px" }}>
                     {birthKundli?.lagnaRashi ? ((RASHI_L5[birthKundli.lagnaRashi.index] as any)?.[code] || (RASHI_L5[birthKundli.lagnaRashi.index] as any)?.kn || lagnaRashiName) : lagnaRashiName}
                   </span>
                 </div>
               </div>
 
-              {/* Card 4: Gotra */}
-              <div style={{
-                background: "#FFFDF7",
-                border: "1px solid #FCD34D",
-                borderRadius: "8px",
-                padding: "7px 10px",
-                display: "flex",
-                alignItems: "center",
-                gap: "6px"
-              }}>
-                <span style={{ fontSize: "15px" }}>🔱</span>
-                <div>
-                  <strong style={{ color: "#B45309", fontSize: "11.5px", display: "block" }}>
-                    {(PAGE1_DICT[code] || PAGE1_DICT.en).lblGotra}:
-                  </strong>
-                  <span style={{ fontWeight: 800, color: "#78350F", fontSize: "13px" }}>{finalGotra}</span>
+              {/* Card 4: Gotra (Only rendered if devotee provided a valid Gotra) */}
+              {hasGotra && (
+                <div style={{
+                  background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
+                  border: "1.5px solid #D97706",
+                  borderRadius: "10px",
+                  padding: "8px 12px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  boxShadow: "0 2px 5px rgba(180, 83, 9, 0.08)"
+                }}>
+                  <span style={{ fontSize: "17px" }}>🔱</span>
+                  <div>
+                    <strong style={{ color: "#B45309", fontSize: "11.5px", display: "block" }}>
+                      {(PAGE1_DICT[code] || PAGE1_DICT.en).lblGotra}:
+                    </strong>
+                    <span style={{ fontWeight: 900, color: "#78350F", fontSize: "13.5px" }}>{finalGotra}</span>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Card 5: Date of Birth */}
               <div style={{
-                background: "#FFFDF7",
-                border: "1px solid #FCD34D",
-                borderRadius: "8px",
-                padding: "7px 10px",
+                background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
+                border: "1.5px solid #D97706",
+                borderRadius: "10px",
+                padding: "8px 12px",
                 display: "flex",
                 alignItems: "center",
-                gap: "6px"
+                gap: "8px",
+                boxShadow: "0 2px 5px rgba(180, 83, 9, 0.08)"
               }}>
-                <span style={{ fontSize: "15px" }}>📅</span>
+                <span style={{ fontSize: "17px" }}>📅</span>
                 <div>
                   <strong style={{ color: "#B45309", fontSize: "11.5px", display: "block" }}>
                     {(PAGE1_DICT[code] || PAGE1_DICT.en).lblDob}:
                   </strong>
-                  <span style={{ fontWeight: 800, color: "#78350F", fontSize: "13px" }}>
+                  <span style={{ fontWeight: 900, color: "#78350F", fontSize: "13.5px" }}>
                     {isKn ? toKnDigits(dobStr) : dobStr}
                   </span>
                 </div>
@@ -930,42 +943,44 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
 
               {/* Card 6: Time of Birth */}
               <div style={{
-                background: "#FFFDF7",
-                border: "1px solid #FCD34D",
-                borderRadius: "8px",
-                padding: "7px 10px",
+                background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
+                border: "1.5px solid #D97706",
+                borderRadius: "10px",
+                padding: "8px 12px",
                 display: "flex",
                 alignItems: "center",
-                gap: "6px"
+                gap: "8px",
+                boxShadow: "0 2px 5px rgba(180, 83, 9, 0.08)"
               }}>
-                <span style={{ fontSize: "15px" }}>⏰</span>
+                <span style={{ fontSize: "17px" }}>⏰</span>
                 <div>
                   <strong style={{ color: "#B45309", fontSize: "11.5px", display: "block" }}>
                     {(PAGE1_DICT[code] || PAGE1_DICT.en).lblTob}:
                   </strong>
-                  <span style={{ fontWeight: 800, color: "#78350F", fontSize: "13px" }}>
+                  <span style={{ fontWeight: 900, color: "#78350F", fontSize: "13.5px" }}>
                     {isKn ? toKnDigits(formatTimeWithAmPm(tobStr, true)) : formatTimeWithAmPm(tobStr, false)}
                   </span>
                 </div>
               </div>
 
-              {/* Card 7: Place of Birth (Spans 2 Cols) */}
+              {/* Card 7: Place of Birth (Spans 2 Cols if hasGotra, or 1 Col if not) */}
               <div style={{
-                gridColumn: "span 2",
-                background: "#FFFDF7",
-                border: "1px solid #FCD34D",
-                borderRadius: "8px",
-                padding: "7px 12px",
+                gridColumn: hasGotra ? "span 2" : "span 1",
+                background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
+                border: "1.5px solid #D97706",
+                borderRadius: "10px",
+                padding: "8px 12px",
                 display: "flex",
                 alignItems: "center",
-                gap: "8px"
+                gap: "8px",
+                boxShadow: "0 2px 5px rgba(180, 83, 9, 0.08)"
               }}>
-                <span style={{ fontSize: "15px" }}>📍</span>
+                <span style={{ fontSize: "17px" }}>📍</span>
                 <div>
                   <strong style={{ color: "#B45309", fontSize: "11.5px", display: "block" }}>
                     {(PAGE1_DICT[code] || PAGE1_DICT.en).lblPob}:
                   </strong>
-                  <span style={{ fontWeight: 800, color: "#78350F", fontSize: "13px" }}>{pobStr}</span>
+                  <span style={{ fontWeight: 900, color: "#78350F", fontSize: "13.5px" }}>{pobStr}</span>
                 </div>
               </div>
             </div>
