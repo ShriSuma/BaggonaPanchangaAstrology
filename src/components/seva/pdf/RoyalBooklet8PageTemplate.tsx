@@ -744,7 +744,6 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                 fontSize: "12.5px",
                 fontWeight: 600,
                 color: "#92400E",
-                letterSpacing: "0.2px",
                 lineHeight: "1.6",
                 flex: 1
               }}>
@@ -774,8 +773,7 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
               color: "#78350F",
               lineHeight: "1.7",
               margin: "6px 0 4px 0",
-              letterSpacing: "0.3px"
-            }}>
+              }}>
               {(PAGE1_DICT[code] || PAGE1_DICT.en).title}
             </div>
             <div style={{
@@ -804,8 +802,7 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
               color: "#78350F",
               textAlign: "center",
               marginBottom: "10px",
-              letterSpacing: "0.4px"
-            }}>
+              }}>
               {(PAGE1_DICT[code] || PAGE1_DICT.en).metadataHeader}
             </div>
 
@@ -820,7 +817,7 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
               boxShadow: "0 3px 8px rgba(180, 83, 9, 0.2)"
             }}>
               <span style={{ fontSize: "18px", marginRight: "8px" }}>✨ 👑</span>
-              <span style={{ fontSize: "22px", fontWeight: 700, color: "#451A03", letterSpacing: "0.5px" }}>
+              <span style={{ fontSize: "22px", fontWeight: 700, color: "#451A03", }}>
                 {displayName}
               </span>
               <span style={{ fontSize: "18px", marginLeft: "8px" }}>👑 ✨</span>
@@ -1994,7 +1991,7 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
             border: "2px solid #FCD34D",
             boxShadow: "0 3px 8px rgba(120, 53, 15, 0.2)"
           }}>
-            <div style={{ fontSize: "17px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.5px", color: "#FEF3C7", textShadow: "0 1px 2px rgba(0,0,0,0.4)" }}>
+            <div style={{ fontSize: "17px", fontWeight: 800, textTransform: "uppercase", color: "#FEF3C7", textShadow: "0 1px 2px rgba(0,0,0,0.4)" }}>
               ಅಧ್ಯಾಯ ೭: ಜನ್ಮ ಕುಂಡಲಿ, ದಶಾ-ಭುಕ್ತಿ & ಗೋಚಾರ ಗ್ರಹ ದೋಷ ಶಮನ ಸಿದ್ಧ ಉಪಾಯಗಳು
             </div>
             <div style={{ fontSize: "11px", opacity: 0.95, marginTop: "2px", fontWeight: 600, color: "#FFFDF7" }}>
@@ -2049,7 +2046,7 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                 <div style={{ fontSize: "11.5px", fontWeight: 800, color: "#78350F" }}>
                   🔱 ಶ್ರೀ ಮಹಾದೇವ (ಗೋಕರ್ಣ) ಮಂತ್ರ:
                 </div>
-                <div style={{ fontSize: "12px", fontWeight: 800, color: "#92400E", margin: "2px 0", letterSpacing: "0.3px" }}>
+                <div style={{ fontSize: "12px", fontWeight: 800, color: "#92400E", margin: "2px 0", }}>
                   "ॐ ನಮಃ ಶಿವಾಯ" <span style={{ fontSize: "10px", color: "#B45309" }}>(೧೦೮ ಬಾರಿ)</span>
                 </div>
                 <div style={{ fontSize: "10px", color: "#451A03", lineHeight: "1.3", fontWeight: 600 }}>
@@ -2067,7 +2064,7 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                 <div style={{ fontSize: "11.5px", fontWeight: 800, color: "#78350F" }}>
                   💰 ಶ್ರೀ ಮಹಾಲಕ್ಷ್ಮಿ ಧನದಾ ಮಂತ್ರ:
                 </div>
-                <div style={{ fontSize: "11.5px", fontWeight: 800, color: "#92400E", margin: "2px 0", letterSpacing: "0.2px" }}>
+                <div style={{ fontSize: "11.5px", fontWeight: 800, color: "#92400E", margin: "2px 0", }}>
                   "ॐ ಶ್ರೀಂ ಹ್ರೀಂ ಶ್ರೀಂ ಕಮಲೇ ನಮಃ" <span style={{ fontSize: "10px", color: "#B45309" }}>(೧೦೮ ಬಾರಿ)</span>
                 </div>
                 <div style={{ fontSize: "10px", color: "#451A03", lineHeight: "1.3", fontWeight: 600 }}>
@@ -2085,7 +2082,7 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                 <div style={{ fontSize: "11.5px", fontWeight: 800, color: "#78350F" }}>
                   🐘 ಶ್ರೀ ಗಣಪತಿ ವಿಘ್ನಹರ ಮಂತ್ರ:
                 </div>
-                <div style={{ fontSize: "12px", fontWeight: 800, color: "#92400E", margin: "2px 0", letterSpacing: "0.3px" }}>
+                <div style={{ fontSize: "12px", fontWeight: 800, color: "#92400E", margin: "2px 0", }}>
                   "ॐ ಗಂ ಗಣಪತಯೇ ನಮಃ" <span style={{ fontSize: "10px", color: "#B45309" }}>(೧೦೮ ಬಾರಿ)</span>
                 </div>
                 <div style={{ fontSize: "10px", color: "#451A03", lineHeight: "1.3", fontWeight: 600 }}>
@@ -2103,7 +2100,7 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                 <div style={{ fontSize: "11.5px", fontWeight: 800, color: "#78350F" }}>
                   ☀️ ಶ್ರೀ ಸೂರ್ಯ ತೇಜೋ ಮಂತ್ರ:
                 </div>
-                <div style={{ fontSize: "11.5px", fontWeight: 800, color: "#92400E", margin: "2px 0", letterSpacing: "0.2px" }}>
+                <div style={{ fontSize: "11.5px", fontWeight: 800, color: "#92400E", margin: "2px 0", }}>
                   "ॐ ಘೃಣಿಃ ಸೂರ್ಯಾಯ ನಮಃ" <span style={{ fontSize: "10px", color: "#B45309" }}>(೨೧ ಬಾರಿ)</span>
                 </div>
                 <div style={{ fontSize: "10px", color: "#451A03", lineHeight: "1.3", fontWeight: 600 }}>
@@ -2259,7 +2256,7 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
             border: "1.5px solid #FCD34D",
             marginTop: "auto"
           }}>
-            <div style={{ fontSize: "12px", fontWeight: 800, letterSpacing: "0.3px", color: "#FEF3C7" }}>
+            <div style={{ fontSize: "12px", fontWeight: 800, color: "#FEF3C7" }}>
               ॥ ಈ ಪವಿತ್ರ ಪುಟವನ್ನು ನಿಮ್ಮ ಮನೆಯ ಪೂಜಾ ಮಂದಿರದಲ್ಲಿ ಇರಿಸಿ ಪ್ರತಿದಿನ ಬೆಳಿಗ್ಗೆ ಪಠಿಸಿ ಸಕಲ ಮಂಗಳಂ ಪ್ರಾಪ್ತಿ ॥
             </div>
             <div style={{ fontSize: "10px", opacity: 0.9, marginTop: "2px" }}>
