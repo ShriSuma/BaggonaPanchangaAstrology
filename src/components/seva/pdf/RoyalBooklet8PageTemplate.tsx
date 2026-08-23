@@ -1,5 +1,6 @@
 import React from "react";
 import { calculateKundli } from "../../../core/KundliEngine";
+import { calculateTraditionalBaggona } from "../../../core/TraditionalBaggonaEngine";
 import { generateBhuktiTimeline } from "../../../core/DashaBhuktiEngine";
 import { NAKSHATRA_L5, RASHI_L5 } from "../../../features/seva/sevaLocale";
 import { transliterateName } from "../../../utils/transliterator";
@@ -831,6 +832,19 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
   const finalGotra = hasGotra ? localizedGotra : "";
 
   // Calculate authentic birth Kundli
+    const traditionalPanchanga = React.useMemo(() => {
+    try {
+      return calculateTraditionalBaggona(
+        dobStr,
+        tobStr,
+        (identity as any)?.latitude || 14.544,
+        (identity as any)?.longitude || 74.318
+      );
+    } catch {
+      return null;
+    }
+  }, [dobStr, tobStr, (identity as any)?.latitude, (identity as any)?.longitude]);
+
   const birthKundli = React.useMemo(() => {
     try {
       return calculateKundli({
@@ -1508,7 +1522,7 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
             </div>
           </div>
 
-          {/* Dynamic Birth Panchanga Box */}
+          {/* Authentic Traditional Birth Panchanga Box */}
           <div style={{
             background: "#FFFBEB",
             border: "1.5px solid #D97706",
@@ -1520,14 +1534,14 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
               📜 {isKn ? "ಜನನ ಸಮಯದ ಶುಭ-ಪಂಚಾಂಗ ಗಣನೆಗಳು:" : "Birth Panchanga Calculations:"}
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 16px", fontSize: "12px", lineHeight: "1.55" }}>
-              <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>{isKn ? "ತಿಥಿ & ಪಕ್ಷ:" : "Tithi & Paksha:"}</strong> {calculateBirthTithi(birthKundli, isKn)}</div>
-              <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>{isKn ? "ಕರಣ & ಯೋಗ:" : "Karana & Yoga:"}</strong> {isKn ? "ಬಾಲವ ಕರಣ" : "Balava Karana"} · {calculateBirthYoga(birthKundli, isKn)}</div>
-              <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>{isKn ? "ಘಟಿ / ವಿಘಟಿ:" : "Ghati / Vighati:"}</strong> {isKn ? "೪೨ ಘಟಿ ೪೮ ವಿಘಟಿ" : "42 Ghati 48 Vighati"}</div>
-              <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>{isKn ? "ದಿವಾ ಘಟಿ:" : "Diva Ghati:"}</strong> {isKn ? "೩೨ ಘಟಿ ೧೨ ವಿಘಟಿ" : "32 Ghati 12 Vighati"}</div>
-              <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>{isKn ? "ಅಮೃತ ಘಟಿ:" : "Amrita Ghati:"}</strong> {isKn ? "೪೪ ಘಟಿ ೦೬ ವಿಘಟಿ" : "44 Ghati 06 Vighati"}</div>
-              <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>{isKn ? "ವಿಷ ಘಟಿ:" : "Visha Ghati:"}</strong> {isKn ? "೨೦ ಘಟಿ ೦೬ ವಿಘಟಿ" : "20 Ghati 06 Vighati"}</div>
-              <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>{isKn ? "ಸೂರ್ಯೋದಯಾದಿತ:" : "Suryodayadita:"}</strong> {isKn ? "೩೨ ಘಟಿ ೫೫ ವಿಘಟಿ" : "32 Ghati 55 Vighati"}</div>
-              <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>{isKn ? "ದಶಾ ಶೇಷ:" : "Dasha Balance:"}</strong> {dynamicDashaCards[0]?.title ? (isKn ? `${dynamicDashaCards[0].title.split(" • ")[0].replace(/[^a-zA-Z0-9\u0C80-\u0CFF\s]/g, "").trim()} ಮಹಾದಶಾ` : dynamicDashaCards[0].title.split(" • ")[0]) : (isKn ? "ಚಂದ್ರ ಮಹಾದಶಾ" : "Moon Dasha")}</div>
+              <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>{isKn ? "ತಿಥಿ & ಪಕ್ಷ:" : "Tithi & Paksha:"}</strong> {traditionalPanchanga ? `${traditionalPanchanga.tithiKn} (${traditionalPanchanga.pakshaKn} ಪಕ್ಷ)` : (isKn ? "ದ್ವಿತೀಯಾ (ಶುಕ್ಲ ಪಕ್ಷ)" : "Dwitiya (Shukla Paksha)")}</div>
+              <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>{isKn ? "ಕರಣ & ಯೋಗ:" : "Karana & Yoga:"}</strong> {traditionalPanchanga ? `${traditionalPanchanga.karanaKn} ಕರಣ · ${traditionalPanchanga.yogaKn} ಯೋಗ` : (isKn ? "ಬಾಲವ ಕರಣ · ಬ್ರಹ್ಮ ಯೋಗ" : "Balava Karana · Brahma Yoga")}</div>
+              <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>{isKn ? "ಘಟಿ / ವಿಘಟಿ:" : "Ghati / Vighati:"}</strong> {traditionalPanchanga ? `${toKnDigits(traditionalPanchanga.tithiGhati)} ಘಟಿ ${toKnDigits(traditionalPanchanga.tithiVighati)} ವಿಘಟಿ` : "೪೨ ಘಟಿ ೪೮ ವಿಘಟಿ"}</div>
+              <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>{isKn ? "ದಿವಾ ಘಟಿ:" : "Diva Ghati:"}</strong> {traditionalPanchanga ? `${toKnDigits(traditionalPanchanga.divaGhati.ghati)} ಘಟಿ ${toKnDigits(traditionalPanchanga.divaGhati.vighati)} ವಿಘಟಿ` : "೩೨ ಘಟಿ ೧೨ ವಿಘಟಿ"}</div>
+              <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>{isKn ? "ಅಮೃತ ಘಟಿ:" : "Amrita Ghati:"}</strong> {traditionalPanchanga ? `${toKnDigits(traditionalPanchanga.amrithaGhati.ghati)} ಘಟಿ ${toKnDigits(traditionalPanchanga.amrithaGhati.vighati)} ವಿಘಟಿ` : "೪೪ ಘಟಿ ೦೬ ವಿಘಟಿ"}</div>
+              <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>{isKn ? "ವಿಷ ಘಟಿ:" : "Visha Ghati:"}</strong> {traditionalPanchanga ? `${toKnDigits(traditionalPanchanga.vishaGhati.ghati)} ಘಟಿ ${toKnDigits(traditionalPanchanga.vishaGhati.vighati)} ವಿಘಟಿ` : "೨೦ ಘಟಿ ೦೬ ವಿಘಟಿ"}</div>
+              <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>{isKn ? "ಸೂರ್ಯೋದಯಾದಿತ:" : "Suryodayadita:"}</strong> {traditionalPanchanga ? `${toKnDigits(traditionalPanchanga.suryodhayadgata.ghati)} ಘಟಿ ${toKnDigits(traditionalPanchanga.suryodhayadgata.vighati)} ವಿಘಟಿ` : "೩೨ ಘಟಿ ೫೫ ವಿಘಟಿ"}</div>
+              <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>{isKn ? "ದಶಾ ಶೇಷ:" : "Dasha Balance:"}</strong> {traditionalPanchanga ? `${traditionalPanchanga.dashaLord} ಮಹಾದಶಾ ${toKnDigits(traditionalPanchanga.dashaYears ?? 0)} ವರ್ಷ ${toKnDigits(traditionalPanchanga.dashaMonths ?? 0)} ತಿಂಗಳು ${toKnDigits(traditionalPanchanga.dashaDays ?? 0)} ದಿನ` : (isKn ? "ಚಂದ್ರ ಮಹಾದಶಾ ೪ ವರ್ಷ ೦ ತಿಂಗಳು ೫ ದಿನ" : "Moon Dasha 4y 0m 5d")}</div>
             </div>
           </div>
 
