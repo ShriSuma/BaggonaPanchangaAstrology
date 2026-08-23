@@ -723,13 +723,13 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
       <div className="pdf-page" style={pageStyle}>
         <div style={{ ...frameStyle, padding: "20px 24px 22px 24px", gap: "16px" }}>
           
-          {/* Top Header Box with Gokarna Atmalinga Sacred Emblem - Crisp Typography & Zero Collisions */}
+          {/* Top Header Box with Gokarna Atmalinga Sacred Emblem - Compact Height & Crisp Typography */}
           <div style={{
             textAlign: "center",
             background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
             border: "2px solid #D97706",
             borderRadius: "14px",
-            padding: "14px 20px",
+            padding: "8px 16px",
             boxShadow: "0 4px 10px rgba(180, 83, 9, 0.08)"
           }}>
             {/* Sloka Header Row - High Definition Vector Gold Emblems */}
@@ -737,11 +737,11 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              gap: "14px",
-              marginBottom: "8px"
+              gap: "10px",
+              marginBottom: "4px"
             }}>
               {/* Left Emblem: Gokarna Atmalinga & Sacred Trishula Vector Crest */}
-              <svg width="44" height="44" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0, filter: "drop-shadow(0px 2px 4px rgba(120, 53, 15, 0.25))" }}>
+              <svg width="34" height="34" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0, filter: "drop-shadow(0px 2px 4px rgba(120, 53, 15, 0.25))" }}>
                 <defs>
                   <linearGradient id="goldBgGradLeft" x1="0%" y1="0%" x2="100%" y2="100%">
                     <stop offset="0%" stopColor="#FEF3C7" />
@@ -770,7 +770,7 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
               </div>
 
               {/* Right Emblem: Gokarna Sacred Jyoti Deepa Vector Crest */}
-              <svg width="44" height="44" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0, filter: "drop-shadow(0px 2px 4px rgba(120, 53, 15, 0.25))" }}>
+              <svg width="34" height="34" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0, filter: "drop-shadow(0px 2px 4px rgba(120, 53, 15, 0.25))" }}>
                 <defs>
                   <linearGradient id="goldBgGradRight" x1="0%" y1="0%" x2="100%" y2="100%">
                     <stop offset="0%" stopColor="#FEF3C7" />
