@@ -222,5 +222,21 @@ describe("Devotee 90-Day Token Consistency & Expiry Engine", () => {
     // 4. Verify banner image URL is attached via RFC 5545 ATTACH header (not in text description)
     expect(icsContent).toContain("ATTACH;FMTTYPE=image/jpeg:");
     expect(icsContent).toContain("X-ALT-DESC;FMTTYPE=text/html:");
+    // 5. Verify 100% Uniqueness & Zero Duplication Across All 90 Days
+    const dtstartMatches = icsContent.match(/DTSTART;TZID=Asia\/Kolkata:.+/g);
+    expect(dtstartMatches).not.toBeNull();
+    // All 90 days have 100% distinct dates - zero date collisions
+    const uniqueDtstarts = new Set(dtstartMatches);
+    expect(uniqueDtstarts.size).toBeGreaterThanOrEqual(90);
+
+    // Verify all 90 days have 100% distinct, unique day-specific descriptions (Rahu/Gulika/Yamaganda/Tithi/Tara Bala)
+    const descMatches = icsContent.match(/DESCRIPTION:.+/g);
+    expect(descMatches).not.toBeNull();
+    const uniqueDescs = new Set(descMatches);
+    expect(uniqueDescs.size).toBeGreaterThanOrEqual(90);
+
+    // Verify parent series UID grouping link for 1-click delete series
+    expect(icsContent).toContain("RELATED-TO;RELTYPE=PARENT:baggona-series-");
+    expect(icsContent).toContain("X-BAGBONA-SERIES-ID:");
   });
 });
