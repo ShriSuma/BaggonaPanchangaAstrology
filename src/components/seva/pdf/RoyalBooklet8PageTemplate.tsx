@@ -4,6 +4,7 @@ import { calculateTraditionalBaggona } from "../../../core/TraditionalBaggonaEng
 import { generateBhuktiTimeline } from "../../../core/DashaBhuktiEngine";
 import { NAKSHATRA_L5, RASHI_L5 } from "../../../features/seva/sevaLocale";
 import { transliterateName } from "../../../utils/transliterator";
+import { patrikaNavamshaFromDegree } from "../../../core/localeNumbers";
 
 export interface DevoteeIdentityProps {
   personName?: string;
@@ -707,13 +708,13 @@ const renderSouthIndianGrid = (
   const lagnaRashiName = (RASHI_L5[lagnaIdx] as any)?.[code] || (RASHI_L5[lagnaIdx] as any)?.kn || RASHI_KN_MAP[lagnaIdx] || "ಲಗ್ನ";
 
   // Planets by sign index (0 to 11)
-  const planetsByRashi: Record<number, Array<{ name: string; deg: number }>> = {};
+  const planetsByRashi: Record<number, Array<{ name: string; amshaka: number }>> = {};
   for (let i = 0; i < 12; i++) planetsByRashi[i] = [];
 
   if (kundli && kundli.planets) {
     for (const p of kundli.planets) {
       let rIdx = 0;
-      let deg = Math.floor(p.degreeInRashi || p.degree || 1);
+      let amshaka = patrikaNavamshaFromDegree(p.degree || 0);
       if (isD9) {
         const totalDeg = (p.rashi ? p.rashi.index * 30 : 0) + (p.degreeInRashi || p.degree || 0);
         rIdx = Math.floor(totalDeg / (30 / 9)) % 12;
@@ -721,7 +722,7 @@ const renderSouthIndianGrid = (
         rIdx = p.rashi ? p.rashi.index : 0;
       }
       const plName = (PLANET_SHORT_L5[p.name || p.planet] as any)?.[code] || p.name || p.planet;
-      planetsByRashi[rIdx].push({ name: plName, deg });
+      planetsByRashi[rIdx].push({ name: plName, amshaka });
     }
   }
 
@@ -738,12 +739,12 @@ const renderSouthIndianGrid = (
         </div>
         {isLagnaCell && (
           <div style={{ color: "#B91C1C", fontWeight: 800, fontSize: "10px" }}>
-            {isKn ? "ಲಗ್ನ" : "Lagna"}
+            {isKn ? `ಲಗ್ನ ${kundli?.ascendant !== undefined ? toKnDigits(patrikaNavamshaFromDegree(kundli.ascendant)) : ""}` : `Lagna ${kundli?.ascendant !== undefined ? patrikaNavamshaFromDegree(kundli.ascendant) : ""}`}
           </div>
         )}
         {planetsHere.map((pl, idx) => (
           <div key={idx} style={{ color: "#1E3A8A", fontWeight: 800, fontSize: "9.5px", lineHeight: "1.2" }}>
-            {pl.name} {!isD9 ? toKnDigits(pl.deg) : ""}
+            {pl.name} {isKn ? toKnDigits(pl.amshaka) : pl.amshaka}
           </div>
         ))}
       </div>
