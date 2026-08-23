@@ -629,6 +629,25 @@ const PAGE1_DICT: Record<string, {
 };
 
 
+
+const calculateBirthTithi = (kundli: any, isKn: boolean): string => {
+  if (!kundli || !kundli.planets) return isKn ? "ದ್ವಿತೀಯಾ (ಶುಕ್ಲ ಪಕ್ಷ)" : "Dwitiya (Shukla Paksha)";
+  const sun = kundli.planets.find((p: any) => p.name === "Sun" || p.planet === "Sun")?.longitude ?? 0;
+  const moon = kundli.planets.find((p: any) => p.name === "Moon" || p.planet === "Moon")?.longitude ?? 0;
+  const diff = (moon - sun + 360) % 360;
+  const tithiIdx = Math.floor(diff / 12) % 30;
+  const isShukla = tithiIdx < 15;
+  const tithiNum = (tithiIdx % 15);
+  
+  const TITHIS_KN = ["ಪ್ರಥಮಾ", "ದ್ವಿತೀಯಾ", "ತೃತೀಯಾ", "ಚತುರ್ಥಿ", "ಪಂಚಮೀ", "ಷಷ್ಠೀ", "ಸಪ್ತಮೀ", "ಅಷ್ಟಮೀ", "ನವಮೀ", "ದಶಮೀ", "ಏಕಾದಶೀ", "ದ್ವಾದಶೀ", "ತ್ರಯೋದಶೀ", "ಚತುರ್ದಶೀ", isShukla ? "ಪೂರ್ಣಿಮಾ" : "ಅಮಾವಾಸ್ಯಾ"];
+  const TITHIS_EN = ["Prathama", "Dwitiya", "Tritiya", "Chaturthi", "Panchami", "Shashthi", "Saptami", "Ashtami", "Navami", "Dashami", "Ekadashi", "Dwadashi", "Trayodashi", "Chaturdashi", isShukla ? "Purnima" : "Amavasya"];
+  
+  const tName = isKn ? TITHIS_KN[tithiNum] : TITHIS_EN[tithiNum];
+  const pName = isKn ? (isShukla ? "ಶುಕ್ಲ ಪಕ್ಷ" : "ಕೃಷ್ಣ ಪಕ್ಷ") : (isShukla ? "Shukla Paksha" : "Krishna Paksha");
+  
+  return `${tName} (${pName})`;
+};
+
 const calculateBirthYoga = (kundli: any, isKn: boolean): string => {
   if (!kundli || !kundli.planets) return isKn ? "ಸಿದ್ಧ" : "Siddha";
   const sun = kundli.planets.find((p: any) => p.planet === "Sun")?.longitude ?? 0;
@@ -723,7 +742,7 @@ const renderSouthIndianGrid = (
         )}
         {planetsHere.map((pl, idx) => (
           <div key={idx} style={{ color: "#1E3A8A", fontWeight: 800, fontSize: "9.5px", lineHeight: "1.2" }}>
-            {pl.name} {!isD9 ? toKnDigits(pl.deg) : ""}
+            {pl.name}
           </div>
         ))}
       </div>
@@ -1501,7 +1520,7 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
               📜 {isKn ? "ಜನನ ಸಮಯದ ಶುಭ-ಪಂಚಾಂಗ ಗಣನೆಗಳು:" : "Birth Panchanga Calculations:"}
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 16px", fontSize: "12px", lineHeight: "1.55" }}>
-              <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>{isKn ? "ತಿಥಿ & ಪಕ್ಷ:" : "Tithi & Paksha:"}</strong> {isKn ? "ದ್ವಿತೀಯಾ (ಶುಕ್ಲ ಪಕ್ಷ)" : "Dwitiya (Shukla Paksha)"}</div>
+              <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>{isKn ? "ತಿಥಿ & ಪಕ್ಷ:" : "Tithi & Paksha:"}</strong> {calculateBirthTithi(birthKundli, isKn)}</div>
               <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>{isKn ? "ಕರಣ & ಯೋಗ:" : "Karana & Yoga:"}</strong> {isKn ? "ಬಾಲವ ಕರಣ" : "Balava Karana"} · {calculateBirthYoga(birthKundli, isKn)}</div>
               <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>{isKn ? "ಘಟಿ / ವಿಘಟಿ:" : "Ghati / Vighati:"}</strong> {isKn ? "೪೨ ಘಟಿ ೪೮ ವಿಘಟಿ" : "42 Ghati 48 Vighati"}</div>
               <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>{isKn ? "ದಿವಾ ಘಟಿ:" : "Diva Ghati:"}</strong> {isKn ? "೩೨ ಘಟಿ ೧೨ ವಿಘಟಿ" : "32 Ghati 12 Vighati"}</div>
