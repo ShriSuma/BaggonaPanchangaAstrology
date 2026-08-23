@@ -24,18 +24,18 @@ export interface RoyalBooklet8PageTemplateProps {
 }
 
 const RASHI_KN_MAP: Record<number, string> = {
-  0: "ಮೇಷ (Mesha)",
-  1: "ವೃಷಭ (Vrishabha)",
-  2: "ಮಿಥುನ (Mithuna)",
-  3: "ಕರ್ಕಾಟಕ (Karka)",
-  4: "ಸಿಂಹ (Simha)",
-  5: "ಕನ್ಯಾ (Kanya)",
-  6: "ತುಲಾ (Tula)",
-  7: "ವೃಶ್ಚಿಕ (Vrischika)",
-  8: "ಧನುಸ್ಸು (Dhanus)",
-  9: "ಮಕರ (Makara)",
-  10: "ಕುಂಭ (Kumbha)",
-  11: "ಮೀನ (Meena)"
+  0: "ಮೇಷ",
+  1: "ವೃಷಭ",
+  2: "ಮಿಥುನ",
+  3: "ಕರ್ಕಾಟಕ",
+  4: "ಸಿಂಹ",
+  5: "ಕನ್ಯಾ",
+  6: "ತುಲಾ",
+  7: "ವೃಶ್ಚಿಕ",
+  8: "ಧನುಸ್ಸು",
+  9: "ಮಕರ",
+  10: "ಕುಂಭ",
+  11: "ಮೀನ"
 };
 
 const PLANET_KN_MAP: Record<string, string> = {
@@ -335,7 +335,7 @@ const PAGE1_DICT: Record<string, {
   salutation: (name: string, pandit: string) => string;
   para1: (rashi: string, nak: string, pada: number, lagna: string, dob: string, tob: string) => string;
   para2: string;
-  para3: (name: string) => string;
+  para3: (name: string, rashiLord?: string, lagnaLord?: string) => string;
   footerMotto: string;
   footerPriest: (pandit: string) => string;
 }> = {
@@ -693,79 +693,122 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
           PAGE 1: DEVOTEE ASTROLOGICAL IDENTITY & CHIEF PRIEST BENEDICTION
          ───────────────────────────────────────────────────────────── */}
       <div className="pdf-page" style={pageStyle}>
-        <div style={{ ...frameStyle, padding: "16px 20px 20px 20px", gap: "14px" }}>
+        <div style={{ ...frameStyle, padding: "20px 24px 22px 24px", gap: "16px" }}>
           
-          {/* Top Sloka Banner Box */}
+          {/* Top Header Box with Gokarna Atmalinga Sacred Emblem */}
           <div style={{
             textAlign: "center",
             background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
             border: "2px solid #D97706",
-            borderRadius: "12px",
-            padding: "10px 16px",
-            boxShadow: "0 3px 8px rgba(180, 83, 9, 0.06)"
+            borderRadius: "14px",
+            padding: "14px 20px",
+            boxShadow: "0 4px 10px rgba(180, 83, 9, 0.08)",
+            position: "relative"
           }}>
-            <div style={{ fontSize: "12.5px", fontWeight: 700, color: "#92400E", marginBottom: "2px", lineHeight: "1.35" }}>
-              {(PAGE1_DICT[code] || PAGE1_DICT.en).sloka}
+            {/* Atmalinga Sacred Emblem Header */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", marginBottom: "4px" }}>
+              <div style={{
+                width: "36px",
+                height: "36px",
+                borderRadius: "50%",
+                background: "linear-gradient(135deg, #78350F 0%, #D97706 100%)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#FEF3C7",
+                fontSize: "18px",
+                boxShadow: "0 2px 6px rgba(120, 53, 15, 0.3)"
+              }}>
+                🔱
+              </div>
+              <div style={{ fontSize: "13.5px", fontWeight: 700, color: "#92400E", letterSpacing: "0.2px", lineHeight: "1.3" }}>
+                {(PAGE1_DICT[code] || PAGE1_DICT.en).sloka}
+              </div>
+              <div style={{
+                width: "36px",
+                height: "36px",
+                borderRadius: "50%",
+                background: "linear-gradient(135deg, #D97706 0%, #78350F 100%)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#FEF3C7",
+                fontSize: "18px",
+                boxShadow: "0 2px 6px rgba(120, 53, 15, 0.3)"
+              }}>
+                🪔
+              </div>
             </div>
-            <div style={{ fontSize: "22px", fontWeight: 800, color: "#78350F", lineHeight: "1.5", margin: "2px 0" }}>
+
+            <div style={{ fontSize: "24px", fontWeight: 900, color: "#78350F", lineHeight: "1.4", margin: "4px 0 2px 0", letterSpacing: "0.5px" }}>
               {(PAGE1_DICT[code] || PAGE1_DICT.en).title}
             </div>
-            <div style={{ fontSize: "11.5px", color: "#B45309", marginTop: "2px", fontWeight: 600, lineHeight: "1.3" }}>
+            <div style={{ fontSize: "12.5px", color: "#B45309", marginTop: "2px", fontWeight: 700, lineHeight: "1.3" }}>
               {(PAGE1_DICT[code] || PAGE1_DICT.en).subTitle}
             </div>
           </div>
 
-          {/* Devotee Record Box */}
+          {/* Devotee Record Box - Generous Padding & Space Above Name */}
           <div style={{
             background: "#FFFBEB",
             border: "1.5px solid #D97706",
-            borderRadius: "12px",
-            padding: "12px 18px",
+            borderRadius: "14px",
+            padding: "14px 20px",
             boxShadow: "0 3px 8px rgba(180, 83, 9, 0.05)"
           }}>
-            <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#B45309", textAlign: "center", marginBottom: "3px" }}>
+            <div style={{ fontSize: "13px", fontWeight: 800, color: "#B45309", textAlign: "center", marginBottom: "6px", letterSpacing: "0.3px" }}>
               {(PAGE1_DICT[code] || PAGE1_DICT.en).metadataHeader}
             </div>
-            <div style={{ fontSize: "22px", fontWeight: 900, color: "#78350F", textAlign: "center", marginBottom: "8px", borderBottom: "1.5px dashed #D97706", paddingBottom: "6px" }}>
+            {/* Devotee Name - Clean Margins & Clear Separation from Line */}
+            <div style={{
+              fontSize: "24px",
+              fontWeight: 900,
+              color: "#78350F",
+              textAlign: "center",
+              margin: "6px 0 10px 0",
+              borderBottom: "2px dashed #D97706",
+              paddingBottom: "8px"
+            }}>
               {displayName}
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 16px", fontSize: "12px", lineHeight: "1.5" }}>
-              <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>{(PAGE1_DICT[code] || PAGE1_DICT.en).lblRashi}:</strong> {isKn ? rashiName : (RASHI_L5[rashiIdx] as any)?.[code] || (RASHI_L5[rashiIdx] as any)?.en}</div>
-              <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>{(PAGE1_DICT[code] || PAGE1_DICT.en).lblNakshatra}:</strong> {nakName} ({pada} {(PAGE1_DICT[code] || PAGE1_DICT.en).padaText})</div>
-              <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>{(PAGE1_DICT[code] || PAGE1_DICT.en).lblLagna}:</strong> {birthKundli?.lagnaRashi ? ((RASHI_L5[birthKundli.lagnaRashi.index] as any)?.[code] || (RASHI_L5[birthKundli.lagnaRashi.index] as any)?.en) : lagnaRashiName}</div>
-              <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>{(PAGE1_DICT[code] || PAGE1_DICT.en).lblGotra}:</strong> {finalGotra}</div>
-              <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>{(PAGE1_DICT[code] || PAGE1_DICT.en).lblDob}:</strong> {dobStr}</div>
-              <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>{(PAGE1_DICT[code] || PAGE1_DICT.en).lblTob}:</strong> {formatTimeWithAmPm(tobStr, isKn)}</div>
-              <div style={{ gridColumn: "span 2" }}><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>{(PAGE1_DICT[code] || PAGE1_DICT.en).lblPob}:</strong> {pobStr}</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 20px", fontSize: "13.5px", lineHeight: "1.5" }}>
+              <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>{(PAGE1_DICT[code] || PAGE1_DICT.en).lblRashi}:</strong> <span style={{ fontWeight: 700, color: "#78350F" }}>{rashiName}</span></div>
+              <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>{(PAGE1_DICT[code] || PAGE1_DICT.en).lblNakshatra}:</strong> <span style={{ fontWeight: 700, color: "#78350F" }}>{nakName} ({pada} {(PAGE1_DICT[code] || PAGE1_DICT.en).padaText})</span></div>
+              <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>{(PAGE1_DICT[code] || PAGE1_DICT.en).lblLagna}:</strong> <span style={{ fontWeight: 700, color: "#78350F" }}>{birthKundli?.lagnaRashi ? ((RASHI_L5[birthKundli.lagnaRashi.index] as any)?.[code] || (RASHI_L5[birthKundli.lagnaRashi.index] as any)?.kn || lagnaRashiName) : lagnaRashiName}</span></div>
+              <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>{(PAGE1_DICT[code] || PAGE1_DICT.en).lblGotra}:</strong> <span style={{ fontWeight: 700, color: "#78350F" }}>{finalGotra}</span></div>
+              <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>{(PAGE1_DICT[code] || PAGE1_DICT.en).lblDob}:</strong> <span style={{ fontWeight: 700, color: "#78350F" }}>{dobStr}</span></div>
+              <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>{(PAGE1_DICT[code] || PAGE1_DICT.en).lblTob}:</strong> <span style={{ fontWeight: 700, color: "#78350F" }}>{formatTimeWithAmPm(tobStr, isKn)}</span></div>
+              <div style={{ gridColumn: "span 2" }}><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>{(PAGE1_DICT[code] || PAGE1_DICT.en).lblPob}:</strong> <span style={{ fontWeight: 700, color: "#78350F" }}>{pobStr}</span></div>
             </div>
           </div>
 
-          {/* Full Page Width Chief Priest Ashirvachana & Sacred Guide Narrative */}
+          {/* Full Page Width Chief Priest Ashirvachana & Sacred Guide Narrative - Larger Font */}
           <div style={{
             flex: 1,
             background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
             border: "2px solid #D97706",
-            borderRadius: "12px",
-            padding: "16px 18px",
-            boxShadow: "0 3px 10px rgba(180, 83, 9, 0.07)",
+            borderRadius: "14px",
+            padding: "18px 22px",
+            boxShadow: "0 4px 12px rgba(180, 83, 9, 0.07)",
             display: "flex",
             flexDirection: "column",
-            justifyContent: "space-between"
+            justifyContent: "space-between",
+            position: "relative"
           }}>
-            <div style={{ fontSize: "13px", fontWeight: 800, color: "#78350F", marginBottom: "8px", borderBottom: "1.5px dashed #D97706", paddingBottom: "5px" }}>
+            <div style={{ fontSize: "14px", fontWeight: 800, color: "#78350F", marginBottom: "12px", borderBottom: "1.5px dashed #D97706", paddingBottom: "6px" }}>
               {(PAGE1_DICT[code] || PAGE1_DICT.en).blessingHeader}
             </div>
 
-            <div style={{ fontSize: "11px", lineHeight: "1.6", color: "#451A03", textAlign: "justify", display: "flex", flexDirection: "column", gap: "10px" }}>
-              <div style={{ fontWeight: 800, color: "#78350F", fontSize: "11.5px" }}>
+            <div style={{ fontSize: "13.5px", lineHeight: "1.7", color: "#451A03", textAlign: "justify", display: "flex", flexDirection: "column", gap: "12px" }}>
+              <div style={{ fontWeight: 800, color: "#78350F", fontSize: "14px" }}>
                 {(PAGE1_DICT[code] || PAGE1_DICT.en).salutation(displayName, priestStr)}
               </div>
               <div>
                 {(PAGE1_DICT[code] || PAGE1_DICT.en).para1(
-                  isKn ? rashiName : (RASHI_L5[rashiIdx] as any)?.[code] || (RASHI_L5[rashiIdx] as any)?.en,
+                  rashiName,
                   nakName,
                   pada,
-                  birthKundli?.lagnaRashi ? ((RASHI_L5[birthKundli.lagnaRashi.index] as any)?.[code] || (RASHI_L5[birthKundli.lagnaRashi.index] as any)?.en) : lagnaRashiName,
+                  birthKundli?.lagnaRashi ? ((RASHI_L5[birthKundli.lagnaRashi.index] as any)?.[code] || (RASHI_L5[birthKundli.lagnaRashi.index] as any)?.kn || lagnaRashiName) : lagnaRashiName,
                   dobStr,
                   formatTimeWithAmPm(tobStr, isKn)
                 )}
@@ -774,22 +817,36 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                 {(PAGE1_DICT[code] || PAGE1_DICT.en).para2}
               </div>
               <div>
-                {(PAGE1_DICT[code] || PAGE1_DICT.en).para3(displayName)}
+                {(PAGE1_DICT[code] || PAGE1_DICT.en).para3(
+                  displayName,
+                  (SIGN_LORDS[rashiIdx] || "ಮಂಗಳ").split(" ")[0],
+                  (SIGN_LORDS[birthKundli?.lagnaRashi?.index ?? 3] || "ಚಂದ್ರ").split(" ")[0]
+                )}
               </div>
             </div>
 
+            {/* Ashirvachana Sacred Seal & Guarantee Emblem */}
             <div style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
               background: "#78350F",
               color: "#FEF3C7",
-              borderRadius: "8px",
-              padding: "8px 12px",
-              textAlign: "center",
-              fontSize: "11px",
-              fontWeight: 700,
-              border: "1px solid #D97706",
-              marginTop: "12px"
+              borderRadius: "10px",
+              padding: "10px 16px",
+              border: "1.5px solid #D97706",
+              marginTop: "16px",
+              boxShadow: "0 2px 6px rgba(120, 53, 15, 0.25)"
             }}>
-              ✨ {isKn ? `೧೦೦% ಅತ್ಯಂತ ಸತ್ಯವಾದ ವೈಯಕ್ತಿಕ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಲೈವ್ ಗಣಿತ · ಶ್ರೀ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ` : `100% Authentic Personal Panchanga Horoscope Treatise · Gokarna Kshetra`}
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <span style={{ fontSize: "20px" }}>💮</span>
+                <span style={{ fontSize: "12px", fontWeight: 800, color: "#FDE68A" }}>
+                  {isKn ? "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ಧರ್ಮಪೀಠದ ಅಭಯ ಮುದ್ರೆ" : "Sri Gokarna Kshetra Sacred Abhaya Mudra Seal"}
+                </span>
+              </div>
+              <div style={{ fontSize: "11.5px", fontWeight: 700, color: "#FEF3C7" }}>
+                ✨ {isKn ? "೧೦೦% ಸತ್ಯ ವೈಯಕ್ತಿಕ ಕುಂಡಲಿ ಗಣಿತ" : "100% Authentic Personal Horoscope"}
+              </div>
             </div>
           </div>
 
@@ -797,16 +854,16 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
           <div style={{
             background: "linear-gradient(180deg, #78350F 0%, #451A03 100%)",
             border: "1.5px solid #D97706",
-            borderRadius: "8px",
-            padding: "7px 10px",
+            borderRadius: "10px",
+            padding: "8px 12px",
             textAlign: "center",
             boxShadow: "0 2px 6px rgba(120, 53, 15, 0.2)",
             marginBottom: "2px"
           }}>
-            <div style={{ fontSize: "10.5px", fontWeight: 700, color: "#FEF3C7", lineHeight: "1.3" }}>
+            <div style={{ fontSize: "11px", fontWeight: 700, color: "#FEF3C7", lineHeight: "1.3" }}>
               {(PAGE1_DICT[code] || PAGE1_DICT.en).footerMotto}
             </div>
-            <div style={{ fontSize: "9.5px", color: "#FDE68A", fontWeight: 600, marginTop: "2px", lineHeight: "1.2" }}>
+            <div style={{ fontSize: "10px", color: "#FDE68A", fontWeight: 600, marginTop: "2px", lineHeight: "1.2" }}>
               {(PAGE1_DICT[code] || PAGE1_DICT.en).footerPriest(priestStr)}
             </div>
           </div>
