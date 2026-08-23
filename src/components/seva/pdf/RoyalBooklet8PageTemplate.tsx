@@ -1273,18 +1273,19 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
               boxShadow: "0 2px 5px rgba(0, 0, 0, 0.03)"
             }}>
               <div style={{ fontSize: "14px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ display: "inline-flex", alignItems: "center", lineHeight: "1.1" }}>📌 ಗುರು ಮಹಾದಶಾ • ಶನಿ ಅಂತರ್ದಶಾ (ಪ್ರಸ್ತುತ ನಡವಳಿಕೆ)</span>
+                <span style={{ display: "inline-flex", alignItems: "center", lineHeight: "1.35", transform: "translateY(-1px)" }}>📌 ಗುರು ಮಹಾದಶಾ • ಶನಿ ಅಂತರ್ದಶಾ (ಪ್ರಸ್ತುತ ನಡವಳಿಕೆ)</span>
                 <span style={{
                   fontSize: "11px",
                   color: "#92400E",
                   background: "#FEF3C7",
                   border: "1px solid #F59E0B",
-                  padding: "3px 12px",
+                  padding: "1px 12px 3px 12px",
                   borderRadius: "14px",
                   fontWeight: 700,
                   display: "inline-flex",
                   alignItems: "center",
-                  lineHeight: "1.1"
+                  lineHeight: "1.3",
+                  transform: "translateY(-2px)"
                 }}>⚖️ ಸ್ಥಿರ ಕರ್ಮ & ವೃತ್ತಿ ಭದ್ರತೆ</span>
               </div>
               <div style={{
@@ -1295,11 +1296,12 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                 marginBottom: "8px",
                 background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
                 border: "1px solid #FCD34D",
-                padding: "4px 10px",
+                padding: "2px 10px 4px 10px",
                 borderRadius: "6px",
                 display: "flex",
                 alignItems: "center",
-                lineHeight: "1.35"
+                lineHeight: "1.4",
+                transform: "translateY(-1px)"
               }}>
                 <span>🗓️ ಅವಧಿ: ೨೦೨೪-೦೭-೧೫ ರಿಂದ ೨೦೨೭-೦೧-೨೦ | (ವಯಸ್ಸು: ೩೧ - ೩೩ ವರ್ಷ - ಪ್ರಸ್ತುತ ನಡವಳಿಕೆ)</span>
               </div>
@@ -1320,18 +1322,19 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
               boxShadow: "0 2px 5px rgba(0, 0, 0, 0.03)"
             }}>
               <div style={{ fontSize: "14px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ display: "inline-flex", alignItems: "center", lineHeight: "1.1" }}>📌 ಗುರು ಮಹಾದಶಾ • ಬುಧ ಅಂತರ್ದಶಾ</span>
+                <span style={{ display: "inline-flex", alignItems: "center", lineHeight: "1.35", transform: "translateY(-1px)" }}>📌 ಗುರು ಮಹಾದಶಾ • ಬುಧ ಅಂತರ್ದಶಾ</span>
                 <span style={{
                   fontSize: "11px",
                   color: "#92400E",
                   background: "#FEF3C7",
                   border: "1px solid #F59E0B",
-                  padding: "3px 12px",
+                  padding: "1px 12px 3px 12px",
                   borderRadius: "14px",
                   fontWeight: 700,
                   display: "inline-flex",
                   alignItems: "center",
-                  lineHeight: "1.1"
+                  lineHeight: "1.3",
+                  transform: "translateY(-2px)"
                 }}>✨ ವಿದ್ಯಾ, ಧನ & ಬೌದ್ಧಿಕ ಸಿದ್ಧಿ</span>
               </div>
               <div style={{
@@ -1342,11 +1345,12 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                 marginBottom: "8px",
                 background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
                 border: "1px solid #FCD34D",
-                padding: "4px 10px",
+                padding: "2px 10px 4px 10px",
                 borderRadius: "6px",
                 display: "flex",
                 alignItems: "center",
-                lineHeight: "1.35"
+                lineHeight: "1.4",
+                transform: "translateY(-1px)"
               }}>
                 <span>🗓️ ಅವಧಿ: ೨೦೨೭-೦೧-೨೦ ರಿಂದ ೨೦೨೯-೦೪-೨೬ | (ವಯಸ್ಸು: ೩೩ - ೩೬ ವರ್ಷ)</span>
               </div>
@@ -1367,18 +1371,19 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
               boxShadow: "0 3px 8px rgba(245, 158, 11, 0.12)"
             }}>
               <div style={{ fontSize: "14px", fontWeight: 900, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ display: "inline-flex", alignItems: "center", lineHeight: "1.1" }}>🌟 ಗುರು ಮಹಾದಶಾ • ಶುಕ್ರ ಅಂತರ್ದಶಾ (ಅತ್ಯುನ್ನತ ರಾಜಯೋಗ ಕಾಲ)</span>
+                <span style={{ display: "inline-flex", alignItems: "center", lineHeight: "1.35", transform: "translateY(-1px)" }}>🌟 ಗುರು ಮಹಾದಶಾ • ಶುಕ್ರ ಅಂತರ್ದಶಾ (ಅತ್ಯುನ್ನತ ರಾಜಯೋಗ ಕಾಲ)</span>
                 <span style={{
                   fontSize: "11px",
                   color: "#78350F",
                   background: "linear-gradient(180deg, #FDE68A 0%, #F59E0B 100%)",
                   border: "1px solid #D97706",
-                  padding: "3px 12px",
+                  padding: "1px 12px 3px 12px",
                   borderRadius: "14px",
                   fontWeight: 800,
                   display: "inline-flex",
                   alignItems: "center",
-                  lineHeight: "1.1"
+                  lineHeight: "1.3",
+                  transform: "translateY(-2px)"
                 }}>👑 ಭವ್ಯ ರಾಜಯೋಗ & ಐಶ್ವರ್ಯ</span>
               </div>
               <div style={{
@@ -1389,11 +1394,12 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                 marginBottom: "8px",
                 background: "#FEF3C7",
                 border: "1px solid #F59E0B",
-                padding: "4px 10px",
+                padding: "2px 10px 4px 10px",
                 borderRadius: "6px",
                 display: "flex",
                 alignItems: "center",
-                lineHeight: "1.35"
+                lineHeight: "1.4",
+                transform: "translateY(-1px)"
               }}>
                 <span>🗓️ ಅವಧಿ: ೨೦೩೦-೦೪-೦೧ ರಿಂದ ೨೦೩೩-೧೨-೦೧ | (ವಯಸ್ಸು: ೩೭ - ೪೦ ವರ್ಷ)</span>
               </div>
@@ -1414,18 +1420,19 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
               boxShadow: "0 2px 5px rgba(0, 0, 0, 0.03)"
             }}>
               <div style={{ fontSize: "14px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ display: "inline-flex", alignItems: "center", lineHeight: "1.1" }}>📌 ಗುರು ಮಹಾದಶಾ • ಸೂರ್ಯ ಅಂತರ್ದಶಾ</span>
+                <span style={{ display: "inline-flex", alignItems: "center", lineHeight: "1.35", transform: "translateY(-1px)" }}>📌 ಗುರು ಮಹಾದಶಾ • ಸೂರ್ಯ ಅಂತರ್ದಶಾ</span>
                 <span style={{
                   fontSize: "11px",
                   color: "#047857",
                   background: "#ECFDF5",
                   border: "1px solid #10B981",
-                  padding: "3px 12px",
+                  padding: "1px 12px 3px 12px",
                   borderRadius: "14px",
                   fontWeight: 700,
                   display: "inline-flex",
                   alignItems: "center",
-                  lineHeight: "1.1"
+                  lineHeight: "1.3",
+                  transform: "translateY(-2px)"
                 }}>⛳ ಸರ್ಕಾರಿ ಗೌರವ & ಅಧಿಕಾರ ಜಯ</span>
               </div>
               <div style={{
@@ -1436,11 +1443,12 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                 marginBottom: "8px",
                 background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
                 border: "1px solid #FCD34D",
-                padding: "4px 10px",
+                padding: "2px 10px 4px 10px",
                 borderRadius: "6px",
                 display: "flex",
                 alignItems: "center",
-                lineHeight: "1.35"
+                lineHeight: "1.4",
+                transform: "translateY(-1px)"
               }}>
                 <span>🗓️ ಅವಧಿ: ೨೦೩೩-೧೨-೦೧ ರಿಂದ ೨೦೩೪-೦೯-೨೫ | (ವಯಸ್ಸು: ೪೦ - ೪೧ ವರ್ಷ)</span>
               </div>
@@ -1461,18 +1469,19 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
               boxShadow: "0 2px 5px rgba(0, 0, 0, 0.03)"
             }}>
               <div style={{ fontSize: "14px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ display: "inline-flex", alignItems: "center", lineHeight: "1.1" }}>📌 ಶನಿ ಮಹಾದಶಾ • ಶನಿ ಅಂತರ್ದಶಾ</span>
+                <span style={{ display: "inline-flex", alignItems: "center", lineHeight: "1.35", transform: "translateY(-1px)" }}>📌 ಶನಿ ಮಹಾದಶಾ • ಶನಿ ಅಂತರ್ದಶಾ</span>
                 <span style={{
                   fontSize: "11px",
                   color: "#92400E",
                   background: "#FEF3C7",
                   border: "1px solid #F59E0B",
-                  padding: "3px 12px",
+                  padding: "1px 12px 3px 12px",
                   borderRadius: "14px",
                   fontWeight: 700,
                   display: "inline-flex",
                   alignItems: "center",
-                  lineHeight: "1.1"
+                  lineHeight: "1.3",
+                  transform: "translateY(-2px)"
                 }}>⚖️ ಸ್ಥಿರ ಧರ್ಮ & ಸುದೀರ್ಘ ಭದ್ರತೆ</span>
               </div>
               <div style={{
@@ -1483,11 +1492,12 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                 marginBottom: "8px",
                 background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
                 border: "1px solid #FCD34D",
-                padding: "4px 10px",
+                padding: "2px 10px 4px 10px",
                 borderRadius: "6px",
                 display: "flex",
                 alignItems: "center",
-                lineHeight: "1.35"
+                lineHeight: "1.4",
+                transform: "translateY(-1px)"
               }}>
                 <span>🗓️ ಅವಧಿ: ೨೦೩೮-೦೫-೧೫ ರಿಂದ ೨೦೪೧-೦೫-೧೮ | (ವಯಸ್ಸು: ೪೫ - ೪೮ ವರ್ಷ)</span>
               </div>
