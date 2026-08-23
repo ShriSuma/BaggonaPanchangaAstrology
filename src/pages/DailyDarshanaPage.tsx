@@ -1377,16 +1377,10 @@ export default function DailyDarshanaPage(): JSX.Element {
     return getDynamicDashaPredictions(birthKundli, dateParam, lang, birthDateStr);
   }, [birthKundli, dateParam, lang, birthDateStr]);
 
-  const currentRhythmDay = useMemo(() => {
-    const birthNakIdx = (birthKundli ? birthKundli.planets.find(p => p.name === 'Moon')?.nakshatra.index : undefined) ?? (decoded?.nk !== undefined ? decoded.nk : 12);
-    const birthRashiIdx = (birthKundli ? birthKundli.planets.find(p => p.name === 'Moon')?.rashi.index : undefined) ?? (decoded?.r !== undefined ? decoded.r : 5);
-    return calculateDeterministicRhythmDay(dateParam, birthNakIdx, birthRashiIdx, dateParam);
-  }, [birthKundli, decoded, dateParam]);
-
   // Dynamic Today's Personalized Bhavishya Highlights (4 Key Actionable Focus Points)
   const todayBhavishya = useMemo(() => {
-    return getTodayBhavishyaHighlights(birthKundli, dateParam, lang, currentRhythmDay, dashaPredictions);
-  }, [birthKundli, dateParam, lang, currentRhythmDay, dashaPredictions]);
+    return getTodayBhavishyaHighlights(birthKundli, dateParam, lang, mockDay, dashaPredictions);
+  }, [birthKundli, dateParam, lang, mockDay, dashaPredictions]);
 
   // Multi-harmonic Authentic Temple Bell Synthesis ("THAAANNN...")
   const playTempleBell = () => {
