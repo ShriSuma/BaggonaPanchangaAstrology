@@ -276,6 +276,34 @@ const NAKSHATRA_DEITIES: Record<number, { deity: Record<string, string>; symbol:
   26: { deity: { kn: "ಪೂಷನ್ ದೇವ (ಪೋಷಕ)", en: "Pushan (Nourisher God)", hi: "पूषा देव", te: "పూష దేవుడు", ta: "பூஷண் தேவன்" }, symbol: { kn: "ಮೀನು / ನೌಕೆ", en: "Fish / Drum", hi: "मत्स्य", te: "చేప", ta: "மீன்" }, mantra: "ॐ ಪೂಷ್ಣೇ ನಮಃ" }
 };
 
+const GOTRA_L5_MAP: Record<string, Record<string, string>> = {
+  vasistha: { kn: "ವಸಿಷ್ಠ", en: "Vasistha", hi: "वसिष्ठ", te: "వసిష్ఠ", ta: "வசிஷ்டா" },
+  vashistha: { kn: "ವಸಿಷ್ಠ", en: "Vasistha", hi: "वसिष्ठ", te: "వసిష్ఠ", ta: "வசிஷ்டா" },
+  vasishtha: { kn: "ವಸಿಷ್ಠ", en: "Vasistha", hi: "वसिष्ठ", te: "వసిష్ఠ", ta: "வசிஷ்டா" },
+  kashyapa: { kn: "ಕಶ್ಯಪ", en: "Kashyapa", hi: "कश्यप", te: "కశ్యప", ta: "கஸ்யப" },
+  kasyapa: { kn: "ಕಶ್ಯಪ", en: "Kashyapa", hi: "कश्यप", te: "కశ్యప", ta: "கஸ்யப" },
+  bharadwaja: { kn: "ಭಾರದ್ವಾಜ", en: "Bharadwaja", hi: "भारद्वाज", te: "భారద్వాజ", ta: "பாரத்வாஜ" },
+  bharadwaj: { kn: "ಭಾರದ್ವಾಜ", en: "Bharadwaja", hi: "भारद्वाज", te: "భారద్వాజ", ta: "பாரத்வாஜ" },
+  vishvamitra: { kn: "ವಿಶ್ವಾಮಿತ್ರ", en: "Vishvamitra", hi: "विश्वामित्र", te: "విశ్వామిత్ర", ta: "விஸ்வாமித்ர" },
+  viswamitra: { kn: "ವಿಶ್ವಾಮಿತ್ರ", en: "Vishvamitra", hi: "विश्वामित्र", te: "విశ్వామిత్ర", ta: "விஸ்வாமித்ர" },
+  gautama: { kn: "ಗೌತಮ", en: "Gautama", hi: "गौतम", te: "గౌతమ", ta: "கௌதம" },
+  gautam: { kn: "ಗೌತಮ", en: "Gautama", hi: "गौतम", te: "గೌతమ", ta: "கௌதம" },
+  jamadagni: { kn: "ಜಮದಗ್ನಿ", en: "Jamadagni", hi: "जमदग्नि", te: "జమదగ్ని", ta: "ஜமதக்னி" },
+  atri: { kn: "ಅತ್ರಿ", en: "Atri", hi: "अत्रि", te: "అత్రి", ta: "அத்ரி" },
+  agastya: { kn: "ಅಗಸ್ತ್ಯ", en: "Agastya", hi: "अगस्त्य", te: "అగస్త్య", ta: "அகஸ்திய" },
+  agasti: { kn: "ಅಗಸ್ತ್ಯ", en: "Agastya", hi: "अगस्त्य", te: "అగస్త్య", ta: "அகஸ்திய" },
+  harita: { kn: "ಹರೀತ", en: "Harita", hi: "हरीत", te: "హరీత", ta: "ஹரித" },
+  srivatsa: { kn: "ಶ್ರೀವತ್ಸ", en: "Srivatsa", hi: "श्रीवत्स", te: "శ్రీవత్స", ta: "ஸ்ரீவத்ச" },
+  shandilya: { kn: "ಶಾಂಡಿಲ್ಯ", en: "Shandilya", hi: "शांडिल्य", te: "శాండిల్య", ta: "சாண்டில்ய" },
+  kaundinya: { kn: "ಕೌಂಡಿನ್ಯ", en: "Kaundinya", hi: "कौंडिन्य", te: "కౌండిన్య", ta: "கௌண்டின்ய" },
+  angirasa: { kn: "ಆಂಗೀರಸ", en: "Angirasa", hi: "आंगीरस", te: "ఆంగీరస", ta: "ஆங்கீரச" },
+  bhargava: { kn: "ಭಾರ್ಗವ", en: "Bhargava", hi: "भार्गव", te: "భార్గవ", ta: "பார்கவ" },
+  parashara: { kn: "ಪರಾಶರ", en: "Parashara", hi: "पराशर", te: "పరాశర", ta: "பராசர" },
+  vatsa: { kn: "ವತ್ಸ", en: "Vatsa", hi: "वत्स", te: "వత్స", ta: "வத்ச" },
+  garga: { kn: "ಗರ್ಗ", en: "Garga", hi: "गर्ग", te: "గర్గ", ta: "கர்க" },
+  upamanyu: { kn: "ಉಪಮನ್ಯು", en: "Upamanyu", hi: "उपमन्यु", te: "ఉపమన్యు", ta: "உபமன்யு" }
+};
+
 const GOTRA_KN_MAP: Record<string, string> = {
   "Vasistha": "ವಸಿಷ್ಠ",
   "Vasisthha": "ವಸಿಷ್ಠ",
@@ -481,7 +509,7 @@ const PAGE1_DICT: Record<string, {
     lblDob: "ಜನನ ದಿನಾಂಕ",
     lblTob: "ಜನನ ಸಮಯ",
     lblPob: "ಜ್ಯೋತಿಷ್ಯ ಗ್ರಂಥ ಸಿದ್ಧ ಕ್ಷೇತ್ರ",
-    valPob: "ಕಾರ್ ರಸ್ತೆ, ಗೋಕರ್ಣ, ಕುಮಟಾ, ಉತ್ತರ ಕನ್ನಡ, ಕರ್ನಾಟಕ",
+    valPob: "ರಥಬೀದಿ, ಗೋಕರ್ಣ, ಕುಮಟಾ, ಉತ್ತರ ಕನ್ನಡ, ಕರ್ನಾಟಕ",
     padaText: "ನೇ ಪಾದ",
     blessingHeader: "🌸 ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ಪ್ರಧಾನ ಅರ್ಚಕರ ಆಶೀರ್ವಚನ & ದೈವಿಕ ಸಂಕಲ್ಪ:",
     salutation: (name, pandit) => `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಪವಿತ್ರ ಸನ್ನಿಧಾನದಿಂದ ಪ್ರಧಾನ ಅರ್ಚಕರಾದ ${pandit} ಅವರು ಆತ್ಮೀಯ ಶ್ರೇಯೋಭಿಲಾಷಿಗಳಾದ ${name} ಅವರಿಗೆ ಸಲ್ಲಿಸುವ ಪವಿತ್ರ ಶುಭಾಶೀರ್ವಾದಗಳು.`,
@@ -507,7 +535,7 @@ const PAGE1_DICT: Record<string, {
     lblDob: "Date of Birth",
     lblTob: "Time of Birth",
     lblPob: "Astrology Book Sacred Place",
-    valPob: "Car Street, Gokarna, Kumta, Uttara Kannada, Karnataka",
+    valPob: "Rathabeedi, Gokarna, Kumta, Uttara Kannada, Karnataka",
     padaText: "Pada",
     blessingHeader: "🌸 Chief Priest Benediction & Sacred Introduction from Gokarna Kshetra:",
     salutation: (name, pandit) => `From the holy sanctum of Sri Kshetra Gokarna Mahabaleshwara, Chief Priest ${pandit} conveys sacred blessings to Esteemed Patron ${name}.`,
@@ -533,7 +561,7 @@ const PAGE1_DICT: Record<string, {
     lblDob: "जन्म तिथि",
     lblTob: "जन्म समय",
     lblPob: "ज्योतिष ग्रंथ सिद्ध क्षेत्र",
-    valPob: "कार स्ट्रीट, गोकर्ण, कुमटा, उत्तर कन्नड़, कर्नाटक",
+    valPob: "रथबीदि, गोकर्ण, कुमटा, उत्तर कन्नड़, कर्नाटक",
     padaText: "चरण",
     blessingHeader: "🌸 श्री गोकर्ण महाबलेश्वर क्षेत्र मुख्य अर्चक का आशीर्वाद पत्र:",
     salutation: (name, pandit) => `श्री गोकर्ण महाबलेश्वर धाम से मुख्य अर्चक ${pandit} द्वारा आदरणीय ${name} को पावन शुभाशीर्वाद।`,
@@ -559,7 +587,7 @@ const PAGE1_DICT: Record<string, {
     lblDob: "జనన తేదీ",
     lblTob: "జనన సమయం",
     lblPob: "జ్యోతిష్య గ్రంథ సిద్ధ క్షేత్రం",
-    valPob: "కార్ స్ట్రీట్, గోకర్ణ, కుమటా, ఉత్తర కన్నడ, కర్ణాటక",
+    valPob: "రథబీది, గోకర్ణ, కుమటా, ఉత్తర కన్నడ, కర్ణాటక",
     padaText: "వ పాదం",
     blessingHeader: "🌸 శ్రీ గోకర్ణ మహాబలేశ్వర స్వామి ప్రధాన అర్చకుల దివ్యాశీర్వచనం:",
     salutation: (name, pandit) => `శ్రీ గోకర్ణ మహాబలేశ్వర క్షేత్రం నుండి ప్రధాన అర్చకులు ${pandit} గారు మాన్యశ్రీ ${name} గారికి అందించే పవిత్ర ఆశీస్సులు.`,
@@ -585,7 +613,7 @@ const PAGE1_DICT: Record<string, {
     lblDob: "பிறந்த தேதி",
     lblTob: "பிறந்த நேரம்",
     lblPob: "ஜோதிட நூல் புனித க்ஷேத்ரம்",
-    valPob: "கார் தெரு, கோகர்ணா, குமடா, உத்தர கன்னடா, கர்நாடகா",
+    valPob: "ரதபீதி, கோகர்ணா, குமடா, உத்தர கன்னடா, கர்நாடகா",
     padaText: "ஆம் பாதம்",
     blessingHeader: "🌸 ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் ஆலய முதன்மை அர்ச்சகரின் புனித ஆசி மடல்:",
     salutation: (name, pandit) => `ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் ஆலயத்திலிருந்து முதன்மை அர்ச்சகர் ${pandit} மாண்புமிகு ${name} அவர்களுக்கு வழங்கும் புனித ஆசிகள்.`,
@@ -654,9 +682,9 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
     rawGotra !== "ಅಜ್ಞಾತ" && 
     rawGotra.toLowerCase() !== "none"
   );
-  const finalGotra = hasGotra 
-    ? (isKn ? (GOTRA_KN_MAP[rawGotra] || rawGotra) : rawGotra)
-    : "";
+  const gotraKey = rawGotra.toLowerCase().replace(/[^a-z]/g, "");
+  const localizedGotra = GOTRA_L5_MAP[gotraKey]?.[code] || GOTRA_L5_MAP[gotraKey]?.kn || GOTRA_KN_MAP[rawGotra] || rawGotra;
+  const finalGotra = hasGotra ? localizedGotra : "";
 
   // Calculate authentic birth Kundli
   const birthKundli = React.useMemo(() => {
