@@ -743,7 +743,7 @@ const renderSouthIndianGrid = (
         )}
         {planetsHere.map((pl, idx) => (
           <div key={idx} style={{ color: "#1E3A8A", fontWeight: 800, fontSize: "9.5px", lineHeight: "1.2" }}>
-            {pl.name}
+            {pl.name} {!isD9 ? toKnDigits(pl.deg) : ""}
           </div>
         ))}
       </div>
@@ -1541,7 +1541,7 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
               <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>{isKn ? "ಅಮೃತ ಘಟಿ:" : "Amrita Ghati:"}</strong> {traditionalPanchanga ? `${toKnDigits(traditionalPanchanga.amrithaGhati.ghati)} ಘಟಿ ${toKnDigits(traditionalPanchanga.amrithaGhati.vighati)} ವಿಘಟಿ` : "೪೪ ಘಟಿ ೦೬ ವಿಘಟಿ"}</div>
               <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>{isKn ? "ವಿಷ ಘಟಿ:" : "Visha Ghati:"}</strong> {traditionalPanchanga ? `${toKnDigits(traditionalPanchanga.vishaGhati.ghati)} ಘಟಿ ${toKnDigits(traditionalPanchanga.vishaGhati.vighati)} ವಿಘಟಿ` : "೨೦ ಘಟಿ ೦೬ ವಿಘಟಿ"}</div>
               <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>{isKn ? "ಸೂರ್ಯೋದಯಾದಿತ:" : "Suryodayadita:"}</strong> {traditionalPanchanga ? `${toKnDigits(traditionalPanchanga.suryodhayadgata.ghati)} ಘಟಿ ${toKnDigits(traditionalPanchanga.suryodhayadgata.vighati)} ವಿಘಟಿ` : "೩೨ ಘಟಿ ೫೫ ವಿಘಟಿ"}</div>
-              <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>{isKn ? "ದಶಾ ಶೇಷ:" : "Dasha Balance:"}</strong> {traditionalPanchanga ? `${traditionalPanchanga.dashaLord} ಮಹಾದಶಾ ${toKnDigits(traditionalPanchanga.dashaYears ?? 0)} ವರ್ಷ ${toKnDigits(traditionalPanchanga.dashaMonths ?? 0)} ತಿಂಗಳು ${toKnDigits(traditionalPanchanga.dashaDays ?? 0)} ದಿನ` : (isKn ? "ಚಂದ್ರ ಮಹಾದಶಾ ೪ ವರ್ಷ ೦ ತಿಂಗಳು ೫ ದಿನ" : "Moon Dasha 4y 0m 5d")}</div>
+              <div><span style={{ color: "#D97706" }}>🔸</span> <strong style={{ color: "#B45309" }}>{isKn ? "ದಶಾ ಶೇಷ:" : "Dasha Balance:"}</strong> {traditionalPanchanga ? `${(traditionalPanchanga.dashaLord ? (PLANET_SHORT_L5[traditionalPanchanga.dashaLord]?.[code] || PLANET_SHORT_L5[traditionalPanchanga.dashaLord]?.kn || PLANET_KN_MAP[traditionalPanchanga.dashaLord] || traditionalPanchanga.dashaLord) : (isKn ? "ಚಂದ್ರ" : "Moon"))} ${isKn ? "ಮಹಾದಶಾ" : "Mahadasha"} ${toKnDigits(traditionalPanchanga.dashaYears ?? 0)} ${isKn ? "ವರ್ಷ" : "y"} ${toKnDigits(traditionalPanchanga.dashaMonths ?? 0)} ${isKn ? "ತಿಂಗಳು" : "m"} ${toKnDigits(traditionalPanchanga.dashaDays ?? 0)} ${isKn ? "ದಿನ" : "d"}` : (isKn ? "ಚಂದ್ರ ಮಹಾದಶಾ ೪ ವರ್ಷ ೦ ತಿಂಗಳು ೫ ದಿನ" : "Moon Dasha 4y 0m 5d")}</div>
             </div>
           </div>
 
