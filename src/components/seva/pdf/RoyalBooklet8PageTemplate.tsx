@@ -1045,15 +1045,16 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
 
           </div>
 
-          {/* Footer Banner */}
+          {/* Footer Banner - Moved up with clear bottom & top margins */}
           <div style={{
             background: "linear-gradient(180deg, #78350F 0%, #451A03 100%)",
             border: "1.5px solid #D97706",
             borderRadius: "10px",
-            padding: "8px 12px",
+            padding: "7px 12px",
             textAlign: "center",
             boxShadow: "0 2px 6px rgba(120, 53, 15, 0.2)",
-            marginBottom: "2px"
+            marginTop: "6px",
+            marginBottom: "14px"
           }}>
             <div style={{ fontSize: "11px", fontWeight: 700, color: "#FEF3C7", lineHeight: "1.3" }}>
               {(PAGE1_DICT[code] || PAGE1_DICT.en).footerMotto}
