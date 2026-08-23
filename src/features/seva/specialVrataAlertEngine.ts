@@ -2,6 +2,27 @@ import { siderealLongitudes } from "../../core/EphemerisEngine";
 import { normalizeDegree } from "../../core/AstroMath";
 import { pick, type SevaLang } from "./sevaLocale";
 
+/**
+ * Determines the approximate Vedic Lunar Month (Masa) from the Sun's sidereal longitude.
+ * Uses the Amanta (new-moon ending) system where the Masa is named after the Nakshatra
+ * near which the Full Moon occurs.
+ *
+ * Sun longitude in each 30° sidereal sign maps to:
+ *   Mesha (0-30) → Chaitra (0), Vrishabha (30-60) → Vaishakha (1), ...
+ *   Simha (120-150) → Shravana (4), Kanya (150-180) → Bhadrapada (5),
+ *   Tula (180-210) → Ashvina (6), Vrischika (210-240) → Kartika (7), ...
+ *
+ * Returns 0..11 where:
+ *   0=Chaitra, 1=Vaishakha, 2=Jyeshtha, 3=Ashadha,
+ *   4=Shravana, 5=Bhadrapada, 6=Ashvina, 7=Kartika,
+ *   8=Margashira, 9=Pushya, 10=Magha, 11=Phalguna
+ */
+export function getVedicLunarMonth(sunSiderealLongitude: number): number {
+  const normalized = normalizeDegree(sunSiderealLongitude);
+  // Sun in Mesha (0-30°) = Chaitra, Sun in Vrishabha (30-60°) = Vaishakha, etc.
+  return Math.floor(normalized / 30) % 12;
+}
+
 export type SpecialVrataCategory =
   | "AMAVASYA"
   | "PURNIMA"
@@ -175,22 +196,28 @@ export function detectSpecialVrata(ymd: string, lang = "kn"): SpecialVrataInfo {
   const code = (lang || "kn").slice(0, 2) as SevaLang;
   const validCode: SevaLang = ["kn", "en", "hi", "te", "ta"].includes(code) ? code : "kn";
 
-  const dateObj = new Date(ymd);
-  const year = dateObj.getFullYear();
-  const month = dateObj.getMonth();
-  const dayOfMonth = dateObj.getDate();
+  // UTC-safe date parsing — avoids timezone-dependent new Date(ymd) which can shift dates
+  const parts = ymd.split("-").map(Number);
+  const year = parts[0] || 2026;
+  const month = (parts[1] || 1) - 1; // 0-indexed
+  const dayOfMonth = parts[2] || 1;
 
   const noonUtc = new Date(Date.UTC(year, month, dayOfMonth, 12, 0, 0));
+  const weekday = noonUtc.getUTCDay(); // 0=Sun, 5=Fri, 6=Sat
   const coords = siderealLongitudes(noonUtc);
   const diff = normalizeDegree(coords.moon - coords.sun);
   const tithiVal = Math.floor(diff / 12); // 0..29
   const isShukla = tithiVal < 15;
   const tithiInPaksha = (tithiVal % 15) + 1; // 1..15
 
+  // Determine Vedic Lunar Month from Sun's sidereal longitude
+  // 0=Chaitra, 4=Shravana, 5=Bhadrapada, 6=Ashvina, etc.
+  const lunarMonth = getVedicLunarMonth(coords.sun);
+
   let category: SpecialVrataCategory = "NONE";
   let festivalTitle = "";
 
-  // 1. Check Tithi Categories
+  // 1. Check Tithi Categories (universal, not month-dependent)
   if (tithiVal === 29) {
     category = "AMAVASYA";
   } else if (tithiVal === 14) {
@@ -203,14 +230,15 @@ export function detectSpecialVrata(ymd: string, lang = "kn"): SpecialVrataInfo {
     category = "PRADOSHAM";
   }
 
-  // 2. Ephemeris & Seasonal Festival Overrides
-  // Bhadrapada Shukla Chaturthi (Ganesha Chaturthi)
-  if (isShukla && tithiInPaksha === 4 && (month === 7 || month === 8)) {
+  // 2. Ephemeris & Seasonal Festival Overrides using Vedic Lunar Month (Masa)
+  // Bhadrapada Shukla Chaturthi (Ganesha Chaturthi) — lunar month 5 (Bhadrapada)
+  if (isShukla && tithiInPaksha === 4 && lunarMonth === 5) {
     category = "FESTIVAL";
     festivalTitle = validCode === "kn" ? "🐘 ಶ್ರೀ ಗಣೇಶ ಚತುರ್ಥಿ ಮಹೋತ್ಸವ" : "🐘 Sri Ganesha Chaturthi Festival";
   }
-  // Sravana Varamahalakshmi Vratha (Friday August 21, 2026 / 2nd Friday of Shravana Masa)
-  else if ((dateObj.getDay() === 5 && month === 7 && dayOfMonth >= 15 && dayOfMonth <= 22) || ymd === "2026-08-21") {
+  // Shravana Varamahalakshmi Vratha — Friday in Shravana Masa (lunar month 4) during Shukla Paksha
+  // Traditionally the last Friday before Purnima in Shravana month
+  else if (weekday === 5 && lunarMonth === 4 && isShukla && tithiInPaksha >= 7 && tithiInPaksha <= 14) {
     category = "FESTIVAL";
     festivalTitle = validCode === "kn" ? "🌸 ಶ್ರೀ ವರಮಹಾಲಕ್ಷ್ಮಿ ವ್ರತ ಮಹೋತ್ಸವ" :
                     validCode === "hi" ? "🌸 श्री वरमहालक्ष्मी व्रत महोत्सव" :
@@ -218,13 +246,13 @@ export function detectSpecialVrata(ymd: string, lang = "kn"): SpecialVrataInfo {
                     validCode === "ta" ? "🌸 ஸ்ரீ வரமகாலக்ஷ்மி விரத திருவிழா" :
                     "🌸 Sri Varamahalakshmi Vrata Festival";
   }
-  // Sravana Krishna Ashtami (Janmashtami)
-  else if (!isShukla && tithiInPaksha === 8 && (month === 7 || month === 8)) {
+  // Shravana Krishna Ashtami (Janmashtami) — lunar month 4 (Shravana)
+  else if (!isShukla && tithiInPaksha === 8 && lunarMonth === 4) {
     category = "FESTIVAL";
     festivalTitle = validCode === "kn" ? "🪈 ಶ್ರೀ ಕೃಷ್ಣ ಜನ್ಮಾಷ್ಟಮಿ" : "🪈 Sri Krishna Janmashtami";
   }
-  // Ashvin Shukla Navami / Dashami (Mahanavami / Vijayadashami)
-  else if (isShukla && (tithiInPaksha === 9 || tithiInPaksha === 10) && (month === 8 || month === 9)) {
+  // Ashvina Shukla Navami / Dashami (Mahanavami / Vijayadashami) — lunar month 6 (Ashvina)
+  else if (isShukla && (tithiInPaksha === 9 || tithiInPaksha === 10) && lunarMonth === 6) {
     category = "FESTIVAL";
     festivalTitle = validCode === "kn" ? "⚔️ ಶ್ರೀ ವಿಜಯದಶಮಿ & ಮಹಾನವಮಿ" : "⚔️ Sri Vijayadashami & Mahanavami";
   }
@@ -298,12 +326,27 @@ export function get90DaySpecialVratas(
   const sm = (parts[1] || 1) - 1;
   const sd = parts[2] || 1;
 
+  // Track previous day's category+vrataName to deduplicate Tithi spans
+  // (a single Tithi can span 2 consecutive calendar days)
+  let prevCategoryKey = "";
+
   for (let i = 0; i < 90; i++) {
     const noonUtc = new Date(Date.UTC(sy, sm, sd + i, 12, 0, 0));
     const ymd = noonUtc.toISOString().slice(0, 10);
     const info = detectSpecialVrata(ymd, lang);
     if (info.isSpecial) {
+      // Deduplication: if the same category+vrataName was flagged on the previous day,
+      // skip this duplicate (keep only the first occurrence where the Tithi begins)
+      const categoryKey = `${info.category}:${info.vrataName}`;
+      if (categoryKey === prevCategoryKey) {
+        // Same Tithi spanning into next day — skip duplicate
+        prevCategoryKey = categoryKey;
+        continue;
+      }
+      prevCategoryKey = categoryKey;
       specialList.push(info);
+    } else {
+      prevCategoryKey = "";
     }
   }
 

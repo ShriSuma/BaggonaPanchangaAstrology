@@ -1120,6 +1120,8 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
 
 /**
  * Generates a Google Calendar Web Intent URL for Android / Web with Royal Framing and Encrypted Live Sanctum Link.
+ * NOTE: Creates a single-day preview event (no RRULE) with a link to the full 90-day ICS import.
+ * Previously used RRULE:FREQ=DAILY;COUNT=90 which duplicated Day 1 content for all 90 days.
  */
 export function generateGoogleCalendarUrl(options: {
   day?: RhythmDay;
@@ -1272,6 +1274,8 @@ export function generateGoogleCalendarUrl(options: {
     `🌐 ${labels.visitLabel}`,
     `👉 ${sanctumUrl}`,
     "----------------------------------------",
+    `📥 Import Full 90-Day Calendar: ${origin}/daily?token=${devoteeToken}&action=ics90`,
+    "----------------------------------------",
     "✨ Gokarna Mahabaleshwara Prasada Siddhirastu ✨"
   ].join("\n");
 
@@ -1281,7 +1285,6 @@ export function generateGoogleCalendarUrl(options: {
     text: summary,
     dates: `${dtStart}/${dtEnd}`,
     details: details,
-    recur: "RRULE:FREQ=DAILY;COUNT=90",
     ctz: "Asia/Kolkata"
   });
 
@@ -1297,9 +1300,10 @@ export function generateGoogleCalendarUrl(options: {
  * This compact version:
  * - Strips all emoji characters
  * - Uses ASCII-only short text 
- * - Includes only essential calendar info (title, dates, recurrence)
- * - Adds a short Web Sanctum link for full details
+ * - Includes only essential calendar info (title, dates, single day)
+ * - Adds a short Web Sanctum link for full details + 90-day ICS import link
  * - Total URL length stays under 600 characters
+ * - No RRULE (which would duplicate Day 1 content for all 90 days)
  */
 export function generateCompactGoogleCalendarUrlForQR(options: {
   day?: RhythmDay;
@@ -1384,7 +1388,8 @@ export function generateCompactGoogleCalendarUrlForQR(options: {
     `Devotee: ${devoteeDisplayName}`,
     `90-Day Daily Guidance with Tithi, Nakshatra, Mantras`,
     ``,
-    `Full Details: ${sanctumUrl}`
+    `Full Details: ${sanctumUrl}`,
+    `Import 90-Day Calendar: ${origin}/daily?token=${devoteeToken}&action=ics90`
   ].join("\n");
 
   const baseUrl = "https://calendar.google.com/calendar/render";
@@ -1393,7 +1398,6 @@ export function generateCompactGoogleCalendarUrlForQR(options: {
     text: summary,
     dates: `${dtStart}/${dtEnd}`,
     details: details,
-    recur: "RRULE:FREQ=DAILY;COUNT=90",
     ctz: "Asia/Kolkata"
   });
 

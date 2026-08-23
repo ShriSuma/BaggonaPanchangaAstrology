@@ -129,7 +129,7 @@ describe("icsCalendarGenerator", () => {
     expect(ics).toContain("END:VCALENDAR");
   });
 
-  it("generates a valid Google Calendar Web link with royal ASCII art and RRULE recur parameter", () => {
+  it("generates a valid Google Calendar Web link with single-day preview (no RRULE duplication) and ICS import link", () => {
     const url = generateGoogleCalendarUrl({
       day: mockDays[0]!,
       lang: "kn",
@@ -141,8 +141,11 @@ describe("icsCalendarGenerator", () => {
     expect(url).toContain("https://calendar.google.com/calendar/render?action=TEMPLATE");
     expect(url).toContain("ctz=Asia%2FKolkata");
     expect(url).toContain("dates=20260811T080000%2F20260811T083000");
-    expect(url).toContain("recur=RRULE%3AFREQ%3DDAILY%3BCOUNT%3D90");
+    // RRULE was removed to prevent duplicating Day 1 content across 90 recurring instances
+    expect(url).not.toContain("recur=RRULE");
     expect(url).toContain("token%3Dbgn_v1_");
+    // Should include link to full 90-day ICS import in the event details
+    expect(url).toContain("action%3Dics90");
   });
 
   it("generates platform-specific and multi-target QR code payloads with encrypted tokens", () => {
