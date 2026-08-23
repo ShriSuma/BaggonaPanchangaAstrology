@@ -323,7 +323,7 @@ const PAGE7_DICT: Record<string, {
   chapterTitle: string;
   subTitle: string;
   personalIntroHeader: string;
-  personalIntroText: string;
+  personalIntroText: (name: string) => string;
   installHeader: string;
   step1: string;
   step2: string;
@@ -332,13 +332,13 @@ const PAGE7_DICT: Record<string, {
   step5: string;
   qrCaption: string;
   urlRedirectHeader: string;
-  urlRedirectText: string;
+  urlRedirectText: (name: string) => string;
 }> = {
   kn: {
     chapterTitle: "ಅಧ್ಯಾಯ ೬: ವೈಯಕ್ತಿಕ ೯೦-ದಿನಗಳ ಪಂಚಾಂಗ ಕ್ಯಾಲೆಂಡರ್ & ದೈವಿಕ ಸಿಂಕ್ ಮಾರ್ಗದರ್ಶಿ",
     subTitle: "ನಿಮ್ಮ ಮೊಬೈಲ್ ಲಾಕ್ ಸ್ಕ್ರೀನ್‌ಗೆ ೯೦ ದಿನಗಳ ವೈಯಕ್ತಿಕ ಪಂಚಾಂಗ ಸಿಂಕ್ ಮಾಡುವ ಸರಳ ಹಂತಗಳು",
     personalIntroHeader: "✨ ವೈಯಕ್ತಿಕ ಜಾತಕ ಆಧಾರಿತ ೯೦-ದಿನಗಳ ಪಂಚಾಂಗ ವಿಶೇಷತೆ:",
-    personalIntroText: "ಈ ೯೦-ದಿನಗಳ ಪಂಚಾಂಗ ಕ್ಯಾಲೆಂಡರ್ ಹಾಗೂ QR ಕೋಡ್ ಅನ್ನು ಕೇವಲ ನಿಮಗಾಗಿ, ನಿಮ್ಮ ವೈಯಕ್ತಿಕ ಜಾತಕ ಮತ್ತು ಗೋಚಾರ ಗಣಿತದ ಆಧಾರದ ಮೇಲೆ ಪ್ರತಿಯೊಂದು ದಿನಕ್ಕೂ (Each Day for Next 90 Days) ವೈಯಕ್ತಿಕವಾಗಿ ಪ್ರತ್ಯೇಕವಾಗಿ ಸಿದ್ಧಪಡಿಸಲಾಗಿದೆ.",
+    personalIntroText: (name) => `ಈ ೯೦-ದಿನಗಳ ಪಂಚಾಂಗ ಕ್ಯಾಲೆಂಡರ್ ಹಾಗೂ QR ಕೋಡ್ ಅನ್ನು ಕೇವಲ ಭಕ್ತರಾದ ${name} ನಿಮಗಾಗಿಯೇ, ನಿಮ್ಮ ವೈಯಕ್ತಿಕ ಜನ್ಮ ಜಾತಕ ಮತ್ತು ನವಗ್ರಹ ಗೋಚಾರ ಗಣಿತದ ಆಧಾರದ ಮೇಲೆ ಪ್ರತಿಯೊಂದು ದಿನಕ್ಕೂ (Each Day for Next 90 Days) ವೈಯಕ್ತಿಕವಾಗಿ ಪ್ರತ್ಯೇಕವಾಗಿ ಸಿದ್ಧಪಡಿಸಲಾಗಿದೆ.`,
     installHeader: "📲 ನಿಮ್ಮ ಮೊಬೈಲ್‌ಗೆ ೯೦-ದಿನಗಳ ಪಂಚಾಂಗ ಇನ್‌ಸ್ಟಾಲ್ ಮಾಡುವ ೫ ಸರಳ ಹಂತಗಳು:",
     step1: "ಹಂತ ೧: ಕೆಳಗಿನ QR ಕೋಡ್ ಅನ್ನು ನಿಮ್ಮ ಮೊಬೈಲ್ ಕ್ಯಾಮೆರಾದಿಂದ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ.",
     step2: "ಹಂತ ೨: ಭಾಗ್ಗೋಣ ಪಂಚಾಂಗ ವೆಬ್‌ಸೈಟ್‌ಗೆ ರೀಡೈರೆಕ್ಟ್ ಆಗಿ ನಿಮ್ಮ ವೈಯಕ್ತಿಕ .ics ಕ್ಯಾಲೆಂಡರ್ ಫೈಲ್ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ.",
@@ -346,14 +346,14 @@ const PAGE7_DICT: Record<string, {
     step4: "ಹಂತ ೪: .ics ಫೈಲ್ ಮೇಲೆ ಕ್ಲಿಕ್ ಮಾಡಿ 'Google Calendar' ಅಥವಾ 'Apple Calendar' ಆಯ್ಕೆಮಾಡಿ.",
     step5: "ಹಂತ ೫: 'Add All' / Save ಕ್ಲಿಕ್ ಮಾಡಿ ೯೦ ದಿನಗಳ ಪಂಚಾಂಗವನ್ನು ನಿಮ್ಮ ಕ್ಯಾಲೆಂಡರ್‌ಗೆ ಸಿಂಕ್ ಮಾಡಿ!",
     qrCaption: "ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ೯೦-ದಿನಗಳ ವೈಯಕ್ತಿಕ ಪಂಚಾಂಗ ಸಿಂಕ್ ಮಾಡಿ",
-    urlRedirectHeader: "🌐 ಕ್ಯಾಲೆಂಡರ್ ಈವೆಂಟ್ URL ಲಿಂಕ್ ರೀಡೈರೆಕ್ಷನ್ ಸೂಚನೆ:",
-    urlRedirectText: "ನಿಮ್ಮ ಮೊಬೈಲ್ ಕ್ಯಾಲೆಂಡರ್‌ನಲ್ಲಿರುವ ಪ್ರತಿಯೊಂದು ದಿನದ Event ಒಳಗಡೆ ಇರುವ URL ಲಿಂಕ್ ಮೇಲೆ ಕ್ಲಿಕ್ ಮಾಡುವುದರಿಂದ, ನೀವು ನೇರವಾಗಿ ಇಂದಿನ ಜಾತಕ, ಗೋಚಾರ ಫಲ, ದಶಾ-ಭುಕ್ತಿ ಹಾಗೂ ೪ ಟ್ಯಾಬ್‌ಗಳುಳ್ಳ ಪವಿತ್ರ ದರ್ಶನ ಪುಟಕ್ಕೆ ರೀಡೈರೆಕ್ಟ್ ಆಗುತ್ತೀರಿ!"
+    urlRedirectHeader: "🌐 ಕ್ಯಾಲೆಂಡರ್ ಈವೆಂಟ್ URL ಲಿಂಕ್ ರೀಡೈರೆಕ್ಷನ್ & ೪-ಟ್ಯಾಬ್ ದರ್ಶನ ಮಾರ್ಗದರ್ಶಿ:",
+    urlRedirectText: (name) => `ನಿಮ್ಮ ಮೊಬೈಲ್ ಕ್ಯಾಲೆಂಡರ್‌ನಲ್ಲಿರುವ ಪ್ರತಿಯೊಂದು ದಿನದ Event ಒಳಗಡೆ ಇರುವ URL ಲಿಂಕ್ ಮೇಲೆ ಕ್ಲಿಕ್ ಮಾಡುವುದರಿಂದ, ನೀವು ನೇರವಾಗಿ ಭಕ್ತರಾದ ${name} ಅವರ ದರ್ಶನ ಪುಟಕ್ಕೆ ತಲುಪುತ್ತೀರಿ. ಅಲ್ಲಿ ೪ ಪ್ರತ್ಯೇಕ ಟ್ಯಾಬ್‌ಗಳ ಮುಖಾಂತರ (೧. ಜಾತಕ ಕುಂಡಲಿ, ೨. ದಿನನಿತ್ಯದ ಗೋಚಾರ ಫಲ, ೩. ಮಹಾದಶಾ-ಅಂತರ್ದಶಾ ಹಾಗೂ ೪. ದಿನದ ಪಂಚಾಂಗ ಮುಹೂರ್ತ) ನಿಮ್ಮ ಪೂರ್ಣ ಭವಿಷ್ಯವನ್ನು ವೀಕ್ಷಿಸಬಹುದು!`
   },
   en: {
     chapterTitle: "Chapter 6: Personal 90-Day Panchanga Calendar & Divine Sync Guide",
     subTitle: "Simple steps to sync 90-day personal astrological calendar to your mobile device",
     personalIntroHeader: "✨ Personal Horoscope-Based 90-Day Calendar Speciality:",
-    personalIntroText: "This 90-Day Panchanga Calendar and QR Code have been crafted specifically for YOU, calculated day-by-day based on your personal birth chart for the next 90 days.",
+    personalIntroText: (name) => `This 90-Day Panchanga Calendar and QR Code have been crafted specifically for ${name}, calculated day-by-day based on your personal birth chart for the next 90 days.`,
     installHeader: "📲 5 Simple steps to install 90-Day Calendar to your mobile:",
     step1: "Step 1: Scan the QR code below using your smartphone camera.",
     step2: "Step 2: Redirect to Baggona Panchanga website and download your personal .ics calendar file.",
@@ -361,14 +361,14 @@ const PAGE7_DICT: Record<string, {
     step4: "Step 4: Tap the .ics file and select 'Google Calendar' or 'Apple Calendar'.",
     step5: "Step 5: Tap 'Add All' / Save to sync all 90 days of personal astrological events to your calendar!",
     qrCaption: "Scan to sync 90-day personal Panchanga calendar",
-    urlRedirectHeader: "🌐 Calendar Event URL Redirection Guide:",
-    urlRedirectText: "Clicking the unique URL link inside each daily calendar event redirects you straight to your daily Darshana page featuring 4 interactive tabs (Kundli, Gochara, Dasha-Bhukti & Daily Panchanga)!"
+    urlRedirectHeader: "🌐 Calendar Event URL Redirection & 4-Tab Guidance:",
+    urlRedirectText: (name) => `Clicking the unique URL link inside each daily calendar event redirects straight to ${name}'s personal Darshana portal featuring 4 interactive tabs (Kundli, Gochara, Dasha-Bhukti & Daily Panchanga)!`
   },
   hi: {
     chapterTitle: "अध्याय 6: व्यक्तिगत 90-दिवसीय पंचांग कैलेंडर एवं दिव्य सिंक मार्गदर्शिका",
     subTitle: "अपने मोबाइल में 90-दिवसीय पंचांग कैलेंडर सिंक करने के सरल चरण",
     personalIntroHeader: "✨ व्यक्तिगत जन्म कुंडली आधारित 90-दिवसीय कैलेंडर विशेषता:",
-    personalIntroText: "यह 90-दिवसीय पंचांग कैलेंडर एवं QR कोड विशेष रूप से आपके लिए, आपकी जन्म कुंडली एवं गोचर के आधार पर आगामी 90 दिनों के लिए प्रतिदिन व्यक्तिगत रूप से तैयार किया गया है।",
+    personalIntroText: (name) => `यह 90-दिवसीय पंचांग कैलेंडर एवं QR कोड विशेष रूप से भक्त ${name} के लिए, आपकी जन्म कुंडली एवं गोचर के आधार पर आगामी 90 दिनों के लिए प्रतिदिन व्यक्तिगत रूप से तैयार किया गया है।`,
     installHeader: "📲 मोबाइल में 90-दिवसीय पंचांग सिंक करने के 5 सरल चरण:",
     step1: "चरण 1: अपने मोबाइल कैमरे से नीचे दिए गए QR कोड को स्कैन करें।",
     step2: "चरण 2: भाग्गोण पंचांग वेबसाइट पर रीडायरेक्ट होकर अपनी व्यक्तिगत .ics कैलेंडर फ़ाइल डाउनलोड करें।",
@@ -376,29 +376,29 @@ const PAGE7_DICT: Record<string, {
     step4: "चरण 4: .ics फ़ाइल पर टैप करें और 'Google Calendar' या 'Apple Calendar' चुनें।",
     step5: "चरण 5: 'Add All' / Save पर क्लिक करके 90 दिनों के पंचांग को अपने कैलेंडर में सिंक करें!",
     qrCaption: "स्कैन करके 90-दिवसीय व्यक्तिगत पंचांग सिंक करें",
-    urlRedirectHeader: "🌐 कैलेंडर इवेंट URL रीडायरेक्शन निर्देश:",
-    urlRedirectText: "प्रतिदिन के कैलेंडर इवेंट में दिए गए URL लिंक पर क्लिक करने से आप सीधे अपने 4-टैब दैनिक दर्शन पृष्ठ (कुंडली, गोचर, दशा-भुक्ति एवं पंचांग) पर पहुंच जाएंगे!"
+    urlRedirectHeader: "🌐 कैलेंडर इवेंट URL रीडायरेक्शन एवं 4-टैब निर्देश:",
+    urlRedirectText: (name) => `प्रतिदिन के कैलेंडर इवेंट में दिए गए URL लिंक पर क्लिक करने से आप सीधे ${name} के 4-टैब दैनिक दर्शन पृष्ठ (कुंडली, गोचर, दशा-भुक्ति एवं पंचांग) पर पहुंच जाएंगे!`
   },
   te: {
     chapterTitle: "అధ్యాయం 6: వ్యక్తిగత 90-రోజుల పంచాంగ క్యాలెండర్ & దివ్య సింక్ మార్గదర్శి",
     subTitle: "మీ మొబైల్‌కి 90 రోజుల పంచాంగం సింక్ చేసుకునే సులువైన పద్ధతులు",
     personalIntroHeader: "✨ వ్యక్తిగత జాతక ఆధారిత 90-రోజుల క్యాలెండర్ ప్రత్యేకత:",
-    personalIntroText: "ఈ 90-రోజుల పంచాంగ క్యాలెండర్ మరియు QR కోడ్ కేవలం మీ కోసమే, మీ వ్యక్తిగత జాతకం మరియు గోచార గణన ఆధారంగా రాబోయే 90 రోజులకు రోజువారీగా ప్రత్యేకంగా సిద్ధం చేయబడింది.",
+    personalIntroText: (name) => `ఈ 90-రోజుల పంచాంగ క్యాలెండర్ మరియు QR కోడ్ కేవలం భక్తులు ${name} కోసమే, మీ వ్యక్తిగత జాతకం మరియు గోచార గణన ఆధారంగా రాబోయే 90 రోజులకు రోజువారీగా ప్రత్యేకంగా సిద్ధం చేయబడింది.`,
     installHeader: "📲 మొబైల్‌లో 90-రోజుల పంచాంగం ఇన్‌స్టాల్ చేసే 5 సులువైన పద్ధతులు:",
     step1: "దశ 1: క్రింది QR కోడ్‌ను మీ మొబైల్ కెమెరాతో స్కాన్ చేయండి.",
-    step2: "దశ 2: భాగ్గోణ పంచాంగ వెబ్‌సైట్‌కి రీడైరెక్ట్ అయి మీ వ్యక్తిగత .ics క్యాలెండర్ ఫైల్ డౌన్‌లోడ్ చేయండి.",
+    step2: "దశ 2: భాగ్గోణ పంచాంగ వెబ్‌సైట్‌కి రీಡೈರೆಕ್ಟ್ అయి మీ వ్యక్తిగత .ics క್ಯాలెండర్ ఫైల్ డౌన్‌లోడ్ చేయండి.",
     step3: "దశ 3: ఫైల్ స్వయంచాలకంగా తెరవకపోతే, మీ మొబైల్ Files / Downloads ఫోల్డర్‌కి వెళ్లండి.",
     step4: "దశ 4: .ics ఫైల్‌పై టాప్ చేసి 'Google Calendar' లేదా 'Apple Calendar' ఎంచుకోండి.",
-    step5: "దశ 5: 'Add All' / Save క్లిక్ చేసి 90 రోజులు క్యాలెಂಡర్‌కి సింక్ చేయండి!",
+    step5: "దశ 5: 'Add All' / Save క్లిక్ చేసి 90 రోజులు క్యాలెండర్‌కి సింక్ చేయండి!",
     qrCaption: "స్కాన్ చేసి 90-రోజుల వ్యక్తిగత పంచాంగం సింక్ చేయండి",
     urlRedirectHeader: "🌐 క్యాలెండర్ ఈవెంట్ URL రీడైరెక్షన్ వివరాలు:",
-    urlRedirectText: "మీ క్యాలెండర్ ఈవెంట్‌లోని URL లింక్‌పై క్లిక్ చేయడం ద్వారా మీరు నేరుగా 4 టాబ్‌లు (జాతకం, గోచారం, దశా-భుక్తి & పంచాంగం) ఉన్న పేజీకి రీడైరెక్ట్ అవుతారు!"
+    urlRedirectText: (name) => `మీ క్యాలెండర్ ఈవెంట్‌లోని URL లింక్‌పై క్లిక్ చేయడం ద్వారా మీరు నేరుగా భక్తులు ${name} గారి 4 టాబ్‌లు (జాతకం, గోచారం, దశా-భుక్తి & పంచాంగం) ఉన్న పేజీకి రీడైరెక్ట్ అవుతారు!`
   },
   ta: {
     chapterTitle: "அத்தியாயம் 6: தனிப்பட்ட 90-நாள் பஞ்சாங்க காலண்டர் & புனித சிங்க் வழிகாட்டி",
     subTitle: "உங்கள் மொபைலில் 90-நாள் பஞ்சாங்கத்தை சிங்க் செய்வதற்கான எளிய முறைகள்",
     personalIntroHeader: "✨ தனிப்பட்ட ஜாதக அடிப்படையிலான 90-நாள் காலண்டர் சிறப்பு:",
-    personalIntroText: "இந்த 90-நாள் பஞ்சாங்க காலண்டர் மற்றும் QR குறியீடு உங்களுக்காகவே, உங்கள் ஜாதக கணிதத்தின் அடிப்படையில் அடுத்த 90 நாட்களுக்கு ஒவ்வொரு நாளுக்கும் தனித்தனியாக தயாரிக்கப்பட்டுள்ளது.",
+    personalIntroText: (name) => `இந்த 90-நாள் பஞ்சாங்க காலண்டர் மற்றும் QR குறியீடு அன்பான பக்தர் ${name} அவர்களுக்காகவே, உங்கள் ஜாதக கணிதத்தின் அடிப்படையில் அடுத்த 90 நாட்களுக்கு ஒவ்வொரு நாளுக்கும் தனித்தனியாக தயாரிக்கப்பட்டுள்ளது.`,
     installHeader: "📲 மொபைலில் 90-நாள் பஞ்சாங்கம் நிறுவும் 5 எளிய முறைகள்:",
     step1: "படி 1: கீழே உள்ள QR குறியீட்டை மொபைல் கேமராவால் ஸ்கேன் செய்யவும்.",
     step2: "படி 2: பாக்கோண பஞ்சாங்கம் தளத்திற்கு சென்று உங்கள் தனிப்பட்ட .ics காலண்டர் ஃபைலை பதிவிறக்கவும்.",
@@ -407,7 +407,7 @@ const PAGE7_DICT: Record<string, {
     step5: "படி 5: 'Add All' / Save கிளிக் செய்து 90-நாள் பஞ்சாங்கத்தை சிங்க் செய்யவும்!",
     qrCaption: "ஸ்கேன் செய்து 90-நாள் பஞ்சாங்கம் சிங்க் செய்யவும்",
     urlRedirectHeader: "🌐 காலண்டர் நிகழ்வு URL மறுவழிப்படுத்தும் வழிகாட்டி:",
-    urlRedirectText: "ஒவ்வொரு நாள் காலண்டர் நிகழ்விலும் உள்ள URL லிங்கை கிளிக் செய்வதன் மூலம், 4 தப்கள் (ஜாதகம், கோச்சாரம், தசா புக்தி & பஞ்சாங்கம்) கொண்ட பக்கத்திற்கு நேரடியாக செல்லலாம்!"
+    urlRedirectText: (name) => `ஒவ்வொரு நாள் காலண்டர் நிகழ்விலும் உள்ள URL லிங்கை கிளிக் செய்வதன் மூலம், பக்தர் ${name} அவர்களின் 4 தப்கள் (ஜாதகம், கோச்சாரம், தசா புக்தி & பஞ்சாங்கம்) கொண்ட பக்கத்திற்கு நேரடியாக செல்லலாம்!`
   }
 };
 
@@ -2032,53 +2032,53 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
           PAGE 7: ROYAL 90-DAY CALENDAR SYNC & QR REDIRECTION GUIDE
          ───────────────────────────────────────────────────────────── */}
       <div className="pdf-page" style={pageStyle}>
-        <div style={{ ...frameStyle, gap: "10px" }}>
+        <div style={{ ...frameStyle, gap: "14px" }}>
           {/* Top Header Banner (Royal Golden Design) */}
           <div style={{
             background: "linear-gradient(135deg, #78350F 0%, #B45309 50%, #78350F 100%)",
             color: "#FFFDF7",
-            padding: "9px 16px",
+            padding: "11px 16px",
             borderRadius: "12px",
             textAlign: "center",
             border: "2px solid #FCD34D",
             boxShadow: "0 3px 8px rgba(120, 53, 15, 0.2)"
           }}>
-            <div style={{ fontSize: "16px", fontWeight: 800, textTransform: "uppercase", color: "#FEF3C7", textShadow: "0 1px 2px rgba(0,0,0,0.4)" }}>
+            <div style={{ fontSize: "17px", fontWeight: 800, textTransform: "uppercase", color: "#FEF3C7", textShadow: "0 1px 2px rgba(0,0,0,0.4)" }}>
               {(PAGE7_DICT[code] || PAGE7_DICT.en).chapterTitle}
             </div>
-            <div style={{ fontSize: "11px", color: "#FDE68A", fontWeight: 600, marginTop: "2px" }}>
+            <div style={{ fontSize: "11.5px", color: "#FDE68A", fontWeight: 600, marginTop: "3px" }}>
               {(PAGE7_DICT[code] || PAGE7_DICT.en).subTitle}
             </div>
           </div>
 
-          {/* Section 1: Personalized 90-Day Calendar Speciality Intro */}
+          {/* Section 1: Personalized 90-Day Calendar Speciality Intro (With Devotee Name) */}
           <div style={{
             background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
             border: "1.5px solid #D97706",
             borderRadius: "10px",
-            padding: "9px 14px",
+            padding: "11px 16px",
             boxShadow: "0 2px 6px rgba(180, 83, 9, 0.06)"
           }}>
-            <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#78350F", marginBottom: "3px" }}>
+            <div style={{ fontSize: "13.5px", fontWeight: 800, color: "#78350F", marginBottom: "4px" }}>
               {(PAGE7_DICT[code] || PAGE7_DICT.en).personalIntroHeader}
             </div>
-            <div style={{ fontSize: "12px", lineHeight: "1.55", color: "#451A03", textAlign: "justify", fontWeight: 600 }}>
-              {(PAGE7_DICT[code] || PAGE7_DICT.en).personalIntroText}
+            <div style={{ fontSize: "12.5px", lineHeight: "1.65", color: "#451A03", textAlign: "justify", fontWeight: 600 }}>
+              {(PAGE7_DICT[code] || PAGE7_DICT.en).personalIntroText(displayName)}
             </div>
           </div>
 
-          {/* Section 2: Step-by-Step Installation Instructions (Larger Font 12.5px) */}
+          {/* Section 2: Step-by-Step Installation Instructions (Larger Font 13px & 1.7 Line Height) */}
           <div style={{
             background: "#FFFBEB",
             border: "1.5px solid #D97706",
             borderRadius: "10px",
-            padding: "10px 14px",
+            padding: "12px 16px",
             boxShadow: "0 2px 6px rgba(180, 83, 9, 0.05)"
           }}>
-            <div style={{ fontSize: "13px", fontWeight: 800, color: "#78350F", marginBottom: "6px" }}>
+            <div style={{ fontSize: "13.5px", fontWeight: 800, color: "#78350F", marginBottom: "6px" }}>
               {(PAGE7_DICT[code] || PAGE7_DICT.en).installHeader}
             </div>
-            <div style={{ fontSize: "12.5px", lineHeight: "1.65", color: "#3F2A12", display: "flex", flexDirection: "column", gap: "4px" }}>
+            <div style={{ fontSize: "13px", lineHeight: "1.7", color: "#3F2A12", display: "flex", flexDirection: "column", gap: "5px" }}>
               <div>📲 {(PAGE7_DICT[code] || PAGE7_DICT.en).step1}</div>
               <div>🌐 {(PAGE7_DICT[code] || PAGE7_DICT.en).step2}</div>
               <div>📂 {(PAGE7_DICT[code] || PAGE7_DICT.en).step3}</div>
@@ -2087,12 +2087,12 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
             </div>
           </div>
 
-          {/* Section 3: Royal Gold Scannable QR Code Box (PERFECTLY CENTERED) */}
+          {/* Section 3: Royal Gold Scannable QR Code Box (PERFECTLY CENTERED & ENLARGED 230px) */}
           <div style={{
             background: "linear-gradient(180deg, #FFFDF7 0%, #FFFBEB 100%)",
             border: "2px solid #D97706",
             borderRadius: "14px",
-            padding: "12px 18px",
+            padding: "14px 22px",
             textAlign: "center",
             boxShadow: "0 4px 12px rgba(180, 83, 9, 0.08)",
             display: "flex",
@@ -2108,39 +2108,39 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                   src={qrDataUrl} 
                   alt="90-Day Calendar Sync QR Code" 
                   style={{ 
-                    width: "185px", 
-                    height: "185px", 
+                    width: "230px", 
+                    height: "230px", 
                     border: "2.5px solid #B45309", 
                     borderRadius: "12px", 
-                    padding: "5px",
+                    padding: "6px",
                     background: "#FFFFFF",
-                    boxShadow: "0 3px 10px rgba(120, 53, 15, 0.15)"
+                    boxShadow: "0 4px 12px rgba(120, 53, 15, 0.15)"
                   }} 
                 />
-                <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#78350F", marginTop: "6px" }}>
+                <div style={{ fontSize: "13px", fontWeight: 800, color: "#78350F", marginTop: "8px" }}>
                   {(PAGE7_DICT[code] || PAGE7_DICT.en).qrCaption}
                 </div>
               </div>
             ) : (
-              <div style={{ padding: "24px", color: "#B45309", fontSize: "13px", fontWeight: 700 }}>
+              <div style={{ padding: "30px", color: "#B45309", fontSize: "13.5px", fontWeight: 700 }}>
                 📲 ೯೦-ದಿನಗಳ ವೈಯಕ್ತಿಕ ಕ್ಯಾಲೆಂಡರ್ ಕ್ಯೂಆರ್ ಕೋಡ್ ಸಿದ್ಧಗೊಳ್ಳುತ್ತಿದೆ...
               </div>
             )}
           </div>
 
-          {/* Section 4: Daily Calendar Event URL Redirection Guide */}
+          {/* Section 4: Daily Calendar Event URL Redirection Guide (Detailed & Enlarged) */}
           <div style={{
             background: "linear-gradient(180deg, #FEF3C7 0%, #FFFBEB 100%)",
             border: "1.5px solid #B45309",
             borderRadius: "10px",
-            padding: "9px 14px",
+            padding: "11px 16px",
             boxShadow: "0 2px 6px rgba(180, 83, 9, 0.06)"
           }}>
-            <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#78350F", marginBottom: "3px" }}>
+            <div style={{ fontSize: "13px", fontWeight: 800, color: "#78350F", marginBottom: "4px" }}>
               {(PAGE7_DICT[code] || PAGE7_DICT.en).urlRedirectHeader}
             </div>
-            <div style={{ fontSize: "11.5px", lineHeight: "1.55", color: "#451A03", textAlign: "justify", fontWeight: 600 }}>
-              {(PAGE7_DICT[code] || PAGE7_DICT.en).urlRedirectText}
+            <div style={{ fontSize: "12px", lineHeight: "1.65", color: "#451A03", textAlign: "justify", fontWeight: 600 }}>
+              {(PAGE7_DICT[code] || PAGE7_DICT.en).urlRedirectText(displayName)}
             </div>
           </div>
 
