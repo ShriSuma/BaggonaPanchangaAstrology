@@ -1488,9 +1488,8 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
                   fontWeight: 800,
                   display: "inline-flex",
                   alignItems: "center",
-                  lineHeight: "1.2",
-                  transform: "translateY(-4px)"
-                }}>👑 ಭವ್ಯ ರಾಜಯೋಗ & ಐಶ್ವರ್ಯ</span>
+                  lineHeight: "1.2"
+                }}><span style={{ transform: "translateY(-3px)", display: "inline-block" }}>👑 ಭವ್ಯ ರಾಜಯೋಗ & ಐಶ್ವರ್ಯ</span></span>
               </div>
               <div style={{
                 fontSize: "11.5px",
@@ -2018,60 +2017,115 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
       </div>
 
 {/* ─────────────────────────────────────────────────────────────
-          PAGE 7: EXACT MATCH TO PDF (45) PAGE 7
+          PAGE 7: ROYAL 90-DAY CALENDAR SYNC & QR REDIRECTION GUIDE
          ───────────────────────────────────────────────────────────── */}
       <div className="pdf-page" style={pageStyle}>
-        <div style={frameStyle}>
-          {/* Header Box */}
+        <div style={{ ...frameStyle, gap: "12px" }}>
+          {/* Top Header Banner (Royal Golden Design) */}
           <div style={{
+            background: "linear-gradient(135deg, #78350F 0%, #B45309 50%, #78350F 100%)",
+            color: "#FFFDF7",
+            padding: "10px 16px",
+            borderRadius: "12px",
             textAlign: "center",
-            background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
-            border: "2px solid #D97706",
-            borderRadius: "8px",
-            padding: "6px 12px",
-            boxShadow: "0 2px 5px rgba(180, 83, 9, 0.05)"
+            border: "2px solid #FCD34D",
+            boxShadow: "0 3px 8px rgba(120, 53, 15, 0.2)"
           }}>
-            <div style={{ fontSize: "19px", fontWeight: 800, color: "#78350F", lineHeight: "1.3" }}>
-              ಅಧ್ಯಾಯ ೬: ೯೦-ದಿನಗಳ ಪಂಚಾಂಗ & ಮೊಬೈಲ್ ಕ್ಯಾಲೆಂಡರ್ ಸಿಂಕ್ ಗೈಡ್
+            <div style={{ fontSize: "16.5px", fontWeight: 800, textTransform: "uppercase", color: "#FEF3C7", textShadow: "0 1px 2px rgba(0,0,0,0.4)" }}>
+              {(PAGE7_DICT[code] || PAGE7_DICT.en).chapterTitle}
             </div>
-            <div style={{ fontSize: "11px", color: "#B45309", fontWeight: 600, marginTop: "2px" }}>
-              ನಿಮ್ಮ ಮೊಬೈಲ್ ಲಾಕ್ ಸ್ಕ್ರೀನ್‌ಗೆ ೯೦ ದಿನಗಳ ಪಂಚಾಂಗ ಸಿಂಕ್ ಮಾಡುವ ಸರಳ ಹಂತಗಳು
+            <div style={{ fontSize: "11px", color: "#FDE68A", fontWeight: 600, marginTop: "2px" }}>
+              {(PAGE7_DICT[code] || PAGE7_DICT.en).subTitle}
             </div>
           </div>
 
-          {/* Guide Steps */}
+          {/* Section 1: Personalized 90-Day Calendar Speciality Intro */}
+          <div style={{
+            background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
+            border: "1.5px solid #D97706",
+            borderRadius: "10px",
+            padding: "10px 14px",
+            boxShadow: "0 2px 6px rgba(180, 83, 9, 0.06)"
+          }}>
+            <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#78350F", marginBottom: "4px" }}>
+              {(PAGE7_DICT[code] || PAGE7_DICT.en).personalIntroHeader}
+            </div>
+            <div style={{ fontSize: "12px", lineHeight: "1.6", color: "#451A03", textAlign: "justify", fontWeight: 600 }}>
+              {(PAGE7_DICT[code] || PAGE7_DICT.en).personalIntroText}
+            </div>
+          </div>
+
+          {/* Section 2: Royal Gold Scannable QR Code Box */}
+          <div style={{
+            background: "linear-gradient(180deg, #FFFDF7 0%, #FFFBEB 100%)",
+            border: "2px solid #D97706",
+            borderRadius: "14px",
+            padding: "14px 18px",
+            textAlign: "center",
+            boxShadow: "0 4px 12px rgba(180, 83, 9, 0.08)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center"
+          }}>
+            {qrDataUrl ? (
+              <div>
+                <img 
+                  src={qrDataUrl} 
+                  alt="90-Day Calendar Sync QR Code" 
+                  style={{ 
+                    width: "190px", 
+                    height: "190px", 
+                    border: "2.5px solid #B45309", 
+                    borderRadius: "12px", 
+                    padding: "6px",
+                    background: "#FFFFFF",
+                    boxShadow: "0 3px 10px rgba(120, 53, 15, 0.15)"
+                  }} 
+                />
+                <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#78350F", marginTop: "8px" }}>
+                  {(PAGE7_DICT[code] || PAGE7_DICT.en).qrCaption}
+                </div>
+              </div>
+            ) : (
+              <div style={{ padding: "30px", color: "#B45309", fontSize: "13px", fontWeight: 700 }}>
+                📲 ೯೦-ದಿನಗಳ ವೈಯಕ್ತಿಕ ಕ್ಯಾಲೆಂಡರ್ ಕ್ಯೂಆರ್ ಕೋಡ್ ಸಿದ್ಧಗೊಳ್ಳುತ್ತಿದೆ...
+              </div>
+            )}
+          </div>
+
+          {/* Section 3: Line-by-Line Installation Instructions */}
           <div style={{
             background: "#FFFBEB",
             border: "1.5px solid #D97706",
             borderRadius: "10px",
-            padding: "12px 16px",
+            padding: "10px 14px",
             boxShadow: "0 2px 6px rgba(180, 83, 9, 0.05)"
           }}>
-            <div style={{ fontSize: "13px", fontWeight: 800, color: "#78350F", marginBottom: "8px" }}>
-              📲 ನಿಮ್ಮ ಮೊಬೈಲ್‌ಗೆ ೯೦-ದಿನಗಳ ಪಂಚಾಂಗ ಇನ್‌ಸ್ಟಾಲ್ ಮಾಡುವ ೫ ಸರಳ ಹಂತಗಳು:
+            <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#78350F", marginBottom: "6px" }}>
+              {(PAGE7_DICT[code] || PAGE7_DICT.en).installHeader}
             </div>
-            <div style={{ fontSize: "12px", lineHeight: "1.7", color: "#3F2A12" }}>
-              1. <strong>ಹಂತ ೧:</strong> ಕೆಳಗಿನ QR ಕೋಡ್ ಅನ್ನು ನಿಮ್ಮ ಮೊಬೈಲ್ ಕ್ಯಾಮೆರಾದಿಂದ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ.<br/>
-              2. <strong>ಹಂತ ೨:</strong> 'Download 90-Day Calendar (.ics)' ಲಿಂಕ್ ಮೇಲೆ ಕ್ಲಿಕ್ ಮಾಡಿ.<br/>
-              3. <strong>ಹಂತ ೩:</strong> ನಿಮ್ಮ ಮೊಬೈಲ್‌ನ Files / Downloads ಫೋಲ್ಡರ್‌ಗೆ ಹೋಗಿ.<br/>
-              4. <strong>ಹಂತ ೪:</strong> .ics ಫೈಲ್ ಮೇಲೆ ಕ್ಲಿಕ್ ಮಾಡಿ 'Google Calendar' ಅಥವಾ 'Apple Calendar' ಆಯ್ಕೆಮಾಡಿ.<br/>
-              5. <strong>ಹಂತ ೫:</strong> 'Add All' ಕ್ಲಿಕ್ ಮಾಡಿ ೯೦ ದಿನಗಳ ಪಂಚಾಂಗವನ್ನು ನಿಮ್ಮ ಕ್ಯಾಲೆಂಡರ್‌ಗೆ ಸಿಂಕ್ ಮಾಡಿ!
+            <div style={{ fontSize: "12px", lineHeight: "1.6", color: "#3F2A12", display: "flex", flexDirection: "column", gap: "4px" }}>
+              <div>📲 {(PAGE7_DICT[code] || PAGE7_DICT.en).step1}</div>
+              <div>📅 {(PAGE7_DICT[code] || PAGE7_DICT.en).step2}</div>
+              <div>🔔 {(PAGE7_DICT[code] || PAGE7_DICT.en).step3}</div>
             </div>
           </div>
 
-          {/* QR Code */}
-          {qrDataUrl ? (
-            <div style={{ textAlign: "center", marginTop: "20px" }}>
-              <img src={qrDataUrl} alt="Calendar Sync QR Code" style={{ width: "200px", height: "200px", border: "2px solid #B45309", borderRadius: "10px", margin: "0 auto" }} />
-              <div style={{ fontSize: "12px", fontWeight: 800, color: "#B45309", marginTop: "8px" }}>
-                ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ಮೊಬೈಲ್ ಕ್ಯಾಲೆಂಡರ್ ಸಿಂಕ್ ಮಾಡಿ
-              </div>
+          {/* Section 4: Daily Calendar Event URL Redirection Guide */}
+          <div style={{
+            background: "linear-gradient(180deg, #FEF3C7 0%, #FFFBEB 100%)",
+            border: "1.5px solid #B45309",
+            borderRadius: "10px",
+            padding: "10px 14px",
+            boxShadow: "0 2px 6px rgba(180, 83, 9, 0.06)"
+          }}>
+            <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#78350F", marginBottom: "4px" }}>
+              {(PAGE7_DICT[code] || PAGE7_DICT.en).urlRedirectHeader}
             </div>
-          ) : (
-            <div style={{ textAlign: "center", padding: "30px", color: "#B45309", fontSize: "13px", fontWeight: 700 }}>
-              📲 ಕ್ಯಾಲೆಂಡರ್ ಸಿಂಕ್ ಕ್ಯೂಆರ್ ಕೋಡ್ ಸಿದ್ಧಗೊಳ್ಳುತ್ತಿದೆ...
+            <div style={{ fontSize: "11.5px", lineHeight: "1.6", color: "#451A03", textAlign: "justify", fontWeight: 600 }}>
+              {(PAGE7_DICT[code] || PAGE7_DICT.en).urlRedirectText}
             </div>
-          )}
+          </div>
 
           {/* Footer Banner */}
           <div style={{
@@ -2093,7 +2147,7 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
         </div>
       </div>
 
-      {/* ─────────────────────────────────────────────────────────────
+{/* ─────────────────────────────────────────────────────────────
           PAGE 8: EXACT MATCH TO PDF (45) PAGE 8
          ───────────────────────────────────────────────────────────── */}
       <div className="pdf-page" style={pageStyle}>
