@@ -18,6 +18,7 @@ import SevaPage from "./pages/SevaPage";
 import VaramahalakshmiPage from "./pages/VaramahalakshmiPage";
 import SankhyaShastraPage from "./pages/SankhyaShastraPage";
 import PalmReadingPage from "./pages/PalmReadingPage";
+import { MaranottaraPage } from "./pages/MaranottaraPage";
 import { useAppStore } from "./stores/appStore";
 import { useAuthStore } from "./features/auth/authStore";
 import { LoginPage } from "./components/auth/LoginPage";
@@ -100,6 +101,7 @@ export default function App(): JSX.Element {
         {currentPage === "varamahalakshmi" && <VaramahalakshmiPage />}
         {currentPage === "sankhyashastra" && <SankhyaShastraPage />}
         {currentPage === "palmreading" && <PalmReadingPage />}
+        {currentPage === "maranottara" && <MaranottaraPage />}
       </Layout>
     </ErrorBoundary>
   );
