@@ -1,16 +1,19 @@
 import React from "react";
 import type { SankhyaShastraResult } from "../../features/sankhyashastra/sankhyaShastraEngine";
+import { sanitizeAIText } from "../../utils/textFormatter";
 
 export type SankhyaShastraPdfTemplateProps = {
   result: SankhyaShastraResult;
   personName?: string;
   lang?: string;
+  messages?: Array<{ sender: string; text: string; timestamp?: string }>;
 };
 
 export const SankhyaShastraPdfTemplate: React.FC<SankhyaShastraPdfTemplateProps> = ({
   result,
-  personName,
-  lang = "kn"
+  personName = "ಶ್ರೀಯುತ ಭಕ್ತರು",
+  lang = "kn",
+  messages = []
 }) => {
   const code = (lang || "kn").slice(0, 2);
 
@@ -186,8 +189,22 @@ export const SankhyaShastraPdfTemplate: React.FC<SankhyaShastraPdfTemplateProps>
               whiteSpace: "pre-wrap"
             }}
           >
-            {result.aiPrediction}
+            {sanitizeAIText(result.aiPrediction)}
           </div>
+
+          {/* Follow-up Q&A Messages inside PDF if any */}
+          {messages.length > 2 && (
+            <div style={{ marginTop: "14px", borderTop: "1.5px solid #FEF3C7", paddingTop: "10px" }}>
+              <div style={{ fontSize: "12px", fontWeight: 800, color: "#92400E", marginBottom: "8px" }}>
+                💬 {code === "kn" ? "ಪೂರಕ ಪ್ರಶ್ನೋತ್ತರಗಳು (Follow-up Q&A):" : "Follow-up Clarifications:"}
+              </div>
+              {messages.slice(2).map((m, idx) => (
+                <div key={idx} style={{ marginBottom: "8px", fontSize: "11px", background: m.sender === "user" ? "#FFFBEB" : "#FEF3C7", padding: "6px 10px", borderRadius: "6px" }}>
+                  <strong>{m.sender === "user" ? (personName || "ಭಕ್ತರು") : "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್"}:</strong> {sanitizeAIText(m.text)}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Footer */}

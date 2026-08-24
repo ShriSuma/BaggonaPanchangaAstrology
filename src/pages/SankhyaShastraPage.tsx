@@ -10,6 +10,7 @@ import {
   type SankhyaShastraResult
 } from "../features/sankhyashastra/sankhyaShastraEngine";
 import { SankhyaShastraPdfTemplate } from "../components/sankhyashastra/SankhyaShastraPdfTemplate";
+import { sanitizeAIText } from "../utils/textFormatter";
 import { SankhyaNumerologyLoader } from "../components/sankhyashastra/SankhyaNumerologyLoader";
 
 type ChatMessage = {
@@ -419,7 +420,7 @@ export default function SankhyaShastraPage(): JSX.Element {
                     </div>
                   )}
 
-                  {msg.text}
+                  {sanitizeAIText(msg.text)}
                 </div>
               </div>
             ))}
@@ -443,13 +444,28 @@ export default function SankhyaShastraPage(): JSX.Element {
               {isKn ? "ಕೇಳಿ" : "Ask"}
             </button>
           </form>
+                  {/* Bottom PDF Download Action Bar */}
+          {activeResult && (
+            <div className="flex justify-end pt-3 border-t border-amber-200">
+              <button
+                type="button"
+                onClick={handleDownloadPdf}
+                disabled={isGeneratingPdf}
+                className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-700 via-amber-800 to-amber-900 px-5 py-2.5 text-xs font-bold text-amber-50 shadow-md transition hover:from-amber-800 hover:to-amber-950 disabled:opacity-50"
+              >
+                <span>📄</span>
+                <span>{isGeneratingPdf ? (isKn ? "⌛ PDF ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : "Generating PDF...") : (isKn ? "ಪ್ರಶ್ನಾ ಫಲ ಹಾಗೂ ಪ್ರಶ್ನೋತ್ತರ PDF ಡೌನ್‌ಲೋಡ್" : "Download Prashna Report & Q&A PDF")}</span>
+              </button>
+            </div>
+          )}
+
         </Card>
       )}
 
-      {/* Hidden Container for PDF Rendering */}
+      {/* Offscreen Container for HTML2Canvas PDF Rendering */}
       {activeResult && (
-        <div className="hidden">
-          <SankhyaShastraPdfTemplate result={activeResult} personName={devoteeName} lang={selectedLang} />
+        <div style={{ position: "absolute", left: "-9999px", top: "-9999px" }}>
+          <SankhyaShastraPdfTemplate result={activeResult} personName={devoteeName} lang={selectedLang} messages={messages} />
         </div>
       )}
     </div>
