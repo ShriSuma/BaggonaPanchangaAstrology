@@ -525,7 +525,7 @@ export const LifeGuidancePage: React.FC<LifeGuidancePageProps> = ({ initialInput
       {/* Offscreen Container for PDF */}
       {result && (
         <div style={{ position: "absolute", left: "-9999px", top: "-9999px" }}>
-          <LifeGuidancePdfTemplate result={result} lang={selectedLang} priest={getPriestProfile(selectedPriestId)} />
+          <LifeGuidancePdfTemplate result={result} activeTab={activeTab} lang={selectedLang} priest={getPriestProfile(selectedPriestId)} />
         </div>
       )}
     </div>

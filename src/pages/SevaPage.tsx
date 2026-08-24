@@ -99,6 +99,16 @@ export default function SevaPage(): JSX.Element {
   const tabs: { id: SevaTab; label: string }[] = [
     { id: "seva", label: pick(T.tabSeva!, lang) },
     { id: "calendar", label: pick(T.tabCalendar!, lang) },
+    {
+      id: "priestQr",
+      label: pick({
+        kn: "📲 QR ಕೋಡ್ & ಸಿಂಕ್ (1M/3M/6M/1Y)",
+        hi: "📲 QR कोड & सिंक (1M/3M/6M/1Y)",
+        te: "📲 QR కోడ్ & సింక్ (1M/3M/6M/1Y)",
+        ta: "📲 QR குறியீடு & சிங் (1M/3M/6M/1Y)",
+        en: "📲 QR Code & Sync (1M/3M/6M/1Y)"
+      }, lang)
+    },
     { id: "prasada", label: pick(T.tabPrasada!, lang) },
     {
       id: "royal",
