@@ -150,7 +150,9 @@ export async function executePalmReading(
   devoteeName: string,
   lang: string,
   apiKey: string,
-  kundliData?: PalmReadingResult["kundliData"]
+  kundliData?: PalmReadingResult["kundliData"],
+  sideImageDataUrl?: string,
+  backImageDataUrl?: string
 ): Promise<PalmReadingResult> {
   const langCode = (lang || "kn").slice(0, 2);
   const activeKey = (apiKey || import.meta.env.VITE_GEMINI_API_KEY || "").trim();
@@ -161,18 +163,16 @@ export async function executePalmReading(
   // System Prompt for Hastarekha Shastra Multimodal Vision
   const visionPrompt = `
 You are Sri Shreeram Pandit, Master of Vedic Hastarekha Shastra (Palmistry) from Gokarna Mahabaleshwara Kshetra.
-The devotee has uploaded a photograph of their ${handSide.toUpperCase()} HAND palm (${handLabel.en}).
+The devotee has uploaded photographs of their ${handSide.toUpperCase()} HAND palm:
+1. Front Palm View (Major Lines)
+${sideImageDataUrl ? "2. Side View (Marriage & Children Lines near Mercury Mount)" : ""}
+${backImageDataUrl ? "3. Back View (Nails & Finger shape for Temperament)" : ""}
 
-Perform an authentic, highly detailed, encouraging, and accurate Hastarekha Shastra inspection of the palm image:
-1. Examine the 5 Major Lines:
-   - Life Line (Ayur Rekha)
-   - Head Line (Buddhi Rekha)
-   - Heart Line (Hridaya Rekha)
-   - Fate Line (Shani Rekha)
-   - Sun Line (Vidya/Kirti Rekha)
+Perform an authentic, 360-degree, highly detailed, encouraging, and accurate Hastarekha Shastra inspection across all uploaded palm angles:
+1. Examine the 5 Major Lines (Life, Head, Heart, Fate, Sun Lines).
 2. Examine the Palm Mounts (Guru, Shani, Surya, Budha, Shukra, Kuja, Chandra Parvata).
 3. Identify Auspicious Marks or Signs (Trishula, Matsya, Padma, Star, Triangle, Cross).
-4. Provide structured predictions in the following 5 sections:
+4. Provide structured predictions in 5 sections:
    - 🖐️ **ಹಸ್ತ ರೇಖಾ ವಿಶ್ಲೇಷಣೆ (Major Palm Lines Inspection)**
    - 🪐 **ಗ್ರಹ ಪರ್ವತ ಬಲ (Palm Mounts & Planetary Energy)**
    - 🌟 **ಶುಭ ಚಿಹ್ನೆಗಳು & ಯೋಗ (Auspicious Signs & Yogas Identified)**
@@ -181,14 +181,13 @@ Perform an authentic, highly detailed, encouraging, and accurate Hastarekha Shas
 
 Rules:
 - Write with deep empathy, dignity, and accuracy.
-- Write EXCLUSIVELY in the requested language script: ${langCode} (${langCode === "kn" ? "Kannada" : langCode === "hi" ? "Hindi" : langCode === "te" ? "Telugu" : langCode === "ta" ? "Tamil" : "English"}).
-- Do NOT use Latin script (English letters) to spell local Indian language words. Use native script.
+- Write EXCLUSIVELY in script: ${langCode} (${langCode === "kn" ? "Kannada" : langCode === "hi" ? "Hindi" : langCode === "te" ? "Telugu" : langCode === "ta" ? "Tamil" : "English"}).
+- Do NOT use Latin script (English letters) in native text.
 `;
 
   let aiPrediction = "";
 
   if (!activeKey) {
-    // Fallback Mock Prediction if no API Key provided
     await new Promise((resolve) => setTimeout(resolve, 1500));
     aiPrediction = langCode === "kn"
       ? `ನಮಸ್ಕಾರ ${devoteeName}. ನೀವು API ಕೀಲಿಯನ್ನು ಒದಗಿಸಿಲ್ಲವಾದ್ದರಿಂದ ಅಣಕು ಹಸ್ತ ರೇಖಾ ವರದಿ ನೀಡಲಾಗುತ್ತಿದೆ.\n\n🖐️ **ಹಸ್ತ ರೇಖಾ ವಿಶ್ಲೇಷಣೆ:** ನಿಮ್ಮ ${handLabel.kn} ನಲ್ಲಿ ಆಯುಷ್ಯ ರೇಖೆಯು ಸ್ಪಷ್ಟವಾಗಿದ್ದು, ಧೈರ್ಯ ಹಾಗೂ ಆಯುರಾರೋಗ್ಯದ ಸೂಚನೆ ಇದೆ. ಮಸ್ತಿಷ್ಕ ರೇಖೆಯು ಬುದ್ಧಿವಂತಿಕೆಯನ್ನು ತೋರಿಸುತ್ತದೆ.\n\n🪔 **ಪರಿಹಾರ:** ಸೆಟ್ಟಿಂಗ್ಸ್‌ನಲ್ಲಿ ಜೆಮಿನಿ API ಕೀಲಿಯನ್ನು ಸೇರಿಸಿ ಪೂರ್ಣ ಲೈವ್ ವರದಿ ಪಡೆಯಿರಿ.`
@@ -206,8 +205,11 @@ Rules:
         ]
       });
 
-      const imagePart = base64ToGenerativePart(imageDataUrl);
-      const result = await model.generateContent([visionPrompt, imagePart]);
+      const parts: any[] = [visionPrompt, base64ToGenerativePart(imageDataUrl)];
+      if (sideImageDataUrl) parts.push(base64ToGenerativePart(sideImageDataUrl));
+      if (backImageDataUrl) parts.push(base64ToGenerativePart(backImageDataUrl));
+
+      const result = await model.generateContent(parts);
       const response = await result.response;
       aiPrediction = response.text() || "Unable to parse palm image details.";
     } catch (err) {
