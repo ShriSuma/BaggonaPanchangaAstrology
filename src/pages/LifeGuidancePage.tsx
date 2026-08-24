@@ -2,6 +2,7 @@ import React, { useState, useRef } from "react";
 import Card from "../components/ui/Card";
 import { executeLifeGuidanceCalculation, askCustomLifeQuestion, LifeGuidanceResult, LifeGuidanceTabKey } from "../features/lifeguidance/lifeGuidanceEngine";
 import { LifeGuidancePdfTemplate } from "../components/lifeguidance/LifeGuidancePdfTemplate";
+import { PREDEFINED_PRIESTS, getPriestProfile } from "../features/seva/sevaPriestDirectory";
 import { sanitizeAIText } from "../utils/textFormatter";
 import { useAppStore } from "../stores/appStore";
 import html2canvas from "html2canvas";
@@ -47,6 +48,7 @@ export const LifeGuidancePage: React.FC<LifeGuidancePageProps> = ({ initialInput
     }
   }, [initialInput]);
   const [activeTab, setActiveTab] = useState<LifeGuidanceTabKey | "custom">("career");
+  const [selectedPriestId, setSelectedPriestId] = useState<string>("shreeram-pandit");
   const [customQuestion, setCustomQuestion] = useState<string>("");
   const [isListening, setIsListening] = useState<boolean>(false);
   const [isAskingCustom, setIsAskingCustom] = useState<boolean>(false);
@@ -318,30 +320,51 @@ export const LifeGuidancePage: React.FC<LifeGuidancePageProps> = ({ initialInput
       {/* Results View with 4 Tabs & Priest Contact Card */}
       {result && (
         <div ref={resultsRef} className="space-y-6 animate-fade-in">
-          {/* Priest Contact & Gokarna Seva Card */}
-          <div className="rounded-2xl border-2 border-amber-400 bg-gradient-to-r from-amber-900 via-amber-950 to-amber-900 p-5 text-amber-50 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="space-y-1 text-center sm:text-left">
-              <div className="text-[11px] font-extrabold text-amber-300 uppercase tracking-widest">
-                ॥ ಗೋಕರ್ಣ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿ ಮುಖ್ಯ ಪುರೋಹಿತರು ॥
+          {/* Priest Selection Dropdown & Dynamic Priest Contact Card */}
+          <div className="rounded-2xl border-2 border-amber-400 bg-gradient-to-r from-amber-900 via-amber-950 to-amber-900 p-5 text-amber-50 shadow-xl space-y-4">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="space-y-1 text-center sm:text-left">
+                <div className="text-[11px] font-extrabold text-amber-300 uppercase tracking-widest">
+                  ॥ ಗೋಕರ್ಣ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿ ಅಧಿಕೃತ ಅರ್ಚಕರು ॥
+                </div>
+                <div className="font-serif text-base font-bold text-amber-100 flex items-center gap-2 justify-center sm:justify-start">
+                  <span>{getPriestProfile(selectedPriestId).sealSymbol || "🔱"}</span>
+                  <span>{(getPriestProfile(selectedPriestId).name as Record<string, string>)[selectedLang] || getPriestProfile(selectedPriestId).name.kn} ({(getPriestProfile(selectedPriestId).title as Record<string, string>)[selectedLang] || getPriestProfile(selectedPriestId).title.kn})</span>
+                </div>
+                <p className="text-xs text-amber-200/90 font-medium">
+                  {isKn
+                    ? "ನಿಮ್ಮ ಜಾತಕದ ಪಿತೃ ದೋಷ (ತ್ರಿಪಿಂಡೀ/ನಾರಾಯಣ ಬಲಿ), ಕಾಲಸರ್ಪ, ಸರ್ಪ ಶಾಪ, ಕುಜ ದೋಷ ಹಾಗೂ ಮಾಂದಿ ಶಾಂತ್ಯುಕ್ತ ಸೇವೆಗಳಿಗೆ ಮುಂಗಡವಾಗಿ ಸಂಪರ್ಕಿಸಿ."
+                    : "For Pitru Dosha, Narayana Bali, Kalasarpa Shanti, Nagapratishtha & Kuja Shanti, contact Priest directly."}
+                </p>
               </div>
-              <div className="font-serif text-base font-bold text-amber-100 flex items-center gap-2 justify-center sm:justify-start">
-                <span>🔱</span>
-                <span>{isKn ? "ವೇ|| ಮೂ|| ಶ್ರೀ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಪ್ರಧಾನ ಅರ್ಚಕರು)" : "Veda Murthy Sri Shreeram Pandit (Chief Archaka)"}</span>
-              </div>
-              <p className="text-xs text-amber-200/90 font-medium">
-                {isKn
-                  ? "ನಿಮ್ಮ ಜಾತಕದ ಪಿತೃ ದೋಷ (ತ್ರಿಪಿಂಡೀ/ನಾರಾಯಣ ಬಲಿ), ಕಾಲಸರ್ಪ, ಸರ್ಪ ಶಾಪ, ಕುಜ ದೋಷ ಹಾಗೂ ಮಾಂದಿ ಶಾಂತ್ಯುಕ್ತ ಸೇವೆಗಳಿಗೆ ಸನ್ನಿಧಿಯನ್ನು ನೇರವಾಗಿ ಸಂಪರ್ಕಿಸಿ."
-                  : "For Pitru Dosha, Narayana Bali, Kalasarpa Shanti, Nagapratishtha & Kuja Shanti, contact Priest directly."}
-              </p>
+
+              <a
+                href={`tel:${getPriestProfile(selectedPriestId).phone || "+919972339362"}`}
+                className="rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 px-5 py-3 text-xs font-extrabold text-amber-950 shadow-lg hover:from-amber-300 hover:to-amber-400 transition flex items-center gap-2 shrink-0"
+              >
+                <span>📞</span>
+                <span>{getPriestProfile(selectedPriestId).phone || "+91 99723 39362 / +91 94801 64555"}</span>
+              </a>
             </div>
 
-            <a
-              href="tel:+919972339362"
-              className="rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 px-5 py-3 text-xs font-extrabold text-amber-950 shadow-lg hover:from-amber-300 hover:to-amber-400 transition flex items-center gap-2 shrink-0"
-            >
-              <span>📞</span>
-              <span>+91 99723 39362</span>
-            </a>
+            {/* Priest Dropdown Selector */}
+            <div className="pt-2 border-t border-amber-800/80">
+              <label className="block text-[11px] font-bold text-amber-300 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                <span>🪔</span>
+                <span>{isKn ? "PDF ವರದಿ ಹಾಗೂ ಸಂಪರ್ಕಕ್ಕೆ ಪುರೋಹಿತರನ್ನು ಆಯ್ಕೆ ಮಾಡಿ (Select Priest):" : "Select Priest for PDF Report & Puja Booking:"}</span>
+              </label>
+              <select
+                value={selectedPriestId}
+                onChange={(e) => setSelectedPriestId(e.target.value)}
+                className="w-full rounded-xl border border-amber-400/80 bg-amber-950/90 px-3.5 py-2 text-xs font-bold text-amber-100 shadow-inner focus:border-amber-300 focus:outline-none"
+              >
+                {PREDEFINED_PRIESTS.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {(p.name as Record<string, string>)[selectedLang] || p.name.kn} — {(p.title as Record<string, string>)[selectedLang] || p.title.kn} ({p.phone || "+91 99723 39362"})
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <Card className="border border-amber-300 bg-white p-4 shadow-md flex flex-wrap items-center justify-between gap-4">
@@ -476,7 +499,7 @@ export const LifeGuidancePage: React.FC<LifeGuidancePageProps> = ({ initialInput
       {/* Offscreen Container for PDF */}
       {result && (
         <div style={{ position: "absolute", left: "-9999px", top: "-9999px" }}>
-          <LifeGuidancePdfTemplate result={result} lang={selectedLang} />
+          <LifeGuidancePdfTemplate result={result} lang={selectedLang} priest={getPriestProfile(selectedPriestId)} />
         </div>
       )}
     </div>
