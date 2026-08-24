@@ -36,7 +36,7 @@ export default function PriestQrGeneratorTab({
 
   const [priestsList, setPriestsList] = useState<PriestProfile[]>(() => getAllPriests());
   const [selectedPriestId, setSelectedPriestId] = useState<string>("shreeram-pandit");
-  const [durationDays, setDurationDays] = useState<number>(365); // Default 365 Days (1 Full Year)
+  const [durationDays, setDurationDays] = useState<number>(30); // Default 30 Days (1 Month)
 
   // Custom Priest addition state
   const [customInputMode, setCustomInputMode] = useState<boolean>(false);

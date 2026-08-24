@@ -118,7 +118,7 @@ export const PriestQrCard1PageTemplate: React.FC<PriestQrCard1PageTemplateProps>
     if (code === "ta") {
       return (
         <>
-          "திரு <span style={{ color: "#92400E", fontWeight: 800 }}>{devoteeNameDisplay}</span> அவர்களுக்காக பிரத்யேகமாக ஶ்ரீ கோகர்ண க்ஷேத்திரத்தில் தயாரிக்கப்பட்ட தினசரி <span style={{ color: "#065F46", fontWeight: 800 }}>{durationDays}</span> நாட்களின் துல்லிய பஞ்சாங்கம் மற்றும் புனித முகூர்த்தங்களின் திவ்ய QR குறியீடு. ஒவ்வொரு நாளின் பஞ்சாங்கமும் <span style={{ color: "#92400E", fontWeight: 800 }}>{devoteeNameDisplay}</span> உங்களுக்காகவே தனித்தனியாக கணக்கிடப்பட்டுள்ளது."
+          "திரு <span style={{ color: "#92400E", fontWeight: 800 }}>{devoteeNameDisplay}</span> அவர்களுக்காக பிரத்யேகமாக ஶ்ரீ கோகர்ண க்ஷேத்திரத்தில் தயாரிக்கப்பட்ட தினசரி <span style={{ color: "#065F46", fontWeight: 800 }}>{durationDays}</span> நாட்களின் துல்லிய பஞ்சாங்கம் மற்றும் புனித முகூர்த்தங்களின் திவ்ய QR குறியீடு. ஒவ்வொரு நாளின் பஞ்சாங்கமும் <span style={{ color: "#92400E", fontWeight: 800 }}>{devoteeNameDisplay}</span> உங்களுக்காகவே கணக்கிடப்பட்டுள்ளது."
         </>
       );
     }
@@ -128,7 +128,6 @@ export const PriestQrCard1PageTemplate: React.FC<PriestQrCard1PageTemplateProps>
       </>
     );
   };
-
   const scanText = code === "kn"
     ? `ನಿಮ್ಮ ಮೊಬೈಲ್‌ನಿಂದ ಈ QR ಕೋಡ್ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ${durationDays} ದಿನಗಳ ಪಂಚಾಂಗ ಸಿಂಕ್ ಮಾಡಿ`
     : code === "hi"
@@ -159,7 +158,7 @@ export const PriestQrCard1PageTemplate: React.FC<PriestQrCard1PageTemplateProps>
 
   const step3 = code === "kn" ? "ನಿಮ್ಮ Apple Calendar ಅಥವಾ Google Calendar ನಲ್ಲಿ 'Add All Events / Subscribe' ಆಯ್ಕೆ ಮಾಡಿ."
     : code === "hi" ? "अपने Apple Calendar या Google Calendar में 'Add All Events / Subscribe' चुनें।"
-    : code === "te" ? "మీ Apple Calendar లేదా Google Calendar లో 'Add All Events / Subscribe' ఎంచుకోండి."
+    : code === "te" ? "మీ Apple Calendar ಅಥವಾ Google Calendar లో 'Add All Events / Subscribe' ఎంచుకోండి."
     : code === "ta" ? "உங்கள் Apple Calendar அல்லது Google Calendar இல் 'Add All Events / Subscribe' தேர்ந்தெடுக்கவும்."
     : "Select 'Add All Events / Subscribe' in Apple Calendar or Google Calendar.";
 
@@ -194,48 +193,48 @@ export const PriestQrCard1PageTemplate: React.FC<PriestQrCard1PageTemplateProps>
         }}
       >
         {/* Top Header */}
-        <div style={{ textAlign: "center", borderBottom: "2px solid #F59E0B", paddingBottom: "12px", marginBottom: "14px", marginTop: "4px" }}>
-          <div style={{ fontSize: "14.5px", fontWeight: 800, color: "#92400E", letterSpacing: "1px", marginBottom: "6px" }}>
+        <div style={{ textAlign: "center", borderBottom: "2px solid #F59E0B", paddingBottom: "16px", marginBottom: "16px", paddingTop: "6px" }}>
+          <div style={{ fontSize: "16px", fontWeight: 800, color: "#92400E", letterSpacing: "1.5px", marginBottom: "10px", lineHeight: "1.8" }}>
             {headers.top}
           </div>
-          <h1 style={{ fontSize: "23px", fontWeight: 800, color: "#78350F", margin: "4px 0 6px 0", lineHeight: "1.3" }}>
+          <h1 style={{ fontSize: "24px", fontWeight: 800, color: "#78350F", margin: "8px 0 10px 0", lineHeight: "1.6" }}>
             {headers.main}
           </h1>
-          <div style={{ fontSize: "12.5px", color: "#B45309", fontWeight: 600, lineHeight: "1.4" }}>
+          <div style={{ fontSize: "13.5px", color: "#B45309", fontWeight: 600, lineHeight: "1.6", marginTop: "6px" }}>
             {headers.sub}
           </div>
         </div>
 
         {/* Info Grid (Devotee & Priest Context) */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px", marginBottom: "14px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
           {/* Devotee Info */}
-          <div style={{ background: "#FFFFFF", border: "1.5px solid #FCD34D", borderRadius: "10px", padding: "14px 16px", boxShadow: "0 1px 4px rgba(180,83,9,0.06)" }}>
-            <div style={{ fontSize: "13px", fontWeight: 800, color: "#B45309", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px", display: "block", lineHeight: "1.3" }}>
+          <div style={{ background: "#FFFFFF", border: "1.5px solid #FCD34D", borderRadius: "10px", padding: "16px 18px", boxShadow: "0 1px 4px rgba(180,83,9,0.06)" }}>
+            <div style={{ fontSize: "14px", fontWeight: 800, color: "#B45309", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "10px", display: "block", lineHeight: "1.6" }}>
               {devLabels.title}
             </div>
-            <div style={{ fontSize: "16px", fontWeight: 800, color: "#78350F", marginBottom: "6px", lineHeight: "1.3" }}>
+            <div style={{ fontSize: "18px", fontWeight: 800, color: "#78350F", marginBottom: "8px", lineHeight: "1.5" }}>
               {devoteeNameDisplay}
             </div>
-            <div style={{ fontSize: "13px", color: "#92400E", lineHeight: "1.6" }}>
-              <div><strong>{devLabels.rashi}</strong> {rashiName || "—"}</div>
-              <div><strong>{devLabels.nakshatra}</strong> {nakshatraName || "—"}</div>
-              {gotraDisplay && <div><strong>{devLabels.gotra}</strong> {gotraDisplay}</div>}
-              <div><strong>{devLabels.duration}</strong> <span style={{ color: "#065F46", fontWeight: 700 }}>{durationLabel}</span></div>
+            <div style={{ fontSize: "14px", color: "#92400E", lineHeight: "1.95" }}>
+              <div style={{ marginBottom: "4px" }}><strong>{devLabels.rashi}</strong> {rashiName || "—"}</div>
+              <div style={{ marginBottom: "4px" }}><strong>{devLabels.nakshatra}</strong> {nakshatraName || "—"}</div>
+              {gotraDisplay && <div style={{ marginBottom: "4px" }}><strong>{devLabels.gotra}</strong> {gotraDisplay}</div>}
+              <div style={{ marginBottom: "4px" }}><strong>{devLabels.duration}</strong> <span style={{ color: "#065F46", fontWeight: 700 }}>{durationLabel}</span></div>
             </div>
           </div>
 
           {/* Priest Info */}
-          <div style={{ background: "#FFFFFF", border: "1.5px solid #FCD34D", borderRadius: "10px", padding: "14px 16px", boxShadow: "0 1px 4px rgba(180,83,9,0.06)" }}>
-            <div style={{ fontSize: "13px", fontWeight: 800, color: "#B45309", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px", display: "block", lineHeight: "1.3" }}>
+          <div style={{ background: "#FFFFFF", border: "1.5px solid #FCD34D", borderRadius: "10px", padding: "16px 18px", boxShadow: "0 1px 4px rgba(180,83,9,0.06)" }}>
+            <div style={{ fontSize: "14px", fontWeight: 800, color: "#B45309", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "10px", display: "block", lineHeight: "1.6" }}>
               {pLabels.title}
             </div>
-            <div style={{ fontSize: "16px", fontWeight: 800, color: "#78350F", marginBottom: "6px", lineHeight: "1.3" }}>
+            <div style={{ fontSize: "18px", fontWeight: 800, color: "#78350F", marginBottom: "8px", lineHeight: "1.5" }}>
               {priestName}
             </div>
-            <div style={{ fontSize: "13px", color: "#92400E", lineHeight: "1.6" }}>
-              <div><strong>{pLabels.pos}</strong> {activePriestTitle}</div>
-              <div><strong>{pLabels.phone}</strong> <span style={{ color: "#78350F", fontWeight: 700 }}>{priestPhone}</span></div>
-              <div><strong>{pLabels.temple}</strong> ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿ</div>
+            <div style={{ fontSize: "14px", color: "#92400E", lineHeight: "1.95" }}>
+              <div style={{ marginBottom: "4px" }}><strong>{pLabels.pos}</strong> {activePriestTitle}</div>
+              <div style={{ marginBottom: "4px" }}><strong>{pLabels.phone}</strong> <span style={{ color: "#78350F", fontWeight: 700 }}>{priestPhone}</span></div>
+              <div style={{ marginBottom: "4px" }}><strong>{pLabels.temple}</strong> ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿ</div>
             </div>
           </div>
         </div>
@@ -246,13 +245,13 @@ export const PriestQrCard1PageTemplate: React.FC<PriestQrCard1PageTemplateProps>
             background: "linear-gradient(180deg, #FEF3C7 0%, #FDE68A 100%)",
             border: "2px solid #F59E0B",
             borderRadius: "10px",
-            padding: "14px 18px",
+            padding: "16px 20px",
             textAlign: "center",
             boxShadow: "0 2px 6px rgba(245, 158, 11, 0.15)",
-            marginBottom: "14px"
+            marginBottom: "16px"
           }}
         >
-          <div style={{ fontSize: "14.5px", fontWeight: 700, color: "#78350F", lineHeight: "1.75" }}>
+          <div style={{ fontSize: "15px", fontWeight: 700, color: "#78350F", lineHeight: "1.85" }}>
             {getCustomMessage()}
           </div>
         </div>
@@ -263,17 +262,17 @@ export const PriestQrCard1PageTemplate: React.FC<PriestQrCard1PageTemplateProps>
             background: "#FFFFFF",
             border: "2px solid #D97706",
             borderRadius: "14px",
-            padding: "18px",
+            padding: "20px",
             textAlign: "center",
             boxShadow: "0 4px 12px rgba(120, 53, 15, 0.1)",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            marginBottom: "14px"
+            marginBottom: "16px"
           }}
         >
-          <div style={{ fontSize: "13.5px", fontWeight: 800, color: "#92400E", marginBottom: "10px" }}>
+          <div style={{ fontSize: "14px", fontWeight: 800, color: "#92400E", marginBottom: "10px" }}>
             📱 {scanText}
           </div>
 
@@ -289,7 +288,7 @@ export const PriestQrCard1PageTemplate: React.FC<PriestQrCard1PageTemplateProps>
             </div>
           )}
 
-          <div style={{ fontSize: "11.5px", fontWeight: 700, color: "#B45309", marginTop: "10px" }}>
+          <div style={{ fontSize: "12px", fontWeight: 700, color: "#B45309", marginTop: "10px" }}>
             ✨ Google Calendar / Apple Calendar 1-Click Sync Enabled ({code.toUpperCase()})
           </div>
         </div>
@@ -300,17 +299,17 @@ export const PriestQrCard1PageTemplate: React.FC<PriestQrCard1PageTemplateProps>
             background: "#FFFFFF",
             border: "1.5px solid #FCD34D",
             borderRadius: "10px",
-            padding: "14px 18px",
+            padding: "16px 20px",
             boxShadow: "0 1px 4px rgba(180,83,9,0.05)"
           }}
         >
-          <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#78350F", marginBottom: "8px", textTransform: "uppercase" }}>
+          <div style={{ fontSize: "13px", fontWeight: 800, color: "#78350F", marginBottom: "10px", textTransform: "uppercase" }}>
             📲 {instructionTitle}
           </div>
-          <div style={{ fontSize: "12px", color: "#92400E", lineHeight: "1.65" }}>
-            <div><strong>೧.</strong> {step1}</div>
-            <div><strong>೨.</strong> {step2}</div>
-            <div><strong>೩.</strong> {step3}</div>
+          <div style={{ fontSize: "12.5px", color: "#92400E", lineHeight: "1.8" }}>
+            <div style={{ marginBottom: "3px" }}><strong>೧.</strong> {step1}</div>
+            <div style={{ marginBottom: "3px" }}><strong>೨.</strong> {step2}</div>
+            <div style={{ marginBottom: "3px" }}><strong>೩.</strong> {step3}</div>
           </div>
         </div>
 
@@ -320,15 +319,15 @@ export const PriestQrCard1PageTemplate: React.FC<PriestQrCard1PageTemplateProps>
             background: "linear-gradient(180deg, #78350F 0%, #451A03 100%)",
             border: "1.5px solid #D97706",
             borderRadius: "8px",
-            padding: "10px 14px",
+            padding: "12px 16px",
             textAlign: "center",
-            marginTop: "12px"
+            marginTop: "14px"
           }}
         >
-          <div style={{ fontSize: "12.5px", fontWeight: 700, color: "#FEF3C7" }}>
+          <div style={{ fontSize: "13px", fontWeight: 700, color: "#FEF3C7", lineHeight: "1.5" }}>
             "ॐ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ಧರ್ಮಜ್ಞ ಸಿದ್ಧ ಕುಂಡಲಿ ರಕ್ಷೆ · ಸಕಲ ದೋಷ ಶಮನಂ"
           </div>
-          <div style={{ fontSize: "11.5px", color: "#FDE68A", fontWeight: 600, marginTop: "2px" }}>
+          <div style={{ fontSize: "12px", color: "#FDE68A", fontWeight: 600, marginTop: "4px", lineHeight: "1.5" }}>
             {activePriestTitle} · {priestName} (ದೂರವಾಣಿ: {priestPhone})
           </div>
         </div>
