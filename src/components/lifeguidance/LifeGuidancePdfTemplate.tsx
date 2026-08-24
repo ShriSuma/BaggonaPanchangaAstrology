@@ -128,21 +128,28 @@ export const LifeGuidancePdfTemplate: React.FC<LifeGuidancePdfTemplateProps> = (
           </div>
         )}
 
-        {/* Footer */}
+        {/* Priest Contact & Gokarna Seva Verification Footer */}
         <div
           style={{
             background: "linear-gradient(180deg, #78350F 0%, #451A03 100%)",
-            border: "1.5px solid #D97706",
-            borderRadius: "8px",
-            padding: "10px 14px",
-            textAlign: "center"
+            border: "2px solid #F59E0B",
+            borderRadius: "10px",
+            padding: "12px 16px",
+            textAlign: "center",
+            marginTop: "12px"
           }}
         >
-          <div style={{ fontSize: "12px", fontWeight: 700, color: "#FEF3C7" }}>
-            "ॐ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ಧರ್ಮಜ್ಞ ದೈವಿಕ ಜೀವನ ರಕ್ಷಾ · ಸಕಲ ದೋಷ ಶಮನಂ"
+          <div style={{ fontSize: "12px", fontWeight: 800, color: "#FDE68A", letterSpacing: "0.5px" }}>
+            🔱 {code === "kn" ? "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಕ್ಷೇತ್ರ ಪ್ರಧಾನ ಅರ್ಚಕರ ನೇರ ಪೂಜಾ ಸಂಪರ್ಕ:" : "Gokarna Kshetra Chief Archaka Direct Contact:"}
           </div>
-          <div style={{ fontSize: "11px", color: "#FDE68A", fontWeight: 600, marginTop: "2px" }}>
-            ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ · ಮುಖ್ಯ ಅರ್ಚಕರು, ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ (ದೂರವಾಣಿ: +91 99723 39362)
+          <div style={{ fontSize: "13px", fontWeight: 800, color: "#FFFFFF", marginTop: "3px" }}>
+            {code === "kn" ? "ವೇ|| ಮೂ|| ಶ್ರೀ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಪ್ರಧಾನ ಅರ್ಚಕರು) · ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಕರ್ತರು" : "Veda Murthy Sri Shreeram Pandit (Chief Archaka) · Baggona Panchanga Author"}
+          </div>
+          <div style={{ fontSize: "11.5px", color: "#FCD34D", fontWeight: 700, marginTop: "3px" }}>
+            📞 {code === "kn" ? "ದೂರವಾಣಿ / WhatsApp ಸಂಪರ್ಕ:" : "Direct Phone / WhatsApp:"} +91 99723 39362 / +91 94801 64555
+          </div>
+          <div style={{ fontSize: "10px", color: "#FEF3C7", opacity: 0.9, marginTop: "3px", fontStyle: "italic" }}>
+            {code === "kn" ? "ನಿಮ್ಮ ಜಾತಕದ ಪಿತೃ ದೋಷ, ಕಾಲಸರ್ಪ ಶಾಂತ್ಯುಕ್ತ ಹೋಮ, ನಾಗಪ್ರತಿಷ್ಠೆ ಹಾಗೂ ತ್ರಿಪಿಂಡೀ ಶ್ರಾದ್ಧ ಸೇವೆಗಳಿಗೆ ಮುಂಗಡವಾಗಿ ಸಂಪರ್ಕಿಸಿ." : "For Pitru Dosha, Kalasarpa Shanti, Nagapratishtha & Narayana Bali, contact Chief Priest directly."}
           </div>
         </div>
       </div>

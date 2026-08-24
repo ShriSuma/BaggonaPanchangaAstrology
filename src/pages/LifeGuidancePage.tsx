@@ -315,9 +315,35 @@ export const LifeGuidancePage: React.FC<LifeGuidancePageProps> = ({ initialInput
         </div>
       )}
 
-      {/* Results View with 4 Tabs */}
+      {/* Results View with 4 Tabs & Priest Contact Card */}
       {result && (
         <div ref={resultsRef} className="space-y-6 animate-fade-in">
+          {/* Priest Contact & Gokarna Seva Card */}
+          <div className="rounded-2xl border-2 border-amber-400 bg-gradient-to-r from-amber-900 via-amber-950 to-amber-900 p-5 text-amber-50 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="space-y-1 text-center sm:text-left">
+              <div className="text-[11px] font-extrabold text-amber-300 uppercase tracking-widest">
+                ॥ ಗೋಕರ್ಣ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿ ಮುಖ್ಯ ಪುರೋಹಿತರು ॥
+              </div>
+              <div className="font-serif text-base font-bold text-amber-100 flex items-center gap-2 justify-center sm:justify-start">
+                <span>🔱</span>
+                <span>{isKn ? "ವೇ|| ಮೂ|| ಶ್ರೀ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಪ್ರಧಾನ ಅರ್ಚಕರು)" : "Veda Murthy Sri Shreeram Pandit (Chief Archaka)"}</span>
+              </div>
+              <p className="text-xs text-amber-200/90 font-medium">
+                {isKn
+                  ? "ನಿಮ್ಮ ಜಾತಕದ ಪಿತೃ ದೋಷ (ತ್ರಿಪಿಂಡೀ/ನಾರಾಯಣ ಬಲಿ), ಕಾಲಸರ್ಪ, ಸರ್ಪ ಶಾಪ, ಕುಜ ದೋಷ ಹಾಗೂ ಮಾಂದಿ ಶಾಂತ್ಯುಕ್ತ ಸೇವೆಗಳಿಗೆ ಸನ್ನಿಧಿಯನ್ನು ನೇರವಾಗಿ ಸಂಪರ್ಕಿಸಿ."
+                  : "For Pitru Dosha, Narayana Bali, Kalasarpa Shanti, Nagapratishtha & Kuja Shanti, contact Priest directly."}
+              </p>
+            </div>
+
+            <a
+              href="tel:+919972339362"
+              className="rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 px-5 py-3 text-xs font-extrabold text-amber-950 shadow-lg hover:from-amber-300 hover:to-amber-400 transition flex items-center gap-2 shrink-0"
+            >
+              <span>📞</span>
+              <span>+91 99723 39362</span>
+            </a>
+          </div>
+
           <Card className="border border-amber-300 bg-white p-4 shadow-md flex flex-wrap items-center justify-between gap-4">
             <div className="flex flex-wrap gap-2">
               {[
