@@ -508,15 +508,44 @@ export const LifeGuidancePage: React.FC<LifeGuidancePageProps> = ({ initialInput
               </div>
             </div>
 
-            <div className="rounded-xl border border-orange-300 bg-gradient-to-r from-amber-100 to-orange-100 p-4 text-xs space-y-1">
-              <div className="font-bold text-amber-950 flex items-center gap-1.5">
-                <span>🪔</span>
-                <span>{isKn ? "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಶ್ರೇಷ್ಠ ವೈದಿಕ ಶಾಂತಿ & ಪರಿಹಾರ:" : "Recommended Gokarna Vedic Remedy:"}</span>
-              </div>
-              <div className="text-amber-900 font-semibold leading-relaxed">
-                {result[activeTab].recommendedRemedies[selectedLang] || result[activeTab].recommendedRemedies.kn}
-              </div>
-            </div>
+            {(() => {
+              const activeData = result[activeTab];
+              const pujaDetail = activeData?.gokarnaPujaDetail;
+              const code = selectedLang;
+              const pujaName = pujaDetail?.pujaName?.[code] || pujaDetail?.pujaName?.kn || (isKn ? "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಸನ್ನಿಧಿ ವಿಶೇಷ ವೈದಿಕ ಶಾಂತಿ & ಮಹಾ ರುದ್ರ ಹವನ" : "Gokarna Special Vedic Shanti & Rudra Homa");
+              const whyText = pujaDetail?.whyRequired?.[code] || pujaDetail?.whyRequired?.kn || (isKn ? "ಜಾತಕದ ಪಿತೃ ದೋಷ, ಕಾಲಸರ್ಪ ಶಾಂತ್ಯುಕ್ತ ಹೋಮ, ನಾಗಪ್ರತಿಷ್ಠೆ ಹಾಗೂ ಕುಜ ದೋಷ ಶಮನಕ್ಕಾಗಿ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದಲ್ಲಿ ಸೇವೆ ಅತ್ಯಗತ್ಯ." : "Required for natal Pitru, Kalasarpa, Nagapratishtha, Kuja & Maandi Dosha removal.");
+              const whatText = pujaDetail?.whatSignificance?.[code] || pujaDetail?.whatSignificance?.kn || (isKn ? "ಗೋಕರ್ಣವು ಸಿದ್ಧ ಮುಕ್ತಿ ಕ್ಷೇತ್ರವಾಗಿದ್ದು, ಇಲ್ಲಿನ ಆತ್ಮಲಿಂಗ ಸನ್ನಿಧಿಯಲ್ಲಿ ನೆರವೇರಿಸುವ ಹೋಮ ಕೃತ್ಯದಿಂದ ಶಾಪಗಳು ವಿಮೋಚನೆಯಾಗಲಿವೆ." : "Gokarna Atmalinga Sthala holds divine Vedic power for ancestral liberation and karma dissolution.");
+              const howText = pujaDetail?.howTransforms?.[code] || pujaDetail?.howTransforms?.kn || (isKn ? "ಸಕಲ ಪ್ರತಿಬಂಧಕಗಳು ದೂರವಾಗಿ ಉದ್ಯೋಗ ಪ್ರಗತಿ, ದಾಂಪತ್ಯ ಸೌಖ್ಯ, ಸಂತಾನ ಪ್ರಾಪ್ತಿ ಹಾಗೂ ಲಕ್ಷ್ಮೀ ಅನುಗ್ರಹ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ." : "Dissolves life hurdles, granting career promotion, marital joy, progeny bliss, and prosperity.");
+
+              return (
+                <div className="rounded-2xl border-2 border-amber-400 bg-gradient-to-br from-amber-100 via-orange-50 to-amber-100 p-5 text-xs sm:text-sm space-y-2.5 shadow-md">
+                  <div className="font-extrabold text-amber-950 flex items-center gap-2 text-sm sm:text-base border-b border-amber-300 pb-2">
+                    <span className="text-lg">🪔</span>
+                    <span>{pujaName}</span>
+                  </div>
+                  <div className="space-y-2 text-amber-900 leading-relaxed font-medium">
+                    <div className="bg-white/80 p-2.5 rounded-xl border border-amber-200">
+                      <strong className="text-amber-950 font-bold block mb-0.5">
+                        {isKn ? "• ಕುಂಡಲಿ ವಿಶ್ಲೇಷಣೆ (ಯಾಕೆ ಬೇಕು / WHY Required?):" : "• Kundli Analysis (WHY Required?):"}
+                      </strong>
+                      {whyText}
+                    </div>
+                    <div className="bg-white/80 p-2.5 rounded-xl border border-amber-200">
+                      <strong className="text-amber-950 font-bold block mb-0.5">
+                        {isKn ? "• ಗೋಕರ್ಣ ಸನ್ನಿಧಿ ವೈಶಿಷ್ಟ್ಯ (ಮಹತ್ತ್ವವೇನು / WHAT Significance?):" : "• Kshetra Significance (WHAT Significance?):"}
+                      </strong>
+                      {whatText}
+                    </div>
+                    <div className="bg-white/80 p-2.5 rounded-xl border border-amber-200">
+                      <strong className="text-amber-950 font-bold block mb-0.5">
+                        {isKn ? "• ಪೂಜಾನಂತರ ದಕ್ಕುವ ಸಿದ್ಧಿ (ಪರಿಣಾಮವೇನು / HOW it Transforms?):" : "• Life Transformation (HOW it Transforms?):"}
+                      </strong>
+                      {howText}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
           </Card>
           )}
         </div>

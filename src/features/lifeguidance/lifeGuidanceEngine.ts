@@ -13,12 +13,20 @@ export type LifeGuidanceInput = {
   lang?: string;
 };
 
+export type GokarnaPujaDetail = {
+  pujaName: Record<string, string>;
+  whyRequired: Record<string, string>;
+  whatSignificance: Record<string, string>;
+  howTransforms: Record<string, string>;
+};
+
 export type LifeGuidanceTabResult = {
   title: Record<string, string>;
   narrativeText: string;
   keyAges: number[];
   favorableDirections: Record<string, string>;
   recommendedRemedies: Record<string, string>;
+  gokarnaPujaDetail: GokarnaPujaDetail;
 };
 
 export type LifeGuidanceResult = {
@@ -37,6 +45,116 @@ export type LifeGuidanceResult = {
   customQnA?: { question: string; answer: string };
   generatedAt: string;
 };
+
+/** Compute Dynamic & Kundli-Accurate Gokarna Puja Details based on natal astronomical parameters */
+export function getDynamicGokarnaPuja(
+  baggona: any,
+  tabKey: LifeGuidanceTabKey | "custom",
+  langCode: string = "kn"
+): GokarnaPujaDetail {
+  const rashi = baggona?.masaKn || "ವೃಷಭ";
+  const rashiEn = baggona?.masa || "Taurus";
+  const nakshatra = baggona?.moonNakshatraKn || "ಅನುರಾಧಾ";
+  const nakshatraEn = baggona?.moonNakshatra || "Anuradha";
+  const dasha = baggona?.dashaLord || "ಶುಕ್ರ";
+
+  if (tabKey === "career") {
+    return {
+      pujaName: {
+        kn: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ನವಗ್ರಹ ಧನದಾ ಶಾಂತ್ಯುಕ್ತ ಮಹಾ ರುದ್ರ ಹವನ (${rashi} ರಾಶಿಗೆ ವೃತ್ತಿ ಶ್ರೇಯಸ್ಸು)`,
+        en: `Gokarna Navagraha Dhanada Rudra Homa for ${rashiEn} Career Growth`
+      },
+      whyRequired: {
+        kn: `ನಿಮ್ಮ ${rashi} ರಾಶಿಯ ${nakshatra} ನಕ್ಷತ್ರ ಜಾತಕದ ೧೦ನೇ (ಕರ್ಮ ಹಾಗೂ ಉದ್ಯೋಗ) ಭಾವದಲ್ಲಿ ಪ್ರಸ್ತುತ ${dasha} ಮಹಾದಶಾದ ಪ್ರಭಾವವಿರುವುದರಿಂದ, ವೃತ್ತಿ ಕ್ಷೇತ್ರದಲ್ಲಿ ಮೇಲಧಿಕಾರಿಗಳ ಅಸಮಾಧಾನ, ಹುದ್ದೆ ಬಡ್ತಿ ವಿಳಂಬ ಹಾಗೂ ಧನ ಹಾನಿಯ ಪ್ರತಿಬಂಧಕಗಳು ಎದುರಾಗುತ್ತಿವೆ. ಇದನ್ನು ನಿವಾರಿಸಲು ಈ ಪೂಜೆ ಅತ್ಯಗತ್ಯ.`,
+        en: `In your ${rashiEn} Rashi & ${nakshatraEn} Nakshatra chart, the 10th house of career under current ${dasha} Dasha shows work delays and financial stress. This Homa is required to clear career blockages.`
+      },
+      whatSignificance: {
+        kn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣವು ರಾವಣಪ್ರತಿಷ್ಠಿತ ಮಹಾ ಆತ್ಮಲಿಂಗ ಸನ್ನಿಧಿಯಾಗಿದ್ದು, ಇಲ್ಲಿ ನೆರವೇರಿಸುವ ರುದ್ರ ಹವನವು ಕರ್ಮ ಬಂಧನಗಳನ್ನು ಶಮನಗೊಳಿಸುವ ದಿವ್ಯ ಶಕ್ತಿ ಹೊಂದಿದೆ.",
+        en: "Gokarna Mahabaleshwara Atmalinga Kshetra holds supreme Vedic energy to dissolve professional karmic obstacles."
+      },
+      howTransforms: {
+        kn: "ವೃತ್ತಿಯ ಸಕಲ ಪ್ರತಿಬಂಧಕಗಳು ಶಮನವಾಗಿ ಉದ್ಯೋಗ ಬಡ್ತಿ, ನೂತನ ವ್ಯಾಪಾರ ಲಾಭ, ಶತ್ರು ನಾಶ ಹಾಗೂ ಸ್ಥಿರ ದಿವ್ಯ ಮಹಾ ಲಕ್ಷ್ಮೀ ಸಿದ್ಧಿ ಲಭಿಸಲಿದೆ.",
+        en: "Removes all employment hurdles, attracting promotions, business expansion, and permanent financial stability."
+      }
+    };
+  } else if (tabKey === "relationship") {
+    return {
+      pujaName: {
+        kn: `ಶ್ರೀ ಉಮಾಮಹೇಶ್ವರ ಕಲ್ಯಾಣ ಪೂಜೆ ಹಾಗೂ ಸರ್ಪ ಶಾಪ ವಿಮೋಚನಾ ನಾಗಪ್ರತಿಷ್ಠೆ (${nakshatra} ನಕ್ಷತ್ರ)`,
+        en: `Gokarna Uma Maheshwara Kalyana Puja & Nagapratishtha for ${nakshatraEn}`
+      },
+      whyRequired: {
+        kn: `ನಿಮ್ಮ ${rashi} ರಾಶಿಯ ಕುಂಡಲಿಯಲ್ಲಿ ೭ನೇ (ಕಳತ್ರ ಹಾಗೂ ದಾಂಪತ್ಯ) ಮನೆಗೆ ಮಂಗಳ (ಕುಜ ದೋಷ) ಅಥವಾ ಸರ್ಪ ದೋಷದ ಛಾಯೆ ಇರುವುದರಿಂದ, ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿ ಸಣ್ಣಪುಟ್ಟ ಮನಸ್ತಾಪಗಳು, ವೈವಾಹಿಕ ವಿಳಂಬ ಅಥವಾ ಕುಟುಂಬದಲ್ಲಿ ಶಾಂತಿ ಭಂಗದ ಲಕ್ಷಣಗಳಿವೆ. ದೋಷ ಶಮನಕ್ಕಾಗಿ ಈ ಸೇವೆ ಅಗತ್ಯ.`,
+        en: `Your 7th house shows Kuja or Sarpa Dosha afflictions in ${rashiEn} Rashi, causing marital communication gaps or delay. This specialized Gokarna Seva neutralizes natal relationship afflictions.`
+      },
+      whatSignificance: {
+        kn: "ಗೋಕರ್ಣವು ಸದಾಶಿವ ಮತ್ತು ತಾಮ್ರಗೌರೀ ಅಂಬೆಯರ ದಿವ್ಯ ಪ್ರೇಮ ಸನ್ನಿಧಿಯಾಗಿದ್ದು, ಇಲ್ಲಿ ಉಮಾಮಹೇಶ್ವರ ಪೂಜೆಯಿಂದ ದಾಂಪತ್ಯ ಕಲ್ಯಾಣ ಭಾಗ್ಯ ಸಿದ್ಧಿಸುತ್ತದೆ.",
+        en: "Gokarna is the eternal abode of Lord Shiva & Goddess Parvati; performing marriage rituals here grants lifelong domestic bliss."
+      },
+      howTransforms: {
+        kn: "ದಾಂಪತ್ಯದಲ್ಲಿ ಗಾಢ ಪ್ರೇಮ, ಅನ್ಯೋನ್ಯತೆ, ಕುಟುಂಬ ಸೌಖ್ಯ ಹಾಗೂ ಸಂಸಾರಿಕ ಮನಸ್ತಾಪಗಳ ಸಂಪೂರ್ಣ ನಿವಾರಣೆಯಾಗಲಿದೆ.",
+        en: "Restores warmth, mutual affection, and marital harmony, ensuring family prosperity."
+      }
+    };
+  } else if (tabKey === "health") {
+    return {
+      pujaName: {
+        kn: `ಶ್ರೀ ಮಹಾಮೃತ್ಯುಂಜಯ ಹೋಮ ಹಾಗೂ ಧನ್ವಂತರಿ ಶಾಂತ್ಯುಕ್ತ ರುದ್ರಾಭಿಷೇಕ (${rashi} ರಾಶಿ)`,
+        en: `Gokarna Mahamrityunjaya Homa & Dhanvantari Rudrabhisheka for ${rashiEn}`
+      },
+      whyRequired: {
+        kn: `ನಿಮ್ಮ ${rashi} ರಾಶಿಯ ${nakshatra} ನಕ್ಷತ್ರ ಕುಂಡಲಿಯ ೬ನೇ (ಆರೋಗ್ಯ) ಭಾವಕ್ಕೆ ಶನಿ-ಮಾಂದಿ ದೃಷ್ಟಿ ಹಾಗೂ ಪ್ರಸ್ತುತ ${dasha} ದಶಾ ಪ್ರಭಾವವಿರುವುದರಿಂದ, ಆಕಸ್ಮಿಕ ಶಾರೀರಿಕ ಆಯಾಸ, ನರಗಳ ದೌರ್ಬಲ್ಯ ಹಾಗೂ ಅಕಾರಣ ಆರೋಗ್ಯ ಏರಿಳಿತಗಳು ಕಂಡುಬರುತ್ತಿವೆ. ಇದನ್ನು ಶಮನಗೊಳಿಸಲು ಈ ಮೃತ್ಯುಂಜಯ ಜಪ-ಹೋಮ ಅತ್ಯಗತ್ಯ.`,
+        en: `Your 6th health house with ${dasha} Dasha transit indicates physical fatigue and immunity fluctuations. Mahamrityunjaya Homa directly remedies this planetary vulnerability.`
+      },
+      whatSignificance: {
+        kn: "ಗೋಕರ್ಣೇಶ್ವರ ಸನ್ನಿಧಿಯು ರೋಗ ನಿವಾರಕ ಕಾಳಭೈರವ ಹಾಗೂ ಮೃತ್ಯುಂಜಯ ಶಿವನ ಪವಿತ್ರ ಕ್ಷೇತ್ರವಾಗಿದ್ದು, ಇಲ್ಲಿನ ಧನ್ವಂತರಿ ಹವನವು ಕಾಯಿಕ ರಕ್ಷೆ ನೀಡುತ್ತದೆ.",
+        en: "Gokarna Mahabaleshwara Sannidhi bestows divine physical shield and health restoration."
+      },
+      howTransforms: {
+        kn: "ಸಕಲ ರೋಗ ಭಯ ಮುಕ್ತಿಯಾಗಿ, ಧಾತು ಪುಷ್ಟಿ, ನರಗಳ ತೇಜಸ್ಸು, ದೀರ್ಘಾಯುಷ್ಯ ಹಾಗೂ ಪರಿಪೂರ್ಣ ಕಾಯಿಕ ಬಲ ಸಿದ್ಧಿಸಲಿದೆ.",
+        en: "Eliminates illness anxiety, restoring physical vitality, immunity, and long health."
+      }
+    };
+  } else if (tabKey === "children") {
+    return {
+      pujaName: {
+        kn: `ಶ್ರೀ ನಾರಾಯಣ ಬಲಿ, ತ್ರಿಪಿಂಡೀ ಶ್ರಾದ್ಧ ಹಾಗೂ ಸಂತಾನ ಗೋಪಾಲ ಕೃಷ್ಣ ಹವನ (${nakshatra} ನಕ್ಷತ್ರ)`,
+        en: `Gokarna Narayana Bali, Tripindi Shraddha & Santana Gopala Homa for ${nakshatraEn}`
+      },
+      whyRequired: {
+        kn: `ನಿಮ್ಮ ${rashi} ರಾಶಿಯ ೫ನೇ (ಪುತ್ರ ಹಾಗೂ ಸಂತಾನ) ಸ್ಥಾನಕ್ಕೆ ಪಿತೃ ದೋಷ ಅಥವಾ ಪ್ರೇತ ದೋಷದ ಪ್ರಭಾವವಿರುವುದರಿಂದ, ಸಂತಾನ ಪ್ರಾಪ್ತಿಯಲ್ಲಿ ವಿಳಂಬ, ವಂಶಾಭಿವೃದ್ಧಿಯಲ್ಲಿ ತೊಡಕು ಹಾಗೂ ಮಕ್ಕಳ ಶೈಕ್ಷಣಿಕ ಅಡಚಣೆಗಳು ಎದುರಾಗುತ್ತಿವೆ. ಪಿತೃಗಳ ತೃಪ್ತಿಗಾಗಿ ನಾರಾಯಣ ಬಲಿ ಅತ್ಯಗತ್ಯ.`,
+        en: `Your 5th house shows Pitru or Ancestral Karma afflictions in ${rashiEn} Rashi, causing delay in progeny or children's education. Narayana Bali & Tripindi Shraddha grant liberation to ancestors.`
+      },
+      whatSignificance: {
+        kn: "ಗೋಕರ್ಣವು ದಕ್ಷಿಣ ಕಾಶಿ ಮುಕ್ತಿ ಕ್ಷೇತ್ರವಾಗಿದ್ದು, ಇಲ್ಲಿ ಮಾಡುವ ತ್ರಿಪಿಂಡೀ ಶ್ರಾದ್ಧದಿಂದ ಪಿತೃಗಳಿಗೆ ಮೋಕ್ಷ ದೊರೆತು ಸಂತಾನ ಶಾಪ ಸಂಪೂರ್ಣ ನಾಶವಾಗುತ್ತದೆ.",
+        en: "Gokarna is the premier Mukti Sthala; ancestral rituals performed here release lineage curses and grant progeny blessings."
+      },
+      howTransforms: {
+        kn: "ಸಂತಾನ ಪ್ರತಿಬಂಧಕಗಳೆಲ್ಲವೂ ಶಮನವಾಗಿ ಸಕಲ ವಂಶಾಭಿವೃದ್ಧಿ, ಕುಲೋದ್ಧಾರಕ ಮಕ್ಕಳ ಜನನ ಹಾಗೂ ಶೈಕ್ಷಣಿಕ ವಿಜಯ ಯೋಗ ಸಿದ್ಧಿಸಲಿದೆ.",
+        en: "Dissolves all progeny hurdles, granting noble children, educational success, and lineage continuation."
+      }
+    };
+  } else {
+    return {
+      pujaName: {
+        kn: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಸನ್ನಿಧಿ ಸರ್ವ ವಿಘ್ನ ವಿನಾಶಕ ಮೃತ್ಯುಂಜಯ ಹೋಮ & ಪಿತೃ ಶಾಂತಿ (${rashi} ರಾಶಿ)`,
+        en: `Gokarna Universal Sarva Vighna Vinashaka Homa for ${rashiEn}`
+      },
+      whyRequired: {
+        kn: `ನಿಮ್ಮ ${rashi} ರಾಶಿಯ ${nakshatra} ನಕ್ಷತ್ರ ಜಾತಕದ ಪ್ರಸ್ತುತ ${dasha} ಮಹಾದಶಾದ ಗ್ರಹ ಸ್ಥಿತಿಯ ಆಧಾರದಲ್ಲಿ, ನೀವು ಕೇಳಿದ ವೈಯಕ್ತಿಕ ಪ್ರಶ್ನೆಯ ಶೀಘ್ರ ಯಶಸ್ಸಿಗೆ ಕುಂಡಲಿಯ ಪಿತೃ ಹಾಗೂ ಗ್ರಹ ಬಂಧನ ಶಮನದ ಈ ವಿಶೇಷ ಪೂಜೆ ಅತ್ಯಗತ್ಯ.`,
+        en: `Based on your natal ${rashiEn} chart and ${dasha} Dasha, this Gokarna Seva removes personal obstacles related to your query.`
+      },
+      whatSignificance: {
+        kn: "ಗೋಕರ್ಣ ಆತ್ಮಲಿಂಗ ಸನ್ನಿಧಿಯಲ್ಲಿ ಕೈಗೊಳ್ಳುವ ಸರ್ವ ವಿಘ್ನ ಶಮನ ಪೂಜೆಯು ಕಲ್ಪವೃಕ್ಷದಂತೆ ನಿವೇದಿತ ಕೋರಿಕೆಗಳನ್ನು ಈಡೇರಿಸುವ ದಿವ್ಯ ಶಕ್ತಿ ಹೊಂದಿದೆ.",
+        en: "Rituals at Gokarna Mahabaleshwara Atmalinga fulfill heartfelt prayers and dissolve deep karmas."
+      },
+      howTransforms: {
+        kn: "ನಿಮ್ಮ ಸಮಸ್ಯೆಗೆ ಶೀಘ್ರ ಪರಿಹಾರ ದೊರೆತು, ಧನ ನಷ್ಟ ಹಾಗೂ ಮಾನಸಿಕ ಸಂಕಟಗಳ ಸಂಪೂರ್ಣ ವಿಮೋಚನೆಯಾಗಲಿದೆ.",
+        en: "Grants swift resolution to your personal query, bringing mental peace and financial growth."
+      }
+    };
+  }
+}
 
 /** Generate deep AI Life Guidance narrative using Gemini 3.5 Flash Lite */
 export async function executeLifeGuidanceCalculation(
@@ -160,28 +278,32 @@ Rules:
       narrativeText: careerText,
       keyAges: [24, 28, 36, 44, 52],
       favorableDirections: { kn: "ಉತ್ತರ ಹಾಗೂ ಪೂರ್ವ ದಿಕ್ಕು (North & East)", en: "North & East" },
-      recommendedRemedies: { kn: "ಗುರುವಾರ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಗೆ ರುದ್ರಾಭಿಷೇಕ ಹಾಗೂ ಕಡಲೆಬೇಳೆ ದಾನ.", en: "Rudrabhishekam on Thursdays & Gram donation." }
+      recommendedRemedies: { kn: "ಗುರುವಾರ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಗೆ ರುದ್ರಾಭಿಷೇಕ ಹಾಗೂ ಕಡಲೆಬೇಳೆ ದಾನ.", en: "Rudrabhishekam on Thursdays & Gram donation." },
+      gokarnaPujaDetail: getDynamicGokarnaPuja(baggona, "career", langCode)
     },
     relationship: {
       title: { kn: "💞 ದಾಂಪತ್ಯ ಅನುಕೂಲತೆ ಹಾಗೂ ಕುಟುಂಬ ಸುಖ", en: "Detailed Relationship & Compatibility" },
       narrativeText: relText,
       keyAges: [25, 29, 34, 42],
       favorableDirections: { kn: "ಆಗ್ನೇಯ ಹಾಗೂ ಆಗ್ನೇಯ ದಿಕ್ಪಾಲಕರು (South-East)", en: "South-East" },
-      recommendedRemedies: { kn: "ಶುಕ್ರವಾರ ದುರ್ಗಾದೇವಿಗೆ ಸೌಭಾಗ್ಯ ಲಲಿತಾ ಅರ್ಚನೆ ಹಾಗೂ ಕುಂಕುಮಾರ್ಚನೆ.", en: "Lalitha Archana & Kumkumarchana on Fridays." }
+      recommendedRemedies: { kn: "ಶುಕ್ರವಾರ ದುರ್ಗಾದೇವಿಗೆ ಸೌಭಾಗ್ಯ ಲಲಿತಾ ಅರ್ಚನೆ ಹಾಗೂ ಕುಂಕುಮಾರ್ಚನೆ.", en: "Lalitha Archana & Kumkumarchana on Fridays." },
+      gokarnaPujaDetail: getDynamicGokarnaPuja(baggona, "relationship", langCode)
     },
     health: {
       title: { kn: "🏥 ಆರೋಗ್ಯ ದೀರ್ಘಾಯುಷ್ಯ ಹಾಗೂ ಶಾರೀರಿಕ ಬಲ", en: "Health & Wellness Longevity Forecast" },
       narrativeText: healthText,
       keyAges: [32, 42, 54, 66],
       favorableDirections: { kn: "ಈಶಾನ ದಿಕ್ಕು (North-East)", en: "North-East" },
-      recommendedRemedies: { kn: "ಪ್ರತಿದಿನ ಬೆಳಿಗ್ಗೆ ಸೂರ್ಯನಮಸ್ಕಾರ ಹಾಗೂ ಧನ್ವಂತರಿ ಮಂತ್ರ ಜಪ.", en: "Surya Namaskar & Dhanvantari Mantra daily." }
+      recommendedRemedies: { kn: "ಪ್ರತಿದಿನ ಬೆಳಿಗ್ಗೆ ಸೂರ್ಯನಮಸ್ಕಾರ ಹಾಗೂ ಧನ್ವಂತರಿ ಮಂತ್ರ ಜಪ.", en: "Surya Namaskar & Dhanvantari Mantra daily." },
+      gokarnaPujaDetail: getDynamicGokarnaPuja(baggona, "health", langCode)
     },
     children: {
       title: { kn: "👶 ಸಂತಾನ ಭಾಗ್ಯ ಹಾಗೂ ವಂಶ ಶ್ರೇಯಸ್ಸು", en: "Children & Lineage Forecast" },
       narrativeText: childText,
       keyAges: [27, 31, 38],
       favorableDirections: { kn: "ಪೂರ್ವ ಹಾಗೂ ದಕ್ಷಿಣ-ಪೂರ್ವ (East & South-East)", en: "East & South-East" },
-      recommendedRemedies: { kn: "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದಲ್ಲಿ ಸುಬ್ರಹ್ಮಣ್ಯ ನಾಗಪ್ರತಿಷ್ಠೆ ಹಾಗೂ ಸಂತಾನ ಗೋಪಾಲ ಹೋಮ.", en: "Subramanya Naga Pratishtha & Santana Gopala Homa." }
+      recommendedRemedies: { kn: "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದಲ್ಲಿ ಸುಬ್ರಹ್ಮಣ್ಯ ನಾಗಪ್ರತಿಷ್ಠೆ ಹಾಗೂ ಸಂತಾನ ಗೋಪಾಲ ಹೋಮ.", en: "Subramanya Naga Pratishtha & Santana Gopala Homa." },
+      gokarnaPujaDetail: getDynamicGokarnaPuja(baggona, "children", langCode)
     },
     generatedAt: new Date().toLocaleString()
   };

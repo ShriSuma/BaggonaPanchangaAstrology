@@ -234,31 +234,35 @@ export const LifeGuidancePdfTemplate: React.FC<LifeGuidancePdfTemplateProps> = (
           </div>
 
           {/* Section 3: Gokarna Kshetra Special Puja / Homa (WHY, WHAT, HOW) */}
-          <div style={{ background: "#FFFBEB", border: "2.5px solid #D97706", borderRadius: "12px", padding: "16px" }}>
-            <div style={{ fontSize: "14px", fontWeight: 800, color: "#78350F", marginBottom: "8px" }}>
-              🪔 {code === "kn" ? "೩. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಸನ್ನಿಧಿ ವಿಶೇಷ ವೈದಿಕ ಶಾಂತಿ, ಹೋಮ & ಪೂಜಾ ಸೇವೆ:" : "3. Gokarna Kshetra Special Vedic Shanti & Homa Details:"}
-            </div>
-            <div style={{ fontSize: "12px", color: "#78350F", lineHeight: "1.7" }}>
-              <div style={{ marginBottom: "6px" }}>
-                <strong>{code === "kn" ? "• ಯಾಕೆ ಬೇಕು (WHY Required?):" : "• WHY Required?:"}</strong>{" "}
-                {code === "kn"
-                  ? "ಜಾತಕದ ಪಿತೃ ದೋಷ (ತ್ರಿಪಿಂಡೀ/ನಾರಾಯಣ ಬಲಿ), ಕಾಲಸರ್ಪ ದೋಷ, ನಾಗಪ್ರತಿಷ್ಠೆ, ಕುಜ ಹಾಗೂ ಮಾಂದಿ ದೋಷಗಳಿಗೆ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ವಿಶೇಷ ಸೇವೆ ನೆರವೇರಿಸುವುದು ಅತ್ಯಗತ್ಯ."
-                  : "Required to dissolve natal Pitru Dosha, Kalasarpa, Nagapratishtha, Kuja & Maandi afflictions."}
+          {(() => {
+            const pujaDetail = sectionData?.gokarnaPujaDetail;
+            const pujaName = pujaDetail?.pujaName?.[code] || pujaDetail?.pujaName?.kn || (code === "kn" ? "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಸನ್ನಿಧಿ ವಿಶೇಷ ವೈದಿಕ ಶಾಂತಿ & ಮಹಾ ರುದ್ರ ಹವನ" : "Gokarna Special Vedic Shanti & Rudra Homa");
+            const whyText = pujaDetail?.whyRequired?.[code] || pujaDetail?.whyRequired?.kn || (code === "kn" ? "ಜಾತಕದ ಪಿತೃ ದೋಷ, ಕಾಲಸರ್ಪ ಶಾಂತ್ಯುಕ್ತ ಹೋಮ, ನಾಗಪ್ರತಿಷ್ಠೆ ಹಾಗೂ ಕುಜ ದೋಷ ಶಮನಕ್ಕಾಗಿ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದಲ್ಲಿ ಸೇವೆ ಅತ್ಯಗತ್ಯ." : "Required for natal Pitru, Kalasarpa, Nagapratishtha, Kuja & Maandi Dosha removal.");
+            const whatText = pujaDetail?.whatSignificance?.[code] || pujaDetail?.whatSignificance?.kn || (code === "kn" ? "ಗೋಕರ್ಣವು ಸಿದ್ಧ ಮುಕ್ತಿ ಕ್ಷೇತ್ರವಾಗಿದ್ದು, ಇಲ್ಲಿನ ಆತ್ಮಲಿಂಗ ಸನ್ನಿಧಿಯಲ್ಲಿ ನೆರವೇರಿಸುವ ಹೋಮ ಕೃತ್ಯದಿಂದ ಶಾಪಗಳು ವಿಮೋಚನೆಯಾಗಲಿವೆ." : "Gokarna Atmalinga Sthala holds divine Vedic power for ancestral liberation and karma dissolution.");
+            const howText = pujaDetail?.howTransforms?.[code] || pujaDetail?.howTransforms?.kn || (code === "kn" ? "ಸಕಲ ಪ್ರತಿಬಂಧಕಗಳು ದೂರವಾಗಿ ಉದ್ಯೋಗ ಪ್ರಗತಿ, ದಾಂಪತ್ಯ ಸೌಖ್ಯ, ಸಂತಾನ ಪ್ರಾಪ್ತಿ ಹಾಗೂ ಲಕ್ಷ್ಮೀ ಅನುಗ್ರಹ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ." : "Dissolves life hurdles, granting career promotion, marital joy, progeny bliss, and prosperity.");
+
+            return (
+              <div style={{ background: "#FFFBEB", border: "2.5px solid #D97706", borderRadius: "12px", padding: "16px" }}>
+                <div style={{ fontSize: "13.5px", fontWeight: 800, color: "#78350F", marginBottom: "4px" }}>
+                  🪔 {pujaName}
+                </div>
+                <div style={{ fontSize: "11.5px", color: "#78350F", lineHeight: "1.65" }}>
+                  <div style={{ marginBottom: "5px" }}>
+                    <strong style={{ color: "#92400E" }}>{code === "kn" ? "• ಕುಂಡಲಿ ವಿಶ್ಲೇಷಣೆ (ಯಾಕೆ ಬೇಕು / WHY Required?):" : "• Kundli Analysis (WHY Required?):"}</strong>{" "}
+                    {whyText}
+                  </div>
+                  <div style={{ marginBottom: "5px" }}>
+                    <strong style={{ color: "#92400E" }}>{code === "kn" ? "• ಗೋಕರ್ಣ ಸನ್ನಿಧಿ ವೈಶಿಷ್ಟ್ಯ (ಮಹತ್ತ್ವವೇನು / WHAT Significance?):" : "• Kshetra Significance (WHAT Significance?):"}</strong>{" "}
+                    {whatText}
+                  </div>
+                  <div>
+                    <strong style={{ color: "#92400E" }}>{code === "kn" ? "• ಪೂಜಾನಂತರ ದಕ್ಕುವ ಸಿದ್ಧಿ (ಪರಿಣಾಮವೇನು / HOW it Transforms?):" : "• Life Transformation (HOW it Transforms?):"}</strong>{" "}
+                    {howText}
+                  </div>
+                </div>
               </div>
-              <div style={{ marginBottom: "6px" }}>
-                <strong>{code === "kn" ? "• ಮಹತ್ತ್ವವೇನು (WHAT Significance?):" : "• WHAT Significance?:"}</strong>{" "}
-                {code === "kn"
-                  ? "ಗೋಕರ್ಣವು ದಕ್ಷಿಣ ಕಾಶಿ ಎಂದೇ ಪ್ರಸಿದ್ಧವಾಗಿದ್ದು, ಇಲ್ಲಿನ ಆತ್ಮಲಿಂಗ ಸನ್ನಿಧಿಯಲ್ಲಿ ನೆರವೇರಿಸುವ ವೈದಿಕ ಹೋಮ ಕೃತ್ಯಗಳಿಂದ ಪಿತೃಗಳ ಮುಕ್ತಿ ದೊರೆತು ಕುಟುಂಬಕ್ಕೆ ಪೂರ್ಣ ಶ್ರೇಯಸ್ಸು ಉಂಟಾಗುತ್ತದೆ."
-                  : "Gokarna is Dakshina Kashi; Vedic rituals performed at the sacred Atmalinga Sthala grant ancestral liberation and family growth."}
-              </div>
-              <div>
-                <strong>{code === "kn" ? "• ಪರಿಣಾಮವೇನು (HOW it Transforms Life?):" : "• HOW it Transforms Life?:"}</strong>{" "}
-                {code === "kn"
-                  ? "ಸಕಲ ದುರಿತ ಹಾಗೂ ಧನ ಬಾಂಧವ್ಯ ಪ್ರತಿಬಂಧಕಗಳು ದೂರವಾಗಿ ಉದ್ಯೋಗ ಪ್ರಗತಿ, ಸಂತಾನ ಭಾಗ್ಯ ಹಾಗೂ ದಿವ್ಯ ಲಕ್ಷ್ಮೀ ಕಟಾಕ್ಷ ಲಭಿಸುತ್ತದೆ."
-                  : "Removes professional and financial hurdles, bestowing career growth, prosperity, and mental peace."}
-              </div>
-            </div>
-          </div>
+            );
+          })()}
 
           {/* Page 2 Dedicated Archaka Verification & Single Contact Footer */}
           <div
