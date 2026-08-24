@@ -1159,7 +1159,7 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
       { badge: "🌟 Total Fulfillment", f1: "Overall prosperity and task completion.", f2: "Success in key initiatives.", f3: "Maintain gratitude.", f4: "Worship Lord Mahabaleshwara." }
     ];
 
-    return Array.from({ length: 8 }, (_, i) => {
+    return Array.from({ length: 6 }, (_, i) => {
       const mIdx = (curMonthIdx + i) % 12;
       const yr = curYear + Math.floor((curMonthIdx + i) / 12);
       const mName = isKn ? monthsKn[mIdx] : monthsEn[mIdx];
@@ -2275,10 +2275,10 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
             boxShadow: "0 2px 5px rgba(180, 83, 9, 0.05)"
           }}>
             <div style={{ fontSize: "18px", fontWeight: 800, color: "#78350F", lineHeight: "1.25" }}>
-              {code === "kn" ? "ಅಧ್ಯಾಯ ೫: ಮುಂಬರುವ ೮ ತಿಂಗಳುಗಳ (೨೪೦ ದಿನಗಳು) ಸಮಗ್ರ ಜ್ಯೋತಿಷ್ಯ ಕಾರ್ಯಾಚರಣೆ ರೋಡ್‌ಮ್ಯಾಪ್" : "Chapter 5: Upcoming 8 Months (240 Days) Planetary Roadmap"}
+              {code === "kn" ? "ಅಧ್ಯಾಯ ೫: ಮುಂಬರುವ ೬ ತಿಂಗಳುಗಳ (೧೮೦ ದಿನಗಳು) ಸಮಗ್ರ ಜ್ಯೋತಿಷ್ಯ ಕಾರ್ಯಾಚರಣೆ ರೋಡ್‌ಮ್ಯಾಪ್" : "Chapter 5: Upcoming 6 Months (180 Days) Planetary Roadmap"}
             </div>
             <div style={{ fontSize: "11.5px", color: "#B45309", fontWeight: 600, marginTop: "3px" }}>
-              📜 {code === "kn" ? "ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿ, ಪ್ರಸ್ತುತ ಗೋಚಾರ ಗ್ರಹ ಬಲ ಹಾಗೂ ದಶಾ-ಅಂತರ್ದಶಾ ಆಧಾರಿತ ಮುಂಬರುವ ೮ ತಿಂಗಳ ನಿಖರ ಜ್ಯೋತಿಷ್ಯ ಮಾರ್ಗದರ್ಶನ" : "Dynamic month-by-month planetary guidance tailored to your chart."}
+              📜 {code === "kn" ? "ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿ, ಪ್ರಸ್ತುತ ಗೋಚಾರ ಗ್ರಹ ಬಲ ಹಾಗೂ ದಶಾ-ಅಂತರ್ದಶಾ ಆಧಾರಿತ ಮುಂಬರುವ ೬ ತಿಂಗಳ ನಿಖರ ಜ್ಯೋತಿಷ್ಯ ಮಾರ್ಗದರ್ಶನ" : "Dynamic month-by-month planetary guidance tailored to your chart."}
             </div>
           </div>
 
@@ -2310,14 +2310,14 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
               const badgeColors = ["#92400E", "#065F46", "#5B21B6", "#92400E", "#991B1B", "#065F46", "#1E40AF", "#92400E"];
 
               return (
-                <div key={i} style={{ background: bgColors[i % 8], border: `1.5px solid ${borderColors[i % 8]}`, borderRadius: "8px", padding: "11px 13px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-                  <div style={{ fontSize: "13.5px", fontWeight: 800, color: textColors[i % 8], marginBottom: "6px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div key={i} style={{ background: bgColors[i % 6], border: `1.5px solid ${borderColors[i % 6]}`, borderRadius: "8px", padding: "11px 13px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+                  <div style={{ fontSize: "13.5px", fontWeight: 800, color: textColors[i % 6], marginBottom: "6px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>🗓️ {m.mTitle}</span>
-                    <span style={{ fontSize: "10.5px", background: badgeBgs[i % 8], border: `1px solid ${badgeBorders[i % 8]}`, color: badgeColors[i % 8], padding: "2px 8px", borderRadius: "12px", fontWeight: 700, display: "inline-flex", alignItems: "center", whiteSpace: "nowrap", flexShrink: 0, marginLeft: "6px" }}>
+                    <span style={{ fontSize: "10.5px", background: badgeBgs[i % 6], border: `1px solid ${badgeBorders[i % 6]}`, color: badgeColors[i % 6], padding: "2px 8px", borderRadius: "12px", fontWeight: 700, display: "inline-flex", alignItems: "center", whiteSpace: "nowrap", flexShrink: 0, marginLeft: "6px" }}>
                       <span style={{ transform: "translateY(-1px)", display: "inline-block" }}>{m.badge}</span>
                     </span>
                   </div>
-                  <div style={{ fontSize: "12.5px", lineHeight: "1.5", color: textColors[i % 8] }}>
+                  <div style={{ fontSize: "12.5px", lineHeight: "1.5", color: textColors[i % 6] }}>
                     <div style={{ marginBottom: "3px" }}>1. <strong style={{ color: "#065F46" }}>{code === "kn" ? "ಫಲಾಫಲ:" : "Vibe:"}</strong> {m.f1}</div>
                     <div style={{ marginBottom: "3px" }}>2. <strong style={{ color: "#92400E" }}>{code === "kn" ? "ಉದ್ಯೋಗ/ಆರ್ಥಿಕ:" : "Focus:"}</strong> {m.f2}</div>
                     <div style={{ marginBottom: "3px" }}>3. <strong style={{ color: "#D97706" }}>{code === "kn" ? "ಸವಾಲು:" : "Caution:"}</strong> {m.f3}</div>
