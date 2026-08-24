@@ -193,48 +193,48 @@ export const PriestQrCard1PageTemplate: React.FC<PriestQrCard1PageTemplateProps>
         }}
       >
         {/* Top Header */}
-        <div style={{ textAlign: "center", borderBottom: "2px solid #F59E0B", paddingBottom: "16px", marginBottom: "16px", paddingTop: "6px" }}>
-          <div style={{ fontSize: "16px", fontWeight: 800, color: "#92400E", letterSpacing: "1.5px", marginBottom: "10px", lineHeight: "1.8" }}>
+        <div style={{ textAlign: "center", borderBottom: "2px solid #F59E0B", paddingBottom: "12px", marginBottom: "14px", paddingTop: "4px" }}>
+          <div style={{ fontSize: "14px", fontWeight: 800, color: "#92400E", letterSpacing: "1px", marginBottom: "6px", lineHeight: "2.0", paddingTop: "4px" }}>
             {headers.top}
           </div>
-          <h1 style={{ fontSize: "24px", fontWeight: 800, color: "#78350F", margin: "8px 0 10px 0", lineHeight: "1.6" }}>
+          <h1 style={{ fontSize: "19px", fontWeight: 800, color: "#78350F", margin: "4px 0 6px 0", lineHeight: "1.5", whiteSpace: "nowrap" }}>
             {headers.main}
           </h1>
-          <div style={{ fontSize: "13.5px", color: "#B45309", fontWeight: 600, lineHeight: "1.6", marginTop: "6px" }}>
+          <div style={{ fontSize: "13px", color: "#B45309", fontWeight: 600, lineHeight: "1.5", marginTop: "4px" }}>
             {headers.sub}
           </div>
         </div>
 
         {/* Info Grid (Devotee & Priest Context) */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "14px" }}>
           {/* Devotee Info */}
-          <div style={{ background: "#FFFFFF", border: "1.5px solid #FCD34D", borderRadius: "10px", padding: "16px 18px", boxShadow: "0 1px 4px rgba(180,83,9,0.06)" }}>
-            <div style={{ fontSize: "14px", fontWeight: 800, color: "#B45309", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "10px", display: "block", lineHeight: "1.6" }}>
+          <div style={{ background: "#FFFFFF", border: "1.5px solid #FCD34D", borderRadius: "10px", padding: "14px 16px", boxShadow: "0 1px 4px rgba(180,83,9,0.06)" }}>
+            <div style={{ fontSize: "13.5px", fontWeight: 800, color: "#B45309", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px", display: "block", lineHeight: "2.0", paddingTop: "4px" }}>
               {devLabels.title}
             </div>
-            <div style={{ fontSize: "18px", fontWeight: 800, color: "#78350F", marginBottom: "8px", lineHeight: "1.5" }}>
+            <div style={{ fontSize: "16px", fontWeight: 800, color: "#78350F", marginBottom: "6px", lineHeight: "1.6" }}>
               {devoteeNameDisplay}
             </div>
-            <div style={{ fontSize: "14px", color: "#92400E", lineHeight: "1.95" }}>
-              <div style={{ marginBottom: "4px" }}><strong>{devLabels.rashi}</strong> {rashiName || "—"}</div>
-              <div style={{ marginBottom: "4px" }}><strong>{devLabels.nakshatra}</strong> {nakshatraName || "—"}</div>
-              {gotraDisplay && <div style={{ marginBottom: "4px" }}><strong>{devLabels.gotra}</strong> {gotraDisplay}</div>}
-              <div style={{ marginBottom: "4px" }}><strong>{devLabels.duration}</strong> <span style={{ color: "#065F46", fontWeight: 700 }}>{durationLabel}</span></div>
+            <div style={{ fontSize: "13.5px", color: "#92400E", lineHeight: "1.9" }}>
+              <div style={{ marginBottom: "3px" }}><strong>{devLabels.rashi}</strong> {rashiName || "—"}</div>
+              <div style={{ marginBottom: "3px" }}><strong>{devLabels.nakshatra}</strong> {nakshatraName || "—"}</div>
+              {gotraDisplay && <div style={{ marginBottom: "3px" }}><strong>{devLabels.gotra}</strong> {gotraDisplay}</div>}
+              <div style={{ marginBottom: "3px" }}><strong>{devLabels.duration}</strong> <span style={{ color: "#065F46", fontWeight: 700 }}>{durationLabel}</span></div>
             </div>
           </div>
 
           {/* Priest Info */}
-          <div style={{ background: "#FFFFFF", border: "1.5px solid #FCD34D", borderRadius: "10px", padding: "16px 18px", boxShadow: "0 1px 4px rgba(180,83,9,0.06)" }}>
-            <div style={{ fontSize: "14px", fontWeight: 800, color: "#B45309", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "10px", display: "block", lineHeight: "1.6" }}>
+          <div style={{ background: "#FFFFFF", border: "1.5px solid #FCD34D", borderRadius: "10px", padding: "14px 16px", boxShadow: "0 1px 4px rgba(180,83,9,0.06)" }}>
+            <div style={{ fontSize: "13.5px", fontWeight: 800, color: "#B45309", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px", display: "block", lineHeight: "2.0", paddingTop: "4px" }}>
               {pLabels.title}
             </div>
-            <div style={{ fontSize: "18px", fontWeight: 800, color: "#78350F", marginBottom: "8px", lineHeight: "1.5" }}>
+            <div style={{ fontSize: "16px", fontWeight: 800, color: "#78350F", marginBottom: "6px", lineHeight: "1.6" }}>
               {priestName}
             </div>
-            <div style={{ fontSize: "14px", color: "#92400E", lineHeight: "1.95" }}>
-              <div style={{ marginBottom: "4px" }}><strong>{pLabels.pos}</strong> {activePriestTitle}</div>
-              <div style={{ marginBottom: "4px" }}><strong>{pLabels.phone}</strong> <span style={{ color: "#78350F", fontWeight: 700 }}>{priestPhone}</span></div>
-              <div style={{ marginBottom: "4px" }}><strong>{pLabels.temple}</strong> ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿ</div>
+            <div style={{ fontSize: "13.5px", color: "#92400E", lineHeight: "1.9" }}>
+              <div style={{ marginBottom: "3px" }}><strong>{pLabels.pos}</strong> {activePriestTitle}</div>
+              <div style={{ marginBottom: "3px" }}><strong>{pLabels.phone}</strong> <span style={{ color: "#78350F", fontWeight: 700 }}>{priestPhone}</span></div>
+              <div style={{ marginBottom: "3px" }}><strong>{pLabels.temple}</strong> ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿ</div>
             </div>
           </div>
         </div>

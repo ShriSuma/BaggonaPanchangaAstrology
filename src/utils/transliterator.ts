@@ -65,6 +65,8 @@ const NAME_DICTIONARY: Record<string, Record<string, string>> = {
   "vashishtha": { kn: "ವಸಿಷ್ಠ", hi: "वशिष्ठ", te: "వసిష్ఠ", ta: "வசிஷ்டர்", en: "Vashishtha" },
   "vashistha": { kn: "ವಸಿಷ್ಠ", hi: "वशिष्ठ", te: "వసిష్ఠ", ta: "வசிஷ்டர்", en: "Vashistha" },
   "vasistha": { kn: "ವಸಿಷ್ಠ", hi: "वशिष्ठ", te: "వసిష్ఠ", ta: "வசிஷ்டர்", en: "Vasistha" },
+  "vasishta": { kn: "ವಸಿಷ್ಠ", hi: "वशिष्ठ", te: "వసిష్ఠ", ta: "வசிஷ்டர்", en: "Vasishta" },
+  "vashishta": { kn: "ವಸಿಷ್ಠ", hi: "वशिष्ठ", te: "వసిష్ఠ", ta: "வசிஷ்டர்", en: "Vashishta" },
   "kashyapa": { kn: "ಕಾಶ್ಯಪ", hi: "काश्यप", te: "కాశ్యప", ta: "காஸ்யப", en: "Kashyapa" },
   "kashyap": { kn: "ಕಾಶ್ಯಪ", hi: "काश्यप", te: "కాశ్యప", ta: "காஸ்யப", en: "Kashyap" },
   "bharadwaja": { kn: "ಭಾರದ್ವಾಜ", hi: "भरद्वाज", te: "భారద్వాజ", ta: "பரத்வாஜ", en: "Bharadwaja" },
