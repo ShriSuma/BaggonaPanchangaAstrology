@@ -66,7 +66,7 @@ export default function PriestQrGeneratorTab({
         : "https://baggona.app";
 
     const priestPhoneStr = activePriest.phone || "+91 99723 39362";
-    const payloadUrl = `${origin}/daily?days=${durationDays}&priest=${encodeURIComponent(pName)}&phone=${encodeURIComponent(priestPhoneStr)}&devotee=${encodeURIComponent(identity.personName)}&lang=${selectedLang}`;
+    const payloadUrl = `${origin}/daily?days=${durationDays}&priest=${encodeURIComponent(pName)}&phone=${encodeURIComponent(priestPhoneStr)}&devotee=${encodeURIComponent(identity.personName)}&lang=${selectedLang}&action=ics`;
 
     QRCode.toDataURL(payloadUrl, {
       errorCorrectionLevel: "M",

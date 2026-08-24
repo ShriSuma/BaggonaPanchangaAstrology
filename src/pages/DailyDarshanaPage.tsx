@@ -1533,13 +1533,28 @@ export default function DailyDarshanaPage(): JSX.Element {
     }
   };
 
-  // Trigger automatic download if QR code scanned or action parameter present
+  // Trigger automatic download if QR code scanned or action/days/token parameter present
   useEffect(() => {
     const action = params.get("action");
-    if (action === "ics90" || action === "ics" || action === "download") {
-      handleDownload90DayIcs();
+    const daysParam = params.get("days");
+    const fromCal = params.get("fromCal");
+
+    const shouldAutoDownload =
+      action === "ics" ||
+      action === "ics90" ||
+      action === "download" ||
+      fromCal === "1" ||
+      fromCal === "true" ||
+      Boolean(daysParam) ||
+      Boolean(tokenParam);
+
+    if (shouldAutoDownload) {
+      const timer = setTimeout(() => {
+        handleDownload90DayIcs();
+      }, 300);
+      return () => clearTimeout(timer);
     }
-  }, [tokenParam]);
+  }, [params, tokenParam]);
 
   const handleShareWhatsApp = () => {
     const text = `${dict.panchangaTitle} - ${dict.kshetraTitle}\n\n🙏 ${dict.pandit}: ${localizedPandit}\n👤 ${dict.devotee}: ${devoteeDisplayName}\n⚡ ${dict.status}: ${vibe.badgeText}\n\n🌐 View Live Darshana & Kundali:\n${window.location.href}`;
