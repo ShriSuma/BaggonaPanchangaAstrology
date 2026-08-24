@@ -54,8 +54,8 @@ export const LifeGuidancePdfTemplate: React.FC<LifeGuidancePdfTemplateProps> = (
         display: "flex",
         flexDirection: "column",
         background: "#FFFDF7",
-        fontFamily: "'Noto Sans Kannada', 'Tiro Kannada', 'Kaveri', 'Segoe UI', Roboto, sans-serif",
-        color: "#451A03"
+        fontFamily: "'Noto Serif Kannada', 'Tiro Kannada', 'Kaveri', 'Segoe UI', serif, sans-serif",
+        color: "#261605"
       }}
     >
       {/* ================= PAGE 1: DEEP PREDICTION NARRATIVE ================= */}
@@ -63,7 +63,7 @@ export const LifeGuidancePdfTemplate: React.FC<LifeGuidancePdfTemplateProps> = (
         style={{
           width: "794px",
           height: "1123px",
-          padding: "20px",
+          padding: "18px",
           boxSizing: "border-box",
           position: "relative",
           overflow: "hidden"
@@ -72,12 +72,14 @@ export const LifeGuidancePdfTemplate: React.FC<LifeGuidancePdfTemplateProps> = (
         <div
           style={{
             width: "100%",
-            height: "1083px",
-            border: "3.5px double #B45309",
+            height: "1087px",
+            border: "3px double #B45309",
+            outline: "1px solid #F59E0B",
+            outlineOffset: "-6px",
             borderRadius: "16px",
-            padding: "18px",
+            padding: "16px",
             boxSizing: "border-box",
-            background: "linear-gradient(180deg, #FFFDF8 0%, #FEF9C3 60%, #FEF3C7 100%)",
+            background: "linear-gradient(180deg, #FFFDF8 0%, #FEF9C3 50%, #FEF3C7 100%)",
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between"
@@ -87,18 +89,18 @@ export const LifeGuidancePdfTemplate: React.FC<LifeGuidancePdfTemplateProps> = (
           <div
             style={{
               textAlign: "center",
-              background: "linear-gradient(135deg, #78350F 0%, #451A03 50%, #78350F 100%)",
+              background: "linear-gradient(135deg, #451A03 0%, #78350F 50%, #451A03 100%)",
               borderRadius: "12px",
-              padding: "10px 14px",
+              padding: "10px 16px",
               color: "#FFFFFF",
-              border: "1.5px solid #F59E0B",
-              boxShadow: "0 2px 6px rgba(0,0,0,0.15)"
+              border: "2px solid #F59E0B",
+              boxShadow: "0 4px 10px rgba(0,0,0,0.15)"
             }}
           >
             <div style={{ fontSize: "13px", fontWeight: 800, color: "#FDE68A", letterSpacing: "1px" }}>
               ॥ 🕉️ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿ ಪ್ರಸನ್ನ 🕉️ ॥
             </div>
-            <h1 style={{ fontSize: "19px", fontWeight: 800, color: "#FFFFFF", margin: "4px 0 2px 0", letterSpacing: "0.5px" }}>
+            <h1 style={{ fontSize: "19.5px", fontWeight: 800, color: "#FFFFFF", margin: "4px 0 2px 0", letterSpacing: "0.5px" }}>
               {isKn ? "॥ ಬಗ್ಗೋಣ ಪರಿಪೂರ್ಣ ಜೀವನ ಮಾರ್ಗದರ್ಶನ ವರದಿ (ಭಾಗ ೧) ॥" : "Baggona Hyper-Personalized Life Guidance Report (Part 1)"}
             </h1>
             <div style={{ fontSize: "11.5px", color: "#FCD34D", fontWeight: 600 }}>
@@ -107,28 +109,29 @@ export const LifeGuidancePdfTemplate: React.FC<LifeGuidancePdfTemplateProps> = (
           </div>
 
           {/* Devotee Info Card */}
-          <div style={{ background: "#FFFFFF", border: "1.5px solid #FCD34D", borderRadius: "12px", padding: "10px 14px", boxShadow: "0 1px 4px rgba(0,0,0,0.03)" }}>
-            <div style={{ fontSize: "10.5px", fontWeight: 800, color: "#B45309", textTransform: "uppercase", marginBottom: "4px", letterSpacing: "0.5px" }}>
+          <div style={{ background: "#FFFFFF", border: "1.5px solid #FCD34D", borderRadius: "12px", padding: "10px 14px", boxShadow: "0 2px 5px rgba(0,0,0,0.03)" }}>
+            <div style={{ fontSize: "10.5px", fontWeight: 800, color: "#B45309", textTransform: "uppercase", marginBottom: "3px", letterSpacing: "0.5px" }}>
               👤 {isKn ? "ಜಾತಕರ ಕುಂಡಲಿ ವಿವರಗಳು" : "Devotee Natal Parameters"}
             </div>
-            <div style={{ fontSize: "16px", fontWeight: 800, color: "#78350F", marginBottom: "6px" }}>
+            <div style={{ fontSize: "16px", fontWeight: 800, color: "#78350F", marginBottom: "5px" }}>
               {result.personName} ({result.gender})
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "8px", fontSize: "11.5px", color: "#92400E" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr", gap: "8px", fontSize: "11px", color: "#92400E" }}>
               <div><strong>DOB:</strong> {result.dob}</div>
               <div><strong>TOB:</strong> {result.tob}</div>
               <div><strong>{isKn ? "ರಾಶಿ:" : "Rashi:"}</strong> <span style={{ fontWeight: 800 }}>{rashiStr}</span></div>
               <div><strong>{isKn ? "ನಕ್ಷತ್ರ:" : "Nakshatra:"}</strong> <span style={{ fontWeight: 800 }}>{nakshatraStr}</span></div>
+              <div><strong>{isKn ? "ದಶಾ:" : "Dasha:"}</strong> <span style={{ fontWeight: 800 }}>{dashaStr.split(" ")[0]}</span></div>
             </div>
           </div>
 
           {/* Active Section Title Header */}
-          <div style={{ background: "linear-gradient(90deg, #78350F 0%, #92400E 100%)", borderLeft: "5px solid #F59E0B", borderRadius: "8px", padding: "9px 14px", color: "#FDE68A", fontSize: "14.5px", fontWeight: 800 }}>
+          <div style={{ background: "linear-gradient(90deg, #78350F 0%, #92400E 100%)", borderLeft: "5px solid #F59E0B", borderRadius: "8px", padding: "8px 14px", color: "#FDE68A", fontSize: "14px", fontWeight: 800 }}>
             {sectionTitle}
           </div>
 
           {/* Main Narrative Paragraphs */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "9px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
             {paragraphs.map((para, idx) => (
               <div
                 key={idx}
@@ -139,9 +142,9 @@ export const LifeGuidancePdfTemplate: React.FC<LifeGuidancePdfTemplateProps> = (
                   borderRight: "1px solid #FEF3C7",
                   borderBottom: "1px solid #FEF3C7",
                   borderRadius: "10px",
-                  padding: "11px 15px",
+                  padding: "10px 14px",
                   fontSize: "11.5px",
-                  color: "#451A03",
+                  color: "#261605",
                   lineHeight: "1.65",
                   boxShadow: "0 1px 3px rgba(0,0,0,0.03)"
                 }}
@@ -154,11 +157,11 @@ export const LifeGuidancePdfTemplate: React.FC<LifeGuidancePdfTemplateProps> = (
           {/* Key Ages & Favorable Directions */}
           {sectionData && (
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-              <div style={{ background: "#FEF3C7", border: "1.5px solid #F59E0B", borderRadius: "10px", padding: "8px 12px", fontSize: "11px", color: "#78350F" }}>
+              <div style={{ background: "linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)", border: "1.5px solid #F59E0B", borderRadius: "10px", padding: "8px 12px", fontSize: "11px", color: "#78350F" }}>
                 <strong>🌟 {isKn ? "ಪ್ರಮುಖ ವಯೋಮಾನ ಮೈಲಿಗಲ್ಲುಗಳು:" : "Key Age Milestones:"}</strong>{" "}
                 <span style={{ fontWeight: 800 }}>{sectionData.keyAges.join(", ")} {isKn ? "ವರ್ಷಗಳು" : "Years"}</span>
               </div>
-              <div style={{ background: "#FEF3C7", border: "1.5px solid #F59E0B", borderRadius: "10px", padding: "8px 12px", fontSize: "11px", color: "#78350F" }}>
+              <div style={{ background: "linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)", border: "1.5px solid #F59E0B", borderRadius: "10px", padding: "8px 12px", fontSize: "11px", color: "#78350F" }}>
                 <strong>🧭 {isKn ? "ಅನುಕೂಲಕರ ದಿಕ್ಪಾಲಕ ದಿಕ್ಕುಗಳು:" : "Favorable Directions:"}</strong>{" "}
                 <span style={{ fontWeight: 800 }}>{sectionData.favorableDirections[code] || sectionData.favorableDirections.kn}</span>
               </div>
@@ -168,7 +171,7 @@ export const LifeGuidancePdfTemplate: React.FC<LifeGuidancePdfTemplateProps> = (
           {/* Page 1 Archaka Footer */}
           <div
             style={{
-              background: "linear-gradient(180deg, #78350F 0%, #451A03 100%)",
+              background: "linear-gradient(180deg, #451A03 0%, #260E02 100%)",
               border: "2px solid #F59E0B",
               borderRadius: "12px",
               padding: "10px 14px",
@@ -193,7 +196,7 @@ export const LifeGuidancePdfTemplate: React.FC<LifeGuidancePdfTemplateProps> = (
         style={{
           width: "794px",
           height: "1123px",
-          padding: "20px",
+          padding: "18px",
           boxSizing: "border-box",
           position: "relative",
           overflow: "hidden"
@@ -202,12 +205,14 @@ export const LifeGuidancePdfTemplate: React.FC<LifeGuidancePdfTemplateProps> = (
         <div
           style={{
             width: "100%",
-            height: "1083px",
-            border: "3.5px double #B45309",
+            height: "1087px",
+            border: "3px double #B45309",
+            outline: "1px solid #F59E0B",
+            outlineOffset: "-6px",
             borderRadius: "16px",
-            padding: "18px",
+            padding: "16px",
             boxSizing: "border-box",
-            background: "linear-gradient(180deg, #FFFDF8 0%, #FEF9C3 60%, #FEF3C7 100%)",
+            background: "linear-gradient(180deg, #FFFDF8 0%, #FEF9C3 50%, #FEF3C7 100%)",
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between"
@@ -217,12 +222,12 @@ export const LifeGuidancePdfTemplate: React.FC<LifeGuidancePdfTemplateProps> = (
           <div
             style={{
               textAlign: "center",
-              background: "linear-gradient(135deg, #78350F 0%, #451A03 50%, #78350F 100%)",
+              background: "linear-gradient(135deg, #451A03 0%, #78350F 50%, #451A03 100%)",
               borderRadius: "12px",
-              padding: "10px 14px",
+              padding: "10px 16px",
               color: "#FFFFFF",
-              border: "1.5px solid #F59E0B",
-              boxShadow: "0 2px 6px rgba(0,0,0,0.15)"
+              border: "2px solid #F59E0B",
+              boxShadow: "0 4px 10px rgba(0,0,0,0.15)"
             }}
           >
             <div style={{ fontSize: "13px", fontWeight: 800, color: "#FDE68A", letterSpacing: "0.5px" }}>
@@ -237,43 +242,46 @@ export const LifeGuidancePdfTemplate: React.FC<LifeGuidancePdfTemplateProps> = (
           </div>
 
           {/* Block 1: Dasha Bhukti & Gochara Transit Analysis */}
-          <div style={{ background: "#FFFFFF", border: "1.5px solid #FCD34D", borderRadius: "12px", padding: "12px 14px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-            <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#78350F", marginBottom: "6px", display: "flex", alignItems: "center", gap: "6px" }}>
+          <div style={{ background: "#FFFFFF", border: "1.5px solid #FCD34D", borderRadius: "12px", padding: "11px 14px", boxShadow: "0 2px 5px rgba(0,0,0,0.03)" }}>
+            <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", alignItems: "center", gap: "6px" }}>
               <span>🔮</span>
               <span>{isKn ? "೧. ಪ್ರಸ್ತುತ ದಶಾ ಭುಕ್ತಿ ಹಾಗೂ ಗ್ರಹ ಗೋಚಾರ ಫಲ ವಿಶ್ಲೇಷಣೆ:" : "1. Current Dasha Bhukti & Planetary Transit Analysis:"}</span>
             </div>
-            <div style={{ fontSize: "11.5px", color: "#451A03", lineHeight: "1.65" }}>
+            <div style={{ fontSize: "11.5px", color: "#261605", lineHeight: "1.65" }}>
               {isKn
-                ? `ನಿಮ್ಮ ಜನನ ಜಾತಕದಲ್ಲಿ ಪ್ರಸ್ತುತ ${dashaStr} ಚಲಿಸುತ್ತಿದ್ದು, ${rashiStr} ಹಾಗೂ ${nakshatraStr} ನಕ್ಷತ್ರ ಜಾತಕದ ಮೇಲಿರುವ ಶನಿ, ಗುರು ಹಾಗೂ ರಾಹು ಗ್ರಹಗಳ ಗೋಚಾರ ಬಲವು ಮಧ್ಯಮ ಫಲಗಳನ್ನು ನೀಡಲಿದೆ. ದಶಮಾಧಿಪತಿ ಹಾಗೂ ಶುಭ ಗ್ರಹಗಳ ದಿವ್ಯ ಬಲದಿಂದ ಧನ ಯೋಗ ಹಾಗೂ ಕುಟುಂಬ ಕ್ಷೇಮ ಲಭಿಸಲಿದೆ.`
+                ? `ನಿಮ್ಮ ಜನನ ಜಾತಕದಲ್ಲಿ ಪ್ರಸ್ತುತ ${dashaStr} ಚಲಿಸುತ್ತಿದ್ದು, ${rashiStr} ಹಾಗೂ ${nakshatraStr} ನಕ್ಷತ್ರ ಜಾತಕದ ಮೇಲಿರುವ ಶನಿ, ಗುರು ಹಾಗೂ ರಾಹು ಗ್ರಹಗಳ ಗೋಚಾರ ಬಲವು ಶ್ರೇಷ್ಠ ಫಲಗಳನ್ನು ನೀಡಲಿದೆ. ದಶಮಾಧಿಪತಿ ಹಾಗೂ ಶುಭ ಗ್ರಹಗಳ ದಿವ್ಯ ಬಲದಿಂದ ಧನ ಯೋಗ, ಉದ್ಯೋಗ ವೃದ್ಧಿ ಹಾಗೂ ಕುಟುಂಬ ಕ್ಷೇಮ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ.`
                 : `Under your current ${dashaStr} and transit over ${rashiStr} (${nakshatraStr}), planetary positions show balanced strength for career growth and family well-being.`}
             </div>
           </div>
 
           {/* Block 2: Planetary Positions Summary Box */}
-          <div style={{ background: "#FFFFFF", border: "1.5px solid #FCD34D", borderRadius: "12px", padding: "10px 14px" }}>
-            <div style={{ fontSize: "12px", fontWeight: 800, color: "#B45309", marginBottom: "6px" }}>
-              📊 {isKn ? "ಜನನ ಕುಂಡಲಿ ಗ್ರಹ ಸನ್ನಿವೇಶ ಸಾರಾಂಶ:" : "Natal Planetary Positions Summary:"}
+          <div style={{ background: "#FFFFFF", border: "1.5px solid #FCD34D", borderRadius: "12px", padding: "9px 14px" }}>
+            <div style={{ fontSize: "11.5px", fontWeight: 800, color: "#B45309", marginBottom: "5px" }}>
+              📊 {isKn ? "ಜನನ ಕುಂಡಲಿ ನವಗ್ರಹ ಸನ್ನಿವೇಶ ಸಾರಾಂಶ:" : "Natal Planetary Positions Summary:"}
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", fontSize: "11px", color: "#78350F" }}>
-              <div style={{ background: "#FEF3C7", padding: "6px 8px", borderRadius: "6px" }}>
-                <strong>{isKn ? "ಜನನ ರಾಶಿ:" : "Janma Rashi:"}</strong> {rashiStr}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "8px", fontSize: "11px", color: "#78350F" }}>
+              <div style={{ background: "#FEF3C7", padding: "5px 8px", borderRadius: "6px" }}>
+                <strong>{isKn ? "ಜನನ ರಾಶಿ:" : "Rashi:"}</strong> {rashiStr}
               </div>
-              <div style={{ background: "#FEF3C7", padding: "6px 8px", borderRadius: "6px" }}>
+              <div style={{ background: "#FEF3C7", padding: "5px 8px", borderRadius: "6px" }}>
                 <strong>{isKn ? "ಜನನ ನಕ್ಷತ್ರ:" : "Nakshatra:"}</strong> {nakshatraStr}
               </div>
-              <div style={{ background: "#FEF3C7", padding: "6px 8px", borderRadius: "6px" }}>
+              <div style={{ background: "#FEF3C7", padding: "5px 8px", borderRadius: "6px" }}>
                 <strong>{isKn ? "ಲಗ್ನ ಭಾವ:" : "Lagna:"}</strong> {lagnaStr}
+              </div>
+              <div style={{ background: "#FEF3C7", padding: "5px 8px", borderRadius: "6px" }}>
+                <strong>{isKn ? "ಮಹಾದಶಾ:" : "Dasha:"}</strong> {dashaStr.split(" ")[0]}
               </div>
             </div>
           </div>
 
           {/* Block 3: Archakashirvachan */}
-          <div style={{ background: "#FFFFFF", border: "2px solid #F59E0B", borderRadius: "12px", padding: "12px 14px" }}>
-            <div style={{ fontSize: "13px", fontWeight: 800, color: "#78350F", marginBottom: "6px", display: "flex", alignItems: "center", gap: "6px" }}>
+          <div style={{ background: "#FFFFFF", border: "2px solid #F59E0B", borderRadius: "12px", padding: "11px 14px" }}>
+            <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", alignItems: "center", gap: "6px" }}>
               <span>🚩</span>
               <span>{isKn ? "೨. ಶ್ರೀ ಗೋಕರ್ಣ ವೈದಿಕ ಅರ್ಚಕಾಶೀರ್ವಚನ (Vedic Blessing):" : "2. Gokarna Vedic Archaka Blessing:"}</span>
             </div>
-            <div style={{ fontSize: "11.5px", color: "#451A03", lineHeight: "1.65", fontWeight: 500 }}>
+            <div style={{ fontSize: "11.5px", color: "#261605", lineHeight: "1.65", fontWeight: 500 }}>
               {isKn
                 ? `ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿ ಹಾಗೂ ಶ್ರೀ ತಾಮ್ರಗೌರೀ ಅಂಬಾಜಿಯವರ ಸನ್ನಿಧಿಯಿಂದ ಜಾತಕರಾದ ${result.personName} (${rashiStr}, ${nakshatraStr}) ಅವರ ಜಾತಕದ ಸಮಸ್ತ ಗ್ರಹ ದೋಷಗಳು ಶಮನವಾಗಿ, ಸಕಲ ಕಾರ್ಯ ಸಿದ್ಧಿ, ದೀರ್ಘಾಯುಷ್ಯ, ಉದ್ಯೋಗ ವೃದ್ಧಿ ಹಾಗೂ ಶ್ರೀ ಮಹಾಲಕ್ಷ್ಮೀ ಕೃಪಾಕಟಾಕ್ಷ ಸದಾ ಲಭಿಸಲೆಂದು ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ವೇದ ವೈದಿಕರಿಂದ ಹಾರ್ದಿಕ ಆಶೀರ್ವಚನ ಪ್ರಾರ್ಥನೆಗಳು.`
                 : `May Sri Gokarna Mahabaleshwara Swami and Goddess Tamragauri bestow divine grace, health, longevity, and prosperity upon ${result.personName}. May all planetary afflictions in your chart be dissolved.`}
@@ -281,8 +289,8 @@ export const LifeGuidancePdfTemplate: React.FC<LifeGuidancePdfTemplateProps> = (
           </div>
 
           {/* Block 4: Daily Home Remedies (Japa/Mantra) */}
-          <div style={{ background: "#FFFFFF", border: "1.5px solid #F59E0B", borderRadius: "12px", padding: "12px 14px" }}>
-            <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", alignItems: "center", gap: "6px" }}>
+          <div style={{ background: "#FFFFFF", border: "1.5px solid #F59E0B", borderRadius: "12px", padding: "11px 14px" }}>
+            <div style={{ fontSize: "12px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", alignItems: "center", gap: "6px" }}>
               <span>🌸</span>
               <span>{isKn ? "೩. ಜಾತಕಾನುಸಾರ ಗೃಹ ಸಿದ್ಧ ಪೂಜಾ ಪರಿಹಾರಗಳು (Daily Home Remedies):" : "3. Personalized Daily Home Remedies:"}</span>
             </div>
@@ -302,16 +310,16 @@ export const LifeGuidancePdfTemplate: React.FC<LifeGuidancePdfTemplateProps> = (
             const howText = pujaDetail?.howTransforms?.[code] || pujaDetail?.howTransforms?.kn || (isKn ? "ಸಕಲ ಪ್ರತಿಬಂಧಕಗಳು ದೂರವಾಗಿ ಉದ್ಯೋಗ ಪ್ರಗತಿ, ದಾಂಪತ್ಯ ಸೌಖ್ಯ, ಸಂತಾನ ಪ್ರಾಪ್ತಿ ಹಾಗೂ ಲಕ್ಷ್ಮೀ ಅನುಗ್ರಹ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ." : "Dissolves life hurdles, granting career promotion, marital joy, progeny bliss, and prosperity.");
 
             return (
-              <div style={{ background: "#FFFBEB", border: "2.5px solid #D97706", borderRadius: "12px", padding: "12px 14px" }}>
-                <div style={{ fontSize: "13px", fontWeight: 800, color: "#78350F", marginBottom: "4px" }}>
+              <div style={{ background: "#FFFBEB", border: "2px solid #D97706", borderRadius: "12px", padding: "11px 14px" }}>
+                <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#78350F", marginBottom: "4px" }}>
                   🪔 ೪. {pujaName}
                 </div>
-                <div style={{ fontSize: "11px", color: "#78350F", lineHeight: "1.6" }}>
-                  <div style={{ marginBottom: "4px" }}>
+                <div style={{ fontSize: "11px", color: "#78350F", lineHeight: "1.55" }}>
+                  <div style={{ marginBottom: "3px" }}>
                     <strong style={{ color: "#92400E" }}>{isKn ? "• ಕುಂಡಲಿ ವಿಶ್ಲೇಷಣೆ (ಯಾಕೆ ಬೇಕು / WHY Required?):" : "• Kundli Analysis (WHY Required?):"}</strong>{" "}
                     {whyText}
                   </div>
-                  <div style={{ marginBottom: "4px" }}>
+                  <div style={{ marginBottom: "3px" }}>
                     <strong style={{ color: "#92400E" }}>{isKn ? "• ಗೋಕರ್ಣ ಸನ್ನಿಧಿ ವೈಶಿಷ್ಟ್ಯ (ಮಹತ್ತ್ವವೇನು / WHAT Significance?):" : "• Kshetra Significance (WHAT Significance?):"}</strong>{" "}
                     {whatText}
                   </div>
@@ -327,7 +335,7 @@ export const LifeGuidancePdfTemplate: React.FC<LifeGuidancePdfTemplateProps> = (
           {/* Page 2 Dedicated Archaka Verification Footer */}
           <div
             style={{
-              background: "linear-gradient(180deg, #78350F 0%, #451A03 100%)",
+              background: "linear-gradient(180deg, #451A03 0%, #260E02 100%)",
               border: "2px solid #F59E0B",
               borderRadius: "12px",
               padding: "10px 14px",
