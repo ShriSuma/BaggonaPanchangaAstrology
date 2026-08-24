@@ -10,6 +10,7 @@ import {
   getPriestProfile,
   type PriestProfile
 } from "../../features/seva/sevaPriestDirectory";
+import { encodeDevoteeToken } from "../../utils/tokenCipher";
 import { PriestQrCard1PageTemplate } from "./pdf/PriestQrCard1PageTemplate";
 
 type PriestQrGeneratorTabProps = {
@@ -65,8 +66,20 @@ export default function PriestQrGeneratorTab({
         ? window.location.origin
         : "https://baggona.app";
 
-    const priestPhoneStr = activePriest.phone || "+91 99723 39362";
-    const payloadUrl = `${origin}/daily?days=${durationDays}&priest=${encodeURIComponent(pName)}&phone=${encodeURIComponent(priestPhoneStr)}&devotee=${encodeURIComponent(identity.personName)}&lang=${selectedLang}&action=ics`;
+    const token = encodeDevoteeToken({
+      n: identity.personName || "Devotee",
+      nk: identity.nakshatraIndex,
+      r: identity.rashiIndex,
+      g: identity.gotra,
+      p: pName,
+      d: new Date().toISOString().slice(0, 10),
+      days: durationDays,
+      l: selectedLang,
+      dob: identity.dob,
+      tob: identity.tob
+    });
+
+    const payloadUrl = `${origin}/daily?token=${token}&action=ics`;
 
     QRCode.toDataURL(payloadUrl, {
       errorCorrectionLevel: "M",

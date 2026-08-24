@@ -1474,7 +1474,7 @@ export default function DailyDarshanaPage(): JSX.Element {
   };
 
   const requestedCalendarDays = useMemo(() => {
-    const raw = Number(params.get("days") || (decoded as any)?.days || (decoded as any)?.duration || 90);
+    const raw = Number((decoded as any)?.dy || (decoded as any)?.days || (decoded as any)?.duration || params.get("days") || 90);
     return Number.isFinite(raw) && raw > 0 ? raw : 90;
   }, [params, decoded]);
 

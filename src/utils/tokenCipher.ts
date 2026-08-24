@@ -44,6 +44,8 @@ export interface DevoteeTokenPayload {
   lg?: number;
   locationName?: string;
   loc?: string;
+  days?: number;
+  dy?: number;
 }
 
 const TOKEN_PREFIX = "bgn_v1_";
@@ -121,6 +123,8 @@ export function encodeDevoteeToken(payload: DevoteeTokenPayload): string {
     const rawDob = payload.dob ?? "";
     const rawTob = payload.tob ?? "";
 
+    const rawDays = payload.days !== undefined ? payload.days : payload.dy !== undefined ? payload.dy : 90;
+
     const compactObj = {
       n: rawName,
       nk: rawNak,
@@ -128,6 +132,7 @@ export function encodeDevoteeToken(payload: DevoteeTokenPayload): string {
       g: rawGotra,
       p: rawPandit,
       d: rawDate,
+      dy: rawDays,
       l: rawLang,
       tm: rawTime,
       s: rawSeva,
@@ -263,6 +268,7 @@ export function decodeDevoteeToken(token: string): (DevoteeTokenPayload & {
     const locationName = parsed.loc || parsed.lobhr || parsed.locationName || parsed.location || "Gokarna";
     const dob = parsed.dob || undefined;
     const tob = parsed.tob || undefined;
+    const days = typeof parsed.dy === "number" && parsed.dy > 0 ? parsed.dy : (typeof parsed.days === "number" && parsed.days > 0 ? parsed.days : 90);
 
     return {
       name,
@@ -277,6 +283,8 @@ export function decodeDevoteeToken(token: string): (DevoteeTokenPayload & {
       p: pandit,
       date,
       d: date,
+      days,
+      dy: days,
       lang,
       l: lang,
       time,
