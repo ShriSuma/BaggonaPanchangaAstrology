@@ -10,6 +10,7 @@ import {
   type SankhyaShastraResult
 } from "../features/sankhyashastra/sankhyaShastraEngine";
 import { SankhyaShastraPdfTemplate } from "../components/sankhyashastra/SankhyaShastraPdfTemplate";
+import { SankhyaNumerologyLoader } from "../components/sankhyashastra/SankhyaNumerologyLoader";
 
 type ChatMessage = {
   id: string;
@@ -366,6 +367,14 @@ export default function SankhyaShastraPage(): JSX.Element {
           </div>
         </form>
       </Card>
+
+      
+      {/* Animated Numerology Loader during processing */}
+      {isProcessing && (
+        <div className="my-6 flex justify-center">
+          <SankhyaNumerologyLoader isKn={isKn} />
+        </div>
+      )}
 
       {/* AI Generative Chatbox Timeline & Priest Reading View */}
       {messages.length > 0 && (

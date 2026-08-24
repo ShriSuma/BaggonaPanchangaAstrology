@@ -14,6 +14,7 @@ import {
   type PalmReadingResult
 } from "../features/palmreading/palmReadingEngine";
 import { PalmReadingPdfTemplate } from "../components/palmreading/PalmReadingPdfTemplate";
+import { PalmScannerLoader } from "../components/palmreading/PalmScannerLoader";
 import { calculateKundliWithPlaceSun } from "../core/KundliEngine";
 import { calculateTraditionalBaggona } from "../core/TraditionalBaggonaEngine";
 import { formatRashiAmsha } from "../core/localeNumbers";
@@ -594,6 +595,14 @@ export default function PalmReadingPage(): JSX.Element {
               </button>
             </div>
           </Card>
+        </div>
+      )}
+
+      
+      {/* Animated Palm Scanner Loader during processing */}
+      {isProcessing && (
+        <div className="my-6 flex justify-center">
+          <PalmScannerLoader isKn={isKn} />
         </div>
       )}
 
