@@ -76,6 +76,18 @@ export const MaranottaraPdfTemplate: React.FC<MaranottaraPdfTemplateProps> = ({
           </div>
         </div>
 
+        {/* AI Spiritual Consolation Card */}
+        {result.aiConsolationText && (
+          <div style={{ background: "#FFFFFF", border: "1.5px solid #FCD34D", borderRadius: "10px", padding: "10px 14px", marginBottom: "14px" }}>
+            <div style={{ fontSize: "12px", fontWeight: 800, color: "#78350F", marginBottom: "4px" }}>
+              🕉️ {code === "kn" ? "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಧರ್ಮಜ್ಞ ದೈವಿಕ ಸದ್ಗತಿ ಸಂದೇಶ & ಮಂತ್ರ:" : "Gokarna Spiritual Consolation & Guidance:"}
+            </div>
+            <div style={{ fontSize: "11px", color: "#78350F", lineHeight: "1.5", whiteSpace: "pre-wrap" }}>
+              {sanitizeAIText(result.aiConsolationText)}
+            </div>
+          </div>
+        )}
+
         {/* Masika Schedule Table Card */}
         <div style={{ background: "#FFFFFF", border: "2px solid #F59E0B", borderRadius: "10px", padding: "14px", marginBottom: "14px", flex: 1 }}>
           <div style={{ fontSize: "13px", fontWeight: 800, color: "#78350F", borderBottom: "1.5px solid #FEF3C7", paddingBottom: "6px", marginBottom: "10px" }}>

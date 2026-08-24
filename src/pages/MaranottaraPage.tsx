@@ -1,12 +1,14 @@
 import React, { useState, useRef } from "react";
 import Card from "../components/ui/Card";
-import { executeMaranottaraCalculation, MaranottaraResult, MasikaDurationYears } from "../features/maranottara/maranottaraEngine";
+import { executeMaranottaraCalculation, generateMaranottaraAIConsolation, MaranottaraResult, MasikaDurationYears } from "../features/maranottara/maranottaraEngine";
+import { useAppStore } from "../stores/appStore";
 import { MaranottaraPdfTemplate } from "../components/maranottara/MaranottaraPdfTemplate";
 import { sanitizeAIText } from "../utils/textFormatter";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
 export const MaranottaraPage: React.FC = () => {
+  const activeKey = useAppStore((state) => state.geminiApiKey);
   const [selectedLang, setSelectedLang] = useState<string>("kn");
   const isKn = selectedLang === "kn";
 
@@ -29,7 +31,7 @@ export const MaranottaraPage: React.FC = () => {
 
     setIsProcessing(true);
 
-    setTimeout(() => {
+    setTimeout(async () => {
       const calcResult = executeMaranottaraCalculation({
         personName: personName.trim() || (isKn ? "ಶ್ರೀಯುತ ಮೃತ ಆತ್ಮ" : "Deceased Soul"),
         demiseDate,
@@ -39,13 +41,17 @@ export const MaranottaraPage: React.FC = () => {
         lang: selectedLang
       });
 
+      // Generate AI Spiritual Consolation narrative via Gemini 3.5 Flash Lite
+      const aiText = await generateMaranottaraAIConsolation(calcResult, selectedLang, activeKey);
+      calcResult.aiConsolationText = aiText;
+
       setResult(calcResult);
       setIsProcessing(false);
 
       setTimeout(() => {
         resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 100);
-    }, 1200);
+    }, 1000);
   };
 
   const handleDownloadPdf = async () => {
@@ -104,17 +110,23 @@ export const MaranottaraPage: React.FC = () => {
             : "Accurate monthly Masika Tithi schedule for 1 to 5 years and Demise Time Dosha Nivarana remedies based on Gokarna Kshetra Shastra."}
         </p>
 
-        {/* Language Picker */}
-        <div className="mt-4 flex justify-center gap-2">
-          {["kn", "en", "hi", "te", "ta"].map((l) => (
+        {/* Full Language Picker */}
+        <div className="mt-4 flex flex-wrap justify-center gap-2">
+          {[
+            { code: "kn", label: "ಕನ್ನಡ" },
+            { code: "en", label: "English" },
+            { code: "hi", label: "हिन्दी" },
+            { code: "te", label: "తెలుగు" },
+            { code: "ta", label: "தமிழ்" }
+          ].map((item) => (
             <button
-              key={l}
-              onClick={() => setSelectedLang(l)}
-              className={`px-3 py-1 text-xs font-bold rounded-lg border transition ${
-                selectedLang === l ? "bg-amber-400 text-amber-950 border-amber-300 shadow" : "bg-amber-900/60 text-amber-200 border-amber-700 hover:bg-amber-800"
+              key={item.code}
+              onClick={() => setSelectedLang(item.code)}
+              className={`px-3.5 py-1.5 text-xs font-bold rounded-xl border transition ${
+                selectedLang === item.code ? "bg-amber-400 text-amber-950 border-amber-300 shadow-md scale-105" : "bg-amber-900/70 text-amber-200 border-amber-700 hover:bg-amber-800"
               }`}
             >
-              {l.toUpperCase()}
+              {item.label}
             </button>
           ))}
         </div>
@@ -281,6 +293,18 @@ export const MaranottaraPage: React.FC = () => {
           {/* TAB 1: Masika Schedule Grid */}
           {activeTab === "schedule" && (
             <Card className="border border-amber-300 bg-gradient-to-b from-amber-50/30 to-white p-5 shadow-md space-y-4">
+              {/* AI Spiritual Consolation Card */}
+              {result.aiConsolationText && (
+                <div className="rounded-2xl border border-amber-300 bg-gradient-to-r from-amber-100 via-amber-50 to-orange-100 p-4 shadow-sm space-y-1.5">
+                  <h4 className="font-bold text-xs text-amber-950 flex items-center gap-2">
+                    <span>🕉️</span>
+                    <span>{isKn ? "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಧರ್ಮಜ್ಞ ದೈವಿಕ ಸದ್ಗತಿ ಸಂದೇಶ & ಮಂತ್ರ" : "Gokarna Spiritual Consolation & Mantra"}</span>
+                  </h4>
+                  <p className="text-xs text-amber-900 font-medium leading-relaxed whitespace-pre-wrap">
+                    {sanitizeAIText(result.aiConsolationText)}
+                  </p>
+                </div>
+              )}
               <div className="flex items-center justify-between border-b border-amber-200 pb-3">
                 <h3 className="font-serif text-base font-bold text-amber-950 flex items-center gap-2">
                   <span>📅</span>
