@@ -2331,48 +2331,7 @@ export default function DailyDarshanaPage(): JSX.Element {
           </div>
         )}
 
-        {/* Today's Personalized 4-Point Bhavishya Highlights */}
-        {todayBhavishya && (
-          <div style={{
-            background: "linear-gradient(135deg, rgba(80, 27, 17, 0.95), rgba(45, 20, 7, 0.95))",
-            border: "2px solid #F59E0B",
-            borderRadius: 18,
-            padding: 16,
-            marginTop: 20,
-            boxShadow: "0 8px 24px rgba(0,0,0,0.5)"
-          }}>
-            <div style={{ textAlign: "center", marginBottom: 14 }}>
-              <div style={{ fontSize: 16, fontWeight: 900, color: "#FDE68A" }}>
-                {todayBhavishya.title}
-              </div>
-              <div style={{ fontSize: 11, color: "#F59E0B", marginTop: 2 }}>
-                {todayBhavishya.subtitle}
-              </div>
-            </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 12 }}>
-              {todayBhavishya.points.map((pt, i) => (
-                <div key={i} style={{
-                  background: "rgba(28, 10, 0, 0.75)",
-                  border: "1px solid rgba(245, 158, 11, 0.35)",
-                  borderRadius: 12,
-                  padding: "12px 14px"
-                }}>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: "#FDE68A", display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-                    <span>{pt.icon}</span>
-                    <span>{pt.category}</span>
-                  </div>
-                  <div style={{ fontSize: 12, color: "#FFFFFF", lineHeight: 1.5, marginBottom: 4 }}>
-                    {pt.prediction}
-                  </div>
-                  <div style={{ fontSize: 11, color: "#6EE7B7", fontStyle: "italic" }}>
-                    💡 {pt.advice}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Footer Sharing & Priest Contact Actions */}
         <div style={{
