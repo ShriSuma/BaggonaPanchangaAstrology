@@ -47,7 +47,9 @@ export default function SankhyaShastraPage(): JSX.Element {
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messages.length > 0) {
+      chatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
   }, [messages]);
 
   // Speech Recognition (Voice Input Mic)
@@ -370,10 +372,12 @@ export default function SankhyaShastraPage(): JSX.Element {
       </Card>
 
       
-      {/* Animated Numerology Loader during processing */}
+      {/* Full-Screen Centered Animated Numerology Modal Overlay */}
       {isProcessing && (
-        <div className="my-6 flex justify-center">
-          <SankhyaNumerologyLoader isKn={isKn} />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 animate-fade-in">
+          <div className="w-full max-w-sm">
+            <SankhyaNumerologyLoader isKn={isKn} />
+          </div>
         </div>
       )}
 

@@ -77,7 +77,9 @@ export default function PalmReadingPage(): JSX.Element {
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messages.length > 0) {
+      chatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
   }, [messages]);
 
   // Handle File Selection (Upload or Camera Capture)
@@ -600,10 +602,12 @@ export default function PalmReadingPage(): JSX.Element {
       )}
 
       
-      {/* Animated Palm Scanner Loader during processing */}
+      {/* Full-Screen Centered Animated Palm Scanner Modal Overlay */}
       {isProcessing && (
-        <div className="my-6 flex justify-center">
-          <PalmScannerLoader isKn={isKn} />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 animate-fade-in">
+          <div className="w-full max-w-sm">
+            <PalmScannerLoader isKn={isKn} />
+          </div>
         </div>
       )}
 
