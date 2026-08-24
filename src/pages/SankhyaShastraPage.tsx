@@ -20,11 +20,14 @@ type ChatMessage = {
 };
 
 export default function SankhyaShastraPage(): JSX.Element {
-  const language = useAppStore((s) => s.language);
+  const appLanguage = useAppStore((s) => s.language);
   const geminiApiKey = useAppStore((s) => s.geminiApiKey);
   const session = useKundliViewerStore((s) => s.session);
 
-  const isKn = language === "kn";
+  // Language selector state (defaults to appLanguage or kn)
+  const [selectedLang, setSelectedLang] = useState<string>(appLanguage || "kn");
+  const isKn = selectedLang === "kn";
+
   const devoteeName = session?.input?.name || (isKn ? "ಶ್ರೀಯುತ ಭಕ್ತರು" : "Devotee");
 
   // Inputs
@@ -61,7 +64,16 @@ export default function SankhyaShastraPage(): JSX.Element {
 
     try {
       const recognition = new SpeechRecognition();
-      recognition.lang = language === "kn" ? "kn-IN" : language === "hi" ? "hi-IN" : language === "te" ? "te-IN" : language === "ta" ? "ta-IN" : "en-US";
+      recognition.lang =
+        selectedLang === "kn"
+          ? "kn-IN"
+          : selectedLang === "hi"
+          ? "hi-IN"
+          : selectedLang === "te"
+          ? "te-IN"
+          : selectedLang === "ta"
+          ? "ta-IN"
+          : "en-US";
       recognition.interimResults = false;
 
       recognition.onstart = () => {
@@ -112,7 +124,7 @@ export default function SankhyaShastraPage(): JSX.Element {
       const result = await executeSankhyaShastraPrashna(
         questionInput.trim(),
         numVal,
-        language,
+        selectedLang,
         geminiApiKey
       );
 
@@ -165,7 +177,7 @@ export default function SankhyaShastraPage(): JSX.Element {
       const answer = await askSankhyaShastraFollowUp(
         activeResult,
         query,
-        language,
+        selectedLang,
         geminiApiKey
       );
 
@@ -212,7 +224,8 @@ export default function SankhyaShastraPage(): JSX.Element {
       const pdfHeight = pdf.internal.pageSize.getHeight();
 
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`Baggona_Sankhya_Shastra_Prashna_${Date.now()}.pdf`);
+      const safeName = (devoteeName || "Devotee").replace(/[^\p{L}\p{N}]+/gu, "_");
+      pdf.save(`Baggona_Sankhya_Shastra_Prashna_${safeName}_${selectedLang.toUpperCase()}.pdf`);
     } catch (err) {
       console.error("PDF download error:", err);
       alert("Error generating PDF.");
@@ -220,6 +233,14 @@ export default function SankhyaShastraPage(): JSX.Element {
       setIsGeneratingPdf(false);
     }
   };
+
+  const languages = [
+    { code: "kn", label: "ಕನ್ನಡ (Kannada)" },
+    { code: "en", label: "English" },
+    { code: "hi", label: "हिंदी (Hindi)" },
+    { code: "te", label: "తెలుగు (Telugu)" },
+    { code: "ta", label: "தமிழ் (Tamil)" }
+  ];
 
   return (
     <div className="space-y-6 pb-12">
@@ -250,6 +271,35 @@ export default function SankhyaShastraPage(): JSX.Element {
           )}
         </div>
       </div>
+
+      {/* Language Selector Radio Panel */}
+      <Card className="border border-amber-300/80 bg-white p-4 shadow-sm">
+        <label className="block text-xs font-bold uppercase tracking-wider text-amber-900/80 mb-2">
+          🌐 {isKn ? "ಸಂವಾದ & PDF ಭಾಷೆ (Select Chat & PDF Language)" : "Select Chat & PDF Language"}
+        </label>
+        <div className="flex flex-wrap gap-3">
+          {languages.map((l) => (
+            <label
+              key={l.code}
+              className={`flex items-center gap-2 rounded-xl border px-3 py-1.5 text-xs font-bold cursor-pointer transition ${
+                selectedLang === l.code
+                  ? "border-amber-600 bg-amber-100 text-amber-950 shadow-sm"
+                  : "border-amber-200 bg-amber-50/50 text-amber-900 hover:bg-amber-100/50"
+              }`}
+            >
+              <input
+                type="radio"
+                name="sankhyaLang"
+                value={l.code}
+                checked={selectedLang === l.code}
+                onChange={(e) => setSelectedLang(e.target.value)}
+                className="accent-amber-700"
+              />
+              <span>{l.label}</span>
+            </label>
+          ))}
+        </div>
+      </Card>
 
       {/* Prashna Input Form Panel */}
       <Card className="border border-amber-300/80 bg-white p-5 shadow-sm">
@@ -327,7 +377,7 @@ export default function SankhyaShastraPage(): JSX.Element {
             </h3>
             {activeResult && (
               <div className="rounded-full bg-amber-100 border border-amber-300 px-3 py-1 text-xs font-bold text-amber-900">
-                {activeResult.prashnaLagnaName[language] || activeResult.prashnaLagnaName.en} (ಮನೆ {activeResult.prashnaLagnaHouse}) · ಸಂಖ್ಯೆ: {activeResult.userNumber}
+                {activeResult.prashnaLagnaName[selectedLang] || activeResult.prashnaLagnaName.en} (ಮನೆ {activeResult.prashnaLagnaHouse}) · ಸಂಖ್ಯೆ: {activeResult.userNumber}
               </div>
             )}
           </div>
@@ -354,8 +404,9 @@ export default function SankhyaShastraPage(): JSX.Element {
                   {msg.result && (
                     <div className="mb-3 rounded-xl border border-amber-300 bg-amber-100/80 p-2.5 text-xs text-amber-950 font-bold flex flex-wrap gap-3">
                       <div>🔢 {isKn ? "ಆಯ್ಕೆ ಸಂಖ್ಯೆ:" : "Number:"} {msg.result.userNumber}</div>
-                      <div>🌱 {isKn ? "ಮೂಲ ಸಂಖ್ಯೆ (Root):" : "Root:"} {msg.result.rootNumber} ({msg.result.rootRuler[language] || msg.result.rootRuler.en})</div>
-                      <div>🏛️ {isKn ? "ಪ್ರಶ್ನಾ ಲಗ್ನ:" : "Lagna:"} {msg.result.prashnaLagnaName[language] || msg.result.prashnaLagnaName.en}</div>
+                      <div>🌱 {isKn ? "ಮೂಲ ಸಂಖ್ಯೆ (Root):" : "Root:"} {msg.result.rootNumber} ({msg.result.rootRulerName[selectedLang] || msg.result.rootRulerName.en})</div>
+                      <div>🏛️ {isKn ? "ಪ್ರಶ್ನಾ ಲಗ್ನ:" : "Lagna:"} {msg.result.prashnaLagnaName[selectedLang] || msg.result.prashnaLagnaName.en}</div>
+                      <div>⚡ {isKn ? "ಪ್ರಶ್ನಾ ಬಲ:" : "Score:"} {msg.result.prashnaBalaScore}%</div>
                     </div>
                   )}
 
@@ -389,7 +440,7 @@ export default function SankhyaShastraPage(): JSX.Element {
       {/* Hidden Container for PDF Rendering */}
       {activeResult && (
         <div className="hidden">
-          <SankhyaShastraPdfTemplate result={activeResult} personName={devoteeName} lang={language} />
+          <SankhyaShastraPdfTemplate result={activeResult} personName={devoteeName} lang={selectedLang} />
         </div>
       )}
     </div>
