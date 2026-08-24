@@ -159,8 +159,8 @@ export const LifeGuidancePage: React.FC<LifeGuidancePageProps> = ({ initialInput
       const element = document.getElementById("life-guidance-pdf-container");
       if (!element) throw new Error("PDF container not found");
 
-      const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: "#FFFDF7" });
-      const imgData = canvas.toDataURL("image/png");
+      const canvas = await html2canvas(element, { scale: 1.8, useCORS: true, backgroundColor: "#FFFDF7", logging: false });
+      const imgData = canvas.toDataURL("image/jpeg", 0.88);
 
       const imgWidth = 210; // A4 width in mm
       const pageHeight = 297; // A4 height in mm
@@ -168,14 +168,14 @@ export const LifeGuidancePage: React.FC<LifeGuidancePageProps> = ({ initialInput
       let heightLeft = imgHeight;
       let position = 0;
 
-      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4", compress: true });
+      pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight, undefined, "FAST");
       heightLeft -= pageHeight;
 
       while (heightLeft > 5) {
         position = heightLeft - imgHeight;
         pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+        pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight, undefined, "FAST");
         heightLeft -= pageHeight;
       }
 
