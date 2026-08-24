@@ -7,19 +7,45 @@ import { useAppStore } from "../stores/appStore";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
-export const LifeGuidancePage: React.FC = () => {
+export type LifeGuidancePageProps = {
+  initialInput?: {
+    personName?: string;
+    dob?: string;
+    tob?: string;
+    gender?: string;
+  };
+};
+
+export const LifeGuidancePage: React.FC<LifeGuidancePageProps> = ({ initialInput }) => {
   const activeKey = useAppStore((state) => state.geminiApiKey);
 
   const [selectedLang, setSelectedLang] = useState<string>("kn");
   const isKn = selectedLang === "kn";
 
-  const [personName, setPersonName] = useState<string>("");
-  const [dob, setDob] = useState<string>("");
-  const [tob, setTob] = useState<string>("12:00");
-  const [gender, setGender] = useState<string>("Male");
+  const [personName, setPersonName] = useState<string>(initialInput?.personName || "");
+  const [dob, setDob] = useState<string>(initialInput?.dob || "");
+  const [tob, setTob] = useState<string>(initialInput?.tob || "12:00");
+  const [gender, setGender] = useState<string>(initialInput?.gender || "Male");
 
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [result, setResult] = useState<LifeGuidanceResult | null>(null);
+
+  // Auto-calculate if initialInput with DOB is provided
+  React.useEffect(() => {
+    if (initialInput?.dob && !result && !isProcessing) {
+      setIsProcessing(true);
+      executeLifeGuidanceCalculation({
+        personName: initialInput.personName || "Devotee",
+        dob: initialInput.dob,
+        tob: initialInput.tob || "12:00",
+        gender: initialInput.gender || "Male",
+        lang: selectedLang
+      }, activeKey).then((res) => {
+        setResult(res);
+        setIsProcessing(false);
+      });
+    }
+  }, [initialInput]);
   const [activeTab, setActiveTab] = useState<LifeGuidanceTabKey | "custom">("career");
   const [customQuestion, setCustomQuestion] = useState<string>("");
   const [isListening, setIsListening] = useState<boolean>(false);
@@ -133,9 +159,24 @@ export const LifeGuidancePage: React.FC = () => {
 
       const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: "#FFFDF7" });
       const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
 
-      pdf.addImage(imgData, "PNG", 0, 0, 210, 297);
+      const imgWidth = 210; // A4 width in mm
+      const pageHeight = 297; // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
       pdf.save(`Baggona_Life_Guidance_${result.personName.replace(/\s+/g, "_")}.pdf`);
     } catch (err) {
       console.error("PDF generation failed:", err);

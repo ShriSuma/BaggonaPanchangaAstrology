@@ -14,6 +14,7 @@ import { calculateTraditionalBaggona } from "../core/TraditionalBaggonaEngine";
 import { translateText } from "../utils/translator";
 import { patrikaMetaForNakshatraIndex as import_patrikaMetaForNakshatraIndex } from "../core/nakshatraPatrikaMeta";
 import { analytics } from "../core/analytics";
+import { LifeGuidancePage } from "./LifeGuidancePage";
 import { saveKundli, recordDailyHit } from "../db/indexedDb";
 import { useAppStore } from "../stores/appStore";
 import { useKundliViewerStore } from "../stores/kundliViewerStore";
@@ -63,7 +64,7 @@ export default function KundliPage(): JSX.Element {
   const exportContainerRef = useRef<HTMLDivElement>(null);
   const traditionalExportRef = useRef<HTMLDivElement>(null);
   const dashaExportRef = useRef<HTMLDivElement>(null);
-  const [activeView, setActiveView] = useState<"jataka" | "dasha">("jataka");
+  const [activeView, setActiveView] = useState<"jataka" | "dasha" | "lifeguidance">("jataka");
   const [dashaViewType, setDashaViewType] = useState<"grid" | "visualization">("grid");
 
   const [pdfLanguage, setPdfLanguage] = useState<string>(i18n.language);
@@ -747,7 +748,7 @@ export default function KundliPage(): JSX.Element {
             </button>
             <button
               type="button"
-              className={`jk-btn rounded-xl px-8 py-3 text-base font-bold tracking-wide shadow-md transition-all ${
+              className={`jk-btn rounded-xl px-6 py-3 text-sm md:text-base font-bold tracking-wide shadow-md transition-all ${
                 activeView === "dasha"
                   ? "bg-indigo-600 text-white"
                   : "bg-white text-indigo-900 border border-indigo-200 hover:bg-indigo-50"
@@ -756,7 +757,31 @@ export default function KundliPage(): JSX.Element {
             >
               Complete Dasha Bhukti
             </button>
+            <button
+              type="button"
+              className={`jk-btn rounded-xl px-6 py-3 text-sm md:text-base font-bold tracking-wide shadow-md transition-all ${
+                activeView === "lifeguidance"
+                  ? "bg-amber-600 text-white"
+                  : "bg-white text-amber-900 border border-amber-300 hover:bg-amber-50"
+              }`}
+              onClick={() => setActiveView("lifeguidance")}
+            >
+              🔮 {i18n.language.startsWith("kn") ? "ಪರಿಪೂರ್ಣ ಜೀವನ ಮಾರ್ಗದರ್ಶನ" : "Life Guidance"}
+            </button>
           </div>
+
+          {activeView === "lifeguidance" && (
+            <div className="animate-fade-in">
+              <LifeGuidancePage
+                initialInput={{
+                  personName: form.name,
+                  dob: form.birthDate,
+                  tob: form.birthTime,
+                  gender: form.gender
+                }}
+              />
+            </div>
+          )}
 
           {activeView === "jataka" && (
             <div className="space-y-6 animate-fade-in">

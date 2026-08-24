@@ -1,4 +1,5 @@
 import React from "react";
+import ReactDOM from "react-dom";
 
 export type PalmScannerLoaderProps = {
   isKn?: boolean;
@@ -9,7 +10,7 @@ export const PalmScannerLoader: React.FC<PalmScannerLoaderProps> = ({
   isKn = true,
   message
 }) => {
-  return (
+  return ReactDOM.createPortal(
     <div
       style={{
         position: "fixed",
@@ -19,9 +20,9 @@ export const PalmScannerLoader: React.FC<PalmScannerLoaderProps> = ({
         bottom: 0,
         width: "100vw",
         height: "100vh",
-        zIndex: 99999
+        zIndex: 999999
       }}
-      className="fixed inset-0 w-screen h-screen bg-slate-950/90 backdrop-blur-xl flex items-center justify-center p-4 overflow-hidden"
+      className="fixed top-0 left-0 right-0 bottom-0 w-screen h-screen bg-slate-950/95 backdrop-blur-2xl flex items-center justify-center p-4 overflow-hidden m-0"
     >
       <div className="flex flex-col items-center justify-center p-8 text-center rounded-3xl border-2 border-amber-400/80 bg-gradient-to-b from-amber-950/95 via-amber-900/95 to-amber-950/95 text-amber-100 shadow-[0_0_50px_rgba(245,158,11,0.3)] max-w-sm w-full">
         {/* Animated Palm Energy Scanner */}
@@ -59,6 +60,7 @@ export const PalmScannerLoader: React.FC<PalmScannerLoaderProps> = ({
           <div className="h-full bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-200 rounded-full animate-pulse"></div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

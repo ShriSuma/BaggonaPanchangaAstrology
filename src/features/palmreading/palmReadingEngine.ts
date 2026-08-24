@@ -168,6 +168,17 @@ The devotee has uploaded photographs of their ${handSide.toUpperCase()} HAND pal
 ${sideImageDataUrl ? "2. Side View (Marriage & Children Lines near Mercury Mount)" : ""}
 ${backImageDataUrl ? "3. Back View (Nails & Finger shape for Temperament)" : ""}
 
+${kundliData ? `
+NATAL ASTRONOMICAL KUNDALI INTEGRATION (TraditionalBaggonaEngine Contract):
+- Devotee: ${devoteeName}
+- Lagna: ${kundliData.lagna}
+- Moon Rashi: ${kundliData.rashi}
+- Nakshatra: ${kundliData.nakshatra}
+- Maandi House: ${kundliData.maandi}
+- Current Dasha: ${kundliData.dasha}
+Cross-reference the 5 Palm Lines & Mounts directly with these authentic birth chart planetary positions for 100% mathematical precision!
+` : ""}
+
 Perform an authentic, 360-degree, highly detailed, encouraging, and accurate Hastarekha Shastra inspection across all uploaded palm angles:
 1. Examine the 5 Major Lines (Life, Head, Heart, Fate, Sun Lines).
 2. Examine the Palm Mounts (Guru, Shani, Surya, Budha, Shukra, Kuja, Chandra Parvata).
