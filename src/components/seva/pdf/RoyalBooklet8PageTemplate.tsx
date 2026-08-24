@@ -692,6 +692,19 @@ const PLANET_SHORT_L5: Record<string, Record<string, string>> = {
 };
 
 /** Dynamic South Indian Grid Generator for D1 and D9 */
+
+const PLANET_REMEDY_MAP_L5: Record<string, Record<string, string>> = {
+  Sun: { kn: "ರವಿವಾರ ಶ್ರೀ ಆದಿತ್ಯ ಹೃದಯ ಸ್ತೋತ್ರ ಪಠಿಸಿ ಹಾಗೂ ಸೂರ್ಯದೇವನಿಗೆ ಅರ್ಘ್ಯ ನೀಡಿ.", en: "Recite Sri Aditya Hrudayam on Sundays and offer Arghya to Sun.", hi: "रविवार को श्री आदित्य हृदय स्तोत्र का पाठ करें और सूर्यदेव को अर्घ्य दें।", te: "ఆదివారం శ్రీ ఆదిత్య హృదయ స్తోత్రం పఠించండి.", ta: "ஞாயிற்றுக்கிழமைகளில் ஸ்ரீ ஆதித்ய ஹ்ருதயம் பாராயணம் செய்யவும்." },
+  Moon: { kn: "ಸೋಮವಾರ ಶ್ರೀ ಶಿವಪೂಜೆ ಮಾಡಿ ಹಾಗೂ ಬಡವರಿಗೆ ಶ್ವೇತ ವಸ್ತ್ರ ದಾನ ಮಾಡಿ.", en: "Perform Shiva Puja on Mondays and donate white clothes to needy.", hi: "सोमवार को श्री शिव पूजा करें और जरूरतमंदों को सफेद वस्त्र दान करें।", te: "సోమవారం శ్రీ శివ పూజ చేయండి.", ta: "திங்கள்கிழமைகளில் ஸ்ரீ சிவ பூஜை செய்யவும்." },
+  Mars: { kn: "ಮಂಗಳವಾರ ಶ್ರೀ ಸುಬ್ರಹ್ಮಣ್ಯ / ಹನುಮಾನ್ ಪೂಜೆ ಮಾಡಿ ಹಾಗೂ ತೊಗರಿ ಬೇಳೆ ದಾನ ಮಾಡಿ.", en: "Worship Lord Subrahmanya or Hanuman on Tuesdays.", hi: "मंगलवार को श्री सुब्रह्मण्य या हनुमान पूजा करें।", te: "మంగళవారం శ్రీ సుబ్రహ్మణ్య స్వామి పూజ చేయండి.", ta: "செவ்வாய்க்கிழமைகளில் ஸ்ரீ சுப்ரமண்யர் பூஜை செய்யவும்." },
+  Mercury: { kn: "ಬುಧವಾರ ಶ್ರೀ ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಪಠಿಸಿ ಹಾಗೂ ಹಸಿರು ಬೇಳೆ ದಾನ ಮಾಡಿ.", en: "Recite Sri Vishnu Sahasranama on Wednesdays.", hi: "बुधवार को श्री विष्णु सहस्रनाम का पाठ करें।", te: "బుధవారం శ్రీ విష్ణు సహస్రనామ పారాయణం చేయండి.", ta: "புதன்கிழமைகளில் ஸ்ரீ விஷ்ணு சஹஸ்ரநாமம் பாராயணம் செய்யவும்." },
+  Jupiter: { kn: "ಗುರುವಾರ ಶ್ರೀ ದತ್ತಾತ್ರೇಯ / ರಾಘವೇಂದ್ರ ಸ್ವಾಮಿ ಪೂಜೆ ಮಾಡಿ ಹಾಗೂ ಕಡಲೆ ದಾನ ಮಾಡಿ.", en: "Worship Lord Dattatreya or Raghavendra Swamy on Thursdays.", hi: "गुरुवार को श्री दत्तात्रेय या राघवेंद्र स्वामी की पूजा करें।", te: "గురువారం శ్రీ దత్తాత్రేయ పూజ చేయండి.", ta: "வியாழக்கிழமைகளில் ஸ்ரீ ராகவேந்திரர் பூஜை செய்யவும்." },
+  Venus: { kn: "ಶುಕ್ರವಾರ ಶ್ರೀ ಮಹಾಲಕ್ಷ್ಮಿ ಪೂಜೆ ಮಾಡಿ ಹಾಗೂ ದೇವಿಗೆ ಕಲ್ಕಂಡು ಅರ್ಪಿಸಿ.", en: "Perform Sri Mahalakshmi Puja on Fridays.", hi: "शुक्रवार को श्री महालक्ष्मी पूजा करें।", te: "శుక్రవారం శ్రీ महालक्ष्मी पूजा करें।", ta: "வெள்ளிக்கிழமைகளில் ஸ்ரீ மகாலட்சுமி பூஜை செய்யவும்." },
+  Saturn: { kn: "ಶನಿವಾರ ಶ್ರೀ ಹನುಮಾನ್ ಚಾಲೀಸಾ ಪಠಿಸಿ ಹಾಗೂ ಬಡವರಿಗೆ ಎಳ್ಳಿನ ದಾನ ಮಾಡಿ.", en: "Recite Sri Hanuman Chalisa on Saturdays and donate sesame seeds.", hi: "शनिवार को श्री हनुमान चालीसा का पाठ करें।", te: "శనివారం శ్రీ హనుమాన్ చాలీసా పఠించండి.", ta: "சனிக்கிழமைகளில் ஸ்ரீ ஹனுமான் சாலீசா பாராயணம் செய்யவும்." },
+  Rahu: { kn: "ಶನಿವಾರ/ಮಂಗಳವಾರ ಶ್ರೀ ದುರ್ಗಾ ಸಪ್ತಶತಿ ಪಠಿಸಿ ಹಾಗೂ ಕಪ್ಪು ಉದ್ದು ದಾನ ಮಾಡಿ.", en: "Recite Sri Durga Saptashati and donate black gram.", hi: "श्री दुर्गा सप्तशती का पाठ करें।", te: "శ్రీ దుర్గా సప్తశతి పారాయణం చేయండి.", ta: "ஸ்ரீ துர்க்கா சப்தசதி பாராயணம் செய்யவும்." },
+  Ketu: { kn: "ಸಂಕಷ್ಟಹರ ಚತುರ್ಥಿಯಂದು ಶ್ರೀ ಗಣೇಶ ಸಂಕಟನಾಶನ ಸ್ತೋತ್ರ ಪಠಿಸಿ.", en: "Recite Sri Ganesha Sankata Nashana Stotra on Sankashti Chaturthi.", hi: "संकष्टी चतुर्थी को श्री गणेश संकटनाशन स्तोत्र का पाठ करें।", te: "శ్రీ గణేశ సంకటనాశన స్తోత్రం పఠించండి.", ta: "ஸ்ரீ கணேச சங்கடநாசன ஸ்தோத்திரம் பாராயணம் செய்யவும்." }
+};
+
 const renderSouthIndianGrid = (
   kundli: any,
   isD9: boolean,
@@ -859,6 +872,82 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
       return null;
     }
   }, [dobStr, tobStr, rawDevoteeName]);
+
+    const dashaCardsData = React.useMemo(() => {
+    if (!birthKundli) return [];
+    const timeline = generateBhuktiTimeline(birthKundli, 100);
+    if (!timeline || timeline.length === 0) return [];
+
+    let bDate = new Date();
+    if (dobStr && /^\d{4}-\d{2}-\d{2}$/.test(dobStr)) {
+      bDate = new Date(dobStr + "T12:00:00");
+    }
+
+    const now = new Date();
+    const currentAgeDecimal = Math.max(0, (now.getTime() - bDate.getTime()) / (365.25 * 86400000));
+
+    let activeIdx = timeline.findIndex(b => currentAgeDecimal >= b.startAge && currentAgeDecimal < b.endAge);
+    if (activeIdx < 0) activeIdx = 0;
+
+    const selectedSpans = timeline.slice(activeIdx, activeIdx + 5);
+
+    return selectedSpans.map((span, idx) => {
+      const isCurrent = idx === 0;
+      const mahaName = (PLANET_SHORT_L5[span.maha] as any)?.[code] || span.maha;
+      const bhuktiName = (PLANET_SHORT_L5[span.bhukti] as any)?.[code] || span.bhukti;
+
+      const startDate = new Date(bDate.getTime() + span.startAge * 365.25 * 86400000);
+      const endDate = new Date(bDate.getTime() + span.endAge * 365.25 * 86400000);
+      const startYmd = startDate.toISOString().split("T")[0];
+      const endYmd = endDate.toISOString().split("T")[0];
+
+      const startAgeInt = Math.floor(span.startAge);
+      const endAgeInt = Math.ceil(span.endAge);
+
+      const bhuktiPos = birthKundli.planets.find(p => p.name === span.bhukti);
+      const house = bhuktiPos ? bhuktiPos.house : 1;
+      const isGood = [1, 4, 5, 7, 9, 10, 11].includes(house);
+
+      let badgeText = "";
+      if (isCurrent) {
+        badgeText = code === "kn" ? "📌 ಪ್ರಸ್ತುತ ನಡವಳಿಕೆ" : (code === "hi" ? "📌 वर्तमान समय" : "📌 Current Active Period");
+      } else if (isGood) {
+        badgeText = code === "kn" ? "✨ ಶುಭ ಯೋಗ & ಧನ ವೃದ್ಧಿ" : (code === "hi" ? "✨ शुभ योग व धन वृद्धि" : "✨ Favorable Prosperity Period");
+      } else {
+        badgeText = code === "kn" ? "⚖️ ಪರಿಶ್ರಮ & ಸ್ಥಿರ ಕರ್ಮ" : (code === "hi" ? "⚖️ परिश्रम व धैर्य काल" : "⚖️ Patience & Discipline Period");
+      }
+
+      const careerText = isGood
+        ? (code === "kn" ? `${bhuktiName} ದಶೆಯಲ್ಲಿ ಉದ್ಯೋಗ ಪ್ರಗತಿ, ಜವಾಬ್ದಾರಿ ಹೆಚ್ಚಳ ಹಾಗೂ ವೃತ್ತಿರಂಗದಲ್ಲಿ ಯಶಸ್ಸು.` : `Career advancement and positive achievements under ${bhuktiName} period.`)
+        : (code === "kn" ? `${bhuktiName} ದಶೆಯಲ್ಲಿ ವೃತ್ತಿಯಲ್ಲಿ ತಾಳ್ಮೆ, ಕರ್ತವ್ಯ ನಿಷ್ಠೆ ಹಾಗೂ ದೀರ್ಘಕಾಲಿಕ ಅನುಭವ ಸಿದ್ಧಿ.` : `Career stability requiring patience and focused dedication during ${bhuktiName} period.`);
+
+      const financeText = isGood
+        ? (code === "kn" ? `ಆದಾಯ ಮೂಲಗಳ ವೃದ್ಧಿ, ಆಸ್ತಿ ಹೂಡಿಕೆಯಲ್ಲಿ ಅನುಕೂಲ ಹಾಗೂ ಆರ್ಥಿಕ ಭದ್ರತೆ.` : `Financial growth, property investments, and monetary stability.`)
+        : (code === "kn" ? `ಧನ ಶೇಖರಣೆಯಲ್ಲಿ ಜಾಗರೂಕತೆ, ನಿಯಂತ್ರಿತ ಖರ್ಚು ಹಾಗೂ ಭವಿಷ್ಯದ ಸುರಕ್ಷಿತ ಹೂಡಿಕೆ.` : `Disciplined savings, prudent expenditure, and secure long-term investments.`);
+
+      const familyText = isGood
+        ? (code === "kn" ? `ಗೃಹದಲ್ಲಿ ಸಂತೋಷ, ಹಿರಿಯರ ಆಶೀರ್ವಾದ ಹಾಗೂ ಸುಖಕರ ಕುಟುಂಬ ಜೀವನ.` : `Domestic peace, elders' blessings, and harmonious family environment.`)
+        : (code === "kn" ? `ಕುಟುಂಬದಲ್ಲಿ ಪರಸ್ಪರ ಸಹನೆ, ಸೌಹಾರ್ದಯುತ ಮಾತುಕತೆ ಹಾಗೂ ಶಾಂತಿ ನಿರ್ವಹಣೆ.` : `Mutual understanding, patient communication, and peaceful domestic life.`);
+
+      const remedyText = (PLANET_REMEDY_MAP_L5[span.bhukti] as any)?.[code] || PLANET_REMEDY_MAP_L5[span.bhukti]?.kn || "ಶ್ರೀ ಹನುಮಾನ್ ಚಾಲೀಸಾ ಪಠಿಸಿ ಹಾಗೂ ಬಡವರಿಗೆ ದಾನ ಮಾಡಿ.";
+
+      return {
+        mahaName,
+        bhuktiName,
+        startYmd,
+        endYmd,
+        startAgeInt,
+        endAgeInt,
+        isCurrent,
+        badgeText,
+        careerText,
+        financeText,
+        familyText,
+        remedyText
+      };
+    });
+  }, [birthKundli, dobStr, code]);
+
 
   const userAge = React.useMemo(() => {
     if (!dobStr) return 33;
@@ -1652,243 +1741,64 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
             </div>
           </div>
 
-          {/* 5 Dasha-Bhukti Cards (Starting from 2026 Current/Future Age 33 to 53) */}
+          {/* 5 Dynamic Dasha-Bhukti Cards */}
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            {/* Card 1: Shani Antardasha (CURRENTLY RUNNING IN 2026 - Age 33) */}
-            <div style={{
-              background: "#FFFFFF",
-              border: "1.5px solid #FCD34D",
-              borderRadius: "8px",
-              padding: "10px 14px 12px 14px",
-              boxShadow: "0 2px 5px rgba(0, 0, 0, 0.03)"
-            }}>
-              <div style={{ fontSize: "14px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ display: "inline-flex", alignItems: "center", lineHeight: "1.3" }}>📌 ಗುರು ಮಹಾದಶಾ • ಶನಿ ಅಂತರ್ದಶಾ (ಪ್ರಸ್ತುತ ನಡವಳಿಕೆ)</span>
-                <span style={{
-                  fontSize: "11px",
-                  color: "#92400E",
-                  background: "#FEF3C7",
-                  border: "1px solid #F59E0B",
-                  padding: "3px 12px",
-                  borderRadius: "14px",
-                  fontWeight: 700,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  lineHeight: "1.2"
-                }}><span style={{ transform: "translateY(-3px)", display: "inline-block" }}>⚖️ ಸ್ಥಿರ ಕರ್ಮ & ವೃತ್ತಿ ಭದ್ರತೆ</span></span>
-              </div>
-              <div style={{
-                fontSize: "11.5px",
-                color: "#78350F",
-                fontWeight: 700,
-                marginTop: "2px",
-                marginBottom: "8px",
-                background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
-                border: "1px solid #FCD34D",
-                padding: "4px 10px",
-                borderRadius: "6px",
-                display: "flex",
-                alignItems: "center",
-                lineHeight: "1.3"
-              }}>
-                <span style={{ transform: "translateY(-3px)", display: "inline-block" }}>🗓️ ಅವಧಿ: ೨೦೨೪-೦೭-೧೫ ರಿಂದ ೨೦೨೭-೦೧-೨೦ | (ವಯಸ್ಸು: ೩೧ - ೩೩ ವರ್ಷ - ಪ್ರಸ್ತುತ ನಡವಳಿಕೆ)</span>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px 16px", fontSize: "12.5px", lineHeight: "1.5" }}>
-                <div><span style={{ color: "#D97706" }}>💼</span> <strong style={{ color: "#065F46" }}>ವೃತ್ತಿ & ಅಧಿಕಾರ:</strong> ವೃತ್ತಿರಂಗದಲ್ಲಿ ಅತ್ಯುನ್ನತ ಜವಾಬ್ದಾರಿ, ಕರ್ತವ್ಯ ನಿಷ್ಠೆ ಹಾಗೂ ದೀರ್ಘಕಾಲಿಕ ಸ್ಥಿರತೆಯ ಅಡಿಪಾಯ.</div>
-                <div><span style={{ color: "#D97706" }}>💰</span> <strong style={{ color: "#047857" }}>ಧನ & ಆಸ್ತಿ:</strong> ಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಧನ ವೃದ್ಧಿ, ಭೂಮಿ/ಗೃಹ ಹೂಡಿಕೆಗಳ ಯೋಜನೆ ಹಾಗೂ ಶೇಖರಿತ ನಿಧಿ ಭದ್ರತೆ.</div>
-                <div><span style={{ color: "#D97706" }}>🏫</span> <strong style={{ color: "#5B21B6" }}>ಕುಟುಂಬ ಸುಖ:</strong> ಗೃಹದಲ್ಲಿ ಹಿರಿಯರ ಆಶೀರ್ವಾದ, ದಾಂಪತ್ಯ ಶಾಂತಿ ಹಾಗೂ ಜವಾಬ್ದಾರಿಯುತ ಕುಟುಂಬ ನಿರ್ವಹಣೆ.</div>
-                <div><span style={{ color: "#D97706" }}>🕉️</span> <strong style={{ color: "#991B1B" }}>ದೈವಿಕ ಪರಿಹಾರ:</strong> ಶನಿವಾರ ಶ್ರೀ ಹನುಮಾನ್ ಚಾಲೀಸಾ ಪಠಿಸಿ ಹಾಗೂ ಬಡವರಿಗೆ ಎಳ್ಳಿನ ದಾನ ಮಾಡಿ.</div>
-              </div>
-            </div>
-
-            {/* Card 2: Budha Antardasha (2027 - 2029, Age 33 - 36) */}
-            <div style={{
-              background: "#FFFFFF",
-              border: "1.5px solid #FCD34D",
-              borderRadius: "8px",
-              padding: "10px 14px 12px 14px",
-              boxShadow: "0 2px 5px rgba(0, 0, 0, 0.03)"
-            }}>
-              <div style={{ fontSize: "14px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ display: "inline-flex", alignItems: "center", lineHeight: "1.3" }}>📌 ಗುರು ಮಹಾದಶಾ • ಬುಧ ಅಂತರ್ದಶಾ</span>
-                <span style={{
-                  fontSize: "11px",
-                  color: "#92400E",
-                  background: "#FEF3C7",
-                  border: "1px solid #F59E0B",
-                  padding: "3px 12px",
-                  borderRadius: "14px",
-                  fontWeight: 700,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  lineHeight: "1.2"
-                }}><span style={{ transform: "translateY(-3px)", display: "inline-block" }}>✨ ವಿದ್ಯಾ, ಧನ & ಬೌದ್ಧಿಕ ಸಿದ್ಧಿ</span></span>
-              </div>
-              <div style={{
-                fontSize: "11.5px",
-                color: "#78350F",
-                fontWeight: 700,
-                marginTop: "2px",
-                marginBottom: "8px",
-                background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
-                border: "1px solid #FCD34D",
-                padding: "4px 10px",
-                borderRadius: "6px",
-                display: "flex",
-                alignItems: "center",
-                lineHeight: "1.3"
-              }}>
-                <span style={{ transform: "translateY(-3px)", display: "inline-block" }}>🗓️ ಅವಧಿ: ೨೦೨೭-೦೧-೨೦ ರಿಂದ ೨೦೨೯-೦೪-೨೬ | (ವಯಸ್ಸು: ೩೩ - ೩೬ ವರ್ಷ)</span>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px 16px", fontSize: "12.5px", lineHeight: "1.5" }}>
-                <div><span style={{ color: "#D97706" }}>💼</span> <strong style={{ color: "#065F46" }}>ವೃತ್ತಿ & ಅಧಿಕಾರ:</strong> ತೀಕ್ಷ್ಣ ಬೌದ್ಧಿಕ ಚಾತುರ್ಯ, ಉನ್ನತ ಉದ್ಯೋಗ ಪ್ರಮೋಷನ್ ಹಾಗೂ ನೂತನ ವ್ಯಾಪಾರ ಲಾಭ.</div>
-                <div><span style={{ color: "#D97706" }}>💰</span> <strong style={{ color: "#047857" }}>ಧನ & ಆಸ್ತಿ:</strong> ವ್ಯಾಪಾರದಲ್ಲಿ ೨೫%+ ಲಾಭ ವೃದ್ಧಿ, ಶೇರು ಹಾಗೂ ನೂತನ ಆಸ್ತಿ ಖರೀದಿಗಳಿಂದ ಧನ ಸಮೃದ್ಧಿ.</div>
-                <div><span style={{ color: "#D97706" }}>🏫</span> <strong style={{ color: "#5B21B6" }}>ಕುಟುಂಬ ಸುಖ:</strong> ಮಕ್ಕಳಿಗೆ ವಿದ್ಯಾ ಯಶಸ್ಸು, ಬಂಧುಗಳೊಡನೆ ಶುಭ ಭೋಜನ ಹಾಗೂ ಸಮಾಜದಲ್ಲಿ ಗೌರವ.</div>
-                <div><span style={{ color: "#D97706" }}>🕉️</span> <strong style={{ color: "#991B1B" }}>ದೈವಿಕ ಪರಿಹಾರ:</strong> ಬುಧವಾರ ಶ್ರೀ ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಪಠಿಸಿ ಹಾಗೂ ಹಸಿರು ಬೇಳೆ ದಾನ ಮಾಡಿ.</div>
-              </div>
-            </div>
-
-            {/* Card 3: Shukra Antardasha (HIGHLIGHTED WARM GOLDEN CARD - 2030 - 2033, Age 37 - 40) */}
-            <div style={{
-              background: "#FFFBEB",
-              border: "2px solid #F59E0B",
-              borderRadius: "8px",
-              padding: "10px 14px 12px 14px",
-              boxShadow: "0 3px 8px rgba(245, 158, 11, 0.12)"
-            }}>
-              <div style={{ fontSize: "14px", fontWeight: 900, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ display: "inline-flex", alignItems: "center", lineHeight: "1.3" }}>🌟 ಗುರು ಮಹಾದಶಾ • ಶುಕ್ರ ಅಂತರ್ದಶಾ (ಅತ್ಯುನ್ನತ ರಾಜಯೋಗ ಕಾಲ)</span>
-                <span style={{
-                  fontSize: "11px",
+            {dashaCardsData.map((card, idx) => (
+              <div
+                key={idx}
+                style={{
+                  background: card.isCurrent ? "#FFFBEB" : "#FFFFFF",
+                  border: card.isCurrent ? "2px solid #F59E0B" : "1.5px solid #FCD34D",
+                  borderRadius: "8px",
+                  padding: "10px 14px 12px 14px",
+                  boxShadow: card.isCurrent ? "0 3px 8px rgba(245, 158, 11, 0.12)" : "0 2px 5px rgba(0, 0, 0, 0.03)"
+                }}
+              >
+                <div style={{ fontSize: "14px", fontWeight: card.isCurrent ? 900 : 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ display: "inline-flex", alignItems: "center", lineHeight: "1.3" }}>
+                    📌 {card.mahaName} {code === "kn" ? "ಮಹಾದಶಾ" : "Mahadasha"} • {card.bhuktiName} {code === "kn" ? "ಅಂತರ್ದಶಾ" : "Antardasha"} {card.isCurrent ? (code === "kn" ? "(ಪ್ರಸ್ತುತ ನಡವಳಿಕೆ)" : "(Current Period)") : ""}
+                  </span>
+                  <span style={{
+                    fontSize: "11px",
+                    color: "#92400E",
+                    background: card.isCurrent ? "linear-gradient(180deg, #FDE68A 0%, #F59E0B 100%)" : "#FEF3C7",
+                    border: "1px solid #F59E0B",
+                    padding: "3px 12px",
+                    borderRadius: "14px",
+                    fontWeight: 700,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    lineHeight: "1.2"
+                  }}>
+                    <span style={{ transform: "translateY(-3px)", display: "inline-block" }}>{card.badgeText}</span>
+                  </span>
+                </div>
+                <div style={{
+                  fontSize: "11.5px",
                   color: "#78350F",
-                  background: "linear-gradient(180deg, #FDE68A 0%, #F59E0B 100%)",
-                  border: "1px solid #D97706",
-                  padding: "3px 12px",
-                  borderRadius: "14px",
-                  fontWeight: 800,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  lineHeight: "1.2"
-                }}><span style={{ transform: "translateY(-3px)", display: "inline-block" }}>👑 ಭವ್ಯ ರಾಜಯೋಗ & ಐಶ್ವರ್ಯ</span></span>
-              </div>
-              <div style={{
-                fontSize: "11.5px",
-                color: "#78350F",
-                fontWeight: 700,
-                marginTop: "2px",
-                marginBottom: "8px",
-                background: "#FEF3C7",
-                border: "1px solid #F59E0B",
-                padding: "2px 10px 3px 10px",
-                borderRadius: "6px",
-                display: "flex",
-                alignItems: "center",
-                lineHeight: "1.3"
-              }}>
-                <span style={{ transform: "translateY(-3px)", display: "inline-block" }}>🗓️ ಅವಧಿ: ೨೦೩೦-೦೪-೦೧ ರಿಂದ ೨೦೩೩-೧೨-೦೧ | (ವಯಸ್ಸು: ೩೭ - ೪೦ ವರ್ಷ)</span>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px 16px", fontSize: "12.5px", lineHeight: "1.5" }}>
-                <div><span style={{ color: "#D97706" }}>💼</span> <strong style={{ color: "#065F46" }}>ವೃತ್ತಿ & ಅಧಿಕಾರ:</strong> ನಾಯಕತ್ವದ ಅತ್ಯುನ್ನತ ಶಿಖರ, ರಾಜಕೀಯ/ಉದ್ಯೋಗ ಪ್ರಭಾವ ಹಾಗೂ ರಾಷ್ಟ್ರೀಯ ಸನ್ಮಾನ.</div>
-                <div><span style={{ color: "#D97706" }}>💰</span> <strong style={{ color: "#047857" }}>ಧನ & ಆಸ್ತಿ:</strong> ರಾಯಲ್ ವಾಹನ ಖರೀದಿ, ಸ್ವರ್ಣಾಭರಣ ಲಾಭ, ನೂತನ ಭವನ ನಿರ್ಮಾಣ ಹಾಗೂ ಐಶ್ವರ್ಯ.</div>
-                <div><span style={{ color: "#D97706" }}>🏫</span> <strong style={{ color: "#5B21B6" }}>ಕುಟುಂಬ ಸುಖ:</strong> ಗೃಹದಲ್ಲಿ ವೈಭವದ ಮಂಗಲೋತ್ಸವಗಳು, ದಾಂಪತ್ಯ ಸುಖ ಹಾಗೂ ಅಖಂಡ ಕುಟುಂಬ ಆನಂದ.</div>
-                <div><span style={{ color: "#D97706" }}>🕉️</span> <strong style={{ color: "#991B1B" }}>ದೈವಿಕ ಪರಿಹಾರ:</strong> ಶುಕ್ರವಾರ ಶ್ರೀ ಮಹಾಲಕ್ಷ್ಮಿ ಆರಾಧನೆ ಹಾಗೂ ತುಪ್ಪದ ದೀಪಾರಾಧನೆ ಮಾಡಿ.</div>
-              </div>
-            </div>
-
-            {/* Card 4: Surya Antardasha (2033 - 2034, Age 40 - 41) */}
-            <div style={{
-              background: "#FFFFFF",
-              border: "1.5px solid #FCD34D",
-              borderRadius: "8px",
-              padding: "10px 14px 12px 14px",
-              boxShadow: "0 2px 5px rgba(0, 0, 0, 0.03)"
-            }}>
-              <div style={{ fontSize: "14px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ display: "inline-flex", alignItems: "center", lineHeight: "1.3" }}>📌 ಗುರು ಮಹಾದಶಾ • ಸೂರ್ಯ ಅಂತರ್ದಶಾ</span>
-                <span style={{
-                  fontSize: "11px",
-                  color: "#047857",
-                  background: "#ECFDF5",
-                  border: "1px solid #10B981",
-                  padding: "3px 12px",
-                  borderRadius: "14px",
                   fontWeight: 700,
-                  display: "inline-flex",
+                  marginTop: "2px",
+                  marginBottom: "8px",
+                  background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
+                  border: "1px solid #FCD34D",
+                  padding: "4px 10px",
+                  borderRadius: "6px",
+                  display: "flex",
                   alignItems: "center",
-                  lineHeight: "1.2",
-                  transform: "translateY(-4px)"
-                }}>⛳ ಸರ್ಕಾರಿ ಗೌರವ & ಅಧಿಕಾರ ಜಯ</span>
+                  lineHeight: "1.3"
+                }}>
+                  <span style={{ transform: "translateY(-3px)", display: "inline-block" }}>
+                    🗓️ {code === "kn" ? "ಅವಧಿ" : "Period"}: {code === "kn" ? toKnDigits(card.startYmd) : card.startYmd} {code === "kn" ? "ರಿಂದ" : "to"} {code === "kn" ? toKnDigits(card.endYmd) : card.endYmd} | ({code === "kn" ? "ವಯಸ್ಸು" : "Age"}: {code === "kn" ? toKnDigits(card.startAgeInt) : card.startAgeInt} - {code === "kn" ? toKnDigits(card.endAgeInt) : card.endAgeInt} {code === "kn" ? "ವರ್ಷ" : "Years"} {card.isCurrent ? (code === "kn" ? "- ಪ್ರಸ್ತುತ ನಡವಳಿಕೆ" : "- Current Active") : ""})
+                  </span>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px 16px", fontSize: "12.5px", lineHeight: "1.5" }}>
+                  <div><span style={{ color: "#D97706" }}>💼</span> <strong style={{ color: "#065F46" }}>{code === "kn" ? "ವೃತ್ತಿ & ಅಧಿಕಾರ:" : "Career & Position:"}</strong> {card.careerText}</div>
+                  <div><span style={{ color: "#D97706" }}>💰</span> <strong style={{ color: "#047857" }}>{code === "kn" ? "ಧನ & ಆಸ್ತಿ:" : "Finance & Wealth:"}</strong> {card.financeText}</div>
+                  <div><span style={{ color: "#D97706" }}>🏫</span> <strong style={{ color: "#5B21B6" }}>{code === "kn" ? "ಕುಟುಂಬ ಸುಖ:" : "Family & Peace:"}</strong> {card.familyText}</div>
+                  <div><span style={{ color: "#D97706" }}>🕉️</span> <strong style={{ color: "#991B1B" }}>{code === "kn" ? "ದೈವಿಕ ಪರಿಹಾರ:" : "Sacred Remedy:"}</strong> {card.remedyText}</div>
+                </div>
               </div>
-              <div style={{
-                fontSize: "11.5px",
-                color: "#78350F",
-                fontWeight: 700,
-                marginTop: "2px",
-                marginBottom: "8px",
-                background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
-                border: "1px solid #FCD34D",
-                padding: "4px 10px",
-                borderRadius: "6px",
-                display: "flex",
-                alignItems: "center",
-                lineHeight: "1.3"
-              }}>
-                <span style={{ transform: "translateY(-3px)", display: "inline-block" }}>🗓️ ಅವಧಿ: ೨೦೩೩-೧೨-೦೧ ರಿಂದ ೨೦೩೪-೦೯-೨೫ | (ವಯಸ್ಸು: ೪೦ - ೪೧ ವರ್ಷ)</span>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px 16px", fontSize: "12.5px", lineHeight: "1.5" }}>
-                <div><span style={{ color: "#D97706" }}>💼</span> <strong style={{ color: "#065F46" }}>ವೃತ್ತಿ & ಅಧಿಕಾರ:</strong> ಸರ್ಕಾರಿ ಕೃಪೆ, ಹಿರಿಯ ಅಧಿಕಾರಿಗಳ ಸಂಪೂರ್ಣ ಬೆಂಬಲ ಹಾಗೂ ಶತ್ರು ಜಯ.</div>
-                <div><span style={{ color: "#D97706" }}>💰</span> <strong style={{ color: "#047857" }}>ಧನ & ಆಸ್ತಿ:</strong> ಪೂರ್ವಾಜಿತ ಆಸ್ತಿಯಿಂದ ಧನ ಆಗಮನ ಹಾಗೂ ಸರ್ಕಾರಿ ಬಾಕಿ ನಿಧಿ ವಸೂಲಾತಿ.</div>
-                <div><span style={{ color: "#D97706" }}>🏫</span> <strong style={{ color: "#5B21B6" }}>ಕುಟುಂಬ ಸುಖ:</strong> ಪಿತೃವರ್ಗದ ಆಶೀರ್ವಾದ ಬಲ, ವಂಶದ ಕೀರ್ತಿ ವೃದ್ಧಿ ಹಾಗೂ ತೇಜಸ್ಸು.</div>
-                <div><span style={{ color: "#D97706" }}>🕉️</span> <strong style={{ color: "#991B1B" }}>ದೈವಿಕ ಪರಿಹಾರ:</strong> ದಿನನಿತ್ಯ ಆದಿತ್ಯ ಹೃದಯ ಸ್ತೋತ್ರ ಪಠಿಸಿ ತಾಮ್ರ ಪಾತ್ರೆಯಲ್ಲಿ ಸೂರ್ಯನಿಗೆ ಅರ್ಘ್ಯ ನೀಡಿ.</div>
-              </div>
-            </div>
-
-            {/* Card 5: Shani Mahadasha Shani Antardasha (2038 - 2041, Age 45 - 48) */}
-            <div style={{
-              background: "#FFFFFF",
-              border: "1.5px solid #FCD34D",
-              borderRadius: "8px",
-              padding: "10px 14px 12px 14px",
-              boxShadow: "0 2px 5px rgba(0, 0, 0, 0.03)"
-            }}>
-              <div style={{ fontSize: "14px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ display: "inline-flex", alignItems: "center", lineHeight: "1.3" }}>📌 ಶನಿ ಮಹಾದಶಾ • ಶನಿ ಅಂತರ್ದಶಾ</span>
-                <span style={{
-                  fontSize: "11px",
-                  color: "#92400E",
-                  background: "#FEF3C7",
-                  border: "1px solid #F59E0B",
-                  padding: "3px 12px",
-                  borderRadius: "14px",
-                  fontWeight: 700,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  lineHeight: "1.2"
-                }}><span style={{ transform: "translateY(-3px)", display: "inline-block" }}>⚖️ ಸ್ಥಿರ ಧರ್ಮ & ಸುದೀರ್ಘ ಭದ್ರತೆ</span></span>
-              </div>
-              <div style={{
-                fontSize: "11.5px",
-                color: "#78350F",
-                fontWeight: 700,
-                marginTop: "2px",
-                marginBottom: "8px",
-                background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
-                border: "1px solid #FCD34D",
-                padding: "4px 10px",
-                borderRadius: "6px",
-                display: "flex",
-                alignItems: "center",
-                lineHeight: "1.3"
-              }}>
-                <span style={{ transform: "translateY(-3px)", display: "inline-block" }}>🗓️ ಅವಧಿ: ೨೦೩೮-೦೫-೧೫ ರಿಂದ ೨೦೪೧-೦೫-೧೮ | (ವಯಸ್ಸು: ೪೫ - ೪೮ ವರ್ಷ)</span>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px 16px", fontSize: "12.5px", lineHeight: "1.5" }}>
-                <div><span style={{ color: "#D97706" }}>💼</span> <strong style={{ color: "#065F46" }}>ವೃತ್ತಿ & ಅಧಿಕಾರ:</strong> ಶ್ರಮಜೀವಿಗಳಿಗೆ ಅತ್ಯುನ್ನತ ಕೃತಜ್ಞತೆ, ಸ್ಥಿರ ಉದ್ಯೋಗ ಸಾಮ್ರಾಜ್ಯ ಹಾಗೂ ಉನ್ನತ ಗೌರವ.</div>
-                <div><span style={{ color: "#D97706" }}>💰</span> <strong style={{ color: "#047857" }}>ಧನ & ಆಸ್ತಿ:</strong> ದೀರ್ಘಕಾಲಿಕ ಭೂಮಿ ಆಸ್ತಿ ಭದ್ರತೆ, ಬೃಹತ್ ಕೈಗಾರಿಕಾ ಯಶಸ್ಸು ಹಾಗೂ ಶೇಖರಿತ ಧನ.</div>
-                <div><span style={{ color: "#D97706" }}>🏫</span> <strong style={{ color: "#5B21B6" }}>ಕುಟುಂಬ ಸುಖ:</strong> ಹಿರಿಯರ ಸೇವೆ, ಪ್ರಶಾಂತ ಗೃಹ ಜೀವನ ಹಾಗೂ ಜವಾಬ್ದಾರಿಯುತ ಕುಟುಂಬ ಕೀರ್ತಿ.</div>
-                <div><span style={{ color: "#D97706" }}>🕉️</span> <strong style={{ color: "#991B1B" }}>ದೈವಿಕ ಪರಿಹಾರ:</strong> ಶನಿವಾರ ಎಳ್ಳಿನ ಎಣ್ಣೆ ದೀಪ ಹಚ್ಚಿ ಹಾಗೂ ಶ್ರೀ ಹನುಮಾನ್ ಚಾಲೀಸಾ ಪಠಿಸಿ.</div>
-              </div>
-            </div>
+            ))}
           </div>
 
           {/* Footer Banner */}
