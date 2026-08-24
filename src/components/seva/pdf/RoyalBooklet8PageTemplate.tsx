@@ -828,8 +828,8 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
   const isTa = code === "ta";
 
   // Auto-transliterate Devotee Name into target script if not already transliterated
-  const rawDevoteeName = identity?.personName || "Pramod Kodgi";
-  const displayName = identity?.aiTransliteratedName || (rawDevoteeName === "Pramod Kodgi" || rawDevoteeName === "Devotee" ? "ಪ್ರಮೋದ್ ಕೊಡ್ಗಿ" : transliterateName(rawDevoteeName, code));
+  const rawDevoteeName = identity?.personName || "Devotee";
+  const displayName = identity?.aiTransliteratedName || (rawDevoteeName === "Devotee" ? (code === "kn" ? "ಶ್ರೀಯುತ ಭಕ್ತರು" : "Devotee") : transliterateName(rawDevoteeName, code));
 
   const dobStr = identity?.dob || "1993-05-31";
   const tobStr = identity?.tob || "09:25";

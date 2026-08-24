@@ -43,7 +43,7 @@ export default function PalmReadingPage(): JSX.Element {
   const isKn = selectedLang === "kn";
 
   // Devotee Name & Details Inputs
-  const [devoteeName, setDevoteeName] = useState<string>(session?.input?.name || "ಪ್ರಮೋದ್ ಕೊಡಗಿ");
+  const [devoteeName, setDevoteeName] = useState<string>(session?.input?.name || "");
   const [gotraInput, setGotraInput] = useState<string>(session?.input?.gothra || "");
 
   // Palm Upload Inputs
@@ -341,7 +341,7 @@ export default function PalmReadingPage(): JSX.Element {
               type="text"
               value={devoteeName}
               onChange={(e) => setDevoteeName(e.target.value)}
-              placeholder={isKn ? "ಉದಾ: ಪ್ರಮೋದ್ ಕೊಡಗಿ" : "e.g. Sri Pramod Kodagi"}
+              placeholder={isKn ? "ಉದಾ: ಶ್ರೀರಾಮ್ ಪಂಡಿತ್" : "e.g. Sri Shreeram Pandit"}
               className="w-full rounded-xl border border-amber-300 bg-amber-50/40 px-3.5 py-2 text-sm font-bold text-amber-950 shadow-inner focus:border-amber-600 focus:outline-none"
             />
           </div>
