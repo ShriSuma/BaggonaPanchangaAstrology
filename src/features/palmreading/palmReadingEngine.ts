@@ -16,6 +16,8 @@
 
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 
+import { estimateBirthDateFromPalm } from "./palmDobEstimator";
+
 export type HandSide = "left" | "right";
 
 export type PalmLineAnalysis = {
