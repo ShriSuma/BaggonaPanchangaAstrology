@@ -949,96 +949,115 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
     });
   }, [birthKundli, dobStr, code]);
 
-  // ─── DYNAMIC PAGE 4 DATA (Natal Planets, Yogas & Doshas) ───
+  // ─── DYNAMIC PAGE 4 DATA (Characteristics, Nigoodha Rahasya & Prastuta Jeevana) ───
   const page4Data = React.useMemo(() => {
     if (!birthKundli) return null;
     const isKn = code === "kn";
-    const isEn = code === "en";
     const isHi = code === "hi";
-    const isTe = code === "te";
-    const isTa = code === "ta";
 
-    const planets = birthKundli.planets || [];
-    const sun = planets.find(p => p.name === "Sun");
-    const jupiter = planets.find(p => p.name === "Jupiter");
-    const saturn = planets.find(p => p.name === "Saturn");
-    const mars = planets.find(p => p.name === "Mars");
-    const venus = planets.find(p => p.name === "Venus");
-    const mercury = planets.find(p => p.name === "Mercury");
-    const moon = planets.find(p => p.name === "Moon");
+    const moon = birthKundli.planets.find(p => p.name === "Moon");
+    const lagnaRashiName = birthKundli.lagnaRashi ? birthKundli.lagnaRashi.sanskrit : "ಲಗ್ನ";
+    const moonRashiName = birthKundli.moonSign ? birthKundli.moonSign.sanskrit : "ರಾಶಿ";
+    const nakshatraName = moon && moon.nakshatra ? moon.nakshatra.sanskrit : "ನಕ್ಷತ್ರ";
 
-    // Yogas detection
-    const yogas: string[] = [];
-    if (jupiter && moon && Math.abs((jupiter.house - moon.house + 12) % 12) % 3 === 0) {
-      yogas.push(isKn ? "ಶ್ರೀ ಗಜಕೇಸರಿ ಯೋಗ (ಜ್ಞಾನ & ಕೀರ್ತಿ ವೃದ್ಧಿ)" : (isHi ? "गजकेसरी योग (ज्ञान व यश)" : "Gajakesari Yoga (Wisdom & Renown)"));
-    }
-    if (sun && mercury && sun.house === mercury.house) {
-      yogas.push(isKn ? "ಶ್ರೀ ಬುಧಾದಿತ್ಯ ಯೋಗ (ತೀಕ್ಷ್ಣ ಬೌದ್ಧಿಕ ಚಾತುರ್ಯ)" : (isHi ? "बुधादित्य योग (तीक्ष्ण बुद्धि)" : "Budhaditya Yoga (Intellectual Brilliance)"));
-    }
-    if (jupiter && [1, 4, 7, 10].includes(jupiter.house)) {
-      yogas.push(isKn ? "ಶ್ರೀ ಗುರು ಬಲ & ಕೇಂದ್ರ ರಾಜಯೋಗ" : (isHi ? "केन्द्र राजयोग व गुरु बल" : "Jupiter Kendra Raja Yoga"));
-    }
-    if (yogas.length === 0) {
-      yogas.push(isKn ? "ಶ್ರೀ ಧನಕಾರಕ ಯೋಗ & ಶುಭ ಗ್ರಹ ದೃಷ್ಟಿ" : "Dhana Karaka Yoga & Auspicious Aspects");
+    let card1Text = "";
+    if (isKn) {
+      card1Text = `${displayName} ಅವರ ಜನ್ಮ ಲಗ್ನ ${lagnaRashiName} ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ ${moonRashiName} (ನಕ್ಷತ್ರ: ${nakshatraName}) ಆಗಿದೆ. ಲಗ್ನಾಧಿಪತಿಯ ಪ್ರಭಾವದಿಂದ ನಿಮ್ಮ ಆಲೋಚನೆಗಳಲ್ಲಿ ಸದಾ ಸಾತ್ವಿಕ ತೇಜಸ್ಸು, ಸ್ವಾಭಿಮಾನ ಹಾಗೂ ಶ್ರಮದಾಯಕ ದಕ್ಷತೆ ಜಾಗೃತವಾಗಿರುತ್ತದೆ. ಕಾರ್ಯ ಕ್ಷೇತ್ರದಲ್ಲಿ ನೀವು ವಹಿಸಿಕೊಳ್ಳುವ ಜವಾಬ್ದಾರಿಯು ಸಂಸ್ಥೆಯಲ್ಲಿ ಉನ್ನತ ಅಧಿಕಾರಿಗಳ ಮೆಚ್ಚುಗೆಗೆ ಪಾತ್ರವಾಗಲಿದೆ. ಸತ್ಯವಂತಿಕೆ, ನ್ಯಾಯಪರತೆ ಹಾಗೂ ಅನ್ಯಾಯವನ್ನು ಸಹಿಸದ ಗುಣ ನಿಮ್ಮ ವ್ಯಕ್ತಿತ್ವದ ಪ್ರಮುಖ ಗುರುತಾಗಿದೆ.`;
+    } else if (isHi) {
+      card1Text = `${displayName} का जन्म लग्न ${lagnaRashiName} तथा चंद्र राशि ${moonRashiName} (नक्षत्र: ${nakshatraName}) है। लग्नेश के प्रभाव से आपमें स्वाभिमान, कर्तव्यनिष्ठा और कार्यकुशलता की प्रबलता रहती है। आप अपनी सत्यनिष्ठा और न्यायप्रियता के लिए जाने जाते हैं।`;
+    } else {
+      card1Text = `The birth Lagna of ${displayName} is ${lagnaRashiName} and Moon Sign is ${moonRashiName} (Nakshatra: ${nakshatraName}). Influenced by the ascendant lord, your core personality exhibits self-respect, meticulous dedication, and strong moral principles. You are deeply respected for your integrity, analytical skill, and unwavering commitment to justice.`;
     }
 
-    // Doshas & Cautions
-    const doshas: string[] = [];
-    if (mars && [1, 4, 7, 8, 12].includes(mars.house)) {
-      doshas.push(isKn ? "ಮಂಗಳ ಸ್ಥಾನ ಪ್ರಭಾವ (ದಾಂಪತ್ಯದಲ್ಲಿ ಸಹನೆ ಅಗತ್ಯ)" : "Mars House Influence (Requires patience in relationships)");
+    let nigoodhaText1 = "";
+    let nigoodhaText2 = "";
+    if (isKn) {
+      nigoodhaText1 = `ನಿಮ್ಮ ಪ್ರಶಾಂತ ಮುಖಭಾವದ ಅಡಿಯಲ್ಲಿ ತೀವ್ರವಾದ ಆಂತರಿಕ ನಿಗೂಢ ಕೋಪ ಹಾಗೂ ಅಸಹನೆ ಅಡಗಿದೆ. ಅಂದುಕೊಂಡ ಕೆಲಸಗಳು ವಿಳಂಬವಾದಾಗ ಅಥವಾ ನಂಬಿಕೆಗೆ ಧಕ್ಕೆ ಉಂಟಾದಾಗ ಮನಸ್ಸಿನ ಒಳಗಡೆ ತೀವ್ರ ಉಗ್ರತೆ ಜಾಗೃತಗೊಳ್ಳುತ್ತದೆ. ಈ ಆಂತರಿಕ ಕೋಪವನ್ನು ಹೊರಹಾಕದೆ ಮನಸ್ಸಿನಲ್ಲೇ ಬಂಧಿಸಿಡುವುದರಿಂದ ಕೆಲವೊಮ್ಮೆ ತಲೆನೋವು, ಮಾನಸಿಕ ಅಶಾಂತಿ ಹಾಗೂ ನಿದ್ರಾಹೀನತೆ ಎದುರಾಗಬಹುದು.`;
+      nigoodhaText2 = `ಆತುರದ ಕೋಪದ ರಭಸದಲ್ಲಿ ಆಡುವ ಮಾತುಗಳು ಆಪ್ತ ಬಾಂಧವರೊಡನೆ ಬಿರುಕು ಮೂಡಿಸದಂತೆ ಎಚ್ಚರ ವಹಿಸುವುದು ಅವಶ್ಯಕ. ಕೋಪ ಶಮನಕ್ಕಾಗಿ ನಿತ್ಯ ೧೦ ನಿಮಿಷ ಪ್ರಾಣಾಯಾಮ ಹಾಗೂ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ರುದ್ರಾಭಿಷೇಕ ಸ್ಮರಣೆಯು ಆಂತರಿಕ ಉಗ್ರತೆಯನ್ನು ಶಮನಗೊಳಿಸಿ ಪ್ರಶಾಂತತೆ ನೀಡುತ್ತದೆ.`;
+    } else if (isHi) {
+      nigoodhaText1 = `आपके शांत स्वभाव के पीछे एक गुप्त आंतरिक क्रोध और असंतोष छुपा रहता है। जब कार्य में विलंब होता है, तो मन में तीव्र उग्रता जागृत होती है। इसे मन में दबाने से मानसिक तनाव हो सकता है।`;
+      nigoodhaText2 = `क्रोध में कठोर शब्दों के प्रयोग से बचें। शांति हेतु नित्य प्राणायाम करें तथा श्री गोकर्ण महाबलेश्वर मंदिर के रुद्राभिषेक का स्मरण करें।`;
+    } else {
+      nigoodhaText1 = `Beneath your calm exterior lies a subtle hidden layer of intense impatience and inner anger when expected outcomes are delayed or trust is breached. Internalizing this anger can cause stress and insomnia.`;
+      nigoodhaText2 = `Exercise care with hasty words during moments of frustration. Daily pranayama and remembrance of Sri Gokarna Mahabaleshwara Rudrabhishekam bring deep emotional serenity.`;
     }
-    if (saturn && [6, 8, 12].includes(saturn.house)) {
-      doshas.push(isKn ? "ಶನಿ ದೃಷ್ಟಿ ಶಮನ (ಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಯಶಸ್ಸು)" : "Saturn Transit Balance (Success through disciplined effort)");
-    }
-    if (doshas.length === 0) {
-      doshas.push(isKn ? "ಸಾಮಾನ್ಯ ಸಾತ್ವಿಕ ದೋಷ ಶಮನ (ದೈವಿಕ ಅನುಗ್ರಹ)" : "General Karmic Balance & Divine Protection");
-    }
-
-    return {
-      card1Title: isKn ? "🌌 ಜನ್ಮ ಗ್ರಹಗಳ ಸ್ಥಿತಿ ಬಲ & ಶುಭ ದೃಷ್ಟಿ" : (isHi ? "🌌 जन्म ग्रहों की स्थिति व शुभ दृष्टि" : "🌌 Natal Planetary Strengths & Aspects"),
-      card1Text: isKn
-        ? `ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ಲಗ್ನಾಧಿಪತಿ ಹಾಗೂ ಪ್ರಮುಖ ನವಗ್ರಹಗಳ ಸ್ಥಿತಿಯು ಕರ್ಮ ಕ್ಷೇತ್ರದಲ್ಲಿ ಸ್ಥಿರತೆ ಹಾಗೂ ಆಡಳಿತಾತ್ಮಕ ಜವಾಬ್ದಾರಿಯನ್ನು ಸೂಚಿಸುತ್ತವೆ. ಗುರು ಹಾಗೂ ಶನಿ ದೇವ ಪ್ರಭಾವದಿಂದ ದೀರ್ಘಕಾಲಿಕ ಧನ ವೃದ್ಧಿ ಹಾಗೂ ಗೃಹದಲ್ಲಿ ಸುಖಕರ ವಾತಾವರಣ ಸಿದ್ಧಿಸಲಿದೆ.`
-        : `In your natal chart, the ascendant lord and key planetary alignments signify professional stability, organizational responsibility, and steady long-term financial growth.`,
-      card2Title: isKn ? "✨ ನಿಮ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ಸಿದ್ಧಿಸಿರುವ ಪ್ರಮುಖ ಶುಭ ಯೋಗಗಳು" : (isHi ? "✨ आपकी कुंडली में सिद्ध शुभ योग" : "✨ Prominent Auspicious Yogas Active"),
-      yogas,
-      card3Title: isKn ? "🛡️ ಗ್ರಹ ದೋಷ ಶಮನ & ಪವಿತ್ರ ವೈದಿಕ ಪರಿಹಾರ" : (isHi ? "🛡️ ग्रह दोष शमन व पवित्र वैदिक उपाय" : "🛡️ Karmic Balances & Sacred Remedies"),
-      doshas,
-      remedy: isKn
-        ? "ಪ್ರತಿ ಶನಿವಾರ ಶ್ರೀ ಹನುಮಾನ್ ಚಾಲೀಸಾ ಪಠಿಸಿ, ಬಡವರಿಗೆ ಅನ್ನದಾನ ಮಾಡಿ ಹಾಗೂ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ರುದ್ರಾಭಿಷೇಕ ನೆರವೇರಿಸಿ."
-        : "Recite Sri Hanuman Chalisa on Saturdays and perform Rudrabhishekam at Sri Gokarna Mahabaleshwara temple."
-    };
-  }, [birthKundli, code]);
-
-
-  // ─── DYNAMIC PAGE 5 DATA (Present Dasha-Bhukti & Gochara Transits) ───
-  const page5Data = React.useMemo(() => {
-    if (!birthKundli) return null;
-    const isKn = code === "kn";
-    const isHi = code === "hi";
 
     const activeCard = dashaCardsData && dashaCardsData.length > 0 ? dashaCardsData[0] : null;
     const mahaName = activeCard ? activeCard.mahaName : (isKn ? "ಗುರು" : "Jupiter");
-    const bhuktiName = activeCard ? activeCard.bhuktiName : (isKn ? "ಶನಿ" : "Saturn");
+
+    let prastutaCareer = "";
+    let prastutaFamily = "";
+    let prastutaFinance = "";
+    let prastutaHealth = "";
+
+    if (isKn) {
+      prastutaCareer = `${displayName} ಅವರ ಜನ್ಮ ಕುಂಡಲಿಯ ಲಗ್ನಾಧಿಪತಿ ಹಾಗೂ ಪ್ರಸ್ತುತ ${mahaName} ಮಹಾದಶಾ ನಾಥನ ಬಲದಿಂದ ವೃತ್ತಿಯಲ್ಲಿ ಪ್ರಮುಖ ಬಡ್ತಿ, ನೂತನ ಜವಾಬ್ದಾರಿ ಹಾಗೂ ಆಡಳಿತಾತ್ಮಕ ಅಧಿಕಾರ ವೃದ್ಧಿ ಅತ್ಯಂತ ನಿಶ್ಚಿತವಾಗಿದೆ. ಸಂಸ್ಥೆಯಲ್ಲಿ ನಿಮ್ಮ ದಕ್ಷತೆ ಮತ್ತು ಕೀರ್ತಿಯನ್ನು ಹೆಚ್ಚಿಸಲಿದೆ.`;
+      prastutaFamily = `ನಿಮ್ಮ ಕುಂಡಲಿಯ ಚಂದ್ರ ಹಾಗೂ ಗುರು ಗ್ರಹಗಳ ದೃಷ್ಟಿಯಿಂದ ಗೃಹದಲ್ಲಿ ಹಿರಿಯರ ಆಶೀರ್ವಾದ ಬಲದಿಂದ ದಾಂಪತ್ಯ ಸೌಖ್ಯ ಹಾಗೂ ವಂಶಾಭಿವೃದ್ಧಿಯ ಸಂತಾನ ಯೋಗಕ್ಕೆ ಅತ್ಯಂತ ಪೂರಕ ವಾತಾವರಣ ಉಂಟಾಗಲಿದೆ. ದೇವತಾ ಪೂಜಾ ಕಾರ್ಯಕ್ರಮಗಳು ನೆರವೇರಲಿವೆ.`;
+      prastutaFinance = `ದೀರ್ಘಕಾಲಿಕ ಭೂಮಿ, ಮನೆ ಅಥವಾ ಸ್ಥಿರಾಸ್ತಿ ಖರೀದಿಗಳ ಯೋಜನಾ ಹೂಡಿಕೆಗಳಿಗೆ ಪ್ರಸ್ತುತ ಗುರು ಹಾಗೂ ಶನಿ ಗ್ರಹಗಳ ಸಂಚಾರವು ಅತ್ಯಂತ ಶುಭ ಫಲ ನೀಡಲಿದೆ. ಶಿಸ್ತುಬದ್ಧ ನಿಧಿ ಶೇಖರಣೆಯಿಂದ ಸಮಾಜದಲ್ಲಿ ಆರ್ಥಿಕ ಸುದೃಢತೆ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ.`;
+      prastutaHealth = `ಮಾನಸಿಕ ಒತ್ತಡ ಶಮನಕ್ಕೆ ಧ್ಯಾನ ಹಾಗೂ ಸಾತ್ವಿಕ ಆಹಾರ ಸೇವನೆ ಅತ್ಯಗತ್ಯ. ನಿರಂತರ ಪ್ರಯಾಣಗಳ ವೇಳೆಯಲ್ಲಿ ಸೂಕ್ತ ವಿಶ್ರಾಂತಿ ಪಡೆಯುವುದರಿಂದ ಸಂಪೂರ್ಣ ದೈಹಿಕ ಚೇತರಿಕೆ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ.`;
+    } else {
+      prastutaCareer = `Under the influence of the Ascendant Lord and active ${mahaName} Mahadasha, significant career advancement, leadership roles, and organizational recognition are indicated.`;
+      prastutaFamily = `Benefic aspects of Jupiter and Moon foster marital harmony, family peace, and auspicious domestic celebrations with elders' blessings.`;
+      prastutaFinance = `Favorable transits of Saturn and Jupiter support long-term investments in real estate and property, resulting in steady financial consolidation.`;
+      prastutaHealth = `Prioritize balanced nutrition and mindfulness practices to manage work stress and maintain high physical energy.`;
+    }
 
     return {
-      card1Title: isKn ? `📌 ${mahaName} ಮಹಾದಶಾ ಫಲಗಳು (ಪ್ರಸ್ತುತ ಜೀವನ ಅಧ್ಯಾಯ)` : `📌 ${mahaName} Mahadasha Synthesis (Current Life Chapter)`,
-      card1Text: isKn
-        ? `${mahaName} ಮಹಾದಶೆಯ ಪ್ರಭಾವದಿಂದ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ನೂತನ ಆಶಾಭಾವನೆ, ವೃತ್ತಿರಂಗದಲ್ಲಿ ಉನ್ನತ ಜವಾಬ್ದಾರಿ ಹಾಗೂ ಸಾಮಾಜಿಕ ಗೌರವ ಸಿದ್ಧಿಸಲಿದೆ. ದೀರ್ಘಕಾಲಿಕ ಯೋಚನೆಗಳಲ್ಲಿ ಯಶಸ್ಸು ದೊರೆಯಲಿದೆ.`
-        : `Under the influence of ${mahaName} Mahadasha, your life enters a period of structural stability, professional leadership, and enhanced social respect.`,
-      card2Title: isKn ? `📌 ${bhuktiName} ಅಂತರ್ದಶಾ ಫಲಗಳು (ವರ್ತಮಾನ ಸೂಕ್ಷ್ಮ ಸಂಚಾರ)` : `📌 ${bhuktiName} Antardasha Synthesis (Current Sub-period)`,
-      card2Text: isKn
-        ? `${bhuktiName} ಅಂತರ್ದಶೆಯು ನಿಮ್ಮ ಕಾಯಕ ಕ್ಷೇತ್ರದಲ್ಲಿ ಶಿಸ್ತು, ಕಠಿಣ ಕರ್ತವ್ಯ ಪ್ರಜ್ಞೆ ಹಾಗೂ ಧನ ರಕ್ಷಣೆಯನ್ನು ಕಾಯ್ದುಕೊಳ್ಳಲು ಪೂರಕವಾಗಿದೆ. ತಾಳ್ಮೆಯ ನಿರ್ಧಾರಗಳಿಂದ ಅತ್ಯುತ್ತಮ ಯಶಸ್ಸು ಸಾಧ್ಯ.`
-        : `The ${bhuktiName} Antardasha brings analytical focus, disciplined work execution, and financial consolidation.`,
-      card3Title: isKn ? "🍃 ಲೈವ್ ಗೋಚಾರ ಗ್ರಹ ಫಲಗಳು & ವರ್ತಮಾನ ಸಂಚಾರ" : "🍃 Live Gochara Transit Effects & Present Transits",
-      gocharaText1: isKn
-        ? "ವರ್ತಮಾನ ಗೋಚಾರ ಗ್ರಹ ಸಂಚಾರದಲ್ಲಿ ಶನಿ ದೇವನ ಪ್ರಸ್ತುತ ಸ್ಥಾನವು ನಿಮ್ಮ ಕಾಯಕ ಕ್ಷೇತ್ರದಲ್ಲಿ ಶಿಸ್ತು, ಕಠಿಣ ಕರ್ತವ್ಯ ಪ್ರಜ್ಞೆ ಹಾಗೂ ತಾಳ್ಮೆಯ ಪರೀಕ್ಷೆಯನ್ನು ನಡೆಸುತ್ತಿದೆ. ಆತುರದ ಹೂಡಿಕೆಗಳನ್ನು ತ್ಯಜಿಸಿ ಶ್ರಮಿಸುವುದರಿಂದ ವೃತ್ತಿಯಲ್ಲಿ ಸುದೀರ್ಘ ಭದ್ರತೆ ದೊರೆಯಲಿದೆ."
-        : "Current Saturn transit emphasizes professional discipline and patient effort. Avoiding rushed investments ensures lasting career stability.",
-      gocharaText2: isKn
-        ? "ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಅನುಕೂಲಕರ ಗೋಚಾರ ಸಂಚಾರವು ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಆಶಾಭಾವನೆ, ಧನ ಆಗಮನ ಹಾಗೂ ಗೃಹದಲ್ಲಿ ಸಾಂಸಾರಿಕ ಸಂತೋಷವನ್ನು ಹೆಚ್ಚಿಸಲಿದೆ. ಪವಿತ್ರ ಮುಹೂರ್ತಗಳಲ್ಲಿ ದೇವತಾ ಸೇವೆಗಳನ್ನು ನೆರವೇರಿಸಲು ಇದು ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ ಸಮಯ."
-        : "Jupiter's favorable transit aspect promotes financial inflow, family harmony, and divine blessings across all endeavors."
+      card1Text,
+      nigoodhaText1,
+      nigoodhaText2,
+      prastutaCareer,
+      prastutaFamily,
+      prastutaFinance,
+      prastutaHealth
     };
   }, [birthKundli, dashaCardsData, code]);
 
+
+  // ─── DYNAMIC PAGE 5 DATA (Yogas, Doshas & Live Gochara Transits) ───
+  const page5Data = React.useMemo(() => {
+    if (!birthKundli) return null;
+    const isKn = code === "kn";
+
+    let yogaText1 = "";
+    let yogaText2 = "";
+    if (isKn) {
+      yogaText1 = `${displayName} ಅವರ ಜನ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ದೇವಗುರು ಬೃಹಸ್ಪತಿ ಹಾಗೂ ಚಂದ್ರರ ಪವಿತ್ರ ಸಮಸಪ್ತಕ ದೃಷ್ಟಿ ಸಂಯೋಗದಿಂದ 'ಗಜಕೇಸರಿ ರಾಜಯೋಗ' ಅತ್ಯಂತ ಶಕ್ತಿಯುತವಾಗಿ ಜಾಗೃತಗೊಂಡಿದೆ. ಈ ದಿವ್ಯ ರಾಜಯೋಗದ ಅನುಗ್ರಹದಿಂದ ಸಮಾಜದಲ್ಲಿ ಗೌರವಾನ್ವಿತ ಸ್ಥಾನಮಾನ, ಆಪತ್ತಿನ ವೇಳೆಯಲ್ಲಿ ಜಯ ತಂದುಕೊಡುವ ದೈವಿಕ ರಕ್ಷಣೆ ಹಾಗೂ ಸ್ಥಿರವಾದ ಯಶಸ್ಸು ಲಭಿಸಲಿದೆ. ನಿಮ್ಮ ವೃತ್ತಿ ಅಥವಾ ವ್ಯಾಪಾರ ಕ್ಷೇತ್ರದಲ್ಲಿ ಎಂತಹ ಪ್ರಬಲ ಪ್ರತಿರೋಧಗಳು ಎದುರಾದರೂ, ಆಂತರಿಕ ಬೌದ್ಧಿಕ ದಕ್ಷತೆ ಹಾಗೂ ಧೈರ್ಯದಿಂದ ಎಲ್ಲವನ್ನೂ ಮೆಟ್ಟಿ ನಿಂತು ಅಗ್ರಸ್ಥಾನ ಗಳಿಸುವಿರಿ.`;
+      yogaText2 = `ಲಗ್ನ ಹಾಗೂ ತ್ರಿಕೋಣ ಭಾವಗಳ ಅಧಿಪತಿಗಳ ಬಲವಾದ ಸಂಯೋಜನೆಯಿಂದ 'ಬುಧಾದಿತ್ಯ ಯೋಗ' ಹಾಗೂ 'ಲಕ್ಷ್ಮಿ ಯೋಗ' ಸಿದ್ಧಿಸಿದ್ದು, ತೀಕ್ಷ್ಣ ಗ್ರಹಣ ಶಕ್ತಿ, ಸಮಯೋಚಿತ ನಿರ್ಧಾರ ಹಾಗೂ ಅಪಾರ ಆರ್ಥಿಕ ಸಂಪತ್ತನ್ನು ಖಾತ್ರಿಪಡಿಸುತ್ತದೆ. ಧನ ಹಾಗೂ ಲಾಭ ಭಾವಗಳ ಮೇಲೆ ಶುಭ ಗ್ರಹಗಳ ಸೌಮ್ಯ ದೃಷ್ಟಿ ಇರುವ ಕಾರಣ ಸ್ಥಿರಾಸ್ತಿ ಖರೀದಿ ಹಾಗೂ ಉದ್ಯೋಗ ಹೂಡಿಕೆಗಳಲ್ಲಿ ನಿರಂತರ ಧನ ಹರಿವು ಉಂಟಾಗಲಿದೆ.`;
+    } else {
+      yogaText1 = `In the natal chart of ${displayName}, the sacred aspectual alignment of Jupiter and Moon forms a powerful 'Gajakesari Rajayoga'. This bestows divine protection, high status, and enduring success. No matter how challenging the professional opposition, your wisdom and courage will ensure triumph.`;
+      yogaText2 = `Strong Kendra-Trikona lord associations form 'Budhaditya Yoga' and 'Lakshmi Yoga', guaranteeing sharp intellect, timely decision-making, and financial growth through real estate and sound investments.`;
+    }
+
+    let doshaText1 = "";
+    let doshaText2 = "";
+    if (isKn) {
+      doshaText1 = `ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ರಾಹು-ಕೇತು ಅಥವಾ ಮಂಗಳ ಗ್ರಹದ ಸೂಕ್ಷ್ಮ ಭಾವ ಸ್ಥಾನದಿಂದಾಗಿ ಆತುರದ ಆರ್ಥಿಕ ನಿರ್ಧಾರಗಳು ಹಾಗೂ ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿ ಸಣ್ಣಪುಟ್ಟ ಬಿರುಕು ಎದುರಾಗುವ ಕರ್ಮಿಕ ದೋಷ ಗೋಚರಿಸುತ್ತದೆ. ಶನಿ ದೇವನ ೭.೫/ಅರ್ಧಾಷ್ಟಮ ಗೋಚಾರ ಪ್ರಭಾವದಿಂದ ಅಪೇಕ್ಷಿತ ಫಲಗಳ ಲಭ್ಯತೆಯಲ್ಲಿ ವಿಳಂಬ ಉಂಟಾಗಬಹುದು.`;
+      doshaText2 = `ಈ ಕರ್ಮಿಕ ದೋಷ ಶಮನಕ್ಕಾಗಿ ಪ್ರತಿ ಶನಿವಾರ ಶ್ರೀ ಹನುಮಾನ್ ಚಾಲೀಸಾ ಪಠಿಸಿ, ಬಡವರಿಗೆ ಅನ್ನದಾನ ಮಾಡಿ ಹಾಗೂ ಪವಿತ್ರ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ರುದ್ರಾಭಿಷೇಕ ನೆರವೇರಿಸಿ. ಗೋಕರ್ಣ ಪಂಚಾಂಗದ ಸಿದ್ಧ ಮುಹೂರ್ತದಲ್ಲಿ ಶನಿ ಶಾಂತಿ ಪೂಜೆಯು ಕಷ್ಟಗಳನ್ನು ಸಂಪೂರ್ಣ ದೂರ ಮಾಡಲಿದೆ.`;
+    } else {
+      doshaText1 = `Karmic influences from Rahu-Ketu or Mars house positions indicate occasional relationship friction or financial delays during Saturn transits.`;
+      doshaText2 = `To mitigate these karmic challenges, recite Sri Hanuman Chalisa on Saturdays, engage in charity, and offer Rudrabhishekam at Sri Gokarna Mahabaleshwara temple.`;
+    }
+
+    let gocharaText1 = "";
+    let gocharaText2 = "";
+    if (isKn) {
+      gocharaText1 = `ವರ್ತಮಾನ ಗೋಚಾರ ಗ್ರಹ ಸಂಚಾರದಲ್ಲಿ ಶನಿ ದೇವನ ಪ್ರಸ್ತುತ ಸ್ಥಾನವು ನಿಮ್ಮ ಕಾಯಕ ಕ್ಷೇತ್ರದಲ್ಲಿ ಶಿಸ್ತು, ಕಠಿಣ ಕರ್ತವ್ಯ ಪ್ರಜ್ಞೆ ಹಾಗೂ ತಾಳ್ಮೆಯ ಪರೀಕ್ಷೆಯನ್ನು ನಡೆಸುತ್ತಿದೆ. ಆತುರದ ಹೂಡಿಕೆ ಅಥವಾ ಶಾರ್ಟ್‌ಕಟ್ ಮಾರ್ಗಗಳನ್ನು ಸಂಪೂರ್ಣವಾಗಿ ತ್ಯಜಿಸಿ, ಹಿರಿಯ ಅನುಭವಿಗಳ ಮಾರ್ಗದರ್ಶನದಲ್ಲಿ ಶ್ರಮಿಸುವುದರಿಂದ ವೃತ್ತಿ ರಂಗದಲ್ಲಿ ಸುದೀರ್ಘ ಭದ್ರತೆ ಹಾಗೂ ಅತ್ಯುನ್ನತ ಆಡಳಿತಾತ್ಮಕ ಸ್ಥಾನಮಾನ ದೊರೆಯಲಿದೆ.`;
+      gocharaText2 = `ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಅನುಕೂಲಕರ ಗೋಚಾರ ಸಂಚಾರ ಹಾಗೂ ನವಮ ಶುಭ ದೃಷ್ಟಿಯು ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಆಶಾಭಾವನೆ, ಅಪಾರ ಧನ ಆಗಮನ ಹಾಗೂ ಗೃಹದಲ್ಲಿ ಸಾಂಸಾರಿಕ ಸಂತೋಷವನ್ನು ಹೆಚ್ಚಿಸಲಿದೆ. ಪ್ರಸ್ತುತ ಸಮಯವು ಶ್ರೀ ಗೋಕರ್ಣ ಪಂಚಾಂಗದ ಪವಿತ್ರ ಮುಹೂರ್ತಗಳಲ್ಲಿ ದೇವತಾ ಸೇವೆಗಳನ್ನು ನೆರವೇರಿಸಲು ಅತ್ಯಂತ ಶ್ರೇಷ್ಠವಾಗಿದೆ.`;
+    } else {
+      gocharaText1 = `Current Saturn transit tests professional patience and discipline. Avoiding hasty financial shortcuts while working under experienced guidance guarantees long-term stability.`;
+      gocharaText2 = `Jupiter's favorable transit aspects bring financial gains, family happiness, and auspicious divine opportunities for Seva and Pujas at Gokarna.`;
+    }
+
+    return {
+      yogaText1,
+      yogaText2,
+      doshaText1,
+      doshaText2,
+      gocharaText1,
+      gocharaText2
+    };
+  }, [birthKundli, code]);
 
   // ─── DYNAMIC PAGE 6 DATA (8-Month Roadmap - 240 Days) ───
   const page6Data = React.useMemo(() => {
@@ -1970,70 +1989,77 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
       </div>
 
       {/* ─────────────────────────────────────────────────────────────
-          PAGE 4: NATAL PLANETS, YOGAS & KARMIC DOSHAS ANALYSIS
+          PAGE 4: CHARACTERISTICS, NEEGOODAH RAHASYA & PRASTUTA JEEVANA
          ───────────────────────────────────────────────────────────── */}
       <div className="pdf-page" style={pageStyle}>
-        <div style={frameStyle}>
+        <div style={{ ...frameStyle, gap: "10px" }}>
           {/* Header Box */}
           <div style={{
             textAlign: "center",
             background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
             border: "2px solid #D97706",
             borderRadius: "8px",
-            padding: "6px 12px",
-            boxShadow: "0 2px 5px rgba(180, 83, 9, 0.05)"
+            padding: "8px 14px",
+            boxShadow: "0 2px 6px rgba(180, 83, 9, 0.06)"
           }}>
-            <div style={{ fontSize: "17.5px", fontWeight: 800, color: "#78350F", lineHeight: "1.2", marginBottom: "6px", transform: "translateY(-2px)" }}>
-              {code === "kn" ? "ಅಧ್ಯಾಯ ೩: ಜನ್ಮ ಕುಂಡಲಿ ಗ್ರಹ ಸ್ಥಿತಿ, ಯೋಗಗಳು ಹಾಗೂ ದೋಷ ವಿಶ್ಲೇಷಣೆ" : "Chapter 3: Natal Planetary Positions, Yogas & Karmic Analysis"}
+            <div style={{ fontSize: "18.5px", fontWeight: 800, color: "#78350F", lineHeight: "1.3" }}>
+              {code === "kn" ? "ಅಧ್ಯಾಯ ೩: ವ್ಯಕ್ತಿತ್ವ, ನಿಗೂಢ ರಹಸ್ಯ ಹಾಗೂ ಪ್ರಸ್ತುತ ಜೀವನದ ಹಂತ" : "Chapter 3: Personal Characteristics, Hidden Truth & Current Life Phase"}
             </div>
             <div style={{ fontSize: "11.5px", color: "#B45309", fontWeight: 600, marginTop: "3px" }}>
-              📜 {code === "kn" ? "ನಿಮ್ಮ ಜಾತಕದ ನವಗ್ರಹಗಳ ಸ್ಥಾನ ಬಲ, ಸಿದ್ಧಿಸಿರುವ ಶುಭ ಯೋಗಗಳು ಹಾಗೂ ದೋಷ ಶಮನ ಮಾರ್ಗದರ್ಶನ" : "Detailed breakdown of natal planets, active Yogas, and sacred Vedic remedies."}
+              📜 {code === "kn" ? "ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿ, ನಕ್ಷತ್ರ ಹಾಗೂ ಲಗ್ನಾಧಿಪತಿಯ ಆಧಾರದ ಮೇಲೆ ಸಿದ್ಧಪಡಿಸಿದ ವ್ಯಕ್ತಿತ್ವ ವಿಶ್ಲೇಷಣೆ" : "Comprehensive breakdown of personality traits, hidden karmic patterns, and current life phase."}
             </div>
           </div>
 
-          {/* 3 Main Analysis Cards */}
+          {/* Content Stack - 3 Cards */}
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            {/* Card 1: Natal Planets */}
-            <div style={{ background: "#FFFFFF", border: "1.5px solid #FCD34D", borderRadius: "8px", padding: "12px 16px", boxShadow: "0 2px 5px rgba(0,0,0,0.03)" }}>
+            {/* Card 1: Characteristics (ವ್ಯಕ್ತಿತ್ವ ಹಾಗೂ ಜನ್ಮ ಗುಣಲಕ್ಷಣಗಳು) */}
+            <div style={{ background: "#FFFDF5", border: "1.5px solid #D97706", borderRadius: "8px", padding: "10px 14px", boxShadow: "0 2px 5px rgba(0,0,0,0.03)" }}>
               <div style={{ fontSize: "13.5px", fontWeight: 800, color: "#78350F", marginBottom: "6px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span>{page4Data?.card1Title || "🌌 ಜನ್ಮ ಗ್ರಹಗಳ ಸ್ಥಿತಿ ಬಲ & ಶುಭ ದೃಷ್ಟಿ"}</span>
-                <span style={{ fontSize: "11px", color: "#92400E", background: "#FEF3C7", border: "1px solid #F59E0B", padding: "2px 10px", borderRadius: "12px", fontWeight: 700 }}>{code === "kn" ? "ಸ್ಥಾನ ಬಲ" : "Natal Strength"}</span>
+                <span>🌟 {code === "kn" ? "ಜನ್ಮ ಗುಣಲಕ್ಷಣಗಳು & ವ್ಯಕ್ತಿತ್ವ ವಿಶ್ಲೇಷಣೆ" : "Birth Characteristics & Personality Synthesis"}</span>
+                <span style={{ fontSize: "11px", color: "#92400E", background: "#FEF3C7", border: "1px solid #F59E0B", padding: "2px 10px", borderRadius: "12px", fontWeight: 700 }}>{code === "kn" ? "ಸ್ವಭಾವ ಬಲ" : "Core Traits"}</span>
               </div>
-              <div style={{ fontSize: "12px", lineHeight: "1.65", color: "#3F2A12", textAlign: "justify" }}>
+              <div style={{ fontSize: "12px", lineHeight: "1.6", color: "#3F2A12", textAlign: "justify" }}>
                 {page4Data?.card1Text}
               </div>
             </div>
 
-            {/* Card 2: Auspicious Yogas */}
-            <div style={{ background: "#FFFBEB", border: "1.5px solid #F59E0B", borderRadius: "8px", padding: "12px 16px", boxShadow: "0 2px 5px rgba(0,0,0,0.03)" }}>
-              <div style={{ fontSize: "13.5px", fontWeight: 800, color: "#78350F", marginBottom: "6px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span>{page4Data?.card2Title || "✨ ನಿಮ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ಸಿದ್ಧಿಸಿರುವ ಪ್ರಮುಖ ಶುಭ ಯೋಗಗಳು"}</span>
-                <span style={{ fontSize: "11px", color: "#78350F", background: "linear-gradient(180deg, #FDE68A 0%, #F59E0B 100%)", border: "1px solid #D97706", padding: "2px 10px", borderRadius: "12px", fontWeight: 800 }}>{code === "kn" ? "ರಾಜಯೋಗ ಸಿದ್ಧಿ" : "Auspicious Yogas"}</span>
+            {/* Card 2: Nigoodha Rahasya (ನಿಗೂಢ ರಹಸ್ಯ - ಗೋಪ್ಯ ಸತ್ಯ) */}
+            <div style={{ background: "#FFF1F2", border: "1.5px solid #F43F5E", borderRadius: "8px", padding: "10px 14px" }}>
+              <div style={{ fontSize: "13.5px", fontWeight: 800, color: "#991B1B", marginBottom: "6px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>🔮 {code === "kn" ? "ಅಂತರಂಗದ ನಿಗೂಢ ರಹಸ್ಯ ಹಾಗೂ ಆಂತರಿಕ ಕೋಪ" : "Nigoodha Rahasya: Inner Secret & Spiritual Remedy"}</span>
+                <span style={{ fontSize: "11px", color: "#9F1239", background: "#FFE4E6", border: "1px solid #F43F5E", padding: "2px 10px", borderRadius: "12px", fontWeight: 700 }}>{code === "kn" ? "ಆಂತರಿಕ ಶಮನ" : "Hidden Karma"}</span>
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                {page4Data?.yogas.map((y, idx) => (
-                  <div key={idx} style={{ fontSize: "12.5px", fontWeight: 700, color: "#92400E", background: "#FEF3C7", border: "1px solid #FCD34D", padding: "6px 12px", borderRadius: "6px" }}>
-                    🌟 {y}
-                  </div>
-                ))}
+              <div style={{ fontSize: "12px", lineHeight: "1.6", color: "#881337", textAlign: "justify" }}>
+                {page4Data?.nigoodhaText1}
+              </div>
+              <div style={{ fontSize: "12px", lineHeight: "1.6", color: "#991B1B", textAlign: "justify", marginTop: "6px", borderTop: "1px solid #FECDD3", paddingTop: "6px", fontWeight: 600 }}>
+                🕊️ {page4Data?.nigoodhaText2}
               </div>
             </div>
 
-            {/* Card 3: Karmic Doshas & Remedies */}
-            <div style={{ background: "#FEF2F2", border: "1.5px solid #EF4444", borderRadius: "8px", padding: "12px 16px", boxShadow: "0 2px 5px rgba(0,0,0,0.03)" }}>
-              <div style={{ fontSize: "13.5px", fontWeight: 800, color: "#991B1B", marginBottom: "6px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span>{page4Data?.card3Title || "🛡️ ಗ್ರಹ ದೋಷ ಶಮನ & ಪವಿತ್ರ ವೈದಿಕ ಪರಿಹಾರ"}</span>
-                <span style={{ fontSize: "11px", color: "#991B1B", background: "#FEE2E2", border: "1px solid #F87171", padding: "2px 10px", borderRadius: "12px", fontWeight: 700 }}>{code === "kn" ? "ದೋಷ ಶಾಂತಿ" : "Vedic Remedy"}</span>
+            {/* Card 3: Prastuta Jeevana (ಪ್ರಸ್ತುತ ಜೀವನ ಶೈಲಿ ಹಾಗೂ ೪ ಮುಖ್ಯಾಂಶಗಳು) */}
+            <div style={{ background: "#FFFBEB", border: "1.5px solid #D97706", borderRadius: "8px", padding: "10px 14px" }}>
+              <div style={{ fontSize: "13.5px", fontWeight: 800, color: "#78350F", marginBottom: "6px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>🌅 {code === "kn" ? "ಪ್ರಸ್ತುತ ಜೀವನ ಶೈಲಿ ಹಾಗೂ ೪ ಮುಖ್ಯಾಂಶಗಳು" : "Prastuta Jeevana: Current Life Stage & 4 Key Pillars"}</span>
+                <span style={{ fontSize: "11px", color: "#92400E", background: "#FEF3C7", border: "1px solid #F59E0B", padding: "2px 10px", borderRadius: "12px", fontWeight: 700 }}>{code === "kn" ? "ವರ್ತಮಾನ ಘಟ್ಟ" : "Active Stage"}</span>
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginBottom: "8px" }}>
-                {page4Data?.doshas.map((d, idx) => (
-                  <div key={idx} style={{ fontSize: "12px", color: "#7F1D1D", fontWeight: 600 }}>
-                    • {d}
-                  </div>
-                ))}
-              </div>
-              <div style={{ fontSize: "12px", color: "#991B1B", fontWeight: 700, background: "#FFFFFF", border: "1px solid #FCA5A5", padding: "6px 10px", borderRadius: "6px" }}>
-                🕉️ {code === "kn" ? "ಸಿದ್ಧ ಪರಿಹಾರ:" : "Remedy:"} {page4Data?.remedy}
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px", fontSize: "11.5px", lineHeight: "1.5" }}>
+                <div style={{ background: "#FEF3C7", padding: "6px 9px", borderRadius: "6px" }}>
+                  <strong style={{ color: "#065F46", display: "block", marginBottom: "2px" }}>💼 {code === "kn" ? "ವೃತ್ತಿ ಉದ್ಯೋಗ & ಅಧಿಕಾರ ಸ್ಥಾನ:" : "Career, Business & Position:"}</strong>
+                  <div style={{ textAlign: "justify", color: "#3F2A12" }}>{page4Data?.prastutaCareer}</div>
+                </div>
+                <div style={{ background: "#F5F3FF", padding: "6px 9px", borderRadius: "6px" }}>
+                  <strong style={{ color: "#5B21B6", display: "block", marginBottom: "2px" }}>🏠 {code === "kn" ? "ಸಂಸಾರ, ದಾಂಪತ್ಯ & ಕುಟುಂಬ ಸುಖ:" : "Family, Marriage & Domestic Peace:"}</strong>
+                  <div style={{ textAlign: "justify", color: "#3F2A12" }}>{page4Data?.prastutaFamily}</div>
+                </div>
+                <div style={{ background: "#ECFDF5", padding: "6px 9px", borderRadius: "6px" }}>
+                  <strong style={{ color: "#047857", display: "block", marginBottom: "2px" }}>💰 {code === "kn" ? "ಧನ-ಧಾನ್ಯ ಆಸ್ತಿ & ಆರ್ಥಿಕ ಭದ್ರತೆ:" : "Wealth, Finance & Assets:"}</strong>
+                  <div style={{ textAlign: "justify", color: "#3F2A12" }}>{page4Data?.prastutaFinance}</div>
+                </div>
+                <div style={{ background: "#FFF1F2", padding: "6px 9px", borderRadius: "6px" }}>
+                  <strong style={{ color: "#991B1B", display: "block", marginBottom: "2px" }}>🌿 {code === "kn" ? "ಆರೋಗ್ಯ ದೈಹಿಕ ಶಕ್ತಿ & ಸಾತ್ವಿಕ ಸೌಖ್ಯ:" : "Health, Energy & Well-being:"}</strong>
+                  <div style={{ textAlign: "justify", color: "#3F2A12" }}>{page4Data?.prastutaHealth}</div>
+                </div>
               </div>
             </div>
           </div>
@@ -2060,62 +2086,68 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
 
 
       {/* ─────────────────────────────────────────────────────────────
-          PAGE 5: ACTIVE DASHA-BHUKTI & GOCHARA TRANSIT SYNTHESIS
+          PAGE 5: YOGAS, DOSHAS & LIVE GOCHARA TRANSITS
          ───────────────────────────────────────────────────────────── */}
       <div className="pdf-page" style={pageStyle}>
-        <div style={frameStyle}>
+        <div style={{ ...frameStyle, gap: "12px" }}>
           {/* Header Box */}
           <div style={{
             textAlign: "center",
             background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
             border: "2px solid #D97706",
             borderRadius: "8px",
-            padding: "6px 12px",
-            boxShadow: "0 2px 5px rgba(180, 83, 9, 0.05)"
+            padding: "8px 14px",
+            boxShadow: "0 2px 6px rgba(180, 83, 9, 0.06)"
           }}>
-            <div style={{ fontSize: "17.5px", fontWeight: 800, color: "#78350F", lineHeight: "1.2", marginBottom: "6px", transform: "translateY(-2px)" }}>
-              {code === "kn" ? "ಅಧ್ಯಾಯ ೪: ವರ್ತಮಾನ ದಶಾ-ಭುಕ್ತಿ ಫಲಗಳು ಹಾಗೂ ಗೋಚಾರ ವಿಶ್ಲೇಷಣೆ" : "Chapter 4: Active Dasha-Bhukti & Planetary Transits"}
+            <div style={{ fontSize: "19px", fontWeight: 800, color: "#78350F", lineHeight: "1.3" }}>
+              {code === "kn" ? "ಅಧ್ಯಾಯ ೪: ಜನ್ಮ ಕುಂಡಲಿ ಯೋಗಗಳು, ದೋಷಗಳು ಹಾಗೂ ಲೈವ್ ಗೋಚಾರ ಫಲಗಳು" : "Chapter 4: Planetary Yogas, Doshas & Live Gochara Transits"}
             </div>
             <div style={{ fontSize: "11.5px", color: "#B45309", fontWeight: 600, marginTop: "3px" }}>
-              📜 {code === "kn" ? "ನಿಮ್ಮ ವರ್ತಮಾನ ದಶಾ-ಅಂತರ್ದಶಾ ಅವಧಿಯ ನಿಖರ ಫಲಗಳು ಹಾಗೂ ಪ್ರಸ್ತುತ ಗೋಚಾರ ಗ್ರಹ ಸಂಚಾರ" : "In-depth synthesis of current planetary chapters and live Gochara transits."}
+              📜 {code === "kn" ? "ನಿಮ್ಮ ಕುಂಡಲಿಯಲ್ಲಿರುವ ಪ್ರಮುಖ ರಾಜಯೋಗಗಳು, ಗ್ರಹ ದೋಷ ವಿವೇಚನೆ ಹಾಗೂ ಗೋಚಾರ ಫಲಗಳ ನಿಖರ ವಿಶ್ಲೇಷಣೆ" : "In-depth breakdown of active Rajayogas, karmic challenges, and live Gochara transits."}
             </div>
           </div>
 
-          {/* 3 Main Cards */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            {/* Card 1: Mahadasha */}
-            <div style={{ background: "#FFFFFF", border: "1.5px solid #FCD34D", borderRadius: "8px", padding: "12px 16px", boxShadow: "0 2px 5px rgba(0,0,0,0.03)" }}>
-              <div style={{ fontSize: "13.5px", fontWeight: 800, color: "#78350F", marginBottom: "6px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span>{page5Data?.card1Title}</span>
-                <span style={{ fontSize: "11px", color: "#92400E", background: "#FEF3C7", border: "1px solid #F59E0B", padding: "2px 10px", borderRadius: "12px", fontWeight: 700 }}>{code === "kn" ? "ಮಹಾ ಅಧ್ಯಾಯ" : "Major Chapter"}</span>
+          {/* Content Stack - 3 Cards */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            {/* Card 1: Yogas (ಜನ್ಮ ಕುಂಡಲಿಯ ಮುಖ್ಯ ರಾಜಯೋಗಗಳು & ಶುಭ ಗ್ರಹ ಬಲ) */}
+            <div style={{ background: "#FFFDF5", border: "1.5px solid #D97706", borderRadius: "8px", padding: "12px 16px", boxShadow: "0 2px 5px rgba(0,0,0,0.03)" }}>
+              <div style={{ fontSize: "13.5px", fontWeight: 800, color: "#78350F", marginBottom: "8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>✨ {code === "kn" ? "ಜನ್ಮ ಕುಂಡಲಿಯ ಮುಖ್ಯ ರಾಜಯೋಗಗಳು & ಶುಭ ಗ್ರಹ ಬಲ" : "Auspicious Rajayogas & Planetary Strengths"}</span>
+                <span style={{ fontSize: "11px", color: "#92400E", background: "#FEF3C7", border: "1px solid #F59E0B", padding: "2px 10px", borderRadius: "12px", fontWeight: 700, display: "inline-flex", alignItems: "center" }}><span style={{ transform: "translateY(-3px)", display: "inline-block" }}>{code === "kn" ? "ರಾಜಯೋಗ ವಿಶ್ಲೇಷಣೆ" : "Rajayogas"}</span></span>
               </div>
               <div style={{ fontSize: "12px", lineHeight: "1.65", color: "#3F2A12", textAlign: "justify" }}>
-                {page5Data?.card1Text}
+                {page5Data?.yogaText1}
+              </div>
+              <div style={{ fontSize: "12px", lineHeight: "1.65", color: "#3F2A12", textAlign: "justify", marginTop: "8px", borderTop: "1px solid #FDE68A", paddingTop: "8px" }}>
+                🌟 {page5Data?.yogaText2}
               </div>
             </div>
 
-            {/* Card 2: Antardasha */}
-            <div style={{ background: "#FFFFFF", border: "1.5px solid #FCD34D", borderRadius: "8px", padding: "12px 16px", boxShadow: "0 2px 5px rgba(0,0,0,0.03)" }}>
-              <div style={{ fontSize: "13.5px", fontWeight: 800, color: "#78350F", marginBottom: "6px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span>{page5Data?.card2Title}</span>
-                <span style={{ fontSize: "11px", color: "#92400E", background: "#FEF3C7", border: "1px solid #F59E0B", padding: "2px 10px", borderRadius: "12px", fontWeight: 700 }}>{code === "kn" ? "ಅಂತರ್ದಶಾ ಅವಧಿ" : "Sub Period"}</span>
+            {/* Card 2: Doshas & Gokarna Remedy (ಗ್ರಹ ದೋಷ ವಿವೇಚನೆ & ಸಿದ್ಧ ಗೋಕರ್ಣ ಪರಿಹಾರ) */}
+            <div style={{ background: "#FFF5F5", border: "1.5px solid #F43F5E", borderRadius: "8px", padding: "12px 16px", boxShadow: "0 2px 5px rgba(0,0,0,0.03)" }}>
+              <div style={{ fontSize: "13.5px", fontWeight: 800, color: "#991B1B", marginBottom: "8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>⚠️ {code === "kn" ? "ಗ್ರಹ ದೋಷ ವಿವೇಚನೆ & ಸಿದ್ಧ ಗೋಕರ್ಣ ಪರಿಹಾರ" : "Karmic Doshas & Gokarna Sacred Remedies"}</span>
+                <span style={{ fontSize: "11px", color: "#9F1239", background: "#FFE4E6", border: "1px solid #F43F5E", padding: "2px 10px", borderRadius: "12px", fontWeight: 700, display: "inline-flex", alignItems: "center" }}><span style={{ transform: "translateY(-3px)", display: "inline-block" }}>{code === "kn" ? "ದೋಷ ಶಮನ" : "Karmic Remedies"}</span></span>
               </div>
-              <div style={{ fontSize: "12px", lineHeight: "1.65", color: "#3F2A12", textAlign: "justify" }}>
-                {page5Data?.card2Text}
+              <div style={{ fontSize: "12px", lineHeight: "1.65", color: "#7F1D1D", textAlign: "justify" }}>
+                {page5Data?.doshaText1}
+              </div>
+              <div style={{ fontSize: "12px", lineHeight: "1.65", color: "#991B1B", textAlign: "justify", marginTop: "8px", borderTop: "1px solid #FECDD3", paddingTop: "8px", fontWeight: 600 }}>
+                🕉️ {page5Data?.doshaText2}
               </div>
             </div>
 
-            {/* Card 3: Live Gochara Transits & Present Position */}
+            {/* Card 3: Live Gochara Transits (ಲೈವ್ ಗೋಚಾರ ಗ್ರಹ ಫಲಗಳು & ವರ್ತಮಾನ ಸಂಚಾರ) */}
             <div style={{ background: "#FFFBEB", border: "1.5px solid #D97706", borderRadius: "8px", padding: "12px 16px", boxShadow: "0 2px 5px rgba(0,0,0,0.03)" }}>
               <div style={{ fontSize: "13.5px", fontWeight: 800, color: "#78350F", marginBottom: "8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span>{page5Data?.card3Title}</span>
+                <span>🍃 {code === "kn" ? "ಲೈವ್ ಗೋಚಾರ ಗ್ರಹ ಫಲಗಳು & ವರ್ತಮಾನ ಸಂಚಾರ" : "Live Gochara Transits & Present Position"}</span>
                 <span style={{ fontSize: "11px", color: "#92400E", background: "#FEF3C7", border: "1px solid #F59E0B", padding: "2px 10px", borderRadius: "12px", fontWeight: 700, display: "inline-flex", alignItems: "center" }}><span style={{ transform: "translateY(-3px)", display: "inline-block" }}>{code === "kn" ? "ವರ್ತಮಾನ ಗೋಚಾರ" : "Live Transits"}</span></span>
               </div>
               <div style={{ fontSize: "12px", lineHeight: "1.65", color: "#3F2A12", textAlign: "justify" }}>
                 {page5Data?.gocharaText1}
               </div>
               <div style={{ fontSize: "12px", lineHeight: "1.65", color: "#3F2A12", textAlign: "justify", marginTop: "8px", borderTop: "1px solid #FDE68A", paddingTop: "8px" }}>
-                {page5Data?.gocharaText2}
+                🌿 {page5Data?.gocharaText2}
               </div>
             </div>
           </div>
@@ -2174,141 +2206,39 @@ const priestStr = typeof panditName === "string" ? panditName : "ಶ್ರೀರ
             alignItems: "center",
             gap: "8px"
           }}>
-            <span style={{ fontSize: "14px" }}>⚠️</span>
-            <div style={{ fontSize: "11px", color: "#991B1B", fontWeight: 700, lineHeight: "1.3" }}>
-              {code === "kn" ? "ವಿಶೇಷ ಸೂಚನೆ: ಮುಂಬರುವ ತಿಂಗಳುಗಳಲ್ಲಿ ಗ್ರಹ ಸಂಚಾರ ಬದಲಾವಣೆ ಹಾಗೂ ದಶಾ ಸಂಧಿ ಕಾಲದಲ್ಲಿ ತಾಳ್ಮೆ ಮತ್ತು ನಿರಂತರ ಪೂಜಾ ಆರಾಧನೆ ಕಾಯ್ದುಕೊಳ್ಳಿ." : "Notice: Maintain patience and perform regular prayers during planetary transit shifts."}
+            <div style={{ fontSize: "18px", transform: "translateY(-2px)" }}>⚡</div>
+            <div style={{ fontSize: "11px", color: "#991B1B", lineHeight: "1.4", transform: "translateY(-2px)" }}>
+              <strong style={{ color: "#7F1D1D" }}>{code === "kn" ? "ವಿಶೇಷ ಗೋಚಾರ & ದಶಾ ಸಂಧಿ ಜಾಗೃತಿ (೨೦೨೬-೨೦೨೭):" : "Special Transit & Dasha Sandhi Awareness:"}</strong> {code === "kn" ? "ಗೋಚಾರ ಹಾಗೂ ದಶಾ ಸಂಧಿ ಕಾಲದಲ್ಲಿ ಮುಖ್ಯ ಆರ್ಥಿಕ ಒಪ್ಪಂದಗಳಲ್ಲಿ ತಾಳ್ಮೆ ವಹಿಸಿ, ಪೂಜಾ ಆರಾಧನೆ ಕಾಯ್ದುಕೊಳ್ಳಿ." : "Maintain patience and regular prayers during planetary transit shifts."}
             </div>
           </div>
 
           {/* 8-Month Detailed Grid (2 Columns x 4 Rows) */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
-            {/* Month 1 (White Box #FFFFFF) */}
-            <div style={{ background: "#FFFFFF", border: "1.5px solid #FCD34D", borderRadius: "7px", padding: "8px 10px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span>🗓️ {page6Data[0]?.mTitle || "೧ ನೇ ತಿಂಗಳು"}</span>
-                <span style={{ fontSize: "11px", background: "#FEF3C7", border: "1px solid #F59E0B", color: "#92400E", padding: "3px 10px", borderRadius: "12px", fontWeight: 700, display: "inline-flex", alignItems: "center", height: "22px", boxSizing: "border-box" }}>
-                  <span style={{ transform: "translateY(-4px)", display: "inline-block" }}>{page6Data[0]?.badge || "ವೃತ್ತಿ ವೃದ್ಧಿ"}</span>
-                </span>
-              </div>
-              <div style={{ fontSize: "11.5px", lineHeight: "1.4", color: "#3F2A12" }}>
-                <div style={{ marginBottom: "2px" }}>1. <strong style={{ color: "#065F46" }}>{code === "kn" ? "ಫಲಾಫಲ:" : "Vibe:"}</strong> {page6Data[0]?.f1}</div>
-                <div style={{ marginBottom: "2px" }}>2. <strong style={{ color: "#92400E" }}>{code === "kn" ? "ಆರ್ಥಿಕ:" : "Finance:"}</strong> {page6Data[0]?.f2}</div>
-                <div style={{ marginBottom: "2px" }}>3. <strong style={{ color: "#D97706" }}>{code === "kn" ? "ಸವಾಲು:" : "Caution:"}</strong> {page6Data[0]?.f3}</div>
-                <div>4. <strong style={{ color: "#991B1B" }}>{code === "kn" ? "ಮಾರ್ಗದರ್ಶನ:" : "Remedy:"}</strong> {page6Data[0]?.f4}</div>
-              </div>
-            </div>
+            {page6Data.map((m: any, i: number) => {
+              const bgColors = ["#FFFFFF", "#ECFDF5", "#F5F3FF", "#FFFFFF", "#FEF2F2", "#ECFDF5", "#EFF6FF", "#FFFBEB"];
+              const borderColors = ["#FCD34D", "#10B981", "#8B5CF6", "#FCD34D", "#EF4444", "#10B981", "#3B82F6", "#F59E0B"];
+              const textColors = ["#78350F", "#065F46", "#5B21B6", "#78350F", "#991B1B", "#065F46", "#1E40AF", "#78350F"];
+              const badgeBgs = ["#FEF3C7", "#D1FAE5", "#EDE9FE", "#FEF3C7", "#FEE2E2", "#D1FAE5", "#DBEAFE", "#FEF3C7"];
+              const badgeBorders = ["#F59E0B", "#10B981", "#8B5CF6", "#F59E0B", "#EF4444", "#10B981", "#3B82F6", "#F59E0B"];
+              const badgeColors = ["#92400E", "#065F46", "#5B21B6", "#92400E", "#991B1B", "#065F46", "#1E40AF", "#92400E"];
 
-            {/* Month 2 (Green Box #ECFDF5) */}
-            <div style={{ background: "#ECFDF5", border: "1.5px solid #10B981", borderRadius: "7px", padding: "8px 10px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#065F46", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span>🗓️ {page6Data[1]?.mTitle || "೨ ನೇ ತಿಂಗಳು"}</span>
-                <span style={{ fontSize: "11px", background: "#D1FAE5", border: "1px solid #10B981", color: "#065F46", padding: "3px 10px", borderRadius: "12px", fontWeight: 700, display: "inline-flex", alignItems: "center", height: "22px", boxSizing: "border-box" }}>
-                  <span style={{ transform: "translateY(-4px)", display: "inline-block" }}>{page6Data[1]?.badge || "ಧನ ಸಮೃದ್ಧಿ"}</span>
-                </span>
-              </div>
-              <div style={{ fontSize: "11.5px", lineHeight: "1.4", color: "#064E3B" }}>
-                <div style={{ marginBottom: "2px" }}>1. <strong style={{ color: "#047857" }}>{code === "kn" ? "ಫಲಾಫಲ:" : "Vibe:"}</strong> {page6Data[1]?.f1}</div>
-                <div style={{ marginBottom: "2px" }}>2. <strong style={{ color: "#065F46" }}>{code === "kn" ? "ಆರ್ಥಿಕ:" : "Finance:"}</strong> {page6Data[1]?.f2}</div>
-                <div style={{ marginBottom: "2px" }}>3. <strong style={{ color: "#D97706" }}>{code === "kn" ? "ಸವಾಲು:" : "Caution:"}</strong> {page6Data[1]?.f3}</div>
-                <div>4. <strong style={{ color: "#991B1B" }}>{code === "kn" ? "ಮಾರ್ಗದರ್ಶನ:" : "Remedy:"}</strong> {page6Data[1]?.f4}</div>
-              </div>
-            </div>
-
-            {/* Month 3 (Purple Box #F5F3FF) */}
-            <div style={{ background: "#F5F3FF", border: "1.5px solid #8B5CF6", borderRadius: "7px", padding: "8px 10px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#5B21B6", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span>🗓️ {page6Data[2]?.mTitle || "೩ ನೇ ತಿಂಗಳು"}</span>
-                <span style={{ fontSize: "11px", background: "#EDE9FE", border: "1px solid #8B5CF6", color: "#5B21B6", padding: "3px 10px", borderRadius: "12px", fontWeight: 700, display: "inline-flex", alignItems: "center", height: "22px", boxSizing: "border-box" }}>
-                  <span style={{ transform: "translateY(-4px)", display: "inline-block" }}>{page6Data[2]?.badge || "ಕುಟುಂಬ ಸೌಖ್ಯ"}</span>
-                </span>
-              </div>
-              <div style={{ fontSize: "11.5px", lineHeight: "1.4", color: "#4C1D95" }}>
-                <div style={{ marginBottom: "2px" }}>1. <strong style={{ color: "#5B21B6" }}>{code === "kn" ? "ಫಲಾಫಲ:" : "Vibe:"}</strong> {page6Data[2]?.f1}</div>
-                <div style={{ marginBottom: "2px" }}>2. <strong style={{ color: "#6D28D9" }}>{code === "kn" ? "ಸಂಬಂಧ:" : "Relations:"}</strong> {page6Data[2]?.f2}</div>
-                <div style={{ marginBottom: "2px" }}>3. <strong style={{ color: "#D97706" }}>{code === "kn" ? "ಸವಾಲು:" : "Caution:"}</strong> {page6Data[2]?.f3}</div>
-                <div>4. <strong style={{ color: "#991B1B" }}>{code === "kn" ? "ಮಾರ್ಗದರ್ಶನ:" : "Remedy:"}</strong> {page6Data[2]?.f4}</div>
-              </div>
-            </div>
-
-            {/* Month 4 (White Box #FFFFFF) */}
-            <div style={{ background: "#FFFFFF", border: "1.5px solid #FCD34D", borderRadius: "7px", padding: "8px 10px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span>🗓️ {page6Data[3]?.mTitle || "೪ ನೇ ತಿಂಗಳು"}</span>
-                <span style={{ fontSize: "11px", background: "#FEF3C7", border: "1px solid #F59E0B", color: "#92400E", padding: "3px 10px", borderRadius: "12px", fontWeight: 700, display: "inline-flex", alignItems: "center", height: "22px", boxSizing: "border-box" }}>
-                  <span style={{ transform: "translateY(-4px)", display: "inline-block" }}>{page6Data[3]?.badge || "ಬೌದ್ಧಿಕ ಸಿದ್ಧಿ"}</span>
-                </span>
-              </div>
-              <div style={{ fontSize: "11.5px", lineHeight: "1.4", color: "#3F2A12" }}>
-                <div style={{ marginBottom: "2px" }}>1. <strong style={{ color: "#065F46" }}>{code === "kn" ? "ಫಲಾಫಲ:" : "Vibe:"}</strong> {page6Data[3]?.f1}</div>
-                <div style={{ marginBottom: "2px" }}>2. <strong style={{ color: "#92400E" }}>{code === "kn" ? "ಸಾಧನೆ:" : "Focus:"}</strong> {page6Data[3]?.f2}</div>
-                <div style={{ marginBottom: "2px" }}>3. <strong style={{ color: "#D97706" }}>{code === "kn" ? "ಸವಾಲು:" : "Caution:"}</strong> {page6Data[3]?.f3}</div>
-                <div>4. <strong style={{ color: "#991B1B" }}>{code === "kn" ? "ಮಾರ್ಗದರ್ಶನ:" : "Remedy:"}</strong> {page6Data[3]?.f4}</div>
-              </div>
-            </div>
-
-            {/* Month 5 (Amber Box #FFFBEB) */}
-            <div style={{ background: "#FFFBEB", border: "1.5px solid #F59E0B", borderRadius: "7px", padding: "8px 10px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span>🗓️ {page6Data[4]?.mTitle || "೫ ನೇ ತಿಂಗಳು"}</span>
-                <span style={{ fontSize: "11px", background: "#FEF3C7", border: "1px solid #F59E0B", color: "#92400E", padding: "3px 10px", borderRadius: "12px", fontWeight: 700, display: "inline-flex", alignItems: "center", height: "22px", boxSizing: "border-box" }}>
-                  <span style={{ transform: "translateY(-4px)", display: "inline-block" }}>{page6Data[4]?.badge || "ಭಾಗ್ಯ ವೃದ್ಧಿ"}</span>
-                </span>
-              </div>
-              <div style={{ fontSize: "11.5px", lineHeight: "1.4", color: "#3F2A12" }}>
-                <div style={{ marginBottom: "2px" }}>1. <strong style={{ color: "#78350F" }}>{code === "kn" ? "ಫಲಾಫಲ:" : "Vibe:"}</strong> {page6Data[4]?.f1}</div>
-                <div style={{ marginBottom: "2px" }}>2. <strong style={{ color: "#92400E" }}>{code === "kn" ? "ಸಾಧನೆ:" : "Focus:"}</strong> {page6Data[4]?.f2}</div>
-                <div style={{ marginBottom: "2px" }}>3. <strong style={{ color: "#D97706" }}>{code === "kn" ? "ಸವಾಲು:" : "Caution:"}</strong> {page6Data[4]?.f3}</div>
-                <div>4. <strong style={{ color: "#991B1B" }}>{code === "kn" ? "ಮಾರ್ಗದರ್ಶನ:" : "Remedy:"}</strong> {page6Data[4]?.f4}</div>
-              </div>
-            </div>
-
-            {/* Month 6 (Green Box #ECFDF5) */}
-            <div style={{ background: "#ECFDF5", border: "1.5px solid #10B981", borderRadius: "7px", padding: "8px 10px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#065F46", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span>🗓️ {page6Data[5]?.mTitle || "೬ ನೇ ತಿಂಗಳು"}</span>
-                <span style={{ fontSize: "11px", background: "#D1FAE5", border: "1px solid #10B981", color: "#065F46", padding: "3px 10px", borderRadius: "12px", fontWeight: 700, display: "inline-flex", alignItems: "center", height: "22px", boxSizing: "border-box" }}>
-                  <span style={{ transform: "translateY(-4px)", display: "inline-block" }}>{page6Data[5]?.badge || "ಆರೋಗ್ಯ ಚೇತರಿಕೆ"}</span>
-                </span>
-              </div>
-              <div style={{ fontSize: "11.5px", lineHeight: "1.4", color: "#064E3B" }}>
-                <div style={{ marginBottom: "2px" }}>1. <strong style={{ color: "#047857" }}>{code === "kn" ? "ಫಲಾಫಲ:" : "Vibe:"}</strong> {page6Data[5]?.f1}</div>
-                <div style={{ marginBottom: "2px" }}>2. <strong style={{ color: "#065F46" }}>{code === "kn" ? "ಆರೋಗ್ಯ:" : "Health:"}</strong> {page6Data[5]?.f2}</div>
-                <div style={{ marginBottom: "2px" }}>3. <strong style={{ color: "#D97706" }}>{code === "kn" ? "ಸವಾಲು:" : "Caution:"}</strong> {page6Data[5]?.f3}</div>
-                <div>4. <strong style={{ color: "#991B1B" }}>{code === "kn" ? "ಮಾರ್ಗದರ್ಶನ:" : "Remedy:"}</strong> {page6Data[5]?.f4}</div>
-              </div>
-            </div>
-
-            {/* Month 7 (Blue Box #EFF6FF) */}
-            <div style={{ background: "#EFF6FF", border: "1.5px solid #3B82F6", borderRadius: "7px", padding: "8px 10px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#1E40AF", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span>🗓️ {page6Data[6]?.mTitle || "೭ ನೇ ತಿಂಗಳು"}</span>
-                <span style={{ fontSize: "11px", background: "#DBEAFE", border: "1px solid #3B82F6", color: "#1E40AF", padding: "3px 10px", borderRadius: "12px", fontWeight: 700, display: "inline-flex", alignItems: "center", height: "22px", boxSizing: "border-box" }}>
-                  <span style={{ transform: "translateY(-4px)", display: "inline-block" }}>{page6Data[6]?.badge || "ವಿದ್ಯಾ & ಬೌದ್ಧಿಕ"}</span>
-                </span>
-              </div>
-              <div style={{ fontSize: "11.5px", lineHeight: "1.4", color: "#1E3A8A" }}>
-                <div style={{ marginBottom: "2px" }}>1. <strong style={{ color: "#1E40AF" }}>{code === "kn" ? "ಫಲಾಫಲ:" : "Vibe:"}</strong> {page6Data[6]?.f1}</div>
-                <div style={{ marginBottom: "2px" }}>2. <strong style={{ color: "#1D4ED8" }}>{code === "kn" ? "ಸಾಧನೆ:" : "Focus:"}</strong> {page6Data[6]?.f2}</div>
-                <div style={{ marginBottom: "2px" }}>3. <strong style={{ color: "#D97706" }}>{code === "kn" ? "ಸವಾಲು:" : "Caution:"}</strong> {page6Data[6]?.f3}</div>
-                <div>4. <strong style={{ color: "#991B1B" }}>{code === "kn" ? "ಮಾರ್ಗದರ್ಶನ:" : "Remedy:"}</strong> {page6Data[6]?.f4}</div>
-              </div>
-            </div>
-
-            {/* Month 8 (Amber Box #FFFBEB) */}
-            <div style={{ background: "#FFFBEB", border: "1.5px solid #F59E0B", borderRadius: "7px", padding: "8px 10px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span>🗓️ {page6Data[7]?.mTitle || "೮ ನೇ ತಿಂಗಳು"}</span>
-                <span style={{ fontSize: "11px", background: "#FEF3C7", border: "1px solid #F59E0B", color: "#92400E", padding: "3px 10px", borderRadius: "12px", fontWeight: 700, display: "inline-flex", alignItems: "center", height: "22px", boxSizing: "border-box" }}>
-                  <span style={{ transform: "translateY(-4px)", display: "inline-block" }}>{page6Data[7]?.badge || "ಶತ್ರು ಜಯ & ರಕ್ಷಣೆ"}</span>
-                </span>
-              </div>
-              <div style={{ fontSize: "11.5px", lineHeight: "1.4", color: "#3F2A12" }}>
-                <div style={{ marginBottom: "2px" }}>1. <strong style={{ color: "#047857" }}>{code === "kn" ? "ಫಲಾಫಲ:" : "Vibe:"}</strong> {page6Data[7]?.f1}</div>
-                <div style={{ marginBottom: "2px" }}>2. <strong style={{ color: "#92400E" }}>{code === "kn" ? "ಆರ್ಥಿಕ:" : "Finance:"}</strong> {page6Data[7]?.f2}</div>
-                <div style={{ marginBottom: "2px" }}>3. <strong style={{ color: "#D97706" }}>{code === "kn" ? "ಸವಾಲು:" : "Caution:"}</strong> {page6Data[7]?.f3}</div>
-                <div>4. <strong style={{ color: "#991B1B" }}>{code === "kn" ? "ಮಾರ್ಗದರ್ಶನ:" : "Remedy:"}</strong> {page6Data[7]?.f4}</div>
-              </div>
-            </div>
+              return (
+                <div key={i} style={{ background: bgColors[i % 8], border: `1.5px solid ${borderColors[i % 8]}`, borderRadius: "7px", padding: "8px 10px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+                  <div style={{ fontSize: "12.5px", fontWeight: 800, color: textColors[i % 8], marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span>🗓️ {m.mTitle}</span>
+                    <span style={{ fontSize: "11px", background: badgeBgs[i % 8], border: `1px solid ${badgeBorders[i % 8]}`, color: badgeColors[i % 8], padding: "3px 10px", borderRadius: "12px", fontWeight: 700, display: "inline-flex", alignItems: "center", height: "22px", boxSizing: "border-box" }}>
+                      <span style={{ transform: "translateY(-4px)", display: "inline-block" }}>{m.badge}</span>
+                    </span>
+                  </div>
+                  <div style={{ fontSize: "11.5px", lineHeight: "1.4", color: textColors[i % 8] }}>
+                    <div style={{ marginBottom: "2px" }}>1. <strong style={{ color: "#065F46" }}>{code === "kn" ? "ಫಲಾಫಲ:" : "Vibe:"}</strong> {m.f1}</div>
+                    <div style={{ marginBottom: "2px" }}>2. <strong style={{ color: "#92400E" }}>{code === "kn" ? "ಉದ್ಯೋಗ/ಆರ್ಥಿಕ:" : "Focus:"}</strong> {m.f2}</div>
+                    <div style={{ marginBottom: "2px" }}>3. <strong style={{ color: "#D97706" }}>{code === "kn" ? "ಸವಾಲು:" : "Caution:"}</strong> {m.f3}</div>
+                    <div>4. <strong style={{ color: "#991B1B" }}>{code === "kn" ? "ಮಾರ್ಗದರ್ಶನ:" : "Remedy:"}</strong> {m.f4}</div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
           {/* Footer Banner */}
