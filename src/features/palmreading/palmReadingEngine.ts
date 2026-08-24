@@ -48,6 +48,18 @@ export type PalmReadingResult = {
   // Auspicious Marks Identified
   specialMarks: Array<{ mark: Record<string, string>; meaning: Record<string, string> }>;
 
+  // Optional Generated Kundli Details
+  kundliData?: {
+    lagna: string;
+    rashi: string;
+    nakshatra: string;
+    maandi: string;
+    dasha: string;
+    gotra?: string;
+    dob?: string;
+    tob?: string;
+  };
+
   // Overall Verdict & Remedy
   overallScore: number; // 0..100%
   verdictTitle: Record<string, string>;
@@ -135,7 +147,8 @@ export async function executePalmReading(
   handSide: HandSide,
   devoteeName: string,
   lang: string,
-  apiKey: string
+  apiKey: string,
+  kundliData?: PalmReadingResult["kundliData"]
 ): Promise<PalmReadingResult> {
   const langCode = (lang || "kn").slice(0, 2);
   const activeKey = (apiKey || import.meta.env.VITE_GEMINI_API_KEY || "").trim();
@@ -275,6 +288,7 @@ Rules:
     mounts,
     specialMarks,
     overallScore: 88,
+    kundliData,
     verdictTitle: {
       kn: "🟢 ಶುಭ ಹಸ್ತ ರೇಖಾ ಯೋಗ (Auspicious Palm Line Realization)",
       en: "🟢 Auspicious Palm Line Realization",

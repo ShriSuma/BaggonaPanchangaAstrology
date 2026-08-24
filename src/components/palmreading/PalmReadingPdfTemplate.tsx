@@ -155,6 +155,23 @@ export const PalmReadingPdfTemplate: React.FC<PalmReadingPdfTemplateProps> = ({
           </div>
         </div>
 
+        {/* Generated Kundli Details Card (if present) */}
+        {result.kundliData && (
+          <div style={{ background: "linear-gradient(180deg, #FEF3C7 0%, #FDE68A 100%)", border: "1.5px solid #F59E0B", borderRadius: "10px", padding: "10px 14px", marginBottom: "14px" }}>
+            <div style={{ fontSize: "12px", fontWeight: 800, color: "#78350F", marginBottom: "4px" }}>
+              🔮 {code === "kn" ? "ಹಸ್ತ ಆಧರಿತ ಜನನ ಕುಂಡಲಿ ವಿವರಗಳು:" : "Palm Reconstructed Janma Kundali Details:"}
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", fontSize: "11px", color: "#92400E" }}>
+              <div><strong>{code === "kn" ? "ಲಗ್ನ (ಅಂಶ):" : "Lagna:"}</strong> <span style={{ fontWeight: 800, color: "#065F46" }}>{result.kundliData.lagna}</span></div>
+              <div><strong>{code === "kn" ? "ರಾಶಿ:" : "Rashi:"}</strong> <span style={{ fontWeight: 800 }}>{result.kundliData.rashi}</span></div>
+              <div><strong>{code === "kn" ? "ನಕ್ಷತ್ರ:" : "Nakshatra:"}</strong> <span style={{ fontWeight: 800 }}>{result.kundliData.nakshatra}</span></div>
+              <div><strong>{code === "kn" ? "ಮಾಂದಿ ಸ್ಥಾನ:" : "Maandi:"}</strong> <span style={{ fontWeight: 800, color: "#991B1B" }}>{result.kundliData.maandi}</span></div>
+              <div><strong>{code === "kn" ? "ವರ್ತಮಾನ ದಶಾ:" : "Dasha:"}</strong> <span style={{ fontWeight: 800, color: "#92400E" }}>{result.kundliData.dasha}</span></div>
+              {result.kundliData.gotra && <div><strong>{code === "kn" ? "ಗೋತ್ರ:" : "Gotra:"}</strong> {result.kundliData.gotra}</div>}
+            </div>
+          </div>
+        )}
+
         {/* Prediction Content Card */}
         <div
           style={{
