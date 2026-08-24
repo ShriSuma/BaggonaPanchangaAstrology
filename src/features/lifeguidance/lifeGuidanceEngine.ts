@@ -34,6 +34,7 @@ export type LifeGuidanceResult = {
   relationship: LifeGuidanceTabResult;
   health: LifeGuidanceTabResult;
   children: LifeGuidanceTabResult;
+  customQnA?: { question: string; answer: string };
   generatedAt: string;
 };
 
@@ -169,4 +170,53 @@ Rules:
     },
     generatedAt: new Date().toLocaleString()
   };
+}
+
+/** Ask Custom Astrological Question for Life Guidance */
+export async function askCustomLifeQuestion(
+  result: LifeGuidanceResult,
+  question: string,
+  lang: string = "kn",
+  apiKey?: string
+): Promise<string> {
+  const langCode = (lang || "kn").slice(0, 2);
+  const fallback = langCode === "kn"
+    ? `ನಿಮ್ಮ ಜಾತಕದ ಗ್ರಹ ಗತಿಗಳ ಆಧಾರದಲ್ಲಿ, ನೀವು ಕೇಳಿದ "${question}" ಪ್ರಶ್ನೆಗೆ ಅನುಕೂಲಕರ ಯೋಗವಿದೆ. ಪ್ರಸ್ತುತ ದಶಾ ಬಲದಿಂದಾಗಿ ಧೈರ್ಯ ಹಾಗೂ ತಾಳ್ಮೆಯಿಂದ ಕೈಗೊಂಡ ನಿರ್ಧಾರಗಳು ಶ್ರೇಷ್ಠ ಯಶಸ್ಸು ನೀಡಲಿವೆ. ಧರ್ಮ ಕಾರ್ಯ ಹಾಗೂ ದೈವ ಪ್ರಾರ್ಥನೆಯಿಂದ ಸಕಲ ಶುಭ ಫಲ ಸಿದ್ಧಿಸಲಿದೆ.`
+    : `Based on your planetary transits, your query "${question}" holds favorable alignment. Patience and clear strategy will yield success.`;
+
+  if (!apiKey) return fallback;
+
+  try {
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({
+      model: "gemini-3.5-flash-lite",
+      safetySettings: [
+        { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+        { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
+        { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
+        { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE }
+      ]
+    });
+
+    const prompt = `
+You are Sri Shreeram Pandit, Master Vedic Astrologer from Gokarna Mahabaleshwara Kshetra.
+The devotee ${result.personName} (Rashi: ${result.rashi[langCode] || result.rashi.kn}, Nakshatra: ${result.nakshatra[langCode] || result.nakshatra.kn}) has asked a custom personal question:
+"${question}"
+
+Provide a detailed 4-5 paragraph authentic Vedic astrological analysis & remedy:
+1. Explain the planetary alignments and house lord influences relevant to their question.
+2. Give clear, encouraging, honest, and practical guidance.
+3. Suggest specific Gokarna Vedic remedies, mantras, or worship recommendations.
+
+Rules:
+- Write EXCLUSIVELY in script: ${langCode} (${langCode === "kn" ? "Kannada" : langCode === "hi" ? "Hindi" : langCode === "te" ? "Telugu" : langCode === "ta" ? "Tamil" : "English"}).
+- Do NOT mix English letters in Kannada script. Write pure native script.
+`;
+
+    const res = await model.generateContent(prompt);
+    return (await res.response).text() || fallback;
+  } catch (err) {
+    console.error("Custom Question AI Error:", err);
+    return fallback;
+  }
 }

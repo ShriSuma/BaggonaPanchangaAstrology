@@ -544,7 +544,7 @@ export default function PalmReadingPage(): JSX.Element {
       {/* Kundli Generation Form Modal */}
       {showKundliModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-          <Card className="w-full max-w-lg border-2 border-amber-400 bg-white p-6 shadow-2xl space-y-4">
+          <Card className="w-full max-w-lg max-h-[85vh] overflow-y-auto border-2 border-amber-400 bg-white p-5 sm:p-6 shadow-2xl space-y-4 rounded-2xl">
             <div className="flex items-center justify-between border-b border-amber-200 pb-3">
               <h3 className="font-serif text-base font-bold text-amber-950 flex items-center gap-2">
                 <span>🔮</span>

@@ -113,6 +113,21 @@ export const LifeGuidancePdfTemplate: React.FC<LifeGuidancePdfTemplateProps> = (
           </div>
         </div>
 
+        {/* Section 5: Custom Q&A Answer (if present) */}
+        {result.customQnA && (
+          <div style={{ background: "#FFFFFF", border: "2px solid #D97706", borderRadius: "10px", padding: "12px", marginBottom: "14px" }}>
+            <div style={{ fontSize: "12px", fontWeight: 800, color: "#92400E", borderBottom: "1px solid #FEF3C7", paddingBottom: "4px", marginBottom: "6px" }}>
+              🎙️ {code === "kn" ? "ಸ್ವಂತ ಪ್ರಶ್ನೆ ಸಮಗ್ರ ಜ್ಯೋತಿಷ್ಯ ವಿಶ್ಲೇಷಣೆ & ಪರಿಹಾರ:" : "Custom Question & Astrological Remedies:"}
+            </div>
+            <div style={{ fontSize: "11px", fontWeight: 800, color: "#78350F", marginBottom: "4px" }}>
+              ❓ {result.customQnA.question}
+            </div>
+            <div style={{ fontSize: "10.5px", color: "#78350F", lineHeight: "1.5", whiteSpace: "pre-wrap" }}>
+              {sanitizeAIText(result.customQnA.answer)}
+            </div>
+          </div>
+        )}
+
         {/* Footer */}
         <div
           style={{
