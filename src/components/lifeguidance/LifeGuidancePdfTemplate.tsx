@@ -45,52 +45,55 @@ export const LifeGuidancePdfTemplate: React.FC<LifeGuidancePdfTemplateProps> = (
       id="life-guidance-pdf-container"
       style={{
         width: "794px",
-        minHeight: "1123px",
-        padding: "32px",
+        height: "1123px",
+        padding: "16px",
         boxSizing: "border-box",
         background: "#FFFDF7",
-        fontFamily: "'Noto Sans Kannada', 'Tiro Kannada', 'Segoe UI', Roboto, sans-serif",
+        fontFamily: "'Noto Sans Kannada', 'Tiro Kannada', 'Kaveri', 'Segoe UI', Roboto, sans-serif",
         color: "#451A03",
         position: "relative",
-        fontSize: "12px",
-        lineHeight: "1.65"
+        fontSize: "10.5px",
+        lineHeight: "1.45",
+        overflow: "hidden"
       }}
     >
       <div
         style={{
           width: "100%",
+          height: "1091px",
           border: "3px solid #D97706",
-          borderRadius: "16px",
-          padding: "24px",
+          borderRadius: "14px",
+          padding: "14px",
           boxSizing: "border-box",
           background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
           display: "flex",
           flexDirection: "column",
-          gap: "16px"
+          justifyContent: "space-between",
+          overflow: "hidden"
         }}
       >
         {/* Header */}
-        <div style={{ textAlign: "center", borderBottom: "2px solid #F59E0B", paddingBottom: "14px" }}>
-          <div style={{ fontSize: "14px", fontWeight: 800, color: "#92400E", letterSpacing: "1px" }}>
+        <div style={{ textAlign: "center", borderBottom: "2px solid #F59E0B", paddingBottom: "6px" }}>
+          <div style={{ fontSize: "12px", fontWeight: 800, color: "#92400E", letterSpacing: "0.5px" }}>
             ॥ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿ ಪ್ರಸನ್ನ ॥
           </div>
-          <h1 style={{ fontSize: "22px", fontWeight: 800, color: "#78350F", margin: "6px 0 4px 0" }}>
+          <h1 style={{ fontSize: "17px", fontWeight: 800, color: "#78350F", margin: "3px 0 2px 0" }}>
             {code === "kn" ? "॥ ಬಗ್ಗೋಣ ಪರಿಪೂರ್ಣ ಜೀವನ ಮಾರ್ಗದರ್ಶನ ವರದಿ ॥" : "Baggona Hyper-Personalized Life Guidance Report"}
           </h1>
-          <div style={{ fontSize: "12px", color: "#B45309", fontWeight: 600 }}>
+          <div style={{ fontSize: "11px", color: "#B45309", fontWeight: 600 }}>
             {code === "kn" ? "ಶ್ರೀ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದ ಸಿದ್ಧ ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯ ಗಣನ ಪದ್ಧತಿ" : "Vedic Astrology & Planetary Guidance from Gokarna Kshetra"}
           </div>
         </div>
 
         {/* Person Info Card */}
-        <div style={{ background: "#FFFFFF", border: "1.5px solid #FCD34D", borderRadius: "12px", padding: "14px" }}>
-          <div style={{ fontSize: "11px", fontWeight: 800, color: "#B45309", textTransform: "uppercase", marginBottom: "6px" }}>
+        <div style={{ background: "#FFFFFF", border: "1.5px solid #FCD34D", borderRadius: "10px", padding: "8px 12px" }}>
+          <div style={{ fontSize: "10px", fontWeight: 800, color: "#B45309", textTransform: "uppercase", marginBottom: "4px" }}>
             👤 {code === "kn" ? "ಜಾತಕರ ವಿವರಗಳು" : "Devotee Details"}
           </div>
-          <div style={{ fontSize: "16px", fontWeight: 800, color: "#78350F", marginBottom: "8px" }}>
+          <div style={{ fontSize: "14px", fontWeight: 800, color: "#78350F", marginBottom: "4px" }}>
             {result.personName} ({result.gender})
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "10px", fontSize: "11.5px", color: "#92400E" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "8px", fontSize: "10.5px", color: "#92400E" }}>
             <div><strong>DOB:</strong> {result.dob}</div>
             <div><strong>TOB:</strong> {result.tob}</div>
             <div><strong>{code === "kn" ? "ರಾಶಿ:" : "Rashi:"}</strong> <span style={{ fontWeight: 800 }}>{result.rashi[code] || result.rashi.kn}</span></div>
@@ -99,31 +102,31 @@ export const LifeGuidancePdfTemplate: React.FC<LifeGuidancePdfTemplateProps> = (
         </div>
 
         {/* Active Section Title Header */}
-        <div style={{ background: "linear-gradient(90deg, #78350F 0%, #92400E 100%)", borderRadius: "10px", padding: "12px 18px", color: "#FDE68A", fontSize: "16px", fontWeight: 800 }}>
+        <div style={{ background: "linear-gradient(90deg, #78350F 0%, #92400E 100%)", borderRadius: "8px", padding: "8px 14px", color: "#FDE68A", fontSize: "14px", fontWeight: 800 }}>
           {sectionTitle}
         </div>
 
         {/* Custom Question Heading (if custom tab) */}
         {isCustomTab && result.customQnA?.question && (
-          <div style={{ background: "#FEF3C7", border: "1.5px solid #F59E0B", borderRadius: "10px", padding: "12px", fontSize: "12px", fontWeight: 800, color: "#78350F" }}>
+          <div style={{ background: "#FEF3C7", border: "1.5px solid #F59E0B", borderRadius: "8px", padding: "8px 12px", fontSize: "11px", fontWeight: 800, color: "#78350F" }}>
             ❓ {code === "kn" ? "ಪ್ರಶ್ನೆ:" : "Question:"} {result.customQnA.question}
           </div>
         )}
 
         {/* Main Paragraphs (Rendered in clean distinct cards) */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
           {paragraphs.map((para, idx) => (
             <div
               key={idx}
               style={{
                 background: "#FFFFFF",
-                borderLeft: "4px solid #D97706",
-                borderRadius: "10px",
-                padding: "14px 16px",
-                fontSize: "11.5px",
+                borderLeft: "3.5px solid #D97706",
+                borderRadius: "8px",
+                padding: "8px 12px",
+                fontSize: "10px",
                 color: "#451A03",
-                lineHeight: "1.7",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.05)"
+                lineHeight: "1.45",
+                boxShadow: "0 1px 2px rgba(0,0,0,0.03)"
               }}
             >
               <p style={{ margin: 0 }}>{para}</p>
@@ -133,12 +136,12 @@ export const LifeGuidancePdfTemplate: React.FC<LifeGuidancePdfTemplateProps> = (
 
         {/* Key Ages & Favorable Directions (if standard tab) */}
         {sectionData && (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginTop: "4px" }}>
-            <div style={{ background: "#FEF3C7", border: "1px solid #FCD34D", borderRadius: "10px", padding: "10px 14px", fontSize: "11.5px", color: "#78350F" }}>
-              <strong>🌟 {code === "kn" ? "ಪ್ರಮುಖ ವಯೋಮಾನ ಮೈಲಿಗಲ್ಲುಗಳು (Key Ages):" : "Key Age Milestones:"}</strong>{" "}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+            <div style={{ background: "#FEF3C7", border: "1px solid #FCD34D", borderRadius: "8px", padding: "6px 10px", fontSize: "10px", color: "#78350F" }}>
+              <strong>🌟 {code === "kn" ? "ಪ್ರಮುಖ ವಯೋಮಾನ ಮೈಲಿಗಲ್ಲುಗಳು:" : "Key Age Milestones:"}</strong>{" "}
               <span style={{ fontWeight: 800 }}>{sectionData.keyAges.join(", ")} {code === "kn" ? "ವರ್ಷಗಳು" : "Years"}</span>
             </div>
-            <div style={{ background: "#FEF3C7", border: "1px solid #FCD34D", borderRadius: "10px", padding: "10px 14px", fontSize: "11.5px", color: "#78350F" }}>
+            <div style={{ background: "#FEF3C7", border: "1px solid #FCD34D", borderRadius: "8px", padding: "6px 10px", fontSize: "10px", color: "#78350F" }}>
               <strong>🧭 {code === "kn" ? "ಅನುಕೂಲಕರ ದಿಕ್ಪಾಲಕ ದಿಕ್ಕುಗಳು:" : "Favorable Directions:"}</strong>{" "}
               <span style={{ fontWeight: 800 }}>{sectionData.favorableDirections[code] || sectionData.favorableDirections.kn}</span>
             </div>
@@ -146,12 +149,12 @@ export const LifeGuidancePdfTemplate: React.FC<LifeGuidancePdfTemplateProps> = (
         )}
 
         {/* SECTION 1: Daily Home Remedies (ಜಪ-ತಪ, ಮಂತ್ರ, ಧನದಾ ಸ್ತೋತ್ರ) */}
-        <div style={{ background: "#FFFFFF", border: "1.5px solid #F59E0B", borderRadius: "10px", padding: "14px", marginTop: "6px" }}>
-          <div style={{ fontSize: "13px", fontWeight: 800, color: "#78350F", marginBottom: "6px", display: "flex", alignItems: "center", gap: "6px" }}>
+        <div style={{ background: "#FFFFFF", border: "1.5px solid #F59E0B", borderRadius: "8px", padding: "8px 12px" }}>
+          <div style={{ fontSize: "11px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", alignItems: "center", gap: "4px" }}>
             <span>🌸</span>
             <span>{code === "kn" ? "ವಿಭಾಗ ೧: ದಿನನಿತ್ಯದ ಗೃಹ ಸಿದ್ಧ ಪೂಜಾ ಪರಿಹಾರಗಳು (ಜಪ, ತಪ & ಮಂತ್ರ):" : "Section 1: Daily Home Remedies (Mantra & Japa):"}</span>
           </div>
-          <div style={{ fontSize: "11.5px", color: "#92400E", lineHeight: "1.65", fontWeight: 600 }}>
+          <div style={{ fontSize: "10px", color: "#92400E", lineHeight: "1.4", fontWeight: 600 }}>
             {sectionData
               ? (sectionData.recommendedRemedies[code] || sectionData.recommendedRemedies.kn)
               : (code === "kn" ? "ನಿತ್ಯ ಬೆಳಿಗ್ಗೆ ಧನ್ವಂತರಿ ಸೂಕ್ತ, ಗಾಯತ್ರೀ ಮಂತ್ರ ಹಾಗೂ ಶಿವ ಪಂಚಾಕ್ಷರಿ ಜಪ ಶ್ರೇಷ್ಠ." : "Daily Dhanvantari and Gayatri Mantra recitation recommended.")}
@@ -159,11 +162,11 @@ export const LifeGuidancePdfTemplate: React.FC<LifeGuidancePdfTemplateProps> = (
         </div>
 
         {/* SECTION 2: Gokarna Kshetra Special Puja / Homa (WHY, WHAT, HOW) */}
-        <div style={{ background: "#FFFBEB", border: "2px solid #D97706", borderRadius: "10px", padding: "14px" }}>
-          <div style={{ fontSize: "13px", fontWeight: 800, color: "#78350F", marginBottom: "6px" }}>
+        <div style={{ background: "#FFFBEB", border: "1.5px solid #D97706", borderRadius: "8px", padding: "8px 12px" }}>
+          <div style={{ fontSize: "11px", fontWeight: 800, color: "#78350F", marginBottom: "4px" }}>
             🪔 {code === "kn" ? "ವಿಭಾಗ ೨: ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿ ವಿಶೇಷ ವೈದಿಕ ಶಾಂತಿ & ಹೋಮ:" : "Section 2: Gokarna Kshetra Special Vedic Shanti & Homa:"}
           </div>
-          <div style={{ fontSize: "11.5px", color: "#78350F", lineHeight: "1.65" }}>
+          <div style={{ fontSize: "10px", color: "#78350F", lineHeight: "1.4" }}>
             {code === "kn"
               ? "ಜಾತಕದ ಪಿತೃ ದೋಷ (ತ್ರಿಪಿಂಡೀ/ನಾರಾಯಣ ಬಲಿ), ಕಾಲಸರ್ಪ ಶಾಂತ್ಯುಕ್ತ ಹೋಮ, ನಾಗಪ್ರತಿಷ್ಠೆ ಹಾಗೂ ಮಾಂದಿ ದೋಷಗಳಿಗೆ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ವಿಶೇಷ ಸೇವೆ ನೆರವೇರಿಸುವುದರಿಂದ ಸಕಲ ಪಾಪ ಕರ್ಮಗಳು ಶಮನವಾಗಿ ಮಹಾ ಲಕ್ಷ್ಮೀ ಅನುಗ್ರಹ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ."
               : "Performing Narayana Bali, Tripindi Shraddha, Kalasarpa Shanti, Nagapratishtha & Kuja Shanti at Gokarna Mahabaleshwara Kshetra dissolves karmic obstructions and bestows divine grace."}
@@ -175,22 +178,21 @@ export const LifeGuidancePdfTemplate: React.FC<LifeGuidancePdfTemplateProps> = (
           style={{
             background: "linear-gradient(180deg, #78350F 0%, #451A03 100%)",
             border: "2px solid #F59E0B",
-            borderRadius: "12px",
-            padding: "14px 18px",
-            textAlign: "center",
-            marginTop: "6px"
+            borderRadius: "10px",
+            padding: "10px 14px",
+            textAlign: "center"
           }}
         >
-          <div style={{ fontSize: "12px", fontWeight: 800, color: "#FDE68A", letterSpacing: "0.5px" }}>
+          <div style={{ fontSize: "11px", fontWeight: 800, color: "#FDE68A", letterSpacing: "0.5px" }}>
             {sealSymbol} {sealText}
           </div>
-          <div style={{ fontSize: "14px", fontWeight: 800, color: "#FFFFFF", marginTop: "4px" }}>
+          <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#FFFFFF", marginTop: "2px" }}>
             ವೇ|| ಮೂ|| {priestName} ({priestTitle}) · ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಸಿದ್ಧ ಸೇವಾ ಕರ್ತರು
           </div>
-          <div style={{ fontSize: "12px", color: "#FCD34D", fontWeight: 700, marginTop: "4px" }}>
+          <div style={{ fontSize: "11px", color: "#FCD34D", fontWeight: 700, marginTop: "2px" }}>
             📞 {code === "kn" ? "ದೂರವಾಣಿ / WhatsApp ಪೂಜಾ ಸಂಪರ್ಕ:" : "Direct Phone / WhatsApp:"} {priestPhone}
           </div>
-          <div style={{ fontSize: "10.5px", color: "#FEF3C7", opacity: 0.9, marginTop: "4px", fontStyle: "italic" }}>
+          <div style={{ fontSize: "9.5px", color: "#FEF3C7", opacity: 0.9, marginTop: "2px", fontStyle: "italic" }}>
             {code === "kn" ? "ನಿಮ್ಮ ಜಾತಕದ ಪ್ರತ್ಯೇಕ ದೋಷ ಶಾಂತಿ ಹಾಗೂ ಪೂಜಾ ವಿವರಗಳಿಗೆ ನೇರವಾಗಿ ಅರ್ಚಕರನ್ನು ಮುಂಗಡವಾಗಿ ಸಂಪರ್ಕಿಸಿ." : "For specific Dosha Shanti & Puja booking, contact selected Priest directly."}
           </div>
         </div>
