@@ -373,13 +373,7 @@ export default function SankhyaShastraPage(): JSX.Element {
 
       
       {/* Full-Screen Centered Animated Numerology Modal Overlay */}
-      {isProcessing && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 animate-fade-in">
-          <div className="w-full max-w-sm">
-            <SankhyaNumerologyLoader isKn={isKn} />
-          </div>
-        </div>
-      )}
+      {isProcessing && <SankhyaNumerologyLoader isKn={isKn} />}
 
       {/* AI Generative Chatbox Timeline & Priest Reading View */}
       {messages.length > 0 && (
