@@ -117,22 +117,24 @@ export default function PriestQrGeneratorTab({
 
     try {
       const canvas = await html2canvas(container, {
-        scale: 2, // High resolution crisp PDF
+        scale: 1.8,
         useCORS: true,
-        backgroundColor: "#FFFDF7"
+        backgroundColor: "#FFFDF7",
+        logging: false
       });
 
-      const imgData = canvas.toDataURL("image/png");
+      const imgData = canvas.toDataURL("image/jpeg", 0.88);
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "mm",
-        format: "a4"
+        format: "a4",
+        compress: true
       });
 
       const pdfWidth = pdf.internal.pageSize.getWidth(); // 210mm
       const pdfHeight = pdf.internal.pageSize.getHeight(); // 297mm
 
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight, undefined, "FAST");
 
       const safeName = (identity.personName || "Devotee").replace(/[^\p{L}\p{N}]+/gu, "_");
       pdf.save(`Baggona_Priest_QR_Card_${safeName}_${durationDays}Days_${selectedLang.toUpperCase()}.pdf`);

@@ -1108,15 +1108,18 @@ export default function DailyDarshanaPage(): JSX.Element {
   const nameParam = decoded?.n || params.get("name") || "";
   const panditParam = decoded?.p || params.get("pandit") || "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್";
 
+  const isQrScanAutoDownload = useMemo(() => {
+    const action = params.get("action");
+    return action === "ics" || action === "ics90" || action === "download";
+  }, [params]);
+
   const isFromCalendarRedirect = useMemo(() => {
     return (
       params.get("fromCal") === "1" ||
       params.get("fromCal") === "true" ||
-      params.get("action") === "ics" ||
-      params.get("action") === "ics90" ||
-      Boolean(tokenParam)
+      (!isQrScanAutoDownload && Boolean(tokenParam))
     );
-  }, [params, tokenParam]);
+  }, [params, tokenParam, isQrScanAutoDownload]);
 
   const [lang, setLang] = useState<SevaLang>(langParam);
   const dict = useMemo(() => DARSHANA_LABELS[lang] || DARSHANA_LABELS.en, [lang]);
@@ -1533,28 +1536,15 @@ export default function DailyDarshanaPage(): JSX.Element {
     }
   };
 
-  // Trigger automatic download if QR code scanned or action/days/token parameter present
+  // Trigger automatic download ONLY when scanning physical QR code (action=ics)
   useEffect(() => {
-    const action = params.get("action");
-    const daysParam = params.get("days");
-    const fromCal = params.get("fromCal");
-
-    const shouldAutoDownload =
-      action === "ics" ||
-      action === "ics90" ||
-      action === "download" ||
-      fromCal === "1" ||
-      fromCal === "true" ||
-      Boolean(daysParam) ||
-      Boolean(tokenParam);
-
-    if (shouldAutoDownload) {
+    if (isQrScanAutoDownload) {
       const timer = setTimeout(() => {
         handleDownload90DayIcs();
-      }, 300);
+      }, 350);
       return () => clearTimeout(timer);
     }
-  }, [params, tokenParam]);
+  }, [isQrScanAutoDownload]);
 
   const handleShareWhatsApp = () => {
     const text = `${dict.panchangaTitle} - ${dict.kshetraTitle}\n\n🙏 ${dict.pandit}: ${localizedPandit}\n👤 ${dict.devotee}: ${devoteeDisplayName}\n⚡ ${dict.status}: ${vibe.badgeText}\n\n🌐 View Live Darshana & Kundali:\n${window.location.href}`;
