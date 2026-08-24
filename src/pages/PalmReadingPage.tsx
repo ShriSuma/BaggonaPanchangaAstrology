@@ -14,6 +14,7 @@ import {
   type PalmReadingResult
 } from "../features/palmreading/palmReadingEngine";
 import { PalmReadingPdfTemplate } from "../components/palmreading/PalmReadingPdfTemplate";
+import { PalmTimelineDiagram } from "../components/palmreading/PalmTimelineDiagram";
 import { sanitizeAIText } from "../utils/textFormatter";
 import { PalmScannerLoader } from "../components/palmreading/PalmScannerLoader";
 import { calculateKundliWithPlaceSun } from "../core/KundliEngine";
@@ -604,6 +605,16 @@ export default function PalmReadingPage(): JSX.Element {
       
       {/* Full-Screen Centered Animated Palm Scanner Modal Overlay */}
       {isProcessing && <PalmScannerLoader isKn={isKn} />}
+
+      
+          {/* Visual Life Event Timeline Diagram Component */}
+          {activeResult && (
+            <PalmTimelineDiagram
+              personName={devoteeName}
+              lang={selectedLang}
+              handSide={activeResult.handSide}
+            />
+          )}
 
       {/* AI Generative Chatbox Timeline & Priest Reading View */}
       {messages.length > 0 && (
