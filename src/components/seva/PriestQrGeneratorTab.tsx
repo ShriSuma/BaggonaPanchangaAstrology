@@ -27,9 +27,12 @@ type PriestQrGeneratorTabProps = {
 
 export default function PriestQrGeneratorTab({
   identity,
-  lang
+  lang: initialLang
 }: PriestQrGeneratorTabProps): JSX.Element {
-  const isKn = lang === "kn";
+  // Language selector state (defaults to app language or kn)
+  const [selectedLang, setSelectedLang] = useState<string>(initialLang || "kn");
+  const isKn = selectedLang === "kn";
+
   const [priestsList, setPriestsList] = useState<PriestProfile[]>(() => getAllPriests());
   const [selectedPriestId, setSelectedPriestId] = useState<string>("shreeram-pandit");
   const [durationDays, setDurationDays] = useState<number>(365); // Default 365 Days (1 Full Year)
@@ -46,13 +49,13 @@ export default function PriestQrGeneratorTab({
     return getPriestProfile(selectedPriestId);
   }, [selectedPriestId, priestsList]);
 
-  const pName = activePriest.name[lang as keyof typeof activePriest.name] || activePriest.name.en;
-  const pTitle = activePriest.title[lang as keyof typeof activePriest.title] || activePriest.title.en;
+  const pName = activePriest.name[selectedLang as keyof typeof activePriest.name] || activePriest.name.en || activePriest.name.kn;
+  const pTitle = activePriest.title[selectedLang as keyof typeof activePriest.title] || activePriest.title.en || activePriest.title.kn;
 
-  const userRashiStr = identity.rashiIndex !== undefined ? rashiName(identity.rashiIndex, lang) : "—";
-  const userNakshatraStr = identity.nakshatraIndex !== undefined ? nakshatraName(identity.nakshatraIndex, lang) : "—";
+  const userRashiStr = identity.rashiIndex !== undefined ? rashiName(identity.rashiIndex, selectedLang) : "—";
+  const userNakshatraStr = identity.nakshatraIndex !== undefined ? nakshatraName(identity.nakshatraIndex, selectedLang as any) : "—";
 
-  // Generate dynamic QR code payload encoding duration and priest details
+  // Generate dynamic QR code payload encoding duration, language, and priest details
   useEffect(() => {
     const origin =
       typeof window !== "undefined" &&
@@ -63,7 +66,7 @@ export default function PriestQrGeneratorTab({
         : "https://baggona.app";
 
     const priestPhoneStr = activePriest.phone || "+91 99723 39362";
-    const payloadUrl = `${origin}/daily?days=${durationDays}&priest=${encodeURIComponent(pName)}&phone=${encodeURIComponent(priestPhoneStr)}&devotee=${encodeURIComponent(identity.personName)}`;
+    const payloadUrl = `${origin}/daily?days=${durationDays}&priest=${encodeURIComponent(pName)}&phone=${encodeURIComponent(priestPhoneStr)}&devotee=${encodeURIComponent(identity.personName)}&lang=${selectedLang}`;
 
     QRCode.toDataURL(payloadUrl, {
       errorCorrectionLevel: "M",
@@ -78,7 +81,7 @@ export default function PriestQrGeneratorTab({
       .catch((err) => {
         console.error("QR Generation error:", err);
       });
-  }, [durationDays, pName, activePriest, identity]);
+  }, [durationDays, pName, activePriest, identity, selectedLang]);
 
   const handleAddPriest = () => {
     if (newPriestName.trim()) {
@@ -119,7 +122,7 @@ export default function PriestQrGeneratorTab({
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
 
       const safeName = (identity.personName || "Devotee").replace(/[^\p{L}\p{N}]+/gu, "_");
-      pdf.save(`Baggona_Priest_QR_Card_${safeName}_${durationDays}Days.pdf`);
+      pdf.save(`Baggona_Priest_QR_Card_${safeName}_${durationDays}Days_${selectedLang.toUpperCase()}.pdf`);
     } catch (err) {
       console.error("PDF generation error:", err);
       alert("Error generating 1-page A4 PDF card.");
@@ -127,6 +130,14 @@ export default function PriestQrGeneratorTab({
       setIsGeneratingPdf(false);
     }
   };
+
+  const languages = [
+    { code: "kn", label: "ಕನ್ನಡ (Kannada)" },
+    { code: "en", label: "English" },
+    { code: "hi", label: "हिंदी (Hindi)" },
+    { code: "te", label: "తెలుగు (Telugu)" },
+    { code: "ta", label: "தமிழ் (Tamil)" }
+  ];
 
   return (
     <div className="space-y-6">
@@ -139,8 +150,8 @@ export default function PriestQrGeneratorTab({
             </h2>
             <p className="mt-1 text-xs text-amber-900/80">
               {isKn
-                ? "ಅರ್ಚಕರ ಆಯ್ಕೆ ಹಾಗೂ ೧ ರಿಂದ ೧೨ ತಿಂಗಳ ದಿನನಿತ್ಯದ ಸಿದ್ಧ ಪಂಚಾಂಗದ ಆಶೀರ್ವಾದ QR ಕೋಡ್ ಕಾರ್ಡ್ ಸಿದ್ಧಪಡಿಸಿ."
-                : "Select Priest, choose calendar duration (30 to 365 Days), and generate 1-Page A4 Printable PDF Card."}
+                ? "ಅರ್ಚಕರ ಆಯ್ಕೆ, ಭಾಷೆ ಹಾಗೂ ೧ ರಿಂದ ೧೨ ತಿಂಗಳ ದಿನನಿತ್ಯದ ಸಿದ್ಧ ಪಂಚಾಂಗದ ಆಶೀರ್ವಾದ QR ಕೋಡ್ ಕಾರ್ಡ್ ಸಿದ್ಧಪಡಿಸಿ."
+                : "Select Priest, Language, Calendar Duration (30 to 365 Days), and generate 1-Page A4 Printable PDF Card."}
             </p>
           </div>
 
@@ -156,8 +167,37 @@ export default function PriestQrGeneratorTab({
         </div>
       </div>
 
-      {/* Control Panel (Priest Selector & Duration Selector) */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      {/* Control Panel (Language, Priest & Duration Selectors) */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        {/* Language Selector Dropdown */}
+        <Card className="border border-amber-300/80 bg-white">
+          <label className="block text-xs font-bold uppercase tracking-wider text-amber-900/80 mb-2">
+            🌐 {isKn ? "PDF & QR ಭಾಷೆ (Select Language)" : "PDF & QR Language"}
+          </label>
+          <div className="space-y-2">
+            {languages.map((l) => (
+              <label
+                key={l.code}
+                className={`flex items-center gap-2.5 rounded-xl border p-2 text-xs font-bold cursor-pointer transition ${
+                  selectedLang === l.code
+                    ? "border-amber-600 bg-amber-100 text-amber-950 shadow-sm"
+                    : "border-amber-200 bg-amber-50/50 text-amber-900 hover:bg-amber-100/50"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="qrLang"
+                  value={l.code}
+                  checked={selectedLang === l.code}
+                  onChange={(e) => setSelectedLang(e.target.value)}
+                  className="accent-amber-700"
+                />
+                <span>{l.label}</span>
+              </label>
+            ))}
+          </div>
+        </Card>
+
         {/* Priest Dropdown & Custom Addition */}
         <Card className="border border-amber-300/80 bg-white">
           <label className="block text-xs font-bold uppercase tracking-wider text-amber-900/80 mb-2">
@@ -178,12 +218,12 @@ export default function PriestQrGeneratorTab({
                 className="w-full rounded-xl border border-amber-300 bg-amber-50/50 px-3.5 py-2.5 text-sm font-bold text-amber-950 shadow-sm focus:border-amber-600 focus:outline-none"
               >
                 {priestsList.map((p) => {
-                  const name = p.name[lang as keyof typeof p.name] || p.name.en;
-                  const title = p.title[lang as keyof typeof p.title] || p.title.en;
+                  const name = p.name[selectedLang as keyof typeof p.name] || p.name.en || p.name.kn;
+                  const title = p.title[selectedLang as keyof typeof p.title] || p.title.en || p.title.kn;
                   const phone = p.phone || "+91 99723 39362";
                   return (
                     <option key={p.id} value={p.id}>
-                      {p.sealSymbol} {name} ({phone}) - {title}
+                      {p.sealSymbol} {name} ({phone})
                     </option>
                   );
                 })}
@@ -244,7 +284,7 @@ export default function PriestQrGeneratorTab({
         {/* Duration Selector Dropdown */}
         <Card className="border border-amber-300/80 bg-white">
           <label className="block text-xs font-bold uppercase tracking-wider text-amber-900/80 mb-2">
-            📅 {isKn ? "ಪಂಚಾಂಗ ಅವಧಿ ಆಯ್ಕೆ (Duration Dropdown)" : "Select Calendar Duration"}
+            📅 {isKn ? "ಪಂಚಾಂಗ ಅವಧಿ ಆಯ್ಕೆ (Duration)" : "Select Calendar Duration"}
           </label>
 
           <select
@@ -276,7 +316,7 @@ export default function PriestQrGeneratorTab({
       <Card className="overflow-x-auto bg-slate-900/10 p-6 flex flex-col items-center">
         <div className="text-center mb-4">
           <span className="rounded-full bg-amber-800 px-3 py-1 text-xs font-bold text-amber-50 shadow-sm">
-            👁️ {isKn ? "೧-ಪುಟದ A4 QR ಕೋಡ್ ಕಾರ್ಡ್ ಲೈವ್ ಮುನ್ನೋಟ (Live Preview)" : "1-Page A4 QR Card Live Preview"}
+            👁️ {isKn ? `೧-ಪುಟದ A4 QR ಕೋಡ್ ಕಾರ್ಡ್ ಲೈವ್ ಮುನ್ನೋಟ (${selectedLang.toUpperCase()})` : `1-Page A4 QR Card Live Preview (${selectedLang.toUpperCase()})`}
           </span>
         </div>
 
@@ -291,7 +331,7 @@ export default function PriestQrGeneratorTab({
             priestTitle={pTitle}
             durationDays={durationDays}
             qrDataUrl={qrDataUrl}
-            lang={lang}
+            lang={selectedLang}
           />
         </div>
       </Card>
