@@ -96,22 +96,33 @@ export async function executeLifeGuidanceCalculation(
 
       const prompt = `
 You are Sri Shreeram Pandit, Master Vedic Astrologer from Gokarna Mahabaleshwara Kshetra.
-Provide 4 highly detailed, 3-paragraph authentic astrological predictions for ${personName} (DOB: ${dob}, TOB: ${tob}, Gender: ${gender}):
-- Birth Chart: Rashi (${rashiStr}), Nakshatra (${nakshatraStr}), Lagna (${lagnaStr}), Dasha (${dashaStr}).
+Provide 4 deeply thorough, authentic astrological life forecasts for ${personName} (DOB: ${dob}, TOB: ${tob}, Gender: ${gender}):
+- Natal Astronomical Parameters: Rashi (${rashiStr}), Nakshatra (${nakshatraStr}), Lagna (${lagnaStr}), Dasha (${dashaStr}).
 
-Generate 4 sections formatted with JSON markers:
+STRICT LENGTH & NARRATION REQUIREMENTS:
+- Provide EXACTLY 4 to 5 DEEP, RICH PARAGRAPHS for each of the 4 sections.
+- EACH PARAGRAPH MUST BE AT LEAST 5 TO 6 LINES LONG of authentic, highly accurate, emotional Vedic astrological narration.
+- DO NOT WRITE SHORT 1-2 LINE PARAGRAPHS. Write comprehensive, paragraph-dense guidance.
+
+NATAL DOSHA & GOKARNA SEVA DIAGNOSTIC REQUIREMENTS:
+In each section's final dedicated remedy paragraph, diagnose specific natal Doshas (Pitru Dosha / Tripindi Shraddha, Narayana Bali, Kalasarpa Shanti, Naga Pratishtha, Kuja Shanti, Maandi Shanti, Pretoddhara) and explicitly explain:
+1. WHY this specific Gokarna Puja/Homa is required according to their birth chart.
+2. WHAT spiritual significance it holds in Gokarna Mahabaleshwara Kshetra.
+3. HOW performing this Seva will remove karma obstacles & bless their life!
+
+Format with JSON markers:
 [CAREER_SECTION]
-3-paragraph detailed career path, business timing, wealth eras & specific age milestones.
+4 to 5 long paragraphs (5-6 lines each) detailing 10th house, Dasha eras, career promotion ages, business wealth & Gokarna Seva remedies.
 [RELATIONSHIP_SECTION]
-3-paragraph detailed marriage timing, spouse personality, compatibility & domestic harmony.
+4 to 5 long paragraphs (5-6 lines each) detailing 7th house, Venus placement, spouse characteristics, marital peace & Gokarna Seva remedies.
 [HEALTH_SECTION]
-3-paragraph detailed health forecast, vitality, immune strength & preventive Vedic remedies.
+4 to 5 long paragraphs (5-6 lines each) detailing 6th house, physical vitality, longevity ages, health precautions & Gokarna Seva remedies.
 [CHILDREN_SECTION]
-3-paragraph detailed progeny timing, children prospects & lineage prosperity.
+4 to 5 long paragraphs (5-6 lines each) detailing 5th house, Jupiter transit, progeny timing, lineage growth & Gokarna Seva remedies.
 
 Rules:
-- Write in requested language: ${langCode} (${langCode === "kn" ? "Kannada" : langCode === "hi" ? "Hindi" : langCode === "te" ? "Telugu" : langCode === "ta" ? "Tamil" : "English"}).
-- Do NOT mix English letters in Kannada script. Write pure native script.
+- Write EXCLUSIVELY in script: ${langCode} (${langCode === "kn" ? "Kannada" : langCode === "hi" ? "Hindi" : langCode === "te" ? "Telugu" : langCode === "ta" ? "Tamil" : "English"}).
+- Do NOT use Latin script letters inside Indian language text.
 `;
 
       const res = await model.generateContent(prompt);
@@ -200,13 +211,14 @@ export async function askCustomLifeQuestion(
 
     const prompt = `
 You are Sri Shreeram Pandit, Master Vedic Astrologer from Gokarna Mahabaleshwara Kshetra.
-The devotee ${result.personName} (Rashi: ${result.rashi[langCode] || result.rashi.kn}, Nakshatra: ${result.nakshatra[langCode] || result.nakshatra.kn}) has asked a custom personal question:
+The devotee ${result.personName} (Rashi: ${result.rashi[langCode] || result.rashi.kn}, Nakshatra: ${result.nakshatra[langCode] || result.nakshatra.kn}) has asked a custom personal query:
 "${question}"
 
-Provide a detailed 4-5 paragraph authentic Vedic astrological analysis & remedy:
-1. Explain the planetary alignments and house lord influences relevant to their question.
-2. Give clear, encouraging, honest, and practical guidance.
-3. Suggest specific Gokarna Vedic remedies, mantras, or worship recommendations.
+STRICT LENGTH & PARAGRAPH REQUIREMENTS:
+- Provide EXACTLY 4 to 5 LONG, RICH PARAGRAPHS (5 to 6 lines per paragraph).
+- 1st-3rd Paragraphs: Deep astronomical planetary analysis, house lords, Dasha transits & practical guidance.
+- 4th-5th Paragraphs: Specific Gokarna Seva / Puja remedies (e.g. Narayana Bali, Tripindi Shraddha, Kalasarpa Shanti, Nagapratishtha, Kuja Shanti, Maandi Shanti).
+- Explicitly detail WHY this puja is required for their query, WHAT spiritual significance it holds in Gokarna Mahabaleshwara Kshetra, and HOW it will transform their life!
 
 Rules:
 - Write EXCLUSIVELY in script: ${langCode} (${langCode === "kn" ? "Kannada" : langCode === "hi" ? "Hindi" : langCode === "te" ? "Telugu" : langCode === "ta" ? "Tamil" : "English"}).
