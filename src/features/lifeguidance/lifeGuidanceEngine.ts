@@ -59,22 +59,22 @@ export async function executeLifeGuidanceCalculation(
   const lagnaObj = { kn: lagnaStr, en: baggona?.sunNakshatra || "Gemini Lagna" };
   const dashaObj = { kn: dashaStr, en: dashaStr };
 
-  // Fallback Narratives
+  // Comprehensive 4-5 Long Paragraph Fallback Narratives (5-6 Lines per Paragraph)
   const fallbackCareer = langCode === "kn"
-    ? `ನಿಮ್ಮ ಜನನ ಕುಂಡಲಿಯ ೧೦ನೇ ಭಾವದ ಶುಭ ದೃಷ್ಟಿಯಿಂದಾಗಿ ವೃತ್ತಿ ಕ್ಷೇತ್ರದಲ್ಲಿ ಮಹತ್ವದ ಉನ್ನತಿ ಯೋಗವಿದೆ. ವಿಶೇಷವಾಗಿ ೨೮ ಹಾಗೂ ೩೬ನೇ ವಯಸ್ಸಿನಲ್ಲಿ ಉದ್ಯೋಗ ಬದಲಾವಣೆ, ಬಡ್ತಿ ಹಾಗೂ ಸಮಾಜದಲ್ಲಿ ಧನ ಪ್ರತಿಷ್ಠೆ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ.\n\nಪ್ರಸ್ತುತ ಚಲಿಸುತ್ತಿರುವ ${dashaStr} ಸಮಯದಲ್ಲಿ ಸೂರ್ಯ ಹಾಗೂ ಗುರು ಗ್ರಹಗಳ ಬಲದಿಂದ ಸ್ವಂತ ವ್ಯಾಪಾರ ಅಥವಾ ಆಡಳಿತಾತ್ಮಕ ಹುದ್ದೆಗಳಲ್ಲಿ ಜಯ ಸಿಗಲಿದೆ. ಗುರುವಾರ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಗೆ ಕಡಲೆಬೇಳೆ ಅರ್ಪಿಸಿ.`
-    : `According to your 10th house planetary alignment, strong career advancement and financial recognition are highlighted around ages 28 and 36. Strategic leadership roles will yield prosperity.`;
+    ? `ನಿಮ್ಮ ಜನನ ಕುಂಡಲಿಯ ೧೦ನೇ ಭಾವದ (ಧನ ಹಾಗೂ ಕರ್ಮ ಸ್ಥಾನ) ಗ್ರಹಗಳ ಶುಭ ದೃಷ್ಟಿಯಿಂದಾಗಿ ವೃತ್ತಿ ಕ್ಷೇತ್ರದಲ್ಲಿ ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ ಹಾಗೂ ಸ್ಥಿರವಾದ ಉನ್ನತಿ ಯೋಗವಿದೆ. ದಶಮಾಧಿಪತಿಯು ಲಗ್ನ ಭಾವದೊಂದಿಗೆ ಸಾಮೀಪ್ಯ ಹೊಂದಿದ್ದು, ನಿಮ್ಮ ಕಾರ್ಯನಿಷ್ಠೆ ಹಾಗೂ ಸ್ವಂತ ಶ್ರಮದಿಂದ ಸಮಾಜದಲ್ಲಿ ನಾಯಕತ್ವ ಹಾಗೂ ಗೌರವ ಪ್ರತಿಷ್ಠೆ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ.\n\nನಿಮ್ಮ ಜೀವನದ ೨೪, ೨೮, ೩೬, ೪೪ ಹಾಗೂ ೫೨ನೇ ವಯಸ್ಸಿನಲ್ಲಿ ವೃತ್ತಿಪರವಾಗಿ ಬೃಹತ್ ಯಶಸ್ಸು, ಹುದ್ದೆ ಬಡ್ತಿ ಹಾಗೂ ನೂತನ ಉದ್ಯೋಗ ಸಂಸ್ಥಾಪನೆಯ ಸುವರ್ಣ ಅವಕಾಶಗಳು ಎದುರಾಗಲಿವೆ. ವ್ಯಾಪಾರ ಹಾಗೂ ವಾಣಿಜ್ಯ ರಂಗದಲ್ಲಿ ತೊಡಗಿರುವವರಿಗೆ ಧನ ಭಾಗ್ಯ ವೃದ್ಧಿಯಾಗಲಿದ್ದು, ವಿದೇಶಿ ವ್ಯವಹಾರಗಳಲ್ಲಿ ಅಪಾರ ಲಾಭ ಸಿಗಲಿದೆ.\n\nಪ್ರಸ್ತುತ ಚಲಿಸುತ್ತಿರುವ ${dashaStr} ಸಮಯದಲ್ಲಿ ಸೂರ್ಯ ಹಾಗೂ ಗುರು ಗ್ರಹಗಳ ದಿವ್ಯ ಬಲದಿಂದ ನಿಮ್ಮ ಶತ್ರುಗಳ ಕುತಂತ್ರಗಳು ನಾಶವಾಗಿ, ಸಕಲ ಕಾರ್ಯಗಳಲ್ಲಿ ವಿಜಯ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ. ಸಾರ್ವಜನಿಕ ರಂಗದಲ್ಲಿ ನಿರತರಾದವರಿಗೆ ಉನ್ನತ ರಾಜಕೀಯ ಹಾಗೂ ಆಡಳಿತಾತ್ಮಕ ಸ್ಥಾನಮಾನಗಳು ದೊರೆಯುವ ಭಾಗ್ಯವಿದೆ.\n\nಕುಂಡಲಿಯಲ್ಲಿ ೧೦ನೇ ಮನೆಗೆ ರಾಹು-ಕೇತು ಅಥವಾ ಶನಿ-ಮಾಂದಿ ದೃಷ್ಟಿ ಇರುವುದರಿಂದ ಉದ್ಯೋಗದಲ್ಲಿ ಅಕಾಲಿಕ ಕಿರಿಕಿರಿ, ಮೇಲಧಿಕಾರಿಗಳ ಅಸಮಾಧಾನ ಹಾಗೂ ಆಕಸ್ಮಿಕ ಧನ ನಷ್ಟದ ಲಕ್ಷಣಗಳು ಕಂಡುಬರುತ್ತವೆ. ಇದನ್ನು ನಿವಾರಿಸಲು ಜಾತಕದಲ್ಲಿರುವ ಮಾಂದಿ ಹಾಗೂ ಕಾಲಸರ್ಪ ದೋಷಕ್ಕೆ ಶಾಂತಿ ಪೂಜೆ ಅತ್ಯಗತ್ಯವಾಗಿದೆ.\n\nಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಗೆ ಮಹಾ ರುದ್ರಾಭಿಷೇಕ, ರುದ್ರ ಹವನ ಹಾಗೂ ನವಗ್ರಹ ಧನದಾ ಶಾಂತ್ಯುಕ್ತ ಹೋಮ ನೆರವೇರಿಸುವುದರಿಂದ ನಿಮ್ಮ ವೃತ್ತಿ ಪ್ರತಿಬಂಧಕಗಳು ಶಮನವಾಗಿ, ದಿವ್ಯ ಲಕ್ಷ್ಮೀ ಕಟಾಕ್ಷ ಲಭಿಸಲಿದೆ.`
+    : `According to your 10th house planetary placement, strong career advancement and financial recognition are highlighted around ages 24, 28, 36, 44, and 52.\n\nStrategic leadership roles in enterprise management or business ventures will yield prosperity under the current ${dashaStr} transit.\n\nYour hard work and dedication will earn you prestige and respect in society, with favorable growth opportunities in foreign or expanding markets.\n\nNatal planet afflictions may cause minor job stress or delay promotions. Gokarna Mahabaleshwara Rudrabhisheka is recommended to unlock ultimate career success.\n\nPerforming specific Gokarna Sevas like Mahamrityunjaya Homa and Navagraha Shanti will neutralize professional obstacles and attract divine prosperity.`;
 
   const fallbackRelationship = langCode === "kn"
-    ? `೭ನೇ ಮನೆ ಹಾಗೂ ಶುಕ್ರ ಗ್ರಹದ ಅನುಕೂಲಕರ ಸ್ಥಾನದಿಂದಾಗಿ ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿ ಪ್ರೇಮ ಹಾಗೂ ಸಾಮರಸ್ಯ ನೆಲೆಸಲಿದೆ. ಸಂಗಾತಿಯು ಸುಸಂಸ್ಕೃತ ಹಾಗೂ ಗೌರವಾನ್ವಿತ ಕುಟುಂಬದವರಾಗಿರುತ್ತಾರೆ.\n\nಕುಟುಂಬದಲ್ಲಿ ಶ್ರೇಷ್ಠ ಸುಖ ಹಾಗೂ ಸಮೃದ್ಧಿಗಾಗಿ ಮಂಗಳವಾರ ಹಾಗೂ ಶುಕ್ರವಾರ ದುರ್ಗಾದೇವಿ ಹಾಗೂ ಲಲಿತಾ ಸಹಸ್ರನಾಮ ಪಠಣೆ ಶ್ರೇಷ್ಠ.`
-    : `Your 7th house and Venus placement promise deep marital harmony, mutual respect, and emotional warmth. Shared spiritual goals will elevate domestic happiness.`;
+    ? `ನಿಮ್ಮ ಕುಂಡಲಿಯ ೭ನೇ ಮನೆ (ಕಳತ್ರ ಸ್ಥಾನ) ಹಾಗೂ ಪ್ರೇಮ ಕಾರಕ ಶುಕ್ರ ಗ್ರಹದ ಅನುಕೂಲಕರ ಸ್ಥಾನದಿಂದಾಗಿ ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿ ಗಾಢವಾದ ಪ್ರೇಮ, ಅನ್ಯೋನ್ಯತೆ ಹಾಗೂ ಸಂಸಾರಿಕ ಸಾಮರಸ್ಯ ನೆಲೆಸಲಿದೆ. ನಿಮ್ಮ ಸಂಗಾತಿಯು ಅತ್ಯಂತ ಸುಸಂಸ್ಕೃತ, ದೈವಭಕ್ತ ಹಾಗೂ ಗೌರವಾನ್ವಿತ ಕುಟುಂಬದ ಹಿನ್ನೆಲೆಯಿಂದ ಬರುವವರಾಗಿರುತ್ತಾರೆ.\n\nಕುಟುಂಬ ಜೀವನದ ೨೫, ೨೯, ೩೪ ಹಾಗೂ ೪೨ನೇ ವಯಸ್ಸಿನಲ್ಲಿ ಕುಟುಂಬ ಸೌಖ್ಯ, ಗ್ರಹ ನಿರ್ಮಾಣ ಹಾಗೂ ದಾಂಪತ್ಯದ ಶ್ರೇಷ್ಠ ಮೈಲಿಗಲ್ಲುಗಳು ನೆರವೇರಲಿವೆ. ದಂಪತಿಗಳಿಬ್ಬರ ವೈಚಾರಿಕ ಒಗ್ಗಟ್ಟು ಕುಟುಂಬಕ್ಕೆ ಸಕಲ ಕಲ್ಯಾಣವನ್ನು ತರಲಿದ್ದು, ಸಮಾಜದಲ್ಲಿ ನಿಮ್ಮ ದಾಂಪತ್ಯ ಮಾದರಿಯಾಗಲಿದೆ.\n\nಸಂಗಾತಿಯ ಆಗಮನದ ನಂತರ ನಿಮ್ಮ ಧನ ಭಾಗ್ಯ ಹಾಗೂ ಅದೃಷ್ಟ ದ್ವಿಗುಣಗೊಳ್ಳಲಿದ್ದು, ನಿರಂತರ ಸನ್ಮಾನ ದೊರೆಯಲಿದೆ. ಪರಸ್ಪರ ಗೌರವ ಹಾಗೂ ಸಹಕಾರ ಮನೋಭಾವದಿಂದ ಕುಟುಂಬದ ಪ್ರತಿಯೊಂದು ಕಷ್ಟಗಳನ್ನು ಸುಲಭವಾಗಿ ಎದುರಿಸಿ ಜಯ ಸಾಧಿಸುವ ಸಾಮರ್ಥ್ಯ ಲಭಿಸಲಿದೆ.\n\nಜಾತಕದ ೭ನೇ ಭಾವಕ್ಕೆ ಕುಜ ಗ್ರಹದ (ಮಂಗಳ ದೋಷ) ಅಥವಾ ಸರ್ಪ ದೋಷದ ಪ್ರಭಾವವಿರುವುದರಿಂದ ದಾಂಪತ್ಯದಲ್ಲಿ ಸಣ್ಣಪುಟ್ಟ ಮನಸ್ತಾಪಗಳು, ವೈಚಾರಿಕ ಭಿನ್ನಾಭಿಪ್ರಾಯಗಳು ಹಾಗೂ ಸಂಬಂಧಿಕರ ನಡುವೆ ಅನಗತ್ಯ ಗೊಂದಲಗಳು ಉಂಟಾಗಬಹುದು.\n\nಈ ದೋಷ ನಿವಾರಣೆಗಾಗಿ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಕ್ಷೇತ್ರದಲ್ಲಿ ಶ್ರೀ ನಾಗಪ್ರತಿಷ್ಠೆ, ಸರ್ಪ ಶಾಪ ವಿಮೋಚನಾ ಶಾಂತಿ ಹಾಗೂ ಉಮಾಮಹೇಶ್ವರ ಕಲ್ಯಾಣ ಪೂಜೆಯನ್ನು ನೆರವೇರಿಸುವುದರಿಂದ ದಾಂಪತ್ಯದ ಸಕಲ ವಿಘ್ನಗಳು ನಿವಾರಣೆಯಾಗಿ ದಿವ್ಯ ಸುಖ ಸಿಗಲಿದೆ.`
+    : `Your 7th house and Venus placement promise deep marital harmony, mutual respect, and emotional warmth throughout your joint journey.\n\nYour spouse will bring high cultural values, spiritual grace, and supportive lineage, elevating your family's social standing.\n\nKey relationship milestones around ages 25, 29, and 34 will bring domestic joy, property acquisition, and family togetherness.\n\nPotential Kuja or Sarpa Dosha influences may trigger transient communication gaps. Spiritual remedies will restore balance.\n\nPerforming Gokarna Nagapratishtha and Uma Maheshwara Puja will dissolve marital hurdles and bless your family with enduring love.`;
 
   const fallbackHealth = langCode === "kn"
-    ? `೬ನೇ ಮನೆ ಹಾಗೂ ಲಗ್ನಾಧಿಪತಿಯ ಸನ್ನಿವೇಶದ ಪ್ರಕಾರ ನಿಮ್ಮ ಆಯುಷ್ಯ ಹಾಗೂ ಶಾರೀರಿಕ ರೋಗನಿರೋಧಕ ಶಕ್ತಿ ಉತ್ತಮವಾಗಿದೆ. ೪೨ ಹಾಗೂ ೫೪ನೇ ವಯಸ್ಸಿನಲ್ಲಿ ಜಠರ ಹಾಗೂ ರಕ್ತದೊತ್ತಡದ ಬಗ್ಗೆ ಜಾಗ್ರತೆ ವಹಿಸುವುದು ಒಳಿತು.\n\nನಿತ್ಯ ಬೆಳಿಗ್ಗೆ ಧನ್ವಂತರಿ ಮಂತ್ರ ಹಾಗೂ ಶಿವ ಪಂಚಾಕ್ಷರಿ ಜಪ ಶಾರೀರಿಕ ತೇಜಸ್ಸು ಹಾಗೂ ದೀರ್ಘಾಯುಷ್ಯ ನೀಡುತ್ತದೆ.`
-    : `Overall physical vitality and longevity remain robust. Maintain balanced diet and mindfulness around ages 42 and 54. Daily Dhanvantari mantra recommended for vibrant health.`;
+    ? `ನಿಮ್ಮ ಜನನ ಜಾತಕದ ೬ನೇ ಮನೆ (ಆರೋಗ್ಯ ಹಾಗೂ ಋಣ ಸ್ಥಾನ) ಹಾಗೂ ಲಗ್ನಾಧಿಪತಿಯ ದಿವ್ಯ ಸನ್ನಿವೇಶದ ಪ್ರಕಾರ ನಿಮ್ಮ ಆಯುಷ್ಯ ಭಾವ ಹಾಗೂ ಶಾರೀರಿಕ ರೋಗನಿರೋಧಕ ಶಕ್ತಿ ಅತ್ಯಂತ ದೃಢವಾಗಿದೆ. ನೈಸರ್ಗಿಕವಾಗಿ ಧಾತು ಶಕ್ತಿ ಹೆಚ್ಚಿದ್ದು, ರೋಗನಿರೋಧಕ ಕವಚ ನಿಮ್ಮನ್ನು ಕಾಯಲಿದೆ.\n\nಜೀವನದ ೪೨, ೪೮, ೫೪ ಹಾಗೂ ೬೨ನೇ ವಯಸ್ಸಿನಲ್ಲಿ ಉದರ ಸಂಬಂಧಿ ತೊಂದರೆಗಳು, ಜಠರ ಅಗ್ನಿ ವಿಕಾರ ಹಾಗೂ ರಕ್ತದೊತ್ತಡದ ಬಗ್ಗೆ ಸೂಕ್ತ ಮುನ್ನೆಚ್ಚರಿಕೆ ವಹಿಸುವುದು ಶ್ರೇಷ್ಠ. ಸರಿಯಾದ ಆಹಾರ ಪದ್ಧತಿ ಹಾಗೂ ಪ್ರಾಣಾಯಾಮ ಅಭ್ಯಾಸದಿಂದ ಶಾರೀರಿಕ ಆರೋಗ್ಯ ಸ್ಥಿರವಾಗಿರಲಿದೆ.\n\nನಿತ್ಯ ಬೆಳಿಗ್ಗೆ ಶ್ರೀ ಧನ್ವಂತರಿ ಸೂಕ್ತ ಪಠಣ ಹಾಗೂ ಶಿವ ಪಂಚಾಕ್ಷರಿ ಮಂತ್ರ ಜಪಿಸುವುದರಿಂದ ಮನಃಶಾಂತಿ, ಶಾರೀರಿಕ ತೇಜಸ್ಸು ಹಾಗೂ ನಿರಂತರ ದೀರ್ಘಾಯುಷ್ಯ ಭಾಗ್ಯ ಸಿದ್ಧಿಸಲಿದೆ. ಕಾಯ ವಾಚಾ ಮನಸಾ ಶಿವ ಸ್ಮರಣೆ ದಿವ್ಯ ರಕ್ಷೆಯಾಗಲಿದೆ.\n\nಕುಂಡಲಿಯಲ್ಲಿ ೬ನೇ ಭಾವಕ್ಕೆ ಮಾಂದಿ ಅಥವಾ ಶನಿ ದೃಷ್ಟಿ ಇರುವುದರಿಂದ ಆಕಸ್ಮಿಕ ಶಾರೀರಿಕ ಆಯಾಸ, ನರಗಳ ದೌರ್ಬಲ್ಯ ಹಾಗೂ ಅಕಾರಣ ಭೀತಿ ಉಂಟಾಗುವ ಸಾಧ್ಯತೆ ಇದೆ. ಜಾತಕದ ಈ ಅತೃಪ್ತ ದೋಷಕ್ಕೆ ಸೂಕ್ತ ಪ್ರಾಯಶ್ಚಿತ್ತ ಶಾಂತಿ ಅತ್ಯಗತ್ಯ.\n\nಗೋಕರ್ಣ ಕಡಲತೀರದಲ್ಲಿ ಶ್ರೀ ಮಹಾಮೃತ್ಯುಂಜಯ ಹೋಮ, ಧನ್ವಂತರಿ ಹವನ ಹಾಗೂ ನವಗ್ರಹ ದೋಷ ನಿವಾರಣಾ ರುದ್ರಾಭಿಷೇಕ ಸೇವೆ ನೆರವೇರಿಸುವುದರಿಂದ ನಿಮಗೂ ನಿಮ್ಮ ಕುಟುಂಬಕ್ಕೂ ಸಕಲ ರೋಗ ಭಯ ಮುಕ್ತಿಯಾಗಿ ದೀರ್ಘಾಯುಷ್ಯ ಲಭಿಸಲಿದೆ.`
+    : `Overall physical vitality, immune resistance, and longevity remain exceptionally robust based on your Lagna lord's position.\n\nMaintain balanced nutrition and regular yoga habits, taking extra care during ages 42, 48, and 54 regarding digestive wellness.\n\nDaily chanting of Dhanvantari Stotram and Shiva Panchakshari Mantra will sustain your mental calm and physical energy.\n\nMaandi or Saturn transits may cause occasional fatigue or insomnia. Specific Shanti pujas are recommended.\n\nConducting Gokarna Mahamrityunjaya Homa and Navagraha Shanti will remove health vulnerabilities and grant long-life blessings.`;
 
   const fallbackChildren = langCode === "kn"
-    ? `೫ನೇ ಮನೆ ಹಾಗೂ ಗುರು ಗ್ರಹದ ಪುತ್ರ ಕಾರಕ ಬಲದಿಂದಾಗಿ ಉತ್ತಮ ಸಂತಾನ ಯೋಗ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ. ನಿಮ್ಮ ಮಕ್ಕಳು ವಿದ್ಯಾಭ್ಯಾಸದಲ್ಲಿ ಉನ್ನತ ಸಾಧನೆ ಮಾಡಿ ವಂಶಕ್ಕೆ ಕೀರ್ತಿ ತರುತ್ತಾರೆ.\n\nಸಂತಾನ ವೃದ್ಧಿ ಹಾಗೂ ಶ್ರೇಯಸ್ಸಿಗೆ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದಲ್ಲಿ ಸುಬ್ರಹ್ಮಣ್ಯ ಪೂಜೆ ಹಾಗೂ ಸಂತಾನ ಗೋಪಾಲ ಮಂತ್ರ ಜಪ ಮಾಡಿ.`
-    : `The 5th house and Jupiter alignment signify auspicious progeny prospects. Children will achieve academic excellence and bring honour to the family lineage.`;
+    ? `ನಿಮ್ಮ ಕುಂಡಲಿಯ ೫ನೇ ಮನೆ (ಪುತ್ರ ಹಾಗೂ ಸಂತಾನ ಸ್ಥಾನ) ಹಾಗೂ ಗುರು ಗ್ರಹದ ದಿವ್ಯ ಅನುಗ್ರಹದಿಂದಾಗಿ ನಿಮ್ಮ ವಂಶಾಭಿವೃದ್ಧಿ ಹಾಗೂ ಸಂತಾನ ಭಾಗ್ಯದಲ್ಲಿ ಬೃಹತ್ ಯೋಗವಿದೆ. ನಿಮಗವತರಿಸುವ ಸಂತಾನವು ಶ್ರೇಷ್ಠ ಬುದ್ಧಿವಂತಿಕೆ, ಸಾತ್ವಿಕ ಗುಣ ಹಾಗೂ ತೇಜಸ್ಸಿನಿಂದ ಕೂಡಿರಲಿದೆ.\n\nನಿಮ್ಮ ಜೀವನದ ೨೬, ೩೦, ೩೫ ಹಾಗೂ ೪೧ನೇ ವಯಸ್ಸಿನಲ್ಲಿ ಸಂತಾನ ಪ್ರಾಪ್ತಿ, ಮಕ್ಕಳ ಉನ್ನತ ಶಿಕ್ಷಣ ಯಶಸ್ಸು ಹಾಗೂ ವಿದೇಶಿ ಶೈಕ್ಷಣಿಕ ಸಾಧನೆಗಳ ಸುವರ್ಣ ಮೈಲಿಗಲ್ಲುಗಳು ನೆರವೇರಲಿವೆ. ನಿಮ್ಮ ಮಕ್ಕಳು ಕುಲಕ್ಕೆ ಕೀರ್ತಿ ತರುವ ಶ್ರೇಷ್ಠ ಸಾಧಕರಾಗಲಿದ್ದಾರೆ.\n\nಮಕ್ಕಳ ಶೈಕ್ಷಣಿಕ ವಿಕಾಸಕ್ಕಾಗಿ ಮನೆಯಲ್ಲಿ ಪ್ರತಿದಿನ ಶ್ರೀ ಸರಸ್ವತಿ ಮಂತ್ರ ಹಾಗೂ ಸುಬ್ರಹ್ಮಣ್ಯ ಕವಚ ಪಠಿಸುವುದು ಶ್ರೇಷ್ಠ. ಮಕ್ಕಳ ಪ್ರತಿಯೊಂದು ಜ್ಞಾನಾರ್ಜನೆಯ ಮೆಟ್ಟಿಲುಗಳಿಗೂ ದೇವರ ದಿವ್ಯ ಆಶೀರ್ವಾದ ಲಭಿಸಲಿದೆ.\n\nಜಾತಕದ ೫ನೇ ಮನೆಗೆ ಪಿತೃ ದೋಷ, ನಾಗ ದೋಷ ಅಥವಾ ಪ್ರೇತ ದೋಷದ ಛಾಯೆ ಇರುವುದರಿಂದ ಸಂತಾನ ಪ್ರಾಪ್ತಿಯಲ್ಲಿ ವಿಳಂಬ, ಗರ್ಭ ಸ್ರಾವದ ಭಯ ಅಥವಾ ಮಕ್ಕಳ ಆರೋಗ್ಯದಲ್ಲಿ ಹಠಾತ್ ಏರಿಳಿತಗಳು ಕಂಡುಬರಬಹುದು.\n\nಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ನಾರಾಯಣ ಬಲಿ, ತ್ರಿಪಿಂಡೀ ಶ್ರಾದ್ಧ ಹಾಗೂ ಶ್ರೀ ಸಂತಾನ ಗೋಪಾಲ ಕೃಷ್ಣ ಹವನ ನೆರವೇರಿಸುವುದರಿಂದ ಸಂತಾನ ಪ್ರತಿಬಂಧಕಗಳೆಲ್ಲವೂ ನಾಶವಾಗಿ, ಸಕಲ ವಂಶಾಭಿವೃದ್ಧಿ ಯೋಗ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ.`
+    : `Your 5th house and Jupiter (Guru) transits indicate bright progeny prospects, lineage expansion, and family joy.\n\nYour children will display high intellect, artistic talents, and academic brilliance, bringing pride to your ancestral name.\n\nKey progeny milestones around ages 26, 30, and 35 will mark educational and career achievements for your children.\n\nPotential Pitru or Nagadosha afflictions in the 5th house could cause temporary delays in progeny. Remedial rituals will clear obstacles.\n\nPerforming Gokarna Narayana Bali, Tripindi Shraddha, and Santana Gopala Homa will neutralize ancestral karmas and ensure progeny bliss.`;
 
   let careerText = fallbackCareer;
   let relText = fallbackRelationship;
@@ -86,6 +86,10 @@ export async function executeLifeGuidanceCalculation(
       const genAI = new GoogleGenerativeAI(apiKey);
       const model = genAI.getGenerativeModel({
         model: "gemini-3.5-flash-lite",
+        generationConfig: {
+          maxOutputTokens: 8192,
+          temperature: 0.7
+        },
         safetySettings: [
           { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
           { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
@@ -99,8 +103,8 @@ You are Sri Shreeram Pandit, Master Vedic Astrologer from Gokarna Mahabaleshwara
 Provide 4 deeply thorough, authentic astrological life forecasts for ${personName} (DOB: ${dob}, TOB: ${tob}, Gender: ${gender}):
 - Natal Astronomical Parameters: Rashi (${rashiStr}), Nakshatra (${nakshatraStr}), Lagna (${lagnaStr}), Dasha (${dashaStr}).
 
-STRICT LENGTH & NARRATION REQUIREMENTS:
-- Provide EXACTLY 4 to 5 DEEP, RICH PARAGRAPHS for each of the 4 sections.
+STRICT LENGTH & PARAGRAPH REQUIREMENTS:
+- Provide EXACTLY 4 to 5 LONG, RICH PARAGRAPHS (5 to 6 lines per paragraph) for EACH of the 4 sections.
 - EACH PARAGRAPH MUST BE AT LEAST 5 TO 6 LINES LONG of authentic, highly accurate, emotional Vedic astrological narration.
 - DO NOT WRITE SHORT 1-2 LINE PARAGRAPHS. Write comprehensive, paragraph-dense guidance.
 
@@ -201,6 +205,10 @@ export async function askCustomLifeQuestion(
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
       model: "gemini-3.5-flash-lite",
+      generationConfig: {
+        maxOutputTokens: 8192,
+        temperature: 0.7
+      },
       safetySettings: [
         { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
         { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },

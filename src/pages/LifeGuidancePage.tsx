@@ -448,8 +448,21 @@ export const LifeGuidancePage: React.FC<LifeGuidancePageProps> = ({ initialInput
                   <div className="text-xs font-extrabold text-amber-950 border-b border-amber-200 pb-2">
                     ❓ {isKn ? "ಪ್ರಶ್ನೆ:" : "Question:"} {result.customQnA.question}
                   </div>
-                  <div className="text-xs text-amber-950 leading-relaxed font-medium whitespace-pre-wrap">
-                    {sanitizeAIText(result.customQnA.answer)}
+                  <div className="space-y-3">
+                    {sanitizeAIText(result.customQnA.answer)
+                      .split(/\n\s*\n/)
+                      .map((para, pIdx) => {
+                        const cleanPara = para.trim();
+                        if (!cleanPara) return null;
+                        return (
+                          <div
+                            key={pIdx}
+                            className="rounded-xl border-l-4 border-amber-500 bg-amber-50/50 p-3.5 text-xs text-amber-950 leading-relaxed font-medium shadow-sm"
+                          >
+                            {cleanPara}
+                          </div>
+                        );
+                      })}
                   </div>
                 </div>
               )}
@@ -466,8 +479,21 @@ export const LifeGuidancePage: React.FC<LifeGuidancePageProps> = ({ initialInput
               </h3>
             </div>
 
-            <div className="rounded-2xl border border-amber-300 bg-white p-5 text-sm text-amber-950 leading-relaxed font-medium whitespace-pre-wrap shadow-sm">
-              {sanitizeAIText(result[activeTab].narrativeText)}
+            <div className="space-y-4">
+              {sanitizeAIText(result[activeTab].narrativeText)
+                .split(/\n\s*\n/)
+                .map((para, pIdx) => {
+                  const cleanPara = para.trim();
+                  if (!cleanPara) return null;
+                  return (
+                    <div
+                      key={pIdx}
+                      className="rounded-2xl border-l-4 border-amber-500 bg-white p-4 text-xs sm:text-sm text-amber-950 leading-relaxed font-medium shadow-sm space-y-1"
+                    >
+                      <p>{cleanPara}</p>
+                    </div>
+                  );
+                })}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
