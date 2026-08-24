@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import Card from "../components/ui/Card";
 import PrasadaKit from "../components/seva/PrasadaKit";
 import RoyalBookletTab from "../components/seva/RoyalBookletTab";
+import PriestQrGeneratorTab from "../components/seva/PriestQrGeneratorTab";
 import SevaCalendar from "../components/seva/SevaCalendar";
 import SevaCalendarSyncModal from "../components/seva/SevaCalendarSyncModal";
 import SevaDayDetail from "../components/seva/SevaDayDetail";
@@ -17,7 +18,7 @@ import { useSevaData } from "../features/seva/useSevaData";
 import { useAppStore } from "../stores/appStore";
 import { useKundliViewerStore } from "../stores/kundliViewerStore";
 
-type SevaTab = "seva" | "calendar" | "prasada" | "royal";
+type SevaTab = "seva" | "calendar" | "prasada" | "royal" | "priestQr";
 
 const IdentityChip = ({ label, value }: { label: string; value: string }): JSX.Element => (
   <div className="rounded-lg border border-amber-300/60 bg-white/70 px-3 py-1.5">
@@ -300,6 +301,12 @@ export default function SevaPage(): JSX.Element {
             identity={identity}
             lang={lang}
           />
+        </Card>
+      )}
+
+      {tab === "priestQr" && (
+        <Card>
+          <PriestQrGeneratorTab identity={identity} lang={lang} />
         </Card>
       )}
 

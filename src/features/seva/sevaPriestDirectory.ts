@@ -17,6 +17,7 @@ export interface PriestProfile {
   sealText: L5;
   sealSymbol: string;
   sealColor: string;
+  phone?: string;
   shloka: {
     sanskrit: string;
     meaningKn: string;
@@ -325,7 +326,7 @@ export function getAllPriests(): PriestProfile[] {
 }
 
 /** Add a new custom priest and save to LocalStorage */
-export function addCustomPriest(nameInput: string): PriestProfile {
+export function addCustomPriest(nameInput: string, phoneInput?: string): PriestProfile {
   const cleanName = nameInput.trim();
   const id = `custom-${cleanName.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "-")}-${Date.now()}`;
   
