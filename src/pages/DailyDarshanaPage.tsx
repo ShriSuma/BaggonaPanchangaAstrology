@@ -1473,7 +1473,20 @@ export default function DailyDarshanaPage(): JSX.Element {
     }
   };
 
-  // Helper to generate & download 90-day .ics file
+  const requestedCalendarDays = useMemo(() => {
+    const raw = Number(params.get("days") || (decoded as any)?.days || (decoded as any)?.duration || 90);
+    return Number.isFinite(raw) && raw > 0 ? raw : 90;
+  }, [params, decoded]);
+
+  const downloadIcsLabel = useMemo(() => {
+    if (lang === "kn") return `${requestedCalendarDays} ದಿನಗಳ ಪಂಚಾಂಗ ಕ್ಯಾಲೆಂಡರ್ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ (.ics)`;
+    if (lang === "hi") return `${requestedCalendarDays}-दिवसीय कैलेंडर डाउनलोड करें (.ics)`;
+    if (lang === "te") return `${requestedCalendarDays} రోజుల క్యాలెండర్ డౌన్‌లోడ్ చేయండి (.ics)`;
+    if (lang === "ta") return `${requestedCalendarDays} நாட்கள் காலண்டர் பதிவிறக்கு (.ics)`;
+    return `Download ${requestedCalendarDays}-Day Calendar (.ics)`;
+  }, [requestedCalendarDays, lang]);
+
+  // Helper to generate & download dynamic duration .ics file
   const handleDownload90DayIcs = () => {
     try {
       const startDateStr = decoded?.d || dateParam || new Date().toISOString().split("T")[0];
@@ -1486,7 +1499,7 @@ export default function DailyDarshanaPage(): JSX.Element {
       const birthRashiIdx = (birthKundli ? birthKundli.planets.find(p => p.name === 'Moon')?.rashi.index : undefined) ?? (decoded?.r !== undefined ? decoded.r : 8);
       
       const days: RhythmDay[] = [];
-      for (let i = 0; i < 90; i++) {
+      for (let i = 0; i < requestedCalendarDays; i++) {
         const noonUtc = new Date(Date.UTC(sy, sm, sd + i, 12, 0, 0));
         const ymd = noonUtc.toISOString().slice(0, 10);
         const rhythmDay = calculateDeterministicRhythmDay(ymd, birthNakIdx, birthRashiIdx, startDateStr);
@@ -1513,7 +1526,7 @@ export default function DailyDarshanaPage(): JSX.Element {
       const cleanDevotee = sanitizeName(devoteeDisplayName) || "Devotee";
       const cleanDate = startDateStr.replace(/[^\d-]/g, "");
 
-      downloadIcsFile(`${cleanPandit}_${cleanDevotee}_${cleanDate}.ics`, ics);
+      downloadIcsFile(`${cleanPandit}_${cleanDevotee}_${requestedCalendarDays}Days_${cleanDate}.ics`, ics);
       setDownloadedNotice(true);
     } catch (err) {
       console.error("Download ICS error:", err);
@@ -1618,7 +1631,13 @@ export default function DailyDarshanaPage(): JSX.Element {
                 }}
               >
                 <span>📅</span>
-                <span>{downloadedNotice ? dict.icsDownloaded : dict.downloadIcs}</span>
+                <span>
+                  {downloadedNotice
+                    ? (lang === "kn"
+                        ? `${requestedCalendarDays} ದಿನಗಳ ಪಂಚಾಂಗ ಡೌನ್‌ಲೋಡ್ ಆಗಿದೆ! ಮತ್ತೆ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ`
+                        : `${requestedCalendarDays}-Day Calendar Downloaded! Download Again`)
+                    : downloadIcsLabel}
+                </span>
               </button>
             </div>
           )}
