@@ -60,7 +60,26 @@ const NAME_DICTIONARY: Record<string, Record<string, string>> = {
   "karthik": { kn: "ಕಾರ್ತಿಕ್", hi: "कार्तिक", te: "కార్తీక్", ta: "கார்த்திக்", en: "Karthik" },
   "deepak": { kn: "ದೀಪಕ್", hi: "दीपक", te: "దీపక్", ta: "தீபக்", en: "Deepak" },
   "manjunath": { kn: "ಮಂಜುನಾಥ್", hi: "मंजूनाथ", te: "మంజునాథ్", ta: "மஞ்சுநாத்", en: "Manjunath" },
-  "venkatesh": { kn: "ವೆಂಕಟೇಶ್", hi: "वेंकटेश", te: "వెంకటేష్", ta: "வெங்கடேஷ்", en: "Venkatesh" }
+  "venkatesh": { kn: "ವೆಂಕಟೇಶ್", hi: "वेंकटेश", te: "వెంకటేష్", ta: "வெங்கடேஷ்", en: "Venkatesh" },
+  "vasishtha": { kn: "ವಸಿಷ್ಠ", hi: "वशिष्ठ", te: "వసిష్ఠ", ta: "வசிஷ்டர்", en: "Vasishtha" },
+  "vashishtha": { kn: "ವಸಿಷ್ಠ", hi: "वशिष्ठ", te: "వసిష్ఠ", ta: "வசிஷ்டர்", en: "Vashishtha" },
+  "vashistha": { kn: "ವಸಿಷ್ಠ", hi: "वशिष्ठ", te: "వసిష్ఠ", ta: "வசிஷ்டர்", en: "Vashistha" },
+  "vasistha": { kn: "ವಸಿಷ್ಠ", hi: "वशिष्ठ", te: "వసిష్ఠ", ta: "வசிஷ்டர்", en: "Vasistha" },
+  "kashyapa": { kn: "ಕಾಶ್ಯಪ", hi: "काश्यप", te: "కాశ్యప", ta: "காஸ்யப", en: "Kashyapa" },
+  "kashyap": { kn: "ಕಾಶ್ಯಪ", hi: "काश्यप", te: "కాశ్యప", ta: "காஸ்யப", en: "Kashyap" },
+  "bharadwaja": { kn: "ಭಾರದ್ವಾಜ", hi: "भरद्वाज", te: "భారద్వాజ", ta: "பரத்வாஜ", en: "Bharadwaja" },
+  "bharadwaj": { kn: "ಭಾರದ್ವಾಜ", hi: "भरद्वाज", te: "భారద్వాజ", ta: "பரத்வாஜ", en: "Bharadwaj" },
+  "gautama": { kn: "ಗೌತಮ", hi: "गौतम", te: "గౌతమ", ta: "கௌதம", en: "Gautama" },
+  "vishwamitra": { kn: "ವಿಶ್ವಾಮಿತ್ರ", hi: "विश्वामित्र", te: "విశ్వామిత్ర", ta: "விஸ்வாமித்திரர்", en: "Vishwamitra" },
+  "viswamitra": { kn: "ವಿಶ್ವಾಮಿತ್ರ", hi: "विश्वामित्र", te: "విశ్వామిత్ర", ta: "விஸ்வாமித்திரர்", en: "Viswamitra" },
+  "jamadagni": { kn: "ಜಮದಗ್ನಿ", hi: "जमदग्नि", te: "జమదग्नि", ta: "ஜமதக்னி", en: "Jamadagni" },
+  "atri": { kn: "ಅತ್ರಿ", hi: "अत्रि", te: "అత్రి", ta: "அத்ரி", en: "Atri" },
+  "agastya": { kn: "ಅಗಸ್ತ್ಯ", hi: "अगस्त्य", te: "అగస్త్య", ta: "அகஸ்தியர்", en: "Agastya" },
+  "harita": { kn: "ಹರೀತ", hi: "हरीत", te: "హరీత", ta: "ஹரித", en: "Harita" },
+  "srivatsa": { kn: "ಶ್ರೀವತ್ಸ", hi: "श्रीवत्स", te: "శ్రీవత్స", ta: "ஸ்ரீவத்ச", en: "Srivatsa" },
+  "shrivatsa": { kn: "ಶ್ರೀವತ್ಸ", hi: "श्रीवत्स", te: "శ్రీవత్స", ta: "ஸ்ரீவத்ச", en: "Shrivatsa" },
+  "shandilya": { kn: "ಶಾಂಡಿಲ್ಯ", hi: "शांडिल्य", te: "శాండిల్య", ta: "சாண்டில்ய", en: "Shandilya" },
+  "sandilya": { kn: "ಶಾಂಡಿಲ್ಯ", hi: "शांडिल्य", te: "శాండిల్య", ta: "சாண்டில்ய", en: "Sandilya" }
 };
 
 /** Phonetic character map for unknown words */

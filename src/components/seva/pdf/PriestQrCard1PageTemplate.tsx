@@ -1,4 +1,5 @@
 import React from "react";
+import { transliterateName } from "../../../utils/transliterator";
 
 export type PriestQrCard1PageTemplateProps = {
   personName: string;
@@ -87,7 +88,9 @@ export const PriestQrCard1PageTemplate: React.FC<PriestQrCard1PageTemplateProps>
 
   const pLabels = priestLabels[code] || priestLabels.en;
   const activePriestTitle = priestTitle || pLabels.defaultTitle;
-  const devoteeNameDisplay = personName || devLabels.defaultDevotee;
+  const rawDevoteeName = personName || devLabels.defaultDevotee;
+  const devoteeNameDisplay = transliterateName(rawDevoteeName, code);
+  const gotraDisplay = gotra ? transliterateName(gotra, code) : "";
 
   // Custom Dedicated Message with Devotee Name TWICE!
   const getCustomMessage = () => {
@@ -216,7 +219,7 @@ export const PriestQrCard1PageTemplate: React.FC<PriestQrCard1PageTemplateProps>
             <div style={{ fontSize: "12px", color: "#92400E", lineHeight: "1.4" }}>
               <div><strong>{devLabels.rashi}</strong> {rashiName || "—"}</div>
               <div><strong>{devLabels.nakshatra}</strong> {nakshatraName || "—"}</div>
-              {gotra && <div><strong>{devLabels.gotra}</strong> {gotra}</div>}
+              {gotraDisplay && <div><strong>{devLabels.gotra}</strong> {gotraDisplay}</div>}
               <div><strong>{devLabels.duration}</strong> <span style={{ color: "#065F46", fontWeight: 700 }}>{durationLabel}</span></div>
             </div>
           </div>
