@@ -93,35 +93,35 @@ const HAND_SIDE_L5: Record<HandSide, Record<string, string>> = {
 
 const LINE_NAMES_L5: Record<string, Record<string, string>> = {
   life: {
-    kn: "ಆಯುಷ್ಯ ರೇಖೆ (Life Line / Ayur Rekha)",
+    kn: "ಆಯುಷ್ಯ ರೇಖೆ",
     en: "Life Line (Ayur Rekha - Vitality & Health)",
-    hi: "जीवन रेखा (आयु रेखा - स्वास्थ्य व जीवन शक्ति)",
-    te: "ఆయుష్షు రేఖ (ఆయుర్ రేఖ - ఆరోగ్యం)",
+    hi: "आयु रेखा (स्वास्थ्य व जीवन शक्ति)",
+    te: "ఆయుర్ రేఖ (ఆరోగ్యం)",
     ta: "ஆயுள் ரேகை (ஆரோக்கியம் & ஆயுள்)"
   },
   head: {
-    kn: "ಮಸ್ತಿಷ್ಕ ರೇಖೆ (Head Line / Buddhi Rekha)",
+    kn: "ಮಸ್ತಿಷ್ಕ ರೇಖೆ",
     en: "Head Line (Buddhi Rekha - Intellect & Mindset)",
     hi: "मस्तिष्क रेखा (बुद्धि रेखा - विचार व स्पष्टता)",
     te: "మస్తిష్క రేఖ (బుద్ధి రేఖ - మేధస్సు)",
     ta: "புத்தி ரேகை (அறிவு & மனத் தெளிவு)"
   },
   heart: {
-    kn: "ಹೃದಯ ರೇಖೆ (Heart Line / Hridaya Rekha)",
+    kn: "ಹೃದಯ ರೇಖೆ",
     en: "Heart Line (Hridaya Rekha - Emotions & Relationships)",
     hi: "हृदय रेखा (भावनाएं व संबंध)",
     te: "హృదయ రేఖ (భావోద్వేగాలు & బంధాలు)",
     ta: "இதய ரேகை (உணர்வு & பந்தம்)"
   },
   fate: {
-    kn: "ಭಾಗ್ಯ ರೇಖೆ (Fate Line / Shani Rekha)",
+    kn: "ಭಾಗ್ಯ ರೇಖೆ",
     en: "Fate Line (Shani Rekha - Career & Wealth)",
     hi: "भाग्य रेखा (शनि रेखा - करियर व धन)",
     te: "భాగ్య రేఖ (శని రేఖ - కెరీర్ & ధనం)",
     ta: "பாக்கிய ரேகை (தொழில் & செல்வம்)"
   },
   sun: {
-    kn: "ಸೂರ್ಯ ರೇಖೆ (Sun Line / Vidya & Kirti Rekha)",
+    kn: "ಸೂರ್ಯ ರೇಖೆ",
     en: "Sun Line (Vidya & Kirti Rekha - Fame & Success)",
     hi: "सूर्य रेखा (विद्या व कीर्ति रेखा - प्रसिद्धि)",
     te: "సూర్య రేఖ (విద్య & కీర్తి రేఖ - ప్రఖ్యాతి)",
