@@ -143,8 +143,8 @@ export const PalmMountsTab: React.FC<PalmMountsTabProps> = ({
                 {result.thumbAnalysis.yavaSign[lang] || result.thumbAnalysis.yavaSign.kn}
               </span>
               <div className="text-[11px] text-amber-900 pt-1 space-y-0.5">
-                <div><strong>{isKn ? "ಇಚ್ಛಾ ಶಕ್ತಿ:" : "Willpower:"}</strong> {result.thumbAnalysis.willpowerPhalanx[lang] || result.thumbAnalysis.willpowerPhalanx.kn}</div>
-                <div><strong>{isKn ? "ತರ್ಕ ಶಕ್ತಿ:" : "Logic:"}</strong> {result.thumbAnalysis.logicPhalanx[lang] || result.thumbAnalysis.logicPhalanx.kn}</div>
+                <div><strong>{isKn ? "ಇಚ್ಛಾ ಶಕ್ತಿ:" : "Willpower:"}</strong> {result.thumbAnalysis.willpower[lang] || result.thumbAnalysis.willpower.kn}</div>
+                <div><strong>{isKn ? "ತರ್ಕ ಶಕ್ತಿ:" : "Logic:"}</strong> {result.thumbAnalysis.logic[lang] || result.thumbAnalysis.logic.kn}</div>
               </div>
             </div>
           </div>
