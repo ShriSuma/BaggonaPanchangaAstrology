@@ -19,6 +19,7 @@ import { SamudrikaYogasTab } from "../components/palmreading/SamudrikaYogasTab";
 import { PalmRemediesTab } from "../components/palmreading/PalmRemediesTab";
 import { PalmReadingPdfTemplate } from "../components/palmreading/PalmReadingPdfTemplate";
 import { PalmTimelineDiagram } from "../components/palmreading/PalmTimelineDiagram";
+import { PalmReadingResultView } from "../components/palmreading/PalmReadingResultView";
 import { sanitizeAIText } from "../utils/textFormatter";
 import { PalmLifeStageMilestonesCard } from "../components/palmreading/PalmLifeStageMilestonesCard";
 import { estimateBirthDetailsFromPalmImage } from "../features/palmreading/palmDobEstimator";
@@ -27,6 +28,7 @@ import { calculateKundliWithPlaceSun } from "../core/KundliEngine";
 import { calculateTraditionalBaggona } from "../core/TraditionalBaggonaEngine";
 import { formatRashiAmsha } from "../core/localeNumbers";
 import SouthIndianChart from "../components/kundli/SouthIndianChart";
+import { generatePDFFromElement } from "../utils/pdfGenerator";
 
 type ChatMessage = {
   id: string;
@@ -343,13 +345,11 @@ export default function PalmReadingPage(): JSX.Element {
     }
   };
 
-  // Submit Follow-Up Question
-  const handleSendFollowUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!followUpInput.trim() || !activeResult) return;
+  const [isProcessingFollowUp, setIsProcessingFollowUp] = useState<boolean>(false);
 
-    const query = followUpInput.trim();
-    setFollowUpInput("");
+  // Direct follow-up submission handler for PalmReadingResultView
+  const handleSendFollowUpDirect = async (query: string) => {
+    if (!query.trim() || !activeResult) return;
 
     const userMsg: ChatMessage = {
       id: `user-followup-${Date.now()}`,
@@ -359,7 +359,7 @@ export default function PalmReadingPage(): JSX.Element {
     };
 
     setMessages((prev) => [...prev, userMsg]);
-    setIsProcessing(true);
+    setIsProcessingFollowUp(true);
 
     try {
       const answer = await askPalmReadingFollowUp(
@@ -380,43 +380,32 @@ export default function PalmReadingPage(): JSX.Element {
     } catch (err) {
       console.error("Follow-up error:", err);
     } finally {
-      setIsProcessing(false);
+      setIsProcessingFollowUp(false);
     }
   };
 
-  // Download PDF Report
-  const handleDownloadPdf = async () => {
-    const container = document.getElementById("palm-reading-pdf-container");
-    if (!container) {
-      alert("PDF container not found");
-      return;
-    }
+  // Submit Follow-Up Question (Legacy form)
+  const handleSendFollowUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!followUpInput.trim() || !activeResult) return;
+    const query = followUpInput.trim();
+    setFollowUpInput("");
+    await handleSendFollowUpDirect(query);
+  };
 
+  // Download PDF Report using standardized 2-Page A4 generator
+  const handleDownloadPdf = async () => {
     setIsGeneratingPdf(true);
 
     try {
-      const canvas = await html2canvas(container, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: "#FFFDF7"
-      });
-
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF({
-        orientation: "portrait",
-        unit: "mm",
-        format: "a4"
-      });
-
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
       const safeName = (devoteeName || "Devotee").replace(/[^\p{L}\p{N}]+/gu, "_");
-      pdf.save(`Baggona_Palm_Reading_${safeName}_${selectedLang.toUpperCase()}.pdf`);
+      await generatePDFFromElement(
+        "palm-reading-pdf-container",
+        `Baggona_Palm_Reading_${safeName}_${selectedLang.toUpperCase()}.pdf`
+      );
     } catch (err) {
       console.error("PDF download error:", err);
-      alert("Error generating PDF.");
+      alert(isKn ? "PDF ರಚನೆಯಲ್ಲಿ ದೋಷ ಸಂಭವಿಸಿದೆ." : "Error generating PDF.");
     } finally {
       setIsGeneratingPdf(false);
     }
@@ -643,459 +632,492 @@ export default function PalmReadingPage(): JSX.Element {
       {/* ====================================================================== */}
       {activeTab === "reading" && (
         <>
-          <Card className="border border-amber-300/80 bg-white p-5 shadow-sm space-y-5">
-            {/* Top Bar: Hand Side Selector & Kundli Generator Button */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pb-2 border-b border-amber-200">
-              {/* Hand Side Selector */}
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-amber-950 mb-2">
-                  🤚 {isKn ? "ಪರಿಶೀಲಿಸುವ ಹಸ್ತ ಆಯ್ಕೆ ಮಾಡಿ (Select Hand)" : "Select Hand to Inspect"}
-                </label>
-                <div className="flex gap-3">
-                  <label
-                    className={`flex items-center gap-2 rounded-xl border px-4 py-2 text-xs font-bold cursor-pointer transition ${
-                      handSide === "right"
-                        ? "border-amber-600 bg-amber-100 text-amber-950 shadow-sm"
-                        : "border-amber-200 bg-amber-50 text-amber-900"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="handSide"
-                      value="right"
-                      checked={handSide === "right"}
-                      onChange={() => setHandSide("right")}
-                      className="accent-amber-700"
-                    />
-                    <span>{isKn ? "✋ ಬಲ ಹಸ್ತ (Right Hand)" : "✋ Right Hand"}</span>
-                  </label>
+          {activeResult ? (
+            <div className="space-y-6">
+              <PalmReadingResultView
+                result={activeResult}
+                devoteeName={devoteeName || (isKn ? "ಶ್ರೀಯುತ ಭಕ್ತರು" : "Devotee")}
+                gotra={gotraInput}
+                lang={selectedLang}
+                onDownloadPdf={handleDownloadPdf}
+                onDownloadPalmImage={handleDownloadPalmImage}
+                onDownloadChartImage={handleDownloadChartImage}
+                isGeneratingPdf={isGeneratingPdf}
+                messages={messages}
+                onSendFollowUp={handleSendFollowUpDirect}
+                isProcessingFollowUp={isProcessingFollowUp}
+              />
 
-                  <label
-                    className={`flex items-center gap-2 rounded-xl border px-4 py-2 text-xs font-bold cursor-pointer transition ${
-                      handSide === "left"
-                        ? "border-amber-600 bg-amber-100 text-amber-950 shadow-sm"
-                        : "border-amber-200 bg-amber-50 text-amber-900"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="handSide"
-                      value="left"
-                      checked={handSide === "left"}
-                      onChange={() => setHandSide("left")}
-                      className="accent-amber-700"
-                    />
-                    <span>{isKn ? "🤚 ಎಡ ಹಸ್ತ (Left Hand)" : "🤚 Left Hand"}</span>
-                  </label>
-                </div>
-              </div>
-
-              {/* 🔮 Kundli Generator Button */}
-              <div>
+              {/* Option to re-scan / change photos */}
+              <div className="flex justify-center pt-2">
                 <button
                   type="button"
-                  onClick={handleOpenKundliModal}
-                  className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-600 to-amber-700 px-4 py-2.5 text-xs font-bold text-white shadow hover:from-orange-700 hover:to-amber-800 transition"
+                  onClick={() => {
+                    setActiveResult(null);
+                    setMessages([]);
+                  }}
+                  className="rounded-2xl border border-amber-400 bg-amber-100 hover:bg-amber-200 px-6 py-3 text-xs sm:text-sm font-extrabold text-amber-950 transition flex items-center gap-2 shadow-md cursor-pointer active:scale-95"
                 >
-                  <span>🔮</span>
-                  <span>{isKn ? "ಕುಂಡಲಿ ರಚಿಸಿ (Generate Birth Kundali)" : "Generate Birth Kundali"}</span>
+                  <span>🔄</span>
+                  <span>{isKn ? "ಹೊಸ ಹಸ್ತ ಫೋಟೋ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ (Scan Another Palm)" : "Scan Another Palm"}</span>
                 </button>
               </div>
             </div>
+          ) : (
+            <Card className="border border-amber-300/80 bg-white p-5 shadow-sm space-y-5">
+              {/* Top Bar: Hand Side Selector & Kundli Generator Button */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pb-2 border-b border-amber-200">
+                {/* Hand Side Selector */}
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-amber-950 mb-2">
+                    🤚 {isKn ? "ಪರಿಶೀಲಿಸುವ ಹಸ್ತ ಆಯ್ಕೆ ಮಾಡಿ (Select Hand)" : "Select Hand to Inspect"}
+                  </label>
+                  <div className="flex gap-3">
+                    <label
+                      className={`flex items-center gap-2 rounded-xl border px-4 py-2 text-xs font-bold cursor-pointer transition ${
+                        handSide === "right"
+                          ? "border-amber-600 bg-amber-100 text-amber-950 shadow-sm"
+                          : "border-amber-200 bg-amber-50 text-amber-900"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="handSide"
+                        value="right"
+                        checked={handSide === "right"}
+                        onChange={() => setHandSide("right")}
+                        className="accent-amber-700"
+                      />
+                      <span>{isKn ? "✋ ಬಲ ಹಸ್ತ (Right Hand)" : "✋ Right Hand"}</span>
+                    </label>
 
-            {/* 3 Sequential Validated Photo Slots */}
-            <div className="space-y-4 pt-1">
-              <div className="flex items-center justify-between border-b border-amber-300/80 pb-2">
-                <h4 className="font-serif text-sm font-bold text-amber-950 flex items-center gap-2">
-                  <span>📸</span>
-                  <span>{isKn ? "ಅನುಕ್ರಮಿಕ ೩-ಹಂತದ ಫೋಟೋ ಸಂಗ್ರಹ & ಪರಿಶೀಲನೆ (Sequential Validation)" : "Sequential 3-Step Palm Image Verification"}</span>
-                </h4>
-                <div className="text-xs font-bold text-amber-900 bg-amber-100 border border-amber-300 px-3 py-1 rounded-full">
-                  {isBackEnabled && slotStatus.back.isValid
-                    ? "🟢 All 3 Steps Verified"
-                    : isSideEnabled && slotStatus.side.isValid
-                    ? "🟡 Step 2 Verified"
-                    : isFrontVerified
-                    ? "🟡 Step 1 Verified"
-                    : "⚪ Start Step 1"}
+                    <label
+                      className={`flex items-center gap-2 rounded-xl border px-4 py-2 text-xs font-bold cursor-pointer transition ${
+                        handSide === "left"
+                          ? "border-amber-600 bg-amber-100 text-amber-950 shadow-sm"
+                          : "border-amber-200 bg-amber-50 text-amber-900"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="handSide"
+                        value="left"
+                        checked={handSide === "left"}
+                        onChange={() => setHandSide("left")}
+                        className="accent-amber-700"
+                      />
+                      <span>{isKn ? "🤚 ಎಡ ಹಸ್ತ (Left Hand)" : "🤚 Left Hand"}</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* 🔮 Kundli Generator Button */}
+                <div>
+                  <button
+                    type="button"
+                    onClick={handleOpenKundliModal}
+                    className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-600 to-amber-700 px-4 py-2.5 text-xs font-bold text-white shadow hover:from-orange-700 hover:to-amber-800 transition"
+                  >
+                    <span>🔮</span>
+                    <span>{isKn ? "ಕುಂಡಲಿ ರಚಿಸಿ (Generate Birth Kundali)" : "Generate Birth Kundali"}</span>
+                  </button>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* SLOT 1: FRONT PALM (Active initially) */}
-                <div
-                  className={`rounded-2xl p-4 border-2 transition space-y-3 ${
-                    slotStatus.front.isValid === true
-                      ? "border-emerald-500 bg-emerald-50/70 shadow-md"
-                      : slotStatus.front.isValid === false
-                      ? "border-rose-500 bg-rose-50/70 shadow-md"
-                      : "border-amber-400 bg-amber-50/60 shadow-sm"
-                  }`}
-                >
-                  {/* Slot 1 File Inputs */}
-                  <input
-                    ref={frontCameraRef}
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    className="hidden"
-                    onChange={(e) => e.target.files?.[0] && handleFileUploadForSlot(e.target.files[0], "front")}
-                  />
-                  <input
-                    ref={frontFileRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => e.target.files?.[0] && handleFileUploadForSlot(e.target.files[0], "front")}
-                  />
-
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs text-amber-950">✋ ೧. ಮುಂಭಾಗದ ಹಸ್ತ (Front)</span>
-                    {slotStatus.front.isValidating ? (
-                      <span className="text-[10px] bg-amber-500 text-white font-extrabold px-2 py-0.5 rounded-full animate-pulse">
-                        ⌛ ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ...
-                      </span>
-                    ) : slotStatus.front.isValid === true ? (
-                      <span className="text-[10px] bg-emerald-600 text-white font-extrabold px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                        ✅ ೧೦೦% ಸಫಲ (Verified)
-                      </span>
-                    ) : slotStatus.front.isValid === false ? (
-                      <span className="text-[10px] bg-rose-600 text-white font-extrabold px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                        ❌ ಅಸ್ಪಷ್ಟ
-                      </span>
-                    ) : (
-                      <span className="text-[10px] bg-amber-600 text-white font-bold px-2 py-0.5 rounded-full">
-                        Step 1
-                      </span>
-                    )}
+              {/* 3 Sequential Validated Photo Slots */}
+              <div className="space-y-4 pt-1">
+                <div className="flex items-center justify-between border-b border-amber-300/80 pb-2">
+                  <h4 className="font-serif text-sm font-bold text-amber-950 flex items-center gap-2">
+                    <span>📸</span>
+                    <span>{isKn ? "ಅನುಕ್ರಮಿಕ ೩-ಹಂತದ ಫೋಟೋ ಸಂಗ್ರಹ & ಪರಿಶೀಲನೆ (Sequential Validation)" : "Sequential 3-Step Palm Image Verification"}</span>
+                  </h4>
+                  <div className="text-xs font-bold text-amber-900 bg-amber-100 border border-amber-300 px-3 py-1 rounded-full">
+                    {isBackEnabled && slotStatus.back.isValid
+                      ? "🟢 All 3 Steps Verified"
+                      : isSideEnabled && slotStatus.side.isValid
+                      ? "🟡 Step 2 Verified"
+                      : isFrontVerified
+                      ? "🟡 Step 1 Verified"
+                      : "⚪ Start Step 1"}
                   </div>
-
-                  <p className="text-[11px] text-amber-900/90 leading-relaxed font-medium">
-                    {isKn ? "ಆಯುರ್, ಬುದ್ಧಿ, ಹೃದಯ ಹಾಗೂ ಶನಿ ರೇಖೆಗಳು ಸ್ಪಷ್ಟವಾಗಿ ಕಾಣುವಂತೆ ಮುಂಭಾಗದ ಹಸ್ತ ಹಿಡಿಯಿರಿ." : "Hold palm flat under bright light for major lines."}
-                  </p>
-
-                  {slotStatus.front.message && (
-                    <div
-                      className={`text-[11px] font-bold p-2 rounded-lg ${
-                        slotStatus.front.isValid === true
-                          ? "bg-emerald-100 text-emerald-900"
-                          : "bg-rose-100 text-rose-900"
-                      }`}
-                    >
-                      {slotStatus.front.message}
-                    </div>
-                  )}
-
-                  {imageDataUrl ? (
-                    <div className="relative group">
-                      <img
-                        src={imageDataUrl}
-                        alt="Front Palm"
-                        className="w-full h-32 object-cover rounded-xl border border-emerald-500 shadow-sm"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setImageDataUrl(null);
-                          setSlotStatus((prev) => ({
-                            ...prev,
-                            front: { isValidating: false, isValid: null, message: "" }
-                          }));
-                        }}
-                        className="absolute top-2 right-2 bg-rose-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() => frontCameraRef.current?.click()}
-                        className="flex-1 rounded-xl bg-amber-100 border border-amber-300 hover:bg-amber-200 py-2 text-xs font-bold text-amber-950 flex items-center justify-center gap-1.5 shadow-sm"
-                      >
-                        <span>📸</span>
-                        <span>{isKn ? "ಕ್ಯಾಮೆರಾ" : "Camera"}</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => frontFileRef.current?.click()}
-                        className="flex-1 rounded-xl bg-white border border-amber-300 hover:bg-amber-50 py-2 text-xs font-bold text-amber-950 flex items-center justify-center gap-1.5 shadow-sm"
-                      >
-                        <span>📁</span>
-                        <span>{isKn ? "ಅಪ್‌ಲೋಡ್" : "Upload"}</span>
-                      </button>
-                    </div>
-                  )}
                 </div>
 
-                {/* SLOT 2: SIDE VIEW (Disabled until Slot 1 verified) */}
-                <div
-                  className={`rounded-2xl p-4 border-2 transition space-y-3 ${
-                    !isSideEnabled
-                      ? "border-slate-200 bg-slate-100/70 opacity-60 pointer-events-none"
-                      : slotStatus.side.isValid === true
-                      ? "border-emerald-500 bg-emerald-50/70 shadow-md"
-                      : slotStatus.side.isValid === false
-                      ? "border-rose-500 bg-rose-50/70 shadow-md"
-                      : "border-amber-400 bg-amber-50/60 shadow-sm"
-                  }`}
-                >
-                  {/* Slot 2 File Inputs */}
-                  <input
-                    ref={sideCameraRef}
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    className="hidden"
-                    onChange={(e) => e.target.files?.[0] && handleFileUploadForSlot(e.target.files[0], "side")}
-                  />
-                  <input
-                    ref={sideFileRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => e.target.files?.[0] && handleFileUploadForSlot(e.target.files[0], "side")}
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* SLOT 1: FRONT PALM (Active initially) */}
+                  <div
+                    className={`rounded-2xl p-4 border-2 transition space-y-3 ${
+                      slotStatus.front.isValid === true
+                        ? "border-emerald-500 bg-emerald-50/70 shadow-md"
+                        : slotStatus.front.isValid === false
+                        ? "border-rose-500 bg-rose-50/70 shadow-md"
+                        : "border-amber-400 bg-amber-50/60 shadow-sm"
+                    }`}
+                  >
+                    {/* Slot 1 File Inputs */}
+                    <input
+                      ref={frontCameraRef}
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      className="hidden"
+                      onChange={(e) => e.target.files?.[0] && handleFileUploadForSlot(e.target.files[0], "front")}
+                    />
+                    <input
+                      ref={frontFileRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => e.target.files?.[0] && handleFileUploadForSlot(e.target.files[0], "front")}
+                    />
 
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs text-amber-950 flex items-center gap-1">
-                      {!isSideEnabled && <span>🔒</span>}
-                      <span>📐 ೨. ಪಾರ್ಶ್ವ ಹಸ್ತ (Side)</span>
-                    </span>
-                    {!isSideEnabled ? (
-                      <span className="text-[10px] bg-slate-300 text-slate-700 font-bold px-2 py-0.5 rounded-full">
-                        Locked (Step 1 Required)
-                      </span>
-                    ) : slotStatus.side.isValidating ? (
-                      <span className="text-[10px] bg-amber-500 text-white font-extrabold px-2 py-0.5 rounded-full animate-pulse">
-                        ⌛ ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ...
-                      </span>
-                    ) : slotStatus.side.isValid === true ? (
-                      <span className="text-[10px] bg-emerald-600 text-white font-extrabold px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                        ✅ ೧೦೦% ಸಫಲ (Verified)
-                      </span>
-                    ) : slotStatus.side.isValid === false ? (
-                      <span className="text-[10px] bg-rose-600 text-white font-extrabold px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                        ❌ ಅಸ್ಪಷ್ಟ
-                      </span>
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-xs text-amber-950">✋ ೧. ಮುಂಭಾಗದ ಹಸ್ತ (Front)</span>
+                      {slotStatus.front.isValidating ? (
+                        <span className="text-[10px] bg-amber-500 text-white font-extrabold px-2 py-0.5 rounded-full animate-pulse">
+                          ⌛ ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ...
+                        </span>
+                      ) : slotStatus.front.isValid === true ? (
+                        <span className="text-[10px] bg-emerald-600 text-white font-extrabold px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                          ✅ ೧೦೦% ಸಫಲ (Verified)
+                        </span>
+                      ) : slotStatus.front.isValid === false ? (
+                        <span className="text-[10px] bg-rose-600 text-white font-extrabold px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                          ❌ ಅಸ್ಪಷ್ಟ
+                        </span>
+                      ) : (
+                        <span className="text-[10px] bg-amber-600 text-white font-bold px-2 py-0.5 rounded-full">
+                          Step 1
+                        </span>
+                      )}
+                    </div>
+
+                    <p className="text-[11px] text-amber-900/90 leading-relaxed font-medium">
+                      {isKn ? "ಆಯುರ್, ಬುದ್ಧಿ, ಹೃದಯ ಹಾಗೂ ಶನಿ ರೇಖೆಗಳು ಸ್ಪಷ್ಟವಾಗಿ ಕಾಣುವಂತೆ ಮುಂಭಾಗದ ಹಸ್ತ ಹಿಡಿಯಿರಿ." : "Hold palm flat under bright light for major lines."}
+                    </p>
+
+                    {slotStatus.front.message && (
+                      <div
+                        className={`text-[11px] font-bold p-2 rounded-lg ${
+                          slotStatus.front.isValid === true
+                            ? "bg-emerald-100 text-emerald-900"
+                            : "bg-rose-100 text-rose-900"
+                        }`}
+                      >
+                        {slotStatus.front.message}
+                      </div>
+                    )}
+
+                    {imageDataUrl ? (
+                      <div className="relative group">
+                        <img
+                          src={imageDataUrl}
+                          alt="Front Palm"
+                          className="w-full h-32 object-cover rounded-xl border border-emerald-500 shadow-sm"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setImageDataUrl(null);
+                            setSlotStatus((prev) => ({
+                              ...prev,
+                              front: { isValidating: false, isValid: null, message: "" }
+                            }));
+                          }}
+                          className="absolute top-2 right-2 bg-rose-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold cursor-pointer"
+                        >
+                          Remove
+                        </button>
+                      </div>
                     ) : (
-                      <span className="text-[10px] bg-amber-600 text-white font-bold px-2 py-0.5 rounded-full">
-                        Step 2
-                      </span>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => frontCameraRef.current?.click()}
+                          className="flex-1 rounded-xl bg-amber-100 border border-amber-300 hover:bg-amber-200 py-2 text-xs font-bold text-amber-950 flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+                        >
+                          <span>📸</span>
+                          <span>{isKn ? "ಕ್ಯಾಮೆರಾ" : "Camera"}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => frontFileRef.current?.click()}
+                          className="flex-1 rounded-xl bg-white border border-amber-300 hover:bg-amber-50 py-2 text-xs font-bold text-amber-950 flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+                        >
+                          <span>📁</span>
+                          <span>{isKn ? "ಅಪ್‌ಲೋಡ್" : "Upload"}</span>
+                        </button>
+                      </div>
                     )}
                   </div>
 
-                  <p className="text-[11px] text-amber-900/90 leading-relaxed font-medium">
-                    {isKn ? "ಕನಿಷ್ಠಿಕಾ (ಕಿರುಬೆರಳು) ಬುಡದ ಪಾರ್ಶ್ವ ಭಾಗ - ವಿವಾಹ ಹಾಗೂ ಸಂತಾನ ರೇಖೆಗಳ ಸ್ಪಷ್ಟತೆ." : "Side view under pinky for marriage & union lines."}
-                  </p>
+                  {/* SLOT 2: SIDE VIEW (Disabled until Slot 1 verified) */}
+                  <div
+                    className={`rounded-2xl p-4 border-2 transition space-y-3 ${
+                      !isSideEnabled
+                        ? "border-slate-200 bg-slate-100/70 opacity-60 pointer-events-none"
+                        : slotStatus.side.isValid === true
+                        ? "border-emerald-500 bg-emerald-50/70 shadow-md"
+                        : slotStatus.side.isValid === false
+                        ? "border-rose-500 bg-rose-50/70 shadow-md"
+                        : "border-amber-400 bg-amber-50/60 shadow-sm"
+                    }`}
+                  >
+                    {/* Slot 2 File Inputs */}
+                    <input
+                      ref={sideCameraRef}
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      className="hidden"
+                      onChange={(e) => e.target.files?.[0] && handleFileUploadForSlot(e.target.files[0], "side")}
+                    />
+                    <input
+                      ref={sideFileRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => e.target.files?.[0] && handleFileUploadForSlot(e.target.files[0], "side")}
+                    />
 
-                  {slotStatus.side.message && (
-                    <div
-                      className={`text-[11px] font-bold p-2 rounded-lg ${
-                        slotStatus.side.isValid === true
-                          ? "bg-emerald-100 text-emerald-900"
-                          : "bg-rose-100 text-rose-900"
-                      }`}
-                    >
-                      {slotStatus.side.message}
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-xs text-amber-950 flex items-center gap-1">
+                        {!isSideEnabled && <span>🔒</span>}
+                        <span>📐 ೨. ಪಾರ್ಶ್ವ ಹಸ್ತ (Side)</span>
+                      </span>
+                      {!isSideEnabled ? (
+                        <span className="text-[10px] bg-slate-300 text-slate-700 font-bold px-2 py-0.5 rounded-full">
+                          Locked (Step 1 Required)
+                        </span>
+                      ) : slotStatus.side.isValidating ? (
+                        <span className="text-[10px] bg-amber-500 text-white font-extrabold px-2 py-0.5 rounded-full animate-pulse">
+                          ⌛ ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ...
+                        </span>
+                      ) : slotStatus.side.isValid === true ? (
+                        <span className="text-[10px] bg-emerald-600 text-white font-extrabold px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                          ✅ ೧೦೦% ಸಫಲ (Verified)
+                        </span>
+                      ) : slotStatus.side.isValid === false ? (
+                        <span className="text-[10px] bg-rose-600 text-white font-extrabold px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                          ❌ ಅಸ್ಪಷ್ಟ
+                        </span>
+                      ) : (
+                        <span className="text-[10px] bg-amber-600 text-white font-bold px-2 py-0.5 rounded-full">
+                          Step 2
+                        </span>
+                      )}
                     </div>
-                  )}
 
-                  {sideImageDataUrl ? (
-                    <div className="relative group">
-                      <img
-                        src={sideImageDataUrl}
-                        alt="Side View"
-                        className="w-full h-32 object-cover rounded-xl border border-emerald-500 shadow-sm"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSideImageDataUrl(null);
-                          setSlotStatus((prev) => ({
-                            ...prev,
-                            side: { isValidating: false, isValid: null, message: "" }
-                          }));
-                        }}
-                        className="absolute top-2 right-2 bg-rose-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        disabled={!isSideEnabled}
-                        onClick={() => sideCameraRef.current?.click()}
-                        className="flex-1 rounded-xl bg-amber-100 border border-amber-300 hover:bg-amber-200 py-2 text-xs font-bold text-amber-950 flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50"
-                      >
-                        <span>📸</span>
-                        <span>{isKn ? "ಕ್ಯಾಮೆರಾ" : "Camera"}</span>
-                      </button>
-                      <button
-                        type="button"
-                        disabled={!isSideEnabled}
-                        onClick={() => sideFileRef.current?.click()}
-                        className="flex-1 rounded-xl bg-white border border-amber-300 hover:bg-amber-50 py-2 text-xs font-bold text-amber-950 flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50"
-                      >
-                        <span>📁</span>
-                        <span>{isKn ? "ಅಪ್‌ಲೋಡ್" : "Upload"}</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
+                    <p className="text-[11px] text-amber-900/90 leading-relaxed font-medium">
+                      {isKn ? "ಕನಿಷ್ಠಿಕಾ (ಕಿರುಬೆರಳು) ಬುಡದ ಪಾರ್ಶ್ವ ಭಾಗ - ವಿವಾಹ ಹಾಗೂ ಸಂತಾನ ರೇಖೆಗಳ ಸ್ಪಷ್ಟತೆ." : "Side view under pinky for marriage & union lines."}
+                    </p>
 
-                {/* SLOT 3: BACK VIEW (Disabled until Slot 2 verified) */}
-                <div
-                  className={`rounded-2xl p-4 border-2 transition space-y-3 ${
-                    !isBackEnabled
-                      ? "border-slate-200 bg-slate-100/70 opacity-60 pointer-events-none"
-                      : slotStatus.back.isValid === true
-                      ? "border-emerald-500 bg-emerald-50/70 shadow-md"
-                      : slotStatus.back.isValid === false
-                      ? "border-rose-500 bg-rose-50/70 shadow-md"
-                      : "border-amber-400 bg-amber-50/60 shadow-sm"
-                  }`}
-                >
-                  {/* Slot 3 File Inputs */}
-                  <input
-                    ref={backCameraRef}
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    className="hidden"
-                    onChange={(e) => e.target.files?.[0] && handleFileUploadForSlot(e.target.files[0], "back")}
-                  />
-                  <input
-                    ref={backFileRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => e.target.files?.[0] && handleFileUploadForSlot(e.target.files[0], "back")}
-                  />
+                    {slotStatus.side.message && (
+                      <div
+                        className={`text-[11px] font-bold p-2 rounded-lg ${
+                          slotStatus.side.isValid === true
+                            ? "bg-emerald-100 text-emerald-900"
+                            : "bg-rose-100 text-rose-900"
+                        }`}
+                      >
+                        {slotStatus.side.message}
+                      </div>
+                    )}
 
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs text-amber-950 flex items-center gap-1">
-                      {!isBackEnabled && <span>🔒</span>}
-                      <span>💅 ೩. ಹಿಂಭಾಗದ ಹಸ್ತ (Back)</span>
-                    </span>
-                    {!isBackEnabled ? (
-                      <span className="text-[10px] bg-slate-300 text-slate-700 font-bold px-2 py-0.5 rounded-full">
-                        Locked (Step 2 Required)
-                      </span>
-                    ) : slotStatus.back.isValidating ? (
-                      <span className="text-[10px] bg-amber-500 text-white font-extrabold px-2 py-0.5 rounded-full animate-pulse">
-                        ⌛ ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ...
-                      </span>
-                    ) : slotStatus.back.isValid === true ? (
-                      <span className="text-[10px] bg-emerald-600 text-white font-extrabold px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                        ✅ ೧೦೦% ಸಫಲ (Verified)
-                      </span>
-                    ) : slotStatus.back.isValid === false ? (
-                      <span className="text-[10px] bg-rose-600 text-white font-extrabold px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                        ❌ ಅಸ್ಪಷ್ಟ
-                      </span>
+                    {sideImageDataUrl ? (
+                      <div className="relative group">
+                        <img
+                          src={sideImageDataUrl}
+                          alt="Side View"
+                          className="w-full h-32 object-cover rounded-xl border border-emerald-500 shadow-sm"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSideImageDataUrl(null);
+                            setSlotStatus((prev) => ({
+                              ...prev,
+                              side: { isValidating: false, isValid: null, message: "" }
+                            }));
+                          }}
+                          className="absolute top-2 right-2 bg-rose-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold cursor-pointer"
+                        >
+                          Remove
+                        </button>
+                      </div>
                     ) : (
-                      <span className="text-[10px] bg-amber-600 text-white font-bold px-2 py-0.5 rounded-full">
-                        Step 3
-                      </span>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          disabled={!isSideEnabled}
+                          onClick={() => sideCameraRef.current?.click()}
+                          className="flex-1 rounded-xl bg-amber-100 border border-amber-300 hover:bg-amber-200 py-2 text-xs font-bold text-amber-950 flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50 cursor-pointer"
+                        >
+                          <span>📸</span>
+                          <span>{isKn ? "ಕ್ಯಾಮೆರಾ" : "Camera"}</span>
+                        </button>
+                        <button
+                          type="button"
+                          disabled={!isSideEnabled}
+                          onClick={() => sideFileRef.current?.click()}
+                          className="flex-1 rounded-xl bg-white border border-amber-300 hover:bg-amber-50 py-2 text-xs font-bold text-amber-950 flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50 cursor-pointer"
+                        >
+                          <span>📁</span>
+                          <span>{isKn ? "ಅಪ್‌ಲೋಡ್" : "Upload"}</span>
+                        </button>
+                      </div>
                     )}
                   </div>
 
-                  <p className="text-[11px] text-amber-900/90 leading-relaxed font-medium">
-                    {isKn ? "ಉಗುರುಗಳು, ಬೆರಳುಗಳ ಗಿಣ್ಣುಗಳು ಹಾಗೂ ಚರ್ಮದ ಕಾಂತಿ - ಶಾರೀರಿಕ ತತ್ತ್ವ ಪರೀಕ್ಷೆ." : "Back of hand for nail half-moons & finger phalanges."}
-                  </p>
+                  {/* SLOT 3: BACK VIEW (Disabled until Slot 2 verified) */}
+                  <div
+                    className={`rounded-2xl p-4 border-2 transition space-y-3 ${
+                      !isBackEnabled
+                        ? "border-slate-200 bg-slate-100/70 opacity-60 pointer-events-none"
+                        : slotStatus.back.isValid === true
+                        ? "border-emerald-500 bg-emerald-50/70 shadow-md"
+                        : slotStatus.back.isValid === false
+                        ? "border-rose-500 bg-rose-50/70 shadow-md"
+                        : "border-amber-400 bg-amber-50/60 shadow-sm"
+                    }`}
+                  >
+                    {/* Slot 3 File Inputs */}
+                    <input
+                      ref={backCameraRef}
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      className="hidden"
+                      onChange={(e) => e.target.files?.[0] && handleFileUploadForSlot(e.target.files[0], "back")}
+                    />
+                    <input
+                      ref={backFileRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => e.target.files?.[0] && handleFileUploadForSlot(e.target.files[0], "back")}
+                    />
 
-                  {slotStatus.back.message && (
-                    <div
-                      className={`text-[11px] font-bold p-2 rounded-lg ${
-                        slotStatus.back.isValid === true
-                          ? "bg-emerald-100 text-emerald-900"
-                          : "bg-rose-100 text-rose-900"
-                      }`}
-                    >
-                      {slotStatus.back.message}
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-xs text-amber-950 flex items-center gap-1">
+                        {!isBackEnabled && <span>🔒</span>}
+                        <span>💅 ೩. ಹಿಂಭಾಗದ ಹಸ್ತ (Back)</span>
+                      </span>
+                      {!isBackEnabled ? (
+                        <span className="text-[10px] bg-slate-300 text-slate-700 font-bold px-2 py-0.5 rounded-full">
+                          Locked (Step 2 Required)
+                        </span>
+                      ) : slotStatus.back.isValidating ? (
+                        <span className="text-[10px] bg-amber-500 text-white font-extrabold px-2 py-0.5 rounded-full animate-pulse">
+                          ⌛ ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ...
+                        </span>
+                      ) : slotStatus.back.isValid === true ? (
+                        <span className="text-[10px] bg-emerald-600 text-white font-extrabold px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                          ✅ ೧೦೦% ಸಫಲ (Verified)
+                        </span>
+                      ) : slotStatus.back.isValid === false ? (
+                        <span className="text-[10px] bg-rose-600 text-white font-extrabold px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                          ❌ ಅಸ್ಪಷ್ಟ
+                        </span>
+                      ) : (
+                        <span className="text-[10px] bg-amber-600 text-white font-bold px-2 py-0.5 rounded-full">
+                          Step 3
+                        </span>
+                      )}
                     </div>
-                  )}
 
-                  {backImageDataUrl ? (
-                    <div className="relative group">
-                      <img
-                        src={backImageDataUrl}
-                        alt="Back View"
-                        className="w-full h-32 object-cover rounded-xl border border-emerald-500 shadow-sm"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setBackImageDataUrl(null);
-                          setSlotStatus((prev) => ({
-                            ...prev,
-                            back: { isValidating: false, isValid: null, message: "" }
-                          }));
-                        }}
-                        className="absolute top-2 right-2 bg-rose-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold"
+                    <p className="text-[11px] text-amber-900/90 leading-relaxed font-medium">
+                      {isKn ? "ಉಗುರುಗಳು, ಬೆರಳುಗಳ ಗಿಣ್ಣುಗಳು ಹಾಗೂ ಚರ್ಮದ ಕಾಂತಿ - ಶಾರೀರಿಕ ತತ್ತ್ವ ಪರೀಕ್ಷೆ." : "Back of hand for nail half-moons & finger phalanges."}
+                    </p>
+
+                    {slotStatus.back.message && (
+                      <div
+                        className={`text-[11px] font-bold p-2 rounded-lg ${
+                          slotStatus.back.isValid === true
+                            ? "bg-emerald-100 text-emerald-900"
+                            : "bg-rose-100 text-rose-900"
+                        }`}
                       >
-                        Remove
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        disabled={!isBackEnabled}
-                        onClick={() => backCameraRef.current?.click()}
-                        className="flex-1 rounded-xl bg-amber-100 border border-amber-300 hover:bg-amber-200 py-2 text-xs font-bold text-amber-950 flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50"
-                      >
-                        <span>📸</span>
-                        <span>{isKn ? "ಕ್ಯಾಮೆರಾ" : "Camera"}</span>
-                      </button>
-                      <button
-                        type="button"
-                        disabled={!isBackEnabled}
-                        onClick={() => backFileRef.current?.click()}
-                        className="flex-1 rounded-xl bg-white border border-amber-300 hover:bg-amber-50 py-2 text-xs font-bold text-amber-950 flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50"
-                      >
-                        <span>📁</span>
-                        <span>{isKn ? "ಅಪ್‌ಲೋಡ್" : "Upload"}</span>
-                      </button>
-                    </div>
-                  )}
+                        {slotStatus.back.message}
+                      </div>
+                    )}
+
+                    {backImageDataUrl ? (
+                      <div className="relative group">
+                        <img
+                          src={backImageDataUrl}
+                          alt="Back View"
+                          className="w-full h-32 object-cover rounded-xl border border-emerald-500 shadow-sm"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setBackImageDataUrl(null);
+                            setSlotStatus((prev) => ({
+                              ...prev,
+                              back: { isValidating: false, isValid: null, message: "" }
+                            }));
+                          }}
+                          className="absolute top-2 right-2 bg-rose-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold cursor-pointer"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          disabled={!isBackEnabled}
+                          onClick={() => backCameraRef.current?.click()}
+                          className="flex-1 rounded-xl bg-amber-100 border border-amber-300 hover:bg-amber-200 py-2 text-xs font-bold text-amber-950 flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50 cursor-pointer"
+                        >
+                          <span>📸</span>
+                          <span>{isKn ? "ಕ್ಯಾಮೆರಾ" : "Camera"}</span>
+                        </button>
+                        <button
+                          type="button"
+                          disabled={!isBackEnabled}
+                          onClick={() => backFileRef.current?.click()}
+                          className="flex-1 rounded-xl bg-white border border-amber-300 hover:bg-amber-50 py-2 text-xs font-bold text-amber-950 flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50 cursor-pointer"
+                        >
+                          <span>📁</span>
+                          <span>{isKn ? "ಅಪ್‌ಲೋಡ್" : "Upload"}</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Main Action Button (Disabled until Step 1 is valid) */}
-            <div className="pt-3 border-t border-amber-200 flex justify-center">
-              <button
-                type="button"
-                onClick={handleStartPalmReading}
-                disabled={isProcessing || !isGenerateEnabled}
-                className={`w-full sm:w-2/3 rounded-2xl py-3.5 text-sm font-bold shadow-xl transition flex items-center justify-center gap-2 ${
-                  isGenerateEnabled && !isProcessing
-                    ? "bg-gradient-to-r from-amber-700 via-amber-800 to-amber-900 text-amber-50 hover:from-amber-800 hover:to-amber-950 cursor-pointer animate-pulse"
-                    : "bg-slate-300 text-slate-600 cursor-not-allowed opacity-60"
-                }`}
-              >
-                <span>🔮</span>
-                <span>
-                  {isProcessing
-                    ? isKn
-                      ? "⌛ ಹಸ್ತ ರೇಖಾ ವಿಶ್ಲೇಷಿಸಲಾಗುತ್ತಿದೆ..."
-                      : "Analyzing Palm..."
-                    : !isFrontVerified
-                    ? isKn
-                      ? "ಹಂತ ೧ ರ ಮುಂಭಾಗದ ಹಸ್ತ ಪರಿಶೀಲಿಸಿ (Step 1 Verification Required)"
-                      : "Step 1 Front Palm Verification Required"
-                    : isKn
-                    ? "ಹಸ್ತ ರೇಖಾ ಶಾಸ್ತ್ರ ಫಲ ಪಡೆಯಿರಿ (Generate Hastarekha Reading)"
-                    : "Generate Hastarekha Reading"}
-                </span>
-              </button>
-            </div>
-          </Card>
+              {/* Main Action Button (Disabled until Step 1 is valid) */}
+              <div className="pt-3 border-t border-amber-200 flex justify-center">
+                <button
+                  type="button"
+                  onClick={handleStartPalmReading}
+                  disabled={isProcessing || !isGenerateEnabled}
+                  className={`w-full sm:w-2/3 rounded-2xl py-3.5 text-sm font-bold shadow-xl transition flex items-center justify-center gap-2 ${
+                    isGenerateEnabled && !isProcessing
+                      ? "bg-gradient-to-r from-amber-700 via-amber-800 to-amber-900 text-amber-50 hover:from-amber-800 hover:to-amber-950 cursor-pointer animate-pulse"
+                      : "bg-slate-300 text-slate-600 cursor-not-allowed opacity-60"
+                  }`}
+                >
+                  <span>🔮</span>
+                  <span>
+                    {isProcessing
+                      ? isKn
+                        ? "⌛ ಹಸ್ತ ರೇಖಾ ವಿಶ್ಲೇಷಿಸಲಾಗುತ್ತಿದೆ..."
+                        : "Analyzing Palm..."
+                      : !isFrontVerified
+                      ? isKn
+                        ? "ಹಂತ ೧ ರ ಮುಂಭಾಗದ ಹಸ್ತ ಪರಿಶೀಲಿಸಿ (Step 1 Verification Required)"
+                        : "Step 1 Front Palm Verification Required"
+                      : isKn
+                      ? "ಹಸ್ತ ರೇಖಾ ಶಾಸ್ತ್ರ ಫಲ ಪಡೆಯಿರಿ (Generate Hastarekha Reading)"
+                      : "Generate Hastarekha Reading"}
+                  </span>
+                </button>
+              </div>
+            </Card>
+          )}
 
           {/* Modal for Janma Kundali Parameters Setup */}
           {showKundliModal && (
@@ -1109,7 +1131,7 @@ export default function PalmReadingPage(): JSX.Element {
                   <button
                     type="button"
                     onClick={() => setShowKundliModal(false)}
-                    className="text-amber-900 hover:text-rose-700 font-black text-sm"
+                    className="text-amber-900 hover:text-rose-700 font-black text-sm cursor-pointer"
                   >
                     ✕
                   </button>
@@ -1151,7 +1173,7 @@ export default function PalmReadingPage(): JSX.Element {
                   <button
                     type="button"
                     onClick={() => setShowKundliModal(false)}
-                    className="rounded-xl border border-amber-300 px-4 py-2 text-xs font-bold text-amber-900 hover:bg-amber-100"
+                    className="rounded-xl border border-amber-300 px-4 py-2 text-xs font-bold text-amber-900 hover:bg-amber-100 cursor-pointer"
                   >
                     {isKn ? "ರದ್ದುಮಾಡಿ" : "Cancel"}
                   </button>
@@ -1159,7 +1181,7 @@ export default function PalmReadingPage(): JSX.Element {
                   <button
                     type="button"
                     onClick={handleCalculateKundliAndAttach}
-                    className="rounded-xl bg-amber-800 px-5 py-2 text-xs font-bold text-white shadow hover:bg-amber-900"
+                    className="rounded-xl bg-amber-800 px-5 py-2 text-xs font-bold text-white shadow hover:bg-amber-900 cursor-pointer"
                   >
                     {isKn ? "ಕುಂಡಲಿ ಗಣಿಸಿ & ಸಂಯೋಜಿಸಿ" : "Calculate & Combine Kundali"}
                   </button>
@@ -1170,223 +1192,6 @@ export default function PalmReadingPage(): JSX.Element {
 
           {/* Full-Screen Centered Animated Palm Scanner Modal Overlay */}
           {isProcessing && <PalmScannerLoader isKn={isKn} />}
-
-          {/* Visual Life Event Timeline Diagram Component */}
-          {activeResult && (
-            <PalmTimelineDiagram
-              personName={devoteeName}
-              lang={selectedLang}
-              handSide={activeResult.handSide}
-            />
-          )}
-
-          {/* AI Generative Chatbox Timeline & Priest Reading View */}
-          {messages.length > 0 && (
-            <Card className="border border-amber-300/80 bg-gradient-to-b from-amber-50/30 to-white p-5 shadow-md space-y-6">
-              <div className="flex items-center justify-between border-b border-amber-200/80 pb-3">
-                <h3 className="font-serif text-base font-bold text-amber-950 flex items-center gap-2">
-                  <span>💬</span>
-                  <span>{isKn ? "ಗೋಕರ್ಣ ಹಸ್ತ ರೇಖಾ ಶಾಸ್ತ್ರ ಸಂವಾದ ಹಾಗೂ ಪರಿಹಾರ" : "Gokarna Palm Reading Guidance & Chat"}</span>
-                </h3>
-                {activeResult && (
-                  <div className="rounded-full bg-amber-100 border border-amber-300 px-3 py-1 text-xs font-bold text-amber-900">
-                    {activeResult.handSideLabel[selectedLang] || activeResult.handSideLabel.en} · Score: {activeResult.overallScore}%
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
-                {messages.map((msg) => (
-                  <div
-                    key={msg.id}
-                    className={`flex flex-col ${msg.sender === "user" ? "items-end" : "items-start"}`}
-                  >
-                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-amber-800 mb-1 px-1">
-                      <span>{msg.sender === "user" ? `👤 ${devoteeName}` : "🕉️ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (Gokarna Priest)"}</span>
-                      <span>·</span>
-                      <span>{msg.timestamp}</span>
-                    </div>
-
-                    <div
-                      className={`rounded-2xl p-4 text-sm leading-relaxed max-w-[90%] shadow-sm ${
-                        msg.sender === "user"
-                          ? "bg-amber-800 text-amber-50 rounded-br-none"
-                          : "bg-amber-50/90 border border-amber-300 text-amber-950 rounded-bl-none font-medium whitespace-pre-wrap"
-                      }`}
-                    >
-                      {msg.result ? (
-                        <div className="space-y-4">
-                          {/* Kundli Badge & South Indian Chart if generated */}
-                          {msg.result.kundliData && (
-                            <div className="rounded-xl border border-amber-400 bg-gradient-to-r from-amber-100 via-amber-50 to-orange-100 p-3.5 text-xs text-amber-950 font-bold space-y-3 shadow-inner">
-                              <div className="flex flex-wrap gap-3">
-                                <div>🏛️ {isKn ? "ಲಗ್ನ (ಅಂಶ):" : "Lagna:"} <span className="text-emerald-800 font-extrabold">{msg.result.kundliData.lagna}</span></div>
-                                <div>🌙 {isKn ? "ರಾಶಿ:" : "Rashi:"} <span className="text-amber-900 font-extrabold">{msg.result.kundliData.rashi}</span></div>
-                                <div>⭐ {isKn ? "ನಕ್ಷತ್ರ:" : "Nakshatra:"} <span className="text-amber-900 font-extrabold">{msg.result.kundliData.nakshatra}</span></div>
-                                <div>🔥 {isKn ? "ಮಾಂದಿ:" : "Maandi:"} <span className="text-rose-900 font-extrabold">{msg.result.kundliData.maandi}</span></div>
-                              </div>
-                              {msg.result.kundliData.kundliOutput && (
-                                <div className="pt-1 flex justify-center">
-                                  <SouthIndianChart
-                                    kundli={msg.result.kundliData.kundliOutput}
-                                    personName={devoteeName || "Devotee"}
-                                    gothra={gotraInput}
-                                  />
-                                </div>
-                              )}
-                            </div>
-                          )}
-
-                          {/* Section 1: 5 Major Palm Lines Card */}
-                          <div className="rounded-xl border border-amber-300 bg-white p-3.5 shadow-sm space-y-2">
-                            <div className="text-xs font-bold text-amber-950 border-b border-amber-200 pb-1 flex items-center justify-between">
-                              <span>🖐️ {isKn ? "೧. ಪಂಚ ರೇಖಾ ವಿಶ್ಲೇಷಣೆ (Major Lines Inspection)" : "1. Major Palm Lines Inspection"}</span>
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                              <div className="rounded-lg bg-amber-50/70 p-2 border border-amber-200/60">
-                                <span className="font-bold text-amber-900">{msg.result.lifeLine.lineName[selectedLang] || msg.result.lifeLine.lineName.kn}:</span>{" "}
-                                <span className="font-semibold text-emerald-800">[{msg.result.lifeLine.status[selectedLang] || msg.result.lifeLine.status.kn}]</span>{" "}
-                                <span className="text-amber-950">{msg.result.lifeLine.indication[selectedLang] || msg.result.lifeLine.indication.kn}</span>
-                              </div>
-                              <div className="rounded-lg bg-amber-50/70 p-2 border border-amber-200/60">
-                                <span className="font-bold text-amber-900">{msg.result.headLine.lineName[selectedLang] || msg.result.headLine.lineName.kn}:</span>{" "}
-                                <span className="font-semibold text-emerald-800">[{msg.result.headLine.status[selectedLang] || msg.result.headLine.status.kn}]</span>{" "}
-                                <span className="text-amber-950">{msg.result.headLine.indication[selectedLang] || msg.result.headLine.indication.kn}</span>
-                              </div>
-                              <div className="rounded-lg bg-amber-50/70 p-2 border border-amber-200/60">
-                                <span className="font-bold text-amber-900">{msg.result.heartLine.lineName[selectedLang] || msg.result.heartLine.lineName.kn}:</span>{" "}
-                                <span className="font-semibold text-emerald-800">[{msg.result.heartLine.status[selectedLang] || msg.result.heartLine.status.kn}]</span>{" "}
-                                <span className="text-amber-950">{msg.result.heartLine.indication[selectedLang] || msg.result.heartLine.indication.kn}</span>
-                              </div>
-                              <div className="rounded-lg bg-amber-50/70 p-2 border border-amber-200/60">
-                                <span className="font-bold text-amber-900">{msg.result.fateLine.lineName[selectedLang] || msg.result.fateLine.lineName.kn}:</span>{" "}
-                                <span className="font-semibold text-emerald-800">[{msg.result.fateLine.status[selectedLang] || msg.result.fateLine.status.kn}]</span>{" "}
-                                <span className="text-amber-950">{msg.result.fateLine.indication[selectedLang] || msg.result.fateLine.indication.kn}</span>
-                              </div>
-                              <div className="rounded-lg bg-amber-50/70 p-2 border border-amber-200/60 sm:col-span-2">
-                                <span className="font-bold text-amber-900">{msg.result.sunLine.lineName[selectedLang] || msg.result.sunLine.lineName.kn}:</span>{" "}
-                                <span className="font-semibold text-emerald-800">[{msg.result.sunLine.status[selectedLang] || msg.result.sunLine.status.kn}]</span>{" "}
-                                <span className="text-amber-950">{msg.result.sunLine.indication[selectedLang] || msg.result.sunLine.indication.kn}</span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Section 2: Palm Mounts */}
-                          <div className="rounded-xl border border-amber-300 bg-white p-3.5 shadow-sm space-y-2">
-                            <div className="text-xs font-bold text-amber-950 border-b border-amber-200 pb-1">
-                              🪐 {isKn ? "೨. ಗ್ರಹ ಪರ್ವತ ಬಲ (Key Planetary Mounts)" : "2. Key Planetary Mounts"}
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                              {msg.result.mounts.map((m, idx) => (
-                                <div key={idx} className="rounded-lg bg-amber-50/70 p-2 border border-amber-200/60">
-                                  <div className="font-bold text-amber-900">{m.mountName[selectedLang] || m.mountName.kn}</div>
-                                  <div className="font-semibold text-emerald-800">[{m.strength[selectedLang] || m.strength.kn}]</div>
-                                  <div className="text-amber-950 text-[11px]">{m.indication[selectedLang] || m.indication.kn}</div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Section 3: Auspicious Marks */}
-                          {msg.result.specialMarks.length > 0 && (
-                            <div className="rounded-xl border border-amber-300 bg-white p-3.5 shadow-sm space-y-2">
-                              <div className="text-xs font-bold text-amber-950 border-b border-amber-200 pb-1">
-                                🌟 {isKn ? "೩. ಶುಭ ಚಿಹ್ನೆಗಳು & ಯೋಗ (Auspicious Signs)" : "3. Auspicious Marks & Yogas"}
-                              </div>
-                              <div className="space-y-1.5 text-xs">
-                                {msg.result.specialMarks.map((sm, idx) => (
-                                  <div key={idx} className="rounded-lg bg-amber-50/70 p-2 border border-amber-200/60 flex items-start gap-2">
-                                    <span className="font-bold text-amber-900">{sm.mark[selectedLang] || sm.mark.kn}:</span>
-                                    <span className="text-amber-950">{sm.meaning[selectedLang] || sm.meaning.kn}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Section 4: Age-Stratified Life Milestones (Education, Marriage, Children, Wealth) */}
-                          {msg.result.lifeStageMilestones && (
-                            <PalmLifeStageMilestonesCard
-                              milestones={msg.result.lifeStageMilestones}
-                              lang={selectedLang}
-                              devoteeName={devoteeName}
-                            />
-                          )}
-
-                          {/* Section 5: AI Prediction Text */}
-                          <div className="rounded-xl border border-amber-300 bg-white p-3.5 shadow-sm space-y-2">
-                            <div className="text-xs font-bold text-amber-950 border-b border-amber-200 pb-1">
-                              📜 {isKn ? "೪. ಸಮಗ್ರ ಸಾಮುದ್ರಿಕ ಫಲ (Detailed Hastarekha Phala)" : "4. Detailed Hastarekha Prediction"}
-                            </div>
-                            <div className="text-xs text-amber-950 leading-relaxed font-medium">
-                              {sanitizeAIText(msg.text)}
-                            </div>
-                          </div>
-
-                          {/* Section 5: Sacred Remedy */}
-                          <div className="rounded-xl border border-amber-300 bg-amber-100/60 p-3.5 shadow-sm space-y-1">
-                            <div className="text-xs font-bold text-amber-950">
-                              🪔 {isKn ? "೬. ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ದೈವಿಕ ಪರಿಹಾರ (Sacred Remedy)" : "6. Sacred Gokarna Mahabaleshwara Remedy"}
-                            </div>
-                            <p className="text-xs text-amber-900 font-semibold leading-relaxed">
-                              {msg.result.remedyRecommendation[selectedLang] || msg.result.remedyRecommendation.kn}
-                            </p>
-                          </div>
-                        </div>
-                      ) : (
-                        sanitizeAIText(msg.text)
-                      )}
-                    </div>
-                  </div>
-                ))}
-                <div ref={chatEndRef} />
-              </div>
-
-              {/* Follow-up Question Input Bar */}
-              <form onSubmit={handleSendFollowUp} className="flex items-center gap-2 pt-2 border-t border-amber-200">
-                <input
-                  type="text"
-                  value={followUpInput}
-                  onChange={(e) => setFollowUpInput(e.target.value)}
-                  placeholder={isKn ? "ಹಸ್ತ ರೇಖೆಯ ಬಗ್ಗೆ ಇನ್ನಷ್ಟು ವಿವರಣೆ ಕೇಳಿ (ಅಥವಾ ಮೈಕ್ ಬಳಸಿ)..." : "Ask follow-up clarification on this palm reading..."}
-                  className="flex-1 rounded-xl border border-amber-300 bg-white px-3.5 py-2.5 text-xs font-semibold text-amber-950 shadow-sm focus:border-amber-600 focus:outline-none"
-                />
-                <button
-                  type="button"
-                  onClick={handleVoiceInput}
-                  title={isKn ? "ಧ್ವನಿ ಮೂಲಕ ಪ್ರಶ್ನೆ ಕೇಳಿ (Voice Input)" : "Ask by voice"}
-                  className={`p-2.5 rounded-xl border transition shadow-sm flex items-center justify-center ${
-                    isListening
-                      ? "bg-red-500 border-red-600 text-white animate-pulse"
-                      : "bg-amber-100/80 border-amber-300 text-amber-900 hover:bg-amber-200"
-                  }`}
-                >
-                  <span className="text-sm">🎙️</span>
-                </button>
-                <button
-                  type="submit"
-                  disabled={isProcessing || !followUpInput.trim()}
-                  className="rounded-xl bg-amber-800 px-4 py-2.5 text-xs font-bold text-white shadow hover:bg-amber-900 disabled:opacity-50"
-                >
-                  {isKn ? "ಕೇಳಿ" : "Ask"}
-                </button>
-              </form>
-
-              {activeResult && (
-                <div className="flex justify-end pt-3 border-t border-amber-200">
-                  <button
-                    type="button"
-                    onClick={handleDownloadPdf}
-                    disabled={isGeneratingPdf}
-                    className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-700 via-amber-800 to-amber-900 px-5 py-2.5 text-xs font-bold text-amber-50 shadow-md transition hover:from-amber-800 hover:to-amber-950 disabled:opacity-50"
-                  >
-                    <span>📄</span>
-                    <span>{isGeneratingPdf ? (isKn ? "⌛ PDF ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : "Generating PDF...") : (isKn ? "ಪೂರ್ಣ ವರದಿ ಹಾಗೂ ಪ್ರಶ್ನೋತ್ತರ PDF ಡೌನ್‌ಲೋಡ್" : "Download Full Report & Q&A PDF")}</span>
-                  </button>
-                </div>
-              )}
-            </Card>
-          )}
         </>
       )}
 
@@ -1422,9 +1227,9 @@ export default function PalmReadingPage(): JSX.Element {
         />
       )}
 
-      {/* Offscreen Container for HTML2Canvas PDF Rendering */}
+      {/* Offscreen Container for HTML2Canvas PDF Rendering (Conforms strictly to baggona-pdf-layout-guard) */}
       {activeResult && (
-        <div style={{ position: "absolute", left: "-9999px", top: "-9999px" }}>
+        <div style={{ position: "fixed", left: 0, top: 0, width: 900, opacity: 0, pointerEvents: "none", zIndex: -1, overflow: "hidden", height: 0 }}>
           <PalmReadingPdfTemplate result={activeResult} personName={devoteeName} lang={selectedLang} messages={messages} />
         </div>
       )}
