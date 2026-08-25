@@ -1,12 +1,23 @@
 /**
  * Classical Vedic Muka Samudrika Shastra & Metoposcopy Knowledge Repository.
  * 
- * Sourced from:
- * 1. Brihat Samhita (Varahamihira, 6th Century CE) - Anga & Muka Lakshana
- * 2. Garuda Purana (Samudrika Shastra Adhyaya)
- * 3. Bhavishya Purana & Skanda Purana (Muka & Tilaka Shastra)
- * 4. Classical Vedic Metoposcopy (Lalata Sapta Graha Rekha)
+ * Sourced directly from:
+ * 1. Brihat Samhita (Varahamihira, 6th Century CE) - Chapters 68 (Purusha Lakshana) & 70 (Kanya/Stri Lakshana)
+ * 2. Garuda Purana - Samudrika Shastra Adhyaya (Bodily & Facial Measurements in Angulas)
+ * 3. Bhavishya Purana - Muka, Danta, Karna & Tilaka Shastra
+ * 4. Skanda Purana & Vishnudharmottara Purana (Iconometry & Nava-Tala Golden Ratio)
  */
+
+export const VEDIC_ANGULA_PROPORTIONS = {
+  totalFaceHeight: 12, // 12 Angulas = 1 Mukha (Standard Vedic Tala)
+  upperZone: 4, // Hairline to Eyebrows (Lalata)
+  middleZone: 4, // Eyebrows to Base of Nose (Nasika & Netra)
+  lowerZone: 4, // Base of Nose to Bottom of Chin (Chibuka & Oshtha)
+  eyeLength: 2, // 2 Angulas
+  interEyebrowSpace: 2, // 2 Angulas separation for auspicious Dhanura Bhrulata
+  philtrumWidth: 0.5, // 0.5 Angula (Half digit)
+  earHeight: 4 // Matches Nose bridge height
+};
 
 export const VEDIC_PANCHA_MAHABHUTA_FACES = {
   agni: {
@@ -138,7 +149,7 @@ export const VEDIC_LALATA_PLANETARY_LINES = [
 
 export const VEDIC_EYE_TYPES = {
   padma: {
-    nameKn: "ಪದ್ಮ ನೇತ್ರ (Lotus Eyes)",
+    nameKn: "ಪದ್ಮ ನೇತ್ರ (Lotus Eyes - ಬೃಹತ್ ಸಂಹಿತಾ)",
     nameEn: "Padma Netra (Lotus Shaped)",
     meaningKn: "ಸಾತ್ವಿಕ ಗುಣ, ಕರುಣೆ, ಪವಿತ್ರ ಜೀವನ ಹಾಗೂ ಉನ್ನತ ಸಮಾಜ ಮನ್ನಣೆ.",
     meaningEn: "Sattvic nature, boundless compassion, purity and high spiritual esteem."
@@ -160,5 +171,26 @@ export const VEDIC_EYE_TYPES = {
     nameEn: "Gaja Netra (Deep Set Eyes)",
     meaningKn: "ಅಗಾಧ ನೆನಪಿನ ಶಕ್ತಿ, ಸ್ಥಿರ ಮನಸ್ಸು, ತಾಳ್ಮೆ ಹಾಗೂ ಶಾಶ್ವತ ಕೀರ್ತಿ.",
     meaningEn: "Profound photographic memory, stable intellect, patience and enduring legacy."
+  }
+};
+
+export const VEDIC_SPECIAL_LAKSHANAS = {
+  kambuGriva: {
+    nameKn: "ಕಂಬು ಗ್ರೀವ (Conch-Neck Tri-Rekha)",
+    nameEn: "Kambu Griva (3 Sacred Neck Lines)",
+    meaningKn: "ಕಂಠದಲ್ಲಿ ಮೂರು ಸ್ಪಷ್ಟ ವೃತ್ತಾಕಾರದ ರೇಖೆಗಳು (ಕಂಬು ಗ್ರೀವ) ರಾಜಲಕ್ಷಣ, ಸಾರ್ವಭೌಮ ಅಧಿಕಾರ ಹಾಗೂ ದೀರ್ಘಾಯುಷ್ಯದ ಪರಮ ಸಂಕೇತ.",
+    meaningEn: "Three graceful concentric neck lines signify royal authority, sovereign prestige, and longevity."
+  },
+  brahmaRekha: {
+    nameKn: "ಬ್ರಹ್ಮ ರೇಖೆ (Deep Symmetrical Philtrum)",
+    nameEn: "Brahma Rekha (Sub-nasal Groove)",
+    meaningKn: "ಮೂಗಿನ ಕೆಳಭಾಗದ ಆಳವಾದ ಬ್ರಹ್ಮ ರೇಖೆಯು ಅಗಾಧ ಪ್ರಾಣಶಕ್ತಿ, ವಂಶಾಭಿವೃದ್ಧಿ ಹಾಗೂ ಉನ್ನತ ಸಂತಾನ ಯೋಗವನ್ನು ನೀಡುತ್ತದೆ.",
+    meaningEn: "A well-defined, deep philtrum represents high vitality, reproductive strength, and lineage prosperity."
+  },
+  dantaMukta: {
+    nameKn: "ಮುಕ್ತಾ ದಂತ (Pearl-like Even Teeth)",
+    nameEn: "Mukta Danta (Even Pearl Teeth)",
+    meaningKn: "ಸಮವಾದ ಹಾಗೂ ಅಂತರವಿಲ್ಲದ ಹಲ್ಲುಗಳು ಸತ್ಯವಾಣಿ, ವಾಕ್ ಸಿದ್ಧಿ ಹಾಗೂ ನಿರಂತರ ಧನಲಾಭವನ್ನು ನೀಡುತ್ತವೆ.",
+    meaningEn: "Uniform, gap-free white teeth indicate truthful eloquence, digestive fire, and steady prosperity."
   }
 };
