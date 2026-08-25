@@ -20,6 +20,9 @@ import {
   type ItemNumerologyResult,
   type LuckyNameSuggestion
 } from "../features/sankhyashastra/sankhyaNumerologyUtils";
+import { LoveMarriageMatchTab } from "../components/sankhyashastra/LoveMarriageMatchTab";
+import { BoysNumerologyTab } from "../components/sankhyashastra/BoysNumerologyTab";
+import { GirlsNumerologyTab } from "../components/sankhyashastra/GirlsNumerologyTab";
 import { SankhyaShastraPdfTemplate } from "../components/sankhyashastra/SankhyaShastraPdfTemplate";
 import { sanitizeAIText } from "../utils/textFormatter";
 import { SankhyaNumerologyLoader } from "../components/sankhyashastra/SankhyaNumerologyLoader";
@@ -32,7 +35,7 @@ type ChatMessage = {
   timestamp: string;
 };
 
-type TabType = "prashna" | "name" | "item" | "mulank";
+type TabType = "prashna" | "match" | "boys" | "girls" | "name" | "item" | "mulank";
 
 export default function SankhyaShastraPage(): JSX.Element {
   const appLanguage = useAppStore((s) => s.language);
@@ -61,19 +64,19 @@ export default function SankhyaShastraPage(): JSX.Element {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
 
   // ----------------------------------------------------------------------
-  // TAB 2: LUCKY NAME NUMEROLOGY STATES
+  // TAB 5: LUCKY NAME NUMEROLOGY STATES
   // ----------------------------------------------------------------------
   const [nameInput, setNameInput] = useState<string>(session?.input?.name || "Shreeram Pandit");
   const [nameTargetNumber, setNameTargetNumber] = useState<number>(5);
 
   // ----------------------------------------------------------------------
-  // TAB 3: PHONE / VEHICLE / HOUSE CALCULATOR STATES
+  // TAB 6: PHONE / VEHICLE / HOUSE CALCULATOR STATES
   // ----------------------------------------------------------------------
   const [itemType, setItemType] = useState<"phone" | "vehicle" | "house">("phone");
   const [itemNumberInput, setItemNumberInput] = useState<string>("9972339362");
 
   // ----------------------------------------------------------------------
-  // TAB 4: MULANK & BHAGYANK STATES
+  // TAB 7: MULANK & BHAGYANK STATES
   // ----------------------------------------------------------------------
   const [birthDatePicker, setBirthDatePicker] = useState<Date | null>(() => new Date(1993, 4, 15));
 
@@ -101,48 +104,30 @@ export default function SankhyaShastraPage(): JSX.Element {
 
     try {
       const recognition = new SpeechRecognition();
-      recognition.lang =
-        selectedLang === "kn"
-          ? "kn-IN"
-          : selectedLang === "hi"
-          ? "hi-IN"
-          : selectedLang === "te"
-          ? "te-IN"
-          : selectedLang === "ta"
-          ? "ta-IN"
-          : "en-US";
+      recognition.lang = selectedLang === "kn" ? "kn-IN" : selectedLang === "hi" ? "hi-IN" : selectedLang === "te" ? "te-IN" : selectedLang === "ta" ? "ta-IN" : "en-US";
+      recognition.continuous = false;
       recognition.interimResults = false;
 
-      recognition.onstart = () => {
-        setIsListening(true);
-      };
+      recognition.onstart = () => setIsListening(true);
+      recognition.onend = () => setIsListening(false);
+      recognition.onerror = () => setIsListening(false);
 
       recognition.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
+        const transcript = event.results?.[0]?.[0]?.transcript;
         if (transcript) {
-          setQuestionInput((prev) => (prev ? `${prev} ${transcript}` : transcript));
+          setQuestionInput(transcript);
         }
-        setIsListening(false);
-      };
-
-      recognition.onerror = (err: any) => {
-        console.error("Speech recognition error:", err);
-        setIsListening(false);
-      };
-
-      recognition.onend = () => {
-        setIsListening(false);
       };
 
       recognition.start();
     } catch (err) {
-      console.error("Voice input error:", err);
+      console.error("Speech recognition error:", err);
       setIsListening(false);
     }
   };
 
-  // Submit Prashna Query
-  const handleSubmitPrashna = async (e: React.FormEvent) => {
+  // Submit Prashna
+  const handleStartPrashna = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!questionInput.trim()) {
       alert(isKn ? "ದಯವಿಟ್ಟು ನಿಮ್ಮ ಪ್ರಶ್ನೆಯನ್ನು ನಮೂದಿಸಿ." : "Please enter your question.");
@@ -279,16 +264,16 @@ export default function SankhyaShastraPage(): JSX.Element {
     { code: "ta", label: "தமிழ் (Tamil)" }
   ];
 
-  // Computations for Tab 2: Name Numerology
+  // Computations for Tab 5: Name Numerology
   const chaldean = calculateChaldeanNameNumber(nameInput);
   const pythagorean = calculatePythagoreanNameNumber(nameInput);
   const nameRulerGuidance = NUMEROLOGY_GUIDANCE_MAP[chaldean.single] || NUMEROLOGY_GUIDANCE_MAP[1]!;
   const nameSuggestions = generateLuckyNameSuggestions(nameInput, [nameTargetNumber]);
 
-  // Computations for Tab 3: Item Numerology
+  // Computations for Tab 6: Item Numerology
   const itemResult: ItemNumerologyResult = calculateItemNumerology(itemNumberInput);
 
-  // Computations for Tab 4: Mulank & Bhagyank
+  // Computations for Tab 7: Mulank & Bhagyank
   const birthDayNum = birthDatePicker ? birthDatePicker.getDate() : 15;
   const mulank = reduceToSingleDigit(birthDayNum);
   const fullYmdSum = birthDatePicker
@@ -311,8 +296,8 @@ export default function SankhyaShastraPage(): JSX.Element {
             </h1>
             <p className="mt-1 text-xs text-amber-900/80">
               {isKn
-                ? "ದೈವಿಕ ಸಂಖ್ಯಾ ಪ್ರಶ್ನೋತ್ತರ, ಅದೃಷ್ಟ ಹೆಸರು ಗಣಿತ (Lucky Name), ಫೋನ್/ವಾಹನ ಸಂಖ್ಯೆ ಪರೀಕ್ಷೆ ಹಾಗೂ ಮೂಲಾಂಕ/ಭಾಗ್ಯಾಂಕ ಪೂರ್ಣ ಜೀವನ ಮಾರ್ಗದರ್ಶನ."
-                : "Vedic Numerology Prashna Oracle, Lucky Name Generator, Phone/Vehicle Calculator, and Mulank & Bhagyank Guidance."}
+                ? "ದೈವಿಕ ಸಂಖ್ಯಾ ಪ್ರಶ್ನೋತ್ತರ, ವಿವಾಹ ಮೈತ್ರಿ, ಪುರುಷ & ಮಹಿಳಾ ಸಂಖ್ಯಾ ಭಾಗ್ಯ, ಅದೃಷ್ಟ ಹೆಸರು ಗಣಿತ ಹಾಗೂ ಮೂಲಾಂಕ/ಭಾಗ್ಯಾಂಕ ಜೀವನ ಮಾರ್ಗದರ್ಶನ."
+                : "Vedic Numerology Prashna, Love Matchmaker, Boys & Girls Power Matrix, Lucky Name Generator & Mulank Guidance."}
             </p>
           </div>
 
@@ -359,145 +344,189 @@ export default function SankhyaShastraPage(): JSX.Element {
         </div>
       </Card>
 
-      {/* 4 Interactive Navigation Tabs Bar */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 bg-amber-100/60 p-1.5 rounded-2xl border border-amber-300/80 shadow-sm">
+      {/* 7 Interactive Navigation Tabs Bar */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 bg-amber-100/60 p-1.5 rounded-2xl border border-amber-300/80 shadow-sm">
         <button
           type="button"
           onClick={() => setActiveTab("prashna")}
-          className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition ${
+          className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs font-bold transition ${
             activeTab === "prashna"
               ? "bg-gradient-to-r from-amber-700 via-amber-800 to-amber-900 text-white shadow-md"
               : "bg-white/80 text-amber-950 hover:bg-amber-100"
           }`}
         >
           <span>🔮</span>
-          <span>{isKn ? "ಸಂಖ್ಯಾ ಪ್ರಶ್ನೆ (Prashna Oracle)" : "Prashna Oracle"}</span>
+          <span>{isKn ? "ಪ್ರಶ್ನಾವಳಿ" : "Prashna Oracle"}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("match")}
+          className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs font-bold transition ${
+            activeTab === "match"
+              ? "bg-gradient-to-r from-rose-600 via-rose-700 to-pink-800 text-white shadow-md"
+              : "bg-white/80 text-rose-950 hover:bg-rose-100"
+          }`}
+        >
+          <span>💑</span>
+          <span>{isKn ? "ವಿವಾಹ ಮೈತ್ರಿ" : "Love Match"}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("boys")}
+          className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs font-bold transition ${
+            activeTab === "boys"
+              ? "bg-gradient-to-r from-blue-700 via-blue-800 to-indigo-900 text-white shadow-md"
+              : "bg-white/80 text-blue-950 hover:bg-blue-100"
+          }`}
+        >
+          <span>👦</span>
+          <span>{isKn ? "ಪುರುಷ ಭಾಗ್ಯ" : "Boys Special"}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("girls")}
+          className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs font-bold transition ${
+            activeTab === "girls"
+              ? "bg-gradient-to-r from-pink-600 via-pink-700 to-purple-800 text-white shadow-md"
+              : "bg-white/80 text-pink-950 hover:bg-pink-100"
+          }`}
+        >
+          <span>👧</span>
+          <span>{isKn ? "ಮಹಿಳಾ ಸೌಭಾಗ್ಯ" : "Girls Special"}</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab("name")}
-          className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition ${
+          className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs font-bold transition ${
             activeTab === "name"
               ? "bg-gradient-to-r from-amber-700 via-amber-800 to-amber-900 text-white shadow-md"
               : "bg-white/80 text-amber-950 hover:bg-amber-100"
           }`}
         >
           <span>🔤</span>
-          <span>{isKn ? "ಅದೃಷ್ಟ ಹೆಸರು (Lucky Name)" : "Lucky Name"}</span>
+          <span>{isKn ? "ಶುಭ ನಾಮ" : "Lucky Name"}</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab("item")}
-          className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition ${
+          className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs font-bold transition ${
             activeTab === "item"
               ? "bg-gradient-to-r from-amber-700 via-amber-800 to-amber-900 text-white shadow-md"
               : "bg-white/80 text-amber-950 hover:bg-amber-100"
           }`}
         >
           <span>📱</span>
-          <span>{isKn ? "ಫೋನ್ / ವಾಹನ / ಮನೆ" : "Phone/Vehicle/House"}</span>
+          <span>{isKn ? "ವಾಹನ/ಫೋನ್" : "Assets"}</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab("mulank")}
-          className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition ${
+          className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs font-bold transition ${
             activeTab === "mulank"
               ? "bg-gradient-to-r from-amber-700 via-amber-800 to-amber-900 text-white shadow-md"
               : "bg-white/80 text-amber-950 hover:bg-amber-100"
           }`}
         >
           <span>📅</span>
-          <span>{isKn ? "ಮೂಲಾಂಕ & ಭಾಗ್ಯಾಂಕ" : "Mulank & Bhagyank"}</span>
+          <span>{isKn ? "ಮೂಲಾಂಕ" : "Mulank"}</span>
         </button>
       </div>
 
       {/* ====================================================================== */}
-      {/* TAB 1: PRASHNA ORACLE PANEL                                            */}
+      {/* TAB 1: PRASHNA ORACLE                                                  */}
       {/* ====================================================================== */}
       {activeTab === "prashna" && (
         <>
-          <Card className="border border-amber-300/80 bg-white p-5 shadow-sm">
-            <form onSubmit={handleSubmitPrashna} className="space-y-4">
+          <Card className="border border-amber-300/80 bg-white p-5 shadow-sm space-y-4">
+            <form onSubmit={handleStartPrashna} className="space-y-4">
               <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-xs font-bold uppercase tracking-wider text-amber-950">
-                    ❓ {isKn ? "ನಿಮ್ಮ ಪ್ರಶ್ನೆಯನ್ನು ನಮೂದಿಸಿ (Ask Your Question)" : "Ask Your Prashna Question"}
-                  </label>
-
-                  {/* Mic / Speech Input Button */}
+                <label className="block text-xs font-bold uppercase tracking-wider text-amber-950 mb-1.5">
+                  ❓ {isKn ? "ನಿಮ್ಮ ಮನಸ್ಸಿನ ಪ್ರಶ್ನೆ (Your Question)" : "Your Question"}
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={questionInput}
+                    onChange={(e) => setQuestionInput(e.target.value)}
+                    placeholder={
+                      isKn
+                        ? "ಉದಾ: ನನಗೆ ಈ ವರ್ಷ ಉದ್ಯೋಗದಲ್ಲಿ ಬಡ್ತಿ ಸಿಗುವುದೇ? / ಹೊಸ ವ್ಯಾಪಾರ ಆರಂಭಿಸಬಹುದೇ?"
+                        : "e.g. Will I get a job promotion this year? / Is this a good time to start business?"
+                    }
+                    className="w-full rounded-xl border border-amber-300 bg-amber-50/40 px-4 py-3 pr-12 text-sm font-semibold text-amber-950 shadow-inner focus:border-amber-600 focus:outline-none"
+                  />
                   <button
                     type="button"
                     onClick={handleVoiceInput}
-                    className={`flex items-center gap-1.5 rounded-lg px-3 py-1 text-xs font-bold transition ${
+                    title={isKn ? "ಧ್ವನಿ ಮೂಲಕ ಪ್ರಶ್ನೆ ಕೇಳಿ" : "Voice Input (Speak)"}
+                    className={`absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-2 text-sm transition ${
                       isListening
-                        ? "bg-rose-600 text-white animate-pulse"
+                        ? "bg-rose-500 text-white animate-pulse"
                         : "bg-amber-100 text-amber-900 hover:bg-amber-200"
                     }`}
                   >
-                    <span>🎙️</span>
-                    <span>{isListening ? (isKn ? "ಆಲಿಸಲಾಗುತ್ತಿದೆ..." : "Listening...") : (isKn ? "ಧ್ವನಿ ಮೂಲಕ ಹೇಳಿ (Voice Input)" : "Voice Mic")}</span>
+                    <span>🎤</span>
                   </button>
                 </div>
-
-                <textarea
-                  rows={3}
-                  value={questionInput}
-                  onChange={(e) => setQuestionInput(e.target.value)}
-                  placeholder={
-                    isKn
-                      ? "ಉದಾ: ನನಗೆ ಈ ತಿಂಗಳು ಹೊಸ ಮನೆ ಆಸ್ತಿ ಖರೀದಿ ಶುಭವೇ? ಅಥವಾ ಉದ್ಯೋಗದಲ್ಲಿ ಬಡ್ತಿ ಸಿಗುತ್ತದೆಯೇ?"
-                      : "e.g. Will I get promotion in job next month? Or is it auspicious to buy property now?"
-                  }
-                  className="w-full rounded-xl border border-amber-300 bg-amber-50/40 p-3 text-sm font-semibold text-amber-950 shadow-inner focus:border-amber-600 focus:outline-none"
-                />
               </div>
 
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-amber-950 mb-1.5">
-                    🔢 {isKn ? "ನಿಮ್ಮ ಮನಸ್ಸಿಗೆ ತೋಚಿದ ಸಂಖ್ಯೆಯನ್ನು ನೀಡಿ (Enter Number e.g. 1 - 108)" : "Enter Random Chosen Number (e.g. 1 - 108)"}
+                    🎲 {isKn ? "ಮನಸ್ಸಿನಲ್ಲಿ ಹೊಳೆದ ಸಂಖ್ಯೆ (Your Intuitive Number 1-108)" : "Your Intuitive Number (1-108)"}
                   </label>
                   <input
                     type="number"
                     min={1}
-                    max={999}
+                    max={108}
                     value={userNumberInput}
                     onChange={(e) => setUserNumberInput(e.target.value)}
-                    className="w-full rounded-xl border border-amber-300 bg-amber-50/40 px-3.5 py-2.5 text-sm font-bold text-amber-950 shadow-inner focus:border-amber-600 focus:outline-none"
+                    className="w-full rounded-xl border border-amber-300 bg-amber-50/40 px-4 py-2.5 text-sm font-bold text-amber-950 shadow-inner focus:border-amber-600 focus:outline-none"
                   />
                 </div>
 
                 <div className="flex items-end">
                   <button
                     type="submit"
-                    disabled={isProcessing}
-                    className="w-full rounded-xl bg-gradient-to-r from-amber-700 via-amber-800 to-amber-900 py-3 text-sm font-bold text-amber-50 shadow-md transition hover:from-amber-800 hover:to-amber-950 disabled:opacity-50 flex items-center justify-center gap-2"
+                    disabled={isProcessing || !questionInput.trim()}
+                    className="w-full rounded-xl bg-gradient-to-r from-amber-700 via-amber-800 to-amber-900 py-3 text-xs font-bold text-amber-50 shadow-md transition hover:from-amber-800 hover:to-amber-950 disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     <span>🔮</span>
-                    <span>{isProcessing ? (isKn ? "⌛ ಸಂಖ್ಯಾ ಗಣಿತ ಪ್ರಶ್ನೆ ಪರೀಕ್ಷಿಸಲಾಗುತ್ತಿದೆ..." : "Analyzing Prashna...") : (isKn ? "ಸಂಖ್ಯಾ ಶಾಸ್ತ್ರ ಪ್ರಶ್ನೆ ಪರಿಶೀಲಿಸಿ" : "Analyze Prashna Question")}</span>
+                    <span>
+                      {isProcessing
+                        ? isKn
+                          ? "⌛ ಪ್ರಶ್ನೆ ವಿಶ್ಲೇಷಿಸಲಾಗುತ್ತಿದೆ..."
+                          : "Analyzing Prashna..."
+                        : isKn
+                        ? "ದೈವಿಕ ಸಂಖ್ಯಾ ಪ್ರಶ್ನಾವಳಿ ಫಲ ಪಡೆಯಿರಿ"
+                        : "Ask Sankhya Shastra Oracle"}
+                    </span>
                   </button>
                 </div>
               </div>
             </form>
           </Card>
 
-          {/* Full-Screen Centered Animated Numerology Modal Overlay */}
+          {/* Animated Loader Overlay during API Processing */}
           {isProcessing && <SankhyaNumerologyLoader isKn={isKn} />}
 
-          {/* AI Generative Chatbox Timeline & Priest Reading View */}
+          {/* AI Generative Chatbox Timeline & Priest Prashna Reading */}
           {messages.length > 0 && (
             <Card className="border border-amber-300/80 bg-gradient-to-b from-amber-50/30 to-white p-5 shadow-md space-y-6">
               <div className="flex items-center justify-between border-b border-amber-200/80 pb-3">
                 <h3 className="font-serif text-base font-bold text-amber-950 flex items-center gap-2">
                   <span>💬</span>
-                  <span>{isKn ? "ಗೋಕರ್ಣ ಸಂಖ್ಯಾ ಶಾಸ್ತ್ರ ಸಂವಾದ ಹಾಗೂ ಪರಿಹಾರ" : "Gokarna Sankhya Shastra Guidance & Chat"}</span>
+                  <span>{isKn ? "ಗೋಕರ್ಣ ಸಂಖ್ಯಾ ಶಾಸ್ತ್ರ ಸಂವಾದ & ಪ್ರಶ್ನಾ ಫಲ" : "Gokarna Numerology Guidance & Chat"}</span>
                 </h3>
                 {activeResult && (
                   <div className="rounded-full bg-amber-100 border border-amber-300 px-3 py-1 text-xs font-bold text-amber-900">
-                    {activeResult.prashnaLagnaName[selectedLang] || activeResult.prashnaLagnaName.en} (ಮನೆ {activeResult.prashnaLagnaHouse}) · ಸಂಖ್ಯೆ: {activeResult.userNumber}
+                    ಸಂಖ್ಯಾ ಫಲ: {activeResult.userNumber} ({activeResult.rootNumber}) · {activeResult.rootRulerName[selectedLang] || activeResult.rootRulerName.kn}
                   </div>
                 )}
               </div>
@@ -521,16 +550,76 @@ export default function SankhyaShastraPage(): JSX.Element {
                           : "bg-amber-50/90 border border-amber-300 text-amber-950 rounded-bl-none font-medium whitespace-pre-wrap"
                       }`}
                     >
-                      {msg.result && (
-                        <div className="mb-3 rounded-xl border border-amber-300 bg-amber-100/80 p-2.5 text-xs text-amber-950 font-bold flex flex-wrap gap-3">
-                          <div>🔢 {isKn ? "ಆಯ್ಕೆ ಸಂಖ್ಯೆ:" : "Number:"} {msg.result.userNumber}</div>
-                          <div>🌱 {isKn ? "ಮೂಲ ಸಂಖ್ಯೆ (Root):" : "Root:"} {msg.result.rootNumber} ({msg.result.rootRulerName[selectedLang] || msg.result.rootRulerName.en})</div>
-                          <div>🏛️ {isKn ? "ಪ್ರಶ್ನಾ ಲಗ್ನ:" : "Lagna:"} {msg.result.prashnaLagnaName[selectedLang] || msg.result.prashnaLagnaName.en}</div>
-                          <div>⚡ {isKn ? "ಪ್ರಶ್ನಾ ಬಲ:" : "Score:"} {msg.result.prashnaBalaScore}%</div>
-                        </div>
-                      )}
+                      {msg.result ? (
+                        <div className="space-y-4">
+                          {/* Prashna Verdict Header */}
+                          <div className="rounded-xl border border-amber-300 bg-white p-3.5 shadow-sm flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                              <div className="text-xs font-bold text-amber-900">
+                                {isKn ? "ಪ್ರಶ್ನಾ ಸಂಖ್ಯೆ:" : "Prashna Number:"}{" "}
+                                <span className="text-base text-amber-950 font-black">{msg.result.userNumber}</span>{" "}
+                                (ಮೂಲಾಂಕ: <span className="font-bold text-emerald-800">{msg.result.rootNumber}</span>)
+                              </div>
+                              <div className="text-xs text-amber-800 font-semibold mt-0.5">
+                                {isKn ? "ಅಧಿಪತಿ ಗ್ರಹ:" : "Ruling Planet:"}{" "}
+                                <span className="font-bold text-amber-950">
+                                  {msg.result.rootRulerName[selectedLang] || msg.result.rootRulerName.kn}
+                                </span>{" "}
+                                · {isKn ? "ದೇವತೆ:" : "Deity:"}{" "}
+                                <span className="font-bold text-amber-950">
+                                  {msg.result.rootDeity[selectedLang] || msg.result.rootDeity.kn}
+                                </span>
+                              </div>
+                            </div>
 
-                      {sanitizeAIText(msg.text)}
+                            <div className="text-xs font-extrabold px-3 py-1.5 rounded-xl bg-amber-100 text-amber-900 border border-amber-300 shadow-sm">
+                              {msg.result.verdictLabel[selectedLang] || msg.result.verdictLabel.kn} (ಬಲ: {msg.result.prashnaBalaScore}%)
+                            </div>
+                          </div>
+
+                          {/* Auspicious Alignment Matrix */}
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                            <div className="rounded-lg bg-amber-50/80 p-2 border border-amber-200">
+                              <span className="font-bold text-amber-900 block">{isKn ? "ಪ್ರಶ್ನಾ ಲಗ್ನ:" : "Prashna Lagna:"}</span>
+                              <span className="text-amber-950 font-semibold">{msg.result.prashnaLagnaName[selectedLang] || msg.result.prashnaLagnaName.kn}</span>
+                            </div>
+                            <div className="rounded-lg bg-amber-50/80 p-2 border border-amber-200">
+                              <span className="font-bold text-amber-900 block">{isKn ? "ಕಾರ್ಯ ಸ್ಥಾನ:" : "Karya House:"}</span>
+                              <span className="text-amber-950 font-semibold">{msg.result.primaryKaryaLabel[selectedLang] || msg.result.primaryKaryaLabel.kn}</span>
+                            </div>
+                            <div className="rounded-lg bg-amber-50/80 p-2 border border-amber-200">
+                              <span className="font-bold text-amber-900 block">{isKn ? "ಲಗ್ನ ಗತಿ:" : "Sign Mobility:"}</span>
+                              <span className="text-amber-950 font-semibold">{msg.result.signMobilityLabel[selectedLang] || msg.result.signMobilityLabel.kn}</span>
+                            </div>
+                            <div className="rounded-lg bg-amber-50/80 p-2 border border-amber-200">
+                              <span className="font-bold text-amber-900 block">{isKn ? "ಫಲ ಕಾಲಾವಧಿ:" : "Time Horizon:"}</span>
+                              <span className="text-amber-950 font-semibold">{msg.result.timeHorizonLabel[selectedLang] || msg.result.timeHorizonLabel.kn}</span>
+                            </div>
+                          </div>
+
+                          {/* Detailed AI Prediction */}
+                          <div className="rounded-xl border border-amber-300 bg-white p-3.5 shadow-sm space-y-2">
+                            <div className="text-xs font-bold text-amber-950 border-b border-amber-200 pb-1">
+                              📜 {isKn ? "ದೈವಿಕ ಪ್ರಶ್ನಾ ಫಲ (Detailed Vedic Numerology Guidance):" : "Detailed Vedic Numerology Guidance:"}
+                            </div>
+                            <div className="text-xs text-amber-950 leading-relaxed font-medium">
+                              {sanitizeAIText(msg.text)}
+                            </div>
+                          </div>
+
+                          {/* Sacred Remedy */}
+                          <div className="rounded-xl border border-amber-300 bg-amber-100/60 p-3.5 shadow-sm space-y-1">
+                            <div className="text-xs font-bold text-amber-950">
+                              🪔 {isKn ? "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ದೈವಿಕ ಪರಿಹಾರ (Sacred Remedy):" : "Sacred Gokarna Mahabaleshwara Remedy:"}
+                            </div>
+                            <p className="text-xs text-amber-900 font-semibold leading-relaxed">
+                              {msg.result.remedyRecommendation[selectedLang] || msg.result.remedyRecommendation.kn}
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        sanitizeAIText(msg.text)
+                      )}
                     </div>
                   </div>
                 ))}
@@ -543,7 +632,7 @@ export default function SankhyaShastraPage(): JSX.Element {
                   type="text"
                   value={followUpInput}
                   onChange={(e) => setFollowUpInput(e.target.value)}
-                  placeholder={isKn ? "ಇನ್ನಷ್ಟು ವಿವರಣೆ ಅಥವಾ ಪ್ರಶ್ನೆ ಕೇಳಿ..." : "Ask follow-up clarification on this reading..."}
+                  placeholder={isKn ? "ಸಂಖ್ಯಾ ಫಲದ ಬಗ್ಗೆ ಇನ್ನಷ್ಟು ವಿವರಣೆ ಕೇಳಿ..." : "Ask follow-up clarification on this numerology reading..."}
                   className="flex-1 rounded-xl border border-amber-300 bg-white px-3.5 py-2.5 text-xs font-semibold text-amber-950 shadow-sm focus:border-amber-600 focus:outline-none"
                 />
                 <button
@@ -554,353 +643,313 @@ export default function SankhyaShastraPage(): JSX.Element {
                   {isKn ? "ಕೇಳಿ" : "Ask"}
                 </button>
               </form>
-
-              {activeResult && (
-                <div className="flex justify-end pt-3 border-t border-amber-200">
-                  <button
-                    type="button"
-                    onClick={handleDownloadPdf}
-                    disabled={isGeneratingPdf}
-                    className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-700 via-amber-800 to-amber-900 px-5 py-2.5 text-xs font-bold text-amber-50 shadow-md transition hover:from-amber-800 hover:to-amber-950 disabled:opacity-50"
-                  >
-                    <span>📄</span>
-                    <span>{isGeneratingPdf ? (isKn ? "⌛ PDF ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : "Generating PDF...") : (isKn ? "ಪ್ರಶ್ನಾ ಫಲ ಹಾಗೂ ಪ್ರಶ್ನೋತ್ತರ PDF ಡೌನ್‌ಲೋಡ್" : "Download Prashna Report & Q&A PDF")}</span>
-                  </button>
-                </div>
-              )}
             </Card>
           )}
         </>
       )}
 
       {/* ====================================================================== */}
-      {/* TAB 2: LUCKY NAME NUMEROLOGY PANEL                                     */}
+      {/* TAB 2: LOVE & MARRIAGE NUMEROLOGY MATCHMAKER                            */}
+      {/* ====================================================================== */}
+      {activeTab === "match" && (
+        <LoveMarriageMatchTab lang={selectedLang} defaultBoyName="Srikanth Sharma" defaultGirlName="Lakshmi Hegde" />
+      )}
+
+      {/* ====================================================================== */}
+      {/* TAB 3: BOYS' SPECIAL POWER & WEALTH MATRIX                             */}
+      {/* ====================================================================== */}
+      {activeTab === "boys" && (
+        <BoysNumerologyTab lang={selectedLang} defaultName={session?.input?.name || "Srikanth Sharma"} defaultDob="1994-06-15" />
+      )}
+
+      {/* ====================================================================== */}
+      {/* TAB 4: GIRLS' SPECIAL SAUBHAGYA & NAME CHANGE MATRIX                   */}
+      {/* ====================================================================== */}
+      {activeTab === "girls" && (
+        <GirlsNumerologyTab lang={selectedLang} defaultName="Lakshmi Hegde" defaultDob="1996-09-24" />
+      )}
+
+      {/* ====================================================================== */}
+      {/* TAB 5: LUCKY NAME NUMEROLOGY & SPELLING SUGGESTIONS                    */}
       {/* ====================================================================== */}
       {activeTab === "name" && (
-        <Card className="border border-amber-300/80 bg-white p-5 shadow-sm space-y-6">
-          <div className="border-b border-amber-200 pb-3">
-            <h3 className="font-serif text-base font-bold text-amber-950 flex items-center gap-2">
-              <span>🔤</span>
-              <span>{isKn ? "ನಾಮ ಸಂಖ್ಯೆ & ಅದೃಷ್ಟ ಹೆಸರು ವಿಶ್ಲೇಷಕ (Lucky Name Numerology)" : "Name Numerology & Lucky Name Generator"}</span>
-            </h3>
-            <p className="text-xs text-amber-900/80 mt-1">
-              {isKn
-                ? "ಪ್ರಾಚೀನ ಚಾಲ್ಡಿಯನ್ ಹಾಗೂ ಪೈಥಾಗೋರಿಯನ್ ಪದ್ಧತಿಯ ಪ್ರಕಾರ ನಿಮ್ಮ ಹೆಸರು ಅಥವಾ ವ್ಯವಹಾರದ ಹೆಸರಿನ ಸಂಖ್ಯಾ ಬಲ ಲೆಕ್ಕಹಾಕಿ, ಅದೃಷ್ಟ ಹೆಸರು ಬದಲಾವಣೆ ಪಡೆಯಿರಿ."
-                : "Calculate Chaldean & Pythagorean name numbers and generate auspicious spelling adjustments for success."}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-amber-950 mb-1.5">
-                👤 {isKn ? "ಹೆಸರು ನಮೂದಿಸಿ (Enter Full Name or Business Name):" : "Full Name or Business Name:"}
-              </label>
-              <input
-                type="text"
-                value={nameInput}
-                onChange={(e) => setNameInput(e.target.value)}
-                placeholder="e.g. Shreeram Pandit"
-                className="w-full rounded-xl border border-amber-300 bg-amber-50/40 px-3.5 py-2.5 text-sm font-bold text-amber-950 shadow-inner focus:border-amber-600 focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-amber-950 mb-1.5">
-                🎯 {isKn ? "ಗುರಿ ಅದೃಷ್ಟ ಸಂಖ್ಯೆ ಆಯ್ಕೆ (Target Lucky Number):" : "Target Lucky Planet Number:"}
-              </label>
-              <select
-                value={nameTargetNumber}
-                onChange={(e) => setNameTargetNumber(Number(e.target.value))}
-                className="w-full rounded-xl border border-amber-300 bg-amber-50/40 px-3.5 py-2.5 text-sm font-bold text-amber-950 shadow-inner focus:border-amber-600 focus:outline-none"
-              >
-                <option value={5}>೫ (5) - ಬುಧ (Mercury - Business, Intelligence & Fame)</option>
-                <option value={6}>೬ (6) - ಶುಕ್ರ (Venus - Wealth, Luxury & Harmony)</option>
-                <option value={1}>೧ (1) - ಸೂರ್ಯ (Sun - Leadership, Power & Dignity)</option>
-                <option value={3}>೩ (3) - ಗುರು (Jupiter - Wisdom, Knowledge & Respect)</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Name Calculation Display Card */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-            {/* Chaldean Card */}
-            <div className="rounded-2xl border-2 border-amber-400 bg-gradient-to-br from-amber-50 to-orange-50 p-4 shadow-sm space-y-2">
-              <div className="flex items-center justify-between border-b border-amber-300/80 pb-2">
-                <span className="font-bold text-xs text-amber-950">🕉️ {isKn ? "ಚಾಲ್ಡಿಯನ್ ಪದ್ಧತಿ (Chaldean Method)" : "Chaldean Method"}</span>
-                <span className="text-xs font-extrabold bg-amber-700 text-white px-2.5 py-0.5 rounded-full">Primary Vedic</span>
+        <div className="space-y-6">
+          <Card className="border border-amber-300/80 bg-white p-5 shadow-sm space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-amber-950 mb-1.5">
+                  🔤 {isKn ? "ನಿಮ್ಮ ಇಂಗ್ಲಿಷ್ ಹೆಸರು (Enter English Name)" : "Enter English Name"}
+                </label>
+                <input
+                  type="text"
+                  value={nameInput}
+                  onChange={(e) => setNameInput(e.target.value)}
+                  placeholder="e.g. Shreeram Pandit"
+                  className="w-full rounded-xl border border-amber-300 bg-amber-50/40 px-4 py-2.5 text-sm font-bold text-amber-950 shadow-inner focus:border-amber-600 focus:outline-none"
+                />
               </div>
-              <div className="flex items-baseline justify-between pt-1">
-                <div className="text-xs text-amber-900 font-bold">{isKn ? "ಒಟ್ಟು ಮೊತ್ತ:" : "Compound Total:"} <span className="text-amber-950 font-extrabold text-base">{chaldean.compound}</span></div>
-                <div className="text-xs text-amber-900 font-bold">{isKn ? "ಮೂಲ ಸಂಖ್ಯೆ:" : "Single Root:"} <span className="text-amber-900 font-black text-xl">{chaldean.single}</span></div>
-              </div>
-              <div className="text-xs text-amber-950 font-semibold border-t border-amber-200/80 pt-2 flex items-center justify-between">
-                <span>🪐 {isKn ? "ಅಧಿಪತಿ ಗ್ರಹ:" : "Ruling Planet:"} <strong className="text-amber-900">{isKn ? nameRulerGuidance.rulerKn : nameRulerGuidance.rulerEn}</strong></span>
-                <span>🪔 {isKn ? "ದೇವತೆ:" : "Deity:"} <strong>{isKn ? nameRulerGuidance.deityKn : nameRulerGuidance.deityEn}</strong></span>
-              </div>
-            </div>
 
-            {/* Pythagorean Card */}
-            <div className="rounded-2xl border border-amber-300 bg-white p-4 shadow-sm space-y-2">
-              <div className="flex items-center justify-between border-b border-amber-200 pb-2">
-                <span className="font-bold text-xs text-amber-950">📐 {isKn ? "ಪೈಥಾಗೋರಿಯನ್ ಪದ್ಧತಿ (Pythagorean Method)" : "Pythagorean Method"}</span>
-                <span className="text-xs font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full">Western</span>
-              </div>
-              <div className="flex items-baseline justify-between pt-1">
-                <div className="text-xs text-amber-900 font-bold">{isKn ? "ಒಟ್ಟು ಮೊತ್ತ:" : "Compound Total:"} <span className="text-amber-950 font-extrabold text-base">{pythagorean.compound}</span></div>
-                <div className="text-xs text-amber-900 font-bold">{isKn ? "ಮೂಲ ಸಂಖ್ಯೆ:" : "Single Root:"} <span className="text-amber-900 font-black text-xl">{pythagorean.single}</span></div>
-              </div>
-              <div className="text-xs text-amber-950 font-semibold border-t border-amber-200 pt-2">
-                <span>✨ {isKn ? "ವ್ಯಕ್ತಿತ್ವ ಸ್ಪಂದನ:" : "Vibration:"} {isKn ? nameRulerGuidance.traitsKn : nameRulerGuidance.traitsEn}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Lucky Spelling Suggestions List */}
-          <div className="space-y-3 pt-2">
-            <h4 className="font-serif text-sm font-bold text-amber-950 flex items-center gap-2 border-b border-amber-200 pb-2">
-              <span>🌟</span>
-              <span>{isKn ? "ಅದೃಷ್ಟ ಹೆಸರು ಬದಲಾವಣೆ ಸಲಹೆಗಳು (Auspicious Name Spelling Variations)" : "Auspicious Name Spelling Suggestions"}</span>
-            </h4>
-
-            <div className="grid grid-cols-1 gap-2.5">
-              {nameSuggestions.map((sug, idx) => (
-                <div
-                  key={idx}
-                  className={`rounded-xl border p-3 flex items-center justify-between transition ${
-                    sug.isHarmonious
-                      ? "border-emerald-400 bg-emerald-50/70 shadow-sm"
-                      : "border-amber-200 bg-amber-50/40"
-                  }`}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-amber-950 mb-1.5">
+                  🎯 {isKn ? "ಗುರಿ ಅದೃಷ್ಟ ಸಂಖ್ಯೆ (Target Lucky Number)" : "Target Lucky Number"}
+                </label>
+                <select
+                  value={nameTargetNumber}
+                  onChange={(e) => setNameTargetNumber(Number(e.target.value))}
+                  className="w-full rounded-xl border border-amber-300 bg-amber-50/40 px-4 py-2.5 text-sm font-bold text-amber-950 shadow-inner focus:border-amber-600 focus:outline-none"
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="text-lg">✨</span>
+                  <option value={5}>5 - ಬುಧ (ವ್ಯಾಪಾರ, ಬುದ್ಧಿಶಕ್ತಿ & ಯಶಸ್ಸು - Highly Recommended)</option>
+                  <option value={6}>6 - ಶುಕ್ರ (ಸೌಭಾಗ್ಯ, ಸಂಪತ್ತು & ಐಷಾರಾಮ)</option>
+                  <option value={1}>1 - ಸೂರ್ಯ (ನಾಯಕತ್ವ, ಕೀರ್ತಿ & ಅಧಿಕಾರ)</option>
+                  <option value={3}>3 - ಗುರು (ಜ್ಞಾನ, ಧರ್ಮ & ಆಧ್ಯಾತ್ಮಿಕತೆ)</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Chaldean & Pythagorean Comparison Display */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+              <div className="rounded-2xl border border-amber-300 bg-amber-50/70 p-4 space-y-1">
+                <div className="text-[11px] font-bold uppercase tracking-wider text-amber-800">
+                  🏛️ ಶಾಲ್ಡಿಯನ್ ಸಂಖ್ಯಾಶಾಸ್ತ್ರ (Chaldean Numerology)
+                </div>
+                <div className="text-2xl font-black text-amber-950">
+                  {chaldean.compound}{" "}
+                  <span className="text-xs font-bold text-amber-800">
+                    (ಏಕಾಂಕ: {chaldean.single} - {nameRulerGuidance.rulerKn})
+                  </span>
+                </div>
+                <p className="text-xs text-amber-900/90 font-medium pt-1 leading-relaxed">
+                  {nameRulerGuidance.traitsKn}
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-amber-300 bg-amber-50/70 p-4 space-y-1">
+                <div className="text-[11px] font-bold uppercase tracking-wider text-amber-800">
+                  📐 ಪೈಥಾಗೋರಿಯನ್ ಸಂಖ್ಯಾಶಾಸ್ತ್ರ (Pythagorean)
+                </div>
+                <div className="text-2xl font-black text-amber-950">
+                  {pythagorean.compound}{" "}
+                  <span className="text-xs font-bold text-amber-800">
+                    (ಏಕಾಂಕ: {pythagorean.single})
+                  </span>
+                </div>
+                <p className="text-xs text-amber-900/90 font-medium pt-1 leading-relaxed">
+                  {isKn ? "ಪಾಶ್ಚಾತ್ಯ ಪದ್ಧತಿಯ ಪ್ರಕಾರ ಪೂರ್ಣ ಹೆಸರಿನ ಸಂಖ್ಯಾ ಶಕ್ತಿ." : "Western Pythagorean total vibration sum."}
+                </p>
+              </div>
+            </div>
+
+            {/* Lucky Spelling Variations Generator */}
+            <div className="rounded-2xl border border-emerald-300 bg-emerald-50/50 p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="font-serif text-xs font-bold uppercase tracking-wider text-emerald-950 flex items-center gap-1.5">
+                  <span>✨</span>
+                  <span>{isKn ? `ಅದೃಷ್ಟ ಸಂಖ್ಯೆ ${nameTargetNumber} ಕ್ಕೆ ತಕ್ಕಂತೆ ಹೆಸರಿನ ಪರಿಷ್ಕರಣೆ ಸಲಹೆಗಳು:` : `Suggested Lucky Spelling Variations for ${nameTargetNumber}:`}</span>
+                </h4>
+                <span className="text-[10px] bg-emerald-100 text-emerald-900 font-bold px-2 py-0.5 rounded-full border border-emerald-300">
+                  Vedic Spelling Tuning
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {nameSuggestions.map((sug, idx) => (
+                  <div
+                    key={idx}
+                    className="rounded-xl border border-emerald-200 bg-white p-3 shadow-sm flex items-center justify-between"
+                  >
                     <div>
-                      <div className="text-sm font-bold text-amber-950 capitalize">{sug.suggestedName}</div>
-                      <div className="text-[11px] text-amber-900/80 font-medium">
-                        {isKn ? `ಬದಲಾವಣೆ: ${sug.addedLetter} · ಒಟ್ಟು ಸಂಖ್ಯಾ ಬಲ: ${sug.chaldeanNumber}` : `Modification: ${sug.addedLetter} · Compound: ${sug.chaldeanNumber}`}
+                      <div className="text-sm font-bold text-emerald-950">{sug.suggestedName}</div>
+                      <div className="text-[11px] text-slate-600">
+                        {sug.addedLetter} · ಶಾಲ್ಡಿಯನ್ ಒಟ್ಟು: <span className="font-bold text-emerald-800">{sug.chaldeanNumber}</span>
                       </div>
                     </div>
-                  </div>
-
-                  <div className="text-right">
-                    <div className="text-xs font-extrabold text-emerald-900">{isKn ? sug.rulerKn : sug.rulerEn}</div>
-                    {sug.isHarmonious && (
-                      <span className="inline-block text-[10px] bg-emerald-600 text-white font-extrabold px-2 py-0.5 rounded-full mt-0.5">
-                        {isKn ? "🟢 ೧೦೦% ಅತ್ಯುತ್ತಮ" : "🟢 100% Lucky"}
+                    {sug.isHarmonious ? (
+                      <span className="text-xs font-bold text-emerald-700 bg-emerald-100 px-2 py-1 rounded-lg">
+                        🌟 ೧೦೦% ಶುಭ
+                      </span>
+                    ) : (
+                      <span className="text-xs font-semibold text-slate-600 bg-slate-100 px-2 py-1 rounded-lg">
+                        ಸಮತೋಲಿತ
                       </span>
                     )}
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        </Card>
+          </Card>
+        </div>
       )}
 
       {/* ====================================================================== */}
-      {/* TAB 3: PHONE / VEHICLE / HOUSE CALCULATOR PANEL                       */}
+      {/* TAB 6: PHONE / VEHICLE / HOUSE CALCULATOR                               */}
       {/* ====================================================================== */}
       {activeTab === "item" && (
-        <Card className="border border-amber-300/80 bg-white p-5 shadow-sm space-y-6">
-          <div className="border-b border-amber-200 pb-3">
-            <h3 className="font-serif text-base font-bold text-amber-950 flex items-center gap-2">
-              <span>📱</span>
-              <span>{isKn ? "ಅದೃಷ್ಟ ಫೋನ್, ವಾಹನ ಹಾಗೂ ಮನೆ ಸಂಖ್ಯೆ ಪರಿಶೀಲಕ" : "Lucky Phone, Vehicle & House Number Calculator"}</span>
-            </h3>
-            <p className="text-xs text-amber-900/80 mt-1">
-              {isKn
-                ? "ನಿಮ್ಮ ಮೊಬೈಲ್ ಫೋನ್ ಸಂಖ್ಯೆ, ವಾಹನ ಸಂಖ್ಯೆ ಅಥವಾ ಮನೆ ಸಂಖ್ಯೆಯ ಸಂಖ್ಯಾ ಬಲ ಪರಿಶೀಲಿಸಿ, ಅದೃಷ್ಟ ವೃದ್ಧಿಸುವ ಪರಿಹಾರ ಪಡೆಯಿರಿ."
-                : "Check numerology compatibility for your phone number, vehicle plate, or house number."}
-            </p>
-          </div>
+        <div className="space-y-6">
+          <Card className="border border-amber-300/80 bg-white p-5 shadow-sm space-y-5">
+            <div className="flex flex-wrap gap-3 border-b border-amber-200 pb-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setItemType("phone");
+                  setItemNumberInput("9972339362");
+                }}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
+                  itemType === "phone"
+                    ? "bg-amber-800 text-white shadow-sm"
+                    : "bg-amber-50 text-amber-900 hover:bg-amber-100"
+                }`}
+              >
+                📱 {isKn ? "ಮೊಬೈಲ್ ಸಂಖ್ಯೆ (Phone Number)" : "Phone Number"}
+              </button>
 
-          {/* Item Type Toggle Buttons */}
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={() => { setItemType("phone"); setItemNumberInput("9972339362"); }}
-              className={`flex-1 py-2 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 ${
-                itemType === "phone"
-                  ? "border-amber-600 bg-amber-100 text-amber-950 shadow-sm"
-                  : "border-amber-200 bg-amber-50/50 text-amber-900"
-              }`}
-            >
-              <span>📱</span>
-              <span>{isKn ? "ಫೋನ್ ಸಂಖ್ಯೆ (Phone)" : "Phone Number"}</span>
-            </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setItemType("vehicle");
+                  setItemNumberInput("KA30M1008");
+                }}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
+                  itemType === "vehicle"
+                    ? "bg-amber-800 text-white shadow-sm"
+                    : "bg-amber-50 text-amber-900 hover:bg-amber-100"
+                }`}
+              >
+                🚗 {isKn ? "ವಾಹನ ನೋಂದಣಿ ಸಂಖ್ಯೆ (Vehicle Number)" : "Vehicle Number"}
+              </button>
 
-            <button
-              type="button"
-              onClick={() => { setItemType("vehicle"); setItemNumberInput("KA01AB1234"); }}
-              className={`flex-1 py-2 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 ${
-                itemType === "vehicle"
-                  ? "border-amber-600 bg-amber-100 text-amber-950 shadow-sm"
-                  : "border-amber-200 bg-amber-50/50 text-amber-900"
-              }`}
-            >
-              <span>🚗</span>
-              <span>{isKn ? "ವಾಹನ ನಂಬರ್ (Vehicle)" : "Vehicle Plate"}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => { setItemType("house"); setItemNumberInput("304"); }}
-              className={`flex-1 py-2 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 ${
-                itemType === "house"
-                  ? "border-amber-600 bg-amber-100 text-amber-950 shadow-sm"
-                  : "border-amber-200 bg-amber-50/50 text-amber-900"
-              }`}
-            >
-              <span>🏠</span>
-              <span>{isKn ? "ಮನೆ / ಫ್ಲಾಟ್ (House)" : "House / Flat"}</span>
-            </button>
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-amber-950 mb-1.5">
-              🔢 {isKn ? `${itemType === "phone" ? "ಮೊಬೈಲ್ ಸಂಖ್ಯೆ" : itemType === "vehicle" ? "ವಾಹನ ಸಂಖ್ಯೆ" : "ಮನೆ/ಫ್ಲಾಟ್ ಸಂಖ್ಯೆ"} ನಮೂದಿಸಿ:` : `Enter ${itemType.toUpperCase()} Number:`}
-            </label>
-            <input
-              type="text"
-              value={itemNumberInput}
-              onChange={(e) => setItemNumberInput(e.target.value)}
-              placeholder="e.g. 9972339362"
-              className="w-full rounded-xl border border-amber-300 bg-amber-50/40 px-3.5 py-2.5 text-sm font-bold text-amber-950 shadow-inner focus:border-amber-600 focus:outline-none"
-            />
-          </div>
-
-          {/* Item Numerology Result Output Card */}
-          <div className="rounded-2xl border-2 border-amber-400 bg-gradient-to-br from-amber-50 via-white to-orange-50 p-5 shadow-sm space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-200 pb-3">
-              <div>
-                <div className="text-xs font-bold text-amber-900 uppercase tracking-wider">{isKn ? "ಅಂಕಿಗಳ ಒಟ್ಟು ಸರಣಿ (Clean Digits):" : "Digits Sequence:"}</div>
-                <div className="text-lg font-black text-amber-950 tracking-widest">{itemResult.cleanDigits || "0"}</div>
-              </div>
-              <div className="text-right">
-                <div className="text-xs text-amber-900 font-bold">{isKn ? "ಒಟ್ಟು ಮೊತ್ತ (Sum):" : "Total Sum:"} <span className="text-base font-extrabold">{itemResult.totalSum}</span></div>
-                <div className="text-xs text-amber-900 font-bold">{isKn ? "ಮೂಲ ಸಂಖ್ಯೆ (Root):" : "Root Digit:"} <span className="text-xl font-black text-amber-900">{itemResult.singleDigit}</span></div>
-              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setItemType("house");
+                  setItemNumberInput("405");
+                }}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
+                  itemType === "house"
+                    ? "bg-amber-800 text-white shadow-sm"
+                    : "bg-amber-50 text-amber-900 hover:bg-amber-100"
+                }`}
+              >
+                🏠 {isKn ? "ಮನೆ / ಫ್ಲಾಟ್ ಸಂಖ್ಯೆ (House / Flat No)" : "House / Flat No"}
+              </button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div className="rounded-xl bg-white p-3 border border-amber-200">
-                <span className="font-bold text-amber-900">🪐 {isKn ? "ಅಧಿಪತಿ ಗ್ರಹ:" : "Ruling Planet:"}</span>{" "}
-                <span className="font-extrabold text-amber-950">{itemResult.rulerKn}</span>
-              </div>
-              <div className="rounded-xl bg-white p-3 border border-amber-200">
-                <span className="font-bold text-amber-900">🪔 {isKn ? "ಅಧಿಷ್ಠಾನ ದೇವತೆ:" : "Ruling Deity:"}</span>{" "}
-                <span className="font-extrabold text-amber-950">{itemResult.deityKn}</span>
-              </div>
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-amber-950 mb-1.5">
+                🔢 {itemType === "phone" ? "ಮೊಬೈಲ್ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ" : itemType === "vehicle" ? "ವಾಹನದ ನಂಬರ್ ಪ್ಲೇಟ್ ನಮೂದಿಸಿ" : "ಮನೆ ಅಥವಾ ಕಚೇರಿ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ"}
+              </label>
+              <input
+                type="text"
+                value={itemNumberInput}
+                onChange={(e) => setItemNumberInput(e.target.value)}
+                placeholder="e.g. 9972339362 / KA30M1008 / 405"
+                className="w-full rounded-xl border border-amber-300 bg-amber-50/40 px-4 py-3 text-sm font-bold text-amber-950 shadow-inner focus:border-amber-600 focus:outline-none"
+              />
             </div>
 
-            <div className="rounded-xl border border-amber-300 bg-white p-4 space-y-2">
-              <div className="font-bold text-xs text-amber-950">{isKn ? itemResult.verdictKn : itemResult.verdictEn}</div>
-              <p className="text-xs text-amber-900 leading-relaxed font-medium">
-                {isKn ? itemResult.recommendationKn : itemResult.recommendationEn}
-              </p>
+            {/* Calculated Result Display Card */}
+            <div className="rounded-2xl border-2 border-amber-300 bg-gradient-to-br from-amber-50/80 via-white to-orange-50/70 p-5 space-y-4 shadow-sm">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-amber-200 pb-3">
+                <div>
+                  <div className="text-[11px] font-bold text-amber-800 uppercase">
+                    ಒಟ್ಟು ಸಂಖ್ಯಾ ಮೊತ್ತ (Digits Total Sum)
+                  </div>
+                  <div className="text-3xl font-black text-amber-950">
+                    {itemResult.totalSum}{" "}
+                    <span className="text-base font-bold text-emerald-800">
+                      → ಏಕಾಂಕ: {itemResult.singleDigit} ({itemResult.rulerKn})
+                    </span>
+                  </div>
+                </div>
+
+                <div className="text-xs font-extrabold px-3.5 py-1.5 rounded-xl bg-amber-100 text-amber-950 border border-amber-300">
+                  {isKn ? itemResult.verdictKn : itemResult.verdictEn}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div className="rounded-xl bg-white p-3 border border-amber-200 space-y-1">
+                  <span className="font-bold text-amber-900 block">🪐 ಅಧಿಪತಿ ಗ್ರಹ & ದೇವತೆ:</span>
+                  <span className="text-amber-950 font-semibold">{itemResult.rulerKn} · {itemResult.deityKn}</span>
+                </div>
+
+                <div className="rounded-xl bg-white p-3 border border-amber-200 space-y-1">
+                  <span className="font-bold text-amber-900 block">💡 ಸಂಖ್ಯಾ ಶಾಸ್ತ್ರ ಸಲಹೆ:</span>
+                  <span className="text-slate-800 font-medium">{isKn ? itemResult.recommendationKn : itemResult.recommendationEn}</span>
+                </div>
+              </div>
             </div>
-          </div>
-        </Card>
+          </Card>
+        </div>
       )}
 
       {/* ====================================================================== */}
-      {/* TAB 4: MULANK & BHAGYANK COMPLETE GUIDANCE PANEL                      */}
+      {/* TAB 7: MULANK & BHAGYANK FULL LIFE MATRIX                              */}
       {/* ====================================================================== */}
       {activeTab === "mulank" && (
-        <Card className="border border-amber-300/80 bg-white p-5 shadow-sm space-y-6">
-          <div className="border-b border-amber-200 pb-3">
-            <h3 className="font-serif text-base font-bold text-amber-950 flex items-center gap-2">
-              <span>📅</span>
-              <span>{isKn ? "ಮೂಲಾಂಕ & ಭಾಗ್ಯಾಂಕ ಸಂಪೂರ್ಣ ಜೀವನ ಮಾರ್ಗದರ್ಶನ" : "Mulank & Bhagyank Complete Life Guidance"}</span>
-            </h3>
-            <p className="text-xs text-amber-900/80 mt-1">
-              {isKn
-                ? "ನಿಮ್ಮ ಹುಟ್ಟಿದ ದಿನಾಂಕದ ಮೂಲಕ ಮೂಲಾಂಕ (Birth Number) ಹಾಗೂ ಭಾಗ್ಯಾಂಕ (Destiny Number) ಗಣಿಸಿ ಅದೃಷ್ಟ ಬಣ್ಣ, ರತ್ನ ಹಾಗೂ ದಿನಾಂಕ ಪಡೆಯಿರಿ."
-                : "Calculate your Mulank (Birth Date Number) & Bhagyank (Destiny Number) for lucky colors, gems, and dates."}
-            </p>
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-amber-950 mb-1.5">
-              📅 {isKn ? "ಹುಟ್ಟಿದ ದಿನಾಂಕ ಆಯ್ಕೆ ಮಾಡಿ (Select Birth Date):" : "Select Birth Date:"}
-            </label>
-            <DatePicker selected={birthDatePicker} onChange={setBirthDatePicker} />
-          </div>
-
-          {/* Badges for Mulank & Bhagyank */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Mulank Badge Card */}
-            <div className="rounded-2xl border-2 border-amber-400 bg-gradient-to-br from-amber-100 via-amber-50 to-orange-100 p-4 shadow-sm space-y-2">
-              <div className="flex items-center justify-between border-b border-amber-300/80 pb-2">
-                <span className="font-bold text-xs text-amber-950">🌱 {isKn ? "ಮೂಲಾಂಕ (Mulank - Birth Day Number)" : "Mulank (Birth Day Number)"}</span>
-                <span className="text-2xl font-black text-amber-950">{mulank}</span>
+        <div className="space-y-6">
+          <Card className="border border-amber-300/80 bg-white p-5 shadow-sm space-y-5">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-amber-200 pb-3">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-amber-950 mb-1">
+                  📅 {isKn ? "ನಿಮ್ಮ ಜನ್ಮ ದಿನಾಂಕ ಆಯ್ಕೆ ಮಾಡಿ (Select Birth Date)" : "Select Birth Date"}
+                </label>
+                <DatePicker selected={birthDatePicker} onChange={setBirthDatePicker} />
               </div>
-              <div className="text-xs text-amber-900 font-semibold space-y-1">
-                <div>🪐 <strong>{isKn ? "ಅಧಿಪತಿ ಗ್ರಹ:" : "Ruler:"}</strong> {isKn ? mulankGuidance.rulerKn : mulankGuidance.rulerEn}</div>
-                <div>🪔 <strong>{isKn ? "ಅಧಿಷ್ಠಾನ ದೇವತೆ:" : "Deity:"}</strong> {isKn ? mulankGuidance.deityKn : mulankGuidance.deityEn}</div>
-                <div>🔥 <strong>{isKn ? "ತತ್ತ್ವ:" : "Element:"}</strong> {isKn ? mulankGuidance.elementKn : mulankGuidance.elementEn}</div>
+
+              <div className="flex gap-4">
+                <div className="rounded-2xl border border-amber-400 bg-amber-50 px-4 py-2 text-center shadow-sm">
+                  <div className="text-[10px] font-bold text-amber-800 uppercase">ಮೂಲಾಂಕ (Root Number)</div>
+                  <div className="text-2xl font-black text-amber-950">{mulank}</div>
+                  <div className="text-[10px] text-amber-800 font-semibold">{mulankGuidance.rulerKn}</div>
+                </div>
+
+                <div className="rounded-2xl border border-amber-400 bg-amber-50 px-4 py-2 text-center shadow-sm">
+                  <div className="text-[10px] font-bold text-amber-800 uppercase">ಭಾಗ್ಯಾಂಕ (Destiny Number)</div>
+                  <div className="text-2xl font-black text-amber-950">{bhagyank}</div>
+                  <div className="text-[10px] text-amber-800 font-semibold">{bhagyankGuidance.rulerKn}</div>
+                </div>
               </div>
             </div>
 
-            {/* Bhagyank Badge Card */}
-            <div className="rounded-2xl border-2 border-orange-400 bg-gradient-to-br from-orange-100 via-amber-50 to-amber-100 p-4 shadow-sm space-y-2">
-              <div className="flex items-center justify-between border-b border-orange-300/80 pb-2">
-                <span className="font-bold text-xs text-amber-950">🌟 {isKn ? "ಭಾಗ್ಯಾಂಕ (Bhagyank - Destiny Number)" : "Bhagyank (Destiny Number)"}</span>
-                <span className="text-2xl font-black text-amber-950">{bhagyank}</span>
-              </div>
-              <div className="text-xs text-amber-900 font-semibold space-y-1">
-                <div>🪐 <strong>{isKn ? "ಅಧಿಪತಿ ಗ್ರಹ:" : "Ruler:"}</strong> {isKn ? bhagyankGuidance.rulerKn : bhagyankGuidance.rulerEn}</div>
-                <div>🪔 <strong>{isKn ? "ಅಧಿಷ್ಠಾನ ದೇವತೆ:" : "Deity:"}</strong> {isKn ? bhagyankGuidance.deityKn : bhagyankGuidance.deityEn}</div>
-                <div>🔥 <strong>{isKn ? "ತತ್ತ್ವ:" : "Element:"}</strong> {isKn ? bhagyankGuidance.elementKn : bhagyankGuidance.elementEn}</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Complete Life Guidance Matrix Grid */}
-          <div className="rounded-2xl border border-amber-300 bg-white p-5 shadow-sm space-y-4">
-            <h4 className="font-serif text-sm font-bold text-amber-950 border-b border-amber-200 pb-2 flex items-center gap-2">
-              <span>📜</span>
-              <span>{isKn ? `ಮೂಲಾಂಕ ${mulank} ನ ಸಮಗ್ರ ದೈವಿಕ ಸಂಖ್ಯಾ ಮಾರ್ಗದರ್ಶನ` : `Mulank ${mulank} Complete Life Guidance Matrix`}</span>
-            </h4>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div className="rounded-xl bg-amber-50/70 p-3 border border-amber-200/80 space-y-1">
-                <div className="font-bold text-amber-900">📅 {isKn ? "ಅದೃಷ್ಟ ದಿನಾಂಕಗಳು (Lucky Dates):" : "Lucky Dates:"}</div>
-                <div className="font-extrabold text-amber-950 text-sm">{isKn ? mulankGuidance.luckyDatesKn : mulankGuidance.luckyDatesEn}</div>
+            {/* Deep Matrix Breakdown */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="rounded-2xl border border-amber-300 bg-amber-50/70 p-4 space-y-3">
+                <h4 className="font-serif text-xs font-bold uppercase tracking-wider text-amber-950 border-b border-amber-200 pb-1">
+                  🌟 ಮೂಲಾಂಕ {mulank} ರ ಸಮಗ್ರ ಗುಣಲಕ್ಷಣ (Root Number Insights)
+                </h4>
+                <div className="space-y-2 text-xs">
+                  <div><span className="font-bold text-amber-900">ಅಧಿಪತಿ ಗ್ರಹ:</span> {mulankGuidance.rulerKn} ({mulankGuidance.rulerEn})</div>
+                  <div><span className="font-bold text-amber-900">ದೇವತೆ:</span> {mulankGuidance.deityKn}</div>
+                  <div><span className="font-bold text-amber-900">ಪಂಚಭೂತ ತತ್ತ್ವ:</span> {mulankGuidance.elementKn}</div>
+                  <div><span className="font-bold text-amber-900">ಶುಭ ದಿನಾಂಕಗಳು:</span> {mulankGuidance.luckyDatesKn}</div>
+                  <div><span className="font-bold text-amber-900">ಶುಭ ಬಣ್ಣಗಳು:</span> {mulankGuidance.luckyColorsKn}</div>
+                  <div><span className="font-bold text-amber-900">ಶುಭ ರತ್ನ:</span> {mulankGuidance.luckyGemsKn}</div>
+                  <div className="text-amber-950 leading-relaxed pt-1 font-medium bg-white p-2.5 rounded-xl border border-amber-200">
+                    {mulankGuidance.traitsKn}
+                  </div>
+                </div>
               </div>
 
-              <div className="rounded-xl bg-amber-50/70 p-3 border border-amber-200/80 space-y-1">
-                <div className="font-bold text-amber-900">🎨 {isKn ? "ಅದೃಷ್ಟ ಬಣ್ಣಗಳು (Lucky Colors):" : "Lucky Colors:"}</div>
-                <div className="font-extrabold text-amber-950 text-sm">{isKn ? mulankGuidance.luckyColorsKn : mulankGuidance.luckyColorsEn}</div>
-              </div>
-
-              <div className="rounded-xl bg-amber-50/70 p-3 border border-amber-200/80 space-y-1">
-                <div className="font-bold text-amber-900">💎 {isKn ? "ಅದೃಷ್ಟ ರತ್ನ (Lucky Gemstone):" : "Lucky Gemstone:"}</div>
-                <div className="font-extrabold text-amber-950 text-sm">{isKn ? mulankGuidance.luckyGemsKn : mulankGuidance.luckyGemsEn}</div>
-              </div>
-
-              <div className="rounded-xl bg-emerald-50/80 p-3 border border-emerald-200 space-y-1">
-                <div className="font-bold text-emerald-900">🤝 {isKn ? "ಹೊಂದಾಣಿಕೆಯಾಗುವ ಸ್ನೇಹಿತ ಸಂಖ್ಯೆಗಳು (Friendly Numbers):" : "Friendly Numbers:"}</div>
-                <div className="font-extrabold text-emerald-950 text-sm">{mulankGuidance.friendlyNumbers.join(", ")}</div>
+              <div className="rounded-2xl border border-amber-300 bg-amber-50/70 p-4 space-y-3">
+                <h4 className="font-serif text-xs font-bold uppercase tracking-wider text-amber-950 border-b border-amber-200 pb-1">
+                  👑 ಭಾಗ್ಯಾಂಕ {bhagyank} ರ ಜೀವಿತಾವಧಿ ಯಶಸ್ಸು (Life Destiny Path)
+                </h4>
+                <div className="space-y-2 text-xs">
+                  <div><span className="font-bold text-amber-900">ಜೀವನ ಮಾರ್ಗ ಅಧಿಪತಿ:</span> {bhagyankGuidance.rulerKn} ({bhagyankGuidance.rulerEn})</div>
+                  <div><span className="font-bold text-amber-900">ಮೈತ್ರಿ ಸಂಖ್ಯೆಗಳು:</span> {bhagyankGuidance.friendlyNumbers.join(", ")}</div>
+                  <div><span className="font-bold text-amber-900">ಶತ್ರು / ಎಚ್ಚರಿಕೆಯ ಸಂಖ್ಯೆಗಳು:</span> {bhagyankGuidance.enemyNumbers.length > 0 ? bhagyankGuidance.enemyNumbers.join(", ") : "ಯಾವುದೂ ಇಲ್ಲ"}</div>
+                  <div><span className="font-bold text-amber-900">ಉನ್ನತ ಸಾಧನೆಯ ಕ್ಷೇತ್ರ:</span> {bhagyankGuidance.traitsKn}</div>
+                  <div className="text-amber-950 leading-relaxed pt-1 font-medium bg-white p-2.5 rounded-xl border border-amber-200">
+                    ಭಾಗ್ಯಾಂಕ {bhagyank} ಹೊಂದಿರುವವರು ಜೀವನದ ದ್ವಿತೀಯಾರ್ಧದಲ್ಲಿ ಅದ್ಭುತ ಧನಲಾಭ ಹಾಗೂ ಸಮಾಜದಲ್ಲಿ ಶಾಶ್ವತ ಕೀರ್ತಿಯನ್ನು ಪಡೆಯುತ್ತಾರೆ.
+                  </div>
+                </div>
               </div>
             </div>
-
-            <div className="rounded-xl bg-rose-50/70 p-3 border border-rose-200 text-xs space-y-1">
-              <div className="font-bold text-rose-900">⚠️ {isKn ? "ವರ್ಜ್ಯ / ಶತ್ರು ಸಂಖ್ಯೆಗಳು (Numbers to Avoid):" : "Numbers to Avoid:"}</div>
-              <div className="font-extrabold text-rose-950 text-sm">{mulankGuidance.enemyNumbers.length > 0 ? mulankGuidance.enemyNumbers.join(", ") : (isKn ? "ಯಾವುದೇ ಶತ್ರು ಸಂಖ್ಯೆ ಇಲ್ಲ (Universal Harmony)" : "None (Universal Harmony)")}</div>
-            </div>
-
-            <div className="rounded-xl border border-amber-200 bg-amber-50/40 p-4 space-y-1">
-              <div className="font-bold text-xs text-amber-950">✨ {isKn ? "ವ್ಯಕ್ತಿತ್ವ ಹಾಗೂ ಜೀವನ ಧರ್ಮ:" : "Personality & Life Purpose:"}</div>
-              <p className="text-xs text-amber-900 leading-relaxed font-medium">
-                {isKn ? mulankGuidance.traitsKn : mulankGuidance.traitsEn}
-              </p>
-            </div>
-          </div>
-        </Card>
+          </Card>
+        </div>
       )}
 
-      {/* Offscreen Container for HTML2Canvas PDF Rendering */}
+      {/* Hidden Container for PDF Export of Prashna Result */}
       {activeResult && (
         <div style={{ position: "absolute", left: "-9999px", top: "-9999px" }}>
           <SankhyaShastraPdfTemplate result={activeResult} personName={devoteeName} lang={selectedLang} messages={messages} />
