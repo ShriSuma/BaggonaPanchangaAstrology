@@ -143,14 +143,15 @@ export function calculateTraditionalBaggona(
   birthTime: string,
   latitude: number,
   longitude: number,
-  ayanamsaModel: AyanamsaModel = "lahiri"
+  ayanamsaModel: AyanamsaModel = "lahiri",
+  pincode = ""
 ): TraditionalBaggonaPanchanga {
   // Generic dynamic calculation for any other date/location
-  const birthUtc = wallClockBirthToUtc(birthDate, birthTime, latitude, longitude);
+  const birthUtc = wallClockBirthToUtc(birthDate, birthTime, latitude, longitude, pincode);
   if (isNaN(birthUtc.getTime())) {
     return null as any; // Fail fast if Invalid Date
   }
-  let noonUtc = wallClockBirthToUtc(birthDate, "12:00", latitude, longitude);
+  let noonUtc = wallClockBirthToUtc(birthDate, "12:00", latitude, longitude, pincode);
   let scTimes = SunCalc.getTimes(noonUtc, latitude, longitude);
   let jyotish = resolveSunTimesForJyotish({ sunrise: scTimes.sunrise, sunset: scTimes.sunset }, latitude, longitude);
   let sunriseUtc = jyotish.sunrise;

@@ -432,9 +432,10 @@ export default function KundliPage(): JSX.Element {
       birthTimeHm,
       form.latitude,
       form.longitude,
-      ayanamsaModel
+      ayanamsaModel,
+      form.pincode
     );
-  }, [birthDatePicker, birthTimeHm, form.latitude, form.longitude, ayanamsaModel]);
+  }, [birthDatePicker, birthTimeHm, form.latitude, form.longitude, ayanamsaModel, form.pincode]);
 
   const isDayBirthComputed = useMemo(() => {
     if (!birthDatePicker) return true;

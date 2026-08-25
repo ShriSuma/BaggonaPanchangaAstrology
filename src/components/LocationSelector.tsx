@@ -7,6 +7,7 @@ import {
   fetchVillages,
   fetchVillagesByPincode,
   getCoordinates,
+  getPostalRegionCentroid,
   type District,
   type State,
   type Village
@@ -167,12 +168,13 @@ export default function LocationSelector({ onChange, filterPincode }: Props): JS
         });
       } catch {
         if (pushGen !== locationPushGen.current) return;
+        const fb = getPostalRegionCentroid(selectedVillage.pincode);
         onChangeRef.current({
           stateCode,
           districtCode,
           villageName: selectedVillage.name,
-          lat: selectedVillage.lat,
-          lng: selectedVillage.lng,
+          lat: selectedVillage.lat || fb.lat,
+          lng: selectedVillage.lng || fb.lng,
           pincode: selectedVillage.pincode
         });
       }

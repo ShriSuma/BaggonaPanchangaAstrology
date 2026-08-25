@@ -142,4 +142,10 @@ describe("TraditionalBaggonaEngine calculations for Gokarna test case", () => {
     expect(res.dashaMonths).toBe(8);
     expect(res.dashaDays).toBe(17);
   });
+
+  it("calculates accurate IST Moon Nakshatra for Andhra Pradesh PIN code (520001)", () => {
+    const resAp = calculateTraditionalBaggona("1993-05-31", "09:25", 16.5062, 80.6480, "lahiri", "520001");
+    expect(resAp.moonNakshatra).toBe("Hasta");
+    expect(resAp.moonNakshatraKn).toBe("ಹಸ್ತಾ");
+  });
 });

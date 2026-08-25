@@ -90,8 +90,8 @@ export type CalculateKundliOptions = {
 };
 
 export const calculateKundli = (input: KundliInput, options?: CalculateKundliOptions): KundliOutput => {
-  const birthUtc = wallClockBirthToUtc(input.birthDate, input.birthTime, input.latitude, input.longitude);
   const pin = input.pincode ?? "";
+  const birthUtc = wallClockBirthToUtc(input.birthDate, input.birthTime, input.latitude, input.longitude, pin);
   const sunTimes =
     options?.sunTimes ?? sunTimesSyncForBirth(birthUtc, input.latitude, input.longitude, pin);
   const clockLoc = "en-IN";

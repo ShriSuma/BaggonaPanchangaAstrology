@@ -5,8 +5,10 @@ import { isRoughIndiaRegion } from "./placeTime";
  * Indian births: wall clock is interpreted as Asia/Kolkata (IST), matching common desktop software.
  * Elsewhere: interpreted as UTC until a timezone picker is added.
  */
-export const inferBirthTimezoneIana = (lat: number, lng: number): string =>
-  isRoughIndiaRegion(lat, lng) ? "Asia/Kolkata" : "Etc/UTC";
+export const inferBirthTimezoneIana = (lat: number, lng: number, pincode = ""): string => {
+  if (/^[1-9]\d{5}$/.test(pincode.trim())) return "Asia/Kolkata";
+  return isRoughIndiaRegion(lat, lng) ? "Asia/Kolkata" : "Etc/UTC";
+};
 
 /**
  * @param birthDate YYYY-MM-DD
@@ -16,9 +18,10 @@ export const wallClockBirthToUtc = (
   birthDate: string,
   birthTime: string,
   lat: number,
-  lng: number
+  lng: number,
+  pincode = ""
 ): Date => {
-  const tz = inferBirthTimezoneIana(lat, lng);
+  const tz = inferBirthTimezoneIana(lat, lng, pincode);
   if (tz === "Asia/Kolkata") {
     return new Date(`${birthDate}T${birthTime}:00+05:30`);
   }

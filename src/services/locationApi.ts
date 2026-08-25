@@ -246,20 +246,41 @@ export type ResolvedPinPlace = {
   pincode: string;
 };
 
+export const getPostalRegionCentroid = (pincode: string): { lat: number; lng: number } => {
+  const prefix = pincode.trim().slice(0, 2);
+  const p1 = pincode.trim().slice(0, 1);
+  if (["50", "51", "52", "53"].includes(prefix)) return { lat: 16.5062, lng: 80.6480 };
+  if (["56", "57", "58", "59"].includes(prefix)) return { lat: 14.5479, lng: 74.3188 };
+  if (["60", "61", "62", "63", "64"].includes(prefix)) return { lat: 13.0827, lng: 80.2707 };
+  if (["67", "68", "69"].includes(prefix)) return { lat: 9.9312, lng: 76.2673 };
+  if (["40", "41", "42", "43", "44"].includes(prefix)) return { lat: 19.0760, lng: 72.8777 };
+  if (["45", "46", "47", "48", "49"].includes(prefix)) return { lat: 23.2599, lng: 77.4126 };
+  if (["36", "37", "38", "39"].includes(prefix)) return { lat: 23.0225, lng: 72.5714 };
+  if (["30", "31", "32", "33", "34", "35"].includes(prefix)) return { lat: 26.9124, lng: 75.7873 };
+  if (["11", "12", "13", "14", "15", "16", "17", "18", "19"].includes(prefix)) return { lat: 28.6139, lng: 77.2090 };
+  if (["20", "21", "22", "23", "24", "25", "26", "27", "28"].includes(prefix)) return { lat: 26.8467, lng: 80.9462 };
+  if (["70", "71", "72", "73", "74", "75", "76", "77", "78", "79"].includes(prefix)) return { lat: 22.5726, lng: 88.3639 };
+  if (["80", "81", "82", "83", "84", "85"].includes(prefix)) return { lat: 25.5941, lng: 85.1376 };
+  if (p1 === "5") return { lat: 15.3173, lng: 75.7139 };
+  return { lat: 21.1458, lng: 79.0882 };
+};
+
 /** Resolve first post office for a PIN to coordinates (bundled catalog, API, or Nominatim). */
 export const resolvePlaceFromPincode = async (pincode: string): Promise<ResolvedPinPlace | null> => {
   if (!/^[1-9]\d{5}$/.test(pincode)) return null;
   const list = await fetchVillagesByPincode(pincode);
-  if (!list?.length) return null;
-  const v = list[0]!;
-  const stateCode = v.stateCode ?? v.districtCode.split("-")[0] ?? "";
-  let lat = v.lat;
-  let lng = v.lng;
+  const v = list?.[0];
+  const districtCode = v?.districtCode ?? "KA-UKN";
+  const stateCode = v?.stateCode ?? districtCode.split("-")[0] ?? "KA";
+  const villageName = v?.name ?? `Pincode ${pincode}`;
+
+  let lat = v?.lat || 0;
+  let lng = v?.lng || 0;
 
   if (lat && lng) {
     return {
-      villageName: v.name,
-      districtCode: v.districtCode,
+      villageName,
+      districtCode,
       stateCode,
       lat,
       lng,
@@ -272,8 +293,8 @@ export const resolvePlaceFromPincode = async (pincode: string): Promise<Resolved
     lat = fb.lat;
     lng = fb.lng;
     return {
-      villageName: v.name,
-      districtCode: v.districtCode,
+      villageName,
+      districtCode,
       stateCode,
       lat,
       lng,
@@ -283,17 +304,27 @@ export const resolvePlaceFromPincode = async (pincode: string): Promise<Resolved
 
   try {
     const districtName =
-      (districts as District[]).find((d) => d.code === v.districtCode)?.name ?? "";
-    const query = `${v.name}, ${pincode}, ${districtName}, India`;
+      (districts as District[]).find((d) => d.code === districtCode)?.name ?? "";
+    const query = `${villageName}, ${pincode}, ${districtName}, India`;
     const coords = await withTimeout(getCoordinates(query), NOMINATIM_TIMEOUT_MS);
     lat = coords.lat;
     lng = coords.lng;
   } catch {
-    if (!lat || !lng) return null;
+    // If Nominatim search fails, fallback to regional postal centroid
+    const fallbackCoords = getPostalRegionCentroid(pincode);
+    lat = fallbackCoords.lat;
+    lng = fallbackCoords.lng;
   }
+
+  if (!lat || !lng) {
+    const fallbackCoords = getPostalRegionCentroid(pincode);
+    lat = fallbackCoords.lat;
+    lng = fallbackCoords.lng;
+  }
+
   return {
-    villageName: v.name,
-    districtCode: v.districtCode,
+    villageName,
+    districtCode,
     stateCode,
     lat,
     lng,
