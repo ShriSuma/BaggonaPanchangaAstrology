@@ -281,7 +281,7 @@ export default function FaceReadingPage(): JSX.Element {
       </Card>
 
       {/* 4 Interactive Navigation Tabs */}
-      <div className="flex flex-wrap gap-2 border-b border-amber-300 pb-2">
+      <div className="flex flex-wrap items-center gap-2 border-b border-amber-300 pb-2">
         <button
           type="button"
           onClick={() => setActiveTab("reading")}
@@ -297,43 +297,99 @@ export default function FaceReadingPage(): JSX.Element {
 
         <button
           type="button"
-          onClick={() => setActiveTab("features")}
+          disabled={!activeResult}
+          onClick={() => activeResult && setActiveTab("features")}
+          title={!activeResult ? (isKn ? "ಫೋಟೋ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ಫಲಿತಾಂಶ ಪಡೆದ ನಂತರ ತೆರೆಯುತ್ತದೆ" : "Upload and analyze photo first") : ""}
           className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold transition shadow-sm ${
             activeTab === "features"
               ? "bg-amber-800 text-amber-50 shadow"
-              : "bg-amber-100 text-amber-900 hover:bg-amber-200"
+              : activeResult
+              ? "bg-amber-100 text-amber-900 hover:bg-amber-200"
+              : "bg-slate-100 text-slate-400 border border-dashed border-slate-300 opacity-60 cursor-not-allowed"
           }`}
         >
-          <span>👁️</span>
+          <span>{activeResult ? "👁️" : "🔒"}</span>
           <span>{isKn ? "ಸಪ್ತ ಮುಖ ಲಕ್ಷಣಗಳು" : "7 Facial Features"}</span>
+          {!activeResult && (
+            <span className="text-[9px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-bold">
+              {isKn ? "ಲಾಕ್" : "Locked"}
+            </span>
+          )}
         </button>
 
         <button
           type="button"
-          onClick={() => setActiveTab("chronology")}
+          disabled={!activeResult}
+          onClick={() => activeResult && setActiveTab("chronology")}
+          title={!activeResult ? (isKn ? "ಫೋಟೋ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ಫಲಿತಾಂಶ ಪಡೆದ ನಂತರ ತೆರೆಯುತ್ತದೆ" : "Upload and analyze photo first") : ""}
           className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold transition shadow-sm ${
             activeTab === "chronology"
               ? "bg-amber-800 text-amber-50 shadow"
-              : "bg-amber-100 text-amber-900 hover:bg-amber-200"
+              : activeResult
+              ? "bg-amber-100 text-amber-900 hover:bg-amber-200"
+              : "bg-slate-100 text-slate-400 border border-dashed border-slate-300 opacity-60 cursor-not-allowed"
           }`}
         >
-          <span>⏳</span>
+          <span>{activeResult ? "⏳" : "🔒"}</span>
           <span>{isKn ? "೧೦೦-ವರ್ಷ ಮುಖ ಕಾಲಚಕ್ರ" : "100-Year Age Map"}</span>
+          {!activeResult && (
+            <span className="text-[9px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-bold">
+              {isKn ? "ಲಾಕ್" : "Locked"}
+            </span>
+          )}
         </button>
 
         <button
           type="button"
-          onClick={() => setActiveTab("moles")}
+          disabled={!activeResult}
+          onClick={() => activeResult && setActiveTab("moles")}
+          title={!activeResult ? (isKn ? "ಫೋಟೋ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ಫಲಿತಾಂಶ ಪಡೆದ ನಂತರ ತೆರೆಯುತ್ತದೆ" : "Upload and analyze photo first") : ""}
           className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold transition shadow-sm ${
             activeTab === "moles"
               ? "bg-amber-800 text-amber-50 shadow"
-              : "bg-amber-100 text-amber-900 hover:bg-amber-200"
+              : activeResult
+              ? "bg-amber-100 text-amber-900 hover:bg-amber-200"
+              : "bg-slate-100 text-slate-400 border border-dashed border-slate-300 opacity-60 cursor-not-allowed"
           }`}
         >
-          <span>🪔</span>
+          <span>{activeResult ? "🪔" : "🔒"}</span>
           <span>{isKn ? "ಮಚ್ಚೆ ಶಾಸ್ತ್ರ & ಪರಿಹಾರ" : "Moles & Remedies"}</span>
+          {!activeResult && (
+            <span className="text-[9px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-bold">
+              {isKn ? "ಲಾಕ್" : "Locked"}
+            </span>
+          )}
         </button>
       </div>
+
+      {/* Helper Banner when tabs are locked */}
+      {!activeResult && (
+        <div className="rounded-xl bg-amber-50 border border-amber-200 px-3.5 py-2 text-xs text-amber-900 flex items-center gap-2">
+          <span>ℹ️</span>
+          <span>
+            {isKn
+              ? "ಮುಖದ ಛಾಯಾಚಿತ್ರವನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ 'ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ಫಲಿತಾಂಶ ಪಡೆಯಿರಿ' ಕ್ಲಿಕ್ ಮಾಡಿದ ನಂತರ ಎಲ್ಲಾ ವಿಶ್ಲೇಷಣಾ ಟ್ಯಾಬ್‌ಗಳು ತೆರೆಯಲ್ಪಡುತ್ತವೆ."
+              : "Upload your face photo and generate reading to unlock the 7 Features, 100-Year Age Map, and Moles analysis tabs."}
+          </span>
+        </div>
+      )}
+
+      {/* Success Notification when results are generated and tabs unlocked */}
+      {activeResult && (
+        <div className="rounded-xl bg-emerald-50 border border-emerald-300 px-3.5 py-2 text-xs text-emerald-900 flex items-center justify-between gap-2 shadow-sm animate-fade-in">
+          <div className="flex items-center gap-2 font-bold">
+            <span>✨</span>
+            <span>
+              {isKn
+                ? "ಮುಖ ಸಾಮುದ್ರಿಕ ಫಲ ಸಿದ್ಧವಾಗಿದೆ! ಮೇಲಿನ ಎಲ್ಲಾ ಟ್ಯಾಬ್‌ಗಳು ಈಗ ತೆರೆದಿವೆ (Unlocked)."
+                : "Face reading analysis is complete! All tabs above are now unlocked."}
+            </span>
+          </div>
+          <span className="text-[10px] bg-emerald-200 text-emerald-950 font-extrabold px-2 py-0.5 rounded-full">
+            4 / 4 {isKn ? "ಟ್ಯಾಬ್ ಸಕ್ರಿಯ" : "Tabs Active"}
+          </span>
+        </div>
+      )}
 
       {/* TAB 1: Face Scanner & Reading */}
       {activeTab === "reading" && (

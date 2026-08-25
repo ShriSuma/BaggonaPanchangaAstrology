@@ -589,43 +589,99 @@ export default function PalmReadingPage(): JSX.Element {
 
         <button
           type="button"
-          onClick={() => setActiveTab("mounts")}
+          disabled={!activeResult}
+          onClick={() => activeResult && setActiveTab("mounts")}
+          title={!activeResult ? (isKn ? "ಹಸ್ತ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ಫಲಿತಾಂಶ ಪಡೆದ ನಂತರ ತೆರೆಯುತ್ತದೆ" : "Upload and analyze palm photos first") : ""}
           className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition ${
             activeTab === "mounts"
               ? "bg-gradient-to-r from-amber-700 via-amber-800 to-amber-900 text-white shadow-md"
-              : "bg-white/80 text-amber-950 hover:bg-amber-100"
+              : activeResult
+              ? "bg-white/80 text-amber-950 hover:bg-amber-100"
+              : "bg-slate-100/70 text-slate-400 border border-dashed border-slate-300 opacity-60 cursor-not-allowed"
           }`}
         >
-          <span>🪐</span>
+          <span>{activeResult ? "🪐" : "🔒"}</span>
           <span>{isKn ? "ಗ್ರಹ ಪರ್ವತ & ಚಕ್ರ" : "Mounts & Chakras"}</span>
+          {!activeResult && (
+            <span className="text-[9px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-bold">
+              {isKn ? "ಲಾಕ್" : "Locked"}
+            </span>
+          )}
         </button>
 
         <button
           type="button"
-          onClick={() => setActiveTab("yogas")}
+          disabled={!activeResult}
+          onClick={() => activeResult && setActiveTab("yogas")}
+          title={!activeResult ? (isKn ? "ಹಸ್ತ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ಫಲಿತಾಂಶ ಪಡೆದ ನಂತರ ತೆರೆಯುತ್ತದೆ" : "Upload and analyze palm photos first") : ""}
           className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition ${
             activeTab === "yogas"
               ? "bg-gradient-to-r from-amber-700 via-amber-800 to-amber-900 text-white shadow-md"
-              : "bg-white/80 text-amber-950 hover:bg-amber-100"
+              : activeResult
+              ? "bg-white/80 text-amber-950 hover:bg-amber-100"
+              : "bg-slate-100/70 text-slate-400 border border-dashed border-slate-300 opacity-60 cursor-not-allowed"
           }`}
         >
-          <span>🌟</span>
+          <span>{activeResult ? "🌟" : "🔒"}</span>
           <span>{isKn ? "ಸಾಮುದ್ರಿಕ ರಾಜಯೋಗ" : "Samudrika Yogas"}</span>
+          {!activeResult && (
+            <span className="text-[9px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-bold">
+              {isKn ? "ಲಾಕ್" : "Locked"}
+            </span>
+          )}
         </button>
 
         <button
           type="button"
-          onClick={() => setActiveTab("remedies")}
+          disabled={!activeResult}
+          onClick={() => activeResult && setActiveTab("remedies")}
+          title={!activeResult ? (isKn ? "ಹಸ್ತ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ಫಲಿತಾಂಶ ಪಡೆದ ನಂತರ ತೆರೆಯುತ್ತದೆ" : "Upload and analyze palm photos first") : ""}
           className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition ${
             activeTab === "remedies"
               ? "bg-gradient-to-r from-amber-700 via-amber-800 to-amber-900 text-white shadow-md"
-              : "bg-white/80 text-amber-950 hover:bg-amber-100"
+              : activeResult
+              ? "bg-white/80 text-amber-950 hover:bg-amber-100"
+              : "bg-slate-100/70 text-slate-400 border border-dashed border-slate-300 opacity-60 cursor-not-allowed"
           }`}
         >
-          <span>💍</span>
+          <span>{activeResult ? "💍" : "🔒"}</span>
           <span>{isKn ? "ರತ್ನ & ರುದ್ರಾಕ್ಷಿ" : "Gems & Remedies"}</span>
+          {!activeResult && (
+            <span className="text-[9px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-bold">
+              {isKn ? "ಲಾಕ್" : "Locked"}
+            </span>
+          )}
         </button>
       </div>
+
+      {/* Helper Banner when tabs are locked */}
+      {!activeResult && (
+        <div className="rounded-xl bg-amber-50 border border-amber-200 px-3.5 py-2 text-xs text-amber-900 flex items-center gap-2">
+          <span>ℹ️</span>
+          <span>
+            {isKn
+              ? "ಹಸ್ತದ ಛಾಯಾಚಿತ್ರಗಳನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ 'ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ಫಲಿತಾಂಶ ಪಡೆಯಿರಿ' ಕ್ಲಿಕ್ ಮಾಡಿದ ನಂತರ ಎಲ್ಲಾ ಗ್ರಹ ಪರ್ವತ, ರಾಜಯೋಗ ಹಾಗೂ ಪರಿಹಾರ ಟ್ಯಾಬ್‌ಗಳು ತೆರೆಯಲ್ಪಡುತ್ತವೆ."
+              : "Upload palm photos and generate reading to unlock the Mounts & Chakras, Samudrika Yogas, and Gemstone Remedies tabs."}
+          </span>
+        </div>
+      )}
+
+      {/* Success Notification when results are generated and tabs unlocked */}
+      {activeResult && (
+        <div className="rounded-xl bg-emerald-50 border border-emerald-300 px-3.5 py-2 text-xs text-emerald-900 flex items-center justify-between gap-2 shadow-sm animate-fade-in">
+          <div className="flex items-center gap-2 font-bold">
+            <span>✨</span>
+            <span>
+              {isKn
+                ? "ಹಸ್ತ ಸಾಮುದ್ರಿಕ ಫಲ ಸಿದ್ಧವಾಗಿದೆ! ಮೇಲಿನ ಎಲ್ಲಾ ಟ್ಯಾಬ್‌ಗಳು ಈಗ ತೆರೆದಿವೆ (Unlocked)."
+                : "Palm reading analysis is complete! All tabs above are now unlocked."}
+            </span>
+          </div>
+          <span className="text-[10px] bg-emerald-200 text-emerald-950 font-extrabold px-2 py-0.5 rounded-full">
+            4 / 4 {isKn ? "ಟ್ಯಾಬ್ ಸಕ್ರಿಯ" : "Tabs Active"}
+          </span>
+        </div>
+      )}
 
       {/* ====================================================================== */}
       {/* TAB 1: 3-STEP SEQUENTIALLY VALIDATED PALM SCANNER & READING             */}
