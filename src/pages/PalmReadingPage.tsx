@@ -1335,6 +1335,7 @@ export default function PalmReadingPage(): JSX.Element {
       {/* ====================================================================== */}
       {activeTab === "mounts" && (
         <PalmMountsTab
+          result={activeResult}
           mounts={activeResult?.mounts}
           lang={selectedLang}
           devoteeName={devoteeName}

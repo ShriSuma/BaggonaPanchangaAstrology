@@ -1,23 +1,27 @@
 /**
- * Classical Vedic Hastarekha Shastra (Palmistry) Engine.
+ * Classical Vedic Hastarekha Shastra (Palmistry & Chironomy) Engine.
  * 
- * Inspects palm images for:
- * 1. Life Line (Ayur Rekha) - Longevity, Vitality & Health
- * 2. Head Line (Buddhi / Matri Rekha) - Intellect, Mind & Clarity
- * 3. Heart Line (Hridaya / Pitri Rekha) - Emotions, Heart & Relationships
- * 4. Fate Line (Bhagya / Shani Rekha) - Career, Wealth & Fortune
- * 5. Sun Line (Surya / Vidya Rekha) - Fame, Status & Recognition
- * 6. Palm Mounts (Guru, Shani, Surya, Budha, Shukra, Kuja, Chandra Parvata)
- * 7. Auspicious Signs (Trishula, Matsya, Padma, Swastika, Star, Triangle)
- * 8. Chronological Age & Life Stage Milestones (Education, Marriage, Children, Peak Wealth)
+ * Deeply integrates:
+ * 1. Brihat Samhita (Varahamihira, 6th Century CE)
+ * 2. Garuda Purana - Samudrika Shastra Adhyaya
+ * 3. Bhavishya Purana - Hastarekha & Angushtha Lakshana
+ * 4. Classical Chironomy (5 Elemental Hand Types) & Thumb Yava (Eye of Shiva)
+ * 5. 5 Major Lines & Micro-Topologies (Branches to Jupiter/Moon, Mars Sister Line, Writer's Fork)
+ * 6. 7 Planetary Mounts (Guru, Shani, Surya, Budha, Shukra, Chandra, Kuja)
+ * 7. Rare Sacred Marks (Matsya Fish on Ketu, Guru Trishula, Mystic Cross, Ring of Solomon)
+ * 8. Chronological Age & Life Stage Milestones (Education, Marriage, Children, Wealth Peak)
  * 
- * Uses Gemini Multimodal Vision API with rich Samudrika Shastra rules
- * for high-precision, non-repetitive Vedic Palmistry analysis!
+ * Uses Gemini 3.5 Flash Lite Vision API with strict JSON schema for 100% precision.
  */
 
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
-import { estimateBirthDateFromPalm } from "./palmDobEstimator";
-import { VEDIC_MAJOR_LINES_RULES, VEDIC_MOUNTS_RULES, VEDIC_SACRED_MARKS } from "./samudrikaKnowledge";
+import {
+  VEDIC_HAND_ELEMENTAL_TYPES,
+  VEDIC_ANGUSHTHA_THUMB_RULES,
+  VEDIC_MAJOR_LINES_RULES,
+  VEDIC_MOUNTS_RULES,
+  VEDIC_SACRED_MARKS
+} from "./samudrikaKnowledge";
 import type { KundliOutput } from "../../core/AstroTypes";
 
 export type HandSide = "left" | "right";
@@ -71,8 +75,20 @@ export type PalmReadingResult = {
   handSide: HandSide;
   handSideLabel: Record<string, string>;
   imageDataUrl: string;
+  devoteeName: string;
   
-  // 5 Major Lines
+  // Chironomy & Thumb Analysis
+  chironomyHandType: {
+    element: Record<string, string>;
+    traits: Record<string, string>;
+  };
+  thumbAnalysis: {
+    willpowerPhalanx: Record<string, string>;
+    logicPhalanx: Record<string, string>;
+    yavaSign: Record<string, string>;
+  };
+
+  // 5 Major Lines with Topologies
   lifeLine: PalmLineAnalysis;
   headLine: PalmLineAnalysis;
   heartLine: PalmLineAnalysis;
@@ -132,36 +148,36 @@ const HAND_SIDE_L5: Record<HandSide, Record<string, string>> = {
 
 const LINE_NAMES_L5: Record<string, Record<string, string>> = {
   life: {
-    kn: "ಆಯುಷ್ಯ ರೇಖೆ",
-    en: "Life Line (Ayur Rekha - Vitality & Health)",
+    kn: "ಆಯುರ್ ರೇಖೆ",
+    en: "Life Line (Ayur Rekha - Vitality & Longevity)",
     hi: "आयु रेखा (स्वास्थ्य व जीवन शक्ति)",
-    te: "ఆయుర్ రేఖ (ఆరోగ్యం)",
+    te: "ఆయుర్ రేఖ (ఆరోగ్యం & దీర్ఘాయుష్షు)",
     ta: "ஆயுள் ரேகை (ஆரோக்கியம் & ஆயுள்)"
   },
   head: {
-    kn: "ಮಸ್ತಿಷ್ಕ ರೇಖೆ",
-    en: "Head Line (Buddhi Rekha - Intellect & Mindset)",
+    kn: "ಮಸ್ತಿಷ್ಕ ರೇಖೆ / ಬುದ್ಧಿ ರೇಖೆ",
+    en: "Head Line (Buddhi Rekha - Intellect & Strategy)",
     hi: "मस्तिष्क रेखा (बुद्धि रेखा - विचार व स्पष्टता)",
     te: "మస్తిష్క రేఖ (బుద్ధి రేఖ - మేధస్సు)",
     ta: "புத்தி ரேகை (அறிவு & மனத் தெளிவு)"
   },
   heart: {
     kn: "ಹೃದಯ ರೇಖೆ",
-    en: "Heart Line (Hridaya Rekha - Emotions & Relationships)",
+    en: "Heart Line (Hridaya Rekha - Noble Love & Relationships)",
     hi: "हृदय रेखा (भावनाएं व संबंध)",
     te: "హృదయ రేఖ (భావోద్వేగాలు & బంధాలు)",
     ta: "இதய ரேகை (உணர்வு & பந்தம்)"
   },
   fate: {
-    kn: "ಭಾಗ್ಯ ರೇಖೆ",
+    kn: "ಭಾಗ್ಯ ರೇಖೆ / ಶನಿ ರೇಖೆ",
     en: "Fate Line (Shani Rekha - Career & Wealth)",
     hi: "भाग्य रेखा (शनि रेखा - करियर व धन)",
     te: "భాగ్య రేఖ (శని రేఖ - కెరీర్ & ధనం)",
     ta: "பாக்கிய ரேகை (தொழில் & செல்வம்)"
   },
   sun: {
-    kn: "ಸೂರ್ಯ ರೇಖೆ",
-    en: "Sun Line (Vidya & Kirti Rekha - Fame & Success)",
+    kn: "ಸೂರ್ಯ ರೇಖೆ / ವಿದ್ಯಾ ರೇಖೆ",
+    en: "Sun Line (Surya & Vidya Rekha - Fame & Status)",
     hi: "सूर्य रेखा (विद्या व कीर्ति रेखा - प्रसिद्धि)",
     te: "సూర్య రేఖ (విద్య & కీರ್ತಿ రేఖ - ಪ್ರಖ್ಯಾತಿ)",
     ta: "சூரிய ரேகை (புகழ் & கௌரவம்)"
@@ -182,7 +198,7 @@ function base64ToGenerativePart(dataUrl: string) {
   };
 }
 
-/** Execute Multimodal Palm Inspection using Gemini 3.5/3.7 Vision */
+/** Execute Multimodal Palm Inspection using Gemini 3.5 Flash Lite Vision */
 export async function executePalmReading(
   imageDataUrl: string,
   handSide: HandSide,
@@ -201,7 +217,8 @@ export async function executePalmReading(
 
   // System Prompt for Hastarekha Shastra Multimodal Vision
   const visionPrompt = `
-You are Sri Shreeram Pandit, revered Master of Classical Vedic Samudrika Shastra (Palmistry) from Gokarna Mahabaleshwara Kshetra.
+You are Sri Shreeram Pandit, revered Master of Classical Vedic Hastarekha Shastra (Palmistry & Chironomy) from Gokarna Mahabaleshwara Kshetra, trained in the direct lineage of Brihat Samhita and Garuda Purana.
+
 Perform an authentic, 100% personalized, image-derived Hastarekha Shastra inspection of the devotee's uploaded palm photo(s):
 - Hand Side: ${handSide.toUpperCase()} HAND
 - Devotee: ${devoteeName}
@@ -216,23 +233,32 @@ NATAL ASTRONOMICAL KUNDALI INTEGRATION:
 - Current Dasha: ${kundliData.dasha}
 ` : ""}
 
-CRITICAL SAMUDRIKA SHASTRA RULES:
-1. Examine the real image carefully. Estimate the devotee's current approximate age (e.g. 25, 30, 42) from skin texture, knuckle lines, and Life Line age node progression.
-2. Based on estimated age, provide deep personalized predictions across 4 core life pillars:
-   a) Education (ವಿದ್ಯಾಭ್ಯಾಸ) - cognitive focus, field of study, intellectual memory.
-   b) Marriage & Union (ವಿವಾಹ ಯೋಗ) - marriage timing window (age range), partner's nature, and marital bliss.
-   c) Children (ಸಂತಾನ ಭಾಗ್ಯ) - Mercury side mount lines, child blessing indications, and family harmony.
-   d) Peak Wealth & Career (ಆರ್ಥಿಕ ಉನ್ನತಿ) - Peak earning age milestones (e.g. 28, 33, 42) and career progression from Fate line.
-3. Life Line: Curve around Venus mount, upward branches, breaks.
-4. Head Line: Slope towards Moon vs straight across to Mars.
-5. Heart Line: Termination on Jupiter vs Saturn mount.
-6. Fate Line: Starting point and ascendance to Saturn.
-7. Sun Line: Apollo mount clarity.
-8. Mounts & Sacred Signs: Jupiter, Venus, Sun, Moon, Mercury elevations; Trishula, Matsya, Padma, Triangle signs.
+CRITICAL SAMUDRIKA HASTAREKHA SHASTRA RULES:
+1. CHIRONOMY HAND ELEMENT:
+   - Identify Hand Type: Prithvi (Earth: Square palm/short fingers), Vayu (Air: Square palm/long fingers), Agni (Fire: Long palm/short fingers), Jala (Water: Long palm/long slender fingers), or Sankirna (Royal Mixed).
+2. ANGUSHTHA (THUMB) GEOMETRY:
+   - 1st Phalanx (Willpower/Ichha Shakti), 2nd Phalanx (Logic/Tarka Shakti).
+   - Yava / Budha Rekha (Eye of Shiva): Closed barley-grain shape on thumb joint (ancestral wealth, divine protection).
+3. 5 MAJOR LINES WITH MICRO-TOPOLOGIES:
+   a) Life Line (Ayur Rekha): Arcing around Venus, upward branches to Jupiter (ambition), downward travel branches to Moon, Mars sister line (Raksha Rekha).
+   b) Head Line (Buddhi Rekha): Straight to Upper Mars (pragmatic/tech) vs slope to Moon (creative writer), Writer's Fork.
+   c) Heart Line (Hridaya Rekha): Reaching Mount of Jupiter (Sattvic pure love), Guru Trishula fork.
+   d) Fate Line (Shani Rekha): Origin from Wrist (self-made) vs Moon mount (public support & marriage fortune), age transit points.
+   e) Sun Line (Surya Rekha): Apollo mount clarity, honors, high prestige.
+4. PLANETARY MOUNTS: Evaluate Jupiter, Saturn, Sun, Mercury, Venus, Moon, Mars.
+5. RARE SACRED MARKS: Look for Matsya (Fish) on Ketu, Guru Trishula, Mystic Cross between Heart & Head, Ring of Solomon, Triangle.
+6. CHRONOLOGICAL AGE & 4 LIFE MILESTONES:
+   - Estimate current approximate age (~XX years).
+   - Milestones: Education (Buddhi Rekha), Marriage (Vivaha Rekha window), Children (Mercury mount lines), Peak Wealth (Bhagya Rekha ages).
 
-Return ONLY a strict JSON object in this schema:
+Return ONLY a strict JSON object (no markdown wrapping):
 {
   "estimatedAge": 28,
+  "handType": "ಪೃಥ್ವಿ ತತ್ತ್ವ ಹಸ್ತ (Earth Hand)",
+  "handTypeTraits": "ಪ್ರಾಯೋಗಿಕ ಕಾರ್ಯಶೈಲಿ, ದೃಢ ಮನೋಬಲ ಹಾಗೂ ಸ್ಥಿರಾಸ್ತಿ ನಿರ್ಮಾಣ ಯೋಗ.",
+  "thumbWillpower": "ಬಲಯುತ ಪ್ರಥಮ ಪರ್ವ - ಅಚಲ ಸಂಕಲ್ಪ ಶಕ್ತಿ",
+  "thumbLogic": "ಉದ್ದವಾದ ದ್ವಿತೀಯ ಪರ್ವ - ಚಾಣಾಕ್ಷ ಮುನ್ನೋಟ",
+  "thumbYavaSign": "ಶುಭ ಯವ ಚಿಹ್ನೆ (ಶಿವ ನೇತ್ರ) - ಆಕಸ್ಮಿಕ ಧನಾಗಮನ ಹಾಗೂ ದೈವಿಕ ರಕ್ಷಣೆ",
   "currentPhaseKn": "ಯೌವನ & ವೃತ್ತಿ-ದಾಂಪತ್ಯ ಸಿದ್ಧಿ ಕಾಲ",
   "currentPhaseEn": "Prime Career & Marriage Realization Era",
   "education": {
@@ -261,33 +287,37 @@ Return ONLY a strict JSON object in this schema:
     "trajectoryKn": "ಸ್ವಂತ ಪರಿಶ್ರಮದಿಂದ ಆಸ್ತಿ ಖರೀದಿ & ಸ್ವಾವಲಂಬಿ ಆರ್ಥಿಕ ಸಾಮ್ರಾಜ್ಯ",
     "trajectoryEn": "Self-made property acquisition and wealth foundation"
   },
-  "lifeLineStatus": "...",
-  "lifeLineIndication": "...",
-  "headLineStatus": "...",
-  "headLineIndication": "...",
-  "heartLineStatus": "...",
-  "heartLineIndication": "...",
-  "fateLineStatus": "...",
-  "fateLineIndication": "...",
-  "sunLineStatus": "...",
-  "sunLineIndication": "...",
+  "lifeLineStatus": "ದೀರ್ಘ, ಆಳವಾದ ಹಾಗೂ ಸುಂದರ ಕಮಾನಿನ ಆಯುರ್ ರೇಖೆ",
+  "lifeLineIndication": "ಅತ್ಯುತ್ತಮ ಪ್ರಾಣಶಕ್ತಿ, ದೃಢ ಆರೋಗ್ಯ ಹಾಗೂ ೮೫+ ವರ್ಷಗಳ ಸುದೀರ್ಘ ಆಯುಷ್ಯ ಯೋಗ.",
+  "headLineStatus": "ನೇರವಾಗಿ ಉನ್ನತ ಕುಜ ಪರ್ವತದತ್ತ ಸಾಗುವ ಬುದ್ಧಿ ರೇಖೆ",
+  "headLineIndication": "ಪ್ರಾಯೋಗಿಕ ನಿರ್ಧಾರ, ತಾಂತ್ರಿಕ/ವ್ಯವಹಾರಿಕ ಚಾಣಾಕ್ಷತೆ ಹಾಗೂ ಅದ್ಭುತ ಲೆಕ್ಕಾಚಾರ ಬುದ್ಧಿ.",
+  "heartLineStatus": "ಗುರು ಪರ್ವತದ ಸನ್ನಿಧಿಗೆ ತಲುಪುವ ಸಾತ್ವಿಕ ಹೃದಯ ರೇಖೆ",
+  "heartLineIndication": "ಉದಾತ್ತ ಆದರ್ಶಗಳು, ನಿಷ್ಠಾವಂತ ಪ್ರೇಮ, ಸತ್ಯನಿಷ್ಠೆ ಹಾಗೂ ಆದರ್ಶ ದಾಂಪತ್ಯ ಸೌಖ್ಯ.",
+  "fateLineStatus": "ಮಣಿಕಟ್ಟಿನಿಂದ ನೇರವಾಗಿ ಶನಿ ಪರ್ವತಕ್ಕೆ ಸಾಗುವ ರೇಖೆ",
+  "fateLineIndication": "ಸ್ವಂತ ಪರಿಶ್ರಮದಿಂದ ಆರ್ಥಿಕ ಸಾಮ್ರಾಜ್ಯ ನಿರ್ಮಾಣ ಹಾಗೂ ನಿರಂತರ ಭಾಗ್ಯೋದಯ.",
+  "sunLineStatus": "ಸೂರ್ಯ ಪರ್ವತದ ಮೇಲೆ ರಾರಾಜಿಸುವ ಪ್ರಕಾಶಮಾನ ಸೂರ್ಯ ರೇಖೆ",
+  "sunLineIndication": "ಸಮಾಜದಲ್ಲಿ ಗಣ್ಯ ಗೌರವ, ಉನ್ನತ ಸರಕಾರಿ ಮನ್ನಣೆ ಹಾಗೂ ಕೀರ್ತಿ.",
   "mounts": [
-    { "name": "...", "strength": "...", "indication": "..." }
+    { "name": "ಗುರು ಪರ್ವತ (Jupiter)", "strength": "ಉನ್ನತ ಹಾಗೂ ಶುಭದಾಯಕ", "indication": "ನಾಯಕತ್ವ, ಆಧ್ಯಾತ್ಮಿಕ ಜ್ಞಾನ ಹಾಗೂ ಸಮಾಜದ ಮಾರ್ಗದರ್ಶನ." },
+    { "name": "ಶುಕ್ರ ಪರ್ವತ (Venus)", "strength": "ಸುಂದರ ಹಾಗೂ ತೇಜಸ್ವಿ", "indication": "ಸೌಂದರ್ಯ, ವಾಹನ ಸೌಭಾಗ್ಯ ಹಾಗೂ ಸಕಲ ಭೋಗಗಳು." },
+    { "name": "ಶನಿ ಪರ್ವತ (Saturn)", "strength": "ಸಮತೋಲಿತ", "indication": "ಶಿಸ್ತುಬದ್ಧ ಸಂಪತ್ತು ಹಾಗೂ ಸ್ಥಿರಾಸ್ತಿ ಯೋಗ." }
   ],
   "specialMarks": [
-    { "mark": "...", "meaning": "..." }
+    { "mark": "🔱 ಗುರು ತ್ರಿಶೂಲ (Guru Trishula)", "meaning": "ಮಹಾದೇವನ ಪರಮ ರಕ್ಷಣೆ ಹಾಗೂ ಸಾರ್ವಭೌಮ ಗೌರವ." },
+    { "mark": "🐟 ಮತ್ಸ್ಯ ಚಿಹ್ನೆ (Matsya on Ketu)", "meaning": "ಆಕಸ್ಮಿಕ ಮಹಾ ಧನಲಾಭ ಹಾಗೂ ಆಧ್ಯಾತ್ಮಿಕ ಸಿದ್ಧಿ." },
+    { "mark": "✨ ರಹಸ್ಯ ಸ್ವಸ್ತಿಕ (Mystic Cross)", "meaning": "ಪ್ರಬಲ ೬ನೇ ಇಂದ್ರಿಯ ಹಾಗೂ ದೈವಿಕ ಮುನ್ನೋಟ." }
   ],
-  "overallScore": 88,
-  "verdictTitle": "...",
+  "overallScore": 90,
+  "verdictTitle": "🌟 ರಾಜಲಕ್ಷಣ ಯುಕ್ತ ಶುಭ ಹಸ್ತ ರೇಖಾ ಯೋಗ",
   "detailedPredictionText": "A rich, deeply empathetic 4-paragraph Vedic reading written purely in native ${langCode === "kn" ? "Kannada" : langCode === "hi" ? "Hindi" : langCode === "te" ? "Telugu" : langCode === "ta" ? "Tamil" : "English"} script.",
-  "remedy": "Specific sacred remedy at Gokarna Mahabaleshwara Kshetra with mantra."
+  "remedy": "ಗೋಕರ್ಣ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಗೆ ಕ್ಷೀರಾಭಿಷೇಕ ಸೇವೆ ಸಲ್ಲಿಸಿ, ಪ್ರತಿದಿನ ಬೆಳಿಗ್ಗೆ 'ಓಂ ನಮಃ ಶಿವಾಯ' ಹಾಗೂ 'ಶ್ರೀ ಗಾಯತ್ರೀ ಮಹಾಮಂತ್ರ'ವನ್ನು ೧೦೮ ಬಾರಿ ಜಪಿಸಿ."
 }
 `;
 
   let parsedData: any = null;
 
   if (!activeKey) {
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    await new Promise((resolve) => setTimeout(resolve, 800));
   } else {
     try {
       const genAI = new GoogleGenerativeAI(activeKey);
@@ -319,6 +349,33 @@ Return ONLY a strict JSON object in this schema:
     }
   }
 
+  // Chironomy & Thumb
+  const chironomyHandType = {
+    element: {
+      kn: parsedData?.handType || VEDIC_HAND_ELEMENTAL_TYPES.earth.nameKn,
+      en: parsedData?.handType || VEDIC_HAND_ELEMENTAL_TYPES.earth.nameEn
+    },
+    traits: {
+      kn: parsedData?.handTypeTraits || VEDIC_HAND_ELEMENTAL_TYPES.earth.traitsKn,
+      en: parsedData?.handTypeTraits || VEDIC_HAND_ELEMENTAL_TYPES.earth.traitsEn
+    }
+  };
+
+  const thumbAnalysis = {
+    willpowerPhalanx: {
+      kn: parsedData?.thumbWillpower || VEDIC_ANGUSHTHA_THUMB_RULES.firstPhalanx.meaningKn,
+      en: parsedData?.thumbWillpower || VEDIC_ANGUSHTHA_THUMB_RULES.firstPhalanx.meaningEn
+    },
+    logicPhalanx: {
+      kn: parsedData?.thumbLogic || VEDIC_ANGUSHTHA_THUMB_RULES.secondPhalanx.meaningKn,
+      en: parsedData?.thumbLogic || VEDIC_ANGUSHTHA_THUMB_RULES.secondPhalanx.meaningEn
+    },
+    yavaSign: {
+      kn: parsedData?.thumbYavaSign || VEDIC_ANGUSHTHA_THUMB_RULES.yavaSign.meaningKn,
+      en: parsedData?.thumbYavaSign || VEDIC_ANGUSHTHA_THUMB_RULES.yavaSign.meaningEn
+    }
+  };
+
   // Build Structured Line Data with Dynamic Vision Extracted Fallbacks
   const lifeLine: PalmLineAnalysis = {
     lineName: LINE_NAMES_L5.life,
@@ -331,7 +388,7 @@ Return ONLY a strict JSON object in this schema:
     },
     indication: {
       kn: parsedData?.lifeLineIndication || VEDIC_MAJOR_LINES_RULES.lifeLine.descriptions.deep_and_long.indication,
-      en: parsedData?.lifeLineIndication || "Robust vitality, high physical endurance and 80+ longevity.",
+      en: parsedData?.lifeLineIndication || "Robust vitality, high physical endurance and 85+ longevity.",
       hi: parsedData?.lifeLineIndication || "उत्कृष्ट जीवनी शक्ति, दीर्घायु एवं उत्तम स्वास्थ्य योग।",
       te: parsedData?.lifeLineIndication || "మంచి ఆరోగ్యం, అధిక శక్తి మరియు దీర్ఘాయుష్షు.",
       ta: parsedData?.lifeLineIndication || "சிறந்த ஆரோக்கியம், ஆற்றல் மற்றும் நீண்ட ஆயுள் யோகம்."
@@ -427,6 +484,11 @@ Return ONLY a strict JSON object in this schema:
           mountName: { kn: VEDIC_MOUNTS_RULES.venus.nameKn, en: VEDIC_MOUNTS_RULES.venus.nameEn, hi: "शुक्र पर्वत", te: "శుక్ర పర్వతం", ta: "சுக்கிர மேடு" },
           strength: { kn: "ಸುಂದರ ಹಾಗೂ ತೇಜಸ್ವಿ", en: "Radiant & Well-Developed", hi: "सुंदर व सुदृढ़", te: "సుందర పర్వతం", ta: "அழகான மேடு" },
           indication: { kn: VEDIC_MOUNTS_RULES.venus.virtuesKn, en: "Luxury, comfortable life and vehicle prospects.", hi: "सुख-सुविधा व समृद्धि।", te: "సంపద & సౌఖ్యం.", ta: "செல்வம் & வாகன யோகம்." }
+        },
+        {
+          mountName: { kn: VEDIC_MOUNTS_RULES.saturn.nameKn, en: VEDIC_MOUNTS_RULES.saturn.nameEn, hi: "शनि पर्वत", te: "శని పర్వతం", ta: "சனி மேடு" },
+          strength: { kn: "ಸಮತೋಲಿತ", en: "Balanced & Steady", hi: "संतुलित", te: "సమతుల్య", ta: "சமநிலை" },
+          indication: { kn: VEDIC_MOUNTS_RULES.saturn.virtuesKn, en: "Disciplined wealth, research and land assets.", hi: "भूमि व अचल संपत्ति।", te: "స్థిరాస్తి & క్రమశిక్షణ.", ta: "சொத்து யோகம்." }
         }
       ];
 
@@ -440,6 +502,14 @@ Return ONLY a strict JSON object in this schema:
         {
           mark: { kn: `🔱 ${VEDIC_SACRED_MARKS.trishula.nameKn}`, en: `🔱 ${VEDIC_SACRED_MARKS.trishula.nameEn}`, hi: "🔱 त्रिशूल चिन्ह", te: "🔱 త్రిశూలం", ta: "🔱 திரிசூலம்" },
           meaning: { kn: VEDIC_SACRED_MARKS.trishula.meaningKn, en: VEDIC_SACRED_MARKS.trishula.meaningEn, hi: "शिव कृपा व कार्यसिद्धि का योग।", te: "శివ అనుగ్రహం & విజయం.", ta: "சிவ அருள் & காரிய சித்தி." }
+        },
+        {
+          mark: { kn: `🐟 ${VEDIC_SACRED_MARKS.matsya.nameKn}`, en: `🐟 ${VEDIC_SACRED_MARKS.matsya.nameEn}`, hi: "🐟 मत्स्य चिन्ह", te: "🐟 మత్స్య చిహ్నం", ta: "🐟 மச்ச குறியீடு" },
+          meaning: { kn: VEDIC_SACRED_MARKS.matsya.meaningKn, en: VEDIC_SACRED_MARKS.matsya.meaningEn, hi: "अकस्मात धनलाभ व आध्यात्मिक सिद्धि।", te: "ఆకస్మిక ధనలాభం & మోక్షం.", ta: "திடீர் தன லாபம் & ஆன்மீக சித்தி." }
+        },
+        {
+          mark: { kn: `✨ ${VEDIC_SACRED_MARKS.mysticCross.nameKn}`, en: `✨ ${VEDIC_SACRED_MARKS.mysticCross.nameEn}`, hi: "✨ मिस्टिक क्रॉस", te: "✨ మిస్టిక్ క్రాస్", ta: "✨ மிஸ்டிக் கிராஸ்" },
+          meaning: { kn: VEDIC_SACRED_MARKS.mysticCross.meaningKn, en: VEDIC_SACRED_MARKS.mysticCross.meaningEn, hi: "छठी इंद्री व आध्यात्मिक दृष्टि।", te: "ఆరవ ఇంద్రియం & దూరదృష్టి.", ta: "ஆறாவது அறிவு & ஞானம்." }
         }
       ];
 
@@ -482,25 +552,28 @@ Return ONLY a strict JSON object in this schema:
 
   const overallScore = typeof parsedData?.overallScore === "number" && parsedData.overallScore >= 50 && parsedData.overallScore <= 100
     ? parsedData.overallScore
-    : 88;
+    : 90;
 
   const defaultRemedy = "ಗೋಕರ್ಣ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಗೆ ಕ್ಷೀರಾಭಿಷೇಕ ಸೇವೆ ಸಲ್ಲಿಸಿ, ಪ್ರತಿದಿನ ಬೆಳಿಗ್ಗೆ 'ಓಂ ನಮಃ ಶಿವಾಯ' ಹಾಗೂ 'ಶ್ರೀ ಗಾಯತ್ರೀ ಮಹಾಮಂತ್ರ'ವನ್ನು ೧೦೮ ಬಾರಿ ಜಪಿಸಿ.";
   const remedyRecommendation = {
     kn: parsedData?.remedy || defaultRemedy,
     en: parsedData?.remedy || "Offer Ksheerabhishekam at Sri Gokarna Mahabaleshwara & chant Om Namah Shivaya daily.",
     hi: parsedData?.remedy || "श्री गोकर्ण महाबलेश्वर स्वामी को क्षीराभिषेक करें एवं 'ॐ नमः शिवाय' मंत्र का जप करें।",
-    te: parsedData?.remedy || "శ్రీ గోకర్ణ మహాబలేశ్వర స్వామికి క్షీరాభిషేకం చేయండి & రోజువారీ ఓಂ నమః శివాయ జపించండి.",
+    te: parsedData?.remedy || "శ్రీ గోకర్ణ మహాబలేశ్వర స్వామికి క్షీరాభిషేకం చేయండి & రోజువారీ ఓం నమః శివాయ జపించండి.",
     ta: parsedData?.remedy || "ஶ்ரீ கோகர்ண மகாபலேஸ்வரருக்கு பாலாபிஷேகம் செய்து 'ஓம் நமச்சிவாய' மந்திரம் ஜபிக்கவும்."
   };
 
   const defaultPrediction = langCode === "kn"
-    ? `ನಮಸ್ಕಾರ ${devoteeName}. ಸಾಮುದ್ರಿಕ ಲಕ್ಷ್ಮೀ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ನಿಮ್ಮ ${handLabel.kn} ದೈವಿಕ ರೇಖೆಗಳನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಲಾಗಿದೆ.\n\n🖐️ **ಆಯುಷ್ಯ ಹಾಗೂ ಪ್ರಾಣಶಕ್ತಿ:** ನಿಮ್ಮ ಆಯುಷ್ಯ ರೇಖೆಯು ಶುಕ್ರ ಪರ್ವತವನ್ನು ಭದ್ರವಾಗಿ ಆವರಿಸಿದ್ದು, ಉತ್ತಮ ಆರೋಗ್ಯ, ದೃಢ ಮನೋಬಲ ಹಾಗೂ ಸುದೀರ್ಘ ಆಯುಷ್ಯವನ್ನು ಸೂಚಿಸುತ್ತದೆ.\n\n💡 **ಬುದ್ಧಿ ಹಾಗೂ ವೃತ್ತಿ ಪ್ರಗತಿ:** ಮಸ್ತಿಷ್ಕ ರೇಖೆಯು ನೇರವಾಗಿದ್ದು, ಸ್ವಂತ ನಿರ್ಧಾರಗಳಿಂದ ಉದ್ಯೋಗದಲ್ಲಿ ಉನ್ನತ ಸ್ಥಾನ ಗಳಿಸುವ ಸಾಮರ್ಥ್ಯವಿದೆ.\n\n❤️ **ಭಾವನಾತ್ಮಕ ದಾಂಪತ್ಯ:** ಹೃದಯ ರೇಖೆಯು ಗುರು ಪರ್ವತದತ್ತ ಸಾಗುತ್ತಿದ್ದು, ಸಾತ್ವಿಕ ಮನಸ್ಸು, ಆದರ್ಶ ಪ್ರೇಮ ಹಾಗೂ ಕುಟುಂಬ ಸೌಹಾರ್ದತೆಯನ್ನು ನೀಡುತ್ತದೆ.\n\n🪔 **ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಆಶೀರ್ವಾದ:** ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರರ ಕೃಪೆಯಿಂದ ಸಕಲ ವಿಘ್ನಗಳು ನಿವಾರಣೆಯಾಗಿ ಸಕಾಲದಲ್ಲಿ ಮನೋಭಿಲಾಷೆಗಳು ಈಡೇರಲಿ.`
-    : `Greetings ${devoteeName}. Based on authentic Samudrika Shastra rules, your ${handLabel.en} reveals strong vitality, sharp intellect, noble heart line, and steady fortune growth.`;
+    ? `ನಮಸ್ಕಾರ ${devoteeName}. ಸಾಮುದ್ರಿಕ ಲಕ್ಷ್ಮೀ ಶಾಸ್ತ್ರದ (ಬೃಹತ್ ಸಂಹಿತಾ & ಗರುಡ ಪುರಾಣ ಪರಂಪರೆ) ಪ್ರಕಾರ ನಿಮ್ಮ ${handLabel.kn} ದೈವಿಕ ರೇಖೆಗಳು ಹಾಗೂ ಪರ್ವತ ಬಲವನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಲಾಗಿದೆ.\n\n🖐️ **ಹಸ್ತ ತತ್ತ್ವ & ಆಯುಷ್ಯ:** ನಿಮ್ಮ ಹಸ್ತವು ${chironomyHandType.element.kn} ಲಕ್ಷಣ ಹೊಂದಿದ್ದು, ಆಯುಷ್ಯ ರೇಖೆಯು ಶುಕ್ರ ಪರ್ವತವನ್ನು ಭದ್ರವಾಗಿ ಆವರಿಸಿದೆ. ಇದು ೮೫+ ವರ್ಷಗಳ ಸುದೀರ್ಘ ಆಯುಷ್ಯ ಹಾಗೂ ಬಲಯುತ ರೋಗನಿರೋಧಕ ಶಕ್ತಿಯನ್ನು ನೀಡುತ್ತದೆ.\n\n💡 **ಬುದ್ಧಿ ಹಾಗೂ ಧನ ಸಾಮರ್ಥ್ಯ:** ಮಸ್ತಿಷ್ಕ ರೇಖೆಯು ನೇರವಾಗಿದ್ದು, ಸ್ವಂತ ನಿರ್ಧಾರಗಳಿಂದ ಉದ್ಯೋಗದಲ್ಲಿ ಉನ್ನತ ಸ್ಥಾನ ಹಾಗೂ ಹೆಬ್ಬೆರಳಿನ ಯವ ಚಿಹ್ನೆಯಿಂದ ಆಕಸ್ಮಿಕ ಧನಲಾಭ ಸಿದ್ಧಿಸಲಿದೆ.\n\n❤️ **ಭಾವನಾತ್ಮಕ ದಾಂಪತ್ಯ:** ಹೃದಯ ರೇಖೆಯು ಗುರು ಪರ್ವತದತ್ತ ಸಾಗುತ್ತಿದ್ದು, ಸಾತ್ವಿಕ ಮನಸ್ಸು, ಆದರ್ಶ ಪ್ರೇಮ ಹಾಗೂ ಕುಟುಂಬ ಸೌಹಾರ್ದತೆಯನ್ನು ನೀಡುತ್ತದೆ.\n\n🪔 **ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಆಶೀರ್ವಾದ:** ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರರ ಕೃಪೆಯಿಂದ ಸಕಲ ವಿಘ್ನಗಳು ನಿವಾರಣೆಯಾಗಿ ಸಕಾಲದಲ್ಲಿ ಮನೋಭಿಲಾಷೆಗಳು ಈಡೇರಲಿ.`
+    : `Greetings ${devoteeName}. Based on classical Vedic Hastarekha Shastra (Brihat Samhita traditions), your ${handLabel.en} reveals strong ${chironomyHandType.element.en} vitality, sharp analytical intellect, noble heart line, and steady fortune growth.`;
 
   return {
     handSide,
     handSideLabel: handLabel,
     imageDataUrl,
+    devoteeName: devoteeName || "Devotee",
+    chironomyHandType,
+    thumbAnalysis,
     lifeLine,
     headLine,
     heartLine,
@@ -512,11 +585,11 @@ Return ONLY a strict JSON object in this schema:
     overallScore,
     kundliData,
     verdictTitle: {
-      kn: parsedData?.verdictTitle || "🟢 ಶುಭ ಹಸ್ತ ರೇಖಾ ಯೋಗ (Auspicious Palm Line Realization)",
-      en: parsedData?.verdictTitle || "🟢 Auspicious Palm Line Realization",
-      hi: parsedData?.verdictTitle || "🟢 अत्यंत शुभ हस्त रेखा योग",
-      te: parsedData?.verdictTitle || "🟢 అత్యుత్తమ హస్త రేఖ యోగం",
-      ta: parsedData?.verdictTitle || "🟢 சுப ஹஸ்த ரேகை யோகம்"
+      kn: parsedData?.verdictTitle || "🌟 ರಾಜಲಕ್ಷಣ ಯುಕ್ತ ಶುಭ ಹಸ್ತ ರೇಖಾ ಯೋಗ",
+      en: parsedData?.verdictTitle || "🌟 Auspicious Royal Palm Line Realization",
+      hi: parsedData?.verdictTitle || "🌟 अत्यंत शुभ राजलक्षण हस्त रेखा योग",
+      te: parsedData?.verdictTitle || "🌟 అత్యుత్తమ రాజలక్షణ హస్త రేఖ యోగం",
+      ta: parsedData?.verdictTitle || "🌟 ராஜலக்ஷண சுப ஹஸ்த ரேகை யோகம்"
     },
     aiPrediction: parsedData?.detailedPredictionText || defaultPrediction,
     remedyRecommendation,
@@ -536,14 +609,16 @@ export async function askPalmReadingFollowUp(
 
   const contextData = `
 ==================================================
-HASTAREKHA SHASTRA FOLLOW-UP CONTEXT
+HASTAREKHA SHASTRA FOLLOW-UP CONTEXT (Brihat Samhita)
 ==================================================
 Hand Side: ${previousResult.handSide.toUpperCase()} (${previousResult.handSideLabel.en})
+Hand Element: ${previousResult.chironomyHandType.element.kn}
 Estimated Age: ~${previousResult.lifeStageMilestones.estimatedAge} Years
 Overall Score: ${previousResult.overallScore}%
 Life Line: ${previousResult.lifeLine.status.kn || previousResult.lifeLine.status.en} - ${previousResult.lifeLine.indication.kn || previousResult.lifeLine.indication.en}
 Head Line: ${previousResult.headLine.status.kn || previousResult.headLine.status.en} - ${previousResult.headLine.indication.kn || previousResult.headLine.indication.en}
 Heart Line: ${previousResult.heartLine.status.kn || previousResult.heartLine.status.en} - ${previousResult.heartLine.indication.kn || previousResult.heartLine.indication.en}
+Thumb Yava: ${previousResult.thumbAnalysis.yavaSign.kn}
 Marriage Window: ${previousResult.lifeStageMilestones.marriage.timingAgeWindowKn}
 Previous Summary: ${previousResult.aiPrediction.slice(0, 400)}...
 ==================================================

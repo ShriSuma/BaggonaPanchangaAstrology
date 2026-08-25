@@ -21,12 +21,12 @@ export const PalmReadingPdfTemplate: React.FC<PalmReadingPdfTemplateProps> = ({
     kn: {
       top: "॥ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿ ಪ್ರಸನ್ನ ॥",
       main: "॥ ಬಗ್ಗೋಣ ಹಸ್ತ ರೇಖಾ ಶಾಸ್ತ್ರ ದೈವಿಕ ವರದಿ ॥",
-      sub: "ಶ್ರೀ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದ ಸಿದ್ಧ ಹಸ್ತ ರೇಖಾ ಗಣಿತ ಹಾಗೂ ಪ್ರಾಚೀನ ಸಾಮುದ್ರಿಕ ಲಕ್ಷ್ಮೀ ಪದ್ಧತಿ"
+      sub: "ಶ್ರೀ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದ ಸಿದ್ಧ ಹಸ್ತ ರೇಖಾ ಗಣಿತ, ಪಂಚಭೂತ ತತ್ತ್ವ & ಪ್ರಾಚೀನ ಸಾಮುದ್ರಿಕ ಲಕ್ಷ್ಮೀ ಪದ್ಧತಿ (ಬೃಹತ್ ಸಂಹಿತಾ)"
     },
     en: {
       top: "॥ SRI GOKARNA MAHABALESHWARA SWAMY PRASANNA ॥",
       main: "Baggona Hastarekha Shastra Palmistry Report",
-      sub: "Authentic Vedic Palmistry & Samudrika Shastra Reading from Gokarna Kshetra"
+      sub: "Authentic Vedic Palmistry, Chironomy & Samudrika Shastra Reading from Gokarna Kshetra (Brihat Samhita)"
     },
     hi: {
       top: "॥ श्री गोकर्ण महाबलेश्वर स्वामी प्रसन्न ॥",
@@ -83,7 +83,6 @@ export const PalmReadingPdfTemplate: React.FC<PalmReadingPdfTemplateProps> = ({
   };
 
   const fTexts = footerTexts[code] || footerTexts.en;
-
   const cleanPrediction = sanitizeAIText(result.aiPrediction);
   const ms = result.lifeStageMilestones;
 
@@ -136,13 +135,14 @@ export const PalmReadingPdfTemplate: React.FC<PalmReadingPdfTemplateProps> = ({
             <div style={{ fontSize: "11px", fontWeight: 800, color: "#B45309", textTransform: "uppercase", marginBottom: "4px" }}>
               {dLabels.title}
             </div>
-            <div style={{ fontSize: "14px", fontWeight: 800, color: "#78350F", marginBottom: "4px" }}>
+            <div style={{ fontSize: "15px", fontWeight: 800, color: "#78350F", marginBottom: "4px" }}>
               {devoteeDisplayName}
             </div>
             <div style={{ fontSize: "12px", color: "#92400E", lineHeight: "1.5" }}>
               <div><strong>{dLabels.hand}</strong> <span style={{ color: "#065F46", fontWeight: 800 }}>{handSideStr}</span></div>
+              <div><strong>{code === "kn" ? "ಹಸ್ತ ತತ್ತ್ವ (Chironomy):" : "Hand Element:"}</strong> <span style={{ color: "#78350F", fontWeight: 800 }}>{result.chironomyHandType.element[code] || result.chironomyHandType.element.kn}</span></div>
+              <div><strong>{code === "kn" ? "ಅಂಗುಷ್ಠ ಶಿವ ನೇತ್ರ (Yava):" : "Thumb Yava (Shiva Eye):"}</strong> <span style={{ color: "#065F46", fontWeight: 800 }}>{result.thumbAnalysis.yavaSign[code] || result.thumbAnalysis.yavaSign.kn}</span></div>
               <div><strong>{code === "kn" ? "ಹಸ್ತದ ರೇಖಾ ವಯಸ್ಸು:" : "Palm Estimated Age:"}</strong> <span style={{ color: "#78350F", fontWeight: 800 }}>~{ms?.estimatedAge || 28} {code === "kn" ? "ವರ್ಷಗಳು" : "Years"}</span></div>
-              <div><strong>{code === "kn" ? "ವಿಶ್ಲೇಷಣೆ ಬಲ:" : "Analysis Score:"}</strong> <span style={{ color: "#78350F", fontWeight: 800 }}>{result.overallScore}%</span></div>
             </div>
           </div>
 
@@ -159,6 +159,27 @@ export const PalmReadingPdfTemplate: React.FC<PalmReadingPdfTemplateProps> = ({
                 Palm Photo
               </div>
             )}
+          </div>
+        </div>
+
+        {/* 5 Major Lines Breakdown in PDF */}
+        <div style={{ background: "#FFFFFF", border: "1.5px solid #F59E0B", borderRadius: "10px", padding: "10px 14px", marginBottom: "14px" }}>
+          <div style={{ fontSize: "12px", fontWeight: 800, color: "#78350F", marginBottom: "6px" }}>
+            ✋ {code === "kn" ? "ಪಂಚ ಪ್ರಧಾನ ಹಸ್ತ ರೇಖೆಗಳ ವಿಶ್ಲೇಷಣೆ (Brihat Samhita):" : "5 Major Palm Lines Analysis (Brihat Samhita):"}
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px", fontSize: "11px", color: "#78350F" }}>
+            <div style={{ background: "#FFFBEB", padding: "6px 8px", borderRadius: "6px", border: "1px solid #FDE68A" }}>
+              <strong>{result.lifeLine.lineName[code] || result.lifeLine.lineName.kn}:</strong> {result.lifeLine.indication[code] || result.lifeLine.indication.kn}
+            </div>
+            <div style={{ background: "#FFFBEB", padding: "6px 8px", borderRadius: "6px", border: "1px solid #FDE68A" }}>
+              <strong>{result.headLine.lineName[code] || result.headLine.lineName.kn}:</strong> {result.headLine.indication[code] || result.headLine.indication.kn}
+            </div>
+            <div style={{ background: "#FFFBEB", padding: "6px 8px", borderRadius: "6px", border: "1px solid #FDE68A" }}>
+              <strong>{result.heartLine.lineName[code] || result.heartLine.lineName.kn}:</strong> {result.heartLine.indication[code] || result.heartLine.indication.kn}
+            </div>
+            <div style={{ background: "#FFFBEB", padding: "6px 8px", borderRadius: "6px", border: "1px solid #FDE68A" }}>
+              <strong>{result.fateLine.lineName[code] || result.fateLine.lineName.kn}:</strong> {result.fateLine.indication[code] || result.fateLine.indication.kn}
+            </div>
           </div>
         </div>
 
