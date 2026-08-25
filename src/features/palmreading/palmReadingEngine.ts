@@ -18,6 +18,8 @@ import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/ge
 
 import { estimateBirthDateFromPalm } from "./palmDobEstimator";
 
+import type { KundliOutput } from "../../core/AstroTypes";
+
 export type HandSide = "left" | "right";
 
 export type PalmLineAnalysis = {
@@ -60,6 +62,7 @@ export type PalmReadingResult = {
     gotra?: string;
     dob?: string;
     tob?: string;
+    kundliOutput?: KundliOutput;
   };
 
   // Overall Verdict & Remedy

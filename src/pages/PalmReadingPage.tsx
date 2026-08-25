@@ -23,6 +23,7 @@ import { calculateKundliWithPlaceSun } from "../core/KundliEngine";
 import { calculateTraditionalBaggona } from "../core/TraditionalBaggonaEngine";
 import { formatRashiAmsha } from "../core/localeNumbers";
 import type { PlanetPosition } from "../core/AstroTypes";
+import SouthIndianChart from "../components/kundli/SouthIndianChart";
 
 type ChatMessage = {
   id: string;
@@ -206,7 +207,8 @@ export default function PalmReadingPage(): JSX.Element {
         dasha: dashaStr,
         gotra: gotraInput,
         dob: birthDateYmd,
-        tob: birthTimeFormatted
+        tob: birthTimeFormatted,
+        kundliOutput: kundliOut
       };
 
       setGeneratedKundliData(kData);
@@ -641,22 +643,33 @@ export default function PalmReadingPage(): JSX.Element {
 
         {/* Display Generated Kundli Badge if active */}
         {generatedKundliData && (
-          <div className="rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-xs text-emerald-950 font-bold flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <span>✨</span>
-              <span>
-                {isKn
-                  ? `ಜನನ ಕುಂಡಲಿ ಸಿದ್ಧವಾಗಿದೆ: ಲಗ್ನ: ${generatedKundliData.lagna} | ರಾಶಿ: ${generatedKundliData.rashi} | ನಕ್ಷತ್ರ: ${generatedKundliData.nakshatra} | ಮಾಂದಿ: ${generatedKundliData.maandi}`
-                  : `Kundali Active: Lagna: ${generatedKundliData.lagna} | Rashi: ${generatedKundliData.rashi} | Nakshatra: ${generatedKundliData.nakshatra} | Maandi: ${generatedKundliData.maandi}`}
-              </span>
+          <div className="rounded-xl border border-emerald-300 bg-emerald-50 p-4 text-xs text-emerald-950 font-bold space-y-3 shadow-inner">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-emerald-200 pb-2">
+              <div className="flex items-center gap-2">
+                <span>✨</span>
+                <span>
+                  {isKn
+                    ? `ಜನನ ಕುಂಡಲಿ ಸಿದ್ಧವಾಗಿದೆ: ಲಗ್ನ: ${generatedKundliData.lagna} | ರಾಶಿ: ${generatedKundliData.rashi} | ನಕ್ಷತ್ರ: ${generatedKundliData.nakshatra} | ಮಾಂದಿ: ${generatedKundliData.maandi}`
+                    : `Kundali Active: Lagna: ${generatedKundliData.lagna} | Rashi: ${generatedKundliData.rashi} | Nakshatra: ${generatedKundliData.nakshatra} | Maandi: ${generatedKundliData.maandi}`}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setGeneratedKundliData(undefined)}
+                className="text-[11px] text-rose-700 underline"
+              >
+                {isKn ? "ತೆರವುಗೊಳಿಸಿ" : "Clear Kundali"}
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() => setGeneratedKundliData(undefined)}
-              className="text-[11px] text-rose-700 underline"
-            >
-              {isKn ? "ತೆರವುಗೊಳಿಸಿ" : "Clear Kundali"}
-            </button>
+            {generatedKundliData.kundliOutput && (
+              <div className="pt-1 flex justify-center">
+                <SouthIndianChart
+                  kundli={generatedKundliData.kundliOutput}
+                  personName={devoteeName || "Devotee"}
+                  gothra={gotraInput}
+                />
+              </div>
+            )}
           </div>
         )}
 
@@ -823,13 +836,24 @@ export default function PalmReadingPage(): JSX.Element {
                 >
                   {msg.result ? (
                     <div className="space-y-4">
-                      {/* Kundli Badge if generated */}
+                      {/* Kundli Badge & South Indian Chart if generated */}
                       {msg.result.kundliData && (
-                        <div className="rounded-xl border border-amber-400 bg-gradient-to-r from-amber-100 via-amber-50 to-orange-100 p-3 text-xs text-amber-950 font-bold flex flex-wrap gap-3 shadow-inner">
-                          <div>🏛️ {isKn ? "ಲಗ್ನ (ಅಂಶ):" : "Lagna:"} <span className="text-emerald-800 font-extrabold">{msg.result.kundliData.lagna}</span></div>
-                          <div>🌙 {isKn ? "ರಾಶಿ:" : "Rashi:"} <span className="text-amber-900 font-extrabold">{msg.result.kundliData.rashi}</span></div>
-                          <div>⭐ {isKn ? "ನಕ್ಷತ್ರ:" : "Nakshatra:"} <span className="text-amber-900 font-extrabold">{msg.result.kundliData.nakshatra}</span></div>
-                          <div>🔥 {isKn ? "ಮಾಂದಿ:" : "Maandi:"} <span className="text-rose-900 font-extrabold">{msg.result.kundliData.maandi}</span></div>
+                        <div className="rounded-xl border border-amber-400 bg-gradient-to-r from-amber-100 via-amber-50 to-orange-100 p-3.5 text-xs text-amber-950 font-bold space-y-3 shadow-inner">
+                          <div className="flex flex-wrap gap-3">
+                            <div>🏛️ {isKn ? "ಲಗ್ನ (ಅಂಶ):" : "Lagna:"} <span className="text-emerald-800 font-extrabold">{msg.result.kundliData.lagna}</span></div>
+                            <div>🌙 {isKn ? "ರಾಶಿ:" : "Rashi:"} <span className="text-amber-900 font-extrabold">{msg.result.kundliData.rashi}</span></div>
+                            <div>⭐ {isKn ? "ನಕ್ಷತ್ರ:" : "Nakshatra:"} <span className="text-amber-900 font-extrabold">{msg.result.kundliData.nakshatra}</span></div>
+                            <div>🔥 {isKn ? "ಮಾಂದಿ:" : "Maandi:"} <span className="text-rose-900 font-extrabold">{msg.result.kundliData.maandi}</span></div>
+                          </div>
+                          {msg.result.kundliData.kundliOutput && (
+                            <div className="pt-1 flex justify-center">
+                              <SouthIndianChart
+                                kundli={msg.result.kundliData.kundliOutput}
+                                personName={devoteeName || "Devotee"}
+                                gothra={gotraInput}
+                              />
+                            </div>
+                          )}
                         </div>
                       )}
 
