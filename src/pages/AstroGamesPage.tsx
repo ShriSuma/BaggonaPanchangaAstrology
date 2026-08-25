@@ -9,6 +9,7 @@ import { AstroCharadesGame } from "../components/games/AstroCharadesGame";
 import { SankhyaDuelGame } from "../components/games/SankhyaDuelGame";
 import { VedicTriviaBlitzGame } from "../components/games/VedicTriviaBlitzGame";
 import { LearnKundliGame } from "../components/games/LearnKundliGame";
+import { encodeAcademyToken } from "../utils/tokenCipher";
 
 type ActiveGameId = "hub" | "yogadosha" | "mindreader" | "parampada" | "charades" | "sankhya" | "trivia" | "learnkundli";
 
@@ -18,6 +19,41 @@ export default function AstroGamesPage(): JSX.Element {
 
   const [activeGame, setActiveGame] = useState<ActiveGameId>("hub");
   const [isMuted, setIsMuted] = useState<boolean>(gameAudio.isMuted);
+  const [showShareModal, setShowShareModal] = useState<boolean>(false);
+  const [shareStudentName, setShareStudentName] = useState<string>("");
+  const [copied, setCopied] = useState<boolean>(false);
+
+  const generateShareUrl = (): string => {
+    if (typeof window === "undefined") return "";
+    const nameToUse = (shareStudentName || "ವಿದ್ಯಾರ್ಥಿ").trim();
+    const token = encodeAcademyToken({
+      name: nameToUse,
+      lang: i18n.language,
+      level: 1,
+      step: 1,
+      invitedBy: "ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಗುರೂಜಿ)"
+    });
+    const origin = window.location.origin;
+    return `${origin}/academy?academyToken=${token}`;
+  };
+
+  const handleCopyLink = () => {
+    if (!navigator.clipboard) return;
+    navigator.clipboard.writeText(generateShareUrl());
+    setCopied(true);
+    gameAudio.playSuccess();
+    setTimeout(() => setCopied(false), 2500);
+  };
+
+  const handleWhatsAppShare = () => {
+    const url = generateShareUrl();
+    const text = isKn
+      ? `🕉️ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಗುರುಕುಲ (Kundli Academy)!\n\nಆತ್ಮೀಯ ${shareStudentName || "ವಿದ್ಯಾರ್ಥಿ"},\nಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಗುರೂಜಿ) ಅವರ ಸನ್ನಿಧಾನದಲ್ಲಿ ಡಾ. ಬಿ.ವಿ. ರಾಮನ್ ಅವರ ಶಾಸ್ತ್ರೀಯ ನಿಯಮಗಳೊಂದಿಗೆ ೧೨ ಮನೆಗಳ ಕುಂಡಲಿ ಫಲಜ್ಯೋತಿಷ್ಯವನ್ನು ಗೇಮ್ ರೂಪದಲ್ಲಿ ಕಲಿಯಲು ಕೆಳಗಿನ ಲಿಂಕ್ ಬಳಸಿ:\n\n👉 ${url}\n\n॥ ಶ್ರೀ ಶಾಂತಿಕಾಪರಮೇಶ್ವರೀ ಪ್ರಸನ್ನ ॥`
+      : `🕉️ Baggona Vedic Kundli Gurukula!\n\nDear ${shareStudentName || "Student"},\nMaster the 12 houses of Janma Kundali in an authentic gaming quest under the sacred mentorship of Revered Shreeram Pandit (Guruji) based on Dr. B.V. Raman's classical master rules:\n\n👉 ${url}\n\nBlessings from Shri Shantikaparameshwari!`;
+
+    const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+    window.open(waUrl, "_blank");
+  };
 
   const toggleMute = () => {
     gameAudio.isMuted = !isMuted;
@@ -227,7 +263,105 @@ export default function AstroGamesPage(): JSX.Element {
       {activeGame === "charades" && <AstroCharadesGame lang={i18n.language} />}
       {activeGame === "sankhya" && <SankhyaDuelGame lang={i18n.language} />}
       {activeGame === "trivia" && <VedicTriviaBlitzGame lang={i18n.language} />}
-      {activeGame === "learnkundli" && <LearnKundliGame lang={i18n.language} />}
+      {activeGame === "learnkundli" && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between bg-amber-100/70 border border-amber-300 p-3 rounded-2xl">
+            <button
+              type="button"
+              onClick={() => setActiveGame("hub")}
+              className="flex items-center gap-1.5 text-xs font-bold text-amber-950 hover:text-amber-800"
+            >
+              <span>←</span>
+              <span>{isKn ? "ಆಟಗಳ ಮುಖಪುಟಕ್ಕೆ ಹಿಂತಿರುಗಿ" : "Back to Games Hub"}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setShowShareModal(true);
+                gameAudio.playChime();
+              }}
+              className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-amber-600 via-amber-700 to-amber-900 text-white font-black text-xs shadow-md hover:from-amber-700 hover:to-black transition flex items-center gap-1.5"
+            >
+              <span>🔗</span>
+              <span>{isKn ? "ವಿದ್ಯಾರ್ಥಿಗಳಿಗೆ ಲಿಂಕ್ ಕಳುಹಿಸಿ" : "Generate Vidyarthi Link"}</span>
+            </button>
+          </div>
+
+          <LearnKundliGame lang={i18n.language} isStandalone={false} />
+        </div>
+      )}
+
+      {/* Share Modal Dialog (Priest/Admin only) */}
+      {showShareModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-slate-900 rounded-3xl border-2 border-amber-400 p-6 max-w-md w-full shadow-2xl space-y-4 relative text-slate-100">
+            <div className="flex items-center justify-between border-b border-amber-500/30 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🔗</span>
+                <div>
+                  <div className="text-[9px] font-extrabold text-amber-400 uppercase">॥ ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಗುರುಕುಲ ॥</div>
+                  <h3 className="font-serif text-base font-black text-white">
+                    {isKn ? "ವಿದ್ಯಾರ್ಥಿಗೆ ವೈಯಕ್ತಿಕ ಲಿಂಕ್ ಕಳುಹಿಸಿ" : "Generate Vidyarthi Learning Link"}
+                  </h3>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowShareModal(false)}
+                className="w-8 h-8 rounded-full bg-slate-800 text-slate-300 font-black flex items-center justify-center hover:bg-slate-700"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold text-amber-300 mb-1">
+                  👤 {isKn ? "ವಿದ್ಯಾರ್ಥಿ / ಭಕ್ತರ ಹೆಸರು:" : "Student / Devotee Name:"}
+                </label>
+                <input
+                  type="text"
+                  value={shareStudentName}
+                  onChange={(e) => setShareStudentName(e.target.value)}
+                  placeholder={isKn ? "ವಿದ್ಯಾರ್ಥಿಯ ಹೆಸರು ನಮೂದಿಸಿ" : "Enter Student Name"}
+                  className="w-full px-3.5 py-2 rounded-xl border border-amber-500/40 bg-slate-950 font-bold text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
+                />
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-950 border border-amber-500/30 break-all text-[11px] font-mono text-amber-300">
+                {generateShareUrl()}
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={handleCopyLink}
+                  className="py-2.5 rounded-xl bg-amber-500 text-slate-950 font-black shadow hover:bg-amber-400 transition flex items-center justify-center gap-1.5"
+                >
+                  <span>{copied ? "✅" : "📋"}</span>
+                  <span>{copied ? (isKn ? "ಕಾಪಿ ಆಯಿತು!" : "Copied!") : (isKn ? "ಲಿಂಕ್ ಕಾಪಿ ಮಾಡಿ" : "Copy Link")}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleWhatsAppShare}
+                  className="py-2.5 rounded-xl bg-emerald-600 text-white font-black shadow hover:bg-emerald-500 transition flex items-center justify-center gap-1.5"
+                >
+                  <span>💬</span>
+                  <span>{isKn ? "WhatsApp ನಲ್ಲಿ ಕಳುಹಿಸಿ" : "Share WhatsApp"}</span>
+                </button>
+              </div>
+
+              <p className="text-[10px] text-amber-200/80 text-center font-medium">
+                🔒 {isKn
+                  ? "ಈ ಲಿಂಕ್ ತೆರೆದಾಗ ವಿದ್ಯಾರ್ಥಿಯು ಕೇವಲ ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರ ಕುಂಡಲಿ ಕಲಿಕಾ ಆಟವನ್ನು ಮಾತ್ರ ವೀಕ್ಷಿಸಬಹುದು. ಇತರ ಯಾವುದೇ ಪುಟಗಳಿಗೆ ಪ್ರವೇಶವಿರುವುದಿಲ್ಲ."
+                  : "Recipients exclusively access Guruji Shreeram Pandit's Kundli Gurukula game without logging in."}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -48,9 +48,63 @@ export const LearnKundliGame: React.FC<LearnKundliProps> = ({
   const [xpPoints, setXpPoints] = useState<number>(150);
   const [showGrandMasterModal, setShowGrandMasterModal] = useState<boolean>(false);
   const [showCelebration, setShowCelebration] = useState<boolean>(false);
-  const [showShareModal, setShowShareModal] = useState<boolean>(false);
-  const [shareStudentName, setShareStudentName] = useState<string>("");
-  const [copied, setCopied] = useState<boolean>(false);
+  const [resumedToast, setResumedToast] = useState<{ house: number; step: number; xp: number } | null>(null);
+
+  // Auto-Hydrate & Resume State from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("baggona_kundli_academy_progress");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.selectedHouse && parsed.selectedHouse >= 1 && parsed.selectedHouse <= 12) {
+          setSelectedHouse(parsed.selectedHouse);
+        }
+        if (parsed.currentStep && parsed.currentStep >= 1 && parsed.currentStep <= 7) {
+          setCurrentStep(parsed.currentStep);
+        }
+        if (Array.isArray(parsed.completedHouses) && parsed.completedHouses.length > 0) {
+          setCompletedHouses(parsed.completedHouses);
+        }
+        if (typeof parsed.xpPoints === "number") {
+          setXpPoints(parsed.xpPoints);
+        }
+        if (parsed.userAnswers) {
+          setUserAnswers(parsed.userAnswers);
+        }
+        if (typeof parsed.quizScore === "number") {
+          setQuizScore(parsed.quizScore);
+        }
+
+        setResumedToast({
+          house: parsed.selectedHouse || 1,
+          step: parsed.currentStep || 1,
+          xp: parsed.xpPoints || 150
+        });
+
+        setTimeout(() => setResumedToast(null), 5000);
+      }
+    } catch {
+      // Ignore storage read errors
+    }
+  }, []);
+
+  // Save progress automatically on every state change
+  useEffect(() => {
+    try {
+      const stateToSave = {
+        selectedHouse,
+        currentStep,
+        completedHouses,
+        xpPoints,
+        quizScore,
+        userAnswers,
+        updatedAt: new Date().toISOString()
+      };
+      localStorage.setItem("baggona_kundli_academy_progress", JSON.stringify(stateToSave));
+    } catch {
+      // Ignore storage write errors
+    }
+  }, [selectedHouse, currentStep, completedHouses, xpPoints, quizScore, userAnswers]);
 
   const houseData: HouseLearningModule =
     HOUSE_LEARNING_MODULES[selectedHouse] || HOUSE_LEARNING_MODULES[1];
@@ -223,6 +277,27 @@ export const LearnKundliGame: React.FC<LearnKundliProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Auto-Resume Alert Toast */}
+      {resumedToast && (
+        <div className="rounded-xl bg-gradient-to-r from-emerald-950/90 via-teal-950/90 to-emerald-950/90 border border-emerald-400/80 px-4 py-2.5 text-xs text-emerald-200 flex items-center justify-between gap-2 shadow-lg shadow-emerald-950/50 animate-fade-in">
+          <div className="flex items-center gap-2 font-bold">
+            <span className="text-base">🎯</span>
+            <span>
+              {isKn
+                ? `ಹಿಂದಿನ ಕಲಿಕಾ ಹಂತ ಮರುಸ್ಥಾಪಿಸಲಾಗಿದೆ! (ಭಾವ ${resumedToast.house}, ಹಂತ ${resumedToast.step} · ${resumedToast.xp} XP)`
+                : `Resumed from your saved progress! (House ${resumedToast.house}, Step ${resumedToast.step} · ${resumedToast.xp} XP)`}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setResumedToast(null)}
+            className="text-[10px] bg-emerald-900 text-emerald-200 px-2 py-0.5 rounded-md hover:bg-emerald-800 font-bold"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* ====================================================================== */}
       {/* 2. SPOTLIGHT SOUTH INDIAN CHART ARENA (SELECTED HOUSE FOCUS / FADE OTHERS) */}
