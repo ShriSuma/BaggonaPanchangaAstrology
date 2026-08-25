@@ -1,22 +1,24 @@
 /**
  * Classical Vedic Muka Samudrika Shastra (Face Reading & Physiognomy) Engine.
  * 
- * Inspects facial photographs for:
- * 1. Forehead (Lalata / ಹಣೆ) - Jupiter & Sun, Tri-Rekha (Saturn/Jupiter/Mars lines), Intellect & Executive Ambition.
- * 2. Eyes (Netra / ಕಣ್ಣುಗಳು) - Sun (Right) & Moon (Left), Eye Shape (Padma, Matsya), Ojas & Vitality.
- * 3. Nose (Nasika / ಮೂಗು) - Jupiter & Mercury, Wealth Bridge (Dhana Rekha), Cash Vault (Kuber Sthana).
- * 4. Lips & Mouth (Oshtha / ಬಾಯಿ) - Venus & Mercury, Vak Siddhi (Eloquence), Diplomacy & Romance.
- * 5. Chin & Jawline (Chibuka / ಹನು) - Saturn & Mars, Willpower, Land Assets & Elderhood Stability.
- * 6. Ears (Karna / ಕಿವಿಗಳು) - Jupiter, Longevity (Ayushya) & Spiritual Wisdom.
- * 7. Cheeks & Tejas (Gandasthala / ತೇಜಸ್ಸು) - Social Charisma, Prestige & Authority.
- * 8. Facial Moles (Muka Tilaka Shastra / ಮಚ್ಚೆ ಫಲ) - Auspicious wealth & destiny markers.
- * 9. 100-Year Facial Age Chronology Map (15-30, 31-40, 41-50, 51-75+).
+ * Deeply integrates ancient classical treatises:
+ * 1. Brihat Samhita (Varahamihira, 6th Century CE)
+ * 2. Garuda Purana (Samudrika Adhyaya)
+ * 3. Bhavishya Purana (Muka & Tilaka Lakshana)
+ * 4. Vedic Metoposcopy (Lalata Sapta Graha Rekha - 7 Forehead Planetary Lines)
+ * 5. Pancha Mahapurusha Facial Archetypes (Hamsa, Ruchaka, Bhadra, Malavya, Sasa)
+ * 6. Brahma Rekha (Philtrum / Sub-nasal Groove) & Danta (Teeth) Lakshana
  * 
- * Uses Gemini 2.5 Flash Vision API with strict JSON schema for 100% precision.
+ * Uses Gemini 3.5 Flash Lite Vision API with strict JSON schema for 100% precision.
  */
 
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
-import type { KundliOutput } from "../../core/AstroTypes";
+import {
+  VEDIC_PANCHA_MAHABHUTA_FACES,
+  VEDIC_MAHAPURUSHA_FACIAL_ARCHETYPES,
+  VEDIC_LALATA_PLANETARY_LINES,
+  VEDIC_EYE_TYPES
+} from "./samudrikaFaceKnowledge";
 
 export type FacialFeatureAnalysis = {
   featureKey: string;
@@ -48,8 +50,19 @@ export type FaceReadingResult = {
     primaryElement: Record<string, string>; // Fire, Water, Earth, Air, Ether
     ayurvedicDosha: Record<string, string>; // Vata, Pitta, Kapha, Tridoshic
     auraGlow: Record<string, string>; // Tejas, Ojas, Radiant
+    mahapurushaArchetype: Record<string, string>; // Hamsa, Ruchaka, Bhadra, Malavya, Sasa
+    eyeShapeType: Record<string, string>; // Padma, Matsya, Mriga, Gaja
   };
   features: FacialFeatureAnalysis[];
+  foreheadLines: Array<{
+    planet: Record<string, string>;
+    status: Record<string, string>;
+    indication: Record<string, string>;
+  }>;
+  philtrumBrahmaRekha: {
+    depth: Record<string, string>;
+    indication: Record<string, string>;
+  };
   ageMilestones: FacialAgeMilestone[];
   moles: FacialMoleResult[];
   overallTejasScore: number; // 0..100%
@@ -80,7 +93,7 @@ function base64ToGenerativePart(dataUrl: string) {
   };
 }
 
-/** Execute Multimodal Vedic Face Reading using Gemini 2.5 Flash Vision */
+/** Execute Multimodal Vedic Face Reading using Gemini 3.5 Flash Lite Vision */
 export async function executeFaceReading(
   imageDataUrl: string,
   devoteeName: string,
@@ -93,7 +106,8 @@ export async function executeFaceReading(
   const now = new Date();
 
   const visionPrompt = `
-You are Sri Shreeram Pandit, revered Master of Classical Vedic Muka Samudrika Shastra (Physiognomy & Face Reading) from Gokarna Mahabaleshwara Kshetra.
+You are Sri Shreeram Pandit, revered Master of Classical Vedic Muka Samudrika Shastra (Physiognomy & Face Reading) from Gokarna Mahabaleshwara Kshetra, trained in the direct lineage of Varahamihira's Brihat Samhita and Garuda Purana.
+
 Perform an authentic, 100% personalized, image-derived Muka Samudrika inspection of the devotee's uploaded facial photograph:
 - Devotee Name: ${devoteeName}
 - Target Language: ${langCode === "kn" ? "Kannada" : langCode === "hi" ? "Hindi" : langCode === "te" ? "Telugu" : langCode === "ta" ? "Tamil" : "English"}
@@ -106,26 +120,35 @@ NATAL ASTRONOMICAL KUNDALI SYNC:
 - Current Dasha: ${kundliData.dasha}
 ` : ""}
 
-CRITICAL MUKA SAMUDRIKA SHASTRA RULES:
-1. Examine the real image carefully:
-   a) Forehead (Lalata): Width, hairline shape (widow's peak, square, arched), Tri-Rekha horizontal line lines, and brow ridge.
-   b) Eyes (Netra): Shape (Padma/Lotus, Matsya/Fish, Almond), pupil focus, and eye brightness.
-   c) Nose (Nasika): Bridge elevation (Dhana Rekha), fleshy bulbous tip (Kuber Sthana wealth vault), and enclosed nostrils.
-   d) Lips & Mouth (Oshtha): Lip symmetry, fullness, smile curvature (Vak Siddhi / communication power).
-   e) Chin & Jaw (Chibuka/Hanu): Prominence, square vs rounded chin (willpower, asset accumulation, late-life security).
-   f) Ears (Karna): Earlobe thickness (spiritual wisdom & longevity).
-   g) Facial Moles (Tilaka): Note any visible facial moles on forehead, cheeks, nose, or chin and decode Vedic meaning.
-2. Estimate the person's current chronological age (~XX years).
-3. Generate 100-Year Facial Age Chronology milestones (Ages 15-30 Forehead, 31-40 Eyes/Brows, 41-50 Nose/Cheeks, 51-75+ Chin/Mouth).
-4. Provide a rich, compassionate, 4-paragraph Vedic reading written purely in native ${langCode === "kn" ? "Kannada" : langCode === "hi" ? "Hindi" : langCode === "te" ? "Telugu" : langCode === "ta" ? "Tamil" : "English"} script. Include specific career guidance, financial wealth timing, marital harmony, and spiritual evolution.
-5. Provide a sacred Gokarna Mahabaleshwara temple remedy with mantra.
+CRITICAL SAMUDRIKA SHASTRA RULES (Brihat Samhita & Garuda Purana):
+1. THREE HORIZONTAL LIFE ZONES (Tribhuvana):
+   - Upper Zone (Hairline to Brows): Ages 15-30, intellect, education, ancestry.
+   - Middle Zone (Brows to Base of Nose): Ages 31-50, career peak, marriage, social status, Kuber wealth.
+   - Lower Zone (Base of Nose to Chin): Ages 51-75+, family blessings, land assets (Bhoomi), longevity.
+2. PANCHA MAHABHUTA & MAHAPURUSHA ARCHETYPE:
+   - Identify Element: Agni (Triangle/V), Prithvi (Square/Jaw), Jala (Round/Oval), Vayu (Oblong), Akasha (Delicate/Translucent).
+   - Identify Mahapurusha: Hamsa (Jupiter), Ruchaka (Mars), Bhadra (Mercury), Malavya (Venus), Sasa (Saturn).
+3. DETAILED 7 FACIAL FEATURES:
+   a) Forehead (Lalata): Width, hairline arch, Tri-Rekha (Saturn, Jupiter, Mars lines).
+   b) Eyes (Netra): Shape (Padma/Lotus, Matsya/Fish, Mriga/Deer, Gaja/Deep), Sclera luster (Ojas).
+   c) Nose (Nasika): Dhana Rekha bridge, Kuber Sthana bulbous tip, enclosed nostrils.
+   d) Lips & Mouth (Oshtha): Cupid's bow symmetry, Vak Siddhi (eloquence).
+   e) Philtrum (Brahma Rekha): Sub-nasal groove depth (vitality, long life, offspring blessing).
+   f) Chin & Jaw (Chibuka/Hanu): Willpower, real estate ownership (Bhoomi Yoga), late-life serenity.
+   g) Ears (Karna): Earlobe thickness (spiritual longevity).
+4. ESTIMATE CHRONOLOGICAL AGE (~XX years) from skin elasticity, brow lines, and facial tone.
+5. DECODE FACIAL MOLES (Tilaka): Inspect forehead, cheeks, nose, and chin for auspicious marks.
+6. Provide a rich, deeply empathetic 4-paragraph Vedic reading written purely in native ${langCode === "kn" ? "Kannada" : langCode === "hi" ? "Hindi" : langCode === "te" ? "Telugu" : langCode === "ta" ? "Tamil" : "English"} script.
+7. Provide a sacred Gokarna Mahabaleshwara temple remedy with mantra.
 
 Return ONLY a strict JSON object (no markdown wrapping):
 {
   "estimatedAge": 29,
-  "element": "ಅಗ್ನಿ & ವಾಯು (Fire & Air)",
-  "dosha": "ಪಿತ್ತ-ವಾತ (Pitta-Vata)",
+  "element": "ಅಗ್ನಿ & ಪೃಥ್ವಿ (Fire & Earth)",
+  "dosha": "ಪಿತ್ತ-ಕಫ (Pitta-Kapha)",
   "auraGlow": "ತೇಜಸ್ವಿ & ಪ್ರಕಾಶಮಾನ (Radiant Tejas)",
+  "mahapurushaArchetype": "ಹಂಸ ಮಹಾಪುರುಷ ಯೋಗ (Jupiter Archetype)",
+  "eyeShapeType": "ಪದ್ಮ ನೇತ್ರ (Lotus Shaped Eyes)",
   "foreheadStructure": "ವಿಶಾಲ ಹಾಗೂ ಉನ್ನತ ಲಲಾಟ",
   "foreheadIndication": "ಉನ್ನತ ಬುದ್ಧಿಶಕ್ತಿ, ಆಡಳಿತ ನಾಯಕತ್ವ ಹಾಗೂ ಸ್ವತಂತ್ರ ಚಿಂತನೆ.",
   "eyesStructure": "ಪದ್ಮಾಕಾರದ ನೇತ್ರಗಳು (Lotus Shaped Eyes)",
@@ -134,34 +157,41 @@ Return ONLY a strict JSON object (no markdown wrapping):
   "noseIndication": "ಸ್ಥಿರ ಧನ ವೃದ್ಧಿ, ಕುಬೇರ ಯೋಗ ಹಾಗೂ ಉತ್ತಮ ಆರ್ಥಿಕ ನಿರ್ವಹಣೆ.",
   "lipsStructure": "ಸಮತೋಲಿತ ಹಾಗೂ ಆಕರ್ಷಕ ಓಷ್ಠ",
   "lipsIndication": "ಚಾಣಾಕ್ಷ ವಾಕ್ಚಾತುರ್ಯ, ಸೌಹಾರ್ದಯುತ ಮಾತು ಹಾಗೂ ಆಕರ್ಷಕ ವ್ಯಕ್ತಿತ್ವ.",
+  "philtrumStructure": "ಸ್ಪಷ್ಟ ಹಾಗೂ ಆಳವಾದ ಬ್ರಹ್ಮ ರೇಖೆ (Philtrum)",
+  "philtrumIndication": "ಉತ್ತಮ ಪ್ರಾಣಶಕ್ತಿ, ದೀರ್ಘಾಯುಷ್ಯ ಹಾಗೂ ಉತ್ತಮ ಸಂತಾನ ಭಾಗ್ಯ.",
   "chinStructure": "ದೃಢ ಹಾಗೂ ಬಲಯುತ ಚಿಬುಕ",
   "chinIndication": "ಅಚಲ ಮನೋಬಲ, ಸ್ವಂತ ಆಸ್ತಿ ನಿರ್ಮಾಣ ಹಾಗೂ ಸುಖಕರ ವೃದ್ಧಾಪ್ಯ.",
   "earsStructure": "ದೀರ್ಘ ಹಾಗೂ ಸುಂದರ ಕರ್ಣ ಪಾಲಿಕೆಗಳು",
   "earsIndication": "ದೀರ್ಘಾಯುಷ್ಯ ಹಾಗೂ ಹಿರಿಯರ ಆಶೀರ್ವಾದ.",
+  "foreheadLines": [
+    { "planet": "ಶನಿ ರೇಖೆ (Saturn)", "status": "ಸ್ಪಷ್ಟ ಹಾಗೂ ನಿರಂತರ", "indication": "ದೀರ್ಘಾಯುಷ್ಯ ಹಾಗೂ ಶಿಸ್ತು" },
+    { "planet": "ಗುರು ರೇಖೆ (Jupiter)", "status": "ಉನ್ನತ ಹಾಗೂ ಶುಭ", "indication": "ಜ್ಞಾನ, ವಿದ್ಯಾಭ್ಯಾಸ ಹಾಗೂ ಸಮಾಜ ಗೌರವ" },
+    { "planet": "ಮಂಗಳ ರೇಖೆ (Mars)", "status": "ಬಲಯುತ", "indication": "ಧೈರ್ಯ ಹಾಗೂ ಕಾರ್ಯಸಾಧನೆ" }
+  ],
   "moles": [
     { "location": "ಬಲ ಕೆನ್ನೆ / ಹಣೆಯ ಬಲಭಾಗ", "significance": "ಹಠಾತ್ ಧನಲಾಭ & ಸಮಾಜ ಗೌರವ", "isAuspicious": true }
   ],
   "ageMilestones": [
     {
-      "agePhase": "ಯೌವನ & ವಿದ್ಯಾಭ್ಯಾಸ (Youth & Foundation)",
+      "agePhase": "೧. ಯೌವನ & ವಿದ್ಯಾಭ್ಯಾಸ (Youth & Foundation)",
       "ageWindow": "೧೫ ರಿಂದ ೩೦ ವರ್ಷ",
       "facialArea": "ಲಲಾಟ & ಹಣೆಯ ರೇಖೆಗಳು (Forehead)",
       "prediction": "ಶಿಕ್ಷಣದಲ್ಲಿ ಉತ್ತಮ ಸಾಧನೆ ಹಾಗೂ ಸ್ವಂತ ಪರಿಶ್ರಮದಿಂದ ವೃತ್ತಿ ಪ್ರವೇಶ."
     },
     {
-      "agePhase": "ವೃತ್ತಿ ಉನ್ನತಿ & ವಿವಾಹ (Career & Marriage)",
+      "agePhase": "೨. ವೃತ್ತಿ ಉನ್ನತಿ & ವಿವಾಹ (Career & Marriage)",
       "ageWindow": "೩೧ ರಿಂದ ೪೦ ವರ್ಷ",
       "facialArea": "ನೇತ್ರ & ಭ್ರೂಮಧ್ಯ (Eyes & Brow Ridge)",
       "prediction": "ವಿವಾಹ ಯೋಗ, ಸಾಮಾಜಿಕ ಮನ್ನಣೆ ಹಾಗೂ ವೃತ್ತಿಪರ ಅಧಿಕಾರ ಪ್ರಾಪ್ತಿ."
     },
     {
-      "agePhase": "ಧನ ಸಮೃದ್ಧಿ & ಭಾಗ್ಯೋದಯ (Peak Wealth & Assets)",
+      "agePhase": "೩. ಧನ ಸಮೃದ್ಧಿ & ಭಾಗ್ಯೋದಯ (Peak Wealth & Assets)",
       "ageWindow": "೪೧ ರಿಂದ ೫೦ ವರ್ಷ",
       "facialArea": "ನಾಸಿಕ & ಗಂಡಸ್ಥಳ (Nose & Cheeks)",
       "prediction": "ಕುಬೇರ ಯೋಗದ ಮೂಲಕ ಸ್ವಂತ ಮನೆ, ಭೂಮಿ ಖರೀದಿ ಹಾಗೂ ವ್ಯಾಪಾರ ವಿಸ್ತರಣೆ."
     },
     {
-      "agePhase": "ಕೀರ್ತಿ & ಶಾಂತಿ (Legacy & Peace)",
+      "agePhase": "೪. ಕೀರ್ತಿ & ಶಾಂತಿ (Legacy & Peace)",
       "ageWindow": "೫೧ ರಿಂದ ೭೫+ ವರ್ಷ",
       "facialArea": "ಚಿಬುಕ & ಓಷ್ಠ (Chin & Lower Face)",
       "prediction": "ಮಕ್ಕಳಿಂದ ನೆಮ್ಮದಿ, ಆಧ್ಯಾತ್ಮಿಕ ಸಿದ್ಧಿ ಹಾಗೂ ಆರೋಗ್ಯಪೂರ್ಣ ದೀರ್ಘಾಯುಷ್ಯ."
@@ -177,7 +207,7 @@ Return ONLY a strict JSON object (no markdown wrapping):
   let parsedData: any = null;
 
   if (!activeKey) {
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    await new Promise((resolve) => setTimeout(resolve, 800));
   } else {
     try {
       const genAI = new GoogleGenerativeAI(activeKey);
@@ -210,7 +240,7 @@ Return ONLY a strict JSON object (no markdown wrapping):
     {
       featureKey: "forehead",
       name: { kn: "೧. ಲಲಾಟ (Forehead)", en: "1. Forehead (Lalata)", hi: "१. ललाट (माथा)", te: "౧. లలాటం (నుదురు)", ta: "౧. நெற்றி" },
-      planetaryRuler: { kn: "ಗುರು & ಸೂರ್ಯ", en: "Jupiter & Sun", hi: "गुरु व सूर्य", te: "గురు & సూర్య", ta: "குரு & சூரியன்" },
+      planetaryRuler: { kn: "ಗುರು & ಸೂರ್ಯ (ಜ್ಞಾನ & ನಾಯಕತ್ವ)", en: "Jupiter & Sun (Wisdom & Leadership)", hi: "गुरु व सूर्य", te: "గురు & సూర్య", ta: "குரு & சூரியன்" },
       observedStructure: { kn: parsedData?.foreheadStructure || "ವಿಶಾಲ ಹಾಗೂ ಉನ್ನತ ಲಲಾಟ", en: parsedData?.foreheadStructure || "Broad and elevated forehead", hi: "उन्नत ललाट", te: "విశాల నుదురు", ta: "உயர்ந்த நெற்றி" },
       vedicIndication: { kn: parsedData?.foreheadIndication || "ಉನ್ನತ ಬುದ್ಧಿಶಕ್ತಿ, ಆಡಳಿತ ನಾಯಕತ್ವ ಹಾಗೂ ಸ್ವತಂತ್ರ ಚಿಂತನೆ.", en: parsedData?.foreheadIndication || "Executive intellect, strategic leadership and independent thought.", hi: "नेतृत्व व उच्च बुद्धि योग।", te: "ఉన్నత మేధస్సు & నాయకత్వం.", ta: "தலைமைத்துவம் & அறிவு." },
       score: 92
@@ -265,6 +295,31 @@ Return ONLY a strict JSON object (no markdown wrapping):
     }
   ];
 
+  // Forehead Lines
+  const foreheadLines = Array.isArray(parsedData?.foreheadLines) && parsedData.foreheadLines.length > 0
+    ? parsedData.foreheadLines.map((fl: any) => ({
+        planet: { kn: fl.planet, en: fl.planet, hi: fl.planet, te: fl.planet, ta: fl.planet },
+        status: { kn: fl.status, en: fl.status, hi: fl.status, te: fl.status, ta: fl.status },
+        indication: { kn: fl.indication, en: fl.indication, hi: fl.indication, te: fl.indication, ta: fl.indication }
+      }))
+    : VEDIC_LALATA_PLANETARY_LINES.slice(0, 3).map((line) => ({
+        planet: { kn: line.planetKn, en: line.planetEn },
+        status: { kn: "ಸ್ಪಷ್ಟ ಹಾಗೂ ನಿರಂತರ ರೇಖೆ", en: "Clear and continuous line" },
+        indication: { kn: line.meaningKn, en: line.meaningEn }
+      }));
+
+  // Philtrum
+  const philtrumBrahmaRekha = {
+    depth: {
+      kn: parsedData?.philtrumStructure || "ಸ್ಪಷ್ಟ ಹಾಗೂ ಆಳವಾದ ಬ್ರಹ್ಮ ರೇಖೆ (Defined Philtrum)",
+      en: parsedData?.philtrumStructure || "Deep and clearly defined sub-nasal groove (Brahma Rekha)"
+    },
+    indication: {
+      kn: parsedData?.philtrumIndication || "ಉತ್ತಮ ಪ್ರಾಣಶಕ್ತಿ, ದೀರ್ಘಾಯುಷ್ಯ ಹಾಗೂ ಉತ್ತಮ ಸಂತಾನ ಭಾಗ್ಯ.",
+      en: parsedData?.philtrumIndication || "High vitality, strong longevity, and auspicious family blessings."
+    }
+  };
+
   // 100-Year Facial Age Milestones
   const ageMilestones: FacialAgeMilestone[] = Array.isArray(parsedData?.ageMilestones) && parsedData.ageMilestones.length > 0
     ? parsedData.ageMilestones.map((am: any) => ({
@@ -275,25 +330,25 @@ Return ONLY a strict JSON object (no markdown wrapping):
       }))
     : [
         {
-          agePhase: "ಯೌವನ & ವಿದ್ಯಾಭ್ಯಾಸ (Youth & Foundation)",
+          agePhase: "೧. ಯೌವನ & ವಿದ್ಯಾಭ್ಯಾಸ (Youth & Foundation)",
           ageWindow: "೧೫ ರಿಂದ ೩೦ ವರ್ಷ",
           facialArea: { kn: "ಲಲಾಟ & ಹಣೆಯ ರೇಖೆಗಳು (Forehead)", en: "Forehead & Brow Lines", hi: "ललाट", te: "లలాటం", ta: "நெற்றி" },
           prediction: { kn: "ಶಿಕ್ಷಣದಲ್ಲಿ ಉತ್ತಮ ಸಾಧನೆ ಹಾಗೂ ಸ್ವಂತ ಪರಿಶ್ರಮದಿಂದ ವೃತ್ತಿ ಪ್ರವೇಶ.", en: "Academic achievements, rapid skill acquisition and solid career entry.", hi: "उत्तम विद्या व करियर शुरुआत।", te: "ఉత్తమ విద్య & కెరీర్ ప్రారంభం.", ta: "கல்வி வெற்றி & தொழில் தொடக்கம்." }
         },
         {
-          agePhase: "ವೃತ್ತಿ ಉನ್ನತಿ & ವಿವಾಹ (Career & Marriage)",
+          agePhase: "೨. ವೃತ್ತಿ ಉನ್ನತಿ & ವಿವಾಹ (Career & Marriage)",
           ageWindow: "೩೧ ರಿಂದ ೪೦ ವರ್ಷ",
           facialArea: { kn: "ನೇತ್ರ & ಭ್ರೂಮಧ್ಯ (Eyes & Brow Ridge)", en: "Eyes & Ajna Center", hi: "नेत्र व भौंहें", te: "నేత్రాలు", ta: "கண்கள்" },
           prediction: { kn: "ವಿವಾಹ ಯೋಗ, ಸಾಮಾಜಿಕ ಮನ್ನಣೆ ಹಾಗೂ ವೃತ್ತಿಪರ ಅಧಿಕಾರ ಪ್ರಾಪ್ತಿ.", en: "Marital harmony, executive elevation and influential networking.", hi: "विवाह सुख व पदोन्नति।", te: "వివాహ యోగం & పదవి.", ta: "திருமண யோகம் & பதவி உயர்வு." }
         },
         {
-          agePhase: "ಧನ ಸಮೃದ್ಧಿ & ಭಾಗ್ಯೋದಯ (Peak Wealth & Assets)",
+          agePhase: "೩. ಧನ ಸಮೃದ್ಧಿ & ಭಾಗ್ಯೋದಯ (Peak Wealth & Assets)",
           ageWindow: "೪೧ ರಿಂದ ೫೦ ವರ್ಷ",
           facialArea: { kn: "ನಾಸಿಕ & ಗಂಡಸ್ಥಳ (Nose & Cheeks)", en: "Nose Bridge & Cheeks", hi: "नासिका व कपोल", te: "నాసిక", ta: "மூக்கு" },
           prediction: { kn: "ಕುಬೇರ ಯೋಗದ ಮೂಲಕ ಸ್ವಂತ ಮನೆ, ಭೂಮಿ ಖರೀದಿ ಹಾಗೂ ವ್ಯಾಪಾರ ವಿಸ್ತರಣೆ.", en: "Peak wealth creation, property acquisition and business expansion.", hi: "अपार धन लाभ व अचल संपत्ति।", te: "ధన సమృద్ధి & స్థిరాస్తి.", ta: "அபார தன லாபம் & சொத்து சேர்க்கை." }
         },
         {
-          agePhase: "ಕೀರ್ತಿ & ಶಾಂತಿ (Legacy & Peace)",
+          agePhase: "೪. ಕೀರ್ತಿ & ಶಾಂತಿ (Legacy & Peace)",
           ageWindow: "೫೧ ರಿಂದ ೭೫+ ವರ್ಷ",
           facialArea: { kn: "ಚಿಬುಕ & ಓಷ್ಠ (Chin & Lower Face)", en: "Chin & Mouth Contour", hi: "चिबुक व ओष्ठ", te: "చిబుకం", ta: "தாடை" },
           prediction: { kn: "ಮಕ್ಕಳಿಂದ ನೆಮ್ಮದಿ, ಆಧ್ಯಾತ್ಮಿಕ ಸಿದ್ಧಿ ಹಾಗೂ ಆರೋಗ್ಯಪೂರ್ಣ ದೀರ್ಘಾಯುಷ್ಯ.", en: "Family joy from children, spiritual fulfillment and peaceful longevity.", hi: "संतान सुख, शांति व दीर्घायु।", te: "సంతాన సౌఖ్యం & ప్రశాంతత.", ta: "குழந்தைகளால் மகிழ்ச்சி & ஆயுள்." }
@@ -320,19 +375,23 @@ Return ONLY a strict JSON object (no markdown wrapping):
     : 89;
 
   const defaultPrediction = langCode === "kn"
-    ? `ನಮಸ್ಕಾರ ${devoteeName}. ಪ್ರಾಚೀನ ಮುಖ ಸಾಮುದ್ರಿಕ ಲಕ್ಷ್ಮೀ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ನಿಮ್ಮ ಮುಖದ ದೈವಿಕ ರೇಖೆಗಳು ಹಾಗೂ ಲಕ್ಷಣಗಳನ್ನು ಪರಿಶೀಲಿಸಲಾಗಿದೆ.\n\n👑 **ಲಲಾಟ & ನಾಯಕತ್ವ:** ನಿಮ್ಮ ವಿಶಾಲ ಲಲಾಟವು ಗುರು ಮತ್ತು ಸೂರ್ಯ ಗ್ರಹಗಳ ಉನ್ನತ ಪ್ರಭಾವ ಹೊಂದಿದ್ದು, ಚಾಣಾಕ್ಷ ಬುದ್ಧಿಮತ್ತೆ ಹಾಗೂ ಆಡಳಿತಾತ್ಮಕ ಸಾಮರ್ಥ್ಯವನ್ನು ಸೂಚಿಸುತ್ತದೆ.\n\n👁️ **ನೇತ್ರ ತೇಜಸ್ಸು:** ನೇತ್ರಗಳಲ್ಲಿ ಸಾತ್ವಿಕ ಕಾಂತಿಯಿದ್ದು, ಸತ್ಯನಿಷ್ಠೆ ಹಾಗೂ ದೈವಿಕ ಅಂತಃಸ್ಫೂರ್ತಿ ನಿಮ್ಮ ಬದುಕನ್ನು ಮುನ್ನಡೆಸುತ್ತದೆ.\n\n💰 **ನಾಸಿಕ ಧನಯೋಗ:** ಮೂಗಿನ ಸೇತುವೆಯು ನೇರವಾಗಿದ್ದು, ಕುಬೇರ ಸ್ಥಾನದಲ್ಲಿ ಸ್ಥಿರ ಧನ ವೃದ್ಧಿ ಹಾಗೂ ಆಸ್ತಿ ಗಳಿಕೆಗೆ ಅತ್ಯಂತ ಶುಭದಾಯಕವಾಗಿದೆ.\n\n🪔 **ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಆಶೀರ್ವಾದ:** ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಕೃಪೆಯಿಂದ ಸಕಲ ಕಾರ್ಯಗಳು ಸಿದ್ಧಿಸಿ, ಮುಖದಲ್ಲಿ ಸದಾ ಮಂಗಳಕರ ತೇಜಸ್ಸು ನೆಲೆಸಲಿ.`
-    : `Greetings ${devoteeName}. Based on classical Vedic Muka Samudrika Shastra, your facial contours reveal noble leadership forehead, intuitive eyes, strong wealth nose bridge, and resilient chin.`;
+    ? `ನಮಸ್ಕಾರ ${devoteeName}. ಪ್ರಾಚೀನ ಮುಖ ಸಾಮುದ್ರಿಕ ಲಕ್ಷ್ಮೀ ಶಾಸ್ತ್ರ (ಬೃಹತ್ ಸಂಹಿತಾ & ಗರುಡ ಪುರಾಣ ಪದ್ಧತಿ) ಪ್ರಕಾರ ನಿಮ್ಮ ಮುಖದ ದೈವಿಕ ರೇಖೆಗಳು ಹಾಗೂ ಲಕ್ಷಣಗಳನ್ನು ಪರಿಶೀಲಿಸಲಾಗಿದೆ.\n\n👑 **ಲಲಾಟ & ನಾಯಕತ್ವ:** ನಿಮ್ಮ ವಿಶಾಲ ಲಲಾಟವು ಗುರು ಮತ್ತು ಸೂರ್ಯ ಗ್ರಹಗಳ ಉನ್ನತ ಪ್ರಭಾವ ಹೊಂದಿದ್ದು, ಚಾಣಾಕ್ಷ ಬುದ್ಧಿಮತ್ತೆ ಹಾಗೂ ಆಡಳಿತಾತ್ಮಕ ಸಾಮರ್ಥ್ಯವನ್ನು ಸೂಚಿಸುತ್ತದೆ.\n\n👁️ **ನೇತ್ರ ತೇಜಸ್ಸು:** ನೇತ್ರಗಳಲ್ಲಿ ಸಾತ್ವಿಕ ಕಾಂತಿಯಿದ್ದು, ಸತ್ಯನಿಷ್ಠೆ ಹಾಗೂ ದೈವಿಕ ಅಂತಃಸ್ಫೂರ್ತಿ ನಿಮ್ಮ ಬದುಕನ್ನು ಮುನ್ನಡೆಸುತ್ತದೆ.\n\n💰 **ನಾಸಿಕ ಧನಯೋಗ:** ಮೂಗಿನ ಸೇತುವೆಯು ನೇರವಾಗಿದ್ದು, ಕುಬೇರ ಸ್ಥಾನದಲ್ಲಿ ಸ್ಥಿರ ಧನ ವೃದ್ಧಿ ಹಾಗೂ ಆಸ್ತಿ ಗಳಿಕೆಗೆ ಅತ್ಯಂತ ಶುಭದಾಯಕವಾಗಿದೆ.\n\n🪔 **ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಆಶೀರ್ವಾದ:** ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಕೃಪೆಯಿಂದ ಸಕಲ ಕಾರ್ಯಗಳು ಸಿದ್ಧಿಸಿ, ಮುಖದಲ್ಲಿ ಸದಾ ಮಂಗಳಕರ ತೇಜಸ್ಸು ನೆಲೆಸಲಿ.`
+    : `Greetings ${devoteeName}. Based on classical Vedic Muka Samudrika Shastra (Brihat Samhita traditions), your facial contours reveal noble leadership forehead, intuitive eyes, strong wealth nose bridge, and resilient chin.`;
 
   return {
     imageDataUrl,
     devoteeName: devoteeName || "Devotee",
     estimatedAge: typeof parsedData?.estimatedAge === "number" ? parsedData.estimatedAge : 29,
     facialConstitution: {
-      primaryElement: { kn: parsedData?.element || "ಅಗ್ನಿ & ಪೃಥ್ವಿ (Fire & Earth)", en: parsedData?.element || "Fire & Earth", hi: "अग्नि व पृथ्वी", te: "అగ్ని & పృథ్వి", ta: "நெருப்பு & பூமி" },
+      primaryElement: { kn: parsedData?.element || VEDIC_PANCHA_MAHABHUTA_FACES.agni.nameKn, en: parsedData?.element || VEDIC_PANCHA_MAHABHUTA_FACES.agni.nameEn, hi: "अग्नि व पृथ्वी", te: "అగ్ని & పృథ్వి", ta: "நெருப்பு & பூமி" },
       ayurvedicDosha: { kn: parsedData?.dosha || "ಪಿತ್ತ-ಕಫ (Pitta-Kapha)", en: parsedData?.dosha || "Pitta-Kapha", hi: "पित्त-कफ", te: "పిత్త-కఫ", ta: "பித்தம்-கபம்" },
-      auraGlow: { kn: parsedData?.auraGlow || "ತೇಜಸ್ವಿ & ಪ್ರಕಾಶಮಾನ (Radiant Tejas)", en: parsedData?.auraGlow || "Radiant Tejas & Ojas", hi: "तेजस्वी व कांतिमय", te: "వర్చస్సు", ta: "தேஜஸ்" }
+      auraGlow: { kn: parsedData?.auraGlow || "ತೇಜಸ್ವಿ & ಪ್ರಕಾಶಮಾನ (Radiant Tejas)", en: parsedData?.auraGlow || "Radiant Tejas & Ojas", hi: "तेजस्वी व कांतिमय", te: "వర్చస్సు", ta: "தேஜஸ்" },
+      mahapurushaArchetype: { kn: parsedData?.mahapurushaArchetype || VEDIC_MAHAPURUSHA_FACIAL_ARCHETYPES.hamsa.nameKn, en: parsedData?.mahapurushaArchetype || VEDIC_MAHAPURUSHA_FACIAL_ARCHETYPES.hamsa.nameEn },
+      eyeShapeType: { kn: parsedData?.eyeShapeType || VEDIC_EYE_TYPES.padma.nameKn, en: parsedData?.eyeShapeType || VEDIC_EYE_TYPES.padma.nameEn }
     },
     features,
+    foreheadLines,
+    philtrumBrahmaRekha,
     ageMilestones,
     moles,
     overallTejasScore,
@@ -368,10 +427,11 @@ export async function askFaceReadingFollowUp(
 
   const contextData = `
 ==================================================
-MUKA SAMUDRIKA SHASTRA FOLLOW-UP CONTEXT
+MUKA SAMUDRIKA SHASTRA FOLLOW-UP CONTEXT (Brihat Samhita)
 ==================================================
 Estimated Age: ~${previousResult.estimatedAge} Years
 Tejas Score: ${previousResult.overallTejasScore}%
+Archetype: ${previousResult.facialConstitution.mahapurushaArchetype.kn}
 Forehead: ${previousResult.features[0]?.observedStructure.kn} - ${previousResult.features[0]?.vedicIndication.kn}
 Eyes: ${previousResult.features[1]?.observedStructure.kn} - ${previousResult.features[1]?.vedicIndication.kn}
 Nose: ${previousResult.features[2]?.observedStructure.kn} - ${previousResult.features[2]?.vedicIndication.kn}

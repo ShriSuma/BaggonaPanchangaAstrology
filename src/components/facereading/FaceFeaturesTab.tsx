@@ -1,8 +1,15 @@
 import React from "react";
 import Card from "../ui/Card";
-import type { FacialFeatureAnalysis } from "../../features/facereading/faceReadingEngine";
+import type { FacialFeatureAnalysis, FaceReadingResult } from "../../features/facereading/faceReadingEngine";
+import {
+  VEDIC_PANCHA_MAHABHUTA_FACES,
+  VEDIC_MAHAPURUSHA_FACIAL_ARCHETYPES,
+  VEDIC_LALATA_PLANETARY_LINES,
+  VEDIC_EYE_TYPES
+} from "../../features/facereading/samudrikaFaceKnowledge";
 
 type Props = {
+  result?: FaceReadingResult | null;
   features?: FacialFeatureAnalysis[];
   lang: string;
 };
@@ -66,28 +73,58 @@ const DEFAULT_FEATURES: FacialFeatureAnalysis[] = [
   }
 ];
 
-export const FaceFeaturesTab: React.FC<Props> = ({ features = DEFAULT_FEATURES, lang }) => {
+export const FaceFeaturesTab: React.FC<Props> = ({ result, features, lang }) => {
   const isKn = lang === "kn";
-  const featureList = features && features.length > 0 ? features : DEFAULT_FEATURES;
+  const featureList = features && features.length > 0 ? features : (result?.features || DEFAULT_FEATURES);
 
   return (
     <div className="space-y-6">
-      {/* Intro Card */}
-      <Card className="border border-amber-300 bg-gradient-to-r from-amber-50 via-orange-50/40 to-amber-50 p-5 shadow-sm">
+      {/* Intro Card with Brihat Samhita Lineage */}
+      <Card className="border-2 border-amber-400 bg-gradient-to-r from-amber-100 via-amber-50 to-orange-100 p-5 shadow-md">
         <div className="flex items-start gap-3">
-          <span className="text-3xl select-none">👁️</span>
-          <div>
+          <span className="text-3xl select-none filter drop-shadow">📜</span>
+          <div className="space-y-1">
+            <div className="text-[10px] font-extrabold tracking-widest text-amber-800 uppercase">
+              ॥ ವರಾಹಮಿಹಿರ ಬೃಹತ್ ಸಂಹಿತಾ & ಗರುಡ ಪುರಾಣ ಶಾಸ್ತ್ರ ॥
+            </div>
             <h3 className="font-serif text-base font-bold text-amber-950">
-              {isKn ? "ಸಪ್ತ ಮುಖ ಲಕ್ಷಣಗಳು & ನವಗ್ರಹ ಅಧಿಪತ್ಯ" : "7 Facial Features & Planetary Rulers"}
+              {isKn ? "ಸಪ್ತ ಮುಖ ಲಕ್ಷಣಗಳು, ಮಹಾಪುರುಷ ಯೋಗ & ಲಲಾಟ ರೇಖೆಗಳು" : "7 Facial Features, Mahapurusha Yogas & Metoposcopy"}
             </h3>
-            <p className="text-xs text-amber-900/90 leading-relaxed font-medium mt-1">
+            <p className="text-xs text-amber-900/90 leading-relaxed font-medium">
               {isKn
-                ? "ಪ್ರಾಚೀನ ಮುಖ ಸಾಮುದ್ರಿಕ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ಮಾನವ ಮುಖದ ಪ್ರತಿಯೊಂದು ಅಂಗವೂ ನಿರ್ದಿಷ್ಟ ಗ್ರಹದ ಶಕ್ತಿ ಹಾಗೂ ಕರ್ಮ ಫಲವನ್ನು ಪ್ರದರ್ಶಿಸುತ್ತದೆ."
-                : "According to classical Vedic Physiognomy, each facial feature reflects the energy of specific ruling Grahas and karmic blueprints."}
+                ? "ಪ್ರಾಚೀನ ಮುಖ ಸಾಮುದ್ರಿಕ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ಮುಖದ ಪ್ರತಿಯೊಂದು ಅಂಗವೂ ವ್ಯಕ್ತಿಯ ಪೂರ್ವಜನ್ಮದ ಸುಕೃತ, ಪಂಚಮಹಾಭೂತ ತತ್ತ್ವ ಹಾಗೂ ನವಗ್ರಹ ಕರ್ಮಫಲವನ್ನು ಪ್ರಕಟಿಸುತ್ತದೆ."
+                : "According to classical Vedic Samudrika Shastra, every facial contour reflects the native's past merit, elemental balance, and planetary governance."}
             </p>
           </div>
         </div>
       </Card>
+
+      {/* Archetype & Constitution Card (if result available) */}
+      {result && (
+        <Card className="border border-amber-300 bg-gradient-to-br from-amber-50/90 to-white p-5 shadow-sm space-y-3">
+          <div className="font-serif text-sm font-bold text-amber-950 border-b border-amber-200 pb-1.5 flex items-center gap-2">
+            <span>👑</span>
+            <span>{isKn ? "ಪಂಚ ಮಹಾಪುರುಷ ಯೋಗ & ದೈವಿಕ ಸಂವಿಧಾನ" : "Pancha Mahapurusha Archetype & Constitution"}</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <div className="rounded-xl bg-white p-3 border border-amber-200 shadow-sm">
+              <span className="font-bold text-amber-900 block">{isKn ? "ಮಹಾಪುರುಷ ಯೋಗ:" : "Mahapurusha Yoga:"}</span>
+              <span className="font-extrabold text-amber-950 text-sm mt-0.5 block">{result.facialConstitution.mahapurushaArchetype[lang] || result.facialConstitution.mahapurushaArchetype.kn}</span>
+            </div>
+
+            <div className="rounded-xl bg-white p-3 border border-amber-200 shadow-sm">
+              <span className="font-bold text-amber-900 block">{isKn ? "ಪಂಚಭೂತ ತತ್ತ್ವ:" : "Elemental Constitution:"}</span>
+              <span className="font-bold text-amber-950 mt-0.5 block">{result.facialConstitution.primaryElement[lang] || result.facialConstitution.primaryElement.kn}</span>
+            </div>
+
+            <div className="rounded-xl bg-white p-3 border border-amber-200 shadow-sm">
+              <span className="font-bold text-amber-900 block">{isKn ? "ನೇತ್ರ ರೂಪ (Eye Shape):" : "Vedic Eye Shape:"}</span>
+              <span className="font-bold text-emerald-900 mt-0.5 block">{result.facialConstitution.eyeShapeType[lang] || result.facialConstitution.eyeShapeType.kn}</span>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* Feature Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -126,6 +163,35 @@ export const FaceFeaturesTab: React.FC<Props> = ({ features = DEFAULT_FEATURES, 
           </Card>
         ))}
       </div>
+
+      {/* Metoposcopy: 7 Forehead Planetary Lines */}
+      <Card className="border border-amber-300 bg-white p-5 shadow-sm space-y-4">
+        <div className="flex items-center justify-between border-b border-amber-200 pb-2">
+          <h4 className="font-serif text-sm font-bold text-amber-950 flex items-center gap-2">
+            <span>✨</span>
+            <span>{isKn ? "ಲಲಾಟ ಸಪ್ತ ಗ್ರಹ ರೇಖಾ ವಿಶ್ಲೇಷಣೆ (Forehead Metoposcopy)" : "7 Forehead Planetary Lines"}</span>
+          </h4>
+          <span className="text-[10px] bg-amber-100 text-amber-900 font-extrabold px-2.5 py-0.5 rounded-full border border-amber-300">
+            Lalata Rekha
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+          {VEDIC_LALATA_PLANETARY_LINES.map((line, idx) => (
+            <div key={idx} className="rounded-xl bg-amber-50/60 p-3 border border-amber-200/80 space-y-1">
+              <div className="font-bold text-amber-950 flex items-center justify-between">
+                <span>{line.planetKn}</span>
+                <span className="text-[10px] bg-amber-200/80 text-amber-900 px-2 py-0.5 rounded font-extrabold">
+                  #{line.lineIndex}
+                </span>
+              </div>
+              <p className="text-amber-900 font-medium leading-relaxed">
+                {isKn ? line.meaningKn : line.meaningEn}
+              </p>
+            </div>
+          ))}
+        </div>
+      </Card>
     </div>
   );
 };

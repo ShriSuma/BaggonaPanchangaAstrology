@@ -21,12 +21,12 @@ export const FaceReadingPdfTemplate: React.FC<FaceReadingPdfTemplateProps> = ({
     kn: {
       top: "॥ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿ ಪ್ರಸನ್ನ ॥",
       main: "॥ ಬಗ್ಗೋಣ ಮುಖ ಸಾಮುದ್ರಿಕ ಶಾಸ್ತ್ರ ದೈವಿಕ ವರದಿ ॥",
-      sub: "ಶ್ರೀ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದ ಸಿದ್ಧ ಮುಖ ಸಾಮುದ್ರಿಕ ಲಕ್ಷ್ಮೀ ಪದ್ಧತಿ & ಸಪ್ತ ಲಕ್ಷಣ ವಿಶ್ಲೇಷಣೆ"
+      sub: "ಶ್ರೀ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದ ಸಿದ್ಧ ಮುಖ ಸಾಮುದ್ರಿಕ ಲಕ್ಷ್ಮೀ ಪದ್ಧತಿ & ಸಪ್ತ ಲಕ್ಷಣ ವಿಶ್ಲೇಷಣೆ (ಬೃಹತ್ ಸಂಹಿತಾ ಪರಂಪರೆ)"
     },
     en: {
       top: "॥ SRI GOKARNA MAHABALESHWARA SWAMY PRASANNA ॥",
       main: "Baggona Vedic Face Reading (Physiognomy) Report",
-      sub: "Authentic Vedic Muka Samudrika Shastra & 7-Feature Analysis from Gokarna Kshetra"
+      sub: "Authentic Vedic Muka Samudrika Shastra & 7-Feature Analysis from Gokarna Kshetra (Brihat Samhita)"
     },
     hi: {
       top: "॥ श्री गोकर्ण महाबलेश्वर स्वामी प्रसन्न ॥",
@@ -35,7 +35,7 @@ export const FaceReadingPdfTemplate: React.FC<FaceReadingPdfTemplateProps> = ({
     },
     te: {
       top: "॥ శ్రీ గోకర్ణ మహాబలేశ్వర స్వామి ప్రసన్న ॥",
-      main: "॥ బగ్గోణ ముఖ సాముద్రిక శాస్త్ర దైవిక నివేదిక ॥",
+      main: "॥ బగ్గోణ ముఖ సాಮುద్రిక శాస్త్ర దైవిక నివేదిక ॥",
       sub: "శ్రీ గోకర్ణ క్షేత్ర ప్రాచీన ముఖ సాముద్రిక శాస్త్రం & సప్త లక్షణ విశ్లేషణ"
     },
     ta: {
@@ -103,6 +103,7 @@ export const FaceReadingPdfTemplate: React.FC<FaceReadingPdfTemplateProps> = ({
             </div>
             <div style={{ fontSize: "12px", color: "#92400E", lineHeight: "1.5" }}>
               <div><strong>{code === "kn" ? "ಅಂದಾಜು ಮುಖ ವಯಸ್ಸು:" : "Estimated Face Age:"}</strong> <span style={{ color: "#065F46", fontWeight: 800 }}>~{result.estimatedAge} {code === "kn" ? "ವರ್ಷಗಳು" : "Years"}</span></div>
+              <div><strong>{code === "kn" ? "ಮಹಾಪುರುಷ ಯೋಗ:" : "Mahapurusha Archetype:"}</strong> <span style={{ color: "#78350F", fontWeight: 800 }}>{result.facialConstitution.mahapurushaArchetype[code] || result.facialConstitution.mahapurushaArchetype.kn}</span></div>
               <div><strong>{code === "kn" ? "ತೇಜಸ್ಸು & ಕಾಂತಿ ಬಲ:" : "Tejas Radiance Score:"}</strong> <span style={{ color: "#78350F", fontWeight: 800 }}>{result.overallTejasScore}%</span></div>
             </div>
           </div>
@@ -126,13 +127,27 @@ export const FaceReadingPdfTemplate: React.FC<FaceReadingPdfTemplateProps> = ({
         {/* 7 Facial Features Grid in PDF */}
         <div style={{ background: "#FFFFFF", border: "1.5px solid #F59E0B", borderRadius: "10px", padding: "12px", marginBottom: "14px" }}>
           <div style={{ fontSize: "12px", fontWeight: 800, color: "#78350F", marginBottom: "8px" }}>
-            👁️ {code === "kn" ? "ಸಪ್ತ ಮುಖ ಲಕ್ಷಣಗಳ ಸಾಮುದ್ರಿಕ ಸಂಕ್ಷಿಪ್ತ ಫಲ:" : "7 Facial Features & Graha Governance:"}
+            👁️ {code === "kn" ? "ಸಪ್ತ ಮುಖ ಲಕ್ಷಣಗಳು & ನವಗ್ರಹ ಅಧಿಪತ್ಯ (Brihat Samhita):" : "7 Facial Features & Graha Governance (Brihat Samhita):"}
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", fontSize: "11px", color: "#78350F" }}>
             {result.features.slice(0, 4).map((f, i) => (
               <div key={i} style={{ background: "#FFFBEB", padding: "6px 8px", borderRadius: "6px", border: "1px solid #FDE68A" }}>
                 <strong>{f.name[code] || f.name.kn} ({f.planetaryRuler[code] || f.planetaryRuler.kn}):</strong>
                 <div>{f.vedicIndication[code] || f.vedicIndication.kn}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 100-Year Age Milestones in PDF */}
+        <div style={{ background: "#FEF3C7", border: "1px solid #F59E0B", borderRadius: "8px", padding: "10px", marginBottom: "14px", fontSize: "11px" }}>
+          <div style={{ fontWeight: 800, color: "#78350F", marginBottom: "4px" }}>
+            ⏳ {code === "kn" ? "೧೦೦-ವರ್ಷ ಮುಖ ಕಾಲಚಕ್ರ ನಕ್ಷೆ (Facial Age Timeline):" : "100-Year Facial Chronology Milestones:"}
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px", color: "#92400E" }}>
+            {result.ageMilestones.map((m, idx) => (
+              <div key={idx} style={{ background: "#FFFFFF", padding: "4px 8px", borderRadius: "4px", border: "1px solid #FDE68A" }}>
+                <strong>{m.agePhase} ({m.ageWindow}):</strong> {m.prediction[code] || m.prediction.kn}
               </div>
             ))}
           </div>

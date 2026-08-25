@@ -541,7 +541,7 @@ export default function FaceReadingPage(): JSX.Element {
 
       {/* TAB 2: 7 Facial Features */}
       {activeTab === "features" && (
-        <FaceFeaturesTab features={activeResult?.features} lang={selectedLang} />
+        <FaceFeaturesTab result={activeResult} features={activeResult?.features} lang={selectedLang} />
       )}
 
       {/* TAB 3: 100-Year Age Chronology Map */}
