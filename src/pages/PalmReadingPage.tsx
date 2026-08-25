@@ -20,13 +20,11 @@ import { PalmRemediesTab } from "../components/palmreading/PalmRemediesTab";
 import { PalmReadingPdfTemplate } from "../components/palmreading/PalmReadingPdfTemplate";
 import { PalmTimelineDiagram } from "../components/palmreading/PalmTimelineDiagram";
 import { sanitizeAIText } from "../utils/textFormatter";
-import GrahaSpinner from "../components/ui/GrahaSpinner";
 import { estimateBirthDetailsFromPalmImage } from "../features/palmreading/palmDobEstimator";
 import { PalmScannerLoader } from "../components/palmreading/PalmScannerLoader";
 import { calculateKundliWithPlaceSun } from "../core/KundliEngine";
 import { calculateTraditionalBaggona } from "../core/TraditionalBaggonaEngine";
 import { formatRashiAmsha } from "../core/localeNumbers";
-import type { PlanetPosition } from "../core/AstroTypes";
 import SouthIndianChart from "../components/kundli/SouthIndianChart";
 
 type ChatMessage = {
@@ -78,6 +76,14 @@ export default function PalmReadingPage(): JSX.Element {
     side: { isValidating: false, isValid: null, message: "" },
     back: { isValidating: false, isValid: null, message: "" }
   });
+
+  // Dedicated refs for camera & upload per slot
+  const frontCameraRef = useRef<HTMLInputElement>(null);
+  const frontFileRef = useRef<HTMLInputElement>(null);
+  const sideCameraRef = useRef<HTMLInputElement>(null);
+  const sideFileRef = useRef<HTMLInputElement>(null);
+  const backCameraRef = useRef<HTMLInputElement>(null);
+  const backFileRef = useRef<HTMLInputElement>(null);
 
   const handleFileUploadForSlot = (file: File, slot: ValidationSlot) => {
     const reader = new FileReader();
@@ -233,8 +239,6 @@ export default function PalmReadingPage(): JSX.Element {
   const [activeResult, setActiveResult] = useState<PalmReadingResult | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -243,18 +247,10 @@ export default function PalmReadingPage(): JSX.Element {
     }
   }, [messages]);
 
-  // Handle Main Photo File Selection
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleFileUploadForSlot(file, "front");
-    }
-  };
-
   // Submit Palm Inspection
   const handleStartPalmReading = async () => {
-    if (!imageDataUrl) {
-      alert(isKn ? "ದಯವಿಟ್ಟು ಮುಂಭಾಗದ ಹಸ್ತದ ಫೋಟೋ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ." : "Please upload front palm photo.");
+    if (!imageDataUrl || slotStatus.front.isValid !== true) {
+      alert(isKn ? "ದಯವಿಟ್ಟು ಮುಂಭಾಗದ ಹಸ್ತದ ಫೋಟೋವನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಪರಿಶೀಲಿಸಿ." : "Please upload and validate a clear front palm photo first.");
       return;
     }
 
@@ -420,6 +416,13 @@ export default function PalmReadingPage(): JSX.Element {
     { code: "ta", label: "தமிழ் (Tamil)" }
   ];
 
+  // Logic for unlocking slots sequentially
+  const isFrontVerified = slotStatus.front.isValid === true;
+  const isSideEnabled = isFrontVerified;
+  const isSideVerified = slotStatus.side.isValid === true;
+  const isBackEnabled = isFrontVerified && isSideVerified;
+  const isGenerateEnabled = isFrontVerified;
+
   return (
     <div className="space-y-6 pb-12">
       {/* Title Header Card */}
@@ -431,8 +434,8 @@ export default function PalmReadingPage(): JSX.Element {
             </h1>
             <p className="mt-1 text-xs text-amber-900/80">
               {isKn
-                ? "ನಿಖರ ೩-ಹಂತದ ಹಸ್ತ ಫೋಟೋ ಸ್ಕ್ಯಾನರ್, ಸಪ್ತ ಗ್ರಹ ಪರ್ವತ ಶಕ್ತಿ, ಸಾಮುದ್ರಿಕ ಯೋಗಗಳು ಹಾಗೂ ಜನನ ಕುಂಡಲಿ ಸಮನ್ವಯ."
-                : "3-Step Multimodal Palm Scanner, 7 Planetary Mounts Energy, Samudrika Yogas & Janma Kundali sync."}
+                ? "ನಿಖರ ೩-ಹಂತದ ಅನುಕ್ರಮಿಕ ಹಸ್ತ ಫೋಟೋ ಸ್ಕ್ಯಾನರ್, ಸಪ್ತ ಗ್ರಹ ಪರ್ವತ ಶಕ್ತಿ, ಸಾಮುದ್ರಿಕ ಯೋಗಗಳು ಹಾಗೂ ಜನನ ಕುಂಡಲಿ ಸಮನ್ವಯ."
+                : "Sequential 3-Step Validated Palm Scanner, 7 Planetary Mounts Energy, Samudrika Yogas & Janma Kundali sync."}
             </p>
           </div>
 
@@ -587,13 +590,13 @@ export default function PalmReadingPage(): JSX.Element {
       </div>
 
       {/* ====================================================================== */}
-      {/* TAB 1: 3-STEP VALIDATED PALM SCANNER & READING                          */}
+      {/* TAB 1: 3-STEP SEQUENTIALLY VALIDATED PALM SCANNER & READING             */}
       {/* ====================================================================== */}
       {activeTab === "reading" && (
         <>
-          {/* Palm Upload, Camera & Kundli Generator Panel */}
           <Card className="border border-amber-300/80 bg-white p-5 shadow-sm space-y-5">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            {/* Top Bar: Hand Side Selector & Kundli Generator Button */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pb-2 border-b border-amber-200">
               {/* Hand Side Selector */}
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-amber-950 mb-2">
@@ -615,7 +618,7 @@ export default function PalmReadingPage(): JSX.Element {
                       onChange={() => setHandSide("right")}
                       className="accent-amber-700"
                     />
-                    <span>{isKn ? "✋ ಬಲ ಹಸ್ತ (Right Hand - Active)" : "✋ Right Hand (Active)"}</span>
+                    <span>{isKn ? "✋ ಬಲ ಹಸ್ತ (Right Hand)" : "✋ Right Hand"}</span>
                   </label>
 
                   <label
@@ -633,48 +636,13 @@ export default function PalmReadingPage(): JSX.Element {
                       onChange={() => setHandSide("left")}
                       className="accent-amber-700"
                     />
-                    <span>{isKn ? "🤚 ಎಡ ಹಸ್ತ (Left Hand - Innate)" : "🤚 Left Hand (Innate)"}</span>
+                    <span>{isKn ? "🤚 ಎಡ ಹಸ್ತ (Left Hand)" : "🤚 Left Hand"}</span>
                   </label>
                 </div>
               </div>
 
-              {/* Photo Capture & Kundli Generator Buttons */}
-              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-                <input
-                  ref={cameraInputRef}
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
-
-                <button
-                  type="button"
-                  onClick={() => cameraInputRef.current?.click()}
-                  className="flex-1 sm:flex-initial flex items-center justify-center gap-2 rounded-xl bg-amber-100 border border-amber-300 px-3.5 py-2.5 text-xs font-bold text-amber-950 hover:bg-amber-200 transition"
-                >
-                  <span>📸</span>
-                  <span>{isKn ? "ಕ್ಯಾಮೆರಾದಿಂದ ಫೋಟೋ ತೆಗಿಯಿರಿ" : "Take Photo"}</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex-1 sm:flex-initial flex items-center justify-center gap-2 rounded-xl bg-amber-50 border border-amber-300 px-3.5 py-2.5 text-xs font-bold text-amber-900 hover:bg-amber-100 transition"
-                >
-                  <span>📁</span>
-                  <span>{isKn ? "ಅಪ್‌ಲೋಡ್ ಮಾಡಿ" : "Upload"}</span>
-                </button>
-
-                {/* 🔮 Kundli Generator Button */}
+              {/* 🔮 Kundli Generator Button */}
+              <div>
                 <button
                   type="button"
                   onClick={handleOpenKundliModal}
@@ -687,30 +655,51 @@ export default function PalmReadingPage(): JSX.Element {
             </div>
 
             {/* 3 Sequential Validated Photo Slots */}
-            <div className="space-y-4 pt-2">
+            <div className="space-y-4 pt-1">
               <div className="flex items-center justify-between border-b border-amber-300/80 pb-2">
                 <h4 className="font-serif text-sm font-bold text-amber-950 flex items-center gap-2">
                   <span>📸</span>
-                  <span>{isKn ? "೩-ಹಂತದ ನೈಜ ಸಮಯದ ಫೋಟೋ ಗುಣಮಟ್ಟ ಪರಿಶೀಲಕ" : "3-Step Real-Time Palm Frame Validator"}</span>
+                  <span>{isKn ? "ಅನುಕ್ರಮಿಕ ೩-ಹಂತದ ಫೋಟೋ ಸಂಗ್ರಹ & ಪರಿಶೀಲನೆ (Sequential Validation)" : "Sequential 3-Step Palm Image Verification"}</span>
                 </h4>
                 <div className="text-xs font-bold text-amber-900 bg-amber-100 border border-amber-300 px-3 py-1 rounded-full">
-                  {imageDataUrl && slotStatus.front.isValid
-                    ? "🟢 Front Palm Validated"
-                    : "🟡 Upload Front Palm"}
+                  {isBackEnabled && slotStatus.back.isValid
+                    ? "🟢 All 3 Steps Verified"
+                    : isSideEnabled && slotStatus.side.isValid
+                    ? "🟡 Step 2 Verified"
+                    : isFrontVerified
+                    ? "🟡 Step 1 Verified"
+                    : "⚪ Start Step 1"}
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Slot 1: Front Palm */}
+                {/* SLOT 1: FRONT PALM (Active initially) */}
                 <div
                   className={`rounded-2xl p-4 border-2 transition space-y-3 ${
                     slotStatus.front.isValid === true
-                      ? "border-emerald-500 bg-emerald-50/70 shadow-md animate-pulse-once"
+                      ? "border-emerald-500 bg-emerald-50/70 shadow-md"
                       : slotStatus.front.isValid === false
                       ? "border-rose-500 bg-rose-50/70 shadow-md"
-                      : "border-amber-300 bg-amber-50/50"
+                      : "border-amber-400 bg-amber-50/60 shadow-sm"
                   }`}
                 >
+                  {/* Slot 1 File Inputs */}
+                  <input
+                    ref={frontCameraRef}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="hidden"
+                    onChange={(e) => e.target.files?.[0] && handleFileUploadForSlot(e.target.files[0], "front")}
+                  />
+                  <input
+                    ref={frontFileRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => e.target.files?.[0] && handleFileUploadForSlot(e.target.files[0], "front")}
+                  />
+
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-xs text-amber-950">✋ ೧. ಮುಂಭಾಗದ ಹಸ್ತ (Front)</span>
                     {slotStatus.front.isValidating ? (
@@ -719,15 +708,15 @@ export default function PalmReadingPage(): JSX.Element {
                       </span>
                     ) : slotStatus.front.isValid === true ? (
                       <span className="text-[10px] bg-emerald-600 text-white font-extrabold px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                        ✅ ೧೦೦% ಸಫಲ
+                        ✅ ೧೦೦% ಸಫಲ (Verified)
                       </span>
                     ) : slotStatus.front.isValid === false ? (
                       <span className="text-[10px] bg-rose-600 text-white font-extrabold px-2.5 py-0.5 rounded-full flex items-center gap-1">
                         ❌ ಅಸ್ಪಷ್ಟ
                       </span>
                     ) : (
-                      <span className="text-[10px] bg-amber-200 text-amber-900 font-bold px-2 py-0.5 rounded-full">
-                        Required
+                      <span className="text-[10px] bg-amber-600 text-white font-bold px-2 py-0.5 rounded-full">
+                        Step 1
                       </span>
                     )}
                   </div>
@@ -771,46 +760,79 @@ export default function PalmReadingPage(): JSX.Element {
                     </div>
                   ) : (
                     <div className="flex gap-2">
-                      <label className="flex-1 cursor-pointer rounded-xl border border-amber-400 bg-white hover:bg-amber-100 text-center py-2 text-xs font-bold text-amber-950 shadow-sm">
-                        📁 Upload Front
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => e.target.files?.[0] && handleFileUploadForSlot(e.target.files[0], "front")}
-                        />
-                      </label>
+                      <button
+                        type="button"
+                        onClick={() => frontCameraRef.current?.click()}
+                        className="flex-1 rounded-xl bg-amber-100 border border-amber-300 hover:bg-amber-200 py-2 text-xs font-bold text-amber-950 flex items-center justify-center gap-1.5 shadow-sm"
+                      >
+                        <span>📸</span>
+                        <span>{isKn ? "ಕ್ಯಾಮೆರಾ" : "Camera"}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => frontFileRef.current?.click()}
+                        className="flex-1 rounded-xl bg-white border border-amber-300 hover:bg-amber-50 py-2 text-xs font-bold text-amber-950 flex items-center justify-center gap-1.5 shadow-sm"
+                      >
+                        <span>📁</span>
+                        <span>{isKn ? "ಅಪ್‌ಲೋಡ್" : "Upload"}</span>
+                      </button>
                     </div>
                   )}
                 </div>
 
-                {/* Slot 2: Side View */}
+                {/* SLOT 2: SIDE VIEW (Disabled until Slot 1 verified) */}
                 <div
                   className={`rounded-2xl p-4 border-2 transition space-y-3 ${
-                    slotStatus.side.isValid === true
+                    !isSideEnabled
+                      ? "border-slate-200 bg-slate-100/70 opacity-60 pointer-events-none"
+                      : slotStatus.side.isValid === true
                       ? "border-emerald-500 bg-emerald-50/70 shadow-md"
                       : slotStatus.side.isValid === false
                       ? "border-rose-500 bg-rose-50/70 shadow-md"
-                      : "border-amber-300 bg-amber-50/50"
+                      : "border-amber-400 bg-amber-50/60 shadow-sm"
                   }`}
                 >
+                  {/* Slot 2 File Inputs */}
+                  <input
+                    ref={sideCameraRef}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="hidden"
+                    onChange={(e) => e.target.files?.[0] && handleFileUploadForSlot(e.target.files[0], "side")}
+                  />
+                  <input
+                    ref={sideFileRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => e.target.files?.[0] && handleFileUploadForSlot(e.target.files[0], "side")}
+                  />
+
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs text-amber-950">📐 ೨. ಪಾರ್ಶ್ವ ಹಸ್ತ (Side)</span>
-                    {slotStatus.side.isValidating ? (
+                    <span className="font-bold text-xs text-amber-950 flex items-center gap-1">
+                      {!isSideEnabled && <span>🔒</span>}
+                      <span>📐 ೨. ಪಾರ್ಶ್ವ ಹಸ್ತ (Side)</span>
+                    </span>
+                    {!isSideEnabled ? (
+                      <span className="text-[10px] bg-slate-300 text-slate-700 font-bold px-2 py-0.5 rounded-full">
+                        Locked (Step 1 Required)
+                      </span>
+                    ) : slotStatus.side.isValidating ? (
                       <span className="text-[10px] bg-amber-500 text-white font-extrabold px-2 py-0.5 rounded-full animate-pulse">
                         ⌛ ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ...
                       </span>
                     ) : slotStatus.side.isValid === true ? (
                       <span className="text-[10px] bg-emerald-600 text-white font-extrabold px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                        ✅ ೧೦೦% ಸಫಲ
+                        ✅ ೧೦೦% ಸಫಲ (Verified)
                       </span>
                     ) : slotStatus.side.isValid === false ? (
                       <span className="text-[10px] bg-rose-600 text-white font-extrabold px-2.5 py-0.5 rounded-full flex items-center gap-1">
                         ❌ ಅಸ್ಪಷ್ಟ
                       </span>
                     ) : (
-                      <span className="text-[10px] bg-amber-100 text-amber-800 font-semibold px-2 py-0.5 rounded-full">
-                        Optional
+                      <span className="text-[10px] bg-amber-600 text-white font-bold px-2 py-0.5 rounded-full">
+                        Step 2
                       </span>
                     )}
                   </div>
@@ -854,46 +876,81 @@ export default function PalmReadingPage(): JSX.Element {
                     </div>
                   ) : (
                     <div className="flex gap-2">
-                      <label className="flex-1 cursor-pointer rounded-xl border border-amber-400 bg-white hover:bg-amber-100 text-center py-2 text-xs font-bold text-amber-950 shadow-sm">
-                        📁 Upload Side View
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => e.target.files?.[0] && handleFileUploadForSlot(e.target.files[0], "side")}
-                        />
-                      </label>
+                      <button
+                        type="button"
+                        disabled={!isSideEnabled}
+                        onClick={() => sideCameraRef.current?.click()}
+                        className="flex-1 rounded-xl bg-amber-100 border border-amber-300 hover:bg-amber-200 py-2 text-xs font-bold text-amber-950 flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50"
+                      >
+                        <span>📸</span>
+                        <span>{isKn ? "ಕ್ಯಾಮೆರಾ" : "Camera"}</span>
+                      </button>
+                      <button
+                        type="button"
+                        disabled={!isSideEnabled}
+                        onClick={() => sideFileRef.current?.click()}
+                        className="flex-1 rounded-xl bg-white border border-amber-300 hover:bg-amber-50 py-2 text-xs font-bold text-amber-950 flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50"
+                      >
+                        <span>📁</span>
+                        <span>{isKn ? "ಅಪ್‌ಲೋಡ್" : "Upload"}</span>
+                      </button>
                     </div>
                   )}
                 </div>
 
-                {/* Slot 3: Back View */}
+                {/* SLOT 3: BACK VIEW (Disabled until Slot 2 verified) */}
                 <div
                   className={`rounded-2xl p-4 border-2 transition space-y-3 ${
-                    slotStatus.back.isValid === true
+                    !isBackEnabled
+                      ? "border-slate-200 bg-slate-100/70 opacity-60 pointer-events-none"
+                      : slotStatus.back.isValid === true
                       ? "border-emerald-500 bg-emerald-50/70 shadow-md"
                       : slotStatus.back.isValid === false
                       ? "border-rose-500 bg-rose-50/70 shadow-md"
-                      : "border-amber-300 bg-amber-50/50"
+                      : "border-amber-400 bg-amber-50/60 shadow-sm"
                   }`}
                 >
+                  {/* Slot 3 File Inputs */}
+                  <input
+                    ref={backCameraRef}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="hidden"
+                    onChange={(e) => e.target.files?.[0] && handleFileUploadForSlot(e.target.files[0], "back")}
+                  />
+                  <input
+                    ref={backFileRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => e.target.files?.[0] && handleFileUploadForSlot(e.target.files[0], "back")}
+                  />
+
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs text-amber-950">💅 ೩. ಹಿಂಭಾಗದ ಹಸ್ತ (Back)</span>
-                    {slotStatus.back.isValidating ? (
+                    <span className="font-bold text-xs text-amber-950 flex items-center gap-1">
+                      {!isBackEnabled && <span>🔒</span>}
+                      <span>💅 ೩. ಹಿಂಭಾಗದ ಹಸ್ತ (Back)</span>
+                    </span>
+                    {!isBackEnabled ? (
+                      <span className="text-[10px] bg-slate-300 text-slate-700 font-bold px-2 py-0.5 rounded-full">
+                        Locked (Step 2 Required)
+                      </span>
+                    ) : slotStatus.back.isValidating ? (
                       <span className="text-[10px] bg-amber-500 text-white font-extrabold px-2 py-0.5 rounded-full animate-pulse">
                         ⌛ ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ...
                       </span>
                     ) : slotStatus.back.isValid === true ? (
                       <span className="text-[10px] bg-emerald-600 text-white font-extrabold px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                        ✅ ೧೦೦% ಸಫಲ
+                        ✅ ೧೦೦% ಸಫಲ (Verified)
                       </span>
                     ) : slotStatus.back.isValid === false ? (
                       <span className="text-[10px] bg-rose-600 text-white font-extrabold px-2.5 py-0.5 rounded-full flex items-center gap-1">
                         ❌ ಅಸ್ಪಷ್ಟ
                       </span>
                     ) : (
-                      <span className="text-[10px] bg-amber-100 text-amber-800 font-semibold px-2 py-0.5 rounded-full">
-                        Optional
+                      <span className="text-[10px] bg-amber-600 text-white font-bold px-2 py-0.5 rounded-full">
+                        Step 3
                       </span>
                     )}
                   </div>
@@ -937,28 +994,41 @@ export default function PalmReadingPage(): JSX.Element {
                     </div>
                   ) : (
                     <div className="flex gap-2">
-                      <label className="flex-1 cursor-pointer rounded-xl border border-amber-400 bg-white hover:bg-amber-100 text-center py-2 text-xs font-bold text-amber-950 shadow-sm">
-                        📁 Upload Back View
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => e.target.files?.[0] && handleFileUploadForSlot(e.target.files[0], "back")}
-                        />
-                      </label>
+                      <button
+                        type="button"
+                        disabled={!isBackEnabled}
+                        onClick={() => backCameraRef.current?.click()}
+                        className="flex-1 rounded-xl bg-amber-100 border border-amber-300 hover:bg-amber-200 py-2 text-xs font-bold text-amber-950 flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50"
+                      >
+                        <span>📸</span>
+                        <span>{isKn ? "ಕ್ಯಾಮೆರಾ" : "Camera"}</span>
+                      </button>
+                      <button
+                        type="button"
+                        disabled={!isBackEnabled}
+                        onClick={() => backFileRef.current?.click()}
+                        className="flex-1 rounded-xl bg-white border border-amber-300 hover:bg-amber-50 py-2 text-xs font-bold text-amber-950 flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50"
+                      >
+                        <span>📁</span>
+                        <span>{isKn ? "ಅಪ್‌ಲೋಡ್" : "Upload"}</span>
+                      </button>
                     </div>
                   )}
                 </div>
               </div>
             </div>
 
-            {/* Main Action Button */}
+            {/* Main Action Button (Disabled until Step 1 is valid) */}
             <div className="pt-3 border-t border-amber-200 flex justify-center">
               <button
                 type="button"
                 onClick={handleStartPalmReading}
-                disabled={isProcessing || !imageDataUrl}
-                className="w-full sm:w-2/3 rounded-2xl bg-gradient-to-r from-amber-700 via-amber-800 to-amber-900 py-3.5 text-sm font-bold text-amber-50 shadow-xl transition hover:from-amber-800 hover:to-amber-950 disabled:opacity-50 flex items-center justify-center gap-2"
+                disabled={isProcessing || !isGenerateEnabled}
+                className={`w-full sm:w-2/3 rounded-2xl py-3.5 text-sm font-bold shadow-xl transition flex items-center justify-center gap-2 ${
+                  isGenerateEnabled && !isProcessing
+                    ? "bg-gradient-to-r from-amber-700 via-amber-800 to-amber-900 text-amber-50 hover:from-amber-800 hover:to-amber-950 cursor-pointer animate-pulse"
+                    : "bg-slate-300 text-slate-600 cursor-not-allowed opacity-60"
+                }`}
               >
                 <span>🔮</span>
                 <span>
@@ -966,6 +1036,10 @@ export default function PalmReadingPage(): JSX.Element {
                     ? isKn
                       ? "⌛ ಹಸ್ತ ರೇಖಾ ವಿಶ್ಲೇಷಿಸಲಾಗುತ್ತಿದೆ..."
                       : "Analyzing Palm..."
+                    : !isFrontVerified
+                    ? isKn
+                      ? "ಹಂತ ೧ ರ ಮುಂಭಾಗದ ಹಸ್ತ ಪರಿಶೀಲಿಸಿ (Step 1 Verification Required)"
+                      : "Step 1 Front Palm Verification Required"
                     : isKn
                     ? "ಹಸ್ತ ರೇಖಾ ಶಾಸ್ತ್ರ ಫಲ ಪಡೆಯಿರಿ (Generate Hastarekha Reading)"
                     : "Generate Hastarekha Reading"}

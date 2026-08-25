@@ -127,7 +127,7 @@ const LINE_NAMES_L5: Record<string, Record<string, string>> = {
     kn: "ಸೂರ್ಯ ರೇಖೆ",
     en: "Sun Line (Vidya & Kirti Rekha - Fame & Success)",
     hi: "सूर्य रेखा (विद्या व कीर्ति रेखा - प्रसिद्धि)",
-    te: "సూర్య రేఖ (విద్య & కీర్తి రేఖ - ప్రఖ్యాతి)",
+    te: "సూర్య రేఖ (విద్య & కీರ್ತಿ రేఖ - ಪ್ರಖ್ಯಾತಿ)",
     ta: "சூரிய ரேகை (புகழ் & கௌரவம்)"
   }
 };
@@ -169,7 +169,7 @@ You are Sri Shreeram Pandit, revered Master of Classical Vedic Samudrika Shastra
 Perform an authentic, 100% personalized, image-derived Hastarekha Shastra inspection of the devotee's uploaded palm photo(s):
 - Hand Side: ${handSide.toUpperCase()} HAND
 - Devotee: ${devoteeName}
-- Language: ${langCode === "kn" ? "Kannada" : langCode === "hi" ? "Hindi" : langCode === "te" ? "Telugu" : langCode === "ta" ? "Tamil" : "English"}
+- Target Language: ${langCode === "kn" ? "Kannada" : langCode === "hi" ? "Hindi" : langCode === "te" ? "Telugu" : langCode === "ta" ? "Tamil" : "English"}
 
 ${kundliData ? `
 NATAL ASTRONOMICAL KUNDALI INTEGRATION:
@@ -180,19 +180,19 @@ NATAL ASTRONOMICAL KUNDALI INTEGRATION:
 - Current Dasha: ${kundliData.dasha}
 ` : ""}
 
-CRITICAL INSTRUCTION:
-Do NOT output generic canned responses. Inspect the real palm image carefully:
-1. Check Life Line curvature around Venus mount, starting point near Jupiter, branches pointing upwards vs downwards, and breaks/chains.
-2. Check Head Line length, straightness (analytical) vs slope towards Moon mount (creative/intuitive), and writer's fork.
-3. Check Heart Line termination on Jupiter mount (idealistic/noble) vs Saturn mount (materialistic), branches, and island marks.
-4. Check Fate Line origin (Wrist, Moon, or Life Line), breaks at Head line (age 35) or Heart line (age 56).
-5. Check Sun Line presence, clarity, and forks on Apollo mount.
-6. Check Mounts prominence (Jupiter, Saturn, Sun, Mercury, Venus, Moon, Mars).
-7. Identify any sacred Vedic signs: Trishula (Trident), Matsya (Fish), Padma (Lotus), Triangle, Star, Cross, Temple.
-8. If side view image is provided, inspect marriage lines near Mercury.
-9. If back view image is provided, inspect fingernails (half moons, shape) and finger phalanges.
+CRITICAL SAMUDRIKA SHASTRA RULES:
+1. Examine the real image carefully. Measure actual line depths, start/end points, curvature, and branches.
+2. Life Line: Curve around Venus mount, upward branches to Jupiter/Saturn, wrist forks, and breaks.
+3. Head Line: Straightness to Upper Mars vs slope towards Moon mount vs writer's fork.
+4. Heart Line: Termination on Jupiter mount (noble love) vs Saturn mount, branches, and islands.
+5. Fate Line: Starting location (wrist, Moon, or Life line), transitions at Head line (age 35) and Heart line (age 56).
+6. Sun Line: Radiant clarity on Apollo mount.
+7. Mounts: Elevation and prominence of Jupiter, Saturn, Sun, Mercury, Venus, Moon, and Mars.
+8. Sacred Signs: Identify Trishula, Matsya (Fish), Padma (Lotus), Trikona (Triangle), Star, or Ring of Solomon if visible.
+9. Side view: Marriage lines under pinky finger.
+10. Back view: Nails (half moons) and finger phalanges.
 
-RESPOND ONLY WITH A VALID JSON OBJECT in this exact schema (no markdown fences, no backticks):
+Return ONLY a strict JSON object:
 {
   "lifeLineStatus": "...",
   "lifeLineIndication": "...",
@@ -210,9 +210,9 @@ RESPOND ONLY WITH A VALID JSON OBJECT in this exact schema (no markdown fences, 
   "specialMarks": [
     { "mark": "...", "meaning": "..." }
   ],
-  "overallScore": 87,
+  "overallScore": 88,
   "verdictTitle": "...",
-  "detailedPredictionText": "A rich, deeply empathetic 4-paragraph Vedic reading written purely in ${langCode === "kn" ? "Kannada" : langCode === "hi" ? "Hindi" : langCode === "te" ? "Telugu" : langCode === "ta" ? "Tamil" : "English"} script without mixing English in brackets. Include specific life advice, career guidance, family peace, and spiritual growth.",
+  "detailedPredictionText": "A rich, deeply empathetic 4-paragraph Vedic reading written purely in native ${langCode === "kn" ? "Kannada" : langCode === "hi" ? "Hindi" : langCode === "te" ? "Telugu" : langCode === "ta" ? "Tamil" : "English"} script. Focus directly on the actual visible lines, career milestones, health stamina, family peace, and spiritual destiny without generic cliches.",
   "remedy": "Specific sacred remedy at Gokarna Mahabaleshwara Kshetra with mantra."
 }
 `;
@@ -225,7 +225,11 @@ RESPOND ONLY WITH A VALID JSON OBJECT in this exact schema (no markdown fences, 
     try {
       const genAI = new GoogleGenerativeAI(activeKey);
       const model = genAI.getGenerativeModel({
-        model: "gemini-3.5-flash-lite",
+        model: "gemini-2.5-flash",
+        generationConfig: {
+          temperature: 0.1,
+          responseMimeType: "application/json"
+        },
         safetySettings: [
           { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
           { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
@@ -334,7 +338,7 @@ RESPOND ONLY WITH A VALID JSON OBJECT in this exact schema (no markdown fences, 
       kn: parsedData?.sunLineIndication || VEDIC_MAJOR_LINES_RULES.sunLine.descriptions.clear_on_sun_mount.indication,
       en: parsedData?.sunLineIndication || "High social prestige, governmental or executive recognition.",
       hi: parsedData?.sunLineIndication || "समाज में उच्च सम्मान, पद-प्रतिष्ठा व यश।",
-      te: parsedData?.sunLineIndication || "సమాజంలో గౌరవం & కీర్తి.",
+      te: parsedData?.sunLineIndication || "సమాజంలో గౌరవం & కీರ್ತಿ.",
       ta: parsedData?.sunLineIndication || "சமூகத்தில் மதிப்பு மற்றும் புகழ்."
     }
   };
@@ -374,7 +378,7 @@ RESPOND ONLY WITH A VALID JSON OBJECT in this exact schema (no markdown fences, 
 
   const overallScore = typeof parsedData?.overallScore === "number" && parsedData.overallScore >= 50 && parsedData.overallScore <= 100
     ? parsedData.overallScore
-    : 86;
+    : 88;
 
   const defaultRemedy = "ಗೋಕರ್ಣ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಗೆ ಕ್ಷೀರಾಭಿಷೇಕ ಸೇವೆ ಸಲ್ಲಿಸಿ, ಪ್ರತಿದಿನ ಬೆಳಿಗ್ಗೆ 'ಓಂ ನಮಃ ಶಿವಾಯ' ಹಾಗೂ 'ಶ್ರೀ ಗಾಯತ್ರೀ ಮಹಾಮಂತ್ರ'ವನ್ನು ೧೦೮ ಬಾರಿ ಜಪಿಸಿ.";
   const remedyRecommendation = {
@@ -452,7 +456,7 @@ Provide a concise, direct, wise, and encouraging answer strictly using native sc
 
   try {
     const genAI = new GoogleGenerativeAI(activeKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash-lite" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     const result = await model.generateContent(`${contextData}\n${prompt}`);
     const response = await result.response;
     return response.text() || "No response text.";

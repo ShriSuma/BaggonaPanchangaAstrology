@@ -33,7 +33,7 @@ function base64ToGenerativePart(dataUrl: string) {
   };
 }
 
-/** Validates an uploaded palm image slot using Gemini 3.5/3.7 Vision or Client-side Heuristics */
+/** Validates an uploaded palm image slot using Gemini Vision or Client-side Heuristics */
 export async function validatePalmImageSlot(
   dataUrl: string,
   slot: ValidationSlot,
@@ -58,15 +58,21 @@ export async function validatePalmImageSlot(
     return {
       isValid: true,
       slot,
-      messageKn: "ಹಸ್ತದ ಚಿತ್ರ ಸ್ವೀಕೃತವಾಗಿದೆ (ಅಣಕು ಪರೀಕ್ಷೆ).",
-      messageEn: "Palm image accepted (Offline preview).",
+      messageKn: "ಹಸ್ತದ ಚಿತ್ರ ಸ್ವೀಕೃತವಾಗಿದೆ (ಪೂರ್ವವೀಕ್ಷಣೆ).",
+      messageEn: "Palm image accepted (Preview).",
       confidence: 90
     };
   }
 
   try {
     const genAI = new GoogleGenerativeAI(activeKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash-lite" });
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.5-flash",
+      generationConfig: {
+        temperature: 0.1,
+        responseMimeType: "application/json"
+      }
+    });
 
     const slotExpectations = {
       front: "Front flat palm showing palm lines (Life, Head, Heart lines).",
@@ -82,7 +88,7 @@ Examine the image carefully:
 1. Is this actually a human hand / palm photograph matching the "${slot.toUpperCase()}" view?
 2. Is the lighting adequate and are key features clear (not extremely blurry, pitch black, or cropped off)?
 
-Respond ONLY with a JSON object in this exact schema (no backticks, no markdown):
+Respond in JSON format:
 {
   "isValid": true,
   "confidence": 95,
