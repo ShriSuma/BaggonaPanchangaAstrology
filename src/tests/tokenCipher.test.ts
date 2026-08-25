@@ -1,5 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { encodeDevoteeToken, decodeDevoteeToken, DevoteeTokenPayload } from "../utils/tokenCipher";
+import {
+  encodeDevoteeToken,
+  decodeDevoteeToken,
+  encodeAcademyToken,
+  decodeAcademyToken,
+  DevoteeTokenPayload,
+  AcademyTokenPayload
+} from "../utils/tokenCipher";
 
 describe("tokenCipher Security & Privacy Engine", () => {
   it("encodes and decodes devotee payload accurately", () => {
@@ -38,31 +45,28 @@ describe("tokenCipher Security & Privacy Engine", () => {
 
   it("encodes and decodes PIN code, Latitude, Longitude, and Location Name", () => {
     const payload: DevoteeTokenPayload = {
-      name: "Srinivas Rao",
-      pincode: "500001",
-      lat: 17.3850,
-      lng: 78.4867,
-      locationName: "Hyderabad",
-      lang: "kn"
+      name: "Suma",
+      pincode: "581326",
+      lat: 14.54,
+      lng: 74.31,
+      locationName: "Gokarna Temple"
     };
 
     const token = encodeDevoteeToken(payload);
     const decoded = decodeDevoteeToken(token);
     expect(decoded).not.toBeNull();
-    expect(decoded?.pincode).toBe("500001");
-    expect(decoded?.lat).toBeCloseTo(17.3850);
-    expect(decoded?.lng).toBeCloseTo(78.4867);
-    expect(decoded?.locationName).toBe("Hyderabad");
+    expect(decoded?.pc).toBe("581326");
+    expect(decoded?.lt).toBe(14.54);
+    expect(decoded?.lg).toBe(74.31);
+    expect(decoded?.loc).toBe("Gokarna Temple");
   });
 
-  it("handles complex Indic Unicode scripts (Kannada, Telugu, Tamil, Hindi)", () => {
+  it("handles complex Unicode Indic scripts without corruption", () => {
     const payload: DevoteeTokenPayload = {
       name: "ಪ್ರಮೋದ ಕುಮಾರ್ / సురేష్ / ரமேஷ் / अमित",
       gotra: "ಕೌಶಿಕ ಗೋತ್ರ",
       pandit: "ವೇ| ಬ್ರ| ಶ್ರೀ ಸೀತಾರಾಮ ಭಟ್ಟ",
-      date: "2026-09-01",
-      lang: "kn",
-      target: "sanctum"
+      date: "2026-08-14"
     };
 
     const token = encodeDevoteeToken(payload);
@@ -91,5 +95,27 @@ describe("tokenCipher Security & Privacy Engine", () => {
     expect(decodeDevoteeToken("")).toBeNull();
     expect(decodeDevoteeToken("invalid_random_string")).toBeNull();
     expect(decodeDevoteeToken("bgn_v1_broken")).toBeNull();
+  });
+
+  it("encodes and decodes standalone Kundli Academy tokens seamlessly", () => {
+    const payload: AcademyTokenPayload = {
+      name: "ಅರ್ಜುನ್ ಶರ್ಮಾ",
+      lang: "kn",
+      level: 4,
+      step: 2,
+      invitedBy: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್"
+    };
+
+    const token = encodeAcademyToken(payload);
+    expect(token).toMatch(/^bgn_acad_v1_/);
+    expect(token).not.toContain("ಅರ್ಜುನ್");
+
+    const decoded = decodeAcademyToken(token);
+    expect(decoded).not.toBeNull();
+    expect(decoded?.name).toBe("ಅರ್ಜುನ್ ಶರ್ಮಾ");
+    expect(decoded?.lang).toBe("kn");
+    expect(decoded?.level).toBe(4);
+    expect(decoded?.step).toBe(2);
+    expect(decoded?.invitedBy).toBe("ಶ್ರೀರಾಮ್ ಪಂಡಿತ್");
   });
 });

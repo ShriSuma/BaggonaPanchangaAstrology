@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Card from "../ui/Card";
 import { gameAudio } from "../../utils/gameAudio";
+import { encodeAcademyToken } from "../../utils/tokenCipher";
 import {
   HOUSE_LEARNING_MODULES,
   type HouseLearningModule
@@ -38,6 +39,9 @@ export const LearnKundliGame: React.FC<LearnKundliProps> = ({ lang = "kn" }) => 
   const [selectedSimGraha, setSelectedSimGraha] = useState<string>("Sun");
   const [quizScore, setQuizScore] = useState<number>(0);
   const [userAnswers, setUserAnswers] = useState<Record<number, number>>({});
+  const [showShareModal, setShowShareModal] = useState<boolean>(false);
+  const [shareStudentName, setShareStudentName] = useState<string>("");
+  const [copied, setCopied] = useState<boolean>(false);
 
   const houseData: HouseLearningModule = HOUSE_LEARNING_MODULES[selectedHouse] || HOUSE_LEARNING_MODULES[1];
 
@@ -119,6 +123,18 @@ export const LearnKundliGame: React.FC<LearnKundliProps> = ({ lang = "kn" }) => 
               className="px-3 py-1.5 rounded-xl border border-amber-400 bg-white text-amber-950 font-bold text-xs shadow-xs hover:bg-amber-50"
             >
               🌐 {isKn ? "English ನಲ್ಲಿ ಓದಿ" : "ಕನ್ನಡದಲ್ಲಿ ಓದಿ"}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setShowShareModal(true);
+                gameAudio.playChime();
+              }}
+              className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-700 via-amber-800 to-amber-950 text-amber-50 font-bold text-xs shadow-xs hover:from-amber-800 hover:to-black transition flex items-center gap-1.5"
+            >
+              <span>🔗</span>
+              <span>{isKn ? "ವಿದ್ಯಾರ್ಥಿ ಲಿಂಕ್" : "Share Link"}</span>
             </button>
           </div>
         </div>
@@ -710,6 +726,104 @@ export const LearnKundliGame: React.FC<LearnKundliProps> = ({ lang = "kn" }) => 
           </Card>
         </div>
       </div>
+
+      {/* Personalized Student Share Modal */}
+      {showShareModal && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl border-2 border-amber-400 p-6 max-w-md w-full shadow-2xl space-y-4 relative">
+            <div className="flex items-center justify-between border-b border-amber-200 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🔗</span>
+                <h3 className="font-serif text-base font-black text-amber-950">
+                  {isKn ? "ವಿದ್ಯಾರ್ಥಿಗೆ ವೈಯಕ್ತಿಕ ಲಿಂಕ್ ಕಳುಹಿಸಿ" : "Share Personalized Student Link"}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowShareModal(false)}
+                className="w-8 h-8 rounded-full bg-amber-100 text-amber-900 font-black flex items-center justify-center hover:bg-amber-200"
+              >
+                ✕
+              </button>
+            </div>
+
+            {(() => {
+              const nameToUse = (shareStudentName || (isKn ? "ವಿದ್ಯಾರ್ಥಿ" : "Student")).trim();
+              const token = encodeAcademyToken({
+                name: nameToUse,
+                lang: currentLang,
+                level: selectedHouse,
+                step: 1,
+                invitedBy: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್"
+              });
+              const origin = typeof window !== "undefined" ? window.location.origin : "";
+              const shareUrl = `${origin}/academy?academyToken=${token}`;
+
+              const handleCopy = () => {
+                if (!navigator.clipboard) return;
+                navigator.clipboard.writeText(shareUrl);
+                setCopied(true);
+                gameAudio.playSuccess();
+                setTimeout(() => setCopied(false), 2500);
+              };
+
+              const handleWhatsApp = () => {
+                const msg = isKn
+                  ? `🕉️ ಶ್ರೀ ಬಗ್ಗೋಣ ಜ್ಯೋತಿಷ್ಯ ಗುರುಕುಲ (Kundli Academy)!\n\nಆತ್ಮೀಯ ${nameToUse}, ಡಾ. ಬಿ.ವಿ. ರಾಮನ್ ಅವರ ಶಾಸ್ತ್ರೀಯ ನಿಯಮಗಳೊಂದಿಗೆ ೧೨ ಮನೆಗಳ ಕುಂಡಲಿ ಫಲಜ್ಯೋತಿಷ್ಯವನ್ನು ಕಲಿಯಲು ಕೆಳಗಿನ ಲಿಂಕ್ ತೆರೆಯಿರಿ:\n\n👉 ${shareUrl}`
+                  : `🕉️ Baggona Vedic Kundli Academy!\n\nDear ${nameToUse}, learn to read Janma Kundali with Dr. B.V. Raman's classical master rules using this interactive link:\n\n👉 ${shareUrl}`;
+                window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, "_blank");
+              };
+
+              return (
+                <div className="space-y-3 text-xs">
+                  <div>
+                    <label className="block font-bold text-amber-950 mb-1">
+                      👤 {isKn ? "ವಿದ್ಯಾರ್ಥಿ / ಭಕ್ತರ ಹೆಸರು:" : "Student / Devotee Name:"}
+                    </label>
+                    <input
+                      type="text"
+                      value={shareStudentName}
+                      onChange={(e) => setShareStudentName(e.target.value)}
+                      placeholder={isKn ? "ಉದಾ: ರಮೇಶ್, ಪ್ರಿಯಾ..." : "e.g., Ramesh, Priya..."}
+                      className="w-full px-3.5 py-2 rounded-xl border border-amber-300 bg-amber-50/50 font-bold text-amber-950 focus:outline-hidden focus:ring-2 focus:ring-amber-500"
+                    />
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 break-all text-[11px] font-mono text-amber-900">
+                    {shareUrl}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={handleCopy}
+                      className="py-2.5 rounded-xl bg-amber-900 text-amber-50 font-bold shadow hover:bg-black transition flex items-center justify-center gap-1.5"
+                    >
+                      <span>{copied ? "✅" : "📋"}</span>
+                      <span>{copied ? (isKn ? "ಕಾಪಿ ಆಯಿತು!" : "Copied!") : (isKn ? "ಲಿಂಕ್ ಕಾಪಿ ಮಾಡಿ" : "Copy Link")}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleWhatsApp}
+                      className="py-2.5 rounded-xl bg-emerald-600 text-white font-bold shadow hover:bg-emerald-700 transition flex items-center justify-center gap-1.5"
+                    >
+                      <span>💬</span>
+                      <span>{isKn ? "WhatsApp ನಲ್ಲಿ ಕಳುಹಿಸಿ" : "Share WhatsApp"}</span>
+                    </button>
+                  </div>
+
+                  <p className="text-[10px] text-amber-800/80 text-center font-medium">
+                    🔒 {isKn
+                      ? "ಈ ಲಿಂಕ್ ತೆರೆದಾಗ ವಿದ್ಯಾರ್ಥಿಯು ಕೇವಲ ಕುಂಡಲಿ ಕಲಿಕಾ ತಾಣವನ್ನು ಮಾತ್ರ ವೀಕ್ಷಿಸಬಹುದು. ಲಾಗಿನ್ ಅಗತ್ಯವಿಲ್ಲ."
+                      : "Recipients can directly access the Kundli Academy without logging in."}
+                  </p>
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

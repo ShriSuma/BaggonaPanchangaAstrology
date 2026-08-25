@@ -27,9 +27,17 @@ import { useAuthStore } from "./features/auth/authStore";
 import { LoginPage } from "./components/auth/LoginPage";
 import { initDailyReportScheduler } from "./features/reports/dailyScheduler";
 import DailyDarshanaPage from "./pages/DailyDarshanaPage";
+import KundliAcademyStandalonePage from "./pages/KundliAcademyStandalonePage";
 
 export default function App(): JSX.Element {
-  const isDailyRoute = typeof window !== "undefined" && (
+  const isAcademyRoute = typeof window !== "undefined" && (
+    window.location.pathname.startsWith("/academy") ||
+    window.location.pathname.startsWith("/learnkundli") ||
+    window.location.search.includes("academyToken=") ||
+    (window.location.search.includes("game=learnkundli") && window.location.search.includes("mode=standalone"))
+  );
+
+  const isDailyRoute = typeof window !== "undefined" && !isAcademyRoute && (
     window.location.pathname.startsWith("/daily") ||
     window.location.pathname.startsWith("/darshana") ||
     window.location.search.includes("token=") ||
@@ -56,6 +64,10 @@ export default function App(): JSX.Element {
     };
     void run();
   }, [hydrateSettings, checkSession]);
+
+  if (isAcademyRoute) {
+    return <KundliAcademyStandalonePage />;
+  }
 
   if (isDailyRoute) {
     return <DailyDarshanaPage />;

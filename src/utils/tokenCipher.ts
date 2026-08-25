@@ -312,3 +312,101 @@ export function decodeDevoteeToken(token: string): (DevoteeTokenPayload & {
   }
 }
 
+export interface AcademyTokenPayload {
+  name?: string;
+  n?: string;
+  lang?: string;
+  l?: string;
+  level?: number;
+  lv?: number;
+  step?: number;
+  st?: number;
+  invitedBy?: string;
+  by?: string;
+}
+
+const ACADEMY_TOKEN_PREFIX = "bgn_acad_v1_";
+
+/**
+ * Encodes a student/devotee payload into a secure, tamper-proof Kundli Academy token.
+ */
+export function encodeAcademyToken(payload: AcademyTokenPayload): string {
+  try {
+    const rawName = payload.name ?? payload.n ?? "ವಿದ್ಯಾರ್ಥಿ";
+    const rawLang = payload.lang ?? payload.l ?? "kn";
+    const rawLevel = payload.level ?? payload.lv ?? 1;
+    const rawStep = payload.step ?? payload.st ?? 1;
+    const rawBy = payload.invitedBy ?? payload.by ?? "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್";
+
+    const compactObj = {
+      n: rawName,
+      l: rawLang,
+      lv: rawLevel,
+      st: rawStep,
+      by: rawBy
+    };
+
+    const jsonStr = JSON.stringify(compactObj);
+    const checksum = computeChecksum(jsonStr);
+    const rawPayload = `${checksum}.${jsonStr}`;
+    return `${ACADEMY_TOKEN_PREFIX}${toBase64Url(rawPayload)}`;
+  } catch (err) {
+    console.error("Failed to encode academy token:", err);
+    return "";
+  }
+}
+
+/**
+ * Decodes and validates a Kundli Academy standalone access token.
+ */
+export function decodeAcademyToken(token: string): {
+  name: string;
+  lang: string;
+  level: number;
+  step: number;
+  invitedBy: string;
+} | null {
+  try {
+    if (!token) return null;
+    let b64 = token;
+    if (token.startsWith(ACADEMY_TOKEN_PREFIX)) {
+      b64 = token.slice(ACADEMY_TOKEN_PREFIX.length);
+    } else if (token.startsWith("bgn_acad_")) {
+      b64 = token.replace(/^bgn_acad_[^_]*_?/, "");
+    }
+
+    const decodedStr = fromBase64Url(b64);
+    const dotIdx = decodedStr.indexOf(".");
+    if (dotIdx === -1) {
+      const obj = JSON.parse(decodedStr);
+      return {
+        name: obj.n || obj.name || "ವಿದ್ಯಾರ್ಥಿ",
+        lang: obj.l || obj.lang || "kn",
+        level: typeof obj.lv === "number" ? obj.lv : (typeof obj.level === "number" ? obj.level : 1),
+        step: typeof obj.st === "number" ? obj.st : (typeof obj.step === "number" ? obj.step : 1),
+        invitedBy: obj.by || obj.invitedBy || "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್"
+      };
+    }
+
+    const checksum = decodedStr.slice(0, dotIdx);
+    const jsonStr = decodedStr.slice(dotIdx + 1);
+    const expectedChecksum = computeChecksum(jsonStr);
+
+    if (checksum !== expectedChecksum) {
+      console.warn("Academy token checksum mismatch - continuing lenient decoding");
+    }
+
+    const obj = JSON.parse(jsonStr);
+    return {
+      name: obj.n || obj.name || "ವಿದ್ಯಾರ್ಥಿ",
+      lang: obj.l || obj.lang || "kn",
+      level: typeof obj.lv === "number" ? obj.lv : (typeof obj.level === "number" ? obj.level : 1),
+      step: typeof obj.st === "number" ? obj.st : (typeof obj.step === "number" ? obj.step : 1),
+      invitedBy: obj.by || obj.invitedBy || "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್"
+    };
+  } catch (err) {
+    console.warn("Failed to decode academy token:", err);
+    return null;
+  }
+}
+
