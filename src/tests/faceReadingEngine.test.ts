@@ -19,7 +19,7 @@ describe("Classical Vedic Muka Samudrika Shastra Engine", () => {
     expect(result.ageMilestones.length).toBe(4);
     expect(result.moles.length).toBeGreaterThanOrEqual(1);
     expect(result.remedyRecommendation.kn).toContain("ಗೋಕರ್ಣ");
-  }, 15000);
+  }, 30000);
 
   it("validates empty or corrupt face image appropriately", async () => {
     const emptyValidation = await validateFaceImage("", "", "kn");

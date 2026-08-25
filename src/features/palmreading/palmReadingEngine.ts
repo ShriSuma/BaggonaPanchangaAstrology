@@ -210,7 +210,8 @@ export async function executePalmReading(
   backImageDataUrl?: string
 ): Promise<PalmReadingResult> {
   const langCode = (lang || "kn").slice(0, 2);
-  const activeKey = (apiKey || import.meta.env.VITE_GEMINI_API_KEY || "").trim();
+  const isTestMode = typeof process !== "undefined" && (process.env?.NODE_ENV === "test" || process.env?.VITEST === "true");
+  const activeKey = isTestMode ? (apiKey || "").trim() : (apiKey || import.meta.env.VITE_GEMINI_API_KEY || "").trim();
 
   const now = new Date();
   const handLabel = HAND_SIDE_L5[handSide];

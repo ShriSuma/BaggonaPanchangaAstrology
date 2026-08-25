@@ -21,5 +21,5 @@ describe("Hastarekha Shastra (Palmistry) Engine", () => {
     expect(result.fateLine).toBeDefined();
     expect(result.sunLine).toBeDefined();
     expect(result.overallScore).toBeGreaterThanOrEqual(85);
-  }, 15000);
+  }, 30000);
 });

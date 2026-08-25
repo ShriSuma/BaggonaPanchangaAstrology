@@ -3,16 +3,17 @@ import { useTranslation } from "react-i18next";
 import Card from "../components/ui/Card";
 import { gameAudio } from "../utils/gameAudio";
 import { VedicMindReaderGame } from "../components/games/VedicMindReaderGame";
+import { YogaDoshaParampadaGame } from "../components/games/YogaDoshaParampadaGame";
 import { NavagrahaBoardGame } from "../components/games/NavagrahaBoardGame";
 import { AstroCharadesGame } from "../components/games/AstroCharadesGame";
 import { SankhyaDuelGame } from "../components/games/SankhyaDuelGame";
 import { VedicTriviaBlitzGame } from "../components/games/VedicTriviaBlitzGame";
 import { LearnKundliGame } from "../components/games/LearnKundliGame";
 
-type ActiveGameId = "hub" | "mindreader" | "parampada" | "charades" | "sankhya" | "trivia" | "learnkundli";
+type ActiveGameId = "hub" | "yogadosha" | "mindreader" | "parampada" | "charades" | "sankhya" | "trivia" | "learnkundli";
 
 export default function AstroGamesPage(): JSX.Element {
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
   const isKn = i18n.language.startsWith("kn");
 
   const [activeGame, setActiveGame] = useState<ActiveGameId>("hub");
@@ -30,9 +31,19 @@ export default function AstroGamesPage(): JSX.Element {
 
   const games = [
     {
+      id: "yogadosha" as ActiveGameId,
+      titleKn: "೧. ಯೋಗ & ದೋಷ ಮಹಾ ಪರಮಪದ (Yoga & Dosha)",
+      titleEn: "1. Yoga & Dosha Maha Parampada (Snake & Ladder)",
+      badgeKn: "೨ - ೮ ಆಟಗಾರರು (2 to 8 Players)",
+      badgeEn: "2 to 8 Players (Board & Roller)",
+      icon: "🐍",
+      descKn: "೧೦೦ ಮನೆಗಳ ಮಹಾ ಬೋರ್ಡ್, ೩ಡಿ ಡೈಸ್ ರೋಲರ್, ಲಕ್ಕಿ ನಂಬರ್ ಬೋನಸ್, ಪುಣ್ಯ ಯೋಗ ಮೆಟ್ಟಿಲುಗಳು (Ladders) ಹಾಗೂ ಕರ್ಮ ದೋಷ ಸರ್ಪಗಳು (Snakes)!",
+      descEn: "100-cell grand Vedic board, animated dice roller, lucky number match bonuses, Divine Yogas (Ladders) & Karmic Doshas (Snakes)!"
+    },
+    {
       id: "mindreader" as ActiveGameId,
-      titleKn: "೧. ಚಿತ್ತ ರಹಸ್ಯ (Vedic Mind Reader)",
-      titleEn: "1. The 108 Vedic Mind Reader",
+      titleKn: "೨. ಚಿತ್ತ ರಹಸ್ಯ (Vedic Mind Reader)",
+      titleEn: "2. The 108 Vedic Mind Reader",
       badgeKn: "ಏಕ ವ್ಯಕ್ತಿ (Solo / 1 Player)",
       badgeEn: "Solo (1 Player vs Oracle)",
       icon: "🔮",
@@ -41,18 +52,18 @@ export default function AstroGamesPage(): JSX.Element {
     },
     {
       id: "parampada" as ActiveGameId,
-      titleKn: "೨. ನವಗ್ರಹ ಪರಮಪದ (Cosmic Board)",
-      titleEn: "2. Cosmic Navagraha Roller & Ladders",
+      titleKn: "೩. ನವಗ್ರಹ ಪರಮಪದ (Cosmic Board)",
+      titleEn: "3. Cosmic Navagraha Roller & Ladders",
       badgeKn: "೨ - ೮ ಆಟಗಾರರು (2 to 8 Players)",
       badgeEn: "2 to 8 Players Multi-player",
       icon: "🎲",
-      descKn: "೩ಡಿ ಗೋಲ್ಡನ್ ಡೈಸ್ ರೋಲರ್, ಪುಣ್ಯ ಮೆಟ್ಟಿಲುಗಳು, ರಾಹು-ಶನಿ ಕರ್ಮ ಸರ್ಪಗಳು ಹಾಗೂ ವಿಶೇಷ ಟಾಸ್ಕ್‌ಗಳ ಬೋರ್ಡ್ ಗೇಮ್!",
-      descEn: "Animated golden dice roller, Punya ladders, Rahu-Shani obstacles, and special interactive tasks!"
+      descKn: "೬೪ ಮನೆಗಳ ನವಗ್ರಹ ಬೋರ್ಡ್, ಪುಣ್ಯ ಮೆಟ್ಟಿಲುಗಳು, ರಾಹು-ಶನಿ ಕರ್ಮ ಸರ್ಪಗಳು ಹಾಗೂ ವಿಶೇಷ ಟಾಸ್ಕ್‌ಗಳ ಬೋರ್ಡ್ ಗೇಮ್!",
+      descEn: "64-tile celestial board, Punya ladders, Rahu-Shani obstacles, and special interactive tasks!"
     },
     {
       id: "charades" as ActiveGameId,
-      titleKn: "೩. ರಾಶಿ ನಕ್ಷತ್ರ ರಹಸ್ಯ (Astro Charades)",
-      titleEn: "3. Astro Charades & 'Who Am I?'",
+      titleKn: "೪. ರಾಶಿ ನಕ್ಷತ್ರ ರಹಸ್ಯ (Astro Charades)",
+      titleEn: "4. Astro Charades & 'Who Am I?'",
       badgeKn: "೨ - ೮ ಆಟಗಾರರು (2 to 8 Players)",
       badgeEn: "2 to 8 Players Party Game",
       icon: "🌟",
@@ -61,8 +72,8 @@ export default function AstroGamesPage(): JSX.Element {
     },
     {
       id: "sankhya" as ActiveGameId,
-      titleKn: "೪. ಸಂಖ್ಯಾ ಚಕ್ರ ಸಮರ (Numerology Duel)",
-      titleEn: "4. Vedic Numerology Castle Clash",
+      titleKn: "೫. ಸಂಖ್ಯಾ ಚಕ್ರ ಸಮರ (Numerology Duel)",
+      titleEn: "5. Vedic Numerology Castle Clash",
       badgeKn: "೨ - ೮ ಆಟಗಾರರು (2 to 8 Players)",
       badgeEn: "2 to 8 Players Dice Duel",
       icon: "🔢",
@@ -71,8 +82,8 @@ export default function AstroGamesPage(): JSX.Element {
     },
     {
       id: "trivia" as ActiveGameId,
-      titleKn: "೫. ಮಹಾ ಜ್ಯೋತಿಷ್ಯ ರಸಪ್ರಶ್ನೆ (Trivia Blitz)",
-      titleEn: "5. Grand Vedic Trivia Blitz",
+      titleKn: "೬. ಮಹಾ ಜ್ಯೋತಿಷ್ಯ ರಸಪ್ರಶ್ನೆ (Trivia Blitz)",
+      titleEn: "6. Grand Vedic Trivia Blitz",
       badgeKn: "೨ - ೮ ಆಟಗಾರರು (2 to 8 Players)",
       badgeEn: "2 to 8 Players Quiz Show",
       icon: "🧠",
@@ -81,48 +92,48 @@ export default function AstroGamesPage(): JSX.Element {
     },
     {
       id: "learnkundli" as ActiveGameId,
-      titleKn: "೬. ಜಾತಕ & ಪಂಚಾಂಗ ಕಲಿಕಾ ಖೇಲ (Learn Kundli)",
-      titleEn: "6. Learn to Read Janma Kundali & Panchanga",
+      titleKn: "೭. ಜಾತಕ & ಪಂಚಾಂಗ ಕಲಿಕಾ ಖೇಲ (Learn Kundli)",
+      titleEn: "7. Learn to Read Janma Kundali & Panchanga",
       badgeKn: "೧೨ ಹಂತಗಳ ಅಕಾಡೆಮಿ (12 Levels Academy)",
       badgeEn: "12 Levels Interactive Academy",
       icon: "📖",
-      descKn: "ದಕ್ಷಿಣ ಭಾರತೀಯ ಕುಂಡಲಿ, ೧೨ ಮನೆಗಳ ಒಡೆಯ, ಉಚ್ಚ-ನೀಚ ಗ್ರಹಗಳು, ಶತ್ರು-ಮಿತ್ರ ಮೈತ್ರಿ ಹಾಗೂ ಫಲಜ್ಯೋತಿಷ್ಯದ ಸರಳ ಕಲಿಕೆ!",
-      descEn: "Interactive South Indian chart, 12 house lords, exaltation, debilitation, friendships, and placement outcomes!"
+      descKn: "ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಗುರುಕುಲ ಮಾರ್ಗದರ್ಶನದಲ್ಲಿ ದಕ್ಷಿಣ ಭಾರತೀಯ ಕುಂಡಲಿ, ೧೨ ಮನೆಗಳ ಒಡೆಯ, ಉಚ್ಚ-ನೀಚ ಹಾಗೂ ಫಲಜ್ಯೋತಿಷ್ಯದ ಸರಳ ಕಲಿಕೆ!",
+      descEn: "Interactive South Indian chart, 12 house lords, exaltation, debilitation, friendships, and placement outcomes under Revered Shreeram Pandit's guidance!"
     }
   ];
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 px-4 py-6">
+    <div className="mx-auto max-w-5xl space-y-6 px-3 sm:px-4 py-4 sm:py-6">
       {/* Master Top Header Card */}
-      <Card className="border-2 border-amber-400 bg-gradient-to-r from-amber-100 via-amber-50 to-orange-100 p-6 shadow-xl relative overflow-hidden">
+      <Card className="border-2 border-amber-400 bg-gradient-to-r from-amber-100 via-amber-50 to-orange-100 p-4 sm:p-6 shadow-xl relative overflow-hidden">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-amber-200 border-2 border-amber-400 shadow-inner flex items-center justify-center text-4xl select-none">
+          <div className="flex items-center gap-3.5">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-amber-200 border-2 border-amber-400 shadow-inner flex items-center justify-center text-3xl sm:text-4xl select-none shrink-0">
               🎮
             </div>
             <div>
-              <div className="text-[10px] font-extrabold tracking-widest text-amber-800 uppercase flex items-center gap-1.5">
+              <div className="text-[10px] font-extrabold tracking-widest text-amber-800 uppercase flex items-center gap-1.5 flex-wrap">
                 <span>॥ ಶ್ರೀ ಬಗ್ಗೋಣ ಜ್ಯೋತಿಷ್ಯ ಖೇಲ ಮಂಡಲ ॥</span>
                 <span className="bg-amber-200 text-amber-950 px-2 py-0.5 rounded-full font-bold">Gaming Arena</span>
               </div>
-              <h1 className="font-serif text-xl sm:text-2xl font-extrabold text-amber-950 mt-0.5">
+              <h1 className="font-serif text-lg sm:text-2xl font-extrabold text-amber-950 mt-0.5">
                 {isKn ? "ಜ್ಯೋತಿಷ್ಯ & ಸಂಖ್ಯಾ ಶಾಸ್ತ್ರ ಸಂವಾದಾತ್ಮಕ ಆಟಗಳು" : "Vedic Astrology & Numerology Gaming Arena"}
               </h1>
               <p className="text-xs text-amber-900/90 font-medium mt-1">
                 {isKn
-                  ? "ಪ್ರಯಾಣ, ಕಾರು ಚಾಲನೆ, ಕುಟುಂಬ ಹಾಗೂ ಮಿತ್ರರೊಂದಿಗೆ ಆಡಲು ೬ ರೋಚಕ ಆಟಗಳು (ಏಕ ವ್ಯಕ್ತಿ, ೨ ರಿಂದ ೮ ಆಟಗಾರರು & ಕಲಿಕಾ ಅಕಾಡೆಮಿ)"
-                  : "6 engaging games for travel, road trips, and family leisure (Solo, 2-8 Players & Kundli Academy)"}
+                  ? "ಮೊಬೈಲ್, ಪ್ರಯಾಣ, ಕಾರು ಚಾಲನೆ, ಕುಟುಂಬ ಹಾಗೂ ಮಿತ್ರರೊಂದಿಗೆ ಆಡಲು ೭ ರೋಚಕ ಆಟಗಳು (ಏಕ ವ್ಯಕ್ತಿ, ೨ ರಿಂದ ೮ ಆಟಗಾರರು & ಕಲಿಕಾ ಅಕಾಡೆಮಿ)"
+                  : "7 engaging games for mobile, travel, and family leisure (Solo, 2-8 Players & Kundli Academy)"}
               </p>
             </div>
           </div>
 
           {/* Sound & Hub Controls */}
-          <div className="flex items-center gap-2 self-end sm:self-center">
+          <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
             <button
               type="button"
               onClick={toggleMute}
               title={isMuted ? "Unmute Audio" : "Mute Audio"}
-              className="p-2.5 rounded-xl border border-amber-300 bg-white/90 text-amber-900 hover:bg-white shadow-xs font-bold text-sm"
+              className="p-2 sm:p-2.5 rounded-xl border border-amber-300 bg-white/90 text-amber-900 hover:bg-white shadow-xs font-bold text-xs sm:text-sm"
             >
               {isMuted ? "🔇 ಧ್ವನಿ ಆಫ್" : "🔊 ಧ್ವನಿ ಆನ್"}
             </button>
@@ -131,10 +142,10 @@ export default function AstroGamesPage(): JSX.Element {
               <button
                 type="button"
                 onClick={() => setActiveGame("hub")}
-                className="px-4 py-2 rounded-xl bg-amber-800 text-amber-50 font-bold text-xs shadow-md hover:bg-amber-900 transition flex items-center gap-1"
+                className="px-3.5 sm:px-4 py-2 rounded-xl bg-amber-800 text-amber-50 font-bold text-xs shadow-md hover:bg-amber-900 transition flex items-center gap-1"
               >
                 <span>🏠</span>
-                <span>{isKn ? "ಎಲ್ಲಾ ಆಟಗಳು (Hub)" : "All Games"}</span>
+                <span>{isKn ? "Hub" : "All Games"}</span>
               </button>
             )}
           </div>
@@ -156,7 +167,7 @@ export default function AstroGamesPage(): JSX.Element {
               key={g.id}
               type="button"
               onClick={() => handleSelectGame(g.id)}
-              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition shadow-xs ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold whitespace-nowrap transition shadow-xs ${
                 activeGame === g.id
                   ? "bg-amber-900 text-amber-50 border border-amber-700 shadow-md scale-105"
                   : "bg-white border border-amber-200 text-amber-950 hover:bg-amber-50"
@@ -169,7 +180,7 @@ export default function AstroGamesPage(): JSX.Element {
         </div>
       )}
 
-      {/* HUB VIEW: 6 Game Cards */}
+      {/* HUB VIEW: 7 Game Cards */}
       {activeGame === "hub" && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-fade-in">
           {games.map((game) => (
@@ -210,6 +221,7 @@ export default function AstroGamesPage(): JSX.Element {
       )}
 
       {/* ACTIVE GAME SCREENS */}
+      {activeGame === "yogadosha" && <YogaDoshaParampadaGame lang={i18n.language} />}
       {activeGame === "mindreader" && <VedicMindReaderGame lang={i18n.language} />}
       {activeGame === "parampada" && <NavagrahaBoardGame lang={i18n.language} />}
       {activeGame === "charades" && <AstroCharadesGame lang={i18n.language} />}
