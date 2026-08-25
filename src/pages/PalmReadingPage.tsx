@@ -20,6 +20,7 @@ import { PalmRemediesTab } from "../components/palmreading/PalmRemediesTab";
 import { PalmReadingPdfTemplate } from "../components/palmreading/PalmReadingPdfTemplate";
 import { PalmTimelineDiagram } from "../components/palmreading/PalmTimelineDiagram";
 import { sanitizeAIText } from "../utils/textFormatter";
+import { PalmLifeStageMilestonesCard } from "../components/palmreading/PalmLifeStageMilestonesCard";
 import { estimateBirthDetailsFromPalmImage } from "../features/palmreading/palmDobEstimator";
 import { PalmScannerLoader } from "../components/palmreading/PalmScannerLoader";
 import { calculateKundliWithPlaceSun } from "../core/KundliEngine";
@@ -1255,7 +1256,16 @@ export default function PalmReadingPage(): JSX.Element {
                             </div>
                           )}
 
-                          {/* Section 4: AI Prediction Text */}
+                          {/* Section 4: Age-Stratified Life Milestones (Education, Marriage, Children, Wealth) */}
+                          {msg.result.lifeStageMilestones && (
+                            <PalmLifeStageMilestonesCard
+                              milestones={msg.result.lifeStageMilestones}
+                              lang={selectedLang}
+                              devoteeName={devoteeName}
+                            />
+                          )}
+
+                          {/* Section 5: AI Prediction Text */}
                           <div className="rounded-xl border border-amber-300 bg-white p-3.5 shadow-sm space-y-2">
                             <div className="text-xs font-bold text-amber-950 border-b border-amber-200 pb-1">
                               📜 {isKn ? "೪. ಸಮಗ್ರ ಸಾಮುದ್ರಿಕ ಫಲ (Detailed Hastarekha Phala)" : "4. Detailed Hastarekha Prediction"}
@@ -1268,7 +1278,7 @@ export default function PalmReadingPage(): JSX.Element {
                           {/* Section 5: Sacred Remedy */}
                           <div className="rounded-xl border border-amber-300 bg-amber-100/60 p-3.5 shadow-sm space-y-1">
                             <div className="text-xs font-bold text-amber-950">
-                              🪔 {isKn ? "೫. ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ದೈವಿಕ ಪರಿಹಾರ (Sacred Remedy)" : "5. Sacred Gokarna Mahabaleshwara Remedy"}
+                              🪔 {isKn ? "೬. ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ದೈವಿಕ ಪರಿಹಾರ (Sacred Remedy)" : "6. Sacred Gokarna Mahabaleshwara Remedy"}
                             </div>
                             <p className="text-xs text-amber-900 font-semibold leading-relaxed">
                               {msg.result.remedyRecommendation[selectedLang] || msg.result.remedyRecommendation.kn}

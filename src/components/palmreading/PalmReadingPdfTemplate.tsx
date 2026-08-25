@@ -85,6 +85,7 @@ export const PalmReadingPdfTemplate: React.FC<PalmReadingPdfTemplateProps> = ({
   const fTexts = footerTexts[code] || footerTexts.en;
 
   const cleanPrediction = sanitizeAIText(result.aiPrediction);
+  const ms = result.lifeStageMilestones;
 
   return (
     <div
@@ -140,6 +141,7 @@ export const PalmReadingPdfTemplate: React.FC<PalmReadingPdfTemplateProps> = ({
             </div>
             <div style={{ fontSize: "12px", color: "#92400E", lineHeight: "1.5" }}>
               <div><strong>{dLabels.hand}</strong> <span style={{ color: "#065F46", fontWeight: 800 }}>{handSideStr}</span></div>
+              <div><strong>{code === "kn" ? "ಹಸ್ತದ ರೇಖಾ ವಯಸ್ಸು:" : "Palm Estimated Age:"}</strong> <span style={{ color: "#78350F", fontWeight: 800 }}>~{ms?.estimatedAge || 28} {code === "kn" ? "ವರ್ಷಗಳು" : "Years"}</span></div>
               <div><strong>{code === "kn" ? "ವಿಶ್ಲೇಷಣೆ ಬಲ:" : "Analysis Score:"}</strong> <span style={{ color: "#78350F", fontWeight: 800 }}>{result.overallScore}%</span></div>
             </div>
           </div>
@@ -160,19 +162,29 @@ export const PalmReadingPdfTemplate: React.FC<PalmReadingPdfTemplateProps> = ({
           </div>
         </div>
 
-        {/* Generated Kundli Details Card (if present) */}
-        {result.kundliData && (
-          <div style={{ background: "linear-gradient(180deg, #FEF3C7 0%, #FDE68A 100%)", border: "1.5px solid #F59E0B", borderRadius: "10px", padding: "10px 14px", marginBottom: "14px" }}>
-            <div style={{ fontSize: "12px", fontWeight: 800, color: "#78350F", marginBottom: "4px" }}>
-              🔮 {code === "kn" ? "ಹಸ್ತ ಆಧರಿತ ಜನನ ಕುಂಡಲಿ ವಿವರಗಳು:" : "Palm Reconstructed Janma Kundali Details:"}
+        {/* Life Stage Milestones (Education, Marriage, Children, Wealth) */}
+        {ms && (
+          <div style={{ background: "linear-gradient(180deg, #FFFBEB 0%, #FEF3C7 100%)", border: "1.5px solid #F59E0B", borderRadius: "10px", padding: "10px 14px", marginBottom: "14px" }}>
+            <div style={{ fontSize: "12px", fontWeight: 800, color: "#78350F", marginBottom: "6px" }}>
+              ⏳ {code === "kn" ? "ವಯೋಮಾನ ಆಧಾರಿತ ಜೀವನ ಹಂತಗಳ ಸಾಮುದ್ರಿಕ ಫಲ (Education, Marriage & Wealth):" : "Age-Stratified Life Milestones (Education, Marriage & Wealth):"}
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", fontSize: "11px", color: "#92400E" }}>
-              <div><strong>{code === "kn" ? "ಲಗ್ನ (ಅಂಶ):" : "Lagna:"}</strong> <span style={{ fontWeight: 800, color: "#065F46" }}>{result.kundliData.lagna}</span></div>
-              <div><strong>{code === "kn" ? "ರಾಶಿ:" : "Rashi:"}</strong> <span style={{ fontWeight: 800 }}>{result.kundliData.rashi}</span></div>
-              <div><strong>{code === "kn" ? "ನಕ್ಷತ್ರ:" : "Nakshatra:"}</strong> <span style={{ fontWeight: 800 }}>{result.kundliData.nakshatra}</span></div>
-              <div><strong>{code === "kn" ? "ಮಾಂದಿ ಸ್ಥಾನ:" : "Maandi:"}</strong> <span style={{ fontWeight: 800, color: "#991B1B" }}>{result.kundliData.maandi}</span></div>
-              <div><strong>{code === "kn" ? "ವರ್ತಮಾನ ದಶಾ:" : "Dasha:"}</strong> <span style={{ fontWeight: 800, color: "#92400E" }}>{result.kundliData.dasha}</span></div>
-              {result.kundliData.gotra && <div><strong>{code === "kn" ? "ಗೋತ್ರ:" : "Gotra:"}</strong> {result.kundliData.gotra}</div>}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", fontSize: "11px", color: "#78350F" }}>
+              <div style={{ background: "#FFFFFF", padding: "8px", borderRadius: "6px", border: "1px solid #FDE68A" }}>
+                <strong>🎓 {code === "kn" ? "ವಿದ್ಯಾಭ್ಯಾಸ & ಜ್ಞಾನಾರ್ಜನೆ:" : "Education & Intellect:"}</strong>
+                <div>{code === "kn" ? ms.education.recommendedFieldsKn : ms.education.recommendedFieldsEn}</div>
+              </div>
+              <div style={{ background: "#FFFFFF", padding: "8px", borderRadius: "6px", border: "1px solid #FDE68A" }}>
+                <strong>💍 {code === "kn" ? "ವಿವಾಹ ಯೋಗ ವಯಸ್ಸು:" : "Marriage Age Window:"}</strong>
+                <div>{code === "kn" ? ms.marriage.timingAgeWindowKn : ms.marriage.timingAgeWindowEn} ({code === "kn" ? ms.marriage.spouseTraitKn : ms.marriage.spouseTraitEn})</div>
+              </div>
+              <div style={{ background: "#FFFFFF", padding: "8px", borderRadius: "6px", border: "1px solid #FDE68A" }}>
+                <strong>👶 {code === "kn" ? "ಸಂತಾನ & ಕೌಟುಂಬಿಕ ಭಾಗ್ಯ:" : "Children & Family Blessing:"}</strong>
+                <div>{code === "kn" ? ms.children.prospectsKn : ms.children.prospectsEn}</div>
+              </div>
+              <div style={{ background: "#FFFFFF", padding: "8px", borderRadius: "6px", border: "1px solid #FDE68A" }}>
+                <strong>💰 {code === "kn" ? "ಸರ್ವೋಚ್ಚ ಧನ ಸಂಪಾದನೆಯ ವಯಸ್ಸು:" : "Peak Wealth Earning Ages:"}</strong>
+                <div>{code === "kn" ? ms.careerWealth.peakWealthAgeKn : ms.careerWealth.peakWealthAgeEn}</div>
+              </div>
             </div>
           </div>
         )}
@@ -203,19 +215,11 @@ export const PalmReadingPdfTemplate: React.FC<PalmReadingPdfTemplateProps> = ({
             {cleanPrediction}
           </div>
 
-          {/* Follow-up Q&A Messages inside PDF if any */}
-          {messages.length > 2 && (
-            <div style={{ marginTop: "14px", borderTop: "1.5px solid #FEF3C7", paddingTop: "10px" }}>
-              <div style={{ fontSize: "12px", fontWeight: 800, color: "#92400E", marginBottom: "8px" }}>
-                💬 {code === "kn" ? "ಪೂರಕ ಪ್ರಶ್ನೋತ್ತರಗಳು (Follow-up Q&A):" : "Follow-up Clarifications:"}
-              </div>
-              {messages.slice(2).map((m, idx) => (
-                <div key={idx} style={{ marginBottom: "8px", fontSize: "11px", background: m.sender === "user" ? "#FFFBEB" : "#FEF3C7", padding: "6px 10px", borderRadius: "6px" }}>
-                  <strong>{m.sender === "user" ? devoteeDisplayName : "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್"}:</strong> {sanitizeAIText(m.text)}
-                </div>
-              ))}
-            </div>
-          )}
+          {/* Sacred Remedy in PDF */}
+          <div style={{ marginTop: "12px", background: "#FEF3C7", padding: "10px", borderRadius: "8px", border: "1px solid #FCD34D", fontSize: "11px", color: "#78350F" }}>
+            <strong>🪔 {code === "kn" ? "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ದೈವಿಕ ಪರಿಹಾರ:" : "Sacred Gokarna Kshetra Remedy:"}</strong>{" "}
+            {result.remedyRecommendation[code] || result.remedyRecommendation.kn}
+          </div>
         </div>
 
         {/* Footer */}

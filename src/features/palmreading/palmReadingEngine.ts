@@ -9,6 +9,7 @@
  * 5. Sun Line (Surya / Vidya Rekha) - Fame, Status & Recognition
  * 6. Palm Mounts (Guru, Shani, Surya, Budha, Shukra, Kuja, Chandra Parvata)
  * 7. Auspicious Signs (Trishula, Matsya, Padma, Swastika, Star, Triangle)
+ * 8. Chronological Age & Life Stage Milestones (Education, Marriage, Children, Peak Wealth)
  * 
  * Uses Gemini Multimodal Vision API with rich Samudrika Shastra rules
  * for high-precision, non-repetitive Vedic Palmistry analysis!
@@ -34,6 +35,38 @@ export type PalmMountAnalysis = {
   indication: Record<string, string>;
 };
 
+export type LifeStageMilestones = {
+  estimatedAge: number;
+  currentPhaseKn: string;
+  currentPhaseEn: string;
+  education: {
+    intellectTraitKn: string;
+    intellectTraitEn: string;
+    recommendedFieldsKn: string;
+    recommendedFieldsEn: string;
+  };
+  marriage: {
+    statusKn: string;
+    statusEn: string;
+    timingAgeWindowKn: string;
+    timingAgeWindowEn: string;
+    spouseTraitKn: string;
+    spouseTraitEn: string;
+  };
+  children: {
+    prospectsKn: string;
+    prospectsEn: string;
+    familyBlessingKn: string;
+    familyBlessingEn: string;
+  };
+  careerWealth: {
+    peakWealthAgeKn: string;
+    peakWealthAgeEn: string;
+    trajectoryKn: string;
+    trajectoryEn: string;
+  };
+};
+
 export type PalmReadingResult = {
   handSide: HandSide;
   handSideLabel: Record<string, string>;
@@ -51,6 +84,9 @@ export type PalmReadingResult = {
 
   // Auspicious Marks Identified
   specialMarks: Array<{ mark: Record<string, string>; meaning: Record<string, string> }>;
+
+  // Chronological Age & Life Milestones (Education, Marriage, Children, Wealth)
+  lifeStageMilestones: LifeStageMilestones;
 
   // Optional Generated Kundli Details
   kundliData?: {
@@ -181,19 +217,50 @@ NATAL ASTRONOMICAL KUNDALI INTEGRATION:
 ` : ""}
 
 CRITICAL SAMUDRIKA SHASTRA RULES:
-1. Examine the real image carefully. Measure actual line depths, start/end points, curvature, and branches.
-2. Life Line: Curve around Venus mount, upward branches to Jupiter/Saturn, wrist forks, and breaks.
-3. Head Line: Straightness to Upper Mars vs slope towards Moon mount vs writer's fork.
-4. Heart Line: Termination on Jupiter mount (noble love) vs Saturn mount, branches, and islands.
-5. Fate Line: Starting location (wrist, Moon, or Life line), transitions at Head line (age 35) and Heart line (age 56).
-6. Sun Line: Radiant clarity on Apollo mount.
-7. Mounts: Elevation and prominence of Jupiter, Saturn, Sun, Mercury, Venus, Moon, and Mars.
-8. Sacred Signs: Identify Trishula, Matsya (Fish), Padma (Lotus), Trikona (Triangle), Star, or Ring of Solomon if visible.
-9. Side view: Marriage lines under pinky finger.
-10. Back view: Nails (half moons) and finger phalanges.
+1. Examine the real image carefully. Estimate the devotee's current approximate age (e.g. 25, 30, 42) from skin texture, knuckle lines, and Life Line age node progression.
+2. Based on estimated age, provide deep personalized predictions across 4 core life pillars:
+   a) Education (ವಿದ್ಯಾಭ್ಯಾಸ) - cognitive focus, field of study, intellectual memory.
+   b) Marriage & Union (ವಿವಾಹ ಯೋಗ) - marriage timing window (age range), partner's nature, and marital bliss.
+   c) Children (ಸಂತಾನ ಭಾಗ್ಯ) - Mercury side mount lines, child blessing indications, and family harmony.
+   d) Peak Wealth & Career (ಆರ್ಥಿಕ ಉನ್ನತಿ) - Peak earning age milestones (e.g. 28, 33, 42) and career progression from Fate line.
+3. Life Line: Curve around Venus mount, upward branches, breaks.
+4. Head Line: Slope towards Moon vs straight across to Mars.
+5. Heart Line: Termination on Jupiter vs Saturn mount.
+6. Fate Line: Starting point and ascendance to Saturn.
+7. Sun Line: Apollo mount clarity.
+8. Mounts & Sacred Signs: Jupiter, Venus, Sun, Moon, Mercury elevations; Trishula, Matsya, Padma, Triangle signs.
 
-Return ONLY a strict JSON object:
+Return ONLY a strict JSON object in this schema:
 {
+  "estimatedAge": 28,
+  "currentPhaseKn": "ಯೌವನ & ವೃತ್ತಿ-ದಾಂಪತ್ಯ ಸಿದ್ಧಿ ಕಾಲ",
+  "currentPhaseEn": "Prime Career & Marriage Realization Era",
+  "education": {
+    "intellectTraitKn": "ತೀಕ್ಷ್ಣ ಗ್ರಹಣ ಶಕ್ತಿ & ಗಣಿತ/ತಾಂತ್ರಿಕ ವಿಶ್ಲೇಷಣೆ",
+    "intellectTraitEn": "Sharp analytical memory & technical prowess",
+    "recommendedFieldsKn": "ಎಂಜಿನಿಯರಿಂಗ್, ವಾಣಿಜ್ಯ, ಆಡಳಿತ ಅಥವಾ ಡೇಟಾ ಸೈನ್ಸ್",
+    "recommendedFieldsEn": "Engineering, Commerce, Management or Data Sciences"
+  },
+  "marriage": {
+    "statusKn": "ಅತ್ಯಂತ ಶುಭ ಯೋಗ",
+    "statusEn": "Highly Auspicious",
+    "timingAgeWindowKn": "೨೬ ರಿಂದ ೨೯ ವರ್ಷಗಳ ಅವಧಿ",
+    "timingAgeWindowEn": "Ages 26 to 29",
+    "spouseTraitKn": "ಸಂಸ್ಕಾರವಂತ, ಪ್ರೇಮಮಯಿ ಹಾಗೂ ಸಾತ್ವಿಕ ಮನಸ್ಸಿನ ಸಂಗಾತಿ",
+    "spouseTraitEn": "Cultured, loving, and spiritually aligned partner"
+  },
+  "children": {
+    "prospectsKn": "ಉತ್ತಮ ಸಂತಾನ ಸೌಭಾಗ್ಯ & ವಂಶಾಭಿವೃದ್ಧಿ",
+    "prospectsEn": "Auspicious children blessing and family joy",
+    "familyBlessingKn": "ಮಕ್ಕಳಿಂದ ಕೀರ್ತಿ ಹಾಗೂ ವೃದ್ಧಾಪ್ಯದಲ್ಲಿ ಅಪಾರ ನೆಮ್ಮದಿ",
+    "familyBlessingEn": "Children bring honour and comfort in later years"
+  },
+  "careerWealth": {
+    "peakWealthAgeKn": "೩೨, ೩೬ ಹಾಗೂ ೪೪ ವರ್ಷಗಳು",
+    "peakWealthAgeEn": "Ages 32, 36, and 44",
+    "trajectoryKn": "ಸ್ವಂತ ಪರಿಶ್ರಮದಿಂದ ಆಸ್ತಿ ಖರೀದಿ & ಸ್ವಾವಲಂಬಿ ಆರ್ಥಿಕ ಸಾಮ್ರಾಜ್ಯ",
+    "trajectoryEn": "Self-made property acquisition and wealth foundation"
+  },
   "lifeLineStatus": "...",
   "lifeLineIndication": "...",
   "headLineStatus": "...",
@@ -212,7 +279,7 @@ Return ONLY a strict JSON object:
   ],
   "overallScore": 88,
   "verdictTitle": "...",
-  "detailedPredictionText": "A rich, deeply empathetic 4-paragraph Vedic reading written purely in native ${langCode === "kn" ? "Kannada" : langCode === "hi" ? "Hindi" : langCode === "te" ? "Telugu" : langCode === "ta" ? "Tamil" : "English"} script. Focus directly on the actual visible lines, career milestones, health stamina, family peace, and spiritual destiny without generic cliches.",
+  "detailedPredictionText": "A rich, deeply empathetic 4-paragraph Vedic reading written purely in native ${langCode === "kn" ? "Kannada" : langCode === "hi" ? "Hindi" : langCode === "te" ? "Telugu" : langCode === "ta" ? "Tamil" : "English"} script.",
   "remedy": "Specific sacred remedy at Gokarna Mahabaleshwara Kshetra with mantra."
 }
 `;
@@ -376,6 +443,43 @@ Return ONLY a strict JSON object:
         }
       ];
 
+  // Chronological Age Milestones
+  const estAge = typeof parsedData?.estimatedAge === "number" && parsedData.estimatedAge >= 10 && parsedData.estimatedAge <= 90
+    ? parsedData.estimatedAge
+    : 28;
+
+  const lifeStageMilestones: LifeStageMilestones = {
+    estimatedAge: estAge,
+    currentPhaseKn: parsedData?.currentPhaseKn || "ಯೌವನ & ವೃತ್ತಿ-ದಾಂಪತ್ಯ ಸಿದ್ಧಿ ಕಾಲ",
+    currentPhaseEn: parsedData?.currentPhaseEn || "Prime Career & Marriage Realization Era",
+    education: {
+      intellectTraitKn: parsedData?.education?.intellectTraitKn || "ತೀಕ್ಷ್ಣ ಗ್ರಹಣ ಶಕ್ತಿ & ಗಣಿತ/ತಾಂತ್ರಿಕ ವಿಶ್ಲೇಷಣೆ",
+      intellectTraitEn: parsedData?.education?.intellectTraitEn || "Sharp analytical memory & technical aptitude",
+      recommendedFieldsKn: parsedData?.education?.recommendedFieldsKn || "ಎಂಜಿನಿಯರಿಂಗ್, ವಾಣಿಜ್ಯ, ಆಡಳಿತ ಅಥವಾ ಡೇಟಾ ಸೈನ್ಸ್",
+      recommendedFieldsEn: parsedData?.education?.recommendedFieldsEn || "Engineering, Commerce, Management or Data Sciences"
+    },
+    marriage: {
+      statusKn: parsedData?.marriage?.statusKn || "ಅತ್ಯಂತ ಶುಭ ಯೋಗ",
+      statusEn: parsedData?.marriage?.statusEn || "Highly Auspicious",
+      timingAgeWindowKn: parsedData?.marriage?.timingAgeWindowKn || "೨೬ ರಿಂದ ೨೯ ವರ್ಷಗಳ ಅವಧಿ",
+      timingAgeWindowEn: parsedData?.marriage?.timingAgeWindowEn || "Ages 26 to 29",
+      spouseTraitKn: parsedData?.marriage?.spouseTraitKn || "ಸಂಸ್ಕಾರವಂತ, ಪ್ರೇಮಮಯಿ ಹಾಗೂ ಸಾತ್ವಿಕ ಮನಸ್ಸಿನ ಸಂಗಾತಿ",
+      spouseTraitEn: parsedData?.marriage?.spouseTraitEn || "Cultured, loving, and supportive partner"
+    },
+    children: {
+      prospectsKn: parsedData?.children?.prospectsKn || "ಉತ್ತಮ ಸಂತಾನ ಸೌಭಾಗ್ಯ & ವಂಶಾಭಿವೃದ್ಧಿ",
+      prospectsEn: parsedData?.children?.prospectsEn || "Auspicious children blessing & family joy",
+      familyBlessingKn: parsedData?.children?.familyBlessingKn || "ಮಕ್ಕಳಿಂದ ಕೀರ್ತಿ ಹಾಗೂ ವೃದ್ಧಾಪ್ಯದಲ್ಲಿ ಅಪಾರ ನೆಮ್ಮದಿ",
+      familyBlessingEn: parsedData?.children?.familyBlessingEn || "Children bring honour and comfort in later years"
+    },
+    careerWealth: {
+      peakWealthAgeKn: parsedData?.careerWealth?.peakWealthAgeKn || "೩೨, ೩೬ ಹಾಗೂ ೪೪ ವರ್ಷಗಳು",
+      peakWealthAgeEn: parsedData?.careerWealth?.peakWealthAgeEn || "Ages 32, 36, and 44",
+      trajectoryKn: parsedData?.careerWealth?.trajectoryKn || "ಸ್ವಂತ ಪರಿಶ್ರಮದಿಂದ ಆಸ್ತಿ ಖರೀದಿ & ಸ್ವಾವಲಂಬಿ ಆರ್ಥಿಕ ಸಾಮ್ರಾಜ್ಯ",
+      trajectoryEn: parsedData?.careerWealth?.trajectoryEn || "Self-made property acquisition and wealth accumulation"
+    }
+  };
+
   const overallScore = typeof parsedData?.overallScore === "number" && parsedData.overallScore >= 50 && parsedData.overallScore <= 100
     ? parsedData.overallScore
     : 88;
@@ -404,6 +508,7 @@ Return ONLY a strict JSON object:
     sunLine,
     mounts,
     specialMarks,
+    lifeStageMilestones,
     overallScore,
     kundliData,
     verdictTitle: {
@@ -434,10 +539,12 @@ export async function askPalmReadingFollowUp(
 HASTAREKHA SHASTRA FOLLOW-UP CONTEXT
 ==================================================
 Hand Side: ${previousResult.handSide.toUpperCase()} (${previousResult.handSideLabel.en})
+Estimated Age: ~${previousResult.lifeStageMilestones.estimatedAge} Years
 Overall Score: ${previousResult.overallScore}%
 Life Line: ${previousResult.lifeLine.status.kn || previousResult.lifeLine.status.en} - ${previousResult.lifeLine.indication.kn || previousResult.lifeLine.indication.en}
 Head Line: ${previousResult.headLine.status.kn || previousResult.headLine.status.en} - ${previousResult.headLine.indication.kn || previousResult.headLine.indication.en}
 Heart Line: ${previousResult.heartLine.status.kn || previousResult.heartLine.status.en} - ${previousResult.heartLine.indication.kn || previousResult.heartLine.indication.en}
+Marriage Window: ${previousResult.lifeStageMilestones.marriage.timingAgeWindowKn}
 Previous Summary: ${previousResult.aiPrediction.slice(0, 400)}...
 ==================================================
 `;
