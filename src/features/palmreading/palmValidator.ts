@@ -67,7 +67,7 @@ export async function validatePalmImageSlot(
   try {
     const genAI = new GoogleGenerativeAI(activeKey);
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
+      model: "gemini-3.5-flash-lite",
       generationConfig: {
         temperature: 0.1,
         responseMimeType: "application/json"

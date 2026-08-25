@@ -292,7 +292,7 @@ Return ONLY a strict JSON object in this schema:
     try {
       const genAI = new GoogleGenerativeAI(activeKey);
       const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash",
+        model: "gemini-3.5-flash-lite",
         generationConfig: {
           temperature: 0.1,
           responseMimeType: "application/json"
@@ -563,7 +563,7 @@ Provide a concise, direct, wise, and encouraging answer strictly using native sc
 
   try {
     const genAI = new GoogleGenerativeAI(activeKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash-lite" });
     const result = await model.generateContent(`${contextData}\n${prompt}`);
     const response = await result.response;
     return response.text() || "No response text.";
