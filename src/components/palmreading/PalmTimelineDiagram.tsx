@@ -64,7 +64,7 @@ export const PalmTimelineDiagram: React.FC<PalmTimelineDiagramProps> = ({
   const eventsList = milestones || defaultMilestones;
 
   return (
-    <div className="rounded-2xl border-2 border-amber-400 bg-gradient-to-b from-amber-950 via-slate-950 to-amber-950 p-5 text-amber-100 shadow-xl space-y-4">
+    <div id="palm-timeline-diagram-container" className="rounded-2xl border-2 border-amber-400 bg-gradient-to-b from-amber-950 via-slate-950 to-amber-950 p-5 text-amber-100 shadow-xl space-y-4">
       <div className="flex flex-wrap items-center justify-between border-b border-amber-500/40 pb-3">
         <div>
           <h3 className="font-serif text-lg font-bold text-amber-200 flex items-center gap-2">

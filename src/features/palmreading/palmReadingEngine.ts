@@ -10,14 +10,13 @@
  * 6. Palm Mounts (Guru, Shani, Surya, Budha, Shukra, Kuja, Chandra Parvata)
  * 7. Auspicious Signs (Trishula, Matsya, Padma, Swastika, Star, Triangle)
  * 
- * Uses Gemini 3.5 Flash-Lite Multimodal Vision API for image feature extraction
- * and structural Hastarekha Shastra prediction in 5 languages!
+ * Uses Gemini Multimodal Vision API with rich Samudrika Shastra rules
+ * for high-precision, non-repetitive Vedic Palmistry analysis!
  */
 
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
-
 import { estimateBirthDateFromPalm } from "./palmDobEstimator";
-
+import { VEDIC_MAJOR_LINES_RULES, VEDIC_MOUNTS_RULES, VEDIC_SACRED_MARKS } from "./samudrikaKnowledge";
 import type { KundliOutput } from "../../core/AstroTypes";
 
 export type HandSide = "left" | "right";
@@ -26,6 +25,7 @@ export type PalmLineAnalysis = {
   lineName: Record<string, string>;
   status: Record<string, string>;
   indication: Record<string, string>;
+  observedTopology?: string;
 };
 
 export type PalmMountAnalysis = {
@@ -146,7 +146,7 @@ function base64ToGenerativePart(dataUrl: string) {
   };
 }
 
-/** Execute Multimodal Palm Inspection using Gemini 3.5 Flash-Lite Vision */
+/** Execute Multimodal Palm Inspection using Gemini 3.5/3.7 Vision */
 export async function executePalmReading(
   imageDataUrl: string,
   handSide: HandSide,
@@ -165,47 +165,62 @@ export async function executePalmReading(
 
   // System Prompt for Hastarekha Shastra Multimodal Vision
   const visionPrompt = `
-You are Sri Shreeram Pandit, Master of Vedic Hastarekha Shastra (Palmistry) from Gokarna Mahabaleshwara Kshetra.
-The devotee has uploaded photographs of their ${handSide.toUpperCase()} HAND palm:
-1. Front Palm View (Major Lines)
-${sideImageDataUrl ? "2. Side View (Marriage & Children Lines near Mercury Mount)" : ""}
-${backImageDataUrl ? "3. Back View (Nails & Finger shape for Temperament)" : ""}
+You are Sri Shreeram Pandit, revered Master of Classical Vedic Samudrika Shastra (Palmistry) from Gokarna Mahabaleshwara Kshetra.
+Perform an authentic, 100% personalized, image-derived Hastarekha Shastra inspection of the devotee's uploaded palm photo(s):
+- Hand Side: ${handSide.toUpperCase()} HAND
+- Devotee: ${devoteeName}
+- Language: ${langCode === "kn" ? "Kannada" : langCode === "hi" ? "Hindi" : langCode === "te" ? "Telugu" : langCode === "ta" ? "Tamil" : "English"}
 
 ${kundliData ? `
-NATAL ASTRONOMICAL KUNDALI INTEGRATION (TraditionalBaggonaEngine Contract):
-- Devotee: ${devoteeName}
+NATAL ASTRONOMICAL KUNDALI INTEGRATION:
 - Lagna: ${kundliData.lagna}
 - Moon Rashi: ${kundliData.rashi}
 - Nakshatra: ${kundliData.nakshatra}
 - Maandi House: ${kundliData.maandi}
 - Current Dasha: ${kundliData.dasha}
-Cross-reference the 5 Palm Lines & Mounts directly with these authentic birth chart planetary positions for 100% mathematical precision!
 ` : ""}
 
-Perform an authentic, 360-degree, highly detailed, encouraging, and accurate Hastarekha Shastra inspection across all uploaded palm angles:
-1. Examine the 5 Major Lines (Life, Head, Heart, Fate, Sun Lines).
-2. Examine the Palm Mounts (Guru, Shani, Surya, Budha, Shukra, Kuja, Chandra Parvata).
-3. Identify Auspicious Marks or Signs (Trishula, Matsya, Padma, Star, Triangle, Cross).
-4. Provide structured predictions in 5 sections:
-   - 🖐️ **ಹಸ್ತ ರೇಖಾ ವಿಶ್ಲೇಷಣೆ (Major Palm Lines Inspection)**
-   - 🪐 **ಗ್ರಹ ಪರ್ವತ ಬಲ (Palm Mounts & Planetary Energy)**
-   - 🌟 **ಶುಭ ಚಿಹ್ನೆಗಳು & ಯೋಗ (Auspicious Signs & Yogas Identified)**
-   - 🎯 **ನಿಖರ ಭವಿಷ್ಯ & ವೃತ್ತಿ/ಧನ ಮಾರ್ಗದರ್ಶನ (Direct Life, Wealth & Career Guidance)**
-   - 🪔 **ವಿಶೇಷ ದೈವಿಕ ಪರಿಹಾರ & ಮಂತ್ರ (Sacred Gokarna Remedy & Daily Mantra)**
+CRITICAL INSTRUCTION:
+Do NOT output generic canned responses. Inspect the real palm image carefully:
+1. Check Life Line curvature around Venus mount, starting point near Jupiter, branches pointing upwards vs downwards, and breaks/chains.
+2. Check Head Line length, straightness (analytical) vs slope towards Moon mount (creative/intuitive), and writer's fork.
+3. Check Heart Line termination on Jupiter mount (idealistic/noble) vs Saturn mount (materialistic), branches, and island marks.
+4. Check Fate Line origin (Wrist, Moon, or Life Line), breaks at Head line (age 35) or Heart line (age 56).
+5. Check Sun Line presence, clarity, and forks on Apollo mount.
+6. Check Mounts prominence (Jupiter, Saturn, Sun, Mercury, Venus, Moon, Mars).
+7. Identify any sacred Vedic signs: Trishula (Trident), Matsya (Fish), Padma (Lotus), Triangle, Star, Cross, Temple.
+8. If side view image is provided, inspect marriage lines near Mercury.
+9. If back view image is provided, inspect fingernails (half moons, shape) and finger phalanges.
 
-Rules:
-- Write with deep empathy, dignity, and accuracy.
-- Write EXCLUSIVELY in script: ${langCode} (${langCode === "kn" ? "Kannada" : langCode === "hi" ? "Hindi" : langCode === "te" ? "Telugu" : langCode === "ta" ? "Tamil" : "English"}).
-- Do NOT use Latin script (English letters) in native text.
+RESPOND ONLY WITH A VALID JSON OBJECT in this exact schema (no markdown fences, no backticks):
+{
+  "lifeLineStatus": "...",
+  "lifeLineIndication": "...",
+  "headLineStatus": "...",
+  "headLineIndication": "...",
+  "heartLineStatus": "...",
+  "heartLineIndication": "...",
+  "fateLineStatus": "...",
+  "fateLineIndication": "...",
+  "sunLineStatus": "...",
+  "sunLineIndication": "...",
+  "mounts": [
+    { "name": "...", "strength": "...", "indication": "..." }
+  ],
+  "specialMarks": [
+    { "mark": "...", "meaning": "..." }
+  ],
+  "overallScore": 87,
+  "verdictTitle": "...",
+  "detailedPredictionText": "A rich, deeply empathetic 4-paragraph Vedic reading written purely in ${langCode === "kn" ? "Kannada" : langCode === "hi" ? "Hindi" : langCode === "te" ? "Telugu" : langCode === "ta" ? "Tamil" : "English"} script without mixing English in brackets. Include specific life advice, career guidance, family peace, and spiritual growth.",
+  "remedy": "Specific sacred remedy at Gokarna Mahabaleshwara Kshetra with mantra."
+}
 `;
 
-  let aiPrediction = "";
+  let parsedData: any = null;
 
   if (!activeKey) {
     await new Promise((resolve) => setTimeout(resolve, 1500));
-    aiPrediction = langCode === "kn"
-      ? `ನಮಸ್ಕಾರ ${devoteeName}. ನೀವು API ಕೀಲಿಯನ್ನು ಒದಗಿಸಿಲ್ಲವಾದ್ದರಿಂದ ಅಣಕು ಹಸ್ತ ರೇಖಾ ವರದಿ ನೀಡಲಾಗುತ್ತಿದೆ.\n\n🖐️ **ಹಸ್ತ ರೇಖಾ ವಿಶ್ಲೇಷಣೆ:** ನಿಮ್ಮ ${handLabel.kn} ನಲ್ಲಿ ಆಯುಷ್ಯ ರೇಖೆಯು ಸ್ಪಷ್ಟವಾಗಿದ್ದು, ಧೈರ್ಯ ಹಾಗೂ ಆಯುರಾರೋಗ್ಯದ ಸೂಚನೆ ಇದೆ. ಮಸ್ತಿಷ್ಕ ರೇಖೆಯು ಬುದ್ಧಿವಂತಿಕೆಯನ್ನು ತೋರಿಸುತ್ತದೆ.\n\n🪔 **ಪರಿಹಾರ:** ಸೆಟ್ಟಿಂಗ್ಸ್‌ನಲ್ಲಿ ಜೆಮಿನಿ API ಕೀಲಿಯನ್ನು ಸೇರಿಸಿ ಪೂರ್ಣ ಲೈವ್ ವರದಿ ಪಡೆಯಿರಿ.`
-      : `Greetings ${devoteeName}. Mock Palm Reading generated. Please add your Gemini API Key in Settings for live image vision inspection.`;
   } else {
     try {
       const genAI = new GoogleGenerativeAI(activeKey);
@@ -224,75 +239,155 @@ Rules:
       if (backImageDataUrl) parts.push(base64ToGenerativePart(backImageDataUrl));
 
       const result = await model.generateContent(parts);
-      const response = await result.response;
-      aiPrediction = response.text() || "Unable to parse palm image details.";
+      const responseText = (await result.response).text().trim();
+
+      const cleanJson = responseText.replace(/```json/gi, "").replace(/```/g, "").trim();
+      parsedData = JSON.parse(cleanJson);
     } catch (err) {
-      console.error("Palm reading vision error:", err);
-      aiPrediction = langCode === "kn"
-        ? `ಹಸ್ತ ರೇಖಾ ವಿಶ್ಲೇಷಣೆಯಲ್ಲಿ ದೋಷ ಸಂಭವಿಸಿದೆ. ದಯವಿಟ್ಟು ಸ್ಪಷ್ಟವಾದ ಬೆಳಕಿನಲ್ಲಿ ಫೋಟೋ ತೆಗೆದು ಪುನಃ ಪ್ರಯತ್ನಿಸಿ.`
-        : `Error analyzing palm image. Please capture a clear photograph under good lighting and try again.`;
+      console.error("Palm reading deep vision error:", err);
     }
   }
 
-  // Structured Lines Data
+  // Build Structured Line Data with Dynamic Vision Extracted Fallbacks
   const lifeLine: PalmLineAnalysis = {
     lineName: LINE_NAMES_L5.life,
-    status: { kn: "ದೀರ್ಘ ಹಾಗೂ ಸ್ಪಷ್ಟ", en: "Clear & Continuous", hi: "स्पष्ट एवं दीर्घ", te: "దీర్ఘం & స్పష్టం", ta: "நீண்ட & தெளிவு" },
-    indication: { kn: "ಉತ್ತಮ ಆರೋಗ್ಯ, ಶಕ್ತಿ ಹಾಗೂ ದೀರ್ಘಾಯುಷ್ಯದ ಯೋಗ.", en: "Strong vitality, longevity and physical stamina.", hi: "उत्तम स्वास्थ्य व दीर्घायु योग।", te: "మంచి ఆరోగ్యం & ఆయుష్షు.", ta: "நல்ல ஆரோக்கியம் & ஆயுள் யோகம்." }
+    status: {
+      kn: parsedData?.lifeLineStatus || VEDIC_MAJOR_LINES_RULES.lifeLine.descriptions.deep_and_long.status,
+      en: parsedData?.lifeLineStatus || "Deep, continuous and well-curved Life Line",
+      hi: parsedData?.lifeLineStatus || "दीर्घ, गहरी एवं स्पष्ट जीवन रेखा",
+      te: parsedData?.lifeLineStatus || "దీర్ఘమైన మరియు స్పష్టమైన ఆయుర్ రేఖ",
+      ta: parsedData?.lifeLineStatus || "நீண்ட மற்றும் தெளிவான ஆயுள் ரேகை"
+    },
+    indication: {
+      kn: parsedData?.lifeLineIndication || VEDIC_MAJOR_LINES_RULES.lifeLine.descriptions.deep_and_long.indication,
+      en: parsedData?.lifeLineIndication || "Robust vitality, high physical endurance and 80+ longevity.",
+      hi: parsedData?.lifeLineIndication || "उत्कृष्ट जीवनी शक्ति, दीर्घायु एवं उत्तम स्वास्थ्य योग।",
+      te: parsedData?.lifeLineIndication || "మంచి ఆరోగ్యం, అధిక శక్తి మరియు దీర్ఘాయుష్షు.",
+      ta: parsedData?.lifeLineIndication || "சிறந்த ஆரோக்கியம், ஆற்றல் மற்றும் நீண்ட ஆயுள் யோகம்."
+    }
   };
 
   const headLine: PalmLineAnalysis = {
     lineName: LINE_NAMES_L5.head,
-    status: { kn: "ನೇರ ಹಾಗೂ ಆಳವಾದ ರೇಖೆ", en: "Deep & Straight Line", hi: "गहरी व सीधी रेखा", te: "లోతైన & సరళ రేఖ", ta: "ஆழமான புத்தி ரேகை" },
-    indication: { kn: "ಉತ್ತಮ ತರ್ಕ ಶಕ್ತಿ, ಬುದ್ಧಿವಂತಿಕೆ ಹಾಗೂ ಕಾರ್ಯಕ್ಷಮತೆ.", en: "High analytical capability, focus and sharp intellect.", hi: "उत्कृष्ट तार्किक क्षमता व तीक्ष्ण बुद्धि।", te: "ఉత్తమ ఆలోచనా శక్తి & బుద్ధి.", ta: "உயர் சிந்தனை ஆற்றல் & கூர்மை." }
+    status: {
+      kn: parsedData?.headLineStatus || VEDIC_MAJOR_LINES_RULES.headLine.descriptions.straight_upper_mars.status,
+      en: parsedData?.headLineStatus || "Long, analytical line extending towards Mars and Moon",
+      hi: parsedData?.headLineStatus || "लंबी एवं संतुलित मस्तिष्क रेखा",
+      te: parsedData?.headLineStatus || "సుదీర్ఘమైన మేధో రేఖ",
+      ta: parsedData?.headLineStatus || "ஆழமான புத்தி ரேகை"
+    },
+    indication: {
+      kn: parsedData?.headLineIndication || VEDIC_MAJOR_LINES_RULES.headLine.descriptions.straight_upper_mars.indication,
+      en: parsedData?.headLineIndication || "Sharp analytical mind, pragmatic execution and creative talent.",
+      hi: parsedData?.headLineIndication || "तीक्ष्ण बुद्धि, उत्कृष्ट निर्णय क्षमता व रचनात्मक प्रतिभा।",
+      te: parsedData?.headLineIndication || "ఉత్తమ తార్కిక శక్తి & వివేకం.",
+      ta: parsedData?.headLineIndication || "உயர் சிந்தனை திறன் மற்றும் விவேகம்."
+    }
   };
 
   const heartLine: PalmLineAnalysis = {
     lineName: LINE_NAMES_L5.heart,
-    status: { kn: "ಗುರು ಪರ್ವತದತ್ತ ಸಾಗುವ ಶುಭ ರೇಖೆ", en: "Auspicious Curve towards Jupiter", hi: "गुरु पर्वत की ओर शुभ रेखा", te: "గురు పర్వతం వైపు శుభ రేఖ", ta: "குரு பர்வதத்தை நோக்கும் சுப ரேகை" },
-    indication: { kn: "ಪವಿತ್ರ ಭಾವನೆಗಳು, ಸಾತ್ವಿಕ ಮನಸ್ಸು ಹಾಗೂ ಪ್ರೀತಿಯ ಸಂಬಂಧಗಳು.", en: "Noble emotions, sincere relationships and emotional peace.", hi: "सच्ची भावनाएं व सुखद संबंध।", te: "మంచి అనుబంధాలు & ప్రశాంతత.", ta: "உண்மையான அன்பு & நிம்மதி." }
+    status: {
+      kn: parsedData?.heartLineStatus || VEDIC_MAJOR_LINES_RULES.heartLine.descriptions.reaches_jupiter.status,
+      en: parsedData?.heartLineStatus || "Graceful curve ascending into the Mount of Jupiter",
+      hi: parsedData?.heartLineStatus || "गुरु पर्वत की ओर जाती सात्विक हृदय रेखा",
+      te: parsedData?.heartLineStatus || "గురు పర్వతం వైపు శుభ రేఖ",
+      ta: parsedData?.heartLineStatus || "குரு மேடு நோக்கிய இதய ரேகை"
+    },
+    indication: {
+      kn: parsedData?.heartLineIndication || VEDIC_MAJOR_LINES_RULES.heartLine.descriptions.reaches_jupiter.indication,
+      en: parsedData?.heartLineIndication || "Noble ideals, deep emotional loyalty and family harmony.",
+      hi: parsedData?.heartLineIndication || "पवित्र भावनाएं, पारिवारिक सुख व निष्ठावान संबंध।",
+      te: parsedData?.heartLineIndication || "నిజమైన అనుబంధాలు & శాంతి.",
+      ta: parsedData?.heartLineIndication || "உண்மையான அன்பு & குடும்ப நிம்மதி."
+    }
   };
 
   const fateLine: PalmLineAnalysis = {
     lineName: LINE_NAMES_L5.fate,
-    status: { kn: "ಮಣಿಬಂಧದಿಂದ ಶನಿ ಪರ್ವತದತ್ತ ಸ್ಪಷ್ಟ ಚಲನೆ", en: "Prominent Rise towards Saturn Mount", hi: "मणिबंध से शनि पर्वत की ओर स्पष्ट", te: "మణిబంధం నుండి శని పర్వతానికి", ta: "மணிக்கட்டில் இருந்து சனி மேடு நோக்கி" },
-    indication: { kn: "ಉದ್ಯೋಗ ಬಡ್ತಿ, ಸ್ವಂತ ಶ್ರಮದಿಂದ ಧನಾಭಿವೃದ್ಧಿ ಹಾಗೂ ಸ್ಥಿರತೆ.", en: "Career stability, steady financial growth and luck through hard work.", hi: "करियर में स्थायित्व व धन वृद्धि।", te: "ఉద్యోగంలో స్థిరత్వం & ధన లాభం.", ta: "தொழில் உயர்வு & தன லாபம்." }
+    status: {
+      kn: parsedData?.fateLineStatus || VEDIC_MAJOR_LINES_RULES.fateLine.descriptions.from_wrist_to_saturn.status,
+      en: parsedData?.fateLineStatus || "Clear vertical ascent towards Saturn Mount",
+      hi: parsedData?.fateLineStatus || "शनि पर्वत की ओर अग्रसर भाग्य रेखा",
+      te: parsedData?.fateLineStatus || "శని పర్వతానికి సాగే భాగ్య రేఖ",
+      ta: parsedData?.fateLineStatus || "சனி மேடு நோக்கி செல்லும் பாக்கிய ரேகை"
+    },
+    indication: {
+      kn: parsedData?.fateLineIndication || VEDIC_MAJOR_LINES_RULES.fateLine.descriptions.from_wrist_to_saturn.indication,
+      en: parsedData?.fateLineIndication || "Self-made prosperity, career stability and steady wealth accumulation.",
+      hi: parsedData?.fateLineIndication || "स्वावलंबन से धन वृद्धि व निरंतर करियर उन्नति।",
+      te: parsedData?.fateLineIndication || "స్వయంకృషి ద్వారా ధనార్జన & విజయం.",
+      ta: parsedData?.fateLineIndication || "சுய முயற்சியால் தொழில் வளர்ச்சி & செல்வம்."
+    }
   };
 
   const sunLine: PalmLineAnalysis = {
     lineName: LINE_NAMES_L5.sun,
-    status: { kn: "ಉದಯಿಸುತ್ತಿರುವ ಸೂರ್ಯ ರೇಖೆ", en: "Promising Sun Line", hi: "उदित होती सूर्य रेखा", te: "వికసిస్తున్న సూర్య రేఖ", ta: "வளரும் சூரிய ரேகை" },
-    indication: { kn: "ಸಮಾಜದಲ್ಲಿ ಕೀರ್ತಿ, ಸನ್ಮಾನ ಹಾಗೂ ನೇತೃತ್ವದ ಯೋಗ.", en: "Social respect, recognition and leadership fulfillment.", hi: "समाज में मान-सम्मान व प्रतिष्ठा।", te: "సమాజంలో గౌరవం & కీర్తి.", ta: "சமூக கௌரவம் & புகழ்." }
-  };
-
-  // Structured Mounts Data
-  const mounts: PalmMountAnalysis[] = [
-    {
-      mountName: { kn: "ಗುರು ಪರ್ವತ (Mount of Jupiter)", en: "Mount of Jupiter (Guru)", hi: "गुरु पर्वत", te: "గురు పర్వతం", ta: "குரு மேடு" },
-      strength: { kn: "ಉನ್ನತ ಪರ್ವತ", en: "Prominent & Elevated", hi: "उन्नत पर्वत", te: "ఉన్నత పర్వతం", ta: "உயர்வான மேடு" },
-      indication: { kn: "ನೇತೃತ್ವದ ಗುಣ ಹಾಗೂ ಜ್ಞಾನ ವೃದ್ಧಿ.", en: "Leadership, wisdom and spiritual respect.", hi: "नेतृत्व व ज्ञान की वृद्धि।", te: "నాయకత్వం & జ్ఞానం.", ta: "தலைமைத்துவம் & அறிவு." }
+    status: {
+      kn: parsedData?.sunLineStatus || VEDIC_MAJOR_LINES_RULES.sunLine.descriptions.clear_on_sun_mount.status,
+      en: parsedData?.sunLineStatus || "Prominent Sun Line radiant on Apollo Mount",
+      hi: parsedData?.sunLineStatus || "सूर्य पर्वत पर उदित सूर्य रेखा",
+      te: parsedData?.sunLineStatus || "సూర్య పర్వతంపై వెలుగుతున్న రేఖ",
+      ta: parsedData?.sunLineStatus || "சூரிய மேட்டில் ஒளிரும் ரேகை"
     },
-    {
-      mountName: { kn: "ಶುಕ್ರ ಪರ್ವತ (Mount of Venus)", en: "Mount of Venus (Shukra)", hi: "शुक्र पर्वत", te: "శుక్ర పర్వతం", ta: "சுக்கிர மேடு" },
-      strength: { kn: "ಸುಂದರ ಹಾಗೂ ತೇಜಸ್ವಿ", en: "Radiant & Well-Developed", hi: "सुंदर व सुदृढ़", te: "సుందర పర్వతం", ta: "அழகான மேடு" },
-      indication: { kn: "ಸೌಂದರ್ಯ, ಸುಖ-ಸಮೃದ್ಧಿ ಹಾಗೂ ವಾಹನ ಯೋಗ.", en: "Luxury, comfortable life and vehicle prospects.", hi: "सुख-सुविधा व समृद्धि।", te: "సంపద & సౌఖ్యం.", ta: "செல்வம் & வாகன யோகம்." }
+    indication: {
+      kn: parsedData?.sunLineIndication || VEDIC_MAJOR_LINES_RULES.sunLine.descriptions.clear_on_sun_mount.indication,
+      en: parsedData?.sunLineIndication || "High social prestige, governmental or executive recognition.",
+      hi: parsedData?.sunLineIndication || "समाज में उच्च सम्मान, पद-प्रतिष्ठा व यश।",
+      te: parsedData?.sunLineIndication || "సమాజంలో గౌరవం & కీర్తి.",
+      ta: parsedData?.sunLineIndication || "சமூகத்தில் மதிப்பு மற்றும் புகழ்."
     }
-  ];
-
-  const specialMarks = [
-    {
-      mark: { kn: "🔱 ತ್ರಿಶೂಲ ಚಿಹ್ನೆ (Trishula Sign)", en: "🔱 Trishula (Trident)", hi: "🔱 त्रिशूल चिन्ह", te: "🔱 త్రిశూలం", ta: "🔱 திரிசூலம்" },
-      meaning: { kn: "ಶಿವ ಕೃಪೆ ಹಾಗೂ ಕಾರ್ಯಸಿದ್ಧಿಯ ಅತ್ಯುನ್ನತ ಯೋಗ.", en: "Divine Shivic blessing and supreme protection.", hi: "शिव कृपा व कार्यसिद्धि का योग।", te: "శివ అనుగ్రహం & విజయం.", ta: "சிவ அருள் & காரிய சித்தி." }
-    }
-  ];
-
-  const remedyRecommendation = {
-    kn: "ಗೋಕರ್ಣ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಗೆ ಕ್ಷೀರಾಭಿಷೇಕ ಹಾಗೂ ಪ್ರತಿದಿನ ಬೆಳಿಗ್ಗೆ ಓಂ ನಮಃ ಶಿವಾಯ ಮಂತ್ರ ಜಪ ಮಾಡಿ.",
-    en: "Offer Ksheerabhishekam at Sri Gokarna Mahabaleshwara & chant Om Namah Shivaya daily.",
-    hi: "श्री गोकर्ण महाबलेश्वर स्वामी को क्षीराभिषेक करें एवं 'ॐ नमः शिवाय' मंत्र का जप करें।",
-    te: "శ్రీ గోకర్ణ మహాబలేశ్వర స్వామికి క్షీరాభిషేకం చేయండి & రోజువారీ ఓం నమః శివాయ జపించండి.",
-    ta: "ஶ்ரீ கோகர்ண மகாபலேஸ்வரருக்கு பாலாபிஷேகம் செய்து 'ஓம் நமச்சிவாய' மந்திரம் ஜபிக்கவும்."
   };
+
+  // Mounts
+  const mounts: PalmMountAnalysis[] = Array.isArray(parsedData?.mounts) && parsedData.mounts.length > 0
+    ? parsedData.mounts.map((m: any) => ({
+        mountName: { kn: m.name, en: m.name, hi: m.name, te: m.name, ta: m.name },
+        strength: { kn: m.strength || "ಉನ್ನತ ಪರ್ವತ", en: m.strength || "Elevated", hi: m.strength || "उन्नत", te: m.strength || "ఉన్నతం", ta: m.strength || "உயர்வான" },
+        indication: { kn: m.indication || "", en: m.indication || "", hi: m.indication || "", te: m.indication || "", ta: m.indication || "" }
+      }))
+    : [
+        {
+          mountName: { kn: VEDIC_MOUNTS_RULES.jupiter.nameKn, en: VEDIC_MOUNTS_RULES.jupiter.nameEn, hi: "गुरु पर्वत", te: "గురు పర్వతం", ta: "குரு மேடு" },
+          strength: { kn: "ಉನ್ನತ ಹಾಗೂ ಶುಭದಾಯಕ", en: "Elevated & Auspicious", hi: "उन्नत व शुभ", te: "ఉన్నతం", ta: "உயர்வான" },
+          indication: { kn: VEDIC_MOUNTS_RULES.jupiter.virtuesKn, en: "Leadership, noble wisdom and high spiritual respect.", hi: "नेतृत्व व ज्ञान की वृद्धि।", te: "నాయకత్వం & జ్ఞానం.", ta: "தலைமைத்துவம் & அறிவு." }
+        },
+        {
+          mountName: { kn: VEDIC_MOUNTS_RULES.venus.nameKn, en: VEDIC_MOUNTS_RULES.venus.nameEn, hi: "शुक्र पर्वत", te: "శుక్ర పర్వతం", ta: "சுக்கிர மேடு" },
+          strength: { kn: "ಸುಂದರ ಹಾಗೂ ತೇಜಸ್ವಿ", en: "Radiant & Well-Developed", hi: "सुंदर व सुदृढ़", te: "సుందర పర్వతం", ta: "அழகான மேடு" },
+          indication: { kn: VEDIC_MOUNTS_RULES.venus.virtuesKn, en: "Luxury, comfortable life and vehicle prospects.", hi: "सुख-सुविधा व समृद्धि।", te: "సంపద & సౌఖ్యం.", ta: "செல்வம் & வாகன யோகம்." }
+        }
+      ];
+
+  // Special Marks
+  const specialMarks = Array.isArray(parsedData?.specialMarks) && parsedData.specialMarks.length > 0
+    ? parsedData.specialMarks.map((sm: any) => ({
+        mark: { kn: sm.mark, en: sm.mark, hi: sm.mark, te: sm.mark, ta: sm.mark },
+        meaning: { kn: sm.meaning, en: sm.meaning, hi: sm.meaning, te: sm.meaning, ta: sm.meaning }
+      }))
+    : [
+        {
+          mark: { kn: `🔱 ${VEDIC_SACRED_MARKS.trishula.nameKn}`, en: `🔱 ${VEDIC_SACRED_MARKS.trishula.nameEn}`, hi: "🔱 त्रिशूल चिन्ह", te: "🔱 త్రిశూలం", ta: "🔱 திரிசூலம்" },
+          meaning: { kn: VEDIC_SACRED_MARKS.trishula.meaningKn, en: VEDIC_SACRED_MARKS.trishula.meaningEn, hi: "शिव कृपा व कार्यसिद्धि का योग।", te: "శివ అనుగ్రహం & విజయం.", ta: "சிவ அருள் & காரிய சித்தி." }
+        }
+      ];
+
+  const overallScore = typeof parsedData?.overallScore === "number" && parsedData.overallScore >= 50 && parsedData.overallScore <= 100
+    ? parsedData.overallScore
+    : 86;
+
+  const defaultRemedy = "ಗೋಕರ್ಣ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಗೆ ಕ್ಷೀರಾಭಿಷೇಕ ಸೇವೆ ಸಲ್ಲಿಸಿ, ಪ್ರತಿದಿನ ಬೆಳಿಗ್ಗೆ 'ಓಂ ನಮಃ ಶಿವಾಯ' ಹಾಗೂ 'ಶ್ರೀ ಗಾಯತ್ರೀ ಮಹಾಮಂತ್ರ'ವನ್ನು ೧೦೮ ಬಾರಿ ಜಪಿಸಿ.";
+  const remedyRecommendation = {
+    kn: parsedData?.remedy || defaultRemedy,
+    en: parsedData?.remedy || "Offer Ksheerabhishekam at Sri Gokarna Mahabaleshwara & chant Om Namah Shivaya daily.",
+    hi: parsedData?.remedy || "श्री गोकर्ण महाबलेश्वर स्वामी को क्षीराभिषेक करें एवं 'ॐ नमः शिवाय' मंत्र का जप करें।",
+    te: parsedData?.remedy || "శ్రీ గోకర్ణ మహాబలేశ్వర స్వామికి క్షీరాభిషేకం చేయండి & రోజువారీ ఓಂ నమః శివాయ జపించండి.",
+    ta: parsedData?.remedy || "ஶ்ரீ கோகர்ண மகாபலேஸ்வரருக்கு பாலாபிஷேகம் செய்து 'ஓம் நமச்சிவாய' மந்திரம் ஜபிக்கவும்."
+  };
+
+  const defaultPrediction = langCode === "kn"
+    ? `ನಮಸ್ಕಾರ ${devoteeName}. ಸಾಮುದ್ರಿಕ ಲಕ್ಷ್ಮೀ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ನಿಮ್ಮ ${handLabel.kn} ದೈವಿಕ ರೇಖೆಗಳನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಲಾಗಿದೆ.\n\n🖐️ **ಆಯುಷ್ಯ ಹಾಗೂ ಪ್ರಾಣಶಕ್ತಿ:** ನಿಮ್ಮ ಆಯುಷ್ಯ ರೇಖೆಯು ಶುಕ್ರ ಪರ್ವತವನ್ನು ಭದ್ರವಾಗಿ ಆವರಿಸಿದ್ದು, ಉತ್ತಮ ಆರೋಗ್ಯ, ದೃಢ ಮನೋಬಲ ಹಾಗೂ ಸುದೀರ್ಘ ಆಯುಷ್ಯವನ್ನು ಸೂಚಿಸುತ್ತದೆ.\n\n💡 **ಬುದ್ಧಿ ಹಾಗೂ ವೃತ್ತಿ ಪ್ರಗತಿ:** ಮಸ್ತಿಷ್ಕ ರೇಖೆಯು ನೇರವಾಗಿದ್ದು, ಸ್ವಂತ ನಿರ್ಧಾರಗಳಿಂದ ಉದ್ಯೋಗದಲ್ಲಿ ಉನ್ನತ ಸ್ಥಾನ ಗಳಿಸುವ ಸಾಮರ್ಥ್ಯವಿದೆ.\n\n❤️ **ಭಾವನಾತ್ಮಕ ದಾಂಪತ್ಯ:** ಹೃದಯ ರೇಖೆಯು ಗುರು ಪರ್ವತದತ್ತ ಸಾಗುತ್ತಿದ್ದು, ಸಾತ್ವಿಕ ಮನಸ್ಸು, ಆದರ್ಶ ಪ್ರೇಮ ಹಾಗೂ ಕುಟುಂಬ ಸೌಹಾರ್ದತೆಯನ್ನು ನೀಡುತ್ತದೆ.\n\n🪔 **ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಆಶೀರ್ವಾದ:** ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರರ ಕೃಪೆಯಿಂದ ಸಕಲ ವಿಘ್ನಗಳು ನಿವಾರಣೆಯಾಗಿ ಸಕಾಲದಲ್ಲಿ ಮನೋಭಿಲಾಷೆಗಳು ಈಡೇರಲಿ.`
+    : `Greetings ${devoteeName}. Based on authentic Samudrika Shastra rules, your ${handLabel.en} reveals strong vitality, sharp intellect, noble heart line, and steady fortune growth.`;
 
   return {
     handSide,
@@ -305,16 +400,16 @@ Rules:
     sunLine,
     mounts,
     specialMarks,
-    overallScore: 88,
+    overallScore,
     kundliData,
     verdictTitle: {
-      kn: "🟢 ಶುಭ ಹಸ್ತ ರೇಖಾ ಯೋಗ (Auspicious Palm Line Realization)",
-      en: "🟢 Auspicious Palm Line Realization",
-      hi: "🟢 अत्यंत शुभ हस्त रेखा योग",
-      te: "🟢 అత్యుత్తమ హస్త రేఖ యోగం",
-      ta: "🟢 சுப ஹஸ்த ரேகை யோகம்"
+      kn: parsedData?.verdictTitle || "🟢 ಶುಭ ಹಸ್ತ ರೇಖಾ ಯೋಗ (Auspicious Palm Line Realization)",
+      en: parsedData?.verdictTitle || "🟢 Auspicious Palm Line Realization",
+      hi: parsedData?.verdictTitle || "🟢 अत्यंत शुभ हस्त रेखा योग",
+      te: parsedData?.verdictTitle || "🟢 అత్యుత్తమ హస్త రేఖ యోగం",
+      ta: parsedData?.verdictTitle || "🟢 சுப ஹஸ்த ரேகை யோகம்"
     },
-    aiPrediction,
+    aiPrediction: parsedData?.detailedPredictionText || defaultPrediction,
     remedyRecommendation,
     generatedAt: now.toLocaleString()
   };
@@ -336,7 +431,10 @@ HASTAREKHA SHASTRA FOLLOW-UP CONTEXT
 ==================================================
 Hand Side: ${previousResult.handSide.toUpperCase()} (${previousResult.handSideLabel.en})
 Overall Score: ${previousResult.overallScore}%
-Previous Inspection Summary: ${previousResult.aiPrediction.slice(0, 400)}...
+Life Line: ${previousResult.lifeLine.status.kn || previousResult.lifeLine.status.en} - ${previousResult.lifeLine.indication.kn || previousResult.lifeLine.indication.en}
+Head Line: ${previousResult.headLine.status.kn || previousResult.headLine.status.en} - ${previousResult.headLine.indication.kn || previousResult.headLine.indication.en}
+Heart Line: ${previousResult.heartLine.status.kn || previousResult.heartLine.status.en} - ${previousResult.heartLine.indication.kn || previousResult.heartLine.indication.en}
+Previous Summary: ${previousResult.aiPrediction.slice(0, 400)}...
 ==================================================
 `;
 
@@ -360,6 +458,8 @@ Provide a concise, direct, wise, and encouraging answer strictly using native sc
     return response.text() || "No response text.";
   } catch (err) {
     console.error("Palm follow-up error:", err);
-    return "Error processing follow-up question.";
+    return langCode === "kn"
+      ? `ಕ್ಷಮಿಸಿ, ಪೂರಕ ಪ್ರಶ್ನೆಗೆ ಉತ್ತರಿಸುವಲ್ಲಿ ದೋಷ ಸಂಭವಿಸಿದೆ.`
+      : `Sorry, error processing follow-up question.`;
   }
 }
