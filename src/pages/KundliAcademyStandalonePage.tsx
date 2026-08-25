@@ -6,7 +6,7 @@ import { gameAudio } from "../utils/gameAudio";
 
 export default function KundliAcademyStandalonePage(): JSX.Element {
   const [studentName, setStudentName] = useState<string>("ವಿದ್ಯಾರ್ಥಿ");
-  const [invitedBy, setInvitedBy] = useState<string>("ಶ್ರೀರಾಮ್ ಪಂಡಿತ್");
+  const [invitedBy, setInvitedBy] = useState<string>("ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಗುರೂಜಿ)");
   const [lang, setLang] = useState<string>("kn");
   const [initialLevel, setInitialLevel] = useState<number>(1);
   const [showShareModal, setShowShareModal] = useState<boolean>(false);
@@ -22,7 +22,7 @@ export default function KundliAcademyStandalonePage(): JSX.Element {
       const decoded = decodeAcademyToken(token);
       if (decoded) {
         setStudentName(decoded.name || "ವಿದ್ಯಾರ್ಥಿ");
-        setInvitedBy(decoded.invitedBy || "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್");
+        setInvitedBy(decoded.invitedBy || "ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಗುರೂಜಿ)");
         setLang(decoded.lang || "kn");
         setInitialLevel(decoded.level || 1);
         return;
@@ -50,7 +50,7 @@ export default function KundliAcademyStandalonePage(): JSX.Element {
       lang: lang,
       level: initialLevel,
       step: 1,
-      invitedBy: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್"
+      invitedBy: "ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಗುರೂಜಿ)"
     });
 
     const origin = window.location.origin;
@@ -69,8 +69,8 @@ export default function KundliAcademyStandalonePage(): JSX.Element {
 
   const handleWhatsAppShare = () => {
     const text = isKn
-      ? `🕉️ ಶ್ರೀ ಬಗ್ಗೋಣ ಜ್ಯೋತಿಷ್ಯ ಗುರುಕುಲ (Kundli Academy)!\n\nಆತ್ಮೀಯ ${studentName}, ಡಾ. ಬಿ.ವಿ. ರಾಮನ್ ಅವರ ಶಾಸ್ತ್ರೀಯ ನಿಯಮಗಳೊಂದಿಗೆ ೧೨ ಮನೆಗಳ ಕುಂಡಲಿ ಫಲಜ್ಯೋತಿಷ್ಯವನ್ನು ಸರಳವಾಗಿ ಕಲಿಯಲು ಕೆಳಗಿನ ಲಿಂಕ್ ಬಳಸಿ:\n\n👉 ${currentShareUrl}`
-      : `🕉️ Baggona Vedic Kundli Academy!\n\nDear ${studentName}, master the 12 houses of Janma Kundali with Dr. B.V. Raman's classical Vedic rules using this interactive link:\n\n👉 ${currentShareUrl}`;
+      ? `🕉️ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಗುರುಕುಲ (Kundli Academy)!\n\nಆತ್ಮೀಯ ${studentName},\nಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಗುರೂಜಿ) ಅವರ ಸನ್ನಿಧಾನದಲ್ಲಿ ಡಾ. ಬಿ.ವಿ. ರಾಮನ್ ಅವರ ಶಾಸ್ತ್ರೀಯ ನಿಯಮಗಳೊಂದಿಗೆ ೧೨ ಮನೆಗಳ ಕುಂಡಲಿ ಫಲಜ್ಯೋತಿಷ್ಯವನ್ನು ಸರಳವಾಗಿ ಕಲಿಯಲು ಕೆಳಗಿನ ಲಿಂಕ್ ಬಳಸಿ:\n\n👉 ${currentShareUrl}\n\n॥ ಶ್ರೀ ಶಾಂತಿಕಾಪರಮೇಶ್ವರೀ ಪ್ರಸನ್ನ ॥`
+      : `🕉️ Baggona Vedic Kundli Gurukula!\n\nDear ${studentName},\nMaster the 12 houses of Janma Kundali under the sacred mentorship of Revered Shreeram Pandit (Guruji) based on Dr. B.V. Raman's classical master rules:\n\n👉 ${currentShareUrl}\n\nBlessings from Shri Shantikaparameshwari!`;
 
     const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
     window.open(url, "_blank");
@@ -79,39 +79,39 @@ export default function KundliAcademyStandalonePage(): JSX.Element {
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50/40 to-amber-100/60 text-slate-900 flex flex-col justify-between p-3 sm:p-6 select-text">
       <div className="mx-auto max-w-5xl w-full space-y-6">
-        {/* Dedicated Standalone Temple Header */}
+        {/* Dedicated Standalone Temple Gurukula Header */}
         <header className="rounded-3xl border-2 border-amber-400 bg-gradient-to-r from-amber-900 via-amber-950 to-orange-950 p-5 sm:p-6 text-amber-50 shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 -mt-8 -mr-8 w-40 h-40 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute top-0 right-0 -mt-8 -mr-8 w-48 h-48 bg-amber-400/10 rounded-full blur-2xl pointer-events-none" />
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative z-10">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-300 to-yellow-500 text-amber-950 font-black flex items-center justify-center text-3xl shadow-lg border-2 border-amber-200 select-none">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-300 to-yellow-500 text-amber-950 font-black flex items-center justify-center text-3xl shadow-lg border-2 border-amber-200 select-none shrink-0">
                 🕉️
               </div>
               <div className="space-y-1">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-[10px] uppercase font-extrabold tracking-widest text-amber-300 bg-amber-900/80 px-2.5 py-0.5 rounded-full border border-amber-400/40">
-                    ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಗುರುಕುಲ ॥
+                    ॥ ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಗುರುಕುಲ ದೀಕ್ಷೆ ॥
                   </span>
                   <span className="text-[10px] bg-emerald-800 text-emerald-100 px-2.5 py-0.5 rounded-full font-bold border border-emerald-400/40">
-                    ✨ {isKn ? "ವೈಯಕ್ತಿಕ ಕಲಿಕಾ ತಾಣ" : "Personalized Learning Sanctuary"}
+                    ✨ {isKn ? "ವಿದ್ಯಾರ್ಥಿ ಕಲಿಕಾ ತಾಣ" : "Vidyarthi Learning Sanctuary"}
                   </span>
                 </div>
 
                 <h1 className="font-serif text-lg sm:text-2xl font-black text-amber-100 tracking-tight">
-                  {isKn ? `ಸ್ವಾಗತ, ${studentName}!` : `Welcome, ${studentName}!`}
+                  {isKn ? `ಆತ್ಮೀಯ ಸ್ವಾಗತ, ${studentName}!` : `Welcome, ${studentName}!`}
                 </h1>
 
                 <p className="text-xs text-amber-200/90 font-medium">
                   {isKn
-                    ? `ಮಾರ್ಗದರ್ಶನ: ${invitedBy} · ಡಾ. ಬಿ.ವಿ. ರಾಮನ್ ಅವರ ಶಾಸ್ತ್ರೀಯ ನಿಯಮಗಳ ಪ್ರಕಾರ ಕುಂಡಲಿ ಕಲಿಕೆ.`
-                    : `Mentored by: ${invitedBy} · Classical Vedic astrology based on Dr. B.V. Raman's foundational rules.`}
+                    ? `ಗುರು ಉಪದೇಶ & ಮಾರ್ಗದರ್ಶನ: ${invitedBy} · ಡಾ. ಬಿ.ವಿ. ರಾಮನ್ ಅವರ ಶಾಸ್ತ್ರೀಯ ನಿಯಮಗಳ ಪ್ರಕಾರ ಕುಂಡಲಿ ಕಲಿಕೆ.`
+                    : `Preceptor & Guidance: ${invitedBy} · Classical Vedic astrology based on Dr. B.V. Raman's master rules.`}
                 </p>
               </div>
             </div>
 
             {/* Language Toggle & Share Link Button */}
-            <div className="flex items-center gap-2 self-end sm:self-center">
+            <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
               <button
                 type="button"
                 onClick={() => setLang(isKn ? "en" : "kn")}
@@ -148,9 +148,12 @@ export default function KundliAcademyStandalonePage(): JSX.Element {
             <div className="flex items-center justify-between border-b border-amber-200 pb-3">
               <div className="flex items-center gap-2">
                 <span className="text-2xl">🔗</span>
-                <h3 className="font-serif text-base font-black text-amber-950">
-                  {isKn ? "ವಿದ್ಯಾರ್ಥಿಗೆ ವೈಯಕ್ತಿಕ ಲಿಂಕ್ ಕಳುಹಿಸಿ" : "Share Personalized Student Link"}
-                </h3>
+                <div>
+                  <div className="text-[9px] font-extrabold text-amber-800 uppercase">॥ ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಗುರುಕುಲ ॥</div>
+                  <h3 className="font-serif text-base font-black text-amber-950">
+                    {isKn ? "ವಿದ್ಯಾರ್ಥಿಗೆ ವೈಯಕ್ತಿಕ ಲಿಂಕ್ ಕಳುಹಿಸಿ" : "Share Personalized Vidyarthi Link"}
+                  </h3>
+                </div>
               </div>
               <button
                 type="button"
@@ -201,8 +204,8 @@ export default function KundliAcademyStandalonePage(): JSX.Element {
 
               <p className="text-[10px] text-amber-800/80 text-center font-medium">
                 🔒 {isKn
-                  ? "ಈ ಲಿಂಕ್ ತೆರೆದಾಗ ವಿದ್ಯಾರ್ಥಿಯು ಕೇವಲ ಕುಂಡಲಿ ಕಲಿಕಾ ತಾಣವನ್ನು ಮಾತ್ರ ವೀಕ್ಷಿಸಬಹುದು. ಇತರ ಯಾವುದೇ ಪುಟಗಳಿಗೆ ಪ್ರವೇಶವಿರುವುದಿಲ್ಲ."
-                  : "Recipients of this secure link can exclusively access the Kundli Academy without logging in."}
+                  ? "ಈ ಲಿಂಕ್ ತೆರೆದಾಗ ವಿದ್ಯಾರ್ಥಿಯು ಕೇವಲ ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರ ಕುಂಡಲಿ ಕಲಿಕಾ ತಾಣವನ್ನು ಮಾತ್ರ ವೀಕ್ಷಿಸಬಹುದು. ಇತರ ಯಾವುದೇ ಪುಟಗಳಿಗೆ ಪ್ರವೇಶವಿರುವುದಿಲ್ಲ."
+                  : "Recipients exclusively access Guruji Shreeram Pandit's Kundli Gurukula without logging in."}
               </p>
             </div>
           </div>
@@ -211,7 +214,7 @@ export default function KundliAcademyStandalonePage(): JSX.Element {
 
       {/* Auspicious Footer */}
       <footer className="mt-8 text-center text-xs text-amber-900/70 font-medium py-3 border-t border-amber-200/60">
-        ॥ ಶ್ರೀ ಶಾಂತಿಕಾಪರಮೇಶ್ವರೀ & ಮಹಾಗಣಪತಿ ಪ್ರಸನ್ನ · ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಗುರುಕುಲ ॥
+        ॥ ಶ್ರೀ ಶಾಂತಿಕಾಪರಮೇಶ್ವರೀ & ಮಹಾಗಣಪತಿ ಪ್ರಸನ್ನ · ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಗುರುಕುಲ, ಬಗ್ಗೋಣ ॥
       </footer>
     </div>
   );

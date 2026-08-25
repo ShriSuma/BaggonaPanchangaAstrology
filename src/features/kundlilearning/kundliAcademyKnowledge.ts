@@ -1,11 +1,11 @@
 /**
- * Classical Vedic Kundli Academy & B.V. Raman Master Knowledge Engine.
+ * Classical Vedic Kundli Gurukula & Master Knowledge Engine.
  * 
- * Exhaustive, 100% authentic, deterministic Vedic astrology rules for all 12 Houses (Bhavas).
+ * Guided by: Revered Shreeram Pandit (ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ - ಗುರೂಜಿ)
  * Sourced directly from:
- * 1. Prof. B.V. Raman - "How to Judge a Horoscope" (Vols 1 & 2), "300 Important Combinations"
- * 2. Brihat Parashara Hora Shastra (Bhava Adhyaya, Drishti Adhyaya, Yoga Adhyaya)
- * 3. Jataka Parijata, Phaladeepika & Saravali
+ * 1. Prof. Dr. B.V. Raman - "How to Judge a Horoscope" (Vols 1 & 2), "300 Important Combinations", "Manual of Hindu Astrology"
+ * 2. Brihat Parashara Hora Shastra (Bhava, Drishti, Karaka & Yoga Adhyayas)
+ * 3. Jataka Parijata, Phaladeepika, Saravali & Bhavartha Ratnakara
  */
 
 export type HouseDignity = {
@@ -96,6 +96,8 @@ export type HouseLearningModule = {
   lifeThemesEn: string[];
   simpleIntroKn: string;
   simpleIntroEn: string;
+  guruSandeshaKn: string;
+  guruSandeshaEn: string;
   dignity: HouseDignity;
   friendshipsKn: {
     friends: string[];
@@ -112,6 +114,55 @@ export type HouseLearningModule = {
   grahaEffects: GrahaPlacementEffect[];
   quiz: HouseQuizQuestion[];
 };
+
+// Helper to generate the 9 standard graha placement outcomes for all houses
+function createFull9GrahaEffects(
+  houseNum: number,
+  hNameKn: string,
+  hNameEn: string,
+  specialOverrides: Record<string, Partial<GrahaPlacementEffect>> = {}
+): GrahaPlacementEffect[] {
+  const defaultGrahas: { planetKn: string; planetEn: string; symbol: string; nature: "benefic" | "malefic" | "neutral" }[] = [
+    { planetKn: "ಸೂರ್ಯ (Surya)", planetEn: "Sun (Surya)", symbol: "☀️", nature: "benefic" },
+    { planetKn: "ಚಂದ್ರ (Chandra)", planetEn: "Moon (Chandra)", symbol: "🌙", nature: "benefic" },
+    { planetKn: "ಮಂಗಳ (Kuja)", planetEn: "Mars (Kuja)", symbol: "🔥", nature: "benefic" },
+    { planetKn: "ಬುಧ (Budha)", planetEn: "Mercury (Budha)", symbol: "💎", nature: "benefic" },
+    { planetKn: "ಗುರು (Brihaspati)", planetEn: "Jupiter (Guru)", symbol: "🌟", nature: "benefic" },
+    { planetKn: "ಶುಕ್ರ (Shukra)", planetEn: "Venus (Shukra)", symbol: "💖", nature: "benefic" },
+    { planetKn: "ಶನಿ (Shani)", planetEn: "Saturn (Shani)", symbol: "🪐", nature: "neutral" },
+    { planetKn: "ರಾಹು (Rahu)", planetEn: "Rahu", symbol: "🌪️", nature: "malefic" },
+    { planetKn: "ಕೇತು (Ketu)", planetEn: "Ketu", symbol: "📿", nature: "neutral" }
+  ];
+
+  return defaultGrahas.map((g) => {
+    const key = g.planetEn.split(" ")[0];
+    const override = specialOverrides[key] || {};
+
+    const defaultTitleKn = `${g.planetKn} ${houseNum}ನೇ ಮನೆಯ ಫಲ (${hNameKn})`;
+    const defaultTitleEn = `${g.planetEn} in House ${houseNum} (${hNameEn})`;
+    const defaultDescKn = `${g.planetKn} ${houseNum}ನೇ ಮನೆಯಲ್ಲಿ ಕುಳಿತಾಗ ಜಾತಕನ ಜೀವನದಲ್ಲಿ ಆ ಭಾವದ ಕಾರಕತ್ವಗಳು ಸಕ್ರಿಯಗೊಳ್ಳುತ್ತವೆ. ಶುಭ ದೃಷ್ಟಿಯಿದ್ದರೆ ಸರ್ವ ಸುಖ ಲಭಿಸುತ್ತದೆ.`;
+    const defaultDescEn = `Placement of ${g.planetEn} in House ${houseNum} activates the significations of this bhava with distinct karmic fruition.`;
+    const defaultVerdictKn = `ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್: '${houseNum}ನೇ ಮನೆಯಲ್ಲಿ ${g.planetKn} ಸ್ಥಿತಿಯಿರುವಾಗ ಗ್ರಹದ ನೈಸರ್ಗಿಕ ಶಕ್ತಿ ಹಾಗೂ ಶತ್ರು-ಮಿತ್ರ ಮೈತ್ರಿಯನ್ನು ನೋಡಿ ಫಲ ನಿರ್ಧರಿಸಬೇಕು.'`;
+    const defaultVerdictEn = `Revered Shreeram Pandit: 'In House ${houseNum}, assess ${g.planetEn}'s dignity and friendship alliances for accurate prediction.'`;
+
+    return {
+      planetKn: g.planetKn,
+      planetEn: g.planetEn,
+      symbol: g.symbol,
+      nature: override.nature || g.nature,
+      effectTitleKn: override.effectTitleKn || defaultTitleKn,
+      effectTitleEn: override.effectTitleEn || defaultTitleEn,
+      descriptionKn: override.descriptionKn || defaultDescKn,
+      descriptionEn: override.descriptionEn || defaultDescEn,
+      keyGiftsKn: override.keyGiftsKn || ["ಆತ್ಮವಿಶ್ವಾಸ", "ಅಭಿವೃದ್ಧಿ", "ದೈವಾನುಗ್ರಹ"],
+      keyGiftsEn: override.keyGiftsEn || ["Confidence", "Growth", "Divine Grace"],
+      watchOutsKn: override.watchOutsKn || ["ಆತುರ ನಿರ್ಧಾರ ಬೇಡ", "ಸಂಯಮ ಪಾಲನೆ"],
+      watchOutsEn: override.watchOutsEn || ["Avoid hasty impulses", "Practice patience"],
+      bvRamanVerdictKn: override.bvRamanVerdictKn || defaultVerdictKn,
+      bvRamanVerdictEn: override.bvRamanVerdictEn || defaultVerdictEn
+    };
+  });
+}
 
 export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
   // =========================================================================
@@ -141,6 +192,8 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
     lifeThemesEn: ["Personality", "Self-Confidence", "Physical Vitality", "Initiative", "Radiance"],
     simpleIntroKn: "೧ನೇ ಮನೆಯೇ ನಿಮ್ಮ ಜಾತಕದ ಪ್ರವೇಶ ದ್ವಾರ! ಇದು ನಿಮ್ಮ ಶರೀರ, ರೂಪ, ವರ್ತನೆ ಹಾಗೂ ಜೀವನವನ್ನು ಹೇಗೆ ಮುನ್ನಡೆಸುತ್ತೀರಿ ಎಂಬುದನ್ನು ಸೂಚಿಸುತ್ತದೆ.",
     simpleIntroEn: "The 1st House is the gateway of your horoscope! It represents your physical body, appearance, self-identity, and health vitality.",
+    guruSandeshaKn: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಗುರೂಜಿ: 'ಲಗ್ನವೆಂಬುದು ಮರದ ಬೇರು ಇದ್ದಂತೆ. ಲಗ್ನ ಬಲವಾಗಿದ್ದರೆ ಎಂತಹ ಕಠಿಣ ಗ್ರಹದೋಷಗಳಿದ್ದರೂ ಮರವು ಫಲಪುಷ್ಪಗಳಿಂದ ಕಂಗೊಳಿಸುತ್ತದೆ.'",
+    guruSandeshaEn: "Shreeram Pandit (Guruji): 'Lagna is the root of the tree of life. When the Ascendant is strong, the native flourishes despite external planetary storms.'",
     dignity: {
       exaltedPlanetKn: "ಸೂರ್ಯ (Surya - 10° ವರೆಗೆ ಪರಮೋಚ್ಚ)",
       exaltedPlanetEn: "Sun (Surya - Exalted up to 10°)",
@@ -218,12 +271,8 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         drishtiQualityEn: "Fiery Drive: Mars in 1st aspects 4th, 7th, and 8th, giving dynamic courage and property acquisition drive."
       }
     ],
-    grahaEffects: [
-      {
-        planetKn: "ಸೂರ್ಯ (Surya)",
-        planetEn: "Sun (Surya)",
-        symbol: "☀️",
-        nature: "benefic",
+    grahaEffects: createFull9GrahaEffects(1, "ತನು ಭಾವ (ಲಗ್ನ)", "Tanu Bhava (Ascendant)", {
+      Sun: {
         effectTitleKn: "ರಾಜತೇಜಸ್ಸು & ನಾಯಕತ್ವ (Sun in 1st)",
         effectTitleEn: "Royal Radiance & Leadership (Sun in 1st)",
         descriptionKn: "ವ್ಯಕ್ತಿಗೆ ಅದ್ಭುತ ಆತ್ಮವಿಶ್ವಾಸ, ಧೈರ್ಯ, ಉತ್ತಮ ಆರೋಗ್ಯ, ಸರ್ಕಾರಿ ಗೌರವ ಹಾಗೂ ನಾಯಕತ್ವ ಸಾಮರ್ಥ್ಯ ದೊರೆಯುತ್ತದೆ.",
@@ -232,14 +281,10 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         keyGiftsEn: ["Natural Leadership", "Decisiveness", "Glowing Vitality"],
         watchOutsKn: ["ಅತಿಯಾದ ಅಹಂಕಾರ", "ಕೋಪ ನಿಯಂತ್ರಣ"],
         watchOutsEn: ["Ego traps", "Hot-headed impulses"],
-        bvRamanVerdictKn: "ಡಾ. ಬಿ.ವಿ. ರಾಮನ್: 'ಸೂರ್ಯನು ಲಗ್ನದಲ್ಲಿದ್ದರೆ ವ್ಯಕ್ತಿಯು ಸ್ವಾವಲಂಬಿ ಹಾಗೂ ಸಮಾಜದಲ್ಲಿ ಧ್ರುವತಾರೆಯಂತೆ ಬೆಳಗುತ್ತಾನೆ.'",
-        bvRamanVerdictEn: "B.V. Raman: 'Sun in the Ascendant makes the native self-reliant, courageous, and prominent in society.'"
+        bvRamanVerdictKn: "ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ & ಡಾ. ಬಿ.ವಿ. ರಾಮನ್: 'ಸೂರ್ಯನು ಲಗ್ನದಲ್ಲಿದ್ದರೆ ವ್ಯಕ್ತಿಯು ಸ್ವಾವಲಂಬಿ ಹಾಗೂ ಸಮಾಜದಲ್ಲಿ ಧ್ರುವತಾರೆಯಂತೆ ಬೆಳಗುತ್ತಾನೆ.'",
+        bvRamanVerdictEn: "Revered Shreeram Pandit & Dr. B.V. Raman: 'Sun in the Ascendant makes the native self-reliant, courageous, and prominent in society.'"
       },
-      {
-        planetKn: "ಚಂದ್ರ (Chandra)",
-        planetEn: "Moon (Chandra)",
-        symbol: "🌙",
-        nature: "benefic",
+      Moon: {
         effectTitleKn: "ಸೌಮ್ಯತೆ, ಕರುಣೆ & ಸೌಂದರ್ಯ (Moon in 1st)",
         effectTitleEn: "Gentle Beauty & Empathy (Moon in 1st)",
         descriptionKn: "ಸುಂದರ ನಯನಗಳು, ಕರುಣಾಮಯಿ ಮನಸ್ಸು, ಜನಪ್ರಿಯತೆ ಹಾಗೂ ಕಲಾತ್ಮಕ ಕಲ್ಪನಾ ಶಕ್ತಿಯನ್ನು ಕರುಣಿಸುತ್ತದೆ.",
@@ -248,14 +293,10 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         keyGiftsEn: ["Charming Aura", "Public Fame", "Creative Intuition"],
         watchOutsKn: ["ಭಾವನಾತ್ಮಕ ಏರಿಳಿತ", "ಚಂಚಲ ಮನಸ್ಸು"],
         watchOutsEn: ["Emotional swings", "Restlessness"],
-        bvRamanVerdictKn: "ಡಾ. ಬಿ.ವಿ. ರಾಮನ್: 'ಶುಕ್ಲ ಪಕ್ಷದ ಪೂರ್ಣ ಚಂದ್ರ ಲಗ್ನದಲ್ಲಿದ್ದರೆ ಅಪಾರ ಜನಪ್ರಿಯತೆ ಹಾಗೂ ಸೌಂದರ್ಯ ಪ್ರಾಪ್ತಿ.'",
-        bvRamanVerdictEn: "B.V. Raman: 'A bright waxing Moon in Lagna imparts radiant charisma and high social affection.'"
+        bvRamanVerdictKn: "ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್: 'ಶುಕ್ಲ ಪಕ್ಷದ ಪೂರ್ಣ ಚಂದ್ರ ಲಗ್ನದಲ್ಲಿದ್ದರೆ ಸಕಲರ ಪ್ರೀತಿಪಾತ್ರನಾಗಿ ಸುಂದರ ವ್ಯಕ್ತಿತ್ವ ಪಡೆಯುತ್ತಾನೆ.'",
+        bvRamanVerdictEn: "Revered Shreeram Pandit: 'A waxing Moon in Lagna imparts radiant charisma, gentle manners, and wide public love.'"
       },
-      {
-        planetKn: "ಮಂಗಳ (Kuja)",
-        planetEn: "Mars (Kuja)",
-        symbol: "🔥",
-        nature: "benefic",
+      Mars: {
         effectTitleKn: "ರುಚಕ ಯೋಗ & ಶೌರ್ಯ (Mars in 1st)",
         effectTitleEn: "Ruchaka Yoga & Fearless Drive (Mars in 1st)",
         descriptionKn: "ಸ್ವಕ್ಷೇತ್ರದಲ್ಲಿದ್ದಾಗ ಪಂಚ ಮಹಾಪುರುಷ ರುಚಕ ಯೋಗ ಸೃಷ್ಟಿಸುತ್ತದೆ. ಅಪ್ರತಿಮ ಧೈರ್ಯ, ಕ್ರೀಡಾ ಶಕ್ತಿ ಹಾಗೂ ತಾಂತ್ರಿಕ ಚಾಕಚಕ್ಯತೆ ನೀಡುತ್ತದೆ.",
@@ -264,14 +305,10 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         keyGiftsEn: ["Courageous Drive", "Athletic Prowess", "Engineering Mind"],
         watchOutsKn: ["ಆತುರ ನಿರ್ಧಾರ", "ರಕ್ತದೊತ್ತಡ"],
         watchOutsEn: ["Impatience", "Headaches / Impulsiveness"],
-        bvRamanVerdictKn: "ಡಾ. ಬಿ.ವಿ. ರಾಮನ್: 'ಮಂಗಳನು ಲಗ್ನದಲ್ಲಿದ್ದರೆ ವ್ಯಕ್ತಿಯು ಅಪ್ರತಿಮ ಸೇನಾನಿ ಹಾಗೂ ಅಂಜದ ಸಾಹಸಿಯಾಗುತ್ತಾನೆ.'",
-        bvRamanVerdictEn: "B.V. Raman: 'Mars in the Ascendant makes one daring, an energetic leader, and mechanically gifted.'"
+        bvRamanVerdictKn: "ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್: 'ಮಂಗಳನು ಲಗ್ನದಲ್ಲಿದ್ದರೆ ವ್ಯಕ್ತಿಯು ಅಪ್ರತಿಮ ಸೇನಾನಿ ಹಾಗೂ ಅಂಜದ ಸಾಹಸಿಯಾಗುತ್ತಾನೆ.'",
+        bvRamanVerdictEn: "Revered Shreeram Pandit: 'Mars in the Ascendant makes one daring, an energetic leader, and mechanically gifted.'"
       },
-      {
-        planetKn: "ಬುಧ (Budha)",
-        planetEn: "Mercury (Budha)",
-        symbol: "💎",
-        nature: "benefic",
+      Mercury: {
         effectTitleKn: "ಬುದ್ಧಿವಂತಿಕೆ & ಚುರುಕುತನ (Mercury in 1st)",
         effectTitleEn: "Intellectual Agility & Wit (Mercury in 1st)",
         descriptionKn: "ಸದಾ ತರುಣೋತ್ಸಾಹ, ಹಾಸ್ಯಪ್ರಜ್ಞೆ, ಗಣಿತ-ವ್ಯಾಪಾರ ಚಾಕಚಕ್ಯತೆ ಹಾಗೂ ಅದ್ಭುತ ಮಾತುಗಾರಿಕೆಯನ್ನು ನೀಡುತ್ತದೆ.",
@@ -280,14 +317,10 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         keyGiftsEn: ["Eloquent Speech", "Analytical Skill", "Youthful Appearance"],
         watchOutsKn: ["ಏಕಾಗ್ರತೆ ಕೊರತೆ", "ಅತಿಯಾದ ಚರ್ಚೆ"],
         watchOutsEn: ["Scattered focus", "Over-analyzing"],
-        bvRamanVerdictKn: "ಡಾ. ಬಿ.ವಿ. ರಾಮನ್: 'ಬುಧನು ಲಗ್ನದಲ್ಲಿದ್ದರೆ ವ್ಯಕ್ತಿಯು ಸದಾ ವಿದ್ವತ್ಪೂರ್ಣ ಸಂಭಾಷಣೆ ಹಾಗೂ ವ್ಯಾಪಾರದಲ್ಲಿ ಮುಂಚೂಣಿಯಲ್ಲಿರುತ್ತಾನೆ.'",
-        bvRamanVerdictEn: "B.V. Raman: 'Mercury in Lagna gives sharp intellect, humorous conversation, and commerce skills.'"
+        bvRamanVerdictKn: "ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್: 'ಬುಧನು ಲಗ್ನದಲ್ಲಿದ್ದರೆ ವ್ಯಕ್ತಿಯು ಸದಾ ವಿದ್ವತ್ಪೂರ್ಣ ಸಂಭಾಷಣೆ ಹಾಗೂ ವ್ಯಾಪಾರದಲ್ಲಿ ಮುಂಚೂಣಿಯಲ್ಲಿರುತ್ತಾನೆ.'",
+        bvRamanVerdictEn: "Revered Shreeram Pandit: 'Mercury in Lagna gives sharp intellect, humorous conversation, and commerce skills.'"
       },
-      {
-        planetKn: "ಗುರು (Brihaspati)",
-        planetEn: "Jupiter (Guru)",
-        symbol: "🌟",
-        nature: "benefic",
+      Jupiter: {
         effectTitleKn: "ದಿವ್ಯ ಜ್ಞಾನ & ಹಂಸ ಯೋಗ (Jupiter in 1st)",
         effectTitleEn: "Divine Wisdom & Dignity (Jupiter in 1st)",
         descriptionKn: "ಲಗ್ನದಲ್ಲಿ ಗುರುವು ಲಕ್ಷ ದೋಷಗಳನ್ನು ನಿವಾರಿಸುತ್ತಾನೆ. ಉನ್ನತ ಸಂಸ್ಕಾರ, ಗೌರವ, ಧಾರ್ಮಿಕ ಶ್ರದ್ಧೆ ಹಾಗೂ ದೀರ್ಘಾಯುಷ್ಯ ನೀಡುತ್ತದೆ.",
@@ -296,14 +329,10 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         keyGiftsEn: ["Profound Wisdom", "Divine Protection", "Moral Nobility"],
         watchOutsKn: ["ಸ್ಥೂಲಕಾಯ (ತೂಕ ಹೆಚ್ಚಳ)", "ಅತಿಯಾದ ಆಶಾವಾದ"],
         watchOutsEn: ["Weight gain", "Over-optimism"],
-        bvRamanVerdictKn: "ಡಾ. ಬಿ.ವಿ. ರಾಮನ್: 'ಲಗ್ನದಲ್ಲಿ ಗುರು ಕುಳಿತರೆ ಜಾತಕಕ್ಕೆ ದೈವಿಕ ರಕ್ಷಾ ಕವಚ ದೊರೆಯುತ್ತದೆ.'",
-        bvRamanVerdictEn: "B.V. Raman: 'Jupiter in the Ascendant is a supreme blessing, ensuring high virtue and longevity.'"
+        bvRamanVerdictKn: "ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್: 'ಲಗ್ನದಲ್ಲಿ ಗುರು ಕುಳಿತರೆ ಜಾತಕಕ್ಕೆ ದೈವಿಕ ರಕ್ಷಾ ಕವಚ ದೊರೆಯುತ್ತದೆ.'",
+        bvRamanVerdictEn: "Revered Shreeram Pandit: 'Jupiter in the Ascendant is a supreme blessing, ensuring high virtue and longevity.'"
       },
-      {
-        planetKn: "ಶುಕ್ರ (Shukra)",
-        planetEn: "Venus (Shukra)",
-        symbol: "💖",
-        nature: "benefic",
+      Venus: {
         effectTitleKn: "ಸೌಂದರ್ಯ & ಕಲಾ ವೈಭವ (Venus in 1st)",
         effectTitleEn: "Aesthetic Magnetism & Luxury (Venus in 1st)",
         descriptionKn: "ಅತ್ಯಂತ ಆಕರ್ಷಕ ರೂಪ, ವಸ್ತ್ರ-ಆಭರಣ ಪ್ರೇಮ, ಸಂಗೀತ-ಕಲೆಗಳಲ್ಲಿ ಆಸಕ್ತಿ ಹಾಗೂ ಸಕಲ ಭೋಗಭಾಗ್ಯಗಳನ್ನು ಕರುಣಿಸುತ್ತದೆ.",
@@ -312,14 +341,10 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         keyGiftsEn: ["Artistic Brilliance", "Attractive Persona", "Prosperity & Joy"],
         watchOutsKn: ["ಭೋಗಾಸಕ್ತಿ", "ಸಮಯ ಪಾಲನೆ"],
         watchOutsEn: ["Over-indulgence", "Complacency"],
-        bvRamanVerdictKn: "ಡಾ. ಬಿ.ವಿ. ರಾಮನ್: 'ಶುಕ್ರನು ಲಗ್ನದಲ್ಲಿದ್ದರೆ ವ್ಯಕ್ತಿಯು ಅಪ್ರತಿಮ ಆಕರ್ಷಣೆ ಹಾಗೂ ಕಲಾತ್ಮಕ ಕೀರ್ತಿ ಗಳಿಸುತ್ತಾನೆ.'",
-        bvRamanVerdictEn: "B.V. Raman: 'Venus in 1st house endows extraordinary beauty, artistic flair, and gentle manners.'"
+        bvRamanVerdictKn: "ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್: 'ಶುಕ್ರನು ಲಗ್ನದಲ್ಲಿದ್ದರೆ ವ್ಯಕ್ತಿಯು ಅಪ್ರತಿಮ ಆಕರ್ಷಣೆ ಹಾಗೂ ಕಲಾತ್ಮಕ ಕೀರ್ತಿ ಗಳಿಸುತ್ತಾನೆ.'",
+        bvRamanVerdictEn: "Revered Shreeram Pandit: 'Venus in 1st house endows extraordinary beauty, artistic flair, and gentle manners.'"
       },
-      {
-        planetKn: "ಶನಿ (Shani)",
-        planetEn: "Saturn (Shani)",
-        symbol: "🪐",
-        nature: "neutral",
+      Saturn: {
         effectTitleKn: "ಗಂಭೀರತೆ, ಶಿಸ್ತು & ತಾಳ್ಮೆ (Saturn in 1st)",
         effectTitleEn: "Discipline, Endurance & Sobriety (Saturn in 1st)",
         descriptionKn: "ಗಂಭೀರ ಸ್ವಭಾವ, ಅಚಲ ಶಿಸ್ತು, ನಿಧಾನವಾದರೂ ಶಾಶ್ವತ ಯಶಸ್ಸು ಹಾಗೂ ಅಗಾಧ ಸಹನಶೀಲತೆಯನ್ನು ನೀಡುತ್ತದೆ.",
@@ -328,14 +353,10 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         keyGiftsEn: ["Enduring Patience", "Hard Work Ethic", "Philosophical Depth"],
         watchOutsKn: ["ಆರಂಭಿಕ ವಿಳಂಬ", "ಒಂಟಿತನ"],
         watchOutsEn: ["Early life delays", "Melancholy / Solitude"],
-        bvRamanVerdictKn: "ಡಾ. ಬಿ.ವಿ. ರಾಮನ್: 'ಶನಿಯು ಲಗ್ನದಲ್ಲಿದ್ದರೆ ಆರಂಭಿಕ ಸಂಘರ್ಷವಿದ್ದರೂ ೩೬ನೇ ವರ್ಷದ ನಂತರ ಅಖಂಡ ಸ್ಥಿರತೆ ದೊರೆಯುತ್ತದೆ.'",
-        bvRamanVerdictEn: "B.V. Raman: 'Saturn in Lagna builds formidable character through patience, rising to great height after age 36.'"
+        bvRamanVerdictKn: "ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್: 'ಶನಿಯು ಲಗ್ನದಲ್ಲಿದ್ದರೆ ಆರಂಭಿಕ ಸಂಘರ್ಷವಿದ್ದರೂ ೩೬ನೇ ವರ್ಷದ ನಂತರ ಅಖಂಡ ಸ್ಥಿರತೆ ದೊರೆಯುತ್ತದೆ.'",
+        bvRamanVerdictEn: "Revered Shreeram Pandit: 'Saturn in Lagna builds formidable character through patience, rising to great height after age 36.'"
       },
-      {
-        planetKn: "ರಾಹು (Rahu)",
-        planetEn: "Rahu",
-        symbol: "🌪️",
-        nature: "malefic",
+      Rahu: {
         effectTitleKn: "ವಿಶಿಷ್ಟ ಮಹತ್ವಾಕಾಂಕ್ಷೆ (Rahu in 1st)",
         effectTitleEn: "Unconventional Ambition (Rahu in 1st)",
         descriptionKn: "ಸಂಪ್ರದಾಯ ಮೀರಿದ ಚಿಂತನೆ, ತಂತ್ರಜ್ಞಾನ ಒಲವು, ವಿದೇಶಿ ಸಂಪರ್ಕ ಹಾಗೂ ವಿಶಿಷ್ಟ ಆಕರ್ಷಣೆಯನ್ನು ನೀಡುತ್ತದೆ.",
@@ -344,14 +365,10 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         keyGiftsEn: ["Tech Innovation", "Global Exposure", "Original Mindset"],
         watchOutsKn: ["ಭ್ರಮೆ & ಅಸ್ಥಿರತೆ", "ಆರೋಗ್ಯ ಜಾಗ್ರತೆ"],
         watchOutsEn: ["Illusion / Restlessness", "Immunity vigilance"],
-        bvRamanVerdictKn: "ಡಾ. ಬಿ.ವಿ. ರಾಮನ್: 'ರಾಹು ಲಗ್ನದಲ್ಲಿದ್ದರೆ ವ್ಯಕ್ತಿಯು ಹೊಸ ಆವಿಷ್ಕಾರಗಳು ಹಾಗೂ ವಿದೇಶಗಳಲ್ಲಿ ಯಶಸ್ವಿಯಾಗುತ್ತಾನೆ.'",
-        bvRamanVerdictEn: "B.V. Raman: 'Rahu in Lagna creates unusual charisma and success in cutting-edge or foreign spheres.'"
+        bvRamanVerdictKn: "ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್: 'ರಾಹು ಲಗ್ನದಲ್ಲಿದ್ದರೆ ವ್ಯಕ್ತಿಯು ಹೊಸ ಆವಿಷ್ಕಾರಗಳು ಹಾಗೂ ವಿದೇಶಗಳಲ್ಲಿ ಯಶಸ್ವಿಯಾಗುತ್ತಾನೆ.'",
+        bvRamanVerdictEn: "Revered Shreeram Pandit: 'Rahu in Lagna creates unusual charisma and success in cutting-edge or foreign spheres.'"
       },
-      {
-        planetKn: "ಕೇತು (Ketu)",
-        planetEn: "Ketu",
-        symbol: "📿",
-        nature: "neutral",
+      Ketu: {
         effectTitleKn: "ಆಧ್ಯಾತ್ಮಿಕ ಅಂತಃಸ್ಫೂರ್ತಿ (Ketu in 1st)",
         effectTitleEn: "Spiritual Intuition & Insight (Ketu in 1st)",
         descriptionKn: "ಆಳವಾದ ಅಂತಃಸ್ಫೂರ್ತಿ, ಗೂಢ ಶಾಸ್ತ್ರಗಳ ಒಲವು, ನಿರಾಸಕ್ತಿ ಹಾಗೂ ತಪಸ್ಸಿನ ಶಕ್ತಿಯನ್ನು ಜಾಗೃತಗೊಳಿಸುತ್ತದೆ.",
@@ -360,10 +377,10 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         keyGiftsEn: ["Sixth Sense Intuition", "Spiritual Depth", "Minimalist Simplicity"],
         watchOutsKn: ["ಗೊಂದಲ", "ಆತ್ಮವಿಶ್ವಾಸದ ಕೊರತೆ"],
         watchOutsEn: ["Self-doubt", "Indecisiveness"],
-        bvRamanVerdictKn: "ಡಾ. ಬಿ.ವಿ. ರಾಮನ್: 'ಕೇತು ಲಗ್ನದಲ್ಲಿದ್ದರೆ ವ್ಯಕ್ತಿಯು ಆಧ್ಯಾತ್ಮಿಕ ಅನ್ವೇಷಕ ಹಾಗೂ ಸರಳ ಜೀವಿಯಾಗುತ್ತಾನೆ.'",
-        bvRamanVerdictEn: "B.V. Raman: 'Ketu in Lagna inclines one towards spirituality, detachment, and sharp occult perception.'"
+        bvRamanVerdictKn: "ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್: 'ಕೇತು ಲಗ್ನದಲ್ಲಿದ್ದರೆ ವ್ಯಕ್ತಿಯು ಆಧ್ಯಾತ್ಮಿಕ ಅನ್ವೇಷಕ ಹಾಗೂ ಸರಳ ಜೀವಿಯಾಗುತ್ತಾನೆ.'",
+        bvRamanVerdictEn: "Revered Shreeram Pandit: 'Ketu in Lagna inclines one towards spirituality, detachment, and sharp occult perception.'"
       }
-    ],
+    }),
     quiz: [
       {
         questionKn: "೧ನೇ ಮನೆಯನ್ನು ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯದಲ್ಲಿ ಯಾವ ಪ್ರಮುಖ ಹೆಸರಿನಿಂದ ಕರೆಯಲಾಗುತ್ತದೆ?",
@@ -384,8 +401,8 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         explanationEn: "Sun reaches its highest exaltation (Uccha) up to 10° in Mesha."
       },
       {
-        questionKn: "ಡಾ. ಬಿ.ವಿ. ರಾಮನ್ ಅವರ ಪ್ರಕಾರ ಲಗ್ನದಲ್ಲಿ ಗುರು ಸ್ಥಿತನಾಗಿದ್ದರೆ ಉಂಟಾಗುವ ಮುಖ್ಯ ಫಲವೇನು?",
-        questionEn: "According to Dr. B.V. Raman, what is the prime blessing of Jupiter in Lagna?",
+        questionKn: "ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಗುರೂಜಿ ಅವರ ಪ್ರಕಾರ ಲಗ್ನದಲ್ಲಿ ಗುರು ಸ್ಥಿತನಾಗಿದ್ದರೆ ಉಂಟಾಗುವ ಮುಖ್ಯ ಫಲವೇನು?",
+        questionEn: "According to Revered Shreeram Pandit (Guruji), what is the prime blessing of Jupiter in Lagna?",
         optionsKn: ["ಲಕ್ಷ ದೋಷ ನಿವಾರಣೆ & ಉನ್ನತ ಸಂಸ್ಕಾರ", "ಅಪಾರ ದಾರಿದ್ರ್ಯ", "ಕೋಪ & ಕಲಹ", "ವಿದ್ಯಾ ನಷ್ಟ"],
         optionsEn: ["Destroys hundreds of doshas & grants noble wisdom", "Extreme poverty", "Constant anger", "Loss of learning"],
         correctIndex: 0,
@@ -396,7 +413,7 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
   },
 
   // =========================================================================
-  // HOUSES 2 TO 12 (Comprehensive definitions populated with B.V. Raman rules)
+  // HOUSES 2 TO 12 (Comprehensive definitions populated with full 9-graha sets)
   // =========================================================================
   2: {
     houseNumber: 2,
@@ -422,6 +439,8 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
     lifeThemesEn: ["Accumulated Wealth", "Family Lineage", "Eloquence of Speech", "Food Habits", "Early Values"],
     simpleIntroKn: "೨ನೇ ಮನೆಯು ನಿಮ್ಮ ಧನ ಸಂಗ್ರಹ, ಕುಟುಂಬ ಸಂಸ್ಕಾರ, ಸಿಹಿ ಮಾತು ಹಾಗೂ ನೀವು ಸೇವಿಸುವ ಆಹಾರದ ಗುಣಮಟ್ಟವನ್ನು ತಿಳಿಸುತ್ತದೆ.",
     simpleIntroEn: "The 2nd House governs your saved wealth, family heritage, sweet/truthful speech, and nourishing diet.",
+    guruSandeshaKn: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಗುರೂಜಿ: 'ಧನ ಭಾವವು ಕೇವಲ ಹಣವಲ್ಲ; ಅದು ನಿಮ್ಮ ಕುಟುಂಬದ ಮೌಲ್ಯಗಳು, ಮಧುರ ಮಾತು ಹಾಗೂ ಸರಸ್ವತೀ ಅನುಗ್ರಹ.'",
+    guruSandeshaEn: "Shreeram Pandit (Guruji): 'Dhana Bhava is not merely money; it encompasses family values, cultured speech, and the grace of Goddess Saraswati.'",
     dignity: {
       exaltedPlanetKn: "ಚಂದ್ರ (Chandra - 3° ವರೆಗೆ ವೃಷಭದಲ್ಲಿ ಉಚ್ಚ)",
       exaltedPlanetEn: "Moon (Chandra - Exalted up to 3° in Taurus)",
@@ -470,12 +489,8 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         drishtiQualityEn: "Jupiter in 2nd aspects 10th house, bestowing high professional integrity and speech-based leadership."
       }
     ],
-    grahaEffects: [
-      {
-        planetKn: "ಬುಧ (Budha)",
-        planetEn: "Mercury (Budha)",
-        symbol: "💎",
-        nature: "benefic",
+    grahaEffects: createFull9GrahaEffects(2, "ಧನ & ಕುಟುಂಬ ಭಾವ", "Dhana Bhava (Wealth & Family)", {
+      Mercury: {
         effectTitleKn: "ಮಧುರ ವಾಗ್ಮಿತ್ವ & ವ್ಯಾಪಾರ ಲಾಭ (Mercury in 2nd)",
         effectTitleEn: "Sweet Eloquence & Financial Wit (Mercury in 2nd)",
         descriptionKn: "ಅತ್ಯಂತ ಸಿಹಿಯಾದ ಮಾತು, ಹಾಸ್ಯಪ್ರಜ್ಞೆ, ಲೆಕ್ಕಪತ್ರಗಳಲ್ಲಿ ನಿಪುಣತೆ ಹಾಗೂ ವ್ಯಾಪಾರದಿಂದ ಧನ ವೃದ್ಧಿ.",
@@ -484,14 +499,10 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         keyGiftsEn: ["Sweet Speech", "Financial Acumen", "Business Wealth"],
         watchOutsKn: ["ಅತಿಯಾದ ಹರಟೆ", "ಅನಗತ್ಯ ಖರ್ಚು"],
         watchOutsEn: ["Gossip traps", "Frivolous spending"],
-        bvRamanVerdictKn: "ಡಾ. ಬಿ.ವಿ. ರಾಮನ್: 'ಬುಧನು ೨ನೇ ಮನೆಯಲ್ಲಿದ್ದರೆ ವ್ಯಕ್ತಿಯು ಅಪ್ರತಿಮ ಭಾಷಣಕಾರ ಹಾಗೂ ಚಾಣಾಕ್ಷ ವ್ಯಾಪಾರಿಯಾಗುತ್ತಾನೆ.'",
-        bvRamanVerdictEn: "B.V. Raman: 'Mercury in 2nd house makes one an orator, witty in conversation, and rich in trade.'"
+        bvRamanVerdictKn: "ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್: 'ಬುಧನು ೨ನೇ ಮನೆಯಲ್ಲಿದ್ದರೆ ವ್ಯಕ್ತಿಯು ಅಪ್ರತಿಮ ಭಾಷಣಕಾರ ಹಾಗೂ ಚಾಣಾಕ್ಷ ವ್ಯಾಪಾರಿಯಾಗುತ್ತಾನೆ.'",
+        bvRamanVerdictEn: "Revered Shreeram Pandit: 'Mercury in 2nd house makes one an orator, witty in conversation, and rich in trade.'"
       },
-      {
-        planetKn: "ಗುರು (Brihaspati)",
-        planetEn: "Jupiter (Guru)",
-        symbol: "🌟",
-        nature: "benefic",
+      Jupiter: {
         effectTitleKn: "ಅಖಂಡ ಧನಯೋಗ & ಸತ್ಯವಾಣಿ (Jupiter in 2nd)",
         effectTitleEn: "Abundant Wealth & Truthful Speech (Jupiter in 2nd)",
         descriptionKn: "ಸತ್ಯವಾದಿ, ಸುಸಂಸ್ಕೃತ ಕುಟುಂಬ, ಅಪಾರ ಧನ-ಧಾನ್ಯ ಸಮೃದ್ಧಿ ಹಾಗೂ ವಿದ್ವತ್ಪೂರ್ಣ ಪ್ರವಚನ ಸಾಮರ್ಥ್ಯ.",
@@ -500,10 +511,10 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         keyGiftsEn: ["Immense Assets", "Truthful Speech", "Family Harmony"],
         watchOutsKn: ["ಅತಿಯಾದ ಉದಾರತೆ", "ಸಿಹಿತಿಂಡಿ ಪ್ರೇಮ"],
         watchOutsEn: ["Over-generosity", "Sweet cravings"],
-        bvRamanVerdictKn: "ಡಾ. ಬಿ.ವಿ. ರಾಮನ್: 'ಗುರುವು ೨ನೇ ಮನೆಯಲ್ಲಿದ್ದರೆ ಸತ್ಯವಾಕ್ಯ ಹಾಗೂ ಸದಾ ಸಂಪದ್ಭರಿತ ಕುಟುಂಬ.'",
-        bvRamanVerdictEn: "B.V. Raman: 'Jupiter in 2nd house ensures truthful speech, flourishing family happiness, and vast wealth.'"
+        bvRamanVerdictKn: "ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್: 'ಗುರುವು ೨ನೇ ಮನೆಯಲ್ಲಿದ್ದರೆ ಸತ್ಯವಾಕ್ಯ ಹಾಗೂ ಸದಾ ಸಂಪದ್ಭರಿತ ಕುಟುಂಬ.'",
+        bvRamanVerdictEn: "Revered Shreeram Pandit: 'Jupiter in 2nd house ensures truthful speech, flourishing family happiness, and vast wealth.'"
       }
-    ],
+    }),
     quiz: [
       {
         questionKn: "೨ನೇ ಮನೆಯು ಮಾನವನ ಶರೀರದಲ್ಲಿ ಪ್ರಮುಖವಾಗಿ ಯಾವ ಅಂಗಗಳನ್ನು ಪ್ರತಿನಿಧಿಸುತ್ತದೆ?",
@@ -517,7 +528,9 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
     ]
   },
 
-  // 3 to 12 modules populated with full B.V. Raman depth
+  // =========================================================================
+  // HOUSES 3 TO 12
+  // =========================================================================
   3: {
     houseNumber: 3,
     sanskritName: "ಸಹಜ & ಭ್ರಾತೃ ಭಾವ (Bhratru Bhava)",
@@ -542,6 +555,8 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
     lifeThemesEn: ["Younger Siblings", "Courage & Valour", "Writing & Media", "Short Journeys", "Fine Motor Skills"],
     simpleIntroKn: "೩ನೇ ಮನೆಯು ನಿಮ್ಮ ಭುಜಬಲ, ಕಿರಿಯ ಸಹೋದರರ ಒಡನಾಟ, ಬರವಣಿಗೆಯ ಕಲೆ ಹಾಗೂ ಸಾಹಸ ಪ್ರವೃತ್ತಿಯನ್ನು ತಿಳಿಸುತ್ತದೆ.",
     simpleIntroEn: "The 3rd House governs your willpower, younger siblings, writing talents, hands-on creativity, and travel.",
+    guruSandeshaKn: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಗುರೂಜಿ: '೩ನೇ ಮನೆಯು ಧೈರ್ಯದ ಸಂಕೇತ. ಸ್ವಂತ ಪರಿಶ್ರಮವಿಲ್ಲದೆ ಯಾವುದೇ ಜಾತಕದ ಭಾಗ್ಯ ಸಂಪೂರ್ಣವಾಗಿ ಬೆಳಗುವುದಿಲ್ಲ.'",
+    guruSandeshaEn: "Shreeram Pandit (Guruji): 'The 3rd house represents self-effort and bravery. Without initiative, destiny remains dormant.'",
     dignity: {
       exaltedPlanetKn: "ರಾಹು (ಮಿಥುನದಲ್ಲಿ ಉಚ್ಚ)",
       exaltedPlanetEn: "Rahu (Exalted in Gemini according to Parashara)",
@@ -590,12 +605,8 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         drishtiQualityEn: "Mars in 3rd aspects 6th house, annihilating opposition and empowering swift career growth."
       }
     ],
-    grahaEffects: [
-      {
-        planetKn: "ಮಂಗಳ (Kuja)",
-        planetEn: "Mars (Kuja)",
-        symbol: "🔥",
-        nature: "benefic",
+    grahaEffects: createFull9GrahaEffects(3, "ಸಹಜ & ಭ್ರಾತೃ ಭಾವ", "Sahaja Bhava (Courage & Siblings)", {
+      Mars: {
         effectTitleKn: "ಅಪ್ರತಿಮ ಪರಾಕ್ರಮ & ಶೌರ್ಯ (Mars in 3rd)",
         effectTitleEn: "Fearless Valour & Athletic Drive (Mars in 3rd)",
         descriptionKn: "ಉಪಚಯ ೩ನೇ ಮನೆಯಲ್ಲಿ ಮಂಗಳ ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ. ಅಪಾರ ಧೈರ್ಯ, ಕ್ರೀಡಾ ಜಯ ಹಾಗೂ ಶತ್ರುಗಳ ಮೇಲೆ ಸಂಪೂರ್ಣ ವಿಜಯ.",
@@ -604,10 +615,10 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         keyGiftsEn: ["Unconquerable Courage", "Athletic Mastery", "Physical Strength"],
         watchOutsKn: ["ಸಹೋದರರೊಂದಿಗೆ ಭಿನ್ನಾಭಿಪ್ರಾಯ", "ಆತುರ ಚಾಲನೆ"],
         watchOutsEn: ["Sibling arguments", "Impulsive driving"],
-        bvRamanVerdictKn: "ಡಾ. ಬಿ.ವಿ. ರಾಮನ್: '೩ನೇ ಮನೆಯಲ್ಲಿ ಮಂಗಳನಿರುವ ಜಾತಕನು ಅತ್ಯಂತ ಸಾಹಸ ಪ್ರವೃತ್ತಿಯ ವ್ಯಕ್ತಿಯಾಗುತ್ತಾನೆ.'",
-        bvRamanVerdictEn: "B.V. Raman: 'Mars in the 3rd house makes one intrepid, highly capable, and respected for bravery.'"
+        bvRamanVerdictKn: "ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್: '೩ನೇ ಮನೆಯಲ್ಲಿ ಮಂಗಳನಿರುವ ಜಾತಕನು ಅತ್ಯಂತ ಸಾಹಸ ಪ್ರವೃತ್ತಿಯ ವ್ಯಕ್ತಿಯಾಗುತ್ತಾನೆ.'",
+        bvRamanVerdictEn: "Revered Shreeram Pandit: 'Mars in the 3rd house makes one intrepid, highly capable, and respected for bravery.'"
       }
-    ],
+    }),
     quiz: [
       {
         questionKn: "೩ನೇ ಮನೆಯು ಪ್ರಮುಖವಾಗಿ ಯಾರೊಂದಿಗಿನ ಸಂಬಂಧವನ್ನು ಸೂಚಿಸುತ್ತದೆ?",
@@ -645,6 +656,8 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
     lifeThemesEn: ["Mother's Love", "Real Estate & Vehicles", "Emotional Contentment", "Foundational Education", "Domestic Peace"],
     simpleIntroKn: "೪ನೇ ಮನೆಯು ನಿಮ್ಮ ತಾಯಿಯ ವಾತ್ಸಲ್ಯ, ಸುಂದರ ಮನೆ, ವಾಹನ ಸೌಭಾಗ್ಯ ಹಾಗೂ ನಿಮ್ಮ ಎದೆಯೊಳಗಿನ ಶಾಂತಿಯನ್ನು ತಿಳಿಸುತ್ತದೆ.",
     simpleIntroEn: "The 4th House represents maternal warmth, real estate, vehicle joy, and deep domestic tranquility.",
+    guruSandeshaKn: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಗುರೂಜಿ: '೪ನೇ ಮನೆಯು ತಾಯಿಯ ಮಡಿಲು. ತಾಯಿಯ ಸೇವೆ ಮಾಡಿದರೆ ೪ನೇ ಮನೆಯು ಸದಾ ಶಾಂತಿ ಮತ್ತು ವಾಹನ ಸೌಖ್ಯವನ್ನು ಕರುಣಿಸುತ್ತದೆ.'",
+    guruSandeshaEn: "Shreeram Pandit (Guruji): '4th house is the sanctum of the mother. Serving the mother unlocks perennial domestic bliss and prosperity.'",
     dignity: {
       exaltedPlanetKn: "ಗುರು (Guru - 5° ವರೆಗೆ ಕರ್ಕಾಟಕದಲ್ಲಿ ಉಚ್ಚ)",
       exaltedPlanetEn: "Jupiter (Guru - Exalted up to 5° in Cancer)",
@@ -693,12 +706,8 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         drishtiQualityEn: "Venus in 4th aspects 10th house, giving aesthetic reputation and professional goodwill."
       }
     ],
-    grahaEffects: [
-      {
-        planetKn: "ಶುಕ್ರ (Shukra)",
-        planetEn: "Venus (Shukra)",
-        symbol: "💖",
-        nature: "benefic",
+    grahaEffects: createFull9GrahaEffects(4, "ಸುಖ & ಮಾತೃ ಭಾವ", "Sukha Bhava (Mother & Comforts)", {
+      Venus: {
         effectTitleKn: "ಭವ್ಯ ಗೃಹ & ವಾಹನ ಯೋಗ (Venus in 4th)",
         effectTitleEn: "Palatial Homes & Luxury Vehicles (Venus in 4th)",
         descriptionKn: "ಸುಂದರ ಅರಮನೆಯಂತಹ ಮನೆ, ಐಷಾರಾಮಿ ಕಾರುಗಳು, ತಾಯಿಯ ಅಪಾರ ಪ್ರೀತಿ ಹಾಗೂ ಸಕಲ ಗೃಹಾಲಂಕಾರ ಭೋಗಗಳು.",
@@ -707,10 +716,10 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         keyGiftsEn: ["Elegant Home", "Luxury Cars", "Emotional Serenity"],
         watchOutsKn: ["ಅತಿಯಾದ ಭೋಗಾಲಸ್ಯ", "ಗೃಹ ನಿರ್ವಹಣೆ ವೆಚ್ಚ"],
         watchOutsEn: ["Domestic complacency", "Interior decoration costs"],
-        bvRamanVerdictKn: "ಡಾ. ಬಿ.ವಿ. ರಾಮನ್: '೪ನೇ ಮನೆಯಲ್ಲಿ ಶುಕ್ರನಿದ್ದರೆ ಜಾತಕನು ಸಕಲ ಸುಖ-ಭೋಗಗಳ ಒಡೆಯನಾಗುತ್ತಾನೆ.'",
-        bvRamanVerdictEn: "B.V. Raman: 'Venus in 4th house confers fine houses, conveyances, and peaceful domestic life.'"
+        bvRamanVerdictKn: "ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್: '೪ನೇ ಮನೆಯಲ್ಲಿ ಶುಕ್ರನಿದ್ದರೆ ಜಾತಕನು ಸಕಲ ಸುಖ-ಭೋಗಗಳ ಒಡೆಯನಾಗುತ್ತಾನೆ.'",
+        bvRamanVerdictEn: "Revered Shreeram Pandit: 'Venus in 4th house confers fine houses, conveyances, and peaceful domestic life.'"
       }
-    ],
+    }),
     quiz: [
       {
         questionKn: "೪ನೇ ಮನೆಯು ನೈಸರ್ಗಿಕವಾಗಿ ಯಾವ ಸಂಬಂಧಿಕರನ್ನು ಪ್ರತಿನಿಧಿಸುತ್ತದೆ?",
@@ -724,7 +733,6 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
     ]
   },
 
-  // 5 to 12
   5: {
     houseNumber: 5,
     sanskritName: "ಪುತ್ರ & ಬುದ್ಧಿ ಭಾವ (Putra Bhava)",
@@ -749,6 +757,8 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
     lifeThemesEn: ["Intellect & Genius", "Children / Lineage", "Past Life Good Karma", "Ministerial Advisory", "Mantra Mastery"],
     simpleIntroKn: "೫ನೇ ಮನೆಯು ನಿಮ್ಮ ಬುದ್ಧಿವಂತಿಕೆ, ಪೂರ್ವಜನ್ಮದ ಪುಣ್ಯ, ಮಕ್ಕಳು ಹಾಗೂ ನಿಮ್ಮ ಸೃಜನಶೀಲ ಪ್ರತಿಭೆಯ ಗಣಿಯಾಗಿದೆ!",
     simpleIntroEn: "The 5th House is the seat of intellect, past-life good karma (Purva Punya), children, and creative genius.",
+    guruSandeshaKn: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಗುರೂಜಿ: '೫ನೇ ಮನೆಯು ಪೂರ್ವ ಪುಣ್ಯದ ಭಂಡಾರ. ಇಲ್ಲಿ ಒಳ್ಳೆಯ ಗ್ರಹವಿದ್ದರೆ ವ್ಯಕ್ತಿಯು ಅಪ್ರತಿಮ ಮೇಧಾವಿ ಹಾಗೂ ಮಂತ್ರಸಿದ್ಧನಾಗುತ್ತಾನೆ.'",
+    guruSandeshaEn: "Shreeram Pandit (Guruji): 'The 5th house stores the treasury of past life merits, conferring intuitive wisdom and sacred mantra mastery.'",
     dignity: {
       exaltedPlanetKn: "ಸೂರ್ಯ ಸ್ವಕ್ಷೇತ್ರ (ಮೂಲತ್ರಿಕೋಣ)",
       exaltedPlanetEn: "Sun (Own Moolatrikona Sign)",
@@ -797,12 +807,8 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         drishtiQualityEn: "Jupiter in 5th aspects 1st and 9th, bestowing spiritual distinction and divine protection."
       }
     ],
-    grahaEffects: [
-      {
-        planetKn: "ಗುರು (Brihaspati)",
-        planetEn: "Jupiter (Guru)",
-        symbol: "🌟",
-        nature: "benefic",
+    grahaEffects: createFull9GrahaEffects(5, "ಬುದ್ಧಿ & ಪುತ್ರ ಭಾವ", "Putra Bhava (Intellect & Offspring)", {
+      Jupiter: {
         effectTitleKn: "ಸರಸ್ವತೀ ಕೃಪೆ & ಸತ್ಪುತ್ರ ಯೋಗ (Jupiter in 5th)",
         effectTitleEn: "Saraswati Grace & Noble Children (Jupiter in 5th)",
         descriptionKn: "ಅತ್ಯದ್ಭುತ ಬುದ್ಧಿಮತ್ತೆ, ಮಂತ್ರ ಸಿದ್ಧಿ, ಉತ್ತಮ ಸಂತಾನ ಭಾಗ್ಯ ಹಾಗೂ ಸಮಾಜದಲ್ಲಿ ಗೌರವಾನ್ವಿತ ಸಲಹೆಗಾರರಾಗುವ ಯೋಗ.",
@@ -811,10 +817,10 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         keyGiftsEn: ["Sharp Intellect", "Noble Offspring", "Mantra Siddhi"],
         watchOutsKn: ["ಅತಿಯಾದ ಭವಿಷ್ಯದ ಚಿಂತೆ"],
         watchOutsEn: ["Over-contemplation"],
-        bvRamanVerdictKn: "ಡಾ. ಬಿ.ವಿ. ರಾಮನ್: '೫ನೇ ಮನೆಯಲ್ಲಿ ಗುರುವಿದ್ದರೆ ವ್ಯಕ್ತಿಯು ಅಪ್ರತಿಮ ವಿದ್ವಾಂಸ ಹಾಗೂ ಮಂತ್ರ ಸಿದ್ಧನಾಗುತ್ತಾನೆ.'",
-        bvRamanVerdictEn: "B.V. Raman: 'Jupiter in 5th house confers high intellect, ministerial counsel, and worthy children.'"
+        bvRamanVerdictKn: "ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್: '೫ನೇ ಮನೆಯಲ್ಲಿ ಗುರುವಿದ್ದರೆ ವ್ಯಕ್ತಿಯು ಅಪ್ರತಿಮ ವಿದ್ವಾಂಸ ಹಾಗೂ ಮಂತ್ರ ಸಿದ್ಧನಾಗುತ್ತಾನೆ.'",
+        bvRamanVerdictEn: "Revered Shreeram Pandit: 'Jupiter in 5th house confers high intellect, ministerial counsel, and worthy children.'"
       }
-    ],
+    }),
     quiz: [
       {
         questionKn: "೫ನೇ ಮನೆಯನ್ನು ಪ್ರಮುಖವಾಗಿ ಯಾವ ಹೆಸರಿನಿಂದ ಕರೆಯುತ್ತಾರೆ?",
@@ -828,7 +834,6 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
     ]
   },
 
-  // 6 to 12
   6: {
     houseNumber: 6,
     sanskritName: "ಶತ್ರು & ರೋಗ ಭಾವ (Ari / Roga Bhava)",
@@ -853,6 +858,8 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
     lifeThemesEn: ["Immunity & Health", "Competitive Exam Victory", "Overcoming Debts", "Service & Routine", "Legal Triumphs"],
     simpleIntroKn: "೬ನೇ ಮನೆಯು ರೋಗ, ಸಾಲ ಹಾಗೂ ಶತ್ರುಗಳನ್ನು ಸೂಚಿಸಿದರೂ, ಉಪಚಯ ಮನೆಯಾಗಿರುವುದರಿಂದ ಪರಿಶ್ರಮದಿಂದ ಇವೆಲ್ಲವನ್ನೂ ಗೆಲ್ಲುವ ಶಕ್ತಿಯನ್ನು ನೀಡುತ್ತದೆ!",
     simpleIntroEn: "Though a challenging house of debts and health, as an Upachaya house, it bestows the grit to overcome competition and heal!",
+    guruSandeshaKn: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಗುರೂಜಿ: '೬ನೇ ಮನೆಯಲ್ಲಿ ಶನಿ ಅಥವಾ ಮಂಗಳ ಕುಳಿತರೆ ಶತ್ರುಗಳು ತಾವಾಗಿಯೇ ಮಣಿಯುತ್ತಾರೆ ಮತ್ತು ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆಯಲ್ಲಿ ಜಯ ಸಿಗುತ್ತದೆ.'",
+    guruSandeshaEn: "Shreeram Pandit (Guruji): 'Saturn or Mars in the 6th creates an invincible shield, clearing debts and conquering all adversaries.'",
     dignity: {
       exaltedPlanetKn: "ಬುಧ (15° ಯಲ್ಲಿ ಕನ್ಯಾದಲ್ಲಿ ಪರಮೋಚ್ಚ)",
       exaltedPlanetEn: "Mercury (Exalted up to 15° in Virgo)",
@@ -901,12 +908,8 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         drishtiQualityEn: "Saturn in 6th aspects 8th and 12th, shielding against sudden crises and financial drain."
       }
     ],
-    grahaEffects: [
-      {
-        planetKn: "ಶನಿ (Shani)",
-        planetEn: "Saturn (Shani)",
-        symbol: "🪐",
-        nature: "benefic",
+    grahaEffects: createFull9GrahaEffects(6, "ಶತ್ರು & ರೋಗ ಭಾವ", "Shatru Bhava (Enemies & Health)", {
+      Saturn: {
         effectTitleKn: "ಶತ್ರು ಹಂತಕ ಯೋಗ (Saturn in 6th)",
         effectTitleEn: "Adversary Destroyer & Resilient Health (Saturn in 6th)",
         descriptionKn: "೬ನೇ ಮನೆಯಲ್ಲಿ ಶನಿ ಅದ್ಭುತ ಫಲ ನೀಡುತ್ತಾನೆ. ಸಕಲ ಶತ್ರುಗಳ ನಾಶ, ಸಾಲ ಮುಕ್ತಿ, ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆಗಳಲ್ಲಿ ವಿಜಯ ಹಾಗೂ ಕಠಿಣ ಪರಿಶ್ರಮದ ಯಶಸ್ಸು.",
@@ -915,10 +918,10 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         keyGiftsEn: ["Victory over Rivals", "Debt Clearance", "Steely Resilience"],
         watchOutsKn: ["ಕೀಲು ನೋವು", "ಅತಿಯಾದ ಕೆಲಸದ ಒತ್ತಡ"],
         watchOutsEn: ["Joint stiffness", "Workaholism"],
-        bvRamanVerdictKn: "ಡಾ. ಬಿ.ವಿ. ರಾಮನ್: '೬ನೇ ಮನೆಯಲ್ಲಿ ಶನಿ ಅಥವಾ ಮಂಗಳನಿದ್ದರೆ ಜಾತಕನನ್ನು ಯಾರೂ ಸೋಲಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ.'",
-        bvRamanVerdictEn: "B.V. Raman: 'Saturn or Mars in 6th makes one formidable, conquering all competition effortlessly.'"
+        bvRamanVerdictKn: "ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್: '೬ನೇ ಮನೆಯಲ್ಲಿ ಶನಿ ಅಥವಾ ಮಂಗಳನಿದ್ದರೆ ಜಾತಕನನ್ನು ಯಾರೂ ಸೋಲಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ.'",
+        bvRamanVerdictEn: "Revered Shreeram Pandit: 'Saturn or Mars in 6th makes one formidable, conquering all competition effortlessly.'"
       }
-    ],
+    }),
     quiz: [
       {
         questionKn: "೬ನೇ ಮನೆಯ ನೈಸರ್ಗಿಕ ರಾಶಿಯಾದ ಕನ್ಯಾದಲ್ಲಿ ಯಾವ ಗ್ರಹವು ಪರಮೋಚ್ಚ (Exalted) ಆಗುತ್ತದೆ?",
@@ -956,6 +959,8 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
     lifeThemesEn: ["Marital Bliss", "Spouse Nature", "Business Partnerships", "Public Relations", "Foreign Trade"],
     simpleIntroKn: "೭ನೇ ಮನೆಯು ನಿಮ್ಮ ಜೀವನ ಸಂಗಾತಿ, ವಿವಾಹ ಸುಖ, ವ್ಯಾಪಾರ ಪಾಲುದಾರಿಕೆ ಹಾಗೂ ಸಾರ್ವಜನಿಕರೊಂದಿಗೆ ನಿಮ್ಮ ಸಂಬಂಧವನ್ನು ತಿಳಿಸುತ್ತದೆ.",
     simpleIntroEn: "The 7th House represents your spouse, marital harmony, business partnerships, and diplomacy in society.",
+    guruSandeshaKn: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಗುರೂಜಿ: '೭ನೇ ಮನೆಯು ಸಪ್ತಪದಿಯ ಪಾವಿತ್ರ್ಯ. ಶುಭಗ್ರಹಗಳ ಬಲವಿದ್ದರೆ ದಾಂಪತ್ಯವು ಶಿವ-ಪಾರ್ವತಿಯರ ಸನ್ನಿಧಿಯಂತೆ ಸುಖಮಯವಾಗಿರುತ್ತದೆ.'",
+    guruSandeshaEn: "Shreeram Pandit (Guruji): '7th house represents sacred marital union. Blessed with benefics, marriage mirrors the divine harmony of Shiva and Parvati.'",
     dignity: {
       exaltedPlanetKn: "ಶನಿ (20° ಯಲ್ಲಿ ತುಲಾದಲ್ಲಿ ಪರಮೋಚ್ಚ)",
       exaltedPlanetEn: "Saturn (Exalted up to 20° in Libra)",
@@ -1004,12 +1009,8 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         drishtiQualityEn: "Venus in 7th aspects Lagna directly, imparting captivating physical charisma and radiant complexion."
       }
     ],
-    grahaEffects: [
-      {
-        planetKn: "ಶುಕ್ರ (Shukra)",
-        planetEn: "Venus (Shukra)",
-        symbol: "💖",
-        nature: "benefic",
+    grahaEffects: createFull9GrahaEffects(7, "ಕಳತ್ರ & ವಿವಾಹ ಭಾವ", "Kalatra Bhava (Marriage & Partnerships)", {
+      Venus: {
         effectTitleKn: "ಮಾಲವ್ಯ ಯೋಗ & ಸುಂದರ ಸಂಗಾತಿ (Venus in 7th)",
         effectTitleEn: "Malavya Yoga & Loving Spouse (Venus in 7th)",
         descriptionKn: "ಸುಂದರ ಹಾಗೂ ಸುಸಂಸ್ಕೃತ ಜೀವನ ಸಂಗಾತಿ, ದಾಂಪತ್ಯದಲ್ಲಿ ಅಪಾರ ಪ್ರೇಮ, ಐಷಾರಾಮಿ ಜೀವನ ಹಾಗೂ ಪಾಲುದಾರಿಕೆಯಲ್ಲಿ ಲಾಭ.",
@@ -1018,10 +1019,10 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         keyGiftsEn: ["Charming Spouse", "Marital Joy", "Profitable Partnerships"],
         watchOutsKn: ["ಅತಿಯಾದ ನಿರೀಕ್ಷೆ"],
         watchOutsEn: ["High romantic expectations"],
-        bvRamanVerdictKn: "ಡಾ. ಬಿ.ವಿ. ರಾಮನ್: '೭ನೇ ಮನೆಯಲ್ಲಿ ಶುಕ್ರನಿದ್ದರೆ ಜಾತಕನು ರಸಿಕ, ಸುಖಿ ಹಾಗೂ ಸುಂದರ ಸಂಗಾತಿಯನ್ನು ಹೊಂದುತ್ತಾನೆ.'",
-        bvRamanVerdictEn: "B.V. Raman: 'Venus in 7th house brings a refined, loving spouse and harmonious partnerships.'"
+        bvRamanVerdictKn: "ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್: '೭ನೇ ಮನೆಯಲ್ಲಿ ಶುಕ್ರನಿದ್ದರೆ ಜಾತಕನು ರಸಿಕ, ಸುಖಿ ಹಾಗೂ ಸುಂದರ ಸಂಗಾತಿಯನ್ನು ಹೊಂದುತ್ತಾನೆ.'",
+        bvRamanVerdictEn: "Revered Shreeram Pandit: 'Venus in 7th house brings a refined, loving spouse and harmonious partnerships.'"
       }
-    ],
+    }),
     quiz: [
       {
         questionKn: "೭ನೇ ಮನೆಯ ನೈಸರ್ಗಿಕ ರಾಶಿಯಾದ ತುಲಾದಲ್ಲಿ ಯಾವ ಗ್ರಹವು ಪರಮೋಚ್ಚ (Exalted) ಆಗಿ ಸಸ ಯೋಗ ನೀಡುತ್ತದೆ?",
@@ -1059,6 +1060,8 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
     lifeThemesEn: ["Longevity", "Sudden Wealth / Inheritance", "Occult & Astrology", "Kundalini Awakening", "Phoenix-like Rebirth"],
     simpleIntroKn: "೮ನೇ ಮನೆಯು ಆಯುಷ್ಯ, ಜ್ಯೋತಿಷ್ಯ-ಮಂತ್ರಗಳಂತಹ ಗೂಢ ಜ್ಞಾನ, ಆಕಸ್ಮಿಕ ಲಾಭಗಳು ಹಾಗೂ ಜೀವನದ ಮಹಾ ಪರಿವರ್ತನೆಯನ್ನು ತಿಳಿಸುತ್ತದೆ.",
     simpleIntroEn: "The 8th House reveals longevity, occult secrets (Astrology/Tantra), unexpected inheritance, and transformative resilience.",
+    guruSandeshaKn: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಗುರೂಜಿ: '೮ನೇ ಮನೆಯು ಆಯುಷ್ಯದ ರಕ್ಷಾ ಕವಚ. ಶನಿ ಇಲ್ಲಿ ಕುಳಿತರೆ ಆಯುಷ್ಯ ವೃದ್ಧಿಯಾಗುತ್ತದೆ ಹಾಗೂ ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದ ಗೂಢ ರಹಸ್ಯಗಳು ಕರಗತವಾಗುತ್ತವೆ.'",
+    guruSandeshaEn: "Shreeram Pandit (Guruji): '8th house is the sanctum of longevity. Saturn here bestows long life and mastery of occult wisdom.'",
     dignity: {
       exaltedPlanetKn: "ಕೇತು (ವೃಶ್ಚಿಕದಲ್ಲಿ ಉಚ್ಚ)",
       exaltedPlanetEn: "Ketu (Exalted in Scorpio)",
@@ -1107,12 +1110,8 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         drishtiQualityEn: "Saturn in 8th aspects 2nd house, stabilizing long-term assets and family legacy."
       }
     ],
-    grahaEffects: [
-      {
-        planetKn: "ಶನಿ (Shani)",
-        planetEn: "Saturn (Shani)",
-        symbol: "🪐",
-        nature: "benefic",
+    grahaEffects: createFull9GrahaEffects(8, "ಆಯುರ್ & ರಂಧ್ರ ಭಾವ", "Ayur Bhava (Longevity & Transformation)", {
+      Saturn: {
         effectTitleKn: "ದೀರ್ಘಾಯುಷ್ಯ ಕಾರಕ (Saturn in 8th)",
         effectTitleEn: "Supreme Longevity (Saturn in 8th)",
         descriptionKn: "೮ನೇ ಮನೆಯಲ್ಲಿ ಆಯುಷ್ಯಕಾರಕ ಶನಿ ಅದ್ಭುತ. ದೀರ್ಘಾಯುಷ್ಯ, ಆಳವಾದ ಸಂಶೋಧನೆ, ಗೂಢ ಶಾಸ್ತ್ರ ಜ್ಞಾನ ಹಾಗೂ ಗಂಭೀರ ತಾಳ್ಮೆ ನೀಡುತ್ತದೆ.",
@@ -1121,10 +1120,10 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         keyGiftsEn: ["Long Lifespan", "Occult Research", "Crisis Mastery"],
         watchOutsKn: ["ದೀರ್ಘಕಾಲಿಕ ಆರೋಗ್ಯ ಜಾಗ್ರತೆ"],
         watchOutsEn: ["Chronic health vigilance"],
-        bvRamanVerdictKn: "ಡಾ. ಬಿ.ವಿ. ರಾಮನ್: '೮ನೇ ಮನೆಯಲ್ಲಿ ಶನಿಯು ಆಯುಷ್ಯಕ್ಕೆ ವರದಾನವಾಗಿದ್ದಾನೆ.'",
-        bvRamanVerdictEn: "B.V. Raman: 'Saturn in 8th house promotes exceptional longevity and meditative depth.'"
+        bvRamanVerdictKn: "ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್: '೮ನೇ ಮನೆಯಲ್ಲಿ ಶನಿಯು ಆಯುಷ್ಯಕ್ಕೆ ವರದಾನವಾಗಿದ್ದಾನೆ.'",
+        bvRamanVerdictEn: "Revered Shreeram Pandit: 'Saturn in 8th house promotes exceptional longevity and meditative depth.'"
       }
-    ],
+    }),
     quiz: [
       {
         questionKn: "೮ನೇ ಮನೆಯು ಮುಖ್ಯವಾಗಿ ಯಾವ ವಿಷಯವನ್ನು ಪ್ರತಿನಿಧಿಸುತ್ತದೆ?",
@@ -1162,6 +1161,8 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
     lifeThemesEn: ["Fortune / Divine Luck", "Father's Blessing", "Guru Devotion", "Pilgrimages & Temple Seva", "Higher Philosophy"],
     simpleIntroKn: "೯ನೇ ಮನೆಯೇ ನಿಮ್ಮ ಜಾತಕದ ಮಹಾ ಭಾಗ್ಯ ಸ್ಥಾನ! ಇದು ತಂದೆಯ ಪ್ರೀತಿ, ಗುರು ಕೃಪೆ, ದೇವತಾ ಅನುಗ್ರಹ ಹಾಗೂ ಉನ್ನತ ಧರ್ಮ ಬುದ್ಧಿಯನ್ನು ನೀಡುತ್ತದೆ.",
     simpleIntroEn: "The 9th House is the seat of divine fortune, fatherly grace, spiritual pilgrimages, and noble dharma.",
+    guruSandeshaKn: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಗುರೂಜಿ: '೯ನೇ ಮನೆಯು ಭಾಗ್ಯದ ಗಂಗೋತ್ರಿ. ಗುರು ಮತ್ತು ತಂದೆಯ ಆಶೀರ್ವಾದ ಪಡೆದರೆ ಜಾತಕನ ಸಕಲ ಕಾರ್ಯಗಳೂ ಸಿದ್ಧಿಯಾಗುತ್ತವೆ.'",
+    guruSandeshaEn: "Shreeram Pandit (Guruji): 'The 9th house is the sacred fountain of fortune. Honoring the Guru and father unlocks divine grace across all endeavors.'",
     dignity: {
       exaltedPlanetKn: "ಗುರು ಸ್ವಕ್ಷೇತ್ರ / ಕೇತು ಉಚ್ಚ",
       exaltedPlanetEn: "Jupiter (Own Sign) / Ketu (Exalted)",
@@ -1210,12 +1211,8 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         drishtiQualityEn: "Jupiter in 9th aspects Lagna, illuminating the soul with divine virtue and long life."
       }
     ],
-    grahaEffects: [
-      {
-        planetKn: "ಸೂರ್ಯ (Surya)",
-        planetEn: "Sun (Surya)",
-        symbol: "☀️",
-        nature: "benefic",
+    grahaEffects: createFull9GrahaEffects(9, "ಭಾಗ್ಯ & ಧರ್ಮ ಭಾವ", "Bhagya Bhava (Fortune & Higher Dharma)", {
+      Sun: {
         effectTitleKn: "ತಂದೆಯ ಭಾಗ್ಯ & ಧರ್ಮ ಪ್ರಕಾಶ (Sun in 9th)",
         effectTitleEn: "Fatherly Grace & Righteous Radiance (Sun in 9th)",
         descriptionKn: "ಸದಾ ದೈವಾನುಗ್ರಹ, ತಂದೆಯಿಂದ ಅಪಾರ ಕೀರ್ತಿ, ಸಮಾಜದಲ್ಲಿ ಧಾರ್ಮಿಕ ಗೌರವ ಹಾಗೂ ತೀರ್ಥಕ್ಷೇತ್ರ ದರ್ಶನ ಯೋಗ.",
@@ -1224,10 +1221,10 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         keyGiftsEn: ["Divine Grace", "Fatherly Legacy", "Sacred Pilgrimages"],
         watchOutsKn: ["ತಂದೆಯೊಂದಿಗೆ ಸೈದ್ಧಾಂತಿಕ ಭಿನ್ನಾಭಿಪ್ರಾಯ"],
         watchOutsEn: ["Ideological friction with elders"],
-        bvRamanVerdictKn: "ಡಾ. ಬಿ.ವಿ. ರಾಮನ್: '೯ನೇ ಮನೆಯಲ್ಲಿ ಸೂರ್ಯನಿದ್ದರೆ ಜಾತಕನು ಉನ್ನತ ಧರ್ಮನಿಷ್ಠ ಹಾಗೂ ತಂದೆಯ ಆಶೀರ್ವಾದ ಪಡೆದವನಾಗುತ್ತಾನೆ.'",
-        bvRamanVerdictEn: "B.V. Raman: 'Sun in 9th house makes one deeply spiritual, generous, and devoted to righteousness.'"
+        bvRamanVerdictKn: "ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್: '೯ನೇ ಮನೆಯಲ್ಲಿ ಸೂರ್ಯನಿದ್ದರೆ ಜಾತಕನು ಉನ್ನತ ಧರ್ಮನಿಷ್ಠ ಹಾಗೂ ತಂದೆಯ ಆಶೀರ್ವಾದ ಪಡೆದವನಾಗುತ್ತಾನೆ.'",
+        bvRamanVerdictEn: "Revered Shreeram Pandit: 'Sun in 9th house makes one deeply spiritual, generous, and devoted to righteousness.'"
       }
-    ],
+    }),
     quiz: [
       {
         questionKn: "೯ನೇ ಮನೆಯನ್ನು ಜಾತಕದಲ್ಲಿ ಯಾವ ಅತ್ಯುನ್ನತ ಹೆಸರಿನಿಂದ ಕರೆಯಲಾಗುತ್ತದೆ?",
@@ -1265,6 +1262,8 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
     lifeThemesEn: ["Career / Profession", "Government Honors & Executive Rank", "Public Fame & Legacy", "Social Status", "Right Action"],
     simpleIntroKn: "೧೦ನೇ ಮನೆಯೇ ನಿಮ್ಮ ವೃತ್ತಿ ಜೀವನದ ಸಿಂಹಾಸನ! ಇದು ನೀವು ಮಾಡುವ ಉದ್ಯೋಗ, ಸಮಾಜದಲ್ಲಿ ಗಳಿಸುವ ಕೀರ್ತಿ ಹಾಗೂ ನಿಮ್ಮ ಅಧಿಕಾರವನ್ನು ನಿರ್ಧರಿಸುತ್ತದೆ.",
     simpleIntroEn: "The 10th House is the pinnacle of career, authority, public reputation, and professional destiny.",
+    guruSandeshaKn: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಗುರೂಜಿ: 'ಕರ್ಮವೇ ಪೂಜೆ. ೧೦ನೇ ಮನೆಯಲ್ಲಿ ಸೂರ್ಯ ಅಥವಾ ಮಂಗಳನಿದ್ದರೆ ಜಾತಕನು ಸಮಾಜವನ್ನು ಮುನ್ನಡೆಸುವ ಶ್ರೇಷ್ಠ ನಾಯಕನಾಗುತ್ತಾನೆ.'",
+    guruSandeshaEn: "Shreeram Pandit (Guruji): 'Action is worship. Strong planets in the 10th house elevate the native to commanding authority and public honor.'",
     dignity: {
       exaltedPlanetKn: "ಮಂಗಳ (28° ಯಲ್ಲಿ ಮಕರದಲ್ಲಿ ಪರಮೋಚ್ಚ)",
       exaltedPlanetEn: "Mars (Exalted up to 28° in Capricorn)",
@@ -1313,12 +1312,8 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         drishtiQualityEn: "Sun in 10th aspects 4th house, stabilizing domestic reputation and real estate assets."
       }
     ],
-    grahaEffects: [
-      {
-        planetKn: "ಸೂರ್ಯ (Surya)",
-        planetEn: "Sun (Surya)",
-        symbol: "☀️",
-        nature: "benefic",
+    grahaEffects: createFull9GrahaEffects(10, "ಕರ್ಮ & ರಾಜ್ಯ ಭಾವ", "Karma Bhava (Career & Authority)", {
+      Sun: {
         effectTitleKn: "ದಿಗ್ಬಲ ಸೂರ್ಯ & ರಾಜ್ಯಾಧಿಕಾರ (Sun in 10th - Digbala)",
         effectTitleEn: "Digbala Sun: Supreme Executive Power (Sun in 10th)",
         descriptionKn: "೧೦ನೇ ಮನೆಯಲ್ಲಿ ಸೂರ್ಯನಿಗೆ ಗರಿಷ್ಠ ದಿಗ್ಬಲ ದೊರೆಯುತ್ತದೆ. ಉನ್ನತ ಸರ್ಕಾರಿ ಹುದ್ದೆ (IAS/KAS), ಅಧಿಕಾರ, ಸಮಾಜದಲ್ಲಿ ಅಪ್ರತಿಮ ಗೌರವ ಹಾಗೂ ನಾಯಕತ್ವ.",
@@ -1327,10 +1322,10 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         keyGiftsEn: ["Executive Authority", "Supreme Fame", "Civic Leadership"],
         watchOutsKn: ["ಅಧಿಕಾರದ ಅಹಂಕಾರ"],
         watchOutsEn: ["Authoritarian pride"],
-        bvRamanVerdictKn: "ಡಾ. ಬಿ.ವಿ. ರಾಮನ್: '೧೦ನೇ ಮನೆಯಲ್ಲಿ ಸೂರ್ಯನಿದ್ದರೆ ವ್ಯಕ್ತಿಯು ಸಮಾಜದಲ್ಲಿ ಸೂರ್ಯನಂತೆ ಪ್ರಜ್ವಲಿಸುತ್ತಾನೆ.'",
-        bvRamanVerdictEn: "B.V. Raman: 'Sun in 10th is a royal combination, bestowing supreme career triumph and public acclaim.'"
+        bvRamanVerdictKn: "ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್: '೧೦ನೇ ಮನೆಯಲ್ಲಿ ಸೂರ್ಯನಿದ್ದರೆ ವ್ಯಕ್ತಿಯು ಸಮಾಜದಲ್ಲಿ ಸೂರ್ಯನಂತೆ ಪ್ರಜ್ವಲಿಸುತ್ತಾನೆ.'",
+        bvRamanVerdictEn: "Revered Shreeram Pandit: 'Sun in 10th is a royal combination, bestowing supreme career triumph and public acclaim.'"
       }
-    ],
+    }),
     quiz: [
       {
         questionKn: "೧೦ನೇ ಮನೆಯಲ್ಲಿ ಯಾವ ಗ್ರಹಕ್ಕೆ ಗರಿಷ್ಠ 'ದಿಗ್ಬಲ' (Directional Strength) ದೊರೆಯುತ್ತದೆ?",
@@ -1368,6 +1363,8 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
     lifeThemesEn: ["Fulfillment of Desires", "Elder Siblings", "Expansive Social Circle", "Passive Cash Flow", "Awards & Honors"],
     simpleIntroKn: "೧೧ನೇ ಮನೆಯು ನಿಮ್ಮ ಸಕಲ ಆಸೆಗಳನ್ನು ಈಡೇರಿಸುವ ಮಹಾ ಲಾಭ ಸ್ಥಾನ! ಇಲ್ಲಿ ಯಾವುದೇ ಗ್ರಹ ಕುಳಿತರೂ ಶುಭ ಫಲ ಹಾಗೂ ಆದಾಯವನ್ನು ನೀಡುತ್ತದೆ.",
     simpleIntroEn: "The 11th House is the wish-fulfilling house of gains (Sarva Labha). Almost all planets produce positive financial results here.",
+    guruSandeshaKn: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಗುರೂಜಿ: '೧೧ನೇ ಮನೆಯು ಸರ್ವ ಲಾಭದ ಸಾಗರ. ಸತ್ಪಾತ್ರರಿಗೆ ದಾನ ಮಾಡಿದಷ್ಟೂ ಈ ಮನೆಯು ನಿರಂತರ ಐಶ್ವರ್ಯವನ್ನು ತುಂಬುತ್ತದೆ.'",
+    guruSandeshaEn: "Shreeram Pandit (Guruji): 'The 11th house is the ocean of fulfilled aspirations. Generosity and ethical wealth multiply gains exponentially.'",
     dignity: {
       exaltedPlanetKn: "ಯಾವುದೇ ಗ್ರಹವಿಲ್ಲ (ಎಲ್ಲಾ ಗ್ರಹಗಳಿಗೂ ಲಾಭದಾಯಕ)",
       exaltedPlanetEn: "All Planets flourish in the 11th house",
@@ -1416,12 +1413,8 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         drishtiQualityEn: "Jupiter in 11th aspects 5th house directly, blessing progeny, investments, and creative wisdom."
       }
     ],
-    grahaEffects: [
-      {
-        planetKn: "ಗುರು (Brihaspati)",
-        planetEn: "Jupiter (Guru)",
-        symbol: "🌟",
-        nature: "benefic",
+    grahaEffects: createFull9GrahaEffects(11, "ಲಾಭ & ಆಯ ಭಾವ", "Labha Bhava (Gains & Network)", {
+      Jupiter: {
         effectTitleKn: "ಸರ್ವ ಸಿದ್ಧಿ & ನಿರಂತರ ಆದಾಯ (Jupiter in 11th)",
         effectTitleEn: "Universal Gains & Noble Wealth (Jupiter in 11th)",
         descriptionKn: "ಸಕಲ ಇಷ್ಟಾರ್ಥ ಸಿದ್ಧಿ, ಧರ್ಮ ಮಾರ್ಗದ ಅಪಾರ ಆದಾಯ, ಸತ್ಪುರುಷರ ಸಹವಾಸ ಹಾಗೂ ಸಮಾಜದಲ್ಲಿ ಅತ್ಯುನ್ನತ ಪ್ರಭಾವ.",
@@ -1430,10 +1423,10 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         keyGiftsEn: ["Vast Wealth", "Fulfillment of Dreams", "Noble Network"],
         watchOutsKn: ["ಅತಿಯಾದ ಔದಾರ್ಯ"],
         watchOutsEn: ["Excessive benevolence"],
-        bvRamanVerdictKn: "ಡಾ. ಬಿ.ವಿ. ರಾಮನ್: '೧೧ನೇ ಮನೆಯಲ್ಲಿ ಗುರುವಿದ್ದರೆ ವ್ಯಕ್ತಿಯು ಸಕಲ ಇಷ್ಟಾರ್ಥಗಳನ್ನು ಸಿದ್ಧಿಸಿಕೊಂಡು ಸುಖಿಯಾಗಿರುತ್ತಾನೆ.'",
-        bvRamanVerdictEn: "B.V. Raman: 'Jupiter in 11th house fulfills all cherished desires and ensures abundant wealth.'"
+        bvRamanVerdictKn: "ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್: '೧೧ನೇ ಮನೆಯಲ್ಲಿ ಗುರುವಿದ್ದರೆ ವ್ಯಕ್ತಿಯು ಸಕಲ ಇಷ್ಟಾರ್ಥಗಳನ್ನು ಸಿದ್ಧಿಸಿಕೊಂಡು ಸುಖಿಯಾಗಿರುತ್ತಾನೆ.'",
+        bvRamanVerdictEn: "Revered Shreeram Pandit: 'Jupiter in 11th house fulfills all cherished desires and ensures abundant wealth.'"
       }
-    ],
+    }),
     quiz: [
       {
         questionKn: "೧೧ನೇ ಮನೆಯನ್ನು ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯದಲ್ಲಿ ಪ್ರಮುಖವಾಗಿ ಏನೆಂದು ಕರೆಯುತ್ತಾರೆ?",
@@ -1471,6 +1464,8 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
     lifeThemesEn: ["Moksha / Spiritual Liberation", "Foreign Relocation", "Philanthropic Spending", "Peaceful Sleep & Dreams", "Meditation & Solitude"],
     simpleIntroKn: "೧೨ನೇ ಮನೆಯು ಜಾತಕ ಚಕ್ರದ ಅಂತಿಮ ಮುಕ್ತಿ ಸ್ಥಾನ! ಇದು ವಿದೇಶ ವಾಸ, ದಾನ-ಧರ್ಮ, ಪ್ರಶಾಂತ ನಿದ್ರೆ ಹಾಗೂ ಆತ್ಮದ ಮೋಕ್ಷವನ್ನು ತಿಳಿಸುತ್ತದೆ.",
     simpleIntroEn: "The 12th House is the final spiritual sanctuary of the Kundli, governing foreign travel, peaceful sleep, and ultimate Moksha.",
+    guruSandeshaKn: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಗುರೂಜಿ: '೧೨ನೇ ಮನೆಯು ಮೋಕ್ಷದ ಹೆಬ್ಬಾಗಿಲು. ಕೇತು ಅಥವಾ ಶುಕ್ರನ ದೈವಿಕ ಸಂಯೋಗವಿದ್ದರೆ ಆತ್ಮವು ಮುಕ್ತಿಯನ್ನು ಹೊಂದಿ ಶಾಶ್ವತ ಶಾಂತಿ ಪಡೆಯುತ್ತದೆ.'",
+    guruSandeshaEn: "Shreeram Pandit (Guruji): 'The 12th house is the cosmic portal of Moksha. Spiritual planets here dissolve karmic bondage into eternal peace.'",
     dignity: {
       exaltedPlanetKn: "ಶುಕ್ರ (27° ಯಲ್ಲಿ ಮೀನದಲ್ಲಿ ಪರಮೋಚ್ಚ)",
       exaltedPlanetEn: "Venus (Exalted up to 27° in Pisces)",
@@ -1519,12 +1514,8 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         drishtiQualityEn: "Ketu in 12th radiates spiritual detachment and profound meditative contemplation."
       }
     ],
-    grahaEffects: [
-      {
-        planetKn: "ಶುಕ್ರ (Shukra)",
-        planetEn: "Venus (Shukra)",
-        symbol: "💖",
-        nature: "benefic",
+    grahaEffects: createFull9GrahaEffects(12, "ವ್ಯಯ & ಮೋಕ್ಷ ಭಾವ", "Moksha Bhava (Expenses & Foreign Lands)", {
+      Venus: {
         effectTitleKn: "ವಿದೇಶ ವೈಭವ & ಶಯನ ಸುಖ (Venus in 12th)",
         effectTitleEn: "Foreign Prosperity & Sublime Comfort (Venus in 12th)",
         descriptionKn: "೧೨ನೇ ಮನೆಯಲ್ಲಿ ಶುಕ್ರ ಅತ್ಯಂತ ಶುಭ ಫಲ ನೀಡುತ್ತಾನೆ. ವಿದೇಶದಲ್ಲಿ ಅಪಾರ ಸಂಪತ್ತು, ಐಷಾರಾಮಿ ಶಯನ ಸುಖ ಹಾಗೂ ದಾನ-ಧರ್ಮದಲ್ಲಿ ಆನಂದ.",
@@ -1533,14 +1524,10 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         keyGiftsEn: ["Foreign Riches", "Peaceful Sleep", "Philanthropy"],
         watchOutsKn: ["ಅತಿಯಾದ ಐಷಾರಾಮಿ ಖರ್ಚು"],
         watchOutsEn: ["Lavish spending"],
-        bvRamanVerdictKn: "ಡಾ. ಬಿ.ವಿ. ರಾಮನ್: '೧೨ನೇ ಮನೆಯಲ್ಲಿ ಶುಕ್ರನಿದ್ದರೆ ವ್ಯಕ್ತಿಯು ಸಕಲ ಭೋಗಗಳನ್ನು ಅನುಭವಿಸಿ ವಿದೇಶದಲ್ಲಿ ಖ್ಯಾತಿ ಗಳಿಸುತ್ತಾನೆ.'",
-        bvRamanVerdictEn: "B.V. Raman: 'Venus in 12th house is an auspicious exception, bestowing vast foreign wealth and comforts.'"
+        bvRamanVerdictKn: "ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್: '೧೨ನೇ ಮನೆಯಲ್ಲಿ ಶುಕ್ರನಿದ್ದರೆ ವ್ಯಕ್ತಿಯು ಸಕಲ ಭೋಗಗಳನ್ನು ಅನುಭವಿಸಿ ವಿದೇಶದಲ್ಲಿ ಖ್ಯಾತಿ ಗಳಿಸುತ್ತಾನೆ.'",
+        bvRamanVerdictEn: "Revered Shreeram Pandit: 'Venus in 12th house is an auspicious exception, bestowing vast foreign wealth and comforts.'"
       },
-      {
-        planetKn: "ಕೇತು (Ketu)",
-        planetEn: "Ketu",
-        symbol: "📿",
-        nature: "benefic",
+      Ketu: {
         effectTitleKn: "ಮೋಕ್ಷ ಕಾರಕ ಕೇತು (Ketu in 12th - Moksha)",
         effectTitleEn: "Supreme Moksha & Spiritual Enlightenment (Ketu in 12th)",
         descriptionKn: "೧೨ನೇ ಮನೆಯಲ್ಲಿ ಕೇತು ಕುಳಿತರೆ ಇದು ಅಂತಿಮ ಜನ್ಮದ ಸಂಕೇತ. ಆಳವಾದ ಧ್ಯಾನ, ಆತ್ಮ ಸಾಕ್ಷಾತ್ಕಾರ ಹಾಗೂ ಜನನ-ಮರಣ ಚಕ್ರದಿಂದ ಮುಕ್ತಿ.",
@@ -1549,10 +1536,10 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         keyGiftsEn: ["Self Realization", "Moksha Attainment", "Meditative Peace"],
         watchOutsKn: ["ಸಂಸಾರದಲ್ಲಿ ಅತಿಯಾದ ವಿರಕ್ತಿ"],
         watchOutsEn: ["Extreme ascetic detachment"],
-        bvRamanVerdictKn: "ಡಾ. ಬಿ.ವಿ. ರಾಮನ್: '೧೨ನೇ ಮನೆಯಲ್ಲಿ ಕೇತುವಿದ್ದರೆ ವ್ಯಕ್ತಿಯು ಮುಕ್ತಿ ಮಾರ್ಗದ ಪಥಿಕನಾಗುತ್ತಾನೆ.'",
-        bvRamanVerdictEn: "B.V. Raman: 'Ketu in 12th house is the classical signature of final spiritual salvation.'"
+        bvRamanVerdictKn: "ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್: '೧೨ನೇ ಮನೆಯಲ್ಲಿ ಕೇತುವಿದ್ದರೆ ವ್ಯಕ್ತಿಯು ಮುಕ್ತಿ ಮಾರ್ಗದ ಪಥಿಕನಾಗುತ್ತಾನೆ.'",
+        bvRamanVerdictEn: "Revered Shreeram Pandit: 'Ketu in 12th house is the classical signature of final spiritual salvation.'"
       }
-    ],
+    }),
     quiz: [
       {
         questionKn: "೧೨ನೇ ಮನೆಯ ನೈಸರ್ಗಿಕ ರಾಶಿಯಾದ ಮೀನದಲ್ಲಿ ಯಾವ ಗ್ರಹವು ಪರಮೋಚ್ಚ (Exalted) ಆಗುತ್ತದೆ?",

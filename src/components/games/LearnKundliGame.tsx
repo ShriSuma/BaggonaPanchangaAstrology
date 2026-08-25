@@ -93,16 +93,20 @@ export const LearnKundliGame: React.FC<LearnKundliProps> = ({ lang = "kn" }) => 
 
   return (
     <div className="space-y-6">
-      {/* Master Academy Header */}
+      {/* Master Academy Header with Shreeram Pandit Gurukula Preceptor Badge */}
       <Card className="border-2 border-amber-400 bg-gradient-to-r from-amber-100 via-amber-50 to-orange-100 p-5 shadow-md">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-start gap-3">
-            <span className="text-3xl select-none">📖</span>
+          <div className="flex items-start gap-3.5">
+            <div className="w-14 h-14 rounded-2xl bg-amber-200 border-2 border-amber-400 shadow-inner flex items-center justify-center text-3xl select-none shrink-0">
+              🕉️
+            </div>
             <div className="space-y-1">
-              <div className="text-[10px] font-extrabold tracking-widest text-amber-800 uppercase flex items-center gap-1.5 flex-wrap">
-                <span>॥ ಶ್ರೀ ಬಗ್ಗೋಣ ಜಾತಕ & ಪಂಚಾಂಗ ಗುರುಕುಲ ॥</span>
+              <div className="text-[10px] font-extrabold tracking-widest text-amber-900 uppercase flex items-center gap-1.5 flex-wrap">
+                <span className="bg-amber-800 text-amber-50 px-2 py-0.5 rounded-md font-bold">
+                  ॥ ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಗುರುಕುಲ (Guruji Mentorship) ॥
+                </span>
                 <span className="bg-amber-200 text-amber-950 px-2 py-0.5 rounded-full font-bold">
-                  Level {selectedHouse} / 12 (Dr. B.V. Raman Master System)
+                  Level {selectedHouse} / 12
                 </span>
               </div>
               <h2 className="font-serif text-lg sm:text-xl font-extrabold text-amber-950">
@@ -110,13 +114,13 @@ export const LearnKundliGame: React.FC<LearnKundliProps> = ({ lang = "kn" }) => 
               </h2>
               <p className="text-xs text-amber-900/90 leading-relaxed font-medium">
                 {isKn
-                  ? "೫ ವರ್ಷದ ಮಗುವಿಗೂ ಅರ್ಥವಾಗುವ ಸರಳ ಶೈಲಿ! ೧೨ ಮನೆಗಳ ಒಡೆಯ, ಡಾ. ಬಿ.ವಿ. ರಾಮನ್ ವಿಶೇಷ ಸೂತ್ರಗಳು, ಉಚ್ಚ-ನೀಚ ಸ್ಥಾನಗಳು, ಗ್ರಹ ದೃಷ್ಟಿಗಳು ಹಾಗೂ ಫಲಜ್ಯೋತಿಷ್ಯದ ರಹಸ್ಯಗಳನ್ನು ಕಲಿಯಿರಿ."
-                  : "Crystal-clear Vedic learning from zero fundamentals to Dr. B.V. Raman's classical master rules. Master all 12 houses, aspects, friendships, exaltation, and placement predictions!"}
+                  ? "ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಗುರೂಜಿ) ಅವರ ಸನ್ನಿಧಾನದಲ್ಲಿ ಡಾ. ಬಿ.ವಿ. ರಾಮನ್ ಅವರ ಶಾಸ್ತ್ರೀಯ ನಿಯಮಗಳ ಪ್ರಕಾರ ೧೨ ಮನೆಗಳು, ಗ್ರಹ ಮೈತ್ರಿ, ಉಚ್ಚ-ನೀಚ ಹಾಗೂ ಫಲಜ್ಯೋತಿಷ್ಯ ಕಲಿಯಿರಿ."
+                  : "Under the direct mentorship of Revered Shreeram Pandit (Guruji), learn the authentic Vedic rules of all 12 houses, aspects, friendships, and placement outcomes!"}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 self-end sm:self-center">
+          <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
             <button
               type="button"
               onClick={() => setCurrentLang(isKn ? "en" : "kn")}
@@ -139,6 +143,27 @@ export const LearnKundliGame: React.FC<LearnKundliProps> = ({ lang = "kn" }) => 
           </div>
         </div>
       </Card>
+
+      {/* Guruji's Blessing Card */}
+      {houseData.guruSandeshaKn && (
+        <div className="rounded-2xl border border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50/80 p-3.5 shadow-xs flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <span className="text-xl">📿</span>
+            <p className="text-xs text-amber-950 font-medium italic">
+              <strong>{isKn ? "ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಗುರೂಜಿ ಆಶೀರ್ವಚನ:" : "Revered Shreeram Pandit (Guruji's Blessing):"}</strong>{" "}
+              "{isKn ? houseData.guruSandeshaKn : houseData.guruSandeshaEn}"
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => speakText(isKn ? houseData.guruSandeshaKn : houseData.guruSandeshaEn)}
+            className="p-1.5 rounded-lg bg-white border border-amber-300 text-amber-900 text-xs hover:bg-amber-100 shrink-0"
+            title="Listen to Guruji's voice"
+          >
+            🔊
+          </button>
+        </div>
+      )}
 
       {/* 12-Level Jump Bar */}
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
@@ -505,21 +530,21 @@ export const LearnKundliGame: React.FC<LearnKundliProps> = ({ lang = "kn" }) => 
               <div className="space-y-4 animate-fade-in text-xs">
                 <div className="bg-amber-50 p-4 rounded-2xl border border-amber-200 space-y-3">
                   <h4 className="font-serif text-sm font-bold text-amber-950 flex items-center justify-between">
-                    <span>🎮 {isKn ? "ಕುಂಡಲಿ ಸಿಮ್ಯುಲೇಟರ್: ಗ್ರಹವನ್ನು ಆರಿಸಿ ಫಲ ತಿಳಿಯಿರಿ!" : "Kundli Simulator: Select a Planet to see Phala!"}</span>
+                    <span>🎮 {isKn ? "ಕುಂಡಲಿ ಸಿಮ್ಯುಲೇಟರ್: ೯ ಗ್ರಹಗಳಲ್ಲಿ ಒಂದನ್ನು ಆರಿಸಿ ಫಲ ತಿಳಿಯಿರಿ!" : "Kundli Simulator: Select any of 9 Grahas to see Phala!"}</span>
                   </h4>
 
-                  {/* Planet Picker Bar */}
+                  {/* 9 Planets Picker Bar */}
                   <div className="flex flex-wrap gap-1.5">
                     {houseData.grahaEffects.map((ge) => (
                       <button
                         key={ge.planetEn}
                         type="button"
                         onClick={() => {
-                          setSelectedSimGraha(ge.planetEn);
+                          setSelectedSimGraha(ge.planetEn.split(" ")[0]);
                           gameAudio.playTick();
                         }}
                         className={`px-3 py-1.5 rounded-xl font-extrabold text-xs transition flex items-center gap-1 ${
-                          selectedSimGraha === ge.planetEn
+                          selectedSimGraha.toLowerCase() === ge.planetEn.split(" ")[0].toLowerCase()
                             ? "bg-amber-900 text-amber-50 border border-amber-950 shadow-sm scale-105"
                             : "bg-white border border-amber-200 text-amber-950 hover:bg-amber-100"
                         }`}
@@ -599,7 +624,7 @@ export const LearnKundliGame: React.FC<LearnKundliProps> = ({ lang = "kn" }) => 
                     </span>
                   </div>
                   <p className="text-amber-900">
-                    {isKn ? "ಸರಿಯಾದ ಉತ್ತರಗಳನ್ನು ಆರಿಸಿ 'House Master Golden Seal' ಪಡೆಯಿರಿ!" : "Answer correctly to earn the Golden Seal!"}
+                    {isKn ? "ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಗುರೂಜಿ ಅವರ ಆಶೀರ್ವಾದದೊಂದಿಗೆ ಸರಿಯಾದ ಉತ್ತರಗಳನ್ನು ಆರಿಸಿ 'Golden House Master Seal' ಪಡೆಯಿರಿ!" : "Answer correctly to earn Guruji's Golden House Master Seal!"}
                   </p>
                 </div>
 
@@ -648,7 +673,7 @@ export const LearnKundliGame: React.FC<LearnKundliProps> = ({ lang = "kn" }) => 
 
                         {isAnswered && (
                           <div className="p-2 rounded-xl bg-amber-50/80 border border-amber-200 text-[11px] text-amber-900">
-                            <strong>💡 {isKn ? "ವಿವರಣೆ:" : "Insight:"}</strong> {isKn ? q.explanationKn : q.explanationEn}
+                            <strong>💡 {isKn ? "ಗುರು ಉಪದೇಶ & ವಿವರಣೆ:" : "Guruji's Insight:"}</strong> {isKn ? q.explanationKn : q.explanationEn}
                           </div>
                         )}
                       </div>
@@ -660,7 +685,7 @@ export const LearnKundliGame: React.FC<LearnKundliProps> = ({ lang = "kn" }) => 
                   <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-200 to-yellow-300 border-2 border-amber-500 text-center space-y-2 animate-bounce">
                     <span className="text-3xl">🏅</span>
                     <h4 className="font-serif text-sm font-black text-amber-950">
-                      {isKn ? `ಅಭಿನಂದನೆಗಳು! ನೀವು ${selectedHouse}ನೇ ಮನೆಯ ಜ್ಞಾನವನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಕರಗತ ಮಾಡಿಕೊಂಡಿದ್ದೀರಿ!` : `Congratulations! You mastered House ${selectedHouse}!`}
+                      {isKn ? `ಅಭಿನಂದನೆಗಳು! ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಗುರೂಜಿ ಅವರ ಆಶೀರ್ವಾದದಿಂದ ನೀವು ${selectedHouse}ನೇ ಮನೆಯ ಜ್ಞಾನವನ್ನು ಕರಗತ ಮಾಡಿಕೊಂಡಿದ್ದೀರಿ!` : `Congratulations! By Guruji's grace, you mastered House ${selectedHouse}!`}
                     </h4>
                     {selectedHouse < 12 && (
                       <button
@@ -734,9 +759,12 @@ export const LearnKundliGame: React.FC<LearnKundliProps> = ({ lang = "kn" }) => 
             <div className="flex items-center justify-between border-b border-amber-200 pb-3">
               <div className="flex items-center gap-2">
                 <span className="text-2xl">🔗</span>
-                <h3 className="font-serif text-base font-black text-amber-950">
-                  {isKn ? "ವಿದ್ಯಾರ್ಥಿಗೆ ವೈಯಕ್ತಿಕ ಲಿಂಕ್ ಕಳುಹಿಸಿ" : "Share Personalized Student Link"}
-                </h3>
+                <div>
+                  <div className="text-[9px] font-extrabold text-amber-800 uppercase">॥ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಗುರುಕುಲ ॥</div>
+                  <h3 className="font-serif text-base font-black text-amber-950">
+                    {isKn ? "ವಿದ್ಯಾರ್ಥಿಗೆ ವೈಯಕ್ತಿಕ ಕಲಿಕಾ ಲಿಂಕ್" : "Personalized Vidyarthi Link"}
+                  </h3>
+                </div>
               </div>
               <button
                 type="button"
@@ -748,13 +776,13 @@ export const LearnKundliGame: React.FC<LearnKundliProps> = ({ lang = "kn" }) => 
             </div>
 
             {(() => {
-              const nameToUse = (shareStudentName || (isKn ? "ವಿದ್ಯಾರ್ಥಿ" : "Student")).trim();
+              const nameToUse = (shareStudentName || (isKn ? "ವಿದ್ಯಾರ್ಥಿ" : "Vidyarthi")).trim();
               const token = encodeAcademyToken({
                 name: nameToUse,
                 lang: currentLang,
                 level: selectedHouse,
                 step: 1,
-                invitedBy: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್"
+                invitedBy: "ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಗುರೂಜಿ)"
               });
               const origin = typeof window !== "undefined" ? window.location.origin : "";
               const shareUrl = `${origin}/academy?academyToken=${token}`;
@@ -769,8 +797,8 @@ export const LearnKundliGame: React.FC<LearnKundliProps> = ({ lang = "kn" }) => 
 
               const handleWhatsApp = () => {
                 const msg = isKn
-                  ? `🕉️ ಶ್ರೀ ಬಗ್ಗೋಣ ಜ್ಯೋತಿಷ್ಯ ಗುರುಕುಲ (Kundli Academy)!\n\nಆತ್ಮೀಯ ${nameToUse}, ಡಾ. ಬಿ.ವಿ. ರಾಮನ್ ಅವರ ಶಾಸ್ತ್ರೀಯ ನಿಯಮಗಳೊಂದಿಗೆ ೧೨ ಮನೆಗಳ ಕುಂಡಲಿ ಫಲಜ್ಯೋತಿಷ್ಯವನ್ನು ಕಲಿಯಲು ಕೆಳಗಿನ ಲಿಂಕ್ ತೆರೆಯಿರಿ:\n\n👉 ${shareUrl}`
-                  : `🕉️ Baggona Vedic Kundli Academy!\n\nDear ${nameToUse}, learn to read Janma Kundali with Dr. B.V. Raman's classical master rules using this interactive link:\n\n👉 ${shareUrl}`;
+                  ? `🕉️ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಗುರುಕುಲ (Kundli Academy)!\n\nಆತ್ಮೀಯ ${nameToUse},\nಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಗುರೂಜಿ) ಅವರ ಸನ್ನಿಧಾನದಲ್ಲಿ ಡಾ. ಬಿ.ವಿ. ರಾಮನ್ ಅವರ ಶಾಸ್ತ್ರೀಯ ನಿಯಮಗಳೊಂದಿಗೆ ೧೨ ಮನೆಗಳ ಕುಂಡಲಿ ಫಲಜ್ಯೋತಿಷ್ಯವನ್ನು ಕಲಿಯಲು ಕೆಳಗಿನ ಲಿಂಕ್ ತೆರೆಯಿರಿ:\n\n👉 ${shareUrl}\n\n॥ ಶ್ರೀ ಶಾಂತಿಕಾಪರಮೇಶ್ವರೀ ಪ್ರಸನ್ನ ॥`
+                  : `🕉️ Baggona Vedic Kundli Gurukula!\n\nDear ${nameToUse},\nLearn to read Janma Kundali under the guidance of Revered Shreeram Pandit (Guruji) based on Dr. B.V. Raman's classical master rules:\n\n👉 ${shareUrl}\n\nBlessings from Shri Shantikaparameshwari!`;
                 window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, "_blank");
               };
 
@@ -778,13 +806,13 @@ export const LearnKundliGame: React.FC<LearnKundliProps> = ({ lang = "kn" }) => 
                 <div className="space-y-3 text-xs">
                   <div>
                     <label className="block font-bold text-amber-950 mb-1">
-                      👤 {isKn ? "ವಿದ್ಯಾರ್ಥಿ / ಭಕ್ತರ ಹೆಸರು:" : "Student / Devotee Name:"}
+                      👤 {isKn ? "ವಿದ್ಯಾರ್ಥಿ / ಭಕ್ತರ ಹೆಸರು:" : "Vidyarthi / Devotee Name:"}
                     </label>
                     <input
                       type="text"
                       value={shareStudentName}
                       onChange={(e) => setShareStudentName(e.target.value)}
-                      placeholder={isKn ? "ಉದಾ: ರಮೇಶ್, ಪ್ರಿಯಾ..." : "e.g., Ramesh, Priya..."}
+                      placeholder={isKn ? "ಉದಾ: ರಮೇಶ್, ಸುಮ, ಪ್ರಿಯಾ..." : "e.g., Ramesh, Suma, Priya..."}
                       className="w-full px-3.5 py-2 rounded-xl border border-amber-300 bg-amber-50/50 font-bold text-amber-950 focus:outline-hidden focus:ring-2 focus:ring-amber-500"
                     />
                   </div>
@@ -815,8 +843,8 @@ export const LearnKundliGame: React.FC<LearnKundliProps> = ({ lang = "kn" }) => 
 
                   <p className="text-[10px] text-amber-800/80 text-center font-medium">
                     🔒 {isKn
-                      ? "ಈ ಲಿಂಕ್ ತೆರೆದಾಗ ವಿದ್ಯಾರ್ಥಿಯು ಕೇವಲ ಕುಂಡಲಿ ಕಲಿಕಾ ತಾಣವನ್ನು ಮಾತ್ರ ವೀಕ್ಷಿಸಬಹುದು. ಲಾಗಿನ್ ಅಗತ್ಯವಿಲ್ಲ."
-                      : "Recipients can directly access the Kundli Academy without logging in."}
+                      ? "ಈ ಲಿಂಕ್ ತೆರೆದಾಗ ವಿದ್ಯಾರ್ಥಿಯು ಕೇವಲ ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರ ಕುಂಡಲಿ ಕಲಿಕಾ ತಾಣವನ್ನು ಮಾತ್ರ ವೀಕ್ಷಿಸಬಹುದು. ಲಾಗಿನ್ ಅಗತ್ಯವಿಲ್ಲ."
+                      : "Recipients exclusively access Guruji Shreeram Pandit's Kundli Academy without login."}
                   </p>
                 </div>
               );
