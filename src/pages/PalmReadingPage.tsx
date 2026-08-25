@@ -16,6 +16,8 @@ import {
 import { PalmReadingPdfTemplate } from "../components/palmreading/PalmReadingPdfTemplate";
 import { PalmTimelineDiagram } from "../components/palmreading/PalmTimelineDiagram";
 import { sanitizeAIText } from "../utils/textFormatter";
+import GrahaSpinner from "../components/ui/GrahaSpinner";
+import { estimateBirthDetailsFromPalmImage } from "../features/palmreading/palmDobEstimator";
 import { PalmScannerLoader } from "../components/palmreading/PalmScannerLoader";
 import { calculateKundliWithPlaceSun } from "../core/KundliEngine";
 import { calculateTraditionalBaggona } from "../core/TraditionalBaggonaEngine";
@@ -79,6 +81,41 @@ export default function PalmReadingPage(): JSX.Element {
     pincode: pincodeStore || "581326"
   });
   const [generatedKundliData, setGeneratedKundliData] = useState<PalmReadingResult["kundliData"] | undefined>(undefined);
+  const [isEstimatingDetails, setIsEstimatingDetails] = useState<boolean>(false);
+  const [estimationInfo, setEstimationInfo] = useState<string | null>(null);
+
+  const handleOpenKundliModal = async () => {
+    setShowKundliModal(true);
+    if (imageDataUrl) {
+      setIsEstimatingDetails(true);
+      try {
+        const recon = await estimateBirthDetailsFromPalmImage(
+          imageDataUrl,
+          sideImageDataUrl || undefined,
+          backImageDataUrl || undefined,
+          geminiApiKey,
+          selectedLang
+        );
+        if (recon?.estimatedDob) {
+          const parts = recon.estimatedDob.split("-");
+          if (parts.length === 3) {
+            setBirthDatePicker(new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2])));
+          }
+        }
+        if (recon?.estimatedTob) {
+          setBirthTimeHm(recon.estimatedTob);
+        }
+        if (recon?.estimatedPlace) {
+          setSelectedLoc(recon.estimatedPlace);
+        }
+        setEstimationInfo(isKn ? recon.explanationKn : recon.explanationEn);
+      } catch (err) {
+        console.error("Estimation failed:", err);
+      } finally {
+        setIsEstimatingDetails(false);
+      }
+    }
+  };
 
   // General States
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
@@ -494,7 +531,7 @@ export default function PalmReadingPage(): JSX.Element {
             {/* 🔮 Kundli Generator Button */}
             <button
               type="button"
-              onClick={() => setShowKundliModal(true)}
+              onClick={handleOpenKundliModal}
               className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-600 to-amber-700 px-4 py-2.5 text-xs font-bold text-white shadow hover:from-orange-700 hover:to-amber-800 transition"
             >
               <span>🔮</span>
@@ -672,6 +709,26 @@ export default function PalmReadingPage(): JSX.Element {
                 ✕
               </button>
             </div>
+
+            {/* AI Palm Reconstruction Status Indicator */}
+            {isEstimatingDetails && (
+              <div className="rounded-xl border border-amber-400 bg-amber-50 p-3.5 text-xs text-amber-950 font-bold flex items-center gap-3 shadow-inner">
+                <GrahaSpinner size="sm" message="" />
+                <span>{isKn ? "🔮 ಹಸ್ತದ ರೇಖೆಗಳಿಂದ ಜನ್ಮ ದಿನಾಂಕ, ಸಮಯ ಹಾಗೂ ಸ್ಥಳವನ್ನು ನಿಖರವಾಗಿ ಲೆಕ್ಕಹಾಕಲಾಗುತ್ತಿದೆ..." : "🔮 Reconstructing Date of Birth, Time, and Location from Palm Photo..."}</span>
+              </div>
+            )}
+
+            {estimationInfo && !isEstimatingDetails && (
+              <div className="rounded-xl border border-emerald-400 bg-emerald-50/90 p-3.5 text-xs text-emerald-950 font-bold space-y-1 shadow-sm">
+                <div className="flex items-center gap-1.5 text-emerald-900 font-extrabold">
+                  <span>✨</span>
+                  <span>{isKn ? "ಹಸ್ತ ಸಾಮುದ್ರಿಕ ಲಕ್ಷ್ಮೀ ಶಾಸ್ತ್ರದ ಅನುಮಾನಿತ ಜನ್ಮ ವಿವರಗಳು:" : "Palm Reconstructed Birth Parameters:"}</span>
+                </div>
+                <div className="text-[11px] text-emerald-900 leading-normal font-medium">
+                  {estimationInfo}
+                </div>
+              </div>
+            )}
 
             <div className="space-y-4">
               <div>
