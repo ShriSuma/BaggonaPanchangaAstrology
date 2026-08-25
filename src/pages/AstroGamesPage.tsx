@@ -7,8 +7,9 @@ import { NavagrahaBoardGame } from "../components/games/NavagrahaBoardGame";
 import { AstroCharadesGame } from "../components/games/AstroCharadesGame";
 import { SankhyaDuelGame } from "../components/games/SankhyaDuelGame";
 import { VedicTriviaBlitzGame } from "../components/games/VedicTriviaBlitzGame";
+import { LearnKundliGame } from "../components/games/LearnKundliGame";
 
-type ActiveGameId = "hub" | "mindreader" | "parampada" | "charades" | "sankhya" | "trivia";
+type ActiveGameId = "hub" | "mindreader" | "parampada" | "charades" | "sankhya" | "trivia" | "learnkundli";
 
 export default function AstroGamesPage(): JSX.Element {
   const { t, i18n } = useTranslation();
@@ -77,6 +78,16 @@ export default function AstroGamesPage(): JSX.Element {
       icon: "🧠",
       descKn: "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ, ಪಂಚಾಂಗ, ೨೭ ನಕ್ಷತ್ರಗಳು ಹಾಗೂ ಪುರಾಣ ರಹಸ್ಯಗಳ ಬಹು ಆಯ್ಕೆಯ ಜ್ಞಾನ ಸಂಗ್ರಾಮ!",
       descEn: "Epic multi-player trivia show on Gokarna legends, Panchanga, 27 Nakshatras, and Puranas!"
+    },
+    {
+      id: "learnkundli" as ActiveGameId,
+      titleKn: "೬. ಜಾತಕ & ಪಂಚಾಂಗ ಕಲಿಕಾ ಖೇಲ (Learn Kundli)",
+      titleEn: "6. Learn to Read Janma Kundali & Panchanga",
+      badgeKn: "೧೨ ಹಂತಗಳ ಅಕಾಡೆಮಿ (12 Levels Academy)",
+      badgeEn: "12 Levels Interactive Academy",
+      icon: "📖",
+      descKn: "ದಕ್ಷಿಣ ಭಾರತೀಯ ಕುಂಡಲಿ, ೧೨ ಮನೆಗಳ ಒಡೆಯ, ಉಚ್ಚ-ನೀಚ ಗ್ರಹಗಳು, ಶತ್ರು-ಮಿತ್ರ ಮೈತ್ರಿ ಹಾಗೂ ಫಲಜ್ಯೋತಿಷ್ಯದ ಸರಳ ಕಲಿಕೆ!",
+      descEn: "Interactive South Indian chart, 12 house lords, exaltation, debilitation, friendships, and placement outcomes!"
     }
   ];
 
@@ -99,8 +110,8 @@ export default function AstroGamesPage(): JSX.Element {
               </h1>
               <p className="text-xs text-amber-900/90 font-medium mt-1">
                 {isKn
-                  ? "ಪ್ರಯಾಣ, ಕಾರು ಚಾಲನೆ, ಕುಟುಂಬ ಹಾಗೂ ಮಿತ್ರರೊಂದಿಗೆ ಆಡಲು ೫ ರೋಚಕ ಆಟಗಳು (ಏಕ ವ್ಯಕ್ತಿ & ೨ ರಿಂದ ೮ ಆಟಗಾರರು)"
-                  : "5 engaging games for travel, road trips, and family leisure (1 Solo & 4 Multi-player 2-8 Player games)"}
+                  ? "ಪ್ರಯಾಣ, ಕಾರು ಚಾಲನೆ, ಕುಟುಂಬ ಹಾಗೂ ಮಿತ್ರರೊಂದಿಗೆ ಆಡಲು ೬ ರೋಚಕ ಆಟಗಳು (ಏಕ ವ್ಯಕ್ತಿ, ೨ ರಿಂದ ೮ ಆಟಗಾರರು & ಕಲಿಕಾ ಅಕಾಡೆಮಿ)"
+                  : "6 engaging games for travel, road trips, and family leisure (Solo, 2-8 Players & Kundli Academy)"}
               </p>
             </div>
           </div>
@@ -158,7 +169,7 @@ export default function AstroGamesPage(): JSX.Element {
         </div>
       )}
 
-      {/* HUB VIEW: 5 Game Cards */}
+      {/* HUB VIEW: 6 Game Cards */}
       {activeGame === "hub" && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-fade-in">
           {games.map((game) => (
@@ -204,6 +215,7 @@ export default function AstroGamesPage(): JSX.Element {
       {activeGame === "charades" && <AstroCharadesGame lang={i18n.language} />}
       {activeGame === "sankhya" && <SankhyaDuelGame lang={i18n.language} />}
       {activeGame === "trivia" && <VedicTriviaBlitzGame lang={i18n.language} />}
+      {activeGame === "learnkundli" && <LearnKundliGame lang={i18n.language} />}
     </div>
   );
 }
