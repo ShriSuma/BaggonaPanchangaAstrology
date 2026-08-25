@@ -32,6 +32,10 @@ import GrahaSpinner from "../components/ui/GrahaSpinner";
 import { buildNarrativeSummary, fetchKundliNarrative, NarrativeApiError } from "../services/kundliNarrativeApi";
 import { localizeNarrativeText } from "../services/localizeContent";
 import { BalaVidyaSuite } from "../components/kundli/BalaVidyaSuite";
+import { KundliRemedyView } from "../components/kundli/KundliRemedyView";
+import { KundliRemedyPdfTemplate } from "../components/kundli/KundliRemedyPdfTemplate";
+import { generateKundliRemedyReport } from "../features/remedies/kundliRemedyEngine";
+import { generatePDFFromElement } from "../utils/pdfGenerator";
 import { formatPickerDateLocalYmd } from "../core/birthTime";
 import { GOTRA_OPTIONS, gotraI18nKey } from "../data/gotras";
 import { formatNavamsaPada, formatRashiAmsha, patrikaNavamshaFromDegree } from "../core/localeNumbers";
@@ -65,10 +69,12 @@ export default function KundliPage(): JSX.Element {
   const exportContainerRef = useRef<HTMLDivElement>(null);
   const traditionalExportRef = useRef<HTMLDivElement>(null);
   const dashaExportRef = useRef<HTMLDivElement>(null);
-  const [activeView, setActiveView] = useState<"jataka" | "dasha" | "lifeguidance" | "balavidya">("jataka");
+  const [activeView, setActiveView] = useState<"jataka" | "dasha" | "remedy" | "lifeguidance" | "balavidya">("jataka");
   const [dashaViewType, setDashaViewType] = useState<"grid" | "visualization">("grid");
 
   const [pdfLanguage, setPdfLanguage] = useState<string>(i18n.language);
+  const [remedyPdfLanguage, setRemedyPdfLanguage] = useState<string>(i18n.language || "kn");
+  const [isGeneratingRemedyPdf, setIsGeneratingRemedyPdf] = useState(false);
   const [isTranslating, setIsTranslating] = useState(false);
   const [dynamicValues, setDynamicValues] = useState<Record<string, string>>({});
   const [isGeneratingDashaPdf, setIsGeneratingDashaPdf] = useState(false);
@@ -472,6 +478,38 @@ export default function KundliPage(): JSX.Element {
     return label === key ? v : label;
   }, [form.gothra, t]);
 
+  const remedyDiagnosis = useMemo(() => {
+    if (!result || !birthDatePicker || !birthTimeHm.trim()) return null;
+    const input: KundliInput = {
+      birthDate: formatPickerDateLocalYmd(birthDatePicker),
+      birthTime: birthTimeHm.trim(),
+      latitude: form.latitude,
+      longitude: form.longitude,
+      name: form.name || "Devotee",
+      gender: form.gender,
+      gothra: gotraDisplay || form.gothra
+    };
+    return generateKundliRemedyReport(result, input);
+  }, [result, birthDatePicker, birthTimeHm, form.latitude, form.longitude, form.name, form.gender, form.gothra, gotraDisplay]);
+
+  const handleDownloadRemedyPdf = async (langToUse?: string) => {
+    const chosenLang = langToUse || remedyPdfLanguage || "kn";
+    setRemedyPdfLanguage(chosenLang);
+    setIsGeneratingRemedyPdf(true);
+    try {
+      await new Promise((r) => setTimeout(r, 200));
+      const safeName = (form.name || "Kundli").replace(/[^a-zA-Z0-9_\u0C80-\u0CFF]/g, "_");
+      await generatePDFFromElement(
+        "kundli-remedy-pdf-container",
+        `${safeName}_Kundli_Remedy_Report_${chosenLang}.pdf`
+      );
+    } catch (err) {
+      console.error("Failed to generate Kundli Remedy PDF:", err);
+    } finally {
+      setIsGeneratingRemedyPdf(false);
+    }
+  };
+
   const narrativeUrlConfigured = Boolean(import.meta.env.VITE_NARRATIVE_API_URL);
   const narrativeReady = narrativeConsent && narrativeUrlConfigured;
 
@@ -762,6 +800,17 @@ export default function KundliPage(): JSX.Element {
             <button
               type="button"
               className={`jk-btn rounded-xl px-6 py-3 text-sm md:text-base font-bold tracking-wide shadow-md transition-all ${
+                activeView === "remedy"
+                  ? "bg-gradient-to-r from-amber-600 via-amber-700 to-amber-800 text-white shadow-amber-300 scale-105"
+                  : "bg-white text-amber-950 border-2 border-amber-400 hover:bg-amber-50"
+              }`}
+              onClick={() => setActiveView("remedy")}
+            >
+              🪔 {i18n.language.startsWith("kn") ? "ದೈವಿಕ ಪರಿಹಾರ (Remedies)" : "Divine Remedies"}
+            </button>
+            <button
+              type="button"
+              className={`jk-btn rounded-xl px-6 py-3 text-sm md:text-base font-bold tracking-wide shadow-md transition-all ${
                 activeView === "lifeguidance"
                   ? "bg-amber-600 text-white"
                   : "bg-white text-amber-900 border border-amber-300 hover:bg-amber-50"
@@ -782,6 +831,17 @@ export default function KundliPage(): JSX.Element {
               🎓 {i18n.language.startsWith("kn") ? "ಬಾಲ ವಿದ್ಯಾ & ಸಂಸ್ಕಾರ ಮಂಡಲ" : "Bala Vidya & Student Hub"}
             </button>
           </div>
+
+          {activeView === "remedy" && remedyDiagnosis && (
+            <div className="animate-fade-in">
+              <KundliRemedyView
+                diagnosis={remedyDiagnosis}
+                lang={remedyPdfLanguage}
+                onDownloadPdf={handleDownloadRemedyPdf}
+                isGeneratingPdf={isGeneratingRemedyPdf}
+              />
+            </div>
+          )}
 
           {activeView === "balavidya" && (
             <div className="animate-fade-in">
@@ -1012,6 +1072,28 @@ export default function KundliPage(): JSX.Element {
           <DashaPdfTemplate ref={dashaExportRef} session={kundliSession} maxAge={120} pdfLanguage={pdfLanguage} />
         </div>
       ) : null}
+
+      {/* Hidden Kundli Remedy PDF Template conforming to baggona-pdf-layout-guard */}
+      {remedyDiagnosis && (
+        <div
+          style={{
+            position: "fixed",
+            left: 0,
+            top: 0,
+            width: 900,
+            opacity: 0,
+            pointerEvents: "none",
+            zIndex: -1,
+            overflow: "hidden",
+            height: 0
+          }}
+        >
+          <KundliRemedyPdfTemplate
+            diagnosis={remedyDiagnosis}
+            lang={remedyPdfLanguage}
+          />
+        </div>
+      )}
 
     </Card>
   );
