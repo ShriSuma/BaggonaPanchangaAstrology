@@ -31,6 +31,7 @@ import Card from "../components/ui/Card";
 import GrahaSpinner from "../components/ui/GrahaSpinner";
 import { buildNarrativeSummary, fetchKundliNarrative, NarrativeApiError } from "../services/kundliNarrativeApi";
 import { localizeNarrativeText } from "../services/localizeContent";
+import { BalaVidyaSuite } from "../components/kundli/BalaVidyaSuite";
 import { formatPickerDateLocalYmd } from "../core/birthTime";
 import { GOTRA_OPTIONS, gotraI18nKey } from "../data/gotras";
 import { formatNavamsaPada, formatRashiAmsha, patrikaNavamshaFromDegree } from "../core/localeNumbers";
@@ -64,7 +65,7 @@ export default function KundliPage(): JSX.Element {
   const exportContainerRef = useRef<HTMLDivElement>(null);
   const traditionalExportRef = useRef<HTMLDivElement>(null);
   const dashaExportRef = useRef<HTMLDivElement>(null);
-  const [activeView, setActiveView] = useState<"jataka" | "dasha" | "lifeguidance">("jataka");
+  const [activeView, setActiveView] = useState<"jataka" | "dasha" | "lifeguidance" | "balavidya">("jataka");
   const [dashaViewType, setDashaViewType] = useState<"grid" | "visualization">("grid");
 
   const [pdfLanguage, setPdfLanguage] = useState<string>(i18n.language);
@@ -769,7 +770,32 @@ export default function KundliPage(): JSX.Element {
             >
               🔮 {i18n.language.startsWith("kn") ? "ಪರಿಪೂರ್ಣ ಜೀವನ ಮಾರ್ಗದರ್ಶನ" : "Life Guidance"}
             </button>
+            <button
+              type="button"
+              className={`jk-btn rounded-xl px-6 py-3 text-sm md:text-base font-bold tracking-wide shadow-md transition-all ${
+                activeView === "balavidya"
+                  ? "bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700 text-white shadow-amber-200 scale-105"
+                  : "bg-white text-amber-950 border-2 border-amber-300 hover:bg-amber-50"
+              }`}
+              onClick={() => setActiveView("balavidya")}
+            >
+              🎓 {i18n.language.startsWith("kn") ? "ಬಾಲ ವಿದ್ಯಾ & ಸಂಸ್ಕಾರ ಮಂಡಲ" : "Bala Vidya & Student Hub"}
+            </button>
           </div>
+
+          {activeView === "balavidya" && (
+            <div className="animate-fade-in">
+              <BalaVidyaSuite
+                kundli={result}
+                childName={form.name}
+                dob={formatPickerDateLocalYmd(birthDatePicker)}
+                tob={birthTimeHm.trim()}
+                gender={form.gender}
+                lang={i18n.language}
+                onOpenSevaModal={() => setPage("seva")}
+              />
+            </div>
+          )}
 
           {activeView === "lifeguidance" && (
             <div className="animate-fade-in">
