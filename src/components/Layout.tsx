@@ -194,6 +194,7 @@ export default function Layout({ children }: Props): JSX.Element {
           <TabButton page="facereading" icon="👤" label={t("nav.facereading", "ಮುಖ ಸಾಮುದ್ರಿಕ ಶಾಸ್ತ್ರ")} onClose={() => setIsDrawerOpen(false)} />
           <TabButton page="maranottara" icon="🪔" label={t("nav.maranottara", "ಮರಣೋತ್ತರ ಹಾಗೂ ಶ್ರಾದ್ಧ ಮಾಸಿಕ")} onClose={() => setIsDrawerOpen(false)} />
           <TabButton page="lifeguidance" icon="🔮" label={t("nav.lifeguidance", "ಪರಿಪೂರ್ಣ ಜೀವನ ಮಾರ್ಗದರ್ಶನ")} onClose={() => setIsDrawerOpen(false)} />
+          <TabButton page="astrogames" icon="🎮" label={language.startsWith("kn") ? "ಜ್ಯೋತಿಷ್ಯ ಖೇಲ ಮಂಡಲ (Astro Games)" : "Astro Games Arena"} onClose={() => setIsDrawerOpen(false)} />
           <TabButton page="varshabavishya" icon="🔮" label={t("varsha.nav", "Varsha")} onClose={() => setIsDrawerOpen(false)} />
           <TabButton page="melapak" icon="💞" label={t("nav.melapak")} onClose={() => setIsDrawerOpen(false)} />
           <div className="my-2 border-t border-slate-100 dark:border-slate-800"></div>

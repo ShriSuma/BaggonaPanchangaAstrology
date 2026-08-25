@@ -21,6 +21,7 @@ import PalmReadingPage from "./pages/PalmReadingPage";
 import FaceReadingPage from "./pages/FaceReadingPage";
 import { MaranottaraPage } from "./pages/MaranottaraPage";
 import { LifeGuidancePage } from "./pages/LifeGuidancePage";
+import AstroGamesPage from "./pages/AstroGamesPage";
 import { useAppStore } from "./stores/appStore";
 import { useAuthStore } from "./features/auth/authStore";
 import { LoginPage } from "./components/auth/LoginPage";
@@ -106,6 +107,7 @@ export default function App(): JSX.Element {
         {currentPage === "facereading" && <FaceReadingPage />}
         {currentPage === "maranottara" && <MaranottaraPage />}
         {currentPage === "lifeguidance" && <LifeGuidancePage />}
+        {currentPage === "astrogames" && <AstroGamesPage />}
       </Layout>
     </ErrorBoundary>
   );
