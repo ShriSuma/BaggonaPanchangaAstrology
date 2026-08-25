@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { HOUSE_LEARNING_MODULES } from "../features/kundlilearning/kundliAcademyKnowledge";
 
-describe("Kundli Academy 12-House Learning Engine Tests", () => {
+describe("Kundli Academy 12-House Learning Engine (Dr. B.V. Raman Master Rules)", () => {
   it("contains complete, authentic data for all 12 Vedic Houses (Bhavas)", () => {
     for (let h = 1; h <= 12; h++) {
       const house = HOUSE_LEARNING_MODULES[h];
@@ -12,11 +12,13 @@ describe("Kundli Academy 12-House Learning Engine Tests", () => {
       expect(house.naturalLordKn).toBeDefined();
       expect(house.naturalRashiKn).toBeDefined();
       expect(house.bodyPartsKn).toBeDefined();
+      expect(house.karakaPlanetKn).toBeDefined();
+      expect(house.bhavatBhavamDescKn).toBeDefined();
       expect(house.lifeThemesKn.length).toBeGreaterThan(2);
     }
   });
 
-  it("verifies accurate Uccha (Exalted) and Neecha (Debilitated) classical definitions", () => {
+  it("verifies accurate Uccha (Exalted) and Neecha (Debilitated) classical definitions across key houses", () => {
     // House 1 (Mesha) -> Surya Exalted, Shani Debilitated
     const h1 = HOUSE_LEARNING_MODULES[1];
     expect(h1.dignity.exaltedPlanetKn).toContain("ಸೂರ್ಯ");
@@ -43,6 +45,23 @@ describe("Kundli Academy 12-House Learning Engine Tests", () => {
     expect(h12.dignity.debilitatedPlanetKn).toContain("ಬುಧ");
   });
 
+  it("verifies Dr. B.V. Raman master rules and planetary aspects for all houses", () => {
+    for (let h = 1; h <= 12; h++) {
+      const house = HOUSE_LEARNING_MODULES[h];
+      expect(house.specialRules).toBeDefined();
+      expect(house.specialRules.length).toBeGreaterThanOrEqual(1);
+
+      house.specialRules.forEach((rule) => {
+        expect(rule.ruleTitleKn.length).toBeGreaterThan(3);
+        expect(rule.bvRamanInsightKn.length).toBeGreaterThan(5);
+        expect(rule.practicalExampleKn.length).toBeGreaterThan(5);
+      });
+
+      expect(house.drishtiRules).toBeDefined();
+      expect(house.drishtiRules.length).toBeGreaterThanOrEqual(1);
+    }
+  });
+
   it("validates that all house quizzes have non-empty questions, options, and valid correct answers", () => {
     for (let h = 1; h <= 12; h++) {
       const house = HOUSE_LEARNING_MODULES[h];
@@ -61,12 +80,13 @@ describe("Kundli Academy 12-House Learning Engine Tests", () => {
     }
   });
 
-  it("provides rich Graha placement outcomes with gifts and watch-outs", () => {
+  it("provides rich Graha placement outcomes with gifts, watch-outs, and B.V. Raman verdicts", () => {
     const h1 = HOUSE_LEARNING_MODULES[1];
     expect(h1.grahaEffects.length).toBe(9); // All 9 planets defined for Lagna
     const sunEffect = h1.grahaEffects.find((g) => g.planetEn.includes("Sun"));
     expect(sunEffect).toBeDefined();
     expect(sunEffect?.keyGiftsKn.length).toBeGreaterThan(1);
     expect(sunEffect?.watchOutsKn.length).toBeGreaterThan(0);
+    expect(sunEffect?.bvRamanVerdictKn.length).toBeGreaterThan(5);
   });
 });

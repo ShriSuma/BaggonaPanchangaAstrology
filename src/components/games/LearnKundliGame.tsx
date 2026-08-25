@@ -1,16 +1,19 @@
 import React, { useState } from "react";
 import Card from "../ui/Card";
 import { gameAudio } from "../../utils/gameAudio";
-import { HOUSE_LEARNING_MODULES, type HouseLearningModule } from "../../features/kundlilearning/kundliAcademyKnowledge";
+import {
+  HOUSE_LEARNING_MODULES,
+  type HouseLearningModule
+} from "../../features/kundlilearning/kundliAcademyKnowledge";
 
 export type LearnKundliProps = {
   lang?: string;
 };
 
-// South Indian Chart Box Layout Matrix (12 Houses)
+// South Indian Chart Box Layout Matrix (12 Houses in Classical Fixed Order)
 const SOUTH_INDIAN_LAYOUT = [
   { house: 12, rashi: "Meena", labelKn: "೧೨ ಮೀನ", labelEn: "12 Pisces", row: 1, col: 1 },
-  { house: 1, rashi: "Mesha", labelKn: "೧ ಮೇಷ (ಲಗ್ನ)", labelEn: "1 Aries", row: 1, col: 2 },
+  { house: 1, rashi: "Mesha", labelKn: "೧ ಮೇಷ (ಲಗ್ನ)", labelEn: "1 Aries (Lagna)", row: 1, col: 2 },
   { house: 2, rashi: "Vrishabha", labelKn: "೨ ವೃಷಭ", labelEn: "2 Taurus", row: 1, col: 3 },
   { house: 3, rashi: "Mithuna", labelKn: "೩ ಮಿಥುನ", labelEn: "3 Gemini", row: 1, col: 4 },
 
@@ -31,27 +34,23 @@ export const LearnKundliGame: React.FC<LearnKundliProps> = ({ lang = "kn" }) => 
   const isKn = currentLang.slice(0, 2) === "kn";
 
   const [selectedHouse, setSelectedHouse] = useState<number>(1);
-  const [currentStep, setCurrentStep] = useState<number>(1); // 1..6
-  const [selectedSimGraha, setSelectedSimGraha] = useState<string>("Surya");
-  const [isQuizActive, setIsQuizActive] = useState<boolean>(false);
+  const [currentStep, setCurrentStep] = useState<number>(1); // 1..7
+  const [selectedSimGraha, setSelectedSimGraha] = useState<string>("Sun");
   const [quizScore, setQuizScore] = useState<number>(0);
   const [userAnswers, setUserAnswers] = useState<Record<number, number>>({});
-  const [quizCompleted, setQuizCompleted] = useState<boolean>(false);
 
   const houseData: HouseLearningModule = HOUSE_LEARNING_MODULES[selectedHouse] || HOUSE_LEARNING_MODULES[1];
 
   const handleSelectHouse = (h: number) => {
     setSelectedHouse(h);
     setCurrentStep(1);
-    setIsQuizActive(false);
-    setQuizCompleted(false);
     setUserAnswers({});
     setQuizScore(0);
     gameAudio.playChime();
   };
 
   const handleNextStep = () => {
-    if (currentStep < 6) {
+    if (currentStep < 7) {
       setCurrentStep(currentStep + 1);
       gameAudio.playTick();
     }
@@ -90,23 +89,25 @@ export const LearnKundliGame: React.FC<LearnKundliProps> = ({ lang = "kn" }) => 
 
   return (
     <div className="space-y-6">
-      {/* Top Banner with Language Toggle */}
+      {/* Master Academy Header */}
       <Card className="border-2 border-amber-400 bg-gradient-to-r from-amber-100 via-amber-50 to-orange-100 p-5 shadow-md">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-start gap-3">
             <span className="text-3xl select-none">📖</span>
             <div className="space-y-1">
-              <div className="text-[10px] font-extrabold tracking-widest text-amber-800 uppercase flex items-center gap-1.5">
-                <span>॥ ಜಾತಕ & ಪಂಚಾಂಗ ಕಲಿಕಾ ಮಹಾ ಖೇಲ (Kundli Academy) ॥</span>
-                <span className="bg-amber-200 text-amber-950 px-2 py-0.5 rounded-full font-bold">Level {selectedHouse} / 12</span>
+              <div className="text-[10px] font-extrabold tracking-widest text-amber-800 uppercase flex items-center gap-1.5 flex-wrap">
+                <span>॥ ಶ್ರೀ ಬಗ್ಗೋಣ ಜಾತಕ & ಪಂಚಾಂಗ ಗುರುಕುಲ ॥</span>
+                <span className="bg-amber-200 text-amber-950 px-2 py-0.5 rounded-full font-bold">
+                  Level {selectedHouse} / 12 (Dr. B.V. Raman Master System)
+                </span>
               </div>
               <h2 className="font-serif text-lg sm:text-xl font-extrabold text-amber-950">
                 {isKn ? "ಕುಂಡಲಿ ಓದಲು ಕಲಿಯಿರಿ · ಹಂತ-ಹಂತದ ವೈದಿಕ ಅಕಾಡೆಮಿ" : "Learn to Read Janma Kundali · Step-by-Step"}
               </h2>
               <p className="text-xs text-amber-900/90 leading-relaxed font-medium">
                 {isKn
-                  ? "೫ ವರ್ಷದ ಮಗುವಿಗೂ ಅರ್ಥವಾಗುವ ಸರಳ ಶೈಲಿ! ೧೨ ಮನೆಗಳ ಒಡೆಯ, ಶತ್ರು-ಮಿತ್ರ ಗ್ರಹಗಳು, ಉಚ್ಚ-ನೀಚ ಸ್ಥಾನಗಳು ಹಾಗೂ ಫಲಜ್ಯೋತಿಷ್ಯದ ರಹಸ್ಯಗಳನ್ನು ಕಲಿಯಿರಿ."
-                  : "Crystal-clear Vedic learning from ground zero. Master all 12 houses, planetary friendships, exaltation, debilitation, and placement predictions!"}
+                  ? "೫ ವರ್ಷದ ಮಗುವಿಗೂ ಅರ್ಥವಾಗುವ ಸರಳ ಶೈಲಿ! ೧೨ ಮನೆಗಳ ಒಡೆಯ, ಡಾ. ಬಿ.ವಿ. ರಾಮನ್ ವಿಶೇಷ ಸೂತ್ರಗಳು, ಉಚ್ಚ-ನೀಚ ಸ್ಥಾನಗಳು, ಗ್ರಹ ದೃಷ್ಟಿಗಳು ಹಾಗೂ ಫಲಜ್ಯೋತಿಷ್ಯದ ರಹಸ್ಯಗಳನ್ನು ಕಲಿಯಿರಿ."
+                  : "Crystal-clear Vedic learning from zero fundamentals to Dr. B.V. Raman's classical master rules. Master all 12 houses, aspects, friendships, exaltation, and placement predictions!"}
               </p>
             </div>
           </div>
@@ -123,7 +124,7 @@ export const LearnKundliGame: React.FC<LearnKundliProps> = ({ lang = "kn" }) => 
         </div>
       </Card>
 
-      {/* Level / House Jumper Pill Bar */}
+      {/* 12-Level Jump Bar */}
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
         {Array.from({ length: 12 }, (_, i) => i + 1).map((h) => (
           <button
@@ -136,7 +137,7 @@ export const LearnKundliGame: React.FC<LearnKundliProps> = ({ lang = "kn" }) => 
                 : "bg-white border border-amber-200 text-amber-950 hover:bg-amber-50"
             }`}
           >
-            {isKn ? `${h}ನೇ ಮನೆ` : `House ${h}`}
+            {isKn ? `${h}ನೇ ಮನೆ (${HOUSE_LEARNING_MODULES[h]?.naturalRashiKn.split(" ")[0]})` : `House ${h} (${HOUSE_LEARNING_MODULES[h]?.naturalRashiEn.split(" ")[0]})`}
           </button>
         ))}
       </div>
@@ -181,7 +182,7 @@ export const LearnKundliGame: React.FC<LearnKundliProps> = ({ lang = "kn" }) => 
               >
                 <span className="text-2xl select-none">🕉️</span>
                 <span className="text-[10px] font-extrabold text-amber-950 mt-0.5">
-                  {isKn ? houseData.kannadaName : houseData.englishName}
+                  {isKn ? houseData.kannadaName.split("-")[1] : houseData.englishName.split("-")[1]}
                 </span>
                 <span className="text-[9px] text-amber-800 font-semibold">
                   {isKn ? `ಒಡೆಯ: ${houseData.naturalLordKn}` : `Lord: ${houseData.naturalLordEn}`}
@@ -195,14 +196,14 @@ export const LearnKundliGame: React.FC<LearnKundliProps> = ({ lang = "kn" }) => 
           </Card>
         </div>
 
-        {/* Right: Interactive Step-by-Step Learning Portal (7 cols) */}
+        {/* Right: Master 7-Step Step-by-Step Learning Portal (7 cols) */}
         <div className="lg:col-span-7 space-y-4">
           <Card className="border-2 border-amber-400 bg-white p-5 shadow-md space-y-4">
-            {/* Step Navigation Bar */}
+            {/* Step Navigation Header */}
             <div className="flex items-center justify-between border-b border-amber-200 pb-2">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-black text-amber-950 bg-amber-100 px-3 py-1 rounded-full border border-amber-300">
-                  {isKn ? `ಹಂತ ${currentStep} / ೬` : `Step ${currentStep} of 6`}
+                  {isKn ? `ಹಂತ ${currentStep} / ೭` : `Step ${currentStep} of 7`}
                 </span>
                 <button
                   type="button"
@@ -214,19 +215,20 @@ export const LearnKundliGame: React.FC<LearnKundliProps> = ({ lang = "kn" }) => 
                 </button>
               </div>
 
-              {/* Step Title Indicator */}
+              {/* Step Title */}
               <span className="text-xs font-extrabold text-amber-900 uppercase">
-                {currentStep === 1 && (isKn ? "೧. ಮನೆಯ ಹೆಸರು & ಒಡೆಯ" : "1. Identity & Lord")}
+                {currentStep === 1 && (isKn ? "೧. ಮೂಲ ಪರಿಚಯ & ಒಡೆಯ" : "1. Identity & Natural Lord")}
                 {currentStep === 2 && (isKn ? "೨. ಜೀವನ ಕ್ಷೇತ್ರ & ಅಂಗಗಳು" : "2. Life Themes & Anatomy")}
-                {currentStep === 3 && (isKn ? "೩. ಉಚ್ಚ & ನೀಚ ಗ್ರಹಗಳು" : "3. Exaltation & Debilitation")}
+                {currentStep === 3 && (isKn ? "೩. ಉಚ್ಚ, ನೀಚ & ಮೂಲತ್ರಿಕೋಣ" : "3. Exaltation & Dignities")}
                 {currentStep === 4 && (isKn ? "೪. ಶತ್ರು - ಮಿತ್ರ ಗ್ರಹ ಮೈತ್ರಿ" : "4. Planetary Alliances")}
-                {currentStep === 5 && (isKn ? "೫. ಗ್ರಹಗಳ ಫಲಜ್ಯೋತಿಷ್ಯ" : "5. Graha Outcomes Simulator")}
-                {currentStep === 6 && (isKn ? "೬. ಜ್ಞಾನ ಪರೀಕ್ಷೆ (Quiz)" : "6. House Master Quiz")}
+                {currentStep === 5 && (isKn ? "೫. ಡಾ. ಬಿ.ವಿ. ರಾಮನ್ ವಿಶೇಷ ಸೂತ್ರ" : "5. B.V. Raman Master Rules")}
+                {currentStep === 6 && (isKn ? "೬. ೯ ಗ್ರಹಗಳ ಫಲ ಸಿಮ್ಯುಲೇಟರ್" : "6. 9-Graha Phala Simulator")}
+                {currentStep === 7 && (isKn ? "೭. ಹೌಸ್ ಮಾಸ್ಟರ್ ಪರೀಕ್ಷೆ (Quiz)" : "7. House Master Quiz")}
               </span>
             </div>
 
             {/* ========================================================== */}
-            {/* STEP 1: IDENTITY & NATURAL LORD                           */}
+            {/* STEP 1: IDENTITY & FOUNDATIONAL BASICS                     */}
             {/* ========================================================== */}
             {currentStep === 1 && (
               <div className="space-y-4 animate-fade-in text-xs">
@@ -259,6 +261,16 @@ export const LearnKundliGame: React.FC<LearnKundliProps> = ({ lang = "kn" }) => 
                     <strong className="text-amber-950 block">🔥 {isKn ? "ಮಹಾಭೂತ ತತ್ತ್ವ (Element):" : "Elemental Quality:"}</strong>
                     <span className="text-amber-900 font-bold">{isKn ? houseData.elementKn : houseData.elementEn}</span>
                   </div>
+
+                  <div className="p-3 rounded-xl bg-white border border-amber-200 shadow-2xs space-y-1">
+                    <strong className="text-amber-950 block">🪐 {isKn ? "ನೈಸರ್ಗಿಕ ಕಾರಕ ಗ್ರಹ (Signifier):" : "Natural Karaka:"}</strong>
+                    <span className="text-amber-900 font-bold">{isKn ? houseData.karakaPlanetKn : houseData.karakaPlanetEn}</span>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-white border border-amber-200 shadow-2xs space-y-1">
+                    <strong className="text-amber-950 block">🔄 {isKn ? "ಭಾವತ್ ಭಾವಂ ಮೂಲ (Bhavat Bhavam):" : "Bhavat Bhavam Link:"}</strong>
+                    <span className="text-amber-900 font-bold">{isKn ? houseData.bhavatBhavamDescKn : houseData.bhavatBhavamDescEn}</span>
+                  </div>
                 </div>
               </div>
             )}
@@ -270,7 +282,7 @@ export const LearnKundliGame: React.FC<LearnKundliProps> = ({ lang = "kn" }) => 
               <div className="space-y-4 animate-fade-in text-xs">
                 <div className="bg-amber-50 p-4 rounded-2xl border border-amber-200 space-y-2">
                   <h4 className="font-serif text-sm font-bold text-amber-950">
-                    🎯 {isKn ? "ಈ ಮನೆಯಿಂದ ತಿಳಿಯುವ ಪ್ರಮುಖ ವಿಷಯಗಳು (Life Domains):" : "Key Life Themes Represented:"}
+                    🎯 {isKn ? "ಈ ಮನೆಯಿಂದ ತಿಳಿಯುವ ಪ್ರಮುಖ ವಿಷಯಗಳು (Core Life Domains):" : "Key Life Themes Represented:"}
                   </h4>
                   <div className="flex flex-wrap gap-2 pt-1">
                     {(isKn ? houseData.lifeThemesKn : houseData.lifeThemesEn).map((theme, i) => (
@@ -283,7 +295,7 @@ export const LearnKundliGame: React.FC<LearnKundliProps> = ({ lang = "kn" }) => 
 
                 <div className="p-4 rounded-2xl bg-white border border-amber-200 shadow-2xs space-y-1">
                   <strong className="text-amber-950 block font-serif text-sm">
-                    🧬 {isKn ? "ಶರೀರದ ಅಂಗಗಳು (Governed Body Parts):" : "Anatomical Organs Governed:"}
+                    🧬 {isKn ? "ಶರೀರದ ಅಂಗಗಳು (Governed Anatomical Organs):" : "Governed Anatomical Organs:"}
                   </strong>
                   <p className="text-amber-900 font-medium leading-relaxed">
                     {isKn ? houseData.bodyPartsKn : houseData.bodyPartsEn}
@@ -293,7 +305,7 @@ export const LearnKundliGame: React.FC<LearnKundliProps> = ({ lang = "kn" }) => 
             )}
 
             {/* ========================================================== */}
-            {/* STEP 3: EXALTATION & DEBILITATION                          */}
+            {/* STEP 3: EXALTATION, DEBILITATION & MOOLATRIKONA            */}
             {/* ========================================================== */}
             {currentStep === 3 && (
               <div className="space-y-4 animate-fade-in text-xs">
@@ -312,7 +324,7 @@ export const LearnKundliGame: React.FC<LearnKundliProps> = ({ lang = "kn" }) => 
                     {isKn ? houseData.dignity.exaltedPlanetKn : houseData.dignity.exaltedPlanetEn}
                   </div>
                   <p className="text-emerald-950 font-medium leading-relaxed">
-                    <strong>{isKn ? "ಏಕೆ ಉಚ್ಚವಾಗುತ್ತದೆ?:" : "Why Exalted?:"}</strong>{" "}
+                    <strong>{isKn ? "ಶಾಸ್ತ್ರೀಯ ಕಾರಣ (Classical Reason):" : "Classical Rationale:"}</strong>{" "}
                     {isKn ? houseData.dignity.exaltationReasonKn : houseData.dignity.exaltationReasonEn}
                   </p>
                 </div>
@@ -332,8 +344,16 @@ export const LearnKundliGame: React.FC<LearnKundliProps> = ({ lang = "kn" }) => 
                     {isKn ? houseData.dignity.debilitatedPlanetKn : houseData.dignity.debilitatedPlanetEn}
                   </div>
                   <p className="text-rose-950 font-medium leading-relaxed">
-                    <strong>{isKn ? "ಏಕೆ ನೀಚವಾಗುತ್ತದೆ?:" : "Why Debilitated?:"}</strong>{" "}
+                    <strong>{isKn ? "ಶಾಸ್ತ್ರೀಯ ಕಾರಣ (Classical Reason):" : "Classical Rationale:"}</strong>{" "}
                     {isKn ? houseData.dignity.debilitationReasonKn : houseData.dignity.debilitationReasonEn}
+                  </p>
+                </div>
+
+                {/* Moolatrikona Card */}
+                <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-300 space-y-1">
+                  <strong className="text-amber-950 block">👑 {isKn ? "ಮೂಲತ್ರಿಕೋಣ ಕ್ಷೇತ್ರ:" : "Moolatrikona Dignity:"}</strong>
+                  <p className="text-amber-900 font-bold">
+                    {isKn ? houseData.dignity.moolatrikonaKn : houseData.dignity.moolatrikonaEn}
                   </p>
                 </div>
               </div>
@@ -346,14 +366,14 @@ export const LearnKundliGame: React.FC<LearnKundliProps> = ({ lang = "kn" }) => 
               <div className="space-y-4 animate-fade-in text-xs">
                 <div className="p-4 rounded-2xl bg-white border border-amber-200 shadow-2xs space-y-3">
                   <h4 className="font-serif text-sm font-bold text-amber-950">
-                    🤝 {isKn ? "ಈ ಮನೆಯ ಗ್ರಹ ಸಂಬಂಧಗಳು & ಮೈತ್ರಿ (Planetary Relationships):" : "Planetary Alliances in this House:"}
+                    🤝 {isKn ? "ಈ ಮನೆಯ ನೈಸರ್ಗಿಕ ಗ್ರಹ ಮೈತ್ರಿ (Planetary Relationships):" : "Planetary Alliances in this House:"}
                   </h4>
 
                   <div className="space-y-2">
                     {/* Friends */}
                     <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200">
                       <strong className="text-emerald-950 block mb-1">
-                        🌟 {isKn ? "ಮಿತ್ರ ಗ್ರಹಗಳು (Best Friends - High Joy & Support):" : "Friendly Grahas (Boon & Support):"}
+                        🌟 {isKn ? "ಮಿತ್ರ ಗ್ರಹಗಳು (Friendly Grahas - Boon & Support):" : "Friendly Grahas (Boon & Support):"}
                       </strong>
                       <div className="flex flex-wrap gap-1.5">
                         {(isKn ? houseData.friendshipsKn.friends : houseData.friendshipsEn.friends).map((f, i) => (
@@ -397,13 +417,79 @@ export const LearnKundliGame: React.FC<LearnKundliProps> = ({ lang = "kn" }) => 
             )}
 
             {/* ========================================================== */}
-            {/* STEP 5: INTERACTIVE GRAHA SIMULATOR                       */}
+            {/* STEP 5: DR. B.V. RAMAN MASTER RULES & ASPECTS             */}
             {/* ========================================================== */}
             {currentStep === 5 && (
               <div className="space-y-4 animate-fade-in text-xs">
+                {houseData.specialRules.map((rule, idx) => (
+                  <div key={idx} className="p-4 rounded-2xl bg-amber-50/70 border-2 border-amber-300 shadow-sm space-y-2">
+                    <div className="flex items-center justify-between border-b border-amber-200 pb-1.5">
+                      <h4 className="font-serif text-sm font-extrabold text-amber-950">
+                        {isKn ? rule.ruleTitleKn : rule.ruleTitleEn}
+                      </h4>
+                      <span className="text-[10px] bg-amber-200 text-amber-900 font-bold px-2 py-0.5 rounded-md">
+                        {rule.classicalSource}
+                      </span>
+                    </div>
+
+                    <p className="text-amber-900 font-medium leading-relaxed">
+                      {isKn ? rule.explanationKn : rule.explanationEn}
+                    </p>
+
+                    <div className="p-2.5 rounded-xl bg-white border border-amber-300 text-amber-950 space-y-1">
+                      <strong className="text-amber-900 block font-bold">
+                        📜 {isKn ? "ಡಾ. ಬಿ.ವಿ. ರಾಮನ್ ಅವರ ಸೂಕ್ಷ್ಮ ಒಳನೋಟ:" : "Dr. B.V. Raman's Astrological Insight:"}
+                      </strong>
+                      <p className="italic">{isKn ? rule.bvRamanInsightKn : rule.bvRamanInsightEn}</p>
+                    </div>
+
+                    <div className="p-2 rounded-xl bg-amber-100/60 text-amber-900 text-[11px]">
+                      <strong>💡 {isKn ? "ಪ್ರಾಯೋಗಿಕ ಉದಾಹರಣೆ:" : "Practical Case Example:"}</strong>{" "}
+                      {isKn ? rule.practicalExampleKn : rule.practicalExampleEn}
+                    </div>
+                  </div>
+                ))}
+
+                {/* Aspect / Drishti Rules */}
+                {houseData.drishtiRules && houseData.drishtiRules.length > 0 && (
+                  <div className="p-4 rounded-2xl bg-white border border-amber-300 shadow-2xs space-y-2">
+                    <h4 className="font-serif text-sm font-bold text-amber-950">
+                      👁️ {isKn ? "ಈ ಮನೆಯಿಂದ ಬೀಳುವ ಗ್ರಹ ದೃಷ್ಟಿಗಳು (Planetary Aspects):" : "Planetary Aspects from this House:"}
+                    </h4>
+                    <div className="space-y-2">
+                      {houseData.drishtiRules.map((dr, i) => (
+                        <div key={i} className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-amber-950">
+                              {dr.symbol} {isKn ? dr.planetKn : dr.planetEn}
+                            </span>
+                            <div className="flex gap-1">
+                              {(isKn ? dr.aspectsKn : dr.aspectsEn).map((a, j) => (
+                                <span key={j} className="px-2 py-0.5 rounded-md bg-white border border-amber-300 text-[10px] font-extrabold text-amber-900">
+                                  {a}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                          <p className="text-amber-900 text-[11px] leading-relaxed">
+                            {isKn ? dr.drishtiQualityKn : dr.drishtiQualityEn}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ========================================================== */}
+            {/* STEP 6: INTERACTIVE 9-GRAHA OUTCOMES SIMULATOR            */}
+            {/* ========================================================== */}
+            {currentStep === 6 && (
+              <div className="space-y-4 animate-fade-in text-xs">
                 <div className="bg-amber-50 p-4 rounded-2xl border border-amber-200 space-y-3">
                   <h4 className="font-serif text-sm font-bold text-amber-950 flex items-center justify-between">
-                    <span>🎮 {isKn ? "ಕುಂಡಲಿ ಸಿಮ್ಯುಲೇಟರ್: ಗ್ರಹವನ್ನು ಆಯ್ಕೆಮಾಡಿ ಫಲ ತಿಳಿಯಿರಿ!" : "Kundli Simulator: Select a Planet to see Phala!"}</span>
+                    <span>🎮 {isKn ? "ಕುಂಡಲಿ ಸಿಮ್ಯುಲೇಟರ್: ಗ್ರಹವನ್ನು ಆರಿಸಿ ಫಲ ತಿಳಿಯಿರಿ!" : "Kundli Simulator: Select a Planet to see Phala!"}</span>
                   </h4>
 
                   {/* Planet Picker Bar */}
@@ -431,7 +517,7 @@ export const LearnKundliGame: React.FC<LearnKundliProps> = ({ lang = "kn" }) => 
 
                 {/* Selected Planet Outcome Card */}
                 {(() => {
-                  const activeEffect = houseData.grahaEffects.find((g) => g.planetEn === selectedSimGraha) || houseData.grahaEffects[0];
+                  const activeEffect = houseData.grahaEffects.find((g) => g.planetEn.toLowerCase().includes(selectedSimGraha.toLowerCase())) || houseData.grahaEffects[0];
                   if (!activeEffect) return null;
 
                   return (
@@ -470,6 +556,12 @@ export const LearnKundliGame: React.FC<LearnKundliProps> = ({ lang = "kn" }) => 
                           </ul>
                         </div>
                       </div>
+
+                      {activeEffect.bvRamanVerdictKn && (
+                        <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-950 text-[11px] italic font-medium">
+                          {isKn ? activeEffect.bvRamanVerdictKn : activeEffect.bvRamanVerdictEn}
+                        </div>
+                      )}
                     </div>
                   );
                 })()}
@@ -477,9 +569,9 @@ export const LearnKundliGame: React.FC<LearnKundliProps> = ({ lang = "kn" }) => 
             )}
 
             {/* ========================================================== */}
-            {/* STEP 6: HOUSE MASTER MINI-QUIZ                             */}
+            {/* STEP 7: HOUSE MASTER CERTIFICATION MINI-QUIZ               */}
             {/* ========================================================== */}
-            {currentStep === 6 && (
+            {currentStep === 7 && (
               <div className="space-y-4 animate-fade-in text-xs">
                 <div className="bg-amber-50 p-4 rounded-2xl border border-amber-200 space-y-2">
                   <div className="flex items-center justify-between">
@@ -585,7 +677,7 @@ export const LearnKundliGame: React.FC<LearnKundliProps> = ({ lang = "kn" }) => 
               </button>
 
               <div className="flex gap-1">
-                {Array.from({ length: 6 }, (_, i) => i + 1).map((s) => (
+                {Array.from({ length: 7 }, (_, i) => i + 1).map((s) => (
                   <button
                     key={s}
                     type="button"
@@ -603,10 +695,10 @@ export const LearnKundliGame: React.FC<LearnKundliProps> = ({ lang = "kn" }) => 
 
               <button
                 type="button"
-                disabled={currentStep === 6}
+                disabled={currentStep === 7}
                 onClick={handleNextStep}
                 className={`px-4 py-2 rounded-xl font-bold text-xs transition flex items-center gap-1.5 ${
-                  currentStep === 6
+                  currentStep === 7
                     ? "bg-slate-100 text-slate-400 cursor-not-allowed"
                     : "bg-amber-800 text-amber-50 hover:bg-amber-900 shadow-sm"
                 }`}
