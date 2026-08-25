@@ -70,6 +70,54 @@ export default function PalmReadingPage(): JSX.Element {
   const [sideImageDataUrl, setSideImageDataUrl] = useState<string | null>(null);
   const [backImageDataUrl, setBackImageDataUrl] = useState<string | null>(null);
   const [followUpInput, setFollowUpInput] = useState<string>("");
+  const [isListening, setIsListening] = useState<boolean>(false);
+
+  // Speech Recognition (Voice Input Mic for Follow-up Prashna)
+  const handleVoiceInput = () => {
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      alert(
+        selectedLang === "kn"
+          ? "ನಿಮ್ಮ ಬ್ರೌಸರ್ ಧ್ವನಿ ಇನ್‌ಪುಟ್ (Voice Input) ಅನ್ನು ಬೆಂಬಲಿಸುವುದಿಲ್ಲ. ದಯವಿಟ್ಟು ಬರೆದು ಟೈಪ್ ಮಾಡಿ."
+          : "Voice input is not supported in this browser. Please type your question."
+      );
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.lang =
+        selectedLang === "kn"
+          ? "kn-IN"
+          : selectedLang === "hi"
+          ? "hi-IN"
+          : selectedLang === "te"
+          ? "te-IN"
+          : selectedLang === "ta"
+          ? "ta-IN"
+          : "en-US";
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      recognition.onstart = () => setIsListening(true);
+      recognition.onend = () => setIsListening(false);
+      recognition.onerror = () => setIsListening(false);
+
+      recognition.onresult = (event: any) => {
+        const transcript = event.results?.[0]?.[0]?.transcript;
+        if (transcript) {
+          setFollowUpInput((prev) => (prev ? `${prev} ${transcript}` : transcript));
+        }
+      };
+
+      recognition.start();
+    } catch (err) {
+      console.error("Speech recognition error:", err);
+      setIsListening(false);
+    }
+  };
 
   // Validation State for 3 Photo Slots
   const [slotStatus, setSlotStatus] = useState<Record<ValidationSlot, SlotStatus>>({
@@ -1295,14 +1343,26 @@ export default function PalmReadingPage(): JSX.Element {
               </div>
 
               {/* Follow-up Question Input Bar */}
-              <form onSubmit={handleSendFollowUp} className="flex gap-2 pt-2 border-t border-amber-200">
+              <form onSubmit={handleSendFollowUp} className="flex items-center gap-2 pt-2 border-t border-amber-200">
                 <input
                   type="text"
                   value={followUpInput}
                   onChange={(e) => setFollowUpInput(e.target.value)}
-                  placeholder={isKn ? "ಹಸ್ತ ರೇಖೆಯ ಬಗ್ಗೆ ಇನ್ನಷ್ಟು ವಿವರಣೆ ಕೇಳಿ..." : "Ask follow-up clarification on this palm reading..."}
+                  placeholder={isKn ? "ಹಸ್ತ ರೇಖೆಯ ಬಗ್ಗೆ ಇನ್ನಷ್ಟು ವಿವರಣೆ ಕೇಳಿ (ಅಥವಾ ಮೈಕ್ ಬಳಸಿ)..." : "Ask follow-up clarification on this palm reading..."}
                   className="flex-1 rounded-xl border border-amber-300 bg-white px-3.5 py-2.5 text-xs font-semibold text-amber-950 shadow-sm focus:border-amber-600 focus:outline-none"
                 />
+                <button
+                  type="button"
+                  onClick={handleVoiceInput}
+                  title={isKn ? "ಧ್ವನಿ ಮೂಲಕ ಪ್ರಶ್ನೆ ಕೇಳಿ (Voice Input)" : "Ask by voice"}
+                  className={`p-2.5 rounded-xl border transition shadow-sm flex items-center justify-center ${
+                    isListening
+                      ? "bg-red-500 border-red-600 text-white animate-pulse"
+                      : "bg-amber-100/80 border-amber-300 text-amber-900 hover:bg-amber-200"
+                  }`}
+                >
+                  <span className="text-sm">🎙️</span>
+                </button>
                 <button
                   type="submit"
                   disabled={isProcessing || !followUpInput.trim()}
