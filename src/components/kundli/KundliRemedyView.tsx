@@ -210,7 +210,7 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
               <div className="flex items-center justify-between">
                 <span className="text-xl">{st.icon}</span>
                 <span className="text-[10px] font-extrabold bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full">
-                  {st.duration}
+                  {typeof st.duration === "object" ? st.duration[selectedLang] || st.duration.kn : st.duration}
                 </span>
               </div>
               <h4 className="text-xs font-extrabold text-amber-950">
@@ -234,7 +234,9 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
               <span>{isKn ? "ಆಪತ್ಕಾಲೀನ ಶಾಂತಿ ಬೀಜ ಮಂತ್ರ (ಕೋಪ ಬಂದಾಗ ೧೧ ಬಾರಿ ಮನಸ್ಸಿನಲ್ಲೇ ಜಪಿಸಿ)" : "Emergency Mind Pacification Mantra (Chant 11 times silently)"}</span>
             </span>
             <span className="rounded-full bg-amber-500/20 border border-amber-400 px-2.5 py-0.5 text-[10px] font-bold text-amber-200">
-              {instantCalmingProtocol.emergencyBeejaMantra.japaCount}
+              {typeof instantCalmingProtocol.emergencyBeejaMantra.japaCount === "object"
+                ? instantCalmingProtocol.emergencyBeejaMantra.japaCount[selectedLang] || instantCalmingProtocol.emergencyBeejaMantra.japaCount.kn
+                : instantCalmingProtocol.emergencyBeejaMantra.japaCount}
             </span>
           </div>
 
@@ -266,7 +268,9 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
                   : "bg-amber-100 text-amber-900 border border-amber-300"
               }`}
             >
-              {primaryStruggle.intensity} Priority
+              {primaryStruggle.intensityLabel
+                ? primaryStruggle.intensityLabel[selectedLang] || primaryStruggle.intensityLabel.kn
+                : primaryStruggle.intensity}
             </span>
           </div>
 
@@ -420,7 +424,9 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
                 </div>
               </div>
               <span className="rounded-full bg-amber-800 text-amber-50 px-3 py-1 text-xs font-bold">
-                {currentStotra.recitationCount}
+                {typeof currentStotra.recitationCount === "object"
+                  ? currentStotra.recitationCount[selectedLang] || currentStotra.recitationCount.kn
+                  : currentStotra.recitationCount}
               </span>
             </div>
 
@@ -541,7 +547,9 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
               <span>{isKn ? "ರುದ್ರಾಕ್ಷಿ & ರತ್ನ ಧಾರಣೆ:" : "Rudraksha & Gemstone:"}</span>
             </div>
             <div className="font-bold text-amber-950 text-[11px]">
-              • ರುದ್ರಾಕ್ಷಿ: {gokarnaTempleRemedies.rudrakshaRecommendation.mukhi}
+              • ರುದ್ರಾಕ್ಷಿ: {typeof gokarnaTempleRemedies.rudrakshaRecommendation.mukhi === "object"
+                ? gokarnaTempleRemedies.rudrakshaRecommendation.mukhi[selectedLang] || gokarnaTempleRemedies.rudrakshaRecommendation.mukhi.kn
+                : gokarnaTempleRemedies.rudrakshaRecommendation.mukhi}
             </div>
             <div className="font-bold text-amber-950 text-[11px]">
               • ರತ್ನ: {gokarnaTempleRemedies.gemstoneRecommendation.stone[selectedLang] || gokarnaTempleRemedies.gemstoneRecommendation.stone.kn}

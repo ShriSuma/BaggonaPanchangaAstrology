@@ -80,7 +80,7 @@ describe("Kundli Remedy Engine", () => {
   it("should contain authentic Gokarna Mahabaleshwara temple prescriptions and Priest Shreeram Pandit blessings", () => {
     const report = generateKundliRemedyReport(mockKundliMarsAfflicted, mockInput);
 
-    expect(report.gokarnaTempleRemedies.prescribedSeva.temple).toContain("Gokarna");
+    expect(report.gokarnaTempleRemedies.prescribedSeva.temple.en).toContain("Gokarna");
     expect(report.gokarnaTempleRemedies.rudrakshaRecommendation.mukhi).toBeDefined();
     expect(report.chiefPriestBlessing.priestName.kn).toContain("ಶ್ರೀರಾಮ್ ಪಂಡಿತ್");
     expect(report.chiefPriestBlessing.phone).toBe("+91 99723 39362");

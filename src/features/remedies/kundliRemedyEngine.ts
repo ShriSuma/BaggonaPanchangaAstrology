@@ -19,6 +19,7 @@ export interface KundliRemedyDiagnosis {
     title: Record<string, string>;
     description: Record<string, string>;
     intensity: "High" | "Moderate" | "Balanced";
+    intensityLabel: Record<string, string>;
   };
   afflictionFactors: Array<{
     graha: PlanetName;
@@ -41,7 +42,7 @@ export interface KundliRemedyDiagnosis {
       name: Record<string, string>;
       action: Record<string, string>;
       detail: Record<string, string>;
-      duration: string;
+      duration: Record<string, string>;
       icon: string;
     }>;
     emergencyBeejaMantra: {
@@ -52,7 +53,7 @@ export interface KundliRemedyDiagnosis {
       hindi: string;
       transliteration: string;
       meaning: Record<string, string>;
-      japaCount: string;
+      japaCount: Record<string, string>;
     };
   };
   dailyPacificationRoutine: {
@@ -74,7 +75,7 @@ export interface KundliRemedyDiagnosis {
     spiritualBenefits: Record<string, string>;
     bestTimeToRecite: Record<string, string>;
     facingDirection: Record<string, string>;
-    recitationCount: string;
+    recitationCount: Record<string, string>;
   }>;
   dashaBhuktiAnalysis: {
     currentMahaDasha: PlanetName;
@@ -99,12 +100,12 @@ export interface KundliRemedyDiagnosis {
   gokarnaTempleRemedies: {
     prescribedSeva: {
       name: Record<string, string>;
-      temple: string;
+      temple: Record<string, string>;
       significance: Record<string, string>;
       idealDay: Record<string, string>;
     };
     rudrakshaRecommendation: {
-      mukhi: string;
+      mukhi: Record<string, string>;
       deity: Record<string, string>;
       benefits: Record<string, string>;
     };
@@ -138,7 +139,7 @@ export const GRAHA_NAMES_LOCALE: Record<PlanetName, Record<string, string>> = {
   [PlanetName.Mercury]: { kn: "ಬುಧ", en: "Mercury (Budha)", hi: "बुध", te: "బుధుడు", ta: "புதன்" },
   [PlanetName.Jupiter]: { kn: "ಗುರು (ಬೃಹಸ್ಪತಿ)", en: "Jupiter (Guru)", hi: "बृहस्पति (गुरु)", te: "గురుడు (బృహస్పతి)", ta: "குரு (வியாழன்)" },
   [PlanetName.Venus]: { kn: "ಶುಕ್ರ", en: "Venus (Shukra)", hi: "शुक्र", te: "శుక్రుడు", ta: "சுக்கிரன்" },
-  [PlanetName.Saturn]: { kn: "ಶನಿ", en: "Saturn (Shani)", hi: "शनि", te: "శని", ta: "சனி பகவான்" },
+  [PlanetName.Saturn]: { kn: "ಶನಿ ಮಹಾರಾಜ", en: "Saturn (Shani)", hi: "शनि देव", te: "శని దేవుడు", ta: "சனி பகவான்" },
   [PlanetName.Rahu]: { kn: "ರಾಹು", en: "Rahu", hi: "राहु", te: "రాహువు", ta: "ராகு" },
   [PlanetName.Ketu]: { kn: "ಕೇತು", en: "Ketu", hi: "केतु", te: "కేతువు", ta: "கேது" }
 };
@@ -183,8 +184,7 @@ export function generateKundliRemedyReport(
   const moonRashiName = moon?.rashi.english || "Aries";
   const moonNakName = moon?.nakshatra.english || "Ashwini";
 
-  // 1. Evaluate Anger / Pitta / Mars Affliction (User's specific core question)
-  // Mars in Kendra (1, 4, 7, 10), 2nd, 8th, or 12th, or conjunct Sun/Rahu/Saturn, or fiery signs
+  // 1. Evaluate Anger / Pitta / Mars Affliction
   const marsHouse = mars?.house || 1;
   const isMarsAfflicted = [1, 2, 4, 7, 8, 12].includes(marsHouse) || 
     planets.some(p => (p.name === PlanetName.Sun || p.name === PlanetName.Rahu || p.name === PlanetName.Saturn) && p.house === marsHouse) ||
@@ -225,10 +225,18 @@ export function generateKundliRemedyReport(
   let primaryStruggleTitle: Record<string, string>;
   let primaryStruggleDesc: Record<string, string>;
   let intensity: "High" | "Moderate" | "Balanced" = "Moderate";
+  let intensityLabel: Record<string, string>;
 
   if (krodhaLevel >= 70) {
     struggleCategory = "anger_temper";
     intensity = "High";
+    intensityLabel = {
+      kn: "ಅತ್ಯಂತ ಮುಖ್ಯ (ತೀವ್ರ ಆದ್ಯತೆ)",
+      en: "High Priority Action",
+      hi: "उच्च प्राथमिकता",
+      te: "అత్యధిక ప్రాధాన్యత",
+      ta: "முக்கிய தீர்வு"
+    };
     primaryStruggleTitle = {
       kn: "ತೀವ್ರ ಪಿತ್ತ ಪ್ರಕೋಪ, ಆವೇಶ & ಕೋಪ ನಿಯಂತ್ರಣ ಸವಾಲು",
       en: "Pitta Aggravation, Impatience & Anger Spikes",
@@ -246,6 +254,13 @@ export function generateKundliRemedyReport(
   } else if (manasStability <= 55) {
     struggleCategory = "mental_anxiety";
     intensity = "High";
+    intensityLabel = {
+      kn: "ಅತ್ಯಂತ ಮುಖ್ಯ (ತೀವ್ರ ಆದ್ಯತೆ)",
+      en: "High Priority Action",
+      hi: "उच्च प्राथमिकता",
+      te: "అత్యధిక ప్రాధాన్యత",
+      ta: "முக்கிய தீர்வு"
+    };
     primaryStruggleTitle = {
       kn: "ಚಿತ್ತಚಾಂಚಲ್ಯ, ಅತಿ ಯೋಚನೆ & ಮಾನಸಿಕ ಆತಂಕ",
       en: "Mental Overthinking, Mood Turbulence & Anxiety",
@@ -263,6 +278,13 @@ export function generateKundliRemedyReport(
   } else if (isSaturnAfflicted) {
     struggleCategory = "career_obstacles";
     intensity = "Moderate";
+    intensityLabel = {
+      kn: "ಮಧ್ಯಮ ಆದ್ಯತೆ",
+      en: "Moderate Priority",
+      hi: "मध्यम प्राथमिकता",
+      te: "మధ్యస్థ ప్రాధాన్యత",
+      ta: "மிதமான தீர்வு"
+    };
     primaryStruggleTitle = {
       kn: "ಕಾರ್ಯ ವಿಳಂಬ, ಪರಿಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಫಲ ಸಿಗದಿರುವಿಕೆ & ಶನಿ ಬಾಧೆ",
       en: "Career Friction, Unwarranted Delays & Saturn Burden",
@@ -280,6 +302,13 @@ export function generateKundliRemedyReport(
   } else {
     struggleCategory = "general_alignment";
     intensity = "Balanced";
+    intensityLabel = {
+      kn: "ಸಾಮಾನ್ಯ ಸಮನ್ವಯ",
+      en: "General Balance",
+      hi: "सामान्य सामंजस्य",
+      te: "సాధారణ సమతుల్యత",
+      ta: "பொதுவான சமநிலை"
+    };
     primaryStruggleTitle = {
       kn: "ಸಾಮಾನ್ಯ ಗ್ರಹ ಸಮನ್ವಯ & ಆತ್ಮಶಕ್ತಿ ವರ್ಧನೆ",
       en: "General Planetary Harmonic Balance & Inner Vitality",
@@ -339,10 +368,10 @@ export function generateKundliRemedyReport(
     });
   }
 
-  // 2. Instant Anger & Stress Calming Protocol (Crucial user requirement)
+  // 2. Instant Anger & Stress Calming Protocol
   const instantCalmingProtocol = {
     title: {
-      kn: "⚡ ತಕ್ಷಣ ಕೋಪ & ಆವೇಶ ಶಮನಗೊಳಿಸುವ ೪-ಹಂತದ ತತ್ತ್ವ (Instant Calming Protocol)",
+      kn: "⚡ ತಕ್ಷಣ ಕೋಪ & ಆವೇಶ ಶಮನಗೊಳಿಸುವ ೪-ಹಂತದ ತತ್ತ್ವ",
       en: "⚡ 4-Step Instant Anger & Temper Pacification Protocol",
       hi: "⚡ तत्काल क्रोध एवं उत्तेजना शमन हेतु ४-चरणीय विधि",
       te: "⚡ తక్షణ కోపం & ఆవేశ నివారణ 4-దశల విధానం",
@@ -359,34 +388,34 @@ export function generateKundliRemedyReport(
       {
         stepNumber: 1,
         icon: "💧",
-        name: { kn: "೧. ಜಲ ತತ್ತ್ವ ಉಪಶಮನ (Cool Water Therapy)", en: "1. Cool Water Ingestion & Face Splash", hi: "१. शीतल जल सेवन एवं स्पर्श", te: "1. చల్లని నీటి సేవనం", ta: "1. குளிர்ந்த நீர் அருந்துதல்" },
+        name: { kn: "೧. ಜಲ ತತ್ತ್ವ ಉಪಶಮನ", en: "1. Cool Water Ingestion & Face Splash", hi: "१. शीतल जल सेवन एवं स्पर्श", te: "1. చల్లని నీటి సేవనం", ta: "1. குளிர்ந்த நீர் அருந்துதல்" },
         action: { kn: "ಬೆಳ್ಳಿ ಅಥವಾ ತಾಮ್ರದ ಪಾತ್ರೆಯ ಶುದ್ಧ ತಂಪಾದ ನೀರನ್ನು ಕುಡಿಯಿರಿ.", en: "Drink 1 glass of cool water from a silver or copper cup.", hi: "तांबे या चांदी के पात्र से एक गिलास शीतल जल पिएं।", te: "వెండి లేదా రాగి పాత్రలోని చల్లని నీరు త్రాగండి.", ta: "வெள்ளி அல்லது செம்பு பாத்திரத்தில் நீர் அருந்தவும்." },
         detail: { kn: "ಮುಖ, ಕಣ್ಣುಗಳು ಹಾಗೂ ಕುತ್ತಿಗೆಯ ಹಿಂಭಾಗಕ್ಕೆ ತಣ್ಣೀರು ಚಿಮುಕಿಸಿ. ಇದು ದೇಹದೊಳಗಿನ ಪಿತ್ತ-ಅಗ್ನಿಯನ್ನು ಕ್ಷಣಾರ್ಧದಲ್ಲಿ ಶಮನಗೊಳಿಸುತ್ತದೆ.", en: "Splash water on eyes, forehead, and nape of neck. This immediately drops sympathetic Pitta surges and cools the brain stem.", hi: "आंखों और गर्दन के पीछे शीतल जल छिड़कें। यह आंतरिक पित्त को तुरंत शांत करता है।", te: "కళ్ళు, ముఖంపై చల్లని నీరు చల్లుకోండి. ఇది పిత్తాన్ని తగ్గిస్తుంది.", ta: "முகம் மற்றும் கண்களில் குளிர்ந்த நீர் தெளிக்கவும்." },
-        duration: "30 Seconds"
+        duration: { kn: "೩೦ ಸೆಕೆಂಡುಗಳು", en: "30 Seconds", hi: "३० सेकंड", te: "30 సెకన్లు", ta: "30 வினாடிகள்" }
       },
       {
         stepNumber: 2,
         icon: "🌬️",
-        name: { kn: "೨. ಚಂದ್ರ ಭೇದನ ಪ್ರಾಣಾಯಾಮ (Lunar Channel Breathing)", en: "2. Chandra Bhedana Left-Nostril Breath", hi: "२. चन्द्र भेदन प्राणायाम", te: "2. చంద్ర భేదన ప్రాణాయామం", ta: "2. சந்திர பேதன பிராணாயாமம்" },
-        action: { kn: "ಬಲ ಮೂಗಿನ ಹೊಳ್ಳೆಯನ್ನು ಮುಚ್ಚಿ, ಎಡ ಮೂಗಿನಿಂದ ಮಾತ್ರ ಉಸಿರೆಳೆದುಕೊಳ್ಳಿ.", en: "Close right nostril with right thumb; inhale deeply through left nostril for 4s, exhale right for 6s.", hi: "दाहिने नथुने को बंद कर केवल बाएं नथुने (इड़ा नाड़ी) से श्वास लें।", te: "ఎడమ నాసిక ద్వారా మాత్రమే శ్వాస తీసుకోండి.", ta: "இடது நாசி வழியாக மட்டும் மூச்சை இழுத்து விடவும்." },
+        name: { kn: "೨. ಚಂದ್ರ ಭೇದನ ಪ್ರಾಣಾಯಾಮ", en: "2. Chandra Bhedana Left-Nostril Breath", hi: "२. चन्द्र भेदन प्राणायाम", te: "2. చంద్ర భేదన ప్రాణాయామం", ta: "2. சந்திர பேதன பிராணாயாமம்" },
+        action: { kn: "ಬಲ ಮೂಗಿನ ಹೊಳ್ಳೆಯನ್ನು ಮುಚ್ಚಿ, ಎಡ ಮೂಗಿನಿಂದ ಮಾತ್ರ ದೀರ್ಘವಾಗಿ ಉಸಿರೆಳೆದುಕೊಳ್ಳಿ.", en: "Close right nostril with right thumb; inhale deeply through left nostril for 4s, exhale right for 6s.", hi: "दाहिने नथुने को बंद कर केवल बाएं नथुने (इड़ा नाड़ी) से श्वास लें।", te: "ఎడమ నాసిక ద్వారా మాత్రమే శ్వాస తీసుకోండి.", ta: "இடது நாசி வழியாக மட்டும் மூச்சை இழுத்து விடவும்." },
         detail: { kn: "೫ ರಿಂದ ೭ ಬಾರಿ ಎಡ ಹೊಳ್ಳೆಯಿಂದ ಉಸಿರಾಡಿ. ಇದು ಇಡಾ ನಾಡಿಯನ್ನು ಜಾಗೃತಗೊಳಿಸಿ ಹೃದಯ ಬಡಿತವನ್ನು ತಕ್ಷಣ ಶಾಂತಗೊಳಿಸುತ್ತದೆ.", en: "Repeat 5 to 7 cycles. Activates the parasympathetic lunar channel (Ida Nadi) to decelerate heart rate instantly.", hi: "५ से ७ बार यह प्राणायाम करें। यह मन को तुरंत शांत करता है।", te: "5-7 సార్లు చేయండి. ఇది మనస్సును ప్రశాంతపరుస్తుంది.", ta: "5-7 முறை செய்யவும். இது நாடி துடிப்பை சீராக்கும்." },
-        duration: "1 Minute"
+        duration: { kn: "೧ ನಿಮಿಷ", en: "1 Minute", hi: "१ मिनट", te: "1 నిమిషం", ta: "1 நிமிடம்" }
       },
       {
         stepNumber: 3,
         icon: "🤫",
-        name: { kn: "೩. ೩-ನಿಮಿಷಗಳ ಕಡ್ಡಾಯ ಮೌನ (Strict 3-Minute Mouna)", en: "3. Sacred 3-Minute Silence Pause", hi: "३. तीन मिनट का अनिवार्य मौन", te: "3. 3 నిమిషాల తప్పనిసరి మౌనం", ta: "3. 3 நிமிட கட்டாய மௌனம்" },
+        name: { kn: "೩. ೩-ನಿಮಿಷಗಳ ಕಡ್ಡಾಯ ಮೌನ ವ್ರತ", en: "3. Sacred 3-Minute Silence Pause", hi: "३. तीन मिनट का अनिवार्य मौन", te: "3. 3 నిమిషాల తప్పనిసరి మౌనం", ta: "3. 3 நிமிட கட்டாய மௌனம்" },
         action: { kn: "ಕೋಪ ಬಂದಾಗ ಯಾವುದೇ ಮಾತು ಆಡಬೇಡಿ, ಕನಿಷ್ಠ ೩ ನಿಮಿಷ ಮೌನವಾಗಿರಿ.", en: "Do not utter a single word or type any reply for 3 full minutes.", hi: "क्रोध की अवस्था में ३ मिनट तक बिल्कुल मौन रहें, कोई प्रतिक्रिया न दें।", te: "3 నిమిషాల పాటు ఎలాంటి మాటా మాట్లాడవద్దు.", ta: "3 நிமிடங்களுக்கு எந்த பதிலும் பேசாமல் அமைதியாக இருக்கவும்." },
-        detail: { kn: "ಆವೇಶದ ಸ್ಥಿತಿಯಲ್ಲಿ ನಾಲಿಗೆಯಿಂದ ಹೊರಡುವ ಮಾತುಗಳು ಅನಾಹುತಕ್ಕೆ ಕಾರಣ. ಈ ೩ ನಿಮಿಷದಲ್ಲಿ ದಕ್ಷಿಣ ದಿಕ್ಕಿಗೆ ಮುಖ ಮಾಡದೆ ಉತ್ತರ ಅಥವಾ ಪೂರ್ವಕ್ಕೆ ತಿರುಗಿ ಕುಳಿತುಕೊಳ್ಳಿ.", en: "Turn away from the South direction; face North or East. Let the cortical adrenaline wave subside completely before making decisions.", hi: "उत्तर या पूर्व दिशा की ओर मुख करके बैठें।", te: "ఉత్తరం లేదా తూర్పు వైపునకు తిరిగి కూర్చోండి.", ta: "வடக்கு அல்லது கிழக்கு நோக்கி அமரவும்." },
-        duration: "3 Minutes"
+        detail: { kn: "ಆವೇಶದ ಸ್ಥಿತಿಯಲ್ಲಿ ನಾಲಿಗೆಯಿಂದ ಹೊರಡುವ ಮಾತುಗಳು ಅನಾಹುತಕ್ಕೆ ಕಾರಣ. ಈ ಸಮಯದಲ್ಲಿ ಉತ್ತರ ಅಥವಾ ಪೂರ್ವಕ್ಕೆ ಮುಖ ಮಾಡಿ ಕುಳಿತುಕೊಳ್ಳಿ.", en: "Turn away from the South direction; face North or East. Let the cortical adrenaline wave subside completely before making decisions.", hi: "उत्तर या पूर्व दिशा की ओर मुख करके बैठें।", te: "ఉత్తరం లేదా తూర్పు వైపునకు తిరిగి కూర్చోండి.", ta: "வடக்கு அல்லது கிழக்கு நோக்கி அமரவும்." },
+        duration: { kn: "೩ ನಿಮಿಷಗಳು", en: "3 Minutes", hi: "३ मिनट", te: "3 నిమిషాలు", ta: "3 நிமிடங்கள்" }
       },
       {
         stepNumber: 4,
         icon: "🕉️",
-        name: { kn: "೪. ಆಪತ್ಕಾಲೀನ ಬೀಜ ಮಂತ್ರ ಜಪ (Emergency Beeja Japa)", en: "4. Mental Chandra-Shanti Beeja Japa", hi: "४. मानसिक चन्द्र-शान्ति बीज जप", te: "4. మానసిక బీజ మంత్ర జపం", ta: "4. மனதிற்குள் பீஜ மந்திர ஜெபம்" },
+        name: { kn: "೪. ಆಪತ್ಕಾಲೀನ ಶಾಂತಿ ಬೀಜ ಮಂತ್ರ", en: "4. Mental Chandra-Shanti Beeja Japa", hi: "४. मानसिक चन्द्र-शान्ति बीज जप", te: "4. మానసిక బీజ మంత్ర జపం", ta: "4. மனதிற்குள் பீஜ மந்திர ஜெபம்" },
         action: { kn: "ಮನಸ್ಸಿನಲ್ಲಿ 'ಓಂ ಸೋಂ ಸೋಮಾಯ ನಮಃ' ಅಥವಾ 'ಓಂ ಶಾಂತಾಯ ನಮಃ' ಜಪಿಸಿ.", en: "Silently recite the soothing cooling mantra 11 times.", hi: "मन ही मन 'ॐ सों सोमाय नमः' अथवा 'ॐ शान्ताय नमः' का ११ बार जप करें।", te: "మనస్సులో 'ఓం సోం సోమాయ నమః' అని 11 సార్లు జపించండి.", ta: "மனதில் 'ஓம் சோம் சோமாய நமஹ' என 11 முறை ஜபிக்கவும்." },
         detail: { kn: "ಕಣ್ಣು ಮುಚ್ಚಿ ಕಂಠ ಮತ್ತು ಹಣೆ ಭಾಗದಲ್ಲಿ ತಂಪಾದ ಬೆಳದಿಂಗಳನ್ನು ಭಾವಿಸಿ ಜಪಿಸುವುದರಿಂದ ಕೋಪವು ಸಂಪೂರ್ಣ ಶಮನವಾಗುತ್ತದೆ.", en: "Visualize cool silvery moonlight washing over the throat (Vishuddha) and brow center (Ajna), dousing internal fire.", hi: "नेत्र बंद कर चन्द्रमा के शीतल प्रकाश का ध्यान करते हुए जप करें।", te: "చల్లని వెన్నెల కాంతిని భావిస్తూ జపించండి.", ta: "நெற்றியில் குளிர்ந்த நிலவொளியை தியானித்து ஜெபிக்கவும்." },
-        duration: "1 Minute"
+        duration: { kn: "೧ ನಿಮಿಷ", en: "1 Minute", hi: "१ मिनट", te: "1 నిమిషం", ta: "1 நிமிடம்" }
       }
     ],
     emergencyBeejaMantra: {
@@ -403,7 +432,13 @@ export function generateKundliRemedyReport(
         te: "చంద్రుని మరియు పరమశివుని అనుగ్రహంతో నా కోపం శాంతించుగాక.",
         ta: "சந்திரன் மற்றும் சிவபெருமானின் அருளால் எனது கோபம் தணிந்து அமைதி உண்டாகட்டும்."
       },
-      japaCount: "11 or 21 Times (Silently in mind)"
+      japaCount: {
+        kn: "೧೧ ಅಥವಾ ೨೧ ಬಾರಿ (ಮನಸ್ಸಿನಲ್ಲೇ ಜಪಿಸಿ)",
+        en: "11 or 21 Times (Silently in mind)",
+        hi: "११ अथवा २१ बार (मानसिक जप)",
+        te: "11 లేదా 21 సార్లు (మనస్సులో)",
+        ta: "11 அல்லது 21 முறை (மனதில்)"
+      }
     }
   };
 
@@ -426,12 +461,12 @@ export function generateKundliRemedyReport(
     afternoonLifestyle: [
       {
         icon: "🥗",
-        title: { kn: "ಆಹಾರ ನಿಯಮ (Dietary Discipline)", en: "Cooling Satvic Food Discipline", hi: "सात्विक आहार नियम", te: "సాత్విక ఆహార నియమం", ta: "சாத்வீக உணவு முறை" },
+        title: { kn: "ಸಾತ್ವಿಕ ಆಹಾರ ನಿಯಮ", en: "Cooling Satvic Food Discipline", hi: "सात्विक आहार नियम", te: "సాత్విక ఆహార నియమం", ta: "சாத்வீக உணவு முறை" },
         desc: { kn: "ಅತಿಯಾದ ಖಾರ, ಹುಳಿ, ಮಸಾಲೆ ಹಾಗೂ ಎಣ್ಣೆ ಪದಾರ್ಥಗಳನ್ನು ತ್ಯಜಿಸಿ. ಮಧ್ಯಾಹ್ನ ತಂಪಾದ ಮಜ್ಜಿಗೆ (ಕೊತ್ತಂಬರಿ ಸೊಪ್ಪು ಹಾಕಿ) ಸೇವಿಸಿ.", en: "Avoid excessively spicy, pungent, acidic and fried foods. Drink fresh spiced buttermilk with coriander at noon.", hi: "अधिक मिर्च, खटाई और तले हुए भोजन से बचें। दोपहर में ताजी छाछ पिएं।", te: "అధిక కారం, పులుపు వస్తువులను తగ్గించండి. మధ్యాహ్నం మజ్జిగ త్రాగండి.", ta: "அதிக காரம், புளிப்பு உணவுகளை தவிர்க்கவும். மோர் பருகவும்." }
       },
       {
         icon: "🧭",
-        title: { kn: "ದಿಕ್ಪಾಲಕ ಸ್ಥಿತಿ (Direction Alignment)", en: "Compassionate Seating Alignment", hi: "दिशा संरेखण", te: "దిశా నియమం", ta: "திசை அமைப்பு" },
+        title: { kn: "ದಿಕ್ಪಾಲಕ ಸ್ಥಿತಿ ಹಾಗೂ ವಿವೇಕ", en: "Compassionate Seating Alignment", hi: "दिशा संरेखण", te: "దిశా నియమం", ta: "திசை அமைப்பு" },
         desc: { kn: "ಕೆಲಸ ಮಾಡುವಾಗ ಅಥವಾ ವಿಶ್ರಾಂತಿ ಪಡೆಯುವಾಗ ದಕ್ಷಿಣ ದಿಕ್ಕಿಗೆ ಮುಖ ಮಾಡುವುದನ್ನು ತಪ್ಪಿಸಿ, ಯಾವಾಗಲೂ ಉತ್ತರ ಅಥವಾ ಪೂರ್ವಕ್ಕೆ ಮುಖ ಮಾಡಿ.", en: "Face North or East while working and making crucial decisions; avoid facing direct South during heated discussions.", hi: "कार्य करते समय मुख उत्तर अथवा पूर्व दिशा में रखें।", te: "పనిచేసేటప్పుడు ఉత్తరం లేదా తూర్పు వైపు ముఖం పెట్టండి.", ta: "வேலை செய்யும் போது வடக்கு அல்லது கிழக்கு நோக்கி அமரவும்." }
       }
     ],
@@ -454,7 +489,6 @@ export function generateKundliRemedyReport(
   // 4. Curate Personalized Stotras based on chart afflictions
   const personalizedStotras = [];
 
-  // If Mars/Anger is dominant -> Shiva Tandava / Chandrashekhara Ashtakam
   if (krodhaLevel >= 60 || isMarsAfflicted) {
     personalizedStotras.push({
       id: "chandrashekhara_ashtakam",
@@ -512,12 +546,11 @@ export function generateKundliRemedyReport(
         ta: "கோபத்தை குறைத்து பூரண மன அமைதியை தரும்."
       },
       bestTimeToRecite: { kn: "ಪ್ರತಿದಿನ ಸಂಜೆ ಪ್ರದೋಷ ಕಾಲದಲ್ಲಿ ಅಥವಾ ಕೋಪ ಬಂದ ತಕ್ಷಣ", en: "Daily evening during twilight (Pradosha) or when feeling agitated", hi: "प्रतिदिन संध्या समय अथवा क्रोध आने पर", te: "ప్రతిరోజు సాయంత్రం లేదా కోపం వచ్చినప్పుడు", ta: "மாலை நேரத்தில் அல்லது கோபம் வரும்போது" },
-      facingDirection: { kn: "ಉತ್ತರ ಅಥವಾ ಪೂರ್ವ", en: "North or East", hi: "उत्तर अथवा पूर्व", te: "ఉత్తరం లేదా తూర్పు", ta: "வடக்கு அல்லது கிழக்கு" },
-      recitationCount: "1 to 3 Times Daily"
+      facingDirection: { kn: "ಉತ್ತರ ಅಥವಾ ಪೂರ್ವ ದಿಕ್ಕು", en: "North or East", hi: "उत्तर अथवा पूर्व दिशा", te: "ఉత్తరం లేదా తూర్పు దిశ", ta: "வடக்கு அல்லது கிழக்கு திசை" },
+      recitationCount: { kn: "ದಿನಕ್ಕೆ ೧ ರಿಂದ ೩ ಬಾರಿ", en: "1 to 3 Times Daily", hi: "प्रतिदिन १ से ३ बार", te: "రోజుకు 1 నుండి 3 సార్లు", ta: "தினமும் 1 முதல் 3 முறை" }
     });
   }
 
-  // If Sun / Authority / Vitality -> Aditya Hrudayam
   personalizedStotras.push({
     id: "aditya_hrudayam",
     title: {
@@ -575,10 +608,9 @@ export function generateKundliRemedyReport(
     },
     bestTimeToRecite: { kn: "ಪ್ರತಿದಿನ ಸೂರ್ಯೋದಯದ ಸಮಯದಲ್ಲಿ (ಭಾನುವಾರ ವಿಶೇಷ)", en: "Daily at sunrise (especially on Sundays)", hi: "प्रतिदिन सूर्योदय के समय (रविवार को विशेष)", te: "ప్రతిరోజు సూర్యోదయ సమయంలో", ta: "தினமும் சூரிய உதய வேளையில்" },
     facingDirection: { kn: "ಪೂರ್ವ ದಿಕ್ಕು", en: "East", hi: "पूर्व दिशा", te: "తూర్పు దిశ", ta: "கிழக்கு திசை" },
-    recitationCount: "1 to 3 Times"
+    recitationCount: { kn: "ದಿನಕ್ಕೆ ೧ ರಿಂದ ೩ ಬಾರಿ", en: "1 to 3 Times Daily", hi: "प्रतिदिन १ से ३ बार", te: "రోజుకు 1 నుండి 3 సార్లు", ta: "தினமும் 1 முதல் 3 முறை" }
   });
 
-  // If Saturn / Rahu-Ketu / Hurdles -> Sankata Mochana Hanuman Ashtakam
   personalizedStotras.push({
     id: "hanuman_sankata_mochana",
     title: {
@@ -625,8 +657,8 @@ export function generateKundliRemedyReport(
       ta: "சனி தோஷம் மற்றும் பயத்தை அடியோடு நீக்கும்."
     },
     bestTimeToRecite: { kn: "ಪ್ರತಿದಿನ ಮುಸ್ಸಂಜೆ ವೇಳೆ (ಮಂಗಳವಾರ ಮತ್ತು ಶನಿವಾರ ವಿಶೇಷ)", en: "Daily evening (especially on Tuesdays and Saturdays)", hi: "प्रतिदिन सायंकाल (मंगलवार एवं शनिवार को विशेष)", te: "ప్రతిరోజు సాయంత్రం (మంగళ, శనివారాలు విశేషం)", ta: "தினமும் மாலை வேளையில் (செவ்வாய், சனிக்கிழமைகளில் விசேஷம்)" },
-    facingDirection: { kn: "ಪೂರ್ವ ಅಥವಾ ದಕ್ಷಿಣ", en: "East or South", hi: "पूर्व अथवा दक्षिण", te: "తూర్పు లేదా దక్షిణం", ta: "கிழக்கு அல்லது தெற்கு" },
-    recitationCount: "1 to 8 Times"
+    facingDirection: { kn: "ಪೂರ್ವ ಅಥವಾ ದಕ್ಷಿಣ ದಿಕ್ಕು", en: "East or South", hi: "पूर्व अथवा दक्षिण दिशा", te: "తూర్పు లేదా దక్షిణం", ta: "கிழக்கு அல்லது தெற்கு" },
+    recitationCount: { kn: "ದಿನಕ್ಕೆ ೧ ರಿಂದ ೮ ಬಾರಿ", en: "1 to 8 Times Daily", hi: "प्रतिदिन १ से ८ बार", te: "రోజుకు 1 నుండి 8 సార్లు", ta: "தினமும் 1 முதல் 8 முறை" }
   });
 
   // 5. Active Dasha-Bhukti Analysis & Mitigation
@@ -678,9 +710,9 @@ export function generateKundliRemedyReport(
   const transitJupiterRashi = degreeToRashi(todaysJupiterDeg);
 
   const saturnDiff = (transitSaturnRashi.index - moonRashiIndex + 12) % 12;
-  const isSadeSati = saturnDiff === 11 || saturnDiff === 0 || saturnDiff === 1; // 12th, 1st, 2nd from Moon
-  const isAshtamaShani = saturnDiff === 7; // 8th from Moon
-  const isKantakaShani = saturnDiff === 3 || saturnDiff === 6 || saturnDiff === 9; // 4th, 7th, 10th from Moon
+  const isSadeSati = saturnDiff === 11 || saturnDiff === 0 || saturnDiff === 1;
+  const isAshtamaShani = saturnDiff === 7;
+  const isKantakaShani = saturnDiff === 3 || saturnDiff === 6 || saturnDiff === 9;
 
   let sadeSatiText: Record<string, string>;
   if (isSadeSati) {
@@ -697,7 +729,7 @@ export function generateKundliRemedyReport(
       en: "⚠️ Active Ashtama Shani (8th House Saturn Transit) - Caution in road travel, temperament, and finances.",
       hi: "⚠️ अष्टम शनि प्रभाव सक्रिय है - वाद-विवाद एवं यात्रा में सावधानी बरतें।",
       te: "⚠️ అష్టమ శని ప్రభావం - జాగ్రత్త అవసరం.",
-      ta: "⚠️ அష్టమ சனி தாக்கம் - எச்சரிக்கை தேவை."
+      ta: "⚠️ அஷ்டம சனி தாக்கம் - எச்சரிக்கை தேவை."
     };
   } else if (isKantakaShani) {
     sadeSatiText = {
@@ -787,7 +819,13 @@ export function generateKundliRemedyReport(
         te: "శ్రీ మహాబలేశ్వర ఆత్మలింగ క్షీరాభిషేకం",
         ta: "ஸ்ரீ மகாபலேஸ்வரர் ஆத்மலிங்க க்ஷீராபிஷேகம்"
       },
-      temple: "Sri Mahabaleshwara Swamy Temple, Gokarna (Karnataka)",
+      temple: {
+        kn: "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿ ಸನ್ನಿಧಿ, ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ (ಕರ್ನಾಟಕ)",
+        en: "Sri Mahabaleshwara Swamy Temple, Gokarna (Karnataka)",
+        hi: "श्री महाबलेश्वर स्वामी मंदिर, गोकर्ण (कर्नाटक)",
+        te: "శ్రీ మహాబలేశ్వర స్వామి దేవస్థానం, గోకర్ణ (కర్ణాటక)",
+        ta: "ஸ்ரீ மகாபலேஸ்வரர் திருக்கோயில், கோகர்ணம் (கர்நாடகா)"
+      },
       significance: {
         kn: "ರಾವಣನಿಂದ ಪ್ರತಿಷ್ಠಾಪಿಸಲ್ಪಟ್ಟ ಪರಮ ಪವಿತ್ರ ಆತ್ಮಲಿಂಗಕ್ಕೆ ಕ್ಷೀರಾಭಿಷೇಕ ಮಾಡುವುದರಿಂದ ಜಾತಕದ ಸಮಸ್ತ ಪಿತ್ತ, ಕ್ರೋಧ ಹಾಗೂ ಗ್ರಹಪೀಡೆಗಳು ಭಸ್ಮವಾಗುತ್ತವೆ.",
         en: "Pouring sacred milk over the primordial Atmalinga at Gokarna douses high Pitta/Mars rage and clears deep ancestral karmic blocks.",
@@ -804,7 +842,9 @@ export function generateKundliRemedyReport(
       }
     },
     rudrakshaRecommendation: {
-      mukhi: isMarsAfflicted ? "3-Mukhi (Agni/Mars Pacifier) or 2-Mukhi (Chandra Peace)" : "5-Mukhi (Shiva) with 2-Mukhi (Mind Peace)",
+      mukhi: isMarsAfflicted
+        ? { kn: "೩-ಮುಖಿ (ಅಗ್ನಿ/ಕುಜ ಶಾಂತಿ) ಅಥವಾ ೨-ಮುಖಿ (ಚಂದ್ರ ಶಾಂತಿ)", en: "3-Mukhi (Mars Pacifier) or 2-Mukhi (Moon Peace)", hi: "३-मुखी अथवा २-मुखी रुद्राक्ष", te: "3-ముఖి లేదా 2-ముఖి రుద్రాక్ష", ta: "3-முக அல்லது 2-முக ருத்ராட்சம்" }
+        : { kn: "೫-ಮುಖಿ (ಶಿವ ಕೃಪೆ) ಹಾಗೂ ೨-ಮುಖಿ (ಮನಃಶಾಂತಿ)", en: "5-Mukhi (Shiva) with 2-Mukhi (Mind Peace)", hi: "५-मुखी एवं २-मुखी रुद्राक्ष", te: "5-ముఖి & 2-ముఖి రుద్రాక్ష", ta: "5-முக மற்றும் 2-முக ருத்ராட்சம்" },
       deity: { kn: "ಅಗ್ನಿ ದೇವ ಹಾಗೂ ಗೌರೀ-ಶಂಕರ", en: "Agni Deva & Gauri-Shankara", hi: "अग्नि देव एवं गौरी-शंकर", te: "అగ్ని దేవుడు & శివపార్వతులు", ta: "அக்னி தேவன் & கௌரி-சங்கரர்" },
       benefits: {
         kn: "ಮನಸ್ಸಿನ ಆವೇಶ, ಆತಂಕ ಮತ್ತು ಆಲಸ್ಯವನ್ನು ನಿವಾರಿಸಿ ಧೃತಿ ಮತ್ತು ಏಕಾಗ್ರತೆಯನ್ನು ಹೆಚ್ಚಿಸುತ್ತದೆ.",
@@ -816,11 +856,11 @@ export function generateKundliRemedyReport(
     },
     gemstoneRecommendation: {
       stone: isMarsAfflicted 
-        ? { kn: "ಶುದ್ಧ ಮುತ್ತು (Pearl) ಅಥವಾ ಕೆಂಪು ಹವಳ (Coral - ಜ್ಯೋತಿಷಿ ಸಲಹೆಯಂತೆ)", en: "Natural Pearl (Chandra) or Red Coral (under priest consultation)", hi: "शुद्ध मोती अथवा मूंगा", te: "ముత్యం లేదా పగడం", ta: "முத்து அல்லது பவளம்" }
-        : { kn: "ಸ್ಪಟಿಕ ಮಣಿ / ಹಳದಿ ಪುಷ್ಯರಾಗ (Yellow Sapphire)", en: "Clear Quartz (Spatika) or Yellow Sapphire", hi: "स्फटिक अथवा पुखराज", te: "స్పటికం లేదా పుష్యరాగం", ta: "ஸ்படிகம் அல்லது புஷ்பராகம்" },
-      metal: { kn: "ಬೆಳ್ಳಿ (Silver)", en: "Pure Silver", hi: "चांदी", te: "వెండి", ta: "வெள்ளி" },
-      finger: { kn: "ಕಿರುಬೆರಳು (Little finger) ಅಥವಾ ಉಂಗುರದ ಬೆರಳು", en: "Little finger or Ring finger", hi: "कनिष्ठिका अथवा अनामिका", te: "చిటికెన వేలు", ta: "சுண்டு விரல்" },
-      dayToWear: { kn: "ಶುಕ್ಲಪಕ್ಷದ ಸೋಮವಾರ ಸೂರ್ಯೋದಯ ವೇಳೆ", en: "Monday during waxing moon (Shukla Paksha) at sunrise", hi: "शुक्ल पक्ष के सोमवार को", te: "సోమవారం ఉదయం", ta: "திங்கட்கிழமை காலை" }
+        ? { kn: "ಶುದ್ಧ ಮುತ್ತು ಅಥವಾ ಕೆಂಪು ಹವಳ", en: "Natural Pearl (Chandra) or Red Coral", hi: "शुद्ध मोती अथवा मूंगा", te: "ముత్యం లేదా పగడం", ta: "முத்து அல்லது பவளம்" }
+        : { kn: "ಸ್ಪಟಿಕ ಮಣಿ ಅಥವಾ ಹಳದಿ ಪುಷ್ಯರಾಗ", en: "Clear Quartz (Spatika) or Yellow Sapphire", hi: "स्फटिक अथवा पुखराज", te: "స్పటికం లేదా పుష్యరాగం", ta: "ஸ்படிகம் அல்லது புஷ்பராகம்" },
+      metal: { kn: "ಶುದ್ಧ ಬೆಳ್ಳಿ", en: "Pure Silver", hi: "शुद्ध चांदी", te: "స్వచ్ఛమైన వెండి", ta: "தூய வெள்ளி" },
+      finger: { kn: "ಕಿರುಬೆರಳು ಅಥವಾ ಉಂಗುರದ ಬೆರಳು", en: "Little finger or Ring finger", hi: "कनिष्ठिका अथवा अनामिका", te: "చిటికెన వేలు లేదా ఉంగరపు వేలు", ta: "சுண்டு விரல் அல்லது மோதிர விரல்" },
+      dayToWear: { kn: "ಶುಕ್ಲಪಕ್ಷದ ಸೋಮವಾರ ಸೂರ್ಯೋದಯ ವೇಳೆ", en: "Monday during waxing moon (Shukla Paksha) at sunrise", hi: "शुक्ल पक्ष के सोमवार को सूर्योदय समय", te: "శుక్లపక్ష సోమవారం సూర్యోదయం వేళ", ta: "வளர்பிறை திங்கட்கிழமை சூரிய உதய வேளையில்" }
     },
     donationDaana: {
       item: {
@@ -887,7 +927,8 @@ export function generateKundliRemedyReport(
       category: struggleCategory,
       title: primaryStruggleTitle,
       description: primaryStruggleDesc,
-      intensity
+      intensity,
+      intensityLabel
     },
     afflictionFactors,
     psychologicalProfile: {
