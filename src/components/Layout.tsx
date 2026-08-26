@@ -11,9 +11,6 @@ import { scheduleDailyPanchang, scheduleRahuKaal } from "../core/NotificationSch
 import { useAppStore, type AppPage } from "../stores/appStore";
 import { useKundliViewerStore } from "../stores/kundliViewerStore";
 import { useAuthStore } from "../features/auth/authStore";
-import { T, pick } from "../features/seva/sevaLocale";
-import { T_VARAMAHALAKSHMI, pickL5 } from "../features/varamahalakshmi/varamahalakshmiLocale";
-import { T_KAALA_DIKSUCHI } from "../features/kaaladiksuchi/kaaladiksuchiLocale";
 import { getNavLabel } from "../i18n/navigationLocale";
 import InstallPrompt from "./InstallPrompt";
 

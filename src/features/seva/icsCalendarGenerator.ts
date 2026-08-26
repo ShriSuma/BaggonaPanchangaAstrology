@@ -311,7 +311,7 @@ export function getCalendarLabels(lang: string) {
       gulikaLabel: "గుళిక కాలం",
       yamagandaLabel: "యమగండ కాలం",
       deityLabel: "దిన దైవ ఆరాధన",
-      mantraLabel: "దిన ಮಂತ್ರಂ"
+      mantraLabel: "దిన మంత్రం"
     };
   }
 
@@ -1278,10 +1278,10 @@ export function generateGoogleCalendarUrl(options: {
     `🔢 ${labels.luckyNumberLabel}: ${luckyNumsStr}`,
     `🎨 ${labels.luckyColorLabel}: ${localizedColor}`,
     `🧭 ${labels.luckyDirectionLabel}: ${localizedDirection}`,
-    `🚫 ${labels.rahuLabel}: ${kaala.rahu}`,
-    `⏳ ${labels.gulikaLabel}: ${kaala.gulika}`,
-    `⌛ ${labels.yamagandaLabel}: ${kaala.yamaganda}`,
-    `🛕 ${labels.deityLabel}: ${deity.deity}`,
+    `🔴 ${labels.rahuLabel}: ${kaala.rahu}`,
+    `🟡 ${labels.gulikaLabel}: ${kaala.gulika}`,
+    `⏳ ${labels.yamagandaLabel}: ${kaala.yamaganda}`,
+    `🛕 ${labels.deityLabel}: ${pick(deity.deityL5, lang) || deity.deity}`,
     `📜 ${labels.mantraLabel}: ${deity.mantra}`,
     "----------------------------------------",
     `🌐 ${labels.visitLabel}`,
