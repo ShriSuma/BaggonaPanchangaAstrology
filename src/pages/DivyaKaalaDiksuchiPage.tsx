@@ -12,7 +12,7 @@ import type {
   SamudrikaElement,
   LifeDomainFocus
 } from "../features/kaaladiksuchi/kaaladiksuchiTypes";
-import { PREDEFINED_PRIESTS, getPriestProfile } from "../features/seva/sevaPriestDirectory";
+import { getPriestProfile } from "../features/seva/sevaPriestDirectory";
 import { useAppStore } from "../stores/appStore";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -29,6 +29,7 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
   const [gender, setGender] = useState<"Male" | "Female" | "Other">("Male");
   const [pincode, setPincode] = useState<string>("581326");
   const [placeLabel, setPlaceLabel] = useState<string>("Gokarna");
+  const [showAdvancedTraits, setShowAdvancedTraits] = useState<boolean>(false);
   const [foreheadShape, setForeheadShape] = useState<SamudrikaForehead>("broad");
   const [eyeRadiance, setEyeRadiance] = useState<SamudrikaEyes>("calm");
   const [handElement, setHandElement] = useState<SamudrikaElement>("earth");
@@ -37,9 +38,11 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
 
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [result, setResult] = useState<KaalaDiksuchiResult | null>(null);
-  const [activeTab, setActiveTab] = useState<"matrix" | "modern" | "samudrika" | "prashna" | "remedies">("modern");
+  const [activeTab, setActiveTab] = useState<
+    "modern" | "transit" | "karmic" | "decades" | "sankhya" | "matrix" | "samudrika" | "remedies"
+  >("modern");
   const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);
-  const [selectedPriestId, setSelectedPriestId] = useState<string>("shreeram-pandit");
+  const selectedPriestId = "shreeram-pandit";
 
   const resultsRef = useRef<HTMLDivElement>(null);
 
@@ -54,9 +57,9 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
       gender,
       pincode,
       placeLabel,
-      foreheadShape,
-      eyeRadiance,
-      handElement,
+      foreheadShape: showAdvancedTraits ? foreheadShape : undefined,
+      eyeRadiance: showAdvancedTraits ? eyeRadiance : undefined,
+      handElement: showAdvancedTraits ? handElement : undefined,
       primaryFocus,
       customQuestion: customQuestion.trim() || undefined,
       lang: selectedLang
@@ -83,7 +86,6 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
       const container = document.getElementById("kaala-diksuchi-pdf-container");
       if (!container) throw new Error("PDF container missing");
 
-      // Temporarily reveal container for high-res render
       container.style.display = "block";
       container.style.position = "fixed";
       container.style.top = "-10000px";
@@ -123,23 +125,23 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen py-6 px-3 sm:px-6 max-w-5xl mx-auto text-slate-900 dark:text-slate-100">
+    <div className="min-h-screen py-4 sm:py-6 px-3 sm:px-6 max-w-5xl mx-auto text-slate-900 dark:text-slate-100">
       {/* Luxury Golden Hero Banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-950 via-amber-900 to-amber-950 p-6 sm:p-8 text-white shadow-2xl border-2 border-amber-500/40 mb-8">
-        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-950 via-amber-900 to-amber-950 p-5 sm:p-8 text-white shadow-2xl border-2 border-amber-500/40 mb-6 sm:mb-8">
+        <div className="absolute top-0 right-0 -mt-10 -mr-10 w-56 h-56 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
         <div className="relative z-10">
-          <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase bg-amber-500/20 text-amber-300 border border-amber-400/30">
-              🧭 NO-TIME-OF-BIRTH VEDIC BLUEPRINT
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold tracking-wider uppercase bg-amber-500/20 text-amber-300 border border-amber-400/40">
+              🧭 100% ACCURATE · NO TIME OF BIRTH REQUIRED
             </span>
             {/* Language Switcher */}
-            <div className="flex items-center gap-1 bg-black/40 p-1 rounded-xl border border-amber-500/30">
+            <div className="flex items-center gap-1 bg-black/50 p-1 rounded-2xl border border-amber-500/30 overflow-x-auto max-w-full">
               {(["kn", "en", "hi", "te", "ta"] as KaalaDiksuchiLang[]).map((l) => (
                 <button
                   key={l}
                   type="button"
                   onClick={() => setSelectedLang(l)}
-                  className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all ${
+                  className={`px-3 py-1 text-xs font-bold rounded-xl transition-all whitespace-nowrap ${
                     selectedLang === l
                       ? "bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-md"
                       : "text-amber-200/70 hover:text-white"
@@ -151,28 +153,28 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
             </div>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-amber-200 tracking-tight">
+          <h1 className="text-xl sm:text-3xl font-extrabold text-amber-200 tracking-tight leading-snug">
             {pickL5(T_KAALA_DIKSUCHI.heroTitle, selectedLang)}
           </h1>
-          <p className="mt-2 text-sm sm:text-base text-amber-100/80 max-w-3xl leading-relaxed">
+          <p className="mt-2 text-xs sm:text-sm text-amber-100/90 max-w-3xl leading-relaxed">
             {pickL5(T_KAALA_DIKSUCHI.heroSubtitle, selectedLang)}
           </p>
 
-          <div className="mt-4 flex flex-wrap items-center gap-4 text-xs text-amber-300/80">
-            <span>✓ ಜನ್ಮ ಸಮಯ (Time of Birth) ಅಗತ್ಯವಿಲ್ಲ</span>
-            <span>✓ ಸೂರ್ಯ ಲಗ್ನ & ಸಾಮುದ್ರಿಕ ತತ್ವ ಗಣನೆ</span>
-            <span>✓ ವರ್ತಮಾನ ಜಗತ್ತಿನ ಹೊಂದಾಣಿಕೆ & ಪ್ರಗತಿ ರಹಸ್ಯ</span>
+          <div className="mt-4 flex flex-wrap items-center gap-2 sm:gap-4 text-[11px] sm:text-xs text-amber-300 font-semibold">
+            <span className="bg-black/30 px-2.5 py-1 rounded-lg border border-amber-500/20">✓ ಜನ್ಮ ಸಮಯದ ಅಗತ್ಯವಿಲ್ಲ</span>
+            <span className="bg-black/30 px-2.5 py-1 rounded-lg border border-amber-500/20">✓ ದಿನಾಂಕದಿಂದಲೇ ಸ್ವಯಂ-ನಿರ್ಣಯ</span>
+            <span className="bg-black/30 px-2.5 py-1 rounded-lg border border-amber-500/20">✓ ಇಂದಿನ ವೇಗದ ಜಗತ್ತಿಗೆ ದಿಕ್ಸೂಚಿ</span>
           </div>
         </div>
       </div>
 
       {/* Input Form Wizard Card */}
-      <Card className="p-6 sm:p-8 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-amber-200 dark:border-amber-900/40 shadow-xl rounded-2xl mb-8">
-        <form onSubmit={handleCalculate} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <Card className="p-5 sm:p-8 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-amber-200 dark:border-amber-900/40 shadow-xl rounded-3xl mb-8">
+        <form onSubmit={handleCalculate} className="space-y-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
             {/* Full Name */}
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-amber-900 dark:text-amber-300 mb-2">
+              <label className="block text-xs font-bold uppercase tracking-wider text-amber-900 dark:text-amber-300 mb-1.5">
                 {pickL5(T_KAALA_DIKSUCHI.formName, selectedLang)} *
               </label>
               <input
@@ -181,13 +183,13 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
                 value={personName}
                 onChange={(e) => setPersonName(e.target.value)}
                 placeholder="ಉದಾ: ಪ್ರಮೋದ್ ಕೊಡಗಿ"
-                className="w-full px-4 py-3 rounded-xl border border-amber-200 dark:border-slate-700 bg-amber-50/40 dark:bg-slate-800 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                className="w-full px-4 py-3 rounded-2xl border border-amber-200 dark:border-slate-700 bg-amber-50/40 dark:bg-slate-800 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none"
               />
             </div>
 
             {/* Date of Birth */}
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-amber-900 dark:text-amber-300 mb-2">
+              <label className="block text-xs font-bold uppercase tracking-wider text-amber-900 dark:text-amber-300 mb-1.5">
                 {pickL5(T_KAALA_DIKSUCHI.formDob, selectedLang)} *
               </label>
               <input
@@ -195,13 +197,13 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
                 required
                 value={dob}
                 onChange={(e) => setDob(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-amber-200 dark:border-slate-700 bg-amber-50/40 dark:bg-slate-800 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                className="w-full px-4 py-3 rounded-2xl border border-amber-200 dark:border-slate-700 bg-amber-50/40 dark:bg-slate-800 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none"
               />
             </div>
 
             {/* City / Pincode */}
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-amber-900 dark:text-amber-300 mb-2">
+              <label className="block text-xs font-bold uppercase tracking-wider text-amber-900 dark:text-amber-300 mb-1.5">
                 {pickL5(T_KAALA_DIKSUCHI.formPlace, selectedLang)}
               </label>
               <input
@@ -209,80 +211,85 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
                 value={pincode}
                 onChange={(e) => setPincode(e.target.value)}
                 placeholder="581326 (Gokarna)"
-                className="w-full px-4 py-3 rounded-xl border border-amber-200 dark:border-slate-700 bg-amber-50/40 dark:bg-slate-800 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                className="w-full px-4 py-3 rounded-2xl border border-amber-200 dark:border-slate-700 bg-amber-50/40 dark:bg-slate-800 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none"
               />
             </div>
           </div>
 
-          {/* Samudrika & Body Archetype Section */}
-          <div className="pt-4 border-t border-amber-100 dark:border-slate-800">
-            <h3 className="text-sm font-bold text-amber-900 dark:text-amber-300 uppercase tracking-wider mb-4">
-              ✋ ಸಾಮುದ್ರಿಕ ಪ್ರಕೃತಿ ಲಕ್ಷಣಗಳು (Samudrika Archetype)
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Forehead */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                  {pickL5(T_KAALA_DIKSUCHI.formForehead, selectedLang)}
-                </label>
-                <select
-                  value={foreheadShape}
-                  onChange={(e) => setForeheadShape(e.target.value as SamudrikaForehead)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-amber-200 dark:border-slate-700 bg-amber-50/40 dark:bg-slate-800 text-sm focus:ring-2 focus:ring-amber-500"
-                >
-                  <option value="broad">ಅಗಲ & ಪ್ರಕಾಶಮಾನ (Broad / High - Jupiter/Guru)</option>
-                  <option value="angular">ಸ್ಪಷ್ಟ & ತೀಕ್ಷ್ಣ (Angular / Defined - Mars/Kuja)</option>
-                  <option value="curved">ದುಂಡಾದ & ಮೃದು (Curved / Gentle - Venus/Moon)</option>
-                  <option value="compact">ನೇರ & ಮಧ್ಯಮ (Straight / Compact - Mercury/Budha)</option>
-                </select>
-              </div>
+          {/* Optional Advanced Samudrika Toggle */}
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={() => setShowAdvancedTraits(!showAdvancedTraits)}
+              className="text-xs font-bold text-amber-700 dark:text-amber-400 hover:text-amber-600 flex items-center gap-1.5 focus:outline-none"
+            >
+              <span>{showAdvancedTraits ? "▼" : "▶"}</span>
+              <span>{pickL5(T_KAALA_DIKSUCHI.optionalSamudrikaToggle, selectedLang)}</span>
+            </button>
 
-              {/* Eyes */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                  {pickL5(T_KAALA_DIKSUCHI.formEyes, selectedLang)}
-                </label>
-                <select
-                  value={eyeRadiance}
-                  onChange={(e) => setEyeRadiance(e.target.value as SamudrikaEyes)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-amber-200 dark:border-slate-700 bg-amber-50/40 dark:bg-slate-800 text-sm focus:ring-2 focus:ring-amber-500"
-                >
-                  <option value="calm">ಶಾಂತ & ಆಳವಾದ ದೃಷ್ಟಿ (Calm & Deep - Wisdom/Guru)</option>
-                  <option value="sharp">ತೀಕ್ಷ್ಣ & ಹೊಳೆಯುವ ನೋಟ (Sharp & Intense - Sun/Mars)</option>
-                  <option value="gentle">ಮೃದು & ವಾತ್ಸಲ್ಯಪೂರ್ಣ (Gentle & Kind - Moon/Venus)</option>
-                  <option value="analytical">ಚುರುಕು & ವಿಶ್ಲೇಷಣಾತ್ಮಕ (Quick & Alert - Mercury)</option>
-                </select>
-              </div>
+            {showAdvancedTraits && (
+              <div className="mt-4 p-4 bg-amber-50/40 dark:bg-slate-800/60 rounded-2xl border border-amber-200/60 dark:border-slate-700 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    {pickL5(T_KAALA_DIKSUCHI.formForehead, selectedLang)}
+                  </label>
+                  <select
+                    value={foreheadShape}
+                    onChange={(e) => setForeheadShape(e.target.value as SamudrikaForehead)}
+                    className="w-full px-3 py-2 rounded-xl border border-amber-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs focus:ring-2 focus:ring-amber-500"
+                  >
+                    <option value="broad">ಅಗಲ & ಪ್ರಕಾಶಮಾನ (Broad - Jupiter/Guru)</option>
+                    <option value="angular">ಸ್ಪಷ್ಟ & ತೀಕ್ಷ್ಣ (Angular - Mars/Kuja)</option>
+                    <option value="curved">ದುಂಡಾದ & ಮೃದು (Curved - Venus/Moon)</option>
+                    <option value="compact">ನೇರ & ಮಧ್ಯಮ (Straight - Mercury/Budha)</option>
+                  </select>
+                </div>
 
-              {/* Hand Element */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                  {pickL5(T_KAALA_DIKSUCHI.formHandElement, selectedLang)}
-                </label>
-                <select
-                  value={handElement}
-                  onChange={(e) => setHandElement(e.target.value as SamudrikaElement)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-amber-200 dark:border-slate-700 bg-amber-50/40 dark:bg-slate-800 text-sm focus:ring-2 focus:ring-amber-500"
-                >
-                  <option value="earth">ಪೃಥ್ವಿ (Earth - ಚೌಕಾಕಾರದ ಅಂಗೈ, ಸ್ಥಿರತೆ)</option>
-                  <option value="fire">ಅಗ್ನಿ (Fire - ದೀರ್ಘ ಅಂಗೈ, ಸಾಹಸ & ಚೈತನ್ಯ)</option>
-                  <option value="air">ವಾಯು (Air - ಉದ್ದನೆಯ ಬೆರಳುಗಳು, ಬುದ್ಧಿಮತ್ತೆ)</option>
-                  <option value="water">ಜಲ (Water - ಮೃದು ಹಸ್ತ, ಕಲೆ & ಕಲ್ಪನೆ)</option>
-                </select>
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    {pickL5(T_KAALA_DIKSUCHI.formEyes, selectedLang)}
+                  </label>
+                  <select
+                    value={eyeRadiance}
+                    onChange={(e) => setEyeRadiance(e.target.value as SamudrikaEyes)}
+                    className="w-full px-3 py-2 rounded-xl border border-amber-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs focus:ring-2 focus:ring-amber-500"
+                  >
+                    <option value="calm">ಶಾಂತ & ಆಳವಾದ ನೋಟ (Calm/Deep - Guru)</option>
+                    <option value="sharp">ತೀಕ್ಷ್ಣ & ಹೊಳೆಯುವ ನೋಟ (Sharp - Sun/Mars)</option>
+                    <option value="gentle">ಮೃದು & ವಾತ್ಸಲ್ಯಪೂರ್ಣ (Gentle - Moon/Venus)</option>
+                    <option value="analytical">ಚುರುಕು & ವಿಶ್ಲೇಷಣಾತ್ಮಕ (Quick - Mercury)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    {pickL5(T_KAALA_DIKSUCHI.formHandElement, selectedLang)}
+                  </label>
+                  <select
+                    value={handElement}
+                    onChange={(e) => setHandElement(e.target.value as SamudrikaElement)}
+                    className="w-full px-3 py-2 rounded-xl border border-amber-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs focus:ring-2 focus:ring-amber-500"
+                  >
+                    <option value="earth">ಪೃಥ್ವಿ (Earth - ಚೌಕಾಕಾರ ಅಂಗೈ, ಸ್ಥಿರತೆ)</option>
+                    <option value="fire">ಅಗ್ನಿ (Fire - ದೀರ್ಘ ಅಂಗೈ, ಚೈತನ್ಯ)</option>
+                    <option value="air">ವಾಯು (Air - ಉದ್ದ ಬೆರಳುಗಳು, ಬುದ್ಧಿ)</option>
+                    <option value="water">ಜಲ (Water - ಮೃದು ಹಸ್ತ, ಕಲೆ)</option>
+                  </select>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Life Focus Domain & Specific Question */}
-          <div className="pt-4 border-t border-amber-100 dark:border-slate-800 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="pt-3 border-t border-amber-100 dark:border-slate-800 grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-amber-900 dark:text-amber-300 mb-2">
+              <label className="block text-xs font-bold uppercase tracking-wider text-amber-900 dark:text-amber-300 mb-1.5">
                 {pickL5(T_KAALA_DIKSUCHI.formFocusDomain, selectedLang)}
               </label>
               <select
                 value={primaryFocus}
                 onChange={(e) => setPrimaryFocus(e.target.value as LifeDomainFocus)}
-                className="w-full px-4 py-2.5 rounded-xl border border-amber-200 dark:border-slate-700 bg-amber-50/40 dark:bg-slate-800 text-sm focus:ring-2 focus:ring-amber-500"
+                className="w-full px-4 py-2.5 rounded-2xl border border-amber-200 dark:border-slate-700 bg-amber-50/40 dark:bg-slate-800 text-sm focus:ring-2 focus:ring-amber-500"
               >
                 <option value="career">💼 ವೃತ್ತಿ, ವ್ಯಾಪಾರ & ಆರ್ಥಿಕ ಮುನ್ನಡೆ (Career & Wealth)</option>
                 <option value="modern_adaptation">🌐 ಆಧುನಿಕ ಜಗತ್ತಿನ ಹೊಂದಾಣಿಕೆ & ಬೆಳವಣಿಗೆ (Modern World Navigation)</option>
@@ -293,7 +300,7 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-amber-900 dark:text-amber-300 mb-2">
+              <label className="block text-xs font-bold uppercase tracking-wider text-amber-900 dark:text-amber-300 mb-1.5">
                 {pickL5(T_KAALA_DIKSUCHI.formCustomQuestion, selectedLang)}
               </label>
               <input
@@ -301,16 +308,16 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
                 value={customQuestion}
                 onChange={(e) => setCustomQuestion(e.target.value)}
                 placeholder="ಉದಾ: ಹೊಸ ಉದ್ಯಮ ಆರಂಭಿಸಲು ಅಥವಾ ಉದ್ಯೋಗ ಬದಲಾಯಿಸಲು ಈ ಕಾಲ ಸೂಕ್ತವೇ?"
-                className="w-full px-4 py-2.5 rounded-xl border border-amber-200 dark:border-slate-700 bg-amber-50/40 dark:bg-slate-800 text-sm focus:ring-2 focus:ring-amber-500"
+                className="w-full px-4 py-2.5 rounded-2xl border border-amber-200 dark:border-slate-700 bg-amber-50/40 dark:bg-slate-800 text-sm focus:ring-2 focus:ring-amber-500"
               />
             </div>
           </div>
 
-          <div className="text-center pt-4">
+          <div className="text-center pt-2">
             <button
               type="submit"
               disabled={isProcessing}
-              className="px-8 py-4 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-bold text-base rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-0.5 border border-amber-400/40 disabled:opacity-50"
+              className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-extrabold text-sm sm:text-base rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform active:scale-95 border border-amber-400/40 disabled:opacity-50"
             >
               {isProcessing ? "ಗಣನೆ ಪ್ರಕ್ರಿಯೆಯಲ್ಲಿದೆ..." : pickL5(T_KAALA_DIKSUCHI.submitBtn, selectedLang)}
             </button>
@@ -322,13 +329,15 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
       {result && (
         <div ref={resultsRef} className="space-y-6">
           {/* Quick Summary Pill Bar */}
-          <div className="bg-gradient-to-r from-amber-900/40 to-amber-950/60 p-4 rounded-2xl border border-amber-500/30 flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">🕉️</span>
+          <div className="bg-gradient-to-r from-amber-950 via-amber-900 to-amber-950 p-4 sm:p-5 rounded-3xl border border-amber-500/40 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-2xl">
+                🕉️
+              </div>
               <div>
-                <h3 className="font-bold text-amber-200 text-base">{result.input.personName}</h3>
-                <p className="text-xs text-amber-300/80">
-                  {result.suryaRashi} (ಸೂರ್ಯ ರಾಶಿ) · {result.birthDayOfWeek} · ಮೂಲಾಂಕ: {result.rulingNumber}
+                <h3 className="font-extrabold text-amber-200 text-base sm:text-lg">{result.input.personName}</h3>
+                <p className="text-xs text-amber-300/90 font-medium">
+                  {result.suryaRashi} (ಸೂರ್ಯ ರಾಶಿ) · {result.birthDayOfWeek} · ಮೂಲಾಂಕ: {result.rulingNumber} · ಭಾಗ್ಯಾಂಕ: {result.destinyNumber}
                 </p>
               </div>
             </div>
@@ -336,29 +345,32 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
               type="button"
               onClick={handleDownloadPdf}
               disabled={isGeneratingPdf}
-              className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center gap-2"
+              className="w-full sm:w-auto px-4 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white text-xs font-extrabold rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
             >
               <span>{isGeneratingPdf ? "PDF ರಚನೆಯಾಗುತ್ತಿದೆ..." : pickL5(T_KAALA_DIKSUCHI.downloadPdfBtn, selectedLang)}</span>
             </button>
           </div>
 
-          {/* Navigation Tabs */}
-          <div className="flex overflow-x-auto gap-2 p-1.5 bg-slate-100 dark:bg-slate-800/80 rounded-2xl border border-amber-200/50 dark:border-slate-700">
+          {/* Navigation Tabs Bar with touch scroll */}
+          <div className="flex overflow-x-auto no-scrollbar gap-2 p-1.5 bg-slate-100 dark:bg-slate-800/90 rounded-2xl border border-amber-200/50 dark:border-slate-700">
             {[
               { id: "modern", label: pickL5(T_KAALA_DIKSUCHI.tabModernWorld, selectedLang) },
+              { id: "transit", label: pickL5(T_KAALA_DIKSUCHI.tabLiveTransit, selectedLang) },
+              { id: "karmic", label: pickL5(T_KAALA_DIKSUCHI.tabKarmicMission, selectedLang) },
+              { id: "decades", label: pickL5(T_KAALA_DIKSUCHI.tabDecades, selectedLang) },
+              { id: "sankhya", label: pickL5(T_KAALA_DIKSUCHI.tabSankhya, selectedLang) },
               { id: "matrix", label: pickL5(T_KAALA_DIKSUCHI.tabCosmicMatrix, selectedLang) },
               { id: "samudrika", label: pickL5(T_KAALA_DIKSUCHI.tabSamudrika, selectedLang) },
-              { id: "prashna", label: pickL5(T_KAALA_DIKSUCHI.tabPrashna, selectedLang) },
               { id: "remedies", label: pickL5(T_KAALA_DIKSUCHI.tabRemedies, selectedLang) }
             ].map((tab) => (
               <button
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`px-4 py-2.5 text-xs font-bold rounded-xl whitespace-nowrap transition-all ${
+                className={`px-3.5 py-2.5 text-xs font-extrabold rounded-xl whitespace-nowrap transition-all ${
                   activeTab === tab.id
                     ? "bg-amber-500 text-white shadow-lg"
-                    : "text-slate-600 dark:text-slate-300 hover:text-amber-600"
+                    : "text-slate-600 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400"
                 }`}
               >
                 {tab.label}
@@ -366,22 +378,21 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
             ))}
           </div>
 
-          {/* TAB CONTENT: Modern World Navigator */}
+          {/* TAB 1: Modern World Navigator */}
           {activeTab === "modern" && (
-            <div className="space-y-6">
-              {/* Resonance Quotient Card */}
-              <Card className="p-6 bg-gradient-to-br from-amber-50 via-white to-amber-50/30 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 border border-amber-200 dark:border-amber-900/40 rounded-2xl shadow-lg">
+            <div className="space-y-5">
+              <Card className="p-6 bg-gradient-to-br from-amber-50 via-white to-amber-50/40 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 border border-amber-200 dark:border-amber-900/40 rounded-3xl shadow-lg">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-amber-100 dark:border-slate-700 pb-4 mb-4">
                   <div>
                     <span className="text-xs font-bold uppercase tracking-wider text-amber-800 dark:text-amber-400">
                       ಆಧುನಿಕ ಜಗತ್ತಿನ ಹೊಂದಾಣಿಕೆ ಸಾಮರ್ಥ್ಯ (Resonance Quotient)
                     </span>
-                    <h2 className="text-lg font-extrabold text-amber-950 dark:text-amber-200 mt-1">
+                    <h2 className="text-base sm:text-lg font-extrabold text-amber-950 dark:text-amber-200 mt-1">
                       ಇಂದಿನ ಓಡುವ ಜಗತ್ತಿನಲ್ಲಿ ನಿಮ್ಮ ಸ್ಥಾನ & ಸಾಮರ್ಥ್ಯ
                     </h2>
                   </div>
                   <div className="flex items-center gap-3 bg-amber-500/10 dark:bg-amber-400/10 px-4 py-2 rounded-2xl border border-amber-500/30">
-                    <span className="text-3xl font-black text-amber-600 dark:text-amber-400">
+                    <span className="text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400">
                       {result.modernWorld.userResonanceScore}%
                     </span>
                     <span className="text-[10px] uppercase font-bold text-amber-800 dark:text-amber-300 leading-tight">
@@ -389,25 +400,25 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
                     </span>
                   </div>
                 </div>
-                <p className="text-sm sm:text-base text-slate-700 dark:text-slate-200 leading-relaxed">
+                <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
                   {result.modernWorld.userStandingInModernEra}
                 </p>
               </Card>
 
-              {/* Global Trend Macro View */}
-              <Card className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 mb-2 flex items-center gap-2">
+              {/* Global Trend */}
+              <Card className="p-5 sm:p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl">
+                <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 mb-2 flex items-center gap-2">
                   <span>🌐</span> ಪ್ರಸ್ತುತ ಜಾಗತಿಕ ಪ್ರವೃತ್ತಿ & ಕಾಲಮಾನ (Current Global Climate)
                 </h3>
-                <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
                   {result.modernWorld.currentGlobalTrend}
                 </p>
               </Card>
 
-              {/* Vulnerabilities & Opportunities 2-Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card className="p-6 bg-rose-50/50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/30 rounded-2xl">
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-rose-700 dark:text-rose-400 mb-3 flex items-center gap-2">
+              {/* 2-Grid Vulnerabilities & Opportunities */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                <Card className="p-5 sm:p-6 bg-rose-50/60 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/30 rounded-3xl">
+                  <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-rose-700 dark:text-rose-400 mb-3 flex items-center gap-2">
                     <span>⚠️</span> ಎಚ್ಚರಿಕೆ ವಹಿಸಬೇಕಾದ ಆಧುನಿಕ ದೌರ್ಬಲ್ಯಗಳು
                   </h3>
                   <ul className="space-y-2 text-xs sm:text-sm text-rose-950 dark:text-rose-200">
@@ -420,8 +431,8 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
                   </ul>
                 </Card>
 
-                <Card className="p-6 bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/30 rounded-2xl">
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 mb-3 flex items-center gap-2">
+                <Card className="p-5 sm:p-6 bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/30 rounded-3xl">
+                  <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 mb-3 flex items-center gap-2">
                     <span>🚀</span> ಮುನ್ನಡೆಯಲು ಮುಕ್ತವಾಗಿರುವ ಬೆಳವಣಿಗೆಯ ಮಹಾದ್ವಾರಗಳು
                   </h3>
                   <ul className="space-y-2 text-xs sm:text-sm text-emerald-950 dark:text-emerald-200">
@@ -436,9 +447,9 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
               </div>
 
               {/* Career & Wellness Guidance */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl">
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-2 flex items-center gap-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                <Card className="p-5 sm:p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl">
+                  <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-2 flex items-center gap-2">
                     <span>💼</span> ವೃತ್ತಿ & ತಂತ್ರಜ್ಞಾನ ನಾಯಕತ್ವ (Career & Tech Synergy)
                   </h3>
                   <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
@@ -446,8 +457,8 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
                   </p>
                 </Card>
 
-                <Card className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl">
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-2 flex items-center gap-2">
+                <Card className="p-5 sm:p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl">
+                  <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-2 flex items-center gap-2">
                     <span>🧘</span> ಡಿಜಿಟಲ್ ಸ್ವಾಸ್ಥ್ಯ & ಮಾನಸಿಕ ಶಾಂತಿ (Digital Wellness)
                   </h3>
                   <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
@@ -457,13 +468,13 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
               </div>
 
               {/* Actionable Micro-Habits */}
-              <Card className="p-6 bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 rounded-2xl">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-amber-900 dark:text-amber-300 mb-4 flex items-center gap-2">
+              <Card className="p-5 sm:p-6 bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 rounded-3xl">
+                <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-amber-900 dark:text-amber-300 mb-4 flex items-center gap-2">
                   <span>⚡</span> ಇಂದಿನಿಂದಲೇ ಅಳವಡಿಸಿಕೊಳ್ಳಬೇಕಾದ ದೈನಂದಿನ ಶಿಸ್ತು & ನಿಯಮಗಳು
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm text-amber-950 dark:text-amber-100">
                   {result.modernWorld.actionableHabitsForToday.map((habit, idx) => (
-                    <div key={idx} className="flex items-start gap-2 bg-white/60 dark:bg-slate-800/60 p-3 rounded-xl border border-amber-200/40">
+                    <div key={idx} className="flex items-start gap-2 bg-white/70 dark:bg-slate-800/70 p-3 rounded-2xl border border-amber-200/40">
                       <span className="text-amber-600 font-bold">✓</span>
                       <span>{habit}</span>
                     </div>
@@ -471,13 +482,12 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
                 </div>
               </Card>
 
-              {/* AI Narrative if available */}
               {result.aiNarrative && (
-                <Card className="p-6 bg-gradient-to-br from-amber-950/30 to-amber-900/40 border border-amber-500/40 rounded-2xl shadow-xl">
-                  <h3 className="text-sm font-bold text-amber-300 uppercase tracking-wider mb-3 flex items-center gap-2">
+                <Card className="p-6 bg-gradient-to-br from-amber-950/40 to-amber-900/40 border border-amber-500/40 rounded-3xl shadow-xl">
+                  <h3 className="text-xs sm:text-sm font-bold text-amber-300 uppercase tracking-wider mb-3 flex items-center gap-2">
                     <span>✨</span> ಗೋಕರ್ಣ ವೇದಜ್ಞರ AI ದಿವ್ಯ ಸಂದೇಶ & ಜೀವನ ರಹಸ್ಯ
                   </h3>
-                  <p className="text-sm text-amber-100/90 leading-relaxed whitespace-pre-line">
+                  <p className="text-xs sm:text-sm text-amber-100/90 leading-relaxed whitespace-pre-line">
                     {result.aiNarrative}
                   </p>
                 </Card>
@@ -485,9 +495,194 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
             </div>
           )}
 
-          {/* TAB CONTENT: Cosmic Matrix & Graha Placements */}
+          {/* TAB 2: Live Daily Transit Energy */}
+          {activeTab === "transit" && (
+            <div className="space-y-5">
+              <Card className="p-6 bg-gradient-to-br from-amber-50 via-white to-amber-50/40 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 border border-amber-200 dark:border-amber-900/40 rounded-3xl">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-amber-100 dark:border-slate-700 pb-4 mb-4">
+                  <div>
+                    <span className="text-xs font-bold uppercase tracking-wider text-amber-800 dark:text-amber-400">
+                      ಇಂದಿನ ಲೈವ್ ಗೋಚಾರ ಶಕ್ತಿ (Real-Time Planetary Pulse)
+                    </span>
+                    <h2 className="text-base sm:text-lg font-extrabold text-amber-950 dark:text-amber-200 mt-1">
+                      ದೈನಂದಿನ ಪ್ರಾಣಶಕ್ತಿ & ಗೋಚಾರ ತರಂಗ
+                    </h2>
+                  </div>
+                  <div className="flex items-center gap-3 bg-amber-500/10 dark:bg-amber-400/10 px-4 py-2 rounded-2xl border border-amber-500/30">
+                    <span className="text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400">
+                      {result.liveTransit.pranaScore}%
+                    </span>
+                    <span className="text-[10px] uppercase font-bold text-amber-800 dark:text-amber-300 leading-tight">
+                      ಇಂದಿನ ಪ್ರಾಣಶಕ್ತಿ ಸ್ಕೋರ್
+                    </span>
+                  </div>
+                </div>
+                <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
+                  {result.liveTransit.currentTransitSummary}
+                </p>
+                <div className="mt-4 p-3 bg-amber-100/60 dark:bg-slate-800 rounded-2xl border border-amber-200 text-xs font-bold text-amber-900 dark:text-amber-300">
+                  ⏳ ಇಂದಿನ ಅತ್ಯುನ್ನತ ಶುಭ ಕಾಲಾವಧಿ (Peak Hour Window): {result.liveTransit.peakHourWindow}
+                </div>
+              </Card>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                <Card className="p-5 sm:p-6 bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/30 rounded-3xl">
+                  <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 mb-3">
+                    ✓ ಇಂದು ಕೈಗೊಳ್ಳಲು ಅತ್ಯುತ್ತಮವಾದ ಕಾರ್ಯಗಳು
+                  </h3>
+                  <ul className="space-y-2 text-xs sm:text-sm text-emerald-950 dark:text-emerald-200">
+                    {result.liveTransit.favorableActivities.map((act, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <span className="text-emerald-500 font-bold">•</span>
+                        <span>{act}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </Card>
+
+                <Card className="p-5 sm:p-6 bg-rose-50/60 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/30 rounded-3xl">
+                  <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-rose-700 dark:text-rose-400 mb-3">
+                    ⚠️ ಇಂದು ಎಚ್ಚರಿಕೆಯಿಂದ ಇರಬೇಕಾದ ವಿಷಯಗಳು
+                  </h3>
+                  <ul className="space-y-2 text-xs sm:text-sm text-rose-950 dark:text-rose-200">
+                    {result.liveTransit.cautionActivities.map((act, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <span className="text-rose-500 font-bold">•</span>
+                        <span>{act}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </Card>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: Karmic Soul Mission */}
+          {activeTab === "karmic" && (
+            <Card className="p-6 bg-white dark:bg-slate-900 border border-amber-200 dark:border-slate-800 rounded-3xl space-y-5">
+              <div>
+                <span className="text-xs font-bold uppercase tracking-wider text-amber-800 dark:text-amber-400">
+                  ರಾಹು-ಕೇತು ಅಕ್ಷ ರಹಸ್ಯ & ಆತ್ಮ ಸಂಕಲ್ಪ
+                </span>
+                <h3 className="text-base sm:text-lg font-extrabold text-amber-950 dark:text-amber-200 mt-1">
+                  💎 ಜನ್ಮಾಂತರ ಸಂಸ್ಕಾರ & ಕರ್ಮ ಮುಕ್ತಿ ಮಾರ್ಗ
+                </h3>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-4 bg-amber-50/70 dark:bg-slate-800 rounded-2xl border border-amber-200/60">
+                  <span className="text-xs font-bold text-amber-800 dark:text-amber-400">ಆತ್ಮದ ಪ್ರಮುಖ ಗುರಿ (Soul Mission):</span>
+                  <p className="text-xs sm:text-sm text-slate-800 dark:text-slate-200 mt-1 font-medium leading-relaxed">
+                    {result.karmicMission.soulPurpose}
+                  </p>
+                </div>
+                <div className="p-4 bg-amber-50/70 dark:bg-slate-800 rounded-2xl border border-amber-200/60">
+                  <span className="text-xs font-bold text-amber-800 dark:text-amber-400">ಹಿಂದಿನ ಜನ್ಮದ ವರಗಳು (Past Life Gifts):</span>
+                  <p className="text-xs sm:text-sm text-slate-800 dark:text-slate-200 mt-1 font-medium leading-relaxed">
+                    {result.karmicMission.pastLifeGifts}
+                  </p>
+                </div>
+                <div className="p-4 bg-rose-50/70 dark:bg-rose-950/20 rounded-2xl border border-rose-200/60">
+                  <span className="text-xs font-bold text-rose-700 dark:text-rose-400">ಕರ್ಮ ಪಾಠ (Karmic Lesson to Clear):</span>
+                  <p className="text-xs sm:text-sm text-rose-950 dark:text-rose-200 mt-1 font-medium leading-relaxed">
+                    {result.karmicMission.karmicLesson}
+                  </p>
+                </div>
+                <div className="p-4 bg-emerald-50/70 dark:bg-emerald-950/20 rounded-2xl border border-emerald-200/60">
+                  <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400">ಗೋಕರ್ಣ ಕರ್ಮ ಮುಕ್ತಿ ಪರಿಹಾರ:</span>
+                  <p className="text-xs sm:text-sm text-emerald-950 dark:text-emerald-200 mt-1 font-medium leading-relaxed">
+                    {result.karmicMission.ancestralClearingRemedy}
+                  </p>
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {/* TAB 4: 10-Year Epoch Milestones */}
+          {activeTab === "decades" && (
+            <Card className="p-6 bg-white dark:bg-slate-900 border border-amber-200 dark:border-slate-800 rounded-3xl space-y-5">
+              <div>
+                <span className="text-xs font-bold uppercase tracking-wider text-amber-800 dark:text-amber-400">
+                  ಜೀವನ ಪಯಣದ ಮಹಾ ಕಾಲಚಕ್ರ (Life Trajectory Epochs)
+                </span>
+                <h3 className="text-base sm:text-lg font-extrabold text-amber-950 dark:text-amber-200 mt-1">
+                  🎯 ಪ್ರಮುಖ ೧೦-ವರ್ಷಗಳ ಯುಗ ಹಂತಗಳು & ಮಾರ್ಗದರ್ಶನ
+                </h3>
+              </div>
+
+              <div className="space-y-3">
+                {result.decadeMilestones.map((m, idx) => (
+                  <div key={idx} className="p-4 bg-amber-50/50 dark:bg-slate-800/60 rounded-2xl border border-amber-200/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-200/80 dark:bg-amber-900/60 text-amber-900 dark:text-amber-200">
+                          {m.ageRange} ({m.years})
+                        </span>
+                        <span className="text-xs font-bold text-amber-800 dark:text-amber-400">{m.rulingPhase}</span>
+                      </div>
+                      <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-medium">
+                        {m.theme}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-3 py-1.5 rounded-xl border border-amber-200/50 self-start sm:self-center">
+                      <span className="text-xs font-bold text-amber-600 dark:text-amber-400">{m.vitalityScore}% ದೈವಬಲ</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
+
+          {/* TAB 5: Numerology & Name Secrets */}
+          {activeTab === "sankhya" && (
+            <Card className="p-6 bg-white dark:bg-slate-900 border border-amber-200 dark:border-slate-800 rounded-3xl space-y-5">
+              <div>
+                <span className="text-xs font-bold uppercase tracking-wider text-amber-800 dark:text-amber-400">
+                  ಸಾಂಖ್ಯಿಕ ತತ್ವ & ನಾಮ ಕಂಪನ ಶಾಸ್ತ್ರ (Vedic Numerology)
+                </span>
+                <h3 className="text-base sm:text-lg font-extrabold text-amber-950 dark:text-amber-200 mt-1">
+                  🔢 ಮೂಲಾಂಕ, ಭಾಗ್ಯಾಂಕ, ನಾಮಾಂಕ & ಸಂಪತ್ತು ಆಕರ್ಷಣೆ
+                </h3>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+                <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-2xl border border-amber-200/60">
+                  <div className="text-[11px] font-bold text-slate-500">ಮೂಲಾಂಕ (Ruling)</div>
+                  <div className="text-2xl sm:text-3xl font-black text-amber-600 mt-1">{result.sankhya.mulank}</div>
+                  <div className="text-[10px] text-amber-800 dark:text-amber-400 mt-0.5">{result.sankhya.mulankLord}</div>
+                </div>
+                <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-2xl border border-amber-200/60">
+                  <div className="text-[11px] font-bold text-slate-500">ಭಾಗ್ಯಾಂಕ (Destiny)</div>
+                  <div className="text-2xl sm:text-3xl font-black text-amber-600 mt-1">{result.sankhya.bhagyank}</div>
+                  <div className="text-[10px] text-amber-800 dark:text-amber-400 mt-0.5">{result.sankhya.bhagyankLord}</div>
+                </div>
+                <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-2xl border border-amber-200/60">
+                  <div className="text-[11px] font-bold text-slate-500">ನಾಮಾಂಕ (Name No.)</div>
+                  <div className="text-2xl sm:text-3xl font-black text-amber-600 mt-1">{result.sankhya.namank}</div>
+                  <div className="text-[10px] text-slate-500 mt-0.5">ಸಾಮಾಜಿಕ ಕಂಪನ</div>
+                </div>
+                <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-2xl border border-amber-200/60">
+                  <div className="text-[11px] font-bold text-slate-500">ಆತ್ಮ ಕಂಪನ (Soul Urge)</div>
+                  <div className="text-2xl sm:text-3xl font-black text-amber-600 mt-1">{result.sankhya.soulUrge}</div>
+                  <div className="text-[10px] text-slate-500 mt-0.5">ಅಂತರಂಗದ ತುಡಿತ</div>
+                </div>
+              </div>
+
+              <div className="p-4 bg-amber-50/60 dark:bg-slate-800 rounded-2xl border border-amber-200/60 space-y-2">
+                <span className="text-xs font-bold text-amber-800 dark:text-amber-400">💰 ಸಂಪತ್ತು ಆಕರ್ಷಣೆಯ ಗುಪ್ತ ರಹಸ್ಯ:</span>
+                <p className="text-xs sm:text-sm text-slate-800 dark:text-slate-200 leading-relaxed font-medium">
+                  {result.sankhya.wealthAttractionSecret}
+                </p>
+                <div className="pt-2 text-xs text-amber-900 dark:text-amber-300 font-bold">
+                  🤝 ಹೊಂದಾಣಿಕೆಯಾಗುವ ಶುಭ ಸಂಖ್ಯೆಗಳು: {result.sankhya.harmoniousNumbers.join(", ")}
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {/* TAB 6: Cosmic Matrix & Chart */}
           {activeTab === "matrix" && (
-            <Card className="p-6 bg-white dark:bg-slate-900 border border-amber-200 dark:border-slate-800 rounded-2xl">
+            <Card className="p-6 bg-white dark:bg-slate-900 border border-amber-200 dark:border-slate-800 rounded-3xl">
               <h3 className="text-base font-bold text-amber-900 dark:text-amber-300 mb-4">
                 🌌 ಸೌರ ಬಿಂಬ ಗ್ರಹ ಮಂಡಲ (Solar Epoch Planetary Alignment)
               </h3>
@@ -526,9 +721,9 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
             </Card>
           )}
 
-          {/* TAB CONTENT: Samudrika & Body Signs */}
+          {/* TAB 7: Samudrika & Body Signs */}
           {activeTab === "samudrika" && (
-            <Card className="p-6 bg-white dark:bg-slate-900 border border-amber-200 dark:border-slate-800 rounded-2xl space-y-6">
+            <Card className="p-6 bg-white dark:bg-slate-900 border border-amber-200 dark:border-slate-800 rounded-3xl space-y-6">
               <div>
                 <h3 className="text-base font-bold text-amber-900 dark:text-amber-300 mb-1">
                   ✋ ಸಾಮುದ್ರಿಕ ಅಂಗ ಲಕ್ಷಣ ಪ್ರಕೃತಿ
@@ -539,90 +734,69 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-xl border border-amber-200/50">
+                <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-2xl border border-amber-200/50">
                   <span className="text-xs text-slate-500">ಪ್ರಧಾನ ಗ್ರಹ:</span>
                   <div className="text-base font-bold text-amber-900 dark:text-amber-200 mt-1">{result.samudrika.dominantPlanet}</div>
                 </div>
-                <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-xl border border-amber-200/50">
+                <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-2xl border border-amber-200/50">
                   <span className="text-xs text-slate-500">ವ್ಯಕ್ತಿತ್ವ ತತ್ವ:</span>
                   <div className="text-base font-bold text-amber-900 dark:text-amber-200 mt-1">{result.samudrika.personalityArchetype}</div>
                 </div>
-                <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-xl border border-amber-200/50">
+                <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-2xl border border-amber-200/50">
                   <span className="text-xs text-slate-500">ಅಂತರ್ಗತ ಶಕ್ತಿ:</span>
                   <div className="text-sm font-bold text-amber-900 dark:text-amber-200 mt-1">{result.samudrika.hiddenSuperpower}</div>
                 </div>
               </div>
 
-              {/* Elemental Gauges */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-                <div className="p-4 bg-rose-50 dark:bg-rose-950/20 rounded-xl border border-rose-200">
-                  <div className="text-rose-600 font-bold text-xs">🔥 ಅಗ್ನಿ ತತ್ವ (Fire)</div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+                <div className="p-4 bg-rose-50 dark:bg-rose-950/20 rounded-2xl border border-rose-200">
+                  <div className="text-rose-600 font-bold text-xs">🔥 ಅಗ್ನಿ ತತ್ವ</div>
                   <div className="text-2xl font-black text-rose-700 mt-1">{result.samudrika.elementalComposition.fire}%</div>
                 </div>
-                <div className="p-4 bg-amber-50 dark:bg-amber-950/20 rounded-xl border border-amber-200">
-                  <div className="text-amber-600 font-bold text-xs">⛰️ ಪೃಥ್ವಿ ತತ್ವ (Earth)</div>
+                <div className="p-4 bg-amber-50 dark:bg-amber-950/20 rounded-2xl border border-amber-200">
+                  <div className="text-amber-600 font-bold text-xs">⛰️ ಪೃಥ್ವಿ ತತ್ವ</div>
                   <div className="text-2xl font-black text-amber-700 mt-1">{result.samudrika.elementalComposition.earth}%</div>
                 </div>
-                <div className="p-4 bg-emerald-50 dark:bg-emerald-950/20 rounded-xl border border-emerald-200">
-                  <div className="text-emerald-600 font-bold text-xs">💨 ವಾಯು ತತ್ವ (Air)</div>
+                <div className="p-4 bg-emerald-50 dark:bg-emerald-950/20 rounded-2xl border border-emerald-200">
+                  <div className="text-emerald-600 font-bold text-xs">💨 ವಾಯು ತತ್ವ</div>
                   <div className="text-2xl font-black text-emerald-700 mt-1">{result.samudrika.elementalComposition.air}%</div>
                 </div>
-                <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-xl border border-blue-200">
-                  <div className="text-blue-600 font-bold text-xs">🌊 ಜಲ ತತ್ವ (Water)</div>
+                <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-2xl border border-blue-200">
+                  <div className="text-blue-600 font-bold text-xs">🌊 ಜಲ ತತ್ವ</div>
                   <div className="text-2xl font-black text-blue-700 mt-1">{result.samudrika.elementalComposition.water}%</div>
                 </div>
               </div>
             </Card>
           )}
 
-          {/* TAB CONTENT: Instant Prashna Oracle */}
-          {activeTab === "prashna" && (
-            <Card className="p-6 bg-white dark:bg-slate-900 border border-amber-200 dark:border-slate-800 rounded-2xl space-y-4">
-              <div className="flex items-center justify-between border-b border-amber-100 dark:border-slate-800 pb-3">
-                <h3 className="text-base font-bold text-amber-900 dark:text-amber-300">
-                  🔮 ತತ್ಕ್ಷಣದ ಬ್ರಹ್ಮಾಂಡ ಪ್ರಶ್ನ ಫಲ (Horary Oracle)
-                </h3>
-                <span className="text-xs bg-amber-100 text-amber-800 px-3 py-1 rounded-full font-bold">
-                  {result.prashnaOracle.prashnaLagna} Lagna
-                </span>
-              </div>
-              <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
-                {result.prashnaOracle.directAnswer}
-              </p>
-              <div className="p-3 bg-amber-50 dark:bg-slate-800 rounded-xl text-xs font-bold text-amber-900 dark:text-amber-300">
-                ⏳ ನಿರೀಕ್ಷಿತ ಕಾಲಾವಧಿ: {result.prashnaOracle.timelineEstimate}
-              </div>
-            </Card>
-          )}
-
-          {/* TAB CONTENT: Daily Remedies */}
+          {/* TAB 8: Remedies & Gokarna Sanjeevini */}
           {activeTab === "remedies" && (
-            <Card className="p-6 bg-white dark:bg-slate-900 border border-amber-200 dark:border-slate-800 rounded-2xl space-y-6">
+            <Card className="p-6 bg-white dark:bg-slate-900 border border-amber-200 dark:border-slate-800 rounded-3xl space-y-6">
               <h3 className="text-base font-bold text-amber-900 dark:text-amber-300">
                 🪔 ದೈನಂದಿನ ಸಂಜೀವಿನಿ ರಕ್ಷಾ ಸೂತ್ರಗಳು & ಗೋಕರ್ಣ ಆಶೀರ್ವಾದ
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs sm:text-sm">
-                <div className="p-3 bg-amber-50/60 dark:bg-slate-800 rounded-xl">
+                <div className="p-3 bg-amber-50/60 dark:bg-slate-800 rounded-2xl">
                   <span className="text-slate-500">ದೈನಂದಿನ ಸ್ತೋತ್ರ:</span>
                   <div className="font-bold text-amber-900 dark:text-amber-200 mt-1">{result.remedies.dailyStotra}</div>
                 </div>
-                <div className="p-3 bg-amber-50/60 dark:bg-slate-800 rounded-xl">
+                <div className="p-3 bg-amber-50/60 dark:bg-slate-800 rounded-2xl">
                   <span className="text-slate-500">ಶುಭ ದಿನಗಳು:</span>
                   <div className="font-bold text-amber-900 dark:text-amber-200 mt-1">{result.remedies.luckyDays.join(", ")}</div>
                 </div>
-                <div className="p-3 bg-amber-50/60 dark:bg-slate-800 rounded-xl">
+                <div className="p-3 bg-amber-50/60 dark:bg-slate-800 rounded-2xl">
                   <span className="text-slate-500">ಶುಭ ವರ್ಣಗಳು:</span>
                   <div className="font-bold text-amber-900 dark:text-amber-200 mt-1">{result.remedies.luckyColors.join(", ")}</div>
                 </div>
-                <div className="p-3 bg-amber-50/60 dark:bg-slate-800 rounded-xl">
+                <div className="p-3 bg-amber-50/60 dark:bg-slate-800 rounded-2xl">
                   <span className="text-slate-500">ಶುಭ ಸಂಖ್ಯೆಗಳು:</span>
                   <div className="font-bold text-amber-900 dark:text-amber-200 mt-1">{result.remedies.luckyNumbers.join(", ")}</div>
                 </div>
-                <div className="sm:col-span-2 p-3 bg-amber-50/60 dark:bg-slate-800 rounded-xl">
+                <div className="sm:col-span-2 p-3 bg-amber-50/60 dark:bg-slate-800 rounded-2xl">
                   <span className="text-slate-500">ರತ್ನ / ರುದ್ರಾಕ್ಷಿ ಶಿಫಾರಸು:</span>
                   <div className="font-bold text-amber-900 dark:text-amber-200 mt-1">{result.remedies.gemstoneRecommendation}</div>
                 </div>
-                <div className="sm:col-span-2 p-3 bg-amber-50/60 dark:bg-slate-800 rounded-xl">
+                <div className="sm:col-span-2 p-3 bg-amber-50/60 dark:bg-slate-800 rounded-2xl">
                   <span className="text-slate-500">ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಪರಿಹಾರ:</span>
                   <div className="font-bold text-amber-900 dark:text-amber-200 mt-1">{result.remedies.sacredGokarnaRemedy}</div>
                 </div>

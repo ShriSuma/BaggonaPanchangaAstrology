@@ -11,10 +11,10 @@ export interface KaalaDiksuchiInput {
   gender?: "Male" | "Female" | "Other";
   pincode?: string;
   placeLabel?: string;
-  foreheadShape: SamudrikaForehead;
-  eyeRadiance: SamudrikaEyes;
-  handElement: SamudrikaElement;
-  primaryFocus: LifeDomainFocus;
+  foreheadShape?: SamudrikaForehead;
+  eyeRadiance?: SamudrikaEyes;
+  handElement?: SamudrikaElement;
+  primaryFocus?: LifeDomainFocus;
   customQuestion?: string;
   lang: KaalaDiksuchiLang;
 }
@@ -71,6 +71,44 @@ export interface RemedialPrescription {
   priestCounselingTip: string;
 }
 
+export interface LiveDailyTransitEnergy {
+  pranaScore: number; // 0-100%
+  peakHourWindow: string;
+  favorableActivities: string[];
+  cautionActivities: string[];
+  currentTransitSummary: string;
+  chandraGocharaImpact: string;
+}
+
+export interface KarmicSoulMission {
+  rahuKetuAxis: string;
+  soulPurpose: string;
+  pastLifeGifts: string;
+  karmicLesson: string;
+  ancestralClearingRemedy: string;
+}
+
+export interface DecadeMilestone {
+  ageRange: string;
+  years: string;
+  rulingPhase: string;
+  theme: string;
+  vitalityScore: number;
+  keyGuidance: string;
+}
+
+export interface SankhyaDeepAnalysis {
+  mulank: number;
+  mulankLord: string;
+  bhagyank: number;
+  bhagyankLord: string;
+  namank: number;
+  soulUrge: number;
+  harmoniousNumbers: number[];
+  wealthAttractionSecret: string;
+  careerArchetype: string;
+}
+
 export interface KaalaDiksuchiResult {
   input: KaalaDiksuchiInput;
   calculatedAt: string;
@@ -84,6 +122,10 @@ export interface KaalaDiksuchiResult {
   planets: PlanetaryPositionSummary[];
   modernWorld: ModernWorldAlignment;
   samudrika: SamudrikaProfile;
+  sankhya: SankhyaDeepAnalysis;
+  liveTransit: LiveDailyTransitEnergy;
+  karmicMission: KarmicSoulMission;
+  decadeMilestones: DecadeMilestone[];
   prashnaOracle: PrashnaOracleResult;
   remedies: RemedialPrescription;
   aiNarrative?: string;
