@@ -73,7 +73,7 @@ const pageStyle: React.CSSProperties = {
   backgroundColor: PAPER,
   boxSizing: "border-box",
   padding: "38px 42px",
-  fontFamily: "'Noto Sans', 'Nirmala UI', 'Segoe UI', system-ui, sans-serif",
+  fontFamily: "'Noto Sans Kannada', 'Noto Sans Devanagari', 'Noto Sans Telugu', 'Noto Sans Tamil', 'Noto Sans', 'Nirmala UI', 'Segoe UI', system-ui, sans-serif",
   color: INK,
   position: "relative",
   lineHeight: 1.8,
@@ -1267,22 +1267,41 @@ export const SevaAnugrahaGuidancePrint = ({
                   {rule.isMantraCard ? (
                     <>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 3 }}>
-                        <div style={{ fontSize: 11.5, fontWeight: 700, color: INK, lineHeight: 1.3 }}>
+                        <div style={{ fontSize: 11.5, fontWeight: 700, color: INK, lineHeight: 1.3, letterSpacing: "normal" }}>
                           {pick(rule.title, lang)}
                         </div>
-                        <span style={{ fontSize: 9.5, color: GOLD, fontWeight: 700, lineHeight: 1.3 }}>
+                        <span style={{ fontSize: 9.5, color: GOLD, fontWeight: 700, lineHeight: 1.3, letterSpacing: "normal" }}>
                           ★ {nakNameStr}
                         </span>
                       </div>
-                      <div style={{ margin: "2px 0 3px" }}>
-                        <div style={{ fontSize: 11.5, fontWeight: 700, color: "#B45309", letterSpacing: 0.3, lineHeight: 1.4 }}>
+                      <div style={{ margin: "3px 0 4px" }}>
+                        <div
+                          style={{
+                            fontSize: 12,
+                            fontWeight: 700,
+                            color: "#B45309",
+                            letterSpacing: "normal",
+                            wordSpacing: "1px",
+                            lineHeight: 1.5,
+                            fontFamily: "'Noto Sans Kannada', 'Noto Sans Devanagari', 'Noto Sans Telugu', 'Noto Sans Tamil', 'Noto Sans', sans-serif"
+                          }}
+                        >
                           {mantraStr}
                         </div>
-                        <div style={{ fontSize: 9, color: INK_SOFT, fontWeight: 600, marginTop: 1, lineHeight: 1.35 }}>
+                        <div
+                          style={{
+                            fontSize: 9,
+                            color: INK_SOFT,
+                            fontWeight: 600,
+                            marginTop: 2,
+                            lineHeight: 1.4,
+                            letterSpacing: "normal"
+                          }}
+                        >
                           {deityNameStr} · {japaCountStr}
                         </div>
                       </div>
-                      <div style={{ fontSize: 9.5, color: INK_SOFT, lineHeight: 1.5 }}>
+                      <div style={{ fontSize: 9.5, color: INK_SOFT, lineHeight: 1.5, letterSpacing: "normal" }}>
                         {benefitStr}
                       </div>
                     </>

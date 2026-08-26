@@ -1046,7 +1046,7 @@ export const NAKSHATRA_MANTRAS_L5: Record<number, NakshatraMantraInfo> = {
     mantra: {
       kn: "॥ ॐ ಇಂದ್ರಾಯ ನಮಃ ॥",
       hi: "॥ ॐ इंद्राय नमः ॥",
-      te: "॥ ఓం ఇంద్రాయ నಮಃ ॥",
+      te: "॥ ఓం ఇంద్రాయ నమః ॥",
       ta: "॥ ஓம் இந்திராய நமஹ ॥",
       en: "॥ Om Indraya Namah ॥"
     },
@@ -1065,7 +1065,7 @@ export const NAKSHATRA_MANTRAS_L5: Record<number, NakshatraMantraInfo> = {
     mantra: {
       kn: "॥ ॐ ನಿರೃತಯೇ ನಮಃ ॥",
       hi: "॥ ॐ निरृतये नमः ॥",
-      te: "॥ ఓం నిరృతయే నಮಃ ॥",
+      te: "॥ ఓం నిరృతయే నమః ॥",
       ta: "॥ ஓம் நிருருதயே நமஹ ॥",
       en: "॥ Om Nirritaye Namah ॥"
     },
@@ -1084,7 +1084,7 @@ export const NAKSHATRA_MANTRAS_L5: Record<number, NakshatraMantraInfo> = {
     mantra: {
       kn: "॥ ॐ ಅದ್ಭ್ಯೋ ನಮಃ ॥",
       hi: "॥ ॐ अद्भ्यो नमः ॥",
-      te: "॥ ఓం అద్భ్యో నಮಃ ॥",
+      te: "॥ ఓం అద్భ్యో నమః ॥",
       ta: "॥ ஓம் அத்ப்யோ நமஹ ॥",
       en: "॥ Om Adbhyo Namah ॥"
     },
@@ -1103,7 +1103,7 @@ export const NAKSHATRA_MANTRAS_L5: Record<number, NakshatraMantraInfo> = {
     mantra: {
       kn: "॥ ॐ ವಿಶ್ವೇದೇವೇಭ್ಯೋ ನಮಃ ॥",
       hi: "॥ ॐ विश्वेदेवेभ्यो नमः ॥",
-      te: "॥ ఓం విశ్వేదేవేభ్యో నಮಃ ॥",
+      te: "॥ ఓం విశ్వేదేవేభ్యో నమః ॥",
       ta: "॥ ஓம் விஸ்வேதேவேப்யோ நமஹ ॥",
       en: "॥ Om Vishwadevebhyo Namah ॥"
     },
@@ -1122,7 +1122,7 @@ export const NAKSHATRA_MANTRAS_L5: Record<number, NakshatraMantraInfo> = {
     mantra: {
       kn: "॥ ॐ ವಿಷ್ಣವೇ ನಮಃ ॥",
       hi: "॥ ॐ विष्णवे नमः ॥",
-      te: "॥ ఓం విష్ణవే నಮಃ ॥",
+      te: "॥ ఓం విష్ణవే నమః ॥",
       ta: "॥ ஓம் விஷ்ணவே நமஹ ॥",
       en: "॥ Om Vishnave Namah ॥"
     },
@@ -1141,7 +1141,7 @@ export const NAKSHATRA_MANTRAS_L5: Record<number, NakshatraMantraInfo> = {
     mantra: {
       kn: "॥ ॐ ವಸುಭ್ಯೋ ನಮಃ ॥",
       hi: "॥ ॐ वसुभ्यो नमः ॥",
-      te: "॥ ఓం వసుభ్యో నಮಃ ॥",
+      te: "॥ ఓం వసుభ్యో నమః ॥",
       ta: "॥ ஓம் வசுப்யோ நமஹ ॥",
       en: "॥ Om Vasubhyo Namah ॥"
     },
@@ -1160,7 +1160,7 @@ export const NAKSHATRA_MANTRAS_L5: Record<number, NakshatraMantraInfo> = {
     mantra: {
       kn: "॥ ॐ ವರುಣಾಯ ನಮಃ ॥",
       hi: "॥ ॐ वरुणाय नमः ॥",
-      te: "॥ ఓం వరుణಾಯ నಮಃ ॥",
+      te: "॥ ఓం వరుణಾಯ నమః ॥",
       ta: "॥ ஓம் வருணாய நமஹ ॥",
       en: "॥ Om Varunaya Namah ॥"
     },
@@ -1179,7 +1179,7 @@ export const NAKSHATRA_MANTRAS_L5: Record<number, NakshatraMantraInfo> = {
     mantra: {
       kn: "॥ ॐ ಅಜೈಕಪಾದಾಯ ನಮಃ ॥",
       hi: "॥ ॐ अजैकपादाय नमः ॥",
-      te: "॥ ఓం అజైకపాదాయ నಮಃ ॥",
+      te: "॥ ఓం అజైకపాదాయ నమః ॥",
       ta: "॥ ஓம் அஜைகபாதாய நமஹ ॥",
       en: "॥ Om Aja Ekapadaya Namah ॥"
     },
@@ -1198,7 +1198,7 @@ export const NAKSHATRA_MANTRAS_L5: Record<number, NakshatraMantraInfo> = {
     mantra: {
       kn: "॥ ॐ ಅಹಿರ್ಬುಧ್ನ್ಯಾಯ ನಮಃ ॥",
       hi: "॥ ॐ अहिर्बुध्न्याय नमः ॥",
-      te: "॥ ఓం అహిర్బుధ్న్యాయ నಮಃ ॥",
+      te: "॥ ఓం అహిర్బుధ్న్యాయ నమః ॥",
       ta: "॥ ஓம் அஹிர்புத்ன்யாய நமஹ ॥",
       en: "॥ Om Ahirbudhnyaya Namah ॥"
     },
