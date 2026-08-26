@@ -20,6 +20,10 @@ import {
   type ItemNumerologyResult,
   type LuckyNameSuggestion
 } from "../features/sankhyashastra/sankhyaNumerologyUtils";
+import {
+  fetchAIEnhancedNameCorrections,
+  type NameCorrectionSuggestion
+} from "../features/sankhyashastra/nameCorrectionEngine";
 import { LoveMarriageMatchTab } from "../components/sankhyashastra/LoveMarriageMatchTab";
 import { BoysNumerologyTab } from "../components/sankhyashastra/BoysNumerologyTab";
 import { GirlsNumerologyTab } from "../components/sankhyashastra/GirlsNumerologyTab";
@@ -68,6 +72,9 @@ export default function SankhyaShastraPage(): JSX.Element {
   // ----------------------------------------------------------------------
   const [nameInput, setNameInput] = useState<string>(session?.input?.name || "Shreeram Pandit");
   const [nameTargetNumber, setNameTargetNumber] = useState<number>(5);
+  const [isAiValidatingName, setIsAiValidatingName] = useState<boolean>(false);
+  const [aiNameSuggestions, setAiNameSuggestions] = useState<NameCorrectionSuggestion[] | null>(null);
+  const [copiedName, setCopiedName] = useState<string | null>(null);
 
   // ----------------------------------------------------------------------
   // TAB 6: PHONE / VEHICLE / HOUSE CALCULATOR STATES
@@ -216,6 +223,33 @@ export default function SankhyaShastraPage(): JSX.Element {
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  // AI Name Tuning Handler
+  const handleFetchAiNameCorrections = async () => {
+    if (!nameInput.trim()) return;
+    setIsAiValidatingName(true);
+    try {
+      const results = await fetchAIEnhancedNameCorrections(
+        nameInput,
+        nameTargetNumber,
+        selectedLang,
+        geminiApiKey
+      );
+      setAiNameSuggestions(results);
+    } catch (err) {
+      console.error("AI Name correction failed:", err);
+    } finally {
+      setIsAiValidatingName(false);
+    }
+  };
+
+  const handleCopyName = (nameToCopy: string) => {
+    navigator.clipboard.writeText(nameToCopy);
+    setCopiedName(nameToCopy);
+    setTimeout(() => {
+      setCopiedName(null);
+    }, 2000);
   };
 
   // Download PDF Report
@@ -683,7 +717,10 @@ export default function SankhyaShastraPage(): JSX.Element {
                 <input
                   type="text"
                   value={nameInput}
-                  onChange={(e) => setNameInput(e.target.value)}
+                  onChange={(e) => {
+                    setNameInput(e.target.value);
+                    setAiNameSuggestions(null);
+                  }}
                   placeholder="e.g. Shreeram Pandit"
                   className="w-full rounded-xl border border-amber-300 bg-amber-50/40 px-4 py-2.5 text-sm font-bold text-amber-950 shadow-inner focus:border-amber-600 focus:outline-none"
                 />
@@ -695,7 +732,10 @@ export default function SankhyaShastraPage(): JSX.Element {
                 </label>
                 <select
                   value={nameTargetNumber}
-                  onChange={(e) => setNameTargetNumber(Number(e.target.value))}
+                  onChange={(e) => {
+                    setNameTargetNumber(Number(e.target.value));
+                    setAiNameSuggestions(null);
+                  }}
                   className="w-full rounded-xl border border-amber-300 bg-amber-50/40 px-4 py-2.5 text-sm font-bold text-amber-950 shadow-inner focus:border-amber-600 focus:outline-none"
                 >
                   <option value={5}>5 - ಬುಧ (ವ್ಯಾಪಾರ, ಬುದ್ಧಿಶಕ್ತಿ & ಯಶಸ್ಸು - Highly Recommended)</option>
@@ -739,41 +779,139 @@ export default function SankhyaShastraPage(): JSX.Element {
               </div>
             </div>
 
-            {/* Lucky Spelling Variations Generator */}
-            <div className="rounded-2xl border border-emerald-300 bg-emerald-50/50 p-4 space-y-3">
+            {/* AI Vedic Name Validation Action Bar */}
+            <div className="rounded-2xl border border-amber-400/80 bg-gradient-to-r from-amber-500/15 via-orange-100/70 to-amber-500/15 p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm">
+              <div className="space-y-0.5 text-center sm:text-left">
+                <div className="text-xs font-bold text-amber-950 flex items-center justify-center sm:justify-start gap-1.5">
+                  <span>🤖</span>
+                  <span>{isKn ? "ಜೆಮಿನಿ AI ಭಾರತೀಯ ಹೆಸರು & ಅಕ್ಷರ ಸ್ಥಳ ಪ್ರಮಾಣೀಕರಣ" : "GenAI Indian Name & Letter Placement Validation"}</span>
+                </div>
+                <div className="text-[11px] text-amber-900/80">
+                  {isKn
+                    ? "ವಿಕೃತ ಅಕ್ಷರಗಳಿಲ್ಲದೆ, ಶಾಸ್ತ್ರೋಕ್ತ ಭಾರತೀಯ ಉಚ್ಚಾರಣೆ ಹಾಗೂ ಅಕ್ಷರ ಬದಲಾವಣೆ ಸ್ಥಳದ ನಿಖರ ವಿವರ."
+                    : "Validates 100% authentic Indian phonetics with exact letter change locations and zero odd spellings."}
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleFetchAiNameCorrections}
+                disabled={isAiValidatingName || !nameInput.trim()}
+                className="w-full sm:w-auto shrink-0 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-700 via-amber-800 to-amber-900 px-5 py-2.5 text-xs font-bold text-amber-50 shadow-md transition hover:from-amber-800 hover:to-amber-950 disabled:opacity-50"
+              >
+                {isAiValidatingName ? (
+                  <>
+                    <span className="animate-spin text-sm">⏳</span>
+                    <span>{isKn ? "AI ಪರಿಶೀಲನೆ ನಡೆಯುತ್ತಿದೆ..." : "AI Validating Indian Names..."}</span>
+                  </>
+                ) : (
+                  <>
+                    <span>🔮</span>
+                    <span>{isKn ? "AI ಮೂಲಕ ಪರಿಶೀಲಿಸಿ (AI Validate & Tune)" : "AI Validate & Generate"}</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Lucky Spelling Variations Cards */}
+            <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <h4 className="font-serif text-xs font-bold uppercase tracking-wider text-emerald-950 flex items-center gap-1.5">
+                <h4 className="font-serif text-xs font-bold uppercase tracking-wider text-amber-950 flex items-center gap-1.5">
                   <span>✨</span>
-                  <span>{isKn ? `ಅದೃಷ್ಟ ಸಂಖ್ಯೆ ${nameTargetNumber} ಕ್ಕೆ ತಕ್ಕಂತೆ ಹೆಸರಿನ ಪರಿಷ್ಕರಣೆ ಸಲಹೆಗಳು:` : `Suggested Lucky Spelling Variations for ${nameTargetNumber}:`}</span>
+                  <span>
+                    {aiNameSuggestions && aiNameSuggestions.length > 0
+                      ? (isKn ? `🤖 AI ಪ್ರಮಾಣೀಕೃತ ಭಾರತೀಯ ಅದೃಷ್ಟ ಹೆಸರುಗಳು (ಗುರಿ: ${nameTargetNumber}):` : `🤖 AI Validated Indian Lucky Names for Root ${nameTargetNumber}:`)
+                      : (isKn ? `✨ ಶಾಸ್ತ್ರೋಕ್ತ ಭಾರತೀಯ ಹೆಸರಿನ ಪರಿಷ್ಕರಣೆ ಸಲಹೆಗಳು (ಗುರಿ: ${nameTargetNumber}):` : `✨ Authentic Indian Spelling Variations for Root ${nameTargetNumber}:`)}
+                  </span>
                 </h4>
                 <span className="text-[10px] bg-emerald-100 text-emerald-900 font-bold px-2 py-0.5 rounded-full border border-emerald-300">
-                  Vedic Spelling Tuning
+                  {aiNameSuggestions ? "AI-Validated 100% Indian" : "Vedic Phonetic Matrix"}
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {nameSuggestions.map((sug, idx) => (
-                  <div
-                    key={idx}
-                    className="rounded-xl border border-emerald-200 bg-white p-3 shadow-sm flex items-center justify-between"
-                  >
-                    <div>
-                      <div className="text-sm font-bold text-emerald-950">{sug.suggestedName}</div>
-                      <div className="text-[11px] text-slate-600">
-                        {sug.addedLetter} · ಶಾಲ್ಡಿಯನ್ ಒಟ್ಟು: <span className="font-bold text-emerald-800">{sug.chaldeanNumber}</span>
+              {/* Suggestions Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                {(aiNameSuggestions || nameSuggestions).map((sug: any, idx: number) => {
+                  const suggestedName = sug.suggestedSpelling || sug.suggestedName;
+                  const compound = sug.suggestedCompound || sug.chaldeanNumber;
+                  const root = sug.suggestedRoot || sug.chaldeanRoot;
+                  const exactLocationKn = sug.exactChangeLocation?.kn || sug.exactChangeKn || `${nameInput} ➔ ${suggestedName} ಅಕ್ಷರ ಪರಿಷ್ಕರಣೆ`;
+                  const exactLocationEn = sug.exactChangeLocation?.en || sug.exactChangeEn || `Modified for ${nameInput} ➔ ${suggestedName}`;
+                  const style = sug.phoneticStyle || "Vedic Name Tuning";
+                  const qualityKn = sug.vibrationQuality?.kn || sug.rulerKn || "ಬುಧ ಲಕ್ಷ್ಮೀ ಯೋಗ";
+                  const impactKn = sug.luckImpact?.kn || "ವೃತ್ತಿ ಜಯ, ಧನ ವೃದ್ಧಿ ಹಾಗೂ ತೇಜಸ್ಸು.";
+                  const isHarmonious = sug.isHarmonious;
+
+                  return (
+                    <div
+                      key={idx}
+                      className="rounded-2xl border-2 border-emerald-300/80 bg-gradient-to-br from-emerald-50/60 via-white to-amber-50/40 p-4 shadow-sm space-y-2.5 transition hover:shadow-md"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg font-black text-emerald-950 tracking-wide font-serif">
+                              {suggestedName}
+                            </span>
+                            <span className="text-[10px] font-bold bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded-full border border-emerald-300">
+                              🕉️ {style}
+                            </span>
+                          </div>
+                          <div className="text-xs font-bold text-amber-900 mt-0.5">
+                            🏛️ ಶಾಲ್ಡಿಯನ್ ಮೊತ್ತ: <span className="text-sm font-black text-amber-950">{compound}</span> (ಏಕಾಂಕ: {root})
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleCopyName(suggestedName)}
+                          className="shrink-0 text-xs font-bold px-2.5 py-1 rounded-lg border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 transition flex items-center gap-1 shadow-xs"
+                          title="Copy suggested spelling"
+                        >
+                          <span>{copiedName === suggestedName ? "✅" : "📋"}</span>
+                          <span>{copiedName === suggestedName ? (isKn ? "ಕಾಪಿ ಆಗಿದೆ" : "Copied!") : (isKn ? "ಕಾಪಿ" : "Copy")}</span>
+                        </button>
+                      </div>
+
+                      {/* Exact Letter Modification Location */}
+                      <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-2 text-xs font-medium text-amber-950 space-y-0.5">
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-amber-800 flex items-center gap-1">
+                          <span>📍</span>
+                          <span>{isKn ? "ಅಕ್ಷರ ಬದಲಾವಣೆ / ಸೇರ್ಪಡೆಯ ನಿಖರ ಸ್ಥಳ:" : "Exact Letter Change Location:"}</span>
+                        </div>
+                        <div className="text-xs font-bold text-emerald-950">
+                          {isKn ? exactLocationKn : exactLocationEn}
+                        </div>
+                      </div>
+
+                      {/* Vibration & Impact */}
+                      <div className="text-xs text-slate-700 space-y-1 pt-1 border-t border-emerald-100">
+                        <div className="font-semibold text-emerald-900">
+                          {isKn ? qualityKn : (sug.vibrationQuality?.en || sug.rulerEn || "Auspicious Vibration")}
+                        </div>
+                        <div className="text-[11px] text-slate-600 leading-relaxed">
+                          {isKn ? impactKn : (sug.luckImpact?.en || "Enhances financial abundance and career success.")}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-1">
+                        <span className="text-[11px] font-bold text-emerald-800 flex items-center gap-1">
+                          <span>✅</span>
+                          <span>{isKn ? "೧೦೦% ಭಾರತೀಯ ಧ್ವನಿ ಪ್ರಮಾಣೀಕೃತ" : "100% Indian Phonetic Match"}</span>
+                        </span>
+                        {isHarmonious ? (
+                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">
+                            🌟 ೧೦೦% ಶುಭ
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
+                            ಸಮತೋಲಿತ
+                          </span>
+                        )}
                       </div>
                     </div>
-                    {sug.isHarmonious ? (
-                      <span className="text-xs font-bold text-emerald-700 bg-emerald-100 px-2 py-1 rounded-lg">
-                        🌟 ೧೦೦% ಶುಭ
-                      </span>
-                    ) : (
-                      <span className="text-xs font-semibold text-slate-600 bg-slate-100 px-2 py-1 rounded-lg">
-                        ಸಮತೋಲಿತ
-                      </span>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </Card>

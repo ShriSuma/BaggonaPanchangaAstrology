@@ -277,61 +277,224 @@ export const NUMEROLOGY_GUIDANCE_MAP: Record<number, NumerologyGuidance> = {
 // LUCKY NAME SPELLING SUGGESTION ENGINE
 // ----------------------------------------------------------------------
 
+// ----------------------------------------------------------------------
+// LUCKY NAME SPELLING SUGGESTION ENGINE
+// ----------------------------------------------------------------------
+
 export type LuckyNameSuggestion = {
   suggestedName: string;
   addedLetter: string;
+  exactChangeKn: string;
+  exactChangeEn: string;
+  phoneticStyle: string;
   chaldeanNumber: number;
+  chaldeanRoot: number;
   rulerKn: string;
   rulerEn: string;
   isHarmonious: boolean;
+  isIndianValidated: boolean;
 };
 
-/** Generates lucky spelling variations targeting a target lucky number (e.g. 5, 6, 1, 3) */
+/** Generates authentic Indian lucky spelling variations targeting target lucky numbers (e.g. 5, 6, 1, 3) */
 export function generateLuckyNameSuggestions(
   originalName: string,
   targetLuckyNumbers: number[] = [5, 6, 1, 3]
 ): LuckyNameSuggestion[] {
-  const base = originalName.trim();
+  const base = (originalName || "").trim();
   if (!base) return [];
 
-  const clean = base.toUpperCase();
   const suggestions: LuckyNameSuggestion[] = [];
   const seen = new Set<string>();
 
-  // Helper to add suggestion if valid
-  const tryAdd = (suggested: string, letter: string) => {
-    if (seen.has(suggested.toLowerCase())) return;
-    seen.add(suggested.toLowerCase());
-    const ch = calculateChaldeanNameNumber(suggested);
-    const g = NUMEROLOGY_GUIDANCE_MAP[ch.single];
-    if (!g) return;
+  // 1. Classical Sanskrit/Vedic terminal vowel 'a' addition
+  // (e.g. Rahul -> Rahula, Suresh -> Suresha, Deepak -> Deepaka)
+  const variants: Array<{ spelling: string; locationKn: string; locationEn: string; style: string; label: string }> = [];
+
+  const lower = base.toLowerCase();
+
+  if (/[bcdfghjklmnpqrstvwxyz]$/i.test(base)) {
+    variants.push({
+      spelling: `${base}a`,
+      locationKn: `ಕೊನೆಯಲ್ಲಿ 'a' ಸ್ವರ ಸೇರಿಸಲಾಗಿದೆ (${base} ➔ ${base}a)`,
+      locationEn: `Added terminal 'a' suffix (${base} ➔ ${base}a)`,
+      style: "Classical Sanskrit/Vedic Suffix",
+      label: "+a at end"
+    });
+  }
+
+  // 2. Aspirated 'h' modifications (very common in Indian transliteration):
+  // - after 't' -> 'th' (Amit -> Amith, Rohit -> Rohith)
+  if (lower.includes("t") && !lower.includes("th")) {
+    const lastTIndex = lower.lastIndexOf("t");
+    const modified = base.slice(0, lastTIndex + 1) + "h" + base.slice(lastTIndex + 1);
+    variants.push({
+      spelling: modified,
+      locationKn: `'t' ನಂತರ 'h' ಸೇರಿಸಲಾಗಿದೆ (${base} ➔ ${modified})`,
+      locationEn: `Added 'h' after 't' (${base} ➔ ${modified})`,
+      style: "Aspirated 'th' Tuning",
+      label: "+h after 't'"
+    });
+  }
+
+  // - after 'd' -> 'dh' (Anand -> Anandh)
+  if (lower.includes("d") && !lower.includes("dh")) {
+    const lastDIndex = lower.lastIndexOf("d");
+    const modified = base.slice(0, lastDIndex + 1) + "h" + base.slice(lastDIndex + 1);
+    variants.push({
+      spelling: modified,
+      locationKn: `'d' ನಂತರ 'h' ಸೇರಿಸಲಾಗಿದೆ (${base} ➔ ${modified})`,
+      locationEn: `Added 'h' after 'd' (${base} ➔ ${modified})`,
+      style: "Aspirated 'dh' Tuning",
+      label: "+h after 'd'"
+    });
+  }
+
+  // - after 'k' -> 'kh' (Rakesh -> Rakhesh)
+  if (lower.includes("k") && !lower.includes("kh")) {
+    const kIndex = lower.indexOf("k");
+    const modified = base.slice(0, kIndex + 1) + "h" + base.slice(kIndex + 1);
+    variants.push({
+      spelling: modified,
+      locationKn: `'k' ನಂತರ 'h' ಸೇರಿಸಲಾಗಿದೆ (${base} ➔ ${modified})`,
+      locationEn: `Added 'h' after 'k' (${base} ➔ ${modified})`,
+      style: "Aspirated 'kh' Tuning",
+      label: "+h after 'k'"
+    });
+  }
+
+  // - 's' -> 'sh' at beginning (Samir -> Shamir)
+  if (lower.startsWith("s") && !lower.startsWith("sh")) {
+    const modified = base.charAt(0) + "h" + base.slice(1);
+    variants.push({
+      spelling: modified,
+      locationKn: `ಆರಂಭಿಕ 'S' ಅನ್ನು 'Sh' ಮಾಡಲಾಗಿದೆ (${base} ➔ ${modified})`,
+      locationEn: `Enhanced initial 'S' to 'Sh' (${base} ➔ ${modified})`,
+      style: "Shubha 'Sh' Prefix Tuning",
+      label: "+h for 'Sh'"
+    });
+  }
+
+  // 3. Indian Vowel Lengthening:
+  // - 'e' -> 'ee' (Suresh -> Sureesh, Ramesh -> Rameesh)
+  if (lower.includes("e") && !lower.includes("ee")) {
+    const eIndex = lower.indexOf("e");
+    const modified = base.slice(0, eIndex + 1) + "e" + base.slice(eIndex + 1);
+    variants.push({
+      spelling: modified,
+      locationKn: `'e' ಸ್ವರವನ್ನು 'ee' ಆಗಿ ವೃದ್ಧಿಸಲಾಗಿದೆ (${base} ➔ ${modified})`,
+      locationEn: `Doubled vowel 'e' to 'ee' (${base} ➔ ${modified})`,
+      style: "Dirgha Vowel 'ee' Tuning",
+      label: "Double 'e' (ee)"
+    });
+  }
+
+  // - 'i' -> 'ee' (Amit -> Ameet, Sunil -> Suneel)
+  if (lower.includes("i") && !lower.includes("ee")) {
+    const iIndex = lower.lastIndexOf("i");
+    const modified = base.slice(0, iIndex) + "ee" + base.slice(iIndex + 1);
+    variants.push({
+      spelling: modified,
+      locationKn: `'i' ಬದಲಿಗೆ 'ee' ಸ್ವರ ಅಳವಡಿಸಲಾಗಿದೆ (${base} ➔ ${modified})`,
+      locationEn: `Replaced 'i' with 'ee' (${base} ➔ ${modified})`,
+      style: "Dirgha Swara 'ee' Tuning",
+      label: "i ➔ ee"
+    });
+  }
+
+  // - 'a' -> 'aa' (Rahul -> Raahul, Ram -> Raam)
+  if (lower.includes("a") && !lower.includes("aa")) {
+    const aIndex = lower.indexOf("a");
+    const modified = base.slice(0, aIndex + 1) + "a" + base.slice(aIndex + 1);
+    variants.push({
+      spelling: modified,
+      locationKn: `'a' ಸ್ವರವನ್ನು 'aa' ಆಗಿ ವೃದ್ಧಿಸಲಾಗಿದೆ (${base} ➔ ${modified})`,
+      locationEn: `Doubled vowel 'a' to 'aa' (${base} ➔ ${modified})`,
+      style: "Dirgha Akshara 'aa' Tuning",
+      label: "Double 'a' (aa)"
+    });
+  }
+
+  // - 'u' -> 'oo' (Kumar -> Kumaar, Suman -> Sooman)
+  if (lower.includes("u") && !lower.includes("oo")) {
+    const uIndex = lower.indexOf("u");
+    const modified = base.slice(0, uIndex) + "oo" + cleanSlice(base, uIndex + 1);
+    variants.push({
+      spelling: modified,
+      locationKn: `'u' ಬದಲಿಗೆ 'oo' ಸ್ವರ ಅಳವಡಿಸಲಾಗಿದೆ (${base} ➔ ${modified})`,
+      locationEn: `Replaced 'u' with 'oo' (${base} ➔ ${modified})`,
+      style: "Dirgha Vowel 'oo' Tuning",
+      label: "u ➔ oo"
+    });
+  }
+
+  // 4. Auspicious Terminal Visarga/Soft 'h'
+  if (/[aeiou]$/i.test(base) && !lower.endsWith("h")) {
+    variants.push({
+      spelling: `${base}h`,
+      locationKn: `ಕೊನೆಯಲ್ಲಿ ಮೃದು 'h' (ವಿಸರ್ಗ ತರಂಗ) ಸೇರಿಸಲಾಗಿದೆ (${base} ➔ ${base}h)`,
+      locationEn: `Added gentle 'h' (Visarga harmony) at the end (${base} ➔ ${base}h)`,
+      style: "Visarga Vedic Ending",
+      label: "+h at end"
+    });
+  }
+
+  // 5. Consonant Doubling on Natural Indian Emphases (l, n, r, k, s, m, t)
+  const doubleCandidates = ["l", "n", "r", "k", "s", "m", "t"];
+  for (const c of doubleCandidates) {
+    if (lower.endsWith(c) && !lower.endsWith(c + c)) {
+      variants.push({
+        spelling: `${base}${c}`,
+        locationKn: `ಕೊನೆಯ ವ್ಯಂಜನ '${c}' ಅನ್ನು ದ್ವಿಗುಣಗೊಳಿಸಲಾಗಿದೆ (${base} ➔ ${base}${c})`,
+        locationEn: `Doubled final consonant '${c}' (${base} ➔ ${base}${c})`,
+        style: "Consonant Weight Harmony",
+        label: `Double '${c}'`
+      });
+    }
+  }
+
+  // 6. Auspicious Suffix: 'shree'
+  if (!lower.includes("shree") && !lower.includes("sri")) {
+    variants.push({
+      spelling: `${base}shree`,
+      locationKn: `ಮಂಗಳಕರ 'shree' ಪ್ರತ್ಯಯ ಸೇರಿಸಲಾಗಿದೆ (${base} ➔ ${base}shree)`,
+      locationEn: `Added auspicious Vedic 'shree' suffix (${base} ➔ ${base}shree)`,
+      style: "Lakshmi 'Shree' Consecration",
+      label: "+shree suffix"
+    });
+  }
+
+  function cleanSlice(str: string, start: number): string {
+    return str.slice(start);
+  }
+
+  for (const v of variants) {
+    const key = v.spelling.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    const ch = calculateChaldeanNameNumber(v.spelling);
+    const g = NUMEROLOGY_GUIDANCE_MAP[ch.single] || NUMEROLOGY_GUIDANCE_MAP[1]!;
     const isHarmonious = targetLuckyNumbers.includes(ch.single);
+
     suggestions.push({
-      suggestedName: suggested,
-      addedLetter: letter,
+      suggestedName: v.spelling,
+      addedLetter: v.label,
+      exactChangeKn: v.locationKn,
+      exactChangeEn: v.locationEn,
+      phoneticStyle: v.style,
       chaldeanNumber: ch.compound,
+      chaldeanRoot: ch.single,
       rulerKn: g.rulerKn,
       rulerEn: g.rulerEn,
-      isHarmonious
+      isHarmonious,
+      isIndianValidated: true
     });
-  };
-
-  // Try adding common lucky phonetic letters (A, E, H, I, N, R, S)
-  const lettersToTry = ["A", "E", "H", "I", "N", "R", "S"];
-  for (const l of lettersToTry) {
-    // Append at end
-    tryAdd(`${base}${l.toLowerCase()}`, `+${l} at end`);
-    // Double last letter if consonant
-    const lastChar = clean.slice(-1);
-    if ("BCDFGHJKLMNPQRSTVWXYZ".includes(lastChar)) {
-      tryAdd(`${base}${lastChar.toLowerCase()}`, `Double ${lastChar}`);
-    }
   }
 
   // Sort: harmonious target numbers first, then lowest compound number
   return suggestions
     .sort((a, b) => (b.isHarmonious ? 1 : 0) - (a.isHarmonious ? 1 : 0))
-    .slice(0, 5);
+    .slice(0, 6);
 }
 
 // ----------------------------------------------------------------------
