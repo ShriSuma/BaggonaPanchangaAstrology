@@ -288,6 +288,11 @@ export const YogaDoshaParampadaGame: React.FC<{ lang?: string }> = ({ lang = "kn
   const [winner, setWinner] = useState<ParampadaPlayer | null>(null);
   const [listeningPlayerId, setListeningPlayerId] = useState<number | null>(null);
 
+  // Mobile-First Display States
+  const [viewMode, setViewMode] = useState<"zoomed" | "full">("zoomed"); // zoomed 5x5 tier vs full 10x10
+  const [activeTier, setActiveTier] = useState<number>(1); // 1: 1-25, 2: 26-50, 3: 51-75, 4: 76-100
+  const [inspectedTile, setInspectedTile] = useState<number | null>(null);
+
   // Active Popup Modal for Yoga / Dosha landing
   const [activeYogaModal, setActiveYogaModal] = useState<YogaLadder | null>(null);
   const [activeDoshaModal, setActiveDoshaModal] = useState<DoshaSnake | null>(null);
@@ -489,6 +494,10 @@ export const YogaDoshaParampadaGame: React.FC<{ lang?: string }> = ({ lang = "kn
 
     setLastEventMessage(msg);
 
+    // Auto-sync mobile tier to current player position
+    const newTier = Math.min(4, Math.max(1, Math.ceil(nextPos / 25)));
+    setActiveTier(newTier);
+
     // Win condition: Exactly tile 100
     if (nextPos === 100) {
       setWinner(activePlayer);
@@ -503,10 +512,6 @@ export const YogaDoshaParampadaGame: React.FC<{ lang?: string }> = ({ lang = "kn
   };
 
   // Generate 100-cell Zig-Zag Grid (1 to 100)
-  // Row 10 (top): 100, 99, ... 91
-  // Row 9: 81, 82, ... 90
-  // ...
-  // Row 1 (bottom): 1, 2, ... 10
   const boardCells: number[] = [];
   for (let r = 10; r >= 1; r--) {
     const isEvenRowFromBottom = r % 2 === 0;
@@ -517,6 +522,26 @@ export const YogaDoshaParampadaGame: React.FC<{ lang?: string }> = ({ lang = "kn
     }
     boardCells.push(...rowNumbers);
   }
+
+  // Generate 25-cell Focused Tier Grid for Mobile Zoom (Tier 1: 1-25, Tier 2: 26-50, etc.)
+  const getTierCells = (tierNum: number): number[] => {
+    const tierStart = (tierNum - 1) * 25 + 1;
+    const cells: number[] = [];
+    for (let r = 5; r >= 1; r--) {
+      const isEven = r % 2 === 0;
+      const rowNums: number[] = [];
+      for (let c = 1; c <= 5; c++) {
+        const num = isEven
+          ? tierStart + (r - 1) * 5 + (5 - c)
+          : tierStart + (r - 1) * 5 + (c - 1);
+        rowNums.push(num);
+      }
+      cells.push(...rowNums);
+    }
+    return cells;
+  };
+
+  const currentTierCells = getTierCells(activeTier);
 
   return (
     <div className="space-y-5 select-none animate-fade-in">
@@ -659,7 +684,7 @@ export const YogaDoshaParampadaGame: React.FC<{ lang?: string }> = ({ lang = "kn
 
       {/* Main Active Game View */}
       {isGameStarted && (
-        <div className="space-y-4">
+        <div className="space-y-4 pb-24 sm:pb-4">
           {/* Active Players Turn Ribbon */}
           <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
             {players.map((p, idx) => {
@@ -667,10 +692,15 @@ export const YogaDoshaParampadaGame: React.FC<{ lang?: string }> = ({ lang = "kn
               return (
                 <div
                   key={p.id}
-                  className={`px-3.5 py-2 rounded-2xl border-2 transition flex items-center gap-2 shrink-0 ${
+                  onClick={() => {
+                    const pTier = Math.min(4, Math.max(1, Math.ceil(p.position / 25)));
+                    setActiveTier(pTier);
+                    gameAudio.playTick();
+                  }}
+                  className={`px-3.5 py-2 rounded-2xl border-2 transition flex items-center gap-2 shrink-0 cursor-pointer ${
                     isActive
                       ? "bg-amber-900 text-amber-50 border-amber-700 shadow-md scale-105 ring-2 ring-amber-400 font-black"
-                      : "bg-white text-amber-950 border-amber-200 font-bold opacity-80"
+                      : "bg-white text-amber-950 border-amber-200 font-bold opacity-85 hover:opacity-100"
                   }`}
                 >
                   <span className="text-xl">{p.avatarSymbol}</span>
@@ -685,74 +715,216 @@ export const YogaDoshaParampadaGame: React.FC<{ lang?: string }> = ({ lang = "kn
             })}
           </div>
 
-          {/* Grand 100-Tile Parampada Board */}
-          <Card className="border-2 border-amber-400 bg-amber-950 p-2 sm:p-4 shadow-2xl relative overflow-hidden">
-            {/* 100-Tile Responsive Grid */}
-            <div
-              ref={boardRef}
-              className="grid grid-cols-10 gap-1 sm:gap-1.5 aspect-square max-w-2xl mx-auto bg-amber-900/90 p-1.5 sm:p-3 rounded-2xl border-2 border-amber-400 shadow-inner"
-            >
-              {boardCells.map((tileNum) => {
-                const isYoga = !!VEDIC_YOGAS[tileNum];
-                const isDosha = !!VEDIC_DOSHAS[tileNum];
-                const isMoksha = tileNum === 100;
-                const yoga = VEDIC_YOGAS[tileNum];
-                const dosha = VEDIC_DOSHAS[tileNum];
-
-                const playersOnTile = players.filter((p) => p.position === tileNum);
-
-                let tileBg = "bg-amber-50/90 text-amber-950 border-amber-300";
-                if (isMoksha) tileBg = "bg-gradient-to-br from-yellow-300 via-amber-400 to-yellow-500 text-amber-950 font-black border-yellow-200 ring-2 ring-yellow-400";
-                else if (isYoga) tileBg = "bg-gradient-to-br from-emerald-100 to-emerald-200 text-emerald-950 border-emerald-400";
-                else if (isDosha) tileBg = "bg-gradient-to-br from-rose-100 to-rose-200 text-rose-950 border-rose-400";
-
-                return (
-                  <div
-                    key={tileNum}
-                    onClick={() => {
-                      if (yoga) setActiveYogaModal(yoga);
-                      if (dosha) setActiveDoshaModal(dosha);
-                    }}
-                    className={`rounded-lg sm:rounded-xl border flex flex-col justify-between p-0.5 sm:p-1 relative shadow-2xs transition cursor-pointer hover:scale-105 ${tileBg}`}
-                  >
-                    {/* Tile Number Header */}
-                    <div className="flex items-center justify-between text-[8px] sm:text-[10px] font-black leading-none">
-                      <span>{tileNum}</span>
-                      {isYoga && <span className="text-[10px] sm:text-xs">🚀</span>}
-                      {isDosha && <span className="text-[10px] sm:text-xs">⚠️</span>}
-                      {isMoksha && <span className="text-xs sm:text-sm">🕉️</span>}
-                    </div>
-
-                    {/* Middle Icon or Yoga/Dosha Label */}
-                    <div className="text-center my-auto">
-                      {isMoksha && <span className="text-[8px] sm:text-[9px] font-black block text-amber-900 leading-tight">ಮೋಕ್ಷ</span>}
-                      {isYoga && <span className="text-[7px] sm:text-[8px] font-bold block text-emerald-900 truncate leading-tight">+{yoga.to - tileNum}</span>}
-                      {isDosha && <span className="text-[7px] sm:text-[8px] font-bold block text-rose-900 truncate leading-tight">-{tileNum - dosha.to}</span>}
-                    </div>
-
-                    {/* Players Tokens Stacked on this Tile */}
-                    {playersOnTile.length > 0 && (
-                      <div className="flex items-center justify-center gap-0.5 flex-wrap z-10 -mt-1">
-                        {playersOnTile.map((p) => (
-                          <span
-                            key={p.id}
-                            className="text-xs sm:text-base animate-bounce drop-shadow-md select-none"
-                            title={`${p.name} on tile ${tileNum}`}
-                          >
-                            {p.avatarSymbol}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+          {/* Mobile View Mode Switcher & Tier Tabs */}
+          <div className="bg-amber-100/90 border border-amber-300 p-2.5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-2 shadow-xs">
+            <div className="flex items-center gap-1.5 w-full sm:w-auto justify-between sm:justify-start">
+              <span className="text-[11px] font-black text-amber-950 uppercase flex items-center gap-1">
+                <span>📱</span>
+                <span>{isKn ? "ವೀಕ್ಷಣೆ ಮೋಡ್:" : "View Mode:"}</span>
+              </span>
+              <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-amber-300 shadow-2xs">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setViewMode("zoomed");
+                    gameAudio.playTick();
+                  }}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-black transition ${
+                    viewMode === "zoomed"
+                      ? "bg-amber-900 text-amber-50 shadow-xs"
+                      : "text-amber-900 hover:bg-amber-50"
+                  }`}
+                >
+                  🔍 {isKn ? "ದೊಡ್ಡ ಬಾಕ್ಸ್‌ಗಳು (5x5)" : "Zoomed (5x5)"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setViewMode("full");
+                    gameAudio.playTick();
+                  }}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-black transition ${
+                    viewMode === "full"
+                      ? "bg-amber-900 text-amber-50 shadow-xs"
+                      : "text-amber-900 hover:bg-amber-50"
+                  }`}
+                >
+                  🌐 {isKn ? "ಪೂರ್ಣ ೧೦೦ ಮನೆ" : "Full 100"}
+                </button>
+              </div>
             </div>
+
+            {/* If Zoomed View: Tier Selector Tabs (1-25, 26-50, 51-75, 76-100) */}
+            {viewMode === "zoomed" && (
+              <div className="flex items-center gap-1 overflow-x-auto w-full sm:w-auto justify-between sm:justify-end scrollbar-none pt-1 sm:pt-0">
+                {[
+                  { tier: 1, labelKn: "೧-೨೫", labelEn: "1-25", icon: "🌱" },
+                  { tier: 2, labelKn: "೨೬-೫೦", labelEn: "26-50", icon: "⚡" },
+                  { tier: 3, labelKn: "೫೧-೭೫", labelEn: "51-75", icon: "🔥" },
+                  { tier: 4, labelKn: "೭೬-೧೦೦", labelEn: "76-100", icon: "🕉️" }
+                ].map((t) => (
+                  <button
+                    key={t.tier}
+                    type="button"
+                    onClick={() => {
+                      setActiveTier(t.tier);
+                      gameAudio.playTick();
+                    }}
+                    className={`px-2.5 py-1 rounded-xl text-xs font-black border transition shrink-0 ${
+                      activeTier === t.tier
+                        ? "bg-amber-800 text-amber-50 border-amber-900 shadow-xs scale-105"
+                        : "bg-white text-amber-950 border-amber-200 hover:bg-amber-50"
+                    }`}
+                  >
+                    <span>{t.icon} </span>
+                    <span>{isKn ? t.labelKn : t.labelEn}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Grand Parampada Board Container */}
+          <Card className="border-2 border-amber-400 bg-amber-950 p-2 sm:p-4 shadow-2xl relative overflow-hidden">
+            {/* View 1: 5x5 Zoomed Mobile Tier Grid (Gigantic Touch Boxes) */}
+            {viewMode === "zoomed" ? (
+              <div
+                ref={boardRef}
+                className="grid grid-cols-5 gap-1.5 sm:gap-2 max-w-xl mx-auto bg-amber-900/90 p-2 sm:p-3 rounded-2xl border-2 border-amber-400 shadow-inner"
+              >
+                {currentTierCells.map((tileNum) => {
+                  const isYoga = !!VEDIC_YOGAS[tileNum];
+                  const isDosha = !!VEDIC_DOSHAS[tileNum];
+                  const isMoksha = tileNum === 100;
+                  const yoga = VEDIC_YOGAS[tileNum];
+                  const dosha = VEDIC_DOSHAS[tileNum];
+                  const playersOnTile = players.filter((p) => p.position === tileNum);
+
+                  let tileBg = "bg-amber-50/95 text-amber-950 border-amber-300";
+                  if (isMoksha) tileBg = "bg-gradient-to-br from-yellow-300 via-amber-400 to-yellow-500 text-amber-950 font-black border-yellow-200 ring-2 ring-yellow-400";
+                  else if (isYoga) tileBg = "bg-gradient-to-br from-emerald-100 via-emerald-50 to-emerald-200 text-emerald-950 border-emerald-400 ring-1 ring-emerald-400";
+                  else if (isDosha) tileBg = "bg-gradient-to-br from-rose-100 via-rose-50 to-rose-200 text-rose-950 border-rose-400 ring-1 ring-rose-400";
+
+                  return (
+                    <div
+                      key={tileNum}
+                      onClick={() => {
+                        if (yoga) setActiveYogaModal(yoga);
+                        else if (dosha) setActiveDoshaModal(dosha);
+                        else setInspectedTile(tileNum);
+                        gameAudio.playTick();
+                      }}
+                      className={`min-h-[64px] sm:min-h-[75px] rounded-xl sm:rounded-2xl border-2 flex flex-col justify-between p-1.5 sm:p-2 relative shadow-xs transition cursor-pointer hover:scale-105 active:scale-95 ${tileBg}`}
+                    >
+                      {/* Tile Number Header */}
+                      <div className="flex items-center justify-between font-black leading-none">
+                        <span className="text-xs sm:text-sm bg-white/80 px-1.5 py-0.5 rounded-md border border-amber-300 shadow-2xs">
+                          {tileNum}
+                        </span>
+                        {isYoga && <span className="text-sm sm:text-base animate-pulse">🚀</span>}
+                        {isDosha && <span className="text-sm sm:text-base animate-pulse">⚠️</span>}
+                        {isMoksha && <span className="text-base sm:text-lg animate-bounce">🕉️</span>}
+                      </div>
+
+                      {/* Middle Yoga/Dosha Destination Badge */}
+                      <div className="text-center my-auto">
+                        {isMoksha && <span className="text-[10px] sm:text-xs font-black text-amber-950 block">ಮೋಕ್ಷ (100)</span>}
+                        {isYoga && (
+                          <span className="text-[9px] sm:text-[10px] font-black bg-emerald-700 text-white px-1.5 py-0.5 rounded-md block shadow-2xs truncate">
+                            +{yoga.to - tileNum} ➔ #{yoga.to}
+                          </span>
+                        )}
+                        {isDosha && (
+                          <span className="text-[9px] sm:text-[10px] font-black bg-rose-700 text-white px-1.5 py-0.5 rounded-md block shadow-2xs truncate">
+                            -{tileNum - dosha.to} ➔ #{dosha.to}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Players Tokens Stacked on this Tile */}
+                      {playersOnTile.length > 0 && (
+                        <div className="flex items-center justify-center gap-1 flex-wrap z-10 bg-amber-950/70 p-0.5 rounded-full shadow-md">
+                          {playersOnTile.map((p) => (
+                            <span
+                              key={p.id}
+                              className="text-base sm:text-xl animate-bounce drop-shadow-md select-none"
+                              title={`${p.name} on tile ${tileNum}`}
+                            >
+                              {p.avatarSymbol}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              /* View 2: 10x10 Full Board Grid */
+              <div
+                ref={boardRef}
+                className="grid grid-cols-10 gap-1 sm:gap-1.5 aspect-square max-w-2xl mx-auto bg-amber-900/90 p-1.5 sm:p-3 rounded-2xl border-2 border-amber-400 shadow-inner"
+              >
+                {boardCells.map((tileNum) => {
+                  const isYoga = !!VEDIC_YOGAS[tileNum];
+                  const isDosha = !!VEDIC_DOSHAS[tileNum];
+                  const isMoksha = tileNum === 100;
+                  const yoga = VEDIC_YOGAS[tileNum];
+                  const dosha = VEDIC_DOSHAS[tileNum];
+                  const playersOnTile = players.filter((p) => p.position === tileNum);
+
+                  let tileBg = "bg-amber-50/90 text-amber-950 border-amber-300";
+                  if (isMoksha) tileBg = "bg-gradient-to-br from-yellow-300 via-amber-400 to-yellow-500 text-amber-950 font-black border-yellow-200 ring-2 ring-yellow-400";
+                  else if (isYoga) tileBg = "bg-gradient-to-br from-emerald-100 to-emerald-200 text-emerald-950 border-emerald-400";
+                  else if (isDosha) tileBg = "bg-gradient-to-br from-rose-100 to-rose-200 text-rose-950 border-rose-400";
+
+                  return (
+                    <div
+                      key={tileNum}
+                      onClick={() => {
+                        if (yoga) setActiveYogaModal(yoga);
+                        else if (dosha) setActiveDoshaModal(dosha);
+                        else setInspectedTile(tileNum);
+                        gameAudio.playTick();
+                      }}
+                      className={`rounded-lg sm:rounded-xl border flex flex-col justify-between p-0.5 sm:p-1 relative shadow-2xs transition cursor-pointer hover:scale-105 ${tileBg}`}
+                    >
+                      <div className="flex items-center justify-between text-[8px] sm:text-[10px] font-black leading-none">
+                        <span>{tileNum}</span>
+                        {isYoga && <span className="text-[10px] sm:text-xs">🚀</span>}
+                        {isDosha && <span className="text-[10px] sm:text-xs">⚠️</span>}
+                        {isMoksha && <span className="text-xs sm:text-sm">🕉️</span>}
+                      </div>
+
+                      <div className="text-center my-auto">
+                        {isMoksha && <span className="text-[8px] sm:text-[9px] font-black block text-amber-900 leading-tight">ಮೋಕ್ಷ</span>}
+                        {isYoga && <span className="text-[7px] sm:text-[8px] font-bold block text-emerald-900 truncate leading-tight">+{yoga.to - tileNum}</span>}
+                        {isDosha && <span className="text-[7px] sm:text-[8px] font-bold block text-rose-900 truncate leading-tight">-{tileNum - dosha.to}</span>}
+                      </div>
+
+                      {playersOnTile.length > 0 && (
+                        <div className="flex items-center justify-center gap-0.5 flex-wrap z-10 -mt-1">
+                          {playersOnTile.map((p) => (
+                            <span
+                              key={p.id}
+                              className="text-xs sm:text-base animate-bounce drop-shadow-md select-none"
+                              title={`${p.name} on tile ${tileNum}`}
+                            >
+                              {p.avatarSymbol}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
             {/* Mobile Thumb Control Bar (Floating & Sticky at bottom) */}
             <div className="mt-4 p-3 sm:p-4 rounded-2xl bg-amber-100/95 border-2 border-amber-400 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-3 text-amber-950">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-amber-900 text-amber-50 font-black text-2xl flex items-center justify-center shadow-md">
+                <div className="w-12 h-12 rounded-2xl bg-amber-900 text-amber-50 font-black text-2xl flex items-center justify-center shadow-md shrink-0">
                   {players[activePlayerIndex]?.avatarSymbol}
                 </div>
                 <div>
@@ -770,7 +942,7 @@ export const YogaDoshaParampadaGame: React.FC<{ lang?: string }> = ({ lang = "kn
 
               {/* Big Touch Dice Roller Button for Phone Play */}
               <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-                <div className="w-14 h-14 rounded-2xl bg-white border-2 border-amber-400 flex items-center justify-center text-3xl font-black text-amber-950 shadow-inner select-none">
+                <div className="w-14 h-14 rounded-2xl bg-white border-2 border-amber-400 flex items-center justify-center text-3xl font-black text-amber-950 shadow-inner select-none shrink-0">
                   {isRolling ? "🎲" : diceValue}
                 </div>
 
@@ -778,7 +950,7 @@ export const YogaDoshaParampadaGame: React.FC<{ lang?: string }> = ({ lang = "kn
                   type="button"
                   disabled={isRolling || !!winner}
                   onClick={handleRollDice}
-                  className={`flex-1 sm:flex-none px-6 py-3.5 rounded-2xl font-black text-sm shadow-xl transition flex items-center justify-center gap-2 ${
+                  className={`flex-1 sm:flex-none px-6 py-3.5 rounded-2xl font-black text-sm shadow-xl transition flex items-center justify-center gap-2 cursor-pointer ${
                     isRolling || !!winner
                       ? "bg-slate-300 text-slate-500 cursor-not-allowed"
                       : "bg-gradient-to-r from-amber-600 via-amber-700 to-amber-950 text-amber-50 hover:from-amber-700 hover:to-black active:scale-95 ring-2 ring-amber-400"
@@ -790,6 +962,54 @@ export const YogaDoshaParampadaGame: React.FC<{ lang?: string }> = ({ lang = "kn
               </div>
             </div>
           </Card>
+
+          {/* Inspected Tile Popup Modal */}
+          {inspectedTile !== null && (
+            <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
+              <div className="bg-white rounded-3xl border-2 border-amber-400 p-5 max-w-sm w-full shadow-2xl space-y-3 relative text-amber-950">
+                <div className="flex items-center justify-between border-b border-amber-200 pb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-9 h-9 rounded-xl bg-amber-200 font-black text-sm flex items-center justify-center border border-amber-400">
+                      {inspectedTile}
+                    </span>
+                    <h4 className="font-serif text-base font-black text-amber-950">
+                      {isKn ? `${inspectedTile}ನೇ ಮನೆಯ ವಿವರ` : `Tile #${inspectedTile} Details`}
+                    </h4>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setInspectedTile(null)}
+                    className="w-7 h-7 rounded-full bg-amber-100 text-amber-900 font-black flex items-center justify-center hover:bg-amber-200"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div className="text-xs text-amber-900 space-y-2">
+                  <p>
+                    {isKn
+                      ? `ಈ ಮನೆಯು ಸಾಮಾನ್ಯ ಗ್ರಹ ಸ್ಥಿತಿಯಾಗಿದೆ. ಯಾವುದೇ ಯೋಗ ಅಥವಾ ದೋಷವಿಲ್ಲ.`
+                      : `Standard neutral astrological house without active yogas or doshas.`}
+                  </p>
+                  {players.filter((p) => p.position === inspectedTile).length > 0 && (
+                    <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-300 text-[11px] font-bold">
+                      👥 {isKn ? "ಈ ಮನೆಯಲ್ಲಿರುವ ಆಟಗಾರರು:" : "Players on this tile:"}{" "}
+                      {players
+                        .filter((p) => p.position === inspectedTile)
+                        .map((p) => `${p.avatarSymbol} ${p.name}`)
+                        .join(", ")}
+                    </div>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setInspectedTile(null)}
+                  className="w-full py-2 rounded-xl bg-amber-800 text-white font-bold text-xs"
+                >
+                  {isKn ? "ಮುಚ್ಚಿ" : "Close"}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

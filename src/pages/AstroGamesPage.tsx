@@ -169,7 +169,7 @@ export default function AstroGamesPage(): JSX.Element {
               type="button"
               onClick={toggleMute}
               title={isMuted ? "Unmute Audio" : "Mute Audio"}
-              className="p-2 sm:p-2.5 rounded-xl border border-amber-300 bg-white/90 text-amber-900 hover:bg-white shadow-xs font-bold text-xs sm:text-sm"
+              className="p-2 sm:p-2.5 rounded-xl border border-amber-300 bg-white/90 text-amber-900 hover:bg-white shadow-xs font-bold text-xs sm:text-sm active:scale-95"
             >
               {isMuted ? "🔇 ಧ್ವನಿ ಆಫ್" : "🔊 ಧ್ವನಿ ಆನ್"}
             </button>
@@ -178,7 +178,7 @@ export default function AstroGamesPage(): JSX.Element {
               <button
                 type="button"
                 onClick={() => setActiveGame("hub")}
-                className="px-3.5 sm:px-4 py-2 rounded-xl bg-amber-800 text-amber-50 font-bold text-xs shadow-md hover:bg-amber-900 transition flex items-center gap-1"
+                className="px-3.5 sm:px-4 py-2 rounded-xl bg-amber-800 text-amber-50 font-bold text-xs shadow-md hover:bg-amber-900 transition flex items-center gap-1 active:scale-95"
               >
                 <span>🏠</span>
                 <span>{isKn ? "Hub" : "All Games"}</span>
@@ -186,24 +186,39 @@ export default function AstroGamesPage(): JSX.Element {
             )}
           </div>
         </div>
+
+        {/* Mobile Orientation & Touch Feature Guide Banner */}
+        <div className="mt-3.5 pt-3 border-t border-amber-300/80 flex items-center justify-between gap-2 flex-wrap text-[11px] font-bold text-amber-950 bg-amber-200/50 p-2.5 rounded-xl border border-amber-300">
+          <div className="flex items-center gap-2">
+            <span className="text-base">📱</span>
+            <span>
+              {isKn
+                ? "ಮೊಬೈಲ್ ವಿಶೇಷತೆ: ಪೋರ್ಟ್ರೇಟ್ (ಭಾವಚಿತ್ರ) ಅಥವಾ ಲ್ಯಾಂಡ್‌ಸ್ಕೇಪ್ (ಅಡ್ಡ ಮೋಡ್) ಎರಡರಲ್ಲೂ ಆಡಬಹುದು. ಸ್ಪರ್ಶ ಸ್ನೇಹಿ (Touch Optimized) ದೊಡ್ಡ ಬಟನ್‌ಗಳು!"
+                : "Mobile Mode: Touch-optimized for phones in Portrait & Landscape orientations with high-contrast displays."}
+            </span>
+          </div>
+          <span className="bg-amber-800 text-amber-50 text-[10px] px-2.5 py-0.5 rounded-full font-black shadow-xs">
+            {isKn ? "ಟಚ್ ಸ್ನೇಹಿ ಗೇಮಿಂಗ್" : "Touch Ready"}
+          </span>
+        </div>
       </Card>
 
       {/* Sub-Navigation Switcher (Visible when inside a game) */}
       {activeGame !== "hub" && (
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none sticky top-2 z-30 bg-white/90 backdrop-blur-md p-2 rounded-2xl border border-amber-300 shadow-md">
           <button
             type="button"
             onClick={() => setActiveGame("hub")}
-            className="px-3.5 py-2 rounded-xl text-xs font-extrabold bg-white border border-amber-300 text-amber-950 hover:bg-amber-50"
+            className="px-3.5 py-2 rounded-xl text-xs font-black bg-amber-100 border border-amber-400 text-amber-950 hover:bg-amber-200 active:scale-95 shrink-0"
           >
-            🏠 Hub
+            🏠 {isKn ? "ಆಟಗಳ ಪಟ್ಟಿ" : "Hub"}
           </button>
           {games.map((g) => (
             <button
               key={g.id}
               type="button"
               onClick={() => handleSelectGame(g.id)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold whitespace-nowrap transition shadow-xs ${
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition shadow-xs active:scale-95 shrink-0 ${
                 activeGame === g.id
                   ? "bg-amber-900 text-amber-50 border border-amber-700 shadow-md scale-105"
                   : "bg-white border border-amber-200 text-amber-950 hover:bg-amber-50"
