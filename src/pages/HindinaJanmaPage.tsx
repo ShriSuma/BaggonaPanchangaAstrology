@@ -236,195 +236,298 @@ export const HindinaJanmaPage: React.FC = () => {
       </div>
 
       {/* Input Form Card */}
-      <Card className="border-2 border-amber-300 dark:border-amber-500/40 bg-white dark:bg-slate-900 p-5 sm:p-7 shadow-2xl rounded-3xl">
-        <h3 className="font-extrabold text-sm sm:text-base text-amber-950 dark:text-amber-300 mb-4 flex items-center gap-2 border-b-2 border-amber-100 dark:border-slate-800 pb-3">
-          <span>🔮</span>
-          <span>{isKn ? "ಪೂರ್ವ ಜನ್ಮ ಗಣನೆಗಾಗಿ ನಿಮ್ಮ ವಿವರಗಳನ್ನು ನಮೂದಿಸಿ" : "Enter Details for Past Life Blueprint"}</span>
-        </h3>
+      <Card className="border-2 border-amber-300 dark:border-amber-500/40 bg-white dark:bg-slate-900 p-4 sm:p-7 shadow-2xl rounded-3xl">
+        <div className="flex items-center justify-between border-b-2 border-amber-100 dark:border-slate-800 pb-3 mb-5">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">🔮</span>
+            <h3 className="font-black text-sm sm:text-base text-amber-950 dark:text-amber-300">
+              {isKn ? "ಪೂರ್ವ ಜನ್ಮ ಗಣನೆಗಾಗಿ ನಿಮ್ಮ ವಿವರಗಳನ್ನು ನಮೂದಿಸಿ" : "Enter Details for Past Life Blueprint"}
+            </h3>
+          </div>
+          <span className="text-[11px] font-extrabold text-amber-800 dark:text-amber-300 bg-amber-100/70 dark:bg-slate-800 px-3 py-1 rounded-full border border-amber-300/80 dark:border-slate-700">
+            {isKn ? "ಡಿ-೬೦ ಷಷ್ಟ್ಯಂಶ" : "D-60 System"}
+          </span>
+        </div>
 
-        <form onSubmit={handleCalculate} className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5">
-            {/* Person Name */}
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-300">
-                  {T_HINDINA_JANMA.formName[selectedLang]} *
-                </label>
-                <button
-                  type="button"
-                  onClick={() => handleMicToggle("name")}
-                  className={`flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-black rounded-lg transition shadow-sm ${
-                    activeMicField === "name"
-                      ? "bg-rose-600 text-white animate-pulse"
-                      : "bg-amber-100 dark:bg-slate-800 text-amber-950 dark:text-amber-200 border border-amber-400 hover:bg-amber-200"
-                  }`}
-                  title={isKn ? "ಧ್ವನಿ ಮೂಲಕ ಹೆಸರನ್ನು ಹೇಳಿ" : "Dictate name via mic"}
-                >
-                  <span>{activeMicField === "name" ? "🔴" : "🎙️"}</span>
-                  <span>{activeMicField === "name" ? (isKn ? "ಆಲಿಸಲಾಗುತ್ತಿದೆ..." : "Listening...") : (isKn ? "ಧ್ವನಿ (Mic)" : "Mic")}</span>
-                </button>
-              </div>
-              <input
-                type="text"
-                required
-                value={personName}
-                onChange={(e) => setPersonName(e.target.value)}
-                placeholder={isKn ? "ಉದಾ: ಶ್ರೀ ಶಂಕರ ಭಟ್" : "e.g., Sri Shankara Bhat"}
-                className="w-full rounded-2xl border-2 border-amber-300 dark:border-slate-700 bg-amber-50/60 dark:bg-slate-800 px-4 py-3 text-sm font-semibold text-slate-950 dark:text-white placeholder:text-slate-400 focus:border-amber-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none"
-              />
+        <form onSubmit={handleCalculate} className="space-y-6">
+          {/* Section 1: Core Birth Details (3 Columns with uniform label heights) */}
+          <div>
+            <div className="text-[11px] font-extrabold uppercase tracking-widest text-amber-800 dark:text-amber-400 mb-2 flex items-center gap-1.5">
+              <span>✦</span>
+              <span>{isKn ? "ಮೂಲ ಜನ್ಮ ವಿವರಗಳು" : "Core Birth Details"}</span>
             </div>
 
-            {/* Date of Birth */}
-            <div>
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-300 mb-1.5">
-                {T_HINDINA_JANMA.formDob[selectedLang]}
-              </label>
-              <input
-                type="date"
-                required
-                value={dob}
-                onChange={(e) => setDob(e.target.value)}
-                className="w-full rounded-2xl border-2 border-amber-300 dark:border-slate-700 bg-amber-50/60 dark:bg-slate-800 px-4 py-3 text-sm font-semibold text-slate-950 dark:text-white focus:border-amber-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none"
-              />
-            </div>
-
-            {/* Time of Birth */}
-            <div>
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-300 mb-1.5">
-                {T_HINDINA_JANMA.formTob[selectedLang]}
-              </label>
-              <input
-                type="time"
-                value={tob}
-                onChange={(e) => setTob(e.target.value)}
-                className="w-full rounded-2xl border-2 border-amber-300 dark:border-slate-700 bg-amber-50/60 dark:bg-slate-800 px-4 py-3 text-sm font-semibold text-slate-950 dark:text-white focus:border-amber-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none"
-              />
-              <span className="text-[10px] text-amber-800 dark:text-amber-400 font-bold block mt-1">
-                {isKn ? "* ಸಮಯ ನೀಡಿದರೆ ಲಗ್ನ & ಷಷ್ಟ್ಯಂಶ ನಿಖರತೆ ಹೆಚ್ಚುತ್ತದೆ." : "* Time refines Ascendant & D-60 precision."}
-              </span>
-            </div>
-
-            {/* Gender */}
-            <div>
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-300 mb-1.5">
-                {isKn ? "ಲಿಂಗ (Gender):" : "Gender:"}
-              </label>
-              <select
-                value={gender}
-                onChange={(e) => setGender(e.target.value as any)}
-                className="w-full rounded-2xl border-2 border-amber-300 dark:border-slate-700 bg-amber-50/60 dark:bg-slate-800 px-4 py-3 text-sm font-semibold text-slate-950 dark:text-white focus:border-amber-500 focus:outline-none"
-              >
-                <option value="Male">{isKn ? "ಪುರುಷ (Male)" : "Male"}</option>
-                <option value="Female">{isKn ? "ಮಹಿಳೆ (Female)" : "Female"}</option>
-                <option value="Other">{isKn ? "ಇತರ (Other)" : "Other"}</option>
-              </select>
-            </div>
-
-            {/* Birthmark / Mole Location */}
-            <div>
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-300 mb-1.5">
-                {T_HINDINA_JANMA.formBirthMark[selectedLang]}
-              </label>
-              <select
-                value={birthMarkLocation}
-                onChange={(e) => setBirthMarkLocation(e.target.value as BirthMarkLocation)}
-                className="w-full rounded-2xl border-2 border-amber-300 dark:border-slate-700 bg-amber-50/60 dark:bg-slate-800 px-4 py-3 text-sm font-semibold text-slate-950 dark:text-white focus:border-amber-500 focus:outline-none"
-              >
-                <option value="head_face">{isKn ? "ಶಿರಸ್ಸು / ಮುಖ / ಹಣೆ (Head/Face)" : "Head / Face / Forehead"}</option>
-                <option value="neck_chest">{isKn ? "ಕಂಠ / ಎದೆ (Neck/Chest)" : "Neck / Chest"}</option>
-                <option value="hands_arms">{isKn ? "ಕೈಗಳು / ತೋಳು (Hands/Arms)" : "Hands / Arms"}</option>
-                <option value="back_spine">{isKn ? "ಬೆನ್ನು / ಬೆನ್ನುಹುರಿ (Back/Spine)" : "Back / Spine"}</option>
-                <option value="abdomen_waist">{isKn ? "ಹೊಟ್ಟೆ / ನಡು (Abdomen/Waist)" : "Abdomen / Waist"}</option>
-                <option value="legs_feet">{isKn ? "ಕಾಲುಗಳು / ಪಾದ (Legs/Feet)" : "Legs / Feet"}</option>
-                <option value="none">{isKn ? "ಯಾವುದೂ ಇಲ್ಲ (None)" : "None"}</option>
-              </select>
-            </div>
-
-            {/* Innate Affinity */}
-            <div>
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-300 mb-1.5">
-                {T_HINDINA_JANMA.formAffinity[selectedLang]}
-              </label>
-              <select
-                value={inexplicableAffinity}
-                onChange={(e) => setInexplicableAffinity(e.target.value as InexplicableAffinity)}
-                className="w-full rounded-2xl border-2 border-amber-300 dark:border-slate-700 bg-amber-50/60 dark:bg-slate-800 px-4 py-3 text-sm font-semibold text-slate-950 dark:text-white focus:border-amber-500 focus:outline-none"
-              >
-                <option value="ancient_temples">{isKn ? "ಪುರಾತನ ದೇವಾಲಯಗಳು & ಶಿಲ್ಪಕಲೆ (Ancient Temples)" : "Ancient Temples & Architecture"}</option>
-                <option value="forest_hermitage">{isKn ? "ಅರಣ್ಯ ಏಕಾಂತ & ತಪಸ್ಸು (Forest Solitude & Meditation)" : "Forest Hermitage & Solitude"}</option>
-                <option value="ocean_travel">{isKn ? "ಸಾಗರ & ನದಿ ಸಂಗಮಗಳು (Ocean & Sacred Rivers)" : "Ocean & Sacred Rivers"}</option>
-                <option value="royal_warfare">{isKn ? "ಕೋಟೆಗಳು, ಇತಿಹಾಸ & ನಾಯಕತ್ವ (History & Leadership)" : "Forts, History & Leadership"}</option>
-                <option value="sacred_music">{isKn ? "ಶಾಸ್ತ್ರೀಯ ಸಂಗೀತ & ವೇದ ಮಂತ್ರ (Vedic Chanting)" : "Sacred Music & Vedic Chanting"}</option>
-                <option value="occult_mysticism">{isKn ? "ಜ್ಯೋತಿಷ್ಯ, ತಂತ್ರ & ಗೂಢ ಶಾಸ್ತ್ರ (Astrology & Mysticism)" : "Astrology & Occult Wisdom"}</option>
-              </select>
-            </div>
-
-            {/* Innate Phobia */}
-            <div className="sm:col-span-2 md:col-span-3">
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-300 mb-1.5">
-                {T_HINDINA_JANMA.formPhobia[selectedLang]}
-              </label>
-              <select
-                value={inexplicablePhobia}
-                onChange={(e) => setInexplicablePhobia(e.target.value as InexplicablePhobia)}
-                className="w-full rounded-2xl border-2 border-amber-300 dark:border-slate-700 bg-amber-50/60 dark:bg-slate-800 px-4 py-3 text-sm font-semibold text-slate-950 dark:text-white focus:border-amber-500 focus:outline-none"
-              >
-                <option value="none">{isKn ? "ಯಾವುದೇ ವಿಶೇಷ ಭಯವಿಲ್ಲ (No Phobia)" : "No Specific Phobia"}</option>
-                <option value="water_drowning">{isKn ? "ನೀರಿನಲ್ಲಿ ಮುಳುಗುವ / ಆಳವಾದ ಜಲ ಭಯ (Deep Water)" : "Deep Water / Drowning Aversion"}</option>
-                <option value="heights_fall">{isKn ? "ಎತ್ತರದ ಸ್ಥಳ / ಬೀಳುವ ಭಯ (Heights / Falling)" : "Heights / Falling Aversion"}</option>
-                <option value="fire_burns">{isKn ? "ಅಗ್ನಿ / ಬೆಂಕಿ ಭಯ (Fire / Burns)" : "Fire / Burn Aversion"}</option>
-                <option value="enclosed_darkness">{isKn ? "ಕತ್ತಲೆ / ಮುಚ್ಚಿದ ಕೋಣೆಯ ಭಯ (Darkness / Enclosed)" : "Darkness / Enclosed Spaces"}</option>
-                <option value="sharp_weapons">{isKn ? "ಚೂಪಾದ ಆಯುಧಗಳ ಭಯ (Sharp Weapons)" : "Sharp Weapons"}</option>
-                <option value="isolation_abandonment">{isKn ? "ಒಂಟಿತನ / ತ್ಯಜಿಸಲ್ಪಡುವ ಭಯ (Isolation / Abandonment)" : "Isolation / Fear of Abandonment"}</option>
-              </select>
-            </div>
-
-            {/* Custom Question with Speech-to-Text Microphone Button */}
-            <div className="sm:col-span-2 md:col-span-3">
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-300">
-                  {T_HINDINA_JANMA.formQuestion[selectedLang]}
-                </label>
-                <button
-                  type="button"
-                  onClick={() => handleMicToggle("question")}
-                  className={`flex items-center gap-1.5 px-3 py-1 text-xs font-black rounded-xl transition shadow-md ${
-                    activeMicField === "question"
-                      ? "bg-rose-600 text-white animate-pulse"
-                      : "bg-amber-100 dark:bg-slate-800 text-amber-950 dark:text-amber-200 border border-amber-400 hover:bg-amber-200"
-                  }`}
-                >
-                  <span>{activeMicField === "question" ? "🔴" : "🎙️"}</span>
-                  <span>{activeMicField === "question" ? (isKn ? "ಆಲಿಸಲಾಗುತ್ತಿದೆ..." : "Listening...") : (isKn ? "ಮಾತನಾಡಿ ಕೇಳಿ (Mic)" : "Speak via Mic")}</span>
-                </button>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+              {/* Full Name */}
+              <div className="flex flex-col">
+                <div className="h-7 flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-200">
+                    {T_HINDINA_JANMA.formName[selectedLang]} *
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => handleMicToggle("name")}
+                    className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-black rounded-lg transition shadow-xs ${
+                      activeMicField === "name"
+                        ? "bg-rose-600 text-white animate-pulse"
+                        : "bg-amber-100 dark:bg-slate-800 text-amber-950 dark:text-amber-200 border border-amber-300 dark:border-slate-700 hover:bg-amber-200"
+                    }`}
+                    title={isKn ? "ಧ್ವನಿ ಮೂಲಕ ಹೆಸರನ್ನು ಹೇಳಿ" : "Dictate name via mic"}
+                  >
+                    <span>{activeMicField === "name" ? "🔴" : "🎙️"}</span>
+                    <span>{activeMicField === "name" ? (isKn ? "ಆಲಿಸಲಾಗುತ್ತಿದೆ..." : "Listening...") : (isKn ? "ಧ್ವನಿ" : "Mic")}</span>
+                  </button>
+                </div>
+                <input
+                  type="text"
+                  required
+                  value={personName}
+                  onChange={(e) => setPersonName(e.target.value)}
+                  placeholder={isKn ? "ಉದಾ: ಶ್ರೀ ಶಂಕರ ಭಟ್" : "e.g., Sri Shankara Bhat"}
+                  className="h-12 w-full rounded-2xl border-2 border-amber-200 dark:border-slate-700 bg-amber-50/50 dark:bg-slate-800 px-4 text-sm sm:text-base font-semibold text-slate-950 dark:text-white placeholder:text-slate-400 focus:border-amber-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none transition shadow-xs"
+                />
               </div>
 
-              <div className="relative">
-                <textarea
-                  rows={2}
-                  value={customQuestion}
-                  onChange={(e) => setCustomQuestion(e.target.value)}
-                  placeholder={
-                    isKn
-                      ? "ಉದಾ: ನನ್ನ ಈ ಜನ್ಮದ ಮುಖ್ಯ ಕರ್ಮ ಗುರಿ ಏನು? ನನ್ನ ಹಿಂದಿನ ಜನ್ಮದ ಆಸೆ ಯಾವುದು? (ಧ್ವನಿ ಮೂಲಕವೂ ಮಾತನಾಡಬಹುದು)"
-                      : "e.g., What is my soul's highest purpose and karmic lesson? (You can also speak via mic)"
-                  }
-                  className="w-full rounded-2xl border-2 border-amber-300 dark:border-slate-700 bg-amber-50/60 dark:bg-slate-800 px-4 py-3 text-sm font-semibold text-slate-950 dark:text-white placeholder:text-slate-400 focus:border-amber-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none"
+              {/* Date of Birth */}
+              <div className="flex flex-col">
+                <div className="h-7 flex items-center mb-1.5">
+                  <label className="text-xs font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-200">
+                    {T_HINDINA_JANMA.formDob[selectedLang]} *
+                  </label>
+                </div>
+                <input
+                  type="date"
+                  required
+                  value={dob}
+                  onChange={(e) => setDob(e.target.value)}
+                  className="h-12 w-full rounded-2xl border-2 border-amber-200 dark:border-slate-700 bg-amber-50/50 dark:bg-slate-800 px-4 text-sm sm:text-base font-semibold text-slate-950 dark:text-white focus:border-amber-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none transition shadow-xs"
+                />
+              </div>
+
+              {/* Time of Birth */}
+              <div className="flex flex-col sm:col-span-2 lg:col-span-1">
+                <div className="h-7 flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-200">
+                    {T_HINDINA_JANMA.formTob[selectedLang]}
+                  </label>
+                  <span className="text-[10px] text-amber-800 dark:text-amber-400 font-bold bg-amber-100/70 dark:bg-slate-800 px-2 py-0.5 rounded-md">
+                    {isKn ? "ಐಚ್ಛಿಕ" : "Optional"}
+                  </span>
+                </div>
+                <input
+                  type="time"
+                  value={tob}
+                  onChange={(e) => setTob(e.target.value)}
+                  className="h-12 w-full rounded-2xl border-2 border-amber-200 dark:border-slate-700 bg-amber-50/50 dark:bg-slate-800 px-4 text-sm sm:text-base font-semibold text-slate-950 dark:text-white focus:border-amber-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none transition shadow-xs"
                 />
               </div>
             </div>
           </div>
 
-          {/* Submit Button */}
-          <div className="text-center pt-3">
+          {/* Section 2: Physical & Astrological Markers (3 Columns with uniform label heights) */}
+          <div>
+            <div className="text-[11px] font-extrabold uppercase tracking-widest text-amber-800 dark:text-amber-400 mb-2 flex items-center gap-1.5">
+              <span>✦</span>
+              <span>{isKn ? "ಶಾರೀರಿಕ & ಸ್ಥಳ ಲಕ್ಷಣಗಳು" : "Physical & Birth Markers"}</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+              {/* Gender */}
+              <div className="flex flex-col">
+                <div className="h-7 flex items-center mb-1.5">
+                  <label className="text-xs font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-200">
+                    {T_HINDINA_JANMA.formGender[selectedLang]}
+                  </label>
+                </div>
+                <select
+                  value={gender}
+                  onChange={(e) => setGender(e.target.value as any)}
+                  className="h-12 w-full rounded-2xl border-2 border-amber-200 dark:border-slate-700 bg-amber-50/50 dark:bg-slate-800 px-3.5 text-sm sm:text-base font-semibold text-slate-950 dark:text-white focus:border-amber-500 focus:outline-none transition shadow-xs"
+                >
+                  <option value="Male">{isKn ? "ಪುರುಷ (Male)" : "Male"}</option>
+                  <option value="Female">{isKn ? "ಮಹಿಳೆ (Female)" : "Female"}</option>
+                  <option value="Other">{isKn ? "ಇತರ (Other)" : "Other"}</option>
+                </select>
+              </div>
+
+              {/* Birth Place */}
+              <div className="flex flex-col">
+                <div className="h-7 flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-200">
+                    {T_HINDINA_JANMA.formPlace[selectedLang]}
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => handleMicToggle("place")}
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-black rounded-lg transition shadow-xs ${
+                      activeMicField === "place"
+                        ? "bg-rose-600 text-white animate-pulse"
+                        : "bg-amber-100 dark:bg-slate-800 text-amber-950 dark:text-amber-200 border border-amber-300 dark:border-slate-700 hover:bg-amber-200"
+                    }`}
+                    title={isKn ? "ಧ್ವನಿ ಮೂಲಕ ಸ್ಥಳವನ್ನು ಹೇಳಿ" : "Dictate place via mic"}
+                  >
+                    <span>{activeMicField === "place" ? "🔴" : "🎙️"}</span>
+                    <span>{activeMicField === "place" ? (isKn ? "ಆಲಿಸಲಾಗುತ್ತಿದೆ..." : "Listening...") : (isKn ? "ಧ್ವನಿ" : "Mic")}</span>
+                  </button>
+                </div>
+                <input
+                  type="text"
+                  value={birthPlace}
+                  onChange={(e) => setBirthPlace(e.target.value)}
+                  placeholder={isKn ? "ಉದಾ: ಗೋಕರ್ಣ, ಬೆಂಗಳೂರು" : "e.g., Gokarna, Bengaluru"}
+                  className="h-12 w-full rounded-2xl border-2 border-amber-200 dark:border-slate-700 bg-amber-50/50 dark:bg-slate-800 px-4 text-sm sm:text-base font-semibold text-slate-950 dark:text-white placeholder:text-slate-400 focus:border-amber-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none transition shadow-xs"
+                />
+              </div>
+
+              {/* Birthmark / Mole Location */}
+              <div className="flex flex-col sm:col-span-2 lg:col-span-1">
+                <div className="h-7 flex items-center mb-1.5">
+                  <label className="text-xs font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-200">
+                    {T_HINDINA_JANMA.formBirthMark[selectedLang]}
+                  </label>
+                </div>
+                <select
+                  value={birthMarkLocation}
+                  onChange={(e) => setBirthMarkLocation(e.target.value as BirthMarkLocation)}
+                  className="h-12 w-full rounded-2xl border-2 border-amber-200 dark:border-slate-700 bg-amber-50/50 dark:bg-slate-800 px-3.5 text-sm sm:text-base font-semibold text-slate-950 dark:text-white focus:border-amber-500 focus:outline-none transition shadow-xs"
+                >
+                  <option value="head_face">{isKn ? "ಶಿರಸ್ಸು / ಮುಖ / ಹಣೆ (Head/Face)" : "Head / Face / Forehead"}</option>
+                  <option value="neck_chest">{isKn ? "ಕಂಠ / ಎದೆ (Neck/Chest)" : "Neck / Chest"}</option>
+                  <option value="hands_arms">{isKn ? "ಕೈಗಳು / ತೋಳು (Hands/Arms)" : "Hands / Arms"}</option>
+                  <option value="back_spine">{isKn ? "ಬೆನ್ನು / ಬೆನ್ನುಹುರಿ (Back/Spine)" : "Back / Spine"}</option>
+                  <option value="abdomen_waist">{isKn ? "ಹೊಟ್ಟೆ / ನಡು (Abdomen/Waist)" : "Abdomen / Waist"}</option>
+                  <option value="legs_feet">{isKn ? "ಕಾಲುಗಳು / ಪಾದ (Legs/Feet)" : "Legs / Feet"}</option>
+                  <option value="none">{isKn ? "ಯಾವುದೂ ಇಲ್ಲ (None)" : "None"}</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Section 3: Soul Indicators & Phobias (2 Columns with uniform label heights) */}
+          <div>
+            <div className="text-[11px] font-extrabold uppercase tracking-widest text-amber-800 dark:text-amber-400 mb-2 flex items-center gap-1.5">
+              <span>✦</span>
+              <span>{isKn ? "ಸುಪ್ತ ಮನಸ್ಸಿನ ಆಕರ್ಷಣೆ & ಭಯಗಳು" : "Soul Affinity & Innate Phobias"}</span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+              {/* Soul Affinity */}
+              <div className="flex flex-col">
+                <div className="h-7 flex items-center mb-1.5">
+                  <label className="text-xs font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-200">
+                    {T_HINDINA_JANMA.formAffinity[selectedLang]}
+                  </label>
+                </div>
+                <select
+                  value={inexplicableAffinity}
+                  onChange={(e) => setInexplicableAffinity(e.target.value as InexplicableAffinity)}
+                  className="h-12 w-full rounded-2xl border-2 border-amber-200 dark:border-slate-700 bg-amber-50/50 dark:bg-slate-800 px-3.5 text-sm sm:text-base font-semibold text-slate-950 dark:text-white focus:border-amber-500 focus:outline-none transition shadow-xs"
+                >
+                  <option value="ancient_temples">{isKn ? "ಪುರಾತನ ದೇವಾಲಯಗಳು & ಶಿಲ್ಪಕಲೆ (Ancient Temples)" : "Ancient Temples & Architecture"}</option>
+                  <option value="forest_hermitage">{isKn ? "ಅರಣ್ಯ ಏಕಾಂತ & ತಪಸ್ಸು (Forest Solitude)" : "Forest Hermitage & Solitude"}</option>
+                  <option value="ocean_travel">{isKn ? "ಸಾಗರ & ನದಿ ಸಂಗಮಗಳು (Ocean & Sacred Rivers)" : "Ocean & Sacred Rivers"}</option>
+                  <option value="royal_warfare">{isKn ? "ಕೋಟೆಗಳು, ಇತಿಹಾಸ & ನಾಯಕತ್ವ (History & Forts)" : "Forts, History & Leadership"}</option>
+                  <option value="sacred_music">{isKn ? "ಶಾಸ್ತ್ರೀಯ ಸಂಗೀತ & ವೇದ ಮಂತ್ರ (Vedic Chanting)" : "Sacred Music & Vedic Chanting"}</option>
+                  <option value="occult_mysticism">{isKn ? "ಜ್ಯೋತಿಷ್ಯ, ತಂತ್ರ & ಗೂಢ ಶಾಸ್ತ್ರ (Astrology & Mysticism)" : "Astrology & Occult Wisdom"}</option>
+                </select>
+              </div>
+
+              {/* Innate Phobia */}
+              <div className="flex flex-col">
+                <div className="h-7 flex items-center mb-1.5">
+                  <label className="text-xs font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-200">
+                    {T_HINDINA_JANMA.formPhobia[selectedLang]}
+                  </label>
+                </div>
+                <select
+                  value={inexplicablePhobia}
+                  onChange={(e) => setInexplicablePhobia(e.target.value as InexplicablePhobia)}
+                  className="h-12 w-full rounded-2xl border-2 border-amber-200 dark:border-slate-700 bg-amber-50/50 dark:bg-slate-800 px-3.5 text-sm sm:text-base font-semibold text-slate-950 dark:text-white focus:border-amber-500 focus:outline-none transition shadow-xs"
+                >
+                  <option value="none">{isKn ? "ಯಾವುದೇ ವಿಶೇಷ ಭಯವಿಲ್ಲ (No Phobia)" : "No Specific Phobia"}</option>
+                  <option value="water_drowning">{isKn ? "ನೀರಿನಲ್ಲಿ ಮುಳುಗುವ / ಆಳವಾದ ಜಲ ಭಯ (Deep Water)" : "Deep Water / Drowning Aversion"}</option>
+                  <option value="heights_fall">{isKn ? "ಎತ್ತರದ ಸ್ಥಳ / ಬೀಳುವ ಭಯ (Heights / Falling)" : "Heights / Falling Aversion"}</option>
+                  <option value="fire_burns">{isKn ? "ಅಗ್ನಿ / ಬೆಂಕಿ ಭಯ (Fire / Burns)" : "Fire / Burn Aversion"}</option>
+                  <option value="enclosed_darkness">{isKn ? "ಕತ್ತಲೆ / ಮುಚ್ಚಿದ ಕೋಣೆಯ ಭಯ (Darkness / Enclosed)" : "Darkness / Enclosed Spaces"}</option>
+                  <option value="sharp_weapons">{isKn ? "ಚೂಪಾದ ಆಯುಧಗಳ ಭಯ (Sharp Weapons)" : "Sharp Weapons"}</option>
+                  <option value="isolation_abandonment">{isKn ? "ಒಂಟಿತನ / ತ್ಯಜಿಸಲ್ಪಡುವ ಭಯ (Isolation)" : "Isolation / Fear of Abandonment"}</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Section 4: Custom Question with Speech-to-Text Microphone Button */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-amber-50/70 dark:bg-slate-800/80 border-2 border-amber-200/80 dark:border-slate-700 space-y-3">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-base">💬</span>
+                <label className="text-xs sm:text-sm font-extrabold text-amber-950 dark:text-amber-200 uppercase tracking-wide">
+                  {T_HINDINA_JANMA.formQuestion[selectedLang]}
+                </label>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleMicToggle("question")}
+                className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-black rounded-xl transition shadow-md ${
+                  activeMicField === "question"
+                    ? "bg-rose-600 text-white animate-pulse"
+                    : "bg-white dark:bg-slate-900 text-amber-950 dark:text-amber-200 border-2 border-amber-400 hover:bg-amber-100 dark:hover:bg-slate-800"
+                }`}
+              >
+                <span>{activeMicField === "question" ? "🔴" : "🎙️"}</span>
+                <span>{activeMicField === "question" ? (isKn ? "ಆಲಿಸಲಾಗುತ್ತಿದೆ..." : "Listening...") : (isKn ? "ಧ್ವನಿ ಮೂಲಕ ಕೇಳಿ (Mic)" : "Speak via Mic")}</span>
+              </button>
+            </div>
+
+            {/* Quick Suggestion Question Chips */}
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                isKn ? "ನನ್ನ ಹಿಂದಿನ ಜನ್ಮದ ವೃತ್ತಿ & ಯುಗ ಯಾವುದು?" : "What was my past life profession?",
+                isKn ? "ಯಾವ ಕರ್ಮ ಋಣಾನುಬಂಧ ಬಾಕಿ ಇದೆ?" : "What karmic debt remains?",
+                isKn ? "ನನ್ನ ಸುಪ್ತ ಪ್ರತಿಭೆ & ಮುಕ್ತಿ ಮಾರ್ಗ?" : "What are my innate gifts & liberation path?"
+              ].map((q, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setCustomQuestion(q)}
+                  className="text-[11px] sm:text-xs font-semibold px-2.5 py-1 rounded-lg bg-white/90 dark:bg-slate-900 text-amber-900 dark:text-amber-300 border border-amber-300/70 hover:bg-amber-200 dark:hover:bg-slate-700 transition cursor-pointer"
+                >
+                  ✨ {q}
+                </button>
+              ))}
+            </div>
+
+            <textarea
+              rows={2}
+              value={customQuestion}
+              onChange={(e) => setCustomQuestion(e.target.value)}
+              placeholder={
+                isKn
+                  ? "ಉದಾ: ನನ್ನ ಈ ಜನ್ಮದ ಮುಖ್ಯ ಕರ್ಮ ಗುರಿ ಏನು? ನನ್ನ ಹಿಂದಿನ ಜನ್ಮದ ಆಸೆ ಯಾವುದು? (ಧ್ವನಿ ಮೂಲಕವೂ ಮಾತನಾಡಬಹುದು)"
+                  : "e.g., What is my soul's highest purpose and karmic lesson? (You can also speak via mic)"
+              }
+              className="w-full rounded-xl border-2 border-amber-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-3.5 text-sm sm:text-base font-semibold text-slate-950 dark:text-white placeholder:text-slate-400 focus:border-amber-500 focus:outline-none transition shadow-inner"
+            />
+          </div>
+
+          {/* Luxury Royal Gold Submit Button */}
+          <div className="pt-2 text-center">
             <button
               type="submit"
               disabled={isProcessing || !dob}
-              className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-black text-sm sm:text-base shadow-xl hover:shadow-2xl disabled:opacity-50 transition transform active:scale-95 border border-amber-400/40"
+              className="w-full sm:w-auto min-w-[280px] px-10 py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-400 hover:to-yellow-300 text-amber-950 font-black text-base sm:text-lg shadow-2xl hover:shadow-amber-500/30 border-2 border-amber-300 transition-all transform active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2.5 mx-auto cursor-pointer"
             >
-              {isProcessing
-                ? (isKn ? "⌛ ಪೂರ್ವ ಜನ್ಮ ಷಷ್ಟ್ಯಂಶ ಗಣನೆ ನಡೆಯುತ್ತಿದೆ..." : "Deciphering Past Life Blueprint...")
-                : T_HINDINA_JANMA.submitBtn[selectedLang]}
+              {isProcessing ? (
+                <>
+                  <div className="w-5 h-5 border-3 border-amber-950 border-t-transparent rounded-full animate-spin" />
+                  <span>{isKn ? "⌛ ಪೂರ್ವ ಜನ್ಮ ಷಷ್ಟ್ಯಂಶ ಗಣನೆ ನಡೆಯುತ್ತಿದೆ..." : "Deciphering Past Life..."}</span>
+                </>
+              ) : (
+                <>
+                  <span className="text-xl">🔮</span>
+                  <span>{T_HINDINA_JANMA.submitBtn[selectedLang]}</span>
+                </>
+              )}
             </button>
           </div>
         </form>
