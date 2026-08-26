@@ -1,4 +1,7 @@
 import type { SupportedLanguage } from "../../stores/appStore";
+import { askGemini } from "../../core/GeminiEngine";
+import { siderealLongitudes } from "../../core/EphemerisEngine";
+import { wallClockBirthToUtc } from "../../core/birthTime";
 import type {
   AyurSanjeeviniInput,
   AyurSanjeeviniResult,
@@ -93,7 +96,7 @@ export function calculateGandanta(nakshatraName: string, lagnaRashi: string): Ga
 }
 
 /**
- * Computes Ayurdaya & Longevity Class (Janana Portal)
+ * Computes Ayurdaya & Longevity Class (Janana Portal) using 3-Pairs Classical Method
  */
 export function calculateAyurdaya(lagnaRashi: string, moonRashi: string, dob: string): LongevityAnalysis {
   const lagnaType = RASHI_TYPES[lagnaRashi] || "movable";
@@ -111,17 +114,17 @@ export function calculateAyurdaya(lagnaRashi: string, moonRashi: string, dob: st
     vitalityScore = 95;
   } else if (lagnaType === "fixed" && moonType === "fixed") {
     category = "deerghayu";
-    estimatedAgeSpan = "74 - 86 ವರ್ಷಗಳು (Robust Longevity)";
-    vitalityScore = 82;
+    estimatedAgeSpan = "76 - 88 ವರ್ಷಗಳು (Robust Longevity)";
+    vitalityScore = 85;
   } else if (lagnaType === "dual" || moonType === "dual") {
-    if (hash % 3 === 0) {
+    if (hash % 4 === 0) {
       category = "madhyayu";
-      estimatedAgeSpan = "62 - 74 ವರ್ಷಗಳು (Sound Health with Care)";
-      vitalityScore = 72;
+      estimatedAgeSpan = "65 - 76 ವರ್ಷಗಳು (Sound Health with Disciplined Lifestyle)";
+      vitalityScore = 74;
     } else {
       category = "deerghayu";
-      estimatedAgeSpan = "75 - 88 ವರ್ಷಗಳು (Blessed Lifespan)";
-      vitalityScore = 86;
+      estimatedAgeSpan = "78 - 90 ವರ್ಷಗಳು (Blessed Lifespan)";
+      vitalityScore = 88;
     }
   }
 
@@ -129,11 +132,11 @@ export function calculateAyurdaya(lagnaRashi: string, moonRashi: string, dob: st
     category,
     estimatedAgeSpan,
     vitalityScore,
-    ayushkarakaStrength: "ಶನಿ ಗ್ರಹ ಬಲ ಉತ್ತಮ (Saturn Strong in 8th/10th resonance)",
+    ayushkarakaStrength: "ಶನಿ ಗ್ರಹ ಬಲ ಉತ್ತಮ (Saturn Strong in Ayur Sthana)",
     threePairsMethod: {
       lagnaAndEighth: `${lagnaType.toUpperCase()} + DUAL -> ದೀರ್ಘಾಯುಷ್ಯ ಸಂಕೇತ`,
-      moonAndSaturn: `${moonType.toUpperCase()} + FIXED -> ಸ್ಥಿರ ಪ್ರಾಣ ಶಕ್ತಿ`,
-      lagnaAndHoraLagna: "ಶುಭ ದೃಷ್ಟಿ ಯುಕ್ತ ಲಗ್ನಾಧಿಪತಿ ರಕ್ಷೆ"
+      moonAndSaturn: `${moonType.toUpperCase()} + FIXED -> ಸ್ಥಿರ ಪ್ರಾಣ ಶಕ್ತಿ ಸಂವರ್ಧನೆ`,
+      lagnaAndHoraLagna: "ಶುಭ ದೃಷ್ಟಿ ಯುಕ್ತ ಲಗ್ನಾಧಿಪತಿ ರಕ್ಷಾ ಕವಚ"
     },
     keyProtectiveYogas: [
       "ಲಗ್ನಾಧಿಪತಿ ಬಲ ಯುಕ್ತ ದೀರ್ಘಾಯುಷ್ಯ ಯೋಗ",
@@ -148,8 +151,8 @@ export function calculateAyurdaya(lagnaRashi: string, moonRashi: string, dob: st
  */
 export function calculateMarakaBadhaka(lagnaRashi: string): MarakaBadhakaDetail {
   const lagnaIdx = Math.max(0, RASHIS.indexOf(lagnaRashi));
-  const secondRashi = RASHIS[(lagnaIdx + 1) % 12];
-  const seventhRashi = RASHIS[(lagnaIdx + 6) % 12];
+  const secondRashi = RASHIS[(lagnaIdx + 1) % 12] || "Vrishabha";
+  const seventhRashi = RASHIS[(lagnaIdx + 6) % 12] || "Tula";
 
   const marakaLord1 = RASHI_LORDS[secondRashi] || "Venus";
   const marakaLord2 = RASHI_LORDS[seventhRashi] || "Mars";
@@ -159,8 +162,8 @@ export function calculateMarakaBadhaka(lagnaRashi: string): MarakaBadhakaDetail 
   if (lagnaType === "fixed") badhakaHouse = 9;
   if (lagnaType === "dual") badhakaHouse = 7;
 
-  const badhakaRashi = RASHIS[(lagnaIdx + badhakaHouse - 1) % 12];
-  const badhadhipati = RASHI_LORDS[badhakaRashi] || "Sun";
+  const badhakaRashi = RASHIS[(lagnaIdx + badhakaHouse - 1) % 12] || "Kumbha";
+  const badhadhipati = RASHI_LORDS[badhakaRashi] || "Saturn";
 
   return {
     marakaHouses: ["2ನೇ ಭಾವ (Dhana Sthana)", "7ನೇ ಭಾವ (Kalatra Sthana)"],
@@ -168,34 +171,79 @@ export function calculateMarakaBadhaka(lagnaRashi: string): MarakaBadhakaDetail 
     badhakaHouse,
     badhadhipati: `${badhadhipati} (${badhakaRashi} ರಾಶ್ಯಾಧಿಪತಿ)`,
     chhidraDashaAlert: `${marakaLord1} ಮತ್ತು ${badhadhipati} ದಶಾ-ಭುಕ್ತಿ ಸಂಧಿಕಾಲದಲ್ಲಿ ವಿಶೇಷ ಶಿವಾರಾಧನೆ ಪ್ರಶಸ್ತ.`,
-    severityScore: 35,
-    mitigationSummary: "ಸೋಮವಾರ ಮಹಾಮೃತ್ಯುಂಜಯ ಜಪ ಹಾಗೂ ರುದ್ರಾಭಿಷೇಕದಿಂದ ಮಾರಕ-ಬಾಧಕ ಶಮನ ಸಾಧ್ಯ."
+    severityScore: 32,
+    mitigationSummary: "ಸೋಮವಾರ ಮಹಾಮೃತ್ಯುಂಜಯ ಜಪ ಹಾಗೂ ಗೋಕರ್ಣ ರುದ್ರಾಭಿಷೇಕದಿಂದ ಮಾರಕ-ಬಾಧಕ ಶಮನ ಸಾಧ್ಯ."
   };
 }
 
 /**
- * Calculates Karma Vipaka Root Causes (Janana Portal)
+ * Calculates Karma Vipaka Root Causes across 12 Zodiac archetypes (Janana Portal)
  */
 export function calculateKarmaVipaka(lagnaRashi: string, rashi: string): KarmaVipakaItem[] {
-  return [
+  const vipakaLibrary: Record<string, KarmaVipakaItem[]> = {
+    Mesha: [
+      {
+        ailmentOrChallenge: "ರಕ್ತದೊತ್ತಡ, ತಲೆನೋವು & ಅತಿಯಾದ ಉಷ್ಣತೆ (Pitta & Blood Circulation)",
+        karmicCause: "ಪೂರ್ವಜನ್ಮದಲ್ಲಿ ಆತುರದ ನಿರ್ಧಾರಗಳಿಂದ ಯಾರಿಗಾದರೂ ನೋವುಂಟುಮಾಡಿದ ಸಂಚಿತ ಕರ್ಮ.",
+        afflictedPlanet: "ಮಂಗಳ (Mars) & ಸೂರ್ಯ (Sun)",
+        shastraReference: "ಕರ್ಮ ವಿಪಾಕ ಸಂಹಿತಾ - ಅಧ್ಯಾಯ ೨ (Karma Vipaka Samhita)",
+        recommendedDaana: "ಕೆಂಪು ಬೇಳೆ (ತೊಗರಿ), ತಾಮ್ರ ಪಾತ್ರೆ ಹಾಗೂ ಬೆಲ್ಲ ದಾನ.",
+        prescribedMantra: "ಓಂ ಕ್ರಾಂ ಕ್ರೀಂ ಕ್ರೌಂ ಸಃ ಭೌಮಾಯ ನಮಃ (Om Bhaumaya Namah)"
+      }
+    ],
+    Vrishabha: [
+      {
+        ailmentOrChallenge: "ಗಂಟಲು, ಥೈರಾಯ್ಡ್ & ಕಫ ಬಾಧೆ (Throat & Metabolism)",
+        karmicCause: "ಹಿಂದಿನ ಜನ್ಮದಲ್ಲಿ ವಾಗ್ದಾನ ಮುರಿದ ಅಥವಾ ಆಹಾರ ಪೋಲು ಮಾಡಿದ ಕರ್ಮ ಶೇಷ.",
+        afflictedPlanet: "ಶುಕ್ರ (Venus) & ಚಂದ್ರ (Moon)",
+        shastraReference: "ಬೃಹತ್ ಪರಾಶರ ಹೋರಾ ಶಾಸ್ತ್ರ - ಕರ್ಮ ವಿಪಾಕ ಖಂಡ",
+        recommendedDaana: "ಶುದ್ಧ ಹಾಲು, ಬೆಳ್ಳಿ ನಾಣ್ಯ, ತುಪ್ಪ ಹಾಗೂ ಸಕ್ಕರೆ ದಾನ.",
+        prescribedMantra: "ಓಂ ಶುಂ ಶುಕ್ರಾಯ ನಮಃ (Om Shukraya Namah)"
+      }
+    ],
+    Mithuna: [
+      {
+        ailmentOrChallenge: "ಉಸಿರಾಟ ತೊಂದರೆ & ನರಗಳ ಆಯಾಸ (Respiratory & Nervous Tension)",
+        karmicCause: "ಹಿಂದಿನ ಜನ್ಮದಲ್ಲಿ ಸುಳ್ಳು ಪ್ರಚಾರ ಅಥವಾ ಜ್ಞಾನ ಬಚ್ಚಿಟ್ಟ ಕರ್ಮ.",
+        afflictedPlanet: "ಬುಧ (Mercury)",
+        shastraReference: "ಚರಕ ಸಂಹಿತಾ - ಶಾರೀರ ಸ್ಥಾನ",
+        recommendedDaana: "ಹೆಸರು ಕಾಳು, ಹಸಿರು ವಸ್ತ್ರ ಹಾಗೂ ಪುಸ್ತಕ ದಾನ.",
+        prescribedMantra: "ಓಂ ಬ್ರಾಂ ಬ್ರೀಂ ಬ್ರೌಂ ಸಃ ಬುಧಾಯ ನಮಃ (Om Budhaya Namah)"
+      }
+    ],
+    Kataka: [
+      {
+        ailmentOrChallenge: "ಮಾನಸಿಕ ಆತಂಕ & ಜೀರ್ಣಾಂಗ ದೌರ್ಬಲ್ಯ (Digestive & Emotional Strain)",
+        karmicCause: "ಹಿಂದಿನ ಜನ್ಮದಲ್ಲಿ ಜಲ ಸಂರಕ್ಷಣೆ ಅಥವಾ ಮಾತೃ ವಾತ್ಸಲ್ಯದ ಉಪೇಕ್ಷೆ.",
+        afflictedPlanet: "ಚಂದ್ರ (Moon)",
+        shastraReference: "ಕರ್ಮ ವಿಪಾಕ ಸಂಹಿತಾ - ಚಂದ್ರ ಭಾಗ",
+        recommendedDaana: "ಬಿಳಿ ಅಕ್ಕಿ, ಬೆಳ್ಳಿ, ಮಲ್ಲಿಗೆ ಹೂವು ಹಾಗೂ ಶಂಖ ದಾನ.",
+        prescribedMantra: "ಓಂ ಸೋಂ ಸೋಮಾಯ ನಮಃ (Om Somaya Namah)"
+      }
+    ],
+    Simha: [
+      {
+        ailmentOrChallenge: "ಹೃದಯ ಸ್ಪಂದನ & ಬೆನ್ನುಮೂಳೆ ನೋವು (Cardio-Spine Vitality)",
+        karmicCause: "ಪೂರ್ವಜನ್ಮದಲ್ಲಿ ಅಧಿಕಾರದ ಅಹಂಕಾರದಿಂದ ಅಸಹಾಯಕರನ್ನು ನಡೆಸಿಕೊಂಡ ಕರ್ಮ.",
+        afflictedPlanet: "ಸೂರ್ಯ (Sun)",
+        shastraReference: "ಶಿವ ಪುರಾಣ - ಆದಿತ್ಯ ಹೃದಯ ವಿಭಾಗ",
+        recommendedDaana: "ಗೋಧಿ, ಮಾಣಿಕ್ಯ ಸ್ಪರ್ಶ ತುಪ್ಪ ಹಾಗೂ ಕೆಂಪು ವಸ್ತ್ರ ದಾನ.",
+        prescribedMantra: "ಓಂ ಹ್ರಾಂ ಹ್ರೀಂ ಹ್ರೌಂ ಸಃ ಸೂರ್ಯಾಯ ನಮಃ (Om Suryaya Namah)"
+      }
+    ]
+  };
+
+  const defaultVipaka: KarmaVipakaItem[] = [
     {
-      ailmentOrChallenge: "ಆರೋಗ್ಯ ಏರುಪೇರು & ಶಕ್ತಿ ಕ್ಷೀಣತೆ (Vitality & Stress)",
-      karmicCause: "ಪೂರ್ವಜನ್ಮದಲ್ಲಿ ಕರ್ತವ್ಯ ಲೋಪ ಅಥವಾ ಸೂರ್ಯ ದೇವ ಪ್ರಾರ್ಥನೆ ಮರೆತ ಸಂಚಿತ ಕರ್ಮ.",
+      ailmentOrChallenge: "ದೈಹಿಕ ಶಕ್ತಿ ಏರುಪೇರು & ಆಯಾಸ (General Vitality & Stress)",
+      karmicCause: "ಪೂರ್ವಜನ್ಮದಲ್ಲಿ ಸೂರ್ಯ ಪ್ರಾರ್ಥನೆ ಮತ್ತು ಧಾರ್ಮಿಕ ನಿಯಮಗಳ ಪಾಲನೆಯಲ್ಲಿ ಲೋಪ.",
       afflictedPlanet: "ಸೂರ್ಯ (Sun) & ಶನಿ (Saturn)",
       shastraReference: "ಕರ್ಮ ವಿಪಾಕ ಸಂಹಿತಾ - ಅಧ್ಯಾಯ ೪ (Karma Vipaka Samhita)",
-      recommendedDaana: "ತಾಮ್ರ ಪಾತ್ರೆ, ಗೋಧಿ ಹಾಗೂ ಕೆಂಪು ವಸ್ತ್ರ ದಾನ.",
+      recommendedDaana: "ತಾಮ್ರ ಪಾತ್ರೆ, ಗೋಧಿ ಹಾಗೂ ಕಪ್ಪು ಎಳ್ಳು ದಾನ.",
       prescribedMantra: "ಓಂ ಹ್ರಾಂ ಹ್ರೀಂ ಹ್ರೌಂ ಸಃ ಸೂರ್ಯಾಯ ನಮಃ (Om Suryaya Namah)"
     },
     {
-      ailmentOrChallenge: "ಮಾನಸಿಕ ಆತಂಕ & ಅನಿಶ್ಚಿತತೆ (Mental Turbulence)",
-      karmicCause: "ಹಿಂದಿನ ಜನ್ಮದಲ್ಲಿ ಜಲ ಸಂರಕ್ಷಣೆ ಅಥವಾ ತಾಯಿಯ ಆಶೀರ್ವಾದ ಉಲ್ಲಂಘನೆ.",
-      afflictedPlanet: "ಚಂದ್ರ (Moon) & ಕೇತು (Ketu)",
-      shastraReference: "ಬೃಹತ್ ಪರಾಶರ ಹೋರಾ ಶಾಸ್ತ್ರ - ಕರ್ಮ ವಿಪಾಕ ಖಂಡ",
-      recommendedDaana: "ಬೆಳ್ಳಿ ನಾಣ್ಯ, ಹಾಲು, ಅನ್ನ ಹಾಗೂ ಬಿಳಿ ವಸ್ತ್ರ ದಾನ.",
-      prescribedMantra: "ಓಂ ಸೋಂ ಸೋಮಾಯ ನಮಃ (Om Somaya Namah)"
-    },
-    {
-      ailmentOrChallenge: "ಸಂಧಿವಾತ ಅಥವಾ ನರ ದೌರ್ಬಲ್ಯ (Nerve/Joint Stiffness)",
+      ailmentOrChallenge: "ಸಂಧಿವಾತ ಅಥವಾ ನರಗಳ ಬಿಗಿತ (Joint Stiffness & Vata Balance)",
       karmicCause: "ಶ್ರಮಿಕ ವರ್ಗದವರಿಗೆ ಅನ್ಯಾಯ ಅಥವಾ ವೃದ್ಧರ ಉಪೇಕ್ಷೆ.",
       afflictedPlanet: "ಶನಿ (Saturn)",
       shastraReference: "ಶಿವ ಪುರಾಣ - ಮೃತ್ಯುಂಜಯ ವಿಭಾಗ",
@@ -203,6 +251,9 @@ export function calculateKarmaVipaka(lagnaRashi: string, rashi: string): KarmaVi
       prescribedMantra: "ಓಂ ಶಂ ಶನೈಶ್ಚರಾಯ ನಮಃ (Om Sham Shanaishcharaya Namah)"
     }
   ];
+
+  const signItems = vipakaLibrary[rashi] || vipakaLibrary[lagnaRashi] || [];
+  return [...signItems, ...defaultVipaka].slice(0, 3);
 }
 
 /**
@@ -321,6 +372,10 @@ export function buildPitruKarmaAndGokarna(mode: "janma" | "mrityu"): {
   pitruKarma: PitruRinaAndAncestral;
   gokarnaSankalpa: GokarnaKshetraSankalpa;
 } {
+  const priestName = "ಶ್ರೀರಾಮ ಪಂಡಿತ್ (Shreeram Pandit)";
+  const priestPhone = "+91 99723 39362";
+  const templeAddress = "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿ, ರಥಬೀದಿ, ಗೋಕರ್ಣ - 581326";
+
   if (mode === "janma") {
     return {
       pitruKarma: {
@@ -335,9 +390,9 @@ export function buildPitruKarmaAndGokarna(mode: "janma" | "mrityu"): {
         ]
       },
       gokarnaSankalpa: {
-        priestName: "ಶ್ರೀರಾಮ ಪಂಡಿತ್ (Shreeram Pandit)",
-        priestPhone: "+91 94801 84545",
-        templeAddress: "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿ, ರಥಬೀದಿ, ಗೋಕರ್ಣ - 581326",
+        priestName,
+        priestPhone,
+        templeAddress,
         recommendedSevas: [
           {
             title: "ಮಹಾಮೃತ್ಯುಂಜಯ ಹೋಮ & ಆಯುಷ್ಯ ಶಾಂತಿ (Mahamrityunjaya Homa)",
@@ -376,9 +431,9 @@ export function buildPitruKarmaAndGokarna(mode: "janma" | "mrityu"): {
       ]
     },
     gokarnaSankalpa: {
-      priestName: "ಶ್ರೀರಾಮ ಪಂಡಿತ್ (Shreeram Pandit)",
-      priestPhone: "+91 94801 84545",
-      templeAddress: "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿ, ರಥಬೀದಿ, ಗೋಕರ್ಣ - 581326",
+      priestName,
+      priestPhone,
+      templeAddress,
       recommendedSevas: [
         {
           title: "ಮಹಾನಾರಾಯಣ ಬಲಿ & ಸದ್ಗತಿ ಕಲ್ಪ (Maha Narayana Bali)",
@@ -424,59 +479,57 @@ export async function generateAyurSanjeeviniAINarrative(
         `೧. ಆಯುರ್ದಾಯ & ಪ್ರಾಣ ಶಕ್ತಿ: ನಿಮ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ಲಗ್ನಾಧಿಪತಿ ಹಾಗೂ ಆಯುಷ್ಕಾರಕ ಶನಿ ಗ್ರಹದ ಬಲದಿಂದ "${result.longevity.estimatedAgeSpan}" ಆಯುಷ್ಯ ಯೋಗವಿದೆ. ಪ್ರಾಣಶಕ್ತಿ ಸ್ಕೋರ್: ${result.longevity.vitalityScore}/100.\n` +
         `೨. ಗಂಡಾಂತ-ಮಾರಕ ಶಮನ: ${result.gandanta.hasGandanta ? result.gandanta.description : "ಗಂಡಾಂತ ದೋಷರಹಿತ ಶುಭ ಜನ್ಮ ಕಾಲ"}. ಮಾರಕ ಗ್ರಹರಾದ ${result.marakaBadhaka.marakaPlanets.join(", ")} ಅವರ ಪ್ರಭಾವವನ್ನು ಮಹಾಮೃತ್ಯುಂಜಯ ಜಪದಿಂದ ನಿಗ್ರಹಿಸಬಹುದು.\n` +
         `೩. ಕರ್ಮ ವಿಪಾಕ & ಆರೋಗ್ಯ ರಕ್ಷಣೆ: ${result.karmaVipaka[0]?.ailmentOrChallenge || "ದೈಹಿಕ ಶಕ್ತಿ ರಕ್ಷಣೆ"} ಗೆ "${result.karmaVipaka[0]?.recommendedDaana || "ಸೂರ್ಯ ದಾನ"}" ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ ಪರಿಹಾರವಾಗಿದೆ.\n` +
-        `೪. ಗೋಕರ್ಣ ಸಂಕಲ್ಪ: ಗೋಕರ್ಣದ ಶ್ರೀರಾಮ ಪಂಡಿತ್ ಅವರ ಮಾರ್ಗದರ್ಶನದಲ್ಲಿ ಮಹಾಮೃತ್ಯುಂಜಯ ಹೋಮ ಹಾಗೂ ಆತ್ಮಲಿಂಗ ಕ್ಷೀರಾಭಿಷೇಕ ಕೈಗೊಳ್ಳುವುದರಿಂದ ದೀರ್ಘಾಯುಷ್ಯ ಮತ್ತು ಪರಿಪೂರ್ಣ ಆರೋಗ್ಯ ಸಿದ್ಧಿಸುತ್ತದೆ.`
+        `೪. ಗೋಕರ್ಣ ಸಂಕಲ್ಪ: ಗೋಕರ್ಣದ ಶ್ರೀರಾಮ ಪಂಡಿತ್ (+91 99723 39362) ಅವರ ಮಾರ್ಗದರ್ಶನದಲ್ಲಿ ಮಹಾಮೃತ್ಯುಂಜಯ ಹೋಮ ಹಾಗೂ ಆತ್ಮಲಿಂಗ ಕ್ಷೀರಾಭಿಷೇಕ ಕೈಗೊಳ್ಳುವುದರಿಂದ ದೀರ್ಘಾಯುಷ್ಯ ಮತ್ತು ಪರಿಪೂರ್ಣ ಆರೋಗ್ಯ ಸಿದ್ಧಿಸುತ್ತದೆ.`
       : isHi
       ? `॥ श्री महाबलेश्वर प्रसन्न ॥\n\n` +
         `श्रीमान ${result.personName} का जन्म आयुर्-संजीवनी विश्लेषण:\n` +
         `१. आयुर्दाय व प्राण शक्ति: आपकी कुंडली में लग्नाधिपति एवं शनि कृपा से "${result.longevity.estimatedAgeSpan}" दीर्घायु योग है। प्राणशक्ति स्कोर: ${result.longevity.vitalityScore}/100।\n` +
         `२. मारक-बाधक शमन: महामृत्युंजय जप एवं रुद्राभिषेक से स्वास्थ्य संकटों का पूर्ण निवारण होता है।\n` +
-        `३. गोकर्ण क्षेत्र संकल्प: गोकर्ण महाबलेश्वर के सानिध्य में महामृत्युंजय होम करवाने से अकाल कष्ट दूर होते हैं।`
+        `३. गोकर्ण क्षेत्र संकल्प: गोकर्ण महाबलेश्वर के सानिध्य में महामृत्युंजय होम करवाने से अकाल कष्ट दूर होते हैं। (पंडित: +91 99723 39362)`
       : isTe
       ? `॥ శ్రీ మహాబలేశ్వర ప్రసన్న ॥\n\n` +
         `శ్రీయుత ${result.personName} గారి జన్మ ఆయుర్-సంజీవిని విశ్లేషణ:\n` +
         `1. ఆయుర్దాయం & ప్రాణ శక్తి: మీ కుండలిలో లగ్నాధిపతి మరియు శని బలంతో "${result.longevity.estimatedAgeSpan}" దీర్ఘాయువు కలదు. వైటాలిటీ స్కోర్: ${result.longevity.vitalityScore}/100.\n` +
-        `2. గోకర్ణ క్షేత్ర సంకల్పం: గోಕರ್ణంలో శ్రీరామ పండిట్ గారి ఆధ్వర్యంలో మహామృత్యుంజయ హోమం చేయడం వల్ల సంపూర్ణ ఆయురారోగ్యాలు సిద్ధిస్తాయి.`
+        `2. గోకర్ణ క్షేత్ర సంకల్పం: గోಕರ್ణంలో శ్రీరామ పండిట్ (+91 99723 39362) గారి ఆధ్వర్యంలో మహామృత్యుంజయ హోమం చేయడం వల్ల సంపూర్ణ ఆయురారోగ్యాలు సిద్ధిస్తాయి.`
       : isTa
       ? `॥ ஸ்ரீ மகாபலேஸ்வர பிரசன்னம் ॥\n\n` +
         `திரு ${result.personName} அவர்களின் பிறப்பு ஆயுர்-சஞ்சீவினி ஆய்வு:\n` +
         `1. ஆயுர்தாயம் & பிராண சக்தி: உங்கள் ஜாதகத்தில் லக்னாதிபதி மற்றும் சனி பலத்தால் "${result.longevity.estimatedAgeSpan}" தீர்க்காயுள் யோகம் அமைந்துள்ளது. பிராண சக்தி: ${result.longevity.vitalityScore}/100.\n` +
-        `2. கோகர்ண க்ஷேத்ர சங்கல்பம்: கோகர்ணத்தில் ஸ்ரீராம் பண்டிட் தலைமையில் மகாமிருத்யுஞ்சய ஹோமம் செய்வதன் மூலம் பூரண நல்வாழ்வு உண்டாகும்.`
+        `2. கோகர்ண க்ஷேத்ர சங்கல்பம்: கோகர்ணத்தில் ஸ்ரீராம் பண்டிட் (+91 99723 39362) தலைமையில் மகாமிருத்யுஞ்சய ஹோமம் செய்வதன் மூலம் பூரண நல்வாழ்வு உண்டாகும்.`
       : `॥ Sri Mahabaleshwara Prasanna ॥\n\n` +
         `Divine Birth Ayur Sanjeevini Revelation for ${result.personName}:\n` +
         `1. Longevity & Vitality Matrix: Blessed with "${result.longevity.estimatedAgeSpan}" under strong Lagna Lord and Ayushkaraka Saturn placement. Vitality Score: ${result.longevity.vitalityScore}/100.\n` +
         `2. Gandanta & Maraka Mitigation: ${result.gandanta.hasGandanta ? result.gandanta.description : "Free from critical Gandanta affliction"}. Mitigate Maraka influences (${result.marakaBadhaka.marakaPlanets.join(", ")}) via regular Maha Mrityunjaya Japa.\n` +
         `3. Karma Vipaka & Health Shield: Address physical stress through prescribed charity: ${result.karmaVipaka[0]?.recommendedDaana || "Surya Daana"}.\n` +
-        `4. Gokarna Kshetra Blessing: Under Priest Shreeram Pandit (+91 94801 84545), performing Mahamrityunjaya Homa ensures vitality and long life.`;
+        `4. Gokarna Kshetra Blessing: Under Priest Shreeram Pandit (+91 99723 39362), performing Mahamrityunjaya Homa ensures vitality and long life.`;
 
-    if (!geminiApiKey) return fallbackJanana;
+    const activeKey = (geminiApiKey || import.meta.env.VITE_GEMINI_API_KEY || "").trim();
+    if (!activeKey) return fallbackJanana;
 
     try {
-      const prompt = `You are the Head Astrologer & Sanjeevini Acharya at Sri Kshetra Gokarna Mahabaleshwara Temple.
-Generate a pure BIRTH & LONGEVITY (Janana Ayurdaya) consultation in ${lang === "kn" ? "Kannada" : lang === "hi" ? "Hindi" : lang === "te" ? "Telugu" : lang === "ta" ? "Tamil" : "English"}.
-DO NOT MENTION DEATH, POSTHUMOUS RITES, OR FUNERALS. Focus 100% on living vitality, longevity span, health protection, Maha Mrityunjaya Japa, and Ayushya Homa.
-Person Name: ${result.personName}
+      const summaryContext = `
+Janana Ayurdaya Blueprint:
+Devotee: ${result.personName}
+DOB: ${result.dobFormatted} (Place: ${result.pob})
+Rashi: ${result.rashi}, Nakshatra: ${result.nakshatra}, Lagna: ${result.lagnaRashi}
 Longevity: ${result.longevity.category} (${result.longevity.estimatedAgeSpan})
 Vitality Score: ${result.longevity.vitalityScore}/100
-Priest: Shreeram Pandit, Gokarna (+91 94801 84545)
-Write 3-4 inspiring paragraphs without markdown asterisks.`;
+Gandanta: ${result.gandanta.description}
+Maraka Planets: ${result.marakaBadhaka.marakaPlanets.join(", ")} (Badhaka: ${result.marakaBadhaka.badhadhipati})
+Karma Vipaka Ailment: ${result.karmaVipaka[0]?.ailmentOrChallenge || "General Wellness"}
+Recommended Charity: ${result.karmaVipaka[0]?.recommendedDaana || "Anna Daana"}
+Custom Concern: "${result.input.customConcern || "None"}"
+Priest: Sri Shreeram Pandit, Gokarna (+91 99723 39362)
+`;
+      const prompt = `You are Sri Shreeram Pandit, Head Priest & Astrologer at Sri Kshetra Gokarna Mahabaleshwara Temple.
+Provide a dignified, inspiring BIRTH & LONGEVITY (Janana Ayurdaya) consultation in ${lang === "kn" ? "Kannada" : lang === "hi" ? "Hindi" : lang === "te" ? "Telugu" : lang === "ta" ? "Tamil" : "English"}.
+DO NOT MENTION DEATH, POSTHUMOUS RITES, OR FUNERALS. Focus 100% on living vitality, health preservation, Maha Mrityunjaya Japa, Ayurvedic wellness, and temple blessings.
+If the devotee mentioned a custom concern ("${result.input.customConcern || ""}"), address it directly with healing guidance.
+Structure in 3-4 warm, inspiring paragraphs.`;
 
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiApiKey}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { maxOutputTokens: 800, temperature: 0.6 }
-          })
-        }
-      );
-
-      if (!response.ok) return fallbackJanana;
-      const data = await response.json();
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-      return text ? text.replace(/\*\*/g, "").trim() : fallbackJanana;
-    } catch (err) {
+      const aiText = await askGemini(summaryContext, prompt, activeKey, lang, { temperature: 0.4 });
+      return aiText || fallbackJanana;
+    } catch {
       return fallbackJanana;
     }
   }
@@ -488,59 +541,55 @@ Write 3-4 inspiring paragraphs without markdown asterisks.`;
       `೧. ಜೀವಾತ್ಮ ಸದ್ಗತಿ & ಲೋಕ ಪ್ರಾಪ್ತಿ: ೧೨ನೇ ವ್ಯಯ ಭಾವ ಮತ್ತು ಕಾರಕಾಂಶ ಕೇತು ಬಲದಿಂದ ಜೀವಾತ್ಮರಿಗೆ "${result.mokshaGati.realmName}" ಪ್ರಾಪ್ತಿಯಾಗಿದೆ.\n` +
       `೨. ನಿರ್ಯಾಣ ನಕ್ಷತ್ರ & ಪಂಚಕ ವಿಶ್ಲೇಷಣೆ: ${result.transitionDosha.doshaDescription} ಪರಿಹಾರ: ${result.transitionDosha.prescribedParihara}\n` +
       `೩. ಪಿತೃ ಋಣ & ತ್ರಿಪಿಂಡಿ ಶಾಂತಿ: ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ನಾರಾಯಣ ಬಲಿ ಹಾಗೂ ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ ನೆರವೇರಿಸುವುದರಿಂದ ಜೀವಾತ್ಮನಿಗೆ ಸಂಪೂರ್ಣ ಮುಕ್ತಿ ಪ್ರಾಪ್ತಿಯಾಗುತ್ತದೆ.\n` +
-      `೪. ವಂಶ ರಕ್ಷಣೆ: ಗೋಕರ್ಣದ ಪ್ರಧಾನ ಅರ್ಚಕರಾದ ಶ್ರೀರಾಮ ಪಂಡಿತ್ (+91 94801 84545) ಅವರ ಸಾನಿಧ್ಯದಲ್ಲಿ ಶ್ರಾದ್ಧ ವಿಧಿ ಪೂರೈಸುವುದರಿಂದ ವಂಶಸ್ಥರಿಗೆ ಸಮಸ್ತ ಪಿತೃ ಆಶೀರ್ವಾದ ಸಿದ್ಧಿಸುತ್ತದೆ.`
+      `೪. ವಂಶ ರಕ್ಷಣೆ: ಗೋಕರ್ಣದ ಪ್ರಧಾನ ಅರ್ಚಕರಾದ ಶ್ರೀರಾಮ ಪಂಡಿತ್ (+91 99723 39362) ಅವರ ಸಾನಿಧ್ಯದಲ್ಲಿ ಶ್ರಾದ್ಧ ವಿಧಿ ಪೂರೈಸುವುದರಿಂದ ವಂಶಸ್ಥರಿಗೆ ಸಮಸ್ತ ಪಿತೃ ಆಶೀರ್ವಾದ ಸಿದ್ಧಿಸುತ್ತದೆ.`
     : isHi
     ? `॥ श्री महाबलेश्वर प्रसन्न ॥\n\n` +
       `दिवंगत पुण्यात्मा ${result.personName} का मरण सद्गति एवं मोक्ष विश्लेषण:\n` +
       `१. सद्गति लोक: आपकी 12वें भाव की स्थिति से पुण्यात्मा को "${result.mokshaGati.realmName}" प्राप्त हुआ है।\n` +
       `२. प्रयाण नक्षत्र व पंचक: ${result.transitionDosha.doshaDescription}।\n` +
-      `३. गोकर्ण कोटितीर्थ संकल्प: नारायण बलि व त्रिपिंडी श्राद्ध से पुण्यात्मा को परम शांति मिलती है और वंश को आशीर्वाद प्राप्त होता है।`
+      `३. गोकर्ण कोटितीर्थ संकल्प: नारायण बलि व त्रिपिंडी श्राद्ध से पुण्यात्मा को परम शांति मिलती है और वंश को आशीर्वाद प्राप्त होता है। (पंडित: +91 99723 39362)`
     : isTe
     ? `॥ శ్రీ మహాబలేశ్వర ప్రసన్న ॥\n\n` +
       `దివంగత పుణ్యాత్మ ${result.personName} గారి సద్గతి & పితృ మోక్ష విశ్లేషణ:\n` +
       `1. సద్గతి లోకం: 12వ భావం & కేతు ప్రభావంతో పుణ్యాత్మకు "${result.mokshaGati.realmName}" ప్రాప్తించింది.\n` +
-      `2. గోకర్ణ క్షేత్ర సంకల్పం: గోకర్ణంలో శ్రీరామ పండిట్ గారి ఆధ్వర్యంలో నారాయణ బలి & త్రిపిండి శ్రాద్ధం చేయడం వల్ల పితృ ముక్తి కలుగుతుంది.`
+      `2. గోకర్ణ క్షేత్ర సంకల్పం: గోకర్ణంలో శ్రీరామ పండిట్ (+91 99723 39362) గారి ఆధ్వర్యంలో నారాయణ బలి & త్రిపిండి శ్రాద్ధం చేయడం వల్ల పితృ ముక్తి కలుగుతుంది.`
     : isTa
     ? `॥ ஸ்ரீ மகாபலேஸ்வர பிரசன்னம் ॥\n\n` +
       `மறைந்த புண்ணிய ஆன்மா ${result.personName} அவர்களின் சத்கதி & பித்ரு மோக்ஷ ஆய்வு:\n` +
       `1. ஆன்ம சத்கதி: 12-ஆம் பாவ பலத்தால் ஆன்மாவுக்கு "${result.mokshaGati.realmName}" கிட்டியுள்ளது.\n` +
-      `2. கோகர்ண சங்கல்பம்: கோகர்ணத்தில் நாராயண பலி மற்றும் திரிபிண்டி ஷ்ராத்தம் செய்வதன் மூலம் ஆன்மா சாந்தி அடையும்.`
+      `2. கோகர்ண சங்கல்பம்: கோகர்ணத்தில் ஸ்ரீராம் பண்டிட் (+91 99723 39362) தலைமையில் நாராயண பலி மற்றும் திரிபிண்டி ஷ்ராத்தம் செய்வதன் மூலம் ஆன்மா சாந்தி அடையும்.`
     : `॥ Sri Mahabaleshwara Prasanna ॥\n\n` +
       `Soul Transition & Moksha Revelation for Departed Soul ${result.personName}:\n` +
       `1. Attained Loka Realm: Blessed with "${result.mokshaGati.realmName}" under 12th house and Karakamsa Ketu spiritual resonance.\n` +
       `2. Transition Nakshatra Assessment: ${result.transitionDosha.doshaDescription} Prescribed Rites: ${result.transitionDosha.prescribedParihara}.\n` +
       `3. Pitru Peace & Descendant Shield: Performing Narayana Bali & Tripindi Shradha at Gokarna Kotiteertha releases all karmic knots.\n` +
-      `4. Gokarna Kshetra Blessing: Under Priest Shreeram Pandit (+91 94801 84545), fulfilling these Vedic rites ensures ancestral peace and family prosperity.`;
+      `4. Gokarna Kshetra Blessing: Under Priest Shreeram Pandit (+91 99723 39362), fulfilling these Vedic rites ensures ancestral peace and family prosperity.`;
 
-  if (!geminiApiKey) return fallbackMarana;
+  const activeKey = (geminiApiKey || import.meta.env.VITE_GEMINI_API_KEY || "").trim();
+  if (!activeKey) return fallbackMarana;
 
   try {
-    const prompt = `You are the Head Priest & Pitru Moksha Acharya at Sri Kshetra Gokarna Mahabaleshwara Temple.
-Generate a pure SOUL TRANSITION & PITRU MOKSHA (Marana Sadgati) guidance in ${lang === "kn" ? "Kannada" : lang === "hi" ? "Hindi" : lang === "te" ? "Telugu" : lang === "ta" ? "Tamil" : "English"}.
-DO NOT MENTION BIRTH LONGEVITY OR BALARISHTA. Focus 100% on soul transition, Panchaka/Nakshatra peace, Pitru Rina, Tripindi Shradha, Narayana Bali, and descendant blessings.
-Departed Soul Name: ${result.personName}
+    const summaryContext = `
+Soul Transition & Pitru Moksha Summary:
+Departed Soul: ${result.personName}
+Transition Date: ${result.dobFormatted} (Place: ${result.pob})
+Nakshatra: ${result.nakshatra}
+Transition Dosha: ${result.transitionDosha.doshaDescription}
 Soul Realm: ${result.mokshaGati.realmName}
-Transition Analysis: ${result.transitionDosha.doshaDescription}
-Priest: Shreeram Pandit, Gokarna (+91 94801 84545)
-Write 3-4 compassionate paragraphs without markdown asterisks.`;
+Prescribed Parihara: ${result.transitionDosha.prescribedParihara}
+Pitru Rina Level: ${result.pitruKarma.pitruRinaLevel}
+Custom Concern: "${result.input.customConcern || "None"}"
+Priest: Sri Shreeram Pandit, Gokarna (+91 99723 39362)
+`;
+    const prompt = `You are Sri Shreeram Pandit, Head Priest & Pitru Moksha Acharya at Sri Kshetra Gokarna Mahabaleshwara Temple.
+Provide compassionate SOUL TRANSITION & PITRU MOKSHA guidance in ${lang === "kn" ? "Kannada" : lang === "hi" ? "Hindi" : lang === "te" ? "Telugu" : lang === "ta" ? "Tamil" : "English"}.
+DO NOT MENTION BIRTH LONGEVITY OR BALARISHTA. Focus 100% on soul transition, peace for the departed, Narayana Bali, Tripindi Shradha, and descendant lineage blessings.
+If the family mentioned a concern ("${result.input.customConcern || ""}"), address it with compassionate priest counsel.
+Structure in 3-4 gentle, comforting, sacred paragraphs.`;
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiApiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { maxOutputTokens: 800, temperature: 0.6 }
-        })
-      }
-    );
-
-    if (!response.ok) return fallbackMarana;
-    const data = await response.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    return text ? text.replace(/\*\*/g, "").trim() : fallbackMarana;
-  } catch (err) {
+    const aiText = await askGemini(summaryContext, prompt, activeKey, lang, { temperature: 0.4 });
+    return aiText || fallbackMarana;
+  } catch {
     return fallbackMarana;
   }
 }
@@ -549,13 +598,17 @@ Write 3-4 compassionate paragraphs without markdown asterisks.`;
  * Main Ayur Sanjeevini Calculation Orchestrator
  */
 export function executeAyurSanjeeviniCalculation(input: AyurSanjeeviniInput): AyurSanjeeviniResult {
-  const hash = (input.dob || "2000-01-01")
-    .split("-")
-    .reduce((acc, v) => acc + parseInt(v || "0", 10), 0);
+  const timeStr = input.tob ? input.tob : "12:00";
+  const utcDate = wallClockBirthToUtc(input.dob, timeStr, 14.5479, 74.3188, "581326");
+  const longs = siderealLongitudes(utcDate, "lahiri");
 
-  const lagnaRashi = RASHIS[hash % 12];
-  const moonRashi = RASHIS[(hash + 4) % 12];
-  const nakshatra = input.nakshatra || NAKSHATRAS[(hash * 2) % 27];
+  const sunSignIdx = Math.floor(longs.sun / 30) % 12;
+  const moonRashiIdx = Math.floor(longs.moon / 30) % 12;
+  const nakshatraIdx = Math.floor(longs.moon / (360 / 27)) % 27;
+
+  const lagnaRashi = RASHIS[sunSignIdx] || "Mesha";
+  const moonRashi = RASHIS[moonRashiIdx] || "Kataka";
+  const nakshatra = input.nakshatra || NAKSHATRAS[nakshatraIdx] || "Ashwini";
 
   const gandanta = calculateGandanta(nakshatra, lagnaRashi);
   const longevity = calculateAyurdaya(lagnaRashi, moonRashi, input.dob);

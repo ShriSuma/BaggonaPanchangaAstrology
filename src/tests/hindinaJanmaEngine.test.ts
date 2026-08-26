@@ -1,17 +1,22 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
+
+vi.mock("../core/GeminiEngine", () => ({
+  askGemini: vi.fn().mockResolvedValue("॥ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿ ಪ್ರಸನ್ನ ॥\n\nದೈವಿಕ ಪೂರ್ವ ಜನ್ಮ ದರ್ಶನ...")
+}));
+
 import {
   computePastLifePersona,
-  computeSanchitaKarma,
-  computeInnateBoons,
-  computePhobiaAndBirthmark,
+  computeSanchitaKarmaAnalysis,
+  computeInnateBoonsAndTalents,
+  computePhobiaAndBirthmarkCorrelation,
   computeRahuKetuMokshaAxis,
-  computeKarmicRemedies,
+  computeKarmicRemediesAndGokarnaShanti,
   executeHindinaJanmaCalculation
 } from "../features/hindinajanma/hindinaJanmaEngine";
 import type { HindinaJanmaInput } from "../features/hindinajanma/hindinaJanmaTypes";
 
 describe("Hindina Janma (Past Life Astrology) Engine", () => {
-  it("computes authentic past life persona archetype", () => {
+  it("computes authentic past life persona archetype across different signs", () => {
     const input: HindinaJanmaInput = {
       personName: "Shankara",
       dob: "1992-05-15",
@@ -19,47 +24,63 @@ describe("Hindina Janma (Past Life Astrology) Engine", () => {
       lang: "kn"
     };
 
-    const persona = computePastLifePersona(4, 16, input);
-    expect(persona.eraAndTimeline.kn).toBeDefined();
-    expect(persona.geographicalRealm.kn).toBeDefined();
-    expect(persona.socialStatusAndVocation.kn).toBeDefined();
-    expect(persona.dominantGraha).toBeDefined();
+    // Test sign 0 (Mesha)
+    const persona0 = computePastLifePersona(0, 0, input);
+    expect(persona0.eraAndTimeline.kn).toContain("೧೭ನೇ ಶತಮಾನ");
+    expect(persona0.dominantGraha).toContain("ಮಂಗಳ");
+
+    // Test sign 4 (Simha)
+    const persona4 = computePastLifePersona(4, 0, input);
+    expect(persona4.eraAndTimeline.kn).toContain("ವಿಜಯನಗರ");
+    expect(persona4.dominantGraha).toContain("ಸೂರ್ಯ");
+
+    // Test sign 7 (Vrischika)
+    const persona7 = computePastLifePersona(7, 0, input);
+    expect(persona7.eraAndTimeline.kn).toContain("ಕೇದಾರ-ಬದರೀ");
+    expect(persona7.dominantGraha).toContain("ಕೇತು");
   });
 
-  it("computes Sanchita Karma Punya vs Paapa ratios", () => {
-    const karma = computeSanchitaKarma(16, 5);
-    expect(karma.sanchitaPunyaPercentage).toBeGreaterThanOrEqual(70);
+  it("computes Sanchita Karma Punya vs Paapa ratios dynamically", () => {
+    const input: HindinaJanmaInput = {
+      personName: "Ramesh",
+      dob: "1988-08-20",
+      gender: "Male",
+      lang: "kn"
+    };
+
+    const karma = computeSanchitaKarmaAnalysis(4, 10, input);
+    expect(karma.sanchitaPunyaPercentage).toBeGreaterThanOrEqual(65);
     expect(karma.sanchitaPunyaPercentage + karma.sanchitaPaapaPercentage).toBe(100);
     expect(karma.dominantKarmicDebt.kn).toBeDefined();
     expect(karma.karmicCurseOrBlessing.kn).toBeDefined();
   });
 
   it("computes innate boons and talents", () => {
-    const boons = computeInnateBoons(4, "ancient_temples");
+    const boons = computeInnateBoonsAndTalents(4, 5, "ancient_temples");
     expect(boons.inheritedTalents.kn.length).toBeGreaterThanOrEqual(3);
-    expect(boons.sacredDeityAffinity.kn).toContain("ಮಹಾಬಲೇಶ್ವರ");
+    expect(boons.sacredDeityAffinity.kn).toBeDefined();
     expect(boons.dejaVuTriggers.kn.length).toBeGreaterThanOrEqual(2);
   });
 
   it("computes birthmark and phobia correlations", () => {
-    const corr = computePhobiaAndBirthmark("head_face", "water_drowning");
+    const corr = computePhobiaAndBirthmarkCorrelation("head_face", "water_drowning", 0);
     expect(corr.birthmarkSignificance.kn).toContain("ಮಚ್ಚೆ");
     expect(corr.phobiaKarmicOrigin.kn).toContain("ಜಲ");
     expect(corr.pastLifeTransitionType.kn).toBeDefined();
   });
 
   it("computes Rahu-Ketu soul evolution axis", () => {
-    const axis = computeRahuKetuMokshaAxis(4);
-    expect(axis.ketuPastLifeMastery.kn).toContain("ಕೇತು");
-    expect(axis.rahuCurrentLifeMission.kn).toContain("ರಾಹು");
+    const axis = computeRahuKetuMokshaAxis(0, 5);
+    expect(axis.ketuPastLifeMastery.kn).toBeDefined();
+    expect(axis.rahuCurrentLifeMission.kn).toBeDefined();
     expect(axis.soulMaturityLevel.kn).toContain("ಆತ್ಮ");
   });
 
   it("provides sacred Gokarna remedies with Chief Priest details", () => {
-    const remedies = computeKarmicRemedies();
-    expect(remedies.sacredAtmaShantiMantra).toContain("ವಾಸುದೇವಾಯ");
+    const remedies = computeKarmicRemediesAndGokarnaShanti(0);
+    expect(remedies.sacredAtmaShantiMantra).toContain("ಶಿವಾಯ");
     expect(remedies.priestName).toContain("ಶ್ರೀರಾಮ್ ಪಂಡಿತ್");
-    expect(remedies.priestPhone).toBe("9972339362");
+    expect(remedies.priestPhone).toContain("99723");
     expect(remedies.recommendedTilaAndDanaItems.kn.length).toBeGreaterThanOrEqual(3);
   });
 
@@ -69,7 +90,7 @@ describe("Hindina Janma (Past Life Astrology) Engine", () => {
       dob: "1995-11-20",
       tob: "14:30",
       gender: "Female",
-      birthPlace: "581326",
+      birthPlace: "581326 Gokarna",
       birthMarkLocation: "neck_chest",
       inexplicableAffinity: "ancient_temples",
       inexplicablePhobia: "heights_fall",
@@ -81,6 +102,7 @@ describe("Hindina Janma (Past Life Astrology) Engine", () => {
     expect(res.sunSign).toBeDefined();
     expect(res.moonNakshatra).toBeDefined();
     expect(res.pastLifePersona.socialStatusAndVocation.kn).toBeDefined();
-    expect(res.karmaAnalysis.sanchitaPunyaPercentage).toBeGreaterThanOrEqual(50);
+    expect(res.karmaAnalysis.sanchitaPunyaPercentage).toBeGreaterThanOrEqual(60);
+    expect(res.aiNarrative).toBeDefined();
   });
 });

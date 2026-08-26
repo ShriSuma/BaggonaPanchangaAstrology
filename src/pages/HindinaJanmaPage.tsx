@@ -1,5 +1,6 @@
 import React, { useState, useRef } from "react";
 import Card from "../components/ui/Card";
+import AudioPlayerButton from "../components/ui/AudioPlayerButton";
 import {
   executeHindinaJanmaCalculation
 } from "../features/hindinajanma/hindinaJanmaEngine";
@@ -552,14 +553,23 @@ export const HindinaJanmaPage: React.FC = () => {
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={handleDownloadPdf}
-              disabled={isGeneratingPdf}
-              className="w-full sm:w-auto px-5 py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white text-xs font-black rounded-xl shadow-lg transition flex items-center justify-center gap-2"
-            >
-              <span>{isGeneratingPdf ? (isKn ? "⌛ PDF ರಚನೆಯಾಗುತ್ತಿದೆ..." : "Generating PDF...") : T_HINDINA_JANMA.downloadPdfBtn[selectedLang]}</span>
-            </button>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              {result.aiNarrative && (
+                <AudioPlayerButton
+                  text={result.aiNarrative}
+                  lang={selectedLang === "kn" ? "kn-IN" : selectedLang === "hi" ? "hi-IN" : selectedLang === "te" ? "te-IN" : selectedLang === "ta" ? "ta-IN" : "en-US"}
+                  className="px-4 py-3 bg-amber-500 hover:bg-amber-400 text-amber-950 font-black rounded-xl text-xs shadow-lg transition cursor-pointer"
+                />
+              )}
+              <button
+                type="button"
+                onClick={handleDownloadPdf}
+                disabled={isGeneratingPdf}
+                className="w-full sm:w-auto px-5 py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white text-xs font-black rounded-xl shadow-lg transition flex items-center justify-center gap-2"
+              >
+                <span>{isGeneratingPdf ? (isKn ? "⌛ PDF ರಚನೆಯಾಗುತ್ತಿದೆ..." : "Generating PDF...") : T_HINDINA_JANMA.downloadPdfBtn[selectedLang]}</span>
+              </button>
+            </div>
           </div>
 
           {/* Navigation Tabs Bar with touch scroll */}
@@ -907,13 +917,22 @@ export const HindinaJanmaPage: React.FC = () => {
           {/* TAB 7: AI Past Life Narrative */}
           {activeTab === "aiNarrative" && (
             <Card className="border-2 border-amber-300 dark:border-amber-500/40 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-xl rounded-3xl space-y-5">
-              <div>
-                <span className="text-xs font-extrabold uppercase tracking-wider text-amber-900 dark:text-amber-300">
-                  ಗೋಕರ್ಣ ವೇದಜ್ಞರ ಜ್ಯೋತಿಷ್ಯ ದರ್ಶನ
-                </span>
-                <h3 className="text-base sm:text-lg font-black text-slate-950 dark:text-white mt-1">
-                  ✨ ಹಿಂದಿನ ಜನ್ಮದ ಸಮಗ್ರ ದೈವಿಕ ಕಥನ & ಆತ್ಮ ದರ್ಶನ
-                </h3>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div>
+                  <span className="text-xs font-extrabold uppercase tracking-wider text-amber-900 dark:text-amber-300">
+                    ಗೋಕರ್ಣ ವೇದಜ್ಞರ ಜ್ಯೋತಿಷ್ಯ ದರ್ಶನ
+                  </span>
+                  <h3 className="text-base sm:text-lg font-black text-slate-950 dark:text-white mt-1">
+                    ✨ ಹಿಂದಿನ ಜನ್ಮದ ಸಮಗ್ರ ದೈವಿಕ ಕಥನ & ಆತ್ಮ ದರ್ಶನ
+                  </h3>
+                </div>
+                {result.aiNarrative && (
+                  <AudioPlayerButton
+                    text={result.aiNarrative}
+                    lang={selectedLang === "kn" ? "kn-IN" : selectedLang === "hi" ? "hi-IN" : selectedLang === "te" ? "te-IN" : selectedLang === "ta" ? "ta-IN" : "en-US"}
+                    className="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-amber-950 font-black rounded-xl text-xs shadow-lg transition cursor-pointer"
+                  />
+                )}
               </div>
 
               {result.aiNarrative ? (

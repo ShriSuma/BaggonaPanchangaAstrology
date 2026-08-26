@@ -4,6 +4,7 @@ import jsPDF from "jspdf";
 import { useAppStore } from "../stores/appStore";
 import type { SupportedLanguage } from "../stores/appStore";
 import Card from "../components/ui/Card";
+import AudioPlayerButton from "../components/ui/AudioPlayerButton";
 import type {
   AyurMode,
   AyurSanjeeviniInput,
@@ -427,38 +428,54 @@ export const AyurSanjeeviniPage: React.FC = () => {
                 </p>
               </div>
 
-              {/* Download PDF Button */}
-              <button
-                type="button"
-                disabled={downloadingPdf}
-                onClick={handleDownloadPdf}
-                className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-300 hover:from-amber-300 hover:to-amber-200 text-amber-950 font-bold text-xs shadow-lg transition-all transform active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap"
-              >
-                {downloadingPdf ? (
-                  <>
-                    <span className="animate-spin">⏳</span>
-                    <span>PDF ಸಿದ್ಧವಾಗುತ್ತಿದೆ...</span>
-                  </>
-                ) : (
-                  <span>
-                    {mode === "janma"
-                      ? t.downloadPdfBtnJanana[language]
-                      : t.downloadPdfBtnMarana[language]}
-                  </span>
+              {/* Action Buttons: Audio & Download PDF */}
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                {result.aiDivineNarrative && (
+                  <AudioPlayerButton
+                    text={result.aiDivineNarrative}
+                    lang={language === "kn" ? "kn-IN" : language === "hi" ? "hi-IN" : language === "te" ? "te-IN" : language === "ta" ? "ta-IN" : "en-US"}
+                    className="px-3.5 py-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs shadow-lg transition-all hover:bg-amber-400 cursor-pointer"
+                  />
                 )}
-              </button>
+                <button
+                  type="button"
+                  disabled={downloadingPdf}
+                  onClick={handleDownloadPdf}
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-300 hover:from-amber-300 hover:to-amber-200 text-amber-950 font-bold text-xs shadow-lg transition-all transform active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer"
+                >
+                  {downloadingPdf ? (
+                    <>
+                      <span className="animate-spin">⏳</span>
+                      <span>PDF ಸಿದ್ಧವಾಗುತ್ತಿದೆ...</span>
+                    </>
+                  ) : (
+                    <span>
+                      {mode === "janma"
+                        ? t.downloadPdfBtnJanana[language]
+                        : t.downloadPdfBtnMarana[language]}
+                    </span>
+                  )}
+                </button>
+              </div>
             </div>
 
             {/* AI Divine Narrative Card */}
             {result.aiDivineNarrative && (
               <Card className="border-amber-500/40 bg-slate-900/90 p-4">
-                <div className="flex items-center gap-2 text-amber-300 font-serif font-bold text-sm mb-2">
-                  <span>✨</span>
-                  <span>
-                    {mode === "janma"
-                      ? "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಆಯುರ್-ಸಂಜೀವಿನಿ ದೈವಿಕ ಸಂದೇಶ"
-                      : "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸದ್ಗತಿ & ಪಿತೃ ಮುಕ್ತಿ ದೈವಿಕ ಸಂದೇಶ"}
-                  </span>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-2 text-amber-300 font-serif font-bold text-sm">
+                    <span>✨</span>
+                    <span>
+                      {mode === "janma"
+                        ? "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಆಯುರ್-ಸಂಜೀವಿನಿ ದೈವಿಕ ಸಂದೇಶ"
+                        : "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸದ್ಗತಿ & ಪಿತೃ ಮುಕ್ತಿ ದೈವಿಕ ಸಂದೇಶ"}
+                    </span>
+                  </div>
+                  <AudioPlayerButton
+                    text={result.aiDivineNarrative}
+                    lang={language === "kn" ? "kn-IN" : language === "hi" ? "hi-IN" : language === "te" ? "te-IN" : language === "ta" ? "ta-IN" : "en-US"}
+                    className="px-3 py-1.5 rounded-lg bg-amber-500/90 hover:bg-amber-400 text-slate-950 font-bold text-xs cursor-pointer"
+                  />
                 </div>
                 <div className="text-xs sm:text-sm text-slate-200 leading-relaxed whitespace-pre-line font-serif bg-slate-950/60 p-3.5 rounded-xl border border-amber-500/20">
                   {result.aiDivineNarrative}

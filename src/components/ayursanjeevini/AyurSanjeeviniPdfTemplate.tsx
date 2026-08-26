@@ -73,7 +73,7 @@ export const AyurSanjeeviniPdfTemplate: React.FC<Props> = ({ result, lang }) => 
       <div>
         <span>ಅರ್ಚಕರು: </span>
         <strong style={{ color: "#78350f" }}>ಶ್ರೀರಾಮ ಪಂಡಿತ್ (Shreeram Pandit)</strong>
-        <span> | ಸಂಪರ್ಕ: +91 94801 84545</span>
+        <span> | ಸಂಪರ್ಕ: +91 99723 39362</span>
       </div>
       <div style={{ fontStyle: "italic", color: "#b45309" }}>
         ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ದರ್ಶನ ॥
