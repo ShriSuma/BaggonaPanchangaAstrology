@@ -73,10 +73,10 @@ export const KaalaDiksuchiPdfTemplate: React.FC<KaalaDiksuchiPdfTemplateProps> =
               ॥ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ ॥
             </div>
             <div style={{ fontSize: "20px", fontWeight: 800, marginTop: "4px", letterSpacing: "normal" }}>
-              {isKn ? "ದಿವ್ಯ ಕಾಲ ದಿಕ್ಸೂಚಿ — ಜನ್ಮ ಸಮಯ ರಹಿತ ಜ್ಯೋತಿಷ್ಯ ರೇಖಾಚಿತ್ರ" : "Divya Kaala Diksuchi — Cosmic Life Blueprint"}
+              {isKn ? "ದಿವ್ಯ ಕಾಲ ದಿಕ್ಸೂಚಿ — ಅಧಿಕೃತ ಜ್ಯೋತಿಷ್ಯ ರೇಖಾಚಿತ್ರ" : "Divya Kaala Diksuchi — Cosmic Life Blueprint"}
             </div>
             <div style={{ fontSize: "11px", color: "#FEF3C7", marginTop: "2px" }}>
-              {isKn ? "ಸೂರ್ಯ ಸಿದ್ಧಾಂತ, ಸಾಮುದ್ರಿಕ ಲಕ್ಷಣ, ಸಂಖ್ಯಾ ಶಾಸ್ತ್ರ & ಆಧುನಿಕ ಕಾಲಜ್ಞಾನ" : "Authentic Solar Epoch, Samudrika Signs, Numerology & Modern Life Strategy"}
+              {isKn ? "ದಿಕ್ಸೂಚಿ, ಕಾಲ ಮುಹೂರ್ತ, ಗ್ರಹ ಮಂಡಲ, ಸಾಮುದ್ರಿಕ ಲಕ್ಷಣ & ಪರಿಹಾರ" : "Authentic Directional Compass, Kaala Timings, Planetary Matrix & Remedies"}
             </div>
           </div>
 
@@ -121,28 +121,28 @@ export const KaalaDiksuchiPdfTemplate: React.FC<KaalaDiksuchiPdfTemplateProps> =
           </div>
 
           {/* Planetary Matrix Table */}
-          <div style={{ marginTop: "20px" }}>
-            <div style={{ fontSize: "14px", fontWeight: 700, color: "#92400E", borderBottom: "2px solid #F59E0B", paddingBottom: "4px", marginBottom: "10px" }}>
+          <div style={{ marginTop: "18px" }}>
+            <div style={{ fontSize: "13.5px", fontWeight: 700, color: "#92400E", borderBottom: "2px solid #F59E0B", paddingBottom: "4px", marginBottom: "8px" }}>
               {isKn ? "೧. ದಿವ್ಯ ಗ್ರಹ ಮಂಡಲ ಸ್ಥಿತಿ (ಮಧ್ಯಾಹ್ನ ಸೌರ ಬಿಂಬ ಗಣನೆ)" : "1. Planetary Cosmic Placements (Solar Epoch)"}
             </div>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "11px", textAlign: "left" }}>
               <thead>
                 <tr style={{ background: "#FDE68A", color: "#78350F" }}>
-                  <th style={{ padding: "6px 8px", border: "1px solid #FCD34D" }}>{isKn ? "ಗ್ರಹ" : "Planet"}</th>
-                  <th style={{ padding: "6px 8px", border: "1px solid #FCD34D" }}>{isKn ? "ರಾಶಿ" : "Rashi"}</th>
-                  <th style={{ padding: "6px 8px", border: "1px solid #FCD34D" }}>{isKn ? "ಅಂಶ" : "Degree"}</th>
-                  <th style={{ padding: "6px 8px", border: "1px solid #FCD34D" }}>{isKn ? "ಸ್ಥಾನ ಬಲ" : "Dignity"}</th>
-                  <th style={{ padding: "6px 8px", border: "1px solid #FCD34D" }}>{isKn ? "ಕಾರಕತ್ವ" : "Significance"}</th>
+                  <th style={{ padding: "5px 8px", border: "1px solid #FCD34D" }}>{isKn ? "ಗ್ರಹ" : "Planet"}</th>
+                  <th style={{ padding: "5px 8px", border: "1px solid #FCD34D" }}>{isKn ? "ರಾಶಿ" : "Rashi"}</th>
+                  <th style={{ padding: "5px 8px", border: "1px solid #FCD34D" }}>{isKn ? "ಅಂಶ" : "Degree"}</th>
+                  <th style={{ padding: "5px 8px", border: "1px solid #FCD34D" }}>{isKn ? "ಸ್ಥಾನ ಬಲ" : "Dignity"}</th>
+                  <th style={{ padding: "5px 8px", border: "1px solid #FCD34D" }}>{isKn ? "ಕಾರಕತ್ವ" : "Significance"}</th>
                 </tr>
               </thead>
               <tbody>
                 {result.planets.map((p, idx) => (
                   <tr key={idx} style={{ background: idx % 2 === 0 ? "#FFFFFF" : "#FFFBEB" }}>
-                    <td style={{ padding: "6px 8px", border: "1px solid #FDE68A", fontWeight: 700 }}>{p.name}</td>
-                    <td style={{ padding: "6px 8px", border: "1px solid #FDE68A" }}>{p.rashi}</td>
-                    <td style={{ padding: "6px 8px", border: "1px solid #FDE68A" }}>{p.degree.toFixed(2)}°</td>
-                    <td style={{ padding: "6px 8px", border: "1px solid #FDE68A", color: p.dignity === "Exalted" ? "#059669" : p.dignity === "Own Sign" ? "#D97706" : "#4B5563", fontWeight: 600 }}>{p.dignity}</td>
-                    <td style={{ padding: "6px 8px", border: "1px solid #FDE68A" }}>{p.significance}</td>
+                    <td style={{ padding: "5px 8px", border: "1px solid #FDE68A", fontWeight: 700 }}>{p.name}</td>
+                    <td style={{ padding: "5px 8px", border: "1px solid #FDE68A" }}>{p.rashi}</td>
+                    <td style={{ padding: "5px 8px", border: "1px solid #FDE68A" }}>{p.degree.toFixed(2)}°</td>
+                    <td style={{ padding: "5px 8px", border: "1px solid #FDE68A", color: p.dignity === "Exalted" ? "#059669" : p.dignity === "Own Sign" ? "#D97706" : "#4B5563", fontWeight: 600 }}>{p.dignity}</td>
+                    <td style={{ padding: "5px 8px", border: "1px solid #FDE68A" }}>{p.significance}</td>
                   </tr>
                 ))}
               </tbody>
@@ -150,26 +150,26 @@ export const KaalaDiksuchiPdfTemplate: React.FC<KaalaDiksuchiPdfTemplateProps> =
           </div>
 
           {/* Elemental Composition Visualizer */}
-          <div style={{ marginTop: "20px", background: "#FFFFFF", border: "1px solid #E5E7EB", borderRadius: "8px", padding: "14px" }}>
-            <div style={{ fontSize: "13px", fontWeight: 700, color: "#92400E", marginBottom: "8px" }}>
+          <div style={{ marginTop: "18px", background: "#FFFFFF", border: "1px solid #E5E7EB", borderRadius: "8px", padding: "12px" }}>
+            <div style={{ fontSize: "12.5px", fontWeight: 700, color: "#92400E", marginBottom: "6px" }}>
               {isKn ? "ಪಂಚಮಹಾಭೂತ ತತ್ವ ವಿನ್ಯಾಸ (Elemental Blueprint)" : "Elemental Nature Composition"}
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "10px", textAlign: "center", fontSize: "11px" }}>
-              <div style={{ padding: "8px", background: "#FEF2F2", borderRadius: "6px", border: "1px solid #FECACA" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "8px", textAlign: "center", fontSize: "10.5px" }}>
+              <div style={{ padding: "6px", background: "#FEF2F2", borderRadius: "6px", border: "1px solid #FECACA" }}>
                 <div style={{ fontWeight: 700, color: "#DC2626" }}>🔥 {isKn ? "ಅಗ್ನಿ (Fire)" : "Fire"}</div>
-                <div style={{ fontSize: "15px", fontWeight: 800, marginTop: "2px" }}>{result.samudrika.elementalComposition.fire}%</div>
+                <div style={{ fontSize: "14px", fontWeight: 800, marginTop: "2px" }}>{result.samudrika.elementalComposition.fire}%</div>
               </div>
-              <div style={{ padding: "8px", background: "#FEFCE8", borderRadius: "6px", border: "1px solid #FEF08A" }}>
+              <div style={{ padding: "6px", background: "#FEFCE8", borderRadius: "6px", border: "1px solid #FEF08A" }}>
                 <div style={{ fontWeight: 700, color: "#CA8A04" }}>⛰️ {isKn ? "ಪೃಥ್ವಿ (Earth)" : "Earth"}</div>
-                <div style={{ fontSize: "15px", fontWeight: 800, marginTop: "2px" }}>{result.samudrika.elementalComposition.earth}%</div>
+                <div style={{ fontSize: "14px", fontWeight: 800, marginTop: "2px" }}>{result.samudrika.elementalComposition.earth}%</div>
               </div>
-              <div style={{ padding: "8px", background: "#F0FDF4", borderRadius: "6px", border: "1px solid #BBF7D0" }}>
+              <div style={{ padding: "6px", background: "#F0FDF4", borderRadius: "6px", border: "1px solid #BBF7D0" }}>
                 <div style={{ fontWeight: 700, color: "#16A34A" }}>💨 {isKn ? "ವಾಯು (Air)" : "Air"}</div>
-                <div style={{ fontSize: "15px", fontWeight: 800, marginTop: "2px" }}>{result.samudrika.elementalComposition.air}%</div>
+                <div style={{ fontSize: "14px", fontWeight: 800, marginTop: "2px" }}>{result.samudrika.elementalComposition.air}%</div>
               </div>
-              <div style={{ padding: "8px", background: "#EFF6FF", borderRadius: "6px", border: "1px solid #BFDBFE" }}>
+              <div style={{ padding: "6px", background: "#EFF6FF", borderRadius: "6px", border: "1px solid #BFDBFE" }}>
                 <div style={{ fontWeight: 700, color: "#2563EB" }}>🌊 {isKn ? "ಜಲ (Water)" : "Water"}</div>
-                <div style={{ fontSize: "15px", fontWeight: 800, marginTop: "2px" }}>{result.samudrika.elementalComposition.water}%</div>
+                <div style={{ fontSize: "14px", fontWeight: 800, marginTop: "2px" }}>{result.samudrika.elementalComposition.water}%</div>
               </div>
             </div>
           </div>
@@ -182,7 +182,7 @@ export const KaalaDiksuchiPdfTemplate: React.FC<KaalaDiksuchiPdfTemplateProps> =
         </div>
       </div>
 
-      {/* ================= PAGE 2: MODERN WORLD ALIGNMENT ================= */}
+      {/* ================= PAGE 2: DIKSUCHI COMPASS & TIMING MATRIX ================= */}
       <div
         className="pdf-page-a4"
         style={{
@@ -199,90 +199,107 @@ export const KaalaDiksuchiPdfTemplate: React.FC<KaalaDiksuchiPdfTemplateProps> =
         }}
       >
         <div>
-          <div style={{ borderBottom: "2px solid #D97706", paddingBottom: "6px", marginBottom: "16px" }}>
+          <div style={{ borderBottom: "2px solid #D97706", paddingBottom: "6px", marginBottom: "14px" }}>
             <div style={{ fontSize: "18px", fontWeight: 800, color: "#78350F" }}>
-              {isKn ? "೨. ವರ್ತಮಾನ ಜಗತ್ತು & ಆಧುನಿಕ ಮಾನವ ಜೀವನ ದಿಕ್ಸೂಚಿ" : "2. Modern World & Human Evolution Guide"}
+              {isKn ? "೨. ದಿವ್ಯ ದಿಕ್ಸೂಚಿ & ಕಾಲ ಮುಹೂರ್ತ ಮಾರ್ಗದರ್ಶಿ" : "2. Directional Compass & Timing Rhythm"}
             </div>
             <div style={{ fontSize: "11px", color: TEXT_MUTED }}>
-              {isKn ? "ವೇಗವಾಗಿ ಓಡುತ್ತಿರುವ ಇಂದಿನ ಜಗತ್ತಿನಲ್ಲಿ ನಿಮ್ಮ ಸ್ಥಾನ ಹಾಗೂ ಯಶಸ್ಸಿನ ತಂತ್ರಜ್ಞಾನ" : "Navigating the High-Velocity Automated Era with Vedic Discernment"}
+              {isKn ? "ವೃತ್ತಿ, ಸಂಪತ್ತು, ಆರೋಗ್ಯ ದಿಕ್ಸೂಚಿ, ದಿಕ್ಶೂಲ ಹಾಗೂ ದಿನದ ಶುಭ ಕಾಲಾವಧಿ" : "Auspicious Directions, Daily Disha Shoola, Peak Prana Timing & Life Navigation"}
             </div>
           </div>
 
-          {/* Resonance Badge */}
-          <div style={{ background: GOLD_LIGHT, border: `1.5px solid ${GOLD_BORDER}`, borderRadius: "8px", padding: "14px", marginBottom: "16px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div style={{ fontSize: "13px", fontWeight: 700, color: "#92400E" }}>
-                {isKn ? "ಆಧುನಿಕ ಜಗತ್ತಿನ ಹೊಂದಾಣಿಕೆ ಸಾಮರ್ಥ್ಯ (Resonance Quotient)" : "Modern World Resonance Quotient"}
+          {/* Directional Compass Grid */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "14px" }}>
+            <div style={{ background: PANEL_BG, border: `1.5px solid ${GOLD_BORDER}`, borderRadius: "8px", padding: "10px" }}>
+              <div style={{ fontSize: "12px", fontWeight: 700, color: "#92400E", marginBottom: "4px" }}>
+                💼 {isKn ? "ವೃತ್ತಿ & ಕಾರ್ಯ ದಿಕ್ಸೂಚಿ" : "Career Direction"}
               </div>
-              <div style={{ fontSize: "20px", fontWeight: 800, color: "#B45309" }}>
-                {result.modernWorld.userResonanceScore}%
+              <div style={{ fontSize: "11px", fontWeight: 700, color: TEXT_DARK }}>
+                {result.diksuchi.careerDirection.directionName}
+              </div>
+              <div style={{ fontSize: "10px", color: TEXT_MUTED, marginTop: "2px" }}>
+                {result.diksuchi.careerDirection.practicalAdvice}
               </div>
             </div>
-            <p style={{ fontSize: "11.5px", marginTop: "6px", lineHeight: 1.5, color: TEXT_DARK }}>
-              {result.modernWorld.userStandingInModernEra}
-            </p>
+
+            <div style={{ background: PANEL_BG, border: `1.5px solid ${GOLD_BORDER}`, borderRadius: "8px", padding: "10px" }}>
+              <div style={{ fontSize: "12px", fontWeight: 700, color: "#92400E", marginBottom: "4px" }}>
+                💰 {isKn ? "ಧನಾಗಮನ & ಸಂಪತ್ತು ದಿಕ್ಸೂಚಿ" : "Wealth Direction"}
+              </div>
+              <div style={{ fontSize: "11px", fontWeight: 700, color: TEXT_DARK }}>
+                {result.diksuchi.wealthDirection.directionName}
+              </div>
+              <div style={{ fontSize: "10px", color: TEXT_MUTED, marginTop: "2px" }}>
+                {result.diksuchi.wealthDirection.practicalAdvice}
+              </div>
+            </div>
+
+            <div style={{ background: PANEL_BG, border: `1.5px solid ${GOLD_BORDER}`, borderRadius: "8px", padding: "10px" }}>
+              <div style={{ fontSize: "12px", fontWeight: 700, color: "#92400E", marginBottom: "4px" }}>
+                🧘 {isKn ? "ಆರೋಗ್ಯ & ಪ್ರಾಣಶಕ್ತಿ ದಿಕ್ಸೂಚಿ" : "Health Direction"}
+              </div>
+              <div style={{ fontSize: "11px", fontWeight: 700, color: TEXT_DARK }}>
+                {result.diksuchi.healthMeditationDirection.directionName}
+              </div>
+              <div style={{ fontSize: "10px", color: TEXT_MUTED, marginTop: "2px" }}>
+                {result.diksuchi.healthMeditationDirection.practicalAdvice}
+              </div>
+            </div>
+
+            <div style={{ background: "#FFF1F2", border: `1.5px solid #FECDD3`, borderRadius: "8px", padding: "10px" }}>
+              <div style={{ fontSize: "12px", fontWeight: 700, color: "#BE123C", marginBottom: "4px" }}>
+                ⚠️ {isKn ? "ಇಂದಿನ ದಿನದ ದಿಕ್ಶೂಲ (ವರ್ಜ್ಯ)" : "Daily Disha Shoola"}
+              </div>
+              <div style={{ fontSize: "11px", fontWeight: 700, color: "#881337" }}>
+                {result.diksuchi.dailyDishaShoola.afflictedDirection}
+              </div>
+              <div style={{ fontSize: "10px", color: "#9F1239", marginTop: "2px" }}>
+                {result.diksuchi.dailyDishaShoola.classicalRemedy}
+              </div>
+            </div>
           </div>
 
-          {/* Current Global Macro Trend */}
+          {/* Timing Rhythm Strip */}
           <div style={{ background: "#FFFFFF", border: "1px solid #E5E7EB", borderRadius: "8px", padding: "12px", marginBottom: "14px" }}>
-            <div style={{ fontSize: "12.5px", fontWeight: 700, color: "#92400E", marginBottom: "4px" }}>
-              🌐 {isKn ? "ಪ್ರಸ್ತುತ ಜಾಗತಿಕ ಪ್ರವೃತ್ತಿ & ಕಾಲಮಾನ" : "Current Global Macro Climate"}
+            <div style={{ fontSize: "12px", fontWeight: 700, color: "#92400E", marginBottom: "6px" }}>
+              ⏳ {isKn ? "ಇಂದಿನ ಕಾಲ ಮುಹೂರ್ತ ವಿನ್ಯಾಸ" : "Today's Cosmic Timing Window"}
             </div>
-            <p style={{ fontSize: "11px", lineHeight: 1.5, color: TEXT_DARK }}>
-              {result.modernWorld.currentGlobalTrend}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", fontSize: "10.5px" }}>
+              <div>
+                <span style={{ color: TEXT_MUTED }}>{isKn ? "ಅಭಿಜಿತ್ ಮುಹೂರ್ತ:" : "Abhijit Muhurtha:"} </span>
+                <strong>{result.diksuchi.timingRhythm.abhijitMuhurtha}</strong>
+              </div>
+              <div>
+                <span style={{ color: TEXT_MUTED }}>{isKn ? "ರಾಹು ಕಾಲ:" : "Rahu Kaala:"} </span>
+                <strong>{result.diksuchi.timingRhythm.rahuKaal}</strong>
+              </div>
+              <div>
+                <span style={{ color: TEXT_MUTED }}>{isKn ? "ಗುಳಿಕ ಕಾಲ:" : "Gulika Kaal:"} </span>
+                <strong>{result.diksuchi.timingRhythm.gulikaKaal}</strong>
+              </div>
+              <div style={{ gridColumn: "1 / -1", marginTop: "2px" }}>
+                <span style={{ color: TEXT_MUTED }}>{isKn ? "ದಿನದ ಶ್ರೇಷ್ಠ ಕಾರ್ಯ ಕಾಲ:" : "Peak Prana Window:"} </span>
+                <strong style={{ color: "#B45309" }}>{result.diksuchi.timingRhythm.peakPranaWindow}</strong>
+              </div>
+            </div>
+          </div>
+
+          {/* Strategic Life Navigation */}
+          <div style={{ background: "#FFFFFF", border: "1px solid #E5E7EB", borderRadius: "8px", padding: "12px", marginBottom: "12px" }}>
+            <div style={{ fontSize: "12px", fontWeight: 700, color: "#92400E", marginBottom: "4px" }}>
+              🌟 {isKn ? "ವರ್ತಮಾನ ಜೀವನ ನಾಯಕತ್ವ ಸೂತ್ರ" : "Strategic Life Strategy"}
+            </div>
+            <p style={{ fontSize: "10.5px", lineHeight: 1.45, color: TEXT_DARK, margin: 0 }}>
+              {result.modernWorld.careerAndTechStrategy}
             </p>
-          </div>
-
-          {/* Two-Column Vulnerabilities & Opportunities */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "14px" }}>
-            <div style={{ background: "#FFF1F2", border: "1px solid #FECDD3", borderRadius: "8px", padding: "12px" }}>
-              <div style={{ fontSize: "12px", fontWeight: 700, color: "#BE123C", marginBottom: "6px" }}>
-                ⚠️ {isKn ? "ಎಚ್ಚರಿಕೆ ವಹಿಸಬೇಕಾದ ಅಂಶಗಳು" : "Modern Vulnerabilities"}
-              </div>
-              <ul style={{ fontSize: "10.5px", paddingLeft: "16px", margin: 0, lineHeight: 1.5, color: "#881337" }}>
-                {result.modernWorld.keyVulnerabilities.map((v, i) => (
-                  <li key={i} style={{ marginBottom: "4px" }}>{v}</li>
-                ))}
-              </ul>
-            </div>
-            <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: "8px", padding: "12px" }}>
-              <div style={{ fontSize: "12px", fontWeight: 700, color: "#15803D", marginBottom: "6px" }}>
-                🚀 {isKn ? "ಬೆಳವಣಿಗೆಯ ಮಹಾದ್ವಾರಗಳು" : "Growth Catalysts"}
-              </div>
-              <ul style={{ fontSize: "10.5px", paddingLeft: "16px", margin: 0, lineHeight: 1.5, color: "#14532D" }}>
-                {result.modernWorld.growthOpportunities.map((o, i) => (
-                  <li key={i} style={{ marginBottom: "4px" }}>{o}</li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          {/* Actionable Pillars */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "14px" }}>
-            <div style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: "8px", padding: "12px" }}>
-              <div style={{ fontSize: "11.5px", fontWeight: 700, color: "#334155", marginBottom: "4px" }}>
-                💼 {isKn ? "ವೃತ್ತಿ & ತಂತ್ರಜ್ಞಾನ ನಾಯಕತ್ವ" : "Career & Tech Synergy"}
-              </div>
-              <p style={{ fontSize: "10.5px", lineHeight: 1.45, color: TEXT_DARK, margin: 0 }}>
-                {result.modernWorld.careerAndTechStrategy}
-              </p>
-            </div>
-            <div style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: "8px", padding: "12px" }}>
-              <div style={{ fontSize: "11.5px", fontWeight: 700, color: "#334155", marginBottom: "4px" }}>
-                🧘 {isKn ? "ಡಿಜಿಟಲ್ ಸ್ವಾಸ್ಥ್ಯ & ಮಾನಸಿಕ ಶಾಂತಿ" : "Digital Wellness & Serenity"}
-              </div>
-              <p style={{ fontSize: "10.5px", lineHeight: 1.45, color: TEXT_DARK, margin: 0 }}>
-                {result.modernWorld.digitalAndMentalWellness}
-              </p>
-            </div>
           </div>
 
           {/* Actionable Daily Habits */}
           <div style={{ background: PANEL_BG, border: `1px solid ${GOLD_BORDER}`, borderRadius: "8px", padding: "12px" }}>
-            <div style={{ fontSize: "12px", fontWeight: 700, color: "#92400E", marginBottom: "6px" }}>
-              ⚡ {isKn ? "ಇಂದಿನಿಂದಲೇ ಅಳವಡಿಸಿಕೊಳ್ಳಬೇಕಾದ ದೈನಂದಿನ ಶಿಸ್ತು" : "Daily Micro-Habits for Peak Life Mastery"}
+            <div style={{ fontSize: "11.5px", fontWeight: 700, color: "#92400E", marginBottom: "6px" }}>
+              ⚡ {isKn ? "ದೈನಂದಿನ ಶಿಸ್ತು & ಯಶಸ್ಸಿನ ನಿಯಮಗಳು" : "Daily Micro-Habits"}
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px", fontSize: "10.5px", color: TEXT_DARK }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px", fontSize: "10px", color: TEXT_DARK }}>
               {result.modernWorld.actionableHabitsForToday.map((h, idx) => (
                 <div key={idx} style={{ display: "flex", gap: "6px", alignItems: "flex-start" }}>
                   <span style={{ color: "#D97706", fontWeight: 700 }}>✓</span>
@@ -295,7 +312,7 @@ export const KaalaDiksuchiPdfTemplate: React.FC<KaalaDiksuchiPdfTemplateProps> =
 
         {/* Page 2 Footer */}
         <div style={{ display: "flex", justifyContent: "space-between", borderTop: "1px solid #E5E7EB", paddingTop: "8px", fontSize: "9.5px", color: TEXT_MUTED }}>
-          <span>{isKn ? "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ — ಆಧುನಿಕ ಜೀವನ ದಿಕ್ಸೂಚಿ" : "Baggona Panchanga Astrology — Modern World Life Guide"}</span>
+          <span>{isKn ? "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ — ದಿಕ್ಸೂಚಿ & ಕಾಲ ಮುಹೂರ್ತ" : "Baggona Panchanga Astrology — Diksuchi & Timings"}</span>
           <span>{isKn ? "ಪುಟ ೨ / ೩" : "Page 2 of 3"}</span>
         </div>
       </div>

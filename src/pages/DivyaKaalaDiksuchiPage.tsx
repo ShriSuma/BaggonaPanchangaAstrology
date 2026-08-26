@@ -1,5 +1,6 @@
 import React, { useState, useRef } from "react";
 import Card from "../components/ui/Card";
+import AudioPlayerButton from "../components/ui/AudioPlayerButton";
 import { executeKaalaDiksuchiCalculation } from "../features/kaaladiksuchi/kaaladiksuchiEngine";
 import { KaalaDiksuchiPdfTemplate } from "../components/kaaladiksuchi/KaalaDiksuchiPdfTemplate";
 import { T_KAALA_DIKSUCHI, pickL5 } from "../features/kaaladiksuchi/kaaladiksuchiLocale";
@@ -41,8 +42,8 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
   const [activeMicField, setActiveMicField] = useState<"name" | "place" | "question" | null>(null);
   const [result, setResult] = useState<KaalaDiksuchiResult | null>(null);
   const [activeTab, setActiveTab] = useState<
-    "modern" | "transit" | "karmic" | "decades" | "sankhya" | "matrix" | "samudrika" | "remedies"
-  >("modern");
+    "compass" | "modern" | "transit" | "karmic" | "decades" | "sankhya" | "matrix" | "samudrika" | "remedies"
+  >("compass");
   const selectedPriestId = "shreeram-pandit";
 
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -119,7 +120,7 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
       dob,
       gender,
       pincode: pincode.trim() || "581326",
-      placeLabel,
+      placeLabel: placeLabel.trim() || "Gokarna",
       foreheadShape: showAdvancedTraits ? foreheadShape : undefined,
       eyeRadiance: showAdvancedTraits ? eyeRadiance : undefined,
       handElement: showAdvancedTraits ? handElement : undefined,
@@ -131,6 +132,7 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
     try {
       const calcResult = await executeKaalaDiksuchiCalculation(input, activeKey);
       setResult(calcResult);
+      setActiveTab("compass");
       setTimeout(() => {
         resultsRef.current?.scrollIntoView({ behavior: "smooth" });
       }, 100);
@@ -182,6 +184,17 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
     }
   };
 
+  const audioLang =
+    selectedLang === "kn"
+      ? "kn-IN"
+      : selectedLang === "hi"
+      ? "hi-IN"
+      : selectedLang === "te"
+      ? "te-IN"
+      : selectedLang === "ta"
+      ? "ta-IN"
+      : "en-IN";
+
   return (
     <div className="min-h-screen py-4 sm:py-6 px-3 sm:px-6 max-w-5xl mx-auto text-slate-900 dark:text-slate-100">
       {/* Luxury Golden Hero Banner */}
@@ -190,7 +203,7 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
         <div className="relative z-10">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
             <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[11px] font-extrabold tracking-wider uppercase bg-amber-500/30 text-amber-200 border border-amber-400/50">
-              🧭 100% ACCURATE · NO TIME OF BIRTH REQUIRED
+              🧭 100% ACCURATE · DIKSUCHI TIME & DIRECTION COMPASS
             </span>
             {/* Language Switcher */}
             <div className="flex items-center gap-1 bg-black/60 p-1 rounded-2xl border border-amber-500/40 overflow-x-auto max-w-full">
@@ -219,9 +232,9 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
           </p>
 
           <div className="mt-4 flex flex-wrap items-center gap-2 sm:gap-4 text-[11px] sm:text-xs text-amber-300 font-bold">
-            <span className="bg-black/40 px-3 py-1 rounded-xl border border-amber-500/30">✓ ಜನ್ಮ ಸಮಯದ ಅಗತ್ಯವಿಲ್ಲ</span>
-            <span className="bg-black/40 px-3 py-1 rounded-xl border border-amber-500/30">✓ ದಿನಾಂಕದಿಂದಲೇ ಸ್ವಯಂ-ನಿರ್ಣಯ</span>
-            <span className="bg-black/40 px-3 py-1 rounded-xl border border-amber-500/30">✓ ಇಂದಿನ ವೇಗದ ಜಗತ್ತಿಗೆ ದಿಕ್ಸೂಚಿ</span>
+            <span className="bg-black/40 px-3 py-1 rounded-xl border border-amber-500/30">✓ ನಿಖರ ದಿಕ್ಸೂಚಿ & ದಿಶಾರಕ್ಷೆ</span>
+            <span className="bg-black/40 px-3 py-1 rounded-xl border border-amber-500/30">✓ ದಿನದ ಶುಭ ಕಾಲ & ಮುಹೂರ್ತ</span>
+            <span className="bg-black/40 px-3 py-1 rounded-xl border border-amber-500/30">✓ ಗೋಕರ್ಣ ಸನ್ನಿಧಿ ಪರಿಹಾರ</span>
           </div>
         </div>
       </div>
@@ -380,7 +393,7 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
                 className="w-full px-4 py-2.5 rounded-2xl border-2 border-amber-300 dark:border-slate-700 bg-amber-50/60 dark:bg-slate-800 text-slate-950 dark:text-white font-semibold text-sm focus:ring-2 focus:ring-amber-500"
               >
                 <option value="career">💼 ವೃತ್ತಿ, ವ್ಯಾಪಾರ & ಆರ್ಥಿಕ ಮುನ್ನಡೆ (Career & Wealth)</option>
-                <option value="modern_adaptation">🌐 ಆಧುನಿಕ ಜಗತ್ತಿನ ಹೊಂದಾಣಿಕೆ & ಬೆಳವಣಿಗೆ (Modern World Navigation)</option>
+                <option value="modern_adaptation">🌐 ಆಧುನಿಕ ಜೀವನ ನಾಯಕತ್ವ & ಪ್ರಗತಿ (Modern Life Mastery)</option>
                 <option value="relationships">💞 ಕುಟುಂಬ, ವಿವಾಹ & ಸಂಬಂಧಗಳು (Family & Relationships)</option>
                 <option value="health">🧘 ಆರೋಗ್ಯ, ಶಕ್ತಿ & ಆಂತರಿಕ ಶಾಂತಿ (Health & Vitality)</option>
                 <option value="spiritual">🕉️ ಆಧ್ಯಾತ್ಮಿಕ ಮಾರ್ಗ & ಆತ್ಮಸಾಕ್ಷಾತ್ಕಾರ (Spiritual Growth)</option>
@@ -410,6 +423,7 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
                 type="text"
                 value={customQuestion}
                 onChange={(e) => setCustomQuestion(e.target.value)}
+                placeholder="ಉದಾ: ಹೊಸ ಉದ್ಯಮ ಆರಂಭಿಸಲು ಶುಭ ಕಾಲ ಯಾವುದು?"
                 className="w-full px-4 py-2.5 rounded-2xl border-2 border-amber-300 dark:border-slate-700 bg-amber-50/60 dark:bg-slate-800 text-slate-950 dark:text-white font-semibold text-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-amber-500"
               />
             </div>
@@ -456,6 +470,7 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
           {/* Navigation Tabs Bar with touch scroll */}
           <div className="flex overflow-x-auto no-scrollbar gap-2 p-1.5 bg-slate-100 dark:bg-slate-800/90 rounded-2xl border border-amber-200/60 dark:border-slate-700">
             {[
+              { id: "compass", label: pickL5(T_KAALA_DIKSUCHI.tabDiksuchiCompass, selectedLang) },
               { id: "modern", label: pickL5(T_KAALA_DIKSUCHI.tabModernWorld, selectedLang) },
               { id: "transit", label: pickL5(T_KAALA_DIKSUCHI.tabLiveTransit, selectedLang) },
               { id: "karmic", label: pickL5(T_KAALA_DIKSUCHI.tabKarmicMission, selectedLang) },
@@ -480,17 +495,163 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
             ))}
           </div>
 
-          {/* TAB 1: Modern World Navigator */}
+          {/* TAB 1: DIKSUCHI COMPASS & TIMING MATRIX */}
+          {activeTab === "compass" && (
+            <div className="space-y-5">
+              {/* Compass Matrix Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                {/* Career Direction */}
+                <Card className="p-5 sm:p-6 bg-white dark:bg-slate-900 border-2 border-amber-300 dark:border-amber-500/40 rounded-3xl shadow-xl">
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className="text-2xl">💼</span>
+                    <div>
+                      <span className="text-xs font-extrabold uppercase tracking-wider text-amber-900 dark:text-amber-300">
+                        ವೃತ್ತಿ & ಕಾರ್ಯ ದಿಕ್ಸೂಚಿ
+                      </span>
+                      <h3 className="text-base sm:text-lg font-black text-slate-950 dark:text-white">
+                        {result.diksuchi.careerDirection.directionName}
+                      </h3>
+                    </div>
+                  </div>
+                  <div className="p-3 bg-amber-50 dark:bg-slate-800 rounded-2xl border border-amber-200 dark:border-slate-700 text-xs font-semibold text-slate-800 dark:text-slate-200 space-y-1 mb-3">
+                    <div><span className="text-amber-800 dark:text-amber-300 font-bold">ಅಧಿದೇವತೆ:</span> {result.diksuchi.careerDirection.deity}</div>
+                    <div><span className="text-amber-800 dark:text-amber-300 font-bold">ಅಧಿಪತಿ ಗ್ರಹ:</span> {result.diksuchi.careerDirection.rulingPlanet}</div>
+                    <div><span className="text-amber-800 dark:text-amber-300 font-bold">ಶ್ರೇಷ್ಠ ಕ್ಷೇತ್ರ:</span> {result.diksuchi.careerDirection.suitabilityDomain}</div>
+                  </div>
+                  <p className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 font-medium leading-relaxed">
+                    {result.diksuchi.careerDirection.practicalAdvice}
+                  </p>
+                </Card>
+
+                {/* Wealth Direction */}
+                <Card className="p-5 sm:p-6 bg-white dark:bg-slate-900 border-2 border-amber-300 dark:border-amber-500/40 rounded-3xl shadow-xl">
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className="text-2xl">💰</span>
+                    <div>
+                      <span className="text-xs font-extrabold uppercase tracking-wider text-amber-900 dark:text-amber-300">
+                        ಧನಾಗಮನ & ಸಂಪತ್ತು ದಿಕ್ಸೂಚಿ
+                      </span>
+                      <h3 className="text-base sm:text-lg font-black text-slate-950 dark:text-white">
+                        {result.diksuchi.wealthDirection.directionName}
+                      </h3>
+                    </div>
+                  </div>
+                  <div className="p-3 bg-amber-50 dark:bg-slate-800 rounded-2xl border border-amber-200 dark:border-slate-700 text-xs font-semibold text-slate-800 dark:text-slate-200 space-y-1 mb-3">
+                    <div><span className="text-amber-800 dark:text-amber-300 font-bold">ಅಧಿದೇವತೆ:</span> {result.diksuchi.wealthDirection.deity}</div>
+                    <div><span className="text-amber-800 dark:text-amber-300 font-bold">ಅಧಿಪತಿ ಗ್ರಹ:</span> {result.diksuchi.wealthDirection.rulingPlanet}</div>
+                    <div><span className="text-amber-800 dark:text-amber-300 font-bold">ಶ್ರೇಷ್ಠ ಕ್ಷೇತ್ರ:</span> {result.diksuchi.wealthDirection.suitabilityDomain}</div>
+                  </div>
+                  <p className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 font-medium leading-relaxed">
+                    {result.diksuchi.wealthDirection.practicalAdvice}
+                  </p>
+                </Card>
+
+                {/* Health & Meditation Direction */}
+                <Card className="p-5 sm:p-6 bg-white dark:bg-slate-900 border-2 border-amber-300 dark:border-amber-500/40 rounded-3xl shadow-xl">
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className="text-2xl">🧘</span>
+                    <div>
+                      <span className="text-xs font-extrabold uppercase tracking-wider text-amber-900 dark:text-amber-300">
+                        ಆರೋಗ್ಯ & ಪ್ರಾಣಶಕ್ತಿ ದಿಕ್ಸೂಚಿ
+                      </span>
+                      <h3 className="text-base sm:text-lg font-black text-slate-950 dark:text-white">
+                        {result.diksuchi.healthMeditationDirection.directionName}
+                      </h3>
+                    </div>
+                  </div>
+                  <div className="p-3 bg-amber-50 dark:bg-slate-800 rounded-2xl border border-amber-200 dark:border-slate-700 text-xs font-semibold text-slate-800 dark:text-slate-200 space-y-1 mb-3">
+                    <div><span className="text-amber-800 dark:text-amber-300 font-bold">ಅಧಿದೇವತೆ:</span> {result.diksuchi.healthMeditationDirection.deity}</div>
+                    <div><span className="text-amber-800 dark:text-amber-300 font-bold">ಅಧಿಪತಿ ಗ್ರಹ:</span> {result.diksuchi.healthMeditationDirection.rulingPlanet}</div>
+                  </div>
+                  <p className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 font-medium leading-relaxed">
+                    {result.diksuchi.healthMeditationDirection.practicalAdvice}
+                  </p>
+                </Card>
+
+                {/* Daily Disha Shoola */}
+                <div className="p-5 sm:p-6 bg-rose-50 dark:bg-slate-900 border-2 border-rose-400 dark:border-rose-500/60 rounded-3xl shadow-xl">
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className="text-2xl">⚠️</span>
+                    <div>
+                      <span className="text-xs font-extrabold uppercase tracking-wider text-rose-800 dark:text-rose-400">
+                        ಇಂದಿನ ದಿನದ ದಿಕ್ಶೂಲ (ವರ್ಜ್ಯ ದಿಕ್ಕು)
+                      </span>
+                      <h3 className="text-base sm:text-lg font-black text-rose-950 dark:text-rose-100">
+                        {result.diksuchi.dailyDishaShoola.afflictedDirection}
+                      </h3>
+                    </div>
+                  </div>
+                  <p className="text-xs sm:text-sm text-rose-900 dark:text-rose-200 font-semibold mb-2">
+                    {result.diksuchi.dailyDishaShoola.reason}
+                  </p>
+                  <div className="p-3 bg-white dark:bg-slate-800 rounded-2xl border border-rose-300 dark:border-rose-900/50 text-xs font-bold text-rose-950 dark:text-rose-100">
+                    🛡️ <span className="text-rose-700 dark:text-rose-400">ಶಾಸ್ತ್ರೀಯ ಪರಿಹಾರ:</span> {result.diksuchi.dailyDishaShoola.classicalRemedy}
+                  </div>
+                </div>
+              </div>
+
+              {/* Kaala Timings Card */}
+              <Card className="p-5 sm:p-6 bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-slate-900 dark:to-slate-800 border-2 border-amber-300 dark:border-amber-500/40 rounded-3xl shadow-xl">
+                <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-amber-950 dark:text-amber-300 mb-4 flex items-center gap-2">
+                  <span>⏳</span> ಇಂದಿನ ಕಾಲ ಮುಹೂರ್ತ ವಿನ್ಯಾಸ & ಕಾರ್ಯ ಸಮಯ
+                </h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5 text-xs sm:text-sm">
+                  <div className="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-amber-200 dark:border-slate-700 shadow-sm">
+                    <span className="text-slate-600 dark:text-slate-400 font-bold block text-[11px]">ಅಭಿಜಿತ್ ಮುಹೂರ್ತ:</span>
+                    <span className="font-extrabold text-emerald-700 dark:text-emerald-400 text-sm mt-0.5 block">{result.diksuchi.timingRhythm.abhijitMuhurtha}</span>
+                  </div>
+                  <div className="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-amber-200 dark:border-slate-700 shadow-sm">
+                    <span className="text-slate-600 dark:text-slate-400 font-bold block text-[11px]">ರಾಹು ಕಾಲ (ವರ್ಜ್ಯ):</span>
+                    <span className="font-extrabold text-rose-700 dark:text-rose-400 text-sm mt-0.5 block">{result.diksuchi.timingRhythm.rahuKaal}</span>
+                  </div>
+                  <div className="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-amber-200 dark:border-slate-700 shadow-sm">
+                    <span className="text-slate-600 dark:text-slate-400 font-bold block text-[11px]">ಗುಳಿಕ ಕಾಲ:</span>
+                    <span className="font-extrabold text-amber-800 dark:text-amber-300 text-sm mt-0.5 block">{result.diksuchi.timingRhythm.gulikaKaal}</span>
+                  </div>
+                  <div className="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-amber-200 dark:border-slate-700 shadow-sm">
+                    <span className="text-slate-600 dark:text-slate-400 font-bold block text-[11px]">ಯಮಗಂಡ ಕಾಲ:</span>
+                    <span className="font-extrabold text-amber-800 dark:text-amber-300 text-sm mt-0.5 block">{result.diksuchi.timingRhythm.yamaganda}</span>
+                  </div>
+                  <div className="sm:col-span-2 p-3 bg-white dark:bg-slate-900 rounded-2xl border border-amber-200 dark:border-slate-700 shadow-sm">
+                    <span className="text-slate-600 dark:text-slate-400 font-bold block text-[11px]">ದಿನದ ಅತ್ಯುನ್ನತ ಶುಭ ಕಾರ್ಯ ಕಾಲ (Peak Prana):</span>
+                    <span className="font-black text-amber-900 dark:text-amber-200 text-sm mt-0.5 block">{result.diksuchi.timingRhythm.peakPranaWindow}</span>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Priest Audio & Divine Life Message */}
+              {result.aiNarrative && (
+                <Card className="p-6 bg-gradient-to-br from-amber-950/80 to-slate-900 border-2 border-amber-500/50 rounded-3xl shadow-2xl text-white">
+                  <div className="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-amber-500/30">
+                    <h3 className="text-xs sm:text-sm font-extrabold text-amber-300 uppercase tracking-wider flex items-center gap-2">
+                      <span>🕉️</span> ಶ್ರೀ ಶ್ರೀರಾಮ್ ಪಂಡಿತರ ದಿವ್ಯ ಕಾಲ ದಿಕ್ಸೂಚಿ ಸಂದೇಶ
+                    </h3>
+                    <AudioPlayerButton
+                      text={result.aiNarrative}
+                      lang={audioLang}
+                      voiceType="jayashree"
+                      className="bg-amber-400 hover:bg-amber-300 text-amber-950 p-2 rounded-xl shadow-lg"
+                    />
+                  </div>
+                  <p className="text-xs sm:text-sm text-amber-100 leading-relaxed whitespace-pre-line font-medium">
+                    {result.aiNarrative}
+                  </p>
+                </Card>
+              )}
+            </div>
+          )}
+
+          {/* TAB 2: Modern Life Navigator */}
           {activeTab === "modern" && (
             <div className="space-y-5">
               <Card className="p-6 bg-white dark:bg-slate-900 border-2 border-amber-300 dark:border-amber-500/40 rounded-3xl shadow-xl">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-2 border-amber-100 dark:border-slate-800 pb-4 mb-4">
                   <div>
                     <span className="text-xs font-extrabold uppercase tracking-wider text-amber-900 dark:text-amber-300">
-                      ಆಧುನಿಕ ಜಗತ್ತಿನ ಹೊಂದಾಣಿಕೆ ಸಾಮರ್ಥ್ಯ (Resonance Quotient)
+                      ಆಧುನಿಕ ಜೀವನ ಹೊಂದಾಣಿಕೆ ಸಾಮರ್ಥ್ಯ (Resonance Quotient)
                     </span>
                     <h2 className="text-base sm:text-lg font-black text-slate-950 dark:text-white mt-1">
-                      ಇಂದಿನ ಓಡುವ ಜಗತ್ತಿನಲ್ಲಿ ನಿಮ್ಮ ಸ್ಥಾನ & ಸಾಮರ್ಥ್ಯ
+                      ಇಂದಿನ ಸ್ಪರ್ಧಾತ್ಮಕ ಕಾಲದಲ್ಲಿ ನಿಮ್ಮ ಸ್ಥಾನ & ಕಾರ್ಯತಂತ್ರ
                     </h2>
                   </div>
                   <div className="flex items-center gap-3 bg-amber-500/20 dark:bg-amber-400/20 px-4 py-2 rounded-2xl border border-amber-500/40">
@@ -498,7 +659,7 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
                       {result.modernWorld.userResonanceScore}%
                     </span>
                     <span className="text-[10px] uppercase font-extrabold text-amber-950 dark:text-amber-200 leading-tight">
-                      ಆಧುನಿಕ ಹೊಂದಾಣಿಕೆ ಸೂಚ್ಯಂಕ
+                      ಹೊಂದಾಣಿಕೆ ಸೂಚ್ಯಂಕ
                     </span>
                   </div>
                 </div>
@@ -509,8 +670,8 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
 
               {/* Global Trend */}
               <Card className="p-5 sm:p-6 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-3xl shadow-md">
-                <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-amber-900 dark:text-amber-300 mb-2 flex items-center gap-2">
-                  <span>🌐</span> ಪ್ರಸ್ತುತ ಜಾಗತಿಕ ಪ್ರವೃತ್ತಿ & ಕಾಲಮಾನ (Current Global Climate)
+                <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-amber-950 dark:text-amber-300 mb-2 flex items-center gap-2">
+                  <span>🌐</span> ಪ್ರಸ್ತುತ ಜಾಗತಿಕ ಪ್ರವೃತ್ತಿ & ಕಾಲಮಾನ
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 leading-relaxed font-medium">
                   {result.modernWorld.currentGlobalTrend}
@@ -521,7 +682,7 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 <div className="p-5 sm:p-6 bg-rose-50 dark:bg-slate-900 border-2 border-rose-400 dark:border-rose-500/60 rounded-3xl shadow-md">
                   <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-rose-800 dark:text-rose-400 mb-3 flex items-center gap-2">
-                    <span>⚠️</span> ಎಚ್ಚರಿಕೆ ವಹಿಸಬೇಕಾದ ಆಧುನಿಕ ದೌರ್ಬಲ್ಯಗಳು
+                    <span>⚠️</span> ಎಚ್ಚರಿಕೆ ವಹಿಸಬೇಕಾದ ದೌರ್ಬಲ್ಯಗಳು
                   </h3>
                   <ul className="space-y-2 text-xs sm:text-sm text-rose-950 dark:text-rose-100 font-semibold">
                     {result.modernWorld.keyVulnerabilities.map((v, i) => (
@@ -552,7 +713,7 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 <Card className="p-5 sm:p-6 bg-white dark:bg-slate-900 border-2 border-amber-200/80 dark:border-slate-800 rounded-3xl shadow-md">
                   <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-amber-950 dark:text-amber-300 mb-2 flex items-center gap-2">
-                    <span>💼</span> ವೃತ್ತಿ & ತಂತ್ರಜ್ಞಾನ ನಾಯಕತ್ವ (Career & Tech Synergy)
+                    <span>💼</span> ವೃತ್ತಿ & ನಾಯಕತ್ವ ಮಾರ್ಗಸೂಚಿ
                   </h3>
                   <p className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 leading-relaxed font-medium">
                     {result.modernWorld.careerAndTechStrategy}
@@ -561,7 +722,7 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
 
                 <Card className="p-5 sm:p-6 bg-white dark:bg-slate-900 border-2 border-amber-200/80 dark:border-slate-800 rounded-3xl shadow-md">
                   <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-amber-950 dark:text-amber-300 mb-2 flex items-center gap-2">
-                    <span>🧘</span> ಡಿಜಿಟಲ್ ಸ್ವಾಸ್ಥ್ಯ & ಮಾನಸಿಕ ಶಾಂತಿ (Digital Wellness)
+                    <span>🧘</span> ಸ್ವಾಸ್ಥ್ಯ & ಮಾನಸಿಕ ಶಾಂತಿ
                   </h3>
                   <p className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 leading-relaxed font-medium">
                     {result.modernWorld.digitalAndMentalWellness}
@@ -583,21 +744,10 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
                   ))}
                 </div>
               </Card>
-
-              {result.aiNarrative && (
-                <Card className="p-6 bg-gradient-to-br from-amber-950/70 to-slate-900 border-2 border-amber-500/50 rounded-3xl shadow-2xl text-white">
-                  <h3 className="text-xs sm:text-sm font-extrabold text-amber-300 uppercase tracking-wider mb-3 flex items-center gap-2">
-                    <span>✨</span> ಗೋಕರ್ಣ ವೇದಜ್ಞರ AI ದಿವ್ಯ ಸಂದೇಶ & ಜೀವನ ರಹಸ್ಯ
-                  </h3>
-                  <p className="text-xs sm:text-sm text-amber-100 leading-relaxed whitespace-pre-line font-medium">
-                    {result.aiNarrative}
-                  </p>
-                </Card>
-              )}
             </div>
           )}
 
-          {/* TAB 2: Live Daily Transit Energy */}
+          {/* TAB 3: Live Daily Transit Energy */}
           {activeTab === "transit" && (
             <div className="space-y-5">
               <Card className="p-6 bg-white dark:bg-slate-900 border-2 border-amber-300 dark:border-amber-500/40 rounded-3xl shadow-xl">
@@ -615,27 +765,37 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
                       {result.liveTransit.pranaScore}%
                     </span>
                     <span className="text-[10px] uppercase font-extrabold text-amber-950 dark:text-amber-200 leading-tight">
-                      ಇಂದಿನ ಪ್ರಾಣಶಕ್ತಿ ಸ್ಕೋರ್
+                      ಪ್ರಾಣಶಕ್ತಿ ಸೂಚ್ಯಂಕ
                     </span>
                   </div>
                 </div>
-                <p className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 leading-relaxed font-medium">
+
+                <p className="text-sm text-slate-900 dark:text-slate-100 leading-relaxed font-medium mb-4">
                   {result.liveTransit.currentTransitSummary}
                 </p>
-                <div className="mt-4 p-3.5 bg-amber-100 dark:bg-amber-950/70 rounded-2xl border-2 border-amber-300 dark:border-amber-700 text-xs font-extrabold text-amber-950 dark:text-amber-200">
-                  ⏳ ಇಂದಿನ ಅತ್ಯುನ್ನತ ಶುಭ ಕಾಲಾವಧಿ (Peak Hour Window): {result.liveTransit.peakHourWindow}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-2xl border border-amber-200 dark:border-slate-700">
+                    <span className="text-xs font-bold text-amber-900 dark:text-amber-300 block mb-1">ತಾರಾ ಬಲ ಸ್ಥಿತಿ:</span>
+                    <span className="text-sm font-extrabold text-slate-950 dark:text-white">{result.liveTransit.taraBalaLabel}</span>
+                  </div>
+                  <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-2xl border border-amber-200 dark:border-slate-700">
+                    <span className="text-xs font-bold text-amber-900 dark:text-amber-300 block mb-1">ಚಂದ್ರ ಬಲ ಸ್ಥಿತಿ:</span>
+                    <span className="text-sm font-extrabold text-slate-950 dark:text-white">{result.liveTransit.chandraBalaLabel}</span>
+                  </div>
                 </div>
               </Card>
 
+              {/* Favorable vs Caution Activities */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 <div className="p-5 sm:p-6 bg-emerald-50 dark:bg-slate-900 border-2 border-emerald-400 dark:border-emerald-500/60 rounded-3xl shadow-md">
-                  <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-400 mb-3">
-                    ✓ ಇಂದು ಕೈಗೊಳ್ಳಲು ಅತ್ಯುತ್ತಮವಾದ ಕಾರ್ಯಗಳು
+                  <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-400 mb-3 flex items-center gap-2">
+                    <span>✨</span> ಇಂದು ಕೈಗೊಳ್ಳಲು ಅತ್ಯಂತ ಶುಭಕರವಾದ ಕಾರ್ಯಗಳು
                   </h3>
                   <ul className="space-y-2 text-xs sm:text-sm text-emerald-950 dark:text-emerald-100 font-semibold">
                     {result.liveTransit.favorableActivities.map((act, i) => (
                       <li key={i} className="flex items-start gap-2">
-                        <span className="text-emerald-600 dark:text-emerald-400 font-bold">•</span>
+                        <span className="text-emerald-600 dark:text-emerald-400 font-bold">✓</span>
                         <span>{act}</span>
                       </li>
                     ))}
@@ -643,8 +803,8 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
                 </div>
 
                 <div className="p-5 sm:p-6 bg-rose-50 dark:bg-slate-900 border-2 border-rose-400 dark:border-rose-500/60 rounded-3xl shadow-md">
-                  <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-rose-800 dark:text-rose-400 mb-3">
-                    ⚠️ ಇಂದು ಎಚ್ಚರಿಕೆಯಿಂದ ಇರಬೇಕಾದ ವಿಷಯಗಳು
+                  <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-rose-800 dark:text-rose-400 mb-3 flex items-center gap-2">
+                    <span>⚠️</span> ಇಂದು ಎಚ್ಚರಿಕೆ ವಹಿಸಬೇಕಾದ / ವರ್ಜ್ಯ ಅಂಶಗಳು
                   </h3>
                   <ul className="space-y-2 text-xs sm:text-sm text-rose-950 dark:text-rose-100 font-semibold">
                     {result.liveTransit.cautionActivities.map((act, i) => (
@@ -659,75 +819,91 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
             </div>
           )}
 
-          {/* TAB 3: Karmic Soul Mission */}
+          {/* TAB 4: Karmic Soul Mission */}
           {activeTab === "karmic" && (
-            <Card className="p-6 bg-white dark:bg-slate-900 border-2 border-amber-300 dark:border-amber-500/40 rounded-3xl shadow-xl space-y-5">
-              <div>
+            <Card className="p-6 bg-white dark:bg-slate-900 border-2 border-amber-300 dark:border-amber-500/40 rounded-3xl shadow-xl space-y-6">
+              <div className="border-b-2 border-amber-100 dark:border-slate-800 pb-4">
                 <span className="text-xs font-extrabold uppercase tracking-wider text-amber-900 dark:text-amber-300">
-                  ರಾಹು-ಕೇತು ಅಕ್ಷ ರಹಸ್ಯ & ಆತ್ಮ ಸಂಕಲ್ಪ
+                  ರಾಹು-ಕೇತು ಕರ್ಮ ಅಕ್ಷ & ಆತ್ಮ ಸಂಕಲ್ಪ
                 </span>
-                <h3 className="text-base sm:text-lg font-black text-slate-950 dark:text-white mt-1">
-                  💎 ಜನ್ಮಾಂತರ ಸಂಸ್ಕಾರ & ಕರ್ಮ ಮುಕ್ತಿ ಮಾರ್ಗ
-                </h3>
+                <h2 className="text-base sm:text-lg font-black text-slate-950 dark:text-white mt-1">
+                  {result.karmicMission.rahuKetuAxis}
+                </h2>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-4 bg-amber-50/80 dark:bg-slate-800 rounded-2xl border-2 border-amber-300 dark:border-slate-700">
-                  <span className="text-xs font-black text-amber-900 dark:text-amber-300">ಆತ್ಮದ ಪ್ರಮುಖ ಗುರಿ (Soul Mission):</span>
-                  <p className="text-xs sm:text-sm text-slate-950 dark:text-slate-100 mt-1 font-semibold leading-relaxed">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-2xl border border-amber-200 dark:border-slate-700">
+                  <h3 className="text-xs font-extrabold text-amber-900 dark:text-amber-300 uppercase mb-1">
+                    🌟 ಈ ಜನ್ಮದ ಆತ್ಮ ಸಂಕಲ್ಪ (Soul Purpose):
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 font-semibold leading-relaxed">
                     {result.karmicMission.soulPurpose}
                   </p>
                 </div>
-                <div className="p-4 bg-amber-50/80 dark:bg-slate-800 rounded-2xl border-2 border-amber-300 dark:border-slate-700">
-                  <span className="text-xs font-black text-amber-900 dark:text-amber-300">ಹಿಂದಿನ ಜನ್ಮದ ವರಗಳು (Past Life Gifts):</span>
-                  <p className="text-xs sm:text-sm text-slate-950 dark:text-slate-100 mt-1 font-semibold leading-relaxed">
+
+                <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-2xl border border-amber-200 dark:border-slate-700">
+                  <h3 className="text-xs font-extrabold text-amber-900 dark:text-amber-300 uppercase mb-1">
+                    💎 ಪೂರ್ವಜನ್ಮದ ವರದಾನ (Past Life Gifts):
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 font-semibold leading-relaxed">
                     {result.karmicMission.pastLifeGifts}
                   </p>
                 </div>
-                <div className="p-4 bg-rose-50 dark:bg-slate-800 rounded-2xl border-2 border-rose-300 dark:border-rose-900/60">
-                  <span className="text-xs font-black text-rose-800 dark:text-rose-400">ಕರ್ಮ ಪಾಠ (Karmic Lesson to Clear):</span>
-                  <p className="text-xs sm:text-sm text-rose-950 dark:text-rose-100 mt-1 font-semibold leading-relaxed">
-                    {result.karmicMission.karmicLesson}
-                  </p>
-                </div>
-                <div className="p-4 bg-emerald-50 dark:bg-slate-800 rounded-2xl border-2 border-emerald-300 dark:border-emerald-900/60">
-                  <span className="text-xs font-black text-emerald-800 dark:text-emerald-400">ಗೋಕರ್ಣ ಕರ್ಮ ಮುಕ್ತಿ ಪರಿಹಾರ:</span>
-                  <p className="text-xs sm:text-sm text-emerald-950 dark:text-emerald-100 mt-1 font-semibold leading-relaxed">
-                    {result.karmicMission.ancestralClearingRemedy}
-                  </p>
-                </div>
+              </div>
+
+              <div className="p-4 bg-rose-50 dark:bg-slate-800/80 rounded-2xl border border-rose-300 dark:border-rose-900/50">
+                <h3 className="text-xs font-extrabold text-rose-800 dark:text-rose-400 uppercase mb-1">
+                  ⚖️ ಕರ್ಮ ಪಾಠ & ಸರಿಪಡಿಸಿಕೊಳ್ಳಬೇಕಾದ ಋಣ (Karmic Lesson):
+                </h3>
+                <p className="text-xs sm:text-sm text-rose-950 dark:text-rose-100 font-semibold leading-relaxed">
+                  {result.karmicMission.karmicLesson}
+                </p>
+              </div>
+
+              <div className="p-4 bg-emerald-50 dark:bg-slate-800/80 rounded-2xl border border-emerald-300 dark:border-emerald-900/50">
+                <h3 className="text-xs font-extrabold text-emerald-800 dark:text-emerald-400 uppercase mb-1">
+                  🪔 ಗೋಕರ್ಣ ಸನ್ನಿಧಿ ಕರ್ಮ ಮುಕ್ತಿ ಪರಿಹಾರ:
+                </h3>
+                <p className="text-xs sm:text-sm text-emerald-950 dark:text-emerald-100 font-semibold leading-relaxed">
+                  {result.karmicMission.ancestralClearingRemedy}
+                </p>
               </div>
             </Card>
           )}
 
-          {/* TAB 4: 10-Year Epoch Milestones */}
+          {/* TAB 5: 10-Year Epoch Milestones */}
           {activeTab === "decades" && (
-            <Card className="p-6 bg-white dark:bg-slate-900 border-2 border-amber-300 dark:border-amber-500/40 rounded-3xl shadow-xl space-y-5">
-              <div>
-                <span className="text-xs font-extrabold uppercase tracking-wider text-amber-900 dark:text-amber-300">
-                  ಜೀವನ ಪಯಣದ ಮಹಾ ಕಾಲಚಕ್ರ (Life Trajectory Epochs)
-                </span>
-                <h3 className="text-base sm:text-lg font-black text-slate-950 dark:text-white mt-1">
-                  🎯 ಪ್ರಮುಖ ೧೦-ವರ್ಷಗಳ ಯುಗ ಹಂತಗಳು & ಮಾರ್ಗದರ್ಶನ
-                </h3>
-              </div>
-
+            <Card className="p-6 bg-white dark:bg-slate-900 border-2 border-amber-300 dark:border-amber-500/40 rounded-3xl shadow-xl space-y-4">
+              <h3 className="text-base font-black text-amber-950 dark:text-amber-300 mb-2">
+                🎯 ೧೦-ವರ್ಷಗಳ ದಶಾ ಕಾಲಚಕ್ರ ಹಂತಗಳು
+              </h3>
               <div className="space-y-3">
                 {result.decadeMilestones.map((m, idx) => (
-                  <div key={idx} className="p-4 bg-amber-50/70 dark:bg-slate-800 rounded-2xl border-2 border-amber-200 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
-                    <div className="space-y-1">
+                  <div
+                    key={idx}
+                    className="p-4 bg-amber-50/60 dark:bg-slate-800 rounded-2xl border-2 border-amber-200/80 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                  >
+                    <div>
                       <div className="flex items-center gap-2">
-                        <span className="px-3 py-0.5 rounded-full text-[11px] font-black bg-amber-200 dark:bg-amber-900 text-amber-950 dark:text-amber-100">
-                          {m.ageRange} ({m.years})
+                        <span className="px-2.5 py-0.5 bg-amber-500 text-white rounded-lg text-xs font-black">
+                          {m.ageRange}
                         </span>
-                        <span className="text-xs font-extrabold text-amber-900 dark:text-amber-300">{m.rulingPhase}</span>
+                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                          ({m.years})
+                        </span>
                       </div>
-                      <p className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 font-semibold">
+                      <h4 className="font-extrabold text-amber-950 dark:text-amber-200 text-sm mt-1">
+                        {m.rulingPhase}
+                      </h4>
+                      <p className="text-xs text-slate-800 dark:text-slate-200 mt-0.5 font-medium">
                         {m.theme}
                       </p>
                     </div>
-                    <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-3.5 py-1.5 rounded-xl border-2 border-amber-400 self-start sm:self-center shadow-sm">
-                      <span className="text-xs font-black text-amber-700 dark:text-amber-300">{m.vitalityScore}% ದೈವಬಲ</span>
+                    <div className="text-right sm:min-w-[120px]">
+                      <span className="text-lg font-black text-amber-600 dark:text-amber-300">
+                        {m.vitalityScore}%
+                      </span>
+                      <span className="text-[10px] text-slate-500 block">ದೈವಬಲ ಸೂಚ್ಯಂಕ</span>
                     </div>
                   </div>
                 ))}
@@ -735,68 +911,74 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
             </Card>
           )}
 
-          {/* TAB 5: Numerology & Name Secrets */}
+          {/* TAB 6: Numerology & Deep Sankhya */}
           {activeTab === "sankhya" && (
-            <Card className="p-6 bg-white dark:bg-slate-900 border-2 border-amber-300 dark:border-amber-500/40 rounded-3xl shadow-xl space-y-5">
-              <div>
-                <span className="text-xs font-extrabold uppercase tracking-wider text-amber-900 dark:text-amber-300">
-                  ಸಾಂಖ್ಯಿಕ ತತ್ವ & ನಾಮ ಕಂಪನ ಶಾಸ್ತ್ರ (Vedic Numerology)
-                </span>
-                <h3 className="text-base sm:text-lg font-black text-slate-950 dark:text-white mt-1">
-                  🔢 ಮೂಲಾಂಕ, ಭಾಗ್ಯಾಂಕ, ನಾಮಾಂಕ & ಸಂಪತ್ತು ಆಕರ್ಷಣೆ
-                </h3>
-              </div>
-
+            <Card className="p-6 bg-white dark:bg-slate-900 border-2 border-amber-300 dark:border-amber-500/40 rounded-3xl shadow-xl space-y-6">
+              <h3 className="text-base font-black text-amber-950 dark:text-amber-300">
+                🔢 ಸಂಖ್ಯಾ ಶಾಸ್ತ್ರ & ನಾಮ ತರಂಗ ರಹಸ್ಯ
+              </h3>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-                <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-2xl border-2 border-amber-300 dark:border-slate-700 shadow-sm">
-                  <div className="text-[11px] font-extrabold text-slate-700 dark:text-slate-300">ಮೂಲಾಂಕ (Ruling)</div>
-                  <div className="text-3xl font-black text-amber-600 dark:text-amber-400 mt-1">{result.sankhya.mulank}</div>
-                  <div className="text-[10px] font-bold text-amber-950 dark:text-amber-300 mt-0.5">{result.sankhya.mulankLord}</div>
+                <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-2xl border-2 border-amber-300 dark:border-slate-700">
+                  <span className="text-xs font-bold text-slate-600 dark:text-slate-400">ಮೂಲಾಂಕ (Ruling)</span>
+                  <div className="text-3xl font-black text-amber-600 dark:text-amber-300 mt-1">{result.sankhya.mulank}</div>
+                  <span className="text-[11px] font-bold text-amber-900 dark:text-amber-200 mt-1 block">{result.sankhya.mulankLord}</span>
                 </div>
-                <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-2xl border-2 border-amber-300 dark:border-slate-700 shadow-sm">
-                  <div className="text-[11px] font-extrabold text-slate-700 dark:text-slate-300">ಭಾಗ್ಯಾಂಕ (Destiny)</div>
-                  <div className="text-3xl font-black text-amber-600 dark:text-amber-400 mt-1">{result.sankhya.bhagyank}</div>
-                  <div className="text-[10px] font-bold text-amber-950 dark:text-amber-300 mt-0.5">{result.sankhya.bhagyankLord}</div>
+                <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-2xl border-2 border-amber-300 dark:border-slate-700">
+                  <span className="text-xs font-bold text-slate-600 dark:text-slate-400">ಭಾಗ್ಯಾಂಕ (Destiny)</span>
+                  <div className="text-3xl font-black text-amber-600 dark:text-amber-300 mt-1">{result.sankhya.bhagyank}</div>
+                  <span className="text-[11px] font-bold text-amber-900 dark:text-amber-200 mt-1 block">{result.sankhya.bhagyankLord}</span>
                 </div>
-                <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-2xl border-2 border-amber-300 dark:border-slate-700 shadow-sm">
-                  <div className="text-[11px] font-extrabold text-slate-700 dark:text-slate-300">ನಾಮಾಂಕ (Name No.)</div>
-                  <div className="text-3xl font-black text-amber-600 dark:text-amber-400 mt-1">{result.sankhya.namank}</div>
-                  <div className="text-[10px] font-bold text-slate-600 dark:text-slate-400 mt-0.5">ಸಾಮಾಜಿಕ ಕಂಪನ</div>
+                <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-2xl border-2 border-amber-300 dark:border-slate-700">
+                  <span className="text-xs font-bold text-slate-600 dark:text-slate-400">ನಾಮಾಂಕ (Name)</span>
+                  <div className="text-3xl font-black text-amber-600 dark:text-amber-300 mt-1">{result.sankhya.namank}</div>
+                  <span className="text-[11px] font-bold text-amber-900 dark:text-amber-200 mt-1 block">ನಾಮ ತರಂಗ</span>
                 </div>
-                <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-2xl border-2 border-amber-300 dark:border-slate-700 shadow-sm">
-                  <div className="text-[11px] font-extrabold text-slate-700 dark:text-slate-300">ಆತ್ಮ ಕಂಪನ (Soul Urge)</div>
-                  <div className="text-3xl font-black text-amber-600 dark:text-amber-400 mt-1">{result.sankhya.soulUrge}</div>
-                  <div className="text-[10px] font-bold text-slate-600 dark:text-slate-400 mt-0.5">ಅಂತರಂಗದ ತುಡಿತ</div>
+                <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-2xl border-2 border-amber-300 dark:border-slate-700">
+                  <span className="text-xs font-bold text-slate-600 dark:text-slate-400">ಆತ್ಮ ಕಂಪನ (Soul Urge)</span>
+                  <div className="text-3xl font-black text-amber-600 dark:text-amber-300 mt-1">{result.sankhya.soulUrge}</div>
+                  <span className="text-[11px] font-bold text-amber-900 dark:text-amber-200 mt-1 block">ಆಂತರಿಕ ಇಚ್ಛೆ</span>
                 </div>
               </div>
 
-              <div className="p-4 bg-amber-50/80 dark:bg-slate-800 rounded-2xl border-2 border-amber-300 dark:border-slate-700 space-y-2">
-                <span className="text-xs font-black text-amber-950 dark:text-amber-300">💰 ಸಂಪತ್ತು ಆಕರ್ಷಣೆಯ ಗುಪ್ತ ರಹಸ್ಯ:</span>
-                <p className="text-xs sm:text-sm text-slate-950 dark:text-slate-100 leading-relaxed font-semibold">
+              <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-2xl border border-amber-200 dark:border-slate-700 space-y-2">
+                <h4 className="text-xs font-black uppercase text-amber-900 dark:text-amber-300">
+                  💰 ಸಂಪತ್ತು ಆಕರ್ಷಿಸುವ ಸಂಖ್ಯಾ ರಹಸ್ಯ:
+                </h4>
+                <p className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 font-semibold leading-relaxed">
                   {result.sankhya.wealthAttractionSecret}
                 </p>
-                <div className="pt-2 text-xs text-amber-950 dark:text-amber-200 font-extrabold">
-                  🤝 ಹೊಂದಾಣಿಕೆಯಾಗುವ ಶುಭ ಸಂಖ್ಯೆಗಳು: {result.sankhya.harmoniousNumbers.join(", ")}
+              </div>
+
+              <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-2xl border border-amber-200 dark:border-slate-700 space-y-2">
+                <h4 className="text-xs font-black uppercase text-amber-900 dark:text-amber-300">
+                  🤝 ಅತ್ಯಂತ ಶುಭ & ಪೂರಕ ಸಂಖ್ಯೆಗಳು:
+                </h4>
+                <div className="flex gap-2 flex-wrap">
+                  {result.sankhya.harmoniousNumbers.map((n) => (
+                    <span key={n} className="px-3 py-1 bg-amber-500 text-white font-extrabold text-xs rounded-xl shadow-sm">
+                      ಸಂಖ್ಯೆ {n}
+                    </span>
+                  ))}
                 </div>
               </div>
             </Card>
           )}
 
-          {/* TAB 6: Cosmic Matrix & Chart */}
+          {/* TAB 7: Cosmic Matrix & Chart */}
           {activeTab === "matrix" && (
-            <Card className="p-6 bg-white dark:bg-slate-900 border-2 border-amber-300 dark:border-amber-500/40 rounded-3xl shadow-xl">
-              <h3 className="text-base font-black text-amber-950 dark:text-amber-300 mb-4">
-                🌌 ಸೌರ ಬಿಂಬ ಗ್ರಹ ಮಂಡಲ (Solar Epoch Planetary Alignment)
+            <Card className="p-6 bg-white dark:bg-slate-900 border-2 border-amber-300 dark:border-amber-500/40 rounded-3xl shadow-xl space-y-6">
+              <h3 className="text-base font-black text-amber-950 dark:text-amber-300">
+                🌌 ದಿವ್ಯ ಗ್ರಹ ಮಂಡಲ ಸ್ಥಿತಿ (ಮಧ್ಯಾಹ್ನ ಸೌರ ಬಿಂಬ ಗಣನೆ)
               </h3>
-              <div className="overflow-x-auto rounded-2xl border-2 border-amber-200 dark:border-slate-700">
-                <table className="w-full text-left text-xs sm:text-sm border-collapse">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="bg-amber-200 dark:bg-amber-950 text-amber-950 dark:text-amber-200 border-b-2 border-amber-300 dark:border-amber-700 font-black">
-                      <th className="p-3">ಗ್ರಹ</th>
-                      <th className="p-3">ರಾಶಿ</th>
-                      <th className="p-3">ಅಂಶ</th>
-                      <th className="p-3">ಸ್ಥಾನ ಬಲ</th>
-                      <th className="p-3">ಕಾರಕತ್ವ</th>
+                    <tr className="bg-amber-100 dark:bg-slate-800 text-amber-950 dark:text-amber-200 border-b-2 border-amber-300 dark:border-slate-700">
+                      <th className="p-3 font-black">ಗ್ರಹ</th>
+                      <th className="p-3 font-black">ರಾಶಿ</th>
+                      <th className="p-3 font-black">ಅಂಶ</th>
+                      <th className="p-3 font-black">ಸ್ಥಾನ ಬಲ</th>
+                      <th className="p-3 font-black">ಕಾರಕತ್ವ</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -823,7 +1005,7 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
             </Card>
           )}
 
-          {/* TAB 7: Samudrika & Body Signs */}
+          {/* TAB 8: Samudrika & Body Signs */}
           {activeTab === "samudrika" && (
             <Card className="p-6 bg-white dark:bg-slate-900 border-2 border-amber-300 dark:border-amber-500/40 rounded-3xl shadow-xl space-y-6">
               <div>
@@ -871,7 +1053,7 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
             </Card>
           )}
 
-          {/* TAB 8: Remedies & Gokarna Sanjeevini */}
+          {/* TAB 9: Remedies & Gokarna Sanjeevini */}
           {activeTab === "remedies" && (
             <Card className="p-6 bg-white dark:bg-slate-900 border-2 border-amber-300 dark:border-amber-500/40 rounded-3xl shadow-xl space-y-6">
               <h3 className="text-base font-black text-amber-950 dark:text-amber-300">

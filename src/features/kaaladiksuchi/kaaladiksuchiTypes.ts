@@ -40,6 +40,39 @@ export interface ModernWorldAlignment {
   actionableHabitsForToday: string[];
 }
 
+export interface DirectionalGuidance {
+  directionName: string;
+  deity: string;
+  rulingPlanet: string;
+  suitabilityDomain: string;
+  practicalAdvice: string;
+}
+
+export interface DishaShoolaDaily {
+  afflictedDirection: string;
+  reason: string;
+  classicalRemedy: string;
+}
+
+export interface KaalaTimingRhythm {
+  sunriseTime: string;
+  sunsetTime: string;
+  abhijitMuhurtha: string;
+  rahuKaal: string;
+  gulikaKaal: string;
+  yamaganda: string;
+  peakPranaWindow: string;
+}
+
+export interface DiksuchiCompassMatrix {
+  careerDirection: DirectionalGuidance;
+  wealthDirection: DirectionalGuidance;
+  healthMeditationDirection: DirectionalGuidance;
+  studyKnowledgeDirection: DirectionalGuidance;
+  dailyDishaShoola: DishaShoolaDaily;
+  timingRhythm: KaalaTimingRhythm;
+}
+
 export interface SamudrikaProfile {
   dominantPlanet: string;
   elementalComposition: {
@@ -73,6 +106,8 @@ export interface RemedialPrescription {
 
 export interface LiveDailyTransitEnergy {
   pranaScore: number; // 0-100%
+  taraBalaLabel: string;
+  chandraBalaLabel: string;
   peakHourWindow: string;
   favorableActivities: string[];
   cautionActivities: string[];
@@ -120,6 +155,7 @@ export interface KaalaDiksuchiResult {
   destinyNumber: number;
   soulUrgeNumber: number;
   planets: PlanetaryPositionSummary[];
+  diksuchi: DiksuchiCompassMatrix;
   modernWorld: ModernWorldAlignment;
   samudrika: SamudrikaProfile;
   sankhya: SankhyaDeepAnalysis;
