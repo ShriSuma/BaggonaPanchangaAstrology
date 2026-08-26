@@ -73,13 +73,16 @@ const QUESTIONS: Question[] = [
 export const VedicTriviaBlitzGame: React.FC<TriviaProps> = ({ lang = "kn" }) => {
   const isKn = (lang || "kn").slice(0, 2) === "kn";
 
-  const [players, setPlayers] = useState<string[]>(["Player 1", "Player 2", "Player 3", "Player 4"]);
-  const [scores, setScores] = useState<Record<string, number>>({
-    "Player 1": 0,
-    "Player 2": 0,
-    "Player 3": 0,
-    "Player 4": 0
-  });
+  const [playerCount, setPlayerCount] = useState<number>(4);
+  const [isGameStarted, setIsGameStarted] = useState<boolean>(false);
+  const [players, setPlayers] = useState<string[]>([
+    "Player 1",
+    "Player 2",
+    "Player 3",
+    "Player 4"
+  ]);
+  const [scores, setScores] = useState<Record<string, number>>({});
+  const [listeningPlayerIdx, setListeningPlayerIdx] = useState<number | null>(null);
 
   const [currentPlayerIdx, setCurrentPlayerIdx] = useState<number>(0);
   const [qIndex, setQIndex] = useState<number>(0);
@@ -87,8 +90,100 @@ export const VedicTriviaBlitzGame: React.FC<TriviaProps> = ({ lang = "kn" }) => 
   const [isAnswered, setIsAnswered] = useState<boolean>(false);
   const [isQuizCompleted, setIsQuizCompleted] = useState<boolean>(false);
 
+  // Sync players list when playerCount changes
+  React.useEffect(() => {
+    setPlayers((prev) => {
+      return Array.from({ length: playerCount }, (_, i) => {
+        const defaultName = isKn ? `ಆಟಗಾರ ${i + 1}` : `Player ${i + 1}`;
+        return prev[i] || defaultName;
+      });
+    });
+  }, [playerCount, isKn]);
+
+  const handleUpdatePlayerName = (idx: number, newName: string) => {
+    setPlayers((prev) => {
+      const updated = [...prev];
+      const oldName = updated[idx];
+      updated[idx] = newName;
+      // Transfer scores if exists
+      setScores((s) => {
+        const newScores = { ...s };
+        if (oldName && newScores[oldName] !== undefined) {
+          newScores[newName] = newScores[oldName];
+          if (oldName !== newName) delete newScores[oldName];
+        }
+        return newScores;
+      });
+      return updated;
+    });
+  };
+
+  const handleMicForPlayer = (idx: number) => {
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      alert(
+        isKn
+          ? "ನಿಮ್ಮ ಬ್ರೌಸರ್ ಧ್ವನಿ ಗುರುತಿಸುವಿಕೆಯನ್ನು ಬೆಂಬಲಿಸುವುದಿಲ್ಲ (Chrome/Safari ಬಳಸಿ)."
+          : "Speech recognition is not supported in this browser."
+      );
+      return;
+    }
+
+    try {
+      if (listeningPlayerIdx === idx) {
+        setListeningPlayerIdx(null);
+        return;
+      }
+
+      const recognition = new SpeechRecognition();
+      recognition.lang = isKn ? "kn-IN" : "en-US";
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      setListeningPlayerIdx(idx);
+
+      recognition.onresult = (event: any) => {
+        const speechResult = event.results[0][0]?.transcript || "";
+        if (speechResult.trim()) {
+          handleUpdatePlayerName(idx, speechResult.trim());
+        }
+        setListeningPlayerIdx(null);
+      };
+
+      recognition.onerror = () => {
+        setListeningPlayerIdx(null);
+      };
+
+      recognition.onend = () => {
+        setListeningPlayerIdx(null);
+      };
+
+      recognition.start();
+    } catch (err) {
+      console.error("Speech recognition error:", err);
+      setListeningPlayerIdx(null);
+    }
+  };
+
+  const handleStartGame = () => {
+    const initialScores: Record<string, number> = {};
+    players.forEach((p) => {
+      initialScores[p] = 0;
+    });
+    setScores(initialScores);
+    setQIndex(0);
+    setCurrentPlayerIdx(0);
+    setSelectedOpt(null);
+    setIsAnswered(false);
+    setIsQuizCompleted(false);
+    setIsGameStarted(true);
+    gameAudio.playSuccess();
+  };
+
   const currQ = QUESTIONS[qIndex % QUESTIONS.length];
-  const currPlayer = players[currentPlayerIdx];
+  const currPlayer = players[currentPlayerIdx] || players[0];
 
   const handleSelectOption = (idx: number) => {
     if (isAnswered) return;
@@ -123,37 +218,137 @@ export const VedicTriviaBlitzGame: React.FC<TriviaProps> = ({ lang = "kn" }) => 
     setSelectedOpt(null);
     setIsAnswered(false);
     setIsQuizCompleted(false);
-    setScores({
-      "Player 1": 0,
-      "Player 2": 0,
-      "Player 3": 0,
-      "Player 4": 0
+    const initialScores: Record<string, number> = {};
+    players.forEach((p) => {
+      initialScores[p] = 0;
     });
+    setScores(initialScores);
   };
 
   return (
     <div className="space-y-6">
       {/* Header Banner */}
       <Card className="border-2 border-amber-400 bg-gradient-to-r from-amber-100 via-amber-50 to-orange-100 p-5 shadow-md">
-        <div className="flex items-start gap-3">
-          <span className="text-3xl select-none">🧠</span>
-          <div className="space-y-1">
-            <div className="text-[10px] font-extrabold tracking-widest text-amber-800 uppercase">
-              ॥ ಮಹಾ ಜ್ಯೋತಿಷ್ಯ ರಸಪ್ರಶ್ನೆ · ೨ ರಿಂದ ೮ ಆಟಗಾರರ ರೌಂಡ್ ಕ್ವಿಜ್ (Vedic Trivia) ॥
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <span className="text-3xl select-none">🧠</span>
+            <div className="space-y-1">
+              <div className="text-[10px] font-extrabold tracking-widest text-amber-800 uppercase">
+                ॥ ಮಹಾ ಜ್ಯೋತಿಷ್ಯ ರಸಪ್ರಶ್ನೆ · ೧ ರಿಂದ ೬ ಆಟಗಾರರ ರೌಂಡ್ ಕ್ವಿಜ್ (Vedic Trivia) ॥
+              </div>
+              <h3 className="font-serif text-base font-bold text-amber-950">
+                {isKn ? "ಮಹಾ ಜ್ಯೋತಿಷ್ಯ & ಪುರಾಣ ರಸಪ್ರಶ್ನೆ ಬ್ಲಿಟ್ಜ್" : "Grand Vedic Astrology & Kshetra Trivia"}
+              </h3>
+              <p className="text-xs text-amber-900/90 leading-relaxed font-medium">
+                {isKn
+                  ? "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ, ಪಂಚಾಂಗ, ನಕ್ಷತ್ರಗಳು ಹಾಗೂ ಪುರಾಣಗಳ ರೋಚಕ ರಸಪ್ರಶ್ನೆ. ಸರಿಯಾದ ಉತ್ತರಕ್ಕೆ +೨೦ ಅಂಕಗಳು!"
+                  : "Exciting battle of wits on Gokarna legends, Nakshatras, and Panchanga. +20 points per correct answer!"}
+              </p>
             </div>
-            <h3 className="font-serif text-base font-bold text-amber-950">
-              {isKn ? "ಮಹಾ ಜ್ಯೋತಿಷ್ಯ & ಪುರಾಣ ರಸಪ್ರಶ್ನೆ ಬ್ಲಿಟ್ಜ್" : "Grand Vedic Astrology & Kshetra Trivia"}
-            </h3>
-            <p className="text-xs text-amber-900/90 leading-relaxed font-medium">
-              {isKn
-                ? "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ, ಪಂಚಾಂಗ, ನಕ್ಷತ್ರಗಳು ಹಾಗೂ ಪುರಾಣಗಳ ರೋಚಕ ರಸಪ್ರಶ್ನೆ. ಸರಿಯಾದ ಉತ್ತರಕ್ಕೆ +೨೦ ಅಂಕಗಳು!"
-                : "Exciting battle of wits on Gokarna legends, Nakshatras, and Panchanga. +20 points per correct answer!"}
-            </p>
           </div>
+
+          {isGameStarted && (
+            <button
+              type="button"
+              onClick={() => setIsGameStarted(false)}
+              className="px-3 py-1.5 rounded-xl border border-amber-300 bg-white text-amber-900 font-bold text-xs hover:bg-amber-50 shrink-0 cursor-pointer"
+            >
+              🔄 {isKn ? "ಹೊಸ ಕ್ವಿಜ್" : "Reset"}
+            </button>
+          )}
         </div>
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Pre-Game Setup: Player Count Selection & Editable Names */}
+      {!isGameStarted ? (
+        <Card className="border-2 border-amber-400 bg-white p-5 shadow-lg space-y-4 max-w-xl mx-auto">
+          <div className="text-center space-y-1">
+            <h4 className="font-serif text-base sm:text-lg font-black text-amber-950">
+              👥 {isKn ? "ಆಟಗಾರರ ಸಂಖ್ಯೆಯನ್ನು ಆರಿಸಿ (೧ ರಿಂದ ೬)" : "Select Number of Players (1 to 6)"}
+            </h4>
+            <p className="text-xs text-amber-900 font-medium">
+              {isKn
+                ? "ಪ್ರತಿಯೊಬ್ಬ ಆಟಗಾರರ ಹೆಸರನ್ನು ನಮೂದಿಸಿ ಅಥವಾ ಧ್ವನಿ ಮೂಲಕ ಹೇಳಿ."
+                : "Enter player names or use the microphone to speak each name."}
+            </p>
+          </div>
+
+          <div className="flex flex-wrap justify-center gap-2">
+            {[1, 2, 3, 4, 5, 6].map((num) => (
+              <button
+                key={num}
+                type="button"
+                onClick={() => {
+                  setPlayerCount(num);
+                  gameAudio.playTick();
+                }}
+                className={`w-11 h-11 rounded-2xl font-black text-sm transition shadow-xs flex items-center justify-center cursor-pointer ${
+                  playerCount === num
+                    ? "bg-amber-900 text-amber-50 border-2 border-amber-950 scale-110 shadow-md"
+                    : "bg-amber-50 text-amber-950 border border-amber-200 hover:bg-amber-100"
+                }`}
+              >
+                {num}
+              </button>
+            ))}
+          </div>
+
+          {/* Editable Name List */}
+          <div className="space-y-3 pt-2">
+            <div className="text-xs font-bold text-amber-950 flex items-center justify-between">
+              <span>{isKn ? "ಆಟಗಾರರ ಹೆಸರುಗಳನ್ನು ನಮೂದಿಸಿ / ಧ್ವನಿ ಬಳಸಿ:" : "Edit Player Names / Use Microphone:"}</span>
+              <span className="text-[11px] text-amber-800 font-extrabold bg-amber-100 px-2 py-0.5 rounded-md border border-amber-300">
+                {playerCount} {isKn ? "ಆಟಗಾರರು" : "Players"}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-72 overflow-y-auto p-1">
+              {players.map((p, i) => (
+                <div key={i} className="p-3 rounded-2xl bg-amber-50/90 border-2 border-amber-200 flex items-center gap-3 shadow-xs">
+                  <div className="w-10 h-10 rounded-xl bg-amber-200/80 border border-amber-400 flex items-center justify-center text-lg shrink-0 shadow-2xs font-extrabold text-amber-950">
+                    {i + 1}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[11px] text-amber-900 font-extrabold mb-1">
+                      <span>{isKn ? `ಆಟಗಾರ ${i + 1}` : `Player ${i + 1}`}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="text"
+                        value={p}
+                        onChange={(e) => handleUpdatePlayerName(i, e.target.value)}
+                        placeholder={isKn ? `ಆಟಗಾರ ${i + 1} ಹೆಸರು` : `Player ${i + 1} Name`}
+                        className="w-full h-8 px-2.5 text-xs font-bold text-slate-900 bg-white rounded-xl border border-amber-300 focus:border-amber-600 focus:outline-none transition shadow-2xs"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleMicForPlayer(i)}
+                        className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-xs transition border cursor-pointer ${
+                          listeningPlayerIdx === i
+                            ? "bg-rose-600 text-white animate-pulse border-rose-700 shadow-md"
+                            : "bg-amber-100 hover:bg-amber-200 text-amber-950 border-amber-300 shadow-2xs"
+                        }`}
+                        title={isKn ? "ಧ್ವನಿ ಮೂಲಕ ಹೆಸರನ್ನು ಹೇಳಿ (Mic)" : "Dictate name via Mic"}
+                      >
+                        {listeningPlayerIdx === i ? "🔴" : "🎙️"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleStartGame}
+            className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-600 via-amber-700 to-amber-900 text-amber-50 font-black text-sm shadow-lg hover:from-amber-700 hover:to-black transition active:scale-98 cursor-pointer"
+          >
+            🚀 {isKn ? "ರಸಪ್ರಶ್ನೆ ಪ್ರಾರಂಭಿಸಿ!" : "Start Vedic Trivia Blitz!"}
+          </button>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Left: Question Card */}
         <div className="md:col-span-2 space-y-4">
           <Card className="border-2 border-amber-400 bg-white p-6 shadow-md space-y-4">
@@ -279,6 +474,7 @@ export const VedicTriviaBlitzGame: React.FC<TriviaProps> = ({ lang = "kn" }) => 
           </Card>
         </div>
       </div>
+      )}
     </div>
   );
 };

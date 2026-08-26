@@ -31,6 +31,10 @@ const PLANET_ZONES = [
 export const SankhyaDuelGame: React.FC<SankhyaDuelProps> = ({ lang = "kn" }) => {
   const isKn = (lang || "kn").slice(0, 2) === "kn";
 
+  const [playerCount, setPlayerCount] = useState<number>(4);
+  const [isGameStarted, setIsGameStarted] = useState<boolean>(false);
+  const [listeningPlayerId, setListeningPlayerId] = useState<number | null>(null);
+
   const [players, setPlayers] = useState<DuelPlayer[]>([
     { id: 1, name: "Player 1", birthDay: 15, driverNumber: 6, score: 0, capturedZones: [], avatar: "💖" },
     { id: 2, name: "Player 2", birthDay: 1, driverNumber: 1, score: 0, capturedZones: [], avatar: "☀️" },
@@ -54,12 +58,101 @@ export const SankhyaDuelGame: React.FC<SankhyaDuelProps> = ({ lang = "kn" }) => 
     return sum || 1;
   };
 
+  // Sync players list when playerCount or language changes
+  React.useEffect(() => {
+    setPlayers((prev) => {
+      const defaultDays = [15, 1, 23, 9, 7, 18, 3, 27];
+      return Array.from({ length: playerCount }, (_, i) => {
+        const defaultName = isKn ? `ಆಟಗಾರ ${i + 1}` : `Player ${i + 1}`;
+        const existing = prev.find((p) => p.id === i + 1);
+        const day = existing ? existing.birthDay : defaultDays[i % defaultDays.length];
+        const dr = calculateDriver(day);
+        const av = PLANET_ZONES.find((z) => z.num === dr)?.symbol || "🌟";
+        return {
+          id: i + 1,
+          name: existing ? existing.name : defaultName,
+          birthDay: day,
+          driverNumber: dr,
+          score: existing ? existing.score : 0,
+          capturedZones: existing ? existing.capturedZones : [],
+          avatar: av
+        };
+      });
+    });
+  }, [playerCount, isKn]);
+
+  const handleUpdatePlayerName = (id: number, newName: string) => {
+    setPlayers((prev) => prev.map((p) => (p.id === id ? { ...p, name: newName } : p)));
+  };
+
+  const handleMicForPlayer = (id: number) => {
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      alert(
+        isKn
+          ? "ನಿಮ್ಮ ಬ್ರೌಸರ್ ಧ್ವನಿ ಗುರುತಿಸುವಿಕೆಯನ್ನು ಬೆಂಬಲಿಸುವುದಿಲ್ಲ (Chrome/Safari ಬಳಸಿ)."
+          : "Speech recognition is not supported in this browser."
+      );
+      return;
+    }
+
+    try {
+      if (listeningPlayerId === id) {
+        setListeningPlayerId(null);
+        return;
+      }
+
+      const recognition = new SpeechRecognition();
+      recognition.lang = isKn ? "kn-IN" : "en-US";
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      setListeningPlayerId(id);
+
+      recognition.onresult = (event: any) => {
+        const speechResult = event.results[0][0]?.transcript || "";
+        if (speechResult.trim()) {
+          handleUpdatePlayerName(id, speechResult.trim());
+        }
+        setListeningPlayerId(null);
+      };
+
+      recognition.onerror = () => {
+        setListeningPlayerId(null);
+      };
+
+      recognition.onend = () => {
+        setListeningPlayerId(null);
+      };
+
+      recognition.start();
+    } catch (err) {
+      console.error("Speech recognition error:", err);
+      setListeningPlayerId(null);
+    }
+  };
+
   const handleUpdatePlayerDay = (id: number, day: number) => {
     const dr = calculateDriver(day);
     const av = PLANET_ZONES.find((z) => z.num === dr)?.symbol || "🌟";
     setPlayers((prev) =>
       prev.map((p) => (p.id === id ? { ...p, birthDay: day, driverNumber: dr, avatar: av } : p))
     );
+  };
+
+  const handleStartGame = () => {
+    setCurrentPlayerIdx(0);
+    setRound(1);
+    setPlayers((prev) => prev.map((p) => ({ ...p, score: 0, capturedZones: [] })));
+    setIsGameStarted(true);
+    setLog(
+      isKn
+        ? `ಸಂಖ್ಯಾ ಸಮರ ಆರಂಭವಾಗಿದೆ! ${players[0]?.name || "೧ನೇ ಆಟಗಾರ"} ಅವರ ಸರದಿ.`
+        : `Numerology Clash begun! ${players[0]?.name || "Player 1"}'s turn.`
+    );
+    gameAudio.playSuccess();
   };
 
   const handleRoll = () => {
@@ -127,26 +220,147 @@ export const SankhyaDuelGame: React.FC<SankhyaDuelProps> = ({ lang = "kn" }) => 
     <div className="space-y-6">
       {/* Banner */}
       <Card className="border-2 border-amber-400 bg-gradient-to-r from-amber-100 via-amber-50 to-orange-100 p-5 shadow-md">
-        <div className="flex items-start gap-3">
-          <span className="text-3xl select-none">🔢</span>
-          <div className="space-y-1">
-            <div className="text-[10px] font-extrabold tracking-widest text-amber-800 uppercase">
-              ॥ ಸಂಖ್ಯಾ ಚಕ್ರ ಸಮರ · ೨ ರಿಂದ ೮ ಆಟಗಾರರ ಸಂಖ್ಯಾ ಶಾಸ್ತ್ರ ಡ್ಯುಯೆಲ್ (Numerology Duel) ॥
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <span className="text-3xl select-none">🔢</span>
+            <div className="space-y-1">
+              <div className="text-[10px] font-extrabold tracking-widest text-amber-800 uppercase">
+                ॥ ಸಂಖ್ಯಾ ಚಕ್ರ ಸಮರ · ೨ ರಿಂದ ೮ ಆಟಗಾರರ ಸಂಖ್ಯಾ ಶಾಸ್ತ್ರ ಡ್ಯುಯೆಲ್ (Numerology Duel) ॥
+              </div>
+              <h3 className="font-serif text-base font-bold text-amber-950">
+                {isKn ? "ಸಂಖ್ಯಾ ಚಕ್ರ ಸಮರ & ನವದುರ್ಗ ವಿಜಯ" : "Vedic Numerology Castle Clash"}
+              </h3>
+              <p className="text-xs text-amber-900/90 leading-relaxed font-medium">
+                {isKn
+                  ? "ನಿಮ್ಮ ಜನ್ಮ ದಿನಾಂಕದ ಮೂಲಾಂಕದಿಂದ (Driver Number) ೯ ನವಗ್ರಹ ದುರ್ಗಗಳನ್ನು ವಶಪಡಿಸಿಕೊಳ್ಳಿ. ಮಿತ್ರ ಗ್ರಹಗಳಿಂದ ಡಬಲ್ ಬೋನಸ್ ಅಂಕ ಗಳಿಸಿ!"
+                  : "Conquer 9 planetary zones using your birth date's Driver Number. Earn double bonus points on friendly planets!"}
+              </p>
             </div>
-            <h3 className="font-serif text-base font-bold text-amber-950">
-              {isKn ? "ಸಂಖ್ಯಾ ಚಕ್ರ ಸಮರ & ನವದುರ್ಗ ವಿಜಯ" : "Vedic Numerology Castle Clash"}
-            </h3>
-            <p className="text-xs text-amber-900/90 leading-relaxed font-medium">
-              {isKn
-                ? "ನಿಮ್ಮ ಜನ್ಮ ದಿನಾಂಕದ ಮೂಲಾಂಕದಿಂದ (Driver Number) ೯ ನವಗ್ರಹ ದುರ್ಗಗಳನ್ನು ವಶಪಡಿಸಿಕೊಳ್ಳಿ. ಮಿತ್ರ ಗ್ರಹಗಳಿಂದ ಡಬಲ್ ಬೋನಸ್ ಅಂಕ ಗಳಿಸಿ!"
-                : "Conquer 9 planetary zones using your birth date's Driver Number. Earn double bonus points on friendly planets!"}
-            </p>
           </div>
+
+          {isGameStarted && (
+            <button
+              type="button"
+              onClick={() => setIsGameStarted(false)}
+              className="px-3 py-1.5 rounded-xl border border-amber-300 bg-white text-amber-900 font-bold text-xs hover:bg-amber-50 shrink-0 cursor-pointer"
+            >
+              🔄 {isKn ? "ಹೊಸ ಆಟ" : "Reset"}
+            </button>
+          )}
         </div>
       </Card>
 
-      {/* Arena Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Pre-Game Setup View: Player Count, Editable Names & Birthdays */}
+      {!isGameStarted ? (
+        <Card className="border-2 border-amber-400 bg-white p-5 shadow-lg space-y-4 max-w-xl mx-auto">
+          <div className="text-center space-y-1">
+            <h4 className="font-serif text-base sm:text-lg font-black text-amber-950">
+              👥 {isKn ? "ಆಟಗಾರರ ಸಂಖ್ಯೆಯನ್ನು ಆರಿಸಿ (೨ ರಿಂದ ೮)" : "Select Number of Players (2 to 8)"}
+            </h4>
+            <p className="text-xs text-amber-900 font-medium">
+              {isKn
+                ? "ಪ್ರತಿ ಆಟಗಾರರ ಹೆಸರು ಮತ್ತು ಜನ್ಮ ದಿನಾಂಕವನ್ನು ನಮೂದಿಸಿ (ಮೂಲಾಂಕ ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಲೆಕ್ಕಾಚಾರವಾಗುತ್ತದೆ)."
+                : "Enter player names & birth dates (Driver Numbers will be automatically calculated)."}
+            </p>
+          </div>
+
+          <div className="flex flex-wrap justify-center gap-2">
+            {[2, 3, 4, 5, 6, 7, 8].map((num) => (
+              <button
+                key={num}
+                type="button"
+                onClick={() => {
+                  setPlayerCount(num);
+                  gameAudio.playTick();
+                }}
+                className={`w-11 h-11 rounded-2xl font-black text-sm transition shadow-xs flex items-center justify-center cursor-pointer ${
+                  playerCount === num
+                    ? "bg-amber-900 text-amber-50 border-2 border-amber-950 scale-110 shadow-md"
+                    : "bg-amber-50 text-amber-950 border border-amber-200 hover:bg-amber-100"
+                }`}
+              >
+                {num}
+              </button>
+            ))}
+          </div>
+
+          {/* Editable Name & Birthday List */}
+          <div className="space-y-3 pt-2">
+            <div className="text-xs font-bold text-amber-950 flex items-center justify-between">
+              <span>{isKn ? "ಆಟಗಾರರ ವಿವರಗಳನ್ನು ನಮೂದಿಸಿ / ಧ್ವನಿ ಬಳಸಿ:" : "Edit Player Details / Use Microphone:"}</span>
+              <span className="text-[11px] text-amber-800 font-extrabold bg-amber-100 px-2 py-0.5 rounded-md border border-amber-300">
+                {playerCount} {isKn ? "ಆಟಗಾರರು" : "Players"}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-72 overflow-y-auto p-1">
+              {players.map((p, i) => (
+                <div key={p.id} className="p-3 rounded-2xl bg-amber-50/90 border-2 border-amber-200 flex items-center gap-3 shadow-xs">
+                  <div className="w-11 h-11 rounded-2xl bg-amber-200/80 border border-amber-400 flex items-center justify-center text-2xl shrink-0 shadow-2xs">
+                    {p.avatar}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between text-[11px] text-amber-900 font-extrabold mb-1">
+                      <span>{isKn ? `ಆಟಗಾರ ${i + 1}` : `Player ${i + 1}`}</span>
+                      <span className="bg-amber-200 text-amber-950 px-2 py-0.5 rounded-full text-[10px] font-black">
+                        #{p.driverNumber}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <input
+                        type="text"
+                        value={p.name}
+                        onChange={(e) => handleUpdatePlayerName(p.id, e.target.value)}
+                        placeholder={isKn ? `ಆಟಗಾರ ${i + 1} ಹೆಸರು` : `Player ${i + 1} Name`}
+                        className="w-full h-8 px-2.5 text-xs font-bold text-slate-900 bg-white rounded-xl border border-amber-300 focus:border-amber-600 focus:outline-none transition shadow-2xs"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleMicForPlayer(p.id)}
+                        className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-xs transition border cursor-pointer ${
+                          listeningPlayerId === p.id
+                            ? "bg-rose-600 text-white animate-pulse border-rose-700 shadow-md"
+                            : "bg-amber-100 hover:bg-amber-200 text-amber-950 border-amber-300 shadow-2xs"
+                        }`}
+                        title={isKn ? "ಧ್ವನಿ ಮೂಲಕ ಹೆಸರನ್ನು ಹೇಳಿ (Mic)" : "Dictate name via Mic"}
+                      >
+                        {listeningPlayerId === p.id ? "🔴" : "🎙️"}
+                      </button>
+                    </div>
+
+                    {/* Birthday selector */}
+                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-amber-900">
+                      <span>{isKn ? "ಜನ್ಮ ದಿನಾಂಕ:" : "Birth Day:"}</span>
+                      <select
+                        value={p.birthDay}
+                        onChange={(e) => handleUpdatePlayerDay(p.id, parseInt(e.target.value, 10))}
+                        className="h-6 px-1.5 text-[11px] font-extrabold bg-white border border-amber-300 rounded-lg text-amber-950 focus:outline-none"
+                      >
+                        {Array.from({ length: 31 }, (_, d) => d + 1).map((day) => (
+                          <option key={day} value={day}>
+                            {day}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleStartGame}
+            className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-600 via-amber-700 to-amber-900 text-amber-50 font-black text-sm shadow-lg hover:from-amber-700 hover:to-black transition active:scale-98 cursor-pointer"
+          >
+            🚀 {isKn ? "ಸಂಖ್ಯಾ ಸಮರ ಪ್ರಾರಂಭಿಸಿ!" : "Start Numerology Duel!"}
+          </button>
+        </Card>
+      ) : (
+        /* Arena Layout */
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* 9 Planetary Castles Grid */}
         <div className="lg:col-span-2 space-y-4">
           <div className="grid grid-cols-3 gap-3">
@@ -254,6 +468,7 @@ export const SankhyaDuelGame: React.FC<SankhyaDuelProps> = ({ lang = "kn" }) => 
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 };

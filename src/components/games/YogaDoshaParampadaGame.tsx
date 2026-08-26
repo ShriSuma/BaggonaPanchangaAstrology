@@ -286,6 +286,7 @@ export const YogaDoshaParampadaGame: React.FC<{ lang?: string }> = ({ lang = "kn
   const [lastEventMessage, setLastEventMessage] = useState<string>("");
   const [luckyBonusTriggered, setLuckyBonusTriggered] = useState<boolean>(false);
   const [winner, setWinner] = useState<ParampadaPlayer | null>(null);
+  const [listeningPlayerId, setListeningPlayerId] = useState<number | null>(null);
 
   // Active Popup Modal for Yoga / Dosha landing
   const [activeYogaModal, setActiveYogaModal] = useState<YogaLadder | null>(null);
@@ -295,25 +296,81 @@ export const YogaDoshaParampadaGame: React.FC<{ lang?: string }> = ({ lang = "kn
 
   // Initialize Players
   useEffect(() => {
-    const defaultPlayers: ParampadaPlayer[] = Array.from({ length: playerCount }, (_, i) => {
-      const avatar = GRAHA_AVATARS[i % GRAHA_AVATARS.length];
-      return {
-        id: i + 1,
-        name: isKn ? `ಆಟಗಾರ ${i + 1} (${avatar.nameKn.split(" ")[0]})` : `Player ${i + 1} (${avatar.nameEn.split(" ")[0]})`,
-        avatarSymbol: avatar.symbol,
-        avatarNameKn: avatar.nameKn,
-        avatarNameEn: avatar.nameEn,
-        luckyNumber: (avatar.luckyNumber % 6) || 6, // 1 to 6
-        colorBg: avatar.bg,
-        colorBorder: avatar.border,
-        position: 1,
-        luckyRollsCount: 0,
-        yogasClimbed: 0,
-        doshasFaced: 0
-      };
+    setPlayers((prev) => {
+      return Array.from({ length: playerCount }, (_, i) => {
+        const avatar = GRAHA_AVATARS[i % GRAHA_AVATARS.length];
+        const defaultName = isKn ? `ಆಟಗಾರ ${i + 1} (${avatar.nameKn.split(" ")[0]})` : `Player ${i + 1} (${avatar.nameEn.split(" ")[0]})`;
+        const existing = prev.find((p) => p.id === i + 1);
+        return {
+          id: i + 1,
+          name: existing ? existing.name : defaultName,
+          avatarSymbol: avatar.symbol,
+          avatarNameKn: avatar.nameKn,
+          avatarNameEn: avatar.nameEn,
+          luckyNumber: (avatar.luckyNumber % 6) || 6, // 1 to 6
+          colorBg: avatar.bg,
+          colorBorder: avatar.border,
+          position: existing ? existing.position : 1,
+          luckyRollsCount: existing ? existing.luckyRollsCount : 0,
+          yogasClimbed: existing ? existing.yogasClimbed : 0,
+          doshasFaced: existing ? existing.doshasFaced : 0
+        };
+      });
     });
-    setPlayers(defaultPlayers);
   }, [playerCount, isKn]);
+
+  const handleUpdatePlayerName = (id: number, newName: string) => {
+    setPlayers((prev) => prev.map((p) => (p.id === id ? { ...p, name: newName } : p)));
+  };
+
+  const handleMicForPlayer = (id: number) => {
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      alert(
+        isKn
+          ? "ನಿಮ್ಮ ಬ್ರೌಸರ್ ಧ್ವನಿ ಗುರುತಿಸುವಿಕೆಯನ್ನು ಬೆಂಬಲಿಸುವುದಿಲ್ಲ (Chrome/Safari ಬಳಸಿ)."
+          : "Speech recognition is not supported in this browser."
+      );
+      return;
+    }
+
+    try {
+      if (listeningPlayerId === id) {
+        setListeningPlayerId(null);
+        return;
+      }
+
+      const recognition = new SpeechRecognition();
+      recognition.lang = isKn ? "kn-IN" : "en-US";
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      setListeningPlayerId(id);
+
+      recognition.onresult = (event: any) => {
+        const speechResult = event.results[0][0]?.transcript || "";
+        if (speechResult.trim()) {
+          handleUpdatePlayerName(id, speechResult.trim());
+        }
+        setListeningPlayerId(null);
+      };
+
+      recognition.onerror = () => {
+        setListeningPlayerId(null);
+      };
+
+      recognition.onend = () => {
+        setListeningPlayerId(null);
+      };
+
+      recognition.start();
+    } catch (err) {
+      console.error("Speech recognition error:", err);
+      setListeningPlayerId(null);
+    }
+  };
 
   const handleStartGame = () => {
     setIsGameStarted(true);
@@ -541,23 +598,59 @@ export const YogaDoshaParampadaGame: React.FC<{ lang?: string }> = ({ lang = "kn
             ))}
           </div>
 
-          {/* Player Avatars Preview Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2">
-            {players.map((p, i) => (
-              <div key={p.id} className="p-2.5 rounded-2xl bg-amber-50/70 border border-amber-200 text-center space-y-1 shadow-2xs">
-                <span className="text-2xl block">{p.avatarSymbol}</span>
-                <span className="text-xs font-bold text-amber-950 block truncate">{p.name}</span>
-                <span className="text-[10px] bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full font-extrabold inline-block">
-                  Lucky: {p.luckyNumber}
-                </span>
-              </div>
-            ))}
+          {/* Player Avatars & Editable Name List */}
+          <div className="space-y-3 pt-2">
+            <div className="text-xs font-bold text-amber-950 flex items-center justify-between">
+              <span>{isKn ? "ಆಟಗಾರರ ಹೆಸರುಗಳನ್ನು ನಮೂದಿಸಿ / ಧ್ವನಿ ಬಳಸಿ:" : "Edit Player Names / Use Microphone:"}</span>
+              <span className="text-[11px] text-amber-800 font-extrabold bg-amber-100 px-2 py-0.5 rounded-md border border-amber-300">
+                {playerCount} {isKn ? "ಆಟಗಾರರು" : "Players"}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-72 overflow-y-auto p-1">
+              {players.map((p, i) => (
+                <div key={p.id} className="p-3 rounded-2xl bg-amber-50/90 border-2 border-amber-200 flex items-center gap-3 shadow-xs">
+                  <div className="w-11 h-11 rounded-2xl bg-amber-200/80 border border-amber-400 flex items-center justify-center text-2xl shrink-0 shadow-2xs">
+                    {p.avatarSymbol}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between text-[11px] text-amber-900 font-extrabold mb-1">
+                      <span>{isKn ? `ಆಟಗಾರ ${i + 1}` : `Player ${i + 1}`} ({isKn ? p.avatarNameKn.split(" ")[0] : p.avatarNameEn.split(" ")[0]})</span>
+                      <span className="bg-amber-200 text-amber-950 px-2 py-0.5 rounded-full text-[10px] font-black">
+                        Lucky: {p.luckyNumber}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="text"
+                        value={p.name}
+                        onChange={(e) => handleUpdatePlayerName(p.id, e.target.value)}
+                        placeholder={isKn ? `ಆಟಗಾರ ${i + 1} ಹೆಸರು` : `Player ${i + 1} Name`}
+                        className="w-full h-8 px-2.5 text-xs font-bold text-slate-900 bg-white rounded-xl border border-amber-300 focus:border-amber-600 focus:outline-none transition shadow-2xs"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleMicForPlayer(p.id)}
+                        className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-xs transition border cursor-pointer ${
+                          listeningPlayerId === p.id
+                            ? "bg-rose-600 text-white animate-pulse border-rose-700 shadow-md"
+                            : "bg-amber-100 hover:bg-amber-200 text-amber-950 border-amber-300 shadow-2xs"
+                        }`}
+                        title={isKn ? "ಧ್ವನಿ ಮೂಲಕ ಹೆಸರನ್ನು ಹೇಳಿ (Mic)" : "Dictate name via Mic"}
+                      >
+                        {listeningPlayerId === p.id ? "🔴" : "🎙️"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
           <button
             type="button"
             onClick={handleStartGame}
-            className="w-full py-3 rounded-2xl bg-gradient-to-r from-amber-600 via-amber-700 to-amber-900 text-amber-50 font-black text-sm shadow-lg hover:from-amber-700 hover:to-black transition active:scale-98"
+            className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-600 via-amber-700 to-amber-900 text-amber-50 font-black text-sm shadow-lg hover:from-amber-700 hover:to-black transition active:scale-98 cursor-pointer"
           >
             🚀 {isKn ? "ಪರಮಪದ ಖೇಲ ಪ್ರಾರಂಭಿಸಿ!" : "Start Maha Parampada Game!"}
           </button>

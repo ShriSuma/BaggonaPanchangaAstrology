@@ -74,26 +74,89 @@ export const NavagrahaBoardGame: React.FC<NavagrahaBoardProps> = ({
   );
   const [winner, setWinner] = useState<Player | null>(null);
   const [activeSpecialTask, setActiveSpecialTask] = useState<string | null>(null);
+  const [listeningPlayerId, setListeningPlayerId] = useState<number | null>(null);
 
-  const handleStartGame = (count: number) => {
-    setPlayerCount(count);
-    const newPlayers: Player[] = [];
-    for (let i = 0; i < count; i++) {
-      const av = DEFAULT_AVATARS[i % DEFAULT_AVATARS.length];
-      newPlayers.push({
-        id: i + 1,
-        name: `Player ${i + 1}`,
-        avatar: av.symbol,
-        color: av.color,
-        position: 1,
-        score: 0
+  // Sync players list when playerCount or language changes
+  React.useEffect(() => {
+    setPlayers((prev) => {
+      return Array.from({ length: playerCount }, (_, i) => {
+        const av = DEFAULT_AVATARS[i % DEFAULT_AVATARS.length];
+        const defaultName = isKn ? `ಆಟಗಾರ ${i + 1} (${av.name})` : `Player ${i + 1} (${av.name})`;
+        const existing = prev.find((p) => p.id === i + 1);
+        return {
+          id: i + 1,
+          name: existing ? existing.name : defaultName,
+          avatar: av.symbol,
+          color: av.color,
+          position: existing ? existing.position : 1,
+          score: existing ? existing.score : 0
+        };
       });
+    });
+  }, [playerCount, isKn]);
+
+  const handleUpdatePlayerName = (id: number, newName: string) => {
+    setPlayers((prev) => prev.map((p) => (p.id === id ? { ...p, name: newName } : p)));
+  };
+
+  const handleMicForPlayer = (id: number) => {
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      alert(
+        isKn
+          ? "ನಿಮ್ಮ ಬ್ರೌಸರ್ ಧ್ವನಿ ಗುರುತಿಸುವಿಕೆಯನ್ನು ಬೆಂಬಲಿಸುವುದಿಲ್ಲ (Chrome/Safari ಬಳಸಿ)."
+          : "Speech recognition is not supported in this browser."
+      );
+      return;
     }
-    setPlayers(newPlayers);
+
+    try {
+      if (listeningPlayerId === id) {
+        setListeningPlayerId(null);
+        return;
+      }
+
+      const recognition = new SpeechRecognition();
+      recognition.lang = isKn ? "kn-IN" : "en-US";
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      setListeningPlayerId(id);
+
+      recognition.onresult = (event: any) => {
+        const speechResult = event.results[0][0]?.transcript || "";
+        if (speechResult.trim()) {
+          handleUpdatePlayerName(id, speechResult.trim());
+        }
+        setListeningPlayerId(null);
+      };
+
+      recognition.onerror = () => {
+        setListeningPlayerId(null);
+      };
+
+      recognition.onend = () => {
+        setListeningPlayerId(null);
+      };
+
+      recognition.start();
+    } catch (err) {
+      console.error("Speech recognition error:", err);
+      setListeningPlayerId(null);
+    }
+  };
+
+  const handleStartGame = () => {
     setCurrentPlayerIndex(0);
     setWinner(null);
     setIsGameStarted(true);
-    setLogMessage(isKn ? "ಖೇಲ ಪ್ರಾರಂಭವಾಗಿದೆ! ೧ನೇ ಆಟಗಾರನ ಸರದಿ." : "The Cosmic Game has begun! Player 1's turn.");
+    setLogMessage(
+      isKn
+        ? `ಖೇಲ ಪ್ರಾರಂಭವಾಗಿದೆ! ${players[0]?.name || "೧ನೇ ಆಟಗಾರ"} ಅವರ ಸರದಿ.`
+        : `The Cosmic Game has begun! ${players[0]?.name || "Player 1"}'s turn.`
+    );
     gameAudio.playChime();
   };
 
@@ -208,22 +271,30 @@ export const NavagrahaBoardGame: React.FC<NavagrahaBoardProps> = ({
         </div>
       </Card>
 
-      {/* Setup Step: Player Count Selection (2 to 8) */}
+      {/* Setup Step: Player Count Selection (2 to 8) & Editable Names */}
       {!isGameStarted ? (
-        <Card className="border border-amber-300 bg-white p-6 shadow-sm space-y-4 text-center">
-          <h4 className="font-serif text-base font-bold text-amber-950">
-            {isKn ? "ಎಷ್ಟು ಜನ ಆಟಗಾರರು ಆಡಲು ಬಯಸುತ್ತೀರಿ? (Select 2 to 8 Players)" : "Select Number of Players (2 to 8):"}
-          </h4>
+        <Card className="border-2 border-amber-400 bg-white p-5 shadow-lg space-y-4 max-w-xl mx-auto">
+          <div className="text-center space-y-1">
+            <h4 className="font-serif text-base sm:text-lg font-black text-amber-950">
+              👥 {isKn ? "ಆಟಗಾರರ ಸಂಖ್ಯೆಯನ್ನು ಆರಿಸಿ (೨ ರಿಂದ ೮)" : "Select Number of Players (2 to 8)"}
+            </h4>
+            <p className="text-xs text-amber-900 font-medium">
+              {isKn ? "ಪ್ರತಿ ಆಟಗಾರನಿಗೂ ನವಗ್ರಹ ದೇವತೆಯ ಚಿಹ್ನೆ & ಬಣ್ಣ ನಿಗದಿಪಡಿಸಲಾಗುತ್ತದೆ." : "Each player receives a unique Navagraha avatar token."}
+            </p>
+          </div>
 
           <div className="flex flex-wrap justify-center gap-2">
             {[2, 3, 4, 5, 6, 7, 8].map((num) => (
               <button
                 key={num}
                 type="button"
-                onClick={() => handleStartGame(num)}
-                className={`w-12 h-12 rounded-2xl font-extrabold text-base transition shadow-sm flex items-center justify-center ${
+                onClick={() => {
+                  setPlayerCount(num);
+                  gameAudio.playTick();
+                }}
+                className={`w-11 h-11 rounded-2xl font-black text-sm transition shadow-xs flex items-center justify-center cursor-pointer ${
                   playerCount === num
-                    ? "bg-amber-800 text-amber-50 border-2 border-amber-900 scale-105"
+                    ? "bg-amber-900 text-amber-50 border-2 border-amber-950 scale-110 shadow-md"
                     : "bg-amber-50 text-amber-950 border border-amber-200 hover:bg-amber-100"
                 }`}
               >
@@ -232,9 +303,60 @@ export const NavagrahaBoardGame: React.FC<NavagrahaBoardProps> = ({
             ))}
           </div>
 
-          <div className="pt-2 text-xs text-amber-900/80">
-            {isKn ? "ಪ್ರತಿ ಆಟಗಾರನಿಗೂ ನವಗ್ರಹ ದೇವತೆಯ ಚಿಹ್ನೆ & ಬಣ್ಣ ನಿಗದಿಪಡಿಸಲಾಗುತ್ತದೆ." : "Each player receives a unique Navagraha avatar token."}
+          {/* Player Avatars & Editable Name List */}
+          <div className="space-y-3 pt-2">
+            <div className="text-xs font-bold text-amber-950 flex items-center justify-between">
+              <span>{isKn ? "ಆಟಗಾರರ ಹೆಸರುಗಳನ್ನು ನಮೂದಿಸಿ / ಧ್ವನಿ ಬಳಸಿ:" : "Edit Player Names / Use Microphone:"}</span>
+              <span className="text-[11px] text-amber-800 font-extrabold bg-amber-100 px-2 py-0.5 rounded-md border border-amber-300">
+                {playerCount} {isKn ? "ಆಟಗಾರರು" : "Players"}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-72 overflow-y-auto p-1">
+              {players.map((p, i) => (
+                <div key={p.id} className="p-3 rounded-2xl bg-amber-50/90 border-2 border-amber-200 flex items-center gap-3 shadow-xs">
+                  <div className="w-11 h-11 rounded-2xl bg-amber-200/80 border border-amber-400 flex items-center justify-center text-2xl shrink-0 shadow-2xs">
+                    {p.avatar}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between text-[11px] text-amber-900 font-extrabold mb-1">
+                      <span>{isKn ? `ಆಟಗಾರ ${i + 1}` : `Player ${i + 1}`}</span>
+                      <span className={`w-3 h-3 rounded-full ${p.color} inline-block shadow-2xs`} />
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="text"
+                        value={p.name}
+                        onChange={(e) => handleUpdatePlayerName(p.id, e.target.value)}
+                        placeholder={isKn ? `ಆಟಗಾರ ${i + 1} ಹೆಸರು` : `Player ${i + 1} Name`}
+                        className="w-full h-8 px-2.5 text-xs font-bold text-slate-900 bg-white rounded-xl border border-amber-300 focus:border-amber-600 focus:outline-none transition shadow-2xs"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleMicForPlayer(p.id)}
+                        className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-xs transition border cursor-pointer ${
+                          listeningPlayerId === p.id
+                            ? "bg-rose-600 text-white animate-pulse border-rose-700 shadow-md"
+                            : "bg-amber-100 hover:bg-amber-200 text-amber-950 border-amber-300 shadow-2xs"
+                        }`}
+                        title={isKn ? "ಧ್ವನಿ ಮೂಲಕ ಹೆಸರನ್ನು ಹೇಳಿ (Mic)" : "Dictate name via Mic"}
+                      >
+                        {listeningPlayerId === p.id ? "🔴" : "🎙️"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
+
+          <button
+            type="button"
+            onClick={handleStartGame}
+            className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-600 via-amber-700 to-amber-900 text-amber-50 font-black text-sm shadow-lg hover:from-amber-700 hover:to-black transition active:scale-98 cursor-pointer"
+          >
+            🚀 {isKn ? "ನವಗ್ರಹ ಖೇಲ ಪ್ರಾರಂಭಿಸಿ!" : "Start Navagraha Board Game!"}
+          </button>
         </Card>
       ) : (
         /* Active Game Arena */
