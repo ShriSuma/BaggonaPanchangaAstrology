@@ -152,10 +152,6 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
       const pages = container.querySelectorAll(".pdf-page-a4");
       if (!pages || pages.length === 0) throw new Error("No PDF pages found");
 
-      container.style.display = "block";
-      container.style.position = "fixed";
-      container.style.top = "-10000px";
-
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "mm",
@@ -183,8 +179,6 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
       alert(selectedLang === "kn" ? "PDF ಡೌನ್‌ಲೋಡ್ ಮಾಡುವಾಗ ದೋಷ ಸಂಭವಿಸಿದೆ. ದಯವಿಟ್ಟು ಪುನಃ ಪ್ರಯತ್ನಿಸಿ." : "Failed to generate PDF. Please try again.");
     } finally {
       setIsGeneratingPdf(false);
-      const container = document.getElementById("kaala-diksuchi-pdf-container");
-      if (container) container.style.display = "none";
     }
   };
 

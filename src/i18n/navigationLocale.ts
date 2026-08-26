@@ -118,7 +118,7 @@ export const T_DRAWER_NAV: Record<string, Record<SupportedNavLang, string>> = {
     en: "Past Life Karma & Reincarnation",
     hi: "पूर्व जन्म रहस्य एवं कर्म दर्पण",
     te: "పూర్వ జన్మ రహస్యం & కర్మ దర్పణం",
-    ta: "முன் ஜென்ம ரகசியம் & கர்ம கண்ணாroll"
+    ta: "முன் ஜென்ம ரகசியம் & கர்ம கண்ணாடி"
   },
   lifeguidance: {
     kn: "ಪರಿಪೂರ್ಣ ಜೀವನ ಮಾರ್ಗದರ್ಶನ",
