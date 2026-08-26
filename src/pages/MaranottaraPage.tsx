@@ -28,8 +28,70 @@ export const MaranottaraPage: React.FC = () => {
     "schedule" | "antyesti" | "dosha" | "asthi" | "garuda" | "mahalaya" | "gokarna" | "consolation"
   >("schedule");
   const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);
+  const [activeMicField, setActiveMicField] = useState<"name" | "place" | null>(null);
 
   const resultsRef = useRef<HTMLDivElement>(null);
+
+  // Web Speech API Voice Recognition
+  const handleMicToggle = (field: "name" | "place") => {
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      alert(
+        isKn
+          ? "ನಿಮ್ಮ ಬ್ರೌಸರ್ ಧ್ವನಿ ಇನ್‌ಪುಟ್ ಬೆಂಬಲಿಸುವುದಿಲ್ಲ. ದಯವಿಟ್ಟು ಟೈಪ್ ಮಾಡಿ."
+          : "Speech recognition is not supported in your browser. Please type your text."
+      );
+      return;
+    }
+
+    if (activeMicField === field) {
+      setActiveMicField(null);
+      return;
+    }
+
+    setActiveMicField(field);
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = true;
+      recognition.lang =
+        selectedLang === "kn"
+          ? "kn-IN"
+          : selectedLang === "hi"
+          ? "hi-IN"
+          : selectedLang === "te"
+          ? "te-IN"
+          : selectedLang === "ta"
+          ? "ta-IN"
+          : "en-US";
+
+      recognition.onresult = (event: any) => {
+        let transcript = "";
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+        }
+        if (field === "name") setPersonName(transcript);
+        else if (field === "place") setLocation(transcript);
+      };
+
+      recognition.onerror = (event: any) => {
+        console.error("Speech recognition error:", event);
+        setActiveMicField(null);
+      };
+
+      recognition.onend = () => {
+        setActiveMicField(null);
+      };
+
+      recognition.start();
+    } catch (err) {
+      console.error("Speech recognition start failed:", err);
+      setActiveMicField(null);
+    }
+  };
 
   const handleCalculate = (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,19 +123,16 @@ export const MaranottaraPage: React.FC = () => {
   };
 
   const handleDownloadPdf = async () => {
-    if (!result) return;
+    if (!result || isGeneratingPdf) return;
     setIsGeneratingPdf(true);
 
     try {
       const container = document.getElementById("maranottara-pdf-container");
       if (!container) throw new Error("PDF container missing");
 
-      container.style.display = "block";
-      container.style.position = "fixed";
-      container.style.top = "-10000px";
-      container.style.left = "-10000px";
-
       const pages = container.querySelectorAll(".pdf-page-a4");
+      if (!pages || pages.length === 0) throw new Error("No PDF pages found");
+
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "mm",
@@ -94,7 +153,6 @@ export const MaranottaraPage: React.FC = () => {
         pdf.addImage(imgData, "JPEG", 0, 0, 210, 297);
       }
 
-      container.style.display = "none";
       const cleanName = (result.personName || "Soul").replace(/[^a-zA-Z0-9]/g, "_");
       pdf.save(`Baggona_Maranottara_Report_${cleanName}.pdf`);
     } catch (err) {
@@ -102,8 +160,6 @@ export const MaranottaraPage: React.FC = () => {
       alert(isKn ? "PDF ಡೌನ್‌ಲೋಡ್ ಮಾಡುವಾಗ ದೋಷ ಸಂಭವಿಸಿದೆ. ದಯವಿಟ್ಟು ಪುನಃ ಪ್ರಯತ್ನಿಸಿ." : "Failed to generate PDF report. Please try again.");
     } finally {
       setIsGeneratingPdf(false);
-      const container = document.getElementById("maranottara-pdf-container");
-      if (container) container.style.display = "none";
     }
   };
 
@@ -162,9 +218,24 @@ export const MaranottaraPage: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
             {/* Deceased Person Name */}
             <div>
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-300 mb-1.5">
-                {T_MARANOTTARA.formName[selectedLang]} *
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-300">
+                  {T_MARANOTTARA.formName[selectedLang]} *
+                </label>
+                <button
+                  type="button"
+                  onClick={() => handleMicToggle("name")}
+                  className={`flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-black rounded-lg transition shadow-sm ${
+                    activeMicField === "name"
+                      ? "bg-rose-600 text-white animate-pulse"
+                      : "bg-amber-100 dark:bg-slate-800 text-amber-950 dark:text-amber-200 border border-amber-400 hover:bg-amber-200"
+                  }`}
+                  title={isKn ? "ಧ್ವನಿ ಮೂಲಕ ಹೆಸರನ್ನು ಹೇಳಿ" : "Dictate name via mic"}
+                >
+                  <span>{activeMicField === "name" ? "🔴" : "🎙️"}</span>
+                  <span>{activeMicField === "name" ? (isKn ? "ಆಲಿಸಲಾಗುತ್ತಿದೆ..." : "Listening...") : (isKn ? "ಧ್ವನಿ (Mic)" : "Mic")}</span>
+                </button>
+              </div>
               <input
                 type="text"
                 required
@@ -207,9 +278,24 @@ export const MaranottaraPage: React.FC = () => {
 
             {/* Location / Pin Code */}
             <div>
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-300 mb-1.5">
-                {T_MARANOTTARA.formPlace[selectedLang]}
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-300">
+                  {T_MARANOTTARA.formPlace[selectedLang]}
+                </label>
+                <button
+                  type="button"
+                  onClick={() => handleMicToggle("place")}
+                  className={`flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-black rounded-lg transition shadow-sm ${
+                    activeMicField === "place"
+                      ? "bg-rose-600 text-white animate-pulse"
+                      : "bg-amber-100 dark:bg-slate-800 text-amber-950 dark:text-amber-200 border border-amber-400 hover:bg-amber-200"
+                  }`}
+                  title={isKn ? "ಧ್ವನಿ ಮೂಲಕ ಸ್ಥಳ ಹೇಳಿ" : "Dictate location via mic"}
+                >
+                  <span>{activeMicField === "place" ? "🔴" : "🎙️"}</span>
+                  <span>{activeMicField === "place" ? (isKn ? "ಆಲಿಸಲಾಗುತ್ತಿದೆ..." : "Listening...") : (isKn ? "ಧ್ವನಿ (Mic)" : "Mic")}</span>
+                </button>
+              </div>
               <input
                 type="text"
                 value={location}
@@ -653,9 +739,19 @@ export const MaranottaraPage: React.FC = () => {
         </div>
       )}
 
-      {/* Offscreen Container for HTML2Canvas PDF Rendering */}
+      {/* Offscreen Container for HTML2Canvas PDF Rendering (Fixed & Visible to layout engine at -15000px) */}
       {result && (
-        <div style={{ display: "none" }}>
+        <div
+          id="maranottara-pdf-wrapper"
+          style={{
+            position: "fixed",
+            top: "-15000px",
+            left: "-15000px",
+            width: "794px",
+            zIndex: -9999,
+            pointerEvents: "none"
+          }}
+        >
           <MaranottaraPdfTemplate result={result} lang={selectedLang} />
         </div>
       )}

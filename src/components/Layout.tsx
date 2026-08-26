@@ -14,6 +14,7 @@ import { useAuthStore } from "../features/auth/authStore";
 import { T, pick } from "../features/seva/sevaLocale";
 import { T_VARAMAHALAKSHMI, pickL5 } from "../features/varamahalakshmi/varamahalakshmiLocale";
 import { T_KAALA_DIKSUCHI } from "../features/kaaladiksuchi/kaaladiksuchiLocale";
+import { getNavLabel } from "../i18n/navigationLocale";
 import InstallPrompt from "./InstallPrompt";
 
 type Props = {
@@ -161,7 +162,7 @@ export default function Layout({ children }: Props): JSX.Element {
         <div className="p-6 border-b border-amber-100 dark:border-slate-800 bg-amber-50/50 dark:bg-slate-900 flex justify-between items-center">
           <div>
             <h2 className="text-xl font-bold text-amber-900 dark:text-amber-100">{t("app.title")}</h2>
-            <p className="text-xs text-amber-700/70 dark:text-amber-400/70 mt-1 font-medium tracking-wide">NAVIGATION MENU</p>
+            <p className="text-xs text-amber-700/70 dark:text-amber-400/70 mt-1 font-medium tracking-wide">{getNavLabel("menuHeader", language)}</p>
           </div>
           <button onClick={() => setIsDrawerOpen(false)} className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
@@ -169,39 +170,39 @@ export default function Layout({ children }: Props): JSX.Element {
         </div>
         
         <nav className="flex-1 overflow-y-auto py-2">
-          <TabButton page="home" icon="⌂" label={t("nav.home")} onClose={() => setIsDrawerOpen(false)} />
-          <TabButton page="varamahalakshmi" icon="🌸" label={pickL5(T_VARAMAHALAKSHMI.festivalTitle, language)} onClose={() => setIsDrawerOpen(false)} />
-          <TabButton page="kundli" icon="◈" label={t("nav.kundli")} onClose={() => setIsDrawerOpen(false)} />
+          <TabButton page="home" icon="⌂" label={getNavLabel("home", language)} onClose={() => setIsDrawerOpen(false)} />
+          <TabButton page="varamahalakshmi" icon="🌸" label={getNavLabel("varamahalakshmi", language)} onClose={() => setIsDrawerOpen(false)} />
+          <TabButton page="kundli" icon="◈" label={getNavLabel("kundli", language)} onClose={() => setIsDrawerOpen(false)} />
           
           {session && (
             <>
               <div className="px-6 py-3 mt-2 mb-1 text-xs font-bold text-amber-700/80 dark:text-amber-500/80 uppercase tracking-widest bg-amber-50/30 dark:bg-slate-800/30">
-                Premium Insights
+                {getNavLabel("premiumSection", language)}
               </div>
-              <TabButton page="baggona" icon="📜" label={t("nav.baggona")} onClose={() => setIsDrawerOpen(false)} />
-              <TabButton page="predictions" icon="✦" label={t("nav.predictions")} onClose={() => setIsDrawerOpen(false)} />
-              <TabButton page="insights" icon="☍" label={t("nav.insights")} onClose={() => setIsDrawerOpen(false)} />
-              <TabButton page="ramanbhavishya" icon="📖" label={t("nav.ramanbhavishya", "Bhavishya")} onClose={() => setIsDrawerOpen(false)} />
-              <TabButton page="aiaastrologer" icon="🤖" label={t("nav.aiaastrologer", "AI Astrologer")} onClose={() => setIsDrawerOpen(false)} />
-              <TabButton page="seva" icon="🪔" label={pick(T.pageTitle!, language)} onClose={() => setIsDrawerOpen(false)} />
+              <TabButton page="baggona" icon="📜" label={getNavLabel("baggona", language)} onClose={() => setIsDrawerOpen(false)} />
+              <TabButton page="predictions" icon="✦" label={getNavLabel("predictions", language)} onClose={() => setIsDrawerOpen(false)} />
+              <TabButton page="insights" icon="☍" label={getNavLabel("insights", language)} onClose={() => setIsDrawerOpen(false)} />
+              <TabButton page="ramanbhavishya" icon="📖" label={getNavLabel("ramanbhavishya", language)} onClose={() => setIsDrawerOpen(false)} />
+              <TabButton page="aiaastrologer" icon="🤖" label={getNavLabel("aiaastrologer", language)} onClose={() => setIsDrawerOpen(false)} />
+              <TabButton page="seva" icon="🪔" label={getNavLabel("seva", language)} onClose={() => setIsDrawerOpen(false)} />
               <div className="my-2 border-t border-slate-100 dark:border-slate-800"></div>
             </>
           )}
           {!session && <div className="my-2 border-t border-slate-100 dark:border-slate-800"></div>}
           
-          <TabButton page="muhurtha" icon="🔔" label={t("nav.muhurtha")} onClose={() => setIsDrawerOpen(false)} />
-          <TabButton page="sankhyashastra" icon="🔢" label={t("nav.sankhyashastra", "ಸಂಖ್ಯಾ ಶಾಸ್ತ್ರ")} onClose={() => setIsDrawerOpen(false)} />
-          <TabButton page="palmreading" icon="✋" label={t("nav.palmreading", "ಹಸ್ತ ರೇಖಾ ಶಾಸ್ತ್ರ")} onClose={() => setIsDrawerOpen(false)} />
-          <TabButton page="facereading" icon="👤" label={t("nav.facereading", "ಮುಖ ಸಾಮುದ್ರಿಕ ಶಾಸ್ತ್ರ")} onClose={() => setIsDrawerOpen(false)} />
-          <TabButton page="maranottara" icon="🪔" label={t("nav.maranottara", "ಮರಣೋತ್ತರ ಹಾಗೂ ಶ್ರಾದ್ಧ ಮಾಸಿಕ")} onClose={() => setIsDrawerOpen(false)} />
-          <TabButton page="hindinajanma" icon="🕉️" label={language.startsWith("kn") ? "ಹಿಂದಿನ ಜನ್ಮ ರಹಸ್ಯ (Past Life)" : "Past Life Karma (ಹಿಂದಿನ ಜನ್ಮ)"} onClose={() => setIsDrawerOpen(false)} />
-          <TabButton page="lifeguidance" icon="🔮" label={t("nav.lifeguidance", "ಪರಿಪೂರ್ಣ ಜೀವನ ಮಾರ್ಗದರ್ಶನ")} onClose={() => setIsDrawerOpen(false)} />
-          <TabButton page="kaaladiksuchi" icon="🧭" label={pickL5(T_KAALA_DIKSUCHI.navTitle, language)} onClose={() => setIsDrawerOpen(false)} />
-          <TabButton page="astrogames" icon="🎮" label={language.startsWith("kn") ? "ಜ್ಯೋತಿಷ್ಯ ಖೇಲ ಮಂಡಲ (Astro Games)" : "Astro Games Arena"} onClose={() => setIsDrawerOpen(false)} />
-          <TabButton page="varshabavishya" icon="🔮" label={t("varsha.nav", "Varsha")} onClose={() => setIsDrawerOpen(false)} />
-          <TabButton page="melapak" icon="💞" label={t("nav.melapak")} onClose={() => setIsDrawerOpen(false)} />
+          <TabButton page="muhurtha" icon="🔔" label={getNavLabel("muhurtha", language)} onClose={() => setIsDrawerOpen(false)} />
+          <TabButton page="sankhyashastra" icon="🔢" label={getNavLabel("sankhyashastra", language)} onClose={() => setIsDrawerOpen(false)} />
+          <TabButton page="palmreading" icon="✋" label={getNavLabel("palmreading", language)} onClose={() => setIsDrawerOpen(false)} />
+          <TabButton page="facereading" icon="👤" label={getNavLabel("facereading", language)} onClose={() => setIsDrawerOpen(false)} />
+          <TabButton page="maranottara" icon="🪔" label={getNavLabel("maranottara", language)} onClose={() => setIsDrawerOpen(false)} />
+          <TabButton page="hindinajanma" icon="🕉️" label={getNavLabel("hindinajanma", language)} onClose={() => setIsDrawerOpen(false)} />
+          <TabButton page="lifeguidance" icon="🔮" label={getNavLabel("lifeguidance", language)} onClose={() => setIsDrawerOpen(false)} />
+          <TabButton page="kaaladiksuchi" icon="🧭" label={getNavLabel("kaaladiksuchi", language)} onClose={() => setIsDrawerOpen(false)} />
+          <TabButton page="astrogames" icon="🎮" label={getNavLabel("astrogames", language)} onClose={() => setIsDrawerOpen(false)} />
+          <TabButton page="varshabavishya" icon="🔮" label={getNavLabel("varshabavishya", language)} onClose={() => setIsDrawerOpen(false)} />
+          <TabButton page="melapak" icon="💞" label={getNavLabel("melapak", language)} onClose={() => setIsDrawerOpen(false)} />
           <div className="my-2 border-t border-slate-100 dark:border-slate-800"></div>
-          <TabButton page="settings" icon="⚙" label={t("nav.settings")} onClose={() => setIsDrawerOpen(false)} />
+          <TabButton page="settings" icon="⚙" label={getNavLabel("settings", language)} onClose={() => setIsDrawerOpen(false)} />
           <div className="my-2 border-t border-slate-100 dark:border-slate-800"></div>
           <button
             type="button"
@@ -212,7 +213,7 @@ export default function Layout({ children }: Props): JSX.Element {
             className="flex items-center w-full px-6 py-4 text-left text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors font-medium"
           >
             <span className="w-8 text-xl" aria-hidden>🚪</span>
-            <span>Sign Out</span>
+            <span>{getNavLabel("signOut", language)}</span>
           </button>
         </nav>
       </div>
