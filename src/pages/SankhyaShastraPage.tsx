@@ -30,6 +30,7 @@ import { GirlsNumerologyTab } from "../components/sankhyashastra/GirlsNumerology
 import { SankhyaShastraPdfTemplate } from "../components/sankhyashastra/SankhyaShastraPdfTemplate";
 import { sanitizeAIText } from "../utils/textFormatter";
 import { SankhyaNumerologyLoader } from "../components/sankhyashastra/SankhyaNumerologyLoader";
+import AudioPlayerButton from "../components/ui/AudioPlayerButton";
 
 type ChatMessage = {
   id: string;
@@ -566,97 +567,177 @@ export default function SankhyaShastraPage(): JSX.Element {
               </div>
 
               <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
-                {messages.map((msg) => (
-                  <div
-                    key={msg.id}
-                    className={`flex flex-col ${msg.sender === "user" ? "items-end" : "items-start"}`}
-                  >
-                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-amber-800 mb-1 px-1">
-                      <span>{msg.sender === "user" ? `👤 ${devoteeName}` : "🕉️ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (Gokarna Priest)"}</span>
-                      <span>·</span>
-                      <span>{msg.timestamp}</span>
-                    </div>
-
+                {messages.map((msg) => {
+                  const audioLang = selectedLang === "kn" ? "kn-IN" : selectedLang === "hi" ? "hi-IN" : selectedLang === "te" ? "te-IN" : selectedLang === "ta" ? "ta-IN" : "en-IN";
+                  return (
                     <div
-                      className={`rounded-2xl p-4 text-sm leading-relaxed max-w-[90%] shadow-sm ${
-                        msg.sender === "user"
-                          ? "bg-amber-800 text-amber-50 rounded-br-none"
-                          : "bg-amber-50/90 border border-amber-300 text-amber-950 rounded-bl-none font-medium whitespace-pre-wrap"
-                      }`}
+                      key={msg.id}
+                      className={`flex flex-col ${msg.sender === "user" ? "items-end" : "items-start"}`}
                     >
-                      {msg.result ? (
-                        <div className="space-y-4">
-                          {/* Prashna Verdict Header */}
-                          <div className="rounded-xl border border-amber-300 bg-white p-3.5 shadow-sm flex flex-wrap items-center justify-between gap-3">
-                            <div>
-                              <div className="text-xs font-bold text-amber-900">
-                                {isKn ? "ಪ್ರಶ್ನಾ ಸಂಖ್ಯೆ:" : "Prashna Number:"}{" "}
-                                <span className="text-base text-amber-950 font-black">{msg.result.userNumber}</span>{" "}
-                                (ಮೂಲಾಂಕ: <span className="font-bold text-emerald-800">{msg.result.rootNumber}</span>)
+                      <div className="flex items-center justify-between w-full max-w-[95%] text-[11px] font-bold text-amber-800 mb-1 px-1">
+                        <div className="flex items-center gap-1.5">
+                          <span>{msg.sender === "user" ? `👤 ${devoteeName}` : "🕉️ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (Gokarna Priest)"}</span>
+                          <span>·</span>
+                          <span>{msg.timestamp}</span>
+                        </div>
+                        {msg.sender === "priest" && (
+                          <div className="flex items-center gap-1 bg-amber-100/90 text-amber-900 border border-amber-300 px-2 py-0.5 rounded-full shadow-xs">
+                            <span className="text-[10px] font-bold">{isKn ? "ಧ್ವನಿ ಓದುಗ:" : "Audio Reader:"}</span>
+                            <AudioPlayerButton text={msg.text} lang={audioLang} voiceType="jayashree" className="p-0.5" />
+                          </div>
+                        )}
+                      </div>
+
+                      <div
+                        className={`rounded-2xl p-4 text-sm leading-relaxed max-w-[95%] shadow-sm ${
+                          msg.sender === "user"
+                            ? "bg-amber-800 text-amber-50 rounded-br-none"
+                            : "bg-amber-50/90 border border-amber-300 text-amber-950 rounded-bl-none font-medium whitespace-pre-wrap"
+                        }`}
+                      >
+                        {msg.result ? (
+                          <div className="space-y-4">
+                            {/* Prashna Verdict Header */}
+                            <div className="rounded-xl border border-amber-300 bg-white p-3.5 shadow-sm flex flex-wrap items-center justify-between gap-3">
+                              <div>
+                                <div className="text-xs font-bold text-amber-900">
+                                  {isKn ? "ಪ್ರಶ್ನಾ ಸಂಖ್ಯೆ:" : "Prashna Number:"}{" "}
+                                  <span className="text-base text-amber-950 font-black">{msg.result.userNumber}</span>{" "}
+                                  (ಮೂಲಾಂಕ: <span className="font-bold text-emerald-800">{msg.result.rootNumber}</span>)
+                                </div>
+                                <div className="text-xs text-amber-800 font-semibold mt-0.5">
+                                  {isKn ? "ಅಧಿಪತಿ ಗ್ರಹ:" : "Ruling Planet:"}{" "}
+                                  <span className="font-bold text-amber-950">
+                                    {msg.result.rootRulerName[selectedLang] || msg.result.rootRulerName.kn}
+                                  </span>{" "}
+                                  · {isKn ? "ದೇವತೆ:" : "Deity:"}{" "}
+                                  <span className="font-bold text-amber-950">
+                                    {msg.result.rootDeity[selectedLang] || msg.result.rootDeity.kn}
+                                  </span>
+                                </div>
                               </div>
-                              <div className="text-xs text-amber-800 font-semibold mt-0.5">
-                                {isKn ? "ಅಧಿಪತಿ ಗ್ರಹ:" : "Ruling Planet:"}{" "}
-                                <span className="font-bold text-amber-950">
-                                  {msg.result.rootRulerName[selectedLang] || msg.result.rootRulerName.kn}
-                                </span>{" "}
-                                · {isKn ? "ದೇವತೆ:" : "Deity:"}{" "}
-                                <span className="font-bold text-amber-950">
-                                  {msg.result.rootDeity[selectedLang] || msg.result.rootDeity.kn}
+
+                              <div className="flex items-center gap-2">
+                                <div className="text-xs font-extrabold px-3 py-1.5 rounded-xl bg-amber-100 text-amber-900 border border-amber-300 shadow-sm">
+                                  {msg.result.verdictLabel[selectedLang] || msg.result.verdictLabel.kn} (ಬಲ: {msg.result.prashnaBalaScore}%)
+                                </div>
+                                <AudioPlayerButton text={msg.text} lang={audioLang} voiceType="jayashree" className="bg-amber-200 text-amber-950 p-1.5 border border-amber-300 shadow-xs" />
+                              </div>
+                            </div>
+
+                            {/* Direction, Object State & Suspect / Location Guidance Card */}
+                            {(msg.result.directionalGuidance || msg.result.objectMobilityAnalysis) && (
+                              <div className="rounded-xl border-2 border-orange-300/90 bg-gradient-to-br from-orange-50 via-amber-50 to-white p-3.5 shadow-sm space-y-2.5">
+                                <div className="text-xs font-bold text-orange-950 flex items-center justify-between border-b border-orange-200 pb-1">
+                                  <span className="flex items-center gap-1.5">
+                                    <span>🧭</span>
+                                    <span>{isKn ? "ದಿಕ್ಕು, ವಸ್ತು ಸ್ಥಿತಿ (ಚಲ/ಸ್ಥಿರ) ಹಾಗೂ ಶೋಧನಾ ಸ್ಥಳ ಮಾರ್ಗದರ್ಶನ:" : "Direction, Object Mobility & Search Location Guidance:"}</span>
+                                  </span>
+                                  <span className="text-[10px] bg-orange-100 text-orange-900 font-bold px-2 py-0.5 rounded-full border border-orange-300">
+                                    Vedic Sthana Matrix
+                                  </span>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                                  {msg.result.directionalGuidance && (
+                                    <div className="rounded-lg bg-white/90 p-2 border border-orange-200 shadow-xs space-y-0.5">
+                                      <span className="font-bold text-orange-900 block flex items-center gap-1">
+                                        <span>🧭</span>
+                                        <span>{isKn ? "ಶೋಧನಾ ದಿಕ್ಕು (Search Direction):" : "Search Direction:"}</span>
+                                      </span>
+                                      <span className="text-amber-950 font-semibold leading-relaxed block">
+                                        {msg.result.directionalGuidance[selectedLang] || msg.result.directionalGuidance.kn}
+                                      </span>
+                                    </div>
+                                  )}
+
+                                  {msg.result.objectMobilityAnalysis && (
+                                    <div className="rounded-lg bg-white/90 p-2 border border-orange-200 shadow-xs space-y-0.5">
+                                      <span className="font-bold text-orange-900 block flex items-center gap-1">
+                                        <span>🔄</span>
+                                        <span>{isKn ? "ವಸ್ತು ಸ್ಥಿತಿ (Mobility State):" : "Object State (Fixed/Movable):"}</span>
+                                      </span>
+                                      <span className="text-amber-950 font-semibold leading-relaxed block">
+                                        {msg.result.objectMobilityAnalysis[selectedLang] || msg.result.objectMobilityAnalysis.kn}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+
+                                {msg.result.suspectAndLocationProfile && (
+                                  <div className="rounded-lg bg-white/90 p-2 border border-orange-200 shadow-xs text-xs space-y-0.5">
+                                    <span className="font-bold text-orange-900 block flex items-center gap-1">
+                                      <span>👥</span>
+                                      <span>{isKn ? "ವ್ಯಕ್ತಿ / ಆಪ್ತರು / ಸ್ಥಳ ವಿವರಣೆ (Suspect & Location Profile):" : "Suspect & Location Profile:"}</span>
+                                    </span>
+                                    <span className="text-amber-950 font-semibold leading-relaxed block">
+                                      {msg.result.suspectAndLocationProfile[selectedLang] || msg.result.suspectAndLocationProfile.kn}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Auspicious Alignment Matrix */}
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                              <div className="rounded-lg bg-amber-50/80 p-2 border border-amber-200">
+                                <span className="font-bold text-amber-900 block">{isKn ? "ಪ್ರಶ್ನಾ ಲಗ್ನ:" : "Prashna Lagna:"}</span>
+                                <span className="text-amber-950 font-semibold">{msg.result.prashnaLagnaName[selectedLang] || msg.result.prashnaLagnaName.kn}</span>
+                              </div>
+                              <div className="rounded-lg bg-amber-50/80 p-2 border border-amber-200">
+                                <span className="font-bold text-amber-900 block">{isKn ? "ಕಾರ್ಯ ಸ್ಥಾನ:" : "Karya House:"}</span>
+                                <span className="text-amber-950 font-semibold">{msg.result.primaryKaryaLabel[selectedLang] || msg.result.primaryKaryaLabel.kn}</span>
+                              </div>
+                              <div className="rounded-lg bg-amber-50/80 p-2 border border-amber-200">
+                                <span className="font-bold text-amber-900 block">{isKn ? "ಲಗ್ನ ಗತಿ:" : "Sign Mobility:"}</span>
+                                <span className="text-amber-950 font-semibold">{msg.result.signMobilityLabel[selectedLang] || msg.result.signMobilityLabel.kn}</span>
+                              </div>
+                              <div className="rounded-lg bg-amber-50/80 p-2 border border-amber-200">
+                                <span className="font-bold text-amber-900 block">{isKn ? "ಫಲ ಕಾಲಾವಧಿ:" : "Time Horizon:"}</span>
+                                <span className="text-amber-950 font-semibold">{msg.result.timeHorizonLabel[selectedLang] || msg.result.timeHorizonLabel.kn}</span>
+                              </div>
+                            </div>
+
+                            {/* Detailed 6-Paragraph AI Prediction */}
+                            <div className="rounded-xl border border-amber-300 bg-white p-4 shadow-sm space-y-3">
+                              <div className="flex items-center justify-between border-b border-amber-200 pb-1.5">
+                                <span className="text-xs font-bold text-amber-950 flex items-center gap-1.5">
+                                  <span>📜</span>
+                                  <span>{isKn ? "ದೈವಿಕ ಪ್ರಶ್ನಾ ಫಲ ಹಾಗೂ ಸಂಪೂರ್ಣ ಮಾರ್ಗದರ್ಶನ (Detailed In-Depth Guidance):" : "Detailed In-Depth Vedic Numerology Guidance:"}</span>
                                 </span>
+                                <AudioPlayerButton text={msg.text} lang={audioLang} voiceType="jayashree" className="text-amber-900 hover:bg-amber-100 p-1" />
+                              </div>
+                              <div className="text-xs sm:text-sm text-amber-950 leading-relaxed font-serif space-y-2 whitespace-pre-wrap">
+                                {sanitizeAIText(msg.text)}
                               </div>
                             </div>
 
-                            <div className="text-xs font-extrabold px-3 py-1.5 rounded-xl bg-amber-100 text-amber-900 border border-amber-300 shadow-sm">
-                              {msg.result.verdictLabel[selectedLang] || msg.result.verdictLabel.kn} (ಬಲ: {msg.result.prashnaBalaScore}%)
+                            {/* Sacred Remedy */}
+                            <div className="rounded-xl border border-amber-300 bg-amber-100/60 p-3.5 shadow-sm space-y-1">
+                              <div className="text-xs font-bold text-amber-950 flex items-center gap-1">
+                                <span>🪔</span>
+                                <span>{isKn ? "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ದೈವಿಕ ಪರಿಹಾರ (Sacred Remedy):" : "Sacred Gokarna Mahabaleshwara Remedy:"}</span>
+                              </div>
+                              <p className="text-xs text-amber-900 font-semibold leading-relaxed">
+                                {msg.result.remedyRecommendation[selectedLang] || msg.result.remedyRecommendation.kn}
+                              </p>
                             </div>
                           </div>
-
-                          {/* Auspicious Alignment Matrix */}
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                            <div className="rounded-lg bg-amber-50/80 p-2 border border-amber-200">
-                              <span className="font-bold text-amber-900 block">{isKn ? "ಪ್ರಶ್ನಾ ಲಗ್ನ:" : "Prashna Lagna:"}</span>
-                              <span className="text-amber-950 font-semibold">{msg.result.prashnaLagnaName[selectedLang] || msg.result.prashnaLagnaName.kn}</span>
+                        ) : (
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between border-b border-amber-200 pb-1">
+                              <span className="text-xs font-bold text-amber-900">{isKn ? "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಉತ್ತರ:" : "Priest Guidance:"}</span>
+                              <AudioPlayerButton text={msg.text} lang={audioLang} voiceType="jayashree" className="p-0.5" />
                             </div>
-                            <div className="rounded-lg bg-amber-50/80 p-2 border border-amber-200">
-                              <span className="font-bold text-amber-900 block">{isKn ? "ಕಾರ್ಯ ಸ್ಥಾನ:" : "Karya House:"}</span>
-                              <span className="text-amber-950 font-semibold">{msg.result.primaryKaryaLabel[selectedLang] || msg.result.primaryKaryaLabel.kn}</span>
-                            </div>
-                            <div className="rounded-lg bg-amber-50/80 p-2 border border-amber-200">
-                              <span className="font-bold text-amber-900 block">{isKn ? "ಲಗ್ನ ಗತಿ:" : "Sign Mobility:"}</span>
-                              <span className="text-amber-950 font-semibold">{msg.result.signMobilityLabel[selectedLang] || msg.result.signMobilityLabel.kn}</span>
-                            </div>
-                            <div className="rounded-lg bg-amber-50/80 p-2 border border-amber-200">
-                              <span className="font-bold text-amber-900 block">{isKn ? "ಫಲ ಕಾಲಾವಧಿ:" : "Time Horizon:"}</span>
-                              <span className="text-amber-950 font-semibold">{msg.result.timeHorizonLabel[selectedLang] || msg.result.timeHorizonLabel.kn}</span>
-                            </div>
-                          </div>
-
-                          {/* Detailed AI Prediction */}
-                          <div className="rounded-xl border border-amber-300 bg-white p-3.5 shadow-sm space-y-2">
-                            <div className="text-xs font-bold text-amber-950 border-b border-amber-200 pb-1">
-                              📜 {isKn ? "ದೈವಿಕ ಪ್ರಶ್ನಾ ಫಲ (Detailed Vedic Numerology Guidance):" : "Detailed Vedic Numerology Guidance:"}
-                            </div>
-                            <div className="text-xs text-amber-950 leading-relaxed font-medium">
+                            <div className="text-xs sm:text-sm text-amber-950 leading-relaxed font-serif whitespace-pre-wrap">
                               {sanitizeAIText(msg.text)}
                             </div>
                           </div>
-
-                          {/* Sacred Remedy */}
-                          <div className="rounded-xl border border-amber-300 bg-amber-100/60 p-3.5 shadow-sm space-y-1">
-                            <div className="text-xs font-bold text-amber-950">
-                              🪔 {isKn ? "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ದೈವಿಕ ಪರಿಹಾರ (Sacred Remedy):" : "Sacred Gokarna Mahabaleshwara Remedy:"}
-                            </div>
-                            <p className="text-xs text-amber-900 font-semibold leading-relaxed">
-                              {msg.result.remedyRecommendation[selectedLang] || msg.result.remedyRecommendation.kn}
-                            </p>
-                          </div>
-                        </div>
-                      ) : (
-                        sanitizeAIText(msg.text)
-                      )}
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
                 <div ref={chatEndRef} />
               </div>
 

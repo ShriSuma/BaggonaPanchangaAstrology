@@ -1,7 +1,15 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
+
+vi.mock("../core/GeminiEngine", () => ({
+  askGemini: vi.fn().mockRejectedValue(new Error("Test fallback to deterministic engine"))
+}));
 import {
   calculateDigitalRoot,
-  calculatePrashnaLagnaHouse
+  calculatePrashnaLagnaHouse,
+  detectQuestionCategoryAndKaryaBhava,
+  computePrashnaDirection,
+  computeObjectAndSuspectProfile,
+  executeSankhyaShastraPrashna
 } from "../features/sankhyashastra/sankhyaShastraEngine";
 import {
   calculateChaldeanNameNumber,
@@ -29,6 +37,79 @@ describe("Sankhya Shastra Prashna Engine", () => {
     expect(calculatePrashnaLagnaHouse(47)).toBe(11); // 47 % 12 = 11
     expect(calculatePrashnaLagnaHouse(108)).toBe(12); // 108 % 12 = 0 -> 12
     expect(calculatePrashnaLagnaHouse(249)).toBe(9); // 249 % 12 = 9
+  });
+
+  it("accurately detects question categories and Karya Sthana bhavas (including theft and lost items)", () => {
+    // Theft & Lost Items
+    const theft1 = detectQuestionCategoryAndKaryaBhava("ನನ್ನ ಕಳೆದುಹೋದ ಚಿನ್ನದ ಸರ ಸಿಗುವುದೇ?");
+    expect(theft1.category).toBe("theft_lost_item");
+    expect(theft1.karyaBhava).toBe(2);
+
+    const theft2 = detectQuestionCategoryAndKaryaBhava("Who stole my laptop?");
+    expect(theft2.category).toBe("theft_lost_item");
+
+    // Career
+    const career = detectQuestionCategoryAndKaryaBhava("ನನಗೆ ಉದ್ಯೋಗದಲ್ಲಿ ಬಡ್ತಿ ಯಾವಾಗ ಸಿಗುವುದು?");
+    expect(career.category).toBe("career_business");
+    expect(career.karyaBhava).toBe(10);
+
+    // Marriage
+    const marriage = detectQuestionCategoryAndKaryaBhava("ನನ್ನ ವಿವಾಹ ಯಾವಾಗ ಆಗುವುದು?");
+    expect(marriage.category).toBe("marriage_love");
+    expect(marriage.karyaBhava).toBe(7);
+
+    // Finance / Wealth
+    const finance = detectQuestionCategoryAndKaryaBhava("ನನ್ನ ಸಾಲ ತೀರಿ ಧನ ಲಾಭವಾಗುವುದೇ?");
+    expect(finance.category).toBe("wealth_finance");
+    expect(finance.karyaBhava).toBe(11);
+  });
+
+  it("computes cardinal search direction and environmental markers", () => {
+    const east = computePrashnaDirection(0, 1); // Mesha, Sun
+    expect(east.directionKey).toBe("east");
+    expect(east.labels.kn).toContain("ಪೂರ್ವ");
+    expect(east.environmentalMarker.kn).toContain("ಪೂರ್ವ ಭಾಗದಲ್ಲಿ");
+
+    const north = computePrashnaDirection(3, 2); // Karkataka, Moon
+    expect(north.directionKey).toBe("north");
+    expect(north.labels.kn).toContain("ಉತ್ತರ");
+  });
+
+  it("computes object mobility state (Sthira vs Chara) and suspect location profile", () => {
+    const sthira = computeObjectAndSuspectProfile("sthira", 2, "theft_lost_item");
+    expect(sthira.objectMobility.kn).toContain("ಸ್ಥಿರ ಸ್ಥಿತಿ");
+    expect(sthira.suspectProfile.kn).toContain("ಆಪ್ತರು");
+
+    const chara = computeObjectAndSuspectProfile("chara", 7, "theft_lost_item");
+    expect(chara.objectMobility.kn).toContain("ಚರ ಸ್ಥಿತಿ");
+    expect(chara.suspectProfile.kn).toContain("ಹೊರಗಿನವರು");
+  });
+
+  it("executes Prashna Oracle and provides an in-depth 6-paragraph reading answering question directly first", async () => {
+    const result = await executeSankhyaShastraPrashna(
+      "ನನ್ನ ಕಳೆದುಹೋದ ಚಿನ್ನದ ಸರ ಸಿಗುವುದೇ?",
+      47,
+      "kn",
+      ""
+    );
+
+    expect(result.rawQuestion).toBe("ನನ್ನ ಕಳೆದುಹೋದ ಚಿನ್ನದ ಸರ ಸಿಗುವುದೇ?");
+    expect(result.userNumber).toBe(47);
+    expect(result.rootNumber).toBe(2);
+    expect(result.prashnaLagnaHouse).toBe(11);
+    expect(result.questionCategory).toBe("theft_lost_item");
+    expect(result.directionalGuidance.kn).toBeTruthy();
+    expect(result.objectMobilityAnalysis.kn).toBeTruthy();
+    expect(result.suspectAndLocationProfile.kn).toBeTruthy();
+    expect(result.remedyRecommendation.kn).toBeTruthy();
+
+    // Verify 6-paragraph structure starting with Direct Answer FIRST
+    expect(result.aiPrediction).toContain("೧. ಪ್ರಶ್ನೆಗೆ ನೇರ ನಿಖರ ಉತ್ತರ");
+    expect(result.aiPrediction).toContain("೨. ಮೂಲ ಕಾರಣ");
+    expect(result.aiPrediction).toContain("೩. ವಸ್ತು/ಸ್ಥಳ/ವ್ಯಕ್ತಿಯ ಸ್ಥಿತಿ");
+    expect(result.aiPrediction).toContain("೪. ನಿಖರ ಫಲ ಕಾಲಾವಧಿ");
+    expect(result.aiPrediction).toContain("೫. ಗೋಕರ್ಣ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಮಹಾ ಪರಿಹಾರ");
+    expect(result.aiPrediction).toContain("೬. ಗುರುಗಳ ದೈವಿಕ ಅಭಯ");
   });
 });
 
