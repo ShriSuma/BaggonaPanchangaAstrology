@@ -200,6 +200,22 @@ describe("icsCalendarGenerator", () => {
 
     expect(formatPanditGreeting("", "kn")).toBe("ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಕ್ಷೇತ್ರದಿಂದ ನಮಸ್ಕಾರಗಳು,");
   });
+
+  it("calculates Rahu, Gulika, and Yamaganda Kaala strictly in Indian Standard Time (Asia/Kolkata +05:30)", () => {
+    // For Gokarna coordinates (lat 14.54, lng 74.31) on 2026-08-26
+    const kaala = getDailyKaalaTimings("Mercury", "en", "2026-08-26", 14.54, 74.31, "581326");
+    
+    expect(kaala.sunrise).toBeDefined();
+    expect(kaala.sunset).toBeDefined();
+    // Sunrise at Gokarna in late August is around 06:15 - 06:30 AM IST
+    expect(kaala.sunrise).toMatch(/^06:\d{2} AM$/);
+    // Sunset at Gokarna in late August is around 06:35 - 06:55 PM IST
+    expect(kaala.sunset).toMatch(/^06:\d{2} PM$/);
+    // Rahu, Gulika, Yamaganda must be non-empty and formatted cleanly in 12-hr format
+    expect(kaala.rahu).toMatch(/\d{2}:\d{2} (AM|PM) – \d{2}:\d{2} (AM|PM)/);
+    expect(kaala.gulika).toMatch(/\d{2}:\d{2} (AM|PM) – \d{2}:\d{2} (AM|PM)/);
+    expect(kaala.yamaganda).toMatch(/\d{2}:\d{2} (AM|PM) – \d{2}:\d{2} (AM|PM)/);
+  });
 });
 
 describe("sevaPriestNarrativeEngine", () => {

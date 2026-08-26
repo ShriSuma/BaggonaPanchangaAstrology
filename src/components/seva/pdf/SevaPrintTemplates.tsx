@@ -471,6 +471,35 @@ export const SevaLetterPrint = ({
   qrDataUrl
 }: LetterPrintProps): JSX.Element => {
   const safePanditName = formatPanditName(panditName, lang);
+  const priestProfile = getPriestProfile(panditName);
+  const isVenkataramana = priestProfile.id === "venkataramana-pandit" ||
+    Boolean(
+      panditName && (
+        panditName.toLowerCase().includes("venkataramana") ||
+        panditName.includes("ವೆಂಕಟರಮಣ") ||
+        panditName.includes("वेंकटरमण") ||
+        panditName.includes("వెంకటరమణ") ||
+        panditName.includes("வேங்கடரமண") ||
+        panditName.toLowerCase().includes("venkat")
+      )
+    );
+
+  const sevaPlaceValue = isVenkataramana
+    ? pick(
+        priestProfile.residence || {
+          kn: "ವೆಂಕಟರಮಣ ಪಂಡಿತರ ಮನೆ, ಗೋಕರ್ಣ",
+          en: "Venkataramana Panditara Mane, Gokarna",
+          hi: "वेंकटरमण पंडित जी का निवास, गोकर्ण",
+          te: "వెంకటరమణ పండితుల నివాసం, గోకర్ణ",
+          ta: "வேங்கடரமண பண்டிதர் இல்லம், கோகர்ணம்"
+        },
+        lang
+      )
+    : (primarySeva?.seva?.where
+        ? pick(primarySeva.seva.where, lang)
+        : (primarySeva as any)?.where
+          ? pick((primarySeva as any).where, lang)
+          : "—");
 
   const paragraph: React.CSSProperties = {
     fontSize: 13.5,
@@ -537,7 +566,7 @@ export const SevaLetterPrint = ({
           {[
             [pick(T.sevaPerformed!, lang), (primarySeva?.seva?.name ? pick(primarySeva.seva.name, lang) : (primarySeva as any)?.name ? pick((primarySeva as any).name, lang) : "—")],
             [pick(T.sevaDate!, lang), sevaDate || "—"],
-            [pick(T.sevaPlace!, lang), (primarySeva?.seva?.where ? pick(primarySeva.seva.where, lang) : (primarySeva as any)?.where ? pick((primarySeva as any).where, lang) : "—")],
+            [pick(T.sevaPlace!, lang), sevaPlaceValue],
             [pick(T.labelRashi!, lang), pick(RASHI_L5[identity.rashiIndex]!, lang)],
             [pick(T.labelNakshatra!, lang), pick(NAKSHATRA_L5[identity.nakshatraIndex]!, lang)]
           ].map(([label, value]) => (
@@ -1835,6 +1864,99 @@ export const SevaPoojaMahatmePrint = ({
     const isAyushya = sLower.includes("ayushya") || sevaTitle.includes("ಆಯುಷ್ಯ") || sevaTitle.includes("आयुष्य") || sevaTitle.includes("ఆయుష్య") || sevaTitle.includes("ஆயுஷ்ய");
     const isRudra = sLower.includes("rudra") || sevaTitle.includes("ರುದ್ರ") || sevaTitle.includes("रुद्र") || sevaTitle.includes("రుద్ర") || sevaTitle.includes("ருத்ர");
     const isMrityunjaya = sLower.includes("mrityunjaya") || sevaTitle.includes("ಮೃತ್ಯುಂಜಯ") || sevaTitle.includes("मृत्युंजय") || sevaTitle.includes("మృత్యుంజయ") || sevaTitle.includes("மிருத்யுஞ்ஜய");
+
+    const currentSevaId = primarySeva?.seva?.id || "";
+    const isCombinedKujaRahuMrityunjaya =
+      currentSevaId === "kujashanti_rahubrihaspati_mrityunjaya" ||
+      ((sLower.includes("kuja") || sLower.includes("mangal") || sevaTitle.includes("ಕುಜ") || sevaTitle.includes("कुज") || sevaTitle.includes("మంగళ") || sevaTitle.includes("செவ்வாய்")) &&
+       (sLower.includes("rahu") || sLower.includes("brihaspati") || sevaTitle.includes("ರಾಹು") || sevaTitle.includes("ಬೃಹಸ್ಪತಿ") || sevaTitle.includes("राहु") || sevaTitle.includes("बृहस्पति") || sevaTitle.includes("బృహస్పతి") || sevaTitle.includes("பிரகஸ்பதி")) &&
+       (sLower.includes("mrityunjaya") || sevaTitle.includes("ಮೃತ್ಯುಂಜಯ") || sevaTitle.includes("मृत्युंजय") || sevaTitle.includes("మృత్యుంజయ") || sevaTitle.includes("மிருத்யுஞ்ஜய")));
+
+    const isRahuBrihaspati =
+      currentSevaId === "rahubrihaspatishanti" ||
+      ((sLower.includes("rahu") || sevaTitle.includes("ರಾಹು") || sevaTitle.includes("राहु") || sevaTitle.includes("రాహు") || sevaTitle.includes("ராகு")) &&
+       (sLower.includes("brihaspati") || sLower.includes("guru") || sevaTitle.includes("ಬೃಹಸ್ಪತಿ") || sevaTitle.includes("ಗುರು") || sevaTitle.includes("बृहस्पति") || sevaTitle.includes("गुरु") || sevaTitle.includes("బృహస్పతి") || sevaTitle.includes("பிரகஸ்பதி")));
+
+    const isKujaStandalone = (currentSevaId === "kujashanti" || isKuja) && !isCombinedKujaRahuMrityunjaya;
+    const isMrityunjayaStandalone = (currentSevaId === "mrityunjaya" || isMrityunjaya) && !isCombinedKujaRahuMrityunjaya;
+
+    if (isCombinedKujaRahuMrityunjaya) {
+      return {
+        whatIsPooja: pick({
+          kn: "ಕುಜ ಶಾಂತಿ, ರಾಹು-ಬೃಹಸ್ಪತಿ ಶಾಂತಿ ಹಾಗೂ ಮಹಾ ಮೃತ್ಯುಂಜಯ ಹೋಮವು ಮಂಗಳ ಗ್ರಹ, ಗುರು-ಚಾಂಡಾಲ ಯೋಗ ಹಾಗೂ ಆಯುರಾರೋಗ್ಯದ ಮೇಲಿನ ಗ್ರಹ ಬಾಧೆಗಳನ್ನು ಏಕಕಾಲದಲ್ಲಿ ಶಮನಗೊಳಿಸಿ ತ್ರಿವಿಧ ದೈವಿಕ ರಕ್ಷಣೆ ನೀಡುವ ಮಹೋನ್ನತ ವೈದಿಕ ಯಜ್ಞವಾಗಿದೆ.",
+          hi: "कुज शांति, राहु-बृहस्पति शांति एवं महा मृत्युंजय होम मांगलिक दोष, गुरु-चांडाल योग तथा स्वास्थ्य संकटों का एक साथ शमन कर त्रिविध दैवीय सुरक्षा प्रदान करने वाला अत्यंत फलदायी महायज्ञ है।",
+          te: "కుజ శాంతి, రాహు-బృహస్పతి శాంతి మరియు మహా మృత్యుంజయ హోమం కుజ దోషం, గురు-చండాల దోషం మరియు ఆయురారోగ్య దోషాలను సమగ్రంగా నివారించి త్రివిధ రక్షణనిచ్చే దివ్య యజ్ఞం.",
+          ta: "செவ்வாய் சாந்தி, ராகு-பிரகஸ்பதி சாந்தி மற்றும் மகா மிருத்யுஞ்சய ஹோமம் செவ்வாய் தோஷம், குரு-சண்டாள தோஷம் மற்றும் ஆரோக்கிய பீடைகளை ஒருங்கே போக்கும் மகா யாகமாகும்.",
+          en: "This supreme Tri-fold Vedic ritual synthesizes Kuja Shanti, Rahu-Brihaspati pacification, and Maha Mrityunjaya Rudra Homa to resolve complex planetary afflictions under Shiva's grace."
+        }, lang),
+        whyDoPooja: pick({
+          kn: "ವಿವಾಹ ವಿಳಂಬ, ದಾಂಪತ್ಯ ಕಲಹ, ಬುದ್ಧಿಭ್ರಮೆ ಅಥವಾ ನಿರ್ಧಾರಗಳಲ್ಲಿ ಗೊಂದಲ ಹಾಗೂ ದೈಹಿಕ ಅನಾರೋಗ್ಯ, ಆಕಸ್ಮಿಕ ಅಪಮೃತ್ಯು ಭಯ ನಿವಾರಿಸಲು ಈ ತ್ರಿವಿಧ ಮಹಾ ಶಾಂತಿಯನ್ನು ನೆರವೇರಿಸಲಾಗುತ್ತದೆ.",
+          hi: "विवाह में विलंब, दांपत्य कलह, बुद्धि भ्रम या निर्णय लेने में बाधा तथा गंभीर शारीरिक व्याधि एवं अकाल भय के पूर्ण निवारण हेतु यह त्रिविध शांति की जाती है।",
+          te: "వివాహ జాప్యం, దాంపత్య కలహాలు, బుద్ధి భ్రమణం మరియు దీర్ఘకాలిక అనారోగ్య భయాలను సమూలంగా నివారించడానికి ఈ త్రివిధ శాంతి చేయబడుతుంది.",
+          ta: "திருமண தாமதம், தாம்பத்திய மனக்கசப்பு, புத்தி குழப்பம் மற்றும் தீராத வியாதிகள், விபத்து பயங்களை முற்றிலும் நீக்க இந்த 3 சாந்தி ஹோமம் செய்யப்படுகிறது.",
+          en: "Performed to eliminate Manglik delays in marriage, dispel confusion/Guru-Chandal distress, and remove chronic health or longevity vulnerabilities."
+        }, lang),
+        benefitsPooja: pick({
+          kn: "ದಾಂಪತ್ಯ ಸೌಖ್ಯ, ಬುದ್ಧಿ ತೇಜಸ್ಸು, ಸನ್ಮಾರ್ಗ, ರೋಗಮುಕ್ತ ದೀರ್ಘಾಯುಷ್ಯ, ಆಕಸ್ಮಿಕ ಸಂಕಷ್ಟಗಳಿಂದ ಅಭೇದ್ಯ ರಕ್ಷಣಾ ಕವಚ ಹಾಗೂ ಕುಟುಂಬದಲ್ಲಿ ಅಖಂಡ ಶಾಂತಿ ಲಭಿಸುತ್ತದೆ.",
+          hi: "दांपत्य सुख, बुद्धि का तेज, उत्तम स्वास्थ्य, दीर्घायु, समस्त आकस्मिक संकटों से अभेद्य सुरक्षा कवच तथा परिवार में अखंड सुख-शांति की प्राप्ति होती है।",
+          te: "దాంపత్య సుఖం, బుద్ధి వికాసం, సంపూర్ణ ఆరోగ్యం, దీర్ఘాయువు, సమస్త ఆపదల నుండి రక్షణ కవచం మరియు కుటుంబ ప్రశాంతత చేకూరుతాయి.",
+          ta: "தாம்பத்திய சுபிட்சம், புத்தி விவேகம், பூரண நலம், நீண்ட ஆயுள், சகல ஆபத்துகளிலிருந்தும் பாதுகாப்பு கவசம் மற்றும் குடும்ப அமைதி கிட்டும்.",
+          en: "Bestows marital harmony, sharp intellect, robust immunity, longevity, and an impenetrable spiritual shield protecting the entire family."
+        }, lang)
+      };
+    }
+
+    if (isRahuBrihaspati) {
+      return {
+        whatIsPooja: pick({
+          kn: "ರಾಹು-ಬೃಹಸ್ಪತಿ ಶಾಂತಿ ಹೋಮವು ಗುರು ಮತ್ತು ರಾಹು ಗ್ರಹಗಳ ಪ್ರತಿಕೂಲ ಸಂಯೋಗ (ಗುರು-ಚಾಂಡಾಲ ಯೋಗ) ದೋಷಗಳನ್ನು ಪರಿಹರಿಸಿ ಜ್ಞಾನ ಮತ್ತು ಭಾಗ್ಯೋದಯ ಕರುಣಿಸುವ ಪವಿತ್ರ ವೈದಿಕ ಯಾಗವಾಗಿದೆ.",
+          hi: "राहु-बृहस्पति शांति होम गुरु और राहु के प्रतिकूल संयोग (गुरु-चांडाल योग) के दोषों का शमन कर ज्ञान, धर्म एवं भाग्योदय प्रदान करने वाला पावन वैदिक अनुष्ठान है।",
+          te: "రాహు-బృహస్పతి శాంతి హోమం గురు మరియు రాహు గ్రహాల ప్రతికూల కలయిక దోషాలను తొలగించి జ్ఞానం మరియు భాగ్యోదయాలను ప్రసాదించే వైదిక పూజ.",
+          ta: "ராகு-பிரகஸ்பதி சாந்தி ஹோமம் குரு-ராகு சேர்க்கையால் உண்டாகும் குரு-சண்டாள தோஷத்தை போக்கி ஞானமும் பாக்கியமும் அருளும் யாகமாகும்.",
+          en: "Rahu-Brihaspati Shanti Homa is a specialized Vedic ritual resolving Guru-Chandal Yoga and aligning intellect and spiritual wisdom with divine grace."
+        }, lang),
+        whyDoPooja: pick({
+          kn: "ಮಾನಸಿಕ ಗೊಂದಲ, ತಪ್ಪು ನಿರ್ಧಾರಗಳು, ವಿದ್ಯಾಭ್ಯಾಸ ಹಾಗೂ ಉದ್ಯೋಗದಲ್ಲಿ ಅನಿರೀಕ್ಷಿತ ಹಿನ್ನಡೆ ಮತ್ತು ಆಧ್ಯಾತ್ಮಿಕ ಮಾರ್ಗದಲ್ಲಿ ಎದುರಾಗುವ ಅಡೆತಡೆಗಳ ನಿವಾರಣೆಗೆ ಮಾಡಲಾಗುತ್ತದೆ.",
+          hi: "मानसिक भ्रम, गलत निर्णयों, विद्या एवं आजीविका में अचानक रुकावट तथा धर्म व भाग्य के मार्ग में आने वाली बाधाओं के निवारण हेतु किया जाता है।",
+          te: "మానసిక గందరగోళం, తప్పుడు నిర్ణయాలు, విద్య మరియు ఉద్యోగాలలో ఆటంకాలు తొలగించడానికి నిర్వహిస్తారు.",
+          ta: "மன அமைதியின்மை, தவறான முடிவுகள், கல்வி-தொழில் தடைகள் மற்றும் தர்ம மார்க்க தடைகளை நீக்க செய்யப்படுகிறது.",
+          en: "Undertaken to clear cognitive confusion, rectify erratic decision making, protect career growth, and restore clarity and dharma."
+        }, lang),
+        benefitsPooja: pick({
+          kn: "ಬುದ್ಧಿ ಸ್ಥೈರ್ಯ, ಉನ್ನತ ಜ್ಞಾನ, ಉದ್ಯೋಗ-ವ್ಯಾಪಾರದಲ್ಲಿ ಸ್ಥಿರ ಮುನ್ನಡೆ, ಗುರುವಿನ ಕೃಪಾಕಟಾಕ್ಷ ಹಾಗೂ ಆಧ್ಯಾತ್ಮಿಕ ಆನಂದ ಪ್ರಾಪ್ತಿಯಾಗುತ್ತದೆ.",
+          hi: "बुद्धि की स्थिरता, उच्च ज्ञान, करियर में स्थिर उन्नति, गुरु कृपा तथा आत्मिक शांति और समृद्धि प्राप्त होती है।",
+          te: "బుద్ధి స్థిరత్వం, ఉన్నత విద్య, ఉద్యోగంలో స్థిరమైన పురోగతి, గురు అనుగ్రహం మరియు మానసిక ప్రశాంతత లభిస్తాయి.",
+          ta: "புத்தி ஸ்திரத்தன்மை, உயர் கல்வி, தொழில் முன்னேற்றம், குருவருள் மற்றும் ஆத்ம சாந்தி உண்டாகும்.",
+          en: "Grants intellectual brilliance, elevates career stability, attracts spiritual mentorship, and brings deep inner calm and prosperity."
+        }, lang)
+      };
+    }
+
+    if (isKujaStandalone) {
+      return {
+        whatIsPooja: pick({
+          kn: "ಕುಜ ಶಾಂತಿ ಹೋಮವು ನವಗ್ರಹಗಳಲ್ಲಿ ಸೇನಾನಿಯಾದ ಮಂಗಳ (ಕುಜ) ಗ್ರಹದ ಅನುಗ್ರಹ ಪಡೆಯಲು ಹಾಗೂ ಕುಜ ದೋಷಗಳನ್ನು ನಿವಾರಿಸಲು ನೆರವೇರಿಸುವ ಶಕ್ತಿಶಾಲಿ ವೈದಿಕ ಆರಾಧನೆಯಾಗಿದೆ.",
+          hi: "कुज शांति होम नवग्रहों के सेनापति मंगल (कुज) देव को प्रसन्न कर मांगलिक दोष के निवारण हेतु संपन्न किया जाने वाला तेजस्वी वैदिक यज्ञ है।",
+          te: "కుజ శాంతి హోమం నవగ్రహ సేనాధిపతి కుజ గ్రహ అనుగ్రహం కొరకు మరియు కుజ దోషాల నివారణకు చేసే శక్తివంతమైన వైదిక పూజ.",
+          ta: "செவ்வாய் சாந்தி ஹோமம் நவக்கிரகங்களின் சேனாதிபதியான செவ்வாய் பகவானின் தோஷங்களை நீக்கி அருள்பெறும் வைதீக யாகமாகும்.",
+          en: "Kuja Shanti Homa is an authentic Vedic fire ritual dedicated to propitiating Mars (Kuja) and resolving Manglik dosha."
+        }, lang),
+        whyDoPooja: pick({
+          kn: "ವಿವಾಹ ವಿಳಂಬ, ಹೊಂದಾಣಿಕೆಯ ಕೊರತೆ, ರಕ್ತ ಸಂಬಂಧಿ ತೊಂದರೆಗಳು, ಕೋಪ-ಆವೇಶ ಹಾಗೂ ಆಸ್ತಿ-ಭೂ ವಿವಾದಗಳ ಶಮನಕ್ಕಾಗಿ ಈ ಪೂಜೆಯನ್ನು ಮಾಡಲಾಗುತ್ತದೆ.",
+          hi: "विवाह में बाधा, दांपत्य मतभेद, रक्त विकार, अत्यधिक क्रोध तथा भूमि व संपत्ति संबंधी विवादों के शमन हेतु किया जाता है।",
+          te: "వివాహ ఆలస్యం, దాంపత్య కలహాలు, కోపం మరియు భూ సంబంధిత వివాదాల నివారణ కోసం నిర్వహిస్తారు.",
+          ta: "திருமண தாமதம், தாம்பத்திய பிணக்கு, அதீத கோபம் மற்றும் பூமி-சொத்து விவகாரங்களை தீர்க்க செய்யப்படுகிறது.",
+          en: "Performed to cure delays in marriage, harmonize marital relations, regulate anger, and resolve land/property disputes."
+        }, lang),
+        benefitsPooja: pick({
+          kn: "ಮನಸ್ಸಿನಲ್ಲಿ ಶಾಂತಿ, ಸಕಾಲಿಕ ವಿವಾಹ ಭಾಗ್ಯ, ದಾಂಪತ್ಯ ಸುಖ, ಧೈರ್ಯ-ಸಾಮರ್ಥ್ಯ ವೃದ್ಧಿ ಹಾಗೂ ಭೂಮಿ-ಆಸ್ತಿ ಲಾಭ ಲಭಿಸುತ್ತದೆ.",
+          hi: "शीघ्र विवाह, दांपत्य सुख, क्रोध पर नियंत्रण, आत्मबल में वृद्धि तथा भूमि व संपत्ति का विशेष लाभ प्राप्त होता है।",
+          te: "శీఘ్ర వివాహం, దాంపత్య సుఖం, మనశ్శాంతి, ఆత్మవిశ్వాసం మరియు స్థిరాస్తి లాభాలు కలుగుతాయి.",
+          ta: "விரைவில் திருமணம், தாம்பத்திய சுகம், மன அமைதி, தைரியம் மற்றும் பூமி யோகம் உண்டாகும்.",
+          en: "Facilitates auspicious marriage proposals, restores peaceful marital bond, strengthens courage, and brings real-estate gains."
+        }, lang)
+      };
+    }
 
     if (isGanapati) {
       return {

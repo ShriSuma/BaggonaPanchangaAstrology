@@ -461,8 +461,10 @@ export function getDailyKaalaTimings(
       const sun = sunTimesSyncForBirth(dateObj, lat, lng, pincode || "");
 
       const formatTime = (d: Date) => {
-        const hours = d.getHours();
-        const minutes = d.getMinutes();
+        // Enforce strict Indian Standard Time (+05:30) conversion regardless of client browser/system timezone
+        const istDate = new Date(d.getTime() + 330 * 60 * 1000);
+        const hours = istDate.getUTCHours();
+        const minutes = istDate.getUTCMinutes();
         const ampm = hours >= 12 ? "PM" : "AM";
         const h12 = hours % 12 || 12;
         return `${String(h12).padStart(2, "0")}:${String(minutes).padStart(2, "0")} ${ampm}`;
@@ -963,10 +965,11 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
     const sanctumUrl = `${origin}/daily?token=${dayToken}`;
 
     const aiItem = aiPanchangaMap?.[day.ymd];
-    const pakshaStr = aiItem?.paksha || pakshaLabel(day, lang);
-    const tithiOnlyStr = aiItem?.tithi || tithiOnlyLabel(day, lang);
-    const tithiFullStr = aiItem ? `${aiItem.paksha ? aiItem.paksha + " - " : ""}${aiItem.tithi}` : tithiLabel(day, lang);
-    const nakName = aiItem?.nakshatra || nakshatraName(day.moonNakshatraIndex, lang as SevaLang);
+    // Canonical Drik Ganita Udaya Tithi at 06:00 AM IST from day ensures 100% parity with DailyDarshanaPage web sanctum links
+    const pakshaStr = pakshaLabel(day, lang);
+    const tithiOnlyStr = tithiOnlyLabel(day, lang);
+    const tithiFullStr = tithiLabel(day, lang);
+    const nakName = nakshatraName(day.moonNakshatraIndex, lang as SevaLang);
 
     // Detect Special Vrata (Amavasya, Ekadashi, Sankashti, Purnima, Festivals)
     const vrata = detectSpecialVrata(day.ymd, lang);

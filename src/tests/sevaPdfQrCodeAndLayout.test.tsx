@@ -341,4 +341,113 @@ describe("Seva PDF 5-Page Suite & QR Code Verification", () => {
     expect(screen.getByText(/ಅತೃಪ್ತ ಆತ್ಮಗಳಿಗೆ ಪ್ರೇತತ್ವದಿಂದ ಮುಕ್ತಿ ಹಾಗೂ ಮೋಕ್ಷ ಪ್ರಾಪ್ತಿಯಾಗಿ/i)).toBeInTheDocument();
     unmount3();
   });
+
+  it("ensures Page 5 renders distinct Vedic details for Kuja Shanti, Rahu Brihaspati Shanti, and the Combined Trio", () => {
+    // 1. Combined Trio: Kuja Shanti, Rahu-Brihaspati Shanti & Maha Mrityunjaya Shanti
+    const { unmount: unmount1 } = render(
+      <SevaPoojaMahatmePrint
+        lang="kn"
+        identity={mockIdentity}
+        panditName="ವೆಂಕಟರಮಣ ಪಂಡಿತ್"
+        primarySeva={{
+          seva: SEVA_CATALOG.kujashanti_rahubrihaspati_mrityunjaya,
+          score: 0,
+          reasons: []
+        } as any}
+      />
+    );
+    expect(screen.getAllByText(/ಕುಜ ಶಾಂತಿ, ರಾಹು ಬೃಹಸ್ಪತಿ ಶಾಂತಿ ಹಾಗೂ ಮಹಾ ಮೃತ್ಯುಂಜಯ ಶಾಂತಿ/i)[0]).toBeInTheDocument();
+    expect(screen.getByText(/ಗುರು-ಚಾಂಡಾಲ ಯೋಗ ಹಾಗೂ ಆಯುರಾರೋಗ್ಯದ ಮೇಲಿನ ಗ್ರಹ ಬಾಧೆಗಳನ್ನು ಏಕಕಾಲದಲ್ಲಿ ಶಮನಗೊಳಿಸಿ/i)).toBeInTheDocument();
+    expect(screen.getByText(/ದಾಂಪತ್ಯ ಸೌಖ್ಯ, ಬುದ್ಧಿ ತೇಜಸ್ಸು, ಸನ್ಮಾರ್ಗ, ರೋಗಮುಕ್ತ ದೀರ್ಘಾಯುಷ್ಯ/i)).toBeInTheDocument();
+    unmount1();
+
+    // 2. Rahu-Brihaspati Shanti Homa
+    const { unmount: unmount2 } = render(
+      <SevaPoojaMahatmePrint
+        lang="kn"
+        identity={mockIdentity}
+        panditName="ವೆಂಕಟರಮಣ ಪಂಡಿತ್"
+        primarySeva={{
+          seva: SEVA_CATALOG.rahubrihaspatishanti,
+          score: 0,
+          reasons: []
+        } as any}
+      />
+    );
+    expect(screen.getAllByText(/ರಾಹು-ಬೃಹಸ್ಪತಿ ಶಾಂತಿ ಹೋಮ/i)[0]).toBeInTheDocument();
+    expect(screen.getByText(/ಗುರು ಮತ್ತು ರಾಹು ಗ್ರಹಗಳ ಪ್ರತಿಕೂಲ ಸಂಯೋಗ/i)).toBeInTheDocument();
+    expect(screen.getByText(/ಬುದ್ಧಿ ಸ್ಥೈರ್ಯ, ಉನ್ನತ ಜ್ಞಾನ, ಉದ್ಯೋಗ-ವ್ಯಾಪಾರದಲ್ಲಿ ಸ್ಥಿರ ಮುನ್ನಡೆ/i)).toBeInTheDocument();
+    unmount2();
+
+    // 3. Kuja Shanti Standalone
+    const { unmount: unmount3 } = render(
+      <SevaPoojaMahatmePrint
+        lang="kn"
+        identity={mockIdentity}
+        panditName="ವೆಂಕಟರಮಣ ಪಂಡಿತ್"
+        primarySeva={{
+          seva: SEVA_CATALOG.kujashanti,
+          score: 0,
+          reasons: []
+        } as any}
+      />
+    );
+    expect(screen.getAllByText(/ಕುಜ ಶಾಂತಿ/i)[0]).toBeInTheDocument();
+    expect(screen.getByText(/ನವಗ್ರಹಗಳಲ್ಲಿ ಸೇನಾನಿಯಾದ ಮಂಗಳ/i)).toBeInTheDocument();
+    expect(screen.getByText(/ಮನಸ್ಸಿನಲ್ಲಿ ಶಾಂತಿ, ಸಕಾಲಿಕ ವಿವಾಹ ಭಾಗ್ಯ/i)).toBeInTheDocument();
+    unmount3();
+  });
+
+  it("renders place as Venkataramana Panditara Mane, Gokarna on Page 1 (SevaLetterPrint) when priest is Venkataramana Pandit", () => {
+    const rudraSeva = {
+      seva: SEVA_CATALOG.rudrabhisheka,
+      score: 0,
+      reasons: []
+    };
+
+    // 1. In Kannada
+    const { unmount: unmountKn } = render(
+      <SevaLetterPrint
+        lang="kn"
+        identity={mockIdentity}
+        rhythm={mockRhythm}
+        primarySeva={rudraSeva as any}
+        sevaDate="2026-08-26"
+        panditName="ವೆಂಕಟರಮಣ ಪಂಡಿತ್"
+      />
+    );
+
+    expect(screen.getByText("ವೆಂಕಟರಮಣ ಪಂಡಿತರ ಮನೆ, ಗೋಕರ್ಣ")).toBeInTheDocument();
+    unmountKn();
+
+    // 2. In English
+    const { unmount: unmountEn } = render(
+      <SevaLetterPrint
+        lang="en"
+        identity={mockIdentity}
+        rhythm={mockRhythm}
+        primarySeva={rudraSeva as any}
+        sevaDate="2026-08-26"
+        panditName="Venkataramana Pandit"
+      />
+    );
+
+    expect(screen.getByText("Venkataramana Panditara Mane, Gokarna")).toBeInTheDocument();
+    unmountEn();
+
+    // 3. In Kannada with default/other priest (e.g. Shreeram Pandit -> Mahabaleshwara Devasthana)
+    const { unmount: unmountDefault } = render(
+      <SevaLetterPrint
+        lang="kn"
+        identity={mockIdentity}
+        rhythm={mockRhythm}
+        primarySeva={rudraSeva as any}
+        sevaDate="2026-08-26"
+        panditName="ಶ್ರೀರಾಮ್ ಪಂಡಿತ್"
+      />
+    );
+
+    expect(screen.getByText("ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ದೇವಸ್ಥಾನ, ಗೋಕರ್ಣ")).toBeInTheDocument();
+    unmountDefault();
+  });
 });

@@ -35,11 +35,11 @@ const LANG_NAMES: Record<string, string> = {
   en: "English"
 };
 
-/** Get cache key for a pincode, language, and start date */
+/** Get cache key for a pincode, language, and start date with version v3 for 06:00 AM IST alignment */
 function getCacheKey(pincode: string, lang: string, startDateYmd: string): string {
   const pin = (pincode || "581326").trim();
   const l = (lang || "kn").slice(0, 2);
-  return `panchanga90_ai_${pin}_${l}_${startDateYmd}`;
+  return `panchanga90_ai_v3_${pin}_${l}_${startDateYmd}`;
 }
 
 /** Synchronous getter from cache if already loaded */
@@ -107,7 +107,9 @@ export function computeLocalFallback90DayPanchanga(
     const noonUtc = new Date(Date.UTC(sy, sm, sd + i, 12, 0, 0));
     const ymd = noonUtc.toISOString().slice(0, 10);
     const weekday = noonUtc.getUTCDay();
-    const coords = siderealLongitudes(noonUtc);
+    // Evaluate Drik Ganita Ephemeris longitudes at 06:00 AM IST (00:30 UTC) for authentic morning Udaya Tithi
+    const morningUtc = new Date(Date.UTC(sy, sm, sd + i, 0, 30, 0));
+    const coords = siderealLongitudes(morningUtc, "lahiri");
     const moonLon = coords.moon;
     const sunLon = coords.sun;
 
@@ -195,7 +197,7 @@ Return a valid JSON array containing objects for dates starting from ${startDate
 Each object MUST contain these key-value pairs:
 - "date": "YYYY-MM-DD"
 - "paksha": Paksha name in ${targetLangName} native script (e.g. in Kannada: "ಶುಕ್ಲ ಪಕ್ಷ" or "ಕೃಷ್ಣ ಪಕ್ಷ")
-- "tithi": Tithi name in ${targetLangName} native script (e.g. in Kannada: "ಪ್ರಥಮಿ", "ದ್ವಿತೀಯಾ", "ತೃತೀಯಾ", "ಚತುರ್ಥಿ", "ಪಂಚಮಿ", "ಷಷ್ಠಿ", "ಸಪ್ತಮಿ", "ಅಷ್ಟಮಿ", "ನವಮಿ", "ದಶಮಿ", "ಏಕಾದಶಿ", "ದ್ವಾದಶಿ", "ತ್ರಯೋದಶಿ", "ಚತುರ್ದಶಿ", "ಪೂರ್ಣಿಮೆ", "ಅಮಾವಾಸ್ಯೆ")
+- "tithi": Tithi name in ${targetLangName} native script at 06:00 AM IST sunrise (e.g. in Kannada: "ಪ್ರತಿಪದೆ", "ಬಿದಿಗೆ", "ತದಿಗೆ", "ಚೌತಿ", "ಪಂಚಮಿ", "ಷಷ್ಠಿ", "ಸಪ್ತಮಿ", "ಅಷ್ಟಮಿ", "ನವಮಿ", "ದಶಮಿ", "ಏಕಾದಶಿ", "ದ್ವಾದಶಿ", "ತ್ರಯೋದಶಿ", "ಚತುರ್ದಶಿ", "ಹುಣ್ಣಿಮೆ", "ಅಮಾವಾಸ್ಯೆ")
 - "nakshatra": Nakshatra name in ${targetLangName} native script (e.g. in Kannada: "ಅಶ್ವಿನಿ", "ಭರಣಿ", "ಕೃತ್ತಿಕಾ", "ರೋಹಿಣಿ", "ಮೃಗಶಿರಾ", etc.)
 - "suryodaya": Sunrise time in 12-hour clock (e.g. "06:14 AM")
 - "suryasta": Sunset time in 12-hour clock (e.g. "06:42 PM")
@@ -204,8 +206,9 @@ Each object MUST contain these key-value pairs:
 - "yamagandaKaala": Yamaganda Kaala window (e.g. "12:10 PM – 01:42 PM")
 
 Strict Rules:
-1. Text values for "paksha", "tithi", and "nakshatra" MUST be in ${targetLangName} native script.
-2. Timings ("suryodaya", "suryasta", "rahuKaala", "gulikaKaala", "yamagandaKaala") MUST use standard English digits with AM/PM.
+1. Calculate Udaya Tithi (Tithi prevailing at morning Sunrise / 06:00 AM IST) for each date.
+2. Text values for "paksha", "tithi", and "nakshatra" MUST be in ${targetLangName} native script.
+3. Timings ("suryodaya", "suryasta", "rahuKaala", "gulikaKaala", "yamagandaKaala") MUST use standard English digits with AM/PM.
 `;
 
   try {

@@ -204,7 +204,9 @@ export function detectSpecialVrata(ymd: string, lang = "kn"): SpecialVrataInfo {
 
   const noonUtc = new Date(Date.UTC(year, month, dayOfMonth, 12, 0, 0));
   const weekday = noonUtc.getUTCDay(); // 0=Sun, 5=Fri, 6=Sat
-  const coords = siderealLongitudes(noonUtc);
+  // Evaluate at 06:00 AM IST (00:30 UTC) for authentic morning Udaya Tithi
+  const morningUtc = new Date(Date.UTC(year, month, dayOfMonth, 0, 30, 0));
+  const coords = siderealLongitudes(morningUtc, "lahiri");
   const diff = normalizeDegree(coords.moon - coords.sun);
   const tithiVal = Math.floor(diff / 12); // 0..29
   const isShukla = tithiVal < 15;

@@ -29,6 +29,8 @@ export type SevaId =
   | "mrityunjaya"
   | "navagrahashanti"
   | "kujashanti"
+  | "rahubrihaspatishanti"
+  | "kujashanti_rahubrihaspati_mrityunjaya"
   | "shanitilahoma"
   | "satyanarayana"
   | "ayushyahoma"
@@ -536,6 +538,78 @@ export const SEVA_CATALOG: Record<SevaId, SevaEntry> = {
     },
     duration: HALF_DAY,
     shloka: SHLOKA_NAVAGRAHA
+  },
+
+  rahubrihaspatishanti: {
+    id: "rahubrihaspatishanti",
+    icon: "☊",
+    name: {
+      en: "Rahu-Brihaspati Shanti Homa",
+      kn: "ರಾಹು-ಬೃಹಸ್ಪತಿ ಶಾಂತಿ ಹೋಮ",
+      te: "రాహు-బృహస్పతి శాంతి హోమం",
+      ta: "ராகு-பிரகஸ்பதி சாந்தி ஹோமம்",
+      hi: "राहु-बृहस्पति शांति होम"
+    },
+    purpose: {
+      en: "To resolve Guru-Chandal Yoga, mental restlessness, and impediments to spiritual and financial wisdom.",
+      kn: "ಗುರು-ಚಾಂಡಾಲ ಯೋಗ ಶಮನ, ಮಾನಸಿಕ ಗೊಂದಲ ನಿವಾರಣೆ ಹಾಗೂ ಜ್ಞಾನ, ಧರ್ಮ ಮತ್ತು ಭಾಗ್ಯ ವೃದ್ಧಿಗಾಗಿ.",
+      te: "గురు-చండాల దోష నివారణ, మానసిక గందరగోళ నివృత్తి మరియు ధర్మ, భాగ్య ప్రాప్తి కొరకు.",
+      ta: "குரு-சண்டாள தோஷ நிவர்த்தி, மன அமைதியின்மை நீங்க மற்றும் ஞானம், தன பாக்கியம் பெற.",
+      hi: "गुरु-चांडाल योग शमन, मानसिक भ्रम निवारण तथा ज्ञान, धर्म एवं भाग्य वृद्धि हेतु।"
+    },
+    benefit: {
+      en: "Restores clarity of intellect, elevates career/education, and brings immense spiritual tranquility.",
+      kn: "ಬುದ್ಧಿ ಸ್ಥೈರ್ಯ, ಉದ್ಯೋಗ-ವಿದ್ಯಾ ಪ್ರಗತಿ, ಗುರುವಿನ ಕೃಪಾಕಟಾಕ್ಷ ಹಾಗೂ ಆಧ್ಯಾತ್ಮಿಕ ಶಾಂತಿ ಲಭಿಸುತ್ತದೆ.",
+      te: "బుద్ధి స్థిరత్వం, ఉద్యోగ-విద్యా ప్రగతి, గురు కటాక్షం మరియు ఆధ్యాత్మిక ప్రశాంతత చేకూరుతాయి.",
+      ta: "புத்தி தெளிவு, உத்தியோக-கல்வி முன்னேற்றம், குருவருள் மற்றும் ஆத்ம சாந்தி கிட்டும்.",
+      hi: "बुद्धि में स्पष्टता, करियर व विद्या में उन्नति, गुरु कृपा तथा आत्मिक शांति प्राप्त होती है।"
+    },
+    where: GOKARNA_TEMPLE,
+    when: {
+      en: "On Thursday or on your Janma Nakshatra day.",
+      kn: "ಗುರುವಾರದಂದು ಅಥವಾ ನಿಮ್ಮ ಜನ್ಮ ನಕ್ಷತ್ರದ ದಿನ.",
+      te: "గురువారం నాడు లేదా మీ జన్మ నక్షత్రం రోజున.",
+      ta: "வியாழக்கிழமை அல்லது உங்கள் ஜன்ம நட்சத்திர நாளில்.",
+      hi: "गुरुवार को अथवा जन्म नक्षत्र के दिन।"
+    },
+    duration: HALF_DAY,
+    shloka: SHLOKA_NAVAGRAHA
+  },
+
+  kujashanti_rahubrihaspati_mrityunjaya: {
+    id: "kujashanti_rahubrihaspati_mrityunjaya",
+    icon: "🔱",
+    name: {
+      en: "Kuja Shanti, Rahu-Brihaspati Shanti & Maha Mrityunjaya Shanti",
+      kn: "ಕುಜ ಶಾಂತಿ, ರಾಹು ಬೃಹಸ್ಪತಿ ಶಾಂತಿ ಹಾಗೂ ಮಹಾ ಮೃತ್ಯುಂಜಯ ಶಾಂತಿ",
+      te: "కుజ శాంతి, రాహు బృహస్పతి శాంతి మరియు మహా మృత్యుంజయ శాంతి",
+      ta: "செவ்வாய் சாந்தி, ராகு பிரகஸ்பதி சாந்தி & மகா மிருத்யுஞ்சய சாந்தி",
+      hi: "कुज शांति, राहु बृहस्पति शांति एवं महा मृत्युंजय शांति"
+    },
+    purpose: {
+      en: "Tri-fold Vedic remedy pacifying Kuja Dosha, Guru-Chandal Yoga, and health afflictions with supreme Shiva grace.",
+      kn: "ಕುಜ ದೋಷ, ಗುರು-ಚಾಂಡಾಲ ಯೋಗ ಹಾಗೂ ಆಯುರಾರೋಗ್ಯದ ಮೇಲಿನ ಗ್ರಹದೋಷಗಳನ್ನು ಏಕಕಾಲದಲ್ಲಿ ಶಮನಗೊಳಿಸುವ ತ್ರಿವಿಧ ಮಹಾಶಾಂತಿ.",
+      te: "కుజ దోషం, గురు-చండాల దోషం మరియు ఆయురారోగ్య దోషాలను ఒకేసారి నివారించే త్రివిధ మహాశాంతి.",
+      ta: "செவ்வாய் தோஷம், குரு-சண்டாள தோஷம் மற்றும் ஆரோக்கிய கிரக பீடைகளை ஒருங்கே போக்கும் மகா சாந்தி.",
+      hi: "कुज दोष, गुरु-चांडाल योग एवं स्वास्थ्य संबंधी ग्रह पीड़ाओं का एक साथ शमन करने वाली त्रिविध महाशांति।"
+    },
+    benefit: {
+      en: "Fosters marital harmony, enhances wisdom & career stability, and bestows robust health, longevity and divine shield.",
+      kn: "ದಾಂಪತ್ಯ ಸೌಖ್ಯ, ಬುದ್ಧಿ ವಿಕಾಸ, ಶಾರೀರಿಕ ಬಲ, ದೀರ್ಘಾಯುಷ್ಯ ಹಾಗೂ ಸರ್ವರೋಗ-ಸಂಕಷ್ಟಗಳಿಂದ ಅಭೇದ್ಯ ದೈವಿಕ ರಕ್ಷಣಾ ಕವಚ.",
+      te: "దాంపత్య సౌఖ్యం, బుద్ధి వికాసం, ఆరోగ్య రక్షణ, దీర్ఘాయువు మరియు సమస్త ఆపదల నుండి దివ్య రక్షణ కవచం.",
+      ta: "தாம்பத்திய சுகம், புத்தி விவேகம், பூரண ஆரோக்கியம், நீண்ட ஆயுள் மற்றும் தெய்வீக ரக்ஷா கவசம் உண்டாகும்.",
+      hi: "दांपत्य सुख, बुद्धि का विकास, उत्तम स्वास्थ्य, दीर्घायु तथा समस्त संकटों से अभेद्य सुरक्षा कवच।"
+    },
+    where: GOKARNA_TEMPLE,
+    when: {
+      en: "On Tuesday, Thursday, or Pradosha morning.",
+      kn: "ಮಂಗಳವಾರ, ಗುರುವಾರ ಅಥವಾ ಪ್ರದೋಷ ಕಾಲದ ಬೆಳಿಗ್ಗೆ.",
+      te: "మంగళవారం, గురువారం లేదా ప్రదోష కాలంలో.",
+      ta: "செவ்வாய், வியாழன் அல்லது பிரதோஷ காலையில்.",
+      hi: "मंगलवार, गुरुवार अथवा प्रदोष काल में।"
+    },
+    duration: FULL_DAY,
+    shloka: SHLOKA_SHIVA
   },
 
   shanitilahoma: {

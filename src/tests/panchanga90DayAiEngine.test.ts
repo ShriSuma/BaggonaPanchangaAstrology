@@ -95,4 +95,20 @@ describe("panchanga90DayAiEngine", () => {
     expect(/[\u0C80-\u0CFF]/.test(dayKn.tithi)).toBe(true);
     expect(/[\u0C80-\u0CFF]/.test(dayKn.nakshatra)).toBe(true);
   });
+
+  it("authentically calculates Udaya Tithi at 06:00 AM IST sunrise for 2026-08-26 (Trayodashi, not Chaturdashi)", () => {
+    const map = computeLocalFallback90DayPanchanga(
+      "581326",
+      "Gokarna",
+      "2026-08-26",
+      "kn",
+      14.54,
+      74.31
+    );
+
+    const today = map["2026-08-26"]!;
+    expect(today.paksha).toBe("ಶುಕ್ಲ ಪಕ್ಷ");
+    expect(today.tithi).toBe("ತ್ರಯೋದಶಿ");
+    expect(today.tithi).not.toBe("ಚತುರ್ದಶಿ");
+  });
 });

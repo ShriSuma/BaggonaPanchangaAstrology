@@ -26,20 +26,23 @@ Name: ${englishName}`;
  * Generates What it is (Sankalpa), Why it's done (Karana), and Divine Benefits (Phalashruti).
  */
 export async function fetchPoojaDetailsWithAI(poojaName: string, lang: string, apiKey?: string): Promise<{ what: string; why: string; benefit: string; }> {
-  const prompt = `You are an authentic Vedic Pandit scholar and expert priest.
-Describe the following Sacred Pooja / Homa ritual in depth: "${poojaName}".
+  const prompt = `You are an authentic Vedic Pandit scholar and expert priest of Gokarna Kshetra.
+Describe the following Sacred Pooja / Homa ritual clearly and concisely: "${poojaName}".
 
-Provide exactly THREE distinct paragraphs in the requested language (${lang}):
-Paragraph 1 (Pooja Sankalpa / What is this Pooja): A rich explanation of the sacred ritual and its Vedic significance.
-Paragraph 2 (Pooja Karana / Why is it performed): The astrological, spiritual, and dosha-rectification reasons why a devotee should perform this pooja.
-Paragraph 3 (Divine Fruits & Benefits / Phalashruti): The spiritual and worldly blessings, health, prosperity, and protection the devotee will receive.
+Provide exactly THREE short, focused paragraphs in the requested language (${lang}) tailored for an A4 print layout box:
+Paragraph 1 (Pooja Sankalpa / What is this Pooja): Exactly 2 to 3 concise sentences describing the sacred ritual, uniting all its components into a sacred synthesis.
+Paragraph 2 (Pooja Karana / Why is it performed): Exactly 2 to 3 concise sentences describing the astrological reasons, planetary dosha pacification, and life challenges it rectifies.
+Paragraph 3 (Divine Fruits & Benefits / Phalashruti): Exactly 2 to 3 concise sentences describing the blessings, health, longevity, prosperity, and spiritual protection received.
 
+CRITICAL LENGTH CONSTRAINT: Keep each paragraph between 35 and 50 words (under 250 characters) so it fits neatly within the print document card without overflowing.
 Language: ${lang}
 Do not use bold markdown asterisks or headings. Return only the three distinct paragraphs separated by a double newline.`;
 
+  const cleanText = (t: string) => t.replace(/[*#_~`]/g, '').replace(/^(Paragraph\s*\d+:?|೧|೨|೩|\d+\.|\d+\))\s*/i, '').trim();
+
   try {
     const result = await askGemini("Pooja Details", prompt, apiKey || "", lang, { raw: true, temperature: 0.3 });
-    const parts = result.split('\n\n').map(p => p.trim()).filter(p => p.length > 0);
+    const parts = result.split('\n\n').map(p => cleanText(p)).filter(p => p.length > 0);
     
     if (parts.length >= 3) {
       return {
@@ -50,7 +53,7 @@ Do not use bold markdown asterisks or headings. Return only the three distinct p
     }
     
     // Fallback splitting on single newline if double newline not present
-    const singleParts = result.split('\n').map(p => p.trim()).filter(p => p.length > 0);
+    const singleParts = result.split('\n').map(p => cleanText(p)).filter(p => p.length > 0);
     return {
       what: singleParts[0] || "ಪೂಜಾ ಮಹಾ ಸಂಕಲ್ಪವು ಸಕಲ ಇಷ್ಟಾರ್ಥಗಳನ್ನು ಸಿದ್ಧಿಗೊಳಿಸುವ ಪರಮ ಪವಿತ್ರ ಆರಾಧನೆಯಾಗಿದೆ.",
       why: singleParts[1] || singleParts[0] || "ಜಾತಕ ದೋಷಗಳ ಶಮನ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಶಾಂತಿ-ಸಮೃದ್ಧಿಗಾಗಿ ಈ ಸೇವೆಯನ್ನು ಸಲ್ಲಿಸಲಾಗುತ್ತದೆ.",

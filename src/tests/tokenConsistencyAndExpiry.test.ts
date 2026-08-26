@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { encodeDevoteeToken, decodeDevoteeToken } from "../utils/tokenCipher";
-import { generateSevaICalendarString, generateGoogleCalendarUrl } from "../features/seva/icsCalendarGenerator";
+import { generateSevaICalendarString, generateGoogleCalendarUrl, calculateDeterministicRhythmDay } from "../features/seva/icsCalendarGenerator";
+import { tithiLabel, tithiOnlyLabel, pakshaLabel } from "../features/seva/sevaPresentation";
 import type { RhythmDay } from "../core/DailyRhythmEngine";
 
 describe("Devotee 90-Day Token Consistency & Expiry Engine", () => {
@@ -238,5 +239,29 @@ describe("Devotee 90-Day Token Consistency & Expiry Engine", () => {
     // Verify parent series UID grouping link for 1-click delete series
     expect(icsContent).toContain("RELATED-TO;RELTYPE=PARENT:baggona-series-");
     expect(icsContent).toContain("X-BAGBONA-SERIES-ID:");
+  });
+
+  it("guarantees 100% Tithi synchronization at 06:00 AM IST between calendar .ics and web sanctum page", () => {
+    // For 2026-08-26 (today)
+    const rhythmDay = calculateDeterministicRhythmDay("2026-08-26", 18, 8, "2026-08-26");
+    expect(rhythmDay.tithiInPaksha).toBe(13); // Trayodashi
+    expect(rhythmDay.paksha).toBe("shukla");
+    
+    expect(tithiLabel(rhythmDay, "kn")).toBe("ಶುಕ್ಲ ಪಕ್ಷ ತ್ರಯೋದಶಿ");
+    expect(tithiOnlyLabel(rhythmDay, "kn")).toBe("ತ್ರಯೋದಶಿ");
+    expect(pakshaLabel(rhythmDay, "kn")).toBe("ಶುಕ್ಲ ಪಕ್ಷ");
+
+    const icsContent = generateSevaICalendarString({
+      days: [rhythmDay],
+      lang: "kn",
+      panditName: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
+      notificationTime: "06:00",
+      personName: "ಭಕ್ತ"
+    });
+
+    // Calendar summary MUST contain "ಶುಕ್ಲ ಪಕ್ಷ - ತ್ರಯೋದಶಿ" and NOT Chaturdashi
+    expect(icsContent).toContain("ಶುಕ್ಲ ಪಕ್ಷ - ತ್ರಯೋದಶಿ");
+    expect(icsContent).not.toContain("ಶುಕ್ಲ ಪಕ್ಷ - ಚತುರ್ದಶಿ");
+    expect(icsContent).toContain("ಶುಕ್ಲ ಪಕ್ಷ ತ್ರಯೋದಶಿ");
   });
 });
