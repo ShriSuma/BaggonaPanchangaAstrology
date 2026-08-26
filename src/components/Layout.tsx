@@ -13,6 +13,7 @@ import { useKundliViewerStore } from "../stores/kundliViewerStore";
 import { useAuthStore } from "../features/auth/authStore";
 import { T, pick } from "../features/seva/sevaLocale";
 import { T_VARAMAHALAKSHMI, pickL5 } from "../features/varamahalakshmi/varamahalakshmiLocale";
+import { T_KAALA_DIKSUCHI } from "../features/kaaladiksuchi/kaaladiksuchiLocale";
 import InstallPrompt from "./InstallPrompt";
 
 type Props = {
@@ -194,6 +195,7 @@ export default function Layout({ children }: Props): JSX.Element {
           <TabButton page="facereading" icon="👤" label={t("nav.facereading", "ಮುಖ ಸಾಮುದ್ರಿಕ ಶಾಸ್ತ್ರ")} onClose={() => setIsDrawerOpen(false)} />
           <TabButton page="maranottara" icon="🪔" label={t("nav.maranottara", "ಮರಣೋತ್ತರ ಹಾಗೂ ಶ್ರಾದ್ಧ ಮಾಸಿಕ")} onClose={() => setIsDrawerOpen(false)} />
           <TabButton page="lifeguidance" icon="🔮" label={t("nav.lifeguidance", "ಪರಿಪೂರ್ಣ ಜೀವನ ಮಾರ್ಗದರ್ಶನ")} onClose={() => setIsDrawerOpen(false)} />
+          <TabButton page="kaaladiksuchi" icon="🧭" label={pickL5(T_KAALA_DIKSUCHI.navTitle, language)} onClose={() => setIsDrawerOpen(false)} />
           <TabButton page="astrogames" icon="🎮" label={language.startsWith("kn") ? "ಜ್ಯೋತಿಷ್ಯ ಖೇಲ ಮಂಡಲ (Astro Games)" : "Astro Games Arena"} onClose={() => setIsDrawerOpen(false)} />
           <TabButton page="varshabavishya" icon="🔮" label={t("varsha.nav", "Varsha")} onClose={() => setIsDrawerOpen(false)} />
           <TabButton page="melapak" icon="💞" label={t("nav.melapak")} onClose={() => setIsDrawerOpen(false)} />

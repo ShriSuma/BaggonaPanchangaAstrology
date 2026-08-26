@@ -22,6 +22,7 @@ import GrahaSpinner from "../components/ui/GrahaSpinner";
 import { displayPanchangValue } from "../i18n/panchangLabels";
 import { resolvePlaceFromPincode } from "../services/locationApi";
 import { T_VARAMAHALAKSHMI, pickL5 } from "../features/varamahalakshmi/varamahalakshmiLocale";
+import { T_KAALA_DIKSUCHI } from "../features/kaaladiksuchi/kaaladiksuchiLocale";
 
 // 1. Starfield Nebula Background component
 const Starfield = () => (
@@ -568,6 +569,36 @@ export default function HomePage(): JSX.Element {
               className="w-full sm:w-auto flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-300 px-4 py-2 text-xs font-bold text-amber-950 shadow hover:from-amber-300 hover:to-amber-200 transition-all transform active:scale-95 whitespace-nowrap"
             >
               <span>ಪ್ರವೇಶಿಸಿ / View Festival Guide</span>
+              <span>→</span>
+            </button>
+          </div>
+        </div>
+
+        {/* 🧭 Featured Innovation: Divya Kaala Diksuchi (No-TOB Astrology & Modern World Navigator) */}
+        <div className="relative overflow-hidden rounded-2xl border-2 border-amber-500/80 bg-gradient-to-r from-amber-950 via-slate-900 to-amber-950 p-4 text-amber-50 shadow-xl">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/20 text-2xl border border-amber-400/30">
+                🧭
+              </span>
+              <div>
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-300">
+                  <span>✨</span> {pickL5(T_KAALA_DIKSUCHI.navTitle, (i18n.language as any) || "kn")}
+                </div>
+                <h3 className="font-serif text-sm sm:text-base font-bold text-amber-100 mt-0.5">
+                  {pickL5(T_KAALA_DIKSUCHI.heroTitle, (i18n.language as any) || "kn")}
+                </h3>
+                <p className="text-[11px] text-amber-200/70 hidden sm:block">
+                  ಜನ್ಮ ಸಮಯವಿಲ್ಲದೆ ನಿಖರ ಗ್ರಹ, ಸಾಮುದ್ರಿಕ ಲಕ್ಷಣ, ಸಂಖ್ಯಾ ಹಾಗೂ ವರ್ತಮಾನ ಜಗತ್ತಿನ ಮುನ್ನಡೆ ರಹಸ್ಯ
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setPage("kaaladiksuchi")}
+              className="w-full sm:w-auto flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 px-4 py-2 text-xs font-bold text-white shadow-lg hover:shadow-xl transition-all transform active:scale-95 whitespace-nowrap"
+            >
+              <span>ಪ್ರವೇಶಿಸಿ / Explore Blueprint</span>
               <span>→</span>
             </button>
           </div>
