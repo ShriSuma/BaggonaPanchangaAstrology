@@ -1615,38 +1615,6 @@ export default function DailyDarshanaPage(): JSX.Element {
             🛕 {dict.kshetraTitle}
           </div>
 
-          {/* 1-Tap 90-Day Calendar Download Button (Hidden when coming from Calendar redirect) */}
-          {!isFromCalendarRedirect && (
-            <div style={{ marginTop: 10 }}>
-              <button
-                onClick={handleDownload90DayIcs}
-                style={{
-                  background: "linear-gradient(135deg, #10B981, #047857)",
-                  color: "#FFFFFF",
-                  border: "1px solid #6EE7B7",
-                  padding: "8px 16px",
-                  borderRadius: 20,
-                  fontSize: 12,
-                  fontWeight: 800,
-                  cursor: "pointer",
-                  boxShadow: "0 4px 12px rgba(16, 185, 129, 0.4)",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 6
-                }}
-              >
-                <span>📅</span>
-                <span>
-                  {downloadedNotice
-                    ? (lang === "kn"
-                        ? `${requestedCalendarDays} ದಿನಗಳ ಪಂಚಾಂಗ ಡೌನ್‌ಲೋಡ್ ಆಗಿದೆ! ಮತ್ತೆ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ`
-                        : `${requestedCalendarDays}-Day Calendar Downloaded! Download Again`)
-                    : downloadIcsLabel}
-                </span>
-              </button>
-            </div>
-          )}
-
           {/* 5-Language Switcher */}
           <div style={{
             display: "flex",
