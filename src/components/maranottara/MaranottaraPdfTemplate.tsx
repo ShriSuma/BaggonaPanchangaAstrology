@@ -117,7 +117,7 @@ export const MaranottaraPdfTemplate: React.FC<MaranottaraPdfTemplateProps> = ({
 
           {/* Footer Page 1 */}
           <div style={{ textAlign: "center", fontSize: "9px", color: "#92400E", marginTop: "6px" }}>
-            ಪುಟ ೧ / ೨ · ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿ ಸನ್ನಿಧಿ · ಶ್ರೀ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (9972339362)
+            ಪುಟ ೧ / ೨ · ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿ ಸನ್ನಿಧಿ · ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (+91 99723 39362)
           </div>
         </div>
       </div>
@@ -220,7 +220,7 @@ export const MaranottaraPdfTemplate: React.FC<MaranottaraPdfTemplateProps> = ({
             }}
           >
             <div style={{ fontSize: "11px", fontWeight: 800 }}>
-              🕉️ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಪ್ರಧಾನ ಅರ್ಚಕರು — ಶ್ರೀ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ · ಮೊಬೈಲ್: +91 99723 39362
+              🕉️ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಪ್ರಧಾನ ಅರ್ಚಕರು — ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ · ಮೊಬೈಲ್: +91 99723 39362
             </div>
             <div style={{ fontSize: "9px", color: "#FDE68A", marginTop: "2px" }}>
               ನಾರಾಯಣಬಲಿ, ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ, ಅಸ್ಥಿ ವಿಸರ್ಜನೆ ಹಾಗೂ ಗೋತ್ರ ಸಂಕಲ್ಪ ಸೇವೆಗಳಿಗೆ ನೇರ ಸಮಾಲೋಚನೆ

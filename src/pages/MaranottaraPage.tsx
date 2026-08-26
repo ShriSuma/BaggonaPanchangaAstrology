@@ -5,6 +5,7 @@ import { T_MARANOTTARA, MaranottaraLang } from "../features/maranottara/maranott
 import { useAppStore } from "../stores/appStore";
 import { MaranottaraPdfTemplate } from "../components/maranottara/MaranottaraPdfTemplate";
 import { sanitizeAIText } from "../utils/textFormatter";
+import AudioPlayerButton from "../components/ui/AudioPlayerButton";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
@@ -248,9 +249,14 @@ export const MaranottaraPage: React.FC = () => {
 
             {/* Date of Demise */}
             <div>
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-300 mb-1.5">
-                {T_MARANOTTARA.formDobDeath[selectedLang]}
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-300">
+                  {T_MARANOTTARA.formDobDeath[selectedLang]}
+                </label>
+                <span className="text-[10px] px-2 py-0.5 rounded-md bg-amber-200/80 dark:bg-amber-900/60 text-amber-900 dark:text-amber-200 font-extrabold">
+                  IST (UTC+05:30)
+                </span>
+              </div>
               <input
                 type="date"
                 required
@@ -262,9 +268,14 @@ export const MaranottaraPage: React.FC = () => {
 
             {/* Time of Demise (Optional) */}
             <div>
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-300 mb-1.5">
-                {T_MARANOTTARA.formTimeDeath[selectedLang]}
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-300">
+                  {T_MARANOTTARA.formTimeDeath[selectedLang]}
+                </label>
+                <span className="text-[10px] text-amber-700 dark:text-amber-400 font-bold">
+                  {isKn ? "ಐಚ್ಛಿಕ (IST)" : "Optional (IST)"}
+                </span>
+              </div>
               <input
                 type="time"
                 value={demiseTime}
@@ -358,14 +369,23 @@ export const MaranottaraPage: React.FC = () => {
                 </p>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={handleDownloadPdf}
-              disabled={isGeneratingPdf}
-              className="w-full sm:w-auto px-5 py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white text-xs font-black rounded-xl shadow-lg transition flex items-center justify-center gap-2"
-            >
-              <span>{isGeneratingPdf ? (isKn ? "⌛ PDF ರಚನೆಯಾಗುತ್ತಿದೆ..." : "Generating PDF...") : T_MARANOTTARA.downloadPdfBtn[selectedLang]}</span>
-            </button>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              {result.aiConsolationText && (
+                <AudioPlayerButton
+                  text={result.aiConsolationText}
+                  lang={selectedLang === "kn" ? "kn-IN" : selectedLang === "hi" ? "hi-IN" : selectedLang === "te" ? "te-IN" : selectedLang === "ta" ? "ta-IN" : "en-US"}
+                  className="px-4 py-3 bg-amber-500 hover:bg-amber-400 text-amber-950 font-black rounded-xl text-xs shadow-lg transition cursor-pointer"
+                />
+              )}
+              <button
+                type="button"
+                onClick={handleDownloadPdf}
+                disabled={isGeneratingPdf}
+                className="w-full sm:w-auto px-5 py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white text-xs font-black rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>{isGeneratingPdf ? (isKn ? "⌛ PDF ರಚನೆಯಾಗುತ್ತಿದೆ..." : "Generating PDF...") : T_MARANOTTARA.downloadPdfBtn[selectedLang]}</span>
+              </button>
+            </div>
           </div>
 
           {/* Navigation Tabs Bar with touch scroll */}
@@ -718,13 +738,22 @@ export const MaranottaraPage: React.FC = () => {
           {/* TAB 8: AI Consolation & Shanti Mantras */}
           {activeTab === "consolation" && (
             <Card className="border-2 border-amber-300 dark:border-amber-500/40 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-xl rounded-3xl space-y-5">
-              <div>
-                <span className="text-xs font-extrabold uppercase tracking-wider text-amber-900 dark:text-amber-300">
-                  ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ದೈವಿಕ ಸದ್ಗತಿ ಸಂದೇಶ
-                </span>
-                <h3 className="text-base sm:text-lg font-black text-slate-950 dark:text-white mt-1">
-                  ✨ ದೈವಿಕ ಸಾಂತ್ವನ ಸಂದೇಶ & ಶಾಂತಿ ಮಂತ್ರಗಳು
-                </h3>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div>
+                  <span className="text-xs font-extrabold uppercase tracking-wider text-amber-900 dark:text-amber-300">
+                    ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ದೈವಿಕ ಸದ್ಗತಿ ಸಂದೇಶ
+                  </span>
+                  <h3 className="text-base sm:text-lg font-black text-slate-950 dark:text-white mt-1">
+                    ✨ ದೈವಿಕ ಸಾಂತ್ವನ ಸಂದೇಶ & ಶಾಂತಿ ಮಂತ್ರಗಳು
+                  </h3>
+                </div>
+                {result.aiConsolationText && (
+                  <AudioPlayerButton
+                    text={result.aiConsolationText}
+                    lang={selectedLang === "kn" ? "kn-IN" : selectedLang === "hi" ? "hi-IN" : selectedLang === "te" ? "te-IN" : selectedLang === "ta" ? "ta-IN" : "en-US"}
+                    className="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-amber-950 font-black rounded-xl text-xs shadow-lg transition cursor-pointer"
+                  />
+                )}
               </div>
 
               {result.aiConsolationText && (
