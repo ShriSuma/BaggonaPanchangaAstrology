@@ -134,6 +134,13 @@ export const T_DRAWER_NAV: Record<string, Record<SupportedNavLang, string>> = {
     te: "దివ్య కాల దిక్సూచి & ఆధునిక శక్తి",
     ta: "திவ்ய கால வழிகாட்டி & நவீன சக்தி"
   },
+  ayursanjeevini: {
+    kn: "ಆಯುರ್-ಸಂಜೀವಿನಿ & ಕರ್ಮ ಮೋಕ್ಷ ಚಕ್ರ",
+    en: "Ayur Sanjeevini & Karma Moksha",
+    hi: "आयुर्-संजीवनी एवं कर्म मोक्ष चक्र",
+    te: "ఆయుర్-సంజీవిని & కర్మ మోక్ష చక్రం",
+    ta: "ஆயுர் சஞ்சீவினி & கர்ம மோக்ஷம்"
+  },
   astrogames: {
     kn: "ಜ್ಯೋತಿಷ್ಯ ಖೇಲ ಮಂಡಲ",
     en: "Astro Games Arena",

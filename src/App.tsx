@@ -24,6 +24,7 @@ import { HindinaJanmaPage } from "./pages/HindinaJanmaPage";
 import { LifeGuidancePage } from "./pages/LifeGuidancePage";
 import AstroGamesPage from "./pages/AstroGamesPage";
 import { DivyaKaalaDiksuchiPage } from "./pages/DivyaKaalaDiksuchiPage";
+import { AyurSanjeeviniPage } from "./pages/AyurSanjeeviniPage";
 import { useAppStore } from "./stores/appStore";
 import { useAuthStore } from "./features/auth/authStore";
 import { LoginPage } from "./components/auth/LoginPage";
@@ -124,6 +125,7 @@ export default function App(): JSX.Element {
         {currentPage === "lifeguidance" && <LifeGuidancePage />}
         {currentPage === "astrogames" && <AstroGamesPage />}
         {currentPage === "kaaladiksuchi" && <DivyaKaalaDiksuchiPage />}
+        {currentPage === "ayursanjeevini" && <AyurSanjeeviniPage />}
       </Layout>
     </ErrorBoundary>
   );

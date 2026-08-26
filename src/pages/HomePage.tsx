@@ -15,7 +15,7 @@ import { resolvePanchangCoords } from "../core/resolvePanchangCoords";
 import { analytics } from "../core/analytics";
 import { getPanchangCache, savePanchangCache } from "../db/indexedDb";
 import type { PanchangOutput, RahuKaalOutput } from "../core/AstroTypes";
-import { useAppStore } from "../stores/appStore";
+import { useAppStore, type SupportedLanguage } from "../stores/appStore";
 import MapLocationPicker from "../components/MapLocationPicker";
 import Card from "../components/ui/Card";
 import GrahaSpinner from "../components/ui/GrahaSpinner";
@@ -24,6 +24,7 @@ import { resolvePlaceFromPincode } from "../services/locationApi";
 import { T_VARAMAHALAKSHMI, pickL5 } from "../features/varamahalakshmi/varamahalakshmiLocale";
 import { T_KAALA_DIKSUCHI } from "../features/kaaladiksuchi/kaaladiksuchiLocale";
 import { T_HINDINA_JANMA } from "../features/hindinajanma/hindinaJanmaLocale";
+import { T_AYUR_SANJEEVINI } from "../features/ayursanjeevini/ayurSanjeeviniLocale";
 
 // 1. Starfield Nebula Background component
 const Starfield = () => (
@@ -630,6 +631,38 @@ export default function HomePage(): JSX.Element {
               className="w-full sm:w-auto flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 px-4 py-2 text-xs font-bold text-white shadow-lg hover:shadow-xl transition-all transform active:scale-95 whitespace-nowrap"
             >
               <span>ಪ್ರವೇಶಿಸಿ / Past Life Mirror</span>
+              <span>→</span>
+            </button>
+          </div>
+        </div>
+
+        {/* 🛡️ Featured Innovation: Ayur Sanjeevini & Karma Moksha Chakra */}
+        <div className="relative overflow-hidden rounded-2xl border-2 border-amber-400/90 bg-gradient-to-r from-amber-950 via-amber-900 to-amber-950 p-4 text-amber-50 shadow-xl">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/30 text-2xl border border-amber-400/50">
+                🛡️
+              </span>
+              <div>
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/30 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-300">
+                  <span>✨</span> {pickL5(T_AYUR_SANJEEVINI.pageTitle, (i18n.language as SupportedLanguage) || "kn")}
+                </div>
+                <h3 className="font-serif text-sm sm:text-base font-bold text-amber-100 mt-0.5">
+                  {i18n.language === "kn"
+                    ? "ವೈದಿಕ ಜನ್ಮ ಆಯುರ್ದಾಯ, ಮಹಾಮೃತ್ಯುಂಜಯ ಸಂಜೀವಿನಿ ರಕ್ಷಾ & ಪಿತೃ ಮೋಕ್ಷ ಸದ್ಗತಿ"
+                    : "Vedic Ayurdaya, Maha Mrityunjaya Shield & Soul Moksha Realm"}
+                </h3>
+                <p className="text-[11px] text-amber-200/80 hidden sm:block">
+                  ಜನ್ಮ & ಮರಣ ದ್ವಿಮುಖ ಪೋರ್ಟಲ್, ಗಂಡಾಂತ-ಮಾರಕ ಶಮನ, ಕರ್ಮ ವಿಪಾಕ ರೋಗ ಕಾರಣಗಳು ಹಾಗೂ ಧ್ವನಿ ಮೈಕ್ ಇನ್‌ಪುಟ್
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setPage("ayursanjeevini")}
+              className="w-full sm:w-auto flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 px-4 py-2 text-xs font-bold text-white shadow-lg hover:shadow-xl transition-all transform active:scale-95 whitespace-nowrap"
+            >
+              <span>ಪ್ರವೇಶಿಸಿ / Sanjeevini Shield</span>
               <span>→</span>
             </button>
           </div>
