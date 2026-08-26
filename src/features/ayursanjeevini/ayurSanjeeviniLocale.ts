@@ -3,26 +3,41 @@ import type { SupportedLanguage } from "../../stores/appStore";
 export interface AyurSanjeeviniDictionary {
   pageTitle: Record<SupportedLanguage, string>;
   pageSubtitle: Record<SupportedLanguage, string>;
-  modeJanmaTitle: Record<SupportedLanguage, string>;
-  modeJanmaDesc: Record<SupportedLanguage, string>;
-  modeMrityuTitle: Record<SupportedLanguage, string>;
-  modeMrityuDesc: Record<SupportedLanguage, string>;
-  formHeader: Record<SupportedLanguage, string>;
-  formName: Record<SupportedLanguage, string>;
-  formDob: Record<SupportedLanguage, string>;
-  formTob: Record<SupportedLanguage, string>;
-  formPob: Record<SupportedLanguage, string>;
+  modeJananaTitle: Record<SupportedLanguage, string>;
+  modeJananaDesc: Record<SupportedLanguage, string>;
+  modeMaranaTitle: Record<SupportedLanguage, string>;
+  modeMaranaDesc: Record<SupportedLanguage, string>;
+  formHeaderJanana: Record<SupportedLanguage, string>;
+  formHeaderMarana: Record<SupportedLanguage, string>;
+  formNameJanana: Record<SupportedLanguage, string>;
+  formNameMarana: Record<SupportedLanguage, string>;
+  formDobJanana: Record<SupportedLanguage, string>;
+  formDobMarana: Record<SupportedLanguage, string>;
+  formTobJanana: Record<SupportedLanguage, string>;
+  formTobMarana: Record<SupportedLanguage, string>;
+  formPobJanana: Record<SupportedLanguage, string>;
+  formPobMarana: Record<SupportedLanguage, string>;
   formGotra: Record<SupportedLanguage, string>;
-  formConcern: Record<SupportedLanguage, string>;
-  submitBtn: Record<SupportedLanguage, string>;
-  downloadPdfBtn: Record<SupportedLanguage, string>;
-  tabs: {
+  formConcernJanana: Record<SupportedLanguage, string>;
+  formConcernMarana: Record<SupportedLanguage, string>;
+  submitBtnJanana: Record<SupportedLanguage, string>;
+  submitBtnMarana: Record<SupportedLanguage, string>;
+  downloadPdfBtnJanana: Record<SupportedLanguage, string>;
+  downloadPdfBtnMarana: Record<SupportedLanguage, string>;
+  jananaTabs: {
     longevity: Record<SupportedLanguage, string>;
+    gandanta: Record<SupportedLanguage, string>;
     maraka: Record<SupportedLanguage, string>;
     shield: Record<SupportedLanguage, string>;
     karmaVipaka: Record<SupportedLanguage, string>;
+    gokarna: Record<SupportedLanguage, string>;
+  };
+  maranaTabs: {
     mokshaGati: Record<SupportedLanguage, string>;
-    pitru: Record<SupportedLanguage, string>;
+    transitionDosha: Record<SupportedLanguage, string>;
+    pitruRina: Record<SupportedLanguage, string>;
+    tripindi: Record<SupportedLanguage, string>;
+    vamshaShield: Record<SupportedLanguage, string>;
     gokarna: Record<SupportedLanguage, string>;
   };
   longevityClasses: {
@@ -50,74 +65,109 @@ export const T_AYUR_SANJEEVINI: AyurSanjeeviniDictionary = {
     ta: "ஆயுர் சஞ்சீவினி & கர்ம மோக்ஷ சக்கரம்"
   },
   pageSubtitle: {
-    kn: "ವೈದಿಕ ಜನ್ಮ ಆಯುರ್ದಾಯ, ಮಹಾಮೃತ್ಯುಂಜಯ ಸಂಜೀವಿನಿ ರಕ್ಷಾ, ಗಂಡಾಂತ-ಮಾರಕ ಶಮನ & ಪಿತೃ ಸದ್ಗತಿ ಮೋಕ್ಷ ದರ್ಶನ",
-    en: "Vedic Ayurdaya Longevity, Maha Mrityunjaya Sanjeevini Shield, Maraka Neutralization & Soul Moksha Realm",
-    hi: "वैदिक आयुर्दाय दीर्घायु, महामृत्युंजय संजीवनी कवच, मारक निवारण एवं जीवात्मा मोक्ष गति निर्णय",
-    te: "వైదిక ఆయుర్దాయ దీర్ఘాయుష్షు, మహామృత్యుంజయ సంజీవిని కవచం, మారక నివారణ & మోక్ష గతి దర్శనం",
-    ta: "வேத ஆயுர்தாய நீண்ட ஆயுள், மகா மிருத்யுஞ்சய சஞ்சீவினி கவசம், மாரக பரிகாரம் & ஆன்ம மோக்ஷ கதி"
+    kn: "ವೈದಿಕ ಜನನ ಆಯುರ್ದಾಯ & ಮಹಾಮೃತ್ಯುಂಜಯ ರಕ್ಷೆ — ಮರಣ ನಿರ್ಯಾಣ ನಕ್ಷತ್ರ, ಸದ್ಗತಿ ಲೋಕ & ಪಿತೃ ಮೋಕ್ಷ ಸಂಕಲ್ಪ",
+    en: "Vedic Birth Ayurdaya & Sanjeevini Protection — Demise Transition, Soul Moksha Realm & Pitru Guidance",
+    hi: "वैदिक जन्म आयुर्दाय एवं संजीवनी रक्षा — देहावसान नक्षत्र, जीवात्मा सद्गति एवं पितृ मोक्ष संकल्प",
+    te: "వైదిక జనన ఆయుర్దాయ & సంజీవిని రక్షణ — మరణ నక్షత్ర శాంతి, సద్గతి లోక నిర్ణయం & పితృ మోక్షం",
+    ta: "வேத பிறப்பு ஆயுர்தாய & சஞ்சீவினி பாதுகாப்பு — மறைவு நட்சத்திர ஆய்வு, ஆன்ம சத்கதி & பித்ரு மோக்ஷம்"
   },
-  modeJanmaTitle: {
-    kn: "🌱 ಜನ್ಮ & ಆಯುರ್ ಸಂಜೀವಿನಿ ರಕ್ಷಾ (Birth & Longevity)",
-    en: "🌱 Birth & Longevity Sanjeevini Shield",
-    hi: "🌱 जन्म एवं आयुर् संजीवनी रक्षा (जीवन व स्वास्थ्य)",
-    te: "🌱 జన్మ & ఆయుర్ సంజీవిని రక్ష (జీవితం & ఆరోగ్యం)",
-    ta: "🌱 பிறப்பு & ஆயுள் சஞ்சீவினி ரக்ஷை (வாழ்வு & நலம்)"
+  modeJananaTitle: {
+    kn: "🌱 ಜನನ & ಆಯುರ್ ಸಂಜೀವಿನಿ (Birth & Longevity)",
+    en: "🌱 Birth & Longevity (Janana Portal)",
+    hi: "🌱 जन्म एवं आयुर् संजीवनी (जीवन व स्वास्थ्य)",
+    te: "🌱 జనన & ఆయుర్ సంజీవిని (జీవితం & ఆరోగ్యం)",
+    ta: "🌱 பிறப்பு & ஆயுள் சஞ்சீவினி (வாழ்வு & நலம்)"
   },
-  modeJanmaDesc: {
-    kn: "ಜನ್ಮ ಕುಂಡಲಿ ಆಧಾರಿತ ಆಯುರ್ದಾಯ ಗಣನೆ, ಗಂಡಾಂತ ಪರಿಶೀಲನೆ, ಮಾರಕ-ಬಾಧಕ ಶಮನ ಹಾಗೂ ಸಂಜೀವಿನಿ ರಕ್ಷಾ ಕವಚ.",
-    en: "Ayurdaya longevity estimation, Gandanta diagnostics, Maraka/Badhaka mitigation, and Sanjeevini health shield.",
-    hi: "जन्म कुंडली आधारित आयुर्दाय गणना, गंडात परीक्षण, मारक-बाधक शमन एवं संजीवनी रक्षा कवच।",
-    te: "జన్మ కుండలి ఆధారిత ఆయుర్దాయ గణన, గండాంత విశ్లేషణ, మారక-బాధక శాంతి & సంజీవిని రక్షణ.",
-    ta: "பிறப்பு ஜாதக ஆயுர்தாய கணக்கீடு, கண்டாந்த சோதனை, மாரக-பாதக சாந்தி மற்றும் சஞ்சீவினி கவசம்."
+  modeJananaDesc: {
+    kn: "೧೦೦% ಜನನ ಆಧಾರಿತ ಆಯುರ್ದಾಯ ಗಣನೆ, ಪ್ರಾಣಶಕ್ತಿ ಸ್ಕೋರ್, ಗಂಡಾಂತ-ಬಾಲಾರಿಷ್ಟ ಪರಿಶೀಲನೆ, ಮಾರಕ ಶಮನ ಹಾಗೂ ಮೃತ್ಯುಂಜಯ ಕವಚ.",
+    en: "100% Birth-exclusive Ayurdaya calculations, Vitality score, Gandanta/Balarishta diagnostics, and Maha Mrityunjaya Shield.",
+    hi: "शत-प्रतिशत जन्म आधारित आयुर्दाय गणना, प्राणशक्ति स्कोर, गंडात परीक्षण, मारक शमन एवं महामृत्युंजय रक्षा कवच।",
+    te: "శతశాతం జన్మ ఆధారిత ఆయుర్దాయ గణన, ప్రాణశక్తి స్కోరు, గండాంత పరీక్ష, మారక శాంతి & మహామృత్యుంజయ కవచం.",
+    ta: "முழுக்க முழுக்க பிறப்பு அடிப்படையிலான ஆயுர்தாய கணக்கீடு, பிராண சக்தி, கண்டாந்த பரிகாரம் & மிருத்யுஞ்சய கவசம்."
   },
-  modeMrityuTitle: {
-    kn: "🕊️ ಮೃತ್ಯು, ಸದ್ಗತಿ & ಪಿತೃ ಮೋಕ್ಷ (Soul Transition & Moksha)",
-    en: "🕊️ Soul Transition, Pitru Karma & Moksha Realm",
-    hi: "🕊️ मृत्यु, सद्गति एवं पितृ मोक्ष (परलोक व शांति)",
-    te: "🕊️ మృత్యువు, సద్గతి & పితృ మోక్షం (పరలోక శాంతి)",
-    ta: "🕊️ மறைவு, சத்கதி & பித்ரு மோக்ஷம் (பரலோக சாந்தி)"
+  modeMaranaTitle: {
+    kn: "🕊️ ಮರಣ & ಸದ್ಗತಿ ಮೋಕ್ಷ (Demise & Soul Moksha)",
+    en: "🕊️ Demise & Soul Moksha (Marana Portal)",
+    hi: "🕊️ मरण एवं सद्गति मोक्ष (परलोक व पितृ शांति)",
+    te: "🕊️ మరణం & సద్గతి మోక్షం (పరలోక శాంతి)",
+    ta: "🕊️ மறைவு & சத்கதி மோக்ஷம் (பரலோக சாந்தி)"
   },
-  modeMrityuDesc: {
-    kn: "ಜೀವಿಯ ಪ್ರಯಾಣದ ನಕ್ಷತ್ರ-ತಿಥಿ ದೋಷ ವಿಶ್ಲೇಷಣೆ, ಸದ್ಗತಿ ಲೋಕ ನಿರ್ಣಯ, ತ್ರಿಪಿಂಡಿ/ನಾರಾಯಣ ಬಲಿ ಮಾರ್ಗದರ್ಶಿ & ವಂಶ ರಕ್ಷಾ.",
-    en: "Soul transition Nakshatra/Tithi analysis, Loka destination, Tripindi/Narayana Bali guidance, and ancestral blessings.",
-    hi: "जीवात्मा महाप्रयाण नक्षत्र-तिथि दोष विश्लेषण, सद्गति लोक निर्णय, त्रिपिंडी/नारायण बलि मार्गदर्शिका।",
-    te: "జీవాత్మ ప్రయాణ నక్షత్ర-తిథి దోష విశ్లేషణ, సద్గతి లోక నిర్ణయం, త్రిపిండి/నారాయణ బలి మార్గదర్శనం.",
-    ta: "ஆன்ம மறைவு நட்சத்திர-திதி தோஷ ஆய்வு, சத்கதி லோக நிர்ணயம், திரிபிண்டி/நாராயண பலி வழிகாட்டல்."
+  modeMaranaDesc: {
+    kn: "೧೦೦% ಮರಣ ಆಧಾರಿತ ನಿರ್ಯಾಣ ನಕ್ಷತ್ರ-ಪಂಚಕ ವಿಶ್ಲೇಷಣೆ, ಸದ್ಗತಿ ಲೋಕ ನಿರ್ಣಯ, ತ್ರಿಪಿಂಡಿ/ನಾರಾಯಣ ಬಲಿ ಮಾರ್ಗದರ್ಶಿ & ವಂಶ ರಕ್ಷೆ.",
+    en: "100% Demise-exclusive Transition Nakshatra & Panchaka analysis, Soul Loka destination, Tripindi/Narayana Bali guidance, and Descendant Shield.",
+    hi: "शत-प्रतिशत देहावसान आधारित प्रयाण नक्षत्र-पंचक विश्लेषण, सद्गति लोक निर्णय, त्रिपिंडी/नारायण बलि व वंश रक्षा।",
+    te: "శతశాతం మరణ ఆధారిత నిర్యాణ నక్షత్ర-పంచక విశ్లేషణ, సద్గతి లోక నిర్ణయం, త్రిపిండి/నారాయణ బలి & వంశ రక్షణ.",
+    ta: "முழுக்க முழுக்க மறைவு அடிப்படையிலான பஞ்சக ஆய்வு, சத்கதி லோக நிர்ணயம், திரிபிண்டி/நாராயண பலி வழிகாட்டல்."
   },
-  formHeader: {
-    kn: "ದೈವಿಕ ಸಂಜೀವಿನಿ ವಿವರಗಳ ನಮೂದು",
-    en: "Enter Astrological Details for Sanjeevini Analysis",
-    hi: "संजीवनी विश्लेषण हेतु आवश्यक ज्योतिषीय विवरण दर्ज करें",
-    te: "సంజీవిని విశ్లేషణ కోసం జ్యోతిష్య వివరాలు నమోదు చేయండి",
-    ta: "சஞ்சீவினி ஆய்விற்கான ஜோதிட விபரங்களை உள்ளிடவும்"
+  formHeaderJanana: {
+    kn: "ಜನನ ಜಾತಕ & ಆಯುರ್ ಸಂಜೀವಿನಿ ವಿವರಗಳು",
+    en: "Enter Birth Details for Ayur Sanjeevini Analysis",
+    hi: "जन्म कुंडली एवं संजीवनी विवरण दर्ज करें",
+    te: "జన్మ జాతక & సంజీవిని వివరాలు నమోదు చేయండి",
+    ta: "பிறப்பு ஜாதக & சஞ்சீவினி விபரங்களை உள்ளிடவும்"
   },
-  formName: {
+  formHeaderMarana: {
+    kn: "ಮರಣ ನಿರ್ಯಾಣ & ಸದ್ಗತಿ ಮೋಕ್ಷ ವಿವರಗಳು",
+    en: "Enter Demise Details for Soul Moksha Analysis",
+    hi: "देहावसान एवं सद्गति मोक्ष विवरण दर्ज करें",
+    te: "మరణ నిర్యాణ & సద్గతి మోక్ష వివరాలు నమోదు చేయండి",
+    ta: "மறைவு & சத்கதி மோக்ஷ விபரங்களை உள்ளிடவும்"
+  },
+  formNameJanana: {
     kn: "ವ್ಯಕ್ತಿಯ ಪೂರ್ಣ ಹೆಸರು",
-    en: "Full Name of Person / Soul",
-    hi: "व्यक्ति / पुण्यात्मा का पूरा नाम",
-    te: "వ్యక్తి / పుణ్యాత్మ పూర్తి పేరు",
-    ta: "நபரின் / புண்ணிய ஆன்மாவின் முழுப் பெயர்"
+    en: "Full Name of Person",
+    hi: "व्यक्ति का पूरा नाम",
+    te: "వ్యక్తి పూర్తి పేరు",
+    ta: "நபரின் முழுப் பெயர்"
   },
-  formDob: {
-    kn: "ದಿನಾಂಕ (ಜನ್ಮ / ಮರಣ ದಿನಾಂಕ)",
-    en: "Date (Birth Date / Demise Date)",
-    hi: "दिनांक (जन्म तिथि / देहावसान तिथि)",
-    te: "తేదీ (జన్మ తేదీ / పరమపదించిన తేదీ)",
-    ta: "தேதி (பிறந்த தேதி / மறைந்த தேதி)"
+  formNameMarana: {
+    kn: "ದಿವಂಗತ ಪುಣ್ಯಾತ್ಮರ ಹೆಸರು",
+    en: "Name of Departed Soul",
+    hi: "दिवंगत पुण्यात्मा का नाम",
+    te: "దివంగత పుణ్యాత్మ పేరు",
+    ta: "மறைந்த புண்ணிய ஆன்மாவின் பெயர்"
   },
-  formTob: {
-    kn: "ಸಮಯ (ಖಚಿತತೆಗಾಗಿ)",
-    en: "Time (Exact for Lagnabala)",
-    hi: "समय (लग्न बल हेतु सटीक समय)",
-    te: "సమయం (లగ్న బలం కొరకు ఖచ్చిత సమయం)",
-    ta: "நேரம் (லக்ன பலத்திற்கு துல்லிய நேரம்)"
+  formDobJanana: {
+    kn: "ಹುಟ್ಟಿದ ದಿನಾಂಕ (Date of Birth)",
+    en: "Date of Birth (DOB)",
+    hi: "जन्म तिथि (Date of Birth)",
+    te: "జన్మ తేదీ (Date of Birth)",
+    ta: "பிறந்த தேதி (Date of Birth)"
   },
-  formPob: {
-    kn: "ಸ್ಥಳ ಅಥವಾ ಪಿನ್‌ಕೋಡ್ (ಗೋಕರ್ಣ / ನಿಮ್ಮ ಊರು)",
-    en: "Place or Pin Code (e.g. 581326 Gokarna)",
-    hi: "स्थान अथवा पिनकोड (उदा. 581326 गोकर्ण)",
-    te: "స్థలము లేదా పిన్‌కోడ్ (ఉదా. 581326 గోకర్ణ)",
-    ta: "இடம் அல்லது பின்கோடு (எ.கா. 581326 கோகர்ணம்)"
+  formDobMarana: {
+    kn: "ಮರಣ / ನಿರ್ಯಾಣ ದಿನಾಂಕ (Date of Demise)",
+    en: "Date of Demise / Departure",
+    hi: "देहावसान तिथि (Date of Demise)",
+    te: "పరమపదించిన తేదీ (Date of Demise)",
+    ta: "மறைந்த தேதி (Date of Demise)"
+  },
+  formTobJanana: {
+    kn: "ಹುಟ್ಟಿದ ಸಮಯ (Time of Birth)",
+    en: "Time of Birth (Exact for Lagna)",
+    hi: "जन्म समय (Time of Birth)",
+    te: "జన్మ సమయం (Time of Birth)",
+    ta: "பிறந்த நேரம் (Time of Birth)"
+  },
+  formTobMarana: {
+    kn: "ಮರಣ ಕಾಲದ ಸಮಯ (Time of Departure)",
+    en: "Time of Departure (For Transition Lagnabala)",
+    hi: "देहावसान समय (Time of Departure)",
+    te: "నిర్యాణ సమయం (Time of Departure)",
+    ta: "மறைந்த நேரம் (Time of Departure)"
+  },
+  formPobJanana: {
+    kn: "ಹುಟ್ಟಿದ ಸ್ಥಳ ಅಥವಾ ಪಿನ್‌ಕೋಡ್",
+    en: "Place of Birth or Pin Code",
+    hi: "जन्म स्थान अथवा पिनकोड",
+    te: "జన్మ స్థలము లేదా పిన్‌కోడ్",
+    ta: "பிறந்த இடம் அல்லது பின்கோடு"
+  },
+  formPobMarana: {
+    kn: "ಮರಣ ಹೊಂದಿದ ಸ್ಥಳ ಅಥವಾ ಪಿನ್‌ಕೋಡ್",
+    en: "Place of Departure or Pin Code",
+    hi: "देहावसान स्थान अथवा पिनकोड",
+    te: "నిర్యాణ స్థలము లేదా పిన్‌కోడ్",
+    ta: "மறைந்த இடம் அல்லது பின்கோடு"
   },
   formGotra: {
     kn: "ಗೋತ್ರ / ನಕ್ಷತ್ರ (ಲಭ್ಯವಿದ್ದರೆ)",
@@ -126,28 +176,49 @@ export const T_AYUR_SANJEEVINI: AyurSanjeeviniDictionary = {
     te: "గోత్రము / నక్షత్రం (అందుబాటులో ఉంటే)",
     ta: "கோத்ரம் / நட்சத்திரம் (தெரிந்தால்)"
   },
-  formConcern: {
-    kn: "ಆರೋಗ್ಯ, ಆಯುಷ್ಯ ಅಥವಾ ಪಿತೃ ಶಾಂತಿಗೆ ಸಂಬಂಧಿಸಿದ ನಿರ್ದಿಷ್ಟ ಪ್ರಶ್ನೆ",
-    en: "Specific Health, Longevity or Ancestral Peace Concern",
-    hi: "स्वास्थ्य, दीर्घायु अथवा पितृ शांति संबंधी विशिष्ट प्रश्न",
-    te: "ఆరోగ్యం, ఆయుష్షు లేదా పితృ శాంతికి సంబంధించిన ప్రశ్న",
-    ta: "ஆரோக்கியம், ஆயுள் அல்லது பித்ரு சாந்தி குறித்த கேள்வி"
+  formConcernJanana: {
+    kn: "ಆರೋಗ್ಯ, ದೀರ್ಘಾಯುಷ್ಯ ಅಥವಾ ಯೋಗಕ್ಷೇಮದ ನಿರ್ದಿಷ್ಟ ಪ್ರಶ್ನೆ",
+    en: "Specific Health, Longevity or Vitality Question",
+    hi: "स्वास्थ्य, दीर्घायु अथवा आरोग्य संबंधी विशिष्ट प्रश्न",
+    te: "ఆరోగ్యం, దీర్ఘాయుష్షు లేదా యోగక్షేమాల ప్రశ్న",
+    ta: "ஆரோக்கியம், தீர்க்காயுள் குறித்த கேள்வி"
   },
-  submitBtn: {
-    kn: "✨ ದೈವಿಕ ಸಂಜೀವಿನಿ ಚಕ್ರ ಗಣನೆ ಮಾಡಿ",
-    en: "✨ Compute Divine Sanjeevini Chakra",
-    hi: "✨ दिव्य संजीवनी चक्र गणना करें",
-    te: "✨ దివ్య సంజీవిని చక్ర గణన చేయండి",
-    ta: "✨ தெய்வீக சஞ்சீவினி சக்கரத்தை கணக்கிடுங்கள்"
+  formConcernMarana: {
+    kn: "ಪಿತೃ ಶಾಂತಿ, ಸದ್ಗತಿ, ಶ್ರಾದ್ಧ ಅಥವಾ ವಂಶ ರಕ್ಷಣೆಯ ಪ್ರಶ್ನೆ",
+    en: "Specific Pitru Peace, Moksha, Shradha or Descendant Query",
+    hi: "पितृ शांति, सद्गति, श्राद्ध अथवा वंश रक्षा संबंधी प्रश्न",
+    te: "పితృ శాంతి, సద్గతి, శ్రాద్ధం లేదా వంశ రక్షణ ప్రశ్న",
+    ta: "பித்ரு சாந்தி, சத்கதி, ஷ்ராத்தம் அல்லது வம்ச ரக்ஷை கேள்வி"
   },
-  downloadPdfBtn: {
-    kn: "📄 ಪೂರ್ಣ 3-ಪುಟಗಳ A4 ಸಂಜೀವಿನಿ ವರದಿ ಡೌನ್‌ಲೋಡ್ (PDF)",
-    en: "📄 Download 3-Page Luxury A4 Sanjeevini Report (PDF)",
-    hi: "📄 संपूर्ण 3-पृष्ठीय A4 संजीवनी रिपोर्ट डाउनलोड करें (PDF)",
-    te: "📄 సంపూర్ణ 3-పేజీల A4 సంజీవిని నివేదిక డౌన్‌లోడ్ (PDF)",
-    ta: "📄 முழு 3-பக்க A4 சஞ்சீவினி அறிக்கை பதிவிறக்குக (PDF)"
+  submitBtnJanana: {
+    kn: "✨ ಜನನ ಆಯುರ್-ಸಂಜೀವಿನಿ ಚಕ್ರ ಗಣನೆ ಮಾಡಿ",
+    en: "✨ Compute Birth Ayur Sanjeevini Chakra",
+    hi: "✨ जन्म आयुर्-संजीवनी चक्र गणना करें",
+    te: "✨ జన్మ ఆయుర్-సంజీవిని చక్ర గణన చేయండి",
+    ta: "✨ பிறப்பு ஆயுர்-சஞ்சீவினி சக்கரத்தை கணக்கிடுங்கள்"
   },
-  tabs: {
+  submitBtnMarana: {
+    kn: "🕊️ ಮರಣ ಸದ್ಗತಿ & ಪಿತೃ ಮೋಕ್ಷ ಚಕ್ರ ಗಣನೆ ಮಾಡಿ",
+    en: "🕊️ Compute Soul Transition & Moksha Chakra",
+    hi: "🕊️ मरण सद्गति एवं पितृ मोक्ष चक्र गणना करें",
+    te: "🕊️ మరణ సద్గతి & పితృ మోక్ష చక్ర గణన చేయండి",
+    ta: "🕊️ மறைவு சத்கதி & பித்ரு மோக்ஷ சக்கரத்தை கணக்கிடுங்கள்"
+  },
+  downloadPdfBtnJanana: {
+    kn: "📄 ೩-ಪುಟಗಳ ಜನನ ಸಂಜೀವಿನಿ ರಕ್ಷಾ ಪತ್ರಿಕೆ ಡೌನ್‌ಲೋಡ್ (PDF)",
+    en: "📄 Download 3-Page Janana Sanjeevini Report (PDF)",
+    hi: "📄 3-पृष्ठीय जन्म संजीवनी रक्षा पत्रिका डाउनलोड करें (PDF)",
+    te: "📄 3-పేజీల జన్మ సంజీవిని రక్షా పత్రిక డౌన్‌లోడ్ (PDF)",
+    ta: "📄 3-பக்க பிறப்பு சஞ்சீவினி ரக்ஷா அறிக்கை பதிவிறக்குக (PDF)"
+  },
+  downloadPdfBtnMarana: {
+    kn: "📄 ೩-ಪುಟಗಳ ಮರಣ ಸದ್ಗತಿ & ಪಿತೃ ಮೋಕ್ಷ ಪತ್ರಿಕೆ ಡೌನ್‌ಲೋಡ್ (PDF)",
+    en: "📄 Download 3-Page Soul Moksha Report (PDF)",
+    hi: "📄 3-पृष्ठीय मरण सद्गति एवं पितृ मोक्ष पत्रिका डाउनलोड करें (PDF)",
+    te: "📄 3-పేజీల మరణ సద్గతి & పితృ మోక్ష పత్రిక డౌన్‌లోడ్ (PDF)",
+    ta: "📄 3-பக்க மறைவு சத்கதி & பித்ரு மோக்ஷ அறிக்கை பதிவிறக்குக (PDF)"
+  },
+  jananaTabs: {
     longevity: {
       kn: "🌟 ಆಯುರ್ದಾಯ & ಪ್ರಾಣ ಶಕ್ತಿ",
       en: "🌟 Longevity & Vitality Matrix",
@@ -155,8 +226,15 @@ export const T_AYUR_SANJEEVINI: AyurSanjeeviniDictionary = {
       te: "🌟 ఆయుర్దాయం & ప్రాణ శక్తి",
       ta: "🌟 ஆயுர்தாயம் & பிராண சக்தி"
     },
+    gandanta: {
+      kn: "⚖️ ಗಂಡಾಂತ & ಬಾಲಾರಿಷ್ಟ",
+      en: "⚖️ Gandanta & Balarishta Shield",
+      hi: "⚖️ गंडात एवं बालारिष्ट शमन",
+      te: "⚖️ గండాంత & బాలారిష్ట రక్షణ",
+      ta: "⚖️ கண்டாந்த & பாலாரிஷ்ட ரக்ஷை"
+    },
     maraka: {
-      kn: "⚔️ ಮಾರಕ & ಬಾಧಕ ಶಮನ",
+      kn: "⚔️ ಮಾರಕ-ಬಾಧಕ ಶಮನ",
       en: "⚔️ Maraka & Badhaka Diagnostics",
       hi: "⚔️ मारक एवं बाधक शमन",
       te: "⚔️ మారక & బాధక శమనం",
@@ -170,32 +248,62 @@ export const T_AYUR_SANJEEVINI: AyurSanjeeviniDictionary = {
       ta: "🛡️ மகா மிருத்யுஞ்சய கவசம்"
     },
     karmaVipaka: {
-      kn: "🌌 ಕರ್ಮ ವಿಪಾಕ & ರೋಗ ನಿವಾರಣೆ",
-      en: "🌌 Karma Vipaka Root Causes",
-      hi: "🌌 कर्म विपाक एवं रोग कारण",
-      te: "🌌 కర్మ విపాకం & వ్యాధి కారణం",
-      ta: "🌌 கர்ம விபாகம் & நோய் காரணம்"
+      kn: "🌌 ಕರ್ಮ ವಿಪಾಕ & ಆರೋಗ್ಯ",
+      en: "🌌 Karma Vipaka Health Causes",
+      hi: "🌌 कर्म विपाक एवं आरोग्य कारण",
+      te: "🌌 కర్మ విపాకం & ఆరోగ్య కారణం",
+      ta: "🌌 கர்ம விபாகம் & நல்வாழ்வு"
     },
+    gokarna: {
+      kn: "🕉️ ಗೋಕರ್ಣ ಆಯುಷ್ಯ ಹೋಮ",
+      en: "🕉️ Gokarna Ayushya Sevas",
+      hi: "🕉️ गोकर्ण आयुष्य होम व सेवा",
+      te: "🕉️ గోకర్ణ ఆయుష్య హోమం",
+      ta: "🕉️ கோகர்ண ஆயுஷ்ய ஹோமம்"
+    }
+  },
+  maranaTabs: {
     mokshaGati: {
-      kn: "🕊️ ಸದ್ಗತಿ & ಮೋಕ್ಷ ಲೋಕ ನಿರ್ಣಯ",
-      en: "🕊️ Soul Gati & Moksha Realm",
+      kn: "🕊️ ಸದ್ಗತಿ & ಮೋಕ್ಷ ಲೋಕ",
+      en: "🕊️ Soul Destination & Moksha",
       hi: "🕊️ सद्गति एवं मोक्ष लोक निर्णय",
       te: "🕊️ సద్గతి & మోక్ష లోక నిర్ణయం",
       ta: "🕊️ சத்கதி & மோக்ஷ லோக நிர்ணயம்"
     },
-    pitru: {
-      kn: "🪔 ಪಿತೃ ಋಣ & ವಂಶ ಶಾಂತಿ",
-      en: "🪔 Pitru Rina & Ancestral Peace",
-      hi: "🪔 पितृ ऋण एवं वंश शांति",
-      te: "🪔 పితృ రుణం & వంశ శాంతి",
-      ta: "🪔 பித்ரு கடன் & வம்ச சாந்தி"
+    transitionDosha: {
+      kn: "🌌 ನಿರ್ಯಾಣ ನಕ್ಷತ್ರ & ಪಂಚಕ",
+      en: "🌌 Demise Nakshatra & Panchaka",
+      hi: "🌌 देहावसान नक्षत्र एवं पंचक शांति",
+      te: "🌌 నిర్యాణ నక్షత్ర & పంచక శాంతి",
+      ta: "🌌 மறைவு நட்சத்திரம் & பஞ்சக ஆய்வு"
+    },
+    pitruRina: {
+      kn: "🪔 ಪಿತೃ ಋಣ & ೧೬ ಶ್ರಾದ್ಧ ವಿಧಿ",
+      en: "🪔 Pitru Rina & 16 Shradhas",
+      hi: "🪔 पितृ ऋण एवं १६ श्राद्ध विधि",
+      te: "🪔 పితృ రుణం & 16 శ్రాద్ధ విధులు",
+      ta: "🪔 பித்ரு கடன் & 16 ஷ்ராத்த விதி"
+    },
+    tripindi: {
+      kn: "🔱 ತ್ರಿಪಿಂಡಿ & ನಾರಾಯಣ ಬಲಿ",
+      en: "🔱 Tripindi & Narayana Bali",
+      hi: "🔱 त्रिपिंडी श्राद्ध एवं नारायण बलि",
+      te: "🔱 త్రిపిండి శ్రాద్ధం & నారాయణ బలి",
+      ta: "🔱 திரிபிண்டி ஷ்ராத்தம் & நாராயண பலி"
+    },
+    vamshaShield: {
+      kn: "🛡️ ವಂಶ ರಕ್ಷಾ & ಆಶೀರ್ವಾದ",
+      en: "🛡️ Descendant Prosperity Shield",
+      hi: "🛡️ वंश रक्षा एवं पितृ आशीर्वाद",
+      te: "🛡️ వంశ రక్షణ & పితృ ఆశీస్సులు",
+      ta: "🛡️ வம்ச ரக்ஷை & பித்ரு ஆசிகள்"
     },
     gokarna: {
-      kn: "🕉️ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಸಂಕಲ್ಪ",
-      en: "🕉️ Gokarna Sanjeevini Sevas",
-      hi: "🕉️ गोकर्ण क्षेत्र संकल्प व सेवा",
-      te: "🕉️ గోకర్ణ క్షేత్ర సంకల్పం",
-      ta: "🕉️ கோகர்ண க்ஷேத்ர சங்கல்பம்"
+      kn: "🕉️ ಗೋಕರ್ಣ ಪಿತೃ ಮುಕ್ತಿ ಸಂಕಲ್ಪ",
+      en: "🕉️ Gokarna Pitru Mukti Sevas",
+      hi: "🕉️ गोकर्ण पितृ मुक्ति संकल्प",
+      te: "🕉️ గోకర్ణ పితృ ముక్తి సంకల్పం",
+      ta: "🕉️ கோகர்ண பித்ரு முக்தி சங்கல்பம்"
     }
   },
   longevityClasses: {

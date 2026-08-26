@@ -9,48 +9,41 @@ import type {
   AyurSanjeeviniInput,
   AyurSanjeeviniResult
 } from "../features/ayursanjeevini/ayurSanjeeviniTypes";
+import { T_AYUR_SANJEEVINI } from "../features/ayursanjeevini/ayurSanjeeviniLocale";
 import {
   executeAyurSanjeeviniCalculation,
   generateAyurSanjeeviniAINarrative
 } from "../features/ayursanjeevini/ayurSanjeeviniEngine";
-import { T_AYUR_SANJEEVINI } from "../features/ayursanjeevini/ayurSanjeeviniLocale";
 import { AyurSanjeeviniPdfTemplate } from "../components/ayursanjeevini/AyurSanjeeviniPdfTemplate";
 
 export const AyurSanjeeviniPage: React.FC = () => {
-  const { language, geminiApiKey } = useAppStore();
-  const [selectedLang, setSelectedLang] = useState<SupportedLanguage>(language || "kn");
+  const language = useAppStore((state) => state.language) as SupportedLanguage;
 
-  // Form State
   const [mode, setMode] = useState<AyurMode>("janma");
-  const [personName, setPersonName] = useState<string>("");
-  const [dob, setDob] = useState<string>("1992-06-15");
-  const [tob, setTob] = useState<string>("10:30");
-  const [pob, setPob] = useState<string>("Gokarna, Karnataka");
-  const [gotra, setGotra] = useState<string>("Kashyapa");
-  const [customConcern, setCustomConcern] = useState<string>("");
+  const [personName, setPersonName] = useState("");
+  const [dob, setDob] = useState("1992-06-15");
+  const [tob, setTob] = useState("07:30");
+  const [pob, setPob] = useState("581326 Gokarna");
+  const [gotra, setGotra] = useState("Kashyapa");
+  const [customConcern, setCustomConcern] = useState("");
 
-  const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);
-  const [activeMicField, setActiveMicField] = useState<"name" | "place" | "concern" | null>(null);
+  const [activeTab, setActiveTab] = useState<string>("tab1");
   const [result, setResult] = useState<AyurSanjeeviniResult | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [activeMicField, setActiveMicField] = useState<string | null>(null);
 
-  const [activeTab, setActiveTab] = useState<
-    "longevity" | "maraka" | "shield" | "karmaVipaka" | "mokshaGati" | "pitru" | "gokarna"
-  >("longevity");
+  const offscreenContainerRef = useRef<HTMLDivElement>(null);
 
-  const resultsRef = useRef<HTMLDivElement>(null);
+  const t = T_AYUR_SANJEEVINI;
 
-  // Web Speech API Microphone Handler
-  const handleMicToggle = (field: "name" | "place" | "concern") => {
+  // Speech to text handler
+  const handleMicClick = (field: "name" | "place" | "concern") => {
     const SpeechRecognition =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-      alert(
-        selectedLang === "kn"
-          ? "ನಿಮ್ಮ ಬ್ರೌಸರ್ ಧ್ವನಿ ಇನ್‌ಪುಟ್ ಬೆಂಬಲಿಸುವುದಿಲ್ಲ. ದಯವಿಟ್ಟು ಟೈಪ್ ಮಾಡಿ."
-          : "Your browser does not support Speech Recognition. Please type manually."
-      );
+      alert("Speech recognition is not supported in this browser. Please use Chrome or Safari.");
       return;
     }
 
@@ -59,771 +52,836 @@ export const AyurSanjeeviniPage: React.FC = () => {
       return;
     }
 
-    try {
-      const recognition = new SpeechRecognition();
-      recognition.continuous = false;
-      recognition.interimResults = false;
-      recognition.lang =
-        selectedLang === "kn"
-          ? "kn-IN"
-          : selectedLang === "hi"
-          ? "hi-IN"
-          : selectedLang === "te"
-          ? "te-IN"
-          : selectedLang === "ta"
-          ? "ta-IN"
-          : "en-US";
+    const recognition = new SpeechRecognition();
+    recognition.lang =
+      language === "kn"
+        ? "kn-IN"
+        : language === "hi"
+        ? "hi-IN"
+        : language === "te"
+        ? "te-IN"
+        : language === "ta"
+        ? "ta-IN"
+        : "en-US";
 
-      recognition.onstart = () => {
-        setActiveMicField(field);
-      };
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
 
-      recognition.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        if (field === "name") {
-          setPersonName((prev) => (prev ? `${prev} ${transcript}` : transcript));
-        } else if (field === "place") {
-          setPob((prev) => (prev ? `${prev} ${transcript}` : transcript));
-        } else if (field === "concern") {
-          setCustomConcern((prev) => (prev ? `${prev} ${transcript}` : transcript));
-        }
-        setActiveMicField(null);
-      };
-
-      recognition.onerror = () => {
-        setActiveMicField(null);
-      };
-
-      recognition.onend = () => {
-        setActiveMicField(null);
-      };
-
-      recognition.start();
-    } catch (e) {
-      console.error("Speech Recognition error:", e);
-      setActiveMicField(null);
-    }
-  };
-
-  // Submit Handler
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsProcessing(true);
-
-    const inputData: AyurSanjeeviniInput = {
-      mode,
-      personName: personName.trim() || (mode === "janma" ? "ಭಕ್ತ (Devotee)" : "ಪುಣ್ಯಾತ್ಮ (Departed Soul)"),
-      dob,
-      tob,
-      pob: pob.trim() || "Gokarna, Karnataka",
-      gotra: gotra.trim() || "Kashyapa",
-      customConcern: customConcern.trim(),
-      lang: selectedLang
+    recognition.onstart = () => {
+      setActiveMicField(field);
     };
 
-    const calculated = executeAyurSanjeeviniCalculation(inputData);
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      if (field === "name") {
+        setPersonName((prev) => (prev ? `${prev} ${transcript}` : transcript));
+      } else if (field === "place") {
+        setPob((prev) => (prev ? `${prev} ${transcript}` : transcript));
+      } else if (field === "concern") {
+        setCustomConcern((prev) => (prev ? `${prev} ${transcript}` : transcript));
+      }
+      setActiveMicField(null);
+    };
 
-    // AI Divine Narrative Call
-    try {
-      const narrative = await generateAyurSanjeeviniAINarrative(
-        calculated,
-        selectedLang,
-        geminiApiKey
-      );
-      calculated.aiDivineNarrative = narrative;
-    } catch (err) {
-      console.error("Error generating AI divine narrative:", err);
-    }
+    recognition.onerror = () => {
+      setActiveMicField(null);
+    };
 
-    setResult(calculated);
-    setIsProcessing(false);
+    recognition.onend = () => {
+      setActiveMicField(null);
+    };
 
-    setTimeout(() => {
-      resultsRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, 150);
+    recognition.start();
   };
 
-  // PDF Generation Handler
+  // Compute Ayur Sanjeevini
+  const handleCalculate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    const input: AyurSanjeeviniInput = {
+      mode,
+      personName: personName.trim() || (mode === "janma" ? "ಭಕ್ತರು (Devotee)" : "ದಿವಂಗತ ಪುಣ್ಯಾತ್ಮ"),
+      dob,
+      tob,
+      pob: pob.trim() || "Gokarna",
+      gotra: gotra.trim() || "Kashyapa",
+      customConcern: customConcern.trim(),
+      lang: language
+    };
+
+    const calculated = executeAyurSanjeeviniCalculation(input);
+
+    const aiNarrative = await generateAyurSanjeeviniAINarrative(
+      calculated,
+      language,
+      (import.meta as any).env?.VITE_GEMINI_API_KEY || (import.meta as any).env?.VITE_GOOGLE_API_KEY
+    );
+
+    calculated.aiDivineNarrative = aiNarrative;
+    setResult(calculated);
+    setActiveTab("tab1");
+    setLoading(false);
+  };
+
+  // Download Luxury 3-Page A4 PDF
   const handleDownloadPdf = async () => {
-    if (!result) return;
-    setIsGeneratingPdf(true);
+    if (!result || !offscreenContainerRef.current) return;
+    setDownloadingPdf(true);
 
     try {
-      await new Promise((r) => setTimeout(r, 400));
-      const pdfContainer = document.getElementById("ayur-sanjeevini-pdf");
-      if (!pdfContainer) {
-        throw new Error("PDF container not found");
-      }
-
+      const element = offscreenContainerRef.current;
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "mm",
-        format: "a4",
-        compress: true
+        format: "a4"
       });
 
-      const pages = pdfContainer.querySelectorAll<HTMLElement>(".pdf-page-a4");
-      if (pages.length === 0) {
-        throw new Error("No PDF pages found");
-      }
-
+      const pages = element.querySelectorAll(".pdf-page-a4");
       for (let i = 0; i < pages.length; i++) {
-        const pageElem = pages[i];
-        const canvas = await html2canvas(pageElem, {
+        const pageEl = pages[i] as HTMLElement;
+        const canvas = await html2canvas(pageEl, {
           scale: 2,
           useCORS: true,
           logging: false,
-          backgroundColor: "#ffffff"
+          backgroundColor: "#fffbeb"
         });
 
-        const imgData = canvas.toDataURL("image/jpeg", 0.95);
-        if (i > 0) {
-          pdf.addPage("a4", "portrait");
-        }
-        pdf.addImage(imgData, "JPEG", 0, 0, 210, 297, undefined, "FAST");
+        const imgData = canvas.toDataURL("image/jpeg", 0.98);
+        if (i > 0) pdf.addPage();
+        pdf.addImage(imgData, "JPEG", 0, 0, 210, 297);
       }
 
-      const cleanName = (result.personName || "Devotee").replace(/[^a-zA-Z0-9_-]/g, "_");
-      pdf.save(`Baggona_Ayur_Sanjeevini_${cleanName}.pdf`);
+      const fileName =
+        mode === "janma"
+          ? `Baggona_Janana_AyurSanjeevini_${result.personName.replace(/\s+/g, "_")}.pdf`
+          : `Baggona_Marana_SoulMoksha_${result.personName.replace(/\s+/g, "_")}.pdf`;
+
+      pdf.save(fileName);
     } catch (err) {
-      console.error("Error downloading PDF:", err);
-      alert("PDF download failed. Please try again.");
+      console.error("PDF generation failed:", err);
+      alert("PDF generation failed. Please try again.");
     } finally {
-      setIsGeneratingPdf(false);
+      setDownloadingPdf(false);
     }
   };
 
-  const isKn = selectedLang === "kn";
-  const sanitizeAIText = (t?: string) => t?.replace(/\*\*/g, "").trim() || "";
-
   return (
-    <div className="max-w-5xl mx-auto px-3 sm:px-6 py-6 sm:py-10 space-y-8 font-sans">
-      {/* Royal Temple Header */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-amber-950 via-amber-900 to-amber-950 text-white p-6 sm:p-10 shadow-2xl border-2 border-amber-500/50">
-        <div className="relative z-10 text-center space-y-3">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs sm:text-sm font-bold tracking-widest uppercase">
-            <span>॥ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಅನುಗ್ರಹ ॥</span>
+    <div className="min-h-screen bg-slate-950 text-slate-100 py-6 px-3 sm:px-6">
+      <div className="max-w-5xl mx-auto space-y-6">
+        {/* Header Title */}
+        <div className="text-center space-y-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-semibold uppercase tracking-wider border border-amber-500/40">
+            <span>🛡️</span> {t.pageTitle[language]}
           </div>
-
-          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-amber-100 tracking-tight drop-shadow-md">
-            {T_AYUR_SANJEEVINI.pageTitle[selectedLang]}
+          <h1 className="text-2xl sm:text-4xl font-serif font-bold text-amber-200">
+            {t.pageTitle[language]}
           </h1>
-
-          <p className="text-xs sm:text-base text-amber-200/90 max-w-3xl mx-auto font-medium leading-relaxed">
-            {T_AYUR_SANJEEVINI.pageSubtitle[selectedLang]}
+          <p className="text-xs sm:text-sm text-slate-400 max-w-2xl mx-auto">
+            {t.pageSubtitle[language]}
           </p>
-
-          {/* 5-Language Switcher */}
-          <div className="pt-2 flex flex-wrap justify-center gap-2">
-            {[
-              { code: "kn", label: "ಕನ್ನಡ" },
-              { code: "en", label: "English" },
-              { code: "hi", label: "हिन्दी" },
-              { code: "te", label: "తెలుగు" },
-              { code: "ta", label: "தமிழ்" }
-            ].map((l) => (
-              <button
-                key={l.code}
-                type="button"
-                onClick={() => setSelectedLang(l.code as SupportedLanguage)}
-                className={`px-3 py-1 text-xs font-black rounded-lg transition-all ${
-                  selectedLang === l.code
-                    ? "bg-amber-400 text-amber-950 shadow-md scale-105"
-                    : "bg-amber-950/60 text-amber-200 border border-amber-500/40 hover:bg-amber-900/80"
-                }`}
-              >
-                {l.label}
-              </button>
-            ))}
-          </div>
         </div>
-      </div>
 
-      {/* Dual Mode Switcher: Janma vs Mrityu */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <button
-          type="button"
-          onClick={() => setMode("janma")}
-          className={`p-5 rounded-2xl border-2 text-left transition-all duration-300 shadow-md ${
-            mode === "janma"
-              ? "bg-gradient-to-br from-amber-100 to-amber-50 dark:from-amber-950/70 dark:to-slate-900 border-amber-500 shadow-amber-500/20 ring-2 ring-amber-400"
-              : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 opacity-75 hover:opacity-100"
-          }`}
-        >
-          <div className="font-black text-base sm:text-lg text-amber-950 dark:text-amber-300">
-            {T_AYUR_SANJEEVINI.modeJanmaTitle[selectedLang]}
-          </div>
-          <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 mt-1 font-medium leading-snug">
-            {T_AYUR_SANJEEVINI.modeJanmaDesc[selectedLang]}
-          </p>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setMode("mrityu")}
-          className={`p-5 rounded-2xl border-2 text-left transition-all duration-300 shadow-md ${
-            mode === "mrityu"
-              ? "bg-gradient-to-br from-amber-100 to-amber-50 dark:from-amber-950/70 dark:to-slate-900 border-amber-500 shadow-amber-500/20 ring-2 ring-amber-400"
-              : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 opacity-75 hover:opacity-100"
-          }`}
-        >
-          <div className="font-black text-base sm:text-lg text-amber-950 dark:text-amber-300">
-            {T_AYUR_SANJEEVINI.modeMrityuTitle[selectedLang]}
-          </div>
-          <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 mt-1 font-medium leading-snug">
-            {T_AYUR_SANJEEVINI.modeMrityuDesc[selectedLang]}
-          </p>
-        </button>
-      </div>
-
-      {/* Input Form Card */}
-      <Card className="border-2 border-amber-300 dark:border-amber-500/40 bg-white/95 dark:bg-slate-900/95 p-6 sm:p-8 shadow-xl rounded-3xl backdrop-blur-md">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="border-b border-amber-200 dark:border-amber-900/50 pb-3">
-            <h2 className="text-lg sm:text-xl font-black text-amber-950 dark:text-amber-300 flex items-center gap-2">
-              <span>🕉️</span>
-              <span>{T_AYUR_SANJEEVINI.formHeader[selectedLang]}</span>
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            {/* Person Name with Mic */}
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-300">
-                  {T_AYUR_SANJEEVINI.formName[selectedLang]}
-                </label>
-                <button
-                  type="button"
-                  onClick={() => handleMicToggle("name")}
-                  className={`flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-black rounded-lg transition shadow-sm ${
-                    activeMicField === "name"
-                      ? "bg-rose-600 text-white animate-pulse"
-                      : "bg-amber-100 dark:bg-slate-800 text-amber-950 dark:text-amber-200 border border-amber-400 hover:bg-amber-200"
-                  }`}
-                  title={isKn ? "ಧ್ವನಿ ಮೂಲಕ ಹೆಸರು ನಮೂದಿಸಿ" : "Dictate name via mic"}
-                >
-                  <span>{activeMicField === "name" ? "🔴" : "🎙️"}</span>
-                  <span>
-                    {activeMicField === "name"
-                      ? isKn
-                        ? "ಆಲಿಸಲಾಗುತ್ತಿದೆ..."
-                        : "Listening..."
-                      : isKn
-                      ? "ಧ್ವನಿ (Mic)"
-                      : "Mic"}
-                  </span>
-                </button>
-              </div>
-              <input
-                type="text"
-                required
-                value={personName}
-                onChange={(e) => setPersonName(e.target.value)}
-                placeholder={mode === "janma" ? "ಉದಾ: ಶ್ರೀಧರ್ ಭಟ್" : "ಉದಾ: ದಿವಂಗತ ರಾಮಚಂದ್ರ ಶಾಸ್ತ್ರಿ"}
-                className="w-full px-4 py-2.5 rounded-2xl border-2 border-amber-300 dark:border-slate-700 bg-amber-50/60 dark:bg-slate-800 text-slate-950 dark:text-white font-semibold text-sm focus:ring-2 focus:ring-amber-500"
-              />
-            </div>
-
-            {/* Date */}
-            <div>
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-300 mb-1.5">
-                {T_AYUR_SANJEEVINI.formDob[selectedLang]}
-              </label>
-              <input
-                type="date"
-                required
-                value={dob}
-                onChange={(e) => setDob(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-2xl border-2 border-amber-300 dark:border-slate-700 bg-amber-50/60 dark:bg-slate-800 text-slate-950 dark:text-white font-semibold text-sm focus:ring-2 focus:ring-amber-500"
-              />
-            </div>
-
-            {/* Time */}
-            <div>
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-300 mb-1.5">
-                {T_AYUR_SANJEEVINI.formTob[selectedLang]}
-              </label>
-              <input
-                type="time"
-                value={tob}
-                onChange={(e) => setTob(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-2xl border-2 border-amber-300 dark:border-slate-700 bg-amber-50/60 dark:bg-slate-800 text-slate-950 dark:text-white font-semibold text-sm focus:ring-2 focus:ring-amber-500"
-              />
-            </div>
-
-            {/* Place with Mic */}
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-300">
-                  {T_AYUR_SANJEEVINI.formPob[selectedLang]}
-                </label>
-                <button
-                  type="button"
-                  onClick={() => handleMicToggle("place")}
-                  className={`flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-black rounded-lg transition shadow-sm ${
-                    activeMicField === "place"
-                      ? "bg-rose-600 text-white animate-pulse"
-                      : "bg-amber-100 dark:bg-slate-800 text-amber-950 dark:text-amber-200 border border-amber-400 hover:bg-amber-200"
-                  }`}
-                  title={isKn ? "ಧ್ವನಿ ಮೂಲಕ ಸ್ಥಳ ನಮೂದಿಸಿ" : "Dictate place via mic"}
-                >
-                  <span>{activeMicField === "place" ? "🔴" : "🎙️"}</span>
-                  <span>
-                    {activeMicField === "place"
-                      ? isKn
-                        ? "ಆಲಿಸಲಾಗುತ್ತಿದೆ..."
-                        : "Listening..."
-                      : isKn
-                      ? "ಧ್ವನಿ (Mic)"
-                      : "Mic"}
-                  </span>
-                </button>
-              </div>
-              <input
-                type="text"
-                value={pob}
-                onChange={(e) => setPob(e.target.value)}
-                placeholder="581326 Gokarna"
-                className="w-full px-4 py-2.5 rounded-2xl border-2 border-amber-300 dark:border-slate-700 bg-amber-50/60 dark:bg-slate-800 text-slate-950 dark:text-white font-semibold text-sm focus:ring-2 focus:ring-amber-500"
-              />
-            </div>
-
-            {/* Gotra */}
-            <div>
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-300 mb-1.5">
-                {T_AYUR_SANJEEVINI.formGotra[selectedLang]}
-              </label>
-              <input
-                type="text"
-                value={gotra}
-                onChange={(e) => setGotra(e.target.value)}
-                placeholder="Kashyapa / Bharadwaja"
-                className="w-full px-4 py-2.5 rounded-2xl border-2 border-amber-300 dark:border-slate-700 bg-amber-50/60 dark:bg-slate-800 text-slate-950 dark:text-white font-semibold text-sm focus:ring-2 focus:ring-amber-500"
-              />
-            </div>
-
-            {/* Concern / Query with Mic */}
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-300">
-                  {T_AYUR_SANJEEVINI.formConcern[selectedLang]}
-                </label>
-                <button
-                  type="button"
-                  onClick={() => handleMicToggle("concern")}
-                  className={`flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-black rounded-lg transition shadow-sm ${
-                    activeMicField === "concern"
-                      ? "bg-rose-600 text-white animate-pulse"
-                      : "bg-amber-100 dark:bg-slate-800 text-amber-950 dark:text-amber-200 border border-amber-400 hover:bg-amber-200"
-                  }`}
-                  title={isKn ? "ಧ್ವನಿ ಮೂಲಕ ಪ್ರಶ್ನೆ ಕೇಳಿ" : "Dictate concern via mic"}
-                >
-                  <span>{activeMicField === "concern" ? "🔴" : "🎙️"}</span>
-                  <span>
-                    {activeMicField === "concern"
-                      ? isKn
-                        ? "ಆಲಿಸಲಾಗುತ್ತಿದೆ..."
-                        : "Listening..."
-                      : isKn
-                      ? "ಧ್ವನಿ (Mic)"
-                      : "Mic"}
-                  </span>
-                </button>
-              </div>
-              <input
-                type="text"
-                value={customConcern}
-                onChange={(e) => setCustomConcern(e.target.value)}
-                placeholder="ಉದಾ: ದೀರ್ಘಕಾಲದ ಆರೋಗ್ಯ ಸಮಸ್ಯೆ ಅಥವಾ ಪಿತೃ ಶಾಂತಿ"
-                className="w-full px-4 py-2.5 rounded-2xl border-2 border-amber-300 dark:border-slate-700 bg-amber-50/60 dark:bg-slate-800 text-slate-950 dark:text-white font-semibold text-sm focus:ring-2 focus:ring-amber-500"
-              />
-            </div>
-          </div>
-
-          <div className="text-center pt-3">
-            <button
-              type="submit"
-              disabled={isProcessing}
-              className="w-full sm:w-auto px-10 py-4 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-black text-sm sm:text-base rounded-2xl shadow-xl hover:shadow-2xl transition-all transform active:scale-95 border border-amber-400/40 disabled:opacity-50"
-            >
-              {isProcessing ? "ಗಣನೆ ಪ್ರಕ್ರಿಯೆಯಲ್ಲಿದೆ..." : T_AYUR_SANJEEVINI.submitBtn[selectedLang]}
-            </button>
-          </div>
-        </form>
-      </Card>
-
-      {/* Results Section */}
-      {result && (
-        <div ref={resultsRef} className="space-y-6">
-          {/* Action Bar with PDF Download */}
-          <div className="bg-gradient-to-r from-amber-950 via-amber-900 to-amber-950 p-4 sm:p-5 rounded-3xl border-2 border-amber-500/50 shadow-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-3.5">
-              <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-2xl shadow-inner">
-                🕉️
-              </div>
-              <div>
-                <div className="text-xs font-bold text-amber-300 uppercase tracking-widest">
-                  {result.personName} • {result.rashi} ({result.nakshatra})
-                </div>
-                <div className="text-base sm:text-lg font-black text-white">
-                  {T_AYUR_SANJEEVINI.longevityClasses[result.longevity.category][selectedLang]}
-                </div>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleDownloadPdf}
-              disabled={isGeneratingPdf}
-              className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-amber-950 font-black text-xs sm:text-sm rounded-xl shadow-lg transition-all flex items-center justify-center gap-2"
-            >
-              <span>{isGeneratingPdf ? "⏳" : "📄"}</span>
-              <span>
-                {isGeneratingPdf ? "PDF ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : T_AYUR_SANJEEVINI.downloadPdfBtn[selectedLang]}
+        {/* 🌟 Top Level Dual Portal Selector (Janana vs Marana) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-1.5 bg-slate-900/90 rounded-2xl border-2 border-amber-500/40 shadow-xl">
+          {/* Janana Tab Button */}
+          <button
+            type="button"
+            onClick={() => {
+              setMode("janma");
+              setResult(null);
+            }}
+            className={`flex flex-col items-start p-4 rounded-xl transition-all duration-200 text-left border ${
+              mode === "janma"
+                ? "bg-gradient-to-r from-amber-600 via-amber-700 to-amber-900 border-amber-400 text-white shadow-lg ring-2 ring-amber-400/50 scale-[1.01]"
+                : "bg-slate-950/60 border-slate-800 text-slate-400 hover:text-amber-200 hover:bg-slate-900"
+            }`}
+          >
+            <div className="flex items-center gap-2 font-serif font-bold text-base sm:text-lg">
+              <span>🌱</span>
+              <span className={mode === "janma" ? "text-amber-100" : "text-slate-200"}>
+                {t.modeJananaTitle[language]}
               </span>
-            </button>
-          </div>
+            </div>
+            <p className="text-[11px] sm:text-xs mt-1 opacity-90 leading-relaxed">
+              {t.modeJananaDesc[language]}
+            </p>
+            {mode === "janma" && (
+              <span className="mt-2 inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded bg-amber-400/30 text-amber-200 uppercase tracking-wider">
+                ✓ ೧೦೦% ಜನನ ಆಧಾರಿತ ಪೋರ್ಟಲ್ ಸಕ್ರಿಯವಾಗಿದೆ
+              </span>
+            )}
+          </button>
 
-          {/* 7 Tabs Header */}
-          <div className="flex overflow-x-auto no-scrollbar gap-2 p-1.5 bg-amber-100/60 dark:bg-slate-800/80 rounded-2xl border border-amber-300 dark:border-slate-700">
-            {[
-              { id: "longevity", label: T_AYUR_SANJEEVINI.tabs.longevity[selectedLang] },
-              { id: "maraka", label: T_AYUR_SANJEEVINI.tabs.maraka[selectedLang] },
-              { id: "shield", label: T_AYUR_SANJEEVINI.tabs.shield[selectedLang] },
-              { id: "karmaVipaka", label: T_AYUR_SANJEEVINI.tabs.karmaVipaka[selectedLang] },
-              { id: "mokshaGati", label: T_AYUR_SANJEEVINI.tabs.mokshaGati[selectedLang] },
-              { id: "pitru", label: T_AYUR_SANJEEVINI.tabs.pitru[selectedLang] },
-              { id: "gokarna", label: T_AYUR_SANJEEVINI.tabs.gokarna[selectedLang] }
-            ].map((tab) => (
+          {/* Marana Tab Button */}
+          <button
+            type="button"
+            onClick={() => {
+              setMode("mrityu");
+              setResult(null);
+            }}
+            className={`flex flex-col items-start p-4 rounded-xl transition-all duration-200 text-left border ${
+              mode === "mrityu"
+                ? "bg-gradient-to-r from-amber-950 via-slate-900 to-amber-950 border-amber-400 text-white shadow-lg ring-2 ring-amber-400/50 scale-[1.01]"
+                : "bg-slate-950/60 border-slate-800 text-slate-400 hover:text-amber-200 hover:bg-slate-900"
+            }`}
+          >
+            <div className="flex items-center gap-2 font-serif font-bold text-base sm:text-lg">
+              <span>🕊️</span>
+              <span className={mode === "mrityu" ? "text-amber-100" : "text-slate-200"}>
+                {t.modeMaranaTitle[language]}
+              </span>
+            </div>
+            <p className="text-[11px] sm:text-xs mt-1 opacity-90 leading-relaxed">
+              {t.modeMaranaDesc[language]}
+            </p>
+            {mode === "mrityu" && (
+              <span className="mt-2 inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded bg-amber-400/30 text-amber-200 uppercase tracking-wider">
+                ✓ ೧೦೦% ಮರಣ & ಸದ್ಗತಿ ಪೋರ್ಟಲ್ ಸಕ್ರಿಯವಾಗಿದೆ
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* Input Form with Speech-to-Text */}
+        <Card className="border-amber-500/40 bg-slate-900/90 shadow-xl">
+          <form onSubmit={handleCalculate} className="space-y-4">
+            <h2 className="text-base sm:text-lg font-serif font-bold text-amber-300 border-b border-amber-500/30 pb-2 flex items-center justify-between">
+              <span>
+                {mode === "janma" ? t.formHeaderJanana[language] : t.formHeaderMarana[language]}
+              </span>
+              <span className="text-xs font-normal text-slate-400">
+                {mode === "janma" ? "🌱 ಜನನ ಪ್ರವೇಶ" : "🕊️ ನಿರ್ಯಾಣ ಪ್ರವೇಶ"}
+              </span>
+            </h2>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Person Name Input with Mic */}
+              <div>
+                <label className="block text-xs font-semibold text-amber-400 mb-1">
+                  {mode === "janma" ? t.formNameJanana[language] : t.formNameMarana[language]} *
+                </label>
+                <div className="relative flex items-center">
+                  <input
+                    type="text"
+                    required
+                    value={personName}
+                    onChange={(e) => setPersonName(e.target.value)}
+                    placeholder={mode === "janma" ? "ಉದಾ: ಶ್ರೀಧರ್ ಭಟ್" : "ಉದಾ: ದಿವಂಗತ ರಾಮಚಂದ್ರ ಭಟ್"}
+                    className="w-full rounded-xl bg-slate-950/80 border border-amber-500/30 px-3 py-2 pr-10 text-sm text-white focus:outline-none focus:border-amber-400"
+                  />
+                  <button
+                    type="button"
+                    title="Dictate with voice"
+                    onClick={() => handleMicClick("name")}
+                    className={`absolute right-2 p-1.5 rounded-lg transition-colors ${
+                      activeMicField === "name"
+                        ? "bg-rose-600 text-white animate-pulse"
+                        : "text-amber-400 hover:bg-amber-500/20"
+                    }`}
+                  >
+                    🎙️
+                  </button>
+                </div>
+              </div>
+
+              {/* Date Input */}
+              <div>
+                <label className="block text-xs font-semibold text-amber-400 mb-1">
+                  {mode === "janma" ? t.formDobJanana[language] : t.formDobMarana[language]} *
+                </label>
+                <input
+                  type="date"
+                  required
+                  value={dob}
+                  onChange={(e) => setDob(e.target.value)}
+                  className="w-full rounded-xl bg-slate-950/80 border border-amber-500/30 px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-400"
+                />
+              </div>
+
+              {/* Time of Birth / Demise */}
+              <div>
+                <label className="block text-xs font-semibold text-amber-400 mb-1">
+                  {mode === "janma" ? t.formTobJanana[language] : t.formTobMarana[language]}
+                </label>
+                <input
+                  type="time"
+                  value={tob}
+                  onChange={(e) => setTob(e.target.value)}
+                  className="w-full rounded-xl bg-slate-950/80 border border-amber-500/30 px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-400"
+                />
+              </div>
+
+              {/* Place of Birth / Demise with Mic */}
+              <div>
+                <label className="block text-xs font-semibold text-amber-400 mb-1">
+                  {mode === "janma" ? t.formPobJanana[language] : t.formPobMarana[language]} *
+                </label>
+                <div className="relative flex items-center">
+                  <input
+                    type="text"
+                    required
+                    value={pob}
+                    onChange={(e) => setPob(e.target.value)}
+                    placeholder="ಉದಾ: 581326 Gokarna"
+                    className="w-full rounded-xl bg-slate-950/80 border border-amber-500/30 px-3 py-2 pr-10 text-sm text-white focus:outline-none focus:border-amber-400"
+                  />
+                  <button
+                    type="button"
+                    title="Dictate with voice"
+                    onClick={() => handleMicClick("place")}
+                    className={`absolute right-2 p-1.5 rounded-lg transition-colors ${
+                      activeMicField === "place"
+                        ? "bg-rose-600 text-white animate-pulse"
+                        : "text-amber-400 hover:bg-amber-500/20"
+                    }`}
+                  >
+                    🎙️
+                  </button>
+                </div>
+              </div>
+
+              {/* Gotra */}
+              <div>
+                <label className="block text-xs font-semibold text-amber-400 mb-1">
+                  {t.formGotra[language]}
+                </label>
+                <input
+                  type="text"
+                  value={gotra}
+                  onChange={(e) => setGotra(e.target.value)}
+                  placeholder="ಉದಾ: ಕಶ್ಯಪ (Kashyapa)"
+                  className="w-full rounded-xl bg-slate-950/80 border border-amber-500/30 px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-400"
+                />
+              </div>
+
+              {/* Custom Concern with Mic */}
+              <div>
+                <label className="block text-xs font-semibold text-amber-400 mb-1">
+                  {mode === "janma" ? t.formConcernJanana[language] : t.formConcernMarana[language]}
+                </label>
+                <div className="relative flex items-center">
+                  <input
+                    type="text"
+                    value={customConcern}
+                    onChange={(e) => setCustomConcern(e.target.value)}
+                    placeholder={
+                      mode === "janma"
+                        ? "ಆರೋಗ್ಯ, ದೀರ್ಘಾಯುಷ್ಯ ಅಥವಾ ಸಂಜೀವಿನಿ ರಕ್ಷಣೆ ಕುರಿತು..."
+                        : "ಪಿತೃ ಶಾಂತಿ, ಸದ್ಗತಿ, ಶ್ರಾದ್ಧ ಅಥವಾ ವಂಶ ರಕ್ಷಣೆ ಕುರಿತು..."
+                    }
+                    className="w-full rounded-xl bg-slate-950/80 border border-amber-500/30 px-3 py-2 pr-10 text-sm text-white focus:outline-none focus:border-amber-400"
+                  />
+                  <button
+                    type="button"
+                    title="Dictate with voice"
+                    onClick={() => handleMicClick("concern")}
+                    className={`absolute right-2 p-1.5 rounded-lg transition-colors ${
+                      activeMicField === "concern"
+                        ? "bg-rose-600 text-white animate-pulse"
+                        : "text-amber-400 hover:bg-amber-500/20"
+                    }`}
+                  >
+                    🎙️
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <div className="pt-2">
               <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`px-4 py-2.5 text-xs font-black rounded-xl whitespace-nowrap transition-all ${
-                  activeTab === tab.id
-                    ? "bg-amber-600 text-white shadow-md scale-100"
-                    : "text-amber-950 dark:text-amber-200 hover:bg-amber-200/50 dark:hover:bg-slate-700"
-                }`}
+                type="submit"
+                disabled={loading}
+                className="w-full py-3 px-6 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-amber-500 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-sm uppercase tracking-wider shadow-lg transform active:scale-95 transition-all flex items-center justify-center gap-2"
               >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Tab 1: Longevity & Vitality Matrix */}
-          {activeTab === "longevity" && (
-            <Card className="border-2 border-amber-300 dark:border-amber-500/40 bg-white dark:bg-slate-900 p-5 sm:p-7 shadow-xl rounded-3xl space-y-6">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                  <span className="text-xs font-extrabold uppercase tracking-wider text-amber-900 dark:text-amber-300">
-                    ಆಯುರ್ದಾಯ ನಿರ್ಣಯ
+                {loading ? (
+                  <>
+                    <span className="animate-spin text-lg">☸</span>
+                    <span>ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯ ಗಣನೆ ಪ್ರಕ್ರಿಯೆಯಲ್ಲಿದೆ...</span>
+                  </>
+                ) : (
+                  <span>
+                    {mode === "janma" ? t.submitBtnJanana[language] : t.submitBtnMarana[language]}
                   </span>
-                  <h3 className="text-lg sm:text-xl font-black text-slate-950 dark:text-white mt-0.5">
-                    {T_AYUR_SANJEEVINI.longevityClasses[result.longevity.category][selectedLang]}
-                  </h3>
-                </div>
-                <div className="px-5 py-2.5 rounded-2xl bg-amber-500/20 border border-amber-500 text-amber-900 dark:text-amber-200 text-center font-black">
-                  <div className="text-xs">{isKn ? "ಪ್ರಾಣಶಕ್ತಿ ಸ್ಕೋರ್" : "Vitality Score"}</div>
-                  <div className="text-xl text-amber-600 dark:text-amber-400">{result.longevity.vitalityScore} / 100</div>
-                </div>
-              </div>
+                )}
+              </button>
+            </div>
+          </form>
+        </Card>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-2xl border border-amber-200 dark:border-slate-700">
-                  <div className="text-xs font-bold text-amber-900 dark:text-amber-300">ಅಂದಾಜು ಆಯುಷ್ಯ ಶ್ರೇಣಿ</div>
-                  <div className="text-sm font-black text-slate-950 dark:text-white mt-1">{result.longevity.estimatedAgeSpan}</div>
-                </div>
-                <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-2xl border border-amber-200 dark:border-slate-700">
-                  <div className="text-xs font-bold text-amber-900 dark:text-amber-300">ಆಯುಷ್ಕಾರಕ ಶನಿ ಪ್ರಭಾವ</div>
-                  <div className="text-sm font-semibold text-slate-950 dark:text-white mt-1">{result.longevity.ayushkarakaStrength}</div>
-                </div>
-                <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-2xl border border-amber-200 dark:border-slate-700">
-                  <div className="text-xs font-bold text-amber-900 dark:text-amber-300">ಗಂಡಾಂತ ಸ್ಥಿತಿ</div>
-                  <div className={`text-sm font-black mt-1 ${result.gandanta.hasGandanta ? "text-rose-600" : "text-emerald-600"}`}>
-                    {result.gandanta.description}
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-5 bg-gradient-to-br from-amber-100/70 to-amber-50 dark:from-slate-800 dark:to-slate-800/80 rounded-2xl border border-amber-300 dark:border-slate-700 space-y-2">
-                <div className="font-extrabold text-xs text-amber-950 dark:text-amber-300 uppercase tracking-wider">
-                  ಜೈಮಿನಿ ತ್ರಿ-ಜೋಡಿ ಆಯುರ್ದಾಯ ಗಣನೆ (Three Pairs Method)
-                </div>
-                <div className="text-xs sm:text-sm text-slate-800 dark:text-slate-200 space-y-1">
-                  <div>• {result.longevity.threePairsMethod.lagnaAndEighth}</div>
-                  <div>• {result.longevity.threePairsMethod.moonAndSaturn}</div>
-                  <div>• {result.longevity.threePairsMethod.lagnaAndHoraLagna}</div>
-                </div>
-              </div>
-            </Card>
-          )}
-
-          {/* Tab 2: Maraka & Badhaka */}
-          {activeTab === "maraka" && (
-            <Card className="border-2 border-amber-300 dark:border-amber-500/40 bg-white dark:bg-slate-900 p-5 sm:p-7 shadow-xl rounded-3xl space-y-6">
+        {/* Results Section */}
+        {result && (
+          <div className="space-y-6">
+            {/* Top Summary Banner */}
+            <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-950 via-slate-900 to-amber-950 border border-amber-500/50 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div>
-                <span className="text-xs font-extrabold uppercase tracking-wider text-amber-900 dark:text-amber-300">
-                  ಮಾರಕ & ಬಾಧಕ ಪರಿಶೀಲನೆ
-                </span>
-                <h3 className="text-lg sm:text-xl font-black text-slate-950 dark:text-white mt-0.5">
-                  ⚔️ ಮಾರಕ-ಬಾಧಕ ಗ್ರಹ ಶಮನ ಮಾರ್ಗ
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 text-[11px] font-bold">
+                  <span>{mode === "janma" ? "🌱 ಜನನ ಆಯುರ್-ಸಂಜೀವಿನಿ ಜಾತಕ" : "🕊️ ಮರಣ ಸದ್ಗತಿ & ಪಿತೃ ಮೋಕ್ಷ ಜಾತಕ"}</span>
+                </div>
+                <h3 className="text-lg font-serif font-bold text-amber-100 mt-1">
+                  {result.personName} (ಗೋತ್ರ: {result.gotra})
                 </h3>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-2xl border border-amber-200 dark:border-slate-700">
-                  <div className="text-xs font-bold text-amber-900 dark:text-amber-300">ಮಾರಕ ಸ್ಥಾನಗಳು & ಗ್ರಹರು</div>
-                  <div className="text-sm font-black text-slate-950 dark:text-white mt-1">
-                    {result.marakaBadhaka.marakaHouses.join(", ")} ({result.marakaBadhaka.marakaPlanets.join(", ")})
-                  </div>
-                </div>
-                <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-2xl border border-amber-200 dark:border-slate-700">
-                  <div className="text-xs font-bold text-amber-900 dark:text-amber-300">ಬಾಧಕ ಭಾವ & ಅಧಿಪತಿ</div>
-                  <div className="text-sm font-black text-slate-950 dark:text-white mt-1">
-                    {result.marakaBadhaka.badhakaHouse}ನೇ ಭಾವ ({result.marakaBadhaka.badhadhipati})
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-4 bg-rose-50 dark:bg-rose-950/30 border border-rose-300 dark:border-rose-900/50 rounded-2xl">
-                <div className="text-xs font-black text-rose-900 dark:text-rose-300">ದಶಾ ಸಂಧಿಕಾಲ ಎಚ್ಚರಿಕೆ</div>
-                <div className="text-xs sm:text-sm text-rose-800 dark:text-rose-200 mt-1 font-medium">
-                  {result.marakaBadhaka.chhidraDashaAlert}
-                </div>
-              </div>
-
-              <div className="p-4 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-300 dark:border-emerald-900/50 rounded-2xl">
-                <div className="text-xs font-black text-emerald-900 dark:text-emerald-300">ಪರಿಹಾರ ನಿರ್ದೇಶನ</div>
-                <div className="text-xs sm:text-sm text-emerald-800 dark:text-emerald-200 mt-1 font-medium">
-                  {result.marakaBadhaka.mitigationSummary}
-                </div>
-              </div>
-            </Card>
-          )}
-
-          {/* Tab 3: Maha Mrityunjaya Shield */}
-          {activeTab === "shield" && (
-            <Card className="border-2 border-amber-300 dark:border-amber-500/40 bg-white dark:bg-slate-900 p-5 sm:p-7 shadow-xl rounded-3xl space-y-6">
-              <div>
-                <span className="text-xs font-extrabold uppercase tracking-wider text-amber-900 dark:text-amber-300">
-                  ದೈವಿಕ ರಕ್ಷಾ ಕವಚ
-                </span>
-                <h3 className="text-lg sm:text-xl font-black text-slate-950 dark:text-white mt-0.5">
-                  🛡️ ಮಹಾಮೃತ್ಯುಂಜಯ ಸಂಜೀವಿನಿ ರಕ್ಷೆ
-                </h3>
-              </div>
-
-              <div className="p-6 bg-gradient-to-br from-amber-950 via-amber-900 to-amber-950 text-white rounded-3xl border-2 border-amber-400 text-center shadow-xl">
-                <div className="text-xs font-bold text-amber-300 uppercase tracking-widest mb-2">
-                  ಮಹಾಮೃತ್ಯುಂಜಯ ಮಂತ್ರ
-                </div>
-                <p className="text-sm sm:text-lg font-black text-amber-100 leading-relaxed font-serif">
-                  {result.sanjeeviniShield.mrityunjayaMantra}
-                </p>
-                <div className="mt-3 text-xs text-amber-300 font-bold">
-                  ದೈನಂದಿನ ಶಿಫಾರಸು ಜಪ: {result.sanjeeviniShield.recommendedJapaCount} ಬಾರಿ
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-2xl border border-amber-200 dark:border-slate-700">
-                  <div className="text-xs font-bold text-amber-900 dark:text-amber-300">ರುದ್ರಾಕ್ಷಿ ಧಾರಣೆ</div>
-                  <div className="text-xs sm:text-sm font-semibold text-slate-950 dark:text-white mt-1">
-                    {result.sanjeeviniShield.rudrakshaRecommendation}
-                  </div>
-                </div>
-                <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-2xl border border-amber-200 dark:border-slate-700">
-                  <div className="text-xs font-bold text-amber-900 dark:text-amber-300">ಆಯುಷ್ಯ ಸೂಕ್ತ ಹೋಮ</div>
-                  <div className="text-xs sm:text-sm font-semibold text-slate-950 dark:text-white mt-1">
-                    {result.sanjeeviniShield.ayushyaSuktaHomaDetails}
-                  </div>
-                </div>
-              </div>
-            </Card>
-          )}
-
-          {/* Tab 4: Karma Vipaka */}
-          {activeTab === "karmaVipaka" && (
-            <Card className="border-2 border-amber-300 dark:border-amber-500/40 bg-white dark:bg-slate-900 p-5 sm:p-7 shadow-xl rounded-3xl space-y-6">
-              <div>
-                <span className="text-xs font-extrabold uppercase tracking-wider text-amber-900 dark:text-amber-300">
-                  ಕರ್ಮ ವಿಪಾಕ ಸಂಹಿತಾ ದರ್ಶನ
-                </span>
-                <h3 className="text-lg sm:text-xl font-black text-slate-950 dark:text-white mt-0.5">
-                  🌌 ರೋಗ-ದೋಷಗಳ ಕರ್ಮ ಕಾರಣ & ಶಾಂತಿ ಪರಿಹಾರ
-                </h3>
-              </div>
-
-              <div className="space-y-4">
-                {result.karmaVipaka.map((item, idx) => (
-                  <div
-                    key={idx}
-                    className="p-4 sm:p-5 bg-amber-50/80 dark:bg-slate-800/80 border border-amber-300 dark:border-slate-700 rounded-2xl space-y-2 shadow-sm"
-                  >
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-sm sm:text-base font-black text-amber-950 dark:text-amber-300">
-                        {idx + 1}. {item.ailmentOrChallenge}
-                      </h4>
-                      <span className="px-2.5 py-0.5 rounded-md bg-amber-200 dark:bg-amber-900/60 text-amber-950 dark:text-amber-200 text-xs font-bold">
-                        {item.afflictedPlanet}
-                      </span>
-                    </div>
-                    <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-medium">
-                      <strong>ಕರ್ಮ ಕಾರಣ:</strong> {item.karmicCause}
-                    </p>
-                    <div className="text-xs text-emerald-800 dark:text-emerald-300 font-semibold">
-                      <strong>ವಿಶೇಷ ದಾನ & ಮಂತ್ರ:</strong> {item.recommendedDaana} • {item.prescribedMantra}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          )}
-
-          {/* Tab 5: Moksha Gati */}
-          {activeTab === "mokshaGati" && (
-            <Card className="border-2 border-amber-300 dark:border-amber-500/40 bg-white dark:bg-slate-900 p-5 sm:p-7 shadow-xl rounded-3xl space-y-6">
-              <div>
-                <span className="text-xs font-extrabold uppercase tracking-wider text-amber-900 dark:text-amber-300">
-                  ಸದ್ಗತಿ & ಮುಕ್ತಿ ನಿರ್ಣಯ
-                </span>
-                <h3 className="text-lg sm:text-xl font-black text-slate-950 dark:text-white mt-0.5">
-                  🕊️ ಜೀವಿಯ ಪ್ರಯಾಣ & ಮೋಕ್ಷ ಲೋಕ ಪ್ರಾಪ್ತಿ
-                </h3>
-              </div>
-
-              <div className="p-5 bg-emerald-50 dark:bg-emerald-950/40 border-2 border-emerald-400 dark:border-emerald-800 rounded-3xl text-emerald-950 dark:text-emerald-200 space-y-2">
-                <div className="text-xs font-extrabold uppercase tracking-widest text-emerald-800 dark:text-emerald-400">
-                  ಪ್ರಾಪ್ತ ಸದ್ಗತಿ ಲೋಕ
-                </div>
-                <div className="text-lg sm:text-2xl font-black">
-                  {T_AYUR_SANJEEVINI.lokaRealms[result.mokshaGati.soulRealm][selectedLang]}
-                </div>
-                <p className="text-xs sm:text-sm leading-relaxed font-medium">
-                  {result.mokshaGati.twelfthHouseInfluence}
+                <p className="text-xs text-slate-400">
+                  ದಿನಾಂಕ: {result.dobFormatted} | ರಾಶಿ: {result.rashi} | ನಕ್ಷತ್ರ: {result.nakshatra}
                 </p>
               </div>
 
-              <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-2xl border border-amber-200 dark:border-slate-700">
-                <div className="text-xs font-bold text-amber-900 dark:text-amber-300">ಮೋಕ್ಷ ಮಾರ್ಗ ಸಾಧನೆ</div>
-                <div className="text-xs sm:text-sm font-semibold text-slate-950 dark:text-white mt-1">
-                  {result.mokshaGati.pathwayToMoksha}
-                </div>
-              </div>
-            </Card>
-          )}
+              {/* Download PDF Button */}
+              <button
+                type="button"
+                disabled={downloadingPdf}
+                onClick={handleDownloadPdf}
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-300 hover:from-amber-300 hover:to-amber-200 text-amber-950 font-bold text-xs shadow-lg transition-all transform active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap"
+              >
+                {downloadingPdf ? (
+                  <>
+                    <span className="animate-spin">⏳</span>
+                    <span>PDF ಸಿದ್ಧವಾಗುತ್ತಿದೆ...</span>
+                  </>
+                ) : (
+                  <span>
+                    {mode === "janma"
+                      ? t.downloadPdfBtnJanana[language]
+                      : t.downloadPdfBtnMarana[language]}
+                  </span>
+                )}
+              </button>
+            </div>
 
-          {/* Tab 6: Pitru Rina */}
-          {activeTab === "pitru" && (
-            <Card className="border-2 border-amber-300 dark:border-amber-500/40 bg-white dark:bg-slate-900 p-5 sm:p-7 shadow-xl rounded-3xl space-y-6">
+            {/* AI Divine Narrative Card */}
+            {result.aiDivineNarrative && (
+              <Card className="border-amber-500/40 bg-slate-900/90 p-4">
+                <div className="flex items-center gap-2 text-amber-300 font-serif font-bold text-sm mb-2">
+                  <span>✨</span>
+                  <span>
+                    {mode === "janma"
+                      ? "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಆಯುರ್-ಸಂಜೀವಿನಿ ದೈವಿಕ ಸಂದೇಶ"
+                      : "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸದ್ಗತಿ & ಪಿತೃ ಮುಕ್ತಿ ದೈವಿಕ ಸಂದೇಶ"}
+                  </span>
+                </div>
+                <div className="text-xs sm:text-sm text-slate-200 leading-relaxed whitespace-pre-line font-serif bg-slate-950/60 p-3.5 rounded-xl border border-amber-500/20">
+                  {result.aiDivineNarrative}
+                </div>
+              </Card>
+            )}
+
+            {/* 🌟 100% Mode-Specific 6 Interactive Tabs */}
+            {mode === "janma" ? (
+              /* JANANA 6 TABS */
               <div>
-                <span className="text-xs font-extrabold uppercase tracking-wider text-amber-900 dark:text-amber-300">
-                  ಪಿತೃ ಋಣ ವಿಮೋಚನೆ
-                </span>
-                <h3 className="text-lg sm:text-xl font-black text-slate-950 dark:text-white mt-0.5">
-                  🪔 ಪಿತೃ ಶಾಂತಿ & ವಂಶಾಭಿವೃದ್ಧಿ ರಕ್ಷೆ
-                </h3>
-              </div>
-
-              <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-2xl border border-amber-200 dark:border-slate-700">
-                <div className="text-xs font-bold text-amber-900 dark:text-amber-300">ಪೂರ್ವಜರ ಆಶೀರ್ವಾದ ಸ್ಥಿತಿ</div>
-                <div className="text-sm font-black text-slate-950 dark:text-white mt-1">
-                  {result.pitruKarma.ancestralBlessingStatus}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <div className="text-xs font-black text-amber-950 dark:text-amber-300 uppercase tracking-wider">
-                  ಶಾಸ್ತ್ರೋಕ್ತ ನಿತ್ಯ ತರ್ಪಣ & ಸೇವಾ ನಿಯಮಗಳು
-                </div>
-                {result.pitruKarma.remedies.map((rem, i) => (
-                  <div key={i} className="p-3 bg-white dark:bg-slate-800 border border-amber-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-200">
-                    • {rem}
-                  </div>
-                ))}
-              </div>
-            </Card>
-          )}
-
-          {/* Tab 7: Gokarna Sevas */}
-          {activeTab === "gokarna" && (
-            <Card className="border-2 border-amber-300 dark:border-amber-500/40 bg-white dark:bg-slate-900 p-5 sm:p-7 shadow-xl rounded-3xl space-y-6">
-              <div>
-                <span className="text-xs font-extrabold uppercase tracking-wider text-amber-900 dark:text-amber-300">
-                  ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಸನ್ನಿಧಿ
-                </span>
-                <h3 className="text-lg sm:text-xl font-black text-slate-950 dark:text-white mt-0.5">
-                  🕉️ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸಂಜೀವಿನಿ ಸೇವಾ ಸಂಕಲ್ಪ
-                </h3>
-              </div>
-
-              <div className="space-y-3">
-                {result.gokarnaSankalpa.recommendedSevas.map((seva, idx) => (
-                  <div
-                    key={idx}
-                    className="p-4 bg-gradient-to-r from-amber-50 to-amber-100/50 dark:from-slate-800 dark:to-slate-800/80 border border-amber-300 dark:border-slate-700 rounded-2xl"
+                {/* Janana Tab Navigation */}
+                <div className="flex overflow-x-auto gap-2 pb-2 border-b border-amber-500/30 scrollbar-thin">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("tab1")}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                      activeTab === "tab1"
+                        ? "bg-amber-500 text-slate-950 shadow-md"
+                        : "bg-slate-900 text-slate-400 hover:text-white"
+                    }`}
                   >
-                    <div className="font-black text-sm text-amber-950 dark:text-amber-300">
-                      {seva.title}
-                    </div>
-                    <p className="text-xs text-slate-700 dark:text-slate-300 mt-1 font-medium">
-                      {seva.description}
-                    </p>
-                    <div className="text-[11px] font-bold text-amber-800 dark:text-amber-400 mt-1.5">
-                      ಪ್ರಶಸ್ತ ಕಾಲ: {seva.idealTithi} • ಫಲ: {seva.significance}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="p-5 bg-amber-950 text-white rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                  <div className="text-xs text-amber-300 font-bold">ಪ್ರಧಾನ ಅರ್ಚಕರು</div>
-                  <div className="text-base font-black">{result.gokarnaSankalpa.priestName}</div>
-                  <div className="text-xs text-amber-200">{result.gokarnaSankalpa.templeAddress}</div>
+                    {t.jananaTabs.longevity[language]}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("tab2")}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                      activeTab === "tab2"
+                        ? "bg-amber-500 text-slate-950 shadow-md"
+                        : "bg-slate-900 text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    {t.jananaTabs.gandanta[language]}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("tab3")}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                      activeTab === "tab3"
+                        ? "bg-amber-500 text-slate-950 shadow-md"
+                        : "bg-slate-900 text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    {t.jananaTabs.maraka[language]}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("tab4")}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                      activeTab === "tab4"
+                        ? "bg-amber-500 text-slate-950 shadow-md"
+                        : "bg-slate-900 text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    {t.jananaTabs.shield[language]}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("tab5")}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                      activeTab === "tab5"
+                        ? "bg-amber-500 text-slate-950 shadow-md"
+                        : "bg-slate-900 text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    {t.jananaTabs.karmaVipaka[language]}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("tab6")}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                      activeTab === "tab6"
+                        ? "bg-amber-500 text-slate-950 shadow-md"
+                        : "bg-slate-900 text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    {t.jananaTabs.gokarna[language]}
+                  </button>
                 </div>
-                <a
-                  href={`tel:${result.gokarnaSankalpa.priestPhone}`}
-                  className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 text-amber-950 font-black text-xs rounded-xl shadow-lg flex items-center gap-1.5 whitespace-nowrap"
-                >
-                  <span>📞 {result.gokarnaSankalpa.priestPhone} ಗೆ ಕರೆ ಮಾಡಿ</span>
-                </a>
-              </div>
-            </Card>
-          )}
 
-          {/* AI Divine Revelation Box */}
-          {result.aiDivineNarrative && (
-            <Card className="border-2 border-amber-400 dark:border-amber-500/50 bg-gradient-to-br from-amber-950 via-slate-900 to-amber-950 p-6 shadow-2xl rounded-3xl text-white space-y-3">
-              <div className="flex items-center gap-2 text-amber-300 text-xs font-black uppercase tracking-widest">
-                <span>✨</span>
-                <span>ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ದೈವಿಕ ಸಂಜೀವಿನಿ ಸಂದೇಶ</span>
-              </div>
-              <p className="text-xs sm:text-sm text-amber-100 font-medium leading-relaxed whitespace-pre-wrap">
-                {sanitizeAIText(result.aiDivineNarrative)}
-              </p>
-            </Card>
-          )}
-        </div>
-      )}
+                {/* Janana Tab Content Panels */}
+                <div className="mt-4">
+                  {/* Tab 1: Longevity Matrix */}
+                  {activeTab === "tab1" && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Card className="border-amber-500/40 bg-slate-900/90 p-4">
+                        <h4 className="text-sm font-bold text-amber-300 mb-2">ಆಯುರ್ದಾಯ ವರ್ಗ & ಪ್ರಾಣಶಕ್ತಿ</h4>
+                        <div className="p-3 rounded-xl bg-slate-950/60 border border-amber-500/20 space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs text-slate-400">ಆಯುಷ್ಯ ಶ್ರೇಣಿ:</span>
+                            <span className="text-sm font-bold text-amber-200">
+                              {result.longevity.estimatedAgeSpan}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs text-slate-400">ಪ್ರಾಣಶಕ್ತಿ ಸೂಚ್ಯಂಕ:</span>
+                            <span className="text-lg font-black text-emerald-400">
+                              {result.longevity.vitalityScore} / 100
+                            </span>
+                          </div>
+                          <div className="text-xs text-slate-300 pt-1">
+                            ಆಯುಷ್ಕಾರಕ ಶನಿ ಬಲ: {result.longevity.ayushkarakaStrength}
+                          </div>
+                        </div>
+                      </Card>
 
-      {/* Offscreen Container for HTML2Canvas PDF Rendering (Fixed & Visible to layout engine at -15000px) */}
-      {result && (
-        <div
-          id="ayur-sanjeevini-pdf-wrapper"
-          style={{
-            position: "fixed",
-            top: "-15000px",
-            left: "-15000px",
-            width: "794px",
-            zIndex: -9999,
-            pointerEvents: "none"
-          }}
-        >
-          <AyurSanjeeviniPdfTemplate result={result} lang={selectedLang} />
-        </div>
-      )}
+                      <Card className="border-amber-500/40 bg-slate-900/90 p-4">
+                        <h4 className="text-sm font-bold text-amber-300 mb-2">ಜೈಮಿನಿ ತ್ರಿ-ಮಾನ ಪದ್ಧತಿ ವಿಶ್ಲೇಷಣೆ</h4>
+                        <div className="p-3 rounded-xl bg-slate-950/60 border border-amber-500/20 text-xs text-slate-200 space-y-1.5">
+                          <div>• ಲಗ್ನ & ೮ನೇ ಮನೆ: {result.longevity.threePairsMethod.lagnaAndEighth}</div>
+                          <div>• ಚಂದ್ರ & ಶನಿ: {result.longevity.threePairsMethod.moonAndSaturn}</div>
+                          <div>• ಲಗ್ನ & ಹೋರಾ ಲಗ್ನ: {result.longevity.threePairsMethod.lagnaAndHoraLagna}</div>
+                        </div>
+                      </Card>
+                    </div>
+                  )}
+
+                  {/* Tab 2: Gandanta & Balarishta */}
+                  {activeTab === "tab2" && (
+                    <Card className="border-amber-500/40 bg-slate-900/90 p-4 space-y-3">
+                      <h4 className="text-sm font-bold text-amber-300">⚖️ ಗಂಡಾಂತ & ಬಾಲಾರಿಷ್ಟ ಪರಿಶೀಲನೆ</h4>
+                      <div className="p-3 rounded-xl bg-slate-950/60 border border-amber-500/20 space-y-2 text-xs">
+                        <div>
+                          <span className="font-bold text-amber-400">ಸ್ಥಿತಿ: </span>
+                          <span>{result.gandanta.description}</span>
+                        </div>
+                        <div>
+                          <span className="font-bold text-amber-400">ಶಾಸ್ತ್ರೋಕ್ತ ಪರಿಹಾರ: </span>
+                          <span>{result.gandanta.remedyRequired}</span>
+                        </div>
+                      </div>
+                    </Card>
+                  )}
+
+                  {/* Tab 3: Maraka & Badhaka */}
+                  {activeTab === "tab3" && (
+                    <Card className="border-amber-500/40 bg-slate-900/90 p-4 space-y-3">
+                      <h4 className="text-sm font-bold text-amber-300">⚔️ ಮಾರಕ & ಬಾಧಕ ಗ್ರಹ ನಿರ್ಣಯ</h4>
+                      <div className="p-3 rounded-xl bg-slate-950/60 border border-amber-500/20 space-y-2 text-xs">
+                        <div>
+                          <span className="font-bold text-amber-400">ಮಾರಕ ಗ್ರಹಗಳು: </span>
+                          <span>{result.marakaBadhaka.marakaPlanets.join(", ")}</span>
+                        </div>
+                        <div>
+                          <span className="font-bold text-amber-400">ಬಾಧಕ ಸ್ಥಾನ: </span>
+                          <span>{result.marakaBadhaka.badhadhipati} ({result.marakaBadhaka.badhakaHouse}ನೇ ಭಾವ)</span>
+                        </div>
+                        <div>
+                          <span className="font-bold text-amber-400">ಛಿದ್ರ ದಶಾ ಎಚ್ಚರಿಕೆ: </span>
+                          <span>{result.marakaBadhaka.chhidraDashaAlert}</span>
+                        </div>
+                        <div>
+                          <span className="font-bold text-amber-400">ಶಾಂತಿ ಮಾರ್ಗ: </span>
+                          <span>{result.marakaBadhaka.mitigationSummary}</span>
+                        </div>
+                      </div>
+                    </Card>
+                  )}
+
+                  {/* Tab 4: Maha Mrityunjaya Shield */}
+                  {activeTab === "tab4" && (
+                    <Card className="border-amber-500/40 bg-slate-900/90 p-4 space-y-3 text-center">
+                      <h4 className="text-sm font-bold text-amber-300">🛡️ ಮಹಾಮೃತ್ಯುಂಜಯ ಸಂಜೀವಿನಿ ರಕ್ಷಾ ಕವಚ</h4>
+                      <div className="p-4 rounded-xl bg-amber-950/80 border border-amber-400/40 space-y-2">
+                        <div className="text-sm font-serif font-bold text-amber-100 leading-relaxed">
+                          {result.sanjeeviniShield.mrityunjayaMantra}
+                        </div>
+                        <div className="text-xs text-amber-300">
+                          ದೈನಿಕ ಜಪ ಸಂಖ್ಯೆ: {result.sanjeeviniShield.recommendedJapaCount} ಬಾರಿ
+                        </div>
+                      </div>
+                      <div className="text-xs text-slate-300 text-left space-y-1">
+                        <div>• ರುದ್ರಾಕ್ಷಿ ಧಾರಣೆ: {result.sanjeeviniShield.rudrakshaRecommendation}</div>
+                        <div>• ಲೋಹ ಕವಚ: {result.sanjeeviniShield.gemstoneOrMetalShield}</div>
+                        <div>• ಆಯುಷ್ಯ ಸೂಕ್ತ ಹೋಮ: {result.sanjeeviniShield.ayushyaSuktaHomaDetails}</div>
+                      </div>
+                    </Card>
+                  )}
+
+                  {/* Tab 5: Karma Vipaka */}
+                  {activeTab === "tab5" && (
+                    <div className="space-y-3">
+                      <h4 className="text-sm font-bold text-amber-300">🌌 ಕರ್ಮ ವಿಪಾಕ & ದೈಹಿಕ ರೋಗ ಕಾರಣಗಳು</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        {result.karmaVipaka.map((item, idx) => (
+                          <Card key={idx} className="border-amber-500/30 bg-slate-900/80 p-3 space-y-1.5 text-xs">
+                            <div className="font-bold text-amber-400">{item.ailmentOrChallenge}</div>
+                            <div className="text-slate-300">ಕರ್ಮ ಕಾರಣ: {item.karmicCause}</div>
+                            <div className="text-amber-200">ಪ್ರಶಸ್ತ ದಾನ: {item.recommendedDaana}</div>
+                            <div className="text-slate-400 italic text-[11px]">{item.prescribedMantra}</div>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Tab 6: Gokarna Ayushya Sevas */}
+                  {activeTab === "tab6" && (
+                    <Card className="border-amber-500/40 bg-slate-900/90 p-4 space-y-4">
+                      <h4 className="text-sm font-bold text-amber-300">🕉️ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಆಯುಷ್ಯ ಸಂಕಲ್ಪ ಸೇವೆಗಳು</h4>
+                      <div className="space-y-2">
+                        {result.gokarnaSankalpa.recommendedSevas.map((seva, idx) => (
+                          <div key={idx} className="p-3 rounded-xl bg-slate-950/60 border border-amber-500/20 text-xs space-y-1">
+                            <div className="font-bold text-amber-300">{idx + 1}. {seva.title}</div>
+                            <div className="text-slate-300">{seva.description}</div>
+                            <div className="text-slate-400">ಪ್ರಶಸ್ತ ತಿಥಿ: {seva.idealTithi} | ಫಲ: {seva.significance}</div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="p-3 rounded-xl bg-amber-950/60 border border-amber-400/40 text-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <div>
+                          <div className="font-bold text-amber-200">ಪ್ರಧಾನ ಅರ್ಚಕರು: {result.gokarnaSankalpa.priestName}</div>
+                          <div className="text-slate-300">{result.gokarnaSankalpa.templeAddress}</div>
+                        </div>
+                        <a
+                          href={`tel:${result.gokarnaSankalpa.priestPhone.replace(/\s+/g, "")}`}
+                          className="px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-bold hover:bg-amber-400 transition-colors"
+                        >
+                          📞 {result.gokarnaSankalpa.priestPhone}
+                        </a>
+                      </div>
+                    </Card>
+                  )}
+                </div>
+              </div>
+            ) : (
+              /* MARANA 6 TABS */
+              <div>
+                {/* Marana Tab Navigation */}
+                <div className="flex overflow-x-auto gap-2 pb-2 border-b border-amber-500/30 scrollbar-thin">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("tab1")}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                      activeTab === "tab1"
+                        ? "bg-amber-500 text-slate-950 shadow-md"
+                        : "bg-slate-900 text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    {t.maranaTabs.mokshaGati[language]}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("tab2")}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                      activeTab === "tab2"
+                        ? "bg-amber-500 text-slate-950 shadow-md"
+                        : "bg-slate-900 text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    {t.maranaTabs.transitionDosha[language]}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("tab3")}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                      activeTab === "tab3"
+                        ? "bg-amber-500 text-slate-950 shadow-md"
+                        : "bg-slate-900 text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    {t.maranaTabs.pitruRina[language]}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("tab4")}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                      activeTab === "tab4"
+                        ? "bg-amber-500 text-slate-950 shadow-md"
+                        : "bg-slate-900 text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    {t.maranaTabs.tripindi[language]}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("tab5")}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                      activeTab === "tab5"
+                        ? "bg-amber-500 text-slate-950 shadow-md"
+                        : "bg-slate-900 text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    {t.maranaTabs.vamshaShield[language]}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("tab6")}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                      activeTab === "tab6"
+                        ? "bg-amber-500 text-slate-950 shadow-md"
+                        : "bg-slate-900 text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    {t.maranaTabs.gokarna[language]}
+                  </button>
+                </div>
+
+                {/* Marana Tab Content Panels */}
+                <div className="mt-4">
+                  {/* Tab 1: Moksha Gati */}
+                  {activeTab === "tab1" && (
+                    <Card className="border-amber-500/40 bg-slate-900/90 p-4 space-y-3">
+                      <h4 className="text-sm font-bold text-amber-300">🕊️ ಜೀವಾತ್ಮ ಸದ್ಗತಿ & ಮೋಕ್ಷ ಲೋಕ ನಿರ್ಣಯ</h4>
+                      <div className="p-3 rounded-xl bg-slate-950/60 border border-amber-500/20 space-y-2 text-xs">
+                        <div className="text-sm font-bold text-amber-200">
+                          ಪ್ರಾಪ್ತ ಲೋಕ: {result.mokshaGati.realmName}
+                        </div>
+                        <div>• ೧೨ನೇ ವ್ಯಯ ಭಾವ: {result.mokshaGati.twelfthHouseInfluence}</div>
+                        <div>• ಕಾರಕಾಂಶ ಕೇತು ಬಲ: {result.mokshaGati.karakamsaKetuBala}</div>
+                        <div>• ಸಂಚಿತ ಕರ್ಮ ಶೇಷ: {result.mokshaGati.karmicDebtRemaining}</div>
+                        <div>• ಮೋಕ್ಷ ಮಾರ್ಗ: {result.mokshaGati.pathwayToMoksha}</div>
+                      </div>
+                    </Card>
+                  )}
+
+                  {/* Tab 2: Transition Nakshatra & Panchaka */}
+                  {activeTab === "tab2" && (
+                    <Card className="border-amber-500/40 bg-slate-900/90 p-4 space-y-3">
+                      <h4 className="text-sm font-bold text-amber-300">🌌 ನಿರ್ಯಾಣ ನಕ್ಷತ್ರ & ಪಂಚಕ ಶಾಂತಿ</h4>
+                      <div className="p-3 rounded-xl bg-slate-950/60 border border-amber-500/20 space-y-2 text-xs">
+                        <div className="font-bold text-amber-400">ಪಂಚಕ ವಿಧ: {result.transitionDosha.panchakaType}</div>
+                        <div>ವಿವರ: {result.transitionDosha.doshaDescription}</div>
+                        <div>ಶಾಂತಿ ಪರಿಹಾರ: {result.transitionDosha.prescribedParihara}</div>
+                        <div>ಕುಟುಂಬ ರಕ್ಷಾ ಅವಧಿ: {result.transitionDosha.peacePeriodRecommendation}</div>
+                      </div>
+                    </Card>
+                  )}
+
+                  {/* Tab 3: Pitru Rina & 16 Shradhas */}
+                  {activeTab === "tab3" && (
+                    <Card className="border-amber-500/40 bg-slate-900/90 p-4 space-y-3">
+                      <h4 className="text-sm font-bold text-amber-300">🪔 ಪಿತೃ ಋಣ & ೧೬ ಶ್ರಾದ್ಧ ವಿಧಿಗಳು</h4>
+                      <div className="p-3 rounded-xl bg-slate-950/60 border border-amber-500/20 space-y-2 text-xs text-slate-200">
+                        <div>• ೧ ರಿಂದ ೧೨ ದಿನಗಳು: ನಿತ್ಯ ತರ್ಪಣ, ದಶಗಾತ್ರ ಪಿಂಡ ಪ್ರದಾನ, ಏಕಾದಶಾಹ ಹಾಗೂ ಸಪಿಂಡೀಕರಣ.</div>
+                        <div>• ೧೬ ಮಾಸಿಕಗಳು: ಊನಮಾಸಿಕ, ತ್ರೈಪಾಕ್ಷಿಕ ಹಾಗೂ ಮಾಸಿಕ ಶ್ರಾದ್ಧಗಳ ಕಾಲಬದ್ಧ ಆಚರಣೆ.</div>
+                        <div>• ಆಶೀರ್ವಾದ ಸ್ಥಿತಿ: {result.pitruKarma.ancestralBlessingStatus}</div>
+                      </div>
+                    </Card>
+                  )}
+
+                  {/* Tab 4: Tripindi & Narayana Bali */}
+                  {activeTab === "tab4" && (
+                    <Card className="border-amber-500/40 bg-slate-900/90 p-4 space-y-3">
+                      <h4 className="text-sm font-bold text-amber-300">🔱 ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ & ನಾರಾಯಣ ಬಲಿ ಮಾರ್ಗದರ್ಶಿ</h4>
+                      <div className="p-3 rounded-xl bg-slate-950/60 border border-amber-500/20 space-y-2 text-xs">
+                        <div>ಪಿತೃ ಋಣ ಮಟ್ಟ: <span className="font-bold text-amber-400">{result.pitruKarma.pitruRinaLevel.toUpperCase()}</span></div>
+                        <div>ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ ಅಗತ್ಯತೆ: {result.pitruKarma.tripindiRequired ? "ಹೌದು - ತಕ್ಷಣ ಅಗತ್ಯವಿದೆ" : "ಸಾಮಾನ್ಯ ಶ್ರಾದ್ಧ ಸಾಕು"}</div>
+                        <div>ನಾರಾಯಣ ಬಲಿ: {result.pitruKarma.narayanaBaliRecommended ? "ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ಶಿಫಾರಸು ಮಾಡಲಾಗಿದೆ" : "ಅಮಾವಾಸ್ಯೆ ತರ್ಪಣ ಸಾಕು"}</div>
+                      </div>
+                    </Card>
+                  )}
+
+                  {/* Tab 5: Vamsha Shield */}
+                  {activeTab === "tab5" && (
+                    <Card className="border-amber-500/40 bg-slate-900/90 p-4 space-y-3 text-center">
+                      <h4 className="text-sm font-bold text-amber-300">🛡️ ವಂಶ ರಕ್ಷಾ & ಪಿತೃ ಆಶೀರ್ವಾದ ಕವಚ</h4>
+                      <div className="p-4 rounded-xl bg-amber-950/80 border border-amber-400/40 space-y-2">
+                        <div className="text-sm font-serif font-bold text-amber-100 leading-relaxed">
+                          {result.vamshaShield.vamshaProtectionMantra}
+                        </div>
+                        <div className="text-xs text-amber-300">
+                          {result.vamshaShield.dailyPitruTarpanaGuideline}
+                        </div>
+                      </div>
+                      <div className="text-xs text-slate-300 text-left">
+                        {result.vamshaShield.gayaGokarnaKashiRecommendation}
+                      </div>
+                    </Card>
+                  )}
+
+                  {/* Tab 6: Gokarna Pitru Mukti Sevas */}
+                  {activeTab === "tab6" && (
+                    <Card className="border-amber-500/40 bg-slate-900/90 p-4 space-y-4">
+                      <h4 className="text-sm font-bold text-amber-300">🕉️ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥ ಪಿತೃ ಮುಕ್ತಿ ಸೇವೆಗಳು</h4>
+                      <div className="space-y-2">
+                        {result.gokarnaSankalpa.recommendedSevas.map((seva, idx) => (
+                          <div key={idx} className="p-3 rounded-xl bg-slate-950/60 border border-amber-500/20 text-xs space-y-1">
+                            <div className="font-bold text-amber-300">{idx + 1}. {seva.title}</div>
+                            <div className="text-slate-300">{seva.description}</div>
+                            <div className="text-slate-400">ಪ್ರಶಸ್ತ ತಿಥಿ: {seva.idealTithi} | ಫಲ: {seva.significance}</div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="p-3 rounded-xl bg-amber-950/60 border border-amber-400/40 text-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <div>
+                          <div className="font-bold text-amber-200">ಪ್ರಧಾನ ಅರ್ಚಕರು: {result.gokarnaSankalpa.priestName}</div>
+                          <div className="text-slate-300">{result.gokarnaSankalpa.templeAddress}</div>
+                        </div>
+                        <a
+                          href={`tel:${result.gokarnaSankalpa.priestPhone.replace(/\s+/g, "")}`}
+                          className="px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-bold hover:bg-amber-400 transition-colors"
+                        >
+                          📞 {result.gokarnaSankalpa.priestPhone}
+                        </a>
+                      </div>
+                    </Card>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Offscreen A4 PDF Template Container (Hidden Offscreen) */}
+        {result && (
+          <div
+            ref={offscreenContainerRef}
+            aria-hidden="true"
+            style={{
+              position: "fixed",
+              top: "-15000px",
+              left: "-15000px",
+              width: "794px",
+              zIndex: -9999,
+              pointerEvents: "none"
+            }}
+          >
+            <AyurSanjeeviniPdfTemplate result={result} lang={language} />
+          </div>
+        )}
+      </div>
     </div>
   );
 };

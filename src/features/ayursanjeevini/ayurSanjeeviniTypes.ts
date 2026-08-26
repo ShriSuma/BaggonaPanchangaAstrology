@@ -11,9 +11,9 @@ export type GandantaType = "none" | "tithi" | "nakshatra" | "lagna" | "sarpa_gan
 export interface AyurSanjeeviniInput {
   mode: AyurMode;
   personName: string;
-  dob: string; // YYYY-MM-DD
+  dob: string; // YYYY-MM-DD (Birth Date or Demise Date)
   tob?: string; // HH:mm
-  pob: string;
+  pob: string; // Birth Place or Demise Place
   gotra?: string;
   rashi?: string;
   nakshatra?: string;
@@ -60,15 +60,6 @@ export interface KarmaVipakaItem {
   prescribedMantra: string;
 }
 
-export interface MokshaGatiAnalysis {
-  soulRealm: LokaRealm;
-  realmName: string;
-  twelfthHouseInfluence: string;
-  karakamsaKetuBala: string;
-  karmicDebtRemaining: string;
-  pathwayToMoksha: string;
-}
-
 export interface SanjeeviniRakshaShield {
   mrityunjayaMantra: string;
   recommendedJapaCount: number;
@@ -78,12 +69,38 @@ export interface SanjeeviniRakshaShield {
   dailySankalpaMantra: string;
 }
 
+export interface TransitionDoshaAnalysis {
+  nakshatra: string;
+  isPanchaka: boolean;
+  panchakaType: string;
+  isDwiswabhavaOrYamaGanda: boolean;
+  doshaDescription: string;
+  prescribedParihara: string;
+  peacePeriodRecommendation: string;
+}
+
+export interface MokshaGatiAnalysis {
+  soulRealm: LokaRealm;
+  realmName: string;
+  twelfthHouseInfluence: string;
+  karakamsaKetuBala: string;
+  karmicDebtRemaining: string;
+  pathwayToMoksha: string;
+}
+
 export interface PitruRinaAndAncestral {
   pitruRinaLevel: "low" | "medium" | "high" | "severe";
   tripindiRequired: boolean;
   narayanaBaliRecommended: boolean;
   ancestralBlessingStatus: string;
   remedies: string[];
+}
+
+export interface VamshaRakshaShield {
+  vamshaProtectionMantra: string;
+  dailyPitruTarpanaGuideline: string;
+  gayaGokarnaKashiRecommendation: string;
+  blessingEffect: string;
 }
 
 export interface GokarnaKshetraSankalpa {
@@ -110,13 +127,18 @@ export interface AyurSanjeeviniResult {
   rashi: string;
   nakshatra: string;
   lagnaRashi: string;
+  // Janana Exclusive Details
   gandanta: GandantaAnalysis;
   longevity: LongevityAnalysis;
   marakaBadhaka: MarakaBadhakaDetail;
   karmaVipaka: KarmaVipakaItem[];
-  mokshaGati: MokshaGatiAnalysis;
   sanjeeviniShield: SanjeeviniRakshaShield;
+  // Marana Exclusive Details
+  transitionDosha: TransitionDoshaAnalysis;
+  mokshaGati: MokshaGatiAnalysis;
   pitruKarma: PitruRinaAndAncestral;
+  vamshaShield: VamshaRakshaShield;
+  // Common Seva Sankalpa
   gokarnaSankalpa: GokarnaKshetraSankalpa;
   aiDivineNarrative?: string;
 }
