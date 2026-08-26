@@ -172,20 +172,38 @@ describe("Seva PDF 5-Page Suite & QR Code Verification", () => {
     expect(screen.getByText(/೪ \/ ೫|4 \/ 5/)).toBeInTheDocument();
   });
 
-  it("ensures Page 5 (SevaPoojaMahatmePrint) contains all 3 core Mahatme sections, 4 Graha cards, and 4 Mantra cards", () => {
-    render(
-      <SevaPoojaMahatmePrint
+  it("ensures Page 3 (SevaAnugrahaGuidancePrint) dynamically renders Janma Nakshatra Mantra based on devotee birth star", () => {
+    // Test Pushya nakshatra (index 7)
+    const { unmount } = render(
+      <SevaAnugrahaGuidancePrint
         lang="kn"
-        identity={mockIdentity}
+        identity={{ ...mockIdentity, nakshatraIndex: 7 }}
         panditName="ಚೈತನ್ಯ ಪಂಡಿತ"
+        rhythm={mockRhythm}
       />
     );
 
-    expect(screen.getByText(/೧\. ಪೂಜಾ ಮಹಾ ಸಂಕಲ್ಪ/i)).toBeInTheDocument();
-    expect(screen.getByText(/೨\. ಪೂಜೆಯ ಕಾರಣ/i)).toBeInTheDocument();
-    expect(screen.getByText(/೩\. ದಿವ್ಯ ಫಲಶ್ರುತಿ/i)).toBeInTheDocument();
-    expect(screen.getByText(/೪ ಮೂಲ ಗ್ರಹಗಳ ಸ್ಥಿತಿ/i)).toBeInTheDocument();
-    expect(screen.getByText(/೪ ಗ್ರಹ ರಕ್ಷಾ ಬೀಜ ಮಂತ್ರ ಜಪ/i)).toBeInTheDocument();
-    expect(screen.getByText(/೫ \/ ೫|5 \/ 5/)).toBeInTheDocument();
+    expect(screen.getByText(/ಜನ್ಮ ನಕ್ಷತ್ರ ಮಂತ್ರ ಜಪ/i)).toBeInTheDocument();
+    expect(screen.getByText(/★ ಪುಷ್ಯ/i)).toBeInTheDocument();
+    expect(screen.getByText(/॥ ॐ ಬೃಹಸ್ಪತಯೇ ನಮಃ ॥/i)).toBeInTheDocument();
+    expect(screen.getByText(/ಬೃಹಸ್ಪತಿ/i)).toBeInTheDocument();
+    expect(screen.getByText(/ಪ್ರತಿದಿನ ೧೦೮ ಬಾರಿ/i)).toBeInTheDocument();
+    unmount();
+
+    // Test Ashwini nakshatra (index 0) in English
+    render(
+      <SevaAnugrahaGuidancePrint
+        lang="en"
+        identity={{ ...mockIdentity, nakshatraIndex: 0 }}
+        panditName="Chaitanya Pandit"
+        rhythm={mockRhythm}
+      />
+    );
+
+    expect(screen.getByText(/Nakshatra Mantra Japa/i)).toBeInTheDocument();
+    expect(screen.getByText(/★ Ashwini/i)).toBeInTheDocument();
+    expect(screen.getByText(/॥ Om Ashwini Kumarabhyam Namah ॥/i)).toBeInTheDocument();
+    expect(screen.getByText(/Ashwini Kumaras/i)).toBeInTheDocument();
+    expect(screen.getByText(/108 Times Daily/i)).toBeInTheDocument();
   });
 });
