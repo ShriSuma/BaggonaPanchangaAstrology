@@ -23,6 +23,7 @@ import { displayPanchangValue } from "../i18n/panchangLabels";
 import { resolvePlaceFromPincode } from "../services/locationApi";
 import { T_VARAMAHALAKSHMI, pickL5 } from "../features/varamahalakshmi/varamahalakshmiLocale";
 import { T_KAALA_DIKSUCHI } from "../features/kaaladiksuchi/kaaladiksuchiLocale";
+import { T_HINDINA_JANMA } from "../features/hindinajanma/hindinaJanmaLocale";
 
 // 1. Starfield Nebula Background component
 const Starfield = () => (
@@ -599,6 +600,36 @@ export default function HomePage(): JSX.Element {
               className="w-full sm:w-auto flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 px-4 py-2 text-xs font-bold text-white shadow-lg hover:shadow-xl transition-all transform active:scale-95 whitespace-nowrap"
             >
               <span>ಪ್ರವೇಶಿಸಿ / Explore Blueprint</span>
+              <span>→</span>
+            </button>
+          </div>
+        </div>
+
+        {/* 🕉️ Featured Innovation: Hindina Janma (Past Life Karma & Reincarnation Mirror) */}
+        <div className="relative overflow-hidden rounded-2xl border-2 border-amber-400/90 bg-gradient-to-r from-amber-900 via-amber-950 to-amber-900 p-4 text-amber-50 shadow-xl">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/30 text-2xl border border-amber-400/50">
+                🕉️
+              </span>
+              <div>
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/30 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-300">
+                  <span>🔮</span> {pickL5(T_HINDINA_JANMA.heroTitle, (i18n.language as any) || "kn")}
+                </div>
+                <h3 className="font-serif text-sm sm:text-base font-bold text-amber-100 mt-0.5">
+                  {i18n.language === "kn" ? "ಹಿಂದಿನ ಜನ್ಮದ ಗುರುತು, ವೃತ್ತಿ, ಸಂಚಿತ ಕರ್ಮ & ಸುಪ್ತ ಪ್ರತಿಭೆಗಳ ರಹಸ್ಯ" : "Unveil Past Life Identity, Vocation, Sanchita Karma & Talents"}
+                </h3>
+                <p className="text-[11px] text-amber-200/80 hidden sm:block">
+                  ಡಿ-೬೦ ಷಷ್ಟ್ಯಂಶ, ರಾಹು-ಕೇತು ಮೋಕ್ಷ ಅಕ್ಷ, ಮಚ್ಚೆಗಳು, ಭಯಗಳು ಹಾಗೂ ಧ್ವನಿ ಮೈಕ್ರೋಫೋನ್ ಇನ್‌ಪುಟ್
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setPage("hindinajanma")}
+              className="w-full sm:w-auto flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 px-4 py-2 text-xs font-bold text-white shadow-lg hover:shadow-xl transition-all transform active:scale-95 whitespace-nowrap"
+            >
+              <span>ಪ್ರವೇಶಿಸಿ / Past Life Mirror</span>
               <span>→</span>
             </button>
           </div>

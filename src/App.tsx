@@ -20,6 +20,7 @@ import SankhyaShastraPage from "./pages/SankhyaShastraPage";
 import PalmReadingPage from "./pages/PalmReadingPage";
 import FaceReadingPage from "./pages/FaceReadingPage";
 import { MaranottaraPage } from "./pages/MaranottaraPage";
+import { HindinaJanmaPage } from "./pages/HindinaJanmaPage";
 import { LifeGuidancePage } from "./pages/LifeGuidancePage";
 import AstroGamesPage from "./pages/AstroGamesPage";
 import { DivyaKaalaDiksuchiPage } from "./pages/DivyaKaalaDiksuchiPage";
@@ -119,6 +120,7 @@ export default function App(): JSX.Element {
         {currentPage === "palmreading" && <PalmReadingPage />}
         {currentPage === "facereading" && <FaceReadingPage />}
         {currentPage === "maranottara" && <MaranottaraPage />}
+        {currentPage === "hindinajanma" && <HindinaJanmaPage />}
         {currentPage === "lifeguidance" && <LifeGuidancePage />}
         {currentPage === "astrogames" && <AstroGamesPage />}
         {currentPage === "kaaladiksuchi" && <DivyaKaalaDiksuchiPage />}
