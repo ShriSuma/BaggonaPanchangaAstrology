@@ -14,7 +14,6 @@ Name: ${englishName}`;
 
   try {
     const result = await askGemini("Transliterate", prompt, apiKey || "", lang, { raw: true, temperature: 0.1 });
-    // Clean up just in case Gemini adds quotes
     return result.replace(/['"]/g, '').trim() || englishName;
   } catch (err) {
     console.error("Transliteration failed:", err);
@@ -23,37 +22,46 @@ Name: ${englishName}`;
 }
 
 /**
- * Fetches dynamic details about a specific Pooja or Homa from Gemini.
- * Generates What it is, Why it's done, and Benefits.
+ * Fetches dynamic details about a specific Pooja or Homa from Gemini across all 5 languages (kn, hi, te, ta, en).
+ * Generates What it is (Sankalpa), Why it's done (Karana), and Divine Benefits (Phalashruti).
  */
 export async function fetchPoojaDetailsWithAI(poojaName: string, lang: string, apiKey?: string): Promise<{ what: string; why: string; benefit: string; }> {
-  const prompt = `You are a Vedic expert priest at Gokarna Mahabaleshwara temple.
-Describe the following Pooja/Homa: "${poojaName}".
+  const prompt = `You are an authentic Vedic Pandit scholar and expert priest.
+Describe the following Sacred Pooja / Homa ritual in depth: "${poojaName}".
 
-Provide exactly THREE short paragraphs in the requested language.
-Paragraph 1: What is this pooja? (A brief description of the ritual itself).
-Paragraph 2: Why is this pooja performed? (The astrological or spiritual reasons).
-Paragraph 3: What are the benefits the devotee will receive?
+Provide exactly THREE distinct paragraphs in the requested language (${lang}):
+Paragraph 1 (Pooja Sankalpa / What is this Pooja): A rich explanation of the sacred ritual and its Vedic significance.
+Paragraph 2 (Pooja Karana / Why is it performed): The astrological, spiritual, and dosha-rectification reasons why a devotee should perform this pooja.
+Paragraph 3 (Divine Fruits & Benefits / Phalashruti): The spiritual and worldly blessings, health, prosperity, and protection the devotee will receive.
 
-Do not use bold text, asterisks, or headings. Just return the three paragraphs separated by a double newline.
-
-Language: ${lang}`;
+Language: ${lang}
+Do not use bold markdown asterisks or headings. Return only the three distinct paragraphs separated by a double newline.`;
 
   try {
-    const result = await askGemini("Pooja Details", prompt, apiKey || "", lang, { raw: true, temperature: 0.7 });
-    const parts = result.split('\n').filter(p => p.trim().length > 0);
+    const result = await askGemini("Pooja Details", prompt, apiKey || "", lang, { raw: true, temperature: 0.3 });
+    const parts = result.split('\n\n').map(p => p.trim()).filter(p => p.length > 0);
     
+    if (parts.length >= 3) {
+      return {
+        what: parts[0],
+        why: parts[1],
+        benefit: parts[2]
+      };
+    }
+    
+    // Fallback splitting on single newline if double newline not present
+    const singleParts = result.split('\n').map(p => p.trim()).filter(p => p.length > 0);
     return {
-      what: parts[0]?.trim() || "A sacred offering for divine blessings.",
-      why: parts[1]?.trim() || "To seek divine grace and spiritual upliftment.",
-      benefit: parts[2]?.trim() || "Brings peace, prosperity, and harmony."
+      what: singleParts[0] || "ಪೂಜಾ ಮಹಾ ಸಂಕಲ್ಪವು ಸಕಲ ಇಷ್ಟಾರ್ಥಗಳನ್ನು ಸಿದ್ಧಿಗೊಳಿಸುವ ಪರಮ ಪವಿತ್ರ ಆರಾಧನೆಯಾಗಿದೆ.",
+      why: singleParts[1] || singleParts[0] || "ಜಾತಕ ದೋಷಗಳ ಶಮನ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಶಾಂತಿ-ಸಮೃದ್ಧಿಗಾಗಿ ಈ ಸೇವೆಯನ್ನು ಸಲ್ಲಿಸಲಾಗುತ್ತದೆ.",
+      benefit: singleParts[2] || singleParts[1] || "ದೈವಿಕ ರಕ್ಷಣೆ, ನಿರಂತರ ಆಯುರಾರೋಗ್ಯ ಹಾಗೂ ಸಕಲ ಕಾರ್ಯಗಳಲ್ಲಿ ವಿಜಯ ಪ್ರಾಪ್ತಿಯಾಗುತ್ತದೆ."
     };
   } catch (err) {
     console.error("Pooja details fetch failed:", err);
     return {
-      what: "A sacred offering for divine blessings.",
-      why: "To seek divine grace and spiritual upliftment.",
-      benefit: "Brings peace, prosperity, and harmony."
+      what: "ಪೂಜಾ ಮಹಾ ಸಂಕಲ್ಪವು ಸಕಲ ಇಷ್ಟಾರ್ಥಗಳನ್ನು ಸಿದ್ಧಿಗೊಳಿಸುವ ಪರಮ ಪವಿತ್ರ ಆರಾಧನೆಯಾಗಿದೆ.",
+      why: "ಜಾತಕ ದೋಷಗಳ ಶಮನ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಶಾಂತಿ-ಸಮೃದ್ಧಿಗಾಗಿ ಈ ಸೇವೆಯನ್ನು ಸಲ್ಲಿಸಲಾಗುತ್ತದೆ.",
+      benefit: "ದೈವಿಕ ರಕ್ಷಣೆ, ನಿರಂತರ ಆಯುರಾರೋಗ್ಯ ಹಾಗೂ ಸಕಲ ಕಾರ್ಯಗಳಲ್ಲಿ ವಿಜಯ ಪ್ರಾಪ್ತಿಯಾಗುತ್ತದೆ."
     };
   }
 }
