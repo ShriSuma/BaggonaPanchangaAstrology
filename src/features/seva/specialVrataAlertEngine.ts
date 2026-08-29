@@ -1,5 +1,6 @@
 import { siderealLongitudes } from "../../core/EphemerisEngine";
 import { normalizeDegree } from "../../core/AstroMath";
+import { getDetailedTithiInfo } from "../../core/VedicCalculations";
 import { pick, type SevaLang } from "./sevaLocale";
 
 /**
@@ -207,10 +208,15 @@ export function detectSpecialVrata(ymd: string, lang = "kn"): SpecialVrataInfo {
   // Evaluate at 06:00 AM IST (00:30 UTC) for authentic morning Udaya Tithi
   const morningUtc = new Date(Date.UTC(year, month, dayOfMonth, 0, 30, 0));
   const coords = siderealLongitudes(morningUtc, "lahiri");
-  const diff = normalizeDegree(coords.moon - coords.sun);
-  const tithiVal = Math.floor(diff / 12); // 0..29
-  const isShukla = tithiVal < 15;
-  const tithiInPaksha = (tithiVal % 15) + 1; // 1..15
+  const detailed = getDetailedTithiInfo(morningUtc, "lahiri", morningUtc);
+  
+  const sunriseTithiVal = detailed.sunriseTithiIdx; // 0..29
+  const majorityTithiVal = detailed.majorityTithiIdx; // 0..29
+  
+  const majorityInPaksha = detailed.majorityTithiInPaksha; // 1..15
+  const isMajorityShukla = detailed.majorityPaksha === "shukla";
+  const sunriseInPaksha = detailed.tithiInPaksha; // 1..15
+  const isSunriseShukla = detailed.paksha === "shukla";
 
   // Determine Vedic Lunar Month from Sun's sidereal longitude
   // 0=Chaitra, 4=Shravana, 5=Bhadrapada, 6=Ashvina, etc.
@@ -219,28 +225,28 @@ export function detectSpecialVrata(ymd: string, lang = "kn"): SpecialVrataInfo {
   let category: SpecialVrataCategory = "NONE";
   let festivalTitle = "";
 
-  // 1. Check Tithi Categories (universal, not month-dependent)
-  if (tithiVal === 29) {
+  // 1. Check Tithi Categories (Majority Tithi or Sunrise Tithi)
+  if (majorityTithiVal === 29 || sunriseTithiVal === 29) {
     category = "AMAVASYA";
-  } else if (tithiVal === 14) {
+  } else if (majorityTithiVal === 14 || sunriseTithiVal === 14) {
     category = "PURNIMA";
-  } else if (tithiInPaksha === 11) {
+  } else if (majorityInPaksha === 11 || sunriseInPaksha === 11) {
     category = "EKADASHI";
-  } else if (!isShukla && tithiInPaksha === 4) {
+  } else if ((!isMajorityShukla && majorityInPaksha === 4) || (!isSunriseShukla && sunriseInPaksha === 4)) {
     category = "SANKASHTI";
-  } else if (tithiInPaksha === 13) {
+  } else if (majorityInPaksha === 13 || sunriseInPaksha === 13) {
     category = "PRADOSHAM";
   }
 
   // 2. Ephemeris & Seasonal Festival Overrides using Vedic Lunar Month (Masa)
   // Bhadrapada Shukla Chaturthi (Ganesha Chaturthi) — lunar month 5 (Bhadrapada)
-  if (isShukla && tithiInPaksha === 4 && lunarMonth === 5) {
+  if ((isMajorityShukla && majorityInPaksha === 4 && lunarMonth === 5) || (isSunriseShukla && sunriseInPaksha === 4 && lunarMonth === 5)) {
     category = "FESTIVAL";
     festivalTitle = validCode === "kn" ? "🐘 ಶ್ರೀ ಗಣೇಶ ಚತುರ್ಥಿ ಮಹೋತ್ಸವ" : "🐘 Sri Ganesha Chaturthi Festival";
   }
   // Shravana Varamahalakshmi Vratha — Friday in Shravana Masa (lunar month 4) during Shukla Paksha
   // Traditionally the last Friday before Purnima in Shravana month
-  else if (weekday === 5 && lunarMonth === 4 && isShukla && tithiInPaksha >= 7 && tithiInPaksha <= 14) {
+  else if (weekday === 5 && lunarMonth === 4 && (isMajorityShukla || isSunriseShukla) && (majorityInPaksha >= 7 || sunriseInPaksha >= 7) && (majorityInPaksha <= 14 || sunriseInPaksha <= 14)) {
     category = "FESTIVAL";
     festivalTitle = validCode === "kn" ? "🌸 ಶ್ರೀ ವರಮಹಾಲಕ್ಷ್ಮಿ ವ್ರತ ಮಹೋತ್ಸವ" :
                     validCode === "hi" ? "🌸 श्री वरमहालक्ष्मी व्रत महोत्सव" :
@@ -249,12 +255,12 @@ export function detectSpecialVrata(ymd: string, lang = "kn"): SpecialVrataInfo {
                     "🌸 Sri Varamahalakshmi Vrata Festival";
   }
   // Shravana Krishna Ashtami (Janmashtami) — lunar month 4 (Shravana)
-  else if (!isShukla && tithiInPaksha === 8 && lunarMonth === 4) {
+  else if (((!isMajorityShukla && majorityInPaksha === 8) || (!isSunriseShukla && sunriseInPaksha === 8)) && lunarMonth === 4) {
     category = "FESTIVAL";
     festivalTitle = validCode === "kn" ? "🪈 ಶ್ರೀ ಕೃಷ್ಣ ಜನ್ಮಾಷ್ಟಮಿ" : "🪈 Sri Krishna Janmashtami";
   }
   // Ashvina Shukla Navami / Dashami (Mahanavami / Vijayadashami) — lunar month 6 (Ashvina)
-  else if (isShukla && (tithiInPaksha === 9 || tithiInPaksha === 10) && lunarMonth === 6) {
+  else if ((isMajorityShukla || isSunriseShukla) && ([9, 10].includes(majorityInPaksha) || [9, 10].includes(sunriseInPaksha)) && lunarMonth === 6) {
     category = "FESTIVAL";
     festivalTitle = validCode === "kn" ? "⚔️ ಶ್ರೀ ವಿಜಯದಶಮಿ & ಮಹಾನವಮಿ" : "⚔️ Sri Vijayadashami & Mahanavami";
   }

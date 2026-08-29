@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { db } from "../db/indexedDb";
-import { fetchDistricts, fetchStates, fetchVillages, fetchVillagesByPincode, getCoordinates, resolvePlaceFromPincode } from "../services/locationApi";
+import { fetchDistricts, fetchStates, fetchVillages, fetchVillagesByPincode, getCoordinates, resolvePlaceFromPincode, resolvePlaceOrPincode } from "../services/locationApi";
 
 describe("locationApi", () => {
   beforeEach(async () => {
@@ -49,6 +49,30 @@ describe("locationApi", () => {
     expect(first.lat).toBe(18.5204);
     expect(second.lng).toBe(73.8567);
     expect(fetchMock).toHaveBeenCalledTimes(1);
+    vi.unstubAllGlobals();
+  });
+
+  it("resolves various Indian pincodes and places reliably", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: false })));
+    
+    // Bangalore PIN 560001
+    const bgl = await resolvePlaceFromPincode("560001");
+    expect(bgl).not.toBeNull();
+    expect(bgl?.lat).toBeGreaterThan(12);
+    expect(bgl?.lng).toBeGreaterThan(70);
+
+    // Delhi PIN 110001
+    const del = await resolvePlaceFromPincode("110001");
+    expect(del).not.toBeNull();
+    expect(del?.lat).toBeGreaterThan(25);
+    expect(del?.lng).toBeGreaterThan(75);
+
+    // Universal resolver with City name
+    const cityRes = await resolvePlaceOrPincode("Bengaluru");
+    expect(cityRes.placeName).toBe("Bengaluru");
+    expect(cityRes.lat).toBeGreaterThan(0);
+    expect(cityRes.lng).toBeGreaterThan(0);
+
     vi.unstubAllGlobals();
   });
 });

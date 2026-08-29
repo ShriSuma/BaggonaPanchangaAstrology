@@ -119,6 +119,19 @@ export const getNakshatraStart = (birthUtc: Date, model: AyanamsaModel): Date =>
   return findBoundaryCrossing(birthUtc, model, (d) => siderealLongitudes(d, model, "mean").moon, 360 / 27, false);
 };
 
+export const getTithiStart = (birthUtc: Date, model: AyanamsaModel): Date => {
+  return findBoundaryCrossing(
+    birthUtc,
+    model,
+    (d) => {
+      const l = siderealLongitudes(d, model, "mean");
+      return normalizeDegree(l.moon - (l.sunTithi ?? l.sun));
+    },
+    12,
+    false
+  );
+};
+
 export const getTithiEnd = (birthUtc: Date, model: AyanamsaModel): Date => {
   return findBoundaryCrossing(
     birthUtc,
@@ -367,3 +380,257 @@ export const getSankrantiGataDina = (
   const diffDays = Math.round((bDate.getTime() - sDate.getTime()) / (24 * 60 * 60 * 1000));
   return diffDays; // 0-based calendar days passed. In traditional panchang, Sankranti day is day 0, next is day 1, etc.
 };
+
+export const TITHIS_5L: Record<string, string[]> = {
+  kn: [
+    "ಪಾಡ್ಯ", "ಬಿದಿಗೆ", "ತದಿಗೆ", "ಚೌತಿ", "ಪಂಚಮಿ", "ಷಷ್ಠಿ", "ಸಪ್ತಮಿ", "ಅಷ್ಟಮಿ", "ನವಮಿ", "ದಶಮಿ", "ಏಕಾದಶಿ", "ದ್ವಾದಶಿ", "ತ್ರಯೋದಶಿ", "ಚತುರ್ದಶಿ", "ಪೂರ್ಣಿಮಾ",
+    "ಪಾಡ್ಯ", "ಬಿದಿಗೆ", "ತದಿಗೆ", "ಚೌತಿ", "ಪಂಚಮಿ", "ಷಷ್ಠಿ", "ಸಪ್ತಮಿ", "ಅಷ್ಟಮಿ", "ನವಮಿ", "ದಶಮಿ", "ಏಕಾದಶಿ", "ದ್ವಾದಶಿ", "ತ್ರಯೋದಶಿ", "ಚತುರ್ದಶಿ", "ಅಮಾವಾಸ್ಯೆ"
+  ],
+  en: [
+    "Prathama", "Dwitiya", "Tritiya", "Chaturthi", "Panchami", "Shashthi", "Saptami", "Ashtami", "Navami", "Dashami", "Ekadashi", "Dwadashi", "Trayodashi", "Chaturdashi", "Purnima",
+    "Prathama", "Dwitiya", "Tritiya", "Chaturthi", "Panchami", "Shashthi", "Saptami", "Ashtami", "Navami", "Dashami", "Ekadashi", "Dwadashi", "Trayodashi", "Chaturdashi", "Amavasya"
+  ],
+  hi: [
+    "प्रतिपदा", "द्वितीया", "तृतीया", "चतुर्थी", "पंचमी", "षष्ठी", "सप्तमी", "अष्टमी", "नवमी", "दशमी", "एकादशी", "द्वादशी", "त्रयोदशी", "चतुर्दशी", "पूर्णिमा",
+    "प्रतिपदा", "द्वितीया", "तृतीया", "चतुर्थी", "पंचमी", "षष्ठी", "सप्तमी", "अष्टमी", "नवमी", "दशमी", "एकादशी", "द्वादशी", "त्रयोदशी", "चतुर्दशी", "अमावस्या"
+  ],
+  te: [
+    "పాడ్యమి", "విదియ", "తదియ", "చవితి", "పంచమి", "షష్ఠి", "సప్తమి", "అష్టమి", "నవమి", "దశమి", "ఏకాదశి", "ద్వాదశి", "త్రయోదశి", "చతుర్దశి", "పూర్ణిమ",
+    "పాడ్యమి", "విదియ", "తదియ", "చవితి", "పంచమి", "షష్ఠి", "సప్తమి", "అష్టమి", "నవమి", "దశమి", "ఏకాదశి", "ద్వాదశి", "త్రయోదశి", "చతుర్దశి", "అమావాస్య"
+  ],
+  ta: [
+    "பிரதமை", "துவிதியை", "திரிதியை", "சதுர்த்தி", "பஞ்சமி", "சஷ்டி", "சப்தமி", "அஷ்டமி", "நவமி", "தசமி", "ஏகாதசி", "துவாதசி", "திரயோதசி", "சதுர்தசி", "பௌர்ணமி",
+    "பிரதமை", "துவிதியை", "திரிதியை", "சதுர்த்தி", "பஞ்சமி", "சஷ்டி", "சப்தமி", "அஷ்டமி", "நவமி", "தசமி", "ஏகாதசி", "துவாதசி", "திரயோதசி", "சதுர்தசி", "அமாவாசை"
+  ]
+};
+
+export interface DetailedTithiInfo {
+  // Sunrise Tithi
+  sunriseTithiIdx: number; // 0..29
+  tithiNumber: number; // 1..30
+  tithiInPaksha: number; // 1..15
+  paksha: "shukla" | "krishna";
+  pakshaKn: string;
+  tithiName: Record<string, string>;
+  tithiFullLabel: Record<string, string>;
+  tithiStartTime: Date;
+  tithiEndTime: Date;
+  tithiStartTimeStr: string; // Formatted IST (e.g. "08:15 PM")
+  tithiEndTimeStr: string;   // Formatted IST (e.g. "09:24 PM")
+  tithiEndGhati: { ghati: number; vighati: number };
+
+  // Next / Subsequent Tithi
+  nextTithiIdx: number; // 0..29
+  nextTithiNumber: number; // 1..30
+  nextTithiInPaksha: number; // 1..15
+  nextPaksha: "shukla" | "krishna";
+  nextPakshaKn: string;
+  nextTithiName: Record<string, string>;
+  nextTithiFullLabel: Record<string, string>;
+  nextTithiStartTime: Date;
+  nextTithiEndTime: Date;
+  nextTithiStartTimeStr: string;
+  nextTithiEndTimeStr: string;
+  nextTithiDurationStr: Record<string, string>;
+
+  // Majority Tithi
+  majorityTithiIdx: number; // 0..29
+  majorityTithiNumber: number; // 1..30
+  majorityTithiInPaksha: number; // 1..15
+  majorityPaksha: "shukla" | "krishna";
+  majorityPakshaKn: string;
+  majorityTithiName: Record<string, string>;
+  isSunriseTithiMajority: boolean;
+  hoursActiveInDay: number; // approximate hours current tithi is active from sunrise to sunset/next sunrise
+
+  // Detailed 5-Language Narrative Summary
+  transitionSummary: Record<string, string>;
+}
+
+export const formatTimeIst = (d: Date): string => {
+  return d.toLocaleTimeString("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+    timeZone: "Asia/Kolkata"
+  });
+};
+
+export const formatTime24Ist = (d: Date): string => {
+  return d.toLocaleTimeString("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "Asia/Kolkata"
+  });
+};
+
+/**
+ * Calculates complete, authentic Tithi timings, transitions, and the ruling Majority Tithi for a given date in IST.
+ */
+export function getDetailedTithiInfo(
+  evalDate: Date,
+  model: AyanamsaModel = "lahiri",
+  sunriseBaseline?: Date
+): DetailedTithiInfo {
+  // If no sunriseBaseline provided, compute sunrise at 06:00 IST (00:30 UTC) for that calendar date
+  const evalUtc = new Date(evalDate.getTime());
+  const year = evalUtc.getUTCFullYear();
+  const month = evalUtc.getUTCMonth();
+  const day = evalUtc.getUTCDate();
+
+  const sunriseUtc = sunriseBaseline || new Date(Date.UTC(year, month, day, 0, 30, 0));
+  const longsSunrise = siderealLongitudes(sunriseUtc, model, "mean");
+  const sunTithi = normalizeDegree(longsSunrise.sunTithi ?? longsSunrise.sun);
+  const moon = normalizeDegree(longsSunrise.moon);
+  const elongation = normalizeDegree(moon - sunTithi);
+
+  const sunriseTithiIdx = Math.floor(elongation / 12) % 30; // 0..29
+  const tithiNumber = sunriseTithiIdx + 1; // 1..30
+  const tithiInPaksha = (sunriseTithiIdx % 15) + 1; // 1..15
+  const paksha: "shukla" | "krishna" = sunriseTithiIdx < 15 ? "shukla" : "krishna";
+  const pakshaKn = sunriseTithiIdx < 15 ? "ಶುಕ್ಲ" : "ಕೃಷ್ಣ";
+
+  const tithiStart = getTithiStart(sunriseUtc, model);
+  const tithiEnd = getTithiEnd(sunriseUtc, model);
+
+  // Ghati and Vighati since sunrise
+  const msEnd = Math.max(0, tithiEnd.getTime() - sunriseUtc.getTime());
+  const totalVighati = Math.floor(msEnd / 24_000);
+  const tithiEndGhati = {
+    ghati: Math.floor(totalVighati / 60),
+    vighati: totalVighati % 60
+  };
+
+  const nextTithiIdx = (sunriseTithiIdx + 1) % 30;
+  const nextTithiNumber = nextTithiIdx + 1;
+  const nextTithiInPaksha = (nextTithiIdx % 15) + 1;
+  const nextPaksha: "shukla" | "krishna" = nextTithiIdx < 15 ? "shukla" : "krishna";
+  const nextPakshaKn = nextTithiIdx < 15 ? "ಶುಕ್ಲ" : "ಕೃಷ್ಣ";
+
+  const nextTithiStart = new Date(tithiEnd.getTime());
+  const nextTithiEnd = getTithiEnd(new Date(tithiEnd.getTime() + 60000), model);
+
+  const tithiStartTimeStr = formatTimeIst(tithiStart);
+  const tithiEndTimeStr = formatTimeIst(tithiEnd);
+  const nextTithiStartTimeStr = formatTimeIst(nextTithiStart);
+  const nextTithiEndTimeStr = formatTimeIst(nextTithiEnd);
+
+  // Calculate hours after sunrise that current Tithi remains active
+  const hoursActiveInDay = (tithiEnd.getTime() - sunriseUtc.getTime()) / (1000 * 60 * 60);
+
+  // Majority rule: If current Tithi remains active for 12 hours or more after sunrise (past 06:00 PM IST),
+  // it dominates the waking and daily rhythm. If it ends before 12 hours (e.g. 09:00 AM or 02:00 PM),
+  // the subsequent Tithi is active for the majority of the day!
+  const isSunriseTithiMajority = hoursActiveInDay >= 12.0;
+  const majorityTithiIdx = isSunriseTithiMajority ? sunriseTithiIdx : nextTithiIdx;
+  const majorityTithiNumber = majorityTithiIdx + 1;
+  const majorityTithiInPaksha = (majorityTithiIdx % 15) + 1;
+  const majorityPaksha: "shukla" | "krishna" = majorityTithiIdx < 15 ? "shukla" : "krishna";
+  const majorityPakshaKn = majorityTithiIdx < 15 ? "ಶುಕ್ಲ" : "ಕೃಷ್ಣ";
+
+  const getTName = (idx: number, lang: string) => TITHIS_5L[lang]?.[idx] || TITHIS_5L.en[idx] || `Tithi ${idx + 1}`;
+  const getPName = (p: string, lang: string) => {
+    if (lang === "kn") return p === "shukla" ? "ಶುಕ್ಲ ಪಕ್ಷ" : "ಕೃಷ್ಣ ಪಕ್ಷ";
+    if (lang === "hi") return p === "shukla" ? "शुक्ल पक्ष" : "कृष्ण पक्ष";
+    if (lang === "te") return p === "shukla" ? "శుక్ల పక్షం" : "కృష్ణ పక్షం";
+    if (lang === "ta") return p === "shukla" ? "சுக்ல பக்ஷம்" : "கிருஷ்ண பக்ஷம்";
+    return p === "shukla" ? "Shukla Paksha" : "Krishna Paksha";
+  };
+
+  const tithiName: Record<string, string> = {
+    kn: getTName(sunriseTithiIdx, "kn"),
+    en: getTName(sunriseTithiIdx, "en"),
+    hi: getTName(sunriseTithiIdx, "hi"),
+    te: getTName(sunriseTithiIdx, "te"),
+    ta: getTName(sunriseTithiIdx, "ta")
+  };
+
+  const tithiFullLabel: Record<string, string> = {
+    kn: `${getPName(paksha, "kn")} ${tithiName.kn}`,
+    en: `${getPName(paksha, "en")} ${tithiName.en}`,
+    hi: `${getPName(paksha, "hi")} ${tithiName.hi}`,
+    te: `${getPName(paksha, "te")} ${tithiName.te}`,
+    ta: `${getPName(paksha, "ta")} ${tithiName.ta}`
+  };
+
+  const nextTithiName: Record<string, string> = {
+    kn: getTName(nextTithiIdx, "kn"),
+    en: getTName(nextTithiIdx, "en"),
+    hi: getTName(nextTithiIdx, "hi"),
+    te: getTName(nextTithiIdx, "te"),
+    ta: getTName(nextTithiIdx, "ta")
+  };
+
+  const nextTithiFullLabel: Record<string, string> = {
+    kn: `${getPName(nextPaksha, "kn")} ${nextTithiName.kn}`,
+    en: `${getPName(nextPaksha, "en")} ${nextTithiName.en}`,
+    hi: `${getPName(nextPaksha, "hi")} ${nextTithiName.hi}`,
+    te: `${getPName(nextPaksha, "te")} ${nextTithiName.te}`,
+    ta: `${getPName(nextPaksha, "ta")} ${nextTithiName.ta}`
+  };
+
+  const majorityTithiName: Record<string, string> = {
+    kn: getTName(majorityTithiIdx, "kn"),
+    en: getTName(majorityTithiIdx, "en"),
+    hi: getTName(majorityTithiIdx, "hi"),
+    te: getTName(majorityTithiIdx, "te"),
+    ta: getTName(majorityTithiIdx, "ta")
+  };
+
+  const nextTithiDurationStr: Record<string, string> = {
+    kn: `${tithiEndTimeStr} ರಿಂದ ನಾಳೆ ${nextTithiEndTimeStr} ರವರೆಗೆ`,
+    en: `From ${tithiEndTimeStr} to Tomorrow ${nextTithiEndTimeStr}`,
+    hi: `${tithiEndTimeStr} से कल ${nextTithiEndTimeStr} तक`,
+    te: `${tithiEndTimeStr} నుండి రేపు ${nextTithiEndTimeStr} వరకు`,
+    ta: `${tithiEndTimeStr} முதல் நாளை ${nextTithiEndTimeStr} வரை`
+  };
+
+  const transitionSummary: Record<string, string> = {
+    kn: `${tithiFullLabel.kn} ${tithiEndTimeStr} ರವರೆಗೆ ಇರುತ್ತದೆ. ನಂತರ ${nextTithiFullLabel.kn} ಆರಂಭವಾಗಿ (${nextTithiDurationStr.kn}). ದಿನದ ಪ್ರಮುಖ ಶಕ್ತಿ: ${majorityTithiName.kn}.`,
+    en: `${tithiFullLabel.en} is active up to ${tithiEndTimeStr}. Thereafter, ${nextTithiFullLabel.en} begins (${nextTithiDurationStr.en}). Dominant day energy: ${majorityTithiName.en}.`,
+    hi: `${tithiFullLabel.hi} ${tithiEndTimeStr} तक रहेगी। इसके बाद ${nextTithiFullLabel.hi} प्रारंभ होगी (${nextTithiDurationStr.hi})। दिन की मुख्य ऊर्जा: ${majorityTithiName.hi}।`,
+    te: `${tithiFullLabel.te} ${tithiEndTimeStr} వరకు ఉంటుంది. ఆ తర్వాత ${nextTithiFullLabel.te} ప్రారంభమవుతుంది (${nextTithiDurationStr.te}). ప్రధాన దిన శక్తి: ${majorityTithiName.te}.`,
+    ta: `${tithiFullLabel.ta} ${tithiEndTimeStr} வரை நீடிக்கும். பின்னர் ${nextTithiFullLabel.ta} தொடங்கும் (${nextTithiDurationStr.ta}). நாளின் முதன்மை ஆற்றல்: ${majorityTithiName.ta}.`
+  };
+
+  return {
+    sunriseTithiIdx,
+    tithiNumber,
+    tithiInPaksha,
+    paksha,
+    pakshaKn,
+    tithiName,
+    tithiFullLabel,
+    tithiStartTime: tithiStart,
+    tithiEndTime: tithiEnd,
+    tithiStartTimeStr,
+    tithiEndTimeStr,
+    tithiEndGhati,
+
+    nextTithiIdx,
+    nextTithiNumber,
+    nextTithiInPaksha,
+    nextPaksha,
+    nextPakshaKn,
+    nextTithiName,
+    nextTithiFullLabel,
+    nextTithiStartTime: nextTithiStart,
+    nextTithiEndTime: nextTithiEnd,
+    nextTithiStartTimeStr,
+    nextTithiEndTimeStr,
+    nextTithiDurationStr,
+
+    majorityTithiIdx,
+    majorityTithiNumber,
+    majorityTithiInPaksha,
+    majorityPaksha,
+    majorityPakshaKn,
+    majorityTithiName,
+    isSunriseTithiMajority,
+    hoursActiveInDay,
+
+    transitionSummary
+  };
+}
+

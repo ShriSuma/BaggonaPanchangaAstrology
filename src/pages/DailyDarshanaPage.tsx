@@ -20,6 +20,7 @@ import { getDailyKaalaTimings, getEnergyMeterAndVibe, generateSevaICalendarStrin
 import { decodeDevoteeToken } from "../utils/tokenCipher";
 import { getUniversalBirthDetails } from "../utils/universalDevoteeKundli";
 import type { RhythmDay } from "../core/DailyRhythmEngine";
+import type { DetailedTithiInfo } from "../core/VedicCalculations";
 import { nakshatraName, rashiName, tithiLabel, pakshaLabel, tithiOnlyLabel, getDailyActionableGuidance, formatLongDate, getLocalizedPanditName } from "../features/seva/sevaPresentation";
 import { RASHI_L5, NAKSHATRA_L5, GRAHA_L5, LANGUAGE_OWN_NAME, pick, type SevaLang } from "../features/seva/sevaLocale";
 import { calculateKundli } from "../core/KundliEngine";
@@ -1827,6 +1828,136 @@ export default function DailyDarshanaPage(): JSX.Element {
                 <div>🌙 {dict.chandraBala}: <strong style={{ color: dayTheme.badgeColor }}>{getChandraBalaInfo(mockDay.chandra?.house || 11, mockDay.isChandrashtama, lang)} ({mockDay.energyScore}%)</strong></div>
               </div>
             </div>
+
+            {/* Sacred Tithi Timings & Transition Details Card */}
+            {(() => {
+              const dt = (mockDay as any).detailedTithi as DetailedTithiInfo | undefined;
+              if (!dt) return null;
+
+              const cardHeading = lang === "kn" ? "ತಿಥಿ ಸಮಯ & ವಿವರ" :
+                lang === "hi" ? "तिथि समय एवं विवरण" :
+                lang === "te" ? "తిథి సమయాలు & వివరాలు" :
+                lang === "ta" ? "திதி நேரம் மற்றும் விவரங்கள்" :
+                "Tithi Timings & Transitions";
+
+              const activeTithiLabel = lang === "kn" ? "ಪ್ರಸ್ತುತ ತಿಥಿ (ಸೂರ್ಯೋದಯ)" :
+                lang === "hi" ? "वर्तमान तिथि (सूर्योदय)" :
+                lang === "te" ? "ప్రస్తుత తిథి (సూర్యోదయం)" :
+                lang === "ta" ? "தற்போதைய திதி (சூரியோதயம்)" :
+                "Primary Tithi (Sunrise)";
+
+              const untilLabel = lang === "kn" ? "ಮುಕ್ತಾಯ ಸಮಯ (IST)" :
+                lang === "hi" ? "समाप्ति समय (IST)" :
+                lang === "te" ? "ముగింపు సమయం (IST)" :
+                lang === "ta" ? "முடிவு நேரம் (IST)" :
+                "Active Until (IST)";
+
+              const nextTithiLabel = lang === "kn" ? "ನಂತರದ ತಿಥಿ (ಉಪರಿ ತಿಥಿ)" :
+                lang === "hi" ? "आगामी तिथि (उपरी तिथि)" :
+                lang === "te" ? "తదుపరి తిథి" :
+                lang === "ta" ? "அடுத்த திதி" :
+                "Next Tithi";
+
+              const nextDurationLabel = lang === "kn" ? "ಅವಧಿ" :
+                lang === "hi" ? "अवधि" :
+                lang === "te" ? "వ్యవధి" :
+                lang === "ta" ? "கால அளவு" :
+                "Duration";
+
+              const majorityHeading = lang === "kn" ? "ದಿನದ ಪ್ರಮುಖ ಶಕ್ತಿ ಆಧಾರ" :
+                lang === "hi" ? "दिन का मुख्य ऊर्जा आधार" :
+                lang === "te" ? "రోజు ప్రధాన శక్తి ఆధారం" :
+                lang === "ta" ? "நாளின் முதன்மை ஆற்றல் அடிப்படை" :
+                "Dominant Day Energy";
+
+              return (
+                <div style={{
+                  background: "linear-gradient(135deg, rgba(80, 27, 17, 0.95) 0%, rgba(45, 14, 5, 0.95) 100%)",
+                  border: "1.5px solid #F59E0B",
+                  borderRadius: 16,
+                  padding: "16px 18px",
+                  marginBottom: 16,
+                  boxShadow: "0 6px 20px rgba(0,0,0,0.5)"
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: "#FDE68A", display: "flex", alignItems: "center", gap: 6 }}>
+                      <span>📜</span>
+                      <span>{cardHeading}</span>
+                    </div>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: "#F59E0B", background: "rgba(245, 158, 11, 0.15)", padding: "2px 8px", borderRadius: 8, border: "1px solid rgba(245, 158, 11, 0.3)" }}>
+                      100% IST
+                    </span>
+                  </div>
+
+                  {/* 2-Column Grid: Current Tithi vs Next Tithi */}
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
+                    {/* Primary Sunrise Tithi */}
+                    <div style={{
+                      background: "rgba(30, 10, 5, 0.8)",
+                      border: "1px solid rgba(212, 175, 55, 0.35)",
+                      borderRadius: 12,
+                      padding: 12
+                    }}>
+                      <div style={{ fontSize: 10, color: "#F59E0B", fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                        🌅 {activeTithiLabel}
+                      </div>
+                      <div style={{ fontSize: 15, fontWeight: 900, color: "#FFFFFF", marginTop: 4 }}>
+                        {dt.tithiFullLabel[lang] || dt.tithiFullLabel.en}
+                      </div>
+                      <div style={{ fontSize: 11, color: "#FDE68A", marginTop: 6, display: "flex", alignItems: "center", gap: 4 }}>
+                        <span>⏱️</span>
+                        <span>{untilLabel}: <strong style={{ color: "#86EFAC" }}>{dt.tithiEndTimeStr}</strong></span>
+                      </div>
+                    </div>
+
+                    {/* Next Tithi */}
+                    <div style={{
+                      background: "rgba(30, 10, 5, 0.8)",
+                      border: "1px solid rgba(212, 175, 55, 0.35)",
+                      borderRadius: 12,
+                      padding: 12
+                    }}>
+                      <div style={{ fontSize: 10, color: "#93C5FD", fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                        🌙 {nextTithiLabel}
+                      </div>
+                      <div style={{ fontSize: 15, fontWeight: 900, color: "#FFFFFF", marginTop: 4 }}>
+                        {dt.nextTithiFullLabel[lang] || dt.nextTithiFullLabel.en}
+                      </div>
+                      <div style={{ fontSize: 11, color: "#E0E7FF", marginTop: 6, display: "flex", alignItems: "center", gap: 4 }}>
+                        <span>⏳</span>
+                        <span>{nextDurationLabel}: <strong style={{ color: "#FDE047" }}>{dt.nextTithiDurationStr[lang] || dt.nextTithiDurationStr.en}</strong></span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Majority Tithi Banner & Energy Focus */}
+                  <div style={{
+                    background: "rgba(245, 158, 11, 0.12)",
+                    border: "1px dashed rgba(245, 158, 11, 0.5)",
+                    borderRadius: 10,
+                    padding: "8px 12px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    fontSize: 12,
+                    color: "#FFF8E7"
+                  }}>
+                    <span style={{ fontSize: 16 }}>⚡</span>
+                    <div>
+                      <strong style={{ color: "#FDE68A" }}>{majorityHeading}:</strong>{" "}
+                      <span style={{ color: "#86EFAC", fontWeight: 700 }}>
+                        {dt.majorityTithiName[lang] || dt.majorityTithiName.en}
+                      </span>{" "}
+                      <span style={{ fontSize: 11, color: "rgba(255, 248, 231, 0.8)" }}>
+                        ({dt.isSunriseTithiMajority 
+                          ? (lang === "kn" ? "ದಿನದ ಬಹುಪಾಲು ಸಮಯ ಸೂರ್ಯೋದಯ ತಿಥಿ ಮುಂದುವರಿಯುತ್ತದೆ" : "Active for majority of day") 
+                          : (lang === "kn" ? "ದಿನದ ಬಹುಪಾಲು ಸಮಯ ಉಪರಿ ತಿಥಿ ಆಳುತ್ತದೆ" : "Subsequent tithi governs majority waking hours")})
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* 100% Native 5-Language Actionable Guidance Grid */}
             <div style={{

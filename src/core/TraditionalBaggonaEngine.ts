@@ -15,7 +15,9 @@ import {
   getLocalizedMasa,
   getVishaAndAmrithaGhati,
   getDivaGhati,
-  getSankrantiGataDina
+  getSankrantiGataDina,
+  getDetailedTithiInfo,
+  type DetailedTithiInfo
 } from "./VedicCalculations";
 import { vedicWeekdayAtBirth } from "./birthSunTimes";
 import { ghatiVighatiSinceSunrise } from "./ghatiVighati";
@@ -70,8 +72,14 @@ export interface TraditionalBaggonaPanchanga {
   dashaMonths?: number;
   dashaDays?: number;
   tithiEndTime?: string;
+  tithiStartTime?: string;
   tithiNext?: string;
   tithiNextKn?: string;
+  tithiNextStartTime?: string;
+  tithiNextEndTime?: string;
+  majorityTithi?: string;
+  majorityTithiKn?: string;
+  detailedTithi?: DetailedTithiInfo;
 }
 
 const TITHIS_EN = [
@@ -318,10 +326,16 @@ export function calculateTraditionalBaggona(
   const dashaMonths = Math.floor(r1 / 30);
   const dashaDays = r1 % 30;
 
-  const tithiEndTime = getFormatTime(tithiEnd);
-  const nextTithiIdx = (tithiIdx + 1) % 30;
-  const tithiNext = TITHIS_EN[nextTithiIdx] ?? "";
-  const tithiNextKn = TITHIS_KN[nextTithiIdx] ?? "";
+  const detailedTithi = getDetailedTithiInfo(birthUtc, ayanamsaModel, sunriseUtc);
+  const tithiEndTime = detailedTithi.tithiEndTimeStr;
+  const tithiStartTime = detailedTithi.tithiStartTimeStr;
+  const nextTithiIdx = detailedTithi.nextTithiIdx;
+  const tithiNext = detailedTithi.nextTithiName.en;
+  const tithiNextKn = detailedTithi.nextTithiName.kn;
+  const tithiNextStartTime = detailedTithi.nextTithiStartTimeStr;
+  const tithiNextEndTime = detailedTithi.nextTithiEndTimeStr;
+  const majorityTithi = detailedTithi.majorityTithiName.en;
+  const majorityTithiKn = detailedTithi.majorityTithiName.kn;
 
   return {
     shakaYear,
@@ -371,7 +385,13 @@ export function calculateTraditionalBaggona(
     dashaMonths,
     dashaDays,
     tithiEndTime,
+    tithiStartTime,
     tithiNext,
-    tithiNextKn
+    tithiNextKn,
+    tithiNextStartTime,
+    tithiNextEndTime,
+    majorityTithi,
+    majorityTithiKn,
+    detailedTithi
   };
 }

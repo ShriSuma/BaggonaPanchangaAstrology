@@ -17,6 +17,7 @@
 import { degreeToNakshatra, degreeToRashi, normalizeDegree } from "./AstroMath";
 import { siderealLongitudes } from "./EphemerisEngine";
 import { findBhuktiAtAge } from "./DashaBhuktiEngine";
+import { getTithiEnd } from "./VedicCalculations";
 import { ageDecimalYearsAt } from "./birthTime";
 import {
   calculateChandraBala,
@@ -265,6 +266,15 @@ export const calculateRhythm = (
     const tithiInPaksha = tithiNumber <= 15 ? tithiNumber : tithiNumber - 15;
     const tithiGroup = tithiGroupOf(tithiInPaksha);
 
+    // Compute majority Tithi: if sunrise Tithi ends before 12 hours after sunrise, the next Tithi governs the day
+    const tEnd = getTithiEnd(instant, model);
+    const hoursActive = (tEnd.getTime() - instant.getTime()) / (1000 * 60 * 60);
+    const isSunriseMajority = hoursActive >= 12.0;
+    const majorityTithiNumber = isSunriseMajority ? tithiNumber : ((tithiNumber % 30) + 1);
+    const majorityTithiInPaksha = majorityTithiNumber <= 15 ? majorityTithiNumber : majorityTithiNumber - 15;
+    const majorityPaksha: "shukla" | "krishna" = majorityTithiNumber <= 15 ? "shukla" : "krishna";
+    const majorityTithiGroup = tithiGroupOf(majorityTithiInPaksha);
+
     const tara = calculateTaraBala(natalNak, moonNak);
     const chandra = calculateChandraBala(natalRashi, moonRashi);
 
@@ -283,7 +293,7 @@ export const calculateRhythm = (
     let energyScore =
       W_TARA * tara.score +
       W_CHANDRA * chandra.score +
-      W_TITHI * TITHI_GROUP_SCORE[tithiGroup] +
+      W_TITHI * TITHI_GROUP_SCORE[majorityTithiGroup] +
       W_VARA * varaScore +
       W_DASHA * dashaScore;
 
@@ -295,7 +305,7 @@ export const calculateRhythm = (
       Math.round(
         0.42 * (CHANDRA_ARTHA_SCORE[chandra.house] ?? 50) +
           0.28 * tara.score +
-          0.16 * TITHI_GROUP_SCORE[tithiGroup] +
+          0.16 * TITHI_GROUP_SCORE[majorityTithiGroup] +
           0.14 * (VARA_ARTHA_SCORE[weekday] ?? 60)
       )
     );
@@ -303,14 +313,14 @@ export const calculateRhythm = (
     const isMoneyDay =
       arthaScore >= MONEY_DAY_MIN &&
       !chandra.isChandrashtama &&
-      tithiGroup !== "rikta" &&
+      majorityTithiGroup !== "rikta" &&
       !tara.isDifficult;
 
-    const isEkadashi = tithiInPaksha === 11;
-    const isPurnima = tithiNumber === 15;
-    const isAmavasya = tithiNumber === 30;
-    const isPradosha = tithiInPaksha === 13;
-    const isSankashti = paksha === "krishna" && tithiInPaksha === 4;
+    const isEkadashi = majorityTithiInPaksha === 11;
+    const isPurnima = majorityTithiNumber === 15;
+    const isAmavasya = majorityTithiNumber === 30;
+    const isPradosha = majorityTithiInPaksha === 13;
+    const isSankashti = majorityPaksha === "krishna" && majorityTithiInPaksha === 4;
     const isJanmaNakshatraDay = moonNak === natalNak;
 
     const parts = ymd.split("-");

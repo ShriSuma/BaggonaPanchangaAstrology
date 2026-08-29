@@ -16,6 +16,7 @@
 import type { RhythmDay } from "../../core/DailyRhythmEngine";
 import { computeLocalFallback90DayPanchanga, type DayPanchangaAiItem } from "./panchanga90DayAiEngine";
 import { detectSpecialVrata } from "./specialVrataAlertEngine";
+import { getDetailedTithiInfo, type DetailedTithiInfo } from "../../core/VedicCalculations";
 import { sunTimesSyncForBirth } from "../../core/birthSunTimes";
 import { getUniversalBirthDetails } from "../../utils/universalDevoteeKundli";
 import {
@@ -559,25 +560,30 @@ export function calculateDeterministicRhythmDay(
 
   // Drik Ganita Ephemeris longitudes at 06:00 IST (00:30 UTC) for accurate daily Panchanga
   const targetUtc = new Date(Date.UTC(year, monthIndex, dayOfMonth, 0, 30));
+  const detailedTithi = getDetailedTithiInfo(targetUtc, "lahiri", targetUtc);
   const longs = siderealLongitudes(targetUtc, "lahiri");
   const moonLong = longs.moon;
-  const sunLong = longs.sun;
 
   // Transit Nakshatra & Rashi from Moon sidereal longitude
   const transitNak = Math.floor(moonLong / (360 / 27)) % 27;
   const transitRashi = Math.floor(moonLong / 30) % 12;
 
-  // Elongation: Moon - Sun
-  const elongation = normalizeDegree(moonLong - sunLong);
-  const tithiNumber = Math.floor(elongation / 12) + 1; // 1 to 30
-  const paksha: "shukla" | "krishna" = tithiNumber <= 15 ? "shukla" : "krishna";
-  const tithiInPaksha = tithiNumber <= 15 ? tithiNumber : tithiNumber - 15; // 1 to 15
+  // Sunrise Tithi
+  const tithiNumber = detailedTithi.tithiNumber;
+  const tithiInPaksha = detailedTithi.tithiInPaksha;
+  const paksha: "shukla" | "krishna" = detailedTithi.paksha;
 
-  const isAmavasya = tithiNumber === 30;
-  const isPurnima = tithiNumber === 15;
-  const isEkadashi = tithiInPaksha === 11;
-  const isPradosha = tithiInPaksha === 13;
-  const isSankashti = paksha === "krishna" && tithiInPaksha === 4;
+  // Majority Tithi governing the day's waking rhythm
+  const majorityTithiNumber = detailedTithi.majorityTithiNumber;
+  const majorityTithiInPaksha = detailedTithi.majorityTithiInPaksha;
+  const majorityPaksha: "shukla" | "krishna" = detailedTithi.majorityPaksha;
+
+  // Special Vrata determinations using majority Tithi
+  const isAmavasya = majorityTithiNumber === 30;
+  const isPurnima = majorityTithiNumber === 15;
+  const isEkadashi = majorityTithiInPaksha === 11;
+  const isPradosha = majorityTithiInPaksha === 13;
+  const isSankashti = majorityPaksha === "krishna" && majorityTithiInPaksha === 4;
 
   const taraVal = (((transitNak - birthNakIdx + 27) % 9) + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
   const isTaraFav = [2, 4, 6, 8, 9].includes(taraVal);
@@ -587,7 +593,13 @@ export function calculateDeterministicRhythmDay(
   const isChandraFav = [1, 3, 6, 7, 10, 11].includes(houseOffset);
   const isChandrashtamaDay = houseOffset === 8;
 
-  const baseScore = (isTaraFav ? 45 : isDifficultTara ? 15 : 25) + (isChandraFav ? 40 : 15) + (isChandrashtamaDay ? -25 : 5);
+  // Rikta Tithi check on Majority Tithi
+  const isMajorityRikta = [4, 9, 14].includes(majorityTithiInPaksha);
+
+  let baseScore = (isTaraFav ? 45 : isDifficultTara ? 15 : 25) + (isChandraFav ? 40 : 15) + (isChandrashtamaDay ? -25 : 5);
+  if (isMajorityRikta) baseScore -= 8;
+  if (isPurnima || isEkadashi) baseScore += 5;
+
   const scoreVal = Math.max(15, Math.min(98, baseScore));
   const bandType: "high" | "steady" | "rest" = (isChandrashtamaDay || isDifficultTara || scoreVal < 50) ? "rest" : (isTaraFav && isChandraFav && scoreVal >= 75) ? "high" : "steady";
 
@@ -604,7 +616,7 @@ export function calculateDeterministicRhythmDay(
   const luckyNumbers = Array.from(new Set([n1, n2, n3]));
 
   const colorKeys: ColourKey[] = ["white", "red", "green", "yellow", "orange", "pink", "darkblue"];
-  const luckyColour = colorKeys[(weekday + (isTaraFav ? 1 : 0) + (isChandraFav ? 2 : 0)) % 7] || "yellow";
+  const luckyColour = colorKeys[(weekday + (isTaraFav ? 1 : 0) + (isChandraFav ? 2 : 0) + (isPurnima ? 3 : 0)) % 7] || "yellow";
 
   const dirKeys: DirectionKey[] = ["east", "northeast", "north", "northwest", "west", "southwest", "south", "southeast"];
   const luckyDirection = dirKeys[(weekday + transitNak + birthRashiIdx) % 8] || "east";
@@ -620,6 +632,10 @@ export function calculateDeterministicRhythmDay(
     tithiNumber,
     tithiInPaksha,
     paksha,
+    majorityTithiNumber,
+    majorityTithiInPaksha,
+    majorityPaksha,
+    detailedTithi,
     tithiGroup: "nanda",
     isAmavasya,
     isPurnima,
@@ -730,9 +746,10 @@ export function getEnergyMeterAndVibe(day: RhythmDay, lang: string) {
 }
 
 export interface CalendarGeneratorOptions {
-  days: RhythmDay[];
+  days?: RhythmDay[];
   lang: string;
-  panditName: string;
+  panditName?: string;
+  priestName?: string;
   notificationTime?: string;
   personName?: string;
   webAppBaseUrl?: string;
@@ -742,6 +759,9 @@ export interface CalendarGeneratorOptions {
   locationName?: string;
   birthNakshatraIndex?: number;
   birthRashiIndex?: number;
+  gotra?: string;
+  daysCount?: number;
+  startDateStr?: string;
   dob?: string;
   tob?: string;
   aiPanchangaMap?: Record<string, DayPanchangaAiItem>;
@@ -841,6 +861,20 @@ export function validate90DayCalendarPayload(options: CalendarGeneratorOptions):
 }
 
 export function generateSevaICalendarString(options: CalendarGeneratorOptions): string {
+  const count = (options as any).daysCount || (options.days?.length) || 90;
+  const startStr = (options as any).startDateStr || (options.days?.[0]?.ymd) || new Date().toISOString().slice(0, 10);
+  const nakIdx = options.birthNakshatraIndex ?? (options.days?.[0]?.moonNakshatraIndex) ?? 12;
+  const rashiIdx = options.birthRashiIndex ?? (options.days?.[0]?.moonRashiIndex) ?? 5;
+
+  if (!options.days || options.days.length === 0) {
+    const dObj = new Date(startStr);
+    options.days = Array.from({ length: count }, (_, i) => {
+      const cur = new Date(dObj.getTime() + i * 86400000);
+      const ymd = cur.toISOString().slice(0, 10);
+      return calculateDeterministicRhythmDay(ymd, nakIdx, rashiIdx, startStr);
+    });
+  }
+
   // Execute mandatory 90-Day Zero-Blank Validation Guard
   const validation = validate90DayCalendarPayload(options);
   if (!validation.isValid) {
@@ -860,7 +894,7 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
   const {
     days,
     lang,
-    panditName,
+    panditName = options.priestName || "Shreeram Pandit",
     notificationTime = "08:00",
     personName,
     webAppBaseUrl,
@@ -995,12 +1029,20 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
 
     const rashiStr = rashiName(day.moonRashiIndex, lang);
 
+    const tithiDetailInfo = (day as any).detailedTithi as DetailedTithiInfo | undefined;
+    const tithiTransitionLine = tithiDetailInfo?.transitionSummary?.[lang] || (
+      tithiDetailInfo?.tithiEndTimeStr
+        ? `${tithiFullStr} (till ${tithiDetailInfo.tithiEndTimeStr}), then ${tithiDetailInfo.nextTithiFullLabel?.[lang] || 'Next Tithi'}`
+        : tithiFullStr
+    );
+
     const descriptionParts: string[] = [
       `🕉️ ${labels.panchangaTitle} - ${labels.kshetraTitle}`,
       "----------------------------------------",
       `👤 ${labels.devoteeLabel}: ${devoteeDisplayName}`,
       `🙏 ${labels.priestLabel}: ${localizedPandit}`,
       `📅 ${labels.tithiLabel}: ${tithiFullStr}`,
+      `⏱️ ${labels.tithiLabel} (${lang === "kn" ? "ಸಮಯ" : "Timing"}): ${tithiDetailInfo?.tithiEndTimeStr ? `${tithiDetailInfo.tithiEndTimeStr} (${tithiDetailInfo.nextTithiFullLabel?.[lang] || ''})` : tithiFullStr}`,
       `🌙 ${labels.rashiLabel}: ${rashiStr}`,
       `⭐ ${labels.nakshatraLabel}: ${nakName}`
     ];
@@ -1044,7 +1086,11 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
     );
 
     const descriptionStr = descriptionParts.join("\n");
-    const htmlDescriptionStr = `<html><body style="font-family:sans-serif; background-color:#1c0a00; color:#fff8e7; padding:12px;"><div style="background-color:#501b11; border:2px solid #f59e0b; border-radius:12px; padding:16px; margin-bottom:16px;"><h2 style="color:#fde68a; margin:0 0 12px 0; font-size:16px; text-align:center;">🕉️ ${labels.panchangaTitle} - ${labels.kshetraTitle}</h2><table style="width:100%; border-collapse:collapse; font-size:13px;"><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b; width:45%;">👤 ${labels.devoteeLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${devoteeDisplayName}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🙏 ${labels.priestLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${localizedPandit}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">📅 ${labels.tithiLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${tithiFullStr}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🌙 ${labels.rashiLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${rashiStr}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">⭐ ${labels.nakshatraLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${nakName}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🌅 ${labels.sunriseLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${kaala.sunrise}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🌇 ${labels.sunsetLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${kaala.sunset}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">⚡ ${labels.statusLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${vibe.badgeText} (${day.energyScore || 85}%)</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">✨ ${detailsLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${vibe.vibeTag}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🎯 ${labels.taraLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${taraBalaStr}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🌙 ${labels.chandraLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${chandraBalaStr}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🔢 ${labels.luckyNumberLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${luckyNumsStr}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🎨 ${labels.luckyColorLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${localizedColor}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🧭 ${labels.luckyDirectionLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${localizedDirection}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🔴 ${labels.rahuLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${kaala.rahu}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🟡 ${labels.gulikaLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${kaala.gulika}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">⏳ ${labels.yamagandaLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${kaala.yamaganda}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🛕 ${labels.deityLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${pick(deity.deityL5, lang)}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">📜 ${labels.mantraLabel}:</td><td style="padding:6px 4px; color:#fff8e7;"><span style="font-size:11px; color:#fde68a;">${deity.mantra}</span></td></tr><tr><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🌐 Live Sanctum:</td><td style="padding:6px 4px; color:#fff8e7;"><a href="${sanctumUrl}" style="color:#6ee7b7; font-weight:bold;">${openSanctumLabel}</a></td></tr></table></div><div style="text-align:center; margin-top:12px;"><p style="color:#fde68a; font-weight:bold; margin-bottom:8px;">${labels.visitLabel}</p><a href="${sanctumUrl}" style="display:inline-block; background:#d97706; color:#ffffff; text-decoration:none; padding:10px 18px; border-radius:8px; font-weight:bold;">👉 ${openSanctumLabel}</a></div><br/><p style="text-align:center; color:#f59e0b; font-size:12px;">${closingBlessing}</p></body></html>`;
+    const htmlTithiVal = tithiDetailInfo?.tithiEndTimeStr 
+      ? `${tithiFullStr} <span style="font-size:11px; color:#fde68a;">(${tithiDetailInfo.tithiEndTimeStr} ${lang === "kn" ? "ರವರೆಗೆ" : "till"}, ${lang === "kn" ? "ನಂತರ" : "then"}: ${tithiDetailInfo.nextTithiFullLabel?.[lang] || ''})</span>`
+      : tithiFullStr;
+
+    const htmlDescriptionStr = `<html><body style="font-family:sans-serif; background-color:#1c0a00; color:#fff8e7; padding:12px;"><div style="background-color:#501b11; border:2px solid #f59e0b; border-radius:12px; padding:16px; margin-bottom:16px;"><h2 style="color:#fde68a; margin:0 0 12px 0; font-size:16px; text-align:center;">🕉️ ${labels.panchangaTitle} - ${labels.kshetraTitle}</h2><table style="width:100%; border-collapse:collapse; font-size:13px;"><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b; width:45%;">👤 ${labels.devoteeLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${devoteeDisplayName}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🙏 ${labels.priestLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${localizedPandit}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">📅 ${labels.tithiLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${htmlTithiVal}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🌙 ${labels.rashiLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${rashiStr}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">⭐ ${labels.nakshatraLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${nakName}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🌅 ${labels.sunriseLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${kaala.sunrise}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🌇 ${labels.sunsetLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${kaala.sunset}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">⚡ ${labels.statusLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${vibe.badgeText} (${day.energyScore || 85}%)</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">✨ ${detailsLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${vibe.vibeTag}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🎯 ${labels.taraLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${taraBalaStr}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🌙 ${labels.chandraLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${chandraBalaStr}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🔢 ${labels.luckyNumberLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${luckyNumsStr}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🎨 ${labels.luckyColorLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${localizedColor}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🧭 ${labels.luckyDirectionLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${localizedDirection}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🔴 ${labels.rahuLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${kaala.rahu}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🟡 ${labels.gulikaLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${kaala.gulika}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">⏳ ${labels.yamagandaLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${kaala.yamaganda}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🛕 ${labels.deityLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${pick(deity.deityL5, lang)}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">📜 ${labels.mantraLabel}:</td><td style="padding:6px 4px; color:#fff8e7;"><span style="font-size:11px; color:#fde68a;">${deity.mantra}</span></td></tr><tr><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🌐 Live Sanctum:</td><td style="padding:6px 4px; color:#fff8e7;"><a href="${sanctumUrl}" style="color:#6ee7b7; font-weight:bold;">${openSanctumLabel}</a></td></tr></table></div><div style="text-align:center; margin-top:12px;"><p style="color:#fde68a; font-weight:bold; margin-bottom:8px;">${labels.visitLabel}</p><a href="${sanctumUrl}" style="display:inline-block; background:#d97706; color:#ffffff; text-decoration:none; padding:10px 18px; border-radius:8px; font-weight:bold;">👉 ${openSanctumLabel}</a></div><br/><p style="text-align:center; color:#f59e0b; font-size:12px;">${closingBlessing}</p></body></html>`;
 
     const masterSeriesUid = `baggona-series-${sanitizedDevoteeToken}@baggona.app`;
     const eventLines: string[] = [

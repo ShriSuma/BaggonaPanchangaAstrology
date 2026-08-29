@@ -683,20 +683,29 @@ export default function HomePage(): JSX.Element {
                  <p className="text-sm font-extrabold mt-0.5 text-white">
                    {displayPanchangValue("tithi", panchang.tithi, i18n.language, t)}
                  </p>
-                 {panchang.tithiEndTime && panchang.tithiNext && (
-                   <p className="text-[10px] text-amber-100/90 mt-1 italic font-semibold">
-                     {i18n.language === "kn"
-                       ? `(${panchang.tithiEndTime} ರವರೆಗೆ, ನಂತರ ಉಪರಿ ${panchang.tithiNextKn})`
-                       : i18n.language === "hi"
-                       ? `(${panchang.tithiEndTime} तक, फिर उपरि ${panchang.tithiNext})`
-                       : i18n.language === "te"
-                       ? `(${panchang.tithiEndTime} వరకు, ఆపై ఉపరి ${panchang.tithiNext})`
-                       : i18n.language === "ta"
-                       ? `(${panchang.tithiEndTime} வரை, பின்னர் உபரி ${panchang.tithiNext})`
-                       : `(up to ${panchang.tithiEndTime}, then Upari ${panchang.tithiNext})`
-                     }
-                   </p>
-                 )}
+                  {panchang.detailedTithi ? (
+                    <div className="text-[10px] text-amber-100/90 mt-1 font-semibold space-y-0.5">
+                      <p>
+                        ⏱️ {i18n.language === "kn" ? "ಮುಕ್ತಾಯ:" : "Ends at:"} <span className="text-emerald-300 font-bold">{panchang.detailedTithi.tithiEndTimeStr}</span>
+                      </p>
+                      <p>
+                        🌙 {i18n.language === "kn" ? "ನಂತರ:" : "Next:"} <span className="text-amber-300 font-bold">{panchang.detailedTithi.nextTithiFullLabel[i18n.language] || panchang.detailedTithi.nextTithiFullLabel.en}</span> ({panchang.detailedTithi.nextTithiDurationStr[i18n.language] || panchang.detailedTithi.nextTithiDurationStr.en})
+                      </p>
+                    </div>
+                  ) : panchang.tithiEndTime && panchang.tithiNext ? (
+                    <p className="text-[10px] text-amber-100/90 mt-1 italic font-semibold">
+                      {i18n.language === "kn"
+                        ? `(${panchang.tithiEndTime} ರವರೆಗೆ, ನಂತರ ಉಪರಿ ${panchang.tithiNextKn})`
+                        : i18n.language === "hi"
+                        ? `(${panchang.tithiEndTime} तक, फिर उपरि ${panchang.tithiNext})`
+                        : i18n.language === "te"
+                        ? `(${panchang.tithiEndTime} వరకు, ఆపై ఉపరి ${panchang.tithiNext})`
+                        : i18n.language === "ta"
+                        ? `(${panchang.tithiEndTime} வரை, பின்னர் உபரி ${panchang.tithiNext})`
+                        : `(up to ${panchang.tithiEndTime}, then Upari ${panchang.tithiNext})`
+                      }
+                    </p>
+                  ) : null}
                </div>
                <span className="text-2xl opacity-80">🌙</span>
              </div>

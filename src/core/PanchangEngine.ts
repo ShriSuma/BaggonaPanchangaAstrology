@@ -3,7 +3,7 @@ import * as Astronomy from "astronomy-engine";
 import { degreeToNakshatra, getAyanamsa, normalizeDegree } from "./AstroMath";
 import type { AyanamsaModel, PanchangOutput } from "./AstroTypes";
 import { panchangClockTimeZone } from "./placeTime";
-import { getTithiEnd } from "./VedicCalculations";
+import { getTithiEnd, getDetailedTithiInfo } from "./VedicCalculations";
 
 const TITHIS = [
   "Pratipada",
@@ -150,12 +150,16 @@ export const calculatePanchang = (date: Date, lat: number, lng: number, opts?: P
   const nakshatra = degreeToNakshatra(moonLong);
 
   // Calculate Tithi end time and Upari (thereafter) Tithi details
-  const tithiEnd = getTithiEnd(evalDate, opts?.ayanamsaModel ?? "lahiri");
-  const tithiEndTime = formatTime(tithiEnd);
-
-  const nextTithiIdx = (tithiIdx + 1) % 30;
-  const tithiNext = TITHIS[nextTithiIdx] ?? "";
-  const tithiNextKn = KN_TITHI[tithiNext] ?? tithiNext;
+  const detailedTithi = getDetailedTithiInfo(evalDate, opts?.ayanamsaModel ?? "lahiri", times.sunrise || evalDate);
+  const tithiEndTime = detailedTithi.tithiEndTimeStr;
+  const tithiStartTime = detailedTithi.tithiStartTimeStr;
+  const nextTithiIdx = detailedTithi.nextTithiIdx;
+  const tithiNext = detailedTithi.nextTithiName.en;
+  const tithiNextKn = detailedTithi.nextTithiName.kn;
+  const tithiNextStartTime = detailedTithi.nextTithiStartTimeStr;
+  const tithiNextEndTime = detailedTithi.nextTithiEndTimeStr;
+  const majorityTithi = detailedTithi.majorityTithiName.en;
+  const majorityTithiKn = detailedTithi.majorityTithiName.kn;
 
   return {
     tithi: TITHIS[tithiIdx],
@@ -168,7 +172,13 @@ export const calculatePanchang = (date: Date, lat: number, lng: number, opts?: P
     sunset: formatTime(times.sunset),
     moonrise: formatTime(moonTimes.rise ?? undefined),
     tithiEndTime,
+    tithiStartTime,
     tithiNext,
-    tithiNextKn
+    tithiNextKn,
+    tithiNextStartTime,
+    tithiNextEndTime,
+    majorityTithi,
+    majorityTithiKn,
+    detailedTithi
   };
 };

@@ -332,6 +332,55 @@ export const resolvePlaceFromPincode = async (pincode: string): Promise<Resolved
   };
 };
 
+/**
+ * Universal resolver for Indian Pincodes OR City / Place names.
+ * Never resets to (0,0) or throws uncaught exceptions.
+ */
+export const resolvePlaceOrPincode = async (
+  query: string
+): Promise<{ placeName: string; lat: number; lng: number; pincode?: string }> => {
+  const q = (query || "").trim();
+  if (!q) {
+    return { placeName: "Gokarna, Karnataka", lat: 14.5479, lng: 74.3188, pincode: "581326" };
+  }
+
+  // 1. If 6-digit PIN
+  if (/^[1-9]\d{5}$/.test(q)) {
+    const res = await resolvePlaceFromPincode(q);
+    if (res && res.lat && res.lng) {
+      return {
+        placeName: `${res.villageName} (${res.pincode})`,
+        lat: res.lat,
+        lng: res.lng,
+        pincode: res.pincode
+      };
+    }
+    const centroid = getPostalRegionCentroid(q);
+    return {
+      placeName: `PIN ${q}`,
+      lat: centroid.lat,
+      lng: centroid.lng,
+      pincode: q
+    };
+  }
+
+  // 2. If City / Town name
+  try {
+    const coords = await getCoordinates(q);
+    if (coords && coords.lat && coords.lng) {
+      return {
+        placeName: q,
+        lat: coords.lat,
+        lng: coords.lng
+      };
+    }
+  } catch (err) {
+    console.warn("Geocoding lookup fallback for:", q, err);
+  }
+
+  return { placeName: q, lat: 14.5479, lng: 74.3188, pincode: "581326" };
+};
+
 export const getCoordinates = async (placeName: string): Promise<{ lat: number; lng: number }> => {
   const normalized = placeName.trim().toLowerCase();
   const cached = await getGeocode(normalized);

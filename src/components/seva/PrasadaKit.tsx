@@ -35,7 +35,7 @@ import {
   getHardcodedPoojaVidhiDetails,
   type PriestProfile
 } from "../../features/seva/sevaPriestDirectory";
-import { fetchVillagesByPincode } from "../../services/locationApi";
+import { fetchVillagesByPincode, resolvePlaceFromPincode } from "../../services/locationApi";
 
 type Identity = {
   personName: string;
@@ -193,19 +193,18 @@ export default function PrasadaKit({
   useEffect(() => {
     let cancelled = false;
     if (/^\d{6}$/.test(pincode)) {
-      fetchVillagesByPincode(pincode).then((vList) => {
+      resolvePlaceFromPincode(pincode).then((resolved) => {
         if (cancelled) return;
-        if (vList && vList.length > 0) {
-          const v = vList[0];
+        if (resolved && resolved.lat && resolved.lng) {
           setPincodeLocation({
-            villageName: v.name,
-            lat: v.lat || 14.5479,
-            lng: v.lng || 74.3187
+            villageName: resolved.villageName,
+            lat: resolved.lat,
+            lng: resolved.lng
           });
           setPinStatusMsg(null);
         } else {
-          setPincodeLocation({ villageName: "Gokarna Kshetra", lat: 14.5479, lng: 74.3187 });
-          setPinStatusMsg(pdfLang.startsWith("kn") ? "ಪಿನ್‌ಕೋಡ್ ಸ್ಥಳ ಪತ್ತೆಯಾಗಿಲ್ಲ, ಗೋಕರ್ಣ ಬಳಸಿ ಮುಂದುವರಿಯುತ್ತಿದೆ" : "Location pin resolved to default Gokarna Kshetra");
+          setPincodeLocation({ villageName: `PIN ${pincode}`, lat: 14.5479, lng: 74.3187 });
+          setPinStatusMsg(null);
         }
       }).catch(() => {
         if (!cancelled) setPinStatusMsg(null);

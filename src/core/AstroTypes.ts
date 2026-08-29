@@ -77,6 +77,8 @@ export type KundliOutput = {
   };
 };
 
+import type { DetailedTithiInfo } from "./VedicCalculations";
+
 export type PanchangOutput = {
   tithi: string;
   tithiKn?: string;
@@ -88,8 +90,14 @@ export type PanchangOutput = {
   sunset: string;
   moonrise: string;
   tithiEndTime?: string;
+  tithiStartTime?: string;
   tithiNext?: string;
   tithiNextKn?: string;
+  tithiNextStartTime?: string;
+  tithiNextEndTime?: string;
+  majorityTithi?: string;
+  majorityTithiKn?: string;
+  detailedTithi?: DetailedTithiInfo;
 };
 
 export type RahuKaalOutput = {
