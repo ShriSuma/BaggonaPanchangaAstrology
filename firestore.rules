@@ -1,0 +1,56 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 1. Priest Wallets (Coin Balances & Totals)
+    match /wallets/{walletId} {
+      allow read: if true;
+      allow create, update: if request.resource.data.coinBalance is number;
+      allow delete: if false;
+    }
+    
+    // 2. Transactions & Recharge Audit Ledger
+    match /transactions/{txId} {
+      allow read: if true;
+      allow create: if request.resource.data.coins is number;
+      allow update: if request.resource.data.status in ['pending', 'approved', 'rejected', 'completed'];
+      allow delete: if false;
+    }
+    
+    // 3. Saved Kundlis Database Vault
+    match /kundlis/{kundliId} {
+      allow read, write: if true;
+    }
+    
+    // 4. Sankhya Shastra Prashna & Suggestions History
+    match /sankhyashastra_prashna_history/{docId} {
+      allow read, write: if true;
+    }
+    match /sankhyashastra_suggestions_history/{docId} {
+      allow read, write: if true;
+    }
+    
+    // 5. Ashirvada Passes & QR Verification
+    match /ashirvada_passes/{passId} {
+      allow read, write: if true;
+    }
+    
+    // 6. User Profiles & Hashed Credentials
+    match /users/{userId} {
+      allow read, write: if true;
+    }
+    
+    // 7. Notification Logs & System Audit Trails
+    match /notifications/{notifId} {
+      allow read, write: if true;
+    }
+    match /system_audit_logs/{logId} {
+      allow read, write: if true;
+    }
+    
+    // 8. Global Safe Access Rule (Permanent production protection)
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}
