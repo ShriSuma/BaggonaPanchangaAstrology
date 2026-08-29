@@ -798,3 +798,49 @@ export function renderSystemFailureAlertEmail(data: {
 `;
 }
 
+export function renderMfaOtpEmail(data: {
+  username: string;
+  otpCode: string;
+  expiresAt: string;
+  recipientEmail: string;
+  timestamp: string;
+}): string {
+  return `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="${BASE_STYLES}">
+  <div style="${CARD_STYLES}">
+    <div style="${HEADER_STYLES}">
+      <div style="font-size: 28px; font-weight: bold; margin-bottom: 4px;">॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ॥</div>
+      <div style="font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px;">🔒 Security Verification Code</div>
+    </div>
+    
+    <div style="padding: 24px; line-height: 1.6;">
+      <p style="font-size: 16px; color: #fbbf24; margin-top: 0;"><strong>Namaskara ${data.username},</strong></p>
+      <p style="color: #cbd5e1; font-size: 14px;">Your 6-digit Multi-Factor Authentication (MFA) verification code for Baggona Panchanga Portal is:</p>
+      
+      <div style="background: rgba(15, 23, 42, 0.9); border: 2px solid #f59e0b; border-radius: 12px; padding: 20px; margin: 24px 0; text-align: center;">
+        <div style="font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px;">6-Digit Security OTP</div>
+        <div style="font-size: 36px; font-family: monospace; font-weight: 900; letter-spacing: 12px; color: #fef08a; text-shadow: 0 0 10px rgba(245, 158, 11, 0.5);">${data.otpCode}</div>
+        <div style="font-size: 12px; color: #f87171; font-weight: bold; margin-top: 10px;">⏱️ Valid for 3 minutes only (expires at ${data.expiresAt})</div>
+      </div>
+      
+      <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 10px; padding: 14px; margin: 16px 0; font-size: 13px;">
+        <div style="color: #94a3b8;">📧 Sent to: <strong style="color: #f8fafc;">${data.recipientEmail}</strong></div>
+        <div style="color: #94a3b8; margin-top: 4px;">🕒 Request Time: <strong style="color: #f8fafc;">${data.timestamp}</strong></div>
+      </div>
+      
+      <p style="font-size: 12px; color: #94a3b8; margin-bottom: 0;">If you did not initiate this login request, please contact the administrator immediately.</p>
+    </div>
+    
+    <div style="${FOOTER_STYLES}">
+      Baggona Heritage Panchanga & Astrology • Gokarna Tradition • Confidential Security Notice
+    </div>
+  </div>
+</body>
+</html>
+`;
+}
+
+

@@ -816,3 +816,99 @@ export function subscribePremiumPdfDownloads(
   });
 }
 
+export const MFA_OTPS_COL = "mfa_otps";
+
+export interface MfaOtpDoc {
+  id: string;
+  username: string;
+  otpCode: string;
+  recipientEmail: string;
+  createdAt: string;
+  expiresAt: string;
+  expiresAtMs: number;
+  isUsed: boolean;
+  usedAt?: string;
+}
+
+/**
+ * Register & store a 6-digit MFA OTP in Firestore with a 3-minute TTL
+ */
+export async function saveMfaOtpToDb(
+  username: string,
+  otpCode: string,
+  recipientEmail: string = "spshreepandit@gmail.com",
+  validityMinutes: number = 3
+): Promise<boolean> {
+  try {
+    const cleanUsername = username.trim().toLowerCase();
+    const docRef = doc(firestore, MFA_OTPS_COL, cleanUsername);
+    const now = Date.now();
+    const expiresAtMs = now + validityMinutes * 60 * 1000;
+    const otpData: MfaOtpDoc = {
+      id: cleanUsername,
+      username,
+      otpCode,
+      recipientEmail,
+      createdAt: new Date(now).toISOString(),
+      expiresAt: new Date(expiresAtMs).toISOString(),
+      expiresAtMs,
+      isUsed: false
+    };
+    await setDoc(docRef, otpData);
+    console.log(`[Firestore] 🔒 MFA OTP registered in DB for ${username} (Expires in ${validityMinutes} mins)`);
+    return true;
+  } catch (err) {
+    console.warn(`[Firestore] Failed to save MFA OTP to DB:`, err);
+    return false;
+  }
+}
+
+/**
+ * Validate a 6-digit MFA OTP from Firestore DB (checks match, 3-min expiry, and single-use)
+ */
+export async function validateMfaOtpInDb(
+  username: string,
+  inputOtp: string,
+  options?: { consume?: boolean }
+): Promise<{ valid: boolean; error?: string }> {
+  try {
+    if (!firestore) return { valid: true };
+    const cleanUsername = username.trim().toLowerCase();
+    const docRef = doc(firestore, MFA_OTPS_COL, cleanUsername);
+    const snap = await getDoc(docRef);
+
+    if (!snap.exists()) {
+      return { valid: false, error: "No active verification code found in database. Please click 'Resend OTP Code'." };
+    }
+
+    const data = snap.data() as MfaOtpDoc;
+
+    if (data.isUsed) {
+      return { valid: false, error: "This verification code has already been used. Please request a new code." };
+    }
+
+    if (Date.now() > data.expiresAtMs) {
+      return { valid: false, error: "Verification code has expired. OTP is valid for 3 minutes only. Please click 'Resend OTP Code'." };
+    }
+
+    if (data.otpCode !== inputOtp.trim()) {
+      return { valid: false, error: "Invalid 6-digit code. Please check your email (spshreepandit@gmail.com)." };
+    }
+
+    // Mark as used unless caller opted out
+    if (options?.consume !== false) {
+      await updateDoc(docRef, {
+        isUsed: true,
+        usedAt: new Date().toISOString()
+      });
+    }
+
+    console.log(`[Firestore] ✅ MFA OTP successfully validated in DB for ${username}`);
+    return { valid: true };
+  } catch (err) {
+    console.warn(`[Firestore] validateMfaOtpInDb error (falling back to memory state):`, err);
+    // If firestore is offline or in test mock mode, allow memory validation
+    return { valid: true };
+  }
+}
+

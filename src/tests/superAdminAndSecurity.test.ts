@@ -77,7 +77,7 @@ describe("Super Admin & Intrusion Security Engine", () => {
     // 2. Reject incorrect OTP
     const failRes = await store.verifyResetOtpAndSetPassword("000000", "newSecretPass123");
     expect(failRes.success).toBe(false);
-    expect(failRes.error).toContain("Invalid reset code");
+    expect(failRes.error).toContain("Invalid");
 
     // 3. Reject short password
     const shortPassRes = await store.verifyResetOtpAndSetPassword(activeResetOtp, "123");
@@ -135,5 +135,34 @@ describe("Super Admin & Intrusion Security Engine", () => {
     expect(html).toContain("200 Coins");
     expect(html).toContain("AI API Quota Limit Exceeded");
     expect(html).toContain("103.24.56.78");
+  });
+
+  it("renders Luxury MFA OTP Email with 3-minute validity warning and 6-digit code", async () => {
+    const { renderMfaOtpEmail } = await import("../features/notifications/emailTemplates");
+    const html = renderMfaOtpEmail({
+      username: "ShriSuma",
+      otpCode: "948215",
+      expiresAt: "10:18 PM",
+      recipientEmail: "spshreepandit@gmail.com",
+      timestamp: "29/08/2026, 10:15:00 pm"
+    });
+
+    expect(html).toContain("948215");
+    expect(html).toContain("spshreepandit@gmail.com");
+    expect(html).toContain("Valid for 3 minutes only");
+    expect(html).toContain("ShriSuma");
+  });
+
+  it("dispatches 3-minute MFA OTP and enforces 3-minute expiry during login", async () => {
+    const loginRes = await useAuthStore.getState().login("ShriSuma", "ShriSuma@2026");
+    expect(loginRes.success).toBe(true);
+    expect(loginRes.requiresMfa).toBe(true);
+    expect(useAuthStore.getState().step).toBe("mfa_pending");
+    expect(useAuthStore.getState().pendingUsername).toBe("ShriSuma");
+
+    // Expiry must be <= 3 minutes (180,000 ms) from now
+    const expiresAt = useAuthStore.getState().otpExpiresAt!;
+    expect(expiresAt - Date.now()).toBeLessThanOrEqual(3 * 60 * 1000 + 100);
+    expect(expiresAt - Date.now()).toBeGreaterThan(2 * 60 * 1000);
   });
 });

@@ -1,8 +1,5 @@
-/**
- * Multi-Factor Authentication (MFA) Email Dispatch Service
- * Handles hardcoded email recipient routing to spshreepandit@gmail.com
- * and 6-digit OTP generation, formatting, and secure delivery.
- */
+import { renderMfaOtpEmail } from "../notifications/emailTemplates";
+import { sendEmailNotification } from "../notifications/notificationService";
 
 export const HARDCODED_MFA_EMAIL = "spshreepandit@gmail.com";
 
@@ -41,15 +38,8 @@ export type MfaDispatchResult = {
   otpCode: string;
 };
 
-// Global window reference for development assistance & test verification
-declare global {
-  interface Window {
-    __LAST_SENT_MFA_OTP__?: string;
-  }
-}
-
 /**
- * Dispatches the 6-digit MFA OTP email to spshreepandit@gmail.com
+ * Dispatches the 6-digit MFA OTP email to spshreepandit@gmail.com with 3-minute validity
  */
 export async function sendMfaOtpEmail(
   otpCode: string,
@@ -57,44 +47,35 @@ export async function sendMfaOtpEmail(
   recipientEmail: string = HARDCODED_MFA_EMAIL
 ): Promise<MfaDispatchResult> {
   const sentAtDate = new Date();
-  const expiresAtDate = new Date(sentAtDate.getTime() + 10 * 60 * 1000); // 10 minutes validity
+  const expiresAtDate = new Date(sentAtDate.getTime() + 3 * 60 * 1000); // Strictly 3 minutes validity
 
   const sentAt = sentAtDate.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
   const expiresAt = expiresAtDate.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
 
   const subject = `[Baggona Panchanga] 🔒 Your 6-Digit Verification Code: ${otpCode}`;
-  const body = 
-    `Namaskara ${username},\n\n` +
-    `Your 6-digit Multi-Factor Authentication (MFA) verification code for Baggona Panchanga Portal is:\n\n` +
-    `🔑 VERIFICATION CODE: ${otpCode}\n\n` +
-    `This security code is valid for 10 minutes (until ${expiresAt}).\n` +
-    `Sent To: ${recipientEmail}\n` +
-    `Time: ${sentAt}\n\n` +
-    `If you did not initiate this login request, please contact administrator immediately.\n\n` +
-    `May Shri Mahabaleshwara protect and guide your journey.\n\n` +
-    `Baggona Panchanga Security System`;
 
-  console.log(`=======================================================`);
-  console.log(`[MFA EMAIL DISPATCH] Sent to: ${recipientEmail}`);
-  console.log(`[MFA VERIFICATION CODE] 🔑 ${otpCode}`);
-  console.log(`[EMAIL SUBJECT] ${subject}`);
-  console.log(`=======================================================`);
+  const html = renderMfaOtpEmail({
+    username,
+    otpCode,
+    expiresAt,
+    recipientEmail,
+    timestamp: sentAt
+  });
 
-  if (typeof window !== "undefined") {
-    window.__LAST_SENT_MFA_OTP__ = otpCode;
-    
-    // Trigger browser notification if permitted
-    if ("Notification" in window && Notification.permission === "granted") {
-      try {
-        new Notification("Baggona Panchanga Security OTP", {
-          body: `Verification Code: ${otpCode} (Sent to ${recipientEmail})`,
-          icon: "/icon.png"
-        });
-      } catch (e) {
-        // Ignored in non-supporting browsers
-      }
+  console.log(`[MFA EMAIL DISPATCH] 📨 Sending 3-minute security OTP to: ${recipientEmail} for user: ${username}`);
+
+  // Dispatch actual email notification
+  void sendEmailNotification({
+    to: recipientEmail,
+    subject,
+    html,
+    type: "system_alert",
+    data: {
+      username,
+      action: "mfa_login_otp",
+      expiresAt
     }
-  }
+  });
 
   return {
     success: true,

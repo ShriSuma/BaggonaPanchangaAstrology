@@ -18,8 +18,6 @@ export const LoginPage: React.FC = () => {
     step,
     maskedEmail,
     mfaEmail,
-    activeOtp,
-    resetOtp,
     resetUsername,
     login,
     verifyMfaOtp,
@@ -60,7 +58,7 @@ export const LoginPage: React.FC = () => {
       if (!res.success) {
         setError(res.error ?? "Invalid login credentials.");
       } else if (res.requiresMfa) {
-        setInfoMessage(`A 6-digit verification code has been dispatched to ${mfaEmail}`);
+        setInfoMessage(`A 6-digit verification code has been dispatched to ${mfaEmail}. Valid for 3 minutes.`);
         setResendCooldown(30);
       }
     } catch (err) {
@@ -108,7 +106,7 @@ export const LoginPage: React.FC = () => {
     try {
       const res = await requestPasswordReset(forgotInput);
       if (res.success) {
-        setInfoMessage(`Password reset code sent to ${mfaEmail}`);
+        setInfoMessage(`Password reset code sent to ${mfaEmail} (valid for 3 minutes).`);
         setResendCooldown(30);
       } else {
         setError(res.error ?? "Failed to request password reset.");
@@ -161,7 +159,7 @@ export const LoginPage: React.FC = () => {
     try {
       const res = await resendMfaOtp();
       if (res.success) {
-        setInfoMessage(`New verification code sent to ${mfaEmail}`);
+        setInfoMessage(`New verification code sent to ${mfaEmail} (valid for 3 minutes).`);
         setResendCooldown(30);
         setOtp("");
       } else {
@@ -218,21 +216,6 @@ export const LoginPage: React.FC = () => {
           <div className="mb-6 p-3.5 bg-emerald-950/60 border border-emerald-500/40 rounded-xl text-emerald-300 text-xs flex items-center gap-2">
             <span>📧</span>
             <span>{infoMessage}</span>
-          </div>
-        )}
-
-        {/* Development / Testing OTP Helper Banner */}
-        {((step === "mfa_pending" && activeOtp) || (step === "reset_password" && resetOtp)) && (
-          <div className="mb-6 p-3 bg-amber-950/40 border border-amber-500/30 rounded-xl text-amber-300 text-xs text-center font-mono">
-            <div className="text-[10px] text-amber-400 uppercase font-semibold tracking-wider">
-              📩 Security Email Sent to {mfaEmail}
-            </div>
-            <div className="text-sm font-bold text-amber-200 mt-1">
-              🔑 Code:{" "}
-              <span className="underline decoration-amber-500 underline-offset-4">
-                {step === "mfa_pending" ? activeOtp : resetOtp}
-              </span>
-            </div>
           </div>
         )}
 

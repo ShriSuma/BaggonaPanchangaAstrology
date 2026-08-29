@@ -7,7 +7,13 @@ import {
   maskEmail,
   sendMfaOtpEmail
 } from "./mfaEmailService";
-import { syncUserProfile, updateUserPassword, type UserRole } from "../../db/firestoreDb";
+import {
+  syncUserProfile,
+  updateUserPassword,
+  saveMfaOtpToDb,
+  validateMfaOtpInDb,
+  type UserRole
+} from "../../db/firestoreDb";
 import { useWalletStore } from "../wallet/walletStore";
 import { checkAndAlertNewIpLogin } from "./ipSecurityService";
 import { notifyPasswordResetRequested, notifyPasswordResetCompleted } from "../notifications/notificationService";
@@ -318,10 +324,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         return { success: true };
       }
 
-      // Step 2: MFA OTP Generation & Dispatch to spshreepandit@gmail.com
+      // Step 2: MFA OTP Generation, DB Registration & Email Dispatch to spshreepandit@gmail.com
       const otpCode = generate6DigitOtp();
-      const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+      const expiresAt = Date.now() + 3 * 60 * 1000; // Strictly 3 minutes validity
 
+      // Register OTP in Firestore database
+      await saveMfaOtpToDb(user.username, otpCode, HARDCODED_MFA_EMAIL, 3);
+
+      // Dispatch Email with 6-digit OTP code to spshreepandit@gmail.com
       await sendMfaOtpEmail(otpCode, user.username, HARDCODED_MFA_EMAIL);
 
       set({
@@ -348,7 +358,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   verifyMfaOtp: async (otp: string) => {
     try {
       const state = get();
-      if (state.step !== "mfa_pending" || !state.pendingUsername || !state.activeOtp) {
+      if (state.step !== "mfa_pending" || !state.pendingUsername) {
         return { success: false, error: "No pending authentication request found. Please log in again." };
       }
 
@@ -357,11 +367,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         return { success: false, error: "Please enter the full 6-digit verification code." };
       }
 
-      if (state.otpExpiresAt && Date.now() > state.otpExpiresAt) {
-        return { success: false, error: "Verification code has expired. Please click 'Resend Code'." };
+      // 1. Verify against Firestore DB (3-min TTL & single-use check)
+      const dbValidation = await validateMfaOtpInDb(state.pendingUsername, cleanOtp);
+      if (!dbValidation.valid) {
+        return { success: false, error: dbValidation.error };
       }
 
-      if (cleanOtp !== state.activeOtp) {
+      // 2. In-memory TTL validation
+      if (state.otpExpiresAt && Date.now() > state.otpExpiresAt) {
+        return { success: false, error: "Verification code has expired. OTP is valid for 3 minutes only. Please click 'Resend Code'." };
+      }
+
+      // 3. Match code against state fallback
+      if (state.activeOtp && cleanOtp !== state.activeOtp) {
         return { success: false, error: "Invalid 6-digit code. Please check spshreepandit@gmail.com." };
       }
 
@@ -427,8 +445,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
 
     const newOtp = generate6DigitOtp();
-    const newExpiresAt = Date.now() + 10 * 60 * 1000;
+    const newExpiresAt = Date.now() + 3 * 60 * 1000; // Strictly 3 minutes validity
 
+    await saveMfaOtpToDb(state.pendingUsername, newOtp, HARDCODED_MFA_EMAIL, 3);
     await sendMfaOtpEmail(newOtp, state.pendingUsername, HARDCODED_MFA_EMAIL);
 
     set({
@@ -478,8 +497,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
 
       const otp = generate6DigitOtp();
-      const expiresAt = Date.now() + 10 * 60 * 1000; // 10 mins
+      const expiresAt = Date.now() + 3 * 60 * 1000; // Strictly 3 minutes validity
       const expiresAtStr = new Date(expiresAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
+
+      await saveMfaOtpToDb(user.username, otp, HARDCODED_MFA_EMAIL, 3);
 
       // Dispatch Password Reset OTP Email
       await notifyPasswordResetRequested({
@@ -510,7 +531,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   verifyResetOtpAndSetPassword: async (otp: string, newPassword: string) => {
     const state = get();
-    if (state.step !== "reset_password" || !state.resetUsername || !state.resetOtp) {
+    if (state.step !== "reset_password" || !state.resetUsername) {
       return { success: false, error: "No active password reset session. Please request a new code." };
     }
 
@@ -519,16 +540,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return { success: false, error: "Please enter the 6-digit reset code." };
     }
 
-    if (state.resetOtpExpiresAt && Date.now() > state.resetOtpExpiresAt) {
-      return { success: false, error: "Reset code has expired. Please request a new code." };
-    }
-
-    if (cleanOtp !== state.resetOtp) {
-      return { success: false, error: "Invalid reset code. Please check spshreepandit@gmail.com." };
-    }
-
     if (newPassword.length < 6) {
       return { success: false, error: "Password must be at least 6 characters long." };
+    }
+
+    // 1. Verify against Firestore DB (3-min TTL & single-use check)
+    const dbValidation = await validateMfaOtpInDb(state.resetUsername, cleanOtp);
+    if (!dbValidation.valid) {
+      return { success: false, error: dbValidation.error };
+    }
+
+    if (state.resetOtpExpiresAt && Date.now() > state.resetOtpExpiresAt) {
+      return { success: false, error: "Reset code has expired. OTP is valid for 3 minutes only. Please request a new code." };
+    }
+
+    if (state.resetOtp && cleanOtp !== state.resetOtp) {
+      return { success: false, error: "Invalid reset code. Please check spshreepandit@gmail.com." };
     }
 
     set({ isLoading: true });
