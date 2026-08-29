@@ -38,7 +38,7 @@ export const LANGUAGE_OWN_NAME: Record<SevaLang, string> = {
 
 /** Time of day period labels across 5 languages: Morning / Afternoon / Evening / Night */
 export const TIME_OF_DAY_L5 = {
-  morning: { en: "Morning", kn: "ಬೆಳಿಗ್ಗೆ", te: "ಉದయం", ta: "காலை", hi: "सुबह" },
+  morning: { en: "Morning", kn: "ಬೆಳಿಗ್ಗೆ", te: "ఉదయం", ta: "காலை", hi: "सुबह" },
   afternoon: { en: "Afternoon", kn: "ಮಧ್ಯಾಹ್ನ", te: "మధ్యాహ్నం", ta: "மதியம்", hi: "दोपहर" },
   evening: { en: "Evening", kn: "ಸಂಜೆ", te: "సాయంత్రం", ta: "மாலை", hi: "शाम" },
   night: { en: "Night", kn: "ರಾತ್ರಿ", te: "రాత్రి", ta: "இரவு", hi: "रात्रि" }

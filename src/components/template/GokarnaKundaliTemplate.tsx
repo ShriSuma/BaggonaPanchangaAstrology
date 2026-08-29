@@ -92,8 +92,10 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
   let m = birthDateObj.getMinutes();
   if (birthTimeStr && birthTimeStr.includes(":")) {
     const parts = birthTimeStr.split(":");
-    h = parseInt(parts[0], 10) || h;
-    m = parseInt(parts[1], 10) || m;
+    const parsedH = parseInt(parts[0], 10);
+    const parsedM = parseInt(parts[1], 10);
+    if (!isNaN(parsedH)) h = parsedH;
+    if (!isNaN(parsedM)) m = parsedM;
   }
   const timeOfDayLabel = getTimeOfDayLabel(h, pdfLanguage);
   const displayH = h % 12 || 12;

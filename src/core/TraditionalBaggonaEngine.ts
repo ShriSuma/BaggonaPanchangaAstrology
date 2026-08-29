@@ -20,6 +20,7 @@ import {
   type DetailedTithiInfo
 } from "./VedicCalculations";
 import { vedicWeekdayAtBirth } from "./birthSunTimes";
+import { panchangClockTimeZone, weekdayInTimeZone } from "./placeTime";
 import { ghatiVighatiSinceSunrise } from "./ghatiVighati";
 import { resolveSunTimesForJyotish } from "./hinduSunTimes";
 
@@ -215,7 +216,8 @@ export function calculateTraditionalBaggona(
   const paksha = tithiIdx < 15 ? "Shukla" : "Krishna";
   const pakshaKn = tithiIdx < 15 ? "ಶುಕ್ಲ" : "ಕೃಷ್ಣ";
 
-  const wdIdx = vedicWeekdayAtBirth(sunriseUtc, sunriseUtc, latitude, longitude);
+  const tz = panchangClockTimeZone(latitude, longitude, pincode);
+  const wdIdx = weekdayInTimeZone(noonUtc, tz);
   const weekday = WEEKDAYS_EN[wdIdx] ?? "";
   const weekdayKn = WEEKDAYS_KN[wdIdx] ?? "";
 

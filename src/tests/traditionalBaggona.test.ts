@@ -148,4 +148,12 @@ describe("TraditionalBaggonaEngine calculations for Gokarna test case", () => {
     expect(resAp.moonNakshatra).toBe("Hasta");
     expect(resAp.moonNakshatraKn).toBe("ಹಸ್ತಾ");
   });
+
+  it("accurately maintains Tuesday (Bhauma Vaasare / Mangalavara) for 00:45 AM midnight birth", () => {
+    // 2026-08-25 is Tuesday. Birth time is 00:45 AM (night 12:45).
+    const res = calculateTraditionalBaggona("2026-08-25", "00:45", 14.5479, 74.3187, "lahiri");
+    expect(res.weekday).toBe("Bhauma Vaasare");
+    expect(res.weekdayKn).toBe("ಭೌಮ ವಾಸರೇ");
+    expect(res.weekdayIndex).toBe(2);
+  });
 });

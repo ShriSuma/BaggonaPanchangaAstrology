@@ -187,11 +187,20 @@ export default function AIAstrologerPage(): JSX.Element {
     }
 
     if (match) {
-      const isPM = marker === "pm" || marker === "ಮಧ್ಯಾಹ್ನ" || marker === "ಸಂಜೆ" || marker === "ರಾತ್ರಿ";
-      const isAM = marker === "am" || marker === "ಬೆಳಿಗ್ಗೆ";
-      
-      if (isPM && hr < 12) hr += 12;
-      if (isAM && hr === 12) hr = 0;
+      const normMarker = marker.trim().toLowerCase();
+      if (normMarker === "ರಾತ್ರಿ" || normMarker === "night") {
+        if (hr === 12) {
+          hr = 0; // "ರಾತ್ರಿ 12:45" -> 00:45 (Midnight)
+        } else if (hr >= 1 && hr <= 3) {
+          hr = hr; // 01:00 - 03:59 (AM)
+        } else if (hr >= 4 && hr < 12) {
+          hr += 12; // 16:00 - 23:59 (PM)
+        }
+      } else if (normMarker === "ಮಧ್ಯಾಹ್ನ" || normMarker === "afternoon" || normMarker === "ಸಂಜೆ" || normMarker === "evening" || normMarker === "pm") {
+        if (hr < 12) hr += 12;
+      } else if (normMarker === "ಬೆಳಿಗ್ಗೆ" || normMarker === "ಬೆಳಗ್ಗೆ" || normMarker === "morning" || normMarker === "am") {
+        if (hr === 12) hr = 0;
+      }
       
       timeStr = `${hr.toString().padStart(2, '0')}:${mn.toString().padStart(2, '0')}`;
     }
