@@ -95,6 +95,7 @@ export type UserRecord = {
   passwordHash: string;
   createdAt: string;
   lastLoginAt?: string;
+  updatedAt?: string;
 };
 
 export type DailyHitRecord = {

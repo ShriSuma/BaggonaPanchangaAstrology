@@ -7,6 +7,10 @@ import {
   maskEmail,
   sendMfaOtpEmail
 } from "./mfaEmailService";
+import { syncUserProfile, updateUserPassword, type UserRole } from "../../db/firestoreDb";
+import { useWalletStore } from "../wallet/walletStore";
+import { checkAndAlertNewIpLogin } from "./ipSecurityService";
+import { notifyPasswordResetRequested, notifyPasswordResetCompleted } from "../notifications/notificationService";
 
 /**
  * SHA-256 password hashing using Browser SubtleCrypto API with crypto-js fallback for non-secure contexts (HTTP)
@@ -29,7 +33,7 @@ export async function hashPassword(password: string): Promise<string> {
 
 const AUTH_STORAGE_KEY = "baggona_auth_session";
 
-export type LoginStep = "credentials" | "mfa_pending";
+export type LoginStep = "credentials" | "mfa_pending" | "forgot_password" | "reset_password";
 
 export type AuthResult = {
   success: boolean;
@@ -41,6 +45,7 @@ export type AuthResult = {
 export type AuthState = {
   isAuthenticated: boolean;
   currentUser: string | null;
+  role: UserRole;
   isLoading: boolean;
 
   // Multi-Factor Authentication State
@@ -52,10 +57,19 @@ export type AuthState = {
   activeOtp: string | null;
   otpExpiresAt: number | null;
 
+  // Password Reset State
+  resetUsername: string | null;
+  resetOtp: string | null;
+  resetOtpExpiresAt: number | null;
+
   login: (username: string, password: string, options?: { skipMfa?: boolean }) => Promise<AuthResult>;
   verifyMfaOtp: (otp: string) => Promise<AuthResult>;
   resendMfaOtp: () => Promise<AuthResult>;
   cancelMfa: () => void;
+  openForgotPassword: () => void;
+  requestPasswordReset: (usernameOrEmail: string) => Promise<{ success: boolean; maskedEmail?: string; error?: string }>;
+  verifyResetOtpAndSetPassword: (otp: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
+  cancelPasswordReset: () => void;
   logout: () => void;
   checkSession: () => Promise<boolean>;
   seedDefaultUser: () => Promise<void>;
@@ -66,6 +80,7 @@ const isTestEnv = typeof process !== "undefined" && process.env?.NODE_ENV === "t
 export const useAuthStore = create<AuthState>((set, get) => ({
   isAuthenticated: isTestEnv,
   currentUser: isTestEnv ? "baggona" : null,
+  role: "priest",
   isLoading: false,
 
   step: "credentials",
@@ -76,34 +91,71 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   activeOtp: null,
   otpExpiresAt: null,
 
+  resetUsername: null,
+  resetOtp: null,
+  resetOtpExpiresAt: null,
+
   seedDefaultUser: async () => {
     try {
-      const defaultUsername = "baggona";
-      const defaultPasswordRaw = "jayashree123007";
-      const existingUser = await db.users.where("username").equals(defaultUsername).first();
+      // 1. Seed Priest Default Account
+      const priestUsername = "baggona";
+      const priestPasswordRaw = "jayashree123007";
+      const existingPriest = await db.users.where("username").equals(priestUsername).first();
       
-      if (!existingUser) {
-        const hashedPassword = await hashPassword(defaultPasswordRaw);
+      if (!existingPriest) {
+        const hashedPassword = await hashPassword(priestPasswordRaw);
         await db.users.add({
-          id: `user-${Date.now()}`,
-          username: defaultUsername,
+          id: "priest_shreeram",
+          username: priestUsername,
           passwordHash: hashedPassword,
           createdAt: new Date().toISOString()
         });
       }
+
+      void syncUserProfile({
+        id: "priest_shreeram",
+        username: priestUsername,
+        name: "Shreeram Pandit",
+        role: "priest",
+        phone: "9972339362",
+        email: HARDCODED_MFA_EMAIL,
+        createdAt: new Date().toISOString()
+      });
+
+      // 2. Seed Super Admin Master Account
+      const superAdminUsername = "superadmin";
+      const superAdminPasswordRaw = "admin@baggona2026";
+      const existingSuperAdmin = await db.users.where("username").equals(superAdminUsername).first();
+
+      if (!existingSuperAdmin) {
+        const hashedSuperAdminPassword = await hashPassword(superAdminPasswordRaw);
+        await db.users.add({
+          id: "superadmin_master",
+          username: superAdminUsername,
+          passwordHash: hashedSuperAdminPassword,
+          createdAt: new Date().toISOString()
+        });
+      }
+
+      void syncUserProfile({
+        id: "superadmin_master",
+        username: superAdminUsername,
+        name: "Super Administrator",
+        role: "superadmin",
+        phone: "9972339362",
+        email: HARDCODED_MFA_EMAIL,
+        createdAt: new Date().toISOString()
+      });
     } catch (err) {
-      console.error("Error seeding default auth user:", err);
+      console.error("Error seeding default auth users:", err);
     }
   },
 
   checkSession: async () => {
-    set({ isLoading: true });
-    await get().seedDefaultUser();
-
     // Auto-authenticate during unit/integration tests unless explicitly cleared in test state
     if (typeof process !== "undefined" && process.env?.NODE_ENV === "test") {
       const current = get();
-      if (current.step === "mfa_pending") {
+      if (current.step === "mfa_pending" || current.step === "reset_password" || current.step === "forgot_password") {
         set({ isLoading: false });
         return false;
       }
@@ -111,9 +163,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         set({ isAuthenticated: false, currentUser: null, isLoading: false });
         return false;
       }
-      set({ isAuthenticated: true, currentUser: "baggona", isLoading: false });
+      set({ isAuthenticated: true, currentUser: "baggona", role: "priest", isLoading: false });
       return true;
     }
+
+    set({ isLoading: true });
+    await get().seedDefaultUser();
 
     const storedSession = localStorage.getItem(AUTH_STORAGE_KEY);
     if (storedSession) {
@@ -122,7 +177,25 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         if (sessionData?.username && sessionData?.token) {
           const user = await db.users.where("username").equals(sessionData.username).first();
           if (user) {
-            set({ isAuthenticated: true, currentUser: user.username, isLoading: false, step: "credentials" });
+            const userRole: UserRole =
+              user.username === "superadmin"
+                ? "superadmin"
+                : (sessionData.role as UserRole) || "priest";
+
+            set({
+              isAuthenticated: true,
+              currentUser: user.username,
+              role: userRole,
+              isLoading: false,
+              step: "credentials"
+            });
+
+            // Initialize wallet or superadmin subscription
+            if (userRole === "superadmin") {
+              useWalletStore.getState().subscribeAllWallets();
+            } else {
+              void useWalletStore.getState().initWallet(user.username, "Shreeram Pandit");
+            }
             return true;
           }
         }
@@ -152,16 +225,45 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         return { success: false, error: "Invalid username or password" };
       }
 
+      // Determine role
+      let userRole: UserRole = "priest";
+      if (cleanUsername === "superadmin") {
+        userRole = "superadmin";
+      } else if (cleanUsername.toLowerCase().includes("admin")) {
+        userRole = "admin";
+      }
+
       // Check if MFA should be skipped (explicit option)
       if (options?.skipMfa) {
         await db.users.update(user.id!, { lastLoginAt: new Date().toISOString() });
         const sessionToken = `session-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
         localStorage.setItem(
           AUTH_STORAGE_KEY,
-          JSON.stringify({ username: user.username, token: sessionToken, loginTime: new Date().toISOString() })
+          JSON.stringify({
+            username: user.username,
+            role: userRole,
+            token: sessionToken,
+            loginTime: new Date().toISOString()
+          })
         );
 
-        set({ isAuthenticated: true, currentUser: user.username, isLoading: false, step: "credentials" });
+        set({
+          isAuthenticated: true,
+          currentUser: user.username,
+          role: userRole,
+          isLoading: false,
+          step: "credentials"
+        });
+
+        // Check & Alert for New IP / Device Login
+        void checkAndAlertNewIpLogin(user.id || user.username, user.username, userRole);
+
+        // Initialize wallet or super admin listeners
+        if (userRole === "superadmin") {
+          useWalletStore.getState().subscribeAllWallets();
+        } else {
+          void useWalletStore.getState().initWallet(user.username, "Shreeram Pandit");
+        }
         return { success: true };
       }
 
@@ -217,15 +319,28 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         await db.users.update(state.pendingUserId, { lastLoginAt: new Date().toISOString() });
       }
 
+      let userRole: UserRole = "priest";
+      if (state.pendingUsername === "superadmin") {
+        userRole = "superadmin";
+      } else if (state.pendingUsername.toLowerCase().includes("admin")) {
+        userRole = "admin";
+      }
+
       const sessionToken = `session-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
       localStorage.setItem(
         AUTH_STORAGE_KEY,
-        JSON.stringify({ username: state.pendingUsername, token: sessionToken, loginTime: new Date().toISOString() })
+        JSON.stringify({
+          username: state.pendingUsername,
+          role: userRole,
+          token: sessionToken,
+          loginTime: new Date().toISOString()
+        })
       );
 
       set({
         isAuthenticated: true,
         currentUser: state.pendingUsername,
+        role: userRole,
         step: "credentials",
         pendingUsername: null,
         pendingUserId: null,
@@ -233,6 +348,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         otpExpiresAt: null,
         isLoading: false
       });
+
+      // Check & Alert for New IP / Device Login
+      void checkAndAlertNewIpLogin(state.pendingUserId || state.pendingUsername, state.pendingUsername, userRole);
+
+      // Initialize wallet or super admin subscriptions
+      if (userRole === "superadmin") {
+        useWalletStore.getState().subscribeAllWallets();
+      } else {
+        void useWalletStore.getState().initWallet(state.pendingUsername, "Shreeram Pandit");
+      }
 
       return { success: true };
     } catch (err) {
@@ -273,16 +398,145 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     });
   },
 
+  openForgotPassword: () => {
+    set({ step: "forgot_password", resetUsername: null, resetOtp: null });
+  },
+
+  requestPasswordReset: async (usernameOrEmail: string) => {
+    const clean = usernameOrEmail.trim();
+    if (!clean) {
+      return { success: false, error: "Please enter your username or registered email." };
+    }
+
+    set({ isLoading: true });
+    await get().seedDefaultUser();
+
+    try {
+      const user = await db.users.where("username").equals(clean).first();
+      if (!user) {
+        set({ isLoading: false });
+        return { success: false, error: "No account found matching this username." };
+      }
+
+      const otp = generate6DigitOtp();
+      const expiresAt = Date.now() + 10 * 60 * 1000; // 10 mins
+      const expiresAtStr = new Date(expiresAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
+
+      // Dispatch Password Reset OTP Email
+      await notifyPasswordResetRequested({
+        username: user.username,
+        otpCode: otp,
+        expiresAt: expiresAtStr,
+        recipientEmail: HARDCODED_MFA_EMAIL
+      });
+
+      set({
+        step: "reset_password",
+        resetUsername: user.username,
+        resetOtp: otp,
+        resetOtpExpiresAt: expiresAt,
+        isLoading: false
+      });
+
+      return {
+        success: true,
+        maskedEmail: maskEmail(HARDCODED_MFA_EMAIL)
+      };
+    } catch (err) {
+      console.error("Password reset request error:", err);
+      set({ isLoading: false });
+      return { success: false, error: "Failed to send reset code. Please try again." };
+    }
+  },
+
+  verifyResetOtpAndSetPassword: async (otp: string, newPassword: string) => {
+    const state = get();
+    if (state.step !== "reset_password" || !state.resetUsername || !state.resetOtp) {
+      return { success: false, error: "No active password reset session. Please request a new code." };
+    }
+
+    const cleanOtp = otp.trim().replace(/\D/g, "");
+    if (cleanOtp.length !== 6) {
+      return { success: false, error: "Please enter the 6-digit reset code." };
+    }
+
+    if (state.resetOtpExpiresAt && Date.now() > state.resetOtpExpiresAt) {
+      return { success: false, error: "Reset code has expired. Please request a new code." };
+    }
+
+    if (cleanOtp !== state.resetOtp) {
+      return { success: false, error: "Invalid reset code. Please check spshreepandit@gmail.com." };
+    }
+
+    if (newPassword.length < 6) {
+      return { success: false, error: "Password must be at least 6 characters long." };
+    }
+
+    set({ isLoading: true });
+    try {
+      const user = await db.users.where("username").equals(state.resetUsername).first();
+      if (!user) {
+        set({ isLoading: false });
+        return { success: false, error: "User not found." };
+      }
+
+      const newHash = await hashPassword(newPassword);
+
+      // 1. Update IndexedDB local database
+      await db.users.update(user.id!, {
+        passwordHash: newHash,
+        updatedAt: new Date().toISOString()
+      });
+
+      // 2. Update Firestore Cloud database
+      await updateUserPassword(state.resetUsername, newHash);
+
+      // 3. Dispatch Security Confirmation Email
+      void notifyPasswordResetCompleted({
+        username: state.resetUsername,
+        recipientEmail: HARDCODED_MFA_EMAIL
+      });
+
+      set({
+        step: "credentials",
+        resetUsername: null,
+        resetOtp: null,
+        resetOtpExpiresAt: null,
+        isLoading: false
+      });
+
+      return { success: true };
+    } catch (err) {
+      console.error("Set password error:", err);
+      set({ isLoading: false });
+      return { success: false, error: "Failed to update password. Please try again." };
+    }
+  },
+
+  cancelPasswordReset: () => {
+    set({
+      step: "credentials",
+      resetUsername: null,
+      resetOtp: null,
+      resetOtpExpiresAt: null
+    });
+  },
+
   logout: () => {
     localStorage.removeItem(AUTH_STORAGE_KEY);
+    useWalletStore.getState().cleanup();
     set({
       isAuthenticated: false,
       currentUser: null,
+      role: "priest",
       step: "credentials",
       pendingUsername: null,
       pendingUserId: null,
       activeOtp: null,
-      otpExpiresAt: null
+      otpExpiresAt: null,
+      resetUsername: null,
+      resetOtp: null,
+      resetOtpExpiresAt: null
     });
   }
 }));

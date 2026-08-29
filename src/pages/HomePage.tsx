@@ -21,6 +21,8 @@ import Card from "../components/ui/Card";
 import GrahaSpinner from "../components/ui/GrahaSpinner";
 import { displayPanchangValue } from "../i18n/panchangLabels";
 import { resolvePlaceFromPincode } from "../services/locationApi";
+import { savePanchangToFirestore } from "../db/firestoreDb";
+import { notifyPanchangaCreated } from "../features/notifications/notificationService";
 import { T_VARAMAHALAKSHMI, pickL5 } from "../features/varamahalakshmi/varamahalakshmiLocale";
 import { T_KAALA_DIKSUCHI } from "../features/kaaladiksuchi/kaaladiksuchiLocale";
 import { T_HINDINA_JANMA } from "../features/hindinajanma/hindinaJanmaLocale";
@@ -368,6 +370,26 @@ export default function HomePage(): JSX.Element {
       const times = apiTimes ?? { sunrise: scTimes.sunrise, sunset: scTimes.sunset };
       p = applySunTimesToPanchang(p, times, localeTag, lat, lng, pincodeStore);
       await savePanchangCache(ymd, cacheKey, p);
+
+      // Cloud Firestore Sync & Free Email Notification Alert
+      void savePanchangToFirestore({
+        id: `panchang_${ymd}_${cacheKey.replace(/[^a-zA-Z0-9_-]/g, "_")}`,
+        date: ymd,
+        location: placeLabel || `${lat.toFixed(2)},${lng.toFixed(2)}`,
+        data: p,
+        createdBy: "Shreeram Pandit",
+        createdAt: new Date().toISOString()
+      });
+
+      void notifyPanchangaCreated({
+        date: ymd,
+        location: placeLabel || `${lat.toFixed(2)},${lng.toFixed(2)}`,
+        tithi: p.tithi,
+        nakshatra: p.nakshatra,
+        yoga: p.yoga,
+        karana: p.karana,
+        userName: "Shreeram Pandit"
+      });
 
       const r = calculateRahuKaal(new Date(), times.sunrise, times.sunset, {
         locale: localeTag,

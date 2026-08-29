@@ -169,6 +169,20 @@ export const T_DRAWER_NAV: Record<string, Record<SupportedNavLang, string>> = {
     te: "సెట్టింగ్స్ & స్థలం",
     ta: "அமைப்புகள் & இருப்பிடம்"
   },
+  priestdashboard: {
+    kn: "ಪುರೋಹಿತ ಸೇವಾ ಕೇಂದ್ರ & ನಾಣ್ಯ ಕೋಶ",
+    en: "Priest Portal & Coin Wallet",
+    hi: "पुरोहित पोर्टल एवं कॉइन वॉलेट",
+    te: "పురోహిత పోర్టల్ & కాయిన్ వాలెట్",
+    ta: "புரோகிதர் போர்டல் & நாணய பணப்பை"
+  },
+  superadmindashboard: {
+    kn: "ಪ್ರಧಾನ ಆಡಳಿತ ಕೇಂದ್ರ (Super Admin)",
+    en: "Super Admin Control Center",
+    hi: "सुपर एडमिन नियंत्रण कक्ष",
+    te: "సూపర్ అడ్మిన్ నియంత్రణ కేంద్రం",
+    ta: "சூப்பர் அட்மின் கட்டுப்பாட்டு மையம்"
+  },
   signOut: {
     kn: "ನಿರ್ಗಮಿಸಿ",
     en: "Sign Out",

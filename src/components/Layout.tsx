@@ -11,6 +11,9 @@ import { scheduleDailyPanchang, scheduleRahuKaal } from "../core/NotificationSch
 import { useAppStore, type AppPage } from "../stores/appStore";
 import { useKundliViewerStore } from "../stores/kundliViewerStore";
 import { useAuthStore } from "../features/auth/authStore";
+import { useWalletStore } from "../features/wallet/walletStore";
+import { PriestWalletModal } from "../features/wallet/PriestWalletModal";
+import { AdminCoinApprovalModal } from "../features/wallet/AdminCoinApprovalModal";
 import { getNavLabel } from "../i18n/navigationLocale";
 import InstallPrompt from "./InstallPrompt";
 
@@ -50,6 +53,7 @@ export default function Layout({ children }: Props): JSX.Element {
   const placeLabel = useAppStore((s) => s.placeLabel);
   const ayanamsaModel = useAppStore((s) => s.ayanamsaModel);
   const language = useAppStore((s) => s.language);
+  const setPage = useAppStore((s) => s.setPage);
   const [online, setOnline] = useState(navigator.onLine);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
@@ -93,6 +97,12 @@ export default function Layout({ children }: Props): JSX.Element {
     void run();
   }, [notifications.dailyPanchang, notifications.rahuKaal, defaultLat, defaultLng, pincode, placeLabel, ayanamsaModel]);
 
+  const wallet = useWalletStore((s) => s.wallet);
+  const openRechargeModal = useWalletStore((s) => s.openRechargeModal);
+  const openAdminApprovalModal = useWalletStore((s) => s.openAdminApprovalModal);
+  const pendingAdminTransactions = useWalletStore((s) => s.pendingAdminTransactions);
+  const role = useAuthStore((s) => s.role);
+
   return (
     <div className="min-h-screen text-[color:var(--jk-card-fg)] overflow-x-hidden relative">
       {!online && (
@@ -104,43 +114,95 @@ export default function Layout({ children }: Props): JSX.Element {
         </div>
       )}
       
-      {/* Header with Hamburger */}
-      <header className="border-b border-slate-800 bg-slate-950 px-4 py-3 shadow-md flex items-center">
-        <button 
-          onClick={() => setIsDrawerOpen(true)}
-          className="p-2 -ml-2 mr-2 text-amber-500 hover:text-amber-400 rounded-lg transition-colors focus:outline-none"
-          aria-label="Open Menu"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
-        </button>
-        <div className="flex-1 text-center">
-          <span className="text-lg font-semibold tracking-tight text-amber-400 block">{t("app.title")}</span>
-          <p className="mt-0.5 text-xs text-amber-100/70">{t("app.subtitle")}</p>
-        </div>
-        {/* Reset / Edit Kundali button if a kundali exists */}
-        {session ? (
+      {/* Header with Hamburger & Priest Coin Wallet */}
+      <header className="border-b border-slate-800 bg-slate-950 px-3 md:px-4 py-2.5 shadow-md flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
           <button 
-            onClick={() => {
-              useKundliViewerStore.getState().clearSession();
-              useAppStore.getState().setPage("kundli");
-            }}
-            className="ml-auto flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-bold text-rose-600 bg-rose-50 border border-rose-200 rounded-lg shadow-sm hover:bg-rose-100 transition-colors"
-            title="Reset / Edit current Kundali"
+            onClick={() => setIsDrawerOpen(true)}
+            className="p-2 -ml-1 text-amber-500 hover:text-amber-400 rounded-lg transition-colors focus:outline-none"
+            aria-label="Open Menu"
           >
-            <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            <span className="hidden sm:inline">{t("app.reset", "Reset")}</span>
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
           </button>
-        ) : (
-          <div className="w-10 ml-2" />
-        )}
+          <div>
+            <span className="text-base md:text-lg font-semibold tracking-tight text-amber-400 block leading-tight">{t("app.title")}</span>
+            <p className="text-[10px] md:text-xs text-amber-100/70">{t("app.subtitle")}</p>
+          </div>
+        </div>
+
+        {/* Right side Actions: Wallet Pill, Super Admin & Reset */}
+        <div className="flex items-center gap-2">
+          {/* Super Admin Control Center Button */}
+          {role === "superadmin" && (
+            <button
+              onClick={() => setPage("superadmindashboard")}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 text-slate-950 hover:from-amber-500 hover:to-amber-400 text-xs font-extrabold transition-all shadow-md"
+              title="Super Admin Master Control Center"
+            >
+              <span>🛡️</span>
+              <span className="hidden md:inline">Super Admin</span>
+            </button>
+          )}
+
+          {/* Admin Approval Button (if pending or admin) */}
+          {(pendingAdminTransactions.length > 0 || role === "admin") && role !== "superadmin" && (
+            <button
+              onClick={openAdminApprovalModal}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-900/60 text-xs font-semibold transition-all shadow-sm"
+              title="Admin Coin Approval Desk"
+            >
+              <span>🛡️</span>
+              <span className="hidden md:inline">Admin</span>
+              {pendingAdminTransactions.length > 0 && (
+                <span className="bg-emerald-400 text-slate-950 px-1.5 py-0.2 rounded-full text-[10px] font-extrabold animate-pulse">
+                  {pendingAdminTransactions.length}
+                </span>
+              )}
+            </button>
+          )}
+
+          {/* Priest Coin Wallet Pill */}
+          <button
+            onClick={openRechargeModal}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-300 hover:bg-amber-500/25 hover:border-amber-400 transition-all text-xs font-semibold shadow-sm"
+            title="Priest Coin Wallet • Click to recharge"
+          >
+            <span className="text-sm">🪙</span>
+            <span className="font-mono font-bold text-amber-200">
+              {(wallet?.coinBalance ?? 0).toLocaleString()}
+            </span>
+            <span className="hidden sm:inline text-[9px] bg-gradient-to-r from-amber-600 to-amber-500 text-slate-950 font-extrabold px-1.5 py-0.5 rounded-md uppercase">
+              + Recharge
+            </span>
+          </button>
+
+          {/* Reset / Edit Kundali button if a kundali exists */}
+          {session && (
+            <button 
+              onClick={() => {
+                useKundliViewerStore.getState().clearSession();
+                useAppStore.getState().setPage("kundli");
+              }}
+              className="flex items-center justify-center gap-1 px-2.5 py-1.5 text-xs font-bold text-rose-600 bg-rose-50 border border-rose-200 rounded-lg shadow-sm hover:bg-rose-100 transition-colors"
+              title="Reset / Edit current Kundali"
+            >
+              <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              <span className="hidden sm:inline">{t("app.reset", "Reset")}</span>
+            </button>
+          )}
+        </div>
       </header>
 
       <div className="mx-auto max-w-4xl px-4 pt-4 pb-12">
         <InstallPrompt />
         {children}
       </div>
+
+      {/* Wallet & Admin Modals */}
+      <PriestWalletModal />
+      <AdminCoinApprovalModal />
 
       {/* Drawer Overlay */}
       {isDrawerOpen && (
@@ -168,10 +230,14 @@ export default function Layout({ children }: Props): JSX.Element {
         
         <nav className="flex-1 overflow-y-auto py-2">
           <TabButton page="home" icon="⌂" label={getNavLabel("home", language)} onClose={() => setIsDrawerOpen(false)} />
+          {role === "superadmin" && (
+            <TabButton page="superadmindashboard" icon="🛡️" label={getNavLabel("superadmindashboard", language)} onClose={() => setIsDrawerOpen(false)} />
+          )}
+          <TabButton page="priestdashboard" icon="🪙" label={getNavLabel("priestdashboard", language)} onClose={() => setIsDrawerOpen(false)} />
           <TabButton page="varamahalakshmi" icon="🌸" label={getNavLabel("varamahalakshmi", language)} onClose={() => setIsDrawerOpen(false)} />
           <TabButton page="kundli" icon="◈" label={getNavLabel("kundli", language)} onClose={() => setIsDrawerOpen(false)} />
           
-          {session && (
+          {(session || role === "superadmin" || role === "admin" || role === "priest") ? (
             <>
               <div className="px-6 py-3 mt-2 mb-1 text-xs font-bold text-amber-700/80 dark:text-amber-500/80 uppercase tracking-widest bg-amber-50/30 dark:bg-slate-800/30">
                 {getNavLabel("premiumSection", language)}
@@ -184,8 +250,9 @@ export default function Layout({ children }: Props): JSX.Element {
               <TabButton page="seva" icon="🪔" label={getNavLabel("seva", language)} onClose={() => setIsDrawerOpen(false)} />
               <div className="my-2 border-t border-slate-100 dark:border-slate-800"></div>
             </>
+          ) : (
+            <div className="my-2 border-t border-slate-100 dark:border-slate-800"></div>
           )}
-          {!session && <div className="my-2 border-t border-slate-100 dark:border-slate-800"></div>}
           
           <TabButton page="muhurtha" icon="🔔" label={getNavLabel("muhurtha", language)} onClose={() => setIsDrawerOpen(false)} />
           <TabButton page="sankhyashastra" icon="🔢" label={getNavLabel("sankhyashastra", language)} onClose={() => setIsDrawerOpen(false)} />

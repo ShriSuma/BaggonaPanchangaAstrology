@@ -5,6 +5,10 @@ export const LoginPage: React.FC = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [forgotInput, setForgotInput] = useState("");
+
   const [error, setError] = useState<string | null>(null);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -15,10 +19,16 @@ export const LoginPage: React.FC = () => {
     maskedEmail,
     mfaEmail,
     activeOtp,
+    resetOtp,
+    resetUsername,
     login,
     verifyMfaOtp,
     resendMfaOtp,
-    cancelMfa
+    cancelMfa,
+    openForgotPassword,
+    requestPasswordReset,
+    verifyResetOtpAndSetPassword,
+    cancelPasswordReset
   } = useAuthStore();
 
   // Handle resend timer countdown
@@ -84,6 +94,66 @@ export const LoginPage: React.FC = () => {
     }
   };
 
+  const handleForgotSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotInput.trim()) {
+      setError("Please enter your username or registered email.");
+      return;
+    }
+
+    setError(null);
+    setInfoMessage(null);
+    setIsSubmitting(true);
+
+    try {
+      const res = await requestPasswordReset(forgotInput);
+      if (res.success) {
+        setInfoMessage(`Password reset code sent to ${mfaEmail}`);
+        setResendCooldown(30);
+      } else {
+        setError(res.error ?? "Failed to request password reset.");
+      }
+    } catch (err) {
+      setError("Failed to process request. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleResetPasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword.length < 6) {
+      setError("Password must be at least 6 characters long.");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setError("Passwords do not match. Please verify.");
+      return;
+    }
+
+    setError(null);
+    setInfoMessage(null);
+    setIsSubmitting(true);
+
+    try {
+      const res = await verifyResetOtpAndSetPassword(otp, newPassword);
+      if (res.success) {
+        setInfoMessage("Password updated successfully! Please log in with your new password.");
+        setPassword("");
+        setOtp("");
+        setNewPassword("");
+        setConfirmPassword("");
+      } else {
+        setError(res.error ?? "Failed to reset password.");
+      }
+    } catch (err) {
+      setError("Failed to reset password. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleResendCode = async () => {
     if (resendCooldown > 0) return;
     setError(null);
@@ -111,14 +181,28 @@ export const LoginPage: React.FC = () => {
       <div className="w-full max-w-md bg-slate-900/90 border border-amber-500/30 rounded-2xl p-8 shadow-2xl backdrop-blur-xl relative z-10">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-tr from-amber-600 to-amber-400 text-slate-950 font-bold text-2xl shadow-lg shadow-amber-500/20 mb-4">
-            {step === "mfa_pending" ? "🔒" : "🕉️"}
+            {step === "mfa_pending"
+              ? "🔒"
+              : step === "forgot_password" || step === "reset_password"
+              ? "🔑"
+              : "🕉️"}
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-amber-200">
-            {step === "mfa_pending" ? "Security Verification" : "Baggona Panchanga Portal"}
+            {step === "mfa_pending"
+              ? "Security Verification"
+              : step === "forgot_password"
+              ? "Reset Your Password"
+              : step === "reset_password"
+              ? "Create New Password"
+              : "Baggona Panchanga Portal"}
           </h1>
           <p className="text-slate-400 text-sm mt-1">
             {step === "mfa_pending"
               ? `Enter the 6-digit MFA code sent to ${maskedEmail}`
+              : step === "forgot_password"
+              ? "Enter your account username to receive a reset code"
+              : step === "reset_password"
+              ? `Enter code sent to ${maskedEmail} and choose a new password`
               : "Please log in with your credentials to access the portal"}
           </p>
         </div>
@@ -138,19 +222,22 @@ export const LoginPage: React.FC = () => {
         )}
 
         {/* Development / Testing OTP Helper Banner */}
-        {step === "mfa_pending" && activeOtp && (
+        {((step === "mfa_pending" && activeOtp) || (step === "reset_password" && resetOtp)) && (
           <div className="mb-6 p-3 bg-amber-950/40 border border-amber-500/30 rounded-xl text-amber-300 text-xs text-center font-mono">
             <div className="text-[10px] text-amber-400 uppercase font-semibold tracking-wider">
-              📩 Email Sent to {mfaEmail}
+              📩 Security Email Sent to {mfaEmail}
             </div>
             <div className="text-sm font-bold text-amber-200 mt-1">
-              🔑 OTP Code: <span className="underline decoration-amber-500 underline-offset-4">{activeOtp}</span>
+              🔑 Code:{" "}
+              <span className="underline decoration-amber-500 underline-offset-4">
+                {step === "mfa_pending" ? activeOtp : resetOtp}
+              </span>
             </div>
           </div>
         )}
 
-        {step === "credentials" ? (
-          /* STEP 1: Username & Password Form */
+        {/* STEP 1: Login Credentials */}
+        {step === "credentials" && (
           <form onSubmit={handleCredentialsSubmit} className="space-y-5">
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-amber-300/80 mb-2">
@@ -160,7 +247,7 @@ export const LoginPage: React.FC = () => {
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter username"
+                placeholder="e.g. baggona or superadmin"
                 className="w-full px-4 py-3 bg-slate-950/80 border border-amber-500/20 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all text-sm"
                 autoComplete="username"
                 required
@@ -168,9 +255,22 @@ export const LoginPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-amber-300/80 mb-2">
-                Password
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-semibold uppercase tracking-wider text-amber-300/80">
+                  Password
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    openForgotPassword();
+                    setError(null);
+                    setInfoMessage(null);
+                  }}
+                  className="text-xs text-amber-400 hover:text-amber-300 underline underline-offset-2"
+                >
+                  Forgot Password?
+                </button>
+              </div>
               <input
                 type="password"
                 value={password}
@@ -200,8 +300,10 @@ export const LoginPage: React.FC = () => {
               )}
             </button>
           </form>
-        ) : (
-          /* STEP 2: 6-Digit MFA OTP Verification Form */
+        )}
+
+        {/* STEP 2: MFA OTP Verification */}
+        {step === "mfa_pending" && (
           <form onSubmit={handleOtpSubmit} className="space-y-5">
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-amber-300/80 mb-2 text-center">
@@ -259,7 +361,122 @@ export const LoginPage: React.FC = () => {
                 disabled={resendCooldown > 0}
                 className="text-amber-400 hover:text-amber-300 disabled:text-slate-600 font-semibold transition-colors disabled:no-underline underline underline-offset-2"
               >
-                {resendCooldown > 0 ? `Resend code in ${resendCooldown}s` : "Resend OTP Code"}
+                {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend OTP Code"}
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* STEP 3: Forgot Password (Enter Username/Email) */}
+        {step === "forgot_password" && (
+          <form onSubmit={handleForgotSubmit} className="space-y-5">
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-amber-300/80 mb-2">
+                Your Account Username
+              </label>
+              <input
+                type="text"
+                value={forgotInput}
+                onChange={(e) => setForgotInput(e.target.value)}
+                placeholder="e.g. baggona or superadmin"
+                className="w-full px-4 py-3 bg-slate-950/80 border border-amber-500/20 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all text-sm"
+                autoFocus
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full py-3.5 px-4 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-bold rounded-xl shadow-lg shadow-amber-600/25 transition-all text-sm disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {isSubmitting ? "Sending Reset Code..." : "Send Reset Code via Email"}
+            </button>
+
+            <div className="text-center pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  cancelPasswordReset();
+                  setError(null);
+                  setInfoMessage(null);
+                }}
+                className="text-xs text-slate-400 hover:text-amber-300 underline underline-offset-2"
+              >
+                ← Back to Sign In
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* STEP 4: Reset Password (Enter OTP + New Password) */}
+        {step === "reset_password" && (
+          <form onSubmit={handleResetPasswordSubmit} className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-amber-300/80 mb-1 text-center">
+                6-Digit Reset Code
+              </label>
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={6}
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                placeholder="• • • • • •"
+                className="w-full px-4 py-2.5 bg-slate-950/90 border border-amber-500/40 rounded-xl text-amber-200 placeholder-slate-600 focus:outline-none focus:border-amber-400 text-xl font-mono text-center tracking-[0.4em] font-bold"
+                autoFocus
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-amber-300/80 mb-1">
+                New Password (min 6 characters)
+              </label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Enter new password"
+                className="w-full px-4 py-2.5 bg-slate-950/80 border border-amber-500/20 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-400 text-sm"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-amber-300/80 mb-1">
+                Confirm New Password
+              </label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Re-enter new password"
+                className="w-full px-4 py-2.5 bg-slate-950/80 border border-amber-500/20 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-400 text-sm"
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={isSubmitting || otp.length !== 6 || !newPassword}
+              className="w-full py-3.5 px-4 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-bold rounded-xl shadow-lg shadow-amber-600/25 transition-all text-sm disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {isSubmitting ? "Updating Password..." : "Save New Password & Log In"}
+            </button>
+
+            <div className="text-center pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  cancelPasswordReset();
+                  setError(null);
+                  setInfoMessage(null);
+                }}
+                className="text-xs text-slate-400 hover:text-amber-300 underline underline-offset-2"
+              >
+                ← Cancel & Return to Login
               </button>
             </div>
           </form>

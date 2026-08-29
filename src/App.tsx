@@ -25,6 +25,9 @@ import { LifeGuidancePage } from "./pages/LifeGuidancePage";
 import AstroGamesPage from "./pages/AstroGamesPage";
 import { DivyaKaalaDiksuchiPage } from "./pages/DivyaKaalaDiksuchiPage";
 import { AyurSanjeeviniPage } from "./pages/AyurSanjeeviniPage";
+import { PriestDashboard } from "./features/wallet/PriestDashboard";
+import { SuperAdminDashboard } from "./features/wallet/SuperAdminDashboard";
+import { SankhyaShastraPriestPortal } from "./features/priest/SankhyaShastraPriestPortal";
 import { useAppStore } from "./stores/appStore";
 import { useAuthStore } from "./features/auth/authStore";
 import { LoginPage } from "./components/auth/LoginPage";
@@ -46,6 +49,23 @@ export default function App(): JSX.Element {
     window.location.search.includes("token=") ||
     window.location.search.includes("fromCal=") ||
     window.location.search.includes("action=ics")
+  );
+
+  const isSankhyaShastraPortalRoute = typeof window !== "undefined" && !isAcademyRoute && !isDailyRoute && (
+    window.location.pathname.startsWith("/sankhya") ||
+    window.location.search.includes("portal=sankhyashastra") ||
+    window.location.search.includes("portal=sankhya") ||
+    window.location.hash.includes("#/sankhyashastra") ||
+    window.location.hash.includes("#/sankhya")
+  );
+
+  const isPriestPortalRoute = typeof window !== "undefined" && !isAcademyRoute && !isDailyRoute && !isSankhyaShastraPortalRoute && (
+    window.location.pathname.startsWith("/priest") ||
+    window.location.pathname.startsWith("/purohita") ||
+    window.location.search.includes("portal=priest") ||
+    window.location.search.includes("portal=panchanga") ||
+    window.location.search.includes("portal=purohita") ||
+    window.location.hash.includes("#/priest")
   );
 
   const currentPage = useAppStore((state) => state.currentPage);
@@ -74,6 +94,22 @@ export default function App(): JSX.Element {
 
   if (isDailyRoute) {
     return <DailyDarshanaPage />;
+  }
+
+  if (isSankhyaShastraPortalRoute) {
+    return (
+      <ErrorBoundary>
+        <SankhyaShastraPriestPortal />
+      </ErrorBoundary>
+    );
+  }
+
+  if (isPriestPortalRoute) {
+    return (
+      <ErrorBoundary>
+        <PriestDashboard />
+      </ErrorBoundary>
+    );
   }
 
   if (isLoading) {
@@ -126,6 +162,8 @@ export default function App(): JSX.Element {
         {currentPage === "astrogames" && <AstroGamesPage />}
         {currentPage === "kaaladiksuchi" && <DivyaKaalaDiksuchiPage />}
         {currentPage === "ayursanjeevini" && <AyurSanjeeviniPage />}
+        {currentPage === "priestdashboard" && <PriestDashboard />}
+        {currentPage === "superadmindashboard" && <SuperAdminDashboard />}
       </Layout>
     </ErrorBoundary>
   );

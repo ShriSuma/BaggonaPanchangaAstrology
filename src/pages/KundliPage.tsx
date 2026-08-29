@@ -16,6 +16,7 @@ import { patrikaMetaForNakshatraIndex as import_patrikaMetaForNakshatraIndex } f
 import { analytics } from "../core/analytics";
 import { LifeGuidancePage } from "./LifeGuidancePage";
 import { saveKundli, recordDailyHit } from "../db/indexedDb";
+import { saveKundliToFirestore } from "../db/firestoreDb";
 import { useAppStore } from "../stores/appStore";
 import { useKundliViewerStore } from "../stores/kundliViewerStore";
 import KundliChart from "../components/kundli/KundliChart";
@@ -425,6 +426,41 @@ export default function KundliPage(): JSX.Element {
     setNarrativeError("");
     await analytics.track("kundli_generated");
     await recordDailyHit();
+
+    // Cloud Firestore Sync with Discrete Columns
+    const moonPlanet = output.planets.find((p) => p.name === "Moon");
+    const nakshatraName = moonPlanet?.nakshatra?.english || "Ashwini";
+    const nakshatraKn = moonPlanet?.nakshatra?.sanskrit || "";
+
+    void saveKundliToFirestore({
+      id,
+      userId: "priest_shreeram",
+      priestName: "Shreeram Pandit",
+      name: payload.name || "Devotee",
+      birthDate: payload.birthDate,
+      birthTime: payload.birthTime,
+      placeName: placeLabelStore || "Custom Location",
+      latitude: payload.latitude,
+      longitude: payload.longitude,
+      pincode: payload.pincode,
+      gothra: payload.gothra || "Kashyapa",
+      rashi: output.moonSign.english,
+      rashiSanskrit: output.moonSign.sanskrit,
+      nakshatra: nakshatraName,
+      nakshatraSanskrit: nakshatraKn,
+      pada: output.moonPada,
+      lagnaRashi: output.lagnaRashi.english,
+      sunSign: output.sunSign.english,
+      planetsSummary: output.planets.map((pl) => ({
+        name: pl.name,
+        degree: pl.degree,
+        rashi: pl.rashi.english,
+        house: pl.house,
+        isRetrograde: pl.isRetrograde
+      })),
+      kundliData: output,
+      createdAt: new Date().toISOString()
+    });
   };
 
   const summaryText = useMemo(() => {

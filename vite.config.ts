@@ -169,6 +169,48 @@ export default defineConfig(({ mode }) => {
           }
         });
         
+        server.middlewares.use("/api/notify", async (req, res) => {
+          try {
+            if (req.method === "OPTIONS") {
+              res.statusCode = 204;
+              res.end();
+              return;
+            }
+            const chunks: Buffer[] = [];
+            for await (const chunk of req) {
+              chunks.push(chunk as Buffer);
+            }
+            const bodyStr = Buffer.concat(chunks).toString("utf8");
+            (req as any).body = bodyStr ? JSON.parse(bodyStr) : {};
+
+            // @ts-expect-error local dev proxy for Vercel API
+            const handlerModule = await import("./api/notify.ts");
+            (res as any).status = (code: number) => {
+              res.statusCode = code;
+              return res;
+            };
+            (res as any).json = (body: any) => {
+              if (res.writableEnded || res.finished) return res;
+              res.setHeader("Content-Type", "application/json");
+              res.end(JSON.stringify(body));
+              return res;
+            };
+            (res as any).send = (body: string) => {
+              if (res.writableEnded || res.finished) return res;
+              res.end(body);
+              return res;
+            };
+
+            await handlerModule.default(req, res);
+          } catch (e) {
+            if (!res.writableEnded && !res.finished) {
+              res.statusCode = 500;
+              res.setHeader("Content-Type", "application/json");
+              res.end(JSON.stringify({ error: e instanceof Error ? e.message : String(e) }));
+            }
+          }
+        });
+
         server.middlewares.use("/api/calendar", async (req, res) => {
           try {
             // @ts-expect-error local dev proxy for Vercel API
@@ -182,18 +224,24 @@ export default defineConfig(({ mode }) => {
               return res;
             };
             (res as any).send = (body: string) => {
+              if (res.writableEnded || res.finished) return res;
               res.end(body);
+              return res;
             };
             (res as any).json = (body: any) => {
+              if (res.writableEnded || res.finished) return res;
               res.setHeader("Content-Type", "application/json");
               res.end(JSON.stringify(body));
+              return res;
             };
             
             await handlerModule.default(req, res);
           } catch (e) {
-            res.statusCode = 502;
-            res.setHeader("Content-Type", "text/plain");
-            res.end(e instanceof Error ? e.message : String(e));
+            if (!res.writableEnded && !res.finished) {
+              res.statusCode = 502;
+              res.setHeader("Content-Type", "text/plain");
+              res.end(e instanceof Error ? e.message : String(e));
+            }
           }
         });
       }

@@ -95,4 +95,37 @@ describe("Daily Hits & 11 PM IST Report Scheduler", () => {
     expect(report.count).toBe(2);
     expect(report.email).toBe(REPORT_EMAIL_RECIPIENT);
   });
+
+  it("verifies quota guard reserves 5 slots for daily summary reports out of 100 total", async () => {
+    const {
+      DAILY_EMAIL_LIMIT,
+      RESERVED_REPORT_EMAILS,
+      SAFE_TRANSACTIONAL_LIMIT,
+      sendAllThreeDailyReports
+    } = await import("../features/notifications/notificationService");
+
+    expect(DAILY_EMAIL_LIMIT).toBe(100);
+    expect(RESERVED_REPORT_EMAILS).toBe(5);
+    expect(SAFE_TRANSACTIONAL_LIMIT).toBe(95);
+
+    // Verify all 3 daily summary reports dispatch cleanly
+    const res = await sendAllThreeDailyReports();
+    expect(res.success).toBe(true);
+  });
+
+  it("verifies Super Admin credentials and updates password securely with SHA-256", async () => {
+    await useAuthStore.getState().seedDefaultUser();
+
+    // Verify default superadmin user
+    const superAdmin = await db.users.where("username").equals("superadmin").first();
+    expect(superAdmin).toBeDefined();
+
+    // Hash new password and update
+    const newSecretPassword = "MySecretAdminPass#2026";
+    const newHash = await hashPassword(newSecretPassword);
+    await db.users.update(superAdmin!.id, { passwordHash: newHash });
+
+    const updatedUser = await db.users.where("username").equals("superadmin").first();
+    expect(updatedUser?.passwordHash).toBe(newHash);
+  });
 });

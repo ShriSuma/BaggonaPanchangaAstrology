@@ -205,6 +205,20 @@ export async function generatePDFFromElement(elementId: string, fileName: string
       }
       if (pdf) {
         savePdfBlob(pdf, fileName);
+        try {
+          // Asynchronously notify admin of PDF download
+          import("../features/notifications/notificationService").then(({ notifyPremiumPdfDownloaded }) => {
+            void notifyPremiumPdfDownloaded({
+              clientName: fileName.replace(/\.pdf$/i, ""),
+              pdfType: "Baggona Astrological PDF Document",
+              language: "kn",
+              pageCount: pdf ? pdf.getNumberOfPages() : 1,
+              priestName: "Shreeram Pandit"
+            });
+          }).catch(() => {});
+        } catch (e) {
+          // Non-blocking notification
+        }
       }
     }
   } catch (renderError) {
