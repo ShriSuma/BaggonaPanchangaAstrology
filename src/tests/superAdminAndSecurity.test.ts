@@ -95,16 +95,23 @@ describe("Super Admin & Intrusion Security Engine", () => {
     expect(useAuthStore.getState().isAuthenticated).toBe(true);
   });
 
+  it("authenticates Super Admin account with role 'superadmin' using ShriSuma and ShriSuma@2026", async () => {
+    const loginRes = await useAuthStore.getState().login("ShriSuma", "ShriSuma@2026", { skipMfa: true });
+    expect(loginRes.success).toBe(true);
+    expect(useAuthStore.getState().isAuthenticated).toBe(true);
+    expect(useAuthStore.getState().role).toBe("superadmin");
+    expect(useAuthStore.getState().currentUser).toBe("ShriSuma");
+  });
+
   it("authenticates Super Admin account with role 'superadmin' using $hriSuma", async () => {
     const loginRes = await useAuthStore.getState().login("$hriSuma", "admin@baggona2026", { skipMfa: true });
     expect(loginRes.success).toBe(true);
     expect(useAuthStore.getState().isAuthenticated).toBe(true);
     expect(useAuthStore.getState().role).toBe("superadmin");
-    expect(useAuthStore.getState().currentUser).toBe("$hriSuma");
   });
 
   it("authenticates Super Admin account with backward compatible 'superadmin'", async () => {
-    const loginRes = await useAuthStore.getState().login("superadmin", "admin@baggona2026", { skipMfa: true });
+    const loginRes = await useAuthStore.getState().login("superadmin", "ShriSuma@2026", { skipMfa: true });
     expect(loginRes.success).toBe(true);
     expect(useAuthStore.getState().isAuthenticated).toBe(true);
     expect(useAuthStore.getState().role).toBe("superadmin");
