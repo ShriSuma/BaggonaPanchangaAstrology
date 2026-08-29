@@ -6,7 +6,8 @@ import {
   renderCoinApprovedEmail,
   renderDailyAppSummaryEmail,
   renderDailyPriestUsageSummaryEmail,
-  renderDailyCoinReloadSummaryEmail
+  renderDailyCoinReloadSummaryEmail,
+  renderSystemFailureAlertEmail
 } from "./emailTemplates";
 
 export const DEFAULT_NOTIFICATION_EMAIL = "spshreepandit@gmail.com";
@@ -443,4 +444,26 @@ export async function sendAllThreeDailyReports(reportData?: {
   });
 
   return { success: true };
+}
+
+/**
+ * Sends an immediate Critical Failure Alert Email to Super Admin
+ */
+export async function notifySystemFailureAlert(data: {
+  username: string;
+  priestName: string;
+  action: string;
+  attemptedCoins: number;
+  errorMessage: string;
+  clientIp?: string;
+}): Promise<{ success: boolean }> {
+  const timestamp = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+  const html = renderSystemFailureAlertEmail({ ...data, timestamp });
+
+  return await sendEmailNotification({
+    subject: `[Baggona Alert] ⚠️ ವೈಫಲ್ಯ ಎಚ್ಚರಿಕೆ: ${data.action} (${data.priestName})`,
+    html,
+    type: "system_alert",
+    data: { ...data, timestamp }
+  });
 }

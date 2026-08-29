@@ -1,0 +1,144 @@
+# 1. Update gokarnaSevas.ts
+file_sevas = "/Users/shreesuma/AntigravityProjects/BaggonaPanchangaAstrology/BaggonaPanchangaAstrology/src/data/gokarnaSevas.ts"
+with open(file_sevas, "r", encoding="utf-8") as f:
+    content_sevas = f.read()
+
+# Export SHLOKA_SHANTI if not exported
+content_sevas = content_sevas.replace("const SHLOKA_SHANTI: SevaShloka =", "export const SHLOKA_SHANTI: SevaShloka =")
+
+# Add custom_pooja to SEVA_CATALOG before closing bracket
+custom_pooja_catalog = """,
+  custom_pooja: {
+    id: "custom_pooja",
+    icon: "🪔",
+    name: {
+      en: "Custom Sacred Pooja / Homa",
+      kn: "ವಿಶೇಷ ಪೂಜೆ / ಹೋಮ",
+      te: "ప్రత్యేక పూజ / హోమం",
+      ta: "சிறப்பு பூஜை / ஹோமம்",
+      hi: "विशेष पूजा / होम"
+    },
+    purpose: {
+      en: "Sacred ritual performed according to devotee's sankalpa.",
+      kn: "ಭಕ್ತರ ಸಂಕಲ್ಪಾನುಸಾರ ನೆರವೇರಿಸಲಾದ ದೈವಿಕ ಸೇವೆ.",
+      te: "భక్తుల సంకల్పం ప్రకారం నిర్వహించిన దివ్య సేవ.",
+      ta: "பக்தரின் சங்கல்பத்தின்படி செய்யப்பட்ட புனித சேவை.",
+      hi: "भक्त के संकल्प के अनुसार संपन्न पावन सेवा।"
+    },
+    benefit: {
+      en: "Fulfillment of desires and family peace.",
+      kn: "ಸಕಲ ಇಷ್ಟಾರ್ಥ ಸಿದ್ಧಿ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಸುಖ-ಶಾಂತಿ.",
+      te: "సకల కోరికల ಈడేరిక ಮತ್ತು ಕುಟುಂಬ ಶಾಂತಿ.",
+      ta: "சகல விருப்பங்களும் நிறைவேறி குடும்ப அமைதி பெருகும்.",
+      hi: "सर्व मनोकामना पूर्ति एवं पारिवारिक शांति।"
+    },
+    where: GOKARNA_TEMPLE,
+    when: {
+      en: "On an auspicious Muhurtha.",
+      kn: "ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ.",
+      te: "శుభ ముహూర్తంలో.",
+      ta: "சுப முகூர்த்தத்தில்.",
+      hi: "शुभ मुहूर्त में।"
+    },
+    duration: HALF_DAY,
+    shloka: SHLOKA_SHANTI
+  }
+};"""
+
+content_sevas = content_sevas.rstrip()
+if content_sevas.endswith("};"):
+    content_sevas = content_sevas[:-2] + custom_pooja_catalog
+
+with open(file_sevas, "w", encoding="utf-8") as f:
+    f.write(content_sevas)
+
+# 2. Update sevaPriestDirectory.ts
+file_priests = "/Users/shreesuma/AntigravityProjects/BaggonaPanchangaAstrology/BaggonaPanchangaAstrology/src/features/seva/sevaPriestDirectory.ts"
+with open(file_priests, "r", encoding="utf-8") as f:
+    content_priests = f.read()
+
+custom_pooja_vidhi = """,
+  custom_pooja: {
+    sevaId: "custom_pooja",
+    steps: {
+      kn: [
+        "1. ಗಣಪತಿ ಪೂಜೆ & ಪುಣ್ಯಾಹವಾಚನ",
+        "2. ಸಂಕಲ್ಪ & ಪವಿತ್ರ ಮಂಡಲ ಸ್ಥಾಪನೆ",
+        "3. ಪ್ರಧಾನ ದೇವತಾ ಆವಾಹನೆ & ಮಹಾ ಮಂತ್ರ ಜಪ",
+        "4. ಪವಿತ್ರ ದ್ರವ್ಯಾರ್ಪಣೆ & ಮಹಾ ಪೂರ್ಣಾಹುತಿ",
+        "5. ತೀರ್ಥ ಪ್ರಸಾದ & ರಕ್ಷಾ ಮಂತ್ರಾಕ್ಷತೆ"
+      ],
+      en: [
+        "1. Ganapati Puja & Punyahavachana",
+        "2. Sankalpa & Sacred Mandala installation",
+        "3. Pradhana Devata Avahana & Maha Mantra Japa",
+        "4. Sacred offerings & Maha Poornahuti",
+        "5. Consecrated Prasada & Mantrakshate blessing"
+      ],
+      hi: [
+        "1. गणपति पूजन एवं पुण्याहवाचन",
+        "2. संकल्प एवं पावन मंडल स्थापना",
+        "3. प्रधान देवता आवाहन एवं महामंत्र जप",
+        "4. दिव्य आहुतियां एवं महा पूर्णाहुति",
+        "5. तीर्थ प्रसाद एवं रक्षा मंत्राक्षत"
+      ],
+      te: [
+        "1. గణపతి పూజ మరియు పుణ్యాహవాచనం",
+        "2. సంకల్పం మరియు పవిత్ర మండల స్థాపన",
+        "3. ప్రధాన దేవతా ఆవాహన మరియు మహామంత్ర జపం",
+        "4. హోమ ద్రవ్య సమర్పణ మరియు మహా పూర్ణాహుతి",
+        "5. తీర్థ ప్రసాదం మరియు మంత్రాక్షతలు"
+      ],
+      ta: [
+        "1. கணபதி பூஜை மற்றும் புண்யாஹவாசனம்",
+        "2. சங்கல்பம் மற்றும் புனித மண்டல ஸ்தாபனம்",
+        "3. பிரதான தேவதா ஆவாஹனம் மற்றும் மந்திர ஜபம்",
+        "4. ஹோம திரவிய சமர்ப்பணமும் மகா பூர்ணாஹுதியும்",
+        "5. தீர்த்த பிரசாதமும் மந்திராட்சதையும்"
+      ]
+    },
+    auspiciousTime: {
+      kn: "ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ",
+      en: "Auspicious Muhurtha",
+      hi: "शुभ मुहूर्त में",
+      te: "శుభ ముహూర్తంలో",
+      ta: "சுப முகூர்த்தத்தில்"
+    },
+    requiredItems: {
+      kn: "ತುಪ್ಪ, ಹೂವು, ಹಣ್ಣು, ವೀಳ್ಯದೆಲೆ, ನೈವೇದ್ಯ",
+      en: "Pure Ghee, Flowers, Fruits, Betel leaves, Sweet offerings",
+      hi: "शुद्ध घी, फूल, फल, पान, नैवेद्य",
+      te: "నెయ్యి, పూలు, పండ్లు, తమలపాకులు, నైవేద్యం",
+      ta: "நெய், மலர்கள், பழங்கள், வெற்றிலை, நைவேத்தியம்"
+    },
+    fruit: {
+      kn: "ಸಕಲ ಇಷ್ಟಾರ್ಥ ಸಿದ್ಧಿ, ದೈವಿಕ ರಕ್ಷಣೆ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಸುಖ-ಶಾಂತಿ",
+      en: "Fulfillment of desires, divine protection & family peace",
+      hi: "सर्व मनोकामना पूर्ति, दैवीय सुरक्षा एवं पारिवारिक शांति",
+      te: "సకల కోరికల ఈడేరిక, దివ్య రక్షణ మరియు కుటుంబ శాంతి",
+      ta: "சகல காரிய சித்தி, தெய்வீக பாதுகாப்பு மற்றும் குடும்ப அமைதி"
+    }
+  }
+};"""
+
+content_priests = content_priests.rstrip()
+if content_priests.endswith("};"):
+    content_priests = content_priests[:-2] + custom_pooja_vidhi
+
+with open(file_priests, "w", encoding="utf-8") as f:
+    f.write(content_priests)
+
+# 3. Update PrasadaKit.tsx imports
+file_kit = "/Users/shreesuma/AntigravityProjects/BaggonaPanchangaAstrology/BaggonaPanchangaAstrology/src/components/seva/PrasadaKit.tsx"
+with open(file_kit, "r", encoding="utf-8") as f:
+    content_kit = f.read()
+
+# Import SHLOKA_SHANTI from gokarnaSevas
+content_kit = content_kit.replace('import { SEVA_CATALOG, type SevaId } from "../../data/gokarnaSevas";', 'import { SEVA_CATALOG, SHLOKA_SHANTI, type SevaId } from "../../data/gokarnaSevas";')
+# Clean up any misplaced import in sevaLocale
+content_kit = content_kit.replace('  SHLOKA_SHANTI\n', '')
+
+with open(file_kit, "w", encoding="utf-8") as f:
+    f.write(content_kit)
+
+print("Updated types, gokarnaSevas.ts, sevaPriestDirectory.ts, and PrasadaKit.tsx successfully!")

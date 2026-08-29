@@ -95,10 +95,38 @@ describe("Super Admin & Intrusion Security Engine", () => {
     expect(useAuthStore.getState().isAuthenticated).toBe(true);
   });
 
-  it("authenticates Super Admin account with role 'superadmin'", async () => {
+  it("authenticates Super Admin account with role 'superadmin' using $hriSuma", async () => {
+    const loginRes = await useAuthStore.getState().login("$hriSuma", "admin@baggona2026", { skipMfa: true });
+    expect(loginRes.success).toBe(true);
+    expect(useAuthStore.getState().isAuthenticated).toBe(true);
+    expect(useAuthStore.getState().role).toBe("superadmin");
+    expect(useAuthStore.getState().currentUser).toBe("$hriSuma");
+  });
+
+  it("authenticates Super Admin account with backward compatible 'superadmin'", async () => {
     const loginRes = await useAuthStore.getState().login("superadmin", "admin@baggona2026", { skipMfa: true });
     expect(loginRes.success).toBe(true);
     expect(useAuthStore.getState().isAuthenticated).toBe(true);
     expect(useAuthStore.getState().role).toBe("superadmin");
+  });
+
+  it("renders System Failure Alert Email with priest details, action, and attempted coins", async () => {
+    const { renderSystemFailureAlertEmail } = await import("../features/notifications/emailTemplates");
+    const html = renderSystemFailureAlertEmail({
+      username: "priest_raghavendra",
+      priestName: "ರಾಘವೇಂದ್ರ ಭಟ್",
+      action: "ಜನನ ಕುಂಡಲಿ ರಚನೆ",
+      attemptedCoins: 200,
+      errorMessage: "AI API Quota Limit Exceeded",
+      clientIp: "103.24.56.78",
+      timestamp: "29/08/2026, 06:45:00 pm"
+    });
+
+    expect(html).toContain("ರಾಘವೇಂದ್ರ ಭಟ್");
+    expect(html).toContain("priest_raghavendra");
+    expect(html).toContain("ಜನನ ಕುಂಡಲಿ ರಚನೆ");
+    expect(html).toContain("200 Coins");
+    expect(html).toContain("AI API Quota Limit Exceeded");
+    expect(html).toContain("103.24.56.78");
   });
 });

@@ -21,7 +21,7 @@ import { setDoc, doc } from "firebase/firestore";
 import { firestore } from "../../services/firebase";
 import { updateUserPassword } from "../../db/firestoreDb";
 import { hashPassword } from "../auth/authStore";
-import { notifyPasswordResetCompleted } from "../notifications/notificationService";
+import { notifyPasswordResetCompleted, notifySystemFailureAlert } from "../notifications/notificationService";
 
 type SankhyaTab = "prashna" | "name_numbers" | "wallet";
 
@@ -39,6 +39,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
   } = useWalletStore();
 
   const { currentUser } = useAuthStore();
+  const [urlPriestName, setUrlPriestName] = useState<string>("");
 
   // Active Tab
   const [activeTab, setActiveTab] = useState<SankhyaTab>("prashna");
@@ -85,16 +86,36 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
-    if (currentUser) {
-      void initWallet(currentUser, DEFAULT_PRIEST_NAME);
-    }
+    let resolvedUser = currentUser || "priest_sankhya";
+    let resolvedName = DEFAULT_PRIEST_NAME;
 
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
+      const userParam = params.get("user");
+      const nameParam = params.get("name");
+
+      if (nameParam) {
+        resolvedName = decodeURIComponent(nameParam);
+        setUrlPriestName(resolvedName);
+        localStorage.setItem("baggona_sankhya_priest_name", resolvedName);
+      } else if (localStorage.getItem("baggona_sankhya_priest_name")) {
+        resolvedName = localStorage.getItem("baggona_sankhya_priest_name")!;
+        setUrlPriestName(resolvedName);
+      }
+
+      if (userParam) {
+        resolvedUser = userParam;
+        localStorage.setItem("baggona_sankhya_priest_id", userParam);
+      } else if (localStorage.getItem("baggona_sankhya_priest_id")) {
+        resolvedUser = localStorage.getItem("baggona_sankhya_priest_id")!;
+      }
+
       if (params.get("reset") === "true" || params.get("firstTime") === "true") {
         setShowPasswordSetup(true);
       }
     }
+
+    void initWallet(resolvedUser, resolvedName);
 
     const timer = setTimeout(() => {
       setShowWelcomeToast(false);
@@ -103,6 +124,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
     return () => clearTimeout(timer);
   }, [currentUser, initWallet]);
 
+  const activePriestDisplayName = urlPriestName || wallet?.priestName || (typeof window !== "undefined" ? localStorage.getItem("baggona_sankhya_priest_name") : null) || "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್";
   const coinBalance = wallet?.coinBalance ?? 700;
 
   // Handle Voice Input
@@ -182,7 +204,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
         const prashnaRef = doc(firestore, "sankhyashastra_prashna_history", `prashna_${Date.now()}`);
         await setDoc(prashnaRef, {
           userId: currentUser || "priest_sankhya",
-          priestName: DEFAULT_PRIEST_NAME,
+          priestName: activePriestDisplayName,
           portalType: "sankhyashastra",
           devoteeName: devoteeName || "ಭಕ್ತರು",
           gothra: gothra || "ಕಾಶ್ಯಪ",
@@ -195,12 +217,19 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
       } catch (dbErr) {
         console.warn("[SankhyaPortal] Firestore log error:", dbErr);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("[SankhyaPortal] Prashna error:", err);
       await refundCoins(cost, "ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಪ್ರಶ್ನೆ ಲೆಕ್ಕಾಚಾರ ದೋಷ");
+      void notifySystemFailureAlert({
+        username: wallet?.userId || currentUser || "priest_sankhya",
+        priestName: activePriestDisplayName,
+        action: `ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಪ್ರಶ್ನೆ (${prashnaNumber})`,
+        attemptedCoins: 350,
+        errorMessage: err?.message || "Sankhya Prashna runtime error"
+      });
       setFeedback({
         type: "error",
-        text: "ಪ್ರಶ್ನಾವಳಿ ಲೆಕ್ಕಾಚಾರದಲ್ಲಿ ದೋಷ ಉಂಟಾಗಿದೆ. ಕಡಿತಗೊಂಡ ೩೫೦ ನಾಣ್ಯಗಳನ್ನು ತಕ್ಷಣವೇ ನಿಮ್ಮ ವಾಲೆಟ್‌ಗೆ ಮರುಪಾವತಿಸಲಾಗಿದೆ."
+        text: "ಪ್ರಶ್ನೆ ವಿಶ್ಲೇಷಣೆಯಲ್ಲಿ ತಾಂತ್ರಿಕ ದೋಷ ಉಂಟಾಗಿದೆ. ಕಡಿತಗೊಂಡ ೩೫೦ ನಾಣ್ಯಗಳನ್ನು ತಕ್ಷಣವೇ ನಿಮ್ಮ ವಾಲೆಟ್‌ಗೆ ಮರುಪಾವತಿಸಲಾಗಿದೆ."
       });
     } finally {
       setIsCalculatingPrashna(false);
@@ -261,7 +290,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
         const numRef = doc(firestore, "sankhyashastra_suggestions_history", `sugg_${Date.now()}`);
         await setDoc(numRef, {
           userId: currentUser || "priest_sankhya",
-          priestName: DEFAULT_PRIEST_NAME,
+          priestName: activePriestDisplayName,
           portalType: "sankhyashastra",
           serviceType: suggestionType,
           birthDate,
@@ -271,9 +300,16 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
       } catch (dbErr) {
         console.warn("[SankhyaPortal] Firestore log error:", dbErr);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("[SankhyaPortal] Suggestion error:", err);
       await refundCoins(cost, "ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಸೂಚನಾ ಲೆಕ್ಕಾಚಾರ ದೋಷ");
+      void notifySystemFailureAlert({
+        username: wallet?.userId || currentUser || "priest_sankhya",
+        priestName: activePriestDisplayName,
+        action: serviceName,
+        attemptedCoins: 2000,
+        errorMessage: err?.message || "Sankhya Suggestion runtime error"
+      });
       setFeedback({
         type: "error",
         text: "ಲೆಕ್ಕಾಚಾರದಲ್ಲಿ ದೋಷ ಉಂಟಾಗಿದೆ. ಕಡಿತಗೊಂಡ ೨,೦೦೦ ನಾಣ್ಯಗಳನ್ನು ತಕ್ಷಣವೇ ನಿಮ್ಮ ವಾಲೆಟ್‌ಗೆ ಮರುಪಾವತಿಸಲಾಗಿದೆ."
@@ -338,7 +374,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
           <div className="flex items-center gap-2">
             <span className="text-lg animate-bounce">🔢</span>
             <p className="text-xs font-black tracking-wide">
-              ನಮಸ್ಕಾರ, ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಕರ್ತರಿಂದ ನಿಮಗೆ ಸ್ವಾಗತ
+              ನಮಸ್ಕಾರ {activePriestDisplayName} ಅವರೇ, ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಕರ್ತರಿಂದ ನಿಮಗೆ ಸ್ವಾಗತ
             </p>
           </div>
           <button
@@ -370,7 +406,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
                 </span>
               </div>
               <p className="text-[10px] text-amber-700 font-bold uppercase tracking-wider">
-                ಶ್ರೀ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ • ಸಂಖ್ಯಾ ದೈವಜ್ಞ ಕೇಂದ್ರ
+                🙏 ನಮಸ್ಕಾರ {activePriestDisplayName} ಅವರೇ • ಸಂಖ್ಯಾ ದೈವಜ್ಞ ಕೇಂದ್ರ
               </p>
             </div>
           </div>

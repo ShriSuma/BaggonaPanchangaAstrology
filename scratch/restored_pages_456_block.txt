@@ -1,0 +1,361 @@
+{/* ─────────────────────────────────────────────────────────────
+          PAGE 4: NATAL PLANETS, YOGAS & KARMIC DOSHAS ANALYSIS
+         ───────────────────────────────────────────────────────────── */}
+      <div className="pdf-page" style={pageStyle}>
+        <div style={frameStyle}>
+          {/* Header Box */}
+          <div style={{
+            textAlign: "center",
+            background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
+            border: "2px solid #D97706",
+            borderRadius: "8px",
+            padding: "6px 12px",
+            boxShadow: "0 2px 5px rgba(180, 83, 9, 0.05)"
+          }}>
+            <div style={{ fontSize: "17.5px", fontWeight: 800, color: "#78350F", lineHeight: "1.2", marginBottom: "6px", transform: "translateY(-2px)" }}>
+              {code === "kn" ? "ಅಧ್ಯಾಯ ೩: ಜನ್ಮ ಕುಂಡಲಿ ಗ್ರಹ ಸ್ಥಿತಿ, ಯೋಗಗಳು ಹಾಗೂ ದೋಷ ವಿಶ್ಲೇಷಣೆ" : "Chapter 3: Natal Planetary Positions, Yogas & Karmic Analysis"}
+            </div>
+            <div style={{ fontSize: "11.5px", color: "#B45309", fontWeight: 600, marginTop: "3px" }}>
+              📜 {code === "kn" ? "ನಿಮ್ಮ ಜಾತಕದ ನವಗ್ರಹಗಳ ಸ್ಥಾನ ಬಲ, ಸಿದ್ಧಿಸಿರುವ ಶುಭ ಯೋಗಗಳು ಹಾಗೂ ದೋಷ ಶಮನ ಮಾರ್ಗದರ್ಶನ" : "Detailed breakdown of natal planets, active Yogas, and sacred Vedic remedies."}
+            </div>
+          </div>
+
+          {/* 3 Main Analysis Cards */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            {/* Card 1: Natal Planets */}
+            <div style={{ background: "#FFFFFF", border: "1.5px solid #FCD34D", borderRadius: "8px", padding: "12px 16px", boxShadow: "0 2px 5px rgba(0,0,0,0.03)" }}>
+              <div style={{ fontSize: "13.5px", fontWeight: 800, color: "#78350F", marginBottom: "6px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>{page4Data?.card1Title || "🌌 ಜನ್ಮ ಗ್ರಹಗಳ ಸ್ಥಿತಿ ಬಲ & ಶುಭ ದೃಷ್ಟಿ"}</span>
+                <span style={{ fontSize: "11px", color: "#92400E", background: "#FEF3C7", border: "1px solid #F59E0B", padding: "2px 10px", borderRadius: "12px", fontWeight: 700 }}>{code === "kn" ? "ಸ್ಥಾನ ಬಲ" : "Natal Strength"}</span>
+              </div>
+              <div style={{ fontSize: "12px", lineHeight: "1.65", color: "#3F2A12", textAlign: "justify" }}>
+                {page4Data?.card1Text}
+              </div>
+            </div>
+
+            {/* Card 2: Auspicious Yogas */}
+            <div style={{ background: "#FFFBEB", border: "1.5px solid #F59E0B", borderRadius: "8px", padding: "12px 16px", boxShadow: "0 2px 5px rgba(0,0,0,0.03)" }}>
+              <div style={{ fontSize: "13.5px", fontWeight: 800, color: "#78350F", marginBottom: "6px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>{page4Data?.card2Title || "✨ ನಿಮ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ಸಿದ್ಧಿಸಿರುವ ಪ್ರಮುಖ ಶುಭ ಯೋಗಗಳು"}</span>
+                <span style={{ fontSize: "11px", color: "#78350F", background: "linear-gradient(180deg, #FDE68A 0%, #F59E0B 100%)", border: "1px solid #D97706", padding: "2px 10px", borderRadius: "12px", fontWeight: 800 }}>{code === "kn" ? "ರಾಜಯೋಗ ಸಿದ್ಧಿ" : "Auspicious Yogas"}</span>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                {page4Data?.yogas.map((y, idx) => (
+                  <div key={idx} style={{ fontSize: "12.5px", fontWeight: 700, color: "#92400E", background: "#FEF3C7", border: "1px solid #FCD34D", padding: "6px 12px", borderRadius: "6px" }}>
+                    🌟 {y}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Card 3: Karmic Doshas & Remedies */}
+            <div style={{ background: "#FEF2F2", border: "1.5px solid #EF4444", borderRadius: "8px", padding: "12px 16px", boxShadow: "0 2px 5px rgba(0,0,0,0.03)" }}>
+              <div style={{ fontSize: "13.5px", fontWeight: 800, color: "#991B1B", marginBottom: "6px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>{page4Data?.card3Title || "🛡️ ಗ್ರಹ ದೋಷ ಶಮನ & ಪವಿತ್ರ ವೈದಿಕ ಪರಿಹಾರ"}</span>
+                <span style={{ fontSize: "11px", color: "#991B1B", background: "#FEE2E2", border: "1px solid #F87171", padding: "2px 10px", borderRadius: "12px", fontWeight: 700 }}>{code === "kn" ? "ದೋಷ ಶಾಂತಿ" : "Vedic Remedy"}</span>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginBottom: "8px" }}>
+                {page4Data?.doshas.map((d, idx) => (
+                  <div key={idx} style={{ fontSize: "12px", color: "#7F1D1D", fontWeight: 600 }}>
+                    • {d}
+                  </div>
+                ))}
+              </div>
+              <div style={{ fontSize: "12px", color: "#991B1B", fontWeight: 700, background: "#FFFFFF", border: "1px solid #FCA5A5", padding: "6px 10px", borderRadius: "6px" }}>
+                🕉️ {code === "kn" ? "ಸಿದ್ಧ ಪರಿಹಾರ:" : "Remedy:"} {page4Data?.remedy}
+              </div>
+            </div>
+          </div>
+
+          {/* Footer Banner */}
+          <div style={{
+            background: "linear-gradient(180deg, #78350F 0%, #451A03 100%)",
+            border: "1.5px solid #D97706",
+            borderRadius: "8px",
+            padding: "8px 12px",
+            textAlign: "center",
+            boxShadow: "0 2px 6px rgba(120, 53, 15, 0.2)",
+            marginTop: "auto"
+          }}>
+            <div style={{ fontSize: "11.5px", fontWeight: 700, color: "#FEF3C7", lineHeight: "1.35" }}>
+              "ॐ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ಧರ್ಮಜ್ಞ ಸಿದ್ಧ ಕುಂಡಲಿ ರಕ್ಷೆ · ಸಕಲ ದೋಷ ಶಮನಂ"
+            </div>
+            <div style={{ fontSize: "10.5px", color: "#FDE68A", fontWeight: 600, marginTop: "2px", lineHeight: "1.3" }}>
+              ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಪ್ರಧಾನ ಪಂಚಾಂಗ ಅರ್ಚಕರು · {priestStr} (ದೂರವಾಣಿ: +91 99723 39362)
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      {/* ─────────────────────────────────────────────────────────────
+          PAGE 5: ACTIVE DASHA-BHUKTI & GOCHARA TRANSIT SYNTHESIS
+         ───────────────────────────────────────────────────────────── */}
+      <div className="pdf-page" style={pageStyle}>
+        <div style={frameStyle}>
+          {/* Header Box */}
+          <div style={{
+            textAlign: "center",
+            background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
+            border: "2px solid #D97706",
+            borderRadius: "8px",
+            padding: "6px 12px",
+            boxShadow: "0 2px 5px rgba(180, 83, 9, 0.05)"
+          }}>
+            <div style={{ fontSize: "17.5px", fontWeight: 800, color: "#78350F", lineHeight: "1.2", marginBottom: "6px", transform: "translateY(-2px)" }}>
+              {code === "kn" ? "ಅಧ್ಯಾಯ ೪: ವರ್ತಮಾನ ದಶಾ-ಭುಕ್ತಿ ಫಲಗಳು ಹಾಗೂ ಗೋಚಾರ ವಿಶ್ಲೇಷಣೆ" : "Chapter 4: Active Dasha-Bhukti & Planetary Transits"}
+            </div>
+            <div style={{ fontSize: "11.5px", color: "#B45309", fontWeight: 600, marginTop: "3px" }}>
+              📜 {code === "kn" ? "ನಿಮ್ಮ ವರ್ತಮಾನ ದಶಾ-ಅಂತರ್ದಶಾ ಅವಧಿಯ ನಿಖರ ಫಲಗಳು ಹಾಗೂ ಪ್ರಸ್ತುತ ಗೋಚಾರ ಗ್ರಹ ಸಂಚಾರ" : "In-depth synthesis of current planetary chapters and live Gochara transits."}
+            </div>
+          </div>
+
+          {/* 3 Main Cards */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            {/* Card 1: Mahadasha */}
+            <div style={{ background: "#FFFFFF", border: "1.5px solid #FCD34D", borderRadius: "8px", padding: "12px 16px", boxShadow: "0 2px 5px rgba(0,0,0,0.03)" }}>
+              <div style={{ fontSize: "13.5px", fontWeight: 800, color: "#78350F", marginBottom: "6px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>{page5Data?.card1Title}</span>
+                <span style={{ fontSize: "11px", color: "#92400E", background: "#FEF3C7", border: "1px solid #F59E0B", padding: "2px 10px", borderRadius: "12px", fontWeight: 700 }}>{code === "kn" ? "ಮಹಾ ಅಧ್ಯಾಯ" : "Major Chapter"}</span>
+              </div>
+              <div style={{ fontSize: "12px", lineHeight: "1.65", color: "#3F2A12", textAlign: "justify" }}>
+                {page5Data?.card1Text}
+              </div>
+            </div>
+
+            {/* Card 2: Antardasha */}
+            <div style={{ background: "#FFFFFF", border: "1.5px solid #FCD34D", borderRadius: "8px", padding: "12px 16px", boxShadow: "0 2px 5px rgba(0,0,0,0.03)" }}>
+              <div style={{ fontSize: "13.5px", fontWeight: 800, color: "#78350F", marginBottom: "6px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>{page5Data?.card2Title}</span>
+                <span style={{ fontSize: "11px", color: "#92400E", background: "#FEF3C7", border: "1px solid #F59E0B", padding: "2px 10px", borderRadius: "12px", fontWeight: 700 }}>{code === "kn" ? "ಅಂತರ್ದಶಾ ಅವಧಿ" : "Sub Period"}</span>
+              </div>
+              <div style={{ fontSize: "12px", lineHeight: "1.65", color: "#3F2A12", textAlign: "justify" }}>
+                {page5Data?.card2Text}
+              </div>
+            </div>
+
+            {/* Card 3: Live Gochara Transits & Present Position */}
+            <div style={{ background: "#FFFBEB", border: "1.5px solid #D97706", borderRadius: "8px", padding: "12px 16px", boxShadow: "0 2px 5px rgba(0,0,0,0.03)" }}>
+              <div style={{ fontSize: "13.5px", fontWeight: 800, color: "#78350F", marginBottom: "8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>{page5Data?.card3Title}</span>
+                <span style={{ fontSize: "11px", color: "#92400E", background: "#FEF3C7", border: "1px solid #F59E0B", padding: "2px 10px", borderRadius: "12px", fontWeight: 700, display: "inline-flex", alignItems: "center" }}><span style={{ transform: "translateY(-3px)", display: "inline-block" }}>{code === "kn" ? "ವರ್ತಮಾನ ಗೋಚಾರ" : "Live Transits"}</span></span>
+              </div>
+              <div style={{ fontSize: "12px", lineHeight: "1.65", color: "#3F2A12", textAlign: "justify" }}>
+                {page5Data?.gocharaText1}
+              </div>
+              <div style={{ fontSize: "12px", lineHeight: "1.65", color: "#3F2A12", textAlign: "justify", marginTop: "8px", borderTop: "1px solid #FDE68A", paddingTop: "8px" }}>
+                {page5Data?.gocharaText2}
+              </div>
+            </div>
+          </div>
+
+          {/* Footer Banner */}
+          <div style={{
+            background: "linear-gradient(180deg, #78350F 0%, #451A03 100%)",
+            border: "1.5px solid #D97706",
+            borderRadius: "8px",
+            padding: "8px 12px",
+            textAlign: "center",
+            boxShadow: "0 2px 6px rgba(120, 53, 15, 0.2)",
+            marginTop: "auto"
+          }}>
+            <div style={{ fontSize: "11.5px", fontWeight: 700, color: "#FEF3C7", lineHeight: "1.35" }}>
+              "ॐ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ಧರ್ಮಜ್ಞ ಸಿದ್ಧ ಕುಂಡಲಿ ರಕ್ಷೆ · ಸಕಲ ದೋಷ ಶಮನಂ"
+            </div>
+            <div style={{ fontSize: "10.5px", color: "#FDE68A", fontWeight: 600, marginTop: "2px", lineHeight: "1.3" }}>
+              ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಪ್ರಧಾನ ಪಂಚಾಂಗ ಅರ್ಚಕರು · {priestStr} (ದೂರವಾಣಿ: +91 99723 39362)
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      {/* ─────────────────────────────────────────────────────────────
+          PAGE 6: 100% NEXT 8 MONTHS (240 DAYS) ROADMAP (2 COLUMNS x 4 ROWS)
+         ───────────────────────────────────────────────────────────── */}
+      <div className="pdf-page" style={pageStyle}>
+        <div style={{ ...frameStyle, gap: "7px", padding: "16px" }}>
+          {/* Header Box */}
+          <div style={{
+            textAlign: "center",
+            background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
+            border: "2px solid #D97706",
+            borderRadius: "8px",
+            padding: "6px 12px",
+            boxShadow: "0 2px 5px rgba(180, 83, 9, 0.05)"
+          }}>
+            <div style={{ fontSize: "17px", fontWeight: 800, color: "#78350F", lineHeight: "1.2" }}>
+              {code === "kn" ? "ಅಧ್ಯಾಯ ೫: ಮುಂಬರುವ ೮ ತಿಂಗಳುಗಳ (೨೪೦ ದಿನಗಳು) ಸಮಗ್ರ ಜ್ಯೋತಿಷ್ಯ ಕಾರ್ಯಾಚರಣೆ ರೋಡ್‌ಮ್ಯಾಪ್" : "Chapter 5: Upcoming 8 Months (240 Days) Planetary Roadmap"}
+            </div>
+            <div style={{ fontSize: "11px", color: "#B45309", fontWeight: 600, marginTop: "2px" }}>
+              📜 {code === "kn" ? "ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿ, ಪ್ರಸ್ತುತ ಗೋಚಾರ ಗ್ರಹ ಬಲ ಹಾಗೂ ದಶಾ-ಅಂತರ್ದಶಾ ಆಧಾರಿತ ಮುಂಬರುವ ೮ ತಿಂಗಳ ನಿಖರ ಜ್ಯೋತಿಷ್ಯ ಮಾರ್ಗದರ್ಶನ" : "Dynamic month-by-month planetary guidance tailored to your chart."}
+            </div>
+          </div>
+
+          {/* Special Sandhi / Transition Alert Banner */}
+          <div style={{
+            background: "#FEF2F2",
+            border: "1.5px solid #EF4444",
+            borderRadius: "7px",
+            padding: "5px 12px",
+            boxShadow: "0 2px 4px rgba(239, 68, 68, 0.05)",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px"
+          }}>
+            <span style={{ fontSize: "14px" }}>⚠️</span>
+            <div style={{ fontSize: "11px", color: "#991B1B", fontWeight: 700, lineHeight: "1.3" }}>
+              {code === "kn" ? "ವಿಶೇಷ ಸೂಚನೆ: ಮುಂಬರುವ ತಿಂಗಳುಗಳಲ್ಲಿ ಗ್ರಹ ಸಂಚಾರ ಬದಲಾವಣೆ ಹಾಗೂ ದಶಾ ಸಂಧಿ ಕಾಲದಲ್ಲಿ ತಾಳ್ಮೆ ಮತ್ತು ನಿರಂತರ ಪೂಜಾ ಆರಾಧನೆ ಕಾಯ್ದುಕೊಳ್ಳಿ." : "Notice: Maintain patience and perform regular prayers during planetary transit shifts."}
+            </div>
+          </div>
+
+          {/* 8-Month Detailed Grid (2 Columns x 4 Rows) */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+            {/* Month 1 (White Box #FFFFFF) */}
+            <div style={{ background: "#FFFFFF", border: "1.5px solid #FCD34D", borderRadius: "7px", padding: "8px 10px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>🗓️ {page6Data[0]?.mTitle || "೧ ನೇ ತಿಂಗಳು"}</span>
+                <span style={{ fontSize: "11px", background: "#FEF3C7", border: "1px solid #F59E0B", color: "#92400E", padding: "3px 10px", borderRadius: "12px", fontWeight: 700, display: "inline-flex", alignItems: "center", height: "22px", boxSizing: "border-box" }}>
+                  <span style={{ transform: "translateY(-4px)", display: "inline-block" }}>{page6Data[0]?.badge || "ವೃತ್ತಿ ವೃದ್ಧಿ"}</span>
+                </span>
+              </div>
+              <div style={{ fontSize: "11.5px", lineHeight: "1.4", color: "#3F2A12" }}>
+                <div style={{ marginBottom: "2px" }}>1. <strong style={{ color: "#065F46" }}>{code === "kn" ? "ಫಲಾಫಲ:" : "Vibe:"}</strong> {page6Data[0]?.f1}</div>
+                <div style={{ marginBottom: "2px" }}>2. <strong style={{ color: "#92400E" }}>{code === "kn" ? "ಆರ್ಥಿಕ:" : "Finance:"}</strong> {page6Data[0]?.f2}</div>
+                <div style={{ marginBottom: "2px" }}>3. <strong style={{ color: "#D97706" }}>{code === "kn" ? "ಸವಾಲು:" : "Caution:"}</strong> {page6Data[0]?.f3}</div>
+                <div>4. <strong style={{ color: "#991B1B" }}>{code === "kn" ? "ಮಾರ್ಗದರ್ಶನ:" : "Remedy:"}</strong> {page6Data[0]?.f4}</div>
+              </div>
+            </div>
+
+            {/* Month 2 (Green Box #ECFDF5) */}
+            <div style={{ background: "#ECFDF5", border: "1.5px solid #10B981", borderRadius: "7px", padding: "8px 10px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#065F46", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>🗓️ {page6Data[1]?.mTitle || "೨ ನೇ ತಿಂಗಳು"}</span>
+                <span style={{ fontSize: "11px", background: "#D1FAE5", border: "1px solid #10B981", color: "#065F46", padding: "3px 10px", borderRadius: "12px", fontWeight: 700, display: "inline-flex", alignItems: "center", height: "22px", boxSizing: "border-box" }}>
+                  <span style={{ transform: "translateY(-4px)", display: "inline-block" }}>{page6Data[1]?.badge || "ಧನ ಸಮೃದ್ಧಿ"}</span>
+                </span>
+              </div>
+              <div style={{ fontSize: "11.5px", lineHeight: "1.4", color: "#064E3B" }}>
+                <div style={{ marginBottom: "2px" }}>1. <strong style={{ color: "#047857" }}>{code === "kn" ? "ಫಲಾಫಲ:" : "Vibe:"}</strong> {page6Data[1]?.f1}</div>
+                <div style={{ marginBottom: "2px" }}>2. <strong style={{ color: "#065F46" }}>{code === "kn" ? "ಆರ್ಥಿಕ:" : "Finance:"}</strong> {page6Data[1]?.f2}</div>
+                <div style={{ marginBottom: "2px" }}>3. <strong style={{ color: "#D97706" }}>{code === "kn" ? "ಸವಾಲು:" : "Caution:"}</strong> {page6Data[1]?.f3}</div>
+                <div>4. <strong style={{ color: "#991B1B" }}>{code === "kn" ? "ಮಾರ್ಗದರ್ಶನ:" : "Remedy:"}</strong> {page6Data[1]?.f4}</div>
+              </div>
+            </div>
+
+            {/* Month 3 (Purple Box #F5F3FF) */}
+            <div style={{ background: "#F5F3FF", border: "1.5px solid #8B5CF6", borderRadius: "7px", padding: "8px 10px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#5B21B6", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>🗓️ {page6Data[2]?.mTitle || "೩ ನೇ ತಿಂಗಳು"}</span>
+                <span style={{ fontSize: "11px", background: "#EDE9FE", border: "1px solid #8B5CF6", color: "#5B21B6", padding: "3px 10px", borderRadius: "12px", fontWeight: 700, display: "inline-flex", alignItems: "center", height: "22px", boxSizing: "border-box" }}>
+                  <span style={{ transform: "translateY(-4px)", display: "inline-block" }}>{page6Data[2]?.badge || "ಕುಟುಂಬ ಸೌಖ್ಯ"}</span>
+                </span>
+              </div>
+              <div style={{ fontSize: "11.5px", lineHeight: "1.4", color: "#4C1D95" }}>
+                <div style={{ marginBottom: "2px" }}>1. <strong style={{ color: "#5B21B6" }}>{code === "kn" ? "ಫಲಾಫಲ:" : "Vibe:"}</strong> {page6Data[2]?.f1}</div>
+                <div style={{ marginBottom: "2px" }}>2. <strong style={{ color: "#6D28D9" }}>{code === "kn" ? "ಸಂಬಂಧ:" : "Relations:"}</strong> {page6Data[2]?.f2}</div>
+                <div style={{ marginBottom: "2px" }}>3. <strong style={{ color: "#D97706" }}>{code === "kn" ? "ಸವಾಲು:" : "Caution:"}</strong> {page6Data[2]?.f3}</div>
+                <div>4. <strong style={{ color: "#991B1B" }}>{code === "kn" ? "ಮಾರ್ಗದರ್ಶನ:" : "Remedy:"}</strong> {page6Data[2]?.f4}</div>
+              </div>
+            </div>
+
+            {/* Month 4 (White Box #FFFFFF) */}
+            <div style={{ background: "#FFFFFF", border: "1.5px solid #FCD34D", borderRadius: "7px", padding: "8px 10px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>🗓️ {page6Data[3]?.mTitle || "೪ ನೇ ತಿಂಗಳು"}</span>
+                <span style={{ fontSize: "11px", background: "#FEF3C7", border: "1px solid #F59E0B", color: "#92400E", padding: "3px 10px", borderRadius: "12px", fontWeight: 700, display: "inline-flex", alignItems: "center", height: "22px", boxSizing: "border-box" }}>
+                  <span style={{ transform: "translateY(-4px)", display: "inline-block" }}>{page6Data[3]?.badge || "ಬೌದ್ಧಿಕ ಸಿದ್ಧಿ"}</span>
+                </span>
+              </div>
+              <div style={{ fontSize: "11.5px", lineHeight: "1.4", color: "#3F2A12" }}>
+                <div style={{ marginBottom: "2px" }}>1. <strong style={{ color: "#065F46" }}>{code === "kn" ? "ಫಲಾಫಲ:" : "Vibe:"}</strong> {page6Data[3]?.f1}</div>
+                <div style={{ marginBottom: "2px" }}>2. <strong style={{ color: "#92400E" }}>{code === "kn" ? "ಸಾಧನೆ:" : "Focus:"}</strong> {page6Data[3]?.f2}</div>
+                <div style={{ marginBottom: "2px" }}>3. <strong style={{ color: "#D97706" }}>{code === "kn" ? "ಸವಾಲು:" : "Caution:"}</strong> {page6Data[3]?.f3}</div>
+                <div>4. <strong style={{ color: "#991B1B" }}>{code === "kn" ? "ಮಾರ್ಗದರ್ಶನ:" : "Remedy:"}</strong> {page6Data[3]?.f4}</div>
+              </div>
+            </div>
+
+            {/* Month 5 (Amber Box #FFFBEB) */}
+            <div style={{ background: "#FFFBEB", border: "1.5px solid #F59E0B", borderRadius: "7px", padding: "8px 10px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>🗓️ {page6Data[4]?.mTitle || "೫ ನೇ ತಿಂಗಳು"}</span>
+                <span style={{ fontSize: "11px", background: "#FEF3C7", border: "1px solid #F59E0B", color: "#92400E", padding: "3px 10px", borderRadius: "12px", fontWeight: 700, display: "inline-flex", alignItems: "center", height: "22px", boxSizing: "border-box" }}>
+                  <span style={{ transform: "translateY(-4px)", display: "inline-block" }}>{page6Data[4]?.badge || "ಭಾಗ್ಯ ವೃದ್ಧಿ"}</span>
+                </span>
+              </div>
+              <div style={{ fontSize: "11.5px", lineHeight: "1.4", color: "#3F2A12" }}>
+                <div style={{ marginBottom: "2px" }}>1. <strong style={{ color: "#78350F" }}>{code === "kn" ? "ಫಲಾಫಲ:" : "Vibe:"}</strong> {page6Data[4]?.f1}</div>
+                <div style={{ marginBottom: "2px" }}>2. <strong style={{ color: "#92400E" }}>{code === "kn" ? "ಸಾಧನೆ:" : "Focus:"}</strong> {page6Data[4]?.f2}</div>
+                <div style={{ marginBottom: "2px" }}>3. <strong style={{ color: "#D97706" }}>{code === "kn" ? "ಸವಾಲು:" : "Caution:"}</strong> {page6Data[4]?.f3}</div>
+                <div>4. <strong style={{ color: "#991B1B" }}>{code === "kn" ? "ಮಾರ್ಗದರ್ಶನ:" : "Remedy:"}</strong> {page6Data[4]?.f4}</div>
+              </div>
+            </div>
+
+            {/* Month 6 (Green Box #ECFDF5) */}
+            <div style={{ background: "#ECFDF5", border: "1.5px solid #10B981", borderRadius: "7px", padding: "8px 10px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#065F46", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>🗓️ {page6Data[5]?.mTitle || "೬ ನೇ ತಿಂಗಳು"}</span>
+                <span style={{ fontSize: "11px", background: "#D1FAE5", border: "1px solid #10B981", color: "#065F46", padding: "3px 10px", borderRadius: "12px", fontWeight: 700, display: "inline-flex", alignItems: "center", height: "22px", boxSizing: "border-box" }}>
+                  <span style={{ transform: "translateY(-4px)", display: "inline-block" }}>{page6Data[5]?.badge || "ಆರೋಗ್ಯ ಚೇತರಿಕೆ"}</span>
+                </span>
+              </div>
+              <div style={{ fontSize: "11.5px", lineHeight: "1.4", color: "#064E3B" }}>
+                <div style={{ marginBottom: "2px" }}>1. <strong style={{ color: "#047857" }}>{code === "kn" ? "ಫಲಾಫಲ:" : "Vibe:"}</strong> {page6Data[5]?.f1}</div>
+                <div style={{ marginBottom: "2px" }}>2. <strong style={{ color: "#065F46" }}>{code === "kn" ? "ಆರೋಗ್ಯ:" : "Health:"}</strong> {page6Data[5]?.f2}</div>
+                <div style={{ marginBottom: "2px" }}>3. <strong style={{ color: "#D97706" }}>{code === "kn" ? "ಸವಾಲು:" : "Caution:"}</strong> {page6Data[5]?.f3}</div>
+                <div>4. <strong style={{ color: "#991B1B" }}>{code === "kn" ? "ಮಾರ್ಗದರ್ಶನ:" : "Remedy:"}</strong> {page6Data[5]?.f4}</div>
+              </div>
+            </div>
+
+            {/* Month 7 (Blue Box #EFF6FF) */}
+            <div style={{ background: "#EFF6FF", border: "1.5px solid #3B82F6", borderRadius: "7px", padding: "8px 10px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#1E40AF", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>🗓️ {page6Data[6]?.mTitle || "೭ ನೇ ತಿಂಗಳು"}</span>
+                <span style={{ fontSize: "11px", background: "#DBEAFE", border: "1px solid #3B82F6", color: "#1E40AF", padding: "3px 10px", borderRadius: "12px", fontWeight: 700, display: "inline-flex", alignItems: "center", height: "22px", boxSizing: "border-box" }}>
+                  <span style={{ transform: "translateY(-4px)", display: "inline-block" }}>{page6Data[6]?.badge || "ವಿದ್ಯಾ & ಬೌದ್ಧಿಕ"}</span>
+                </span>
+              </div>
+              <div style={{ fontSize: "11.5px", lineHeight: "1.4", color: "#1E3A8A" }}>
+                <div style={{ marginBottom: "2px" }}>1. <strong style={{ color: "#1E40AF" }}>{code === "kn" ? "ಫಲಾಫಲ:" : "Vibe:"}</strong> {page6Data[6]?.f1}</div>
+                <div style={{ marginBottom: "2px" }}>2. <strong style={{ color: "#1D4ED8" }}>{code === "kn" ? "ಸಾಧನೆ:" : "Focus:"}</strong> {page6Data[6]?.f2}</div>
+                <div style={{ marginBottom: "2px" }}>3. <strong style={{ color: "#D97706" }}>{code === "kn" ? "ಸವಾಲು:" : "Caution:"}</strong> {page6Data[6]?.f3}</div>
+                <div>4. <strong style={{ color: "#991B1B" }}>{code === "kn" ? "ಮಾರ್ಗದರ್ಶನ:" : "Remedy:"}</strong> {page6Data[6]?.f4}</div>
+              </div>
+            </div>
+
+            {/* Month 8 (Amber Box #FFFBEB) */}
+            <div style={{ background: "#FFFBEB", border: "1.5px solid #F59E0B", borderRadius: "7px", padding: "8px 10px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#78350F", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>🗓️ {page6Data[7]?.mTitle || "೮ ನೇ ತಿಂಗಳು"}</span>
+                <span style={{ fontSize: "11px", background: "#FEF3C7", border: "1px solid #F59E0B", color: "#92400E", padding: "3px 10px", borderRadius: "12px", fontWeight: 700, display: "inline-flex", alignItems: "center", height: "22px", boxSizing: "border-box" }}>
+                  <span style={{ transform: "translateY(-4px)", display: "inline-block" }}>{page6Data[7]?.badge || "ಶತ್ರು ಜಯ & ರಕ್ಷಣೆ"}</span>
+                </span>
+              </div>
+              <div style={{ fontSize: "11.5px", lineHeight: "1.4", color: "#3F2A12" }}>
+                <div style={{ marginBottom: "2px" }}>1. <strong style={{ color: "#047857" }}>{code === "kn" ? "ಫಲಾಫಲ:" : "Vibe:"}</strong> {page6Data[7]?.f1}</div>
+                <div style={{ marginBottom: "2px" }}>2. <strong style={{ color: "#92400E" }}>{code === "kn" ? "ಆರ್ಥಿಕ:" : "Finance:"}</strong> {page6Data[7]?.f2}</div>
+                <div style={{ marginBottom: "2px" }}>3. <strong style={{ color: "#D97706" }}>{code === "kn" ? "ಸವಾಲು:" : "Caution:"}</strong> {page6Data[7]?.f3}</div>
+                <div>4. <strong style={{ color: "#991B1B" }}>{code === "kn" ? "ಮಾರ್ಗದರ್ಶನ:" : "Remedy:"}</strong> {page6Data[7]?.f4}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer Banner */}
+          <div style={{
+            background: "linear-gradient(180deg, #78350F 0%, #451A03 100%)",
+            border: "1.5px solid #D97706",
+            borderRadius: "7px",
+            padding: "6px 12px",
+            textAlign: "center",
+            boxShadow: "0 2px 6px rgba(120, 53, 15, 0.2)",
+            marginTop: "auto"
+          }}>
+            <div style={{ fontSize: "11px", fontWeight: 700, color: "#FEF3C7", lineHeight: "1.3" }}>
+              "ॐ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ಧರ್ಮಜ್ಞ ಸಿದ್ಧ ಕುಂಡಲಿ ರಕ್ಷೆ · ಸಕಲ ದೋಷ ಶಮನಂ"
+            </div>
+            <div style={{ fontSize: "10px", color: "#FDE68A", fontWeight: 600, marginTop: "2px", lineHeight: "1.25" }}>
+              ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಪ್ರಧಾನ ಪಂಚಾಂಗ ಅರ್ಚಕರು · {priestStr} (ದೂರವಾಣಿ: +91 99723 39362)
+            </div>
+          </div>
+        </div>
+      </div>

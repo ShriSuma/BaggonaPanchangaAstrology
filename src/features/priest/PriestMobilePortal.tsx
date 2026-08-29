@@ -19,7 +19,7 @@ import { SpeechRecognitionSession } from "../../utils/speechRecognitionHelper";
 import SouthIndianChart from "../../components/kundli/SouthIndianChart";
 import { saveKundliToFirestore, updateUserPassword } from "../../db/firestoreDb";
 import { hashPassword } from "../auth/authStore";
-import { notifyPasswordResetCompleted } from "../notifications/notificationService";
+import { notifyPasswordResetCompleted, notifySystemFailureAlert } from "../notifications/notificationService";
 
 type PriestTab = "kundli" | "questions" | "wallet";
 
@@ -37,6 +37,7 @@ export const PriestMobilePortal: React.FC = () => {
   } = useWalletStore();
 
   const { currentUser } = useAuthStore();
+  const [urlPriestName, setUrlPriestName] = useState<string>("");
 
   // Active Tab
   const [activeTab, setActiveTab] = useState<PriestTab>("kundli");
@@ -84,17 +85,36 @@ export const PriestMobilePortal: React.FC = () => {
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
-    if (currentUser) {
-      void initWallet(currentUser, DEFAULT_PRIEST_NAME);
-    }
+    let resolvedUser = currentUser || "priest_shreeram";
+    let resolvedName = DEFAULT_PRIEST_NAME;
 
-    // Check URL parameters for priest login / reset password
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
+      const userParam = params.get("user");
+      const nameParam = params.get("name");
+
+      if (nameParam) {
+        resolvedName = decodeURIComponent(nameParam);
+        setUrlPriestName(resolvedName);
+        localStorage.setItem("baggona_priest_name", resolvedName);
+      } else if (localStorage.getItem("baggona_priest_name")) {
+        resolvedName = localStorage.getItem("baggona_priest_name")!;
+        setUrlPriestName(resolvedName);
+      }
+
+      if (userParam) {
+        resolvedUser = userParam;
+        localStorage.setItem("baggona_priest_id", userParam);
+      } else if (localStorage.getItem("baggona_priest_id")) {
+        resolvedUser = localStorage.getItem("baggona_priest_id")!;
+      }
+
       if (params.get("reset") === "true" || params.get("firstTime") === "true") {
         setShowPasswordSetup(true);
       }
     }
+
+    void initWallet(resolvedUser, resolvedName);
 
     // 5-Second Welcome Toast Timer
     const timer = setTimeout(() => {
@@ -104,6 +124,7 @@ export const PriestMobilePortal: React.FC = () => {
     return () => clearTimeout(timer);
   }, [currentUser, initWallet]);
 
+  const activePriestDisplayName = urlPriestName || wallet?.priestName || (typeof window !== "undefined" ? localStorage.getItem("baggona_priest_name") : null) || "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್";
   const coinBalance = wallet?.coinBalance ?? 700;
 
   // Handle Voice Input with auto-clear of target field
@@ -213,10 +234,17 @@ export const PriestMobilePortal: React.FC = () => {
         kundliData: output,
         createdAt: new Date().toISOString()
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error("[PriestMobilePortal] Kundli calc error:", err);
       // Auto-Refund Guard
       await refundCoins(cost, "ಕುಂಡಲಿ ಲೆಕ್ಕಾಚಾರ ದೋಷ");
+      void notifySystemFailureAlert({
+        username: wallet?.userId || currentUser || "priest",
+        priestName: activePriestDisplayName,
+        action: "ಜನನ ಕುಂಡಲಿ ರಚನೆ (Janana Kundli Calculation)",
+        attemptedCoins: 200,
+        errorMessage: err?.message || "Kundli calculation runtime failure"
+      });
       setFeedback({
         type: "error",
         text: "ಕುಂಡಲಿ ಲೆಕ್ಕಾಚಾರದಲ್ಲಿ ದೋಷ ಉಂಟಾಗಿದೆ. ಕಡಿತಗೊಂಡ ೨೦೦ ನಾಣ್ಯಗಳನ್ನು ತಕ್ಷಣವೇ ನಿಮ್ಮ ವಾಲೆಟ್‌ಗೆ ಮರುಪಾವತಿಸಲಾಗಿದೆ."
@@ -300,10 +328,17 @@ export const PriestMobilePortal: React.FC = () => {
         type: "success",
         text: "ಶಾಸ್ತ್ರೀಯ ಸಮಾಲೋಚನಾ ವರದಿ ಯಶಸ್ವಿಯಾಗಿ ರಚಿಸಲ್ಪಟ್ಟಿದೆ. (೫೦೦ ನಾಣ್ಯಗಳು ಕಡಿತಗೊಂಡಿವೆ)"
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error("[PriestMobilePortal] Consultation error:", err);
       // Auto-Refund Guard
       await refundCoins(cost, "ಪ್ರಶ್ನೆ ವಿಶ್ಲೇಷಣೆ ದೋಷ");
+      void notifySystemFailureAlert({
+        username: wallet?.userId || currentUser || "priest",
+        priestName: activePriestDisplayName,
+        action: `ಜ್ಯೋತಿಷ್ಯ ಪ್ರಶ್ನೆ ಸಮಾಲೋಚನೆ (${selectedCategoryKey})`,
+        attemptedCoins: 500,
+        errorMessage: err?.message || "Consultation engine runtime failure"
+      });
       setFeedback({
         type: "error",
         text: "ಪ್ರಶ್ನೆ ವಿಶ್ಲೇಷಣೆಯಲ್ಲಿ ತಾಂತ್ರಿಕ ದೋಷ ಉಂಟಾಗಿದೆ. ಕಡಿತಗೊಂಡ ೫೦೦ ನಾಣ್ಯಗಳನ್ನು ತಕ್ಷಣವೇ ನಿಮ್ಮ ವಾಲೆಟ್‌ಗೆ ಮರುಪಾವತಿಸಲಾಗಿದೆ."
@@ -368,7 +403,7 @@ export const PriestMobilePortal: React.FC = () => {
           <div className="flex items-center gap-2">
             <span className="text-lg animate-bounce">🪔</span>
             <p className="text-xs font-black tracking-wide">
-              ನಮಸ್ಕಾರ, ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಕರ್ತರಿಂದ ನಿಮಗೆ ಸ್ವಾಗತ
+              ನಮಸ್ಕಾರ {activePriestDisplayName} ಅವರೇ, ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಕರ್ತರಿಂದ ನಿಮಗೆ ಸ್ವಾಗತ
             </p>
           </div>
           <button
@@ -400,7 +435,7 @@ export const PriestMobilePortal: React.FC = () => {
                 </span>
               </div>
               <p className="text-[10px] text-amber-700 font-bold uppercase tracking-wider">
-                ಶ್ರೀ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ • ಪುರೋಹಿತ ಕೇಂದ್ರ
+                🙏 ನಮಸ್ಕಾರ {activePriestDisplayName} ಅವರೇ • ಪುರೋಹಿತ ಕೇಂದ್ರ
               </p>
             </div>
           </div>

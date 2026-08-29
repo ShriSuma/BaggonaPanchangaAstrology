@@ -122,30 +122,32 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         createdAt: new Date().toISOString()
       });
 
-      // 2. Seed Super Admin Master Account
-      const superAdminUsername = "superadmin";
+      // 2. Seed Super Admin Master Account ($hriSuma)
+      const superAdminUsernames = ["$hriSuma", "superadmin"];
       const superAdminPasswordRaw = "admin@baggona2026";
-      const existingSuperAdmin = await db.users.where("username").equals(superAdminUsername).first();
+      const hashedSuperAdminPassword = await hashPassword(superAdminPasswordRaw);
 
-      if (!existingSuperAdmin) {
-        const hashedSuperAdminPassword = await hashPassword(superAdminPasswordRaw);
-        await db.users.add({
-          id: "superadmin_master",
-          username: superAdminUsername,
-          passwordHash: hashedSuperAdminPassword,
+      for (const saUser of superAdminUsernames) {
+        const existing = await db.users.where("username").equals(saUser).first();
+        if (!existing) {
+          await db.users.add({
+            id: saUser === "$hriSuma" ? "superadmin_shrisuma" : "superadmin_master",
+            username: saUser,
+            passwordHash: hashedSuperAdminPassword,
+            createdAt: new Date().toISOString()
+          });
+        }
+
+        void syncUserProfile({
+          id: saUser === "$hriSuma" ? "superadmin_shrisuma" : "superadmin_master",
+          username: saUser,
+          name: "ShriSuma (Super Administrator)",
+          role: "superadmin",
+          phone: "9108135387",
+          email: HARDCODED_MFA_EMAIL,
           createdAt: new Date().toISOString()
         });
       }
-
-      void syncUserProfile({
-        id: "superadmin_master",
-        username: superAdminUsername,
-        name: "Super Administrator",
-        role: "superadmin",
-        phone: "9972339362",
-        email: HARDCODED_MFA_EMAIL,
-        createdAt: new Date().toISOString()
-      });
     } catch (err) {
       console.error("Error seeding default auth users:", err);
     }
@@ -178,7 +180,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           const user = await db.users.where("username").equals(sessionData.username).first();
           if (user) {
             const userRole: UserRole =
-              user.username === "superadmin"
+              user.username === "$hriSuma" || user.username === "superadmin"
                 ? "superadmin"
                 : (sessionData.role as UserRole) || "priest";
 
@@ -227,7 +229,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       // Determine role
       let userRole: UserRole = "priest";
-      if (cleanUsername === "superadmin") {
+      if (cleanUsername === "$hriSuma" || cleanUsername === "superadmin") {
         userRole = "superadmin";
       } else if (cleanUsername.toLowerCase().includes("admin")) {
         userRole = "admin";

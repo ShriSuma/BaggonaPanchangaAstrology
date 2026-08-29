@@ -505,14 +505,69 @@ export async function savePanchangToFirestore(record: PanchangHistoryDoc): Promi
 }
 
 /**
- * Save Kundli record to cloud Firestore
+ * Save Kundli record to cloud Firestore with automatic deduplication
  */
 export async function saveKundliToFirestore(record: KundliHistoryDoc): Promise<void> {
   try {
+    const cleanName = (record.name || "").trim().toLowerCase();
+    const cleanDate = (record.birthDate || "").trim();
+    const cleanTime = (record.birthTime || "").trim();
+
+    // Deduplication check: see if a kundli with exact same name, birth date, and birth time exists
+    if (cleanName && cleanDate) {
+      const q = query(
+        collection(firestore, KUNDLIS_COL),
+        where("birthDate", "==", record.birthDate)
+      );
+      const snap = await getDocs(q);
+      const duplicate = snap.docs.find((d) => {
+        const data = d.data() as KundliHistoryDoc;
+        return (data.name || "").trim().toLowerCase() === cleanName &&
+               (data.birthTime || "").trim() === cleanTime;
+      });
+
+      if (duplicate) {
+        // Update the existing record instead of creating a duplicate
+        const targetRef = doc(firestore, KUNDLIS_COL, duplicate.id);
+        await setDoc(targetRef, sanitizeFirestoreData({ ...record, id: duplicate.id, updatedAt: new Date().toISOString() }), { merge: true });
+        return;
+      }
+    }
+
     const kundliRef = doc(firestore, KUNDLIS_COL, record.id);
     await setDoc(kundliRef, sanitizeFirestoreData(record), { merge: true });
   } catch (err) {
     console.warn("[Firestore] Save Kundli error:", err);
+  }
+}
+
+/**
+ * Super Admin: One-click Background Deduplicator for Kundli Database
+ */
+export async function cleanupDuplicateKundlis(): Promise<{ removedCount: number }> {
+  try {
+    const q = query(collection(firestore, KUNDLIS_COL), limit(300));
+    const snap = await getDocs(q);
+    const seen = new Map<string, string>(); // fingerprint -> docId
+    let removedCount = 0;
+
+    for (const docSnap of snap.docs) {
+      const data = docSnap.data() as KundliHistoryDoc;
+      const fingerprint = `${(data.name || "").trim().toLowerCase()}_${(data.birthDate || "").trim()}_${(data.birthTime || "").trim()}`;
+      
+      if (seen.has(fingerprint)) {
+        // Duplicate found! Delete redundant duplicate
+        await deleteDoc(docSnap.ref);
+        removedCount++;
+      } else {
+        seen.set(fingerprint, docSnap.id);
+      }
+    }
+
+    return { removedCount };
+  } catch (err) {
+    console.error("[Firestore] Deduplication error:", err);
+    return { removedCount: 0 };
   }
 }
 

@@ -10,7 +10,9 @@ import {
   subscribeSystemAuditLogs,
   updateUserPassword,
   deleteAshirvadaPass,
-  getOrCreatePriestWallet
+  getOrCreatePriestWallet,
+  syncUserProfile,
+  cleanupDuplicateKundlis
 } from "../../db/firestoreDb";
 import { db } from "../../db/indexedDb";
 import { hashPassword } from "../auth/authStore";
@@ -38,6 +40,7 @@ export const SuperAdminDashboard: React.FC = () => {
   // Filter/Search states
   const [kundliSearch, setKundliSearch] = useState("");
   const [auditSearch, setAuditSearch] = useState("");
+  const [isDeduplicating, setIsDeduplicating] = useState(false);
 
   // Modals & Actions
   const [selectedPriest, setSelectedPriest] = useState<PriestWalletDoc | null>(null);
@@ -54,11 +57,13 @@ export const SuperAdminDashboard: React.FC = () => {
   // New Priest Registration & Dedicated Link Generator State
   const [newPriestName, setNewPriestName] = useState("");
   const [newPriestUsername, setNewPriestUsername] = useState("");
+  const [newPriestPassword, setNewPriestPassword] = useState("baggona123");
   const [newPriestWelcomeCoins, setNewPriestWelcomeCoins] = useState("700");
   const [newPriestPortalType, setNewPriestPortalType] = useState<"both" | "panchanga" | "sankhyashastra">("both");
   const [createdPriestResult, setCreatedPriestResult] = useState<{
     name: string;
     username: string;
+    password: string;
     panchangaUrl: string;
     sankhyaUrl: string;
   } | null>(null);
@@ -192,6 +197,28 @@ export const SuperAdminDashboard: React.FC = () => {
     }
   };
 
+  const handleDeduplicateKundlis = async () => {
+    setIsDeduplicating(true);
+    try {
+      const { removedCount } = await cleanupDuplicateKundlis();
+      if (removedCount > 0) {
+        setFeedback({
+          type: "success",
+          text: `ಡ್ಯೂಪ್ಲಿಕೇಟ್ ಪರಿಶೀಲನೆ ಯಶಸ್ವಿ: ${removedCount} ನಕಲಿ ಜಾತಕ ದಾಖಲೆಗಳನ್ನು ಡೇಟಾಬೇಸ್‌ನಿಂದ ತೆರವುಗೊಳಿಸಲಾಗಿದೆ.`
+        });
+      } else {
+        setFeedback({
+          type: "success",
+          text: "ಡೇಟಾಬೇಸ್ ಪರಿಶೀಲನೆ ಪೂರ್ಣಗೊಂಡಿದೆ: ಯಾವುದೇ ನಕಲಿ ಜಾತಕಗಳು ಕಂಡುಬಂದಿಲ್ಲ (No duplicate Kundlis found)."
+        });
+      }
+    } catch {
+      setFeedback({ type: "error", text: "ಡ್ಯೂಪ್ಲಿಕೇಟ್ ತೆರವುಗೊಳಿಸುವಾಗ ದೋಷ ಸಂಭವಿಸಿದೆ." });
+    } finally {
+      setIsDeduplicating(false);
+    }
+  };
+
   const handleCreatePriestSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newPriestName.trim() || !newPriestUsername.trim()) {
@@ -200,16 +227,40 @@ export const SuperAdminDashboard: React.FC = () => {
     }
 
     const cleanUsername = newPriestUsername.trim().toLowerCase().replace(/\s+/g, "_");
+    const passwordToSet = newPriestPassword.trim() || "baggona123";
     const welcomeCoinsNum = parseInt(newPriestWelcomeCoins, 10) || 700;
 
     setIsCreatingPriest(true);
     setFeedback(null);
 
     try {
-      // 1. Init wallet in Firestore
+      // 1. Create Priest User Account with Hashed Password in IndexedDb
+      const hashedPassword = await hashPassword(passwordToSet);
+      const existingUser = await db.users.where("username").equals(cleanUsername).first();
+      if (!existingUser) {
+        await db.users.add({
+          id: cleanUsername,
+          username: cleanUsername,
+          passwordHash: hashedPassword,
+          createdAt: new Date().toISOString()
+        });
+      } else {
+        await db.users.update(existingUser.id, { passwordHash: hashedPassword });
+      }
+
+      // 2. Sync to Cloud Firestore Users Collection
+      void syncUserProfile({
+        id: cleanUsername,
+        username: cleanUsername,
+        name: newPriestName.trim(),
+        role: "priest",
+        createdAt: new Date().toISOString()
+      });
+
+      // 3. Init wallet in Firestore
       await getOrCreatePriestWallet(cleanUsername, newPriestName.trim());
 
-      // 2. Add free welcome bonus coins if specified
+      // 4. Add free welcome bonus coins if specified
       if (welcomeCoinsNum > 0) {
         await directCoinAdjustment(
           cleanUsername,
@@ -225,18 +276,20 @@ export const SuperAdminDashboard: React.FC = () => {
       setCreatedPriestResult({
         name: newPriestName.trim(),
         username: cleanUsername,
+        password: passwordToSet,
         panchangaUrl,
         sankhyaUrl
       });
 
       setFeedback({
         type: "success",
-        text: `ಪುರೋಹಿತರು (${newPriestName}) ಯಶಸ್ವಿಯಾಗಿ ನೋಂದಾಯಿಸಲ್ಪಟ್ಟಿದ್ದಾರೆ! ${welcomeCoinsNum} ಸ್ವಾಗತ ನಾಣ್ಯಗಳು ಜಮಾ ಆಗಿವೆ.`
+        text: `ಪುರೋಹಿತರು (${newPriestName}) ಯಶಸ್ವಿಯಾಗಿ ನೋಂದಾಯಿಸಲ್ಪಟ್ಟಿದ್ದಾರೆ! ಲಾಗಿನ್ ಪಾಸ್‌ವರ್ಡ್: ${passwordToSet} | ಸ್ವಾಗತ ನಾಣ್ಯಗಳು: ${welcomeCoinsNum}`
       });
 
       // Clear input fields
       setNewPriestName("");
       setNewPriestUsername("");
+      setNewPriestPassword("baggona123");
     } catch (err: any) {
       setFeedback({ type: "error", text: `ನೋಂದಣಿ ದೋಷ: ${err?.message || "Error"}` });
     } finally {
@@ -261,17 +314,20 @@ export const SuperAdminDashboard: React.FC = () => {
     try {
       const hashed = await hashPassword(adminNewPassword);
 
-      // 1. Update IndexedDb
-      const existingUser = await db.users.where("username").equals("superadmin").first();
-      if (existingUser) {
-        await db.users.update(existingUser.id, { passwordHash: hashed });
+      // 1. Update IndexedDb for both $hriSuma and superadmin
+      for (const saUser of ["$hriSuma", "superadmin"]) {
+        const existingUser = await db.users.where("username").equals(saUser).first();
+        if (existingUser) {
+          await db.users.update(existingUser.id, { passwordHash: hashed });
+        }
       }
 
       // 2. Update Firestore
-      await updateUserPassword("superadmin_master", hashed);
+      await updateUserPassword("$hriSuma", hashed);
+      await updateUserPassword("superadmin", hashed);
 
-      setAdminPasswordMsg({ type: "success", text: "ಆಡಳಿತಾಧಿಕಾರಿ ಪಾಸ್‌ವರ್ಡ್ ಯಶಸ್ವಿಯಾಗಿ ನವೀಕರಿಸಲಾಗಿದೆ (Admin password updated securely)." });
-      setFeedback({ type: "success", text: "Super Admin password updated successfully." });
+      setAdminPasswordMsg({ type: "success", text: "ಆಡಳಿತಾಧಿಕಾರಿ ($hriSuma) ಪಾಸ್‌ವರ್ಡ್ ಯಶಸ್ವಿಯಾಗಿ ನವೀಕರಿಸಲಾಗಿದೆ (Admin password updated securely)." });
+      setFeedback({ type: "success", text: "Super Admin ($hriSuma) password updated successfully." });
       setTimeout(() => {
         setShowAdminPasswordModal(false);
         setAdminNewPassword("");
@@ -533,10 +589,10 @@ export const SuperAdminDashboard: React.FC = () => {
               </span>
             </div>
 
-            <form onSubmit={handleCreatePriestSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+            <form onSubmit={handleCreatePriestSubmit} className="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
               <div>
                 <label className="block text-[11px] font-bold text-amber-300 mb-1">
-                  ಪುರೋಹಿತರ ಹೆಸರು (Priest Name):
+                  ಪುರೋಹಿತರ ಹೆಸರು (Name):
                 </label>
                 <input
                   type="text"
@@ -544,13 +600,13 @@ export const SuperAdminDashboard: React.FC = () => {
                   onChange={(e) => setNewPriestName(e.target.value)}
                   placeholder="ಉದಾ: ಶ್ರೀರಾಮ್ ಪಂಡಿತ್..."
                   required
-                  className="w-full px-3.5 py-2 bg-slate-950 border border-slate-700 rounded-xl text-slate-100 text-xs font-bold focus:border-amber-400 focus:outline-none"
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-slate-100 text-xs font-bold focus:border-amber-400 focus:outline-none"
                 />
               </div>
 
               <div>
                 <label className="block text-[11px] font-bold text-amber-300 mb-1">
-                  ಯೂಸರ್ ID / Username:
+                  ಯೂಸರ್ ID (Username):
                 </label>
                 <input
                   type="text"
@@ -558,20 +614,34 @@ export const SuperAdminDashboard: React.FC = () => {
                   onChange={(e) => setNewPriestUsername(e.target.value)}
                   placeholder="ಉದಾ: priest_shreeram..."
                   required
-                  className="w-full px-3.5 py-2 bg-slate-950 border border-slate-700 rounded-xl text-slate-100 text-xs font-mono focus:border-amber-400 focus:outline-none"
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-slate-100 text-xs font-mono focus:border-amber-400 focus:outline-none"
                 />
               </div>
 
               <div>
                 <label className="block text-[11px] font-bold text-amber-300 mb-1">
-                  ಸ್ವಾಗತ ನಾಣ್ಯಗಳು (Welcome Coins):
+                  ಪ್ರವೇಶ ಪಾಸ್‌ವರ್ಡ್ (Password):
+                </label>
+                <input
+                  type="text"
+                  value={newPriestPassword}
+                  onChange={(e) => setNewPriestPassword(e.target.value)}
+                  placeholder="baggona123"
+                  required
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-slate-100 text-xs font-mono focus:border-amber-400 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-amber-300 mb-1">
+                  ಸ್ವಾಗತ ನಾಣ್ಯಗಳು (Coins):
                 </label>
                 <input
                   type="number"
                   value={newPriestWelcomeCoins}
                   onChange={(e) => setNewPriestWelcomeCoins(e.target.value)}
                   placeholder="700"
-                  className="w-full px-3.5 py-2 bg-slate-950 border border-slate-700 rounded-xl text-slate-100 text-xs font-mono font-bold focus:border-amber-400 focus:outline-none"
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-slate-100 text-xs font-mono font-bold focus:border-amber-400 focus:outline-none"
                 />
               </div>
 
@@ -591,10 +661,12 @@ export const SuperAdminDashboard: React.FC = () => {
             {createdPriestResult && (
               <div className="p-4 bg-slate-950 border-2 border-emerald-500/60 rounded-2xl space-y-3 mt-4 animate-in fade-in duration-300">
                 <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span className="text-emerald-400 font-bold text-sm">✓ ನೋಂದಣಿ ಯಶಸ್ವಿ:</span>
                     <span className="font-extrabold text-amber-200 text-sm">{createdPriestResult.name}</span>
-                    <span className="text-[10px] text-slate-400 font-mono">({createdPriestResult.username})</span>
+                    <span className="text-xs text-slate-400 font-mono">
+                      (User: <strong className="text-amber-300">{createdPriestResult.username}</strong> | Pass: <strong className="text-emerald-300">{createdPriestResult.password}</strong>)
+                    </span>
                   </div>
                   <button
                     type="button"
@@ -660,6 +732,8 @@ export const SuperAdminDashboard: React.FC = () => {
                     const message = encodeURIComponent(
                       `ನಮಸ್ಕಾರ ${createdPriestResult.name} ಅವರೇ,\n\n` +
                       `ನಿಮಗೆ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಮತ್ತು ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ತಂತ್ರಾಂಶದ ವಿಶೇಷ ಆಹ್ವಾನ ಕಳುಹಿಸಲಾಗಿದೆ.\n\n` +
+                      `👤 ಯೂಸರ್‌ನೇಮ್: ${createdPriestResult.username}\n` +
+                      `🔑 ಪಾಸ್‌ವರ್ಡ್: ${createdPriestResult.password}\n\n` +
                       `🔮 ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಪೋರ್ಟಲ್:\n${createdPriestResult.panchangaUrl}\n\n` +
                       `🔢 ಬಗ್ಗೋಣ ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಪೋರ್ಟಲ್:\n${createdPriestResult.sankhyaUrl}\n\n` +
                       `॥ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ ॥`
@@ -668,7 +742,7 @@ export const SuperAdminDashboard: React.FC = () => {
                   }}
                   className="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-black text-xs rounded-xl flex items-center justify-center gap-2 shadow-md"
                 >
-                  <span>📲 WhatsApp ಮೂಲಕ ಆಹ್ವಾನ ಸಂದೇಶ ಕಳುಹಿಸಿ (Share via WhatsApp)</span>
+                  <span>📲 WhatsApp ಮೂಲಕ ಯೂಸರ್‌ನೇಮ್ & ಪಾಸ್‌ವರ್ಡ್ ಸಹಿತ ಆಹ್ವಾನ ಕಳುಹಿಸಿ (Share via WhatsApp)</span>
                 </button>
               </div>
             )}
@@ -852,14 +926,26 @@ export const SuperAdminDashboard: React.FC = () => {
               </p>
             </div>
 
-            <div className="w-full md:w-72">
-              <input
-                type="text"
-                value={kundliSearch}
-                onChange={(e) => setKundliSearch(e.target.value)}
-                placeholder="Search by Name, Gothra, Rashi..."
-                className="w-full px-3 py-2 bg-slate-950 border border-amber-500/30 rounded-xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-400"
-              />
+            <div className="flex items-center gap-2 w-full md:w-auto">
+              <button
+                type="button"
+                disabled={isDeduplicating}
+                onClick={handleDeduplicateKundlis}
+                className="px-3 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-200 border border-purple-500/40 rounded-xl text-xs font-bold transition-all disabled:opacity-50 flex items-center gap-1.5 whitespace-nowrap shadow-sm"
+              >
+                <span>🧹</span>
+                <span>{isDeduplicating ? "ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ..." : "ಡ್ಯೂಪ್ಲಿಕೇಟ್ ಪರಿಶೀಲಿಸಿ & ತೆರವುಗೊಳಿಸಿ"}</span>
+              </button>
+
+              <div className="w-full md:w-64">
+                <input
+                  type="text"
+                  value={kundliSearch}
+                  onChange={(e) => setKundliSearch(e.target.value)}
+                  placeholder="Search by Name, Gothra, Rashi..."
+                  className="w-full px-3 py-2 bg-slate-950 border border-amber-500/30 rounded-xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-400"
+                />
+              </div>
             </div>
           </div>
 

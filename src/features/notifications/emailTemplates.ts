@@ -658,3 +658,63 @@ export function renderDailyCoinReloadSummaryEmail(data: {
 `;
 }
 
+export function renderSystemFailureAlertEmail(data: {
+  username: string;
+  priestName: string;
+  action: string;
+  attemptedCoins: number;
+  errorMessage: string;
+  clientIp?: string;
+  timestamp: string;
+}): string {
+  return `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="${BASE_STYLES}">
+  <div style="${CARD_STYLES}">
+    <div style="background: linear-gradient(90deg, #dc2626 0%, #ef4444 50%, #dc2626 100%); color: #ffffff; padding: 24px; text-align: center;">
+      <div style="font-size: 26px; font-weight: bold; margin-bottom: 4px;">⚠️ ಸಿಸ್ಟಮ್ ವೈಫಲ್ಯ ಎಚ್ಚರಿಕೆ</div>
+      <div style="font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px;">Critical System Operation & Coin Failure Alert</div>
+    </div>
+    
+    <div style="padding: 24px; line-height: 1.6;">
+      <p style="font-size: 16px; color: #fca5a5; margin-top: 0;"><strong>ಗಮನಿಸಿ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರೇ (Super Admin),</strong></p>
+      <p style="color: #cbd5e1; font-size: 14px;">
+        ಪುರೋಹಿತರ ಖಾತೆಯಲ್ಲಿ ಸೇವೆಯನ್ನು ಒದಗಿಸುವಾಗ ದೋಷ ಸಂಭವಿಸಿದೆ. ಸುರಕ್ಷತೆಗಾಗಿ ನಾಣ್ಯಗಳನ್ನು ತಕ್ಷಣವೇ ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಮರುಪಾವತಿಸಲಾಗಿದೆ (Auto-Rolled Back).
+      </p>
+      
+      <div style="background: rgba(220, 38, 38, 0.15); border: 1px solid rgba(239, 68, 68, 0.5); border-radius: 12px; padding: 18px; margin: 20px 0;">
+        <table style="width: 100%; font-size: 14px; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 8px 0; color: #94a3b8;">👤 ಪುರೋಹಿತರ ಹೆಸರು:</td>
+            <td style="padding: 8px 0; color: #f8fafc; font-weight: bold; text-align: right;">${data.priestName} (${data.username})</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; color: #94a3b8;">⚡ ಪ್ರಯತ್ನಿಸಿದ ಸೇವೆ:</td>
+            <td style="padding: 8px 0; color: #fbbf24; font-weight: bold; text-align: right;">${data.action}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; color: #94a3b8;">🪙 ನಾಣ್ಯಗಳ ಮೊತ್ತ:</td>
+            <td style="padding: 8px 0; color: #38bdf8; font-weight: bold; text-align: right;">${data.attemptedCoins} Coins</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; color: #94a3b8;">❌ ದೋಷ ವಿವರ:</td>
+            <td style="padding: 8px 0; color: #f87171; font-family: monospace; text-align: right;">${data.errorMessage}</td>
+          </tr>
+          ${data.clientIp ? `<tr><td style="padding: 8px 0; color: #94a3b8;">🌐 IP ವಿಳಾಸ:</td><td style="padding: 8px 0; color: #94a3b8; font-family: monospace; text-align: right;">${data.clientIp}</td></tr>` : ''}
+        </table>
+      </div>
+      
+      <p style="color: #94a3b8; font-size: 12px; margin-top: 20px;">ಸಮಯ: ${data.timestamp}</p>
+    </div>
+    
+    <div style="${FOOTER_STYLES}">
+      ॥ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ ॥ • ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಭದ್ರತಾ ಎಚ್ಚರಿಕೆ
+    </div>
+  </div>
+</body>
+</html>
+`;
+}
+
