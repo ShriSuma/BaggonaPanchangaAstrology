@@ -11,7 +11,11 @@ import {
   renderPanchangaCreatedEmail,
   renderPremiumPdfDownloadedEmail,
   renderCoinRechargeAlertEmail,
-  renderCoinApprovedEmail
+  renderCoinApprovedEmail,
+  renderDailyAppSummaryEmail,
+  renderDailyPriestUsageSummaryEmail,
+  renderDailyCoinReloadSummaryEmail,
+  renderDailyPremiumPdfSummaryEmail
 } from "../features/notifications/emailTemplates";
 
 describe("Priest Wallet & Coining Math Engine", () => {
@@ -171,4 +175,105 @@ describe("Free HTML Email Notification Templates", () => {
     expect(html).toContain("Shreeram Pandit");
     expect(html).toContain("423512345678");
   });
+
+  it("renders Daily App Summary (Report 1/4) HTML correctly", () => {
+    const html = renderDailyAppSummaryEmail({
+      date: "2026-08-29",
+      totalHits: 25,
+      kundlisCalculated: 8,
+      panchangaViews: 14,
+      prashnaCount: 3,
+      timestamp: "29/08/2026, 11:30:00 pm"
+    });
+
+    expect(html).toContain("Report 1/4");
+    expect(html).toContain("Baggona Daily App Usage");
+    expect(html).toContain("25");
+    expect(html).toContain("8");
+  });
+
+  it("renders Daily Priest Usage (Report 2/4) HTML correctly", () => {
+    const html = renderDailyPriestUsageSummaryEmail({
+      date: "2026-08-29",
+      totalActivePriests: 2,
+      totalCoinsSpentToday: 3750,
+      priestBreakdown: [
+        {
+          priestName: "Shreeram Pandit",
+          username: "baggona",
+          coinsSpent: 3500,
+          consultationsCount: 1
+        }
+      ],
+      timestamp: "29/08/2026, 11:30:00 pm"
+    });
+
+    expect(html).toContain("Report 2/4");
+    expect(html).toContain("3,750 Coins");
+    expect(html).toContain("Shreeram Pandit");
+  });
+
+  it("renders Daily Coin Reload (Report 3/4) HTML correctly", () => {
+    const html = renderDailyCoinReloadSummaryEmail({
+      date: "2026-08-29",
+      totalReloadsCount: 1,
+      totalAmountInr: 500,
+      reloads: [
+        {
+          priestName: "Shreeram Pandit",
+          coins: 6500,
+          amountInr: 500,
+          utr: "910813538711",
+          status: "ಅನುಮೋದಿಸಲಾಗಿದೆ"
+        }
+      ],
+      timestamp: "29/08/2026, 11:30:00 pm"
+    });
+
+    expect(html).toContain("Report 3/4");
+    expect(html).toContain("₹500");
+    expect(html).toContain("910813538711");
+  });
+
+  it("renders Daily Premium PDF Downloads & Bhavishya Synthesis (Report 4/4) HTML correctly", () => {
+    const html = renderDailyPremiumPdfSummaryEmail({
+      date: "2026-08-29",
+      totalDownloadsCount: 2,
+      totalCoinsSpent: 7000,
+      totalAmountInr: 700,
+      downloads: [
+        {
+          devoteeName: "ಗಣೇಶ್ ಭಟ್",
+          username: "baggona",
+          priestName: "Shreeram Pandit",
+          portalSource: "Priest Mobile Portal",
+          language: "kn",
+          coinsSpent: 3500,
+          amountInr: 350,
+          time: "08:15 PM"
+        },
+        {
+          devoteeName: "ಅನಿತಾ ರಾವ್",
+          username: "priest_anita",
+          portalSource: "Baggona Bhavishya",
+          language: "en",
+          coinsSpent: 3500,
+          amountInr: 350,
+          time: "09:45 PM"
+        }
+      ],
+      timestamp: "29/08/2026, 11:30:00 pm"
+    });
+
+    expect(html).toContain("Report 4/4");
+    expect(html).toContain("Daily Premium PDF Downloads & Bhavishya Synthesis Summary");
+    expect(html).toContain("2 Downloads");
+    expect(html).toContain("7,000 Coins");
+    expect(html).toContain("₹700");
+    expect(html).toContain("ಗಣೇಶ್ ಭಟ್");
+    expect(html).toContain("ಅನಿತಾ ರಾವ್");
+    expect(html).toContain("Priest Mobile Portal");
+    expect(html).toContain("Baggona Bhavishya");
+  });
 });
+

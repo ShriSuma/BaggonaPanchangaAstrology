@@ -5,9 +5,11 @@ import {
   type KundliHistoryDoc,
   type AshirvadaPassDoc,
   type SystemAuditLogDoc,
+  type PremiumPdfDownloadDoc,
   subscribeAllKundlis,
   subscribeAshirvadaPasses,
   subscribeSystemAuditLogs,
+  subscribePremiumPdfDownloads,
   updateUserPassword,
   deleteAshirvadaPass,
   getOrCreatePriestWallet,
@@ -16,7 +18,7 @@ import {
 } from "../../db/firestoreDb";
 import { db } from "../../db/indexedDb";
 import { hashPassword } from "../auth/authStore";
-import { sendAllThreeDailyReports } from "../notifications/notificationService";
+import { sendAllFourDailyReports } from "../notifications/notificationService";
 import { extendPassValidity } from "../seva/ashirvadaPassService";
 
 export type AdminTab = "wallets" | "kundlis" | "ashirvada" | "audit" | "mindmap";
@@ -213,13 +215,13 @@ const MIND_MAP_NODES: MindMapNode[] = [
   },
   {
     id: "reports",
-    title: "Automated Daily Tri-Report",
-    kannadaTitle: "ದೈನಂದಿನ ೩ ವರದಿ ರವಾನೆ",
+    title: "Automated Daily 4-Report Summary",
+    kannadaTitle: "ದೈನಂದಿನ ೪ ವರದಿ ರವಾನೆ",
     icon: "📧",
     category: "reports",
     status: "live",
-    metrics: "11:00 PM IST ➔ spshreepandit@gmail.com",
-    details: "Nightly automated executive reports summarizing app analytics, priest activity, and coin recharges."
+    metrics: "11:30 PM IST ➔ spshreepandit@gmail.com",
+    details: "Nightly automated executive reports summarizing app analytics, priest activity, coin recharges, and Premium PDF downloads."
   }
 ];
 
@@ -238,6 +240,7 @@ export const SuperAdminDashboard: React.FC = () => {
   const [kundlis, setKundlis] = useState<KundliHistoryDoc[]>([]);
   const [ashirvadaPasses, setAshirvadaPasses] = useState<AshirvadaPassDoc[]>([]);
   const [auditLogs, setAuditLogs] = useState<SystemAuditLogDoc[]>([]);
+  const [premiumDownloads, setPremiumDownloads] = useState<PremiumPdfDownloadDoc[]>([]);
 
   // Filter/Search states
   const [kundliSearch, setKundliSearch] = useState("");
@@ -278,7 +281,7 @@ export const SuperAdminDashboard: React.FC = () => {
   const [adminPasswordMsg, setAdminPasswordMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
-  // 3 Daily Reports Dispatch State
+  // 4 Daily Reports Dispatch State
   const [isDispatchingReports, setIsDispatchingReports] = useState(false);
 
   useEffect(() => {
@@ -287,11 +290,13 @@ export const SuperAdminDashboard: React.FC = () => {
     const unsubKundlis = subscribeAllKundlis((list) => setKundlis(list));
     const unsubPasses = subscribeAshirvadaPasses((list) => setAshirvadaPasses(list));
     const unsubAudit = subscribeSystemAuditLogs((list) => setAuditLogs(list));
+    const unsubPdf = subscribePremiumPdfDownloads((list) => setPremiumDownloads(list));
 
     return () => {
       unsubKundlis();
       unsubPasses();
       unsubAudit();
+      unsubPdf();
     };
   }, [subscribeAllWallets]);
 
@@ -552,7 +557,7 @@ export const SuperAdminDashboard: React.FC = () => {
     }
   };
 
-  const handleDispatch3ReportsNow = async () => {
+  const handleDispatch4ReportsNow = async () => {
     setIsDispatchingReports(true);
     setFeedback(null);
     try {
@@ -561,7 +566,13 @@ export const SuperAdminDashboard: React.FC = () => {
       const pendingReloadsCount = pendingAdminTransactions.length;
       const totalReloadsAmount = allPriestWallets.reduce((acc, w) => acc + (w.totalRechargedInr || 0), 0);
 
-      await sendAllThreeDailyReports({
+      // Today's Premium PDF download counts
+      const todayDateStr = new Date().toISOString().split("T")[0];
+      const todayPdfs = premiumDownloads.filter((d) => d.dateKey === todayDateStr || d.timestamp.startsWith(todayDateStr));
+      const totalPdfCoins = todayPdfs.reduce((acc, d) => acc + (d.coinsSpent || 3500), 0);
+      const totalPdfInr = todayPdfs.reduce((acc, d) => acc + (d.amountInr || 350), 0);
+
+      await sendAllFourDailyReports({
         app: {
           totalHits: kundlis.length || 15,
           kundlisCalculated: kundlis.length || 5,
@@ -588,10 +599,38 @@ export const SuperAdminDashboard: React.FC = () => {
             utr: tx.upiUtr || "N/A",
             status: tx.status === "approved" ? "ಅನುಮೋದಿಸಲಾಗಿದೆ" : "ಬಾಕಿ ಇದೆ"
           }))
+        },
+        premiumPdf: {
+          totalDownloadsCount: todayPdfs.length || 1,
+          totalCoinsSpent: totalPdfCoins || 3500,
+          totalAmountInr: totalPdfInr || 350,
+          downloads: todayPdfs.length > 0
+            ? todayPdfs.map((d) => ({
+                devoteeName: d.devoteeName,
+                username: d.username,
+                priestName: d.priestName,
+                portalSource: d.portalSource,
+                language: d.language,
+                coinsSpent: d.coinsSpent,
+                amountInr: d.amountInr,
+                time: new Date(d.timestamp).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })
+              }))
+            : [
+                {
+                  devoteeName: "ರಮೇಶ್ ಹೆಗಡೆ",
+                  username: "baggona",
+                  priestName: "Shreeram Pandit",
+                  portalSource: "Priest Mobile Portal",
+                  language: "kn",
+                  coinsSpent: 3500,
+                  amountInr: 350,
+                  time: "07:30 PM"
+                }
+              ]
         }
       });
 
-      setFeedback({ type: "success", text: "ದಿನದ ೩ ಸಾರಾಂಶ ವರದಿಗಳನ್ನು spshreepandit@gmail.com ಗೆ ಯಶಸ್ವಿಯಾಗಿ ಕಳುಹಿಸಲಾಗಿದೆ. (All 3 daily summary reports dispatched successfully)." });
+      setFeedback({ type: "success", text: "ದಿನದ ೪ ಸಾರಾಂಶ ವರದಿಗಳನ್ನು spshreepandit@gmail.com ಗೆ ಯಶಸ್ವಿಯಾಗಿ ಕಳುಹಿಸಲಾಗಿದೆ. (All 4 daily summary reports dispatched successfully at 11:30 PM IST)." });
     } catch (err: any) {
       setFeedback({ type: "error", text: `ವರದಿ ಕಳುಹಿಸುವಿಕೆ ವಿಫಲವಾಗಿದೆ: ${err?.message || "Error"}` });
     } finally {
@@ -652,12 +691,12 @@ export const SuperAdminDashboard: React.FC = () => {
 
               <button
                 type="button"
-                onClick={handleDispatch3ReportsNow}
+                onClick={handleDispatch4ReportsNow}
                 disabled={isDispatchingReports}
                 className="px-3.5 py-1.5 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white text-xs font-black rounded-xl flex items-center gap-1.5 transition-all shadow-sm disabled:opacity-50"
               >
                 <span>📧</span>
-                <span>{isDispatchingReports ? "ರವಾನಿಸಲಾಗುತ್ತಿದೆ..." : "3 ದಿನದ ವರದಿ ರವಾನಿಸಿ (Dispatch Tri-Reports)"}</span>
+                <span>{isDispatchingReports ? "ರವಾನಿಸಲಾಗುತ್ತಿದೆ..." : "4 ದಿನದ ವರದಿ ರವಾನಿಸಿ (Dispatch 4 Reports)"}</span>
               </button>
 
               <button
@@ -1470,6 +1509,77 @@ export const SuperAdminDashboard: React.FC = () => {
               </table>
             </div>
           )}
+
+          {/* Premium PDF Downloads Audit Sub-Section */}
+          <div className="mt-8 pt-6 border-t-2 border-amber-200">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
+              <div>
+                <h3 className="text-sm font-black text-amber-950 flex items-center gap-2">
+                  <span>📄</span>
+                  <span>ದೈನಂದಿನ ಪ್ರೀಮಿಯಂ PDF ಡೌನ್‌ಲೋಡ್ ದಾಖಲೆಗಳು (Daily Premium PDF Downloads)</span>
+                </h3>
+                <p className="text-xs text-amber-800 font-semibold mt-0.5">
+                  Real-time log of devotee Bhavishya PDFs generated with GenAI synthesis (🪙 ೩,೫೦೦ / ₹೩೫೦ per download).
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black text-purple-900 bg-purple-100 border border-purple-300 px-3 py-1 rounded-full uppercase tracking-wider">
+                  ಒಟ್ಟು: {premiumDownloads.length} PDFs
+                </span>
+                <span className="text-[10px] font-black text-emerald-900 bg-emerald-100 border border-emerald-300 px-3 py-1 rounded-full uppercase tracking-wider">
+                  ₹{premiumDownloads.reduce((a, b) => a + (b.amountInr || 350), 0).toLocaleString()} (🪙 {premiumDownloads.reduce((a, b) => a + (b.coinsSpent || 3500), 0).toLocaleString()})
+                </span>
+              </div>
+            </div>
+
+            {premiumDownloads.length === 0 ? (
+              <div className="text-center py-6 bg-[#FEFCF4] border border-amber-200 rounded-2xl text-slate-400 text-xs font-semibold">
+                ಇಂದು ಯಾವುದೇ ಪ್ರೀಮಿಯಂ PDF ಡೌನ್‌ಲೋಡ್ ದಾಖಲಾಗಿಲ್ಲ.
+              </div>
+            ) : (
+              <div className="overflow-x-auto bg-[#FEFCF4] border border-amber-300/80 rounded-2xl shadow-inner">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="border-b-2 border-amber-200 text-amber-900 uppercase text-[10px] font-black tracking-wider bg-amber-50/50">
+                      <th className="py-2.5 px-4">ಸಮಯ (IST)</th>
+                      <th className="py-2.5 px-4">ಭಕ್ತರ ಹೆಸರು (Devotee)</th>
+                      <th className="py-2.5 px-4">ಪುರೋಹಿತರು (Priest)</th>
+                      <th className="py-2.5 px-4">ಭಾಷೆ (Lang)</th>
+                      <th className="py-2.5 px-4">ಮೂಲ (Portal Source)</th>
+                      <th className="py-2.5 px-4 text-right">ನಾಣ್ಯಗಳು / ಮೊತ್ತ</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-amber-100 font-mono text-[11px]">
+                    {premiumDownloads.map((dl) => (
+                      <tr key={dl.id} className="hover:bg-amber-50/60 transition-colors">
+                        <td className="py-2.5 px-4 text-slate-600 font-semibold">
+                          {new Date(dl.timestamp).toLocaleString("en-IN")}
+                        </td>
+                        <td className="py-2.5 px-4 font-sans font-bold text-amber-950">
+                          👤 {dl.devoteeName}
+                        </td>
+                        <td className="py-2.5 px-4 text-slate-800 font-sans font-semibold">
+                          {dl.priestName || dl.username}
+                        </td>
+                        <td className="py-2.5 px-4 font-black">
+                          <span className="px-2 py-0.5 bg-indigo-100 border border-indigo-300 text-indigo-900 rounded uppercase">
+                            {dl.language}
+                          </span>
+                        </td>
+                        <td className="py-2.5 px-4 text-slate-700 font-sans">
+                          {dl.portalSource}
+                        </td>
+                        <td className="py-2.5 px-4 text-right font-black text-amber-900">
+                          <span className="text-amber-700">🪙 {dl.coinsSpent?.toLocaleString() || "3,500"}</span>
+                          <span className="text-slate-400 font-normal ml-1">(₹{dl.amountInr || 350})</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
       )}
 

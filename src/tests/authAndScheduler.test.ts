@@ -80,7 +80,7 @@ describe("Daily Hits & 11 PM IST Report Scheduler", () => {
     expect(total).toBe(2);
   });
 
-  it("calculates time remaining until 11 PM IST", () => {
+  it("calculates time remaining until 11:30 PM IST", () => {
     const ms = getMsUntil11PMIST();
     expect(ms).toBeGreaterThan(0);
     expect(ms).toBeLessThanOrEqual(24 * 60 * 60 * 1000);
@@ -96,20 +96,20 @@ describe("Daily Hits & 11 PM IST Report Scheduler", () => {
     expect(report.email).toBe(REPORT_EMAIL_RECIPIENT);
   });
 
-  it("verifies quota guard reserves 5 slots for daily summary reports out of 100 total", async () => {
+  it("verifies quota guard reserves 6 slots for 4 daily summary reports + alerts out of 100 total", async () => {
     const {
       DAILY_EMAIL_LIMIT,
       RESERVED_REPORT_EMAILS,
       SAFE_TRANSACTIONAL_LIMIT,
-      sendAllThreeDailyReports
+      sendAllFourDailyReports
     } = await import("../features/notifications/notificationService");
 
     expect(DAILY_EMAIL_LIMIT).toBe(100);
-    expect(RESERVED_REPORT_EMAILS).toBe(5);
-    expect(SAFE_TRANSACTIONAL_LIMIT).toBe(95);
+    expect(RESERVED_REPORT_EMAILS).toBe(6);
+    expect(SAFE_TRANSACTIONAL_LIMIT).toBe(94);
 
-    // Verify all 3 daily summary reports dispatch cleanly
-    const res = await sendAllThreeDailyReports();
+    // Verify all 4 daily summary reports dispatch cleanly
+    const res = await sendAllFourDailyReports();
     expect(res.success).toBe(true);
   });
 

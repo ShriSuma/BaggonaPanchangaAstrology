@@ -18,9 +18,9 @@ import {
 } from "./priestQuestionEngine";
 import { SpeechRecognitionSession } from "../../utils/speechRecognitionHelper";
 import SouthIndianChart from "../../components/kundli/SouthIndianChart";
-import { saveKundliToFirestore, updateUserPassword } from "../../db/firestoreDb";
+import { saveKundliToFirestore, updateUserPassword, logPremiumPdfDownload } from "../../db/firestoreDb";
 import { hashPassword } from "../auth/authStore";
-import { notifyPasswordResetCompleted, notifySystemFailureAlert } from "../notifications/notificationService";
+import { notifyPasswordResetCompleted, notifySystemFailureAlert, notifyPremiumPdfDownloaded } from "../notifications/notificationService";
 import { calculateTraditionalBaggona } from "../../core/TraditionalBaggonaEngine";
 import { translateText } from "../../utils/translator";
 import type { KundliViewerSession } from "../../stores/kundliViewerStore";
@@ -743,6 +743,28 @@ export const PriestMobilePortal: React.FC = () => {
       const langName = langNames[lang] || "Kannada";
       const safeName = (devoteeName || "bhaktaru").trim().replace(/\s+/g, "_");
       pdf.save(`Baggona_Panchanga_Prediction_${langName}_${safeName}.pdf`);
+
+      // 1. Log to Firestore for 11:30 PM Tri/Quad Report Dispatcher
+      void logPremiumPdfDownload({
+        devoteeName: devoteeName || "ಭಕ್ತರು",
+        username: wallet?.userId || currentUser || "priest",
+        priestName: activePriestDisplayName,
+        portalSource: "Priest Mobile Portal",
+        language: lang,
+        coinsSpent: cost,
+        amountInr: Math.round(cost / 10),
+        timestamp: new Date().toISOString(),
+        dateKey: new Date().toISOString().split("T")[0]
+      });
+
+      // 2. Transactional email alert to Super Admin
+      void notifyPremiumPdfDownloaded({
+        clientName: devoteeName || "ಭಕ್ತರು",
+        pdfType: "Baggona Bhavishya GenAI Premium PDF",
+        language: lang,
+        pageCount: 1,
+        priestName: activePriestDisplayName
+      });
 
       setFeedback({
         type: "success",

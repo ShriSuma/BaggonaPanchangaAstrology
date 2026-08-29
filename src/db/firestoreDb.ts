@@ -154,6 +154,19 @@ export interface NotificationLogDoc {
   sentAt: string;
 }
 
+export interface PremiumPdfDownloadDoc {
+  id: string;
+  devoteeName: string;
+  username: string;
+  priestName?: string;
+  portalSource: "Baggona Bhavishya" | "Priest Mobile Portal" | "Direct Download";
+  language: string; // "kn" | "en" | "hi" | "te" | "ta"
+  coinsSpent: number; // e.g. 3500
+  amountInr: number; // e.g. 350
+  timestamp: string;
+  dateKey: string; // "YYYY-MM-DD"
+}
+
 // Collection references
 const USERS_COL = "users";
 const WALLETS_COL = "wallets";
@@ -163,6 +176,7 @@ const KUNDLIS_COL = "kundlis";
 const ASHIRVADA_COL = "ashirvadaPasses";
 const AUDIT_COL = "systemAuditLogs";
 const NOTIFICATIONS_COL = "notifications";
+const PREMIUM_PDF_DOWNLOADS_COL = "premiumPdfDownloads";
 
 // Helper to clean undefined values before Firestore writes
 function sanitizeFirestoreData<T extends Record<string, any>>(obj: T): T {
@@ -745,3 +759,60 @@ export function subscribeSystemAuditLogs(
     console.warn("[Firestore] Audit logs listener error:", err);
   });
 }
+
+/**
+ * Log a Premium PDF Download Event in Firestore
+ */
+export async function logPremiumPdfDownload(data: Omit<PremiumPdfDownloadDoc, "id">): Promise<string> {
+  const id = `pdf_dl_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+  const record: PremiumPdfDownloadDoc = {
+    id,
+    ...data
+  };
+  try {
+    const ref = doc(firestore, PREMIUM_PDF_DOWNLOADS_COL, id);
+    await setDoc(ref, sanitizeFirestoreData(record));
+  } catch (err) {
+    console.warn("[Firestore] Failed to log premium PDF download:", err);
+  }
+  return id;
+}
+
+/**
+ * Query today's Premium PDF downloads from Firestore
+ */
+export async function getTodayPremiumPdfDownloads(targetDate?: string): Promise<PremiumPdfDownloadDoc[]> {
+  const dateKey = targetDate || new Date().toISOString().split("T")[0];
+  try {
+    const q = query(
+      collection(firestore, PREMIUM_PDF_DOWNLOADS_COL),
+      where("dateKey", "==", dateKey)
+    );
+    const snap = await getDocs(q);
+    const list: PremiumPdfDownloadDoc[] = [];
+    snap.forEach((d) => list.push(d.data() as PremiumPdfDownloadDoc));
+    return list.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  } catch (err) {
+    console.warn("[Firestore] getTodayPremiumPdfDownloads error:", err);
+    return [];
+  }
+}
+
+/**
+ * Real-time subscription to all Premium PDF downloads
+ */
+export function subscribePremiumPdfDownloads(
+  onUpdate: (downloads: PremiumPdfDownloadDoc[]) => void
+): Unsubscribe {
+  const q = query(collection(firestore, PREMIUM_PDF_DOWNLOADS_COL), orderBy("timestamp", "desc"), limit(100));
+  return onSnapshot(q, (snapshot) => {
+    const list: PremiumPdfDownloadDoc[] = [];
+    snapshot.forEach((docSnap) => {
+      list.push(docSnap.data() as PremiumPdfDownloadDoc);
+    });
+    onUpdate(list);
+  }, (err) => {
+    console.warn("[Firestore] Premium PDF downloads listener error:", err);
+  });
+}
+

@@ -1,12 +1,12 @@
 import { getDailyHitsCount } from "../../db/indexedDb";
-import { sendAllThreeDailyReports, DEFAULT_NOTIFICATION_EMAIL } from "../notifications/notificationService";
+import { sendAllFourDailyReports, DEFAULT_NOTIFICATION_EMAIL } from "../notifications/notificationService";
 
 export const REPORT_EMAIL_RECIPIENT = DEFAULT_NOTIFICATION_EMAIL;
 
 /**
- * Calculates milliseconds remaining until 23:00 IST (11:00 PM IST).
+ * Calculates milliseconds remaining until 23:30 IST (11:30 PM IST).
  */
-export function getMsUntil11PMIST(): number {
+export function getMsUntil1130PMIST(): number {
   const now = new Date();
 
   // Convert current time to IST components (UTC + 5:30)
@@ -15,10 +15,10 @@ export function getMsUntil11PMIST(): number {
   const istNow = new Date(utcNowMs + istOffsetMs);
 
   const istTarget = new Date(istNow);
-  istTarget.setHours(23, 0, 0, 0);
+  istTarget.setHours(23, 30, 0, 0);
 
   if (istNow.getTime() >= istTarget.getTime()) {
-    // If it's already past 23:00 IST today, schedule for 23:00 IST tomorrow
+    // If it's already past 23:30 IST today, schedule for 23:30 IST tomorrow
     istTarget.setDate(istTarget.getDate() + 1);
   }
 
@@ -26,7 +26,12 @@ export function getMsUntil11PMIST(): number {
 }
 
 /**
- * Generates and dispatches the 3 daily summary report emails to spshreepandit@gmail.com
+ * Backward compatibility alias for getMsUntil1130PMIST
+ */
+export const getMsUntil11PMIST = getMsUntil1130PMIST;
+
+/**
+ * Generates and dispatches the 4 daily summary report emails to spshreepandit@gmail.com
  */
 export async function sendDailyReportEmail(): Promise<{
   success: boolean;
@@ -37,9 +42,9 @@ export async function sendDailyReportEmail(): Promise<{
   const dateStr = new Date().toISOString().split("T")[0];
   const count = await getDailyHitsCount(dateStr);
 
-  console.log(`[Daily Report] Dispatching 3 End-of-Day summary reports to ${REPORT_EMAIL_RECIPIENT}. Hits today: ${count}`);
+  console.log(`[Daily Report] Dispatching 4 End-of-Day summary reports to ${REPORT_EMAIL_RECIPIENT} at 11:30 PM IST. Hits today: ${count}`);
 
-  await sendAllThreeDailyReports({
+  await sendAllFourDailyReports({
     app: {
       totalHits: count || 1,
       kundlisCalculated: count || 1,
@@ -59,16 +64,16 @@ export async function sendDailyReportEmail(): Promise<{
 let schedulerTimer: ReturnType<typeof setTimeout> | null = null;
 
 /**
- * Initializes daily 11:00 PM IST scheduler timer.
+ * Initializes daily 11:30 PM IST scheduler timer.
  */
 export function initDailyReportScheduler(): void {
   if (schedulerTimer) {
     clearTimeout(schedulerTimer);
   }
 
-  const msRemaining = getMsUntil11PMIST();
+  const msRemaining = getMsUntil1130PMIST();
   const hoursLeft = (msRemaining / (1000 * 60 * 60)).toFixed(2);
-  console.log(`[Daily Scheduler] Initialized. Next report in ${hoursLeft} hours (at 11:00 PM IST).`);
+  console.log(`[Daily Scheduler] Initialized. Next report in ${hoursLeft} hours (at 11:30 PM IST).`);
 
   schedulerTimer = setTimeout(async () => {
     await sendDailyReportEmail();
@@ -76,3 +81,4 @@ export function initDailyReportScheduler(): void {
     initDailyReportScheduler();
   }, msRemaining);
 }
+

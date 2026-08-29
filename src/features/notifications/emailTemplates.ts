@@ -472,7 +472,7 @@ export function renderDailyAppSummaryEmail(data: {
 <body style="${BASE_STYLES}">
   <div style="${CARD_STYLES}">
     <div style="${HEADER_STYLES}">
-      <div style="font-size: 26px; font-weight: bold; margin-bottom: 4px;">📊 ದಿನದ ಅಪ್ಲಿಕೇಶನ್ ಸಾರಾಂಶ (Report 1/3)</div>
+      <div style="font-size: 26px; font-weight: bold; margin-bottom: 4px;">📊 ದಿನದ ಅಪ್ಲಿಕೇಶನ್ ಸಾರಾಂಶ (Report 1/4)</div>
       <div style="font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px;">Baggona Daily App Usage & Traffic Summary</div>
     </div>
     
@@ -538,7 +538,7 @@ export function renderDailyPriestUsageSummaryEmail(data: {
 <body style="${BASE_STYLES}">
   <div style="${CARD_STYLES}">
     <div style="${HEADER_STYLES}">
-      <div style="font-size: 26px; font-weight: bold; margin-bottom: 4px;">🪙 ಪುರೋಹಿತರ ಬಳಕೆ & ನಾಣ್ಯ ವೆಚ್ಚ (Report 2/3)</div>
+      <div style="font-size: 26px; font-weight: bold; margin-bottom: 4px;">🪙 ಪುರೋಹಿತರ ಬಳಕೆ & ನಾಣ್ಯ ವೆಚ್ಚ (Report 2/4)</div>
       <div style="font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px;">Daily Priest Activity & Coin Usage Summary</div>
     </div>
     
@@ -608,7 +608,7 @@ export function renderDailyCoinReloadSummaryEmail(data: {
 <body style="${BASE_STYLES}">
   <div style="${CARD_STYLES}">
     <div style="${HEADER_STYLES}">
-      <div style="font-size: 26px; font-weight: bold; margin-bottom: 4px;">💳 ವಾಲೆಟ್ ರೀಚಾರ್ಜ್ ಸಾರಾಂಶ (Report 3/3)</div>
+      <div style="font-size: 26px; font-weight: bold; margin-bottom: 4px;">💳 ವಾಲೆಟ್ ರೀಚಾರ್ಜ್ ಸಾರಾಂಶ (Report 3/4)</div>
       <div style="font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px;">Daily Wallet Recharge & Financial Reload Summary</div>
     </div>
     
@@ -657,6 +657,86 @@ export function renderDailyCoinReloadSummaryEmail(data: {
 </html>
 `;
 }
+
+export function renderDailyPremiumPdfSummaryEmail(data: {
+  date: string;
+  totalDownloadsCount: number;
+  totalCoinsSpent: number;
+  totalAmountInr: number;
+  downloads: Array<{
+    devoteeName: string;
+    username: string;
+    priestName?: string;
+    portalSource: string;
+    language: string;
+    coinsSpent: number;
+    amountInr: number;
+    time: string;
+  }>;
+  timestamp: string;
+}): string {
+  return `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="${BASE_STYLES}">
+  <div style="${CARD_STYLES}">
+    <div style="${HEADER_STYLES}">
+      <div style="font-size: 26px; font-weight: bold; margin-bottom: 4px;">📄 ಪ್ರೀಮಿಯಂ PDF ಡೌನ್‌ಲೋಡ್ ಸಾರಾಂಶ (Report 4/4)</div>
+      <div style="font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px;">Daily Premium PDF Downloads & Bhavishya Synthesis Summary</div>
+    </div>
+    
+    <div style="padding: 24px; line-height: 1.6;">
+      <p style="font-size: 16px; color: #fbbf24; margin-top: 0;"><strong>ನಮಸ್ಕಾರ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರೇ,</strong></p>
+      <p style="color: #cbd5e1; font-size: 14px;">
+        ಇಂದಿನ ದಿನಾಂಕ <strong>${data.date}</strong> ರಂದು ಬಗ್ಗೋಣ ಭವಿಷ್ಯ ಹಾಗೂ ಪುರೋಹಿತ ಪೋರ್ಟಲ್‌ನಿಂದ ಡೌನ್‌ಲೋಡ್ ಮಾಡಲಾದ ಪ್ರೀಮಿಯಂ PDF ಜಾತಕ ಪತ್ರಿಕೆಗಳ ವಿವರವಾದ ಸಾರಾಂಶ:
+      </p>
+      
+      <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid #6366f1; border-radius: 12px; padding: 18px; margin: 20px 0;">
+        <table style="width: 100%; font-size: 14px; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 8px 0; color: #94a3b8;">📄 ಒಟ್ಟು ಪ್ರೀಮಿಯಂ PDF ಡೌನ್‌ಲೋಡ್‌ಗಳು:</td>
+            <td style="padding: 8px 0; color: #f8fafc; font-weight: bold; text-align: right;">${data.totalDownloadsCount} Downloads</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; color: #94a3b8;">🪙 ಒಟ್ಟು ವೆಚ್ಚವಾದ ನಾಣ್ಯಗಳು:</td>
+            <td style="padding: 8px 0; color: #fbbf24; font-weight: bold; font-size: 16px; text-align: right;">${data.totalCoinsSpent.toLocaleString()} Coins</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; color: #94a3b8;">💰 ಒಟ್ಟು ಮೌಲ್ಯ (INR Equivalent):</td>
+            <td style="padding: 8px 0; color: #10b981; font-weight: bold; font-size: 16px; text-align: right;">₹${data.totalAmountInr.toLocaleString()}</td>
+          </tr>
+        </table>
+      </div>
+
+      <h3 style="color: #fbbf24; font-size: 14px; margin-top: 20px;">ಇಂದು ಡೌನ್‌ಲೋಡ್ ಮಾಡಿದವರ ವಿವರವಾದ ಪಟ್ಟಿ:</h3>
+      <div style="space-y: 8px;">
+        ${data.downloads.length === 0 ? '<p style="color: #94a3b8; font-size: 13px;">ಇಂದು ಯಾವುದೇ ಪ್ರೀಮಿಯಂ PDF ಡೌನ್‌ಲೋಡ್‌ಗಳು ದಾಖಲಾಗಿಲ್ಲ.</p>' : data.downloads.map((d) => `
+          <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; padding: 12px; margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; font-size: 14px; color: #f8fafc; font-weight: bold;">
+              <span>👤 ${d.devoteeName} (${d.language.toUpperCase()})</span>
+              <span style="color: #fbbf24;">🪙 ${d.coinsSpent.toLocaleString()} Coins (₹${d.amountInr})</span>
+            </div>
+            <div style="font-size: 12px; color: #94a3b8; margin-top: 4px; display: flex; justify-content: space-between;">
+              <span>ಮೂಲ: <strong>${d.portalSource}</strong> ${d.priestName ? `• ${d.priestName} (${d.username})` : `• ${d.username}`}</span>
+              <span style="color: #cbd5e1; font-family: monospace;">${d.time}</span>
+            </div>
+          </div>
+        `).join("")}
+      </div>
+      
+      <p style="color: #94a3b8; font-size: 12px; margin-top: 20px;">ವರದಿ ರಚಿಸಿದ ಸಮಯ: ${data.timestamp}</p>
+    </div>
+    
+    <div style="${FOOTER_STYLES}">
+      ॥ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ ॥ • ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ದೈನಂದಿನ ವರದಿ ವ್ಯವಸ್ಥೆ
+    </div>
+  </div>
+</body>
+</html>
+`;
+}
+
 
 export function renderSystemFailureAlertEmail(data: {
   username: string;
