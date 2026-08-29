@@ -199,9 +199,9 @@ export async function getOrCreatePriestWallet(userId: string, priestName: string
       id: userId,
       userId,
       priestName,
-      coinBalance: 700, // Welcome bonus 700 free sample coins for priest (1 Kundli 200 + 1 Question 500)
+      coinBalance: 1000, // Welcome bonus 1,000 free coins for priest/user first time
       totalRechargedInr: 0,
-      totalCoinsCredited: 700,
+      totalCoinsCredited: 1000,
       totalCoinsSpent: 0,
       updatedAt: new Date().toISOString()
     };
@@ -214,9 +214,9 @@ export async function getOrCreatePriestWallet(userId: string, priestName: string
       id: userId,
       userId,
       priestName,
-      coinBalance: 700,
+      coinBalance: 1000,
       totalRechargedInr: 0,
-      totalCoinsCredited: 700,
+      totalCoinsCredited: 1000,
       totalCoinsSpent: 0,
       updatedAt: new Date().toISOString()
     };

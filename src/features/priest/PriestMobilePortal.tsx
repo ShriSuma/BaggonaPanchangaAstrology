@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useWalletStore } from "../wallet/walletStore";
 import { useAuthStore } from "../auth/authStore";
+import { useAppStore } from "../../stores/appStore";
 import {
   SERVICE_COIN_COSTS,
   DEFAULT_PRIEST_UPI_ID,
@@ -20,13 +21,110 @@ import SouthIndianChart from "../../components/kundli/SouthIndianChart";
 import { saveKundliToFirestore, updateUserPassword } from "../../db/firestoreDb";
 import { hashPassword } from "../auth/authStore";
 import { notifyPasswordResetCompleted, notifySystemFailureAlert } from "../notifications/notificationService";
-import { exportPanchangaWithDashaPdf, exportElementAsPdf } from "../../core/ExportUtils";
-import { GokarnaKundaliTemplate } from "../../components/template/GokarnaKundaliTemplate";
-import { DashaPdfTemplate } from "../../components/kundli/DashaPdfTemplate";
 import { calculateTraditionalBaggona } from "../../core/TraditionalBaggonaEngine";
-import { patrikaMetaForNakshatraIndex } from "../../core/nakshatraPatrikaMeta";
 import { translateText } from "../../utils/translator";
 import type { KundliViewerSession } from "../../stores/kundliViewerStore";
+import { PdfTemplate, type PdfTranslations, type PremiumData } from "../../components/RamanBhavishya/PdfTemplate";
+import { generateMasterPrediction } from "../../core/MasterPredictionEngine";
+import { detectAffairIndicators } from "../../core/layers/NatalLayer";
+import { askGemini } from "../../core/GeminiEngine";
+import { getTransitsForDate } from "../../core/BaggonaPredictionEngine";
+import { ageDecimalYearsAt } from "../../core/birthTime";
+import { findBhuktiAtAge } from "../../core/DashaBhuktiEngine";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
+import { WEEKDAY_L5 } from "../../features/seva/sevaLocale";
+import {
+  type GrahaKey,
+  tp,
+  pick,
+  GRAHA_L5,
+  RASHI_L5,
+  NAKSHATRA_L5,
+  formatBirthLine,
+  greetingLine,
+  runningPeriodSentence,
+  buildComprehensiveIntro,
+  newRunId,
+  stripJayashreeIntro
+} from "../../features/premiumPdf/premiumPdfLocale";
+import {
+  buildPremiumPrompts,
+  type NatalPlacement,
+  type TransitPlacement
+} from "../../features/premiumPdf/premiumPrompts";
+
+const toGraha = (planet: any): GrahaKey => String(planet) as GrahaKey;
+const asText = (value: string | string[] | undefined): string =>
+  Array.isArray(value) ? value.join(" ") : value ?? "";
+
+const toSafeArray = (val: any): any[] => {
+  if (!val) return [];
+  if (Array.isArray(val)) return val;
+  if (typeof val === "string") return [{ impact: val }];
+  if (typeof val === "object") return [val];
+  return [];
+};
+
+const ensureValidSection = async (
+  items: any,
+  fallbackText: string,
+  targetLang: string
+): Promise<{ name?: string; impact: string; remedy?: string; dateRange?: string }[]> => {
+  const safeItems = toSafeArray(items);
+  const validItems = safeItems.filter(item => item && (item.impact || item.description || item.trait || "").trim().length > 10);
+  if (validItems.length > 0) {
+    return validItems;
+  }
+  const translatedFallback = await translateText(fallbackText, targetLang);
+  return [{ impact: translatedFallback }];
+};
+
+function buildKundaliCharacteristicsFallback(lang: string, lagnaStr: string, moonStr: string, dashaStr: string, bhuktiStr: string): string {
+  const baseLang = (lang || "en").split("-")[0];
+  if (baseLang === "kn") {
+    return `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${lagnaStr}), ಚಂದ್ರ ರಾಶಿ (${moonStr}) ಹಾಗೂ ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dashaStr} ಮಹಾದಶೆಯ ಶುಭ ಪ್ರಭಾವವು ನಿಮ್ಮ ವ್ಯಕ್ತಿತ್ವಕ್ಕೆ ವಿಶಿಷ್ಟವಾದ ತೇಜಸ್ಸು ಹಾಗೂ ಬಲವನ್ನು ತುಂಬುತ್ತದೆ. ನೀವು ಸ್ವಾಭಾವಿಕವಾಗಿಯೇ ಉನ್ನತ ತರ್ಕಜ್ಞಾನ, ದೃಢ ಮನೋಬಲ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಜವಾಬ್ದಾರಿಗಳನ್ನು ಅತ್ಯಂತ ಶಿಸ್ತಿನಿಂದ ನಿರ್ವಹಿಸುವ ನಾಯಕತ್ವ ಗುಣಗಳನ್ನು ಹೊಂದಿದ್ದೀರಿ. ಗ್ರಹಗಳ ಬಲವಾದ ಸ್ಥಿತಿಯಿಂದಾಗಿ ನಿಮ್ಮ ನಿರ್ಧಾರಗಳಲ್ಲಿ ಸ್ಪಷ್ಟತೆ ಹಾಗೂ ಭವಿಷ್ಯದ ಯೋಜನೆಗಳಲ್ಲಿ ದೂರದರ್ಶಿತ್ವ ಎದ್ದು ಕಾಣುತ್ತದೆ. ಸಮಾಜದಲ್ಲಿ ಧಾರ್ಮಿಕ ಗೌರವ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಮೌಲ್ಯಗಳನ್ನು ಕಾಯ್ದುಕೊಂಡು ನಡೆಯುವುದು ನಿಮ್ಮ ವ್ಯಕ್ತಿತ್ವದ ಮುಖ್ಯ ಲಕ್ಷಣವಾಗಿದೆ.\n\nಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${bhuktiStr} ಭುಕ್ತಿ ಕಾಲವು ನಿಮ್ಮ ಆಂತರಿಕ ಚೇತನವನ್ನು ಮತ್ತಷ್ಟು ಜಾಗೃತಗೊಳಿಸಲಿದೆ. ಈ ಅವಧಿಯಲ್ಲಿ ನಿಮ್ಮ ಮನಸ್ಸಿನಲ್ಲಿ ನವೀನ ಆಲೋಚನೆಗಳು ಮೂಡಿಬರಲಿದ್ದು, ಕೈಗೊಂಡ ಕಾರ್ಯಗಳಲ್ಲಿ ಸತತ ಪ್ರಯತ್ನ ಹಾಗೂ ಶ್ರಮಕ್ಕೆ ತಕ್ಕಂತೆ ಶ್ರೇಷ್ಠ ಗೌರವ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ.`;
+  }
+  if (baseLang === "hi") {
+    return `आपकी जन्म लग्न (${lagnaStr}), चंद्र राशि (${moonStr}) और वर्तमान ${dashaStr} महादशा का प्रभाव आपके व्यक्तित्व को अत्यंत प्रभावशाली और दूरदर्शी बनाता है। आप प्राकृतिक रूप से उच्च तार्किक क्षमता, दृढ इच्छाशक्ति और पारिवारिक उत्तरदायित्वों को निष्ठापूर्वक निभाने वाले गुणों से संपन्न हैं।\n\nवर्तमान ${bhuktiStr} भुक्ति का प्रभाव आपकी आंतरिक ऊर्जा को और मजबूत करेगा।`;
+  }
+  if (baseLang === "te") {
+    return `మీ జన్మ లగ్నం (${lagnaStr}), చంద్ర రాశి (${moonStr}) మరియు ప్రస్తుత ${dashaStr} మహాతశ ప్రభావం మీ వ్యక్తిత్వానికి విశేషమైన తేಜస్సును এবং మానసిక బలాన్ని అందిస్తాయి.`;
+  }
+  if (baseLang === "ta") {
+    return `உங்கள் லக்னம் (${lagnaStr}), சந்திர ರಾசி (${moonStr}) மற்றும் தற்போதைய ${dashaStr} தசா காலம் உங்கள் ஆளுமைக்கு மிகுந்த வலிமையையும் நற்பெயரையும் தருகிறது.`;
+  }
+  return `Based on your birth Lagna (${lagnaStr}), Moon sign (${moonStr}), and running ${dashaStr} Mahadasha, your personality is imbued with strong intellect, resilience, and natural leadership capabilities.`;
+}
+
+function buildKundaliDarkSecretFallback(lang: string, lagnaStr: string, moonStr: string, dashaStr: string, bhuktiStr: string): string {
+  const baseLang = (lang || "en").split("-")[0];
+  if (baseLang === "kn") {
+    return `ನಿಮ್ಮ ಜಾತಕದ ಅಷ್ಟಮ ಹಾಗೂ ದ್ವಾದಶ ಭಾವಗಳ ಕರ್ಮಿಕ ಸಂರಚನೆ, ರಾಹು-ಕೇತುಗಳ ಸ್ಥಿತಿ ಹಾಗೂ ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dashaStr} ದಶೆಯ ಆಂತರಿಕ ಪ್ರಭಾವವು ನಿಮ್ಮ ಆತ್ಮದ ಆಳದಲ್ಲಿ ಅಡಗಿರುವ ಗೂಢ ರಹಸ್ಯವನ್ನು ಸೂಚಿಸುತ್ತದೆ. ನೀವು ಹೊರನೋಟಕ್ಕೆ ಅತ್ಯಂತ ಶಾಂತ ಹಾಗೂ ಧೈರ್ಯಶಾಲಿಯಾಗಿ ಕಂಡುಬಂದರೂ, ಒಳಗಿನ ಮನಸ್ಸಿನಲ್ಲಿ ಹಳೆಯ ಘಟನೆಗಳ ಕಲ್ಪನೆ ಅಥವಾ ಭಾವನಾತ್ಮಕ ಒಂಟಿತನದ ಅನಿಸಿಕೆಗಳು ಒಮ್ಮೊಮ್ಮೆ ಬಾಧಿಸಬಹುದು.\n\nಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${bhuktiStr} ಭುಕ್ತಿ ಕಾಲವು ಈ ಕರ್ಮಿಕ ಮಾನಸಿಕ ಸಂಕೋಲೆಗಳಿಂದ ಮುಕ್ತಿ ಪಡೆಯುವ ಸುಸಮಯವಾಗಿದೆ. ನಿತ್ಯವೂ ಧ್ಯಾನ, ನವಗ್ರಹ ಸ್ತೋತ್ರ ಪಠಣ ಹಾಗೂ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದಲ್ಲಿ ಮಹಾ ಮೃತ್ಯುಂಜಯ ಜಪ ನೆರವೇರಿಸುವುದು ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ ಶಮನ ಪರಿಹಾರವಾಗಿದೆ.`;
+  }
+  if (baseLang === "hi") {
+    return `आपकी कुंडली के अष्टम और द्वादश भाव का कर्मिक प्रभाव, राहू-केतु की स्थिति तथा वर्तमान ${dashaStr} महादशा आपके भीतर एक गहरे आध्यात्मिक अनुभव का संकेत देती है।`;
+  }
+  return `The karmic alignment of your 8th and 12th houses, the nodal axis of Rahu-Ketu, and your running ${dashaStr} Mahadasha point to a deep soul pattern. Externally you maintain composure, while internally navigating silent emotional vulnerabilities.`;
+}
+
+function buildKundaliCurrentPhaseFallback(lang: string, lagnaStr: string, moonStr: string, dashaStr: string, bhuktiStr: string): string {
+  const baseLang = (lang || "en").split("-")[0];
+  if (baseLang === "kn") {
+    return `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${lagnaStr}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${moonStr}) ಆಧಾರದ ಮೇಲೆ, ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dashaStr} ಮಹಾದಶಾ ಹಾಗೂ ${bhuktiStr} ಭುಕ್ತಿ ಕಾಲಘಟ್ಟವು ನಿಮ್ಮ ವೈಯಕ್ತಿಕ ಹಾಗೂ ವೃತ್ತಿಜೀವನದಲ್ಲಿ ಅತ್ಯಂತ ಪ್ರಮುಖ ಬದಲಾವಣೆಗಳನ್ನು ಉಂಟುಮಾಡುತ್ತಿದೆ. ಗ್ರಹಗಳ ಪ್ರಚಲಿತ ಸಂಚಾರವು ನಿಮ್ಮ ದೈನಂದಿನ ಕಾರ್ಯಗಳಲ್ಲಿ ಜವಾಬ್ದಾರಿಯನ್ನು ಹೆಚ್ಚಿಸುತ್ತಿದ್ದು, ಹೊಸ ಅವಕಾಶಗಳಿಗೆ ಹಾದಿ ಮಾಡಿಕೊಡುತ್ತಿದೆ.`;
+  }
+  return `Based on your birth Lagna (${lagnaStr}) and Moon sign (${moonStr}), your running ${dashaStr} Mahadasha and ${bhuktiStr} Bhukti activate significant developments in personal and professional spheres. Daily responsibilities expand while opening doors to long-term growth.`;
+}
+
+function enrichYogaDescription(name: string, impact: string, lang: string, lagnaStr: string = "Lagna", moonStr: string = "Moon Sign"): string {
+  const cleanImpact = (impact || "").trim();
+  if (cleanImpact.length >= 100) return cleanImpact;
+  const baseLang = (lang || "en").split("-")[0];
+  if (baseLang === "kn") {
+    return `${cleanImpact} ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಗುರು, ಚಂದ್ರ ಹಾಗೂ ಕೇಂದ್ರ-ತ್ರಿಕೋಣ ಗ್ರಹಗಳ ಶುಭ ಸ್ಥಿತಿಯಿಂದ ಈ ಯೋಗವು ಸಿದ್ಧಿಸಿದೆ. ಇದರ ಸತ್ಪ್ರಭಾವದಿಂದ ಜೀವನದಲ್ಲಿ ಉನ್ನತ ಗೌರವ, ಕೀರ್ತಿ, ಸ್ಥಿರ ಸಂಪತ್ತು ಹಾಗೂ ಸಕಲ ಸೌಭಾಗ್ಯಗಳು ಪ್ರಾಪ್ತಿಯಾಗಲಿವೆ.`;
+  }
+  return `${cleanImpact} Auspicious planetary combinations activate this favorable Yoga, bestowing prosperity, wisdom, and success.`;
+}
 
 type PriestTab = "kundli" | "questions" | "wallet";
 
@@ -167,15 +265,18 @@ export const PriestMobilePortal: React.FC = () => {
     );
   };
 
-  // Generate Kundli Handler with 200 Coin Deduction & Auto-Refund Guard
+  const geminiApiKey = useAppStore((state) => state.geminiApiKey);
+  const ayanamsaModel = useAppStore((state) => state.ayanamsaModel);
+
+  // Generate Kundli Handler with 250 Coin Deduction & Auto-Refund Guard
   const handleGenerateKundli = async (e: React.FormEvent) => {
     e.preventDefault();
-    const cost = SERVICE_COIN_COSTS.KUNDLI_CALCULATION.coins; // 200 Coins
+    const cost = SERVICE_COIN_COSTS.KUNDLI_CALCULATION.coins; // 250 Coins (₹25)
 
     if (coinBalance < cost) {
       setFeedback({
         type: "error",
-        text: `ನಾಣ್ಯಗಳ ಕೊರತೆ ಇದೆ. ಕುಂಡಲಿ ರಚನೆಗೆ ೨೦೦ ನಾಣ್ಯಗಳು (₹೨೦) ಅಗತ್ಯವಿದೆ. ಪ್ರಸ್ತುತ ${coinBalance} ನಾಣ್ಯಗಳಿವೆ.`
+        text: `ನಾಣ್ಯಗಳ ಕೊರತೆ ಇದೆ. ಕುಂಡಲಿ ರಚನೆಗೆ ೨೫೦ ನಾಣ್ಯಗಳು (₹೨೫) ಅಗತ್ಯವಿದೆ. ಪ್ರಸ್ತುತ ${coinBalance} ನಾಣ್ಯಗಳಿವೆ.`
       });
       setIsRechargeOpen(true);
       return;
@@ -184,7 +285,7 @@ export const PriestMobilePortal: React.FC = () => {
     setIsCalculatingKundli(true);
     setFeedback(null);
 
-    // 1. Deduct 200 Coins
+    // 1. Deduct 250 Coins
     const deductRes = await deductForService(cost, "ಜನನ ಕುಂಡಲಿ ರಚನೆ", devoteeName || "ಭಕ್ತರು");
     if (!deductRes.success) {
       setFeedback({ type: "error", text: deductRes.error || "ನಾಣ್ಯ ಕಡಿತ ವಿಫಲವಾಗಿದೆ." });
@@ -208,7 +309,7 @@ export const PriestMobilePortal: React.FC = () => {
       setKundliResult(output);
       setFeedback({
         type: "success",
-        text: `ಶ್ರೀ ${devoteeName || "ಭಕ್ತರ"} ಜನನ ಕುಂಡಲಿ ಯಶಸ್ವಿಯಾಗಿ ರಚಿಸಲ್ಪಟ್ಟಿದೆ. (೨೦೦ ನಾಣ್ಯಗಳು ಕಡಿತಗೊಂಡಿವೆ)`
+        text: `ಶ್ರೀ ${devoteeName || "ಭಕ್ತರ"} ಜನನ ಕುಂಡಲಿ ಯಶಸ್ವಿಯಾಗಿ ರಚಿಸಲ್ಪಟ್ಟಿದೆ. (೨೫೦ ನಾಣ್ಯಗಳು ಕಡಿತಗೊಂಡಿವೆ)`
       });
 
       // Save to Cloud Firestore
@@ -249,12 +350,12 @@ export const PriestMobilePortal: React.FC = () => {
         username: wallet?.userId || currentUser || "priest",
         priestName: activePriestDisplayName,
         action: "ಜನನ ಕುಂಡಲಿ ರಚನೆ (Janana Kundli Calculation)",
-        attemptedCoins: 200,
+        attemptedCoins: 250,
         errorMessage: err?.message || "Kundli calculation runtime failure"
       });
       setFeedback({
         type: "error",
-        text: "ಕುಂಡಲಿ ಲೆಕ್ಕಾಚಾರದಲ್ಲಿ ದೋಷ ಉಂಟಾಗಿದೆ. ಕಡಿತಗೊಂಡ ೨೦೦ ನಾಣ್ಯಗಳನ್ನು ತಕ್ಷಣವೇ ನಿಮ್ಮ ವಾಲೆಟ್‌ಗೆ ಮರುಪಾವತಿಸಲಾಗಿದೆ."
+        text: "ಕುಂಡಲಿ ಲೆಕ್ಕಾಚಾರದಲ್ಲಿ ದೋಷ ಉಂಟಾಗಿದೆ. ಕಡಿತಗೊಂಡ ೨೫೦ ನಾಣ್ಯಗಳನ್ನು ತಕ್ಷಣವೇ ನಿಮ್ಮ ವಾಲೆಟ್‌ಗೆ ಮರುಪಾವತಿಸಲಾಗಿದೆ."
       });
     } finally {
       setIsCalculatingKundli(false);
@@ -264,18 +365,10 @@ export const PriestMobilePortal: React.FC = () => {
   // PDF Export States & References
   const [pdfLanguage, setPdfLanguage] = useState<string>("kn");
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
-  const [dynamicValues, setDynamicValues] = useState<Record<string, string>>({});
-  const traditionalExportRef = useRef<HTMLDivElement>(null);
-  const dashaExportRef = useRef<HTMLDivElement>(null);
-
-  const traditionalData = useMemo(() => {
-    if (!birthDate || !birthTime) return null;
-    try {
-      return calculateTraditionalBaggona(birthDate, birthTime, latitude, longitude);
-    } catch {
-      return null;
-    }
-  }, [birthDate, birthTime, latitude, longitude]);
+  const [premiumDataForPdf, setPremiumDataForPdf] = useState<PremiumData | null>(null);
+  const [premiumPdfTranslations, setPremiumPdfTranslations] = useState<PdfTranslations | null>(null);
+  const [premiumPdfDeepInsights, setPremiumPdfDeepInsights] = useState<Record<string, string> | null>(null);
+  const premiumPdfRef = useRef<HTMLDivElement>(null);
 
   // Dasha-Bhukti Calculations
   const dashaBhuktiInfo = useMemo(() => {
@@ -327,7 +420,7 @@ export const PriestMobilePortal: React.FC = () => {
     } as unknown as KundliViewerSession;
   }, [kundliResult, devoteeName, birthDate, birthTime, latitude, longitude, placeName, dashaBhuktiInfo]);
 
-  // Handle Premium PDF Download with 3,500 Coin Deduction & Auto-Refund Guard
+  // Handle Full Baggona Bhavishya GenAI Premium PDF Download with 3,500 Coin Deduction & Auto-Refund Guard
   const handleDownloadPremiumPdf = async () => {
     if (!kundliResult) {
       setFeedback({
@@ -351,7 +444,7 @@ export const PriestMobilePortal: React.FC = () => {
     setFeedback(null);
 
     // 1. Deduct 3,500 Coins
-    const deductRes = await deductForService(cost, "ಪ್ರೀಮಿಯಂ ಜಾತಕ ಕುಂಡಲಿ PDF ಡೌನ್‌ಲೋಡ್", devoteeName || "ಭಕ್ತರು");
+    const deductRes = await deductForService(cost, "ಪ್ರೀಮಿಯಂ ಜಾತಕ ಕುಂಡಲಿ ಭವಿಷ್ಯ PDF ಡೌನ್‌ಲೋಡ್", devoteeName || "ಭಕ್ತರು");
     if (!deductRes.success) {
       setFeedback({ type: "error", text: deductRes.error || "ನಾಣ್ಯ ಕಡಿತ ವಿಫಲವಾಗಿದೆ." });
       setIsGeneratingPdf(false);
@@ -359,43 +452,301 @@ export const PriestMobilePortal: React.FC = () => {
     }
 
     try {
-      const el = traditionalExportRef.current;
-      const dashaEl = dashaExportRef.current;
+      const lang = pdfLanguage;
+      const runId = newRunId();
+      const moonPlanet = kundliResult.planets.find((p: PlanetPosition) => p.name === "Moon");
+      const now = new Date();
+      const ageYears = ageDecimalYearsAt(
+        birthDate,
+        birthTime,
+        latitude,
+        longitude,
+        now
+      );
+      const currentBhuktiData = findBhuktiAtAge(kundliResult, ageYears);
+      const mahaLord = currentBhuktiData ? toGraha(currentBhuktiData.maha.planet) : null;
+      const bhuktiLord = currentBhuktiData ? toGraha(currentBhuktiData.bhukti) : null;
+      const panchanga = calculateTraditionalBaggona(birthDate, birthTime, latitude, longitude);
 
-      const newVals: Record<string, string> = {};
-      if (pdfLanguage !== "kn" && traditionalData) {
-        const yoniMeta = patrikaMetaForNakshatraIndex(kundliResult.planets.find((p: PlanetPosition) => p.name === "Moon")?.nakshatra?.index || 0);
-        const keys = [
-          "samvatsara", "masa", "paksha", "tithi", "weekday", "sunNakshatra", "moonNakshatra", "yoga", "karana", "sankrantiSign",
-          "yoni", "gana", "nadi", "label_yoni", "label_gana", "label_nadi", "label_footer"
-        ];
-        const texts = [
-          traditionalData.samvatsaraKn, traditionalData.masaKn, traditionalData.pakshaKn, traditionalData.tithiKn, traditionalData.weekdayKn, 
-          traditionalData.sunNakshatraKn, traditionalData.moonNakshatraKn, traditionalData.yogaKn, traditionalData.karanaKn, traditionalData.sankrantiSignKn,
-          yoniMeta.yoniKn, yoniMeta.ganaKn, yoniMeta.nadiKn, "ಯೋನಿ", "ಗಣ", "ನಾಡಿ", "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಕರ್ತರು"
-        ];
-        const translated = await Promise.all(texts.map(txt => translateText(txt, pdfLanguage === "en" ? "en-US" : pdfLanguage + "-IN")));
-        keys.forEach((k, i) => newVals[k] = translated[i]);
+      const ashirvadaSource = `Chief Priest ${activePriestDisplayName} of Sri Kshetra Gokarna conveys sacred blessings: Under the grace of Lord Mahabaleshwara, may your life be filled with longevity, peace, harmony, and complete success.`;
+
+      const translatedData: PdfTranslations = {
+        title: tp("title", lang),
+        subtitle: tp("subtitle", lang),
+        nameLabel: tp("nameLabel", lang),
+        nameValue: devoteeName || "ಭಕ್ತರು",
+        dobLabel: tp("dobLabel", lang),
+        dobValue: formatBirthLine(lang, birthDate, birthTime),
+        lagnaLabel: tp("lagnaLabel", lang),
+        lagnaValue: kundliResult.lagnaRashi ? pick(RASHI_L5[kundliResult.lagnaRashi.index], lang) : "",
+        moonLabel: tp("moonLabel", lang),
+        moonValue: pick(RASHI_L5[kundliResult.moonSign.index], lang),
+        nakshatraLabel: tp("nakshatraLabel", lang),
+        nakshatraValue: moonPlanet ? pick(NAKSHATRA_L5[moonPlanet.nakshatra.index], lang) : "",
+        eraLabel: tp("eraLabel", lang),
+        dashaLabel: tp("dashaLabel", lang),
+        bhuktiLabel: tp("bhuktiLabel", lang),
+        dashaPlanetValue: mahaLord ? pick(GRAHA_L5[mahaLord], lang) : "",
+        bhuktiPlanetValue: bhuktiLord ? pick(GRAHA_L5[bhuktiLord], lang) : "",
+        ashirvadaTitle: tp("ashirvadaTitle", lang),
+        ashirvadaValue: await translateText(ashirvadaSource, lang),
+        footer: tp("footer", lang),
+        yogasTitle: tp("yogasTitle", lang),
+        doshasTitle: tp("doshasTitle", lang),
+        remedyTitle: tp("remedyTitle", lang),
+        characteristicsTitle: tp("characteristicsTitle", lang),
+        darkSecretTitle: tp("darkSecretTitle", lang),
+        timelineTitle: tp("timelineTitle", lang),
+        gocharaTitle: tp("gocharaTitle", lang),
+        summaryTitle: tp("summaryTitle", lang),
+        introTitle: tp("introTitle", lang),
+        introGreeting: greetingLine(lang, devoteeName || "ಭಕ್ತರು"),
+        introPrepared: buildComprehensiveIntro(lang, {
+          name: devoteeName || "ಭಕ್ತರು",
+          lagna: kundliResult.lagnaRashi ? pick(RASHI_L5[kundliResult.lagnaRashi.index], lang) : "",
+          moonSign: pick(RASHI_L5[kundliResult.moonSign.index], lang),
+          nakshatra: moonPlanet ? pick(NAKSHATRA_L5[moonPlanet.nakshatra.index], lang) : "",
+          birthWeekday: pick(WEEKDAY_L5[panchanga.weekdayIndex], lang),
+          birthDateFormatted: formatBirthLine(lang, birthDate, birthTime).split(",")[0],
+          birthTime: birthTime,
+          mahaLord: mahaLord ? pick(GRAHA_L5[mahaLord], lang) : "",
+          bhuktiLord: bhuktiLord ? pick(GRAHA_L5[bhuktiLord], lang) : ""
+        }),
+        introRunning: mahaLord && bhuktiLord ? runningPeriodSentence(lang, mahaLord, bhuktiLord) : "",
+        introBegin: tp("introBegin", lang),
+      };
+
+      setPremiumPdfTranslations(translatedData);
+
+      // Execute Master Prediction Engine
+      const result = await generateMasterPrediction(kundliResult, {
+        name: devoteeName || "ಭಕ್ತರು",
+        birthDate,
+        birthTime,
+        latitude,
+        longitude,
+        lang
+      });
+
+      const parseGeminiJSON = (text: string) => {
+        try {
+          const match = text.match(/\{[\s\S]*\}/);
+          return match ? JSON.parse(match[0]) : {};
+        } catch {
+          return {};
+        }
+      };
+
+      const affairResult = detectAffairIndicators(kundliResult);
+      const affairNote = (affairResult.hasAffairIndicators && affairResult.confidence !== "low")
+        ? `The chart carries ${affairResult.confidence}-confidence classical indicators of hidden romantic complexity (${affairResult.indicators.slice(0, 2).join("; ")}). Give this one short paragraph, framed as a karmic soul-pattern in dignified language. Never judgemental.`
+        : `This chart shows no confirmed indicator of a secret relationship. Do not raise the subject at all.`;
+
+      const liveTransits = getTransitsForDate(kundliResult.moonSign.index, now, ayanamsaModel);
+      const transits: TransitPlacement[] = Object.entries(liveTransits).map(([planet, pos]) => ({
+        graha: toGraha(planet),
+        rashiIndex: pos.rashiIndex,
+        houseFromMoon: pos.house
+      }));
+
+      const natalPlanets: NatalPlacement[] = kundliResult.planets.map(p => ({
+        graha: toGraha(p.name),
+        rashiIndex: p.rashi.index,
+        house: p.house,
+        retrograde: p.isRetrograde,
+        debilitated: p.isDebilitated,
+        exalted: p.isExalted
+      }));
+
+      const prompts = buildPremiumPrompts({
+        lang,
+        runId,
+        name: devoteeName || "ಭಕ್ತರು",
+        gender: "Male",
+        ageYears,
+        lagnaRashiIndex: kundliResult.lagnaRashi?.index ?? null,
+        moonRashiIndex: kundliResult.moonSign.index,
+        moonNakshatraIndex: moonPlanet?.nakshatra.index ?? null,
+        sunRashiIndex: kundliResult.sunSign?.index ?? null,
+        natalPlanets,
+        transits,
+        mahaLord,
+        bhuktiLord,
+        bhuktiEndsAtAge: currentBhuktiData?.bhuktiEndAge ?? null,
+        engineYogas: result.aiGeneratedNarrative?.yogas ?? [],
+        engineDoshas: result.aiGeneratedNarrative?.doshas ?? [],
+        pariharas: (result.pariharas ?? []).map(
+          p => `${p.doshaName}: ${p.poojaName} (${p.whenToDo}, ${p.whereToDo})`
+        ),
+        shadowSelf: result.natalLayer.shadowSelf.bluntTruth,
+        karmicBaggage: result.natalLayer.karmicBaggage.soulPurpose,
+        lifePhase: result.timingLayer.lifeClock.currentPhase,
+        overallTone: stripJayashreeIntro(result.masterSynthesis.overallTone),
+        careerNote: result.masterSynthesis.career,
+        financeNote: result.masterSynthesis.finance,
+        roadmap: result.timingLayer.twelveMonthRoadmap,
+        affairNote
+      });
+
+      const safeAsk = async (label: string, prompt: string, temp = 0.3) => {
+        try {
+          const raw = await askGemini(label, prompt, geminiApiKey, lang, { raw: true, temperature: temp });
+          if (typeof raw === "string" && (raw.includes("Sorry, I encountered an error") || raw.includes("check your API key") || raw.includes("Error"))) {
+            return "";
+          }
+          return raw;
+        } catch {
+          return "";
+        }
+      };
+
+      const [resCharacteristics, resDarkSecret, resCurrentPhase, resYogas, resDoshas] = await Promise.all([
+        safeAsk("Generate Characteristics", prompts.characteristics, 0.3),
+        safeAsk("Generate Dark Secret", prompts.darkSecret, 0.3),
+        safeAsk("Generate Current Phase", prompts.currentPhase, 0.3),
+        safeAsk("Generate Premium Yogas", prompts.yogas, 0.4),
+        safeAsk("Generate Premium Doshas", prompts.doshas, 0.4),
+      ]);
+
+      const [resTimeline, resGochara, resSummary] = await Promise.all([
+        safeAsk("Generate Timeline", prompts.timeline, 0.4),
+        safeAsk("Generate Gochara", prompts.gochara, 0.4),
+        safeAsk("Generate Summary", prompts.summary, 0.3),
+      ]);
+
+      const dataCharacteristics = parseGeminiJSON(resCharacteristics);
+      const dataDarkSecret = parseGeminiJSON(resDarkSecret);
+      const dataCurrentPhase = parseGeminiJSON(resCurrentPhase);
+      const dataYogas = parseGeminiJSON(resYogas);
+      const dataDoshas = parseGeminiJSON(resDoshas);
+      const dataTimeline = parseGeminiJSON(resTimeline);
+      const dataGochara = parseGeminiJSON(resGochara);
+      const dataSummary = parseGeminiJSON(resSummary);
+
+      const lagnaStr = kundliResult.lagnaRashi ? pick(RASHI_L5[kundliResult.lagnaRashi.index], lang) : "";
+      const moonStr = pick(RASHI_L5[kundliResult.moonSign.index], lang);
+      const dashaName = mahaLord ? pick(GRAHA_L5[mahaLord], lang) : "Dasha";
+      const bhuktiName = bhuktiLord ? pick(GRAHA_L5[bhuktiLord], lang) : "Bhukti";
+
+      const charFallbackText = buildKundaliCharacteristicsFallback(lang, lagnaStr, moonStr, dashaName, bhuktiName);
+      const secretFallbackText = buildKundaliDarkSecretFallback(lang, lagnaStr, moonStr, dashaName, bhuktiName);
+      const currentPhaseFallbackText = buildKundaliCurrentPhaseFallback(lang, lagnaStr, moonStr, dashaName, bhuktiName);
+      const rawSummaryFallback = stripJayashreeIntro(`${result.masterSynthesis.overallTone || 'A balanced planetary outlook for the future.'}\n\n${result.masterSynthesis.career || ''}\n\n${result.masterSynthesis.finance || ''}`);
+
+      const finalCharacteristics = await ensureValidSection(dataCharacteristics.characteristics, charFallbackText, lang);
+      const finalDarkSecret = await ensureValidSection(dataDarkSecret.darkSecret, secretFallbackText, lang);
+      const finalCurrentPhase = await ensureValidSection(dataCurrentPhase.currentPhase, currentPhaseFallbackText, lang);
+      const finalSummary = await ensureValidSection(dataSummary.summary, rawSummaryFallback, lang);
+
+      const rawYogasFallback = await Promise.all(
+        (result.aiGeneratedNarrative?.yogas || [{ name: "Dasha Yoga", significance: stripJayashreeIntro(result.masterSynthesis.overallTone) }]).map(async y => ({
+          name: await translateText(y.name, lang),
+          impact: await translateText(stripJayashreeIntro(asText(y.significance) || result.masterSynthesis.overallTone), lang)
+        }))
+      );
+      const rawYogasArray = toSafeArray(dataYogas.yogas).filter((y: any) => (y?.impact || "").trim().length > 10).length > 0
+        ? dataYogas.yogas
+        : rawYogasFallback;
+
+      const finalYogas = (rawYogasArray || []).map((y: any) => ({
+        ...y,
+        impact: enrichYogaDescription(y.name || y.trait || "", y.impact || "", lang, lagnaStr, moonStr)
+      }));
+
+      const rawDoshasFallback = await Promise.all(
+        (result.aiGeneratedNarrative?.doshas || [{ name: "Karmic Challenge", significance: result.natalLayer.karmicBaggage.description, remedy: result.natalLayer.karmicBaggage.soulPurpose }]).map(async d => ({
+          name: await translateText(d.name, lang),
+          impact: await translateText(asText(d.significance) || result.natalLayer.karmicBaggage.description, lang),
+          remedy: await translateText(d.remedy || result.natalLayer.karmicBaggage.soulPurpose, lang)
+        }))
+      );
+      const finalDoshas = toSafeArray(dataDoshas.doshas).filter((d: any) => (d?.impact || "").trim().length > 10).length > 0
+        ? dataDoshas.doshas
+        : rawDoshasFallback;
+
+      const engineRoadmap6 = result.timingLayer.twelveMonthRoadmap.slice(0, 6);
+      const fallbackTimeline = await Promise.all(
+        engineRoadmap6.map(async r => ({
+          dateRange: await translateText(r.month, lang),
+          impact: await translateText(r.prediction, lang)
+        }))
+      );
+
+      const validTimelineItems = toSafeArray(dataTimeline.timeline).filter((t: any) => (t?.impact || "").trim().length > 10);
+      const finalTimeline = validTimelineItems.length >= 4
+        ? await Promise.all(
+          validTimelineItems.map(async (t: any) => ({
+            ...t,
+            dateRange: await translateText(t.dateRange || "", lang)
+          }))
+        )
+        : fallbackTimeline;
+
+      const rawGocharaFallback = await Promise.all([
+        {
+          name: await translateText(result.timingLayer.lifeClock.currentPhase || "Current Transit Phase", lang),
+          impact: await translateText(result.timingLayer.lifeClock.description || result.masterSynthesis.overallTone, lang),
+          remedy: await translateText(result.timingLayer.lifeClock.emotionalValidation || "", lang)
+        }
+      ]);
+      const finalGochara = toSafeArray(dataGochara.gochara).filter((g: any) => (g?.impact || "").trim().length > 10).length > 0
+        ? dataGochara.gochara
+        : rawGocharaFallback;
+
+      const premiumDataPayload: PremiumData = {
+        characteristics: finalCharacteristics,
+        darkSecret: finalDarkSecret,
+        currentPhase: finalCurrentPhase,
+        yogas: finalYogas,
+        doshas: finalDoshas,
+        timeline: finalTimeline,
+        gochara: finalGochara,
+        summary: finalSummary
+      };
+
+      setPremiumDataForPdf(premiumDataPayload);
+
+      // Wait for React to flush state to hidden PdfTemplate
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      if (!premiumPdfRef.current) throw new Error("Premium PDF template ref not found");
+
+      const containerEl = premiumPdfRef.current;
+      const parentEl = containerEl.parentElement;
+      const originalStyle = parentEl?.getAttribute("style") || "";
+      if (parentEl) {
+        parentEl.setAttribute("style", "position: fixed; left: 0; top: 0; z-index: -9999; pointer-events: none; opacity: 1; visibility: visible; width: 900px; background-color: #FFFFFF;");
       }
-      setDynamicValues(newVals);
 
-      // Brief delay for off-screen render update
-      await new Promise(r => setTimeout(r, 600));
+      await (document as any).fonts?.ready;
+      await new Promise(resolve => setTimeout(resolve, 400));
 
+      const canvas = await html2canvas(containerEl, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#FFFFFF",
+        allowTaint: true
+      });
+
+      if (parentEl) {
+        parentEl.setAttribute("style", originalStyle);
+      }
+
+      const imgData = canvas.toDataURL("image/jpeg", 0.75);
+      const pdfWidth = 210;
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      const pdf = new jsPDF({ orientation: "p", unit: "mm", format: [pdfWidth, pdfHeight], compress: true });
+      pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
+
+      const langNames: Record<string, string> = { kn: "Kannada", ta: "Tamil", te: "Telugu", hi: "Hindi", en: "English" };
+      const langName = langNames[lang] || "Kannada";
       const safeName = (devoteeName || "bhaktaru").trim().replace(/\s+/g, "_");
-      const filename = `Baggona_Janana_Kundali_Premium_${safeName}_${pdfLanguage}`;
-
-      if (el && dashaEl) {
-        await exportPanchangaWithDashaPdf(el, dashaEl, filename);
-      } else if (el) {
-        await exportElementAsPdf(el, filename);
-      } else {
-        throw new Error("PDF Template elements not ready");
-      }
+      pdf.save(`Baggona_Panchanga_Prediction_${langName}_${safeName}.pdf`);
 
       setFeedback({
         type: "success",
-        text: "ಪ್ರೀಮಿಯಂ ಜಾತಕ PDF ಯಶಸ್ವಿಯಾಗಿ ಡೌನ್‌ಲೋಡ್ ಆಗಿದೆ. (೩,೫೦೦ ನಾಣ್ಯಗಳು ಕಡಿತಗೊಂಡಿವೆ)"
+        text: "ಪ್ರೀಮಿಯಂ ಜಾತಕ ಭವಿಷ್ಯ PDF ಯಶಸ್ವಿಯಾಗಿ ಡೌನ್‌ಲೋಡ್ ಆಗಿದೆ. (೩,೫೦೦ ನಾಣ್ಯಗಳು ಕಡಿತಗೊಂಡಿವೆ)"
       });
     } catch (err: any) {
       console.error("[PriestMobilePortal] Premium PDF download failed:", err);
@@ -414,6 +765,7 @@ export const PriestMobilePortal: React.FC = () => {
       });
     } finally {
       setIsGeneratingPdf(false);
+      setPremiumDataForPdf(null);
     }
   };
 
@@ -676,7 +1028,7 @@ export const PriestMobilePortal: React.FC = () => {
                 <span>ಭಕ್ತರ ಜನ್ಮ ವಿವರಗಳ ನಮೂದು</span>
               </h2>
               <span className="text-[10px] font-mono font-black text-amber-900 bg-[#FFF5D6] px-2.5 py-1 rounded-full border border-amber-400">
-                ದರ: 🪙 ೨೦೦ (₹೨೦)
+                ದರ: 🪙 ೨೫೦ (₹೨೫)
               </span>
             </div>
 
@@ -786,7 +1138,7 @@ export const PriestMobilePortal: React.FC = () => {
                 ) : (
                   <>
                     <span>🔮 ಕುಂಡಲಿ ರಚಿಸಿ</span>
-                    <span className="opacity-80 font-mono font-bold">(🪙 ೨೦೦)</span>
+                    <span className="opacity-80 font-mono font-bold">(🪙 ೨೫೦)</span>
                   </>
                 )}
               </button>
@@ -927,13 +1279,13 @@ export const PriestMobilePortal: React.FC = () => {
               <div className="bg-[#FFFDF7] border-2 border-amber-400/90 rounded-3xl p-5 shadow-md space-y-4">
                 <div className="flex items-center justify-between border-b border-amber-200 pb-2.5">
                   <div className="flex items-center gap-2">
-                    <span className="text-xl">📜✨</span>
+                    <span className="text-xl">📄✨</span>
                     <div>
                       <h3 className="text-xs font-black text-amber-950">
-                        ಪ್ರೀಮಿಯಂ ಜಾತಕ PDF ಡೌನ್‌ಲೋಡ್
+                        ಪ್ರೀಮಿಯಂ ಭವಿಷ್ಯ PDF (Bhavishya GenAI)
                       </h3>
                       <p className="text-[10px] text-amber-700 font-semibold">
-                        ಸಂಪೂರ್ಣ ಸಾಂಪ್ರದಾಯಿಕ ಬಗ್ಗೋಣ ಪತ್ರಿಕೆ & ದಶಾ-ಭುಕ್ತಿ ನಕ್ಷೆ
+                        ಸಂಪೂರ್ಣ AI ಮಾಸ್ಟರ್ ಭವಿಷ್ಯ, ಯೋಗ, ದೋಷ ಮತ್ತು ೧೨ ತಿಂಗಳ ಮಾರ್ಗಸೂಚಿ
                       </p>
                     </div>
                   </div>
@@ -977,24 +1329,24 @@ export const PriestMobilePortal: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Premium Download Action Button */}
+                {/* Premium Bhavishya Blue/Indigo Button Matching Baggona Bhavishya */}
                 <button
                   type="button"
                   onClick={handleDownloadPremiumPdf}
                   disabled={isGeneratingPdf}
-                  className={`w-full py-3.5 px-4 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-black text-sm rounded-2xl shadow-lg shadow-amber-500/25 border-2 border-amber-400 flex items-center justify-center gap-2 transition-all ${
+                  className={`w-full py-3.5 px-4 bg-gradient-to-r from-indigo-600 via-blue-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-black text-sm rounded-2xl shadow-lg shadow-indigo-500/25 border-2 border-indigo-400 flex items-center justify-center gap-2 transition-all ${
                     isGeneratingPdf ? "opacity-75 cursor-wait" : "hover:scale-[1.01]"
                   }`}
                 >
                   {isGeneratingPdf ? (
                     <>
-                      <div className="w-5 h-5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></div>
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                       <span>ಪ್ರೀಮಿಯಂ PDF ರಚಿಸಲಾಗುತ್ತಿದೆ...</span>
                     </>
                   ) : (
                     <>
-                      <span>📥</span>
-                      <span>ಪ್ರೀಮಿಯಂ ಜಾತಕ PDF ಡೌನ್‌ಲೋಡ್ (🪙 ೩,೫೦೦ / ₹೩೫೦)</span>
+                      <span className="text-base">📄✨</span>
+                      <span>ಪ್ರೀಮಿಯಂ PDF (Premium PDF • 🪙 ೩,೫೦೦ / ₹೩೫೦)</span>
                     </>
                   )}
                 </button>
@@ -1228,11 +1580,15 @@ export const PriestMobilePortal: React.FC = () => {
             <div className="divide-y divide-amber-200 font-semibold">
               <div className="py-2 flex justify-between">
                 <span className="text-slate-800">ಜನನ ಕುಂಡಲಿ ರಚನೆ (Full Chart)</span>
-                <span className="font-mono font-bold text-amber-900">🪙 ೨೦೦ (₹೨೦)</span>
+                <span className="font-mono font-bold text-amber-900">🪙 ೨೫೦ (₹೨೫)</span>
+              </div>
+              <div className="py-2 flex justify-between">
+                <span className="text-slate-800">ಪ್ರೀಮಿಯಂ ಜಾತಕ ಭವಿಷ್ಯ PDF ಡೌನ್‌ಲೋಡ್</span>
+                <span className="font-mono font-bold text-amber-900">🪙 ೩,೫೦೦ (₹೩೫೦)</span>
               </div>
               <div className="py-2 flex justify-between">
                 <span className="text-slate-800">ಪ್ರತಿ ಪ್ರಶ್ನೆ ಸಮಾಲೋಚನೆ (೪ ಪ್ಯಾರಾಗ್ರಾಫ್)</span>
-                <span className="font-mono font-bold text-amber-900">🪙 ೫೦೦ (₹೫೦)</span>
+                <span className="font-mono font-bold text-amber-900">🪙 ೭೫೦ (₹೭೫)</span>
               </div>
               <div className="py-2 flex justify-between">
                 <span className="text-slate-800">ದೈನಂದಿನ ಪಂಚಾಂಗ ದರ್ಶನ</span>
@@ -1470,28 +1826,15 @@ export const PriestMobilePortal: React.FC = () => {
           height: 0
         }}
       >
-        <div ref={traditionalExportRef}>
-          {kundliResult && (
-            <GokarnaKundaliTemplate
-              kundli={kundliResult}
-              personName={devoteeName || "ಭಕ್ತರು"}
-              parentsName=""
-              birthDateObj={new Date(birthDate)}
-              birthTimeStr={birthTime}
-              isDayBirth={true}
-              panchanga={traditionalData}
-              gothra={gothra || "ಕಾಶ್ಯಪ"}
-              pdfLanguage={pdfLanguage}
-              dynamicValues={dynamicValues}
-            />
-          )}
-        </div>
-        {kundliSession && (
-          <DashaPdfTemplate
-            ref={dashaExportRef}
+        {premiumDataForPdf && premiumPdfTranslations && kundliSession && (
+          <PdfTemplate
+            ref={premiumPdfRef}
+            theme="sunrise"
             session={kundliSession}
-            maxAge={120}
-            pdfLanguage={pdfLanguage}
+            predictions={[]}
+            translations={premiumPdfTranslations}
+            deepInsights={premiumPdfDeepInsights || {}}
+            premiumData={premiumDataForPdf}
           />
         )}
       </div>

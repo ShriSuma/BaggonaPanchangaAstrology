@@ -80,9 +80,9 @@ export const SERVICE_COIN_COSTS: Record<string, ServiceCost> = {
   KUNDLI_CALCULATION: {
     key: "KUNDLI_CALCULATION",
     name: "Detailed Birth Kundli Generation",
-    coins: 200,
-    inrEquivalent: 20,
-    description: "Complete birth chart with Rashi, Nakshatra, Pada & Planetary houses"
+    coins: 250,
+    inrEquivalent: 25,
+    description: "Complete birth chart with Rashi, Nakshatra, Pada & Planetary houses (250 Coins / ₹25)"
   },
   ASTROLOGY_QUESTION: {
     key: "ASTROLOGY_QUESTION",

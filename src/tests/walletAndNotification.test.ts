@@ -53,7 +53,7 @@ describe("Priest Wallet & Coining Math Engine", () => {
 
   it("verifies service coin deduction costs and INR equivalencies", () => {
     expect(SERVICE_COIN_COSTS.DAILY_PANCHANG.coins).toBe(0);
-    expect(SERVICE_COIN_COSTS.KUNDLI_CALCULATION.coins).toBe(200); // ₹20
+    expect(SERVICE_COIN_COSTS.KUNDLI_CALCULATION.coins).toBe(250); // ₹25
     expect(SERVICE_COIN_COSTS.ASTROLOGY_QUESTION.coins).toBe(750); // ₹75
     expect(SERVICE_COIN_COSTS.AI_PRASHNA_QUESTION.coins).toBe(450); // ₹45
     expect(SERVICE_COIN_COSTS.SANKHYA_PRASHNA.coins).toBe(450); // ₹45

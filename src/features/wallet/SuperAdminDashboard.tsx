@@ -58,7 +58,7 @@ export const SuperAdminDashboard: React.FC = () => {
   const [newPriestName, setNewPriestName] = useState("");
   const [newPriestUsername, setNewPriestUsername] = useState("");
   const [newPriestPassword, setNewPriestPassword] = useState("baggona123");
-  const [newPriestWelcomeCoins, setNewPriestWelcomeCoins] = useState("700");
+  const [newPriestWelcomeCoins, setNewPriestWelcomeCoins] = useState("1000");
   const [newPriestPortalType, setNewPriestPortalType] = useState<"both" | "panchanga" | "sankhyashastra">("both");
   const [createdPriestResult, setCreatedPriestResult] = useState<{
     name: string;
@@ -228,7 +228,7 @@ export const SuperAdminDashboard: React.FC = () => {
 
     const cleanUsername = newPriestUsername.trim().toLowerCase().replace(/\s+/g, "_");
     const passwordToSet = newPriestPassword.trim() || "baggona123";
-    const welcomeCoinsNum = parseInt(newPriestWelcomeCoins, 10) || 700;
+    const welcomeCoinsNum = parseInt(newPriestWelcomeCoins, 10) || 1000;
 
     setIsCreatingPriest(true);
     setFeedback(null);
@@ -640,7 +640,7 @@ export const SuperAdminDashboard: React.FC = () => {
                   type="number"
                   value={newPriestWelcomeCoins}
                   onChange={(e) => setNewPriestWelcomeCoins(e.target.value)}
-                  placeholder="700"
+                  placeholder="1000"
                   className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-slate-100 text-xs font-mono font-bold focus:border-amber-400 focus:outline-none"
                 />
               </div>
