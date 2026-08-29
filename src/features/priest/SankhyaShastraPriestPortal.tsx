@@ -269,12 +269,12 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
   // 1. Submit Prashna Oracle (450 Coins / ₹45)
   const handlePrashnaSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const cost = SERVICE_COIN_COSTS.SANKHYA_PRASHNA?.coins || 450;
+    const cost = SERVICE_COIN_COSTS.SANKHYA_PRASHNA?.coins || 250;
 
     if (coinBalance < cost) {
       setFeedback({
         type: "error",
-        text: `ನಾಣ್ಯಗಳ ಕೊರತೆ ಇದೆ. ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಪ್ರಶ್ನೆಗೆ ೪೫೦ ನಾಣ್ಯಗಳು (₹೪೫) ಅಗತ್ಯವಿದೆ. ಪ್ರಸ್ತುತ ${coinBalance} ನಾಣ್ಯಗಳಿವೆ.`
+        text: `ನಾಣ್ಯಗಳ ಕೊರತೆ ಇದೆ. ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಪ್ರಶ್ನೆಗೆ ೨೫೦ ನಾಣ್ಯಗಳು ಅಗತ್ಯವಿದೆ. ಪ್ರಸ್ತುತ ${coinBalance} ನಾಣ್ಯಗಳಿವೆ.`
       });
       setIsRechargeOpen(true);
       return;
@@ -283,7 +283,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
     setIsCalculatingPrashna(true);
     setFeedback(null);
 
-    // Deduct 450 Coins
+    // Deduct 250 Coins
     const deductRes = await deductForService(cost, "ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಪ್ರಶ್ನಾವಳಿ ದರ್ಶನ", devoteeName || "ಭಕ್ತರು");
     if (!deductRes.success) {
       setFeedback({ type: "error", text: deductRes.error || "ನಾಣ್ಯ ಕಡಿತ ವಿಫಲವಾಗಿದೆ." });
@@ -303,7 +303,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
       setPrashnaHistory((prev) => [result, ...prev]);
       setFeedback({
         type: "success",
-        text: `ಸಂಖ್ಯೆ ${prashnaNumber} ರ ಶಾಸ್ತ್ರೀಯ ಪ್ರಶ್ನಾವಳಿ ಫಲಿತಾಂಶ ಸಿದ್ಧವಾಗಿದೆ. (೪೫೦ ನಾಣ್ಯಗಳು ಕಡಿತಗೊಂಡಿವೆ)`
+        text: `ಸಂಖ್ಯೆ ${prashnaNumber} ರ ಶಾಸ್ತ್ರೀಯ ಪ್ರಶ್ನಾವಳಿ ಫಲಿತಾಂಶ ಸಿದ್ಧವಾಗಿದೆ. (೨೫೦ ನಾಣ್ಯಗಳು ಕಡಿತಗೊಂಡಿವೆ)`
       });
 
       // Save to Cloud Firestore
@@ -331,27 +331,27 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
         username: wallet?.userId || currentUser || "priest_sankhya",
         priestName: activePriestDisplayName,
         action: `ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಪ್ರಶ್ನೆ (${prashnaNumber})`,
-        attemptedCoins: 450,
+        attemptedCoins: 250,
         errorMessage: err?.message || "Sankhya Prashna runtime error"
       });
       setFeedback({
         type: "error",
-        text: "ಪ್ರಶ್ನೆ ವಿಶ್ಲೇಷಣೆಯಲ್ಲಿ ತಾಂತ್ರಿಕ ದೋಷ ಉಂಟಾಗಿದೆ. ಕಡಿತಗೊಂಡ ೪೫೦ ನಾಣ್ಯಗಳನ್ನು ತಕ್ಷಣವೇ ನಿಮ್ಮ ವಾಲೆಟ್‌ಗೆ ಮರುಪಾವತಿಸಲಾಗಿದೆ."
+        text: "ಪ್ರಶ್ನೆ ವಿಶ್ಲೇಷಣೆಯಲ್ಲಿ ತಾಂತ್ರಿಕ ದೋಷ ಉಂಟಾಗಿದೆ. ಕಡಿತಗೊಂಡ ೨೫೦ ನಾಣ್ಯಗಳನ್ನು ತಕ್ಷಣವೇ ನಿಮ್ಮ ವಾಲೆಟ್‌ಗೆ ಮರುಪಾವತಿಸಲಾಗಿದೆ."
       });
     } finally {
       setIsCalculatingPrashna(false);
     }
   };
 
-  // 2. Submit Name or Mobile/Vehicle Suggestion (2,000 Coins / ₹200)
+  // 2. Submit Name or Mobile/Vehicle Suggestion (500 Coins)
   const handleSuggestionSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const cost = 2000; // ₹200
+    const cost = SERVICE_COIN_COSTS.SANKHYA_NAME_SUGGESTION?.coins || 500;
 
     if (coinBalance < cost) {
       setFeedback({
         type: "error",
-        text: `ನಾಣ್ಯಗಳ ಕೊರತೆ ಇದೆ. ಈ ಸೇವೆಗೆ ೨,೦೦೦ ನಾಣ್ಯಗಳು (₹೨೦೦) ಅಗತ್ಯವಿದೆ. ಪ್ರಸ್ತುತ ${coinBalance} ನಾಣ್ಯಗಳಿವೆ.`
+        text: `ನಾಣ್ಯಗಳ ಕೊರತೆ ಇದೆ. ಈ ಸೇವೆಗೆ ೫೦೦ ನಾಣ್ಯಗಳು ಅಗತ್ಯವಿದೆ. ಪ್ರಸ್ತುತ ${coinBalance} ನಾಣ್ಯಗಳಿವೆ.`
       });
       setIsRechargeOpen(true);
       return;
@@ -389,7 +389,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
 
       setFeedback({
         type: "success",
-        text: `${serviceName} ಯಶಸ್ವಿಯಾಗಿ ರಚಿಸಲ್ಪಟ್ಟಿದೆ. (೨,೦೦೦ ನಾಣ್ಯಗಳು ಕಡಿತಗೊಂಡಿವೆ)`
+        text: `${serviceName} ಯಶಸ್ವಿಯಾಗಿ ರಚಿಸಲ್ಪಟ್ಟಿದೆ. (೫೦೦ ನಾಣ್ಯಗಳು ಕಡಿತಗೊಂಡಿವೆ)`
       });
 
       // Save to Cloud Firestore
@@ -414,12 +414,12 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
         username: wallet?.userId || currentUser || "priest_sankhya",
         priestName: activePriestDisplayName,
         action: serviceName,
-        attemptedCoins: 2000,
+        attemptedCoins: 500,
         errorMessage: err?.message || "Sankhya Suggestion runtime error"
       });
       setFeedback({
         type: "error",
-        text: "ಲೆಕ್ಕಾಚಾರದಲ್ಲಿ ದೋಷ ಉಂಟಾಗಿದೆ. ಕಡಿತಗೊಂಡ ೨,೦೦೦ ನಾಣ್ಯಗಳನ್ನು ತಕ್ಷಣವೇ ನಿಮ್ಮ ವಾಲೆಟ್‌ಗೆ ಮರುಪಾವತಿಸಲಾಗಿದೆ."
+        text: "ಲೆಕ್ಕಾಚಾರದಲ್ಲಿ ದೋಷ ಉಂಟಾಗಿದೆ. ಕಡಿತಗೊಂಡ ೫೦೦ ನಾಣ್ಯಗಳನ್ನು ತಕ್ಷಣವೇ ನಿಮ್ಮ ವಾಲೆಟ್‌ಗೆ ಮರುಪಾವತಿಸಲಾಗಿದೆ."
       });
     } finally {
       setIsCalculatingSuggestion(false);
@@ -729,7 +729,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
                 ) : (
                   <>
                     <span>🔍 ೪ ಪ್ಯಾರಾಗ್ರಾಫ್ ನಿಖರ ಫಲಿತಾಂಶ ಪಡೆಯಿರಿ</span>
-                    <span className="opacity-80 font-mono font-bold">(🪙 ೩೫೦)</span>
+                    <span className="opacity-80 font-mono font-bold">(🪙 ೨೫೦)</span>
                   </>
                 )}
               </button>
@@ -823,7 +823,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
                 }}
                 className="w-full py-3 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 hover:from-amber-500 hover:to-amber-300 text-slate-950 font-black text-xs rounded-2xl shadow-md flex items-center justify-center gap-2 border border-amber-400"
               >
-                <span>➕ ಇನ್ನೊಂದು ಪ್ರಶ್ನಾವಳಿ ಕೇಳಿ (Ask Another Prashna • 🪙 ೩೫೦)</span>
+                <span>➕ ಇನ್ನೊಂದು ಪ್ರಶ್ನಾವಳಿ ಕೇಳಿ (Ask Another Prashna • 🪙 ೨೫೦)</span>
               </button>
 
               {/* Previous Prashna Session History */}
@@ -850,7 +850,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 2: ಶುಭ ನಾಮ ಮತ್ತು ಮೊಬೈಲ್/ವಾಹನ ಸೂಚನೆ (2,000 Coins / ₹200) */}
+      {/* TAB 2: ಶುಭ ನಾಮ ಮತ್ತು ಮೊಬೈಲ್/ವಾಹನ ಸೂಚನೆ (500 Coins) */}
       {activeTab === "name_numbers" && (
         <div className="px-4 mt-4 space-y-4">
           <div className="bg-[#FFFDF7] border-2 border-amber-400/80 rounded-3xl p-5 shadow-md">
@@ -860,7 +860,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
                 <span>ಶುಭ ನಾಮ & ಸಂಖ್ಯಾ ಸಂಯೋಜನೆ</span>
               </h2>
               <span className="text-[10px] font-mono font-black text-amber-900 bg-[#FFF5D6] px-2.5 py-1 rounded-full border border-amber-400">
-                ದರ: 🪙 ೨,೦೦೦ (₹೨೦೦)
+                ದರ: 🪙 ೫೦೦ ನಾಣ್ಯಗಳು
               </span>
             </div>
 
@@ -985,7 +985,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
                 ) : (
                   <>
                     <span>✨ ಶುಭ ಸಂಖ್ಯಾ ಶಿಫಾರಸು ಪಡೆಯಿರಿ</span>
-                    <span className="opacity-80 font-mono font-bold">(🪙 ೨,೦೦೦)</span>
+                    <span className="opacity-80 font-mono font-bold">(🪙 ೫೦೦)</span>
                   </>
                 )}
               </button>
@@ -1124,15 +1124,15 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
             <div className="divide-y divide-amber-200 font-semibold">
               <div className="py-2 flex justify-between">
                 <span className="text-slate-800">ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಪ್ರಶ್ನಾವಳಿ ದರ್ಶನ</span>
-                <span className="font-mono font-bold text-amber-900">🪙 ೩೫೦ (₹೩೫)</span>
+                <span className="font-mono font-bold text-amber-900">🪙 ೨೫೦ ನಾಣ್ಯಗಳು</span>
               </div>
               <div className="py-2 flex justify-between">
                 <span className="text-slate-800">ಶುಭ ನಾಮ ಸಂಖ್ಯಾ ಸೂಚನೆ</span>
-                <span className="font-mono font-bold text-amber-900">🪙 ೨,೦೦೦ (₹೨೦೦)</span>
+                <span className="font-mono font-bold text-amber-900">🪙 ೫೦೦ ನಾಣ್ಯಗಳು</span>
               </div>
               <div className="py-2 flex justify-between">
                 <span className="text-slate-800">ಮೊಬೈಲ್ & ವಾಹನ ಸಂಖ್ಯಾ ಸೂಚನೆ</span>
-                <span className="font-mono font-bold text-amber-900">🪙 ೨,೦೦೦ (₹೨೦೦)</span>
+                <span className="font-mono font-bold text-amber-900">🪙 ೫೦೦ ನಾಣ್ಯಗಳು</span>
               </div>
             </div>
           </div>

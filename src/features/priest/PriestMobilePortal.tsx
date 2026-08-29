@@ -394,7 +394,7 @@ export const PriestMobilePortal: React.FC = () => {
     if (coinBalance < cost) {
       setFeedback({
         type: "error",
-        text: `ನಾಣ್ಯಗಳ ಕೊರತೆ ಇದೆ. ಕುಂಡಲಿ ರಚನೆಗೆ ೨೫೦ ನಾಣ್ಯಗಳು (₹೨೫) ಅಗತ್ಯವಿದೆ. ಪ್ರಸ್ತುತ ${coinBalance} ನಾಣ್ಯಗಳಿವೆ.`
+        text: `ನಾಣ್ಯಗಳ ಕೊರತೆ ಇದೆ. ಕುಂಡಲಿ ರಚನೆಗೆ ೨೫೦ ನಾಣ್ಯಗಳು ಅಗತ್ಯವಿದೆ. ಪ್ರಸ್ತುತ ${coinBalance} ನಾಣ್ಯಗಳಿವೆ.`
       });
       setIsRechargeOpen(true);
       return;
@@ -576,11 +576,11 @@ export const PriestMobilePortal: React.FC = () => {
       return;
     }
 
-    const cost = SERVICE_COIN_COSTS.STANDARD_JANANA_KUNDLI_PDF?.coins || 1000; // 1,000 Coins (₹100)
+    const cost = SERVICE_COIN_COSTS.STANDARD_JANANA_KUNDLI_PDF?.coins || 1000; // 1,000 Coins
     if (coinBalance < cost) {
       setFeedback({
         type: "error",
-        text: `ನಾಣ್ಯಗಳ ಕೊರತೆ ಇದೆ. ಜನನ ಕುಂಡಲಿ PDF ಡೌನ್‌ಲೋಡ್ ಮಾಡಲು ೧,೦೦೦ ನಾಣ್ಯಗಳು (₹೧೦೦) ಅಗತ್ಯವಿದೆ. ಪ್ರಸ್ತುತ ನಿಮ್ಮಲ್ಲಿ ${coinBalance} ನಾಣ್ಯಗಳಿವೆ.`
+        text: `ನಾಣ್ಯಗಳ ಕೊರತೆ ಇದೆ. ಜನನ ಕುಂಡಲಿ PDF ಡೌನ್‌ಲೋಡ್ ಮಾಡಲು ೧,೦೦೦ ನಾಣ್ಯಗಳು ಅಗತ್ಯವಿದೆ. ಪ್ರಸ್ತುತ ನಿಮ್ಮಲ್ಲಿ ${coinBalance} ನಾಣ್ಯಗಳಿವೆ.`
       });
       setIsRechargeOpen(true);
       return;
@@ -687,11 +687,11 @@ export const PriestMobilePortal: React.FC = () => {
       return;
     }
 
-    const cost = SERVICE_COIN_COSTS.PREMIUM_KUNDLI_PDF?.coins || 3500; // 3,500 Coins / ₹350
+    const cost = SERVICE_COIN_COSTS.PREMIUM_KUNDLI_PDF?.coins || 3500; // 3,500 Coins
     if (coinBalance < cost) {
       setFeedback({
         type: "error",
-        text: `ನಾಣ್ಯಗಳ ಕೊರತೆ ಇದೆ. ಪ್ರೀಮಿಯಂ ಜಾತಕ PDF ಡೌನ್‌ಲೋಡ್ ಮಾಡಲು ೩,೫೦೦ ನಾಣ್ಯಗಳು (₹೩೫೦) ಅಗತ್ಯವಿದೆ. ಪ್ರಸ್ತುತ ನಿಮ್ಮಲ್ಲಿ ${coinBalance} ನಾಣ್ಯಗಳಿವೆ.`
+        text: `ನಾಣ್ಯಗಳ ಕೊರತೆ ಇದೆ. ಪ್ರೀಮಿಯಂ ಜಾತಕ PDF ಡೌನ್‌ಲೋಡ್ ಮಾಡಲು ೩,೫೦೦ ನಾಣ್ಯಗಳು ಅಗತ್ಯವಿದೆ. ಪ್ರಸ್ತುತ ನಿಮ್ಮಲ್ಲಿ ${coinBalance} ನಾಣ್ಯಗಳಿವೆ.`
       });
       setIsRechargeOpen(true);
       return;
@@ -1060,11 +1060,11 @@ export const PriestMobilePortal: React.FC = () => {
       return;
     }
 
-    const cost = SERVICE_COIN_COSTS.ASTROLOGY_QUESTION.coins; // 750 Coins (₹75)
+    const cost = SERVICE_COIN_COSTS.ASTROLOGY_QUESTION.coins; // 750 Coins
     if (coinBalance < cost) {
       setFeedback({
         type: "error",
-        text: `ನಾಣ್ಯಗಳ ಕೊರತೆ ಇದೆ. ಪ್ರಶ್ನೆ ವಿಶ್ಲೇಷಣೆಗೆ ೭೫೦ ನಾಣ್ಯಗಳು (₹೭೫) ಅಗತ್ಯವಿದೆ. ಪ್ರಸ್ತುತ ${coinBalance} ನಾಣ್ಯಗಳಿವೆ.`
+        text: `ನಾಣ್ಯಗಳ ಕೊರತೆ ಇದೆ. ಪ್ರಶ್ನೆ ವಿಶ್ಲೇಷಣೆಗೆ ೭೫೦ ನಾಣ್ಯಗಳು ಅಗತ್ಯವಿದೆ. ಪ್ರಸ್ತುತ ${coinBalance} ನಾಣ್ಯಗಳಿವೆ.`
       });
       setIsRechargeOpen(true);
       return;
@@ -1322,7 +1322,7 @@ export const PriestMobilePortal: React.FC = () => {
                 <span>ಭಕ್ತರ ಜನ್ಮ ವಿವರಗಳ ನಮೂದು</span>
               </h2>
               <span className="text-[10px] font-mono font-black text-amber-900 bg-[#FFF5D6] px-2.5 py-1 rounded-full border border-amber-400">
-                ದರ: 🪙 ೨೫೦ (₹೨೫)
+                ದರ: 🪙 ೨೫೦ ನಾಣ್ಯಗಳು
               </span>
             </div>
 
@@ -1601,7 +1601,7 @@ export const PriestMobilePortal: React.FC = () => {
                     </div>
                   </div>
                   <span className="text-[10px] font-mono font-black text-amber-900 bg-[#FFF5D6] px-2.5 py-1 rounded-full border border-amber-400">
-                    🪙 ೧,೦೦೦ (₹೧೦೦)
+                    🪙 ೧,೦೦೦ ನಾಣ್ಯಗಳು
                   </span>
                 </div>
 
@@ -1672,7 +1672,7 @@ export const PriestMobilePortal: React.FC = () => {
                   ) : (
                     <>
                       <span className="text-base">📜</span>
-                      <span>ಜನನ ಕುಂಡಲಿ PDF (Janana Kundli PDF • 🪙 ೧,೦೦೦ / ₹೧೦೦)</span>
+                      <span>ಜನನ ಕುಂಡಲಿ PDF (Janana Kundli PDF • 🪙 ೧,೦೦೦)</span>
                     </>
                   )}
                 </button>
@@ -1693,7 +1693,7 @@ export const PriestMobilePortal: React.FC = () => {
                     </div>
                   </div>
                   <span className="text-[10px] font-mono font-black text-indigo-950 bg-indigo-50 px-2.5 py-1 rounded-full border border-indigo-400">
-                    🪙 ೩,೫೦೦ (₹೩೫೦)
+                    🪙 ೩,೫೦೦ ನಾಣ್ಯಗಳು
                   </span>
                 </div>
 
@@ -1749,7 +1749,7 @@ export const PriestMobilePortal: React.FC = () => {
                   ) : (
                     <>
                       <span className="text-base">📄✨</span>
-                      <span>ಪ್ರೀಮಿಯಂ PDF (Premium PDF • 🪙 ೩,೫೦೦ / ₹೩೫೦)</span>
+                      <span>ಪ್ರೀಮಿಯಂ PDF (Premium PDF • 🪙 ೩,೫೦೦)</span>
                     </>
                   )}
                 </button>
@@ -1778,7 +1778,7 @@ export const PriestMobilePortal: React.FC = () => {
                 <span>ಶಾಸ್ತ್ರೀಯ ಪ್ರಶ್ನೋತ್ತರ ಸಮಾಲೋಚನೆ</span>
               </h2>
               <span className="text-[10px] font-mono font-black text-amber-900 bg-[#FFF5D6] px-2.5 py-1 rounded-full border border-amber-400">
-                ದರ: 🪙 ೭೫೦ (₹೭೫)
+                ದರ: 🪙 ೭೫೦ ನಾಣ್ಯಗಳು
               </span>
             </div>
 
@@ -1983,15 +1983,15 @@ export const PriestMobilePortal: React.FC = () => {
             <div className="divide-y divide-amber-200 font-semibold">
               <div className="py-2 flex justify-between">
                 <span className="text-slate-800">ಜನನ ಕುಂಡಲಿ ರಚನೆ (Full Chart)</span>
-                <span className="font-mono font-bold text-amber-900">🪙 ೨೫೦ (₹೨೫)</span>
+                <span className="font-mono font-bold text-amber-900">🪙 ೨೫೦ ನಾಣ್ಯಗಳು</span>
               </div>
               <div className="py-2 flex justify-between">
                 <span className="text-slate-800">ಪ್ರೀಮಿಯಂ ಜಾತಕ ಭವಿಷ್ಯ PDF ಡೌನ್‌ಲೋಡ್</span>
-                <span className="font-mono font-bold text-amber-900">🪙 ೩,೫೦೦ (₹೩೫೦)</span>
+                <span className="font-mono font-bold text-amber-900">🪙 ೩,೫೦೦ ನಾಣ್ಯಗಳು</span>
               </div>
               <div className="py-2 flex justify-between">
                 <span className="text-slate-800">ಪ್ರತಿ ಪ್ರಶ್ನೆ ಸಮಾಲೋಚನೆ (೪ ಪ್ಯಾರಾಗ್ರಾಫ್)</span>
-                <span className="font-mono font-bold text-amber-900">🪙 ೭೫೦ (₹೭೫)</span>
+                <span className="font-mono font-bold text-amber-900">🪙 ೭೫೦ ನಾಣ್ಯಗಳು</span>
               </div>
               <div className="py-2 flex justify-between">
                 <span className="text-slate-800">ದೈನಂದಿನ ಪಂಚಾಂಗ ದರ್ಶನ</span>
