@@ -236,7 +236,7 @@ export function detectQuestionCategoryAndKaryaBhava(query: string): {
 
   // 2. Career / Job / Promotion / Business / Interview / Work
   if (
-    /job|promot|work|career|interview|salary|business|wurk|transfer|join|office|ವೃತ್ತಿ|ಉದ್ಯೋಗ|ಬಡ್ತಿ|ಕೆಲಸ|ಸಂಬಳ|ವ್ಯಾಪಾರ|ವರ್ಗಾವಣೆ|ಆಫೀಸ್|नौकरी|करियर|उद्योग|उद्यోగం|వృత్తి|வேலை|தொழில்/.test(
+    /job|promot|work|career|interview|salary|business|wurk|transfer|join|office|govt.*job|ಸರ್ಕಾರಿ.*ಕೆಲಸ|ಸರಕಾರಿ.*ಕೆಲಸ|ವೃತ್ತಿ|ಉದ್ಯೋಗ|ಬಡ್ತಿ|ಕೆಲಸ|ಸಂಬಳ|ವ್ಯಾಪಾರ|ವರ್ಗಾವಣೆ|ಆಫೀಸ್|नौकरी|करियर|उद्योग|उद्यోగం|వృత్తి|వేலை|தொழில்/.test(
       text
     )
   ) {
@@ -245,7 +245,7 @@ export function detectQuestionCategoryAndKaryaBhava(query: string): {
 
   // 3. Marriage / Relationship / Spouse / Love / Match / Bride / Groom
   if (
-    /marria|marrige|wedding|match|spouse|husband|wife|love|relationship|bride|groom|boy|girl|ವಿವಾಹ|ಮದುವೆ|ಪತಿ|ಪತ್ನಿ|ಸಂಬಂಧ|ವರ|ವಧು|ಪ್ರೇಮ|ಜೊತೆ|विवाह|शादी|पति|पत्नी|లగ్నం|పెళ్లి|వివాహం|திருமணம்|கல்யாணம்/.test(
+    /marria|marrige|wedding|match|spouse|husband|wife|love|relationship|bride|groom|boy|girl|alliance|ವಿವಾಹ|ಮದುವೆ|ಪತಿ|ಪತ್ನಿ|ಸಂಬಂಧ|ವರ|ವಧು|ಪ್ರೇಮ|ಜೊತೆ|ಕಲ್ಯಾಣ|विवाह|शादी|पति|पत्नी|లగ్నం|పెళ్లి|వివాహం|திருமணம்|கல்யாணம்/.test(
       text
     )
   ) {
@@ -254,7 +254,7 @@ export function detectQuestionCategoryAndKaryaBhava(query: string): {
 
   // 4. Wealth / Money / Loan / Finance / Investment / Debt / Profits
   if (
-    /money|wealth|cash|finance|profit|debt|loan|invest|return|bank|ಸಾಲ|ಧನ|ಹಣ|ಲಾಭ|ಸಂಪತ್ತು|ಬ್ಯಾಂಕ್|ಹೂಡಿಕೆ|धन|पैसा|ऋण|लाभ|ధనం|డబ్బు|ఋణం|தனம்|பணம்|கடன்/.test(
+    /money|wealth|cash|finance|profit|debt|loan|invest|return|bank|ಸಾಲ|ಧನ|ಹಣ|ಲಾಭ|ಸಂಪತ್ತು|ಬ್ಯಾಂಕ್|ಹೂಡಿಕೆ|ಧನಲಾಭ|धन|पैसा|ऋण|लाभ|ధనం|డబ్బు|ఋణం|தனம்|பணம்|கடன்/.test(
       text
     )
   ) {
@@ -263,7 +263,7 @@ export function detectQuestionCategoryAndKaryaBhava(query: string): {
 
   // 5. House / Property / Land / Vehicle / Buying / Flat
   if (
-    /house|home|land|property|flat|site|car|vehicle|buy|purchase|construct|ಆಸ್ತಿ|ಮನೆ|ವಾಹನ|ಖರೀದಿ|ಸ್ಥಳ|ಸೈಟ್|मकान|भूमि|वाहन|सम्पत्ति|ఇల్లు|ఆస్తి|వాహనం|వీடு|நிலம்|வாகனம்/.test(
+    /house|home|land|property|flat|site|car|vehicle|buy|purchase|construct|ಆಸ್ತಿ|ಮನೆ|ವಾಹನ|ಖರೀದಿ|ಸ್ಥಳ|ಸೈಟ್|ಮನೆಕಟ್ಟ|मकान|भूमि|वाहन|सम्पत्ति|ఇల్లు|ఆస్తి|వాహనం|வீடு|நிலம்|வாகனம்/.test(
       text
     )
   ) {
@@ -272,7 +272,7 @@ export function detectQuestionCategoryAndKaryaBhava(query: string): {
 
   // 6. Education / Exam / Higher Studies / Degree / Rank
   if (
-    /exam|study|educat|college|degree|mark|rank|pass|score|school|admission|ಪರೀಕ್ಷೆ|ಶಿಕ್ಷಣ|ಅಂಕ|ರ‍್ಯಾಂಕ್|ಓದು|ಶಾಲೆ|ಕಾಲೇಜು|परीक्षा|शिक्षा|अंक|చదువు|పరీక్ష|தேர்வு|கல்வி/.test(
+    /exam|study|educat|college|degree|mark|rank|pass|score|school|admission|ಪರೀಕ್ಷೆ|ಶಿಕ್ಷಣ|ಅಂಕ|ರ‍್ಯಾಂಕ್|ಓದು|ಶಾಲೆ|ಕಾಲೇಜು|ಫಲಿತಾಂಶ|परीक्षा|शिक्षा|अंक|చదువు|పరీక్ష|தேர்வு|கல்வி/.test(
       text
     )
   ) {
@@ -281,7 +281,7 @@ export function detectQuestionCategoryAndKaryaBhava(query: string): {
 
   // 7. Health / Medical / Disease / Court / Legal Competition / Dispute
   if (
-    /health|disease|court|case|legal|cure|doctor|hospital|pain|dispute|ಆರೋಗ್ಯ|ರೋಗ|ಕೋರ್ಟ್|ವ್ಯಾಜ್ಯ|ಸಾಧನೆ|ಆಸ್ಪತ್ರೆ|ನೋವು|स्वास्थ्य|रोग|कोर्ट|आरोग्यం|கேஸ்|சிகிச்சை/.test(
+    /health|disease|court|case|legal|cure|doctor|hospital|pain|dispute|operation|surgery|ಆರೋಗ್ಯ|ರೋಗ|ಕೋರ್ಟ್|ವ್ಯಾಜ್ಯ|ಸಾಧನೆ|ಆಸ್ಪತ್ರೆ|ನೋವು|ಚಿಕಿತ್ಸೆ|ಗುಣ|स्वास्थ्य|रोग|कोर्ट|आरोग्यం|கேஸ்|சிகிச்சை/.test(
       text
     )
   ) {
@@ -290,7 +290,7 @@ export function detectQuestionCategoryAndKaryaBhava(query: string): {
 
   // 8. Foreign Travel / Visa / Passport / Relocation / Abroad
   if (
-    /foreign|abroad|visa|travel|passport|flight|country|settle|ವಿದೇಶ|ಪ್ರಯಾಣ|ವೀಸಾ|ಪಾಸ್‌ಪೋರ್ಟ್|विदेश|यात्रा|విదేశీ|வெளிநாடு/.test(
+    /foreign|abroad|visa|travel|passport|flight|country|settle|ವಿದೇಶ|ಪ್ರಯಾಣ|ವೀಸಾ|ಪಾಸ್‌ಪೋರ್ಟ್|ವಿದೇಶಯಾನ|विदेश|यात्रा|విదేశీ|வெளிநாடு/.test(
       text
     )
   ) {

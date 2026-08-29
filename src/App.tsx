@@ -79,6 +79,33 @@ export default function App(): JSX.Element {
 
   useEffect(() => {
     const run = async () => {
+      // Check for URL parameters (?reset=true or ?reset=false)
+      if (typeof window !== "undefined") {
+        const urlParams = new URLSearchParams(window.location.search);
+        const resetParam = urlParams.get("reset");
+        
+        if (resetParam === "true" || resetParam === "1") {
+          // Explicit reset requested: clear session cache
+          localStorage.removeItem("baggona_priest_kundli_active_session");
+          localStorage.removeItem("baggona_priest_sankhya_active_session");
+        }
+
+        // If coming from a deep link URL (token, portal, or reset flag), validate URL once and bypass recurring popups
+        if (
+          urlParams.has("token") ||
+          urlParams.has("portal") ||
+          urlParams.has("fromCal") ||
+          urlParams.has("reset") ||
+          isDailyRoute ||
+          isAcademyRoute ||
+          isSankhyaShastraPortalRoute ||
+          isPriestPortalRoute
+        ) {
+          localStorage.setItem("jk-consent", "accepted");
+          setConsentResolved(true);
+        }
+      }
+
       await hydrateSettings();
       await checkSession();
       initDailyReportScheduler();
@@ -86,7 +113,7 @@ export default function App(): JSX.Element {
       await analytics.track("app_loaded");
     };
     void run();
-  }, [hydrateSettings, checkSession]);
+  }, [hydrateSettings, checkSession, setConsentResolved, isDailyRoute, isAcademyRoute, isSankhyaShastraPortalRoute, isPriestPortalRoute]);
 
   if (isAcademyRoute) {
     return <KundliAcademyStandalonePage />;
@@ -142,11 +169,11 @@ export default function App(): JSX.Element {
       <Layout>
         {currentPage === "home" && <HomePage />}
         {currentPage === "kundli" && <KundliPage />}
-        {currentPage === "baggona" && <BaggonaPredictionsPage />}
         {currentPage === "predictions" && <PredictionsPage />}
         {currentPage === "insights" && <InsightsPage />}
-        {currentPage === "melapak" && <MelapakPage />}
         {currentPage === "settings" && <SettingsPage />}
+        {currentPage === "melapak" && <MelapakPage />}
+        {currentPage === "baggona" && <BaggonaPredictionsPage />}
         {currentPage === "muhurtha" && <MuhurthaPage />}
         {currentPage === "varshabavishya" && <VarshaBavishyaPage />}
         {currentPage === "ramanbhavishya" && <RamanBhavishyaPage />}
@@ -157,10 +184,10 @@ export default function App(): JSX.Element {
         {currentPage === "palmreading" && <PalmReadingPage />}
         {currentPage === "facereading" && <FaceReadingPage />}
         {currentPage === "maranottara" && <MaranottaraPage />}
-        {currentPage === "hindinajanma" && <HindinaJanmaPage />}
         {currentPage === "lifeguidance" && <LifeGuidancePage />}
         {currentPage === "astrogames" && <AstroGamesPage />}
         {currentPage === "kaaladiksuchi" && <DivyaKaalaDiksuchiPage />}
+        {currentPage === "hindinajanma" && <HindinaJanmaPage />}
         {currentPage === "ayursanjeevini" && <AyurSanjeeviniPage />}
         {currentPage === "priestdashboard" && <PriestDashboard />}
         {currentPage === "superadmindashboard" && <SuperAdminDashboard />}

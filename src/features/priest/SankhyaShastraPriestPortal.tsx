@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import QRCode from "qrcode";
 import { useWalletStore } from "../wallet/walletStore";
 import { useAuthStore } from "../auth/authStore";
 import {
@@ -102,7 +103,27 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
   // Recharge Modal State
   const [isRechargeOpen, setIsRechargeOpen] = useState(false);
   const [upiUtrInput, setUpiUtrInput] = useState("");
+  const [rechargeQrUrl, setRechargeQrUrl] = useState<string>("");
   const [rechargeFeedback, setRechargeFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  // Generate Scannable Dynamic UPI QR Code for Selected Package
+  useEffect(() => {
+    if (isRechargeOpen) {
+      const payeeName = "Baggona Panchanga";
+      const note = `COINS-${selectedPackage.key.toUpperCase()}-${wallet?.userId || currentUser || "PRIEST"}`;
+      const upiUri = `upi://pay?pa=${encodeURIComponent(DEFAULT_PRIEST_UPI_ID)}&pn=${encodeURIComponent(
+        payeeName
+      )}&am=${selectedPackage.amountInr.toFixed(2)}&cu=INR&tn=${encodeURIComponent(note)}`;
+
+      QRCode.toDataURL(upiUri, {
+        width: 180,
+        margin: 1,
+        color: { dark: "#000000", light: "#ffffff" }
+      })
+        .then((url) => setRechargeQrUrl(url))
+        .catch((err) => console.warn("Recharge QR Code Error:", err));
+    }
+  }, [isRechargeOpen, selectedPackage, wallet, currentUser]);
 
   // Feedback Banner
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -476,33 +497,33 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
       )}
 
       {/* Royal Header Bar */}
-      <header className="sticky top-0 z-30 bg-[#FFFDF7]/95 backdrop-blur-md border-b-2 border-amber-400/80 px-4 py-3 shadow-md">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-600 via-amber-500 to-amber-300 flex items-center justify-center text-slate-950 text-xl font-bold shadow-md shadow-amber-500/20 border border-amber-400">
+      <header className="sticky top-0 z-30 bg-[#FFFDF7]/95 backdrop-blur-md border-b-2 border-amber-400/80 px-3 sm:px-4 py-2.5 sm:py-3 shadow-md">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0 shrink">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-tr from-amber-600 via-amber-500 to-amber-300 flex items-center justify-center text-slate-950 text-lg sm:text-xl font-bold shadow-md shadow-amber-500/20 border border-amber-400 shrink-0">
               🔢
             </div>
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-1.5">
-                <h1 className="text-lg font-black text-amber-900 tracking-tight leading-tight">
+                <h1 className="text-sm sm:text-base md:text-lg font-black text-amber-900 tracking-tight leading-tight truncate">
                   ॥ ಬಗ್ಗೋಣ ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ॥
                 </h1>
-                <span className="px-1.5 py-0.5 bg-amber-200/80 border border-amber-400 rounded-md text-[9px] font-black text-amber-900 font-mono">
+                <span className="px-1 py-0.2 bg-amber-200/80 border border-amber-400 rounded text-[9px] font-black text-amber-900 font-mono shrink-0">
                   v1.0
                 </span>
               </div>
-              <p className="text-[10px] text-amber-700 font-bold uppercase tracking-wider">
-                🙏 ನಮಸ್ಕಾರ {activePriestDisplayName} ಅವರೇ • ಸಂಖ್ಯಾ ದೈವಜ್ಞ ಕೇಂದ್ರ
+              <p className="text-[9px] sm:text-[10px] text-amber-700 font-bold uppercase tracking-wider truncate">
+                🙏 ನಮಸ್ಕಾರ {activePriestDisplayName} ಅವರೇ
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {/* Priest Reset Action Button (Anti-Reset Guard: State is only wiped on explicit Priest click) */}
             <button
               type="button"
               onClick={handleResetSankhya}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-2xl bg-amber-100/90 hover:bg-amber-200 border-2 border-amber-400 text-amber-950 font-bold text-xs shadow-sm transition-all active:scale-95"
+              className="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-xl sm:rounded-2xl bg-amber-100/90 hover:bg-amber-200 border-2 border-amber-400 text-amber-950 font-bold text-[11px] sm:text-xs shadow-sm transition-all active:scale-95 whitespace-nowrap"
               title="ಹೊಸ ಪ್ರಶ್ನೆ ನಮೂದಿಸಲು ರಿಸೆಟ್ ಮಾಡಿ"
             >
               <span>🔄</span>
@@ -513,14 +534,15 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsRechargeOpen(true)}
-              className="flex items-center gap-2 px-3.5 py-1.5 rounded-2xl bg-[#FFF9E6] border-2 border-amber-400 hover:bg-amber-100 transition-all text-right shadow-sm active:scale-95"
+              className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 rounded-xl sm:rounded-2xl bg-[#FFF9E6] border-2 border-amber-400 hover:bg-amber-100 transition-all text-right shadow-sm active:scale-95 shrink-0 whitespace-nowrap"
+              title="ನಾಣ್ಯಗಳನ್ನು ರೀಚಾರ್ಜ್ ಮಾಡಿ"
             >
-              <span className="text-amber-600 text-sm">🪙</span>
+              <span className="text-amber-600 text-xs sm:text-sm">🪙</span>
               <div>
-                <div className="text-xs font-mono font-black text-amber-950 leading-tight">
+                <div className="text-[11px] sm:text-xs font-mono font-black text-amber-950 leading-tight">
                   {coinBalance.toLocaleString()}
                 </div>
-                <div className="text-[9px] text-emerald-700 font-bold leading-none">+ ರೀಚಾರ್ಜ್</div>
+                <div className="text-[8px] sm:text-[9px] text-emerald-700 font-bold leading-none">+ ರೀಚಾರ್ಜ್</div>
               </div>
             </button>
           </div>
@@ -1202,6 +1224,23 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
                 ))}
               </div>
             </div>
+
+            {/* Scannable Dynamic UPI QR Code */}
+            {rechargeQrUrl && (
+              <div className="flex flex-col items-center justify-center p-3 bg-white rounded-2xl border-2 border-amber-300 shadow-sm text-center">
+                <p className="text-[11px] font-bold text-amber-950 mb-1">
+                  📱 ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ಪಾವತಿಸಿ (Scan & Pay ₹{selectedPackage.amountInr})
+                </p>
+                <img
+                  src={rechargeQrUrl}
+                  alt="UPI QR Code"
+                  className="w-36 h-36 border border-amber-200 rounded-xl p-1 bg-white shadow-sm"
+                />
+                <p className="text-[9px] text-slate-500 font-mono mt-1">
+                  GPay / PhonePe / Paytm / BHIM UPI
+                </p>
+              </div>
+            )}
 
             <div className="p-3.5 bg-[#FEFCF4] rounded-2xl border-2 border-amber-300 text-xs space-y-2">
               <div className="flex justify-between items-center">
