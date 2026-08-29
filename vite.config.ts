@@ -181,7 +181,8 @@ export default defineConfig(({ mode }) => {
               chunks.push(chunk as Buffer);
             }
             const bodyStr = Buffer.concat(chunks).toString("utf8");
-            (req as any).body = bodyStr ? JSON.parse(bodyStr) : {};
+            if (env.RESEND_API_KEY) process.env.RESEND_API_KEY = env.RESEND_API_KEY;
+            if (env.BREVO_API_KEY) process.env.BREVO_API_KEY = env.BREVO_API_KEY;
 
             // @ts-expect-error local dev proxy for Vercel API
             const handlerModule = await import("./api/notify.ts");
