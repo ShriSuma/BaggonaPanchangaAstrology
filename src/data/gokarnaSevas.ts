@@ -37,6 +37,7 @@ export type SevaId =
   | "rahuketushanti"
   | "kalasarpashanti"
   | "sudarshanahoma"
+  | "vinayakashanti_sudarshana"
   | "dhanvantarihoma"
   | "pitrudoshashanti"
   | "vastushanti"
@@ -826,6 +827,42 @@ export const SEVA_CATALOG: Record<SevaId, SevaEntry> = {
     },
     duration: HALF_DAY,
     shloka: SHLOKA_SHANTI
+  },
+
+  vinayakashanti_sudarshana: {
+    id: "vinayakashanti_sudarshana",
+    icon: "🔥",
+    name: {
+      en: "Vinayaka Shanthi & Sudarshana Havana",
+      kn: "ವಿನಾಯಕ ಶಾಂತಿ ಮತ್ತು ಸುದರ್ಶನ ಹವನ",
+      te: "వినాయక శాంతి మరియు సుదర్శన హవనం",
+      ta: "விநாயக சாந்தி மற்றும் சுதர்சன ஹவனம்",
+      hi: "विनायक शांति एवं सुदर्शन हवन"
+    },
+    purpose: {
+      en: "To eliminate all obstacles, dispel evil eye/enemy afflictions, and gain Sudarshana protection.",
+      kn: "ಸಕಲ ವಿಘ್ನ ನಿವಾರಣೆ, ಶತ್ರು-ದೃಷ್ಟಿ ದೋಷ ಶಮನ ಹಾಗೂ ಮಹಾ ಸುದರ್ಶನ ಚಕ್ರದ ರಕ್ಷಣಾ ಕವಚ ಪ್ರಾಪ್ತಿಗಾಗಿ.",
+      te: "సకల విఘ్నాల నివారణ, శత్రు-దిష్టి దోషాల శమనం మరియు మహా సుదర్శన రక్షణ కవచం కొరకు.",
+      ta: "சகல தடைகள் நீங்க, சத்ரு-கண் திருஷ்டி தோஷங்கள் விலக மற்றும் சுதர்சன சக்கரத்தின் பாதுகாப்பு பெற.",
+      hi: "समस्त विघ्न-बाधाओं के निवारण, शत्रु व कुदृष्टि दोष शमन तथा सुदर्शन चक्र के सुरक्षा कवच हेतु।"
+    },
+    benefit: {
+      en: "Success in undertakings, liberation from adversities, business growth, and family protection.",
+      kn: "ಕಾರ್ಯ ಸಿದ್ಧಿ, ಆಪತ್ತುಗಳಿಂದ ಮುಕ್ತಿ, ಸಕಲ ವ್ಯವಹಾರಗಳಲ್ಲಿ ಜಯ, ಆರೋಗ್ಯ ವೃದ್ಧಿ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಅಭಯ.",
+      te: "కార్య సిద్ధి, ఆపదల నుండి విముక్తి, వ్యాపార విజయం, ఆయురారోగ్యాలు మరియు కుటుంబ శాంతి.",
+      ta: "காரிய சித்தி, ஆபத்துகளில் இருந்து விடுதலை, தொழில் வெற்றி, ஆரோக்கியம் மற்றும் குடும்ப சுபிட்சம்.",
+      hi: "सर्व कार्य सिद्धि, संकटों से मुक्ति, व्यापार व आजीविका में विजय तथा पारिवारिक अभय।"
+    },
+    where: GOKARNA_TEMPLE,
+    when: {
+      en: "On Sankashti, Shukla Chaturthi, Ekadashi, Wednesday, or on an auspicious Muhurtha.",
+      kn: "ಸಂಕಷ್ಟಿ, ಶುಕ್ಲ ಚತುರ್ಥಿ, ಏಕಾದಶಿ, ಬುಧವಾರ ಅಥವಾ ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ.",
+      te: "సంకష్ట చతుర్థి, శుక్ల చతుర్థి, ఏకాదశి, బుధవారం లేదా శుభ ముహూర్తంలో.",
+      ta: "சங்கடஹர சதுர்த்தி, சுக்ல சதுர்த்தி, ஏகாதசி, புதன்கிழமை அல்லது சுப முகூர்த்தத்தில்.",
+      hi: "संकष्टी, शुक्ल चतुर्थी, एकादशी, बुधवार अथवा किसी भी शुभ मुहूर्त में।"
+    },
+    duration: HALF_DAY,
+    shloka: SHLOKA_GANAPATI
   },
 
   dhanvantarihoma: {

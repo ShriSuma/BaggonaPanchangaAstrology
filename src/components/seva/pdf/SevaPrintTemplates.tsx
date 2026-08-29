@@ -1866,6 +1866,11 @@ export const SevaPoojaMahatmePrint = ({
     const isMrityunjaya = sLower.includes("mrityunjaya") || sevaTitle.includes("ಮೃತ್ಯುಂಜಯ") || sevaTitle.includes("मृत्युंजय") || sevaTitle.includes("మృత్యుంజయ") || sevaTitle.includes("மிருத்யுஞ்ஜய");
 
     const currentSevaId = primarySeva?.seva?.id || "";
+    const isVinayakaSudarshana =
+      currentSevaId === "vinayakashanti_sudarshana" ||
+      ((sLower.includes("vinayaka") || sLower.includes("ganapati") || sevaTitle.includes("ವಿನಾಯಕ") || sevaTitle.includes("ಗಣಪತಿ") || sevaTitle.includes("विनायक") || sevaTitle.includes("गणपति") || sevaTitle.includes("వినాయక") || sevaTitle.includes("గణపతి") || sevaTitle.includes("விநாயக") || sevaTitle.includes("கணபதி")) &&
+       (sLower.includes("sudarshana") || sevaTitle.includes("ಸುದರ್ಶನ") || sevaTitle.includes("सुदर्शन") || sevaTitle.includes("సుదర్శన") || sevaTitle.includes("சுதர்சன")));
+
     const isCombinedKujaRahuMrityunjaya =
       currentSevaId === "kujashanti_rahubrihaspati_mrityunjaya" ||
       ((sLower.includes("kuja") || sLower.includes("mangal") || sevaTitle.includes("ಕುಜ") || sevaTitle.includes("कुज") || sevaTitle.includes("మంగళ") || sevaTitle.includes("செவ்வாய்")) &&
@@ -1879,6 +1884,32 @@ export const SevaPoojaMahatmePrint = ({
 
     const isKujaStandalone = (currentSevaId === "kujashanti" || isKuja) && !isCombinedKujaRahuMrityunjaya;
     const isMrityunjayaStandalone = (currentSevaId === "mrityunjaya" || isMrityunjaya) && !isCombinedKujaRahuMrityunjaya;
+
+    if (isVinayakaSudarshana) {
+      return {
+        whatIsPooja: pick({
+          kn: "ವಿನಾಯಕ ಶಾಂತಿ ಮತ್ತು ಮಹಾ ಸುದರ್ಶನ ಹವನವು ಸಕಲ ವಿಘ್ನನಿವಾರಕ ಶ್ರೀ ಮಹಾಗಣಪತಿ ಹಾಗೂ ಭಗವಾನ್ ವಿಷ್ಣುವಿನ ಪರಮ ರಕ್ಷಕ ಆಯುಧವಾದ ಶ್ರೀ ಸುದರ್ಶನ ಚಕ್ರ ಮತ್ತು ಜ್ವಾಲಾ ನರಸಿಂಹ ದೇವರನ್ನು ಏಕಕಾಲದಲ್ಲಿ ಆರಾಧಿಸುವ ಪರಮ ಶಕ್ತಿಶಾಲಿ ಮಹಾಯಾಗವಾಗಿದೆ. ಗರಿಕೆ, ಮೋದಕ, ತುಳಸಿ, ತುಪ್ಪ ಹಾಗೂ ಸಸ್ಯೌಷಧ ದ್ರವ್ಯಗಳಿಂದ ವೈದಿಕ ಮಂತ್ರಪೂರ್ವಕವಾಗಿ ಆಹುತಿ ಅರ್ಪಿಸಲಾಗುತ್ತದೆ.",
+          hi: "विनायक शांति एवं महा सुदर्शन हवन समस्त विघ्नविनाशक श्री महागणपति तथा भगवान विष्णु के परम रक्षा अस्त्र श्री सुदर्शन चक्र व ज्वाला नृसिंह देव की संयुक्त आराधना का अत्यंत तेजस्वी महायज्ञ है। इसमें दूर्वा, मोदक, तुलसी, घृत व पावन औषधीय द्रव्यों से वैदिक मंत्रोच्चार के साथ आहुतियां दी जाती हैं।",
+          te: "వినాయక శాంతి మరియు మహా సుదర్శన హవనం సమస్త విఘ్నవినాశకుడైన శ్రీ మహాగణపతి మరియు విష్ణుమూర్తి దివ్యాయుధమైన శ్రీ సుదర్శన చక్రం, నరసింహ స్వామి వారిని ఏకకాలంలో ఆరాధించే అత్యంత శక్తివంతమైన వైదిక మహాయజ్ఞం. గరిక, తులసి, నెయ్యి మరియు పవిత్ర హోమ ద్రవ్యాలతో మంత్రపూర్వకంగా నిర్వహిస్తారు.",
+          ta: "விநாயக சாந்தி மற்றும் மகா சுதர்சன ஹவனம் சகல விக்னங்களை தீர்க்கும் ஸ்ரீ மகா கணபதி மற்றும் மகாவிஷ்ணுவின் சுதர்சன சக்கரம், நரசிம்ம மூர்த்தியை ஒருங்கே ஆராதிக்கும் மிக சக்திவாய்ந்த வைதீக மகா யாகமாகும். அருகம்புல், துளசி, நெய் மற்றும் புனித ஹோம திரவியங்களால் மந்திரபூர்வமாக நடத்தப்படுகிறது.",
+          en: "Vinayaka Shanthi & Maha Sudarshana Havana is a supreme dual Vedic fire sacrifice synthesizing the obstacle-clearing grace of Lord Maha Ganapati with the invincible cosmic protection of Lord Sudarshana Chakra and Jwala Narasimha. Consecrated with sacred Durva, Modakas, Tulasi, and Vedic herbal oblations."
+        }, lang),
+        whyDoPooja: pick({
+          kn: "ಹೊಸ ಕೆಲಸಗಳಲ್ಲಿ ಎದುರಾಗುವ ಅನಿರೀಕ್ಷಿತ ಅಡೆತಡೆಗಳು, ಕೇತು ಹಾಗೂ ರಾಹು-ಕುಜ ಗ್ರಹಗಳ ದೋಷಗಳು, ಶತ್ರು ಬಾಧೆ, ದುಷ್ಟ ದೃಷ್ಟಿ, ನಕಾರಾತ್ಮಕ ಶಕ್ತಿಗಳ ಪ್ರಭಾವ ಹಾಗೂ ವ್ಯಾಪಾರ-ವ್ಯವಹಾರ ಮತ್ತು ಕೌಟುಂಬಿಕ ಪ್ರಗತಿಯಲ್ಲಿನ ಹಿನ್ನಡೆಗಳನ್ನು ಶಾಶ್ವತವಾಗಿ ನಿವಾರಿಸಲು ಈ ಮಹಾ ಪೂಜೆಯನ್ನು ನೆರವೇರಿಸಲಾಗುತ್ತದೆ.",
+          hi: "नवीन कार्यों में अप्रत्याशित बाधाओं, केतु एवं राहु-मंगल ग्रह दोषों, शत्रु बाधा, नजर दोष, नकारात्मक ऊर्जा के दुष्प्रभावों तथा व्यापार-व्यवसाय व पारिवारिक उन्नति में आ रही रुकावटों के पूर्ण निवारण हेतु यह महापूजन संपन्न किया जाता है।",
+          te: "నూతన కార్యాలలో అకస్మాత్తుగా వచ్చే ఆటంకాలు, కేతు మరియు రాహు-కుజ గ్రహ దోషాలు, శత్రు బాధలు, దిష్టి దోషాలు, ప్రతికూల శక్తుల ప్రభావం మరియు వ్యాపార, కుటుంబ ప్రగతిలోని అడ్డంకులను సమూలంగా తొలగించడానికి ఈ పూజ చేస్తారు.",
+          ta: "புதிய காரியங்களில் ஏற்படும் தடைகள், கேது மற்றும் ராகு-செவ்வாய் கிரக தோஷங்கள், சத்ரு பயம், கண் திருஷ்டி, எதிர்மறை தாக்கங்கள் மற்றும் தொழில், குடும்ப முன்னேற்ற தடைகளை முற்றிலும் போக்க இந்த மகா பூஜை செய்யப்படுகிறது.",
+          en: "Performed to shatter unforeseen roadblocks in new endeavors, neutralize Ketu and Rahu-Mars malefic afflictions, dispel hidden malice, evil eye, and psychic negativities, and restore seamless progress in business, career, and household life."
+        }, lang),
+        benefitsPooja: pick({
+          kn: "ಸಕಲ ಕಾರ್ಯಗಳಲ್ಲಿ ನಿರಾತಂಕ ಜಯ, ಅಭೇದ್ಯ ದೈವಿಕ ರಕ್ಷಣಾ ಕವಚ, ಶತ್ರು-ದೋಷ ಭಂಗ, ಆರ್ಥಿಕ ಹಾಗೂ ವ್ಯಾಪಾರಾಭಿವೃದ್ಧಿ, ಮಾನಸಿಕ ಧೈರ್ಯ-ಉತ್ಸಾಹ, ಆರೋಗ್ಯ ರಕ್ಷಣೆ ಹಾಗೂ ಗೃಹದಲ್ಲಿ ಅಖಂಡ ಸುಖ-ಶಾಂತಿ ಮತ್ತು ಸಮೃದ್ಧಿ ಸದಾ ನೆಲೆಸುತ್ತದೆ.",
+          hi: "समस्त कार्यों में निर्विघ्न सफलता, अभेद्य दैवीय सुरक्षा कवच, शत्रु पराजय, व्यापार एवं आजीविका में अभूतपूर्व उन्नति, मानसिक बल, उत्तम स्वास्थ्य तथा परिवार में अखंड सुख, शांति व समृद्धि की प्राप्ति होती है।",
+          te: "సమస్త పనులలో నిర్విఘ్న విజయం, దివ్య రక్షణ కవచం, శత్రు జయం, వ్యాపారవృద్ధి, మానసిక ధైర్యం, ఆయురారోగ్యాలు మరియు ఇంట్లో అఖండ సుఖశాంతులు చేకూరుతాయి.",
+          ta: "சகல காரியங்களிலும் தடையற்ற வெற்றி, தெய்வீக பாதுகாப்பு கவசம், சத்ரு ஜெயம், தொழில் அபிவிருத்தி, மன தைரியம், பூரண நலம் மற்றும் குடும்பத்தில் சுபிட்சமும் அமைதியும் பெருகும்.",
+          en: "Bestows unobstructed success across all undertakings, an impenetrable divine shield of spiritual protection, vanquishes opposition and malefic eyes, accelerates business and financial growth, and fills the home with enduring peace and vitality."
+        }, lang)
+      };
+    }
 
     if (isCombinedKujaRahuMrityunjaya) {
       return {
@@ -2039,25 +2070,25 @@ export const SevaPoojaMahatmePrint = ({
     if (isSudarshana) {
       return {
         whatIsPooja: pick({
-          kn: "ಶ್ರೀ ಸುದರ್ಶನ ನರಸಿಂಹ ಹೋಮವು ಭಗವಾನ್ ವಿಷ್ಣುವಿನ ಪರಮ ಆಯುಧವಾದ ಸುದರ್ಶನ ಚಕ್ರ ಹಾಗೂ ಶ್ರೀ ನರಸಿಂಹ ದೇವರ ರಕ್ಷಣಾತ್ಮಕ ಮಹಾಯಜ್ಞವಾಗಿದೆ.",
-          hi: "श्री सुदर्शन नृसिंह होम भगवान विष्णु के सुदर्शन चक्र एवं नृसिंह देव की आराधना का महा शक्तिशाली रक्षा यज्ञ है।",
-          te: "శ్రీ సుదర్శన నరసింహ హోమం విష్ణుమూర్తి సుదర్శన చక్రం మరియు నరసింహ స్వామి వారి దివ్య రక్షా యజ్ఞం.",
-          ta: "ஸ்ரீ சுதர்சன நரசிம்ம ஹோமம் மகாவிஷ்ணுவின் சுதர்சன சக்கரத்தையும் நரசிம்மரையும் போற்றும் மகா ரக்ஷா யாகமாகும்.",
-          en: "Sri Sudarshana Narasimha Homa invokes the blazing cosmic discus and Lord Narasimha for supreme protection."
+          kn: "ಶ್ರೀ ಮಹಾ ಸುದರ್ಶನ ನರಸಿಂಹ ಹವನವು ಭಗವಾನ್ ಶ್ರೀಮನ್ನಾರಾಯಣನ ಪರಮ ರಕ್ಷಕ ಆಯುಧವಾದ ಸುದರ್ಶನ ಚಕ್ರ ಹಾಗೂ ಜ್ವಾಲಾ ನರಸಿಂಹ ದೇವರ ಪರಮ ರಕ್ಷಣಾತ್ಮಕ ವೈದಿಕ ಮಹಾಯಾಗವಾಗಿದೆ. ಪವಿತ್ರ ತುಳಸಿ, ತುಪ್ಪ ಹಾಗೂ ಸಸ್ಯೌಷಧಗಳಿಂದ ಅಗ್ನಿದೇವನ ಮುಖೇನ ಸಮರ್ಪಿಸಲಾಗುತ್ತದೆ.",
+          hi: "श्री महा सुदर्शन नृसिंह हवन भगवान श्री लक्ष्मीनारायण के परम पावन आयुध सुदर्शन चक्र एवं ज्वाला नृसिंह देव की आराधना का महा शक्तिशाली वैदिक यज्ञ है। पवित्र तुलसी, घृत एवं औषधियों से आहुतियां दी जाती हैं।",
+          te: "శ్రీ మహా సుదర్శన నరసింహ హవనం శ్రీమన్నారాయణుని పరమ దివ్యాయుధమైన సుదర్శన చక్రం మరియు జ్వాలా నరసింహ స్వామి వారి దివ్య రక్షా మహాయజ్ఞం. తులసి, నెయ్యి మరియు హోమ ద్రవ్యాలతో నిర్వహిస్తారు.",
+          ta: "ஸ்ரீ மகா சுதர்சன நரசிம்ம ஹவனம் மகாவிஷ்ணுவின் சுதர்சன சக்கரத்தையும் ஜ்வாலா நரசிம்மரையும் போற்றும் மிக சக்திவாய்ந்த வைதீக ரக்ஷா யாகமாகும். துளசி, நெய் மற்றும் மூலிகைகளால் செய்யப்படுகிறது.",
+          en: "Sri Maha Sudarshana Narasimha Havana is a supreme Vedic fire sacrifice invoking the blazing cosmic discus of Lord Vishnu and Lord Jwala Narasimha for impenetrable spiritual protection."
         }, lang),
         whyDoPooja: pick({
-          kn: "ದುಷ್ಟ ಶಕ್ತಿಗಳ ಬಾಧೆ, ನಿರಂತರ ಆರ್ಥಿಕ-ಮಾನಸಿಕ ಸಂಕಷ್ಟ, ದೃಷ್ಟಿ ದೋಷ ಹಾಗೂ ಶತ್ರುಗಳ ಉಪಟಳ ನಿವಾರಣೆಗೆ ಈ ಹೋಮ ಮಾಡಲಾಗುತ್ತದೆ.",
-          hi: "शत्रु बाधा, नजर दोष, नकारात्मक ऊर्जा तथा व्यापार व स्वास्थ्य में अचानक आने वाली विपत्तियों के निवारण हेतु किया जाता है।",
-          te: "శత్రు బాధలు, దిష్టి దోషాలు, ఆకస్మిక ఆపదలు మరియు వ్యాపార అవరోధాల నివారణ కోసం ఈ హోమం చేస్తారు.",
-          ta: "சத்ரு பயம், கண் திருஷ்டி, எதிர்மறை தாக்கங்கள் மற்றும் எதிர்பாராத தடைகளை அழிக்க செய்யப்படுகிறது.",
-          en: "Crucial for annihilating hidden malice, neutralizing psychic distress, and overturning chronic adversity."
+          kn: "ಶತ್ರು ಬಾಧೆ, ದುಷ್ಟ ದೃಷ್ಟಿ ದೋಷ, ನಕಾರಾತ್ಮಕ ಶಕ್ತಿಗಳ ಪ್ರಭಾವ, ನಿರಂತರ ಆರ್ಥಿಕ ಸಂಕಷ್ಟ ಹಾಗೂ ಆಕಸ್ಮಿಕ ಅಪಮೃತ್ಯು ಭಯವನ್ನು ಭೇದಿಸಿ ದೈವಿಕ ರಕ್ಷಣೆ ಪಡೆಯಲು ಈ ಹವನವನ್ನು ನೆರವೇರಿಸಲಾಗುತ್ತದೆ.",
+          hi: "शत्रु बाधा, नजर दोष, नकारात्मक शक्तियों के प्रभाव, निरंतर आर्थिक संकट तथा आकस्मिक भय व व्याधियों के विनाश हेतु यह पावन हवन किया जाता है।",
+          te: "శత్రు బాధలు, దిష్టి దోషాలు, ప్రతికూల శక్తుల ప్రభావం, నిరంతర ఆర్థిక ఇబ్బందులు మరియు ఆకస్మిక ఆపదల నివారణ కోసం ఈ హవనం చేస్తారు.",
+          ta: "சத்ரு பயம், கண் திருஷ்டி, எதிர்மறை தாக்கங்கள், தொடர் நிதி நெருக்கடிகள் மற்றும் ஆபத்துகளில் இருந்து விடுபட இந்த ஹவனம் செய்யப்படுகிறது.",
+          en: "Performed to eradicate hidden enmities, dispel chronic evil eyes, neutralize malefic psychic vibrations, eliminate financial stalls, and remove fear of sudden hazards."
         }, lang),
         benefitsPooja: pick({
-          kn: "ದೈವಿಕ ಅಭಯ ಕವಚ, ಸಮಸ್ತ ಕಾರ್ಯಗಳಲ್ಲಿ ವಿಜಯ, ಭಯ ನಿವಾರಣೆ ಹಾಗೂ ಕುಟುಂಬದಲ್ಲಿ ಅಖಂಡ ಶಾಂತಿ-ಸಮೃದ್ಧಿ ನೆಲೆಸುತ್ತದೆ.",
-          hi: "दैवीय सुरक्षा चक्र की प्राप्ति, समस्त कार्यों में निर्बाध विजय तथा जीवन में साहस व समृद्धि का संचार होता है।",
-          te: "దివ్య రక్షణ, సమస్త కార్యవిజయం, భయ విముక్తి మరియు కుటుంబంలో సమృద్ధి లభిస్తాయి.",
-          ta: "தெய்வீக கவசம், காரிய வெற்றி, பயமின்மை மற்றும் இல்லத்தில் சுபிட்சம் உண்டாகும்.",
-          en: "Endows the devotee with invincible confidence, clears obstacles, and radiates divine peace throughout the home."
+          kn: "ಅಭೇದ್ಯ ದೈವಿಕ ಅಭಯ ಕವಚ, ಸಮಸ್ತ ಕಾರ್ಯಗಳಲ್ಲಿ ವಿಜಯ, ಆತಂಕ-ಭಯ ಮುಕ್ತಿ, ವ್ಯಾಪಾರ-ವೃತ್ತಿಯಲ್ಲಿ ಶೀಘ್ರ ಪ್ರಗತಿ ಹಾಗೂ ಕುಟುಂಬದಲ್ಲಿ ಅಖಂಡ ಸುಖ-ಶಾಂತಿ ಸದಾ ನೆಲೆಸುತ್ತದೆ.",
+          hi: "अभेद्य दैवीय सुरक्षा चक्र की प्राप्ति, समस्त कार्यों में निर्बाध विजय, भय से मुक्ति, व्यापार व करियर में तीव्र उन्नति तथा परिवार में अखंड सुख-शांति का संचार होता है।",
+          te: "దివ్య రక్షణ కవచం, సమస్త కార్యవిజయం, భయ విముక్తి, వ్యాపార-ఉద్యోగాలలో శీఘ్ర పురోగతి మరియు కుటుంబంలో సమృద్ధి లభిస్తాయి.",
+          ta: "தெய்வீக ரக்ஷா கவசம், சகல காரிய வெற்றி, பயமின்மை, தொழில்-வியாபார முன்னேற்றம் மற்றும் குடும்பத்தில் சாந்தியும் சுபிட்சமும் உண்டாகும்.",
+          en: "Endows the devotee with an invincible protective aura, ensures triumphant success across all ventures, dispels anxieties, accelerates career growth, and radiates divine peace."
         }, lang)
       };
     }

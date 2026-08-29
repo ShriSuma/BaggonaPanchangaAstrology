@@ -398,6 +398,46 @@ describe("Seva PDF 5-Page Suite & QR Code Verification", () => {
     unmount3();
   });
 
+  it("ensures Page 5 renders distinct Vedic details for Vinayaka Shanthi & Sudarshana Havana and Sri Sudarshana Havana", () => {
+    // 1. Vinayaka Shanthi & Sudarshana Havana
+    const { unmount: unmountVinayaka } = render(
+      <SevaPoojaMahatmePrint
+        lang="kn"
+        identity={mockIdentity}
+        panditName="ಶ್ರೀರಾಮ್ ಪಂಡಿತ್"
+        primarySeva={{
+          seva: SEVA_CATALOG.vinayakashanti_sudarshana,
+          score: 0,
+          reasons: []
+        } as any}
+      />
+    );
+    expect(screen.getAllByText(/ವಿನಾಯಕ ಶಾಂತಿ ಮತ್ತು ಸುದರ್ಶನ ಹವನ/i)[0]).toBeInTheDocument();
+    expect(screen.getByText(/ಶ್ರೀ ಮಹಾಗಣಪತಿ ಹಾಗೂ ಭಗವಾನ್ ವಿಷ್ಣುವಿನ ಪರಮ ರಕ್ಷಕ ಆಯುಧವಾದ ಶ್ರೀ ಸುದರ್ಶನ ಚಕ್ರ/i)).toBeInTheDocument();
+    expect(screen.getByText(/ಹೊಸ ಕೆಲಸಗಳಲ್ಲಿ ಎದುರಾಗುವ ಅನಿರೀಕ್ಷಿತ ಅಡೆತಡೆಗಳು, ಕೇತು ಹಾಗೂ ರಾಹು-ಕುಜ ಗ್ರಹಗಳ ದೋಷಗಳು/i)).toBeInTheDocument();
+    expect(screen.getByText(/ಸಕಲ ಕಾರ್ಯಗಳಲ್ಲಿ ನಿರಾತಂಕ ಜಯ, ಅಭೇದ್ಯ ದೈವಿಕ ರಕ್ಷಣಾ ಕವಚ/i)).toBeInTheDocument();
+    unmountVinayaka();
+
+    // 2. Standalone Sudarshana Havana
+    const { unmount: unmountSudarshana } = render(
+      <SevaPoojaMahatmePrint
+        lang="kn"
+        identity={mockIdentity}
+        panditName="ಶ್ರೀರಾಮ್ ಪಂಡಿತ್"
+        primarySeva={{
+          seva: SEVA_CATALOG.sudarshanahoma,
+          score: 0,
+          reasons: []
+        } as any}
+      />
+    );
+    expect(screen.getAllByText(/ಶ್ರೀ ಸುದರ್ಶನ ನರಸಿಂಹ ಹೋಮ/i)[0]).toBeInTheDocument();
+    expect(screen.getByText(/ಶ್ರೀಮನ್ನಾರಾಯಣನ ಪರಮ ರಕ್ಷಕ ಆಯುಧವಾದ ಸುದರ್ಶನ ಚಕ್ರ ಹಾಗೂ ಜ್ವಾಲಾ ನರಸಿಂಹ ದೇವರ ಪರಮ ರಕ್ಷಣಾತ್ಮಕ/i)).toBeInTheDocument();
+    expect(screen.getByText(/ದುಷ್ಟ ದೃಷ್ಟಿ ದೋಷ, ನಕಾರಾತ್ಮಕ ಶಕ್ತಿಗಳ ಪ್ರಭಾವ, ನಿರಂತರ ಆರ್ಥಿಕ ಸಂಕಷ್ಟ/i)).toBeInTheDocument();
+    expect(screen.getByText(/ಅಭೇದ್ಯ ದೈವಿಕ ಅಭಯ ಕವಚ, ಸಮಸ್ತ ಕಾರ್ಯಗಳಲ್ಲಿ ವಿಜಯ, ಆತಂಕ-ಭಯ ಮುಕ್ತಿ/i)).toBeInTheDocument();
+    unmountSudarshana();
+  });
+
   it("renders place as Venkataramana Panditara Mane, Gokarna on Page 1 (SevaLetterPrint) when priest is Venkataramana Pandit", () => {
     const rudraSeva = {
       seva: SEVA_CATALOG.rudrabhisheka,
