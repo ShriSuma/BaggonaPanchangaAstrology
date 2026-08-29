@@ -159,15 +159,15 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
     );
   };
 
-  // 1. Submit Prashna Oracle (350 Coins / ₹35)
+  // 1. Submit Prashna Oracle (450 Coins / ₹45)
   const handlePrashnaSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const cost = SERVICE_COIN_COSTS.SANKHYA_PRASHNA?.coins || 350;
+    const cost = SERVICE_COIN_COSTS.SANKHYA_PRASHNA?.coins || 450;
 
     if (coinBalance < cost) {
       setFeedback({
         type: "error",
-        text: `ನಾಣ್ಯಗಳ ಕೊರತೆ ಇದೆ. ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಪ್ರಶ್ನೆಗೆ ೩೫೦ ನಾಣ್ಯಗಳು (₹೩೫) ಅಗತ್ಯವಿದೆ. ಪ್ರಸ್ತುತ ${coinBalance} ನಾಣ್ಯಗಳಿವೆ.`
+        text: `ನಾಣ್ಯಗಳ ಕೊರತೆ ಇದೆ. ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಪ್ರಶ್ನೆಗೆ ೪೫೦ ನಾಣ್ಯಗಳು (₹೪೫) ಅಗತ್ಯವಿದೆ. ಪ್ರಸ್ತುತ ${coinBalance} ನಾಣ್ಯಗಳಿವೆ.`
       });
       setIsRechargeOpen(true);
       return;
@@ -176,7 +176,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
     setIsCalculatingPrashna(true);
     setFeedback(null);
 
-    // Deduct 350 Coins
+    // Deduct 450 Coins
     const deductRes = await deductForService(cost, "ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಪ್ರಶ್ನಾವಳಿ ದರ್ಶನ", devoteeName || "ಭಕ್ತರು");
     if (!deductRes.success) {
       setFeedback({ type: "error", text: deductRes.error || "ನಾಣ್ಯ ಕಡಿತ ವಿಫಲವಾಗಿದೆ." });
@@ -196,7 +196,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
       setPrashnaHistory((prev) => [result, ...prev]);
       setFeedback({
         type: "success",
-        text: `ಸಂಖ್ಯೆ ${prashnaNumber} ರ ಶಾಸ್ತ್ರೀಯ ಪ್ರಶ್ನಾವಳಿ ಫಲಿತಾಂಶ ಸಿದ್ಧವಾಗಿದೆ. (೩೫೦ ನಾಣ್ಯಗಳು ಕಡಿತಗೊಂಡಿವೆ)`
+        text: `ಸಂಖ್ಯೆ ${prashnaNumber} ರ ಶಾಸ್ತ್ರೀಯ ಪ್ರಶ್ನಾವಳಿ ಫಲಿತಾಂಶ ಸಿದ್ಧವಾಗಿದೆ. (೪೫೦ ನಾಣ್ಯಗಳು ಕಡಿತಗೊಂಡಿವೆ)`
       });
 
       // Save to Cloud Firestore
@@ -224,12 +224,12 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
         username: wallet?.userId || currentUser || "priest_sankhya",
         priestName: activePriestDisplayName,
         action: `ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಪ್ರಶ್ನೆ (${prashnaNumber})`,
-        attemptedCoins: 350,
+        attemptedCoins: 450,
         errorMessage: err?.message || "Sankhya Prashna runtime error"
       });
       setFeedback({
         type: "error",
-        text: "ಪ್ರಶ್ನೆ ವಿಶ್ಲೇಷಣೆಯಲ್ಲಿ ತಾಂತ್ರಿಕ ದೋಷ ಉಂಟಾಗಿದೆ. ಕಡಿತಗೊಂಡ ೩೫೦ ನಾಣ್ಯಗಳನ್ನು ತಕ್ಷಣವೇ ನಿಮ್ಮ ವಾಲೆಟ್‌ಗೆ ಮರುಪಾವತಿಸಲಾಗಿದೆ."
+        text: "ಪ್ರಶ್ನೆ ವಿಶ್ಲೇಷಣೆಯಲ್ಲಿ ತಾಂತ್ರಿಕ ದೋಷ ಉಂಟಾಗಿದೆ. ಕಡಿತಗೊಂಡ ೪೫೦ ನಾಣ್ಯಗಳನ್ನು ತಕ್ಷಣವೇ ನಿಮ್ಮ ವಾಲೆಟ್‌ಗೆ ಮರುಪಾವತಿಸಲಾಗಿದೆ."
       });
     } finally {
       setIsCalculatingPrashna(false);
@@ -505,7 +505,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
                 <span>ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಪ್ರಶ್ನಾವಳಿ ದರ್ಶನ</span>
               </h2>
               <span className="text-[10px] font-mono font-black text-amber-900 bg-[#FFF5D6] px-2.5 py-1 rounded-full border border-amber-400">
-                ದರ: 🪙 ೩೫೦ (₹೩೫)
+                ದರ: 🪙 ೪೫೦ (₹೪೫)
               </span>
             </div>
 

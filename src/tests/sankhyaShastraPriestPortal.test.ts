@@ -16,8 +16,8 @@ import { sendSystemTestEmail } from "../features/notifications/notificationServi
 
 describe("Sankhya Shastra Priest Portal & Engine Validation", () => {
   it("verifies accurate pricing for Sankhya Shastra services", () => {
-    expect(SERVICE_COIN_COSTS.SANKHYA_PRASHNA.coins).toBe(350);
-    expect(SERVICE_COIN_COSTS.SANKHYA_PRASHNA.inrEquivalent).toBe(35);
+    expect(SERVICE_COIN_COSTS.SANKHYA_PRASHNA.coins).toBe(450);
+    expect(SERVICE_COIN_COSTS.SANKHYA_PRASHNA.inrEquivalent).toBe(45);
 
     expect(SERVICE_COIN_COSTS.SANKHYA_NAME_SUGGESTION.coins).toBe(2000);
     expect(SERVICE_COIN_COSTS.SANKHYA_NAME_SUGGESTION.inrEquivalent).toBe(200);

@@ -87,16 +87,16 @@ export const SERVICE_COIN_COSTS: Record<string, ServiceCost> = {
   ASTROLOGY_QUESTION: {
     key: "ASTROLOGY_QUESTION",
     name: "Astrology Question & Consultation",
-    coins: 500,
-    inrEquivalent: 50,
-    description: "Individual specific life / career / marriage question analysis"
+    coins: 750,
+    inrEquivalent: 75,
+    description: "Individual specific life / career / marriage question analysis (750 Coins / ₹75)"
   },
   SANKHYA_PRASHNA: {
     key: "SANKHYA_PRASHNA",
     name: "Sankhya Shastra Prashna Oracle",
-    coins: 350,
-    inrEquivalent: 35,
-    description: "Vedic number horary divination with Sthira/Chara/Ubhaya & Varna influence"
+    coins: 450,
+    inrEquivalent: 45,
+    description: "Vedic number horary divination with Sthira/Chara/Ubhaya & Varna influence (450 Coins / ₹45)"
   },
   SANKHYA_NAME_SUGGESTION: {
     key: "SANKHYA_NAME_SUGGESTION",
@@ -115,9 +115,9 @@ export const SERVICE_COIN_COSTS: Record<string, ServiceCost> = {
   AI_PRASHNA_QUESTION: {
     key: "AI_PRASHNA_QUESTION",
     name: "Sankhya Shastra Prashna Oracle",
-    coins: 350,
-    inrEquivalent: 35,
-    description: "Instant single-question horary divination (350 Coins / ₹35)"
+    coins: 450,
+    inrEquivalent: 45,
+    description: "Instant single-question horary divination (450 Coins / ₹45)"
   },
   RAMAN_BHAVISHYA: {
     key: "RAMAN_BHAVISHYA",
@@ -126,12 +126,19 @@ export const SERVICE_COIN_COSTS: Record<string, ServiceCost> = {
     inrEquivalent: 50,
     description: "10-year stage-by-stage AI life predictions"
   },
+  PREMIUM_KUNDLI_PDF: {
+    key: "PREMIUM_KUNDLI_PDF",
+    name: "Grand 8-Page Premium Kundli PDF Download",
+    coins: 3500,
+    inrEquivalent: 350,
+    description: "Grand 8-Page A4 Luxury Gold Astrological Horoscope & Prediction PDF (3,500 Coins / ₹350)"
+  },
   PREMIUM_PDF_DOWNLOAD: {
     key: "PREMIUM_PDF_DOWNLOAD",
     name: "Royal Multi-Page A4 PDF Booklet",
-    coins: 200,
-    inrEquivalent: 20,
-    description: "5-page luxury gold royal astrological chart PDF"
+    coins: 3500,
+    inrEquivalent: 350,
+    description: "5-page luxury gold royal astrological chart PDF (3,500 Coins / ₹350)"
   },
   MELAPAK_MATCH: {
     key: "MELAPAK_MATCH",
