@@ -61,11 +61,48 @@ describe("Priest Wallet & Coining Math Engine", () => {
     expect(SERVICE_COIN_COSTS.ASTROLOGY_QUESTION.coins).toBe(750); // ₹75
     expect(SERVICE_COIN_COSTS.AI_PRASHNA_QUESTION.coins).toBe(450); // ₹45
     expect(SERVICE_COIN_COSTS.SANKHYA_PRASHNA.coins).toBe(450); // ₹45
+    expect(SERVICE_COIN_COSTS.STANDARD_JANANA_KUNDLI_PDF.coins).toBe(1000); // ₹100
+    expect(SERVICE_COIN_COSTS.STANDARD_JANANA_KUNDLI_PDF.inrEquivalent).toBe(100);
     expect(SERVICE_COIN_COSTS.PREMIUM_KUNDLI_PDF.coins).toBe(3500); // ₹350
     expect(SERVICE_COIN_COSTS.RAMAN_BHAVISHYA.coins).toBe(500); // ₹50
     expect(SERVICE_COIN_COSTS.PREMIUM_PDF_DOWNLOAD.coins).toBe(3500); // ₹350
     expect(SERVICE_COIN_COSTS.MELAPAK_MATCH.coins).toBe(200); // ₹20
     expect(SERVICE_COIN_COSTS.SEVA_BOOKING_ASHIRVADA.coins).toBe(200); // ₹20
+  });
+
+  it("verifies priest portal anti-reset localStorage state persistence contract", () => {
+    const panchangaStorageKey = "baggona_priest_kundli_active_session";
+    const sankhyaStorageKey = "baggona_priest_sankhya_active_session";
+
+    const mockPanchangaState = {
+      devoteeName: "Ramesh Hegde",
+      gothra: "Kashyapa",
+      birthDate: "1990-05-15",
+      birthTime: "10:30",
+      activeTab: "kundli",
+      selectedJananaPdfOption: "kundli_with_dasha"
+    };
+
+    localStorage.setItem(panchangaStorageKey, JSON.stringify(mockPanchangaState));
+    expect(localStorage.getItem(panchangaStorageKey)).toContain("Ramesh Hegde");
+    expect(JSON.parse(localStorage.getItem(panchangaStorageKey)!).activeTab).toBe("kundli");
+
+    const mockSankhyaState = {
+      devoteeName: "Suresh Bhat",
+      prashnaNumber: 108,
+      prashnaQuestion: "Will my business expand?",
+      activeTab: "prashna"
+    };
+
+    localStorage.setItem(sankhyaStorageKey, JSON.stringify(mockSankhyaState));
+    expect(localStorage.getItem(sankhyaStorageKey)).toContain("Suresh Bhat");
+    expect(JSON.parse(localStorage.getItem(sankhyaStorageKey)!).prashnaNumber).toBe(108);
+
+    // Explicit Reset wipes localStorage
+    localStorage.removeItem(panchangaStorageKey);
+    localStorage.removeItem(sankhyaStorageKey);
+    expect(localStorage.getItem(panchangaStorageKey)).toBeNull();
+    expect(localStorage.getItem(sankhyaStorageKey)).toBeNull();
   });
 
   it("manages wallet store package selection and modal state", () => {

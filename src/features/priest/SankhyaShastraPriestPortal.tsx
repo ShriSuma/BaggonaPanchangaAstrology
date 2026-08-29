@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useWalletStore } from "../wallet/walletStore";
 import { useAuthStore } from "../auth/authStore";
 import {
@@ -25,6 +25,19 @@ import { notifyPasswordResetCompleted, notifySystemFailureAlert } from "../notif
 
 type SankhyaTab = "prashna" | "name_numbers" | "wallet";
 
+const PRIEST_SANKHYA_STORAGE_KEY = "baggona_priest_sankhya_active_session";
+
+function loadSavedPriestSankhyaState(): any {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(PRIEST_SANKHYA_STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
 export const SankhyaShastraPriestPortal: React.FC = () => {
   const {
     wallet,
@@ -41,8 +54,11 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
   const { currentUser } = useAuthStore();
   const [urlPriestName, setUrlPriestName] = useState<string>("");
 
+  // Load Saved Session from localStorage (Anti-Reset Guard for Refresh / Mobile Disconnects)
+  const savedSankhya = useMemo(() => loadSavedPriestSankhyaState(), []);
+
   // Active Tab
-  const [activeTab, setActiveTab] = useState<SankhyaTab>("prashna");
+  const [activeTab, setActiveTab] = useState<SankhyaTab>(() => savedSankhya?.activeTab || "prashna");
 
   // 5-Second Dismissible Royal Welcome Toast
   const [showWelcomeToast, setShowWelcomeToast] = useState(true);
@@ -53,24 +69,30 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordMsg, setPasswordMsg] = useState<string | null>(null);
 
-  // Tab 1: Prashna Oracle State (350 Coins / ₹35)
-  const [devoteeName, setDevoteeName] = useState("");
-  const [gothra, setGothra] = useState("ಕಾಶ್ಯಪ");
-  const [prashnaNumber, setPrashnaNumber] = useState<number>(108);
-  const [prashnaQuestion, setPrashnaQuestion] = useState("");
-  const [prashnaResult, setPrashnaResult] = useState<SankhyaPrashnaResult | null>(null);
-  const [prashnaHistory, setPrashnaHistory] = useState<SankhyaPrashnaResult[]>([]);
+  // Tab 1: Prashna Oracle State (350 Coins / ₹35) - Restored from localStorage
+  const [devoteeName, setDevoteeName] = useState(() => savedSankhya?.devoteeName || "");
+  const [gothra, setGothra] = useState(() => savedSankhya?.gothra || "ಕಾಶ್ಯಪ");
+  const [prashnaNumber, setPrashnaNumber] = useState<number>(() => savedSankhya?.prashnaNumber ?? 108);
+  const [prashnaQuestion, setPrashnaQuestion] = useState(() => savedSankhya?.prashnaQuestion || "");
+  const [prashnaResult, setPrashnaResult] = useState<SankhyaPrashnaResult | null>(() => savedSankhya?.prashnaResult || null);
+  const [prashnaHistory, setPrashnaHistory] = useState<SankhyaPrashnaResult[]>(() => savedSankhya?.prashnaHistory || []);
   const [isCalculatingPrashna, setIsCalculatingPrashna] = useState(false);
 
-  // Tab 2: Name & Mobile/Vehicle State (2000 Coins / ₹200)
-  const [suggestionType, setSuggestionType] = useState<"name" | "mobile_vehicle">("name");
-  const [nameInput, setNameInput] = useState("");
-  const [birthDate, setBirthDate] = useState(() => new Date().toISOString().split("T")[0]);
-  const [rashi, setRashi] = useState("ಮೇಷ");
-  const [nakshatra, setNakshatra] = useState("ಅಶ್ವಿನಿ");
-  const [mobileVehicleTarget, setMobileVehicleTarget] = useState<"mobile" | "vehicle">("mobile");
-  const [nameResult, setNameResult] = useState<SankhyaNameResult | null>(null);
-  const [mobileVehicleResult, setMobileVehicleResult] = useState<SankhyaMobileVehicleResult | null>(null);
+  // Tab 2: Name & Mobile/Vehicle State (2000 Coins / ₹200) - Restored from localStorage
+  const [suggestionType, setSuggestionType] = useState<"name" | "mobile_vehicle">(
+    () => savedSankhya?.suggestionType || "name"
+  );
+  const [nameInput, setNameInput] = useState(() => savedSankhya?.nameInput || "");
+  const [birthDate, setBirthDate] = useState(() => savedSankhya?.birthDate || new Date().toISOString().split("T")[0]);
+  const [rashi, setRashi] = useState(() => savedSankhya?.rashi || "ಮೇಷ");
+  const [nakshatra, setNakshatra] = useState(() => savedSankhya?.nakshatra || "ಅಶ್ವಿನಿ");
+  const [mobileVehicleTarget, setMobileVehicleTarget] = useState<"mobile" | "vehicle">(
+    () => savedSankhya?.mobileVehicleTarget || "mobile"
+  );
+  const [nameResult, setNameResult] = useState<SankhyaNameResult | null>(() => savedSankhya?.nameResult || null);
+  const [mobileVehicleResult, setMobileVehicleResult] = useState<SankhyaMobileVehicleResult | null>(
+    () => savedSankhya?.mobileVehicleResult || null
+  );
   const [isCalculatingSuggestion, setIsCalculatingSuggestion] = useState(false);
 
   // Voice Recognition States
@@ -84,6 +106,70 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
 
   // Feedback Banner
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  // Auto-Save State to localStorage so mobile refresh / network drop preserves everything
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const stateToSave = {
+        activeTab,
+        devoteeName,
+        gothra,
+        prashnaNumber,
+        prashnaQuestion,
+        prashnaResult,
+        prashnaHistory,
+        suggestionType,
+        nameInput,
+        birthDate,
+        rashi,
+        nakshatra,
+        mobileVehicleTarget,
+        nameResult,
+        mobileVehicleResult
+      };
+      localStorage.setItem(PRIEST_SANKHYA_STORAGE_KEY, JSON.stringify(stateToSave));
+    } catch (err) {
+      console.warn("[SankhyaShastraPriestPortal] Failed to persist state to localStorage:", err);
+    }
+  }, [
+    activeTab,
+    devoteeName,
+    gothra,
+    prashnaNumber,
+    prashnaQuestion,
+    prashnaResult,
+    prashnaHistory,
+    suggestionType,
+    nameInput,
+    birthDate,
+    rashi,
+    nakshatra,
+    mobileVehicleTarget,
+    nameResult,
+    mobileVehicleResult
+  ]);
+
+  // Reset / Clear Form & Session (Only erases on explicit Priest Reset click)
+  const handleResetSankhya = () => {
+    try {
+      localStorage.removeItem(PRIEST_SANKHYA_STORAGE_KEY);
+    } catch {}
+    setDevoteeName("");
+    setGothra("ಕಾಶ್ಯಪ");
+    setPrashnaNumber(108);
+    setPrashnaQuestion("");
+    setPrashnaResult(null);
+    setNameInput("");
+    setBirthDate(new Date().toISOString().split("T")[0]);
+    setNameResult(null);
+    setMobileVehicleResult(null);
+    setActiveTab("prashna");
+    setFeedback({
+      type: "success",
+      text: "ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ವಿವರಗಳನ್ನು ಯಶಸ್ವಿಯಾಗಿ ರಿಸೆಟ್ ಮಾಡಲಾಗಿದೆ. ನೀವು ಹೊಸ ಪ್ರಶ್ನೆಯನ್ನು ನಮೂದಿಸಬಹುದು (Reset successful)."
+    });
+  };
 
   useEffect(() => {
     let resolvedUser = currentUser || "priest_sankhya";
@@ -411,19 +497,33 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setIsRechargeOpen(true)}
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-2xl bg-[#FFF9E6] border-2 border-amber-400 hover:bg-amber-100 transition-all text-right shadow-sm"
-          >
-            <span className="text-amber-600 text-sm">🪙</span>
-            <div>
-              <div className="text-xs font-mono font-black text-amber-950 leading-tight">
-                {coinBalance.toLocaleString()}
+          <div className="flex items-center gap-2">
+            {/* Priest Reset Action Button (Anti-Reset Guard: State is only wiped on explicit Priest click) */}
+            <button
+              type="button"
+              onClick={handleResetSankhya}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-2xl bg-amber-100/90 hover:bg-amber-200 border-2 border-amber-400 text-amber-950 font-bold text-xs shadow-sm transition-all active:scale-95"
+              title="ಹೊಸ ಪ್ರಶ್ನೆ ನಮೂದಿಸಲು ರಿಸೆಟ್ ಮಾಡಿ"
+            >
+              <span>🔄</span>
+              <span className="hidden sm:inline">ಹೊಸ ಪ್ರಶ್ನೆ / </span>
+              <span>ರಿಸೆಟ್</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsRechargeOpen(true)}
+              className="flex items-center gap-2 px-3.5 py-1.5 rounded-2xl bg-[#FFF9E6] border-2 border-amber-400 hover:bg-amber-100 transition-all text-right shadow-sm active:scale-95"
+            >
+              <span className="text-amber-600 text-sm">🪙</span>
+              <div>
+                <div className="text-xs font-mono font-black text-amber-950 leading-tight">
+                  {coinBalance.toLocaleString()}
+                </div>
+                <div className="text-[9px] text-emerald-700 font-bold leading-none">+ ರೀಚಾರ್ಜ್</div>
               </div>
-              <div className="text-[9px] text-emerald-700 font-bold leading-none">+ ರೀಚಾರ್ಜ್</div>
-            </div>
-          </button>
+            </button>
+          </div>
         </div>
       </header>
 
@@ -617,13 +717,24 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
           {/* Prashna Result Card */}
           {prashnaResult && (
             <div className="bg-[#FFFDF7] border-2 border-amber-400/80 rounded-3xl p-5 shadow-md space-y-4">
-              <div className="border-b border-amber-200 pb-2.5">
-                <span className="text-[10px] uppercase font-black text-amber-800 block">
-                  ಸಂಖ್ಯೆ {prashnaResult.number} ರ ಶಾಸ್ತ್ರೀಯ ನಿರ್ಣಯ
-                </span>
-                <h3 className="text-sm font-black text-amber-950 mt-0.5">
-                  ಪ್ರಶ್ನೆ: {prashnaResult.question}
-                </h3>
+              <div className="border-b border-amber-200 pb-2.5 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] uppercase font-black text-amber-800 block">
+                    ಸಂಖ್ಯೆ {prashnaResult.number} ರ ಶಾಸ್ತ್ರೀಯ ನಿರ್ಣಯ
+                  </span>
+                  <h3 className="text-sm font-black text-amber-950 mt-0.5">
+                    ಪ್ರಶ್ನೆ: {prashnaResult.question}
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleResetSankhya}
+                  className="px-2.5 py-1 bg-amber-100 hover:bg-amber-200 text-amber-950 rounded-xl text-[10px] font-black border border-amber-300 flex items-center gap-1 shadow-sm active:scale-95"
+                  title="ಹೊಸ ಪ್ರಶ್ನೆ ನಮೂದಿಸಲು ರಿಸೆಟ್ ಮಾಡಿ"
+                >
+                  <span>🔄</span>
+                  <span>ಹೊಸ ಪ್ರಶ್ನೆ (Reset)</span>
+                </button>
               </div>
 
               {/* Badges Matrix */}
@@ -862,13 +973,24 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
           {/* Name Result Display */}
           {nameResult && (
             <div className="bg-[#FFFDF7] border-2 border-amber-400/80 rounded-3xl p-5 shadow-md space-y-4">
-              <div className="border-b border-amber-200 pb-2.5">
-                <span className="text-[10px] uppercase font-black text-amber-800 block">
-                  ನಾಮ ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ವಿಶ್ಲೇಷಣೆ
-                </span>
-                <h3 className="text-sm font-black text-amber-950 mt-0.5">
-                  ಹೆಸರು: {nameResult.inputName} (ಚಾಲ್ಡಿಯನ್ ಮೊತ್ತ: {nameResult.currentNameNumber})
-                </h3>
+              <div className="border-b border-amber-200 pb-2.5 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] uppercase font-black text-amber-800 block">
+                    ನಾಮ ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ವಿಶ್ಲೇಷಣೆ
+                  </span>
+                  <h3 className="text-sm font-black text-amber-950 mt-0.5">
+                    ಹೆಸರು: {nameResult.inputName} (ಚಾಲ್ಡಿಯನ್ ಮೊತ್ತ: {nameResult.currentNameNumber})
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleResetSankhya}
+                  className="px-2.5 py-1 bg-amber-100 hover:bg-amber-200 text-amber-950 rounded-xl text-[10px] font-black border border-amber-300 flex items-center gap-1 shadow-sm active:scale-95"
+                  title="ಹೊಸ ನಾಮ ಸೂಚನೆಗಾಗಿ ರಿಸೆಟ್ ಮಾಡಿ"
+                >
+                  <span>🔄</span>
+                  <span>ಹೊಸ ಸೂಚನೆ (Reset)</span>
+                </button>
               </div>
 
               <div className="grid grid-cols-2 gap-2 text-xs">
@@ -907,13 +1029,24 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
           {/* Mobile / Vehicle Result Display */}
           {mobileVehicleResult && (
             <div className="bg-[#FFFDF7] border-2 border-amber-400/80 rounded-3xl p-5 shadow-md space-y-4">
-              <div className="border-b border-amber-200 pb-2.5">
-                <span className="text-[10px] uppercase font-black text-amber-800 block">
-                  {mobileVehicleResult.targetType === "mobile" ? "📱 ಮೊಬೈಲ್ ಸಂಖ್ಯಾ ಶಿಫಾರಸು" : "🚗 ವಾಹನ ಸಂಖ್ಯಾ ಶಿಫಾರಸು"}
-                </span>
-                <h3 className="text-sm font-black text-amber-950 mt-0.5">
-                  ಮೂಲಾಂಕ {mobileVehicleResult.mulanka} • ಭಾಗ್ಯಾಂಕ {mobileVehicleResult.bhagyanka}
-                </h3>
+              <div className="border-b border-amber-200 pb-2.5 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] uppercase font-black text-amber-800 block">
+                    {mobileVehicleResult.targetType === "mobile" ? "📱 ಮೊಬೈಲ್ ಸಂಖ್ಯಾ ಶಿಫಾರಸು" : "🚗 ವಾಹನ ಸಂಖ್ಯಾ ಶಿಫಾರಸು"}
+                  </span>
+                  <h3 className="text-sm font-black text-amber-950 mt-0.5">
+                    ಮೂಲಾಂಕ {mobileVehicleResult.mulanka} • ಭಾಗ್ಯಾಂಕ {mobileVehicleResult.bhagyanka}
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleResetSankhya}
+                  className="px-2.5 py-1 bg-amber-100 hover:bg-amber-200 text-amber-950 rounded-xl text-[10px] font-black border border-amber-300 flex items-center gap-1 shadow-sm active:scale-95"
+                  title="ಹೊಸ ಸಂಖ್ಯೆಗಾಗಿ ರಿಸೆಟ್ ಮಾಡಿ"
+                >
+                  <span>🔄</span>
+                  <span>ಹೊಸ ಸಂಖ್ಯೆ (Reset)</span>
+                </button>
               </div>
 
               <div className="p-3.5 bg-emerald-50 border-2 border-emerald-400 rounded-2xl text-xs space-y-1 font-bold text-emerald-950">

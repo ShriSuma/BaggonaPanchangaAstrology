@@ -126,6 +126,13 @@ export const SERVICE_COIN_COSTS: Record<string, ServiceCost> = {
     inrEquivalent: 50,
     description: "10-year stage-by-stage AI life predictions"
   },
+  STANDARD_JANANA_KUNDLI_PDF: {
+    key: "STANDARD_JANANA_KUNDLI_PDF",
+    name: "Baggona Panchanga Janana Kundli PDF",
+    coins: 1000,
+    inrEquivalent: 100,
+    description: "Baggona Panchanga Janana Kundli PDF with Dasha Bhukti & Planetary Positions (1,000 Coins / ₹100)"
+  },
   PREMIUM_KUNDLI_PDF: {
     key: "PREMIUM_KUNDLI_PDF",
     name: "Grand 8-Page Premium Kundli PDF Download",

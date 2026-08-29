@@ -25,6 +25,10 @@ import { calculateTraditionalBaggona } from "../../core/TraditionalBaggonaEngine
 import { translateText } from "../../utils/translator";
 import type { KundliViewerSession } from "../../stores/kundliViewerStore";
 import { PdfTemplate, type PdfTranslations, type PremiumData } from "../../components/RamanBhavishya/PdfTemplate";
+import { GokarnaKundaliTemplate } from "../../components/template/GokarnaKundaliTemplate";
+import { DashaPdfTemplate } from "../../components/kundli/DashaPdfTemplate";
+import { exportPanchangaWithDashaPdf, exportElementAsPdf } from "../../core/ExportUtils";
+import { patrikaMetaForNakshatraIndex } from "../../core/nakshatraPatrikaMeta";
 import { generateMasterPrediction } from "../../core/MasterPredictionEngine";
 import { detectAffairIndicators } from "../../core/layers/NatalLayer";
 import { askGemini } from "../../core/GeminiEngine";
@@ -128,6 +132,19 @@ function enrichYogaDescription(name: string, impact: string, lang: string, lagna
 
 type PriestTab = "kundli" | "questions" | "wallet";
 
+const PRIEST_KUNDLI_STORAGE_KEY = "baggona_priest_kundli_active_session";
+
+function loadSavedPriestKundliState(): any {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(PRIEST_KUNDLI_STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
 export const PriestMobilePortal: React.FC = () => {
   const {
     wallet,
@@ -144,8 +161,11 @@ export const PriestMobilePortal: React.FC = () => {
   const { currentUser } = useAuthStore();
   const [urlPriestName, setUrlPriestName] = useState<string>("");
 
+  // Load Saved Session from localStorage (Anti-Reset Guard for Refresh / Mobile Disconnects)
+  const savedSession = useMemo(() => loadSavedPriestKundliState(), []);
+
   // Active Tab
-  const [activeTab, setActiveTab] = useState<PriestTab>("kundli");
+  const [activeTab, setActiveTab] = useState<PriestTab>(() => savedSession?.activeTab || "kundli");
 
   // 5-Second Dismissible Royal Welcome Toast
   const [showWelcomeToast, setShowWelcomeToast] = useState(true);
@@ -156,25 +176,35 @@ export const PriestMobilePortal: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordMsg, setPasswordMsg] = useState<string | null>(null);
 
-  // Form State (Janana Kundli)
-  const [devoteeName, setDevoteeName] = useState("");
-  const [gothra, setGothra] = useState("ಕಾಶ್ಯಪ");
-  const [birthDate, setBirthDate] = useState(() => new Date().toISOString().split("T")[0]);
-  const [birthTime, setBirthTime] = useState("12:00");
-  const [placeName, setPlaceName] = useState("ಗೋಕರ್ಣ");
-  const [latitude, setLatitude] = useState(14.54);
-  const [longitude, setLongitude] = useState(74.31);
-  const [chartStyle, setChartStyle] = useState<"south" | "north">("south");
+  // Form State (Janana Kundli) - Restored from localStorage if available
+  const [devoteeName, setDevoteeName] = useState(() => savedSession?.devoteeName || "");
+  const [gothra, setGothra] = useState(() => savedSession?.gothra || "ಕಾಶ್ಯಪ");
+  const [birthDate, setBirthDate] = useState(() => savedSession?.birthDate || new Date().toISOString().split("T")[0]);
+  const [birthTime, setBirthTime] = useState(() => savedSession?.birthTime || "12:00");
+  const [placeName, setPlaceName] = useState(() => savedSession?.placeName || "ಗೋಕರ್ಣ");
+  const [latitude, setLatitude] = useState(() => savedSession?.latitude ?? 14.54);
+  const [longitude, setLongitude] = useState(() => savedSession?.longitude ?? 74.31);
+  const [chartStyle, setChartStyle] = useState<"south" | "north">(() => savedSession?.chartStyle || "south");
+  const [pdfLanguage, setPdfLanguage] = useState<string>(() => savedSession?.pdfLanguage || "kn");
 
   // Generated Kundli Data
-  const [kundliResult, setKundliResult] = useState<KundliOutput | null>(null);
+  const [kundliResult, setKundliResult] = useState<KundliOutput | null>(() => savedSession?.kundliResult || null);
   const [isCalculatingKundli, setIsCalculatingKundli] = useState(false);
 
+  // Standard Janana Kundli PDF Options & States (1,000 Coins / ₹100)
+  const [selectedJananaPdfOption, setSelectedJananaPdfOption] = useState<"kundli_with_dasha" | "kundli_only">(
+    () => savedSession?.selectedJananaPdfOption || "kundli_with_dasha"
+  );
+  const [isGeneratingJananaPdf, setIsGeneratingJananaPdf] = useState(false);
+  const [jananaDynamicValues, setJananaDynamicValues] = useState<Record<string, string>>({});
+  const traditionalExportRef = useRef<HTMLDivElement>(null);
+  const dashaExportRef = useRef<HTMLDivElement>(null);
+
   // Question / Consultation State & Subsequent History
-  const [selectedCategoryKey, setSelectedCategoryKey] = useState("maduve");
-  const [customQuestion, setCustomQuestion] = useState("");
-  const [consultationResult, setConsultationResult] = useState<PriestConsultationResult | null>(null);
-  const [consultationHistory, setConsultationHistory] = useState<PriestConsultationResult[]>([]);
+  const [selectedCategoryKey, setSelectedCategoryKey] = useState(() => savedSession?.selectedCategoryKey || "maduve");
+  const [customQuestion, setCustomQuestion] = useState(() => savedSession?.customQuestion || "");
+  const [consultationResult, setConsultationResult] = useState<PriestConsultationResult | null>(() => savedSession?.consultationResult || null);
+  const [consultationHistory, setConsultationHistory] = useState<PriestConsultationResult[]>(() => savedSession?.consultationHistory || []);
   const [isConsulting, setIsConsulting] = useState(false);
 
   // Voice Recognition States
@@ -188,6 +218,73 @@ export const PriestMobilePortal: React.FC = () => {
 
   // Global UI Feedback / Alert
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  // Auto-Save State to localStorage so mobile refresh / network drop preserves everything
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const stateToSave = {
+        devoteeName,
+        gothra,
+        birthDate,
+        birthTime,
+        placeName,
+        latitude,
+        longitude,
+        chartStyle,
+        pdfLanguage,
+        activeTab,
+        kundliResult,
+        selectedJananaPdfOption,
+        selectedCategoryKey,
+        customQuestion,
+        consultationResult,
+        consultationHistory
+      };
+      localStorage.setItem(PRIEST_KUNDLI_STORAGE_KEY, JSON.stringify(stateToSave));
+    } catch (err) {
+      console.warn("[PriestMobilePortal] Failed to persist state to localStorage:", err);
+    }
+  }, [
+    devoteeName,
+    gothra,
+    birthDate,
+    birthTime,
+    placeName,
+    latitude,
+    longitude,
+    chartStyle,
+    pdfLanguage,
+    activeTab,
+    kundliResult,
+    selectedJananaPdfOption,
+    selectedCategoryKey,
+    customQuestion,
+    consultationResult,
+    consultationHistory
+  ]);
+
+  // Reset / Clear Form & Session (Only erases on explicit Priest Reset click)
+  const handleResetKundli = () => {
+    try {
+      localStorage.removeItem(PRIEST_KUNDLI_STORAGE_KEY);
+    } catch {}
+    setDevoteeName("");
+    setGothra("ಕಾಶ್ಯಪ");
+    setBirthDate(new Date().toISOString().split("T")[0]);
+    setBirthTime("12:00");
+    setPlaceName("ಗೋಕರ್ಣ");
+    setLatitude(14.54);
+    setLongitude(74.31);
+    setKundliResult(null);
+    setConsultationResult(null);
+    setCustomQuestion("");
+    setActiveTab("kundli");
+    setFeedback({
+      type: "success",
+      text: "ಜಾತಕ ವಿವರಗಳನ್ನು ಯಶಸ್ವಿಯಾಗಿ ರಿಸೆಟ್ ಮಾಡಲಾಗಿದೆ. ನೀವು ಹೊಸ ಜಾತಕವನ್ನು ರಚಿಸಬಹುದು (Reset successful)."
+    });
+  };
 
   useEffect(() => {
     let resolvedUser = currentUser || "priest_shreeram";
@@ -363,7 +460,6 @@ export const PriestMobilePortal: React.FC = () => {
   };
 
   // PDF Export States & References
-  const [pdfLanguage, setPdfLanguage] = useState<string>("kn");
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [premiumDataForPdf, setPremiumDataForPdf] = useState<PremiumData | null>(null);
   const [premiumPdfTranslations, setPremiumPdfTranslations] = useState<PdfTranslations | null>(null);
@@ -419,6 +515,146 @@ export const PriestMobilePortal: React.FC = () => {
       dailyPrediction: null
     } as unknown as KundliViewerSession;
   }, [kundliResult, devoteeName, birthDate, birthTime, latitude, longitude, placeName, dashaBhuktiInfo]);
+
+  // Date and Traditional Panchanga computation for Janana Kundli PDF
+  const birthDateObj = useMemo(() => {
+    if (!birthDate) return new Date();
+    const [y, m, d] = birthDate.split("-").map(Number);
+    return new Date(y || 2026, (m || 1) - 1, d || 1, 12, 0, 0, 0);
+  }, [birthDate]);
+
+  const traditionalData = useMemo(() => {
+    if (!kundliResult) return null;
+    return calculateTraditionalBaggona(birthDate, birthTime || "12:00", latitude, longitude);
+  }, [kundliResult, birthDate, birthTime, latitude, longitude]);
+
+  const isDayBirthComputed = useMemo(() => {
+    if (!birthTime) return true;
+    const [hh, mm] = (birthTime || "12:00").split(":").map(Number);
+    const birthMins = (hh || 12) * 60 + (mm || 0);
+    let sunriseMins = 360; // 06:00
+    let sunsetMins = 1080; // 18:00
+    if (traditionalData?.sunrise && traditionalData.sunrise.includes(":")) {
+      const [sh, sm] = traditionalData.sunrise.split(":").map(Number);
+      if (!isNaN(sh) && !isNaN(sm)) sunriseMins = sh * 60 + sm;
+    }
+    if (traditionalData?.sunset && traditionalData.sunset.includes(":")) {
+      const [sh, sm] = traditionalData.sunset.split(":").map(Number);
+      if (!isNaN(sh) && !isNaN(sm)) sunsetMins = sh * 60 + sm;
+    }
+    return birthMins >= sunriseMins && birthMins < sunsetMins;
+  }, [birthTime, traditionalData?.sunrise, traditionalData?.sunset]);
+
+  // Handle Standard Baggona Panchanga Janana Kundli PDF Download (1,000 Coins / ₹100)
+  const handleDownloadJananaKundliPdf = async () => {
+    if (!kundliResult) {
+      setFeedback({
+        type: "error",
+        text: "ದಯವಿಟ್ಟು ಮೊದಲು ಭಕ್ತರ ಜನನ ಕುಂಡಲಿಯನ್ನು ರಚಿಸಿ."
+      });
+      return;
+    }
+
+    const cost = SERVICE_COIN_COSTS.STANDARD_JANANA_KUNDLI_PDF?.coins || 1000; // 1,000 Coins (₹100)
+    if (coinBalance < cost) {
+      setFeedback({
+        type: "error",
+        text: `ನಾಣ್ಯಗಳ ಕೊರತೆ ಇದೆ. ಜನನ ಕುಂಡಲಿ PDF ಡೌನ್‌ಲೋಡ್ ಮಾಡಲು ೧,೦೦೦ ನಾಣ್ಯಗಳು (₹೧೦೦) ಅಗತ್ಯವಿದೆ. ಪ್ರಸ್ತುತ ನಿಮ್ಮಲ್ಲಿ ${coinBalance} ನಾಣ್ಯಗಳಿವೆ.`
+      });
+      setIsRechargeOpen(true);
+      return;
+    }
+
+    setIsGeneratingJananaPdf(true);
+    setFeedback(null);
+
+    // 1. Deduct 1,000 Coins
+    const deductRes = await deductForService(cost, "ಬಗ್ಗೋಣ ಜನನ ಕುಂಡಲಿ PDF ಡೌನ್‌ಲೋಡ್", devoteeName || "ಭಕ್ತರು");
+    if (!deductRes.success) {
+      setFeedback({ type: "error", text: deductRes.error || "ನಾಣ್ಯ ಕಡಿತ ವಿಫಲವಾಗಿದೆ." });
+      setIsGeneratingJananaPdf(false);
+      return;
+    }
+
+    try {
+      // Non-Kannada localized terms
+      const newVals: Record<string, string> = {};
+      if (pdfLanguage !== "kn" && traditionalData) {
+        const yoniMeta = patrikaMetaForNakshatraIndex(kundliResult.planets.find((p: any) => p.name === "Moon")?.nakshatra.index || 0);
+        const keys = [
+          "samvatsara", "masa", "paksha", "tithi", "weekday", "sunNakshatra", "moonNakshatra", "yoga", "karana", "sankrantiSign",
+          "yoni", "gana", "nadi", "label_yoni", "label_gana", "label_nadi", "label_footer"
+        ];
+        const texts = [
+          traditionalData.samvatsaraKn, traditionalData.masaKn, traditionalData.pakshaKn, traditionalData.tithiKn, traditionalData.weekdayKn, 
+          traditionalData.sunNakshatraKn, traditionalData.moonNakshatraKn, traditionalData.yogaKn, traditionalData.karanaKn, traditionalData.sankrantiSignKn,
+          yoniMeta.yoniKn, yoniMeta.ganaKn, yoniMeta.nadiKn, "ಯೋನಿ", "ಗಣ", "ನಾಡಿ", "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಕರ್ತರು"
+        ];
+        const targetLocale = pdfLanguage === "en" ? "en-US" : `${pdfLanguage}-IN`;
+        const translated = await Promise.all(texts.map((txt) => translateText(txt, targetLocale)));
+        keys.forEach((k, i) => (newVals[k] = translated[i]));
+      }
+      setJananaDynamicValues(newVals);
+
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      const traditionalEl = traditionalExportRef.current;
+      const dashaEl = dashaExportRef.current;
+      const safeName = (devoteeName || "bhaktaru").trim().replace(/\s+/g, "_");
+      const baseFileName = `Baggona_Janana_Kundali_${safeName}`;
+
+      if (!traditionalEl) throw new Error("Traditional Kundali template ref not found");
+
+      if (selectedJananaPdfOption === "kundli_with_dasha" && dashaEl) {
+        await exportPanchangaWithDashaPdf(traditionalEl, dashaEl, baseFileName);
+      } else {
+        await exportElementAsPdf(traditionalEl, baseFileName);
+      }
+
+      // Log download to Firestore for 11:30 PM report
+      void logPremiumPdfDownload({
+        devoteeName: devoteeName || "ಭಕ್ತರು",
+        username: wallet?.userId || currentUser || "priest",
+        priestName: activePriestDisplayName,
+        portalSource: "Priest Mobile Portal",
+        language: pdfLanguage,
+        coinsSpent: cost,
+        amountInr: Math.round(cost / 10),
+        timestamp: new Date().toISOString(),
+        dateKey: new Date().toISOString().split("T")[0]
+      });
+
+      void notifyPremiumPdfDownloaded({
+        clientName: devoteeName || "ಭಕ್ತರು",
+        pdfType: `Baggona Janana Kundli PDF (${selectedJananaPdfOption === "kundli_with_dasha" ? "Kundli + Dasha" : "Kundli Only"})`,
+        language: pdfLanguage,
+        pageCount: selectedJananaPdfOption === "kundli_with_dasha" ? 2 : 1,
+        priestName: activePriestDisplayName
+      });
+
+      setFeedback({
+        type: "success",
+        text: "ಬಗ್ಗೋಣ ಜನನ ಕುಂಡಲಿ PDF ಯಶಸ್ವಿಯಾಗಿ ಡೌನ್‌ಲೋಡ್ ಆಗಿದೆ. (೧,೦೦೦ ನಾಣ್ಯಗಳು ಕಡಿತಗೊಂಡಿವೆ)"
+      });
+    } catch (err: any) {
+      console.error("[PriestMobilePortal] Janana Kundli PDF download failed:", err);
+      // Auto-Refund Guard
+      await refundCoins(cost, "ಜನನ ಕುಂಡಲಿ PDF ಡೌನ್‌ಲೋಡ್ ದೋಷ");
+      void notifySystemFailureAlert({
+        username: wallet?.userId || currentUser || "priest",
+        priestName: activePriestDisplayName,
+        action: `ಜನನ ಕುಂಡಲಿ PDF ಡೌನ್‌ಲೋಡ್ (${selectedJananaPdfOption})`,
+        attemptedCoins: cost,
+        errorMessage: err?.message || "Janana Kundli PDF generation failure"
+      });
+      setFeedback({
+        type: "error",
+        text: "ಜನನ ಕುಂಡಲಿ PDF ರಚನೆಯಲ್ಲಿ ತಾಂತ್ರಿಕ ದೋಷ ಉಂಟಾಗಿದೆ. ಕಡಿತಗೊಂಡ ೧,೦೦೦ ನಾಣ್ಯಗಳನ್ನು ತಕ್ಷಣವೇ ನಿಮ್ಮ ವಾಲೆಟ್‌ಗೆ ಮರುಪಾವತಿಸಲಾಗಿದೆ."
+      });
+    } finally {
+      setIsGeneratingJananaPdf(false);
+    }
+  };
 
   // Handle Full Baggona Bhavishya GenAI Premium PDF Download with 3,500 Coin Deduction & Auto-Refund Guard
   const handleDownloadPremiumPdf = async () => {
@@ -952,20 +1188,34 @@ export const PriestMobilePortal: React.FC = () => {
             </div>
           </div>
 
-          {/* Quick Balance & Refill Pill */}
-          <button
-            type="button"
-            onClick={() => setIsRechargeOpen(true)}
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-2xl bg-[#FFF9E6] border-2 border-amber-400 hover:bg-amber-100 transition-all text-right shadow-sm"
-          >
-            <span className="text-amber-600 text-sm">🪙</span>
-            <div>
-              <div className="text-xs font-mono font-black text-amber-950 leading-tight">
-                {coinBalance.toLocaleString()}
+          <div className="flex items-center gap-2">
+            {/* Priest Reset Action Button (Anti-Reset Guard: State is only wiped on explicit Priest click) */}
+            <button
+              type="button"
+              onClick={handleResetKundli}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-2xl bg-amber-100/90 hover:bg-amber-200 border-2 border-amber-400 text-amber-950 font-bold text-xs shadow-sm transition-all active:scale-95"
+              title="ಹೊಸ ಜಾತಕ ನಮೂದಿಸಲು ರಿಸೆಟ್ ಮಾಡಿ"
+            >
+              <span>🔄</span>
+              <span className="hidden sm:inline">ಹೊಸ ಜಾತಕ / </span>
+              <span>ರಿಸೆಟ್</span>
+            </button>
+
+            {/* Quick Balance & Refill Pill */}
+            <button
+              type="button"
+              onClick={() => setIsRechargeOpen(true)}
+              className="flex items-center gap-2 px-3.5 py-1.5 rounded-2xl bg-[#FFF9E6] border-2 border-amber-400 hover:bg-amber-100 transition-all text-right shadow-sm active:scale-95"
+            >
+              <span className="text-amber-600 text-sm">🪙</span>
+              <div>
+                <div className="text-xs font-mono font-black text-amber-950 leading-tight">
+                  {coinBalance.toLocaleString()}
+                </div>
+                <div className="text-[9px] text-emerald-700 font-bold leading-none">+ ರೀಚಾರ್ಜ್</div>
               </div>
-              <div className="text-[9px] text-emerald-700 font-bold leading-none">+ ರೀಚಾರ್ಜ್</div>
-            </div>
-          </button>
+            </button>
+          </div>
         </div>
       </header>
 
@@ -1173,8 +1423,19 @@ export const PriestMobilePortal: React.FC = () => {
               {/* Top 5 Panchanga Attributes Card */}
               <div className="bg-[#FFFDF7] border-2 border-amber-400/80 rounded-3xl p-5 shadow-md">
                 <div className="text-[11px] uppercase font-black text-amber-800 border-b border-amber-200 pb-2 mb-3.5 flex items-center justify-between">
-                  <span>ಪ್ರಮುಖ ೫ ಪಂಚಾಂಗ ವಿವರಗಳು</span>
-                  <span className="text-amber-950 font-mono font-bold">{devoteeName} ({gothra})</span>
+                  <div className="flex items-center gap-2">
+                    <span>ಪ್ರಮುಖ ೫ ಪಂಚಾಂಗ ವಿವರಗಳು</span>
+                    <span className="text-amber-950 font-mono font-bold">({devoteeName} - {gothra})</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleResetKundli}
+                    className="px-2.5 py-1 bg-amber-100 hover:bg-amber-200 text-amber-950 rounded-xl text-[10px] font-black border border-amber-300 flex items-center gap-1 shadow-sm active:scale-95"
+                    title="ಹೊಸ ಜಾತಕ ರಚಿಸಲು ಎಲ್ಲವನ್ನು ರಿಸೆಟ್ ಮಾಡಿ"
+                  >
+                    <span>🔄</span>
+                    <span>ಹೊಸ ಜಾತಕ (Reset)</span>
+                  </button>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
@@ -1206,36 +1467,42 @@ export const PriestMobilePortal: React.FC = () => {
 
                   {/* Yoga */}
                   <div className="p-3 rounded-2xl bg-[#FEFCF4] border-2 border-amber-300">
-                    <span className="text-[10px] text-amber-800 block font-bold">🕉️ ಯೋಗ</span>
-                    <span className="font-bold text-amber-950">ಶುಕ್ಲ ಯೋಗ</span>
+                    <span className="text-[10px] text-amber-800 block font-bold">🧘 ನಿತ್ಯ ಯೋಗ</span>
+                    <span className="font-bold text-amber-950">
+                      {traditionalData?.yoga || (kundliResult as any).yoga?.sanskrit || "ಶುಭ"}
+                    </span>
                   </div>
 
                   {/* Karana */}
                   <div className="p-3 rounded-2xl bg-[#FEFCF4] border-2 border-amber-300">
                     <span className="text-[10px] text-amber-800 block font-bold">⚡ ಕರಣ</span>
-                    <span className="font-bold text-amber-950">ಬವ ಕರಣ</span>
+                    <span className="font-bold text-amber-950">
+                      {traditionalData?.karana || (kundliResult as any).karana?.sanskrit || "ಬವ"}
+                    </span>
                   </div>
                 </div>
               </div>
 
-              {/* Dasha - Bhukti & Sandhi Alert Card */}
+              {/* Vimshottari Dasha-Bhukti Timeline Card */}
               {dashaBhuktiInfo && (
-                <div className="bg-[#FFFDF7] border-2 border-emerald-400/80 rounded-3xl p-5 shadow-md space-y-3.5">
-                  <div className="flex items-center justify-between border-b border-emerald-200 pb-2">
-                    <h3 className="text-xs font-black text-emerald-900 flex items-center gap-2">
+                <div className="bg-[#FFFDF7] border-2 border-amber-400/80 rounded-3xl p-5 shadow-md space-y-3">
+                  <div className="border-b border-amber-200 pb-2 flex items-center justify-between">
+                    <h3 className="text-xs font-black text-amber-950 flex items-center gap-2">
                       <span>⏳</span>
-                      <span>ದಶಾ - ಭುಕ್ತಿ ವಿವರ ಮತ್ತು ಕಾಲಗಣನೆ</span>
+                      <span>ವಿಂಶೋತ್ತರಿ ದಶಾ-ಭುಕ್ತಿ ವಿವರಗಳು (Dasha Timeline)</span>
                     </h3>
+                    <span className="text-[10px] text-emerald-800 font-bold bg-emerald-100 px-2 py-0.5 rounded-full">
+                      ಸಕ್ರಿಯ ದಶೆ
+                    </span>
                   </div>
 
-                  {/* Sandhi Alert */}
                   {dashaBhuktiInfo.isSandhiPeriod && (
-                    <div className="p-3 rounded-2xl bg-red-50 border-2 border-red-400 text-red-900 text-xs font-bold shadow-sm">
+                    <div className="p-2.5 rounded-xl bg-red-50 border-2 border-red-300 text-red-900 text-[11px] font-bold">
                       {dashaBhuktiInfo.sandhiAlertText}
                     </div>
                   )}
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                     <div className="p-3 bg-[#FEFCF4] rounded-2xl border-2 border-amber-300">
                       <span className="text-amber-800 text-[10px] block font-bold">ಜನನ ಕಾಲದ ದಶಾ:</span>
                       <span className="font-bold text-amber-950">{dashaBhuktiInfo.birthDasha}</span>
@@ -1297,28 +1564,120 @@ export const PriestMobilePortal: React.FC = () => {
                 </div>
               </div>
 
-              {/* Premium PDF Download Card with Language Selection */}
+              {/* Baggona Panchanga Janana Kundli PDF Download Card with Radio Options (1,000 Coins / ₹100) */}
               <div className="bg-[#FFFDF7] border-2 border-amber-400/90 rounded-3xl p-5 shadow-md space-y-4">
                 <div className="flex items-center justify-between border-b border-amber-200 pb-2.5">
                   <div className="flex items-center gap-2">
-                    <span className="text-xl">📄✨</span>
+                    <span className="text-xl">📜✨</span>
                     <div>
                       <h3 className="text-xs font-black text-amber-950">
-                        ಪ್ರೀಮಿಯಂ ಭವಿಷ್ಯ PDF (Bhavishya GenAI)
+                        ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜನನ ಕುಂಡಲಿ PDF (Janana Kundli)
                       </h3>
                       <p className="text-[10px] text-amber-700 font-semibold">
-                        ಸಂಪೂರ್ಣ AI ಮಾಸ್ಟರ್ ಭವಿಷ್ಯ, ಯೋಗ, ದೋಷ ಮತ್ತು ೧೨ ತಿಂಗಳ ಮಾರ್ಗಸೂಚಿ
+                        ದಶಾ-ಭುಕ್ತಿ ವಿವರಗಳು ಹಾಗೂ ಸಾಂಪ್ರದಾಯಿಕ ಪಂಚಾಂಗ ಜಾತಕ ಪತ್ರಿಕೆ
                       </p>
                     </div>
                   </div>
                   <span className="text-[10px] font-mono font-black text-amber-900 bg-[#FFF5D6] px-2.5 py-1 rounded-full border border-amber-400">
+                    🪙 ೧,೦೦೦ (₹೧೦೦)
+                  </span>
+                </div>
+
+                {/* PDF Content Choice Radio Options */}
+                <div className="space-y-2">
+                  <label className="text-[11px] font-bold text-amber-900 block">
+                    📑 PDF ಮಾದರಿ ಆಯ್ಕೆಮಾಡಿ (Select PDF Option):
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <label
+                      className={`flex items-center gap-2.5 p-3 rounded-2xl border-2 cursor-pointer transition-all ${
+                        selectedJananaPdfOption === "kundli_with_dasha"
+                          ? "bg-amber-100/90 border-amber-500 text-amber-950 font-black shadow-sm"
+                          : "bg-[#FEFCF4] border-amber-200 text-slate-700 font-semibold hover:border-amber-400"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="jananaPdfOption"
+                        value="kundli_with_dasha"
+                        checked={selectedJananaPdfOption === "kundli_with_dasha"}
+                        onChange={() => setSelectedJananaPdfOption("kundli_with_dasha")}
+                        className="w-4 h-4 text-amber-600 focus:ring-amber-500"
+                      />
+                      <div className="text-xs">
+                        <div className="font-bold text-slate-900">ಜನನ ಕುಂಡಲಿ + ದಶಾ ಭುಕ್ತಿ ಪತ್ರಿಕೆ</div>
+                        <div className="text-[10px] text-amber-800 font-medium">ಸಂಪೂರ್ಣ ೨-ಪುಟಗಳ ವಿಸ್ತೃತ ಪತ್ರಿಕೆ</div>
+                      </div>
+                    </label>
+
+                    <label
+                      className={`flex items-center gap-2.5 p-3 rounded-2xl border-2 cursor-pointer transition-all ${
+                        selectedJananaPdfOption === "kundli_only"
+                          ? "bg-amber-100/90 border-amber-500 text-amber-950 font-black shadow-sm"
+                          : "bg-[#FEFCF4] border-amber-200 text-slate-700 font-semibold hover:border-amber-400"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="jananaPdfOption"
+                        value="kundli_only"
+                        checked={selectedJananaPdfOption === "kundli_only"}
+                        onChange={() => setSelectedJananaPdfOption("kundli_only")}
+                        className="w-4 h-4 text-amber-600 focus:ring-amber-500"
+                      />
+                      <div className="text-xs">
+                        <div className="font-bold text-slate-900">ಜನನ ಕುಂಡಲಿ ಮಾತ್ರ (Single Page)</div>
+                        <div className="text-[10px] text-amber-800 font-medium">ಮುಖ್ಯ ಜಾತಕ ನಕ್ಷೆ & ೫ ಪಂಚಾಂಗ ವಿವರಗಳು</div>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Janana Kundli PDF Gold Download Button */}
+                <button
+                  type="button"
+                  onClick={handleDownloadJananaKundliPdf}
+                  disabled={isGeneratingJananaPdf}
+                  className={`w-full py-3.5 px-4 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 hover:from-amber-500 hover:to-amber-300 text-slate-950 font-black text-sm rounded-2xl shadow-lg shadow-amber-500/25 border-2 border-amber-400 flex items-center justify-center gap-2 transition-all active:scale-[0.99] ${
+                    isGeneratingJananaPdf ? "opacity-75 cursor-wait" : "hover:scale-[1.01]"
+                  }`}
+                >
+                  {isGeneratingJananaPdf ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></div>
+                      <span>ಜನನ ಕುಂಡಲಿ PDF ಸಿದ್ಧವಾಗುತ್ತಿದೆ...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-base">📜</span>
+                      <span>ಜನನ ಕುಂಡಲಿ PDF (Janana Kundli PDF • 🪙 ೧,೦೦೦ / ₹೧೦೦)</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Premium Bhavishya GenAI PDF Download Card with Language Selection */}
+              <div className="bg-[#FFFDF7] border-2 border-indigo-400/90 rounded-3xl p-5 shadow-md space-y-4">
+                <div className="flex items-center justify-between border-b border-indigo-200 pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">📄✨</span>
+                    <div>
+                      <h3 className="text-xs font-black text-indigo-950">
+                        ಪ್ರೀಮಿಯಂ ಭವಿಷ್ಯ PDF (Bhavishya GenAI)
+                      </h3>
+                      <p className="text-[10px] text-indigo-700 font-semibold">
+                        ಸಂಪೂರ್ಣ AI ಮಾಸ್ಟರ್ ಭವಿಷ್ಯ, ಯೋಗ, ದೋಷ ಮತ್ತು ೧೨ ತಿಂಗಳ ಮಾರ್ಗಸೂಚಿ
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-mono font-black text-indigo-950 bg-indigo-50 px-2.5 py-1 rounded-full border border-indigo-400">
                     🪙 ೩,೫೦೦ (₹೩೫೦)
                   </span>
                 </div>
 
                 {/* PDF Language Radio Selection */}
                 <div className="space-y-2">
-                  <label className="text-[11px] font-bold text-amber-900 block">
+                  <label className="text-[11px] font-bold text-indigo-950 block">
                     🌐 ಭಾಷೆ ಆಯ್ಕೆಮಾಡಿ (Select PDF Language):
                   </label>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -1333,8 +1692,8 @@ export const PriestMobilePortal: React.FC = () => {
                         key={lang.code}
                         className={`flex items-center gap-2 p-2.5 rounded-xl border-2 cursor-pointer transition-all ${
                           pdfLanguage === lang.code
-                            ? "bg-amber-100/90 border-amber-500 text-amber-950 font-black shadow-sm"
-                            : "bg-[#FEFCF4] border-amber-200 text-slate-700 font-semibold hover:border-amber-400"
+                            ? "bg-indigo-100/90 border-indigo-500 text-indigo-950 font-black shadow-sm"
+                            : "bg-[#FEFCF4] border-indigo-200 text-slate-700 font-semibold hover:border-indigo-400"
                         }`}
                       >
                         <input
@@ -1343,7 +1702,7 @@ export const PriestMobilePortal: React.FC = () => {
                           value={lang.code}
                           checked={pdfLanguage === lang.code}
                           onChange={() => setPdfLanguage(lang.code)}
-                          className="w-4 h-4 text-amber-600 focus:ring-amber-500"
+                          className="w-4 h-4 text-indigo-600 focus:ring-indigo-500"
                         />
                         <span className="text-xs">{lang.name}</span>
                       </label>
@@ -1356,7 +1715,7 @@ export const PriestMobilePortal: React.FC = () => {
                   type="button"
                   onClick={handleDownloadPremiumPdf}
                   disabled={isGeneratingPdf}
-                  className={`w-full py-3.5 px-4 bg-gradient-to-r from-indigo-600 via-blue-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-black text-sm rounded-2xl shadow-lg shadow-indigo-500/25 border-2 border-indigo-400 flex items-center justify-center gap-2 transition-all ${
+                  className={`w-full py-3.5 px-4 bg-gradient-to-r from-indigo-600 via-blue-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-black text-sm rounded-2xl shadow-lg shadow-indigo-500/25 border-2 border-indigo-400 flex items-center justify-center gap-2 transition-all active:scale-[0.99] ${
                     isGeneratingPdf ? "opacity-75 cursor-wait" : "hover:scale-[1.01]"
                   }`}
                 >
@@ -1831,6 +2190,43 @@ export const PriestMobilePortal: React.FC = () => {
               </div>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* Hidden Traditional Baggona Panchanga Janana Kundali & Dasha Container Conforming to baggona-pdf-layout-guard */}
+      {kundliResult && (
+        <div
+          style={{
+            position: "fixed",
+            left: "0px",
+            top: "0px",
+            width: "794px",
+            opacity: 0,
+            pointerEvents: "none",
+            zIndex: -1000,
+            overflow: "hidden",
+            height: 0
+          }}
+        >
+          <div ref={traditionalExportRef} style={{ width: "794px", minHeight: "1123px", backgroundColor: "#fbf8f1" }}>
+            <GokarnaKundaliTemplate
+              kundli={kundliResult}
+              personName={devoteeName || "ಭಕ್ತರು"}
+              parentsName=""
+              birthDateObj={birthDateObj}
+              birthTimeStr={birthTime}
+              isDayBirth={isDayBirthComputed}
+              panchanga={traditionalData}
+              gothra={gothra || "ಕಾಶ್ಯಪ"}
+              pdfLanguage={pdfLanguage}
+              dynamicValues={jananaDynamicValues}
+            />
+          </div>
+          {kundliSession && (
+            <div ref={dashaExportRef} style={{ width: "794px", backgroundColor: "#ffffff" }}>
+              <DashaPdfTemplate session={kundliSession} maxAge={120} pdfLanguage={pdfLanguage} />
+            </div>
+          )}
         </div>
       )}
 
