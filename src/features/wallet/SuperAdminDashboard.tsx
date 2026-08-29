@@ -8,7 +8,9 @@ import {
   subscribeAllKundlis,
   subscribeAshirvadaPasses,
   subscribeSystemAuditLogs,
-  updateUserPassword
+  updateUserPassword,
+  deleteAshirvadaPass,
+  getOrCreatePriestWallet
 } from "../../db/firestoreDb";
 import { db } from "../../db/indexedDb";
 import { hashPassword } from "../auth/authStore";
@@ -47,6 +49,20 @@ export const SuperAdminDashboard: React.FC = () => {
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [processingTxId, setProcessingTxId] = useState<string | null>(null);
   const [resettingPassId, setResettingPassId] = useState<string | null>(null);
+  const [deletingPassId, setDeletingPassId] = useState<string | null>(null);
+
+  // New Priest Registration & Dedicated Link Generator State
+  const [newPriestName, setNewPriestName] = useState("");
+  const [newPriestUsername, setNewPriestUsername] = useState("");
+  const [newPriestWelcomeCoins, setNewPriestWelcomeCoins] = useState("700");
+  const [newPriestPortalType, setNewPriestPortalType] = useState<"both" | "panchanga" | "sankhyashastra">("both");
+  const [createdPriestResult, setCreatedPriestResult] = useState<{
+    name: string;
+    username: string;
+    panchangaUrl: string;
+    sankhyaUrl: string;
+  } | null>(null);
+  const [isCreatingPriest, setIsCreatingPriest] = useState(false);
 
   // Admin Password Management Modal
   const [showAdminPasswordModal, setShowAdminPasswordModal] = useState(false);
@@ -141,6 +157,90 @@ export const SuperAdminDashboard: React.FC = () => {
       setFeedback({ type: "error", text: "Error resetting pass validity." });
     } finally {
       setResettingPassId(null);
+    }
+  };
+
+  const handleDeletePass = async (passId: string) => {
+    setDeletingPassId(passId);
+    try {
+      const ok = await deleteAshirvadaPass(passId);
+      if (ok) {
+        setAshirvadaPasses((prev) => prev.filter((p) => p.id !== passId));
+        setFeedback({ type: "success", text: `ಆಶೀರ್ವಾದ ಪಾಸ್ (${passId}) ಯಶಸ್ವಿಯಾಗಿ ಅಳಿಸಲಾಗಿದೆ.` });
+      } else {
+        setFeedback({ type: "error", text: "ಪಾಸ್ ಅಳಿಸುವಿಕೆ ವಿಫಲವಾಗಿದೆ." });
+      }
+    } catch {
+      setFeedback({ type: "error", text: "ದೋಷ: ಪಾಸ್ ಅಳಿಸಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ." });
+    } finally {
+      setDeletingPassId(null);
+    }
+  };
+
+  const handleClearAllPasses = async () => {
+    if (!window.confirm("ಖಂಡಿತವಾಗಿ ಎಲ್ಲಾ ಆಶೀರ್ವಾದ ಪಾಸ್‌ಗಳನ್ನು ತೆರವುಗೊಳಿಸಲು ಬಯಸುವಿರಾ? (Are you sure you want to clear all sample passes?)")) {
+      return;
+    }
+    try {
+      for (const pass of ashirvadaPasses) {
+        await deleteAshirvadaPass(pass.id);
+      }
+      setAshirvadaPasses([]);
+      setFeedback({ type: "success", text: "ಎಲ್ಲಾ ಮಾದರಿ ಆಶೀರ್ವಾದ ಪಾಸ್‌ಗಳನ್ನು ಡೇಟಾಬೇಸ್‌ನಿಂದ ಯಶಸ್ವಿಯಾಗಿ ತೆರವುಗೊಳಿಸಲಾಗಿದೆ." });
+    } catch {
+      setFeedback({ type: "error", text: "ಪಾಸ್‌ಗಳನ್ನು ತೆರವುಗೊಳಿಸುವಾಗ ದೋಷ ಸಂಭವಿಸಿದೆ." });
+    }
+  };
+
+  const handleCreatePriestSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPriestName.trim() || !newPriestUsername.trim()) {
+      setFeedback({ type: "error", text: "ಪುರೋಹಿತರ ಹೆಸರು ಮತ್ತು ಯೂಸರ್‌ನೇಮ್ ಎರಡನ್ನೂ ನಮೂದಿಸಿ." });
+      return;
+    }
+
+    const cleanUsername = newPriestUsername.trim().toLowerCase().replace(/\s+/g, "_");
+    const welcomeCoinsNum = parseInt(newPriestWelcomeCoins, 10) || 700;
+
+    setIsCreatingPriest(true);
+    setFeedback(null);
+
+    try {
+      // 1. Init wallet in Firestore
+      await getOrCreatePriestWallet(cleanUsername, newPriestName.trim());
+
+      // 2. Add free welcome bonus coins if specified
+      if (welcomeCoinsNum > 0) {
+        await directCoinAdjustment(
+          cleanUsername,
+          welcomeCoinsNum,
+          `ಆರಂಭಿಕ ಉಚಿತ ಸ್ವಾಗತ ನಾಣ್ಯಗಳು (Welcome Bonus - ₹${Math.round(welcomeCoinsNum / 10)})`
+        );
+      }
+
+      const origin = typeof window !== "undefined" ? window.location.origin : "https://baggona-panchanga.firebaseapp.com";
+      const panchangaUrl = `${origin}/?portal=panchanga&user=${encodeURIComponent(cleanUsername)}&name=${encodeURIComponent(newPriestName.trim())}&firstTime=true`;
+      const sankhyaUrl = `${origin}/?portal=sankhyashastra&user=${encodeURIComponent(cleanUsername)}&name=${encodeURIComponent(newPriestName.trim())}&firstTime=true`;
+
+      setCreatedPriestResult({
+        name: newPriestName.trim(),
+        username: cleanUsername,
+        panchangaUrl,
+        sankhyaUrl
+      });
+
+      setFeedback({
+        type: "success",
+        text: `ಪುರೋಹಿತರು (${newPriestName}) ಯಶಸ್ವಿಯಾಗಿ ನೋಂದಾಯಿಸಲ್ಪಟ್ಟಿದ್ದಾರೆ! ${welcomeCoinsNum} ಸ್ವಾಗತ ನಾಣ್ಯಗಳು ಜಮಾ ಆಗಿವೆ.`
+      });
+
+      // Clear input fields
+      setNewPriestName("");
+      setNewPriestUsername("");
+    } catch (err: any) {
+      setFeedback({ type: "error", text: `ನೋಂದಣಿ ದೋಷ: ${err?.message || "Error"}` });
+    } finally {
+      setIsCreatingPriest(false);
     }
   };
 
@@ -416,6 +516,164 @@ export const SuperAdminDashboard: React.FC = () => {
       {/* TAB 1: Priests & Wallet Ledger */}
       {activeTab === "wallets" && (
         <div className="space-y-6">
+          {/* New Priest Registration & Dedicated Portal Link Generator */}
+          <div className="bg-gradient-to-br from-slate-900 via-slate-950 to-amber-950/30 border-2 border-amber-500/50 rounded-3xl p-6 shadow-xl space-y-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-amber-500/30 pb-3">
+              <div>
+                <h2 className="text-base font-black text-amber-200 flex items-center gap-2">
+                  <span>➕</span>
+                  <span>ಹೊಸ ಪುರೋಹಿತರನ್ನು ನೋಂದಾಯಿಸಿ & ಪ್ರತ್ಯೇಕ ಲಿಂಕ್ ರಚಿಸಿ (Create Priest & Generate Links)</span>
+                </h2>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Register a new priest, assign initial free welcome coins, and generate dedicated deep links for Panchanga & Sankhya Shastra.
+                </p>
+              </div>
+              <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950/80 border border-emerald-500/40 px-3 py-1 rounded-full uppercase tracking-wider">
+                ⚡ Instant Deep-Link Engine
+              </span>
+            </div>
+
+            <form onSubmit={handleCreatePriestSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+              <div>
+                <label className="block text-[11px] font-bold text-amber-300 mb-1">
+                  ಪುರೋಹಿತರ ಹೆಸರು (Priest Name):
+                </label>
+                <input
+                  type="text"
+                  value={newPriestName}
+                  onChange={(e) => setNewPriestName(e.target.value)}
+                  placeholder="ಉದಾ: ಶ್ರೀರಾಮ್ ಪಂಡಿತ್..."
+                  required
+                  className="w-full px-3.5 py-2 bg-slate-950 border border-slate-700 rounded-xl text-slate-100 text-xs font-bold focus:border-amber-400 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-amber-300 mb-1">
+                  ಯೂಸರ್ ID / Username:
+                </label>
+                <input
+                  type="text"
+                  value={newPriestUsername}
+                  onChange={(e) => setNewPriestUsername(e.target.value)}
+                  placeholder="ಉದಾ: priest_shreeram..."
+                  required
+                  className="w-full px-3.5 py-2 bg-slate-950 border border-slate-700 rounded-xl text-slate-100 text-xs font-mono focus:border-amber-400 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-amber-300 mb-1">
+                  ಸ್ವಾಗತ ನಾಣ್ಯಗಳು (Welcome Coins):
+                </label>
+                <input
+                  type="number"
+                  value={newPriestWelcomeCoins}
+                  onChange={(e) => setNewPriestWelcomeCoins(e.target.value)}
+                  placeholder="700"
+                  className="w-full px-3.5 py-2 bg-slate-950 border border-slate-700 rounded-xl text-slate-100 text-xs font-mono font-bold focus:border-amber-400 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <button
+                  type="submit"
+                  disabled={isCreatingPriest}
+                  className="w-full py-2.5 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs rounded-xl shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
+                >
+                  <span>✨</span>
+                  <span>{isCreatingPriest ? "ರಚಿಸಲಾಗುತ್ತಿದೆ..." : "ನೋಂದಾಯಿಸಿ & ಲಿಂಕ್ ಪಡೆಯಿರಿ"}</span>
+                </button>
+              </div>
+            </form>
+
+            {/* Generated Links Result Card */}
+            {createdPriestResult && (
+              <div className="p-4 bg-slate-950 border-2 border-emerald-500/60 rounded-2xl space-y-3 mt-4 animate-in fade-in duration-300">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-emerald-400 font-bold text-sm">✓ ನೋಂದಣಿ ಯಶಸ್ವಿ:</span>
+                    <span className="font-extrabold text-amber-200 text-sm">{createdPriestResult.name}</span>
+                    <span className="text-[10px] text-slate-400 font-mono">({createdPriestResult.username})</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setCreatedPriestResult(null)}
+                    className="text-slate-400 hover:text-slate-200 text-xs"
+                  >
+                    ✕ ಮುಚ್ಚಿ
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {/* Panchanga Link */}
+                  <div className="p-3 bg-slate-900 border border-amber-500/30 rounded-xl space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-amber-300">🔮 ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಲಿಂಕ್</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(createdPriestResult.panchangaUrl);
+                          setFeedback({ type: "success", text: "ಪಂಚಾಂಗ ಲಿಂಕ್ ನಕಲಿಸಲಾಗಿದೆ (Panchanga link copied)!" });
+                        }}
+                        className="px-2.5 py-1 bg-amber-500 text-slate-950 font-bold text-[10px] rounded-lg hover:bg-amber-400"
+                      >
+                        📋 Copy Link
+                      </button>
+                    </div>
+                    <input
+                      type="text"
+                      readOnly
+                      value={createdPriestResult.panchangaUrl}
+                      className="w-full px-2 py-1 bg-slate-950 border border-slate-800 rounded text-[10px] text-slate-400 font-mono select-all"
+                    />
+                  </div>
+
+                  {/* Sankhya Shastra Link */}
+                  <div className="p-3 bg-slate-900 border border-amber-500/30 rounded-xl space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-amber-300">🔢 ಬಗ್ಗೋಣ ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಲಿಂಕ್</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(createdPriestResult.sankhyaUrl);
+                          setFeedback({ type: "success", text: "ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಲಿಂಕ್ ನಕಲಿಸಲಾಗಿದೆ (Sankhya Shastra link copied)!" });
+                        }}
+                        className="px-2.5 py-1 bg-amber-500 text-slate-950 font-bold text-[10px] rounded-lg hover:bg-amber-400"
+                      >
+                        📋 Copy Link
+                      </button>
+                    </div>
+                    <input
+                      type="text"
+                      readOnly
+                      value={createdPriestResult.sankhyaUrl}
+                      className="w-full px-2 py-1 bg-slate-950 border border-slate-800 rounded text-[10px] text-slate-400 font-mono select-all"
+                    />
+                  </div>
+                </div>
+
+                {/* WhatsApp Share Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const message = encodeURIComponent(
+                      `ನಮಸ್ಕಾರ ${createdPriestResult.name} ಅವರೇ,\n\n` +
+                      `ನಿಮಗೆ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಮತ್ತು ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ತಂತ್ರಾಂಶದ ವಿಶೇಷ ಆಹ್ವಾನ ಕಳುಹಿಸಲಾಗಿದೆ.\n\n` +
+                      `🔮 ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಪೋರ್ಟಲ್:\n${createdPriestResult.panchangaUrl}\n\n` +
+                      `🔢 ಬಗ್ಗೋಣ ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಪೋರ್ಟಲ್:\n${createdPriestResult.sankhyaUrl}\n\n` +
+                      `॥ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ ॥`
+                    );
+                    window.open(`https://api.whatsapp.com/send?text=${message}`, "_blank");
+                  }}
+                  className="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-black text-xs rounded-xl flex items-center justify-center gap-2 shadow-md"
+                >
+                  <span>📲 WhatsApp ಮೂಲಕ ಆಹ್ವಾನ ಸಂದೇಶ ಕಳುಹಿಸಿ (Share via WhatsApp)</span>
+                </button>
+              </div>
+            )}
+          </div>
+
           {/* Pending Approvals */}
           {pendingAdminTransactions.length > 0 && (
             <div className="bg-slate-900/90 border border-amber-500/30 rounded-2xl p-5">
@@ -672,19 +930,38 @@ export const SuperAdminDashboard: React.FC = () => {
       {/* TAB 3: Ashirvada QR Passes & 90-Day Countdown */}
       {activeTab === "ashirvada" && (
         <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 space-y-4">
-          <div className="border-b border-slate-800 pb-3">
-            <h2 className="text-base font-bold text-amber-200 flex items-center gap-2">
-              <span>🪔</span>
-              <span>Ashirvada Patra & QR Code Pass Countdown Tracker</span>
-            </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Live tracking of remaining active days from 90-day validity window. Super Admin can 1-click Reset/Extend.
-            </p>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+            <div>
+              <h2 className="text-base font-bold text-amber-200 flex items-center gap-2">
+                <span>🪔</span>
+                <span>Ashirvada Patra & QR Code Pass Countdown Tracker</span>
+              </h2>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Live tracking of remaining active days from 90-day validity window. Super Admin can 1-click Reset/Extend or Delete.
+              </p>
+            </div>
+
+            {ashirvadaPasses.length > 0 && (
+              <button
+                type="button"
+                onClick={handleClearAllPasses}
+                className="px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/40 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5"
+              >
+                <span>🗑️</span>
+                <span>ಎಲ್ಲಾ ಮಾದರಿ ಪಾಸ್‌ಗಳನ್ನು ತೆರವುಗೊಳಿಸಿ (Clear All Passes)</span>
+              </button>
+            )}
           </div>
 
           {ashirvadaPasses.length === 0 ? (
-            <div className="text-center py-12 text-slate-500 text-sm">
-              No Ashirvada QR passes issued yet.
+            <div className="text-center py-16 px-4 bg-slate-950/60 rounded-2xl border border-slate-800/80 space-y-3">
+              <div className="text-4xl">🪔</div>
+              <div className="font-bold text-amber-200 text-sm">
+                ಯಾವುದೇ ಆಶೀರ್ವಾದ ಪಾಸ್‌ಗಳು ಸಕ್ರಿಯವಾಗಿಲ್ಲ (No Ashirvada Passes Issued)
+              </div>
+              <p className="text-xs text-slate-400 max-w-md mx-auto">
+                ಭಕ್ತರು ಸೇವಾ ಮತ್ತು ಪ್ರಸಾದ ಪುಟದಲ್ಲಿ ನೋಂದಣಿ ಮಾಡಿಕೊಂಡಾಗ ಅವರ 90-ದಿನಗಳ ಮಾನ್ಯತೆಯುಳ್ಳ ಆಶೀರ್ವಾದ ಪಾಸ್‌ಗಳು ಇಲ್ಲಿ ನೇರವಾಗಿ ಕಾಣಿಸಿಕೊಳ್ಳುತ್ತವೆ.
+              </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -742,14 +1019,25 @@ export const SuperAdminDashboard: React.FC = () => {
                         📥 Download Count: <strong>{pass.downloadCount || 0}</strong>
                       </span>
 
-                      <button
-                        type="button"
-                        disabled={resettingPassId === pass.id}
-                        onClick={() => handleResetValidity(pass.id)}
-                        className="px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 rounded-lg text-xs font-bold transition-all disabled:opacity-50"
-                      >
-                        {resettingPassId === pass.id ? "Resetting..." : "🔄 Reset to 90 Days"}
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          disabled={deletingPassId === pass.id}
+                          onClick={() => handleDeletePass(pass.id)}
+                          className="px-2.5 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/30 rounded-lg text-xs font-bold transition-all disabled:opacity-50"
+                        >
+                          {deletingPassId === pass.id ? "..." : "🗑️ ಅಳಿಸಿ"}
+                        </button>
+
+                        <button
+                          type="button"
+                          disabled={resettingPassId === pass.id}
+                          onClick={() => handleResetValidity(pass.id)}
+                          className="px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 rounded-lg text-xs font-bold transition-all disabled:opacity-50"
+                        >
+                          {resettingPassId === pass.id ? "Resetting..." : "🔄 Reset to 90 Days"}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );

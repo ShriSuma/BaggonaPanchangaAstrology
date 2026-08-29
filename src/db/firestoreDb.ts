@@ -5,6 +5,7 @@ import {
   getDocs,
   setDoc,
   updateDoc,
+  deleteDoc,
   query,
   where,
   orderBy,
@@ -604,6 +605,20 @@ export async function resetAshirvadaPassValidity(
     return true;
   } catch (err) {
     console.error("[Firestore] Reset validity error:", err);
+    return false;
+  }
+}
+
+/**
+ * Super Admin: Delete an Ashirvada QR pass by ID
+ */
+export async function deleteAshirvadaPass(passId: string): Promise<boolean> {
+  try {
+    const passRef = doc(firestore, ASHIRVADA_COL, passId);
+    await deleteDoc(passRef);
+    return true;
+  } catch (err) {
+    console.error("[Firestore] Delete pass error:", err);
     return false;
   }
 }
