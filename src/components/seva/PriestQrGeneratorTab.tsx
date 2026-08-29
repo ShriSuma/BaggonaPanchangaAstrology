@@ -38,6 +38,14 @@ export default function PriestQrGeneratorTab({
   const [selectedPriestId, setSelectedPriestId] = useState<string>("shreeram-pandit");
   const [durationDays, setDurationDays] = useState<number>(30); // Default 30 Days (1 Month)
 
+  // Direct Editable Priest Name & Phone state
+  const [customPriestName, setCustomPriestName] = useState<string>("");
+  const [customPriestPhone, setCustomPriestPhone] = useState<string>("");
+  const [overridePriestContact, setOverridePriestContact] = useState<boolean>(false);
+
+  // Voice Input Speech Recognition state
+  const [listeningField, setListeningField] = useState<"name" | "phone" | null>(null);
+
   // Custom Priest addition state
   const [customInputMode, setCustomInputMode] = useState<boolean>(false);
   const [newPriestName, setNewPriestName] = useState<string>("");
@@ -50,11 +58,79 @@ export default function PriestQrGeneratorTab({
     return getPriestProfile(selectedPriestId);
   }, [selectedPriestId, priestsList]);
 
-  const pName = activePriest.name[selectedLang as keyof typeof activePriest.name] || activePriest.name.en || activePriest.name.kn;
+  const defaultPName = activePriest.name[selectedLang as keyof typeof activePriest.name] || activePriest.name.en || activePriest.name.kn;
   const pTitle = activePriest.title[selectedLang as keyof typeof activePriest.title] || activePriest.title.en || activePriest.title.kn;
+  const defaultPhone = activePriest.phone || "+91 99723 39362";
+
+  // Keep editable name & phone in sync when priest selection changes (unless user typed a custom one)
+  useEffect(() => {
+    setCustomPriestName(defaultPName);
+    setCustomPriestPhone(defaultPhone);
+  }, [selectedPriestId, selectedLang]);
+
+  const resolvedPriestName = customPriestName.trim() || defaultPName;
+  const resolvedPriestPhone = customPriestPhone.trim() || defaultPhone;
 
   const userRashiStr = identity.rashiIndex !== undefined ? rashiName(identity.rashiIndex, selectedLang) : "—";
   const userNakshatraStr = identity.nakshatraIndex !== undefined ? nakshatraName(identity.nakshatraIndex, selectedLang as any) : "—";
+
+  // Speech Recognition (Voice Input) Handler
+  const handleVoiceInput = (targetField: "name" | "phone") => {
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      alert(isKn ? "ಈ ಬ್ರೌಸರ್‌ನಲ್ಲಿ ಧ್ವನಿ ಗುರುತಿಸುವಿಕೆ ಬೆಂಬಲಿತವಾಗಿಲ್ಲ." : "Speech recognition is not supported in this browser.");
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      const langCodeMap: Record<string, string> = {
+        kn: "kn-IN",
+        hi: "hi-IN",
+        te: "te-IN",
+        ta: "ta-IN",
+        en: "en-IN"
+      };
+      recognition.lang = langCodeMap[selectedLang] || "kn-IN";
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      recognition.onstart = () => setListeningField(targetField);
+
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0]?.[0]?.transcript;
+        if (transcript) {
+          if (targetField === "name") {
+            setCustomPriestName(transcript.trim());
+          } else {
+            // Clean spoken phone numbers
+            const cleanedDigits = transcript
+              .replace(/[^\d+]/g, "")
+              .trim();
+            if (cleanedDigits.length >= 5) {
+              setCustomPriestPhone(cleanedDigits.startsWith("+") ? cleanedDigits : `+91 ${cleanedDigits}`);
+            } else {
+              setCustomPriestPhone(transcript.trim());
+            }
+          }
+        }
+      };
+
+      recognition.onerror = (e: any) => {
+        console.warn("Speech recognition error:", e);
+        setListeningField(null);
+      };
+
+      recognition.onend = () => setListeningField(null);
+
+      recognition.start();
+    } catch (err) {
+      console.error("Speech recognition start failure:", err);
+      setListeningField(null);
+    }
+  };
 
   // Generate dynamic QR code payload encoding duration, language, and priest details
   useEffect(() => {
@@ -71,12 +147,14 @@ export default function PriestQrGeneratorTab({
       nk: identity.nakshatraIndex,
       r: identity.rashiIndex,
       g: identity.gotra,
-      p: pName,
+      p: resolvedPriestName,
       d: new Date().toISOString().slice(0, 10),
       days: durationDays,
       l: selectedLang,
       dob: identity.dob,
-      tob: identity.tob
+      tob: identity.tob,
+      phone: resolvedPriestPhone,
+      overrideCalendarPhone: overridePriestContact
     });
 
     const payloadUrl = `${origin}/daily?token=${token}&action=ics`;
@@ -94,13 +172,15 @@ export default function PriestQrGeneratorTab({
       .catch((err) => {
         console.error("QR Generation error:", err);
       });
-  }, [durationDays, pName, activePriest, identity, selectedLang]);
+  }, [durationDays, resolvedPriestName, resolvedPriestPhone, overridePriestContact, identity, selectedLang]);
 
   const handleAddPriest = () => {
     if (newPriestName.trim()) {
       const added = addCustomPriest(newPriestName.trim(), newPriestPhone.trim());
       setPriestsList(getAllPriests());
       setSelectedPriestId(added.id);
+      setCustomPriestName(newPriestName.trim());
+      setCustomPriestPhone(newPriestPhone.trim());
       setNewPriestName("");
       setCustomInputMode(false);
     }
@@ -165,8 +245,8 @@ export default function PriestQrGeneratorTab({
             </h2>
             <p className="mt-1 text-xs text-amber-900/80">
               {isKn
-                ? "ಅರ್ಚಕರ ಆಯ್ಕೆ, ಭಾಷೆ ಹಾಗೂ ೧ ರಿಂದ ೧೨ ತಿಂಗಳ ದಿನನಿತ್ಯದ ಸಿದ್ಧ ಪಂಚಾಂಗದ ಆಶೀರ್ವಾದ QR ಕೋಡ್ ಕಾರ್ಡ್ ಸಿದ್ಧಪಡಿಸಿ."
-                : "Select Priest, Language, Calendar Duration (30 to 365 Days), and generate 1-Page A4 Printable PDF Card."}
+                ? "ಅರ್ಚಕರ ಹೆಸರು, ದೂರವಾಣಿ ಸಂಖ್ಯೆ (ಧ್ವನಿ ಮೂಲಕ ನಮೂದಿಸಬಹುದು 🎙️) ಹಾಗೂ ೧ ರಿಂದ ೧೨ ತಿಂಗಳ ದಿನನಿತ್ಯದ ಸಿದ್ಧ ಪಂಚಾಂಗದ ಆಶೀರ್ವಾದ QR ಕೋಡ್ ಕಾರ್ಡ್ ಸಿದ್ಧಪಡಿಸಿ."
+                : "Edit Priest Name, Phone Number (with Voice Mic 🎙️), Duration, and generate 1-Page A4 Printable PDF Card."}
             </p>
           </div>
 
@@ -213,10 +293,10 @@ export default function PriestQrGeneratorTab({
           </div>
         </Card>
 
-        {/* Priest Dropdown & Custom Addition */}
+        {/* Priest Selector & Direct Editable Inputs with Mic Voice Support */}
         <Card className="border border-amber-300/80 bg-white">
           <label className="block text-xs font-bold uppercase tracking-wider text-amber-900/80 mb-2">
-            🔱 {isKn ? "ಅರ್ಚಕರ ಆಯ್ಕೆ (Select Priest)" : "Select Priest / Archaka"}
+            🔱 {isKn ? "ಅರ್ಚಕರ ವಿವರಗಳು & ಸಂಪಾದನೆ" : "Priest Selection & Live Edit"}
           </label>
 
           {!customInputMode ? (
@@ -230,11 +310,10 @@ export default function PriestQrGeneratorTab({
                     setSelectedPriestId(e.target.value);
                   }
                 }}
-                className="w-full rounded-xl border border-amber-300 bg-amber-50/50 px-3.5 py-2.5 text-sm font-bold text-amber-950 shadow-sm focus:border-amber-600 focus:outline-none"
+                className="w-full rounded-xl border border-amber-300 bg-amber-50/50 px-3.5 py-2 text-xs font-bold text-amber-950 shadow-sm focus:border-amber-600 focus:outline-none"
               >
                 {priestsList.map((p) => {
                   const name = p.name[selectedLang as keyof typeof p.name] || p.name.en || p.name.kn;
-                  const title = p.title[selectedLang as keyof typeof p.title] || p.title.en || p.title.kn;
                   const phone = p.phone || "+91 99723 39362";
                   return (
                     <option key={p.id} value={p.id}>
@@ -245,12 +324,86 @@ export default function PriestQrGeneratorTab({
                 <option value="ADD_NEW">➕ {isKn ? "ಹೊಸ ಅರ್ಚಕರನ್ನು ಸೇರಿಸಿ..." : "Add New Priest..."}</option>
               </select>
 
-              <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-3 text-xs text-amber-900">
-                <div className="font-bold text-amber-950 flex items-center gap-1.5">
-                  <span>{activePriest.sealSymbol}</span>
-                  <span>{pName}</span>
+              {/* Editable Priest Name with Voice Mic */}
+              <div>
+                <label className="block text-[11px] font-bold text-amber-950 mb-1 flex items-center justify-between">
+                  <span>{isKn ? "ಅರ್ಚಕರ ಹೆಸರು (ಸಂಪಾದಿಸಿ):" : "Priest Name (Editable):"}</span>
+                  {listeningField === "name" && (
+                    <span className="text-[10px] text-red-600 animate-pulse font-extrabold">🎙️ {isKn ? "ಆಲಿಸಲಾಗುತ್ತಿದೆ..." : "Listening..."}</span>
+                  )}
+                </label>
+                <div className="relative flex items-center">
+                  <input
+                    type="text"
+                    value={customPriestName}
+                    onChange={(e) => setCustomPriestName(e.target.value)}
+                    placeholder={isKn ? "ಅರ್ಚಕರ ಹೆಸರು" : "Priest Name"}
+                    className="w-full rounded-lg border border-amber-300 bg-amber-50/30 pl-3 pr-10 py-1.5 text-xs font-bold text-amber-950 focus:border-amber-600 focus:bg-white focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    title={isKn ? "ಧ್ವನಿ ಮೂಲಕ ಹೇಳಿ (Mic)" : "Speak Priest Name (Mic)"}
+                    onClick={() => handleVoiceInput("name")}
+                    className={`absolute right-1.5 p-1 rounded-md transition ${
+                      listeningField === "name"
+                        ? "bg-red-500 text-white animate-bounce"
+                        : "bg-amber-100 text-amber-900 hover:bg-amber-200"
+                    }`}
+                  >
+                    🎙️
+                  </button>
                 </div>
-                <div className="text-[11px] text-amber-800 mt-0.5">{pTitle} · {activePriest.phone || "+91 99723 39362"}</div>
+              </div>
+
+              {/* Editable Priest Phone with Voice Mic */}
+              <div>
+                <label className="block text-[11px] font-bold text-amber-950 mb-1 flex items-center justify-between">
+                  <span>{isKn ? "ದೂರವಾಣಿ ಸಂಖ್ಯೆ (ಸಂಪಾದಿಸಿ):" : "Phone Number (Editable):"}</span>
+                  {listeningField === "phone" && (
+                    <span className="text-[10px] text-red-600 animate-pulse font-extrabold">🎙️ {isKn ? "ಸಂಖ್ಯೆ ಹೇಳಿ..." : "Speak Number..."}</span>
+                  )}
+                </label>
+                <div className="relative flex items-center">
+                  <input
+                    type="text"
+                    value={customPriestPhone}
+                    onChange={(e) => setCustomPriestPhone(e.target.value)}
+                    placeholder="+91 99723 39362"
+                    className="w-full rounded-lg border border-amber-300 bg-amber-50/30 pl-3 pr-10 py-1.5 text-xs font-bold text-amber-950 focus:border-amber-600 focus:bg-white focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    title={isKn ? "ಧ್ವನಿ ಮೂಲಕ ಸಂಖ್ಯೆ ಹೇಳಿ (Mic)" : "Speak Phone Number (Mic)"}
+                    onClick={() => handleVoiceInput("phone")}
+                    className={`absolute right-1.5 p-1 rounded-md transition ${
+                      listeningField === "phone"
+                        ? "bg-red-500 text-white animate-bounce"
+                        : "bg-amber-100 text-amber-900 hover:bg-amber-200"
+                    }`}
+                  >
+                    🎙️
+                  </button>
+                </div>
+              </div>
+
+              {/* Checkbox to override calendar & web sanctum contact */}
+              <div className="rounded-xl border border-amber-300 bg-amber-50/80 p-2.5">
+                <label className="flex items-start gap-2 cursor-pointer text-xs font-bold text-amber-950">
+                  <input
+                    type="checkbox"
+                    checked={overridePriestContact}
+                    onChange={(e) => setOverridePriestContact(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 rounded border-amber-400 text-amber-700 accent-amber-700 focus:ring-amber-500"
+                  />
+                  <div>
+                    <span>{isKn ? "ಕ್ಯಾಲೆಂಡರ್ & ದರ್ಶನ ಪುಟದಲ್ಲಿ ಈ ಅರ್ಚಕರ ಸಂಪರ್ಕ ತೋರಿಸಿ" : "Override Calendar & Darshana Contact with Priest Details"}</span>
+                    <p className="text-[10px] font-normal text-amber-900/80 mt-0.5">
+                      {isKn
+                        ? "ಆಯ್ಕೆಮಾಡಿದರೆ QR ಸ್ಕ್ಯಾನ್ ಮಾಡಿದಾಗ ಕೆಳಭಾಗದಲ್ಲಿ ಈ ಅರ್ಚಕರ ಹೆಸರು ಮತ್ತು ದೂರವಾಣಿ ಸಂಖ್ಯೆ ಕಾಣಿಸುತ್ತದೆ. ಇಲ್ಲದಿದ್ದರೆ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (9972339362) ಇರುತ್ತದೆ."
+                        : "When checked, the calendar notification & bottom contact section show this Priest Name & Number instead of default Shreeram Pandit (9972339362)."}
+                    </p>
+                  </div>
+                </label>
               </div>
             </div>
           ) : (
@@ -258,23 +411,41 @@ export default function PriestQrGeneratorTab({
               <h4 className="text-xs font-bold text-amber-950">➕ {isKn ? "ಹೊಸ ಅರ್ಚಕರ ವಿವರಗಳನ್ನು ನಮೂದಿಸಿ" : "Enter New Priest Details"}</h4>
               <div>
                 <label className="block text-[11px] font-semibold text-amber-900 mb-1">{isKn ? "ಅರ್ಚಕರ ಹೆಸರು:" : "Priest Name:"}</label>
-                <input
-                  type="text"
-                  value={newPriestName}
-                  onChange={(e) => setNewPriestName(e.target.value)}
-                  placeholder={isKn ? "ಉದಾ: ಶ್ರೀ ವೆಂಕಟೇಶ್ ಶರ್ಮಾ" : "e.g. Sri Venkatesh Sharma"}
-                  className="w-full rounded-lg border border-amber-300 bg-white px-3 py-1.5 text-xs font-bold text-amber-950"
-                />
+                <div className="relative flex items-center">
+                  <input
+                    type="text"
+                    value={newPriestName}
+                    onChange={(e) => setNewPriestName(e.target.value)}
+                    placeholder={isKn ? "ಉದಾ: ಶ್ರೀ ವೆಂಕಟೇಶ್ ಶರ್ಮಾ" : "e.g. Sri Venkatesh Sharma"}
+                    className="w-full rounded-lg border border-amber-300 bg-white pl-3 pr-10 py-1.5 text-xs font-bold text-amber-950"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleVoiceInput("name")}
+                    className="absolute right-1.5 p-1 rounded-md bg-amber-100 text-amber-900 hover:bg-amber-200"
+                  >
+                    🎙️
+                  </button>
+                </div>
               </div>
               <div>
                 <label className="block text-[11px] font-semibold text-amber-900 mb-1">{isKn ? "ದೂರವಾಣಿ ಸಂಖ್ಯೆ:" : "Phone Number:"}</label>
-                <input
-                  type="text"
-                  value={newPriestPhone}
-                  onChange={(e) => setNewPriestPhone(e.target.value)}
-                  placeholder="+91 98765 43210"
-                  className="w-full rounded-lg border border-amber-300 bg-white px-3 py-1.5 text-xs font-bold text-amber-950"
-                />
+                <div className="relative flex items-center">
+                  <input
+                    type="text"
+                    value={newPriestPhone}
+                    onChange={(e) => setNewPriestPhone(e.target.value)}
+                    placeholder="+91 98765 43210"
+                    className="w-full rounded-lg border border-amber-300 bg-white pl-3 pr-10 py-1.5 text-xs font-bold text-amber-950"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleVoiceInput("phone")}
+                    className="absolute right-1.5 p-1 rounded-md bg-amber-100 text-amber-900 hover:bg-amber-200"
+                  >
+                    🎙️
+                  </button>
+                </div>
               </div>
               <div className="flex gap-2">
                 <button
@@ -341,8 +512,8 @@ export default function PriestQrGeneratorTab({
             rashiName={userRashiStr}
             nakshatraName={userNakshatraStr}
             gotra={identity.gotra}
-            priestName={pName}
-            priestPhone={activePriest.phone || "+91 99723 39362"}
+            priestName={resolvedPriestName}
+            priestPhone={resolvedPriestPhone}
             priestTitle={pTitle}
             durationDays={durationDays}
             qrDataUrl={qrDataUrl}

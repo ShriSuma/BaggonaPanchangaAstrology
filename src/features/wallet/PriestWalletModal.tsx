@@ -74,8 +74,8 @@ export const PriestWalletModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
-      <div className="relative w-full max-w-2xl bg-slate-900 border border-amber-500/40 rounded-2xl shadow-2xl shadow-amber-950/50 p-6 md:p-8 text-amber-50 my-8">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-md flex items-start sm:items-center justify-center p-3 sm:p-4">
+      <div className="relative w-full max-w-2xl bg-slate-900 border border-amber-500/40 rounded-2xl shadow-2xl shadow-amber-950/50 p-5 sm:p-8 text-amber-50 my-auto">
         {/* Close button */}
         <button
           onClick={() => {
@@ -101,8 +101,7 @@ export const PriestWalletModal: React.FC = () => {
               Current Balance:{" "}
               <span className="font-bold text-amber-300 font-mono text-sm">
                 {(wallet?.coinBalance ?? 0).toLocaleString()} Coins
-              </span>{" "}
-              (₹{((wallet?.coinBalance ?? 0) / 10).toFixed(2)} value)
+              </span>
             </p>
           </div>
         </div>

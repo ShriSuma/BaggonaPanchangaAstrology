@@ -230,7 +230,9 @@ describe("sevaPriestNarrativeEngine", () => {
   it("generates deterministic priest benedictions for high and caution days in all languages", () => {
     const highDay = mockDays[0]!;
     const knText = buildDeterministicPriestBenediction(highDay, "kn", "Pramod");
-    expect(knText).toContain("ಶುಭ ಯೋಗ ಕೂಡಿಬಂದಿರುವ ಶುಭದಿನ");
+    expect(knText).toContain("Pramod");
+    expect(knText).toContain("ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ");
+    expect(knText).toContain("ತಾರಾ ಬಲ");
 
     const cautionDay: RhythmDay = {
       ...highDay,
@@ -239,8 +241,8 @@ describe("sevaPriestNarrativeEngine", () => {
       energyScore: 25
     };
     const cautionKn = buildDeterministicPriestBenediction(cautionDay, "kn", "Pramod");
-    expect(cautionKn).toContain("ಶಾಂತ ಹಾಗೂ ಜಾಗರೂಕತೆಯಿಂದ ಇರಬೇಕಾದ ದಿನವಾಗಿದೆ");
-    expect(cautionKn).toContain("ಆತ್ಮಲಿಂಗ ಸ್ಮರಣೆ");
+    expect(cautionKn).toContain("ಶಾಂತ ಹಾಗೂ ಜಾಗರೂಕತೆ");
+    expect(cautionKn).toContain("ಆತ್ಮಲಿಂಗ");
   });
 
   it("generates full Priest narrative bundle including deity mantra and sanctum link", async () => {

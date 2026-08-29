@@ -750,6 +750,8 @@ export interface CalendarGeneratorOptions {
   lang: string;
   panditName?: string;
   priestName?: string;
+  priestPhone?: string;
+  overrideCalendarPhone?: boolean;
   notificationTime?: string;
   personName?: string;
   webAppBaseUrl?: string;
@@ -966,7 +968,9 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
     lg: lng,
     loc: locationName,
     dob: resolvedDob,
-    tob: resolvedTob
+    tob: resolvedTob,
+    ph: options.overrideCalendarPhone ? options.priestPhone : undefined,
+    ocp: options.overrideCalendarPhone ? 1 : undefined
   });
   const sanitizedDevoteeToken = baseToken.replace(/[^a-zA-Z0-9]/g, "").slice(0, 32);
 
@@ -994,7 +998,9 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
       lg: lng,
       loc: locationName,
       dob: resolvedDob,
-      tob: resolvedTob
+      tob: resolvedTob,
+      ph: options.overrideCalendarPhone ? options.priestPhone : undefined,
+      ocp: options.overrideCalendarPhone ? 1 : undefined
     });
     const sanctumUrl = `${origin}/daily?token=${dayToken}`;
 
@@ -1188,6 +1194,8 @@ export function generateGoogleCalendarUrl(options: {
   days?: RhythmDay[];
   lang: string;
   panditName: string;
+  priestPhone?: string;
+  overrideCalendarPhone?: boolean;
   notificationTime: string;
   personName?: string;
   webAppBaseUrl?: string;
@@ -1279,7 +1287,9 @@ export function generateGoogleCalendarUrl(options: {
     lg: lng,
     loc: locationName,
     dob: options.dob,
-    tob: options.tob
+    tob: options.tob,
+    ph: options.overrideCalendarPhone ? options.priestPhone : undefined,
+    ocp: options.overrideCalendarPhone ? 1 : undefined
   });
   const origin = getSafeProductionOrigin(webAppBaseUrl);
   const sanctumUrl = `${origin}/daily?token=${devoteeToken}`;

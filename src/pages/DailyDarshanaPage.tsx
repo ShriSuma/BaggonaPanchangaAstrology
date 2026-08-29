@@ -990,85 +990,24 @@ function getTodayBhavishyaHighlights(
 ): TodayBhavishyaData {
   const code = lang || "en";
   const score = rhythmDay?.energyScore ?? 85;
-  const isCaution = rhythmDay?.isChandrashtama || rhythmDay?.isAmavasya || score < 50;
+  const guidance = getDailyActionableGuidance(rhythmDay, lang);
 
-  const dayLordIdx = typeof rhythmDay?.weekday === "number" ? rhythmDay.weekday : 0;
-  const DEITY_MANTRAS: Record<number, { deityL5: Record<SevaLang, string>; mantra: string }> = {
-    0: { deityL5: { kn: "ಶ್ರೀ ಸೂರ್ಯನಾರಾಯಣ ಸ್ವಾಮಿ", hi: "भगवान सूर्यनारायण", te: "శ్రీ సూర్యనారాయణ స్వామి", ta: "ஸ்ரீ சூரியநாராயண சுவாமி", en: "Lord Surya Narayana" }, mantra: "ॐ ಸೂರ್ಯಾಯ ನಮಃ" },
-    1: { deityL5: { kn: "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ & ಚಂದ್ರ ಸ್ವಾಮಿ", hi: "भगवान महाबलेश्वर एवं चंद्र देव", te: "శ్రీ మహాబలేశ్వర & చంద్ర స్వామి", ta: "ஸ்ரீ மகாதேவர் & சந்திர பெருமான்", en: "Lord Mahabaleshwara & Chandra" }, mantra: "ॐ ಚಂದ್ರಮಸೇ ನಮಃ" },
-    2: { deityL5: { kn: "ಶ್ರೀ ಸುಬ್ರಹ್ಮಣ್ಯ & ಮಂಗಳ ಸ್ವಾಮಿ", hi: "भगवान सुब्रमण्य एवं मंगल देव", te: "శ్రీ సుబ్రహ్మణ్య & మంగళ స్వామి", ta: "ஸ்ரீ சுப்ரமணியர் & செவ்வாய் பகவான்", en: "Lord Subramanya & Mangala" }, mantra: "ॐ ಭೌಮಾಯ ನಮಃ" },
-    3: { deityL5: { kn: "ಶ್ರೀ ಮಹಾವಿಷ್ಣು & ಬುಧ ಸ್ವಾಮಿ", hi: "भगवान महाविष्णु एवं बुध देव", te: "శ్రీ మహావిష్ణు & బుధ స్వామి", ta: "ஸ்ரீ மகாவிஷ்ணு & புதன் பகவான்", en: "Lord Mahavishnu & Budha" }, mantra: "ॐ ಬುಧಾಯ ನಮಃ" },
-    4: { deityL5: { kn: "ಶ್ರೀ ಗುರು ರಾಘವೇಂದ್ರ & ಬೃಹಸ್ಪತಿ ಸ್ವಾಮಿ", hi: "भगवान गुरु राघवेंद्र एवं बृहस्पति", te: "శ్రీ గురు రాఘవేంద్ర & బృహస్పతి", ta: "ஸ்ரீ குரு ராகவேந்திரர் & பிருஹஸ்பதி", en: "Lord Guru Raghavendra & Brihaspati" }, mantra: "ॐ ಗುರವೇ ನಮಃ" },
-    5: { deityL5: { kn: "ಶ್ರೀ ಮಹಾಲಕ್ಷ್ಮಿ & ಶುಕ್ರಾಚಾರ್ಯ ಸ್ವಾಮಿ", hi: "माता महालक्ष्मी एवं शुक्र देव", te: "శ్రీ మహాలక్ష్మి & శుక్రాచార్య", ta: "ஸ்ரீ மகாலக்ஷ்மி & சுக்கிர பகவான்", en: "Goddess Mahalakshmi & Shukra" }, mantra: "ॐ ಶುಕ್ರಾಯ ನಮಃ" },
-    6: { deityL5: { kn: "ಶ್ರೀ ಹನುಮಂತ & ಶನೈಶ್ಚರ ಸ್ವಾಮಿ", hi: "भगवान हनुमान एवं शनैश्चर देव", te: "శ్రీ హనుమాన్ & శనైశ్చరుడు", ta: "ஸ்ரீ அனுமன் & சனீஸ்வர பகவான்", en: "Lord Hanuman & Shanieshwara" }, mantra: "ॐ ಶನೈಶ್ಚರಾಯ ನಮಃ" }
+  const vehiclePoint = guidance.find(p => p.icon === "🚗") || {
+    category: code === "kn" ? "ವಾಹನ, ಆಸ್ತಿ & ಪ್ರಯಾಣ" : code === "hi" ? "वाहन, संपत्ति व यात्रा" : code === "te" ? "వాహన & ఆస్తి మార్గదర్శకత్వం" : code === "ta" ? "வாகனம், சொத்து & பயணம்" : "Vehicle, Asset & Travel",
+    text: "Favorable day for planned travels."
   };
-
-  const deity = DEITY_MANTRAS[dayLordIdx] || DEITY_MANTRAS[0];
-
-  // Point 1: Vehicle & Asset Focus
-  let p1Cat = code === "kn" ? "ವಾಹನ, ಆಸ್ತಿ & ಪ್ರಯಾಣ" : code === "hi" ? "वाहन, संपत्ति व यात्रा" : code === "te" ? "వాహనం, ఆస్తి & ప్రయాణం" : code === "ta" ? "வாகனம், சொத்து & பயணம்" : "Vehicle, Asset & Travel";
-  let p1Pred = "";
-  let p1Advice = "";
-  if (score >= 75 && !isCaution) {
-    p1Pred = code === "kn" ? "ನೂತನ ವಾಹನ ಖರೀದಿ, ಯಂತ್ರೋಪಕರಣ ಹೂಡಿಕೆ ಹಾಗೂ ದೂರದ ಪ್ರಯಾಣಕ್ಕೆ ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ ಹಾಗೂ ಯಶಸ್ವಿ ದಿನ." :
-             code === "hi" ? "नए वाहन क्रय, संपत्ति निवेश व सुखद यात्रा हेतु अत्यंत शुभ एवं फलदायी दिन।" :
-             code === "te" ? "నూతన వాహన కొనుగోలు, ఆస్తి పెట్టుబడులు & ప్రయాణాలకు అత్యంత శుభప్రదమైన రోజు." :
-             code === "ta" ? "புதிய வாகனம் வாங்குதல், சொத்து முதலீடு மற்றும் பயணங்களுக்கு மிகவும் சுபமான நாள்." :
-             "Highly favorable day for new vehicle purchase, asset investments, and long travels.";
-    p1Advice = code === "kn" ? "ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ ನೂತನ ಕಾರ್ಯಾರಂಭ ಮಾಡಿ." : code === "hi" ? "शुभ मुहूर्त में कार्य प्रारंभ करें।" : code === "te" ? "శుభ ముహూర్తంలో కార్యం ప్రారంభించండి." : code === "ta" ? "சுப முகூர்த்தத்தில் தொடங்கவும்." : "Proceed during auspicious Muhurtha.";
-  } else if (isCaution) {
-    p1Pred = code === "kn" ? "ವಾಹನ ಚಾಲನೆಯಲ್ಲಿ ಜಾಗರೂಕತೆ ವಹಿಸಿ. ನೂತನ ಆಸ್ತಿ ಒಪ್ಪಂದಗಳನ್ನು ಇಂದಿಗೆ ಮುಂದೂಡುವುದು ಕ್ಷೇಮಕರ." :
-             code === "hi" ? "वाहन चलाने में सावधानी रखें। नए संपत्ति समझौतों को आज टालना श्रेयस्कर होगा।" :
-             code === "te" ? "వాహనం నడిపేటప్పుడు జాగ్రత్త వహించండి. నూతన ఆస్తి ఒప్పందాలను వాయిదా వేయండి." :
-             code === "ta" ? "வாகனம் ஓட்டும்போது கவனம் தேவை. புதிய சொத்து ஒப்பந்தங்களை தள்ளி வைப்பது நல்லது." :
-             "Exercise caution while driving and avoid major long travel or property signatures today.";
-    p1Advice = code === "kn" ? "ಸಾಮಾನ್ಯ ಪ್ರಯಾಣಗಳಿಗೆ ಮಾತ್ರ ಆದ್ಯತೆ ನೀಡಿ." : code === "hi" ? "केवल सामान्य दिनचर्या पर ध्यान दें।" : code === "te" ? "సాధారణ దినచర్యకే ప్రాధాన్యత ఇవ్వండి." : code === "ta" ? "வழக்கமான வேலைகளில் மட்டும் கவனம் செலுத்துக." : "Focus on essential routine travels only.";
-  } else {
-    p1Pred = code === "kn" ? "ವಾಹನ ನಿರ್ವಹಣೆ ಹಾಗೂ ಸಾಮಾನ್ಯ ಪ್ರಯಾಣಕ್ಕೆ ದಿನವು ಅನುಕೂಲಕರವಾಗಿದೆ." :
-             code === "hi" ? "वाहन रखरखाव एवं सामान्य यात्रा हेतु दिन अनुकूल है।" :
-             code === "te" ? "వాహన నిర్వహణ & సాధారణ ప్రయాణాలకు రోజు అనుకూలం." :
-             code === "ta" ? "வழக்கமான பயணம் மற்றும் வாகன பராமரிப்புக்கு ஏற்ற நாள்." :
-             "Favorable day for routine vehicle upkeep and planned local travels.";
-    p1Advice = code === "kn" ? "ವಿವೇಚನೆಯಿಂದ ನಿರ್ಧಾರ ಕೈಗೊಳ್ಳಿ." : code === "hi" ? "विवेकपूर्ण निर्णय लें।" : code === "te" ? "వివేకంతో నిర్ణయం తీసుకోండి." : code === "ta" ? "தானாக சிந்தித்து செயல்படுக." : "Make thoughtful decisions.";
-  }
-
-  // Point 2: Career & Wealth Focus
-  let p2Cat = code === "kn" ? "ವೃತ್ತಿ, ಧನ ಲಾಭ & ವ್ಯಾಪಾರ" : code === "hi" ? "करियर, धन लाभ व व्यापार" : code === "te" ? "ఉద్యోగం, ధన లాభం & వ్యాపారం" : code === "ta" ? "தொழில், தன லாபம் & வியாபாரம்" : "Career, Wealth & Business";
-  let p2Pred = `${dashaPredictions.activePhase} - ${dashaPredictions.careerDesc}`;
-  let p2Advice = dashaPredictions.wealthDesc;
-
-  // Point 3: Mindset & Family Harmony
-  let p3Cat = code === "kn" ? "ಮನಃಸ್ಥಿತಿ & ಕುಟುಂಬ ಶಾಂತಿ" : code === "hi" ? "मनोस्थिति व पारिवारिक शांति" : code === "te" ? "మానసిక ప్రశాంతత & కుటుంబ సౌఖ్యం" : code === "ta" ? "மன அமைதி & குடும்ப மகிழ்ச்சி" : "Mindset & Family Harmony";
-  let p3Pred = "";
-  let p3Advice = "";
-  if (rhythmDay?.isChandrashtama) {
-    p3Pred = code === "kn" ? "8ನೇ ಮನೆ ಚಂದ್ರಾಷ್ಟಮ ಪ್ರಭಾವದಿಂದ ಮನಸ್ಸಿನಲ್ಲಿ ಚಾಂಚಲ್ಯ ಸಾಧ್ಯತೆ." :
-             code === "hi" ? "8वें भाव चंद्राष्टम प्रभाव से मन में चंचलता संभव।" :
-             code === "te" ? "8వ ఇల్లు చంద్రాష్టమం వల్ల మనస్సులో ఆందోళన కలగవచ్చు." :
-             code === "ta" ? "சந்திராஷ்டம யோகத்தால் மனக் குழப்பம் வரலாம்." :
-             "8th House Chandrashtama influence may cause temporary emotional sensitivity.";
-    p3Advice = code === "kn" ? "ಧ್ಯಾನ, ಸಾತ್ವಿಕತೆ ಹಾಗೂ ದೈವ ಪ್ರಾರ್ಥನೆಯಿಂದ ಶಾಂತಿ ಕಂಡುಕೊಳ್ಳಿ." : code === "hi" ? "ध्यान व देव प्रार्थना से शांति बनाए रखें।" : code === "te" ? "ధ్యానం మరియు దైవ ప్రార్థన ద్వారా ప్రశాంతత పొందండి." : code === "ta" ? "தியானம் மற்றும் பிரார்த்தனையால் அமைதி பெறுக." : "Maintain calm focus with prayer and meditation.";
-  } else {
-    p3Pred = code === "kn" ? "ಕುಟುಂಬದಲ್ಲಿ ಹರ್ಷದ ವಾತಾವರಣ, ಸುಖ-ಸಂತೋಷ ಹಾಗೂ ಆಪ್ತರೊಂದಿಗೆ ಸೌಹಾರ್ದಯುತ ಬಾಂಧವ್ಯ." :
-             code === "hi" ? "परिवार में हर्ष का माहौल, सुख-शांति व आत्मीय संबंधों में मधुरता बनी रहेगी।" :
-             code === "te" ? "కుటుంబంలో సంతోషకరమైన వాతావరణం, ఆత్మీయులతో మంచి అనుబంధం ఉంటుంది." :
-             code === "ta" ? "குடும்பத்தில் மகிழ்ச்சியும், அன்பான உறவுகளும் நிலவும்." :
-             "Uplifting atmosphere at home with warm supportive family bonds.";
-    p3Advice = code === "kn" ? "ಹಿರಿಯರ ಆಶೀರ್ವಾದ ಪಡೆದು ದಿನವನ್ನು ಶುಭವಾಗಿಸಿ." : code === "hi" ? "बुजुर्गों के आशीर्वाद से दिन शुभ बनाएं।" : code === "te" ? "పెద్దల ఆశీర్వాదంతో రోజును శుభప్రదం చేసుకోండి." : code === "ta" ? "பெரியோர்களின் ஆசியுடன் நாளை தொடங்குங்கள்." : "Seek elders' blessings for a prosperous day.";
-  }
-
-  // Point 4: Spiritual Grace & Daily Remedy
-  let p4Cat = code === "kn" ? "ದೈವಿಕ ಕೃಪೆ & ಉಪಾಸನೆ" : code === "hi" ? "आध्यात्मिक कृपा व उपासना" : code === "te" ? "దైవిక అనుగ్రహం & ఆరాధన" : code === "ta" ? "ஆன்மீக அருள் & வழிபாடு" : "Spiritual Grace & Daily Remedy";
-  let p4Pred = code === "kn" ? `ಇಂದು ${deity.deityL5.kn} ಅವರ ಕೃಪಾಕಟಾಕ್ಷ ಲಭಿಸಲಿದೆ.` :
-               code === "hi" ? `आज ${deity.deityL5.hi} की कृपा प्राप्त होगी।` :
-               code === "te" ? `నేడు ${deity.deityL5.te} అనుగ్రహం లభిస్తుంది.` :
-               code === "ta" ? `இன்று ${deity.deityL5.ta} அருள் கிடைக்கும்.` :
-               `Divine alignment for invoking blessings of ${deity.deityL5.en}.`;
-  let p4Advice = code === "kn" ? `ಜಪ ಮಂತ್ರ: "${deity.mantra}"` :
-                 code === "hi" ? `जप मंत्र: "${deity.mantra}"` :
-                 code === "te" ? `జప మంత్రం: "${deity.mantra}"` :
-                 code === "ta" ? `ஜெப மந்திரம்: "${deity.mantra}"` :
-                 `Sacred Mantra: "${deity.mantra}"`;
+  const careerPoint = guidance.find(p => p.icon === "💰") || {
+    category: code === "kn" ? "ವೃತ್ತಿ & ಧನ ಲಾಭ" : code === "hi" ? "धन वृद्धि एवं करियर" : code === "te" ? "ధన లాభం & ఉద్యోగం" : code === "ta" ? "தன லாபம் & தொழில்" : "Financial Growth & Career",
+    text: "Steady financial growth."
+  };
+  const mindPoint = guidance.find(p => p.icon === "🧠") || {
+    category: code === "kn" ? "ಮನಃಸ್ಥಿತಿ & ಕುಟುಂಬ" : code === "hi" ? "मनोस्थिति व पारिवारिक सौहार्द" : code === "te" ? "మానసిక ప్రశాంతత & కుటుంబం" : code === "ta" ? "மன நிலை & குடும்ப அமைதி" : "Mindset & Family",
+    text: "Peaceful domestic environment."
+  };
+  const spiritualPoint = guidance.find(p => p.icon === "🪔") || {
+    category: code === "kn" ? "ದೈವಿಕ ಕೃಪೆ & ಉಪಾಸನೆ" : code === "hi" ? "दैवीय संकल्प एवं पूजा" : code === "te" ? "దైవిక సంకల్పం & పూజ" : code === "ta" ? "தெய்வீக சங்கல்பம் & பூஜை" : "Spiritual Grace & Remedy",
+    text: "Deity prayers bring blessings."
+  };
 
   return {
     title: code === "kn" ? "🔮 ಇಂದಿನ ದಿನ ಭವಿಷ್ಯ" : code === "hi" ? "🔮 आज का मुख्य राशिफल मार्गदर्शन" : code === "te" ? "🔮 నేటి ముఖ్య రోజు జాతక మార్గదర్శకత్వం" : code === "ta" ? "🔮 இன்றைய முக்கிய தின பலன்கள்" : "🔮 Today's Personalized Bhavishya Highlights",
@@ -1080,10 +1019,30 @@ function getTodayBhavishyaHighlights(
     overallVibe: rhythmDay?.band === "high" ? "🟢 Auspicious" : rhythmDay?.band === "rest" ? "🔴 Rest Day" : "🟡 Steady Day",
     energyScore: score,
     points: [
-      { icon: "🚗", category: p1Cat, prediction: p1Pred, advice: p1Advice },
-      { icon: "💼", category: p2Cat, prediction: p2Pred, advice: p2Advice },
-      { icon: "🧠", category: p3Cat, prediction: p3Pred, advice: p3Advice },
-      { icon: "🕉️", category: p4Cat, prediction: p4Pred, advice: p4Advice }
+      {
+        icon: "🚗",
+        category: vehiclePoint.category,
+        prediction: vehiclePoint.text,
+        advice: score >= 75 ? (code === "kn" ? "ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ ನೂತನ ಕಾರ್ಯಾರಂಭ ಮಾಡಿ." : "Proceed during auspicious Muhurtha.") : (code === "kn" ? "ಸಾಮಾನ್ಯ ಪ್ರಯಾಣಗಳಿಗೆ ಮಾತ್ರ ಆದ್ಯತೆ ನೀಡಿ." : "Focus on essential routine travels.")
+      },
+      {
+        icon: "💼",
+        category: careerPoint.category,
+        prediction: `${dashaPredictions.activePhase} - ${careerPoint.text}`,
+        advice: dashaPredictions.wealthDesc || (code === "kn" ? "ವೃತ್ತಿಪರ ನಿರ್ಧಾರಗಳಲ್ಲಿ ಸ್ಥಿರತೆ ಕಾಯ್ದುಕೊಳ್ಳಿ." : "Maintain professional focus.")
+      },
+      {
+        icon: "🧠",
+        category: mindPoint.category,
+        prediction: mindPoint.text,
+        advice: rhythmDay?.isChandrashtama ? (code === "kn" ? "ಧ್ಯಾನ, ಸಾತ್ವಿಕತೆ ಹಾಗೂ ದೈವ ಪ್ರಾರ್ಥನೆಯಿಂದ ಶಾಂತಿ ಕಂಡುಕೊಳ್ಳಿ." : "Maintain calm focus with prayer and meditation.") : (code === "kn" ? "ಹಿರಿಯರ ಆಶೀರ್ವಾದ ಪಡೆದು ದಿನವನ್ನು ಶುಭವಾಗಿಸಿ." : "Seek elders blessings for a prosperous day.")
+      },
+      {
+        icon: "🕉️",
+        category: spiritualPoint.category,
+        prediction: spiritualPoint.text,
+        advice: code === "kn" ? "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ಆತ್ಮಲಿಂಗ ಸ್ಮರಿಸಿ." : "Meditate upon the sacred Gokarna Atmalinga."
+      }
     ]
   };
 }
@@ -1186,7 +1145,35 @@ export default function DailyDarshanaPage(): JSX.Element {
   }, [decoded, dateParam]);
 
   const kaala = useMemo(() => getDailyKaalaTimings(dayLordIdx, lang, dateParam, decoded?.lt, decoded?.lg, decoded?.pc), [dayLordIdx, lang, dateParam, decoded]);
+  // Extract dynamic birth inputs for the specific user from URL params / decoded token payload / stored session
+  const urlParams = useMemo(() => {
+    if (typeof window !== "undefined") {
+      return new URLSearchParams(window.location.search);
+    }
+    return new URLSearchParams();
+  }, []);
+
   const localizedPandit = useMemo(() => getLocalizedPanditName(panditParam, lang), [panditParam, lang]);
+
+  const activePanditPhone = useMemo(() => {
+    if (decoded?.ocp && (decoded?.ph || decoded?.phone)) {
+      return (decoded.ph || decoded.phone)!.trim();
+    }
+    if (urlParams.get("overrideContact") === "true" && urlParams.get("priestPhone")) {
+      return urlParams.get("priestPhone")!.trim();
+    }
+    return "9972339362";
+  }, [decoded, urlParams]);
+
+  const activePanditName = useMemo(() => {
+    if (decoded?.ocp && (decoded?.p || decoded?.pandit)) {
+      return (decoded.p || decoded.pandit)!.trim();
+    }
+    if (urlParams.get("overrideContact") === "true" && urlParams.get("priestName")) {
+      return urlParams.get("priestName")!.trim();
+    }
+    return localizedPandit;
+  }, [decoded, urlParams, localizedPandit]);
   
   const devoteeDisplayName = useMemo(() => {
     let raw = "";
@@ -1196,14 +1183,6 @@ export default function DailyDarshanaPage(): JSX.Element {
     else raw = lang === "kn" ? "ಭಕ್ತರು" : "Devotee";
     return transliterateName(raw, lang);
   }, [nameParam, decoded, storedSession, lang]);
-
-  // Extract dynamic birth inputs for the specific user from URL params / decoded token payload / stored session
-  const urlParams = useMemo(() => {
-    if (typeof window !== "undefined") {
-      return new URLSearchParams(window.location.search);
-    }
-    return new URLSearchParams();
-  }, []);
 
   const resolvedBirth = useMemo(() => {
     const paramDob = urlParams.get("dob");
@@ -2530,7 +2509,7 @@ export default function DailyDarshanaPage(): JSX.Element {
             }}
           >
             <span>📞</span>
-            <span>{dict.callPandit}: 9972339362</span>
+            <span>{dict.callPandit}: {activePanditPhone}</span>
           </button>
         </div>
       </main>
@@ -2565,7 +2544,7 @@ export default function DailyDarshanaPage(): JSX.Element {
           }}>
             <div style={{ fontSize: 32, marginBottom: 8 }}>🛕</div>
             <h3 style={{ margin: "0 0 4px", fontSize: 18, color: "#FDE68A", fontWeight: 900 }}>
-              {localizedPandit}
+              {activePanditName}
             </h3>
             <div style={{ fontSize: 12, color: "#F59E0B", marginBottom: 16 }}>
               {dict.panditRole}
@@ -2579,7 +2558,7 @@ export default function DailyDarshanaPage(): JSX.Element {
 
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               <a
-                href="tel:9972339362"
+                href={`tel:${activePanditPhone.replace(/[^\d+]/g, "")}`}
                 style={{
                   background: "linear-gradient(135deg, #10B981, #047857)",
                   color: "#FFFFFF",

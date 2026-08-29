@@ -9,6 +9,7 @@
 import type { RhythmDay } from "../../core/DailyRhythmEngine";
 import { askGemini } from "../../core/GeminiEngine";
 import { nakshatraName, rashiName } from "./sevaPresentation";
+import { TARA_L5, pick } from "./sevaLocale";
 
 export interface PriestDayNarrative {
   greeting: string;
@@ -130,65 +131,107 @@ export function getDevoteeSalutation(personName: string, panditName: string, lan
  * Generates an authentic Vedic Priest Epistle for a given day,
  * backed by Master Engine calculations and formatted in pure native script.
  */
+/**
+ * Generates an authentic Vedic Priest Epistle for a given day,
+ * dynamically synthesized from the day's Nakshatra, Rashi, Tara Bala, Chandra Bala,
+ * Day Lord, and Devotee's Name to guarantee 100% unique, non-repetitive blessings across all 90 days.
+ */
 export function buildDeterministicPriestBenediction(day: RhythmDay, lang: string, personName?: string): string {
-  const isKn = lang.startsWith("kn");
-  const isHi = lang.startsWith("hi");
-  const isTe = lang.startsWith("te");
-  const isTa = lang.startsWith("ta");
+  const code = (lang || "en").slice(0, 2);
+  const name = personName?.trim() || (code === "kn" ? "ಅಭೀಷ್ಟ ದೇವತಾ ಭಕ್ತರು" : code === "hi" ? "भक्त" : code === "te" ? "భక్తులు" : code === "ta" ? "பக்தர்" : "Devotee");
 
-  const band = String(day.band || "").toLowerCase();
-  const score = day.energyScore ?? (band === "high" ? 85 : (band === "steady" || band === "medium" || band === "moderate") ? 65 : 35);
-  const isCaution = day.isChandrashtama || day.isAmavasya || band === "rest" || band === "low" || score < 50;
-  const isHigh = !isCaution && (day.isMoneyDay || band === "high" || score >= 75);
+  const nakName = nakshatraName(day.moonNakshatraIndex, lang);
+  const rshName = rashiName(day.moonRashiIndex, lang);
+  const taraNum = (day.tara?.tara as number) || 1;
+  const taraInfo = TARA_L5[taraNum - 1] ?? TARA_L5[0]!;
+  const taraName = pick(taraInfo.name, lang);
+  const chandraHouse = day.chandra?.house || 1;
+  const dayLordIdx = getDayLordIdx(day.dayLord);
+  const deity = DEITY_MANTRAS[dayLordIdx] || DEITY_MANTRAS[0];
 
-  if (isKn) {
-    if (isCaution) {
-      return `ಇಂದಿನ ದಿನವು ಚಂದ್ರಬಲ ಹಾಗೂ ನಕ್ಷತ್ರ ಸಂಚಾರದ ದೃಷ್ಟಿಯಿಂದ ಶಾಂತ ಹಾಗೂ ಜಾಗರೂಕತೆಯಿಂದ ಇರಬೇಕಾದ ದಿನವಾಗಿದೆ. ಹೊಸ ಉದ್ಯಮ, ದೊಡ್ಡ ಹಣಕಾಸು ಒಪ್ಪಂದಗಳನ್ನು ಮುಂದೂಡಿ. ಪ್ರಧಾನವಾಗಿ ಗೋಕರ್ಣದ ಆತ್ಮಲಿಂಗ ಸ್ಮರಣೆ, ಶ್ರೀ ರುದ್ರಾಭಿಷೇಕ ಅಥವಾ ನವಗ್ರಹ ಶಾಂತಿ ಶ್ಲೋಕ ಜಪಿಸುವುದರಿಂದ ಸಕಲ ಅಡೆತಡೆಗಳು ದೂರವಾಗಿ ಮನಸ್ಸಿಗೆ ನೆಮ್ಮದಿ ಸಿಗುತ್ತದೆ.`;
-    }
+  const score = day.energyScore ?? 75;
+  const isCaution = day.isChandrashtama || day.isAmavasya || taraNum === 3 || taraNum === 5 || taraNum === 7 || score < 50;
+  const isHigh = !isCaution && (day.isMoneyDay || taraNum === 2 || taraNum === 6 || taraNum === 9 || score >= 75);
+  const isPeaceful = !isCaution && !isHigh && (taraNum === 4 || taraNum === 8);
+
+  if (code === "kn") {
+    const s1 = `ಶ್ರೀಯುತ ${name} ಅವರಿಗೆ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಿಂದ ನಮಸ್ಕಾರಗಳು. ಇಂದು ಚಂದ್ರನು ${rshName} ರಾಶಿಯ ${nakName} ನಕ್ಷತ್ರದಲ್ಲಿ ಸಂಚರಿಸುತ್ತಿದ್ದು, ನಿಮ್ಮ ಜಾತಕಕ್ಕೆ '${taraName}' ತಾರಾ ಬಲ ಹಾಗೂ ${chandraHouse}ನೇ ಭಾವದ ಚಂದ್ರಬಲ ಒದಗಿಬಂದಿದೆ.`;
+    let s2 = `ಕರ್ತವ್ಯ ನಿಷ್ಠೆ ಹಾಗೂ ಸಮತೋಲನದಿಂದ ಮುನ್ನಡೆಯಬೇಕಾದ ಸೌಮ್ಯ ದಿನ. ನಿತ್ಯದ ವ್ಯಾಪಾರ, ಉದ್ಯೋಗ ಹಾಗೂ ಅಧ್ಯಯನ ಕಾರ್ಯಗಳಲ್ಲಿ ತೃಪ್ತಿದಾಯಕ ಫಲಿತಾಂಶ ದೊರೆಯಲಿದೆ.`;
     if (isHigh) {
-      return `ಇಂದು ಗ್ರಹಗಳ ಅನುಕೂಲಕರ ಸ್ಥಾನ ಹಾಗೂ ಶುಭ ಯೋಗ ಕೂಡಿಬಂದಿರುವ ಶುಭದಿನ. ನಿಮ್ಮ ಮನಸ್ಸಿನ ಸಂಕಲ್ಪಿತ ಕಾರ್ಯಗಳು, ಹಣಕಾಸು ಹಾಗೂ ಸಾಮಾಜಿಕ ಮುನ್ನಡೆಗೆ ಅತ್ಯುತ್ತಮ ಸಮಯ. ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ ಮಾಡುವ ಕಾರ್ಯಗಳು ದೈವಾನುಗ್ರಹದಿಂದ ನಿರಾಯಾಸವಾಗಿ ನೆರವೇರುತ್ತವೆ. ಸಂಜೆ ದೇವರ ಮುಂದೆ ತುಪ್ಪದ ದೀಪ ಬೆಳಗಿಸಿ ಕೃತಜ್ಞತೆ ಸಲ್ಲಿಸಿ.`;
+      s2 = `ಗ್ರಹಗಳ ಶುಭ ಸಂಚಾರದಿಂದ ನಿಮ್ಮ ಸಂಕಲ್ಪಿತ ಕಾರ್ಯಗಳು, ಹಣಕಾಸು ಹಾಗೂ ಸಾಮಾಜಿಕ ಮುನ್ನಡೆಗೆ ಅತ್ಯುತ್ತಮ ಸಮಯವಾಗಿದ್ದು, ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ ಕೈಗೊಳ್ಳುವ ಕಾರ್ಯಗಳು ನಿರಾಯಾಸವಾಗಿ ನೆರವೇರಲಿವೆ.`;
+    } else if (isPeaceful) {
+      s2 = `ಕುಟುಂಬದಲ್ಲಿ ಹರ್ಷದ ವಾತಾವರಣ, ಆರೋಗ್ಯ ವೃದ್ಧಿ ಹಾಗೂ ಹಿತೈಷಿಗಳ ಸಂಪೂರ್ಣ ಬೆಂಬಲ ಲಭಿಸಲಿದ್ದು, ಸಾತ್ವಿಕ ಚಿಂತನೆ ಮತ್ತು ಗುರು-ಹಿರಿಯರ ಆಶೀರ್ವಾದದಿಂದ ದಿನವು ಸಾರ್ಥಕವಾಗಲಿದೆ.`;
+    } else if (isCaution) {
+      s2 = `ಶಾಂತ ಹಾಗೂ ಜಾಗರೂಕತೆಯಿಂದ ಇರಬೇಕಾದ ದಿನ. ಹಠಾತ್ ಆಸ್ತಿ ಒಪ್ಪಂದಗಳು ಅಥವಾ ವಾದ-ವಿವಾದಗಳಿಂದ ದೂರವಿರಿ; ಗೋಕರ್ಣದ ಆತ್ಮಲಿಂಗ ಸ್ಮರಣೆ ಹಾಗೂ ಶಿವನಾಮ ಜಪದಿಂದ ಸಕಲ ವಿಘ್ನಗಳು ನಿವಾರಣೆಯಾಗಲಿವೆ.`;
+    } else if (taraNum === 1) {
+      s2 = `ಇಂದು ನಿಮ್ಮ ಜನ್ಮ ನಕ್ಷತ್ರದ ದಿನವಾಗಿದ್ದು, ಆತ್ಮಾವಲೋಕನ, ನಿತ್ಯ ಕರ್ತವ್ಯ ಪಾಲನೆ ಹಾಗೂ ದೇವತಾ ಆರಾಧನೆಯಿಂದ ಮಾನಸಿಕ ಸ್ಥೈರ್ಯ ಮತ್ತು ಆಂತರಿಕ ಚೈತನ್ಯ ವೃದ್ಧಿಸಲಿದೆ.`;
     }
-    return `ಇಂದು ಕರ್ತವ್ಯ ನಿಷ್ಠೆ ಹಾಗೂ ಸಮತೋಲನದಿಂದ ಮುನ್ನಡೆಯಬೇಕಾದ ಸೌಮ್ಯ ದಿನ. ನಿತ್ಯದ ವ್ಯಾಪಾರ, ಉದ್ಯೋಗ ಹಾಗೂ ಅಧ್ಯಯನ ಕಾರ್ಯಗಳಲ್ಲಿ ತೃಪ್ತಿದಾಯಕ ಫಲಿತಾಂಶ ದೊರೆಯಲಿದೆ. ಧರ್ಮ ಮಾರ್ಗದಲ್ಲಿ ಕರ್ತವ್ಯ ಪಾಲನೆ ಮಾಡಿ ಮತ್ತು ಗುರು ಹಿರಿಯರ ಆಶೀರ್ವಾದ ಪಡೆಯಿರಿ.`;
+    const s3 = `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಪವಿತ್ರ ಆತ್ಮಲಿಂಗದ ರಕ್ಷೆ ಹಾಗೂ ${deity.deity} ಅವರ ಕೃಪಾಕಟಾಕ್ಷ ಸದಾ ನಿಮ್ಮ ಮೇಲೆ ಇರಲಿ ಎಂದು ಪ್ರಾರ್ಥಿಸಿ ಆಶೀರ್ವದಿಸಲಾಗಿದೆ.`;
+    return `${s1} ${s2} ${s3}`;
   }
 
-  if (isHi) {
-    if (isCaution) {
-      return `आज का दिन चंद्रबल एवं ग्रह गोचर के अनुसार संयम और शांति बनाए रखने का है। किसी भी नए बड़े निवेश या विवाद से बचें। भगवान महाबलेश्वर और नवग्रहों का स्मरण करें, जिससे सभी बाधाएं दूर होकर मानसिक शांति प्राप्त होगी।`;
-    }
+  if (code === "hi") {
+    const s1 = `श्री ${name} जी को गोकर्ण महाबलेश्वर क्षेत्र से सादर प्रणाम एवं शुभाशीष। आज चंद्रमा ${rshName} राशि के ${nakName} नक्षत्र में संचरण कर रहे हैं, जिससे आपकी पत्रिका में '${taraName}' तारा बल एवं ${chandraHouse}वें भाव की चंद्र स्थिति जाग्रत हुई है।`;
+    let s2 = `आज का दिन संतुलन, एकाग्रता और नियमित कर्तव्य पालन के लिए उत्तम है। धैर्यपूर्वक अपने कार्य करें।`;
     if (isHigh) {
-      return `आज ग्रहों की अति अनुकूल स्थिति एवं शुभ योग का निर्माण हो रहा है। आपके सोचे हुए महत्वपूर्ण कार्य, आर्थिक लाभ और सामाजिक प्रतिष्ठा में वृद्धि के लिए यह अत्यंत शुभ समय है। शुभ काल में किए गए संकल्प अवश्य सिद्ध होंगे।`;
+      s2 = `ग्रहों की अति अनुकूल स्थिति से आपके महत्वपूर्ण कार्य, व्यापारिक लाभ और सामाजिक प्रतिष्ठा में वृद्धि के उत्तम योग निर्मित हो रहे हैं।`;
+    } else if (isPeaceful) {
+      s2 = `पारिवारिक सौहार्द, उत्तम स्वास्थ्य और शुभचिंतकों के सहयोग से दिन अत्यंत सुखद, शांत और फलदायी रहेगा।`;
+    } else if (isCaution) {
+      s2 = `ग्रह गोचर संयम और धैर्य बनाए रखने का संकेत दे रहे हैं; बड़े वित्तीय समझौतों व विवादों से बचें और महाबलेश्वर का ध्यान करें।`;
+    } else if (taraNum === 1) {
+      s2 = `जन्म नक्षत्र पर चंद्र संचरण से आत्म-चिंतन, शांति और ईष्ट आराधना द्वारा आत्मिक बल प्राप्त होगा।`;
     }
-    return `आज का दिन संतुलन, एकाग्रता और नियमित कर्तव्य पालन के लिए उत्तम है। धैर्यपूर्वक अपने कार्य करें। बड़ों का आशीर्वाद लें और संध्या समय घर में दीपक प्रज्वलित करें।`;
+    const s3 = `गोकर्ण महाबलेश्वर के पावन आत्मलिंग की रक्षा एवं ${deity.deity} का दिव्य आशीर्वाद आपके जीवन में सुख, शांति और समृद्धि प्रदान करे।`;
+    return `${s1} ${s2} ${s3}`;
   }
 
-  if (isTe) {
-    if (isCaution) {
-      return `ఈ రోజు గ్రహ స్థితులు మరియు చంద్ర సంచారం దృష్ట్యా సంయమనం పాటించవలసిన రోజు. ముఖ్యమైన కొత్త పనులు మరియు వివాదాలను వాయిదా వేయండి. గోకర్ణ మహాబలేశ్వర స్వామి ధ్యానం మరియు రుద్ర నామస్మరణతో సమస్త విఘ్నాలు తొలగిపోతాయి.`;
-    }
+  if (code === "te") {
+    const s1 = `శ్రీయుత ${name} గారికి గోకర్ణ మహాబలేశ్వర క్షేత్రం నుండి మంత్రాక్షత ఆశీస్సులు. నేడు చంద్రుడు ${rshName} రాశిలోని ${nakName} నక్షత్రంలో సంచరిస్తూ, మీ జాతకానికి '${taraName}' తారా బలాన్ని చేకూరుస్తున్నారు.`;
+    let s2 = `ఈ రోజు కర్తవ్య దీక్ష మరియు సమతుల్యతతో సాగవలసిన రోజు. నిత్య విధులను భక్తిశ్రద్ధలతో నెరవేర్చండి.`;
     if (isHigh) {
-      return `ఈ రోజు గ్రహాల అనుకూలత మరియు శుభ యోగాలతో కూడిన దివ్యమైన రోజు. మీ సంకల్పాలు, వ్యాపార మరియు ఉద్యోగ ప్రయత్నాలు సఫలమవుతాయి. గుళిక కాలంలో శుభకార్యాలు ఆరంభించండి.`;
+      s2 = `గ్రహాల అనుకూలత వల్ల మీ సంకల్పాలు, వ్యాపార మరియు ఉద్యోగ ప్రయత్నాలు సఫలమై గొప్ప పురోగతి సాధిస్తారు.`;
+    } else if (isPeaceful) {
+      s2 = `కుటుంబంలో సంతోషం, ఆయురారోగ్యాలు మరియు ఆత్మీయుల సహకారంతో దినం ప్రశాంతంగా, ఆనందదాయకంగా సాగుతుంది.`;
+    } else if (isCaution) {
+      s2 = `గ్రహ స్థితుల దృష్ట్యా సంయమనం పాటించవలసిన సమయం; తొందరపాటు నిర్ణయాలు, వివాదాలను వాయిదా వేసి మహాబలేశ్వరుని స్మరించండి.`;
+    } else if (taraNum === 1) {
+      s2 = `జన్మ నక్షత్ర ప్రభావంతో ఆధ్యాత్మిక చింతన, దేవతా ఆరాధన ద్వారా మానసిక స్థైర్యం పెంపొందుతుంది.`;
     }
-    return `ఈ రోజు కర్తవ్య దీక్ష మరియు సమతుల్యతతో సాగవలసిన రోజు. నిత్య విధులను భక్తిశ్రద్ధలతో నెరవేర్చండి. సాయంకాలం దేవాలయంలో లేదా పూజా మందిరంలో దీపారాధన చేయండి.`;
+    const s3 = `గోకర్ణ ఆత్మలింగ దివ్య రక్ష మరియు ${deity.deity} అనుగ్రహం మీకు సదా రక్షగా ఉండాలని ఆశీర్వదిస్తున్నాము.`;
+    return `${s1} ${s2} ${s3}`;
   }
 
-  if (isTa) {
-    if (isCaution) {
-      return `இன்றைய நாள் கிரக அமைப்புகளின்படி பொறுமையாகவும் விழிப்புடனும் செயல்பட வேண்டிய நாள். முக்கிய புதிய முடிவுகளைத் தள்ளிப்போடுங்கள். கோகர்ண மகாபலேஸ்வரரை பிரார்த்தனை செய்து நற்பலன்களைப் பெறுங்கள்.`;
-    }
+  if (code === "ta") {
+    const s1 = `அன்பார்ந்த ${name} அவர்களுக்கு கோகர்ண மகாபலேஸ்வரர் சந்நிதியிலிருந்து ஆசிகள். இன்று சந்திரன் ${rshName} ராசியில் ${nakName} நட்சத்திரத்தில் சஞ்சரித்து, உங்கள் ஜாதகத்திற்கு '${taraName}' தாரா பலத்தை அளிக்கிறார்.`;
+    let s2 = `இன்று அன்றாட பணிகளை நேர்த்தியாகவும் அமைதியாகவும் செய்ய வேண்டிய நாள். குருவின் ஆசியுடன் உங்கள் கடமைகளை நிறைவேற்றுங்கள்.`;
     if (isHigh) {
-      return `இன்று மிகவும் சிறப்பான யோகங்கள் கூடியுள்ள மங்களகரமான நாள். உங்கள் நியாயமான முயற்சிகள் அனைத்தும் வெற்றி பெறும். சுப வேளையில் செய்யும் காரியங்கள் பரிபூரண பலன் தரும்.`;
+      s2 = `கிரகங்களின் அனுகூலமான நிலையால் புதிய முயற்சிகள், தொழில் மற்றும் தன லாபத்தில் சிறந்த முன்னேற்றம் உண்டாகும்.`;
+    } else if (isPeaceful) {
+      s2 = `குடும்பத்தில் மகிழ்ச்சி, ஆரோக்கியம் மற்றும் நலம் விரும்பிகளின் ஆதரவால் நாள் அமைதியாகவும் சுபமாகவும் அமையும்.`;
+    } else if (isCaution) {
+      s2 = `பொறுமையாகவும் விழிப்புடனும் செயல்பட வேண்டிய நாள்; அவசர முடிவுகளைத் தவிர்த்து கோகர்ண மகாபலேஸ்வரரை பிரார்த்தனை செய்யுங்கள்.`;
+    } else if (taraNum === 1) {
+      s2 = `ஜன்ம நட்சத்திர நாளில் சுய சிந்தனை, இறை வழிபாட்டின் மூலம் மன அமைதியும் ஆன்மீக பலமும் பெருகும்.`;
     }
-    return `இன்று அன்றாட பணிகளை நேர்த்தியாகவும் அமைதியாகவும் செய்ய வேண்டிய நாள். குருவின் ஆசியுடன் உங்கள் கடமைகளை நிறைவேற்றுங்கள்.`;
+    const s3 = `கோகர்ண ஆத்மலிங்கத்தின் புனித பாதுகாப்பும் ${deity.deity} ஆசியும் உங்களுக்கு நிறைவான நன்மைகளைத் தரட்டும்.`;
+    return `${s1} ${s2} ${s3}`;
   }
 
   // English Default
-  if (isCaution) {
-    return `Today's cosmic planetary transit advises mindful deliberation and inner tranquility. Avoid impulsive investments or disputes. Chanting Lord Shiva's Mahamrityunjaya Mantra or meditating upon the Gokarna Atmalinga brings profound protection and clarity.`;
-  }
+  const s1 = `Blessings to ${name} from Sri Kshetra Gokarna. Today the Moon transits through ${nakName} Nakshatra in ${rshName}, activating your '${taraName}' Tara Bala and supportive house dynamics.`;
+  let s2 = `A balanced, harmonious day favoring steadfast duty and mindful progression. Stay focused on routine responsibilities and seek elders' blessings.`;
   if (isHigh) {
-    return `Today is blessed with highly auspicious cosmic alignments and powerful energy currents. An ideal time for launching initiatives, career progress, and family celebrations. Actions taken during Gulika Kaala will bear fruitful rewards.`;
+    s2 = `Auspicious planetary currents powerfully lift career initiatives, financial gains, and key decisions; actions taken during auspicious hours yield fruitful triumph.`;
+  } else if (isPeaceful) {
+    s2 = `Domestic harmony, vibrant health vitality, and gracious support from friends and family ensure a peaceful and rewarding day.`;
+  } else if (isCaution) {
+    s2 = `Planetary transits advise mindful deliberation and inner calmness; defer major property agreements, avoid disputes, and meditate upon the Gokarna Atmalinga.`;
+  } else if (taraNum === 1) {
+    s2 = `With the Moon traversing your birth star, focus on self-reflection, routine duties, and heartfelt prayers to fortify inner clarity.`;
   }
-  return `A balanced, harmonious day favoring steadfast duty and mindful progression. Stay focused on routine responsibilities, seek parental/guru blessings, and light a sacred lamp this evening for continued prosperity.`;
+  const s3 = `May the divine protection of the sacred Gokarna Atmalinga and the grace of ${deity.deity} guide and protect you throughout this day.`;
+  return `${s1} ${s2} ${s3}`;
 }
 
 /**

@@ -80,6 +80,20 @@ export const PRIEST_CONSULTATION_CATEGORIES: PriestConsultationCategory[] = [
     isDoshaCheck: false
   },
   {
+    key: "kaaladiksuchi",
+    nameKn: "ಕಾಲ ದಿಕ್ಸೂಚಿ & ಶುಭ ಮುಹೂರ್ತ ನಿರ್ಣಯ (🪙 ೧೦೮)",
+    houseTarget: 1,
+    significatorGrahaKn: "ಸೂರ್ಯ ಮತ್ತು ಗುರು (ಕಾಲಕಾರಕ)",
+    isDoshaCheck: false
+  },
+  {
+    key: "purvajanma",
+    nameKn: "ಪೂರ್ವ ಜನ್ಮ ಕರ್ಮ & ಪುಣ್ಯ ಫಲ ರಹಸ್ಯ (🪙 ೧೦೮)",
+    houseTarget: 9,
+    significatorGrahaKn: "ಗುರು ಮತ್ತು ಕೇತು (ಕರ್ಮ/ಮೋಕ್ಷಕಾರಕ)",
+    isDoshaCheck: false
+  },
+  {
     key: "kalasarpa",
     nameKn: "ಕಾಲಸರ್ಪ ದೋಷ ಪರಿಶೀಲನೆ",
     houseTarget: 8,
@@ -403,6 +417,18 @@ function extractRemedies(categoryKey: string): string[] {
         "ಶ್ರೀ ಚಂದ್ರ ಮಂಡಲ ಪೂಜೆ ಮತ್ತು ಕ್ಷೀರಾಭಿಷೇಕ",
         "ಮಹಾ ಮೃತ್ಯುಂಜಯ ಮಂತ್ರ ಜಪ (ದಿನಕ್ಕೆ ೧೧ ಬಾರಿ)",
         "ಸೋಮವಾರದಂದು ಶಿವಲಿಂಗಕ್ಕೆ ಬಿಲ್ವಪತ್ರೆ ಅರ್ಚನೆ"
+      ];
+    case "kaaladiksuchi":
+      return [
+        "ಶುಭ ಕಾಲ ದಿಕ್ಸೂಚಿ ಅನುಸಾರ ಇಷ್ಟ ದಿಕ್-ಮುಖ ದೀಪಾರಾಧನೆ",
+        "ಸೂರ್ಯೋದಯ ಕಾಲದಲ್ಲಿ ಗಾಯತ್ರೀ ಮಂತ್ರ ಜಪ (೧೦೮ ಬಾರಿ)",
+        "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಕಾಲಭೈರವ / ರುದ್ರಾರ್ಚನೆ"
+      ];
+    case "purvajanma":
+      return [
+        "ಪೂರ್ವ ಜನ್ಮ ಸಂಚಿತ ಕರ್ಮ ಶಾಂತಿಗಾಗಿ ಗೋಕರ್ಣ ಆತ್ಮಲಿಂಗ ಕ್ಷೀರಾಭಿಷೇಕ",
+        "ಶ್ರೀ ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಪಠಣ ಹಾಗೂ ಕಪಿಲಾ ಗೋ ಪ್ರದಕ್ಷಿಣೆ",
+        "ಬಗ್ಗೋಣ ಕ್ಷೇತ್ರದಲ್ಲಿ ನವಗ್ರಹ ದೋಷ ನಿವಾರಣಾ ಶಾಂತಿ ಹೋಮ"
       ];
     default:
       return [

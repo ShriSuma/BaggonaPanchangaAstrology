@@ -38,8 +38,8 @@ describe("Priest Mobile Portal: Consultation Engine & Technical Precision", () =
     expect(DEFAULT_PRIEST_MOBILE_NUMBER).toBe("9108135387");
   });
 
-  it("verifies all 12 Kannada consultation categories are defined", () => {
-    expect(PRIEST_CONSULTATION_CATEGORIES.length).toBe(12);
+  it("verifies all 14 Kannada consultation categories are defined", () => {
+    expect(PRIEST_CONSULTATION_CATEGORIES.length).toBe(14);
     const keys = PRIEST_CONSULTATION_CATEGORIES.map((c) => c.key);
     expect(keys).toContain("maduve");
     expect(keys).toContain("shikshana");
@@ -50,6 +50,8 @@ describe("Priest Mobile Portal: Consultation Engine & Technical Precision", () =
     expect(keys).toContain("manasshanti");
     expect(keys).toContain("dukha_sankashta");
     expect(keys).toContain("preeti");
+    expect(keys).toContain("kaaladiksuchi");
+    expect(keys).toContain("purvajanma");
     expect(keys).toContain("kalasarpa");
     expect(keys).toContain("pitrudodha");
     expect(keys).toContain("custom");

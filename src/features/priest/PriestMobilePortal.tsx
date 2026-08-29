@@ -217,6 +217,7 @@ export const PriestMobilePortal: React.FC = () => {
   const [upiUtrInput, setUpiUtrInput] = useState("");
   const [rechargeQrUrl, setRechargeQrUrl] = useState<string>("");
   const [rechargeFeedback, setRechargeFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [copiedUpi, setCopiedUpi] = useState(false);
 
   // Generate Scannable Dynamic UPI QR Code for Selected Package
   useEffect(() => {
@@ -1060,11 +1061,16 @@ export const PriestMobilePortal: React.FC = () => {
       return;
     }
 
-    const cost = SERVICE_COIN_COSTS.ASTROLOGY_QUESTION.coins; // 750 Coins
+    const cost = selectedCategoryKey === "kaaladiksuchi"
+      ? (SERVICE_COIN_COSTS.KAALA_DIKSUCHI_QUESTION?.coins || 108)
+      : selectedCategoryKey === "purvajanma"
+      ? (SERVICE_COIN_COSTS.PURVA_JANMA_QUESTION?.coins || 108)
+      : (SERVICE_COIN_COSTS.ASTROLOGY_QUESTION?.coins || 750);
+
     if (coinBalance < cost) {
       setFeedback({
         type: "error",
-        text: `ನಾಣ್ಯಗಳ ಕೊರತೆ ಇದೆ. ಪ್ರಶ್ನೆ ವಿಶ್ಲೇಷಣೆಗೆ ೭೫೦ ನಾಣ್ಯಗಳು ಅಗತ್ಯವಿದೆ. ಪ್ರಸ್ತುತ ${coinBalance} ನಾಣ್ಯಗಳಿವೆ.`
+        text: `ನಾಣ್ಯಗಳ ಕೊರತೆ ಇದೆ. ಪ್ರಶ್ನೆ ವಿಶ್ಲೇಷಣೆಗೆ ${cost} ನಾಣ್ಯಗಳು ಅಗತ್ಯವಿದೆ. ಪ್ರಸ್ತುತ ${coinBalance} ನಾಣ್ಯಗಳಿವೆ.`
       });
       setIsRechargeOpen(true);
       return;
@@ -1073,8 +1079,8 @@ export const PriestMobilePortal: React.FC = () => {
     setIsConsulting(true);
     setFeedback(null);
 
-    // 1. Deduct 750 Coins
-    const deductRes = await deductForService(cost, "ಶಾಸ್ತ್ರೀಯ ಸಮಾಲೋಚನೆ ಪ್ರಶ್ನೆ", devoteeName || "ಭಕ್ತರು");
+    // 1. Deduct dynamic coins (108 for Kaala Diksuchi/Purva Janma, 750 for general)
+    const deductRes = await deductForService(cost, `ಶಾಸ್ತ್ರೀಯ ಸಮಾಲೋಚನೆ: ${selectedCategoryKey}`, devoteeName || "ಭಕ್ತರು");
     if (!deductRes.success) {
       setFeedback({ type: "error", text: deductRes.error || "ನಾಣ್ಯ ಕಡಿತ ವಿಫಲವಾಗಿದೆ." });
       setIsConsulting(false);
@@ -1095,7 +1101,7 @@ export const PriestMobilePortal: React.FC = () => {
       setConsultationHistory((prev) => [res, ...prev]);
       setFeedback({
         type: "success",
-        text: "ಶಾಸ್ತ್ರೀಯ ಸಮಾಲೋಚನಾ ವರದಿ ಯಶಸ್ವಿಯಾಗಿ ರಚಿಸಲ್ಪಟ್ಟಿದೆ. (೭೫೦ ನಾಣ್ಯಗಳು ಕಡಿತಗೊಂಡಿವೆ)"
+        text: `ಶಾಸ್ತ್ರೀಯ ಸಮಾಲೋಚನಾ ವರದಿ ಯಶಸ್ವಿಯಾಗಿ ರಚಿಸಲ್ಪಟ್ಟಿದೆ. (${cost} ನಾಣ್ಯಗಳು ಕಡಿತಗೊಂಡಿವೆ)`
       });
     } catch (err: any) {
       console.error("[PriestMobilePortal] Consultation error:", err);
@@ -1105,12 +1111,12 @@ export const PriestMobilePortal: React.FC = () => {
         username: wallet?.userId || currentUser || "priest",
         priestName: activePriestDisplayName,
         action: `ಜ್ಯೋತಿಷ್ಯ ಪ್ರಶ್ನೆ ಸಮಾಲೋಚನೆ (${selectedCategoryKey})`,
-        attemptedCoins: 750,
+        attemptedCoins: cost,
         errorMessage: err?.message || "Consultation engine runtime failure"
       });
       setFeedback({
         type: "error",
-        text: "ಪ್ರಶ್ನೆ ವಿಶ್ಲೇಷಣೆಯಲ್ಲಿ ತಾಂತ್ರಿಕ ದೋಷ ಉಂಟಾಗಿದೆ. ಕಡಿತಗೊಂಡ ೭೫೦ ನಾಣ್ಯಗಳನ್ನು ತಕ್ಷಣವೇ ನಿಮ್ಮ ವಾಲೆಟ್‌ಗೆ ಮರುಪಾವತಿಸಲಾಗಿದೆ."
+        text: `ಪ್ರಶ್ನೆ ವಿಶ್ಲೇಷಣೆಯಲ್ಲಿ ತಾಂತ್ರಿಕ ದೋಷ ಉಂಟಾಗಿದೆ. ಕಡಿತಗೊಂಡ ${cost} ನಾಣ್ಯಗಳನ್ನು ತಕ್ಷಣವೇ ನಿಮ್ಮ ವಾಲೆಟ್‌ಗೆ ಮರುಪಾವತಿಸಲಾಗಿದೆ.`
       });
     } finally {
       setIsConsulting(false);
@@ -1778,7 +1784,7 @@ export const PriestMobilePortal: React.FC = () => {
                 <span>ಶಾಸ್ತ್ರೀಯ ಪ್ರಶ್ನೋತ್ತರ ಸಮಾಲೋಚನೆ</span>
               </h2>
               <span className="text-[10px] font-mono font-black text-amber-900 bg-[#FFF5D6] px-2.5 py-1 rounded-full border border-amber-400">
-                ದರ: 🪙 ೭೫೦ ನಾಣ್ಯಗಳು
+                ದರ: 🪙 {selectedCategoryKey === "kaaladiksuchi" || selectedCategoryKey === "purvajanma" ? "೧೦೮" : "೭೫೦"} ನಾಣ್ಯಗಳು
               </span>
             </div>
 
@@ -1806,7 +1812,7 @@ export const PriestMobilePortal: React.FC = () => {
                   >
                     {PRIEST_CONSULTATION_CATEGORIES.map((cat) => (
                       <option key={cat.key} value={cat.key}>
-                        {cat.nameKn} ({cat.houseTarget}ನೇ ಭಾವ)
+                        {cat.nameKn} {cat.houseTarget ? `(${cat.houseTarget}ನೇ ಭಾವ)` : ""}
                       </option>
                     ))}
                   </select>
@@ -1846,7 +1852,9 @@ export const PriestMobilePortal: React.FC = () => {
                   ) : (
                     <>
                       <span>🔍 ೪ ಪ್ಯಾರಾಗ್ರಾಫ್ ಶಾಸ್ತ್ರೀಯ ವಿಶ್ಲೇಷಣೆ ಪಡೆಯಿರಿ</span>
-                      <span className="opacity-80 font-mono font-bold">(🪙 ೫೦೦)</span>
+                      <span className="opacity-80 font-mono font-bold">
+                        (🪙 {selectedCategoryKey === "kaaladiksuchi" || selectedCategoryKey === "purvajanma" ? "೧೦೮" : "೭೫೦"})
+                      </span>
                     </>
                   )}
                 </button>
@@ -2039,23 +2047,26 @@ export const PriestMobilePortal: React.FC = () => {
 
       {/* 6. Coin Refill / UPI Top-Up Modal (Golden Cream Theme) */}
       {isRechargeOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
-          <div className="relative w-full max-w-md bg-[#FFFDF7] border-2 border-amber-400 rounded-3xl shadow-2xl p-5 text-slate-900 space-y-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-md flex items-start sm:items-center justify-center p-3 sm:p-4">
+          <div className="relative w-full max-w-lg bg-[#FFFDF7] border-2 border-amber-400 rounded-3xl shadow-2xl p-4 sm:p-6 text-slate-900 space-y-4 my-auto">
             <button
               onClick={() => {
                 setIsRechargeOpen(false);
                 setRechargeFeedback(null);
               }}
-              className="absolute top-4 right-4 text-slate-500 hover:text-amber-900 font-black"
+              className="absolute top-4 right-4 text-slate-500 hover:text-amber-900 font-black text-lg p-1 rounded-lg hover:bg-amber-100 transition-colors"
+              aria-label="Close"
             >
               ✕
             </button>
 
             <div className="flex items-center gap-2.5 border-b border-amber-200 pb-2.5">
-              <div className="text-2xl">🪙</div>
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-600 to-amber-400 flex items-center justify-center text-slate-950 font-bold text-xl shadow-md">
+                🪙
+              </div>
               <div>
-                <h3 className="font-black text-amber-950 text-sm">ನಾಣ್ಯಗಳ ರೀಚಾರ್ಜ್ (Refill Coins)</h3>
-                <p className="text-[10px] text-amber-800 font-semibold">Google Pay / PhonePe / Paytm / UPI</p>
+                <h3 className="font-black text-amber-950 text-sm sm:text-base">ನಾಣ್ಯಗಳ ರೀಚಾರ್ಜ್ (Refill Coins)</h3>
+                <p className="text-[10px] text-amber-800 font-semibold">Google Pay / PhonePe / Paytm / BHIM UPI</p>
               </div>
             </div>
 
@@ -2073,19 +2084,24 @@ export const PriestMobilePortal: React.FC = () => {
 
             {/* Packages Grid */}
             <div className="space-y-1.5 text-xs">
-              <label className="text-amber-950 font-bold block text-[11px]">ಪ್ಯಾಕೇಜ್ ಆಯ್ಕೆಮಾಡಿ:</label>
+              <label className="text-amber-950 font-bold block text-[11px]">೧. ಪ್ಯಾಕೇಜ್ ಆಯ್ಕೆಮಾಡಿ (Select Package):</label>
               <div className="grid grid-cols-2 gap-2">
                 {RECHARGE_PACKAGES.map((pkg) => (
                   <button
                     key={pkg.key}
                     type="button"
                     onClick={() => setSelectedPackage(pkg)}
-                    className={`p-3 rounded-2xl border-2 text-left transition-all ${
+                    className={`p-3 rounded-2xl border-2 text-left transition-all relative ${
                       selectedPackage.key === pkg.key
-                        ? "bg-[#FFF5D6] border-amber-500 text-amber-950 shadow-sm"
+                        ? "bg-[#FFF5D6] border-amber-500 text-amber-950 shadow-md ring-1 ring-amber-400"
                         : "bg-[#FEFCF4] border-amber-200 text-slate-700 hover:border-amber-300"
                     }`}
                   >
+                    {pkg.tag && (
+                      <span className="absolute -top-2 right-2 px-1.5 py-0.2 text-[8px] font-black uppercase rounded-full bg-gradient-to-r from-amber-600 to-amber-500 text-slate-950">
+                        {pkg.tag}
+                      </span>
+                    )}
                     <div className="font-black text-base text-amber-950">₹{pkg.amountInr}</div>
                     <div className="font-mono text-xs text-emerald-800 font-bold">
                       {pkg.totalCoins.toLocaleString()} Coins
@@ -2096,11 +2112,21 @@ export const PriestMobilePortal: React.FC = () => {
               </div>
             </div>
 
+            {/* 1-Tap Mobile UPI Intent Button */}
+            <div className="w-full">
+              <a
+                href={`upi://pay?pa=${encodeURIComponent(DEFAULT_PRIEST_UPI_ID)}&pn=${encodeURIComponent("Baggona Panchanga")}&am=${selectedPackage.amountInr.toFixed(2)}&cu=INR&tn=${encodeURIComponent(`COINS-${selectedPackage.key.toUpperCase()}-${wallet?.userId || currentUser || "PRIEST"}`)}`}
+                className="w-full py-3 px-4 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-slate-950 font-black rounded-2xl text-xs shadow-md transition-all flex items-center justify-center gap-2 border border-emerald-400 active:scale-98"
+              >
+                <span>📲 ನೇರವಾಗಿ UPI ಆ್ಯಪ್‌ನಲ್ಲಿ ಪಾವತಿಸಿ (Pay ₹{selectedPackage.amountInr})</span>
+              </a>
+            </div>
+
             {/* Scannable Dynamic UPI QR Code */}
             {rechargeQrUrl && (
-              <div className="flex flex-col items-center justify-center p-3 bg-white rounded-2xl border-2 border-amber-300 shadow-sm text-center">
-                <p className="text-[11px] font-bold text-amber-950 mb-1">
-                  📱 ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ಪಾವತಿಸಿ (Scan & Pay ₹{selectedPackage.amountInr})
+              <div className="flex flex-col items-center justify-center p-3.5 bg-white rounded-2xl border-2 border-amber-300 shadow-sm text-center">
+                <p className="text-[11px] font-bold text-amber-950 mb-1.5">
+                  ೨. ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ಪಾವತಿಸಿ (Scan QR to Pay ₹{selectedPackage.amountInr})
                 </p>
                 <img
                   src={rechargeQrUrl}
@@ -2108,41 +2134,48 @@ export const PriestMobilePortal: React.FC = () => {
                   className="w-36 h-36 border border-amber-200 rounded-xl p-1 bg-white shadow-sm"
                 />
                 <p className="text-[9px] text-slate-500 font-mono mt-1">
-                  GPay / PhonePe / Paytm / BHIM UPI
+                  Google Pay • PhonePe • Paytm • BHIM
                 </p>
               </div>
             )}
 
             {/* Official Payment Destination */}
-            <div className="p-3.5 bg-[#FEFCF4] rounded-2xl border-2 border-amber-300 text-xs space-y-2">
+            <div className="p-3 bg-[#FEFCF4] rounded-2xl border-2 border-amber-300 text-xs space-y-2">
               <div className="flex justify-between items-center">
-                <span className="text-slate-700 font-bold">ಪಾವತಿ ಮೊಬೈಲ್ ಸಂಖ್ಯೆ:</span>
-                <span className="font-mono font-black text-amber-900 text-base">
-                  {DEFAULT_PRIEST_MOBILE_NUMBER}
-                </span>
+                <span className="text-slate-700 font-bold text-[11px]">UPI ID:</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-mono font-bold text-emerald-800 text-xs">{DEFAULT_PRIEST_UPI_ID}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard?.writeText(DEFAULT_PRIEST_UPI_ID);
+                      setCopiedUpi(true);
+                      setTimeout(() => setCopiedUpi(false), 2000);
+                    }}
+                    className="px-2 py-0.5 bg-amber-100 hover:bg-amber-200 text-amber-950 text-[10px] font-bold rounded border border-amber-300 transition-all"
+                  >
+                    {copiedUpi ? "✓ Copied" : "📋 Copy"}
+                  </button>
+                </div>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-700 font-bold">UPI ID:</span>
-                <span className="font-mono font-bold text-emerald-800">
-                  {DEFAULT_PRIEST_UPI_ID}
-                </span>
+                <span className="text-slate-700 font-bold text-[11px]">ಮೊಬೈಲ್ ಸಂಖ್ಯೆ:</span>
+                <span className="font-mono font-black text-amber-900 text-xs">{DEFAULT_PRIEST_MOBILE_NUMBER}</span>
               </div>
-              <p className="text-[10px] text-slate-600 pt-1 border-t border-amber-200">
-                PhonePe, Google Pay ಅಥವಾ Paytm ಮೂಲಕ ಹಣ ಪಾವತಿಸಿ ೧೨ ಅಂಕಿಯ UTR ಸಂಖ್ಯೆಯನ್ನು ನಮೂದಿಸಿ.
-              </p>
             </div>
 
             {/* UTR Input Form */}
             <form onSubmit={handleRechargeSubmit} className="space-y-3 text-xs">
               <div>
                 <label className="block text-amber-950 font-bold mb-1">
-                  ೧೨ ಅಂಕಿಯ UPI UTR / Reference ಸಂಖ್ಯೆ
+                  ೩. ೧೨ ಅಂಕಿಯ UPI UTR / Reference ಸಂಖ್ಯೆ ನಮೂದಿಸಿ:
                 </label>
                 <input
                   type="text"
                   value={upiUtrInput}
-                  onChange={(e) => setUpiUtrInput(e.target.value)}
+                  onChange={(e) => setUpiUtrInput(e.target.value.replace(/[^0-9a-zA-Z]/g, ""))}
                   placeholder="ಉದಾ: 423512345678"
+                  maxLength={18}
                   required
                   className="w-full px-3.5 py-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl font-mono text-slate-900 text-xs font-bold focus:outline-none focus:border-amber-500 shadow-inner"
                 />
@@ -2152,14 +2185,14 @@ export const PriestMobilePortal: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsRechargeOpen(false)}
-                  className="px-4 py-2 bg-slate-200 text-slate-700 font-bold rounded-xl"
+                  className="px-4 py-2.5 bg-slate-200 text-slate-700 font-bold rounded-xl text-xs hover:bg-slate-300 transition-colors"
                 >
                   ರದ್ದುಮಾಡಿ
                 </button>
                 <button
                   type="submit"
-                  disabled={isSubmittingRecharge}
-                  className="px-5 py-2 bg-gradient-to-r from-amber-600 to-amber-500 text-slate-950 font-black rounded-xl shadow-md disabled:opacity-50"
+                  disabled={isSubmittingRecharge || upiUtrInput.trim().length < 8}
+                  className="px-5 py-2.5 bg-gradient-to-r from-amber-600 to-amber-500 text-slate-950 font-black rounded-xl text-xs shadow-md disabled:opacity-50 transition-all flex items-center gap-1.5"
                 >
                   {isSubmittingRecharge ? "ಸಲ್ಲಿಕೆಯಾಗುತ್ತಿದೆ..." : "ರೀಚಾರ್ಜ್ ದೃಢೀಕರಿಸಿ"}
                 </button>

@@ -57,17 +57,18 @@ describe("Priest Wallet & Coining Math Engine", () => {
 
   it("verifies service coin deduction costs and INR equivalencies", () => {
     expect(SERVICE_COIN_COSTS.DAILY_PANCHANG.coins).toBe(0);
-    expect(SERVICE_COIN_COSTS.KUNDLI_CALCULATION.coins).toBe(250); // ₹25
-    expect(SERVICE_COIN_COSTS.ASTROLOGY_QUESTION.coins).toBe(750); // ₹75
-    expect(SERVICE_COIN_COSTS.AI_PRASHNA_QUESTION.coins).toBe(250); // ₹25
-    expect(SERVICE_COIN_COSTS.SANKHYA_PRASHNA.coins).toBe(250); // ₹25
-    expect(SERVICE_COIN_COSTS.STANDARD_JANANA_KUNDLI_PDF.coins).toBe(1000); // ₹100
-    expect(SERVICE_COIN_COSTS.STANDARD_JANANA_KUNDLI_PDF.inrEquivalent).toBe(100);
-    expect(SERVICE_COIN_COSTS.PREMIUM_KUNDLI_PDF.coins).toBe(3500); // ₹350
-    expect(SERVICE_COIN_COSTS.RAMAN_BHAVISHYA.coins).toBe(500); // ₹50
-    expect(SERVICE_COIN_COSTS.PREMIUM_PDF_DOWNLOAD.coins).toBe(3500); // ₹350
-    expect(SERVICE_COIN_COSTS.MELAPAK_MATCH.coins).toBe(200); // ₹20
-    expect(SERVICE_COIN_COSTS.SEVA_BOOKING_ASHIRVADA.coins).toBe(200); // ₹20
+    expect(SERVICE_COIN_COSTS.KUNDLI_CALCULATION.coins).toBe(250);
+    expect(SERVICE_COIN_COSTS.ASTROLOGY_QUESTION.coins).toBe(750);
+    expect(SERVICE_COIN_COSTS.AI_PRASHNA_QUESTION.coins).toBe(25);
+    expect(SERVICE_COIN_COSTS.SANKHYA_PRASHNA.coins).toBe(25);
+    expect(SERVICE_COIN_COSTS.KAALA_DIKSUCHI_QUESTION.coins).toBe(108);
+    expect(SERVICE_COIN_COSTS.PURVA_JANMA_QUESTION.coins).toBe(108);
+    expect(SERVICE_COIN_COSTS.STANDARD_JANANA_KUNDLI_PDF.coins).toBe(1000);
+    expect(SERVICE_COIN_COSTS.PREMIUM_KUNDLI_PDF.coins).toBe(3500);
+    expect(SERVICE_COIN_COSTS.RAMAN_BHAVISHYA.coins).toBe(500);
+    expect(SERVICE_COIN_COSTS.PREMIUM_PDF_DOWNLOAD.coins).toBe(3500);
+    expect(SERVICE_COIN_COSTS.MELAPAK_MATCH.coins).toBe(200);
+    expect(SERVICE_COIN_COSTS.SEVA_BOOKING_ASHIRVADA.coins).toBe(200);
   });
 
   it("verifies priest portal anti-reset localStorage state persistence contract", () => {

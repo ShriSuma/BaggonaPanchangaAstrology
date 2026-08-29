@@ -46,6 +46,10 @@ export interface DevoteeTokenPayload {
   loc?: string;
   days?: number;
   dy?: number;
+  phone?: string;
+  ph?: string;
+  overrideCalendarPhone?: boolean;
+  ocp?: boolean | number;
 }
 
 const TOKEN_PREFIX = "bgn_v1_";
@@ -122,6 +126,8 @@ export function encodeDevoteeToken(payload: DevoteeTokenPayload): string {
     const rawLoc = payload.locationName ?? payload.loc ?? "Gokarna";
     const rawDob = payload.dob ?? "";
     const rawTob = payload.tob ?? "";
+    const rawPhone = payload.phone ?? payload.ph ?? "";
+    const rawOverrideContact = Boolean(payload.overrideCalendarPhone ?? payload.ocp);
 
     const rawDays = payload.days !== undefined ? payload.days : payload.dy !== undefined ? payload.dy : 90;
 
@@ -143,7 +149,9 @@ export function encodeDevoteeToken(payload: DevoteeTokenPayload): string {
       lg: rawLng,
       loc: rawLoc,
       ...(rawDob ? { dob: rawDob } : {}),
-      ...(rawTob ? { tob: rawTob } : {})
+      ...(rawTob ? { tob: rawTob } : {}),
+      ...(rawPhone ? { ph: rawPhone } : {}),
+      ...(rawOverrideContact ? { ocp: 1 } : {})
     };
 
     const jsonStr = JSON.stringify(compactObj);
@@ -178,6 +186,10 @@ export function decodeDevoteeToken(token: string): (DevoteeTokenPayload & {
   loc: string;
   dob?: string;
   tob?: string;
+  phone?: string;
+  ph?: string;
+  overrideCalendarPhone?: boolean;
+  ocp?: boolean;
 }) | null {
   if (!token || typeof token !== "string") return null;
 
@@ -269,6 +281,8 @@ export function decodeDevoteeToken(token: string): (DevoteeTokenPayload & {
     const dob = parsed.dob || undefined;
     const tob = parsed.tob || undefined;
     const days = typeof parsed.dy === "number" && parsed.dy > 0 ? parsed.dy : (typeof parsed.days === "number" && parsed.days > 0 ? parsed.days : 90);
+    const phone = parsed.ph || parsed.phone || undefined;
+    const overrideCalendarPhone = Boolean(parsed.ocp || parsed.overrideCalendarPhone);
 
     return {
       name,
@@ -304,7 +318,11 @@ export function decodeDevoteeToken(token: string): (DevoteeTokenPayload & {
       locationName,
       loc: locationName,
       dob,
-      tob
+      tob,
+      phone,
+      ph: phone,
+      overrideCalendarPhone,
+      ocp: overrideCalendarPhone
     };
   } catch (err) {
     console.warn("Failed to decode token:", err);

@@ -94,9 +94,23 @@ export const SERVICE_COIN_COSTS: Record<string, ServiceCost> = {
   SANKHYA_PRASHNA: {
     key: "SANKHYA_PRASHNA",
     name: "Sankhya Shastra Prashna Oracle",
-    coins: 250,
-    inrEquivalent: 25,
-    description: "Vedic number horary divination with Sthira/Chara/Ubhaya & Varna influence (250 Coins)"
+    coins: 25,
+    inrEquivalent: 2.5,
+    description: "Vedic number horary divination with Sthira/Chara/Ubhaya & Varna influence (25 Coins)"
+  },
+  KAALA_DIKSUCHI_QUESTION: {
+    key: "KAALA_DIKSUCHI_QUESTION",
+    name: "Kaala Diksuchi Timing Oracle",
+    coins: 108,
+    inrEquivalent: 10.8,
+    description: "Kaala Diksuchi timing analysis & auspicious direction consultation (108 Coins)"
+  },
+  PURVA_JANMA_QUESTION: {
+    key: "PURVA_JANMA_QUESTION",
+    name: "Purva Janma Karmic Reading",
+    coins: 108,
+    inrEquivalent: 10.8,
+    description: "Purva Janma past life karma and remedial reading (108 Coins)"
   },
   SANKHYA_NAME_SUGGESTION: {
     key: "SANKHYA_NAME_SUGGESTION",
@@ -114,38 +128,38 @@ export const SERVICE_COIN_COSTS: Record<string, ServiceCost> = {
   },
   AI_PRASHNA_QUESTION: {
     key: "AI_PRASHNA_QUESTION",
-    name: "Sankhya Shastra Prashna Oracle",
-    coins: 250,
-    inrEquivalent: 25,
-    description: "Instant single-question horary divination (250 Coins)"
+    name: "Prashna Shastra Oracle",
+    coins: 25,
+    inrEquivalent: 2.5,
+    description: "Instant single-question horary divination (25 Coins)"
   },
   RAMAN_BHAVISHYA: {
     key: "RAMAN_BHAVISHYA",
     name: "Raman 10-Year Life Bhavishya",
     coins: 500,
     inrEquivalent: 50,
-    description: "10-year stage-by-stage AI life predictions"
+    description: "10-year stage-by-stage AI life predictions (500 Coins)"
   },
   STANDARD_JANANA_KUNDLI_PDF: {
     key: "STANDARD_JANANA_KUNDLI_PDF",
     name: "Baggona Panchanga Janana Kundli PDF",
     coins: 1000,
     inrEquivalent: 100,
-    description: "Baggona Panchanga Janana Kundli PDF with Dasha Bhukti & Planetary Positions (1,000 Coins / ₹100)"
+    description: "Baggona Panchanga Janana Kundli PDF with Dasha Bhukti & Planetary Positions (1,000 Coins)"
   },
   PREMIUM_KUNDLI_PDF: {
     key: "PREMIUM_KUNDLI_PDF",
     name: "Grand 8-Page Premium Kundli PDF Download",
     coins: 3500,
     inrEquivalent: 350,
-    description: "Grand 8-Page A4 Luxury Gold Astrological Horoscope & Prediction PDF (3,500 Coins / ₹350)"
+    description: "Grand 8-Page A4 Luxury Gold Astrological Horoscope & Prediction PDF (3,500 Coins)"
   },
   PREMIUM_PDF_DOWNLOAD: {
     key: "PREMIUM_PDF_DOWNLOAD",
     name: "Royal Multi-Page A4 PDF Booklet",
     coins: 3500,
     inrEquivalent: 350,
-    description: "5-page luxury gold royal astrological chart PDF (3,500 Coins / ₹350)"
+    description: "5-page luxury gold royal astrological chart PDF (3,500 Coins)"
   },
   MELAPAK_MATCH: {
     key: "MELAPAK_MATCH",
