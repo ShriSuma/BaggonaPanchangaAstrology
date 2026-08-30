@@ -14,12 +14,18 @@ import {
   deleteAshirvadaPass,
   getOrCreatePriestWallet,
   syncUserProfile,
-  cleanupDuplicateKundlis
+  cleanupDuplicateKundlis,
+  updateUserAllowedModules
 } from "../../db/firestoreDb";
 import { db } from "../../db/indexedDb";
 import { hashPassword } from "../auth/authStore";
 import { sendAllFourDailyReports } from "../notifications/notificationService";
 import { extendPassValidity } from "../seva/ashirvadaPassService";
+import {
+  AVAILABLE_MODULES,
+  type AvailableModuleKey,
+  type AppModuleConfig
+} from "./walletTypes";
 
 export type AdminTab = "wallets" | "kundlis" | "ashirvada" | "audit" | "mindmap";
 
@@ -84,23 +90,23 @@ const RadialGauge: React.FC<RadialGaugeProps> = ({
   }[color];
 
   return (
-    <div className="bg-[#FFFDF7] border-2 border-amber-300/80 rounded-3xl p-4 shadow-md flex flex-col items-center justify-between text-center relative overflow-hidden group hover:border-amber-500 transition-all">
+    <div className="bg-[#FFFDF7] border-2 border-amber-300/80 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-md flex flex-col items-center justify-between text-center relative overflow-hidden group hover:border-amber-500 transition-all">
       {badgeText && (
-        <div className="absolute top-2.5 right-2.5">
-          <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full border ${colorConfig.badgeBg}`}>
+        <div className="absolute top-2 right-2 sm:top-2.5 sm:right-2.5">
+          <span className={`text-[8px] sm:text-[9px] font-black uppercase px-1.5 sm:px-2 py-0.5 rounded-full border ${colorConfig.badgeBg}`}>
             {badgeText}
           </span>
         </div>
       )}
 
       {/* Header */}
-      <div className="flex items-center gap-1.5 mb-2">
-        <span className="text-lg">{icon}</span>
-        <h4 className="text-xs font-black text-amber-950">{title}</h4>
+      <div className="flex items-center gap-1 sm:gap-1.5 mb-1 sm:mb-2">
+        <span className="text-base sm:text-lg">{icon}</span>
+        <h4 className="text-[11px] sm:text-xs font-black text-amber-950 truncate max-w-[130px] sm:max-w-none">{title}</h4>
       </div>
 
       {/* Radial Arc Gauge */}
-      <div className="relative w-28 h-28 flex items-center justify-center my-1">
+      <div className="relative w-20 h-20 sm:w-28 sm:h-28 flex items-center justify-center my-0.5 sm:my-1">
         <svg className="w-full h-full -rotate-120 transform" viewBox="0 0 100 100">
           {/* Background Track */}
           <circle
@@ -130,18 +136,18 @@ const RadialGauge: React.FC<RadialGaugeProps> = ({
         </svg>
 
         {/* Center Text */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center pt-2">
-          <span className="text-base font-mono font-black text-slate-900 tracking-tight">
+        <div className="absolute inset-0 flex flex-col items-center justify-center pt-1 sm:pt-2">
+          <span className="text-xs sm:text-base font-mono font-black text-slate-900 tracking-tight">
             {displayValue}
           </span>
-          <span className="text-[10px] font-bold text-slate-500 font-mono">
+          <span className="text-[8px] sm:text-[10px] font-bold text-slate-500 font-mono">
             {clampedValue}%
           </span>
         </div>
       </div>
 
       {/* Subtitle */}
-      <p className="text-[11px] text-amber-900 font-semibold mt-1">
+      <p className="text-[9px] sm:text-[11px] text-amber-900 font-semibold mt-0.5 sm:mt-1 truncate max-w-full">
         {subtitle}
       </p>
     </div>
@@ -265,14 +271,25 @@ export const SuperAdminDashboard: React.FC = () => {
   const [newPriestUsername, setNewPriestUsername] = useState("");
   const [newPriestPassword, setNewPriestPassword] = useState("baggona123");
   const [newPriestWelcomeCoins, setNewPriestWelcomeCoins] = useState("1000");
+  const [selectedModulesForNewPriest, setSelectedModulesForNewPriest] = useState<AvailableModuleKey[]>([
+    "panchanga",
+    "sankhyashastra",
+    "diksuchi",
+    "purva_janma"
+  ]);
   const [createdPriestResult, setCreatedPriestResult] = useState<{
     name: string;
     username: string;
     password: string;
-    panchangaUrl: string;
-    sankhyaUrl: string;
+    allowedModules: AvailableModuleKey[];
+    generatedLinks: Array<{ key: AvailableModuleKey; label: string; icon: string; url: string }>;
   } | null>(null);
   const [isCreatingPriest, setIsCreatingPriest] = useState(false);
+
+  // Priest Module Permission Editor Modal State
+  const [editingPriestModules, setEditingPriestModules] = useState<PriestWalletDoc | null>(null);
+  const [activeModuleSelection, setActiveModuleSelection] = useState<AvailableModuleKey[]>([]);
+  const [isSavingModules, setIsSavingModules] = useState(false);
 
   // Admin Password Management Modal
   const [showAdminPasswordModal, setShowAdminPasswordModal] = useState(false);
@@ -442,15 +459,21 @@ export const SuperAdminDashboard: React.FC = () => {
       return;
     }
 
+    if (selectedModulesForNewPriest.length === 0) {
+      setFeedback({ type: "error", text: "ಕನಿಷ್ಠ ಒಂದು ಮಾಡ್ಯೂಲ್ ಆಯ್ಕೆಮಾಡಿ (Please select at least 1 module)." });
+      return;
+    }
+
     const cleanUsername = newPriestUsername.trim().toLowerCase().replace(/\s+/g, "_");
     const passwordToSet = newPriestPassword.trim() || "baggona123";
     const welcomeCoinsNum = parseInt(newPriestWelcomeCoins, 10) || 1000;
+    const modulesToAssign = [...selectedModulesForNewPriest];
 
     setIsCreatingPriest(true);
     setFeedback(null);
 
     try {
-      // 1. Create Priest User Account with Hashed Password in IndexedDb
+      // 1. Create Priest User Account with Hashed Password and Allowed Modules in IndexedDb
       const hashedPassword = await hashPassword(passwordToSet);
       const existingUser = await db.users.where("username").equals(cleanUsername).first();
       if (!existingUser) {
@@ -458,10 +481,14 @@ export const SuperAdminDashboard: React.FC = () => {
           id: cleanUsername,
           username: cleanUsername,
           passwordHash: hashedPassword,
+          allowedModules: modulesToAssign,
           createdAt: new Date().toISOString()
         });
       } else {
-        await db.users.update(existingUser.id, { passwordHash: hashedPassword });
+        await db.users.update(existingUser.id, {
+          passwordHash: hashedPassword,
+          allowedModules: modulesToAssign
+        });
       }
 
       // 2. Sync to Cloud Firestore Users Collection
@@ -470,11 +497,12 @@ export const SuperAdminDashboard: React.FC = () => {
         username: cleanUsername,
         name: newPriestName.trim(),
         role: "priest",
+        allowedModules: modulesToAssign,
         createdAt: new Date().toISOString()
       });
 
-      // 3. Init wallet in Firestore
-      await getOrCreatePriestWallet(cleanUsername, newPriestName.trim());
+      // 3. Init wallet in Firestore with allowedModules
+      await getOrCreatePriestWallet(cleanUsername, newPriestName.trim(), modulesToAssign);
 
       // 4. Add free welcome bonus coins if specified
       if (welcomeCoinsNum > 0) {
@@ -486,20 +514,30 @@ export const SuperAdminDashboard: React.FC = () => {
       }
 
       const origin = typeof window !== "undefined" ? window.location.origin : "https://baggona-panchanga.firebaseapp.com";
-      const panchangaUrl = `${origin}/?portal=panchanga&user=${encodeURIComponent(cleanUsername)}&name=${encodeURIComponent(newPriestName.trim())}&firstTime=true`;
-      const sankhyaUrl = `${origin}/?portal=sankhyashastra&user=${encodeURIComponent(cleanUsername)}&name=${encodeURIComponent(newPriestName.trim())}&firstTime=true`;
+      
+      // Generate links for each selected module
+      const generatedLinks = modulesToAssign.map((modKey) => {
+        const modConfig = AVAILABLE_MODULES.find((m) => m.key === modKey);
+        const url = `${origin}/?portal=${modConfig?.portalParam || modKey}&user=${encodeURIComponent(cleanUsername)}&name=${encodeURIComponent(newPriestName.trim())}&firstTime=true`;
+        return {
+          key: modKey,
+          label: modConfig?.label || modKey,
+          icon: modConfig?.icon || "✨",
+          url
+        };
+      });
 
       setCreatedPriestResult({
         name: newPriestName.trim(),
         username: cleanUsername,
         password: passwordToSet,
-        panchangaUrl,
-        sankhyaUrl
+        allowedModules: modulesToAssign,
+        generatedLinks
       });
 
       setFeedback({
         type: "success",
-        text: `ಪುರೋಹಿತರು (${newPriestName}) ಯಶಸ್ವಿಯಾಗಿ ನೋಂದಾಯಿಸಲ್ಪಟ್ಟಿದ್ದಾರೆ! ಲಾಗಿನ್ ಪಾಸ್‌ವರ್ಡ್: ${passwordToSet} | ಸ್ವಾಗತ ನಾಣ್ಯಗಳು: ${welcomeCoinsNum}`
+        text: `ಪುರೋಹಿತರು (${newPriestName}) ಯಶಸ್ವಿಯಾಗಿ ನೋಂದಾಯಿಸಲ್ಪಟ್ಟಿದ್ದಾರೆ! [ಅನುಮತಿಸಿದ ಮಾಡ್ಯೂಲ್‌ಗಳು: ${modulesToAssign.length}] ಲಾಗಿನ್ ಪಾಸ್‌ವರ್ಡ್: ${passwordToSet} | ಸ್ವಾಗತ ನಾಣ್ಯಗಳು: ${welcomeCoinsNum}`
       });
 
       // Clear input fields
@@ -510,6 +548,46 @@ export const SuperAdminDashboard: React.FC = () => {
       setFeedback({ type: "error", text: `ನೋಂದಣಿ ದೋಷ: ${err?.message || "Error"}` });
     } finally {
       setIsCreatingPriest(false);
+    }
+  };
+
+  const handleOpenModuleEditor = (priest: PriestWalletDoc) => {
+    setEditingPriestModules(priest);
+    const existing = priest.allowedModules && priest.allowedModules.length > 0
+      ? (priest.allowedModules as AvailableModuleKey[])
+      : (["panchanga", "sankhyashastra", "diksuchi", "purva_janma"] as AvailableModuleKey[]);
+    setActiveModuleSelection(existing);
+  };
+
+  const handleSaveModulePermissions = async () => {
+    if (!editingPriestModules) return;
+    if (activeModuleSelection.length === 0) {
+      setFeedback({ type: "error", text: "ದಯವಿಟ್ಟು ಕನಿಷ್ಠ ಒಂದು ಮಾಡ್ಯೂಲ್ ಆಯ್ಕೆಮಾಡಿ." });
+      return;
+    }
+
+    setIsSavingModules(true);
+    try {
+      const ok = await updateUserAllowedModules(editingPriestModules.userId, activeModuleSelection);
+      if (ok) {
+        // Also update local indexedDb
+        const user = await db.users.where("username").equals(editingPriestModules.userId).first();
+        if (user) {
+          await db.users.update(user.id!, { allowedModules: activeModuleSelection });
+        }
+
+        setFeedback({
+          type: "success",
+          text: `ಪುರೋಹಿತರ (${editingPriestModules.priestName}) ಮಾಡ್ಯೂಲ್ ಪ್ರವೇಶಾವಕಾಶಗಳನ್ನು ಯಶಸ್ವಿಯಾಗಿ ನವೀಕರಿಸಲಾಗಿದೆ (${activeModuleSelection.length} ಮಾಡ್ಯೂಲ್‌ಗಳು ಸಕ್ರಿಯ).`
+        });
+        setEditingPriestModules(null);
+      } else {
+        setFeedback({ type: "error", text: "ಮಾಡ್ಯೂಲ್ ಪ್ರವೇಶಾವಕಾಶ ನವೀಕರಣ ವಿಫಲವಾಗಿದೆ." });
+      }
+    } catch (err: any) {
+      setFeedback({ type: "error", text: `ದೋಷ: ${err?.message || "Error"}` });
+    } finally {
+      setIsSavingModules(false);
     }
   };
 
@@ -664,68 +742,67 @@ export const SuperAdminDashboard: React.FC = () => {
   return (
     <div className="space-y-6 pb-16 font-sans text-slate-900">
       {/* 1. ROYAL MASTER HERO HEADER (Color-matched to #FFFDF7 Ivory & Royal Gold) */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#FFFDF7] via-[#FFF9E6] to-[#FFF5D6] border-2 border-amber-400/90 p-6 md:p-8 shadow-xl">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
+      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-[#FFFDF7] via-[#FFF9E6] to-[#FFF5D6] border-2 border-amber-400/90 p-4 sm:p-6 md:p-8 shadow-xl">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 sm:gap-6 relative z-10">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100 border border-amber-400 text-amber-900 text-xs font-black uppercase tracking-wider mb-2.5 shadow-sm">
+            <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-full bg-amber-100 border border-amber-400 text-amber-900 text-[10px] sm:text-xs font-black uppercase tracking-wider mb-2 shadow-sm">
               <span>👑</span>
-              <span>॥ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಪ್ರಧಾನ ಆಡಳಿತ ಕೇಂದ್ರ ॥</span>
+              <span className="truncate">॥ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಪ್ರಧಾನ ಆಡಳಿತ ಕೇಂದ್ರ ॥</span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-black text-amber-950 tracking-tight flex items-center gap-2.5">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-amber-950 tracking-tight flex items-center gap-2">
               <span>Super Administrator Command Center</span>
             </h1>
-            <p className="text-xs md:text-sm text-amber-800 font-semibold mt-1 max-w-2xl">
+            <p className="text-[11px] sm:text-xs md:text-sm text-amber-800 font-semibold mt-1 max-w-2xl">
               Live Priest Network • Devotee Kundli Vault • 90-Day Ashirvada QR Tracker • Security Audit Trail & Visual Topology
             </p>
 
             {/* Quick Action Pills */}
-            <div className="flex flex-wrap items-center gap-2 mt-4">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-3 sm:mt-4">
               <button
                 type="button"
                 onClick={() => setShowAdminPasswordModal(true)}
-                className="px-3.5 py-1.5 bg-[#FFFDF7] hover:bg-amber-100 border-2 border-amber-400 text-amber-950 text-xs font-black rounded-xl flex items-center gap-1.5 transition-all shadow-sm"
+                className="px-3 py-1.5 bg-[#FFFDF7] hover:bg-amber-100 border-2 border-amber-400 text-amber-950 text-[11px] sm:text-xs font-black rounded-xl flex items-center gap-1.5 transition-all shadow-sm active:scale-95"
               >
                 <span>🔐</span>
-                <span>ಪಾಸ್‌ವರ್ಡ್ ಬದಲಾಯಿಸಿ (Admin Password)</span>
+                <span>ಪಾಸ್‌ವರ್ಡ್ ಬದಲಾಯಿಸಿ</span>
               </button>
 
               <button
                 type="button"
                 onClick={handleDispatch4ReportsNow}
                 disabled={isDispatchingReports}
-                className="px-3.5 py-1.5 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white text-xs font-black rounded-xl flex items-center gap-1.5 transition-all shadow-sm disabled:opacity-50"
+                className="px-3 py-1.5 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white text-[11px] sm:text-xs font-black rounded-xl flex items-center gap-1.5 transition-all shadow-sm disabled:opacity-50 active:scale-95"
               >
                 <span>📧</span>
-                <span>{isDispatchingReports ? "ರವಾನಿಸಲಾಗುತ್ತಿದೆ..." : "4 ದಿನದ ವರದಿ ರವಾನಿಸಿ (Dispatch 4 Reports)"}</span>
+                <span>{isDispatchingReports ? "ರವಾನಿಸಲಾಗುತ್ತಿದೆ..." : "4 ದಿನದ ವರದಿ ರವಾನಿಸಿ"}</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveTab("mindmap")}
-                className="px-3.5 py-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-black rounded-xl flex items-center gap-1.5 transition-all shadow-sm"
+                className="px-3 py-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-[11px] sm:text-xs font-black rounded-xl flex items-center gap-1.5 transition-all shadow-sm active:scale-95"
               >
                 <span>🗺️</span>
-                <span>ಸಿಸ್ಟಮ್ ಮೈಂಡ್‌ಮ್ಯಾಪ್ (Visual Mind Map)</span>
+                <span>ಸಿಸ್ಟಮ್ ಮೈಂಡ್‌ಮ್ಯಾಪ್</span>
               </button>
             </div>
           </div>
 
           {/* Top Live KPI Counters */}
-          <div className="bg-[#FEFCF4] border-2 border-amber-400/80 rounded-2xl p-4 flex items-center gap-5 shadow-md">
-            <div className="text-right">
-              <div className="text-[10px] text-amber-800 uppercase font-black tracking-wider">Circulating Coins</div>
-              <div className="text-xl font-mono font-black text-amber-950">
+          <div className="bg-[#FEFCF4] border-2 border-amber-400/80 rounded-2xl p-3.5 sm:p-4 grid grid-cols-2 gap-3 sm:gap-5 shadow-md shrink-0">
+            <div className="text-left sm:text-right border-r border-amber-300 pr-3 sm:pr-5">
+              <div className="text-[9px] sm:text-[10px] text-amber-800 uppercase font-black tracking-wider">Circulating Coins</div>
+              <div className="text-lg sm:text-xl font-mono font-black text-amber-950">
                 {totalCoinsInCirculation.toLocaleString()} 🪙
               </div>
-              <div className="text-[10px] text-amber-700 font-bold">≈ ₹{Math.round(totalCoinsInCirculation / 10).toLocaleString()} INR</div>
+              <div className="text-[9px] sm:text-[10px] text-amber-700 font-bold">≈ ₹{Math.round(totalCoinsInCirculation / 10).toLocaleString()} INR</div>
             </div>
-            <div className="h-10 w-0.5 bg-amber-300" />
-            <div>
-              <div className="text-[10px] text-emerald-800 uppercase font-black tracking-wider">Total Recharged</div>
-              <div className="text-xl font-mono font-black text-emerald-700">
+            <div className="text-left">
+              <div className="text-[9px] sm:text-[10px] text-emerald-800 uppercase font-black tracking-wider">Total Recharged</div>
+              <div className="text-lg sm:text-xl font-mono font-black text-emerald-700">
                 ₹{totalRechargedInr.toLocaleString()}
               </div>
-              <div className="text-[10px] text-emerald-800 font-bold">{pendingAdminTransactions.length} Pending Approvals</div>
+              <div className="text-[9px] sm:text-[10px] text-emerald-800 font-bold">{pendingAdminTransactions.length} Approvals Pending</div>
             </div>
           </div>
         </div>
@@ -734,7 +811,7 @@ export const SuperAdminDashboard: React.FC = () => {
       {/* Feedback Banner */}
       {feedback && (
         <div
-          className={`p-4 rounded-2xl text-xs font-bold flex items-center justify-between border-2 shadow-sm ${
+          className={`p-3.5 sm:p-4 rounded-2xl text-xs font-bold flex items-center justify-between border-2 shadow-sm ${
             feedback.type === "success"
               ? "bg-emerald-50 border-emerald-400 text-emerald-950"
               : "bg-red-50 border-red-400 text-red-950"
@@ -754,7 +831,7 @@ export const SuperAdminDashboard: React.FC = () => {
       )}
 
       {/* 2. VISUAL TELEMETRY METERS & GAUGES GRID */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-3.5">
         <RadialGauge
           value={circulationPct}
           title="ನಾಣ್ಯ ಚಲಾವಣೆ (Circulation)"
@@ -781,8 +858,8 @@ export const SuperAdminDashboard: React.FC = () => {
           subtitle="Gemini 2.5 Flash Lite"
           displayValue="99.9%"
           color="blue"
-          icon="🤖"
-          badgeText="0 Quota Loss"
+          icon="⚡"
+          badgeText="Optimal"
         />
 
         <RadialGauge
@@ -796,84 +873,91 @@ export const SuperAdminDashboard: React.FC = () => {
         />
       </div>
 
-      {/* 3. 5-TAB NAVIGATION BAR (Background matching #FFFDF7 & Gold Accents) */}
-      <div className="flex border-b-2 border-amber-300 gap-2 overflow-x-auto pb-2 scrollbar-thin">
-        <button
-          onClick={() => setActiveTab("wallets")}
-          className={`py-3 px-4 font-black text-xs rounded-2xl transition-all flex items-center gap-2 whitespace-nowrap border-2 ${
-            activeTab === "wallets"
-              ? "bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-slate-950 border-amber-400 shadow-md scale-[1.02]"
-              : "bg-[#FFFDF7] text-amber-900 border-amber-200 hover:border-amber-400"
-          }`}
-        >
-          <span>🪙</span>
-          <span>ಪುರೋಹಿತರು & ವಾಲೆಟ್ ({allPriestWallets.length})</span>
-          {pendingAdminTransactions.length > 0 && (
-            <span className="bg-red-500 text-white px-2 py-0.5 rounded-full text-[10px] font-black animate-pulse">
-              {pendingAdminTransactions.length}
-            </span>
-          )}
-        </button>
+      {/* 3. LUXURY 5-TAB CONTROLLER NAVIGATION */}
+      <div className="overflow-x-auto pb-1">
+        <div className="flex items-center gap-1.5 sm:gap-2 p-1.5 bg-[#FFFDF7] border-2 border-amber-300/80 rounded-2xl shadow-sm min-w-max">
+          <button
+            type="button"
+            onClick={() => setActiveTab("wallets")}
+            className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
+              activeTab === "wallets"
+                ? "bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 text-slate-950 shadow-md scale-100"
+                : "text-amber-950 hover:bg-amber-100"
+            }`}
+          >
+            <span>🪙</span>
+            <span>ಪುರೋಹಿತರು & ವಾಲೆಟ್ ({allPriestWallets.length})</span>
+            {pendingAdminTransactions.length > 0 && (
+              <span className="bg-red-500 text-white px-1.5 py-0.5 rounded-full text-[9px] font-black animate-pulse">
+                {pendingAdminTransactions.length}
+              </span>
+            )}
+          </button>
 
-        <button
-          onClick={() => setActiveTab("kundlis")}
-          className={`py-3 px-4 font-black text-xs rounded-2xl transition-all flex items-center gap-2 whitespace-nowrap border-2 ${
-            activeTab === "kundlis"
-              ? "bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-slate-950 border-amber-400 shadow-md scale-[1.02]"
-              : "bg-[#FFFDF7] text-amber-900 border-amber-200 hover:border-amber-400"
-          }`}
-        >
-          <span>📜</span>
-          <span>ಜಾತಕ ಡೇಟಾಬೇಸ್ ವಾಲ್ಟ್ ({kundlis.length})</span>
-        </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("kundlis")}
+            className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
+              activeTab === "kundlis"
+                ? "bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 text-slate-950 shadow-md scale-100"
+                : "text-amber-950 hover:bg-amber-100"
+            }`}
+          >
+            <span>📜</span>
+            <span>ಭಕ್ತರ ಜಾತಕ ಭಂಡಾರ ({kundlis.length})</span>
+          </button>
 
-        <button
-          onClick={() => setActiveTab("ashirvada")}
-          className={`py-3 px-4 font-black text-xs rounded-2xl transition-all flex items-center gap-2 whitespace-nowrap border-2 ${
-            activeTab === "ashirvada"
-              ? "bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-slate-950 border-amber-400 shadow-md scale-[1.02]"
-              : "bg-[#FFFDF7] text-amber-900 border-amber-200 hover:border-amber-400"
-          }`}
-        >
-          <span>🪔</span>
-          <span>ಆಶೀರ್ವಾದ QR ಕೌಂಟ್‌ಡೌನ್ ({ashirvadaPasses.length})</span>
-        </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("ashirvada")}
+            className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
+              activeTab === "ashirvada"
+                ? "bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 text-slate-950 shadow-md scale-100"
+                : "text-amber-950 hover:bg-amber-100"
+            }`}
+          >
+            <span>🪔</span>
+            <span>ಆಶೀರ್ವಾದ QR ಟ್ರ್ಯಾಕರ್ ({ashirvadaPasses.length})</span>
+          </button>
 
-        <button
-          onClick={() => setActiveTab("audit")}
-          className={`py-3 px-4 font-black text-xs rounded-2xl transition-all flex items-center gap-2 whitespace-nowrap border-2 ${
-            activeTab === "audit"
-              ? "bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-slate-950 border-amber-400 shadow-md scale-[1.02]"
-              : "bg-[#FFFDF7] text-amber-900 border-amber-200 hover:border-amber-400"
-          }`}
-        >
-          <span>🛡️</span>
-          <span>ಸಿಸ್ಟಮ್ ಆಡಿಟ್ ಲಾಗ್ಸ್ ({auditLogs.length})</span>
-        </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("audit")}
+            className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
+              activeTab === "audit"
+                ? "bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 text-slate-950 shadow-md scale-100"
+                : "text-amber-950 hover:bg-amber-100"
+            }`}
+          >
+            <span>🛡️</span>
+            <span>ಭದ್ರತಾ ಆಡಿಟ್ ಲಾಗ್ಸ್ ({auditLogs.length})</span>
+          </button>
 
-        <button
-          onClick={() => setActiveTab("mindmap")}
-          className={`py-3 px-4 font-black text-xs rounded-2xl transition-all flex items-center gap-2 whitespace-nowrap border-2 ${
-            activeTab === "mindmap"
-              ? "bg-gradient-to-r from-indigo-600 via-blue-600 to-purple-600 text-white border-indigo-400 shadow-md scale-[1.02]"
-              : "bg-[#FFFDF7] text-indigo-900 border-indigo-200 hover:border-indigo-400"
-          }`}
-        >
-          <span>🗺️</span>
-          <span>ಸಿಸ್ಟಮ್ ಮೈಂಡ್‌ಮ್ಯಾಪ್ (Mind Map)</span>
-        </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("mindmap")}
+            className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
+              activeTab === "mindmap"
+                ? "bg-gradient-to-r from-indigo-600 via-purple-600 to-amber-500 text-white shadow-md scale-100"
+                : "text-indigo-950 hover:bg-indigo-50"
+            }`}
+          >
+            <span>🗺️</span>
+            <span>ಸಿಸ್ಟಮ್ ಮೈಂಡ್‌ಮ್ಯಾಪ್ (Visual Mind Map)</span>
+          </button>
+        </div>
       </div>
 
-      {/* 4. TAB 1: Priests & Wallet Ledger */}
+      {/* 4. TAB CONTENT 1: OVERVIEW & PRIEST NETWORK LEDGER */}
       {activeTab === "wallets" && (
         <div className="space-y-6">
-          {/* New Priest Registration Studio & Link Generator */}
-          <div className="bg-[#FFFDF7] border-2 border-amber-400/90 rounded-3xl p-6 shadow-md space-y-4">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-amber-200 pb-3">
+          {/* Quick Registration Studio */}
+          <div className="bg-[#FFFDF7] border-2 border-amber-400/80 rounded-3xl p-4 sm:p-6 shadow-md">
+            <div className="flex items-center justify-between border-b border-amber-200 pb-3 mb-4">
               <div>
-                <h2 className="text-base font-black text-amber-950 flex items-center gap-2">
+                <h2 className="text-sm sm:text-base font-black text-amber-950 flex items-center gap-2">
                   <span>➕</span>
-                  <span>ಹೊಸ ಪುರೋಹಿತರನ್ನು ನೋಂದಾಯಿಸಿ & ಪ್ರತ್ಯೇಕ ಲಿಂಕ್ ರಚಿಸಿ (Priest Studio & Link Generator)</span>
+                  <span>ಹೊಸ ಪುರೋಹಿತರನ್ನು ನೋಂದಾಯಿಸಿ & ಪ್ರತ್ಯೇಕ ಲಿಂಕ್ ರಚಿಸಿ (Priest Studio)</span>
                 </h2>
                 <p className="text-xs text-amber-800 font-semibold mt-0.5">
                   Register a new priest, assign initial welcome coins (1000 🪙), and generate dedicated deep links for Panchanga & Sankhya Shastra.
@@ -950,6 +1034,80 @@ export const SuperAdminDashboard: React.FC = () => {
                   <span>{isCreatingPriest ? "ರಚಿಸಲಾಗುತ್ತಿದೆ..." : "ನೋಂದಾಯಿಸಿ & ಲಿಂಕ್ ಪಡೆಯಿರಿ"}</span>
                 </button>
               </div>
+
+              {/* Multi-Select Modules Selector */}
+              <div className="sm:col-span-2 lg:col-span-5 bg-[#FEFCF4] border-2 border-amber-300 rounded-2xl p-3.5 space-y-2 mt-2">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-200 pb-2">
+                  <label className="text-xs font-black text-amber-950 flex items-center gap-1.5">
+                    <span>🛡️</span>
+                    <span>ಪುರೋಹಿತರಿಗೆ ಅನುಮತಿಸಬೇಕಾದ ಮಾಡ್ಯೂಲ್‌ಗಳು (Select Modules to Enable - Multi-select):</span>
+                  </label>
+                  <div className="flex items-center gap-2 text-[10px]">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedModulesForNewPriest(["panchanga", "sankhyashastra", "diksuchi", "purva_janma"])}
+                      className="text-amber-900 font-bold hover:underline"
+                    >
+                      ಎಲ್ಲವನ್ನೂ ಆಯ್ಕೆಮಾಡಿ (Select All)
+                    </button>
+                    <span>•</span>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedModulesForNewPriest(["panchanga"])}
+                      className="text-amber-900 font-bold hover:underline"
+                    >
+                      ಪಂಚಾಂಗ ಮಾತ್ರ
+                    </button>
+                    <span>•</span>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedModulesForNewPriest(["sankhyashastra"])}
+                      className="text-purple-900 font-bold hover:underline"
+                    >
+                      ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಮಾತ್ರ
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+                  {AVAILABLE_MODULES.map((mod) => {
+                    const isChecked = selectedModulesForNewPriest.includes(mod.key);
+                    return (
+                      <label
+                        key={mod.key}
+                        className={`flex items-start gap-2.5 p-2.5 rounded-xl border-2 cursor-pointer transition-all ${
+                          isChecked
+                            ? "bg-[#FFFDF7] border-amber-500 shadow-sm scale-[1.01]"
+                            : "bg-white/60 border-amber-200 opacity-60 hover:opacity-100"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedModulesForNewPriest((prev) => [...prev, mod.key]);
+                            } else {
+                              setSelectedModulesForNewPriest((prev) => prev.filter((k) => k !== mod.key));
+                            }
+                          }}
+                          className="mt-0.5 h-4 w-4 rounded text-amber-600 focus:ring-amber-500 border-amber-300"
+                        />
+                        <div className="text-xs">
+                          <div className="font-black text-amber-950 flex items-center gap-1">
+                            <span>{mod.icon}</span>
+                            <span>{mod.kannadaLabel}</span>
+                          </div>
+                          <div className="text-[10px] text-amber-800 font-semibold">{mod.label}</div>
+                          <div className="text-[9px] text-emerald-800 font-black mt-0.5">
+                            {mod.costPerQuestionCoins > 0 ? `🪙 ${mod.costPerQuestionCoins} (₹${mod.costPerQuestionInr})` : "ಉಚಿತ (Free)"}
+                          </div>
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
             </form>
 
             {/* Generated Links Result Card */}
@@ -972,65 +1130,48 @@ export const SuperAdminDashboard: React.FC = () => {
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {/* Panchanga Link */}
-                  <div className="p-3 bg-[#FFFDF7] border-2 border-amber-300 rounded-xl space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-amber-950">🔮 ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಲಿಂಕ್</span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          navigator.clipboard.writeText(createdPriestResult.panchangaUrl);
-                          setFeedback({ type: "success", text: "ಪಂಚಾಂಗ ಲಿಂಕ್ ನಕಲಿಸಲಾಗಿದೆ (Panchanga link copied)!" });
-                        }}
-                        className="px-2.5 py-1 bg-amber-500 text-slate-950 font-black text-[10px] rounded-lg hover:bg-amber-400 shadow-sm"
-                      >
-                        📋 Copy Link
-                      </button>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+                  {createdPriestResult.generatedLinks.map((link) => (
+                    <div key={link.key} className="p-3 bg-[#FFFDF7] border-2 border-amber-300 rounded-xl space-y-1.5 flex flex-col justify-between">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-amber-950 flex items-center gap-1">
+                          <span>{link.icon}</span>
+                          <span>{link.label}</span>
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(link.url);
+                            setFeedback({ type: "success", text: `${link.label} ಲಿಂಕ್ ನಕಲಿಸಲಾಗಿದೆ (Copied)!` });
+                          }}
+                          className="px-2 py-0.5 bg-amber-500 text-slate-950 font-black text-[10px] rounded hover:bg-amber-400 shadow-sm"
+                        >
+                          📋 Copy
+                        </button>
+                      </div>
+                      <input
+                        type="text"
+                        readOnly
+                        value={link.url}
+                        className="w-full px-2 py-1 bg-white border border-amber-200 rounded text-[10px] text-slate-700 font-mono select-all"
+                      />
                     </div>
-                    <input
-                      type="text"
-                      readOnly
-                      value={createdPriestResult.panchangaUrl}
-                      className="w-full px-2 py-1 bg-white border border-amber-200 rounded text-[10px] text-slate-700 font-mono select-all"
-                    />
-                  </div>
-
-                  {/* Sankhya Shastra Link */}
-                  <div className="p-3 bg-[#FFFDF7] border-2 border-purple-300 rounded-xl space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-purple-950">🔢 ಬಗ್ಗೋಣ ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಲಿಂಕ್</span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          navigator.clipboard.writeText(createdPriestResult.sankhyaUrl);
-                          setFeedback({ type: "success", text: "ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಲಿಂಕ್ ನಕಲಿಸಲಾಗಿದೆ (Sankhya Shastra link copied)!" });
-                        }}
-                        className="px-2.5 py-1 bg-purple-600 text-white font-black text-[10px] rounded-lg hover:bg-purple-500 shadow-sm"
-                      >
-                        📋 Copy Link
-                      </button>
-                    </div>
-                    <input
-                      type="text"
-                      readOnly
-                      value={createdPriestResult.sankhyaUrl}
-                      className="w-full px-2 py-1 bg-white border border-purple-200 rounded text-[10px] text-slate-700 font-mono select-all"
-                    />
-                  </div>
+                  ))}
                 </div>
 
                 {/* WhatsApp Share Button */}
                 <button
                   type="button"
                   onClick={() => {
+                    const linksText = createdPriestResult.generatedLinks
+                      .map((l, i) => `${i + 1}. ${l.icon} ${l.label}:\n${l.url}`)
+                      .join("\n\n");
                     const message = encodeURIComponent(
                       `ನಮಸ್ಕಾರ ${createdPriestResult.name} ಅವರೇ,\n\n` +
-                      `ನಿಮಗೆ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಮತ್ತು ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ತಂತ್ರಾಂಶದ ವಿಶೇಷ ಆಹ್ವಾನ ಕಳುಹಿಸಲಾಗಿದೆ.\n\n` +
+                      `ನಿಮಗೆ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಮತ್ತು ಜ್ಯೋತಿಷ್ಯ ತಂತ್ರಾಂಶದ ವಿಶೇಷ ಆಹ್ವಾನ ಕಳುಹಿಸಲಾಗಿದೆ.\n\n` +
                       `👤 ಯೂಸರ್‌ನೇಮ್: ${createdPriestResult.username}\n` +
                       `🔑 ಪಾಸ್‌ವರ್ಡ್: ${createdPriestResult.password}\n\n` +
-                      `🔮 ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಪೋರ್ಟಲ್:\n${createdPriestResult.panchangaUrl}\n\n` +
-                      `🔢 ಬಗ್ಗೋಣ ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಪೋರ್ಟಲ್:\n${createdPriestResult.sankhyaUrl}\n\n` +
+                      `ನಿಮ್ಮ ಸಕ್ರಿಯ ಪೋರ್ಟಲ್ ಲಿಂಕ್‌ಗಳು:\n\n${linksText}\n\n` +
                       `॥ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ ॥`
                     );
                     window.open(`https://api.whatsapp.com/send?text=${message}`, "_blank");
@@ -1099,7 +1240,7 @@ export const SuperAdminDashboard: React.FC = () => {
                   <span>ಪುರೋಹಿತರ ವಾಲೆಟ್ ಮತ್ತು ಬ್ಯಾಲೆನ್ಸ್ ವಿವರ (Priest Network Ledger)</span>
                 </h2>
                 <p className="text-xs text-amber-800 font-semibold mt-0.5">
-                  Click "⚡ ನಾಣ್ಯ ಹೊಂದಾಣಿಕೆ" to directly credit or deduct coins for any priest.
+                  Click "⚡ ನಾಣ್ಯ ಹೊಂದಾಣಿಕೆ" to directly credit or deduct coins, or "🛡️ ಮಾಡ್ಯೂಲ್‌ಗಳು" to manage permissions.
                 </p>
               </div>
             </div>
@@ -1116,6 +1257,7 @@ export const SuperAdminDashboard: React.FC = () => {
                       <th className="py-3 px-4">ಪುರೋಹಿತರ ಹೆಸರು</th>
                       <th className="py-3 px-4">User ID</th>
                       <th className="py-3 px-4">ಸಕ್ರಿಯ ಬ್ಯಾಲೆನ್ಸ್</th>
+                      <th className="py-3 px-4">ಅನುಮತಿಸಿದ ಮಾಡ್ಯೂಲ್‌ಗಳು</th>
                       <th className="py-3 px-4">ಒಟ್ಟು ರೀಚಾರ್ಜ್</th>
                       <th className="py-3 px-4">ಬಳಸಿದ ನಾಣ್ಯಗಳು</th>
                       <th className="py-3 px-4 text-right">ತ್ವರಿತ ಕ್ರಿಯೆಗಳು</th>
@@ -1124,6 +1266,10 @@ export const SuperAdminDashboard: React.FC = () => {
                   <tbody className="divide-y divide-amber-100 font-semibold">
                     {allPriestWallets.map((priest) => {
                       const isLow = (priest.coinBalance || 0) < 500;
+                      const modules: AvailableModuleKey[] = (priest.allowedModules && priest.allowedModules.length > 0)
+                        ? (priest.allowedModules as AvailableModuleKey[])
+                        : ["panchanga", "sankhyashastra", "diksuchi", "purva_janma"];
+
                       return (
                         <tr key={priest.id} className="hover:bg-amber-50/60 transition-colors">
                           <td className="py-3.5 px-4 font-black text-amber-950 flex items-center gap-2">
@@ -1145,6 +1291,22 @@ export const SuperAdminDashboard: React.FC = () => {
                               </span>
                             </div>
                           </td>
+                          <td className="py-3.5 px-4">
+                            <div className="flex flex-wrap gap-1 max-w-xs">
+                              {modules.map((mKey) => {
+                                const cfg = AVAILABLE_MODULES.find((m) => m.key === mKey);
+                                return (
+                                  <span
+                                    key={mKey}
+                                    className="text-[9px] font-black px-2 py-0.5 rounded-md bg-amber-100/80 text-amber-950 border border-amber-300 flex items-center gap-0.5 shadow-sm"
+                                  >
+                                    <span>{cfg?.icon || "✨"}</span>
+                                    <span>{cfg?.kannadaLabel?.split(" ")[0] || mKey}</span>
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          </td>
                           <td className="py-3.5 px-4 text-emerald-700 font-bold">
                             ₹{(priest.totalRechargedInr || 0).toLocaleString()}
                           </td>
@@ -1152,38 +1314,14 @@ export const SuperAdminDashboard: React.FC = () => {
                             {(priest.totalCoinsSpent || 0).toLocaleString()}
                           </td>
                           <td className="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
-                            {/* Panchanga Link */}
+                            {/* Manage Modules Button */}
                             <button
                               type="button"
-                              onClick={() => {
-                                const origin = typeof window !== "undefined" ? window.location.origin : "https://baggona-panchanga.firebaseapp.com";
-                                const url = `${origin}/?portal=panchanga&user=${encodeURIComponent(priest.userId)}&name=${encodeURIComponent(priest.priestName)}&firstTime=true`;
-                                if (navigator.clipboard) {
-                                  void navigator.clipboard.writeText(url);
-                                  setFeedback({ type: "success", text: `✓ Copied Baggona Panchanga Portal link for ${priest.priestName}!` });
-                                }
-                              }}
-                              className="py-1.5 px-2 bg-[#FFFDF7] hover:bg-amber-100 text-amber-950 border border-amber-300 rounded-lg text-xs font-bold transition-all shadow-sm"
-                              title="Copy Panchanga Portal Link"
+                              onClick={() => handleOpenModuleEditor(priest)}
+                              className="py-1.5 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-950 border border-indigo-300 rounded-lg text-xs font-bold transition-all shadow-sm"
+                              title="ಮಾಡ್ಯೂಲ್ ಪ್ರವೇಶಾವಕಾಶ ನಿರ್ವಹಿಸಿ"
                             >
-                              🔮 ಪಂಚಾಂಗ Link
-                            </button>
-
-                            {/* Sankhya Shastra Link */}
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const origin = typeof window !== "undefined" ? window.location.origin : "https://baggona-panchanga.firebaseapp.com";
-                                const url = `${origin}/?portal=sankhyashastra&user=${encodeURIComponent(priest.userId)}&name=${encodeURIComponent(priest.priestName)}&firstTime=true`;
-                                if (navigator.clipboard) {
-                                  void navigator.clipboard.writeText(url);
-                                  setFeedback({ type: "success", text: `✓ Copied Baggona Sankhya Shastra Portal link for ${priest.priestName}!` });
-                                }
-                              }}
-                              className="py-1.5 px-2 bg-purple-50 hover:bg-purple-100 text-purple-950 border border-purple-300 rounded-lg text-xs font-bold transition-all shadow-sm"
-                              title="Copy Sankhya Shastra Portal Link"
-                            >
-                              🔢 ಸಂಖ್ಯಾಶಾಸ್ತ್ರ Link
+                              🛡️ ಮಾಡ್ಯೂಲ್‌ಗಳು
                             </button>
 
                             {/* WhatsApp Invite */}
@@ -1191,12 +1329,18 @@ export const SuperAdminDashboard: React.FC = () => {
                               type="button"
                               onClick={() => {
                                 const origin = typeof window !== "undefined" ? window.location.origin : "https://baggona-panchanga.firebaseapp.com";
-                                const panchangUrl = `${origin}/?portal=panchanga&user=${encodeURIComponent(priest.userId)}&name=${encodeURIComponent(priest.priestName)}&firstTime=true`;
-                                const sankhyaUrl = `${origin}/?portal=sankhyashastra&user=${encodeURIComponent(priest.userId)}&name=${encodeURIComponent(priest.priestName)}&firstTime=true`;
-                                const msg = `ನಮಸ್ಕಾರ ${priest.priestName} ಅವರೇ,\n\n೧. ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಪುರೋಹಿತ ಕೇಂದ್ರ ಲಿಂಕ್:\n${panchangUrl}\n\n೨. ಬಗ್ಗೋಣ ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಕೇಂದ್ರ ಲಿಂಕ್:\n${sankhyaUrl}\n\nದಯವಿಟ್ಟು ಲಿಂಕ್ ತೆರೆದು ನಿಮ್ಮ ರಹಸ್ಯ ಪಾಸ್‌ವರ್ಡ್ ಸೆಟ್ ಮಾಡಿಕೊಳ್ಳಿ.\n॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ॥`;
+                                const linksMsg = modules
+                                  .map((mKey, idx) => {
+                                    const cfg = AVAILABLE_MODULES.find((m) => m.key === mKey);
+                                    const url = `${origin}/?portal=${cfg?.portalParam || mKey}&user=${encodeURIComponent(priest.userId)}&name=${encodeURIComponent(priest.priestName)}&firstTime=true`;
+                                    return `${idx + 1}. ${cfg?.icon} ${cfg?.label}:\n${url}`;
+                                  })
+                                  .join("\n\n");
+
+                                const msg = `ನಮಸ್ಕಾರ ${priest.priestName} ಅವರೇ,\n\nನಿಮ್ಮ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಪೋರ್ಟಲ್ ಲಿಂಕ್‌ಗಳು:\n\n${linksMsg}\n\nದಯವಿಟ್ಟು ಲಿಂಕ್ ತೆರೆದು ನಿಮ್ಮ ರಹಸ್ಯ ಪಾಸ್‌ವರ್ಡ್ ಸೆಟ್ ಮಾಡಿಕೊಳ್ಳಿ.\n॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ॥`;
                                 window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, "_blank");
                               }}
-                              className="py-1.5 px-2.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-950 border border-emerald-400 rounded-lg text-xs font-bold transition-all shadow-sm"
+                              className="py-1.5 px-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-950 border border-emerald-400 rounded-lg text-xs font-bold transition-all shadow-sm"
                               title="Share on WhatsApp"
                             >
                               📲 WhatsApp
@@ -1822,7 +1966,97 @@ export const SuperAdminDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* 11. ADMIN PASSWORD CHANGE MODAL */}
+      {/* 11. PRIEST MODULE PERMISSION EDITOR MODAL */}
+      {editingPriestModules && (
+        <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-[#FFFDF7] border-2 border-amber-400 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-amber-200 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🛡️</span>
+                <div>
+                  <h3 className="font-black text-amber-950 text-base">ಮಾಡ್ಯೂಲ್ ಪ್ರವೇಶಾವಕಾಶ ನಿರ್ವಹಣೆ</h3>
+                  <p className="text-xs text-amber-800 font-semibold">
+                    {editingPriestModules.priestName} ({editingPriestModules.userId})
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingPriestModules(null)}
+                className="text-slate-500 hover:text-slate-900 text-sm font-bold p-1 rounded-full hover:bg-amber-100 transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-700 font-semibold leading-relaxed">
+              ಈ ಪುರೋಹಿತರಿಗೆ ಯಾವೆಲ್ಲಾ ಮಾಡ್ಯೂಲ್‌ಗಳ ಪ್ರವೇಶಾವಕಾಶ ನೀಡಬೇಕೆಂದು ಆಯ್ಕೆಮಾಡಿ. ಇದನ್ನು ಡೇಟಾಬೇಸ್‌ನಲ್ಲಿ ತಕ್ಷಣವೇ ನವೀಕರಿಸಲಾಗುತ್ತದೆ:
+            </p>
+
+            <div className="space-y-2.5">
+              {AVAILABLE_MODULES.map((mod) => {
+                const isChecked = activeModuleSelection.includes(mod.key);
+                return (
+                  <label
+                    key={mod.key}
+                    className={`flex items-start gap-3 p-3 rounded-2xl border-2 cursor-pointer transition-all ${
+                      isChecked
+                        ? "bg-[#FEFCF4] border-amber-500 shadow-sm"
+                        : "bg-white/60 border-amber-200 opacity-60 hover:opacity-100"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isChecked}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setActiveModuleSelection((prev) => [...prev, mod.key]);
+                        } else {
+                          setActiveModuleSelection((prev) => prev.filter((k) => k !== mod.key));
+                        }
+                      }}
+                      className="mt-1 h-4 w-4 rounded text-amber-600 focus:ring-amber-500 border-amber-300"
+                    />
+                    <div className="flex-1 text-xs">
+                      <div className="font-black text-amber-950 flex items-center justify-between">
+                        <span className="flex items-center gap-1.5">
+                          <span>{mod.icon}</span>
+                          <span>{mod.kannadaLabel}</span>
+                        </span>
+                        <span className="text-[10px] font-black text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-300">
+                          {mod.costPerQuestionCoins > 0 ? `🪙 ${mod.costPerQuestionCoins} (₹${mod.costPerQuestionInr})` : "ಉಚಿತ"}
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-amber-900 font-bold mt-0.5">{mod.label}</div>
+                      <div className="text-[10px] text-slate-600 font-medium mt-0.5">{mod.kannadaDescription}</div>
+                    </div>
+                  </label>
+                );
+              })}
+            </div>
+
+            <div className="flex gap-2.5 pt-2 border-t border-amber-200">
+              <button
+                type="button"
+                onClick={() => setEditingPriestModules(null)}
+                className="flex-1 py-2.5 bg-white border border-amber-300 hover:bg-amber-100 text-slate-700 font-bold text-xs rounded-xl transition-all shadow-sm"
+              >
+                ರದ್ದುಮಾಡಿ (Cancel)
+              </button>
+              <button
+                type="button"
+                disabled={isSavingModules || activeModuleSelection.length === 0}
+                onClick={handleSaveModulePermissions}
+                className="flex-1 py-2.5 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-md disabled:opacity-50 transition-all border border-amber-400"
+              >
+                {isSavingModules ? "ಉಳಿಸಲಾಗುತ್ತಿದೆ..." : "✓ ಪ್ರವೇಶಾವಕಾಶ ಉಳಿಸಿ"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 12. ADMIN PASSWORD CHANGE MODAL */}
       {showAdminPasswordModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-[#FFFDF7] border-2 border-amber-400 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">

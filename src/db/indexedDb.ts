@@ -93,6 +93,7 @@ export type UserRecord = {
   id?: string;
   username: string;
   passwordHash: string;
+  allowedModules?: string[];
   createdAt: string;
   lastLoginAt?: string;
   updatedAt?: string;

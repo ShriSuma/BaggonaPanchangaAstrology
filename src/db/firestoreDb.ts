@@ -25,6 +25,7 @@ export interface UserProfileDoc {
   name: string;
   role: UserRole;
   passwordHash?: string;
+  allowedModules?: string[]; // ["panchanga", "sankhyashastra", "diksuchi", "purva_janma"]
   phone?: string;
   email?: string;
   knownIps?: string[];
@@ -42,6 +43,7 @@ export interface PriestWalletDoc {
   totalRechargedInr: number;
   totalCoinsCredited: number;
   totalCoinsSpent: number;
+  allowedModules?: string[]; // ["panchanga", "sankhyashastra", "diksuchi", "purva_janma"]
   updatedAt: string;
 }
 
@@ -201,12 +203,21 @@ export async function syncUserProfile(profile: UserProfileDoc): Promise<void> {
 /**
  * Fetch or initialize a Priest Wallet in Firestore
  */
-export async function getOrCreatePriestWallet(userId: string, priestName: string = "Shreeram Pandit"): Promise<PriestWalletDoc> {
+export async function getOrCreatePriestWallet(
+  userId: string,
+  priestName: string = "Shreeram Pandit",
+  allowedModules?: string[]
+): Promise<PriestWalletDoc> {
   try {
     const walletRef = doc(firestore, WALLETS_COL, userId);
     const snap = await getDoc(walletRef);
     if (snap.exists()) {
-      return snap.data() as PriestWalletDoc;
+      const data = snap.data() as PriestWalletDoc;
+      if (allowedModules && allowedModules.length > 0 && !data.allowedModules) {
+        await updateDoc(walletRef, { allowedModules });
+        data.allowedModules = allowedModules;
+      }
+      return data;
     }
 
     const newWallet: PriestWalletDoc = {
@@ -217,6 +228,7 @@ export async function getOrCreatePriestWallet(userId: string, priestName: string
       totalRechargedInr: 0,
       totalCoinsCredited: 1000,
       totalCoinsSpent: 0,
+      allowedModules: allowedModules || ["panchanga", "sankhyashastra", "diksuchi", "purva_janma"],
       updatedAt: new Date().toISOString()
     };
 
@@ -232,8 +244,53 @@ export async function getOrCreatePriestWallet(userId: string, priestName: string
       totalRechargedInr: 0,
       totalCoinsCredited: 1000,
       totalCoinsSpent: 0,
+      allowedModules: allowedModules || ["panchanga", "sankhyashastra", "diksuchi", "purva_janma"],
       updatedAt: new Date().toISOString()
     };
+  }
+}
+
+/**
+ * Super Admin: Update allowed modules for a user in both users and wallets collections
+ */
+export async function updateUserAllowedModules(
+  userId: string,
+  allowedModules: string[]
+): Promise<boolean> {
+  try {
+    // 1. Update wallet doc
+    const walletRef = doc(firestore, WALLETS_COL, userId);
+    const walletSnap = await getDoc(walletRef);
+    if (walletSnap.exists()) {
+      await updateDoc(walletRef, {
+        allowedModules,
+        updatedAt: new Date().toISOString()
+      });
+    }
+
+    // 2. Update user profile doc
+    const userRef = doc(firestore, USERS_COL, userId);
+    const userSnap = await getDoc(userRef);
+    if (userSnap.exists()) {
+      await updateDoc(userRef, {
+        allowedModules,
+        updatedAt: new Date().toISOString()
+      });
+    } else {
+      // Query by username
+      const q = query(collection(firestore, USERS_COL), where("username", "==", userId));
+      const qSnap = await getDocs(q);
+      if (!qSnap.empty) {
+        await updateDoc(qSnap.docs[0].ref, {
+          allowedModules,
+          updatedAt: new Date().toISOString()
+        });
+      }
+    }
+    return true;
+  } catch (err) {
+    console.error("[Firestore] Failed to update user allowed modules:", err);
+    return false;
   }
 }
 

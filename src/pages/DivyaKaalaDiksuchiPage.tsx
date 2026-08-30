@@ -15,6 +15,10 @@ import type {
 } from "../features/kaaladiksuchi/kaaladiksuchiTypes";
 import { getPriestProfile } from "../features/seva/sevaPriestDirectory";
 import { useAppStore } from "../stores/appStore";
+import { useWalletStore } from "../features/wallet/walletStore";
+import { SERVICE_COIN_COSTS } from "../features/wallet/walletTypes";
+import { CoinDeductionModal } from "../components/wallet/CoinDeductionModal";
+import { FallingCoinsRefillModal } from "../components/wallet/FallingCoinsRefillModal";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
@@ -24,6 +28,18 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
   const [selectedLang, setSelectedLang] = useState<KaalaDiksuchiLang>(
     ["kn", "en", "hi", "te", "ta"].includes(globalLang) ? globalLang : "kn"
   );
+
+  const wallet = useWalletStore((s) => s.wallet);
+  const deductForService = useWalletStore((s) => s.deductForService);
+  const coinBalance = wallet?.coinBalance ?? 0;
+
+  const [pendingDeduction, setPendingDeduction] = useState<{
+    isOpen: boolean;
+    costCoins: number;
+    devoteeName: string;
+    onConfirm: () => Promise<void>;
+  } | null>(null);
+  const [isRefillOpen, setIsRefillOpen] = useState(false);
 
   const [personName, setPersonName] = useState<string>("");
   const [dob, setDob] = useState<string>("");
@@ -110,10 +126,7 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
     }
   };
 
-  const handleCalculate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!dob) return;
-
+  const executeCalculation = async () => {
     setIsProcessing(true);
     const input: KaalaDiksuchiInput = {
       personName: personName.trim() || "Devotee",
@@ -141,6 +154,26 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const handleCalculate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!dob) return;
+    const cost = SERVICE_COIN_COSTS.KAALA_DIKSUCHI_QUESTION?.coins || 100;
+
+    setPendingDeduction({
+      isOpen: true,
+      costCoins: cost,
+      devoteeName: personName.trim() || "Devotee",
+      onConfirm: async () => {
+        const deductRes = await deductForService(cost, "ದಿವ್ಯ ಕಾಲ ದಿಕ್ಸೂಚಿ ಭವಿಷ್ಯ ದರ್ಶನ", personName.trim() || "Devotee");
+        if (!deductRes.success) {
+          setIsRefillOpen(true);
+          return;
+        }
+        await executeCalculation();
+      }
+    });
   };
 
   const handleDownloadPdf = async () => {
@@ -241,6 +274,37 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
 
       {/* Input Form Wizard Card */}
       <Card className="p-5 sm:p-8 bg-white dark:bg-slate-900 border-2 border-amber-300 dark:border-amber-500/40 shadow-2xl rounded-3xl mb-8">
+        {/* Priest Coin Status Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3.5 bg-amber-500/10 border-2 border-amber-400/80 rounded-2xl mb-5">
+          <div className="flex items-center gap-2.5">
+            <span className="text-2xl">🧭</span>
+            <div>
+              <span className="text-xs font-black text-amber-950 dark:text-amber-200 block">
+                ದಿವ್ಯ ಕಾಲ ದಿಕ್ಸೂಚಿ ವಿಶ್ಲೇಷಣೆ (Divya Kaala Diksuchi)
+              </span>
+              <span className="text-[11px] text-amber-800 dark:text-amber-400 font-bold">
+                ದರ: ೧೦೦ ನಾಣ್ಯಗಳು (₹೧೦) ಪ್ರತಿ ಪ್ರಶ್ನೆಗೆ
+              </span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 self-end sm:self-auto">
+            <span className={`text-xs font-mono font-black px-3 py-1 rounded-xl border-2 ${
+              coinBalance < 100
+                ? "bg-red-100 text-red-900 border-red-400 animate-pulse"
+                : "bg-amber-100 text-amber-950 border-amber-400"
+            }`}>
+              {coinBalance < 100 ? `⚠️ ${coinBalance} 🪙 (ಕೊರತೆ)` : `${coinBalance} 🪙`}
+            </span>
+            <button
+              type="button"
+              onClick={() => setIsRefillOpen(true)}
+              className="px-3 py-1 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-sm border border-amber-400"
+            >
+              + ರೀಫಿಲ್
+            </button>
+          </div>
+        </div>
+
         <form onSubmit={handleCalculate} className="space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
             {/* Full Name */}
@@ -1127,6 +1191,31 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
             priest={getPriestProfile(selectedPriestId)}
           />
         </div>
+      )}
+
+      {/* Falling Coins Refill Modal with Dropping Animation */}
+      <FallingCoinsRefillModal
+        isOpen={isRefillOpen}
+        onClose={() => setIsRefillOpen(false)}
+        requiredCoins={100}
+      />
+
+      {/* Pre-Action Coin Deduction Confirmation Modal */}
+      {pendingDeduction && (
+        <CoinDeductionModal
+          isOpen={pendingDeduction.isOpen}
+          serviceTitle="ದಿವ್ಯ ಕಾಲ ದಿಕ್ಸೂಚಿ ಭವಿಷ್ಯ ದರ್ಶನ (Kaala Diksuchi Oracle)"
+          serviceTitleKannada="ದಿವ್ಯ ಕಾಲ ದಿಕ್ಸೂಚಿ"
+          costCoins={pendingDeduction.costCoins}
+          devoteeName={pendingDeduction.devoteeName}
+          description="ದಿನದ ಶುಭ ಕಾಲ, ದಿಶಾರಕ್ಷೆ ಮತ್ತು ಕರ್ಮ ದಿಕ್ಸೂಚಿ ವಿಶ್ಲೇಷಣೆ"
+          onClose={() => setPendingDeduction(null)}
+          onConfirm={pendingDeduction.onConfirm}
+          onOpenRefill={() => {
+            setPendingDeduction(null);
+            setIsRefillOpen(true);
+          }}
+        />
       )}
     </div>
   );

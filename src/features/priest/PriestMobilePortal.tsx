@@ -28,6 +28,7 @@ import type { KundliViewerSession } from "../../stores/kundliViewerStore";
 import { PdfTemplate, type PdfTranslations, type PremiumData } from "../../components/RamanBhavishya/PdfTemplate";
 import { GokarnaKundaliTemplate } from "../../components/template/GokarnaKundaliTemplate";
 import { DashaPdfTemplate } from "../../components/kundli/DashaPdfTemplate";
+import { FallingCoinsRefillModal } from "../../components/wallet/FallingCoinsRefillModal";
 import { exportPanchangaWithDashaPdf, exportElementAsPdf } from "../../core/ExportUtils";
 import { patrikaMetaForNakshatraIndex } from "../../core/nakshatraPatrikaMeta";
 import { generateMasterPrediction } from "../../core/MasterPredictionEngine";
@@ -1193,56 +1194,78 @@ export const PriestMobilePortal: React.FC = () => {
         </div>
       )}
 
-      {/* 1. Royal Brand Header Bar (Golden-White Theme) */}
-      <header className="sticky top-0 z-30 bg-[#FFFDF7]/95 backdrop-blur-md border-b-2 border-amber-400/80 px-3 sm:px-4 py-2.5 sm:py-3 shadow-md">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0 shrink">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-tr from-amber-600 via-amber-500 to-amber-300 flex items-center justify-center text-slate-950 text-lg sm:text-xl font-bold shadow-md shadow-amber-500/20 border border-amber-400 shrink-0">
+      {/* 1. Royal Brand Header Bar (Golden-White Dual-Tier Mobile-First Theme) */}
+      <header className="sticky top-0 z-30 bg-[#FFFDF7]/98 backdrop-blur-md border-b-2 border-amber-400/80 shadow-md">
+        {/* Top Brand & Actions Bar */}
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between gap-2">
+          {/* Left: Brand Icon + Title in Guaranteed Single Line */}
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-tr from-amber-600 via-amber-500 to-amber-300 flex items-center justify-center text-slate-950 text-base sm:text-xl font-bold shadow-md shadow-amber-500/20 border border-amber-400 shrink-0">
               🕉️
             </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-1.5">
-                <h1 className="text-sm sm:text-base md:text-lg font-black text-amber-900 tracking-tight leading-tight truncate">
-                  ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ॥
-                </h1>
-                <span className="px-1 py-0.2 bg-amber-200/80 border border-amber-400 rounded text-[9px] font-black text-amber-900 font-mono shrink-0">
-                  v1.0
-                </span>
-              </div>
-              <p className="text-[9px] sm:text-[10px] text-amber-700 font-bold uppercase tracking-wider truncate">
-                🙏 ನಮಸ್ಕಾರ {activePriestDisplayName} ಅವರೇ
-              </p>
+            <div className="flex items-center gap-1.5 whitespace-nowrap">
+              <h1 className="text-sm sm:text-base md:text-lg font-black text-amber-950 tracking-tight leading-none">
+                ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ॥
+              </h1>
+              <span className="hidden xs:inline-block px-1.5 py-0.5 bg-amber-200/90 border border-amber-400 rounded-md text-[9px] font-black text-amber-950 font-mono">
+                v1.0
+              </span>
             </div>
           </div>
 
+          {/* Right: Reset Action & Coin Balance Pill */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {/* Priest Reset Action Button (Anti-Reset Guard: State is only wiped on explicit Priest click) */}
             <button
               type="button"
               onClick={handleResetKundli}
-              className="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-xl sm:rounded-2xl bg-amber-100/90 hover:bg-amber-200 border-2 border-amber-400 text-amber-950 font-bold text-[11px] sm:text-xs shadow-sm transition-all active:scale-95 whitespace-nowrap"
+              className="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-xl bg-amber-100/90 hover:bg-amber-200 border border-amber-400 text-amber-950 font-bold text-[10px] sm:text-xs shadow-xs transition-all active:scale-95 whitespace-nowrap"
               title="ಹೊಸ ಜಾತಕ ನಮೂದಿಸಲು ರಿಸೆಟ್ ಮಾಡಿ"
             >
               <span>🔄</span>
-              <span className="hidden sm:inline">ಹೊಸ ಜಾತಕ / </span>
-              <span>ರಿಸೆಟ್</span>
+              <span className="hidden sm:inline">ಹೊಸ ಜಾತಕ</span>
+              <span className="sm:hidden">ರಿಸೆಟ್</span>
             </button>
 
             {/* Quick Balance & Refill Pill */}
             <button
               type="button"
               onClick={() => setIsRechargeOpen(true)}
-              className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 rounded-xl sm:rounded-2xl bg-[#FFF9E6] border-2 border-amber-400 hover:bg-amber-100 transition-all text-right shadow-sm active:scale-95 shrink-0 whitespace-nowrap"
-              title="ನಾಣ್ಯಗಳನ್ನು ರೀಚಾರ್ಜ್ ಮಾಡಿ"
+              className={`flex items-center gap-1.5 px-2 sm:px-3 py-1 rounded-xl transition-all shadow-xs active:scale-95 whitespace-nowrap border-2 ${
+                coinBalance < 200
+                  ? "bg-red-50 border-red-500 text-red-950 animate-pulse ring-1 ring-red-400"
+                  : "bg-[#FFF9E6] border-amber-400 hover:bg-amber-100 text-amber-950"
+              }`}
+              title={coinBalance < 200 ? "⚠️ ನಾಣ್ಯಗಳ ಕೊರತೆ! ರೀಫಿಲ್ ಮಾಡಲು ಕ್ಲಿಕ್ ಮಾಡಿ" : "ನಾಣ್ಯಗಳನ್ನು ರೀಚಾರ್ಜ್ ಮಾಡಿ"}
             >
-              <span className="text-amber-600 text-xs sm:text-sm">🪙</span>
-              <div>
-                <div className="text-[11px] sm:text-xs font-mono font-black text-amber-950 leading-tight">
-                  {coinBalance.toLocaleString()}
+              <span className="text-xs sm:text-sm">{coinBalance < 200 ? "⚠️" : "🪙"}</span>
+              <div className="text-left">
+                <div className={`text-[11px] sm:text-xs font-mono font-black leading-tight ${coinBalance < 200 ? "text-red-700 font-bold" : "text-amber-950"}`}>
+                  {coinBalance.toLocaleString()} 🪙
                 </div>
-                <div className="text-[8px] sm:text-[9px] text-emerald-700 font-bold leading-none">+ ರೀಚಾರ್ಜ್</div>
+                <div className={`text-[8px] sm:text-[9px] font-extrabold leading-none ${coinBalance < 200 ? "text-red-600 animate-bounce" : "text-emerald-700"}`}>
+                  {coinBalance < 200 ? "ಕೊರತೆ (+ರೀಫಿಲ್)" : "+ ರೀಚಾರ್ಜ್"}
+                </div>
               </div>
             </button>
+          </div>
+        </div>
+
+        {/* Sub-Header: Dedicated Mobile-Friendly Priest Greeting & Status Bar */}
+        <div className="bg-gradient-to-r from-[#FFF5D6] via-[#FFF9E6] to-[#FFF5D6] border-t border-amber-300/80 px-3 sm:px-4 py-1.5 flex items-center justify-between text-xs">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className="text-sm shrink-0">🙏</span>
+            <span className="font-extrabold text-amber-950 truncate text-[11px] sm:text-xs">
+              ನಮಸ್ಕಾರ <strong className="text-amber-900 font-black">{activePriestDisplayName}</strong> ಅವರೇ
+            </span>
+            <span className="hidden sm:inline-block text-[10px] text-amber-800 font-semibold">• ಅಧಿಕೃತ ಜ್ಯೋತಿಷಿ</span>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0 text-[10px] font-bold text-amber-900">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+            <span className="hidden xs:inline text-emerald-800 font-black">ಲೈವ್</span>
+            <span className="bg-amber-200/80 px-1.5 py-0.5 rounded border border-amber-400 font-mono text-[9px]">
+              {activeTab === "kundli" ? "ಜನನ ಕುಂಡಲಿ" : activeTab === "questions" ? "ಪ್ರಶ್ನೋತ್ತರ" : "ವಾಲೆಟ್"}
+            </span>
           </div>
         </div>
       </header>
@@ -2045,162 +2068,12 @@ export const PriestMobilePortal: React.FC = () => {
         </div>
       )}
 
-      {/* 6. Coin Refill / UPI Top-Up Modal (Golden Cream Theme) */}
-      {isRechargeOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-md flex items-start sm:items-center justify-center p-3 sm:p-4">
-          <div className="relative w-full max-w-lg bg-[#FFFDF7] border-2 border-amber-400 rounded-3xl shadow-2xl p-4 sm:p-6 text-slate-900 space-y-4 my-auto">
-            <button
-              onClick={() => {
-                setIsRechargeOpen(false);
-                setRechargeFeedback(null);
-              }}
-              className="absolute top-4 right-4 text-slate-500 hover:text-amber-900 font-black text-lg p-1 rounded-lg hover:bg-amber-100 transition-colors"
-              aria-label="Close"
-            >
-              ✕
-            </button>
-
-            <div className="flex items-center gap-2.5 border-b border-amber-200 pb-2.5">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-600 to-amber-400 flex items-center justify-center text-slate-950 font-bold text-xl shadow-md">
-                🪙
-              </div>
-              <div>
-                <h3 className="font-black text-amber-950 text-sm sm:text-base">ನಾಣ್ಯಗಳ ರೀಚಾರ್ಜ್ (Refill Coins)</h3>
-                <p className="text-[10px] text-amber-800 font-semibold">Google Pay / PhonePe / Paytm / BHIM UPI</p>
-              </div>
-            </div>
-
-            {rechargeFeedback && (
-              <div
-                className={`p-3 rounded-2xl text-xs font-bold ${
-                  rechargeFeedback.type === "success"
-                    ? "bg-emerald-50 border border-emerald-400 text-emerald-900"
-                    : "bg-red-50 border border-red-400 text-red-900"
-                }`}
-              >
-                {rechargeFeedback.text}
-              </div>
-            )}
-
-            {/* Packages Grid */}
-            <div className="space-y-1.5 text-xs">
-              <label className="text-amber-950 font-bold block text-[11px]">೧. ಪ್ಯಾಕೇಜ್ ಆಯ್ಕೆಮಾಡಿ (Select Package):</label>
-              <div className="grid grid-cols-2 gap-2">
-                {RECHARGE_PACKAGES.map((pkg) => (
-                  <button
-                    key={pkg.key}
-                    type="button"
-                    onClick={() => setSelectedPackage(pkg)}
-                    className={`p-3 rounded-2xl border-2 text-left transition-all relative ${
-                      selectedPackage.key === pkg.key
-                        ? "bg-[#FFF5D6] border-amber-500 text-amber-950 shadow-md ring-1 ring-amber-400"
-                        : "bg-[#FEFCF4] border-amber-200 text-slate-700 hover:border-amber-300"
-                    }`}
-                  >
-                    {pkg.tag && (
-                      <span className="absolute -top-2 right-2 px-1.5 py-0.2 text-[8px] font-black uppercase rounded-full bg-gradient-to-r from-amber-600 to-amber-500 text-slate-950">
-                        {pkg.tag}
-                      </span>
-                    )}
-                    <div className="font-black text-base text-amber-950">₹{pkg.amountInr}</div>
-                    <div className="font-mono text-xs text-emerald-800 font-bold">
-                      {pkg.totalCoins.toLocaleString()} Coins
-                    </div>
-                    <div className="text-[9px] text-amber-800 font-medium mt-0.5">{pkg.kannadaName}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* 1-Tap Mobile UPI Intent Button */}
-            <div className="w-full">
-              <a
-                href={`upi://pay?pa=${encodeURIComponent(DEFAULT_PRIEST_UPI_ID)}&pn=${encodeURIComponent("Baggona Panchanga")}&am=${selectedPackage.amountInr.toFixed(2)}&cu=INR&tn=${encodeURIComponent(`COINS-${selectedPackage.key.toUpperCase()}-${wallet?.userId || currentUser || "PRIEST"}`)}`}
-                className="w-full py-3 px-4 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-slate-950 font-black rounded-2xl text-xs shadow-md transition-all flex items-center justify-center gap-2 border border-emerald-400 active:scale-98"
-              >
-                <span>📲 ನೇರವಾಗಿ UPI ಆ್ಯಪ್‌ನಲ್ಲಿ ಪಾವತಿಸಿ (Pay ₹{selectedPackage.amountInr})</span>
-              </a>
-            </div>
-
-            {/* Scannable Dynamic UPI QR Code */}
-            {rechargeQrUrl && (
-              <div className="flex flex-col items-center justify-center p-3.5 bg-white rounded-2xl border-2 border-amber-300 shadow-sm text-center">
-                <p className="text-[11px] font-bold text-amber-950 mb-1.5">
-                  ೨. ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ಪಾವತಿಸಿ (Scan QR to Pay ₹{selectedPackage.amountInr})
-                </p>
-                <img
-                  src={rechargeQrUrl}
-                  alt="UPI QR Code"
-                  className="w-36 h-36 border border-amber-200 rounded-xl p-1 bg-white shadow-sm"
-                />
-                <p className="text-[9px] text-slate-500 font-mono mt-1">
-                  Google Pay • PhonePe • Paytm • BHIM
-                </p>
-              </div>
-            )}
-
-            {/* Official Payment Destination */}
-            <div className="p-3 bg-[#FEFCF4] rounded-2xl border-2 border-amber-300 text-xs space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-slate-700 font-bold text-[11px]">UPI ID:</span>
-                <div className="flex items-center gap-1.5">
-                  <span className="font-mono font-bold text-emerald-800 text-xs">{DEFAULT_PRIEST_UPI_ID}</span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      navigator.clipboard?.writeText(DEFAULT_PRIEST_UPI_ID);
-                      setCopiedUpi(true);
-                      setTimeout(() => setCopiedUpi(false), 2000);
-                    }}
-                    className="px-2 py-0.5 bg-amber-100 hover:bg-amber-200 text-amber-950 text-[10px] font-bold rounded border border-amber-300 transition-all"
-                  >
-                    {copiedUpi ? "✓ Copied" : "📋 Copy"}
-                  </button>
-                </div>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-slate-700 font-bold text-[11px]">ಮೊಬೈಲ್ ಸಂಖ್ಯೆ:</span>
-                <span className="font-mono font-black text-amber-900 text-xs">{DEFAULT_PRIEST_MOBILE_NUMBER}</span>
-              </div>
-            </div>
-
-            {/* UTR Input Form */}
-            <form onSubmit={handleRechargeSubmit} className="space-y-3 text-xs">
-              <div>
-                <label className="block text-amber-950 font-bold mb-1">
-                  ೩. ೧೨ ಅಂಕಿಯ UPI UTR / Reference ಸಂಖ್ಯೆ ನಮೂದಿಸಿ:
-                </label>
-                <input
-                  type="text"
-                  value={upiUtrInput}
-                  onChange={(e) => setUpiUtrInput(e.target.value.replace(/[^0-9a-zA-Z]/g, ""))}
-                  placeholder="ಉದಾ: 423512345678"
-                  maxLength={18}
-                  required
-                  className="w-full px-3.5 py-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl font-mono text-slate-900 text-xs font-bold focus:outline-none focus:border-amber-500 shadow-inner"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-1">
-                <button
-                  type="button"
-                  onClick={() => setIsRechargeOpen(false)}
-                  className="px-4 py-2.5 bg-slate-200 text-slate-700 font-bold rounded-xl text-xs hover:bg-slate-300 transition-colors"
-                >
-                  ರದ್ದುಮಾಡಿ
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmittingRecharge || upiUtrInput.trim().length < 8}
-                  className="px-5 py-2.5 bg-gradient-to-r from-amber-600 to-amber-500 text-slate-950 font-black rounded-xl text-xs shadow-md disabled:opacity-50 transition-all flex items-center gap-1.5"
-                >
-                  {isSubmittingRecharge ? "ಸಲ್ಲಿಕೆಯಾಗುತ್ತಿದೆ..." : "ರೀಚಾರ್ಜ್ ದೃಢೀಕರಿಸಿ"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* 6. Coin Refill Modal with Dropping Coins Animation */}
+      <FallingCoinsRefillModal
+        isOpen={isRechargeOpen}
+        onClose={() => setIsRechargeOpen(false)}
+        requiredCoins={200}
+      />
 
       {/* 7. Password Setup Modal (First-Time Onboarding) */}
       {showPasswordSetup && (

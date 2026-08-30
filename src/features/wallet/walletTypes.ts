@@ -94,37 +94,37 @@ export const SERVICE_COIN_COSTS: Record<string, ServiceCost> = {
   SANKHYA_PRASHNA: {
     key: "SANKHYA_PRASHNA",
     name: "Sankhya Shastra Prashna Oracle",
-    coins: 25,
-    inrEquivalent: 2.5,
-    description: "Vedic number horary divination with Sthira/Chara/Ubhaya & Varna influence (25 Coins)"
+    coins: 200,
+    inrEquivalent: 20,
+    description: "Vedic number horary divination with Sthira/Chara/Ubhaya & Varna influence (200 Coins / ₹20)"
   },
   KAALA_DIKSUCHI_QUESTION: {
     key: "KAALA_DIKSUCHI_QUESTION",
     name: "Kaala Diksuchi Timing Oracle",
-    coins: 108,
-    inrEquivalent: 10.8,
-    description: "Kaala Diksuchi timing analysis & auspicious direction consultation (108 Coins)"
+    coins: 100,
+    inrEquivalent: 10,
+    description: "Kaala Diksuchi timing analysis & auspicious direction consultation (100 Coins / ₹10)"
   },
   PURVA_JANMA_QUESTION: {
     key: "PURVA_JANMA_QUESTION",
     name: "Purva Janma Karmic Reading",
-    coins: 108,
-    inrEquivalent: 10.8,
-    description: "Purva Janma past life karma and remedial reading (108 Coins)"
+    coins: 100,
+    inrEquivalent: 10,
+    description: "Purva Janma past life karma and remedial reading (100 Coins / ₹10)"
   },
   SANKHYA_NAME_SUGGESTION: {
     key: "SANKHYA_NAME_SUGGESTION",
     name: "Sankhya Shastra Lucky Name Suggestion",
-    coins: 500,
-    inrEquivalent: 50,
-    description: "Chaldean/Pythagorean vibration name correction & lucky syllable selection (500 Coins)"
+    coins: 200,
+    inrEquivalent: 20,
+    description: "Chaldean/Pythagorean vibration name correction & lucky syllable selection (200 Coins / ₹20)"
   },
   SANKHYA_MOBILE_VEHICLE: {
     key: "SANKHYA_MOBILE_VEHICLE",
     name: "Lucky Mobile & Vehicle Number Suggestion",
-    coins: 500,
-    inrEquivalent: 50,
-    description: "Lucky sum total calculation for phone numbers and vehicle registration plates (500 Coins)"
+    coins: 200,
+    inrEquivalent: 20,
+    description: "Lucky sum total calculation for phone numbers and vehicle registration plates (200 Coins / ₹20)"
   },
   AI_PRASHNA_QUESTION: {
     key: "AI_PRASHNA_QUESTION",
@@ -180,4 +180,70 @@ export const SERVICE_COIN_COSTS: Record<string, ServiceCost> = {
 export const DEFAULT_PRIEST_UPI_ID = "9108135387@ybl";
 export const DEFAULT_PRIEST_MOBILE_NUMBER = "9108135387";
 export const DEFAULT_PRIEST_NAME = "Shreeram Pandit";
+
+export type AvailableModuleKey = "panchanga" | "sankhyashastra" | "diksuchi" | "purva_janma";
+
+export interface AppModuleConfig {
+  key: AvailableModuleKey;
+  label: string;
+  kannadaLabel: string;
+  icon: string;
+  description: string;
+  kannadaDescription: string;
+  costPerQuestionCoins: number;
+  costPerQuestionInr: number;
+  portalParam: string;
+  pageKey: string;
+}
+
+export const AVAILABLE_MODULES: AppModuleConfig[] = [
+  {
+    key: "panchanga",
+    label: "Baggona Panchanga",
+    kannadaLabel: "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ & ಜಾತಕ",
+    icon: "🔮",
+    description: "Vedic Panchanga, Birth Kundli, Calendar & Dasha Bhukti",
+    kannadaDescription: "ವೈದಿಕ ಪಂಚಾಂಗ, ಜನ್ಮ ಜಾತಕ, ೯೦-ದಿನಗಳ ದಿನದರ್ಶನ ಹಾಗೂ ದಶಾ ಭುಕ್ತಿ",
+    costPerQuestionCoins: 0,
+    costPerQuestionInr: 0,
+    portalParam: "panchanga",
+    pageKey: "priestdashboard"
+  },
+  {
+    key: "sankhyashastra",
+    label: "Sankhya Shastra",
+    kannadaLabel: "ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಭವಿಷ್ಯ & ಪ್ರಶ್ನೆ",
+    icon: "🔢",
+    description: "Vedic Numerology, Horary Prashna, Name/Mobile Vibrations (₹20 = 200 Coins)",
+    kannadaDescription: "ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಪ್ರಶ್ನಾವಳಿ, ಅದೃಷ್ಟ ಸಂಖ್ಯೆ ಹಾಗೂ ನಾಮ ಸಂಖ್ಯಾ ತಿದ್ದುವಿಕೆ (₹೨೦ = ೨೦೦ ನಾಣ್ಯ)",
+    costPerQuestionCoins: 200,
+    costPerQuestionInr: 20,
+    portalParam: "sankhyashastra",
+    pageKey: "sankhyashastra"
+  },
+  {
+    key: "diksuchi",
+    label: "Divya Kaala Diksuchi",
+    kannadaLabel: "ದಿವ್ಯ ಕಾಲ ದಿಕ್ಸೂಚಿ",
+    icon: "🧭",
+    description: "Auspicious Timing, Cardinal Direction & Travel Oracle (₹10 = 100 Coins)",
+    kannadaDescription: "ಶುಭ ಕಾಲ ನಿರ್ಣಯ, ದಿಕ್ಕುಗಳ ಬಲ ಹಾಗೂ ಪ್ರಯಾಣ ಪ್ರಶ್ನಾವಳಿ (₹೧೦ = ೧೦೦ ನಾಣ್ಯ)",
+    costPerQuestionCoins: 100,
+    costPerQuestionInr: 10,
+    portalParam: "diksuchi",
+    pageKey: "kaaladiksuchi"
+  },
+  {
+    key: "purva_janma",
+    label: "Hindina Janmada Rahasya",
+    kannadaLabel: "ಹಿಂದಿನ ಜನ್ಮದ ರಹಸ್ಯ",
+    icon: "📜",
+    description: "Purva Janma Past Life Karma & Remedial Insights (₹10 = 100 Coins)",
+    kannadaDescription: "ಪೂರ್ವ ಜನ್ಮದ ಕರ್ಮ ಫಲ, ಗೂಢ ರಹಸ್ಯ ಹಾಗೂ ಶಮನ ಪರಿಹಾರ (₹೧೦ = ೧೦೦ ನಾಣ್ಯ)",
+    costPerQuestionCoins: 100,
+    costPerQuestionInr: 10,
+    portalParam: "purva_janma",
+    pageKey: "hindinajanma"
+  }
+];
 
