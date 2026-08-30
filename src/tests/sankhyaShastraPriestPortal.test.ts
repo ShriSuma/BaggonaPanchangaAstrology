@@ -53,10 +53,13 @@ describe("Sankhya Shastra Priest Portal & Engine Validation", () => {
     expect(result.devoteeName).toBe("ಗುರುಪ್ರಸಾದ್");
     expect(result.rulingPlanetKn).toBeDefined();
     expect(result.natureKn).toMatch(/(ಸ್ಥಿರ|ಚರ|ಉಭಯ)/);
-    expect(result.varnaKn).toMatch(/(ವರ್ಗ|ಅಧಿಕಾರಿಗಳು|ವ್ಯಾಪಾರಿಗಳು|ಶ್ರಮಿಕರು)/);
+    expect(result.varnaKn).toMatch(/(ಬ್ರಾಹ್ಮಣ|ಕ್ಷತ್ರಿಯ|ವೈಶ್ಯ|ಶೂದ್ರ)/);
+    expect(result.varnaDescriptionKn).toBeDefined();
+    expect(result.lostArticleOrPersonKn).toBeDefined();
+    expect(result.lostArticleOrPersonKn.length).toBeGreaterThan(10);
     expect(result.technicalParagraphs).toHaveLength(4);
     expect(result.technicalParagraphs[0].titleKn).toMatch(/(೧\.|ನಿರ್ಣಯ|ವಿಶ್ಲೇಷಣೆ)/);
-    expect(result.technicalParagraphs[1].titleKn).toMatch(/(೨\.|ತರಂಗ|ಮನಸ್ಥಿತಿ)/);
+    expect(result.technicalParagraphs[1].titleKn).toMatch(/(೨\.|ತರಂಗ|ಮನಸ್ಥಿತಿ|ವರ್ಗ)/);
     expect(result.technicalParagraphs[2].titleKn).toMatch(/(೩\.|ಪರಿಹಾರ|ಸಂವಹನ)/);
     expect(result.technicalParagraphs[3].titleKn).toMatch(/(೪\.|ದೈವಿಕ|ಕಾಲಾವಧಿ)/);
     expect(result.remedyListKn.length).toBeGreaterThan(0);

@@ -1,7 +1,14 @@
 import { askGemini } from "../../core/GeminiEngine";
 
 export type MotionNature = "ಸ್ಥಿರ (ಶಾಶ್ವತ ನಿರ್ಧಾರ / ಧೃಢ)" | "ಚರ (ಶೀಘ್ರ ಗತಿ / ತಕ್ಷಣದ ಬದಲಾವಣೆ)" | "ಉಭಯ (ಮಿಶ್ರಿತ ಫಲ / ದ್ವಂದ್ವ)";
-export type VarnaInfluence = "ಉನ್ನತ ಸ್ಥಾನ / ಆಡಳಿತ ವರ್ಗ" | "ವ್ಯಾಪಾರ / ವ್ಯವಹಾರ ವರ್ಗ" | "ಸಾಮಾನ್ಯ / ಜನಸಾಮಾನ್ಯ ವರ್ಗ";
+
+export type VargaVarna = 
+  | "ಬ್ರಾಹ್ಮಣ ವರ್ಗ"
+  | "ಕ್ಷತ್ರಿಯ ವರ್ಗ"
+  | "ವೈಶ್ಯ ವರ್ಗ"
+  | "ಶೂದ್ರ ವರ್ಗ";
+
+export type VarnaInfluence = VargaVarna;
 
 export interface SankhyaPrashnaResult {
   number: number;
@@ -10,7 +17,9 @@ export interface SankhyaPrashnaResult {
   gothra: string;
   rulingPlanetKn: string;
   natureKn: MotionNature;
-  varnaKn: VarnaInfluence;
+  varnaKn: VargaVarna;
+  varnaDescriptionKn: string;
+  lostArticleOrPersonKn: string;
   rulingDirectionKn: string;
   auspiciousTimeframeKn: string;
   verdictBadgeKn: string; // e.g. "🟢 ಶೀಘ್ರ ಯಶಸ್ಸು", "🟡 ವಿಳಂಬಿತ ಜಯ", "🔴 ಅಡೆತಡೆ"
@@ -120,17 +129,89 @@ export async function generateSankhyaPrashnaReading(params: {
 }): Promise<SankhyaPrashnaResult> {
   const { number, question, devoteeName, gothra } = params;
 
-  // 1. Vedic Mathematical Horary Attributes (Pure Kannada)
+  // 1. Classical Vedic Astrological Planetary Varna / Varga (ಬ್ರಾಹ್ಮಣ, ಕ್ಷತ್ರಿಯ, ವೈಶ್ಯ, ಶೂದ್ರ)
   const planetList = [
-    { nameKn: "ಸೂರ್ಯ", nature: "ಸ್ಥಿರ (ಶಾಶ್ವತ ನಿರ್ಧಾರ / ಧೃಢ)" as MotionNature, varna: "ಉನ್ನತ ಸ್ಥಾನ / ಆಡಳಿತ ವರ್ಗ" as VarnaInfluence, dir: "ಪೂರ್ವ", timeframe: "೧ ತಿಂಗಳು" },
-    { nameKn: "ಚಂದ್ರ", nature: "ಚರ (ಶೀಘ್ರ ಗತಿ / ತಕ್ಷಣದ ಬದಲಾವಣೆ)" as MotionNature, varna: "ಸಾಮಾನ್ಯ / ಜನಸಾಮಾನ್ಯ ವರ್ಗ" as VarnaInfluence, dir: "ವಾಯವ್ಯ", timeframe: "೧೫ ದಿನಗಳು" },
-    { nameKn: "ಕುಜ", nature: "ಚರ (ಶೀಘ್ರ ಗತಿ / ತಕ್ಷಣದ ಬದಲಾವಣೆ)" as MotionNature, varna: "ಉನ್ನತ ಸ್ಥಾನ / ಆಡಳಿತ ವರ್ಗ" as VarnaInfluence, dir: "ದಕ್ಷಿಣ", timeframe: "೨೮ ದಿನಗಳು" },
-    { nameKn: "ಬುಧ", nature: "ಉಭಯ (ಮಿಶ್ರಿತ ಫಲ / ದ್ವಂದ್ವ)" as MotionNature, varna: "ವ್ಯಾಪಾರ / ವ್ಯವಹಾರ ವರ್ಗ" as VarnaInfluence, dir: "ಉತ್ತರ", timeframe: "೨ ತಿಂಗಳು" },
-    { nameKn: "ಗುರು", nature: "ಸ್ಥಿರ (ಶಾಶ್ವತ ನಿರ್ಧಾರ / ಧೃಢ)" as MotionNature, varna: "ಉನ್ನತ ಸ್ಥಾನ / ಆಡಳಿತ ವರ್ಗ" as VarnaInfluence, dir: "ಈಶಾನ್ಯ", timeframe: "೧ ವರ್ಷ" },
-    { nameKn: "ಶುಕ್ರ", nature: "ಉಭಯ (ಮಿಶ್ರಿತ ಫಲ / ದ್ವಂದ್ವ)" as MotionNature, varna: "ವ್ಯಾಪಾರ / ವ್ಯವಹಾರ ವರ್ಗ" as VarnaInfluence, dir: "ಆಗ್ನೇಯ", timeframe: "೨ ತಿಂಗಳು" },
-    { nameKn: "ಶನಿ", nature: "ಸ್ಥಿರ (ಶಾಶ್ವತ ನಿರ್ಧಾರ / ಧೃಢ)" as MotionNature, varna: "ಸಾಮಾನ್ಯ / ಜನಸಾಮಾನ್ಯ ವರ್ಗ" as VarnaInfluence, dir: "ಪಶ್ಚಿಮ", timeframe: "೨.೫ ವರ್ಷಗಳು" },
-    { nameKn: "ರಾಹು", nature: "ಚರ (ಶೀಘ್ರ ಗತಿ / ತಕ್ಷಣದ ಬದಲಾವಣೆ)" as MotionNature, varna: "ಸಾಮಾನ್ಯ / ಜನಸಾಮಾನ್ಯ ವರ್ಗ" as VarnaInfluence, dir: "ನೈಋತ್ಯ", timeframe: "೧೮ ತಿಂಗಳು" },
-    { nameKn: "ಕೇತು", nature: "ಉಭಯ (ಮಿಶ್ರಿತ ಫಲ / ದ್ವಂದ್ವ)" as MotionNature, varna: "ಉನ್ನತ ಸ್ಥಾನ / ಆಡಳಿತ ವರ್ಗ" as VarnaInfluence, dir: "ಈಶಾನ್ಯ / ಅಧೋಮುಖ", timeframe: "೬ ತಿಂಗಳು" }
+    {
+      nameKn: "ಸೂರ್ಯ",
+      nature: "ಸ್ಥಿರ (ಶಾಶ್ವತ ನಿರ್ಧಾರ / ಧೃಢ)" as MotionNature,
+      varna: "ಕ್ಷತ್ರಿಯ ವರ್ಗ" as VargaVarna,
+      varnaDesc: "ಕ್ಷತ್ರಿಯ ವರ್ಗ (ಆಡಳಿತ, ರಕ್ಷಣಾ, ಸರಕಾರಿ & ಪ್ರಭಾವಿ ಅಧಿಕಾರಸ್ಥರು)",
+      dir: "ಪೂರ್ವ",
+      timeframe: "೧ ತಿಂಗಳು",
+      lostArticleHint: "ವಸ್ತುವು ಪೂರ್ವ ದಿಕ್ಕಿನಲ್ಲಿ, ಎತ್ತರದ ಜಾಗ, ಸರಕಾರಿ/ಅಧಿಕಾರ ಕಚೇರಿ ಅಥವಾ ಪ್ರಭಾವಿ ಅಧಿಕಾರಸ್ಥ ವ್ಯಕ್ತಿಯ (ಕ್ಷತ್ರಿಯ ವರ್ಗ) ಸಂಪರ್ಕದಲ್ಲಿದೆ. ನೇರ ಪ್ರಭಾವ ಅಥವಾ ಅಧಿಕಾರ ಬಳಕೆಯಿಂದ ಪತ್ತೆಯಾಗುತ್ತದೆ."
+    },
+    {
+      nameKn: "ಚಂದ್ರ",
+      nature: "ಚರ (ಶೀಘ್ರ ಗತಿ / ತಕ್ಷಣದ ಬದಲಾವಣೆ)" as MotionNature,
+      varna: "ವೈಶ್ಯ ವರ್ಗ" as VargaVarna,
+      varnaDesc: "ವೈಶ್ಯ ವರ್ಗ (ವ್ಯಾಪಾರಿಗಳು, ಸಂವಹನಕಾರರು, ಸ್ತ್ರೀಯರು & ಆಪ್ತರು)",
+      dir: "ವಾಯವ್ಯ",
+      timeframe: "೧೫ ದಿನಗಳು",
+      lostArticleHint: "ವಸ್ತುವು ವಾಯವ್ಯ ದಿಕ್ಕಿನಲ್ಲಿ, ಜಲಸ್ಥಳ, ಅಡುಗೆ ಕೋಣೆ ಅಥವಾ ಮಹಿಳೆಯರು/ಆಪ್ತರ (ವೈಶ್ಯ ವರ್ಗ) ಬಳಿ ಚಲನಶೀಲವಾಗಿದೆ. ಶೀಘ್ರವಾಗಿ ವಿಚಾರಿಸಿದರೆ ದೊರೆಯುತ್ತದೆ."
+    },
+    {
+      nameKn: "ಕುಜ",
+      nature: "ಚರ (ಶೀಘ್ರ ಗತಿ / ತಕ್ಷಣದ ಬದಲಾವಣೆ)" as MotionNature,
+      varna: "ಕ್ಷತ್ರಿಯ ವರ್ಗ" as VargaVarna,
+      varnaDesc: "ಕ್ಷತ್ರಿಯ ವರ್ಗ (ಸೈನಿಕರು, ಯೋಧರು, ರಕ್ಷಕರು & ತೀಕ್ಷ್ಣ ಸ್ವಭಾವದವರು)",
+      dir: "ದಕ್ಷಿಣ",
+      timeframe: "೨೮ ದಿನಗಳು",
+      lostArticleHint: "ವಸ್ತುವು ದಕ್ಷಿಣ ದಿಕ್ಕಿನಲ್ಲಿ, ಅಗ್ನಿ/ವಿದ್ಯುತ್ ಉಪಕರಣಗಳ ಬಳಿ ಅಥವಾ ಯುವಕರು/ಧೈರ್ಯಶಾಲಿ ವ್ಯಕ್ತಿಯ (ಕ್ಷತ್ರಿಯ ವರ್ಗ) ವಶದಲ್ಲಿದೆ. ಕಳವು ಶಂಕೆ ಇದ್ದಲ್ಲಿ ಸೂಕ್ತ ವಿಚಾರಣೆ ಅಗತ್ಯ."
+    },
+    {
+      nameKn: "ಬುಧ",
+      nature: "ಉಭಯ (ಮಿಶ್ರಿತ ಫಲ / ದ್ವಂದ್ವ)" as MotionNature,
+      varna: "ವೈಶ್ಯ ವರ್ಗ" as VargaVarna,
+      varnaDesc: "ವೈಶ್ಯ ವರ್ಗ (ವ್ಯಾಪಾರಿಗಳು, ಲೆಕ್ಕಿಗರು, ವಿದ್ಯಾರ್ಥಿಗಳು & ಸ್ನೇಹಿತರು)",
+      dir: "ಉತ್ತರ",
+      timeframe: "೨ ತಿಂಗಳು",
+      lostArticleHint: "ವಸ್ತುವು ಉತ್ತರ ದಿಕ್ಕಿನಲ್ಲಿ, ಪುಸ್ತಕಗಳು, ಕಾಗದಪತ್ರಗಳು, ಹಣಕಾಸು ಜಾಗ ಅಥವಾ ಆಪ್ತ ಸ್ನೇಹಿತರು/ವ್ಯವಹಾರಸ್ಥರ (ವೈಶ್ಯ ವರ್ಗ) ಸಂಪರ್ಕದಲ್ಲಿದೆ. ವಿಚಾರಣೆಯಿಂದ ಸುಲಭವಾಗಿ ಲಭ್ಯವಾಗುತ್ತದೆ."
+    },
+    {
+      nameKn: "ಗುರು",
+      nature: "ಸ್ಥಿರ (ಶಾಶ್ವತ ನಿರ್ಧಾರ / ಧೃಢ)" as MotionNature,
+      varna: "ಬ್ರಾಹ್ಮಣ ವರ್ಗ" as VargaVarna,
+      varnaDesc: "ಬ್ರಾಹ್ಮಣ ವರ್ಗ (ಜ್ಞಾನಿಗಳು, ಪಂಡಿತರು, ಧಾರ್ಮಿಕರು & ಹಿರಿಯರು)",
+      dir: "ಈಶಾನ್ಯ",
+      timeframe: "೧ ವರ್ಷ",
+      lostArticleHint: "ವಸ್ತುವು ಈಶಾನ್ಯ ದಿಕ್ಕಿನಲ್ಲಿ, ದೇವರ ಕೋಣೆ, ಪೂಜಾ ಸ್ಥಳ ಅಥವಾ ಹಿರಿಯರು/ವಿದ್ವಾಂಸರ (ಬ್ರಾಹ್ಮಣ ವರ್ಗ) ಪಾಲನೆಯಲ್ಲಿ ಅತ್ಯಂತ ಸುರಕ್ಷಿತವಾಗಿದೆ. ಯಾವುದೇ ಹಾನಿಯಾಗಿಲ್ಲ."
+    },
+    {
+      nameKn: "ಶುಕ್ರ",
+      nature: "ಉಭಯ (ಮಿಶ್ರಿತ ಫಲ / ದ್ವಂದ್ವ)" as MotionNature,
+      varna: "ಬ್ರಾಹ್ಮಣ ವರ್ಗ" as VargaVarna,
+      varnaDesc: "ಬ್ರಾಹ್ಮಣ ವರ್ಗ (ಕಲಾಕಾರರು, ಪೂಜ್ಯರು, ಸಜ್ಜನರು & ಸ್ತ್ರೀ ಶಕ್ತಿ)",
+      dir: "ಆಗ್ನೇಯ",
+      timeframe: "೨ ತಿಂಗಳು",
+      lostArticleHint: "ವಸ್ತುವು ಆಗ್ನೇಯ ದಿಕ್ಕಿನಲ್ಲಿ, ಶಯನಗೃಹ, ಬಟ್ಟೆ-ಆಭರಣಗಳ ಪೆಟ್ಟಿಗೆ ಅಥವಾ ಸ್ತ್ರೀ ವ್ಯಕ್ತಿಯ (ಬ್ರಾಹ್ಮಣ/ಸಾತ್ವಿಕ ವರ್ಗ) ಸುಪರ್ದಿಯಲ್ಲಿದೆ. ರಹಸ್ಯವಾಗಿ ಸುರಕ್ಷಿತವಾಗಿದೆ."
+    },
+    {
+      nameKn: "ಶನಿ",
+      nature: "ಸ್ಥಿರ (ಶಾಶ್ವತ ನಿರ್ಧಾರ / ಧೃಢ)" as MotionNature,
+      varna: "ಶೂದ್ರ ವರ್ಗ" as VargaVarna,
+      varnaDesc: "ಶೂದ್ರ ವರ್ಗ (ಶ್ರಮಿಕರು, ಕಾಯಕಜೀವಿಗಳು, ಸೇವಕರು & ಕಾರ್ಮಿಕರು)",
+      dir: "ಪಶ್ಚಿಮ",
+      timeframe: "೨.೫ ವರ್ಷಗಳು",
+      lostArticleHint: "ವಸ್ತುವು ಪಶ್ಚಿಮ ದಿಕ್ಕಿನಲ್ಲಿ, ಕತ್ತಲೆಯ ಮೂಲೆ, ಹಳೆಯ ಸಾಮಗ್ರಿಗಳ ನಡುವೆ ಅಥವಾ ಮನೆಯ ಸೇವಕರು/ಕಾಯಕವರ್ಗದವರ (ಶೂದ್ರ ವರ್ಗ) ಗಮನದಲ್ಲಿದೆ. ವಿಳಂಬವಾಗಿ ಪತ್ತೆಯಾಗಬಹುದು."
+    },
+    {
+      nameKn: "ರಾಹು",
+      nature: "ಚರ (ಶೀಘ್ರ ಗತಿ / ತಕ್ಷಣದ ಬದಲಾವಣೆ)" as MotionNature,
+      varna: "ಶೂದ್ರ ವರ್ಗ" as VargaVarna,
+      varnaDesc: "ಶೂದ್ರ ವರ್ಗ (ಅಪರಿಚಿತರು, ಹೊರಗಿನ ವ್ಯಕ್ತಿಗಳು & ಪರದೇಶದವರು)",
+      dir: "ನೈಋತ್ಯ",
+      timeframe: "೧೮ ತಿಂಗಳು",
+      lostArticleHint: "ವಸ್ತುವು ನೈಋತ್ಯ ದಿಕ್ಕಿನಲ್ಲಿ, ಮಣ್ಣಿನ/ಅಪರಿಚಿತ ಸ್ಥಳದಲ್ಲಿದೆ ಅಥವಾ ಹೊರಗಿನ ಅಪರಿಚಿತ ವ್ಯಕ್ತಿಯ (ಶೂದ್ರ/ಅಂತ್ಯಜ ವರ್ಗ) ಕೈವಶವಾಗಿರಬಹುದು. ಸೂಕ್ಷ್ಮ ಹುಡುಕಾಟ ಅಗತ್ಯ."
+    },
+    {
+      nameKn: "ಕೇತು",
+      nature: "ಉಭಯ (ಮಿಶ್ರಿತ ಫಲ / ದ್ವಂದ್ವ)" as MotionNature,
+      varna: "ಶೂದ್ರ ವರ್ಗ" as VargaVarna,
+      varnaDesc: "ಶೂದ್ರ ವರ್ಗ (ಗುಪ್ತ ವ್ಯಕ್ತಿಗಳು, ತಪಸ್ವಿಗಳು & ರಹಸ್ಯ ಶೋಧಕರು)",
+      dir: "ಈಶಾನ್ಯ / ಅಧೋಮುಖ",
+      timeframe: "೬ ತಿಂಗಳು",
+      lostArticleHint: "ವಸ್ತುವು ಅಧೋಮುಖ ರಹಸ್ಯ ಜಾಗದಲ್ಲಿ ಅಥವಾ ಕಣ್ಣಿಗೆ ಕಾಣಿಸದ ಮೂಲೆಯಲ್ಲಿದೆ. ಅನಿರೀಕ್ಷಿತವಾಗಿ ಅಥವಾ ಆಕಸ್ಮಿಕವಾಗಿ ಪತ್ತೆಯಾಗುವ ಸಾಧ್ಯತೆ ಇದೆ."
+    }
   ];
 
   const planetIndex = (number - 1) % 9;
@@ -142,11 +223,11 @@ export async function generateSankhyaPrashnaReading(params: {
   const fallbackParagraphs = [
     {
       titleKn: "೧. ನೇರ ವಾಸ್ತವಿಕ ನಿರ್ಣಯ & ಪರಿಸ್ಥಿತಿ ವಿಶ್ಲೇಷಣೆ",
-      contentKn: `ನೀವು ಕೇಳಿರುವ ಪ್ರಶ್ನೆಗೆ ("${question}"), ಸಂಖ್ಯಾಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ನಿಮ್ಮ ಆಂತರಿಕ ಭಾವನೆ ಹಾಗೂ ಪ್ರಸ್ತುತ ಸನ್ನಿವೇಶವು ನೇರ ಕಾರಣವಾಗಿದೆ. ಸಂಬಂಧಗಳಲ್ಲಿ ಅಥವಾ ಕಾರ್ಯಕ್ಷೇತ್ರದಲ್ಲಿ ಎದುರಾಗುತ್ತಿರುವ ಗೊಂದಲವು ಪರಸ್ಪರ ತಪ್ಪು ತಿಳುವಳಿಕೆ ಅಥವಾ ಅಸೂಯೆಯ ಭಾವನೆಯಿಂದ ಉಂಟಾಗಿರಬಹುದು. ಯಾರೂ ನಿಮ್ಮ ವಿರುದ್ಧ ಉದ್ದೇಶಪೂರ್ವಕವಾಗಿ ಇಲ್ಲದಿದ್ದರೂ ಸಂವಹನದ ಕೊರತೆಯಿಂದ ಈ ಸಮಸ್ಯೆ ದೊಡ್ಡದಾಗಿ ಕಾಣಿಸುತ್ತಿದೆ. ಆದುದರಿಂದ ಭಯಪಡದೆ ಶಾಂತಚಿತ್ತದಿಂದ ಪರಿಸ್ಥಿತಿಯನ್ನು ಅವಲೋಕಿಸುವುದು ಉತ್ತಮ.`
+      contentKn: `ನೀವು ಕೇಳಿರುವ ಪ್ರಶ್ನೆಗೆ ("${question}"), ಸಂಖ್ಯಾಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ನಿಮ್ಮ ಆಂತರಿಕ ಭಾವನೆ ಹಾಗೂ ಪ್ರಸ್ತುತ ಸನ್ನಿವೇಶವು ನೇರ ಕಾರಣವಾಗಿದೆ. ಸಂಬಂಧಗಳಲ್ಲಿ, ಕಾರ್ಯಕ್ಷೇತ್ರದಲ್ಲಿ ಅಥವಾ ವಸ್ತು ಹುಡುಕಾಟದಲ್ಲಿ ಎದುರಾಗುತ್ತಿರುವ ಗೊಂದಲವು ಪರಸ್ಪರ ತಪ್ಪು ತಿಳುವಳಿಕೆ ಅಥವಾ ಗಮನದ ಕೊರತೆಯಿಂದ ಉಂಟಾಗಿರಬಹುದು. ಯಾರೂ ನಿಮ್ಮ ವಿರುದ್ಧ ಉದ್ದೇಶಪೂರ್ವಕವಾಗಿ ತೊಂದರೆ ಕೊಡುತ್ತಿಲ್ಲವಾದರೂ ಸಂವಹನದ ಕೊರತೆಯಿಂದ ಈ ಸಮಸ್ಯೆ ದೊಡ್ಡದಾಗಿ ಕಾಣಿಸುತ್ತಿದೆ. ಆದುದರಿಂದ ಭಯಪಡದೆ ಶಾಂತಚಿತ್ತದಿಂದ ಪರಿಸ್ಥಿತಿಯನ್ನು ಅವಲೋಕಿಸುವುದು ಉತ್ತಮ.`
     },
     {
-      titleKn: "೨. ಸಂಖ್ಯಾ ಗ್ರಹ ತರಂಗ & ಜನರ ಮನಸ್ಥಿತಿ",
-      contentKn: `ಆಯ್ಕೆಮಾಡಲಾದ ಸಂಖ್ಯೆ ${number} ರ ಅಧಿಪತಿಯಾದ ${planet.nameKn} ಪ್ರಭಾವದಿಂದಾಗಿ ಈ ಪ್ರಶ್ನೆಯು '${planet.nature}' ಸ್ವಭಾವವನ್ನು ಹೊಂದಿದೆ. ಇದು ${planet.varna} ವರ್ಗದವರ ಮನಸ್ಥಿತಿಯೊಂದಿಗೆ ಸಂಬಂಧ ಹೊಂದಿದ್ದು, ಅವರ ಮಾತು ಮತ್ತು ವರ್ತನೆಗಳಲ್ಲಿ ತಾತ್ಕಾಲಿಕ ಅಸಮಾಧಾನವಿರಬಹುದು. ಗ್ರಹಗಳ ಸಂಚಾರವು ಸದ್ಯದಲ್ಲೇ ಬದಲಾಗಲಿದ್ದು, ನಿಮ್ಮ ಪರವಾದ ಸಕಾರಾತ್ಮಕ ಶಕ್ತಿಯು ಹೆಚ್ಚಾಗಲಿದೆ.`
+      titleKn: "೨. ಸಂಖ್ಯಾ ಗ್ರಹ ತರಂಗ & ಜನರ ಮನಸ್ಥಿತಿ / ವರ್ಗ ನಿರ್ಣಯ",
+      contentKn: `ಆಯ್ಕೆಮಾಡಲಾದ ಸಂಖ್ಯೆ ${number} ರ ಅಧಿಪತಿಯಾದ ${planet.nameKn} ಪ್ರಭಾವದಿಂದಾಗಿ ಈ ಪ್ರಶ್ನೆಯು '${planet.nature}' ಸ್ವಭಾವವನ್ನು ಹೊಂದಿದೆ. ಇದು '${planet.varna}' (${planet.varnaDesc}) ಜನರೊಂದಿಗೆ ಸಂಬಂಧ ಹೊಂದಿದ್ದು, ಅವರ ಮನಸ್ಥಿತಿ ಹಾಗೂ ವರ್ತನೆಗಳು ಈ ಫಲಿತಾಂಶಕ್ಕೆ ಕಾರಣವಾಗಿವೆ. ವಸ್ತು ಕಳೆದುಹೋಗಿರುವುದು, ಯಾರಾದರೂ ತೆಗೆದುಕೊಂಡಿರುವುದು ಅಥವಾ ಹುಡುಕಾಟದ ಪ್ರಶ್ನೆಯಾಗಿದ್ದರೆ: ${planet.lostArticleHint}`
     },
     {
       titleKn: "೩. ಪ್ರಾಯೋಗಿಕ ಪರಿಹಾರ & ಸಂವಹನ ಮಾರ್ಗ",
@@ -154,7 +235,7 @@ export async function generateSankhyaPrashnaReading(params: {
     },
     {
       titleKn: "೪. ಬಗ್ಗೋಣ ದೈವಿಕ ಪರಿಹಾರ & ಶುಭ ಕಾಲಾವಧಿ",
-      contentKn: `ಈ ಕಾರ್ಯ ಅಥವಾ ಸಂಬಂಧದ ಶುಭ ಫಲಿತಾಂಶವು ಅಂದಾಜು ${planet.timeframe} ಅವಧಿಯಲ್ಲಿ ಸ್ಪಷ್ಟಗೊಳ್ಳಲಿದೆ. ಎಲ್ಲಾ ವಿಘ್ನಗಳ ನಿವಾರಣೆಗಾಗಿ ಶ್ರೀ ${devoteeName} (${gothra} ಗೋತ್ರ) ಅವರ ಹೆಸರಿನಲ್ಲಿ ಬಗ್ಗೋಣ ಶ್ರೀ ಮಹಾಗಣಪತಿಗೆ ಗರಿಕಾರ್ಚನೆ ಸಲ್ಲಿಸಿ ಹಾಗೂ ${planet.nameKn} ಪ್ರೀತ್ಯರ್ಥವಾಗಿ ಪ್ರಾರ್ಥನೆ ಮಾಡಿ.`
+      contentKn: `ಈ ಕಾರ್ಯ ಅಥವಾ ಹುಡುಕಾಟದ ಶುಭ ಫಲಿತಾಂಶವು ಅಂದಾಜು ${planet.timeframe} ಅವಧಿಯಲ್ಲಿ ಸ್ಪಷ್ಟಗೊಳ್ಳಲಿದೆ. ಎಲ್ಲಾ ವಿಘ್ನಗಳ ನಿವಾರಣೆಗಾಗಿ ಶ್ರೀ ${devoteeName} (${gothra} ಗೋತ್ರ) ಅವರ ಹೆಸರಿನಲ್ಲಿ ಬಗ್ಗೋಣ ಶ್ರೀ ಮಹಾಗಣಪತಿಗೆ ಗರಿಕಾರ್ಚನೆ ಸಲ್ಲಿಸಿ ಹಾಗೂ ${planet.nameKn} ಪ್ರೀತ್ಯರ್ಥವಾಗಿ ಪ್ರಾರ್ಥನೆ ಮಾಡಿ.`
     }
   ];
 
@@ -170,16 +251,18 @@ export async function generateSankhyaPrashnaReading(params: {
 ಭಕ್ತರ ವಿವರ:
 ಹೆಸರು: ${devoteeName} | ಗೋತ್ರ: ${gothra} | ಸಂಖ್ಯೆ: ${number}
 ಪ್ರಶ್ನೆ: "${question}"
-ಸಂಖ್ಯಾಧಿಪತಿ: ${planet.nameKn} (${planet.nature}, ${planet.varna}, ${planet.dir})
+ಸಂಖ್ಯಾಧಿಪತಿ: ${planet.nameKn} (${planet.nature}, ${planet.varna}, ${planet.varnaDesc}, ${planet.dir})
+ವಸ್ತು/ವ್ಯಕ್ತಿ ನಿರ್ಣಯ ಸೂತ್ರ: ${planet.lostArticleHint}
 
 ಅತ್ಯಂತ ಕಟ್ಟುನಿಟ್ಟಿನ ನಿಯಮಗಳು:
 ೧. ಯಾವುದೇ ರೀತಿಯ ನಮಸ್ಕಾರ, ಪೀಠಿಕೆ, ಸ್ವ-ಪರಿಚಯ ಅಥವಾ ಶುಭಾಶಯಗಳನ್ನು (ಉದಾ: 'ನಮಸ್ಕಾರ', 'ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪಂಡಿತ್', 'ನಾನು ಜ್ಯೋತಿಷಿ') ಬರೆಯಬೇಡಿ!
 ೨. ನೇರವಾಗಿ ಭಕ್ತರ ಪ್ರಶ್ನೆಗೆ ("${question}") ಸಂಬಂಧಿಸಿದ ನೈಜ ಕಾರಣ ಹಾಗೂ ಸತ್ಯಾಂಶವನ್ನು ಮೊದಲ ವಾಕ್ಯದಲ್ಲೇ ಹೇಳಿ.
-   (ಉದಾಹರಣೆಗೆ: ಪ್ರಶ್ನೆಯು ಸಂಬಂಧಗಳ ಬಗ್ಗೆ ಇದ್ದರೆ: ಹೌದು, ನಿಮ್ಮ ಅಕ್ಕ/ಭಾವ ನಿಮ್ಮ ಬಗ್ಗೆ ತಪ್ಪು ತಿಳಿದುಕೊಂಡಿರಬಹುದು ಅಥವಾ ಅಸೂಯೆ ಪಡುತ್ತಿರಬಹುದು ಎಂದು ಸ್ಪಷ್ಟವಾಗಿ ವಿವರಿಸಿ).
+   - ಪ್ರಶ್ನೆಯು ಸಂಬಂಧಗಳ ಬಗ್ಗೆ ಇದ್ದರೆ (ಅಕ್ಕ/ಭಾವ/ಗಂಡ/ಹೆಂಡತಿ ಇತ್ಯಾದಿ): ಅವರ ವರ್ತನೆಯ ನೈಜ ಕಾರಣ ಹಾಗೂ ಮನಸ್ಥಿತಿಯನ್ನು ವಿವರಿಸಿ.
+   - ಪ್ರಶ್ನೆಯು ವಸ್ತು ಕಳೆದುಹೋಗಿರುವುದು, ಕಳವು, ಯಾರಾದರೂ ತೆಗೆದುಕೊಂಡಿರುವುದು ಅಥವಾ ಹುಡುಕಾಟದ ಬಗ್ಗೆ ಇದ್ದರೆ (Lost / Found / Stolen Article): ನಿರ್ದಿಷ್ಟವಾಗಿ ವರ್ಗ (${planet.varna}), ಯಾರು ಇಟ್ಟುಕೊಂಡಿದ್ದಾರೆ/ತೆಗೆದುಕೊಂಡಿದ್ದಾರೆ, ಯಾವ ದಿಕ್ಕು (${planet.dir}) ಮತ್ತು ಯಾವ ಸ್ಥಳದಲ್ಲಿದೆ ಎಂಬುದನ್ನು ಸ್ಪಷ್ಟವಾಗಿ ಬರೆಯಿರಿ (${planet.lostArticleHint}).
 ೩. ಉತ್ತರವನ್ನು ನಿಖರವಾಗಿ ೪ ಪ್ಯಾರಾಗ್ರಾಫ್‌ಗಳಲ್ಲಿ ಮಾತ್ರ ನೀಡಿ. ಪ್ರತಿ ಪ್ಯಾರಾಗ್ರಾಫ್ ೫-೬ ಸಾಲುಗಳನ್ನು ಹೊಂದಿರಲಿ ಮತ್ತು ಸಂಪೂರ್ಣ ವಿಷಯಾಧಾರಿತವಾಗಿರಲಿ:
    - ಪ್ಯಾರಾಗ್ರಾಫ್ ೧: ನೇರ ಉತ್ತರ & ಸಮಸ್ಯೆ/ಪರಿಸ್ಥಿತಿಯ ನೈಜ ಕಾರಣ (ಭಕ್ತರ ಪ್ರಶ್ನೆಗೆ ತಕ್ಷಣದ ಸ್ಪಷ್ಟ ಉತ್ತರ)
-   - ಪ್ಯಾರಾಗ್ರಾಫ್ ೨: ಸಂಖ್ಯಾ ಗ್ರಹ ತರಂಗ ಹಾಗೂ ಸಂಬಂಧಪಟ್ಟ ವ್ಯಕ್ತಿಗಳ ಮನಸ್ಥಿತಿಯ ವಿಶ್ಲೇಷಣೆ
-   - ಪ್ಯಾರಾಗ್ರಾಫ್ ೩: ಪ್ರಾಯೋಗಿಕ ಸಂವಹನ ಪರಿಹಾರ (ಮುಕ್ತವಾಗಿ ಕೂತು ಮಾತನಾಡುವುದು, ತಪ್ಪು ತಿಳುವಳಿಕೆ ತಿದ್ದಿಕೊಳ್ಳುವುದು)
+   - ಪ್ಯಾರಾಗ್ರಾಫ್ ೨: ಸಂಖ್ಯಾ ಗ್ರಹ ತರಂಗ ಹಾಗೂ ವರ್ಗ ನಿರ್ಣಯ (${planet.varna} - ${planet.varnaDesc}) ಮತ್ತು ಜನರ ಮನಸ್ಥಿತಿ / ವಸ್ತು ಇರುವ ಸ್ಥಳ
+   - ಪ್ಯಾರಾಗ್ರಾಫ್ ೩: ಪ್ರಾಯೋಗಿಕ ಸಂವಹನ ಅಥವಾ ಹುಡುಕಾಟದ ಪರಿಹಾರ (ಮುಕ್ತ ಸಂವಾದ, ಹುಡುಕುವ ವಿಧಾನ)
    - ಪ್ಯಾರಾಗ್ರಾಫ್ ೪: ಬಗ್ಗೋಣ ಶಾಸ್ತ್ರೀಯ ಪರಿಹಾರ, ಜಪ ಹಾಗೂ ಅನುಕೂಲಕರ ಕಾಲಾವಧಿ (${planet.timeframe})
 
 ಶುದ್ಧ ಕನ್ನಡ ಲಿಪಿಯಲ್ಲಿ ಮಾತ್ರ ಬರೆಯಿರಿ.`;
@@ -190,7 +273,7 @@ export async function generateSankhyaPrashnaReading(params: {
       if (rawParas.length >= 4) {
         const enrichedParas = [
           { titleKn: "೧. ನೇರ ವಾಸ್ತವಿಕ ನಿರ್ಣಯ & ಪರಿಸ್ಥಿತಿ ವಿಶ್ಲೇಷಣೆ", contentKn: rawParas[0].replace(/^.*?:/g, "").trim() },
-          { titleKn: "೨. ಸಂಖ್ಯಾ ಗ್ರಹ ತರಂಗ & ಜನರ ಮನಸ್ಥಿತಿ", contentKn: rawParas[1].replace(/^.*?:/g, "").trim() },
+          { titleKn: "೨. ಸಂಖ್ಯಾ ಗ್ರಹ ತರಂಗ & ಜನರ ಮನಸ್ಥಿತಿ / ವರ್ಗ ನಿರ್ಣಯ", contentKn: rawParas[1].replace(/^.*?:/g, "").trim() },
           { titleKn: "೩. ಪ್ರಾಯೋಗಿಕ ಪರಿಹಾರ & ಸಂವಹನ ಮಾರ್ಗ", contentKn: rawParas[2].replace(/^.*?:/g, "").trim() },
           { titleKn: "೪. ಬಗ್ಗೋಣ ದೈವಿಕ ಪರಿಹಾರ & ಶುಭ ಕಾಲಾವಧಿ", contentKn: rawParas[3].replace(/^.*?:/g, "").trim() }
         ];
@@ -202,6 +285,8 @@ export async function generateSankhyaPrashnaReading(params: {
           rulingPlanetKn: planet.nameKn,
           natureKn: planet.nature,
           varnaKn: planet.varna,
+          varnaDescriptionKn: planet.varnaDesc,
+          lostArticleOrPersonKn: planet.lostArticleHint,
           rulingDirectionKn: planet.dir,
           auspiciousTimeframeKn: planet.timeframe,
           verdictBadgeKn,
@@ -222,6 +307,8 @@ export async function generateSankhyaPrashnaReading(params: {
     rulingPlanetKn: planet.nameKn,
     natureKn: planet.nature,
     varnaKn: planet.varna,
+    varnaDescriptionKn: planet.varnaDesc,
+    lostArticleOrPersonKn: planet.lostArticleHint,
     rulingDirectionKn: planet.dir,
     auspiciousTimeframeKn: planet.timeframe,
     verdictBadgeKn,

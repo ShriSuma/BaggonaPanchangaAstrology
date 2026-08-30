@@ -835,9 +835,33 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
               <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[11px] font-bold text-amber-900 bg-[#FEFCF4] p-3 rounded-2xl border border-amber-300/80">
                 <span>🪐 ಗ್ರಹಾಧಿಪತಿ: <strong className="text-amber-950 font-black">{prashnaResult.rulingPlanetKn}</strong></span>
                 <span>•</span>
+                <span>👥 ವರ್ಗ: <strong className="text-amber-950 font-black">{prashnaResult.varnaKn}</strong></span>
+                <span>•</span>
                 <span>🔄 ಪ್ರಕೃತಿ: <strong className="text-amber-950 font-black">{prashnaResult.natureKn}</strong></span>
                 <span>•</span>
                 <span>🧭 ದಿಕ್ಕು & ಕಾಲ: <strong className="text-amber-950 font-black">{prashnaResult.rulingDirectionKn} ({prashnaResult.auspiciousTimeframeKn})</strong></span>
+              </div>
+
+              {/* Varga & Lost/Found Article Divination Highlight Box */}
+              <div className="p-4 bg-gradient-to-r from-amber-50 via-[#FFFDF7] to-amber-50 border-2 border-amber-400 rounded-2xl space-y-2 shadow-xs">
+                <div className="flex items-center justify-between border-b border-amber-200 pb-1.5">
+                  <h4 className="text-xs font-black text-amber-950 flex items-center gap-1.5">
+                    <span>🔍</span>
+                    <span>ಶಾಸ್ತ್ರೀಯ ವರ್ಗ & ವಸ್ತು / ವ್ಯಕ್ತಿ ನಿರ್ಣಯ (Varga & Lost Item Guidance):</span>
+                  </h4>
+                  <span className="text-[10px] font-black text-amber-900 bg-amber-200/80 px-2 py-0.5 rounded-md border border-amber-300">
+                    {prashnaResult.varnaKn}
+                  </span>
+                </div>
+                <div className="space-y-1 text-xs">
+                  <p className="text-slate-800 font-semibold leading-relaxed">
+                    <strong className="text-amber-950">ವರ್ಗ ಲಕ್ಷಣ:</strong> {prashnaResult.varnaDescriptionKn || prashnaResult.varnaKn}
+                  </p>
+                  <p className="text-amber-900 font-bold bg-[#FEFCF4] p-2.5 rounded-xl border border-amber-300 leading-relaxed">
+                    <span>🗝️ <strong>ವಸ್ತು/ಸ್ಥಳ/ವ್ಯಕ್ತಿಯ ಸುಳಿವು:</strong> </span>
+                    <span>{prashnaResult.lostArticleOrPersonKn}</span>
+                  </p>
+                </div>
               </div>
 
               {/* Unified 4 In-Depth Paragraphs Reading */}
