@@ -213,15 +213,15 @@ export const VEDIC_MAJOR_LINES_RULES = {
     }
   },
   sunLine: {
-    nameKn: "ಸೂರ್ಯ ರೇಖೆ / ವಿದ್ಯಾ ರೇಖೆ (Sun Line / Apollo Rekha)",
-    nameEn: "Sun Line (Surya & Vidya Rekha)",
+    nameKn: "ರವಿ ರೇಖೆ / ವಿದ್ಯಾ ರೇಖೆ (Sun Line / Apollo Rekha)",
+    nameEn: "Sun Line (Ravi & Vidya Rekha)",
     descriptions: {
       clear_on_sun_mount: {
-        status: "ಸೂರ್ಯ ಪರ್ವತದ ಮೇಲೆ ರಾರಾಜಿಸುವ ಪ್ರಕಾಶಮಾನ ಸೂರ್ಯ ರೇಖೆ",
+        status: "ರವಿ ಪರ್ವತದ ಮೇಲೆ ರಾರಾಜಿಸುವ ಪ್ರಕಾಶಮಾನ ರವಿ ರೇಖೆ",
         indication: "ಸಮಾಜದಲ್ಲಿ ಗಣ್ಯ ಗೌರವ, ಉನ್ನತ ಸರಕಾರಿ ಮನ್ನಣೆ, ಕಲಾ ಕೀರ್ತಿ ಹಾಗೂ ಪ್ರಸಿದ್ಧಿ."
       },
       star_on_sun: {
-        status: "ಸೂರ್ಯ ಪರ್ವತದ ಮೇಲಿನ ನಕ್ಷತ್ರ (Star on Apollo)",
+        status: "ರವಿ ಪರ್ವತದ ಮೇಲಿನ ನಕ್ಷತ್ರ (Star on Apollo)",
         indication: "ರಾಷ್ಟ್ರೀಯ ಅಥವಾ ಜಾಗತಿಕ ಮಟ್ಟದ ಅಪ್ರತಿಮ ಖ್ಯಾತಿ ಹಾಗೂ ಉನ್ನತ ಪ್ರಶಸ್ತಿಗಳು."
       }
     }
@@ -245,7 +245,7 @@ export const VEDIC_MAJOR_LINES_RULES = {
         indication: "ಸುಸಂಸ್ಕೃತ, ಪ್ರೇಮಮಯಿ ಹಾಗೂ ಜೀವಮಾನವಿಡೀ ಜೊತೆಗಿಡುವ ನಿಷ್ಠಾವಂತ ಸಂಗಾತಿ."
       },
       upward_to_sun: {
-        status: "ಸೂರ್ಯ ಪರ್ವತದತ್ತ ಬಾಗುವ ವಿವಾಹ ರೇಖೆ",
+        status: "ರವಿ ಪರ್ವತದತ್ತ ಬಾಗುವ ವಿವಾಹ ರೇಖೆ",
         indication: "ಶ್ರೀಮಂತ ಹಾಗೂ ಪ್ರಸಿದ್ಧ ಕುಟುಂಬದ ಸಂಗಾತಿಯೊಂದಿಗೆ ವಿವಾಹ ಭಾಗ್ಯ."
       }
     }
@@ -264,8 +264,8 @@ export const VEDIC_MOUNTS_RULES = {
     virtuesKn: "ಗಂಭೀರ ಚಿಂತನೆ, ಗಣಿಗಾರಿಕೆ/ಭೂಮಿ ಯೋಗ, ದೀರ್ಘ ಸಂಶೋಧನೆ ಹಾಗೂ ಶಿಸ್ತುಬದ್ಧ ಸಂಪತ್ತು."
   },
   sun: {
-    nameKn: "ಸೂರ್ಯ ಪರ್ವತ (Mount of Sun / Apollo)",
-    nameEn: "Mount of Sun (Surya Parvata)",
+    nameKn: "ರವಿ ಪರ್ವತ (Mount of Sun / Apollo)",
+    nameEn: "Mount of Sun (Ravi Parvata)",
     virtuesKn: "ರಾಜಕೀಯ ಕೀರ್ತಿ, ಕಲಾತ್ಮಕ ಪ್ರತಿಭೆ, ಆಕರ್ಷಕ ವ್ಯಕ್ತಿತ್ವ ಹಾಗೂ ತೇಜಸ್ವಿ ಯಶಸ್ಸು."
   },
   mercury: {

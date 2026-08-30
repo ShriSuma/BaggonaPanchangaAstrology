@@ -517,7 +517,7 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
               <div>
                 <h3 className="font-extrabold text-amber-200 text-base sm:text-lg">{result.input.personName}</h3>
                 <p className="text-xs text-amber-100 font-bold">
-                  {result.suryaRashi} (ಸೂರ್ಯ ರಾಶಿ) · {result.birthDayOfWeek} · ಮೂಲಾಂಕ: {result.rulingNumber} · ಭಾಗ್ಯಾಂಕ: {result.destinyNumber}
+                  {result.suryaRashi} (ರವಿ ರಾಶಿ) · {result.birthDayOfWeek} · ಮೂಲಾಂಕ: {result.rulingNumber} · ಭಾಗ್ಯಾಂಕ: {result.destinyNumber}
                 </p>
               </div>
             </div>

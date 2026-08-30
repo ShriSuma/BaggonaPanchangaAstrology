@@ -45,8 +45,8 @@ const DECK: CardItem[] = [
     emoji: "🔱"
   },
   {
-    titleKn: "ಸೂರ್ಯ ದೇವ (Surya)",
-    titleEn: "Lord Surya (Sun)",
+    titleKn: "ರವಿ ದೇವ (Ravi)",
+    titleEn: "Lord Ravi (Sun)",
     categoryKn: "ನವಗ್ರಹ",
     categoryEn: "Navagraha",
     hintsKn: ["ಗ್ರಹಗಳ ರಾಜ", "ಸಿಂಹ ರಾಶಿಯ ಅಧಿಪತಿ", "ಆದಿತ್ಯ ಹೃದಯ ಸ್ತೋತ್ರ"],

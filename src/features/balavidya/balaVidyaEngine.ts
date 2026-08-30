@@ -156,7 +156,7 @@ const NAKSHATRA_SYLLABLE_TABLE: Record<string, { padas: [string[], string[], str
     emoji: "🐑",
     deityKn: "ಅಗ್ನಿ ದೇವ (Agni - Brilliance & Focus)",
     deityEn: "Lord Agni (Brilliance & Purification)",
-    planetKn: "ಸೂರ್ಯ",
+    planetKn: "ರವಿ",
     planetEn: "Sun"
   },
   "Rohini": {
@@ -246,7 +246,7 @@ const NAKSHATRA_SYLLABLE_TABLE: Record<string, { padas: [string[], string[], str
     emoji: "🐂",
     deityKn: "ಅರ್ಯಮಾ (Aryama - Nobility & Ethics)",
     deityEn: "Aryama (Nobility & Leadership)",
-    planetKn: "ಸೂರ್ಯ",
+    planetKn: "ರವಿ",
     planetEn: "Sun"
   },
   "Hasta": {
@@ -336,7 +336,7 @@ const NAKSHATRA_SYLLABLE_TABLE: Record<string, { padas: [string[], string[], str
     emoji: "🦚",
     deityKn: "ವಿಶ್ವೇದೇವರು (Universal Devas - Steadfast Success)",
     deityEn: "Viswadevas (Steadfast Success & Honor)",
-    planetKn: "ಸೂರ್ಯ",
+    planetKn: "ರವಿ",
     planetEn: "Sun"
   },
   "Shravana": {
@@ -467,9 +467,9 @@ export function calculateBalaVidya(
       descriptionEn: "The child naturally commands authority, excels in public speaking, debates, organizational strategy, and executive governance.",
       recommendedFieldsKn: ["ನಾಗರಿಕ ಸೇವೆಗಳು (IAS/KAS)", "ವ್ಯವಹಾರ ನಿರ್ವಹಣೆ (MBA)", "ಕಾನೂನು & ನ್ಯಾಯಾಂಗ", "ಆಡಳಿತಾತ್ಮಕ ನೀತಿ", "ರಾಜಕೀಯ ವಿಜ್ಞಾನ"],
       recommendedFieldsEn: ["Civil Services (IAS/IPS)", "Business Administration (MBA)", "Law & Judiciary", "Public Policy", "International Relations"],
-      studyEnvironmentKn: "ಪೂರ್ವ ಮುಖವಾದ ಅಧ್ಯಯನ ಸ್ಥಾನ, ಸೂರ್ಯನ ಬೆಳಕು ಹಾಗೂ ಕೇಸರಿ/ಹಳದಿ ಬಣ್ಣದ ಸಕಾರಾತ್ಮಕ ಶಕ್ತಿ.",
+      studyEnvironmentKn: "ಪೂರ್ವ ಮುಖವಾದ ಅಧ್ಯಯನ ಸ್ಥಾನ, ರವಿಯ (ಸೂರ್ಯನ) ಬೆಳಕು ಹಾಗೂ ಕೇಸರಿ/ಹಳದಿ ಬಣ್ಣದ ಸಕಾರಾತ್ಮಕ ಶಕ್ತಿ.",
       studyEnvironmentEn: "East-facing study setup with direct morning sunlight and saffron/golden ambient accents.",
-      favorableHoursKn: "ಬೆಳಿಗ್ಗೆ ೬:೦೦ ರಿಂದ ೮:೦೦ (ಸೂರ್ಯ & ಕುಜ ಹೋರೆಗಳು)",
+      favorableHoursKn: "ಬೆಳಿಗ್ಗೆ ೬:೦೦ ರಿಂದ ೮:೦೦ (ರವಿ & ಕುಜ ಹೋರೆಗಳು)",
       favorableHoursEn: "Morning 6:00 AM to 8:00 AM (Surya & Kuja Horas)"
     };
   } else {
@@ -566,7 +566,7 @@ export function calculateBalaVidya(
       isAfflictedMoon
         ? "ಚಂದ್ರನು ೬/೮/೧೨ನೇ ಭಾವದಲ್ಲಿದ್ದು, ಶೀತ-ಕಫ ಬಾಧೆಗಳು ಸಣ್ಣ ಪ್ರಮಾಣದಲ್ಲಿ ಕಾಣಿಸಿಕೊಳ್ಳಬಹುದು."
         : "ಲಗ್ನ ಹಾಗೂ ಚಂದ್ರನ ಸ್ಥಾನಗಳು ಅತ್ಯಂತ ಬಲಯುತವಾಗಿದ್ದು, ಮಗುವಿಗೆ ಉತ್ತಮ ರೋಗನಿರೋಧಕ ಶಕ್ತಿಯಿದೆ.",
-      "ಗುರು ಹಾಗೂ ಸೂರ್ಯನ ಶುಭ ದೃಷ್ಟಿಯು ಮಗುವಿನ ಪ್ರಾಣಶಕ್ತಿಯನ್ನು ನಿರಂತರವಾಗಿ ಕಾಪಾಡುತ್ತದೆ."
+      "ಗುರು ಹಾಗೂ ರವಿಯ ಶುಭ ದೃಷ್ಟಿಯು ಮಗುವಿನ ಪ್ರಾಣಶಕ್ತಿಯನ್ನು ನಿರಂತರವಾಗಿ ಕಾಪಾಡುತ್ತದೆ."
     ],
     observationsEn: [
       isAfflictedMoon

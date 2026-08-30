@@ -153,7 +153,7 @@ export function computeDiksuchiCompassMatrix(
     1: {
       directionName: isKn ? "ಪೂರ್ವ ದಿಕ್ಕು (East - Indra / Surya)" : "East (Indra / Surya)",
       deity: isKn ? "ಭಗವಾನ್ ಸೂರ್ಯ ನಾರಾಯಣ & ಇಂದ್ರ" : "Lord Surya Narayana & Indra",
-      rulingPlanet: isKn ? "ಸೂರ್ಯ (Surya)" : "Sun (Surya)",
+      rulingPlanet: isKn ? "ರವಿ (Ravi)" : "Sun (Ravi)",
       suitabilityDomain: isKn ? "ನಾಯಕತ್ವ, ಆಡಳಿತ, ನಿರ್ದೇಶನ & ಸ್ವತಂತ್ರ ಉದ್ಯಮ" : "Executive Leadership, Administration & Visionary Enterprise",
       practicalAdvice: isKn
         ? "ಕಾರ್ಯಾಲಯದಲ್ಲಿ ಪೂರ್ವಕ್ಕೆ ಮುಖ ಮಾಡಿ ಕುಳಿತುಕೊಳ್ಳಿ. ಪೂರ್ವ ದಿಕ್ಕಿನಲ್ಲಿ ಕಿಟಕಿ ಅಥವಾ ಸೂರ್ಯನ ಬೆಳಕು ಬೀಳುವಂತೆ ವ್ಯವಸ್ಥೆ ಮಾಡಿ."
@@ -250,7 +250,7 @@ export function computeDiksuchiCompassMatrix(
   const healthDir: DirectionalGuidance = {
     directionName: isKn ? "ಪೂರ್ವ & ಈಶಾನ್ಯ (East & North-East)" : "East & North-East",
     deity: isKn ? "ಧನ್ವಂತರಿ & ಸೂರ್ಯ ನಾರಾಯಣ" : "Lord Dhanvantari & Surya Narayana",
-    rulingPlanet: isKn ? "ಸೂರ್ಯ & ಚಂದ್ರ (Sun & Moon)" : "Sun & Moon",
+    rulingPlanet: isKn ? "ರವಿ & ಚಂದ್ರ (Sun & Moon)" : "Sun & Moon",
     suitabilityDomain: isKn ? "ಪ್ರಾಣಾಯಾಮ, ಯೋಗ, ದೈಹಿಕ ರೋಗನಿರೋಧಕ ಶಕ್ತಿ & ಮಾನಸಿಕ ನೆಮ್ಮದಿ" : "Pranayama, Yoga, Circadian Rest & Cellular Vitality",
     practicalAdvice: isKn
       ? "ಪೂರ್ವಕ್ಕೆ ತಲೆ ಇಟ್ಟು ಮಲಗುವುದು ಆಳವಾದ ನಿದ್ರೆ ಮತ್ತು ರಕ್ತದೊತ್ತಡ ನಿಯಂತ್ರಣಕ್ಕೆ ಅತ್ಯುತ್ತಮ."
@@ -364,7 +364,7 @@ export function computeDeepSankhyaAnalysis(input: KaalaDiksuchiInput, ruling: nu
   const isKn = input.lang === "kn";
   const rulingLords = [
     "",
-    isKn ? "ಸೂರ್ಯ (Surya - ಆತ್ಮಶಕ್ತಿ)" : "Sun (Leadership & Soul Radiance)",
+    isKn ? "ರವಿ (Ravi - ಆತ್ಮಶಕ್ತಿ)" : "Sun (Leadership & Soul Radiance)",
     isKn ? "ಚಂದ್ರ (Chandra - ಕಲ್ಪನಾಶಕ್ತಿ)" : "Moon (Intuition & Peace)",
     isKn ? "ಗುರು (Jupiter - ಜ್ಞಾನ & ಧರ್ಮ)" : "Jupiter (Wisdom & Abundance)",
     isKn ? "ರಾಹು (Rahu - ತಂತ್ರಜ್ಞಾನ & ನಾವೀನ್ಯತೆ)" : "Rahu (Innovation & Strategy)",
@@ -415,7 +415,7 @@ export function computeDeepSankhyaAnalysis(input: KaalaDiksuchiInput, ruling: nu
 
   return {
     mulank: ruling,
-    mulankLord: rulingLords[ruling] || "ಸೂರ್ಯ",
+    mulankLord: rulingLords[ruling] || "ರವಿ",
     bhagyank: destiny,
     bhagyankLord: rulingLords[destiny] || "ಗುರು",
     namank,
@@ -516,7 +516,7 @@ export function computeLiveTransitEnergy(input: KaalaDiksuchiInput, rulingNumber
   const pranaScore = Math.min(98, Math.max(72, 75 + (rulingNumber % 4) * 6 + ((now.getUTCHours() % 6) * 2)));
 
   const peakWindow = isKn
-    ? "ಪ್ರಾತಃಕಾಲ ೦೮:೪೫ ರಿಂದ ೧೧:೩೦ (ಸೂರ್ಯ ಕಾಲ & ಅಭಿಜಿತ್ ಮುಹೂರ್ತ)"
+    ? "ಪ್ರಾತಃಕಾಲ ೦೮:೪೫ ರಿಂದ ೧೧:೩೦ (ರವಿ ಕಾಲ & ಅಭಿಜಿತ್ ಮುಹೂರ್ತ)"
     : "08:45 AM to 11:30 AM (Solar Window & Abhijit Muhurtha)";
 
   const favorable = isKn
@@ -588,7 +588,7 @@ export function computeDecadeMilestones(dob: string, ruling: number, isKn: boole
   const milestones: DecadeMilestone[] = [];
 
   const phases = [
-    { name: isKn ? "ಬುಧ-ಸೂರ್ಯ ಯುಗ (ವಿದ್ಯಾಭ್ಯಾಸ & ಪ್ರಕೃತಿ ನಿರ್ಮಾಣ)" : "Mercury-Sun Phase (Foundation & Education)", theme: isKn ? "ಆರಂಭಿಕ ಕಲಿಕೆ, ಜ್ಞಾನಾರ್ಜನೆ, ಶಿಸ್ತು ಮತ್ತು ಸಂಸ್ಕಾರ ಸ್ಥಾಪನೆ." : "Formative learning, values foundation, and mental agility." },
+    { name: isKn ? "ಬುಧ-ರವಿ ಯುಗ (ವಿದ್ಯಾಭ್ಯಾಸ & ಪ್ರಕೃತಿ ನಿರ್ಮಾಣ)" : "Mercury-Sun Phase (Foundation & Education)", theme: isKn ? "ಆರಂಭಿಕ ಕಲಿಕೆ, ಜ್ಞಾನಾರ್ಜನೆ, ಶಿಸ್ತು ಮತ್ತು ಸಂಸ್ಕಾರ ಸ್ಥಾಪನೆ." : "Formative learning, values foundation, and mental agility." },
     { name: isKn ? "ಕುಜ-ಶುಕ್ರ ಯುಗ (ವೃತ್ತಿ ನಾವೀನ್ಯತೆ & ಸಾಹಸ)" : "Mars-Venus Phase (Ambition & Exploration)", theme: isKn ? "ವೃತ್ತಿ ಆರಂಭ, ಮಹತ್ವಾಕಾಂಕ್ಷೆ, ಹೊಸ ಕ್ಷೇತ್ರಗಳ ಅನ್ವೇಷಣೆ ಮತ್ತು ಸಾಧನೆ." : "Career launch, adventurous expansion, and skill mastery." },
     { name: isKn ? "ಗುರು-ರವಿ ಯುಗ (ಉನ್ನತ ಯಶಸ್ಸು & ಅಧಿಕಾರ ಸ್ಥಾಪನೆ)" : "Jupiter-Sun Epoch (Prime Authority & Wealth)", theme: isKn ? "ವೃತ್ತಿ ಉತ್ತುಂಗ, ಸಂಪತ್ತು ನಿರ್ಮಾಣ, ಕುಟುಂಬ ವಿಸ್ತರಣೆ ಮತ್ತು ಸಾಮಾಜಿಕ ಗೌರವ." : "Peak professional leadership, family prosperity and authority." },
     { name: isKn ? "ಶನಿ-ಬುಧ ಯುಗ (ಸ್ಥಿರತೆ & ಸಾಮ್ರಾಜ್ಯ ವಿಸ್ತರಣೆ)" : "Saturn-Mercury Era (Consolidation & Scale)", theme: isKn ? "ಆರ್ಥಿಕ ಸ್ವಾವಲಂಬನೆ, ಸ್ಥಿರ ವ್ಯವಸ್ಥೆಗಳ ನಿರ್ಮಾಣ ಹಾಗೂ ಮುಂದಿನ ಪೀಳಿಗೆಗೆ ಮಾರ್ಗದರ್ಶನ." : "Financial consolidation, building enduring systems, and mentorship." },
@@ -791,7 +791,7 @@ export async function executeKaalaDiksuchiCalculation(
   const diksuchi = computeDiksuchiCompassMatrix(input, num.ruling, num.destiny, sunRashiIdx);
 
   const planetSummaries: PlanetaryPositionSummary[] = [
-    { name: "Sun (ಸೂರ್ಯ)", rashi: suryaRashiStr || "ಮೇಷ", degree: coords.sun % 30, houseFromSun: 1, dignity: evaluateDignity("Sun", sunRashiIdx), significance: "ಆತ್ಮಕಾರಕ & ಪ್ರಾಣಶಕ್ತಿ" },
+    { name: "Sun (ರವಿ)", rashi: suryaRashiStr || "ಮೇಷ", degree: coords.sun % 30, houseFromSun: 1, dignity: evaluateDignity("Sun", sunRashiIdx), significance: "ಆತ್ಮಕಾರಕ & ಪ್ರಾಣಶಕ್ತಿ" },
     { name: "Moon (ಚಂದ್ರ)", rashi: chandraRashiStr || "ವೃಷಭ", degree: coords.moon % 30, houseFromSun: Math.floor((coords.moon - coords.sun + 360) % 360 / 30) + 1, dignity: evaluateDignity("Moon", moonRashiIdx), significance: "ಮನಃಕಾರಕ & ಭಾವನಾತ್ಮಕ ಸ್ಥೈರ್ಯ" },
     { name: "Mars (ಮಂಗಳ)", rashi: isKn ? RASHI_NAMES_KN[Math.floor(coords.mars / 30)]! : RASHI_NAMES_EN[Math.floor(coords.mars / 30)]!, degree: coords.mars % 30, houseFromSun: Math.floor((coords.mars - coords.sun + 360) % 360 / 30) + 1, dignity: evaluateDignity("Mars", Math.floor(coords.mars / 30)), significance: "ಪರಾಕ್ರಮ & ಧೈರ್ಯ" },
     { name: "Mercury (ಬುಧ)", rashi: isKn ? RASHI_NAMES_KN[Math.floor(coords.mercury / 30)]! : RASHI_NAMES_EN[Math.floor(coords.mercury / 30)]!, degree: coords.mercury % 30, houseFromSun: Math.floor((coords.mercury - coords.sun + 360) % 360 / 30) + 1, dignity: evaluateDignity("Mercury", Math.floor(coords.mercury / 30)), significance: "ಬುದ್ಧಿ & ವ್ಯಾಪಾರ ಕೌಶಲ್ಯ" },
@@ -807,7 +807,7 @@ export async function executeKaalaDiksuchiCalculation(
       return `ಶ್ರೀಯುತ ${input.personName} ರವರಿಗೆ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದಿಂದ ಶ್ರೀರಾಮ್ ಪಂಡಿತರ ದಿವ್ಯ ಕಾಲ ದಿಕ್ಸೂಚಿ ಆಶೀರ್ವಾದಗಳು.
 
 ೧. ಜಾತಕ & ಸಂಖ್ಯಾ ತತ್ವ ವಿಶ್ಲೇಷಣೆ:
-ನಿಮ್ಮ ಜನ್ಮ ದಿನಾಂಕ (${input.dob}, ${weekdayName}) ದಂತೆ ನಿಮ್ಮ ಸೂರ್ಯ ರಾಶಿಯು ${suryaRashiStr} ಆಗಿದ್ದು, ಮೂಲಾಂಕ ${num.ruling} (${sankhya.mulankLord}) ಮತ್ತು ಭಾಗ್ಯಾಂಕ ${num.destiny} ಆಗಿದೆ. ನಿಮ್ಮ ವ್ಯಕ್ತಿತ್ವದಲ್ಲಿ ${samudrika.personalityArchetype} ತತ್ವವು ಪ್ರಧಾನವಾಗಿದ್ದು, ${samudrika.hiddenSuperpower} ನಿಮ್ಮ ಅಂತರ್ಗತ ಶಕ್ತಿಯಾಗಿದೆ.
+ನಿಮ್ಮ ಜನ್ಮ ದಿನಾಂಕ (${input.dob}, ${weekdayName}) ದಂತೆ ನಿಮ್ಮ ರವಿ ರಾಶಿಯು ${suryaRashiStr} ಆಗಿದ್ದು, ಮೂಲಾಂಕ ${num.ruling} (${sankhya.mulankLord}) ಮತ್ತು ಭಾಗ್ಯಾಂಕ ${num.destiny} ಆಗಿದೆ. ನಿಮ್ಮ ವ್ಯಕ್ತಿತ್ವದಲ್ಲಿ ${samudrika.personalityArchetype} ತತ್ವವು ಪ್ರಧಾನವಾಗಿದ್ದು, ${samudrika.hiddenSuperpower} ನಿಮ್ಮ ಅಂತರ್ಗತ ಶಕ್ತಿಯಾಗಿದೆ.
 
 ೨. ದಿಕ್ಸೂಚಿ & ಕಾಲ ಮುಹೂರ್ತ ಮಾರ್ಗದರ್ಶನ:
 ನಿಮ್ಮ ವೃತ್ತಿ ಮತ್ತು ಜೀವನದ ಮುನ್ನಡೆಗೆ ${diksuchi.careerDirection.directionName} ಅತ್ಯಂತ ಮಂಗಳಕರವಾಗಿದೆ (${diksuchi.careerDirection.practicalAdvice}). ಆರ್ಥಿಕ ಸಂಪತ್ತಿನ ವೃದ್ಧಿಗೆ ${diksuchi.wealthDirection.directionName} ಶುಭಕರ. ಇಂದಿನ ದಿನದ ದಿಕ್ಶೂಲವು ${diksuchi.dailyDishaShoola.afflictedDirection} ಯಲ್ಲಿದ್ದು, ${diksuchi.dailyDishaShoola.classicalRemedy}. ನಿಮ್ಮ ದೈನಂದಿನ ಅತ್ಯುನ್ನತ ಶುಭ ಕಾಲಾವಧಿ ${diksuchi.timingRhythm.peakPranaWindow} ಆಗಿದೆ.

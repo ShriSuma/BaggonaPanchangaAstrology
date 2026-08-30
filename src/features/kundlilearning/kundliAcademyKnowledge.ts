@@ -174,7 +174,7 @@ function createFull9GrahaEffects(
   specialOverrides: Record<string, Partial<GrahaPlacementEffect>> = {}
 ): GrahaPlacementEffect[] {
   const defaultGrahas: { planetKn: string; planetEn: string; symbol: string; nature: "benefic" | "malefic" | "neutral" }[] = [
-    { planetKn: "ಸೂರ್ಯ (Surya)", planetEn: "Sun (Surya)", symbol: "☀️", nature: "benefic" },
+    { planetKn: "ರವಿ (Ravi)", planetEn: "Sun (Ravi)", symbol: "☀️", nature: "benefic" },
     { planetKn: "ಚಂದ್ರ (Chandra)", planetEn: "Moon (Chandra)", symbol: "🌙", nature: "benefic" },
     { planetKn: "ಮಂಗಳ (Kuja)", planetEn: "Mars (Kuja)", symbol: "🔥", nature: "benefic" },
     { planetKn: "ಬುಧ (Budha)", planetEn: "Mercury (Budha)", symbol: "💎", nature: "benefic" },
@@ -228,7 +228,7 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
     naturalRashiEn: "Mesha (Aries)",
     naturalLordKn: "ಮಂಗಳ (Kuja / Mars)",
     naturalLordEn: "Mars (Kuja)",
-    karakaPlanetKn: "ಸೂರ್ಯ (Surya - ಆತ್ಮಕಾರಕ)",
+    karakaPlanetKn: "ರವಿ (Ravi - ಆತ್ಮಕಾರಕ)",
     karakaPlanetEn: "Sun (Surya - Soul Signifier)",
     bhavaCategoryKn: "ಕೇಂದ್ರ & ತ್ರಿಕೋಣ ಸ್ಥಾನ (Supreme Kendra & Dharma Trikona)",
     bhavaCategoryEn: "Dharma Trikona & Prime Kendra",
@@ -246,10 +246,10 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
     guruSandeshaKn: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಗುರೂಜಿ: 'ಲಗ್ನವೆಂಬುದು ಮರದ ಬೇರು ಇದ್ದಂತೆ. ಲಗ್ನ ಬಲವಾಗಿದ್ದರೆ ಎಂತಹ ಕಠಿಣ ಗ್ರಹದೋಷಗಳಿದ್ದರೂ ಮರವು ಫಲಪುಷ್ಪಗಳಿಂದ ಕಂಗೊಳಿಸುತ್ತದೆ.'",
     guruSandeshaEn: "Shreeram Pandit (Guruji): 'Lagna is the root of the tree of life. When the Ascendant is strong, the native flourishes despite external planetary storms.'",
     dignity: {
-      exaltedPlanetKn: "ಸೂರ್ಯ (Surya - 10° ವರೆಗೆ ಪರಮೋಚ್ಚ)",
+      exaltedPlanetKn: "ರವಿ (Ravi - 10° ವರೆಗೆ ಪರಮೋಚ್ಚ)",
       exaltedPlanetEn: "Sun (Surya - Exalted up to 10°)",
       exaltedDegree: "10° Mesha",
-      exaltationReasonKn: "ಸೂರ್ಯನು ಆತ್ಮಕಾರಕ ಹಾಗೂ ರಾಜ. ಅಗ್ನಿ ತತ್ತ್ವದ ಮೊದಲ ಮನೆಯಲ್ಲಿ ಸೂರ್ಯನಿಗೆ ಗರಿಷ್ಠ ತೇಜಸ್ಸು ಹಾಗೂ ನಾಯಕತ್ವ ಬಲ ದೊರೆಯುತ್ತದೆ.",
+      exaltationReasonKn: "ರವಿಯು ಆತ್ಮಕಾರಕ ಹಾಗೂ ರಾಜ. ಅಗ್ನಿ ತತ್ತ್ವದ ಮೊದಲ ಮನೆಯಲ್ಲಿ ರವಿಗೆ ಗರಿಷ್ಠ ತೇಜಸ್ಸು ಹಾಗೂ ನಾಯಕತ್ವ ಬಲ ದೊರೆಯುತ್ತದೆ.",
       exaltationReasonEn: "Sun is the king and soul signifier. In the first fiery sign, Sun achieves maximum illumination, leadership, and vitality.",
       debilitatedPlanetKn: "ಶನಿ (Shani - 20° ಯಲ್ಲಿ ಪರಮ ನೀಚ)",
       debilitatedPlanetEn: "Saturn (Shani - Debilitated at 20°)",
@@ -260,7 +260,7 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
       moolatrikonaEn: "Mars (0° - 12° in Aries is Moolatrikona)"
     },
     friendshipsKn: {
-      friends: ["ಸೂರ್ಯ (Surya)", "ಗುರು (Guru)", "ಚಂದ್ರ (Chandra)"],
+      friends: ["ರವಿ (Ravi)", "ಗುರು (Guru)", "ಚಂದ್ರ (Chandra)"],
       enemies: ["ಬುಧ (Budha)", "ಶುಕ್ರ (Shukra)"],
       neutrals: ["ಶನಿ (Shani)"]
     },
@@ -287,9 +287,9 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         classicalSource: "Bhavartha Ratnakara & Phaladeepika",
         explanationKn: "ಯಾವುದೇ ಮನೆಯ ಕಾರಕ ಗ್ರಹವು ಅದೇ ಮನೆಯಲ್ಲಿ ಏಕಾಂಗಿಯಾಗಿ ಕುಳಿತರೆ ಆ ಭಾವದ ಫಲಕ್ಕೆ ಅಲ್ಪ ಹಿನ್ನಡೆಯಾಗಬಹುದು ಎಂಬ ಸೂಕ್ಷ್ಮ ನಿಯಮ.",
         explanationEn: "When a house's natural significator sits alone in that exact house, its full manifestation requires careful balance.",
-        bvRamanInsightKn: "ಸೂರ್ಯನು ೧ನೇ ಮನೆಯಲ್ಲಿದ್ದಾಗ ಅತಿಯಾದ ಅಹಂಕಾರ ಅಥವಾ ಕಣ್ಣಿನ ತಾಪ ಉಂಟಾಗದಂತೆ ಶುಭ ಗ್ರಹಗಳ ಸಂಯೋಗವಿರಬೇಕು.",
+        bvRamanInsightKn: "ರವಿಯು ೧ನೇ ಮನೆಯಲ್ಲಿದ್ದಾಗ ಅತಿಯಾದ ಅಹಂಕಾರ ಅಥವಾ ಕಣ್ಣಿನ ತಾಪ ಉಂಟಾಗದಂತೆ ಶುಭ ಗ್ರಹಗಳ ಸಂಯೋಗವಿರಬೇಕು.",
         bvRamanInsightEn: "When Sun sits in the 1st, Jupiter's aspect softens ego and promotes benevolent, noble governance.",
-        practicalExampleKn: "ಸೂರ್ಯನೊಂದಿಗೆ ಗುರು ಅಥವಾ ಚಂದ್ರನ ದೃಷ್ಟಿಯಿದ್ದರೆ ವ್ಯಕ್ತಿಯು ಲೋಕಪೂಜ್ಯ ನಾಯಕನಾಗುತ್ತಾನೆ.",
+        practicalExampleKn: "ರವಿಯೊಂದಿಗೆ ಗುರು ಅಥವಾ ಚಂದ್ರನ ದೃಷ್ಟಿಯಿದ್ದರೆ ವ್ಯಕ್ತಿಯು ಲೋಕಪೂಜ್ಯ ನಾಯಕನಾಗುತ್ತಾನೆ.",
         practicalExampleEn: "Sun aspected by Jupiter in the 1st house creates an universally respected, visionary statesman."
       }
     ],
@@ -332,7 +332,7 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         keyGiftsEn: ["Natural Leadership", "Decisiveness", "Glowing Vitality"],
         watchOutsKn: ["ಅತಿಯಾದ ಅಹಂಕಾರ", "ಕೋಪ ನಿಯಂತ್ರಣ"],
         watchOutsEn: ["Ego traps", "Hot-headed impulses"],
-        bvRamanVerdictKn: "ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ & ಡಾ. ಬಿ.ವಿ. ರಾಮನ್: 'ಸೂರ್ಯನು ಲಗ್ನದಲ್ಲಿದ್ದರೆ ವ್ಯಕ್ತಿಯು ಸ್ವಾವಲಂಬಿ ಹಾಗೂ ಸಮಾಜದಲ್ಲಿ ಧ್ರುವತಾರೆಯಂತೆ ಬೆಳಗುತ್ತಾನೆ.'",
+        bvRamanVerdictKn: "ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ & ಡಾ. ಬಿ.ವಿ. ರಾಮನ್: 'ರವಿಯು ಲಗ್ನದಲ್ಲಿದ್ದರೆ ವ್ಯಕ್ತಿಯು ಸ್ವಾವಲಂಬಿ ಹಾಗೂ ಸಮಾಜದಲ್ಲಿ ಧ್ರುವತಾರೆಯಂತೆ ಬೆಳಗುತ್ತಾನೆ.'",
         bvRamanVerdictEn: "Revered Shreeram Pandit & Dr. B.V. Raman: 'Sun in the Ascendant makes the native self-reliant, courageous, and prominent in society.'"
       },
       Moon: {
@@ -473,10 +473,10 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
       {
         questionKn: "೧ನೇ ಮನೆಯ ನೈಸರ್ಗಿಕ ರಾಶಿಯಾದ 'ಮೇಷ'ದಲ್ಲಿ ಯಾವ ಗ್ರಹವು ಪರಮೋಚ್ಚ (Exalted) ಆಗುತ್ತದೆ?",
         questionEn: "Which planet is Exalted (Uccha) in the natural 1st zodiac sign (Aries / Mesha)?",
-        optionsKn: ["ಶನಿ", "ಸೂರ್ಯ", "ಬುಧ", "ಶುಕ್ರ"],
+        optionsKn: ["ಶನಿ", "ರವಿ", "ಬುಧ", "ಶುಕ್ರ"],
         optionsEn: ["Saturn", "Sun", "Mercury", "Venus"],
         correctIndex: 1,
-        explanationKn: "ಸೂರ್ಯನು ಮೇಷ ರಾಶಿಯ ೧೦ನೇ ಅಂಶದವರೆಗೆ ಪರಮೋಚ್ಚ (Exalted) ಸ್ಥಾನವನ್ನು ಹೊಂದುತ್ತಾನೆ.",
+        explanationKn: "ರವಿಯು ಮೇಷ ರಾಶಿಯ ೧೦ನೇ ಅಂಶದವರೆಗೆ ಪರಮೋಚ್ಚ (Exalted) ಸ್ಥಾನವನ್ನು ಹೊಂದುತ್ತಾನೆ.",
         explanationEn: "Sun reaches its highest exaltation (Uccha) up to 10° in Mesha."
       },
       {
@@ -536,7 +536,7 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
     },
     friendshipsKn: {
       friends: ["ಶುಕ್ರ (Shukra)", "ಬುಧ (Budha)", "ಶನಿ (Shani)"],
-      enemies: ["ಸೂರ್ಯ (Surya)", "ಚಂದ್ರ (Chandra)"],
+      enemies: ["ರವಿ (Ravi)", "ಚಂದ್ರ (Chandra)"],
       neutrals: ["ಮಂಗಳ (Kuja)", "ಗುರು (Guru)"]
     },
     friendshipsEn: {
@@ -678,7 +678,7 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
     friendshipsKn: {
       friends: ["ಬುಧ", "ಶುಕ್ರ", "ಶನಿ"],
       enemies: ["ಚಂದ್ರ"],
-      neutrals: ["ಸೂರ್ಯ", "ಮಂಗಳ", "ಗುರು"]
+      neutrals: ["ರವಿ", "ಮಂಗಳ", "ಗುರು"]
     },
     friendshipsEn: {
       friends: ["Mercury", "Venus", "Saturn"],
@@ -802,7 +802,7 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
       moolatrikonaEn: "Moon (Own Sign in Cancer)"
     },
     friendshipsKn: {
-      friends: ["ಸೂರ್ಯ", "ಚಂದ್ರ", "ಗುರು"],
+      friends: ["ರವಿ", "ಚಂದ್ರ", "ಗುರು"],
       enemies: ["ಬುಧ", "ಶುಕ್ರ"],
       neutrals: ["ಶನಿ", "ಮಂಗಳ"]
     },
@@ -893,7 +893,7 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
     englishName: "5th House - Putra Bhava (Intellect, Children & Past Merits)",
     naturalRashiKn: "ಸಿಂಹ (Simha / Leo)",
     naturalRashiEn: "Simha (Leo)",
-    naturalLordKn: "ಸೂರ್ಯ (Surya / Sun)",
+    naturalLordKn: "ರವಿ (Ravi / Sun)",
     naturalLordEn: "Sun (Surya)",
     karakaPlanetKn: "ಗುರು (Guru - ಪುತ್ರ & ಬುದ್ಧಿಕಾರಕ)",
     karakaPlanetEn: "Jupiter (Guru - Progeny & Intellect Signifier)",
@@ -913,21 +913,21 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
     guruSandeshaKn: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಗುರೂಜಿ: '೫ನೇ ಮನೆಯು ಪೂರ್ವ ಪುಣ್ಯದ ಭಂಡಾರ. ಇಲ್ಲಿ ಒಳ್ಳೆಯ ಗ್ರಹವಿದ್ದರೆ ವ್ಯಕ್ತಿಯು ಅಪ್ರತಿಮ ಮೇಧಾವಿ ಹಾಗೂ ಮಂತ್ರಸಿದ್ಧನಾಗುತ್ತಾನೆ.'",
     guruSandeshaEn: "Shreeram Pandit (Guruji): 'The 5th house stores the treasury of past life merits, conferring intuitive wisdom and sacred mantra mastery.'",
     dignity: {
-      exaltedPlanetKn: "ಸೂರ್ಯ ಸ್ವಕ್ಷೇತ್ರ (ಮೂಲತ್ರಿಕೋಣ)",
+      exaltedPlanetKn: "ರವಿ ಸ್ವಕ್ಷೇತ್ರ (ಮೂಲತ್ರಿಕೋಣ)",
       exaltedPlanetEn: "Sun (Own Moolatrikona Sign)",
       exaltedDegree: "0-20° Simha",
-      exaltationReasonKn: "ಸಿಂಹ ರಾಶಿಯಲ್ಲಿ ಸೂರ್ಯನು ತನ್ನ ನೈಸರ್ಗಿಕ ಸಿಂಹಾಸನದ ಮೇಲೆ ಕುಳಿತು ಬುದ್ಧಿಯನ್ನು ಬೆಳಗಿಸುತ್ತಾನೆ.",
+      exaltationReasonKn: "ಸಿಂಹ ರಾಶಿಯಲ್ಲಿ ರವಿಯು ತನ್ನ ನೈಸರ್ಗಿಕ ಸಿಂಹಾಸನದ ಮೇಲೆ ಕುಳಿತು ಬುದ್ಧಿಯನ್ನು ಬೆಳಗಿಸುತ್ತಾನೆ.",
       exaltationReasonEn: "In Leo, the Sun sits on his divine throne, illuminating intellect and governance.",
       debilitatedPlanetKn: "ಶನಿ (ಶತ್ರು ಕ್ಷೇತ್ರ)",
       debilitatedPlanetEn: "Saturn (Inimical Sign)",
       debilitatedDegree: "Simha",
       debilitationReasonKn: "ಶನಿಯ ಶೀತಲ ಸ್ವಭಾವಕ್ಕೆ ಸಿಂಹದ ಅಗ್ನಿ ತತ್ತ್ವದಲ್ಲಿ ಹೊಂದಾಣಿಕೆ ಕಷ್ಟ.",
       debilitationReasonEn: "Saturn faces natural friction in the royal solar domain of Leo.",
-      moolatrikonaKn: "ಸೂರ್ಯ (0° - 20° ಸಿಂಹದಲ್ಲಿ ಮೂಲತ್ರಿಕೋಣ)",
+      moolatrikonaKn: "ರವಿ (0° - 20° ಸಿಂಹದಲ್ಲಿ ಮೂಲತ್ರಿಕೋಣ)",
       moolatrikonaEn: "Sun (0° - 20° in Leo is Moolatrikona)"
     },
     friendshipsKn: {
-      friends: ["ಸೂರ್ಯ", "ಚಂದ್ರ", "ಗುರು", "ಮಂಗಳ"],
+      friends: ["ರವಿ", "ಚಂದ್ರ", "ಗುರು", "ಮಂಗಳ"],
       enemies: ["ಶುಕ್ರ", "ಶನಿ", "ರಾಹು"],
       neutrals: ["ಬುಧ"]
     },
@@ -941,7 +941,7 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         ruleTitleKn: "ಬುಧಾದಿತ್ಯ & ಸರಸ್ವತೀ ಯೋಗ (Budhaditya Yoga in 5th)",
         ruleTitleEn: "Budhaditya & Saraswati Yoga in 5th",
         classicalSource: "B.V. Raman - 300 Important Combinations",
-        explanationKn: "೫ನೇ ಮನೆಯಲ್ಲಿ ಸೂರ್ಯ ಮತ್ತು ಬುಧ ಒಟ್ಟಿಗಿದ್ದರೆ ಬುಧಾದಿತ್ಯ ಯೋಗ ಉಂಟಾಗಿ ಅಪ್ರತಿಮ ಮೇಧಾವಿಯಾಗುತ್ತಾನೆ.",
+        explanationKn: "೫ನೇ ಮನೆಯಲ್ಲಿ ರವಿ ಮತ್ತು ಬುಧ ಒಟ್ಟಿಗಿದ್ದರೆ ಬುಧಾದಿತ್ಯ ಯೋಗ ಉಂಟಾಗಿ ಅಪ್ರತಿಮ ಮೇಧಾವಿಯಾಗುತ್ತಾನೆ.",
         explanationEn: "Conjunction of Sun and Mercury in the 5th house forms Budhaditya Yoga, granting scholarly brilliance.",
         bvRamanInsightKn: "ಈ ಜಾತಕನು ಗಣಿತ, ವಿಜ್ಞಾನ ಹಾಗೂ ಸಂಶೋಧನೆಯಲ್ಲಿ ರಾಷ್ಟ್ರೀಯ ಕೀರ್ತಿ ಗಳಿಸುತ್ತಾನೆ.",
         bvRamanInsightEn: "The native excels in analytics, mathematics, literature, and innovative intellect.",
@@ -1055,7 +1055,7 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
     friendshipsKn: {
       friends: ["ಬುಧ", "ಶುಕ್ರ", "ಶನಿ"],
       enemies: ["ಮಂಗಳ"],
-      neutrals: ["ಸೂರ್ಯ", "ಚಂದ್ರ", "ಗುರು"]
+      neutrals: ["ರವಿ", "ಚಂದ್ರ", "ಗುರು"]
     },
     friendshipsEn: {
       friends: ["Mercury", "Venus", "Saturn"],
@@ -1128,7 +1128,7 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
       {
         questionKn: "೬ನೇ ಮನೆಯ ನೈಸರ್ಗಿಕ ರಾಶಿಯಾದ ಕನ್ಯಾದಲ್ಲಿ ಯಾವ ಗ್ರಹವು ಪರಮೋಚ್ಚ (Exalted) ಆಗುತ್ತದೆ?",
         questionEn: "Which planet is Exalted in the natural 6th sign Virgo (Kanya)?",
-        optionsKn: ["ಶುಕ್ರ", "ಬುಧ", "ಗುರು", "ಸೂರ್ಯ"],
+        optionsKn: ["ಶುಕ್ರ", "ಬುಧ", "ಗುರು", "ರವಿ"],
         optionsEn: ["Venus", "Mercury (Budha)", "Jupiter", "Sun"],
         correctIndex: 1,
         explanationKn: "ಬುಧನು ಕನ್ಯಾ ರಾಶಿಯ ೧೫ನೇ ಅಂಶದವರೆಗೆ ತನ್ನದೇ ಸ್ವಂತ-ಉಚ್ಚ ಕ್ಷೇತ್ರದಲ್ಲಿರುತ್ತಾನೆ.",
@@ -1169,17 +1169,17 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
       exaltedDegree: "20° Tula",
       exaltationReasonKn: "ನ್ಯಾಯದ ತಕ್ಕಡಿಯಾದ ತುಲಾದಲ್ಲಿ ನ್ಯಾಯಾಧಿಪತಿ ಶನಿಗೆ ಪರಮೋಚ್ಚ ಬಲ ದೊರೆಯುತ್ತದೆ (ಸಸ ಮಹಾಪುರುಷ ಯೋಗ).",
       exaltationReasonEn: "In the balanced scale of Libra, the cosmic judge Saturn achieves supreme exaltation (Sasa Yoga).",
-      debilitatedPlanetKn: "ಸೂರ್ಯ (10° ಯಲ್ಲಿ ತುಲಾದಲ್ಲಿ ಪರಮ ನೀಚ)",
+      debilitatedPlanetKn: "ರವಿ (10° ಯಲ್ಲಿ ತುಲಾದಲ್ಲಿ ಪರಮ ನೀಚ)",
       debilitatedPlanetEn: "Sun (Debilitated at 10° in Libra)",
       debilitatedDegree: "10° Tula",
-      debilitationReasonKn: "ರಾಜನಾದ ಸೂರ್ಯನಿಗೆ ಸಮಾನ ಪಾಲುದಾರಿಕೆಯ ೭ನೇ ಮನೆಯಲ್ಲಿ ಅಹಂಕಾರ ಕರಗುವುದರಿಂದ ನೀಚ ಸ್ಥಿತಿ.",
+      debilitationReasonKn: "ರಾಜನಾದ ರವಿಗೆ ಸಮಾನ ಪಾಲುದಾರಿಕೆಯ ೭ನೇ ಮನೆಯಲ್ಲಿ ಅಹಂಕಾರ ಕರಗುವುದರಿಂದ ನೀಚ ಸ್ಥಿತಿ.",
       debilitationReasonEn: "The regal Sun must compromise his solo authority in the cooperative domain of the 7th house.",
       moolatrikonaKn: "ಶುಕ್ರ (0° - 15° ತುಲಾದಲ್ಲಿ ಮೂಲತ್ರಿಕೋಣ)",
       moolatrikonaEn: "Venus (0° - 15° in Libra is Moolatrikona)"
     },
     friendshipsKn: {
       friends: ["ಶುಕ್ರ", "ಬುಧ", "ಶನಿ"],
-      enemies: ["ಸೂರ್ಯ", "ಚಂದ್ರ", "ಮಂಗಳ"],
+      enemies: ["ರವಿ", "ಚಂದ್ರ", "ಮಂಗಳ"],
       neutrals: ["ಗುರು"]
     },
     friendshipsEn: {
@@ -1253,7 +1253,7 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
       {
         questionKn: "೭ನೇ ಮನೆಯ ನೈಸರ್ಗಿಕ ರಾಶಿಯಾದ ತುಲಾದಲ್ಲಿ ಯಾವ ಗ್ರಹವು ಪರಮೋಚ್ಚ (Exalted) ಆಗಿ ಸಸ ಯೋಗ ನೀಡುತ್ತದೆ?",
         questionEn: "Which planet is Exalted in Libra (7th sign), forming Sasa Mahapurusha Yoga?",
-        optionsKn: ["ಸೂರ್ಯ", "ಶನಿ (Saturn)", "ಮಂಗಳ", "ಚಂದ್ರ"],
+        optionsKn: ["ರವಿ", "ಶನಿ (Saturn)", "ಮಂಗಳ", "ಚಂದ್ರ"],
         optionsEn: ["Sun", "Saturn (Shani)", "Mars", "Moon"],
         correctIndex: 1,
         explanationKn: "ಶನಿಯು ತುಲಾ ರಾಶಿಯ ೨೦ನೇ ಅಂಶದವರೆಗೆ ಪರಮೋಚ್ಚನಾಗಿ ಸಸ ಮಹಾಪುರುಷ ರಾಜಯೋಗವನ್ನು ಕರುಣಿಸುತ್ತಾನೆ.",
@@ -1303,7 +1303,7 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
       moolatrikonaEn: "Mars (Own Sign in Scorpio)"
     },
     friendshipsKn: {
-      friends: ["ಸೂರ್ಯ", "ಚಂದ್ರ", "ಗುರು"],
+      friends: ["ರವಿ", "ಚಂದ್ರ", "ಗುರು"],
       enemies: ["ಬುಧ"],
       neutrals: ["ಶುಕ್ರ", "ಶನಿ"]
     },
@@ -1396,7 +1396,7 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
     naturalRashiEn: "Dhanu (Sagittarius)",
     naturalLordKn: "ಗುರು (Guru / Jupiter)",
     naturalLordEn: "Jupiter (Guru)",
-    karakaPlanetKn: "ಗುರು & ಸೂರ್ಯ (ಗುರು & ಪಿತೃಕಾರಕ)",
+    karakaPlanetKn: "ಗುರು & ರವಿ (ಗುರು & ಪಿತೃಕಾರಕ)",
     karakaPlanetEn: "Jupiter & Sun (Guru & Father Signifiers)",
     bhavaCategoryKn: "ಪರಮ ತ್ರಿಕೋಣ (Supreme Dharma Trikona)",
     bhavaCategoryEn: "Supreme Dharma Trikona",
@@ -1428,7 +1428,7 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
       moolatrikonaEn: "Jupiter (0° - 10° in Sagittarius is Moolatrikona)"
     },
     friendshipsKn: {
-      friends: ["ಸೂರ್ಯ", "ಚಂದ್ರ", "ಮಂಗಳ", "ಗುರು"],
+      friends: ["ರವಿ", "ಚಂದ್ರ", "ಮಂಗಳ", "ಗುರು"],
       enemies: ["ಬುಧ", "ಶುಕ್ರ"],
       neutrals: ["ಶನಿ"]
     },
@@ -1446,7 +1446,7 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         explanationEn: "Conjunction or mutual aspect between 9th lord (Dharma) and 10th lord (Karma) creates the supreme Raja Yoga.",
         bvRamanInsightKn: "ಈ ಜಾತಕನು ಧರ್ಮ ಮಾರ್ಗದಲ್ಲಿ ನಡೆದು ಅಪಾರ ಕೀರ್ತಿ, ಅಧಿಕಾರ ಹಾಗೂ ಭವ್ಯ ಯಶಸ್ಸು ಗಳಿಸುತ್ತಾನೆ.",
         bvRamanInsightEn: "The native attains high social status, leadership in righteous causes, and enduring historic fame.",
-        practicalExampleKn: "೯ನೇ ಮನೆಯಲ್ಲಿ ಸೂರ್ಯ ಅಥವಾ ಗುರು ಇದ್ದರೆ ಸದಾ ದೈವಾನುಗ್ರಹ ಜತೆಯಿರುತ್ತದೆ.",
+        practicalExampleKn: "೯ನೇ ಮನೆಯಲ್ಲಿ ರವಿ ಅಥವಾ ಗುರು ಇದ್ದರೆ ಸದಾ ದೈವಾನುಗ್ರಹ ಜತೆಯಿರುತ್ತದೆ.",
         practicalExampleEn: "Sun or Jupiter in 9th ensures lifelong divine luck and paternal prosperity."
       }
     ],
@@ -1471,18 +1471,18 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         keyGiftsEn: ["Divine Grace", "Fatherly Legacy", "Sacred Pilgrimages"],
         watchOutsKn: ["ತಂದೆಯೊಂದಿಗೆ ಸೈದ್ಧಾಂತಿಕ ಭಿನ್ನಾಭಿಪ್ರಾಯ"],
         watchOutsEn: ["Ideological friction with elders"],
-        bvRamanVerdictKn: "ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್: '೯ನೇ ಮನೆಯಲ್ಲಿ ಸೂರ್ಯನಿದ್ದರೆ ಜಾತಕನು ಉನ್ನತ ಧರ್ಮನಿಷ್ಠ ಹಾಗೂ ತಂದೆಯ ಆಶೀರ್ವಾದ ಪಡೆದವನಾಗುತ್ತಾನೆ.'",
+        bvRamanVerdictKn: "ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್: '೯ನೇ ಮನೆಯಲ್ಲಿ ರವಿಯಿದ್ದರೆ ಜಾತಕನು ಉನ್ನತ ಧರ್ಮನಿಷ್ಠ ಹಾಗೂ ತಂದೆಯ ಆಶೀರ್ವಾದ ಪಡೆದವನಾಗುತ್ತಾನೆ.'",
         bvRamanVerdictEn: "Revered Shreeram Pandit: 'Sun in 9th house makes one deeply spiritual, generous, and devoted to righteousness.'"
       }
     }),
         realWorldExample: {
-      exampleTitleKn: "ನೈಜ ಕುಂಡಲಿ ಉದಾಹರಣೆ: ೯ನೇ ಮನೆಯಲ್ಲಿ ಧರ್ಮಕರ್ಮಾಧಿಪತಿ ರಾಜಯೋಗ (ಗುರು & ಸೂರ್ಯ ಯುತಿ)",
+      exampleTitleKn: "ನೈಜ ಕುಂಡಲಿ ಉದಾಹರಣೆ: ೯ನೇ ಮನೆಯಲ್ಲಿ ಧರ್ಮಕರ್ಮಾಧಿಪತಿ ರಾಜಯೋಗ (ಗುರು & ರವಿ ಯುತಿ)",
       exampleTitleEn: "Real Chart Case: Dharma-Karmadhipati Raja Yoga in 9th House",
       chartContextKn: "ಜಾತಕ: ಸಿಂಹ ಲಗ್ನ. ೯ನೇ ಮನೆಯಾದ ಮೇಷದಲ್ಲಿ ಭಾಗ್ಯಾಧಿಪತಿ ಕುಜ ಮತ್ತು ದಶಮಾಧಿಪತಿ ಶುಕ್ರರ ಸಂಯೋಗ, ಜೊತೆಗೆ ಲಗ್ನಾಧಿಪತಿ ರವಿಯ ಉಚ್ಚ ಸ್ಥಿತಿ.",
       chartContextEn: "Chart Setup: Leo Ascendant. 9th Lord Mars and 10th Lord Venus combine with exalted Sun in the 9th house.",
       lagnaRashi: "Leo (Simha)",
       keyPlacements: [
-        { planetKn: "ಸೂರ್ಯ (Sun)", planetEn: "Sun", house: 9, rashiKn: "ಮೇಷ (Aries)", rashiEn: "Aries", conditionKn: "೯ನೇ ಮನೆಯಲ್ಲಿ ಪರಮೋಚ್ಚ (Exalted)", conditionEn: "Exalted at 10° Aries in 9th", isPositive: true }
+        { planetKn: "ರವಿ (Sun)", planetEn: "Sun", house: 9, rashiKn: "ಮೇಷ (Aries)", rashiEn: "Aries", conditionKn: "೯ನೇ ಮನೆಯಲ್ಲಿ ಪರಮೋಚ್ಚ (Exalted)", conditionEn: "Exalted at 10° Aries in 9th", isPositive: true }
       ],
       synthesisAnalysisKn: [
         "೧. ಪರಮ ಭಾಗ್ಯೋದಯ: ಜಾತಕನ ಪ್ರತಿಯೊಂದು ಹೆಜ್ಜೆಯಲ್ಲೂ ದೈವಾನುಗ್ರಹ ಹಾಗೂ ತಂದೆಯ ಸಂಪೂರ್ಣ ಆಶೀರ್ವಾದವಿರುತ್ತದೆ.",
@@ -1521,7 +1521,7 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
     naturalRashiEn: "Makara (Capricorn)",
     naturalLordKn: "ಶನಿ (Shani / Saturn)",
     naturalLordEn: "Saturn (Shani)",
-    karakaPlanetKn: "ಸೂರ್ಯ, ಬುಧ, ಗುರು, ಶನಿ (ಸರ್ವ ಕರ್ಮಕಾರಕರು)",
+    karakaPlanetKn: "ರವಿ, ಬುಧ, ಗುರು, ಶನಿ (ಸರ್ವ ಕರ್ಮಕಾರಕರು)",
     karakaPlanetEn: "Sun, Mercury, Jupiter, Saturn (Career Signifiers)",
     bhavaCategoryKn: "ಅತ್ಯುನ್ನತ ಕೇಂದ್ರ & ಅರ್ಥ ತ್ರಿಕೋಣ (Highest Kendra)",
     bhavaCategoryEn: "Apex Kendra & Artha Trikona",
@@ -1536,7 +1536,7 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
     lifeThemesEn: ["Career / Profession", "Government Honors & Executive Rank", "Public Fame & Legacy", "Social Status", "Right Action"],
     simpleIntroKn: "೧೦ನೇ ಮನೆಯೇ ನಿಮ್ಮ ವೃತ್ತಿ ಜೀವನದ ಸಿಂಹಾಸನ! ಇದು ನೀವು ಮಾಡುವ ಉದ್ಯೋಗ, ಸಮಾಜದಲ್ಲಿ ಗಳಿಸುವ ಕೀರ್ತಿ ಹಾಗೂ ನಿಮ್ಮ ಅಧಿಕಾರವನ್ನು ನಿರ್ಧರಿಸುತ್ತದೆ.",
     simpleIntroEn: "The 10th House is the pinnacle of career, authority, public reputation, and professional destiny.",
-    guruSandeshaKn: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಗುರೂಜಿ: 'ಕರ್ಮವೇ ಪೂಜೆ. ೧೦ನೇ ಮನೆಯಲ್ಲಿ ಸೂರ್ಯ ಅಥವಾ ಮಂಗಳನಿದ್ದರೆ ಜಾತಕನು ಸಮಾಜವನ್ನು ಮುನ್ನಡೆಸುವ ಶ್ರೇಷ್ಠ ನಾಯಕನಾಗುತ್ತಾನೆ.'",
+    guruSandeshaKn: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಗುರೂಜಿ: 'ಕರ್ಮವೇ ಪೂಜೆ. ೧೦ನೇ ಮನೆಯಲ್ಲಿ ರವಿ ಅಥವಾ ಮಂಗಳನಿದ್ದರೆ ಜಾತಕನು ಸಮಾಜವನ್ನು ಮುನ್ನಡೆಸುವ ಶ್ರೇಷ್ಠ ನಾಯಕನಾಗುತ್ತಾನೆ.'",
     guruSandeshaEn: "Shreeram Pandit (Guruji): 'Action is worship. Strong planets in the 10th house elevate the native to commanding authority and public honor.'",
     dignity: {
       exaltedPlanetKn: "ಮಂಗಳ (28° ಯಲ್ಲಿ ಮಕರದಲ್ಲಿ ಪರಮೋಚ್ಚ)",
@@ -1554,7 +1554,7 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
     },
     friendshipsKn: {
       friends: ["ಬುಧ", "ಶುಕ್ರ", "ಶನಿ"],
-      enemies: ["ಸೂರ್ಯ", "ಚಂದ್ರ", "ಮಂಗಳ"],
+      enemies: ["ರವಿ", "ಚಂದ್ರ", "ಮಂಗಳ"],
       neutrals: ["ಗುರು"]
     },
     friendshipsEn: {
@@ -1564,39 +1564,39 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
     },
     specialRules: [
       {
-        ruleTitleKn: "ದಿಗ್ಬಲ ಸೂರ್ಯ & ಮಂಗಳ ನಿಯಮ (Digbala in 10th)",
+        ruleTitleKn: "ದಿಗ್ಬಲ ರವಿ & ಮಂಗಳ ನಿಯಮ (Digbala in 10th)",
         ruleTitleEn: "Digbala Sun & Mars in 10th",
         classicalSource: "B.V. Raman - Manual of Hindu Astrology",
-        explanationKn: "೧೦ನೇ ಮನೆಯಲ್ಲಿ ಸೂರ್ಯ ಹಾಗೂ ಮಂಗಳ ಗ್ರಹಗಳಿಗೆ ಗರಿಷ್ಠ ದಿಗ್ಬಲ ದೊರೆಯುತ್ತದೆ. ಇದರಿಂದ ಅಪ್ರತಿಮ ಆಡಳಿತ ಅಧಿಕಾರ ಲಭಿಸುತ್ತದೆ.",
+        explanationKn: "೧೦ನೇ ಮನೆಯಲ್ಲಿ ರವಿ ಹಾಗೂ ಮಂಗಳ ಗ್ರಹಗಳಿಗೆ ಗರಿಷ್ಠ ದಿಗ್ಬಲ ದೊರೆಯುತ್ತದೆ. ಇದರಿಂದ ಅಪ್ರತಿಮ ಆಡಳಿತ ಅಧಿಕಾರ ಲಭಿಸುತ್ತದೆ.",
         explanationEn: "Sun and Mars attain peak Directional Strength (Digbala) in the 10th house, conferring supreme executive command.",
         bvRamanInsightKn: "ಈ ಜಾತಕನು ಸಮಾಜವನ್ನು ಮುನ್ನಡೆಸುವ ಮಹಾನ್ ನಾಯಕನಾಗುತ್ತಾನೆ.",
         bvRamanInsightEn: "The native becomes a distinguished administrator, minister, or industrial pioneer.",
-        practicalExampleKn: "೧೦ನೇ ಮನೆಯಲ್ಲಿ ಸೂರ್ಯನಿದ್ದರೆ IAS, KAS ಅಥವಾ ಉನ್ನತ ಸರ್ಕಾರಿ ಗೌರವ ಪ್ರಾಪ್ತಿಯಾಗುತ್ತದೆ.",
+        practicalExampleKn: "೧೦ನೇ ಮನೆಯಲ್ಲಿ ರವಿಯಿದ್ದರೆ IAS, KAS ಅಥವಾ ಉನ್ನತ ಸರ್ಕಾರಿ ಗೌರವ ಪ್ರಾಪ್ತಿಯಾಗುತ್ತದೆ.",
         practicalExampleEn: "Sun in 10th house confers civil service leadership, executive rank, and national awards."
       }
     ],
     drishtiRules: [
       {
-        planetKn: "ಸೂರ್ಯ (Sun)",
+        planetKn: "ರವಿ (Sun)",
         planetEn: "Sun (Surya)",
         symbol: "☀️",
         aspectsKn: ["೪ನೇ ಮನೆ (ಗೃಹ ಸುಖ)"],
         aspectsEn: ["4th House (Property & Comfort)"],
-        drishtiQualityKn: "೧೦ನೇ ಮನೆಯ ಸೂರ್ಯನು ೪ನೇ ಮನೆಯನ್ನು ನೋಡಿ ಭವ್ಯ ಗೃಹ ಹಾಗೂ ವಾಹನ ಸೌಭಾಗ್ಯ ನೀಡುತ್ತಾನೆ.",
+        drishtiQualityKn: "೧೦ನೇ ಮನೆಯ ರವಿಯು ೪ನೇ ಮನೆಯನ್ನು ನೋಡಿ ಭವ್ಯ ಗೃಹ ಹಾಗೂ ವಾಹನ ಸೌಭಾಗ್ಯ ನೀಡುತ್ತಾನೆ.",
         drishtiQualityEn: "Sun in 10th aspects 4th house, stabilizing domestic reputation and real estate assets."
       }
     ],
     grahaEffects: createFull9GrahaEffects(10, "ಕರ್ಮ & ರಾಜ್ಯ ಭಾವ", "Karma Bhava (Career & Authority)", {
       Sun: {
-        effectTitleKn: "ದಿಗ್ಬಲ ಸೂರ್ಯ & ರಾಜ್ಯಾಧಿಕಾರ (Sun in 10th - Digbala)",
+        effectTitleKn: "ದಿಗ್ಬಲ ರವಿ & ರಾಜ್ಯಾಧಿಕಾರ (Sun in 10th - Digbala)",
         effectTitleEn: "Digbala Sun: Supreme Executive Power (Sun in 10th)",
-        descriptionKn: "೧೦ನೇ ಮನೆಯಲ್ಲಿ ಸೂರ್ಯನಿಗೆ ಗರಿಷ್ಠ ದಿಗ್ಬಲ ದೊರೆಯುತ್ತದೆ. ಉನ್ನತ ಸರ್ಕಾರಿ ಹುದ್ದೆ (IAS/KAS), ಅಧಿಕಾರ, ಸಮಾಜದಲ್ಲಿ ಅಪ್ರತಿಮ ಗೌರವ ಹಾಗೂ ನಾಯಕತ್ವ.",
+        descriptionKn: "೧೦ನೇ ಮನೆಯಲ್ಲಿ ರವಿಗೆ ಗರಿಷ್ಠ ದಿಗ್ಬಲ ದೊರೆಯುತ್ತದೆ. ಉನ್ನತ ಸರ್ಕಾರಿ ಹುದ್ದೆ (IAS/KAS), ಅಧಿಕಾರ, ಸಮಾಜದಲ್ಲಿ ಅಪ್ರತಿಮ ಗೌರವ ಹಾಗೂ ನಾಯಕತ್ವ.",
         descriptionEn: "Sun attains maximum directional strength (Digbala) in the 10th house, bestowing high government office, public stature, and authority.",
         keyGiftsKn: ["ರಾಜ್ಯಾಧಿಕಾರ", "ದಿಗ್ಬಲ ಕೀರ್ತಿ", "ಸಾರ್ವಜನಿಕ ನಾಯಕತ್ವ"],
         keyGiftsEn: ["Executive Authority", "Supreme Fame", "Civic Leadership"],
         watchOutsKn: ["ಅಧಿಕಾರದ ಅಹಂಕಾರ"],
         watchOutsEn: ["Authoritarian pride"],
-        bvRamanVerdictKn: "ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್: '೧೦ನೇ ಮನೆಯಲ್ಲಿ ಸೂರ್ಯನಿದ್ದರೆ ವ್ಯಕ್ತಿಯು ಸಮಾಜದಲ್ಲಿ ಸೂರ್ಯನಂತೆ ಪ್ರಜ್ವಲಿಸುತ್ತಾನೆ.'",
+        bvRamanVerdictKn: "ಪೂಜ್ಯ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್: '೧೦ನೇ ಮನೆಯಲ್ಲಿ ರವಿಯಿದ್ದರೆ ವ್ಯಕ್ತಿಯು ಸಮಾಜದಲ್ಲಿ ರವಿಯಂತೆ ಪ್ರಜ್ವಲಿಸುತ್ತಾನೆ.'",
         bvRamanVerdictEn: "Revered Shreeram Pandit: 'Sun in 10th is a royal combination, bestowing supreme career triumph and public acclaim.'"
       }
     }),
@@ -1628,10 +1628,10 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
       {
         questionKn: "೧೦ನೇ ಮನೆಯಲ್ಲಿ ಯಾವ ಗ್ರಹಕ್ಕೆ ಗರಿಷ್ಠ 'ದಿಗ್ಬಲ' (Directional Strength) ದೊರೆಯುತ್ತದೆ?",
         questionEn: "Which planet attains peak Directional Strength (Digbala) in the 10th House?",
-        optionsKn: ["ಸೂರ್ಯ ಮತ್ತು ಮಂಗಳ", "ಚಂದ್ರ", "ಶುಕ್ರ", "ಕೇತು"],
+        optionsKn: ["ರವಿ ಮತ್ತು ಮಂಗಳ", "ಚಂದ್ರ", "ಶುಕ್ರ", "ಕೇತು"],
         optionsEn: ["Sun & Mars", "Moon", "Venus", "Ketu"],
         correctIndex: 0,
-        explanationKn: "ಮಧ್ಯಾಹ್ನದ ಆಕಾಶದ ೧೦ನೇ ಮನೆಯಲ್ಲಿ ಸೂರ್ಯ ಮತ್ತು ಮಂಗಳ ಗ್ರಹಗಳಿಗೆ ಪರಮ ದಿಗ್ಬಲ ದೊರೆಯುತ್ತದೆ.",
+        explanationKn: "ಮಧ್ಯಾಹ್ನದ ಆಕಾಶದ ೧೦ನೇ ಮನೆಯಲ್ಲಿ ರವಿ ಮತ್ತು ಮಂಗಳ ಗ್ರಹಗಳಿಗೆ ಪರಮ ದಿಗ್ಬಲ ದೊರೆಯುತ್ತದೆ.",
         explanationEn: "Sun and Mars attain peak Digbala in the mid-heaven 10th house."
       }
     ]
@@ -1679,7 +1679,7 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
     },
     friendshipsKn: {
       friends: ["ಬುಧ", "ಶುಕ್ರ", "ಶನಿ", "ರಾಹು"],
-      enemies: ["ಸೂರ್ಯ", "ಚಂದ್ರ"],
+      enemies: ["ರವಿ", "ಚಂದ್ರ"],
       neutrals: ["ಗುರು", "ಮಂಗಳ"]
     },
     friendshipsEn: {
@@ -1692,7 +1692,7 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
         ruleTitleKn: "ಸರ್ವ ಗ್ರಹ ಲಾಭದಾಯಕ ನಿಯಮ (All Planets in 11th)",
         ruleTitleEn: "Sarva Graha Labha Principle (B.V. Raman)",
         classicalSource: "How to Judge a Horoscope (Vol 2)",
-        explanationKn: "೧೧ನೇ ಮನೆಯಲ್ಲಿ ಸೂರ್ಯ, ಕುಜ, ಶನಿ ಅಥವಾ ರಾಹುವಿನಂತಹ ಪಾಪಗ್ರಹಗಳೂ ಕೂಡ ಅಪಾರ ಧನಲಾಭವನ್ನು ಕರುಣಿಸುತ್ತವೆ.",
+        explanationKn: "೧೧ನೇ ಮನೆಯಲ್ಲಿ ರವಿ, ಕುಜ, ಶನಿ ಅಥವಾ ರಾಹುವಿನಂತಹ ಪಾಪಗ್ರಹಗಳೂ ಕೂಡ ಅಪಾರ ಧನಲಾಭವನ್ನು ಕರುಣಿಸುತ್ತವೆ.",
         explanationEn: "Even natural malefics like Sun, Mars, Saturn, and Rahu yield substantial financial windfalls in the 11th house.",
         bvRamanInsightKn: "೧೧ನೇ ಮನೆಯು ಜಾತಕದ ಇಷ್ಟಾರ್ಥ ಸಿದ್ಧಿಯ ಕೀಲಿಕೈ.",
         bvRamanInsightEn: "The 11th house unlocks the realization of life's highest ambitions and financial liberty.",
@@ -1804,7 +1804,7 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
       moolatrikonaEn: "Jupiter (Own Sign in Pisces)"
     },
     friendshipsKn: {
-      friends: ["ಸೂರ್ಯ", "ಚಂದ್ರ", "ಮಂಗಳ", "ಗುರು"],
+      friends: ["ರವಿ", "ಚಂದ್ರ", "ಮಂಗಳ", "ಗುರು"],
       enemies: ["ಬುಧ", "ಶುಕ್ರ"],
       neutrals: ["ಶನಿ"]
     },
@@ -1892,7 +1892,7 @@ export const HOUSE_LEARNING_MODULES: Record<number, HouseLearningModule> = {
       {
         questionKn: "೧೨ನೇ ಮನೆಯ ನೈಸರ್ಗಿಕ ರಾಶಿಯಾದ ಮೀನದಲ್ಲಿ ಯಾವ ಗ್ರಹವು ಪರಮೋಚ್ಚ (Exalted) ಆಗುತ್ತದೆ?",
         questionEn: "Which planet is Exalted in the 12th sign Pisces (Meena)?",
-        optionsKn: ["ಶುಕ್ರ (Venus)", "ಬುಧ", "ಶನಿ", "ಸೂರ್ಯ"],
+        optionsKn: ["ಶುಕ್ರ (Venus)", "ಬುಧ", "ಶನಿ", "ರವಿ"],
         optionsEn: ["Venus (Shukra)", "Mercury", "Saturn", "Sun"],
         correctIndex: 0,
         explanationKn: "ಶುಕ್ರನು ಮೀನ ರಾಶಿಯ ೨೭ನೇ ಅಂಶದವರೆಗೆ ಪರಮೋಚ್ಚನಾಗಿ ದೈವಿಕ ಪ್ರೇಮ ಮತ್ತು ಸಕಲ ಸುಖವನ್ನು ನೀಡುತ್ತಾನೆ.",
@@ -1920,8 +1920,8 @@ export const MASTER_12_HOUSE_GRAND_EXAMPLE: Master12HouseSynthesisExample = {
       houseNameEn: "1st House - Tanu Bhava (Personality & Self)",
       rashiKn: "ಸಿಂಹ (Leo)",
       rashiEn: "Leo",
-      planetsPresent: "ಸೂರ್ಯ (Surya - ಲಗ್ನಾಧಿಪತಿ)",
-      bhavaLord: "ಸೂರ್ಯ (Sun)",
+      planetsPresent: "ರವಿ (Ravi - ಲಗ್ನಾಧಿಪತಿ)",
+      bhavaLord: "ರವಿ (Sun)",
       bhavaLordPlacement: "೧ನೇ ಮನೆಯಲ್ಲೇ ಸ್ವಕ್ಷೇತ್ರಸ್ಥ (1st House in Leo)",
       conditionQuality: "Exalted / Raja Yoga",
       interpretationKn: "ಲಗ್ನಾಧಿಪತಿ ರವಿಯು ಸಿಂಹದಲ್ಲೇ ಸ್ಥಿತನಾಗಿ ದೃಢ ಕಾಯ, ತೇಜಸ್ಸು ಹಾಗೂ ಜನ್ಮಜಾತ ನಾಯಕತ್ವವನ್ನು ಕರುಣಿಸಿದ್ದಾನೆ.",
@@ -1998,7 +1998,7 @@ export const MASTER_12_HOUSE_GRAND_EXAMPLE: Master12HouseSynthesisExample = {
       houseNameEn: "7th House - Kalatra Bhava (Spouse & Public Relations)",
       rashiKn: "ಕುಂಭ (Aquarius)",
       rashiEn: "Aquarius",
-      planetsPresent: "ಗುರು ೩ನೇ ದೃಷ್ಟಿ & ಸೂರ್ಯ ಎದುರು ದೃಷ್ಟಿ",
+      planetsPresent: "ಗುರು ೩ನೇ ದೃಷ್ಟಿ & ರವಿ ಎದುರು ದೃಷ್ಟಿ",
       bhavaLord: "ಶನಿ (Saturn)",
       bhavaLordPlacement: "೬ನೇ ಮನೆಯಲ್ಲಿ ಬಲಿಷ್ಠ (6th House in Capricorn)",
       conditionQuality: "Benefic / Strong",

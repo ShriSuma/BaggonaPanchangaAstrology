@@ -821,7 +821,7 @@ export default function SankhyaShastraPage(): JSX.Element {
                 >
                   <option value={5}>5 - ಬುಧ (ವ್ಯಾಪಾರ, ಬುದ್ಧಿಶಕ್ತಿ & ಯಶಸ್ಸು - Highly Recommended)</option>
                   <option value={6}>6 - ಶುಕ್ರ (ಸೌಭಾಗ್ಯ, ಸಂಪತ್ತು & ಐಷಾರಾಮ)</option>
-                  <option value={1}>1 - ಸೂರ್ಯ (ನಾಯಕತ್ವ, ಕೀರ್ತಿ & ಅಧಿಕಾರ)</option>
+                  <option value={1}>1 - ರವಿ (ನಾಯಕತ್ವ, ಕೀರ್ತಿ & ಅಧಿಕಾರ)</option>
                   <option value={3}>3 - ಗುರು (ಜ್ಞಾನ, ಧರ್ಮ & ಆಧ್ಯಾತ್ಮಿಕತೆ)</option>
                 </select>
               </div>

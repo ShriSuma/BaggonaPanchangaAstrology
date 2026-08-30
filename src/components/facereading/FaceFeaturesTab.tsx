@@ -18,7 +18,7 @@ const DEFAULT_FEATURES: FacialFeatureAnalysis[] = [
   {
     featureKey: "forehead",
     name: { kn: "೧. ಲಲಾಟ (Forehead)", en: "1. Forehead (Lalata)" },
-    planetaryRuler: { kn: "ಗುರು & ಸೂರ್ಯ (ಜ್ಞಾನ & ನಾಯಕತ್ವ)", en: "Jupiter & Sun (Wisdom & Leadership)" },
+    planetaryRuler: { kn: "ಗುರು & ರವಿ (ಜ್ಞಾನ & ನಾಯಕತ್ವ)", en: "Jupiter & Sun (Wisdom & Leadership)" },
     observedStructure: { kn: "ವಿಶಾಲ ಹಾಗೂ ಉನ್ನತ ಲಲಾಟ (Broad & Elevated)", en: "Broad and elevated forehead" },
     vedicIndication: { kn: "ಉನ್ನತ ಬುದ್ಧಿಶಕ್ತಿ, ಆಡಳಿತ ನಾಯಕತ್ವ ಹಾಗೂ ಸ್ವತಂತ್ರ ಚಿಂತನೆ.", en: "Executive intellect, strategic leadership and independent thought." },
     score: 92
@@ -26,7 +26,7 @@ const DEFAULT_FEATURES: FacialFeatureAnalysis[] = [
   {
     featureKey: "eyes",
     name: { kn: "೨. ನೇತ್ರ (Eyes)", en: "2. Eyes (Netra)" },
-    planetaryRuler: { kn: "ಸೂರ್ಯ (ಬಲ) & ಚಂದ್ರ (ಎಡ)", en: "Sun (Right) & Moon (Left)" },
+    planetaryRuler: { kn: "ರವಿ (ಬಲ) & ಚಂದ್ರ (ಎಡ)", en: "Sun (Right) & Moon (Left)" },
     observedStructure: { kn: "ಪದ್ಮಾಕಾರದ ನೇತ್ರಗಳು (Lotus Shaped)", en: "Lotus/Almond shaped eyes" },
     vedicIndication: { kn: "ದೈವಿಕ ಅಂತಃಸ್ಫೂರ್ತಿ, ಸತ್ಯನಿಷ್ಠೆ ಹಾಗೂ ಸೂಕ್ಷ್ಮ ಗ್ರಹಣ ಶಕ್ತಿ.", en: "Deep intuition, integrity, and perceptive foresight." },
     score: 88
@@ -66,7 +66,7 @@ const DEFAULT_FEATURES: FacialFeatureAnalysis[] = [
   {
     featureKey: "cheeks",
     name: { kn: "೭. ಗಂಡಸ್ಥಳ & ತೇಜಸ್ಸು (Cheeks & Aura)", en: "7. Cheeks & Aura Radiance (Gandasthala)" },
-    planetaryRuler: { kn: "ಸೂರ್ಯ & ಚಂದ್ರ (ತೇಜಸ್ಸು)", en: "Sun & Moon (Tejas & Ojas)" },
+    planetaryRuler: { kn: "ರವಿ & ಚಂದ್ರ (ತೇಜಸ್ಸು)", en: "Sun & Moon (Tejas & Ojas)" },
     observedStructure: { kn: "ಕಾಂತಿಯುತ ಗಂಡಸ್ಥಳ ಹಾಗೂ ತೇಜಸ್ಸು", en: "Radiant cheek contour with natural luster" },
     vedicIndication: { kn: "ಸಮಾಜದಲ್ಲಿ ಉನ್ನತ ಗೌರವ, ಜನಪ್ರಿಯತೆ ಹಾಗೂ ಸಾತ್ವಿಕ ಪ್ರಭಾವ.", en: "High societal respect, magnetic goodwill and pure charisma." },
     score: 89

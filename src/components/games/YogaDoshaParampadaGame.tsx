@@ -66,9 +66,9 @@ export const VEDIC_YOGAS: Record<number, YogaLadder> = {
     nameKn: "ಬುಧಾದಿತ್ಯ ಮಹಾ ಯೋಗ (+22)",
     nameEn: "Budhaditya Supreme Yoga (+22)",
     icon: "💎",
-    shlokaKn: "ಸೂರ್ಯ-ಬುಧ ಸಂಯೋಗಾತ್ ವಿದ್ವತ್ಪ್ರಭಾ...",
+    shlokaKn: "ರವಿ-ಬುಧ ಸಂಯೋಗಾತ್ ವಿದ್ವತ್ಪ್ರಭಾ...",
     shlokaEn: "Sun and Mercury conjunction creates scholarly brilliance.",
-    meaningKn: "ಸೂರ್ಯ ಮತ್ತು ಬುಧ ಒಟ್ಟಿಗೆ ಸೇರಿದಾಗ ತೀಕ್ಷ್ಣ ಗಣಿತ, ವಿಜ್ಞಾನ ಹಾಗೂ ರಾಜತಾಂತ್ರಿಕ ಚತುರತೆ ಲಭಿಸುತ್ತದೆ.",
+    meaningKn: "ರವಿ ಮತ್ತು ಬುಧ ಒಟ್ಟಿಗೆ ಸೇರಿದಾಗ ತೀಕ್ಷ್ಣ ಗಣಿತ, ವಿಜ್ಞಾನ ಹಾಗೂ ರಾಜತಾಂತ್ರಿಕ ಚತುರತೆ ಲಭಿಸುತ್ತದೆ.",
     meaningEn: "Sun-Mercury union confers razor-sharp analytics, mathematics mastery, and administrative acumen.",
     gurujiVerdictKn: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್: 'ಬುಧಾದಿತ್ಯ ಯೋಗವಿರುವಲ್ಲಿ ಸರಸ್ವತಿಯ ಪರಿಪೂರ್ಣ ಅನುಗ್ರಹವಿರುತ್ತದೆ.'",
     gurujiVerdictEn: "Shreeram Pandit: 'Budhaditya grants academic and administrative honors.'"
@@ -263,7 +263,7 @@ export const VEDIC_DOSHAS: Record<number, DoshaSnake> = {
 
 // 8 Vedic Graha Avatars with their Lucky Numbers
 const GRAHA_AVATARS = [
-  { symbol: "☀️", nameKn: "ಸೂರ್ಯ (Surya)", nameEn: "Surya (Sun)", luckyNumber: 1, bg: "bg-amber-500", border: "border-amber-600" },
+  { symbol: "☀️", nameKn: "ರವಿ (Ravi)", nameEn: "Ravi (Sun)", luckyNumber: 1, bg: "bg-amber-500", border: "border-amber-600" },
   { symbol: "🌙", nameKn: "ಚಂದ್ರ (Chandra)", nameEn: "Chandra (Moon)", luckyNumber: 2, bg: "bg-cyan-500", border: "border-cyan-600" },
   { symbol: "🌟", nameKn: "ಗುರು (Guru)", nameEn: "Guru (Jupiter)", luckyNumber: 3, bg: "bg-yellow-400", border: "border-yellow-500" },
   { symbol: "🌪️", nameKn: "ರಾಹು (Rahu)", nameEn: "Rahu", luckyNumber: 4, bg: "bg-purple-600", border: "border-purple-700" },

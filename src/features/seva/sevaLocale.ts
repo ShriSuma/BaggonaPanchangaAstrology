@@ -113,7 +113,7 @@ export const NAKSHATRA_L5: L5[] = [
 export type GrahaKey = "Sun" | "Moon" | "Mars" | "Mercury" | "Jupiter" | "Venus" | "Saturn" | "Rahu" | "Ketu";
 
 export const GRAHA_L5: Record<GrahaKey, L5> = {
-  Sun: { en: "Surya", kn: "ಸೂರ್ಯ", te: "సూర్య", ta: "சூரியன்", hi: "सूर्य" },
+  Sun: { en: "Ravi", kn: "ರವಿ", te: "సూర్య", ta: "சூரியன்", hi: "सूर्य" },
   Moon: { en: "Chandra", kn: "ಚಂದ್ರ", te: "చంద్ర", ta: "சந்திரன்", hi: "चंद्र" },
   Mars: { en: "Kuja", kn: "ಕುಜ", te: "కుజ", ta: "செவ்வாய்", hi: "मंगल" },
   Mercury: { en: "Budha", kn: "ಬುಧ", te: "బుధ", ta: "புதன்", hi: "बुध" },

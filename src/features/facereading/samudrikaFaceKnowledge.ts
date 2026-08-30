@@ -119,7 +119,7 @@ export const VEDIC_LALATA_PLANETARY_LINES = [
   },
   {
     lineIndex: 4,
-    planetKn: "ಸೂರ್ಯ ರೇಖೆ (Sun Line - ಬಲ ಹುಬ್ಬಿನ ಮೇಲೆ)",
+    planetKn: "ರವಿ ರೇಖೆ (Sun Line - ಬಲ ಹುಬ್ಬಿನ ಮೇಲೆ)",
     planetEn: "Sun Line (Above Right Eyebrow)",
     meaningKn: "ರಾಜಕೀಯ/ಉದ್ಯೋಗ ಕೀರ್ತಿ, ತೇಜಸ್ಸು, ನಾಯಕತ್ವ ಹಾಗೂ ಸರಕಾರಿ ಗೌರವ.",
     meaningEn: "Executive authority, governmental recognition, high vitality and fame."

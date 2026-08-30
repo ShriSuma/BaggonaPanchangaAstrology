@@ -17,7 +17,7 @@ type DuelPlayer = {
 };
 
 const PLANET_ZONES = [
-  { num: 1, nameKn: "ಸೂರ್ಯ ದುರ್ಗ", nameEn: "Surya Castle", symbol: "☀️", color: "from-amber-400 to-yellow-500", friend: [2, 3, 9], enemy: [8] },
+  { num: 1, nameKn: "ರವಿ ದುರ್ಗ", nameEn: "Ravi Castle", symbol: "☀️", color: "from-amber-400 to-yellow-500", friend: [2, 3, 9], enemy: [8] },
   { num: 2, nameKn: "ಚಂದ್ರ ದುರ್ಗ", nameEn: "Chandra Castle", symbol: "🌙", color: "from-slate-200 to-sky-300", friend: [1, 5], enemy: [8, 9] },
   { num: 3, nameKn: "ಗುರು ದುರ್ಗ", nameEn: "Guru Castle", symbol: "🌟", color: "from-yellow-300 to-amber-400", friend: [1, 2, 9], enemy: [6] },
   { num: 4, nameKn: "ರಾಹು ದುರ್ಗ", nameEn: "Rahu Castle", symbol: "🌪️", color: "from-purple-400 to-indigo-600", friend: [5, 6, 7], enemy: [1, 2, 9] },

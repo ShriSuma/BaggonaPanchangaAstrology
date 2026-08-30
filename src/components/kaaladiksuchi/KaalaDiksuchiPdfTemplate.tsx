@@ -107,7 +107,7 @@ export const KaalaDiksuchiPdfTemplate: React.FC<KaalaDiksuchiPdfTemplateProps> =
               <strong>{result.rulingNumber} (ಮೂಲಾಂಕ) / {result.destinyNumber} (ಭಾಗ್ಯಾಂಕ)</strong>
             </div>
             <div>
-              <span style={{ color: TEXT_MUTED }}>{isKn ? "ಸೂರ್ಯ ರಾಶಿ:" : "Sun Sign:"} </span>
+              <span style={{ color: TEXT_MUTED }}>{isKn ? "ರವಿ ರಾಶಿ:" : "Sun Sign:"} </span>
               <strong>{result.suryaRashi}</strong>
             </div>
             <div>

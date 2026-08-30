@@ -24,7 +24,7 @@ const RASHIS = [
 ];
 
 const GRAHAS = [
-  { id: 1, nameKn: "ಸೂರ್ಯ (Surya)", nameEn: "Sun (Surya)", symbol: "☀️", blessing: "ತೇಜಸ್ಸು & ನಾಯಕತ್ವ" },
+  { id: 1, nameKn: "ರವಿ (Ravi)", nameEn: "Sun (Ravi)", symbol: "☀️", blessing: "ತೇಜಸ್ಸು & ನಾಯಕತ್ವ" },
   { id: 2, nameKn: "ಚಂದ್ರ (Chandra)", nameEn: "Moon (Chandra)", symbol: "🌙", blessing: "ಶಾಂತಿ & ಕಲ್ಪನಾ ಶಕ್ತಿ" },
   { id: 3, nameKn: "ಮಂಗಳ (Kuja)", nameEn: "Mars (Mangala)", symbol: "🔥", blessing: "ಧೈರ್ಯ & ಶೌರ್ಯ" },
   { id: 4, nameKn: "ಬುಧ (Budha)", nameEn: "Mercury (Budha)", symbol: "💎", blessing: "ಬುದ್ಧಿ & ವ್ಯಾಪಾರ ಸಿದ್ಧಿ" },
@@ -266,7 +266,7 @@ export const VedicMindReaderGame: React.FC<MindReaderProps> = ({ lang = "kn" }) 
                 {isKn ? "ನವಗ್ರಹ ದೇವತೆಗಳು (9 Grahas)" : "9 Navagrahas"}
               </strong>
               <p className="text-xs text-amber-900/80 font-medium">
-                {isKn ? "ಸೂರ್ಯನಿಂದ ಕೇತುವಿನವರೆಗೆ ಯಾವುದಾದರೂ ಗ್ರಹ" : "Think of any of the 9 Celestial Planets"}
+                {isKn ? "ರವಿಯಿಂದ ಕೇತುವಿನವರೆಗೆ ಯಾವುದಾದರೂ ಗ್ರಹ" : "Think of any of the 9 Celestial Planets"}
               </p>
             </button>
           </div>

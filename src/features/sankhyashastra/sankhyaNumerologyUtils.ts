@@ -102,8 +102,8 @@ export type NumerologyGuidance = {
 export const NUMEROLOGY_GUIDANCE_MAP: Record<number, NumerologyGuidance> = {
   1: {
     number: 1,
-    rulerKn: "ಸೂರ್ಯ",
-    rulerEn: "Sun (Surya)",
+    rulerKn: "ರವಿ",
+    rulerEn: "Sun (Ravi)",
     deityKn: "ಶ್ರೀ ಸೂರ್ಯ ನಾರಾಯಣ",
     deityEn: "Sri Surya Narayana",
     elementKn: "ಅಗ್ನಿ (Fire)",

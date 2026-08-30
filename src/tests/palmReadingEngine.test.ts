@@ -46,7 +46,7 @@ describe("Classical Vedic Hastarekha Shastra (Palm Reading) Engine Tests", () =>
     expect(result.headLine.lineName.kn).toContain("ಮಸ್ತಿಷ್ಕ");
     expect(result.heartLine.lineName.kn).toContain("ಹೃದಯ");
     expect(result.fateLine.lineName.kn).toContain("ಭಾಗ್ಯ");
-    expect(result.sunLine.lineName.kn).toContain("ಸೂರ್ಯ");
+    expect(result.sunLine.lineName.kn).toContain("ರವಿ");
 
     expect(result.mounts.length).toBeGreaterThanOrEqual(3);
     expect(result.specialMarks.length).toBeGreaterThanOrEqual(3);

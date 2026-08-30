@@ -21,7 +21,7 @@ export function calculateDynamicLifeStagePredictions(
 
   const getKannadaPlanetName = (planetName: string) => {
     const map: Record<string, string> = {
-      Sun: "ಸೂರ್ಯ",
+      Sun: "ರವಿ",
       Moon: "ಚಂದ್ರ",
       Mars: "ಕುಜ",
       Mercury: "ಬುಧ",

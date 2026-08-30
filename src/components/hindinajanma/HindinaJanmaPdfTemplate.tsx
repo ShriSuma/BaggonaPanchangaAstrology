@@ -83,7 +83,7 @@ export const HindinaJanmaPdfTemplate: React.FC<HindinaJanmaPdfTemplateProps> = (
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "6px", fontSize: "10.5px", color: "#92400E" }}>
               <div><strong>{isKn ? "ಜನ್ಮ ದಿನಾಂಕ:" : "DOB:"}</strong> <span style={{ fontWeight: 800, color: "#991B1B" }}>{result.input.dob}</span></div>
               {result.input.tob && <div><strong>{isKn ? "ಸಮಯ:" : "Time:"}</strong> {result.input.tob}</div>}
-              <div><strong>{isKn ? "ಸೂರ್ಯ ರಾಶಿ:" : "Sun Sign:"}</strong> {result.sunSign}</div>
+              <div><strong>{isKn ? "ರವಿ ರಾಶಿ:" : "Sun Sign:"}</strong> {result.sunSign}</div>
               <div><strong>{isKn ? "ಜನ್ಮ ನಕ್ಷತ್ರ:" : "Nakshatra:"}</strong> <span style={{ fontWeight: 800, color: "#065F46" }}>{result.moonNakshatra}</span></div>
               <div><strong>{isKn ? "ಆತ್ಮದ ಹಂತ:" : "Soul Stage:"}</strong> <span style={{ fontWeight: 800, color: "#78350F" }}>{pickL5(result.mokshaAxis.soulMaturityLevel, lang)}</span></div>
               <div><strong>{isKn ? "ಪುಣ್ಯ ಪ್ರಮಾಣ:" : "Punya Ratio:"}</strong> <span style={{ fontWeight: 800, color: "#065F46" }}>{result.karmaAnalysis.sanchitaPunyaPercentage}%</span></div>

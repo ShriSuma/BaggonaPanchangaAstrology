@@ -73,7 +73,7 @@ export function computePastLifePersona(
         te: "ఆలయాల సంరక్షకుడు & ధర్మ యోధుడు",
         ta: "கோவில் மற்றும் தர்மத்தை காத்த தீரப் படைத்தளபதி"
       },
-      dominantGraha: "Mangala & Surya (ಮಂಗಳ-ಸೂರ್ಯ)",
+      dominantGraha: "Mangala & Ravi (ಮಂಗಳ-ರವಿ)",
       personalitySummary: {
         kn: "ಧರ್ಮ ಮತ್ತು ಅಸಹಾಯಕರ ರಕ್ಷಣೆಗಾಗಿ ಮುಂಚೂಣಿಯಲ್ಲಿ ನಿಂತ ಸಾಹಸಿ ಆತ್ಮ. ನಿಮ್ಮ ನಿಸ್ವಾರ್ಥ ಧೀರತೆಯು ಇಂದಿಗೂ ನಿಮ್ಮಲ್ಲಿ ನಾಯಕತ್ವದ ಗುಣವಾಗಿ ಉಳಿದಿದೆ.",
         en: "A fearless champion who defended holy places and the vulnerable, leaving an enduring legacy of courage and leadership in your soul.",
@@ -205,7 +205,7 @@ export function computePastLifePersona(
         te: "ధర్మశాస్త్రవేత్త & ఆలయ శిల్పకళా పోషకుడు",
         ta: "தர்மசாஸ்திர அறிஞர் & கோவில் சிற்பகலா புரவலர்"
       },
-      dominantGraha: "Surya & Guru (ಸೂರ್ಯ-ಗುರು)",
+      dominantGraha: "Ravi & Guru (ರವಿ-ಗುರು)",
       personalitySummary: {
         kn: "ರಾಜಾಶ್ರಯದಲ್ಲಿ ಸತ್ಯ, ನ್ಯಾಯ ಮತ್ತು ಧರ್ಮದ ಸಂರಕ್ಷಣೆಗೆ ಗಂಭೀರ ಕೊಡುಗೆ ನೀಡಿದ ಗೌರವಾನ್ವಿತ ನಾಯಕ.",
         en: "An illustrious counselor whose unyielding commitment to truth and righteousness anchored royal governance and built timeless temple sanctuaries.",

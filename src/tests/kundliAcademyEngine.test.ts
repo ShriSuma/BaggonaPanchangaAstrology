@@ -19,9 +19,9 @@ describe("Kundli Academy 12-House Learning Engine (Dr. B.V. Raman Master Rules)"
   });
 
   it("verifies accurate Uccha (Exalted) and Neecha (Debilitated) classical definitions across key houses", () => {
-    // House 1 (Mesha) -> Surya Exalted, Shani Debilitated
+    // House 1 (Mesha) -> Ravi Exalted, Shani Debilitated
     const h1 = HOUSE_LEARNING_MODULES[1];
-    expect(h1.dignity.exaltedPlanetKn).toContain("ಸೂರ್ಯ");
+    expect(h1.dignity.exaltedPlanetKn).toContain("ರವಿ");
     expect(h1.dignity.debilitatedPlanetKn).toContain("ಶನಿ");
 
     // House 4 (Karkataka) -> Guru Exalted, Kuja Debilitated
@@ -29,10 +29,10 @@ describe("Kundli Academy 12-House Learning Engine (Dr. B.V. Raman Master Rules)"
     expect(h4.dignity.exaltedPlanetKn).toContain("ಗುರು");
     expect(h4.dignity.debilitatedPlanetKn).toContain("ಮಂಗಳ");
 
-    // House 7 (Tula) -> Shani Exalted, Surya Debilitated
+    // House 7 (Tula) -> Shani Exalted, Ravi Debilitated
     const h7 = HOUSE_LEARNING_MODULES[7];
     expect(h7.dignity.exaltedPlanetKn).toContain("ಶನಿ");
-    expect(h7.dignity.debilitatedPlanetKn).toContain("ಸೂರ್ಯ");
+    expect(h7.dignity.debilitatedPlanetKn).toContain("ರವಿ");
 
     // House 10 (Makara) -> Kuja Exalted, Guru Debilitated
     const h10 = HOUSE_LEARNING_MODULES[10];

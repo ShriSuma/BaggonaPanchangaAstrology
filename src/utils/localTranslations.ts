@@ -76,7 +76,7 @@ export const localTranslations: Record<string, Record<string, string>> = {
     "Pisces": "ಮೀನ", "Meena": "ಮೀನ",
 
     // Planets
-    "Sun": "ಸೂರ್ಯ",
+    "Sun": "ರವಿ",
     "Moon": "ಚಂದ್ರ",
     "Mars": "ಕುಜ",
     "Mercury": "ಬುಧ",

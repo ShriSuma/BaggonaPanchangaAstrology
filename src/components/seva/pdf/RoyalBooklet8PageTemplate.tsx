@@ -41,7 +41,7 @@ const RASHI_KN_MAP: Record<number, string> = {
 };
 
 const PLANET_KN_MAP: Record<string, string> = {
-  Sun: "ಸೂರ್ಯ",
+  Sun: "ರವಿ",
   Moon: "ಚಂದ್ರ",
   Mars: "ಮಂಗಳ",
   Mercury: "ಬುಧ",
@@ -679,7 +679,7 @@ const toKnDigits = (numOrStr: string | number): string => {
 
 // Planet Short Name Map (L5)
 const PLANET_SHORT_L5: Record<string, Record<string, string>> = {
-  Sun: { kn: "ಸೂರ್ಯ", en: "Sun", hi: "सूर्य", te: "సూర్యుడు", ta: "சூரியன்" },
+  Sun: { kn: "ರವಿ", en: "Sun", hi: "सूर्य", te: "సూర్యుడు", ta: "சூரியன்" },
   Moon: { kn: "ಚಂದ್ರ", en: "Moon", hi: "चंद्र", te: "చంద్రుడు", ta: "சந்திரன்" },
   Mars: { kn: "ಮಂಗಳ", en: "Mars", hi: "मंगल", te: "కుజుడు", ta: "செவ்வாய்" },
   Mercury: { kn: "ಬುಧ", en: "Merc", hi: "बुध", te: "బుధుడు", ta: "புதன்" },

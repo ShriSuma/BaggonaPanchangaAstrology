@@ -124,7 +124,7 @@ const DASHA_PDF_I18N: Record<LangCode, {
 };
 
 const PLANET_NAMES_L5: Record<PlanetName, Record<LangCode, string>> = {
-  [PlanetName.Sun]: { en: "Sun", kn: "ಸೂರ್ಯ", te: "సూర్య", ta: "சூரியன்", hi: "सूर्य" },
+  [PlanetName.Sun]: { en: "Sun", kn: "ರವಿ", te: "సూర్య", ta: "சூரியன்", hi: "सूर्य" },
   [PlanetName.Moon]: { en: "Moon", kn: "ಚಂದ್ರ", te: "చంద్ర", ta: "சந்திரன்", hi: "चंद्र" },
   [PlanetName.Mars]: { en: "Mars", kn: "ಕುಜ", te: "కుజ", ta: "செவ்வாய்", hi: "मंगल" },
   [PlanetName.Mercury]: { en: "Mercury", kn: "ಬುಧ", te: "బుధ", ta: "புதன்", hi: "बुध" },

@@ -105,7 +105,7 @@ export const RASHI_LORDS_L5: Record<number, Record<string, string>> = {
   1: { kn: "ಶುಕ್ರ", en: "Venus (Shukra)", hi: "शुक्र", te: "శుక్రుడు", ta: "சுக்கிரன்" },
   2: { kn: "ಬುಧ", en: "Mercury (Budha)", hi: "बुध", te: "బుధుడు", ta: "புதன்" },
   3: { kn: "ಚಂದ್ರ", en: "Moon (Chandra)", hi: "चंद्र", te: "చంద్రుడు", ta: "சந்திரன்" },
-  4: { kn: "ಸೂರ್ಯ", en: "Sun (Surya)", hi: "सूर्य", te: "సూర్యుడు", ta: "சூரியன்" },
+  4: { kn: "ರವಿ", en: "Sun (Ravi)", hi: "सूर्य", te: "సూర్యుడు", ta: "சூரியன்" },
   5: { kn: "ಬುಧ", en: "Mercury (Budha)", hi: "बुध", te: "బుధుడు", ta: "புதன்" },
   6: { kn: "ಶುಕ್ರ", en: "Venus (Shukra)", hi: "शुक्र", te: "శుక్రుడు", ta: "சுக்கிரன்" },
   7: { kn: "ಮಂಗಳ", en: "Mars (Mangala)", hi: "मंगल", te: "కుజుడు", ta: "செவ்வாய்" },
@@ -141,7 +141,7 @@ export const MOBILITY_L5: Record<SignMobility, Record<string, string>> = {
 
 export const ROOT_RULERS_L5: Record<number, { ruler: Record<string, string>; deity: Record<string, string> }> = {
   1: {
-    ruler: { kn: "ಸೂರ್ಯ", en: "Sun (Surya)", hi: "सूर्य", te: "సూర్యుడు", ta: "சூரியன்" },
+    ruler: { kn: "ರವಿ", en: "Sun (Ravi)", hi: "सूर्य", te: "సూర్యుడు", ta: "சூரியன்" },
     deity: { kn: "ಶ್ರೀ ಸೂರ್ಯನಾರಾಯಣ ಸ್ವಾಮಿ", en: "Lord Surya Narayana", hi: "भगवान सूर्यनारायण", te: "శ్రీ సూర్యనారాయణ స్వామి", ta: "ஶ்ரீ சூரியநாராயண சுவாமி" }
   },
   2: {
@@ -502,7 +502,7 @@ export async function executeSankhyaShastraPrashna(
   const longs = siderealLongitudes(now, "lahiri");
 
   const planetDefs = [
-    { key: "sun", name: { kn: "ಸೂರ್ಯ", en: "Sun (Surya)", hi: "सूर्य", te: "సూర్యుడు", ta: "சூரியன்" }, isBenefic: false },
+    { key: "sun", name: { kn: "ರವಿ", en: "Sun (Ravi)", hi: "सूर्य", te: "సూర్యుడు", ta: "சூரியன்" }, isBenefic: false },
     { key: "moon", name: { kn: "ಚಂದ್ರ", en: "Moon (Chandra)", hi: "चंद्र", te: "చంద్రుడు", ta: "சந்திரன்" }, isBenefic: true },
     { key: "mars", name: { kn: "ಮಂಗಳ", en: "Mars (Mangala)", hi: "मंगल", te: "కుజుడు", ta: "செவ்வாய்" }, isBenefic: false },
     { key: "mercury", name: { kn: "ಬುಧ", en: "Mercury (Budha)", hi: "बुध", te: "బుధుడు", ta: "புதன்" }, isBenefic: true },

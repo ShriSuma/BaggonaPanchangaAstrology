@@ -32,7 +32,7 @@ describe("Hindina Janma (Past Life Astrology) Engine", () => {
     // Test sign 4 (Simha)
     const persona4 = computePastLifePersona(4, 0, input);
     expect(persona4.eraAndTimeline.kn).toContain("ವಿಜಯನಗರ");
-    expect(persona4.dominantGraha).toContain("ಸೂರ್ಯ");
+    expect(persona4.dominantGraha).toContain("ರವಿ");
 
     // Test sign 7 (Vrischika)
     const persona7 = computePastLifePersona(7, 0, input);

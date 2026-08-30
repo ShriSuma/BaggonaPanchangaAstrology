@@ -31,7 +31,7 @@ const QUESTIONS: Question[] = [
   {
     questionKn: "ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯದಲ್ಲಿ 'ಜ್ಞಾನ ಕಾರಕ' ಹಾಗೂ 'ಗುರು ಗ್ರಹ' ಎಂದು ಕರೆಯಲ್ಪಡುವ ಗ್ರಹ ಯಾವುದು?",
     questionEn: "Which planet is hailed as the 'Jnana Karaka' (Wisdom Signifier) and Guru?",
-    optionsKn: ["ಬುಧ", "ಶುಕ್ರ", "ಬೃಹಸ್ಪತಿ (ಗುರು)", "ಸೂರ್ಯ"],
+    optionsKn: ["ಬುಧ", "ಶುಕ್ರ", "ಬೃಹಸ್ಪತಿ (ಗುರು)", "ರವಿ"],
     optionsEn: ["Budha", "Shukra", "Brihaspati (Jupiter)", "Surya"],
     correctIndex: 2,
     explanationKn: "ಬೃಹಸ್ಪತಿ (ಗುರು) ಜ್ಞಾನ, ಆಧ್ಯಾತ್ಮಿಕ ಶಿಕ್ಷಣ ಹಾಗೂ ಸದ್ಬುದ್ಧಿಯ ಕಾರಕ ಗ್ರಹವಾಗಿದ್ದಾನೆ.",
@@ -41,10 +41,10 @@ const QUESTIONS: Question[] = [
   {
     questionKn: "ಪಂಚಾಂಗದ ಐದು ಅಂಗಗಳಲ್ಲಿ 'ತಿಥಿ'ಯು ಯಾರ ನಡುವಿನ ಕೋನೀಯ ಅಂತರದಿಂದ ನಿರ್ಧಾರವಾಗುತ್ತದೆ?",
     questionEn: "In Panchanga, which two celestial bodies determine the 'Tithi' through their angular distance?",
-    optionsKn: ["ಸೂರ್ಯ ಮತ್ತು ಚಂದ್ರ", "ಮಂಗಳ ಮತ್ತು ಗುರು", "ಚಂದ್ರ ಮತ್ತು ರಾಹು", "ಶನಿ ಮತ್ತು ಸೂರ್ಯ"],
+    optionsKn: ["ರವಿ ಮತ್ತು ಚಂದ್ರ", "ಮಂಗಳ ಮತ್ತು ಗುರು", "ಚಂದ್ರ ಮತ್ತು ರಾಹು", "ಶನಿ ಮತ್ತು ರವಿ"],
     optionsEn: ["Sun & Moon (12° intervals)", "Mars & Jupiter", "Moon & Rahu", "Saturn & Sun"],
     correctIndex: 0,
-    explanationKn: "ಪ್ರತಿ ೧೨ ಡಿಗ್ರಿ ಸೂರ್ಯ-ಚಂದ್ರರ ಅಂತರವು ಒಂದು ತಿಥಿಯನ್ನು ಸೃಷ್ಟಿಸುತ್ತದೆ.",
+    explanationKn: "ಪ್ರತಿ ೧೨ ಡಿಗ್ರಿ ರವಿ-ಚಂದ್ರರ ಅಂತರವು ಒಂದು ತಿಥಿಯನ್ನು ಸೃಷ್ಟಿಸುತ್ತದೆ.",
     explanationEn: "Each 12-degree longitudinal separation between Sun and Moon defines one Lunar Tithi.",
     category: "Panchanga"
   },
@@ -61,7 +61,7 @@ const QUESTIONS: Question[] = [
   {
     questionKn: "ಗಜಕೇಸರಿ ಯೋಗವು ಜಾತಕದಲ್ಲಿ ಯಾವ ಎರಡು ಗ್ರಹಗಳ ಶುಭ ಸಂಯೋಗ ಅಥವಾ ಕೇಂದ್ರ ಸ್ಥಿತಿಯಿಂದ ಉಂಟಾಗುತ್ತದೆ?",
     questionEn: "Gaja Kesari Yoga is formed by the auspicious relationship between which two planets?",
-    optionsKn: ["ಗುರು ಮತ್ತು ಚಂದ್ರ", "ಸೂರ್ಯ ಮತ್ತು ಬುಧ", "ಶುಕ್ರ ಮತ್ತು ಮಂಗಳ", "ಶನಿ ಮತ್ತು ರಾಹು"],
+    optionsKn: ["ಗುರು ಮತ್ತು ಚಂದ್ರ", "ರವಿ ಮತ್ತು ಬುಧ", "ಶುಕ್ರ ಮತ್ತು ಮಂಗಳ", "ಶನಿ ಮತ್ತು ರಾಹು"],
     optionsEn: ["Jupiter & Moon", "Sun & Mercury", "Venus & Mars", "Saturn & Rahu"],
     correctIndex: 0,
     explanationKn: "ಚಂದ್ರನಿಂದ ಗುರುವು ೧, ೪, ೭, ೧೦ನೇ (ಕೇಂದ್ರ) ಸ್ಥಾನದಲ್ಲಿದ್ದಾಗ ಪರಮ ಪವಿತ್ರ ಗಜಕೇಸರಿ ಯೋಗ ಉಂಟಾಗುತ್ತದೆ.",
