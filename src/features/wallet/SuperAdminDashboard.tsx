@@ -757,11 +757,27 @@ export const SuperAdminDashboard: React.FC = () => {
             </p>
 
             {/* Quick Action Pills */}
-            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-3 sm:mt-4">
+            <div className="flex flex-wrap items-center gap-2 mt-3 sm:mt-4">
+              {/* Star Highlighted Action Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab("wallets");
+                  setTimeout(() => {
+                    document.getElementById("new-priest-studio-card")?.scrollIntoView({ behavior: "smooth" });
+                  }, 50);
+                }}
+                className="px-4 py-2 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-300 hover:from-amber-400 hover:to-amber-200 text-slate-950 text-xs sm:text-sm font-black rounded-xl flex items-center gap-1.5 transition-all shadow-lg shadow-amber-500/30 border-2 border-amber-500 ring-2 ring-amber-400/60 animate-pulse active:scale-95 shrink-0"
+                title="ಹೊಸ ಪುರೋಹಿತರ ನೋಂದಣಿ ಮಾಡಿ ಮತ್ತು ಪ್ರತ್ಯೇಕ ಲಿಂಕ್ ರಚಿಸಿ"
+              >
+                <span className="text-base">✨</span>
+                <span>+ ಹೊಸ ಪುರೋಹಿತರ ಲಿಂಕ್ ರಚಿಸಿ (Create Link)</span>
+              </button>
+
               <button
                 type="button"
                 onClick={() => setShowAdminPasswordModal(true)}
-                className="px-3 py-1.5 bg-[#FFFDF7] hover:bg-amber-100 border-2 border-amber-400 text-amber-950 text-[11px] sm:text-xs font-black rounded-xl flex items-center gap-1.5 transition-all shadow-sm active:scale-95"
+                className="px-3 py-2 bg-[#FFFDF7] hover:bg-amber-100 border-2 border-amber-400 text-amber-950 text-[11px] sm:text-xs font-black rounded-xl flex items-center gap-1.5 transition-all shadow-sm active:scale-95"
               >
                 <span>🔐</span>
                 <span>ಪಾಸ್‌ವರ್ಡ್ ಬದಲಾಯಿಸಿ</span>
@@ -771,7 +787,7 @@ export const SuperAdminDashboard: React.FC = () => {
                 type="button"
                 onClick={handleDispatch4ReportsNow}
                 disabled={isDispatchingReports}
-                className="px-3 py-1.5 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white text-[11px] sm:text-xs font-black rounded-xl flex items-center gap-1.5 transition-all shadow-sm disabled:opacity-50 active:scale-95"
+                className="px-3 py-2 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white text-[11px] sm:text-xs font-black rounded-xl flex items-center gap-1.5 transition-all shadow-sm disabled:opacity-50 active:scale-95"
               >
                 <span>📧</span>
                 <span>{isDispatchingReports ? "ರವಾನಿಸಲಾಗುತ್ತಿದೆ..." : "4 ದಿನದ ವರದಿ ರವಾನಿಸಿ"}</span>
@@ -780,7 +796,7 @@ export const SuperAdminDashboard: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setActiveTab("mindmap")}
-                className="px-3 py-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-[11px] sm:text-xs font-black rounded-xl flex items-center gap-1.5 transition-all shadow-sm active:scale-95"
+                className="px-3 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-[11px] sm:text-xs font-black rounded-xl flex items-center gap-1.5 transition-all shadow-sm active:scale-95"
               >
                 <span>🗺️</span>
                 <span>ಸಿಸ್ಟಮ್ ಮೈಂಡ್‌ಮ್ಯಾಪ್</span>
@@ -952,15 +968,15 @@ export const SuperAdminDashboard: React.FC = () => {
       {activeTab === "wallets" && (
         <div className="space-y-6">
           {/* Quick Registration Studio */}
-          <div className="bg-[#FFFDF7] border-2 border-amber-400/80 rounded-3xl p-4 sm:p-6 shadow-md">
+          <div id="new-priest-studio-card" className="bg-[#FFFDF7] border-3 border-amber-400/90 rounded-3xl p-4 sm:p-6 shadow-xl ring-4 ring-amber-400/20 scroll-mt-20">
             <div className="flex items-center justify-between border-b border-amber-200 pb-3 mb-4">
               <div>
                 <h2 className="text-sm sm:text-base font-black text-amber-950 flex items-center gap-2">
-                  <span>➕</span>
-                  <span>ಹೊಸ ಪುರೋಹಿತರನ್ನು ನೋಂದಾಯಿಸಿ & ಪ್ರತ್ಯೇಕ ಲಿಂಕ್ ರಚಿಸಿ (Priest Studio)</span>
+                  <span>✨</span>
+                  <span>ಹೊಸ ಪುರೋಹಿತರನ್ನು ನೋಂದಾಯಿಸಿ & ಪ್ರತ್ಯೇಕ ಲಿಂಕ್ ರಚಿಸಿ (Priest Studio & Link Generator)</span>
                 </h2>
                 <p className="text-xs text-amber-800 font-semibold mt-0.5">
-                  Register a new priest, assign initial welcome coins (1000 🪙), and generate dedicated deep links for Panchanga & Sankhya Shastra.
+                  Register a new priest, assign welcome coins, and immediately generate dedicated deep links for all enabled services.
                 </p>
               </div>
               <span className="text-[10px] font-black text-emerald-900 bg-emerald-100 border border-emerald-400 px-3 py-1 rounded-full uppercase tracking-wider">
@@ -1028,7 +1044,7 @@ export const SuperAdminDashboard: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isCreatingPriest}
-                  className="w-full py-2.5 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all disabled:opacity-50 flex items-center justify-center gap-1.5 border border-amber-400"
+                  className="w-full py-2.5 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 hover:from-amber-500 hover:to-amber-300 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all disabled:opacity-50 flex items-center justify-center gap-1.5 border border-amber-400 active:scale-95"
                 >
                   <span>✨</span>
                   <span>{isCreatingPriest ? "ರಚಿಸಲಾಗುತ್ತಿದೆ..." : "ನೋಂದಾಯಿಸಿ & ಲಿಂಕ್ ಪಡೆಯಿರಿ"}</span>
