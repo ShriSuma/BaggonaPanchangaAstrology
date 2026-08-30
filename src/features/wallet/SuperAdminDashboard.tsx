@@ -266,23 +266,18 @@ export const SuperAdminDashboard: React.FC = () => {
   const [resettingPassId, setResettingPassId] = useState<string | null>(null);
   const [deletingPassId, setDeletingPassId] = useState<string | null>(null);
 
-  // New Priest Registration & Dedicated Link Generator State
+  // New Priest Registration & Dedicated Link Generator State (Unchecked by default)
   const [newPriestName, setNewPriestName] = useState("");
   const [newPriestUsername, setNewPriestUsername] = useState("");
   const [newPriestPassword, setNewPriestPassword] = useState("baggona123");
   const [newPriestWelcomeCoins, setNewPriestWelcomeCoins] = useState("1000");
-  const [selectedModulesForNewPriest, setSelectedModulesForNewPriest] = useState<AvailableModuleKey[]>([
-    "panchanga",
-    "sankhyashastra",
-    "diksuchi",
-    "purva_janma"
-  ]);
+  const [selectedModulesForNewPriest, setSelectedModulesForNewPriest] = useState<AvailableModuleKey[]>([]);
   const [createdPriestResult, setCreatedPriestResult] = useState<{
     name: string;
     username: string;
     password: string;
     allowedModules: AvailableModuleKey[];
-    generatedLinks: Array<{ key: AvailableModuleKey; label: string; icon: string; url: string }>;
+    unifiedUrl: string;
   } | null>(null);
   const [isCreatingPriest, setIsCreatingPriest] = useState(false);
 
@@ -515,29 +510,21 @@ export const SuperAdminDashboard: React.FC = () => {
 
       const origin = typeof window !== "undefined" ? window.location.origin : "https://baggona-panchanga.firebaseapp.com";
       
-      // Generate links for each selected module
-      const generatedLinks = modulesToAssign.map((modKey) => {
-        const modConfig = AVAILABLE_MODULES.find((m) => m.key === modKey);
-        const url = `${origin}/?portal=${modConfig?.portalParam || modKey}&user=${encodeURIComponent(cleanUsername)}&name=${encodeURIComponent(newPriestName.trim())}&firstTime=true`;
-        return {
-          key: modKey,
-          label: modConfig?.label || modKey,
-          icon: modConfig?.icon || "✨",
-          url
-        };
-      });
+      // Generate ONE single unified URL containing all selected modules
+      const modulesQuery = modulesToAssign.length > 0 ? modulesToAssign.join(",") : "panchanga";
+      const unifiedUrl = `${origin}/?portal=priest&user=${encodeURIComponent(cleanUsername)}&name=${encodeURIComponent(newPriestName.trim())}&modules=${encodeURIComponent(modulesQuery)}&firstTime=true`;
 
       setCreatedPriestResult({
         name: newPriestName.trim(),
         username: cleanUsername,
         password: passwordToSet,
         allowedModules: modulesToAssign,
-        generatedLinks
+        unifiedUrl
       });
 
       setFeedback({
         type: "success",
-        text: `ಪುರೋಹಿತರು (${newPriestName}) ಯಶಸ್ವಿಯಾಗಿ ನೋಂದಾಯಿಸಲ್ಪಟ್ಟಿದ್ದಾರೆ! [ಅನುಮತಿಸಿದ ಮಾಡ್ಯೂಲ್‌ಗಳು: ${modulesToAssign.length}] ಲಾಗಿನ್ ಪಾಸ್‌ವರ್ಡ್: ${passwordToSet} | ಸ್ವಾಗತ ನಾಣ್ಯಗಳು: ${welcomeCoinsNum}`
+        text: `ಪುರೋಹಿತರು (${newPriestName}) ಯಶಸ್ವಿಯಾಗಿ ನೋಂದಾಯಿಸಲ್ಪಟ್ಟಿದ್ದಾರೆ! [ಅನುಮತಿಸಿದ ಮಾಡ್ಯೂಲ್‌ಗಳು: ${modulesToAssign.length}] ಏಕೀಕೃತ ಪ್ರವೇಶ ಲಿಂಕ್ ಸಿದ್ಧವಾಗಿದೆ.`
       });
 
       // Clear input fields
@@ -1061,10 +1048,18 @@ export const SuperAdminDashboard: React.FC = () => {
                   <div className="flex items-center gap-2 text-[10px]">
                     <button
                       type="button"
-                      onClick={() => setSelectedModulesForNewPriest(["panchanga", "sankhyashastra", "diksuchi", "purva_janma"])}
+                      onClick={() => setSelectedModulesForNewPriest(["panchanga", "sankhyashastra", "diksuchi", "purva_janma", "vahana_muhurtha"])}
                       className="text-amber-900 font-bold hover:underline"
                     >
                       ಎಲ್ಲವನ್ನೂ ಆಯ್ಕೆಮಾಡಿ (Select All)
+                    </button>
+                    <span>•</span>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedModulesForNewPriest([])}
+                      className="text-slate-600 font-bold hover:underline"
+                    >
+                      ಎಲ್ಲವನ್ನೂ ತೆರವುಗೊಳಿಸಿ (Uncheck All)
                     </button>
                     <span>•</span>
                     <button
@@ -1081,6 +1076,14 @@ export const SuperAdminDashboard: React.FC = () => {
                       className="text-purple-900 font-bold hover:underline"
                     >
                       ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಮಾತ್ರ
+                    </button>
+                    <span>•</span>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedModulesForNewPriest(["vahana_muhurtha"])}
+                      className="text-emerald-900 font-bold hover:underline"
+                    >
+                      ವಾಹನ ಮುಹೂರ್ತ ಮಾತ್ರ
                     </button>
                   </div>
                 </div>
@@ -1126,15 +1129,15 @@ export const SuperAdminDashboard: React.FC = () => {
               </div>
             </form>
 
-            {/* Generated Links Result Card */}
+            {/* Unified Generated Link Result Card */}
             {createdPriestResult && (
-              <div className="p-4 bg-[#FEFCF4] border-2 border-emerald-400 rounded-2xl space-y-3 mt-4 animate-in fade-in duration-300 shadow-sm">
-                <div className="flex items-center justify-between border-b border-emerald-200 pb-2">
+              <div className="p-4 sm:p-5 bg-[#FEFCF4] border-2 border-emerald-500 rounded-3xl space-y-4 mt-4 animate-in fade-in duration-300 shadow-lg">
+                <div className="flex items-center justify-between border-b border-emerald-200 pb-3">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-emerald-800 font-bold text-sm">✓ ನೋಂದಣಿ ಯಶಸ್ವಿ:</span>
+                    <span className="text-emerald-900 font-black text-sm">✓ ಪುರೋಹಿತರ ನೋಂದಣಿ & ಏಕೀಕೃತ ಲಿಂಕ್ ಸಿದ್ಧವಾಗಿದೆ:</span>
                     <span className="font-extrabold text-amber-950 text-sm">{createdPriestResult.name}</span>
-                    <span className="text-xs text-slate-600 font-mono">
-                      (User: <strong className="text-amber-900">{createdPriestResult.username}</strong> | Pass: <strong className="text-emerald-800">{createdPriestResult.password}</strong>)
+                    <span className="text-xs text-slate-700 font-mono bg-emerald-100/80 px-2 py-0.5 rounded-lg border border-emerald-300">
+                      User: <strong className="text-amber-950">{createdPriestResult.username}</strong> | Pass: <strong className="text-emerald-900">{createdPriestResult.password}</strong>
                     </span>
                   </div>
                   <button
@@ -1146,55 +1149,80 @@ export const SuperAdminDashboard: React.FC = () => {
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
-                  {createdPriestResult.generatedLinks.map((link) => (
-                    <div key={link.key} className="p-3 bg-[#FFFDF7] border-2 border-amber-300 rounded-xl space-y-1.5 flex flex-col justify-between">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-amber-950 flex items-center gap-1">
-                          <span>{link.icon}</span>
-                          <span>{link.label}</span>
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            navigator.clipboard.writeText(link.url);
-                            setFeedback({ type: "success", text: `${link.label} ಲಿಂಕ್ ನಕಲಿಸಲಾಗಿದೆ (Copied)!` });
-                          }}
-                          className="px-2 py-0.5 bg-amber-500 text-slate-950 font-black text-[10px] rounded hover:bg-amber-400 shadow-sm"
+                {/* Enabled Modules Badges */}
+                <div className="space-y-1.5">
+                  <span className="text-[11px] font-bold text-amber-950">
+                    🛡️ ಈ ಏಕೀಕೃತ ಲಿಂಕ್‌ನಲ್ಲಿ ಸಕ್ರಿಯಗೊಳಿಸಲಾದ ಮಾಡ್ಯೂಲ್‌ಗಳು ({createdPriestResult.allowedModules.length}):
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {createdPriestResult.allowedModules.map((mKey) => {
+                      const cfg = AVAILABLE_MODULES.find((m) => m.key === mKey);
+                      return (
+                        <span
+                          key={mKey}
+                          className="px-3 py-1 bg-amber-100 text-amber-950 border border-amber-400 rounded-xl text-xs font-extrabold flex items-center gap-1 shadow-sm"
                         >
-                          📋 Copy
-                        </button>
-                      </div>
-                      <input
-                        type="text"
-                        readOnly
-                        value={link.url}
-                        className="w-full px-2 py-1 bg-white border border-amber-200 rounded text-[10px] text-slate-700 font-mono select-all"
-                      />
-                    </div>
-                  ))}
+                          <span>{cfg?.icon || "✨"}</span>
+                          <span>{cfg?.kannadaLabel || mKey}</span>
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Unified Link Box */}
+                <div className="p-3.5 bg-[#FFFDF7] border-2 border-amber-400 rounded-2xl space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black text-amber-950 flex items-center gap-1.5">
+                      <span>🔗</span>
+                      <span>ಏಕೀಕೃತ ಪ್ರವೇಶ ಲಿಂಕ್ (Unified Multi-Option Access URL):</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(createdPriestResult.unifiedUrl);
+                        setFeedback({ type: "success", text: "ಏಕೀಕೃತ ಪ್ರವೇಶ ಲಿಂಕ್ ಯಶಸ್ವಿಯಾಗಿ ನಕಲಿಸಲಾಗಿದೆ (Copied)!" });
+                      }}
+                      className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-lg shadow-sm flex items-center gap-1 active:scale-95 transition"
+                    >
+                      <span>📋</span>
+                      <span>ಲಿಂಕ್ ಕಾಪಿ ಮಾಡಿ (Copy Link)</span>
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    readOnly
+                    value={createdPriestResult.unifiedUrl}
+                    className="w-full px-3 py-2 bg-white border border-amber-300 rounded-xl text-xs text-slate-800 font-mono select-all shadow-inner"
+                  />
                 </div>
 
                 {/* WhatsApp Share Button */}
                 <button
                   type="button"
                   onClick={() => {
-                    const linksText = createdPriestResult.generatedLinks
-                      .map((l, i) => `${i + 1}. ${l.icon} ${l.label}:\n${l.url}`)
-                      .join("\n\n");
+                    const modulesLabels = createdPriestResult.allowedModules
+                      .map((mKey) => {
+                        const cfg = AVAILABLE_MODULES.find((m) => m.key === mKey);
+                        return `• ${cfg?.icon || "✨"} ${cfg?.kannadaLabel || mKey}`;
+                      })
+                      .join("\n");
+
                     const message = encodeURIComponent(
                       `ನಮಸ್ಕಾರ ${createdPriestResult.name} ಅವರೇ,\n\n` +
                       `ನಿಮಗೆ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಮತ್ತು ಜ್ಯೋತಿಷ್ಯ ತಂತ್ರಾಂಶದ ವಿಶೇಷ ಆಹ್ವಾನ ಕಳುಹಿಸಲಾಗಿದೆ.\n\n` +
                       `👤 ಯೂಸರ್‌ನೇಮ್: ${createdPriestResult.username}\n` +
                       `🔑 ಪಾಸ್‌ವರ್ಡ್: ${createdPriestResult.password}\n\n` +
-                      `ನಿಮ್ಮ ಸಕ್ರಿಯ ಪೋರ್ಟಲ್ ಲಿಂಕ್‌ಗಳು:\n\n${linksText}\n\n` +
-                      `॥ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ ॥`
+                      `🛡️ ನಿಮ್ಮ ಸಕ್ರಿಯ ಸೌಲಭ್ಯಗಳು:\n${modulesLabels}\n\n` +
+                      `🔗 ನಿಮ್ಮ ಏಕೈಕ ಪ್ರವೇಶ ಲಿಂಕ್ (Single Unified Access Link):\n${createdPriestResult.unifiedUrl}\n\n` +
+                      `॥ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ · ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ॥`
                     );
                     window.open(`https://api.whatsapp.com/send?text=${message}`, "_blank");
                   }}
-                  className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl flex items-center justify-center gap-2 shadow-md transition-all"
+                  className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs sm:text-sm rounded-2xl flex items-center justify-center gap-2 shadow-md transition-all active:scale-95"
                 >
-                  <span>📲 WhatsApp ಮೂಲಕ ಯೂಸರ್‌ನೇಮ್ & ಪಾಸ್‌ವರ್ಡ್ ಸಹಿತ ಆಹ್ವಾನ ಕಳುಹಿಸಿ (Share via WhatsApp)</span>
+                  <span>📲</span>
+                  <span>WhatsApp ಮೂಲಕ ಯೂಸರ್‌ನೇಮ್, ಪಾಸ್‌ವರ್ಡ್ & ಏಕೀಕೃತ ಲಿಂಕ್ ಕಳುಹಿಸಿ (Share via WhatsApp)</span>
                 </button>
               </div>
             )}
@@ -1345,15 +1373,16 @@ export const SuperAdminDashboard: React.FC = () => {
                               type="button"
                               onClick={() => {
                                 const origin = typeof window !== "undefined" ? window.location.origin : "https://baggona-panchanga.firebaseapp.com";
-                                const linksMsg = modules
-                                  .map((mKey, idx) => {
+                                const modulesQuery = modules.length > 0 ? modules.join(",") : "panchanga";
+                                const unifiedUrl = `${origin}/?portal=priest&user=${encodeURIComponent(priest.userId)}&name=${encodeURIComponent(priest.priestName)}&modules=${encodeURIComponent(modulesQuery)}&firstTime=true`;
+                                const modulesList = modules
+                                  .map((mKey) => {
                                     const cfg = AVAILABLE_MODULES.find((m) => m.key === mKey);
-                                    const url = `${origin}/?portal=${cfg?.portalParam || mKey}&user=${encodeURIComponent(priest.userId)}&name=${encodeURIComponent(priest.priestName)}&firstTime=true`;
-                                    return `${idx + 1}. ${cfg?.icon} ${cfg?.label}:\n${url}`;
+                                    return `• ${cfg?.icon || "✨"} ${cfg?.kannadaLabel || mKey}`;
                                   })
-                                  .join("\n\n");
+                                  .join("\n");
 
-                                const msg = `ನಮಸ್ಕಾರ ${priest.priestName} ಅವರೇ,\n\nನಿಮ್ಮ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಪೋರ್ಟಲ್ ಲಿಂಕ್‌ಗಳು:\n\n${linksMsg}\n\nದಯವಿಟ್ಟು ಲಿಂಕ್ ತೆರೆದು ನಿಮ್ಮ ರಹಸ್ಯ ಪಾಸ್‌ವರ್ಡ್ ಸೆಟ್ ಮಾಡಿಕೊಳ್ಳಿ.\n॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ॥`;
+                                const msg = `ನಮಸ್ಕಾರ ${priest.priestName} ಅವರೇ,\n\nನಿಮಗೆ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಪೋರ್ಟಲ್‌ನ ಪ್ರವೇಶ ಕಳುಹಿಸಲಾಗಿದೆ.\n\n👤 ಯೂಸರ್ ID: ${priest.userId}\n🛡️ ಸಕ್ರಿಯ ಸೌಲಭ್ಯಗಳು:\n${modulesList}\n\n🔗 ನಿಮ್ಮ ಏಕೀಕೃತ ಪ್ರವೇಶ ಲಿಂಕ್ (Single Access URL):\n${unifiedUrl}\n\nದಯವಿಟ್ಟು ಲಿಂಕ್ ತೆರೆದು ನಿಮ್ಮ ರಹಸ್ಯ ಪಾಸ್‌ವರ್ಡ್ ಸೆಟ್ ಮಾಡಿಕೊಳ್ಳಿ.\n॥ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ · ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ॥`;
                                 window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, "_blank");
                               }}
                               className="py-1.5 px-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-950 border border-emerald-400 rounded-lg text-xs font-bold transition-all shadow-sm"

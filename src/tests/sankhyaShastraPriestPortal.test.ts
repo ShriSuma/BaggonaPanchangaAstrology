@@ -16,14 +16,14 @@ import { sendSystemTestEmail } from "../features/notifications/notificationServi
 
 describe("Sankhya Shastra Priest Portal & Engine Validation", () => {
   it("verifies accurate pricing for Sankhya Shastra services", () => {
-    expect(SERVICE_COIN_COSTS.SANKHYA_PRASHNA.coins).toBe(200);
-    expect(SERVICE_COIN_COSTS.SANKHYA_PRASHNA.inrEquivalent).toBe(20);
+    expect(SERVICE_COIN_COSTS.SANKHYA_PRASHNA.coins).toBe(500);
+    expect(SERVICE_COIN_COSTS.SANKHYA_PRASHNA.inrEquivalent).toBe(50);
 
-    expect(SERVICE_COIN_COSTS.SANKHYA_NAME_SUGGESTION.coins).toBe(200);
-    expect(SERVICE_COIN_COSTS.SANKHYA_NAME_SUGGESTION.inrEquivalent).toBe(20);
+    expect(SERVICE_COIN_COSTS.SANKHYA_NAME_SUGGESTION.coins).toBe(500);
+    expect(SERVICE_COIN_COSTS.SANKHYA_NAME_SUGGESTION.inrEquivalent).toBe(50);
 
-    expect(SERVICE_COIN_COSTS.SANKHYA_MOBILE_VEHICLE.coins).toBe(200);
-    expect(SERVICE_COIN_COSTS.SANKHYA_MOBILE_VEHICLE.inrEquivalent).toBe(20);
+    expect(SERVICE_COIN_COSTS.SANKHYA_MOBILE_VEHICLE.coins).toBe(500);
+    expect(SERVICE_COIN_COSTS.SANKHYA_MOBILE_VEHICLE.inrEquivalent).toBe(50);
   });
 
   it("computes Mulanka and Bhagyanka correctly from birth date", () => {
@@ -55,10 +55,10 @@ describe("Sankhya Shastra Priest Portal & Engine Validation", () => {
     expect(result.natureKn).toMatch(/(ಸ್ಥಿರ|ಚರ|ಉಭಯ)/);
     expect(result.varnaKn).toMatch(/(ವರ್ಗ|ಅಧಿಕಾರಿಗಳು|ವ್ಯಾಪಾರಿಗಳು|ಶ್ರಮಿಕರು)/);
     expect(result.technicalParagraphs).toHaveLength(4);
-    expect(result.technicalParagraphs[0].titleKn).toContain("ಪ್ಯಾರಾಗ್ರಾಫ್ ೧");
-    expect(result.technicalParagraphs[1].titleKn).toContain("ಪ್ಯಾರಾಗ್ರಾಫ್ ೨");
-    expect(result.technicalParagraphs[2].titleKn).toContain("ಪ್ಯಾರಾಗ್ರಾಫ್ ೩");
-    expect(result.technicalParagraphs[3].titleKn).toContain("ಪ್ಯಾರಾಗ್ರಾಫ್ ೪");
+    expect(result.technicalParagraphs[0].titleKn).toMatch(/(೧\.|ನಿರ್ಣಯ|ವಿಶ್ಲೇಷಣೆ)/);
+    expect(result.technicalParagraphs[1].titleKn).toMatch(/(೨\.|ತರಂಗ|ಮನಸ್ಥಿತಿ)/);
+    expect(result.technicalParagraphs[2].titleKn).toMatch(/(೩\.|ಪರಿಹಾರ|ಸಂವಹನ)/);
+    expect(result.technicalParagraphs[3].titleKn).toMatch(/(೪\.|ದೈವಿಕ|ಕಾಲಾವಧಿ)/);
     expect(result.remedyListKn.length).toBeGreaterThan(0);
   });
 

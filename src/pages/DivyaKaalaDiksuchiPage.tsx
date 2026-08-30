@@ -159,7 +159,7 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
   const handleCalculate = (e: React.FormEvent) => {
     e.preventDefault();
     if (!dob) return;
-    const cost = SERVICE_COIN_COSTS.KAALA_DIKSUCHI_QUESTION?.coins || 100;
+    const cost = SERVICE_COIN_COSTS.KAALA_DIKSUCHI_QUESTION?.coins || 200;
 
     setPendingDeduction({
       isOpen: true,
@@ -265,8 +265,8 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
           </p>
 
           <div className="mt-4 flex flex-wrap items-center gap-2 sm:gap-4 text-[11px] sm:text-xs text-amber-300 font-bold">
-            <span className="bg-black/40 px-3 py-1 rounded-xl border border-amber-500/30">✓ ನಿಖರ ದಿಕ್ಸೂಚಿ & ದಿಶಾರಕ್ಷೆ</span>
-            <span className="bg-black/40 px-3 py-1 rounded-xl border border-amber-500/30">✓ ದಿನದ ಶುಭ ಕಾಲ & ಮುಹೂರ್ತ</span>
+            <span className="bg-black/40 px-3 py-1 rounded-xl border border-amber-500/30">✓ ಸಮುದ್ರಿಕ ಲಕ್ಷಣ ಶಾಸ್ತ್ರ</span>
+            <span className="bg-black/40 px-3 py-1 rounded-xl border border-amber-500/30">✓ ನಿಖರ ಕಾಲಾವಧಿ ಗಣನೆ</span>
             <span className="bg-black/40 px-3 py-1 rounded-xl border border-amber-500/30">✓ ಗೋಕರ್ಣ ಸನ್ನಿಧಿ ಪರಿಹಾರ</span>
           </div>
         </div>
@@ -283,17 +283,17 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
                 ದಿವ್ಯ ಕಾಲ ದಿಕ್ಸೂಚಿ ವಿಶ್ಲೇಷಣೆ (Divya Kaala Diksuchi)
               </span>
               <span className="text-[11px] text-amber-800 dark:text-amber-400 font-bold">
-                ದರ: ೧೦೦ ನಾಣ್ಯಗಳು (₹೧೦) ಪ್ರತಿ ಪ್ರಶ್ನೆಗೆ
+                ದರ: 🪙 ೨೦೦ ನಾಣ್ಯಗಳು (200 Coins) ಪ್ರತಿ ಪ್ರಶ್ನೆಗೆ
               </span>
             </div>
           </div>
           <div className="flex items-center gap-2 self-end sm:self-auto">
             <span className={`text-xs font-mono font-black px-3 py-1 rounded-xl border-2 ${
-              coinBalance < 100
+              coinBalance < 200
                 ? "bg-red-100 text-red-900 border-red-400 animate-pulse"
                 : "bg-amber-100 text-amber-950 border-amber-400"
             }`}>
-              {coinBalance < 100 ? `⚠️ ${coinBalance} 🪙 (ಕೊರತೆ)` : `${coinBalance} 🪙`}
+              {coinBalance < 200 ? `⚠️ ${coinBalance} 🪙 (ಕೊರತೆ)` : `${coinBalance} 🪙`}
             </span>
             <button
               type="button"

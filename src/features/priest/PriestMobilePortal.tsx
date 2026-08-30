@@ -30,6 +30,12 @@ import { PdfTemplate, type PdfTranslations, type PremiumData } from "../../compo
 import { GokarnaKundaliTemplate } from "../../components/template/GokarnaKundaliTemplate";
 import { DashaPdfTemplate } from "../../components/kundli/DashaPdfTemplate";
 import { FallingCoinsRefillModal } from "../../components/wallet/FallingCoinsRefillModal";
+import { CoinDeductionModal } from "../../components/wallet/CoinDeductionModal";
+import { VahanaKharidiMuhurthaTab } from "../../components/muhurtha/VahanaKharidiMuhurthaTab";
+import { SankhyaShastraPriestPortal } from "./SankhyaShastraPriestPortal";
+import { DivyaKaalaDiksuchiPage } from "../../pages/DivyaKaalaDiksuchiPage";
+import { HindinaJanmaPage } from "../../pages/HindinaJanmaPage";
+import type { AvailableModuleKey } from "../wallet/walletTypes";
 import { exportPanchangaWithDashaPdf, exportElementAsPdf } from "../../core/ExportUtils";
 import { patrikaMetaForNakshatraIndex } from "../../core/nakshatraPatrikaMeta";
 import { generateMasterPrediction } from "../../core/MasterPredictionEngine";
@@ -133,7 +139,14 @@ function enrichYogaDescription(name: string, impact: string, lang: string, lagna
   return `${cleanImpact} Auspicious planetary combinations activate this favorable Yoga, bestowing prosperity, wisdom, and success.`;
 }
 
-type PriestTab = "kundli" | "questions" | "wallet";
+export type PriestTab =
+  | "kundli"
+  | "questions"
+  | "sankhyashastra"
+  | "diksuchi"
+  | "purva_janma"
+  | "vahana_muhurtha"
+  | "wallet";
 
 const PRIEST_KUNDLI_STORAGE_KEY = "baggona_priest_kundli_active_session";
 
@@ -164,11 +177,83 @@ export const PriestMobilePortal: React.FC = () => {
   const { currentUser } = useAuthStore();
   const [urlPriestName, setUrlPriestName] = useState<string>("");
 
+  // Allowed modules resolution: URL param "modules" takes precedence, then wallet.allowedModules, then portal query param
+  const allowedModules = useMemo<AvailableModuleKey[]>((): AvailableModuleKey[] => {
+    if (typeof window === "undefined") return ["panchanga", "sankhyashastra", "diksuchi", "purva_janma", "vahana_muhurtha"];
+    const params = new URLSearchParams(window.location.search);
+    const modulesParam = params.get("modules");
+    if (modulesParam) {
+      const parsed: AvailableModuleKey[] = modulesParam
+        .split(",")
+        .map((m) => m.trim().toLowerCase())
+        .filter((m): m is AvailableModuleKey => ["panchanga", "sankhyashastra", "diksuchi", "purva_janma", "vahana_muhurtha"].includes(m as any));
+      if (parsed.length > 0) return parsed;
+    }
+    if (wallet?.allowedModules && wallet.allowedModules.length > 0) {
+      return wallet.allowedModules.filter((m): m is AvailableModuleKey =>
+        ["panchanga", "sankhyashastra", "diksuchi", "purva_janma", "vahana_muhurtha"].includes(m as any)
+      );
+    }
+    const portal = params.get("portal")?.toLowerCase();
+    if (portal === "sankhyashastra" || portal === "sankhya") return ["sankhyashastra"];
+    if (portal === "diksuchi") return ["diksuchi"];
+    if (portal === "purva_janma" || portal === "hindinajanma") return ["purva_janma"];
+    if (portal === "vahana_muhurtha" || portal === "vahanamuhurtha") return ["vahana_muhurtha"];
+    if (portal === "panchanga") return ["panchanga"];
+    return ["panchanga", "sankhyashastra", "diksuchi", "purva_janma", "vahana_muhurtha"];
+  }, [wallet?.allowedModules]);
+
+  const visibleTabs = useMemo(() => {
+    const tabs: Array<{ id: PriestTab; label: string; icon: string }> = [];
+    if (allowedModules.includes("panchanga")) {
+      tabs.push({ id: "kundli", label: "ಜನನ ಕುಂಡಲಿ", icon: "🔮" });
+      tabs.push({ id: "questions", label: "ಪ್ರಶ್ನೋತ್ತರ", icon: "💬" });
+    }
+    if (allowedModules.includes("sankhyashastra")) {
+      tabs.push({ id: "sankhyashastra", label: "ಸಂಖ್ಯಾಶಾಸ್ತ್ರ", icon: "🔢" });
+    }
+    if (allowedModules.includes("diksuchi")) {
+      tabs.push({ id: "diksuchi", label: "ಕಾಲ ದಿಕ್ಸೂಚಿ", icon: "🧭" });
+    }
+    if (allowedModules.includes("purva_janma")) {
+      tabs.push({ id: "purva_janma", label: "ಹಿಂದಿನ ಜನ್ಮ", icon: "📜" });
+    }
+    if (allowedModules.includes("vahana_muhurtha")) {
+      tabs.push({ id: "vahana_muhurtha", label: "ವಾಹನ ಮುಹೂರ್ತ", icon: "🚗" });
+    }
+    // Always include Wallet tab
+    tabs.push({ id: "wallet", label: "ವಾಲೆಟ್", icon: "🪙" });
+    return tabs;
+  }, [allowedModules]);
+
   // Load Saved Session from localStorage (Anti-Reset Guard for Refresh / Mobile Disconnects)
   const savedSession = useMemo(() => loadSavedPriestKundliState(), []);
 
   // Active Tab
-  const [activeTab, setActiveTab] = useState<PriestTab>(() => savedSession?.activeTab || "kundli");
+  const [activeTab, setActiveTab] = useState<PriestTab>(() => {
+    if (savedSession?.activeTab) return savedSession.activeTab;
+    return "kundli";
+  });
+
+  // Synchronize activeTab with visibleTabs if activeTab is not allowed
+  useEffect(() => {
+    if (visibleTabs.length > 0 && !visibleTabs.some((t) => t.id === activeTab)) {
+      setActiveTab(visibleTabs[0].id);
+    }
+  }, [visibleTabs, activeTab]);
+
+  // Pre-Action Coin Deduction Confirmation Modal State
+  const [pendingDeduction, setPendingDeduction] = useState<{
+    isOpen: boolean;
+    serviceTitle: string;
+    serviceTitleKannada: string;
+    costCoins: number;
+    inrEquivalent: number;
+    devoteeName: string;
+    description: string;
+    icon?: string;
+    onConfirm: () => Promise<void>;
+  } | null>(null);
 
   // 5-Second Dismissible Royal Welcome Toast
   const [showWelcomeToast, setShowWelcomeToast] = useState(true);
@@ -336,7 +421,10 @@ export const PriestMobilePortal: React.FC = () => {
       }
 
       if (params.get("reset") === "true" || params.get("firstTime") === "true") {
-        setShowPasswordSetup(true);
+        const isDone = localStorage.getItem("baggona_pwd_setup_done_" + resolvedUser) === "true";
+        if (!isDone) {
+          setShowPasswordSetup(true);
+        }
       }
     }
 
@@ -389,24 +477,40 @@ export const PriestMobilePortal: React.FC = () => {
   const geminiApiKey = useAppStore((state) => state.geminiApiKey);
   const ayanamsaModel = useAppStore((state) => state.ayanamsaModel);
 
-  // Generate Kundli Handler with 250 Coin Deduction & Auto-Refund Guard
-  const handleGenerateKundli = async (e: React.FormEvent) => {
+  // Generate Kundli Handler with 500 Coin (₹50) Deduction & Pre-Action Confirmation Modal
+  const handleGenerateKundli = (e: React.FormEvent) => {
     e.preventDefault();
-    const cost = SERVICE_COIN_COSTS.KUNDLI_CALCULATION.coins; // 250 Coins (₹25)
+    const cost = SERVICE_COIN_COSTS.KUNDLI_CALCULATION?.coins || 500; // 500 Coins (₹50)
 
     if (coinBalance < cost) {
       setFeedback({
         type: "error",
-        text: `ನಾಣ್ಯಗಳ ಕೊರತೆ ಇದೆ. ಕುಂಡಲಿ ರಚನೆಗೆ ೨೫೦ ನಾಣ್ಯಗಳು ಅಗತ್ಯವಿದೆ. ಪ್ರಸ್ತುತ ${coinBalance} ನಾಣ್ಯಗಳಿವೆ.`
+        text: `ನಾಣ್ಯಗಳ ಕೊರತೆ ಇದೆ. ಕುಂಡಲಿ ರಚನೆಗೆ ೫೦೦ ನಾಣ್ಯಗಳು (₹೫೦) ಅಗತ್ಯವಿದೆ. ಪ್ರಸ್ತುತ ${coinBalance} ನಾಣ್ಯಗಳಿವೆ.`
       });
       setIsRechargeOpen(true);
       return;
     }
 
+    setPendingDeduction({
+      isOpen: true,
+      serviceTitle: "Detailed Birth Kundli Generation",
+      serviceTitleKannada: "ಜನನ ಕುಂಡಲಿ & ಗ್ರಹಸ್ಥಿತಿ ರಚನೆ",
+      costCoins: cost,
+      inrEquivalent: 50,
+      devoteeName: devoteeName || "ಭಕ್ತರು",
+      description: `ಶ್ರೀ ${devoteeName || "ಭಕ್ತರ"} (${placeName || "ಗೋಕರ್ಣ"}) ಜನನ ಕುಂಡಲಿ, ನವಗ್ರಹ ಸ್ಪಷ್ಟ, ದಶಾ-ಭುಕ್ತಿ ಹಾಗೂ ಯೋಗಗಳ ಗಣನೆ.`,
+      icon: "🔮",
+      onConfirm: async () => {
+        await executeKundliGeneration(cost);
+      }
+    });
+  };
+
+  const executeKundliGeneration = async (cost: number) => {
     setIsCalculatingKundli(true);
     setFeedback(null);
 
-    // 1. Deduct 250 Coins
+    // 1. Deduct 500 Coins
     const deductRes = await deductForService(cost, "ಜನನ ಕುಂಡಲಿ ರಚನೆ", devoteeName || "ಭಕ್ತರು");
     if (!deductRes.success) {
       setFeedback({ type: "error", text: deductRes.error || "ನಾಣ್ಯ ಕಡಿತ ವಿಫಲವಾಗಿದೆ." });
@@ -433,7 +537,7 @@ export const PriestMobilePortal: React.FC = () => {
       setKundliResult(output);
       setFeedback({
         type: "success",
-        text: `ಶ್ರೀ ${devoteeName || "ಭಕ್ತರ"} ಜನನ ಕುಂಡಲಿ ಯಶಸ್ವಿಯಾಗಿ ರಚಿಸಲ್ಪಟ್ಟಿದೆ. (೨೫೦ ನಾಣ್ಯಗಳು ಕಡಿತಗೊಂಡಿವೆ)`
+        text: `ಶ್ರೀ ${devoteeName || "ಭಕ್ತರ"} ಜನನ ಕುಂಡಲಿ ಯಶಸ್ವಿಯಾಗಿ ರಚಿಸಲ್ಪಟ್ಟಿದೆ. (೫೦೦ ನಾಣ್ಯಗಳು / ₹೫೦ ಕಡಿತಗೊಂಡಿವೆ)`
       });
 
       // Save to Cloud Firestore
@@ -474,12 +578,12 @@ export const PriestMobilePortal: React.FC = () => {
         username: wallet?.userId || currentUser || "priest",
         priestName: activePriestDisplayName,
         action: "ಜನನ ಕುಂಡಲಿ ರಚನೆ (Janana Kundli Calculation)",
-        attemptedCoins: 250,
+        attemptedCoins: cost,
         errorMessage: err?.message || "Kundli calculation runtime failure"
       });
       setFeedback({
         type: "error",
-        text: "ಕುಂಡಲಿ ಲೆಕ್ಕಾಚಾರದಲ್ಲಿ ದೋಷ ಉಂಟಾಗಿದೆ. ಕಡಿತಗೊಂಡ ೨೫೦ ನಾಣ್ಯಗಳನ್ನು ತಕ್ಷಣವೇ ನಿಮ್ಮ ವಾಲೆಟ್‌ಗೆ ಮರುಪಾವತಿಸಲಾಗಿದೆ."
+        text: "ಕುಂಡಲಿ ಲೆಕ್ಕಾಚಾರದಲ್ಲಿ ದೋಷ ಉಂಟಾಗಿದೆ. ಕಡಿತಗೊಂಡ ೫೦೦ ನಾಣ್ಯಗಳನ್ನು ತಕ್ಷಣವೇ ನಿಮ್ಮ ವಾಲೆಟ್‌ಗೆ ಮರುಪಾವತಿಸಲಾಗಿದೆ."
       });
     } finally {
       setIsCalculatingKundli(false);
@@ -1054,8 +1158,8 @@ export const PriestMobilePortal: React.FC = () => {
     }
   };
 
-  // Handle Astrological Question Consultation with 750 Coin Deduction & Auto-Refund Guard
-  const handleConsultationSubmit = async (e: React.FormEvent) => {
+  // Handle Astrological Question Consultation with 500 Coin (₹50) Deduction & Pre-Action Confirmation Modal
+  const handleConsultationSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!kundliResult) {
       setFeedback({
@@ -1066,25 +1170,37 @@ export const PriestMobilePortal: React.FC = () => {
       return;
     }
 
-    const cost = selectedCategoryKey === "kaaladiksuchi"
-      ? (SERVICE_COIN_COSTS.KAALA_DIKSUCHI_QUESTION?.coins || 108)
-      : selectedCategoryKey === "purvajanma"
-      ? (SERVICE_COIN_COSTS.PURVA_JANMA_QUESTION?.coins || 108)
-      : (SERVICE_COIN_COSTS.ASTROLOGY_QUESTION?.coins || 750);
+    const cost = SERVICE_COIN_COSTS.ASTROLOGY_QUESTION?.coins || 500;
 
     if (coinBalance < cost) {
       setFeedback({
         type: "error",
-        text: `ನಾಣ್ಯಗಳ ಕೊರತೆ ಇದೆ. ಪ್ರಶ್ನೆ ವಿಶ್ಲೇಷಣೆಗೆ ${cost} ನಾಣ್ಯಗಳು ಅಗತ್ಯವಿದೆ. ಪ್ರಸ್ತುತ ${coinBalance} ನಾಣ್ಯಗಳಿವೆ.`
+        text: `ನಾಣ್ಯಗಳ ಕೊರತೆ ಇದೆ. ಪ್ರಶ್ನೆ ವಿಶ್ಲೇಷಣೆಗೆ ೫೦೦ ನಾಣ್ಯಗಳು (₹೫೦) ಅಗತ್ಯವಿದೆ. ಪ್ರಸ್ತುತ ${coinBalance} ನಾಣ್ಯಗಳಿವೆ.`
       });
       setIsRechargeOpen(true);
       return;
     }
 
+    setPendingDeduction({
+      isOpen: true,
+      serviceTitle: "Astrology Question & Consultation",
+      serviceTitleKannada: "ಜ್ಯೋತಿಷ್ಯ ಪ್ರಶ್ನೆ ಸಮಾಲೋಚನೆ",
+      costCoins: cost,
+      inrEquivalent: 50,
+      devoteeName: devoteeName || "ಭಕ್ತರು",
+      description: `ವರ್ಗ: ${selectedCategoryKey} | ಪ್ರಶ್ನೆ: "${customQuestion.trim() || "ಸಾಮಾನ್ಯ ಜೀವನ ಮಾರ್ಗದರ್ಶನ"}"`,
+      icon: "💬",
+      onConfirm: async () => {
+        await executeConsultation(cost);
+      }
+    });
+  };
+
+  const executeConsultation = async (cost: number) => {
     setIsConsulting(true);
     setFeedback(null);
 
-    // 1. Deduct dynamic coins (108 for Kaala Diksuchi/Purva Janma, 750 for general)
+    // 1. Deduct 500 Coins
     const deductRes = await deductForService(cost, `ಶಾಸ್ತ್ರೀಯ ಸಮಾಲೋಚನೆ: ${selectedCategoryKey}`, devoteeName || "ಭಕ್ತರು");
     if (!deductRes.success) {
       setFeedback({ type: "error", text: deductRes.error || "ನಾಣ್ಯ ಕಡಿತ ವಿಫಲವಾಗಿದೆ." });
@@ -1094,7 +1210,7 @@ export const PriestMobilePortal: React.FC = () => {
 
     try {
       const res = await generatePriestConsultationReading({
-        kundli: kundliResult,
+        kundli: kundliResult!,
         devoteeName: devoteeName || "ಭಕ್ತರು",
         gothra: gothra || "ಕಾಶ್ಯಪ",
         categoryKey: selectedCategoryKey,
@@ -1106,7 +1222,7 @@ export const PriestMobilePortal: React.FC = () => {
       setConsultationHistory((prev) => [res, ...prev]);
       setFeedback({
         type: "success",
-        text: `ಶಾಸ್ತ್ರೀಯ ಸಮಾಲೋಚನಾ ವರದಿ ಯಶಸ್ವಿಯಾಗಿ ರಚಿಸಲ್ಪಟ್ಟಿದೆ. (${cost} ನಾಣ್ಯಗಳು ಕಡಿತಗೊಂಡಿವೆ)`
+        text: `ಶಾಸ್ತ್ರೀಯ ಸಮಾಲೋಚನಾ ವರದಿ ಯಶಸ್ವಿಯಾಗಿ ರಚಿಸಲ್ಪಟ್ಟಿದೆ. (೫೦೦ ನಾಣ್ಯಗಳು / ₹೫೦ ಕಡಿತಗೊಂಡಿವೆ)`
       });
     } catch (err: any) {
       console.error("[PriestMobilePortal] Consultation error:", err);
@@ -1160,8 +1276,18 @@ export const PriestMobilePortal: React.FC = () => {
 
     try {
       const hashed = await hashPassword(newPassword);
-      const uid = currentUser || "priest_shreeram";
+      const uid = currentUser || (typeof window !== "undefined" ? localStorage.getItem("baggona_priest_id") : null) || "priest_shreeram";
       await updateUserPassword(uid, hashed);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("baggona_pwd_setup_done_" + uid, "true");
+        try {
+          const url = new URL(window.location.href);
+          url.searchParams.delete("reset");
+          url.searchParams.delete("firstTime");
+          const newSearch = url.searchParams.toString();
+          window.history.replaceState({}, document.title, url.pathname + (newSearch ? `?${newSearch}` : "") + url.hash);
+        } catch {}
+      }
       void notifyPasswordResetCompleted({ username: uid });
       setPasswordMsg("✓ ಪಾಸ್‌ವರ್ಡ್ ಯಶಸ್ವಿಯಾಗಿ ನವೀಕರಿಸಲಾಗಿದೆ!");
       setTimeout(() => setShowPasswordSetup(false), 1500);
@@ -1300,49 +1426,50 @@ export const PriestMobilePortal: React.FC = () => {
         </div>
       )}
 
-      {/* 2. Mobile Tab Switcher (Royal Cream & Gold) */}
-      <div className="px-4 mt-3.5">
-        <div className="grid grid-cols-3 gap-1.5 p-1.5 bg-[#FFFDF7] border-2 border-amber-400/60 rounded-2xl shadow-sm">
-          <button
-            type="button"
-            onClick={() => setActiveTab("kundli")}
-            className={`py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
-              activeTab === "kundli"
-                ? "bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 text-slate-950 shadow-md font-black"
-                : "text-amber-900 hover:bg-amber-50"
-            }`}
-          >
-            <span>🔮</span>
-            <span>ಜನನ ಕುಂಡಲಿ</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab("questions")}
-            className={`py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
-              activeTab === "questions"
-                ? "bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 text-slate-950 shadow-md font-black"
-                : "text-amber-900 hover:bg-amber-50"
-            }`}
-          >
-            <span>❓</span>
-            <span>ಪ್ರಶ್ನೋತ್ತರ</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab("wallet")}
-            className={`py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
-              activeTab === "wallet"
-                ? "bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 text-slate-950 shadow-md font-black"
-                : "text-amber-900 hover:bg-amber-50"
-            }`}
-          >
-            <span>🪙</span>
-            <span>ವಾಲೆಟ್</span>
-          </button>
+      {/* 2. Mobile Tab Switcher (Royal Cream & Gold - Dynamic Multi-Module Support) */}
+      <div className="px-3 sm:px-4 mt-3.5">
+        <div className="flex flex-wrap gap-1.5 p-1.5 bg-[#FFFDF7] border-2 border-amber-400/60 rounded-2xl shadow-sm">
+          {visibleTabs.map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex-1 min-w-[95px] py-2 px-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+                  isActive
+                    ? "bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 text-slate-950 shadow-md font-black ring-1 ring-amber-500"
+                    : "text-amber-900 hover:bg-amber-50"
+                }`}
+              >
+                <span>{tab.icon}</span>
+                <span className="whitespace-nowrap">{tab.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
+
+      {/* Pre-Action Coin Deduction Confirmation Modal */}
+      {pendingDeduction && (
+        <CoinDeductionModal
+          isOpen={pendingDeduction.isOpen}
+          serviceTitle={pendingDeduction.serviceTitle}
+          serviceTitleKannada={pendingDeduction.serviceTitleKannada}
+          costCoins={pendingDeduction.costCoins}
+          inrEquivalent={pendingDeduction.inrEquivalent}
+          devoteeName={pendingDeduction.devoteeName}
+          description={pendingDeduction.description}
+          icon={pendingDeduction.icon || "🪙"}
+          onConfirm={pendingDeduction.onConfirm}
+          onCancel={() => setPendingDeduction(null)}
+          onClose={() => setPendingDeduction(null)}
+          onOpenRefill={() => {
+            setPendingDeduction(null);
+            setIsRechargeOpen(true);
+          }}
+        />
+      )}
 
       {/* 3. TAB 1: ಜನನ ಕುಂಡಲಿ (Janana Kundli & Dasha-Bhukti) */}
       {activeTab === "kundli" && (
@@ -1807,7 +1934,7 @@ export const PriestMobilePortal: React.FC = () => {
                 <span>ಶಾಸ್ತ್ರೀಯ ಪ್ರಶ್ನೋತ್ತರ ಸಮಾಲೋಚನೆ</span>
               </h2>
               <span className="text-[10px] font-mono font-black text-amber-900 bg-[#FFF5D6] px-2.5 py-1 rounded-full border border-amber-400">
-                ದರ: 🪙 {selectedCategoryKey === "kaaladiksuchi" || selectedCategoryKey === "purvajanma" ? "೧೦೮" : "೭೫೦"} ನಾಣ್ಯಗಳು
+                ದರ: 🪙 {selectedCategoryKey === "kaaladiksuchi" || selectedCategoryKey === "purvajanma" ? "೨೦೦" : "೭೫೦"} ನಾಣ್ಯಗಳು
               </span>
             </div>
 
@@ -1876,7 +2003,7 @@ export const PriestMobilePortal: React.FC = () => {
                     <>
                       <span>🔍 ೪ ಪ್ಯಾರಾಗ್ರಾಫ್ ಶಾಸ್ತ್ರೀಯ ವಿಶ್ಲೇಷಣೆ ಪಡೆಯಿರಿ</span>
                       <span className="opacity-80 font-mono font-bold">
-                        (🪙 {selectedCategoryKey === "kaaladiksuchi" || selectedCategoryKey === "purvajanma" ? "೧೦೮" : "೭೫೦"})
+                        (🪙 {selectedCategoryKey === "kaaladiksuchi" || selectedCategoryKey === "purvajanma" ? "೨೦೦" : "೭೫೦"})
                       </span>
                     </>
                   )}
@@ -2043,7 +2170,35 @@ export const PriestMobilePortal: React.FC = () => {
         </div>
       )}
 
-      {/* 5. TAB 3: ವಾಲೆಟ್ & ಲೆಡ್ಜರ್ (Wallet & Refill) */}
+      {/* 4. TAB 3: ಸಂಖ್ಯಾಶಾಸ್ತ್ರ (Sankhya Shastra) */}
+      {activeTab === "sankhyashastra" && (
+        <div className="mt-2">
+          <SankhyaShastraPriestPortal />
+        </div>
+      )}
+
+      {/* 5. TAB 4: ದಿವ್ಯ ಕಾಲ ದಿಕ್ಸೂಚಿ (Divya Kaala Diksuchi) */}
+      {activeTab === "diksuchi" && (
+        <div className="px-2 sm:px-4 mt-2">
+          <DivyaKaalaDiksuchiPage />
+        </div>
+      )}
+
+      {/* 6. TAB 5: ಹಿಂದಿನ ಜನ್ಮ ರಹಸ್ಯ (Hindina Janma) */}
+      {activeTab === "purva_janma" && (
+        <div className="px-2 sm:px-4 mt-2">
+          <HindinaJanmaPage />
+        </div>
+      )}
+
+      {/* 7. TAB 6: ವಾಹನ ಖರೀದಿ ಶುಭ ಮುಹೂರ್ತ (Vahana Kharidi Muhurtha) */}
+      {activeTab === "vahana_muhurtha" && (
+        <div className="px-2 sm:px-4 mt-2">
+          <VahanaKharidiMuhurthaTab currentUser={currentUser || undefined} defaultPriestName={activePriestDisplayName || undefined} />
+        </div>
+      )}
+
+      {/* 8. TAB 7: ವಾಲೆಟ್ & ಲೆಡ್ಜರ್ (Wallet & Refill) */}
       {activeTab === "wallet" && (
         <div className="px-4 mt-4 space-y-4">
           {/* Wallet Summary Card */}
@@ -2070,22 +2225,38 @@ export const PriestMobilePortal: React.FC = () => {
 
           {/* Pricing Standard Card */}
           <div className="bg-[#FFFDF7] border-2 border-amber-300 rounded-3xl p-5 text-xs space-y-2.5 shadow-sm">
-            <h3 className="font-black text-amber-950">📊 ಸೇವಾ ಶುಲ್ಕ ದರಪಟ್ಟಿ:</h3>
+            <h3 className="font-black text-amber-950">📊 ಸೇವಾ ಶುಲ್ಕ ದರಪಟ್ಟಿ (Service Rates - ₹1 = 10 ನಾಣ್ಯಗಳು):</h3>
             <div className="divide-y divide-amber-200 font-semibold">
               <div className="py-2 flex justify-between">
-                <span className="text-slate-800">ಜನನ ಕುಂಡಲಿ ರಚನೆ (Full Chart)</span>
-                <span className="font-mono font-bold text-amber-900">🪙 ೨೫೦ ನಾಣ್ಯಗಳು</span>
+                <span className="text-slate-800">🔮 ಜನನ ಕುಂಡಲಿ ರಚನೆ (Full Kundli Chart)</span>
+                <span className="font-mono font-bold text-amber-900">🪙 ೫೦೦ ನಾಣ್ಯಗಳು (₹೫೦)</span>
               </div>
               <div className="py-2 flex justify-between">
-                <span className="text-slate-800">ಪ್ರೀಮಿಯಂ ಜಾತಕ ಭವಿಷ್ಯ PDF ಡೌನ್‌ಲೋಡ್</span>
-                <span className="font-mono font-bold text-amber-900">🪙 ೩,೫೦೦ ನಾಣ್ಯಗಳು</span>
+                <span className="text-slate-800">💬 ಜ್ಯೋತಿಷ್ಯ ಪ್ರಶ್ನೆ ಸಮಾಲೋಚನೆ (Astrology Consultation)</span>
+                <span className="font-mono font-bold text-amber-900">🪙 ೫೦೦ ನಾಣ್ಯಗಳು (₹೫೦)</span>
               </div>
               <div className="py-2 flex justify-between">
-                <span className="text-slate-800">ಪ್ರತಿ ಪ್ರಶ್ನೆ ಸಮಾಲೋಚನೆ (೪ ಪ್ಯಾರಾಗ್ರಾಫ್)</span>
-                <span className="font-mono font-bold text-amber-900">🪙 ೭೫೦ ನಾಣ್ಯಗಳು</span>
+                <span className="text-slate-800">🔢 ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಪ್ರಶ್ನಾವಳಿ & ಹೆಸರು/ಸಂಖ್ಯೆ</span>
+                <span className="font-mono font-bold text-amber-900">🪙 ೫೦೦ ನಾಣ್ಯಗಳು (₹೫೦)</span>
               </div>
               <div className="py-2 flex justify-between">
-                <span className="text-slate-800">ದೈನಂದಿನ ಪಂಚಾಂಗ ದರ್ಶನ</span>
+                <span className="text-slate-800">🧭 ದಿವ್ಯ ಕಾಲ ದಿಕ್ಸೂಚಿ ವಿಶ್ಲೇಷಣೆ</span>
+                <span className="font-mono font-bold text-amber-900">🪙 ೫೦೦ ನಾಣ್ಯಗಳು (₹೫೦)</span>
+              </div>
+              <div className="py-2 flex justify-between">
+                <span className="text-slate-800">📜 ಹಿಂದಿನ ಜನ್ಮ ಕರ್ಮ ರಹಸ್ಯ</span>
+                <span className="font-mono font-bold text-amber-900">🪙 ೫೦೦ ನಾಣ್ಯಗಳು (₹೫೦)</span>
+              </div>
+              <div className="py-2 flex justify-between">
+                <span className="text-slate-800">🚗 ವಾಹನ ಖರೀದಿ ಶುಭ ಮುಹೂರ್ತ (Vehicle Purchase)</span>
+                <span className="font-mono font-bold text-amber-900">🪙 ೫೦೦ ನಾಣ್ಯಗಳು (₹೫೦)</span>
+              </div>
+              <div className="py-2 flex justify-between">
+                <span className="text-slate-800">📑 ಪ್ರೀಮಿಯಂ ಜಾತಕ ಭವಿಷ್ಯ PDF (Baggona Bhavishya)</span>
+                <span className="font-mono font-bold text-amber-900">🪙 ೩,೫೦೦ ನಾಣ್ಯಗಳು (₹೩೫೦)</span>
+              </div>
+              <div className="py-2 flex justify-between">
+                <span className="text-slate-800">🌅 ದೈನಂದಿನ ಪಂಚಾಂಗ ದರ್ಶನ</span>
                 <span className="font-mono font-bold text-emerald-700">ಉಚಿತ (FREE)</span>
               </div>
             </div>
@@ -2181,7 +2352,18 @@ export const PriestMobilePortal: React.FC = () => {
               <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
-                  onClick={() => setShowPasswordSetup(false)}
+                  onClick={() => {
+                    if (typeof window !== "undefined") {
+                      try {
+                        const url = new URL(window.location.href);
+                        url.searchParams.delete("reset");
+                        url.searchParams.delete("firstTime");
+                        const newSearch = url.searchParams.toString();
+                        window.history.replaceState({}, document.title, url.pathname + (newSearch ? `?${newSearch}` : "") + url.hash);
+                      } catch {}
+                    }
+                    setShowPasswordSetup(false);
+                  }}
                   className="px-4 py-2 bg-slate-200 text-slate-700 font-bold rounded-xl"
                 >
                   ನಂತರ

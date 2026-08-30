@@ -803,29 +803,40 @@ export async function executeKaalaDiksuchiCalculation(
   let aiNarrative: string | undefined = undefined;
 
   const buildDeterministicNarrative = () => {
+    const customQ = input.customQuestion?.trim();
     if (isKn) {
-      return `ಶ್ರೀಯುತ ${input.personName} ರವರಿಗೆ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದಿಂದ ಶ್ರೀರಾಮ್ ಪಂಡಿತರ ದಿವ್ಯ ಕಾಲ ದಿಕ್ಸೂಚಿ ಆಶೀರ್ವಾದಗಳು.
+      const p1Direct = customQ
+        ? `ನಿಮ್ಮ ಪ್ರಶ್ನೆಯಾದ "${customQ}" ಕುರಿತು ಪರಿಶೀಲಿಸಿದಾಗ, ಪ್ರಸ್ತುತ ಕಾಲಮಾನ ಹಾಗೂ ದಿಕ್ಕಿನ ತರಂಗಗಳು ನಿಮ್ಮ ಪರವಾಗಿ ತಿರುಗುತ್ತಿವೆ. ನಿಮ್ಮ ಕಾರ್ಯದಲ್ಲಿ ಆರಂಭಿಕ ಗೊಂದಲ ಅಥವಾ ವಿಳಂಬ ಕಂಡುಬಂದರೂ, ಸದ್ಯದಲ್ಲೇ ಪರಿಸ್ಥಿತಿಯು ತಿಳಿಯಾಗಲಿದೆ. ನಿಮ್ಮ ಜನ್ಮ ಲಕ್ಷಣ ಹಾಗೂ ಪ್ರಾಣಶಕ್ತಿ ತತ್ವದ ಪ್ರಕಾರ ನಿಮ್ಮ ನಿರ್ಧಾರಗಳನ್ನು ಸ್ಥಿರವಾಗಿಟ್ಟುಕೊಂಡು ನೇರ ಸಂವಹನ ನಡೆಸುವುದು ಅತ್ಯಂತ ಪ್ರಮುಖವಾಗಿದೆ.`
+        : `ನಿಮ್ಮ ಜನ್ಮ ಲಕ್ಷಣ ಹಾಗೂ ಕಾಲಚಕ್ರದ ತತ್ವಗಳ ಪ್ರಕಾರ ಪ್ರಸ್ತುತ ಕಾಲಮಾನವು ನಿಮ್ಮ ವೃತ್ತಿ, ಆರ್ಥಿಕ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಸ್ಥಿರತೆಗೆ ಅತ್ಯಂತ ಪ್ರಮುಖವಾದ ತಿರುವನ್ನು ನೀಡುತ್ತಿದೆ. ಸರಿಯಾದ ದಿಕ್ಕು ಹಾಗೂ ಶುಭ ಮುಹೂರ್ತವನ್ನು ಅನುಸರಿಸುವುದರಿಂದ ನಿಮ್ಮ ಸಕಲ ಉದ್ದೇಶಿತ ಕಾರ್ಯಗಳು ಸಿದ್ಧಿಯಾಗಲಿವೆ.`;
 
-೧. ಜಾತಕ & ಸಂಖ್ಯಾ ತತ್ವ ವಿಶ್ಲೇಷಣೆ:
-ನಿಮ್ಮ ಜನ್ಮ ದಿನಾಂಕ (${input.dob}, ${weekdayName}) ದಂತೆ ನಿಮ್ಮ ರವಿ ರಾಶಿಯು ${suryaRashiStr} ಆಗಿದ್ದು, ಮೂಲಾಂಕ ${num.ruling} (${sankhya.mulankLord}) ಮತ್ತು ಭಾಗ್ಯಾಂಕ ${num.destiny} ಆಗಿದೆ. ನಿಮ್ಮ ವ್ಯಕ್ತಿತ್ವದಲ್ಲಿ ${samudrika.personalityArchetype} ತತ್ವವು ಪ್ರಧಾನವಾಗಿದ್ದು, ${samudrika.hiddenSuperpower} ನಿಮ್ಮ ಅಂತರ್ಗತ ಶಕ್ತಿಯಾಗಿದೆ.
+      return `೧. ನೇರ ವಾಸ್ತವಿಕ ನಿರ್ಣಯ & ಪರಿಸ್ಥಿತಿ ವಿಶ್ಲೇಷಣೆ:
+${p1Direct}
 
-೨. ದಿಕ್ಸೂಚಿ & ಕಾಲ ಮುಹೂರ್ತ ಮಾರ್ಗದರ್ಶನ:
-ನಿಮ್ಮ ವೃತ್ತಿ ಮತ್ತು ಜೀವನದ ಮುನ್ನಡೆಗೆ ${diksuchi.careerDirection.directionName} ಅತ್ಯಂತ ಮಂಗಳಕರವಾಗಿದೆ (${diksuchi.careerDirection.practicalAdvice}). ಆರ್ಥಿಕ ಸಂಪತ್ತಿನ ವೃದ್ಧಿಗೆ ${diksuchi.wealthDirection.directionName} ಶುಭಕರ. ಇಂದಿನ ದಿನದ ದಿಕ್ಶೂಲವು ${diksuchi.dailyDishaShoola.afflictedDirection} ಯಲ್ಲಿದ್ದು, ${diksuchi.dailyDishaShoola.classicalRemedy}. ನಿಮ್ಮ ದೈನಂದಿನ ಅತ್ಯುನ್ನತ ಶುಭ ಕಾಲಾವಧಿ ${diksuchi.timingRhythm.peakPranaWindow} ಆಗಿದೆ.
+೨. ಜಾತಕ & ಸಂಖ್ಯಾ ತತ್ವ ಪ್ರಭಾವ:
+ನಿಮ್ಮ ಜನ್ಮ ದಿನಾಂಕ (${input.dob}, ${weekdayName}) ದಂತೆ ನಿಮ್ಮ ರವಿ ರಾಶಿಯು ${suryaRashiStr} ಆಗಿದ್ದು, ಮೂಲಾಂಕ ${num.ruling} (${sankhya.mulankLord}) ಮತ್ತು ಭಾಗ್ಯಾಂಕ ${num.destiny} ಆಗಿದೆ. ನಿಮ್ಮ ವ್ಯಕ್ತಿತ್ವದಲ್ಲಿ ${samudrika.personalityArchetype} ತತ್ವವು ಪ್ರಧಾನವಾಗಿದ್ದು, ${samudrika.hiddenSuperpower} ನಿಮ್ಮ ಅಂತರ್ಗತ ಶಕ್ತಿಯಾಗಿದೆ. ಈ ಸಂಖ್ಯಾ ತರಂಗಗಳು ನಿಮ್ಮ ನಿರ್ಧಾರಗಳಿಗೆ ಬಲ ನೀಡುತ್ತವೆ.
 
-೩. ಜೀವನಾಭ್ಯುದಯ & ಪರಿಹಾರ:
-ನಿಮ್ಮ ಆಯ್ದ ಗುರಿ (${input.primaryFocus || "ವೃತ್ತಿ & ಜೀವನ"}) ಸಾಧನೆಗಾಗಿ ${sankhya.wealthAttractionSecret}. ನಿತ್ಯವೂ ${remedies.dailyStotra} ಪಠಿಸಿ, ${remedies.sacredGokarnaRemedy}. ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಅನುಗ್ರಹದಿಂದ ನಿಮ್ಮ ಸಕಲ ಸತ್ಸಂಕಲ್ಪಗಳು ಈಡೇರಲಿ.`;
+೩. ದಿಕ್ಸೂಚಿ & ಕಾಲ ಮುಹೂರ್ತ ಮಾರ್ಗದರ್ಶನ:
+ನಿಮ್ಮ ವೃತ್ತಿ ಮತ್ತು ಪ್ರಮುಖ ಕೆಲಸಗಳ ಮುನ್ನಡೆಗೆ ${diksuchi.careerDirection.directionName} ಅತ್ಯಂತ ಮಂಗಳಕರವಾಗಿದೆ (${diksuchi.careerDirection.practicalAdvice}). ಆರ್ಥಿಕ ಸಂಪತ್ತಿನ ವೃದ್ಧಿಗೆ ${diksuchi.wealthDirection.directionName} ಶುಭಕರ. ಇಂದಿನ ದಿನದ ದಿಕ್ಶೂಲವು ${diksuchi.dailyDishaShoola.afflictedDirection} ಯಲ್ಲಿದ್ದು, ${diksuchi.dailyDishaShoola.classicalRemedy}. ನಿಮ್ಮ ದೈನಂದಿನ ಅತ್ಯುನ್ನತ ಶುಭ ಕಾಲಾವಧಿ ${diksuchi.timingRhythm.peakPranaWindow} ಆಗಿದೆ.
+
+೪. ಪ್ರಾಯೋಗಿಕ ಪರಿಹಾರ & ದೈವಿಕ ಆಶೀರ್ವಾದ:
+ನಿಮ್ಮ ಆಯ್ದ ಗುರಿ (${input.primaryFocus || "ವೃತ್ತಿ & ಜೀವನ"}) ಸಾಧನೆಗಾಗಿ ${sankhya.wealthAttractionSecret}. ನಿತ್ಯವೂ ${remedies.dailyStotra} ಪಠಿಸಿ, ${remedies.sacredGokarnaRemedy}. ಗೋಕರ್ಣ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಅನುಗ್ರಹದಿಂದ ಮುಂದಿನ ೪೫ ರಿಂದ ೯೦ ದಿನಗಳಲ್ಲಿ ನಿಮ್ಮ ಸಕಲ ಸತ್ಸಂಕಲ್ಪಗಳು ಈಡೇರಲಿ.`;
     }
 
-    return `Divine Kaala Diksuchi Blessings for ${input.personName} from Sri Shreeram Pandit, Gokarna Kshetra.
+    const p1DirectEn = customQ
+      ? `Regarding your inquiry "${customQ}", the temporal planetary currents and compass alignments are shifting constructively in your favor. While initial friction or hesitation may have manifested, clarity will crystallize swiftly. Aligning your efforts with decisive dialogue and auspicious direction will resolve pending gridlocks.`
+      : `According to your cosmic timing rhythm and directional compass, the current cycle offers a strategic inflection point for professional growth, wealth accumulation, and emotional stability.`;
 
-1. Astrological & Numerological Blueprint:
-Based on your birth date (${input.dob}, ${weekdayName}), your Sun Sign rises in ${suryaRashiStr}, energized by Ruling Number ${num.ruling} and Destiny Number ${num.destiny}. Your primary archetype reflects ${samudrika.personalityArchetype}, anchored by ${samudrika.hiddenSuperpower}.
+    return `1. Direct Realistic Assessment & Current Situation:
+${p1DirectEn}
 
-2. Directional Compass & Timing Rhythm:
+2. Astrological & Numerological Planetary Dynamics:
+Based on your birth date (${input.dob}, ${weekdayName}), your Sun Sign rises in ${suryaRashiStr}, energized by Ruling Number ${num.ruling} (${sankhya.mulankLord}) and Destiny Number ${num.destiny}. Your primary archetype reflects ${samudrika.personalityArchetype}, anchored by ${samudrika.hiddenSuperpower}.
+
+3. Directional Compass & Auspicious Timing Precision:
 For optimal professional and executive breakthrough, your most auspicious direction is ${diksuchi.careerDirection.directionName} (${diksuchi.careerDirection.practicalAdvice}). For wealth and prosperity, align with ${diksuchi.wealthDirection.directionName}. Today's Disha Shoola rests in ${diksuchi.dailyDishaShoola.afflictedDirection} (${diksuchi.dailyDishaShoola.classicalRemedy}). Your peak productive window is ${diksuchi.timingRhythm.peakPranaWindow}.
 
-3. Strategic Fulfillment & Sacred Remedies:
-For your primary life focus (${input.primaryFocus || "Career & Life Strategy"}), ${sankhya.wealthAttractionSecret}. Recite ${remedies.dailyStotra} daily and perform ${remedies.sacredGokarnaRemedy}. May Lord Mahabaleshwara bless your life journey with victory and peace.`;
+4. Actionable Remedies & Sacred Blessings:
+For your primary life focus (${input.primaryFocus || "Career & Life Strategy"}), ${sankhya.wealthAttractionSecret}. Recite ${remedies.dailyStotra} daily and perform ${remedies.sacredGokarnaRemedy}. May Lord Mahabaleshwara bless your life journey with victory, clarity, and peace within the next 45 to 90 days.`;
   };
 
   const activeKey = (geminiApiKey || import.meta.env.VITE_GEMINI_API_KEY || "").trim();
@@ -856,17 +867,18 @@ For your primary life focus (${input.primaryFocus || "Career & Life Strategy"}),
 ================================================================
 `;
 
-      const prompt = `You are Sri Shreeram Pandit, Chief Priest and Vedic Astrologer from Gokarna Mahabaleshwara Kshetra.
-The devotee seeks their comprehensive Kaala Diksuchi (Time & Directional Compass) reading.
+      const prompt = `You are the authentic Baggona Kaala Diksuchi (Time & Direction Compass) Astrological Oracle from Gokarna Mahabaleshwara Kshetra.
+Deliver a 100% technical, deep, accurate, realistic, and up-to-point consultation.
 
-CRITICAL GUIDELINES:
-1. Address the devotee respectfully by their name (${input.personName}).
-2. State their exact astrological coordinates: Date of Birth, Day of Week, Sun Sign, Ruling Number, Destiny Number, and Place.
-3. Deliver clear, actionable Directional Compass (ದಿಕ್ಸೂಚಿ) advice: explain which compass direction to face for career, which direction for wealth, and explain today's Disha Shoola & timings.
-4. If the devotee has asked a specific question ("${input.customQuestion || ""}"), ANSWER IT CLEARLY AND DIRECTLY.
-5. Provide sacred Gokarna Mahabaleshwara remedies, mantras, and blessings.
-6. Write in a warm, dignified, royal, compassionate priestly tone. DO NOT use repetitive generic tech buzzwords.
-7. Structure the guidance in 3 to 4 distinct, rich paragraphs in ${input.lang === "kn" ? "Kannada language" : input.lang === "hi" ? "Hindi" : input.lang === "te" ? "Telugu" : input.lang === "ta" ? "Tamil" : "English"}.`;
+MANDATORY RULES & CONSTRAINTS:
+1. STRICTLY NO INTRODUCTORY GREETINGS, NO PREAMBLE, NO PLEASANTRIES ("ನಮಸ್ಕಾರ...", "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪಂಡಿತ್...", "Chief Priest...", etc.). START IMMEDIATELY WITH THE DIAGNOSIS.
+2. NO GENERIC FLUFF, NO HALLUCINATIONS, NO BLUFFING. Give precise, realistic, up-to-point details.
+3. If the devotee provided a specific question ("${input.customQuestion || ""}"), PARAGRAPH 1 MUST ADDRESS AND DIAGNOSE THAT EXACT QUESTION DIRECTLY IN THE OPENING SENTENCE.
+4. Structure the response into EXACTLY 4 comprehensive, detailed paragraphs (5–6 lines each) in ${input.lang === "kn" ? "pure Kannada (ಕನ್ನಡ)" : input.lang === "hi" ? "Hindi (हिंदी)" : input.lang === "te" ? "Telugu (తెలుగు)" : input.lang === "ta" ? "Tamil (தமிழ்)" : "English"}:
+   - Paragraph 1: Direct situational diagnosis & realistic assessment of the devotee's query (${input.customQuestion || "Life direction & timing"}).
+   - Paragraph 2: Numerological & Planetary dynamics (Surya Rashi ${suryaRashiStr}, Ruling ${num.ruling}, Destiny ${num.destiny}, Samudrika ${samudrika.personalityArchetype}).
+   - Paragraph 3: Directional compass guidance (${diksuchi.careerDirection.directionName}, Wealth: ${diksuchi.wealthDirection.directionName}, Disha Shoola: ${diksuchi.dailyDishaShoola.afflictedDirection}, Peak window: ${diksuchi.timingRhythm.peakPranaWindow}).
+   - Paragraph 4: Practical remedies, daily stotra, Gokarna Mahabaleshwara blessings, and expected resolution timeline (45–90 days).`;
 
       const aiResponse = await askGemini(summaryContext, prompt, activeKey, input.lang, {
         temperature: 0.3

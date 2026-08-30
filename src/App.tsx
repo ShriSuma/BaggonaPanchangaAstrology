@@ -51,21 +51,21 @@ export default function App(): JSX.Element {
     window.location.search.includes("action=ics")
   );
 
-  const isSankhyaShastraPortalRoute = typeof window !== "undefined" && !isAcademyRoute && !isDailyRoute && (
-    window.location.pathname.startsWith("/sankhya") ||
-    window.location.search.includes("portal=sankhyashastra") ||
-    window.location.search.includes("portal=sankhya") ||
-    window.location.hash.includes("#/sankhyashastra") ||
-    window.location.hash.includes("#/sankhya")
-  );
-
-  const isPriestPortalRoute = typeof window !== "undefined" && !isAcademyRoute && !isDailyRoute && !isSankhyaShastraPortalRoute && (
+  const isPriestPortalRoute = typeof window !== "undefined" && !isAcademyRoute && !isDailyRoute && (
     window.location.pathname.startsWith("/priest") ||
     window.location.pathname.startsWith("/purohita") ||
+    window.location.pathname.startsWith("/sankhya") ||
     window.location.search.includes("portal=priest") ||
     window.location.search.includes("portal=panchanga") ||
     window.location.search.includes("portal=purohita") ||
-    window.location.hash.includes("#/priest")
+    window.location.search.includes("portal=sankhya") ||
+    window.location.search.includes("portal=sankhyashastra") ||
+    window.location.search.includes("portal=diksuchi") ||
+    window.location.search.includes("portal=purva_janma") ||
+    window.location.search.includes("portal=vahana_muhurtha") ||
+    window.location.search.includes("modules=") ||
+    window.location.hash.includes("#/priest") ||
+    window.location.hash.includes("#/sankhya")
   );
 
   const currentPage = useAppStore((state) => state.currentPage);
@@ -98,7 +98,6 @@ export default function App(): JSX.Element {
           urlParams.has("reset") ||
           isDailyRoute ||
           isAcademyRoute ||
-          isSankhyaShastraPortalRoute ||
           isPriestPortalRoute
         ) {
           localStorage.setItem("jk-consent", "accepted");
@@ -113,7 +112,7 @@ export default function App(): JSX.Element {
       await analytics.track("app_loaded");
     };
     void run();
-  }, [hydrateSettings, checkSession, setConsentResolved, isDailyRoute, isAcademyRoute, isSankhyaShastraPortalRoute, isPriestPortalRoute]);
+  }, [hydrateSettings, checkSession, setConsentResolved, isDailyRoute, isAcademyRoute, isPriestPortalRoute]);
 
   if (isAcademyRoute) {
     return <KundliAcademyStandalonePage />;
@@ -121,14 +120,6 @@ export default function App(): JSX.Element {
 
   if (isDailyRoute) {
     return <DailyDarshanaPage />;
-  }
-
-  if (isSankhyaShastraPortalRoute) {
-    return (
-      <ErrorBoundary>
-        <SankhyaShastraPriestPortal />
-      </ErrorBoundary>
-    );
   }
 
   if (isPriestPortalRoute) {

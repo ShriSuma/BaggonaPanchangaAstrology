@@ -806,29 +806,40 @@ export async function executeHindinaJanmaCalculation(
   const remedies = computeKarmicRemediesAndGokarnaShanti(sunSignIdx);
 
   const buildDeterministicNarrative = () => {
+    const customQ = input.customQuestion?.trim();
     if (isKn) {
-      return `ಶ್ರೀಯುತ ${input.personName} ರವರ ಪೂರ್ವ ಜನ್ಮ ರಹಸ್ಯ ಹಾಗೂ ಕರ್ಮ ಸಿದ್ಧಾಂತ ದರ್ಶನ:
+      const p1Direct = customQ
+        ? `ನಿಮ್ಮ ಪ್ರಶ್ನೆಯಾದ "${customQ}" ಕುರಿತು ಪರಿಶೀಲಿಸಿದಾಗ, ಇದು ನಿಮ್ಮ ಹಿಂದಿನ ಜನ್ಮದ ಋಣಾನುಬಂಧ ಹಾಗೂ ಸಂಚಿತ ಕರ್ಮದ ನೇರ ಪ್ರಭಾವವಾಗಿದೆ. ಹಿಂದಿನ ಜನ್ಮದಲ್ಲಿ ಉಂಟಾಗಿದ್ದ ಅಪೂರ್ಣ ಒಡಂಬಡಿಕೆ ಅಥವಾ ತಪ್ಪುಗ್ರಹಿಕೆಗಳು ಪ್ರಸ್ತುತ ಜೀವನದಲ್ಲಿ ಪುನರಾವರ್ತನೆಯಾಗುತ್ತಿವೆ. ಎದುರಿಗಿರುವ ವ್ಯಕ್ತಿಗಳ ನಡವಳಿಕೆಗೆ ಅವರ ಆಂತರಿಕ ಅಸೂಯೆ ಅಥವಾ ಪೂರ್ವಜನ್ಮದ ವಾಸನೆಗಳೇ ಕಾರಣವಾಗಿದ್ದು, ನೇರ ಸಂವಾದ ಹಾಗೂ ಶಾಂತಿ ಮಾರ್ಗದಿಂದ ಈ ಬಂಧನವು ಸಡಿಲಗೊಳ್ಳುತ್ತದೆ.`
+        : `ನಿಮ್ಮ ಜಾತಕದ ೫ನೇ ಭಾವ ಹಾಗೂ ೧೨ನೇ ಭಾವಗಳ ಕರ್ಮ ಶಕ್ತಿಯಂತೆ, ನಿಮ್ಮ ಆತ್ಮವು ಪೂರ್ವಜನ್ಮದ ಮಹತ್ತರವಾದ ಪುಣ್ಯ ಸಂಚಿತವನ್ನು ಹೊತ್ತು ಈ ದೇಹವನ್ನು ಧರಿಸಿದೆ. ನಿಮ್ಮ ಪ್ರಸ್ತುತ ಜೀವನದಲ್ಲಿ ಎದುರಾಗುವ ಸವಾಲುಗಳು ನಿಮ್ಮ ಆತ್ಮದ ಪರಿಶುದ್ಧತೆ ಹಾಗೂ ಆಧ್ಯಾತ್ಮಿಕ ಉನ್ನತಿಗೆ ಪೂರಕವಾದ ಕರ್ಮ ಪರೀಕ್ಷೆಗಳಾಗಿವೆ.`;
 
-೧. ಹಿಂದಿನ ಜನ್ಮದ ಗುರುತು & ಕಾಲಮಾನ:
-ನಿಮ್ಮ ಜಾತಕದ ಸೂರ್ಯ ರಾಶಿ (${sunSignStr}) ಮತ್ತು ಜನ್ಮ ನಕ್ಷತ್ರ (${moonNakStr}) ಗಳ ಡಿ-೬೦ ಷಷ್ಟ್ಯಂಶ ಗಣನೆಯಂತೆ, ನೀವು ಹಿಂದಿನ ಜನ್ಮದಲ್ಲಿ ${persona.eraAndTimeline.kn} ದಲ್ಲಿ ${persona.geographicalRealm.kn} ಪ್ರದೇಶದಲ್ಲಿದ್ದಿರಿ. ನೀವು ${persona.socialStatusAndVocation.kn} ಆಗಿ ಸಮಾಜಕ್ಕೆ ಗಣನೀಯ ಸೇವೆ ಸಲ್ಲಿಸಿದ್ದೀರಿ. ${persona.personalitySummary.kn}
+      return `೧. ನೇರ ವಾಸ್ತವಿಕ ನಿರ್ಣಯ & ಕರ್ಮ ವಿಶ್ಲೇಷಣೆ:
+${p1Direct}
 
-೨. ಸಂಚಿತ ಕರ್ಮ & ಸುಪ್ತ ಪ್ರತಿಭೆಗಳು:
-ನಿಮ್ಮ ಆತ್ಮವು ${karma.sanchitaPunyaPercentage}% ಪುಣ್ಯ ಬಲದೊಂದಿಗೆ ಮರುಹುಟ್ಟು ಪಡೆದಿದೆ. ಹಿಂದಿನ ಜನ್ಮದ ಸತ್ಕರ್ಮಗಳಿಂದ ${karma.karmicCurseOrBlessing.kn}. ನಿಮ್ಮಲ್ಲಿರುವ ${boons.inheritedTalents.kn.join(", ")} ಹಿಂದಿನ ಜನ್ಮದಿಂದ ಸುಪ್ತವಾಗಿ ಬಂದಿರುವ ವರದಾನಗಳಾಗಿವೆ.
+೨. ಹಿಂದಿನ ಜನ್ಮದ ಗುರುತು & ಕಾಲಮಾನ:
+ನಿಮ್ಮ ಜಾತಕದ ಸೂರ್ಯ ರಾಶಿ (${sunSignStr}) ಮತ್ತು ಜನ್ಮ ನಕ್ಷತ್ರ (${moonNakStr}) ಗಳ ಡಿ-೬೦ ಷಷ್ಟ್ಯಂಶ ಗಣನೆಯಂತೆ, ನೀವು ಹಿಂದಿನ ಜನ್ಮದಲ್ಲಿ ${persona.eraAndTimeline.kn} ದಲ್ಲಿ ${persona.geographicalRealm.kn} ಪ್ರದೇಶದಲ್ಲಿದ್ದಿರಿ. ನೀವು ${persona.socialStatusAndVocation.kn} ಆಗಿ ಸಮಾಜದಲ್ಲಿ ಗೌರವಾನ್ವಿತ ಸ್ಥಾನದಲ್ಲಿದ್ದಿರಿ. ನಿಮ್ಮ ಆತ್ಮವು ${karma.sanchitaPunyaPercentage}% ಪುಣ್ಯ ಬಲದೊಂದಿಗೆ ಮರುಹುಟ್ಟು ಪಡೆದಿದೆ. ಹಿಂದಿನ ಜನ್ಮದ ಸತ್ಕರ್ಮಗಳಿಂದ ${karma.karmicCurseOrBlessing.kn}.
 
-೩. ಮಚ್ಚೆ, ಭಯ & ಮುಕ್ತಿ ಸಂದೇಶ:
-ನಿಮ್ಮ ${phobiaCorr.birthmarkSignificance.kn} ಹಾಗೂ ${phobiaCorr.phobiaKarmicOrigin.kn}. ಈ ಜನ್ಮದಲ್ಲಿ ${moksha.rahuCurrentLifeMission.kn}. ನಿತ್ಯವೂ ${remedies.sacredAtmaShantiMantra} ಪಠಿಸಿ, ${remedies.sacredGokarnaRemedy.kn} ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯು ನಿಮ್ಮ ಸಕಲ ಕರ್ಮ ಬಂಧನಗಳನ್ನು ಕಳೆದು ಆಯುಷ್ಯ, ಆರೋಗ್ಯ, ಐಶ್ವರ್ಯವನ್ನು ಕರುಣಿಸಲಿ.`;
+೩. ಸುಪ್ತ ಪ್ರತಿಭೆ, ಮಚ್ಚೆ & ಆತ್ಮ ಲಕ್ಷ್ಯ:
+ನಿಮ್ಮಲ್ಲಿರುವ ${boons.inheritedTalents.kn.join(", ")} ಹಿಂದಿನ ಜನ್ಮದಿಂದ ಸುಪ್ತವಾಗಿ ಬಂದಿರುವ ದೈವಿಕ ವರದಾನಗಳಾಗಿವೆ. ನಿಮ್ಮ ${phobiaCorr.birthmarkSignificance.kn} ಹಾಗೂ ${phobiaCorr.phobiaKarmicOrigin.kn}. ಈ ಜನ್ಮದಲ್ಲಿ ${moksha.rahuCurrentLifeMission.kn}.
+
+೪. ಪ್ರಾಯೋಗಿಕ ಪರಿಹಾರ & ಮುಕ್ತಿ ಮಾರ್ಗ:
+ಪೂರ್ವಜನ್ಮದ ಶೇಷ ಋಣಗಳನ್ನು ಕಳೆದುಕೊಳ್ಳಲು ನಿತ್ಯವೂ ${remedies.sacredAtmaShantiMantra} ಪಠಿಸಿ, ${remedies.sacredGokarnaRemedy.kn} ಗೋಕರ್ಣ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸಂಕಲ್ಪ ಪೂಜೆ ಸಲ್ಲಿಸುವುದರಿಂದ ನಿಮ್ಮ ಸಕಲ ಕರ್ಮ ಕ್ಲೇಶಗಳು ನಿವಾರಣೆಯಾಗಿ ಮುಂದಿನ ದಿನಗಳಲ್ಲಿ ಶಾಂತಿ, ಸಂತೋಷ ಪ್ರಾಪ್ತಿಯಾಗುವುದು.`;
     }
 
-    return `Past Life Blueprint & Karmic Evolution for ${input.personName}:
+    const p1DirectEn = customQ
+      ? `Regarding your inquiry "${customQ}", this dynamic originates directly from past-life Rnanubandha (karmic entanglement) and unresolved relational patterns. Misunderstandings or external friction experienced now are echoes of past cycle obligations. Approaching the situation with calm boundaries, conscious dialogue, and remedial shanti will resolve the underlying karmic friction.`
+      : `According to your 5th and 12th house karmic axis, your soul has reincarnated with a substantial reservoir of accumulated merits (Sanchita Punya), purposefully positioned to dissolve lingering ancestral residues.`;
 
-1. Past Life Identity & Era:
-Based on your Sidereal Sun Sign (${sunSignStr}) and Nakshatra (${moonNakStr}) in the Parashara D-60 Shashtiamsha matrix, your soul inhabited the ${persona.eraAndTimeline.en} within the realm of ${persona.geographicalRealm.en}. You served as a ${persona.socialStatusAndVocation.en}. ${persona.personalitySummary.en}
+    return `1. Direct Karmic Assessment & Current Situation:
+${p1DirectEn}
 
-2. Sanchita Karma & Inherited Talents:
-Your soul carries a stellar ${karma.sanchitaPunyaPercentage}% Punya reservoir into this embodiment. As a karmic blessing: ${karma.karmicCurseOrBlessing.en}. Your innate faculties including ${boons.inheritedTalents.en.join(", ")} are unbroken spiritual carry-forwards from past mastery.
+2. Past Life Persona, Era & Sanchita Balance:
+Based on your Sidereal Sun Sign (${sunSignStr}) and Nakshatra (${moonNakStr}) in the Parashara D-60 Shashtiamsha matrix, your soul inhabited the ${persona.eraAndTimeline.en} within ${persona.geographicalRealm.en}. You served as a ${persona.socialStatusAndVocation.en}. Your soul carries ${karma.sanchitaPunyaPercentage}% Punya into this embodiment, resulting in: ${karma.karmicCurseOrBlessing.en}.
 
-3. Birthmarks, Phobia & Soul Evolution:
-${phobiaCorr.birthmarkSignificance.en} ${phobiaCorr.phobiaKarmicOrigin.en} In this current incarnation: ${moksha.rahuCurrentLifeMission.en}. Recite ${remedies.sacredAtmaShantiMantra} daily and perform ${remedies.sacredGokarnaRemedy.en}. May Lord Mahabaleshwara bless your soul with supreme liberation and fulfillment.`;
+3. Inherited Soul Faculties, Birthmarks & Current Mission:
+Your innate faculties including ${boons.inheritedTalents.en.join(", ")} are unbroken spiritual carry-forwards from past mastery. ${phobiaCorr.birthmarkSignificance.en} ${phobiaCorr.phobiaKarmicOrigin.en} In this current incarnation: ${moksha.rahuCurrentLifeMission.en}.
+
+4. Actionable Remedies & Karmic Liberation:
+To dissolve pending karmic residues, recite ${remedies.sacredAtmaShantiMantra} daily and perform ${remedies.sacredGokarnaRemedy.en}. May Lord Mahabaleshwara of Gokarna bless your soul with liberation, mental serenity, and enduring fulfillment.`;
   };
 
   let aiNarrative: string | undefined = undefined;
@@ -859,17 +870,18 @@ ${phobiaCorr.birthmarkSignificance.en} ${phobiaCorr.phobiaKarmicOrigin.en} In th
 ================================================================
 `;
 
-      const prompt = `You are Sri Shreeram Pandit, Chief Priest and Astrologer from Gokarna Mahabaleshwara Kshetra.
-The devotee seeks their authentic Hindina Janma (Previous Life & Karmic Reincarnation) prophecy.
+      const prompt = `You are the authentic Baggona Hindina Janma (Past Life & Karmic Oracle) from Gokarna Mahabaleshwara Kshetra.
+Deliver a 100% technical, deep, accurate, realistic, and up-to-point consultation.
 
-CRITICAL GUIDELINES:
-1. Address the devotee respectfully by their name (${input.personName}).
-2. Detail their past-life era, geographical realm, historical vocation, and dominant planet.
-3. Explain their Sanchita Karma balance, inherited gifts, birthmark meaning, and phobia correlation with empathy.
-4. If the devotee has asked a specific question ("${input.customQuestion || ""}"), ANSWER IT CLEARLY AND DIRECTLY.
-5. Provide sacred Gokarna Mahabaleshwara remedies, Shiva stotras, and blessings.
-6. Write in a warm, dignified, royal, compassionate priestly tone. DO NOT use generic tech jargon.
-7. Structure the guidance in 3 to 4 rich, flowing paragraphs in ${input.lang === "kn" ? "Kannada" : input.lang === "hi" ? "Hindi" : input.lang === "te" ? "Telugu" : input.lang === "ta" ? "Tamil" : "English"}.`;
+MANDATORY RULES & CONSTRAINTS:
+1. STRICTLY NO INTRODUCTORY GREETINGS, NO PREAMBLE, NO PLEASANTRIES ("ನಮಸ್ಕಾರ...", "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪಂಡಿತ್...", "Chief Priest...", etc.). START IMMEDIATELY WITH THE DIAGNOSIS.
+2. NO GENERIC FLUFF, NO HALLUCINATIONS, NO BLUFFING. Give precise, realistic, up-to-point details.
+3. If the devotee provided a specific question ("${input.customQuestion || ""}"), PARAGRAPH 1 MUST ADDRESS AND DIAGNOSE THAT EXACT QUESTION DIRECTLY IN THE OPENING SENTENCE.
+4. Structure the response into EXACTLY 4 comprehensive, detailed paragraphs (5–6 lines each) in ${input.lang === "kn" ? "pure Kannada (ಕನ್ನಡ)" : input.lang === "hi" ? "Hindi (हिंदी)" : input.lang === "te" ? "Telugu (తెలుగు)" : input.lang === "ta" ? "Tamil (தமிழ்)" : "English"}:
+   - Paragraph 1: Direct situational & karmic diagnosis of the devotee's query (${input.customQuestion || "Past life karmic carryover"}).
+   - Paragraph 2: Past life persona, historical era (${persona.eraAndTimeline.en}), geographical realm (${persona.geographicalRealm.en}), vocation, and Sanchita Karma balance (${karma.sanchitaPunyaPercentage}% Punya).
+   - Paragraph 3: Inherited talents, birthmark/phobia karmic origins, and current life soul mission (${moksha.rahuCurrentLifeMission.en}).
+   - Paragraph 4: Practical remedies, sacred Shiva stotra, Gokarna Mahabaleshwara blessings, and karmic resolution timeline.`;
 
       const aiResponse = await askGemini(summaryContext, prompt, activeKey, input.lang, {
         temperature: 0.3

@@ -209,7 +209,10 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
       }
 
       if (params.get("reset") === "true" || params.get("firstTime") === "true") {
-        setShowPasswordSetup(true);
+        const isDone = localStorage.getItem("baggona_pwd_setup_done_" + resolvedUser) === "true";
+        if (!isDone) {
+          setShowPasswordSetup(true);
+        }
       }
     }
 
@@ -324,7 +327,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
 
   const handlePrashnaSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const cost = SERVICE_COIN_COSTS.SANKHYA_PRASHNA?.coins || 200;
+    const cost = SERVICE_COIN_COSTS.SANKHYA_PRASHNA?.coins || 500;
 
     setPendingDeduction({
       isOpen: true,
@@ -339,7 +342,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
     });
   };
 
-  // 2. Submit Name or Mobile/Vehicle Suggestion (200 Coins / ₹20) with Pre-Action Confirmation
+  // 2. Submit Name or Mobile/Vehicle Suggestion (500 Coins) with Pre-Action Confirmation
   const executeSuggestionCalculation = async (cost: number, serviceName: string) => {
     setIsCalculatingSuggestion(true);
     setFeedback(null);
@@ -372,7 +375,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
 
       setFeedback({
         type: "success",
-        text: `${serviceName} ಯಶಸ್ವಿಯಾಗಿ ರಚಿಸಲ್ಪಟ್ಟಿದೆ. (${cost} ನಾಣ್ಯಗಳು / ₹${Math.round(cost / 10)} ಕಡಿತಗೊಂಡಿವೆ)`
+        text: `${serviceName} ಯಶಸ್ವಿಯಾಗಿ ರಚಿಸಲ್ಪಟ್ಟಿದೆ. (${cost} ನಾಣ್ಯಗಳು ಕಡಿತಗೊಂಡಿವೆ)`
       });
 
       // Save to Cloud Firestore
@@ -412,8 +415,8 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
   const handleSuggestionSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const cost = suggestionType === "name"
-      ? (SERVICE_COIN_COSTS.SANKHYA_NAME_SUGGESTION?.coins || 200)
-      : (SERVICE_COIN_COSTS.SANKHYA_MOBILE_VEHICLE?.coins || 200);
+      ? (SERVICE_COIN_COSTS.SANKHYA_NAME_SUGGESTION?.coins || 500)
+      : (SERVICE_COIN_COSTS.SANKHYA_MOBILE_VEHICLE?.coins || 500);
 
     const serviceName = suggestionType === "name" ? "ಶುಭ ನಾಮ ಸಂಖ್ಯಾ ಸೂಚನೆ" : "ಮೊಬೈಲ್ ಮತ್ತು ವಾಹನ ಸಂಖ್ಯಾ ಸೂಚನೆ";
 
@@ -446,8 +449,18 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
 
     try {
       const hashed = await hashPassword(newPassword);
-      const uid = currentUser || "priest_sankhya";
+      const uid = currentUser || (typeof window !== "undefined" ? localStorage.getItem("baggona_sankhya_priest_id") : null) || "priest_sankhya";
       await updateUserPassword(uid, hashed);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("baggona_pwd_setup_done_" + uid, "true");
+        try {
+          const url = new URL(window.location.href);
+          url.searchParams.delete("reset");
+          url.searchParams.delete("firstTime");
+          const newSearch = url.searchParams.toString();
+          window.history.replaceState({}, document.title, url.pathname + (newSearch ? `?${newSearch}` : "") + url.hash);
+        } catch {}
+      }
       void notifyPasswordResetCompleted({ username: uid });
       setPasswordMsg("✓ ಪಾಸ್‌ವರ್ಡ್ ಯಶಸ್ವಿಯಾಗಿ ನವೀಕರಿಸಲಾಗಿದೆ!");
       setTimeout(() => setShowPasswordSetup(false), 1500);
@@ -554,7 +567,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
             <span className="hidden xs:inline text-emerald-800 font-black">ಲೈವ್</span>
             <span className="bg-amber-200/80 px-1.5 py-0.5 rounded border border-amber-400 font-mono text-[9px]">
-              {activeTab === "prashna" ? "ಪ್ರಶ್ನಾವಳಿ (200🪙)" : activeTab === "name_numbers" ? "ನಾಮ/ಸಂಖ್ಯೆ (200🪙)" : "ವಾಲೆಟ್"}
+              {activeTab === "prashna" ? "ಪ್ರಶ್ನಾವಳಿ (500🪙)" : activeTab === "name_numbers" ? "ನಾಮ/ಸಂಖ್ಯೆ (500🪙)" : "ವಾಲೆಟ್"}
             </span>
           </div>
         </div>
@@ -597,7 +610,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
             }`}
           >
             <span>🔮</span>
-            <span>ಪ್ರಶ್ನಾವಳಿ (🪙 ೨೦೦)</span>
+            <span>ಪ್ರಶ್ನಾವಳಿ (🪙 ೫೦೦)</span>
           </button>
 
           <button
@@ -610,7 +623,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
             }`}
           >
             <span>🔢</span>
-            <span>ನಾಮ & ಸಂಖ್ಯೆ (🪙 ೨೦೦)</span>
+            <span>ನಾಮ & ಸಂಖ್ಯೆ (🪙 ೫೦೦)</span>
           </button>
 
           <button
@@ -628,7 +641,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
         </div>
       </div>
 
-      {/* TAB 1: ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಪ್ರಶ್ನಾವಳಿ (200 Coins = ₹20) */}
+      {/* TAB 1: ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಪ್ರಶ್ನಾವಳಿ (500 Coins) */}
       {activeTab === "prashna" && (
         <div className="px-4 mt-4 space-y-4">
           <div className="bg-[#FFFDF7] border-2 border-amber-400/80 rounded-3xl p-4 sm:p-5 shadow-md">
@@ -638,7 +651,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
                 <span>ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಪ್ರಶ್ನಾವಳಿ ದರ್ಶನ</span>
               </h2>
               <span className="text-[10px] font-mono font-black text-amber-900 bg-[#FFF5D6] px-2.5 py-1 rounded-full border border-amber-400">
-                ದರ: 🪙 ೨೦೦ ನಾಣ್ಯಗಳು (₹೨೦)
+                ದರ: 🪙 ೫೦೦ ನಾಣ್ಯಗಳು (500 Coins)
               </span>
             </div>
 
@@ -701,28 +714,26 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
                   value={prashnaNumber}
                   onChange={(e) => setPrashnaNumber(parseInt(e.target.value, 10) || 1)}
                   required
-                  className="w-full px-3.5 py-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 font-mono font-bold text-sm focus:outline-none focus:border-amber-500 shadow-inner"
+                  className="w-full px-3 py-2 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 font-bold text-base focus:outline-none focus:border-amber-500 shadow-inner font-mono"
                 />
               </div>
 
               <div>
-                <label className="block text-amber-950 font-bold mb-1">
-                  ಭಕ್ತರ ಪ್ರಶ್ನೆ (ಟೈಪ್ ಮಾಡಿ ಅಥವಾ 🎤 ಮೈಕ್ ಒತ್ತಿ)
-                </label>
+                <label className="block text-amber-950 font-bold mb-1">ಭಕ್ತರ ನಿರ್ದಿಷ್ಟ ಪ್ರಶ್ನೆ</label>
                 <div className="relative">
                   <textarea
-                    rows={2}
                     value={prashnaQuestion}
                     onChange={(e) => setPrashnaQuestion(e.target.value)}
-                    placeholder="ಉದಾ: ಈ ವರ್ಷ ನೂತನ ವ್ಯಾಪಾರ ಆರಂಭಿಸುವುದು ಲಾಭದಾಯಕವೇ?"
+                    placeholder="ಉದಾ: ನನಗೆ ಮದುವೆ ಆಗುವಂತಹ ಗಂಡನ ಅಕ್ಕ ಬಾವ ನನಗೆ ಬೈತಾಯಿದ್ದಾರೆ ಯಾಕೆ? ಅಥವಾ ಕಳೆದುಹೋದ ವಸ್ತು ಎಲ್ಲಿ ಸಿಗುತ್ತದೆ?"
+                    rows={2}
                     required
-                    className="w-full px-3.5 py-2 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 placeholder-slate-400 font-semibold focus:outline-none focus:border-amber-500 pr-10 shadow-inner"
+                    className="w-full px-3.5 py-2 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 font-semibold focus:outline-none focus:border-amber-500 pr-8 shadow-inner"
                   />
                   <button
                     type="button"
                     onClick={() => handleVoiceInput("question")}
-                    className={`absolute right-2.5 top-2.5 p-1.5 rounded-lg ${
-                      isListeningFor === "question" ? "bg-red-500 text-white animate-pulse" : "text-amber-700 hover:bg-amber-100"
+                    className={`absolute right-1.5 top-2 p-1 rounded-lg ${
+                      isListeningFor === "question" ? "bg-red-500 text-white animate-pulse" : "text-amber-700"
                     }`}
                   >
                     🎤
@@ -740,70 +751,59 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
                 ) : (
                   <>
                     <span>🔍 ೪ ಪ್ಯಾರಾಗ್ರಾಫ್ ನಿಖರ ಫಲಿತಾಂಶ ಪಡೆಯಿರಿ</span>
-                    <span className="opacity-80 font-mono font-bold">(🪙 ೨೫)</span>
+                    <span className="opacity-80 font-mono font-bold">(🪙 ೫೦೦)</span>
                   </>
                 )}
               </button>
             </form>
           </div>
 
-          {/* Prashna Result Card */}
+          {/* Prashna Result Card - Clean Unified Single Page Layout */}
           {prashnaResult && (
-            <div className="bg-[#FFFDF7] border-2 border-amber-400/80 rounded-3xl p-5 shadow-md space-y-4">
-              <div className="border-b border-amber-200 pb-2.5 flex items-center justify-between">
+            <div className="bg-[#FFFDF7] border-2 border-amber-400/80 rounded-3xl p-4 sm:p-6 shadow-md space-y-4">
+              <div className="border-b border-amber-200 pb-3 flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  <span className="text-[10px] uppercase font-black text-amber-800 block">
-                    ಸಂಖ್ಯೆ {prashnaResult.number} ರ ಶಾಸ್ತ್ರೀಯ ನಿರ್ಣಯ
+                  <span className="text-[10px] uppercase font-black text-amber-800 tracking-wider block">
+                    ॥ ಸಂಖ್ಯಾ ಪ್ರಶ್ನಾವಳಿ ನಿರ್ಣಯ • ಸಂಖ್ಯೆ {prashnaResult.number} ॥
                   </span>
-                  <h3 className="text-sm font-black text-amber-950 mt-0.5">
+                  <h3 className="text-sm sm:text-base font-black text-amber-950 mt-0.5">
                     ಪ್ರಶ್ನೆ: {prashnaResult.question}
                   </h3>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleResetSankhya}
-                  className="px-2.5 py-1 bg-amber-100 hover:bg-amber-200 text-amber-950 rounded-xl text-[10px] font-black border border-amber-300 flex items-center gap-1 shadow-sm active:scale-95"
-                  title="ಹೊಸ ಪ್ರಶ್ನೆ ನಮೂದಿಸಲು ರಿಸೆಟ್ ಮಾಡಿ"
-                >
-                  <span>🔄</span>
-                  <span>ಹೊಸ ಪ್ರಶ್ನೆ (Reset)</span>
-                </button>
-              </div>
-
-              {/* Badges Matrix */}
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="p-3 rounded-2xl bg-[#FEFCF4] border-2 border-amber-300">
-                  <span className="text-[10px] text-amber-800 block font-bold">ಗ್ರಹಾಧಿಪತಿ</span>
-                  <span className="font-black text-amber-950">{prashnaResult.rulingPlanetKn}</span>
-                </div>
-
-                <div className="p-3 rounded-2xl bg-[#FEFCF4] border-2 border-emerald-300">
-                  <span className="text-[10px] text-emerald-800 block font-bold">ಪ್ರಕೃತಿ ವರ್ಗೀಕರಣ</span>
-                  <span className="font-black text-emerald-950">{prashnaResult.natureKn}</span>
-                </div>
-
-                <div className="p-3 rounded-2xl bg-[#FEFCF4] border-2 border-amber-300">
-                  <span className="text-[10px] text-amber-800 block font-bold">ಸಾಮಾಜಿಕ ವರ್ಗ ಪ್ರಭಾವ</span>
-                  <span className="font-bold text-amber-950 text-[11px]">{prashnaResult.varnaKn}</span>
-                </div>
-
-                <div className="p-3 rounded-2xl bg-[#FEFCF4] border-2 border-amber-300">
-                  <span className="text-[10px] text-amber-800 block font-bold">ದಿಕ್ಕು & ಕಾಲ</span>
-                  <span className="font-bold text-amber-950 text-[11px]">
-                    {prashnaResult.rulingDirectionKn} ({prashnaResult.auspiciousTimeframeKn})
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-1 bg-amber-100 border border-amber-300 text-amber-950 rounded-xl text-xs font-black">
+                    {prashnaResult.verdictBadgeKn}
                   </span>
+                  <button
+                    type="button"
+                    onClick={handleResetSankhya}
+                    className="px-2.5 py-1 bg-amber-100 hover:bg-amber-200 text-amber-950 rounded-xl text-[10px] font-black border border-amber-300 flex items-center gap-1 shadow-sm active:scale-95"
+                    title="ಹೊಸ ಪ್ರಶ್ನೆ ನಮೂದಿಸಲು ರಿಸೆಟ್ ಮಾಡಿ"
+                  >
+                    <span>🔄</span>
+                    <span>ಹೊಸ ಪ್ರಶ್ನೆ</span>
+                  </button>
                 </div>
               </div>
 
-              {/* 4 Paragraphs */}
-              <div className="space-y-3">
+              {/* Context Summary Strip */}
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[11px] font-bold text-amber-900 bg-[#FEFCF4] p-3 rounded-2xl border border-amber-300/80">
+                <span>🪐 ಗ್ರಹಾಧಿಪತಿ: <strong className="text-amber-950 font-black">{prashnaResult.rulingPlanetKn}</strong></span>
+                <span>•</span>
+                <span>🔄 ಪ್ರಕೃತಿ: <strong className="text-amber-950 font-black">{prashnaResult.natureKn}</strong></span>
+                <span>•</span>
+                <span>🧭 ದಿಕ್ಕು & ಕಾಲ: <strong className="text-amber-950 font-black">{prashnaResult.rulingDirectionKn} ({prashnaResult.auspiciousTimeframeKn})</strong></span>
+              </div>
+
+              {/* Unified 4 In-Depth Paragraphs Reading */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-[#FEFCF4] to-white border-2 border-amber-300/80 space-y-3.5 shadow-xs">
                 {prashnaResult.technicalParagraphs.map((para, idx) => (
-                  <div key={idx} className="p-3.5 rounded-2xl bg-[#FEFCF4] border border-amber-300/80 space-y-1 shadow-sm">
+                  <div key={idx} className="space-y-1">
                     <h4 className="text-xs font-black text-amber-900 flex items-center gap-1.5">
-                      <span>✦</span>
+                      <span className="text-amber-600">✦</span>
                       <span>{para.titleKn}</span>
                     </h4>
-                    <p className="text-xs text-slate-800 leading-relaxed font-medium">
+                    <p className="text-xs sm:text-[13px] text-slate-800 leading-relaxed font-medium pl-3 border-l-2 border-amber-300">
                       {para.contentKn}
                     </p>
                   </div>
@@ -812,7 +812,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
 
               {/* Remedies */}
               {prashnaResult.remedyListKn && (
-                <div className="p-4 bg-gradient-to-br from-amber-100/70 to-orange-50 rounded-2xl border-2 border-amber-400 space-y-2">
+                <div className="p-4 bg-gradient-to-br from-amber-100/70 to-orange-50 rounded-2xl border-2 border-amber-400 space-y-1.5">
                   <h4 className="text-xs font-black text-amber-950 flex items-center gap-2">
                     <span>🪔</span>
                     <span>ಬಗ್ಗೋಣ ಕ್ಷೇತ್ರದ ಪರಿಹಾರ ಮತ್ತು ಜಪಾನುಷ್ಠಾನ:</span>
@@ -834,7 +834,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
                 }}
                 className="w-full py-3 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 hover:from-amber-500 hover:to-amber-300 text-slate-950 font-black text-xs rounded-2xl shadow-md flex items-center justify-center gap-2 border border-amber-400"
               >
-                <span>➕ ಇನ್ನೊಂದು ಪ್ರಶ್ನಾವಳಿ ಕೇಳಿ (Ask Another Prashna • 🪙 ೨೦೦)</span>
+                <span>➕ ಇನ್ನೊಂದು ಪ್ರಶ್ನಾವಳಿ ಕೇಳಿ (Ask Another Prashna • 🪙 ೫೦೦)</span>
               </button>
 
               {/* Previous Prashna Session History */}
@@ -861,7 +861,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 2: ಶುಭ ನಾಮ ಮತ್ತು ಮೊಬೈಲ್/ವಾಹನ ಸೂಚನೆ (200 Coins = ₹20) */}
+      {/* TAB 2: ಶುಭ ನಾಮ ಮತ್ತು ಮೊಬೈಲ್/ವಾಹನ ಸೂಚನೆ (500 Coins) */}
       {activeTab === "name_numbers" && (
         <div className="px-4 mt-4 space-y-4">
           <div className="bg-[#FFFDF7] border-2 border-amber-400/80 rounded-3xl p-4 sm:p-5 shadow-md">
@@ -871,7 +871,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
                 <span>ಶುಭ ನಾಮ & ಸಂಖ್ಯಾ ಸಂಯೋಜನೆ</span>
               </h2>
               <span className="text-[10px] font-mono font-black text-amber-900 bg-[#FFF5D6] px-2.5 py-1 rounded-full border border-amber-400">
-                ದರ: 🪙 ೨೦೦ ನಾಣ್ಯಗಳು (₹೨೦)
+                ದರ: 🪙 ೫೦೦ ನಾಣ್ಯಗಳು (500 Coins)
               </span>
             </div>
 
@@ -1156,19 +1156,19 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
           </div>
 
           <div className="bg-[#FFFDF7] border-2 border-amber-300 rounded-3xl p-5 text-xs space-y-2.5 shadow-sm">
-            <h3 className="font-black text-amber-950">📊 ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಸೇವಾ ಶುಲ್ಕ ದರಪಟ್ಟಿ:</h3>
+            <h3 className="font-black text-amber-950">📊 ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಸೇವಾ ಶುಲ್ಕ ದರಪಟ್ಟಿ (🪙 ನಾಣ್ಯ ಕೋಶ):</h3>
             <div className="divide-y divide-amber-200 font-semibold">
               <div className="py-2 flex justify-between">
                 <span className="text-slate-800">ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಪ್ರಶ್ನಾವಳಿ ದರ್ಶನ</span>
-                <span className="font-mono font-bold text-amber-900">🪙 ೨೫೦ ನಾಣ್ಯಗಳು</span>
+                <span className="font-mono font-bold text-amber-900">🪙 ೫೦೦ ನಾಣ್ಯಗಳು (500 Coins)</span>
               </div>
               <div className="py-2 flex justify-between">
                 <span className="text-slate-800">ಶುಭ ನಾಮ ಸಂಖ್ಯಾ ಸೂಚನೆ</span>
-                <span className="font-mono font-bold text-amber-900">🪙 ೫೦೦ ನಾಣ್ಯಗಳು</span>
+                <span className="font-mono font-bold text-amber-900">🪙 ೫೦೦ ನಾಣ್ಯಗಳು (500 Coins)</span>
               </div>
               <div className="py-2 flex justify-between">
                 <span className="text-slate-800">ಮೊಬೈಲ್ & ವಾಹನ ಸಂಖ್ಯಾ ಸೂಚನೆ</span>
-                <span className="font-mono font-bold text-amber-900">🪙 ೫೦೦ ನಾಣ್ಯಗಳು</span>
+                <span className="font-mono font-bold text-amber-900">🪙 ೫೦೦ ನಾಣ್ಯಗಳು (500 Coins)</span>
               </div>
             </div>
           </div>
@@ -1250,7 +1250,18 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
               <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
-                  onClick={() => setShowPasswordSetup(false)}
+                  onClick={() => {
+                    if (typeof window !== "undefined") {
+                      try {
+                        const url = new URL(window.location.href);
+                        url.searchParams.delete("reset");
+                        url.searchParams.delete("firstTime");
+                        const newSearch = url.searchParams.toString();
+                        window.history.replaceState({}, document.title, url.pathname + (newSearch ? `?${newSearch}` : "") + url.hash);
+                      } catch {}
+                    }
+                    setShowPasswordSetup(false);
+                  }}
                   className="px-4 py-2 bg-slate-200 text-slate-700 font-bold rounded-xl"
                 >
                   ನಂತರ

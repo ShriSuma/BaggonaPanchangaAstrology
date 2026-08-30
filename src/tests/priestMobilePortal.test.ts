@@ -28,10 +28,10 @@ describe("Priest Mobile Portal: Consultation Engine & Technical Precision", () =
   };
 
   it("verifies updated pricing and UPI credentials for mobile refill", () => {
-    expect(SERVICE_COIN_COSTS.KUNDLI_CALCULATION.coins).toBe(250);
-    expect(SERVICE_COIN_COSTS.KUNDLI_CALCULATION.inrEquivalent).toBe(25);
-    expect(SERVICE_COIN_COSTS.ASTROLOGY_QUESTION.coins).toBe(750);
-    expect(SERVICE_COIN_COSTS.ASTROLOGY_QUESTION.inrEquivalent).toBe(75);
+    expect(SERVICE_COIN_COSTS.KUNDLI_CALCULATION.coins).toBe(500);
+    expect(SERVICE_COIN_COSTS.KUNDLI_CALCULATION.inrEquivalent).toBe(50);
+    expect(SERVICE_COIN_COSTS.ASTROLOGY_QUESTION.coins).toBe(500);
+    expect(SERVICE_COIN_COSTS.ASTROLOGY_QUESTION.inrEquivalent).toBe(50);
     expect(SERVICE_COIN_COSTS.PREMIUM_KUNDLI_PDF.coins).toBe(3500);
     expect(SERVICE_COIN_COSTS.PREMIUM_KUNDLI_PDF.inrEquivalent).toBe(350);
     expect(DEFAULT_PRIEST_UPI_ID).toBe("9108135387@ybl");

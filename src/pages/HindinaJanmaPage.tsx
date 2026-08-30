@@ -165,7 +165,7 @@ export const HindinaJanmaPage: React.FC = () => {
   const handleCalculate = (e: React.FormEvent) => {
     e.preventDefault();
     if (!dob) return;
-    const cost = SERVICE_COIN_COSTS.PURVA_JANMA_QUESTION?.coins || 100;
+    const cost = SERVICE_COIN_COSTS.PURVA_JANMA_QUESTION?.coins || 200;
 
     setPendingDeduction({
       isOpen: true,
@@ -224,17 +224,16 @@ export const HindinaJanmaPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen py-4 sm:py-6 px-3 sm:px-6 max-w-5xl mx-auto space-y-6 text-slate-900 dark:text-slate-100">
+    <div className="min-h-screen py-4 sm:py-6 px-3 sm:px-6 max-w-5xl mx-auto text-slate-900 dark:text-slate-100 font-sans pb-24">
       {/* Luxury Golden Hero Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-950 via-amber-900 to-amber-950 p-5 sm:p-8 text-white shadow-2xl border-2 border-amber-500/50">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-950 via-amber-900 to-amber-950 p-5 sm:p-8 text-white shadow-2xl border-2 border-amber-500/50 mb-6 sm:mb-8">
         <div className="absolute top-0 right-0 -mt-10 -mr-10 w-56 h-56 bg-amber-500/20 rounded-full blur-3xl pointer-events-none" />
         <div className="relative z-10">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
             <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[11px] font-extrabold tracking-wider uppercase bg-amber-500/30 text-amber-200 border border-amber-400/50">
-              ॥ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿ ಧರ್ಮಜ್ಞ ಷಷ್ಟ್ಯಂಶ (D-60) ಪದ್ಧತಿ ॥
+              🕉️ 100% AUTHENTIC · GOKARNA VEDIC KARMA SHASTRA
             </span>
-
-            {/* Language Picker */}
+            {/* Language Switcher */}
             <div className="flex items-center gap-1 bg-black/60 p-1 rounded-2xl border border-amber-500/40 overflow-x-auto max-w-full">
               {(["kn", "en", "hi", "te", "ta"] as HindinaJanmaLang[]).map((l) => (
                 <button
@@ -253,18 +252,21 @@ export const HindinaJanmaPage: React.FC = () => {
             </div>
           </div>
 
-          <h1 className="text-xl sm:text-3xl font-black text-amber-200 tracking-tight leading-snug">
-            {T_HINDINA_JANMA.heroTitle[selectedLang]}
+          <h1 className="text-xl sm:text-3xl font-extrabold text-amber-200 tracking-tight leading-snug">
+            {isKn
+              ? "ಹಿಂದಿನ ಜನ್ಮದ ರಹಸ್ಯ ಭವಿಷ್ಯ ಹಾಗೂ ಮುಕ್ತಿ ಮಾರ್ಗ"
+              : "Past Life Blueprint & Karmic Redemption"}
           </h1>
           <p className="mt-2 text-xs sm:text-sm text-amber-100 max-w-3xl leading-relaxed font-medium">
-            {T_HINDINA_JANMA.heroSubtitle[selectedLang]}
+            {isKn
+              ? "ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯದ ೫ನೇ ಮತ್ತು ೧೨ನೇ ಭಾವಗಳು, ರಾಹು-ಕೇತು ಕಾರ್ಮಿಕ್ ಅಕ್ಷ ಹಾಗೂ ಬೃಹತ್ ಪರಾಶರ ಹೋರಾಶಾಸ್ತ್ರದ ಆಧಾರದ ಮೇಲೆ ನಿಮ್ಮ ಹಿಂದಿನ ಜನ್ಮದ ವಾಸನೆಗಳು, ಪ್ರಸ್ತುತ ಜನ್ಮದ ಋಣಾನುಬಂಧಗಳು ಮತ್ತು ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ಮಹಾ ಪರಿಹಾರಗಳು."
+              : "Unveil your past incarnation, soul debts (Rnanubandha), pending karmic patterns and authentic remedies based on Brihat Parashara Hora Shastra and Gokarna Mahabaleshwara blessings."}
           </p>
 
           <div className="mt-4 flex flex-wrap items-center gap-2 sm:gap-4 text-[11px] sm:text-xs text-amber-300 font-bold">
-            <span className="bg-black/40 px-3 py-1 rounded-xl border border-amber-500/30">✓ ಹಿಂದಿನ ಜನ್ಮದ ಗುರುತು & ವೃತ್ತಿ</span>
-            <span className="bg-black/40 px-3 py-1 rounded-xl border border-amber-500/30">✓ ಸಂಚಿತ ಕರ್ಮ & ಋಣಾನುಬಂಧ</span>
-            <span className="bg-black/40 px-3 py-1 rounded-xl border border-amber-500/30">✓ ಸುಪ್ತ ಪ್ರತಿಭೆ & ಮಚ್ಚೆಯ ರಹಸ್ಯ</span>
-            <span className="bg-black/40 px-3 py-1 rounded-xl border border-amber-500/30">✓ ಧ್ವನಿ ಮೈಕ್ರೋಫೋನ್ ಸಪೋರ್ಟ್ 🎙️</span>
+            <span className="bg-black/40 px-3 py-1 rounded-xl border border-amber-500/30">✓ ರಾಹು-ಕೇತು ಕಾರ್ಮಿಕ್ ಅಕ್ಷ</span>
+            <span className="bg-black/40 px-3 py-1 rounded-xl border border-amber-500/30">✓ ೫ನೇ ಭಾವದ ಪೂರ್ವಪುಣ್ಯ</span>
+            <span className="bg-black/40 px-3 py-1 rounded-xl border border-amber-500/30">✓ ಗೋಕರ್ಣ ಸನ್ನಿಧಿ ಪರಿಹಾರ</span>
           </div>
         </div>
       </div>
@@ -280,17 +282,17 @@ export const HindinaJanmaPage: React.FC = () => {
                 {isKn ? "ಹಿಂದಿನ ಜನ್ಮದ ರಹಸ್ಯ ಭವಿಷ್ಯ (Past Life Blueprint)" : "Past Life Karmic Blueprint"}
               </span>
               <span className="text-[11px] text-amber-800 dark:text-amber-400 font-bold">
-                {isKn ? "ದರ: ೧೦೦ ನಾಣ್ಯಗಳು (₹೧೦) ಪ್ರತಿ ಪ್ರಶ್ನೆಗೆ" : "Cost: 100 Coins (₹10) per question"}
+                {isKn ? "ದರ: 🪙 ೨೦೦ ನಾಣ್ಯಗಳು (200 Coins) ಪ್ರತಿ ಪ್ರಶ್ನೆಗೆ" : "Cost: 🪙 200 Coins per question"}
               </span>
             </div>
           </div>
           <div className="flex items-center gap-2 self-end sm:self-auto">
             <span className={`text-xs font-mono font-black px-3 py-1 rounded-xl border-2 ${
-              coinBalance < 100
+              coinBalance < 200
                 ? "bg-red-100 text-red-900 border-red-400 animate-pulse"
                 : "bg-amber-100 text-amber-950 border-amber-400"
             }`}>
-              {coinBalance < 100 ? `⚠️ ${coinBalance} 🪙 (ಕೊರತೆ)` : `${coinBalance} 🪙`}
+              {coinBalance < 200 ? `⚠️ ${coinBalance} 🪙 (ಕೊರತೆ)` : `${coinBalance} 🪙`}
             </span>
             <button
               type="button"
