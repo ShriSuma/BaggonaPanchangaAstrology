@@ -202,6 +202,43 @@ export async function syncUserProfile(profile: UserProfileDoc): Promise<void> {
 }
 
 /**
+ * Fetch a User Profile from Firestore or local Dexie database
+ */
+export async function getUserProfile(userId: string): Promise<UserProfileDoc | null> {
+  try {
+    const cleanId = userId.trim().toLowerCase();
+    if (firestore) {
+      const userRef = doc(firestore, USERS_COL, cleanId);
+      const snap = await getDoc(userRef);
+      if (snap.exists()) {
+        return snap.data() as UserProfileDoc;
+      }
+      const q = query(collection(firestore, USERS_COL), where("username", "==", cleanId));
+      const qSnap = await getDocs(q);
+      if (!qSnap.empty) {
+        return qSnap.docs[0].data() as UserProfileDoc;
+      }
+    }
+    const local = await db.users.where("username").equals(cleanId).first();
+    if (local) {
+      return {
+        id: local.id || cleanId,
+        username: local.username,
+        name: local.username,
+        role: "priest",
+        allowedModules: local.allowedModules,
+        createdAt: local.createdAt || new Date().toISOString(),
+        lastLoginAt: local.lastLoginAt
+      };
+    }
+    return null;
+  } catch (err) {
+    console.warn("[Firestore] Failed to fetch user profile:", err);
+    return null;
+  }
+}
+
+/**
  * Fetch or initialize a Priest Wallet in Firestore
  */
 export async function getOrCreatePriestWallet(

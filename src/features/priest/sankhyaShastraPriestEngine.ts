@@ -1,7 +1,7 @@
 import { askGemini } from "../../core/GeminiEngine";
 
-export type MotionNature = "ಸ್ಥಿರ (Fixed / ಶಾಶ್ವತ)" | "ಚರ (Movable / ಶೀಘ್ರ ಬದಲಾವಣೆ)" | "ಉಭಯ (Dual / ಮಿಶ್ರಿತ)";
-export type VarnaInfluence = "ಉನ್ನತ ವರ್ಗ / ಅಧಿಕಾರಿಗಳು (Noble / Authorities)" | "ಮಧ್ಯಮ ವರ್ಗ / ವ್ಯಾಪಾರಿಗಳು (Peers / Traders)" | "ಸಾಮಾನ್ಯ ವರ್ಗ / ಶ್ರಮಿಕರು (General / Workers)";
+export type MotionNature = "ಸ್ಥಿರ (ಶಾಶ್ವತ ನಿರ್ಧಾರ / ಧೃಢ)" | "ಚರ (ಶೀಘ್ರ ಗತಿ / ತಕ್ಷಣದ ಬದಲಾವಣೆ)" | "ಉಭಯ (ಮಿಶ್ರಿತ ಫಲ / ದ್ವಂದ್ವ)";
+export type VarnaInfluence = "ಉನ್ನತ ಸ್ಥಾನ / ಆಡಳಿತ ವರ್ಗ" | "ವ್ಯಾಪಾರ / ವ್ಯವಹಾರ ವರ್ಗ" | "ಸಾಮಾನ್ಯ / ಜನಸಾಮಾನ್ಯ ವರ್ಗ";
 
 export interface SankhyaPrashnaResult {
   number: number;
@@ -120,17 +120,17 @@ export async function generateSankhyaPrashnaReading(params: {
 }): Promise<SankhyaPrashnaResult> {
   const { number, question, devoteeName, gothra } = params;
 
-  // 1. Vedic Mathematical Horary Attributes
+  // 1. Vedic Mathematical Horary Attributes (Pure Kannada)
   const planetList = [
-    { nameKn: "ಸೂರ್ಯ (Sun)", nature: "ಸ್ಥಿರ (Fixed / ಶಾಶ್ವತ)" as MotionNature, varna: "ಉನ್ನತ ವರ್ಗ / ಅಧಿಕಾರಿಗಳು (Noble / Authorities)" as VarnaInfluence, dir: "ಪೂರ್ವ (East)", timeframe: "೧ ತಿಂಗಳು" },
-    { nameKn: "ಚಂದ್ರ (Moon)", nature: "ಚರ (Movable / ಶೀಘ್ರ ಬದಲಾವಣೆ)" as MotionNature, varna: "ಸಾಮಾನ್ಯ ವರ್ಗ / ಶ್ರಮಿಕರು (General / Workers)" as VarnaInfluence, dir: "ವಾಯವ್ಯ (North-West)", timeframe: "೧೫ ದಿನಗಳು" },
-    { nameKn: "ಕುಜ (Mars)", nature: "ಚರ (Movable / ಶೀಘ್ರ ಬದಲಾವಣೆ)" as MotionNature, varna: "ಉನ್ನತ ವರ್ಗ / ಅಧಿಕಾರಿಗಳು (Noble / Authorities)" as VarnaInfluence, dir: "ದಕ್ಷಿಣ (South)", timeframe: "೨೮ ದಿನಗಳು" },
-    { nameKn: "ಬುಧ (Mercury)", nature: "ಉಭಯ (Dual / ಮಿಶ್ರಿತ)" as MotionNature, varna: "ಮಧ್ಯಮ ವರ್ಗ / ವ್ಯಾಪಾರಿಗಳು (Peers / Traders)" as VarnaInfluence, dir: "ಉತ್ತರ (North)", timeframe: "೨ ತಿಂಗಳು" },
-    { nameKn: "ಗುರು (Jupiter)", nature: "ಸ್ಥಿರ (Fixed / ಶಾಶ್ವತ)" as MotionNature, varna: "ಉನ್ನತ ವರ್ಗ / ಅಧಿಕಾರಿಗಳು (Noble / Authorities)" as VarnaInfluence, dir: "ಈಶಾನ್ಯ (North-East)", timeframe: "೧ ವರ್ಷ" },
-    { nameKn: "ಶುಕ್ರ (Venus)", nature: "ಉಭಯ (Dual / ಮಿಶ್ರಿತ)" as MotionNature, varna: "ಮಧ್ಯಮ ವರ್ಗ / ವ್ಯಾಪಾರಿಗಳು (Peers / Traders)" as VarnaInfluence, dir: "ಆಗ್ನೇಯ (South-East)", timeframe: "೨ ತಿಂಗಳು" },
-    { nameKn: "ಶನಿ (Saturn)", nature: "ಸ್ಥಿರ (Fixed / ಶಾಶ್ವತ)" as MotionNature, varna: "ಸಾಮಾನ್ಯ ವರ್ಗ / ಶ್ರಮಿಕರು (General / Workers)" as VarnaInfluence, dir: "ಪಶ್ಚಿಮ (West)", timeframe: "೨.೫ ವರ್ಷಗಳು" },
-    { nameKn: "ರಾಹು (Rahu)", nature: "ಚರ (Movable / ಶೀಘ್ರ ಬದಲಾವಣೆ)" as MotionNature, varna: "ಸಾಮಾನ್ಯ ವರ್ಗ / ಶ್ರಮಿಕರು (General / Workers)" as VarnaInfluence, dir: "ನೈಋತ್ಯ (South-West)", timeframe: "೧೮ ತಿಂಗಳು" },
-    { nameKn: "ಕೇತು (Ketu)", nature: "ಉಭಯ (Dual / ಮಿಶ್ರಿತ)" as MotionNature, varna: "ಉನ್ನತ ವರ್ಗ / ಅಧಿಕಾರಿಗಳು (Noble / Authorities)" as VarnaInfluence, dir: "ಈಶಾನ್ಯ / ಅಧೋಮುಖ", timeframe: "೬ ತಿಂಗಳು" }
+    { nameKn: "ಸೂರ್ಯ", nature: "ಸ್ಥಿರ (ಶಾಶ್ವತ ನಿರ್ಧಾರ / ಧೃಢ)" as MotionNature, varna: "ಉನ್ನತ ಸ್ಥಾನ / ಆಡಳಿತ ವರ್ಗ" as VarnaInfluence, dir: "ಪೂರ್ವ", timeframe: "೧ ತಿಂಗಳು" },
+    { nameKn: "ಚಂದ್ರ", nature: "ಚರ (ಶೀಘ್ರ ಗತಿ / ತಕ್ಷಣದ ಬದಲಾವಣೆ)" as MotionNature, varna: "ಸಾಮಾನ್ಯ / ಜನಸಾಮಾನ್ಯ ವರ್ಗ" as VarnaInfluence, dir: "ವಾಯವ್ಯ", timeframe: "೧೫ ದಿನಗಳು" },
+    { nameKn: "ಕುಜ", nature: "ಚರ (ಶೀಘ್ರ ಗತಿ / ತಕ್ಷಣದ ಬದಲಾವಣೆ)" as MotionNature, varna: "ಉನ್ನತ ಸ್ಥಾನ / ಆಡಳಿತ ವರ್ಗ" as VarnaInfluence, dir: "ದಕ್ಷಿಣ", timeframe: "೨೮ ದಿನಗಳು" },
+    { nameKn: "ಬುಧ", nature: "ಉಭಯ (ಮಿಶ್ರಿತ ಫಲ / ದ್ವಂದ್ವ)" as MotionNature, varna: "ವ್ಯಾಪಾರ / ವ್ಯವಹಾರ ವರ್ಗ" as VarnaInfluence, dir: "ಉತ್ತರ", timeframe: "೨ ತಿಂಗಳು" },
+    { nameKn: "ಗುರು", nature: "ಸ್ಥಿರ (ಶಾಶ್ವತ ನಿರ್ಧಾರ / ಧೃಢ)" as MotionNature, varna: "ಉನ್ನತ ಸ್ಥಾನ / ಆಡಳಿತ ವರ್ಗ" as VarnaInfluence, dir: "ಈಶಾನ್ಯ", timeframe: "೧ ವರ್ಷ" },
+    { nameKn: "ಶುಕ್ರ", nature: "ಉಭಯ (ಮಿಶ್ರಿತ ಫಲ / ದ್ವಂದ್ವ)" as MotionNature, varna: "ವ್ಯಾಪಾರ / ವ್ಯವಹಾರ ವರ್ಗ" as VarnaInfluence, dir: "ಆಗ್ನೇಯ", timeframe: "೨ ತಿಂಗಳು" },
+    { nameKn: "ಶನಿ", nature: "ಸ್ಥಿರ (ಶಾಶ್ವತ ನಿರ್ಧಾರ / ಧೃಢ)" as MotionNature, varna: "ಸಾಮಾನ್ಯ / ಜನಸಾಮಾನ್ಯ ವರ್ಗ" as VarnaInfluence, dir: "ಪಶ್ಚಿಮ", timeframe: "೨.೫ ವರ್ಷಗಳು" },
+    { nameKn: "ರಾಹು", nature: "ಚರ (ಶೀಘ್ರ ಗತಿ / ತಕ್ಷಣದ ಬದಲಾವಣೆ)" as MotionNature, varna: "ಸಾಮಾನ್ಯ / ಜನಸಾಮಾನ್ಯ ವರ್ಗ" as VarnaInfluence, dir: "ನೈಋತ್ಯ", timeframe: "೧೮ ತಿಂಗಳು" },
+    { nameKn: "ಕೇತು", nature: "ಉಭಯ (ಮಿಶ್ರಿತ ಫಲ / ದ್ವಂದ್ವ)" as MotionNature, varna: "ಉನ್ನತ ಸ್ಥಾನ / ಆಡಳಿತ ವರ್ಗ" as VarnaInfluence, dir: "ಈಶಾನ್ಯ / ಅಧೋಮುಖ", timeframe: "೬ ತಿಂಗಳು" }
   ];
 
   const planetIndex = (number - 1) % 9;
@@ -259,7 +259,7 @@ export async function generateSankhyaNameSuggestion(params: {
 
   const luckyLettersKn = ["A, I, J, Y (ಸಂಖ್ಯೆ ೧)", "C, G, L, S (ಸಂಖ್ಯೆ ೩)", "E, H, N, X (ಸಂಖ್ಯೆ ೫)", "U, V, W (ಸಂಖ್ಯೆ ೬)"];
 
-  const luckyGemsKn = mulanka === 1 ? "ಮಾಣಿಕ್ಯ (Ruby)" : mulanka === 5 ? "ಪಚ್ಚೆ (Emerald)" : "ವಜ್ರ / ಬಿಳಿ ನೀಲ (Diamond / White Sapphire)";
+  const luckyGemsKn = mulanka === 1 ? "ಮಾಣಿಕ್ಯ ರತ್ನ" : mulanka === 5 ? "ಪಚ್ಚೆ ರತ್ನ" : "ವಜ್ರ ಅಥವಾ ಬಿಳಿ ನೀಲ ರತ್ನ";
   const luckyDaysKn = "ಬುಧವಾರ ಮತ್ತು ಶುಕ್ರವಾರ";
 
   const harmonyVerdictKn = isHarmonious

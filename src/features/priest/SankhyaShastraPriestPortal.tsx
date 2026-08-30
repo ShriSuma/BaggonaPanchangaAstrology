@@ -879,7 +879,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
                 }}
                 className="w-full py-3 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 hover:from-amber-500 hover:to-amber-300 text-slate-950 font-black text-xs rounded-2xl shadow-md flex items-center justify-center gap-2 border border-amber-400"
               >
-                <span>➕ ಇನ್ನೊಂದು ಪ್ರಶ್ನಾವಳಿ ಕೇಳಿ (Ask Another Prashna • 🪙 ೫೦೦)</span>
+                <span>➕ ಇನ್ನೊಂದು ಪ್ರಶ್ನಾವಳಿ ಕೇಳಿ (🪙 ೫೦೦ ನಾಣ್ಯಗಳು)</span>
               </button>
 
               {/* Previous Prashna Session History */}
@@ -916,7 +916,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
                 <span>ಶುಭ ನಾಮ & ಸಂಖ್ಯಾ ಸಂಯೋಜನೆ</span>
               </h2>
               <span className="text-[10px] font-mono font-black text-amber-900 bg-[#FFF5D6] px-2.5 py-1 rounded-full border border-amber-400">
-                ದರ: 🪙 ೫೦೦ ನಾಣ್ಯಗಳು (500 Coins)
+                ದರ: 🪙 ೫೦೦ ನಾಣ್ಯಗಳು
               </span>
             </div>
 
@@ -947,14 +947,14 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
                 <>
                   <div>
                     <label className="block text-amber-950 font-bold mb-1">
-                      ಪ್ರಸ್ತುತ ಹೆಸರು ಅಥವಾ ಮಗುವಿನ / ವ್ಯಾಪಾರದ ಹೆಸರು (English / ಕನ್ನಡ)
+                      ಪ್ರಸ್ತುತ ಹೆಸರು ಅಥವಾ ಮಗುವಿನ / ವ್ಯಾಪಾರದ ಹೆಸರು
                     </label>
                     <div className="relative">
                       <input
                         type="text"
                         value={nameInput}
                         onChange={(e) => setNameInput(e.target.value)}
-                        placeholder="ಉದಾ: ANAND หรือ SHREERAM"
+                        placeholder="ಉದಾ: ANAND ಅಥವಾ SHREERAM"
                         required
                         className="w-full px-3.5 py-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 font-bold focus:outline-none focus:border-amber-500 pr-10 shadow-inner uppercase"
                       />
@@ -1067,17 +1067,17 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
                   title="ಹೊಸ ನಾಮ ಸೂಚನೆಗಾಗಿ ರಿಸೆಟ್ ಮಾಡಿ"
                 >
                   <span>🔄</span>
-                  <span>ಹೊಸ ಸೂಚನೆ (Reset)</span>
+                  <span>ಹೊಸ ಸೂಚನೆ</span>
                 </button>
               </div>
 
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div className="p-3 bg-[#FEFCF4] rounded-2xl border-2 border-amber-300">
-                  <span className="text-[10px] text-amber-800 block font-bold">ಮೂಲಾಂಕ (Mulanka)</span>
+                  <span className="text-[10px] text-amber-800 block font-bold">ಮೂಲಾಂಕ (ಜನ್ಮ ಗ್ರಹ ಬಲ)</span>
                   <span className="font-mono font-black text-amber-950 text-base">{nameResult.mulanka}</span>
                 </div>
                 <div className="p-3 bg-[#FEFCF4] rounded-2xl border-2 border-emerald-400">
-                  <span className="text-[10px] text-emerald-800 block font-bold">ಭಾಗ್ಯಾಂಕ (Bhagyanka)</span>
+                  <span className="text-[10px] text-emerald-800 block font-bold">ಭಾಗ್ಯಾಂಕ (ದೈವಿಕ ಯೋಗ ಸಂಖ್ಯೆ)</span>
                   <span className="font-mono font-black text-emerald-950 text-base">{nameResult.bhagyanka}</span>
                 </div>
               </div>
@@ -1123,7 +1123,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
                   title="ಹೊಸ ಸಂಖ್ಯೆಗಾಗಿ ರಿಸೆಟ್ ಮಾಡಿ"
                 >
                   <span>🔄</span>
-                  <span>ಹೊಸ ಸಂಖ್ಯೆ (Reset)</span>
+                  <span>ಹೊಸ ಸಂಖ್ಯೆ</span>
                 </button>
               </div>
 

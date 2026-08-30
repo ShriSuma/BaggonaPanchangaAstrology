@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useWalletStore } from "./walletStore";
 import {
   type PriestWalletDoc,
+  type UserProfileDoc,
+  type WalletTransactionDoc,
   type KundliHistoryDoc,
   type AshirvadaPassDoc,
   type SystemAuditLogDoc,
@@ -10,10 +12,12 @@ import {
   subscribeAshirvadaPasses,
   subscribeSystemAuditLogs,
   subscribePremiumPdfDownloads,
+  subscribeWalletTransactions,
   updateUserPassword,
   deleteAshirvadaPass,
   getOrCreatePriestWallet,
   syncUserProfile,
+  getUserProfile,
   cleanupDuplicateKundlis,
   updateUserAllowedModules,
   deletePriestAccount
@@ -291,6 +295,13 @@ export const SuperAdminDashboard: React.FC = () => {
   const [deletingPriest, setDeletingPriest] = useState<PriestWalletDoc | null>(null);
   const [isDeletingPriest, setIsDeletingPriest] = useState(false);
 
+  // Priest Deep Profile & History Audit Modal State
+  const [viewingPriestProfile, setViewingPriestProfile] = useState<PriestWalletDoc | null>(null);
+  const [viewingUserProfile, setViewingUserProfile] = useState<UserProfileDoc | null>(null);
+  const [priestTransactions, setPriestTransactions] = useState<WalletTransactionDoc[]>([]);
+  const [priestProfileTab, setPriestProfileTab] = useState<"overview" | "kundlis" | "transactions" | "modules">("overview");
+  const [isLoadingPriestProfile, setIsLoadingPriestProfile] = useState(false);
+
   // Admin Password Management Modal
   const [showAdminPasswordModal, setShowAdminPasswordModal] = useState(false);
   const [adminNewPassword, setAdminNewPassword] = useState("");
@@ -300,6 +311,30 @@ export const SuperAdminDashboard: React.FC = () => {
 
   // 4 Daily Reports Dispatch State
   const [isDispatchingReports, setIsDispatchingReports] = useState(false);
+
+  // Priest Profile Real-Time Subscription
+  useEffect(() => {
+    if (!viewingPriestProfile) {
+      setViewingUserProfile(null);
+      setPriestTransactions([]);
+      return;
+    }
+    setIsLoadingPriestProfile(true);
+    let unsubTx: (() => void) | null = null;
+
+    void getUserProfile(viewingPriestProfile.userId).then((profile) => {
+      setViewingUserProfile(profile);
+      setIsLoadingPriestProfile(false);
+    });
+
+    unsubTx = subscribeWalletTransactions(viewingPriestProfile.userId, (txList) => {
+      setPriestTransactions(txList);
+    });
+
+    return () => {
+      if (unsubTx) unsubTx();
+    };
+  }, [viewingPriestProfile]);
 
   useEffect(() => {
     subscribeAllWallets();
@@ -1321,9 +1356,24 @@ export const SuperAdminDashboard: React.FC = () => {
 
                       return (
                         <tr key={priest.id} className="hover:bg-amber-50/60 transition-colors">
-                          <td className="py-3.5 px-4 font-black text-amber-950 flex items-center gap-2">
-                            <span>🕉️</span>
-                            <span>{priest.priestName}</span>
+                          <td className="py-3.5 px-4 font-black text-amber-950">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setViewingPriestProfile(priest);
+                                setPriestProfileTab("overview");
+                              }}
+                              className="flex items-center gap-2 hover:text-amber-700 transition group text-left"
+                              title="ಪುರೋಹಿತರ ಪ್ರೊಫೈಲ್, ಇತಿಹಾಸ & ಬಳಕೆಯ ಅಂಕಿಅಂಶಗಳನ್ನು ವೀಕ್ಷಿಸಿ"
+                            >
+                              <span className="text-base group-hover:scale-125 transition-transform">🕉️</span>
+                              <span className="underline decoration-amber-300 group-hover:decoration-amber-600 underline-offset-4 font-black">
+                                {priest.priestName}
+                              </span>
+                              <span className="text-[9px] font-bold text-amber-800 opacity-80 group-hover:opacity-100 bg-amber-100 px-1.5 py-0.5 rounded border border-amber-300 shrink-0">
+                                🔍 ಪ್ರೊಫೈಲ್
+                              </span>
+                            </button>
                           </td>
                           <td className="py-3.5 px-4 font-mono text-slate-600">{priest.userId}</td>
                           <td className="py-3.5 px-4">
@@ -1363,6 +1413,20 @@ export const SuperAdminDashboard: React.FC = () => {
                             {(priest.totalCoinsSpent || 0).toLocaleString()}
                           </td>
                           <td className="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
+                            {/* Detailed Profile & History Button */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setViewingPriestProfile(priest);
+                                setPriestProfileTab("overview");
+                              }}
+                              className="py-1.5 px-2.5 bg-amber-200/90 hover:bg-amber-300 text-amber-950 border border-amber-400 rounded-lg text-xs font-black transition-all shadow-sm flex-inline items-center gap-1"
+                              title="ಪುರೋಹಿತರ ಸಂಪೂರ್ಣ ಇತಿಹಾಸ & ಅಂಕಿಅಂಶಗಳು (View Profile & History)"
+                            >
+                              <span>🔍</span>
+                              <span>ಇತಿಹಾಸ</span>
+                            </button>
+
                             {/* Manage Modules Button */}
                             <button
                               type="button"
@@ -2282,6 +2346,581 @@ export const SuperAdminDashboard: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* 14. PRIEST DEEP PROFILE & HISTORY AUDIT MODAL */}
+      {viewingPriestProfile && (() => {
+        const priest = viewingPriestProfile;
+        const priestKundlis = kundlis.filter((k) => k.userId === priest.userId);
+        const isLow = (priest.coinBalance || 0) < 500;
+        const modules: AvailableModuleKey[] = (priest.allowedModules && priest.allowedModules.length > 0)
+          ? (priest.allowedModules as AvailableModuleKey[])
+          : ["panchanga", "sankhyashastra", "diksuchi", "purva_janma"];
+
+        // Activity breakdown
+        const jananaCount = priestKundlis.length;
+        const sankhyaCount = priestTransactions.filter((t) => t.description?.includes("ಸಂಖ್ಯಾಶಾಸ್ತ್ರ") || t.description?.includes("Sankhya")).length;
+        const diksuchiCount = priestTransactions.filter((t) => t.description?.includes("ದಿಕ್ಸೂಚಿ") || t.description?.includes("Diksuchi")).length;
+        const purvaCount = priestTransactions.filter((t) => t.description?.includes("ಜನ್ಮ") || t.description?.includes("Janma") || t.description?.includes("Purva")).length;
+        const totalDeductionsCount = priestTransactions.filter((t) => t.type === "deduction").length;
+        const totalConsultations = Math.max(jananaCount, totalDeductionsCount) + (sankhyaCount + diksuchiCount + purvaCount > 0 ? sankhyaCount + diksuchiCount + purvaCount : 0);
+
+        // Most visited / used feature calculation
+        let mostUsedFeature = "🔮 ಜನನ ಕುಂಡಲಿ ರಚನೆ (Janana Kundli)";
+        let maxCount = jananaCount;
+        if (sankhyaCount > maxCount) {
+          mostUsedFeature = "🔢 ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಪ್ರಶ್ನಾವಳಿ (Sankhya Shastra)";
+          maxCount = sankhyaCount;
+        }
+        if (diksuchiCount > maxCount) {
+          mostUsedFeature = "🧭 ದಿವ್ಯ ಕಾಲ ದಿಕ್ಸೂಚಿ (Kaala Diksuchi)";
+          maxCount = diksuchiCount;
+        }
+        if (purvaCount > maxCount) {
+          mostUsedFeature = "🌌 ಹಿಂದಿನ ಜನ್ಮ ರಹಸ್ಯ (Purva Janma)";
+        }
+
+        // Visiting frequency calculation
+        let visitFrequencyLabel = "🟢 ಪ್ರತಿದಿನ ಸಕ್ರಿಯ (Daily Active)";
+        let visitBadgeClass = "bg-emerald-100 text-emerald-900 border-emerald-300";
+        if (viewingUserProfile?.lastLoginAt) {
+          const lastDate = new Date(viewingUserProfile.lastLoginAt);
+          const diffDays = Math.floor((Date.now() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+          if (diffDays <= 1) {
+            visitFrequencyLabel = "🟢 ಪ್ರತಿದಿನ ಸಕ್ರಿಯ (Daily Active)";
+            visitBadgeClass = "bg-emerald-100 text-emerald-900 border-emerald-300";
+          } else if (diffDays <= 7) {
+            visitFrequencyLabel = "🟡 ಸಾಪ್ತಾಹಿಕ ಸಕ್ರಿಯ (Weekly Active)";
+            visitBadgeClass = "bg-amber-100 text-amber-900 border-amber-300";
+          } else {
+            visitFrequencyLabel = "⚪ ಮಾಸಿಕ / ಆವರ್ತಕ (Monthly / Periodic)";
+            visitBadgeClass = "bg-slate-100 text-slate-800 border-slate-300";
+          }
+        }
+
+        return (
+          <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 overflow-y-auto animate-in fade-in duration-200">
+            <div className="bg-[#FFFDF7] border-2 border-amber-400 rounded-3xl max-w-4xl w-full shadow-2xl overflow-hidden my-auto max-h-[92vh] flex flex-col">
+              {/* Modal Header */}
+              <div className="bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-slate-950 px-5 py-4 flex items-center justify-between shadow-md shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-[#FFFDF7] border border-amber-400 flex items-center justify-center text-xl shadow-inner font-bold">
+                    🕉️
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-base sm:text-lg font-black tracking-tight leading-tight">
+                        {priest.priestName}
+                      </h3>
+                      <span className="bg-amber-200/90 text-amber-950 font-black text-[10px] px-2 py-0.5 rounded-full border border-amber-400 font-mono">
+                        {priest.userId}
+                      </span>
+                    </div>
+                    <p className="text-xs text-amber-950/90 font-bold">
+                      ಪುರೋಹಿತರ ಸಂಪೂರ್ಣ ಪ್ರೊಫೈಲ್, ಇತಿಹಾಸ & ಬಳಕೆಯ ಅಂಕಿಅಂಶಗಳು (Priest Audit Vault)
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setViewingPriestProfile(null)}
+                  className="w-8 h-8 rounded-full bg-black/20 hover:bg-black/40 text-slate-950 hover:text-white flex items-center justify-center font-bold text-sm transition"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Modal Body (Scrollable) */}
+              <div className="p-4 sm:p-6 overflow-y-auto space-y-5 flex-1">
+                {/* 4 Financial & Telemetry Cards */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                  {/* Card 1: Balance */}
+                  <div className="p-3.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-2xl space-y-1 shadow-xs">
+                    <span className="text-[10px] font-black text-amber-800 uppercase block">
+                      🪙 ನಾಣ್ಯಗಳ ಬ್ಯಾಲೆನ್ಸ್
+                    </span>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-lg font-mono font-black text-amber-950">
+                        {(priest.coinBalance || 0).toLocaleString()}
+                      </span>
+                      <span className="text-xs font-bold text-amber-800">ನಾಣ್ಯಗಳು</span>
+                    </div>
+                    <div className="pt-1">
+                      <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${
+                        isLow ? "bg-red-100 text-red-800 border-red-300" : "bg-emerald-100 text-emerald-800 border-emerald-300"
+                      }`}>
+                        {isLow ? "⚠️ ಕಡಿಮೆ ಬ್ಯಾಲೆನ್ಸ್" : "🟢 ಸಮೃದ್ಧ ಬ್ಯಾಲೆನ್ಸ್"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Card 2: Recharges */}
+                  <div className="p-3.5 bg-[#FEFCF4] border-2 border-emerald-300 rounded-2xl space-y-1 shadow-xs">
+                    <span className="text-[10px] font-black text-emerald-800 uppercase block">
+                      💳 ಒಟ್ಟು ರೀಚಾರ್ಜ್ (INR)
+                    </span>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-lg font-mono font-black text-emerald-950">
+                        ₹{(priest.totalRechargedInr || 0).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="text-[10px] font-semibold text-emerald-800">
+                      ಕ್ರೆಡಿಟ್: {(priest.totalCoinsCredited || 0).toLocaleString()} 🪙
+                    </div>
+                  </div>
+
+                  {/* Card 3: Spent & Consultations */}
+                  <div className="p-3.5 bg-[#FEFCF4] border-2 border-blue-300 rounded-2xl space-y-1 shadow-xs">
+                    <span className="text-[10px] font-black text-blue-800 uppercase block">
+                      🔥 ಒಟ್ಟು ಖರ್ಚು & ಪ್ರಶ್ನೆಗಳು
+                    </span>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-lg font-mono font-black text-blue-950">
+                        {(priest.totalCoinsSpent || 0).toLocaleString()}
+                      </span>
+                      <span className="text-xs font-bold text-blue-800">🪙</span>
+                    </div>
+                    <div className="text-[10px] font-semibold text-blue-800">
+                      ಸೇವೆಯ ಮೊತ್ತ: ≈ ₹{Math.round((priest.totalCoinsSpent || 0) / 10).toLocaleString()}
+                    </div>
+                  </div>
+
+                  {/* Card 4: Visit Frequency */}
+                  <div className="p-3.5 bg-[#FEFCF4] border-2 border-purple-300 rounded-2xl space-y-1 shadow-xs">
+                    <span className="text-[10px] font-black text-purple-800 uppercase block">
+                      ⏱️ ಭೇಟಿ & ಲಾಗಿನ್ ಆವರ್ತನ
+                    </span>
+                    <div className="pt-0.5">
+                      <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border inline-block ${visitBadgeClass}`}>
+                        {visitFrequencyLabel}
+                      </span>
+                    </div>
+                    <div className="text-[10px] text-purple-900 font-medium truncate pt-1">
+                      {viewingUserProfile?.lastLoginAt
+                        ? `ಕಡೆಗೆ: ${new Date(viewingUserProfile.lastLoginAt).toLocaleDateString("kn-IN")}`
+                        : "ಇತ್ತೀಚೆಗೆ ಸಕ್ರಿಯ"}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Intelligent Super Admin Suggestions Box */}
+                <div className="p-4 bg-gradient-to-br from-[#FFF7DB] to-[#FFF0C2] border-2 border-amber-400 rounded-2xl space-y-2.5 shadow-sm">
+                  <div className="flex items-center justify-between border-b border-amber-300 pb-1.5">
+                    <h4 className="text-xs font-black text-amber-950 flex items-center gap-1.5">
+                      <span>💡</span>
+                      <span>ಮುಖ್ಯ ನಿರ್ವಾಹಕರ ಬುದ್ಧಿವಂತ ಸಲಹೆಗಳು & ವಿಶ್ಲೇಷಣೆ (Smart Priest Insights)</span>
+                    </h4>
+                    <span className="text-[10px] font-black text-amber-800 bg-amber-200/80 px-2 py-0.5 rounded-md border border-amber-300 font-mono">
+                      AI & Stats Audit
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs text-amber-950 font-semibold">
+                    <div className="p-2.5 bg-[#FFFDF7] rounded-xl border border-amber-300 space-y-1">
+                      <div className="font-bold text-amber-900 flex items-center gap-1">
+                        <span>🌟</span>
+                        <span>ಅತ್ಯಧಿಕ ಬಳಕೆಯ ಸೌಲಭ್ಯ (Most Visited Feature):</span>
+                      </div>
+                      <p className="text-[11px] text-slate-800 font-medium">
+                        {mostUsedFeature}
+                      </p>
+                      <p className="text-[10px] text-slate-500 font-normal">
+                        (ರಚಿಸಿದ ಜಾತಕಗಳು: {jananaCount} | ಸಂಖ್ಯಾ ಪ್ರಶ್ನೆಗಳು: {sankhyaCount} | ಕಾಲ ದಿಕ್ಸೂಚಿ: {diksuchiCount} | ಹಿಂದಿನ ಜನ್ಮ: {purvaCount})
+                      </p>
+                    </div>
+
+                    <div className="p-2.5 bg-[#FFFDF7] rounded-xl border border-amber-300 space-y-1">
+                      <div className="font-bold text-amber-900 flex items-center gap-1">
+                        <span>🪙</span>
+                        <span>ರೀಚಾರ್ಜ್ & ಬ್ಯಾಲೆನ್ಸ್ ಮಾರ್ಗದರ್ಶನ (Recharge Guidance):</span>
+                      </div>
+                      <p className="text-[11px] text-slate-800 font-medium">
+                        {isLow
+                          ? `⚠️ ನಾಣ್ಯಗಳ ಬ್ಯಾಲೆನ್ಸ್ ಕಡಿಮೆಯಾಗಿದೆ (${(priest.coinBalance || 0)} Coins). ಪುರೋಹಿತರಿಗೆ ₹೫೦೦ (೫,೦೦೦ ನಾಣ್ಯಗಳು) ಅಥವಾ ₹೧,೦೦೦ (೧೨,೦೦೦ ನಾಣ್ಯಗಳು) ರೀಚಾರ್ಜ್ ಪ್ಯಾಕೇಜ್ ಕಳುಹಿಸಲು ಶಿಫಾರಸು ಮಾಡಲಾಗಿದೆ.`
+                          : `✓ ನಾಣ್ಯಗಳ ಸಮತೋಲನ ಅತ್ಯುತ್ತಮವಾಗಿದೆ (${(priest.coinBalance || 0)} Coins). ಸಮಾಲೋಚನೆಗಳು ಸುಸೂತ್ರವಾಗಿ ಸಾಗುತ್ತಿವೆ.`}
+                      </p>
+                    </div>
+
+                    <div className="p-2.5 bg-[#FFFDF7] rounded-xl border border-amber-300 space-y-1">
+                      <div className="font-bold text-amber-900 flex items-center gap-1">
+                        <span>🛡️</span>
+                        <span>ಮಾಡ್ಯೂಲ್ ಪ್ರವೇಶಾವಕಾಶ ಸ್ಥಿತಿ (Module Access):</span>
+                      </div>
+                      <p className="text-[11px] text-slate-800 font-medium">
+                        {modules.length === AVAILABLE_MODULES.length
+                          ? "✓ ಎಲ್ಲಾ ೪ ಸೌಲಭ್ಯಗಳು ಸಕ್ರಿಯವಾಗಿವೆ (ಪಂಚಾಂಗ, ಸಂಖ್ಯಾಶಾಸ್ತ್ರ, ದಿಕ್ಸೂಚಿ, ಹಿಂದಿನ ಜನ್ಮ)."
+                          : `ಪ್ರಸ್ತುತ ${modules.length}/${AVAILABLE_MODULES.length} ಮಾಡ್ಯೂಲ್‌ಗಳು ಸಕ್ರಿಯವಾಗಿವೆ. ಇನ್ನಷ್ಟು ಮಾಡ್ಯೂಲ್‌ಗಳನ್ನು ನೀಡಲು ಕೆಳಗಿನ 'ಮಾಡ್ಯೂಲ್‌ಗಳು' ಬಟನ್ ಬಳಸಿ.`}
+                      </p>
+                    </div>
+
+                    <div className="p-2.5 bg-[#FFFDF7] rounded-xl border border-amber-300 space-y-1">
+                      <div className="font-bold text-amber-900 flex items-center gap-1">
+                        <span>📱</span>
+                        <span>ಲಾಗಿನ್ ಸಾಧನ & ನೆಟ್‌ವರ್ಕ್ (Device & Network):</span>
+                      </div>
+                      <p className="text-[11px] text-slate-800 font-medium">
+                        ಸಾಧನ: {viewingUserProfile?.lastDevice || "📱 Mobile Web / Desktop"}
+                      </p>
+                      <p className="text-[10px] text-slate-500 font-mono">
+                        IP: {viewingUserProfile?.lastKnownIp || "—"} | ಲಾಗಿನ್: {viewingUserProfile?.lastLoginAt ? new Date(viewingUserProfile.lastLoginAt).toLocaleString("kn-IN") : "ಹೊಸ ಖಾತೆ"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Profile Navigation Tabs */}
+                <div className="flex border-b-2 border-amber-200 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPriestProfileTab("overview")}
+                    className={`pb-2.5 px-3 text-xs font-black transition border-b-2 -mb-0.5 flex items-center gap-1.5 ${
+                      priestProfileTab === "overview"
+                        ? "border-amber-600 text-amber-950"
+                        : "border-transparent text-slate-500 hover:text-amber-900"
+                    }`}
+                  >
+                    <span>📊</span>
+                    <span>ಸಾರಾಂಶ (Overview)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPriestProfileTab("kundlis")}
+                    className={`pb-2.5 px-3 text-xs font-black transition border-b-2 -mb-0.5 flex items-center gap-1.5 ${
+                      priestProfileTab === "kundlis"
+                        ? "border-amber-600 text-amber-950"
+                        : "border-transparent text-slate-500 hover:text-amber-900"
+                    }`}
+                  >
+                    <span>🔮</span>
+                    <span>ರಚಿಸಿದ ಜಾತಕಗಳು ({priestKundlis.length})</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPriestProfileTab("transactions")}
+                    className={`pb-2.5 px-3 text-xs font-black transition border-b-2 -mb-0.5 flex items-center gap-1.5 ${
+                      priestProfileTab === "transactions"
+                        ? "border-amber-600 text-amber-950"
+                        : "border-transparent text-slate-500 hover:text-amber-900"
+                    }`}
+                  >
+                    <span>🪙</span>
+                    <span>ನಾಣ್ಯ ವಹಿವಾಟು ಇತಿಹಾಸ ({priestTransactions.length})</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPriestProfileTab("modules")}
+                    className={`pb-2.5 px-3 text-xs font-black transition border-b-2 -mb-0.5 flex items-center gap-1.5 ${
+                      priestProfileTab === "modules"
+                        ? "border-amber-600 text-amber-950"
+                        : "border-transparent text-slate-500 hover:text-amber-900"
+                    }`}
+                  >
+                    <span>🛡️</span>
+                    <span>ಮಾಡ್ಯೂಲ್ & ಭದ್ರತೆ</span>
+                  </button>
+                </div>
+
+                {/* TAB 1: OVERVIEW */}
+                {priestProfileTab === "overview" && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="p-3.5 bg-[#FEFCF4] border border-amber-300 rounded-2xl text-center space-y-1">
+                        <span className="text-2xl">🔮</span>
+                        <div className="text-sm font-black text-amber-950">{jananaCount}</div>
+                        <div className="text-[11px] text-amber-800 font-bold">ಜನನ ಕುಂಡಲಿಗಳು</div>
+                      </div>
+                      <div className="p-3.5 bg-[#FEFCF4] border border-amber-300 rounded-2xl text-center space-y-1">
+                        <span className="text-2xl">🔢</span>
+                        <div className="text-sm font-black text-amber-950">{sankhyaCount}</div>
+                        <div className="text-[11px] text-amber-800 font-bold">ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಪ್ರಶ್ನೆಗಳು</div>
+                      </div>
+                      <div className="p-3.5 bg-[#FEFCF4] border border-amber-300 rounded-2xl text-center space-y-1">
+                        <span className="text-2xl">🧭</span>
+                        <div className="text-sm font-black text-amber-950">{diksuchiCount + purvaCount}</div>
+                        <div className="text-[11px] text-amber-800 font-bold">ದಿಕ್ಸೂಚಿ & ಪೂರ್ವ ಜನ್ಮ</div>
+                      </div>
+                    </div>
+
+                    {/* Recent Kundlis Preview */}
+                    <div className="space-y-2">
+                      <h5 className="text-xs font-black text-amber-950 flex items-center justify-between">
+                        <span>ಇತ್ತೀಚೆಗೆ ರಚಿಸಿದ ಜಾತಕಗಳು</span>
+                        {priestKundlis.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => setPriestProfileTab("kundlis")}
+                            className="text-[11px] text-amber-800 hover:text-amber-950 font-bold underline"
+                          >
+                            ಎಲ್ಲವನ್ನೂ ವೀಕ್ಷಿಸಿ ({priestKundlis.length}) →
+                          </button>
+                        )}
+                      </h5>
+
+                      {priestKundlis.length === 0 ? (
+                        <p className="text-xs text-slate-500 p-4 bg-[#FEFCF4] rounded-xl border border-amber-200 text-center">
+                          ಈ ಪುರೋಹಿತರು ಇನ್ನೂ ಯಾವುದೇ ಜನನ ಕುಂಡಲಿಗಳನ್ನು ರಚಿಸಿಲ್ಲ.
+                        </p>
+                      ) : (
+                        <div className="space-y-1.5">
+                          {priestKundlis.slice(0, 3).map((k) => (
+                            <div key={k.id} className="p-3 bg-[#FEFCF4] rounded-xl border border-amber-200 flex items-center justify-between text-xs font-medium">
+                              <div>
+                                <span className="font-black text-amber-950">{k.name}</span>
+                                <span className="text-slate-500 ml-2 font-bold">({k.gothra || "ಗೋತ್ರ"}) • {k.placeName || "ಗೋಕರ್ಣ"}</span>
+                              </div>
+                              <div className="text-right font-mono text-[11px] text-slate-600">
+                                {k.birthDate} | {k.rashi} ({k.nakshatra})
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* TAB 2: KUNDLIS VAULT */}
+                {priestProfileTab === "kundlis" && (
+                  <div className="space-y-3">
+                    {priestKundlis.length === 0 ? (
+                      <div className="p-8 text-center bg-[#FEFCF4] rounded-2xl border border-amber-200 space-y-2">
+                        <span className="text-3xl">🔮</span>
+                        <p className="text-xs text-slate-600 font-bold">
+                          ಈ ಪುರೋಹಿತರ ಖಾತೆಯಲ್ಲಿ ಇನ್ನೂ ಯಾವುದೇ ಜನನ ಕುಂಡಲಿಗಳ ದಾಖಲೆಗಳಿಲ್ಲ.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto border-2 border-amber-300 rounded-2xl">
+                        <table className="w-full text-left text-xs bg-white">
+                          <thead className="bg-[#FFF5D6] text-amber-950 font-black border-b border-amber-300">
+                            <tr>
+                              <th className="py-2.5 px-3">ಭಕ್ತರ ಹೆಸರು</th>
+                              <th className="py-2.5 px-3">ಗೋತ್ರ & ಸ್ಥಳ</th>
+                              <th className="py-2.5 px-3">ಜನ್ಮ ದಿನಾಂಕ & ಸಮಯ</th>
+                              <th className="py-2.5 px-3">ರಾಶಿ & ನಕ್ಷತ್ರ</th>
+                              <th className="py-2.5 px-3 text-right">ರಚಿಸಿದ ದಿನಾಂಕ</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-amber-100 font-medium">
+                            {priestKundlis.map((k) => (
+                              <tr key={k.id} className="hover:bg-amber-50/50">
+                                <td className="py-2.5 px-3 font-bold text-amber-950">
+                                  {k.name}
+                                </td>
+                                <td className="py-2.5 px-3 text-slate-700">
+                                  {k.gothra || "ಕಾಶ್ಯಪ"} ({k.placeName || "ಗೋಕರ್ಣ"})
+                                </td>
+                                <td className="py-2.5 px-3 font-mono text-slate-700">
+                                  {k.birthDate} {k.birthTime}
+                                </td>
+                                <td className="py-2.5 px-3 font-bold text-amber-900">
+                                  {k.rashi} • {k.nakshatra}
+                                </td>
+                                <td className="py-2.5 px-3 text-right font-mono text-slate-500 text-[11px]">
+                                  {new Date(k.createdAt).toLocaleDateString("kn-IN")}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* TAB 3: TRANSACTIONS / COIN LEDGER */}
+                {priestProfileTab === "transactions" && (
+                  <div className="space-y-3">
+                    {priestTransactions.length === 0 ? (
+                      <div className="p-8 text-center bg-[#FEFCF4] rounded-2xl border border-amber-200 space-y-2">
+                        <span className="text-3xl">🪙</span>
+                        <p className="text-xs text-slate-600 font-bold">
+                          ಯಾವುದೇ ನಾಣ್ಯ ವಹಿವಾಟುಗಳು ದಾಖಲಾಗಿಲ್ಲ.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto border-2 border-amber-300 rounded-2xl max-h-80 overflow-y-auto">
+                        <table className="w-full text-left text-xs bg-white">
+                          <thead className="bg-[#FFF5D6] text-amber-950 font-black border-b border-amber-300 sticky top-0">
+                            <tr>
+                              <th className="py-2.5 px-3">ಪ್ರಕಾರ</th>
+                              <th className="py-2.5 px-3">ವಿವರಣೆ</th>
+                              <th className="py-2.5 px-3">ಭಕ್ತರ ಹೆಸರು</th>
+                              <th className="py-2.5 px-3">ನಾಣ್ಯಗಳು</th>
+                              <th className="py-2.5 px-3 text-right">ಸಮಯ</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-amber-100 font-medium">
+                            {priestTransactions.map((tx) => (
+                              <tr key={tx.id} className="hover:bg-amber-50/50">
+                                <td className="py-2.5 px-3">
+                                  <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${
+                                    tx.type === "recharge"
+                                      ? "bg-emerald-100 text-emerald-900 border-emerald-300"
+                                      : tx.type === "deduction"
+                                      ? "bg-red-100 text-red-900 border-red-300"
+                                      : "bg-blue-100 text-blue-900 border-blue-300"
+                                  }`}>
+                                    {tx.type === "recharge" ? "⚡ ರೀಚಾರ್ಜ್" : tx.type === "deduction" ? "🔻 ಕಡಿತ" : "🎁 ಬೋನಸ್"}
+                                  </span>
+                                </td>
+                                <td className="py-2.5 px-3 font-bold text-slate-800">
+                                  {tx.description}
+                                </td>
+                                <td className="py-2.5 px-3 text-slate-700">
+                                  {tx.clientName || "—"}
+                                </td>
+                                <td className="py-2.5 px-3 font-mono font-bold">
+                                  <span className={tx.type === "deduction" ? "text-red-700" : "text-emerald-700"}>
+                                    {tx.type === "deduction" ? "-" : "+"}{tx.coins.toLocaleString()} 🪙
+                                  </span>
+                                </td>
+                                <td className="py-2.5 px-3 text-right font-mono text-slate-500 text-[11px]">
+                                  {new Date(tx.createdAt).toLocaleString("kn-IN")}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* TAB 4: MODULES & SECURITY */}
+                {priestProfileTab === "modules" && (
+                  <div className="space-y-4">
+                    <div className="p-4 bg-[#FEFCF4] border-2 border-amber-300 rounded-2xl space-y-3">
+                      <h5 className="text-xs font-black text-amber-950 flex items-center justify-between">
+                        <span>ಸಕ್ರಿಯ ಸೌಲಭ್ಯಗಳು ({modules.length})</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setViewingPriestProfile(null);
+                            handleOpenModuleEditor(priest);
+                          }}
+                          className="text-xs text-indigo-700 hover:text-indigo-900 font-bold underline"
+                        >
+                          ಮಾಡ್ಯೂಲ್‌ಗಳನ್ನು ಬದಲಾಯಿಸಿ →
+                        </button>
+                      </h5>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        {AVAILABLE_MODULES.map((m) => {
+                          const isActive = modules.includes(m.key);
+                          return (
+                            <div key={m.key} className={`p-3 rounded-xl border flex items-center justify-between ${
+                              isActive ? "bg-emerald-50 border-emerald-300 text-emerald-950" : "bg-slate-50 border-slate-200 text-slate-400"
+                            }`}>
+                              <div className="flex items-center gap-2">
+                                <span className="text-lg">{m.icon}</span>
+                                <div>
+                                  <div className="font-bold text-xs">{m.kannadaLabel}</div>
+                                  <div className="text-[10px] text-slate-500">{m.key}</div>
+                                </div>
+                              </div>
+                              <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${
+                                isActive ? "bg-emerald-200/90 text-emerald-950 border-emerald-400" : "bg-slate-200 text-slate-600 border-slate-300"
+                              }`}>
+                                {isActive ? "✓ ಸಕ್ರಿಯ" : "✕ ನಿಷ್ಕ್ರಿಯ"}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Known IP Addresses */}
+                    <div className="p-4 bg-[#FEFCF4] border border-amber-300 rounded-2xl space-y-2 text-xs">
+                      <h5 className="font-black text-amber-950">🌐 ಭದ್ರತಾ ಇತಿಹಾಸ & ದಾಖಲಾದ IP ವಿಳಾಸಗಳು:</h5>
+                      <div className="flex flex-wrap gap-2">
+                        {(viewingUserProfile?.knownIps && viewingUserProfile.knownIps.length > 0) ? (
+                          viewingUserProfile.knownIps.map((ip, i) => (
+                            <span key={i} className="font-mono text-[11px] bg-white border border-amber-300 px-2.5 py-1 rounded-lg text-slate-800 font-bold shadow-xs">
+                              {ip}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="font-mono text-slate-500 font-bold bg-white px-2 py-1 rounded border border-amber-200">
+                            {viewingUserProfile?.lastKnownIp || "IP ದಾಖಲಾಗಿಲ್ಲ"}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Footer Quick Actions */}
+              <div className="bg-[#FFF5D6] border-t-2 border-amber-300 px-5 py-3 flex flex-wrap items-center justify-between gap-2 shrink-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* Coin Adjustment */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setViewingPriestProfile(null);
+                      setSelectedPriest(priest);
+                    }}
+                    className="py-2 px-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-xs transition"
+                  >
+                    ⚡ ನಾಣ್ಯ ಹೊಂದಾಣಿಕೆ
+                  </button>
+
+                  {/* Manage Modules */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setViewingPriestProfile(null);
+                      handleOpenModuleEditor(priest);
+                    }}
+                    className="py-2 px-3 bg-indigo-100 hover:bg-indigo-200 text-indigo-950 border border-indigo-300 font-bold text-xs rounded-xl shadow-xs transition"
+                  >
+                    🛡️ ಮಾಡ್ಯೂಲ್‌ಗಳು
+                  </button>
+
+                  {/* WhatsApp Invite */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const origin = typeof window !== "undefined" ? window.location.origin : "https://baggona-panchanga.firebaseapp.com";
+                      const modulesQuery = modules.length > 0 ? modules.join(",") : "panchanga";
+                      const unifiedUrl = `${origin}/?portal=priest&user=${encodeURIComponent(priest.userId)}&name=${encodeURIComponent(priest.priestName)}&modules=${encodeURIComponent(modulesQuery)}&firstTime=true`;
+                      const msg = `ನಮಸ್ಕಾರ ${priest.priestName} ಅವರೇ,\n\nನಿಮ್ಮ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಪೋರ್ಟಲ್‌ನ ವಿವರಗಳು:\n👤 ಯೂಸರ್ ID: ${priest.userId}\n🪙 ಪ್ರಸ್ತುತ ಬ್ಯಾಲೆನ್ಸ್: ${(priest.coinBalance || 0).toLocaleString()} Coins\n🔗 ಪ್ರವೇಶ ಲಿಂಕ್:\n${unifiedUrl}\n\n॥ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ · ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ॥`;
+                      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, "_blank");
+                    }}
+                    className="py-2 px-3 bg-emerald-100 hover:bg-emerald-200 text-emerald-950 border border-emerald-400 font-bold text-xs rounded-xl shadow-xs transition"
+                  >
+                    📲 WhatsApp
+                  </button>
+
+                  {/* Delete Priest */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setViewingPriestProfile(null);
+                      setDeletingPriest(priest);
+                    }}
+                    className="py-2 px-2.5 bg-red-100 hover:bg-red-200 text-red-950 border border-red-300 font-bold text-xs rounded-xl shadow-xs transition flex items-center gap-1"
+                  >
+                    <span>🗑️</span>
+                    <span>ಅಳಿಸಿ</span>
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setViewingPriestProfile(null)}
+                  className="py-2 px-4 bg-slate-200 hover:bg-slate-300 text-slate-800 font-black text-xs rounded-xl transition"
+                >
+                  ಮುಚ್ಚಿ (Close)
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 };
