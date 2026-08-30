@@ -57,7 +57,7 @@ describe("Priest Mobile Portal: Consultation Engine & Technical Precision", () =
     expect(keys).toContain("custom");
   });
 
-  it("generates a 4-paragraph technical astrological reading in pure Kannada for Santathi", async () => {
+  it("generates a 5-paragraph technical astrological reading in pure Kannada for Santathi", async () => {
     const kundli = await calculateKundli(sampleBirth);
     const result = await generatePriestConsultationReading({
       kundli,
@@ -69,11 +69,12 @@ describe("Priest Mobile Portal: Consultation Engine & Technical Precision", () =
 
     expect(result.categoryKey).toBe("balya_santathi");
     expect(result.devoteeName).toBe("ರಮೇಶ್");
-    expect(result.technicalParagraphs).toHaveLength(4);
+    expect(result.technicalParagraphs).toHaveLength(5);
     expect(result.technicalParagraphs[0].titleKn).toContain("ಪ್ಯಾರಾಗ್ರಾಫ್ ೧");
     expect(result.technicalParagraphs[1].titleKn).toContain("ಪ್ಯಾರಾಗ್ರಾಫ್ ೨");
     expect(result.technicalParagraphs[2].titleKn).toContain("ಪ್ಯಾರಾಗ್ರಾಫ್ ೩");
     expect(result.technicalParagraphs[3].titleKn).toContain("ಪ್ಯಾರಾಗ್ರಾಫ್ ೪");
+    expect(result.technicalParagraphs[4].titleKn).toContain("ಪ್ಯಾರಾಗ್ರಾಫ್ ೫");
     expect(result.remedyListKn.length).toBeGreaterThan(0);
     expect(result.remedyListKn[0]).toContain("ಸಂತಾನ ಗೋಪಾಲ");
   }, 25000);
@@ -89,7 +90,7 @@ describe("Priest Mobile Portal: Consultation Engine & Technical Precision", () =
 
     expect(result.isDoshaCheck).toBe(true);
     expect(result.verdictTextKn).toMatch(/(ಹೌದು|ಇಲ್ಲ)/);
-    expect(result.technicalParagraphs[3].contentKn).toContain("ಬಗ್ಗೋಣ");
+    expect(result.technicalParagraphs[4].contentKn).toContain("ಬಗ್ಗೋಣ");
   }, 25000);
 
   it("verifies the exact Royal Welcome text and URL invite parameters", () => {

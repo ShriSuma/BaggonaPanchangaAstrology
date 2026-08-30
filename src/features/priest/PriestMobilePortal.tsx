@@ -10,7 +10,7 @@ import {
   DEFAULT_PRIEST_NAME,
   RECHARGE_PACKAGES
 } from "../wallet/walletTypes";
-import { calculateKundli } from "../../core/KundliEngine";
+import { calculateKundliWithPlaceSun } from "../../core/KundliEngine";
 import { type KundliOutput, type PlanetPosition } from "../../core/AstroTypes";
 import {
   PRIEST_CONSULTATION_CATEGORIES,
@@ -19,6 +19,7 @@ import {
 } from "./priestQuestionEngine";
 import { SpeechRecognitionSession } from "../../utils/speechRecognitionHelper";
 import SouthIndianChart from "../../components/kundli/SouthIndianChart";
+import TraditionalSouthPatrika from "../../components/kundli/TraditionalSouthPatrika";
 import { saveKundliToFirestore, updateUserPassword, logPremiumPdfDownload } from "../../db/firestoreDb";
 import { hashPassword } from "../auth/authStore";
 import { notifyPasswordResetCompleted, notifySystemFailureAlert, notifyPremiumPdfDownloaded } from "../notifications/notificationService";
@@ -417,7 +418,7 @@ export const PriestMobilePortal: React.FC = () => {
       const birthPayload = {
         name: devoteeName || "ಭಕ್ತರು",
         birthDate,
-        birthTime,
+        birthTime: birthTime || "12:00",
         place: placeName || "ಗೋಕರ್ಣ",
         latitude,
         longitude,
@@ -425,7 +426,10 @@ export const PriestMobilePortal: React.FC = () => {
         gothra: gothra || "ಕಾಶ್ಯಪ"
       };
 
-      const output = calculateKundli(birthPayload);
+      const output = await calculateKundliWithPlaceSun(birthPayload, {
+        ayanamsaModel: ayanamsaModel || "lahiri",
+        nodeType: "true"
+      });
       setKundliResult(output);
       setFeedback({
         type: "success",
@@ -1577,40 +1581,36 @@ export const PriestMobilePortal: React.FC = () => {
                 </div>
               )}
 
-              {/* Color-Coded South Indian Kundli Chart Card */}
-              <div className="bg-[#FFFDF7] border-2 border-amber-400/80 rounded-3xl p-5 shadow-md">
-                <div className="flex items-center justify-between border-b border-amber-200 pb-2.5 mb-3.5">
-                  <h3 className="text-xs font-black text-amber-950 flex items-center gap-2">
-                    <span>🧭</span>
-                    <span>ದಕ್ಷಿಣ ಭಾರತೀಯ ಕುಂಡಲಿ ನಕ್ಷೆ (South Indian Chart)</span>
-                  </h3>
-                  <div className="flex gap-1">
-                    <button
-                      type="button"
-                      onClick={() => setChartStyle("south")}
-                      className={`px-2.5 py-1 rounded-lg text-[10px] font-black ${
-                        chartStyle === "south" ? "bg-amber-500 text-slate-950" : "bg-amber-100 text-amber-900"
-                      }`}
-                    >
-                      D1 ರಾಶಿ
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setChartStyle("north")}
-                      className={`px-2.5 py-1 rounded-lg text-[10px] font-black ${
-                        chartStyle === "north" ? "bg-amber-500 text-slate-950" : "bg-amber-100 text-amber-900"
-                      }`}
-                    >
-                      D9 ನವಾಂಶ
-                    </button>
+              {/* Authentic Royal South Indian Janana Kundali Patrika (100% Pure Kannada - Exact PDF Replica) */}
+              <div className="bg-[#FFFDF7] border-2 border-amber-400/90 rounded-3xl p-3 sm:p-5 shadow-lg space-y-3">
+                <div className="flex items-center justify-between border-b border-amber-200 pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">📜✨</span>
+                    <div>
+                      <h3 className="text-xs sm:text-sm font-black text-amber-950">
+                        ದಕ್ಷಿಣ ಭಾರತೀಯ ಸಾಂಪ್ರದಾಯಿಕ ಜನನ ಕುಂಡಲಿ ಪತ್ರಿಕೆ (South Indian Patrika)
+                      </h3>
+                      <p className="text-[10px] text-amber-800 font-semibold">
+                        ೧೦೦% ಶುದ್ಧ ಕನ್ನಡ • ಲಗ್ನ, ಮಾಂದಿ, ನವಾಂಶ ಅಂಶಕ & ಪಂಚಾಂಗ ವಿವರಗಳು
+                      </p>
+                    </div>
                   </div>
+                  <span className="text-[10px] font-black text-emerald-900 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-300">
+                    PDF ಹೋಲಿಕೆ (Exact Replica)
+                  </span>
                 </div>
 
-                <div className="max-w-[340px] mx-auto p-2 bg-white rounded-2xl border border-amber-300 shadow-inner">
-                  <SouthIndianChart
+                <div className="overflow-x-auto flex justify-center p-1 sm:p-2 bg-[#FEFCF4] rounded-2xl border-2 border-amber-300 shadow-inner">
+                  <TraditionalSouthPatrika
                     kundli={kundliResult}
                     personName={devoteeName || "ಭಕ್ತರು"}
                     gothra={gothra || "ಕಾಶ್ಯಪ"}
+                    birthDate={birthDate}
+                    birthTime={birthTime || "12:00"}
+                    latitude={latitude}
+                    longitude={longitude}
+                    placeLabel={placeName || "ಗೋಕರ್ಣ"}
+                    ayanamsaModel={ayanamsaModel || "lahiri"}
                   />
                 </div>
               </div>
@@ -1887,92 +1887,152 @@ export const PriestMobilePortal: React.FC = () => {
 
           {/* Consultation Output Card */}
           {consultationResult && (
-            <div className="bg-[#FFFDF7] border-2 border-amber-400/80 rounded-3xl p-5 shadow-md space-y-4">
-              <div className="border-b border-amber-200 pb-2.5">
-                <span className="text-[10px] uppercase font-black text-amber-800 block">
-                  ಶಾಸ್ತ್ರೀಯ ಸಮಾಲೋಚನಾ ಫಲಿತಾಂಶ • {consultationResult.categoryNameKn}
-                </span>
-                <h3 className="text-sm font-black text-amber-950 mt-0.5">
-                  ಪ್ರಶ್ನೆ: {consultationResult.questionText}
-                </h3>
+            <div className="bg-gradient-to-b from-[#FFFDF7] via-[#FFF9E6] to-[#FFF5D6] border-2 border-amber-400/90 rounded-3xl p-4 sm:p-6 shadow-xl space-y-4 text-slate-900 animate-in fade-in duration-300">
+              {/* Ornate Royal Header */}
+              <div className="border-b-2 border-amber-300/80 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-400 text-amber-950 text-[10px] font-black uppercase tracking-wider mb-1">
+                    <span>🕉️</span>
+                    <span>॥ ಶ್ರೀ ಬಗ್ಗೋಣ ಶಾಸ್ತ್ರೀಯ ಪ್ರಶ್ನೋತ್ತರ ಸಮಾಲೋಚನೆ ॥</span>
+                  </div>
+                  <h3 className="text-base sm:text-lg font-black text-amber-950">
+                    {consultationResult.categoryNameKn}
+                  </h3>
+                  <p className="text-xs text-amber-900 font-bold mt-0.5">
+                    ಪ್ರಶ್ನೆ: <span className="text-slate-900 font-extrabold font-serif">"{consultationResult.questionText}"</span>
+                  </p>
+                </div>
+
+                <div className="shrink-0 flex items-center gap-2">
+                  <span
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-black shadow-sm flex items-center gap-1.5 ${
+                      consultationResult.hasDoshaOrAffliction
+                        ? "bg-red-100 text-red-950 border-2 border-red-400"
+                        : "bg-emerald-100 text-emerald-950 border-2 border-emerald-400"
+                    }`}
+                  >
+                    {consultationResult.verdictTextKn}
+                  </span>
+                </div>
               </div>
 
-              {/* Yes / No Badge */}
-              <div className="p-3.5 rounded-2xl bg-[#FEFCF4] border-2 border-amber-300 flex items-center justify-between">
-                <span className="text-xs text-amber-950 font-bold">ಫಲಿತಾಂಶ / ನಿರ್ಣಯ:</span>
-                <span
-                  className={`px-3.5 py-1 rounded-full text-xs font-black ${
-                    consultationResult.hasDoshaOrAffliction
-                      ? "bg-red-100 text-red-900 border-2 border-red-400"
-                      : "bg-emerald-100 text-emerald-900 border-2 border-emerald-400"
-                  }`}
-                >
-                  {consultationResult.verdictTextKn}
-                </span>
+              {/* Devotee Coordinates Ribbon */}
+              <div className="p-3 bg-white rounded-2xl border-2 border-amber-300 shadow-inner flex flex-wrap items-center justify-between gap-2 text-xs font-bold text-amber-950">
+                <div className="flex items-center gap-2">
+                  <span className="text-amber-800">👤 ಜಾತಕ:</span>
+                  <span className="font-extrabold">{consultationResult.devoteeName}</span>
+                  <span className="text-slate-500">({consultationResult.gothra} ಗೋತ್ರ)</span>
+                </div>
+                <div className="flex items-center gap-2 text-[11px] text-amber-900 font-semibold">
+                  <span>{consultationResult.activeGrahasSummary}</span>
+                </div>
               </div>
 
-              {/* Active Grahas Summary */}
-              <div className="p-3 bg-[#FEFCF4] rounded-2xl border border-amber-300 text-[11px] text-amber-950">
-                <strong className="text-amber-800">ಗ್ರಹಸ್ಥಿತಿ: </strong>
-                <span>{consultationResult.activeGrahasSummary}</span>
-              </div>
-
-              {/* 4 Technical Paragraphs */}
-              <div className="space-y-3">
+              {/* 5 Deep Technical Paragraphs (5-6+ lines each) */}
+              <div className="space-y-3.5">
                 {consultationResult.technicalParagraphs.map((para, idx) => (
-                  <div key={idx} className="p-3.5 rounded-2xl bg-[#FEFCF4] border border-amber-300/80 space-y-1.5 shadow-sm">
-                    <h4 className="text-xs font-black text-amber-900 flex items-center gap-1.5">
-                      <span>✦</span>
-                      <span>{para.titleKn}</span>
-                    </h4>
-                    <p className="text-xs text-slate-800 leading-relaxed whitespace-pre-line font-medium">
+                  <div
+                    key={idx}
+                    className="p-4 sm:p-5 rounded-2xl bg-[#FFFDF7] border-2 border-amber-300/90 shadow-sm space-y-2 relative overflow-hidden"
+                  >
+                    <div className="flex items-center gap-2 border-b border-amber-200 pb-2">
+                      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-amber-500 text-slate-950 font-black text-xs shadow-xs">
+                        {idx + 1}
+                      </span>
+                      <h4 className="text-xs sm:text-sm font-black text-amber-950">
+                        {para.titleKn}
+                      </h4>
+                    </div>
+                    <p className="text-xs sm:text-sm text-slate-900 leading-relaxed sm:leading-loose whitespace-pre-line font-medium text-justify">
                       {para.contentKn}
                     </p>
                   </div>
                 ))}
               </div>
 
-              {/* Baggona Parihara Recommendations */}
+              {/* Baggona & Gokarna Sanjeevini Parihara Card */}
               {consultationResult.remedyListKn && consultationResult.remedyListKn.length > 0 && (
-                <div className="p-4 bg-gradient-to-br from-amber-100/70 to-orange-50 rounded-2xl border-2 border-amber-400 space-y-2">
-                  <h4 className="text-xs font-black text-amber-950 flex items-center gap-2">
-                    <span>🪔</span>
-                    <span>ಬಗ್ಗೋಣ ಕ್ಷೇತ್ರದ ಅನುಷ್ಠಾನ ಮತ್ತು ಶಾಸ್ತ್ರೀಯ ಪರಿಹಾರಗಳು:</span>
-                  </h4>
-                  <ul className="space-y-1.5 text-xs text-amber-950 pl-4 list-disc font-semibold">
+                <div className="p-4 sm:p-5 bg-gradient-to-br from-amber-100 via-[#FFF9E6] to-orange-100 rounded-3xl border-2 border-amber-500 shadow-md space-y-3">
+                  <div className="flex items-center gap-2 border-b border-amber-300 pb-2">
+                    <span className="text-xl">🪔</span>
+                    <div>
+                      <h4 className="text-xs sm:text-sm font-black text-amber-950">
+                        ಬಗ್ಗೋಣ & ಗೋಕರ್ಣ ಮಹಾಕ್ಷೇತ್ರದ ಶಾಸ್ತ್ರೀಯ ಪರಿಹಾರ ಮತ್ತು ಜಪಾನುಷ್ಠಾನ:
+                      </h4>
+                      <p className="text-[10px] text-amber-800 font-semibold">
+                        ದೋಷ ಶಮನ ಹಾಗೂ ಕಾರ್ಯಸಿದ್ಧಿಗಾಗಿ ಪವಿತ್ರ ಸಂಕಲ್ಪ ಸೇವೆಗಳು
+                      </p>
+                    </div>
+                  </div>
+
+                  <ul className="space-y-2 text-xs sm:text-sm text-amber-950 font-bold pl-2">
                     {consultationResult.remedyListKn.map((rem, i) => (
-                      <li key={i}>{rem}</li>
+                      <li key={i} className="flex items-start gap-2">
+                        <span className="text-amber-600 mt-0.5">✦</span>
+                        <span>{rem}</span>
+                      </li>
                     ))}
                   </ul>
                 </div>
               )}
 
-              {/* Ask Another Question Action */}
-              <button
-                type="button"
-                onClick={() => {
-                  setCustomQuestion("");
-                  window.scrollTo({ top: 100, behavior: "smooth" });
-                }}
-                className="w-full py-3 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 hover:from-amber-500 hover:to-amber-300 text-slate-950 font-black text-xs rounded-2xl shadow-md flex items-center justify-center gap-2 border border-amber-400"
-              >
-                <span>➕ ಇನ್ನೊಂದು ಪ್ರಶ್ನೆ ಕೇಳಿ (Ask Another Question • 🪙 ೫೦೦)</span>
-              </button>
+              {/* Action Buttons: 1-Click WhatsApp Share & Ask Another */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const parasText = consultationResult.technicalParagraphs
+                      .map((p, i) => `*${i + 1}. ${p.titleKn}*\n${p.contentKn}`)
+                      .join("\n\n");
+                    const remediesText = consultationResult.remedyListKn
+                      .map((r, i) => `• ${r}`)
+                      .join("\n");
+                    const message = encodeURIComponent(
+                      `॥ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ॥\n\n` +
+                      `*ಶಾಸ್ತ್ರೀಯ ಸಮಾಲೋಚನಾ ವರದಿ*\n` +
+                      `👤 ಭಕ್ತರ ಹೆಸರು: ${consultationResult.devoteeName} (${consultationResult.gothra} ಗೋತ್ರ)\n` +
+                      `❓ ಪ್ರಶ್ನೆ: ${consultationResult.questionText}\n` +
+                      `⚖️ ನಿರ್ಣಯ: ${consultationResult.verdictTextKn}\n\n` +
+                      `${parasText}\n\n` +
+                      `*🪔 ಶಾಸ್ತ್ರೀಯ ಪರಿಹಾರಗಳು:*\n${remediesText}\n\n` +
+                      `॥ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ ॥\n` +
+                      `ಬಗ್ಗೋಣ ಪಂಚಾಂಗ - ಗೋಕರ್ಣ`
+                    );
+                    window.open(`https://api.whatsapp.com/send?text=${message}`, "_blank");
+                  }}
+                  className="w-full py-3 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-black text-xs sm:text-sm rounded-2xl shadow-md flex items-center justify-center gap-2 transition-all active:scale-95"
+                >
+                  <span>📲</span>
+                  <span>WhatsApp ಮೂಲಕ ಪೂರ್ಣ ವರದಿ ಕಳುಹಿಸಿ (Share on WhatsApp)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCustomQuestion("");
+                    window.scrollTo({ top: 100, behavior: "smooth" });
+                  }}
+                  className="w-full py-3 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 hover:from-amber-500 hover:to-amber-300 text-slate-950 font-black text-xs sm:text-sm rounded-2xl shadow-md flex items-center justify-center gap-2 border border-amber-400 transition-all active:scale-95"
+                >
+                  <span>➕</span>
+                  <span>ಇನ್ನೊಂದು ಪ್ರಶ್ನೆ ಕೇಳಿ (Ask Another Question)</span>
+                </button>
+              </div>
 
               {/* Previous Questions Session History */}
               {consultationHistory.length > 1 && (
-                <div className="pt-3 border-t border-amber-200 space-y-2">
-                  <h4 className="text-xs font-black text-amber-900 flex items-center justify-between">
+                <div className="pt-4 border-t-2 border-amber-200 space-y-2">
+                  <h4 className="text-xs font-black text-amber-950 flex items-center justify-between">
                     <span>📜 ಈ ಅಧಿವೇಶನದ ಹಿಂದಿನ ಪ್ರಶ್ನೋತ್ತರಗಳು ({consultationHistory.length - 1})</span>
                   </h4>
                   <div className="space-y-2 text-xs">
                     {consultationHistory.slice(1).map((hist, idx) => (
-                      <div key={idx} className="p-3 bg-[#FEFCF4] rounded-xl border border-amber-300 text-slate-800 space-y-1">
+                      <div key={idx} className="p-3 bg-[#FEFCF4] rounded-xl border border-amber-300 text-slate-800 space-y-1 shadow-xs">
                         <div className="flex justify-between items-center">
                           <span className="font-bold text-amber-950">{hist.categoryNameKn}</span>
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 font-bold">{hist.verdictTextKn}</span>
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 font-bold border border-amber-300">{hist.verdictTextKn}</span>
                         </div>
-                        <p className="text-[11px] text-slate-600 font-medium">{hist.questionText}</p>
+                        <p className="text-[11px] text-slate-700 font-medium">{hist.questionText}</p>
                       </div>
                     ))}
                   </div>
