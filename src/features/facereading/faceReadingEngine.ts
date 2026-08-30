@@ -13,6 +13,7 @@
  */
 
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
+import { recordAiCallUsage } from "../ai/aiTelemetryService";
 import {
   VEDIC_PANCHA_MAHABHUTA_FACES,
   VEDIC_MAHAPURUSHA_FACIAL_ARCHETYPES,
@@ -229,6 +230,7 @@ Return ONLY a strict JSON object (no markdown wrapping):
       const parts: any[] = [visionPrompt, base64ToGenerativePart(imageDataUrl)];
       const result = await model.generateContent(parts);
       const text = (await result.response).text().trim();
+      void recordAiCallUsage({ feature: "facePalm", model: "gemini-3.5-flash-lite" });
       const cleanJson = text.replace(/```json/gi, "").replace(/```/g, "").trim();
       parsedData = JSON.parse(cleanJson);
     } catch (err) {

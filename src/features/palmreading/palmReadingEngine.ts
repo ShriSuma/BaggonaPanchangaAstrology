@@ -15,6 +15,7 @@
  */
 
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
+import { recordAiCallUsage } from "../ai/aiTelemetryService";
 import {
   VEDIC_HAND_ELEMENTAL_TYPES,
   VEDIC_ANGUSHTHA_THUMB_RULES,
@@ -349,6 +350,7 @@ Return ONLY a strict JSON object (no markdown wrapping):
 
       const result = await model.generateContent(parts);
       const responseText = (await result.response).text().trim();
+      void recordAiCallUsage({ feature: "facePalm", model: "gemini-3.5-flash-lite" });
 
       const cleanJson = responseText.replace(/```json/gi, "").replace(/```/g, "").trim();
       parsedData = JSON.parse(cleanJson);

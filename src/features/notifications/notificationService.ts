@@ -268,6 +268,26 @@ export async function notifyPasswordResetCompleted(data: {
 }
 
 /**
+ * Trigger: When remaining daily AI calls drop to <= 100
+ */
+export async function notifyLowAiQuotaRemaining(data: {
+  remaining: number;
+  totalToday: number;
+  dailyLimit: number;
+  featureBreakdown?: Record<string, number>;
+}): Promise<void> {
+  const timestamp = new Date().toLocaleString("en-IN");
+  const { renderLowAiQuotaAlertEmail } = await import("./emailTemplates");
+  const html = renderLowAiQuotaAlertEmail({ ...data, timestamp });
+  await sendEmailNotification({
+    subject: `[Baggona AI Alert] ⚠️ Low AI Quota: Only ${data.remaining} Requests Remaining Today!`,
+    html,
+    type: "system_alert",
+    data: { ...data, timestamp }
+  });
+}
+
+/**
  * Trigger: When an Ashirvada QR pass is issued
  */
 export async function notifyAshirvadaPassIssued(data: {

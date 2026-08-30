@@ -24,18 +24,24 @@ import {
 } from "../../db/firestoreDb";
 import { db } from "../../db/indexedDb";
 import { hashPassword } from "../auth/authStore";
-import { sendAllFourDailyReports } from "../notifications/notificationService";
+import { sendAllFourDailyReports, notifyLowAiQuotaRemaining } from "../notifications/notificationService";
 import { extendPassValidity } from "../seva/ashirvadaPassService";
 import {
   AVAILABLE_MODULES,
   type AvailableModuleKey,
   type AppModuleConfig
 } from "./walletTypes";
+import {
+  subscribeTodayAiQuota,
+  updateDailyAiQuotaLimit,
+  type DailyAiQuotaDoc,
+  DEFAULT_DAILY_AI_LIMIT
+} from "../ai/aiTelemetryService";
 
 export type AdminTab = "wallets" | "kundlis" | "ashirvada" | "audit" | "mindmap";
 
 /* -------------------------------------------------------------------------- */
-/* SVG RADIAL GAUGE COMPONENT (Visual Telemetry Dial)                         */
+/* 360° COMPLETE CIRCULAR PROGRESS RING COMPONENT (Visual Telemetry Gauge)    */
 /* -------------------------------------------------------------------------- */
 interface RadialGaugeProps {
   value: number; // 0 to 100
@@ -59,61 +65,74 @@ const RadialGauge: React.FC<RadialGaugeProps> = ({
   const clampedValue = Math.min(100, Math.max(0, value));
   const radius = 38;
   const circumference = 2 * Math.PI * radius;
-  // Use a 240-degree arc gauge
-  const arcLength = circumference * (240 / 360);
-  const strokeDashoffset = arcLength - (arcLength * clampedValue) / 100;
+  // Full 360-degree complete circular ring (strokeDashoffset calculates remaining progress)
+  const strokeDashoffset = circumference - (circumference * clampedValue) / 100;
 
   const colorConfig = {
     amber: {
       stroke: "#D97706",
-      glow: "rgba(217, 119, 6, 0.25)",
+      glow: "rgba(217, 119, 6, 0.35)",
       bgStroke: "#FDE68A",
       textColor: "text-amber-950",
-      badgeBg: "bg-amber-100 border-amber-300 text-amber-900"
+      badgeBg: "bg-amber-100 border-amber-300 text-amber-900",
+      fromColor: "#F59E0B",
+      toColor: "#D97706"
     },
     emerald: {
       stroke: "#059669",
-      glow: "rgba(5, 150, 105, 0.25)",
+      glow: "rgba(5, 150, 105, 0.35)",
       bgStroke: "#A7F3D0",
       textColor: "text-emerald-950",
-      badgeBg: "bg-emerald-100 border-emerald-300 text-emerald-900"
+      badgeBg: "bg-emerald-100 border-emerald-300 text-emerald-900",
+      fromColor: "#10B981",
+      toColor: "#047857"
     },
     blue: {
       stroke: "#2563EB",
-      glow: "rgba(37, 99, 235, 0.25)",
+      glow: "rgba(37, 99, 235, 0.35)",
       bgStroke: "#BFDBFE",
       textColor: "text-blue-950",
-      badgeBg: "bg-blue-100 border-blue-300 text-blue-900"
+      badgeBg: "bg-blue-100 border-blue-300 text-blue-900",
+      fromColor: "#3B82F6",
+      toColor: "#1D4ED8"
     },
     purple: {
       stroke: "#7C3AED",
-      glow: "rgba(124, 58, 237, 0.25)",
+      glow: "rgba(124, 58, 237, 0.35)",
       bgStroke: "#DDD6FE",
       textColor: "text-purple-950",
-      badgeBg: "bg-purple-100 border-purple-300 text-purple-900"
+      badgeBg: "bg-purple-100 border-purple-300 text-purple-900",
+      fromColor: "#8B5CF6",
+      toColor: "#6D28D9"
     }
   }[color];
 
   return (
-    <div className="bg-[#FFFDF7] border-2 border-amber-300/80 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-md flex flex-col items-center justify-between text-center relative overflow-hidden group hover:border-amber-500 transition-all">
+    <div className="bg-gradient-to-br from-[#FFFDF7] via-white to-amber-50/50 border-2 border-amber-300/80 rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 shadow-lg flex flex-col items-center justify-between text-center relative overflow-hidden group hover:border-amber-500 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
       {badgeText && (
         <div className="absolute top-2 right-2 sm:top-2.5 sm:right-2.5">
-          <span className={`text-[8px] sm:text-[9px] font-black uppercase px-1.5 sm:px-2 py-0.5 rounded-full border ${colorConfig.badgeBg}`}>
+          <span className={`text-[8px] sm:text-[9px] font-black uppercase px-2 py-0.5 rounded-full border shadow-xs ${colorConfig.badgeBg}`}>
             {badgeText}
           </span>
         </div>
       )}
 
       {/* Header */}
-      <div className="flex items-center gap-1 sm:gap-1.5 mb-1 sm:mb-2">
-        <span className="text-base sm:text-lg">{icon}</span>
+      <div className="flex items-center gap-1.5 mb-1 sm:mb-2">
+        <span className="text-base sm:text-xl drop-shadow-sm group-hover:scale-110 transition-transform">{icon}</span>
         <h4 className="text-[11px] sm:text-xs font-black text-amber-950 truncate max-w-[130px] sm:max-w-none">{title}</h4>
       </div>
 
-      {/* Radial Arc Gauge */}
-      <div className="relative w-20 h-20 sm:w-28 sm:h-28 flex items-center justify-center my-0.5 sm:my-1">
-        <svg className="w-full h-full -rotate-120 transform" viewBox="0 0 100 100">
-          {/* Background Track */}
+      {/* 360 Full Circular Ring Loader */}
+      <div className="relative w-22 h-22 sm:w-28 sm:h-28 flex items-center justify-center my-1">
+        <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 100 100">
+          <defs>
+            <linearGradient id={`grad-ring-${color}`} x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor={colorConfig.fromColor} />
+              <stop offset="100%" stopColor={colorConfig.toColor} />
+            </linearGradient>
+          </defs>
+          {/* Complete 360 Background Track */}
           <circle
             cx="50"
             cy="50"
@@ -121,38 +140,36 @@ const RadialGauge: React.FC<RadialGaugeProps> = ({
             fill="transparent"
             stroke={colorConfig.bgStroke}
             strokeWidth="8"
-            strokeDasharray={`${arcLength} ${circumference}`}
-            strokeLinecap="round"
           />
-          {/* Animated Value Stroke */}
+          {/* Animated 360 Progress Ring */}
           <circle
             cx="50"
             cy="50"
             r={radius}
             fill="transparent"
-            stroke={colorConfig.stroke}
+            stroke={`url(#grad-ring-${color})`}
             strokeWidth="8"
-            strokeDasharray={`${arcLength} ${circumference}`}
+            strokeDasharray={circumference}
             strokeDashoffset={strokeDashoffset}
             strokeLinecap="round"
             className="transition-all duration-1000 ease-out"
-            style={{ filter: `drop-shadow(0 2px 4px ${colorConfig.glow})` }}
+            style={{ filter: `drop-shadow(0 2px 5px ${colorConfig.glow})` }}
           />
         </svg>
 
-        {/* Center Text */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center pt-1 sm:pt-2">
+        {/* Center Content */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
           <span className="text-xs sm:text-base font-mono font-black text-slate-900 tracking-tight">
             {displayValue}
           </span>
-          <span className="text-[8px] sm:text-[10px] font-bold text-slate-500 font-mono">
+          <span className="text-[9px] sm:text-[10px] font-black text-slate-600 font-mono bg-white/80 px-1.5 py-0.2 rounded-full border border-amber-200 shadow-xs">
             {clampedValue}%
           </span>
         </div>
       </div>
 
       {/* Subtitle */}
-      <p className="text-[9px] sm:text-[11px] text-amber-900 font-semibold mt-0.5 sm:mt-1 truncate max-w-full">
+      <p className="text-[9px] sm:text-[11px] text-amber-900 font-semibold mt-1 truncate max-w-full">
         {subtitle}
       </p>
     </div>
@@ -312,6 +329,13 @@ export const SuperAdminDashboard: React.FC = () => {
   // 4 Daily Reports Dispatch State
   const [isDispatchingReports, setIsDispatchingReports] = useState(false);
 
+  // AI Calls Quota & Telemetry State
+  const [aiQuota, setAiQuota] = useState<DailyAiQuotaDoc | null>(null);
+  const [showAiLimitModal, setShowAiLimitModal] = useState(false);
+  const [customAiLimitInput, setCustomAiLimitInput] = useState<string>("1500");
+  const [isUpdatingAiLimit, setIsUpdatingAiLimit] = useState(false);
+  const [isSendingTestAlert, setIsSendingTestAlert] = useState(false);
+
   // Priest Profile Real-Time Subscription
   useEffect(() => {
     if (!viewingPriestProfile) {
@@ -343,12 +367,17 @@ export const SuperAdminDashboard: React.FC = () => {
     const unsubPasses = subscribeAshirvadaPasses((list) => setAshirvadaPasses(list));
     const unsubAudit = subscribeSystemAuditLogs((list) => setAuditLogs(list));
     const unsubPdf = subscribePremiumPdfDownloads((list) => setPremiumDownloads(list));
+    const unsubAi = subscribeTodayAiQuota((q) => {
+      setAiQuota(q);
+      setCustomAiLimitInput(String(q.dailyLimit || DEFAULT_DAILY_AI_LIMIT));
+    });
 
     return () => {
       unsubKundlis();
       unsubPasses();
       unsubAudit();
       unsubPdf();
+      unsubAi();
     };
   }, [subscribeAllWallets]);
 
@@ -358,6 +387,13 @@ export const SuperAdminDashboard: React.FC = () => {
   const totalRechargedInr = allPriestWallets.reduce((acc, w) => acc + (w.totalRechargedInr || 0), 0);
   const totalCoinsSpent = allPriestWallets.reduce((acc, w) => acc + (w.totalCoinsSpent || 0), 0);
 
+  // AI Quota Telemetry Calculations
+  const aiConsumedCalls = aiQuota?.totalCallsToday ?? 0;
+  const aiDailyLimit = aiQuota?.dailyLimit ?? DEFAULT_DAILY_AI_LIMIT;
+  const aiRemainingCalls = aiQuota?.remainingCalls ?? Math.max(0, aiDailyLimit - aiConsumedCalls);
+  const aiConsumptionPct = Math.min(100, Math.round((aiConsumedCalls / Math.max(1, aiDailyLimit)) * 100));
+  const aiRemainingPct = Math.max(0, 100 - aiConsumptionPct);
+
   // Calculated Telemetry Percentages for Visual Gauges
   const circulationTarget = 50000;
   const circulationPct = Math.min(100, Math.round((totalCoinsInCirculation / circulationTarget) * 100));
@@ -366,6 +402,49 @@ export const SuperAdminDashboard: React.FC = () => {
   const passValidityScore = ashirvadaPasses.length > 0
     ? Math.round((ashirvadaPasses.filter((p) => p.daysRemaining > 10).length / ashirvadaPasses.length) * 100)
     : 100;
+
+  const handleUpdateAiLimit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const limitNum = parseInt(customAiLimitInput, 10);
+    if (isNaN(limitNum) || limitNum <= 0) {
+      setFeedback({ type: "error", text: "ದಯವಿಟ್ಟು ಮಾನ್ಯವಾದ ಸಂಖ್ಯೆಯನ್ನು ನಮೂದಿಸಿ (Please enter a valid positive number)." });
+      return;
+    }
+    setIsUpdatingAiLimit(true);
+    try {
+      const ok = await updateDailyAiQuotaLimit(limitNum);
+      if (ok) {
+        setFeedback({ type: "success", text: `ದೈನಂದಿನ AI ಕೋಟಾ ಮಿತಿಯನ್ನು ${limitNum.toLocaleString()} ಕ್ಕೆ ಯಶಸ್ವಿಯಾಗಿ ನವೀಕರಿಸಲಾಗಿದೆ.` });
+        setShowAiLimitModal(false);
+      } else {
+        setFeedback({ type: "error", text: "AI ಕೋಟಾ ನವೀಕರಣ ವಿಫಲವಾಗಿದೆ." });
+      }
+    } catch (err: any) {
+      setFeedback({ type: "error", text: `ದೋಷ: ${err?.message || "Error"}` });
+    } finally {
+      setIsUpdatingAiLimit(false);
+    }
+  };
+
+  const handleSendTestAiAlert = async () => {
+    setIsSendingTestAlert(true);
+    try {
+      await notifyLowAiQuotaRemaining({
+        remaining: aiRemainingCalls,
+        totalToday: aiConsumedCalls,
+        dailyLimit: aiDailyLimit,
+        featureBreakdown: aiQuota?.featureBreakdown
+      });
+      setFeedback({
+        type: "success",
+        text: `ತುರ್ತು AI ಎಚ್ಚರಿಕೆ ಇಮೇಲ್ spshreepandit@gmail.com ಗೆ ಯಶಸ್ವಿಯಾಗಿ ರವಾನೆಯಾಗಿದೆ (Test 100-request alert sent).`
+      });
+    } catch (err: any) {
+      setFeedback({ type: "error", text: `ಅಧಿಸೂಚನೆ ಕಳುಹಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ: ${err?.message || "Error"}` });
+    } finally {
+      setIsSendingTestAlert(false);
+    }
+  };
 
   const handleApprove = async (txId: string) => {
     setProcessingTxId(txId);
@@ -873,7 +952,180 @@ export const SuperAdminDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* 2. VISUAL TELEMETRY METERS & GAUGES GRID */}
+      {/* 2. 🔮 3D LUXURY AI CALLS TELEMETRY & QUOTA SENTINEL */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1E1B4B] via-[#0F172A] to-[#1E1B4B] border-2 border-amber-400/70 p-4 sm:p-6 text-white shadow-2xl">
+        {/* Ambient 3D Glow Orbs */}
+        <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
+        <div className="absolute bottom-0 left-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none -ml-20 -mb-20" />
+
+        <div className="relative z-10 space-y-4">
+          {/* Header Strip */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-indigo-900/80 pb-3">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center text-2xl shadow-lg shadow-amber-500/30 transform hover:rotate-12 transition-transform shrink-0">
+                🔮
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base sm:text-lg font-black text-amber-200 tracking-tight">
+                    ಇಂದಿನ AI ಕರೆಗಳ ಬಳಕೆ & ಕೋಟಾ ಮಾನಿಟರ್
+                  </h3>
+                  <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded-full bg-indigo-900/90 text-amber-300 border border-amber-400/40">
+                    Gemini 3.5 Flash Lite
+                  </span>
+                </div>
+                <p className="text-xs text-slate-300 font-medium">
+                  Real-time Consumption Telemetry • Daily Quota Sentinel • Auto-Alert at ≤100 Requests
+                </p>
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setShowAiLimitModal(true)}
+                className="px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/50 text-amber-300 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all shadow-sm active:scale-95"
+              >
+                <span>⚙️</span>
+                <span>ಕೋಟಾ ಮಿತಿ ({aiDailyLimit.toLocaleString()})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleSendTestAiAlert}
+                disabled={isSendingTestAlert}
+                className="px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 border border-red-400/50 text-red-300 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all shadow-sm disabled:opacity-50 active:scale-95"
+                title="Send test 100-request alert email to spshreepandit@gmail.com"
+              >
+                <span>🚨</span>
+                <span>{isSendingTestAlert ? "ರವಾನಿಸಲಾಗುತ್ತಿದೆ..." : "Alert ಟೆಸ್ಟ್"}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* 3D KPI Metrics Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            {/* Metric 1: Consumed Today */}
+            <div className="bg-slate-900/70 border border-indigo-800/80 rounded-2xl p-3.5 backdrop-blur-md relative overflow-hidden group hover:border-amber-400/60 transition-all">
+              <div className="text-[10px] text-slate-400 uppercase font-black tracking-wider flex items-center justify-between">
+                <span>ಇಂದಿನ ಬಳಕೆ (Consumed)</span>
+                <span className="text-amber-400 font-mono">{aiConsumptionPct}%</span>
+              </div>
+              <div className="text-2xl sm:text-3xl font-black font-mono text-amber-300 mt-1">
+                {aiConsumedCalls.toLocaleString()} <span className="text-xs text-slate-400 font-normal">calls</span>
+              </div>
+              <div className="w-full bg-slate-800 rounded-full h-1.5 mt-2.5 overflow-hidden">
+                <div
+                  className="bg-gradient-to-r from-amber-500 to-amber-300 h-full rounded-full transition-all duration-700"
+                  style={{ width: `${aiConsumptionPct}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Metric 2: Remaining Calls Today */}
+            <div className="bg-slate-900/70 border border-indigo-800/80 rounded-2xl p-3.5 backdrop-blur-md relative overflow-hidden group hover:border-emerald-400/60 transition-all">
+              <div className="text-[10px] text-slate-400 uppercase font-black tracking-wider flex items-center justify-between">
+                <span>ಉಳಿದಿರುವ ಕೋಟಾ (Remaining)</span>
+                <span className="text-emerald-400 font-mono">{aiRemainingPct}%</span>
+              </div>
+              <div className={`text-2xl sm:text-3xl font-black font-mono mt-1 ${
+                aiRemainingCalls <= 100 ? "text-red-400 animate-pulse" : aiRemainingCalls <= 300 ? "text-amber-300" : "text-emerald-300"
+              }`}>
+                {aiRemainingCalls.toLocaleString()} <span className="text-xs text-slate-400 font-normal">left</span>
+              </div>
+              <div className="w-full bg-slate-800 rounded-full h-1.5 mt-2.5 overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-700 ${
+                    aiRemainingCalls <= 100 ? "bg-red-500" : aiRemainingCalls <= 300 ? "bg-amber-400" : "bg-emerald-400"
+                  }`}
+                  style={{ width: `${aiRemainingPct}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Metric 3: Daily Limit Configured */}
+            <div className="bg-slate-900/70 border border-indigo-800/80 rounded-2xl p-3.5 backdrop-blur-md relative overflow-hidden group hover:border-blue-400/60 transition-all">
+              <div className="text-[10px] text-slate-400 uppercase font-black tracking-wider">
+                ದೈನಂದಿನ ಗರಿಷ್ಠ ಮಿತಿ (Daily Max)
+              </div>
+              <div className="text-2xl sm:text-3xl font-black font-mono text-blue-300 mt-1">
+                {aiDailyLimit.toLocaleString()} <span className="text-xs text-slate-400 font-normal">req/day</span>
+              </div>
+              <div className="text-[10px] text-slate-400 mt-2 flex items-center gap-1">
+                <span>🔄 12:00 AM IST ಗೆ ಸ್ವಯಂ ರೀಸೆಟ್</span>
+              </div>
+            </div>
+
+            {/* Metric 4: Sentinel Status */}
+            <div className={`rounded-2xl p-3.5 backdrop-blur-md border relative overflow-hidden flex flex-col justify-between ${
+              aiRemainingCalls <= 100
+                ? "bg-red-950/60 border-red-500 text-red-200"
+                : aiRemainingCalls <= 300
+                ? "bg-amber-950/60 border-amber-500 text-amber-200"
+                : "bg-emerald-950/60 border-emerald-500 text-emerald-200"
+            }`}>
+              <div>
+                <div className="text-[10px] uppercase font-black tracking-wider flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-current animate-ping" />
+                  <span>ಸ್ವಯಂ ಎಚ್ಚರಿಕೆ ಸ್ಥಿತಿ (Sentinel)</span>
+                </div>
+                <div className="text-sm font-black mt-1">
+                  {aiRemainingCalls <= 100
+                    ? `⚠️ ತುರ್ತು: ಕೊನೆಯ ${aiRemainingCalls} ಕರೆಗಳು!`
+                    : aiRemainingCalls <= 300
+                    ? "🟡 ಗಮನಾರ್ಹ ಕೋಟಾ ಬಳಕೆ"
+                    : "🟢 ಕೋಟಾ ಸಮೃದ್ಧ & ಸಕ್ರಿಯ"}
+                </div>
+              </div>
+              <div className="text-[10px] opacity-80 mt-2 truncate">
+                {aiRemainingCalls <= 100
+                  ? "Alert ಇಮೇಲ್ ರವಾನಿಸಲಾಗಿದೆ"
+                  : "≤100 ಕ್ಕೆ ಸ್ವಯಂ Alert ರವಾನೆ"}
+              </div>
+            </div>
+          </div>
+
+          {/* Module-wise Breakdown Strip */}
+          <div className="pt-2 border-t border-indigo-900/60">
+            <div className="text-[11px] font-bold text-slate-400 mb-2 flex items-center gap-1.5">
+              <span>📊 ಇಂದಿನ ಮಾಡ್ಯೂಲ್ ಬಳಕೆ ವಿವರ (Today's Module Breakdown):</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <span className="px-2.5 py-1 rounded-xl bg-slate-900/80 border border-amber-400/30 text-[11px] text-amber-200 flex items-center gap-1.5">
+                <span>🔮 ಪ್ರಶ್ನ ಶಾಸ್ತ್ರ:</span>
+                <strong className="font-mono text-amber-400">{aiQuota?.featureBreakdown?.prashna || 0}</strong>
+              </span>
+              <span className="px-2.5 py-1 rounded-xl bg-slate-900/80 border border-amber-400/30 text-[11px] text-amber-200 flex items-center gap-1.5">
+                <span>📜 ಜಾತಕ ಭವಿಷ್ಯ:</span>
+                <strong className="font-mono text-amber-400">{aiQuota?.featureBreakdown?.bhavishya || 0}</strong>
+              </span>
+              <span className="px-2.5 py-1 rounded-xl bg-slate-900/80 border border-amber-400/30 text-[11px] text-amber-200 flex items-center gap-1.5">
+                <span>🧭 ದಿವ್ಯ ದಿಕ್ಸೂಚಿ:</span>
+                <strong className="font-mono text-amber-400">{aiQuota?.featureBreakdown?.diksuchi || 0}</strong>
+              </span>
+              <span className="px-2.5 py-1 rounded-xl bg-slate-900/80 border border-amber-400/30 text-[11px] text-amber-200 flex items-center gap-1.5">
+                <span>🕉️ ಪೂರ್ವ ಜನ್ಮ:</span>
+                <strong className="font-mono text-amber-400">{aiQuota?.featureBreakdown?.purvaJanma || 0}</strong>
+              </span>
+              <span className="px-2.5 py-1 rounded-xl bg-slate-900/80 border border-amber-400/30 text-[11px] text-amber-200 flex items-center gap-1.5">
+                <span>🌿 ಆಯುರ್ ಸಂಜೀವಿನಿ:</span>
+                <strong className="font-mono text-amber-400">{aiQuota?.featureBreakdown?.ayurSanjeevini || 0}</strong>
+              </span>
+              <span className="px-2.5 py-1 rounded-xl bg-slate-900/80 border border-amber-400/30 text-[11px] text-amber-200 flex items-center gap-1.5">
+                <span>✋ ಹಸ್ತ/ಮುಖ ಮುದ್ರಿಕೆ:</span>
+                <strong className="font-mono text-amber-400">{aiQuota?.featureBreakdown?.facePalm || 0}</strong>
+              </span>
+              <span className="px-2.5 py-1 rounded-xl bg-slate-900/80 border border-amber-400/30 text-[11px] text-amber-200 flex items-center gap-1.5">
+                <span>⚙️ ಇತರೆ / ಸಾಮಾನ್ಯ:</span>
+                <strong className="font-mono text-amber-400">{aiQuota?.featureBreakdown?.other || 0}</strong>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. 360° VISUAL TELEMETRY METERS & GAUGES GRID */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-3.5">
         <RadialGauge
           value={circulationPct}
@@ -896,13 +1148,13 @@ export const SuperAdminDashboard: React.FC = () => {
         />
 
         <RadialGauge
-          value={quotaHealthScore}
-          title="AI ಎಂಜಿನ್ ಸುರಕ್ಷತೆ (AI Health)"
-          subtitle="Gemini 2.5 Flash Lite"
-          displayValue="99.9%"
-          color="blue"
+          value={aiConsumptionPct}
+          title="ಇಂದಿನ AI ಬಳಕೆ (AI Usage)"
+          subtitle={`${aiConsumedCalls.toLocaleString()} / ${aiDailyLimit.toLocaleString()} Calls`}
+          displayValue={`${aiRemainingCalls.toLocaleString()} Left`}
+          color={aiRemainingCalls <= 100 ? "purple" : aiRemainingCalls <= 300 ? "amber" : "blue"}
           icon="⚡"
-          badgeText="Optimal"
+          badgeText={aiRemainingCalls <= 100 ? "Low Quota" : "Active Telemetry"}
         />
 
         <RadialGauge
@@ -2925,6 +3177,90 @@ export const SuperAdminDashboard: React.FC = () => {
           </div>
         );
       })()}
+
+      {/* 4. MODAL: ADJUST DAILY AI QUOTA LIMIT */}
+      {showAiLimitModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
+          <div className="bg-gradient-to-br from-[#FFFDF7] via-white to-amber-50 border-2 border-amber-400 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-amber-200 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">⚙️</span>
+                <h3 className="text-base font-black text-amber-950">
+                  ದೈನಂದಿನ AI ಕೋಟಾ ಮಿತಿ ಹೊಂದಿಸಿ (Daily AI Limit)
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAiLimitModal(false)}
+                className="text-slate-400 hover:text-slate-800 text-lg font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-amber-900 font-medium leading-relaxed">
+              Super Admin ಗಾಗಿ ಪ್ರತಿದಿನ ಲಭ್ಯವಿರುವ ಗರಿಷ್ಠ Gemini AI ಕರೆಗಳ ಮಿತಿಯನ್ನು ಇಲ್ಲಿ ನಿಗದಿಪಡಿಸಿ. ಪ್ರತಿದಿನ ಉಳಿದಿರುವ ಕೋಟಾ 100 ಅಥವಾ ಅದಕ್ಕಿಂತ ಕಡಿಮೆಯಾದಾಗ <code>spshreepandit@gmail.com</code> ಗೆ ಸ್ವಯಂ ಎಚ್ಚರಿಕೆ ಇಮೇಲ್ ರವಾನೆಯಾಗುತ್ತದೆ.
+            </p>
+
+            <form onSubmit={handleUpdateAiLimit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-black text-amber-950 mb-1">
+                  ದೈನಂದಿನ ಗರಿಷ್ಠ ಕರೆಗಳು (Daily Max AI Requests):
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    min="100"
+                    max="50000"
+                    step="100"
+                    value={customAiLimitInput}
+                    onChange={(e) => setCustomAiLimitInput(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-white border-2 border-amber-300 rounded-xl text-sm font-mono font-black text-slate-900 focus:outline-none focus:border-amber-500 shadow-inner"
+                    placeholder="1500"
+                    required
+                  />
+                  <span className="absolute right-3 top-2.5 text-xs text-slate-500 font-bold">
+                    req / day
+                  </span>
+                </div>
+              </div>
+
+              {/* Quick Presets */}
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-amber-800 font-black uppercase">ತ್ವರಿತ ಆಯ್ಕೆಗಳು:</span>
+                {[1500, 2500, 5000, 10000].map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => setCustomAiLimitInput(String(preset))}
+                    className="px-2.5 py-1 text-[11px] font-bold rounded-lg border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-950 font-mono transition shadow-xs"
+                  >
+                    {preset.toLocaleString()}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-amber-200">
+                <button
+                  type="button"
+                  onClick={() => setShowAiLimitModal(false)}
+                  className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold rounded-xl transition"
+                >
+                  ರದ್ದುಮಾಡಿ (Cancel)
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUpdatingAiLimit}
+                  className="px-5 py-2 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-md transition disabled:opacity-50 flex items-center gap-1.5"
+                >
+                  <span>💾</span>
+                  <span>{isUpdatingAiLimit ? "ನವೀಕರಿಸಲಾಗುತ್ತಿದೆ..." : "ಉಳಿಸಿ (Save Limit)"}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

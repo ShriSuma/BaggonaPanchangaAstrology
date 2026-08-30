@@ -843,4 +843,76 @@ export function renderMfaOtpEmail(data: {
 `;
 }
 
+export function renderLowAiQuotaAlertEmail(data: {
+  remaining: number;
+  totalToday: number;
+  dailyLimit: number;
+  timestamp: string;
+  featureBreakdown?: Record<string, number>;
+}): string {
+  const featuresHtml = data.featureBreakdown
+    ? Object.entries(data.featureBreakdown)
+        .map(([k, v]) => `<tr><td style="padding: 4px 8px; color: #cbd5e1;">${k}</td><td style="padding: 4px 8px; color: #fbbf24; font-weight: bold; text-align: right;">${v} calls</td></tr>`)
+        .join("")
+    : "";
+
+  return `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="${BASE_STYLES}">
+  <div style="${CARD_STYLES}">
+    <div style="${HEADER_STYLES}">
+      <div style="font-size: 28px; font-weight: bold; margin-bottom: 4px;">⚠️ AI ಕೋಟಾ ಎಚ್ಚರಿಕೆ (Low AI Quota Alert)</div>
+      <div style="font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px;">Last ${data.remaining} AI Requests Remaining Today</div>
+    </div>
+    
+    <div style="padding: 24px; line-height: 1.6;">
+      <p style="font-size: 16px; color: #f87171; margin-top: 0;"><strong>ತುರ್ತು ಸೂಚನೆ (Urgent Notice) - Super Admin:</strong></p>
+      <p style="color: #cbd5e1; font-size: 14px;">
+        ಇಂದಿನ ದಿನದ Gemini AI ಕೋಟಾದಲ್ಲಿ ಕೇವಲ <strong>${data.remaining}</strong> ಕರೆಗಳು ಮಾತ್ರ ಬಾಕಿ ಉಳಿದಿವೆ. ಬಳಕೆದಾರರು ಅಥವಾ ಪುರೋಹಿತರು AI ಪ್ರಶ್ನೆಗಳನ್ನು ಮುಂದುವರಿಸುವ ಮುನ್ನ ದಯವಿಟ್ಟು ಗಮನಿಸಿ.
+      </p>
+      
+      <div style="background: rgba(239, 68, 68, 0.15); border: 2px solid #ef4444; border-radius: 12px; padding: 18px; margin: 20px 0;">
+        <table style="width: 100%; font-size: 14px; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 6px 0; color: #94a3b8;">🎯 ಉಳಿದಿರುವ AI ಕರೆಗಳು:</td>
+            <td style="padding: 6px 0; color: #ef4444; font-weight: 900; font-size: 18px; text-align: right;">${data.remaining} / ${data.dailyLimit}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #94a3b8;">⚡ ಇಂದಿನ ಒಟ್ಟು ಬಳಕೆ:</td>
+            <td style="padding: 6px 0; color: #fef08a; font-weight: bold; text-align: right;">${data.totalToday} Calls</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #94a3b8;">🕒 ಸಮಯ (Timestamp):</td>
+            <td style="padding: 6px 0; color: #cbd5e1; text-align: right;">${data.timestamp}</td>
+          </tr>
+        </table>
+      </div>
+
+      ${featuresHtml ? `
+      <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 10px; padding: 14px; margin: 16px 0;">
+        <div style="font-size: 12px; color: #94a3b8; font-weight: bold; text-transform: uppercase; margin-bottom: 8px;">ಇಂದಿನ ಮಾಡ್ಯೂಲ್ ವಿವರ (Feature Breakdown)</div>
+        <table style="width: 100%; font-size: 13px;">${featuresHtml}</table>
+      </div>` : ""}
+      
+      <div style="background: rgba(15, 23, 42, 0.9); border: 1px solid #f59e0b; border-radius: 10px; padding: 14px; margin: 16px 0; font-size: 13px; color: #fef08a;">
+        <strong>💡 ಮುಂದಿನ ಕ್ರಮಗಳು (Recommended Actions):</strong>
+        <ul style="margin: 6px 0 0 0; padding-left: 20px; color: #cbd5e1;">
+          <li>Super Admin ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ನಲ್ಲಿ API Key ನವೀಕರಿಸಿ ಅಥವಾ ಹೆಚ್ಚುವರಿ ಕೋಟಾ ಸಕ್ರಿಯಗೊಳಿಸಿ.</li>
+          <li>ಅಗತ್ಯವಿದ್ದರೆ ಹೆಚ್ಚಿನ ಪುರೋಹಿತರ ಪ್ರಶ್ನೆಗಳಿಗೆ ಸಂಯಮ ವಹಿಸಲು ತಿಳಿಸಿ.</li>
+        </ul>
+      </div>
+    </div>
+    
+    <div style="${FOOTER_STYLES}">
+      Baggona Panchanga AI Quota Sentinel • Gokarna Heritage Automation
+    </div>
+  </div>
+</body>
+</html>
+`;
+}
+
+
 

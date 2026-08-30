@@ -1,4 +1,16 @@
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
+import { recordAiCallUsage } from "../features/ai/aiTelemetryService";
+
+function inferFeatureFromContext(question: string, contextData: string): "prashna" | "bhavishya" | "diksuchi" | "purvaJanma" | "ayurSanjeevini" | "maranottara" | "other" {
+  const combined = (question + " " + contextData).toLowerCase();
+  if (combined.includes("prashna") || combined.includes("ಸಂಖ್ಯಾಶಾಸ್ತ್ರ") || combined.includes("ಪ್ರಶ್ನ") || combined.includes("question")) return "prashna";
+  if (combined.includes("diksuchi") || combined.includes("ದಿಕ್ಸೂಚಿ")) return "diksuchi";
+  if (combined.includes("purva") || combined.includes("ಪೂರ್ವ ಜನ್ಮ") || combined.includes("hindina")) return "purvaJanma";
+  if (combined.includes("ayur") || combined.includes("ಆಯುರ್") || combined.includes("health")) return "ayurSanjeevini";
+  if (combined.includes("maranottara") || combined.includes("ಮರಣೋತ್ತರ")) return "maranottara";
+  if (combined.includes("bhavishya") || combined.includes("ಜಾತಕ") || combined.includes("kundli")) return "bhavishya";
+  return "other";
+}
 
 export type AskGeminiOptions = {
   /**
@@ -80,7 +92,13 @@ Use the native script of the requested language (e.g., Kannada script for Kannad
         const result = await model.generateContent(prompt);
         const response = await result.response;
         const text = response.text().trim();
-        if (text) return text;
+        if (text) {
+          void recordAiCallUsage({
+            feature: inferFeatureFromContext(question, contextData),
+            model: "gemini-3.5-flash-lite"
+          });
+          return text;
+        }
         throw new Error("Empty response from AI model");
       } catch (error: any) {
         retries--;
@@ -140,6 +158,11 @@ export async function askGeminiBatch(
         const response = await result.response;
         let rawText = response.text().trim();
         
+        void recordAiCallUsage({
+          feature: "bhavishya",
+          model: "gemini-3.5-flash-lite"
+        });
+
         // Robustly extract JSON block
         const jsonMatch = rawText.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
