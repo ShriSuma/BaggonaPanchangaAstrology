@@ -165,4 +165,35 @@ describe("Super Admin & Intrusion Security Engine", () => {
     expect(expiresAt - Date.now()).toBeLessThanOrEqual(3 * 60 * 1000 + 100);
     expect(expiresAt - Date.now()).toBeGreaterThan(2 * 60 * 1000);
   });
+
+  it("deletes a priest account, revokes wallet/token and blocks portal access", async () => {
+    const { deletePriestAccount, isPriestAccountActive, getOrCreatePriestWallet, syncUserProfile } = await import("../db/firestoreDb");
+    const testPriestId = "test_priest_to_delete";
+    const testPriestName = "ಪರೀಕ್ಷಾ ಪುರೋಹಿತರು";
+
+    // 1. Create priest in IndexedDB & Firestore
+    await db.users.put({
+      id: testPriestId,
+      username: testPriestId,
+      passwordHash: await hashPassword("temp123"),
+      allowedModules: ["panchanga", "sankhyashastra"],
+      createdAt: new Date().toISOString()
+    });
+
+    // 2. Verify account is initially active
+    const isActiveBefore = await isPriestAccountActive(testPriestId);
+    expect(isActiveBefore).toBe(true);
+
+    // 3. Delete priest account via Super Admin deletion function
+    const deleted = await deletePriestAccount(testPriestId);
+    expect(deleted).toBe(true);
+
+    // 4. Verify account is now revoked and inactive
+    const isActiveAfter = await isPriestAccountActive(testPriestId);
+    expect(isActiveAfter).toBe(false);
+
+    // 5. Verify local DB user was deleted
+    const localUser = await db.users.where("username").equals(testPriestId).first();
+    expect(localUser).toBeUndefined();
+  });
 });

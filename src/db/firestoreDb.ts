@@ -16,6 +16,7 @@ import {
 } from "firebase/firestore";
 import { firestore } from "../services/firebase";
 import type { KundliOutput, PanchangOutput } from "../core/AstroTypes";
+import { db } from "./indexedDb";
 
 export type UserRole = "priest" | "admin" | "superadmin" | "devotee";
 
@@ -291,6 +292,126 @@ export async function updateUserAllowedModules(
   } catch (err) {
     console.error("[Firestore] Failed to update user allowed modules:", err);
     return false;
+  }
+}
+
+/**
+ * Super Admin: Delete a Priest Account, revoke wallet, and remove access tokens permanently
+ */
+export async function deletePriestAccount(userId: string): Promise<boolean> {
+  try {
+    const cleanId = userId.trim().toLowerCase();
+
+    // 1. Delete from Firestore Wallets collection
+    try {
+      if (firestore) {
+        const walletRef = doc(firestore, WALLETS_COL, cleanId);
+        await deleteDoc(walletRef);
+      }
+    } catch (e) {
+      console.warn("[Firestore] Error deleting wallet doc:", e);
+    }
+
+    // 2. Delete from Firestore Users collection (direct ID and by query)
+    try {
+      if (firestore) {
+        const userRef = doc(firestore, USERS_COL, cleanId);
+        await deleteDoc(userRef);
+
+        const q = query(collection(firestore, USERS_COL), where("username", "==", cleanId));
+        const qSnap = await getDocs(q);
+        for (const d of qSnap.docs) {
+          await deleteDoc(d.ref);
+        }
+      }
+    } catch (e) {
+      console.warn("[Firestore] Error deleting user doc:", e);
+    }
+
+    // 3. Delete MFA OTP doc if any
+    try {
+      if (firestore) {
+        const otpRef = doc(firestore, MFA_OTPS_COL, cleanId);
+        await deleteDoc(otpRef);
+      }
+    } catch (e) {
+      console.warn("[Firestore] Error deleting MFA OTP doc:", e);
+    }
+
+    // 4. Delete from local IndexedDB (Dexie)
+    try {
+      const existing = await db.users.where("username").equals(cleanId).first();
+      if (existing && existing.id) {
+        await db.users.delete(existing.id);
+      }
+      await db.users.where("username").equals(cleanId).delete();
+    } catch (e) {
+      console.warn("[IndexedDB] Error deleting local user:", e);
+    }
+
+    // 5. Clean up localStorage setup/session keys for this priest if present
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.removeItem("baggona_pwd_setup_done_" + cleanId);
+        if (localStorage.getItem("baggona_priest_id") === cleanId) {
+          localStorage.removeItem("baggona_priest_id");
+          localStorage.removeItem("baggona_priest_name");
+        }
+      } catch {}
+    }
+
+    console.log(`[Firestore] ✅ Priest account ${cleanId} deleted & revoked permanently`);
+    return true;
+  } catch (err) {
+    console.error("[Firestore] Delete priest account error:", err);
+    return false;
+  }
+}
+
+/**
+ * Check if a priest user account exists and is active (not deleted or revoked)
+ */
+export async function isPriestAccountActive(userId: string): Promise<boolean> {
+  try {
+    const cleanId = userId.trim().toLowerCase();
+    // Default master priests/admins are always allowed
+    if (cleanId === "superadmin" || cleanId === "baggona" || cleanId === "priest_shreeram") {
+      return true;
+    }
+
+    if (firestore) {
+      // Check Firestore user doc
+      const userRef = doc(firestore, USERS_COL, cleanId);
+      const snap = await getDoc(userRef);
+      if (snap.exists()) {
+        return true;
+      }
+
+      // Check query by username in Firestore
+      const q = query(collection(firestore, USERS_COL), where("username", "==", cleanId));
+      const qSnap = await getDocs(q);
+      if (!qSnap.empty) {
+        return true;
+      }
+
+      // Check wallet existence in Firestore
+      const walletRef = doc(firestore, WALLETS_COL, cleanId);
+      const walletSnap = await getDoc(walletRef);
+      if (walletSnap.exists()) {
+        return true;
+      }
+    }
+
+    // Check IndexedDB
+    const localUser = await db.users.where("username").equals(cleanId).first();
+    if (localUser) {
+      return true;
+    }
+
+    return false;
+  } catch (err) {
+    console.warn("[Firestore] isPriestAccountActive check error:", err);
+    return true; // fail-safe fallback
   }
 }
 

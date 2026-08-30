@@ -15,7 +15,8 @@ import {
   getOrCreatePriestWallet,
   syncUserProfile,
   cleanupDuplicateKundlis,
-  updateUserAllowedModules
+  updateUserAllowedModules,
+  deletePriestAccount
 } from "../../db/firestoreDb";
 import { db } from "../../db/indexedDb";
 import { hashPassword } from "../auth/authStore";
@@ -285,6 +286,10 @@ export const SuperAdminDashboard: React.FC = () => {
   const [editingPriestModules, setEditingPriestModules] = useState<PriestWalletDoc | null>(null);
   const [activeModuleSelection, setActiveModuleSelection] = useState<AvailableModuleKey[]>([]);
   const [isSavingModules, setIsSavingModules] = useState(false);
+
+  // Priest Deletion & Token Revocation Modal State
+  const [deletingPriest, setDeletingPriest] = useState<PriestWalletDoc | null>(null);
+  const [isDeletingPriest, setIsDeletingPriest] = useState(false);
 
   // Admin Password Management Modal
   const [showAdminPasswordModal, setShowAdminPasswordModal] = useState(false);
@@ -1398,6 +1403,17 @@ export const SuperAdminDashboard: React.FC = () => {
                             >
                               ⚡ ನಾಣ್ಯ ಹೊಂದಾಣಿಕೆ
                             </button>
+
+                            {/* Delete Priest & Revoke Token Button */}
+                            <button
+                              type="button"
+                              onClick={() => setDeletingPriest(priest)}
+                              className="py-1.5 px-2 bg-red-100 hover:bg-red-200 text-red-950 border border-red-300 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1"
+                              title="ಪುರೋಹಿತರ ಖಾತೆ & ಪ್ರವೇಶ ಲಿಂಕ್ ರದ್ದುಗೊಳಿಸಿ/ಅಳಿಸಿ (Delete Priest Account & Revoke Link)"
+                            >
+                              <span>🗑️</span>
+                              <span>ಅಳಿಸಿ</span>
+                            </button>
                           </td>
                         </tr>
                       );
@@ -2187,6 +2203,82 @@ export const SuperAdminDashboard: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* 13. PRIEST DELETION & TOKEN REVOCATION MODAL */}
+      {deletingPriest && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#FFFDF7] border-2 border-red-500 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4 animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center gap-3 border-b border-red-200 pb-3">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-600 text-xl font-bold border border-red-300">
+                ⚠️
+              </div>
+              <div>
+                <h3 className="text-sm font-black text-red-950">
+                  ಪುರೋಹಿತರ ಖಾತೆ ರದ್ದು & ಅಳಿಸುವಿಕೆ
+                </h3>
+                <p className="text-[11px] text-red-800 font-semibold">
+                  Delete Priest Account & Revoke Token
+                </p>
+              </div>
+            </div>
+
+            <div className="p-3 bg-red-50 border border-red-200 rounded-xl space-y-2 text-xs text-red-900 font-medium">
+              <p>
+                ನೀವು ಖಚಿತವಾಗಿ <strong>{deletingPriest.priestName}</strong> (User ID: <code className="font-mono font-bold bg-white px-1.5 py-0.5 rounded border border-red-300">{deletingPriest.userId}</code>) ಅವರ ಖಾತೆಯನ್ನು ಅಳಿಸಲು ಬಯಸುವಿರಾ?
+              </p>
+              <ul className="list-disc pl-4 text-[11px] space-y-1 text-red-800">
+                <li>ಅವರ ವಾಲೆಟ್ ಮತ್ತು ಬ್ಯಾಲೆನ್ಸ್ ಸಂಪೂರ್ಣವಾಗಿ ಅಳಿಸಲ್ಪಡುತ್ತದೆ.</li>
+                <li>ಅವರಿಗೆ ನೀಡಲಾಗಿದ್ದ ಎಲ್ಲಾ ಏಕೀಕೃತ ಪ್ರವೇಶ ಲಿಂಕ್‌ಗಳು ತಕ್ಷಣವೇ ರದ್ದುಗೊಳ್ಳುತ್ತವೆ.</li>
+                <li>ಅವರು ಈ ಟೋಕನ್ ಅಥವಾ ಖಾತೆಯ ಮೂಲಕ ಮರಳಿ ಲಾಗಿನ್ ಆಗಲು ಸಾಧ್ಯವಿಲ್ಲ.</li>
+              </ul>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                disabled={isDeletingPriest}
+                onClick={() => setDeletingPriest(null)}
+                className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs rounded-xl transition"
+              >
+                ರದ್ದುಮಾಡಿ (Cancel)
+              </button>
+              <button
+                type="button"
+                disabled={isDeletingPriest}
+                onClick={async () => {
+                  setIsDeletingPriest(true);
+                  try {
+                    const ok = await deletePriestAccount(deletingPriest.userId);
+                    if (ok) {
+                      setFeedback({
+                        type: "success",
+                        text: `ಪುರೋಹಿತರ (${deletingPriest.priestName}) ಖಾತೆ ಮತ್ತು ಪ್ರವೇಶ ಲಿಂಕ್ ಯಶಸ್ವಿಯಾಗಿ ಅಳಿಸಲ್ಪಟ್ಟಿದೆ ಮತ್ತು ರದ್ದುಗೊಂಡಿದೆ.`
+                      });
+                      setDeletingPriest(null);
+                    } else {
+                      setFeedback({
+                        type: "error",
+                        text: "ಖಾತೆಯನ್ನು ಅಳಿಸುವಾಗ ದೋಷ ಸಂಭವಿಸಿದೆ. ದಯವಿಟ್ಟು ಪುನಃ ಪ್ರಯತ್ನಿಸಿ."
+                      });
+                    }
+                  } catch (err: any) {
+                    setFeedback({
+                      type: "error",
+                      text: `ಅಳಿಸುವಿಕೆ ದೋಷ: ${err?.message || "Error"}`
+                    });
+                  } finally {
+                    setIsDeletingPriest(false);
+                  }
+                }}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-black text-xs rounded-xl shadow-md transition flex items-center gap-1.5 disabled:opacity-50"
+              >
+                <span>🗑️</span>
+                <span>{isDeletingPriest ? "ಅಳಿಸಲಾಗುತ್ತಿದೆ..." : "ಹೌದು, ಖಾತೆ ಅಳಿಸಿ (Delete & Revoke)"}</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -20,7 +20,7 @@ import {
 import { SpeechRecognitionSession } from "../../utils/speechRecognitionHelper";
 import SouthIndianChart from "../../components/kundli/SouthIndianChart";
 import TraditionalSouthPatrika from "../../components/kundli/TraditionalSouthPatrika";
-import { saveKundliToFirestore, updateUserPassword, logPremiumPdfDownload } from "../../db/firestoreDb";
+import { saveKundliToFirestore, updateUserPassword, logPremiumPdfDownload, isPriestAccountActive } from "../../db/firestoreDb";
 import { hashPassword } from "../auth/authStore";
 import { notifyPasswordResetCompleted, notifySystemFailureAlert, notifyPremiumPdfDownloaded } from "../notifications/notificationService";
 import { calculateTraditionalBaggona } from "../../core/TraditionalBaggonaEngine";
@@ -263,6 +263,7 @@ export const PriestMobilePortal: React.FC = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordMsg, setPasswordMsg] = useState<string | null>(null);
+  const [isAccessRevoked, setIsAccessRevoked] = useState(false);
 
   // Form State (Janana Kundli) - Restored from localStorage if available
   const [devoteeName, setDevoteeName] = useState(() => savedSession?.devoteeName || "");
@@ -428,7 +429,19 @@ export const PriestMobilePortal: React.FC = () => {
       }
     }
 
-    void initWallet(resolvedUser, resolvedName);
+    const checkActive = async () => {
+      const active = await isPriestAccountActive(resolvedUser);
+      if (!active) {
+        setIsAccessRevoked(true);
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("baggona_priest_id");
+          localStorage.removeItem("baggona_priest_name");
+        }
+        return;
+      }
+      void initWallet(resolvedUser, resolvedName);
+    };
+    void checkActive();
 
     // 5-Second Welcome Toast Timer
     const timer = setTimeout(() => {
@@ -1295,6 +1308,38 @@ export const PriestMobilePortal: React.FC = () => {
       setPasswordMsg("ದೋಷ ಉಂಟಾಗಿದೆ. ದಯವಿಟ್ಟು ಮರುಪ್ರಯತ್ನಿಸಿ.");
     }
   };
+
+  if (isAccessRevoked) {
+    return (
+      <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center p-4">
+        <div className="bg-white border-2 border-red-400 rounded-3xl p-6 sm:p-8 max-w-md w-full text-center space-y-4 shadow-2xl animate-in fade-in zoom-in duration-200">
+          <div className="w-16 h-16 rounded-full bg-red-100 border border-red-300 mx-auto flex items-center justify-center text-3xl">
+            🚫
+          </div>
+          <h2 className="text-lg font-black text-red-950">
+            ಪ್ರವೇಶ ರದ್ದುಗೊಂಡಿದೆ (Access Revoked)
+          </h2>
+          <p className="text-xs text-red-900 leading-relaxed font-semibold">
+            ಈ ಪುರೋಹಿತರ ಪ್ರವೇಶ ಲಿಂಕ್ ಅಥವಾ ಖಾತೆಯನ್ನು ಮುಖ್ಯ ನಿರ್ವಾಹಕರು (Super Admin) ರದ್ದುಗೊಳಿಸಿದ್ದಾರೆ / ಅಳಿಸಿದ್ದಾರೆ. ಈ ಲಿಂಕ್ ಇನ್ನು ಮುಂದೆ ಮಾನ್ಯವಾಗಿರುವುದಿಲ್ಲ.
+          </p>
+          <p className="text-[11px] text-slate-500 font-medium">
+            ಹೆಚ್ಚಿನ ಮಾಹಿತಿಗಾಗಿ ದಯವಿಟ್ಟು ಮುಖ್ಯ ನಿರ್ವಾಹಕರನ್ನು (Super Admin: 9972339362) ಸಂಪರ್ಕಿಸಿ.
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              if (typeof window !== "undefined") {
+                window.location.href = window.location.origin;
+              }
+            }}
+            className="w-full py-3 bg-gradient-to-r from-amber-600 to-amber-500 text-slate-950 font-black rounded-xl text-xs shadow-md active:scale-95 transition"
+          >
+            🏠 ಮುಖ್ಯ ಪುಟಕ್ಕೆ ಹಿಂತಿರುಗಿ (Go to Home)
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
