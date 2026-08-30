@@ -26,6 +26,8 @@ export interface UserProfileDoc {
   name: string;
   role: UserRole;
   passwordHash?: string;
+  firstTimeSetupCompleted?: boolean;
+  mustResetPassword?: boolean;
   allowedModules?: string[]; // ["panchanga", "sankhyashastra", "diksuchi", "purva_janma"]
   phone?: string;
   email?: string;
@@ -668,6 +670,50 @@ export async function updateUserPassword(
     return false;
   } catch (err) {
     console.warn("[Firestore] updateUserPassword error:", err);
+    return false;
+  }
+}
+
+/**
+ * Super Admin & Priest Authentication:
+ * Checks if a Priest has already completed their first-time password setup/reset.
+ * Verifies localStorage cache first, then Firestore user profile, then local IndexedDB.
+ */
+export async function isPriestFirstTimeSetupDone(userId: string): Promise<boolean> {
+  try {
+    const cleanId = userId.trim().toLowerCase();
+
+    // 1. Check client-side local cache
+    if (typeof window !== "undefined") {
+      const localFlag = localStorage.getItem("baggona_pwd_setup_done_" + cleanId);
+      if (localFlag === "true") {
+        return true;
+      }
+    }
+
+    // 2. Check Firestore User Profile
+    const profile = await getUserProfile(cleanId);
+    if (profile) {
+      if (profile.firstTimeSetupCompleted === true || (profile.passwordHash && !profile.mustResetPassword)) {
+        if (typeof window !== "undefined") {
+          localStorage.setItem("baggona_pwd_setup_done_" + cleanId, "true");
+        }
+        return true;
+      }
+    }
+
+    // 3. Check IndexedDB Users table
+    const localUser = await db.users.where("username").equals(cleanId).first();
+    if (localUser && localUser.passwordHash) {
+      if (typeof window !== "undefined") {
+        localStorage.setItem("baggona_pwd_setup_done_" + cleanId, "true");
+      }
+      return true;
+    }
+
+    return false;
+  } catch (err) {
+    console.warn("[Firestore] isPriestFirstTimeSetupDone check error:", err);
     return false;
   }
 }

@@ -196,4 +196,26 @@ describe("Super Admin & Intrusion Security Engine", () => {
     const localUser = await db.users.where("username").equals(testPriestId).first();
     expect(localUser).toBeUndefined();
   });
+
+  it("verifies isPriestFirstTimeSetupDone returns true for configured priests and prevents repeated popups", async () => {
+    const { isPriestFirstTimeSetupDone, updateUserPassword } = await import("../db/firestoreDb");
+    const priestUser = "priest_subrahmanya_test";
+
+    // 1. Initial user has not configured password
+    const notDoneInitially = await isPriestFirstTimeSetupDone(priestUser);
+    expect(notDoneInitially).toBe(false);
+
+    // 2. Priest sets their password
+    await db.users.put({
+      id: priestUser,
+      username: priestUser,
+      passwordHash: await hashPassword("Subramanya@2026"),
+      createdAt: new Date().toISOString()
+    });
+    await updateUserPassword(priestUser, await hashPassword("Subramanya@2026"));
+
+    // 3. Next time priest opens URL (even with firstTime=true), isPriestFirstTimeSetupDone must be true
+    const isDoneNow = await isPriestFirstTimeSetupDone(priestUser);
+    expect(isDoneNow).toBe(true);
+  });
 });

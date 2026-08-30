@@ -20,7 +20,7 @@ import {
 import { SpeechRecognitionSession } from "../../utils/speechRecognitionHelper";
 import SouthIndianChart from "../../components/kundli/SouthIndianChart";
 import TraditionalSouthPatrika from "../../components/kundli/TraditionalSouthPatrika";
-import { saveKundliToFirestore, updateUserPassword, logPremiumPdfDownload, isPriestAccountActive } from "../../db/firestoreDb";
+import { saveKundliToFirestore, updateUserPassword, logPremiumPdfDownload, isPriestAccountActive, isPriestFirstTimeSetupDone } from "../../db/firestoreDb";
 import { hashPassword } from "../auth/authStore";
 import { notifyPasswordResetCompleted, notifySystemFailureAlert, notifyPremiumPdfDownloaded } from "../notifications/notificationService";
 import { calculateTraditionalBaggona } from "../../core/TraditionalBaggonaEngine";
@@ -421,13 +421,9 @@ export const PriestMobilePortal: React.FC = () => {
         resolvedUser = localStorage.getItem("baggona_priest_id")!;
       }
 
-      if (params.get("reset") === "true" || params.get("firstTime") === "true") {
-        const isDone = localStorage.getItem("baggona_pwd_setup_done_" + resolvedUser) === "true";
-        if (!isDone) {
-          setShowPasswordSetup(true);
-        }
-      }
     }
+
+    const isResetOrFirstTime = typeof window !== "undefined" && (new URLSearchParams(window.location.search).get("reset") === "true" || new URLSearchParams(window.location.search).get("firstTime") === "true");
 
     const checkActive = async () => {
       const active = await isPriestAccountActive(resolvedUser);
@@ -440,6 +436,25 @@ export const PriestMobilePortal: React.FC = () => {
         return;
       }
       void initWallet(resolvedUser, resolvedName);
+
+      // Strict DB Validation: Check if this user has already completed password setup/reset
+      if (isResetOrFirstTime) {
+        const setupDone = await isPriestFirstTimeSetupDone(resolvedUser);
+        if (!setupDone) {
+          setShowPasswordSetup(true);
+        } else {
+          // Setup was already completed earlier in DB: do NOT show popup, strip query params cleanly
+          if (typeof window !== "undefined") {
+            try {
+              const url = new URL(window.location.href);
+              url.searchParams.delete("reset");
+              url.searchParams.delete("firstTime");
+              const newSearch = url.searchParams.toString();
+              window.history.replaceState({}, document.title, url.pathname + (newSearch ? `?${newSearch}` : "") + url.hash);
+            } catch {}
+          }
+        }
+      }
     };
     void checkActive();
 

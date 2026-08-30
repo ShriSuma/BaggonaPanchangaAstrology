@@ -1444,7 +1444,7 @@ export const SuperAdminDashboard: React.FC = () => {
                                 onClick={() => {
                                   const origin = typeof window !== "undefined" ? window.location.origin : "https://baggona-panchanga.firebaseapp.com";
                                   const modulesQuery = modules.length > 0 ? modules.join(",") : "panchanga";
-                                  const unifiedUrl = `${origin}/?portal=priest&user=${encodeURIComponent(priest.userId)}&name=${encodeURIComponent(priest.priestName)}&modules=${encodeURIComponent(modulesQuery)}&firstTime=true`;
+                                  const unifiedUrl = `${origin}/?portal=priest&user=${encodeURIComponent(priest.userId)}&name=${encodeURIComponent(priest.priestName)}&modules=${encodeURIComponent(modulesQuery)}`;
                                   const modulesList = modules
                                     .map((mKey) => {
                                       const cfg = AVAILABLE_MODULES.find((m) => m.key === mKey);
@@ -1452,7 +1452,7 @@ export const SuperAdminDashboard: React.FC = () => {
                                     })
                                     .join("\n");
 
-                                  const msg = `ನಮಸ್ಕಾರ ${priest.priestName} ಅವರೇ,\n\nನಿಮಗೆ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಪೋರ್ಟಲ್‌ನ ಪ್ರವೇಶ ಕಳುಹಿಸಲಾಗಿದೆ.\n\n👤 ಯೂಸರ್ ID: ${priest.userId}\n🛡️ ಸಕ್ರಿಯ ಸೌಲಭ್ಯಗಳು:\n${modulesList}\n\n🔗 ನಿಮ್ಮ ಏಕೀಕೃತ ಪ್ರವೇಶ ಲಿಂಕ್ (Single Access URL):\n${unifiedUrl}\n\nದಯವಿಟ್ಟು ಲಿಂಕ್ ತೆರೆದು ನಿಮ್ಮ ರಹಸ್ಯ ಪಾಸ್‌ವರ್ಡ್ ಸೆಟ್ ಮಾಡಿಕೊಳ್ಳಿ.\n॥ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ · ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ॥`;
+                                  const msg = `ನಮಸ್ಕಾರ ${priest.priestName} ಅವರೇ,\n\nನಿಮಗೆ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಪೋರ್ಟಲ್‌ನ ಪ್ರವೇಶ ಕಳುಹಿಸಲಾಗಿದೆ.\n\n👤 ಯೂಸರ್ ID: ${priest.userId}\n🛡️ ಸಕ್ರಿಯ ಸೌಲಭ್ಯಗಳು:\n${modulesList}\n\n🔗 ನಿಮ್ಮ ಏಕೀಕೃತ ಪ್ರವೇಶ ಲಿಂಕ್ (Single Access URL):\n${unifiedUrl}\n\n॥ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ · ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ॥`;
                                   window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, "_blank");
                                 }}
                                 className="py-1.5 px-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-950 border border-emerald-400 rounded-lg text-xs font-bold transition-all shadow-xs shrink-0"
@@ -2890,7 +2890,7 @@ export const SuperAdminDashboard: React.FC = () => {
                     onClick={() => {
                       const origin = typeof window !== "undefined" ? window.location.origin : "https://baggona-panchanga.firebaseapp.com";
                       const modulesQuery = modules.length > 0 ? modules.join(",") : "panchanga";
-                      const unifiedUrl = `${origin}/?portal=priest&user=${encodeURIComponent(priest.userId)}&name=${encodeURIComponent(priest.priestName)}&modules=${encodeURIComponent(modulesQuery)}&firstTime=true`;
+                      const unifiedUrl = `${origin}/?portal=priest&user=${encodeURIComponent(priest.userId)}&name=${encodeURIComponent(priest.priestName)}&modules=${encodeURIComponent(modulesQuery)}`;
                       const msg = `ನಮಸ್ಕಾರ ${priest.priestName} ಅವರೇ,\n\nನಿಮ್ಮ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಪೋರ್ಟಲ್‌ನ ವಿವರಗಳು:\n👤 ಯೂಸರ್ ID: ${priest.userId}\n🪙 ಪ್ರಸ್ತುತ ಬ್ಯಾಲೆನ್ಸ್: ${(priest.coinBalance || 0).toLocaleString()} Coins\n🔗 ಪ್ರವೇಶ ಲಿಂಕ್:\n${unifiedUrl}\n\n॥ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ · ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ॥`;
                       window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, "_blank");
                     }}
