@@ -1334,17 +1334,17 @@ export const SuperAdminDashboard: React.FC = () => {
                 ಯಾವುದೇ ಪುರೋಹಿತರ ಖಾತೆಗಳು ಇನ್ನೂ ನೋಂದಾಯಿಸಲ್ಪಟ್ಟಿಲ್ಲ.
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs border-collapse">
+              <div className="overflow-x-auto rounded-2xl border-2 border-amber-300 bg-white shadow-xs">
+                <table className="w-full text-left text-xs border-collapse min-w-[980px]">
                   <thead>
-                    <tr className="border-b-2 border-amber-200 text-amber-900 uppercase text-[10px] font-black tracking-wider">
+                    <tr className="bg-[#FFF8E7] border-b-2 border-amber-300 text-amber-950 uppercase text-[10px] font-black tracking-wider">
                       <th className="py-3 px-4">ಪುರೋಹಿತರ ಹೆಸರು</th>
                       <th className="py-3 px-4">User ID</th>
                       <th className="py-3 px-4">ಸಕ್ರಿಯ ಬ್ಯಾಲೆನ್ಸ್</th>
                       <th className="py-3 px-4">ಅನುಮತಿಸಿದ ಮಾಡ್ಯೂಲ್‌ಗಳು</th>
                       <th className="py-3 px-4">ಒಟ್ಟು ರೀಚಾರ್ಜ್</th>
                       <th className="py-3 px-4">ಬಳಸಿದ ನಾಣ್ಯಗಳು</th>
-                      <th className="py-3 px-4 text-right">ತ್ವರಿತ ಕ್ರಿಯೆಗಳು</th>
+                      <th className="py-3 px-4 text-right">ತ್ವರಿತ ಕ್ರಿಯೆಗಳು (Actions)</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-amber-100 font-semibold">
@@ -1375,7 +1375,7 @@ export const SuperAdminDashboard: React.FC = () => {
                               </span>
                             </button>
                           </td>
-                          <td className="py-3.5 px-4 font-mono text-slate-600">{priest.userId}</td>
+                          <td className="py-3.5 px-4 font-mono text-slate-600 font-bold">{priest.userId}</td>
                           <td className="py-3.5 px-4">
                             <div className="flex items-center gap-2">
                               <span className="font-mono font-black text-sm text-amber-950">
@@ -1397,7 +1397,7 @@ export const SuperAdminDashboard: React.FC = () => {
                                 return (
                                   <span
                                     key={mKey}
-                                    className="text-[9px] font-black px-2 py-0.5 rounded-md bg-amber-100/80 text-amber-950 border border-amber-300 flex items-center gap-0.5 shadow-sm"
+                                    className="text-[9px] font-black px-2 py-0.5 rounded-md bg-amber-100/80 text-amber-950 border border-amber-300 flex items-center gap-0.5 shadow-xs"
                                   >
                                     <span>{cfg?.icon || "✨"}</span>
                                     <span>{cfg?.kannadaLabel?.split(" ")[0] || mKey}</span>
@@ -1412,72 +1412,76 @@ export const SuperAdminDashboard: React.FC = () => {
                           <td className="py-3.5 px-4 text-slate-600 font-mono">
                             {(priest.totalCoinsSpent || 0).toLocaleString()}
                           </td>
-                          <td className="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
-                            {/* Detailed Profile & History Button */}
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setViewingPriestProfile(priest);
-                                setPriestProfileTab("overview");
-                              }}
-                              className="py-1.5 px-2.5 bg-amber-200/90 hover:bg-amber-300 text-amber-950 border border-amber-400 rounded-lg text-xs font-black transition-all shadow-sm flex-inline items-center gap-1"
-                              title="ಪುರೋಹಿತರ ಸಂಪೂರ್ಣ ಇತಿಹಾಸ & ಅಂಕಿಅಂಶಗಳು (View Profile & History)"
-                            >
-                              <span>🔍</span>
-                              <span>ಇತಿಹಾಸ</span>
-                            </button>
+                          <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                            <div className="flex items-center justify-end gap-1.5">
+                              {/* Detailed Profile & History Button */}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setViewingPriestProfile(priest);
+                                  setPriestProfileTab("overview");
+                                }}
+                                className="py-1.5 px-2 bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-300 rounded-lg text-xs font-bold transition-all shadow-xs flex items-center gap-1 shrink-0"
+                                title="ಪುರೋಹಿತರ ಸಂಪೂರ್ಣ ಇತಿಹಾಸ & ಅಂಕಿಅಂಶಗಳು (View Profile & History)"
+                              >
+                                <span>🔍</span>
+                                <span>ಪ್ರೊಫೈಲ್</span>
+                              </button>
 
-                            {/* Manage Modules Button */}
-                            <button
-                              type="button"
-                              onClick={() => handleOpenModuleEditor(priest)}
-                              className="py-1.5 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-950 border border-indigo-300 rounded-lg text-xs font-bold transition-all shadow-sm"
-                              title="ಮಾಡ್ಯೂಲ್ ಪ್ರವೇಶಾವಕಾಶ ನಿರ್ವಹಿಸಿ"
-                            >
-                              🛡️ ಮಾಡ್ಯೂಲ್‌ಗಳು
-                            </button>
+                              {/* Manage Modules Button */}
+                              <button
+                                type="button"
+                                onClick={() => handleOpenModuleEditor(priest)}
+                                className="py-1.5 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-950 border border-indigo-300 rounded-lg text-xs font-bold transition-all shadow-xs shrink-0"
+                                title="ಮಾಡ್ಯೂಲ್ ಪ್ರವೇಶಾವಕಾಶ ನಿರ್ವಹಿಸಿ"
+                              >
+                                🛡️ ಮಾಡ್ಯೂಲ್
+                              </button>
 
-                            {/* WhatsApp Invite */}
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const origin = typeof window !== "undefined" ? window.location.origin : "https://baggona-panchanga.firebaseapp.com";
-                                const modulesQuery = modules.length > 0 ? modules.join(",") : "panchanga";
-                                const unifiedUrl = `${origin}/?portal=priest&user=${encodeURIComponent(priest.userId)}&name=${encodeURIComponent(priest.priestName)}&modules=${encodeURIComponent(modulesQuery)}&firstTime=true`;
-                                const modulesList = modules
-                                  .map((mKey) => {
-                                    const cfg = AVAILABLE_MODULES.find((m) => m.key === mKey);
-                                    return `• ${cfg?.icon || "✨"} ${cfg?.kannadaLabel || mKey}`;
-                                  })
-                                  .join("\n");
+                              {/* WhatsApp Invite */}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const origin = typeof window !== "undefined" ? window.location.origin : "https://baggona-panchanga.firebaseapp.com";
+                                  const modulesQuery = modules.length > 0 ? modules.join(",") : "panchanga";
+                                  const unifiedUrl = `${origin}/?portal=priest&user=${encodeURIComponent(priest.userId)}&name=${encodeURIComponent(priest.priestName)}&modules=${encodeURIComponent(modulesQuery)}&firstTime=true`;
+                                  const modulesList = modules
+                                    .map((mKey) => {
+                                      const cfg = AVAILABLE_MODULES.find((m) => m.key === mKey);
+                                      return `• ${cfg?.icon || "✨"} ${cfg?.kannadaLabel || mKey}`;
+                                    })
+                                    .join("\n");
 
-                                const msg = `ನಮಸ್ಕಾರ ${priest.priestName} ಅವರೇ,\n\nನಿಮಗೆ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಪೋರ್ಟಲ್‌ನ ಪ್ರವೇಶ ಕಳುಹಿಸಲಾಗಿದೆ.\n\n👤 ಯೂಸರ್ ID: ${priest.userId}\n🛡️ ಸಕ್ರಿಯ ಸೌಲಭ್ಯಗಳು:\n${modulesList}\n\n🔗 ನಿಮ್ಮ ಏಕೀಕೃತ ಪ್ರವೇಶ ಲಿಂಕ್ (Single Access URL):\n${unifiedUrl}\n\nದಯವಿಟ್ಟು ಲಿಂಕ್ ತೆರೆದು ನಿಮ್ಮ ರಹಸ್ಯ ಪಾಸ್‌ವರ್ಡ್ ಸೆಟ್ ಮಾಡಿಕೊಳ್ಳಿ.\n॥ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ · ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ॥`;
-                                window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, "_blank");
-                              }}
-                              className="py-1.5 px-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-950 border border-emerald-400 rounded-lg text-xs font-bold transition-all shadow-sm"
-                              title="Share on WhatsApp"
-                            >
-                              📲 WhatsApp
-                            </button>
+                                  const msg = `ನಮಸ್ಕಾರ ${priest.priestName} ಅವರೇ,\n\nನಿಮಗೆ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಪೋರ್ಟಲ್‌ನ ಪ್ರವೇಶ ಕಳುಹಿಸಲಾಗಿದೆ.\n\n👤 ಯೂಸರ್ ID: ${priest.userId}\n🛡️ ಸಕ್ರಿಯ ಸೌಲಭ್ಯಗಳು:\n${modulesList}\n\n🔗 ನಿಮ್ಮ ಏಕೀಕೃತ ಪ್ರವೇಶ ಲಿಂಕ್ (Single Access URL):\n${unifiedUrl}\n\nದಯವಿಟ್ಟು ಲಿಂಕ್ ತೆರೆದು ನಿಮ್ಮ ರಹಸ್ಯ ಪಾಸ್‌ವರ್ಡ್ ಸೆಟ್ ಮಾಡಿಕೊಳ್ಳಿ.\n॥ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ · ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ॥`;
+                                  window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, "_blank");
+                                }}
+                                className="py-1.5 px-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-950 border border-emerald-400 rounded-lg text-xs font-bold transition-all shadow-xs shrink-0"
+                                title="Share on WhatsApp"
+                              >
+                                📲 WhatsApp
+                              </button>
 
-                            <button
-                              type="button"
-                              onClick={() => setSelectedPriest(priest)}
-                              className="py-1.5 px-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-lg text-xs transition-all shadow-sm"
-                            >
-                              ⚡ ನಾಣ್ಯ ಹೊಂದಾಣಿಕೆ
-                            </button>
+                              {/* Coin Adjustment Button */}
+                              <button
+                                type="button"
+                                onClick={() => setSelectedPriest(priest)}
+                                className="py-1.5 px-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-lg text-xs transition-all shadow-xs shrink-0"
+                                title="ನಾಣ್ಯ ಹೊಂದಾಣಿಕೆ ಮಾಡಿ"
+                              >
+                                ⚡ ನಾಣ್ಯ
+                              </button>
 
-                            {/* Delete Priest & Revoke Token Button */}
-                            <button
-                              type="button"
-                              onClick={() => setDeletingPriest(priest)}
-                              className="py-1.5 px-2 bg-red-100 hover:bg-red-200 text-red-950 border border-red-300 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1"
-                              title="ಪುರೋಹಿತರ ಖಾತೆ & ಪ್ರವೇಶ ಲಿಂಕ್ ರದ್ದುಗೊಳಿಸಿ/ಅಳಿಸಿ (Delete Priest Account & Revoke Link)"
-                            >
-                              <span>🗑️</span>
-                              <span>ಅಳಿಸಿ</span>
-                            </button>
+                              {/* PROMINENT DELETE BUTTON */}
+                              <button
+                                type="button"
+                                onClick={() => setDeletingPriest(priest)}
+                                className="py-1.5 px-2.5 bg-red-600 hover:bg-red-700 text-white font-black rounded-lg text-xs transition-all shadow-sm flex items-center gap-1 shrink-0 border border-red-700 active:scale-95"
+                                title="ಪುರೋಹಿತರ ಖಾತೆ & ಪ್ರವೇಶ ಲಿಂಕ್ ಶಾಶ್ವತವಾಗಿ ಅಳಿಸಿ / ರದ್ದುಗೊಳಿಸಿ (Delete Priest Account & Revoke Token)"
+                              >
+                                <span>🗑️</span>
+                                <span>ಅಳಿಸಿ</span>
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
