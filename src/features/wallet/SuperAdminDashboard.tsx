@@ -3306,13 +3306,13 @@ export const SuperAdminDashboard: React.FC = () => {
                         <div>
                           <label className="text-[11px] text-amber-200 block">Speaker Persona (Bulbul:v3 Indic Models):</label>
                           <select
-                            value={cloneConfig.sarvamSpeaker || "anand"}
+                            value={cloneConfig.sarvamSpeaker || "gokul"}
                             onChange={(e) => setCloneConfig({ ...cloneConfig, sarvamSpeaker: e.target.value })}
                             className="w-full px-3 py-2 text-xs bg-black/80 border border-amber-500/50 rounded-xl text-amber-200 font-bold focus:outline-none focus:border-amber-400 mt-1"
                           >
-                            <option value="anand">Anand (ಗಂಭೀರ ಪುರುಷ ಧ್ವನಿ - Deep Male Priest)</option>
+                            <option value="gokul">Gokul (ಗೋಕರ್ಣ ಪಂಡಿತ ಧ್ವನಿ - Gokarna Pandit - Default)</option>
+                            <option value="anand">Anand (ಗಂಭೀರ ಮುಖ್ಯ ಅರ್ಚಕ - Deep Male Priest)</option>
                             <option value="advait">Advait (ಶಾಸ್ತ್ರೀಯ ವಿದ್ವಾಂಸ ಧ್ವನಿ - Classical Vidwan)</option>
-                            <option value="gokul">Gokul (ಗೋಕರ್ಣ ಪಂಡಿತ ಧ್ವನಿ - Gokarna Pandit)</option>
                             <option value="ashutosh">Ashutosh (ವೇದ ಪಠಣ ಧ್ವನಿ - Vedic Chanting)</option>
                             <option value="vijay">Vijay (ಸ್ಪಷ್ಟ ಶಾಂತ ಧ್ವನಿ - Calm Clear Male)</option>
                             <option value="tarun">Tarun (ಯುವ ಗಂಭೀರ ಧ್ವನಿ - Resonant Youth)</option>

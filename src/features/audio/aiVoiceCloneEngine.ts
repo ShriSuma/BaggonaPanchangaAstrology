@@ -36,7 +36,7 @@ const CLONE_CONFIG_STORAGE_KEY = "baggona_ai_voice_clone_config_v4";
 export const DEFAULT_CLONE_CONFIG: VoiceCloneConfig = {
   provider: "sarvam_ai",
   sarvamApiKey: "sk_duxld45s_658vBx71bZPMfKeLfCXxXwF0",
-  sarvamSpeaker: "anand",
+  sarvamSpeaker: "gokul",
   sarvamPace: 0.90,
   autoFallbackToMasterRecording: true,
   masterAudioUrl: "/audio/shrisuma_master_voice.webm",
@@ -65,7 +65,7 @@ export function getVoiceCloneConfig(): VoiceCloneConfig {
       ...DEFAULT_CLONE_CONFIG,
       ...parsed,
       sarvamApiKey: parsed.sarvamApiKey || envSarvamKey,
-      sarvamSpeaker: parsed.sarvamSpeaker === "arvind" ? "anand" : (parsed.sarvamSpeaker || "anand")
+      sarvamSpeaker: parsed.sarvamSpeaker === "arvind" || parsed.sarvamSpeaker === "anand" ? "gokul" : (parsed.sarvamSpeaker || "gokul")
     };
   } catch {
     return { ...DEFAULT_CLONE_CONFIG, sarvamApiKey: envSarvamKey };
@@ -156,7 +156,7 @@ export async function synthesizeAndPlayClonedVoice(
         text,
         lang,
         activeSarvamKey,
-        config.sarvamSpeaker || "anand",
+        config.sarvamSpeaker || "gokul",
         config.sarvamPace || 0.90
       );
       if (audioUrl) {
@@ -242,11 +242,11 @@ async function fetchSarvamAITTS(
   text: string,
   lang: SevaLang,
   apiKey: string,
-  speaker = "anand",
+  speaker = "gokul",
   pace = 0.90
 ): Promise<string | null> {
   const targetLanguageCode = lang === "kn" ? "kn-IN" : lang === "hi" ? "hi-IN" : lang === "ta" ? "ta-IN" : lang === "te" ? "te-IN" : "en-IN";
-  const validSpeaker = speaker === "arvind" ? "anand" : (speaker || "anand");
+  const validSpeaker = speaker === "arvind" || speaker === "anand" ? "gokul" : (speaker || "gokul");
 
   const response = await fetch("https://api.sarvam.ai/text-to-speech", {
     method: "POST",
