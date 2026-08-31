@@ -51,21 +51,27 @@ export const DEFAULT_CLONE_CONFIG: VoiceCloneConfig = {
  * Retrieves the saved AI voice clone settings from LocalStorage
  */
 export function getVoiceCloneConfig(): VoiceCloneConfig {
-  if (typeof window === "undefined") return DEFAULT_CLONE_CONFIG;
+  const envSarvamKey = (import.meta as any).env?.VITE_SARVAM_API_KEY || "sk_duxld45s_658vBx71bZPMfKeLfCXxXwF0";
+  if (typeof window === "undefined") {
+    return { ...DEFAULT_CLONE_CONFIG, sarvamApiKey: envSarvamKey };
+  }
   try {
     const raw = localStorage.getItem(CLONE_CONFIG_STORAGE_KEY);
-    if (!raw) return DEFAULT_CLONE_CONFIG;
+    if (!raw) {
+      return { ...DEFAULT_CLONE_CONFIG, sarvamApiKey: envSarvamKey };
+    }
     const parsed = JSON.parse(raw);
     return {
       ...DEFAULT_CLONE_CONFIG,
       ...parsed,
-      sarvamApiKey: parsed.sarvamApiKey || DEFAULT_CLONE_CONFIG.sarvamApiKey,
+      sarvamApiKey: parsed.sarvamApiKey || envSarvamKey,
       sarvamSpeaker: parsed.sarvamSpeaker === "arvind" ? "anand" : (parsed.sarvamSpeaker || "anand")
     };
   } catch {
-    return DEFAULT_CLONE_CONFIG;
+    return { ...DEFAULT_CLONE_CONFIG, sarvamApiKey: envSarvamKey };
   }
 }
+
 
 /**
  * Saves AI voice clone settings to LocalStorage
