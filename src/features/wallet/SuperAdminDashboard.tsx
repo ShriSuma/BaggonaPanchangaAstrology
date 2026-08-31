@@ -65,6 +65,14 @@ import {
   type PriestVoiceProfile,
   type PriestAudioKey
 } from "../audio/priestVoiceDatabase";
+import {
+  getVoiceCloneConfig,
+  saveVoiceCloneConfig,
+  synthesizeAndPlayClonedVoice,
+  stopClonedAudio,
+  type VoiceCloneConfig,
+  type VoiceCloneProvider
+} from "../audio/aiVoiceCloneEngine";
 
 export type AdminTab = "wallets" | "kundlis" | "ashirvada" | "audit" | "mindmap" | "panchanga_engine" | "voice_db";
 
@@ -405,6 +413,11 @@ export const SuperAdminDashboard: React.FC = () => {
   const adminMediaRecorderRef = useRef<MediaRecorder | null>(null);
   const adminAudioChunksRef = useRef<Blob[]>([]);
   const adminAudioPlayerRef = useRef<HTMLAudioElement | null>(null);
+
+  // AI Voice Clone Configuration & Live Tester State
+  const [cloneConfig, setCloneConfig] = useState<VoiceCloneConfig>(() => getVoiceCloneConfig());
+  const [testLiveText, setTestLiveText] = useState<string>("ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ದರ್ಶನ ಮತ್ತು ನಿಮ್ಮ ವೈಯಕ್ತಿಕ ಸಂಕಲ್ಪ ಸಂಪನ್ನವಾಗಿದೆ. ಓಂ ನಮಃ ಶಿವಾಯ.");
+  const [isPlayingLiveTest, setIsPlayingLiveTest] = useState<boolean>(false);
 
   // Priest Profile Real-Time Subscription
   useEffect(() => {
@@ -3207,6 +3220,166 @@ export const SuperAdminDashboard: React.FC = () => {
                     </div>
                   );
                 })}
+              </div>
+            </div>
+
+            {/* AI Real-Time Voice Cloning Engine & Live Studio */}
+            <div className="bg-gradient-to-br from-[#1C0A00] via-[#2A1205] to-[#150600] border-2 border-amber-400 rounded-3xl p-5 sm:p-6 text-amber-100 shadow-2xl space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-500/40 pb-3">
+                <div>
+                  <h4 className="text-sm sm:text-base font-black text-[#FDE68A] flex items-center gap-2">
+                    <span>🤖</span>
+                    <span>AI ರಿಯಲ್-ಟೈಮ್ ಧ್ವನಿ ಕ್ಲೋನಿಂಗ್ ಎಂಜಿನ್ (Real-Time AI Voice Clone Studio)</span>
+                  </h4>
+                  <p className="text-xs text-amber-300 font-medium">
+                    ಯಾವುದೇ ಹೊಸ ಮಂತ್ರ ಅಥವಾ ಭಕ್ತರ ಹೆಸರನ್ನು ರಿಯಲ್-ಟೈಮ್‌ನಲ್ಲಿ ನಿಮ್ಮದೇ ಧ್ವನಿಯಲ್ಲಿ ನುಡಿಸಲು AI ಎಂಜಿನ್ ಸಂರಚಿಸಿ:
+                  </p>
+                </div>
+                <span className="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/50 text-[10px] font-black uppercase tracking-wider self-start sm:self-auto">
+                  ⚡ Neural Indic Audio
+                </span>
+              </div>
+
+              {/* Provider Selection */}
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
+                {[
+                  { id: "edge_neural" as VoiceCloneProvider, title: "⚡ Edge Neural (ಉಚಿತ)", desc: "Zero setup, high-fidelity Indian male voice" },
+                  { id: "huggingface_xtts" as VoiceCloneProvider, title: "🌐 HuggingFace XTTS (ಉಚಿತ)", desc: "Zero-shot neural voice clone from audio sample" },
+                  { id: "elevenlabs" as VoiceCloneProvider, title: "🔑 ElevenLabs Clone", desc: "Instant voice clone with custom API key & Voice ID" },
+                  { id: "web_dsp" as VoiceCloneProvider, title: "🔊 Web Audio DSP", desc: "100% offline acoustic formant resonance cloner" }
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => {
+                      const updated = { ...cloneConfig, provider: item.id };
+                      setCloneConfig(updated);
+                      saveVoiceCloneConfig(updated);
+                    }}
+                    className={`p-3 rounded-2xl border text-left transition-all ${
+                      cloneConfig.provider === item.id
+                        ? "bg-amber-600/30 border-amber-400 text-white shadow-md ring-2 ring-amber-400/40"
+                        : "bg-black/40 border-amber-500/30 text-amber-200/80 hover:bg-amber-950/40"
+                    }`}
+                  >
+                    <div className="text-xs font-black text-amber-300">{item.title}</div>
+                    <div className="text-[10px] text-amber-200/70 mt-1 leading-tight">{item.desc}</div>
+                  </button>
+                ))}
+              </div>
+
+              {/* API Keys Settings for HuggingFace / ElevenLabs */}
+              {(cloneConfig.provider === "huggingface_xtts" || cloneConfig.provider === "elevenlabs") && (
+                <div className="p-4 bg-black/60 rounded-2xl border border-amber-500/40 space-y-3 animate-in fade-in">
+                  <div className="text-xs font-black text-amber-300 flex items-center gap-1.5">
+                    <span>⚙️</span>
+                    <span>{cloneConfig.provider === "huggingface_xtts" ? "Hugging Face Inference Settings" : "ElevenLabs API Settings"}</span>
+                  </div>
+
+                  {cloneConfig.provider === "huggingface_xtts" && (
+                    <div className="space-y-2">
+                      <label className="text-[11px] text-amber-200 block">
+                        Hugging Face User Access Token (Free at huggingface.co/settings/tokens):
+                      </label>
+                      <input
+                        type="password"
+                        value={cloneConfig.hfApiKey || ""}
+                        onChange={(e) => setCloneConfig({ ...cloneConfig, hfApiKey: e.target.value })}
+                        placeholder="hf_..."
+                        className="w-full px-3 py-2 text-xs bg-black/80 border border-amber-500/50 rounded-xl text-white font-mono focus:outline-none focus:border-amber-400"
+                      />
+                    </div>
+                  )}
+
+                  {cloneConfig.provider === "elevenlabs" && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[11px] text-amber-200 block">ElevenLabs API Key (xi-api-key):</label>
+                        <input
+                          type="password"
+                          value={cloneConfig.elevenLabsApiKey || ""}
+                          onChange={(e) => setCloneConfig({ ...cloneConfig, elevenLabsApiKey: e.target.value })}
+                          placeholder="sk_..."
+                          className="w-full px-3 py-2 text-xs bg-black/80 border border-amber-500/50 rounded-xl text-white font-mono focus:outline-none focus:border-amber-400"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] text-amber-200 block">Voice ID (Cloned Voice ID):</label>
+                        <input
+                          type="text"
+                          value={cloneConfig.elevenLabsVoiceId || ""}
+                          onChange={(e) => setCloneConfig({ ...cloneConfig, elevenLabsVoiceId: e.target.value })}
+                          placeholder="21m00Tcm4TlvDq8ikWAM"
+                          className="w-full px-3 py-2 text-xs bg-black/80 border border-amber-500/50 rounded-xl text-white font-mono focus:outline-none focus:border-amber-400"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      saveVoiceCloneConfig(cloneConfig);
+                      setFeedback({ type: "success", text: "✓ AI ಧ್ವನಿ ಕ್ಲೋನಿಂಗ್ ಸೆಟ್ಟಿಂಗ್‌ಗಳನ್ನು ಉಳಿಸಲಾಗಿದೆ." });
+                    }}
+                    className="px-4 py-1.5 bg-gradient-to-r from-amber-600 to-amber-500 text-slate-950 font-black text-xs rounded-xl shadow-xs"
+                  >
+                    ✓ ಸೆಟ್ಟಿಂಗ್ ಉಳಿಸಿ (Save API Settings)
+                  </button>
+                </div>
+              )}
+
+              {/* Live Interactive Voice Clone Tester Studio */}
+              <div className="p-4 bg-gradient-to-r from-[#2A1205] to-[#1F0D04] rounded-2xl border border-amber-400/60 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="text-xs font-black text-[#FDE68A] flex items-center gap-1.5">
+                    <span>🎙️</span>
+                    <span>ಲೈವ್ ಧ್ವನಿ ಕ್ಲೋನಿಂಗ್ ಟೆಸ್ಟರ್ (Live Real-Time Voice Synthesis Tester):</span>
+                  </div>
+                  <span className="text-[10px] text-amber-300 font-mono">
+                    Profile: {activeProfile?.name.split("(")[0]}
+                  </span>
+                </div>
+
+                <textarea
+                  value={testLiveText}
+                  onChange={(e) => setTestLiveText(e.target.value)}
+                  rows={2}
+                  className="w-full p-2.5 bg-black/70 border border-amber-500/50 rounded-xl text-xs text-amber-100 focus:outline-none focus:border-amber-400 resize-none font-medium"
+                  placeholder="ಪರೀಕ್ಷಿಸಲು ಕನ್ನಡ ಅಥವಾ ಸಂಸ್ಕೃತ ಪಠ್ಯವನ್ನು ಇಲ್ಲಿ ಬರೆಯಿರಿ..."
+                />
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (isPlayingLiveTest) {
+                        stopClonedAudio();
+                        setIsPlayingLiveTest(false);
+                        return;
+                      }
+                      setIsPlayingLiveTest(true);
+                      await synthesizeAndPlayClonedVoice(testLiveText, "kn", activeAdminVoiceId, () => {
+                        setIsPlayingLiveTest(false);
+                      });
+                    }}
+                    className={`px-4 py-2 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all active:scale-95 flex items-center gap-1.5 border border-amber-300 ${
+                      isPlayingLiveTest ? "animate-pulse" : ""
+                    }`}
+                  >
+                    <span>{isPlayingLiveTest ? "⏹️ ನಿಲ್ಲಿಸಿ (Stop)" : "▶️ ರಿಯಲ್-ಟೈಮ್ ಧ್ವನಿ ಆಲಿಸಿ (Test Real-Time Cloned Voice)"}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTestLiveText("ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ದರ್ಶನ ಮತ್ತು ನಿಮ್ಮ ವೈಯಕ್ತಿಕ ಸಂಕಲ್ಪ ಸಂಪನ್ನವಾಗಿದೆ. ಓಂ ನಮಃ ಶಿವಾಯ.");
+                    }}
+                    className="px-3 py-2 bg-black/50 hover:bg-black/70 text-amber-300 text-xs font-bold rounded-xl border border-amber-500/30"
+                  >
+                    ಮಾದರಿ ಸಂಕಲ್ಪ ಮರುಹೊಂದಿಸಿ
+                  </button>
+                </div>
               </div>
             </div>
           </div>

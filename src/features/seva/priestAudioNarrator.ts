@@ -10,6 +10,7 @@
 
 import type { SevaLang } from "./sevaLocale";
 import { getVoiceProfileById, type PriestAudioKey } from "../audio/priestVoiceDatabase";
+import { synthesizeAndPlayClonedVoice, stopClonedAudio } from "../audio/aiVoiceCloneEngine";
 
 export interface PriestNarratorParams {
   devoteeName: string;
@@ -173,7 +174,18 @@ export function speakPriestNarration(
     }
   }
 
-  return fallbackMaleTTS(text, lang, onEnd, profile?.voicePitch || 0.74, profile?.voiceRate || 0.86);
+  // 2. Real-time AI Voice Clone Synthesis (free Edge Neural / Hugging Face / Formant DSP)
+  let cancelCloneFn: (() => void) | null = null;
+  synthesizeAndPlayClonedVoice(text, lang, voiceId, onEnd).then((cancelFn) => {
+    cancelCloneFn = cancelFn;
+  }).catch(() => {
+    cancelCloneFn = fallbackMaleTTS(text, lang, onEnd, profile?.voicePitch || 0.74, profile?.voiceRate || 0.86);
+  });
+
+  return () => {
+    if (cancelCloneFn) cancelCloneFn();
+    stopClonedAudio();
+  };
 }
 
 function fallbackMaleTTS(
@@ -205,8 +217,8 @@ function fallbackMaleTTS(
 
   // Filter explicitly for Indian Male voices
   const voices = window.speechSynthesis.getVoices();
-  const maleKeywords = ["male", "ravi", "hemant", "madhav", "kiran", "pradeep", "manoj", "pankaj", "tarun", "deep", "wavenet-b", "standard-b", "neural2-b"];
-  const femaleKeywords = ["female", "zira", "swara", "kalpana", "neerja", "heera", "sunita", "harita", "shruti", "priya", "pooja", "sangeeta", "wavenet-a", "standard-a"];
+  const maleKeywords = ["male", "ravi", "hemant", "madhav", "kiran", "pradeep", "manoj", "pankaj", "tarun", "gagan", "deep", "wavenet-b", "standard-b", "neural2-b"];
+  const femaleKeywords = ["female", "zira", "swara", "kalpana", "neerja", "heera", "sunita", "harita", "shruti", "priya", "pooja", "sangeeta", "sapna", "wavenet-a", "standard-a"];
 
   const maleVoice = voices.find(v => {
     const vName = v.name.toLowerCase();
@@ -247,6 +259,7 @@ function fallbackMaleTTS(
 }
 
 export function stopPriestAudio(): void {
+  stopClonedAudio();
   if (activeAudioElement) {
     activeAudioElement.pause();
     activeAudioElement = null;
