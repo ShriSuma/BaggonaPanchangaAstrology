@@ -1,0 +1,122 @@
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import {
+  getOrComputeDinaBhavishya,
+  computeGocharaMoonForDate,
+  formatLocalizedDinaDate
+} from "../features/seva/dinaBhavishyaEngine";
+
+describe("Dina Bhavishya Engine & Date Locking", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.clearAllMocks();
+  });
+
+  it("calculates authentic Gochara Moon Rashi and Nakshatra for a date", () => {
+    const moon = computeGocharaMoonForDate("2026-08-31");
+    expect(moon.transitMoonRashi).toBeGreaterThanOrEqual(0);
+    expect(moon.transitMoonRashi).toBeLessThan(12);
+    expect(moon.transitMoonNakshatra).toBeGreaterThanOrEqual(0);
+    expect(moon.transitMoonNakshatra).toBeLessThan(27);
+  });
+
+  it("formats localized dates across all 5 languages without crashing", () => {
+    const knDate = formatLocalizedDinaDate("2026-08-31", "kn");
+    expect(knDate).toContain("ಆಗಸ್ಟ್");
+    expect(knDate).toContain("೨೦೨೬");
+
+    const hiDate = formatLocalizedDinaDate("2026-08-31", "hi");
+    expect(hiDate).toContain("अगस्त");
+
+    const teDate = formatLocalizedDinaDate("2026-08-31", "te");
+    expect(teDate).toContain("ఆగస్టు");
+
+    const taDate = formatLocalizedDinaDate("2026-08-31", "ta");
+    expect(taDate).toContain("ஆகஸ்ட்");
+
+    const enDate = formatLocalizedDinaDate("2026-08-31", "en");
+    expect(enDate).toBe("31 August 2026");
+  });
+
+  it("STRICT DATE GUARD: Locks future requested dates (e.g. 2026-09-20) to Today's live date and sets wasFutureRequested=true", async () => {
+    const result = await getOrComputeDinaBhavishya({
+      targetDateRequested: "2026-09-20", // Future date!
+      devoteeName: "Pramod Kodagi",
+      birthDate: "1990-05-15",
+      birthTime: "08:30",
+      natalMoonRashi: 8, // Dhanu
+      natalNakshatra: 18, // Mula
+      lang: "kn",
+      userIdentifier: "test_devotee_future"
+    });
+
+    const todayYmd = new Date().toISOString().split("T")[0];
+    expect(result.targetDate).toBe(todayYmd);
+    expect(result.wasFutureRequested).toBe(true);
+    expect(result.isToday).toBe(true);
+    expect(result.overview.length).toBeGreaterThan(20);
+    expect(result.siddhaMantra).toContain("ॐ");
+    expect(result.priestBlessing).toContain("ಆಶೀರ್ವಚನ");
+  });
+
+  it("computes accurate today's Dina Bhavishya with Chandra Bala & Tara Bala", async () => {
+    const todayYmd = new Date().toISOString().split("T")[0];
+    const result = await getOrComputeDinaBhavishya({
+      targetDateRequested: todayYmd,
+      devoteeName: "Manoj Poornamatha",
+      birthDate: "1993-03-16",
+      birthTime: "01:40",
+      natalMoonRashi: 8, // Dhanu
+      natalNakshatra: 18, // Mula
+      lang: "en",
+      userIdentifier: "test_manoj"
+    });
+
+    expect(result.targetDate).toBe(todayYmd);
+    expect(result.wasFutureRequested).toBe(false);
+    expect(result.isToday).toBe(true);
+    expect(result.chandraBalaHouse).toBeGreaterThanOrEqual(1);
+    expect(result.chandraBalaHouse).toBeLessThanOrEqual(12);
+    expect(result.taraBalaNumber).toBeGreaterThanOrEqual(1);
+    expect(result.taraBalaNumber).toBeLessThanOrEqual(9);
+    expect(result.energyScore).toBeGreaterThanOrEqual(35);
+    expect(result.energyScore).toBeLessThanOrEqual(98);
+    expect(result.abhijitMuhurtha).toContain("Abhijit Muhurtha");
+  });
+
+  it("caches daily predictions in localStorage and loads instantly from cache on subsequent calls", async () => {
+    const todayYmd = new Date().toISOString().split("T")[0];
+    const firstCall = await getOrComputeDinaBhavishya({
+      targetDateRequested: todayYmd,
+      devoteeName: "Devotee User",
+      birthDate: "1995-10-20",
+      birthTime: "11:15",
+      natalMoonRashi: 3, // Karka
+      natalNakshatra: 7, // Pushya
+      lang: "kn",
+      userIdentifier: "cached_user_123"
+    });
+
+    expect(firstCall.overview).toBeDefined();
+
+    // Verify localStorage item exists
+    const cacheKey = `bgn_dina_bhavishya_cached_user_123_${todayYmd}_kn`;
+    const cachedItem = localStorage.getItem(cacheKey);
+    expect(cachedItem).not.toBeNull();
+
+    // Second call should return identical cached payload
+    const secondCall = await getOrComputeDinaBhavishya({
+      targetDateRequested: todayYmd,
+      devoteeName: "Devotee User",
+      birthDate: "1995-10-20",
+      birthTime: "11:15",
+      natalMoonRashi: 3,
+      natalNakshatra: 7,
+      lang: "kn",
+      userIdentifier: "cached_user_123"
+    });
+
+    expect(secondCall.targetDate).toBe(firstCall.targetDate);
+    expect(secondCall.overview).toBe(firstCall.overview);
+    expect(secondCall.energyScore).toBe(firstCall.energyScore);
+  });
+});

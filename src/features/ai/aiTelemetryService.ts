@@ -235,3 +235,20 @@ export function subscribeTodayAiQuota(callback: (quota: DailyAiQuotaDoc) => void
     return () => {};
   }
 }
+
+/**
+ * Reset today's AI quota usage in memory/localStorage/Firestore for test isolation
+ */
+export async function resetTodayAiQuotaUsageForTest(): Promise<void> {
+  const dateStr = getTodayDateStr();
+  const resetDoc = getInitialDailyQuota(dateStr, DEFAULT_DAILY_AI_LIMIT);
+  if (typeof window !== "undefined") {
+    localStorage.setItem(localCacheKey(dateStr), JSON.stringify(resetDoc));
+  }
+  try {
+    if (firestore) {
+      const docRef = doc(firestore, AI_QUOTA_COL, dateStr);
+      await setDoc(docRef, resetDoc);
+    }
+  } catch {}
+}

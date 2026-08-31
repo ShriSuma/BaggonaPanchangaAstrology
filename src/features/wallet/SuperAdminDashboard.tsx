@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useWalletStore } from "./walletStore";
+import { useAuthStore } from "../auth/authStore";
+import { useAppStore } from "../../stores/appStore";
 import {
   type PriestWalletDoc,
   type UserProfileDoc,
@@ -254,6 +256,28 @@ const MIND_MAP_NODES: MindMapNode[] = [
 ];
 
 export const SuperAdminDashboard: React.FC = () => {
+  const role = useAuthStore((state) => state.role);
+  const setPage = useAppStore((state) => state.setPage);
+
+  if (role !== "superadmin") {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center p-6 text-center space-y-4 bg-slate-950 border border-rose-500/30 rounded-3xl my-6 text-slate-100">
+        <div className="text-5xl">🚫</div>
+        <h2 className="text-xl font-black text-rose-400">Access Denied (ಅನಧಿಕೃತ ಪ್ರವೇಶ)</h2>
+        <p className="text-xs text-slate-400 max-w-md leading-relaxed">
+          This Super Admin Master Control Center ($hriSuma) requires verified Super Administrator authorization. Your current role is: <strong className="text-amber-400 font-bold">{role || "unauthorized"}</strong>.
+        </p>
+        <button
+          type="button"
+          onClick={() => setPage("home")}
+          className="px-5 py-2.5 bg-gradient-to-r from-amber-600 to-amber-500 text-slate-950 font-black text-xs rounded-xl shadow-lg hover:from-amber-500 hover:to-amber-400 transition-all cursor-pointer"
+        >
+          Return to Home (ಮುಖಪುಟಕ್ಕೆ ಮರಳಿ)
+        </button>
+      </div>
+    );
+  }
+
   const {
     allPriestWallets,
     pendingAdminTransactions,

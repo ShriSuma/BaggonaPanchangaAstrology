@@ -16,14 +16,14 @@ import { sendSystemTestEmail } from "../features/notifications/notificationServi
 
 describe("Sankhya Shastra Priest Portal & Engine Validation", () => {
   it("verifies accurate pricing for Sankhya Shastra services", () => {
-    expect(SERVICE_COIN_COSTS.SANKHYA_PRASHNA.coins).toBe(500);
-    expect(SERVICE_COIN_COSTS.SANKHYA_PRASHNA.inrEquivalent).toBe(50);
+    expect(SERVICE_COIN_COSTS.SANKHYA_PRASHNA.coins).toBe(200);
+    expect(SERVICE_COIN_COSTS.SANKHYA_PRASHNA.inrEquivalent).toBe(20);
 
-    expect(SERVICE_COIN_COSTS.SANKHYA_NAME_SUGGESTION.coins).toBe(500);
-    expect(SERVICE_COIN_COSTS.SANKHYA_NAME_SUGGESTION.inrEquivalent).toBe(50);
+    expect(SERVICE_COIN_COSTS.SANKHYA_NAME_SUGGESTION.coins).toBe(200);
+    expect(SERVICE_COIN_COSTS.SANKHYA_NAME_SUGGESTION.inrEquivalent).toBe(20);
 
-    expect(SERVICE_COIN_COSTS.SANKHYA_MOBILE_VEHICLE.coins).toBe(500);
-    expect(SERVICE_COIN_COSTS.SANKHYA_MOBILE_VEHICLE.inrEquivalent).toBe(50);
+    expect(SERVICE_COIN_COSTS.SANKHYA_MOBILE_VEHICLE.coins).toBe(200);
+    expect(SERVICE_COIN_COSTS.SANKHYA_MOBILE_VEHICLE.inrEquivalent).toBe(20);
   });
 
   it("computes Mulanka and Bhagyanka correctly from birth date", () => {

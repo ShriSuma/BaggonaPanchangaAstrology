@@ -27,7 +27,29 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const body = typeof req.body === "string" ? JSON.parse(req.body) : (req.body || {});
+    let body = req.body;
+    if (!body || (typeof body === "object" && Object.keys(body).length === 0)) {
+      try {
+        const chunks: Buffer[] = [];
+        for await (const chunk of req) {
+          chunks.push(chunk as Buffer);
+        }
+        if (chunks.length > 0) {
+          const raw = Buffer.concat(chunks).toString("utf8");
+          body = JSON.parse(raw);
+        }
+      } catch (e) {
+        // Stream might be closed or empty
+      }
+    }
+    if (typeof body === "string") {
+      try {
+        body = JSON.parse(body);
+      } catch (e) {
+        // Keep as string
+      }
+    }
+    body = body || {};
     const { to, subject, html, type, data } = body;
 
     const recipient = to || "spshreepandit@gmail.com";

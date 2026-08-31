@@ -48,6 +48,8 @@ export interface DevoteeTokenPayload {
   dy?: number;
   phone?: string;
   ph?: string;
+  startDate?: string;
+  sd?: string;
   overrideCalendarPhone?: boolean;
   ocp?: boolean | number;
 }
@@ -127,6 +129,7 @@ export function encodeDevoteeToken(payload: DevoteeTokenPayload): string {
     const rawDob = payload.dob ?? "";
     const rawTob = payload.tob ?? "";
     const rawPhone = payload.phone ?? payload.ph ?? "";
+    const rawStartDate = payload.startDate ?? payload.sd ?? "";
     const rawOverrideContact = Boolean(payload.overrideCalendarPhone ?? payload.ocp);
 
     const rawDays = payload.days !== undefined ? payload.days : payload.dy !== undefined ? payload.dy : 90;
@@ -151,6 +154,7 @@ export function encodeDevoteeToken(payload: DevoteeTokenPayload): string {
       ...(rawDob ? { dob: rawDob } : {}),
       ...(rawTob ? { tob: rawTob } : {}),
       ...(rawPhone ? { ph: rawPhone } : {}),
+      ...(rawStartDate ? { sd: rawStartDate } : {}),
       ...(rawOverrideContact ? { ocp: 1 } : {})
     };
 
@@ -280,6 +284,7 @@ export function decodeDevoteeToken(token: string): (DevoteeTokenPayload & {
     const locationName = parsed.loc || parsed.lobhr || parsed.locationName || parsed.location || "Gokarna";
     const dob = parsed.dob || undefined;
     const tob = parsed.tob || undefined;
+    const startDate = parsed.sd || parsed.startDate || undefined;
     const days = typeof parsed.dy === "number" && parsed.dy > 0 ? parsed.dy : (typeof parsed.days === "number" && parsed.days > 0 ? parsed.days : 90);
     const phone = parsed.ph || parsed.phone || undefined;
     const overrideCalendarPhone = Boolean(parsed.ocp || parsed.overrideCalendarPhone);
@@ -297,6 +302,8 @@ export function decodeDevoteeToken(token: string): (DevoteeTokenPayload & {
       p: pandit,
       date,
       d: date,
+      startDate,
+      sd: startDate,
       days,
       dy: days,
       lang,

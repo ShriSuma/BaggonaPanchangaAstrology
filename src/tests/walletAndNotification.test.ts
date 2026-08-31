@@ -60,7 +60,7 @@ describe("Priest Wallet & Coining Math Engine", () => {
     expect(SERVICE_COIN_COSTS.KUNDLI_CALCULATION.coins).toBe(500);
     expect(SERVICE_COIN_COSTS.ASTROLOGY_QUESTION.coins).toBe(500);
     expect(SERVICE_COIN_COSTS.AI_PRASHNA_QUESTION.coins).toBe(50);
-    expect(SERVICE_COIN_COSTS.SANKHYA_PRASHNA.coins).toBe(500);
+    expect(SERVICE_COIN_COSTS.SANKHYA_PRASHNA.coins).toBe(200);
     expect(SERVICE_COIN_COSTS.KAALA_DIKSUCHI_QUESTION.coins).toBe(200);
     expect(SERVICE_COIN_COSTS.PURVA_JANMA_QUESTION.coins).toBe(200);
     expect(SERVICE_COIN_COSTS.VAHANA_MUHURTHA.coins).toBe(500);

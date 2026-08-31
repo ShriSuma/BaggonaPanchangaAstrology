@@ -122,14 +122,6 @@ export default function App(): JSX.Element {
     return <DailyDarshanaPage />;
   }
 
-  if (isPriestPortalRoute) {
-    return (
-      <ErrorBoundary>
-        <PriestDashboard />
-      </ErrorBoundary>
-    );
-  }
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center text-amber-300">
@@ -146,6 +138,14 @@ export default function App(): JSX.Element {
 
   if (!isAuthenticated) {
     return <LoginPage />;
+  }
+
+  if (isPriestPortalRoute) {
+    return (
+      <ErrorBoundary>
+        <PriestDashboard />
+      </ErrorBoundary>
+    );
   }
 
   return (

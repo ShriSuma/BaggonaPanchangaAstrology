@@ -59,16 +59,24 @@ export const CoinDeductionModal: React.FC<CoinDeductionModalProps> = ({
     }
   };
 
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+
   if (!isOpen) return null;
 
   const handleProceed = async () => {
+    if (isSubmitting) return;
     if (!isSufficient) {
       handleRefillTrigger();
       handleClose();
       return;
     }
-    await onConfirm();
-    handleClose();
+    setIsSubmitting(true);
+    try {
+      handleClose();
+      await onConfirm();
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

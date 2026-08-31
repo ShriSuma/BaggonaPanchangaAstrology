@@ -94,9 +94,9 @@ export const SERVICE_COIN_COSTS: Record<string, ServiceCost> = {
   SANKHYA_PRASHNA: {
     key: "SANKHYA_PRASHNA",
     name: "Sankhya Shastra Prashna Oracle",
-    coins: 500,
-    inrEquivalent: 50,
-    description: "Vedic number horary divination with Sthira/Chara/Ubhaya & Varna influence (500 Coins / ₹50)"
+    coins: 200,
+    inrEquivalent: 20,
+    description: "Vedic number horary divination with Sthira/Chara/Ubhaya & Varna influence (200 Coins / ₹20)"
   },
   KAALA_DIKSUCHI_QUESTION: {
     key: "KAALA_DIKSUCHI_QUESTION",
@@ -115,16 +115,16 @@ export const SERVICE_COIN_COSTS: Record<string, ServiceCost> = {
   SANKHYA_NAME_SUGGESTION: {
     key: "SANKHYA_NAME_SUGGESTION",
     name: "Sankhya Shastra Lucky Name Suggestion",
-    coins: 500,
-    inrEquivalent: 50,
-    description: "Chaldean/Pythagorean vibration name correction & lucky syllable selection (500 Coins / ₹50)"
+    coins: 200,
+    inrEquivalent: 20,
+    description: "Chaldean/Pythagorean vibration name correction & lucky syllable selection (200 Coins / ₹20)"
   },
   SANKHYA_MOBILE_VEHICLE: {
     key: "SANKHYA_MOBILE_VEHICLE",
     name: "Lucky Mobile & Vehicle Number Suggestion",
-    coins: 500,
-    inrEquivalent: 50,
-    description: "Lucky sum total calculation for phone numbers and vehicle registration plates (500 Coins / ₹50)"
+    coins: 200,
+    inrEquivalent: 20,
+    description: "Lucky sum total calculation for phone numbers and vehicle registration plates (200 Coins / ₹20)"
   },
   VAHANA_MUHURTHA: {
     key: "VAHANA_MUHURTHA",

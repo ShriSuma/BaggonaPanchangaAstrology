@@ -181,6 +181,14 @@ export default defineConfig(({ mode }) => {
               chunks.push(chunk as Buffer);
             }
             const bodyStr = Buffer.concat(chunks).toString("utf8");
+            let parsedBody: any = {};
+            try {
+              parsedBody = bodyStr ? JSON.parse(bodyStr) : {};
+            } catch (e) {
+              parsedBody = bodyStr;
+            }
+            (req as any).body = parsedBody;
+
             if (env.RESEND_API_KEY) process.env.RESEND_API_KEY = env.RESEND_API_KEY;
             if (env.BREVO_API_KEY) process.env.BREVO_API_KEY = env.BREVO_API_KEY;
 

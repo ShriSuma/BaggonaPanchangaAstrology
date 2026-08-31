@@ -3,14 +3,16 @@ import {
   getTodayAiQuotaUsage,
   recordAiCallUsage,
   updateDailyAiQuotaLimit,
+  resetTodayAiQuotaUsageForTest,
   DEFAULT_DAILY_AI_LIMIT
 } from "../features/ai/aiTelemetryService";
 import { renderLowAiQuotaAlertEmail } from "../features/notifications/emailTemplates";
 
 describe("AI Telemetry & Super Admin Quota Sentinel", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     localStorage.clear();
     vi.clearAllMocks();
+    await resetTodayAiQuotaUsageForTest();
   });
 
   it("initializes today's quota with default limit and zero usage", async () => {
