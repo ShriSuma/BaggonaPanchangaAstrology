@@ -258,28 +258,34 @@ export const PersonalGoldenHourWidget: React.FC<PersonalGoldenHourWidgetProps> =
       </div>
 
       {/* Golden Window Time Strip */}
-      <div className="p-4 sm:p-5 bg-black/40 rounded-2xl border-2 border-amber-500/40 flex flex-col lg:flex-row items-center justify-between gap-4 shadow-inner w-full box-border">
-        <div className="text-center lg:text-left space-y-1 w-full lg:w-auto">
-          <div className="text-xs font-black text-[#FDE68A] uppercase tracking-wider">
-            ಅಮೃತ ಮುಹೂರ್ತ ಕಾಲಾವಧಿ (Auspicious Window)
+      <div className="p-4 sm:p-5 bg-black/50 rounded-2xl border-2 border-amber-500/40 shadow-inner w-full box-border space-y-4">
+        {/* Top: Time Display & Auspicious Badge */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left border-b border-amber-500/20 pb-3">
+          <div className="space-y-1">
+            <div className="text-xs font-black text-[#FDE68A] uppercase tracking-wider">
+              ಅಮೃತ ಮುಹೂರ್ತ ಕಾಲಾವಧಿ (Auspicious Window)
+            </div>
+            <div className="text-lg sm:text-2xl font-black font-mono text-white flex items-center gap-2 justify-center sm:justify-start">
+              <span className="text-amber-400 font-sans">✦</span>
+              <span>{goldenHour.startTimeStr}</span>
+              <span className="text-xs text-amber-300/70 font-sans">ರಿಂದ</span>
+              <span>{goldenHour.endTimeStr}</span>
+            </div>
           </div>
-          <div className="text-lg sm:text-2xl font-black font-mono text-white flex items-center gap-2 justify-center lg:justify-start">
-            <span className="text-amber-400 font-sans">✦</span>
-            <span>{goldenHour.startTimeStr}</span>
-            <span className="text-xs text-amber-300/70">ರಿಂದ</span>
-            <span>{goldenHour.endTimeStr}</span>
+          <div className="text-xs text-amber-300 font-black bg-amber-950/80 px-3 py-1.5 rounded-xl border border-amber-500/40 shadow-xs">
+            ⏳ ೪೮ ನಿಮಿಷಗಳ ಕಾಲಾವಧಿ
           </div>
         </div>
 
-        {/* Action Buttons: Responsive container that stays perfectly inside box */}
-        <div className="flex flex-col sm:flex-row lg:flex-col gap-2 w-full lg:w-auto shrink-0 max-w-full">
+        {/* Bottom: 2 Action Buttons Side-by-Side (100% inside container, strictly zero overflow) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full box-border">
           <button
             type="button"
             onClick={handlePlayChant}
-            className={`w-full px-4 py-2.5 rounded-xl font-black text-xs border shadow-sm transition-all flex items-center justify-center gap-1.5 ${
+            className={`w-full py-2.5 px-3 rounded-xl font-black text-xs border shadow-sm transition-all flex items-center justify-center gap-2 text-center box-border ${
               isPlayingChant
                 ? "bg-emerald-600 text-white border-emerald-400 animate-pulse"
-                : "bg-amber-900/60 hover:bg-amber-800 text-amber-200 border-amber-400"
+                : "bg-amber-950/90 hover:bg-amber-900 text-amber-200 border-amber-400"
             }`}
           >
             <span>{isPlayingChant ? "🔔 ನುಡಿಯುತ್ತಿದೆ..." : "▶️ ಸಂಕಲ್ಪ ಶ್ರವಣ"}</span>
@@ -288,7 +294,7 @@ export const PersonalGoldenHourWidget: React.FC<PersonalGoldenHourWidgetProps> =
           <button
             type="button"
             onClick={handleDownloadGoldenHourIcs}
-            className="w-full px-4 py-2.5 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all active:scale-95 flex items-center justify-center gap-1.5 border border-amber-300"
+            className="w-full py-2.5 px-3 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 border border-amber-300 text-center box-border"
           >
             <span>{t.addToCalendarBtn}</span>
           </button>
