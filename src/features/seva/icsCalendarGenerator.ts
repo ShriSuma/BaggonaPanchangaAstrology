@@ -19,7 +19,7 @@ import { detectSpecialVrata } from "./specialVrataAlertEngine";
 import { getDetailedTithiInfo, type DetailedTithiInfo } from "../../core/VedicCalculations";
 import { sunTimesSyncForBirth } from "../../core/birthSunTimes";
 import { getUniversalBirthDetails } from "../../utils/universalDevoteeKundli";
-import { getPreviousDayPreparationAlert } from "../../core/PriestCalendarEngine";
+import { getPreviousDayPreparationAlert, generatePriestDayDossier } from "../../core/PriestCalendarEngine";
 import {
   BAND_LABEL_L5,
   COLOUR_L5,
@@ -815,6 +815,7 @@ export interface CalendarGeneratorOptions {
   dob?: string;
   tob?: string;
   aiPanchangaMap?: Record<string, DayPanchangaAiItem>;
+  includePriestCalendar?: boolean;
 }
 
 export function getSafeProductionOrigin(webAppBaseUrl?: string): string {
@@ -1022,6 +1023,9 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
   });
   const sanitizedDevoteeToken = baseToken.replace(/[^a-zA-Z0-9]/g, "").slice(0, 32);
 
+  const scheduledEveAlerts = new Set<string>();
+  const seenVrataDays = new Set<string>();
+
   days.forEach((day, idx) => {
     const ymdCompact = formatYmdCompact(day.ymd);
     const dayUid = `baggona-day-${ymdCompact}-${sanitizedDevoteeToken}@baggona.app`;
@@ -1059,9 +1063,14 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
     const tithiFullStr = tithiLabel(day, lang);
     const nakName = nakshatraName(day.moonNakshatraIndex, lang as SevaLang);
 
-    // Detect Special Vrata (Amavasya, Ekadashi, Sankashti, Purnima, Festivals)
+    // Detect Special Vrata (Amavasya, Ekadashi, Sankashti, Purnima, Festivals) with deduplication
     const vrata = detectSpecialVrata(day.ymd, lang);
-    const summaryPrefix = vrata.isSpecial
+    const isNewVrataDay = vrata.isSpecial && !seenVrataDays.has(`${day.ymd}_${vrata.category}`);
+    if (vrata.isSpecial) {
+      seenVrataDays.add(`${day.ymd}_${vrata.category}`);
+    }
+
+    const summaryPrefix = isNewVrataDay
       ? (vrata.category === "FESTIVAL" ? "🚩 " : "🕉️ ")
       : "";
     const summaryStr = `${summaryPrefix}${vibe.badgeEmoji} ${pakshaStr} - ${tithiOnlyStr} - ${localizedPandit} - ${labels.panchangaTitle}`;
@@ -1103,7 +1112,30 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
       `⭐ ${labels.nakshatraLabel}: ${nakName}`
     ];
 
-    if (vrata.isSpecial) {
+    // Optional Priest Dossier Enrichment if Priest Calendar checkbox is checked
+    let priestPortalUrl = "";
+    if (options.includePriestCalendar) {
+      try {
+        const priestDossier = generatePriestDayDossier(day.ymd, lat, lng, pincode);
+        priestPortalUrl = `${origin}/priest-panchanga?date=${day.ymd}&pincode=${pincode}`;
+        descriptionParts.push("----------------------------------------");
+        descriptionParts.push(`👑 ಪುರೋಹಿತ ಪಂಚಾಂಗ ವಿವರಗಳು (PRIEST DOSSIER)`);
+        descriptionParts.push(`• ಶ್ರಾದ್ಧ ತಿಥಿ: ${priestDossier.shraddhaTithi}`);
+        descriptionParts.push(`• ತಿಥಿ ಅಂತ್ಯ: ${priestDossier.tithiEndTime} | ನಕ್ಷತ್ರ ಅಂತ್ಯ: ${priestDossier.nakshatraEndTime}`);
+        descriptionParts.push(`• ದಿನಪ್ರಮಾಣ: ${priestDossier.dinapramana} (ವಿಷ: ${priestDossier.vishaGhati} | ಅಮೃತ: ${priestDossier.amritaGhati})`);
+        descriptionParts.push(`• ೧೨ ದಿನ ಲಗ್ನ ಅಂತ್ಯಗಳು:`);
+        descriptionParts.push(`  ಮೀನ: ${priestDossier.lagnaEndingTimes.meena} | ಮೇಷ: ${priestDossier.lagnaEndingTimes.mesha} | ವೃಷಭ: ${priestDossier.lagnaEndingTimes.vrishabha} | ಮಿಥುನ: ${priestDossier.lagnaEndingTimes.mithuna}`);
+        descriptionParts.push(`  ಕರ್ಕ: ${priestDossier.lagnaEndingTimes.karkataka} | ಸಿಂಹ: ${priestDossier.lagnaEndingTimes.simha} | ಕನ್ಯಾ: ${priestDossier.lagnaEndingTimes.kanya} | ತುಲಾ: ${priestDossier.lagnaEndingTimes.tula}`);
+        descriptionParts.push(`  ವೃಶ್ಚಿಕ: ${priestDossier.lagnaEndingTimes.vrischika} | ಧನು: ${priestDossier.lagnaEndingTimes.dhanu} | ಮಕರ: ${priestDossier.lagnaEndingTimes.makara} | ಕುಂಭ: ${priestDossier.lagnaEndingTimes.kumbha}`);
+        if (priestDossier.priestDutyNotes && priestDossier.priestDutyNotes.length > 0) {
+          descriptionParts.push(`• ಕರ್ಮಾನುಷ್ಠಾನ ಮುಹೂರ್ತ: ${priestDossier.priestDutyNotes[0]}`);
+        }
+      } catch (err) {
+        console.warn("[ICSCalendarGenerator] Priest dossier generation warning:", err);
+      }
+    }
+
+    if (vrata.isSpecial && isNewVrataDay) {
       const fastingLabel = lang === "kn" ? "ಉಪವಾಸ ನಿಯಮ" : lang === "hi" ? "उपवास नियम" : lang === "te" ? "ఉపవాస నిబంధనలు" : lang === "ta" ? "விரத விதிமுறை" : "Fasting Advice";
       const specialMantraLabel = lang === "kn" ? "ವಿಶೇಷ ಮಂತ್ರ" : lang === "hi" ? "विशेष मंत्र" : lang === "te" ? "ప్రత్యేక మంత్రం" : lang === "ta" ? "சிறப்பு மந்திரம்" : "Special Mantra";
 
@@ -1143,7 +1175,18 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
       `📜 ${labels.mantraLabel}: ${deity.mantra}`,
       "----------------------------------------",
       `🌐 ${labels.visitLabel}`,
-      `${sanctumUrl}`,
+      `${sanctumUrl}`
+    );
+
+    if (priestPortalUrl) {
+      descriptionParts.push(
+        "----------------------------------------",
+        `👑 ಪುರೋಹಿತ ಲೈವ್ ಪೋರ್ಟಲ್:`,
+        `${priestPortalUrl}`
+      );
+    }
+
+    descriptionParts.push(
       "----------------------------------------",
       closingBlessing
     );
@@ -1210,16 +1253,20 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
     lines.push(...eventLines);
 
     // If day is a Special Vrata (Amavasya, Ekadashi, Sankashti, Purnima, Festival),
-    // add 1-Day Prior Previous Evening Eve Alert Event at 20:00 (8:00 PM IST)
-    if (vrata.isSpecial) {
+    // add EXACTLY ONE 1-Day Prior Previous Evening Eve Alert Event at 20:00 (8:00 PM IST)
+    if (vrata.isSpecial && isNewVrataDay) {
       const prevDate = new Date(new Date(day.ymd).getTime() - 86400000);
       const prevYmd = prevDate.toISOString().slice(0, 10);
       const prevYmdCompact = formatYmdCompact(prevYmd);
-      const eveUid = `baggona-eve-${prevYmdCompact}-${sanitizedDevoteeToken}@baggona.app`;
-      const eveDtStart = `${prevYmdCompact}T200000`; // 8:00 PM previous evening
-      const eveDtEnd = `${prevYmdCompact}T203000`;   // 8:30 PM IST
+      const eveKey = `${prevYmdCompact}_${vrata.category}_${vrata.vrataName}`;
 
-      const eveLines: string[] = [
+      if (!scheduledEveAlerts.has(eveKey)) {
+        scheduledEveAlerts.add(eveKey);
+        const eveUid = `baggona-eve-${prevYmdCompact}-${sanitizedDevoteeToken}@baggona.app`;
+        const eveDtStart = `${prevYmdCompact}T200000`; // 8:00 PM previous evening
+        const eveDtEnd = `${prevYmdCompact}T203000`;   // 8:30 PM IST
+
+        const eveLines: string[] = [
         "BEGIN:VEVENT",
         `UID:${eveUid}`,
         `RELATED-TO;RELTYPE=PARENT:baggona-series-${sanitizedDevoteeToken}@baggona.app`,
@@ -1253,7 +1300,8 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
         "END:VALARM",
         "END:VEVENT"
       ];
-      lines.push(...eveLines);
+        lines.push(...eveLines);
+      }
     }
   });
 
@@ -1283,6 +1331,7 @@ export function generateGoogleCalendarUrl(options: {
   dob?: string;
   tob?: string;
   aiPanchangaMap?: Record<string, DayPanchangaAiItem>;
+  includePriestCalendar?: boolean;
 }): string {
   const {
     day: singleDay,

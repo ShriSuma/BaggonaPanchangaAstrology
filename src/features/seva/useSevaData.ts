@@ -21,6 +21,7 @@ export type SevaData = {
   placeLabel: string;
   birthDateYmd: string;
   birthTimeHm: string;
+  includePriestCalendar?: boolean;
 };
 
 /**
@@ -91,7 +92,8 @@ export const useSevaData = (): { data: SevaData | null; loading: boolean } => {
           gotra: session.input.gothra?.trim() || "",
           placeLabel: session.placeLabel || session.homePlaceName || "",
           birthDateYmd: session.birthDateYmd,
-          birthTimeHm: session.birthTimeHm
+          birthTimeHm: session.birthTimeHm,
+          includePriestCalendar: session.includePriestCalendar
         });
       } catch {
         if (!cancelled) setData(null);

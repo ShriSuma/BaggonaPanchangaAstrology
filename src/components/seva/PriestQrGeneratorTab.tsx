@@ -37,6 +37,7 @@ export default function PriestQrGeneratorTab({
   const [priestsList, setPriestsList] = useState<PriestProfile[]>(() => getAllPriests());
   const [selectedPriestId, setSelectedPriestId] = useState<string>("shreeram-pandit");
   const [durationDays, setDurationDays] = useState<number>(30); // Default 30 Days (1 Month)
+  const [includePriestCalendar, setIncludePriestCalendar] = useState<boolean>(false);
 
   // Direct Editable Priest Name & Phone state
   const [customPriestName, setCustomPriestName] = useState<string>("");
@@ -154,7 +155,8 @@ export default function PriestQrGeneratorTab({
       dob: identity.dob,
       tob: identity.tob,
       phone: resolvedPriestPhone,
-      overrideCalendarPhone: overridePriestContact
+      overrideCalendarPhone: overridePriestContact,
+      includePriestCalendar: includePriestCalendar
     });
 
     const payloadUrl = `${origin}/daily?token=${token}&action=ics`;
@@ -172,7 +174,7 @@ export default function PriestQrGeneratorTab({
       .catch((err) => {
         console.error("QR Generation error:", err);
       });
-  }, [durationDays, resolvedPriestName, resolvedPriestPhone, overridePriestContact, identity, selectedLang]);
+  }, [durationDays, resolvedPriestName, resolvedPriestPhone, overridePriestContact, identity, selectedLang, includePriestCalendar]);
 
   const handleAddPriest = () => {
     if (newPriestName.trim()) {
@@ -495,6 +497,26 @@ export default function PriestQrGeneratorTab({
                 : `Each of the ${durationDays} days Panchanga is computed individually with zero repeated data.`}
             </p>
           </div>
+
+          {/* Priest Calendar Checkbox (Unchecked by default) */}
+          <label className="flex items-start gap-3 p-3.5 mt-3 rounded-2xl border-2 border-amber-400 bg-amber-50/80 cursor-pointer shadow-xs hover:bg-amber-100/80 transition">
+            <input
+              type="checkbox"
+              checked={includePriestCalendar}
+              onChange={(e) => setIncludePriestCalendar(e.target.checked)}
+              className="mt-0.5 w-4 h-4 rounded text-amber-700 focus:ring-amber-500 border-amber-400"
+            />
+            <div className="text-left flex-1">
+              <span className="block text-xs font-black text-amber-950">
+                👑 {isKn ? "ಪುರೋಹಿತರ ವಿಶೇಷ ಪಂಚಾಂಗ ಸೇರಿಸಿ (Include Priest Calendar & Detailed Muhurtha Timings)" : "Include Priest Calendar & Detailed Muhurtha Timings"}
+              </span>
+              <span className="block text-[11px] leading-snug text-amber-900/80 mt-0.5">
+                {isKn
+                  ? `೧೨ ದಿನ ಲಗ್ನ ಅಂತ್ಯ ಸಮಯಗಳು, ತಿಥಿ-ನಕ್ಷತ್ರ ಅಂತ್ಯ ಕಾಲಾವಧಿ, ಶ್ರಾದ್ಧ ತಿಥಿ, ಎನರ್ಜಿ ಮೀಟರ್ ಮತ್ತು ಕರ್ಮಾನುಷ್ಠಾನ ಮುಹೂರ್ತಗಳನ್ನು ಈ QR ಕೋಡ್‌ನಲ್ಲಿ ಸೇರಿಸುತ್ತದೆ.`
+                  : "Includes 12 Dina Lagna ending times, Tithi/Nakshatra transition timings, Shraddha tithi, energy meter, and priest duty reminders."}
+              </span>
+            </div>
+          </label>
         </Card>
       </div>
 

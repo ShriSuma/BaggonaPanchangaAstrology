@@ -51,6 +51,7 @@ export default function SevaCalendarSyncModal({
   const isSuperAdmin = role === "superadmin" || currentUser === "$hriSuma" || currentUser === "superadmin";
 
   const [calendarMode, setCalendarMode] = useState<"devotee" | "priest">("devotee");
+  const [includePriestCalendar, setIncludePriestCalendar] = useState<boolean>(false);
   const [calendarSpanDays, setCalendarSpanDays] = useState<number>(90);
   const [target, setTarget] = useState<QrCalendarTarget>("google");
   const [platform, setPlatform] = useState<"android" | "apple">("android");
@@ -274,7 +275,9 @@ export default function SevaCalendarSyncModal({
             lng,
             locationName,
             dob: activeDob,
-            tob: activeTob
+            tob: activeTob,
+            includePriestCalendar: includePriestCalendar || (calendarMode as string) === "priest",
+            daysCount: calendarSpanDays
           });
 
       QRCode.toDataURL(payload, {
@@ -321,7 +324,8 @@ export default function SevaCalendarSyncModal({
           webAppBaseUrl: origin
         })
       : generateSevaICalendarString({
-          days,
+          days: (days && days.length >= calendarSpanDays) ? days.slice(0, calendarSpanDays) : days,
+          daysCount: calendarSpanDays,
           lang,
           panditName,
           notificationTime,
@@ -331,7 +335,8 @@ export default function SevaCalendarSyncModal({
           lat,
           lng,
           locationName,
-          aiPanchangaMap
+          aiPanchangaMap,
+          includePriestCalendar: includePriestCalendar || (calendarMode as string) === "priest"
         });
 
     const safePujari = (panditName || "Sri_Chaitanya_Pandit").replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "");
@@ -377,7 +382,8 @@ export default function SevaCalendarSyncModal({
       lat,
       lng,
       locationName,
-      aiPanchangaMap
+      aiPanchangaMap,
+      includePriestCalendar: includePriestCalendar || (calendarMode as string) === "priest"
     });
     window.open(url, "_blank");
   };
@@ -395,7 +401,8 @@ export default function SevaCalendarSyncModal({
           webAppBaseUrl: origin
         })
       : generateSevaICalendarString({
-          days,
+          days: (days && days.length >= calendarSpanDays) ? days.slice(0, calendarSpanDays) : days,
+          daysCount: calendarSpanDays,
           lang,
           panditName,
           notificationTime,
@@ -404,7 +411,8 @@ export default function SevaCalendarSyncModal({
           lat,
           lng,
           locationName,
-          aiPanchangaMap
+          aiPanchangaMap,
+          includePriestCalendar: includePriestCalendar || (calendarMode as string) === "priest"
         });
     const dataUri = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsContent)}`;
     navigator.clipboard.writeText(dataUri);
@@ -470,6 +478,66 @@ export default function SevaCalendarSyncModal({
         </div>
 
         <div className="mt-5 space-y-4">
+          {/* Calendar Duration Span Selector (1M, 3M, 6M, 12M) */}
+          <div className="p-3 bg-amber-50/80 border border-amber-300 rounded-2xl space-y-2 shadow-xs">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-black text-amber-950">
+                📅 {lang.startsWith("kn") ? "ಕ್ಯಾಲೆಂಡರ್ ಅವಧಿ ಆಯ್ಕೆ (Duration):" : "Calendar Duration:"}
+              </label>
+              <span className="text-[11px] font-bold text-amber-800">
+                {calendarSpanDays} {lang.startsWith("kn") ? "ದಿನಗಳು" : "Days"}
+              </span>
+            </div>
+            <div className="grid grid-cols-4 gap-1.5">
+              {[
+                { days: 30, label: "೧ ತಿಂಗಳು (30D)" },
+                { days: 90, label: "೩ ತಿಂಗಳು (90D)" },
+                { days: 180, label: "೬ ತಿಂಗಳು (180D)" },
+                { days: 365, label: "೧ ವರ್ಷ (365D)" }
+              ].map((item) => (
+                <button
+                  key={item.days}
+                  type="button"
+                  onClick={() => setCalendarSpanDays(item.days)}
+                  className={`py-2 rounded-xl text-[11px] font-black border transition-all ${
+                    calendarSpanDays === item.days
+                      ? "bg-amber-700 text-white border-amber-800 shadow-xs"
+                      : "bg-white text-amber-950 border-amber-200 hover:bg-amber-100"
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Priest Calendar Checkbox (Unchecked by default) */}
+          <label className="flex items-start gap-3 p-3.5 rounded-2xl border-2 border-amber-400 bg-[#FFFDF7] cursor-pointer shadow-xs hover:bg-amber-50/90 transition">
+            <input
+              type="checkbox"
+              checked={includePriestCalendar || calendarMode === "priest"}
+              onChange={(e) => {
+                setIncludePriestCalendar(e.target.checked);
+                if (e.target.checked && isSuperAdmin) {
+                  setCalendarMode("priest");
+                } else if (!e.target.checked) {
+                  setCalendarMode("devotee");
+                }
+              }}
+              className="mt-0.5 w-4 h-4 rounded text-amber-700 focus:ring-amber-500 border-amber-400"
+            />
+            <div className="text-left flex-1">
+              <span className="block text-xs font-black text-amber-950">
+                👑 {lang.startsWith("kn") ? "ಪುರೋಹಿತರ ವಿಶೇಷ ಪಂಚಾಂಗ ಸೇರಿಸಿ (Include Priest Calendar & Detailed Muhurtha Timings)" : "Include Priest Calendar & Detailed Muhurtha Timings"}
+              </span>
+              <span className="block text-[11px] leading-snug text-amber-900/80 mt-0.5">
+                {lang.startsWith("kn")
+                  ? "೧೨ ದಿನ ಲಗ್ನ ಅಂತ್ಯ ಸಮಯಗಳು, ತಿಥಿ-ನಕ್ಷತ್ರ ಅಂತ್ಯ ವಿವರ, ಶ್ರಾದ್ಧ ತಿಥಿ, ಎನರ್ಜಿ ಮೀಟರ್ ಮತ್ತು ಕರ್ಮಾನುಷ್ಠಾನ ಮುಹೂರ್ತಗಳನ್ನು ಕ್ಯಾಲೆಂಡರ್‌ನಲ್ಲಿ ಸೇರಿಸುತ್ತದೆ."
+                  : "Includes 12 Dina Lagna ending times, Tithi/Nakshatra transition timings, Shraddha tithi, energy meter, and priest duty reminders."}
+              </span>
+            </div>
+          </label>
+
           {/* Calendar Type Segmented Switch: ONLY FOR SUPERADMIN */}
           {isSuperAdmin && (
             <div className="flex items-center gap-2 p-1.5 bg-amber-200/70 border-2 border-amber-400 rounded-2xl shadow-xs">

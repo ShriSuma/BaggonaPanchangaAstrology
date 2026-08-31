@@ -79,6 +79,7 @@ export default function KundliPage(): JSX.Element {
   const [isTranslating, setIsTranslating] = useState(false);
   const [dynamicValues, setDynamicValues] = useState<Record<string, string>>({});
   const [isGeneratingDashaPdf, setIsGeneratingDashaPdf] = useState(false);
+  const [includePriestCalendar, setIncludePriestCalendar] = useState(false);
   const [form, setForm] = useState<KundliInput>({
     name: "",
     birthDate: "",
@@ -404,7 +405,8 @@ export default function KundliPage(): JSX.Element {
       homePlaceName,
       placeLabel: homePlaceName.trim() ? `${homePlaceName.trim()} · ${locationCore}` : locationCore,
       dasha: dashaTimeline,
-      dailyPrediction: predText
+      dailyPrediction: predText,
+      includePriestCalendar
     });
     try {
       localStorage.setItem("baggona_kundli_session", JSON.stringify({
@@ -415,7 +417,8 @@ export default function KundliPage(): JSX.Element {
         rashiIndex: output.planets.find(p => p.name === "Moon")?.rashi.index,
         pincode: form.pincode,
         latitude: form.latitude,
-        longitude: form.longitude
+        longitude: form.longitude,
+        includePriestCalendar
       }));
     } catch {
       // Ignore
@@ -762,6 +765,29 @@ export default function KundliPage(): JSX.Element {
             }}
           />
           {error && <p className="mt-2 text-sm text-red-700">{error}</p>}
+
+          {/* Priest Calendar Integration Checkbox (Unchecked by default) */}
+          <div className="mt-4 flex items-center justify-center">
+            <label className="flex items-start gap-3 p-3.5 max-w-xl w-full rounded-2xl border-2 border-amber-400 bg-amber-50/80 cursor-pointer shadow-xs hover:bg-amber-100/80 transition">
+              <input
+                type="checkbox"
+                checked={includePriestCalendar}
+                onChange={(e) => setIncludePriestCalendar(e.target.checked)}
+                className="mt-0.5 w-4 h-4 rounded text-amber-700 focus:ring-amber-500 border-amber-400"
+              />
+              <div className="text-left flex-1">
+                <span className="block text-xs font-black text-amber-950">
+                  👑 {i18n.language.startsWith("kn") ? "ಪುರೋಹಿತರ ವಿಶೇಷ ಪಂಚಾಂಗ ಸೇರಿಸಿ (Include Priest Calendar & Detailed Muhurtha Timings)" : "Include Priest Calendar & Detailed Muhurtha Timings"}
+                </span>
+                <span className="block text-[11px] leading-snug text-amber-900/80 mt-0.5">
+                  {i18n.language.startsWith("kn")
+                    ? "೧೨ ದಿನ ಲಗ್ನ ಅಂತ್ಯ ಸಮಯಗಳು, ತಿಥಿ-ನಕ್ಷತ್ರ ಅಂತ್ಯ ಕಾಲಾವಧಿ, ಶ್ರಾದ್ಧ ತಿಥಿ, ಎನರ್ಜಿ ಮೀಟರ್ ಮತ್ತು ಕರ್ಮಾನುಷ್ಠಾನ ಮುಹೂರ್ತಗಳನ್ನು ಕ್ಯಾಲೆಂಡರ್ ಹಾಗೂ ಸೇವಾ ಪತ್ರದಲ್ಲಿ ಸೇರಿಸುತ್ತದೆ."
+                    : "Integrates 12 Dina Lagna ending times, Tithi/Nakshatra transition timings, Shraddha tithi, energy meter, and priest duty reminders into Calendar and Seva."}
+                </span>
+              </div>
+            </label>
+          </div>
+
           <div className="mt-4 flex justify-center">
             <button
               type="button"

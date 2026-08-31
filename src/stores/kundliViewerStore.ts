@@ -12,6 +12,7 @@ export type KundliViewerSession = {
   placeLabel: string;
   dasha: DashaEntry[];
   dailyPrediction: string;
+  includePriestCalendar?: boolean;
 };
 
 type KundliViewerState = {

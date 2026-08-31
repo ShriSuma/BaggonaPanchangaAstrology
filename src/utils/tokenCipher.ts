@@ -54,6 +54,8 @@ export interface DevoteeTokenPayload {
   ocp?: boolean | number;
   voiceId?: string;
   vid?: string;
+  includePriestCalendar?: boolean;
+  ipc?: boolean | number;
 }
 
 const TOKEN_PREFIX = "bgn_v1_";
