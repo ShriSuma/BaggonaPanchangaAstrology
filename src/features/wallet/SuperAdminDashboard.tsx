@@ -789,12 +789,15 @@ export const SuperAdminDashboard: React.FC = () => {
         });
       }
 
-      // 2. Sync to Cloud Firestore Users Collection
-      void syncUserProfile({
+      // 2. Sync to Cloud Firestore Users Collection WITH passwordHash and mustResetPassword
+      await syncUserProfile({
         id: cleanUsername,
         username: cleanUsername,
         name: newPriestName.trim(),
         role: "priest",
+        passwordHash: hashedPassword,
+        mustResetPassword: true,
+        firstTimeSetupCompleted: false,
         allowedModules: modulesToAssign,
         createdAt: new Date().toISOString()
       });
@@ -1684,7 +1687,7 @@ export const SuperAdminDashboard: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Unified Link Box */}
+                {/* Unified Link Box & Action Buttons */}
                 <div className="p-3.5 bg-[#FFFDF7] border-2 border-amber-400 rounded-2xl space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-black text-amber-950 flex items-center gap-1.5">
@@ -1695,12 +1698,12 @@ export const SuperAdminDashboard: React.FC = () => {
                       type="button"
                       onClick={() => {
                         navigator.clipboard.writeText(createdPriestResult.unifiedUrl);
-                        setFeedback({ type: "success", text: "ಏಕೀಕೃತ ಪ್ರವೇಶ ಲಿಂಕ್ ಯಶಸ್ವಿಯಾಗಿ ನಕಲಿಸಲಾಗಿದೆ (Copied)!" });
+                        setFeedback({ type: "success", text: "ಏಕೀಕೃತ ಪ್ರವೇಶ ಲಿಂಕ್ ಯಶಸ್ವಿಯಾಗಿ ನಕಲಿಸಲಾಗಿದೆ (Copied Link)!" });
                       }}
                       className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-lg shadow-sm flex items-center gap-1 active:scale-95 transition"
                     >
-                      <span>📋</span>
-                      <span>ಲಿಂಕ್ ಕಾಪಿ ಮಾಡಿ (Copy Link)</span>
+                      <span>🔗</span>
+                      <span>ಲಿಂಕ್ ಮಾತ್ರ ಕಾಪಿ</span>
                     </button>
                   </div>
                   <input
@@ -1711,33 +1714,72 @@ export const SuperAdminDashboard: React.FC = () => {
                   />
                 </div>
 
-                {/* WhatsApp Share Button */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    const modulesLabels = createdPriestResult.allowedModules
-                      .map((mKey) => {
-                        const cfg = AVAILABLE_MODULES.find((m) => m.key === mKey);
-                        return `• ${cfg?.icon || "✨"} ${cfg?.kannadaLabel || mKey}`;
-                      })
-                      .join("\n");
+                {/* Primary Action Buttons */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  {/* Copy Full Credentials & Link */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const modulesLabels = createdPriestResult.allowedModules
+                        .map((mKey) => {
+                          const cfg = AVAILABLE_MODULES.find((m) => m.key === mKey);
+                          return `• ${cfg?.icon || "✨"} ${cfg?.kannadaLabel || mKey}`;
+                        })
+                        .join("\n");
 
-                    const message = encodeURIComponent(
-                      `ನಮಸ್ಕಾರ ${createdPriestResult.name} ಅವರೇ,\n\n` +
-                      `ನಿಮಗೆ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಮತ್ತು ಜ್ಯೋತಿಷ್ಯ ತಂತ್ರಾಂಶದ ವಿಶೇಷ ಆಹ್ವಾನ ಕಳುಹಿಸಲಾಗಿದೆ.\n\n` +
-                      `👤 ಯೂಸರ್‌ನೇಮ್: ${createdPriestResult.username}\n` +
-                      `🔑 ಪಾಸ್‌ವರ್ಡ್: ${createdPriestResult.password}\n\n` +
-                      `🛡️ ನಿಮ್ಮ ಸಕ್ರಿಯ ಸೌಲಭ್ಯಗಳು:\n${modulesLabels}\n\n` +
-                      `🔗 ನಿಮ್ಮ ಏಕೈಕ ಪ್ರವೇಶ ಲಿಂಕ್ (Single Unified Access Link):\n${createdPriestResult.unifiedUrl}\n\n` +
-                      `॥ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ · ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ॥`
-                    );
-                    window.open(`https://api.whatsapp.com/send?text=${message}`, "_blank");
-                  }}
-                  className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs sm:text-sm rounded-2xl flex items-center justify-center gap-2 shadow-md transition-all active:scale-95"
-                >
-                  <span>📲</span>
-                  <span>WhatsApp ಮೂಲಕ ಯೂಸರ್‌ನೇಮ್, ಪಾಸ್‌ವರ್ಡ್ & ಏಕೀಕೃತ ಲಿಂಕ್ ಕಳುಹಿಸಿ (Share via WhatsApp)</span>
-                </button>
+                      const fullMessage =
+                        `🕉️ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ & ಜ್ಯೋತಿಷ್ಯ ಪೋರ್ಟಲ್ 🕉️\n\n` +
+                        `ನಮಸ್ಕಾರ ${createdPriestResult.name} ಅವರೇ,\n` +
+                        `ತಮಗೆ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ವೇದಿಕೆಗೆ ಆದರದ ಸ್ವಾಗತ. ತಮಗಾಗಿ ಸಕ್ರಿಯಗೊಳಿಸಲಾದ ಜ್ಯೋತಿಷ್ಯ ಪೋರ್ಟಲ್ ಸಿದ್ಧವಾಗಿದೆ.\n\n` +
+                        `👤 ಬಳಕೆದಾರರ ಹೆಸರು (Username): ${createdPriestResult.username}\n` +
+                        `🔑 ಆರಂಭಿಕ ಪಾಸ್‌ವರ್ಡ್ (Initial Password): ${createdPriestResult.password}\n\n` +
+                        `🛡️ ಸಕ್ರಿಯ ಸೌಲಭ್ಯಗಳು:\n${modulesLabels}\n\n` +
+                        `🔗 ನಿಮ್ಮ ನೇರ ಪ್ರವೇಶ ಲಿಂಕ್ (Portal Link):\n${createdPriestResult.unifiedUrl}\n\n` +
+                        `👉 ಸೂಚನೆ: ಮೇಲಿನ ಲಿಂಕ್ ತೆರೆದು ಆರಂಭಿಕ ಪಾಸ್‌ವರ್ಡ್‌ನೊಂದಿಗೆ ಲಾಗಿನ್ ಆದ ತಕ್ಷಣ, ನಿಮ್ಮದೇ ಆದ ಹೊಸ ಶಾಶ್ವತ ಪಾಸ್‌ವರ್ಡ್ ಅನ್ನು ರಚಿಸಿಕೊಳ್ಳಿ.\n\n` +
+                        `॥ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ · ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ॥`;
+
+                      navigator.clipboard.writeText(fullMessage);
+                      setFeedback({
+                        type: "success",
+                        text: "ಪುರೋಹಿತರ ಯೂಸರ್‌ನೇಮ್, ಪಾಸ್‌ವರ್ಡ್ & ಪೋರ್ಟಲ್ ಲಿಂಕ್ ನಕಲಿಸಲಾಗಿದೆ (Copied All Credentials)!"
+                      });
+                    }}
+                    className="w-full py-3 bg-amber-600 hover:bg-amber-500 text-slate-950 font-black text-xs sm:text-sm rounded-2xl flex items-center justify-center gap-2 shadow-md transition-all active:scale-95 border border-amber-400"
+                  >
+                    <span>📋</span>
+                    <span>ವಿವರ & ಲಿಂಕ್ ಕಾಪಿ ಮಾಡಿ (Copy All Details)</span>
+                  </button>
+
+                  {/* WhatsApp Share Button */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const modulesLabels = createdPriestResult.allowedModules
+                        .map((mKey) => {
+                          const cfg = AVAILABLE_MODULES.find((m) => m.key === mKey);
+                          return `• ${cfg?.icon || "✨"} ${cfg?.kannadaLabel || mKey}`;
+                        })
+                        .join("\n");
+
+                      const message = encodeURIComponent(
+                        `🕉️ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ & ಜ್ಯೋತಿಷ್ಯ ಪೋರ್ಟಲ್ 🕉️\n\n` +
+                        `ನಮಸ್ಕಾರ ${createdPriestResult.name} ಅವರೇ,\n` +
+                        `ತಮಗೆ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ವೇದಿಕೆಗೆ ಆದರದ ಸ್ವಾಗತ. ತಮಗಾಗಿ ಸಕ್ರಿಯಗೊಳಿಸಲಾದ ಜ್ಯೋತಿಷ್ಯ ಪೋರ್ಟಲ್ ಸಿದ್ಧವಾಗಿದೆ.\n\n` +
+                        `👤 ಬಳಕೆದಾರರ ಹೆಸರು (Username): ${createdPriestResult.username}\n` +
+                        `🔑 ಆರಂಭಿಕ ಪಾಸ್‌ವರ್ಡ್ (Initial Password): ${createdPriestResult.password}\n\n` +
+                        `🛡️ ಸಕ್ರಿಯ ಸೌಲಭ್ಯಗಳು:\n${modulesLabels}\n\n` +
+                        `🔗 ನಿಮ್ಮ ನೇರ ಪ್ರವೇಶ ಲಿಂಕ್ (Portal Link):\n${createdPriestResult.unifiedUrl}\n\n` +
+                        `👉 ಸೂಚನೆ: ಮೇಲಿನ ಲಿಂಕ್ ತೆರೆದು ಆರಂಭಿಕ ಪಾಸ್‌ವರ್ಡ್‌ನೊಂದಿಗೆ ಲಾಗಿನ್ ಆದ ತಕ್ಷಣ, ನಿಮ್ಮದೇ ಆದ ಹೊಸ ಶಾಶ್ವತ ಪಾಸ್‌ವರ್ಡ್ ರಚಿಸಿಕೊಳ್ಳಿ.\n\n` +
+                        `॥ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ · ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ॥`
+                      );
+                      window.open(`https://api.whatsapp.com/send?text=${message}`, "_blank");
+                    }}
+                    className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs sm:text-sm rounded-2xl flex items-center justify-center gap-2 shadow-md transition-all active:scale-95"
+                  >
+                    <span>📲</span>
+                    <span>WhatsApp ಮೂಲಕ ಕಳುಹಿಸಿ</span>
+                  </button>
+                </div>
               </div>
             )}
           </div>

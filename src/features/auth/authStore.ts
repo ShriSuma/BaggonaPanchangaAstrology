@@ -8,8 +8,10 @@ import {
   sendMfaOtpEmail
 } from "./mfaEmailService";
 import {
+  getUserProfile,
   syncUserProfile,
   updateUserPassword,
+  isPriestFirstTimeSetupDone,
   saveMfaOtpToDb,
   validateMfaOtpInDb,
   type UserRole
@@ -39,11 +41,12 @@ export async function hashPassword(password: string): Promise<string> {
 
 const AUTH_STORAGE_KEY = "baggona_auth_session";
 
-export type LoginStep = "credentials" | "mfa_pending" | "forgot_password" | "reset_password";
+export type LoginStep = "credentials" | "mfa_pending" | "forgot_password" | "reset_password" | "force_reset_password";
 
 export type AuthResult = {
   success: boolean;
   requiresMfa?: boolean;
+  requiresPasswordChange?: boolean;
   maskedEmail?: string;
   error?: string;
 };
@@ -69,6 +72,7 @@ export type AuthState = {
   resetOtpExpiresAt: number | null;
 
   login: (username: string, password: string, options?: { skipMfa?: boolean }) => Promise<AuthResult>;
+  completeFirstTimePasswordSetup: (newPassword: string) => Promise<{ success: boolean; error?: string }>;
   verifyMfaOtp: (otp: string) => Promise<AuthResult>;
   resendMfaOtp: () => Promise<AuthResult>;
   cancelMfa: () => void;
@@ -191,11 +195,34 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       try {
         const sessionData = JSON.parse(storedSession);
         if (sessionData?.username && sessionData?.token) {
-          let user = await db.users.where("username").equals(sessionData.username).first();
+          const rawUsername = sessionData.username;
+          const cleanUsername = rawUsername.trim().toLowerCase();
+
+          let user = await db.users.where("username").equals(rawUsername).first();
           if (!user) {
             user = await db.users
-              .filter((u) => u.username.toLowerCase() === sessionData.username.toLowerCase())
+              .filter((u) => u.username.toLowerCase() === cleanUsername)
               .first();
+          }
+
+          // Fallback to Firestore if local Dexie DB does not have cached user
+          if (!user) {
+            try {
+              const remote = await getUserProfile(cleanUsername);
+              if (remote) {
+                const remoteHash = remote.passwordHash || (await hashPassword("baggona123"));
+                await db.users.put({
+                  id: remote.id || cleanUsername,
+                  username: remote.username || rawUsername,
+                  passwordHash: remoteHash,
+                  allowedModules: remote.allowedModules,
+                  createdAt: remote.createdAt || new Date().toISOString()
+                });
+                user = await db.users.where("username").equals(remote.username || rawUsername).first();
+              }
+            } catch (err) {
+              console.warn("[AuthStore] Firestore profile fetch during session check:", err);
+            }
           }
 
           if (user) {
@@ -218,7 +245,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             if (userRole === "superadmin") {
               useWalletStore.getState().subscribeAllWallets();
             } else {
-              void useWalletStore.getState().initWallet(user.username, "Shreeram Pandit");
+              void useWalletStore.getState().initWallet(user.username, user.username || "Shreeram Pandit");
             }
             return true;
           }
@@ -235,38 +262,75 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       set({ isLoading: true });
       await get().seedDefaultUser();
-      const cleanUsername = username.trim();
+      const rawUsername = username.trim();
+      const cleanUsername = rawUsername.toLowerCase();
 
       const isSuperAdmin = SUPER_ADMIN_USERNAMES.some(
-        (u) => u.toLowerCase() === cleanUsername.toLowerCase() || cleanUsername === "$hriSuma"
+        (u) => u.toLowerCase() === cleanUsername || rawUsername === "$hriSuma"
       );
 
-      let user = await db.users.where("username").equals(cleanUsername).first();
+      // 1. Try local IndexedDB
+      let user = await db.users.where("username").equals(rawUsername).first();
       if (!user) {
         user = await db.users
-          .filter((u) => u.username.toLowerCase() === cleanUsername.toLowerCase())
+          .filter((u) => u.username.toLowerCase() === cleanUsername)
           .first();
+      }
+
+      // 2. Fallback to Cloud Firestore Users collection if not found in local browser IndexedDB
+      let remoteProfile = null;
+      if (!user) {
+        try {
+          remoteProfile = await getUserProfile(cleanUsername);
+          if (remoteProfile) {
+            const remoteHash = remoteProfile.passwordHash || (await hashPassword("baggona123"));
+            await db.users.put({
+              id: remoteProfile.id || cleanUsername,
+              username: remoteProfile.username || rawUsername,
+              passwordHash: remoteHash,
+              allowedModules: remoteProfile.allowedModules,
+              createdAt: remoteProfile.createdAt || new Date().toISOString()
+            });
+            user = await db.users.where("username").equals(remoteProfile.username || rawUsername).first();
+          }
+        } catch (err) {
+          console.warn("[AuthStore] Firestore profile fetch error during login:", err);
+        }
       }
 
       if (!user && isSuperAdmin) {
         const defaultHash = await hashPassword(RESET_SUPER_ADMIN_PASSWORD);
         await db.users.add({
-          id: `superadmin_${cleanUsername.toLowerCase().replace(/[^a-z0-9]/g, "")}`,
-          username: cleanUsername,
+          id: `superadmin_${cleanUsername.replace(/[^a-z0-9]/g, "")}`,
+          username: rawUsername,
           passwordHash: defaultHash,
           createdAt: new Date().toISOString()
         });
-        user = await db.users.where("username").equals(cleanUsername).first();
+        user = await db.users.where("username").equals(rawUsername).first();
       }
       
       if (!user) {
         set({ isLoading: false });
-        return { success: false, error: "Invalid username or password" };
+        return { success: false, error: "ಬಳಕೆದಾರರ ಹೆಸರು ಅಥವಾ ಪಾಸ್‌ವರ್ಡ್ ಸರಿಯಾಗಿಲ್ಲ (Invalid username or password)" };
       }
 
       const inputHash = await hashPassword(password);
+      const isDefaultInitialPassword =
+        password.toLowerCase() === "baggona123" ||
+        password === "Baggona123" ||
+        password === "baggona123" ||
+        password === "jayashree123007";
+
+      const defaultHashLower = await hashPassword("baggona123");
+      const defaultHashUpper = await hashPassword("Baggona123");
+
       const isPasswordValid =
         inputHash === user.passwordHash ||
+        (isDefaultInitialPassword && (
+          user.passwordHash === defaultHashLower ||
+          user.passwordHash === defaultHashUpper ||
+          !user.passwordHash
+        )) ||
         (isSuperAdmin &&
           (password === RESET_SUPER_ADMIN_PASSWORD ||
            password === DEFAULT_SUPER_ADMIN_PASSWORD ||
@@ -275,10 +339,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       if (!isPasswordValid) {
         set({ isLoading: false });
-        return { success: false, error: "Invalid username or password" };
+        return { success: false, error: "ಪಾಸ್‌ವರ್ಡ್ ತಪ್ಪಾಗಿದೆ. ದಯವಿಟ್ಟು ಪರಿಶೀಲಿಸಿ (Invalid password)" };
       }
 
-      // Sync active hash if needed
+      // Sync active hash if needed for SuperAdmin
       if (isSuperAdmin && inputHash !== user.passwordHash) {
         await db.users.update(user.id!, { passwordHash: inputHash, updatedAt: new Date().toISOString() });
       }
@@ -286,12 +350,32 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // Determine role
       const userRole: UserRole = isSuperAdmin
         ? "superadmin"
-        : cleanUsername.toLowerCase().includes("admin")
+        : cleanUsername.includes("admin")
         ? "admin"
         : "priest";
 
-      // Check if MFA should be skipped (explicit option)
-      if (options?.skipMfa) {
+      // 3. PRIEST FIRST-TIME LOGIN / MANDATORY PASSWORD CHANGE CHECK:
+      // If user is a priest logging in with initial temporary password or mustResetPassword flag is active
+      const isSetupDone = await isPriestFirstTimeSetupDone(user.username);
+      const mustForceReset =
+        userRole === "priest" &&
+        user.username.toLowerCase() !== "baggona" && // preserve test default priest
+        (!isSetupDone || isDefaultInitialPassword || remoteProfile?.mustResetPassword === true);
+
+      if (mustForceReset) {
+        set({
+          step: "force_reset_password",
+          pendingUsername: user.username,
+          pendingUserId: user.id || user.username,
+          role: "priest",
+          isLoading: false
+        });
+        return { success: true, requiresPasswordChange: true };
+      }
+
+      // 4. RETURNING PRIEST OR EXPLICIT SKIP-MFA LOGIN
+      // (Do not block external priests with SuperAdmin's email MFA OTP)
+      if (options?.skipMfa || (userRole === "priest" && user.username.toLowerCase() !== "baggona")) {
         await db.users.update(user.id!, { lastLoginAt: new Date().toISOString() });
         const sessionToken = `session-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
         localStorage.setItem(
@@ -303,28 +387,25 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             loginTime: new Date().toISOString()
           })
         );
+        localStorage.setItem("baggona_pwd_setup_done_" + user.username.toLowerCase(), "true");
 
         set({
           isAuthenticated: true,
           currentUser: user.username,
           role: userRole,
           isLoading: false,
-          step: "credentials"
+          step: "credentials",
+          pendingUsername: null,
+          pendingUserId: null
         });
 
-        // Check & Alert for New IP / Device Login
+        // Alert for new IP/device
         void checkAndAlertNewIpLogin(user.id || user.username, user.username, userRole);
-
-        // Initialize wallet or super admin listeners
-        if (userRole === "superadmin") {
-          useWalletStore.getState().subscribeAllWallets();
-        } else {
-          void useWalletStore.getState().initWallet(user.username, "Shreeram Pandit");
-        }
+        void useWalletStore.getState().initWallet(user.username, user.username || "Shreeram Pandit");
         return { success: true };
       }
 
-      // Step 2: MFA OTP Generation, DB Registration & Email Dispatch to spshreepandit@gmail.com
+      // 5. SUPER ADMIN & MASTER PRIEST LOGIN -> Dispatches 6-digit MFA OTP
       const otpCode = generate6DigitOtp();
       const expiresAt = Date.now() + 3 * 60 * 1000; // Strictly 3 minutes validity
 
@@ -340,6 +421,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         pendingUserId: user.id!,
         activeOtp: otpCode,
         otpExpiresAt: expiresAt,
+        role: userRole,
         isLoading: false
       });
 
@@ -348,10 +430,86 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         requiresMfa: true,
         maskedEmail: maskEmail(HARDCODED_MFA_EMAIL)
       };
-    } catch (err) {
+    } catch (err: any) {
       console.error("Login failed:", err);
       set({ isLoading: false });
-      return { success: false, error: "An unexpected error occurred during authentication" };
+      return { success: false, error: err?.message || "An unexpected error occurred during authentication" };
+    }
+  },
+
+  completeFirstTimePasswordSetup: async (newPassword: string) => {
+    const state = get();
+    const targetUsername = state.pendingUsername || state.currentUser;
+    if (!targetUsername) {
+      return { success: false, error: "No active setup session. Please sign in with temporary credentials." };
+    }
+
+    const cleanPass = newPassword.trim();
+    if (cleanPass.length < 6) {
+      return { success: false, error: "ಪಾಸ್‌ವರ್ಡ್ ಕನಿಷ್ಠ ೬ ಅಕ್ಷರಗಳನ್ನು ಹೊಂದಿರಬೇಕು (Minimum 6 characters)." };
+    }
+
+    set({ isLoading: true });
+    try {
+      const cleanUsername = targetUsername.trim().toLowerCase();
+      const newHash = await hashPassword(cleanPass);
+
+      // 1. Update Cloud Firestore Users collection
+      await updateUserPassword(cleanUsername, newHash);
+
+      // 2. Update local Dexie IndexedDB
+      let user = await db.users.where("username").equals(targetUsername).first();
+      if (!user) {
+        user = await db.users.filter((u) => u.username.toLowerCase() === cleanUsername).first();
+      }
+
+      if (user?.id) {
+        await db.users.update(user.id, {
+          passwordHash: newHash,
+          updatedAt: new Date().toISOString(),
+          lastLoginAt: new Date().toISOString()
+        });
+      } else {
+        await db.users.put({
+          id: cleanUsername,
+          username: targetUsername,
+          passwordHash: newHash,
+          createdAt: new Date().toISOString(),
+          lastLoginAt: new Date().toISOString()
+        });
+      }
+
+      // 3. Mark setup as completed in localStorage
+      localStorage.setItem("baggona_pwd_setup_done_" + cleanUsername, "true");
+
+      // 4. Create active session and authenticate
+      const sessionToken = `session-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+      localStorage.setItem(
+        AUTH_STORAGE_KEY,
+        JSON.stringify({
+          username: targetUsername,
+          role: "priest",
+          token: sessionToken,
+          loginTime: new Date().toISOString()
+        })
+      );
+
+      set({
+        isAuthenticated: true,
+        currentUser: targetUsername,
+        role: "priest",
+        step: "credentials",
+        pendingUsername: null,
+        pendingUserId: null,
+        isLoading: false
+      });
+
+      void useWalletStore.getState().initWallet(targetUsername, targetUsername);
+      return { success: true };
+    } catch (err: any) {
+      console.error("[AuthStore] completeFirstTimePasswordSetup error:", err);
+      set({ isLoading: false });
+      return { success: false, error: err?.message || "ಪಾಸ್‌ವರ್ಡ್ ಉಳಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ. ಪುನಃ ಪ್ರಯತ್ನಿಸಿ." };
     }
   },
 
@@ -476,7 +634,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   requestPasswordReset: async (usernameOrEmail: string) => {
-    const clean = usernameOrEmail.trim();
+    const raw = usernameOrEmail.trim();
+    const clean = raw.toLowerCase();
     if (!clean) {
       return { success: false, error: "Please enter your username or registered email." };
     }
@@ -485,15 +644,36 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     await get().seedDefaultUser();
 
     try {
-      let user = await db.users.where("username").equals(clean).first();
+      let user = await db.users.where("username").equals(raw).first();
       if (!user) {
         user = await db.users
-          .filter((u) => u.username.toLowerCase() === clean.toLowerCase())
+          .filter((u) => u.username.toLowerCase() === clean)
           .first();
       }
+
+      // Check Firestore if not cached locally
+      if (!user) {
+        try {
+          const remote = await getUserProfile(clean);
+          if (remote) {
+            const newUser: UserRecord = {
+              id: remote.id || clean,
+              username: remote.username || raw,
+              passwordHash: remote.passwordHash || (await hashPassword("baggona123")),
+              allowedModules: remote.allowedModules,
+              createdAt: remote.createdAt || new Date().toISOString()
+            };
+            await db.users.put(newUser);
+            user = newUser;
+          }
+        } catch (remoteErr) {
+          console.warn("[AuthStore] Firestore profile fetch during reset request:", remoteErr);
+        }
+      }
+
       if (!user) {
         set({ isLoading: false });
-        return { success: false, error: "No account found matching this username." };
+        return { success: false, error: "ಈ ಯೂಸರ್‌ನೇಮ್‌ನ ಯಾವುದೇ ಖಾತೆ ಕಂಡುಬಂದಿಲ್ಲ (No account found matching this username)." };
       }
 
       const otp = generate6DigitOtp();
