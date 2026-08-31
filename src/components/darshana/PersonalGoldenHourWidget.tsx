@@ -258,12 +258,12 @@ export const PersonalGoldenHourWidget: React.FC<PersonalGoldenHourWidgetProps> =
       </div>
 
       {/* Golden Window Time Strip */}
-      <div className="p-4 bg-black/40 rounded-2xl border-2 border-amber-500/40 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-inner">
-        <div className="text-center sm:text-left space-y-1">
+      <div className="p-4 sm:p-5 bg-black/40 rounded-2xl border-2 border-amber-500/40 flex flex-col lg:flex-row items-center justify-between gap-4 shadow-inner w-full box-border">
+        <div className="text-center lg:text-left space-y-1 w-full lg:w-auto">
           <div className="text-xs font-black text-[#FDE68A] uppercase tracking-wider">
             ಅಮೃತ ಮುಹೂರ್ತ ಕಾಲಾವಧಿ (Auspicious Window)
           </div>
-          <div className="text-lg sm:text-2xl font-black font-mono text-white flex items-center gap-2 justify-center sm:justify-start">
+          <div className="text-lg sm:text-2xl font-black font-mono text-white flex items-center gap-2 justify-center lg:justify-start">
             <span className="text-amber-400 font-sans">✦</span>
             <span>{goldenHour.startTimeStr}</span>
             <span className="text-xs text-amber-300/70">ರಿಂದ</span>
@@ -271,8 +271,8 @@ export const PersonalGoldenHourWidget: React.FC<PersonalGoldenHourWidgetProps> =
           </div>
         </div>
 
-        {/* Action Buttons: Stacked Column on right, full-width on mobile */}
-        <div className="flex flex-col gap-2 w-full sm:w-auto shrink-0">
+        {/* Action Buttons: Responsive container that stays perfectly inside box */}
+        <div className="flex flex-col sm:flex-row lg:flex-col gap-2 w-full lg:w-auto shrink-0 max-w-full">
           <button
             type="button"
             onClick={handlePlayChant}

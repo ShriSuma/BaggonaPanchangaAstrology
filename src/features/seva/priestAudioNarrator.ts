@@ -166,30 +166,49 @@ function fallbackMaleTTS(
   utterance.rate = rate;  // Solemn, authoritative Vedic recitation pace
   utterance.volume = 1.0;
 
-  // Filter explicitly for Indian Male voices
+  // Strict blacklist to banish Mikaela, Coral, Samantha, and any female synth voices
+  const bannedFemaleNames = [
+    "mikaela", "coral", "samantha", "victoria", "karen", "tessa", "kyoko",
+    "moira", "fiona", "siri", "zira", "veena", "sangeeta", "kalpana", "neerja",
+    "heera", "sunita", "harita", "shruti", "priya", "pooja", "female", "girl"
+  ];
+
+  const preferredMaleNames = [
+    "rishi", "ravi", "hemant", "gagan", "madhav", "deep", "pradeep", "manoj",
+    "pankaj", "tarun", "kiran", "male", "daniel", "fred", "alex", "george", "guy"
+  ];
+
   const voices = window.speechSynthesis.getVoices();
-  const maleKeywords = ["male", "ravi", "hemant", "madhav", "kiran", "pradeep", "manoj", "pankaj", "tarun", "gagan", "deep", "wavenet-b", "standard-b", "neural2-b"];
-  const femaleKeywords = ["female", "zira", "swara", "kalpana", "neerja", "heera", "sunita", "harita", "shruti", "priya", "pooja", "sangeeta", "sapna", "wavenet-a", "standard-a"];
 
-  const maleVoice = voices.find(v => {
-    const vName = v.name.toLowerCase();
-    const isIndian = v.lang.includes("IN") || v.lang.includes("kn") || v.lang.includes("hi");
-    const isExplicitlyMale = maleKeywords.some(k => vName.includes(k));
-    const isExplicitlyFemale = femaleKeywords.some(k => vName.includes(k));
-    return isIndian && isExplicitlyMale && !isExplicitlyFemale;
-  }) || voices.find(v => {
-    const vName = v.name.toLowerCase();
-    const isIndian = v.lang.includes("IN") || v.lang.includes("kn") || v.lang.includes("hi");
-    const isExplicitlyFemale = femaleKeywords.some(k => vName.includes(k));
-    return isIndian && !isExplicitlyFemale;
-  }) || voices.find(v => {
-    const vName = v.name.toLowerCase();
-    return maleKeywords.some(k => vName.includes(k)) && !femaleKeywords.some(k => vName.includes(k));
-  });
+  if (voices && voices.length > 0) {
+    const indianMale = voices.find(v => {
+      const name = v.name.toLowerCase();
+      const isIndian = v.lang.includes("IN") || v.lang.includes("kn") || v.lang.includes("hi");
+      const isBanned = bannedFemaleNames.some(b => name.includes(b));
+      const isMale = preferredMaleNames.some(m => name.includes(m));
+      return isIndian && isMale && !isBanned;
+    });
 
-  if (maleVoice) {
-    utterance.voice = maleVoice;
+    const anyIndianNonFemale = voices.find(v => {
+      const name = v.name.toLowerCase();
+      const isIndian = v.lang.includes("IN") || v.lang.includes("kn") || v.lang.includes("hi");
+      const isBanned = bannedFemaleNames.some(b => name.includes(b));
+      return isIndian && !isBanned;
+    });
+
+    const anyMale = voices.find(v => {
+      const name = v.name.toLowerCase();
+      const isBanned = bannedFemaleNames.some(b => name.includes(b));
+      const isMale = preferredMaleNames.some(m => name.includes(m));
+      return isMale && !isBanned;
+    });
+
+    const chosenVoice = indianMale || anyIndianNonFemale || anyMale;
+    if (chosenVoice) {
+      utterance.voice = chosenVoice;
+    }
   }
+
 
   utterance.onend = () => {
     if (onEnd) onEnd();

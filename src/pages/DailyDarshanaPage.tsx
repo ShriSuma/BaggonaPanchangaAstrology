@@ -1878,17 +1878,7 @@ export default function DailyDarshanaPage(): JSX.Element {
                      lang === "ta" ? "16 உபசாரங்களின் தினசரி மகாபூஜை (20-நிமிடம்)" :
                      "16 Upacharas Daily Morning Pooja (20-Mins)"}
                   </span>
-                  <span style={{
-                    fontSize: 10,
-                    fontWeight: 900,
-                    color: "#064E3B",
-                    background: "#6EE7B7",
-                    padding: "2px 6px",
-                    borderRadius: 8,
-                    textTransform: "uppercase"
-                  }}>
-                    🎙️ {lang === "kn" ? "ಅರ್ಚಕರ ಧ್ವನಿ" : "Priest Voice"}
-                  </span>
+
                 </div>
                 <div style={{ fontSize: 12, color: "#FEF3C7", marginTop: 4, lineHeight: 1.4 }}>
                   {lang === "kn" ? `ಇಂದಿನ ಅರ್ಚನೆ: ${deity.name.kn} · ದೇವರ ಮುಂದೆ ಮೊಬೈಲ್ ಇಟ್ಟು ಹಂತ-ಹಂತವಾಗಿ ಪೂಜೆ ನೆರವೇರಿಸಿ · ನಿರಂತರತೆ: ${poojaStreak.currentStreak} ದಿನ` :
