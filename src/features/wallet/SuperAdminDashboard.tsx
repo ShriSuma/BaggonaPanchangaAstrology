@@ -3296,24 +3296,26 @@ export const SuperAdminDashboard: React.FC = () => {
                         </label>
                         <input
                           type="password"
-                          value={cloneConfig.sarvamApiKey || ""}
+                          value={cloneConfig.sarvamApiKey || "sk_duxld45s_658vBx71bZPMfKeLfCXxXwF0"}
                           onChange={(e) => setCloneConfig({ ...cloneConfig, sarvamApiKey: e.target.value })}
-                          placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                          placeholder="sk_..."
                           className="w-full px-3 py-2 text-xs bg-black/80 border border-amber-500/50 rounded-xl text-white font-mono focus:outline-none focus:border-amber-400 mt-1"
                         />
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                          <label className="text-[11px] text-amber-200 block">Speaker Persona:</label>
+                          <label className="text-[11px] text-amber-200 block">Speaker Persona (Bulbul:v3 Indic Models):</label>
                           <select
-                            value={cloneConfig.sarvamSpeaker || "arvind"}
+                            value={cloneConfig.sarvamSpeaker || "anand"}
                             onChange={(e) => setCloneConfig({ ...cloneConfig, sarvamSpeaker: e.target.value })}
                             className="w-full px-3 py-2 text-xs bg-black/80 border border-amber-500/50 rounded-xl text-amber-200 font-bold focus:outline-none focus:border-amber-400 mt-1"
                           >
-                            <option value="arvind">Arvind (ಗಂಭೀರ ಪುರುಷ ಧ್ವನಿ - Deep Male Priest)</option>
-                            <option value="amartya">Amartya (ಶಾಸ್ತ್ರೀಯ ಪಂಡಿತ ಧ್ವನಿ - Classical Pandit)</option>
-                            <option value="karun">Karun (ಮೃದು ಧ್ವನಿ - Warm Resonant)</option>
-                            <option value="shaan">Shaan (ಯುವ ಧ್ವನಿ - Modern Male)</option>
+                            <option value="anand">Anand (ಗಂಭೀರ ಪುರುಷ ಧ್ವನಿ - Deep Male Priest)</option>
+                            <option value="advait">Advait (ಶಾಸ್ತ್ರೀಯ ವಿದ್ವಾಂಸ ಧ್ವನಿ - Classical Vidwan)</option>
+                            <option value="gokul">Gokul (ಗೋಕರ್ಣ ಪಂಡಿತ ಧ್ವನಿ - Gokarna Pandit)</option>
+                            <option value="ashutosh">Ashutosh (ವೇದ ಪಠಣ ಧ್ವನಿ - Vedic Chanting)</option>
+                            <option value="vijay">Vijay (ಸ್ಪಷ್ಟ ಶಾಂತ ಧ್ವನಿ - Calm Clear Male)</option>
+                            <option value="tarun">Tarun (ಯುವ ಗಂಭೀರ ಧ್ವನಿ - Resonant Youth)</option>
                           </select>
                         </div>
                         <div>

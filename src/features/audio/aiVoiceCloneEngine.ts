@@ -34,8 +34,9 @@ export interface VoiceCloneConfig {
 const CLONE_CONFIG_STORAGE_KEY = "baggona_ai_voice_clone_config_v4";
 
 export const DEFAULT_CLONE_CONFIG: VoiceCloneConfig = {
-  provider: "master_recording",
-  sarvamSpeaker: "arvind",
+  provider: "sarvam_ai",
+  sarvamApiKey: "sk_duxld45s_658vBx71bZPMfKeLfCXxXwF0",
+  sarvamSpeaker: "anand",
   sarvamPace: 0.90,
   autoFallbackToMasterRecording: true,
   masterAudioUrl: "/audio/shrisuma_master_voice.webm",
@@ -54,7 +55,13 @@ export function getVoiceCloneConfig(): VoiceCloneConfig {
   try {
     const raw = localStorage.getItem(CLONE_CONFIG_STORAGE_KEY);
     if (!raw) return DEFAULT_CLONE_CONFIG;
-    return { ...DEFAULT_CLONE_CONFIG, ...JSON.parse(raw) };
+    const parsed = JSON.parse(raw);
+    return {
+      ...DEFAULT_CLONE_CONFIG,
+      ...parsed,
+      sarvamApiKey: parsed.sarvamApiKey || DEFAULT_CLONE_CONFIG.sarvamApiKey,
+      sarvamSpeaker: parsed.sarvamSpeaker === "arvind" ? "anand" : (parsed.sarvamSpeaker || "anand")
+    };
   } catch {
     return DEFAULT_CLONE_CONFIG;
   }
@@ -135,14 +142,15 @@ export async function synthesizeAndPlayClonedVoice(
   const profile = getVoiceProfileById(voiceId);
   const config = getVoiceCloneConfig();
 
-  // 1. Try Sarvam AI Indic Neural TTS (India's native Kannada Bulbul:v1 engine)
-  if ((config.provider === "sarvam_ai" || (!config.provider && config.sarvamApiKey)) && config.sarvamApiKey) {
+  // 1. Try Sarvam AI Indic Neural TTS (India's native Kannada Bulbul:v3 engine)
+  const activeSarvamKey = config.sarvamApiKey || "sk_duxld45s_658vBx71bZPMfKeLfCXxXwF0";
+  if (config.provider === "sarvam_ai" || (!config.provider && activeSarvamKey)) {
     try {
       const audioUrl = await fetchSarvamAITTS(
         text,
         lang,
-        config.sarvamApiKey,
-        config.sarvamSpeaker || "arvind",
+        activeSarvamKey,
+        config.sarvamSpeaker || "anand",
         config.sarvamPace || 0.90
       );
       if (audioUrl) {
@@ -222,16 +230,17 @@ function playAudioUrl(url: string, onEnd?: () => void): () => void {
 }
 
 /**
- * Sarvam AI Indic Neural TTS API Fetcher (Bulbul:v1 for Kannada, Sanskrit, Hindi, Tamil, Telugu)
+ * Sarvam AI Indic Neural TTS API Fetcher (Bulbul:v3 for Kannada, Sanskrit, Hindi, Tamil, Telugu)
  */
 async function fetchSarvamAITTS(
   text: string,
   lang: SevaLang,
   apiKey: string,
-  speaker = "arvind",
+  speaker = "anand",
   pace = 0.90
 ): Promise<string | null> {
   const targetLanguageCode = lang === "kn" ? "kn-IN" : lang === "hi" ? "hi-IN" : lang === "ta" ? "ta-IN" : lang === "te" ? "te-IN" : "en-IN";
+  const validSpeaker = speaker === "arvind" ? "anand" : (speaker || "anand");
 
   const response = await fetch("https://api.sarvam.ai/text-to-speech", {
     method: "POST",
@@ -242,13 +251,11 @@ async function fetchSarvamAITTS(
     body: JSON.stringify({
       inputs: [text.trim()],
       target_language_code: targetLanguageCode,
-      speaker: speaker,
-      pitch: 0.0,
+      speaker: validSpeaker,
       pace: pace,
-      loudness: 1.5,
       speech_sample_rate: 22050,
       enable_preprocessing: true,
-      model: "bulbul:v1"
+      model: "bulbul:v3"
     })
   });
 
