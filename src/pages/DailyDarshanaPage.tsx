@@ -1855,7 +1855,7 @@ export default function DailyDarshanaPage(): JSX.Element {
         {/* ── TAB 1: SACRED SANCTUM & DARSHANA ── */}
         {activeTab === "darshana" && (
           <div>
-            {/* 30-Second Morning Pooja Sankalpa & Daily Streak Action Banner */}
+            {/* Daily Priest-Guided 16 Upacharas 20-Min Morning Deva Pooja Banner */}
             <div style={{
               background: "linear-gradient(135deg, rgba(146, 64, 14, 0.9) 0%, rgba(69, 26, 3, 0.95) 100%)",
               border: "2px solid #F59E0B",
@@ -1870,21 +1870,32 @@ export default function DailyDarshanaPage(): JSX.Element {
             }}>
               <div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: 22 }}>🪔</span>
+                  <span style={{ fontSize: 24 }}>🪔</span>
                   <span style={{ fontSize: 13, fontWeight: 900, color: "#FDE68A", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                    {lang === "kn" ? "ದೈನಂದಿನ ಪೂಜೆ & ಸಂಕಲ್ಪ" :
-                     lang === "hi" ? "दैनिक पूजा एवं संकल्प" :
-                     lang === "te" ? "రోజువారీ పూజ & సంకల్పం" :
-                     lang === "ta" ? "தினசரி பூஜை & சங்கல்பம்" :
-                     "Daily Pooja & Sankalpa"}
+                    {lang === "kn" ? "೧೬ ಉಪಚಾರಗಳ ನಿತ್ಯ ಮಹಾಪೂಜೆ (೨೦-ನಿಮಿಷ)" :
+                     lang === "hi" ? "१६ उपचारों की दैनिक महापूजा (२०-मिनट)" :
+                     lang === "te" ? "16 ఉపచారాల నిత్య మహాపూజ (20-నిమిషాలు)" :
+                     lang === "ta" ? "16 உபசாரங்களின் தினசரி மகாபூஜை (20-நிமிடம்)" :
+                     "16 Upacharas Daily Morning Pooja (20-Mins)"}
+                  </span>
+                  <span style={{
+                    fontSize: 10,
+                    fontWeight: 900,
+                    color: "#064E3B",
+                    background: "#6EE7B7",
+                    padding: "2px 6px",
+                    borderRadius: 8,
+                    textTransform: "uppercase"
+                  }}>
+                    🎙️ {lang === "kn" ? "ಅರ್ಚಕರ ಧ್ವನಿ" : "Priest Voice"}
                   </span>
                 </div>
                 <div style={{ fontSize: 12, color: "#FEF3C7", marginTop: 4, lineHeight: 1.4 }}>
-                  {lang === "kn" ? `ಇಂದಿನ ಅರ್ಚನೆ: ${deity.name.kn} · ನಿರಂತರತೆ: ${poojaStreak.currentStreak} ದಿನ` :
-                   lang === "hi" ? `आज की पूजा: ${deity.name.hi || deity.name.en} · संकल्प: ${poojaStreak.currentStreak} दिन` :
-                   lang === "te" ? `నేటి పూజ: ${deity.name.te || deity.name.en} · క్రమం: ${poojaStreak.currentStreak} రోజులు` :
-                   lang === "ta" ? `இன்றைய பூஜை: ${deity.name.ta || deity.name.en} · தொடர்ச்சி: ${poojaStreak.currentStreak} நாட்கள்` :
-                   `Today's Archana: ${deity.name.en} · Streak: ${poojaStreak.currentStreak} Days`}
+                  {lang === "kn" ? `ಇಂದಿನ ಅರ್ಚನೆ: ${deity.name.kn} · ದೇವರ ಮುಂದೆ ಮೊಬೈಲ್ ಇಟ್ಟು ಹಂತ-ಹಂತವಾಗಿ ಪೂಜೆ ನೆರವೇರಿಸಿ · ನಿರಂತರತೆ: ${poojaStreak.currentStreak} ದಿನ` :
+                   lang === "hi" ? `आज की पूजा: ${deity.name.hi || deity.name.en} · मन्दिर के सम्मुख मोबाइल रखकर चरणबद्ध पूजा करें · संकल्प: ${poojaStreak.currentStreak} दिन` :
+                   lang === "te" ? `నేటి పూజ: ${deity.name.te || deity.name.en} · ఆలయం ముందు మొబైల్ ఉంచి పూజ చేయండి · క్రమం: ${poojaStreak.currentStreak} రోజులు` :
+                   lang === "ta" ? `இன்றைய பூஜை: ${deity.name.ta || deity.name.en} · இறைவன் முன் மொபைல் வைத்து பூஜை செய்க · தொடர்ச்சி: ${poojaStreak.currentStreak} நாட்கள்` :
+                   `Today's Archana: ${deity.name.en} · Keep mobile at altar for step-by-step guided pooja · Streak: ${poojaStreak.currentStreak} Days`}
                 </div>
               </div>
               <button
@@ -1913,6 +1924,7 @@ export default function DailyDarshanaPage(): JSX.Element {
                        "Start Pooja"}</span>
               </button>
             </div>
+
 
             {/* Dynamic 3-Color Vibe Status Card */}
             <div style={{

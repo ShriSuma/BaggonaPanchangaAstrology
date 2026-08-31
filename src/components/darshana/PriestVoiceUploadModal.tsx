@@ -19,7 +19,7 @@ export interface PriestVoiceUploadModalProps {
   onSelectVoice?: (voiceId: string) => void;
 }
 
-const STEP_LABELS: Record<PriestAudioKey, { titleKn: string; titleEn: string; mantra: string }> = {
+const STEP_LABELS: Partial<Record<PriestAudioKey, { titleKn: string; titleEn: string; mantra: string }>> = {
   step_1: {
     titleKn: "ಹಂತ ೧: ಘಂಟಾನಾದ & ದೇವತಾಹ್ವಾನ ಮಂತ್ರ",
     titleEn: "Step 1: Temple Bell & Invocation Mantra",
@@ -313,10 +313,10 @@ export const PriestVoiceUploadModal: React.FC<PriestVoiceUploadModalProps> = ({
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <h3 className="text-xs font-black text-[#FDE68A]">
-                      {meta.titleKn}
+                      {meta?.titleKn || key}
                     </h3>
                     <p className="text-[10px] text-amber-300 font-mono italic">
-                      "{meta.mantra}"
+                      "{meta?.mantra || ""}"
                     </p>
                   </div>
 

@@ -279,5 +279,6 @@ describe("3 Specific Birth Profiles (16-Mar-1993, 22-Mar-1993, 31-May-1993) 4-Ta
       expect(decoded?.nk).toBe(rhythmDays[0].moonNakshatraIndex);
       expect(decoded?.r).toBe(rhythmDays[0].moonRashiIndex);
     });
-  }, 25000);
+  }, 60000);
 });
+

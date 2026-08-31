@@ -14,7 +14,24 @@
  * 4. Full backward compatibility with old tokens, legacy IDs, and query params.
  */
 
-export type PriestAudioKey = "step_1" | "step_2" | "step_3" | "step_4" | "deity_mantra";
+export type PriestAudioKey =
+  | "step_1"
+  | "step_2"
+  | "step_3"
+  | "step_4"
+  | "step_5"
+  | "step_6"
+  | "step_7"
+  | "step_8"
+  | "step_9"
+  | "step_10"
+  | "step_11"
+  | "step_12"
+  | "step_13"
+  | "step_14"
+  | "step_15"
+  | "step_16"
+  | "deity_mantra";
 
 export interface CustomPriestAudioItem {
   key: PriestAudioKey;
