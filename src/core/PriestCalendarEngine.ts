@@ -609,10 +609,16 @@ export function generatePriestICalendarString(options: PriestCalendarOptions = {
       descLines.push("");
     }
 
-    descLines.push(`🌐 ಲೈವ್ ಗೋಚಾರ ಕುಂಡಲಿ & ಪೂರ್ಣ ಪಂಚಾಂಗ ದರ್ಶನ: ${portalUrl}`);
-    descLines.push(`📞 ಸಂಪರ್ಕ: ${priestName} (9972339362)`);
+    descLines.push("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    descLines.push("🌐 ಲೈವ್ ಗೋಚಾರ ಕುಂಡಲಿ & ಪೂರ್ಣ ಪಂಚಾಂಗ ದರ್ಶನ:");
+    descLines.push(`${portalUrl}`);
+    descLines.push("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    descLines.push(`📞 ಮುಖ್ಯ ಅರ್ಚಕರು: ${priestName} (9972339362)`);
+    descLines.push("✨ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸಾದ ಸಿದ್ಧಿರಸ್ತು ✨");
 
     const description = descLines.join("\n");
+
+    const htmlDesc = `<html><body style="font-family:sans-serif; background-color:#1c0a00; color:#fff8e7; padding:12px;"><div style="background-color:#501b11; border:2px solid #f59e0b; border-radius:12px; padding:16px; margin-bottom:14px;"><h2 style="color:#fde68a; margin:0 0 10px 0; font-size:16px; text-align:center;">॥ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ — ಪುರೋಹಿತ ಪಂಚಾಂಗ ದರ್ಶನ ॥</h2><table style="width:100%; border-collapse:collapse; font-size:13px;"><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:5px 4px; font-weight:bold; color:#f59e0b; width:40%;">📅 ದಿನಾಂಕ:</td><td style="padding:5px 4px; color:#fff8e7;">${day.dateStr} (${day.weekdayKn})</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:5px 4px; font-weight:bold; color:#f59e0b;">🌙 ಚಾಂದ್ರಮಾನ:</td><td style="padding:5px 4px; color:#fff8e7;">${day.chandramanaMasaKn} ${day.pakshaKn}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:5px 4px; font-weight:bold; color:#f59e0b;">📜 ತಿಥಿ & ಅಂತ್ಯ:</td><td style="padding:5px 4px; color:#fff8e7;">${day.tithiKn} (${day.tithiGhati}) [${day.tithiEndTime}]</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:5px 4px; font-weight:bold; color:#f59e0b;">⭐ ನಕ್ಷತ್ರ:</td><td style="padding:5px 4px; color:#fff8e7;">${day.nakshatraKn} (${day.nakshatraGhati}) [${day.nakshatraEndTime}]</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:5px 4px; font-weight:bold; color:#f59e0b;">🕉️ ಶ್ರಾದ್ಧ ತಿಥಿ:</td><td style="padding:5px 4px; color:#fde68a; font-weight:bold;">${day.shraddhaTithi}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:5px 4px; font-weight:bold; color:#f59e0b;">🏛️ ೧೨ ಲಗ್ನ ಸಮಾಪ್ತಿ:</td><td style="padding:5px 4px; color:#fff8e7; font-size:11px;">ಮೀ: ${day.lagnaEndingTimes.meena} | ಮೇ: ${day.lagnaEndingTimes.mesha} | ವೃ: ${day.lagnaEndingTimes.vrishabha} | ಮಿ: ${day.lagnaEndingTimes.mithuna}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:5px 4px; font-weight:bold; color:#f59e0b;">⏳ ಬ್ರಾಹ್ಮೀ / ಅಭಿಜಿತ್:</td><td style="padding:5px 4px; color:#fff8e7;">${day.brahmaMuhurtha} / ${day.abhijitMuhurtha}</td></tr><tr><td style="padding:10px 4px; font-weight:bold; color:#f59e0b;">🌐 ಪೂರ್ಣ ದರ್ಶನ:</td><td style="padding:10px 4px;"><a href="${portalUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block; background-color:#d97706; color:#ffffff; text-decoration:none; padding:8px 16px; border-radius:6px; font-weight:bold; font-size:13px;">👉 ಪೋರ್ಟಲ್ ತೆರೆಯಿರಿ</a></td></tr></table></div><div style="text-align:center;"><p style="font-size:12px;"><a href="${portalUrl}" style="color:#6ee7b7; word-break:break-all;">${portalUrl}</a></p><p style="color:#f59e0b; font-size:12px; margin-top:8px;">✨ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸಾದ ಸಿದ್ಧಿರಸ್ತು ✨</p></div></body></html>`;
 
     lines.push(
       "BEGIN:VEVENT",
@@ -622,19 +628,31 @@ export function generatePriestICalendarString(options: PriestCalendarOptions = {
       `DTEND;VALUE=DATE:${formatYmdCompact(new Date(new Date(day.dateStr).getTime() + 86400000).toISOString().slice(0, 10))}`,
       `SUMMARY:${escapeIcs(summary)}`,
       `DESCRIPTION:${escapeIcs(description)}`,
+      `X-ALT-DESC;FMTTYPE=text/html:${escapeIcs(htmlDesc)}`,
+      `URL;VALUE=URI:${portalUrl}`,
       `URL:${portalUrl}`,
       `LOCATION:${escapeIcs(`${locationName}, Karnataka, India (${pincode})`)}`,
+      "PRIORITY:1",
       "STATUS:CONFIRMED",
       "TRANSP:TRANSPARENT",
+      "CATEGORIES:Panchanga,Purohita,Temple,Puja,Astrology,Daily Ritual,Baggona Panchanga",
       "BEGIN:VALARM",
-      "ACTION:DISPLAY",
-      `DESCRIPTION:${escapeIcs(`[ಪ್ರಾತಃಕಾಲ ಪಂಚಾಂಗ ಸ್ಮರಣೆ] ${day.tithiKn} • ${day.shraddhaTithi}`)}`,
-      "TRIGGER:-PT1H", // 1 hour before day start (05:00 AM IST)
+      "ACTION:AUDIO",
+      "TRIGGER:-PT1H", // 05:00 AM IST (1 hour before sunrise)
+      "ATTACH;VALUE=URI:PresetSound#Bells",
+      `ATTACH;VALUE=URI:${baseUrl}/audio/ghantanada.mp3`,
+      "X-APPLE-DEFAULT-ALARM:TRUE",
+      "X-MICROSOFT-DEFAULT-ALARM:TRUE",
+      "SOUND:Bells",
+      `DESCRIPTION:${escapeIcs(`[ಪ್ರಾತಃಕಾಲ ಪಂಚಾಂಗ ಘಂಟಾನಾದ ಸ್ಮರಣೆ] ${day.tithiKn} • ${day.shraddhaTithi}`)}`,
       "END:VALARM",
       "BEGIN:VALARM",
-      "ACTION:DISPLAY",
-      `DESCRIPTION:${escapeIcs(`[ಪೂರ್ವದಿನದ ಸೂಚನೆ] ${day.previousDayAlert || `${day.tithiKn} ಸಿದ್ಧತೆ`}`)}`,
-      "TRIGGER:-P1D", // 1 day before
+      "ACTION:AUDIO",
+      "TRIGGER:-P1D", // 1 day before preparation reminder
+      "ATTACH;VALUE=URI:PresetSound#Bells",
+      `ATTACH;VALUE=URI:${baseUrl}/audio/ghantanada.mp3`,
+      "X-APPLE-DEFAULT-ALARM:TRUE",
+      `DESCRIPTION:${escapeIcs(`[ಪೂರ್ವದಿನದ ಧಾರ್ಮಿಕ ಸೂಚನೆ & ಸಿದ್ಧತೆ] ${day.previousDayAlert || `${day.tithiKn} ಪೂರ್ವಭಾವಿ ಸಂಕಲ್ಪ`}`)}`,
       "END:VALARM",
       "END:VEVENT"
     );

@@ -423,3 +423,41 @@ export async function recordPoojaSankalpaCompleted(
   return updated;
 }
 
+export interface PriestCalendarActionRecord {
+  priestName: string;
+  action: "download_ics" | "web_visit" | "qr_scan";
+  date: string;
+  spanDays?: number;
+  pincode?: string;
+  locationName?: string;
+  userAgent?: string;
+}
+
+/**
+ * Tracks Priest Calendar downloads and Web Sanctum visits to Cloud Firestore and local storage.
+ */
+export async function recordPriestCalendarAction(record: PriestCalendarActionRecord): Promise<void> {
+  const timestamp = new Date().toISOString();
+  const id = `priest_action_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+
+  if (typeof window !== "undefined") {
+    try {
+      const existingStr = localStorage.getItem("baggona_priest_calendar_actions") || "[]";
+      const list = JSON.parse(existingStr);
+      list.unshift({ ...record, id, timestamp });
+      localStorage.setItem("baggona_priest_calendar_actions", JSON.stringify(list.slice(0, 100)));
+    } catch {}
+  }
+
+  try {
+    const actRef = doc(firestore, "priestCalendarVisits", id);
+    await setDoc(actRef, {
+      ...record,
+      timestamp,
+      createdAt: serverTimestamp()
+    });
+  } catch (err) {
+    console.warn("[CalendarVisitService] Failed to log priest action to cloud:", err);
+  }
+}
+

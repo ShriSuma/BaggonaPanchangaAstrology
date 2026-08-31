@@ -10,6 +10,7 @@ import {
   searchParabhavaFestivals,
   isDateInParabhavaYear
 } from "../core/ParabhavaBookEngine";
+import { recordPriestCalendarAction } from "../features/seva/calendarVisitService";
 
 export const PriestPanchangaPage: React.FC = () => {
   // Read initial params from window.location.search
@@ -29,6 +30,17 @@ export const PriestPanchangaPage: React.FC = () => {
   const [calendarSpanDays, setCalendarSpanDays] = useState<number>(90);
   const [copySuccess, setCopySuccess] = useState<boolean>(false);
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
+
+  // Record web visit on load / date change
+  useEffect(() => {
+    void recordPriestCalendarAction({
+      priestName: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
+      action: "web_visit",
+      date: selectedDate,
+      pincode,
+      locationName
+    });
+  }, [selectedDate, pincode, locationName]);
 
   const handleDateChange = (newDate: string) => {
     setSelectedDate(newDate);
@@ -127,6 +139,15 @@ export const PriestPanchangaPage: React.FC = () => {
       locationName,
       priestName: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
       webAppBaseUrl: origin
+    });
+
+    void recordPriestCalendarAction({
+      priestName: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
+      action: "download_ics",
+      date: selectedDate,
+      spanDays: calendarSpanDays,
+      pincode,
+      locationName
     });
 
     const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
@@ -696,8 +717,8 @@ export const PriestPanchangaPage: React.FC = () => {
                 <label className="text-xs font-bold text-slate-700 block mb-1">
                   ಕ್ಯಾಲೆಂಡರ್ ದಿನಗಳ ಸಂಖ್ಯೆ (Calendar Span):
                 </label>
-                <div className="grid grid-cols-4 gap-2">
-                  {[30, 60, 90, 180].map((span) => (
+                <div className="grid grid-cols-5 gap-1.5">
+                  {[30, 60, 90, 120, 180].map((span) => (
                     <button
                       key={span}
                       type="button"
@@ -746,6 +767,14 @@ export const PriestPanchangaPage: React.FC = () => {
                     navigator.clipboard.writeText(`${origin}/priest-panchanga?date=${selectedDate}&pincode=${pincode}`);
                     setCopySuccess(true);
                     setTimeout(() => setCopySuccess(false), 2000);
+                    void recordPriestCalendarAction({
+                      priestName: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
+                      action: "qr_scan",
+                      date: selectedDate,
+                      spanDays: calendarSpanDays,
+                      pincode,
+                      locationName
+                    });
                   }}
                   className="px-4 py-3 rounded-2xl text-xs font-black bg-amber-100 text-amber-950 border border-amber-300 hover:bg-amber-200 transition-all"
                 >

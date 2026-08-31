@@ -88,8 +88,13 @@ describe("Baggona Panchanga Priest Calendar Engine", () => {
     expect(ics).toContain("X-WR-CALNAME:ಬಗ್ಗೋಣ ಪಂಚಾಂಗ — ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಪುರೋಹಿತ ಕ್ಯಾಲೆಂಡರ್)");
     expect(ics).toContain("BEGIN:VEVENT");
     expect(ics).toContain("BEGIN:VALARM");
+    expect(ics).toContain("ACTION:AUDIO");
+    expect(ics).toContain("PresetSound#Bells");
+    expect(ics).toContain("ghantanada.mp3");
     expect(ics).toContain("TRIGGER:-PT1H");
     expect(ics).toContain("TRIGGER:-P1D");
+    expect(ics).toContain("X-ALT-DESC;FMTTYPE=text/html");
+    expect(ics).toContain("URL;VALUE=URI:");
     expect(ics).toContain("/priest-panchanga?date=");
     expect(ics).toContain("END:VCALENDAR");
   });

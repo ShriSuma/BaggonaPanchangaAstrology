@@ -22,6 +22,8 @@ import {
 import { resolvePlaceFromPincode, getCoordinates } from "../../services/locationApi";
 import { fetch90DayAiPanchanga, type DayPanchangaAiItem } from "../../features/seva/panchanga90DayAiEngine";
 import { get90DaySpecialVratas, type SpecialVrataInfo } from "../../features/seva/specialVrataAlertEngine";
+import { useAuthStore } from "../../features/auth/authStore";
+import { recordPriestCalendarAction } from "../../features/seva/calendarVisitService";
 
 type Props = {
   days: RhythmDay[];
@@ -42,6 +44,10 @@ export default function SevaCalendarSyncModal({
   isOpen,
   onClose
 }: Props): JSX.Element | null {
+  const currentUser = useAuthStore((state) => state.currentUser);
+  const role = useAuthStore((state) => state.role);
+  const isSuperAdmin = role === "superadmin" || currentUser === "$hriSuma" || currentUser === "superadmin";
+
   const [calendarMode, setCalendarMode] = useState<"devotee" | "priest">("devotee");
   const [calendarSpanDays, setCalendarSpanDays] = useState<number>(90);
   const [target, setTarget] = useState<QrCalendarTarget>("google");
@@ -50,6 +56,7 @@ export default function SevaCalendarSyncModal({
   const [selectedPriestId, setSelectedPriestId] = useState<string>("shreeram-pandit");
   const [customInputMode, setCustomInputMode] = useState<boolean>(false);
   const [newPriestName, setNewPriestName] = useState<string>("");
+  const [priestVoiceListening, setPriestVoiceListening] = useState<boolean>(false);
 
   const activePriest = useMemo(() => getPriestProfile(selectedPriestId), [selectedPriestId, priestsList]);
   const panditName = activePriest.name[lang as keyof typeof activePriest.name] || activePriest.name.en;
@@ -324,10 +331,29 @@ export default function SevaCalendarSyncModal({
     const safeDate = (selectedDay?.ymd || new Date().toISOString().slice(0, 10)).replace(/[^\d-]/g, "");
     const filename = `${safePujari}_${safeDevotee}_${safeDate}_${calendarSpanDays}Days.ics`;
     downloadIcsFile(filename, icsContent);
+
+    if (calendarMode === "priest") {
+      void recordPriestCalendarAction({
+        priestName: panditName,
+        action: "download_ics",
+        date: selectedDay?.ymd || "2026-03-19",
+        spanDays: calendarSpanDays,
+        pincode: pincodeInput,
+        locationName
+      });
+    }
   };
 
   const handleGoogleCalendar = () => {
     if (calendarMode === "priest") {
+      void recordPriestCalendarAction({
+        priestName: panditName,
+        action: "web_visit",
+        date: selectedDay?.ymd || "2026-03-19",
+        spanDays: calendarSpanDays,
+        pincode: pincodeInput,
+        locationName
+      });
       window.open(`${origin}/priest-panchanga?date=${selectedDay?.ymd || "2026-03-19"}&pincode=${pincodeInput}`, "_blank");
       return;
     }
@@ -376,6 +402,17 @@ export default function SevaCalendarSyncModal({
     navigator.clipboard.writeText(dataUri);
     setCopiedData(true);
     setTimeout(() => setCopiedData(false), 2000);
+
+    if (calendarMode === "priest") {
+      void recordPriestCalendarAction({
+        priestName: panditName,
+        action: "download_ics",
+        date: selectedDay?.ymd || "2026-03-19",
+        spanDays: calendarSpanDays,
+        pincode: pincodeInput,
+        locationName
+      });
+    }
   };
 
   const handleCopyWebLink = () => {
@@ -385,6 +422,17 @@ export default function SevaCalendarSyncModal({
     navigator.clipboard.writeText(linkToCopy);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);
+
+    if (calendarMode === "priest") {
+      void recordPriestCalendarAction({
+        priestName: panditName,
+        action: "qr_scan",
+        date: selectedDay?.ymd || "2026-03-19",
+        spanDays: calendarSpanDays,
+        pincode: pincodeInput,
+        locationName
+      });
+    }
   };
 
   return (
@@ -414,35 +462,37 @@ export default function SevaCalendarSyncModal({
         </div>
 
         <div className="mt-5 space-y-4">
-          {/* Calendar Type Segmented Switch: Devotee vs Priest */}
-          <div className="flex items-center gap-2 p-1.5 bg-amber-200/70 border border-amber-300 rounded-2xl">
-            <button
-              type="button"
-              onClick={() => setCalendarMode("devotee")}
-              className={`flex-1 py-2 rounded-xl text-xs font-black transition-all ${
-                calendarMode === "devotee"
-                  ? "bg-amber-800 text-white shadow-sm"
-                  : "text-amber-950 hover:bg-amber-100"
-              }`}
-            >
-              🕉️ {lang.startsWith("kn") ? "ಭಕ್ತರ ದೈನಂದಿನ ಲಯ ಕ್ಯಾಲೆಂಡರ್" : "Devotee Rhythm Calendar"}
-            </button>
-            <button
-              type="button"
-              onClick={() => setCalendarMode("priest")}
-              className={`flex-1 py-2 rounded-xl text-xs font-black transition-all ${
-                calendarMode === "priest"
-                  ? "bg-amber-800 text-white shadow-sm"
-                  : "text-amber-950 hover:bg-amber-100"
-              }`}
-            >
-              👑 {lang.startsWith("kn") ? "ಪುರೋಹಿತ ಪಂಚಾಂಗ ಮಹಾದರ್ಶನ" : "Priest Panchanga Calendar"}
-            </button>
-          </div>
+          {/* Calendar Type Segmented Switch: ONLY FOR SUPERADMIN */}
+          {isSuperAdmin && (
+            <div className="flex items-center gap-2 p-1.5 bg-amber-200/70 border-2 border-amber-400 rounded-2xl shadow-xs">
+              <button
+                type="button"
+                onClick={() => setCalendarMode("devotee")}
+                className={`flex-1 py-2 rounded-xl text-xs font-black transition-all ${
+                  calendarMode === "devotee"
+                    ? "bg-amber-800 text-white shadow-sm"
+                    : "text-amber-950 hover:bg-amber-100"
+                }`}
+              >
+                🕉️ {lang.startsWith("kn") ? "ಭಕ್ತರ ದೈನಂದಿನ ಲಯ ಕ್ಯಾಲೆಂಡರ್" : "Devotee Rhythm Calendar"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setCalendarMode("priest")}
+                className={`flex-1 py-2 rounded-xl text-xs font-black transition-all ${
+                  calendarMode === "priest"
+                    ? "bg-amber-800 text-white shadow-sm"
+                    : "text-amber-950 hover:bg-amber-100"
+                }`}
+              >
+                👑 {lang.startsWith("kn") ? "ಪುರೋಹಿತ ಪಂಚಾಂಗ ಮಹಾದರ್ಶನ" : "Priest Panchanga Calendar"}
+              </button>
+            </div>
+          )}
 
-          {/* If Priest Mode, Show Span Selector (30, 60, 90, 180 Days) */}
-          {calendarMode === "priest" && (
-            <div className="p-3 bg-[#FFFDF7] border-2 border-amber-300 rounded-2xl space-y-2">
+          {/* If Priest Mode, Show Span Selector (30, 60, 90, 120, 180 Days) and Priest Selector with Voice Mic */}
+          {isSuperAdmin && calendarMode === "priest" && (
+            <div className="p-3.5 bg-[#FFFDF7] border-2 border-amber-400 rounded-2xl space-y-3 shadow-xs">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-black text-amber-950">
                   ಪುರೋಹಿತ ಅವಧಿ ಆಯ್ಕೆ (Calendar Span):
@@ -451,13 +501,15 @@ export default function SevaCalendarSyncModal({
                   href={`/priest-panchanga?date=${selectedDay?.ymd || "2026-03-19"}&pincode=${pincodeInput}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs font-bold text-amber-800 underline hover:text-amber-950"
+                  className="text-xs font-bold text-amber-800 underline hover:text-amber-950 flex items-center gap-1"
                 >
-                  ಪುರೋಹಿತ ಪೋರ್ಟಲ್ ತೆರೆಯಿರಿ ↗
+                  <span>ಪುರೋಹಿತ ಪೋರ್ಟಲ್ ತೆರೆಯಿರಿ</span>
+                  <span>↗</span>
                 </a>
               </div>
-              <div className="grid grid-cols-4 gap-1.5">
-                {[30, 60, 90, 180].map((span) => (
+
+              <div className="grid grid-cols-5 gap-1.5">
+                {[30, 60, 90, 120, 180].map((span) => (
                   <button
                     key={span}
                     type="button"
@@ -471,6 +523,71 @@ export default function SevaCalendarSyncModal({
                     {span} ದಿನಗಳು
                   </button>
                 ))}
+              </div>
+
+              {/* Priest Selection with Voice Mic 🎙️ */}
+              <div className="pt-2 border-t border-amber-200 space-y-1.5">
+                <label className="text-[11px] font-black text-amber-950 block">
+                  ಮುಖ್ಯ ಅರ್ಚಕರು / ಪುರೋಹಿತರ ಆಯ್ಕೆ (Priest Selection):
+                </label>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={selectedPriestId}
+                    onChange={(e) => setSelectedPriestId(e.target.value)}
+                    className="flex-1 px-3 py-1.5 text-xs font-bold border-2 border-amber-300 rounded-xl bg-white text-slate-900 focus:outline-none focus:border-amber-500 shadow-2xs"
+                  >
+                    {priestsList.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name[lang as keyof typeof p.name] || p.name.en} ({p.title[lang as keyof typeof p.title] || p.title.en})
+                      </option>
+                    ))}
+                  </select>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+                      if (!SpeechRec) {
+                        alert("Speech recognition not supported in this browser.");
+                        return;
+                      }
+                      try {
+                        const rec = new SpeechRec();
+                        rec.lang = "kn-IN";
+                        rec.interimResults = false;
+                        setPriestVoiceListening(true);
+                        rec.onstart = () => setPriestVoiceListening(true);
+                        rec.onend = () => setPriestVoiceListening(false);
+                        rec.onerror = () => setPriestVoiceListening(false);
+                        rec.onresult = (e: any) => {
+                          const text = e.results?.[0]?.[0]?.transcript || "";
+                          if (text) {
+                            const found = priestsList.find(
+                              (p) =>
+                                (p.name.kn && p.name.kn.includes(text)) ||
+                                (p.name.en && p.name.en.toLowerCase().includes(text.toLowerCase()))
+                            );
+                            if (found) {
+                              setSelectedPriestId(found.id);
+                            }
+                          }
+                          setPriestVoiceListening(false);
+                        };
+                        rec.start();
+                      } catch {
+                        setPriestVoiceListening(false);
+                      }
+                    }}
+                    title="ಧ್ವನಿ ಮೂಲಕ ಪುರೋಹಿತರನ್ನು ಆಯ್ಕೆಮಾಡಿ (Voice Priest Search)"
+                    className={`p-2 rounded-xl text-xs font-black border-2 transition-all shadow-xs ${
+                      priestVoiceListening
+                        ? "bg-red-500 text-white border-red-600 animate-pulse"
+                        : "bg-white text-amber-950 border-amber-300 hover:bg-amber-100"
+                    }`}
+                  >
+                    {priestVoiceListening ? "🔴" : "🎙️"}
+                  </button>
+                </div>
               </div>
             </div>
           )}
