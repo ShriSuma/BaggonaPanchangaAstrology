@@ -2171,6 +2171,7 @@ export default function DailyDarshanaPage(): JSX.Element {
               rashiIndex={moonRashiIdx}
               nakshatraIndex={moonNakshatraIdx}
               lang={lang}
+              voiceId={activeVoiceId}
             />
 
             {/* 2. Daily Lucky Gem & Power Direction + 11-Bead Digital Japa Mala */}

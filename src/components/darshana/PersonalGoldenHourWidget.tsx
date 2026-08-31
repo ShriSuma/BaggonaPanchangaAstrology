@@ -150,11 +150,21 @@ function computePersonalGoldenHour(dateStr: string, nakshatraIndex = 18) {
   };
 }
 
+export interface PersonalGoldenHourWidgetProps {
+  dateStr: string;
+  devoteeName: string;
+  rashiIndex?: number;
+  nakshatraIndex?: number;
+  lang?: SevaLang;
+  voiceId?: string;
+}
+
 export const PersonalGoldenHourWidget: React.FC<PersonalGoldenHourWidgetProps> = ({
   dateStr,
   devoteeName,
   nakshatraIndex = 18,
-  lang = "kn"
+  lang = "kn",
+  voiceId
 }) => {
   const t = GOLDEN_TEXTS[lang] || GOLDEN_TEXTS.kn;
   const [isPlayingChant, setIsPlayingChant] = useState(false);
@@ -171,7 +181,7 @@ export const PersonalGoldenHourWidget: React.FC<PersonalGoldenHourWidgetProps> =
       : `Sri Mahabaleshwara Blessed. Personal Golden Hour for ${devoteeName} is from ${goldenHour.startTimeStr} to ${goldenHour.endTimeStr}. Om Namah Shivaya.`;
     speakPriestNarration(chantText, lang, () => {
       setIsPlayingChant(false);
-    });
+    }, undefined, voiceId);
   };
 
   const handleDownloadGoldenHourIcs = () => {
@@ -248,12 +258,12 @@ export const PersonalGoldenHourWidget: React.FC<PersonalGoldenHourWidgetProps> =
       </div>
 
       {/* Golden Window Time Strip */}
-      <div className="p-4 bg-black/40 rounded-2xl border-2 border-amber-500/40 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 shadow-inner overflow-hidden">
-        <div className="text-center md:text-left space-y-1 shrink-0">
+      <div className="p-4 bg-black/40 rounded-2xl border-2 border-amber-500/40 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-inner">
+        <div className="text-center sm:text-left space-y-1">
           <div className="text-xs font-black text-[#FDE68A] uppercase tracking-wider">
             ಅಮೃತ ಮುಹೂರ್ತ ಕಾಲಾವಧಿ (Auspicious Window)
           </div>
-          <div className="text-lg sm:text-2xl font-black font-mono text-white flex items-center gap-2 justify-center md:justify-start">
+          <div className="text-lg sm:text-2xl font-black font-mono text-white flex items-center gap-2 justify-center sm:justify-start">
             <span className="text-amber-400 font-sans">✦</span>
             <span>{goldenHour.startTimeStr}</span>
             <span className="text-xs text-amber-300/70">ರಿಂದ</span>
@@ -261,12 +271,12 @@ export const PersonalGoldenHourWidget: React.FC<PersonalGoldenHourWidgetProps> =
           </div>
         </div>
 
-        {/* Action Buttons: Calendar + Listen Chant */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink min-w-0 max-w-full">
+        {/* Action Buttons: Stacked Column on right, full-width on mobile */}
+        <div className="flex flex-col gap-2 w-full sm:w-auto shrink-0">
           <button
             type="button"
             onClick={handlePlayChant}
-            className={`px-3.5 py-2.5 rounded-xl font-black text-xs border shadow-sm transition-all flex items-center justify-center gap-1.5 shrink-0 ${
+            className={`w-full px-4 py-2.5 rounded-xl font-black text-xs border shadow-sm transition-all flex items-center justify-center gap-1.5 ${
               isPlayingChant
                 ? "bg-emerald-600 text-white border-emerald-400 animate-pulse"
                 : "bg-amber-900/60 hover:bg-amber-800 text-amber-200 border-amber-400"
@@ -278,9 +288,9 @@ export const PersonalGoldenHourWidget: React.FC<PersonalGoldenHourWidgetProps> =
           <button
             type="button"
             onClick={handleDownloadGoldenHourIcs}
-            className="px-3.5 py-2.5 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all active:scale-95 flex items-center justify-center gap-1.5 border border-amber-300 shrink min-w-0"
+            className="w-full px-4 py-2.5 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all active:scale-95 flex items-center justify-center gap-1.5 border border-amber-300"
           >
-            <span className="truncate">{t.addToCalendarBtn}</span>
+            <span>{t.addToCalendarBtn}</span>
           </button>
         </div>
       </div>

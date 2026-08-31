@@ -139,43 +139,46 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
   });
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-300">
-      <div className="relative w-full max-w-lg bg-gradient-to-b from-[#FFFDF7] via-[#FFF9E6] to-[#FFF5D6] border-2 border-amber-400 rounded-3xl shadow-2xl p-5 sm:p-6 text-slate-900 my-auto space-y-4">
+    <div
+      className="fixed inset-0 overflow-y-auto bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-300"
+      style={{ zIndex: 9999 }}
+    >
+      <div className="relative w-full max-w-lg bg-gradient-to-b from-[#1C0A00] via-[#2A1205] to-[#150600] border-2 border-amber-400/90 rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] p-5 sm:p-6 text-amber-100 my-auto space-y-4">
         {/* Close Button */}
         <button
           onClick={handleClose}
-          className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-sm font-black p-1.5 rounded-full hover:bg-amber-100 transition-colors"
+          className="absolute top-4 right-4 text-amber-400/70 hover:text-amber-300 text-sm font-black p-1.5 rounded-full hover:bg-amber-950/80 transition-colors border border-amber-500/30"
           aria-label="Close"
         >
           ✕
         </button>
 
         {/* Sanctum Header */}
-        <div className="text-center space-y-1 pb-2 border-b border-amber-300">
-          <div className="inline-flex items-center gap-1.5 px-3 py-0.5 bg-amber-500/20 text-amber-900 border border-amber-400 rounded-full text-[10px] font-black uppercase tracking-wider">
+        <div className="text-center space-y-1 pb-3 border-b border-amber-500/40">
+          <div className="inline-flex items-center gap-1.5 px-3 py-0.5 bg-amber-500/20 text-amber-300 border border-amber-400/50 rounded-full text-[10px] font-black uppercase tracking-wider">
             <span>🕉️</span>
             <span>॥ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಮಹಾ ಸಂಕಲ್ಪ ಪೂಜೆ ॥</span>
           </div>
-          <h3 className="text-base sm:text-lg font-black text-amber-950 leading-tight">
+          <h3 className="text-base sm:text-lg font-black text-amber-200 leading-tight">
             ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ನಿತ್ಯ ಪವಿತ್ರ ದರ್ಶನ & ಸಂಕಲ್ಪ
           </h3>
-          <p className="text-[11px] text-amber-900 font-bold">
-            ಭಕ್ತರು: <strong className="text-amber-950 font-black">{devoteeName}</strong> • ಗೋತ್ರ: <span className="font-semibold">{gotra}</span> • ಅರ್ಚಕರು: <span className="font-semibold text-amber-950">{priestName}</span>
+          <p className="text-[11px] text-amber-300/80 font-bold">
+            ಭಕ್ತರು: <strong className="text-amber-200 font-black">{devoteeName}</strong> • ಗೋತ್ರ: <span className="font-semibold">{gotra}</span> • ಅರ್ಚಕರು: <span className="font-semibold text-amber-300">{priestName}</span>
           </p>
         </div>
 
         {/* Dual Mode Switch: Priest Voice Guided vs Self-Paced */}
-        <div className="grid grid-cols-2 gap-2 p-1 bg-amber-200/60 rounded-2xl border border-amber-300">
+        <div className="grid grid-cols-2 gap-2 p-1 bg-black/60 rounded-2xl border border-amber-500/40">
           <button
             type="button"
             onClick={() => {
               setMode("priest_guided");
               playStepPriestAudio(step);
             }}
-            className={`py-1.5 px-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+            className={`py-2 px-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
               mode === "priest_guided"
-                ? "bg-slate-950 text-amber-300 shadow-md border border-amber-400"
-                : "text-amber-950 hover:bg-amber-300/40"
+                ? "bg-gradient-to-r from-amber-600 to-amber-500 text-slate-950 shadow-md border border-amber-300"
+                : "text-amber-300/80 hover:bg-amber-950/60"
             }`}
           >
             <span>🎙️</span>
@@ -189,10 +192,10 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
               stopPriestAudio();
               setIsAudioPlaying(false);
             }}
-            className={`py-1.5 px-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+            className={`py-2 px-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
               mode === "self_guided"
-                ? "bg-slate-950 text-amber-300 shadow-md border border-amber-400"
-                : "text-amber-950 hover:bg-amber-300/40"
+                ? "bg-gradient-to-r from-amber-600 to-amber-500 text-slate-950 shadow-md border border-amber-300"
+                : "text-amber-300/80 hover:bg-amber-950/60"
             }`}
           >
             <span>👤</span>
@@ -201,7 +204,7 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
         </div>
 
         {/* Sacred Atma Linga Sanctum Visualizer */}
-        <div className="relative h-44 rounded-2xl bg-gradient-to-b from-slate-950 via-slate-900 to-indigo-950 border-2 border-amber-400/80 overflow-hidden flex flex-col items-center justify-center text-amber-100 shadow-inner">
+        <div className="relative h-44 rounded-2xl bg-gradient-to-b from-slate-950 via-slate-900 to-amber-950/60 border-2 border-amber-400/80 overflow-hidden flex flex-col items-center justify-center text-amber-100 shadow-inner">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-500/20 via-transparent to-transparent animate-pulse pointer-events-none" />
 
           {/* Shivalinga / Sanctum Visual */}
@@ -253,16 +256,16 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
         </div>
 
         {/* Priest Narration Audio Bar with Repeat & Toggle */}
-        <div className="p-3 bg-white rounded-2xl border border-amber-300 flex items-center justify-between gap-2 shadow-xs">
-          <div className="text-xs font-bold text-amber-950 truncate flex items-center gap-1.5">
-            <span className="text-amber-600">🛕</span>
-            <span className="truncate">ಹಂತ {step}: {stepDetails.narrationText.slice(0, 42)}...</span>
+        <div className="p-3 bg-black/50 rounded-2xl border border-amber-500/40 flex items-center justify-between gap-2 shadow-sm">
+          <div className="text-xs font-bold text-amber-200 truncate flex items-center gap-1.5">
+            <span className="text-amber-400">🛕</span>
+            <span className="truncate">ಹಂತ {step}: {stepDetails.narrationText.slice(0, 40)}...</span>
           </div>
 
           <button
             type="button"
             onClick={() => playStepPriestAudio(step)}
-            className="px-3 py-1.5 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-black text-[11px] rounded-xl shadow-xs transition-all active:scale-95 flex items-center gap-1 shrink-0 border border-amber-400"
+            className="px-3.5 py-1.5 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-black text-[11px] rounded-xl shadow-xs transition-all active:scale-95 flex items-center gap-1 shrink-0 border border-amber-300"
           >
             <span>{isAudioPlaying ? "🔊 ಪುನಃ ಆಲಿಸಿ" : "▶️ ಧ್ವನಿ ಆಲಿಸಿ"}</span>
           </button>
@@ -270,21 +273,21 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
 
         {/* Step Progression Content */}
         {step === 1 && (
-          <div className="p-4 bg-white border-2 border-amber-400 rounded-2xl space-y-3 text-center">
+          <div className="p-4 bg-black/40 border-2 border-amber-500/50 rounded-2xl space-y-3 text-center">
             <div className="space-y-1">
-              <span className="text-[10px] font-black text-amber-800 uppercase tracking-wider">ಹಂತ ೧ / ೪</span>
-              <h4 className="text-sm font-black text-amber-950">೧. ದೇವಸ್ಥಾನದ ಘಂಟಾನಾದ ಮೊಳಗಿಸಿ</h4>
-              <p className="text-xs font-serif font-bold text-amber-900 italic">
+              <span className="text-[10px] font-black text-amber-400 uppercase tracking-wider">ಹಂತ ೧ / ೪</span>
+              <h4 className="text-sm font-black text-amber-200">೧. ದೇವಸ್ಥಾನದ ಘಂಟಾನಾದ ಮೊಳಗಿಸಿ</h4>
+              <p className="text-xs font-serif font-bold text-amber-300 italic">
                 "{stepDetails.sanskritMantra}"
               </p>
-              <p className="text-xs text-slate-700 font-medium leading-relaxed">
+              <p className="text-xs text-amber-200/80 font-medium leading-relaxed">
                 ಘಂಟಾನಾದದಿಂದ ನಕಾರಾತ್ಮಕ ಶಕ್ತಿ ನಿವಾರಣೆಯಾಗಿ ದೈವಿಕ ತರಂಗಗಳು ಜಾಗೃತವಾಗುತ್ತವೆ.
               </p>
             </div>
             <button
               type="button"
               onClick={handleStep1Bell}
-              className="w-full py-3 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 hover:from-amber-500 hover:to-amber-300 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all active:scale-98 flex items-center justify-center gap-2 border border-amber-400"
+              className="w-full py-3 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 hover:from-amber-500 hover:to-amber-300 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all active:scale-98 flex items-center justify-center gap-2 border border-amber-300"
             >
               <span>🔔 ಘಂಟೆ ಬಾರಿಸಿ & ಮುಂದುವರಿಯಿರಿ (Ring Bell & Continue)</span>
             </button>
@@ -292,21 +295,21 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
         )}
 
         {step === 2 && (
-          <div className="p-4 bg-white border-2 border-amber-400 rounded-2xl space-y-3 text-center">
+          <div className="p-4 bg-black/40 border-2 border-amber-500/50 rounded-2xl space-y-3 text-center">
             <div className="space-y-1">
-              <span className="text-[10px] font-black text-amber-800 uppercase tracking-wider">ಹಂತ ೨ / ೪</span>
-              <h4 className="text-sm font-black text-amber-950">೨. ದೀಪ ಪ್ರಜ್ವಲಿಸಿ & ಅಕ್ಷತೆ ಸಮರ್ಪಿಸಿ</h4>
-              <p className="text-xs font-serif font-bold text-amber-900 italic">
+              <span className="text-[10px] font-black text-amber-400 uppercase tracking-wider">ಹಂತ ೨ / ೪</span>
+              <h4 className="text-sm font-black text-amber-200">೨. ದೀಪ ಪ್ರಜ್ವಲಿಸಿ & ಅಕ್ಷತೆ ಸಮರ್ಪಿಸಿ</h4>
+              <p className="text-xs font-serif font-bold text-amber-300 italic">
                 "{stepDetails.sanskritMantra}"
               </p>
-              <p className="text-xs text-slate-700 font-medium leading-relaxed">
+              <p className="text-xs text-amber-200/80 font-medium leading-relaxed">
                 ಜ್ಞಾನಜ್ಯೋತಿ ದೀಪ ಹಾಗೂ ಮಂಗಳಾಕ್ಷತೆಯಿಂದ ಇಷ್ಟಾರ್ಥ ಸಿದ್ಧಿ.
               </p>
             </div>
             <button
               type="button"
               onClick={handleStep2Offer}
-              className="w-full py-3 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 hover:from-amber-500 hover:to-amber-300 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all active:scale-98 flex items-center justify-center gap-2 border border-amber-400"
+              className="w-full py-3 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 hover:from-amber-500 hover:to-amber-300 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all active:scale-98 flex items-center justify-center gap-2 border border-amber-300"
             >
               <span>🪔 ದೀಪ ಬೆಳಗಿಸಿ & ಅಕ್ಷತೆ ಹಾಕಿ (Offer Akshata)</span>
             </button>
@@ -314,16 +317,16 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
         )}
 
         {step === 3 && (
-          <div className="p-4 bg-gradient-to-br from-amber-50 to-orange-50/50 border-2 border-amber-400 rounded-2xl space-y-3 text-center">
+          <div className="p-4 bg-black/40 border-2 border-amber-500/50 rounded-2xl space-y-3 text-center">
             <div className="space-y-1">
-              <span className="text-[10px] font-black text-amber-800 uppercase tracking-wider">ಹಂತ ೩ / ೪</span>
-              <h4 className="text-xs font-serif font-black text-amber-950 leading-relaxed italic">
+              <span className="text-[10px] font-black text-amber-400 uppercase tracking-wider">ಹಂತ ೩ / ೪</span>
+              <h4 className="text-xs font-serif font-black text-amber-200 leading-relaxed italic">
                 "{stepDetails.sanskritMantra}"
               </h4>
             </div>
 
-            <div className="p-2.5 bg-white/90 rounded-xl border border-amber-300 text-xs font-bold text-amber-950">
-              ಭಕ್ತರು: <strong className="text-amber-900">{devoteeName}</strong> ({gotra} ಗೋತ್ರ, {rashiName} ರಾಶಿ, {nakshatraName} ನಕ್ಷತ್ರ)
+            <div className="p-2.5 bg-black/60 rounded-xl border border-amber-500/40 text-xs font-bold text-amber-200">
+              ಭಕ್ತರು: <strong className="text-amber-300">{devoteeName}</strong> ({gotra} ಗೋತ್ರ, {rashiName} ರಾಶಿ, {nakshatraName} ನಕ್ಷತ್ರ)
             </div>
 
             <button
@@ -337,36 +340,36 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
         )}
 
         {step === 4 && (
-          <div className="p-4 bg-gradient-to-br from-amber-100/80 via-emerald-50 to-amber-50 border-2 border-emerald-500 rounded-2xl space-y-3 text-center animate-in zoom-in-95 duration-200">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-900 border border-emerald-400 rounded-full text-xs font-black">
+          <div className="p-4 bg-black/40 border-2 border-emerald-500/70 rounded-2xl space-y-3 text-center animate-in zoom-in-95 duration-200">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-950/80 text-emerald-300 border border-emerald-400 rounded-full text-xs font-black">
               <span>✓</span>
               <span>ಇಂದಿನ ದೈವಿಕ ಸಂಕಲ್ಪ ಸಂಪನ್ನವಾಗಿದೆ! ✓</span>
             </div>
 
             <div className="space-y-1">
-              <h4 className="text-sm font-black text-amber-950 flex items-center justify-center gap-1.5">
+              <h4 className="text-sm font-black text-amber-200 flex items-center justify-center gap-1.5">
                 <span>🔥</span>
                 <span>{streakInfo?.currentStreak || 1} ದಿನಗಳ ಸತತ ಪವಿತ್ರ ಪೂಜಾ ಸಂಕಲ್ಪ</span>
               </h4>
-              <p className="text-xs text-slate-700 font-medium">
+              <p className="text-xs text-amber-200/80 font-medium">
                 ನಿಮ್ಮ ಶ್ರದ್ಧಾ ಭಕ್ತಿಯಿಂದ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದ ವಿಶೇಷ ಆಶೀರ್ವಾದ ಸದಾ ನಿಮ್ಮೊಂದಿಗಿದೆ.
               </p>
             </div>
 
             {/* Milestone Unlock Notice if applicable */}
             {streakInfo?.milestoneUnlocked && (
-              <div className="p-3 bg-amber-500/20 border-2 border-amber-500 rounded-xl text-xs text-amber-950 font-bold space-y-1">
+              <div className="p-3 bg-amber-500/20 border border-amber-500/60 rounded-xl text-xs text-amber-200 font-bold space-y-1">
                 <div className="text-base">{streakInfo.milestoneUnlocked.icon}</div>
-                <div className="font-black text-amber-900">
+                <div className="font-black text-amber-300">
                   {streakInfo.milestoneUnlocked.titleKn}
                 </div>
-                <div className="text-[10px] text-amber-800">
+                <div className="text-[10px] text-amber-400/80">
                   {streakInfo.milestoneUnlocked.descriptionKn}
                 </div>
               </div>
             )}
 
-            <div className="p-2.5 bg-white/90 rounded-xl border border-amber-300 text-[11px] font-semibold text-amber-950 flex items-center justify-center gap-2">
+            <div className="p-2.5 bg-black/60 rounded-xl border border-amber-500/40 text-[11px] font-semibold text-amber-200 flex items-center justify-center gap-2">
               <span>🙏</span>
               <span>ಮುಖ್ಯ ಅರ್ಚಕ {priestName} ಅವರ ಸನ್ನಿಧಿ ಆಶೀರ್ವಾದ</span>
             </div>
@@ -374,7 +377,7 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
             <button
               type="button"
               onClick={handleClose}
-              className="w-full py-2.5 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all active:scale-98 border border-amber-400"
+              className="w-full py-2.5 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all active:scale-98 border border-amber-300"
             >
               ದರ್ಶನ ಮುಂದುವರಿಸಿ (Continue Darshana)
             </button>
