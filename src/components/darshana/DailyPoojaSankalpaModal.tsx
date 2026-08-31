@@ -81,9 +81,10 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
     });
 
     const fullSpeech = `${narrationText} ${sanskritMantra}`;
+    const stepKey = `step_${targetStep}` as "step_1" | "step_2" | "step_3" | "step_4";
     const stopFn = speakPriestNarration(fullSpeech, lang, () => {
       setIsAudioPlaying(false);
-    });
+    }, stepKey);
     stopSpeechRef.current = stopFn;
   };
 

@@ -9,6 +9,7 @@
  */
 
 import type { SevaLang } from "./sevaLocale";
+import { getPriestAudioRecording, type PriestAudioKey } from "../audio/priestVoiceManager";
 
 export interface PriestNarratorParams {
   devoteeName: string;
@@ -120,10 +121,58 @@ export function playTempleBellChime(): void {
   }
 }
 
+let activeAudioElement: HTMLAudioElement | null = null;
+
 /**
- * Recites Sanskrit / Kannada text using Web Speech Synthesis API with priest resonant pitch
+ * Recites text using custom recorded audio if available, or Male Priest TTS voice with deep Vedic resonance
  */
 export function speakPriestNarration(
+  text: string,
+  lang: SevaLang = "kn",
+  onEnd?: () => void,
+  stepKey?: PriestAudioKey
+): () => void {
+  if (typeof window === "undefined") {
+    if (onEnd) setTimeout(onEnd, 2000);
+    return () => {};
+  }
+
+  // 1. Check if user uploaded a custom priest voice recording for this step
+  if (stepKey) {
+    const customAudio = getPriestAudioRecording(stepKey);
+    if (customAudio && customAudio.dataUrl) {
+      try {
+        stopPriestAudio();
+        const audio = new Audio(customAudio.dataUrl);
+        activeAudioElement = audio;
+        audio.onended = () => {
+          activeAudioElement = null;
+          if (onEnd) onEnd();
+        };
+        audio.onerror = () => {
+          activeAudioElement = null;
+          // fallback to TTS below
+          fallbackMaleTTS(text, lang, onEnd);
+        };
+        audio.play().catch(() => {
+          fallbackMaleTTS(text, lang, onEnd);
+        });
+        return () => {
+          if (activeAudioElement) {
+            activeAudioElement.pause();
+            activeAudioElement = null;
+          }
+        };
+      } catch {
+        // Fallback to TTS below
+      }
+    }
+  }
+
+  return fallbackMaleTTS(text, lang, onEnd);
+}
+
+function fallbackMaleTTS(
   text: string,
   lang: SevaLang = "kn",
   onEnd?: () => void
@@ -137,23 +186,40 @@ export function speakPriestNarration(
 
   const utterance = new SpeechSynthesisUtterance(text);
   
-  // Set appropriate locale
   if (lang === "kn") utterance.lang = "kn-IN";
   else if (lang === "hi") utterance.lang = "hi-IN";
   else if (lang === "te") utterance.lang = "te-IN";
   else if (lang === "ta") utterance.lang = "ta-IN";
   else utterance.lang = "en-IN";
 
-  // Priest resonant chanting pitch & steady pacing
-  utterance.pitch = 0.88; // deeper voice
-  utterance.rate = 0.92;  // deliberate, clear Vedic recitation pace
+  // Priest resonant chanting pitch & solemn masculine pace
+  utterance.pitch = 0.74; // Deep masculine priest pitch
+  utterance.rate = 0.86;  // Solemn, authoritative Vedic recitation pace
   utterance.volume = 1.0;
 
-  // Try to pick Indian male voice if available
+  // Filter explicitly for Indian Male voices
   const voices = window.speechSynthesis.getVoices();
-  const indianVoice = voices.find(v => (v.lang.includes("IN") || v.lang.includes("kn") || v.lang.includes("hi")) && (v.name.toLowerCase().includes("male") || v.name.toLowerCase().includes("priest") || v.name.toLowerCase().includes("india")));
-  if (indianVoice) {
-    utterance.voice = indianVoice;
+  const maleKeywords = ["male", "ravi", "hemant", "madhav", "kiran", "pradeep", "manoj", "pankaj", "tarun", "deep", "wavenet-b", "standard-b", "neural2-b"];
+  const femaleKeywords = ["female", "zira", "swara", "kalpana", "neerja", "heera", "sunita", "harita", "shruti", "priya", "pooja", "sangeeta", "wavenet-a", "standard-a"];
+
+  const maleVoice = voices.find(v => {
+    const vName = v.name.toLowerCase();
+    const isIndian = v.lang.includes("IN") || v.lang.includes("kn") || v.lang.includes("hi");
+    const isExplicitlyMale = maleKeywords.some(k => vName.includes(k));
+    const isExplicitlyFemale = femaleKeywords.some(k => vName.includes(k));
+    return isIndian && isExplicitlyMale && !isExplicitlyFemale;
+  }) || voices.find(v => {
+    const vName = v.name.toLowerCase();
+    const isIndian = v.lang.includes("IN") || v.lang.includes("kn") || v.lang.includes("hi");
+    const isExplicitlyFemale = femaleKeywords.some(k => vName.includes(k));
+    return isIndian && !isExplicitlyFemale;
+  }) || voices.find(v => {
+    const vName = v.name.toLowerCase();
+    return maleKeywords.some(k => vName.includes(k)) && !femaleKeywords.some(k => vName.includes(k));
+  });
+
+  if (maleVoice) {
+    utterance.voice = maleVoice;
   }
 
   utterance.onend = () => {
@@ -167,7 +233,6 @@ export function speakPriestNarration(
 
   window.speechSynthesis.speak(utterance);
 
-  // Return cancellation cleanup function
   return () => {
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.cancel();
@@ -176,6 +241,10 @@ export function speakPriestNarration(
 }
 
 export function stopPriestAudio(): void {
+  if (activeAudioElement) {
+    activeAudioElement.pause();
+    activeAudioElement = null;
+  }
   if (typeof window !== "undefined" && "speechSynthesis" in window) {
     window.speechSynthesis.cancel();
   }

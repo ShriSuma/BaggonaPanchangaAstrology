@@ -123,51 +123,51 @@ export const DailyKarmaNavigator: React.FC<DailyKarmaNavigatorProps> = ({
   };
 
   return (
-    <div className="bg-gradient-to-br from-[#FFFDF7] via-[#FFF9E6] to-[#FFF5D6] border-2 border-amber-400 rounded-3xl p-4 sm:p-5 shadow-md space-y-4">
+    <div className="bg-gradient-to-br from-[#451A03] via-[#301004] to-[#1C0A00] border-2 border-[#D4AF37] rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4 text-amber-100">
       {/* Header */}
-      <div className="flex items-center gap-2 border-b border-amber-300 pb-2.5">
-        <span className="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center text-lg shadow-sm border border-amber-400">
+      <div className="flex items-center gap-3 border-b border-amber-500/30 pb-3">
+        <span className="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-400 flex items-center justify-center text-xl shadow-xs">
           🧭
         </span>
         <div>
-          <h3 className="text-xs sm:text-sm font-black text-amber-950">
+          <h3 className="text-sm sm:text-base font-black text-[#FDE68A]">
             {t.title}
           </h3>
-          <span className="text-[10px] text-amber-800 font-bold">
+          <span className="text-xs text-amber-300 font-bold">
             {t.subtitle}
           </span>
         </div>
       </div>
 
       {/* Do's and Don'ts 2-Column Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
         {/* Do's */}
-        <div className="p-3.5 bg-emerald-50/70 rounded-2xl border-2 border-emerald-400/80 space-y-2">
-          <div className="flex items-center gap-1.5 text-xs font-black text-emerald-950">
-            <span className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-black">✓</span>
+        <div className="p-4 bg-emerald-950/40 rounded-2xl border-2 border-emerald-500/50 space-y-2 shadow-inner">
+          <div className="flex items-center gap-2 text-xs font-black text-emerald-300">
+            <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-black">✓</span>
             <span>{t.dosTitle}</span>
           </div>
-          <ul className="space-y-1.5 text-xs text-emerald-950 font-semibold pl-2">
+          <ul className="space-y-2 text-xs text-emerald-100 font-medium pl-1">
             {karmaData.dosKn.map((item, idx) => (
-              <li key={idx} className="flex items-start gap-1.5">
-                <span className="text-emerald-700 font-black">•</span>
-                <span>{item}</span>
+              <li key={idx} className="flex items-start gap-2">
+                <span className="text-emerald-400 font-black">•</span>
+                <span className="leading-snug">{item}</span>
               </li>
             ))}
           </ul>
         </div>
 
         {/* Don'ts */}
-        <div className="p-3.5 bg-red-50/70 rounded-2xl border-2 border-red-400/80 space-y-2">
-          <div className="flex items-center gap-1.5 text-xs font-black text-red-950">
-            <span className="w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] font-black">✕</span>
+        <div className="p-4 bg-rose-950/40 rounded-2xl border-2 border-rose-500/50 space-y-2 shadow-inner">
+          <div className="flex items-center gap-2 text-xs font-black text-rose-300">
+            <span className="w-5 h-5 rounded-full bg-rose-600 text-white flex items-center justify-center text-[10px] font-black">✕</span>
             <span>{t.dontsTitle}</span>
           </div>
-          <ul className="space-y-1.5 text-xs text-red-950 font-semibold pl-2">
+          <ul className="space-y-2 text-xs text-rose-100 font-medium pl-1">
             {karmaData.dontsKn.map((item, idx) => (
-              <li key={idx} className="flex items-start gap-1.5">
-                <span className="text-red-700 font-black">•</span>
-                <span>{item}</span>
+              <li key={idx} className="flex items-start gap-2">
+                <span className="text-rose-400 font-black">•</span>
+                <span className="leading-snug">{item}</span>
               </li>
             ))}
           </ul>
@@ -175,18 +175,18 @@ export const DailyKarmaNavigator: React.FC<DailyKarmaNavigatorProps> = ({
       </div>
 
       {/* 1-Minute Micro-Parihara / Daily Good Deed */}
-      <div className="p-3.5 bg-gradient-to-r from-amber-100/90 via-orange-100/70 to-amber-100/90 rounded-2xl border-2 border-amber-400 space-y-2.5">
+      <div className="p-4 bg-gradient-to-r from-amber-950/80 via-black/60 to-amber-950/80 rounded-2xl border-2 border-amber-500/50 space-y-3 shadow-inner">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5 text-xs font-black text-amber-950">
+          <div className="flex items-center gap-2 text-xs font-black text-[#FDE68A]">
             <span>🪔</span>
             <span>{t.microPariharaTitle}</span>
           </div>
-          <span className="text-[10px] font-bold text-amber-900 bg-amber-200/80 px-2 py-0.5 rounded-full border border-amber-400">
+          <span className="text-[10px] font-black text-amber-300 bg-amber-900/80 px-3 py-1 rounded-full border border-amber-400 shadow-xs">
             ೧ ನಿಮಿಷದ ಪುಣ್ಯ
           </span>
         </div>
 
-        <p className="text-xs text-amber-950 font-bold leading-relaxed">
+        <p className="text-xs sm:text-sm text-amber-100 font-bold leading-relaxed">
           {karmaData.microKn}
         </p>
 
@@ -195,12 +195,12 @@ export const DailyKarmaNavigator: React.FC<DailyKarmaNavigatorProps> = ({
           <button
             type="button"
             onClick={handleMarkDone}
-            className="w-full py-2 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 hover:from-amber-500 hover:to-amber-300 text-slate-950 font-black text-xs rounded-xl shadow-sm transition-all active:scale-98 flex items-center justify-center gap-1.5 border border-amber-400"
+            className="w-full py-3 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-black text-xs sm:text-sm rounded-xl shadow-md transition-all active:scale-98 flex items-center justify-center gap-2 border border-amber-300"
           >
             <span>{t.markDoneBtn}</span>
           </button>
         ) : (
-          <div className="p-2 bg-emerald-100 border border-emerald-400 rounded-xl text-center text-xs font-black text-emerald-950 animate-in fade-in flex items-center justify-center gap-1.5">
+          <div className="p-3 bg-emerald-950/80 border-2 border-emerald-400 rounded-xl text-center text-xs sm:text-sm font-black text-emerald-200 animate-in fade-in flex items-center justify-center gap-2 shadow-md">
             <span>✓</span>
             <span>{t.doneBadge}</span>
           </div>

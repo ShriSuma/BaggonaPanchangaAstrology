@@ -71,18 +71,18 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
   };
 
   return (
-    <div className="bg-gradient-to-br from-[#FFFDF7] via-[#FFF9E6] to-[#FFF5D6] border-2 border-amber-400 rounded-3xl p-4 sm:p-5 shadow-md space-y-4">
+    <div className="bg-gradient-to-br from-[#451A03] via-[#301004] to-[#1C0A00] border-2 border-[#D4AF37] rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4 text-amber-100">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-amber-300 pb-2.5">
-        <div className="flex items-center gap-2">
-          <span className="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center text-lg shadow-sm border border-amber-400">
+      <div className="flex items-center justify-between border-b border-amber-500/30 pb-3">
+        <div className="flex items-center gap-3">
+          <span className="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-400 flex items-center justify-center text-xl shadow-xs">
             📲
           </span>
           <div>
-            <h3 className="text-xs sm:text-sm font-black text-amber-950">
+            <h3 className="text-sm sm:text-base font-black text-[#FDE68A]">
               ಶುಭೋದಯ ಆಶೀರ್ವಾದ ಕಾರ್ಡ್ (Daily Blessing Card)
             </h3>
-            <span className="text-[10px] text-amber-800 font-bold">
+            <span className="text-xs text-amber-300 font-bold">
               ೧-ಟ್ಯಾಪ್ ವಾಟ್ಸಾಪ್ ಸ್ಟೇಟಸ್ & ಕುಟುಂಬಕ್ಕೆ ಹಂಚಿ
             </span>
           </div>

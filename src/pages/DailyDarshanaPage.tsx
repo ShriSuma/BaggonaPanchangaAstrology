@@ -37,6 +37,7 @@ import { DailyKarmaNavigator } from "../components/darshana/DailyKarmaNavigator"
 import { DailyBlessingShareCard } from "../components/darshana/DailyBlessingShareCard";
 import { SanctumPrayerBox } from "../components/darshana/SanctumPrayerBox";
 import { playTempleBellChime } from "../features/seva/priestAudioNarrator";
+import { PriestVoiceUploadModal } from "../components/darshana/PriestVoiceUploadModal";
 
 // Comprehensive 5-Language Dictionary for DailyDarshanaPage
 const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
@@ -1121,6 +1122,7 @@ export default function DailyDarshanaPage(): JSX.Element {
   const [storedSession, setStoredSession] = useState<any>(null);
   const [showContactModal, setShowContactModal] = useState(false);
   const [isPoojaModalOpen, setIsPoojaModalOpen] = useState(false);
+  const [isVoiceUploadModalOpen, setIsVoiceUploadModalOpen] = useState(false);
   const [poojaStreak, setPoojaStreak] = useState<PoojaStreakInfo>({
     currentStreak: 1,
     highestStreak: 1,
@@ -1849,31 +1851,55 @@ export default function DailyDarshanaPage(): JSX.Element {
                    `Today's Archana: ${deity.name.en} · Streak: ${poojaStreak.currentStreak} Days`}
                 </div>
               </div>
-              <button
-                onClick={() => setIsPoojaModalOpen(true)}
-                style={{
-                  background: "linear-gradient(135deg, #F59E0B, #D97706)",
-                  color: "#1C0A00",
-                  border: "1.5px solid #FDE68A",
-                  borderRadius: 12,
-                  padding: "10px 16px",
-                  fontSize: 12.5,
-                  fontWeight: 900,
-                  cursor: "pointer",
-                  whiteSpace: "nowrap",
-                  boxShadow: "0 4px 12px rgba(245, 158, 11, 0.4)",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6
-                }}
-              >
-                <span>🔔</span>
-                <span>{lang === "kn" ? "ಪೂಜೆ ಆರಂಭಿಸಿ" :
-                       lang === "hi" ? "पूजा प्रारंभ करें" :
-                       lang === "te" ? "పూజ ప్రారంభించండి" :
-                       lang === "ta" ? "பூஜை தொடங்கு" :
-                       "Start Pooja"}</span>
-              </button>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  onClick={() => setIsVoiceUploadModalOpen(true)}
+                  style={{
+                    background: "rgba(30, 10, 0, 0.8)",
+                    color: "#FDE68A",
+                    border: "1.5px solid #D4AF37",
+                    borderRadius: 12,
+                    padding: "10px 14px",
+                    fontSize: 12,
+                    fontWeight: 900,
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6
+                  }}
+                  title="Upload Priest Custom Voice Recording"
+                >
+                  <span>🎙️</span>
+                  <span>{lang === "kn" ? "ಧ್ವನಿ ಅಪ್‌ಲೋಡ್" : "Voice Upload"}</span>
+                </button>
+                <button
+                  onClick={() => setIsPoojaModalOpen(true)}
+                  style={{
+                    background: "linear-gradient(135deg, #F59E0B, #D97706)",
+                    color: "#1C0A00",
+                    border: "1.5px solid #FDE68A",
+                    borderRadius: 12,
+                    padding: "10px 16px",
+                    fontSize: 12.5,
+                    fontWeight: 900,
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                    boxShadow: "0 4px 12px rgba(245, 158, 11, 0.4)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6
+                  }}
+                >
+                  <span>🔔</span>
+                  <span>{lang === "kn" ? "ಪೂಜೆ ಆರಂಭಿಸಿ" :
+                         lang === "hi" ? "पूजा प्रारंभ करें" :
+                         lang === "te" ? "పూజ ప్రారంభించండి" :
+                         lang === "ta" ? "பூஜை தொடங்கு" :
+                         "Start Pooja"}</span>
+                </button>
+              </div>
             </div>
 
             {/* Dynamic 3-Color Vibe Status Card */}
@@ -2667,6 +2693,13 @@ export default function DailyDarshanaPage(): JSX.Element {
         lang={lang}
         priestName={activePanditName}
         onPlayBell={playTempleBell}
+      />
+      {/* Custom Priest Voice Upload & Recording Modal */}
+      <PriestVoiceUploadModal
+        isOpen={isVoiceUploadModalOpen}
+        onClose={() => setIsVoiceUploadModalOpen(false)}
+        lang={lang}
+        priestName={activePanditName}
       />
     </div>
   );
