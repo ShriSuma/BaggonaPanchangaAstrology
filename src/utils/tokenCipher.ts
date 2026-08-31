@@ -292,7 +292,7 @@ export function decodeDevoteeToken(token: string): (DevoteeTokenPayload & {
     const days = typeof parsed.dy === "number" && parsed.dy > 0 ? parsed.dy : (typeof parsed.days === "number" && parsed.days > 0 ? parsed.days : 90);
     const phone = parsed.ph || parsed.phone || undefined;
     const overrideCalendarPhone = Boolean(parsed.ocp || parsed.overrideCalendarPhone);
-    const voiceId = parsed.vid || parsed.voiceId || undefined;
+    const voiceId = parsed.vid || parsed.voiceId || "voice_shrisuma_master";
 
     return {
       name,

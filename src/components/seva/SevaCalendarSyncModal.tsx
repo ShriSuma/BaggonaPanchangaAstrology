@@ -61,7 +61,7 @@ export default function SevaCalendarSyncModal({
   const [priestVoiceListening, setPriestVoiceListening] = useState<boolean>(false);
 
   const [voiceProfiles, setVoiceProfiles] = useState<PriestVoiceProfile[]>(() => getAllVoiceProfiles());
-  const [selectedVoiceId, setSelectedVoiceId] = useState<string>("voice_shreeram");
+  const [selectedVoiceId, setSelectedVoiceId] = useState<string>("voice_shrisuma_master");
   const [isVoiceUploadModalOpen, setIsVoiceUploadModalOpen] = useState<boolean>(false);
 
   const activePriest = useMemo(() => getPriestProfile(selectedPriestId), [selectedPriestId, priestsList]);

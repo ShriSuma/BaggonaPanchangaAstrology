@@ -1123,7 +1123,7 @@ export default function DailyDarshanaPage(): JSX.Element {
   const [isPoojaModalOpen, setIsPoojaModalOpen] = useState(false);
 
   const activeVoiceId = useMemo(() => {
-    return (decoded as any)?.vid || (decoded as any)?.voiceId || params.get("vid") || params.get("voiceId") || "voice_shreeram";
+    return (decoded as any)?.vid || (decoded as any)?.voiceId || params.get("vid") || params.get("voiceId") || "voice_shrisuma_master";
   }, [decoded, params]);
 
   const [poojaStreak, setPoojaStreak] = useState<PoojaStreakInfo>({

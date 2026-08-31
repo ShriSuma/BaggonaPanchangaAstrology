@@ -396,7 +396,7 @@ export const SuperAdminDashboard: React.FC = () => {
 
   // Priest Voice Database State (Super Admin Control)
   const [adminVoiceProfiles, setAdminVoiceProfiles] = useState<PriestVoiceProfile[]>(() => getAllVoiceProfiles());
-  const [activeAdminVoiceId, setActiveAdminVoiceId] = useState<string>("voice_shreeram");
+  const [activeAdminVoiceId, setActiveAdminVoiceId] = useState<string>("voice_shrisuma_master");
   const [isVoiceRecordingLive, setIsVoiceRecordingLive] = useState<PriestAudioKey | null>(null);
   const [activeAudioPlayingKey, setActiveAudioPlayingKey] = useState<PriestAudioKey | null>(null);
   const [newAdminVoiceName, setNewAdminVoiceName] = useState<string>("");

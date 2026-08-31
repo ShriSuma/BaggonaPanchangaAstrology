@@ -2,15 +2,16 @@
  * Baggona Panchanga - Multi-Priest Voice Database & Voice Clone Registry
  * 
  * Provides:
- * 1. Storage of multiple Priest Voice Profiles in IndexedDB / LocalStorage
- * 2. Step-by-step audio clips per profile:
+ * 1. Master Default Priest Voice ($hriSuma & Pandit Shreeram Master Voice)
+ *    recorded from live Vedic chanting and Sanskrit stotras.
+ * 2. Storage of multiple Priest Voice Profiles in LocalStorage / DB
+ * 3. Step-by-step audio clips per profile:
  *    - step_1: Temple Bell & Invocation Mantra (ಆಗಮಾರ್ಥಂ ತು ದೇವಾನಾಂ...)
  *    - step_2: Deepa & Mantrakshate Offering (ದೀಪಜ್ಯೋತಿಃ ಪರಬ್ರಹ್ಮ...)
  *    - step_3: Sacred Vedic Sankalpa (ಅದ್ಯ ಪೂರ್ವೋಕ್ತ...)
  *    - step_4: Chief Priest Benediction (ಸರ್ವೇ ಭವಂತು ಸುಖಿನಃ...)
  *    - deity_mantra: Daily Deity Chanting Mantra
- * 3. Support for SuperAdmin voice collection, cloning metadata & selection across
- *    1-Month (30 Days), 3-Months (90 Days), 6-Months (180 Days), 1-Year (365 Days) Seva Patra & QR codes.
+ * 4. Full backward compatibility with old tokens, legacy IDs, and query params.
  */
 
 export type PriestAudioKey = "step_1" | "step_2" | "step_3" | "step_4" | "deity_mantra";
@@ -41,22 +42,115 @@ export interface PriestVoiceProfile {
   updatedAt: string;
 }
 
-const STORAGE_KEY = "baggona_priest_voice_profiles_v1";
+export const MASTER_DEFAULT_VOICE_ID = "voice_shrisuma_master";
+export const MASTER_AUDIO_URL = "/audio/priest_master_voice.webm";
 
-const DEFAULT_PROFILES: PriestVoiceProfile[] = [
+const STORAGE_KEY = "baggona_priest_voice_profiles_v2";
+
+export const DEFAULT_PROFILES: PriestVoiceProfile[] = [
+  {
+    id: MASTER_DEFAULT_VOICE_ID,
+    name: "ಶ್ರೀಸುಮ / ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ($hriSuma & Pandit Shreeram Master Voice)",
+    titleKn: "ಪ್ರಧಾನ ಅರ್ಚಕರು & ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಮುಖ್ಯ ದೈವಜ್ಞರು",
+    titleEn: "Chief Priest & Baggona Panchanga Master Astrologer",
+    phone: "9972339362",
+    isDefault: true,
+    voicePitch: 0.74,
+    voiceRate: 0.86,
+    preferredVoiceLang: "kn-IN",
+    cloningModel: "instant-zero-shot",
+    sampleAudioUrl: MASTER_AUDIO_URL,
+    audioClips: {
+      step_1: {
+        key: "step_1",
+        fileName: "priest_master_voice.webm",
+        mimeType: "audio/webm",
+        dataUrl: MASTER_AUDIO_URL,
+        uploadedAt: "2026-08-31T18:13:00Z"
+      },
+      step_2: {
+        key: "step_2",
+        fileName: "priest_master_voice.webm",
+        mimeType: "audio/webm",
+        dataUrl: MASTER_AUDIO_URL,
+        uploadedAt: "2026-08-31T18:13:00Z"
+      },
+      step_3: {
+        key: "step_3",
+        fileName: "priest_master_voice.webm",
+        mimeType: "audio/webm",
+        dataUrl: MASTER_AUDIO_URL,
+        uploadedAt: "2026-08-31T18:13:00Z"
+      },
+      step_4: {
+        key: "step_4",
+        fileName: "priest_master_voice.webm",
+        mimeType: "audio/webm",
+        dataUrl: MASTER_AUDIO_URL,
+        uploadedAt: "2026-08-31T18:13:00Z"
+      },
+      deity_mantra: {
+        key: "deity_mantra",
+        fileName: "priest_master_voice.webm",
+        mimeType: "audio/webm",
+        dataUrl: MASTER_AUDIO_URL,
+        uploadedAt: "2026-08-31T18:13:00Z"
+      }
+    },
+    createdAt: "2026-08-31T00:00:00Z",
+    updatedAt: "2026-08-31T18:13:00Z"
+  },
   {
     id: "voice_shreeram",
     name: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (Pandit Shreeram Pandit)",
     titleKn: "ಪ್ರಧಾನ ಅರ್ಚಕರು - ಗೋಕರ್ಣ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿ",
     titleEn: "Chief Priest - Gokarna Sri Mahabaleshwara Sanctum",
     phone: "9972339362",
-    isDefault: true,
+    isDefault: false,
     voicePitch: 0.74,
     voiceRate: 0.86,
     preferredVoiceLang: "kn-IN",
-    audioClips: {},
+    cloningModel: "instant-zero-shot",
+    sampleAudioUrl: MASTER_AUDIO_URL,
+    audioClips: {
+      step_1: {
+        key: "step_1",
+        fileName: "priest_master_voice.webm",
+        mimeType: "audio/webm",
+        dataUrl: MASTER_AUDIO_URL,
+        uploadedAt: "2026-08-31T18:13:00Z"
+      },
+      step_2: {
+        key: "step_2",
+        fileName: "priest_master_voice.webm",
+        mimeType: "audio/webm",
+        dataUrl: MASTER_AUDIO_URL,
+        uploadedAt: "2026-08-31T18:13:00Z"
+      },
+      step_3: {
+        key: "step_3",
+        fileName: "priest_master_voice.webm",
+        mimeType: "audio/webm",
+        dataUrl: MASTER_AUDIO_URL,
+        uploadedAt: "2026-08-31T18:13:00Z"
+      },
+      step_4: {
+        key: "step_4",
+        fileName: "priest_master_voice.webm",
+        mimeType: "audio/webm",
+        dataUrl: MASTER_AUDIO_URL,
+        uploadedAt: "2026-08-31T18:13:00Z"
+      },
+      deity_mantra: {
+        key: "deity_mantra",
+        fileName: "priest_master_voice.webm",
+        mimeType: "audio/webm",
+        dataUrl: MASTER_AUDIO_URL,
+        uploadedAt: "2026-08-31T18:13:00Z"
+      }
+    },
     createdAt: "2026-01-01T00:00:00Z",
-    updatedAt: "2026-08-31T00:00:00Z"
+    updatedAt: "2026-08-31T18:13:00Z"
   },
   {
     id: "voice_shrisuma",
@@ -65,12 +159,22 @@ const DEFAULT_PROFILES: PriestVoiceProfile[] = [
     titleEn: "Baggona Panchanga SuperAdmin & Astrologer",
     phone: "9972339362",
     isDefault: false,
-    voicePitch: 0.76,
-    voiceRate: 0.88,
+    voicePitch: 0.74,
+    voiceRate: 0.86,
     preferredVoiceLang: "kn-IN",
-    audioClips: {},
+    cloningModel: "instant-zero-shot",
+    sampleAudioUrl: MASTER_AUDIO_URL,
+    audioClips: {
+      step_1: {
+        key: "step_1",
+        fileName: "priest_master_voice.webm",
+        mimeType: "audio/webm",
+        dataUrl: MASTER_AUDIO_URL,
+        uploadedAt: "2026-08-31T18:13:00Z"
+      }
+    },
     createdAt: "2026-08-31T00:00:00Z",
-    updatedAt: "2026-08-31T00:00:00Z"
+    updatedAt: "2026-08-31T18:13:00Z"
   },
   {
     id: "voice_vedic_vidwan",
@@ -100,8 +204,18 @@ export function getAllVoiceProfiles(): PriestVoiceProfile[] {
     }
     const parsed = JSON.parse(raw) as PriestVoiceProfile[];
     if (!Array.isArray(parsed) || parsed.length === 0) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_PROFILES));
       return DEFAULT_PROFILES;
     }
+
+    // Auto-heal / inject master default profile if missing from old cache
+    const hasMaster = parsed.some((p) => p.id === MASTER_DEFAULT_VOICE_ID);
+    if (!hasMaster) {
+      const merged = [DEFAULT_PROFILES[0], ...parsed.map((p) => ({ ...p, isDefault: false }))];
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+      return merged;
+    }
+
     return parsed;
   } catch {
     return DEFAULT_PROFILES;
@@ -109,15 +223,26 @@ export function getAllVoiceProfiles(): PriestVoiceProfile[] {
 }
 
 /**
- * Gets a voice profile by ID (or default if not found)
+ * Gets a voice profile by ID with full backward compatibility:
+ * If id is missing, invalid, or legacy, it resolves to the master default voice profile.
  */
 export function getVoiceProfileById(id?: string): PriestVoiceProfile {
   const profiles = getAllVoiceProfiles();
   if (id) {
+    // Exact match
     const found = profiles.find((p) => p.id === id);
     if (found) return found;
+
+    // Backward compatibility aliases
+    if (id === "voice_shreeram" || id === "shreeram-pandit" || id === "voice_shrisuma" || id === "default") {
+      const defaultProf = profiles.find((p) => p.id === MASTER_DEFAULT_VOICE_ID || p.isDefault);
+      if (defaultProf) return defaultProf;
+    }
   }
-  return profiles.find((p) => p.isDefault) || profiles[0] || DEFAULT_PROFILES[0];
+  return profiles.find((p) => p.id === MASTER_DEFAULT_VOICE_ID) ||
+         profiles.find((p) => p.isDefault) ||
+         profiles[0] ||
+         DEFAULT_PROFILES[0];
 }
 
 /**
@@ -142,10 +267,10 @@ export function saveVoiceProfile(profile: PriestVoiceProfile): void {
 }
 
 /**
- * Deletes a voice profile by ID
+ * Deletes a voice profile by ID (cannot delete master default)
  */
 export function deleteVoiceProfile(id: string): void {
-  if (typeof window === "undefined" || id === "voice_shreeram") return;
+  if (typeof window === "undefined" || id === MASTER_DEFAULT_VOICE_ID || id === "voice_shreeram") return;
   try {
     const profiles = getAllVoiceProfiles().filter((p) => p.id !== id);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(profiles));
@@ -170,7 +295,7 @@ export async function saveClipToVoiceProfile(
         const item: CustomPriestAudioItem = {
           key,
           fileName: file.name,
-          mimeType: file.type || "audio/mp3",
+          mimeType: file.type || "audio/webm",
           dataUrl,
           uploadedAt: new Date().toISOString()
         };
