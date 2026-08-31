@@ -73,6 +73,8 @@ import {
   type VoiceCloneConfig,
   type VoiceCloneProvider
 } from "../audio/aiVoiceCloneEngine";
+import type { SevaLang } from "../seva/sevaLocale";
+
 
 export type AdminTab = "wallets" | "kundlis" | "ashirvada" | "audit" | "mindmap" | "panchanga_engine" | "voice_db";
 
@@ -416,7 +418,10 @@ export const SuperAdminDashboard: React.FC = () => {
 
   // AI Voice Clone Configuration & Live Tester State
   const [cloneConfig, setCloneConfig] = useState<VoiceCloneConfig>(() => getVoiceCloneConfig());
-  const [testLiveText, setTestLiveText] = useState<string>("ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ದರ್ಶನ ಮತ್ತು ನಿಮ್ಮ ವೈಯಕ್ತಿಕ ಸಂಕಲ್ಪ ಸಂಪನ್ನವಾಗಿದೆ. ಓಂ ನಮಃ ಶಿವಾಯ.");
+  const [testLiveText, setTestLiveText] = useState<string>(
+    "ಹರಿ ಓಂ. ನಾನು ಶ್ರೀಸುಮ. ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ನಿತ್ಯ ಪವಿತ್ರ ದರ್ಶನ ಹಾಗೂ ವೈಯಕ್ತಿಕ ಗೋಲ್ಡನ್ ಮುಹೂರ್ತ ಸಂಕಲ್ಪಕ್ಕೆ ತಮಗೆ ಭಕ್ತಿಪೂರ್ವಕ ಸುಸ್ವಾಗತ. ನಿಮ್ಮ ಮತ್ತು ನಿಮ್ಮ ಕುಟುಂಬಕ್ಕೆ ಸಕಲ ಕಾರ್ಯ ಸಿದ್ಧಿ ಹಾಗೂ ಆಯುರಾರೋಗ್ಯ ಪ್ರಾಪ್ತಿಯಾಗಲಿ. ಓಂ ನಮಃ ಶಿವಾಯ."
+  );
+  const [testLang, setTestLang] = useState<SevaLang>("kn");
   const [isPlayingLiveTest, setIsPlayingLiveTest] = useState<boolean>(false);
 
   // Priest Profile Real-Time Subscription
@@ -3330,55 +3335,165 @@ export const SuperAdminDashboard: React.FC = () => {
               )}
 
               {/* Live Interactive Voice Clone Tester Studio */}
-              <div className="p-4 bg-gradient-to-r from-[#2A1205] to-[#1F0D04] rounded-2xl border border-amber-400/60 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="text-xs font-black text-[#FDE68A] flex items-center gap-1.5">
-                    <span>🎙️</span>
-                    <span>ಲೈವ್ ಧ್ವನಿ ಕ್ಲೋನಿಂಗ್ ಟೆಸ್ಟರ್ (Live Real-Time Voice Synthesis Tester):</span>
+              <div className="p-4 bg-gradient-to-r from-[#2A1205] to-[#1F0D04] rounded-2xl border-2 border-amber-400/80 space-y-4 shadow-xl">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-500/30 pb-2">
+                  <div className="text-xs sm:text-sm font-black text-[#FDE68A] flex items-center gap-2">
+                    <span className="text-lg">🎙️</span>
+                    <span>ಲೈವ್ ಧ್ವನಿ ಪರಿಶೀಲನೆ & ಪರೀಕ್ಷಕ (Live Real-Time Voice Synthesis Review Player)</span>
                   </div>
-                  <span className="text-[10px] text-amber-300 font-mono">
-                    Profile: {activeProfile?.name.split("(")[0]}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] text-amber-300 font-bold bg-amber-950/80 px-2.5 py-1 rounded-lg border border-amber-500/40">
+                      ಧ್ವನಿ ಪ್ರೊಫೈಲ್: {activeProfile?.name.split("(")[0]}
+                    </span>
+                  </div>
                 </div>
 
-                <textarea
-                  value={testLiveText}
-                  onChange={(e) => setTestLiveText(e.target.value)}
-                  rows={2}
-                  className="w-full p-2.5 bg-black/70 border border-amber-500/50 rounded-xl text-xs text-amber-100 focus:outline-none focus:border-amber-400 resize-none font-medium"
-                  placeholder="ಪರೀಕ್ಷಿಸಲು ಕನ್ನಡ ಅಥವಾ ಸಂಸ್ಕೃತ ಪಠ್ಯವನ್ನು ಇಲ್ಲಿ ಬರೆಯಿರಿ..."
-                />
+                {/* Pitch & Rate Interactive Sliders */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-black/60 rounded-xl border border-amber-500/30">
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-[11px] font-bold text-amber-200">
+                      <span>ಧ್ವನಿ ಗಾಂಭೀರ್ಯತೆ (Pitch / Frequency):</span>
+                      <span className="font-mono text-amber-400 font-black">{(cloneConfig.preferredPitch || 0.76).toFixed(2)}x (125Hz F0)</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0.60"
+                      max="1.20"
+                      step="0.02"
+                      value={cloneConfig.preferredPitch || 0.76}
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value);
+                        const updated = { ...cloneConfig, preferredPitch: val };
+                        setCloneConfig(updated);
+                        saveVoiceCloneConfig(updated);
+                      }}
+                      className="w-full accent-amber-500 cursor-pointer h-1.5 bg-amber-950 rounded-lg"
+                    />
+                    <div className="flex justify-between text-[9px] text-amber-400/60 font-semibold">
+                      <span>0.60 (ಅತ್ಯಂತ ಗಂಭೀರ)</span>
+                      <span>0.76 (ಶ್ರೀಸುಮ ನೈಜ ಧ್ವನಿ)</span>
+                      <span>1.20 (ತೀಕ್ಷ್ಣ)</span>
+                    </div>
+                  </div>
 
-                <div className="flex flex-wrap items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      if (isPlayingLiveTest) {
-                        stopClonedAudio();
-                        setIsPlayingLiveTest(false);
-                        return;
-                      }
-                      setIsPlayingLiveTest(true);
-                      await synthesizeAndPlayClonedVoice(testLiveText, "kn", activeAdminVoiceId, () => {
-                        setIsPlayingLiveTest(false);
-                      });
-                    }}
-                    className={`px-4 py-2 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all active:scale-95 flex items-center gap-1.5 border border-amber-300 ${
-                      isPlayingLiveTest ? "animate-pulse" : ""
-                    }`}
-                  >
-                    <span>{isPlayingLiveTest ? "⏹️ ನಿಲ್ಲಿಸಿ (Stop)" : "▶️ ರಿಯಲ್-ಟೈಮ್ ಧ್ವನಿ ಆಲಿಸಿ (Test Real-Time Cloned Voice)"}</span>
-                  </button>
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-[11px] font-bold text-amber-200">
+                      <span>ಪಠಣ ವೇಗ (Tempo / Cadence):</span>
+                      <span className="font-mono text-amber-400 font-black">{(cloneConfig.preferredRate || 0.88).toFixed(2)}x (Vedic Pace)</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0.70"
+                      max="1.20"
+                      step="0.02"
+                      value={cloneConfig.preferredRate || 0.88}
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value);
+                        const updated = { ...cloneConfig, preferredRate: val };
+                        setCloneConfig(updated);
+                        saveVoiceCloneConfig(updated);
+                      }}
+                      className="w-full accent-amber-500 cursor-pointer h-1.5 bg-amber-950 rounded-lg"
+                    />
+                    <div className="flex justify-between text-[9px] text-amber-400/60 font-semibold">
+                      <span>0.70 (ವಿಳಂಬ)</span>
+                      <span>0.88 (ಶಾಸ್ತ್ರೀಯ ಲಯ)</span>
+                      <span>1.20 (ವೇಗ)</span>
+                    </div>
+                  </div>
+                </div>
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setTestLiveText("ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ದರ್ಶನ ಮತ್ತು ನಿಮ್ಮ ವೈಯಕ್ತಿಕ ಸಂಕಲ್ಪ ಸಂಪನ್ನವಾಗಿದೆ. ಓಂ ನಮಃ ಶಿವಾಯ.");
-                    }}
-                    className="px-3 py-2 bg-black/50 hover:bg-black/70 text-amber-300 text-xs font-bold rounded-xl border border-amber-500/30"
-                  >
-                    ಮಾದರಿ ಸಂಕಲ್ಪ ಮರುಹೊಂದಿಸಿ
-                  </button>
+                {/* Sample Text Input */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-xs font-bold text-amber-200">
+                    <span>ಪರೀಕ್ಷಾರ್ಥ ಪಠ್ಯ (Sample Review Paragraph):</span>
+                    <div className="flex items-center gap-1">
+                      {(["kn", "hi", "en"] as SevaLang[]).map((l) => (
+                        <button
+                          key={l}
+                          type="button"
+                          onClick={() => {
+                            setTestLang(l);
+                            if (l === "kn") {
+                              setTestLiveText("ಹರಿ ಓಂ. ನಾನು ಶ್ರೀಸುಮ. ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ನಿತ್ಯ ಪವಿತ್ರ ದರ್ಶನ ಹಾಗೂ ವೈಯಕ್ತಿಕ ಗೋಲ್ಡನ್ ಮುಹೂರ್ತ ಸಂಕಲ್ಪಕ್ಕೆ ತಮಗೆ ಭಕ್ತಿಪೂರ್ವಕ ಸುಸ್ವಾಗತ. ನಿಮ್ಮ ಮತ್ತು ನಿಮ್ಮ ಕುಟುಂಬಕ್ಕೆ ಸಕಲ ಕಾರ್ಯ ಸಿದ್ಧಿ ಹಾಗೂ ಆಯುರಾರೋಗ್ಯ ಪ್ರಾಪ್ತಿಯಾಗಲಿ. ಓಂ ನಮಃ ಶಿವಾಯ.");
+                            } else if (l === "hi") {
+                              setTestLiveText("हरि ॐ। मैं श्रीसुम। श्री गोकर्ण महाबलेश्वर स्वामी के नित्य पवित्र दर्शन और व्यक्तिगत मुहूर्त संकल्प में आपका हार्दिक स्वागत है। आपके परिवार का सर्वदा कल्याण हो। ॐ नमः शिवाय।");
+                            } else {
+                              setTestLiveText("Hari Om. I am ShriSuma. A divine welcome to Sri Gokarna Mahabaleshwara Darshana and your personal Golden Hour Sankalpa. May you and your family be blessed with peace and prosperity. Om Namah Shivaya.");
+                            }
+                          }}
+                          className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${
+                            testLang === l ? "bg-amber-500 text-slate-950" : "bg-black/40 text-amber-300 border border-amber-500/30"
+                          }`}
+                        >
+                          {l}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <textarea
+                    value={testLiveText}
+                    onChange={(e) => setTestLiveText(e.target.value)}
+                    rows={3}
+                    className="w-full p-3 bg-black/80 border border-amber-500/60 rounded-xl text-xs text-amber-100 focus:outline-none focus:border-amber-400 resize-none font-medium leading-relaxed"
+                    placeholder="ಪರೀಕ್ಷಿಸಲು ಕನ್ನಡ ಅಥವಾ ಸಂಸ್ಕೃತ ಪಠ್ಯವನ್ನು ಇಲ್ಲಿ ಬರೆಯಿರಿ..."
+                  />
+                </div>
+
+                {/* Controls & Sample Presets */}
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (isPlayingLiveTest) {
+                          stopClonedAudio();
+                          setIsPlayingLiveTest(false);
+                          return;
+                        }
+                        setIsPlayingLiveTest(true);
+                        await synthesizeAndPlayClonedVoice(testLiveText, testLang, activeAdminVoiceId, () => {
+                          setIsPlayingLiveTest(false);
+                        });
+                      }}
+                      className={`px-5 py-2.5 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-black text-xs sm:text-sm rounded-xl shadow-lg transition-all active:scale-95 flex items-center gap-2 border border-amber-200 ${
+                        isPlayingLiveTest ? "animate-pulse ring-4 ring-amber-400/50" : ""
+                      }`}
+                    >
+                      <span>{isPlayingLiveTest ? "⏹️ ಧ್ವನಿ ನಿಲ್ಲಿಸಿ (Stop Audio)" : "▶️ ನನ್ನ ಕ್ಲೋನ್ಡ್ ಧ್ವನಿಯಲ್ಲಿ ಆಲಿಸಿ (Play Cloned Voice)"}</span>
+                    </button>
+
+                    {isPlayingLiveTest && (
+                      <span className="text-xs text-emerald-400 font-black animate-pulse flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                        ಧ್ವನಿ ನುಡಿಯುತ್ತಿದೆ...
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Preset Fast Selectors */}
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTestLang("kn");
+                        setTestLiveText("ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ದರ್ಶನ ಮತ್ತು ನಿಮ್ಮ ವೈಯಕ್ತಿಕ ಗೋಲ್ಡನ್ ಮುಹೂರ್ತ ಸಮಯ ಆರಂಭವಾಗಿದೆ. ಶುಭ ಕಾರ್ಯಕ್ಕೆ ಸಕಾಲ. ಓಂ ನಮಃ ಶಿವಾಯ.");
+                      }}
+                      className="px-2.5 py-1.5 bg-black/50 hover:bg-black/70 text-amber-300 text-[11px] font-bold rounded-lg border border-amber-500/30"
+                    >
+                      🌟 ಮುಹೂರ್ತ ಸಂಕಲ್ಪ
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTestLang("kn");
+                        setTestLiveText("ಶ್ರೀ ಗುರುಭ್ಯೋ ನಮಃ. ಹರಿಃ ಓಂ. ಆದೌ ನಿರ್ವಿಘ್ನತಾಸಿದ್ಧ್ಯರ್ಥಂ ಶ್ರೀ ಮಹಾಗಣಪತಿ ಪ್ರಾರ್ಥನಾಂ ಕರಿಷ್ಯೇ. ಓಂ ಗಂ ಗಣಪತಯೇ ನಮಃ.");
+                      }}
+                      className="px-2.5 py-1.5 bg-black/50 hover:bg-black/70 text-amber-300 text-[11px] font-bold rounded-lg border border-amber-500/30"
+                    >
+                      🪔 ಪೂಜಾ ಮಂತ್ರ
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

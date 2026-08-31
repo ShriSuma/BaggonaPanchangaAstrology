@@ -2,16 +2,16 @@
  * Baggona Panchanga - Real-Time AI Voice Cloning Engine (ರಿಯಲ್-ಟೈಮ್ ಧ್ವನಿ ಕ್ಲೋನಿಂಗ್ ಎಂಜಿನ್)
  * 
  * Supports:
- * 1. Free Neural Indic Voice Streaming (High fidelity Indian Kannada/Hindi/English human voice)
+ * 1. ElevenLabs Instant Voice Cloning (Custom API key & Voice ID)
  * 2. Hugging Face Inference API / Coqui XTTS-v2 (Zero-shot voice cloning with reference audio)
- * 3. ElevenLabs Instant Voice Cloning (Custom API key & Voice ID)
- * 4. Resonant Web Audio DSP Acoustic Filtering (Strictly Male, deep pitch 120Hz F0 resonance, zero female fallback)
+ * 3. Guaranteed In-Browser Male Vedic Speech Synthesizer with WebKit GC anchor and Mikaela/Coral blacklist
+ * 4. Resonant Web Audio DSP Acoustic Filtering with 125Hz F0 masculine resonance
  */
 
 import type { SevaLang } from "../seva/sevaLocale";
 import { getVoiceProfileById, type PriestVoiceProfile } from "./priestVoiceDatabase";
 
-export type VoiceCloneProvider = "neural_stream" | "edge_neural" | "huggingface_xtts" | "elevenlabs" | "web_dsp";
+export type VoiceCloneProvider = "web_dsp" | "elevenlabs" | "huggingface_xtts" | "edge_neural";
 
 export interface VoiceCloneConfig {
   provider: VoiceCloneProvider;
@@ -26,10 +26,10 @@ export interface VoiceCloneConfig {
   preferredRate: number;  // 0.88 (steady cadence)
 }
 
-const CLONE_CONFIG_STORAGE_KEY = "baggona_ai_voice_clone_config_v2";
+const CLONE_CONFIG_STORAGE_KEY = "baggona_ai_voice_clone_config_v3";
 
 export const DEFAULT_CLONE_CONFIG: VoiceCloneConfig = {
-  provider: "neural_stream",
+  provider: "web_dsp",
   hfModelUrl: "https://api-inference.huggingface.co/models/coqui/XTTS-v2",
   autoFallbackToDsp: true,
   bassBoostGain: 2.2,
@@ -67,7 +67,6 @@ export function saveVoiceCloneConfig(cfg: Partial<VoiceCloneConfig>): void {
 }
 
 let activeCloneAudio: HTMLAudioElement | null = null;
-let activeAudioContext: AudioContext | null = null;
 
 /**
  * Stops any currently playing cloned audio or speech synthesis
@@ -78,23 +77,42 @@ export function stopClonedAudio(): void {
     activeCloneAudio.currentTime = 0;
     activeCloneAudio = null;
   }
-  if (activeAudioContext) {
-    try {
-      activeAudioContext.close();
-    } catch {}
-    activeAudioContext = null;
-  }
   if (typeof window !== "undefined" && "speechSynthesis" in window) {
+    (window as any).__baggonaActiveUtterance = null;
     window.speechSynthesis.cancel();
   }
+}
+
+/**
+ * Preloads and resolves available browser speech synthesis voices asynchronously
+ */
+export function getAvailableVoicesAsync(): Promise<SpeechSynthesisVoice[]> {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+    return Promise.resolve([]);
+  }
+  return new Promise((resolve) => {
+    const immediate = window.speechSynthesis.getVoices();
+    if (immediate && immediate.length > 0) {
+      resolve(immediate);
+      return;
+    }
+    const onVoices = () => {
+      window.speechSynthesis.removeEventListener("voiceschanged", onVoices);
+      resolve(window.speechSynthesis.getVoices() || []);
+    };
+    window.speechSynthesis.addEventListener("voiceschanged", onVoices);
+    setTimeout(() => {
+      window.speechSynthesis.removeEventListener("voiceschanged", onVoices);
+      resolve(window.speechSynthesis.getVoices() || []);
+    }, 400);
+  });
 }
 
 /**
  * Real-time Speech Synthesis using the configured AI Voice Cloning provider:
  * 1. Tries ElevenLabs if configured
  * 2. Tries Hugging Face XTTS if configured
- * 3. Tries Free Neural Indic Audio Stream with Web Audio Bass Boost (Zero female fallback)
- * 4. Fallback to Web Speech API locked strictly to Indian Male Voice with 120Hz pitch tuning
+ * 3. Guaranteed Male-Only In-Browser Web Audio Formant DSP (Strictly filters out Mikaela/Coral, binds 125Hz pitch)
  */
 export async function synthesizeAndPlayClonedVoice(
   text: string,
@@ -112,7 +130,7 @@ export async function synthesizeAndPlayClonedVoice(
     try {
       const audioUrl = await fetchElevenLabsTTS(text, config.elevenLabsApiKey, config.elevenLabsVoiceId);
       if (audioUrl) {
-        return playAudioUrlWithDSP(audioUrl, onEnd, config);
+        return playAudioUrlWithDSP(audioUrl, onEnd);
       }
     } catch (e) {
       console.warn("[AIVoiceCloneEngine] ElevenLabs error, falling back:", e);
@@ -124,31 +142,21 @@ export async function synthesizeAndPlayClonedVoice(
     try {
       const audioUrl = await fetchHuggingFaceXTTS(text, lang, config.hfApiKey, profile.sampleAudioUrl, config.hfModelUrl);
       if (audioUrl) {
-        return playAudioUrlWithDSP(audioUrl, onEnd, config);
+        return playAudioUrlWithDSP(audioUrl, onEnd);
       }
     } catch (e) {
       console.warn("[AIVoiceCloneEngine] Hugging Face XTTS error, falling back:", e);
     }
   }
 
-  // 3. Try High-Quality Neural Indic Audio Streaming (Natural Indian voice, never Mikaela/Coral)
-  if (config.provider === "neural_stream" || config.provider === "edge_neural") {
-    try {
-      const stopFn = playNeuralIndicStream(text, lang, onEnd, config);
-      if (stopFn) return stopFn;
-    } catch (e) {
-      console.warn("[AIVoiceCloneEngine] Neural stream error, falling back to Web Speech DSP:", e);
-    }
-  }
-
-  // 4. Guaranteed Male-Only In-Browser Web Audio Formant DSP (Strictly filters out Mikaela/Coral)
+  // 3. Guaranteed Male-Only In-Browser Web Audio Formant DSP (Strictly filters out Mikaela/Coral)
   return playStrictlyMaleWebSpeechDSP(text, lang, profile, onEnd, config);
 }
 
 /**
- * Plays an audio URL via HTML5 Audio with optional Web Audio DSP Warmth Filter
+ * Plays an audio URL via HTML5 Audio with proper end callbacks
  */
-function playAudioUrlWithDSP(url: string, onEnd?: () => void, config?: VoiceCloneConfig): () => void {
+function playAudioUrlWithDSP(url: string, onEnd?: () => void): () => void {
   const audio = new Audio(url);
   activeCloneAudio = audio;
 
@@ -169,76 +177,6 @@ function playAudioUrlWithDSP(url: string, onEnd?: () => void, config?: VoiceClon
   return () => {
     if (activeCloneAudio === audio) {
       audio.pause();
-      activeCloneAudio = null;
-    }
-  };
-}
-
-/**
- * Free Neural Indic Audio Streamer (splits long text into clauses and plays seamlessly)
- */
-function playNeuralIndicStream(
-  text: string,
-  lang: SevaLang,
-  onEnd?: () => void,
-  config?: VoiceCloneConfig
-): () => void {
-  const langCode = lang === "kn" ? "kn" : lang === "hi" ? "hi" : lang === "ta" ? "ta" : lang === "te" ? "te" : "en";
-  
-  // Clean text and take up to 200 chars per sentence for immediate fluent playback
-  const cleanText = text.replace(/[\n\r]+/g, " ").trim();
-  const chunks = cleanText.length <= 180 ? [cleanText] : cleanText.match(/[^.!?।॥]+[.!?।॥]+|[^.!?।॥]+$/g) || [cleanText.slice(0, 180)];
-
-  let currentChunkIdx = 0;
-  let isCancelled = false;
-
-  const playNextChunk = () => {
-    if (isCancelled) return;
-    if (currentChunkIdx >= chunks.length) {
-      activeCloneAudio = null;
-      if (onEnd) onEnd();
-      return;
-    }
-
-    const chunk = chunks[currentChunkIdx].trim();
-    currentChunkIdx++;
-    if (!chunk) {
-      playNextChunk();
-      return;
-    }
-
-    // Google Neural Indic Free TTS Endpoint
-    const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${langCode}&client=tw-ob&q=${encodeURIComponent(chunk)}`;
-    const audio = new Audio(url);
-    activeCloneAudio = audio;
-
-    // Adjust playback rate to match solemn cadence
-    audio.playbackRate = config?.preferredRate || 0.90;
-
-    audio.onended = () => {
-      playNextChunk();
-    };
-
-    audio.onerror = () => {
-      // If network audio stream fails, fallback smoothly to male web speech
-      if (!isCancelled) {
-        playStrictlyMaleWebSpeechDSP(chunk, lang, getVoiceProfileById(), onEnd, config);
-      }
-    };
-
-    audio.play().catch(() => {
-      if (!isCancelled) {
-        playStrictlyMaleWebSpeechDSP(chunk, lang, getVoiceProfileById(), onEnd, config);
-      }
-    });
-  };
-
-  playNextChunk();
-
-  return () => {
-    isCancelled = true;
-    if (activeCloneAudio) {
-      activeCloneAudio.pause();
       activeCloneAudio = null;
     }
   };
@@ -307,22 +245,26 @@ async function fetchHuggingFaceXTTS(
 
 /**
  * STRICTLY MALE Web Speech Synthesis (Hard blacklists "Mikaela", "Coral", "Samantha", etc.)
- * Pre-configures pitch 0.74 and rate 0.88 to match ShriSuma's resonant acoustic profile
+ * Pre-configures pitch 0.76 and rate 0.88 to match ShriSuma's resonant acoustic profile
  */
-function playStrictlyMaleWebSpeechDSP(
+export async function playStrictlyMaleWebSpeechDSP(
   text: string,
   lang: SevaLang,
   profile: PriestVoiceProfile,
   onEnd?: () => void,
   config?: VoiceCloneConfig
-): () => void {
+): Promise<() => void> {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) {
     if (onEnd) setTimeout(onEnd, 2000);
     return () => {};
   }
 
-  window.speechSynthesis.cancel();
+  // Ensure any paused queue is resumed
+  if (window.speechSynthesis.paused) {
+    window.speechSynthesis.resume();
+  }
 
+  const voices = await getAvailableVoicesAsync();
   const utterance = new SpeechSynthesisUtterance(text);
 
   if (lang === "kn") utterance.lang = "kn-IN";
@@ -347,8 +289,6 @@ function playStrictlyMaleWebSpeechDSP(
     "rishi", "ravi", "hemant", "gagan", "madhav", "deep", "pradeep", "manoj",
     "pankaj", "tarun", "kiran", "male", "daniel", "fred", "alex", "george", "guy"
   ];
-
-  const voices = window.speechSynthesis.getVoices();
 
   if (voices && voices.length > 0) {
     // 1. First priority: Indian Male Voice
@@ -382,18 +322,32 @@ function playStrictlyMaleWebSpeechDSP(
     }
   }
 
+  // Anchor utterance globally to prevent WebKit/Chromium garbage collection drops
+  (window as any).__baggonaActiveUtterance = utterance;
+
   utterance.onend = () => {
+    (window as any).__baggonaActiveUtterance = null;
     if (onEnd) onEnd();
   };
 
   utterance.onerror = (e) => {
     console.warn("[AIVoiceCloneEngine] Speech notice:", e);
+    (window as any).__baggonaActiveUtterance = null;
     if (onEnd) onEnd();
   };
 
-  window.speechSynthesis.speak(utterance);
+  // Small delay to ensure previous audio/oscillator has released audio channel
+  setTimeout(() => {
+    try {
+      window.speechSynthesis.speak(utterance);
+    } catch (err) {
+      console.warn("[AIVoiceCloneEngine] speak error:", err);
+      if (onEnd) onEnd();
+    }
+  }, 50);
 
   return () => {
+    (window as any).__baggonaActiveUtterance = null;
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
