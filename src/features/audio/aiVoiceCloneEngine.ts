@@ -2,36 +2,44 @@
  * Baggona Panchanga - Real-Time AI Voice Cloning Engine (ರಿಯಲ್-ಟೈಮ್ ಧ್ವನಿ ಕ್ಲೋನಿಂಗ್ ಎಂಜಿನ್)
  * 
  * Supports:
- * 1. ElevenLabs Instant Voice Cloning (Custom API key & Voice ID)
- * 2. Hugging Face Inference API / Coqui XTTS-v2 (Zero-shot voice cloning with reference audio)
- * 3. Guaranteed In-Browser Male Vedic Speech Synthesizer with WebKit GC anchor and Mikaela/Coral blacklist
- * 4. Resonant Web Audio DSP Acoustic Filtering with 125Hz F0 masculine resonance
+ * 1. Master Audio Voice Recording (/audio/shrisuma_master_voice.webm - ShriSuma's Authentic Voice)
+ * 2. Sarvam AI Indic Neural TTS Engine (India's native Kannada/Sanskrit Bulbul:v1 model with custom pitch & pace)
+ * 3. ElevenLabs Instant Voice Cloning (Custom API key & Voice ID)
+ * 4. Hugging Face Inference API / Coqui XTTS-v2 (Zero-shot voice cloning with reference audio)
+ * 5. Resonant Web Audio DSP Acoustic Filtering (Male voice, 125Hz F0, zero robotic female fallback)
  */
 
 import type { SevaLang } from "../seva/sevaLocale";
 import { getVoiceProfileById, type PriestVoiceProfile } from "./priestVoiceDatabase";
 
-export type VoiceCloneProvider = "web_dsp" | "elevenlabs" | "huggingface_xtts" | "edge_neural";
+export type VoiceCloneProvider = "master_recording" | "sarvam_ai" | "elevenlabs" | "huggingface_xtts" | "web_dsp";
 
 export interface VoiceCloneConfig {
   provider: VoiceCloneProvider;
-  hfApiKey?: string;
-  hfModelUrl?: string;
+  sarvamApiKey?: string;
+  sarvamSpeaker?: string; // "arvind", "amartya", "karun", "shaan"
+  sarvamPace?: number; // 0.85 to 1.10
   elevenLabsApiKey?: string;
   elevenLabsVoiceId?: string;
-  autoFallbackToDsp: boolean;
+  hfApiKey?: string;
+  hfModelUrl?: string;
+  autoFallbackToMasterRecording: boolean;
+  masterAudioUrl: string;
   bassBoostGain: number; // 0.0 to 3.0
   formantWarmthHz: number; // e.g. 120Hz fundamental F0
-  preferredPitch: number; // 0.74 (deeper masculine voice)
+  preferredPitch: number; // 0.76 (deeper masculine voice)
   preferredRate: number;  // 0.88 (steady cadence)
 }
 
-const CLONE_CONFIG_STORAGE_KEY = "baggona_ai_voice_clone_config_v3";
+const CLONE_CONFIG_STORAGE_KEY = "baggona_ai_voice_clone_config_v4";
 
 export const DEFAULT_CLONE_CONFIG: VoiceCloneConfig = {
-  provider: "web_dsp",
+  provider: "master_recording",
+  sarvamSpeaker: "arvind",
+  sarvamPace: 0.90,
+  autoFallbackToMasterRecording: true,
+  masterAudioUrl: "/audio/shrisuma_master_voice.webm",
   hfModelUrl: "https://api-inference.huggingface.co/models/coqui/XTTS-v2",
-  autoFallbackToDsp: true,
   bassBoostGain: 2.2,
   formantWarmthHz: 125,
   preferredPitch: 0.76,
@@ -110,9 +118,11 @@ export function getAvailableVoicesAsync(): Promise<SpeechSynthesisVoice[]> {
 
 /**
  * Real-time Speech Synthesis using the configured AI Voice Cloning provider:
- * 1. Tries ElevenLabs if configured
- * 2. Tries Hugging Face XTTS if configured
- * 3. Guaranteed Male-Only In-Browser Web Audio Formant DSP (Strictly filters out Mikaela/Coral, binds 125Hz pitch)
+ * 1. Tries Sarvam AI Indic Neural TTS if API key is provided
+ * 2. Tries ElevenLabs if configured with custom key and voice ID
+ * 3. Tries Hugging Face XTTS if configured
+ * 4. Tries Master Audio Recording (/audio/shrisuma_master_voice.webm)
+ * 5. Fallback to In-Browser Web Speech Synthesizer with 125Hz F0 tuning
  */
 export async function synthesizeAndPlayClonedVoice(
   text: string,
@@ -125,38 +135,67 @@ export async function synthesizeAndPlayClonedVoice(
   const profile = getVoiceProfileById(voiceId);
   const config = getVoiceCloneConfig();
 
-  // 1. Try ElevenLabs if configured with custom key and voice ID
+  // 1. Try Sarvam AI Indic Neural TTS (India's native Kannada Bulbul:v1 engine)
+  if ((config.provider === "sarvam_ai" || (!config.provider && config.sarvamApiKey)) && config.sarvamApiKey) {
+    try {
+      const audioUrl = await fetchSarvamAITTS(
+        text,
+        lang,
+        config.sarvamApiKey,
+        config.sarvamSpeaker || "arvind",
+        config.sarvamPace || 0.90
+      );
+      if (audioUrl) {
+        return playAudioUrl(audioUrl, onEnd);
+      }
+    } catch (e) {
+      console.warn("[AIVoiceCloneEngine] Sarvam AI error, falling back:", e);
+    }
+  }
+
+  // 2. Try ElevenLabs if configured with custom key and voice ID
   if (config.provider === "elevenlabs" && config.elevenLabsApiKey && config.elevenLabsVoiceId) {
     try {
       const audioUrl = await fetchElevenLabsTTS(text, config.elevenLabsApiKey, config.elevenLabsVoiceId);
       if (audioUrl) {
-        return playAudioUrlWithDSP(audioUrl, onEnd);
+        return playAudioUrl(audioUrl, onEnd);
       }
     } catch (e) {
       console.warn("[AIVoiceCloneEngine] ElevenLabs error, falling back:", e);
     }
   }
 
-  // 2. Try Hugging Face XTTS Zero-Shot API if configured
+  // 3. Try Hugging Face XTTS Zero-Shot API if configured
   if (config.provider === "huggingface_xtts" && config.hfApiKey && profile.sampleAudioUrl) {
     try {
       const audioUrl = await fetchHuggingFaceXTTS(text, lang, config.hfApiKey, profile.sampleAudioUrl, config.hfModelUrl);
       if (audioUrl) {
-        return playAudioUrlWithDSP(audioUrl, onEnd);
+        return playAudioUrl(audioUrl, onEnd);
       }
     } catch (e) {
       console.warn("[AIVoiceCloneEngine] Hugging Face XTTS error, falling back:", e);
     }
   }
 
-  // 3. Guaranteed Male-Only In-Browser Web Audio Formant DSP (Strictly filters out Mikaela/Coral)
+  // 4. Try Master Audio Recording (/audio/shrisuma_master_voice.webm - ShriSuma's Actual Real Voice)
+  if (config.provider === "master_recording" || config.autoFallbackToMasterRecording) {
+    try {
+      const masterUrl = config.masterAudioUrl || "/audio/shrisuma_master_voice.webm";
+      const stopFn = playAudioUrl(masterUrl, onEnd);
+      if (stopFn) return stopFn;
+    } catch (e) {
+      console.warn("[AIVoiceCloneEngine] Master recording error, falling back to Web Speech:", e);
+    }
+  }
+
+  // 5. Fallback to Male-Only Web Speech DSP
   return playStrictlyMaleWebSpeechDSP(text, lang, profile, onEnd, config);
 }
 
 /**
  * Plays an audio URL via HTML5 Audio with proper end callbacks
  */
-function playAudioUrlWithDSP(url: string, onEnd?: () => void): () => void {
+function playAudioUrl(url: string, onEnd?: () => void): () => void {
   const audio = new Audio(url);
   activeCloneAudio = audio;
 
@@ -183,7 +222,51 @@ function playAudioUrlWithDSP(url: string, onEnd?: () => void): () => void {
 }
 
 /**
- * Free ElevenLabs TTS Fetcher
+ * Sarvam AI Indic Neural TTS API Fetcher (Bulbul:v1 for Kannada, Sanskrit, Hindi, Tamil, Telugu)
+ */
+async function fetchSarvamAITTS(
+  text: string,
+  lang: SevaLang,
+  apiKey: string,
+  speaker = "arvind",
+  pace = 0.90
+): Promise<string | null> {
+  const targetLanguageCode = lang === "kn" ? "kn-IN" : lang === "hi" ? "hi-IN" : lang === "ta" ? "ta-IN" : lang === "te" ? "te-IN" : "en-IN";
+
+  const response = await fetch("https://api.sarvam.ai/text-to-speech", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "api-subscription-key": apiKey
+    },
+    body: JSON.stringify({
+      inputs: [text.trim()],
+      target_language_code: targetLanguageCode,
+      speaker: speaker,
+      pitch: 0.0,
+      pace: pace,
+      loudness: 1.5,
+      speech_sample_rate: 22050,
+      enable_preprocessing: true,
+      model: "bulbul:v1"
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`Sarvam AI API returned ${response.status}: ${await response.text()}`);
+  }
+
+  const data = await response.json();
+  if (data?.audios && data.audios.length > 0 && data.audios[0]) {
+    const base64Audio = data.audios[0];
+    return `data:audio/wav;base64,${base64Audio}`;
+  }
+
+  return null;
+}
+
+/**
+ * ElevenLabs Instant Voice Cloning TTS Fetcher
  */
 async function fetchElevenLabsTTS(text: string, apiKey: string, voiceId: string): Promise<string | null> {
   const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
@@ -211,7 +294,7 @@ async function fetchElevenLabsTTS(text: string, apiKey: string, voiceId: string)
 }
 
 /**
- * Free Hugging Face Zero-Shot XTTS Fetcher
+ * Hugging Face Zero-Shot XTTS Fetcher
  */
 async function fetchHuggingFaceXTTS(
   text: string,
@@ -244,8 +327,7 @@ async function fetchHuggingFaceXTTS(
 }
 
 /**
- * STRICTLY MALE Web Speech Synthesis (Hard blacklists "Mikaela", "Coral", "Samantha", etc.)
- * Pre-configures pitch 0.76 and rate 0.88 to match ShriSuma's resonant acoustic profile
+ * STRICTLY MALE Web Speech Synthesis Fallback
  */
 export async function playStrictlyMaleWebSpeechDSP(
   text: string,
@@ -259,7 +341,6 @@ export async function playStrictlyMaleWebSpeechDSP(
     return () => {};
   }
 
-  // Ensure any paused queue is resumed
   if (window.speechSynthesis.paused) {
     window.speechSynthesis.resume();
   }
@@ -273,12 +354,10 @@ export async function playStrictlyMaleWebSpeechDSP(
   else if (lang === "ta") utterance.lang = "ta-IN";
   else utterance.lang = "en-IN";
 
-  // Priest resonant chanting pitch & masculine cadence matching user F0 frequency
   utterance.pitch = config?.preferredPitch || profile.voicePitch || 0.76;
   utterance.rate = config?.preferredRate || profile.voiceRate || 0.88;
   utterance.volume = 1.0;
 
-  // Strict blacklist to banish Mikaela, Coral, Samantha, and any female synth voices
   const bannedFemaleNames = [
     "mikaela", "coral", "samantha", "victoria", "karen", "tessa", "kyoko",
     "moira", "fiona", "siri", "zira", "veena", "sangeeta", "kalpana", "neerja",
@@ -291,7 +370,6 @@ export async function playStrictlyMaleWebSpeechDSP(
   ];
 
   if (voices && voices.length > 0) {
-    // 1. First priority: Indian Male Voice
     const indianMale = voices.find(v => {
       const name = v.name.toLowerCase();
       const isIndian = v.lang.includes("IN") || v.lang.includes("kn") || v.lang.includes("hi");
@@ -300,7 +378,6 @@ export async function playStrictlyMaleWebSpeechDSP(
       return isIndian && isMale && !isBanned;
     });
 
-    // 2. Second priority: Any Indian Voice that is NOT banned female
     const anyIndianNonFemale = voices.find(v => {
       const name = v.name.toLowerCase();
       const isIndian = v.lang.includes("IN") || v.lang.includes("kn") || v.lang.includes("hi");
@@ -308,7 +385,6 @@ export async function playStrictlyMaleWebSpeechDSP(
       return isIndian && !isBanned;
     });
 
-    // 3. Third priority: Any Male voice on the system
     const anyMale = voices.find(v => {
       const name = v.name.toLowerCase();
       const isBanned = bannedFemaleNames.some(b => name.includes(b));
@@ -322,7 +398,6 @@ export async function playStrictlyMaleWebSpeechDSP(
     }
   }
 
-  // Anchor utterance globally to prevent WebKit/Chromium garbage collection drops
   (window as any).__baggonaActiveUtterance = utterance;
 
   utterance.onend = () => {
@@ -336,7 +411,6 @@ export async function playStrictlyMaleWebSpeechDSP(
     if (onEnd) onEnd();
   };
 
-  // Small delay to ensure previous audio/oscillator has released audio channel
   setTimeout(() => {
     try {
       window.speechSynthesis.speak(utterance);

@@ -3246,12 +3246,13 @@ export const SuperAdminDashboard: React.FC = () => {
               </div>
 
               {/* Provider Selection */}
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-5 gap-2">
                 {[
-                  { id: "edge_neural" as VoiceCloneProvider, title: "⚡ Edge Neural (ಉಚಿತ)", desc: "Zero setup, high-fidelity Indian male voice" },
-                  { id: "huggingface_xtts" as VoiceCloneProvider, title: "🌐 HuggingFace XTTS (ಉಚಿತ)", desc: "Zero-shot neural voice clone from audio sample" },
-                  { id: "elevenlabs" as VoiceCloneProvider, title: "🔑 ElevenLabs Clone", desc: "Instant voice clone with custom API key & Voice ID" },
-                  { id: "web_dsp" as VoiceCloneProvider, title: "🔊 Web Audio DSP", desc: "100% offline acoustic formant resonance cloner" }
+                  { id: "master_recording" as VoiceCloneProvider, title: "✨ ಶ್ರೀಸುಮ ನೈಜ ಧ್ವನಿ", desc: "Authentic recorded voice of ShriSuma" },
+                  { id: "sarvam_ai" as VoiceCloneProvider, title: "🇮🇳 Sarvam AI Bulbul", desc: "India's #1 Kannada Neural Voice (sarvam.ai)" },
+                  { id: "elevenlabs" as VoiceCloneProvider, title: "🔑 ElevenLabs Clone", desc: "Instant voice clone with API Key & Voice ID" },
+                  { id: "huggingface_xtts" as VoiceCloneProvider, title: "🌐 HuggingFace XTTS", desc: "Zero-shot neural clone from audio sample" },
+                  { id: "web_dsp" as VoiceCloneProvider, title: "🔊 Web Audio DSP", desc: "Acoustic formant resonance speech cloner" }
                 ].map((item) => (
                   <button
                     key={item.id}
@@ -3273,26 +3274,61 @@ export const SuperAdminDashboard: React.FC = () => {
                 ))}
               </div>
 
-              {/* API Keys Settings for HuggingFace / ElevenLabs */}
-              {(cloneConfig.provider === "huggingface_xtts" || cloneConfig.provider === "elevenlabs") && (
+              {/* API Keys Settings for Sarvam AI / ElevenLabs / HuggingFace */}
+              {(cloneConfig.provider === "sarvam_ai" || cloneConfig.provider === "elevenlabs" || cloneConfig.provider === "huggingface_xtts") && (
                 <div className="p-4 bg-black/60 rounded-2xl border border-amber-500/40 space-y-3 animate-in fade-in">
                   <div className="text-xs font-black text-amber-300 flex items-center gap-1.5">
                     <span>⚙️</span>
-                    <span>{cloneConfig.provider === "huggingface_xtts" ? "Hugging Face Inference Settings" : "ElevenLabs API Settings"}</span>
+                    <span>
+                      {cloneConfig.provider === "sarvam_ai"
+                        ? "Sarvam AI (Bulbul:v1 Indic Neural Engine) Settings"
+                        : cloneConfig.provider === "elevenlabs"
+                        ? "ElevenLabs Voice Cloning Settings"
+                        : "Hugging Face Inference Settings"}
+                    </span>
                   </div>
 
-                  {cloneConfig.provider === "huggingface_xtts" && (
-                    <div className="space-y-2">
-                      <label className="text-[11px] text-amber-200 block">
-                        Hugging Face User Access Token (Free at huggingface.co/settings/tokens):
-                      </label>
-                      <input
-                        type="password"
-                        value={cloneConfig.hfApiKey || ""}
-                        onChange={(e) => setCloneConfig({ ...cloneConfig, hfApiKey: e.target.value })}
-                        placeholder="hf_..."
-                        className="w-full px-3 py-2 text-xs bg-black/80 border border-amber-500/50 rounded-xl text-white font-mono focus:outline-none focus:border-amber-400"
-                      />
+                  {cloneConfig.provider === "sarvam_ai" && (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-[11px] text-amber-200 block">
+                          Sarvam AI API Subscription Key (Get free at <a href="https://dashboard.sarvam.ai" target="_blank" rel="noreferrer" className="text-amber-400 underline font-bold">dashboard.sarvam.ai</a>):
+                        </label>
+                        <input
+                          type="password"
+                          value={cloneConfig.sarvamApiKey || ""}
+                          onChange={(e) => setCloneConfig({ ...cloneConfig, sarvamApiKey: e.target.value })}
+                          placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                          className="w-full px-3 py-2 text-xs bg-black/80 border border-amber-500/50 rounded-xl text-white font-mono focus:outline-none focus:border-amber-400 mt-1"
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[11px] text-amber-200 block">Speaker Persona:</label>
+                          <select
+                            value={cloneConfig.sarvamSpeaker || "arvind"}
+                            onChange={(e) => setCloneConfig({ ...cloneConfig, sarvamSpeaker: e.target.value })}
+                            className="w-full px-3 py-2 text-xs bg-black/80 border border-amber-500/50 rounded-xl text-amber-200 font-bold focus:outline-none focus:border-amber-400 mt-1"
+                          >
+                            <option value="arvind">Arvind (ಗಂಭೀರ ಪುರುಷ ಧ್ವನಿ - Deep Male Priest)</option>
+                            <option value="amartya">Amartya (ಶಾಸ್ತ್ರೀಯ ಪಂಡಿತ ಧ್ವನಿ - Classical Pandit)</option>
+                            <option value="karun">Karun (ಮೃದು ಧ್ವನಿ - Warm Resonant)</option>
+                            <option value="shaan">Shaan (ಯುವ ಧ್ವನಿ - Modern Male)</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="text-[11px] text-amber-200 block">Pace / Tempo:</label>
+                          <select
+                            value={cloneConfig.sarvamPace || 0.90}
+                            onChange={(e) => setCloneConfig({ ...cloneConfig, sarvamPace: parseFloat(e.target.value) })}
+                            className="w-full px-3 py-2 text-xs bg-black/80 border border-amber-500/50 rounded-xl text-amber-200 font-bold focus:outline-none focus:border-amber-400 mt-1"
+                          >
+                            <option value="0.85">0.85x (ವಿಳಂಬ ವೇದ ಪಠಣ - Slow Chanting)</option>
+                            <option value="0.90">0.90x (ಶಾಸ್ತ್ರೀಯ ಲಯ - Vedic Cadence)</option>
+                            <option value="1.00">1.00x (ಸಾಮಾನ್ಯ - Normal Pace)</option>
+                          </select>
+                        </div>
+                      </div>
                     </div>
                   )}
 
@@ -3318,6 +3354,21 @@ export const SuperAdminDashboard: React.FC = () => {
                           className="w-full px-3 py-2 text-xs bg-black/80 border border-amber-500/50 rounded-xl text-white font-mono focus:outline-none focus:border-amber-400"
                         />
                       </div>
+                    </div>
+                  )}
+
+                  {cloneConfig.provider === "huggingface_xtts" && (
+                    <div className="space-y-2">
+                      <label className="text-[11px] text-amber-200 block">
+                        Hugging Face User Access Token (Free at huggingface.co/settings/tokens):
+                      </label>
+                      <input
+                        type="password"
+                        value={cloneConfig.hfApiKey || ""}
+                        onChange={(e) => setCloneConfig({ ...cloneConfig, hfApiKey: e.target.value })}
+                        placeholder="hf_..."
+                        className="w-full px-3 py-2 text-xs bg-black/80 border border-amber-500/50 rounded-xl text-white font-mono focus:outline-none focus:border-amber-400"
+                      />
                     </div>
                   )}
 
