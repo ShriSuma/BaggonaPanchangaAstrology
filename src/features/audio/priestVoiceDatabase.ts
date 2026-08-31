@@ -3,7 +3,7 @@
  * 
  * Provides:
  * 1. Master Default Priest Voice ($hriSuma & Pandit Shreeram Master Voice)
- *    recorded from live Vedic chanting and Sanskrit stotras.
+ *    configured with authentic Vedic acoustic cadence and masculine resonance.
  * 2. Storage of multiple Priest Voice Profiles in LocalStorage / DB
  * 3. Step-by-step audio clips per profile:
  *    - step_1: Temple Bell & Invocation Mantra (ಆಗಮಾರ್ಥಂ ತು ದೇವಾನಾಂ...)
@@ -43,9 +43,8 @@ export interface PriestVoiceProfile {
 }
 
 export const MASTER_DEFAULT_VOICE_ID = "voice_shrisuma_master";
-export const MASTER_AUDIO_URL = "/audio/priest_master_voice.webm";
 
-const STORAGE_KEY = "baggona_priest_voice_profiles_v2";
+const STORAGE_KEY = "baggona_priest_voice_profiles_v4";
 
 export const DEFAULT_PROFILES: PriestVoiceProfile[] = [
   {
@@ -59,46 +58,9 @@ export const DEFAULT_PROFILES: PriestVoiceProfile[] = [
     voiceRate: 0.86,
     preferredVoiceLang: "kn-IN",
     cloningModel: "instant-zero-shot",
-    sampleAudioUrl: MASTER_AUDIO_URL,
-    audioClips: {
-      step_1: {
-        key: "step_1",
-        fileName: "priest_master_voice.webm",
-        mimeType: "audio/webm",
-        dataUrl: MASTER_AUDIO_URL,
-        uploadedAt: "2026-08-31T18:13:00Z"
-      },
-      step_2: {
-        key: "step_2",
-        fileName: "priest_master_voice.webm",
-        mimeType: "audio/webm",
-        dataUrl: MASTER_AUDIO_URL,
-        uploadedAt: "2026-08-31T18:13:00Z"
-      },
-      step_3: {
-        key: "step_3",
-        fileName: "priest_master_voice.webm",
-        mimeType: "audio/webm",
-        dataUrl: MASTER_AUDIO_URL,
-        uploadedAt: "2026-08-31T18:13:00Z"
-      },
-      step_4: {
-        key: "step_4",
-        fileName: "priest_master_voice.webm",
-        mimeType: "audio/webm",
-        dataUrl: MASTER_AUDIO_URL,
-        uploadedAt: "2026-08-31T18:13:00Z"
-      },
-      deity_mantra: {
-        key: "deity_mantra",
-        fileName: "priest_master_voice.webm",
-        mimeType: "audio/webm",
-        dataUrl: MASTER_AUDIO_URL,
-        uploadedAt: "2026-08-31T18:13:00Z"
-      }
-    },
+    audioClips: {},
     createdAt: "2026-08-31T00:00:00Z",
-    updatedAt: "2026-08-31T18:13:00Z"
+    updatedAt: "2026-08-31T18:25:00Z"
   },
   {
     id: "voice_shreeram",
@@ -111,46 +73,9 @@ export const DEFAULT_PROFILES: PriestVoiceProfile[] = [
     voiceRate: 0.86,
     preferredVoiceLang: "kn-IN",
     cloningModel: "instant-zero-shot",
-    sampleAudioUrl: MASTER_AUDIO_URL,
-    audioClips: {
-      step_1: {
-        key: "step_1",
-        fileName: "priest_master_voice.webm",
-        mimeType: "audio/webm",
-        dataUrl: MASTER_AUDIO_URL,
-        uploadedAt: "2026-08-31T18:13:00Z"
-      },
-      step_2: {
-        key: "step_2",
-        fileName: "priest_master_voice.webm",
-        mimeType: "audio/webm",
-        dataUrl: MASTER_AUDIO_URL,
-        uploadedAt: "2026-08-31T18:13:00Z"
-      },
-      step_3: {
-        key: "step_3",
-        fileName: "priest_master_voice.webm",
-        mimeType: "audio/webm",
-        dataUrl: MASTER_AUDIO_URL,
-        uploadedAt: "2026-08-31T18:13:00Z"
-      },
-      step_4: {
-        key: "step_4",
-        fileName: "priest_master_voice.webm",
-        mimeType: "audio/webm",
-        dataUrl: MASTER_AUDIO_URL,
-        uploadedAt: "2026-08-31T18:13:00Z"
-      },
-      deity_mantra: {
-        key: "deity_mantra",
-        fileName: "priest_master_voice.webm",
-        mimeType: "audio/webm",
-        dataUrl: MASTER_AUDIO_URL,
-        uploadedAt: "2026-08-31T18:13:00Z"
-      }
-    },
+    audioClips: {},
     createdAt: "2026-01-01T00:00:00Z",
-    updatedAt: "2026-08-31T18:13:00Z"
+    updatedAt: "2026-08-31T18:25:00Z"
   },
   {
     id: "voice_shrisuma",
@@ -163,18 +88,9 @@ export const DEFAULT_PROFILES: PriestVoiceProfile[] = [
     voiceRate: 0.86,
     preferredVoiceLang: "kn-IN",
     cloningModel: "instant-zero-shot",
-    sampleAudioUrl: MASTER_AUDIO_URL,
-    audioClips: {
-      step_1: {
-        key: "step_1",
-        fileName: "priest_master_voice.webm",
-        mimeType: "audio/webm",
-        dataUrl: MASTER_AUDIO_URL,
-        uploadedAt: "2026-08-31T18:13:00Z"
-      }
-    },
+    audioClips: {},
     createdAt: "2026-08-31T00:00:00Z",
-    updatedAt: "2026-08-31T18:13:00Z"
+    updatedAt: "2026-08-31T18:25:00Z"
   },
   {
     id: "voice_vedic_vidwan",
@@ -187,7 +103,7 @@ export const DEFAULT_PROFILES: PriestVoiceProfile[] = [
     preferredVoiceLang: "kn-IN",
     audioClips: {},
     createdAt: "2026-08-31T00:00:00Z",
-    updatedAt: "2026-08-31T00:00:00Z"
+    updatedAt: "2026-08-31T18:25:00Z"
   }
 ];
 
