@@ -6,11 +6,14 @@ import { stopAllAudioGlobal, onGlobalAudioStop } from "../../features/audio/glob
 import { buildDailyPoojaSteps, type DailyPoojaStep } from "../../features/seva/dailySankalpaPoojaEngine";
 import { useSankalpaStore } from "../../features/sankalpa/sankalpaStore";
 import { ManageSankalpaModal } from "./ManageSankalpaModal";
+import { PostPoojaRemedyJapaCard } from "./PostPoojaRemedyJapaCard";
+import type { KundliOutput } from "../../core/AstroTypes";
 
 export interface DailyPoojaSankalpaModalProps {
   isOpen: boolean;
   onClose: () => void;
   devoteeName: string;
+  birthKundli?: KundliOutput | null;
   gotra?: string;
   rashiName?: string;
   nakshatraName?: string;
@@ -32,6 +35,7 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
   isOpen,
   onClose,
   devoteeName,
+  birthKundli,
   gotra = "ಕಾಶ್ಯಪ",
   rashiName = "ಧನು",
   nakshatraName = "ಮೂಲ",
@@ -594,6 +598,19 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
                        "Daily devotion purifies planetary vibrations."}
                     </div>
                   </div>
+                </div>
+
+                {/* Post-Pooja 11-Time Kundli Remedy Japa Counter */}
+                <div className="w-full text-left my-2">
+                  <PostPoojaRemedyJapaCard
+                    birthKundli={birthKundli}
+                    devoteeName={devoteeName}
+                    gotra={gotra}
+                    rashiName={rashiName}
+                    nakshatraName={nakshatraName}
+                    lang={lang}
+                    voiceId={voiceId}
+                  />
                 </div>
 
                 {/* Share Button */}

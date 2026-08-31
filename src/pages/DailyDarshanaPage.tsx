@@ -32,6 +32,8 @@ import { transliterateName } from "../utils/transliterator";
 import { recordCalendarVisit, getPoojaStreak, type PoojaStreakInfo } from "../features/seva/calendarVisitService";
 import { DailyPoojaSankalpaModal } from "../components/darshana/DailyPoojaSankalpaModal";
 import { ManageSankalpaModal } from "../components/darshana/ManageSankalpaModal";
+import { DevoteeStreakBadge } from "../components/darshana/DevoteeStreakBadge";
+import { PostPoojaRemedyJapaCard } from "../components/darshana/PostPoojaRemedyJapaCard";
 import { PersonalGoldenHourWidget } from "../components/darshana/PersonalGoldenHourWidget";
 import { DailyLuckyGemWidget } from "../components/darshana/DailyLuckyGemWidget";
 import { DailyKarmaNavigator } from "../components/darshana/DailyKarmaNavigator";
@@ -1728,14 +1730,20 @@ export default function DailyDarshanaPage(): JSX.Element {
             🛕 {dict.kshetraTitle}
           </div>
 
-          {/* 5-Language Switcher */}
+          {/* Devotee Streak & 5-Language Switcher */}
           <div style={{
             display: "flex",
             justifyContent: "center",
-            gap: 6,
+            alignItems: "center",
+            gap: 8,
             marginTop: 12,
             flexWrap: "wrap"
           }}>
+            <DevoteeStreakBadge
+              devoteeName={devoteeDisplayName}
+              lang={lang}
+            />
+
             {(["kn", "en", "hi", "te", "ta"] as SevaLang[]).map((l) => (
               <button
                 key={l}
@@ -1964,6 +1972,18 @@ export default function DailyDarshanaPage(): JSX.Element {
               </div>
             </div>
 
+            {/* Post-Pooja 11-Time Personal Kundli Remedy Japa Card */}
+            <div className="mb-4">
+              <PostPoojaRemedyJapaCard
+                birthKundli={birthKundli}
+                devoteeName={devoteeDisplayName}
+                gotra={devoteeGotra}
+                rashiName={rashiName(moonRashiIdx, lang)}
+                nakshatraName={nakshatraName(moonNakshatraIdx, lang)}
+                lang={lang}
+                voiceId={activeVoiceId}
+              />
+            </div>
 
             {/* Dynamic 3-Color Vibe Status Card */}
             <div style={{
@@ -2794,6 +2814,7 @@ export default function DailyDarshanaPage(): JSX.Element {
         isOpen={isPoojaModalOpen}
         onClose={() => setIsPoojaModalOpen(false)}
         devoteeName={devoteeDisplayName}
+        birthKundli={birthKundli}
         gotra={devoteeGotra}
         rashiName={rashiName(moonRashiIdx, lang)}
         nakshatraName={nakshatraName(moonNakshatraIdx, lang)}

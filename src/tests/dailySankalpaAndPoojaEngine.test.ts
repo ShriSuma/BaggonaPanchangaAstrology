@@ -101,7 +101,8 @@ describe("Personal Devotee Sankalpa Management & CRUD Engine", () => {
 
   it("seeds 3 authentic Vedic default Sankalpas for a new user", async () => {
     const store = useSankalpaStore.getState();
-    const records = await store.loadSankalpas("devotee_shreesuma", "ಶ್ರೀಸುಮಾ");
+    const uniqueUserId = `devotee_new_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+    const records = await store.loadSankalpas(uniqueUserId, "ಶ್ರೀಸುಮಾ");
     expect(records.length).toBeGreaterThanOrEqual(3);
     expect(records[0].category).toBe("aarogya");
     expect(records[0].isActive).toBe(true);
