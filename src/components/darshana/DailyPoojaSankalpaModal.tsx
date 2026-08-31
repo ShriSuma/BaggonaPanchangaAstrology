@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import type { SevaLang } from "../../features/seva/sevaLocale";
 import { getPoojaStreak, recordPoojaSankalpaCompleted, type PoojaStreakInfo } from "../../features/seva/calendarVisitService";
 import { playTempleBellChime, speakPriestNarration, stopPriestAudio } from "../../features/seva/priestAudioNarrator";
-import { POOJA_16_UPACHARES, type PoojaUpacharaStep } from "../../features/seva/poojaUpacharaEngine";
-import type { PriestAudioKey } from "../../features/audio/priestVoiceDatabase";
+import { buildDailyPoojaSteps, type DailyPoojaStep } from "../../features/seva/dailySankalpaPoojaEngine";
+import { useSankalpaStore } from "../../features/sankalpa/sankalpaStore";
+import { ManageSankalpaModal } from "./ManageSankalpaModal";
 
 export interface DailyPoojaSankalpaModalProps {
   isOpen: boolean;
@@ -15,6 +16,14 @@ export interface DailyPoojaSankalpaModalProps {
   lang?: SevaLang;
   priestName?: string;
   voiceId?: string;
+  samvatsara?: string;
+  ayana?: string;
+  ritu?: string;
+  masa?: string;
+  paksha?: string;
+  tithi?: string;
+  vasara?: string;
+  nakshatra?: string;
   onPlayBell?: () => void;
 }
 
@@ -28,32 +37,57 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
   lang = "kn",
   priestName = "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
   voiceId,
+  samvatsara,
+  ayana,
+  ritu,
+  masa,
+  paksha,
+  tithi,
+  vasara,
+  nakshatra,
   onPlayBell
 }) => {
+  const { sankalpas, loadSankalpas } = useSankalpaStore();
+
   const [mode, setMode] = useState<"priest_guided" | "self_guided">("priest_guided");
-  const [isAutoPlay, setIsAutoPlay] = useState<boolean>(false);
+  const [isAutoPlay, setIsAutoPlay] = useState<boolean>(true);
   const [step, setStep] = useState<number>(1);
   const [isLampLit, setIsLampLit] = useState(false);
   const [showAkshataAnimation, setShowAkshataAnimation] = useState(false);
-  const [showFlowerAnimation, setShowFlowerAnimation] = useState(false);
+  const [isAratiRotating, setIsAratiRotating] = useState(false);
   const [streakInfo, setStreakInfo] = useState<PoojaStreakInfo | null>(null);
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
+  const [isManageSankalpaOpen, setIsManageSankalpaOpen] = useState(false);
 
   const devoteeKey = devoteeName ? devoteeName.toLowerCase().replace(/[^a-z0-9]/g, "_") : "devotee_default";
-  const stopSpeechRef = useRef<(() => void) | null>(null);
   const autoPlayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const upacharaList = POOJA_16_UPACHARES({
+  useEffect(() => {
+    if (isOpen) {
+      void loadSankalpas(devoteeKey, devoteeName);
+    }
+  }, [isOpen, devoteeKey, devoteeName, loadSankalpas]);
+
+  const poojaSteps = buildDailyPoojaSteps({
     devoteeName,
     gotra,
     rashiName,
     nakshatraName,
     priestName,
-    lang
+    lang,
+    samvatsara,
+    ayana,
+    ritu,
+    masa,
+    paksha,
+    tithi,
+    vasara,
+    nakshatra,
+    activeSankalpas: sankalpas
   });
 
-  const totalSteps = upacharaList.length; // 16 steps
-  const currentStepData: PoojaUpacharaStep = upacharaList[Math.min(step - 1, totalSteps - 1)] || upacharaList[0];
+  const totalSteps = poojaSteps.length; // 5 steps (3-5 mins)
+  const currentStepData: DailyPoojaStep = poojaSteps[Math.min(step - 1, totalSteps - 1)] || poojaSteps[0];
 
   useEffect(() => {
     if (isOpen) {
@@ -61,7 +95,7 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
       setStreakInfo(current);
       if (current.isCompletedToday) {
         setIsLampLit(true);
-        setStep(17); // Step 17 is completion overview
+        setStep(6); // Step 6 is completion overview
       } else {
         setStep(1);
         setIsLampLit(false);
@@ -94,418 +128,604 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
 
     setIsAudioPlaying(true);
 
-    if (targetStep === 1 || targetStep === 3 || targetStep === 15) {
-      playTempleBellChime();
-    }
-
-    const stepItem = upacharaList[targetStep - 1] || upacharaList[0];
-    const narration = stepItem.narrationText[lang] || stepItem.narrationText.kn;
-    const fullSpeech = `${stepItem.titleKn}. ${narration} ${stepItem.sanskritMantra}`;
-    const stepKey = `step_${targetStep}` as PriestAudioKey;
-
-    const stopFn = speakPriestNarration(fullSpeech, lang, () => {
-      setIsAudioPlaying(false);
-      // Auto-advance if Auto-Play mode is active
-      if (isAutoPlay && targetStep < totalSteps) {
-        autoPlayTimerRef.current = setTimeout(() => {
-          handleNextStep(targetStep + 1);
-        }, 3500); // comfortable 3.5s pause between steps for devotee action
-      }
-    }, stepKey, voiceId);
-
-    stopSpeechRef.current = stopFn;
-  };
-
-  if (!isOpen) return null;
-
-  const handleNextStep = (nextStepIndex?: number) => {
-    const nextStep = nextStepIndex !== undefined ? nextStepIndex : step + 1;
-
-    // Trigger step-specific visual enhancements
-    if (nextStep >= 2) setIsLampLit(true);
-    if (nextStep === 3 || nextStep === 15) {
+    if (targetStep === 1 || targetStep === 5) {
       playTempleBellChime();
       if (onPlayBell) onPlayBell();
     }
-    if (nextStep === 5 || nextStep === 10 || nextStep === 12) {
+
+    const stepObj = poojaSteps[targetStep - 1];
+    if (!stepObj) return;
+
+    const speechText = `${stepObj.sanskritMantra}. ${stepObj.narrationText[lang || "kn"] || stepObj.narrationText.kn}`;
+
+    speakPriestNarration(
+      speechText,
+      lang,
+      () => {
+        setIsAudioPlaying(false);
+        if (isAutoPlay && targetStep < totalSteps) {
+          autoPlayTimerRef.current = setTimeout(() => {
+            handleNextStep(targetStep + 1);
+          }, 2500);
+        } else if (isAutoPlay && targetStep === totalSteps) {
+          autoPlayTimerRef.current = setTimeout(() => {
+            handleCompletePooja();
+          }, 3000);
+        }
+      },
+      undefined,
+      voiceId
+    );
+  };
+
+  const handleNextStep = (nextStepNum?: number) => {
+    const next = nextStepNum !== undefined ? nextStepNum : step + 1;
+
+    if (next === 2) {
+      setIsLampLit(true);
+    }
+    if (next === 4) {
       setShowAkshataAnimation(true);
-      setTimeout(() => setShowAkshataAnimation(false), 1500);
+      setTimeout(() => setShowAkshataAnimation(false), 3500);
     }
-    if (nextStep === 12 || nextStep === 8) {
-      setShowFlowerAnimation(true);
-      setTimeout(() => setShowFlowerAnimation(false), 1500);
+    if (next === 5) {
+      setIsAratiRotating(true);
+      playTempleBellChime();
     }
 
-    if (nextStep > totalSteps) {
+    if (next <= totalSteps) {
+      setStep(next);
+      if (mode === "priest_guided") {
+        playStepPriestAudio(next);
+      }
+    } else {
       handleCompletePooja();
-      return;
-    }
-
-    setStep(nextStep);
-    if (mode === "priest_guided" || isAutoPlay) {
-      playStepPriestAudio(nextStep);
     }
   };
 
   const handlePrevStep = () => {
-    if (step <= 1) return;
-    const prev = step - 1;
-    setStep(prev);
-    if (mode === "priest_guided") {
-      playStepPriestAudio(prev);
-    }
-  };
-
-  const handleJumpToStep = (targetStep: number) => {
-    if (targetStep < 1 || targetStep > totalSteps) return;
-    setStep(targetStep);
-    if (targetStep >= 2) setIsLampLit(true);
-    if (mode === "priest_guided") {
-      playStepPriestAudio(targetStep);
+    if (step > 1) {
+      const prev = step - 1;
+      setStep(prev);
+      if (mode === "priest_guided") {
+        playStepPriestAudio(prev);
+      }
     }
   };
 
   const handleCompletePooja = async () => {
     cleanupAudioAndTimers();
-    playTempleBellChime();
     const updated = await recordPoojaSankalpaCompleted(devoteeKey, devoteeName, gotra, priestName);
     setStreakInfo(updated);
-    setStep(17); // Final completion view
-
-    // Final Benediction Speech
-    const benediction = upacharaList[totalSteps - 1];
-    const narration = benediction.narrationText[lang] || benediction.narrationText.kn;
-    const fullSpeech = `${benediction.sanskritMantra}. ${narration}`;
-    setIsAudioPlaying(true);
-    speakPriestNarration(fullSpeech, lang, () => setIsAudioPlaying(false), "step_16", voiceId);
+    setStep(6); // Step 6 = completion screen
+    setIsLampLit(true);
+    playTempleBellChime();
   };
 
-  const handleClose = () => {
-    cleanupAudioAndTimers();
-    onClose();
+  const handleShareBlessings = () => {
+    const activeTitles = sankalpas.filter((s) => s.isActive).map((s) => s.title).join(", ");
+    const text = encodeURIComponent(
+      `🕉️ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ & ನಿತ್ಯ ಪೂಜಾ ಆಶೀರ್ವಾದ 🕉️\n\n` +
+      `ನಮಸ್ಕಾರ, ನಾನು ಇಂದು ಶ್ರೀ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಸನ್ನಿಧಿಯಲ್ಲಿ ${devoteeName} ಅವರ ಪರವಾಗಿ ೩-೫ ನಿಮಿಷಗಳ ನಿತ್ಯ ದೈವಿಕ ಸಂಕಲ್ಪ & ದೇವರ ಪೂಜೆಯನ್ನು ಯಶಸ್ವಿಯಾಗಿ ನೆರವೇರಿಸಿದ್ದೇನೆ.\n\n` +
+      `🪔 ಇಂದಿನ ಪವಿತ್ರ ಸಂಕಲ್ಪಗಳು:\n${activeTitles || "ಕುಟುಂಬದ ಸಕಲ ಆರೋಗ್ಯ, ಮನಶ್ಶಾಂತಿ & ಸತ್ಕಾರ್ಯ ಜಯಸಿದ್ಧಿ"}\n\n` +
+      `🔥 ಪೂಜಾ ನಿರಂತರತೆ: ${streakInfo?.currentStreak || 1} ದಿನಗಳು\n` +
+      `॥ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಮಹಾಗಣಪತಿ ಪ್ರಸನ್ನ ॥\n` +
+      `🔗 ದೈನಂದಿನ ದರ್ಶನ: ${window.location.href}`
+    );
+    window.open(`https://api.whatsapp.com/send?text=${text}`, "_blank");
   };
+
+  if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 overflow-y-auto bg-black/85 backdrop-blur-md flex items-center justify-center p-2.5 sm:p-4 animate-in fade-in duration-300"
-      style={{ zIndex: 9999 }}
-    >
-      <div className="relative w-full max-w-xl bg-gradient-to-b from-[#1C0A00] via-[#2A1205] to-[#150600] border-2 border-amber-400/90 rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.85)] p-4 sm:p-6 text-amber-100 my-auto space-y-4">
-        {/* Top Close Button */}
-        <button
-          onClick={handleClose}
-          className="absolute top-4 right-4 text-amber-400/70 hover:text-amber-300 text-sm font-black p-2 rounded-full hover:bg-amber-950/80 transition-colors border border-amber-500/30 shadow-md"
-          aria-label="Close"
+    <>
+      <div
+        style={{
+          position: "fixed",
+          inset: 0,
+          zIndex: 99990,
+          background: "rgba(10, 4, 1, 0.92)",
+          backdropFilter: "blur(10px)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 12
+        }}
+        onClick={onClose}
+      >
+        <div
+          style={{
+            background: "linear-gradient(180deg, #1C0F05 0%, #0D0501 100%)",
+            border: "2.5px solid #F59E0B",
+            borderRadius: 24,
+            maxWidth: 720,
+            width: "100%",
+            maxHeight: "94vh",
+            display: "flex",
+            flexDirection: "column",
+            boxShadow: "0 25px 60px rgba(0,0,0,0.9), 0 0 50px rgba(245, 158, 11, 0.35)",
+            overflow: "hidden",
+            color: "#FFFDF7",
+            position: "relative"
+          }}
+          onClick={(e) => e.stopPropagation()}
         >
-          ✕
-        </button>
-
-        {/* Sanctum Header */}
-        <div className="text-center space-y-1 pb-2 border-b border-amber-500/40">
-          <div className="inline-flex items-center gap-1.5 px-3 py-0.5 bg-amber-500/20 text-amber-300 border border-amber-400/50 rounded-full text-[10px] font-black uppercase tracking-wider shadow-sm">
-            <span>🕉️</span>
-            <span>॥ ೧೬ ಉಪಚಾರಗಳ ನಿತ್ಯ ಮಹಾಪೂಜೆ (16 Upacharas Daily Pooja) ॥</span>
-          </div>
-          <h3 className="text-base sm:text-lg font-black text-amber-200 leading-tight">
-            ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ದೈನಂದಿನ ಷೋಡಶೋಪಚಾರ ಪೂಜಾ ವಿಧಿ
-          </h3>
-          <p className="text-[11px] text-amber-300/80 font-bold">
-            ಭಕ್ತರು: <strong className="text-amber-200 font-black">{devoteeName}</strong> • ಗೋತ್ರ: <span className="font-semibold">{gotra}</span> • ರಾಶಿ: <span className="font-semibold">{rashiName}</span> • ನಕ್ಷತ್ರ: <span className="font-semibold">{nakshatraName}</span>
-          </p>
-        </div>
-
-        {/* Control Bar: Priest Voice Guided vs Self-Paced vs 20-Min Auto Flow */}
-        <div className="grid grid-cols-3 gap-1.5 p-1 bg-black/60 rounded-2xl border border-amber-500/40">
-          <button
-            type="button"
-            onClick={() => {
-              setMode("priest_guided");
-              setIsAutoPlay(false);
-              if (step <= totalSteps) playStepPriestAudio(step);
+          {/* Top Temple Altar Header */}
+          <div
+            style={{
+              background: "linear-gradient(135deg, #78350F 0%, #451A03 100%)",
+              borderBottom: "2px solid #F59E0B",
+              padding: "14px 20px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between"
             }}
-            className={`py-1.5 px-2 rounded-xl text-[11px] font-black transition-all flex items-center justify-center gap-1 ${
-              mode === "priest_guided" && !isAutoPlay
-                ? "bg-gradient-to-r from-amber-600 to-amber-500 text-slate-950 shadow-md border border-amber-300"
-                : "text-amber-300/80 hover:bg-amber-950/60"
-            }`}
           >
-            <span>🎙️</span>
-            <span className="truncate">ಅರ್ಚಕರ ಧ್ವನಿ</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              setIsAutoPlay(true);
-              setMode("priest_guided");
-              if (step <= totalSteps) playStepPriestAudio(step);
-            }}
-            className={`py-1.5 px-2 rounded-xl text-[11px] font-black transition-all flex items-center justify-center gap-1 ${
-              isAutoPlay
-                ? "bg-gradient-to-r from-amber-600 to-amber-500 text-slate-950 shadow-md border border-amber-300"
-                : "text-amber-300/80 hover:bg-amber-950/60"
-            }`}
-          >
-            <span>⏱️</span>
-            <span className="truncate">೨೦-ನಿಮಿಷ ಸ್ವಯಂ</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              setMode("self_guided");
-              setIsAutoPlay(false);
-              cleanupAudioAndTimers();
-            }}
-            className={`py-1.5 px-2 rounded-xl text-[11px] font-black transition-all flex items-center justify-center gap-1 ${
-              mode === "self_guided" && !isAutoPlay
-                ? "bg-gradient-to-r from-amber-600 to-amber-500 text-slate-950 shadow-md border border-amber-300"
-                : "text-amber-300/80 hover:bg-amber-950/60"
-            }`}
-          >
-            <span>👤</span>
-            <span className="truncate">ಸ್ವಯಂ ಪೂಜೆ</span>
-          </button>
-        </div>
-
-        {/* 16 Upacharas Horizontal Step Jump Ribbon */}
-        {step <= totalSteps && (
-          <div className="space-y-1">
-            <div className="flex items-center justify-between text-[11px] font-black text-amber-300">
-              <span>ಉಪಚಾರ ಹಂತ {step} / {totalSteps}</span>
-              <span className="text-amber-400/80">{Math.round((step / totalSteps) * 100)}% ಸಂಪನ್ನ</span>
-            </div>
-            
-            {/* Progress Bar */}
-            <div className="w-full h-1.5 bg-black/60 rounded-full overflow-hidden border border-amber-500/30">
-              <div
-                className="h-full bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-300 transition-all duration-300"
-                style={{ width: `${(step / totalSteps) * 100}%` }}
-              />
-            </div>
-
-            {/* Quick Step Buttons Ribbon */}
-            <div className="flex items-center gap-1 overflow-x-auto py-1 px-0.5 no-scrollbar">
-              {upacharaList.map((item) => (
-                <button
-                  key={item.step}
-                  onClick={() => handleJumpToStep(item.step)}
-                  className={`shrink-0 w-8 h-8 rounded-lg text-xs font-black transition-all flex items-center justify-center border ${
-                    step === item.step
-                      ? "bg-gradient-to-b from-amber-500 to-amber-600 text-slate-950 border-amber-300 shadow-md scale-105"
-                      : step > item.step
-                      ? "bg-amber-950/60 text-emerald-400 border-emerald-500/50"
-                      : "bg-black/40 text-amber-300/60 border-amber-500/20 hover:border-amber-400/50"
-                  }`}
-                  title={`${item.step}. ${item.titleKn}`}
-                >
-                  <span>{item.icon}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Sacred Atma Linga & Upachara Visualizer Altar */}
-        <div className="relative h-44 rounded-2xl bg-gradient-to-b from-slate-950 via-slate-900 to-amber-950/60 border-2 border-amber-400/80 overflow-hidden flex flex-col items-center justify-center text-amber-100 shadow-inner">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-500/20 via-transparent to-transparent animate-pulse pointer-events-none" />
-
-          {/* Shivalinga / Sanctum Visual */}
-          <div className="relative z-10 flex flex-col items-center text-center">
-            <div className="relative">
-              <div className="absolute -inset-4 rounded-full bg-amber-400/30 blur-xl animate-pulse" />
-              <div className="text-5xl drop-shadow-[0_0_15px_rgba(251,191,36,0.9)] transition-transform duration-300">
-                {step === 1 ? "💧" : step === 3 ? "🔔" : step === 4 ? "🐘" : step === 6 ? "🏺" : step === 9 ? "🥛" : step === 13 ? "💨" : step === 14 ? "🍎" : step === 15 ? "🔥" : "🕉️"}
-              </div>
-            </div>
-
-            {/* Sacred Lamp (Deepa) and Sanctum Title */}
-            <div className="mt-2 flex items-center gap-6">
-              <div className={`transition-all duration-700 transform ${isLampLit || step >= 2 ? "scale-110 opacity-100" : "scale-90 opacity-40"}`}>
-                <span className="text-2xl filter drop-shadow-[0_0_10px_rgba(245,158,11,1)]">🪔</span>
-              </div>
-              <div className="text-xs font-serif font-black text-amber-300 tracking-wider">
-                {step <= totalSteps ? currentStepData.titleKn : "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ"}
-              </div>
-              <div className={`transition-all duration-700 transform ${isLampLit || step >= 2 ? "scale-110 opacity-100" : "scale-90 opacity-40"}`}>
-                <span className="text-2xl filter drop-shadow-[0_0_10px_rgba(245,158,11,1)]">🪔</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Falling Akshata Animation */}
-          {showAkshataAnimation && (
-            <div className="absolute inset-0 pointer-events-none flex items-center justify-center animate-in fade-in">
-              <span className="text-2xl animate-bounce">✨ 🌾 ✨ 🌾 ✨</span>
-            </div>
-          )}
-
-          {/* Falling Flower Shower Animation */}
-          {showFlowerAnimation && (
-            <div className="absolute inset-0 pointer-events-none flex items-center justify-center animate-in fade-in">
-              <span className="text-2xl animate-bounce">🌸 🌺 🌼 🌸 🌺</span>
-            </div>
-          )}
-
-          {/* Audio Wave Bar Indicator when Priest Voice is Speaking */}
-          {isAudioPlaying && (
-            <div className="absolute bottom-2 px-3 py-1 bg-amber-950/90 border border-amber-400/80 rounded-full text-[10px] font-mono font-black text-amber-300 flex items-center gap-1.5 animate-pulse shadow-md">
-              <span>🔊</span>
-              <span>ಅರ್ಚಕರ ಧ್ವನಿ ಸಕ್ರಿಯ: {priestName}</span>
-              <span className="text-amber-400 animate-ping">॥ ılılıll ॥</span>
-            </div>
-          )}
-
-          {/* Real-Time Pooja Streak Badge */}
-          {streakInfo && (
-            <div className="absolute top-2 left-2 z-20 px-2.5 py-0.5 rounded-full bg-amber-950/80 border border-amber-400/80 text-[10px] font-black text-amber-300 flex items-center gap-1 shadow-md">
-              <span>🔥</span>
-              <span>{streakInfo.currentStreak} ದಿನಗಳ ಸತತ ಪೂಜೆ</span>
-            </div>
-          )}
-        </div>
-
-        {/* Active Step Content (Steps 1 to 16) */}
-        {step <= totalSteps && (
-          <div className="p-4 bg-black/40 border-2 border-amber-500/50 rounded-2xl space-y-3">
-            {/* Step Header */}
-            <div className="flex items-center justify-between border-b border-amber-500/30 pb-2">
-              <div className="flex items-center gap-2">
-                <span className="text-2xl">{currentStepData.icon}</span>
-                <div>
-                  <h4 className="text-sm font-black text-amber-200 leading-tight">
-                    {currentStepData.titleKn}
-                  </h4>
-                  <p className="text-[10px] text-amber-300/70 font-semibold">{currentStepData.titleEn}</p>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 26 }}>🪔</span>
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <h2 style={{ margin: 0, fontSize: 16, fontWeight: 900, color: "#FEF3C7" }}>
+                    {lang === "kn" ? "೩-೫ ನಿಮಿಷಗಳ ನಿತ್ಯ ದೈವಿಕ ಸಂಕಲ್ಪ & ಸರಳ ಪೂಜೆ" :
+                     lang === "hi" ? "३-५ मिनट दैनिक वैदिक संकल्प एवं सरल पूजा" :
+                     lang === "te" ? "3-5 నిమిషాల నిత్య దైవిక సంకల్పం & పూజ" :
+                     lang === "ta" ? "3-5 நிமிட நித்ய வைதீக சங்கல்பம் & பூஜை" :
+                     "3-5 Min Vedic Daily Sankalpa & Pooja"}
+                  </h2>
+                  <span
+                    style={{
+                      background: "rgba(245, 158, 11, 0.2)",
+                      border: "1px solid #F59E0B",
+                      color: "#FDE68A",
+                      fontSize: 10.5,
+                      fontWeight: 800,
+                      padding: "2px 8px",
+                      borderRadius: 12
+                    }}
+                  >
+                    {step <= 5 ? `ಹಂತ ${step} / ೫` : "ಪೂರ್ಣಗೊಂಡಿದೆ"}
+                  </span>
+                </div>
+                <div style={{ fontSize: 11.5, color: "#FDE68A", marginTop: 2 }}>
+                  {devoteeName} ({gotra} ಗೋತ್ರ · {rashiName} ರಾಶಿ) · {priestName} ಮಾರ್ಗದರ್ಶನ
                 </div>
               </div>
+            </div>
 
-              {/* Audio Play/Stop Button for Current Step */}
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              {/* Manage Sankalpas Button */}
               <button
                 type="button"
-                onClick={() => {
-                  if (isAudioPlaying) {
-                    cleanupAudioAndTimers();
-                  } else {
-                    playStepPriestAudio(step);
-                  }
+                onClick={() => setIsManageSankalpaOpen(true)}
+                style={{
+                  background: "rgba(245, 158, 11, 0.25)",
+                  border: "1.5px solid #FCD34D",
+                  color: "#FEF3C7",
+                  borderRadius: 12,
+                  padding: "6px 12px",
+                  fontSize: 11.5,
+                  fontWeight: 900,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4
                 }}
-                className="px-3 py-1.5 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-black text-[11px] rounded-xl shadow-xs transition-all active:scale-95 flex items-center gap-1 shrink-0 border border-amber-300"
               >
-                <span>{isAudioPlaying ? "⏸️ ನಿಲ್ಲಿಸಿ" : "▶️ ಧ್ವನಿ ಆಲಿಸಿ"}</span>
-              </button>
-            </div>
-
-            {/* Sacred Sanskrit Mantra */}
-            <div className="p-2.5 bg-amber-950/50 rounded-xl border border-amber-400/40 text-center">
-              <p className="text-xs font-serif font-black text-amber-200 leading-relaxed italic">
-                "{currentStepData.sanskritMantra}"
-              </p>
-            </div>
-
-            {/* Action Guide for Devotee in Front of Temple */}
-            <div className="p-2.5 bg-black/60 rounded-xl border border-amber-500/30 space-y-1">
-              <div className="text-[10px] font-black text-amber-400 uppercase tracking-wider flex items-center gap-1">
-                <span>👉 ನೀವು ಮಾಡಬೇಕಾದ ಪೂಜಾ ಕೈಂಕರ್ಯ:</span>
-              </div>
-              <p className="text-xs text-amber-100 font-medium leading-relaxed">
-                {currentStepData.actionGuide[lang] || currentStepData.actionGuide.kn}
-              </p>
-            </div>
-
-            {/* Spiritual Significance */}
-            <div className="text-[11px] text-amber-300/80 font-medium italic flex items-center gap-1.5">
-              <span>✨ ಫಲ:</span>
-              <span>{currentStepData.spiritualSignificance[lang] || currentStepData.spiritualSignificance.kn}</span>
-            </div>
-
-            {/* Step Navigation Controls (Prev / Next) */}
-            <div className="grid grid-cols-2 gap-2 pt-1">
-              <button
-                type="button"
-                onClick={handlePrevStep}
-                disabled={step <= 1}
-                className={`py-2.5 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1 border ${
-                  step <= 1
-                    ? "opacity-40 cursor-not-allowed bg-black/30 border-amber-500/20 text-amber-400/50"
-                    : "bg-black/60 hover:bg-amber-950/60 border-amber-500/40 text-amber-200 active:scale-98"
-                }`}
-              >
-                <span>👈 ಹಿಂದಿನ ಉಪಚಾರ</span>
+                <span>📝</span>
+                <span>{lang === "kn" ? "ಸಂಕಲ್ಪಗಳು" : "Sankalpas"}</span>
               </button>
 
               <button
-                type="button"
-                onClick={() => handleNextStep()}
-                className="py-2.5 px-3 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 hover:from-amber-500 hover:to-amber-300 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all active:scale-98 flex items-center justify-center gap-1 border border-amber-300"
+                onClick={onClose}
+                style={{
+                  background: "rgba(255,255,255,0.15)",
+                  border: "1px solid rgba(253, 230, 138, 0.4)",
+                  borderRadius: "50%",
+                  width: 32,
+                  height: 32,
+                  color: "#FEF3C7",
+                  fontSize: 16,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center"
+                }}
               >
-                <span>{step === totalSteps ? "🕉️ ಪೂಜೆ ಸಂಪನ್ನಗೊಳಿಸಿ ✓" : "ಮುಂದಿನ ಉಪಚಾರ 👉"}</span>
+                ✕
               </button>
             </div>
           </div>
-        )}
 
-        {/* Step 17: Completion & Divine Ashirvada Celebration View */}
-        {step > totalSteps && (
-          <div className="p-4 bg-black/40 border-2 border-emerald-500/70 rounded-2xl space-y-3 text-center animate-in zoom-in-95 duration-200">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-950/80 text-emerald-300 border border-emerald-400 rounded-full text-xs font-black">
-              <span>✓</span>
-              <span>ಇಂದಿನ ೧೬ ಉಪಚಾರಗಳ ದೈವಿಕ ಮಹಾಪೂಜೆ ಸಂಪನ್ನವಾಗಿದೆ! ✓</span>
-            </div>
+          {/* Step Progress Bar */}
+          <div style={{ background: "#451A03", height: 6, width: "100%" }}>
+            <div
+              style={{
+                background: "linear-gradient(90deg, #F59E0B, #FBBF24)",
+                height: "100%",
+                width: `${Math.min(100, (step / 5) * 100)}%`,
+                transition: "width 0.4s ease"
+              }}
+            />
+          </div>
 
-            <div className="space-y-1">
-              <h4 className="text-sm font-black text-amber-200 flex items-center justify-center gap-1.5">
-                <span>🔥</span>
-                <span>{streakInfo?.currentStreak || 1} ದಿನಗಳ ಸತತ ಪವಿತ್ರ ಪೂಜಾ ಸಂಕಲ್ಪ</span>
-              </h4>
-              <p className="text-xs text-amber-200/80 font-medium">
-                ನಿಮ್ಮ ಶ್ರದ್ಧಾ ಭಕ್ತಿಯಿಂದ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದ ವಿಶೇಷ ಆಶೀರ್ವಾದ ಸದಾ ನಿಮ್ಮ ಹಾಗೂ ನಿಮ್ಮ ಕುಟುಂಬದೊಂದಿಗೆ ಇರಲಿದೆ.
-              </p>
-            </div>
+          {/* Main Scrollable Shrine Area */}
+          <div style={{ padding: "16px 20px", overflowY: "auto", flex: 1, display: "flex", flexDirection: "column", gap: 16 }}>
+            {step <= 5 ? (
+              <>
+                {/* Visual Sanctum Altar Card */}
+                <div
+                  style={{
+                    background: "radial-gradient(circle at center, #2D1405 0%, #150802 100%)",
+                    border: "2px solid #D97706",
+                    borderRadius: 20,
+                    padding: "18px 16px",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    position: "relative",
+                    overflow: "hidden",
+                    boxShadow: "inset 0 0 40px rgba(0,0,0,0.8)"
+                  }}
+                >
+                  {/* Altar Deity Aura */}
+                  <div
+                    style={{
+                      width: 120,
+                      height: 120,
+                      borderRadius: "50%",
+                      background: "radial-gradient(circle, rgba(245, 158, 11, 0.35) 0%, rgba(217, 119, 6, 0) 70%)",
+                      position: "absolute",
+                      top: 15,
+                      pointerEvents: "none"
+                    }}
+                  />
 
-            {/* Devotee Sankalpa Summary Card */}
-            <div className="p-3 bg-black/60 rounded-xl border border-amber-500/40 text-xs font-bold text-amber-200 text-left space-y-1">
-              <div>🕉️ <strong>ಭಕ್ತರು:</strong> <span className="text-amber-300">{devoteeName}</span> ({gotra} ಗೋತ್ರ, {rashiName} ರಾಶಿ, {nakshatraName} ನಕ್ಷತ್ರ)</div>
-              <div>🙏 <strong>ಪ್ರಧಾನ ಅರ್ಚಕರು:</strong> <span className="text-amber-300">{priestName}</span> (ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನ)</div>
-            </div>
+                  {/* Icon & Animations */}
+                  <div style={{ fontSize: 56, marginBottom: 8, position: "relative", zIndex: 2 }}>
+                    {currentStepData.icon}
+                  </div>
 
-            {/* Milestone Unlock Notice if applicable */}
-            {streakInfo?.milestoneUnlocked && (
-              <div className="p-3 bg-amber-500/20 border border-amber-500/60 rounded-xl text-xs text-amber-200 font-bold space-y-1">
-                <div className="text-base">{streakInfo.milestoneUnlocked.icon}</div>
-                <div className="font-black text-amber-300">
-                  {streakInfo.milestoneUnlocked.titleKn}
+                  {/* Interactive Visual Cue */}
+                  {currentStepData.key === "deepa_achamana" && (
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
+                      <span style={{ fontSize: 24, filter: isLampLit ? "drop-shadow(0 0 12px #F59E0B)" : "grayscale(80%)" }}>
+                        🪔
+                      </span>
+                      <span style={{ fontSize: 12, fontWeight: 800, color: "#FDE68A" }}>
+                        {isLampLit ? "ದೀಪ ಪ್ರಜ್ವಲಿತವಾಗಿದೆ (Lamp Lit)" : "ದೇವರೆದುರು ದೀಪ ಬೆಳಗಿಸಿ"}
+                      </span>
+                    </div>
+                  )}
+
+                  {currentStepData.key === "guru_ganapati" && (
+                    <div style={{ fontSize: 12, fontWeight: 800, color: "#FDE68A", marginTop: 4 }}>
+                      ✋ ಬಲಗೈಯಲ್ಲಿ ಅಕ್ಷತೆ-ಹೂವನ್ನು ಹಿಡಿದುಕೊಳ್ಳಿ (Hold Akshata in Hand)
+                    </div>
+                  )}
+
+                  {currentStepData.key === "sankalpa_samarpana" && (
+                    <div style={{ fontSize: 12, fontWeight: 800, color: "#34D399", marginTop: 4 }}>
+                      🌸 ದೇವತಾ ಚರಣಾರವಿಂದಕ್ಕೆ ಅಕ್ಷತೆ ಸಮರ್ಪಿಸಿ (Offer Akshata to Lotus Feet)
+                    </div>
+                  )}
+
+                  {currentStepData.key === "deeparadhana_namaskara" && (
+                    <div style={{ fontSize: 12, fontWeight: 800, color: "#FDE68A", marginTop: 4 }}>
+                      🔔 ಮಂಗಳಾರತಿ ಬೆಳಗಿ · ಸಾಷ್ಟಾಂಗ ನಮಸ್ಕಾರ ಮಾಡಿ (Wave Arati & Bow Down)
+                    </div>
+                  )}
+
+                  {/* Step Title */}
+                  <h3 style={{ margin: "10px 0 0 0", fontSize: 18, fontWeight: 900, color: "#FEF3C7", textAlign: "center" }}>
+                    {lang === "kn" ? currentStepData.titleKn :
+                     lang === "hi" ? currentStepData.titleHi :
+                     lang === "te" ? currentStepData.titleTe :
+                     lang === "ta" ? currentStepData.titleTa :
+                     currentStepData.titleEn}
+                  </h3>
                 </div>
-                <div className="text-[10px] text-amber-400/80">
-                  {streakInfo.milestoneUnlocked.descriptionKn}
+
+                {/* Sanskrit Mantra Gold Box */}
+                <div
+                  style={{
+                    background: "rgba(254, 243, 199, 0.08)",
+                    border: "1.5px solid #F59E0B",
+                    borderRadius: 16,
+                    padding: "16px 18px",
+                    textAlign: "center",
+                    boxShadow: "0 4px 20px rgba(0,0,0,0.4)"
+                  }}
+                >
+                  <div style={{ fontSize: 11, fontWeight: 900, color: "#FDE68A", letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>
+                    🕉️ ವೇದ ಮಂತ್ರ & ದೈವಿಕ ಸಂಕಲ್ಪ (Vedic Chanting)
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 14.5,
+                      fontWeight: 800,
+                      color: "#FFFBEB",
+                      lineHeight: 1.6,
+                      whiteSpace: "pre-line",
+                      fontFamily: "'Nirmala UI', sans-serif"
+                    }}
+                  >
+                    {currentStepData.sanskritMantra}
+                  </div>
                 </div>
+
+                {/* Active Personal Sankalpas Summary (Displayed in Step 3 & 4) */}
+                {(currentStepData.key === "maha_sankalpa" || currentStepData.key === "sankalpa_samarpana") && (
+                  <div
+                    style={{
+                      background: "rgba(120, 53, 15, 0.4)",
+                      border: "1.5px solid #D97706",
+                      borderRadius: 16,
+                      padding: "12px 16px"
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+                      <span style={{ fontSize: 12, fontWeight: 900, color: "#FDE68A" }}>
+                        📜 ಇಂದಿನ ಮಂತ್ರದಲ್ಲಿ ಸೇರಿರುವ ನಿಮ್ಮ ಸಂಕಲ್ಪಗಳು ({sankalpas.filter((s) => s.isActive).length}):
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setIsManageSankalpaOpen(true)}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          color: "#60A5FA",
+                          fontSize: 11,
+                          fontWeight: 800,
+                          cursor: "pointer",
+                          textDecoration: "underline"
+                        }}
+                      >
+                        + ಸಂಕಲ್ಪ ಸೇರಿಸಿ / ತಿದ್ದು
+                      </button>
+                    </div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                      {sankalpas
+                        .filter((s) => s.isActive)
+                        .map((s) => (
+                          <span
+                            key={s.id}
+                            style={{
+                              background: "rgba(245, 158, 11, 0.2)",
+                              border: "1px solid #FCD34D",
+                              color: "#FEF3C7",
+                              fontSize: 11.5,
+                              fontWeight: 700,
+                              padding: "3px 10px",
+                              borderRadius: 12
+                            }}
+                          >
+                            ✨ {s.title}
+                          </span>
+                        ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Action & Guidance Box */}
+                <div
+                  style={{
+                    background: "linear-gradient(135deg, rgba(69, 26, 3, 0.6) 0%, rgba(28, 15, 5, 0.8) 100%)",
+                    border: "1px solid #B45309",
+                    borderRadius: 16,
+                    padding: "14px 16px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 6
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, color: "#FDE68A", fontSize: 12, fontWeight: 900 }}>
+                    <span>👉</span>
+                    <span>{lang === "kn" ? "ನೀವು ಈಗ ಮಾಡಬೇಕಾದ ಪೂಜಾ ಕ್ರಮ (Action):" : "Your Ritual Action:"}</span>
+                  </div>
+                  <div style={{ fontSize: 13, color: "#FEF3C7", lineHeight: 1.5, fontWeight: 600 }}>
+                    {currentStepData.actionGuide[lang || "kn"] || currentStepData.actionGuide.kn}
+                  </div>
+                  <div style={{ fontSize: 11.5, color: "#D1D5DB", marginTop: 4, fontStyle: "italic" }}>
+                    🌿 {currentStepData.spiritualSignificance[lang || "kn"] || currentStepData.spiritualSignificance.kn}
+                  </div>
+                </div>
+              </>
+            ) : (
+              /* Step 6: Completion & Ashirvada Screen */
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  textAlign: "center",
+                  padding: "24px 16px",
+                  gap: 16
+                }}
+              >
+                <div style={{ fontSize: 64, filter: "drop-shadow(0 0 20px #F59E0B)" }}>
+                  🪔✨
+                </div>
+
+                <h3 style={{ margin: 0, fontSize: 22, fontWeight: 900, color: "#FEF3C7" }}>
+                  {lang === "kn" ? "॥ ನಿತ್ಯ ಸಂಕಲ್ಪ ಪೂಜೆ ಯಶಸ್ವಿಯಾಗಿ ನೆರವೇರಿತು ॥" :
+                   lang === "hi" ? "॥ नित्य संकल्प पूजा सफलतापूर्वक संपन्न हुई ॥" :
+                   "॥ Daily Vedic Sankalpa & Pooja Completed ॥"}
+                </h3>
+
+                <p style={{ margin: 0, fontSize: 13.5, color: "#FDE68A", maxWidth: 500, lineHeight: 1.5 }}>
+                  {lang === "kn" ?
+                    `ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಮಹಾಗಣಪತಿಯ ಪರಮಾನುಗ್ರಹದಿಂದ ಶ್ರೀ ${devoteeName} ಅವರ ಸಕಲ ಸಂಕಲ್ಪಗಳು ಶೀಘ್ರ ಈಡೇರಲಿ.` :
+                    `May all noble prayers and Sankalpas of ${devoteeName} be fulfilled through the divine grace of Lord Mahabaleshwara.`}
+                </p>
+
+                {/* Streak Badge */}
+                <div
+                  style={{
+                    background: "linear-gradient(135deg, #78350F, #451A03)",
+                    border: "2px solid #F59E0B",
+                    borderRadius: 20,
+                    padding: "14px 24px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    boxShadow: "0 8px 24px rgba(245, 158, 11, 0.3)"
+                  }}
+                >
+                  <span style={{ fontSize: 32 }}>🔥</span>
+                  <div style={{ textAlign: "left" }}>
+                    <div style={{ fontSize: 15, fontWeight: 900, color: "#FEF3C7" }}>
+                      {lang === "kn" ? `ನಿರಂತರ ಪೂಜಾ ಸಾಧನೆ: ${streakInfo?.currentStreak || 1} ದಿನಗಳು` :
+                       `Continuous Pooja Streak: ${streakInfo?.currentStreak || 1} Days`}
+                    </div>
+                    <div style={{ fontSize: 11.5, color: "#FDE68A" }}>
+                      {lang === "kn" ? "ದೈನಂದಿನ ಭಕ್ತಿ ಸಾಧನೆಯು ಸಮಸ್ತ ಗ್ರಹದೋಷಗಳನ್ನು ನಿವಾರಿಸುತ್ತದೆ." :
+                       "Daily devotion purifies planetary vibrations."}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Share Button */}
+                <button
+                  type="button"
+                  onClick={handleShareBlessings}
+                  style={{
+                    background: "#059669",
+                    color: "#FFFFFF",
+                    border: "1.5px solid #34D399",
+                    borderRadius: 14,
+                    padding: "12px 24px",
+                    fontSize: 13.5,
+                    fontWeight: 900,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    boxShadow: "0 4px 16px rgba(5, 150, 105, 0.4)"
+                  }}
+                >
+                  <span>📲</span>
+                  <span>{lang === "kn" ? "WhatsApp ಮೂಲಕ ಆಶೀರ್ವಾದ ಹಂಚಿಕೊಳ್ಳಿ" : "Share Blessings via WhatsApp"}</span>
+                </button>
               </div>
             )}
-
-            {/* Replay or Finish Buttons */}
-            <div className="grid grid-cols-2 gap-2 pt-1">
-              <button
-                type="button"
-                onClick={() => {
-                  setStep(1);
-                  playStepPriestAudio(1);
-                }}
-                className="py-2.5 px-3 bg-black/60 hover:bg-amber-950/60 border border-amber-500/40 text-amber-200 font-black text-xs rounded-xl transition-all active:scale-98 flex items-center justify-center gap-1"
-              >
-                <span>🔄 ಪುನಃ ಪೂಜೆ ಆರಂಭಿಸಿ</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleClose}
-                className="py-2.5 px-3 bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 text-white font-black text-xs rounded-xl shadow-md transition-all active:scale-98 border border-emerald-400 flex items-center justify-center gap-1"
-              >
-                <span>ದರ್ಶನ ಮುಂದುವರಿಸಿ ✓</span>
-              </button>
-            </div>
           </div>
-        )}
+
+          {/* Bottom Controls Footer */}
+          <div
+            style={{
+              background: "#1C0F05",
+              borderTop: "1.5px solid #78350F",
+              padding: "14px 20px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 10
+            }}
+          >
+            {step <= 5 ? (
+              <>
+                <button
+                  type="button"
+                  onClick={handlePrevStep}
+                  disabled={step === 1}
+                  style={{
+                    background: step === 1 ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.12)",
+                    color: step === 1 ? "#6B7280" : "#FEF3C7",
+                    border: "1px solid rgba(253, 230, 138, 0.2)",
+                    borderRadius: 12,
+                    padding: "10px 16px",
+                    fontSize: 12.5,
+                    fontWeight: 800,
+                    cursor: step === 1 ? "not-allowed" : "pointer"
+                  }}
+                >
+                  ← {lang === "kn" ? "ಹಿಂದಿನ ಹಂತ" : "Previous"}
+                </button>
+
+                {/* Audio Status & Auto-Play Toggle */}
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (isAudioPlaying) {
+                        cleanupAudioAndTimers();
+                      } else {
+                        playStepPriestAudio(step);
+                      }
+                    }}
+                    style={{
+                      background: isAudioPlaying ? "#D97706" : "rgba(245, 158, 11, 0.2)",
+                      border: "1.5px solid #F59E0B",
+                      color: "#FEF3C7",
+                      borderRadius: 12,
+                      padding: "8px 14px",
+                      fontSize: 12,
+                      fontWeight: 800,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6
+                    }}
+                  >
+                    <span>{isAudioPlaying ? "🔊" : "🔈"}</span>
+                    <span>{isAudioPlaying ? (lang === "kn" ? "ಧ್ವನಿ ಪಠಣ..." : "Chanting...") : (lang === "kn" ? "ಧ್ವನಿ ಕೇಳಿ" : "Play Voice")}</span>
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleNextStep()}
+                  style={{
+                    background: "linear-gradient(135deg, #F59E0B, #D97706)",
+                    color: "#1C0A00",
+                    border: "1.5px solid #FDE68A",
+                    borderRadius: 12,
+                    padding: "10px 20px",
+                    fontSize: 13,
+                    fontWeight: 900,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    boxShadow: "0 4px 12px rgba(245, 158, 11, 0.4)"
+                  }}
+                >
+                  <span>{step === 5 ? "✨" : "→"}</span>
+                  <span>{step === 5 ? (lang === "kn" ? "ಪೂಜೆ ಸಂಪೂರ್ಣಗೊಳಿಸಿ" : "Complete Pooja") : (lang === "kn" ? "ಮುಂದಿನ ಹಂತ" : "Next Step")}</span>
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={onClose}
+                style={{
+                  width: "100%",
+                  background: "linear-gradient(135deg, #F59E0B, #D97706)",
+                  color: "#1C0A00",
+                  border: "1.5px solid #FDE68A",
+                  borderRadius: 12,
+                  padding: "12px 20px",
+                  fontSize: 14,
+                  fontWeight: 900,
+                  cursor: "pointer",
+                  textAlign: "center"
+                }}
+              >
+                {lang === "kn" ? "ಮುಚ್ಚಿ & ಇಂದಿನ ದರ್ಶನ ಮುಂದುವರಿಸಿ" : "Close & Continue Daily Darshana"}
+              </button>
+            )}
+          </div>
+        </div>
       </div>
-    </div>
+
+      {/* Embedded Manage Sankalpa Modal */}
+      <ManageSankalpaModal
+        isOpen={isManageSankalpaOpen}
+        onClose={() => setIsManageSankalpaOpen(false)}
+        userId={devoteeKey}
+        devoteeName={devoteeName}
+        lang={lang}
+      />
+    </>
   );
 };

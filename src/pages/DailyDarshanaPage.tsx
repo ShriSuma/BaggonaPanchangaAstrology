@@ -31,6 +31,7 @@ import { PlanetName, type KundliOutput, type PlanetPosition } from "../core/Astr
 import { transliterateName } from "../utils/transliterator";
 import { recordCalendarVisit, getPoojaStreak, type PoojaStreakInfo } from "../features/seva/calendarVisitService";
 import { DailyPoojaSankalpaModal } from "../components/darshana/DailyPoojaSankalpaModal";
+import { ManageSankalpaModal } from "../components/darshana/ManageSankalpaModal";
 import { PersonalGoldenHourWidget } from "../components/darshana/PersonalGoldenHourWidget";
 import { DailyLuckyGemWidget } from "../components/darshana/DailyLuckyGemWidget";
 import { DailyKarmaNavigator } from "../components/darshana/DailyKarmaNavigator";
@@ -1128,6 +1129,7 @@ export default function DailyDarshanaPage(): JSX.Element {
   const [storedSession, setStoredSession] = useState<any>(null);
   const [showContactModal, setShowContactModal] = useState(false);
   const [isPoojaModalOpen, setIsPoojaModalOpen] = useState(false);
+  const [isManageSankalpaOpen, setIsManageSankalpaOpen] = useState(false);
 
   const activeVoiceId = useMemo(() => {
     return (decoded as any)?.vid || (decoded as any)?.voiceId || params.get("vid") || params.get("voiceId") || "voice_shrisuma_master";
@@ -1861,64 +1863,88 @@ export default function DailyDarshanaPage(): JSX.Element {
         {/* ── TAB 1: SACRED SANCTUM & DARSHANA ── */}
         {activeTab === "darshana" && (
           <div>
-            {/* Daily Priest-Guided 16 Upacharas 20-Min Morning Deva Pooja Banner */}
+            {/* Daily Priest-Guided 3-5 Minute Morning Deva Pooja & Sankalpa Banner */}
             <div style={{
-              background: "linear-gradient(135deg, rgba(146, 64, 14, 0.9) 0%, rgba(69, 26, 3, 0.95) 100%)",
+              background: "linear-gradient(135deg, rgba(146, 64, 14, 0.95) 0%, rgba(69, 26, 3, 0.98) 100%)",
               border: "2px solid #F59E0B",
-              borderRadius: 16,
+              borderRadius: 18,
               padding: "16px 18px",
               marginBottom: 16,
               boxShadow: "0 8px 24px rgba(217, 119, 6, 0.35)",
               display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
+              flexDirection: "column",
               gap: 12
             }}>
-              <div>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: 24 }}>🪔</span>
-                  <span style={{ fontSize: 13, fontWeight: 900, color: "#FDE68A", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                    {lang === "kn" ? "೧೬ ಉಪಚಾರಗಳ ನಿತ್ಯ ಮಹಾಪೂಜೆ (೨೦-ನಿಮಿಷ)" :
-                     lang === "hi" ? "१६ उपचारों की दैनिक महापूजा (२०-मिनट)" :
-                     lang === "te" ? "16 ఉపచారాల నిత్య మహాపూజ (20-నిమిషాలు)" :
-                     lang === "ta" ? "16 உபசாரங்களின் தினசரி மகாபூஜை (20-நிமிடம்)" :
-                     "16 Upacharas Daily Morning Pooja (20-Mins)"}
-                  </span>
-
-                </div>
-                <div style={{ fontSize: 12, color: "#FEF3C7", marginTop: 4, lineHeight: 1.4 }}>
-                  {lang === "kn" ? `ಇಂದಿನ ಅರ್ಚನೆ: ${deity.name.kn} · ದೇವರ ಮುಂದೆ ಮೊಬೈಲ್ ಇಟ್ಟು ಹಂತ-ಹಂತವಾಗಿ ಪೂಜೆ ನೆರವೇರಿಸಿ · ನಿರಂತರತೆ: ${poojaStreak.currentStreak} ದಿನ` :
-                   lang === "hi" ? `आज की पूजा: ${deity.name.hi || deity.name.en} · मन्दिर के सम्मुख मोबाइल रखकर चरणबद्ध पूजा करें · संकल्प: ${poojaStreak.currentStreak} दिन` :
-                   lang === "te" ? `నేటి పూజ: ${deity.name.te || deity.name.en} · ఆలయం ముందు మొబైల్ ఉంచి పూజ చేయండి · క్రమం: ${poojaStreak.currentStreak} రోజులు` :
-                   lang === "ta" ? `இன்றைய பூஜை: ${deity.name.ta || deity.name.en} · இறைவன் முன் மொபைல் வைத்து பூஜை செய்க · தொடர்ச்சி: ${poojaStreak.currentStreak} நாட்கள்` :
-                   `Today's Archana: ${deity.name.en} · Keep mobile at altar for step-by-step guided pooja · Streak: ${poojaStreak.currentStreak} Days`}
+                  <span style={{ fontSize: 26 }}>🪔</span>
+                  <div>
+                    <span style={{ fontSize: 13.5, fontWeight: 900, color: "#FDE68A", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                      {lang === "kn" ? "೩-೫ ನಿಮಿಷಗಳ ನಿತ್ಯ ದೈವಿಕ ಸಂಕಲ್ಪ & ಸರಳ ಪೂಜೆ" :
+                       lang === "hi" ? "३-५ मिनट दैनिक वैदिक संकल्प एवं सरल पूजा" :
+                       lang === "te" ? "3-5 నిమిషాల నిత్య దైవిక సంకల్పం & పూజ" :
+                       lang === "ta" ? "3-5 நிமிட நித்ய வைதீக சங்கல்பம் & பூஜை" :
+                       "3-5 Min Vedic Daily Sankalpa & Pooja"}
+                    </span>
+                    <div style={{ fontSize: 11.5, color: "#FEF3C7", marginTop: 2, lineHeight: 1.4 }}>
+                      {lang === "kn" ? `ಇಂದಿನ ಅರ್ಚನೆ: ${deity.name.kn} · ನಿಮ್ಮ ವೈಯಕ್ತಿಕ ಸಂಕಲ್ಪಗಳೊಂದಿಗೆ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದ ವೇದ ಪಂಡಿತರ ಧ್ವನಿ ಮಾರ್ಗದರ್ಶನ · ಪೂಜಾ ನಿರಂತರತೆ: ${poojaStreak.currentStreak} ದಿನ` :
+                       lang === "hi" ? `आज की पूजा: ${deity.name.hi || deity.name.en} · व्यक्तिगत संकल्पों के साथ वैदिक पंडित मार्गदर्शन · संकल्प: ${poojaStreak.currentStreak} दिन` :
+                       lang === "te" ? `నేటి పూజ: ${deity.name.te || deity.name.en} · వ్యక్తిగత సంకల్పాలతో వైదిక పండితుల మార్గదర్శనం · క్రమం: ${poojaStreak.currentStreak} రోజులు` :
+                       lang === "ta" ? `இன்றைய பூஜை: ${deity.name.ta || deity.name.en} · தனிப்பட்ட சங்கல்பங்களுடன் வைதீக பண்டிதர் வழிகாட்டல் · தொடர்ச்சி: ${poojaStreak.currentStreak} நாட்கள்` :
+                       `Today's Archana: ${deity.name.en} · 3-5 Min Vedic morning pooja guided by Chief Priest with your personal Sankalpas · Streak: ${poojaStreak.currentStreak} Days`}
+                    </div>
+                  </div>
                 </div>
               </div>
-              <button
-                onClick={() => setIsPoojaModalOpen(true)}
-                style={{
-                  background: "linear-gradient(135deg, #F59E0B, #D97706)",
-                  color: "#1C0A00",
-                  border: "1.5px solid #FDE68A",
-                  borderRadius: 12,
-                  padding: "10px 16px",
-                  fontSize: 12.5,
-                  fontWeight: 900,
-                  cursor: "pointer",
-                  whiteSpace: "nowrap",
-                  boxShadow: "0 4px 12px rgba(245, 158, 11, 0.4)",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6
-                }}
-              >
-                <span>🔔</span>
-                <span>{lang === "kn" ? "ಪೂಜೆ ಆರಂಭಿಸಿ" :
-                       lang === "hi" ? "पूजा प्रारंभ करें" :
-                       lang === "te" ? "పూజ ప్రారంభించండి" :
-                       lang === "ta" ? "பூஜை தொடங்கு" :
-                       "Start Pooja"}</span>
-              </button>
+
+              {/* Action Buttons: Manage Sankalpas & Start Pooja */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
+                <button
+                  type="button"
+                  onClick={() => setIsManageSankalpaOpen(true)}
+                  style={{
+                    background: "rgba(245, 158, 11, 0.2)",
+                    color: "#FEF3C7",
+                    border: "1.5px solid #FCD34D",
+                    borderRadius: 12,
+                    padding: "10px 14px",
+                    fontSize: 12.5,
+                    fontWeight: 900,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 6,
+                    transition: "all 0.15s ease"
+                  }}
+                >
+                  <span>📝</span>
+                  <span>{lang === "kn" ? "ನಿಮ್ಮ ಸಂಕಲ್ಪಗಳು (Manage)" : "Manage Sankalpas"}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsPoojaModalOpen(true)}
+                  style={{
+                    background: "linear-gradient(135deg, #F59E0B, #D97706)",
+                    color: "#1C0A00",
+                    border: "1.5px solid #FDE68A",
+                    borderRadius: 12,
+                    padding: "10px 16px",
+                    fontSize: 13,
+                    fontWeight: 900,
+                    cursor: "pointer",
+                    boxShadow: "0 4px 12px rgba(245, 158, 11, 0.4)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 6
+                  }}
+                >
+                  <span>🪔</span>
+                  <span>{lang === "kn" ? "ಪೂಜೆ ಆರಂಭಿಸಿ (Start Pooja)" : "Start 3-5 Min Pooja"}</span>
+                </button>
+              </div>
             </div>
 
 
@@ -2746,7 +2772,7 @@ export default function DailyDarshanaPage(): JSX.Element {
           </div>
         </div>
       )}
-      {/* Daily Priest Voice Guided Pooja & Sankalpa Modal */}
+      {/* Daily Priest Voice Guided 3-5 Minute Pooja & Sankalpa Modal */}
       <DailyPoojaSankalpaModal
         isOpen={isPoojaModalOpen}
         onClose={() => setIsPoojaModalOpen(false)}
@@ -2757,7 +2783,25 @@ export default function DailyDarshanaPage(): JSX.Element {
         lang={lang}
         priestName={activePanditName}
         voiceId={activeVoiceId}
+        samvatsara={(mockDay as any).samvatsara || "ಪರಾಭವ"}
+        ayana={(mockDay as any).ayana || "ದಕ್ಷಿಣಾಯನ"}
+        ritu={(mockDay as any).ritu || "ವರ್ಷ ಋತು"}
+        masa={(mockDay as any).masa || "ಶ್ರಾವಣ ಮಾಸ"}
+        paksha={pakshaLabel(mockDay, lang)}
+        tithi={tithiOnlyLabel(mockDay, lang)}
+        vasara={(mockDay as any).vasara || "ಭೃಗುವಾಸರ"}
+        nakshatra={nakshatraName(moonNakshatraIdx, lang)}
         onPlayBell={playTempleBell}
+      />
+
+      {/* Personal Sankalpas Management Modal */}
+      <ManageSankalpaModal
+        isOpen={isManageSankalpaOpen}
+        onClose={() => setIsManageSankalpaOpen(false)}
+        userId={devoteeDisplayName}
+        devoteeName={devoteeDisplayName}
+        lang={lang}
+        onOpenPooja={() => setIsPoojaModalOpen(true)}
       />
     </div>
   );

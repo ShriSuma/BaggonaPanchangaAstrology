@@ -1312,4 +1312,65 @@ export function subscribePanchangaEngineConfig(
   return () => {};
 }
 
+// ── Devotee Personal Sankalpas Cloud Collection ────────────────────────
+export const DEVOTEE_SANKALPAS_COL = "devotee_sankalpas";
 
+export interface DevoteeSankalpaDoc {
+  id: string;
+  userId: string;
+  devoteeName?: string;
+  category: string;
+  title: string;
+  description: string;
+  sanskritPhrasing?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export async function syncDevoteeSankalpaToCloud(sankalpa: DevoteeSankalpaDoc): Promise<boolean> {
+  try {
+    if (!firestore) return false;
+    const docRef = doc(firestore, DEVOTEE_SANKALPAS_COL, sankalpa.id);
+    await setDoc(docRef, {
+      ...sankalpa,
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
+    return true;
+  } catch (err) {
+    console.warn("[Firestore] Failed to sync devotee sankalpa to cloud:", err);
+    return false;
+  }
+}
+
+export async function getDevoteeSankalpasFromCloud(userId: string): Promise<DevoteeSankalpaDoc[]> {
+  try {
+    if (!firestore) return [];
+    const cleanUserId = (userId || "devotee_default").toLowerCase().trim();
+    const q = query(
+      collection(firestore, DEVOTEE_SANKALPAS_COL),
+      where("userId", "==", cleanUserId)
+    );
+    const snap = await getDocs(q);
+    const list: DevoteeSankalpaDoc[] = [];
+    snap.forEach((d) => {
+      list.push(d.data() as DevoteeSankalpaDoc);
+    });
+    return list;
+  } catch (err) {
+    console.warn("[Firestore] Failed to get devotee sankalpas from cloud:", err);
+    return [];
+  }
+}
+
+export async function deleteDevoteeSankalpaFromCloud(sankalpaId: string): Promise<boolean> {
+  try {
+    if (!firestore) return false;
+    const docRef = doc(firestore, DEVOTEE_SANKALPAS_COL, sankalpaId);
+    await deleteDoc(docRef);
+    return true;
+  } catch (err) {
+    console.warn("[Firestore] Failed to delete devotee sankalpa from cloud:", err);
+    return false;
+  }
+}

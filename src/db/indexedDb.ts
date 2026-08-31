@@ -99,6 +99,21 @@ export type UserRecord = {
   updatedAt?: string;
 };
 
+export type SankalpaCategory = "aarogya" | "shanti" | "vidya" | "udyoga" | "santana" | "vivaha" | "dhana" | "custom";
+
+export type UserSankalpaRecord = {
+  id: string;
+  userId: string;
+  devoteeName?: string;
+  category: SankalpaCategory;
+  title: string;
+  description: string;
+  sanskritPhrasing?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt?: string;
+};
+
 export type DailyHitRecord = {
   date: string;
   count: number;
@@ -116,6 +131,7 @@ class AppDatabase extends Dexie {
   translationCache!: Table<TranslationCacheRecord>;
   users!: Table<UserRecord>;
   dailyHits!: Table<DailyHitRecord>;
+  userSankalpas!: Table<UserSankalpaRecord>;
 
   constructor() {
     super("baggona-panchanga-db");
@@ -152,6 +168,19 @@ class AppDatabase extends Dexie {
       translationCache: "id,lang,cachedAt",
       users: "id,username",
       dailyHits: "date"
+    });
+    this.version(10).stores({
+      settings: "++id,language,createdAt,consentChoice,analyticsEnabled,chartStyle",
+      kundlis: "id,userId,name,createdAt",
+      panchangCache: "id,date,location,cachedAt",
+      predictionCache: "id,kundliId,period,periodKey,cachedAt",
+      scheduledNotifications: "id,type,scheduledTime,fired",
+      analyticsEvents: "++id,eventName,timestamp",
+      geocodeCache: "placeName,cachedAt",
+      translationCache: "id,lang,cachedAt",
+      users: "id,username",
+      dailyHits: "date",
+      userSankalpas: "id,userId,category,isActive,createdAt"
     });
   }
 }
