@@ -31,7 +31,11 @@ When the user enters `/ALL`, `/all`, `/All`, or mentions `ALL`, display this com
 - **Description**: Mandatory rules and layout/data validation guards for `DailyDarshanaPage.tsx` and `tokenCipher.ts`. Enforces authentic birth Kundli calculation (DOB/TOB), transit vs natal separation, Base64URL resilient decoding with `TextDecoder`, gold banner display with Kannada text `"॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ॥"`, 4-tab system integrity, and pre-push build validation.
 - **Example When to Use**: Mention `@baggona-daily-darshana-token-guard` whenever modifying `DailyDarshanaPage.tsx`, `tokenCipher.ts`, or testing devotee URL tokens.
 
-### 6. `ALL`
+### 6. `baggona-panchanga-book-publisher`
+- **Description**: Master blueprint, architecture, rules, and computational pipelines for the automated 104-page Baggona Panchanga Book Publisher Engine (ಪಂಚಾಂಗ ಪುಸ್ತಕ ಪ್ರಕಾಶನ ಎಂಜಿನ್). Generates press-ready, exact-replica 104-page annual Panchanga book PDFs for any Samvatsara with 1-click deterministic accuracy.
+- **Example When to Use**: Mention `@baggona-panchanga-book-publisher` whenever working on the automated 104-page annual Panchanga book generator, Drik ephemeris tables, Graha Chakras, or press-ready printing outputs.
+
+### 7. `ALL`
 - **Description**: Complete catalog of all Antigravity skills, descriptions, and example trigger scenarios.
 - **Example When to Use**: Type `/ALL`, `/all`, or `/All` whenever you need a full list of all available agent capabilities.
 
