@@ -9,6 +9,7 @@ import {
   validate90DayCalendarPayload,
   type QrCalendarTarget
 } from "../../features/seva/icsCalendarGenerator";
+import { generatePriestICalendarString } from "../../core/PriestCalendarEngine";
 import { encodeDevoteeToken } from "../../utils/tokenCipher";
 import { getUniversalBirthDetails } from "../../utils/universalDevoteeKundli";
 import { T, pick } from "../../features/seva/sevaLocale";
@@ -41,6 +42,8 @@ export default function SevaCalendarSyncModal({
   isOpen,
   onClose
 }: Props): JSX.Element | null {
+  const [calendarMode, setCalendarMode] = useState<"devotee" | "priest">("devotee");
+  const [calendarSpanDays, setCalendarSpanDays] = useState<number>(90);
   const [target, setTarget] = useState<QrCalendarTarget>("google");
   const [platform, setPlatform] = useState<"android" | "apple">("android");
   const [priestsList, setPriestsList] = useState<PriestProfile[]>(() => getAllPriests());
@@ -241,21 +244,23 @@ export default function SevaCalendarSyncModal({
         return undefined;
       })();
 
-      const payload = generateQrPayloadByTarget(target, {
-        days: days || [],
-        lang,
-        panditName,
-        notificationTime,
-        personName,
-        platform,
-        webAppBaseUrl: origin,
-        pincode: pincodeInput,
-        lat,
-        lng,
-        locationName,
-        dob: activeDob,
-        tob: activeTob
-      });
+      const payload = calendarMode === "priest"
+        ? `${origin}/priest-panchanga?date=${selectedDay?.ymd || "2026-03-19"}&pincode=${pincodeInput}`
+        : generateQrPayloadByTarget(target, {
+            days: days || [],
+            lang,
+            panditName,
+            notificationTime,
+            personName,
+            platform,
+            webAppBaseUrl: origin,
+            pincode: pincodeInput,
+            lat,
+            lng,
+            locationName,
+            dob: activeDob,
+            tob: activeTob
+          });
 
       QRCode.toDataURL(payload, {
         errorCorrectionLevel: "L",
@@ -270,7 +275,9 @@ export default function SevaCalendarSyncModal({
         .catch((err) => {
           console.error("Error generating QR code:", err);
           // Compact ASCII-only fallback to guarantee scannable QR
-          const fallback = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent("Baggona 90-Day Panchanga")}&recur=RRULE:FREQ=DAILY;COUNT=90&ctz=Asia/Kolkata`;
+          const fallback = calendarMode === "priest"
+            ? `${origin}/priest-panchanga?date=${selectedDay?.ymd || "2026-03-19"}`
+            : `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent("Baggona 90-Day Panchanga")}&recur=RRULE:FREQ=DAILY;COUNT=90&ctz=Asia/Kolkata`;
           QRCode.toDataURL(fallback, { errorCorrectionLevel: "L", margin: 2, width: 280 })
             .then((fallbackUrl) => setQrDataUrl(fallbackUrl));
         });
@@ -280,34 +287,50 @@ export default function SevaCalendarSyncModal({
       QRCode.toDataURL(fallback, { errorCorrectionLevel: "L", margin: 2, width: 280 })
         .then((fallbackUrl) => setQrDataUrl(fallbackUrl));
     }
-  }, [days, lang, panditName, notificationTime, personName, platform, target, isOpen, webSanctumUrl, origin, pincodeInput, lat, lng, locationName]);
+  }, [days, lang, panditName, notificationTime, personName, platform, target, isOpen, webSanctumUrl, origin, pincodeInput, lat, lng, locationName, calendarMode]);
 
   if (!isOpen) return null;
 
   const selectedDay = days[0];
 
   const handleDownload = () => {
-    const icsContent = generateSevaICalendarString({
-      days,
-      lang,
-      panditName,
-      notificationTime,
-      personName,
-      webAppBaseUrl: origin,
-      pincode: pincodeInput,
-      lat,
-      lng,
-      locationName,
-      aiPanchangaMap
-    });
+    const icsContent = calendarMode === "priest"
+      ? generatePriestICalendarString({
+          startDateStr: selectedDay?.ymd || "2026-03-19",
+          daysCount: calendarSpanDays,
+          pincode: pincodeInput,
+          lat,
+          lng,
+          locationName,
+          priestName: panditName,
+          webAppBaseUrl: origin
+        })
+      : generateSevaICalendarString({
+          days,
+          lang,
+          panditName,
+          notificationTime,
+          personName,
+          webAppBaseUrl: origin,
+          pincode: pincodeInput,
+          lat,
+          lng,
+          locationName,
+          aiPanchangaMap
+        });
+
     const safePujari = (panditName || "Sri_Chaitanya_Pandit").replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "");
-    const safeDevotee = (personName || "Devotee").replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "");
+    const safeDevotee = calendarMode === "priest" ? "Priest_Panchanga" : (personName || "Devotee").replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "");
     const safeDate = (selectedDay?.ymd || new Date().toISOString().slice(0, 10)).replace(/[^\d-]/g, "");
-    const filename = `${safePujari}_${safeDevotee}_${safeDate}.ics`;
+    const filename = `${safePujari}_${safeDevotee}_${safeDate}_${calendarSpanDays}Days.ics`;
     downloadIcsFile(filename, icsContent);
   };
 
   const handleGoogleCalendar = () => {
+    if (calendarMode === "priest") {
+      window.open(`${origin}/priest-panchanga?date=${selectedDay?.ymd || "2026-03-19"}&pincode=${pincodeInput}`, "_blank");
+      return;
+    }
     if (!selectedDay) return;
     const url = generateGoogleCalendarUrl({
       day: selectedDay,
@@ -326,18 +349,29 @@ export default function SevaCalendarSyncModal({
   };
 
   const handleCopyLinkData = () => {
-    const icsContent = generateSevaICalendarString({
-      days,
-      lang,
-      panditName,
-      notificationTime,
-      personName,
-      pincode: pincodeInput,
-      lat,
-      lng,
-      locationName,
-      aiPanchangaMap
-    });
+    const icsContent = calendarMode === "priest"
+      ? generatePriestICalendarString({
+          startDateStr: selectedDay?.ymd || "2026-03-19",
+          daysCount: calendarSpanDays,
+          pincode: pincodeInput,
+          lat,
+          lng,
+          locationName,
+          priestName: panditName,
+          webAppBaseUrl: origin
+        })
+      : generateSevaICalendarString({
+          days,
+          lang,
+          panditName,
+          notificationTime,
+          personName,
+          pincode: pincodeInput,
+          lat,
+          lng,
+          locationName,
+          aiPanchangaMap
+        });
     const dataUri = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsContent)}`;
     navigator.clipboard.writeText(dataUri);
     setCopiedData(true);
@@ -345,7 +379,10 @@ export default function SevaCalendarSyncModal({
   };
 
   const handleCopyWebLink = () => {
-    navigator.clipboard.writeText(webSanctumUrl);
+    const linkToCopy = calendarMode === "priest"
+      ? `${origin}/priest-panchanga?date=${selectedDay?.ymd || "2026-03-19"}&pincode=${pincodeInput}`
+      : webSanctumUrl;
+    navigator.clipboard.writeText(linkToCopy);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);
   };
@@ -377,6 +414,67 @@ export default function SevaCalendarSyncModal({
         </div>
 
         <div className="mt-5 space-y-4">
+          {/* Calendar Type Segmented Switch: Devotee vs Priest */}
+          <div className="flex items-center gap-2 p-1.5 bg-amber-200/70 border border-amber-300 rounded-2xl">
+            <button
+              type="button"
+              onClick={() => setCalendarMode("devotee")}
+              className={`flex-1 py-2 rounded-xl text-xs font-black transition-all ${
+                calendarMode === "devotee"
+                  ? "bg-amber-800 text-white shadow-sm"
+                  : "text-amber-950 hover:bg-amber-100"
+              }`}
+            >
+              🕉️ {lang.startsWith("kn") ? "ಭಕ್ತರ ದೈನಂದಿನ ಲಯ ಕ್ಯಾಲೆಂಡರ್" : "Devotee Rhythm Calendar"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setCalendarMode("priest")}
+              className={`flex-1 py-2 rounded-xl text-xs font-black transition-all ${
+                calendarMode === "priest"
+                  ? "bg-amber-800 text-white shadow-sm"
+                  : "text-amber-950 hover:bg-amber-100"
+              }`}
+            >
+              👑 {lang.startsWith("kn") ? "ಪುರೋಹಿತ ಪಂಚಾಂಗ ಮಹಾದರ್ಶನ" : "Priest Panchanga Calendar"}
+            </button>
+          </div>
+
+          {/* If Priest Mode, Show Span Selector (30, 60, 90, 180 Days) */}
+          {calendarMode === "priest" && (
+            <div className="p-3 bg-[#FFFDF7] border-2 border-amber-300 rounded-2xl space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black text-amber-950">
+                  ಪುರೋಹಿತ ಅವಧಿ ಆಯ್ಕೆ (Calendar Span):
+                </span>
+                <a
+                  href={`/priest-panchanga?date=${selectedDay?.ymd || "2026-03-19"}&pincode=${pincodeInput}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-bold text-amber-800 underline hover:text-amber-950"
+                >
+                  ಪುರೋಹಿತ ಪೋರ್ಟಲ್ ತೆರೆಯಿರಿ ↗
+                </a>
+              </div>
+              <div className="grid grid-cols-4 gap-1.5">
+                {[30, 60, 90, 180].map((span) => (
+                  <button
+                    key={span}
+                    type="button"
+                    onClick={() => setCalendarSpanDays(span)}
+                    className={`py-1.5 rounded-xl text-xs font-black border transition-all ${
+                      calendarSpanDays === span
+                        ? "bg-amber-700 text-white border-amber-800 shadow-xs"
+                        : "bg-white text-amber-950 border-amber-200 hover:bg-amber-50"
+                    }`}
+                  >
+                    {span} ದಿನಗಳು
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Target & Platform Selector */}
           <div className="rounded-2xl border border-amber-300/80 bg-amber-100/40 p-3 shadow-inner">
             <label className="block text-center text-xs font-bold uppercase tracking-wider text-amber-950 mb-2">

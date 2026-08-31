@@ -19,6 +19,7 @@ import { detectSpecialVrata } from "./specialVrataAlertEngine";
 import { getDetailedTithiInfo, type DetailedTithiInfo } from "../../core/VedicCalculations";
 import { sunTimesSyncForBirth } from "../../core/birthSunTimes";
 import { getUniversalBirthDetails } from "../../utils/universalDevoteeKundli";
+import { getPreviousDayPreparationAlert } from "../../core/PriestCalendarEngine";
 import {
   BAND_LABEL_L5,
   COLOUR_L5,
@@ -1111,6 +1112,12 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
       descriptionParts.push(`📜 ${vrata.sameDayNotice}`);
       descriptionParts.push(`🍽️ ${fastingLabel}: ${vrata.fastingAdvice}`);
       descriptionParts.push(`🕉️ ${specialMantraLabel}: ${vrata.mantra}`);
+    }
+
+    const prevAlert = getPreviousDayPreparationAlert(day.ymd);
+    if (prevAlert) {
+      descriptionParts.push("----------------------------------------");
+      descriptionParts.push(`🔔 ${prevAlert}`);
     }
 
     const detailsLabel = lang === "kn" ? "ವಿವರಗಳು" : lang === "hi" ? "विवरण" : lang === "te" ? "వివరాలు" : lang === "ta" ? "விவரங்கள்" : "Details";

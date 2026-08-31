@@ -2839,6 +2839,27 @@ export const SuperAdminDashboard: React.FC = () => {
                       </div>
                     </div>
                   </div>
+
+                  {/* 1-Click Launch Dedicated Priest Portal Button */}
+                  <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-2 bg-amber-100/70 border border-amber-300 p-3 rounded-2xl">
+                    <div>
+                      <span className="text-xs font-black text-amber-950 block">
+                        👑 ಪುರೋಹಿತ ಪಂಚಾಂಗ ಮಹಾದರ್ಶನ (Priest Panchanga Portal)
+                      </span>
+                      <span className="text-[10px] font-bold text-amber-800">
+                        ಲೈವ್ ಗೋಚಾರ ಗ್ರಹ ಕುಂಡಲಿ, ೧೨ ಲಗ್ನ ಸಮಾಪ್ತಿ & ೧೮೦ ದಿನಗಳ ಕ್ಯಾಲೆಂಡರ್ ರಫ್ತು
+                      </span>
+                    </div>
+                    <a
+                      href={`/priest-panchanga?date=${testDateInspector}&pincode=581326`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-4 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 text-slate-950 border border-amber-600 shadow-xs hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5 shrink-0"
+                    >
+                      <span>🚀</span>
+                      <span>ಪೋರ್ಟಲ್ ತೆರೆಯಿರಿ</span>
+                    </a>
+                  </div>
                 </div>
               );
             })()}

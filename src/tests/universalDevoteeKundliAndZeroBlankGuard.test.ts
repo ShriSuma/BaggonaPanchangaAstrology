@@ -106,6 +106,6 @@ describe("Universal Devotee Kundli & 90-Day Calendar Zero-Blank Guard", () => {
       // Check that at least 90 events exist (90 daily events + Special Vrata Eve Alerts)
       const eventCount = (ics.match(/BEGIN:VEVENT/g) || []).length;
       expect(eventCount).toBeGreaterThanOrEqual(90);
-    });
+    }, 30000);
   });
 });

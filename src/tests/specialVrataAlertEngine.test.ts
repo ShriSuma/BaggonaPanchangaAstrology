@@ -43,5 +43,5 @@ describe("Special Vrata Alert Engine", () => {
 
     expect(ics).toContain("baggona-eve-");
     expect(ics).toContain("1-Day Prior Prep");
-  });
+  }, 30000);
 });

@@ -34,16 +34,25 @@ import { LoginPage } from "./components/auth/LoginPage";
 import { initDailyReportScheduler } from "./features/reports/dailyScheduler";
 import DailyDarshanaPage from "./pages/DailyDarshanaPage";
 import KundliAcademyStandalonePage from "./pages/KundliAcademyStandalonePage";
+import { PriestPanchangaPage } from "./pages/PriestPanchangaPage";
 
 export default function App(): JSX.Element {
-  const isAcademyRoute = typeof window !== "undefined" && (
+  const isPriestPanchangaRoute = typeof window !== "undefined" && (
+    window.location.pathname.startsWith("/priest-panchanga") ||
+    window.location.pathname.startsWith("/priest_panchanga") ||
+    window.location.search.includes("portal=priest_panchanga") ||
+    window.location.search.includes("page=priest_panchanga") ||
+    window.location.hash.includes("#/priest-panchanga")
+  );
+
+  const isAcademyRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && (
     window.location.pathname.startsWith("/academy") ||
     window.location.pathname.startsWith("/learnkundli") ||
     window.location.search.includes("academyToken=") ||
     (window.location.search.includes("game=learnkundli") && window.location.search.includes("mode=standalone"))
   );
 
-  const isDailyRoute = typeof window !== "undefined" && !isAcademyRoute && (
+  const isDailyRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && (
     window.location.pathname.startsWith("/daily") ||
     window.location.pathname.startsWith("/darshana") ||
     window.location.search.includes("token=") ||
@@ -51,7 +60,7 @@ export default function App(): JSX.Element {
     window.location.search.includes("action=ics")
   );
 
-  const isPriestPortalRoute = typeof window !== "undefined" && !isAcademyRoute && !isDailyRoute && (
+  const isPriestPortalRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && !isDailyRoute && (
     window.location.pathname.startsWith("/priest") ||
     window.location.pathname.startsWith("/purohita") ||
     window.location.pathname.startsWith("/sankhya") ||
@@ -113,6 +122,10 @@ export default function App(): JSX.Element {
     };
     void run();
   }, [hydrateSettings, checkSession, setConsentResolved, isDailyRoute, isAcademyRoute, isPriestPortalRoute]);
+
+  if (isPriestPanchangaRoute) {
+    return <PriestPanchangaPage />;
+  }
 
   if (isAcademyRoute) {
     return <KundliAcademyStandalonePage />;
@@ -182,6 +195,7 @@ export default function App(): JSX.Element {
         {currentPage === "ayursanjeevini" && <AyurSanjeeviniPage />}
         {currentPage === "priestdashboard" && <PriestDashboard />}
         {currentPage === "superadmindashboard" && <SuperAdminDashboard />}
+        {currentPage === "priest_panchanga" && <PriestPanchangaPage />}
       </Layout>
     </ErrorBoundary>
   );

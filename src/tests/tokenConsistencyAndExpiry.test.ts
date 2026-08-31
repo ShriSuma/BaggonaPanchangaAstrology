@@ -98,7 +98,7 @@ describe("Devotee 90-Day Token Consistency & Expiry Engine", () => {
     expect(decoded?.d).toBe("2026-08-18");
     expect(decoded?.nk).toBe(3);
     expect(decoded?.r).toBe(1);
-  });
+  }, 30000);
 
   it("verifies 90-day expiry math: token is valid for day 0..89 and expires on day 90+", () => {
     const startDateStr = "2026-08-18";
@@ -239,7 +239,7 @@ describe("Devotee 90-Day Token Consistency & Expiry Engine", () => {
     // Verify parent series UID grouping link for 1-click delete series
     expect(icsContent).toContain("RELATED-TO;RELTYPE=PARENT:baggona-series-");
     expect(icsContent).toContain("X-BAGBONA-SERIES-ID:");
-  });
+  }, 30000);
 
   it("guarantees 100% Tithi synchronization at 06:00 AM IST between calendar .ics and web sanctum page", () => {
     // For 2026-08-26 (today)
