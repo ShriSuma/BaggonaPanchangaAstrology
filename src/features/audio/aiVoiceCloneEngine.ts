@@ -11,6 +11,12 @@
 
 import type { SevaLang } from "../seva/sevaLocale";
 import { getVoiceProfileById, type PriestVoiceProfile } from "./priestVoiceDatabase";
+import {
+  stopAllAudioGlobal,
+  startNewAudioSession,
+  isPlaybackTokenActive,
+  registerActiveAudio
+} from "./globalAudioManager";
 
 export type VoiceCloneProvider = "master_recording" | "sarvam_ai" | "elevenlabs" | "huggingface_xtts" | "web_dsp";
 
@@ -90,18 +96,10 @@ export function saveVoiceCloneConfig(cfg: Partial<VoiceCloneConfig>): void {
 let activeCloneAudio: HTMLAudioElement | null = null;
 
 /**
- * Stops any currently playing cloned audio or speech synthesis
+ * Stops any currently playing cloned audio or speech synthesis across all tabs
  */
 export function stopClonedAudio(): void {
-  if (activeCloneAudio) {
-    activeCloneAudio.pause();
-    activeCloneAudio.currentTime = 0;
-    activeCloneAudio = null;
-  }
-  if (typeof window !== "undefined" && "speechSynthesis" in window) {
-    (window as any).__baggonaActiveUtterance = null;
-    window.speechSynthesis.cancel();
-  }
+  stopAllAudioGlobal();
 }
 
 /**
@@ -143,7 +141,7 @@ export async function synthesizeAndPlayClonedVoice(
   voiceId?: string,
   onEnd?: () => void
 ): Promise<() => void> {
-  stopClonedAudio();
+  const token = startNewAudioSession();
 
   const profile = getVoiceProfileById(voiceId);
   const config = getVoiceCloneConfig();
@@ -159,79 +157,95 @@ export async function synthesizeAndPlayClonedVoice(
         config.sarvamSpeaker || "gokul",
         config.sarvamPace || 0.90
       );
+      if (!isPlaybackTokenActive(token)) return () => {};
       if (audioUrl) {
-        return playAudioUrl(audioUrl, onEnd);
+        return playAudioUrl(audioUrl, onEnd, token);
       }
     } catch (e) {
       console.warn("[AIVoiceCloneEngine] Sarvam AI error, falling back:", e);
     }
   }
 
+  if (!isPlaybackTokenActive(token)) return () => {};
+
   // 2. Try ElevenLabs if configured with custom key and voice ID
   if (config.provider === "elevenlabs" && config.elevenLabsApiKey && config.elevenLabsVoiceId) {
     try {
       const audioUrl = await fetchElevenLabsTTS(text, config.elevenLabsApiKey, config.elevenLabsVoiceId);
+      if (!isPlaybackTokenActive(token)) return () => {};
       if (audioUrl) {
-        return playAudioUrl(audioUrl, onEnd);
+        return playAudioUrl(audioUrl, onEnd, token);
       }
     } catch (e) {
       console.warn("[AIVoiceCloneEngine] ElevenLabs error, falling back:", e);
     }
   }
 
+  if (!isPlaybackTokenActive(token)) return () => {};
+
   // 3. Try Hugging Face XTTS Zero-Shot API if configured
   if (config.provider === "huggingface_xtts" && config.hfApiKey && profile.sampleAudioUrl) {
     try {
       const audioUrl = await fetchHuggingFaceXTTS(text, lang, config.hfApiKey, profile.sampleAudioUrl, config.hfModelUrl);
+      if (!isPlaybackTokenActive(token)) return () => {};
       if (audioUrl) {
-        return playAudioUrl(audioUrl, onEnd);
+        return playAudioUrl(audioUrl, onEnd, token);
       }
     } catch (e) {
       console.warn("[AIVoiceCloneEngine] Hugging Face XTTS error, falling back:", e);
     }
   }
 
+  if (!isPlaybackTokenActive(token)) return () => {};
+
   // 4. Try Master Audio Recording (/audio/shrisuma_master_voice.webm - ShriSuma's Actual Real Voice)
   if (config.provider === "master_recording" || config.autoFallbackToMasterRecording) {
     try {
       const masterUrl = config.masterAudioUrl || "/audio/shrisuma_master_voice.webm";
-      const stopFn = playAudioUrl(masterUrl, onEnd);
+      const stopFn = playAudioUrl(masterUrl, onEnd, token);
       if (stopFn) return stopFn;
     } catch (e) {
       console.warn("[AIVoiceCloneEngine] Master recording error, falling back to Web Speech:", e);
     }
   }
 
+  if (!isPlaybackTokenActive(token)) return () => {};
+
   // 5. Fallback to Male-Only Web Speech DSP
-  return playStrictlyMaleWebSpeechDSP(text, lang, profile, onEnd, config);
+  return playStrictlyMaleWebSpeechDSP(text, lang, profile, onEnd, config, token);
 }
 
 /**
- * Plays an audio URL via HTML5 Audio with proper end callbacks
+ * Plays an audio URL via HTML5 Audio with proper end callbacks and global audio tracking
  */
-function playAudioUrl(url: string, onEnd?: () => void): () => void {
+function playAudioUrl(url: string, onEnd?: () => void, token?: number): () => void {
+  if (token !== undefined && !isPlaybackTokenActive(token)) return () => {};
+
   const audio = new Audio(url);
-  activeCloneAudio = audio;
+  const unregister = registerActiveAudio(audio);
 
   audio.onended = () => {
-    activeCloneAudio = null;
+    unregister();
     if (onEnd) onEnd();
   };
 
   audio.onerror = () => {
-    activeCloneAudio = null;
+    unregister();
     if (onEnd) onEnd();
   };
 
   audio.play().catch(() => {
+    unregister();
     if (onEnd) onEnd();
   });
 
   return () => {
-    if (activeCloneAudio === audio) {
+    unregister();
+    try {
       audio.pause();
-      activeCloneAudio = null;
-    }
+      audio.currentTime = 0;
+      audio.src = "";
+    } catch {}
   };
 }
 
@@ -347,8 +361,11 @@ export async function playStrictlyMaleWebSpeechDSP(
   lang: SevaLang,
   profile: PriestVoiceProfile,
   onEnd?: () => void,
-  config?: VoiceCloneConfig
+  config?: VoiceCloneConfig,
+  token?: number
 ): Promise<() => void> {
+  if (token !== undefined && !isPlaybackTokenActive(token)) return () => {};
+
   if (typeof window === "undefined" || !("speechSynthesis" in window)) {
     if (onEnd) setTimeout(onEnd, 2000);
     return () => {};
@@ -359,6 +376,8 @@ export async function playStrictlyMaleWebSpeechDSP(
   }
 
   const voices = await getAvailableVoicesAsync();
+  if (token !== undefined && !isPlaybackTokenActive(token)) return () => {};
+
   const utterance = new SpeechSynthesisUtterance(text);
 
   if (lang === "kn") utterance.lang = "kn-IN";
@@ -425,6 +444,7 @@ export async function playStrictlyMaleWebSpeechDSP(
   };
 
   setTimeout(() => {
+    if (token !== undefined && !isPlaybackTokenActive(token)) return;
     try {
       window.speechSynthesis.speak(utterance);
     } catch (err) {

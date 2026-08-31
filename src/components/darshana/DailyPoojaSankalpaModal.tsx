@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import type { SevaLang } from "../../features/seva/sevaLocale";
 import { getPoojaStreak, recordPoojaSankalpaCompleted, type PoojaStreakInfo } from "../../features/seva/calendarVisitService";
 import { playTempleBellChime, speakPriestNarration, stopPriestAudio } from "../../features/seva/priestAudioNarrator";
+import { stopAllAudioGlobal, onGlobalAudioStop } from "../../features/audio/globalAudioManager";
 import { buildDailyPoojaSteps, type DailyPoojaStep } from "../../features/seva/dailySankalpaPoojaEngine";
 import { useSankalpaStore } from "../../features/sankalpa/sankalpaStore";
 import { ManageSankalpaModal } from "./ManageSankalpaModal";
@@ -112,8 +113,19 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
     };
   }, [isOpen, devoteeKey]);
 
+  useEffect(() => {
+    const unregister = onGlobalAudioStop(() => {
+      setIsAudioPlaying(false);
+      if (autoPlayTimerRef.current) {
+        clearTimeout(autoPlayTimerRef.current);
+        autoPlayTimerRef.current = null;
+      }
+    });
+    return () => unregister();
+  }, []);
+
   const cleanupAudioAndTimers = () => {
-    stopPriestAudio();
+    stopAllAudioGlobal();
     setIsAudioPlaying(false);
     if (autoPlayTimerRef.current) {
       clearTimeout(autoPlayTimerRef.current);

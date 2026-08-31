@@ -11,6 +11,11 @@
 import type { SevaLang } from "./sevaLocale";
 import { getVoiceProfileById, type PriestAudioKey } from "../audio/priestVoiceDatabase";
 import { synthesizeAndPlayClonedVoice, stopClonedAudio } from "../audio/aiVoiceCloneEngine";
+import {
+  stopAllAudioGlobal,
+  registerActiveAudio,
+  registerAudioContext
+} from "../audio/globalAudioManager";
 
 import { POOJA_16_UPACHARES } from "./poojaUpacharaEngine";
 
@@ -43,6 +48,7 @@ export function playTempleBellChime(): void {
     const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
     if (!AudioContextClass) return;
     const ctx = new AudioContextClass();
+    registerAudioContext(ctx);
 
     const masterGain = ctx.createGain();
     masterGain.gain.setValueAtTime(0.35, ctx.currentTime);
@@ -98,24 +104,32 @@ export function speakPriestNarration(
     const customAudio = profile.audioClips[stepKey];
     if (customAudio && customAudio.dataUrl) {
       try {
-        stopPriestAudio();
+        stopAllAudioGlobal();
         const audio = new Audio(customAudio.dataUrl);
         activeAudioElement = audio;
+        const unregister = registerActiveAudio(audio);
         audio.onended = () => {
+          unregister();
           activeAudioElement = null;
           if (onEnd) onEnd();
         };
         audio.onerror = () => {
+          unregister();
           activeAudioElement = null;
           // fallback to TTS below
           fallbackMaleTTS(text, lang, onEnd, profile.voicePitch, profile.voiceRate);
         };
         audio.play().catch(() => {
+          unregister();
           fallbackMaleTTS(text, lang, onEnd, profile.voicePitch, profile.voiceRate);
         });
         return () => {
+          unregister();
           if (activeAudioElement) {
-            activeAudioElement.pause();
+            try {
+              activeAudioElement.pause();
+              activeAudioElement.currentTime = 0;
+            } catch {}
             activeAudioElement = null;
           }
         };
@@ -135,7 +149,7 @@ export function speakPriestNarration(
 
   return () => {
     if (cancelCloneFn) cancelCloneFn();
-    stopClonedAudio();
+    stopAllAudioGlobal();
   };
 }
 
@@ -229,12 +243,12 @@ function fallbackMaleTTS(
 }
 
 export function stopPriestAudio(): void {
-  stopClonedAudio();
+  stopAllAudioGlobal();
   if (activeAudioElement) {
-    activeAudioElement.pause();
+    try {
+      activeAudioElement.pause();
+      activeAudioElement.currentTime = 0;
+    } catch {}
     activeAudioElement = null;
-  }
-  if (typeof window !== "undefined" && "speechSynthesis" in window) {
-    window.speechSynthesis.cancel();
   }
 }

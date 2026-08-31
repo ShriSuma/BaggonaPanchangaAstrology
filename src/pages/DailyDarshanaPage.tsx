@@ -39,6 +39,7 @@ import { DailyBlessingShareCard } from "../components/darshana/DailyBlessingShar
 import { SanctumPrayerBox } from "../components/darshana/SanctumPrayerBox";
 import { playTempleBellChime } from "../features/seva/priestAudioNarrator";
 import { synthesizeAndPlayClonedVoice, stopClonedAudio } from "../features/audio/aiVoiceCloneEngine";
+import { stopAllAudioGlobal, onGlobalAudioStop } from "../features/audio/globalAudioManager";
 
 // Comprehensive 5-Language Dictionary for DailyDarshanaPage
 const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
@@ -1154,7 +1155,23 @@ export default function DailyDarshanaPage(): JSX.Element {
     } catch {
       // Ignore
     }
+
+    const unregisterAudioStop = onGlobalAudioStop(() => {
+      setIsPlayingBenedictionVoice(false);
+      setIsPlayingMantraVoice(false);
+      setIsPlayingAudio(false);
+    });
+
+    return () => {
+      unregisterAudioStop();
+      stopAllAudioGlobal();
+    };
   }, []);
+
+  // Whenever user switches tab or selected date, stop any active audio immediately
+  useEffect(() => {
+    stopAllAudioGlobal();
+  }, [activeTab, dateParam]);
 
   const handleLangChange = (newLang: SevaLang) => {
     setLang(newLang);

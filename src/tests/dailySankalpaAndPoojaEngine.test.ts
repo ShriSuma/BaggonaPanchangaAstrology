@@ -3,27 +3,27 @@ import { useSankalpaStore, SANKALPA_PRESETS } from "../features/sankalpa/sankalp
 import { buildDailyPoojaSteps } from "../features/seva/dailySankalpaPoojaEngine";
 import { db } from "../db/indexedDb";
 
+const testParams = {
+  devoteeName: "ಶ್ರೀಸುಮಾ",
+  gotra: "ಕಾಶ್ಯಪ",
+  rashiName: "ಧನು",
+  nakshatraName: "ಮೂಲ",
+  priestName: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
+  samvatsara: "ಪರಾಭವ",
+  ayana: "ದಕ್ಷಿಣಾಯನ",
+  ritu: "ವರ್ಷ ಋತು",
+  masa: "ಶ್ರಾವಣ ಮಾಸ",
+  paksha: "ಶುಕ್ಲ ಪಕ್ಷ",
+  tithi: "ಏಕಾದಶೀ",
+  vasara: "ಭೃಗುವಾಸರ",
+  nakshatra: "ಮೂಲಾ",
+  lang: "kn" as const
+};
+
 describe("3-5 Minute Daily Vedic Sankalpa & Deva Pooja Engine", () => {
   beforeEach(async () => {
     await db.userSankalpas.clear();
   });
-
-  const testParams = {
-    devoteeName: "ಶ್ರೀಸುಮಾ",
-    gotra: "ಕಾಶ್ಯಪ",
-    rashiName: "ಧನು",
-    nakshatraName: "ಮೂಲ",
-    priestName: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
-    samvatsara: "ಪರಾಭವ",
-    ayana: "ದಕ್ಷಿಣಾಯನ",
-    ritu: "ವರ್ಷ ಋತು",
-    masa: "ಶ್ರಾವಣ ಮಾಸ",
-    paksha: "ಶುಕ್ಲ ಪಕ್ಷ",
-    tithi: "ಏಕಾದಶೀ",
-    vasara: "ಭೃಗುವಾಸರ",
-    nakshatra: "ಮೂಲಾ",
-    lang: "kn" as const
-  };
 
   it("generates exactly 5 authentic Vedic Pooja steps totaling 3 to 5 minutes", () => {
     const steps = buildDailyPoojaSteps(testParams);
@@ -159,4 +159,14 @@ describe("Personal Devotee Sankalpa Management & CRUD Engine", () => {
     expect(categories).toContain("dhana");
     expect(categories).toContain("custom");
   });
+
+  it("ensures Step 1 is simple Deepa Prajwalane & Mindful Prayer without complex water sipping", () => {
+    const steps = buildDailyPoojaSteps(testParams);
+    const step1 = steps[0];
+    expect(step1.titleKn).toContain("ದೀಪ ಪ್ರಜ್ವಲನೆ");
+    expect(step1.sanskritMantra).toContain("ದೀಪಜ್ಯೋತಿಃ ಪರಬ್ರಹ್ಮ");
+    expect(step1.sanskritMantra).toContain("ಶುಭಂ ಕರೋತಿ ಕಲ್ಯಾಣಂ");
+    expect(step1.narrationText.kn).not.toContain("ಆಚಮನ ಪಾತ್ರೆಯಿಂದ");
+  });
 });
+
