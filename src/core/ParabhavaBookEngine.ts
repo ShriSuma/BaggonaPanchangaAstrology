@@ -181,6 +181,86 @@ export const PARABHAVA_MONTH_PAKSHAS: MonthPakshaDef[] = [
 /* MASTER FESTIVALS, SHRADDHA & SPECIAL OBSERVANCES REPOSITORY                */
 /* -------------------------------------------------------------------------- */
 
+export interface ParabhavaFestivalItem {
+  id: string;
+  date: string;
+  nameKn: string;
+  nameEn: string;
+  masaKn: string;
+  pakshaKn: string;
+  tithiKn: string;
+  category: "Major Festival" | "Vrata & Upavasa" | "Jayanti" | "Temple Yatra";
+  descriptionKn: string;
+  pujaWindow?: string;
+}
+
+export const PARABHAVA_ANNUAL_FESTIVALS: ParabhavaFestivalItem[] = [
+  { id: "yugadi", date: "2026-03-19", nameKn: "ಯುಗಾದಿ (ವತ್ಸರಾರಂಭ)", nameEn: "Yugadi (New Year)", masaKn: "ಚೈತ್ರ", pakshaKn: "ಶುಕ್ಲ", tithiKn: "ಪಾಡ್ಯ", category: "Major Festival", descriptionKn: "ಪರಾಭವ ಸಂವತ್ಸರ ಪ್ರಾರಂಭ, ಅಭ್ಯಂಗಸ್ನಾನ, ಬೇವು-ಬೆಲ್ಲ, ಧ್ವಜಾರೋಪಣ ಮತ್ತು ನೂತನ ಪಂಚಾಂಗ ಶ್ರವಣ.", pujaWindow: "06:38 AM - 10:15 AM (Pratahkala)" },
+  { id: "matsya_jayanti", date: "2026-03-21", nameKn: "ಮತ್ಸ್ಯ ಜಯಂತೀ", nameEn: "Matsya Jayanti", masaKn: "ಚೈತ್ರ", pakshaKn: "ಶುಕ್ಲ", tithiKn: "ತದಿಗೆ", category: "Jayanti", descriptionKn: "ಶ್ರೀ ಮಹಾವಿಷ್ಣುವಿನ ಪ್ರಥಮ ಅವತಾರ ಮತ್ಸ್ಯ ಜಯಂತಿ ಮತ್ತು ಮನ್ವಾದಿ ಪುಣ್ಯಕಾಲ." },
+  { id: "sri_panchami", date: "2026-03-23", nameKn: "ಶ್ರೀ ಪಂಚಮೀ (ಲಕ್ಷ್ಮೀ ಪೂಜಾ)", nameEn: "Sri Panchami", masaKn: "ಚೈತ್ರ", pakshaKn: "ಶುಕ್ಲ", tithiKn: "ಪಂಚಮಿ", category: "Vrata & Upavasa", descriptionKn: "ಕಲ್ಪಾದಿ ಪುಣ್ಯದಿನ ಮತ್ತು ಮಹಾಲಕ್ಷ್ಮೀ ಕೃಪಾಪ್ರಾಪ್ತಿ ಪೂಜಾ ದಿನ." },
+  { id: "shri_ramanavami", date: "2026-03-27", nameKn: "ಶ್ರೀರಾಮನವಮೀ", nameEn: "Shri Rama Navami", masaKn: "ಚೈತ್ರ", pakshaKn: "ಶುಕ್ಲ", tithiKn: "ನವಮಿ", category: "Major Festival", descriptionKn: "ಮರ್ಯಾದಾ ಪುರುಷೋತ್ತಮ ಶ್ರೀರಾಮಚಂದ್ರನ ಜನ್ಮೋತ್ಸವ, ವನವಾಸಿ ಸೀತಾರಾಮ ಲಕ್ಷ್ಮಣ ದೇವರ ವರ್ಧಂತಿ.", pujaWindow: "11:15 AM - 01:45 PM (Madhyahna Kaala)" },
+  { id: "kamada_ekadashi", date: "2026-03-29", nameKn: "ಕಾಮದಾ ಏಕಾದಶಿ", nameEn: "Kamada Ekadashi", masaKn: "ಚೈತ್ರ", pakshaKn: "ಶುಕ್ಲ", tithiKn: "ಏಕಾದಶಿ", category: "Vrata & Upavasa", descriptionKn: "ಸರ್ವೇಷಾಮೇಕಾದಶೀ, ಸಕಲ ಇಷ್ಟಾರ್ಥ ಪ್ರದಾಯಕ ಶ್ರೀಹರಿ ಆರಾಧನೆ ಮತ್ತು ಉಪವಾಸ ವ್ರತ.", pujaWindow: "ಹರಿವಾಸರ ಪಾರಣೆ ಮರುದಿನ ಪ್ರಾತಃಕಾಲ" },
+  { id: "shiva_damanotsava", date: "2026-04-01", nameKn: "ಶಿವದಮನೋತ್ಸವಃ", nameEn: "Shiva Damanotsava", masaKn: "ಚೈತ್ರ", pakshaKn: "ಶುಕ್ಲ", tithiKn: "ಚತುರ್ದಶಿ", category: "Vrata & Upavasa", descriptionKn: "ಪರಮಶಿವನಿಗೆ ದಮನಕ ಪುಷ್ಪ ಸಮರ್ಪಣಾ ಪರ್ವ ಹಾಗೂ ನೃಸಿಂಹ ದಮನೋತ್ಸವ." },
+  { id: "hanuma_jayanti", date: "2026-04-02", nameKn: "ಹನುಮಜ್ಜಯಂತೀ (ಚಿತ್ರಾಪುರ ರಥೋತ್ಸವ)", nameEn: "Hanuma Jayanti", masaKn: "ಚೈತ್ರ", pakshaKn: "ಶುಕ್ಲ", tithiKn: "ಹುಣ್ಣಿಮೆ", category: "Major Festival", descriptionKn: "ವಾಯುಪುತ್ರ ಆಂಜನೇಯ ಸ್ವಾಮಿಯ ಜಯಂತಿ, ಚಿತ್ರಾಪುರ ರಥೋತ್ಸವ ಮತ್ತು ಚೈತ್ರ ಪೂರ್ಣಿಮಾ ಸ್ನಾನ.", pujaWindow: "06:30 AM - 11:30 AM" },
+  { id: "varuthini_ekadashi", date: "2026-04-13", nameKn: "ವರೂಥಿನೀ ಏಕಾದಶಿ", nameEn: "Varuthini Ekadashi", masaKn: "ಚೈತ್ರ", pakshaKn: "ಕೃಷ್ಣ", tithiKn: "ಏಕಾದಶಿ", category: "Vrata & Upavasa", descriptionKn: "ಸಕಲ ಪಾಪ ಹರ ಹಾಗೂ ಸೌಭಾಗ್ಯದಾಯಕ ಕೃಷ್ಣಪಕ್ಷ ಏಕಾದಶಿ ವ್ರತ." },
+  { id: "akshaya_tritiya", date: "2026-04-19", nameKn: "ಅಕ್ಷಯ ತೃತೀಯಾ (ಪರಶುರಾಮ ಜಯಂತಿ)", nameEn: "Akshaya Tritiya", masaKn: "ವೈಶಾಖ", pakshaKn: "ಶುಕ್ಲ", tithiKn: "ತದಿಗೆ", category: "Major Festival", descriptionKn: "ಅಕ್ಷಯ ಪುಣ್ಯದಿನ, ಭಾರ್ಗವ ಪರಶುರಾಮ ಜಯಂತಿ, ಚಿನ್ನ-ಬೆಳ್ಳಿ ಮತ್ತು ಧರ್ಮದಾನ ಪರ್ವ.", pujaWindow: "06:30 AM - 12:45 PM (Akshaya Muhurtha)" },
+  { id: "shankara_jayanti", date: "2026-04-21", nameKn: "ಶ್ರೀ ಶಂಕರಾಚಾರ್ಯ ಜಯಂತೀ", nameEn: "Adi Shankara Jayanti", masaKn: "ವೈಶಾಖ", pakshaKn: "ಶುಕ್ಲ", tithiKn: "ಪಂಚಮಿ", category: "Jayanti", descriptionKn: "ಅದ್ವೈತ ಸಿದ್ಧಾಂತ ಪ್ರತಿಷ್ಠಾಪಕ ಜಗದ್ಗುರು ಶ್ರೀ ಆದಿ ಶಂಕರಾಚಾರ್ಯರ ಜನ್ಮದಿನೋತ್ಸವ." },
+  { id: "mohini_ekadashi", date: "2026-04-27", nameKn: "ಮೋಹಿನೀ ಏಕಾದಶಿ", nameEn: "Mohini Ekadashi", masaKn: "ವೈಶಾಖ", pakshaKn: "ಶುಕ್ಲ", tithiKn: "ಏಕಾದಶಿ", category: "Vrata & Upavasa", descriptionKn: "ಶ್ರೀಹರಿಯ ಮೋಹಿನೀ ರೂಪ ಧಾರಣಾ ಸ್ಮರಣೆಯ ಶುಕ್ಲಪಕ್ಷ ಏಕಾದಶಿ ವ್ರತ." },
+  { id: "nrisimha_jayanti", date: "2026-04-30", nameKn: "ಶ್ರೀ ನೃಸಿಂಹ ಜಯಂತೀ", nameEn: "Narasimha Jayanti", masaKn: "ವೈಶಾಖ", pakshaKn: "ಶುಕ್ಲ", tithiKn: "ಚತುರ್ದಶಿ", category: "Major Festival", descriptionKn: "ಭಕ್ತ ಪ್ರಹ್ಲಾದ ರಕ್ಷಣಾರ್ಥ ಪ್ರಕಟಗೊಂಡ ಭಗವಾನ್ ಲಕ್ಷ್ಮೀ ನೃಸಿಂಹ ಸ್ವಾಮಿಯ ಅವತಾರ ಮಹೋತ್ಸವ.", pujaWindow: "04:30 PM - 07:15 PM (Pradosha Kaala)" },
+  { id: "buddha_purnima", date: "2026-05-01", nameKn: "ಬುದ್ಧ ಪೂರ್ಣಿಮಾ (ವೈಶಾಖ ಹುಣ್ಣಿಮೆ)", nameEn: "Buddha Purnima", masaKn: "ವೈಶಾಖ", pakshaKn: "ಶುಕ್ಲ", tithiKn: "ಹುಣ್ಣಿಮೆ", category: "Major Festival", descriptionKn: "ವೈಶಾಖ ಪೂರ್ಣಿಮಾ ಮಹಾಸ್ನಾನ ಮತ್ತು ಭಗವಾನ್ ಬುದ್ಧ ಜಯಂತಿ." },
+  { id: "apara_ekadashi", date: "2026-05-12", nameKn: "ಅಪರಾ ಏಕಾದಶಿ", nameEn: "Apara Ekadashi", masaKn: "ವೈಶಾಖ", pakshaKn: "ಕೃಷ್ಣ", tithiKn: "ಏಕಾದಶಿ", category: "Vrata & Upavasa", descriptionKn: "ಅಪಾರ ಪುಣ್ಯದಾಯಕ ವೈಶಾಖ ಕೃಷ್ಣಪಕ್ಷ ಏಕಾದಶಿ ವ್ರತ." },
+  { id: "padmini_ekadashi", date: "2026-05-27", nameKn: "ಪದ್ಮಿನೀ ಏಕಾದಶಿ (ಅಧಿಕ ಮಾಸ)", nameEn: "Padmini Ekadashi", masaKn: "ಅಧಿಕ ಜ್ಯೇಷ್ಠ", pakshaKn: "ಶುಕ್ಲ", tithiKn: "ಏಕಾದಶಿ", category: "Vrata & Upavasa", descriptionKn: "ಅಧಿಕ ಜ್ಯೇಷ್ಠ ಮಾಸದ ಮಹಾ ಫಲಪ್ರದ ಶುಕ್ಲಪಕ್ಷ ಏಕಾದಶಿ." },
+  { id: "parama_ekadashi", date: "2026-06-10", nameKn: "ಪರಮಾ ಏಕಾದಶಿ (ಅಧಿಕ ಮಾಸ)", nameEn: "Parama Ekadashi", masaKn: "ಅಧಿಕ ಜ್ಯೇಷ್ಠ", pakshaKn: "ಕೃಷ್ಣ", tithiKn: "ಏಕಾದಶಿ", category: "Vrata & Upavasa", descriptionKn: "ಅಧಿಕ ಜ್ಯೇಷ್ಠ ಕೃಷ್ಣಪಕ್ಷದ ಪರಮ ಪವಿತ್ರ ದಾರಿದ್ರ್ಯ ನಾಶಕ ಏಕಾದಶಿ." },
+  { id: "nirjala_ekadashi", date: "2026-06-25", nameKn: "ನಿರ್ಜಲಾ ಏಕಾದಶಿ (ಭೀಮ ಏಕಾದಶಿ)", nameEn: "Nirjala Ekadashi", masaKn: "ನಿಜ ಜ್ಯೇಷ್ಠ", pakshaKn: "ಶುಕ್ಲ", tithiKn: "ಏಕಾದಶಿ", category: "Vrata & Upavasa", descriptionKn: "ಜಲವಿಲ್ಲದೆ ಆಚರಿಸುವ ಮಹಾ ಏಕಾದಶಿ ವ್ರತ." },
+  { id: "vata_savitri", date: "2026-06-29", nameKn: "ವಟ ಸಾವಿತ್ರೀ ವ್ರತ (ಜ್ಯೇಷ್ಠ ಹುಣ್ಣಿಮೆ)", nameEn: "Vata Savitri Vrata", masaKn: "ನಿಜ ಜ್ಯೇಷ್ಠ", pakshaKn: "ಶುಕ್ಲ", tithiKn: "ಹುಣ್ಣಿಮೆ", category: "Vrata & Upavasa", descriptionKn: "ಸುಮಂಗಲಿಯರ ಸೌಭಾಗ್ಯ ವೃದ್ಧಿಗಾಗಿ ವಟವೃಕ್ಷ ಪೂಜೆ ಮತ್ತು ಸಾವಿತ್ರಿ ವ್ರತ." },
+  { id: "prathama_ekadashi", date: "2026-07-25", nameKn: "ಪ್ರಥಮ ಏಕಾದಶಿ (ಚಾತುರ್ಮಾಸ್ಯಾರಂಭ)", nameEn: "Sayani Ekadashi", masaKn: "ಆಷಾಢ", pakshaKn: "ಶುಕ್ಲ", tithiKn: "ಏಕಾದಶಿ", category: "Major Festival", descriptionKn: "ಶ್ರೀಹರಿಯ ಶಯನೋತ್ಸವ, ಚಾತುರ್ಮಾಸ್ಯ ವ್ರತ ಪ್ರಾರಂಭ." },
+  { id: "guru_purnima", date: "2026-07-29", nameKn: "ಗುರು ಪೂರ್ಣಿಮಾ (ವ್ಯಾಸ ಪೂಜೆ)", nameEn: "Guru Purnima", masaKn: "ಆಷಾಢ", pakshaKn: "ಶುಕ್ಲ", tithiKn: "ಹುಣ್ಣಿಮೆ", category: "Major Festival", descriptionKn: "ಮಹರ್ಷಿ ವೇದವ್ಯಾಸರ ಆರಾಧನೆ, ಗುರು ಪೂಜೆ ಮತ್ತು ಚಾತುರ್ಮಾಸ್ಯ ಸಂಕಲ್ಪ." },
+  { id: "nagara_panchami", date: "2026-08-17", nameKn: "ನಾಗರ ಪಂಚಮೀ", nameEn: "Nagara Panchami", masaKn: "ಶ್ರಾವಣ", pakshaKn: "ಶುಕ್ಲ", tithiKn: "ಪಂಚಮಿ", category: "Major Festival", descriptionKn: "ನಾಗದೇವತೆಯ ಪ್ರಸನ್ನತೆಗಾಗಿ ಕ್ಷೀರಾಭಿಷೇಕ ಮತ್ತು ನಾಗಾರಾಧನೆ.", pujaWindow: "06:30 AM - 11:00 AM" },
+  { id: "varamahalakshmi", date: "2026-08-21", nameKn: "ವರಮಹಾಲಕ್ಷ್ಮೀ ವ್ರತ", nameEn: "Varamahalakshmi Vrata", masaKn: "ಶ್ರಾವಣ", pakshaKn: "ಶುಕ್ಲ", tithiKn: "ನವಮಿ", category: "Major Festival", descriptionKn: "ಸಕಲ ಸೌಭಾಗ್ಯ ಪ್ರದಾಯಕಿ ಶ್ರೀ ವರಮಹಾಲಕ್ಷ್ಮೀ ದೇವಿಯ ಆರಾಧನೆ ಮತ್ತು ವ್ರತಾನುಷ್ಠಾನ.", pujaWindow: "06:30 AM - 10:45 AM (Pratahkala) & 12:30 PM - 02:15 PM (Abhijit/Madhyahna)" },
+  { id: "raksha_bandhan", date: "2026-08-27", nameKn: "ರಕ್ಷಾಬಂಧನ / ಉಪಾಕರ್ಮ (ಶ್ರಾವಣ ಹುಣ್ಣಿಮೆ)", nameEn: "Raksha Bandhan / Upakarma", masaKn: "ಶ್ರಾವಣ", pakshaKn: "ಶುಕ್ಲ", tithiKn: "ಹುಣ್ಣಿಮೆ", category: "Major Festival", descriptionKn: "ಋಗುಪಾಕರ್ಮ, ಯಜುರುಪಾಕರ್ಮ, ಯಜ್ಞೋಪವೀತ ಧಾರಣೆ, ರಕ್ಷಾಸೂತ್ರ ಬಂಧನ ಮತ್ತು ಹಯಗ್ರೀವ ಜಯಂತೀ." },
+  { id: "gokulashtami", date: "2026-09-04", nameKn: "ಶ್ರೀಕೃಷ್ಣ ಜನ್ಮಾಷ್ಟಮೀ (ಗೋಕುಲಾಷ್ಟಮೀ)", nameEn: "Krishna Janmashtami", masaKn: "ಶ್ರಾವಣ", pakshaKn: "ಕೃಷ್ಣ", tithiKn: "ಅಷ್ಟಮಿ", category: "Major Festival", descriptionKn: "ಜಗದ್ಗುರು ಭಗವಾನ್ ಶ್ರೀಕೃಷ್ಣನ ಅವತಾರ ಮಹೋತ್ಸವ ಮತ್ತು ರಾತ್ರಿ ಅರ್ಘ್ಯಪ್ರದಾನ.", pujaWindow: "11:45 PM - 12:40 AM (Nishita Kaala Pooja)" },
+  { id: "swarna_gowri", date: "2026-09-13", nameKn: "ಸ್ವರ್ಣಗೌರಿ ವ್ರತ (ಹರಿತಾಲಿಕಾ)", nameEn: "Swarna Gowri Vrata", masaKn: "ಭಾದ್ರಪದ", pakshaKn: "ಶುಕ್ಲ", tithiKn: "ತದಿಗೆ", category: "Major Festival", descriptionKn: "ಜಗನ್ಮಾತೆ ಗೌರೀ ದೇವಿಯ ಸೌಭಾಗ್ಯ ವ್ರತ." },
+  { id: "ganesha_chaturthi", date: "2026-09-14", nameKn: "ವರಸಿದ್ಧಿ ವಿನಾಯಕ ವ್ರತ (ಗಣೇಶ ಚತುರ್ಥಿ)", nameEn: "Ganesha Chaturthi", masaKn: "ಭಾದ್ರಪದ", pakshaKn: "ಶುಕ್ಲ", tithiKn: "ಚೌತಿ", category: "Major Festival", descriptionKn: "ವಿಘ್ನನಿವಾರಕ ಶ್ರೀ ಮಹಾಗಣಪತಿ ಪ್ರತಿಷ್ಠಾಪನೆ ಮತ್ತು ಪೂಜಾ ಮಹೋತ್ಸವ.", pujaWindow: "11:05 AM - 01:35 PM (Madhyahna Kaala Ganesha Pooja)" },
+  { id: "rishi_panchami", date: "2026-09-15", nameKn: "ಋಷಿ ಪಂಚಮೀ", nameEn: "Rishi Panchami", masaKn: "ಭಾದ್ರಪದ", pakshaKn: "ಶುಕ್ಲ", tithiKn: "ಪಂಚಮಿ", category: "Vrata & Upavasa", descriptionKn: "ಸಪ್ತರ್ಷಿಗಳ ಆರಾಧನೆ ಮತ್ತು ದೋಷ ನಿವಾರಣಾ ವ್ರತ." },
+  { id: "ananta_padmanabha", date: "2026-09-25", nameKn: "ಅನಂತ ಪದ್ಮನಾಭ ವ್ರತ", nameEn: "Anantha Padmanabha Vrata", masaKn: "ಭಾದ್ರಪದ", pakshaKn: "ಶುಕ್ಲ", tithiKn: "ಚತುರ್ದಶಿ", category: "Major Festival", descriptionKn: "ಅನಂತ ವ್ರತ, ಚತುರ್ದಶ ಸೂತ್ರ ಬಂಧನ ಮತ್ತು ಶ್ರೀ ಪದ್ಮನಾಭ ಸ್ವಾಮಿ ಆರಾಧನೆ." },
+  { id: "mahalaya_amavasya", date: "2026-10-10", nameKn: "ಮಹಾಲಯ ಅಮಾವಾಸ್ಯೆ (ಸರ್ವಪಿತೃ ಪರ್ವ)", nameEn: "Mahalaya Amavasya", masaKn: "ಭಾದ್ರಪದ", pakshaKn: "ಕೃಷ್ಣ", tithiKn: "ಅಮಾವಾಸ್ಯೆ", category: "Major Festival", descriptionKn: "ಪಿತೃಪಕ್ಷದ ಮಹಾ ಪುಣ್ಯದಿನ, ಸರ್ವಪಿತೃ ತರ್ಪಣ ಮತ್ತು ಶ್ರಾದ್ಧ ಮಹೋತ್ಸವ." },
+  { id: "navaratri_start", date: "2026-10-11", nameKn: "ಶರನ್ನವರಾತ್ರಿ ಪ್ರಾರಂಭ (ಘಟಸ್ಥಾಪನೆ)", nameEn: "Sharad Navaratri Begins", masaKn: "ಆಶ್ವಯುಜ", pakshaKn: "ಶುಕ್ಲ", tithiKn: "ಪಾಡ್ಯ", category: "Major Festival", descriptionKn: "ದೇವೀ ನವರಾತ್ರಿಯ ಪ್ರಥಮ ದಿನ, ಕಲಶ ಸ್ಥಾಪನೆ ಮತ್ತು ಶೈಲಪುತ್ರಿ ಪೂಜಾ." },
+  { id: "durgashtami", date: "2026-10-18", nameKn: "ದುರ್ಗಾಷ್ಟಮೀ (ಮಹಾಗೌರಿ ಪೂಜೆ)", nameEn: "Durga Ashtami", masaKn: "ಆಶ್ವಯುಜ", pakshaKn: "ಶುಕ್ಲ", tithiKn: "ಅಷ್ಟಮಿ", category: "Major Festival", descriptionKn: "ಮಹಿಷಾಸುರ ಮರ್ದಿನಿ ಮಹಾದುರ್ಗಾ ಪೂಜೆ ಮತ್ತು ಮಹಾಗೌರಿ ಆರಾಧನೆ." },
+  { id: "ayudha_puja", date: "2026-10-19", nameKn: "ಮಹಾನವಮೀ (ಆಯುಧ ಪೂಜೆ)", nameEn: "Ayudha Puja / Mahanavami", masaKn: "ಆಶ್ವಯುಜ", pakshaKn: "ಶುಕ್ಲ", tithiKn: "ನವಮಿ", category: "Major Festival", descriptionKn: "ಕರ್ಮೋಪಕರಣ ಪೂಜೆ, ವಾಹನ ಪೂಜೆ, ಶಸ್ತ್ರಾಸ್ತ್ರ ಪೂಜೆ ಮತ್ತು ಸಿದ್ಧಿದಾತ್ರಿ ಆರಾಧನೆ.", pujaWindow: "06:30 AM - 11:30 AM & 02:00 PM - 04:30 PM" },
+  { id: "vijayadashami", date: "2026-10-20", nameKn: "ವಿಜಯದಶಮೀ (ದಸರಾ ಮಹೋತ್ಸವ)", nameEn: "Vijayadashami (Dussehra)", masaKn: "ಆಶ್ವಯುಜ", pakshaKn: "ಶುಕ್ಲ", tithiKn: "ದಶಮಿ", category: "Major Festival", descriptionKn: "ವಿಜಯದಶಮಿ, ಶಮೀ ವೃಕ್ಷ ಪೂಜೆ, ಸೀಮೋಲ್ಲಂಘನ, ಬನ್ನಿ ಹಂಚುವುದು ಮತ್ತು ವಿದ್ಯಾರಂಭ.", pujaWindow: "01:45 PM - 03:15 PM (Aparajita / Vijaya Muhurtha)" },
+  { id: "naraka_chaturdashi", date: "2026-11-08", nameKn: "ನರಕ ಚತುರ್ದಶೀ (ದೀಪಾವಳಿ ತೈಲಾಭ್ಯಂಗ)", nameEn: "Naraka Chaturdashi", masaKn: "ಆಶ್ವಯುಜ", pakshaKn: "ಕೃಷ್ಣ", tithiKn: "ಚತುರ್ದಶಿ", category: "Major Festival", descriptionKn: "ದೀಪಾವಳಿ ಪ್ರಥಮ ದಿನ, ನರಕಾಸುರ ಸಂಹಾರ ಸ್ಮರಣಾರ್ಥ ಪ್ರಾತಃಕಾಲ ತೈಲಾಭ್ಯಂಗ ಮತ್ತು ಯಮದೀಪ ದಾನ.", pujaWindow: "04:45 AM - 06:15 AM (Arunodaya Abhyanga)" },
+  { id: "deepavali_lakshmi", date: "2026-11-09", nameKn: "ದೀಪಾವಳಿ ಅಮಾವಾಸ್ಯೆ (ಲಕ್ಷ್ಮೀ ಪೂಜೆ)", nameEn: "Diwali Lakshmi Puja", masaKn: "ಆಶ್ವಯುಜ", pakshaKn: "ಕೃಷ್ಣ", tithiKn: "ಅಮಾವಾಸ್ಯೆ", category: "Major Festival", descriptionKn: "ದೀಪೋತ್ಸವ, ಮಹಾಲಕ್ಷ್ಮೀ ಪೂಜಾ, ಕೇದಾರ ವ್ರತ ಮತ್ತು ಧನ ಸಮೃದ್ಧಿ ಪ್ರಾರ್ಥನೆ.", pujaWindow: "06:15 PM - 08:35 PM (Pradosha Kaala Lakshmi Puja)" },
+  { id: "bali_padyami", date: "2026-11-10", nameKn: "ಬಲಿಪಾಡ್ಯಮಿ (ಗೋಪೂಜೆ)", nameEn: "Bali Padyami / Go Puja", masaKn: "ಕಾರ್ತಿಕ", pakshaKn: "ಶುಕ್ಲ", tithiKn: "ಪಾಡ್ಯ", category: "Major Festival", descriptionKn: "ಬಲಿರಾಜ ಪೂಜೆ, ಗೋಮಾತೆ ಪೂಜೆ ಮತ್ತು ಕಾರ್ತಿಕ ದೀಪೋತ್ಸವ ಪ್ರಾರಂಭ." },
+  { id: "utthana_dwadashi", date: "2026-11-21", nameKn: "ಉತ್ತಾನ ದ್ವಾದಶೀ (ತುಳಸೀ ವಿವಾಹ)", nameEn: "Tulasi Vivaha / Utthana Dwadashi", masaKn: "ಕಾರ್ತಿಕ", pakshaKn: "ಶುಕ್ಲ", tithiKn: "ದ್ವಾದಶಿ", category: "Major Festival", descriptionKn: "ಧಾತ್ರಿ ಪೂಜೆ, ತುಳಸೀ-ದಾಮೋದರ ಕಲ್ಯಾಣೋತ್ಸವ ಮತ್ತು ದೀಪೋತ್ಸವ.", pujaWindow: "05:45 PM - 08:00 PM (Sandhya Kaala)" },
+  { id: "karthika_purnima", date: "2026-11-24", nameKn: "ಕಾರ್ತಿಕ ಹುಣ್ಣಿಮೆ (ದೇವ ದೀಪಾವಳಿ)", nameEn: "Karthika Purnima / Dev Diwali", masaKn: "ಕಾರ್ತಿಕ", pakshaKn: "ಶುಕ್ಲ", tithiKn: "ಹುಣ್ಣಿಮೆ", category: "Major Festival", descriptionKn: "ಕಾರ್ತಿಕ ದೀಪೋತ್ಸವ ಸಮಾಪ್ತಿ, ತ್ರಿಪುರಾರಿ ಪೂರ್ಣಿಮಾ ಮತ್ತು ದೇವಾಲಯಗಳಲ್ಲಿ ಲಕ್ಷದೀಪೋತ್ಸವ." },
+  { id: "subrahmanya_shashthi", date: "2026-12-15", nameKn: "ಸುಬ್ರಹ್ಮಣ್ಯ ಷಷ್ಠೀ (ಚಂಪಾ ಷಷ್ಠಿ)", nameEn: "Subrahmanya Shashthi", masaKn: "ಮಾರ್ಗಶಿರ", pakshaKn: "ಶುಕ್ಲ", tithiKn: "ಷಷ್ಠಿ", category: "Major Festival", descriptionKn: "ಸ್ಕಂದ ಸೇನಾನಿ ಶ್ರೀ ಸುಬ್ರಹ್ಮಣ್ಯ ಸ್ವಾಮಿಯ ಷಷ್ಠೀ ಮಹೋತ್ಸವ ಮತ್ತು ನಾಗಾರಾಧನೆ." },
+  { id: "vaikunta_ekadashi", date: "2026-12-20", nameKn: "ವೈಕುಂಠ ಏಕಾದಶಿ (ಗೀತಾ ಜಯಂತೀ / ಮೋಕ್ಷದಾ)", nameEn: "Vaikunta Ekadashi / Gita Jayanti", masaKn: "ಮಾರ್ಗಶಿರ", pakshaKn: "ಶುಕ್ಲ", tithiKn: "ಏಕಾದಶಿ", category: "Major Festival", descriptionKn: "ವೈಕುಂಠ ದ್ವಾರ ದರ್ಶನ, ಶ್ರೀಮದ್ಭಗವದ್ಗೀತಾ ಜಯಂತಿ ಮತ್ತು ಮೋಕ್ಷ ಪ್ರದಾಯಕ ಏಕಾದಶಿ ವ್ರತ.", pujaWindow: "ವೈಕುಂಠ ದ್ವಾರ ಪೂಜೆ ಪ್ರಾತಃಕಾಲ 05:30 AM ನಿಂದ" },
+  { id: "makara_sankranti", date: "2027-01-14", nameKn: "ಮಕರ ಸಂಕ್ರಾಂತಿ (ಸೌರಾಯನ ಪುಣ್ಯಕಾಲ)", nameEn: "Makara Sankranti", masaKn: "ಪುಷ್ಯ", pakshaKn: "ಶುಕ್ಲ", tithiKn: "ಸಪ್ತಮಿ", category: "Major Festival", descriptionKn: "ಸೂರ್ಯನ ಮಕರ ರಾಶಿ ಪ್ರವೇಶ, ಉತ್ತರಾಯಣ ಪುಣ್ಯಕಾಲ, ಎಳ್ಳು-ಬೆಲ್ಲ ಹಂಚುವ ಸಂಭ್ರಮ.", pujaWindow: "08:15 AM - 04:30 PM (Sankranti Punya Kaala)" },
+  { id: "ratha_saptami", date: "2027-02-13", nameKn: "ರಥಸಪ್ತಮೀ (ಸೂರ್ಯ ಜಯಂತೀ)", nameEn: "Ratha Saptami", masaKn: "ಮಾಘ", pakshaKn: "ಶುಕ್ಲ", tithiKn: "ಸಪ್ತಮಿ", category: "Major Festival", descriptionKn: "ಭಗವಾನ್ ಸೂರ್ಯನಾರಾಯಣನ ಜಯಂತಿ, ಏಳು ಎಕ್ಕದ ಎಲೆಗಳ ಸ್ನಾನ ಮತ್ತು ಸೂರ್ಯನಮಸ್ಕಾರ.", pujaWindow: "06:30 AM - 08:30 AM (Arunodaya Snana)" },
+  { id: "madhwa_navami", date: "2027-02-15", nameKn: "ಶ್ರೀ ಮಧ್ವ ನವಮೀ", nameEn: "Madhwa Navami", masaKn: "ಮಾಘ", pakshaKn: "ಶುಕ್ಲ", tithiKn: "ನವಮಿ", category: "Jayanti", descriptionKn: "ದ್ವೈತ ಸಿದ್ಧಾಂತ ಪ್ರತಿಷ್ಠಾಪಕ ಜಗದ್ಗುರು ಶ್ರೀ ಮಧ್ವಾಚಾರ್ಯರ ಆರಾಧನಾ ಪುಣ್ಯದಿನ." },
+  { id: "maha_shivaratri", date: "2027-03-06", nameKn: "ಮಹಾಶಿವರಾತ್ರಿ ವ್ರತ (ಗೋಕರ್ಣ ಮಹಾರಥೋತ್ಸವ)", nameEn: "Maha Shivaratri", masaKn: "ಮಾಘ", pakshaKn: "ಕೃಷ್ಣ", tithiKn: "ಚತುರ್ದಶಿ", category: "Major Festival", descriptionKn: "ಪರಮಶಿವನ ಮಹಾಪರ್ವ, ರಾತ್ರಿ ಚತುರ್ಯಾಮ ಜಾಗರಣೆ, ರುದ್ರಾಭಿಷೇಕ ಮತ್ತು ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಮಹಾರಥೋತ್ಸವ.", pujaWindow: "ಸಂಜೆ 06:15 PM ನಿಂದ ಮರುದಿನ ಮುಂಜಾನೆ 06:15 AM ರವರೆಗೆ (ಚತುರ್ಯಾಮ ಪೂಜೆ)" },
+  { id: "holi_kamadahana", date: "2027-03-22", nameKn: "ಕಾಮದಹನ / ಹೋಲಿಕಾ ದಹನ (ಫಾಲ್ಗುಣ ಹುಣ್ಣಿಮೆ)", nameEn: "Kamadahana / Holika Dahan", masaKn: "ಫಾಲ್ಗುಣ", pakshaKn: "ಶುಕ್ಲ", tithiKn: "ಹುಣ್ಣಿಮೆ", category: "Major Festival", descriptionKn: "ಕಾಮದೇವ ದಹನ, ಹೋಲಿಕಾ ದಹನ ಪರ್ವ ಮತ್ತು ಫಾಲ್ಗುಣ ಹುಣ್ಣಿಮೆ." },
+  { id: "parabhava_samapti", date: "2027-04-07", nameKn: "ಪರಾಭವ ಸಂವತ್ಸರ ಸಮಾಪ್ತಿ (ದರ್ಶ ಅಮಾವಾಸ್ಯೆ)", nameEn: "Parabhava Samvatsara Concludes", masaKn: "ಫಾಲ್ಗುಣ", pakshaKn: "ಕೃಷ್ಣ", tithiKn: "ಅಮಾವಾಸ್ಯೆ", category: "Major Festival", descriptionKn: "ಪರಾಭವ ಸಂವತ್ಸರದ ಕೊನೆಯ ದಿನ, ಪಿತೃ ತರ್ಪಣ ಮತ್ತು ಮರುದಿನ ಪ್ಲವಂಗ ಸಂವತ್ಸರ ಸ್ವಾಗತ." }
+];
+
+export function searchParabhavaFestivals(queryStr: string): ParabhavaFestivalItem[] {
+  if (!queryStr || !queryStr.trim()) return PARABHAVA_ANNUAL_FESTIVALS;
+  const q = queryStr.trim().toLowerCase();
+  return PARABHAVA_ANNUAL_FESTIVALS.filter(
+    (f) =>
+      f.nameKn.toLowerCase().includes(q) ||
+      f.nameEn.toLowerCase().includes(q) ||
+      f.masaKn.toLowerCase().includes(q) ||
+      f.tithiKn.toLowerCase().includes(q) ||
+      f.date.includes(q) ||
+      f.descriptionKn.toLowerCase().includes(q)
+  );
+}
+
+export function getFestivalByDate(dateStr: string): ParabhavaFestivalItem | undefined {
+  return PARABHAVA_ANNUAL_FESTIVALS.find((f) => f.date === dateStr);
+}
+
 interface DaySpecialInfo {
   shraddha: string;
   festivals: string[];

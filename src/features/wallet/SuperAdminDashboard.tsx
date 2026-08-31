@@ -50,7 +50,11 @@ import {
   getParabhavaDayDetails,
   isDateInParabhavaYear,
   getParabhavaAnnualSummary,
-  type ParabhavaDayRecord
+  PARABHAVA_ANNUAL_FESTIVALS,
+  searchParabhavaFestivals,
+  getFestivalByDate,
+  type ParabhavaDayRecord,
+  type ParabhavaFestivalItem
 } from "../../core/ParabhavaBookEngine";
 
 export type AdminTab = "wallets" | "kundlis" | "ashirvada" | "audit" | "mindmap" | "panchanga_engine";
@@ -377,6 +381,9 @@ export const SuperAdminDashboard: React.FC = () => {
   const [panchangaEngineConfig, setPanchangaEngineConfig] = useState<PanchangaEngineConfigDoc>(DEFAULT_PANCHANGA_ENGINE_CONFIG);
   const [isUpdatingEngine, setIsUpdatingEngine] = useState(false);
   const [testDateInspector, setTestDateInspector] = useState("2026-03-19");
+  const [festivalSearchQuery, setFestivalSearchQuery] = useState("");
+  const [selectedFestivalId, setSelectedFestivalId] = useState("yugadi");
+  const [isListeningMic, setIsListeningMic] = useState(false);
 
   // Priest Profile Real-Time Subscription
   useEffect(() => {
@@ -507,6 +514,80 @@ export const SuperAdminDashboard: React.FC = () => {
       setFeedback({ type: "error", text: `ಎಂಜಿನ್ ಸಂರಚನೆ ಉಳಿಸಲು ವಿಫಲವಾಗಿದೆ: ${err?.message || "Error"}` });
     } finally {
       setIsUpdatingEngine(false);
+    }
+  };
+
+  const handleStartVoiceSearch = () => {
+    const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRec) {
+      setFeedback({
+        type: "error",
+        text: "ಈ ಬ್ರೌಸರ್‌ನಲ್ಲಿ ಧ್ವನಿ ಗುರುತಿಸುವಿಕೆ ಲಭ್ಯವಿಲ್ಲ (Speech recognition not supported in this browser. Please use Chrome/Edge)."
+      });
+      return;
+    }
+    try {
+      const rec = new SpeechRec();
+      rec.lang = "kn-IN"; // Kannada speech recognition
+      rec.interimResults = false;
+      rec.maxAlternatives = 1;
+      setIsListeningMic(true);
+
+      rec.onstart = () => setIsListeningMic(true);
+      rec.onend = () => setIsListeningMic(false);
+      rec.onerror = () => setIsListeningMic(false);
+
+      rec.onresult = (e: any) => {
+        const text = e.results?.[0]?.[0]?.transcript || "";
+        if (text) {
+          setFestivalSearchQuery(text);
+          const matches = searchParabhavaFestivals(text);
+          if (matches.length > 0) {
+            setSelectedFestivalId(matches[0].id);
+            setTestDateInspector(matches[0].date);
+            setFeedback({
+              type: "success",
+              text: `🎙️ ಧ್ವನಿ ಹುಡುಕಾಟ: "${text}" -> ${matches[0].nameKn} (${matches[0].date})`
+            });
+          } else {
+            setFeedback({
+              type: "error",
+              text: `ಧ್ವನಿ ಹುಡುಕಾಟಕ್ಕೆ ಯಾವುದೇ ಹಬ್ಬ ದೊರೆಯಲಿಲ್ಲ: "${text}"`
+            });
+          }
+        }
+        setIsListeningMic(false);
+      };
+
+      rec.start();
+    } catch (err) {
+      console.warn("Speech recognition error:", err);
+      setIsListeningMic(false);
+    }
+  };
+
+  const handleSelectFestival = (festId: string) => {
+    setSelectedFestivalId(festId);
+    const found = PARABHAVA_ANNUAL_FESTIVALS.find((f) => f.id === festId);
+    if (found) {
+      setTestDateInspector(found.date);
+    }
+  };
+
+  const handleOkFestivalSearch = () => {
+    if (selectedFestivalId) {
+      const found = PARABHAVA_ANNUAL_FESTIVALS.find((f) => f.id === selectedFestivalId);
+      if (found) {
+        setTestDateInspector(found.date);
+        return;
+      }
+    }
+    if (festivalSearchQuery.trim()) {
+      const matches = searchParabhavaFestivals(festivalSearchQuery);
+      if (matches.length > 0) {
+        setSelectedFestivalId(matches[0].id);
+        setTestDateInspector(matches[0].date);
+      }
     }
   };
 
@@ -2442,20 +2523,21 @@ export const SuperAdminDashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Live Day Inspector & Data Verifier */}
-          <div className="bg-white border-2 border-amber-300 rounded-2xl p-4 shadow-sm space-y-3">
+          {/* Live Day Inspector & Data Verifier with Text Search, Voice Mic & All-Year Festival Dropdown */}
+          <div className="bg-white border-2 border-amber-300 rounded-2xl p-4 shadow-sm space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-200 pb-2">
               <div>
                 <h4 className="font-black text-amber-950 text-xs flex items-center gap-1.5">
                   <span>🔍</span>
-                  <span>ಲೈವ್ ಡೇಟಾ ಪರೀಕ್ಷಕ (Interactive Day Inspector & Blueprint Verification)</span>
+                  <span>ಲೈವ್ ದಿನ & ಹಬ್ಬಗಳ ಪರೀಕ್ಷಕ (Interactive Day & All-Year Festival Inspector)</span>
                 </h4>
                 <p className="text-[11px] text-slate-600 font-semibold">
-                  Test and inspect the exact Left Page & Right Page data returned by the active engine for any date.
+                  Search by typing, voice speaking 🎙️, or selecting any festival from the all-year dropdown to inspect exact Tithi, Puja Timings, and Left/Right page blueprint details.
                 </p>
               </div>
 
               <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold text-slate-500">ದಿನಾಂಕ:</span>
                 <input
                   type="date"
                   value={testDateInspector}
@@ -2465,22 +2547,115 @@ export const SuperAdminDashboard: React.FC = () => {
               </div>
             </div>
 
+            {/* 1. TEXT SEARCH BOX WITH REAL-TIME FILTER & VOICE MIC INPUT */}
+            <div className="bg-gradient-to-r from-[#FFFDF7] via-amber-50/70 to-[#FEFCF4] p-3 rounded-2xl border-2 border-amber-300/80 space-y-2.5">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                {/* Search Input Box */}
+                <div className="relative flex-1">
+                  <span className="absolute left-3 top-2.5 text-slate-400 text-xs">🔍</span>
+                  <input
+                    type="text"
+                    value={festivalSearchQuery}
+                    onChange={(e) => {
+                      setFestivalSearchQuery(e.target.value);
+                      const matches = searchParabhavaFestivals(e.target.value);
+                      if (matches.length > 0) {
+                        setSelectedFestivalId(matches[0].id);
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleOkFestivalSearch();
+                    }}
+                    placeholder="ಹಬ್ಬ, ವ್ರತ, ತಿಥಿ ಅಥವಾ ದಿನಾಂಕ ಹುಡುಕಿ (ಉದಾ: ರಾಮನವಮಿ, ಗಣೇಶ, ದೀಪಾವಳಿ, ಶಿವರಾತ್ರಿ)..."
+                    className="w-full pl-8 pr-8 py-2 text-xs border-2 border-amber-300 rounded-xl font-semibold bg-white text-slate-900 focus:outline-none focus:border-amber-500 shadow-xs"
+                  />
+                  {festivalSearchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setFestivalSearchQuery("")}
+                      className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-700 text-xs font-bold"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+
+                {/* Voice / Mic Button */}
+                <button
+                  type="button"
+                  onClick={handleStartVoiceSearch}
+                  title="ಧ್ವನಿ ಮೂಲಕ ಹುಡುಕಿ (Speak into Mic)"
+                  className={`px-3.5 py-2 rounded-xl text-xs font-black border-2 transition-all flex items-center justify-center gap-1.5 shadow-xs shrink-0 ${
+                    isListeningMic
+                      ? "bg-red-500 text-white border-red-600 animate-pulse ring-4 ring-red-400/40"
+                      : "bg-[#FFFDF7] text-amber-950 border-amber-400 hover:bg-amber-100"
+                  }`}
+                >
+                  <span className="text-sm">{isListeningMic ? "🔴" : "🎙️"}</span>
+                  <span>{isListeningMic ? "ಆಲಿಸಲಾಗುತ್ತಿದೆ..." : "ಧ್ವನಿ (Mic)"}</span>
+                </button>
+
+                {/* OK Action Button */}
+                <button
+                  type="button"
+                  onClick={handleOkFestivalSearch}
+                  className="px-5 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 text-slate-950 border border-amber-600 shadow-sm hover:scale-[1.02] active:scale-95 transition-all shrink-0"
+                >
+                  ✓ OK / ಹುಡುಕಿ
+                </button>
+              </div>
+
+              {/* 2. COMPREHENSIVE ALL-YEAR FESTIVAL DROPDOWN */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-1 border-t border-amber-200">
+                <label className="text-[11px] font-black text-amber-950 shrink-0 flex items-center gap-1">
+                  <span>📅</span>
+                  <span>ವರ್ಷದ ಎಲ್ಲಾ ಹಬ್ಬಗಳ ಪಟ್ಟಿ (All-Year Festival Directory):</span>
+                </label>
+                <div className="flex-1 flex items-center gap-2">
+                  <select
+                    value={selectedFestivalId}
+                    onChange={(e) => handleSelectFestival(e.target.value)}
+                    className="flex-1 px-3 py-1.5 text-xs font-bold border-2 border-amber-300 rounded-xl bg-white text-amber-950 focus:outline-none focus:border-amber-500 shadow-xs cursor-pointer"
+                  >
+                    {PARABHAVA_ANNUAL_FESTIVALS.map((fest) => (
+                      <option key={fest.id} value={fest.id}>
+                        [{fest.date}] {fest.nameKn} — {fest.masaKn} {fest.pakshaKn} {fest.tithiKn} ({fest.category})
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={handleOkFestivalSearch}
+                    className="px-3.5 py-1.5 rounded-xl text-xs font-black bg-amber-200 text-amber-950 border border-amber-400 hover:bg-amber-300 transition-all shrink-0"
+                  >
+                    ವಿವರ ವೀಕ್ಷಿಸಿ
+                  </button>
+                </div>
+              </div>
+            </div>
+
             {/* Quick Date Presets */}
             <div className="flex flex-wrap items-center gap-1.5">
               <span className="text-[10px] font-black text-slate-500">ಪ್ರಮುಖ ದಿನಗಳು:</span>
               {[
-                { label: "ಯುಗಾದಿ (19 Mar 2026)", date: "2026-03-19" },
-                { label: "ಶ್ರೀರಾಮನವಮಿ (27 Mar 2026)", date: "2026-03-27" },
-                { label: "ಕಾಮದಾ ಏಕಾದಶಿ (29 Mar 2026)", date: "2026-03-29" },
-                { label: "ಹನುಮಜ್ಜಯಂತಿ (02 Apr 2026)", date: "2026-04-02" },
-                { label: "ವರಸಿದ್ಧಿ ವಿನಾಯಕ (14 Sep 2026)", date: "2026-09-14" },
-                { label: "ದೀಪಾವಳಿ (09 Nov 2026)", date: "2026-11-09" },
-                { label: "ಮಹಾಶಿವರಾತ್ರಿ (06 Mar 2027)", date: "2027-03-06" }
+                { label: "ಯುಗಾದಿ (19 Mar 2026)", date: "2026-03-19", id: "yugadi" },
+                { label: "ಶ್ರೀರಾಮನವಮಿ (27 Mar 2026)", date: "2026-03-27", id: "shri_ramanavami" },
+                { label: "ಕಾಮದಾ ಏಕಾದಶಿ (29 Mar 2026)", date: "2026-03-29", id: "kamada_ekadashi" },
+                { label: "ಹನುಮಜ್ಜಯಂತಿ (02 Apr 2026)", date: "2026-04-02", id: "hanuma_jayanti" },
+                { label: "ಅಕ್ಷಯ ತೃತೀಯ (19 Apr 2026)", date: "2026-04-19", id: "akshaya_tritiya" },
+                { label: "ವರಮಹಾಲಕ್ಷ್ಮೀ (21 Aug 2026)", date: "2026-08-21", id: "varamahalakshmi" },
+                { label: "ವರಸಿದ್ಧಿ ವಿನಾಯಕ (14 Sep 2026)", date: "2026-09-14", id: "ganesha_chaturthi" },
+                { label: "ದೀಪಾವಳಿ (09 Nov 2026)", date: "2026-11-09", id: "deepavali_lakshmi" },
+                { label: "ಮಕರ ಸಂಕ್ರಾಂತಿ (14 Jan 2027)", date: "2027-01-14", id: "makara_sankranti" },
+                { label: "ಮಹಾಶಿವರಾತ್ರಿ (06 Mar 2027)", date: "2027-03-06", id: "maha_shivaratri" }
               ].map((p) => (
                 <button
                   key={p.date}
                   type="button"
-                  onClick={() => setTestDateInspector(p.date)}
+                  onClick={() => {
+                    setTestDateInspector(p.date);
+                    setSelectedFestivalId(p.id);
+                  }}
                   className={`px-2 py-0.5 rounded-lg text-[10px] font-bold border transition-all ${
                     testDateInspector === p.date
                       ? "bg-amber-600 text-white border-amber-700 shadow-xs"
@@ -2495,106 +2670,172 @@ export const SuperAdminDashboard: React.FC = () => {
             {/* Render Output Inspector for Selected Date */}
             {(() => {
               const dayDetails = getParabhavaDayDetails(testDateInspector);
-              return (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
-                  {/* Left Page Preview Card */}
-                  <div className="p-3.5 bg-[#FFFDF7] border-2 border-amber-300 rounded-xl space-y-2">
-                    <div className="flex items-center justify-between border-b border-amber-200 pb-1.5">
-                      <span className="text-[11px] font-black text-amber-950 flex items-center gap-1">
-                        <span>📖</span>
-                        <span>ಎಡ ಪುಟ (Left Page - Panchanga Angas & Shraddha)</span>
-                      </span>
-                      <span className="text-[10px] font-bold text-amber-800">
-                        {dayDetails.chandramanaMasaKn} {dayDetails.pakshaKn}
-                      </span>
-                    </div>
+              const matchedFest = getFestivalByDate(testDateInspector);
 
-                    <div className="grid grid-cols-2 gap-1.5 text-[11px]">
-                      <div>
-                        <span className="text-slate-500 font-semibold block">ತಿಥಿ (Tithi):</span>
-                        <span className="font-bold text-slate-900">{dayDetails.tithiKn} ({dayDetails.tithiGhati})</span>
-                      </div>
-                      <div>
-                        <span className="text-slate-500 font-semibold block">ನಕ್ಷತ್ರ (Nakshatra):</span>
-                        <span className="font-bold text-slate-900">{dayDetails.nakshatraKn} ({dayDetails.nakshatraGhati})</span>
-                      </div>
-                      <div>
-                        <span className="text-slate-500 font-semibold block">ಯೋಗ (Yoga):</span>
-                        <span className="font-bold text-slate-900">{dayDetails.yogaKn} ({dayDetails.yogaGhati})</span>
-                      </div>
-                      <div>
-                        <span className="text-slate-500 font-semibold block">ಕರಣ (Karana):</span>
-                        <span className="font-bold text-slate-900">{dayDetails.karanaKn} ({dayDetails.karanaGhati})</span>
-                      </div>
-                      <div>
-                        <span className="text-slate-500 font-semibold block">ಶ್ರಾದ್ಧ ತಿಥಿ:</span>
-                        <span className="font-bold text-amber-950 bg-amber-100 px-1.5 py-0.5 rounded border border-amber-300">
-                          {dayDetails.shraddhaTithi}
+              return (
+                <div className="space-y-3 pt-1">
+                  {/* Festival Dossier & Timing Card (when a festival is active on this day) */}
+                  {matchedFest && (
+                    <div className="p-4 bg-gradient-to-r from-amber-100/90 via-[#FFFDF7] to-amber-50 border-2 border-amber-400 rounded-2xl shadow-sm space-y-2 relative overflow-hidden">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-300 pb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl p-1.5 bg-white rounded-xl border border-amber-300 shadow-xs">🪔</span>
+                          <div>
+                            <h3 className="font-black text-amber-950 text-sm flex items-center gap-2">
+                              <span>{matchedFest.nameKn}</span>
+                              <span className="text-xs font-bold text-amber-800">({matchedFest.nameEn})</span>
+                            </h3>
+                            <p className="text-[10px] font-bold text-amber-900">
+                              {matchedFest.masaKn} {matchedFest.pakshaKn} {matchedFest.tithiKn} • {dayDetails.weekdayKn}
+                            </p>
+                          </div>
+                        </div>
+
+                        <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-amber-200 border border-amber-400 text-amber-950 shrink-0">
+                          {matchedFest.category}
                         </span>
                       </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs pt-1">
+                        <div className="bg-white/90 p-2.5 rounded-xl border border-amber-200">
+                          <span className="text-[10px] font-black text-amber-900 block flex items-center gap-1">
+                            <span>⏳</span>
+                            <span>ಪೂಜಾ & ಮುಹೂರ್ತ ಕಾಲ (Pooja Window):</span>
+                          </span>
+                          <span className="font-black text-emerald-800 text-xs mt-0.5 block">
+                            {matchedFest.pujaWindow || "ದಿನದ ಪ್ರಾತಃಕಾಲ & ಮಾಧ್ಯಾಹ್ನ ಪುಣ್ಯಕಾಲ"}
+                          </span>
+                        </div>
+
+                        <div className="bg-white/90 p-2.5 rounded-xl border border-amber-200">
+                          <span className="text-[10px] font-black text-amber-900 block flex items-center gap-1">
+                            <span>📜</span>
+                            <span>ತಿಥಿ & ಮುಕ್ತಾಯ ಸಮಯ:</span>
+                          </span>
+                          <span className="font-black text-amber-950 text-xs mt-0.5 block">
+                            {dayDetails.tithiKn} ({dayDetails.tithiGhati}) ಅಂತ್ಯ: {dayDetails.tithiEndTime}
+                          </span>
+                        </div>
+
+                        <div className="bg-white/90 p-2.5 rounded-xl border border-amber-200">
+                          <span className="text-[10px] font-black text-amber-900 block flex items-center gap-1">
+                            <span>🕉️</span>
+                            <span>ಶ್ರಾದ್ಧ & ಧಾರ್ಮಿಕ ನಿರ್ಣಯ:</span>
+                          </span>
+                          <span className="font-black text-purple-950 text-xs mt-0.5 block">
+                            {dayDetails.shraddhaTithi}
+                          </span>
+                        </div>
+                      </div>
+
+                      <p className="text-[11px] text-slate-800 font-semibold leading-relaxed pt-1">
+                        <span className="font-black text-amber-950">ಧಾರ್ಮಿಕ ಮಹತ್ವ: </span>
+                        {matchedFest.descriptionKn}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Dual Page Details Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {/* Left Page Preview Card */}
+                    <div className="p-3.5 bg-[#FFFDF7] border-2 border-amber-300 rounded-xl space-y-2">
+                      <div className="flex items-center justify-between border-b border-amber-200 pb-1.5">
+                        <span className="text-[11px] font-black text-amber-950 flex items-center gap-1">
+                          <span>📖</span>
+                          <span>ಎಡ ಪುಟ (Left Page - Panchanga Angas & Shraddha)</span>
+                        </span>
+                        <span className="text-[10px] font-bold text-amber-800">
+                          {dayDetails.chandramanaMasaKn} {dayDetails.pakshaKn}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-1.5 text-[11px]">
+                        <div>
+                          <span className="text-slate-500 font-semibold block">ತಿಥಿ (Tithi):</span>
+                          <span className="font-bold text-slate-900">{dayDetails.tithiKn} ({dayDetails.tithiGhati})</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500 font-semibold block">ನಕ್ಷತ್ರ (Nakshatra):</span>
+                          <span className="font-bold text-slate-900">{dayDetails.nakshatraKn} ({dayDetails.nakshatraGhati})</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500 font-semibold block">ಯೋಗ (Yoga):</span>
+                          <span className="font-bold text-slate-900">{dayDetails.yogaKn} ({dayDetails.yogaGhati})</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500 font-semibold block">ಕರಣ (Karana):</span>
+                          <span className="font-bold text-slate-900">{dayDetails.karanaKn} ({dayDetails.karanaGhati})</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500 font-semibold block">ಶ್ರಾದ್ಧ ತಿಥಿ:</span>
+                          <span className="font-bold text-amber-950 bg-amber-100 px-1.5 py-0.5 rounded border border-amber-300">
+                            {dayDetails.shraddhaTithi}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500 font-semibold block">ಸೂರ್ಯೋದಯ / ಅಸ್ತ:</span>
+                          <span className="font-bold text-slate-900">{dayDetails.suryodaya} / {dayDetails.suryasta}</span>
+                        </div>
+                      </div>
+
+                      {dayDetails.festivalsAndVratas.length > 0 && (
+                        <div className="pt-1 border-t border-amber-200">
+                          <span className="text-[10px] font-black text-amber-900 block">ಹಬ್ಬ-ಹರಿದಿನಗಳು / ಉತ್ಸವಗಳು:</span>
+                          <div className="flex flex-wrap gap-1 mt-0.5">
+                            {dayDetails.festivalsAndVratas.map((f, i) => (
+                              <span key={i} className="text-[10px] font-bold bg-amber-100 text-amber-950 px-1.5 py-0.5 rounded border border-amber-300">
+                                {f}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Right Page Preview Card */}
+                    <div className="p-3.5 bg-[#FFFDF7] border-2 border-amber-300 rounded-xl space-y-2">
+                      <div className="flex items-center justify-between border-b border-amber-200 pb-1.5">
+                        <span className="text-[11px] font-black text-amber-950 flex items-center gap-1">
+                          <span>🏛️</span>
+                          <span>ಬಲ ಪುಟ (Right Page - Dina Lagna & Planetary Coordinates)</span>
+                        </span>
+                        <span className="text-[10px] font-bold text-amber-800">
+                          ಸೌರ {dayDetails.sauramanaMasaKn} (ದಿನ {dayDetails.sauramanaDina})
+                        </span>
+                      </div>
+
                       <div>
-                        <span className="text-slate-500 font-semibold block">ಸೂರ್ಯೋದಯ / ಅಸ್ತ:</span>
-                        <span className="font-bold text-slate-900">{dayDetails.suryodaya} / {dayDetails.suryasta}</span>
+                        <span className="text-[10px] font-black text-slate-700 block mb-1">ನವಗ್ರಹ ಸ್ಪಷ್ಟ (Graha Spashta):</span>
+                        <div className="grid grid-cols-2 gap-1 text-[10px]">
+                          <div className="bg-white p-1 rounded border border-amber-200">
+                            <span className="font-bold text-amber-950">ರವಿ:</span> {dayDetails.grahaSpashta.ravi.rashiKn} ({dayDetails.grahaSpashta.ravi.nakshatraKn} ಪಾದ {dayDetails.grahaSpashta.ravi.pada})
+                          </div>
+                          <div className="bg-white p-1 rounded border border-amber-200">
+                            <span className="font-bold text-amber-950">ಕುಜ:</span> {dayDetails.grahaSpashta.kuja.rashiKn} ({dayDetails.grahaSpashta.kuja.nakshatraKn} ಪಾದ {dayDetails.grahaSpashta.kuja.pada})
+                          </div>
+                          <div className="bg-white p-1 rounded border border-amber-200">
+                            <span className="font-bold text-amber-950">ಬುಧ:</span> {dayDetails.grahaSpashta.budha.rashiKn} ({dayDetails.grahaSpashta.budha.nakshatraKn} {dayDetails.grahaSpashta.budha.isVakri ? "ವಕ್ರೀ" : ""})
+                          </div>
+                          <div className="bg-white p-1 rounded border border-amber-200">
+                            <span className="font-bold text-amber-950">ಗುರು:</span> {dayDetails.grahaSpashta.guru.rashiKn} ({dayDetails.grahaSpashta.guru.nakshatraKn} ಪಾದ {dayDetails.grahaSpashta.guru.pada})
+                          </div>
+                          <div className="bg-white p-1 rounded border border-amber-200">
+                            <span className="font-bold text-amber-950">ಶುಕ್ರ:</span> {dayDetails.grahaSpashta.shukra.rashiKn} ({dayDetails.grahaSpashta.shukra.nakshatraKn} ಪಾದ {dayDetails.grahaSpashta.shukra.pada})
+                          </div>
+                          <div className="bg-white p-1 rounded border border-amber-200">
+                            <span className="font-bold text-amber-950">ಶನಿ:</span> {dayDetails.grahaSpashta.shani.rashiKn} ({dayDetails.grahaSpashta.shani.nakshatraKn} ಪಾದ {dayDetails.grahaSpashta.shani.pada})
+                          </div>
+                        </div>
                       </div>
-                    </div>
 
-                    {dayDetails.festivalsAndVratas.length > 0 && (
                       <div className="pt-1 border-t border-amber-200">
-                        <span className="text-[10px] font-black text-amber-900 block">ಹಬ್ಬ-ಹರಿದಿನಗಳು / ಉತ್ಸವಗಳು:</span>
-                        <div className="flex flex-wrap gap-1 mt-0.5">
-                          {dayDetails.festivalsAndVratas.map((f, i) => (
-                            <span key={i} className="text-[10px] font-bold bg-amber-100 text-amber-950 px-1.5 py-0.5 rounded border border-amber-300">
-                              {f}
-                            </span>
-                          ))}
+                        <span className="text-[10px] font-black text-slate-700 block">೧೨ ಲಗ್ನ ಸಮಾಪ್ತಿ ಕಾಲ (Lagna Ending Times):</span>
+                        <div className="grid grid-cols-4 gap-1 text-[9px] font-mono font-bold mt-1 text-slate-800">
+                          <span className="bg-white p-0.5 px-1 rounded border">ಮೀ: {dayDetails.lagnaEndingTimes.meena}</span>
+                          <span className="bg-white p-0.5 px-1 rounded border">ಮೇ: {dayDetails.lagnaEndingTimes.mesha}</span>
+                          <span className="bg-white p-0.5 px-1 rounded border">ವೃ: {dayDetails.lagnaEndingTimes.vrishabha}</span>
+                          <span className="bg-white p-0.5 px-1 rounded border">ಮಿ: {dayDetails.lagnaEndingTimes.mithuna}</span>
                         </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Right Page Preview Card */}
-                  <div className="p-3.5 bg-[#FFFDF7] border-2 border-amber-300 rounded-xl space-y-2">
-                    <div className="flex items-center justify-between border-b border-amber-200 pb-1.5">
-                      <span className="text-[11px] font-black text-amber-950 flex items-center gap-1">
-                        <span>🏛️</span>
-                        <span>ಬಲ ಪುಟ (Right Page - Dina Lagna & Planetary Coordinates)</span>
-                      </span>
-                      <span className="text-[10px] font-bold text-amber-800">
-                        ಸೌರ {dayDetails.sauramanaMasaKn} (ದಿನ {dayDetails.sauramanaDina})
-                      </span>
-                    </div>
-
-                    <div>
-                      <span className="text-[10px] font-black text-slate-700 block mb-1">ನವಗ್ರಹ ಸ್ಪಷ್ಟ (Graha Spashta):</span>
-                      <div className="grid grid-cols-2 gap-1 text-[10px]">
-                        <div className="bg-white p-1 rounded border border-amber-200">
-                          <span className="font-bold text-amber-950">ರವಿ:</span> {dayDetails.grahaSpashta.ravi.rashiKn} ({dayDetails.grahaSpashta.ravi.nakshatraKn} ಪಾದ {dayDetails.grahaSpashta.ravi.pada})
-                        </div>
-                        <div className="bg-white p-1 rounded border border-amber-200">
-                          <span className="font-bold text-amber-950">ಕುಜ:</span> {dayDetails.grahaSpashta.kuja.rashiKn} ({dayDetails.grahaSpashta.kuja.nakshatraKn} ಪಾದ {dayDetails.grahaSpashta.kuja.pada})
-                        </div>
-                        <div className="bg-white p-1 rounded border border-amber-200">
-                          <span className="font-bold text-amber-950">ಬುಧ:</span> {dayDetails.grahaSpashta.budha.rashiKn} ({dayDetails.grahaSpashta.budha.nakshatraKn} {dayDetails.grahaSpashta.budha.isVakri ? "ವಕ್ರೀ" : ""})
-                        </div>
-                        <div className="bg-white p-1 rounded border border-amber-200">
-                          <span className="font-bold text-amber-950">ಗುರು:</span> {dayDetails.grahaSpashta.guru.rashiKn} ({dayDetails.grahaSpashta.guru.nakshatraKn} ಪಾದ {dayDetails.grahaSpashta.guru.pada})
-                        </div>
-                        <div className="bg-white p-1 rounded border border-amber-200">
-                          <span className="font-bold text-amber-950">ಶುಕ್ರ:</span> {dayDetails.grahaSpashta.shukra.rashiKn} ({dayDetails.grahaSpashta.shukra.nakshatraKn} ಪಾದ {dayDetails.grahaSpashta.shukra.pada})
-                        </div>
-                        <div className="bg-white p-1 rounded border border-amber-200">
-                          <span className="font-bold text-amber-950">ಶನಿ:</span> {dayDetails.grahaSpashta.shani.rashiKn} ({dayDetails.grahaSpashta.shani.nakshatraKn} ಪಾದ {dayDetails.grahaSpashta.shani.pada})
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="pt-1 border-t border-amber-200">
-                      <span className="text-[10px] font-black text-slate-700 block">೧೨ ಲಗ್ನ ಸಮಾಪ್ತಿ ಕಾಲ (Lagna Ending Times):</span>
-                      <div className="grid grid-cols-4 gap-1 text-[9px] font-mono font-bold mt-1 text-slate-800">
-                        <span className="bg-white p-0.5 px-1 rounded border">ಮೀ: {dayDetails.lagnaEndingTimes.meena}</span>
-                        <span className="bg-white p-0.5 px-1 rounded border">ಮೇ: {dayDetails.lagnaEndingTimes.mesha}</span>
-                        <span className="bg-white p-0.5 px-1 rounded border">ವೃ: {dayDetails.lagnaEndingTimes.vrishabha}</span>
-                        <span className="bg-white p-0.5 px-1 rounded border">ಮಿ: {dayDetails.lagnaEndingTimes.mithuna}</span>
                       </div>
                     </div>
                   </div>
