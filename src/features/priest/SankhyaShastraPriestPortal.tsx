@@ -1293,15 +1293,15 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
             <div className="divide-y divide-amber-200 font-semibold">
               <div className="py-2 flex justify-between">
                 <span className="text-slate-800">ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಪ್ರಶ್ನಾವಳಿ ದರ್ಶನ</span>
-                <span className="font-mono font-bold text-amber-900">🪙 ೫೦೦ ನಾಣ್ಯಗಳು (500 Coins)</span>
+                <span className="font-mono font-bold text-amber-900">🪙 ೨೦೦ ನಾಣ್ಯಗಳು (200 Coins)</span>
               </div>
               <div className="py-2 flex justify-between">
                 <span className="text-slate-800">ಶುಭ ನಾಮ ಸಂಖ್ಯಾ ಸೂಚನೆ</span>
-                <span className="font-mono font-bold text-amber-900">🪙 ೫೦೦ ನಾಣ್ಯಗಳು (500 Coins)</span>
+                <span className="font-mono font-bold text-amber-900">🪙 ೨೦೦ ನಾಣ್ಯಗಳು (200 Coins)</span>
               </div>
               <div className="py-2 flex justify-between">
                 <span className="text-slate-800">ಮೊಬೈಲ್ & ವಾಹನ ಸಂಖ್ಯಾ ಸೂಚನೆ</span>
-                <span className="font-mono font-bold text-amber-900">🪙 ೫೦೦ ನಾಣ್ಯಗಳು (500 Coins)</span>
+                <span className="font-mono font-bold text-amber-900">🪙 ೨೦೦ ನಾಣ್ಯಗಳು (200 Coins)</span>
               </div>
             </div>
           </div>

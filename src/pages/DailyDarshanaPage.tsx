@@ -37,6 +37,7 @@ import { DailyKarmaNavigator } from "../components/darshana/DailyKarmaNavigator"
 import { DailyBlessingShareCard } from "../components/darshana/DailyBlessingShareCard";
 import { SanctumPrayerBox } from "../components/darshana/SanctumPrayerBox";
 import { playTempleBellChime } from "../features/seva/priestAudioNarrator";
+import { synthesizeAndPlayClonedVoice, stopClonedAudio } from "../features/audio/aiVoiceCloneEngine";
 
 // Comprehensive 5-Language Dictionary for DailyDarshanaPage
 const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
@@ -1531,6 +1532,38 @@ export default function DailyDarshanaPage(): JSX.Element {
     }
   };
 
+  const [isPlayingBenedictionVoice, setIsPlayingBenedictionVoice] = useState(false);
+  const [isPlayingMantraVoice, setIsPlayingMantraVoice] = useState(false);
+
+  const toggleBenedictionVoice = async () => {
+    if (isPlayingBenedictionVoice) {
+      stopClonedAudio();
+      setIsPlayingBenedictionVoice(false);
+      return;
+    }
+    stopClonedAudio();
+    setIsPlayingMantraVoice(false);
+    setIsPlayingBenedictionVoice(true);
+    await synthesizeAndPlayClonedVoice(benediction, lang, activeVoiceId, () => {
+      setIsPlayingBenedictionVoice(false);
+    });
+  };
+
+  const toggleMantraVoice = async () => {
+    const mantraText = deity.mantra[lang] || deity.mantra.kn;
+    if (isPlayingMantraVoice) {
+      stopClonedAudio();
+      setIsPlayingMantraVoice(false);
+      return;
+    }
+    stopClonedAudio();
+    setIsPlayingBenedictionVoice(false);
+    setIsPlayingMantraVoice(true);
+    await synthesizeAndPlayClonedVoice(mantraText, lang, activeVoiceId, () => {
+      setIsPlayingMantraVoice(false);
+    });
+  };
+
   const requestedCalendarDays = useMemo(() => {
     const raw = Number((decoded as any)?.dy || (decoded as any)?.days || (decoded as any)?.duration || params.get("days") || 90);
     return Number.isFinite(raw) && raw > 0 ? raw : 90;
@@ -2108,22 +2141,45 @@ export default function DailyDarshanaPage(): JSX.Element {
               <div style={{ fontSize: 16, fontWeight: 900, color: "#FFFFFF", marginBottom: 12, lineHeight: 1.5 }}>
                 {deity.mantra[lang] || deity.mantra.kn}
               </div>
-              <button
-                onClick={playTempleBell}
-                style={{
-                  background: isPlayingAudio ? "#10B981" : "linear-gradient(135deg, #D97706, #B45309)",
-                  color: "#FFFFFF",
-                  border: "none",
-                  padding: "10px 20px",
-                  borderRadius: 20,
-                  fontSize: 12,
-                  fontWeight: 800,
-                  cursor: "pointer",
-                  boxShadow: "0 4px 14px rgba(217, 119, 6, 0.4)"
-                }}
-              >
-                🔔 {isPlayingAudio ? dict.bellPlaying : dict.playBell}
-              </button>
+              <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  onClick={playTempleBell}
+                  style={{
+                    background: isPlayingAudio ? "#10B981" : "linear-gradient(135deg, #D97706, #B45309)",
+                    color: "#FFFFFF",
+                    border: "none",
+                    padding: "9px 18px",
+                    borderRadius: 20,
+                    fontSize: 12,
+                    fontWeight: 800,
+                    cursor: "pointer",
+                    boxShadow: "0 4px 14px rgba(217, 119, 6, 0.4)"
+                  }}
+                >
+                  🔔 {isPlayingAudio ? dict.bellPlaying : dict.playBell}
+                </button>
+                <button
+                  type="button"
+                  onClick={toggleMantraVoice}
+                  style={{
+                    background: isPlayingMantraVoice ? "#DC2626" : "linear-gradient(135deg, #F59E0B, #D97706)",
+                    color: "#1E1B4B",
+                    border: "1px solid #FCD34D",
+                    padding: "9px 18px",
+                    borderRadius: 20,
+                    fontSize: 12,
+                    fontWeight: 900,
+                    cursor: "pointer",
+                    boxShadow: "0 4px 14px rgba(245, 158, 11, 0.4)",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6
+                  }}
+                >
+                  {isPlayingMantraVoice ? "⏹️ ಮಂತ್ರ ನಿಲ್ಲಿಸಿ (Stop)" : "🔊 ಮಂತ್ರ ಶ್ರವಣ (Listen Mantra)"}
+                </button>
+              </div>
             </div>
 
             {/* Chief Priest Benediction */}
@@ -2134,16 +2190,36 @@ export default function DailyDarshanaPage(): JSX.Element {
               padding: 16,
               marginBottom: 16
             }}>
-              <div style={{ fontSize: 13, fontWeight: 800, color: "#FDE68A", marginBottom: 6 }}>
-                📜 {lang === "kn"
+              <div style={{ fontSize: 13, fontWeight: 800, color: "#FDE68A", marginBottom: 8, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+                <span>📜 {lang === "kn"
                   ? `ಪ್ರಧಾನ ಅರ್ಚಕ ${localizedPandit} ಅವರ ಆಶೀರ್ವಚನ ಹಾಗೂ ಆಶೀರ್ವಾದ`
                   : lang === "hi"
                   ? `मुख्य अर्चक ${localizedPandit} का पावन आशीर्वाद`
                   : lang === "te"
-                  ? `ಪ್ರಧಾನ ಅರ್ಚకులు ${localizedPandit} గారి ఆశీర్వచనం మరియు ఆశీర్వాదం`
+                  ? `ప్రధాన అర్చకులు ${localizedPandit} గారి ఆశీర్వచనం మరియు ಆಶೀರ್వాదం`
                   : lang === "ta"
                   ? `முதன்மை அர்ச்சகர் ${localizedPandit} அவர்களின் புனித ஆசி`
-                  : `Chief Priest ${localizedPandit}'s Sacred Benediction & Blessings`}
+                  : `Chief Priest ${localizedPandit}'s Sacred Benediction & Blessings`}</span>
+                <button
+                  type="button"
+                  onClick={toggleBenedictionVoice}
+                  style={{
+                    background: isPlayingBenedictionVoice ? "#DC2626" : "linear-gradient(135deg, #D97706, #B45309)",
+                    color: "#FFFFFF",
+                    border: "1px solid #FCD34D",
+                    padding: "6px 14px",
+                    borderRadius: 12,
+                    fontSize: 11,
+                    fontWeight: 800,
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 5,
+                    boxShadow: "0 2px 8px rgba(217, 119, 6, 0.3)"
+                  }}
+                >
+                  {isPlayingBenedictionVoice ? "⏹️ ನಿಲ್ಲಿಸಿ (Stop)" : "🔊 ಧ್ವನಿಯಲ್ಲಿ ಆಲಿಸಿ (Listen in Cloned Voice)"}
+                </button>
               </div>
               <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: "#E5E7EB", fontStyle: "italic" }}>
                 "{benediction}"
