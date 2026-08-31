@@ -12,6 +12,7 @@ export interface DailyPoojaSankalpaModalProps {
   nakshatraName?: string;
   lang?: SevaLang;
   priestName?: string;
+  voiceId?: string;
   onPlayBell?: () => void;
 }
 
@@ -24,6 +25,7 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
   nakshatraName = "ಮೂಲ",
   lang = "kn",
   priestName = "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
+  voiceId,
   onPlayBell
 }) => {
   const [mode, setMode] = useState<"priest_guided" | "self_guided">("priest_guided");
@@ -84,7 +86,7 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
     const stepKey = `step_${targetStep}` as "step_1" | "step_2" | "step_3" | "step_4";
     const stopFn = speakPriestNarration(fullSpeech, lang, () => {
       setIsAudioPlaying(false);
-    }, stepKey);
+    }, stepKey, voiceId);
     stopSpeechRef.current = stopFn;
   };
 

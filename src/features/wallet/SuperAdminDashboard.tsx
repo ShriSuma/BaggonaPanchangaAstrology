@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useWalletStore } from "./walletStore";
 import { useAuthStore } from "../auth/authStore";
 import { useAppStore } from "../../stores/appStore";
@@ -56,8 +56,17 @@ import {
   type ParabhavaDayRecord,
   type ParabhavaFestivalItem
 } from "../../core/ParabhavaBookEngine";
+import {
+  getAllVoiceProfiles,
+  saveVoiceProfile,
+  deleteVoiceProfile,
+  saveClipToVoiceProfile,
+  removeClipFromVoiceProfile,
+  type PriestVoiceProfile,
+  type PriestAudioKey
+} from "../audio/priestVoiceDatabase";
 
-export type AdminTab = "wallets" | "kundlis" | "ashirvada" | "audit" | "mindmap" | "panchanga_engine";
+export type AdminTab = "wallets" | "kundlis" | "ashirvada" | "audit" | "mindmap" | "panchanga_engine" | "voice_db";
 
 /* -------------------------------------------------------------------------- */
 /* 360° COMPLETE CIRCULAR PROGRESS RING COMPONENT (Visual Telemetry Gauge)    */
@@ -384,6 +393,18 @@ export const SuperAdminDashboard: React.FC = () => {
   const [festivalSearchQuery, setFestivalSearchQuery] = useState("");
   const [selectedFestivalId, setSelectedFestivalId] = useState("yugadi");
   const [isListeningMic, setIsListeningMic] = useState(false);
+
+  // Priest Voice Database State (Super Admin Control)
+  const [adminVoiceProfiles, setAdminVoiceProfiles] = useState<PriestVoiceProfile[]>(() => getAllVoiceProfiles());
+  const [activeAdminVoiceId, setActiveAdminVoiceId] = useState<string>("voice_shreeram");
+  const [isVoiceRecordingLive, setIsVoiceRecordingLive] = useState<PriestAudioKey | null>(null);
+  const [activeAudioPlayingKey, setActiveAudioPlayingKey] = useState<PriestAudioKey | null>(null);
+  const [newAdminVoiceName, setNewAdminVoiceName] = useState<string>("");
+  const [newAdminVoiceTitle, setNewAdminVoiceTitle] = useState<string>("");
+  const [isCreatingAdminVoice, setIsCreatingAdminVoice] = useState<boolean>(false);
+  const adminMediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const adminAudioChunksRef = useRef<Blob[]>([]);
+  const adminAudioPlayerRef = useRef<HTMLAudioElement | null>(null);
 
   // Priest Profile Real-Time Subscription
   useEffect(() => {
@@ -1406,6 +1427,22 @@ export const SuperAdminDashboard: React.FC = () => {
             >
               {panchangaEngineConfig.engineMode === "baggona_book" ? "Print Book" : "Drik-Math"}
             </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab("voice_db");
+              setAdminVoiceProfiles(getAllVoiceProfiles());
+            }}
+            className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
+              activeTab === "voice_db"
+                ? "bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 text-slate-950 shadow-md scale-100"
+                : "text-amber-950 hover:bg-amber-100"
+            }`}
+          >
+            <span>🎙️</span>
+            <span>ಅರ್ಚಕರ ಧ್ವನಿ ಡೇಟಾಬೇಸ್ & ವಾಯ್ಸ್ ವಾಲ್ಟ್</span>
           </button>
         </div>
       </div>
@@ -2866,6 +2903,315 @@ export const SuperAdminDashboard: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* 8. TAB CONTENT: PRIEST VOICE DATABASE & VOICE CLONE VAULT (SuperAdmin Only) */}
+      {activeTab === "voice_db" && (() => {
+        const activeProfile = adminVoiceProfiles.find((p) => p.id === activeAdminVoiceId) || adminVoiceProfiles[0];
+        const stepList: { key: PriestAudioKey; titleKn: string; mantra: string }[] = [
+          { key: "step_1", titleKn: "ಹಂತ ೧: ಘಂಟಾನಾದ & ದೇವತಾಹ್ವಾನ ಮಂತ್ರ", mantra: "ಓಂ ಆಗಮಾರ್ಥಂ ತು ದೇವಾನಾಂ ಗಮನಾರ್ಥಂ ತು ರಾಕ್ಷಸಾಮ್..." },
+          { key: "step_2", titleKn: "ಹಂತ ೨: ದೀಪಜ್ಯೋತಿ & ಮಂಗಳಾಕ್ಷತೆ ಸಮರ್ಪಣೆ", mantra: "ದೀಪಜ್ಯೋತಿಃ ಪರಬ್ರಹ್ಮ ದೀಪಜ್ಯೋತಿರ್ಜನಾರ್ದನಃ..." },
+          { key: "step_3", titleKn: "ಹಂತ ೩: ದೈನಂದಿನ ಮಹಾಸಂಕಲ್ಪ", mantra: "ಅದ್ಯ ಪೂರ್ವೋಕ್ತ ಏವಂ ಗುಣ ವಿಶೇಷಣ..." },
+          { key: "step_4", titleKn: "ಹಂತ ೪: ಮುಖ್ಯ ಅರ್ಚಕರ ಆಶೀರ್ವಚನ", mantra: "ಸರ್ವೇ ಭವಂತು ಸುಖಿನಃ ಸರ್ವೇ ಸಂತು ನಿರಾಮಯಾಃ..." },
+          { key: "deity_mantra", titleKn: "ದೈನಂದಿನ ದೇವತಾ ಜಪ ಮಂತ್ರ", mantra: "ಓಂ ನಮಃ ಶಿವಾಯ / ॐ ಶ್ರಾಂ ಶ್ರೀಂ ಶ್ರೌಂ ಸಃ ಚಂದ್ರಮಸೇ ನಮಃ" }
+        ];
+
+        const handleFileUpload = async (key: PriestAudioKey, e: React.ChangeEvent<HTMLInputElement>) => {
+          const file = e.target.files?.[0];
+          if (!file) return;
+          try {
+            await saveClipToVoiceProfile(activeAdminVoiceId, key, file);
+            setAdminVoiceProfiles(getAllVoiceProfiles());
+            setFeedback({ type: "success", text: `✓ ${file.name} ಆಡಿಯೋ ಯಶಸ್ವಿಯಾಗಿ ಉಳಿಸಲಾಗಿದೆ.` });
+          } catch {
+            setFeedback({ type: "error", text: "ಆಡಿಯೋ ಉಳಿಸಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ." });
+          }
+        };
+
+        const handleStartLiveRecord = async (key: PriestAudioKey) => {
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            adminAudioChunksRef.current = [];
+            const recorder = new MediaRecorder(stream);
+            adminMediaRecorderRef.current = recorder;
+            recorder.ondataavailable = (e) => {
+              if (e.data.size > 0) adminAudioChunksRef.current.push(e.data);
+            };
+            recorder.onstop = async () => {
+              const audioBlob = new Blob(adminAudioChunksRef.current, { type: "audio/webm" });
+              const file = new File([audioBlob], `${key}_live.webm`, { type: "audio/webm" });
+              await saveClipToVoiceProfile(activeAdminVoiceId, key, file);
+              setAdminVoiceProfiles(getAllVoiceProfiles());
+              setIsVoiceRecordingLive(null);
+              stream.getTracks().forEach((t) => t.stop());
+              setFeedback({ type: "success", text: "✓ ಲೈವ್ ರೆಕಾರ್ಡಿಂಗ್ ಯಶಸ್ವಿಯಾಗಿ ಉಳಿಸಲಾಗಿದೆ." });
+            };
+            recorder.start();
+            setIsVoiceRecordingLive(key);
+          } catch {
+            alert("Microphone permission is required.");
+          }
+        };
+
+        const handleStopLiveRecord = () => {
+          if (adminMediaRecorderRef.current && adminMediaRecorderRef.current.state === "recording") {
+            adminMediaRecorderRef.current.stop();
+          }
+        };
+
+        const handleTogglePlay = (key: PriestAudioKey, dataUrl: string) => {
+          if (activeAudioPlayingKey === key) {
+            if (adminAudioPlayerRef.current) {
+              adminAudioPlayerRef.current.pause();
+              adminAudioPlayerRef.current = null;
+            }
+            setActiveAudioPlayingKey(null);
+            return;
+          }
+          if (adminAudioPlayerRef.current) {
+            adminAudioPlayerRef.current.pause();
+          }
+          const audio = new Audio(dataUrl);
+          adminAudioPlayerRef.current = audio;
+          setActiveAudioPlayingKey(key);
+          audio.onended = () => {
+            setActiveAudioPlayingKey(null);
+            adminAudioPlayerRef.current = null;
+          };
+          audio.onerror = () => {
+            setActiveAudioPlayingKey(null);
+            adminAudioPlayerRef.current = null;
+          };
+          audio.play().catch(() => setActiveAudioPlayingKey(null));
+        };
+
+        const handleDeleteClip = (key: PriestAudioKey) => {
+          removeClipFromVoiceProfile(activeAdminVoiceId, key);
+          setAdminVoiceProfiles(getAllVoiceProfiles());
+        };
+
+        const handleCreateVoice = () => {
+          if (!newAdminVoiceName.trim()) return;
+          const newId = `voice_${Date.now()}_${newAdminVoiceName.toLowerCase().replace(/[^a-z0-9]/g, "_")}`;
+          const newProf: PriestVoiceProfile = {
+            id: newId,
+            name: newAdminVoiceName.trim(),
+            titleKn: newAdminVoiceTitle.trim() || "ದೈವಜ್ಞರು & ಅರ್ಚಕರು",
+            titleEn: "Priest & Astrologer",
+            voicePitch: 0.74,
+            voiceRate: 0.86,
+            preferredVoiceLang: "kn-IN",
+            audioClips: {},
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          };
+          saveVoiceProfile(newProf);
+          setAdminVoiceProfiles(getAllVoiceProfiles());
+          setActiveAdminVoiceId(newId);
+          setIsCreatingAdminVoice(false);
+          setNewAdminVoiceName("");
+          setNewAdminVoiceTitle("");
+          setFeedback({ type: "success", text: `✓ ಹೊಸ ಧ್ವನಿ ಪ್ರೊಫೈಲ್ (${newProf.name}) ರಚಿಸಲಾಗಿದೆ.` });
+        };
+
+        return (
+          <div className="space-y-6">
+            {/* Header Card */}
+            <div className="bg-gradient-to-r from-[#2A1205] to-[#1F0D04] border-2 border-amber-400 rounded-3xl p-5 sm:p-6 text-amber-100 shadow-xl space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <span className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-400 flex items-center justify-center text-2xl shadow-xs">
+                    🎙️
+                  </span>
+                  <div>
+                    <h3 className="text-base sm:text-lg font-black text-[#FDE68A]">
+                      ಅರ್ಚಕರ ಧ್ವನಿ ಡೇಟಾಬೇಸ್ & ವಾಯ್ಸ್ ಕ್ಲೋನ್ ವಾಲ್ಟ್ (Priest Voice Repository)
+                    </h3>
+                    <p className="text-xs text-amber-300 font-medium">
+                      Manage authentic Vedic chanting recordings & AI male voice synthesis for 30/90/180/365-day devotee calendars.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsCreatingAdminVoice(!isCreatingAdminVoice)}
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 text-slate-950 font-black text-xs shadow-md hover:scale-105 active:scale-95 transition-all"
+                >
+                  {isCreatingAdminVoice ? "ರದ್ದುಮಾಡಿ" : "+ ಹೊಸ ಧ್ವನಿ ಪ್ರೊಫೈಲ್ ಸೇರಿಸಿ"}
+                </button>
+              </div>
+
+              {/* Voice Cloning Guidance Box */}
+              <div className="p-3.5 bg-black/40 rounded-2xl border border-amber-500/30 text-xs leading-relaxed text-amber-200 space-y-1">
+                <div className="font-bold text-[#FDE68A] flex items-center gap-1.5">
+                  <span>ℹ️</span>
+                  <span>ಧ್ವನಿ ರೆಕಾರ್ಡಿಂಗ್ & ಕ್ಲೋನಿಂಗ್ ಮಾರ್ಗದರ್ಶಿ (How Voice Cloning & Playback Works):</span>
+                </div>
+                <div className="pl-4 border-l-2 border-amber-400 text-[11px] text-amber-100 space-y-1">
+                  <p>• <strong>ಅಗತ್ಯವಿರುವ ಆಡಿಯೋ:</strong> ಪ್ರತಿ ಮಂತ್ರಕ್ಕೆ ಕೇವಲ ೧೫ ರಿಂದ ೪೫ ಸೆಕೆಂಡುಗಳ ಸ್ಪಷ್ಟ ರೆಕಾರ್ಡಿಂಗ್ (ವಾಯ್ಸ್ ಕ್ಲೋನಿಂಗ್‌ಗೆ ಕನಿಷ್ಠ ೩೦-೬೦ ಸೆಕೆಂಡು ಸಾಕು).</p>
+                  <p>• <strong>ಉಪಯೋಗ:</strong> ಸೇವಾ ಪತ್ರ / QR ಕೋಡ್ ಜನರೇಟ್ ಮಾಡುವಾಗ ನೀವು ಆಯ್ಕೆ ಮಾಡಿದ ಧ್ವನಿಯೇ ಭಕ್ತರ ಮೊಬೈಲ್‌ನಲ್ಲಿ ದೈನಂದಿನ ಪೂಜೆ ಸಮಯದಲ್ಲಿ ಪ್ಲೇ ಆಗುತ್ತದೆ.</p>
+                  <p>• <strong>ಆಡಿಯೋ ಫಾರ್ಮ್ಯಾಟ್‌ಗಳು:</strong> .mp3, .wav, .m4a ಅಥವಾ ನೇರವಾಗಿ ಕೆಳಗಿನ 🎙️ ಲೈವ್ ರೆಕಾರ್ಡ್ ಬಟನ್ ಬಳಸಿ ಮೊಬೈಲ್/ಲ್ಯಾಪ್‌ಟಾಪ್‌ನಿಂದಲೇ ರೆಕಾರ್ಡ್ ಮಾಡಬಹುದು.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Profile Creator Form */}
+            {isCreatingAdminVoice && (
+              <div className="bg-[#FFFDF7] border-2 border-amber-400 rounded-3xl p-5 shadow-lg space-y-3 animate-in fade-in">
+                <h4 className="text-sm font-black text-amber-950 flex items-center gap-1.5">
+                  <span>✨</span>
+                  <span>ಹೊಸ ಅರ್ಚಕರ ಧ್ವನಿ ಪ್ರೊಫೈಲ್ ರಚನೆ (Create New Voice Profile)</span>
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <input
+                    type="text"
+                    value={newAdminVoiceName}
+                    onChange={(e) => setNewAdminVoiceName(e.target.value)}
+                    placeholder="ಅರ್ಚಕರ ಹೆಸರು (e.g. ಶ್ರೀಸುಮ, ಗೋಕರ್ಣ ವೇದ ಶಾಸ್ತ್ರಿಗಳು)"
+                    className="px-3 py-2 text-xs border-2 border-amber-300 rounded-xl font-bold bg-white text-slate-900 focus:outline-none focus:border-amber-500"
+                  />
+                  <input
+                    type="text"
+                    value={newAdminVoiceTitle}
+                    onChange={(e) => setNewAdminVoiceTitle(e.target.value)}
+                    placeholder="ಹುದ್ದೆ / ಬಿರುದು (e.g. ಪ್ರಧಾನ ವೇದ ವಿದ್ವಾನ್)"
+                    className="px-3 py-2 text-xs border-2 border-amber-300 rounded-xl font-bold bg-white text-slate-900 focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleCreateVoice}
+                  className="px-6 py-2.5 bg-gradient-to-r from-amber-600 to-amber-500 text-slate-950 font-black text-xs rounded-xl shadow-md"
+                >
+                  ✓ ಪ್ರೊಫೈಲ್ ಉಳಿಸಿ & ಆಡಿಯೋ ಸೇರಿಸಿ
+                </button>
+              </div>
+            )}
+
+            {/* Voice Profile Selector Tabs */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-black text-amber-950">ಧ್ವನಿ ಪ್ರೊಫೈಲ್‌ಗಳು:</span>
+              {adminVoiceProfiles.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => setActiveAdminVoiceId(p.id)}
+                  className={`px-4 py-2 rounded-xl text-xs font-black border transition-all ${
+                    activeAdminVoiceId === p.id
+                      ? "bg-amber-800 text-white border-amber-900 shadow-sm scale-105"
+                      : "bg-[#FFFDF7] text-amber-950 border-amber-300 hover:bg-amber-100"
+                  }`}
+                >
+                  {p.name} {p.isDefault ? "★" : ""}
+                </button>
+              ))}
+            </div>
+
+            {/* Step-by-Step Audio Clips List for Active Profile */}
+            <div className="bg-[#1C0A00] border-2 border-amber-400 rounded-3xl p-5 sm:p-6 text-amber-100 shadow-xl space-y-4">
+              <div className="border-b border-amber-500/40 pb-3">
+                <h4 className="text-sm sm:text-base font-black text-[#FDE68A]">
+                  {activeProfile?.name} - ಧ್ವನಿ ರೆಕಾರ್ಡಿಂಗ್‌ಗಳ ಪಟ್ಟಿ
+                </h4>
+                <p className="text-xs text-amber-300 font-medium">
+                  {activeProfile?.titleKn || activeProfile?.titleEn} · ಈ ಪ್ರೊಫೈಲ್‌ನ ಆಡಿಯೋ ಕ್ಲಿಪ್‌ಗಳು ಕೆಳಗಿವೆ:
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                {stepList.map(({ key, titleKn, mantra }) => {
+                  const clip = activeProfile?.audioClips?.[key];
+                  const isPlaying = activeAudioPlayingKey === key;
+                  const isRec = isVoiceRecordingLive === key;
+
+                  return (
+                    <div
+                      key={key}
+                      className="p-4 rounded-2xl bg-gradient-to-r from-[#2A1205] to-[#1F0D04] border border-amber-500/30 space-y-2.5"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                          <h5 className="text-xs font-black text-[#FDE68A]">{titleKn}</h5>
+                          <p className="text-[10px] text-amber-300 font-mono italic">"{mantra}"</p>
+                        </div>
+
+                        {clip ? (
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-950 border border-emerald-400 text-emerald-300">
+                            ✓ ಆಡಿಯೋ ಸಿದ್ಧವಾಗಿದೆ ({clip.fileName || "Custom Voice"})
+                          </span>
+                        ) : (
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-950/80 border border-amber-600/50 text-amber-400">
+                            AI Male Priest Voice (Fallback)
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Action buttons */}
+                      <div className="flex flex-wrap items-center gap-2 pt-1">
+                        <label className="cursor-pointer px-3 py-1.5 rounded-xl bg-amber-800/80 hover:bg-amber-700 text-white text-[11px] font-bold border border-amber-400 shadow-xs transition-all flex items-center gap-1.5">
+                          <span>📁</span>
+                          <span>ಫೈಲ್ ಅಪ್‌ಲೋಡ್ (.mp3, .wav)</span>
+                          <input
+                            type="file"
+                            accept="audio/*"
+                            onChange={(e) => handleFileUpload(key, e)}
+                            className="hidden"
+                          />
+                        </label>
+
+                        {isRec ? (
+                          <button
+                            type="button"
+                            onClick={handleStopLiveRecord}
+                            className="px-3 py-1.5 rounded-xl bg-red-600 text-white text-[11px] font-black animate-pulse border border-red-400 shadow-xs flex items-center gap-1.5"
+                          >
+                            <span>⏹️</span>
+                            <span>ರೆಕಾರ್ಡಿಂಗ್ ಮುಕ್ತಾಯಗೊಳಿಸಿ</span>
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleStartLiveRecord(key)}
+                            className="px-3 py-1.5 rounded-xl bg-amber-900/60 hover:bg-amber-800 text-amber-200 text-[11px] font-bold border border-amber-500/50 shadow-xs transition-all flex items-center gap-1.5"
+                          >
+                            <span>🎙️</span>
+                            <span>ಲೈವ್ ರೆಕಾರ್ಡ್</span>
+                          </button>
+                        )}
+
+                        {clip && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => handleTogglePlay(key, clip.dataUrl)}
+                              className={`px-3 py-1.5 rounded-xl text-[11px] font-black border shadow-xs transition-all flex items-center gap-1.5 ${
+                                isPlaying
+                                  ? "bg-emerald-600 text-white border-emerald-400"
+                                  : "bg-emerald-900/60 hover:bg-emerald-800 text-emerald-200 border-emerald-500/50"
+                              }`}
+                            >
+                              <span>{isPlaying ? "⏸️" : "▶️"}</span>
+                              <span>{isPlaying ? "ವಿರಾಮ" : "ಕೇಳಿ (Play)"}</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteClip(key)}
+                              className="px-2.5 py-1.5 rounded-xl bg-red-950/60 hover:bg-red-900 text-red-300 text-[11px] font-bold border border-red-500/40 transition-all"
+                              title="Delete"
+                            >
+                              🗑️
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* 9. DIRECT COIN ADJUSTMENT MODAL (Cream & Royal Gold Palette) */}
       {selectedPriest && (

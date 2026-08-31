@@ -9,7 +9,7 @@
  */
 
 import type { SevaLang } from "./sevaLocale";
-import { getPriestAudioRecording, type PriestAudioKey } from "../audio/priestVoiceManager";
+import { getVoiceProfileById, type PriestAudioKey } from "../audio/priestVoiceDatabase";
 
 export interface PriestNarratorParams {
   devoteeName: string;
@@ -74,7 +74,7 @@ export function getPriestStepSpeechText(params: PriestNarratorParams): { sanskri
           : code === "hi"
           ? `मुख्य अर्चक ${priestName} जी की ओर से दिव्य आशीर्वाद: श्री गोकर्ण महाबलेश्वर स्वामी की कृपा से आपको एवं आपके परिवार को उत्तम स्वास्थ्य, सुख-शांति एवं सर्व कार्य सिद्धि प्राप्त हो। ॐ शान्तिः शान्तिः शान्तिः।`
           : code === "te"
-          ? `ముఖ్య అర్చకులు ${priestName} గారి దివ్య ఆశీర్వచనం: శ్రీ గోకర్ణ మహాబలేశ్వర స్వామి అనుగ్రహంతో మీకు మరియు మీ కుటుంబానికి ఆయురారోగ్యాలు, సుఖశాంతులు మరియు సర్వ కార్య సిద్ధి కలుగుగాక. ఓం శాంతిః శాంతిః శాంతిః.`
+          ? `ముఖ్య అర్చకులు ${priestName} గారి దివ్య ఆశీర్వచనం: శ్రీ గోకర్ణ మహాబలేశ్వర స్వామి అనుగ్రహంతో మీకు మరియు మీ కుటుంబానికి ఆయురారోగ్యాలు, సుఖశాంతులు మరియు సర్వ కార్య సిద్ధి కలుగుగాక. ಓಂ ಶಾಂತಿಃ ಶಾಂತಿಃ ಶಾಂತಿಃ.`
           : code === "ta"
           ? `தலைமை அர்ச்சகர் ${priestName} அவர்களின் தெய்வீக ஆசீர்வாதம்: ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் அருளால் உங்களுக்கும் உங்கள் குடும்பத்தினருக்கும் நீண்ட ஆயுள், நல்வாழ்வு, அமைதி மற்றும் சகல காரிய வெற்றியும் உண்டாகட்டும். ஓம் சாந்தி சாந்தி சாந்தி.`
           : `Divine Benediction by Chief Priest ${priestName}: May Lord Mahabaleshwara bless ${devoteeName} and your entire family with peace, longevity, prosperity, and success.`
@@ -124,22 +124,26 @@ export function playTempleBellChime(): void {
 let activeAudioElement: HTMLAudioElement | null = null;
 
 /**
- * Recites text using custom recorded audio if available, or Male Priest TTS voice with deep Vedic resonance
+ * Recites text using custom recorded audio if available from the selected Priest Voice Profile,
+ * or Male Priest TTS voice with deep Vedic resonance tuned to the profile's pitch and rate
  */
 export function speakPriestNarration(
   text: string,
   lang: SevaLang = "kn",
   onEnd?: () => void,
-  stepKey?: PriestAudioKey
+  stepKey?: PriestAudioKey,
+  voiceId?: string
 ): () => void {
   if (typeof window === "undefined") {
     if (onEnd) setTimeout(onEnd, 2000);
     return () => {};
   }
 
-  // 1. Check if user uploaded a custom priest voice recording for this step
-  if (stepKey) {
-    const customAudio = getPriestAudioRecording(stepKey);
+  const profile = getVoiceProfileById(voiceId);
+
+  // 1. Check if user uploaded a custom priest voice recording for this step in this profile
+  if (stepKey && profile?.audioClips?.[stepKey]) {
+    const customAudio = profile.audioClips[stepKey];
     if (customAudio && customAudio.dataUrl) {
       try {
         stopPriestAudio();
@@ -152,10 +156,10 @@ export function speakPriestNarration(
         audio.onerror = () => {
           activeAudioElement = null;
           // fallback to TTS below
-          fallbackMaleTTS(text, lang, onEnd);
+          fallbackMaleTTS(text, lang, onEnd, profile.voicePitch, profile.voiceRate);
         };
         audio.play().catch(() => {
-          fallbackMaleTTS(text, lang, onEnd);
+          fallbackMaleTTS(text, lang, onEnd, profile.voicePitch, profile.voiceRate);
         });
         return () => {
           if (activeAudioElement) {
@@ -169,13 +173,15 @@ export function speakPriestNarration(
     }
   }
 
-  return fallbackMaleTTS(text, lang, onEnd);
+  return fallbackMaleTTS(text, lang, onEnd, profile?.voicePitch || 0.74, profile?.voiceRate || 0.86);
 }
 
 function fallbackMaleTTS(
   text: string,
   lang: SevaLang = "kn",
-  onEnd?: () => void
+  onEnd?: () => void,
+  pitch = 0.74,
+  rate = 0.86
 ): () => void {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) {
     if (onEnd) setTimeout(onEnd, 2000);
@@ -192,9 +198,9 @@ function fallbackMaleTTS(
   else if (lang === "ta") utterance.lang = "ta-IN";
   else utterance.lang = "en-IN";
 
-  // Priest resonant chanting pitch & solemn masculine pace
-  utterance.pitch = 0.74; // Deep masculine priest pitch
-  utterance.rate = 0.86;  // Solemn, authoritative Vedic recitation pace
+  // Priest resonant chanting pitch & solemn masculine pace from profile
+  utterance.pitch = pitch; // Deep masculine priest pitch
+  utterance.rate = rate;  // Solemn, authoritative Vedic recitation pace
   utterance.volume = 1.0;
 
   // Filter explicitly for Indian Male voices

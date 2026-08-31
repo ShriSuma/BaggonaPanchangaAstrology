@@ -52,6 +52,8 @@ export interface DevoteeTokenPayload {
   sd?: string;
   overrideCalendarPhone?: boolean;
   ocp?: boolean | number;
+  voiceId?: string;
+  vid?: string;
 }
 
 const TOKEN_PREFIX = "bgn_v1_";
@@ -131,6 +133,7 @@ export function encodeDevoteeToken(payload: DevoteeTokenPayload): string {
     const rawPhone = payload.phone ?? payload.ph ?? "";
     const rawStartDate = payload.startDate ?? payload.sd ?? "";
     const rawOverrideContact = Boolean(payload.overrideCalendarPhone ?? payload.ocp);
+    const rawVoiceId = payload.voiceId ?? payload.vid ?? "";
 
     const rawDays = payload.days !== undefined ? payload.days : payload.dy !== undefined ? payload.dy : 90;
 
@@ -155,7 +158,8 @@ export function encodeDevoteeToken(payload: DevoteeTokenPayload): string {
       ...(rawTob ? { tob: rawTob } : {}),
       ...(rawPhone ? { ph: rawPhone } : {}),
       ...(rawStartDate ? { sd: rawStartDate } : {}),
-      ...(rawOverrideContact ? { ocp: 1 } : {})
+      ...(rawOverrideContact ? { ocp: 1 } : {}),
+      ...(rawVoiceId ? { vid: rawVoiceId } : {})
     };
 
     const jsonStr = JSON.stringify(compactObj);
@@ -288,6 +292,7 @@ export function decodeDevoteeToken(token: string): (DevoteeTokenPayload & {
     const days = typeof parsed.dy === "number" && parsed.dy > 0 ? parsed.dy : (typeof parsed.days === "number" && parsed.days > 0 ? parsed.days : 90);
     const phone = parsed.ph || parsed.phone || undefined;
     const overrideCalendarPhone = Boolean(parsed.ocp || parsed.overrideCalendarPhone);
+    const voiceId = parsed.vid || parsed.voiceId || undefined;
 
     return {
       name,
@@ -329,7 +334,9 @@ export function decodeDevoteeToken(token: string): (DevoteeTokenPayload & {
       phone,
       ph: phone,
       overrideCalendarPhone,
-      ocp: overrideCalendarPhone
+      ocp: overrideCalendarPhone,
+      voiceId,
+      vid: voiceId
     };
   } catch (err) {
     console.warn("Failed to decode token:", err);

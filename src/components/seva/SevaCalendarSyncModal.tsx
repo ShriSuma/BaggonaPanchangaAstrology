@@ -24,6 +24,8 @@ import { fetch90DayAiPanchanga, type DayPanchangaAiItem } from "../../features/s
 import { get90DaySpecialVratas, type SpecialVrataInfo } from "../../features/seva/specialVrataAlertEngine";
 import { useAuthStore } from "../../features/auth/authStore";
 import { recordPriestCalendarAction } from "../../features/seva/calendarVisitService";
+import { getAllVoiceProfiles, type PriestVoiceProfile } from "../../features/audio/priestVoiceDatabase";
+import { PriestVoiceUploadModal } from "../darshana/PriestVoiceUploadModal";
 
 type Props = {
   days: RhythmDay[];
@@ -57,6 +59,10 @@ export default function SevaCalendarSyncModal({
   const [customInputMode, setCustomInputMode] = useState<boolean>(false);
   const [newPriestName, setNewPriestName] = useState<string>("");
   const [priestVoiceListening, setPriestVoiceListening] = useState<boolean>(false);
+
+  const [voiceProfiles, setVoiceProfiles] = useState<PriestVoiceProfile[]>(() => getAllVoiceProfiles());
+  const [selectedVoiceId, setSelectedVoiceId] = useState<string>("voice_shreeram");
+  const [isVoiceUploadModalOpen, setIsVoiceUploadModalOpen] = useState<boolean>(false);
 
   const activePriest = useMemo(() => getPriestProfile(selectedPriestId), [selectedPriestId, priestsList]);
   const panditName = activePriest.name[lang as keyof typeof activePriest.name] || activePriest.name.en;
@@ -177,6 +183,7 @@ export default function SevaCalendarSyncModal({
       r: selectedDay?.moonRashiIndex,
       p: panditName,
       d: selectedDay?.ymd || new Date().toISOString().slice(0, 10),
+      dy: calendarSpanDays,
       l: lang,
       tm: notificationTime,
       pl: platform,
@@ -186,9 +193,10 @@ export default function SevaCalendarSyncModal({
       lg: lng,
       loc: locationName,
       dob: birthDetails.dob,
-      tob: birthDetails.tob
+      tob: birthDetails.tob,
+      voiceId: selectedVoiceId
     });
-  }, [days, personName, lang, panditName, platform, target, notificationTime, pincodeInput, lat, lng, locationName]);
+  }, [days, personName, lang, panditName, platform, target, notificationTime, pincodeInput, lat, lng, locationName, calendarSpanDays, selectedVoiceId]);
 
   const webSanctumUrl = `${origin}/daily?token=${devoteeToken}`;
 
@@ -508,21 +516,63 @@ export default function SevaCalendarSyncModal({
                 </a>
               </div>
 
-              <div className="grid grid-cols-5 gap-1.5">
-                {[30, 60, 90, 120, 180].map((span) => (
+              <div className="grid grid-cols-4 gap-1.5">
+                {[
+                  { days: 30, label: "೧ ತಿಂಗಳು (30D)" },
+                  { days: 90, label: "೩ ತಿಂಗಳು (90D)" },
+                  { days: 180, label: "೬ ತಿಂಗಳು (180D)" },
+                  { days: 365, label: "೧ ವರ್ಷ (365D)" }
+                ].map((item) => (
                   <button
-                    key={span}
+                    key={item.days}
                     type="button"
-                    onClick={() => setCalendarSpanDays(span)}
-                    className={`py-1.5 rounded-xl text-xs font-black border transition-all ${
-                      calendarSpanDays === span
+                    onClick={() => setCalendarSpanDays(item.days)}
+                    className={`py-2 rounded-xl text-[11px] font-black border transition-all ${
+                      calendarSpanDays === item.days
                         ? "bg-amber-700 text-white border-amber-800 shadow-xs"
                         : "bg-white text-amber-950 border-amber-200 hover:bg-amber-50"
                     }`}
                   >
-                    {span} ದಿನಗಳು
+                    {item.label}
                   </button>
                 ))}
+              </div>
+
+              {/* Priest Voice Profile Selector & Audio Database Trigger */}
+              <div className="pt-2 border-t border-amber-200 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-black text-amber-950 block">
+                    🎙️ ಅರ್ಚಕರ ಧ್ವನಿ ಪ್ರೊಫೈಲ್ (Voice Profile for Devotee Audio):
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setIsVoiceUploadModalOpen(true)}
+                    className="text-[10px] font-black text-amber-800 hover:text-amber-950 underline flex items-center gap-1"
+                  >
+                    <span>🎙️ ಧ್ವನಿ ಡೇಟಾಬೇಸ್ ವಾಲ್ಟ್</span>
+                  </button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={selectedVoiceId}
+                    onChange={(e) => setSelectedVoiceId(e.target.value)}
+                    className="flex-1 px-3 py-1.5 text-xs font-bold border-2 border-amber-400 rounded-xl bg-white text-slate-900 focus:outline-none focus:border-amber-600 shadow-2xs"
+                  >
+                    {voiceProfiles.map((vp) => (
+                      <option key={vp.id} value={vp.id}>
+                        {vp.name} ({vp.titleKn || vp.titleEn})
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => setIsVoiceUploadModalOpen(true)}
+                    className="px-2.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-slate-950 text-xs font-black shadow-xs whitespace-nowrap"
+                    title="Upload or record custom priest voice"
+                  >
+                    + ಧ್ವನಿ ಅಪ್‌ಲೋಡ್
+                  </button>
+                </div>
               </div>
 
               {/* Priest Selection with Voice Mic 🎙️ */}
@@ -994,6 +1044,18 @@ export default function SevaCalendarSyncModal({
           </div>
         </div>
       </div>
+
+      {/* Priest Voice Upload & Database Manager Modal */}
+      <PriestVoiceUploadModal
+        isOpen={isVoiceUploadModalOpen}
+        onClose={() => {
+          setIsVoiceUploadModalOpen(false);
+          setVoiceProfiles(getAllVoiceProfiles());
+        }}
+        lang={lang as any}
+        initialVoiceId={selectedVoiceId}
+        onSelectVoice={(vId) => setSelectedVoiceId(vId)}
+      />
     </div>
   );
 }

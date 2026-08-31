@@ -1,18 +1,22 @@
 import React, { useState, useEffect, useRef } from "react";
 import type { SevaLang } from "../../features/seva/sevaLocale";
 import {
-  savePriestAudioRecording,
-  getPriestAudioRecording,
-  removePriestAudioRecording,
+  getAllVoiceProfiles,
+  getVoiceProfileById,
+  saveVoiceProfile,
+  saveClipToVoiceProfile,
+  removeClipFromVoiceProfile,
   type PriestAudioKey,
+  type PriestVoiceProfile,
   type CustomPriestAudioItem
-} from "../../features/audio/priestVoiceManager";
+} from "../../features/audio/priestVoiceDatabase";
 
 export interface PriestVoiceUploadModalProps {
   isOpen: boolean;
   onClose: () => void;
   lang?: SevaLang;
-  priestName?: string;
+  initialVoiceId?: string;
+  onSelectVoice?: (voiceId: string) => void;
 }
 
 const STEP_LABELS: Record<PriestAudioKey, { titleKn: string; titleEn: string; mantra: string }> = {
@@ -47,15 +51,14 @@ export const PriestVoiceUploadModal: React.FC<PriestVoiceUploadModalProps> = ({
   isOpen,
   onClose,
   lang = "kn",
-  priestName = "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್"
+  initialVoiceId,
+  onSelectVoice
 }) => {
-  const [recordings, setRecordings] = useState<Record<PriestAudioKey, CustomPriestAudioItem | null>>({
-    step_1: null,
-    step_2: null,
-    step_3: null,
-    step_4: null,
-    deity_mantra: null
-  });
+  const [profiles, setProfiles] = useState<PriestVoiceProfile[]>(() => getAllVoiceProfiles());
+  const [selectedVoiceId, setSelectedVoiceId] = useState<string>(initialVoiceId || "voice_shreeram");
+  const [isCreatingNew, setIsCreatingNew] = useState(false);
+  const [newProfileName, setNewProfileName] = useState("");
+  const [newProfileTitle, setNewProfileTitle] = useState("");
 
   const [activePlayingKey, setActivePlayingKey] = useState<PriestAudioKey | null>(null);
   const [isRecordingLive, setIsRecordingLive] = useState<PriestAudioKey | null>(null);
@@ -65,7 +68,10 @@ export const PriestVoiceUploadModal: React.FC<PriestVoiceUploadModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      loadAllRecordings();
+      refreshProfiles();
+      if (initialVoiceId) {
+        setSelectedVoiceId(initialVoiceId);
+      }
     } else {
       if (audioPlayerRef.current) {
         audioPlayerRef.current.pause();
@@ -73,25 +79,22 @@ export const PriestVoiceUploadModal: React.FC<PriestVoiceUploadModalProps> = ({
       }
       setActivePlayingKey(null);
     }
-  }, [isOpen]);
+  }, [isOpen, initialVoiceId]);
 
-  const loadAllRecordings = () => {
-    setRecordings({
-      step_1: getPriestAudioRecording("step_1"),
-      step_2: getPriestAudioRecording("step_2"),
-      step_3: getPriestAudioRecording("step_3"),
-      step_4: getPriestAudioRecording("step_4"),
-      deity_mantra: getPriestAudioRecording("deity_mantra")
-    });
+  const refreshProfiles = () => {
+    const list = getAllVoiceProfiles();
+    setProfiles(list);
   };
+
+  const activeProfile = getVoiceProfileById(selectedVoiceId);
 
   const handleFileUpload = async (key: PriestAudioKey, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      await savePriestAudioRecording(key, file);
-      loadAllRecordings();
-    } catch (err) {
+      await saveClipToVoiceProfile(selectedVoiceId, key, file);
+      refreshProfiles();
+    } catch {
       alert("Failed to save audio file. Please try a smaller .mp3 or .wav file.");
     }
   };
@@ -108,8 +111,8 @@ export const PriestVoiceUploadModal: React.FC<PriestVoiceUploadModalProps> = ({
       recorder.onstop = async () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
         const file = new File([audioBlob], `${key}_live_recording.webm`, { type: "audio/webm" });
-        await savePriestAudioRecording(key, file);
-        loadAllRecordings();
+        await saveClipToVoiceProfile(selectedVoiceId, key, file);
+        refreshProfiles();
         setIsRecordingLive(null);
         stream.getTracks().forEach((t) => t.stop());
       };
@@ -155,8 +158,31 @@ export const PriestVoiceUploadModal: React.FC<PriestVoiceUploadModalProps> = ({
   };
 
   const handleDelete = (key: PriestAudioKey) => {
-    removePriestAudioRecording(key);
-    loadAllRecordings();
+    removeClipFromVoiceProfile(selectedVoiceId, key);
+    refreshProfiles();
+  };
+
+  const handleCreateProfile = () => {
+    if (!newProfileName.trim()) return;
+    const newId = `voice_${Date.now()}_${newProfileName.toLowerCase().replace(/[^a-z0-9]/g, "_")}`;
+    const newProf: PriestVoiceProfile = {
+      id: newId,
+      name: newProfileName.trim(),
+      titleKn: newProfileTitle.trim() || "ದೈವಜ್ಞರು & ಅರ್ಚಕರು",
+      titleEn: "Priest & Astrologer",
+      voicePitch: 0.74,
+      voiceRate: 0.86,
+      preferredVoiceLang: "kn-IN",
+      audioClips: {},
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    saveVoiceProfile(newProf);
+    refreshProfiles();
+    setSelectedVoiceId(newId);
+    setIsCreatingNew(false);
+    setNewProfileName("");
+    setNewProfileTitle("");
   };
 
   if (!isOpen) return null;
@@ -174,10 +200,10 @@ export const PriestVoiceUploadModal: React.FC<PriestVoiceUploadModalProps> = ({
             </span>
             <div>
               <h2 className="text-base sm:text-lg font-black text-[#FDE68A]">
-                ಅರ್ಚಕರ ನೈಜ ಧ್ವನಿ ರೆಕಾರ್ಡಿಂಗ್ & ಅಪ್‌ಲೋಡ್
+                ಅರ್ಚಕರ ಧ್ವನಿ ಡೇಟಾಬೇಸ್ & ವಾಯ್ಸ್ ಕ್ಲೋನ್ ವಾಲ್ಟ್ (SuperAdmin Only)
               </h2>
               <p className="text-xs text-amber-300 font-medium">
-                Chief Priest ({priestName}) Authentic Voice & Audio Vault
+                Priest Voice Profiles Database & Audio Recordings Repository
               </p>
             </div>
           </div>
@@ -189,21 +215,92 @@ export const PriestVoiceUploadModal: React.FC<PriestVoiceUploadModalProps> = ({
           </button>
         </div>
 
-        {/* Informational Guidance */}
-        <div className="p-3.5 bg-amber-950/60 rounded-2xl border border-amber-500/30 text-xs leading-relaxed text-amber-200 space-y-1">
-          <div className="font-bold text-[#FDE68A] flex items-center gap-1.5">
-            <span>ℹ️</span>
-            <span>ಧ್ವನಿ ಅಪ್‌ಲೋಡ್ ವಿಧಾನ (How to Add Voice Recordings):</span>
+        {/* Profile Selector */}
+        <div className="p-3.5 bg-amber-950/60 rounded-2xl border border-amber-500/40 space-y-2.5">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-black text-[#FDE68A] uppercase tracking-wider">
+              ಧ್ವನಿ ಪ್ರೊಫೈಲ್ ಆಯ್ಕೆ (Select Voice Profile):
+            </span>
+            <button
+              type="button"
+              onClick={() => setIsCreatingNew(!isCreatingNew)}
+              className="text-[11px] font-bold text-amber-300 hover:text-white underline"
+            >
+              {isCreatingNew ? "ರದ್ದುಮಾಡಿ" : "+ ಹೊಸ ಧ್ವನಿ ಪ್ರೊಫೈಲ್ ರಚಿಸಿ"}
+            </button>
           </div>
-          <p className="pl-4 border-l border-amber-400/50 text-[11px] text-amber-100">
-            ಅರ್ಚಕರು ತಮ್ಮ ಮೊಬೈಲ್‌ನಲ್ಲಿ ರೆಕಾರ್ಡ್ ಮಾಡಿದ ಆಡಿಯೋ (.mp3, .wav, .m4a) ಫೈಲ್‌ಗಳನ್ನು ನೇರವಾಗಿ ಕೆಳಗೆ ಅಪ್‌ಲೋಡ್ ಮಾಡಬಹುದು ಅಥವಾ 🎙️ ಲೈವ್ ಮೈಕ್ ಬಟನ್ ಒತ್ತಿ ಸನ್ನಿಧಾನದಲ್ಲೇ ರೆಕಾರ್ಡ್ ಮಾಡಬಹುದು. ಅಪ್‌ಲೋಡ್ ಮಾಡಿದ ಧ್ವನಿಯೇ ಭಕ್ತರಿಗೆ ಪೂಜೆ ಸಮಯದಲ್ಲಿ ಮೊಳಗುತ್ತದೆ.
+
+          {!isCreatingNew ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <select
+                value={selectedVoiceId}
+                onChange={(e) => {
+                  setSelectedVoiceId(e.target.value);
+                  if (onSelectVoice) onSelectVoice(e.target.value);
+                }}
+                className="flex-1 bg-black/60 border-2 border-amber-400 rounded-xl px-3 py-2 text-xs font-bold text-amber-100 focus:outline-hidden"
+              >
+                {profiles.map((p) => (
+                  <option key={p.id} value={p.id} className="bg-slate-900 text-amber-100">
+                    {p.name} {p.isDefault ? "(ಪೂರ್ವನಿಯೋಜಿತ)" : ""}
+                  </option>
+                ))}
+              </select>
+
+              {onSelectVoice && (
+                <button
+                  type="button"
+                  onClick={() => onSelectVoice(selectedVoiceId)}
+                  className="px-3 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-slate-950 text-xs font-black"
+                >
+                  ✓ ಇದನ್ನು ಆಯ್ಕೆಮಾಡಿ
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="p-3 bg-black/50 rounded-xl border border-amber-400/50 space-y-2 animate-in fade-in">
+              <input
+                type="text"
+                value={newProfileName}
+                onChange={(e) => setNewProfileName(e.target.value)}
+                placeholder="ಅರ್ಚಕರ ಹೆಸರು (e.g. ಶ್ರೀಸುಮ, ಗೋಕರ್ಣ ಶಾಸ್ತ್ರಿಗಳು)"
+                className="w-full bg-black/70 border border-amber-500/50 rounded-xl px-3 py-2 text-xs text-amber-100"
+              />
+              <input
+                type="text"
+                value={newProfileTitle}
+                onChange={(e) => setNewProfileTitle(e.target.value)}
+                placeholder="ಹುದ್ದೆ / ಬಿರುದು (e.g. ಪ್ರಧಾನ ವೇದ ವಿದ್ವಾನ್)"
+                className="w-full bg-black/70 border border-amber-500/50 rounded-xl px-3 py-2 text-xs text-amber-100"
+              />
+              <button
+                type="button"
+                onClick={handleCreateProfile}
+                className="w-full py-2 bg-gradient-to-r from-amber-600 to-amber-500 text-slate-950 font-black text-xs rounded-xl"
+              >
+                ✓ ಪ್ರೊಫೈಲ್ ಉಳಿಸಿ (Save Profile)
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Informational Guidance on Voice Cloning */}
+        <div className="p-3.5 bg-black/40 rounded-2xl border border-amber-500/30 text-xs leading-relaxed text-amber-200 space-y-1">
+          <div className="font-bold text-[#FDE68A] flex items-center gap-1.5">
+            <span>🎙️</span>
+            <span>ಧ್ವನಿ ರೆಕಾರ್ಡಿಂಗ್ & ವಾಯ್ಸ್ ಕ್ಲೋನ್ ಮಾರ್ಗದರ್ಶಿ (Audio Duration & Specs):</span>
+          </div>
+          <p className="pl-4 border-l-2 border-amber-400 text-[11px] text-amber-100">
+            • <strong>ಅಗತ್ಯವಿರುವ ಆಡಿಯೋ ಅವಧಿ:</strong> ಪ್ರತಿ ಮಂತ್ರಕ್ಕೆ ೧೫ ರಿಂದ ೪೫ ಸೆಕೆಂಡುಗಳ ಸ್ಪಷ್ಟ ರೆಕಾರ್ಡಿಂಗ್ (Zero-Shot Voice Clone ಗೆ ಕನಿಷ್ಠ ೩೦-೬೦ ಸೆಕೆಂಡ್ ಸಾಕು).<br/>
+            • <strong>ಫಾರ್ಮ್ಯಾಟ್:</strong> .mp3, .wav, .m4a ಅಥವಾ ನೇರವಾಗಿ ಕೆಳಗಿನ 🎙️ ಲೈವ್ ಮೈಕ್ ಬಳಸಿ ರೆಕಾರ್ಡ್ ಮಾಡಬಹುದು.<br/>
+            • <strong>ಕಾರ್ಯವಿಧಾನ:</strong> ಸೇವಾ ಪತ್ರ / QR ಕೋಡ್ ಜನರೇಟ್ ಮಾಡುವಾಗ ನೀವು ಆಯ್ಕೆ ಮಾಡಿದ ಧ್ವನಿಯೇ ಭಕ್ತರಿಗೆ ನಿರಂತರವಾಗಿ ಪ್ಲೇ ಆಗುತ್ತದೆ.
           </p>
         </div>
 
-        {/* Step-by-Step Recording List */}
+        {/* Step-by-Step Recording List for Active Profile */}
         <div className="space-y-3">
           {keys.map((key) => {
-            const item = recordings[key];
+            const item = activeProfile?.audioClips?.[key];
             const meta = STEP_LABELS[key];
             const isPlaying = activePlayingKey === key;
             const isRec = isRecordingLive === key;
@@ -225,7 +322,7 @@ export const PriestVoiceUploadModal: React.FC<PriestVoiceUploadModalProps> = ({
 
                   {item ? (
                     <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-950 border border-emerald-400 text-emerald-300">
-                      ✓ ಆಡಿಯೋ ಸಿದ್ಧವಾಗಿದೆ
+                      ✓ ಆಡಿಯೋ ಸಿದ್ಧವಾಗಿದೆ ({item.fileName || "Custom Voice"})
                     </span>
                   ) : (
                     <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-950/80 border border-amber-600/50 text-amber-400">
@@ -308,7 +405,7 @@ export const PriestVoiceUploadModal: React.FC<PriestVoiceUploadModalProps> = ({
             onClick={onClose}
             className="px-6 py-2.5 rounded-xl text-xs font-black bg-gradient-to-r from-amber-600 to-amber-500 text-slate-950 border border-amber-400 shadow-md hover:scale-105 active:scale-95 transition-all"
           >
-            ✓ ಪೂರ್ಣಗೊಂಡಿದೆ (Done)
+            ✓ ಮುಕ್ತಾಯ (Done)
           </button>
         </div>
       </div>
