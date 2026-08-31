@@ -571,60 +571,66 @@ const SouthIndianKundaliGrid: React.FC<RashiGridProps> = ({
 
   return (
     <div style={{
-      background: "rgba(45, 20, 7, 0.9)",
+      background: "linear-gradient(145deg, rgba(45, 20, 7, 0.95) 0%, rgba(26, 10, 3, 0.98) 100%)",
       border: "2px solid #D4AF37",
       borderRadius: 16,
-      padding: 14,
-      marginBottom: 16,
-      boxShadow: "0 8px 24px rgba(0,0,0,0.5)"
+      padding: 16,
+      marginBottom: 20,
+      width: "100%",
+      boxSizing: "border-box",
+      boxShadow: "0 8px 28px rgba(0,0,0,0.6)"
     }}>
       <div style={{
-        fontSize: 14,
+        fontSize: 15,
         fontWeight: 800,
         color: "#FDE68A",
-        marginBottom: 10,
+        marginBottom: 12,
         textAlign: "center",
-        borderBottom: "1px solid rgba(212, 175, 55, 0.3)",
-        paddingBottom: 6
+        borderBottom: "1.5px solid rgba(212, 175, 55, 0.35)",
+        paddingBottom: 8,
+        letterSpacing: "0.2px"
       }}>
         {title}
       </div>
 
       <div style={{
         display: "grid",
-        gridTemplateColumns: "repeat(5, 1fr)",
-        gridTemplateRows: "repeat(4, 76px)",
-        gap: 4,
+        gridTemplateColumns: "repeat(4, 1fr)",
+        gridTemplateRows: "repeat(4, minmax(84px, 1fr))",
+        gap: 5,
         background: "#1C0A00",
-        padding: 4,
-        borderRadius: 10,
-        border: "1px solid #78350F",
+        padding: 6,
+        borderRadius: 12,
+        border: "1.5px solid #78350F",
+        width: "100%",
+        boxSizing: "border-box",
         position: "relative"
       }}>
         {/* Center Title Box */}
         <div style={{
           gridColumn: "2 / 4",
           gridRow: "2 / 4",
-          background: "linear-gradient(135deg, rgba(120, 53, 15, 0.3) 0%, rgba(45, 20, 7, 0.6) 100%)",
-          border: "1.5px dashed rgba(212, 175, 55, 0.5)",
+          background: "linear-gradient(135deg, rgba(120, 53, 15, 0.45) 0%, rgba(45, 20, 7, 0.8) 100%)",
+          border: "1.5px dashed rgba(212, 175, 55, 0.6)",
           borderRadius: 8,
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          padding: 6,
-          textAlign: "center"
+          padding: 8,
+          textAlign: "center",
+          boxShadow: "inset 0 0 12px rgba(0,0,0,0.5)"
         }}>
-          <div style={{ fontSize: 18 }}>🛕</div>
-          <div style={{ fontSize: 11, fontWeight: 900, color: "#FDE68A", marginTop: 2 }}>
+          <div style={{ fontSize: 20 }}>🛕</div>
+          <div style={{ fontSize: 11.5, fontWeight: 900, color: "#FDE68A", marginTop: 3 }}>
             {isGochara ? (lang === "kn" ? "ಗೋಚಾರ ಬಿಂಬ (ಚಂದ್ರ ಲಗ್ನ)" : "Gochara Transit (Chandra Lagna)") : "ಜನ್ಮ ಚಕ್ರ"}
           </div>
           {devoteeName && (
-            <div style={{ fontSize: 12, fontWeight: 900, color: "#FFFFFF", marginTop: 2, textShadow: "0 1px 3px rgba(0,0,0,0.8)" }}>
+            <div style={{ fontSize: 12.5, fontWeight: 900, color: "#FFFFFF", marginTop: 2, textShadow: "0 1px 3px rgba(0,0,0,0.8)" }}>
               {devoteeName}
             </div>
           )}
-          <div style={{ fontSize: 9, color: "#F59E0B", marginTop: 2 }}>
+          <div style={{ fontSize: 9.5, color: "#F59E0B", marginTop: 2, fontWeight: 700 }}>
             {isGochara ? (lang === "kn" ? "ಗೋಕರ್ಣ ಪಂಚಾಂಗ" : "Gokarna Panchanga") : "South Indian Grid"}
           </div>
         </div>
@@ -643,36 +649,36 @@ const SouthIndianKundaliGrid: React.FC<RashiGridProps> = ({
                 gridColumn: col + 1,
                 gridRow: row + 1,
                 background: isMoonRashi
-                  ? "linear-gradient(135deg, rgba(217, 119, 6, 0.35), rgba(120, 53, 15, 0.45))"
+                  ? "linear-gradient(135deg, rgba(217, 119, 6, 0.4), rgba(120, 53, 15, 0.55))"
                   : isLagna
-                  ? "linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(6, 78, 59, 0.35))"
-                  : "rgba(35, 15, 5, 0.85)",
+                  ? "linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(6, 78, 59, 0.45))"
+                  : "rgba(35, 15, 5, 0.9)",
                 border: isMoonRashi
                   ? "1.5px solid #F59E0B"
                   : isLagna
                   ? "1.5px solid #10B981"
-                  : "1px solid rgba(212, 175, 55, 0.2)",
-                borderRadius: 6,
-                padding: 4,
+                  : "1px solid rgba(212, 175, 55, 0.25)",
+                borderRadius: 7,
+                padding: "5px 6px",
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
                 overflow: "hidden",
-                boxShadow: isMoonRashi ? "0 0 10px rgba(245, 158, 11, 0.3)" : "none"
+                boxShadow: isMoonRashi ? "0 0 10px rgba(245, 158, 11, 0.35)" : "none"
               }}
             >
               {/* Rashi Header & Lagna Indicator */}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
-                <span style={{ fontSize: 9, fontWeight: 700, color: "#D1D5DB" }}>
+                <span style={{ fontSize: 9.5, fontWeight: 800, color: isMoonRashi ? "#FEF3C7" : isLagna ? "#D1FAE5" : "#E5E7EB" }}>
                   {rashiObj[lang] || rashiObj.en}
                 </span>
                 {isLagna && (
-                  <span style={{ fontSize: 8, fontWeight: 900, color: "#10B981", background: "rgba(16, 185, 129, 0.2)", padding: "0 3px", borderRadius: 2 }}>
-                    {isGochara ? (lang === "kn" ? "ಚಂದ್ರ ಲಗ್ನ" : "Chandra Lagna") : "Lagna"}
+                  <span style={{ fontSize: 8, fontWeight: 900, color: "#10B981", background: "rgba(16, 185, 129, 0.25)", padding: "0 3px", borderRadius: 3, border: "0.5px solid #10B981" }}>
+                    {isGochara ? (lang === "kn" ? "ಚಂದ್ರ" : "Chandra") : "Lagna"}
                   </span>
                 )}
                 {isMoonRashi && !isLagna && (
-                  <span style={{ fontSize: 8, fontWeight: 900, color: "#F59E0B" }}>
+                  <span style={{ fontSize: 9, fontWeight: 900, color: "#F59E0B" }}>
                     🌙
                   </span>
                 )}
@@ -682,20 +688,20 @@ const SouthIndianKundaliGrid: React.FC<RashiGridProps> = ({
               <div style={{
                 display: "flex",
                 flexWrap: "wrap",
-                gap: 2,
-                marginTop: 2,
+                gap: 2.5,
+                marginTop: 3,
                 alignContent: "flex-end"
               }}>
                 {planets.map((pl, pIdx) => (
                   <span
                     key={pIdx}
                     style={{
-                      background: "rgba(245, 158, 11, 0.25)",
-                      border: "1px solid rgba(245, 158, 11, 0.5)",
+                      background: "rgba(245, 158, 11, 0.28)",
+                      border: "1px solid rgba(245, 158, 11, 0.55)",
                       color: "#FFF8E7",
-                      fontSize: 8,
+                      fontSize: 8.5,
                       fontWeight: 800,
-                      padding: "1px 3px",
+                      padding: "1px 3.5px",
                       borderRadius: 3
                     }}
                   >
