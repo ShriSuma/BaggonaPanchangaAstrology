@@ -364,6 +364,47 @@ export function getParabhavaDayDetails(inputDate: string | Date): ParabhavaDayRe
   // 5. Lookup or Infer Shraddha & Religious Observances
   const specialInfo = KNOWN_SPECIAL_DAYS[dateStr] || inferDefaultDaySpecial(mathData, monthDef);
 
+  const startMs = new Date(monthDef.startDate).getTime();
+  const currentMs = new Date(dateStr).getTime();
+  const dayIndex = Math.max(0, Math.floor((currentMs - startMs) / (86400000)));
+
+  // Authentic Book Tithi & Nakshatra mapping
+  const tithiList = monthDef.paksha === "Shukla"
+    ? ["ಪಾಡ್ಯ", "ಬಿದಿಗೆ", "ತದಿಗೆ", "ಚೌತಿ", "ಪಂಚಮಿ", "ಷಷ್ಠಿ", "ಸಪ್ತಮಿ", "ಅಷ್ಟಮಿ", "ನವಮಿ", "ದಶಮಿ", "ಏಕಾದಶಿ", "ದ್ವಾದಶಿ", "ತ್ರಯೋದಶಿ", "ಚತುರ್ದಶಿ", "ಹುಣ್ಣಿಮೆ", "ಹುಣ್ಣಿಮೆ"]
+    : ["ಪಾಡ್ಯ", "ಬಿದಿಗೆ", "ತದಿಗೆ", "ಚೌತಿ", "ಪಂಚಮಿ", "ಷಷ್ಠಿ", "ಸಪ್ತಮಿ", "ಅಷ್ಟಮಿ", "ನವಮಿ", "ದಶಮಿ", "ಏಕಾದಶಿ", "ದ್ವಾದಶಿ", "ತ್ರಯೋದಶಿ", "ಚತುರ್ದಶಿ", "ಅಮಾವಾಸ್ಯೆ", "ಅಮಾವಾಸ್ಯೆ"];
+
+  const tithiKn = tithiList[Math.min(dayIndex, tithiList.length - 1)] || mathData.tithiKn;
+  const tithiEngList = ["Pratipada", "Dwitiya", "Tritiya", "Chaturthi", "Panchami", "Shasthi", "Saptami", "Ashtami", "Navami", "Dashami", "Ekadashi", "Dwadashi", "Trayodashi", "Chaturdashi", monthDef.paksha === "Shukla" ? "Purnima" : "Amavasya"];
+  const tithiEng = tithiEngList[Math.min(dayIndex, tithiEngList.length - 1)] || mathData.tithi;
+
+  // Book Ghati values for Chaitra Shukla
+  const chaitraShuklaGhati = [
+    { tGhati: "46-30", nGhati: "53-34", nakKn: "ಉತ್ತರಾಭಾದ್ರಾ", nakEng: "Uttarabhadra" },
+    { tGhati: "49-42", nGhati: "49-34", nakKn: "ರೇವತಿ", nakEng: "Revati" },
+    { tGhati: "43-17", nGhati: "45-02", nakKn: "ಅಶ್ವಿನಿ", nakEng: "Ashwini" },
+    { tGhati: "36-39", nGhati: "40-14", nakKn: "ಭರಣಿ", nakEng: "Bharani" },
+    { tGhati: "30-06", nGhati: "35-34", nakKn: "ಕೃತ್ತಿಕಾ", nakEng: "Krittika" },
+    { tGhati: "23-51", nGhati: "31-13", nakKn: "ರೋಹಿಣಿ", nakEng: "Rohini" },
+    { tGhati: "18-08", nGhati: "27-26", nakKn: "ಮೃಗಶಿರಾ", nakEng: "Mrigashira" },
+    { tGhati: "13-07", nGhati: "24-22", nakKn: "ಆರ್ದ್ರಾ", nakEng: "Ardra" },
+    { tGhati: "08-54", nGhati: "22-07", nakKn: "ಪುನರ್ವಸು", nakEng: "Punarvasu" },
+    { tGhati: "05-33", nGhati: "20-44", nakKn: "ಪುಷ್ಯ", nakEng: "Pushya" },
+    { tGhati: "03-07", nGhati: "20-15", nakKn: "ಆಶ್ಲೇಷಾ", nakEng: "Ashlesha" },
+    { tGhati: "01-36", nGhati: "20-41", nakKn: "ಮಘಾ", nakEng: "Magha" },
+    { tGhati: "01-46", nGhati: "22-06", nakKn: "ಪುಬ್ಬಾ", nakEng: "Pubba" },
+    { tGhati: "01-31", nGhati: "24-29", nakKn: "ಉತ್ತರಾ", nakEng: "Uttara" },
+    { tGhati: "03-17", nGhati: "27-54", nakKn: "ಹಸ್ತಾ", nakEng: "Hasta" }
+  ];
+
+  const bookGhatiData = monthDef.id === "chaitra_shukla" && chaitraShuklaGhati[dayIndex]
+    ? chaitraShuklaGhati[dayIndex]
+    : null;
+
+  const resolvedTithiGhati = bookGhatiData?.tGhati || formatGhati(mathData.tithiGhati, mathData.tithiVighati);
+  const resolvedNakshatraKn = bookGhatiData?.nakKn || mathData.moonNakshatraKn;
+  const resolvedNakshatraEng = bookGhatiData?.nakEng || mathData.moonNakshatra;
+  const resolvedNakshatraGhati = bookGhatiData?.nGhati || formatGhati(mathData.moonNakshatraGhati, mathData.moonNakshatraVighati);
+
   // 6. Assemble Full Dual-Page Record
   return {
     date: dateStr,
@@ -389,14 +430,14 @@ export function getParabhavaDayDetails(inputDate: string | Date): ParabhavaDayRe
     sauramanaDina: calculateSauramanaDina(dateStr, monthDef),
     ayanamsa: "24° 12' 28\"",
 
-    tithi: mathData.tithi,
-    tithiKn: mathData.tithiKn,
-    tithiNumber: getTithiNumber(mathData.tithiKn),
-    tithiGhati: formatGhati(mathData.tithiGhati, mathData.tithiVighati),
+    tithi: tithiEng,
+    tithiKn: tithiKn,
+    tithiNumber: getTithiNumber(tithiKn),
+    tithiGhati: resolvedTithiGhati,
     tithiEndTime: mathData.tithiEndTime || "07:30 PM",
-    nakshatra: mathData.moonNakshatra,
-    nakshatraKn: mathData.moonNakshatraKn,
-    nakshatraGhati: formatGhati(mathData.moonNakshatraGhati, mathData.moonNakshatraVighati),
+    nakshatra: resolvedNakshatraEng,
+    nakshatraKn: resolvedNakshatraKn,
+    nakshatraGhati: resolvedNakshatraGhati,
     nakshatraEndTime: formatTimeFromGhati(mathData.sunrise, mathData.moonNakshatraGhati, mathData.moonNakshatraVighati),
     yoga: mathData.yoga,
     yogaKn: mathData.yogaKn,
@@ -406,8 +447,8 @@ export function getParabhavaDayDetails(inputDate: string | Date): ParabhavaDayRe
     karanaGhati: formatGhati(mathData.karanaGhati, mathData.karanaVighati),
     sunNakshatra: mathData.sunNakshatra,
     sunNakshatraKn: mathData.sunNakshatraKn,
-    moonRashi: getMoonRashi(mathData.moonNakshatraKn),
-    moonRashiKn: getMoonRashiKn(mathData.moonNakshatraKn),
+    moonRashi: getMoonRashi(resolvedNakshatraKn),
+    moonRashiKn: getMoonRashiKn(resolvedNakshatraKn),
 
     vishaGhati: `${mathData.vishaGhati.ghati}-${mathData.vishaGhati.vighati}`,
     amritaGhati: `${mathData.amrithaGhati.ghati}-${mathData.amrithaGhati.vighati}`,

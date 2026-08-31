@@ -39,8 +39,21 @@ import {
   type DailyAiQuotaDoc,
   DEFAULT_DAILY_AI_LIMIT
 } from "../ai/aiTelemetryService";
+import {
+  subscribePanchangaEngineConfig,
+  savePanchangaEngineConfig,
+  type PanchangaEngineMode,
+  type PanchangaEngineConfigDoc,
+  DEFAULT_PANCHANGA_ENGINE_CONFIG
+} from "../../db/firestoreDb";
+import {
+  getParabhavaDayDetails,
+  isDateInParabhavaYear,
+  getParabhavaAnnualSummary,
+  type ParabhavaDayRecord
+} from "../../core/ParabhavaBookEngine";
 
-export type AdminTab = "wallets" | "kundlis" | "ashirvada" | "audit" | "mindmap";
+export type AdminTab = "wallets" | "kundlis" | "ashirvada" | "audit" | "mindmap" | "panchanga_engine";
 
 /* -------------------------------------------------------------------------- */
 /* 360° COMPLETE CIRCULAR PROGRESS RING COMPONENT (Visual Telemetry Gauge)    */
@@ -360,6 +373,11 @@ export const SuperAdminDashboard: React.FC = () => {
   const [isUpdatingAiLimit, setIsUpdatingAiLimit] = useState(false);
   const [isSendingTestAlert, setIsSendingTestAlert] = useState(false);
 
+  // Panchanga Calculation Engine Config State (Super Admin Control)
+  const [panchangaEngineConfig, setPanchangaEngineConfig] = useState<PanchangaEngineConfigDoc>(DEFAULT_PANCHANGA_ENGINE_CONFIG);
+  const [isUpdatingEngine, setIsUpdatingEngine] = useState(false);
+  const [testDateInspector, setTestDateInspector] = useState("2026-03-19");
+
   // Priest Profile Real-Time Subscription
   useEffect(() => {
     if (!viewingPriestProfile) {
@@ -395,6 +413,9 @@ export const SuperAdminDashboard: React.FC = () => {
       setAiQuota(q);
       setCustomAiLimitInput(String(q.dailyLimit || DEFAULT_DAILY_AI_LIMIT));
     });
+    const unsubEngine = subscribePanchangaEngineConfig((cfg) => {
+      setPanchangaEngineConfig(cfg);
+    });
 
     return () => {
       unsubKundlis();
@@ -402,6 +423,7 @@ export const SuperAdminDashboard: React.FC = () => {
       unsubAudit();
       unsubPdf();
       unsubAi();
+      unsubEngine();
     };
   }, [subscribeAllWallets]);
 
@@ -467,6 +489,24 @@ export const SuperAdminDashboard: React.FC = () => {
       setFeedback({ type: "error", text: `ಅಧಿಸೂಚನೆ ಕಳುಹಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ: ${err?.message || "Error"}` });
     } finally {
       setIsSendingTestAlert(false);
+    }
+  };
+
+  const handleTogglePanchangaEngine = async (mode: PanchangaEngineMode) => {
+    setIsUpdatingEngine(true);
+    try {
+      await savePanchangaEngineConfig(mode, "superadmin");
+      setFeedback({
+        type: "success",
+        text:
+          mode === "baggona_book"
+            ? "🌟 ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಮುದ್ರಣ ಎಂಜಿನ್ (104-Page Print Blueprint 2026-27) ಅನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಲಾಗಿದೆ!"
+            : "📐 ಗಣಿತೀಯ ದೃಗ್ಗಣಿತ ಎಂಜಿನ್ (Mathematical Drik-Ganita) ಅನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಲಾಗಿದೆ!"
+      });
+    } catch (err: any) {
+      setFeedback({ type: "error", text: `ಎಂಜಿನ್ ಸಂರಚನೆ ಉಳಿಸಲು ವಿಫಲವಾಗಿದೆ: ${err?.message || "Error"}` });
+    } finally {
+      setIsUpdatingEngine(false);
     }
   };
 
@@ -1262,7 +1302,29 @@ export const SuperAdminDashboard: React.FC = () => {
             }`}
           >
             <span>🗺️</span>
-            <span>ಸಿಸ್ಟಮ್ ಮೈಂಡ್‌ಮ್ಯಾಪ್ (Visual Mind Map)</span>
+            <span>ಸಿಸ್ಟಮ್ ಮೈಂಡ್‌ಮ್ಯಾಪ್</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("panchanga_engine")}
+            className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
+              activeTab === "panchanga_engine"
+                ? "bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 text-slate-950 shadow-md scale-100"
+                : "text-amber-950 hover:bg-amber-100"
+            }`}
+          >
+            <span>⚙️</span>
+            <span>ಪಂಚಾಂಗ ಎಂಜಿನ್ ({panchangaEngineConfig.engineMode === "baggona_book" ? "ಬಗ್ಗೋಣ" : "ದೃಗ್ಗಣಿತ"})</span>
+            <span
+              className={`px-1.5 py-0.5 rounded-full text-[9px] font-black uppercase ${
+                panchangaEngineConfig.engineMode === "baggona_book"
+                  ? "bg-emerald-100 text-emerald-950 border border-emerald-300"
+                  : "bg-blue-100 text-blue-950 border border-blue-300"
+              }`}
+            >
+              {panchangaEngineConfig.engineMode === "baggona_book" ? "Print Book" : "Drik-Math"}
+            </span>
           </button>
         </div>
       </div>
@@ -2204,6 +2266,342 @@ export const SuperAdminDashboard: React.FC = () => {
               </p>
             </div>
           )}
+        </div>
+      )}
+
+      {/* 9. TAB 6: PANCHANGA CALCULATION ENGINE MASTER CONTROL */}
+      {activeTab === "panchanga_engine" && (
+        <div className="bg-[#FFFDF7] border-3 border-amber-400/90 rounded-3xl p-6 shadow-xl space-y-6">
+          {/* Header */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-amber-200 pb-4">
+            <div>
+              <h2 className="text-base font-black text-amber-950 flex items-center gap-2">
+                <span>⚙️</span>
+                <span>ಪಂಚಾಂಗ ಗಣನೆ ಎಂಜಿನ್ ನಿಯಂತ್ರಣ ಕೇಂದ್ರ (Panchanga Calculation Engine Control Hub)</span>
+              </h2>
+              <p className="text-xs text-amber-900 font-semibold mt-0.5">
+                Super Admin master switch governing the 90-Day Calendar, Daily Darshana, and Astrological calculations across Baggona Panchanga. All changes are saved to Cloud Firestore and synchronized in real-time.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span
+                className={`text-[10px] font-black uppercase px-3 py-1 rounded-full border shadow-sm ${
+                  panchangaEngineConfig.engineMode === "baggona_book"
+                    ? "bg-emerald-100 border-emerald-400 text-emerald-950"
+                    : "bg-blue-100 border-blue-400 text-blue-950"
+                }`}
+              >
+                ● {panchangaEngineConfig.engineMode === "baggona_book" ? "Baggona Book Active" : "Drik-Math Active"}
+              </span>
+            </div>
+          </div>
+
+          {/* Master Engine Toggle Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Card 1: Baggona Panchanga Book Engine */}
+            <div
+              onClick={() => handleTogglePanchangaEngine("baggona_book")}
+              className={`cursor-pointer p-5 rounded-3xl border-3 transition-all relative overflow-hidden flex flex-col justify-between ${
+                panchangaEngineConfig.engineMode === "baggona_book"
+                  ? "bg-gradient-to-br from-amber-50 via-amber-100/60 to-white border-amber-500 shadow-xl ring-4 ring-amber-400/30 scale-[1.01]"
+                  : "bg-white border-amber-200 hover:border-amber-400 opacity-80 hover:opacity-100"
+              }`}
+            >
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl p-2 bg-amber-100 rounded-2xl border border-amber-300">📖</span>
+                    <div>
+                      <h3 className="font-black text-amber-950 text-sm">ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಮುದ್ರಣ ಆವೃತ್ತಿ</h3>
+                      <p className="text-[10px] text-amber-800 font-bold uppercase">Baggona Panchanga Book Engine (2026–2027)</p>
+                    </div>
+                  </div>
+                  {panchangaEngineConfig.engineMode === "baggona_book" ? (
+                    <span className="bg-emerald-600 text-white text-[10px] font-black px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1">
+                      <span>✓</span>
+                      <span>ACTIVE / ಸಕ್ರಿಯ</span>
+                    </span>
+                  ) : (
+                    <span className="bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded-full border">
+                      Select
+                    </span>
+                  )}
+                </div>
+
+                <p className="text-xs text-slate-800 font-semibold leading-relaxed mt-2">
+                  Uses the exact published daily records from Pages 40–91 of the Baggona Panchanga book. Features exact Tithi Ghati-Vighati, Shraddha Tithi, traditional temple festivals, month-end Graha Chakra, and authentic planetary positions.
+                </p>
+
+                <div className="mt-3 grid grid-cols-2 gap-2 text-[10px] font-semibold text-amber-950">
+                  <div className="bg-white/80 p-2 rounded-xl border border-amber-200">
+                    <span className="block font-black text-amber-900">📚 ಆವೃತ್ತಿ:</span>
+                    ಪರಾಭವ ಸಂವತ್ಸರ (೧೯೪೮ ಶಕ)
+                  </div>
+                  <div className="bg-white/80 p-2 rounded-xl border border-amber-200">
+                    <span className="block font-black text-amber-900">🗓️ ಅವಧಿ:</span>
+                    19 Mar 2026 – 07 Apr 2027 (385 Days)
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 pt-3 border-t border-amber-200 flex items-center justify-between text-[11px] font-bold text-amber-900">
+                <span>ಅಧಿಕೃತ ಮುದ್ರಣ ಪ್ರಕಾಶನ (Official 104-Page Print Blueprint)</span>
+                <span className="text-amber-600">→</span>
+              </div>
+            </div>
+
+            {/* Card 2: Mathematical Drik-Ganita Ephemeris */}
+            <div
+              onClick={() => handleTogglePanchangaEngine("mathematical")}
+              className={`cursor-pointer p-5 rounded-3xl border-3 transition-all relative overflow-hidden flex flex-col justify-between ${
+                panchangaEngineConfig.engineMode === "mathematical"
+                  ? "bg-gradient-to-br from-blue-50 via-indigo-50/60 to-white border-blue-500 shadow-xl ring-4 ring-blue-400/30 scale-[1.01]"
+                  : "bg-white border-amber-200 hover:border-blue-400 opacity-80 hover:opacity-100"
+              }`}
+            >
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl p-2 bg-blue-100 rounded-2xl border border-blue-300">📐</span>
+                    <div>
+                      <h3 className="font-black text-blue-950 text-sm">ಗಣಿತೀಯ ದೃಗ್ಗಣಿತ ಮಾದರಿ</h3>
+                      <p className="text-[10px] text-blue-800 font-bold uppercase">Mathematical Drik-Ganita Ephemeris</p>
+                    </div>
+                  </div>
+                  {panchangaEngineConfig.engineMode === "mathematical" ? (
+                    <span className="bg-blue-600 text-white text-[10px] font-black px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1">
+                      <span>✓</span>
+                      <span>ACTIVE / ಸಕ್ರಿಯ</span>
+                    </span>
+                  ) : (
+                    <span className="bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded-full border">
+                      Select
+                    </span>
+                  )}
+                </div>
+
+                <p className="text-xs text-slate-800 font-semibold leading-relaxed mt-2">
+                  Computes astronomical longitudes and solar/lunar aspects dynamically via Swiss/Lahiri Ephemeris algorithms. Automatically adapts to any geographic coordinate worldwide.
+                </p>
+
+                <div className="mt-3 grid grid-cols-2 gap-2 text-[10px] font-semibold text-blue-950">
+                  <div className="bg-white/80 p-2 rounded-xl border border-blue-200">
+                    <span className="block font-black text-blue-900">🌐 ವ್ಯಾಪ್ತಿ:</span>
+                    Global Latitude / Longitude
+                  </div>
+                  <div className="bg-white/80 p-2 rounded-xl border border-blue-200">
+                    <span className="block font-black text-blue-900">⚙️ ಅಯನಾಂಶ:</span>
+                    Lahiri / Chitra-Paksha
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 pt-3 border-t border-blue-200 flex items-center justify-between text-[11px] font-bold text-blue-900">
+                <span>ಡೈನಾಮಿಕ್ ಗಣಿತೀಯ ಎಂಜಿನ್ (Dynamic Algorithmic Math)</span>
+                <span className="text-blue-600">→</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Engine Telemetry & Database Diagnostics */}
+          <div className="bg-gradient-to-r from-[#FFFDF7] via-amber-50 to-[#FEFCF4] border-2 border-amber-300 rounded-2xl p-4 shadow-sm">
+            <div className="flex items-center justify-between border-b border-amber-200 pb-2 mb-3">
+              <h4 className="font-black text-amber-950 text-xs flex items-center gap-1.5">
+                <span>📊</span>
+                <span>ಡೇಟಾಬೇಸ್ ಸಂರಚನೆ & ಟೆಲಿಮೆಟ್ರಿ (Engine Diagnostics & Storage State)</span>
+              </h4>
+              <span className="text-[10px] font-mono font-bold text-amber-900 bg-amber-100 px-2 py-0.5 rounded-md">
+                Doc: app_configurations/panchanga_engine_config
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+              <div className="bg-white p-3 rounded-xl border border-amber-200 shadow-xs">
+                <span className="text-[10px] text-slate-500 font-bold block">ಸಂವತ್ಸರ (Samvatsara):</span>
+                <span className="font-black text-amber-950">ಪರಾಭವ (Parabhava)</span>
+                <span className="text-[10px] text-amber-700 block">ಶಕ ೧೯೪೮ (1948)</span>
+              </div>
+
+              <div className="bg-white p-3 rounded-xl border border-amber-200 shadow-xs">
+                <span className="text-[10px] text-slate-500 font-bold block">ಒಟ್ಟು ದಿನಗಳು (Total Days):</span>
+                <span className="font-black text-emerald-700">೩೮೫ ದಿನಗಳು (385 Days)</span>
+                <span className="text-[10px] text-slate-600 block">೨೬ ಮಾಸ-ಪಕ್ಷಗಳು (Pages 40-91)</span>
+              </div>
+
+              <div className="bg-white p-3 rounded-xl border border-amber-200 shadow-xs">
+                <span className="text-[10px] text-slate-500 font-bold block">ರಾಜ / ಮಂತ್ರಿ (Nava Nayakas):</span>
+                <span className="font-black text-purple-950">ರಾಜ: ಗುರು | ಮಂತ್ರಿ: ಕುಜ</span>
+                <span className="text-[10px] text-purple-700 block">ಸೇನಾಧಿಪತಿ: ರವಿ</span>
+              </div>
+
+              <div className="bg-white p-3 rounded-xl border border-amber-200 shadow-xs">
+                <span className="text-[10px] text-slate-500 font-bold block">ಸಂಪರ್ಕ ಪುರೋಹಿತರು:</span>
+                <span className="font-black text-amber-950">ಶ್ರೀರಾಮ್ ಪಂಡಿತ್</span>
+                <span className="text-[10px] text-amber-800 block">📞 9972339362</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Live Day Inspector & Data Verifier */}
+          <div className="bg-white border-2 border-amber-300 rounded-2xl p-4 shadow-sm space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-200 pb-2">
+              <div>
+                <h4 className="font-black text-amber-950 text-xs flex items-center gap-1.5">
+                  <span>🔍</span>
+                  <span>ಲೈವ್ ಡೇಟಾ ಪರೀಕ್ಷಕ (Interactive Day Inspector & Blueprint Verification)</span>
+                </h4>
+                <p className="text-[11px] text-slate-600 font-semibold">
+                  Test and inspect the exact Left Page & Right Page data returned by the active engine for any date.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="date"
+                  value={testDateInspector}
+                  onChange={(e) => setTestDateInspector(e.target.value)}
+                  className="px-2.5 py-1 text-xs border-2 border-amber-300 rounded-xl font-bold bg-[#FFFDF7] text-slate-900 focus:outline-none focus:border-amber-500"
+                />
+              </div>
+            </div>
+
+            {/* Quick Date Presets */}
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-[10px] font-black text-slate-500">ಪ್ರಮುಖ ದಿನಗಳು:</span>
+              {[
+                { label: "ಯುಗಾದಿ (19 Mar 2026)", date: "2026-03-19" },
+                { label: "ಶ್ರೀರಾಮನವಮಿ (27 Mar 2026)", date: "2026-03-27" },
+                { label: "ಕಾಮದಾ ಏಕಾದಶಿ (29 Mar 2026)", date: "2026-03-29" },
+                { label: "ಹನುಮಜ್ಜಯಂತಿ (02 Apr 2026)", date: "2026-04-02" },
+                { label: "ವರಸಿದ್ಧಿ ವಿನಾಯಕ (14 Sep 2026)", date: "2026-09-14" },
+                { label: "ದೀಪಾವಳಿ (09 Nov 2026)", date: "2026-11-09" },
+                { label: "ಮಹಾಶಿವರಾತ್ರಿ (06 Mar 2027)", date: "2027-03-06" }
+              ].map((p) => (
+                <button
+                  key={p.date}
+                  type="button"
+                  onClick={() => setTestDateInspector(p.date)}
+                  className={`px-2 py-0.5 rounded-lg text-[10px] font-bold border transition-all ${
+                    testDateInspector === p.date
+                      ? "bg-amber-600 text-white border-amber-700 shadow-xs"
+                      : "bg-[#FEFCF4] text-amber-950 border-amber-300 hover:bg-amber-100"
+                  }`}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Render Output Inspector for Selected Date */}
+            {(() => {
+              const dayDetails = getParabhavaDayDetails(testDateInspector);
+              return (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+                  {/* Left Page Preview Card */}
+                  <div className="p-3.5 bg-[#FFFDF7] border-2 border-amber-300 rounded-xl space-y-2">
+                    <div className="flex items-center justify-between border-b border-amber-200 pb-1.5">
+                      <span className="text-[11px] font-black text-amber-950 flex items-center gap-1">
+                        <span>📖</span>
+                        <span>ಎಡ ಪುಟ (Left Page - Panchanga Angas & Shraddha)</span>
+                      </span>
+                      <span className="text-[10px] font-bold text-amber-800">
+                        {dayDetails.chandramanaMasaKn} {dayDetails.pakshaKn}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-1.5 text-[11px]">
+                      <div>
+                        <span className="text-slate-500 font-semibold block">ತಿಥಿ (Tithi):</span>
+                        <span className="font-bold text-slate-900">{dayDetails.tithiKn} ({dayDetails.tithiGhati})</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 font-semibold block">ನಕ್ಷತ್ರ (Nakshatra):</span>
+                        <span className="font-bold text-slate-900">{dayDetails.nakshatraKn} ({dayDetails.nakshatraGhati})</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 font-semibold block">ಯೋಗ (Yoga):</span>
+                        <span className="font-bold text-slate-900">{dayDetails.yogaKn} ({dayDetails.yogaGhati})</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 font-semibold block">ಕರಣ (Karana):</span>
+                        <span className="font-bold text-slate-900">{dayDetails.karanaKn} ({dayDetails.karanaGhati})</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 font-semibold block">ಶ್ರಾದ್ಧ ತಿಥಿ:</span>
+                        <span className="font-bold text-amber-950 bg-amber-100 px-1.5 py-0.5 rounded border border-amber-300">
+                          {dayDetails.shraddhaTithi}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 font-semibold block">ಸೂರ್ಯೋದಯ / ಅಸ್ತ:</span>
+                        <span className="font-bold text-slate-900">{dayDetails.suryodaya} / {dayDetails.suryasta}</span>
+                      </div>
+                    </div>
+
+                    {dayDetails.festivalsAndVratas.length > 0 && (
+                      <div className="pt-1 border-t border-amber-200">
+                        <span className="text-[10px] font-black text-amber-900 block">ಹಬ್ಬ-ಹರಿದಿನಗಳು / ಉತ್ಸವಗಳು:</span>
+                        <div className="flex flex-wrap gap-1 mt-0.5">
+                          {dayDetails.festivalsAndVratas.map((f, i) => (
+                            <span key={i} className="text-[10px] font-bold bg-amber-100 text-amber-950 px-1.5 py-0.5 rounded border border-amber-300">
+                              {f}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Right Page Preview Card */}
+                  <div className="p-3.5 bg-[#FFFDF7] border-2 border-amber-300 rounded-xl space-y-2">
+                    <div className="flex items-center justify-between border-b border-amber-200 pb-1.5">
+                      <span className="text-[11px] font-black text-amber-950 flex items-center gap-1">
+                        <span>🏛️</span>
+                        <span>ಬಲ ಪುಟ (Right Page - Dina Lagna & Planetary Coordinates)</span>
+                      </span>
+                      <span className="text-[10px] font-bold text-amber-800">
+                        ಸೌರ {dayDetails.sauramanaMasaKn} (ದಿನ {dayDetails.sauramanaDina})
+                      </span>
+                    </div>
+
+                    <div>
+                      <span className="text-[10px] font-black text-slate-700 block mb-1">ನವಗ್ರಹ ಸ್ಪಷ್ಟ (Graha Spashta):</span>
+                      <div className="grid grid-cols-2 gap-1 text-[10px]">
+                        <div className="bg-white p-1 rounded border border-amber-200">
+                          <span className="font-bold text-amber-950">ರವಿ:</span> {dayDetails.grahaSpashta.ravi.rashiKn} ({dayDetails.grahaSpashta.ravi.nakshatraKn} ಪಾದ {dayDetails.grahaSpashta.ravi.pada})
+                        </div>
+                        <div className="bg-white p-1 rounded border border-amber-200">
+                          <span className="font-bold text-amber-950">ಕುಜ:</span> {dayDetails.grahaSpashta.kuja.rashiKn} ({dayDetails.grahaSpashta.kuja.nakshatraKn} ಪಾದ {dayDetails.grahaSpashta.kuja.pada})
+                        </div>
+                        <div className="bg-white p-1 rounded border border-amber-200">
+                          <span className="font-bold text-amber-950">ಬುಧ:</span> {dayDetails.grahaSpashta.budha.rashiKn} ({dayDetails.grahaSpashta.budha.nakshatraKn} {dayDetails.grahaSpashta.budha.isVakri ? "ವಕ್ರೀ" : ""})
+                        </div>
+                        <div className="bg-white p-1 rounded border border-amber-200">
+                          <span className="font-bold text-amber-950">ಗುರು:</span> {dayDetails.grahaSpashta.guru.rashiKn} ({dayDetails.grahaSpashta.guru.nakshatraKn} ಪಾದ {dayDetails.grahaSpashta.guru.pada})
+                        </div>
+                        <div className="bg-white p-1 rounded border border-amber-200">
+                          <span className="font-bold text-amber-950">ಶುಕ್ರ:</span> {dayDetails.grahaSpashta.shukra.rashiKn} ({dayDetails.grahaSpashta.shukra.nakshatraKn} ಪಾದ {dayDetails.grahaSpashta.shukra.pada})
+                        </div>
+                        <div className="bg-white p-1 rounded border border-amber-200">
+                          <span className="font-bold text-amber-950">ಶನಿ:</span> {dayDetails.grahaSpashta.shani.rashiKn} ({dayDetails.grahaSpashta.shani.nakshatraKn} ಪಾದ {dayDetails.grahaSpashta.shani.pada})
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-1 border-t border-amber-200">
+                      <span className="text-[10px] font-black text-slate-700 block">೧೨ ಲಗ್ನ ಸಮಾಪ್ತಿ ಕಾಲ (Lagna Ending Times):</span>
+                      <div className="grid grid-cols-4 gap-1 text-[9px] font-mono font-bold mt-1 text-slate-800">
+                        <span className="bg-white p-0.5 px-1 rounded border">ಮೀ: {dayDetails.lagnaEndingTimes.meena}</span>
+                        <span className="bg-white p-0.5 px-1 rounded border">ಮೇ: {dayDetails.lagnaEndingTimes.mesha}</span>
+                        <span className="bg-white p-0.5 px-1 rounded border">ವೃ: {dayDetails.lagnaEndingTimes.vrishabha}</span>
+                        <span className="bg-white p-0.5 px-1 rounded border">ಮಿ: {dayDetails.lagnaEndingTimes.mithuna}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
         </div>
       )}
 

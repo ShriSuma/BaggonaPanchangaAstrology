@@ -182,6 +182,21 @@ const ASHIRVADA_COL = "ashirvadaPasses";
 const AUDIT_COL = "systemAuditLogs";
 const NOTIFICATIONS_COL = "notifications";
 const PREMIUM_PDF_DOWNLOADS_COL = "premiumPdfDownloads";
+const APP_CONFIGS_COL = "app_configurations";
+
+export const PANCHANGA_ENGINE_DOC_ID = "panchanga_engine_config";
+
+export type PanchangaEngineMode = "baggona_book" | "mathematical";
+
+export interface PanchangaEngineConfigDoc {
+  id: string;
+  engineMode: PanchangaEngineMode;
+  bookYear: string;
+  bookSpan: string;
+  updatedAt: string;
+  updatedBy?: string;
+  description: string;
+}
 
 // Helper to clean undefined values before Firestore writes
 function sanitizeFirestoreData<T extends Record<string, any>>(obj: T): T {
@@ -1177,4 +1192,124 @@ export async function validateMfaOtpInDb(
     return { valid: true };
   }
 }
+
+/* -------------------------------------------------------------------------- */
+/* GLOBAL PANCHANGA ENGINE CONFIGURATION (Super Admin Control)                */
+/* -------------------------------------------------------------------------- */
+
+const LOCAL_STORAGE_ENGINE_KEY = "baggona_panchanga_engine_mode";
+
+export const DEFAULT_PANCHANGA_ENGINE_CONFIG: PanchangaEngineConfigDoc = {
+  id: PANCHANGA_ENGINE_DOC_ID,
+  engineMode: "baggona_book",
+  bookYear: "Parabhava 2026-2027 (ಪರಾಭವ ಸಂವತ್ಸರ)",
+  bookSpan: "19 March 2026 to 07 April 2027 (385 Days)",
+  updatedAt: new Date().toISOString(),
+  description: "Official Baggona Panchanga Book Engine (104-page print blueprint) with fallback to Mathematical Drik-Ganita"
+};
+
+/**
+ * Read the current Panchanga Engine configuration from Firestore DB (with local cache fallback)
+ */
+export async function getPanchangaEngineConfig(): Promise<PanchangaEngineConfigDoc> {
+  try {
+    if (firestore) {
+      const docRef = doc(firestore, APP_CONFIGS_COL, PANCHANGA_ENGINE_DOC_ID);
+      const snap = await getDoc(docRef);
+      if (snap.exists()) {
+        const data = snap.data() as PanchangaEngineConfigDoc;
+        try {
+          localStorage.setItem(LOCAL_STORAGE_ENGINE_KEY, data.engineMode);
+        } catch (_) {}
+        return data;
+      }
+    }
+  } catch (err) {
+    console.warn("[Firestore] Failed to fetch panchanga engine config, using cache/default:", err);
+  }
+
+  // Fallback to localStorage or default
+  try {
+    const cached = localStorage.getItem(LOCAL_STORAGE_ENGINE_KEY) as PanchangaEngineMode | null;
+    if (cached === "baggona_book" || cached === "mathematical") {
+      return { ...DEFAULT_PANCHANGA_ENGINE_CONFIG, engineMode: cached };
+    }
+  } catch (_) {}
+
+  return DEFAULT_PANCHANGA_ENGINE_CONFIG;
+}
+
+/**
+ * Save / Toggle the Panchanga Engine configuration in Firestore DB
+ */
+export async function savePanchangaEngineConfig(
+  mode: PanchangaEngineMode,
+  updatedBy = "superadmin"
+): Promise<PanchangaEngineConfigDoc> {
+  const configDoc: PanchangaEngineConfigDoc = {
+    id: PANCHANGA_ENGINE_DOC_ID,
+    engineMode: mode,
+    bookYear: "Parabhava 2026-2027 (ಪರಾಭವ ಸಂವತ್ಸರ)",
+    bookSpan: "19 March 2026 to 07 April 2027 (385 Days)",
+    updatedAt: new Date().toISOString(),
+    updatedBy,
+    description:
+      mode === "baggona_book"
+        ? "Active: Baggona Panchanga Book Engine (Exact 104-page print blueprint)"
+        : "Active: Mathematical Drik-Ganita Ephemeris Engine"
+  };
+
+  try {
+    localStorage.setItem(LOCAL_STORAGE_ENGINE_KEY, mode);
+  } catch (_) {}
+
+  try {
+    if (firestore) {
+      const docRef = doc(firestore, APP_CONFIGS_COL, PANCHANGA_ENGINE_DOC_ID);
+      await setDoc(docRef, sanitizeFirestoreData(configDoc), { merge: true });
+      console.log(`[Firestore] ✅ Panchanga engine mode successfully updated in DB to: ${mode}`);
+    }
+  } catch (err) {
+    console.warn("[Firestore] Failed to save panchanga engine config to Firestore:", err);
+  }
+
+  return configDoc;
+}
+
+/**
+ * Real-time subscription to Panchanga Engine configuration changes
+ */
+export function subscribePanchangaEngineConfig(
+  callback: (config: PanchangaEngineConfigDoc) => void
+): Unsubscribe {
+  try {
+    if (firestore) {
+      const docRef = doc(firestore, APP_CONFIGS_COL, PANCHANGA_ENGINE_DOC_ID);
+      return onSnapshot(
+        docRef,
+        (snap) => {
+          if (snap.exists()) {
+            const data = snap.data() as PanchangaEngineConfigDoc;
+            try {
+              localStorage.setItem(LOCAL_STORAGE_ENGINE_KEY, data.engineMode);
+            } catch (_) {}
+            callback(data);
+          } else {
+            callback(DEFAULT_PANCHANGA_ENGINE_CONFIG);
+          }
+        },
+        (err) => {
+          console.warn("[Firestore] subscribePanchangaEngineConfig error, using default:", err);
+          callback(DEFAULT_PANCHANGA_ENGINE_CONFIG);
+        }
+      );
+    }
+  } catch (err) {
+    console.warn("[Firestore] subscribePanchangaEngineConfig setup error:", err);
+  }
+
+  callback(DEFAULT_PANCHANGA_ENGINE_CONFIG);
+  return () => {};
+}
+
 
