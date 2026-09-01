@@ -46,6 +46,13 @@ export default function InstantReadingPage(): JSX.Element {
   const [synthesisData, setSynthesisData] = useState<PanchangaSynthesisOutput | null>(null);
   const [aiNarration, setAiNarration] = useState<string[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
+  const [dynamicTalkingPoints, setDynamicTalkingPoints] = useState<{
+    openingIceBreakerKn: string;
+    hiddenSubconsciousWorryKn: string;
+    karmaFinancialRealityKn: string;
+    immediateTurningPointKn: string;
+    siddhaPariharaRemedyKn: string;
+  } | null>(null);
 
   // Selected Category & Active Question Drawer
   const [activeCategory, setActiveCategory] = useState<"all" | "career" | "marriage" | "mind" | "wealth">("all");
@@ -118,19 +125,60 @@ STRICT WRITING & ASTROLOGER PERSONA RULES:
 4. ALL NUMBERS MUST BE IN ENGLISH DIGITS (e.g. 1, 2, 3, 4.25 - 6.5 Carat, 9 Mukhi, 7th house, 10th house, 3 to 5 months).
 `;
 
+        const promptContextWithJson = `${promptContext}
+
+OUTPUT FORMAT INSTRUCTIONS:
+Return a valid JSON object matching this schema:
+{
+  "openingIceBreaker": "2 dense paragraphs starting with 'ನೋಡಿ...' naming their Lagna, Nakshatra, uncovering their core personality and revealing the recent trigger incident/turmoil that disturbed their peace.",
+  "hiddenSubconsciousWorry": "2 dense paragraphs describing their unspoken inner anxiety, late-night overthinking (2:00 AM to 4:30 AM), emotional dilemma, and feelings of being misunderstood.",
+  "karmaFinancialReality": "2 dense paragraphs detailing their 10th house karma, workplace struggle, why rewards are delayed despite 100% dedication, and money leakage.",
+  "immediateTurningPoint": "2 dense paragraphs detailing the exact turning point timeline (Next 3 to 5 Months) using ENGLISH DIGITS, explaining the Dasha-Bhukti and Gochara planetary shift.",
+  "siddhaPariharaRemedy": "2 dense paragraphs detailing the exact Gemstone (${data.prescriptions.gemstoneRing.primaryGemstoneKn}, ${data.prescriptions.gemstoneRing.caratWeight}), Rudraksha (${data.prescriptions.rudraksha.nameKn}), daily rituals, and Gokarna Kshetra Sankalpa.",
+  "executiveReadingParagraphs": [
+    "Paragraph 1 (The Trigger Incident & Persona)",
+    "Paragraph 2 (Current Conflict & Good Intentions Misunderstood)",
+    "Paragraph 3 (Planetary Reality & Turning Point Timeline in English digits)",
+    "Paragraph 4 (Practical Remedies & Blessings)"
+  ]
+}
+
+STRICT RULES:
+1. Speak DIRECTLY to the devotee in empathetic, authoritative Vedic pandit voice in natural ${isKn ? "Kannada" : "English"}.
+2. NO markdown asterisks (no ** or *).
+3. ALL NUMBERS MUST BE IN ENGLISH DIGITS (1, 2, 3, 4, 5, etc.).
+4. Return ONLY raw valid JSON.`;
+
         const response = await askGemini(
-          "Generate comprehensive live life situation reading",
-          promptContext,
+          "Generate comprehensive live life situation reading and 5 astrologer verbal prompts",
+          promptContextWithJson,
           geminiApiKey,
           isKn ? "kn" : "en",
           { raw: true, temperature: 0.2 }
         );
 
         if (response) {
-          const rawParagraphs = response.split("\n\n").filter((p) => p.trim().length > 0);
-          const cleaned = rawParagraphs.map(cleanAstrologyText);
-          if (cleaned.length >= 2) {
-            setAiNarration(cleaned);
+          try {
+            const cleanJson = response.replace(/```json/g, "").replace(/```/g, "").trim();
+            const parsed = JSON.parse(cleanJson);
+            if (parsed.openingIceBreaker && parsed.hiddenSubconsciousWorry) {
+              setDynamicTalkingPoints({
+                openingIceBreakerKn: cleanAstrologyText(parsed.openingIceBreaker),
+                hiddenSubconsciousWorryKn: cleanAstrologyText(parsed.hiddenSubconsciousWorry),
+                karmaFinancialRealityKn: cleanAstrologyText(parsed.karmaFinancialReality || data.currentDiagnosis.astrologerTalkingPoints.karmaFinancialRealityKn),
+                immediateTurningPointKn: cleanAstrologyText(parsed.immediateTurningPoint || data.currentDiagnosis.astrologerTalkingPoints.immediateTurningPointKn),
+                siddhaPariharaRemedyKn: cleanAstrologyText(parsed.siddhaPariharaRemedy || data.currentDiagnosis.astrologerTalkingPoints.siddhaPariharaRemedyKn)
+              });
+            }
+            if (Array.isArray(parsed.executiveReadingParagraphs) && parsed.executiveReadingParagraphs.length >= 2) {
+              setAiNarration(parsed.executiveReadingParagraphs.map(cleanAstrologyText));
+            }
+          } catch (jsonErr) {
+            const rawParagraphs = response.split("\n\n").filter((p) => p.trim().length > 0);
+            const cleaned = rawParagraphs.map(cleanAstrologyText);
+            if (cleaned.length >= 2) {
+              setAiNarration(cleaned);
+            }
           }
         }
       } catch (err) {
@@ -243,6 +291,14 @@ STRICT RULES:
   const { prescriptions, currentDiagnosis, instantQAList } = synthesisData || {};
   const filteredQA = instantQAList?.filter((item) => activeCategory === "all" || item.category === activeCategory) || [];
 
+  const activeTalkingPoints = dynamicTalkingPoints || (currentDiagnosis ? {
+    openingIceBreakerKn: isKn ? currentDiagnosis.astrologerTalkingPoints.openingIceBreakerKn : (currentDiagnosis.astrologerTalkingPoints.openingIceBreakerEn || currentDiagnosis.astrologerTalkingPoints.openingIceBreakerKn),
+    hiddenSubconsciousWorryKn: isKn ? currentDiagnosis.astrologerTalkingPoints.hiddenSubconsciousWorryKn : (currentDiagnosis.astrologerTalkingPoints.hiddenSubconsciousWorryEn || currentDiagnosis.astrologerTalkingPoints.hiddenSubconsciousWorryKn),
+    karmaFinancialRealityKn: isKn ? currentDiagnosis.astrologerTalkingPoints.karmaFinancialRealityKn : (currentDiagnosis.astrologerTalkingPoints.karmaFinancialRealityEn || currentDiagnosis.astrologerTalkingPoints.karmaFinancialRealityKn),
+    immediateTurningPointKn: isKn ? currentDiagnosis.astrologerTalkingPoints.immediateTurningPointKn : (currentDiagnosis.astrologerTalkingPoints.immediateTurningPointEn || currentDiagnosis.astrologerTalkingPoints.immediateTurningPointKn),
+    siddhaPariharaRemedyKn: isKn ? currentDiagnosis.astrologerTalkingPoints.siddhaPariharaRemedyKn : (currentDiagnosis.astrologerTalkingPoints.siddhaPariharaRemedyEn || currentDiagnosis.astrologerTalkingPoints.siddhaPariharaRemedyKn)
+  } : null);
+
   return (
     <div className="container mx-auto px-4 py-6 max-w-5xl space-y-6 animate-fade-in pb-16">
       {/* TOP NAVIGATION & MODE BAR */}
@@ -292,46 +348,120 @@ STRICT RULES:
         </Card>
       ) : (
         <>
-          {/* 🌟 1. SECRET TALKING POINTS FOR THE ASTROLOGER (ದೈವಜ್ಞ ಮಾರ್ಗದರ್ಶಿ / Talking Prompts) 🌟 */}
-          {currentDiagnosis && (
-            <div className="rounded-3xl border-2 border-emerald-500/80 bg-gradient-to-r from-emerald-950 via-slate-950 to-neutral-900 p-6 text-white shadow-xl space-y-4">
-              <div className="flex items-center justify-between border-b border-emerald-500/30 pb-2.5">
-                <div className="flex items-center gap-2">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-300 text-lg">
+          {/* 🌟 1. SECRET TALKING POINTS FOR THE ASTROLOGER (ದೈವಜ್ಞ ಮಾರ್ಗದರ್ಶಿ / 5 Master Verbal Prompts) 🌟 */}
+          {activeTalkingPoints && (
+            <div className="rounded-3xl border-2 border-emerald-500/80 bg-gradient-to-r from-emerald-950 via-slate-950 to-neutral-900 p-6 md:p-8 text-white shadow-2xl space-y-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-emerald-500/30 pb-4">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-300 text-2xl shadow-inner border border-emerald-500/40">
                     🗣️
                   </span>
                   <div>
-                    <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400 block">
+                    <span className="text-[11px] font-black uppercase tracking-wider text-emerald-400 block">
                       ದೈವಜ್ಞರ ನೇರ ನುಡಿ ಮಾರ್ಗದರ್ಶಿ (Astrologer's Direct Verbal Prompts)
                     </span>
-                    <h3 className="text-sm font-extrabold text-emerald-200">
-                      {isKn ? "ಕ್ಲೈಂಟ್‌ಗೆ ನೇರವಾಗಿ ಹೇಳಬೇಕಾದ ಪ್ರಮುಖ ಸತ್ಯಾಂಶಗಳು (Say these directly)" : "Authoritative Speaking Points"}
+                    <h3 className="text-base md:text-lg font-black text-emerald-100">
+                      {isKn ? "ಕ್ಲೈಂಟ್‌ಗೆ ನೇರವಾಗಿ ಹೇಳಬೇಕಾದ ೫ ಪ್ರಮುಖ ಸತ್ಯಾಂಶಗಳು (Say these directly)" : "5 Master Authoritative Speaking Points"}
                     </h3>
                   </div>
                 </div>
-                <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">
-                  Secret Astrologer Cue
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-black border border-emerald-500/40">
+                    5 Secret Astrologer Cues
+                  </span>
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-                <div className="p-3.5 rounded-2xl bg-white/5 border border-emerald-500/20 space-y-1">
-                  <span className="text-emerald-400 font-bold block text-[11px]">1. ಆರಂಭಿಕ ಮಾತು (Opening Icebreaker):</span>
-                  <p className="text-slate-200 italic leading-relaxed">
-                    "{cleanAstrologyText(currentDiagnosis.astrologerTalkingPoints.openingIceBreakerKn)}"
-                  </p>
+              {/* 5 Dynamic Multi-Paragraph Cards Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs md:text-sm">
+                {/* 1. Opening Icebreaker / The Grill */}
+                <div className="p-5 rounded-2xl bg-white/[0.07] border border-emerald-500/30 space-y-2.5 md:col-span-2 shadow-lg">
+                  <div className="flex items-center justify-between border-b border-emerald-500/20 pb-2">
+                    <span className="text-emerald-300 font-black text-sm flex items-center gap-1.5">
+                      <span>🔥</span>
+                      <span>೧. ಆರಂಭಿಕ ಮುಖಾಮುಖಿ ಸತ್ಯ (Opening Icebreaker / The Direct Hook):</span>
+                    </span>
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">The Grill</span>
+                  </div>
+                  <div className="text-slate-100 leading-relaxed space-y-2">
+                    {activeTalkingPoints.openingIceBreakerKn.split("\n\n").map((p, i) => (
+                      <p key={i} className="italic bg-black/20 p-3 rounded-xl border border-white/5">
+                        "{cleanAstrologyText(p)}"
+                      </p>
+                    ))}
+                  </div>
                 </div>
-                <div className="p-3.5 rounded-2xl bg-white/5 border border-emerald-500/20 space-y-1">
-                  <span className="text-emerald-400 font-bold block text-[11px]">2. ಆಂತರಿಕ ರಹಸ್ಯ (Hidden Subconscious Worry):</span>
-                  <p className="text-slate-200 italic leading-relaxed">
-                    "{cleanAstrologyText(currentDiagnosis.astrologerTalkingPoints.hiddenSubconsciousWorryKn)}"
-                  </p>
+
+                {/* 2. Hidden Subconscious Worry */}
+                <div className="p-5 rounded-2xl bg-white/[0.07] border border-emerald-500/30 space-y-2.5 shadow-lg">
+                  <div className="flex items-center justify-between border-b border-emerald-500/20 pb-2">
+                    <span className="text-emerald-300 font-black text-sm flex items-center gap-1.5">
+                      <span>🧠</span>
+                      <span>೨. ಆಂತರಿಕ ಸುಪ್ತ ಆತಂಕ (Hidden Subconscious Worry):</span>
+                    </span>
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">Mind & Sleep</span>
+                  </div>
+                  <div className="text-slate-100 leading-relaxed space-y-2">
+                    {activeTalkingPoints.hiddenSubconsciousWorryKn.split("\n\n").map((p, i) => (
+                      <p key={i} className="italic bg-black/20 p-3 rounded-xl border border-white/5">
+                        "{cleanAstrologyText(p)}"
+                      </p>
+                    ))}
+                  </div>
                 </div>
-                <div className="p-3.5 rounded-2xl bg-white/5 border border-emerald-500/20 space-y-1">
-                  <span className="text-emerald-400 font-bold block text-[11px]">3. ತಿರುವು ನೀಡುವ ಕಾಲ (Turning Point Timeline):</span>
-                  <p className="text-slate-200 italic leading-relaxed">
-                    "{cleanAstrologyText(currentDiagnosis.astrologerTalkingPoints.immediateTurningPointKn)}"
-                  </p>
+
+                {/* 3. Karma & Career Bottleneck */}
+                <div className="p-5 rounded-2xl bg-white/[0.07] border border-emerald-500/30 space-y-2.5 shadow-lg">
+                  <div className="flex items-center justify-between border-b border-emerald-500/20 pb-2">
+                    <span className="text-emerald-300 font-black text-sm flex items-center gap-1.5">
+                      <span>💼</span>
+                      <span>೩. ಕರ್ಮ & ಆರ್ಥಿಕ ವಾಸ್ತವ (Karma & Financial Bottleneck):</span>
+                    </span>
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">Career & Wealth</span>
+                  </div>
+                  <div className="text-slate-100 leading-relaxed space-y-2">
+                    {activeTalkingPoints.karmaFinancialRealityKn.split("\n\n").map((p, i) => (
+                      <p key={i} className="italic bg-black/20 p-3 rounded-xl border border-white/5">
+                        "{cleanAstrologyText(p)}"
+                      </p>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 4. Turning Point Timeline */}
+                <div className="p-5 rounded-2xl bg-white/[0.07] border border-emerald-500/30 space-y-2.5 shadow-lg">
+                  <div className="flex items-center justify-between border-b border-emerald-500/20 pb-2">
+                    <span className="text-emerald-300 font-black text-sm flex items-center gap-1.5">
+                      <span>⏳</span>
+                      <span>೪. ತಿರುವು ನೀಡುವ ಕಾಲ (Turning Point Timeline):</span>
+                    </span>
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">Dasha & Gochara</span>
+                  </div>
+                  <div className="text-slate-100 leading-relaxed space-y-2">
+                    {activeTalkingPoints.immediateTurningPointKn.split("\n\n").map((p, i) => (
+                      <p key={i} className="italic bg-black/20 p-3 rounded-xl border border-white/5">
+                        "{cleanAstrologyText(p)}"
+                      </p>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 5. Siddha Parihara & Shield */}
+                <div className="p-5 rounded-2xl bg-white/[0.07] border border-emerald-500/30 space-y-2.5 shadow-lg">
+                  <div className="flex items-center justify-between border-b border-emerald-500/20 pb-2">
+                    <span className="text-emerald-300 font-black text-sm flex items-center gap-1.5">
+                      <span>🪔</span>
+                      <span>೫. ಸಿದ್ಧ ಪರಿಹಾರ & ರಕ್ಷಾ ಕವಚ (Siddha Remedies & Grace):</span>
+                    </span>
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">Gem & Temple</span>
+                  </div>
+                  <div className="text-slate-100 leading-relaxed space-y-2">
+                    {activeTalkingPoints.siddhaPariharaRemedyKn.split("\n\n").map((p, i) => (
+                      <p key={i} className="italic bg-black/20 p-3 rounded-xl border border-white/5">
+                        "{cleanAstrologyText(p)}"
+                      </p>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>

@@ -155,8 +155,15 @@ export interface CurrentLifeDiagnosis {
   astrologerTalkingPoints: {
     openingIceBreakerKn: string;
     hiddenSubconsciousWorryKn: string;
+    karmaFinancialRealityKn: string;
     immediateTurningPointKn: string;
+    siddhaPariharaRemedyKn: string;
     technicalAspectsCueKn: string;
+    openingIceBreakerEn?: string;
+    hiddenSubconsciousWorryEn?: string;
+    karmaFinancialRealityEn?: string;
+    immediateTurningPointEn?: string;
+    siddhaPariharaRemedyEn?: string;
   };
   technicalAspects: TechnicalKundliAspects;
 }
@@ -298,7 +305,8 @@ export const generateAstrologicalPrescriptions = (
 
 export const generateCurrentLifeDiagnosis = (
   kundli: KundliOutput,
-  context: { birthDate: string; birthTime: string; latitude: number; longitude: number }
+  context: { birthDate: string; birthTime: string; latitude: number; longitude: number },
+  prescriptions?: AstrologicalPrescriptions
 ): CurrentLifeDiagnosis => {
   const ageDecimal = ageDecimalYearsAt(context.birthDate, context.birthTime, context.latitude, context.longitude, new Date());
   const dasha = findBhuktiAtAge(kundli, ageDecimal);
@@ -408,13 +416,72 @@ export const generateCurrentLifeDiagnosis = (
     `ದೈವಿಕ ಸಂಕಲ್ಪ: ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರನಿಗೆ ಬಿಲ್ವಾರ್ಚನೆ ಹಾಗೂ ನವಗ್ರಹ ಪ್ರಾರ್ಥನೆ ಸಲ್ಲಿಸಿ.`
   ];
 
-  // 5. Secret Astrologer Verbal Prompts (Talking Points for the Pandit)
-  const openingIceBreakerKn = `ನೋಡಿ, ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ 4ನೇ ಮನೆ ಹಾಗೂ 5ನೇ ಮನೆಯ ಗ್ರಹ ಸಂಯೋಗವನ್ನು ನೋಡಿದರೆ ನಿಮ್ಮ ಮೂಲ ಗುಣ ತುಂಬಾ ನೇರ ಮತ್ತು ಪ್ರಾಮಾಣಿಕ. ಆದರೆ ಕಳೆದ ಕೆಲವು ತಿಂಗಳುಗಳಿಂದ ನಿಮ್ಮ ಮನಸ್ಸಿಗೆ ಒಪ್ಪುವಂತೆ ಕೆಲಸಗಳು ಆಗುತ್ತಿಲ್ಲ, ಹೌದಲ್ಲವೇ?`;
-  const hiddenSubconsciousWorryKn = mentalIssue 
-    ? `ಚಂದ್ರನ ಸ್ಥಾನದಿಂದಾಗಿ ನಿಮ್ಮ ಮನಸ್ಸಿನಲ್ಲಿ ಹೊರಗೆ ಹೇಳಿಕೊಳ್ಳಲಾಗದ ಆತಂಕವೊಂದು ಸದಾ ಕಾಡುತ್ತಿದೆ; ರಾತ್ರಿ ನಿದ್ರೆಯಲ್ಲೂ ಅದೇ ಯೋಚನೆಗಳು ಬರುತ್ತಿವೆ.` 
-    : `ನೀವು ಕುಟುಂಬದ ಬಗ್ಗೆ ಸದಾ ಯೋಚಿಸುತ್ತಿದ್ದೀರಿ, ಎಲ್ಲರನ್ನೂ ಜೊತೆಯಲ್ಲಿಟ್ಟುಕೊಂಡು ಮುನ್ನಡೆಯಬೇಕೆಂಬ ಹಂಬಲ ನಿಮಗಿದೆ.`;
-  const immediateTurningPointKn = `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${maha} ಮಹಾದಶೆಯಲ್ಲಿ ಇನ್ನು ಮುಂದಿನ 4 ರಿಂದ 6 ತಿಂಗಳುಗಳಲ್ಲಿ ಪರಿಸ್ಥಿತಿ ನಿಮ್ಮ ಪರವಾಗಿ ಬದಲಾಗಲಿದೆ; ಧೈರ್ಯ ಕಳೆದುಕೊಳ್ಳಬೇಡಿ.`;
-  const technicalAspectsCueKn = `ಜಾತಕದ 7ನೇ ಮನೆಯ ದೃಷ್ಟಿ ಹಾಗೂ 10ನೇ ಮನೆಯ ದಶಾ ಸಂಧಿಕಾಲದ ಪ್ರಭಾವದಿಂದ ಈ ಘಟನೆಗಳು ನಡೆಯುತ್ತಿವೆ.`;
+  // 5. Secret Astrologer Verbal Prompts (5 Master Dynamic Fields - 2 Paragraphs Each)
+  const lagnaName = kundli.lagnaRashi.sanskrit;
+  const lagnaEng = kundli.lagnaRashi.english;
+  const moonRashiName = kundli.moonSign.sanskrit;
+  const moonNakName = moon?.nakshatra.english ?? "Ashwini";
+
+  // Field 1: Opening Icebreaker / The Direct Hook / "The Grill"
+  const openingP1 = `ನೋಡಿ, ನಿಮ್ಮ ಜಾತಕವನ್ನು ಪ್ರವೇಶಿಸಿದ ತಕ್ಷಣ ನಿಮ್ಮ ${lagnaName} ಲಗ್ನ ಹಾಗೂ ${moonRashiName} ರಾಶಿಯ ${moonNakName} ನಕ್ಷತ್ರದ ಗ್ರಹ ಸಂಯೋಜನೆಯು ಎದ್ದು ಕಾಣುತ್ತದೆ. ನಿಮ್ಮ ಮೂಲ ಪ್ರಕೃತಿ ಅತ್ಯಂತ ಸ್ವಾಭಿಮಾನಿ, ನೇರ ನಿಷ್ಠುರ ಹಾಗೂ ಅನ್ಯಾಯವನ್ನು ಎಂದಿಗೂ ಸಹಿಸದ ಪ್ರಾಮಾಣಿಕ ಗುಣವನ್ನು ಹೊಂದಿದೆ. ನೀವು ಎಂದಿಗೂ ಯಾರ ಮುಂದೆಯೂ ಅನಗತ್ಯವಾಗಿ ಕೈಚಾಚುವವರಲ್ಲ; ನಿಮ್ಮ ಸ್ವಂತ ಪರಿಶ್ರಮದ ಮೇಲೆ ಮಾತ್ರ ಬಲವಾದ ನಂಬಿಕೆ ಇಟ್ಟವರು. ಆದರೆ ನಿಮ್ಮ ಈ ಅತಿಯಾದ ನೇರ ನಡವಳಿಕೆ ಮತ್ತು ಮುಚ್ಚುಮರೆಯಿಲ್ಲದ ಮಾತುಗಳೇ ಇತ್ತೀಚಿನ ದಿನಗಳಲ್ಲಿ ನಿಮ್ಮ ಸುತ್ತಮುತ್ತಲಿನ ಜನರಲ್ಲಿ ಕಸಿವಿಸಿ ಉಂಟುಮಾಡಿದೆ ಮತ್ತು ನೀವು ಮಾಡದ ತಪ್ಪಿಗೂ ನಿಮ್ಮ ಮೇಲೆ ಅಪವಾದ ಅಥವಾ ಆಪಾದನೆಗಳು ಬರುವಂತೆ ಮಾಡಿದೆ, ಹೌದಲ್ಲವೇ?`;
+
+  const openingP2 = challengeArea === "Career / Workplace"
+    ? `ವಿಶೇಷವಾಗಿ ಕಳೆದ 3 ರಿಂದ 6 ತಿಂಗಳುಗಳಿಂದ ನಿಮ್ಮ ಕಾರ್ಯಕ್ಷೇತ್ರದಲ್ಲಿ ಒಂದು ನಿರ್ದಿಷ್ಟ ಘಟನೆ ನಡೆದುಹೋಗಿದೆ. ನೀವು ಕಚೇರಿಯಲ್ಲಿ ನಿಸ್ವಾರ್ಥವಾಗಿ ಮತ್ತು ನಿಷ್ಠೆಯಿಂದ ಹಗಲಿರುಳು ಶ್ರಮಪಟ್ಟರೂ, ಆ ಶ್ರಮದ ಕೀರ್ತಿ ಮತ್ತು ಮನ್ನಣೆ ನಿಮ್ಮ ಕೈತಪ್ಪಿ ಬೇರೆಯವರ ಪಾಲಾಗಿದೆ. ನೀವು ನಂಬಿದ ಸಹೋದ್ಯೋಗಿಗಳು ಅಥವಾ ಹಿರಿಯ ಅಧಿಕಾರಿಗಳು ನಿಮ್ಮ ವಿರುದ್ಧ ತೆರೆಮರೆಯಲ್ಲಿ ತಂತ್ರಗಳನ್ನು ರೂಪಿಸಿ ನಿಮ್ಮನ್ನು ಕಡೆಗಣಿಸಿರುವುದು ನಿಮ್ಮ ಸ್ವಾಭಿಮಾನಕ್ಕೆ ಬಿದ್ದ ತೀವ್ರ ಆಘಾತವಾಗಿದೆ. ನೀವು ಇಂದು ನನ್ನ ಬಳಿ ಜ್ಯೋತಿಷ್ಯ ಮಾರ್ಗದರ್ಶನ ಬಯಸಿ ಬಂದಿರುವುದು ಕೇವಲ ಭವಿಷ್ಯ ತಿಳಿಯಲು ಅಲ್ಲ; ನಿಮ್ಮ ಆತ್ಮಗೌರವಕ್ಕೆ ಆದ ಅನ್ಯಾಯಕ್ಕೆ ನ್ಯಾಯ ಮತ್ತು ಮುಕ್ತಿ ಪಡೆಯಲು.`
+    : challengeArea === "Personal / Marriage"
+    ? `ವಿಶೇಷವಾಗಿ ಕಳೆದ ಕೆಲವು ತಿಂಗಳುಗಳಿಂದ ನಿಮ್ಮ ಕೌಟುಂಬಿಕ ಅಥವಾ ವೈವಾಹಿಕ ಜೀವನದಲ್ಲಿ ಒಂದು ಅನಿರೀಕ್ಷಿತ ತಿರುವು ಸಂಭವಿಸಿದೆ. ನೀವು ಇತರರ ಒಳಿತಿಗಾಗಿ ಮತ್ತು ಕುಟುಂಬದ ಹಿತಕ್ಕಾಗಿ ತೆಗೆದುಕೊಂಡ ಸದುದ್ದೇಶದ ನಿರ್ಧಾರಗಳನ್ನು ಆಪ್ತರೇ ತಪ್ಪಾಗಿ ಗ್ರಹಿಸಿ, ನಿಮ್ಮ ಮೇಲೆಯೇ ದೋಷ ಹೊರಿಸುವ ವಾತಾವರಣ ಸೃಷ್ಟಿಯಾಗಿದೆ. ನಿಮ್ಮ ಮನಸ್ಸಿನ ನೋವನ್ನು ಯಾರೊಂದಿಗೂ ಹಂಚಿಕೊಳ್ಳಲಾಗದೆ, ಮನೆಯಲ್ಲೇ ಏಕಾಂಗಿತನದ ಸಂಕಟವನ್ನು ಅನುಭವಿಸುತ್ತಿದ್ದೀರಿ. ಈ ಸಂಬಂಧಗಳ ಬಿಕ್ಕಟ್ಟಿಗೆ ಶಾಶ್ವತ ಪರಿಹಾರ ಕಂಡುಕೊಳ್ಳುವ ತುಡಿತವೇ ನಿಮ್ಮನ್ನು ಇಂದು ಇಲ್ಲಿಗೆ ಕರೆತಂದಿದೆ.`
+    : challengeArea === "Financial / Debts"
+    ? `ವಿಶೇಷವಾಗಿ ಕಳೆದ 3 ರಿಂದ 6 ತಿಂಗಳುಗಳಲ್ಲಿ ಆರ್ಥಿಕ ವಲಯದಲ್ಲಿ ಆದ ಒಂದು ಹಿನ್ನಡೆ ನಿಮ್ಮ ದೈನಂದಿನ ಶಾಂತಿಯನ್ನು ಕೆಡಿಸಿದೆ. ನೀವು ನಂಬಿ ಕೊಟ್ಟ ಹಣ ಅಥವಾ ಬರಬೇಕಾದ ವ್ಯಾಪಾರದ ಬಾಕಿ ಹಣ ಸಮಯಕ್ಕೆ ಕೈಸೇರದೆ, ಬಂಡವಾಳ ಮತ್ತು ದೈನಂದಿನ ಜವಾಬ್ದಾರಿಗಳಿಗೆ ಪರದಾಡುವಂತಾಗಿದೆ. ಹಣದ ಸೋರಿಕೆಯು ನಿಮ್ಮ ಎಲ್ಲಾ ಹೊಸ ಯೋಜನೆಗಳಿಗೆ ತಡೆಯೊಡ್ಡಿದೆ. ಈ ಆರ್ಥಿಕ ಸಂಕೋಲೆಯಿಂದ ಹೊರಬಂದು ಸ್ವಾವಲಂಬನೆ ಮರಳಿ ಪಡೆಯುವ ದೃಢ ಸಂಕಲ್ಪದೊಂದಿಗೆ ನೀವು ಇಂದು ಬಂದಿದ್ದೀರಿ.`
+    : `ವಿಶೇಷವಾಗಿ ಕಳೆದ 3 ರಿಂದ 6 ತಿಂಗಳುಗಳಿಂದ ನಿಮ್ಮ ಜೀವನದ ದಿಕ್ಕನ್ನೇ ಬದಲಿಸುವಂತಹ ಒಂದು ಅನಿರೀಕ್ಷಿತ ಘರ್ಷಣೆ ಅಥವಾ ಮಾನಸಿಕ ತೊಳಲಾಟ ನಿಮ್ಮಲ್ಲಿ ಆರಂಭವಾಗಿದೆ. ನಿಮ್ಮ ಸಾಮರ್ಥ್ಯಕ್ಕೆ ತಕ್ಕ ವೇದಿಕೆ ಸಿಗದೆ, ಎಷ್ಟೇ ಪ್ರಯತ್ನಿಸಿದರೂ ಕೆಲಸಗಳು ಕೊನೆಯ ಕ್ಷಣದಲ್ಲಿ ಕೈತಪ್ಪಿ ಹೋಗುತ್ತಿರುವುದು ನಿಮ್ಮ ತಾಳ್ಮೆಯನ್ನು ಪರೀಕ್ಷಿಸುತ್ತಿದೆ. ಈ ಅಡೆತಡೆಗಳ ನಿಜವಾದ ಮೂಲ ಕಾರಣ ಮತ್ತು ದೈವಿಕ ಪರಿಹಾರ ತಿಳಿಯಲು ನೀವು ಇಂದು ಬಂದಿದ್ದೀರಿ.`;
+
+  const openingIceBreakerKn = `${openingP1}\n\n${openingP2}`;
+
+  // Field 2: Hidden Subconscious Worry & Mental State
+  const hiddenP1 = `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಮನಃಕಾರಕ ಚಂದ್ರನ ಸ್ಥಾನ (${moon?.house ?? 1}ನೇ ಭಾವ) ಹಾಗೂ 4ನೇ ಮನೆಯ (ಸುಖ/ನೆಮ್ಮದಿ ಸ್ಥಾನ) ಗ್ರಹ ಪ್ರಭಾವವನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ನೋಡಿದರೆ, ಹೊರಜಗತ್ತಿಗೆ ನೀವು ಅತ್ಯಂತ ಧೈರ್ಯಶಾಲಿ ಮತ್ತು ಸ್ಥಿರ ಮನಸ್ಸಿನವರಂತೆ ಕಂಡರೂ, ನಿಮ್ಮ ಅಂತರಂಗದಲ್ಲಿ ಸದಾ ಒಂದು ಹೇಳಿಕೊಳ್ಳಲಾಗದ ಸುಪ್ತ ಆತಂಕ ಜ್ವಾಲೆಯಂತೆ ಧಗಧಗಿಸುತ್ತಿದೆ. ಪ್ರಮುಖವಾಗಿ ರಾತ್ರಿ 2:00 AM ರಿಂದ 4:30 AM ರ ಮುಂಜಾನೆಯ ಬ್ರಾಹ್ಮೀ ಮುಹೂರ್ತದ ಹೊತ್ತಿಗೆ ನಿಮಗೆ ಗಾಢ ನಿದ್ರೆ ಬಾರದೆ, ಹಳೆಯ ಕಹಿ ಘಟನೆಗಳು, ಅವಮಾನಗಳು ಹಾಗೂ ಭವಿಷ್ಯದ ಅನಿಶ್ಚಿತತೆಯ ಯೋಚನೆಗಳು ನಿಮ್ಮ ಮನಸ್ಸನ್ನು ನಿರಂತರವಾಗಿ ಕಾಡುತ್ತಿವೆ.`;
+
+  const hiddenP2 = mentalIssue
+    ? `'ನನ್ನ ಪ್ರಾಮಾಣಿಕತೆ ಮತ್ತು ತ್ಯಾಗವನ್ನು ಮನೆಯಲ್ಲಿ ಅಥವಾ ಸಮಾಜದಲ್ಲಿ ಯಾರೂ ಸರಿಯಾಗಿ ಅರ್ಥಮಾಡಿಕೊಳ್ಳುತ್ತಿಲ್ಲ; ಪ್ರತಿಯೊಬ್ಬರೂ ತಮ್ಮ ಸ್ವಾರ್ಥ ಮುಗಿದ ಮೇಲೆ ನನ್ನನ್ನು ಕಡೆಗಣಿಸುತ್ತಾರೆ' ಎಂಬ ಆಳವಾದ ಅಸಹಾಯಕತೆ ನಿಮ್ಮನ್ನು ದಿನನಿತ್ಯ ಕೊರಗುವಂತೆ ಮಾಡಿದೆ. ಈ ಭಾವನಾತ್ಮಕ ನೋವನ್ನು ನೀವು ಯಾರ ಮುಂದೆಯೂ ಬಿಚ್ಚಿಡದೆ ನಿಮ್ಮೊಳಗೇ ಹೂತುಹಾಕುತ್ತಿರುವುದು ನಿಮ್ಮ ನರಮಂಡಲ ಮತ್ತು ರಕ್ತದೊತ್ತಡದ ಮೇಲೆ ಒತ್ತಡವನ್ನುಂಟುಮಾಡುತ್ತಿದೆ. ನಿಮ್ಮ ಮನಸ್ಸಿಗೆ ತಕ್ಷಣದ ದೈವಿಕ ನೆಮ್ಮದಿ ಮತ್ತು ಭರವಸೆಯ ಅವಶ್ಯಕತೆ ಇದೆ.`
+    : `ನೀವು ಸದಾ ಕುಟುಂಬದ ಹಿತ, ಮಕ್ಕಳ ಭವಿಷ್ಯ ಹಾಗೂ ಆಪ್ತರ ರಕ್ಷಣೆಯ ಬಗ್ಗೆಯೇ ಅತಿಯಾಗಿ ಆಲೋಚಿಸುತ್ತಿದ್ದೀರಿ (Overthinking). ಎಲ್ಲರನ್ನೂ ಜೊತೆಯಲ್ಲಿಟ್ಟುಕೊಂಡು ಮುನ್ನಡೆಯಬೇಕೆಂಬ ನಿಮ್ಮ ಹಂಬಲಕ್ಕೆ ಇತರರಿಂದ ನಿರೀಕ್ಷಿತ ಸಹಕಾರ ಸಿಗದಿರುವುದು ನಿಮ್ಮ ಮನಸ್ಸಿಗೆ ಆಂತರಿಕ ಬೇಸರವನ್ನುಂಟುಮಾಡಿದೆ. ನಿಮ್ಮೊಳಗಿನ ಈ ಆತಂಕವನ್ನು ನೀವು ಮೌನವಾಗಿ ನುಂಗಿಕೊಳ್ಳುತ್ತಿದ್ದೀರಿ; ಆದರೆ ಈ ಮೌನವೇ ನಿಮ್ಮ ನೆಮ್ಮದಿಯನ್ನು ಕಸಿಯುತ್ತಿದೆ.`;
+
+  const hiddenSubconsciousWorryKn = `${hiddenP1}\n\n${hiddenP2}`;
+
+  // Field 3: Karma, Career & Financial Bottleneck
+  const karmaP1 = `ಕರ್ಮ ಸ್ಥಾನವಾದ 10ನೇ ಮನೆ ಹಾಗೂ ಧನ ಸ್ಥಾನವಾದ 2ನೇ ಮತ್ತು 11ನೇ ಮನೆಗಳ ಗ್ರಹಬಲದ ಲೆಕ್ಕಾಚಾರದ ಪ್ರಕಾರ, ನಿಮ್ಮ ವೃತ್ತಿ, ಉದ್ಯೋಗ ಅಥವಾ ವ್ಯಾಪಾರ ಕ್ಷೇತ್ರದಲ್ಲಿ ನೀವು ಶೇಕಡಾ 100 ರಷ್ಟು ನಿಷ್ಠೆ ಮತ್ತು ಕಠಿಣ ಪರಿಶ್ರಮವನ್ನು ಹಾಕುತ್ತಿದ್ದರೂ, ಪ್ರಸ್ತುತ ಸಿಗುತ್ತಿರುವ ಪ್ರತಿಫಲ ಮಾತ್ರ ಕೇವಲ ಶೇಕಡಾ 40 ರಿಂದ 50 ರಷ್ಟು ಮಾತ್ರ. ನಿಮ್ಮ ಅರ್ಹತೆಗೆ ತಕ್ಕ ವೇತನ, ಬಡ್ತಿ ಅಥವಾ ಮಾರುಕಟ್ಟೆ ಮನ್ನಣೆ ಸಿಗದೆ, ನಿಮ್ಮ ಜಾಗದಲ್ಲಿ ಕಡಿಮೆ ಪರಿಶ್ರಮದ ವ್ಯಕ್ತಿಗಳು ಸುಲಭವಾಗಿ ಲಾಭ ಪಡೆಯುತ್ತಿರುವುದು ನಿಮ್ಮ ಕರ್ಮದ ಅಗ್ನಿಪರೀಕ್ಷೆಯಾಗಿದೆ.`;
+
+  const karmaP2 = `ಇದಲ್ಲದೆ, ಕೈಗೆ ಬಂದ ಆದಾಯವು ಉಳಿತಾಯವಾಗದೆ ಯಾವುದಾದರೊಂದು ಅನಿರೀಕ್ಷಿತ ಖರ್ಚು, ಆರೋಗ್ಯ ಸಮಸ್ಯೆ, ವಾಹನ ದುರಸ್ತಿ ಅಥವಾ ಕೌಟುಂಬಿಕ ತುರ್ತು ಅಗತ್ಯಗಳಿಗೆ ನೀರಿನಂತೆ ಸೋರಿಹೋಗುತ್ತಿದೆ. 'ನನ್ನ ಶ್ರಮಕ್ಕೆ ಶಾಶ್ವತ ಫಲ ಸಿಗುವ ಕಾಲ ಯಾವಾಗ ಬರಲಿದೆ?' ಎಂಬ ಪ್ರಶ್ನೆ ನಿಮ್ಮನ್ನು ಸದಾ ಕಾಡುತ್ತಿದೆ. ಆದರೆ ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿರುವ ಕರ್ಮದ ಅಧಿಪತಿಯು ನಿಮ್ಮನ್ನು ವೃತ್ತಿಪರವಾಗಿ ಹದಗೊಳಿಸುತ್ತಿದ್ದಾನೆ; ಈ ಹಿನ್ನಡೆಗಳು ನಿಮ್ಮ ಮುಂದಿನ ಮಹತ್ತರ ಜಯಕ್ಕೆ ಅಡಿಪಾಯವಾಗಲಿವೆ.`;
+
+  const karmaFinancialRealityKn = `${karmaP1}\n\n${karmaP2}`;
+
+  // Field 4: Exact Turning Point Timeline & Gochara Shift
+  const turningP1 = `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${maha} ಮಹಾದಶೆಯ ${bhukti} ಭುಕ್ತಿಯ ಅಂತ್ಯದ ಹಂತ ಹಾಗೂ ಮುಂಬರುವ ಗೋಚಾರ ಗ್ರಹಗಳ ಚಲನೆಯನ್ನು ಗಣಿತೀಯವಾಗಿ ಲೆಕ್ಕ ಹಾಕಿದರೆ, ಈ ಕಠಿಣ ಗ್ರಹಪರೀಕ್ಷೆಯ ಅವಧಿ ಶಾಶ್ವತವಲ್ಲ. ಇನ್ನು ಮುಂದಿನ 3 ರಿಂದ 5 ತಿಂಗಳುಗಳಲ್ಲಿ (Next 3 to 5 Months), ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಬೃಹತ್ ಸಕಾರಾತ್ಮಕ ಗ್ರಹಗತಿಯ ತಿರುವು (Major Astrological Turning Point) ನಿಖರವಾಗಿ ಘಟಿಸಲಿದೆ. ಗೋಚಾರ ಗುರುವಿನ ಪೂರ್ಣ ಶುಭ ದೃಷ್ಟಿಯು ನಿಮ್ಮ 10ನೇ ಮತ್ತು 2ನೇ ಭಾವಗಳ ಮೇಲೆ ಬೀಳಲಾರಂಭಿಸುತ್ತದೆ.`;
+
+  const turningP2 = `ಈ ಶುಭ ಕಾಲಾವಧಿಯು ಆರಂಭವಾಗುತ್ತಿದ್ದಂತೆ, ನಿಮ್ಮ ವಿರುದ್ಧ ಇದ್ದ ಶತ್ರು ಬಾಧೆಗಳು, ಕಚೇರಿಯ ಅಪವಾದಗಳು ಹಾಗೂ ಕೌಟುಂಬಿಕ ತಪ್ಪು ತಿಳುವಳಿಕೆಗಳು ತಾವಾಗಿಯೇ ಬಗೆಹರಿಯಲಿವೆ. ಹೊಸ ಉದ್ಯೋಗದ ಪ್ರಸ್ತಾಪ, ಗೌರವಯುತ ಸ್ಥಾನ ಬದಲಾವಣೆ ಅಥವಾ ವ್ಯಾಪಾರದಲ್ಲಿ ಸ್ಥಗಿತಗೊಂಡಿದ್ದ ಧನಾಗಮನವು ಪುನರಾರಂಭವಾಗಲಿದೆ. ಧೈರ್ಯಗೆಡದೆ ಮುನ್ನಡೆಯಿರಿ; ನಿಮ್ಮ ತಾಳ್ಮೆಯ ಪರೀಕ್ಷೆ ಮುಗಿದು ಭಾಗ್ಯೋದಯದ ಹೊಸ ಅಧ್ಯಾಯವು ತೆರೆದುಕೊಳ್ಳುವ ದಿನಗಳು ಅತ್ಯಂತ ಸಮೀಪದಲ್ಲಿವೆ.`;
+
+  const immediateTurningPointKn = `${turningP1}\n\n${turningP2}`;
+
+  // Field 5: Siddha Remedies, Gemstone, Rudraksha & Temple Sankalpa
+  const gemName = prescriptions?.gemstoneRing?.primaryGemstoneKn || "ಮಾಣಿಕ್ಯ";
+  const gemCarat = prescriptions?.gemstoneRing?.caratWeight || "4.25 - 5.50 ಕ್ಯಾರಟ್";
+  const gemMetal = prescriptions?.gemstoneRing?.metalKn || "ಚಿನ್ನ ಅಥವಾ ಪಂಚಲೋಹ";
+  const gemFinger = prescriptions?.gemstoneRing?.fingerKn || "ಉಂಗುರದ ಬೆರಳು (ಅನಾಮಿಕಾ)";
+  const rudraName = prescriptions?.rudraksha?.nameKn || "ಏಕಮುಖಿ ಅಥವಾ ಪಂಚಮುಖಿ ರುದ್ರಾಕ್ಷಿ";
+
+  const remedyP1 = `ಈ ಗ್ರಹ ದೋಷಗಳ ತಕ್ಷಣದ ಶಾಂತಿಗಾಗಿ ಮತ್ತು ನಿಮ್ಮ ${lagnaName} ಲಗ್ನಾಧಿಪತಿಯ ಬಲವರ್ಧನೆಗಾಗಿ, ನೀವು ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಪ್ರಾಣಪ್ರತಿಷ್ಠಾಪನೆ ಮಾಡಿ ಶುದ್ಧೀಕರಿಸಿದ ${gemName} ರತ್ನವನ್ನು (${gemCarat}) ${gemMetal}ದಲ್ಲಿ ಮಾಡಿಸಿ ${gemFinger}ದಲ್ಲಿ ಶುಭ ದಿನದಂದು ಧರಿಸಬೇಕು. ಇದರೊಂದಿಗೆ ನಿಮ್ಮ ಜನ್ಮ ನಕ್ಷತ್ರ ಮತ್ತು ರಾಶಿಯ ಅನುಗ್ರಹಕ್ಕಾಗಿ ${rudraName}ಯನ್ನು ರೇಷ್ಮೆ ದಾರದಲ್ಲಿ ಕಂಠದಲ್ಲಿ ಧಾರಣೆ ಮಾಡುವುದರಿಂದ ಅಂತರಂಗದ ನಕಾರಾತ್ಮಕ ಶಕ್ತಿಗಳು ನಿವಾರಣೆಯಾಗಿ, ಅಭೇದ್ಯ ದೈವಿಕ ರಕ್ಷಾ ಕವಚವು ಸಿದ್ಧವಾಗುತ್ತದೆ.`;
+
+  const remedyP2 = `ದಿನನಿತ್ಯ ಪ್ರಾತಃಕಾಲ ಸೂರ್ಯ ಗಾಯತ್ರಿ ಮಂತ್ರವನ್ನು 11 ಬಾರಿ ಪಠಿಸಿ ಹಾಗೂ ಪ್ರತಿ ಶನಿವಾರ ಸಂಜೆ ನೈಋತ್ಯ ದಿಕ್ಕಿನಲ್ಲಿ ಎಳ್ಳೆಣ್ಣೆ ದೀಪ ಬೆಳಗಿಸಿ. ದೈವಿಕ ಪರಿಹಾರವಾಗಿ, ಪರಮ ಪವಿತ್ರ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಆತ್ಮಲಿಂಗ ಸನ್ನಿಧಿಯಲ್ಲಿ ನಿಮ್ಮ ಜನ್ಮ ನಕ್ಷತ್ರದ ಹೆಸರಿನಲ್ಲಿ ಬಿಲ್ವಾರ್ಚನೆ ಹಾಗೂ ನವಗ್ರಹ ಪ್ರಾರ್ಥನೆ ಸಲ್ಲಿಸಿ. ಈ ದೈವಿಕ ಉಪಾಸನೆಯು ನಿಮ್ಮ ಸಮಸ್ತ ಕರ್ಮ ದೋಷಗಳನ್ನು ಭಸ್ಮ ಮಾಡಿ, ನಿಮ್ಮ ಮುಂಬರುವ 3 ರಿಂದ 5 ತಿಂಗಳ ಕಾಲಾವಧಿಯಲ್ಲಿ ಸಂಪೂರ್ಣ ಯಶಸ್ಸು ತರಲಿದೆ.`;
+
+  const siddhaPariharaRemedyKn = `${remedyP1}\n\n${remedyP2}`;
+  const technicalAspectsCueKn = `ಜಾತಕದ 4ನೇ ಮನೆಯ ಮನಃಸ್ಥಿತಿ, 10ನೇ ಮನೆಯ ಕರ್ಮ ಸ್ಥಾನ ಮತ್ತು ಪ್ರಸ್ತುತ ${maha}-${bhukti} ದಶಾ ಸಂಧಿಕಾಲದ ಪ್ರಭಾವದಿಂದ ಈ ಘಟನೆಗಳು ನಡೆಯುತ್ತಿವೆ.`;
+
+  // English counterparts for complete bilingual capability
+  const openingIceBreakerEn = `Looking deeply into your chart, your ${lagnaEng} Ascendant and Moon in ${kundli.moonSign.english} with ${moonNakName} Nakshatra creates a fiercely independent, highly principled, and honest character. You never solicit favors unnecessarily, relying entirely on your own diligent efforts. However, this very straightforwardness and refusal to flatter has recently created friction among people around you, causing unfair misunderstandings or blame to be directed at you without any fault of your own.\n\nSpecifically, over the past 3 to 6 months, a triggering incident in your active environment has shaken your peace. Despite working selflessly, credit for your work was denied or diverted to others. You have come today not merely to know about the future, but to reclaim your rightful dignity and find divine justice for this unfair burden.`;
+
+  const hiddenSubconsciousWorryEn = `Looking at Moon's sensitive placement (House ${moon?.house ?? 1}) and the 4th house of mental serenity, while you appear courageous and steady to the outside world, an unspoken inner anxiety burns quietly within you. Particularly between 2:00 AM and 4:30 AM during the pre-dawn hours, deep restorative sleep is disrupted as memories of past betrayals and worries about future uncertainty persistently occupy your mind.\n\nA feeling that 'no one at home or in society truly understands my sacrifices and honesty; everyone takes me for granted' causes you quiet sorrow. Because you suppress these emotions rather than expressing them, it is taking a toll on your inner vitality. Your mind requires immediate divine reassurance and peace.`;
+
+  const karmaFinancialRealityEn = `According to your 10th house of profession and 2nd/11th houses of finances, even though you are investing 100% devotion and hard work into your career or business, you are currently realizing only 40% to 50% of the rightful returns. Less deserving individuals are moving forward easily while you face tests of endurance.\n\nFurthermore, incoming revenue leaks away into unexpected expenses, emergency commitments, or household obligations. The question 'when will my labor bear permanent fruit?' troubles you. However, your 10th lord is tempering your expertise; these delays are laying the foundation for your imminent breakthrough.`;
+
+  const immediateTurningPointEn = `Calculating the ending phase of running ${maha} Mahadasha with ${bhukti} Antardasha and upcoming Gochara planetary transits, this difficult testing period is strictly temporary. Over the Next 3 to 5 Months, a major positive astrological turning point will occur as benefic Jupiterian aspects illuminate your 10th and 2nd houses.\n\nAs this window activates, workplace opposition and familial misunderstandings will dissolve naturally. New career openings, honor, or recovery of blocked funds will materialize. Maintain your inner courage; the planetary tide is turning in your favor.`;
+
+  const siddhaPariharaRemedyEn = `To pacify these planetary afflictions and energize your ${lagnaEng} Lagna Lord, you should wear an energized ${prescriptions?.gemstoneRing?.primaryGemstoneEn || "Ruby"} gemstone (${gemCarat}) set in ${prescriptions?.gemstoneRing?.metalEn || "Gold"} on the ${prescriptions?.gemstoneRing?.fingerEn || "Ring finger"} on an auspicious weekday. Additionally, adorning an authentic ${prescriptions?.rudraksha?.nameEn || "Rudraksha"} around the neck will create an impenetrable shield against negative vibrations.\n\nChant the Surya Gayatri Mantra 11 times every morning and light a sesame oil lamp facing southwest on Saturday evenings. Perform a special Bilvarchana and Navagraha prayer at sacred Gokarna Mahabaleshwara Kshetra in your birth star name to dissolve karmic obstacles and guarantee complete success.`;
 
   return {
     mentalStateIssue: {
@@ -437,8 +504,15 @@ export const generateCurrentLifeDiagnosis = (
     astrologerTalkingPoints: {
       openingIceBreakerKn,
       hiddenSubconsciousWorryKn,
+      karmaFinancialRealityKn,
       immediateTurningPointKn,
-      technicalAspectsCueKn
+      siddhaPariharaRemedyKn,
+      technicalAspectsCueKn,
+      openingIceBreakerEn,
+      hiddenSubconsciousWorryEn,
+      karmaFinancialRealityEn,
+      immediateTurningPointEn,
+      siddhaPariharaRemedyEn
     },
     technicalAspects
   };
@@ -664,7 +738,7 @@ export const generatePanchangaAngaSynthesis = (
   const karanaRule = KARANA_RULES[karanaKey]!;
 
   const prescriptions = generateAstrologicalPrescriptions(kundli, yogaRule, karanaRule);
-  const currentDiagnosis = generateCurrentLifeDiagnosis(kundli, context);
+  const currentDiagnosis = generateCurrentLifeDiagnosis(kundli, context, prescriptions);
   const instantQAList = generateInstantQAList(kundli, currentDiagnosis, prescriptions);
 
   // Build Multi-Paragraph Astrologer Reading (Clean Kannada + English Digits + In-Depth Face-to-Face Mind Reading)
