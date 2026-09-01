@@ -7,6 +7,7 @@ import { buildDailyPoojaSteps, type DailyPoojaStep } from "../../features/seva/d
 import { useSankalpaStore } from "../../features/sankalpa/sankalpaStore";
 import { ManageSankalpaModal } from "./ManageSankalpaModal";
 import { PostPoojaRemedyJapaCard } from "./PostPoojaRemedyJapaCard";
+import { VedicAudioLoaderModal } from "../ui/VedicAudioLoaderModal";
 import type { KundliOutput } from "../../core/AstroTypes";
 
 export interface DailyPoojaSankalpaModalProps {
@@ -131,7 +132,10 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
         autoPlayTimerRef.current = null;
       }
     });
-    return () => unregister();
+    return () => {
+      unregister();
+      cleanupAudioAndTimers();
+    };
   }, []);
 
   const cleanupAudioAndTimers = () => {
@@ -788,6 +792,15 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
         userId={devoteeKey}
         devoteeName={devoteeName}
         lang={lang}
+      />
+
+      {/* Full Blocking Big Loader for Sarvam AI Voice */}
+      <VedicAudioLoaderModal
+        isOpen={isAudioLoading}
+        onCancel={cleanupAudioAndTimers}
+        titleKn="ಪೂಜಾ ಮಂತ್ರ & ಸಂಕಲ್ಪ ಧ್ವನಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..."
+        titleEn="Generating Sacred Priest Audio (Sarvam AI Neural TTS)..."
+        subtitleKn="ವೇದ ಮಂತ್ರಗಳ ಉಚ್ಛಾರಣೆ & ಸಂಕಲ್ಪ ಧ್ವನಿ ಲೋಡ್ ಆಗುತ್ತಿದೆ, ದಯವಿಟ್ಟು ನಿರೀಕ್ಷಿಸಿ."
       />
     </>
   );

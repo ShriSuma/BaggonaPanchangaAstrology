@@ -14,7 +14,7 @@
  * - Auto-Trigger 90-Day .ics Calendar Download on QR code scan & 1-Tap download button
  */
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { getDevoteeSalutation, buildDeterministicPriestBenediction } from "../features/seva/sevaPriestNarrativeEngine";
 import { getDailyKaalaTimings, getEnergyMeterAndVibe, generateSevaICalendarString, downloadIcsFile, getDayLordIndex, calculateDeterministicRhythmDay, getTaraBalaInfo, getChandraBalaInfo } from "../features/seva/icsCalendarGenerator";
 import { decodeDevoteeToken } from "../utils/tokenCipher";
@@ -58,6 +58,7 @@ import { SanctumPrayerBox } from "../components/darshana/SanctumPrayerBox";
 import { playTempleBellChime } from "../features/seva/priestAudioNarrator";
 import { synthesizeAndPlayClonedVoice, stopClonedAudio } from "../features/audio/aiVoiceCloneEngine";
 import { stopAllAudioGlobal, onGlobalAudioStop } from "../features/audio/globalAudioManager";
+import { VedicAudioLoaderModal } from "../components/ui/VedicAudioLoaderModal";
 import { useAppStore } from "../stores/appStore";
 import { getOrComputeDinaBhavishya, type DinaBhavishyaPayload } from "../features/seva/dinaBhavishyaEngine";
 import { computePersonalizedDarshanaPayload } from "../features/darshana/dailyDarshanaPersonalizationEngine";
@@ -1923,6 +1924,33 @@ export default function DailyDarshanaPage(): JSX.Element {
     }
   };
 
+  // Sanctum Voice Section Ref for out-of-viewport auto-stop
+  const sanctumVoiceSectionRef = useRef<HTMLDivElement>(null);
+
+  // Auto-stop background voice if the user scrolls the audio section out of viewport
+  useEffect(() => {
+    if (typeof window === "undefined" || !("IntersectionObserver" in window)) return;
+    const target = sanctumVoiceSectionRef.current;
+    if (!target) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting && (activeVoiceState === "playing" || activeVoiceState === "loading" || isPlayingAudio)) {
+            stopAllAudioGlobal();
+            setActiveVoiceKey("none");
+            setActiveVoiceState("idle");
+            setIsPlayingAudio(false);
+          }
+        });
+      },
+      { threshold: 0.05 }
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [activeVoiceState, isPlayingAudio]);
+
   const requestedCalendarDays = useMemo(() => {
     const raw = Number((decoded as any)?.dy || (decoded as any)?.days || (decoded as any)?.duration || params.get("days") || 90);
     return Number.isFinite(raw) && raw > 0 ? raw : 90;
@@ -2782,15 +2810,18 @@ export default function DailyDarshanaPage(): JSX.Element {
             </div>
 
             {/* Sacred Deity Vedic Shloka & Mantra Card (100% Dynamic Kundli + Gochara + Dasha) */}
-            <div style={{
-              background: "linear-gradient(135deg, #78350F 0%, #451A03 100%)",
-              border: "2px solid #D4AF37",
-              borderRadius: 16,
-              padding: 18,
-              marginBottom: 16,
-              textAlign: "center",
-              boxShadow: "0 6px 20px rgba(0,0,0,0.5)"
-            }}>
+            <div
+              ref={sanctumVoiceSectionRef}
+              style={{
+                background: "linear-gradient(135deg, #78350F 0%, #451A03 100%)",
+                border: "2px solid #D4AF37",
+                borderRadius: 16,
+                padding: 18,
+                marginBottom: 16,
+                textAlign: "center",
+                boxShadow: "0 6px 20px rgba(0,0,0,0.5)"
+              }}
+            >
               <div style={{ fontSize: 11, textTransform: "uppercase", color: "#FDE68A", fontWeight: 800, marginBottom: 4, letterSpacing: "0.5px" }}>
                 🪔 {lang === "kn" ? "ಇಂದಿನ ಇಷ್ಟದೇವತಾ ಪ್ರಾರ್ಥನೆ & ಸಿದ್ಧ ವೈದಿಕ ಶ್ಲೋಕ" : "Today's Sacred Deity & Vedic Shloka"} · {deity.name[lang] || deity.name.en}
               </div>
@@ -3602,6 +3633,19 @@ export default function DailyDarshanaPage(): JSX.Element {
         devoteeName={devoteeDisplayName}
         lang={lang}
         onOpenPooja={() => setIsPoojaModalOpen(true)}
+      />
+
+      {/* Full Blocking Big Loader for Sarvam AI Voice in Daily Darshana */}
+      <VedicAudioLoaderModal
+        isOpen={isBenedictionLoading || isMantraLoading}
+        onCancel={() => {
+          stopAllAudioGlobal();
+          setActiveVoiceKey("none");
+          setActiveVoiceState("idle");
+        }}
+        titleKn={isMantraLoading ? "ಇಷ್ಟದೇವತಾ ಮಂತ್ರ ಧ್ವನಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : "ಪ್ರಧಾನ ಅರ್ಚಕರ ಆಶೀರ್ವಚನ ಧ್ವನಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..."}
+        titleEn="Synthesizing Sacred Priest Voice (Sarvam AI Indic Neural TTS)..."
+        subtitleKn="ಪವಿತ್ರ ಮಂತ್ರ ಹಾಗೂ ಆಶೀರ್ವಾದದ ಆಡಿಯೋ ಸಿದ್ಧವಾಗುತ್ತಿದೆ, ದಯವಿಟ್ಟು ನಿರೀಕ್ಷಿಸಿ."
       />
     </div>
   );

@@ -25,6 +25,7 @@ const CURRENT_TAB_ID = typeof window !== "undefined"
 let currentPlaybackToken = 0;
 const activeAudios = new Set<HTMLAudioElement>();
 const activeAudioContexts = new Set<AudioContext>();
+const activeAbortControllers = new Set<AbortController>();
 const stopListeners = new Set<() => void>();
 
 let syncChannel: BroadcastChannel | null = null;
@@ -63,6 +64,18 @@ if (typeof window !== "undefined") {
   window.addEventListener("pagehide", () => {
     stopAllAudioLocal();
   });
+  window.addEventListener("popstate", () => {
+    stopAllAudioLocal();
+  });
+
+  // Stop audio when document is hidden / tab switched
+  if (typeof document !== "undefined") {
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        stopAllAudioLocal();
+      }
+    });
+  }
 }
 
 /**
@@ -77,6 +90,16 @@ export function registerActiveAudio(audio: HTMLAudioElement): () => void {
   audio.addEventListener("pause", cleanup);
   audio.addEventListener("error", cleanup);
   return cleanup;
+}
+
+/**
+ * Registers an active AbortController so pending network requests (Sarvam AI / ElevenLabs) can be cancelled immediately.
+ */
+export function registerAbortController(controller: AbortController): () => void {
+  activeAbortControllers.add(controller);
+  return () => {
+    activeAbortControllers.delete(controller);
+  };
 }
 
 /**
@@ -106,7 +129,15 @@ export function onGlobalAudioStop(callback: () => void): () => void {
 export function stopAllAudioLocal(): void {
   currentPlaybackToken++;
 
-  // 1. Pause and reset all HTMLAudioElements
+  // 1. Abort all in-flight fetch requests (Sarvam AI, ElevenLabs)
+  for (const controller of activeAbortControllers) {
+    try {
+      controller.abort();
+    } catch {}
+  }
+  activeAbortControllers.clear();
+
+  // 2. Pause and reset all HTMLAudioElements
   for (const audio of activeAudios) {
     try {
       audio.pause();
@@ -116,7 +147,7 @@ export function stopAllAudioLocal(): void {
   }
   activeAudios.clear();
 
-  // 2. Cancel native browser SpeechSynthesis
+  // 3. Cancel native browser SpeechSynthesis
   if (typeof window !== "undefined" && "speechSynthesis" in window) {
     try {
       (window as any).__baggonaActiveUtterance = null;
@@ -124,7 +155,7 @@ export function stopAllAudioLocal(): void {
     } catch {}
   }
 
-  // 3. Suspend/Close any active Web Audio AudioContexts
+  // 4. Suspend/Close any active Web Audio AudioContexts
   for (const ctx of activeAudioContexts) {
     try {
       if (ctx.state !== "closed") {
@@ -134,7 +165,7 @@ export function stopAllAudioLocal(): void {
   }
   activeAudioContexts.clear();
 
-  // 4. Notify all UI listeners
+  // 5. Notify all UI listeners
   for (const listener of stopListeners) {
     try {
       listener();

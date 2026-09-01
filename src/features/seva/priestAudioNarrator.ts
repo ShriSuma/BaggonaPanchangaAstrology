@@ -13,6 +13,8 @@ import { getVoiceProfileById, type PriestAudioKey } from "../audio/priestVoiceDa
 import { synthesizeAndPlayClonedVoice, stopClonedAudio } from "../audio/aiVoiceCloneEngine";
 import {
   stopAllAudioGlobal,
+  startNewAudioSession,
+  isPlaybackTokenActive,
   registerActiveAudio,
   registerAudioContext
 } from "../audio/globalAudioManager";
@@ -99,14 +101,20 @@ export function speakPriestNarration(
     return () => {};
   }
 
+  const token = startNewAudioSession();
   const profile = getVoiceProfileById(voiceId);
 
   // Pure Real-time AI Voice Synthesis (Sarvam AI Neural TTS with Web Speech Fallback)
   let cancelCloneFn: (() => void) | null = null;
   synthesizeAndPlayClonedVoice(text, lang, voiceId, onEnd, onStart).then((cancelFn) => {
+    if (!isPlaybackTokenActive(token)) {
+      if (cancelFn) cancelFn();
+      return;
+    }
     cancelCloneFn = cancelFn;
   }).catch(() => {
-    cancelCloneFn = fallbackMaleTTS(text, lang, onEnd, profile?.voicePitch || 0.74, profile?.voiceRate || 0.86, onStart);
+    if (!isPlaybackTokenActive(token)) return;
+    cancelCloneFn = fallbackMaleTTS(text, lang, onEnd, profile?.voicePitch || 0.74, profile?.voiceRate || 0.86, onStart, token);
   });
 
   return () => {
@@ -121,8 +129,11 @@ function fallbackMaleTTS(
   onEnd?: () => void,
   pitch = 0.74,
   rate = 0.86,
-  onStart?: () => void
+  onStart?: () => void,
+  token?: number
 ): () => void {
+  if (token !== undefined && !isPlaybackTokenActive(token)) return () => {};
+
   if (typeof window === "undefined" || !("speechSynthesis" in window)) {
     if (onStart) onStart();
     if (onEnd) setTimeout(onEnd, 2000);

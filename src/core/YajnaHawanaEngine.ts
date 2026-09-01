@@ -2,11 +2,24 @@ import { KundliOutput, PlanetName } from "./AstroTypes";
 import { toKannadaPlanet, toKannadaRashi, toKannadaNakshatra, sanitizeAstrologyKannadaText } from "../utils/kannadaAstrologyTerms";
 import { computeKundliInsights } from "./KundliInsightsEngine";
 
+export type SevaDomain = "pitru_karya" | "deva_karya";
+
 export interface YajnaHawanaItem {
   id: string;
   nameKn: string;
   nameEn: string;
-  category: "shatru_raksha" | "sudarshana_raksha" | "navagraha" | "rahu_ketu_sandhi" | "dasha_sandhi" | "mrityunjaya_ayushya" | "pitru_narayana_bali" | "gokarna_abhisheka";
+  domain: SevaDomain; // "pitru_karya" (Apara/Ancestral) vs "deva_karya" (Shubha/Divine)
+  category: 
+    | "pitru_narayana_bali" 
+    | "pitru_tripindi"
+    | "pitru_tila_homa"
+    | "shatru_raksha" 
+    | "sudarshana_raksha" 
+    | "navagraha" 
+    | "rahu_ketu_sandhi" 
+    | "dasha_sandhi" 
+    | "mrityunjaya_ayushya" 
+    | "gokarna_abhisheka";
   categoryLabelKn: string;
   icon: string;
   isUrgentPrimary: boolean;
@@ -20,10 +33,27 @@ export interface YajnaHawanaItem {
   priestSecretNoteEn: string;
 }
 
-export interface CombinedSamputaSeva {
+export interface CombinedSacredSchedule {
+  scheduleType: "two_stage_multi_day" | "single_day_deva_samputa";
   titleKn: string;
   titleEn: string;
-  includedHomasKn: string[];
+  stage1PitruKarya?: {
+    dayLabelKn: string;
+    placeKn: string;
+    ritualsKn: string[];
+    descriptionKn: string;
+  };
+  restPeriodShuddhi?: {
+    dayLabelKn: string;
+    descriptionKn: string;
+    shastraRuleKn: string;
+  };
+  stage2DevaKarya: {
+    dayLabelKn: string;
+    placeKn: string;
+    ritualsKn: string[];
+    descriptionKn: string;
+  };
   synergyExplanationKn: string;
   synergyExplanationEn: string;
   recommendedMuhurthaKn: string;
@@ -37,18 +67,20 @@ export interface PitruDoshaAssessment {
   suggestedKaryaKn: string;
   detailedExplanationKn: string;
   gokarnaSignificanceKn: string;
+  shastraSeparationRuleKn: string;
 }
 
 export interface YajnaHawanaEngineOutput {
-  recommendedHomas: YajnaHawanaItem[];
-  combinedSamputaSeva: CombinedSamputaSeva;
+  pitruKaryas: YajnaHawanaItem[];
+  devaHomas: YajnaHawanaItem[];
+  combinedSchedule: CombinedSacredSchedule;
   pitruDoshaAssessment: PitruDoshaAssessment;
   overallAstrologicalPrescriptionSummaryKn: string;
 }
 
 /**
  * 100% Dynamic Yajna, Hawana, Sandhi & Pitru Dosha Seva Calculation Engine.
- * Evaluates birth Kundli, planetary aspects, house afflictions, Dasha-Bhukti, and Maandi.
+ * Enforces strict Vedic separation between Pitru Karya (Apara) and Deva Karya (Shubha).
  */
 export function generateYajnaHawanaPlan(
   kundli: KundliOutput,
@@ -81,7 +113,6 @@ export function generateYajnaHawanaPlan(
   let isSunSaturn = false;
   let isRahu9th = false;
   let isKetu9th = false;
-  let isSunDusthana = false;
 
   if (sun && rahu && sun.rashi.index === rahu.rashi.index) {
     pitruReasonsKn.push("ಆತ್ಮಕಾರಕ ರವಿ ಹಾಗೂ ರಾಹು ಒಂದೇ ರಾಶಿಯಲ್ಲಿ ಸಂಯೋಗ (ಗ್ರಹಣ ಯೋಗ / ಪಿತೃ ಶಾಪ ಛಾಯೆ)");
@@ -93,7 +124,6 @@ export function generateYajnaHawanaPlan(
   }
   if (sun && [6, 8, 12].includes(sun.house)) {
     pitruReasonsKn.push(`ರವಿ ಗ್ರಹವು ${sun.house}ನೇ ದುಸ್ಥಾನದಲ್ಲಿ ಸ್ಥಿತನಾಗಿರುವುದು (ಪಿತೃ ಸ್ಥಾನದ ಬಲಹೀನತೆ)`);
-    isSunDusthana = true;
   }
   if (rahu && rahu.house === 9) {
     pitruReasonsKn.push("9ನೇ ಭಾಗ್ಯ/ಪಿತೃ ಸ್ಥಾನದಲ್ಲಿ ರಾಹು ಗ್ರಹದ ಸ್ಥಿತಿ (ಪೂರ್ವಜರ ತೃಪ್ತಿಯ ಕೊರತೆ)");
@@ -109,15 +139,15 @@ export function generateYajnaHawanaPlan(
 
   const hasPitruDosha = pitruReasonsKn.length > 0 || insights.pitru.level !== "none";
   let pitruSeverity: "none" | "mild" | "moderate" | "severe" = "none";
-  let pitruSeverityLabelKn = "ದೋಷವಿಲ್ಲ";
+  let pitruSeverityLabelKn = "ದೋಷವಿಲ್ಲ (ಪೂರ್ವಜರ ಪೂರ್ಣ ಆಶೀರ್ವಾದವಿದೆ)";
 
   if (hasPitruDosha) {
     if (isSunRahu || pitruReasonsKn.length >= 3) {
       pitruSeverity = "severe";
-      pitruSeverityLabelKn = "ತೀವ್ರ ಪಿತೃ ದೋಷ (ಉತ್ತಮ ಫಲಕ್ಕಾಗಿ ತಕ್ಷಣದ ನಾರಾಯಣ ಬಲಿ ಅಗತ್ಯ)";
+      pitruSeverityLabelKn = "ತೀವ್ರ ಪಿತೃ ದೋಷ (ಉತ್ತಮ ಫಲಕ್ಕಾಗಿ ತಕ್ಷಣದ ನಾರಾಯಣ ಬಲಿ & ತ್ರಿಪಿಂಡಿ ಅಗತ್ಯ)";
     } else if (pitruReasonsKn.length === 2 || isSunSaturn || isRahu9th) {
       pitruSeverity = "moderate";
-      pitruSeverityLabelKn = "ಮಧ್ಯಮ ಪಿತೃ ದೋಷ (ತಿಲ ಹವನ ಹಾಗೂ ಪಿತೃ ತರ್ಪಣ ಶಿಫಾರಸು)";
+      pitruSeverityLabelKn = "ಮಧ್ಯಮ ಪಿತೃ ದೋಷ (ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ, ತಿಲ ಹವನ ಹಾಗೂ ಪಿತೃ ತರ್ಪಣ ಶಿಫಾರಸು)";
     } else {
       pitruSeverity = "mild";
       pitruSeverityLabelKn = "ಸೂಕ್ಷ್ಮ ಪಿತೃ ಋಣ (ದೈವಿಕ ಸಂಕಲ್ಪದಿಂದ ಶಮನ)";
@@ -127,7 +157,7 @@ export function generateYajnaHawanaPlan(
   const suggestedPitruKaryaKn = pitruSeverity === "severe"
     ? "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ನಾರಾಯಣ ಬಲಿ, ಪ್ರೇತೋದ್ಧಾರಣ ಶ್ರಾದ್ಧ, ತಿಲ ಹವನ ಹಾಗೂ ಗೋ ಪ್ರದಾನ"
     : pitruSeverity === "moderate"
-    ? "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ತಿಲ ಹವನ, ಪಿಂಡ ಪ್ರದಾನ ಹಾಗೂ ಪಿತೃ ತರ್ಪಣ"
+    ? "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ, ತಿಲ ಹವನ, ಪಿಂಡ ಪ್ರದಾನ ಹಾಗೂ ಪಿತೃ ತರ್ಪಣ"
     : "ಅಮಾವಾಸ್ಯೆಯಂದು ಪಿತೃ ತರ್ಪಣ ಹಾಗೂ ಬ್ರಾಹ್ಮಣ ಭೋಜನ ಸಂಕಲ್ಪ";
 
   const pitruDoshaAssessment: PitruDoshaAssessment = {
@@ -138,23 +168,114 @@ export function generateYajnaHawanaPlan(
     suggestedKaryaKn: suggestedPitruKaryaKn,
     detailedExplanationKn: sanitizeAstrologyKannadaText(
       hasPitruDosha
-        ? `ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ 9ನೇ ಪಿತೃ ಸ್ಥಾನ ಹಾಗೂ ಆತ್ಮಕಾರಕ ರವಿಯ ಸ್ಥಿತಿಯನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ಹಿಂದಿನ ತಲೆಮಾರಿನ ಪೂರ್ವಜರ ತರ್ಪಣ, ಶ್ರಾದ್ಧ ಅಥವಾ ಅಂತ್ಯಕ್ರಿಯೆಗಳ ವಿಧಿಯು ಸಾಂಗವಾಗಿ ನೆರವೇರದಿರುವ ಛಾಯೆ ಕಂಡುಬರುತ್ತಿದೆ. ಇದರಿಂದಾಗಿ ಎಷ್ಟೇ ಕಠಿಣ ಪರಿಶ್ರಮಪಟ್ಟರೂ ಕೈಗೆ ಬಂದ ಫಲ ಕೊನೆಯ ಕ್ಷಣದಲ್ಲಿ ತಪ್ಪಿಹೋಗುವುದು, ಸಂತಾನ ವಿಳಂಬ ಅಥವಾ ಕೌಟುಂಬಿಕ ಅಶಾಂತಿ ಉಂಟಾಗುತ್ತದೆ.`
+        ? `ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ 9ನೇ ಪಿತೃ ಸ್ಥಾನ ಹಾಗೂ ಆತ್ಮಕಾರಕ ರವಿಯ ಸ್ಥಿತಿಯನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ಹಿಂದಿನ ತಲೆಮಾರಿನ ಪೂರ್ವಜರ ತರ್ಪಣ, ಶ್ರಾದ್ಧ ಅಥವಾ ಅಪರ ಕರ್ಮಗಳ ವಿಧಿಯು ಸಾಂಗವಾಗಿ ನೆರವೇರದಿರುವ ಛಾಯೆ ಕಂಡುಬರುತ್ತಿದೆ. ಇದರಿಂದಾಗಿ ಎಷ್ಟೇ ಕಠಿಣ ಪರಿಶ್ರಮಪಟ್ಟರೂ ಕೊನೆಯ ಕ್ಷಣದಲ್ಲಿ ಕೆಲಸ ತಪ್ಪಿಹೋಗುವುದು, ಸಂತಾನ ವಿಳಂಬ ಅಥವಾ ಕೌಟುಂಬಿಕ ಅಶಾಂತಿ ಉಂಟಾಗುತ್ತದೆ.`
         : `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಪೂರ್ವಜರ ಸಂಪೂರ್ಣ ಆಶೀರ್ವಾದವಿದೆ. ಯಾವುದೇ ಗಂಭೀರ ಪಿತೃ ದೋಷವಿಲ್ಲ.`
     ),
     gokarnaSignificanceKn: sanitizeAstrologyKannadaText(
-      `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣವು ದಕ್ಷಿಣ ಕಾಶಿ ಎಂದೇ ಪ್ರಸಿದ್ಧವಾಗಿದ್ದು, ಮಹಾಬಲೇಶ್ವರ ಆತ್ಮಲಿಂಗ ಹಾಗೂ ಪವಿತ್ರ ಕೋಟಿತೀರ್ಥದ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸಲ್ಲಿಸುವ ನಾರಾಯಣ ಬಲಿ ಮತ್ತು ತಿಲ ಹವನವು 21 ತಲೆಮಾರಿನ ಪೂರ್ವಜರ ಆತ್ಮಗಳಿಗೆ ಶಾಶ್ವತ ಮುಕ್ತಿ ನೀಡಿ, ಕುಟುಂಬಕ್ಕೆ ಸಕಲ ಭಾಗ್ಯೋದಯವನ್ನು ಕರುಣಿಸುತ್ತದೆ.`
+      `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣವು ದಕ್ಷಿಣ ಕಾಶಿ ಎಂದೇ ಪ್ರಸಿದ್ಧವಾಗಿದ್ದು, ಮಹಾಬಲೇಶ್ವರ ಆತ್ಮಲಿಂಗ ಹಾಗೂ ಪವಿತ್ರ ಕೋಟಿತೀರ್ಥದ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸಲ್ಲಿಸುವ ನಾರಾಯಣ ಬಲಿ, ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ ಮತ್ತು ತಿಲ ಹವನವು 21 ತಲೆಮಾರಿನ ಪೂರ್ವಜರ ಆತ್ಮಗಳಿಗೆ ಶಾಶ್ವತ ಮುಕ್ತಿ ನೀಡಿ, ಕುಟುಂಬಕ್ಕೆ ಸಕಲ ಭಾಗ್ಯೋದಯವನ್ನು ಕರುಣಿಸುತ್ತದೆ.`
+    ),
+    shastraSeparationRuleKn: sanitizeAstrologyKannadaText(
+      `ಧರ್ಮಶಾಸ್ತ್ರದ ಕಟ್ಟುನಿಟ್ಟಿನ ನಿಯಮ: ಪಿತೃ ಕಾರ್ಯ (ಅಪರ ಕರ್ಮ) ಮತ್ತು ದೇವತಾ ಕಾರ್ಯ (ಶುಭ ಹವನ) ಎರಡನ್ನೂ ಎಂದಿಗೂ ಒಂದೇ ದಿನ ಅಥವಾ ಒಂದೇ ಮುಹೂರ್ತದಲ್ಲಿ ಜೊತೆಯಾಗಿ ಮಾಡಬಾರದು. ಮೊದಲು ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ಪಿತೃ ಮುಕ್ತಿ ನೆರವೇರಿಸಿ, ೧ ದಿನದ ಶೌಚ-ಶುದ್ಧಿ & ವಿಶ್ರಾಂತಿ ಪಡೆದ ನಂತರವೇ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಶುಭ ದೇವತಾ ಹವನಗಳನ್ನು ನೆರವೇರಿಸಬೇಕು.`
     )
   };
 
-  // 3. Dynamic Homa Recommendations Pool
-  const allHomas: YajnaHawanaItem[] = [];
+  // ==========================================
+  // SECTION 1: PITRU KARYAS (ಅಪರ ಕರ್ಮ / ಮುಕ್ತಿ)
+  // ==========================================
+  const pitruKaryas: YajnaHawanaItem[] = [];
 
-  // HOMA 1: Chandi / Durga Hawana (ಶತ್ರು ಬಾಧೆ, 6ನೇ ಮನೆ, ಕುಜ-ರಾಹು ಸಂಯೋಗ)
+  if (hasPitruDosha) {
+    // 1. Narayana Bali & Preta Uddharana
+    pitruKaryas.push({
+      id: "pitru_narayana_bali",
+      nameKn: "ಶ್ರೀ ನಾರಾಯಣ ಬಲಿ & ಪ್ರೇತೋದ್ಧಾರಣ ಮಹಾ ಸಂಕಲ್ಪ",
+      nameEn: "Sri Narayana Bali & Preta Uddharana Maha Sankalpa",
+      domain: "pitru_karya",
+      category: "pitru_narayana_bali",
+      categoryLabelKn: "ಪಿತೃ ಶಾಪ ವಿಮೋಚನೆ & ಆತ್ಮ ಸದ್ಗತಿ",
+      icon: "🌾",
+      isUrgentPrimary: pitruSeverity === "severe",
+      astrologicalRootCauseKn: sanitizeAstrologyKannadaText(
+        `ಜಾತಕದ 9ನೇ ಪಿತೃ ಸ್ಥಾನದಲ್ಲಿ ರಾಹು/ಕೇತು ಸ್ಥಿತಿ ಹಾಗೂ ರವಿ-ರಾಹುಗಳ ಗ್ರಹಣ ಯೋಗದಿಂದಾಗಿ ಅತೃಪ್ತ ಪೂರ್ವಜರ ಪ್ರೇತ ಛಾಯೆಯಿದೆ. ಇದು ಸಂತಾನ ವಿಳಂಬ, ಆರ್ಥಿಕ ಸ್ಥಗಿತತೆ ಹಾಗೂ ವಂಶಾಭಿವೃದ್ಧಿಯ ಅಡೆತಡೆಗೆ ಮೂಲ ಕಾರಣವಾಗಿದೆ.`
+      ),
+      astrologicalRootCauseEn: "9th house affliction and Sun-Rahu conjunction causing ancestral unrest and generational blockages.",
+      sacredProcedureKn: sanitizeAstrologyKannadaText(
+        `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥ ತೀರದಲ್ಲಿ ನಾರಾಯಣ ಬಲಿ ವಿಧಿ, ಬ್ರಹ್ಮ-ವಿಷ್ಣು-ರುದ್ರ-ಯಮ-ಪ್ರೇತ ಆವಾಹನೆ, 16 ಪಿಂಡ ಪ್ರದಾನ, ಪ್ರಾಯಶ್ಚಿತ್ತ ತಿಲ ಹವನ ಹಾಗೂ ಗೋ ಪ್ರದಾನ.`
+      ),
+      sacredProcedureEn: "Narayana Bali rituals at Gokarna Kotiteertha with Brahma-Vishnu-Rudra invocations, 16 Pinda Pradanam, and Tila Havan.",
+      expectedShiftsAfterPoojaKn: sanitizeAstrologyKannadaText(
+        `ಪೂರ್ವಜರ ಆತ್ಮಗಳಿಗೆ ಶಾಶ್ವತ ಮುಕ್ತಿ ದೊರೆತು ಅವರ ಪೂರ್ಣ ಆಶೀರ್ವಾದ ಲಭಿಸುತ್ತದೆ. ಕುಟುಂಬದಲ್ಲಿ ನೆಮ್ಮದಿ, ಸಂತಾನ ಭಾಗ್ಯ, ಕಂಕಣ ಭಾಗ್ಯ ಹಾಗೂ ಆರ್ಥಿಕ ಸ್ಥಗಿತತೆಗಳು ತಕ್ಷಣವೇ ನಿವಾರಣೆಯಾಗುತ್ತವೆ.`
+      ),
+      expectedShiftsAfterPoojaEn: "Liberation of ancestral souls, releasing profound blessings that clear generational obstacles in marriage, progeny, and wealth.",
+      priestSecretNoteKn: `[ದೈವಜ್ಞರ ಆಂತರಿಕ ಟಿಪ್ಪಣಿ: ಪಿತೃ ದೋಷವಿದ್ದಾಗ ಇತರ ಯಾವುದೇ ದೇವತಾ ಪೂಜೆ ಫಲ ಕೊಡುವುದಿಲ್ಲ; ಮೊದಲು ನಾರಾಯಣ ಬಲಿ ಮೂಲಕ ಪಿತೃ ಮುಕ್ತಿ ಮಾಡಿಸುವುದು ಪ್ರಥಮ ಕರ್ತವ್ಯ]`,
+      priestSecretNoteEn: "[Astrologer Note: When Pitru Dosha is present, Narayana Bali is the paramount prerequisite before other rituals bear fruit]."
+    });
+
+    // 2. Tripindi Shradha
+    pitruKaryas.push({
+      id: "pitru_tripindi",
+      nameKn: "ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ & ಪಿತೃ ತೃಪ್ತಿ ಮಹಾ ವಿಧಿ",
+      nameEn: "Tripindi Shradha & Ancestral Pacification Ritual",
+      domain: "pitru_karya",
+      category: "pitru_tripindi",
+      categoryLabelKn: "ಮೂರು ತಲೆಮಾರಿನ ಪಿತೃ ತೃಪ್ತಿ",
+      icon: "🕊️",
+      isUrgentPrimary: pitruSeverity === "moderate" || pitruSeverity === "severe",
+      astrologicalRootCauseKn: sanitizeAstrologyKannadaText(
+        `ತಂದೆ, ತಾತ, ಮುತ್ತಾತ ಮೂರು ತಲೆಮಾರಿನ ಪೂರ್ವಜರ ಶ್ರಾದ್ಧ ತರ್ಪಣಗಳು ಲೋಪವಾಗಿದ್ದಾಗ ಅಥವಾ ಅಕಾಲಿಕ ನಿಧನರಾದ ಆತ್ಮಗಳ ತೃಪ್ತಿಗಾಗಿ ಈ ಶಾಂತಿ ಅತ್ಯಗತ್ಯವಾಗಿದೆ.`
+      ),
+      astrologicalRootCauseEn: "Pacification for three generational ancestral lines and unfulfilled death rites.",
+      sacredProcedureKn: sanitizeAstrologyKannadaText(
+        `ಬ್ರಹ್ಮ, ವಿಷ್ಣು ಮತ್ತು ರುದ್ರ ದೇವತೆಗಳಿಗೆ ೩ ಪಿಂಡಗಳ ಅರ್ಪಣೆ (ತಾಮ್ರ, ಬೆಳ್ಳಿ, ಬಂಗಾರ ಸಂಕಲ್ಪ), ಯವ-ತಿಲ ತರ್ಪಣ ಹಾಗೂ ಗೋಕರ್ಣ ಪುಣ್ಯ ಸ್ನಾನ.`
+      ),
+      sacredProcedureEn: "Three sacred Pinda offerings to Brahma, Vishnu, and Rudra with barley and sesame oblations at Gokarna.",
+      expectedShiftsAfterPoojaKn: sanitizeAstrologyKannadaText(
+        `ಮನೆಗೆ ಅಂಟಿದ್ದ ಅಶಾಂತಿ, ಪದೇಪದೇ ಉಂಟಾಗುತ್ತಿದ್ದ ಅನಾರೋಗ್ಯ ಹಾಗೂ ಅನಿರೀಕ್ಷಿತ ಧನ ನಷ್ಟಗಳು ಸಂಪೂರ್ಣವಾಗಿ ನಿವಾರಣೆಯಾಗುತ್ತವೆ.`
+      ),
+      expectedShiftsAfterPoojaEn: "Total cleansing of generational domestic unrest, chronic illnesses, and unexpected financial drains.",
+      priestSecretNoteKn: `[ದೈವಜ್ಞರ ಆಂತರಿಕ ಟಿಪ್ಪಣಿ: ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧವು ಸತ್ವ, ರಜಸ್, ತಮಸ್ ಮೂರು ಗುಣಗಳ ಪೂರ್ವಜರ ಅತೃಪ್ತಿಯನ್ನು ಶಮನಗೊಳಿಸುತ್ತದೆ]`,
+      priestSecretNoteEn: "[Astrologer Note: Tripindi Shradha harmonizes Satva, Rajas, and Tamas ancestral unrest]."
+    });
+
+    // 3. Tila Hawana & Pitru Tharpanam
+    pitruKaryas.push({
+      id: "pitru_tila_homa",
+      nameKn: "ಪಿತೃ ಮುಕ್ತಿ ತಿಲ ಹವನ & ಪವಿತ್ರ ಕೋಟಿತೀರ್ಥ ತರ್ಪಣ",
+      nameEn: "Pitru Mukti Tila Hawana & Kotiteertha Tharpanam",
+      domain: "pitru_karya",
+      category: "pitru_tila_homa",
+      categoryLabelKn: "ತಿಲ ಹವನ & ಪವಿತ್ರ ತರ್ಪಣ",
+      icon: "🕯️",
+      isUrgentPrimary: false,
+      astrologicalRootCauseKn: sanitizeAstrologyKannadaText(
+        `ಜಾತಕದಲ್ಲಿ ರವಿ ದುಸ್ಥಾನದಲ್ಲಿದ್ದು, ಪಿತೃ ಋಣದ ಛಾಯೆ ಇರುವಾಗ ಪೂರ್ವಜರಿಗೆ ಶಾಂತಿ ಮತ್ತು ತೃಪ್ತಿ ನೀಡಲು ಕಪ್ಪು ಎಳ್ಳಿನ ಹವನ ಶ್ರೇಷ್ಠ.`
+      ),
+      astrologicalRootCauseEn: "Sun in Dusthana inducing ancestral debt, relieved through consecrated sesame oblation.",
+      sacredProcedureKn: sanitizeAstrologyKannadaText(
+        `ಕಪ್ಪು ಎಳ್ಳು, ತುಪ್ಪ, ದರ್ಭೆಗಳಿಂದ ಪಿತೃ ಗಾಯತ್ರಿ ಮಂತ್ರ ಸಮೇತ ಹವನ ಹಾಗೂ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ಪ್ರಾಣಾಯಾಮ ತರ್ಪಣ.`
+      ),
+      sacredProcedureEn: "Sacred black sesame, ghee, and Darbha grass offerings with Pitru Gayatri mantras at Kotiteertha.",
+      expectedShiftsAfterPoojaKn: sanitizeAstrologyKannadaText(
+        `ಮನಸ್ಸಿನಲ್ಲಿರುವ ಅಪರಾಧ ಭಾವನೆಗಳು ದೂರವಾಗಿ, ಪೂರ್ವಜರ ನಿರಂತರ ರಕ್ಷಣೆ ಕುಟುಂಬಕ್ಕೆ ಸಿಗುತ್ತದೆ.`
+      ),
+      expectedShiftsAfterPoojaEn: "Relief from ancestral remorse and securing ongoing protective blessings for the progeny.",
+      priestSecretNoteKn: `[ದೈವಜ್ಞರ ಆಂತರಿಕ ಟಿಪ್ಪಣಿ: ತಿಲ ಹವನವು ಪಿತೃಗಳ ಸೂಕ್ಷ್ಮ ಶರೀರಕ್ಕೆ ತೃಪ್ತಿ ನೀಡಿ ಪುಣ್ಯ ಫಲವನ್ನು ವೃದ್ಧಿಸುತ್ತದೆ]`,
+      priestSecretNoteEn: "[Astrologer Note: Tila Hawana provides subtle body satisfaction to ancestors, amplifying merit]."
+    });
+  }
+
+  // ==========================================
+  // SECTION 2: DEVA KARYAS (ದೇವತಾ ಯಜ್ಞ & ಶುಭ ಹವನ)
+  // ==========================================
+  const devaHomas: YajnaHawanaItem[] = [];
+
+  // HOMA 1: Chandi / Durga Hawana
   const is6thAfflicted = (mars && [6, 8, 12].includes(mars.house)) || (rahu && [6, 10].includes(rahu.house)) || context?.primaryChallenge === "Career / Workplace";
-  allHomas.push({
+  devaHomas.push({
     id: "homa_chandi",
     nameKn: "ಶ್ರೀ ಚಂಡಿಕಾ ಮಹಾ ಹವನ & ದುರ್ಗಾ ಸಪ್ತಶತಿ ಯಾಗ",
     nameEn: "Sri Chandi Maha Hawana & Durga Saptashati Yajna",
+    domain: "deva_karya",
     category: "shatru_raksha",
     categoryLabelKn: "ಶತ್ರು ಸಂಹಾರ & ಅಭೇದ್ಯ ರಕ್ಷಣೆ",
     icon: "🔥",
@@ -175,12 +296,13 @@ export function generateYajnaHawanaPlan(
     priestSecretNoteEn: "[Astrologer Note: Chandi Hawana neutralizes 6th house afflictions, establishing unshakeable professional victory]."
   });
 
-  // HOMA 2: Sudarshana Hawana (ನರ ದೃಷ್ಟಿ, ಆಸ್ತಿ ರಕ್ಷಣೆ, ಭಯ ನಿವಾರಣೆ)
+  // HOMA 2: Sudarshana Hawana
   const isSudarshanaNeeded = (ketu && [1, 8, 12].includes(ketu.house)) || (moon && [8, 12, 6].includes(moon.house));
-  allHomas.push({
+  devaHomas.push({
     id: "homa_sudarshana",
     nameKn: "ಶ್ರೀ ಮಹಾ ಸುದರ್ಶನ ಹೋಮ & ನರಸಿಂಹ ಹವನ",
     nameEn: "Sri Maha Sudarshana Homa & Narasimha Hawana",
+    domain: "deva_karya",
     category: "sudarshana_raksha",
     categoryLabelKn: "ದೃಷ್ಟಿ ದೋಷ ನಿವಾರಣೆ & ಧನ ರಕ್ಷೆ",
     icon: "☸️",
@@ -201,11 +323,12 @@ export function generateYajnaHawanaPlan(
     priestSecretNoteEn: "[Astrologer Note: Sudarshana Homa purifies the native's energetic field and creates an impervious shield]."
   });
 
-  // HOMA 3: Navagraha Maha Hawana (ನವಗ್ರಹ ಶಾಂತಿ)
-  allHomas.push({
+  // HOMA 3: Navagraha Maha Hawana
+  devaHomas.push({
     id: "homa_navagraha",
     nameKn: "ನವಗ್ರಹ ಶಾಂತಿ ಮಹಾ ಯಜ್ಞ & ಗ್ರಹ ಪ್ರೀತಿ ಹವನ",
     nameEn: "Navagraha Shanti Maha Yajna & Planetary Alignment Hawana",
+    domain: "deva_karya",
     category: "navagraha",
     categoryLabelKn: "ಸರ್ವ ಗ್ರಹ ಸಮತೋಲನ & ಭಾಗ್ಯೋದಯ",
     icon: "🪐",
@@ -229,10 +352,11 @@ export function generateYajnaHawanaPlan(
   // HOMA 4: Rahu-Ketu / Guru-Chandal Sandhi Homa
   const isRahuKetuAfflicted = (rahu && [1, 5, 7, 8].includes(rahu.house)) || (insights.kaalsarp !== "none") || (jupiter && rahu && jupiter.rashi.index === rahu.rashi.index);
   if (isRahuKetuAfflicted) {
-    allHomas.push({
+    devaHomas.push({
       id: "homa_rahu_ketu_sandhi",
       nameKn: "ರಾಹು-ಕೇತು ಸರ್ಪ ಶಾಂತಿ & ಗುರು-ಚಂಡಾಲ ದೋಷ ನಿವಾರಣಾ ಹವನ",
       nameEn: "Rahu-Ketu Sarpa Shanti & Guru-Chandal Dosha Nivaran Hawana",
+      domain: "deva_karya",
       category: "rahu_ketu_sandhi",
       categoryLabelKn: "ಛಾಯಾ ಗ್ರಹ ದೋಷ & ನಾಗ ಶಾಂತಿ",
       icon: "🐍",
@@ -255,10 +379,11 @@ export function generateYajnaHawanaPlan(
   }
 
   // HOMA 5: Dasha-Bhukti Sandhi Pooja
-  allHomas.push({
+  devaHomas.push({
     id: "homa_dasha_sandhi",
     nameKn: `ದಶಾ-ಭುಕ್ತಿ ಸಂಧಿ ಶಾಂತಿ ಹವನ (${maha} - ${bhukti} ಸಂಧಿ ಸಂಕಲ್ಪ)`,
     nameEn: `Dasha-Bhukti Sandhi Shanti Hawana (${maha} - ${bhukti} Transition)`,
+    domain: "deva_karya",
     category: "dasha_sandhi",
     categoryLabelKn: "ದಶಾ ಪರಿವರ್ತನಾ ಶಾಂತಿ",
     icon: "⏳",
@@ -279,12 +404,13 @@ export function generateYajnaHawanaPlan(
     priestSecretNoteEn: "[Astrologer Note: Dasha Sandhi Shanti ensures the outgoing cycle's strain ceases and the incoming cycle opens auspiciously]."
   });
 
-  // HOMA 6: Mahamrityunjaya Homa & Ayushya Hawana (ಆಯುಷ್ಯ, ಆರೋಗ್ಯ, ಮಾಂದಿ ಶಾಂತಿ)
+  // HOMA 6: Mahamrityunjaya Homa & Ayushya Hawana
   const isMaandiLagnaOr8th = kundli.maandi && [1, 8].includes((((kundli.maandi.rashi.index - kundli.lagnaRashi.index + 12) % 12) + 1));
-  allHomas.push({
+  devaHomas.push({
     id: "homa_mrityunjaya",
     nameKn: "ಮಹಾಮೃತ್ಯುಂಜಯ ಮಹಾ ಯಾಗ & ಆಯುಷ್ಯ-ಮಾಂದಿ ಶಾಂತಿ ಹವನ",
     nameEn: "Mahamrityunjaya Maha Yajna & Ayushya-Maandi Shanti Hawana",
+    domain: "deva_karya",
     category: "mrityunjaya_ayushya",
     categoryLabelKn: "ಆರೋಗ್ಯ ಚೈತನ್ಯ & ಮಾಂದಿ ನಿವಾರಣೆ",
     icon: "🔱",
@@ -305,38 +431,12 @@ export function generateYajnaHawanaPlan(
     priestSecretNoteEn: "[Astrologer Note: Mahamrityunjaya Hawana revitalizes Prana Shakti, neutralizing Maandi's shadow debility]."
   });
 
-  // HOMA 7: Pitru Dosha & Narayana Bali (If Pitru dosha detected)
-  if (hasPitruDosha) {
-    allHomas.unshift({
-      id: "homa_pitru_narayana_bali",
-      nameKn: "ಶ್ರೀ ನಾರಾಯಣ ಬಲಿ, ಪ್ರೇತೋದ್ಧಾರಣ & ಪಿತೃ ಮುಕ್ತಿ ತಿಲ ಹವನ",
-      nameEn: "Sri Narayana Bali, Preta Uddharana & Pitru Mukti Tila Hawana",
-      category: "pitru_narayana_bali",
-      categoryLabelKn: "ಪಿತೃ ಶಾಪ ವಿಮೋಚನೆ & ವಂಶೋದ್ಧಾರ",
-      icon: "🌾",
-      isUrgentPrimary: true,
-      astrologicalRootCauseKn: sanitizeAstrologyKannadaText(
-        `ಜಾತಕದ 9ನೇ ಪಿತೃ/ಭಾಗ್ಯ ಸ್ಥಾನ ಹಾಗೂ ರವಿ-ರಾಹುಗಳ ಸ್ಥಿತಿಯಿಂದಾಗಿ ಪೂರ್ವಜರ ಅತೃಪ್ತ ಆತ್ಮಗಳ ಪಿತೃ ದೋಷದ ಛಾಯೆಯಿದೆ. ಇದು ಕುಟುಂಬದಲ್ಲಿ ಸಂತಾನ ವಿಳಂಬ, ಅನಗತ್ಯ ಹಣದ ಸೋರಿಕೆ ಹಾಗೂ ಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಫಲ ಸಿಗದಿರಲು ಮುಖ್ಯ ಮೂಲ ಕಾರಣವಾಗಿದೆ.`
-      ),
-      astrologicalRootCauseEn: "Affliction to 9th Pitru/Bhagya house and Sun-Rahu connection manifesting ancestral Pitru Dosha.",
-      sacredProcedureKn: sanitizeAstrologyKannadaText(
-        `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಪವಿತ್ರ ಕೋಟಿತೀರ್ಥ ತೀರದಲ್ಲಿ ನಾರಾಯಣ ಬಲಿ ವಿಧಾನ, ತಿಲ ಹವನ, ಪ್ರೇತೋದ್ಧಾರಣ ಶ್ರಾದ್ಧ, 16 ಪಿಂಡ ಪ್ರದಾನ ಹಾಗೂ ಬ್ರಾಹ್ಮಣ ಸಂತರ್ಪಣೆ.`
-      ),
-      sacredProcedureEn: "Narayana Bali rituals at sacred Gokarna Kotiteertha, Tila Havan, 16 Pinda Pradanam, and Brahmana Santarpana.",
-      expectedShiftsAfterPoojaKn: sanitizeAstrologyKannadaText(
-        `ಪೂರ್ವಜರ ಆತ್ಮಗಳಿಗೆ ಶಾಶ್ವತ ಮುಕ್ತಿ ದೊರೆತು ಅವರ ಪೂರ್ಣ ಆಶೀರ್ವಾದ ಲಭಿಸುತ್ತದೆ. ಕುಟುಂಬದಲ್ಲಿ ನೆಮ್ಮದಿ, ಸಂತಾನ ಭಾಗ್ಯ, ಕಂಕಣ ಭಾಗ್ಯ ಹಾಗೂ ಆರ್ಥಿಕ ಸ್ಥಗಿತತೆಗಳು ತಕ್ಷಣವೇ ನಿವಾರಣೆಯಾಗುತ್ತವೆ.`
-      ),
-      expectedShiftsAfterPoojaEn: "Liberation of ancestral souls, releasing profound blessings that clear generational obstacles in marriage, progeny, and wealth.",
-      priestSecretNoteKn: `[ದೈವಜ್ಞರ ಆಂತರಿಕ ಟಿಪ್ಪಣಿ: ಪಿತೃ ದೋಷವಿದ್ದಾಗ ಇತರ ಯಾವುದೇ ಪೂಜೆ ಫಲ ಕೊಡುವುದಿಲ್ಲ; ಮೊದಲು ನಾರಾಯಣ ಬಲಿ ಮೂಲಕ ಪಿತೃ ಮುಕ್ತಿ ಮಾಡಿಸುವುದು ಪ್ರಥಮ ಕರ್ತವ್ಯ]`,
-      priestSecretNoteEn: "[Astrologer Note: When Pitru Dosha is present, Narayana Bali is the paramount prerequisite before other rituals bear fruit]."
-    });
-  }
-
-  // HOMA 8: Gokarna Atmalinga Rudrabhisheka
-  allHomas.push({
+  // HOMA 7: Gokarna Atmalinga Rudrabhisheka
+  devaHomas.push({
     id: "homa_gokarna_abhisheka",
     nameKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಆತ್ಮಲಿಂಗ ಮಹಾ ರುದ್ರಾಭಿಷೇಕ & ಪಂಚಾಮೃತ ಸೇವೆ",
     nameEn: "Sri Kshetra Gokarna Mahabaleshwara Atmalinga Mahabhisheka",
+    domain: "deva_karya",
     category: "gokarna_abhisheka",
     categoryLabelKn: "ಭೂಕೈಲಾಸ ಸಾನ್ನಿಧ್ಯ ಮಹಾ ಸಂಕಲ್ಪ",
     icon: "🪔",
@@ -357,34 +457,84 @@ export function generateYajnaHawanaPlan(
     priestSecretNoteEn: "[Astrologer Note: Gokarna Atmalinga Abhisheka dissolves deep-seated karmic residues, ensuring complete divine backing]."
   });
 
-  // 4. Synergistic Combined Samputa Seva (3 to 4 Homas Combination)
-  const primaryHomaNamesKn: string[] = [];
-  if (hasPitruDosha) primaryHomaNamesKn.push("ಶ್ರೀ ನಾರಾಯಣ ಬಲಿ & ತಿಲ ಹವನ");
-  primaryHomaNamesKn.push("ನವಗ್ರಹ ಶಾಂತಿ ಮಹಾ ಯಜ್ಞ");
-  if (is6thAfflicted) primaryHomaNamesKn.push("ಶ್ರೀ ಚಂಡಿಕಾ ಹವನ");
-  else primaryHomaNamesKn.push("ಶ್ರೀ ಮಹಾ ಸುದರ್ಶನ ಹೋಮ");
-  primaryHomaNamesKn.push("ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಮಹಾ ರುದ್ರಾಭಿಷೇಕ");
+  // ==========================================
+  // 3. COMBINED SACRED SCHEDULE (2-STAGE MULTI-DAY PLAN)
+  // ==========================================
+  const devaHomaNamesKn: string[] = ["ನವಗ್ರಹ ಶಾಂತಿ ಮಹಾ ಯಜ್ಞ"];
+  if (is6thAfflicted) devaHomaNamesKn.push("ಶ್ರೀ ಚಂಡಿಕಾ ಮಹಾ ಹವನ");
+  else devaHomaNamesKn.push("ಶ್ರೀ ಮಹಾ ಸುದರ್ಶನ ಹೋಮ");
+  devaHomaNamesKn.push("ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಆತ್ಮಲಿಂಗ ಮಹಾ ರುದ್ರಾಭಿಷೇಕ");
 
-  const combinedSamputaSeva: CombinedSamputaSeva = {
-    titleKn: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಚತುರ್ಮುಖ ಮಹಾ ಸಂಪುಟ ಸೇವೆ (${primaryHomaNamesKn.length} ಪ್ರಮುಖ ದೈವಿಕ ಹವನಗಳ ಸಂಯೋಜನೆ)`,
-    titleEn: `Gokarna Chaturmukha Maha Samputa Seva (${primaryHomaNamesKn.length} Synergistic Homa Ensemble)`,
-    includedHomasKn: primaryHomaNamesKn,
-    synergyExplanationKn: sanitizeAstrologyKannadaText(
-      `ಈ ೪ ಪ್ರಮುಖ ಹವನಗಳನ್ನು ಒಂದೇ ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ ಸಂಪುಟ ರೂಪದಲ್ಲಿ ನೆರವೇರಿಸುವುದರಿಂದ: 1) ಪಿತೃ ಮುಕ್ತಿಯಿಂದ ಪೂರ್ವಜರ ಆಶೀರ್ವಾದ ಲಭಿಸುತ್ತದೆ, 2) ನವಗ್ರಹ ಶಾಂತಿಯಿಂದ ದಶಾ-ಗೋಚಾರ ದೋಷಗಳು ನಿವಾರಣೆಯಾಗುತ್ತವೆ, 3) ಚಂಡಿಕಾ/ಸುದರ್ಶನ ಹವನದಿಂದ ಶತ್ರು-ದೃಷ್ಟಿ ಬಾಧೆಗಳು ಭಸ್ಮವಾಗುತ್ತವೆ, ಮತ್ತು 4) ಗೋಕರ್ಣ ಆತ್ಮಲಿಂಗ ಅಭಿಷೇಕದಿಂದ ದೈವಿಕ ರಕ್ಷಾ ಕವಚ ಶಾಶ್ವತವಾಗಿ ನಿರ್ಮಾಣವಾಗುತ್ತದೆ.`
-    ),
-    synergyExplanationEn: "Executing these synergistic homas in one unified auspicious muhurtha simultaneously cleanses ancestral debts, harmonizes planetary transits, crushes rival opposition, and secures eternal divine grace.",
-    recommendedMuhurthaKn: sanitizeAstrologyKannadaText(
-      `ಮುಂಬರುವ ಶುಕ್ಲ ಪಕ್ಷದ ಶುಭ ದಿನ, ಶನಿವಾರ, ಅಮಾವಾಸ್ಯೆ ಅಥವಾ ಪೌರ್ಣಮಿಯ ಪ್ರಾತಃಕಾಲದ ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ.`
-    )
-  };
+  let combinedSchedule: CombinedSacredSchedule;
+
+  if (hasPitruDosha) {
+    const pitruRitualsKn = ["ಶ್ರೀ ನಾರಾಯಣ ಬಲಿ", "ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ", "ತಿಲ ಹವನ & ಪಿಂಡ ಪ್ರದಾನ"];
+    combinedSchedule = {
+      scheduleType: "two_stage_multi_day",
+      titleKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ೨-ಹಂತದ ಪಿತೃ ಮುಕ್ತಿ & ದೇವತಾ ಸಂಪುಟ ಮಹಾ ಸೇವೆ",
+      titleEn: "Gokarna 2-Stage Ancestral Liberation & Divine Samputa Yajna",
+      stage1PitruKarya: {
+        dayLabelKn: "ಹಂತ ೧ (ದಿನ ೧): ಪಿತೃ ಮುಕ್ತಿ ಅಪರ ಸಂಕಲ್ಪ",
+        placeKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಪವಿತ್ರ ಕೋಟಿತೀರ್ಥ ತೀರ",
+        ritualsKn: pitruRitualsKn,
+        descriptionKn: sanitizeAstrologyKannadaText(
+          "ಪ್ರಥಮ ದಿನದಂದು ಕೋಟಿತೀರ್ಥದ ಸನ್ನಿಧಿಯಲ್ಲಿ ಪಿತೃ ಮುಕ್ತಿಗಾಗಿ ನಾರಾಯಣ ಬಲಿ, ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ ಹಾಗೂ ತಿಲ ಹವನಗಳನ್ನು ಸಂಪೂರ್ಣವಾಗಿ ನೆರವೇರಿಸಿ 21 ತಲೆಮಾರಿನ ಪೂರ್ವಜರ ಆತ್ಮಗಳಿಗೆ ಸದ್ಗತಿ ಕಲ್ಪಿಸಲಾಗುತ್ತದೆ."
+        )
+      },
+      restPeriodShuddhi: {
+        dayLabelKn: "ವಿಶ್ರಾಂತಿ & ಶುದ್ಧಿ (ದಿನ ೨): ೧ ದಿನದ ಆಶೌಚ ನಿವೃತ್ತಿ & ದೈವಿಕ ಶುದ್ಧಿ ಕಾಲ",
+        descriptionKn: sanitizeAstrologyKannadaText(
+          "ಧರ್ಮಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ಪಿತೃ ಕಾರ್ಯ ಮತ್ತು ದೇವತಾ ಕಾರ್ಯವನ್ನು ಒಂದೇ ದಿನ ಮಾಡಬಾರದು. ಪಿತೃ ಮುಕ್ತಿಯ ನಂತರ ೧ ದಿನದ ಪೂರ್ಣ ವಿಶ್ರಾಂತಿ ಹಾಗೂ ಸಾಗರ ಸ್ನಾನ / ಪುಣ್ಯ ತೀರ್ಥ ಸ್ನಾನದಿಂದ ದೇಹ-ಮನಸ್ಸಿನ ಶುದ್ಧಿ ಪಡೆಯಬೇಕು."
+        ),
+        shastraRuleKn: "ಶಾಸ್ತ್ರ ನಿಯಮ: ಪಿತೃ ಕರ್ಮದ ನಂತರ ೧ ದಿನದ ಶೌಚ-ಶುದ್ಧಿ ವಿಶ್ರಾಂತಿ ಕಡ್ಡಾಯ."
+      },
+      stage2DevaKarya: {
+        dayLabelKn: "ಹಂತ ೨ (ದಿನ ೩): ದೇವತಾ ಮಹಾ ಸಂಪುಟ ಯಜ್ಞ & ರುದ್ರಾಭಿಷೇಕ",
+        placeKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿ ಸನ್ನಿಧಿ",
+        ritualsKn: devaHomaNamesKn,
+        descriptionKn: sanitizeAstrologyKannadaText(
+          "ಶುದ್ಧಿ ದಿನದ ನಂತರ, ಮೂರನೇ ದಿನ ಪ್ರಾತಃಕಾಲ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ನವಗ್ರಹ ಶಾಂತಿ, ಚಂಡಿಕಾ/ಸುದರ್ಶನ ಹವನ ಹಾಗೂ ಆತ್ಮಲಿಂಗ ಮಹಾ ರುದ್ರಾಭಿಷೇಕಗಳನ್ನು ಸಂಪುಟವಾಗಿ ನೆರವೇರಿಸಿ ಸಕಲ ಭಾಗ್ಯೋದಯ ಸಂಕಲ್ಪ ಮಾಡಲಾಗುತ್ತದೆ."
+        )
+      },
+      synergyExplanationKn: sanitizeAstrologyKannadaText(
+        "ಈ ೨-ಹಂತದ ಶಾಸ್ತ್ರೋಕ್ತ ಯೋಜನೆಯಿಂದ: ಮೊದಲಿಗೆ ಪಿತೃ ಶಾಪ ವಿಮೋಚನೆಯಾಗಿ ಪೂರ್ವಜರ ಪೂರ್ಣ ಆಶೀರ್ವಾದ ಲಭಿಸುತ್ತದೆ; ನಂತರ ಶುದ್ಧ ಮನಸ್ಸಿನಿಂದ ಮಾಡುವ ದೇವತಾ ಯಜ್ಞದಿಂದ ನವಗ್ರಹ ಶಾಂತಿ, ಶತ್ರು ನಾಶ ಹಾಗೂ ಮಹಾಬಲೇಶ್ವರನ ಶಾಶ್ವತ ರಕ್ಷಾ ಕವಚ ಪ್ರಾಪ್ತಿಯಾಗುತ್ತದೆ."
+      ),
+      synergyExplanationEn: "Executing this authentic 2-stage timeline strictly respects Vedic apara-shubha separation: ancestral liberation on Day 1, followed by purifying rest on Day 2, and grand divine homa on Day 3.",
+      recommendedMuhurthaKn: sanitizeAstrologyKannadaText(
+        "ಮುಂಬರುವ ಶುಕ್ಲ ಪಕ್ಷದ ಶುಭ ದಿನ, ಶನಿವಾರ, ಅಮಾವಾಸ್ಯೆ ಅಥವಾ ಪೌರ್ಣಮಿಯ ಪ್ರಾತಃಕಾಲದ ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ."
+      )
+    };
+  } else {
+    combinedSchedule = {
+      scheduleType: "single_day_deva_samputa",
+      titleKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಚತುರ್ಮುಖ ದೇವತಾ ಮಹಾ ಸಂಪುಟ ಯಾಗ",
+      titleEn: "Gokarna Chaturmukha Divine Samputa Yajna",
+      stage2DevaKarya: {
+        dayLabelKn: "ದೇವತಾ ಮಹಾ ಸಂಪುಟ ಯಾಗ (ದಿನ ೧)",
+        placeKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿ ಸನ್ನಿಧಿ",
+        ritualsKn: devaHomaNamesKn,
+        descriptionKn: sanitizeAstrologyKannadaText(
+          "ಜಾತಕದಲ್ಲಿ ಪಿತೃ ದೋಷವಿಲ್ಲದಿರುವುದರಿಂದ, ನೇರವಾಗಿ ನವಗ್ರಹ ಶಾಂತಿ, ಚಂಡಿಕಾ/ಸುದರ್ಶನ ಹವನ ಹಾಗೂ ಮಹಾಬಲೇಶ್ವರ ಆತ್ಮಲಿಂಗ ಮಹಾ ರುದ್ರಾಭಿಷೇಕಗಳನ್ನು ಒಂದೇ ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ ನೆರವೇರಿಸಲಾಗುತ್ತದೆ."
+        )
+      },
+      synergyExplanationKn: sanitizeAstrologyKannadaText(
+        "ಈ ೩ ಪ್ರಮುಖ ಹವನಗಳನ್ನು ಒಂದೇ ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ ಸಂಪುಟ ರೂಪದಲ್ಲಿ ನೆರವೇರಿಸುವುದರಿಂದ ನವಗ್ರಹ ಶಾಂತಿ, ಶತ್ರು-ದೃಷ್ಟಿ ಬಾಧೆಗಳ ಭಸ್ಮ ಹಾಗೂ ಗೋಕರ್ಣ ಆತ್ಮಲಿಂಗದಿಂದ ದೈವಿಕ ರಕ್ಷಾ ಕವಚ ಶಾಶ್ವತವಾಗಿ ನಿರ್ಮಾಣವಾಗುತ್ತದೆ."
+      ),
+      synergyExplanationEn: "Combining these synergistic homas in one unified auspicious muhurtha simultaneously harmonizes planetary transits, crushes rival opposition, and secures eternal divine grace.",
+      recommendedMuhurthaKn: sanitizeAstrologyKannadaText(
+        "ಮುಂಬರುವ ಶುಕ್ಲ ಪಕ್ಷದ ಶುಭ ದಿನ, ಶನಿವಾರ ಅಥವಾ ಪೌರ್ಣಮಿಯ ಪ್ರಾತಃಕಾಲದ ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ."
+      )
+    };
+  }
 
   const overallAstrologicalPrescriptionSummaryKn = sanitizeAstrologyKannadaText(
     `ನಮಸ್ಕಾರ ${devotee}, ನಿಮ್ಮ ಜಾತಕದ ಪ್ರಸ್ತುತ ಗ್ರಹಗತಿಯ ಪ್ರಕಾರ, ಈ ನಿರ್ದಿಷ್ಟ ಯಜ್ಞ-ಹವನಗಳು ನಿಮ್ಮ ಜೀವನದ ಪ್ರಮುಖ ತಿರುವನ್ನು ನಿರ್ಧರಿಸಲಿವೆ. ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಇವುಗಳನ್ನು ನೆರವೇರಿಸುವುದರಿಂದ ಮುಂಬರುವ 3 ರಿಂದ 5 ತಿಂಗಳುಗಳಲ್ಲಿ ನಿಮ್ಮ ಸಕಲ ಕಷ್ಟಗಳು ಕರಗಿ ಭಾಗ್ಯೋದಯವಾಗಲಿದೆ.`
   );
 
   return {
-    recommendedHomas: allHomas,
-    combinedSamputaSeva,
+    pitruKaryas,
+    devaHomas,
+    combinedSchedule,
     pitruDoshaAssessment,
     overallAstrologicalPrescriptionSummaryKn
   };

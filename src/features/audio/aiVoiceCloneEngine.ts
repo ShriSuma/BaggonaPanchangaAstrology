@@ -16,7 +16,8 @@ import {
   stopAllAudioGlobal,
   startNewAudioSession,
   isPlaybackTokenActive,
-  registerActiveAudio
+  registerActiveAudio,
+  registerAbortController
 } from "./globalAudioManager";
 import { recordSarvamAudioUsage } from "./sarvamQuotaService";
 
@@ -275,43 +276,51 @@ async function fetchSarvamAITTS(
     return ttsAudioCache.get(cacheKey)!;
   }
 
-  const response = await fetch("https://api.sarvam.ai/text-to-speech", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "api-subscription-key": apiKey
-    },
-    body: JSON.stringify({
-      inputs: [cleanText],
-      target_language_code: targetLanguageCode,
-      speaker: validSpeaker,
-      pace: pace,
-      speech_sample_rate: 22050,
-      enable_preprocessing: true,
-      model: "bulbul:v3"
-    })
-  });
+  const controller = new AbortController();
+  const unregisterAbort = registerAbortController(controller);
 
-  if (!response.ok) {
-    throw new Error(`Sarvam AI API returned ${response.status}: ${await response.text()}`);
-  }
+  try {
+    const response = await fetch("https://api.sarvam.ai/text-to-speech", {
+      method: "POST",
+      signal: controller.signal,
+      headers: {
+        "Content-Type": "application/json",
+        "api-subscription-key": apiKey
+      },
+      body: JSON.stringify({
+        inputs: [cleanText],
+        target_language_code: targetLanguageCode,
+        speaker: validSpeaker,
+        pace: pace,
+        speech_sample_rate: 22050,
+        enable_preprocessing: true,
+        model: "bulbul:v3"
+      })
+    });
 
-  const data = await response.json();
-  if (data?.audios && data.audios.length > 0 && data.audios[0]) {
-    // Record character consumption & check for < 10% critical email alert
-    void recordSarvamAudioUsage(cleanText.length, cleanText.slice(0, 100));
-
-    const base64Audio = data.audios[0];
-    const dataUrl = `data:audio/wav;base64,${base64Audio}`;
-
-    // Cache result
-    if (ttsAudioCache.size >= MAX_CACHE_ENTRIES) {
-      const oldest = ttsAudioCache.keys().next().value;
-      if (oldest) ttsAudioCache.delete(oldest);
+    if (!response.ok) {
+      throw new Error(`Sarvam AI API returned ${response.status}: ${await response.text()}`);
     }
-    ttsAudioCache.set(cacheKey, dataUrl);
 
-    return dataUrl;
+    const data = await response.json();
+    if (data?.audios && data.audios.length > 0 && data.audios[0]) {
+      // Record character consumption & check for < 10% critical email alert
+      void recordSarvamAudioUsage(cleanText.length, cleanText.slice(0, 100));
+
+      const base64Audio = data.audios[0];
+      const dataUrl = `data:audio/wav;base64,${base64Audio}`;
+
+      // Cache result
+      if (ttsAudioCache.size >= MAX_CACHE_ENTRIES) {
+        const oldest = ttsAudioCache.keys().next().value;
+        if (oldest) ttsAudioCache.delete(oldest);
+      }
+      ttsAudioCache.set(cacheKey, dataUrl);
+
+      return dataUrl;
+    }
+  } finally {
+    unregisterAbort();
   }
 
   return null;

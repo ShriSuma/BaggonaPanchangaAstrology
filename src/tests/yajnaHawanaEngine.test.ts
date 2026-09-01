@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { generateYajnaHawanaPlan } from "../core/YajnaHawanaEngine";
 import { calculateKundli } from "../core/KundliEngine";
 
-describe("YajnaHawanaEngine (ಯಜ್ಞ, ಹವನ & ಪಿತೃ ದೋಷ ಪರಿಹಾರ ಎಂಜಿನ್)", () => {
+describe("YajnaHawanaEngine (ಪಿತೃ ಕಾರ್ಯ & ದೇವತಾ ಯಜ್ಞ ಪ್ರತ್ಯೇಕ ಎಂಜಿನ್)", () => {
   const sampleBirth1 = {
     name: "Shreeram Pandit",
     birthDate: "1990-05-15",
@@ -21,7 +21,7 @@ describe("YajnaHawanaEngine (ಯಜ್ಞ, ಹವನ & ಪಿತೃ ದೋಷ �
     pincode: "600001"
   };
 
-  it("dynamically assesses Pitru Dosha, recommends Narayana Bali & Tila Hawana, and generates pure Kannada recommendations", () => {
+  it("strictly separates Pitru Karya from Deva Karya and builds a 2-stage multi-day schedule for Pitru Dosha", () => {
     const kundli = calculateKundli(sampleBirth1);
 
     const plan = generateYajnaHawanaPlan(kundli, {
@@ -32,33 +32,32 @@ describe("YajnaHawanaEngine (ಯಜ್ಞ, ಹವನ & ಪಿತೃ ದೋಷ �
     });
 
     expect(plan).toBeDefined();
-    expect(plan.recommendedHomas.length).toBeGreaterThanOrEqual(4);
+    expect(plan.devaHomas.length).toBeGreaterThanOrEqual(4);
 
-    // Verify each homa has all required fields in Kannada
-    plan.recommendedHomas.forEach((homa) => {
+    // Verify all deva homas are in deva domain
+    plan.devaHomas.forEach((homa) => {
+      expect(homa.domain).toBe("deva_karya");
       expect(homa.nameKn).toBeTruthy();
       expect(homa.astrologicalRootCauseKn).toBeTruthy();
       expect(homa.sacredProcedureKn).toBeTruthy();
       expect(homa.expectedShiftsAfterPoojaKn).toBeTruthy();
-      expect(homa.priestSecretNoteKn).toMatch(/^\[.+\]$/); // Must be enclosed in brackets
-      expect(homa.categoryLabelKn).toBeTruthy();
+      expect(homa.priestSecretNoteKn).toMatch(/^\[.+\]$/);
     });
 
-    // Check Pitru Dosha Assessment
+    // Check Pitru Dosha Assessment and separation rule
     expect(plan.pitruDoshaAssessment).toBeDefined();
-    expect(plan.pitruDoshaAssessment.suggestedKaryaKn).toBeTruthy();
-    expect(plan.pitruDoshaAssessment.detailedExplanationKn).toBeTruthy();
-    expect(plan.pitruDoshaAssessment.gokarnaSignificanceKn).toBeTruthy();
+    expect(plan.pitruDoshaAssessment.shastraSeparationRuleKn).toContain("ಧರ್ಮಶಾಸ್ತ್ರದ ಕಟ್ಟುನಿಟ್ಟಿನ ನಿಯಮ");
 
-    // Check Combined Samputa Seva
-    expect(plan.combinedSamputaSeva).toBeDefined();
-    expect(plan.combinedSamputaSeva.titleKn).toContain("ಸಂಪುಟ ಸೇವೆ");
-    expect(plan.combinedSamputaSeva.includedHomasKn.length).toBeGreaterThanOrEqual(3);
-    expect(plan.combinedSamputaSeva.synergyExplanationKn).toBeTruthy();
-    expect(plan.combinedSamputaSeva.recommendedMuhurthaKn).toBeTruthy();
+    // Check Combined Schedule
+    expect(plan.combinedSchedule).toBeDefined();
+    expect(plan.combinedSchedule.stage2DevaKarya).toBeDefined();
+    if (plan.combinedSchedule.scheduleType === "two_stage_multi_day") {
+      expect(plan.combinedSchedule.stage1PitruKarya).toBeDefined();
+      expect(plan.combinedSchedule.restPeriodShuddhi).toBeDefined();
+    }
   });
 
-  it("handles a chart with Sun-Rahu conjunction triggering severe Pitru Dosha", () => {
+  it("handles a chart with Sun-Rahu conjunction triggering 2-stage schedule with Narayana Bali & Tripindi Shradha", () => {
     const kundli = calculateKundli(sampleBirth2);
 
     const plan = generateYajnaHawanaPlan(kundli, {
@@ -67,9 +66,11 @@ describe("YajnaHawanaEngine (ಯಜ್ಞ, ಹವನ & ಪಿತೃ ದೋಷ �
       primaryChallenge: "Personal / Marriage"
     });
 
-    expect(plan.pitruDoshaAssessment).toBeDefined();
-    expect(plan.recommendedHomas.some((h) => h.id === "homa_chandi" || h.id === "homa_sudarshana")).toBe(true);
-    expect(plan.recommendedHomas.some((h) => h.id === "homa_navagraha")).toBe(true);
-    expect(plan.recommendedHomas.some((h) => h.id === "homa_gokarna_abhisheka")).toBe(true);
+    expect(plan.pitruDoshaAssessment.hasPitruDosha).toBe(true);
+    expect(plan.pitruKaryas.length).toBeGreaterThanOrEqual(2);
+    expect(plan.pitruKaryas.some((k) => k.id === "pitru_narayana_bali")).toBe(true);
+    expect(plan.pitruKaryas.some((k) => k.id === "pitru_tripindi")).toBe(true);
+    expect(plan.combinedSchedule.scheduleType).toBe("two_stage_multi_day");
+    expect(plan.combinedSchedule.restPeriodShuddhi?.shastraRuleKn).toContain("೧ ದಿನದ ಶೌಚ-ಶುದ್ಧಿ");
   });
 });
