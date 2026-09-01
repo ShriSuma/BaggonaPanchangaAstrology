@@ -287,18 +287,18 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
         </div>
       </div>
 
-      {/* Visual Blessing Card Preview (Renderable to High-Res PNG with 365-Day Vibrant Background) */}
+      {/* Visual Blessing Card Preview (Luminous, Crystal Clear Background Artwork with Perfect Vertical Centering) */}
       <div
         ref={cardRef}
         data-blessing-card="true"
         style={{
-          backgroundImage: `linear-gradient(180deg, rgba(14, 5, 1, 0.68) 0%, rgba(22, 8, 2, 0.82) 40%, rgba(10, 3, 0, 0.92) 100%), url(${bgConfig.posterImageUrl})`,
+          backgroundImage: `linear-gradient(180deg, rgba(10, 4, 1, 0.18) 0%, rgba(15, 6, 2, 0.32) 40%, rgba(10, 3, 0, 0.58) 100%), url(${bgConfig.posterImageUrl})`,
           backgroundSize: "cover",
           backgroundPosition: "center top",
           backgroundRepeat: "no-repeat",
           border: `2.5px solid ${bgConfig.borderGold || "#D4AF37"}`,
           borderRadius: "22px",
-          padding: "22px 18px 20px 18px",
+          padding: "24px 18px 20px 18px",
           position: "relative",
           overflow: "hidden",
           boxShadow: "0 14px 40px rgba(0,0,0,0.85)",
@@ -308,19 +308,7 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
           boxSizing: "border-box"
         }}
       >
-        {/* Soft Radiant Solar Aura */}
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            background: bgConfig.glowAura,
-            pointerEvents: "none",
-            zIndex: 0,
-            animation: "auraPulse 4s ease-in-out infinite alternate"
-          }}
-        />
-
-        {/* 🌟 365-Day High-Definition Animated Vector SVG Background (Sacred Sunbeams, Temple Spire, Mandala) */}
+        {/* Soft Golden Sunrise Rays (Thin & Subtle) */}
         <div
           style={{
             position: "absolute",
@@ -332,7 +320,7 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
           dangerouslySetInnerHTML={{ __html: svgBackgroundHtml }}
         />
 
-        {/* Kshetra Insignia Banner - Perfectly Vertically Centered */}
+        {/* Kshetra Insignia Banner - Perfectly Centered Vertically & Horizontally */}
         <div style={{ textAlign: "center", marginBottom: "14px" }}>
           <div
             style={{
@@ -341,25 +329,25 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
-              padding: "8px 22px 9px 22px",
-              background: "rgba(18, 7, 2, 0.88)",
+              padding: "10px 24px",
+              background: "rgba(10, 3, 0, 0.86)",
               border: `1.5px solid ${bgConfig.accentGold || "#F59E0B"}`,
               borderRadius: "999px",
-              fontSize: "12.5px",
+              fontSize: "13px",
               fontWeight: 800,
               color: "#FFFBEB",
-              lineHeight: "1.1",
+              lineHeight: "1.4",
               textAlign: "center",
               letterSpacing: "normal",
               boxSizing: "border-box",
-              boxShadow: "0 4px 18px rgba(0,0,0,0.5)"
+              boxShadow: "0 4px 18px rgba(0,0,0,0.65)"
             }}
           >
-            ✨ ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಕ್ಷೇತ್ರ • ಗೋಕರ್ಣ ಸನ್ನಿಧಿ ॥ ✨
+            <span>✨ ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಕ್ಷೇತ್ರ • ಗೋಕರ್ಣ ಸನ್ನಿಧಿ ॥ ✨</span>
           </div>
         </div>
 
-        {/* Date & Panchanga Chips - Perfectly Vertically Centered */}
+        {/* Date & Panchanga Chips - Perfectly Centered Vertically & Horizontally */}
         <div
           style={{
             position: "relative",
@@ -378,18 +366,18 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
-              padding: "6px 14px 7px 14px",
-              borderRadius: "12px",
-              background: "rgba(18, 7, 2, 0.82)",
-              border: "1px solid rgba(251, 191, 36, 0.5)",
+              padding: "8px 16px",
+              borderRadius: "14px",
+              background: "rgba(10, 3, 0, 0.86)",
+              border: "1.2px solid rgba(251, 191, 36, 0.55)",
               color: "#FEF3C7",
               fontWeight: 700,
-              lineHeight: "1.1",
+              lineHeight: "1.4",
               boxSizing: "border-box",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.3)"
+              boxShadow: "0 2px 8px rgba(0,0,0,0.4)"
             }}
           >
-            📅 {dateStr}
+            <span>📅 {dateStr}</span>
           </span>
           {tithiStr && (
             <span
@@ -397,18 +385,18 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
                 display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",
-                padding: "6px 14px 7px 14px",
-                borderRadius: "12px",
-                background: "rgba(18, 7, 2, 0.82)",
-                border: "1px solid rgba(251, 191, 36, 0.5)",
+                padding: "8px 16px",
+                borderRadius: "14px",
+                background: "rgba(10, 3, 0, 0.86)",
+                border: "1.2px solid rgba(251, 191, 36, 0.55)",
                 color: "#FEF3C7",
                 fontWeight: 700,
-                lineHeight: "1.1",
+                lineHeight: "1.4",
                 boxSizing: "border-box",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.3)"
+                boxShadow: "0 2px 8px rgba(0,0,0,0.4)"
               }}
             >
-              ✨ {tithiStr}
+              <span>✨ {tithiStr}</span>
             </span>
           )}
           {nakshatraStr && (
@@ -417,18 +405,18 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
                 display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",
-                padding: "6px 14px 7px 14px",
-                borderRadius: "12px",
-                background: "rgba(18, 7, 2, 0.82)",
-                border: "1px solid rgba(251, 191, 36, 0.5)",
+                padding: "8px 16px",
+                borderRadius: "14px",
+                background: "rgba(10, 3, 0, 0.86)",
+                border: "1.2px solid rgba(251, 191, 36, 0.55)",
                 color: "#FEF3C7",
                 fontWeight: 700,
-                lineHeight: "1.1",
+                lineHeight: "1.4",
                 boxSizing: "border-box",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.3)"
+                boxShadow: "0 2px 8px rgba(0,0,0,0.4)"
               }}
             >
-              ⭐ {nakshatraStr}
+              <span>⭐ {nakshatraStr}</span>
             </span>
           )}
         </div>
@@ -442,19 +430,19 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
-              padding: "6px 18px 7px 18px",
-              borderRadius: "12px",
-              background: "rgba(6, 78, 59, 0.88)",
+              padding: "8px 22px",
+              borderRadius: "14px",
+              background: "rgba(6, 78, 59, 0.92)",
               border: "1.5px solid #34D399",
               color: "#A7F3D0",
               fontWeight: 800,
-              fontSize: "12px",
-              lineHeight: "1.1",
+              fontSize: "12.5px",
+              lineHeight: "1.4",
               boxSizing: "border-box",
               boxShadow: "0 3px 12px rgba(6, 78, 59, 0.5)"
             }}
           >
-            ⏳ ಶುಭ ಮುಹೂರ್ತ: {goldenHourStr}
+            <span>⏳ ಶುಭ ಮುಹೂರ್ತ: {goldenHourStr}</span>
           </span>
         </div>
 
@@ -463,13 +451,13 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
           style={{
             position: "relative",
             zIndex: 10,
-            background: "rgba(15, 6, 1, 0.78)",
+            background: "rgba(10, 3, 0, 0.80)",
             border: "1.5px solid rgba(251, 191, 36, 0.4)",
             borderRadius: "16px",
             padding: "14px 16px",
             marginBottom: "12px",
             textAlign: "center",
-            boxShadow: "0 6px 20px rgba(0,0,0,0.4)"
+            boxShadow: "0 6px 20px rgba(0,0,0,0.45)"
           }}
         >
           <div
@@ -501,13 +489,13 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
           style={{
             position: "relative",
             zIndex: 10,
-            background: "rgba(18, 7, 2, 0.85)",
+            background: "rgba(10, 3, 0, 0.84)",
             border: `1.5px solid ${bgConfig.accentGold || "#F59E0B"}`,
             borderRadius: "16px",
             padding: "16px",
             marginBottom: "12px",
             textAlign: "center",
-            boxShadow: "0 8px 24px rgba(0,0,0,0.45)"
+            boxShadow: "0 8px 24px rgba(0,0,0,0.5)"
           }}
         >
           <div
@@ -562,11 +550,11 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
         >
           <div
             style={{
-              background: "rgba(12, 5, 1, 0.78)",
+              background: "rgba(8, 2, 0, 0.82)",
               border: "1.5px solid rgba(52, 211, 153, 0.5)",
               borderRadius: "14px",
               padding: "12px 14px",
-              boxShadow: "0 4px 14px rgba(0,0,0,0.35)"
+              boxShadow: "0 4px 14px rgba(0,0,0,0.4)"
             }}
           >
             <div
@@ -595,11 +583,11 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
 
           <div
             style={{
-              background: "rgba(12, 5, 1, 0.78)",
+              background: "rgba(8, 2, 0, 0.82)",
               border: "1.5px solid rgba(251, 191, 36, 0.5)",
               borderRadius: "14px",
               padding: "12px 14px",
-              boxShadow: "0 4px 14px rgba(0,0,0,0.35)"
+              boxShadow: "0 4px 14px rgba(0,0,0,0.4)"
             }}
           >
             <div
@@ -627,7 +615,7 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
           </div>
         </div>
 
-        {/* Bottom Temple Benediction & Priest Stamp */}
+        {/* Bottom Temple Benediction & Dynamic Selected Priest Stamp */}
         <div
           style={{
             position: "relative",

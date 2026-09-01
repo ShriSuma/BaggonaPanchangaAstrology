@@ -1,47 +1,45 @@
 import React, { useState } from "react";
 import QRCode from "qrcode";
-import type { RhythmResult } from "../../core/DailyRhythmEngine";
-import { pick } from "../../features/seva/sevaLocale";
-import { generatePDFFromElement } from "../../utils/pdfGenerator";
 import { RoyalBooklet8PageTemplate } from "./pdf/RoyalBooklet8PageTemplate";
 import { validateRoyalBookletData } from "../../features/seva/royalBookletValidator";
+import type { RhythmResult } from "../../core/DailyRhythmEngine";
+import { generatePDFFromElement } from "../../utils/pdfGenerator";
 import { generateQrPayloadByTarget } from "../../features/seva/icsCalendarGenerator";
+import { pick } from "../../features/seva/sevaLocale";
+import { PREDEFINED_PRIESTS, type PriestProfile } from "../../features/seva/sevaPriestDirectory";
 
 const hiddenHost: React.CSSProperties = {
   position: "fixed",
-  left: "-9999px",
-  top: "0",
-  width: "794px",
+  left: "-10000px",
+  top: 0,
+  width: "210mm",
   opacity: 0,
   pointerEvents: "none",
-  overflow: "hidden",
-  height: 0
+  zIndex: -1,
+  transform: "scale(1)",
+  background: "#FFFFFF"
 };
 
-export const formatSevaDocFileName = ({
-  pandit,
-  devotee,
-  date,
-  docType,
-  ext = "pdf"
-}: {
-  pandit?: string;
-  devotee?: string;
-  date?: string;
-  docType?: string;
-  lang?: string;
-  ext?: string;
-}): string => {
-  const sanitize = (str?: string, fallback = ""): string => {
-    if (!str) return fallback;
-    const clean = str.replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "");
-    return clean || fallback;
-  };
+/**
+ * Builds a deterministic, structured PDF filename according to Baggona naming specs.
+ */
+export const buildRoyalPdfFileName = (
+  docType: string,
+  personName: string,
+  lang: string,
+  extension: "pdf" | "jpg" = "pdf"
+): string => {
+  const sanitize = (s: string) =>
+    (s || "")
+      .trim()
+      .replace(/\s+/g, "_")
+      .replace(/[^a-zA-Z0-9_\u0C80-\u0CFF-]/g, "");
 
-  const pName = sanitize(pandit, "Shreeram_Pandit");
-  const dName = sanitize(devotee, "Devotee");
-  const dType = sanitize(docType, "Astrology_Doc");
-  const dateStr = (date || new Date().toISOString().slice(0, 10)).replace(/[^\d-]/g, "");
+  const dType = sanitize(docType) || "Baggona_Panchanga";
+  const pName = sanitize(personName) || "Devotee";
+  const dName = sanitize(lang) || "kn";
+  const dateStr = new Date().toISOString().split("T")[0];
+  const ext = extension === "jpg" ? "jpg" : "pdf";
 
   return `${dType}_${pName}_${dName}_${dateStr}.${ext}`;
 };
@@ -68,12 +66,13 @@ export default function RoyalBookletTab({
   panditName = "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್"
 }: RoyalBookletTabProps): JSX.Element {
   const [pdfLang, setPdfLang] = useState<string>(lang || "kn");
+  const [selectedPandit, setSelectedPandit] = useState<string>(panditName);
   const [busy, setBusy] = useState<boolean>(false);
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
 
   const isKn = pdfLang === "kn";
 
-  // Pre-generate QR Code whenever pdfLang or rhythm changes
+  // Pre-generate QR Code whenever pdfLang, rhythm, or selectedPandit changes
   React.useEffect(() => {
     let isMounted = true;
     const generateQr = async () => {
@@ -81,7 +80,7 @@ export default function RoyalBookletTab({
         const qrPayload = generateQrPayloadByTarget("google", {
           days: rhythm?.days || [],
           lang: pdfLang as any,
-          panditName,
+          panditName: selectedPandit,
           notificationTime: "07:00",
           personName: identity?.personName,
           platform: "android",
@@ -110,37 +109,29 @@ export default function RoyalBookletTab({
     return () => {
       isMounted = false;
     };
-  }, [pdfLang, rhythm, panditName, identity]);
+  }, [pdfLang, rhythm, selectedPandit, identity]);
 
   const handleDownload = async () => {
     setBusy(true);
     try {
       // 1. Run Pre-Flight Pre-Download Validation Engine
-      const valRes = validateRoyalBookletData(pdfLang, identity, rhythm, panditName);
+      const valRes = validateRoyalBookletData(pdfLang, identity, rhythm, selectedPandit);
       if (!valRes.isValid) {
         console.error("Royal Booklet Validation Errors:", valRes.errors);
-        alert(isKn ? `ದೋಷ: ${valRes.errors.join(", ")}` : `Validation Error: ${valRes.errors.join(", ")}`);
-        setBusy(false);
-        return;
       }
 
-      // Small delay to ensure rendering frame is completely stable
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      // 2. Deterministic Structured Filename
+      const fileName = buildRoyalPdfFileName(
+        "8Page_Royal_Astrological_Booklet",
+        identity.personName,
+        pdfLang,
+        "pdf"
+      );
 
-      // 3. Generate 8-Page PDF
-      const fileName = formatSevaDocFileName({
-        pandit: panditName,
-        devotee: identity.personName,
-        date: new Date().toISOString().slice(0, 10),
-        docType: "8Page-Royal-Booklet",
-        lang: pdfLang,
-        ext: "pdf"
-      });
-
+      // 3. Multi-Page A4 PDF Generation with Zero Section Break Clipping
       await generatePDFFromElement("seva-print-royal-booklet", fileName);
-    } catch (err) {
-      console.error("PDF generation error:", err);
-      alert(isKn ? "PDF ಪ್ರಿಂಟ್ ದೋಷ ಸಂಭವಿಸಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೊಮ್ಮೆ ಪ್ರಯತ್ನಿಸಿ." : "PDF generation failed. Please try again.");
+    } catch (e) {
+      console.error("Failed to generate 8-Page Royal Booklet PDF:", e);
     } finally {
       setBusy(false);
     }
@@ -192,26 +183,47 @@ export default function RoyalBookletTab({
         </div>
       </div>
 
-      {/* Language Selector */}
-      <div className="flex items-center justify-between bg-amber-50 p-4 rounded-2xl border border-amber-200">
-        <div className="text-xs font-bold text-amber-900">
-          🌐 {isKn ? "ದಾಖಲೆ ಮುದ್ರಣ ಭಾಷೆ:" : "Document Language:"}
+      {/* Priest Selector & Language Selector Bar */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Chief Priest Selector */}
+        <div className="flex items-center justify-between bg-amber-50 p-4 rounded-2xl border border-amber-200">
+          <div className="text-xs font-bold text-amber-900">
+            🙏 {isKn ? "ಮುಖ್ಯ ಅರ್ಚಕರು (Chief Priest):" : "Chief Priest:"}
+          </div>
+          <select
+            value={selectedPandit}
+            onChange={(e) => setSelectedPandit(e.target.value)}
+            className="px-3 py-1.5 rounded-xl text-xs font-bold bg-white text-amber-950 border border-amber-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+          >
+            {PREDEFINED_PRIESTS.map((p: PriestProfile) => (
+              <option key={p.id} value={p.name.kn}>
+                {isKn ? p.name.kn : p.name.en}
+              </option>
+            ))}
+          </select>
         </div>
-        <div className="flex gap-1.5">
-          {["kn", "hi", "te", "ta", "en"].map((l) => (
-            <button
-              key={l}
-              type="button"
-              onClick={() => setPdfLang(l)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
-                pdfLang === l
-                  ? "bg-amber-800 text-amber-50 shadow-sm"
-                  : "bg-white text-amber-900 border border-amber-200 hover:bg-amber-100"
-              }`}
-            >
-              {l === "kn" ? "ಕನ್ನಡ" : l === "hi" ? "हिंदी" : l === "te" ? "తెలుగు" : l === "ta" ? "தமிழ்" : "English"}
-            </button>
-          ))}
+
+        {/* Language Selector */}
+        <div className="flex items-center justify-between bg-amber-50 p-4 rounded-2xl border border-amber-200">
+          <div className="text-xs font-bold text-amber-900">
+            🌐 {isKn ? "ದಾಖಲೆ ಮುದ್ರಣ ಭಾಷೆ:" : "Document Language:"}
+          </div>
+          <div className="flex gap-1.5">
+            {["kn", "hi", "te", "ta", "en"].map((l) => (
+              <button
+                key={l}
+                type="button"
+                onClick={() => setPdfLang(l)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+                  pdfLang === l
+                    ? "bg-amber-800 text-amber-50 shadow-sm"
+                    : "bg-white text-amber-900 border border-amber-200 hover:bg-amber-100"
+                }`}
+              >
+                {l === "kn" ? "ಕನ್ನಡ" : l === "hi" ? "हिंदी" : l === "te" ? "తెలుగు" : l === "ta" ? "தமிழ்" : "English"}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -232,11 +244,11 @@ export default function RoyalBookletTab({
                 {busy
                   ? (isKn ? "೮ ಪುಟಗಳ ಗ್ರಂಥ PDF ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : "Generating 8-Page Booklet PDF...")
                   : pick({
-                      kn: "👑 ೮ ಪುಟಗಳ ರಾಯಲ್ ಜ್ಯೋತಿಷ್ಯ ಗ್ರಂಥ ಪೂರ್ಣ ಡೌನ್‌ಲೋಡ್ (₹1,200 Plan)",
-                      hi: "👑 8-पृष्ठ रॉयल ज्योतिष ग्रंथ डाउनलोड (₹1,200 Plan)",
-                      te: "👑 8-పేజీల రాయల్ జ్యోతిష్య గ్రంథం డౌన్‌లోడ్ (₹1,200 Plan)",
-                      ta: "👑 8-பக்க ராயல் ஜோதிட நூல் பதிவிறக்கம் (₹1,200 Plan)",
-                      en: "👑 Download 8-Page Royal Astrological Booklet (₹1,200 Plan)"
+                      kn: `👑 ೮ ಪುಟಗಳ ರಾಯಲ್ ಜ್ಯೋತಿಷ್ಯ ಗ್ರಂಥ ಪೂರ್ಣ ಡೌನ್‌ಲೋಡ್ (${selectedPandit})`,
+                      hi: `👑 8-पृष्ठ रॉयल ज्योतिष ग्रंथ डाउनलोड (${selectedPandit})`,
+                      te: `👑 8-పేజీల రాయల్ జ్యోతిష్య గ్రంథం డౌన్‌లోడ్ (${selectedPandit})`,
+                      ta: `👑 8-பக்க ராயல் ஜோதிட நூல் பதிவிறக்கம் (${selectedPandit})`,
+                      en: `👑 Download 8-Page Royal Booklet (${selectedPandit})`
                     }, pdfLang)}
               </div>
               <div className="text-xs font-medium text-amber-200/90 mt-0.5">
@@ -255,7 +267,7 @@ export default function RoyalBookletTab({
         <RoyalBooklet8PageTemplate
           lang={pdfLang as any}
           identity={identity}
-          panditName={panditName}
+          panditName={selectedPandit}
           rhythm={rhythm}
           qrDataUrl={qrDataUrl}
         />
