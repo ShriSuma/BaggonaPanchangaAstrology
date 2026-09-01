@@ -182,6 +182,8 @@ export interface InstantQAQuestion {
   immediateRemedyKn: string;
 }
 
+import { generateYajnaHawanaPlan, type YajnaHawanaEngineOutput } from "./YajnaHawanaEngine";
+
 export interface PanchangaSynthesisOutput {
   panchanga: {
     vara: { nameKn: string; nameEn: string; lord: PlanetName; tatva: string };
@@ -194,6 +196,7 @@ export interface PanchangaSynthesisOutput {
   currentDiagnosis: CurrentLifeDiagnosis;
   instantQAList: InstantQAQuestion[];
   multiParagraphExecutiveReading: string[];
+  yajnaHawanaPlan: YajnaHawanaEngineOutput;
 }
 
 /* ==========================================================================
@@ -805,6 +808,13 @@ export const generatePanchangaAngaSynthesis = (
 
   const p4 = sanitizeAstrologyKannadaText(`ನಿಮ್ಮ ಒಳಮನಸ್ಸಿಗೆ ತಕ್ಷಣದ ದೈವಿಕ ರಕ್ಷಣೆ ಮತ್ತು ಆತ್ಮವಿಶ್ವಾಸವನ್ನು ಮರಳಿ ತರಲು, ${lagnaKn} ಲಗ್ನಾಧಿಪತಿಯ ಬಲವರ್ಧನೆಗಾಗಿ ${prescriptions.gemstoneRing.primaryGemstoneKn} (${prescriptions.gemstoneRing.caratWeight}) ರತ್ನವನ್ನು ${prescriptions.gemstoneRing.metalKn}ದಲ್ಲಿ ಮಾಡಿಸಿ ${prescriptions.gemstoneRing.fingerKn}ಕ್ಕೆ ${prescriptions.gemstoneRing.activationDay} ದಿನ ಧಾರಣೆ ಮಾಡುವುದು ಅತ್ಯಂತ ಶ್ರೇಯಸ್ಕರ. ಇದರೊಂದಿಗೆ ಮಾನಸಿಕ ಶಾಂತಿಗಾಗಿ ${prescriptions.rudraksha.nameKn} ಧಾರಣೆ ಹಾಗೂ ${currentDiagnosis.prasthuthaSthiti.immediateRemedies.join(" ")}. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರನ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸಮರ್ಪಿಸುವ ಸಂಕಲ್ಪ ಪ್ರಾರ್ಥನೆಯು ನಿಮ್ಮ ಸಕಲ ವಿಘ್ನಗಳನ್ನು ನಿವಾರಿಸಲಿದೆ.`);
 
+  const yajnaHawanaPlan = generateYajnaHawanaPlan(kundli, {
+    runningDashaMaha: currentDiagnosis.prasthuthaSthiti.runningDashaSummary.split("|")[0]?.trim(),
+    runningDashaBhukti: currentDiagnosis.prasthuthaSthiti.runningDashaSummary.split("|")[1]?.trim(),
+    primaryChallenge: currentDiagnosis.primaryLifeChallenge.area,
+    devoteeName: context.devoteeName
+  });
+
   return {
     panchanga: {
       vara: { nameKn: varaInfo.kn, nameEn: varaInfo.en, lord: varaLord, tatva: varaInfo.tatva },
@@ -816,6 +826,7 @@ export const generatePanchangaAngaSynthesis = (
     prescriptions,
     currentDiagnosis,
     instantQAList,
-    multiParagraphExecutiveReading: [p1, p2, p3, p4]
+    multiParagraphExecutiveReading: [p1, p2, p3, p4],
+    yajnaHawanaPlan
   };
 };

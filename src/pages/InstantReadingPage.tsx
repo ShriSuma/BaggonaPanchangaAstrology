@@ -286,7 +286,7 @@ STRICT RULES:
     );
   }
 
-  const { prescriptions, currentDiagnosis, instantQAList } = synthesisData || {};
+  const { prescriptions, currentDiagnosis, instantQAList, yajnaHawanaPlan } = synthesisData || {};
   const filteredQA = instantQAList?.filter((item) => activeCategory === "all" || item.category === activeCategory) || [];
 
   const activeTalkingPoints = dynamicTalkingPoints || (currentDiagnosis ? {
@@ -718,7 +718,163 @@ STRICT RULES:
             </div>
           )}
 
-          {/* 5. INTERACTIVE VOICE & CUSTOM QUESTION BOX */}
+          {/* 5. YAJNA, HAWANA, SANDHI & PITRU DOSHA PARIHARA HUB */}
+          {yajnaHawanaPlan && (
+            <div className="rounded-3xl border-2 border-amber-500/80 bg-gradient-to-b from-stone-950 via-neutral-900 to-stone-950 p-6 md:p-8 text-white shadow-2xl space-y-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-amber-500/30 pb-4">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/20 text-amber-300 text-3xl shadow-inner border border-amber-500/40">
+                    🔥
+                  </span>
+                  <div>
+                    <span className="text-[11px] font-black uppercase tracking-wider text-amber-400 block">
+                      {isKn ? "॥ ದೈವಿಕ ಯಜ್ಞ, ಹವನ & ಪಿತೃ ದೋಷ ನಿವಾರಣಾ ಸಂಕಲ್ಪ ಮಂಡಲ ॥" : "Vedic Yajna, Hawana & Pitru Dosha Sanctuary"}
+                    </span>
+                    <h3 className="text-lg md:text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-200 to-amber-400 font-serif">
+                      {isKn ? "ಜಾತಕ ಶಾಸ್ತ್ರೋಕ್ತ ಯಜ್ಞ, ಹವನ, ಸಂಧಿ ಪೂಜೆ & ಪಿತೃ ಮುಕ್ತಿ ಸಂಕಲ್ಪಗಳು" : "Chart-Specific Yajna, Hawana, Sandhi & Ancestral Prescriptions"}
+                    </h3>
+                  </div>
+                </div>
+                <span className="px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-black border border-amber-500/40">
+                  {isKn ? "100% ಜಾತಕ ಗಣಿತ ಆಧಾರಿತ" : "100% Chart-Specific"}
+                </span>
+              </div>
+
+              {/* PITRU DOSHA & ANCESTRAL MUKTI EVALUATION BANNER */}
+              <div className={`p-5 rounded-2xl border ${yajnaHawanaPlan.pitruDoshaAssessment.hasPitruDosha ? "bg-amber-950/40 border-amber-500/50" : "bg-emerald-950/40 border-emerald-500/50"} space-y-3`}>
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">{yajnaHawanaPlan.pitruDoshaAssessment.hasPitruDosha ? "🌾" : "✨"}</span>
+                    <h4 className="font-bold text-sm text-amber-200">
+                      {isKn ? "ಪಿತೃ ದೋಷ & ಪೂರ್ವಜರ ಮುಕ್ತಿ ವಿಶ್ಲೇಷಣೆ (Pitru Dosha & Ancestral Blessing Status):" : "Ancestral Karma & Pitru Blessing Assessment:"}
+                    </h4>
+                  </div>
+                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${yajnaHawanaPlan.pitruDoshaAssessment.hasPitruDosha ? "bg-amber-500/20 text-amber-300 border border-amber-500/40" : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"}`}>
+                    {yajnaHawanaPlan.pitruDoshaAssessment.severityLabelKn}
+                  </span>
+                </div>
+                
+                <p className="text-xs md:text-sm text-stone-200 leading-relaxed">
+                  {cleanAstrologyText(yajnaHawanaPlan.pitruDoshaAssessment.detailedExplanationKn)}
+                </p>
+
+                {yajnaHawanaPlan.pitruDoshaAssessment.hasPitruDosha && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 text-xs">
+                    <div className="p-3 rounded-xl bg-black/40 border border-amber-500/30">
+                      <b className="text-amber-300 block mb-1">🔍 ಜಾತಕದಲ್ಲಿ ಕಂಡ ಕಾರಣಗಳು:</b>
+                      <ul className="list-disc list-inside space-y-1 text-stone-300 text-[11px]">
+                        {yajnaHawanaPlan.pitruDoshaAssessment.reasonsKn.map((r, i) => (
+                          <li key={i}>{cleanAstrologyText(r)}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="p-3 rounded-xl bg-black/40 border border-amber-500/30">
+                      <b className="text-amber-300 block mb-1">🪔 ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಸೂಚಿಸಿದ ಪರಿಹಾರ:</b>
+                      <p className="text-amber-100 font-semibold text-[11px]">
+                        {cleanAstrologyText(yajnaHawanaPlan.pitruDoshaAssessment.suggestedKaryaKn)}
+                      </p>
+                      <p className="text-[10px] text-stone-400 mt-1">
+                        {cleanAstrologyText(yajnaHawanaPlan.pitruDoshaAssessment.gokarnaSignificanceKn)}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* RECOMMENDED YAJNA & HAWANAS GRID */}
+              <div className="space-y-3">
+                <h4 className="text-xs uppercase tracking-wider font-bold text-amber-300 flex items-center gap-1.5">
+                  <span>🔱</span>
+                  <span>{isKn ? "ಜಾತಕಾನುಸಾರ ಶಿಫಾರಸು ಮಾಡಿದ ಪ್ರಮುಖ ಯಜ್ಞ & ಹವನಗಳು (ವಿವರವಾದ ಶಾಸ್ತ್ರೀಯ ಮಾಹಿತಿ):" : "Recommended Vedic Yajna & Hawana Sevas:"}</span>
+                </h4>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {yajnaHawanaPlan.recommendedHomas.map((homa) => (
+                    <div
+                      key={homa.id}
+                      className={`p-5 rounded-2xl border ${homa.isUrgentPrimary ? "border-amber-400/80 bg-gradient-to-br from-amber-950/40 via-neutral-900 to-black ring-1 ring-amber-400/30" : "border-white/10 bg-white/[0.04]"} space-y-3 shadow-lg`}
+                    >
+                      <div className="flex items-start justify-between gap-2 border-b border-white/10 pb-2.5">
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl">{homa.icon}</span>
+                          <div>
+                            <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold uppercase block mb-1">
+                              {cleanAstrologyText(homa.categoryLabelKn)}
+                            </span>
+                            <h5 className="text-sm font-black text-white font-serif">
+                              {cleanAstrologyText(homa.nameKn)}
+                            </h5>
+                          </div>
+                        </div>
+                        {homa.isUrgentPrimary && (
+                          <span className="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 text-[10px] font-bold border border-rose-500/40 whitespace-nowrap">
+                            {isKn ? "ಮುಖ್ಯ ಪರಿಹಾರ" : "Primary"}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="space-y-2 text-xs">
+                        <div className="p-2.5 rounded-xl bg-black/30 border border-white/5">
+                          <b className="text-amber-300 block text-[11px] mb-0.5">📌 ಜಾತಕದ ಶಾಸ್ತ್ರೀಯ ಕಾರಣ (Why in Your Chart):</b>
+                          <p className="text-stone-300 leading-relaxed">{cleanAstrologyText(homa.astrologicalRootCauseKn)}</p>
+                        </div>
+
+                        <div className="p-2.5 rounded-xl bg-black/30 border border-white/5">
+                          <b className="text-amber-300 block text-[11px] mb-0.5">🪔 ದೈವಿಕ ಸಂಕಲ್ಪ & ಹವನ ವಿಧಾನ (Sacred Ritual):</b>
+                          <p className="text-stone-300 leading-relaxed">{cleanAstrologyText(homa.sacredProcedureKn)}</p>
+                        </div>
+
+                        <div className="p-2.5 rounded-xl bg-emerald-950/30 border border-emerald-500/20">
+                          <b className="text-emerald-300 block text-[11px] mb-0.5">✨ ಪೂಜೆಯ ನಂತರ ನಿರೀಕ್ಷಿಸಬಹುದಾದ ಬದಲಾವಣೆಗಳು (Expected Shifts):</b>
+                          <p className="text-emerald-100 leading-relaxed">{cleanAstrologyText(homa.expectedShiftsAfterPoojaKn)}</p>
+                        </div>
+
+                        <div className="pt-1 text-[11px] text-stone-400 italic">
+                          {cleanAstrologyText(homa.priestSecretNoteKn)}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* COMBINED SAMPUTA SEVA BANNER */}
+              <div className="p-5 rounded-2xl border border-yellow-500/50 bg-gradient-to-r from-amber-950/60 via-yellow-950/40 to-neutral-900 space-y-3">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-yellow-500/30 pb-2">
+                  <div>
+                    <span className="text-[10px] uppercase tracking-wider text-yellow-400 font-bold block">
+                      {isKn ? "॥ ಸಕಲ ಸಿದ್ಧಿದಾಯಕ ಸಂಯುಕ್ತ ಮಹಾ ಸಂಕಲ್ಪ ॥" : "Synergistic Master Pooja Ensemble"}
+                    </span>
+                    <h4 className="text-base font-black text-yellow-200 font-serif">
+                      {cleanAstrologyText(yajnaHawanaPlan.combinedSamputaSeva.titleKn)}
+                    </h4>
+                  </div>
+                  <span className="text-xs px-3 py-1 rounded-full bg-yellow-500/20 text-yellow-300 font-bold border border-yellow-500/40">
+                    {isKn ? "ಗರಿಷ್ಠ ಫಲಪ್ರದ ಸಂಯೋಜನೆ" : "Max Synergistic Power"}
+                  </span>
+                </div>
+
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {yajnaHawanaPlan.combinedSamputaSeva.includedHomasKn.map((name, idx) => (
+                    <span key={idx} className="px-3 py-1 rounded-xl bg-black/40 border border-yellow-500/30 text-yellow-100 text-xs font-semibold flex items-center gap-1.5">
+                      <span>🔥</span>
+                      <span>{cleanAstrologyText(name)}</span>
+                    </span>
+                  ))}
+                </div>
+
+                <p className="text-xs md:text-sm text-stone-200 leading-relaxed">
+                  {cleanAstrologyText(yajnaHawanaPlan.combinedSamputaSeva.synergyExplanationKn)}
+                </p>
+
+                <p className="text-xs text-yellow-300 font-medium">
+                  🗓️ <b>{isKn ? "ಶಿಫಾರಸು ಮಾಡಿದ ಶುಭ ಮುಹೂರ್ತ:" : "Recommended Muhurtha:"}</b> {cleanAstrologyText(yajnaHawanaPlan.combinedSamputaSeva.recommendedMuhurthaKn)}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* 6. INTERACTIVE VOICE & CUSTOM QUESTION BOX */}
           <div className="rounded-3xl border border-indigo-200 bg-gradient-to-b from-indigo-950 to-slate-950 p-6 md:p-8 text-white shadow-2xl space-y-5">
             <div>
               <span className="inline-block px-3 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-black uppercase tracking-wider mb-1.5 border border-amber-500/30">
