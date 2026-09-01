@@ -216,6 +216,15 @@ function playAudioUrl(url: string, onEnd?: () => void, token?: number, onStart?:
   const unregister = registerActiveAudio(audio);
 
   audio.onplay = () => {
+    if (token !== undefined && !isPlaybackTokenActive(token)) {
+      try {
+        audio.pause();
+        audio.currentTime = 0;
+        audio.src = "";
+      } catch {}
+      unregister();
+      return;
+    }
     if (onStart) onStart();
   };
 
@@ -452,6 +461,12 @@ export async function playStrictlyMaleWebSpeechDSP(
   (window as any).__baggonaActiveUtterance = utterance;
 
   utterance.onstart = () => {
+    if (token !== undefined && !isPlaybackTokenActive(token)) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch {}
+      return;
+    }
     if (onStart) onStart();
   };
 

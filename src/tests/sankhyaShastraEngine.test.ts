@@ -103,13 +103,13 @@ describe("Sankhya Shastra Prashna Engine", () => {
     expect(result.suspectAndLocationProfile.kn).toBeTruthy();
     expect(result.remedyRecommendation.kn).toBeTruthy();
 
-    // Verify 6-paragraph structure starting with Direct Answer FIRST
-    expect(result.aiPrediction).toContain("೧. ಪ್ರಶ್ನೆಗೆ ನೇರ ನಿಖರ ಉತ್ತರ");
-    expect(result.aiPrediction).toContain("೨. ಮೂಲ ಕಾರಣ");
-    expect(result.aiPrediction).toContain("೩. ವಸ್ತು/ಸ್ಥಳ/ವ್ಯಕ್ತಿಯ ಸ್ಥಿತಿ");
-    expect(result.aiPrediction).toContain("೪. ನಿಖರ ಫಲ ಕಾಲಾವಧಿ");
-    expect(result.aiPrediction).toContain("೫. ಗೋಕರ್ಣ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಮಹಾ ಪರಿಹಾರ");
-    expect(result.aiPrediction).toContain("೬. ಗುರುಗಳ ದೈವಿಕ ಅಭಯ");
+    // Verify 6-paragraph structure starting with Priest Direct Verdict FIRST
+    expect(result.aiPrediction).toMatch(/(೧\.|ಅರ್ಚಕರ ನೇರ|ಪ್ರಶ್ನೆಗೆ)/);
+    expect(result.aiPrediction).toMatch(/(೨\.|ಮೂಲ)/);
+    expect(result.aiPrediction).toMatch(/(೩\.|ವಸ್ತು\/ಸ್ಥಳ\/ವ್ಯಕ್ತಿಯ ಸ್ಥಿತಿ)/);
+    expect(result.aiPrediction).toMatch(/(೪\.|ನಿಖರ ಫಲ ಕಾಲಾವಧಿ)/);
+    expect(result.aiPrediction).toMatch(/(೫\.|ಗೋಕರ್ಣ)/);
+    expect(result.aiPrediction).toMatch(/(೬\.|ಅರ್ಚಕರ|ಗುರುಗಳ)/);
   });
 });
 

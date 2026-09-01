@@ -98,7 +98,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
   const [janmaResult, setJanmaResult] = useState<SankhyaJanmaResult | null>(() => savedSankhya?.janmaResult || null);
   const [isCalculatingJanma, setIsCalculatingJanma] = useState(false);
 
-  // Tab 1: Prashna Oracle State (200 Coins / ₹20) - Empty text box by default as requested
+  // Tab 1: Prashna Oracle State (250 Coins / ₹25) - Empty text box by default as requested
   const [devoteeName, setDevoteeName] = useState(() => savedSankhya?.devoteeName || "");
   const [gothra, setGothra] = useState(() => savedSankhya?.gothra || "ಕಾಶ್ಯಪ");
   const [prashnaNumber, setPrashnaNumber] = useState<string>(() => {
@@ -113,7 +113,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
   const [prashnaHistory, setPrashnaHistory] = useState<SankhyaPrashnaResult[]>(() => savedSankhya?.prashnaHistory || []);
   const [isCalculatingPrashna, setIsCalculatingPrashna] = useState(false);
 
-  // Tab 2: Name & Mobile/Vehicle State (200 Coins / ₹20) - Restored from localStorage
+  // Tab 2: Name & Mobile/Vehicle State (250 Coins / ₹25) - Restored from localStorage
   const [suggestionType, setSuggestionType] = useState<"name" | "mobile_vehicle">(
     () => savedSankhya?.suggestionType || "name"
   );
@@ -428,13 +428,13 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
     });
   };
 
-  // 1. Submit Prashna Oracle (200 Coins / ₹20) with Pre-Action Confirmation
+  // 1. Submit Prashna Oracle (250 Coins / ₹25) with Pre-Action Confirmation
   const executePrashnaCalculation = async (cost: number, numToUse: number) => {
     if (isCalculatingPrashna) return; // Prevent double-clicks
     setIsCalculatingPrashna(true);
     setFeedback(null);
 
-    // Deduct 200 Coins
+    // Deduct 250 Coins
     const deductRes = await deductForService(cost, "ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಪ್ರಶ್ನಾವಳಿ ದರ್ಶನ", devoteeName || "ಭಕ್ತರು");
     if (!deductRes.success) {
       setFeedback({ type: "error", text: deductRes.error || "ನಾಣ್ಯ ಕಡಿತ ವಿಫಲವಾಗಿದೆ." });
@@ -519,7 +519,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
     }
 
     setNumberError(null);
-    const cost = SERVICE_COIN_COSTS.SANKHYA_PRASHNA?.coins || 200;
+    const cost = SERVICE_COIN_COSTS.SANKHYA_PRASHNA?.coins || 250;
 
     setPendingDeduction({
       isOpen: true,
@@ -534,7 +534,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
     });
   };
 
-  // 2. Submit Name or Mobile/Vehicle Suggestion (200 Coins) with Pre-Action Confirmation
+  // 2. Submit Name or Mobile/Vehicle Suggestion (250 Coins) with Pre-Action Confirmation
   const executeSuggestionCalculation = async (cost: number, serviceName: string) => {
     if (isCalculatingSuggestion) return;
     setIsCalculatingSuggestion(true);
@@ -610,8 +610,8 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
     if (isCalculatingSuggestion) return;
 
     const cost = suggestionType === "name"
-      ? (SERVICE_COIN_COSTS.SANKHYA_NAME_SUGGESTION?.coins || 200)
-      : (SERVICE_COIN_COSTS.SANKHYA_MOBILE_VEHICLE?.coins || 200);
+      ? (SERVICE_COIN_COSTS.SANKHYA_NAME_SUGGESTION?.coins || 250)
+      : (SERVICE_COIN_COSTS.SANKHYA_MOBILE_VEHICLE?.coins || 250);
 
     const serviceName = suggestionType === "name" ? "ಶುಭ ನಾಮ ಸಂಖ್ಯಾ ಸೂಚನೆ" : "ಮೊಬೈಲ್ ಮತ್ತು ವಾಹನ ಸಂಖ್ಯಾ ಸೂಚನೆ";
 
@@ -794,19 +794,19 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
               type="button"
               onClick={() => setIsRechargeOpen(true)}
               className={`flex items-center gap-1.5 px-2 sm:px-3 py-1 rounded-xl transition-all shadow-xs active:scale-95 whitespace-nowrap border-2 ${
-                coinBalance < 200
+                coinBalance < 250
                   ? "bg-red-50 border-red-500 text-red-950 animate-pulse ring-1 ring-red-400"
                   : "bg-[#FFF9E6] border-amber-400 hover:bg-amber-100 text-amber-950"
               }`}
-              title={coinBalance < 200 ? "⚠️ ನಾಣ್ಯಗಳ ಕೊರತೆ! ರೀಫಿಲ್ ಮಾಡಲು ಕ್ಲಿಕ್ ಮಾಡಿ" : "ನಾಣ್ಯಗಳನ್ನು ರೀಚಾರ್ಜ್ ಮಾಡಿ"}
+              title={coinBalance < 250 ? "⚠️ ನಾಣ್ಯಗಳ ಕೊರತೆ! ರೀಫಿಲ್ ಮಾಡಲು ಕ್ಲಿಕ್ ಮಾಡಿ" : "ನಾಣ್ಯಗಳನ್ನು ರೀಚಾರ್ಜ್ ಮಾಡಿ"}
             >
-              <span className="text-xs sm:text-sm">{coinBalance < 200 ? "⚠️" : "🪙"}</span>
+              <span className="text-xs sm:text-sm">{coinBalance < 250 ? "⚠️" : "🪙"}</span>
               <div className="text-left">
-                <div className={`text-[11px] sm:text-xs font-mono font-black leading-tight ${coinBalance < 200 ? "text-red-700 font-bold" : "text-amber-950"}`}>
+                <div className={`text-[11px] sm:text-xs font-mono font-black leading-tight ${coinBalance < 250 ? "text-red-700 font-bold" : "text-amber-950"}`}>
                   {coinBalance.toLocaleString()} 🪙
                 </div>
-                <div className={`text-[8px] sm:text-[9px] font-extrabold leading-none ${coinBalance < 200 ? "text-red-600 animate-bounce" : "text-emerald-700"}`}>
-                  {coinBalance < 200 ? "ಕೊರತೆ (+ರೀಫಿಲ್)" : "+ ರೀಚಾರ್ಜ್"}
+                <div className={`text-[8px] sm:text-[9px] font-extrabold leading-none ${coinBalance < 250 ? "text-red-600 animate-bounce" : "text-emerald-700"}`}>
+                  {coinBalance < 250 ? "ಕೊರತೆ (+ರೀಫಿಲ್)" : "+ ರೀಚಾರ್ಜ್"}
                 </div>
               </div>
             </button>
@@ -829,9 +829,9 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
               {activeTab === "janma"
                 ? "ಜನ್ಮ ಗ್ರಿಡ್ (500🪙)"
                 : activeTab === "prashna"
-                ? "ಪ್ರಶ್ನಾವಳಿ (200🪙)"
+                ? "ಪ್ರಶ್ನಾವಳಿ (250🪙)"
                 : activeTab === "name_numbers"
-                ? "ನಾಮ/ಸಂಖ್ಯೆ (200🪙)"
+                ? "ನಾಮ/ಸಂಖ್ಯೆ (250🪙)"
                 : "ವಾಲೆಟ್"}
             </span>
           </div>
@@ -1419,7 +1419,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
                 }}
                 className="w-full py-3 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 hover:from-amber-500 hover:to-amber-300 text-slate-950 font-black text-xs rounded-2xl shadow-md flex items-center justify-center gap-2 border border-amber-400"
               >
-                <span>➕ ಇನ್ನೊಂದು ಪ್ರಶ್ನಾವಳಿ ಕೇಳಿ (🪙 ೨೦೦ ನಾಣ್ಯಗಳು)</span>
+                <span>➕ ಇನ್ನೊಂದು ಪ್ರಶ್ನಾವಳಿ ಕೇಳಿ (🪙 ೨೫೦ ನಾಣ್ಯಗಳು)</span>
               </button>
 
               {/* Previous Prashna Session History */}
@@ -1446,7 +1446,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 2: ಶುಭ ನಾಮ ಮತ್ತು ಮೊಬೈಲ್/ವಾಹನ ಸೂಚನೆ (500 Coins) */}
+      {/* TAB 2: ಶುಭ ನಾಮ ಮತ್ತು ಮೊಬೈಲ್/ವಾಹನ ಸೂಚನೆ (250 Coins) */}
       {activeTab === "name_numbers" && (
         <div className="px-4 mt-4 space-y-4">
           <div className="bg-[#FFFDF7] border-2 border-amber-400/80 rounded-3xl p-4 sm:p-5 shadow-md">
@@ -1456,7 +1456,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
                 <span>ಶುಭ ನಾಮ & ಸಂಖ್ಯಾ ಸಂಯೋಜನೆ</span>
               </h2>
               <span className="text-[10px] font-mono font-black text-amber-900 bg-[#FFF5D6] px-2.5 py-1 rounded-full border border-amber-400">
-                ದರ: 🪙 ೨೦೦ ನಾಣ್ಯಗಳು (200 Coins)
+                ದರ: 🪙 ೨೫೦ ನಾಣ್ಯಗಳು (250 Coins)
               </span>
             </div>
 
@@ -1581,7 +1581,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
                 ) : (
                   <>
                     <span>✨ ಶುಭ ಸಂಖ್ಯಾ ಶಿಫಾರಸು ಪಡೆಯಿರಿ</span>
-                    <span className="opacity-80 font-mono font-bold">(🪙 ೨೦೦)</span>
+                    <span className="opacity-80 font-mono font-bold">(🪙 ೨೫೦)</span>
                   </>
                 )}
               </button>
@@ -1695,7 +1695,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
       <FallingCoinsRefillModal
         isOpen={isRechargeOpen}
         onClose={() => setIsRechargeOpen(false)}
-        requiredCoins={200}
+        requiredCoins={250}
       />
 
       {/* Pre-Action Coin Deduction Confirmation Modal */}
@@ -1749,15 +1749,15 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
               </div>
               <div className="py-2 flex justify-between">
                 <span className="text-slate-800">ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಪ್ರಶ್ನಾವಳಿ ದರ್ಶನ</span>
-                <span className="font-mono font-bold text-amber-900">🪙 ೨೦೦ ನಾಣ್ಯಗಳು (200 Coins / ₹20)</span>
+                <span className="font-mono font-bold text-amber-900">🪙 ೨೫೦ ನಾಣ್ಯಗಳು (250 Coins / ₹25)</span>
               </div>
               <div className="py-2 flex justify-between">
                 <span className="text-slate-800">ಶುಭ ನಾಮ ಸಂಖ್ಯಾ ಸೂಚನೆ</span>
-                <span className="font-mono font-bold text-amber-900">🪙 ೨೦೦ ನಾಣ್ಯಗಳು (200 Coins / ₹20)</span>
+                <span className="font-mono font-bold text-amber-900">🪙 ೨೫೦ ನಾಣ್ಯಗಳು (250 Coins / ₹25)</span>
               </div>
               <div className="py-2 flex justify-between">
                 <span className="text-slate-800">ಮೊಬೈಲ್ & ವಾಹನ ಸಂಖ್ಯಾ ಸೂಚನೆ</span>
-                <span className="font-mono font-bold text-amber-900">🪙 ೨೦೦ ನಾಣ್ಯಗಳು (200 Coins / ₹20)</span>
+                <span className="font-mono font-bold text-amber-900">🪙 ೨೫೦ ನಾಣ್ಯಗಳು (250 Coins / ₹25)</span>
               </div>
             </div>
           </div>

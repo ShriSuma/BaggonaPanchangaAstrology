@@ -2406,7 +2406,7 @@ export const PriestMobilePortal: React.FC = () => {
       <FallingCoinsRefillModal
         isOpen={isRechargeOpen}
         onClose={() => setIsRechargeOpen(false)}
-        requiredCoins={200}
+        requiredCoins={250}
       />
 
       {/* 7. Password Setup Modal (First-Time Onboarding) */}

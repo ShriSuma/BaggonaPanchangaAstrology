@@ -1174,10 +1174,8 @@ export default function DailyDarshanaPage(): JSX.Element {
     }
 
     const unregisterAudioStop = onGlobalAudioStop(() => {
-      setIsPlayingBenedictionVoice(false);
-      setIsLoadingBenedictionVoice(false);
-      setIsPlayingMantraVoice(false);
-      setIsLoadingMantraVoice(false);
+      setActiveVoiceKey("none");
+      setActiveVoiceState("idle");
       setIsPlayingAudio(false);
     });
 
@@ -1592,6 +1590,10 @@ export default function DailyDarshanaPage(): JSX.Element {
   // Multi-harmonic Authentic Temple Bell Synthesis ("THAAANNN...")
   const playTempleBell = () => {
     try {
+      stopAllAudioGlobal();
+      setActiveVoiceKey("none");
+      setActiveVoiceState("idle");
+
       const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
       if (!AudioCtx) return;
       const ctx = new AudioCtx();
@@ -1674,23 +1676,25 @@ export default function DailyDarshanaPage(): JSX.Element {
     }
   };
 
-  const [isLoadingBenedictionVoice, setIsLoadingBenedictionVoice] = useState(false);
-  const [isPlayingBenedictionVoice, setIsPlayingBenedictionVoice] = useState(false);
-  const [isLoadingMantraVoice, setIsLoadingMantraVoice] = useState(false);
-  const [isPlayingMantraVoice, setIsPlayingMantraVoice] = useState(false);
+  const [activeVoiceKey, setActiveVoiceKey] = useState<"none" | "benediction" | "mantra">("none");
+  const [activeVoiceState, setActiveVoiceState] = useState<"idle" | "loading" | "playing">("idle");
+
+  const isBenedictionLoading = activeVoiceKey === "benediction" && activeVoiceState === "loading";
+  const isBenedictionPlaying = activeVoiceKey === "benediction" && activeVoiceState === "playing";
+  const isMantraLoading = activeVoiceKey === "mantra" && activeVoiceState === "loading";
+  const isMantraPlaying = activeVoiceKey === "mantra" && activeVoiceState === "playing";
 
   const toggleBenedictionVoice = async () => {
-    if (isPlayingBenedictionVoice || isLoadingBenedictionVoice) {
-      stopClonedAudio();
-      setIsPlayingBenedictionVoice(false);
-      setIsLoadingBenedictionVoice(false);
+    if (activeVoiceKey === "benediction" && (activeVoiceState === "loading" || activeVoiceState === "playing")) {
+      stopAllAudioGlobal();
+      setActiveVoiceKey("none");
+      setActiveVoiceState("idle");
       return;
     }
-    stopClonedAudio();
-    setIsPlayingMantraVoice(false);
-    setIsLoadingMantraVoice(false);
-    setIsLoadingBenedictionVoice(true);
-    setIsPlayingBenedictionVoice(false);
+    stopAllAudioGlobal();
+    setIsPlayingAudio(false);
+    setActiveVoiceKey("benediction");
+    setActiveVoiceState("loading");
 
     try {
       await synthesizeAndPlayClonedVoice(
@@ -1698,33 +1702,32 @@ export default function DailyDarshanaPage(): JSX.Element {
         lang,
         activeVoiceId,
         () => {
-          setIsPlayingBenedictionVoice(false);
-          setIsLoadingBenedictionVoice(false);
+          setActiveVoiceKey((prev) => (prev === "benediction" ? "none" : prev));
+          setActiveVoiceState((prev) => (prev === "playing" ? "idle" : prev));
         },
         () => {
-          setIsLoadingBenedictionVoice(false);
-          setIsPlayingBenedictionVoice(true);
+          setActiveVoiceKey("benediction");
+          setActiveVoiceState("playing");
         }
       );
     } catch {
-      setIsLoadingBenedictionVoice(false);
-      setIsPlayingBenedictionVoice(false);
+      setActiveVoiceKey((prev) => (prev === "benediction" ? "none" : prev));
+      setActiveVoiceState("idle");
     }
   };
 
   const toggleMantraVoice = async () => {
     const mantraText = deity.mantra[lang] || deity.mantra.kn;
-    if (isPlayingMantraVoice || isLoadingMantraVoice) {
-      stopClonedAudio();
-      setIsPlayingMantraVoice(false);
-      setIsLoadingMantraVoice(false);
+    if (activeVoiceKey === "mantra" && (activeVoiceState === "loading" || activeVoiceState === "playing")) {
+      stopAllAudioGlobal();
+      setActiveVoiceKey("none");
+      setActiveVoiceState("idle");
       return;
     }
-    stopClonedAudio();
-    setIsPlayingBenedictionVoice(false);
-    setIsLoadingBenedictionVoice(false);
-    setIsLoadingMantraVoice(true);
-    setIsPlayingMantraVoice(false);
+    stopAllAudioGlobal();
+    setIsPlayingAudio(false);
+    setActiveVoiceKey("mantra");
+    setActiveVoiceState("loading");
 
     try {
       await synthesizeAndPlayClonedVoice(
@@ -1732,17 +1735,17 @@ export default function DailyDarshanaPage(): JSX.Element {
         lang,
         activeVoiceId,
         () => {
-          setIsPlayingMantraVoice(false);
-          setIsLoadingMantraVoice(false);
+          setActiveVoiceKey((prev) => (prev === "mantra" ? "none" : prev));
+          setActiveVoiceState((prev) => (prev === "playing" ? "idle" : prev));
         },
         () => {
-          setIsLoadingMantraVoice(false);
-          setIsPlayingMantraVoice(true);
+          setActiveVoiceKey("mantra");
+          setActiveVoiceState("playing");
         }
       );
     } catch {
-      setIsLoadingMantraVoice(false);
-      setIsPlayingMantraVoice(false);
+      setActiveVoiceKey((prev) => (prev === "mantra" ? "none" : prev));
+      setActiveVoiceState("idle");
     }
   };
 
@@ -2455,12 +2458,12 @@ export default function DailyDarshanaPage(): JSX.Element {
                   type="button"
                   onClick={toggleMantraVoice}
                   style={{
-                    background: isPlayingMantraVoice
+                    background: isMantraPlaying
                       ? "#DC2626"
-                      : isLoadingMantraVoice
+                      : isMantraLoading
                       ? "linear-gradient(135deg, #B45309, #78350F)"
                       : "linear-gradient(135deg, #F59E0B, #D97706)",
-                    color: isPlayingMantraVoice || isLoadingMantraVoice ? "#FFFFFF" : "#1E1B4B",
+                    color: isMantraPlaying || isMantraLoading ? "#FFFFFF" : "#1E1B4B",
                     border: "1px solid #FCD34D",
                     padding: "9px 18px",
                     borderRadius: 20,
@@ -2473,12 +2476,12 @@ export default function DailyDarshanaPage(): JSX.Element {
                     gap: 6
                   }}
                 >
-                  {isPlayingMantraVoice ? (
+                  {isMantraPlaying ? (
                     <>
                       <span>⏹️</span>
                       <span>{lang === "kn" ? "ಮಂತ್ರ ನಿಲ್ಲಿಸಿ (Stop)" : "Stop Mantra"}</span>
                     </>
-                  ) : isLoadingMantraVoice ? (
+                  ) : isMantraLoading ? (
                     <>
                       <span className="inline-block animate-spin">⏳</span>
                       <span>{lang === "kn" ? "ಮಂತ್ರ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : "Synthesizing Mantra..."}</span>
@@ -2515,9 +2518,9 @@ export default function DailyDarshanaPage(): JSX.Element {
                   type="button"
                   onClick={toggleBenedictionVoice}
                   style={{
-                    background: isPlayingBenedictionVoice
+                    background: isBenedictionPlaying
                       ? "#DC2626"
-                      : isLoadingBenedictionVoice
+                      : isBenedictionLoading
                       ? "linear-gradient(135deg, #B45309, #78350F)"
                       : "linear-gradient(135deg, #D97706, #B45309)",
                     color: "#FFFFFF",
@@ -2533,12 +2536,12 @@ export default function DailyDarshanaPage(): JSX.Element {
                     boxShadow: "0 2px 8px rgba(217, 119, 6, 0.3)"
                   }}
                 >
-                  {isPlayingBenedictionVoice ? (
+                  {isBenedictionPlaying ? (
                     <>
                       <span>⏹️</span>
                       <span>{lang === "kn" ? "ನಿಲ್ಲಿಸಿ (Stop)" : "Stop Voice"}</span>
                     </>
-                  ) : isLoadingBenedictionVoice ? (
+                  ) : isBenedictionLoading ? (
                     <>
                       <span className="inline-block animate-spin">⏳</span>
                       <span>{lang === "kn" ? "ಧ್ವನಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : "Generating Voice..."}</span>

@@ -17,19 +17,21 @@ import { sendSystemTestEmail } from "../features/notifications/notificationServi
 
 describe("Sankhya Shastra Priest Portal & Engine Validation", () => {
   it("verifies accurate pricing for Sankhya Shastra services", () => {
-    // New 500 Coins (₹50) Janma & Dasha Full Analysis
+    // 500 Coins (₹50) Janma & Dasha Full Analysis
     expect(SERVICE_COIN_COSTS.SANKHYA_JANMA_ANALYSIS.coins).toBe(500);
     expect(SERVICE_COIN_COSTS.SANKHYA_JANMA_ANALYSIS.inrEquivalent).toBe(50);
 
-    // Existing 200 Coins (₹20) Prashna Oracle
-    expect(SERVICE_COIN_COSTS.SANKHYA_PRASHNA.coins).toBe(200);
-    expect(SERVICE_COIN_COSTS.SANKHYA_PRASHNA.inrEquivalent).toBe(20);
+    // 250 Coins (₹25) Prashna Oracle
+    expect(SERVICE_COIN_COSTS.SANKHYA_PRASHNA.coins).toBe(250);
+    expect(SERVICE_COIN_COSTS.SANKHYA_PRASHNA.inrEquivalent).toBe(25);
 
-    expect(SERVICE_COIN_COSTS.SANKHYA_NAME_SUGGESTION.coins).toBe(200);
-    expect(SERVICE_COIN_COSTS.SANKHYA_NAME_SUGGESTION.inrEquivalent).toBe(20);
+    // 250 Coins (₹25) Name Suggestion
+    expect(SERVICE_COIN_COSTS.SANKHYA_NAME_SUGGESTION.coins).toBe(250);
+    expect(SERVICE_COIN_COSTS.SANKHYA_NAME_SUGGESTION.inrEquivalent).toBe(25);
 
-    expect(SERVICE_COIN_COSTS.SANKHYA_MOBILE_VEHICLE.coins).toBe(200);
-    expect(SERVICE_COIN_COSTS.SANKHYA_MOBILE_VEHICLE.inrEquivalent).toBe(20);
+    // 250 Coins (₹25) Mobile/Vehicle Suggestion
+    expect(SERVICE_COIN_COSTS.SANKHYA_MOBILE_VEHICLE.coins).toBe(250);
+    expect(SERVICE_COIN_COSTS.SANKHYA_MOBILE_VEHICLE.inrEquivalent).toBe(25);
   });
 
   it("generates complete Janma Vedic Grid & Dasha Reading for Priest Portal (500 Coins / ₹50)", async () => {

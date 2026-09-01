@@ -101,37 +101,37 @@ export const SERVICE_COIN_COSTS: Record<string, ServiceCost> = {
   SANKHYA_PRASHNA: {
     key: "SANKHYA_PRASHNA",
     name: "Sankhya Shastra Prashna Oracle",
-    coins: 200,
-    inrEquivalent: 20,
-    description: "Vedic number horary divination with Sthira/Chara/Ubhaya & Varna influence (200 Coins / ₹20)"
+    coins: 250,
+    inrEquivalent: 25,
+    description: "Vedic number horary divination with Sthira/Chara/Ubhaya & Varna influence (250 Coins / ₹25)"
   },
   KAALA_DIKSUCHI_QUESTION: {
     key: "KAALA_DIKSUCHI_QUESTION",
     name: "Kaala Diksuchi Timing Oracle",
-    coins: 200,
-    inrEquivalent: 20,
-    description: "Kaala Diksuchi timing analysis & auspicious direction consultation (200 Coins / ₹20)"
+    coins: 250,
+    inrEquivalent: 25,
+    description: "Kaala Diksuchi timing analysis & auspicious direction consultation (250 Coins / ₹25)"
   },
   PURVA_JANMA_QUESTION: {
     key: "PURVA_JANMA_QUESTION",
     name: "Purva Janma Karmic Reading",
-    coins: 200,
-    inrEquivalent: 20,
-    description: "Purva Janma past life karma and remedial reading (200 Coins / ₹20)"
+    coins: 250,
+    inrEquivalent: 25,
+    description: "Purva Janma past life karma and remedial reading (250 Coins / ₹25)"
   },
   SANKHYA_NAME_SUGGESTION: {
     key: "SANKHYA_NAME_SUGGESTION",
     name: "Sankhya Shastra Lucky Name Suggestion",
-    coins: 200,
-    inrEquivalent: 20,
-    description: "Chaldean/Pythagorean vibration name correction & lucky syllable selection (200 Coins / ₹20)"
+    coins: 250,
+    inrEquivalent: 25,
+    description: "Chaldean/Pythagorean vibration name correction & lucky syllable selection (250 Coins / ₹25)"
   },
   SANKHYA_MOBILE_VEHICLE: {
     key: "SANKHYA_MOBILE_VEHICLE",
     name: "Lucky Mobile & Vehicle Number Suggestion",
-    coins: 200,
-    inrEquivalent: 20,
-    description: "Lucky sum total calculation for phone numbers and vehicle registration plates (200 Coins / ₹20)"
+    coins: 250,
+    inrEquivalent: 25,
+    description: "Lucky sum total calculation for phone numbers and vehicle registration plates (250 Coins / ₹25)"
   },
   VAHANA_MUHURTHA: {
     key: "VAHANA_MUHURTHA",
