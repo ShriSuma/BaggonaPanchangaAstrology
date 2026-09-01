@@ -99,20 +99,23 @@ Panchanga 5-Angas:
 - Yoga: ${data.panchanga.yoga.nameKn} (${data.panchanga.yoga.rule.isAuspicious ? "Auspicious" : "Requires Care"})
 - Karana: ${data.panchanga.karana.nameKn} (${data.panchanga.karana.rule.type})
 Technical Astrological Placements:
-- 4th House: ${data.currentDiagnosis.technicalAspects.fourthHouseDetail}
-- 5th House: ${data.currentDiagnosis.technicalAspects.fifthHouseDetail}
-- 7th House: ${data.currentDiagnosis.technicalAspects.seventhHouseDetail}
-- 10th House: ${data.currentDiagnosis.technicalAspects.tenthHouseDetail}
+- 4th House (Mind/Peace): ${data.currentDiagnosis.technicalAspects.fourthHouseDetail}
+- 5th House (Intellect/Purva Punya): ${data.currentDiagnosis.technicalAspects.fifthHouseDetail}
+- 7th House (Partnership/Marriage): ${data.currentDiagnosis.technicalAspects.seventhHouseDetail}
+- 10th House (Career/Karma): ${data.currentDiagnosis.technicalAspects.tenthHouseDetail}
 - Running Dasha & Gochara: ${data.currentDiagnosis.prasthuthaSthiti.runningDashaSummary}
 - Current Challenge: ${data.currentDiagnosis.primaryLifeChallenge.area} -> ${data.currentDiagnosis.primaryLifeChallenge.description} (${data.currentDiagnosis.primaryLifeChallenge.planetaryRootCause})
 - Prescriptions: ${data.prescriptions.rudraksha.nameKn}, ${data.prescriptions.gemstoneRing.primaryGemstoneKn} (${data.prescriptions.gemstoneRing.caratWeight}) on ${data.prescriptions.gemstoneRing.fingerKn}.
 
-STRICT WRITING RULES:
-1. Write 3 to 4 impactful, expert paragraphs in pure, natural ${isKn ? "Kannada" : "English"}.
-2. DO NOT use markdown bold asterisks (no ** or *). Use clean, plain text.
-3. ALL NUMBERS MUST BE IN ENGLISH DIGITS (e.g. 4.25 - 6.5 Carat, 9 Mukhi, 7th house, 10th house, 4 to 6 months). Do not use Kannada digits.
-4. Mention technical astrological placements (4th house mind, 5th house intellect, 7th house aspect, 10th house career) to demonstrate deep astrological mastery.
-5. Highlight what they are feeling internally (Overthinking, anxiety), where the active friction is (family/work), and provide practical remedies.
+STRICT WRITING & ASTROLOGER PERSONA RULES:
+1. Speak DIRECTLY to the devotee in authoritative, deeply empathetic, face-to-face Vedic Astrologer spoken voice in pure, natural ${isKn ? "Kannada" : "English"}. Do not sound like a computer or mobile app reading a report.
+2. Must write EXACTLY 4 comprehensive, dense paragraphs:
+   - Paragraph 1: Address the devotee directly. Reveal that you know why they came today—an unexpected incident or turmoil recently disturbed their peace. Mention their 4th house and Moon's sensitive placement causing late-night overthinking (2:00 AM to 4:30 AM) and unspoken inner burden.
+   - Paragraph 2: Explain the exact active friction in their life right now (${data.currentDiagnosis.primaryLifeChallenge.area} & ${data.currentDiagnosis.primaryLifeChallenge.description}). Explain how their good intentions have been misunderstood, or how their efforts are being delayed despite immense dedication.
+   - Paragraph 3: Explain the astrological planetary reality (10th/7th/4th house aspects & running Dasha-Bhukti). Give an exact turning-point timeline (e.g. Next 3 to 5 Months) using ENGLISH DIGITS when the cloud lifts and breakthroughs occur.
+   - Paragraph 4: Prescribe the exact remedies with precision: ${data.prescriptions.gemstoneRing.primaryGemstoneKn} (${data.prescriptions.gemstoneRing.caratWeight}), ${data.prescriptions.rudraksha.nameKn}, daily morning rituals, and Gokarna Mahabaleshwara Kshetra blessings.
+3. DO NOT use markdown bold asterisks (no ** or *). Use clean, plain text.
+4. ALL NUMBERS MUST BE IN ENGLISH DIGITS (e.g. 1, 2, 3, 4.25 - 6.5 Carat, 9 Mukhi, 7th house, 10th house, 3 to 5 months).
 `;
 
         const response = await askGemini(
@@ -181,17 +184,22 @@ STRICT WRITING RULES:
 Devotee: ${session.input.name || "Devotee"}
 Lagna: ${session.result.lagnaRashi.english} | Moon: ${session.result.moonSign.english} | Nakshatra: ${session.result.planets.find(p => p.name === "Moon")?.nakshatra.english}
 Panchanga 5-Angas: Vara=${synthesisData.panchanga.vara.nameKn}, Tithi=${synthesisData.panchanga.tithi.nameKn}, Yoga=${synthesisData.panchanga.yoga.nameKn}, Karana=${synthesisData.panchanga.karana.nameKn}
-Technical: 4th=${synthesisData.currentDiagnosis.technicalAspects.fourthHouseDetail}, 7th=${synthesisData.currentDiagnosis.technicalAspects.seventhHouseDetail}, 10th=${synthesisData.currentDiagnosis.technicalAspects.tenthHouseDetail}.
+Technical Placements: 4th=${synthesisData.currentDiagnosis.technicalAspects.fourthHouseDetail}, 7th=${synthesisData.currentDiagnosis.technicalAspects.seventhHouseDetail}, 10th=${synthesisData.currentDiagnosis.technicalAspects.tenthHouseDetail}.
 Dasha: ${synthesisData.currentDiagnosis.prasthuthaSthiti.runningDashaSummary}.
-Prescriptions: ${synthesisData.prescriptions.rudraksha.nameKn}, ${synthesisData.prescriptions.gemstoneRing.primaryGemstoneKn}.
+Prescriptions: ${synthesisData.prescriptions.rudraksha.nameKn}, ${synthesisData.prescriptions.gemstoneRing.primaryGemstoneKn} (${synthesisData.prescriptions.gemstoneRing.caratWeight}).
 
 Question from Devotee: "${q}"
 
-Task: Give a direct, expert Pandit response in ${isKn ? "Kannada" : "English"}.
-1. First give 2 punchy spoken sentences that the Astrologer can tell the devotee immediately.
-2. DO NOT use markdown bold asterisks (**). Output clean text.
-3. ALL NUMBERS MUST BE IN ENGLISH DIGITS (1, 2, 3, 4.25 Carat, etc.).
-4. Then specify the technical house/drishti basis and the practical remedy.
+Task: Give a deep, authoritative, 3 to 4 paragraph face-to-face Vedic Pandit consultation response in pure, natural ${isKn ? "Kannada" : "English"}.
+DO NOT give a shallow 1-2 line reply!
+Structure your response into 3-4 detailed paragraphs:
+1. Paragraph 1 (The Trigger Incident & Empathy): Speak directly to the devotee ("ನೋಡಿ..."). Explain why this question is burning in their mind right now and identify the triggering incident or emotional dilemma that provoked it.
+2. Paragraph 2 (What is Happening Right Now): Describe their active day-to-day struggle, feelings of hesitation, overthinking, or lack of appreciation.
+3. Paragraph 3 (Astrological Root & Exact Timeline): Explain the house lord (4th/5th/7th/10th), planetary transit, and give concrete timing in ENGLISH DIGITS (e.g. Next 3 to 6 Months) when relief and success manifest.
+4. Paragraph 4 (Practical Remedies & Blessings): Prescribe specific remedies (Gemstone weight, Rudraksha, Japa count, Gokarna Mahabaleshwara Seva).
+STRICT RULES:
+- DO NOT use markdown asterisks (no ** or *). Use clean, natural text.
+- ALL numbers must be in ENGLISH DIGITS (1, 2, 3, 4, 5, etc.).
 `;
 
       const ans = await askGemini(
@@ -442,7 +450,13 @@ Task: Give a direct, expert Pandit response in ${isKn ? "Kannada" : "English"}.
                         <b className="block text-[11px] uppercase tracking-wider text-amber-900 mb-1">
                           🗣️ ದೈವಜ್ಞರ ನೇರ ಮಾತು (Say to Devotee):
                         </b>
-                        <p className="leading-relaxed font-medium">"{cleanAstrologyText(qa.panditScriptKn)}"</p>
+                        <div className="leading-relaxed font-medium space-y-2 text-amber-950">
+                          {cleanAstrologyText(qa.panditScriptKn)
+                            .split("\n\n")
+                            .map((pText, pIdx) => (
+                              <p key={pIdx} className="leading-relaxed">{pText}</p>
+                            ))}
+                        </div>
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">

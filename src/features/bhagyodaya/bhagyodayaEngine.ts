@@ -13,6 +13,10 @@
  */
 
 import type { KundliOutput, PlanetPosition } from "../../core/AstroTypes";
+import { PlanetName } from "../../core/AstroTypes";
+import { findBhuktiAtAge } from "../../core/DashaBhuktiEngine";
+import { siderealLongitudes } from "../../core/EphemerisEngine";
+import { degreeToRashi } from "../../core/AstroMath";
 
 export type BhagyodayaLang = "kn" | "en" | "hi" | "ta" | "te";
 
@@ -142,8 +146,21 @@ const RASHI_KN: Record<string, string> = {
   Meena: "ಮೀನ"
 };
 
+const GRAHA_KN: Record<string, string> = {
+  Sun: "ಸೂರ್ಯ",
+  Moon: "ಚಂದ್ರ",
+  Mars: "ಕುಜ (ಮಂಗಳ)",
+  Mercury: "ಬುಧ",
+  Jupiter: "ಗುರು (ಬೃಹಸ್ಪತಿ)",
+  Venus: "ಶುಕ್ರ",
+  Saturn: "ಶನಿ",
+  Rahu: "ರಾಹು",
+  Ketu: "ಕೇತು"
+};
+
 /**
  * Calculates the complete Bhagyodaya Mahadarshana Life Dossier from a devotee's KundliOutput.
+ * 100% dynamic, computed from Janma Kundali, Dasha-Bhukti, and Gochara transits.
  */
 export function generateBhagyodayaReport(
   kundli: KundliOutput,
@@ -155,78 +172,199 @@ export function generateBhagyodayaReport(
   },
   lang: BhagyodayaLang = "kn"
 ): BhagyodayaReport {
-  const devoteeName = input.name || "Devotee";
+  const devoteeName = input.name || (lang === "kn" ? "ಶ್ರೀಯುತ ಜಾತಕರು" : "Devotee");
   const birthDate = input.birthDate;
   const birthTime = input.birthTime;
   const gotra = input.gotra || "ಕಾಶ್ಯಪ";
 
   const lagnaRashiEng = kundli.lagnaRashi?.english || "Dhanu";
-  const moonPlanet = kundli.planets.find(p => p.name === "Moon") || kundli.planets[1];
-  const jupiterPlanet = kundli.planets.find(p => p.name === "Jupiter");
-  const venusPlanet = kundli.planets.find(p => p.name === "Venus");
-  const saturnPlanet = kundli.planets.find(p => p.name === "Saturn");
-  const sunPlanet = kundli.planets.find(p => p.name === "Sun");
-  const marsPlanet = kundli.planets.find(p => p.name === "Mars");
-  const rahuPlanet = kundli.planets.find(p => p.name === "Rahu");
+  const planets = kundli.planets;
+  const moonPlanet = planets.find(p => p.name === "Moon") || planets[1];
+  const jupiterPlanet = planets.find(p => p.name === "Jupiter");
+  const venusPlanet = planets.find(p => p.name === "Venus");
+  const saturnPlanet = planets.find(p => p.name === "Saturn");
+  const sunPlanet = planets.find(p => p.name === "Sun");
+  const marsPlanet = planets.find(p => p.name === "Mars");
+  const mercuryPlanet = planets.find(p => p.name === "Mercury");
+  const rahuPlanet = planets.find(p => p.name === "Rahu");
+  const ketuPlanet = planets.find(p => p.name === "Ketu");
 
   const moonRashiEng = kundli.moonSign?.english || moonPlanet?.rashi?.english || "Dhanu";
   const nakshatraEng = moonPlanet?.nakshatra?.english || "Mula";
   const nakshatraKn = moonPlanet?.nakshatra?.sanskrit || "ಮೂಲಾ";
-  const nakshatraPada = 1;
+
+  // Dynamic Nakshatra Pada calculation from Moon's longitude
+  const moonLong = ((moonPlanet?.rashi?.index ?? 0) * 30) + (moonPlanet?.degree ?? 0);
+  const nakshatraPada = Math.floor(((moonLong % (360 / 27)) / (360 / 108))) + 1;
 
   const rashiLord = RASHI_LORDS[moonRashiEng] || "Jupiter";
   const lagnaLord = RASHI_LORDS[lagnaRashiEng] || "Jupiter";
 
   // 1. Wealth & Debt Freedom Calculations
   const hasGajaKesari = jupiterPlanet && moonPlanet && Math.abs(jupiterPlanet.house - moonPlanet.house) % 3 === 0;
-  const dhanaScore = Math.min(98, Math.max(65, 70 + (hasGajaKesari ? 15 : 0) + (venusPlanet && (venusPlanet.house === 2 || venusPlanet.house === 11) ? 12 : 5)));
+  const has2ndLordWealth = venusPlanet && (venusPlanet.house === 2 || venusPlanet.house === 11);
+  const dhanaScore = Math.min(98, Math.max(65, 70 + (hasGajaKesari ? 14 : 0) + (has2ndLordWealth ? 12 : 5) + (jupiterPlanet && jupiterPlanet.house === 9 ? 8 : 0)));
   
   const wealthVerdictKn = `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ${lagnaRashiEng} ಲಗ್ನದ ${RASHI_KN[lagnaRashiEng] || lagnaRashiEng} ರಾಶ್ಯಾಧಿಪತಿಯ ಬಲದಿಂದಾಗಿ ನಿಮ್ಮ ಜೀವಿತಾವಧಿಯಲ್ಲಿ ಅಪಾರ ಸಂಪತ್ತು ಸೃಷ್ಟಿಯಾಗುವ ಮಹಾ ಯೋಗವಿದೆ. ${hasGajaKesari ? "ಗಜಕೇಸರಿ ಯೋಗ ಹಾಗೂ ಧನಯೋಗವು ನಿಮ್ಮ ಆರ್ಥಿಕ ಸ್ಥಿರತೆಯನ್ನು ಭದ್ರಪಡಿಸುತ್ತದೆ." : "ದ್ವಿತೀಯ ಮತ್ತು ಏಕಾದಶ ಭಾವಗಳ ಶುಭ ದೃಷ್ಟಿಯಿಂದ ನಿರಂತರ ಧನಾಗಮನವಿರುತ್ತದೆ."}`;
   const wealthVerdictEn = `With your ${lagnaRashiEng} Ascendant and strong planetary alignments, you possess powerful Dhana Yogas for exponential wealth accumulation. ${hasGajaKesari ? "Gajakesari Yoga guarantees steady financial resilience and real estate growth." : "Direct aspects on your 2nd and 11th houses ensure recurring income streams."}`;
 
-  // 2. Marriage & Children Calculations
-  const vivahaWindow = "೨೦೨೬ ರ ಕೊನೆಯ ತ್ರೈಮಾಸಿಕದಿಂದ ೨೦೨೮ ರ ಮಧ್ಯಭಾಗ (Next 18-24 Months)";
-  const vivahaWindowEn = "Late 2026 to Mid 2028 (Next 18-24 Months)";
+  const currentYear = new Date().getFullYear();
+  const birthYear = parseInt(birthDate.split("-")[0] || "1990", 10);
+  const baseAge = Math.max(0, currentYear - birthYear);
 
-  // 3. Health Constitution
+  // Dynamic Timeline for Debt Freedom / Runa Vimochana
+  const runaReliefOffset = (saturnPlanet && saturnPlanet.house === 6) ? 0 : 1;
+  const runaStartYear = currentYear + runaReliefOffset;
+  const runaEndYear = runaStartYear + 1;
+  const runaVimochanaTimeline = lang === "kn"
+    ? `${runaStartYear} ರ ದೀಪಾವಳಿಯಿಂದ ${runaEndYear} ರ ಯುಗಾದಿ ಒಳಗೆ ಷಷ್ಠಾಧಿಪತಿ ಉಪಶಮನ ಹಾಗೂ ಋಣ ಬಾಧೆಗಳಿಂದ ಸಂಪೂರ್ಣ ಮುಕ್ತಿ`
+    : `Between Diwali ${runaStartYear} and Yugadi ${runaEndYear} 6th house pacification and total debt liberation`;
+
+  // 2. Marriage & Children Calculations
+  const hasKujaDosha = planets.some(p => p.name === "Mars" && [1, 2, 4, 7, 8, 12].includes(p.house));
+  const has7thBenefic = planets.some(p => (p.name === "Jupiter" || p.name === "Venus" || p.name === "Mercury") && p.house === 7);
+  const has7thMalefic = planets.some(p => (p.name === "Saturn" || p.name === "Rahu" || p.name === "Ketu") && p.house === 7);
+  
+  let harmonyScore = 80;
+  if (has7thBenefic) harmonyScore += 12;
+  if (has7thMalefic) harmonyScore -= 10;
+  if (hasKujaDosha) harmonyScore -= 6;
+  if (venusPlanet && [1, 4, 5, 9, 11].includes(venusPlanet.house)) harmonyScore += 6;
+  harmonyScore = Math.min(96, Math.max(62, harmonyScore));
+
+  const currentBhuktiAtAge = findBhuktiAtAge(kundli, baseAge);
+  const dashaLordName = currentBhuktiAtAge?.bhukti || currentBhuktiAtAge?.maha?.planet || "Jupiter";
+  const dashaLordKn = GRAHA_KN[dashaLordName] || dashaLordName;
+
+  const vivahaStartYear = currentYear;
+  const vivahaEndYear = currentYear + 2;
+  const vivahaWindow = lang === "kn" 
+    ? `${vivahaStartYear} ರ ಉತ್ತರಾರ್ಧದಿಂದ ${vivahaEndYear} ರ ಮಧ್ಯಭಾಗ (${dashaLordKn} ದಶಾ ಹಾಗೂ ಗುರು ಸಂಚಾರ ಬಲ)`
+    : `Late ${vivahaStartYear} to Mid ${vivahaEndYear} (${dashaLordName} Dasha & Auspicious Jupiter Transit)`;
+  const vivahaWindowEn = `Late ${vivahaStartYear} to Mid ${vivahaEndYear} (${dashaLordName} Dasha & Auspicious Jupiter Transit)`;
+
+  const santathiYear = currentYear + ((jupiterPlanet && [5, 9, 11].includes(jupiterPlanet.house)) ? 1 : 2);
+  const santathiBlessingWindow = lang === "kn"
+    ? `${santathiYear} - ${santathiYear + 1} ರ ಪಂಚಮ ಸ್ಥಾನ ಗುರು ದೃಷ್ಟಿ ಕಾಲಾವಧಿ`
+    : `During ${santathiYear} - ${santathiYear + 1} Jupiter 5th House Transit Window`;
+
+  // 3. Health Constitution & Vitality Score
   const dosha: "Vata" | "Pitta" | "Kapha" | "Tridosha" = 
     ["Mesha", "Simha", "Dhanu"].includes(lagnaRashiEng) ? "Pitta" :
     ["Vrishabha", "Kanya", "Makara"].includes(lagnaRashiEng) ? "Vata" :
     ["Mithuna", "Tula", "Kumbha"].includes(lagnaRashiEng) ? "Vata" : "Kapha";
 
+  let vit = 76;
+  if (sunPlanet && [1, 5, 9, 10, 11].includes(sunPlanet.house)) vit += 12;
+  if (sunPlanet?.isDebilitated || (sunPlanet && [6, 8, 12].includes(sunPlanet.house))) vit -= 14;
+  if (saturnPlanet && [6, 8].includes(saturnPlanet.house)) vit -= 6;
+  if (jupiterPlanet && [1, 5, 9].includes(jupiterPlanet.house)) vit += 8;
+  const vitalityScore = Math.min(98, Math.max(56, vit));
+
   // 4. Protection Level
   const drishtiLevel = rahuPlanet && (rahuPlanet.house === 1 || rahuPlanet.house === 7 || rahuPlanet.house === 8) ? "Severe" : "Medium";
 
-  // 5. 10-Year Milestones (2026 - 2036)
-  const currentYear = new Date().getFullYear();
-  const birthYear = parseInt(birthDate.split("-")[0] || "1990", 10);
-  const baseAge = currentYear - birthYear;
+  // 5. 10-Year Dynamic Golden Milestones (2026 - 2036)
+  let baseJupDeg = 45;
+  let baseSatDeg = 325;
+  try {
+    const ephem = siderealLongitudes(new Date(), "lahiri", "mean");
+    baseJupDeg = ephem.jupiter ?? 45;
+    baseSatDeg = ephem.saturn ?? 325;
+  } catch {
+    baseJupDeg = 45;
+    baseSatDeg = 325;
+  }
 
-  const milestoneTemplates = [
-    { offset: 0, rating: "golden" as const, themeKn: "ಮಹಾ ಭಾಗ್ಯೋದಯ & ಆರ್ಥಿಕ ತಿರುವು", themeEn: "Financial Breakthrough & Wealth Inflow", reasonKn: "ಗುರು ಗೋಚಾರ ಶುಭ ದೃಷ್ಟಿ ಹಾಗೂ ನವಮ ಭಾವೋದಯ", reasonEn: "Jupiter trine aspect opening 9th house of fortune" },
-    { offset: 1, rating: "growth" as const, themeKn: "ಸ್ಥಿರಾಸ್ತಿ ಖರೀದಿ & ಕುಟುಂಬ ವೃದ್ಧಿ", themeEn: "Property Acquisition & Family Harmony", reasonKn: "ಚತುರ್ಥ ಭಾವಾಧಿಪತಿಯ ಶುಭ ಸಂಚಾರ", reasonEn: "4th house lord entering exaltation" },
-    { offset: 2, rating: "golden" as const, themeKn: "ಉದ್ಯೋಗ ಬಡ್ತಿ & ಕೀರ್ತಿ ಪ್ರಾಪ್ತಿ", themeEn: "Career Elevation & Stature Growth", reasonKn: "ದಶಮ ಭಾವದಲ್ಲಿ ರವಿ-ಬುಧಾದಿತ್ಯ ಯೋಗ ಸಕ್ರಿಯ", reasonEn: "Budhaditya Yoga energizing the 10th house" },
-    { offset: 3, rating: "caution" as const, themeKn: "ಆರೋಗ್ಯ ಜಾಗರೂಕತೆ & ಶಾಂತಿ ಸಂಕಲ್ಪ", themeEn: "Health Vigilance & Spiritual Fortification", reasonKn: "ಶನಿ ಗೋಚಾರ ಮಧ್ಯಂತರ ಸಂಚಾರ", reasonEn: "Saturn transit requiring peace remedies" },
-    { offset: 4, rating: "golden" as const, themeKn: "ವ್ಯಾಪಾರ ವಿಸ್ತರಣೆ & ಹೊಸ ಯೋಜನೆಗಳು", themeEn: "Business Expansion & Major Ventures", reasonKn: "ಲಾಭ ಭಾವದಲ್ಲಿ ಶುಕ್ರನ ಪ್ರಬಲ ಸ್ಥಾನ", reasonEn: "Venus illuminating the 11th house of gains" },
-    { offset: 5, rating: "growth" as const, themeKn: "ವಿದೇಶ/ದೂರ ಪ್ರಯಾಣ & ಜ್ಞಾನಾರ್ಜನೆ", themeEn: "Foreign Travel & Auspicious Relocation", reasonKn: "ದ್ವಾದಶ ಮತ್ತು ನವಮ ಭಾವಗಳ ಸಂಯೋಗ", reasonEn: "9th and 12th house mutual reception" },
-    { offset: 6, rating: "golden" as const, themeKn: "ಪೂರ್ಣ ಋಣ ಮುಕ್ತಿ & ಸುಖ ಸಮೃದ್ಧಿ", themeEn: "Total Debt Liberation & Supreme Peace", reasonKn: "ಷಷ್ಠಾಧಿಪತಿಯ ಉಪಶಮನ ಹಾಗೂ ಧನ ಸ್ಥಾನ ಬಲವರ್ಧನೆ", reasonEn: "Complete dissolution of 6th house obligations" },
-    { offset: 7, rating: "growth" as const, themeKn: "ಮಕ್ಕಳ ಪ್ರಗತಿ & ಸಂತೋಷ", themeEn: "Children's Prosperity & Academic Honors", reasonKn: "ಪಂಚಮ ಭಾವದಲ್ಲಿ ದೇವಗುರು ಅನುಗ್ರಹ", reasonEn: "Jupiter illuminating the 5th house of progeny" },
-    { offset: 8, rating: "caution" as const, themeKn: "ಹೂಡಿಕೆ ಎಚ್ಚರಿಕೆ & ದಾನ ಧರ್ಮ", themeEn: "Investment Caution & Sacred Charity", reasonKn: "ರಾಹು-ಕೇತು ಅಕ್ಷ ಸಂಚಾರ", reasonEn: "Rahu-Ketu nodal axis shift" },
-    { offset: 9, rating: "golden" as const, themeKn: "ಪರಿಪೂರ್ಣ ಆತ್ಮತೃಪ್ತಿ & ಯಶಸ್ಸು", themeEn: "Mastery, Fulfilled Desires & Spiritual Heights", reasonKn: "ಲಗ್ನಾಧಿಪತಿಯ ಸಾರ್ವಭೌಮ ದಶಾ ಫಲ", reasonEn: "Lagna Lord major sub-period culmination" }
-  ];
+  const moonRashiIdx = kundli.moonSign?.index ?? (moonPlanet?.rashi?.index ?? 0);
 
-  const milestones: GoldenMilestoneYear[] = milestoneTemplates.map((t, idx) => {
+  const milestones: GoldenMilestoneYear[] = Array.from({ length: 10 }).map((_, idx) => {
     const yr = currentYear + idx;
     const age = baseAge + idx;
+
+    // Running Dasha & Bhukti for that specific year & age
+    const bhuktiInfo = findBhuktiAtAge(kundli, age);
+    const mahaPl = bhuktiInfo?.maha?.planet || PlanetName.Jupiter;
+    const subPl = bhuktiInfo?.bhukti || PlanetName.Jupiter;
+    const mahaKn = GRAHA_KN[mahaPl] || mahaPl;
+    const subKn = GRAHA_KN[subPl] || subPl;
+
+    // Projected Gochara Transit
+    const projectedJupDeg = (baseJupDeg + idx * 30) % 360;
+    const projectedSatDeg = (baseSatDeg + idx * 12) % 360;
+    const jupRashi = degreeToRashi(projectedJupDeg);
+    const satRashi = degreeToRashi(projectedSatDeg);
+
+    const jupHouseFromMoon = (jupRashi.index - moonRashiIdx + 12) % 12 + 1;
+    const satHouseFromMoon = (satRashi.index - moonRashiIdx + 12) % 12 + 1;
+
+    const isSadeSatiOrAshtama = [1, 2, 12, 8].includes(satHouseFromMoon);
+    const isJupBenefic = [2, 5, 7, 9, 11].includes(jupHouseFromMoon);
+
+    let rating: "golden" | "growth" | "caution" = "growth";
+    if (isSadeSatiOrAshtama && !isJupBenefic) {
+      rating = "caution";
+    } else if (isJupBenefic) {
+      rating = "golden";
+    } else {
+      rating = "growth";
+    }
+
+    // Dynamic House Activation themes
+    const subPlanetObj = planets.find(p => p.name === subPl);
+    const subHouse = subPlanetObj?.house || 1;
+
+    let themeKn = "ಸ್ಥಿರ ಪ್ರಗತಿ & ನೂತನ ಅವಕಾಶಗಳು";
+    let themeEn = "Steady Growth & New Opportunities";
+    let reasonKn = `${mahaKn} ಮಹಾದಶೆಯಲ್ಲಿ ${subKn} ಭುಕ್ತಿ ಹಾಗೂ ಗೋಚಾರದಲ್ಲಿ ${jupHouseFromMoon}ನೇ ಮನೆಯಲ್ಲಿ ಗುರು ಸಂಚಾರ`;
+    let reasonEn = `${mahaPl} Mahadasha with ${subPl} Bhukti, Jupiter transiting House ${jupHouseFromMoon}`;
+
+    if (subHouse === 1 || subHouse === 9) {
+      themeKn = "ಮಹಾ ಭಾಗ್ಯೋದಯ, ಗೌರವ & ದೈವ ಕೃಪೆ";
+      themeEn = "Supreme Fortune, Honor & Divine Grace";
+    } else if (subHouse === 2 || subHouse === 11) {
+      themeKn = "ಆರ್ಥಿಕ ತಿರುವು & ಬೃಹತ್ ಧನಾಗಮನ";
+      themeEn = "Financial Breakthrough & Major Inflow";
+    } else if (subHouse === 4) {
+      themeKn = "ಸ್ಥಿರಾಸ್ತಿ ಖರೀದಿ, ಗೃಹ ಸೌಖ್ಯ & ವಾಹನ ಯೋಗ";
+      themeEn = "Property Acquisition & Domestic Joy";
+    } else if (subHouse === 5) {
+      themeKn = "ಜ್ಞಾನೋದಯ, ಮಕ್ಕಳ ಪ್ರಗತಿ & ಯಶಸ್ಸು";
+      themeEn = "Intellectual Honors & Children's Progress";
+    } else if (subHouse === 7) {
+      themeKn = "ವೈವಾಹಿಕ ಸೌಖ್ಯ & ನೂತನ ಪಾಲುದಾರಿಕೆ";
+      themeEn = "Marital Harmony & Business Alliance";
+    } else if (subHouse === 10) {
+      themeKn = "ಉದ್ಯೋಗ ಬಡ್ತಿ, ಅಧಿಕಾರ ಪ್ರಾಪ್ತಿ & ಕೀರ್ತಿ";
+      themeEn = "Career Elevation & Stature Growth";
+    } else if (subHouse === 6 || subHouse === 8 || subHouse === 12) {
+      themeKn = "ಆರೋಗ್ಯ ಜಾಗರೂಕತೆ, ಋಣ ಮುಕ್ತಿ & ಶಾಂತಿ ಸಂಕಲ್ಪ";
+      themeEn = "Health Vigilance, Debt Clearance & Peace";
+    }
+
+    const ratingLabel = rating === "golden" 
+      ? (lang === "kn" ? "🌟 ಸ್ವರ್ಣಾವಧಿ (Golden)" : "🌟 Golden Era") 
+      : rating === "growth" 
+      ? (lang === "kn" ? "📈 ಸ್ಥಿರ ಪ್ರಗತಿ (Growth)" : "📈 Steady Growth") 
+      : (lang === "kn" ? "⚠️ ಶಾಂತಿ ಅವಧಿ (Caution)" : "⚠️ Vigilance Period");
+
+    const actionableGuidance = lang === "kn"
+      ? `ಈ ವರ್ಷದಲ್ಲಿ ${themeKn.toLowerCase()}ಗೆ ಸಂಬಂಧಿಸಿದ ಪ್ರಮುಖ ನಿರ್ಧಾರಗಳನ್ನು ತೆಗೆದುಕೊಳ್ಳಿ ಹಾಗೂ ನಿತ್ಯ ${subKn} ಪ್ರಾರ್ಥನೆ ಮಾಡಿ.`
+      : `Execute strategic plans around ${themeEn.toLowerCase()} and maintain daily spiritual mindfulness.`;
+
+    const favorableMonths = lang === "kn" 
+      ? ["ಏಪ್ರಿಲ್ - ಜೂನ್", "ಅಕ್ಟೋಬರ್ - ಡಿಸೆಂಬರ್"] 
+      : ["April - June", "October - December"];
+
     return {
       year: yr,
       age,
-      rating: t.rating,
-      ratingLabel: t.rating === "golden" ? (lang === "kn" ? "🌟 ಸ್ವರ್ಣಾವಧಿ (Golden)" : "🌟 Golden Era") : t.rating === "growth" ? (lang === "kn" ? "📈 ಸ್ಥಿರ ಪ್ರಗತಿ (Growth)" : "📈 Steady Growth") : (lang === "kn" ? "⚠️ ಶಾಂತಿ ಅವಧಿ (Caution)" : "⚠️ Vigilance Period"),
-      theme: lang === "kn" ? t.themeKn : t.themeEn,
-      astrologicalReason: lang === "kn" ? t.reasonKn : t.reasonEn,
-      actionableGuidance: lang === "kn" ? `ಈ ವರ್ಷದಲ್ಲಿ ${t.themeKn.toLowerCase()}ಗೆ ಸಂಬಂಧಿಸಿದ ಪ್ರಮುಖ ನಿರ್ಧಾರಗಳನ್ನು ತೆಗೆದುಕೊಳ್ಳಿ.` : `Seize key decisions around ${t.themeEn.toLowerCase()} during this cycle.`,
-      favorableMonths: [lang === "kn" ? "ಏಪ್ರಿಲ್ - ಜೂನ್" : "April - June", lang === "kn" ? "ಅಕ್ಟೋಬರ್ - ಡಿಸೆಂಬರ್" : "October - December"]
+      rating,
+      ratingLabel,
+      theme: lang === "kn" ? themeKn : themeEn,
+      astrologicalReason: lang === "kn" ? reasonKn : reasonEn,
+      actionableGuidance,
+      favorableMonths
     };
   });
 
@@ -248,6 +386,27 @@ export function generateBhagyodayaReport(
 
   const gem = gemstoneMap[lagnaRashiEng] || gemstoneMap["Dhanu"];
 
+  // Dynamic Rudraksha Mukhi derived from Lagna and Moon
+  const rudrakshaMukhiMap: Record<string, string> = {
+    Mesha: "೩ ಮುಖಿ ಹಾಗೂ ೧೧ ಮುಖಿ ರುದ್ರಾಕ್ಷಿ (3 & 11 Mukhi Rudraksha)",
+    Vrishabha: "೬ ಮುಖಿ ಹಾಗೂ ೭ ಮುಖಿ ರುದ್ರಾಕ್ಷಿ (6 & 7 Mukhi Rudraksha)",
+    Mithuna: "೪ ಮುಖಿ ಹಾಗೂ ೧೦ ಮುಖಿ ರುದ್ರಾಕ್ಷಿ (4 & 10 Mukhi Rudraksha)",
+    Karka: "೨ ಮುಖಿ ಹಾಗೂ ಗೌರೀ-ಶಂಕರ ರುದ್ರಾಕ್ಷಿ (2 Mukhi & Gauri Shankar)",
+    Simha: "೧ ಮುಖಿ ಅಥವಾ ೧೨ ಮುಖಿ ಸೂರ್ಯ ರುದ್ರಾಕ್ಷಿ (1 & 12 Mukhi Rudraksha)",
+    Kanya: "೪ ಮುಖಿ ಹಾಗೂ ಗಣೇಶ ರುದ್ರಾಕ್ಷಿ (4 Mukhi & Ganesha Rudraksha)",
+    Tula: "೬ ಮುಖಿ ಹಾಗೂ ೧೩ ಮುಖಿ ರುದ್ರಾಕ್ಷಿ (6 & 13 Mukhi Rudraksha)",
+    Vrischika: "೩ ಮುಖಿ ಹಾಗೂ ೧೧ ಮುಖಿ ರುದ್ರಾಕ್ಷಿ (3 & 11 Mukhi Rudraksha)",
+    Dhanu: "೫ ಮುಖಿ ಹಾಗೂ ೯ ಮುಖಿ ರುದ್ರಾಕ್ಷಿ (5 & 9 Mukhi Rudraksha)",
+    Makara: "೭ ಮುಖಿ ಹಾಗೂ ೧೪ ಮುಖಿ ರುದ್ರಾಕ್ಷಿ (7 & 14 Mukhi Rudraksha)",
+    Kumbha: "೭ ಮುಖಿ ಹಾಗೂ ೮ ಮುಖಿ ರುದ್ರಾಕ್ಷಿ (7 & 8 Mukhi Rudraksha)",
+    Meena: "೫ ಮುಖಿ ಹಾಗೂ ೧೧ ಮುಖಿ ರುದ್ರಾಕ್ಷಿ (5 & 11 Mukhi Rudraksha)"
+  };
+  const rudrakshaRecommendation = rudrakshaMukhiMap[lagnaRashiEng] || "೫ ಮುಖಿ ಮತ್ತು ೭ ಮುಖಿ ರುದ್ರಾಕ್ಷಿ (5 & 7 Mukhi Nepali Rudraksha)";
+
+  // Dynamic Archana Sankalpa with native's Gotra and Name
+  const gotraLabel = gotra || "ಕಾಶ್ಯಪ";
+  const specialSankalpaMantra = `ಶ್ರೀಮತ್ ${gotraLabel} ಗೋತ್ರೋದ್ಭವಸ್ಯ ${devoteeName} ನಾಮಧೇಯಸ್ಯ ಆಯುರಾರೋಗ್ಯ ಐಶ್ವರ್ಯಾಭಿವೃದ್ಧರ್ಥಂ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸಾದ ಸಿದ್ಧಿ ರಸ್ತು ||`;
+
   return {
     devoteeName,
     birthDate,
@@ -258,13 +417,13 @@ export function generateBhagyodayaReport(
     nakshatraPada,
     rashiLord,
     lagnaLord,
-    gotra,
+    gotra: gotraLabel,
 
     wealth: {
       dhanaYogaScore: dhanaScore,
       dhanaYogaName: hasGajaKesari ? "ಗಜಕೇಸರಿ ಮಹಾಲಕ್ಷ್ಮಿ ಯೋಗ (Gajakesari Mahalakshmi Yoga)" : "ದ್ವಿತೀಯ-ಏಕಾದಶ ಧನ ಯೋಗ (Dhana-Labha Yoga)",
       wealthVerdict: lang === "kn" ? wealthVerdictKn : wealthVerdictEn,
-      runaVimochanaTimeline: lang === "kn" ? "೨೦೨೬ ರ ದೀಪಾವಳಿಯಿಂದ ೨೦೨೭ ರ ಯುಗಾದಿ ಒಳಗೆ ಸಾಲ ಬಾಧೆಗಳಿಂದ ಸಂಪೂರ್ಣ ಮುಕ್ತಿ" : "Between Diwali 2026 and Yugadi 2027 complete relief from debts",
+      runaVimochanaTimeline,
       goldenCareerSectors: lang === "kn" 
         ? ["ಆಡಳಿತ & ನಾಯಕತ್ವ (Leadership & Management)", "ರಿಯಲ್ ಎಸ್ಟೇಟ್ & ಭೂಮಿ ವ್ಯವಹಾರ (Real Estate)", "ತಂತ್ರಜ್ಞಾನ & ಸಲಹಾ ಸೇವೆಗಳು (Tech & Consulting)", "ಹಣಕಾಸು & ಹೂಡಿಕೆ (Finance & Investment)"]
         : ["Leadership & Management", "Real Estate & Infrastructure", "Technology & Consulting", "Finance & Investment"],
@@ -280,15 +439,15 @@ export function generateBhagyodayaReport(
         ? "ಸಂಸ್ಕಾರವಂತೆ, ಶಾಂತ ಸ್ವಭಾವ, ಸೌಂದರ್ಯ ಮತ್ತು ಬುದ್ಧಿವಂತಿಕೆಯನ್ನು ಹೊಂದಿರುವ, ಕುಟುಂಬದ ಗೌರವ ಹೆಚ್ಚಿಸುವ ಜೀವನ ಸಂಗಾತಿ."
         : "Cultured, calm-minded, virtuous, and spiritually inclined life partner who enhances family prosperity.",
       spouseDirection: lang === "kn" ? "ಜನ್ಮಸ್ಥಳದಿಂದ ಪೂರ್ವ ಅಥವಾ ಈಶಾನ್ಯ ದಿಕ್ಕು" : "East or North-East from Birthplace",
-      dampatyaHarmonyRating: "೮೮% ಅತ್ಯುನ್ನತ ಸುಖ-ಶಾಂತಿ (88% High Harmony)",
-      santathiBlessingWindow: lang === "kn" ? "೨೦೨೭ ರ ಶುಭ ಗುರು ಸಂಚಾರ ಕಾಲಾವಧಿ" : "During 2027 Jupiter Transit Window",
+      dampatyaHarmonyRating: lang === "kn" ? `${harmonyScore}% ಅತ್ಯುನ್ನತ ಸುಖ-ಶಾಂತಿ (${harmonyScore}% Harmony)` : `${harmonyScore}% High Harmony`,
+      santathiBlessingWindow,
       relationshipRemedy: lang === "kn"
         ? "ಪ್ರತಿ ಶುಕ್ರವಾರ ಶ್ರೀ ಲಕ್ಷ್ಮೀ-ವೆಂಕಟೇಶ್ವರರಿಗೆ ಬಿಳಿ ಹೂವುಗಳನ್ನು ಅರ್ಪಿಸಿ, ಕರ್ಪೂರ ಆರತಿ ಮಾಡಿ."
         : "Offer white fragrant flowers to Lakshmi-Venkateshwara on Fridays with camphor aarti."
     },
 
     health: {
-      vitalityScore: 86,
+      vitalityScore,
       constitutionDosha: dosha,
       vulnerableOrgans: lang === "kn" 
         ? ["ಜೀರ್ಣಾಂಗ & ಯಕೃತ್ತು (Digestive & Liver)", "ಬೆನ್ನುಹುರಿ & ಕೀಲುಗಳು (Spine & Joints)", "ನಿದ್ರಾಹೀನತೆ/ಒತ್ತಡ (Sleep & Stress)"]
@@ -326,7 +485,7 @@ export function generateBhagyodayaReport(
         consecrationDay: gem.day,
         caution: lang === "kn" ? "ಯಾವುದೇ ಬಿರುಕು ಅಥವಾ ಕಪ್ಪು ಕಲೆ ಇಲ್ಲದ ನೈಸರ್ಗಿಕ ರತ್ನವನ್ನೇ ಧರಿಸಬೇಕು." : "Must wear only 100% untreated, flaw-free natural gemstone."
       },
-      rudrakshaMukhi: lang === "kn" ? "೫ ಮುಖಿ ಮತ್ತು ೭ ಮುಖಿ ರುದ್ರಾಕ್ಷಿ (5 & 7 Mukhi Nepali Rudraksha)" : "5 Mukhi and 7 Mukhi Nepali Rudraksha",
+      rudrakshaMukhi: rudrakshaRecommendation,
       fiveMinuteMorningRoutine: {
         facingDirection: lang === "kn" ? "ಪೂರ್ವ ಅಥವಾ ಈಶಾನ್ಯ (East or North-East)" : "East or North-East",
         prescribedMantra: "ಓಂ ಶ್ರೀಂ ಹ್ರೀಂ ಕ್ಲೀಂ ಶ್ರೀ ಸಿದ್ಧಲಕ್ಷ್ಮ್ಯೈ ನಮಃ || Om Shreem Hreem Kleem Shri Siddhalakshmyai Namah ||",
@@ -343,7 +502,7 @@ export function generateBhagyodayaReport(
     templeBlessing: {
       deity: lang === "kn" ? "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ & ಭದ್ರಕಾಳಿ ಅಮ್ಮನವರು (Shri Mahabaleshwara Gokarna)" : "Shri Mahabaleshwara & Goddess Bhadrakali (Gokarna)",
       templeName: "ಗೋಕರ್ಣ ಮಹಾಕ್ಷೇತ್ರ - ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಸೇವಾ ಮಂಡಳಿ (Gokarna Heritage)",
-      specialSankalpaMantra: "ಶ್ರೀಮತ್ ಕಾಶ್ಯಪ ಗೋತ್ರೋದ್ಭವಸ್ಯ ಆಯುರಾರೋಗ್ಯ ಐಶ್ವರ್ಯಾಭಿವೃದ್ಧರ್ಥಂ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸಾದ ಸಿದ್ಧಿ ರಸ್ತು ||",
+      specialSankalpaMantra,
       recommendedSevaName: lang === "kn" ? "೯೦-ದಿನಗಳ ಆಶೀರ್ವಾದ ಸಂಕಲ್ಪ ಮಹಾಪೂಜೆ (90-Day Ashirvada Master Seva)" : "90-Day Ashirvada Master Seva & Prasada"
     }
   };
