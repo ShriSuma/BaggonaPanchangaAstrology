@@ -109,8 +109,8 @@ export const KANNADA_NAKSHATRAS: string[] = [
   "ಪುಷ್ಯ",
   "ಆಶ್ಲೇಷ",
   "ಮಖಾ",
-  "ಪುಬ್ಬಾ (ಪೂರ್ವಫಲ್ಗುಣಿ)",
-  "ಉತ್ತರಾ (ಉತ್ತರಫಲ್ಗುಣಿ)",
+  "ಪುಬ್ಬಾ",
+  "ಉತ್ತರಾ",
   "ಹಸ್ತಾ",
   "ಚಿತ್ತಾ",
   "ಸ್ವಾತಿ",
@@ -196,6 +196,80 @@ export const toKannadaNakshatra = (nak: string | number | undefined | null): str
   return String(nak);
 };
 
+export const toKannadaDeity = (deity: string | undefined | null): string => {
+  if (!deity) return "ಶ್ರೀ ಪರಮಶಿವ";
+  const d = String(deity).toLowerCase();
+  if (d.includes("shiva") || d.includes("rudra")) return "ಶ್ರೀ ಪರಮಶಿವ";
+  if (d.includes("vishnu") || d.includes("narayana")) return "ಶ್ರೀ ಮಹಾವಿಷ್ಣು";
+  if (d.includes("ganesha") || d.includes("ganapathi")) return "ಶ್ರೀ ಮಹಾಗಣಪತಿ";
+  if (d.includes("kartikeya") || d.includes("subrahmanya") || d.includes("skanda")) return "ಶ್ರೀ ಸುಬ್ರಹ್ಮಣ್ಯ ಸ್ವಾಮಿ";
+  if (d.includes("lakshmi")) return "ಶ್ರೀ ಮಹಾಲಕ್ಷ್ಮಿ ದೇವಿ";
+  if (d.includes("durga") || d.includes("parvati") || d.includes("devi")) return "ಶ್ರೀ ದುರ್ಗಾದೇವಿ";
+  if (d.includes("hanuman") || d.includes("anjaneya")) return "ಶ್ರೀ ಆಂಜನೇಯ ಸ್ವಾಮಿ";
+  if (d.includes("surya") || d.includes("sun") || d.includes("aditya")) return "ಶ್ರೀ ರವಿ ನಾರಾಯಣ";
+  if (d.includes("brahma")) return "ಶ್ರೀ ಬ್ರಹ್ಮದೇವ";
+  return deity;
+};
+
+export const toKannadaColor = (color: string | undefined | null): string => {
+  if (!color) return "";
+  const c = String(color).trim().toLowerCase();
+  const map: Record<string, string> = {
+    white: "ಬಿಳಿ",
+    silver: "ಬೆಳ್ಳಿ / ಶುಭ್ರ ಬಿಳಿ",
+    red: "ಕೆಂಪು",
+    crimson: "ಗಾಢ ಕೆಂಪು",
+    yellow: "ಹಳದಿ / ಬಂಗಾರದ ಬಣ್ಣ",
+    gold: "ಬಂಗಾರದ ಹಳದಿ",
+    golden: "ಚಿನ್ನದ ಬಣ್ಣ",
+    blue: "ನೀಲಿ",
+    "royal blue": "ರಾಯಲ್ ನೀಲಿ",
+    "navy blue": "ಗಾಢ ನೀಲಿ",
+    green: "ಹಸಿರು",
+    emerald: "ಮರಕತ ಹಸಿರು",
+    black: "ಕಪ್ಪು",
+    orange: "ಕೇಸರಿ / ಕಿತ್ತಳೆ",
+    saffron: "ಕೇಸರಿ",
+    cream: "ಕೆನೆ ಬಿಳಿ",
+    brown: "ಕಂದು",
+    grey: "ಬೂದು",
+    gray: "ಬೂದು",
+    maroon: "ಮೆರೂನ್"
+  };
+  return map[c] || color;
+};
+
+export const toKannadaDirection = (dir: string | undefined | null): string => {
+  if (!dir) return "";
+  const d = String(dir).trim().toLowerCase();
+  const map: Record<string, string> = {
+    east: "ಪೂರ್ವ",
+    west: "ಪಶ್ಚಿಮ",
+    north: "ಉತ್ತರ",
+    south: "ದಕ್ಷಿಣ",
+    northeast: "ಈಶಾನ್ಯ",
+    "north-east": "ಈಶಾನ್ಯ",
+    southeast: "ಆಗ್ನೇಯ",
+    "south-east": "ಆಗ್ನೇಯ",
+    southwest: "ನೈಋತ್ಯ",
+    "south-west": "ನೈಋತ್ಯ",
+    northwest: "ವಾಯುವ್ಯ",
+    "north-west": "ವಾಯುವ್ಯ"
+  };
+  return map[d] || dir;
+};
+
+export const toKannadaChallengeArea = (area: string | undefined | null): string => {
+  if (!area) return "ಜೀವನ ಸವಾಲು";
+  const a = String(area).trim();
+  if (a.includes("Career") || a.includes("Workplace")) return "ಉದ್ಯೋಗ / ಕಾರ್ಯಕ್ಷೇತ್ರ";
+  if (a.includes("Personal") || a.includes("Marriage")) return "ವೈಯಕ್ತಿಕ / ವೈವಾಹಿಕ";
+  if (a.includes("Financial") || a.includes("Debts")) return "ಆರ್ಥಿಕತೆ / ಸಾಲ ಪರಿಹಾರ";
+  if (a.includes("Progeny") || a.includes("Children")) return "ಸಂತಾನ / ಮಕ್ಕಳ ಅಭಿವೃದ್ಧಿ";
+  if (a.includes("Health") || a.includes("Vitality")) return "ಆರೋಗ್ಯ / ಆಯುಷ್ಯ";
+  return "ಜೀವನ ಪರಿವರ್ತನೆ";
+};
+
 /**
  * Sanitizes any text string to ensure:
  * 1. Replaces English planet names with pure Kannada names (Sun -> ರವಿ, Mars -> ಕುಜ, etc.).
@@ -203,6 +277,7 @@ export const toKannadaNakshatra = (nak: string | number | undefined | null): str
  * 3. Strips markdown asterisks, hashes, backticks.
  * 4. Normalizes Kannada numerals to English digits (0-9).
  * 5. Cleans up English Zodiac words from Kannada sentences.
+ * 6. Strips CJK (Japanese/Chinese) or foreign corrupted multi-byte unicode artifacts.
  */
 export function sanitizeAstrologyKannadaText(text: string): string {
   if (!text) return "";
@@ -212,6 +287,8 @@ export function sanitizeAstrologyKannadaText(text: string): string {
     .replace(/#{1,6}\s?/g, "")
     .replace(/`/g, "")
     .replace(/_{1,2}/g, "")
+    // Strip Japanese / Chinese / Korean characters if any rogue multi-byte artifacts appeared
+    .replace(/[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uff66-\uff9f]/g, "")
     .trim();
 
   // Convert Kannada digits to English digits
@@ -231,6 +308,8 @@ export function sanitizeAstrologyKannadaText(text: string): string {
     [/\bMoon\b/gi, "ಚಂದ್ರ"],
     [/\bRahu\b/gi, "ರಾಹು"],
     [/\bKetu\b/gi, "ಕೇತು"],
+    [/\bMaandi\b/gi, "ಮಾಂದಿ"],
+    [/\bGulika\b/gi, "ಗುಳಿಕ"],
     // Replace Surya -> Ravi and Mangala -> Kuja as instructed by user
     [/ಸೂರ್ಯನ/g, "ರವಿ ಗ್ರಹದ"],
     [/ಸೂರ್ಯನು/g, "ರವಿ ಗ್ರಹವು"],
@@ -251,10 +330,44 @@ export function sanitizeAstrologyKannadaText(text: string): string {
     [/\bCapricorn\b/gi, "ಮಕರ"],
     [/\bAquarius\b/gi, "ಕುಂಭ"],
     [/\bPisces\b/gi, "ಮೀನ"],
-    // Common English Phrases to clean Kannada
+    // English Nakshatras
+    [/\bAshwini\b/gi, "ಅಶ್ವಿನಿ"],
+    [/\bBharani\b/gi, "ಭರಣಿ"],
+    [/\bKrittika\b/gi, "ಕೃತ್ತಿಕಾ"],
+    [/\bRohini\b/gi, "ರೋಹಿಣಿ"],
+    [/\bMrigashira\b/gi, "ಮೃಗಶಿರಾ"],
+    [/\bArdra\b/gi, "ಆರಿದ್ರಾ"],
+    [/\bPunarvasu\b/gi, "ಪುನರ್ವಸು"],
+    [/\bPushya\b/gi, "ಪುಷ್ಯ"],
+    [/\bAshlesha\b/gi, "ಆಶ್ಲೇಷ"],
+    [/\bMagha\b/gi, "ಮಖಾ"],
+    [/\bPubba\b/gi, "ಪುಬ್ಬಾ"],
+    [/\bUttara\b/gi, "ಉತ್ತರಾ"],
+    [/\bHasta\b/gi, "ಹಸ್ತಾ"],
+    [/\bChitra\b/gi, "ಚಿತ್ತಾ"],
+    [/\bSwati\b/gi, "ಸ್ವಾತಿ"],
+    [/\bVishakha\b/gi, "ವಿಶಾಖಾ"],
+    [/\bAnuradha\b/gi, "ಅನೂರಾಧಾ"],
+    [/\bJyeshtha\b/gi, "ಜ್ಯೇಷ್ಠಾ"],
+    [/\bMoola\b/gi, "ಮೂಲಾ"],
+    [/\bMula\b/gi, "ಮೂಲಾ"],
+    [/\bPurvashadha\b/gi, "ಪೂರ್ವಾಷಾಢಾ"],
+    [/\bUttarashadha\b/gi, "ಉತ್ತರಾಷಾಢಾ"],
+    [/\bShravana\b/gi, "ಶ್ರವಣ"],
+    [/\bDhanishta\b/gi, "ಧನಿಷ್ಠಾ"],
+    [/\bShatabhisha\b/gi, "ಶತಭಿಷಾ"],
+    [/\bPurvabhadra\b/gi, "ಪೂರ್ವಾಭಾದ್ರಾ"],
+    [/\bUttarabhadra\b/gi, "ಉತ್ತರಾಭಾದ್ರಾ"],
+    [/\bRevati\b/gi, "ರೇವತಿ"],
+    // Common English Phrases
     [/Next (\d+) to (\d+) Months/gi, "ಮುಂದಿನ $1 ರಿಂದ $2 ತಿಂಗಳುಗಳಲ್ಲಿ"],
     [/Next (\d+) Months/gi, "ಮುಂದಿನ $1 ತಿಂಗಳುಗಳಲ್ಲಿ"],
-    [/Carat/gi, "ಕ್ಯಾರಟ್"]
+    [/Carat/gi, "ಕ್ಯಾರಟ್"],
+    [/House (\d+)/gi, "$1ನೇ ಭಾವ"],
+    [/(\d+)th house/gi, "$1ನೇ ಮನೆ"],
+    [/(\d+)st house/gi, "$1ನೇ ಮನೆ"],
+    [/(\d+)nd house/gi, "$1ನೇ ಮನೆ"],
+    [/(\d+)rd house/gi, "$1ನೇ ಮನೆ"]
   ];
 
   for (const [pattern, replacement] of replacements) {

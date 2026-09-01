@@ -1,4 +1,4 @@
-import { toKannadaRashi, toKannadaNakshatra, toKannadaPlanet, sanitizeAstrologyKannadaText } from "../utils/kannadaAstrologyTerms";
+import { toKannadaRashi, toKannadaNakshatra, toKannadaPlanet, toKannadaDeity, toKannadaColor, toKannadaDirection, toKannadaChallengeArea, sanitizeAstrologyKannadaText } from "../utils/kannadaAstrologyTerms";
 import React, { useEffect, useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useAppStore } from "../stores/appStore";
@@ -16,7 +16,7 @@ import GrahaSpinner from "../components/ui/GrahaSpinner";
  * Sanitizes astrology text to guarantee clean presentation:
  * 1. Strips all markdown asterisks (** or *) and hashes (#).
  * 2. Converts any Kannada digits (೦-೯) to English digits (0-9).
- * 3. Removes stray non-standard artifacts.
+ * 3. Removes stray non-standard artifacts, English planet/zodiac words and foreign charsets.
  */
 export function cleanAstrologyText(text: string): string {
   return sanitizeAstrologyKannadaText(text);
@@ -366,21 +366,23 @@ STRICT RULES:
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-black border border-emerald-500/40">
-                    6 Secret Astrologer Cues
+                    {isKn ? "೬ ರಹಸ್ಯ ದೈವಜ್ಞ ನುಡಿಗಳು" : "6 Secret Astrologer Cues"}
                   </span>
                 </div>
               </div>
 
-              {/* 5 Dynamic Multi-Paragraph Cards Grid */}
+              {/* 6 Dynamic Multi-Paragraph Cards Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs md:text-sm">
                 {/* 1. Opening Icebreaker / The Grill */}
                 <div className="p-5 rounded-2xl bg-white/[0.07] border border-emerald-500/30 space-y-2.5 md:col-span-2 shadow-lg">
                   <div className="flex items-center justify-between border-b border-emerald-500/20 pb-2">
                     <span className="text-emerald-300 font-black text-sm flex items-center gap-1.5">
                       <span>🔥</span>
-                      <span>೧. ಆರಂಭಿಕ ಮುಖಾಮುಖಿ ಸತ್ಯ (Opening Icebreaker / The Direct Hook):</span>
+                      <span>{isKn ? "೧. ಆರಂಭಿಕ ಮುಖಾಮುಖಿ ಸತ್ಯ (ನೇರ ದೈವಿಕ ನುಡಿ):" : "1. Opening Icebreaker & Direct Hook:"}</span>
                     </span>
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">The Grill</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">
+                      {isKn ? "ಮುಖಾಮುಖಿ ವಿಶ್ಲೇಷಣೆ" : "The Grill"}
+                    </span>
                   </div>
                   <div className="text-slate-100 leading-relaxed space-y-2">
                     {activeTalkingPoints.openingIceBreakerKn.split("\n\n").map((p, i) => (
@@ -396,9 +398,11 @@ STRICT RULES:
                   <div className="flex items-center justify-between border-b border-emerald-500/20 pb-2">
                     <span className="text-emerald-300 font-black text-sm flex items-center gap-1.5">
                       <span>🧠</span>
-                      <span>೨. ಆಂತರಿಕ ಸುಪ್ತ ಆತಂಕ (Hidden Subconscious Worry):</span>
+                      <span>{isKn ? "೨. ಆಂತರಿಕ ಸುಪ್ತ ಆತಂಕ & ನಿದ್ರಾಹೀನತೆ:" : "2. Hidden Subconscious Worry & Mental State:"}</span>
                     </span>
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">Mind & Sleep</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">
+                      {isKn ? "ಮನಸ್ಸು & ನಿದ್ರೆ" : "Mind & Sleep"}
+                    </span>
                   </div>
                   <div className="text-slate-100 leading-relaxed space-y-2">
                     {activeTalkingPoints.hiddenSubconsciousWorryKn.split("\n\n").map((p, i) => (
@@ -414,9 +418,11 @@ STRICT RULES:
                   <div className="flex items-center justify-between border-b border-amber-400/30 pb-2">
                     <span className="text-amber-300 font-black text-sm flex items-center gap-1.5">
                       <span>🪐</span>
-                      <span>೩. ಮಾಂದಿ ಗ್ರಹ ಸ್ಥಿತಿ & ಸೂಕ್ಷ್ಮ ಛಾಯಾ ಪ್ರಭಾವ (Maandi Karmic Node):</span>
+                      <span>{isKn ? "೩. ಮಾಂದಿ ಗ್ರಹ ಸ್ಥಿತಿ & ಸೂಕ್ಷ್ಮ ಛಾಯಾ ಕರ್ಮ ಪ್ರಭಾವ:" : "3. Maandi Sthiti & Karmic Node Impact:"}</span>
                     </span>
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-amber-400/20 text-amber-200 font-bold">Maandi Sthiti</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-amber-400/20 text-amber-200 font-bold">
+                      {isKn ? "ಮಾಂದಿ ಸ್ಥಿತಿ" : "Maandi Node"}
+                    </span>
                   </div>
                   <div className="text-slate-100 leading-relaxed space-y-2">
                     {activeTalkingPoints.maandiKarmicImpactKn.split("\n\n").map((p, i) => (
@@ -432,9 +438,11 @@ STRICT RULES:
                   <div className="flex items-center justify-between border-b border-emerald-500/20 pb-2">
                     <span className="text-emerald-300 font-black text-sm flex items-center gap-1.5">
                       <span>💼</span>
-                      <span>೪. ಕರ್ಮ & ಆರ್ಥಿಕ ವಾಸ್ತವ (Karma & Financial Bottleneck):</span>
+                      <span>{isKn ? "೪. ಕರ್ಮ & ಆರ್ಥಿಕ ವಾಸ್ತವಿಕತೆ:" : "4. Karma & Financial Reality:"}</span>
                     </span>
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">Career & Wealth</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">
+                      {isKn ? "ವೃತ್ತಿ & ಧನ" : "Career & Wealth"}
+                    </span>
                   </div>
                   <div className="text-slate-100 leading-relaxed space-y-2">
                     {activeTalkingPoints.karmaFinancialRealityKn.split("\n\n").map((p, i) => (
@@ -445,14 +453,16 @@ STRICT RULES:
                   </div>
                 </div>
 
-                {/* 4. Turning Point Timeline */}
+                {/* 5. Turning Point Timeline */}
                 <div className="p-5 rounded-2xl bg-white/[0.07] border border-emerald-500/30 space-y-2.5 shadow-lg">
                   <div className="flex items-center justify-between border-b border-emerald-500/20 pb-2">
                     <span className="text-emerald-300 font-black text-sm flex items-center gap-1.5">
                       <span>⏳</span>
-                      <span>೫. ತಿರುವು ನೀಡುವ ಕಾಲ (Turning Point Timeline):</span>
+                      <span>{isKn ? "೫. ತಿರುವು ನೀಡುವ ಕಾಲಾವಧಿ:" : "5. Turning Point Timeline:"}</span>
                     </span>
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">Dasha & Gochara</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">
+                      {isKn ? "ದಶಾ & ಗೋಚಾರ" : "Dasha & Gochara"}
+                    </span>
                   </div>
                   <div className="text-slate-100 leading-relaxed space-y-2">
                     {activeTalkingPoints.immediateTurningPointKn.split("\n\n").map((p, i) => (
@@ -463,14 +473,16 @@ STRICT RULES:
                   </div>
                 </div>
 
-                {/* 5. Siddha Parihara & Shield */}
+                {/* 6. Siddha Parihara & Shield */}
                 <div className="p-5 rounded-2xl bg-white/[0.07] border border-emerald-500/30 space-y-2.5 shadow-lg">
                   <div className="flex items-center justify-between border-b border-emerald-500/20 pb-2">
                     <span className="text-emerald-300 font-black text-sm flex items-center gap-1.5">
                       <span>🪔</span>
-                      <span>೬. ಸಿದ್ಧ ಪರಿಹಾರ & ರಕ್ಷಾ ಕವಚ (Siddha Remedies & Grace):</span>
+                      <span>{isKn ? "೬. ಸಿದ್ಧ ಪರಿಹಾರ & ರಕ್ಷಾ ಕವಚ:" : "6. Siddha Remedies & Sacred Shield:"}</span>
                     </span>
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">Gem & Temple</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">
+                      {isKn ? "ರತ್ನ & ಕ್ಷೇತ್ರ ಸಂಕಲ್ಪ" : "Gem & Temple"}
+                    </span>
                   </div>
                   <div className="text-slate-100 leading-relaxed space-y-2">
                     {activeTalkingPoints.siddhaPariharaRemedyKn.split("\n\n").map((p, i) => (
@@ -512,7 +524,7 @@ STRICT RULES:
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
                 <div className="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200/80">
                   <span className="text-[10px] font-black uppercase tracking-wider text-amber-900 block mb-1">
-                    🧠 ಮಾನಸಿಕ ಸ್ಥಿತಿ (Mind & Inner Peace)
+                    🧠 {isKn ? "ಮಾನಸಿಕ ಸ್ಥಿತಿ & ಅಂತರಂಗ ಶಾಂತಿ" : "Mind & Inner Peace"}
                   </span>
                   <p className="text-xs text-amber-950 font-medium">
                     {cleanAstrologyText(currentDiagnosis.mentalStateIssue.diagnosis)}
@@ -520,7 +532,7 @@ STRICT RULES:
                 </div>
                 <div className="p-3.5 rounded-2xl bg-indigo-50/80 border border-indigo-200/80">
                   <span className="text-[10px] font-black uppercase tracking-wider text-indigo-900 block mb-1">
-                    🎯 ಪ್ರಮುಖ ಜೀವನ ಸವಾಲು ({currentDiagnosis.primaryLifeChallenge.area})
+                    🎯 {isKn ? `ಪ್ರಮುಖ ಜೀವನ ಸವಾಲು (${toKannadaChallengeArea(currentDiagnosis.primaryLifeChallenge.area)})` : `Primary Life Challenge (${currentDiagnosis.primaryLifeChallenge.area})`}
                   </span>
                   <p className="text-xs text-indigo-950 font-medium">
                     {cleanAstrologyText(currentDiagnosis.primaryLifeChallenge.description)}
@@ -644,7 +656,7 @@ STRICT RULES:
                     <span>{isKn ? "ಶಿಫಾರಸು ಮಾಡಿದ ರುದ್ರಾಕ್ಷಿ:" : "Prescribed Rudraksha:"} <b className="text-indigo-950 text-base">{prescriptions.rudraksha.nameKn}</b></span>
                   </div>
                   <p className="text-xs text-stone-600">
-                    <b>ದೇವತೆ:</b> {prescriptions.rudraksha.deity} • <b>ಅಧಿಪತಿ ಗ್ರಹ:</b> {prescriptions.rudraksha.planet}
+                    <b>ದೇವತೆ:</b> {isKn ? toKannadaDeity(prescriptions.rudraksha.deity) : prescriptions.rudraksha.deity} • <b>ಅಧಿಪತಿ ಗ್ರಹ:</b> {isKn ? toKannadaPlanet(prescriptions.rudraksha.planet) : prescriptions.rudraksha.planet}
                   </p>
                   <p className="text-xs text-amber-950 bg-amber-50/80 p-2.5 rounded-xl border border-amber-100">
                     💡 <b>ಶಾಸ್ತ್ರೀಯ ಕಾರಣ:</b> {cleanAstrologyText(prescriptions.rudraksha.astrologicalReason)}
@@ -687,19 +699,19 @@ STRICT RULES:
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                   <div className="p-2.5 rounded-xl bg-stone-50 border border-stone-200/80">
                     <span className="text-stone-500 block text-[10px] uppercase font-bold">ಅದೃಷ್ಟ ವಾಹನ ಬಣ್ಣ</span>
-                    <span className="font-black text-indigo-950">{prescriptions.luckyAttributes.carColors.join(", ")}</span>
+                    <span className="font-black text-indigo-950">{isKn ? prescriptions.luckyAttributes.carColors.map(toKannadaColor).join(", ") : prescriptions.luckyAttributes.carColors.join(", ")}</span>
                   </div>
                   <div className="p-2.5 rounded-xl bg-stone-50 border border-stone-200/80">
                     <span className="text-stone-500 block text-[10px] uppercase font-bold">ಅದೃಷ್ಟ ವಸ್ತ್ರ ಬಣ್ಣ</span>
-                    <span className="font-black text-emerald-900">{prescriptions.luckyAttributes.clothColors.join(", ")}</span>
+                    <span className="font-black text-emerald-900">{isKn ? prescriptions.luckyAttributes.clothColors.map(toKannadaColor).join(", ") : prescriptions.luckyAttributes.clothColors.join(", ")}</span>
                   </div>
                   <div className="p-2.5 rounded-xl bg-stone-50 border border-stone-200/80">
                     <span className="text-stone-500 block text-[10px] uppercase font-bold">ವರ್ಜಿಸಬೇಕಾದ ಬಣ್ಣ</span>
-                    <span className="font-black text-rose-800">{prescriptions.luckyAttributes.avoidColors.join(", ")}</span>
+                    <span className="font-black text-rose-800">{isKn ? prescriptions.luckyAttributes.avoidColors.map(toKannadaColor).join(", ") : prescriptions.luckyAttributes.avoidColors.join(", ")}</span>
                   </div>
                   <div className="p-2.5 rounded-xl bg-stone-50 border border-stone-200/80">
                     <span className="text-stone-500 block text-[10px] uppercase font-bold">ಅದೃಷ್ಟ ದಿಕ್ಕು & ಸಂಖ್ಯೆ</span>
-                    <span className="font-black text-amber-900">{prescriptions.luckyAttributes.directions.join(", ")} (ಸಂಖ್ಯೆ: {prescriptions.luckyAttributes.numbers.join(", ")})</span>
+                    <span className="font-black text-amber-900">{isKn ? prescriptions.luckyAttributes.directions.map(toKannadaDirection).join(", ") : prescriptions.luckyAttributes.directions.join(", ")} ({isKn ? "ಸಂಖ್ಯೆ" : "No."}: {prescriptions.luckyAttributes.numbers.join(", ")})</span>
                   </div>
                 </div>
               </div>
