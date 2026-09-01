@@ -82,7 +82,8 @@ export default function InstantReadingPage(): JSX.Element {
       birthTime,
       latitude: lat,
       longitude: lon,
-      lang: i18n.language
+      lang: i18n.language,
+      devoteeName: session.input.name || "Devotee"
     });
 
     setSynthesisData(data);
@@ -238,13 +239,14 @@ Prescriptions: ${synthesisData.prescriptions.rudraksha.nameKn}, ${synthesisData.
 
 Question from Devotee: "${q}"
 
-Task: Give a deep, authoritative, 3 to 4 paragraph face-to-face Vedic Pandit consultation response in pure, natural ${isKn ? "Kannada" : "English"}.
-DO NOT give a shallow 1-2 line reply!
-Structure your response into 3-4 detailed paragraphs:
-1. Paragraph 1 (The Trigger Incident & Empathy): Speak directly to the devotee ("ನೋಡಿ..."). Explain why this question is burning in their mind right now and identify the triggering incident or emotional dilemma that provoked it.
-2. Paragraph 2 (What is Happening Right Now): Describe their active day-to-day struggle, feelings of hesitation, overthinking, or lack of appreciation.
-3. Paragraph 3 (Astrological Root & Exact Timeline): Explain the house lord (4th/5th/7th/10th), planetary transit, and give concrete timing in ENGLISH DIGITS (e.g. Next 3 to 6 Months) when relief and success manifest.
-4. Paragraph 4 (Practical Remedies & Blessings): Prescribe specific remedies (Gemstone weight, Rudraksha, Japa count, Gokarna Mahabaleshwara Seva).
+Task: Give a deep, face-to-face conversational Vedic Pandit consultation response in natural spoken ${isKn ? "Kannada" : "English"} adopting this exact conversational spoken tone:
+"ನಮಸ್ಕಾರ ${session.input.name || "ಭಕ್ತರೇ"}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕ ನೋಡಿದೆ. ನೋಡಿದ್ರೆ ಇದರಲ್ಲಿ ಇರುವಂತಹ..."
+
+Structure your response into 3-4 detailed dense paragraphs:
+1. Paragraph 1 (Direct Spoken Hook & Planetary Placement): Start with "ನಮಸ್ಕಾರ ${session.input.name || "ಭಕ್ತರೇ"}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕ ನೋಡಿದೆ...". Identify the exact house/planet combination (4th/7th/10th house) and validate their mental state/frustration.
+2. Paragraph 2 (Day-to-day Struggle & Insomnia): Describe their late-night overthinking (2:00 AM to 4:30 AM), sleeplessness, lack of appreciation, and emotional weight.
+3. Paragraph 3 (Astrological Turning Point & Exact Timeline): Explain the Dasha-Bhukti and Gochara transit shift, giving concrete timing in ENGLISH DIGITS (e.g. Next 3 to 5 Months) when relief and breakthrough manifest.
+4. Paragraph 4 (Practical Remedies & Divine Blessing): Prescribe ${synthesisData.prescriptions.gemstoneRing.primaryGemstoneKn} (${synthesisData.prescriptions.gemstoneRing.caratWeight}), ${synthesisData.prescriptions.rudraksha.nameKn}, daily morning rituals, and Gokarna Mahabaleshwara Kshetra blessings.
 STRICT RULES:
 - DO NOT use markdown asterisks (no ** or *). Use clean, natural text.
 - ALL numbers must be in ENGLISH DIGITS (1, 2, 3, 4, 5, etc.).

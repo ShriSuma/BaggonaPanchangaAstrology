@@ -185,7 +185,7 @@ describe("PanchangaAngaSynthesisEngine", () => {
       expect(output.instantQAList.length).toBeGreaterThanOrEqual(5);
       expect(output.instantQAList[0].panditScriptKn).toBeTruthy();
       expect(output.multiParagraphExecutiveReading.length).toBe(4);
-      expect(output.multiParagraphExecutiveReading[0]).toContain("ಪಂಚಾಂಗ");
+      expect(output.multiParagraphExecutiveReading[0]).toContain("ನಾನ್ ನಿಮ್ಮ ಜಾತಕ ನೋಡಿದೆ");
     });
   });
 });

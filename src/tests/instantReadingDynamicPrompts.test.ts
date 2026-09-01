@@ -35,7 +35,8 @@ describe("Instant Reading Dynamic 5-Field Astrologer Verbal Prompts & Synthesis 
       birthTime: sampleBirth1.birthTime,
       latitude: sampleBirth1.latitude,
       longitude: sampleBirth1.longitude,
-      lang: "kn"
+      lang: "kn",
+      devoteeName: "Manoj Poornamatha"
     });
 
     const points = output.currentDiagnosis.astrologerTalkingPoints;
@@ -68,7 +69,8 @@ describe("Instant Reading Dynamic 5-Field Astrologer Verbal Prompts & Synthesis 
       birthTime: sampleBirth1.birthTime,
       latitude: sampleBirth1.latitude,
       longitude: sampleBirth1.longitude,
-      lang: "kn"
+      lang: "kn",
+      devoteeName: "Manoj"
     });
 
     const output2 = generatePanchangaAngaSynthesis(kundli2, {
@@ -76,7 +78,8 @@ describe("Instant Reading Dynamic 5-Field Astrologer Verbal Prompts & Synthesis 
       birthTime: sampleBirth2.birthTime,
       latitude: sampleBirth2.latitude,
       longitude: sampleBirth2.longitude,
-      lang: "kn"
+      lang: "kn",
+      devoteeName: "Pramod"
     });
 
     const points1 = output1.currentDiagnosis.astrologerTalkingPoints;
@@ -110,24 +113,35 @@ describe("Instant Reading Dynamic 5-Field Astrologer Verbal Prompts & Synthesis 
     expect(allText).toMatch(/\d+/);
   });
 
-  it("generates deep, multi-paragraph pandit scripts for subsequent category questions", () => {
-    const output = generatePanchangaAngaSynthesis(kundli1, {
-      birthDate: sampleBirth1.birthDate,
-      birthTime: sampleBirth1.birthTime,
-      latitude: sampleBirth1.latitude,
-      longitude: sampleBirth1.longitude,
-      lang: "kn"
+  it("generates deep, conversational spoken Kannada pandit scripts for all 1-click questions", () => {
+    const devoteeName = "Pramod";
+    const output = generatePanchangaAngaSynthesis(kundli2, {
+      birthDate: sampleBirth2.birthDate,
+      birthTime: sampleBirth2.birthTime,
+      latitude: sampleBirth2.latitude,
+      longitude: sampleBirth2.longitude,
+      lang: "kn",
+      devoteeName
     });
 
     const qaList = output.instantQAList;
-    expect(qaList.length).toBeGreaterThanOrEqual(5);
+    expect(qaList.length).toBeGreaterThanOrEqual(8);
 
     for (const q of qaList) {
       expect(q.panditScriptKn.length).toBeGreaterThan(300);
       expect(q.panditScriptKn.split("\n\n").length).toBeGreaterThanOrEqual(3);
       expect(q.astrologicalBasisKn).toBeTruthy();
       expect(q.immediateRemedyKn).toBeTruthy();
+      // Verifies conversational spoken greeting with devotee's name
+      expect(q.panditScriptKn).toContain(`ನಮಸ್ಕಾರ ${devoteeName}`);
     }
+
+    // Question 7 specifically verifies the insomnia & spoken slang audio pattern
+    const qMind = qaList.find((q) => q.id === "q_mind_1");
+    expect(qMind).toBeDefined();
+    expect(qMind?.panditScriptKn).toContain("ನಾನ್ ನಿಮ್ಮ ಜಾತಕ ನೋಡಿದೆ");
+    expect(qMind?.panditScriptKn).toContain("ನಿದ್ರಾಹೀನತೆಯಾಗಿ");
+    expect(qMind?.panditScriptKn).toContain("2:00 AM ರಿಂದ 4:30 AM");
   });
 
   it("cleanAstrologyText sanitizer strips markdown bold asterisks and normalizes text", () => {
