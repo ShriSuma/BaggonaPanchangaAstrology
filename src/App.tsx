@@ -10,6 +10,7 @@ import PredictionsPage from "./pages/PredictionsPage";
 import SettingsPage from "./pages/SettingsPage";
 import InsightsPage from "./pages/InsightsPage";
 import BaggonaPredictionsPage from "./pages/BaggonaPredictionsPage";
+import BhagyodayaPage from "./pages/BhagyodayaPage";
 import MuhurthaPage from "./pages/MuhurthaPage";
 import VarshaBavishyaPage from "./pages/VarshaBavishyaPage";
 import RamanBhavishyaPage from "./pages/RamanBhavishyaPage";
@@ -178,6 +179,7 @@ export default function App(): JSX.Element {
         {currentPage === "settings" && <SettingsPage />}
         {currentPage === "melapak" && <MelapakPage />}
         {currentPage === "baggona" && <BaggonaPredictionsPage />}
+        {currentPage === "bhagyodaya" && <BhagyodayaPage />}
         {currentPage === "muhurtha" && <MuhurthaPage />}
         {currentPage === "varshabavishya" && <VarshaBavishyaPage />}
         {currentPage === "ramanbhavishya" && <RamanBhavishyaPage />}

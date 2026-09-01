@@ -268,6 +268,7 @@ export default function Layout({ children }: Props): JSX.Element {
                     {getNavLabel("premiumSection", language)}
                   </div>
                   <TabButton page="baggona" icon="📜" label={getNavLabel("baggona", language)} onClose={() => setIsDrawerOpen(false)} />
+                  <TabButton page="bhagyodaya" icon="🌟" label={getNavLabel("bhagyodaya", language)} onClose={() => setIsDrawerOpen(false)} />
                   <TabButton page="predictions" icon="✦" label={getNavLabel("predictions", language)} onClose={() => setIsDrawerOpen(false)} />
                   <TabButton page="insights" icon="☍" label={getNavLabel("insights", language)} onClose={() => setIsDrawerOpen(false)} />
                   <TabButton page="ramanbhavishya" icon="📖" label={getNavLabel("ramanbhavishya", language)} onClose={() => setIsDrawerOpen(false)} />

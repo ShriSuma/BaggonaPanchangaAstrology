@@ -43,6 +43,13 @@ export const T_DRAWER_NAV: Record<string, Record<SupportedNavLang, string>> = {
     te: "బగ్గోణ జ్యోతిష్యం",
     ta: "பக்கோண பலன்கள்"
   },
+  bhagyodaya: {
+    kn: "🌟 ಭಾಗ್ಯೋದಯ ಮಹಾದರ್ಶನ",
+    en: "🌟 Bhagyodaya Life Dossier",
+    hi: "🌟 भाग्योदय महादर्शन",
+    te: "🌟 భాగ్యోదయ మహాదర్శనం",
+    ta: "🌟 பாக்யோதய மகா தரிசனம்"
+  },
   predictions: {
     kn: "ಗ್ರಹ ಫಲಗಳು & ದಶಾ",
     en: "Planetary Predictions",

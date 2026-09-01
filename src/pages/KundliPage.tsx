@@ -845,6 +845,39 @@ export default function KundliPage(): JSX.Element {
       
       {result && birthDatePicker && birthTimeHm.trim() ? (
         <div className="mt-8 space-y-6">
+          {/* 🌟 Bhagyodaya Mahadarshana Life Master Dossier Banner 🌟 */}
+          <div className="rounded-3xl border-2 border-amber-400 bg-gradient-to-r from-amber-950 via-slate-950 to-neutral-900 p-5 md:p-6 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-4 animate-fade-in">
+            <div className="flex items-center gap-3.5 text-center md:text-left">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-amber-400 bg-amber-900/60 text-3xl shadow-inner animate-pulse">
+                🌟
+              </div>
+              <div>
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-400/20 px-2.5 py-0.5 text-[10px] font-black uppercase text-amber-300">
+                  <span>✨</span>
+                  <span>ವಿಶೇಷ ಜೀವನ ಸಂಜೀವಿನಿ ರಹಸ್ಯ (Exclusive Life Dossier)</span>
+                </div>
+                <h3 className="text-base md:text-lg font-black text-amber-200 mt-1">
+                  {i18n.language.startsWith("kn") 
+                    ? `ನಿಮ್ಮ ಜಾತಕದ "ಭಾಗ್ಯೋದಯ ಮಹಾದರ್ಶನ & ೧೦ ವರ್ಷಗಳ ಸುವರ್ಣ ಮೈಲಿಗಲ್ಲು" ಸಿದ್ಧವಾಗಿದೆ!`
+                    : `Your "Bhagyodaya Life Dossier & 10-Year Golden Milestones" is Ready!`}
+                </h3>
+                <p className="text-xs text-amber-300/80 mt-0.5">
+                  ಧನ ಯೋಗ, ಸಾಲ ಮುಕ್ತಿ ಕಾಲ, ವಿವಾಹ ಯೋಗ, ಆಯುರ್ ಆರೋಗ್ಯ, ದೃಷ್ಟಿ ನಿವಾರಣೆ & ಭಾಗ್ಯ ರತ್ನ
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => useAppStore.getState().setPage("bhagyodaya")}
+              className="w-full md:w-auto shrink-0 inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 px-6 py-3.5 text-xs font-black text-neutral-950 shadow-xl hover:scale-105 transition-all"
+            >
+              <span>🌟</span>
+              <span>{i18n.language.startsWith("kn") ? "ಭಾಗ್ಯೋದಯ ಮಹಾದರ್ಶನ ವೀಕ್ಷಿಸಿ" : "View Bhagyodaya Dossier"}</span>
+              <span>➜</span>
+            </button>
+          </div>
+
           <div className="flex flex-col md:flex-row justify-center items-center gap-4 mb-6">
             <button
               type="button"
