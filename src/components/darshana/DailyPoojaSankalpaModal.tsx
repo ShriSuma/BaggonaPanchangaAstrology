@@ -12,6 +12,7 @@ import type { KundliOutput } from "../../core/AstroTypes";
 export interface DailyPoojaSankalpaModalProps {
   isOpen: boolean;
   onClose: () => void;
+  devoteeId?: string;
   devoteeName: string;
   birthKundli?: KundliOutput | null;
   gotra?: string;
@@ -29,11 +30,13 @@ export interface DailyPoojaSankalpaModalProps {
   vasara?: string;
   nakshatra?: string;
   onPlayBell?: () => void;
+  onStreakUpdated?: (streak: PoojaStreakInfo) => void;
 }
 
 export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = ({
   isOpen,
   onClose,
+  devoteeId,
   devoteeName,
   birthKundli,
   gotra = "ಕಾಶ್ಯಪ",
@@ -50,7 +53,8 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
   tithi,
   vasara,
   nakshatra,
-  onPlayBell
+  onPlayBell,
+  onStreakUpdated
 }) => {
   const { sankalpas, loadSankalpas } = useSankalpaStore();
 
@@ -64,7 +68,7 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const [isManageSankalpaOpen, setIsManageSankalpaOpen] = useState(false);
 
-  const devoteeKey = devoteeName ? devoteeName.toLowerCase().replace(/[^a-z0-9]/g, "_") : "devotee_default";
+  const devoteeKey = devoteeId || (devoteeName ? devoteeName.toLowerCase().replace(/[^a-z0-9]/g, "_") : "devotee_default");
   const autoPlayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -213,6 +217,9 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
     cleanupAudioAndTimers();
     const updated = await recordPoojaSankalpaCompleted(devoteeKey, devoteeName, gotra, priestName);
     setStreakInfo(updated);
+    if (onStreakUpdated) {
+      onStreakUpdated(updated);
+    }
     setStep(6); // Step 6 = completion screen
     setIsLampLit(true);
     playTempleBellChime();

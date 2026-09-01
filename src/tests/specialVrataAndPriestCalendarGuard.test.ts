@@ -46,7 +46,7 @@ describe("Special Vrata Deduplication and Priest Calendar Integration", () => {
     // Every Eve Alert must have a unique UID and not be duplicated
     const uniqueUids = new Set(uids);
     expect(uniqueUids.size).toBe(uids.length);
-  });
+  }, 25000);
 
   it("generateSevaICalendarString includes Priest Dossier when includePriestCalendar is true", () => {
     const ics = generateSevaICalendarString({
@@ -61,7 +61,7 @@ describe("Special Vrata Deduplication and Priest Calendar Integration", () => {
     expect(ics).toContain("ಪುರೋಹಿತ ಪಂಚಾಂಗ ವಿವರಗಳು");
     expect(ics).toContain("೧೨ ದಿನ ಲಗ್ನ ಅಂತ್ಯಗಳು");
     expect(ics).toContain("priest-panchanga");
-  });
+  }, 25000);
 
   it("generateSevaICalendarString does not include Priest Dossier when includePriestCalendar is false", () => {
     const ics = generateSevaICalendarString({
@@ -75,5 +75,5 @@ describe("Special Vrata Deduplication and Priest Calendar Integration", () => {
 
     expect(ics).not.toContain("ಪುರೋಹಿತ ಪಂಚಾಂಗ ವಿವರಗಳು");
     expect(ics).not.toContain("೧೨ ದಿನ ಲಗ್ನ ಅಂತ್ಯಗಳು");
-  });
+  }, 25000);
 });

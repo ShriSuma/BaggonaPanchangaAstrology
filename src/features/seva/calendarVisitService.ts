@@ -403,24 +403,111 @@ export async function recordPoojaSankalpaCompleted(
     } catch {}
   }
 
-  // Cloud Firestore Sync (Non-blocking)
+  // Cloud Firestore Sync (Non-blocking across users, devoteeStreaks, and devoteePoojaSankalpas)
   try {
-    const sankalpaRef = doc(firestore, "devoteePoojaSankalpas", `sankalpa_${devoteeKey}_${today}`);
-    await setDoc(sankalpaRef, {
-      devoteeKey,
-      devoteeName,
-      gotra,
-      date: today,
-      streakCount: newStreak,
-      totalSankalpas: newTotal,
-      priestName,
-      createdAt: serverTimestamp()
-    });
+    if (firestore) {
+      // 1. Log daily discrete sankalpa record
+      const sankalpaRef = doc(firestore, "devoteePoojaSankalpas", `sankalpa_${devoteeKey}_${today}`);
+      void setDoc(sankalpaRef, {
+        devoteeKey,
+        devoteeName,
+        gotra,
+        date: today,
+        streakCount: newStreak,
+        totalSankalpas: newTotal,
+        priestName,
+        createdAt: serverTimestamp()
+      }).catch(() => {});
+
+      // 2. Update devotee user record in users collection
+      const userRef = doc(firestore, "users", devoteeKey);
+      void setDoc(userRef, {
+        id: devoteeKey,
+        name: devoteeName,
+        gotra,
+        currentStreak: newStreak,
+        highestStreak,
+        lastSankalpaDate: today,
+        totalSankalpas: newTotal,
+        lastVisitAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }, { merge: true }).catch(() => {});
+
+      // 3. Update devoteeStreaks collection
+      const streakRef = doc(firestore, "devoteeStreaks", `streak_${devoteeKey}`);
+      void setDoc(streakRef, {
+        devoteeKey,
+        devoteeName,
+        gotra,
+        currentStreak: newStreak,
+        highestStreak,
+        totalPoojas: newTotal,
+        lastPoojaDate: today,
+        updatedAt: new Date().toISOString()
+      }, { merge: true }).catch(() => {});
+    }
   } catch (err) {
     console.warn("[CalendarVisitService] Failed to log pooja sankalpa to cloud:", err);
   }
 
   return updated;
+}
+
+/**
+ * Fetches devotee's Pooja streak from Cloud Firestore and syncs with LocalStorage.
+ * Guarantees cross-device streak continuity (mobile, desktop, tablet).
+ */
+export async function fetchPoojaStreakFromCloud(devoteeKey = "devotee_default"): Promise<PoojaStreakInfo> {
+  const local = getPoojaStreak(devoteeKey);
+
+  if (!firestore) return local;
+
+  try {
+    const userRef = doc(firestore, "users", devoteeKey);
+    const snap = await getDoc(userRef);
+
+    if (snap.exists()) {
+      const data = snap.data();
+      const cloudStreak = Number(data.currentStreak) || 0;
+      const cloudHighest = Number(data.highestStreak) || 0;
+      const cloudLastDate = String(data.lastSankalpaDate || "");
+      const cloudTotal = Number(data.totalSankalpas) || 0;
+
+      const today = new Date().toISOString().split("T")[0];
+      const isCompletedToday = cloudLastDate === today;
+
+      let validStreak = cloudStreak;
+      if (cloudLastDate) {
+        const lastDate = new Date(cloudLastDate);
+        const todayDate = new Date(today);
+        const diffTime = Math.abs(todayDate.getTime() - lastDate.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        if (diffDays > 1 && !isCompletedToday) {
+          validStreak = 0;
+        }
+      }
+
+      const merged: PoojaStreakInfo = {
+        currentStreak: Math.max(local.currentStreak, validStreak),
+        highestStreak: Math.max(local.highestStreak, cloudHighest, validStreak),
+        lastSankalpaDate: isCompletedToday ? today : (cloudLastDate || local.lastSankalpaDate),
+        isCompletedToday: isCompletedToday || local.isCompletedToday,
+        totalSankalpas: Math.max(local.totalSankalpas, cloudTotal)
+      };
+
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem(`${POOJA_STREAK_STORAGE_KEY}_${devoteeKey}`, JSON.stringify(merged));
+        } catch {}
+      }
+
+      return merged;
+    }
+  } catch (err) {
+    console.warn("[CalendarVisitService] Cloud streak fetch error:", err);
+  }
+
+  return local;
 }
 
 export interface PriestCalendarActionRecord {

@@ -29,7 +29,14 @@ import { signLord } from "../core/KundliInsightsEngine";
 import { normalizeDegree } from "../core/AstroMath";
 import { PlanetName, type KundliOutput, type PlanetPosition } from "../core/AstroTypes";
 import { transliterateName } from "../utils/transliterator";
-import { recordCalendarVisit, getPoojaStreak, type PoojaStreakInfo } from "../features/seva/calendarVisitService";
+import { recordCalendarVisit, getPoojaStreak, fetchPoojaStreakFromCloud, type PoojaStreakInfo } from "../features/seva/calendarVisitService";
+import {
+  checkAndRegisterDevoteeUser,
+  hasDevoteeContactDetails,
+  getDevoteeUserId,
+  type DevoteeUserRecord
+} from "../features/seva/devoteeUserService";
+import { DevoteeContactCaptureModal } from "../components/darshana/DevoteeContactCaptureModal";
 import { DailyPoojaSankalpaModal } from "../components/darshana/DailyPoojaSankalpaModal";
 import { ManageSankalpaModal } from "../components/darshana/ManageSankalpaModal";
 import { DevoteeStreakBadge } from "../components/darshana/DevoteeStreakBadge";
@@ -1131,6 +1138,8 @@ export default function DailyDarshanaPage(): JSX.Element {
   const [downloadedNotice, setDownloadedNotice] = useState(false);
   const [storedSession, setStoredSession] = useState<any>(null);
   const [showContactModal, setShowContactModal] = useState(false);
+  const [isContactCaptureOpen, setIsContactCaptureOpen] = useState(false);
+  const [devoteeUser, setDevoteeUser] = useState<DevoteeUserRecord | null>(null);
   const [isPoojaModalOpen, setIsPoojaModalOpen] = useState(false);
   const [isManageSankalpaOpen, setIsManageSankalpaOpen] = useState(false);
 
@@ -1431,6 +1440,64 @@ export default function DailyDarshanaPage(): JSX.Element {
   const todayBhavishya = useMemo(() => {
     return getTodayBhavishyaHighlights(birthKundli, dateParam, lang, mockDay, dashaPredictions);
   }, [birthKundli, dateParam, lang, mockDay, dashaPredictions]);
+
+  const devoteeUserId = useMemo(() => {
+    return getDevoteeUserId({
+      name: devoteeDisplayName,
+      dob: resolvedBirth.dob,
+      tob: resolvedBirth.tob,
+      token: tokenParam || undefined
+    });
+  }, [devoteeDisplayName, resolvedBirth, tokenParam]);
+
+  // Check & Register Devotee in Firestore on page load / calendar redirect
+  useEffect(() => {
+    let cancelled = false;
+    async function syncDevoteeProfile() {
+      try {
+        const userRec = await checkAndRegisterDevoteeUser({
+          name: devoteeDisplayName,
+          dob: resolvedBirth.dob,
+          tob: resolvedBirth.tob,
+          gotra: devoteeGotra,
+          rashi: rashiName(moonRashiIdx, "en"),
+          rashiIndex: moonRashiIdx,
+          nakshatra: nakshatraName(moonNakshatraIdx, "en"),
+          nakshatraIndex: moonNakshatraIdx,
+          pincode: decoded?.pc || urlParams.get("pincode") || "",
+          phone: decoded?.ph || decoded?.phone || urlParams.get("phone") || "",
+          email: (decoded as any)?.email || urlParams.get("email") || "",
+          token: tokenParam || undefined,
+          source: isFromCalendarRedirect ? "calendar_redirect" : "direct_darshana"
+        });
+
+        if (cancelled) return;
+        setDevoteeUser(userRec);
+
+        // Fetch & synchronize cloud streak across devices
+        const cloudStreak = await fetchPoojaStreakFromCloud(devoteeUserId);
+        if (!cancelled && cloudStreak) {
+          setPoojaStreak(cloudStreak);
+        }
+
+        // Check if Contact details (Phone or Email) are present in Firestore database
+        const hasContact = hasDevoteeContactDetails(userRec);
+        if (!hasContact) {
+          // Show popup asking for Phone or Email
+          setIsContactCaptureOpen(true);
+        } else {
+          setIsContactCaptureOpen(false);
+        }
+      } catch (err) {
+        console.warn("[DailyDarshanaPage] Devotee profile sync notice:", err);
+      }
+    }
+
+    void syncDevoteeProfile();
+    return () => {
+      cancelled = true;
+    };
+  }, [devoteeUserId, devoteeDisplayName, devoteeGotra, moonRashiIdx, moonNakshatraIdx, resolvedBirth, tokenParam, decoded, urlParams, isFromCalendarRedirect]);
 
   // Track calendar visit for metrics and priest sync
   useEffect(() => {
@@ -2809,10 +2876,27 @@ export default function DailyDarshanaPage(): JSX.Element {
           </div>
         </div>
       )}
+      {/* Devotee Contact Details Capture Modal (Phone / Email Popup) */}
+      <DevoteeContactCaptureModal
+        isOpen={isContactCaptureOpen}
+        onClose={() => setIsContactCaptureOpen(false)}
+        devoteeId={devoteeUserId}
+        devoteeName={devoteeDisplayName}
+        gotra={devoteeGotra}
+        lang={lang}
+        initialPhone={devoteeUser?.phone || ""}
+        initialEmail={devoteeUser?.email || ""}
+        onSuccess={(updatedUser) => {
+          setDevoteeUser(updatedUser);
+          setIsContactCaptureOpen(false);
+        }}
+      />
+
       {/* Daily Priest Voice Guided 3-5 Minute Pooja & Sankalpa Modal */}
       <DailyPoojaSankalpaModal
         isOpen={isPoojaModalOpen}
         onClose={() => setIsPoojaModalOpen(false)}
+        devoteeId={devoteeUserId}
         devoteeName={devoteeDisplayName}
         birthKundli={birthKundli}
         gotra={devoteeGotra}
@@ -2830,6 +2914,7 @@ export default function DailyDarshanaPage(): JSX.Element {
         vasara={(mockDay as any).vasara || "ಭೃಗುವಾಸರ"}
         nakshatra={nakshatraName(moonNakshatraIdx, lang)}
         onPlayBell={playTempleBell}
+        onStreakUpdated={(newStreak) => setPoojaStreak(newStreak)}
       />
 
       {/* Personal Sankalpas Management Modal */}
