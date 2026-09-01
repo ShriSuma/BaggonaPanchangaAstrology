@@ -8,6 +8,16 @@ export interface DailyLuckyGemWidgetProps {
   nakshatraIndex?: number;
   lang?: SevaLang;
   deityMantra?: string;
+  dynamicLuckyColor?: {
+    name: Record<SevaLang, string>;
+    hex: string;
+    borderClass: string;
+  };
+  dynamicLuckyDigit?: number;
+  dynamicLuckyDirection?: {
+    name: Record<SevaLang, string>;
+    degrees: string;
+  };
 }
 
 const LUCKY_TEXTS: Record<SevaLang, {
@@ -23,69 +33,69 @@ const LUCKY_TEXTS: Record<SevaLang, {
 }> = {
   kn: {
     title: "ದಿನದ ದೈವಿಕ ಶಕ್ತಿ ರತ್ನ & ಶುಭ ಮಾರ್ಗದರ್ಶಿ (Daily Power Gem)",
-    subtitle: "ಇಂದಿನ ಶುಭ ಬಣ್ಣ, ಅದೃಷ್ಟ ಸಂಖ್ಯೆ, ದಿಕ್ಕು & ೧೧ ಮಣಿಗಳ ಜಪ ಮಾಲೆ",
-    powerColorTitle: "ಇಂದಿನ ಶುಭ ಬಣ್ಣ",
-    luckyDigitTitle: "ಅದೃಷ್ಟ ಸಂಖ್ಯೆ",
-    directionTitle: "ಶುಭ ದಿಕ್ಕು (ದಿಶಾರಕ್ಷೆ)",
-    japaMalaTitle: "೧೧ ಮಣಿಗಳ ಡಿಜಿಟಲ್ ಜಪ ಮಾಲೆ",
-    japaCompleted: "೧೧ ಜಪ ಪೂರ್ಣಗೊಂಡಿದೆ! ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸಾದ ಸಿದ್ಧಿರಸ್ತು ✓",
-    chantBtn: "📿 ಜಪಿಸಿ (Chant Bead)",
-    resetMala: "ಪುನಃ ಜಪಿಸಿ (Restart)"
+    subtitle: "ನಿಮ್ಮ ಜನ್ಮ ಜಾತಕ & ಗೋಚಾರ ಆಧಾರಿತ ಶುಭ ವರ್ಣ, ಸಂಖ್ಯೆ, ದಿಕ್ಕು & ೧೧-ಮಣಿಗಳ ಡಿಜಿಟಲ್ ಜಪಮಾಲೆ",
+    powerColorTitle: "ದಿನದ ಅದೃಷ್ಟ ವರ್ಣ",
+    luckyDigitTitle: "ದಿನದ ಅದೃಷ್ಟ ಸಂಖ್ಯೆ",
+    directionTitle: "ದಿನದ ಶುಭ ಸಂಚಾರ ದಿಕ್ಕು",
+    japaMalaTitle: "೧೧-ಮಣಿಗಳ ಡಿಜಿಟಲ್ ಜಪಮಾಲೆ (11-Bead Digital Mala)",
+    japaCompleted: "🎉 ೧೧ ಬಾರಿ ಪವಿತ್ರ ಜಪ ಸಂಪನ್ನವಾಯಿತು! ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರರ ಅನುಗ್ರಹ ಸದಾ ಇರಲಿ.",
+    chantBtn: "📿 ಮಂತ್ರ ಜಪಿಸಿ (Chant)",
+    resetMala: "↺ ಮರು ಜಪ (Reset)"
   },
   en: {
     title: "Daily Power Gem & Auspicious Guidance",
-    subtitle: "Power Color, Lucky Number, Travel Direction & 11-Bead Japa Mala",
-    powerColorTitle: "Today's Power Color",
-    luckyDigitTitle: "Lucky Number",
-    directionTitle: "Auspicious Direction",
-    japaMalaTitle: "11-Bead Digital Chanting Mala",
-    japaCompleted: "11 Sacred Chants Completed! Divine Grace Attained ✓",
-    chantBtn: "📿 Chant Bead",
-    resetMala: "Restart Japa"
+    subtitle: "Auspicious Color, Lucky Number, Direction & 11-Bead Digital Japa Mala",
+    powerColorTitle: "Daily Power Color",
+    luckyDigitTitle: "Daily Lucky Number",
+    directionTitle: "Auspicious Travel Direction",
+    japaMalaTitle: "11-Bead Sacred Digital Mala",
+    japaCompleted: "🎉 11 Chants Completed! May Lord Mahabaleshwara bless your day.",
+    chantBtn: "📿 Chant Mantra",
+    resetMala: "↺ Reset Mala"
   },
   hi: {
-    title: "दैनिक शक्ति रत्न एवं शुभ संकेत (Daily Power Gem)",
-    subtitle: "आज का शुभ रंग, भाग्यशाली अंक, दिशा और ११ मनकों की जप माला",
+    title: "दैनिक दिव्य शक्ति रत्न एवं शुभ मार्गदर्शन",
+    subtitle: "शुभ रंग, लकी नंबर, शुभ दिशा एवं ११-मनकों की डिजिटल जपमाला",
     powerColorTitle: "आज का शुभ रंग",
-    luckyDigitTitle: "भाग्यशाली अंक",
-    directionTitle: "शुभ दिशा (दिशारक्षा)",
-    japaMalaTitle: "११ मनकों की डिजिटल जप माला",
-    japaCompleted: "११ जप पूर्ण हुए! प्रभु कृपा प्राप्त हुई ✓",
-    chantBtn: "📿 जप करें",
-    resetMala: "पुनः जप करें"
+    luckyDigitTitle: "आज का लकी नंबर",
+    directionTitle: "आज की शुभ दिशा",
+    japaMalaTitle: "११-मनकों की डिजिटल जपमाला",
+    japaCompleted: "🎉 ११ पावन जप संपन्न! भगवान महाबलेश्वर की कृपा बनी रहे।",
+    chantBtn: "📿 मंत्र जपें",
+    resetMala: "↺ पुनः जप"
   },
   te: {
-    title: "నేటి దైవిక శక్తి రత్నం & శుభ మార్గదర్శి (Daily Power Gem)",
-    subtitle: "నేటి శుభ వర్ణం, అదృష్ట సంఖ్య, దిక్కు మరియు ౧౧ పూసల జపమాల",
+    title: "నేటి దివ్య శక్తి రత్నం & శుభ మార్గదర్శి",
+    subtitle: "శుభ వర్ణం, లక్కీ నంబర్, శుభ దిశ & ౧౧-పూసల డిజిటల్ జపమాల",
     powerColorTitle: "నేటి శుభ వర్ణం",
-    luckyDigitTitle: "అదృష్ట సంఖ్య",
-    directionTitle: "శుభ దిక్కు",
-    japaMalaTitle: "౧౧ పూసల డిజిటల్ జపమాల",
-    japaCompleted: "౧౧ జపాలు పూర్తయ్యాయి! దైవానుగ్రహం లభించింది ✓",
-    chantBtn: "📿 జపం చేయండి",
-    resetMala: "మళ్ళీ ప్రారంభించండి"
+    luckyDigitTitle: "నేటి లక్కీ నంబర్",
+    directionTitle: "నేటి శుభ ప్రయాణ దిశ",
+    japaMalaTitle: "౧౧-పూసల డిజిటల్ జపమాల",
+    japaCompleted: "🎉 ౧౧ జపాలు పూర్తయ్యాయి! శ్రీ మహాబలేశ్వరుని అనుగ్రహం లభించుగాక.",
+    chantBtn: "📿 మంత్రం జపించండి",
+    resetMala: "↺ రీసెట్ మాల"
   },
   ta: {
-    title: "இன்றைய சக்தி ரத்தினம் (Daily Power Gem)",
-    subtitle: "சுப நிறம், அதிர்ஷ்ட எண், திசை மற்றும் 11 மணி ஜெப மாலை",
+    title: "இன்றைய சக்தி ரத்தினம் & சுப வழிகாட்டி",
+    subtitle: "சுப நிறம், அதிர்ஷ்ட எண், சுப திசை & 11-மணி டிஜிட்டல் ஜபமாலை",
     powerColorTitle: "இன்றைய சுப நிறம்",
-    luckyDigitTitle: "அதிர்ஷ்ட எண்",
-    directionTitle: "சுப திசை",
-    japaMalaTitle: "11 மணி டிஜிட்டல் ஜெப மாலை",
-    japaCompleted: "11 ஜெபம் முடிந்தது! இறை அருள் கிட்டியது ✓",
-    chantBtn: "📿 ஜெபிக்க",
-    resetMala: "மீண்டும் ஜெபிக்க"
+    luckyDigitTitle: "இன்றைய அதிர்ஷ்ட எண்",
+    directionTitle: "இன்றைய சுப திசை",
+    japaMalaTitle: "11-மணி புனித டிஜிட்டல் ஜபமாலை",
+    japaCompleted: "🎉 11 முறை ஜபம் நிறைவடைந்தது! மகாபலேஸ்வரர் அருள் நிலைக்கட்டும்.",
+    chantBtn: "📿 மந்திரம் ஜபிக்கவும்",
+    resetMala: "↺ மீண்டும் ஜபிக்க"
   }
 };
 
 const COLOR_MAP = [
-  { nameKn: "ಕೇಸರಿ / ಕಿತ್ತಳೆ", nameEn: "Saffron / Orange", bgClass: "bg-orange-500", textClass: "text-orange-950", borderClass: "border-orange-400", hex: "#F97316" },
-  { nameKn: "ಹಳದಿ / ಬಂಗಾರ", nameEn: "Golden Yellow", bgClass: "bg-amber-400", textClass: "text-amber-950", borderClass: "border-amber-400", hex: "#FBBF24" },
-  { nameKn: "ಬಿಳಿ / ಹಾಲುಗನ್ನಡಿ", nameEn: "Pure White / Cream", bgClass: "bg-white", textClass: "text-slate-900", borderClass: "border-amber-300", hex: "#FFFFFF" },
-  { nameKn: "ಹಸಿರು / ಪಚ್ಚೆ", nameEn: "Emerald Green", bgClass: "bg-emerald-500", textClass: "text-emerald-950", borderClass: "border-emerald-400", hex: "#10B981" },
-  { nameKn: "ಕೆಂಪು / ಗುಲಾಬಿ", nameEn: "Ruby Red / Rose", bgClass: "bg-rose-500", textClass: "text-rose-950", borderClass: "border-rose-400", hex: "#F43F5E" },
-  { nameKn: "ನೀಲಿ / ಆಕಾಶ", nameEn: "Royal Sky Blue", bgClass: "bg-sky-500", textClass: "text-sky-950", borderClass: "border-sky-400", hex: "#0EA5E9" },
-  { nameKn: "ನೇರಳೆ / ಲ್ಯಾವೆಂಡರ್", nameEn: "Royal Purple", bgClass: "bg-purple-500", textClass: "text-purple-950", borderClass: "border-purple-400", hex: "#A855F7" }
+  { nameKn: "ಮಾಣಿಕ್ಯ ಕೆಂಪು (Ruby Red) • ಸೂರ್ಯ ಬಲ", nameEn: "Ruby Red (Sun Vitality)", hex: "#DC2626", borderClass: "border-rose-400" },
+  { nameKn: "ಮುತ್ತಿನ ಬಿಳಿ (Pearl White) • ಚಂದ್ರ ಶಾಂತಿ", nameEn: "Pearl White (Moon Peace)", hex: "#F8FAFC", borderClass: "border-slate-300" },
+  { nameKn: "ಹವಳ ಕೇಸರಿ (Coral Saffron) • ಕುಜ ತೇಜಸ್ಸು", nameEn: "Coral Saffron (Mars Aura)", hex: "#EA580C", borderClass: "border-orange-400" },
+  { nameKn: "ಪಚ್ಚೆ ಹಸಿರು (Emerald Green) • ಬುಧ ಬುದ್ಧಿ", nameEn: "Emerald Green (Mercury Intellect)", hex: "#10B981", borderClass: "border-emerald-400" },
+  { nameKn: "ಪೀತಾಂಬರ ಹಳದಿ (Golden Yellow) • ಗುರು ಕೃಪೆ", nameEn: "Golden Yellow (Jupiter Grace)", hex: "#F59E0B", borderClass: "border-yellow-400" },
+  { nameKn: "ವಜ್ರ ಶುಭ್ರ (Diamond White) • ಶುಕ್ರ ಸೌಖ್ಯ", nameEn: "Diamond White (Venus Radiance)", hex: "#EC4899", borderClass: "border-pink-300" },
+  { nameKn: "ನೀಲಮಣಿ ನೀಲಿ (Sapphire Blue) • ಶನಿ ರಕ್ಷೆ", nameEn: "Sapphire Blue (Saturn Shield)", hex: "#1E3A8A", borderClass: "border-blue-400" }
 ];
 
 const DIRECTION_MAP = [
@@ -101,7 +111,10 @@ export const DailyLuckyGemWidget: React.FC<DailyLuckyGemWidgetProps> = ({
   rashiIndex = 8,
   nakshatraIndex = 18,
   lang = "kn",
-  deityMantra = "ಓಂ ನಮಃ ಶಿವಾಯ"
+  deityMantra = "ಓಂ ನಮಃ ಶಿವಾಯ",
+  dynamicLuckyColor,
+  dynamicLuckyDigit,
+  dynamicLuckyDirection
 }) => {
   const [japaCount, setJapaCount] = useState<number>(0);
   const t = LUCKY_TEXTS[lang] || LUCKY_TEXTS.kn;
@@ -117,6 +130,12 @@ export const DailyLuckyGemWidget: React.FC<DailyLuckyGemWidgetProps> = ({
     return { color, luckyDigit, direction };
   }, [dateStr, rashiIndex, nakshatraIndex]);
 
+  const colorName = dynamicLuckyColor?.name[lang] || dynamicLuckyColor?.name.kn || (lang === "kn" ? gemData.color.nameKn : gemData.color.nameEn);
+  const colorHex = dynamicLuckyColor?.hex || gemData.color.hex;
+  const colorBorder = dynamicLuckyColor?.borderClass || gemData.color.borderClass;
+  const digitVal = dynamicLuckyDigit !== undefined ? dynamicLuckyDigit : gemData.luckyDigit;
+  const dirName = dynamicLuckyDirection?.name[lang] || dynamicLuckyDirection?.name.kn || (lang === "kn" ? gemData.direction.dirKn : gemData.direction.dirEn);
+
   const handleBeadClick = () => {
     if (japaCount < 11) {
       const next = japaCount + 1;
@@ -125,7 +144,6 @@ export const DailyLuckyGemWidget: React.FC<DailyLuckyGemWidgetProps> = ({
       if (next === 11) {
         playTempleBellChime();
       } else {
-        // Gentle Web Audio API bead chime
         try {
           if (typeof window !== "undefined" && (window.AudioContext || (window as any).webkitAudioContext)) {
             const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -147,7 +165,6 @@ export const DailyLuckyGemWidget: React.FC<DailyLuckyGemWidgetProps> = ({
 
   return (
     <div className="bg-gradient-to-br from-[#451A03] via-[#301004] to-[#1C0A00] border-2 border-[#D4AF37] rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4 text-amber-100">
-      {/* Header */}
       <div className="flex items-center gap-3 border-b border-amber-500/30 pb-3">
         <span className="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-400 flex items-center justify-center text-xl shadow-xs">
           💎
@@ -162,13 +179,11 @@ export const DailyLuckyGemWidget: React.FC<DailyLuckyGemWidgetProps> = ({
         </div>
       </div>
 
-      {/* 3 Metric Grid: Color, Number, Direction */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        {/* Power Color */}
         <div className="p-3.5 bg-black/40 rounded-2xl border border-amber-500/30 flex items-center gap-3 shadow-inner">
           <div
-            className={`w-11 h-11 rounded-xl shadow-md border-2 ${gemData.color.borderClass} flex items-center justify-center shrink-0`}
-            style={{ backgroundColor: gemData.color.hex }}
+            className={`w-11 h-11 rounded-xl shadow-md border-2 ${colorBorder} flex items-center justify-center shrink-0`}
+            style={{ backgroundColor: colorHex }}
           >
             <span className="text-xs">🎨</span>
           </div>
@@ -177,22 +192,21 @@ export const DailyLuckyGemWidget: React.FC<DailyLuckyGemWidgetProps> = ({
               {t.powerColorTitle}
             </div>
             <div className="text-xs font-black text-white leading-tight mt-0.5">
-              {lang === "kn" ? gemData.color.nameKn : gemData.color.nameEn}
+              {colorName}
             </div>
           </div>
         </div>
 
-        {/* Lucky Number */}
         <div className="p-3.5 bg-black/40 rounded-2xl border border-amber-500/30 flex items-center gap-3 shadow-inner">
           <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-400 text-slate-950 font-black font-mono text-xl shadow-md border border-amber-300 flex items-center justify-center shrink-0">
-            {gemData.luckyDigit}
+            {digitVal}
           </div>
           <div>
             <div className="text-[10px] font-black text-[#FDE68A] uppercase tracking-wider">
               {t.luckyDigitTitle}
             </div>
             <div className="text-xs font-black text-white leading-tight mt-0.5">
-              ಸಂಖ್ಯೆ {gemData.luckyDigit} (ಶುಭ ಕಂಪನ)
+              {lang === "kn" ? `ಸಂಖ್ಯೆ ${digitVal} (ಶುಭ ಕಂಪನ)` : `Number ${digitVal} (Auspicious)`}
             </div>
           </div>
         </div>
@@ -207,7 +221,7 @@ export const DailyLuckyGemWidget: React.FC<DailyLuckyGemWidgetProps> = ({
               {t.directionTitle}
             </div>
             <div className="text-xs font-black text-white leading-tight mt-0.5">
-              {lang === "kn" ? gemData.direction.dirKn : gemData.direction.dirEn}
+              {dirName}
             </div>
           </div>
         </div>

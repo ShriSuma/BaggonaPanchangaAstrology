@@ -7,6 +7,10 @@ export interface DailyKarmaNavigatorProps {
   nakshatraIndex?: number;
   lang?: SevaLang;
   devoteeName?: string;
+  dynamicDos?: string[];
+  dynamicDonts?: string[];
+  dynamicMicroTitle?: string;
+  dynamicMicroDesc?: string;
 }
 
 const KARMA_TEXTS: Record<SevaLang, {
@@ -94,7 +98,11 @@ export const DailyKarmaNavigator: React.FC<DailyKarmaNavigatorProps> = ({
   rashiIndex = 8,
   nakshatraIndex = 18,
   lang = "kn",
-  devoteeName = "ಭಕ್ತರು"
+  devoteeName = "ಭಕ್ತರು",
+  dynamicDos,
+  dynamicDonts,
+  dynamicMicroTitle,
+  dynamicMicroDesc
 }) => {
   const t = KARMA_TEXTS[lang] || KARMA_TEXTS.kn;
   const storageKey = `baggona_micro_parihara_${dateStr}_${devoteeName.toLowerCase().replace(/[^a-z0-9]/g, "_")}`;
@@ -112,6 +120,11 @@ export const DailyKarmaNavigator: React.FC<DailyKarmaNavigatorProps> = ({
     const seed = (d.getFullYear() * 100 + (d.getMonth() + 1) * 10 + d.getDate() + rashiIndex + nakshatraIndex) % DO_DONT_POOLS.length;
     return DO_DONT_POOLS[seed];
   }, [dateStr, rashiIndex, nakshatraIndex]);
+
+  const dosList = dynamicDos || karmaData.dosKn;
+  const dontsList = dynamicDonts || karmaData.dontsKn;
+  const microTitle = dynamicMicroTitle || t.microPariharaTitle;
+  const microDesc = dynamicMicroDesc || karmaData.microKn;
 
   const handleMarkDone = () => {
     setIsDone(true);
@@ -148,7 +161,7 @@ export const DailyKarmaNavigator: React.FC<DailyKarmaNavigatorProps> = ({
             <span>{t.dosTitle}</span>
           </div>
           <ul className="space-y-2 text-xs text-emerald-100 font-medium pl-1">
-            {karmaData.dosKn.map((item, idx) => (
+            {dosList.map((item, idx) => (
               <li key={idx} className="flex items-start gap-2">
                 <span className="text-emerald-400 font-black">•</span>
                 <span className="leading-snug">{item}</span>
@@ -164,7 +177,7 @@ export const DailyKarmaNavigator: React.FC<DailyKarmaNavigatorProps> = ({
             <span>{t.dontsTitle}</span>
           </div>
           <ul className="space-y-2 text-xs text-rose-100 font-medium pl-1">
-            {karmaData.dontsKn.map((item, idx) => (
+            {dontsList.map((item, idx) => (
               <li key={idx} className="flex items-start gap-2">
                 <span className="text-rose-400 font-black">•</span>
                 <span className="leading-snug">{item}</span>
@@ -179,7 +192,7 @@ export const DailyKarmaNavigator: React.FC<DailyKarmaNavigatorProps> = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-xs font-black text-[#FDE68A]">
             <span>🪔</span>
-            <span>{t.microPariharaTitle}</span>
+            <span>{microTitle}</span>
           </div>
           <span className="text-[10px] font-black text-amber-300 bg-amber-900/80 px-3 py-1 rounded-full border border-amber-400 shadow-xs">
             ೧ ನಿಮಿಷದ ಪುಣ್ಯ
@@ -187,7 +200,7 @@ export const DailyKarmaNavigator: React.FC<DailyKarmaNavigatorProps> = ({
         </div>
 
         <p className="text-xs sm:text-sm text-amber-100 font-bold leading-relaxed">
-          {karmaData.microKn}
+          {microDesc}
         </p>
 
         {/* Interactive Completion Button */}

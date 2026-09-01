@@ -18,15 +18,22 @@ export interface DailyBlessingShareCardProps {
   goldenHourStr?: string;
   lang?: string;
   priestName?: string;
+  customShlokaText?: string;
+  customShlokaMeaning?: string;
+  customDeitySource?: string;
 }
 
 export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
+  devoteeName,
   dateStr,
   tithiStr = "",
   nakshatraStr = "",
   goldenHourStr = "10:48 AM - 11:36 AM",
   lang = "kn",
-  priestName = "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್"
+  priestName = "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
+  customShlokaText,
+  customShlokaMeaning,
+  customDeitySource
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
@@ -60,8 +67,9 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
   }, [bgConfig]);
 
   const morningVibe = inspiration.goodMorningVibe[selectedLang] || inspiration.goodMorningVibe.kn;
-  const shlokaText = selectedLang === "en" ? inspiration.shlokaText.transliteration : inspiration.shlokaText.kn;
-  const shlokaMeaning = inspiration.shlokaMeaning[selectedLang] || inspiration.shlokaMeaning.kn;
+  const shlokaText = customShlokaText || (selectedLang === "en" ? inspiration.shlokaText.transliteration : inspiration.shlokaText.kn);
+  const shlokaMeaning = customShlokaMeaning || (inspiration.shlokaMeaning[selectedLang] || inspiration.shlokaMeaning.kn);
+  const deitySourceText = customDeitySource || inspiration.deitySource;
   const goodDeed = inspiration.goodDeedOfTheDay[selectedLang] || inspiration.goodDeedOfTheDay.kn;
   const motivationalQuote = inspiration.motivationalQuote[selectedLang] || inspiration.motivationalQuote.kn;
 
@@ -611,7 +619,7 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
               marginBottom: "6px"
             }}
           >
-            🪔 {isKn ? `ಇಂದಿನ ದೈವಿಕ ಶ್ಲೋಕ (${inspiration.deitySource})` : `Daily Sacred Shloka (${inspiration.deitySource})`}
+            🪔 {isKn ? `ಇಂದಿನ ದೈವಿಕ ಶ್ಲೋಕ (${deitySourceText})` : `Daily Sacred Shloka (${deitySourceText})`}
           </div>
           <div
             style={{

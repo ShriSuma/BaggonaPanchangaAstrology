@@ -60,6 +60,7 @@ import { synthesizeAndPlayClonedVoice, stopClonedAudio } from "../features/audio
 import { stopAllAudioGlobal, onGlobalAudioStop } from "../features/audio/globalAudioManager";
 import { useAppStore } from "../stores/appStore";
 import { getOrComputeDinaBhavishya, type DinaBhavishyaPayload } from "../features/seva/dinaBhavishyaEngine";
+import { computePersonalizedDarshanaPayload } from "../features/darshana/dailyDarshanaPersonalizationEngine";
 
 // Comprehensive 5-Language Dictionary for DailyDarshanaPage
 const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
@@ -1246,8 +1247,6 @@ export default function DailyDarshanaPage(): JSX.Element {
     return isNaN(d.getDay()) ? 1 : d.getDay();
   }, [dateParam]);
 
-  const deity = DEITY_CONFIG[dayLordIdx] || DEITY_CONFIG[1];
-
   const daysElapsed = useMemo(() => {
     const startDateStr = decoded?.d || dateParam;
     const start = new Date(startDateStr);
@@ -1445,7 +1444,43 @@ export default function DailyDarshanaPage(): JSX.Element {
     };
   }, [vibe]);
 
-  const benediction = useMemo(() => buildDeterministicPriestBenediction(mockDay, lang, devoteeDisplayName), [mockDay, lang, devoteeDisplayName]);
+  // Dynamic Live 100% Vedic Astrological Personalization (Kundali + Gochara + Dasha-Bhukti)
+  const darshanaPersonalization = useMemo(() => {
+    return computePersonalizedDarshanaPayload({
+      birthKundli,
+      devoteeName: devoteeDisplayName,
+      gotra: devoteeGotra,
+      birthDate: resolvedBirth.dob,
+      birthTime: resolvedBirth.tob || "12:00",
+      targetDate: dateParam,
+      natalMoonRashi: moonRashiIdx,
+      natalNakshatra: moonNakshatraIdx,
+      natalLagnaRashi: ascendantRashiIdx,
+      lang: (lang as SevaLang) || "kn",
+      userLat: 14.5479,
+      userLng: 74.3187,
+      priestName: activePanditName
+    });
+  }, [birthKundli, devoteeDisplayName, devoteeGotra, resolvedBirth.dob, resolvedBirth.tob, dateParam, moonRashiIdx, moonNakshatraIdx, ascendantRashiIdx, lang, activePanditName]);
+
+  const deity = useMemo(() => {
+    const d = darshanaPersonalization.deity;
+    return {
+      key: d.key,
+      name: d.name,
+      mantra: d.beejaMantra,
+      shloka: d.sanskritShloka,
+      transliteration: d.transliteration,
+      meaning: d.meaning,
+      significance: d.spiritualSignificance,
+      selectionReason: d.selectionReason,
+      color: d.primaryColor
+    };
+  }, [darshanaPersonalization]);
+
+  const benediction = useMemo(() => {
+    return darshanaPersonalization.priestBenediction[lang] || darshanaPersonalization.priestBenediction.kn || buildDeterministicPriestBenediction(mockDay, lang, devoteeDisplayName);
+  }, [darshanaPersonalization, mockDay, lang, devoteeDisplayName]);
 
   // 100% 5-Language Actionable Guidance
   const actionableGuidance = useMemo(() => getDailyActionableGuidance(mockDay, lang), [mockDay, lang]);
@@ -2525,19 +2560,41 @@ export default function DailyDarshanaPage(): JSX.Element {
               </div>
             </div>
 
-            {/* Sacred Deity Mantra Card (5-Language Native Script) */}
+            {/* Sacred Deity Vedic Shloka & Mantra Card (100% Dynamic Kundli + Gochara + Dasha) */}
             <div style={{
               background: "linear-gradient(135deg, #78350F 0%, #451A03 100%)",
               border: "2px solid #D4AF37",
               borderRadius: 16,
               padding: 18,
               marginBottom: 16,
-              textAlign: "center"
+              textAlign: "center",
+              boxShadow: "0 6px 20px rgba(0,0,0,0.5)"
             }}>
-              <div style={{ fontSize: 11, textTransform: "uppercase", color: "#FDE68A", fontWeight: 700, marginBottom: 4 }}>
-                🪔 {dict.deityMantra} - {deity.name[lang] || deity.name.en}
+              <div style={{ fontSize: 11, textTransform: "uppercase", color: "#FDE68A", fontWeight: 800, marginBottom: 4, letterSpacing: "0.5px" }}>
+                🪔 {lang === "kn" ? "ಇಂದಿನ ಇಷ್ಟದೇವತಾ ಪ್ರಾರ್ಥನೆ & ಸಿದ್ಧ ವೈದಿಕ ಶ್ಲೋಕ" : "Today's Sacred Deity & Vedic Shloka"} · {deity.name[lang] || deity.name.en}
               </div>
-              <div style={{ fontSize: 16, fontWeight: 900, color: "#FFFFFF", marginBottom: 12, lineHeight: 1.5 }}>
+
+              {/* Astrological Selection Reason Pill */}
+              {deity.selectionReason && (
+                <div style={{ fontSize: 11.5, color: "#FEF3C7", background: "rgba(0,0,0,0.35)", border: "1px solid rgba(212, 175, 55, 0.3)", borderRadius: 8, padding: "4px 10px", margin: "6px auto 12px", maxWidth: "92%", lineHeight: 1.4 }}>
+                  ✨ {deity.selectionReason[lang] || deity.selectionReason.kn}
+                </div>
+              )}
+
+              {/* Full Sanskrit Vedic Shloka */}
+              <div style={{ fontSize: 14.5, fontWeight: 900, color: "#FDE68A", margin: "8px 0", lineHeight: 1.6, fontFamily: "serif", background: "rgba(0,0,0,0.3)", border: "1px dashed rgba(212, 175, 55, 0.4)", borderRadius: 10, padding: "10px 14px" }}>
+                "{deity.shloka}"
+              </div>
+
+              {/* Meaning & Spiritual Significance */}
+              <div style={{ fontSize: 12, color: "#FEF3C7", lineHeight: 1.5, margin: "8px 0 12px", fontStyle: "italic", textAlign: "left", padding: "0 6px" }}>
+                <strong style={{ color: "#FCD34D", fontStyle: "normal" }}>{lang === "kn" ? "ಭಾವಾರ್ಥ:" : "Meaning:"} </strong>
+                {deity.meaning[lang] || deity.meaning.kn}
+              </div>
+
+              {/* Beeja Mantra */}
+              <div style={{ fontSize: 13, fontWeight: 800, color: "#FFFFFF", marginBottom: 14, background: "rgba(217, 119, 6, 0.2)", border: "1px solid rgba(245, 158, 11, 0.4)", borderRadius: 8, padding: "6px 12px" }}>
+                <span style={{ color: "#FDE68A", fontSize: 11, display: "block", textTransform: "uppercase" }}>📿 {dict.deityMantra}</span>
                 {deity.mantra[lang] || deity.mantra.kn}
               </div>
               <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
@@ -2694,6 +2751,9 @@ export default function DailyDarshanaPage(): JSX.Element {
               nakshatraIndex={moonNakshatraIdx}
               lang={lang}
               deityMantra={deity.mantra[lang] || deity.mantra.kn}
+              dynamicLuckyColor={darshanaPersonalization.powerMetrics.luckyColor}
+              dynamicLuckyDigit={darshanaPersonalization.powerMetrics.luckyDigit}
+              dynamicLuckyDirection={darshanaPersonalization.powerMetrics.luckyDirection}
             />
 
             {/* 3. Daily Karma Navigator (Do's & Don'ts + 1-Min Micro-Parihara) */}
@@ -2703,6 +2763,10 @@ export default function DailyDarshanaPage(): JSX.Element {
               nakshatraIndex={moonNakshatraIdx}
               lang={lang}
               devoteeName={devoteeDisplayName}
+              dynamicDos={darshanaPersonalization.karmaNavigator.dos[lang] || darshanaPersonalization.karmaNavigator.dos.kn}
+              dynamicDonts={darshanaPersonalization.karmaNavigator.donts[lang] || darshanaPersonalization.karmaNavigator.donts.kn}
+              dynamicMicroTitle={darshanaPersonalization.karmaNavigator.microPariharaTitle[lang]}
+              dynamicMicroDesc={darshanaPersonalization.karmaNavigator.microPariharaDesc[lang]}
             />
 
             {/* 4. 1-Tap WhatsApp Story & Blessing Card Generator */}
@@ -2711,9 +2775,12 @@ export default function DailyDarshanaPage(): JSX.Element {
               dateStr={mockDay.ymd}
               tithiStr={tithiLabel(mockDay, lang)}
               nakshatraStr={nakshatraName(mockDay.moonNakshatraIndex, lang)}
-              goldenHourStr="10:48 AM - 11:36 AM"
+              goldenHourStr={darshanaPersonalization.powerMetrics.goldenHour.windowLabel[lang] || "10:48 AM - 11:36 AM"}
               lang={lang}
               priestName={activePanditName}
+              customShlokaText={deity.shloka}
+              customShlokaMeaning={deity.meaning[lang] || deity.meaning.kn}
+              customDeitySource={deity.name[lang] || deity.name.kn}
             />
           </div>
         )}
@@ -3294,14 +3361,14 @@ export default function DailyDarshanaPage(): JSX.Element {
         lang={lang}
         priestName={activePanditName}
         voiceId={activeVoiceId}
-        samvatsara={(mockDay as any).samvatsara || "ಪರಾಭವ"}
-        ayana={(mockDay as any).ayana || "ದಕ್ಷಿಣಾಯನ"}
-        ritu={(mockDay as any).ritu || "ವರ್ಷ ಋತು"}
-        masa={(mockDay as any).masa || "ಶ್ರಾವಣ ಮಾಸ"}
-        paksha={pakshaLabel(mockDay, lang)}
-        tithi={tithiOnlyLabel(mockDay, lang)}
-        vasara={(mockDay as any).vasara || "ಭೃಗುವಾಸರ"}
-        nakshatra={nakshatraName(moonNakshatraIdx, lang)}
+        samvatsara={darshanaPersonalization.panchanga.samvatsara}
+        ayana={darshanaPersonalization.panchanga.ayana}
+        ritu={darshanaPersonalization.panchanga.ritu}
+        masa={darshanaPersonalization.panchanga.masa}
+        paksha={darshanaPersonalization.panchanga.paksha}
+        tithi={darshanaPersonalization.panchanga.tithi}
+        vasara={darshanaPersonalization.panchanga.vasara}
+        nakshatra={darshanaPersonalization.panchanga.nakshatra}
         onPlayBell={playTempleBell}
         onStreakUpdated={(newStreak) => setPoojaStreak(newStreak)}
       />
