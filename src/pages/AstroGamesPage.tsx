@@ -10,13 +10,16 @@ import { SankhyaDuelGame } from "../components/games/SankhyaDuelGame";
 import { VedicTriviaBlitzGame } from "../components/games/VedicTriviaBlitzGame";
 import { LearnKundliGame } from "../components/games/LearnKundliGame";
 import { encodeAcademyToken } from "../utils/tokenCipher";
+import { PhalaJyotishyaPodcastHub } from "../components/podcast/PhalaJyotishyaPodcastHub";
 
 type ActiveGameId = "hub" | "yogadosha" | "mindreader" | "parampada" | "charades" | "sankhya" | "trivia" | "learnkundli";
+type AstroArenaMode = "podcast" | "games";
 
 export default function AstroGamesPage(): JSX.Element {
   const { i18n } = useTranslation();
   const isKn = i18n.language.startsWith("kn");
 
+  const [activeMode, setActiveMode] = useState<AstroArenaMode>("podcast");
   const [activeGame, setActiveGame] = useState<ActiveGameId>("hub");
   const [isMuted, setIsMuted] = useState<boolean>(gameAudio.isMuted);
   const [showShareModal, setShowShareModal] = useState<boolean>(false);
@@ -140,96 +143,145 @@ export default function AstroGamesPage(): JSX.Element {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 px-3 sm:px-4 py-4 sm:py-6">
-      {/* Master Top Header Card */}
-      <Card className="border-2 border-amber-400 bg-gradient-to-r from-amber-100 via-amber-50 to-orange-100 p-4 sm:p-6 shadow-xl relative overflow-hidden">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3.5">
-            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-amber-200 border-2 border-amber-400 shadow-inner flex items-center justify-center text-3xl sm:text-4xl select-none shrink-0">
-              🎮
-            </div>
-            <div>
-              <div className="text-[10px] font-extrabold tracking-widest text-amber-800 uppercase flex items-center gap-1.5 flex-wrap">
-                <span>॥ ಶ್ರೀ ಬಗ್ಗೋಣ ಜ್ಯೋತಿಷ್ಯ ಖೇಲ ಮಂಡಲ ॥</span>
-                <span className="bg-amber-200 text-amber-950 px-2 py-0.5 rounded-full font-bold">Gaming Arena</span>
+      {/* Master Mode Switcher: 12 Houses Podcast vs Astro Games Arena */}
+      <div className="flex items-center justify-center gap-2 sm:gap-3 bg-gradient-to-r from-amber-200/80 via-yellow-100/90 to-amber-200/80 p-1.5 sm:p-2 rounded-3xl border-2 border-amber-400 shadow-lg">
+        <button
+          type="button"
+          onClick={() => {
+            setActiveMode("podcast");
+            gameAudio.playChime();
+          }}
+          className={`flex-1 py-2.5 sm:py-3 px-3 sm:px-4 rounded-2xl font-black text-xs sm:text-sm transition-all flex items-center justify-center gap-2 cursor-pointer ${
+            activeMode === "podcast"
+              ? "bg-gradient-to-r from-amber-600 via-amber-700 to-amber-900 text-amber-50 shadow-lg scale-[1.02] border-2 border-amber-300"
+              : "bg-white/80 hover:bg-white text-amber-950 border border-amber-300/60"
+          }`}
+        >
+          <span className="text-base sm:text-lg">🎙️</span>
+          <span>{isKn ? "೧೨ ಮನೆಗಳ ಫಲಜ್ಯೋತಿಷ್ಯ ಪೋಡ್‌ಕ್ಯಾಸ್ಟ್" : "12 Houses Audio Podcast"}</span>
+          <span className="px-2 py-0.5 rounded-full bg-amber-400/40 text-amber-100 text-[10px] uppercase font-extrabold hidden sm:inline-block">
+            12 Episodes
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setActiveMode("games");
+            gameAudio.playChime();
+          }}
+          className={`flex-1 py-2.5 sm:py-3 px-3 sm:px-4 rounded-2xl font-black text-xs sm:text-sm transition-all flex items-center justify-center gap-2 cursor-pointer ${
+            activeMode === "games"
+              ? "bg-gradient-to-r from-amber-600 via-amber-700 to-amber-900 text-amber-50 shadow-lg scale-[1.02] border-2 border-amber-300"
+              : "bg-white/80 hover:bg-white text-amber-950 border border-amber-300/60"
+          }`}
+        >
+          <span className="text-base sm:text-lg">🎮</span>
+          <span>{isKn ? "ಜ್ಯೋತಿಷ್ಯ ಖೇಲ ಮಂಡಲ" : "Astro Games Arena"}</span>
+          <span className="px-2 py-0.5 rounded-full bg-amber-400/40 text-amber-100 text-[10px] uppercase font-extrabold hidden sm:inline-block">
+            7 Games
+          </span>
+        </button>
+      </div>
+
+      {/* PODCAST STUDIO VIEW */}
+      {activeMode === "podcast" && (
+        <PhalaJyotishyaPodcastHub onBackToGames={() => setActiveMode("games")} />
+      )}
+
+      {/* GAMES ARENA VIEW */}
+      {activeMode === "games" && (
+        <div className="space-y-6">
+          {/* Master Top Header Card */}
+          <Card className="border-2 border-amber-400 bg-gradient-to-r from-amber-100 via-amber-50 to-orange-100 p-4 sm:p-6 shadow-xl relative overflow-hidden">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3.5">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-amber-200 border-2 border-amber-400 shadow-inner flex items-center justify-center text-3xl sm:text-4xl select-none shrink-0">
+                  🎮
+                </div>
+                <div>
+                  <div className="text-[10px] font-extrabold tracking-widest text-amber-800 uppercase flex items-center gap-1.5 flex-wrap">
+                    <span>॥ ಶ್ರೀ ಬಗ್ಗೋಣ ಜ್ಯೋತಿಷ್ಯ ಖೇಲ ಮಂಡಲ ॥</span>
+                    <span className="bg-amber-200 text-amber-950 px-2 py-0.5 rounded-full font-bold">Gaming Arena</span>
+                  </div>
+                  <h1 className="font-serif text-lg sm:text-2xl font-extrabold text-amber-950 mt-0.5">
+                    {isKn ? "ಜ್ಯೋತಿಷ್ಯ & ಸಂಖ್ಯಾ ಶಾಸ್ತ್ರ ಸಂವಾದಾತ್ಮಕ ಆಟಗಳು" : "Vedic Astrology & Numerology Gaming Arena"}
+                  </h1>
+                  <p className="text-xs text-amber-900/90 font-medium mt-1">
+                    {isKn
+                      ? "ಮೊಬೈಲ್, ಪ್ರಯಾಣ, ಕಾರು ಚಾಲನೆ, ಕುಟುಂಬ ಹಾಗೂ ಮಿತ್ರರೊಂದಿಗೆ ಆಡಲು ೭ ರೋಚಕ ಆಟಗಳು (ಏಕ ವ್ಯಕ್ತಿ, ೨ ರಿಂದ ೮ ಆಟಗಾರರು & ಕಲಿಕಾ ಅಕಾಡೆಮಿ)"
+                      : "7 engaging games for mobile, travel, and family leisure (Solo, 2-8 Players & Kundli Academy)"}
+                  </p>
+                </div>
               </div>
-              <h1 className="font-serif text-lg sm:text-2xl font-extrabold text-amber-950 mt-0.5">
-                {isKn ? "ಜ್ಯೋತಿಷ್ಯ & ಸಂಖ್ಯಾ ಶಾಸ್ತ್ರ ಸಂವಾದಾತ್ಮಕ ಆಟಗಳು" : "Vedic Astrology & Numerology Gaming Arena"}
-              </h1>
-              <p className="text-xs text-amber-900/90 font-medium mt-1">
-                {isKn
-                  ? "ಮೊಬೈಲ್, ಪ್ರಯಾಣ, ಕಾರು ಚಾಲನೆ, ಕುಟುಂಬ ಹಾಗೂ ಮಿತ್ರರೊಂದಿಗೆ ಆಡಲು ೭ ರೋಚಕ ಆಟಗಳು (ಏಕ ವ್ಯಕ್ತಿ, ೨ ರಿಂದ ೮ ಆಟಗಾರರು & ಕಲಿಕಾ ಅಕಾಡೆಮಿ)"
-                  : "7 engaging games for mobile, travel, and family leisure (Solo, 2-8 Players & Kundli Academy)"}
-              </p>
+
+              {/* Sound & Hub Controls */}
+              <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                <button
+                  type="button"
+                  onClick={toggleMute}
+                  title={isMuted ? "Unmute Audio" : "Mute Audio"}
+                  className="p-2 sm:p-2.5 rounded-xl border border-amber-300 bg-white/90 text-amber-900 hover:bg-white shadow-xs font-bold text-xs sm:text-sm active:scale-95"
+                >
+                  {isMuted ? "🔇 ಧ್ವನಿ ಆಫ್" : "🔊 ಧ್ವನಿ ಆನ್"}
+                </button>
+
+                {activeGame !== "hub" && (
+                  <button
+                    type="button"
+                    onClick={() => setActiveGame("hub")}
+                    className="px-3.5 sm:px-4 py-2 rounded-xl bg-amber-800 text-amber-50 font-bold text-xs shadow-md hover:bg-amber-900 transition flex items-center gap-1 active:scale-95"
+                  >
+                    <span>🏠</span>
+                    <span>{isKn ? "Hub" : "All Games"}</span>
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
 
-          {/* Sound & Hub Controls */}
-          <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
-            <button
-              type="button"
-              onClick={toggleMute}
-              title={isMuted ? "Unmute Audio" : "Mute Audio"}
-              className="p-2 sm:p-2.5 rounded-xl border border-amber-300 bg-white/90 text-amber-900 hover:bg-white shadow-xs font-bold text-xs sm:text-sm active:scale-95"
-            >
-              {isMuted ? "🔇 ಧ್ವನಿ ಆಫ್" : "🔊 ಧ್ವನಿ ಆನ್"}
-            </button>
+            {/* Mobile Orientation & Touch Feature Guide Banner */}
+            <div className="mt-3.5 pt-3 border-t border-amber-300/80 flex items-center justify-between gap-2 flex-wrap text-[11px] font-bold text-amber-950 bg-amber-200/50 p-2.5 rounded-xl border border-amber-300">
+              <div className="flex items-center gap-2">
+                <span className="text-base">📱</span>
+                <span>
+                  {isKn
+                    ? "ಮೊಬೈಲ್ ವಿಶೇಷತೆ: ಪೋರ್ಟ್ರೇಟ್ (ಭಾವಚಿತ್ರ) ಅಥವಾ ಲ್ಯಾಂಡ್‌ಸ್ಕೇಪ್ (ಅಡ್ಡ ಮೋಡ್) ಎರಡರಲ್ಲೂ ಆಡಬಹುದು. ಸ್ಪರ್ಶ ಸ್ನೇಹಿ (Touch Optimized) ದೊಡ್ಡ ಬಟನ್‌ಗಳು!"
+                    : "Mobile Mode: Touch-optimized for phones in Portrait & Landscape orientations with high-contrast displays."}
+                </span>
+              </div>
+              <span className="bg-amber-800 text-amber-50 text-[10px] px-2.5 py-0.5 rounded-full font-black shadow-xs">
+                {isKn ? "ಟಚ್ ಸ್ನೇಹಿ ಗೇಮಿಂಗ್" : "Touch Ready"}
+              </span>
+            </div>
+          </Card>
 
-            {activeGame !== "hub" && (
+          {/* Sub-Navigation Switcher (Visible when inside a game) */}
+          {activeGame !== "hub" && (
+            <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none sticky top-2 z-30 bg-white/90 backdrop-blur-md p-2 rounded-2xl border border-amber-300 shadow-md">
               <button
                 type="button"
                 onClick={() => setActiveGame("hub")}
-                className="px-3.5 sm:px-4 py-2 rounded-xl bg-amber-800 text-amber-50 font-bold text-xs shadow-md hover:bg-amber-900 transition flex items-center gap-1 active:scale-95"
+                className="px-3.5 py-2 rounded-xl text-xs font-black bg-amber-100 border border-amber-400 text-amber-950 hover:bg-amber-200 active:scale-95 shrink-0"
               >
-                <span>🏠</span>
-                <span>{isKn ? "Hub" : "All Games"}</span>
+                🏠 {isKn ? "ಆಟಗಳ ಪಟ್ಟಿ" : "Hub"}
               </button>
-            )}
-          </div>
-        </div>
-
-        {/* Mobile Orientation & Touch Feature Guide Banner */}
-        <div className="mt-3.5 pt-3 border-t border-amber-300/80 flex items-center justify-between gap-2 flex-wrap text-[11px] font-bold text-amber-950 bg-amber-200/50 p-2.5 rounded-xl border border-amber-300">
-          <div className="flex items-center gap-2">
-            <span className="text-base">📱</span>
-            <span>
-              {isKn
-                ? "ಮೊಬೈಲ್ ವಿಶೇಷತೆ: ಪೋರ್ಟ್ರೇಟ್ (ಭಾವಚಿತ್ರ) ಅಥವಾ ಲ್ಯಾಂಡ್‌ಸ್ಕೇಪ್ (ಅಡ್ಡ ಮೋಡ್) ಎರಡರಲ್ಲೂ ಆಡಬಹುದು. ಸ್ಪರ್ಶ ಸ್ನೇಹಿ (Touch Optimized) ದೊಡ್ಡ ಬಟನ್‌ಗಳು!"
-                : "Mobile Mode: Touch-optimized for phones in Portrait & Landscape orientations with high-contrast displays."}
-            </span>
-          </div>
-          <span className="bg-amber-800 text-amber-50 text-[10px] px-2.5 py-0.5 rounded-full font-black shadow-xs">
-            {isKn ? "ಟಚ್ ಸ್ನೇಹಿ ಗೇಮಿಂಗ್" : "Touch Ready"}
-          </span>
-        </div>
-      </Card>
-
-      {/* Sub-Navigation Switcher (Visible when inside a game) */}
-      {activeGame !== "hub" && (
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none sticky top-2 z-30 bg-white/90 backdrop-blur-md p-2 rounded-2xl border border-amber-300 shadow-md">
-          <button
-            type="button"
-            onClick={() => setActiveGame("hub")}
-            className="px-3.5 py-2 rounded-xl text-xs font-black bg-amber-100 border border-amber-400 text-amber-950 hover:bg-amber-200 active:scale-95 shrink-0"
-          >
-            🏠 {isKn ? "ಆಟಗಳ ಪಟ್ಟಿ" : "Hub"}
-          </button>
-          {games.map((g) => (
-            <button
-              key={g.id}
-              type="button"
-              onClick={() => handleSelectGame(g.id)}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition shadow-xs active:scale-95 shrink-0 ${
-                activeGame === g.id
-                  ? "bg-amber-900 text-amber-50 border border-amber-700 shadow-md scale-105"
-                  : "bg-white border border-amber-200 text-amber-950 hover:bg-amber-50"
-              }`}
-            >
-              <span>{g.icon}</span>
-              <span>{isKn ? g.titleKn.split(" ")[1] : g.titleEn.split(" ")[1]}</span>
-            </button>
-          ))}
-        </div>
-      )}
+              {games.map((g) => (
+                <button
+                  key={g.id}
+                  type="button"
+                  onClick={() => handleSelectGame(g.id)}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition shadow-xs active:scale-95 shrink-0 ${
+                    activeGame === g.id
+                      ? "bg-amber-900 text-amber-50 border border-amber-700 shadow-md scale-105"
+                      : "bg-white border border-amber-200 text-amber-950 hover:bg-amber-50"
+                  }`}
+                >
+                  <span>{g.icon}</span>
+                  <span>{isKn ? g.titleKn.split(" ")[1] : g.titleEn.split(" ")[1]}</span>
+                </button>
+              ))}
+            </div>
+          )}
 
       {/* HUB VIEW: 7 Game Cards */}
       {activeGame === "hub" && (
@@ -304,6 +356,8 @@ export default function AstroGamesPage(): JSX.Element {
           </div>
 
           <LearnKundliGame lang={i18n.language} isStandalone={false} />
+        </div>
+      )}
         </div>
       )}
 

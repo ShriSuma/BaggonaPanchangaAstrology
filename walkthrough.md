@@ -1,73 +1,60 @@
-# Devotee Calendar Subscription CRM, Mandatory Contact Capture & Renewal Engine — Complete Walkthrough
+# Devotee CRM & Phala Jyotishya 12-House Audio Podcast Engine — Walkthrough
 
 ## Summary of Accomplishments
 
-We have successfully designed, codified, tested, and built the complete **Devotee Calendar Subscription CRM, Mandatory Contact Capture (Phone/Email), Expiry Guard, and Super Admin Marketing Suite** for Baggona Panchanga Astrology.
+We have successfully designed, codified, tested, built, and verified the complete **Vedic Phala Jyotishya 12-House Audio Podcast Engine (೧೨ ಮನೆಗಳ ಫಲಜ್ಯೋತಿಷ್ಯ ಧ್ವನಿ ಸಂವಾದ ಪೋಡ್‌ಕ್ಯಾಸ್ಟ್)** alongside the **Devotee Calendar Subscription CRM Suite** for Baggona Panchanga Astrology.
 
 ---
 
-## Key Architecture & Features Implemented
+## 🎙️ Phala Jyotishya 12-House Audio Podcast Engine
 
-### 1. Mandatory Devotee Contact Collection Modal (`DevoteeContactCaptureModal.tsx`)
-- **Strict Enforcement**: Removed the top `✕` close button, backdrop click dismissal, and "Skip for Now" options.
-- **Data Validation**: Enforces that devotees visiting the Sanctum must submit at least one valid contact channel:
-  - 10-digit Mobile Number (for WhatsApp Alerts & SMS reminders)
-  - Valid Email Address (for Panchanga Digest)
-- **Synchronized Cloud Profile**: Updates both Firestore `users/{devoteeId}` and `calendarDevoteeEngagement/{devoteeId}` collections in real-time.
+### 1. Two-Person Natural Dialogue System (`src/features/podcast/phalaJyotishyaPodcastData.ts`)
+- **Cast**:
+  - **ವಿದುಷಿ ಶ್ರುತಿ (Host / ನಿರೂಪಕಿ)**: Presents user queries, common dilemmas, misconceptions, and practical lifestyle scenarios.
+  - **ವಿದ್ವಾನ್ ಕೌಶಿಕ್ (Master Astrologer / ಜ್ಯೋತಿಷಿ)**: Provides authentic Sanskrit aphorisms, Dr. B.V. Raman classical rules, and clear determinations.
+- **12 Full House Episodes**:
+  1. **೧ನೇ ಮನೆ - ತನು ಭಾವ (Lagna)**: Body, Vitality, Soul Vector, Head, Ascendant Lord's Raja Yoga.
+  2. **೨ನೇ ಮನೆ - ಧನ & ಕುಟುಂಬ ಭಾವ**: Liquid Wealth, Speech, Family, Right Eye, Maraka Secrets.
+  3. **೩ನೇ ಮನೆ - ಸಹೋದರ & ಪರಾಕ್ರಮ ಭಾವ**: Courage, Enterprise, Younger Siblings, Upachaya Strength.
+  4. **೪ನೇ ಮನೆ - ಸುಖ & ಮಾತೃ ಭಾವ**: Mother, Peace of Mind, Real Estate, Luxury Vehicles, Heart.
+  5. **೫ನೇ ಮನೆ - ಪುತ್ರ & ಪೂರ್ವಪುಣ್ಯ ಭಾವ**: Genius, Children, Mantra Siddhi, Speculation, Past Karma Merits.
+  6. **೬ನೇ ಮನೆ - ಶತ್ರು, ಋಣ & ರೋಗ ಭಾವ**: Debts, Disease, Litigation, Competitive Exams (IAS/KAS), Shatru Hantaka Yoga.
+  7. **೭ನೇ ಮನೆ - ಕಳತ್ರ & ಪಾಲುದಾರಿಕೆ ಭಾವ**: Spouse, Marriage Harmony, Business Partnerships, Kuja Dosha Cancellations.
+  8. **೮ನೇ ಮನೆ - ಆಯುಷ್ಯ & ಅಷ್ಟಮ ಭಾವ**: Longevity, Occult Sciences, Sudden Windfalls, Vipareeta Raja Yoga.
+  9. **೯ನೇ ಮನೆ - ಭಾಗ್ಯ & ಧರ್ಮ ಭಾವ**: Fortune, Father, Guru Grace, Higher Education, Pilgrimages, Dharma-Karmadhipati Yoga.
+  10. **೧೦ನೇ ಮನೆ - ಕರ್ಮ & ರಾಜ್ಯ ಭಾವ**: Profession, Career Zenith, Digbala, Government Rank, Political Power.
+  11. **೧೧ನೇ ಮನೆ - ಲಾಭ & ಆಯ ಭಾವ**: Inflow of Cash, Fulfillment of Ambitions, Elder Siblings, Large Network.
+  12. **೧೨ನೇ ಮನೆ - ವ್ಯಯ & ಮೋಕ್ಷ ಭಾವ**: Foreign Settlement, Philanthropy, Peaceful Sleep, Moksha.
 
-### 2. Devotee Token Cipher & Backward Compatibility (`tokenCipher.ts`)
-- Added `email` / `em` parameter encoding and decoding in `DevoteeTokenPayload`.
-- Preserves 100% backward compatibility for existing calendar links and token versions (`v1`, unencrypted fallback query params).
+### 2. Dual-Voice Audio Synthesizer & Coordinator (`src/features/podcast/podcastAudioEngine.ts`)
+- **Voice Differentiation**:
+  - Female Host: Higher melodic pitch (`1.22`), lively host tempo.
+  - Male Scholar: Resonant guru pitch (`0.88`), authoritative cadence with conversational breath pauses.
+- **Synchronized Transcript Events**: Triggers real-time callbacks as each line is spoken.
+- **Playback Controls**: Play, Pause, Resume, Stop, Next/Prev Line, Speed (`0.75x`, `1.0x`, `1.25x`, `1.5x`).
+- **Ambient Temple Tanpura**: Built-in 136.1 Hz (Cosmic Om Sa) and 204.15 Hz (Pa) warm drone audio toggle.
+- **Global Audio Coordination**: Integrates with `startNewAudioSession()` and `stopAllAudioGlobal()` so other sounds/tabs stop cleanly.
 
-### 3. Comprehensive Devotee Subscription Lifecycle & Visit Engine (`calendarVisitService.ts`)
-- **Rich Data Capture**: Each devotee visit records:
-  - Devotee Name & Gotra
-  - Phone Number & Email Address
-  - Janma Kundali Summary (Rashi, Nakshatra, Lagna Rashi, Sun Sign, DOB, TOB, Place, Pincode)
-  - Duration (30, 90, 180, 365 Days)
-  - `startDate` & `expiryDate` (calculated as `startDate + durationDays`)
-  - `daysConsumed` (unique days visited count)
-  - `totalVisitsCount` (cumulative visit hits)
-  - `daysRemaining` & Progress calculation
-  - `isExpired` boolean flag
-  - `marketingStatus`: `"active"` | `"near_expiry"` (<= 7 days) | `"expired"` | `"renewed"`
-- **Lifecycle Methods**:
-  - `subscribeCalendarDevoteeSubscriptions`: Real-time Firestore listener for SuperAdmin CRM.
-  - `extendSubscriptionValidity(devoteeId, days)`: 1-click subscription extension (+30 / +90 / +180 days).
-  - `deleteDevoteeSubscription(devoteeId)`: 1-click devotee subscription record removal.
-  - `purgeAllCalendarSubscriptionsAndVisits()`: 1-click test data cleanup to start fresh.
+### 3. Podcast Studio UI (`src/components/podcast/PhalaJyotishyaPodcastHub.tsx`)
+- **Header**: Gold Vedic design with live speaker status (pulsing ring showing who is speaking).
+- **12-House Selector**: Horizontal scrolling house pills with icons and Sanskrit names.
+- **House Attributes Card**: Karakatwas, Karakas, Natural Zodiac sign, Lord, Exaltation/Debilitation, and Captain vs Slave breakdown.
+- **Interactive Live Transcript**: Dual-column speech bubbles with live gold highlighting on active spoken line. Clicking any line plays from that turn.
+- **Dr. B.V. Raman Rules & 1-Click Export**: Summary takeaways and 📥 *Download Dialogue Script Notes (TXT)*.
 
-### 4. Sanctum Access Expiry & Renewal Guard (`DailyDarshanaPage.tsx`)
-- Dynamic pass status evaluation on load (`checkPassExpiration`).
-- When a pass has expired (`isExpired === true`):
-  - Prominently displays the **Ashirvada Pass Expired Alert Banner** ("ಆಶೀರ್ವಾದ ಪಂಚಾಂಗ ಪಾಸ್ ಕಾಲಾವಧಿ ಮುಕ್ತಾಯಗೊಂಡಿದೆ").
-  - Direct 📞 **Call Priest** (`tel:...`) and 💬 **WhatsApp Renewal** buttons with pre-filled renewal messages.
-
-### 5. Super Admin Marketing CRM Suite (`SuperAdminDashboard.tsx`)
-- **Top Analytics KPI Metric Cards**:
-  - 👥 **Total Devotees**
-  - 🟢 **Active Passes**
-  - 🟡 **Expiring Soon (<= 7 Days)** (for promotional renewal offers)
-  - 🔴 **Expired Passes**
-- **1-Click Marketing Export**:
-  - 📥 **Export Devotee Marketing Contacts (CSV)**: Generates UTF-8 BOM CSV containing names, phones, emails, Gotras, Kundli details, start/expiry dates, days consumed, visits, and status.
-- **1-Click Fresh Start**:
-  - 🚨 **Purge Old Test Data & Start Fresh**: Confirmation modal to clear old sample records from `calendarDevoteeEngagement`, `calendarVisits`, and `ashirvada_passes`.
-- **Interactive Devotee Subscriptions Table**:
-  - Devotee Name & Gotra
-  - Phone (direct Call & WhatsApp buttons)
-  - Email (direct `mailto:` button)
-  - Janma Kundali (Rashi, Nakshatra, Lagna)
-  - Duration & Start Date
-  - Expiry Date
-  - Days Consumed & Total Visits
-  - Days Remaining with visual progress bar
-  - Status Badge (`🟢 Active`, `🟡 Expiring Soon`, `🔴 Expired`)
-  - Direct Marketing & Action Controls (WhatsApp Renewal Trigger, +90d Extend, Delete)
+### 4. Astro Games Page Integration (`src/pages/AstroGamesPage.tsx`)
+- Top Mode Switcher between:
+  - 🎙️ **೧೨ ಮನೆಗಳ ಫಲಜ್ಯೋತಿಷ್ಯ ಪೋಡ್‌ಕ್ಯಾಸ್ಟ್ (12 Houses Audio Podcast)**
+  - 🎮 **ಜ್ಯೋತಿಷ್ಯ ಖೇಲ ಮಂಡಲ (Astro Games Arena - 7 Games)**
 
 ---
 
-## Test & Build Verification Results
+## Testing & Verification
 
-- **Unit & Integration Test Suites**: All **102 test files passed** (494 / 494 tests passing).
-- **Production Compilation**: Clean `npm run build` completed in 13.97s with zero TypeScript errors.
+1. **Vitest Suite**:
+   - `src/tests/phalaJyotishyaPodcast.test.ts` (4 passed)
+   - Full suite: **103 test files passed (498 / 498 tests passing)**
+2. **Production Build**:
+   - `tsc && vite build` built cleanly in **14.55s** with **zero errors**.
+3. **Browser Verification**:
+   - Tested 12-house selector, dialogue cards, speaker avatars, and playback controls.
