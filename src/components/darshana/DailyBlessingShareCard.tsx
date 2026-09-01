@@ -87,14 +87,14 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
           cardEl.style.letterSpacing = "normal";
         }
 
-        // 1. Give text boxes an opaque dark gold parchment backing in canvas so text is 100% legible
+        // 1. Highlight all text boxes with opaque dark gold parchment backing in PNG so text is 100% sharp
         const glassBoxes = clonedDoc.querySelectorAll("[data-glass-box='true']");
         glassBoxes.forEach((el) => {
           const htmlEl = el as HTMLElement;
           htmlEl.style.backgroundColor = "rgba(10, 3, 0, 0.88)";
         });
 
-        // 2. Mathematically center all pills and chips in html2canvas
+        // 2. Mathematically elevate all pills and chips so text lands dead-center on canvas rasterization
         const pills = clonedDoc.querySelectorAll("[data-pill='true']");
         pills.forEach((el) => {
           const htmlEl = el as HTMLElement;
@@ -107,11 +107,12 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
           if (span) {
             span.style.display = "inline-block";
             span.style.lineHeight = "1";
-            span.style.transform = "translateY(-1.5px)";
+            span.style.position = "relative";
+            span.style.top = "-4px";
           }
         });
 
-        // 3. Ensure Shubha Muhurtha pill also has green backing in canvas
+        // 3. Elevate Shubha Muhurtha pill
         const greenPills = clonedDoc.querySelectorAll("[data-green-pill='true']");
         greenPills.forEach((el) => {
           const htmlEl = el as HTMLElement;
@@ -124,8 +125,18 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
           if (span) {
             span.style.display = "inline-block";
             span.style.lineHeight = "1";
-            span.style.transform = "translateY(-1.5px)";
+            span.style.position = "relative";
+            span.style.top = "-4px";
           }
+        });
+
+        // 4. Elevate footer location & priest text
+        const footerSpans = clonedDoc.querySelectorAll("[data-footer-item='true']");
+        footerSpans.forEach((el) => {
+          const htmlEl = el as HTMLElement;
+          htmlEl.style.position = "relative";
+          htmlEl.style.top = "-2.5px";
+          htmlEl.style.lineHeight = "1";
         });
       }
     });
@@ -158,7 +169,7 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
   };
 
   /**
-   * WhatsApp Share: On mobile tries native image file sharing; falls back to clean formatted share + auto download
+   * WhatsApp Share: Simultaneously downloads the PNG file and shares clean message & image
    */
   const handleWhatsAppShare = async () => {
     if (isGeneratingImage) return;
@@ -166,27 +177,41 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
 
     try {
       const canvas = await generateCardCanvas();
-      if (canvas && typeof navigator !== "undefined" && navigator.canShare) {
-        const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, "image/png"));
-        if (blob) {
-          const file = new File([blob], `Baggona_Daily_Blessings_${dateStr}.png`, { type: "image/png" });
-          if (navigator.canShare({ files: [file] })) {
-            await navigator.share({
-              title: "Baggona Panchanga Daily Blessings",
-              text: shareText,
-              files: [file]
-            });
-            setIsGeneratingImage(false);
-            return;
+      if (canvas) {
+        // Auto-download PNG image for user's gallery
+        const filename = `Baggona_Panchanga_Daily_Blessings_${dateStr.replace(/[^a-zA-Z0-9]/g, "_")}.png`;
+        const imgData = canvas.toDataURL("image/png");
+        const a = document.createElement("a");
+        a.href = imgData;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        // Native Mobile Share with Image attachment
+        if (typeof navigator !== "undefined" && navigator.canShare) {
+          const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, "image/png"));
+          if (blob) {
+            const file = new File([blob], filename, { type: "image/png" });
+            if (navigator.canShare({ files: [file] })) {
+              await navigator.share({
+                title: "Baggona Panchanga Daily Blessings",
+                text: shareText,
+                files: [file]
+              });
+              setIsGeneratingImage(false);
+              return;
+            }
           }
         }
       }
-    } catch {}
+    } catch (e) {
+      console.warn("Native share skipped, opening WhatsApp:", e);
+    }
 
-    // Fallback: Open WhatsApp with clean text and trigger direct PNG download
+    // Direct WhatsApp Web / Mobile redirect with clean text (no private URLs)
     const encoded = encodeURIComponent(shareText);
     window.open(`https://api.whatsapp.com/send?text=${encoded}`, "_blank");
-    handleDownloadCardImage();
     setIsGeneratingImage(false);
   };
 
@@ -214,6 +239,26 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
   };
 
   const isKn = selectedLang === "kn";
+
+  const locationText = selectedLang === "kn"
+    ? "📍 ರಥಬೀದಿ, ಗೋಕರ್ಣ"
+    : selectedLang === "hi"
+    ? "📍 रथबीदि, गोकर्ण"
+    : selectedLang === "te"
+    ? "📍 రథవీధి, గోకర్ణ"
+    : selectedLang === "ta"
+    ? "📍 ரதவீதி, கோகர்ணம்"
+    : "📍 Ratha Beedi, Gokarna";
+
+  const chiefPriestLabel = selectedLang === "kn"
+    ? "ಮುಖ್ಯ ಅರ್ಚಕರು"
+    : selectedLang === "hi"
+    ? "मुख्य अर्चक"
+    : selectedLang === "te"
+    ? "ప్రధాన అర్చకులు"
+    : selectedLang === "ta"
+    ? "முதன்மை அர்ச்சகர்"
+    : "Chief Priest";
 
   return (
     <div
@@ -361,7 +406,7 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
           dangerouslySetInnerHTML={{ __html: svgBackgroundHtml }}
         />
 
-        {/* 1. Kshetra Insignia Banner - Dead-Center Mathematical Grid Alignment */}
+        {/* 1. Kshetra Insignia Banner - Dead-Center Mathematical Alignment */}
         <div style={{ textAlign: "center", marginBottom: "12px" }}>
           <div
             data-pill="true"
@@ -389,7 +434,7 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
           </div>
         </div>
 
-        {/* 2. Date & Panchanga Chips - Dead-Center Mathematical Grid Alignment */}
+        {/* 2. Date & Panchanga Chips - Dead-Center Mathematical Alignment */}
         <div
           style={{
             position: "relative",
@@ -474,7 +519,7 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
           )}
         </div>
 
-        {/* 3. Shubha Muhurtha Pill - Dead-Center Mathematical Grid Alignment */}
+        {/* 3. Shubha Muhurtha Pill - Dead-Center Mathematical Alignment */}
         <div style={{ textAlign: "center", marginBottom: "12px" }}>
           <div
             data-green-pill="true"
@@ -691,12 +736,14 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
             backdropFilter: "blur(8px)",
             WebkitBackdropFilter: "blur(8px)",
             borderRadius: "10px",
-            padding: "7px 12px",
+            height: "36px",
+            padding: "0 14px",
+            boxSizing: "border-box",
             border: "1px solid rgba(245, 158, 11, 0.35)"
           }}
         >
-          <span>🛕 ಬಗ್ಗೋಣ ಶ್ರೀ ಮಹಾಗಣಪತಿ ಸನ್ನಿಧಿ</span>
-          <span>ಮುಖ್ಯ ಅರ್ಚಕರು: {priestName}</span>
+          <span data-footer-item="true">{locationText}</span>
+          <span data-footer-item="true">{chiefPriestLabel}: {priestName}</span>
         </div>
       </div>
 
