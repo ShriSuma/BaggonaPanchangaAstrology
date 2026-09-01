@@ -19,6 +19,7 @@ import { getDevoteeSalutation, buildDeterministicPriestBenediction } from "../fe
 import { getDailyKaalaTimings, getEnergyMeterAndVibe, generateSevaICalendarString, downloadIcsFile, getDayLordIndex, calculateDeterministicRhythmDay, getTaraBalaInfo, getChandraBalaInfo } from "../features/seva/icsCalendarGenerator";
 import { decodeDevoteeToken } from "../utils/tokenCipher";
 import { resolveDevoteeToken, type ResolveTokenResult } from "../features/seva/devoteeTokenDbService";
+import { DailySatkarmaPracticeCard } from "../components/seva/DailySatkarmaPracticeCard";
 import { getUniversalBirthDetails } from "../utils/universalDevoteeKundli";
 import type { RhythmDay } from "../core/DailyRhythmEngine";
 import type { DetailedTithiInfo } from "../core/VedicCalculations";
@@ -2140,6 +2141,14 @@ export default function DailyDarshanaPage(): JSX.Element {
             </div>
           </div>
         </div>
+
+        {/* 🌸 Prominently Featured Daily Satkarma (Good Deed) Practice Card with 3-Button Interactive Check-in */}
+        <DailySatkarmaPracticeCard
+          day={mockDay}
+          lang={lang}
+          devoteeName={devoteeDisplayName}
+          panditName={localizedPandit}
+        />
 
         {/* ── TAB 1: SACRED SANCTUM & DARSHANA ── */}
         {activeTab === "darshana" && (
