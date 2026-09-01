@@ -12,6 +12,8 @@ import { getPariharas, type Parihara } from "./PariharaEngine";
 import { getRandomShlokaForGraha, getRandomAashirvada, type Shloka } from "./ShlokaEngine";
 import { translateTexts } from "../services/translationService";
 
+import { generateVedicSynthesis, type VedicSynthesisResult } from "./VedicSynthesisEngine";
+
 export interface MasterPredictionResult {
   metadata: {
     name: string;
@@ -37,6 +39,7 @@ export interface MasterPredictionResult {
     relationships: string;
     overallTone: string;
   };
+  vedicSynthesis?: VedicSynthesisResult; // Layer 4 (Nakshatra, Graha & Bhava Synthesis)
   pariharas: Parihara[];
   shloka: Shloka;
   aashirvada: { sanskrit: string; meaning: string };
@@ -260,6 +263,15 @@ export async function generateMasterPrediction(
     doshas: bvRamanCore.doshas.map(d => ({ name: d.name, significance: d.description }))
   };
 
+  const vedicSynthesis = await generateVedicSynthesis(kundli, {
+    name: context.name,
+    birthDate: context.birthDate,
+    birthTime: context.birthTime,
+    latitude: context.latitude,
+    longitude: context.longitude,
+    lang: context.lang
+  });
+
   return {
     metadata: {
       name: context.name,
@@ -275,6 +287,7 @@ export async function generateMasterPrediction(
     jayashreeInsights,
     baggonaTraditional,
     masterSynthesis,
+    vedicSynthesis,
     pariharas,
     shloka,
     aashirvada,

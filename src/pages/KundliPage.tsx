@@ -878,6 +878,41 @@ export default function KundliPage(): JSX.Element {
             </button>
           </div>
 
+          {/* 🔮 Instant Astrologer Live Reading & Q&A Banner 🔮 */}
+          <div className="rounded-3xl border-2 border-indigo-400 bg-gradient-to-r from-indigo-950 via-slate-950 to-purple-950 p-5 md:p-6 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-4 animate-fade-in">
+            <div className="flex items-center gap-3.5 text-center md:text-left">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-indigo-400 bg-indigo-900/60 text-3xl shadow-inner animate-pulse">
+                🔮
+              </div>
+              <div>
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-indigo-400/20 px-2.5 py-0.5 text-[10px] font-black uppercase text-indigo-300">
+                  <span>✨</span>
+                  <span>{i18n.language.startsWith("kn") ? "ತ್ವರಿತ ಭವಿಷ್ಯ ದರ್ಶನ (Instant Astrologer Reading)" : "Instant Astrologer Live Consultation"}</span>
+                </div>
+                <h3 className="text-base md:text-lg font-black text-indigo-200 mt-1">
+                  {i18n.language.startsWith("kn") 
+                    ? `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಏನಾಗುತ್ತಿದೆ? ನೇರ ಜ್ಯೋತಿಷ್ಯ ವಿಶ್ಲೇಷಣೆ & ಪ್ರಶ್ನೋತ್ತರ`
+                    : `What is happening right now in your life? Live Consultation & Q&A`}
+                </h3>
+                <p className="text-xs text-indigo-300/80 mt-0.5">
+                  {i18n.language.startsWith("kn")
+                    ? "ಮನಸ್ಸಿನ ಸ್ಥಿತಿ, ದಾಂಪತ್ಯ, ಉದ್ಯೋಗ, ನಿಖರ ರತ್ನ & ರುದ್ರಾಕ್ಷಿ ಶಿಫಾರಸು, ಅದೃಷ್ಟ ವಾಹನ ಬಣ್ಣ ಹಾಗೂ ನೇರ ಧ್ವನಿ ಪ್ರಶ್ನೆಗಳು"
+                    : "Current mental state, career/family friction nodes, exact Rudraksha & Gemstone prescriptions, lucky car colors & direct voice Q&A"}
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => useAppStore.getState().setPage("instant_reading")}
+              className="w-full md:w-auto shrink-0 inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-amber-400 px-6 py-3.5 text-xs font-black text-white shadow-xl hover:scale-105 transition-all"
+            >
+              <span>🔮</span>
+              <span>{i18n.language.startsWith("kn") ? "ತ್ವರಿತ ಭವಿಷ್ಯ ವೀಕ್ಷಿಸಿ & ಪ್ರಶ್ನೆ ಕೇಳಿ" : "Open Instant Reading & Ask Question"}</span>
+              <span>➜</span>
+            </button>
+          </div>
+
           <div className="flex flex-col md:flex-row justify-center items-center gap-4 mb-6">
             <button
               type="button"

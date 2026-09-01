@@ -33,8 +33,10 @@ import { siderealLongitudes } from "../core/EphemerisEngine";
 import { degreeToRashi, degreeToNakshatra, degreeToNakshatraPada } from "../core/AstroMath";
 import { wallClockBirthToUtc, ageDecimalYearsAt } from "../core/birthTime";
 import { findBhuktiAtAge } from "../core/DashaBhuktiEngine";
+import { generateVedicSynthesis, type VedicSynthesisResult } from "../core/VedicSynthesisEngine";
+import { VedicSynthesisCard } from "../components/RamanBhavishya/VedicSynthesisCard";
 
-type SubTab = "kundali" | "personal" | "jayashree" | "overview" | "planets" | "houses" | "yogas" | "gochara";
+type SubTab = "kundali" | "synthesis" | "personal" | "jayashree" | "overview" | "planets" | "houses" | "yogas" | "gochara";
 
 const rashiTKey = (sanskrit: string): string => `rashis.${sanskrit.replace(/\s+/g, "")}`;
 
@@ -161,6 +163,7 @@ export default function BaggonaPredictionsPage(): JSX.Element {
   const [personalReading, setPersonalReading] = useState<PersonalReadingOutput | null>(null);
   const [jayashreeReading, setJayashreeReading] = useState<JayashreePrediction | null>(null);
   const [kundaliPrediction, setKundaliPrediction] = useState<KundaliPrediction | null>(null);
+  const [vedicSynthesis, setVedicSynthesis] = useState<VedicSynthesisResult | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -463,6 +466,14 @@ export default function BaggonaPredictionsPage(): JSX.Element {
         const basePersonal = generatePersonalReading(record.kundliData, record, lang);
         const jayashree = await generateJayashreePrediction(record.kundliData, record, lang);
         const baseKundali = await getComprehensiveKundaliPrediction(record.kundliData, gocharaDays[0]?.kundli, lang);
+        const synth = await generateVedicSynthesis(record.kundliData, {
+          name: record.name,
+          birthDate: record.birthDate,
+          birthTime: record.birthTime,
+          latitude: record.latitude,
+          longitude: record.longitude,
+          lang
+        });
 
         if (lang !== "en") {
           const [translatedPreds, translatedPersonal] = await Promise.all([
@@ -474,6 +485,7 @@ export default function BaggonaPredictionsPage(): JSX.Element {
             setPersonalReading(translatedPersonal);
             setJayashreeReading(jayashree);
             setKundaliPrediction(baseKundali);
+            setVedicSynthesis(synth);
           }
         } else {
           if (!cancelled) {
@@ -481,6 +493,7 @@ export default function BaggonaPredictionsPage(): JSX.Element {
             setPersonalReading(basePersonal);
             setJayashreeReading(jayashree);
             setKundaliPrediction(baseKundali);
+            setVedicSynthesis(synth);
           }
         }
       } catch (err) {
@@ -541,6 +554,12 @@ export default function BaggonaPredictionsPage(): JSX.Element {
         if (lang === "ta") return "ஜன்ம குண்டலி";
         if (lang === "te") return "జన్మ కుండలి";
         return "Janma Kundali";
+      case "synthesis":
+        if (lang === "kn") return "ನಕ್ಷತ್ರ-ಗ್ರಹ-ಭಾವ ಸಂಶ್ಲೇಷಣೆ";
+        if (lang === "hi") return "नक्षत्र-ग्रह-भाव संश्लेषण";
+        if (lang === "ta") return "நட்சத்திர-கிரக தொகுப்பு";
+        if (lang === "te") return "నక్షత్ర-గ్రహ సంశ్లేషణ";
+        return "Vedic Synthesis";
       case "personal":
         if (lang === "kn") return "ವೈಯಕ್ತಿಕ ಭವಿಷ್ಯ";
         if (lang === "hi") return "व्यक्तिगत फल";
@@ -879,6 +898,10 @@ export default function BaggonaPredictionsPage(): JSX.Element {
                 </div>
               </div>
             </div>
+          )}
+
+          {tab === "synthesis" && vedicSynthesis && (
+            <VedicSynthesisCard synthesis={vedicSynthesis} lang={lang} />
           )}
 
           {tab === "personal" && personalReading && (

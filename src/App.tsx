@@ -36,6 +36,7 @@ import { initDailyReportScheduler } from "./features/reports/dailyScheduler";
 import DailyDarshanaPage from "./pages/DailyDarshanaPage";
 import KundliAcademyStandalonePage from "./pages/KundliAcademyStandalonePage";
 import { PriestPanchangaPage } from "./pages/PriestPanchangaPage";
+import InstantReadingPage from "./pages/InstantReadingPage";
 
 export default function App(): JSX.Element {
   const isPriestPanchangaRoute = typeof window !== "undefined" && (
@@ -198,6 +199,7 @@ export default function App(): JSX.Element {
         {currentPage === "priestdashboard" && <PriestDashboard />}
         {currentPage === "superadmindashboard" && <SuperAdminDashboard />}
         {currentPage === "priest_panchanga" && <PriestPanchangaPage />}
+        {currentPage === "instant_reading" && <InstantReadingPage />}
       </Layout>
     </ErrorBoundary>
   );
