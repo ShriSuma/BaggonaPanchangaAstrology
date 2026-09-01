@@ -50,7 +50,7 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
     return getDailyInspiration(parsedDate);
   }, [parsedDate]);
 
-  // 365-Day Deterministic Luxury Vedic Background Configuration
+  // 365-Day Deterministic Vibrant Vedic Background Configuration
   const bgConfig = useMemo(() => {
     return getDailyBackgroundConfig(inspiration.dayOfYear);
   }, [inspiration.dayOfYear]);
@@ -69,36 +69,46 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
     return buildCleanDailyWhatsAppShareText(dateStr, selectedLang, tithiStr, nakshatraStr);
   }, [dateStr, selectedLang, tithiStr, nakshatraStr]);
 
-  const handleWhatsAppShare = () => {
-    const encoded = encodeURIComponent(shareText);
-    window.open(`https://api.whatsapp.com/send?text=${encoded}`, "_blank");
+  /**
+   * Generates High-Resolution Canvas with pixel-perfect Indic vertical centering
+   */
+  const generateCardCanvas = async (): Promise<HTMLCanvasElement | null> => {
+    if (!cardRef.current) return null;
+    return await html2canvas(cardRef.current, {
+      scale: 2.5,
+      useCORS: true,
+      backgroundColor: "#1A0600",
+      logging: false,
+      onclone: (clonedDoc) => {
+        const cardEl = clonedDoc.querySelector("[data-blessing-card]") as HTMLElement;
+        if (cardEl) {
+          cardEl.style.width = "580px";
+          cardEl.style.maxWidth = "580px";
+          cardEl.style.letterSpacing = "normal";
+        }
+      }
+    });
   };
 
+  /**
+   * Direct PNG Download & Native WhatsApp Image Sharing
+   */
   const handleDownloadCardImage = async () => {
-    if (!cardRef.current || isGeneratingImage) return;
+    if (isGeneratingImage) return;
     setIsGeneratingImage(true);
 
     try {
-      const canvas = await html2canvas(cardRef.current, {
-        scale: 2.5,
-        useCORS: true,
-        backgroundColor: "#1A0600",
-        logging: false,
-        onclone: (clonedDoc) => {
-          const cardEl = clonedDoc.querySelector("[data-blessing-card]") as HTMLElement;
-          if (cardEl) {
-            cardEl.style.width = "580px";
-            cardEl.style.maxWidth = "580px";
-            cardEl.style.letterSpacing = "normal";
-          }
-        }
-      });
+      const canvas = await generateCardCanvas();
+      if (!canvas) return;
 
+      const filename = `Baggona_Panchanga_Daily_Blessings_${dateStr.replace(/[^a-zA-Z0-9]/g, "_")}.png`;
       const imgData = canvas.toDataURL("image/png");
       const a = document.createElement("a");
       a.href = imgData;
-      a.download = `Baggona_Panchanga_Daily_Blessings_${dateStr.replace(/[^a-zA-Z0-9]/g, "_")}.png`;
+      a.download = filename;
+      document.body.appendChild(a);
       a.click();
+      document.body.removeChild(a);
     } catch (err) {
       console.warn("Failed to generate blessing card image:", err);
     } finally {
@@ -106,12 +116,60 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
     }
   };
 
-  const handleCopyMessage = () => {
-    if (typeof navigator !== "undefined" && navigator.clipboard) {
-      navigator.clipboard.writeText(shareText);
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
-    }
+  /**
+   * WhatsApp Share: On mobile tries native image file sharing; falls back to clean formatted share + auto download
+   */
+  const handleWhatsAppShare = async () => {
+    if (isGeneratingImage) return;
+    setIsGeneratingImage(true);
+
+    try {
+      const canvas = await generateCardCanvas();
+      if (canvas && typeof navigator !== "undefined" && navigator.canShare) {
+        const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, "image/png"));
+        if (blob) {
+          const file = new File([blob], `Baggona_Daily_Blessings_${dateStr}.png`, { type: "image/png" });
+          if (navigator.canShare({ files: [file] })) {
+            await navigator.share({
+              title: "Baggona Panchanga Daily Blessings",
+              text: shareText,
+              files: [file]
+            });
+            setIsGeneratingImage(false);
+            return;
+          }
+        }
+      }
+    } catch {}
+
+    // Fallback: Open WhatsApp with clean text and trigger direct PNG download
+    const encoded = encodeURIComponent(shareText);
+    window.open(`https://api.whatsapp.com/send?text=${encoded}`, "_blank");
+    handleDownloadCardImage();
+    setIsGeneratingImage(false);
+  };
+
+  /**
+   * Copy Action: Copies PNG Image to clipboard directly (if supported) & downloads PNG
+   */
+  const handleCopyMessage = async () => {
+    try {
+      const canvas = await generateCardCanvas();
+      if (canvas && typeof navigator !== "undefined" && navigator.clipboard && (window as any).ClipboardItem) {
+        canvas.toBlob((blob) => {
+          if (blob) {
+            navigator.clipboard.write([
+              new (window as any).ClipboardItem({ "image/png": blob })
+            ]);
+          }
+        }, "image/png");
+      }
+    } catch {}
+
+    // Also download PNG file directly to local phone/computer
+    handleDownloadCardImage();
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2500);
   };
 
   const isKn = selectedLang === "kn";
@@ -128,6 +186,23 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
         fontFamily: "'Segoe UI', -apple-system, system-ui, 'Noto Sans Kannada', 'Tiro Kannada', sans-serif"
       }}
     >
+      {/* Dynamic Keyframe Animations for Live Web Preview */}
+      <style>{`
+        @keyframes sunRaySpin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        @keyframes floatBokehAnim {
+          0% { transform: translateY(0px) scale(1); opacity: 0.3; }
+          50% { transform: translateY(-12px) scale(1.15); opacity: 0.7; }
+          100% { transform: translateY(0px) scale(1); opacity: 0.3; }
+        }
+        @keyframes auraPulse {
+          0% { opacity: 0.85; transform: scale(1); }
+          100% { opacity: 1; transform: scale(1.04); }
+        }
+      `}</style>
+
       {/* Header with Title & Language Switcher */}
       <div
         style={{
@@ -144,15 +219,15 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <span
             style={{
-              width: "36px",
-              height: "36px",
+              width: "38px",
+              height: "38px",
               borderRadius: "12px",
               background: "rgba(245, 158, 11, 0.2)",
               border: "1px solid #F59E0B",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              fontSize: "18px"
+              fontSize: "20px"
             }}
           >
             {bgConfig.deityIcon}
@@ -212,35 +287,37 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
         </div>
       </div>
 
-      {/* Visual Blessing Card Preview (Renderable to High-Res PNG with 365-Day Luxury Background) */}
+      {/* Visual Blessing Card Preview (Renderable to High-Res PNG with 365-Day Vibrant Background) */}
       <div
         ref={cardRef}
         data-blessing-card="true"
         style={{
           background: bgConfig.gradientCss,
-          border: `2px solid ${bgConfig.borderGold || "#D4AF37"}`,
-          borderRadius: "20px",
-          padding: "20px 18px",
+          border: `2.5px solid ${bgConfig.borderGold || "#D4AF37"}`,
+          borderRadius: "22px",
+          padding: "22px 18px 20px 18px",
           position: "relative",
           overflow: "hidden",
-          boxShadow: "0 12px 35px rgba(0,0,0,0.7)",
+          boxShadow: "0 14px 40px rgba(0,0,0,0.75)",
           textAlign: "center",
           maxWidth: "580px",
-          margin: "0 auto 16px"
+          margin: "0 auto 16px",
+          boxSizing: "border-box"
         }}
       >
-        {/* Soft Radial Morning Aura */}
+        {/* Soft Radiant Solar Aura */}
         <div
           style={{
             position: "absolute",
             inset: 0,
             background: bgConfig.glowAura,
             pointerEvents: "none",
-            zIndex: 0
+            zIndex: 0,
+            animation: "auraPulse 4s ease-in-out infinite alternate"
           }}
         />
 
-        {/* 🌟 365-Day High-Definition Vector SVG Background (Sacred Sunbeams, Temple Spire, Mandala) */}
+        {/* 🌟 365-Day High-Definition Animated Vector SVG Background (Sacred Sunbeams, Temple Spire, Mandala) */}
         <div
           style={{
             position: "absolute",
@@ -252,28 +329,34 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
           dangerouslySetInnerHTML={{ __html: svgBackgroundHtml }}
         />
 
-        {/* Kshetra Insignia Banner - Clean typography without overlapping letter-spacing */}
-        <div
-          style={{
-            position: "relative",
-            zIndex: 10,
-            display: "inline-block",
-            padding: "6px 16px",
-            background: "rgba(10, 4, 0, 0.75)",
-            border: `1.5px solid ${bgConfig.accentGold || "#F59E0B"}`,
-            borderRadius: "999px",
-            fontSize: "12px",
-            fontWeight: 800,
-            color: "#FFFBEB",
-            letterSpacing: "normal",
-            marginBottom: "12px",
-            boxShadow: "0 4px 15px rgba(0,0,0,0.4)"
-          }}
-        >
-          ✨ ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಕ್ಷೇತ್ರ • ಗೋಕರ್ಣ ಸನ್ನಿಧಿ ॥ ✨
+        {/* Kshetra Insignia Banner - Perfectly Vertically Centered */}
+        <div style={{ textAlign: "center", marginBottom: "14px" }}>
+          <div
+            style={{
+              position: "relative",
+              zIndex: 10,
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "8px 22px 9px 22px",
+              background: "rgba(18, 7, 2, 0.88)",
+              border: `1.5px solid ${bgConfig.accentGold || "#F59E0B"}`,
+              borderRadius: "999px",
+              fontSize: "12.5px",
+              fontWeight: 800,
+              color: "#FFFBEB",
+              lineHeight: "1.1",
+              textAlign: "center",
+              letterSpacing: "normal",
+              boxSizing: "border-box",
+              boxShadow: "0 4px 18px rgba(0,0,0,0.5)"
+            }}
+          >
+            ✨ ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಕ್ಷೇತ್ರ • ಗೋಕರ್ಣ ಸನ್ನಿಧಿ ॥ ✨
+          </div>
         </div>
 
-        {/* Date & Panchanga Chips */}
+        {/* Date & Panchanga Chips - Perfectly Vertically Centered */}
         <div
           style={{
             position: "relative",
@@ -289,12 +372,18 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
         >
           <span
             style={{
-              padding: "4px 10px",
-              borderRadius: "10px",
-              background: "rgba(10, 4, 0, 0.65)",
-              border: "1px solid rgba(251, 191, 36, 0.4)",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "6px 14px 7px 14px",
+              borderRadius: "12px",
+              background: "rgba(18, 7, 2, 0.82)",
+              border: "1px solid rgba(251, 191, 36, 0.5)",
               color: "#FEF3C7",
-              fontWeight: 700
+              fontWeight: 700,
+              lineHeight: "1.1",
+              boxSizing: "border-box",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.3)"
             }}
           >
             📅 {dateStr}
@@ -302,12 +391,18 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
           {tithiStr && (
             <span
               style={{
-                padding: "4px 10px",
-                borderRadius: "10px",
-                background: "rgba(10, 4, 0, 0.65)",
-                border: "1px solid rgba(251, 191, 36, 0.4)",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "6px 14px 7px 14px",
+                borderRadius: "12px",
+                background: "rgba(18, 7, 2, 0.82)",
+                border: "1px solid rgba(251, 191, 36, 0.5)",
                 color: "#FEF3C7",
-                fontWeight: 700
+                fontWeight: 700,
+                lineHeight: "1.1",
+                boxSizing: "border-box",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.3)"
               }}
             >
               ✨ {tithiStr}
@@ -316,25 +411,44 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
           {nakshatraStr && (
             <span
               style={{
-                padding: "4px 10px",
-                borderRadius: "10px",
-                background: "rgba(10, 4, 0, 0.65)",
-                border: "1px solid rgba(251, 191, 36, 0.4)",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "6px 14px 7px 14px",
+                borderRadius: "12px",
+                background: "rgba(18, 7, 2, 0.82)",
+                border: "1px solid rgba(251, 191, 36, 0.5)",
                 color: "#FEF3C7",
-                fontWeight: 700
+                fontWeight: 700,
+                lineHeight: "1.1",
+                boxSizing: "border-box",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.3)"
               }}
             >
               ⭐ {nakshatraStr}
             </span>
           )}
+        </div>
+
+        {/* Shubha Muhurtha Pill - Dedicated Row Perfectly Centered */}
+        <div style={{ textAlign: "center", marginBottom: "14px" }}>
           <span
             style={{
-              padding: "4px 10px",
-              borderRadius: "10px",
-              background: "rgba(6, 78, 59, 0.75)",
-              border: "1px solid #34D399",
+              position: "relative",
+              zIndex: 10,
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "6px 18px 7px 18px",
+              borderRadius: "12px",
+              background: "rgba(6, 78, 59, 0.88)",
+              border: "1.5px solid #34D399",
               color: "#A7F3D0",
-              fontWeight: 800
+              fontWeight: 800,
+              fontSize: "12px",
+              lineHeight: "1.1",
+              boxSizing: "border-box",
+              boxShadow: "0 3px 12px rgba(6, 78, 59, 0.5)"
             }}
           >
             ⏳ ಶುಭ ಮುಹೂರ್ತ: {goldenHourStr}
@@ -346,13 +460,13 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
           style={{
             position: "relative",
             zIndex: 10,
-            background: "rgba(12, 5, 1, 0.72)",
-            border: "1.5px solid rgba(251, 191, 36, 0.35)",
+            background: "rgba(15, 6, 1, 0.78)",
+            border: "1.5px solid rgba(251, 191, 36, 0.4)",
             borderRadius: "16px",
             padding: "14px 16px",
             marginBottom: "12px",
             textAlign: "center",
-            boxShadow: "0 6px 20px rgba(0,0,0,0.35)"
+            boxShadow: "0 6px 20px rgba(0,0,0,0.4)"
           }}
         >
           <div
@@ -384,13 +498,13 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
           style={{
             position: "relative",
             zIndex: 10,
-            background: "rgba(15, 6, 1, 0.8)",
+            background: "rgba(18, 7, 2, 0.85)",
             border: `1.5px solid ${bgConfig.accentGold || "#F59E0B"}`,
             borderRadius: "16px",
             padding: "16px",
             marginBottom: "12px",
             textAlign: "center",
-            boxShadow: "0 8px 24px rgba(0,0,0,0.4)"
+            boxShadow: "0 8px 24px rgba(0,0,0,0.45)"
           }}
         >
           <div
@@ -445,11 +559,11 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
         >
           <div
             style={{
-              background: "rgba(10, 4, 0, 0.72)",
-              border: "1.5px solid rgba(52, 211, 153, 0.45)",
+              background: "rgba(12, 5, 1, 0.78)",
+              border: "1.5px solid rgba(52, 211, 153, 0.5)",
               borderRadius: "14px",
               padding: "12px 14px",
-              boxShadow: "0 4px 14px rgba(0,0,0,0.3)"
+              boxShadow: "0 4px 14px rgba(0,0,0,0.35)"
             }}
           >
             <div
@@ -478,11 +592,11 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
 
           <div
             style={{
-              background: "rgba(10, 4, 0, 0.72)",
-              border: "1.5px solid rgba(251, 191, 36, 0.45)",
+              background: "rgba(12, 5, 1, 0.78)",
+              border: "1.5px solid rgba(251, 191, 36, 0.5)",
               borderRadius: "14px",
               padding: "12px 14px",
-              boxShadow: "0 4px 14px rgba(0,0,0,0.3)"
+              boxShadow: "0 4px 14px rgba(0,0,0,0.35)"
             }}
           >
             <div
@@ -522,7 +636,7 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
             fontSize: "11px",
             fontWeight: 800,
             color: "#FDE68A",
-            borderTop: "1px solid rgba(245, 158, 11, 0.3)",
+            borderTop: "1px solid rgba(245, 158, 11, 0.35)",
             paddingTop: "10px"
           }}
         >
@@ -531,7 +645,7 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
         </div>
       </div>
 
-      {/* Action Buttons: 1-Tap WhatsApp, High-Res Image Download, Copy */}
+      {/* Action Buttons: 1-Tap WhatsApp Image Share, High-Res PNG Download, Copy */}
       <div
         style={{
           display: "grid",
@@ -611,7 +725,7 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
           }}
         >
           <span>📋</span>
-          <span>{isCopied ? (isKn ? "ಕಾಪಿ ಆಗಿದೆ! ✓" : "Copied! ✓") : (isKn ? "ಸಂದೇಶ ಕಾಪಿ ಮಾಡಿ" : "Copy Text")}</span>
+          <span>{isCopied ? (isKn ? "ಇಮೇಜ್ & ಸಂದೇಶ ಕಾಪಿ ಆಗಿದೆ! ✓" : "Image & Message Copied! ✓") : (isKn ? "ಇಮೇಜ್ ಕಾಪಿ / ಡೌನ್‌ಲೋಡ್" : "Copy Image & Text")}</span>
         </button>
       </div>
     </div>
