@@ -28,6 +28,7 @@ import { LoveMarriageMatchTab } from "../components/sankhyashastra/LoveMarriageM
 import { BoysNumerologyTab } from "../components/sankhyashastra/BoysNumerologyTab";
 import { GirlsNumerologyTab } from "../components/sankhyashastra/GirlsNumerologyTab";
 import { SankhyaShastraPdfTemplate } from "../components/sankhyashastra/SankhyaShastraPdfTemplate";
+import { VoiceDictationButton } from "../components/ui/VoiceDictationButton";
 import { sanitizeAIText } from "../utils/textFormatter";
 import { SankhyaNumerologyLoader } from "../components/sankhyashastra/SankhyaNumerologyLoader";
 import { VedicGridDashaTab } from "../components/sankhyashastra/VedicGridDashaTab";
@@ -768,14 +769,22 @@ export default function SankhyaShastraPage(): JSX.Element {
               </div>
 
               {/* Follow-up Question Input Bar */}
-              <form onSubmit={handleSendFollowUp} className="flex gap-2 pt-2 border-t border-amber-200">
-                <input
-                  type="text"
-                  value={followUpInput}
-                  onChange={(e) => setFollowUpInput(e.target.value)}
-                  placeholder={isKn ? "ಸಂಖ್ಯಾ ಫಲದ ಬಗ್ಗೆ ಇನ್ನಷ್ಟು ವಿವರಣೆ ಕೇಳಿ..." : "Ask follow-up clarification on this numerology reading..."}
-                  className="flex-1 rounded-xl border border-amber-300 bg-white px-3.5 py-2.5 text-xs font-semibold text-amber-950 shadow-sm focus:border-amber-600 focus:outline-none"
-                />
+              <form onSubmit={handleSendFollowUp} className="flex gap-2 pt-2 border-t border-amber-200 items-center">
+                <div className="relative flex-1 flex items-center">
+                  <input
+                    type="text"
+                    value={followUpInput}
+                    onChange={(e) => setFollowUpInput(e.target.value)}
+                    placeholder={isKn ? "ಸಂಖ್ಯಾ ಫಲದ ಬಗ್ಗೆ ಇನ್ನಷ್ಟು ವಿವರಣೆ ಕೇಳಿ..." : "Ask follow-up clarification on this numerology reading..."}
+                    className="w-full rounded-xl border border-amber-300 bg-white pl-3.5 pr-9 py-2.5 text-xs font-semibold text-amber-950 shadow-sm focus:border-amber-600 focus:outline-none"
+                  />
+                  <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+                    <VoiceDictationButton
+                      onTranscript={(text) => setFollowUpInput(text)}
+                      tooltip={isKn ? "ಧ್ವನಿ ಮೂಲಕ ಪ್ರಶ್ನೆ ಕೇಳಿ" : "Speak follow-up question"}
+                    />
+                  </div>
+                </div>
                 <button
                   type="submit"
                   disabled={isProcessing || !followUpInput.trim()}
@@ -821,16 +830,28 @@ export default function SankhyaShastraPage(): JSX.Element {
                 <label className="block text-xs font-bold uppercase tracking-wider text-amber-950 mb-1.5">
                   🔤 {isKn ? "ನಿಮ್ಮ ಇಂಗ್ಲಿಷ್ ಹೆಸರು (Enter English Name)" : "Enter English Name"}
                 </label>
-                <input
-                  type="text"
-                  value={nameInput}
-                  onChange={(e) => {
-                    setNameInput(e.target.value);
-                    setAiNameSuggestions(null);
-                  }}
-                  placeholder="e.g. Shreeram Pandit"
-                  className="w-full rounded-xl border border-amber-300 bg-amber-50/40 px-4 py-2.5 text-sm font-bold text-amber-950 shadow-inner focus:border-amber-600 focus:outline-none"
-                />
+                <div className="relative flex items-center">
+                  <input
+                    type="text"
+                    value={nameInput}
+                    onChange={(e) => {
+                      setNameInput(e.target.value);
+                      setAiNameSuggestions(null);
+                    }}
+                    placeholder="e.g. Shreeram Pandit"
+                    className="w-full rounded-xl border border-amber-300 bg-amber-50/40 pl-4 pr-11 py-2.5 text-sm font-bold text-amber-950 shadow-inner focus:border-amber-600 focus:outline-none"
+                  />
+                  <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+                    <VoiceDictationButton
+                      onTranscript={(text) => {
+                        setNameInput(text);
+                        setAiNameSuggestions(null);
+                      }}
+                      lang="en-IN"
+                      tooltip={isKn ? "ಧ್ವನಿ ಮೂಲಕ ಹೆಸರು ನಮೂದಿಸಿ" : "Speak name"}
+                    />
+                  </div>
+                </div>
               </div>
 
               <div>
@@ -1082,13 +1103,21 @@ export default function SankhyaShastraPage(): JSX.Element {
               <label className="block text-xs font-bold uppercase tracking-wider text-amber-950 mb-1.5">
                 🔢 {itemType === "phone" ? "ಮೊಬೈಲ್ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ" : itemType === "vehicle" ? "ವಾಹನದ ನಂಬರ್ ಪ್ಲೇಟ್ ನಮೂದಿಸಿ" : "ಮನೆ ಅಥವಾ ಕಚೇರಿ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ"}
               </label>
-              <input
-                type="text"
-                value={itemNumberInput}
-                onChange={(e) => setItemNumberInput(e.target.value)}
-                placeholder="e.g. 9972339362 / KA30M1008 / 405"
-                className="w-full rounded-xl border border-amber-300 bg-amber-50/40 px-4 py-3 text-sm font-bold text-amber-950 shadow-inner focus:border-amber-600 focus:outline-none"
-              />
+              <div className="relative flex items-center">
+                <input
+                  type="text"
+                  value={itemNumberInput}
+                  onChange={(e) => setItemNumberInput(e.target.value)}
+                  placeholder="e.g. 9972339362 / KA30M1008 / 405"
+                  className="w-full rounded-xl border border-amber-300 bg-amber-50/40 pl-4 pr-11 py-3 text-sm font-bold text-amber-950 shadow-inner focus:border-amber-600 focus:outline-none"
+                />
+                <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+                  <VoiceDictationButton
+                    onTranscript={(text) => setItemNumberInput(text)}
+                    tooltip={isKn ? "ಧ್ವನಿ ಮೂಲಕ ನಮೂದಿಸಿ" : "Speak digits"}
+                  />
+                </div>
+              </div>
             </div>
 
             {/* Calculated Result Display Card */}

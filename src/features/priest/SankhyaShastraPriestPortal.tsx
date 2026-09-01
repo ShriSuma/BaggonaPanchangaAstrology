@@ -28,6 +28,7 @@ import { notifyPasswordResetCompleted, notifySystemFailureAlert } from "../notif
 import { CoinDeductionModal } from "../../components/wallet/CoinDeductionModal";
 import { FallingCoinsRefillModal } from "../../components/wallet/FallingCoinsRefillModal";
 import { SankhyaNumerologyLoader } from "../../components/sankhyashastra/SankhyaNumerologyLoader";
+import { VoiceDictationButton } from "../../components/ui/VoiceDictationButton";
 import AudioPlayerButton from "../../components/ui/AudioPlayerButton";
 
 type SankhyaTab = "janma" | "prashna" | "name_numbers" | "wallet";
@@ -1874,16 +1875,24 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
                 <label className="block text-amber-950 font-bold mb-1">
                   ಇಮೇಲ್ ವಿಳಾಸ <span className="text-red-600 font-black">*</span>
                 </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-slate-400 text-sm">✉️</span>
+                <div className="relative flex items-center">
+                  <span className="absolute left-3 text-slate-400 text-sm">✉️</span>
                   <input
                     type="email"
                     value={priestEmail}
                     onChange={(e) => setPriestEmail(e.target.value)}
                     placeholder="priest@gmail.com"
                     required
-                    className="w-full pl-9 pr-3.5 py-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 font-semibold focus:outline-none focus:border-amber-500"
+                    className="w-full pl-9 pr-9 py-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 font-semibold focus:outline-none focus:border-amber-500"
                   />
+                  <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+                    <VoiceDictationButton
+                      onTranscript={(text) => setPriestEmail(text)}
+                      transform={(raw) => raw.trim().toLowerCase().replace(/\s+at\s+/g, "@").replace(/\s+dot\s+/g, ".").replace(/\s+/g, "")}
+                      lang="en-IN"
+                      tooltip="ಧ್ವನಿ ಮೂಲಕ ಇಮೇಲ್ ನಮೂದಿಸಿ"
+                    />
+                  </div>
                 </div>
                 <p className="text-[10px] text-amber-800 mt-0.5 font-medium">ಅಧಿಸೂಚನೆಗಳು ಹಾಗೂ ಖಾತೆ ಪುನಃಸ್ಥಾಪನೆಗೆ ಕಡ್ಡಾಯ</p>
               </div>
@@ -1892,8 +1901,8 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
                 <label className="block text-amber-950 font-bold mb-1">
                   ಮೊಬೈಲ್ ಸಂಖ್ಯೆ <span className="text-red-600 font-black">*</span>
                 </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-slate-400 text-sm">📱</span>
+                <div className="relative flex items-center">
+                  <span className="absolute left-3 text-slate-400 text-sm">📱</span>
                   <input
                     type="tel"
                     value={priestPhone}
@@ -1901,8 +1910,15 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
                     placeholder="9108135387 (೧೦ ಅಂಕಿಗಳು)"
                     maxLength={10}
                     required
-                    className="w-full pl-9 pr-3.5 py-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 font-semibold focus:outline-none focus:border-amber-500"
+                    className="w-full pl-9 pr-9 py-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 font-semibold focus:outline-none focus:border-amber-500"
                   />
+                  <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+                    <VoiceDictationButton
+                      onTranscript={(text) => setPriestPhone(text)}
+                      transform={(raw) => raw.replace(/[^0-9]/g, "")}
+                      tooltip="ಧ್ವನಿ ಮೂಲಕ ಮೊಬೈಲ್ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ"
+                    />
+                  </div>
                 </div>
                 <p className="text-[10px] text-amber-800 mt-0.5 font-medium">೧೦ ಅಂಕಿಗಳ ಅಧಿಕೃತ ಮೊಬೈಲ್ ಸಂಖ್ಯೆ</p>
               </div>
@@ -1911,16 +1927,23 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
                 <label className="block text-amber-950 font-bold mb-1">
                   ಹೊಸ ಪಾಸ್‌ವರ್ಡ್ <span className="text-red-600 font-black">*</span>
                 </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-slate-400 text-sm">🔑</span>
+                <div className="relative flex items-center">
+                  <span className="absolute left-3 text-slate-400 text-sm">🔑</span>
                   <input
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="ಕನಿಷ್ಠ ೬ ಅಕ್ಷರಗಳು"
                     required
-                    className="w-full pl-9 pr-3.5 py-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 font-semibold focus:outline-none focus:border-amber-500"
+                    className="w-full pl-9 pr-9 py-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 font-semibold focus:outline-none focus:border-amber-500"
                   />
+                  <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+                    <VoiceDictationButton
+                      onTranscript={(text) => setNewPassword(text)}
+                      transform={(raw) => raw.trim().replace(/\s+/g, "")}
+                      tooltip="ಧ್ವನಿ ಮೂಲಕ ಪಾಸ್‌ವರ್ಡ್ ನಮೂದಿಸಿ"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -1928,16 +1951,23 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
                 <label className="block text-amber-950 font-bold mb-1">
                   ಪಾಸ್‌ವರ್ಡ್ ದೃಢೀಕರಿಸಿ <span className="text-red-600 font-black">*</span>
                 </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-slate-400 text-sm">🛡️</span>
+                <div className="relative flex items-center">
+                  <span className="absolute left-3 text-slate-400 text-sm">🛡️</span>
                   <input
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="ಮತ್ತೊಮ್ಮೆ ನಮೂದಿಸಿ"
                     required
-                    className="w-full pl-9 pr-3.5 py-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 font-semibold focus:outline-none focus:border-amber-500"
+                    className="w-full pl-9 pr-9 py-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 font-semibold focus:outline-none focus:border-amber-500"
                   />
+                  <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+                    <VoiceDictationButton
+                      onTranscript={(text) => setConfirmPassword(text)}
+                      transform={(raw) => raw.trim().replace(/\s+/g, "")}
+                      tooltip="ಧ್ವನಿ ಮೂಲಕ ಪಾಸ್‌ವರ್ಡ್ ದೃಢೀಕರಿಸಿ"
+                    />
+                  </div>
                 </div>
               </div>
 

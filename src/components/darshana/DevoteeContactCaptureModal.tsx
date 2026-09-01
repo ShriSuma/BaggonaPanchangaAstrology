@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import type { SevaLang } from "../../features/seva/sevaLocale";
 import { updateDevoteeContact, type DevoteeUserRecord } from "../../features/seva/devoteeUserService";
+import { VoiceDictationButton } from "../ui/VoiceDictationButton";
 
 export interface DevoteeContactCaptureModalProps {
   isOpen: boolean;
@@ -252,14 +253,21 @@ export const DevoteeContactCaptureModal: React.FC<DevoteeContactCaptureModalProp
                 <span>📱 {t.phoneLabel}</span>
                 <span className="text-[10px] text-amber-400/70 font-semibold">WhatsApp & SMS</span>
               </label>
-              <div className="relative">
+              <div className="relative flex items-center">
                 <input
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder={t.phonePlaceholder}
-                  className="w-full rounded-xl border border-amber-500/50 bg-black/50 px-4 py-3 text-sm font-semibold text-amber-50 placeholder-amber-200/30 shadow-inner focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400/30 transition font-mono"
+                  className="w-full rounded-xl border border-amber-500/50 bg-black/50 pl-4 pr-11 py-3 text-sm font-semibold text-amber-50 placeholder-amber-200/30 shadow-inner focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400/30 transition font-mono"
                 />
+                <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                  <VoiceDictationButton
+                    onTranscript={(text) => setPhone(text)}
+                    transform={(raw) => raw.replace(/[^0-9+]/g, "")}
+                    tooltip="ಧ್ವನಿ ಮೂಲಕ ಮೊಬೈಲ್ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ"
+                  />
+                </div>
               </div>
             </div>
 
@@ -269,14 +277,22 @@ export const DevoteeContactCaptureModal: React.FC<DevoteeContactCaptureModalProp
                 <span>✉️ {t.emailLabel}</span>
                 <span className="text-[10px] text-amber-400/70 font-semibold">Daily Panchanga</span>
               </label>
-              <div className="relative">
+              <div className="relative flex items-center">
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder={t.emailPlaceholder}
-                  className="w-full rounded-xl border border-amber-500/50 bg-black/50 px-4 py-3 text-sm font-semibold text-amber-50 placeholder-amber-200/30 shadow-inner focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400/30 transition"
+                  className="w-full rounded-xl border border-amber-500/50 bg-black/50 pl-4 pr-11 py-3 text-sm font-semibold text-amber-50 placeholder-amber-200/30 shadow-inner focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400/30 transition"
                 />
+                <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                  <VoiceDictationButton
+                    onTranscript={(text) => setEmail(text)}
+                    transform={(raw) => raw.trim().toLowerCase().replace(/\s+at\s+/g, "@").replace(/\s+dot\s+/g, ".").replace(/\s+/g, "")}
+                    lang="en-IN"
+                    tooltip="ಧ್ವನಿ ಮೂಲಕ ಇಮೇಲ್ ವಿಳಾಸ ನಮೂದಿಸಿ"
+                  />
+                </div>
               </div>
             </div>
 

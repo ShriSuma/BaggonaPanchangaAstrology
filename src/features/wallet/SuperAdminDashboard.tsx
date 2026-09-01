@@ -83,7 +83,7 @@ import {
 } from "../audio/aiVoiceCloneEngine";
 import type { SevaLang } from "../seva/sevaLocale";
 import { SarvamAiUsageGrid } from "../../components/audio/SarvamAiUsageGrid";
-
+import { VoiceDictationButton } from "../../components/ui/VoiceDictationButton";
 
 export type AdminTab = "wallets" | "kundlis" | "ashirvada" | "audit" | "mindmap" | "panchanga_engine" | "voice_db";
 
@@ -1640,55 +1640,96 @@ export const SuperAdminDashboard: React.FC = () => {
                 <label className="block text-[11px] font-bold text-amber-950 mb-1">
                   ಪುರೋಹಿತರ ಹೆಸರು (Name):
                 </label>
-                <input
-                  type="text"
-                  value={newPriestName}
-                  onChange={(e) => setNewPriestName(e.target.value)}
-                  placeholder="ಉದಾ: ಶ್ರೀರಾಮ್ ಪಂಡಿತ್"
-                  required
-                  className="w-full px-3.5 py-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 text-xs font-bold focus:border-amber-500 focus:outline-none shadow-inner"
-                />
+                <div className="relative flex items-center">
+                  <input
+                    type="text"
+                    value={newPriestName}
+                    onChange={(e) => setNewPriestName(e.target.value)}
+                    placeholder="ಉದಾ: ಶ್ರೀರಾಮ್ ಪಂಡಿತ್"
+                    required
+                    className="w-full pl-3.5 pr-9 py-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 text-xs font-bold focus:border-amber-500 focus:outline-none shadow-inner"
+                  />
+                  <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+                    <VoiceDictationButton
+                      onTranscript={(text) => {
+                        setNewPriestName(text);
+                        if (!newPriestUsername.trim()) {
+                          const suggested = text.trim().toLowerCase().replace(/\s+/g, "_");
+                          setNewPriestUsername(`priest_${suggested}`);
+                        }
+                      }}
+                      tooltip="ಧ್ವನಿ ಮೂಲಕ ಪುರೋಹಿತರ ಹೆಸರು ನಮೂದಿಸಿ"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div>
                 <label className="block text-[11px] font-bold text-amber-950 mb-1">
                   ಯೂಸರ್ ID (Username):
                 </label>
-                <input
-                  type="text"
-                  value={newPriestUsername}
-                  onChange={(e) => setNewPriestUsername(e.target.value)}
-                  placeholder="ಉದಾ: priest_shreeram"
-                  required
-                  className="w-full px-3.5 py-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 text-xs font-mono font-bold focus:border-amber-500 focus:outline-none shadow-inner"
-                />
+                <div className="relative flex items-center">
+                  <input
+                    type="text"
+                    value={newPriestUsername}
+                    onChange={(e) => setNewPriestUsername(e.target.value)}
+                    placeholder="ಉದಾ: priest_shreeram"
+                    required
+                    className="w-full pl-3.5 pr-9 py-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 text-xs font-mono font-bold focus:border-amber-500 focus:outline-none shadow-inner"
+                  />
+                  <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+                    <VoiceDictationButton
+                      onTranscript={(text) => setNewPriestUsername(text)}
+                      transform={(raw) => raw.trim().toLowerCase().replace(/\s+/g, "_")}
+                      tooltip="ಧ್ವನಿ ಮೂಲಕ ಯೂಸರ್ ID ನಮೂದಿಸಿ"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div>
                 <label className="block text-[11px] font-bold text-amber-950 mb-1">
                   ಪ್ರವೇಶ ಪಾಸ್‌ವರ್ಡ್ (Password):
                 </label>
-                <input
-                  type="text"
-                  value={newPriestPassword}
-                  onChange={(e) => setNewPriestPassword(e.target.value)}
-                  placeholder="baggona123"
-                  required
-                  className="w-full px-3.5 py-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 text-xs font-mono font-bold focus:border-amber-500 focus:outline-none shadow-inner"
-                />
+                <div className="relative flex items-center">
+                  <input
+                    type="text"
+                    value={newPriestPassword}
+                    onChange={(e) => setNewPriestPassword(e.target.value)}
+                    placeholder="baggona123"
+                    required
+                    className="w-full pl-3.5 pr-9 py-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 text-xs font-mono font-bold focus:border-amber-500 focus:outline-none shadow-inner"
+                  />
+                  <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+                    <VoiceDictationButton
+                      onTranscript={(text) => setNewPriestPassword(text)}
+                      transform={(raw) => raw.trim().replace(/\s+/g, "")}
+                      tooltip="ಧ್ವನಿ ಮೂಲಕ ಪಾಸ್‌ವರ್ಡ್ ನಮೂದಿಸಿ"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div>
                 <label className="block text-[11px] font-bold text-amber-950 mb-1">
                   ಸ್ವಾಗತ ನಾಣ್ಯಗಳು (Coins):
                 </label>
-                <input
-                  type="number"
-                  value={newPriestWelcomeCoins}
-                  onChange={(e) => setNewPriestWelcomeCoins(e.target.value)}
-                  placeholder="1000"
-                  className="w-full px-3.5 py-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 text-xs font-mono font-bold focus:border-amber-500 focus:outline-none shadow-inner"
-                />
+                <div className="relative flex items-center">
+                  <input
+                    type="number"
+                    value={newPriestWelcomeCoins}
+                    onChange={(e) => setNewPriestWelcomeCoins(e.target.value)}
+                    placeholder="1000"
+                    className="w-full pl-3.5 pr-9 py-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 text-xs font-mono font-bold focus:border-amber-500 focus:outline-none shadow-inner"
+                  />
+                  <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+                    <VoiceDictationButton
+                      onTranscript={(text) => setNewPriestWelcomeCoins(text)}
+                      transform={(raw) => raw.replace(/[^0-9]/g, "") || "1000"}
+                      tooltip="ಧ್ವನಿ ಮೂಲಕ ನಾಣ್ಯಗಳ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div>
@@ -2182,14 +2223,20 @@ export const SuperAdminDashboard: React.FC = () => {
                 <span>{isDeduplicating ? "ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ..." : "ಡ್ಯೂಪ್ಲಿಕೇಟ್ ಪರಿಶೀಲಿಸಿ & ತೆರವುಗೊಳಿಸಿ"}</span>
               </button>
 
-              <div className="w-full md:w-64">
+              <div className="w-full md:w-64 relative flex items-center">
                 <input
                   type="text"
                   value={kundliSearch}
                   onChange={(e) => setKundliSearch(e.target.value)}
                   placeholder="ಹುಡುಕಿ: ಹೆಸರು, ಗೋತ್ರ, ರಾಶಿ..."
-                  className="w-full px-3.5 py-2 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-xs text-slate-900 placeholder-slate-400 font-semibold focus:outline-none focus:border-amber-500 shadow-inner"
+                  className="w-full pl-3.5 pr-9 py-2 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-xs text-slate-900 placeholder-slate-400 font-semibold focus:outline-none focus:border-amber-500 shadow-inner"
                 />
+                <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+                  <VoiceDictationButton
+                    onTranscript={(text) => setKundliSearch(text)}
+                    tooltip="ಧ್ವನಿ ಮೂಲಕ ಹುಡುಕಿ (Voice Search)"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -2430,14 +2477,20 @@ export const SuperAdminDashboard: React.FC = () => {
                 </button>
               </div>
 
-              <div className="w-full md:w-80">
+              <div className="w-full md:w-80 relative flex items-center">
                 <input
                   type="text"
                   value={subscriptionSearch}
                   onChange={(e) => setSubscriptionSearch(e.target.value)}
                   placeholder="ಹುಡುಕಿ: ಹೆಸರು, ಮೊಬೈಲ್, ಇಮೇಲ್, ರಾಶಿ..."
-                  className="w-full px-3.5 py-2 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-xs text-slate-900 placeholder-slate-400 font-semibold focus:outline-none focus:border-amber-500 shadow-inner"
+                  className="w-full pl-3.5 pr-9 py-2 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-xs text-slate-900 placeholder-slate-400 font-semibold focus:outline-none focus:border-amber-500 shadow-inner"
                 />
+                <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+                  <VoiceDictationButton
+                    onTranscript={(text) => setSubscriptionSearch(text)}
+                    tooltip="ಧ್ವನಿ ಮೂಲಕ ಭಕ್ತರನ್ನು ಹುಡುಕಿ"
+                  />
+                </div>
               </div>
             </div>
 
