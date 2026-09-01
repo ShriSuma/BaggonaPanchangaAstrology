@@ -41,6 +41,11 @@ The 4 main tabs MUST remain fully operational and intact:
 3. **`gochara`**: Gochara Planetary Transits, Ashtamama Shani / Rahu / Ketu / Guru transit analysis.
 4. **`dasha`**: Vimshottari Dasha Bhukti Timeline & Life Stage Predictions.
 
+### F. Real-Time Dynamic AI Voice & Mandatory Button Loaders
+- **Strictly No Pre-Recorded Audio**: Static `.webm` or pre-recorded audio files are completely forbidden on Daily Darshana page.
+- **Dynamic Sarvam AI TTS Pipeline**: All speech is synthesized dynamically from live text via Sarvam AI Indic Neural TTS (`bulbul:v3`) with Web Speech Synthesis fallback.
+- **Non-Blocking Button Loaders**: Every voice button (Benediction, Mantra, Pooja, Remedy Japa) MUST display a spinning loader + active status (`⏳ ಧ್ವನಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ...` / `Synthesizing...`) while the network inference is pending so the user receives immediate feedback.
+
 ---
 
 ## 2. Devotee Token Cipher Engine (`tokenCipher.ts`) Rules

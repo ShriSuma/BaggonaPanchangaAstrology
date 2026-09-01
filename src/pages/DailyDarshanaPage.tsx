@@ -1175,7 +1175,9 @@ export default function DailyDarshanaPage(): JSX.Element {
 
     const unregisterAudioStop = onGlobalAudioStop(() => {
       setIsPlayingBenedictionVoice(false);
+      setIsLoadingBenedictionVoice(false);
       setIsPlayingMantraVoice(false);
+      setIsLoadingMantraVoice(false);
       setIsPlayingAudio(false);
     });
 
@@ -1672,36 +1674,76 @@ export default function DailyDarshanaPage(): JSX.Element {
     }
   };
 
+  const [isLoadingBenedictionVoice, setIsLoadingBenedictionVoice] = useState(false);
   const [isPlayingBenedictionVoice, setIsPlayingBenedictionVoice] = useState(false);
+  const [isLoadingMantraVoice, setIsLoadingMantraVoice] = useState(false);
   const [isPlayingMantraVoice, setIsPlayingMantraVoice] = useState(false);
 
   const toggleBenedictionVoice = async () => {
-    if (isPlayingBenedictionVoice) {
+    if (isPlayingBenedictionVoice || isLoadingBenedictionVoice) {
       stopClonedAudio();
       setIsPlayingBenedictionVoice(false);
+      setIsLoadingBenedictionVoice(false);
       return;
     }
     stopClonedAudio();
     setIsPlayingMantraVoice(false);
-    setIsPlayingBenedictionVoice(true);
-    await synthesizeAndPlayClonedVoice(benediction, lang, activeVoiceId, () => {
+    setIsLoadingMantraVoice(false);
+    setIsLoadingBenedictionVoice(true);
+    setIsPlayingBenedictionVoice(false);
+
+    try {
+      await synthesizeAndPlayClonedVoice(
+        benediction,
+        lang,
+        activeVoiceId,
+        () => {
+          setIsPlayingBenedictionVoice(false);
+          setIsLoadingBenedictionVoice(false);
+        },
+        () => {
+          setIsLoadingBenedictionVoice(false);
+          setIsPlayingBenedictionVoice(true);
+        }
+      );
+    } catch {
+      setIsLoadingBenedictionVoice(false);
       setIsPlayingBenedictionVoice(false);
-    });
+    }
   };
 
   const toggleMantraVoice = async () => {
     const mantraText = deity.mantra[lang] || deity.mantra.kn;
-    if (isPlayingMantraVoice) {
+    if (isPlayingMantraVoice || isLoadingMantraVoice) {
       stopClonedAudio();
       setIsPlayingMantraVoice(false);
+      setIsLoadingMantraVoice(false);
       return;
     }
     stopClonedAudio();
     setIsPlayingBenedictionVoice(false);
-    setIsPlayingMantraVoice(true);
-    await synthesizeAndPlayClonedVoice(mantraText, lang, activeVoiceId, () => {
+    setIsLoadingBenedictionVoice(false);
+    setIsLoadingMantraVoice(true);
+    setIsPlayingMantraVoice(false);
+
+    try {
+      await synthesizeAndPlayClonedVoice(
+        mantraText,
+        lang,
+        activeVoiceId,
+        () => {
+          setIsPlayingMantraVoice(false);
+          setIsLoadingMantraVoice(false);
+        },
+        () => {
+          setIsLoadingMantraVoice(false);
+          setIsPlayingMantraVoice(true);
+        }
+      );
+    } catch {
+      setIsLoadingMantraVoice(false);
       setIsPlayingMantraVoice(false);
-    });
+    }
   };
 
   const requestedCalendarDays = useMemo(() => {
@@ -2413,8 +2455,12 @@ export default function DailyDarshanaPage(): JSX.Element {
                   type="button"
                   onClick={toggleMantraVoice}
                   style={{
-                    background: isPlayingMantraVoice ? "#DC2626" : "linear-gradient(135deg, #F59E0B, #D97706)",
-                    color: "#1E1B4B",
+                    background: isPlayingMantraVoice
+                      ? "#DC2626"
+                      : isLoadingMantraVoice
+                      ? "linear-gradient(135deg, #B45309, #78350F)"
+                      : "linear-gradient(135deg, #F59E0B, #D97706)",
+                    color: isPlayingMantraVoice || isLoadingMantraVoice ? "#FFFFFF" : "#1E1B4B",
                     border: "1px solid #FCD34D",
                     padding: "9px 18px",
                     borderRadius: 20,
@@ -2427,7 +2473,22 @@ export default function DailyDarshanaPage(): JSX.Element {
                     gap: 6
                   }}
                 >
-                  {isPlayingMantraVoice ? "⏹️ ಮಂತ್ರ ನಿಲ್ಲಿಸಿ (Stop)" : "🔊 ಮಂತ್ರ ಶ್ರವಣ (Listen Mantra)"}
+                  {isPlayingMantraVoice ? (
+                    <>
+                      <span>⏹️</span>
+                      <span>{lang === "kn" ? "ಮಂತ್ರ ನಿಲ್ಲಿಸಿ (Stop)" : "Stop Mantra"}</span>
+                    </>
+                  ) : isLoadingMantraVoice ? (
+                    <>
+                      <span className="inline-block animate-spin">⏳</span>
+                      <span>{lang === "kn" ? "ಮಂತ್ರ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : "Synthesizing Mantra..."}</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>🔊</span>
+                      <span>{lang === "kn" ? "ಮಂತ್ರ ಶ್ರವಣ (Listen Mantra)" : "Listen Mantra"}</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
@@ -2454,7 +2515,11 @@ export default function DailyDarshanaPage(): JSX.Element {
                   type="button"
                   onClick={toggleBenedictionVoice}
                   style={{
-                    background: isPlayingBenedictionVoice ? "#DC2626" : "linear-gradient(135deg, #D97706, #B45309)",
+                    background: isPlayingBenedictionVoice
+                      ? "#DC2626"
+                      : isLoadingBenedictionVoice
+                      ? "linear-gradient(135deg, #B45309, #78350F)"
+                      : "linear-gradient(135deg, #D97706, #B45309)",
                     color: "#FFFFFF",
                     border: "1px solid #FCD34D",
                     padding: "6px 14px",
@@ -2468,7 +2533,22 @@ export default function DailyDarshanaPage(): JSX.Element {
                     boxShadow: "0 2px 8px rgba(217, 119, 6, 0.3)"
                   }}
                 >
-                  {isPlayingBenedictionVoice ? "⏹️ ನಿಲ್ಲಿಸಿ (Stop)" : "🔊 ಧ್ವನಿಯಲ್ಲಿ ಆಲಿಸಿ (Listen in Cloned Voice)"}
+                  {isPlayingBenedictionVoice ? (
+                    <>
+                      <span>⏹️</span>
+                      <span>{lang === "kn" ? "ನಿಲ್ಲಿಸಿ (Stop)" : "Stop Voice"}</span>
+                    </>
+                  ) : isLoadingBenedictionVoice ? (
+                    <>
+                      <span className="inline-block animate-spin">⏳</span>
+                      <span>{lang === "kn" ? "ಧ್ವನಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : "Generating Voice..."}</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>🔊</span>
+                      <span>{lang === "kn" ? "ಧ್ವನಿಯಲ್ಲಿ ಆಲಿಸಿ (Listen in Cloned Voice)" : "Listen in Cloned Voice"}</span>
+                    </>
+                  )}
                 </button>
               </div>
               <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: "#E5E7EB", fontStyle: "italic" }}>

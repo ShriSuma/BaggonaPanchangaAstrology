@@ -27,6 +27,7 @@ export const RemedyJapa11Counter: React.FC<RemedyJapa11CounterProps> = ({
 }) => {
   const [japaCount, setJapaCount] = useState<number>(0);
   const [isCompleted, setIsCompleted] = useState<boolean>(false);
+  const [isLoadingPriestAudio, setIsLoadingPriestAudio] = useState<boolean>(false);
   const [isPlayingPriestAudio, setIsPlayingPriestAudio] = useState<boolean>(false);
   const [showConfetti, setShowConfetti] = useState<boolean>(false);
   const [unlockedRewards, setUnlockedRewards] = useState<DevoteeMilestoneReward[]>([]);
@@ -36,6 +37,7 @@ export const RemedyJapa11Counter: React.FC<RemedyJapa11CounterProps> = ({
   useEffect(() => {
     const unregister = onGlobalAudioStop(() => {
       setIsPlayingPriestAudio(false);
+      setIsLoadingPriestAudio(false);
     });
     return () => {
       unregister();
@@ -81,24 +83,38 @@ export const RemedyJapa11Counter: React.FC<RemedyJapa11CounterProps> = ({
   };
 
   const handleTogglePriestAudio = async () => {
-    if (isPlayingPriestAudio) {
+    if (isPlayingPriestAudio || isLoadingPriestAudio) {
       stopAllAudioGlobal();
       setIsPlayingPriestAudio(false);
+      setIsLoadingPriestAudio(false);
       return;
     }
 
     stopAllAudioGlobal();
-    setIsPlayingPriestAudio(true);
+    setIsLoadingPriestAudio(true);
+    setIsPlayingPriestAudio(false);
     playTempleBellChime();
 
     const textToSpeak = `${remedyInfo.deityName[lang] || remedyInfo.deityName.kn}. ${remedyInfo.sanskritShloka}. ${remedyInfo.calmingBenefit[lang] || remedyInfo.calmingBenefit.kn}`;
 
-    await synthesizeAndPlayClonedVoice(
-      textToSpeak,
-      lang,
-      voiceId,
-      () => setIsPlayingPriestAudio(false)
-    );
+    try {
+      await synthesizeAndPlayClonedVoice(
+        textToSpeak,
+        lang,
+        voiceId,
+        () => {
+          setIsPlayingPriestAudio(false);
+          setIsLoadingPriestAudio(false);
+        },
+        () => {
+          setIsLoadingPriestAudio(false);
+          setIsPlayingPriestAudio(true);
+        }
+      );
+    } catch {
+      setIsLoadingPriestAudio(false);
+      setIsPlayingPriestAudio(false);
+    }
   };
 
   const targetCount = 11;
@@ -131,15 +147,27 @@ export const RemedyJapa11Counter: React.FC<RemedyJapa11CounterProps> = ({
           className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-md ${
             isPlayingPriestAudio
               ? "bg-rose-600 text-white animate-pulse shadow-rose-900/50"
+              : isLoadingPriestAudio
+              ? "bg-amber-800 text-amber-100 shadow-amber-950/50"
               : "bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-amber-950 hover:text-black shadow-amber-900/40 hover:scale-[1.02]"
           }`}
         >
-          <span>{isPlayingPriestAudio ? "⏹️" : "🎙️"}</span>
-          <span>
-            {isPlayingPriestAudio
-              ? (lang === "kn" ? "ಧ್ವನಿ ನಿಲ್ಲಿಸಿ" : "Stop Audio")
-              : (lang === "kn" ? "ಗುರುಮುಖೇನ ಶ್ರವಣ" : "Listen with Priest")}
-          </span>
+          {isPlayingPriestAudio ? (
+            <>
+              <span>⏹️</span>
+              <span>{lang === "kn" ? "ಧ್ವನಿ ನಿಲ್ಲಿಸಿ" : "Stop Audio"}</span>
+            </>
+          ) : isLoadingPriestAudio ? (
+            <>
+              <span className="inline-block animate-spin">⏳</span>
+              <span>{lang === "kn" ? "ಧ್ವನಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : "Synthesizing..."}</span>
+            </>
+          ) : (
+            <>
+              <span>🎙️</span>
+              <span>{lang === "kn" ? "ಗುರುಮುಖೇನ ಶ್ರವಣ" : "Listen with Priest"}</span>
+            </>
+          )}
         </button>
       </div>
 

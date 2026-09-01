@@ -2,11 +2,12 @@
  * Baggona Panchanga - Real-Time AI Voice Cloning Engine (ರಿಯಲ್-ಟೈಮ್ ಧ್ವನಿ ಕ್ಲೋನಿಂಗ್ ಎಂಜಿನ್)
  * 
  * Supports:
- * 1. Master Audio Voice Recording (/audio/shrisuma_master_voice.webm - ShriSuma's Authentic Voice)
- * 2. Sarvam AI Indic Neural TTS Engine (India's native Kannada/Sanskrit Bulbul:v1 model with custom pitch & pace)
- * 3. ElevenLabs Instant Voice Cloning (Custom API key & Voice ID)
- * 4. Hugging Face Inference API / Coqui XTTS-v2 (Zero-shot voice cloning with reference audio)
- * 5. Resonant Web Audio DSP Acoustic Filtering (Male voice, 125Hz F0, zero robotic female fallback)
+ * 1. Sarvam AI Indic Neural TTS Engine (India's native Kannada/Sanskrit Bulbul:v3 model with custom pitch & pace)
+ * 2. ElevenLabs Instant Voice Cloning (Custom API key & Voice ID)
+ * 3. Hugging Face Inference API / Coqui XTTS-v2 (Zero-shot voice cloning with reference audio)
+ * 4. Resonant Web Audio DSP Acoustic Filtering (Male voice, 125Hz F0, zero robotic female fallback)
+ * 
+ * STRICT RULE: Zero pre-recorded static audio files. All audio dynamically synthesized.
  */
 
 import type { SevaLang } from "../seva/sevaLocale";
@@ -19,34 +20,30 @@ import {
 } from "./globalAudioManager";
 import { recordSarvamAudioUsage } from "./sarvamQuotaService";
 
-export type VoiceCloneProvider = "master_recording" | "sarvam_ai" | "elevenlabs" | "huggingface_xtts" | "web_dsp";
+export type VoiceCloneProvider = "sarvam_ai" | "elevenlabs" | "huggingface_xtts" | "web_dsp";
 
 export interface VoiceCloneConfig {
   provider: VoiceCloneProvider;
   sarvamApiKey?: string;
-  sarvamSpeaker?: string; // "arvind", "amartya", "karun", "shaan"
+  sarvamSpeaker?: string; // "gokul", "amartya", "karun", "shaan"
   sarvamPace?: number; // 0.85 to 1.10
   elevenLabsApiKey?: string;
   elevenLabsVoiceId?: string;
   hfApiKey?: string;
   hfModelUrl?: string;
-  autoFallbackToMasterRecording: boolean;
-  masterAudioUrl: string;
   bassBoostGain: number; // 0.0 to 3.0
   formantWarmthHz: number; // e.g. 120Hz fundamental F0
   preferredPitch: number; // 0.76 (deeper masculine voice)
   preferredRate: number;  // 0.88 (steady cadence)
 }
 
-const CLONE_CONFIG_STORAGE_KEY = "baggona_ai_voice_clone_config_v4";
+const CLONE_CONFIG_STORAGE_KEY = "baggona_ai_voice_clone_config_v5";
 
 export const DEFAULT_CLONE_CONFIG: VoiceCloneConfig = {
   provider: "sarvam_ai",
   sarvamApiKey: "sk_duxld45s_658vBx71bZPMfKeLfCXxXwF0",
   sarvamSpeaker: "gokul",
   sarvamPace: 0.90,
-  autoFallbackToMasterRecording: true,
-  masterAudioUrl: "/audio/shrisuma_master_voice.webm",
   hfModelUrl: "https://api-inference.huggingface.co/models/coqui/XTTS-v2",
   bassBoostGain: 2.2,
   formantWarmthHz: 125,
@@ -128,19 +125,25 @@ export function getAvailableVoicesAsync(): Promise<SpeechSynthesisVoice[]> {
   });
 }
 
+// In-memory LRU Audio Cache for Sarvam AI TTS responses (instant 0ms playback on repeat clicks)
+const ttsAudioCache = new Map<string, string>();
+const MAX_CACHE_ENTRIES = 50;
+
 /**
- * Real-time Speech Synthesis using the configured AI Voice Cloning provider:
- * 1. Tries Sarvam AI Indic Neural TTS if API key is provided
- * 2. Tries ElevenLabs if configured with custom key and voice ID
+ * High-Precision Multi-Engine AI Voice Cloning Synthesizer:
+ * 1. Tries Sarvam AI Indic Neural TTS (India's native Kannada Bulbul:v3 engine)
+ * 2. Tries ElevenLabs if configured with custom key
  * 3. Tries Hugging Face XTTS if configured
- * 4. Tries Master Audio Recording (/audio/shrisuma_master_voice.webm)
- * 5. Fallback to In-Browser Web Speech Synthesizer with 125Hz F0 tuning
+ * 4. Fallback to In-Browser Web Speech Synthesizer with 125Hz F0 tuning
+ * 
+ * STRICT RULE: Never plays pre-recorded static audio files.
  */
 export async function synthesizeAndPlayClonedVoice(
   text: string,
   lang: SevaLang = "kn",
   voiceId?: string,
-  onEnd?: () => void
+  onEnd?: () => void,
+  onStart?: () => void
 ): Promise<() => void> {
   const token = startNewAudioSession();
 
@@ -160,7 +163,7 @@ export async function synthesizeAndPlayClonedVoice(
       );
       if (!isPlaybackTokenActive(token)) return () => {};
       if (audioUrl) {
-        return playAudioUrl(audioUrl, onEnd, token);
+        return playAudioUrl(audioUrl, onEnd, token, onStart);
       }
     } catch (e) {
       console.warn("[AIVoiceCloneEngine] Sarvam AI error, falling back:", e);
@@ -175,7 +178,7 @@ export async function synthesizeAndPlayClonedVoice(
       const audioUrl = await fetchElevenLabsTTS(text, config.elevenLabsApiKey, config.elevenLabsVoiceId);
       if (!isPlaybackTokenActive(token)) return () => {};
       if (audioUrl) {
-        return playAudioUrl(audioUrl, onEnd, token);
+        return playAudioUrl(audioUrl, onEnd, token, onStart);
       }
     } catch (e) {
       console.warn("[AIVoiceCloneEngine] ElevenLabs error, falling back:", e);
@@ -190,7 +193,7 @@ export async function synthesizeAndPlayClonedVoice(
       const audioUrl = await fetchHuggingFaceXTTS(text, lang, config.hfApiKey, profile.sampleAudioUrl, config.hfModelUrl);
       if (!isPlaybackTokenActive(token)) return () => {};
       if (audioUrl) {
-        return playAudioUrl(audioUrl, onEnd, token);
+        return playAudioUrl(audioUrl, onEnd, token, onStart);
       }
     } catch (e) {
       console.warn("[AIVoiceCloneEngine] Hugging Face XTTS error, falling back:", e);
@@ -199,31 +202,22 @@ export async function synthesizeAndPlayClonedVoice(
 
   if (!isPlaybackTokenActive(token)) return () => {};
 
-  // 4. Try Master Audio Recording (/audio/shrisuma_master_voice.webm - ShriSuma's Actual Real Voice)
-  if (config.provider === "master_recording" || config.autoFallbackToMasterRecording) {
-    try {
-      const masterUrl = config.masterAudioUrl || "/audio/shrisuma_master_voice.webm";
-      const stopFn = playAudioUrl(masterUrl, onEnd, token);
-      if (stopFn) return stopFn;
-    } catch (e) {
-      console.warn("[AIVoiceCloneEngine] Master recording error, falling back to Web Speech:", e);
-    }
-  }
-
-  if (!isPlaybackTokenActive(token)) return () => {};
-
-  // 5. Fallback to Male-Only Web Speech DSP
-  return playStrictlyMaleWebSpeechDSP(text, lang, profile, onEnd, config, token);
+  // 4. Fallback to Male-Only Web Speech DSP (Dynamic browser TTS)
+  return playStrictlyMaleWebSpeechDSP(text, lang, profile, onEnd, config, token, onStart);
 }
 
 /**
- * Plays an audio URL via HTML5 Audio with proper end callbacks and global audio tracking
+ * Plays an audio URL via HTML5 Audio with proper start/end callbacks and global audio tracking
  */
-function playAudioUrl(url: string, onEnd?: () => void, token?: number): () => void {
+function playAudioUrl(url: string, onEnd?: () => void, token?: number, onStart?: () => void): () => void {
   if (token !== undefined && !isPlaybackTokenActive(token)) return () => {};
 
   const audio = new Audio(url);
   const unregister = registerActiveAudio(audio);
+
+  audio.onplay = () => {
+    if (onStart) onStart();
+  };
 
   audio.onended = () => {
     unregister();
@@ -252,6 +246,7 @@ function playAudioUrl(url: string, onEnd?: () => void, token?: number): () => vo
 
 /**
  * Sarvam AI Indic Neural TTS API Fetcher (Bulbul:v3 for Kannada, Sanskrit, Hindi, Tamil, Telugu)
+ * Includes in-memory caching to make subsequent clicks instantaneous!
  */
 async function fetchSarvamAITTS(
   text: string,
@@ -260,8 +255,16 @@ async function fetchSarvamAITTS(
   speaker = "gokul",
   pace = 0.90
 ): Promise<string | null> {
+  const cleanText = text.trim();
+  if (!cleanText) return null;
+
   const targetLanguageCode = lang === "kn" ? "kn-IN" : lang === "hi" ? "hi-IN" : lang === "ta" ? "ta-IN" : lang === "te" ? "te-IN" : "en-IN";
   const validSpeaker = speaker === "arvind" || speaker === "anand" ? "gokul" : (speaker || "gokul");
+  const cacheKey = `${targetLanguageCode}_${validSpeaker}_${pace}_${cleanText}`;
+
+  if (ttsAudioCache.has(cacheKey)) {
+    return ttsAudioCache.get(cacheKey)!;
+  }
 
   const response = await fetch("https://api.sarvam.ai/text-to-speech", {
     method: "POST",
@@ -270,7 +273,7 @@ async function fetchSarvamAITTS(
       "api-subscription-key": apiKey
     },
     body: JSON.stringify({
-      inputs: [text.trim()],
+      inputs: [cleanText],
       target_language_code: targetLanguageCode,
       speaker: validSpeaker,
       pace: pace,
@@ -287,14 +290,24 @@ async function fetchSarvamAITTS(
   const data = await response.json();
   if (data?.audios && data.audios.length > 0 && data.audios[0]) {
     // Record character consumption & check for < 10% critical email alert
-    void recordSarvamAudioUsage(text.length, text.slice(0, 100));
+    void recordSarvamAudioUsage(cleanText.length, cleanText.slice(0, 100));
 
     const base64Audio = data.audios[0];
-    return `data:audio/wav;base64,${base64Audio}`;
+    const dataUrl = `data:audio/wav;base64,${base64Audio}`;
+
+    // Cache result
+    if (ttsAudioCache.size >= MAX_CACHE_ENTRIES) {
+      const oldest = ttsAudioCache.keys().next().value;
+      if (oldest) ttsAudioCache.delete(oldest);
+    }
+    ttsAudioCache.set(cacheKey, dataUrl);
+
+    return dataUrl;
   }
 
   return null;
 }
+
 
 /**
  * ElevenLabs Instant Voice Cloning TTS Fetcher
@@ -366,11 +379,13 @@ export async function playStrictlyMaleWebSpeechDSP(
   profile: PriestVoiceProfile,
   onEnd?: () => void,
   config?: VoiceCloneConfig,
-  token?: number
+  token?: number,
+  onStart?: () => void
 ): Promise<() => void> {
   if (token !== undefined && !isPlaybackTokenActive(token)) return () => {};
 
   if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+    if (onStart) onStart();
     if (onEnd) setTimeout(onEnd, 2000);
     return () => {};
   }
@@ -436,6 +451,10 @@ export async function playStrictlyMaleWebSpeechDSP(
 
   (window as any).__baggonaActiveUtterance = utterance;
 
+  utterance.onstart = () => {
+    if (onStart) onStart();
+  };
+
   utterance.onend = () => {
     (window as any).__baggonaActiveUtterance = null;
     if (onEnd) onEnd();
@@ -451,6 +470,7 @@ export async function playStrictlyMaleWebSpeechDSP(
     if (token !== undefined && !isPlaybackTokenActive(token)) return;
     try {
       window.speechSynthesis.speak(utterance);
+      if (onStart) onStart();
     } catch (err) {
       console.warn("[AIVoiceCloneEngine] speak error:", err);
       if (onEnd) onEnd();

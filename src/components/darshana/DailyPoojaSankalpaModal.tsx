@@ -66,6 +66,7 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
   const [isAratiRotating, setIsAratiRotating] = useState(false);
   const [streakInfo, setStreakInfo] = useState<PoojaStreakInfo | null>(null);
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
+  const [isAudioLoading, setIsAudioLoading] = useState(false);
   const [isManageSankalpaOpen, setIsManageSankalpaOpen] = useState(false);
 
   const devoteeKey = devoteeId || (devoteeName ? devoteeName.toLowerCase().replace(/[^a-z0-9]/g, "_") : "devotee_default");
@@ -124,6 +125,7 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
   useEffect(() => {
     const unregister = onGlobalAudioStop(() => {
       setIsAudioPlaying(false);
+      setIsAudioLoading(false);
       if (autoPlayTimerRef.current) {
         clearTimeout(autoPlayTimerRef.current);
         autoPlayTimerRef.current = null;
@@ -135,6 +137,7 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
   const cleanupAudioAndTimers = () => {
     stopAllAudioGlobal();
     setIsAudioPlaying(false);
+    setIsAudioLoading(false);
     if (autoPlayTimerRef.current) {
       clearTimeout(autoPlayTimerRef.current);
       autoPlayTimerRef.current = null;
@@ -146,7 +149,8 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
     cleanupAudioAndTimers();
     if (targetStep > totalSteps) return;
 
-    setIsAudioPlaying(true);
+    setIsAudioLoading(true);
+    setIsAudioPlaying(false);
 
     if (targetStep === 1 || targetStep === 5) {
       playTempleBellChime();
@@ -163,6 +167,7 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
       lang,
       () => {
         setIsAudioPlaying(false);
+        setIsAudioLoading(false);
         if (isAutoPlay && targetStep < totalSteps) {
           autoPlayTimerRef.current = setTimeout(() => {
             handleNextStep(targetStep + 1);
@@ -174,7 +179,11 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
         }
       },
       undefined,
-      voiceId
+      voiceId,
+      () => {
+        setIsAudioLoading(false);
+        setIsAudioPlaying(true);
+      }
     );
   };
 
@@ -683,14 +692,18 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
                   <button
                     type="button"
                     onClick={() => {
-                      if (isAudioPlaying) {
+                      if (isAudioPlaying || isAudioLoading) {
                         cleanupAudioAndTimers();
                       } else {
                         playStepPriestAudio(step);
                       }
                     }}
                     style={{
-                      background: isAudioPlaying ? "#D97706" : "rgba(245, 158, 11, 0.2)",
+                      background: isAudioPlaying
+                        ? "#D97706"
+                        : isAudioLoading
+                        ? "#92400E"
+                        : "rgba(245, 158, 11, 0.2)",
                       border: "1.5px solid #F59E0B",
                       color: "#FEF3C7",
                       borderRadius: 12,
@@ -703,8 +716,22 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
                       gap: 6
                     }}
                   >
-                    <span>{isAudioPlaying ? "🔊" : "🔈"}</span>
-                    <span>{isAudioPlaying ? (lang === "kn" ? "ಧ್ವನಿ ಪಠಣ..." : "Chanting...") : (lang === "kn" ? "ಧ್ವನಿ ಕೇಳಿ" : "Play Voice")}</span>
+                    {isAudioPlaying ? (
+                      <>
+                        <span>🔊</span>
+                        <span>{lang === "kn" ? "ಧ್ವನಿ ಪಠಣ..." : "Chanting..."}</span>
+                      </>
+                    ) : isAudioLoading ? (
+                      <>
+                        <span className="inline-block animate-spin">⏳</span>
+                        <span>{lang === "kn" ? "ಧ್ವನಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : "Synthesizing..."}</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>🔈</span>
+                        <span>{lang === "kn" ? "ಧ್ವನಿ ಕೇಳಿ" : "Play Voice"}</span>
+                      </>
+                    )}
                   </button>
                 </div>
 

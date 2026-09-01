@@ -79,72 +79,34 @@ export function playTempleBellChime(): void {
   }
 }
 
-let activeAudioElement: HTMLAudioElement | null = null;
-
 /**
- * Recites text using custom recorded audio if available from the selected Priest Voice Profile,
- * or Male Priest TTS voice with deep Vedic resonance tuned to the profile's pitch and rate
+ * Recites text using Dynamic AI Voice Cloning / Sarvam AI Indic Neural TTS
+ * with deep Vedic resonance tuned to the priest profile's pitch and rate.
+ * 
+ * STRICT RULE: Never plays pre-recorded static audio files.
  */
 export function speakPriestNarration(
   text: string,
   lang: SevaLang = "kn",
   onEnd?: () => void,
-  stepKey?: PriestAudioKey,
-  voiceId?: string
+  _stepKey?: PriestAudioKey,
+  voiceId?: string,
+  onStart?: () => void
 ): () => void {
   if (typeof window === "undefined") {
+    if (onStart) onStart();
     if (onEnd) setTimeout(onEnd, 2000);
     return () => {};
   }
 
   const profile = getVoiceProfileById(voiceId);
 
-  // 1. Check if user uploaded a custom priest voice recording for this step in this profile
-  if (stepKey && profile?.audioClips?.[stepKey]) {
-    const customAudio = profile.audioClips[stepKey];
-    if (customAudio && customAudio.dataUrl) {
-      try {
-        stopAllAudioGlobal();
-        const audio = new Audio(customAudio.dataUrl);
-        activeAudioElement = audio;
-        const unregister = registerActiveAudio(audio);
-        audio.onended = () => {
-          unregister();
-          activeAudioElement = null;
-          if (onEnd) onEnd();
-        };
-        audio.onerror = () => {
-          unregister();
-          activeAudioElement = null;
-          // fallback to TTS below
-          fallbackMaleTTS(text, lang, onEnd, profile.voicePitch, profile.voiceRate);
-        };
-        audio.play().catch(() => {
-          unregister();
-          fallbackMaleTTS(text, lang, onEnd, profile.voicePitch, profile.voiceRate);
-        });
-        return () => {
-          unregister();
-          if (activeAudioElement) {
-            try {
-              activeAudioElement.pause();
-              activeAudioElement.currentTime = 0;
-            } catch {}
-            activeAudioElement = null;
-          }
-        };
-      } catch {
-        // Fallback to TTS below
-      }
-    }
-  }
-
-  // 2. Real-time AI Voice Clone Synthesis (free Edge Neural / Hugging Face / Formant DSP)
+  // Pure Real-time AI Voice Synthesis (Sarvam AI Neural TTS with Web Speech Fallback)
   let cancelCloneFn: (() => void) | null = null;
-  synthesizeAndPlayClonedVoice(text, lang, voiceId, onEnd).then((cancelFn) => {
+  synthesizeAndPlayClonedVoice(text, lang, voiceId, onEnd, onStart).then((cancelFn) => {
     cancelCloneFn = cancelFn;
   }).catch(() => {
-    cancelCloneFn = fallbackMaleTTS(text, lang, onEnd, profile?.voicePitch || 0.74, profile?.voiceRate || 0.86);
+    cancelCloneFn = fallbackMaleTTS(text, lang, onEnd, profile?.voicePitch || 0.74, profile?.voiceRate || 0.86, onStart);
   });
 
   return () => {
@@ -158,9 +120,11 @@ function fallbackMaleTTS(
   lang: SevaLang = "kn",
   onEnd?: () => void,
   pitch = 0.74,
-  rate = 0.86
+  rate = 0.86,
+  onStart?: () => void
 ): () => void {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+    if (onStart) onStart();
     if (onEnd) setTimeout(onEnd, 2000);
     return () => {};
   }
@@ -223,6 +187,9 @@ function fallbackMaleTTS(
     }
   }
 
+  utterance.onstart = () => {
+    if (onStart) onStart();
+  };
 
   utterance.onend = () => {
     if (onEnd) onEnd();
@@ -233,7 +200,12 @@ function fallbackMaleTTS(
     if (onEnd) onEnd();
   };
 
-  window.speechSynthesis.speak(utterance);
+  try {
+    window.speechSynthesis.speak(utterance);
+    if (onStart) onStart();
+  } catch {
+    if (onEnd) onEnd();
+  }
 
   return () => {
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
@@ -244,11 +216,4 @@ function fallbackMaleTTS(
 
 export function stopPriestAudio(): void {
   stopAllAudioGlobal();
-  if (activeAudioElement) {
-    try {
-      activeAudioElement.pause();
-      activeAudioElement.currentTime = 0;
-    } catch {}
-    activeAudioElement = null;
-  }
 }

@@ -36,6 +36,9 @@ This is the primary authority skill for the Baggona Panchanga Astrology codebase
 - **Deterministic Math**: Always use `calculateDeterministicRhythmDay` in `icsCalendarGenerator.ts` to ensure calendar `.ics` entries and `DailyDarshanaPage.tsx` deep link data match 100% deterministically.
 - **Dynamic 3-Color Coding**: Green for High Energy (≥75%), Yellow for Balanced (50%–74%), Red for Caution (<50% or Chandrashtama/Difficult Tara).
 - **Priest Name**: Default priest MUST ALWAYS be **Shreeram Pandit** (`"ಶ್ರೀರಾಮ್ ಪಂಡಿತ್"`). Direct call action MUST state: *"If you need a calendar, call Shreeram Pandit: 9972339362"*.
-- **Gold Banner Graphic**: `/public/baggona_panchanga_gold_banner.jpg` MUST contain `Baggona Panchanga` text embedded inside the image.
 - **Reference Guard Skill**: For full details, see `.agents/skills/baggona-calendar-guard/SKILL.md`.
+
+## 6. Daily Darshana Audio Rules (STRICT MANDATE)
+- **Zero Pre-Recorded Static Audio Files**: NEVER use or play pre-recorded `.webm` or static audio clips on the Daily Darshana page. All speech must be dynamically synthesized in real-time from live text via Sarvam AI Indic Neural TTS (`bulbul:v3`) with in-browser Web Speech Synthesis fallback.
+- **Mandatory Button Loaders**: Every voice / dhwani button on `DailyDarshanaPage.tsx`, `DailyPoojaSankalpaModal.tsx`, and `RemedyJapa11Counter.tsx` MUST show an explicit loading indicator (spinner + `⏳ ಧ್ವನಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ...` / `Synthesizing...`) while the neural TTS network request is in flight so the user receives instant visual feedback.
 
