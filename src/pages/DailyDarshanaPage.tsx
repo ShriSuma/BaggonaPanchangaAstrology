@@ -51,6 +51,7 @@ import { PersonalGoldenHourWidget } from "../components/darshana/PersonalGoldenH
 import { DailyLuckyGemWidget } from "../components/darshana/DailyLuckyGemWidget";
 import { DailyKarmaNavigator } from "../components/darshana/DailyKarmaNavigator";
 import { DailyBlessingShareCard } from "../components/darshana/DailyBlessingShareCard";
+import { buildCleanDailyWhatsAppShareText } from "../features/darshana/dailyInspirationAlmanac";
 import { SanctumPrayerBox } from "../components/darshana/SanctumPrayerBox";
 import { playTempleBellChime } from "../features/seva/priestAudioNarrator";
 import { synthesizeAndPlayClonedVoice, stopClonedAudio } from "../features/audio/aiVoiceCloneEngine";
@@ -1823,12 +1824,23 @@ export default function DailyDarshanaPage(): JSX.Element {
   }, [isQrScanAutoDownload]);
 
   const handleShareWhatsApp = () => {
-    const text = `${dict.panchangaTitle} - ${dict.kshetraTitle}\n\n🙏 ${dict.pandit}: ${localizedPandit}\n👤 ${dict.devotee}: ${devoteeDisplayName}\n⚡ ${dict.status}: ${vibe.badgeText}\n\n🌐 View Live Darshana & Kundali:\n${window.location.href}`;
+    const text = buildCleanDailyWhatsAppShareText(
+      mockDay.ymd,
+      lang,
+      tithiLabel(mockDay, lang),
+      nakshatraName(mockDay.moonNakshatraIndex, lang)
+    );
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
   };
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(window.location.href);
+    const text = buildCleanDailyWhatsAppShareText(
+      mockDay.ymd,
+      lang,
+      tithiLabel(mockDay, lang),
+      nakshatraName(mockDay.moonNakshatraIndex, lang)
+    );
+    navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
   };

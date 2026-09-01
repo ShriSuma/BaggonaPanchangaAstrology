@@ -1435,17 +1435,50 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
                 </div>
               )}
 
-              {/* Ask Another Prashna Action */}
-              <button
-                type="button"
-                onClick={() => {
-                  setPrashnaQuestion("");
-                  window.scrollTo({ top: 100, behavior: "smooth" });
-                }}
-                className="w-full py-3 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 hover:from-amber-500 hover:to-amber-300 text-slate-950 font-black text-xs rounded-2xl shadow-md flex items-center justify-center gap-2 border border-amber-400"
-              >
-                <span>➕ ಇನ್ನೊಂದು ಪ್ರಶ್ನಾವಳಿ ಕೇಳಿ (🪙 ೨೫೦ ನಾಣ್ಯಗಳು)</span>
-              </button>
+              {/* Action Buttons: 1-Click WhatsApp Share & Ask Another */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const parasText = prashnaResult.technicalParagraphs
+                      .map((p, i) => `*${i + 1}. ${p.titleKn}*\n${p.contentKn}`)
+                      .join("\n\n");
+                    const remediesText = (prashnaResult.remedyListKn || [])
+                      .map((r, i) => `• ${r}`)
+                      .join("\n");
+                    const message = encodeURIComponent(
+                      `॥ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ॥\n\n` +
+                      `*ಅರ್ಚಕರ ಸಾಕ್ಷಾತ್ ವಾಣಿ & ದೈವಿಕ ನಿರ್ಣಯ*\n` +
+                      `👤 ಭಕ್ತರು: ${prashnaResult.devoteeName} (${prashnaResult.gothra} ಗೋತ್ರ)\n` +
+                      `❓ ಪ್ರಶ್ನೆ: ${prashnaResult.question}\n` +
+                      `🪐 ಸಂಖ್ಯೆ: ${prashnaResult.number} (ಅಧಿಪತಿ: ${prashnaResult.rulingPlanetKn} - ${prashnaResult.natureKn})\n` +
+                      `🧭 ಶೋಧನಾ ದಿಕ್ಕು: ${prashnaResult.rulingDirectionKn}\n` +
+                      `⏳ ಕಾಲಾವಧಿ: ${prashnaResult.auspiciousTimeframeKn}\n` +
+                      `🗝️ ಸ್ಥಳ/ವಸ್ತು ಸುಳಿವು: ${prashnaResult.lostArticleOrPersonKn}\n\n` +
+                      `${parasText}\n\n` +
+                      `*🪔 ಬಗ್ಗೋಣ ದೈವಿಕ ಪರಿಹಾರಗಳು:*\n${remediesText}\n\n` +
+                      `॥ ಶ್ರೀ ಮಹಾಗಣಪತಿ ಪ್ರಸನ್ನ • ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ॥`
+                    );
+                    window.open(`https://api.whatsapp.com/send?text=${message}`, "_blank");
+                  }}
+                  className="py-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-black text-xs rounded-2xl shadow-md flex items-center justify-center gap-1.5 border border-emerald-400 active:scale-95 transition-all"
+                >
+                  <span>💬</span>
+                  <span>WhatsApp ನಲ್ಲಿ ವರದಿ ಕಳುಹಿಸಿ</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPrashnaQuestion("");
+                    window.scrollTo({ top: 100, behavior: "smooth" });
+                  }}
+                  className="py-3 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 hover:from-amber-500 hover:to-amber-300 text-slate-950 font-black text-xs rounded-2xl shadow-md flex items-center justify-center gap-2 border border-amber-400 active:scale-95 transition-all"
+                >
+                  <span>➕</span>
+                  <span>ಇನ್ನೊಂದು ಪ್ರಶ್ನಾವಳಿ ಕೇಳಿ (🪙 ೨೫೦)</span>
+                </button>
+              </div>
 
               {/* Previous Prashna Session History */}
               {prashnaHistory.length > 1 && (
