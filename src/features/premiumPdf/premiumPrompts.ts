@@ -57,8 +57,8 @@ export type PremiumPromptInput = {
   name: string;
   gender?: "Male" | "Female";
   ageYears: number;
-  maritalStatus?: "unmarried" | "married";
-  hasChildren?: "no_children" | "has_children";
+  maritalStatus?: "unmarried" | "married" | "general";
+  hasChildren?: "no_children" | "has_children" | "general";
 
   lagnaRashiIndex: number | null;
   moonRashiIndex: number | null;
@@ -319,8 +319,8 @@ MUST BE 100% MATHEMATICALLY ACCURATE to the computed Dasha-Bhukti and transits p
 ${JSON_RULE}
 {"currentPhase":[{"impact":"paragraph 1\n\nparagraph 2\n\nparagraph 3\n\nparagraph 4"}]}`;
 
-  const maritalSel = input.maritalStatus || "unmarried";
-  const childrenSel = input.hasChildren || "no_children";
+  const maritalSel = input.maritalStatus || (input as any).marital || "general";
+  const childrenSel = input.hasChildren || (input as any).childrenStatus || "general";
   const h7Idx = input.lagnaRashiIndex !== null ? (input.lagnaRashiIndex + 6) % 12 : 6;
   const h7SignName = rashiName(h7Idx, lang);
   const h5Idx = input.lagnaRashiIndex !== null ? (input.lagnaRashiIndex + 4) % 12 : 4;
@@ -341,15 +341,19 @@ Provide a 100% personalized astrological reading for the following 5 life catego
    - ${(input.gender || "Male") === "Female" 
        ? "For FEMALE NATIVE: Analyze 7th House Lord + Jupiter (Jeevakaraka) + 8th House (Mangalya Sthana) for husband's characteristics, profession, and marital protection." 
        : "For MALE NATIVE: Analyze 7th House Lord + Venus (Shukrakaraka) for wife's characteristics, profession, and domestic harmony."}
-   - ${maritalSel === "unmarried" 
-       ? "Write EXACTLY THREE detailed paragraphs for UNMARRIED status: Paragraph 1 analyzes 7th house lord placement, Venus/Jupiter aspect, running " + dashaLine + ", and live transits to predict the exact 12-18 month marriage window and family timing. Paragraph 2 details spouse's personality, intellect, moral values, family background, profession, and direction of arrival relative to birthplace. Paragraph 3 details Kuja/Manglik planetary afflictions, subtle karmic delays, exact daily mantra remedies ('Om Shreem Gauryai Namah', 'Om Saptamadhipataye Namah'), Gauri/Subramanya Pooja, and Gokarna Mangala Seva."
-       : "Write EXACTLY THREE detailed paragraphs for MARRIED status: Paragraph 1 analyzes 7th house lord placement, running " + dashaLine + ", transit influences, and gender karaka (Venus for male, Jupiter/8th house for female) on mutual trust and domestic security. Paragraph 2 details deep mutual understanding and how partners have understood each other over time, mutual respect in key financial and family decisions, navigating life's milestones together with patience and empathy. Paragraph 3 details joint career/financial growth with spouse, household prosperity, resolving occasional minor friction with open communication, and Lakshmi Narayan home remedies."}
+   - ${maritalSel === "married"
+       ? "Write EXACTLY THREE detailed paragraphs for MARRIED status: Paragraph 1 analyzes 7th house lord placement, running " + dashaLine + ", transit influences, and gender karaka (Venus for male, Jupiter/8th house for female) on mutual trust and domestic security. Paragraph 2 details deep mutual understanding and how partners support each other, mutual respect in key financial and family decisions, navigating life's milestones together with patience and empathy. Paragraph 3 details joint career/financial growth with spouse, household prosperity, resolving occasional minor friction with open communication, and Lakshmi Narayan / Gauri Shankara home remedies."
+       : maritalSel === "unmarried"
+       ? "Write EXACTLY THREE detailed paragraphs for UNMARRIED status: Paragraph 1 analyzes 7th house lord placement, Venus/Jupiter aspect, running " + dashaLine + ", and live transits to determine the precise timing of Vivaha Yoga (Kankana Bhagya) and past delay reasons. Paragraph 2 details spouse's personality, intellect, moral values, family background, profession, and direction of arrival relative to birthplace. Paragraph 3 details Kuja/Manglik planetary afflictions, subtle karmic delays, exact daily mantra remedies ('Om Shreem Gauryai Namah', 'Om Saptamadhipataye Namah'), Gauri/Subramanya Pooja, and Gokarna Mangala Seva."
+       : "Write EXACTLY THREE detailed paragraphs for GENERAL status: Paragraph 1 analyzes 7th house lord placement, running " + dashaLine + ", and benefic/malefic aspects on partnership karma. Paragraph 2 details mutual understanding, emotional compatibility, and relational growth. Paragraph 3 details classical remedies for marital and relationship harmony."}
 
 2. Children & Progeny (User Selected Status: ${childrenSel.toUpperCase()}):
    - 5th House Sign: ${h5SignName}.
-   - ${childrenSel === "no_children"
-       ? "Write EXACTLY TWO detailed paragraphs for NO CHILDREN status: Paragraph 1 analyzes 5th house lord placement, Jupiter (Putrakaraka) aspect, running " + dashaLine + ", and 18-month transits for conception, maternal health, and Santana Yoga timing. Paragraph 2 details Santana Gopala Mantra chanting and Subramanya Seva remedies."
-       : "Write EXACTLY TWO detailed paragraphs for HAS CHILDREN status: Paragraph 1 analyzes 5th house lord placement and planetary influences on children's academic success and talents. Paragraph 2 details their future growth, parental guidance, and family harmony."}
+   - ${childrenSel === "has_children"
+       ? "Write EXACTLY TWO detailed paragraphs for HAS CHILDREN status: Paragraph 1 analyzes 5th house lord placement, Jupiter (Putrakaraka), and planetary influences on children's academic success, intellect, unique talents, and moral virtues. Paragraph 2 details their future growth, career prospects, health, family bond, and parental spiritual guidance."
+       : childrenSel === "no_children"
+       ? "Write EXACTLY TWO detailed paragraphs for SEEKING PROGENY (NO CHILDREN) status: Paragraph 1 analyzes 5th house (Santana Bhava), 5th lord placement, Jupiter (Putrakaraka) aspect, running " + dashaLine + ", and live transits to calculate the auspicious conception and progeny window. Paragraph 2 details progeny obstacle removal, subtle Santana doshas (Sarpa/Pitru/Guru Chandal), daily Santana Gopala Mantra chanting, and Gokarna Subramanya Homa / Shanti remedies."
+       : "Write EXACTLY TWO detailed paragraphs for GENERAL status: Paragraph 1 analyzes 5th house (Poorva Punya & Progeny), 5th house lord dignity, and Jupiter's benefic influence on intelligence and progeny lineage. Paragraph 2 details intellectual legacy, creative endeavors, and classical remedies for family prosperity."}
 
 3. Career & Profession:
    - Write TWO detailed paragraphs on 10th house lord, job stability, promotions, and business growth.

@@ -18,7 +18,7 @@ describe('PDF Report Contract & Regression Test Suite', () => {
       }
 
       // Check key Marriage details
-      expect(textKn.toLowerCase()).toContain('೭ನೇ ಮನೆ');
+      expect(textKn.toLowerCase()).toContain('7ನೇ ಮನೆ');
       expect(textKn.toLowerCase()).toContain('ಸುಬ್ರಹ್ಮಣ್ಯ');
       expect(textEn.toLowerCase()).toContain('7th house');
       expect(textEn.toLowerCase()).toContain('gauri');
@@ -117,6 +117,8 @@ describe('PDF Report Contract & Regression Test Suite', () => {
         timezone: 5.5,
         targetLanguage: "kn",
         ayanamsha: "Lahiri",
+        maritalStatus: "unmarried",
+        childrenStatus: "no_children",
         roadmap: [],
         natalPlanets: [],
         transits: [],
@@ -171,6 +173,41 @@ describe('PDF Report Contract & Regression Test Suite', () => {
       } as any);
 
       expect(marriedPrompts.bhavishya).toContain("Write EXACTLY THREE detailed paragraphs for MARRIED status");
+      expect(marriedPrompts.bhavishya).toContain("Write EXACTLY TWO detailed paragraphs for HAS CHILDREN status");
+
+      // Test general / default prompt
+      const generalPrompts = buildPremiumPrompts({
+        personName: "Test User",
+        gender: "Male",
+        birthDate: "1993-05-31",
+        birthTime: "09:25",
+        birthPlace: "Gokarna",
+        latitude: 14.54,
+        longitude: 74.31,
+        timezone: 5.5,
+        targetLanguage: "kn",
+        ayanamsha: "Lahiri",
+        maritalStatus: "general",
+        childrenStatus: "general",
+        roadmap: [],
+        natalPlanets: [],
+        transits: [],
+        findings: [],
+        engineYogas: [],
+        engineDoshas: [],
+        chartData: {
+          lagnaSign: "Karka",
+          moonSign: "Tula",
+          sunSign: "Vrishabha",
+          nakshatra: "Chitra",
+          nakshatraPada: 1,
+          dashaLord: "Venus",
+          bhuktiLord: "Rahu"
+        }
+      } as any);
+
+      expect(generalPrompts.bhavishya).toContain("Write EXACTLY THREE detailed paragraphs for GENERAL status");
+      expect(generalPrompts.bhavishya).toContain("Write EXACTLY TWO detailed paragraphs for GENERAL status");
     });
   });
 

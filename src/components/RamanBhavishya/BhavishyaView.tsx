@@ -103,7 +103,7 @@ export function buildPersonalizedMarriageText(
   lang: string,
   lagnaStr: string,
   moonStr: string,
-  status: "unmarried" | "married",
+  status: "unmarried" | "married" | "general",
   lagnaIndex: number = 0,
   dashaStr: string = "Running Dasha",
   bhuktiStr: string = "Sub Dasha",
@@ -118,58 +118,114 @@ export function buildPersonalizedMarriageText(
 
   if (status === "unmarried") {
     if (baseLang === "kn") {
-      return `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${lagnaStr}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${moonStr}) ಆಧಾರದ ಮೇಲೆ, ನಿಮ್ಮ ೭ನೇ ಮನೆಯಾದ ${house7SignName} ರಾಶಿ ಹಾಗೂ ಅದರ ಅಧಿಪತಿಯಾದ ${house7Lord} ಗ್ರಹದ ಬಲ ಹಾಗೂ ನಿಮ್ಮ ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dashaStr} ಮಹಾದಶಾ ಮತ್ತು ${bhuktiStr} ಭುಕ್ತಿ ಕಾಲಘಟ್ಟವು ಮುಂದಿನ 12 ರಿಂದ 18 ತಿಂಗಳಲ್ಲಿ ಉನ್ನತ ವಿವಾಹ ಯೋಗವನ್ನು ಅತ್ಯಂತ ಪ್ರಬಲವಾಗಿ ಸಕ್ರಿಯಗೊಳಿಸುತ್ತದೆ. ಜಾತಕದ ೭ನೇ ಮನೆಯ ಮೇಲೆ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಶುಭ ದೃಷ್ಟಿಯು ಬೀಳುತ್ತಿರುವುದರಿಂದ, ಕೌಟುಂಬಿಕ ಮಾತುಕತೆಗಳು ಅತ್ಯಂತ ಸರಾಗವಾಗಿ ಮುನ್ನಡೆದು ಶೀಘ್ರದಲ್ಲಿಯೇ ಶ್ರೇಷ್ಠ ಕಲ್ಯಾಣ ಯೋಗ ಕೂಡಿ ಬರಲಿದೆ. ನಿಮ್ಮ ಗ್ರಹಗತಿಗಳ ನಿಖರ ಲೆಕ್ಕಾಚಾರದಂತೆ ಈ ಅವಧಿಯು ವೈವಾಹಿಕ ಮುಹೂರ್ತಕ್ಕೆ ಅತ್ಯಂತ ಪ್ರಶಸ್ತವಾದ ಕಾಲವಾಗಿದೆ.
+      return `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${lagnaStr}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${moonStr}) ಆಧಾರದ ಮೇಲೆ, ನಿಮ್ಮ 7ನೇ ಮನೆಯಾದ ${house7SignName} ರಾಶಿ ಹಾಗೂ ಅದರ ಅಧಿಪತಿಯಾದ ${house7Lord} ಗ್ರಹದ ಬಲ ಹಾಗೂ ನಿಮ್ಮ ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dashaStr} ಮಹಾದಶಾ ಮತ್ತು ${bhuktiStr} ಭುಕ್ತಿ ಕಾಲಘಟ್ಟವು ವಿವಾಹ ಯೋಗವನ್ನು ಪ್ರಬಲವಾಗಿ ಸಕ್ರಿಯಗೊಳಿಸುತ್ತದೆ. ಜಾತಕದ 7ನೇ ಮನೆಯ ಮೇಲೆ ಶುಭ ಗ್ರಹಗಳ ದೃಷ್ಟಿಯು ಬೀಳುತ್ತಿರುವುದರಿಂದ, ಕೌಟುಂಬಿಕ ಮಾತುಕತೆಗಳು ಸರಾಗವಾಗಿ ಮುನ್ನಡೆದು ಶೀಘ್ರದಲ್ಲಿಯೇ ಶ್ರೇಷ್ಠ ಕಲ್ಯಾಣ ಯೋಗ ಕೂಡಿ ಬರಲಿದೆ. ನಿಮ್ಮ ಗ್ರಹಗತಿಗಳ ನಿಖರ ಲೆಕ್ಕಾಚಾರದಂತೆ ಮುಂಬರುವ ಗೋಚಾರ ಸಂಚಾರವು ವೈವಾಹಿಕ ಮುಹೂರ್ತಕ್ಕೆ ಅತ್ಯಂತ ಪ್ರಶಸ್ತವಾಗಿದೆ.
 
 ನಿಮಗೆ ಲಭಿಸುವ ಜೀವನ ಸಂಗಾತಿಯು ಅತ್ಯಂತ ಶಿಸ್ತುಬದ್ಧ, ದೈವಭಕ್ತಿ ಉಳ್ಳವರು ಹಾಗೂ ಸಂಸ್ಕೃತಿಕ ಗೌರವ ಹೊಂದಿರುವ ಶ್ರೇಷ್ಠ ಕುಟುಂಬದ ಹಿನ್ನೆಲೆಯಿಂದ ಬರುವವರಾಗಿದ್ದಾರೆ. ಅವರ ಸೌಮ್ಯ ಸ್ವಭಾವ, ತರ್ಕಬದ್ಧ ಆಲೋಚನೆ ಹಾಗೂ ಉದ್ಯೋಗ ಅಥವಾ ಉದ್ಯಮ ಕ್ಷೇತ್ರದಲ್ಲಿನ ಯಶಸ್ಸು ನಿಮ್ಮ ಮುಂಬರುವ ಸಂಸಾರಕ್ಕೆ ಬಲ ತುಂಬಲಿದೆ. ಜಾತಕದ ದಿಕ್ಬಲ ನಿಯಮಗಳ ಪ್ರಕಾರ, ನಿಮ್ಮ ಜನ್ಮಸ್ಥಳದಿಂದ ಪೂರ್ವ ಅಥವಾ ಈಶಾನ್ಯ ದಿಕ್ಕಿನಿಂದ ಅತ್ಯುತ್ತಮ ಹಾಗೂ ಯೋಗ್ಯವಾದ ವೈವಾಹಿಕ ಸಂಬಂಧಗಳು ಒದಗಿಬರುವ ಶುಭ ಸಾಧ್ಯತೆಗಳು ದಟ್ಟವಾಗಿವೆ. ಸಂಗಾತಿಯ ಆಗಮನದಿಂದ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ನೆಮ್ಮದಿ ಹಾಗೂ ಸಕಲ ಸೌಭಾಗ್ಯಗಳು ವೃದ್ಧಿಯಾಗಲಿವೆ.
 
 ವೈವಾಹಿಕ ಕಾರ್ಯಗಳಲ್ಲಿ ಕಂಡುಬರುವ ಸಣ್ಣಪುಟ್ಟ ವಿಳಂಬ ಅಥವಾ ಕುಜನ ದೋಷದ ಪ್ರಭಾವ ನಿವಾರಣೆಗಾಗಿ ಮಂಗಳವಾರ ಮತ್ತು ಶುಕ್ರವಾರದ ದಿನಗಳಲ್ಲಿ ಸುಬ್ರಹ್ಮಣ್ಯ ಸ್ವಾಮಿ ಮತ್ತು ಗೌರಿ ಪೂಜೆಯನ್ನು ನಿಷ್ಠೆಯಿಂದ ನೆರವೇರಿಸುವುದು ಶ್ರೇಷ್ಠವಾಗಿದೆ. ನಿತ್ಯವೂ ಪ್ರಾತಃಕಾಲದಲ್ಲಿ "ಓಂ ಶ್ರೀಂ ಗೌರ್ಯೈ ನಮಃ" ಹಾಗೂ "ಓಂ ಸಪ್ತಮಾಧಿಪತಯೇ ನಮಃ" ಮಂತ್ರಗಳನ್ನು 108 ಬಾರಿ ಜಪಿಸುವುದರಿಂದ ಮಂಗಲ ದೋಷ ಶಾಂತಿಯಾಗುತ್ತದೆ. ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಕ್ಷೇತ್ರದಲ್ಲಿ ಮಂಗಲ ಸೇವೆ ಸಮರ್ಪಿಸುವುದರಿಂದ ಸಕಲ ವಿಘ್ನಗಳು ನಿವಾರಣೆಯಾಗಿ ಶೀಘ್ರ ಕಲ್ಯಾಣ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ.`;
     }
     if (baseLang === "hi") {
-      return `आपकी जन्म लग्न (${lagnaStr}) और चंद्र राशि (${moonStr}) के आधार पर, आपके सप्तम भाव (${house7SignName}) के स्वामी ${house7Lord} की स्थिति तथा आपकी वर्तमान ${dashaStr} महादशा एवं ${bhuktiStr} भुक्ति का प्रभाव अगले 12 से 18 महीनों में विवाह योग को अत्यंत प्रबल रूप से सक्रिय करता है। सप्तम भाव पर देवगुरु बृहस्पति की अमृत दृष्टि से पारिवारिक चर्चाएं सुचारू रूप से आगे बढ़ेंगी और विवाह के प्रयास शीघ्र ही सफलता में परिणत होंगे। ग्रहों के इस निपुण प्रभाव से वैवाहिक अड़चनें समाप्त होकर शीघ्र कल्याण योग बनेगा।
+      return `आपकी जन्म लग्न (${lagnaStr}) और चंद्र राशि (${moonStr}) के आधार पर, आपके सप्तम भाव (${house7SignName}) के स्वामी ${house7Lord} की स्थिति तथा आपकी वर्तमान ${dashaStr} महादशा एवं ${bhuktiStr} भुक्ति का प्रभाव विवाह योग को अत्यंत प्रबल रूप से सक्रिय करता है। सप्तम भाव पर शुभ ग्रहों की दृष्टि से पारिवारिक चर्चाएं सुचारू रूप से आगे बढ़ेंगी और विवाह के प्रयास शीघ्र ही सफलता में परिणत होंगे। ग्रहों के इस निपुण प्रभाव से वैवाहिक अड़चनें समाप्त होकर शीघ्र कल्याण योग बनेगा।
 
 आपके भावी जीवनसाथी एक अत्यंत संस्कारी, बुद्धिमान, अनुशासित तथा प्रतिष्ठित परिवार से संबंध रखने वाले होंगे। उनका सौम्य व्यवहार, तार्किक सोच और करियर या व्यवसाय में उनकी सफलता आपके दांपत्य जीवन को संबल प्रदान करेगी। ज्योतिषीय दिशा नियमों के अनुसार, आपके जन्मस्थान से पूर्व या उत्तर-पूर्व दिशा से अत्यंत योग्य और उत्तम विवाह प्रस्ताव आने की प्रबल संभावना है। जीवनसाथी के आगमन से आपके जीवन में सुख, समृद्धि और शांति का विस्तार होगा।
 
 विवाह में आ रहे किसी भी प्रकार के विलंब या मंगल दोष के प्रभाव के निवारण हेतु मंगलवार और शुक्रवार को श्री सुब्रह्मण्य स्वामी और गौरी माता की पूजा निष्ठापूर्वक करें। प्रतिदिन प्रातःकाल "ॐ श्रीं गौर्यै नमः" और "ॐ सप्तमेशाय नमः" मंत्र का 108 बार जाप करने से मंगल दोष शांत होता है। गोकर्ण क्षेत्र में मंगल सेवा समर्पित करने से समस्त बाधाएं दूर होकर शीघ्र विवाह योग सिद्ध होता है।`;
     }
     if (baseLang === "te") {
-      return `మీ జన్మ లగ్నం (${lagnaStr}) మరియు చంద్ర రాశి (${moonStr}) ఆధారంగా, 7వ అధిపతి అయిన ${house7Lord} స్థానం మరియు మీ ప్రస్తుత ${dashaStr} మహాతశ, ${bhuktiStr} భుక్తి కాలం రాబోయే 12 నుండి 18 నెలల్లో వివాహ యోగాన్ని మిక్కిలి బలంగా సక్రియం చేస్తుంది. 7వ భావంపై గురు భగవానుని అమృత దృష్టి ప్రసరించడం వలన కుటుంబ సంభాషణలు సునాయాసంగా సాగి, త్వరలోనే కళ్యాణ యోగం కుదురుతుంది. ఈ సమయం మీ జీవితంలో శుభ కార్యాలకు ఎంతో అనుకూలమైనది.
+      return `మీ జన్మ లగ్నం (${lagnaStr}) మరియు చంద్ర రాశి (${moonStr}) ఆధారంగా, 7వ అధిపతి అయిన ${house7Lord} స్థానం మరియు మీ ప్రస్తుత ${dashaStr} మహాతశ, ${bhuktiStr} భుక్తి కాలం వివాహ యోగాన్ని మిక్కిలి బలంగా సక్రియం చేస్తుంది. 7వ భావంపై శుభ గ్రహాల అమృత దృష్టి ప్రసరించడం వలన కుటుంబ సంభాషణలు సునాయాసంగా సాగి, త్వరలోనే కళ్యాణ యోగం కుదురుతుంది. ఈ సమయం మీ జీవితంలో శుభ కార్యాలకు ఎంతో అనుకూలమైనది.
 
 మీకు లభించే జీవిత భాగస్వామి మిక్కిలి క్రమశిక్షణ, దైవభక్తి మరియు సాంస్కృతిక గౌరవం కలిగిన ఉదాత్తమైన కుటుంబ నేపథ్యం నుండి వచ్చేవారవుతారు. వారి సౌమ్య స్వభావం, తెలివితేటలు మరియు వృత్తి రంగంలో వారు సాధించే విజయం మీ జీవితానికి గొప్ప బలాన్ని ఇస్తాయి. జాతక దిశా నియమాల ప్రకారం, మీ జన్మస్థలం నుండి తూర్పు లేదా ఈశాన్య దిశల నుండి అత్యుత్తమ వివాహ ప్రతిపాదనలు వచ్చే అవకాశాలు మెండుగా ఉన్నాయి.
 
 వివాహ ప్రయత్నాలలో ఎదురయ్యే ఆలస్యం లేదా కుజ దోష నివారణకు మంగళవారం మరియు శుక్రవారాల్లో శ్రీ సుబ్రహ్మణ్య స్వామి మరియు గౌరీ పూజలను భక్తిశ్రద్ధలతో నిర్వహించడం శ్రేయస్కరం. నిత్యం ఉదయాన్నే "ఓం శ్రీం గౌర్యై నమః" మరియు "ఓం సప్తమాధిపతయే నమః" మంత్రాలను 108 సార్లు జపించడం వలన మంగళ దోష నివారణ జరుగుతుంది. గోకర్ణ క్షేత్రంలో మంగళ సేవ సమర్పించడం ద్వారా శీఘ్ర వివాహ సిద్ధి లభిస్తుంది.`;
     }
     if (baseLang === "ta") {
-      return `உங்கள் லக்னம் (${lagnaStr}) மற்றும் சந்திர ராசி (${moonStr}) அடிப்படையில், 7 ஆம் அதிபதி ${house7Lord} மற்றும் தற்போதைய ${dashaStr} தசா, ${bhuktiStr} புக்தி காலம் அடுத்த 12 முதல் 18 மாதங்களில் திருமண யோகத்தை மிகவும் வலுவாக உருவாக்குகிறது. 7 ஆம் இடத்தின் மீது குருவின் சுப பார்வை பதிவதால், குடும்பப் பேச்சுகள் சுமுகமாக நடந்து விரைவில் திருமண யோகம் கூடிவரும். கிரகங்களின் சுப பலத்தினால் திருமணத் தடைகள் விலகி நன்மைகள் நடக்கும்.
+      return `உங்கள் லக்னம் (${lagnaStr}) மற்றும் சந்திர ராசி (${moonStr}) அடிப்படையில், 7 ஆம் அதிபதி ${house7Lord} மற்றும் தற்போதைய ${dashaStr} தசா, ${bhuktiStr} புக்தி காலம் திருமண யோகத்தை மிகவும் வலுவாக உருவாக்குகிறது. 7 ஆம் இடத்தின் மீது சுப கிரகங்களின் பார்வை பதிவதால், குடும்பப் பேச்சுகள் சுமுகமாக நடந்து விரைவில் திருமண யோகம் கூடிவரும். கிரகங்களின் சுப பலத்தினால் திருமணத் தடைகள் விலகி நன்மைகள் நடக்கும்.
 
 உங்களுக்கு அமையவிருக்கும் வாழ்க்கைத்துணை சிறந்த பண்பாடும், இறைநம்பிக்கையும், சமூக மரியாதையும் கொண்ட குடும்பத்தைச் சேர்ந்தவராக இருப்பார். அவரின் அமைதியான சுபாவம், அறிவாற்றல் மற்றும் தொழில் சார்ந்த வெற்றிகள் உங்கள் வாழ்க்கைக்கு பெரும் பலமாக அமையும். திசை பலன்களின்படி, உங்கள் பிறந்த இடத்திலிருந்து கிழக்கு அல்லது வடகிழக்கு திசையிலிருந்து நல்ல வரன்கள் வர வாய்ப்புள்ளது.
 
 திருமண காரியங்களில் ஏற்படும் தாமதங்கள் மற்றும் செவ்வாய் தோஷ பலன்களைப் போக்க செவ்வாய் மற்றும் வெள்ளிக்கிழமைகளில் ஸ்ரீ சுப்பிரமணிய சுவாமி மற்றும் கௌரி அம்மன் வழிபாடு செய்வது மிகவும் நன்மையளிக்கும். தினமும் காலையில் "ஓம் ஸ்ரீம் கௌர்யை நமஹ" மந்திரத்தை 108 முறை ஜபித்து, கோகர்ண க்ஷேத்திரத்தில் மங்கள சேவை சமர்ப்பிப்பதன் மூலம் திருமண தடைகள் நீங்கி விரைவில் சுபயோகம் கூடிவரும்.`;
     }
-    return `Based on your birth Lagna (${lagnaStr}) and Moon sign (${moonStr}), the strength of your 7th house lord ${house7Lord} along with your current ${dashaStr} Mahadasha and ${bhuktiStr} Bhukti strongly activates a highly auspicious marriage window over the next 12 to 18 months. The divine aspect of Jupiter upon the 7th house ensures that family discussions progress smoothly and obstacles dissolve naturally. This represents an exceptional planetary timing for sacred matrimony.
+    return `Based on your birth Lagna (${lagnaStr}) and Moon sign (${moonStr}), the strength of your 7th house lord ${house7Lord} along with your current ${dashaStr} Mahadasha and ${bhuktiStr} Bhukti strongly activates an auspicious marriage window. The benefic planetary aspects upon the 7th house ensure that family discussions progress smoothly and obstacles dissolve naturally, aligning planetary transits for sacred matrimony.
 
 Your future life partner will hail from an esteemed, culturally rooted family background, embodying discipline, deep empathy, and strong moral principles. Their intellect, calm demeanor, and achievements in professional spheres will provide immense strength to your joint journey. According to directional planetary strength, auspicious alliance proposals are most likely to emerge from the East or North-East direction relative to your birthplace.
 
 To overcome any subtle karmic delays or marital obstacles caused by Kuja/Manglik planetary afflictions, performing Gauri Pooja and Sri Subramanya Seva on Tuesdays and Fridays is highly recommended. Daily morning chanting of "Om Shreem Gauryai Namah" 108 times, alongside offering a Mangala Seva at Gokarna Mahabaleshwara Kshetra, will neutralize afflictions, remove delays, and grant early marital blessings.`;
-  } else {
+  } else if (status === "married") {
     // married
     if (baseLang === "kn") {
-      return `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${lagnaStr}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${moonStr}) ಆಧಾರದ ಮೇಲೆ, ಸಪ್ತಮ ಭಾವಾಧಿಪತಿಯಾದ ${house7Lord} ಹಾಗೂ ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dashaStr} ದಶಾ ಮತ್ತು ${bhuktiStr} ಭುಕ್ತಿ ಕಾಲಘಟ್ಟದ ಶುಭ ಬಲದಿಂದಾಗಿ ನಿಮ್ಮ ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿ ಪರಸ್ಪರ ನಂಬಿಕೆ, ಪ್ರೀತಿ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಸಾಮರಸ್ಯವು ವೃದ್ಧಿಯಾಗುತ್ತದೆ. ಕುಟುಂಬದಲ್ಲಿ ಶಾಂತಿ ಹಾಗೂ ಭದ್ರತೆ ನೆಲೆಸುತ್ತದೆ.
+      return `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${lagnaStr}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${moonStr}) ಆಧಾರದ ಮೇಲೆ, ಸಪ್ತಮ ಭಾವಾಧಿಪತಿಯಾದ ${house7Lord} ಹಾಗೂ ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dashaStr} ಮಹಾದಶಾ ಮತ್ತು ${bhuktiStr} ಭುಕ್ತಿ ಕಾಲಘಟ್ಟದ ಶುಭ ಬಲದಿಂದಾಗಿ ನಿಮ್ಮ ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿ ಪರಸ್ಪರ ನಂಬಿಕೆ, ಆಳವಾದ ಪ್ರೀತಿ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಸಾಮರಸ್ಯವು ನಿರಂತರವಾಗಿ ವೃದ್ಧಿಯಾಗುತ್ತದೆ. ಗ್ರಹಗಳ ಶುಭ ಸ್ಥಿತಿಯು ಗೃಹದಲ್ಲಿ ಸುಖ, ಶಾಂತಿ ಹಾಗೂ ಭದ್ರತೆಯನ್ನು ಕಾಪಾಡುತ್ತದೆ.
 
-ಕೌಟುಂಬಿಕ ಹಾಗೂ ಆರ್ಥಿಕ ನಿರ್ಧಾರಗಳನ್ನು ಕೈಗೊಳ್ಳುವಾಗ ನಿಮ್ಮ ಸಂಗಾತಿಯ ಸಲಹೆ ಮತ್ತು ಅಭಿಪ್ರಾಯಗಳನ್ನು ಗೌರವಿಸುವುದು ದಾಂಪತ್ಯವನ್ನು ಮತ್ತಷ್ಟು ಭದ್ರಗೊಳಿಸುತ್ತದೆ. ಇಬ್ಬರೂ ಒಟ್ಟಾಗಿ ಕೈಗೊಳ್ಳುವ ಯೋಜನೆಯು ಭವಿಷ್ಯದ ಅಭಿವೃದ್ಧಿಗೆ ದಾರಿಯಾಗುತ್ತದೆ. ನಿಮ್ಮಿಬ್ಬರ ವೈಚಾರಿಕ ಸಾಮರಸ್ಯವು ಮನೆ ಮಂದಿಗೂ ಉತ್ತಮ ಪ್ರೇರಣೆಯಾಗಲಿದೆ.
+ಕೌಟುಂಬಿಕ ಹಾಗೂ ಆರ್ಥಿಕ ನಿರ್ಧಾರಗಳನ್ನು ಕೈಗೊಳ್ಳುವಾಗ ನಿಮ್ಮ ಸಂಗಾತಿಯ ಸಲಹೆ ಮತ್ತು ಅಭಿಪ್ರಾಯಗಳನ್ನು ಗೌರವಿಸುವುದು ದಾಂಪತ್ಯವನ್ನು ಮತ್ತಷ್ಟು ಸುದೃಢಗೊಳಿಸುತ್ತದೆ. ಇಬ್ಬರೂ ಒಟ್ಟಾಗಿ ಕೈಗೊಳ್ಳುವ ದೀರ್ಘಾವಧಿ ಯೋಜನೆಗಳು ಆಸ್ತಿ ಹಾಗೂ ಆರ್ಥಿಕ ಸಮೃದ್ಧಿಗೆ ದಾರಿಯಾಗಲಿವೆ. ಪರಸ್ಪರ ಗೌರವ ಹಾಗೂ ಸಹನೆಯು ನಿಮ್ಮ ಕುಟುಂಬದ ನೆಮ್ಮದಿಗೆ ಮೂಲಾಧಾರವಾಗಲಿದೆ.
 
-ದಾಂಪತ್ಯದಲ್ಲಿ ಒಮ್ಮೊಮ್ಮೆ ಕಂಡುಬರುವ ಸಣ್ಣಪುಟ್ಟ ಮನಸ್ತಾಪಗಳು ಅಥವಾ ತಪ್ಪು ತಿಳುವಳಿಕೆಗಳನ್ನು ಶಾಂತಚಿತ್ತದ ಮಾತುಕತೆಯ ಮೂಲಕ ಪರಿಹರಿಸಿಕೊಳ್ಳಿ. ಪ್ರತಿ ಶುಕ್ರವಾರ ಮನೆಯಲ್ಲಿ ದೇವಿಗೆ ದೀಪ ಹಚ್ಚಿ ಲಕ್ಷ್ಮೀ ನಾರಾಯಣ ಪೂಜೆ ಮಾಡಿಸುವುದು ಹಾಗೂ ಪ್ರಾರ್ಥಿಸುವುದು ಕೌಟುಂಬಿಕ ಸೌಖ್ಯ ಹಾಗೂ ಅಷ್ಟೈಶ್ವರ್ಯಗಳನ್ನು ಹೆಚ್ಚಿಸುತ್ತದೆ.`;
+ದಾಂಪತ್ಯದಲ್ಲಿ ಒಮ್ಮೊಮ್ಮೆ ಕಂಡುಬರುವ ಸಣ್ಣಪುಟ್ಟ ಮನಸ್ತಾಪಗಳನ್ನು ಶಾಂತಚಿತ್ತದ ಮುಕ್ತ ಮಾತುಕತೆಯ ಮೂಲಕ ಪರಿಹರಿಸಿಕೊಳ್ಳಿ. ಪ್ರತಿ ಶುಕ್ರವಾರ ಮನೆಯಲ್ಲಿ ದೇವಿಗೆ ದೀಪ ಹಚ್ಚಿ ಶ್ರೀ ಲಕ್ಷ್ಮೀ ನಾರಾಯಣ ಅಥವಾ ಗೌರಿ-ಶಂಕರ ಪೂಜೆ ಮಾಡಿಸುವುದು ಹಾಗೂ ಪ್ರಾರ್ಥಿಸುವುದು ಕೌಟುಂಬಿಕ ಸೌಖ್ಯ ಹಾಗೂ ಅಷ್ಟೈಶ್ವರ್ಯಗಳನ್ನು ವೃದ್ಧಿಸುತ್ತದೆ.`;
+    }
+    if (baseLang === "hi") {
+      return `आपकी जन्म लग्न (${lagnaStr}) और चंद्र राशि (${moonStr}) के आधार पर, सप्तमेश ${house7Lord} तथा वर्तमान ${dashaStr} महादशा एवं ${bhuktiStr} भुक्ति के शुभ प्रभाव से दांपत्य जीवन में परस्पर विश्वास, गहरा प्रेम और पारिवारिक सामंजस्य निरंतर मजबूत होगा। गृहस्थी में सुख, शांति और सुरक्षा का वातावरण बना रहेगा।
+
+पारिवारिक एवं वित्तीय निर्णय लेते समय अपने जीवनसाथी की सलाह का सम्मान करना रिश्ते को और अधिक प्रगाढ़ बनाएगा। संयुक्त रूप से बनाई गई योजनाएं भविष्य की समृद्धि और स्थिरता का मार्ग प्रशस्त करेंगी।
+
+वैवाहिक जीवन में कभी-कभी उत्पन्न होने वाले मतभेदों को धैर्य और सौहार्दपूर्ण संवाद से सुलझाएं। प्रत्येक शुक्रवार को श्री लक्ष्मी नारायण अथवा गौरी-शंकर पूजन करने से दांपत्य में सुख-समृद्धि एवं असीम शांति की वृद्धि होगी।`;
+    }
+    if (baseLang === "te") {
+      return `మీ జన్మ లగ్నం (${lagnaStr}) మరియు చంద్ర రాశి (${moonStr}) ఆధారంగా, 7వ అధిపతి ${house7Lord} మరియు ప్రస్తుత ${dashaStr} మహాతశ, ${bhuktiStr} భుక్తి ప్రభావం వలన దాంపత్య జీవితంలో పరస్పర నమ్మకం, అనురాగం మరియు కుటుంబ సామరస్యం మరింతగా బలపడతాయి. ఇంట్లో శాంతి మరియు సుఖసంతోషాలు నెలకొంటాయి.
+
+కుటుంబ మరియు ఆర్థిక నిర్ణయాలలో భాగస్వామి సలహాలను గౌరవించడం దాంపత్య బంధాన్ని మరింత దృఢపరుస్తుంది. ఇద్దరూ కలిసి చేసే ప్రయత్నాలు భవిష్యత్ అభివృద్ధికి బాటలు వేస్తాయి.
+
+వైవాహిక జీవితంలో వచ్చే చిన్నపాటి అభిప్రాయ భేదాలను ప్రశాంతమైన సంభాషణలతో పరిష్కరించుకోండి. ప్రతి శుక్రవారం లక్ష్మీ నారాయణ లేదా గౌరీ శంకర పూజ నిర్వహించడం ద్వారా దాంపత్య సౌఖ్యం మరియు అష్టైశ్వర్యాలు సమకూరుతాయి.`;
+    }
+    if (baseLang === "ta") {
+      return `உங்கள் லக்னம் (${lagnaStr}) மற்றும் சந்திர ராசி (${moonStr}) அடிப்படையில், 7 ஆம் அதிபதி ${house7Lord} மற்றும் தற்போதைய ${dashaStr} தசா, ${bhuktiStr} புக்தி சுப பலனால் இல்லற வாழ்க்கையில் பரஸ்பர அன்பும், நம்பிக்கையும், குடும்ப அமைதியும் மேலோங்கும். வீட்டில் மகிழ்ச்சியும் பாதுகாப்பும் நீடிக்கும்.
+
+குடும்ப மற்றும் பொருளாதார முடிவுகளில் வாழ்க்கைத் துணையின் ஆலோசனைகளை மதித்து நடப்பது தம்பதியரிடையே ஒற்றுமையை அதிகரிக்கும். இருவரும் இணைந்து எடுக்கும் முயற்சிகள் குடும்ப வளர்ச்சிக்கு வழிவகுக்கும்.
+
+சிறு மனஸ்தாபங்களை பொறுமையுடனும் அன்பான பேச்சுவார்த்தையுடனும் தீர்த்துக் கொள்ளுங்கள். வெள்ளிக்கிழமைகளில் ஸ்ரீ லக்ஷ்மி நாராயணர் அல்லது கௌரி சங்கரர் வழிபாடு செய்வது குடும்பத்தில் சுபயோகத்தையும் நீண்ட ஆயுள் ஆரோக்கியத்தையும் தரும்.`;
     }
     return `Based on your birth Lagna (${lagnaStr}) and Moon sign (${moonStr}), the position of your 7th house lord ${house7Lord} along with your running ${dashaStr} Mahadasha and ${bhuktiStr} Bhukti fosters strong mutual trust, affection, and domestic harmony in your married life. Benefic planetary placements ensure long-term stability and warmth within the household.
 
 Involving your spouse in key financial and family decisions will further fortify your relationship. Joint planning creates a prosperous roadmap for future growth and domestic stability. Your shared values will inspire warmth and cohesion among all family members.
 
-To maintain enduring happiness and resolve occasional minor friction, open and empathetic communication is key. Performing Lakshmi Narayan Pooja on Fridays and maintaining a serene home altar will enhance prosperity and domestic bliss.`;
+To maintain enduring happiness and resolve occasional minor friction, open and empathetic communication is key. Performing Lakshmi Narayan or Gauri-Shankara Pooja on Fridays and maintaining a serene home altar will enhance prosperity and domestic bliss.`;
+  } else {
+    // general
+    if (baseLang === "kn") {
+      return `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${lagnaStr}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${moonStr}) ಆಧಾರದ ಮೇಲೆ, 7ನೇ ಮನೆಯಾದ ${house7SignName} ರಾಶಿ ಹಾಗೂ ಅದರ ಅಧಿಪತಿಯಾದ ${house7Lord} ಗ್ರಹದ ಸ್ಥಿತಿಯು ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಸಂಬಂಧಗಳು ಮತ್ತು ಸಹಭಾಗಿತ್ವದ ಕ್ಷೇತ್ರವನ್ನು ನಿಯಂತ್ರಿಸುತ್ತದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dashaStr} ದಶಾ ಮತ್ತು ${bhuktiStr} ಭುಕ್ತಿ ಕಾಲಘಟ್ಟವು ವೈಯಕ್ತಿಕ ಬಾಂಧವ್ಯಗಳಲ್ಲಿ ಸ್ಥಿರತೆಯನ್ನು ತರಲಿದೆ.
+
+ಜಾತಕದ ಸಪ್ತಮ ಭಾವದ ಮೇಲೆ ಬೀಳುವ ಗ್ರಹಗಳ ದೃಷ್ಟಿಯು ಪರಸ್ಪರ ನಂಬಿಕೆ, ನೈತಿಕ ಹೊಣೆಗಾರಿಕೆ ಹಾಗೂ ಸಹಬಾಳ್ವೆಯ ಮಹತ್ವವನ್ನು ಸಾರುತ್ತದೆ. ಯಾವುದೇ ಮಹತ್ವದ ಸಂಬಂಧಗಳಲ್ಲಿ ಸ್ಪಷ್ಟ ಸಂವಹನ ಹಾಗೂ ಪ್ರಾಮಾಣಿಕತೆಯು ಯಶಸ್ಸನ್ನು ನೀಡುತ್ತದೆ.
+
+ಗ್ರಹಗಳ ಬಲವರ್ಧನೆಗೆ ಮತ್ತು ಕೌಟುಂಬಿಕ ಸಾಮರಸ್ಯಕ್ಕಾಗಿ ನಿತ್ಯವೂ ಪ್ರಾತಃಕಾಲ ಇಷ್ಟದೇವತಾ ಪ್ರಾರ್ಥನೆ ಹಾಗೂ ಶುಕ್ರವಾರದಂದು ಮಹಾಲಕ್ಷ್ಮಿ ದೇವಿಯ ಆರಾಧನೆ ಮಾಡುವುದು ಅತ್ಯಂತ ಮಂಗಳಕರವಾಗಿದೆ.`;
+    }
+    if (baseLang === "hi") {
+      return `आपकी जन्म लग्न (${lagnaStr}) एवं चंद्र राशि (${moonStr}) के आधार पर, सप्तम भाव (${house7SignName}) और उसके स्वामी ${house7Lord} की स्थिति आपके जीवन में साझेदारी और संबंधों का मार्गदर्शन करती है। वर्तमान ${dashaStr} महादशा एवं ${bhuktiStr} भुक्ति का प्रभाव संबंधों में स्थिरता और परिपक्वता प्रदान करेगा।
+
+सप्तम भाव पर ग्रहों का प्रभाव आपसी विश्वास, कर्तव्यनिष्ठा और सामंजस्य के महत्व को रेखांकित करता है। किसी भी रिश्ते में स्पष्ट संवाद और सद्भाव सफलता की कुंजी है।
+
+ग्रहों के अनुकूल प्रभाव और पारिवारिक सौहार्द के लिए प्रतिदिन प्रातःकाल कुलदेवी/इष्टदेव की आराधना तथा शुक्रवार को मां लक्ष्मी की पूजा करना अत्यंत शुभ फलदायी है।`;
+    }
+    if (baseLang === "te") {
+      return `మీ జన్మ లగ్నం (${lagnaStr}) మరియు చంద్ర రాశి (${moonStr}) ఆధారంగా, 7వ భావం (${house7SignName}) మరియు దాని అధిపతి ${house7Lord} మీ జీవితంలో భాగస్వామ్యాలు మరియు సంబంధాలను ప్రభావితం చేస్తాయి. ప్రస్తుత ${dashaStr} దశా మరియు ${bhuktiStr} భుక్తి కాలం సంబంధాలలో స్థిరత్వాన్ని చేకూరుస్తుంది.
+
+స్పష్టమైన సంభాషణ మరియు పరస్పర గౌరవం మీ సంబంధాల విజయానికి దోహదపడతాయి.
+
+గ్రహ శాంతికి మరియు కుటుంబ శ్రేయస్సుకు ప్రతిరోజూ ఇష్టదేవతారాధన మరియు శుక్రవారాల్లో మహాలక్ష్మి పూజ చేయడం ఎంతో శ్రేయస్కరం.`;
+    }
+    if (baseLang === "ta") {
+      return `உங்கள் லக்னம் (${lagnaStr}) மற்றும் சந்திர ராசி (${moonStr}) அடிப்படையில், 7 ஆம் இடம் (${house7SignName}) மற்றும் அதன் அதிபதி ${house7Lord} உங்கள் உறவுகள் மற்றும் கூட்டாண்மைகளை வழிநடத்துகின்றனர். தற்போதைய ${dashaStr} தசா மற்றும் ${bhuktiStr} புக்தி காலத்தில் உறவுகளில் அமைதியும் நிலைத்தன்மையும் உண்டாகும்.
+
+பரஸ்பர மரியாதையும் தெளிவான கருத்துப் பரிமாற்றமும் உறவுகளின் வளர்ச்சிக்கு பலம் சேர்க்கும்.
+
+குடும்ப அமைதி மற்றும் கிரக சுப பலன்களுக்கு தினமும் இஷ்ட தெய்வ வழிபாடு மற்றும் வெள்ளிக்கிழமைகளில் மகாலக்ஷ்மி பூஜை செய்வது நன்மை தரும்.`;
+    }
+    return `Based on your birth Lagna (${lagnaStr}) and Moon sign (${moonStr}), the 7th house (${house7SignName}) and its lord ${house7Lord} govern partnerships, mutual commitments, and harmony in your chart. The running ${dashaStr} Mahadasha and ${bhuktiStr} Bhukti foster balance and emotional maturity in all key relationships.
+
+Benefic planetary aspects on the 7th house emphasize mutual respect, transparent communication, and shared responsibilities as pillars for long-term stability.
+
+For relationship harmony and peace, daily prayers to your Ishta Devata and offering archana to Goddess Lakshmi on Fridays are highly recommended.`;
   }
 }
 
 export function buildPersonalizedChildrenText(
   lang: string,
-  status: "no_children" | "has_children",
+  status: "no_children" | "has_children" | "general",
   lagnaIndex: number = 0,
   dashaStr: string = "Running Dasha",
   bhuktiStr: string = "Sub Dasha"
@@ -184,50 +240,106 @@ export function buildPersonalizedChildrenText(
     if (baseLang === "kn") {
       return `ನಿಮ್ಮ ಜಾತಕದ ಪಂಚಮ ಭಾವ ಹಾಗೂ ಪಂಚಮಾಧಿಪತಿಯಾದ ${house5Lord} ಗ್ರಹದ ಸ್ಥಿತಿಯೊಂದಿಗೆ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ (ಪುತ್ರಕಾರಕ) ಶುಭ ದೃಷ್ಟಿಯು ಸಂತಾನ ಯೋಗವನ್ನು ಅತ್ಯಂತ ಪ್ರಬಲವಾಗಿ ಸೂಚಿಸುತ್ತದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dashaStr} ದಶಾ ಹಾಗೂ ${bhuktiStr} ಭುಕ್ತಿ ಕಾಲವು ವಂಶಾಭಿವೃದ್ಧಿ ಹಾಗೂ ಸಂತಾನ ಸೌಖ್ಯವನ್ನು ವೃದ್ಧಿಸುತ್ತದೆ. ದೈವಿಕ ಅನುಗ್ರಹದಿಂದಾಗಿ ಶೀಘ್ರದಲ್ಲಿಯೇ ಮಂದಸ್ಮಿತ ಸಂತಾನ ಭಾಗ್ಯವು ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ.
 
-ಮುಂದಿನ 18 ತಿಂಗಳುಗಳಲ್ಲಿ ಶುಭ ಗ್ರಹಗಳ ಗೋಚಾರ ಸಂಚಾರವು ಸಂತಾನೋತ್ಪತ್ತಿಗೆ ಹಾಗೂ ಗರ್ಭಧಾರಣೆಗೆ ಅತ್ಯಂತ ಅನುಕೂಲಕರವಾದ ದಿವ್ಯ ಕಾಲಘಟ್ಟವನ್ನು ತೆರೆಯುತ್ತದೆ. ಈ ಅವಧಿಯಲ್ಲಿ ಕೈಗೊಳ್ಳುವ ವೈದ್ಯಕೀಯ ಹಾಗೂ ಆಧ್ಯಾತ್ಮಿಕ ಪ್ರಯತ್ನಗಳು ಯಶಸ್ವಿಯಾಗಿ ಫಲ ನೀಡಲಿವೆ. ಸಂತಾನ ನಿರೀಕ್ಷೆಯಲ್ಲಿರುವ ದಂಪತಿಗಳಿಗೆ ಮನೆಮನಗಳಲ್ಲಿ ಶುಭ ವಾರ್ತೆ ಕೇಳಿಬರಲಿದೆ.
+ಶುಭ ಗ್ರಹಗಳ ಗೋಚಾರ ಸಂಚಾರವು ಸಂತಾನೋತ್ಪತ್ತಿಗೆ ಹಾಗೂ ಗರ್ಭಧಾರಣೆಗೆ ಅತ್ಯಂತ ಅನುಕೂಲಕರವಾದ ದಿವ್ಯ ಕಾಲಘಟ್ಟವನ್ನು ತೆರೆಯುತ್ತದೆ. ಈ ಅವಧಿಯಲ್ಲಿ ಕೈಗೊಳ್ಳುವ ವೈದ್ಯಕೀಯ ಹಾಗೂ ಆಧ್ಯಾತ್ಮಿಕ ಪ್ರಯತ್ನಗಳು ಯಶಸ್ವಿಯಾಗಿ ಫಲ ನೀಡಲಿವೆ. ಸಂತಾನ ನಿರೀಕ್ಷೆಯಲ್ಲಿರುವ ದಂಪತಿಗಳಿಗೆ ಮನೆಮನಗಳಲ್ಲಿ ಶುಭ ವಾರ್ತೆ ಕೇಳಿಬರಲಿದೆ.
 
 ಸಂತಾನ ಭಾಗ್ಯದಲ್ಲಿ ಕಂಡುಬರುವ ಸಣ್ಣಪುಟ್ಟ ವಿಳಂಬ ಅಥವಾ ದೋಷಗಳ ನಿವಾರಣೆಗಾಗಿ ನಿತ್ಯವೂ ಪ್ರಾತಃಕಾಲ ಶ್ರೀ ಸಂತಾನ ಗೋಪಾಲ ಕವಚ ಹಾಗೂ ಮಂತ್ರ ಪಠಣ ಮಾಡುವುದು ಶ್ರೇಷ್ಠ ಪರಿಹಾರವಾಗಿದೆ. ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದಲ್ಲಿ ಸುಬ್ರಹ್ಮಣ್ಯ ಹೋಮ ನೆರವೇರಿಸುವುದು ಹಾಗೂ ಪ್ರತಿ ಗುರುವಾರ ಶುದ್ಧ ಹಾಲಿನಿಂದ ಶಿವಲಿಂಗಕ್ಕೆ ಅಭಿಷೇಕ ಮಾಡಿಸುವುದು ಸಂತಾನ ಪ್ರತಿಬಂಧಕ ದೋಷಗಳನ್ನು ನಿವಾರಿಸಿ ಶೀಘ್ರ ಸಂತಾನ ಭಾಗ್ಯವನ್ನು ಕರುಣಿಸುತ್ತದೆ.`;
     }
     if (baseLang === "hi") {
       return `आपकी कुंडली के पंचम भाव और पंचमेश ${house5Lord} की स्थिति के साथ देवगुरु बृहस्पति की शुभ दृष्टि संतान प्राप्ति के योग को अत्यंत प्रबल रूप से दर्शाती है। वर्तमान ${dashaStr} महादशा एवं ${bhuktiStr} भुक्ति का आशीर्वाद परिवार वृद्धि एवं संतान सुख को बढ़ाता है।
 
-अगले 18 महीनों में अनुकूल ग्रहों का गोचर संतान गर्भाधान तथा स्वास्थ्य के लिए अत्यंत शुभ समय प्रदान करता है। इस अवधि में किए गए चिकित्सीय और आध्यात्मिक प्रयास पूर्ण सफलता प्रदान करेंगे। दंपत्ति को शीघ्र ही शुभ समाचार प्राप्त होगा।
+अनुकूल ग्रहों का गोचर संतान गर्भाधान तथा स्वास्थ्य के लिए अत्यंत शुभ समय प्रदान करता है। इस अवधि में किए गए चिकित्सीय और आध्यात्मिक प्रयास पूर्ण सफलता प्रदान करेंगे। दंपत्ति को शीघ्र ही शुभ समाचार प्राप्त होगा।
 
 संतान प्राप्ति में आ रहे विलंब या सूक्ष्म दोषों के निवारण हेतु प्रतिदिन प्रातःकाल संतान गोपाल मंत्र का जाप करें। गोಕರ್ण क्षेत्र में सुब्रह्मण्य होम का आयोजन तथा प्रत्येक गुरुवार को शिवलिंग पर कच्चे दूध से अभिषेक करने से समस्त बाधाएं दूर होकर शीघ्र संतान सुख की प्राप्ति होती है।`;
     }
     if (baseLang === "te") {
       return `మీ జాతకంలో 5వ భావం మరియు 5వ అధిపతి అయిన ${house5Lord} స్థానంతో పాటు దేవగురు బృహస్పతి శుభ దృష్టి సంతాన ప్రాప్తి యోగాన్ని మిక్కిలి బలంగా సూచిస్తున్నాయి. ప్రస్తుత ${dashaStr} దశా మరియు ${bhuktiStr} భుక్తి కాలం వంశాభివృద్ధిని పెంపొందిస్తుంది.
 
-రాబోయే 18 నెలల్లో అనుకూల గ్రహ గోచారం సంతానోత్పత్తికి మరియు గర్భధారణకు ఎంతో అనుకూలమైన దివ్య కాలాన్ని అందిస్తుంది. ఈ సమయంలో చేసే ప్రయత్నాలు సంపూర్ణ ఫలితాలను ఇస్తాయి. సంతాన నిరీక్షణలో ఉన్న దంపతులకు త్వరలోనే తీపి కబురు అందుతుంది.
+అనుకూల గ్రహ గోచారం సంతానోత్పత్తికి మరియు గర్భధారణకు ఎంతో అనుకూలమైన దివ్య కాలాన్ని అందిస్తుంది. ఈ సమయంలో చేసే ప్రయత్నాలు సంపూర్ణ ఫలితాలను ఇస్తాయి. సంతాన నిరీక్షణలో ఉన్న దంపతులకు త్వరలోనే తీపి కబురు అందుతుంది.
 
 సంతాన దోషాల నివారణకు ప్రతిరోజూ సంతాన గోపాల మంత్ర జపం చేయడం శ్రేష్ఠమైన పరిహారం. గోకర్ణ క్షేత్రంలో సుబ్రహ్మణ్య హోమం నిర్వహించడం మరియు ప్రతి గురువారం పాలు తో అభిషేకం చేయడం వలన సంతాన ప్రతిబంధకాలు తొలగి శీఘ్ర సంతాన ప్రాప్తి లభిస్తుంది.`;
     }
     if (baseLang === "ta") {
       return `உங்கள் ஜாதகத்தில் 5 ஆம் இடம் மற்றும் 5 ஆம் அதிபதி ${house5Lord} உடன் குரு பகவானின் பார்வை குழந்தை பாக்கிய யோகத்தை மிகவும் வலுவாகக் காட்டுகிறது. தற்போதைய ${dashaStr} தசா மற்றும் ${bhuktiStr} புக்தி காலம் வம்ச விருத்தியையும் சந்ததி யோகத்தையும் உயர்த்தும்.
 
-அடுத்த 18 மாதங்களில் சாதகமான கோசார கிரகங்கள் குழந்தை பாக்கியத்திற்கும் கர்ப்பத்திற்கும் மிகவும் உகந்த காலத்தை உருவாக்குகின்றன. இந்த காலத்தில் மேற்கொள்ளும் ஆன்மீக மற்றும் மருத்துவ முயற்சிகள் முழு வெற்றி தரும்.
+சாதகமான கோசார கிரகங்கள் குழந்தை பாக்கியத்திற்கும் கர்ப்பத்திற்கும் மிகவும் உகந்த காலத்தை உருவாக்குகின்றன. இந்த காலத்தில் மேற்கொள்ளும் ஆன்மீக மற்றும் மருத்துவ முயற்சிகள் முழு வெற்றி தரும்.
 
 குழந்தை பாக்கிய தாமதத்தைப் போக்க தினமும் சந்தான கோபால மந்திரம் ஜபிக்கவும். கோகர்ண க்ஷேத்திரத்தில் சுப்பிரமணிய ஹோமம் செய்வது மற்றும் வியாழக்கிழமைகளில் பாலாபிஷேகம் செய்வது குழந்தை பாக்கிய தடைகளை நீக்கி சுபயோகம் தரும்.`;
     }
     return `The 5th house and your 5th house lord ${house5Lord} along with Jupiter's benefic aspect indicate strong Santana Yoga (progeny blessings) in your birth chart. Running ${dashaStr} Mahadasha and ${bhuktiStr} Bhukti enhance family expansion and long-term parental happiness.
 
-Over the next 18 months, favorable planetary transits create an ideal time window for child conception and maternal health. Medical and spiritual endeavors initiated during this period will yield successful results, bringing joyful news to your household.
+Favorable planetary transits create an ideal time window for child conception and maternal health. Medical and spiritual endeavors initiated during this period will yield successful results, bringing joyful news to your household.
 
 To remove any subtle progeny obstacles or delays, chanting the Santana Gopala Mantra daily is highly effective. Performing Subramanya Seva / Homa at Gokarna Kshetra and offering milk archana on Thursdays will dissolve afflictions and grant early progeny blessings.`;
-  } else {
+  } else if (status === "has_children") {
     // has_children
     if (baseLang === "kn") {
-      return `ನಿಮ್ಮ ಮಕ್ಕಳ ಶಿಕ್ಷಣ, ಬುದ್ಧಿಶಕ್ತಿ ಹಾಗೂ ಭವಿಷ್ಯದ ರಂಗಗಳಲ್ಲಿ ಉತ್ತಮ ಸಾಧನೆ ಮಾಡುವ ಶುಭ ಸೂಚನೆಗಳು ಜಾತಕದಲ್ಲಿ ಎದ್ದು ಕಾಣುತ್ತಿವೆ. ಪಂಚಮಾಧಿಪತಿಯಾದ ${house5Lord} ಗ್ರಹದ ಶುಭ ಪ್ರಭಾವದಿಂದಾಗಿ ಮಕ್ಕಳು ಸನ್ಮಾರ್ಗದಲ್ಲಿ ನಡೆಯುತ್ತಾರೆ ಹಾಗೂ ಶೈಶ್ರಣಿಕ ಕ್ಷೇತ್ರದಲ್ಲಿ ಉತ್ತಮ ಸಾಧನೆ ಮೆರೆಯಲಿದ್ದಾರೆ. ಅವರ ಜ್ಞಾನಾರ್ಜನೆ ಹಾಗೂ ನಡವಳಿಕೆಯು ಕುಟುಂಬಕ್ಕೆ ಒಳ್ಳೆಯ ಕೀರ್ತಿಯನ್ನು ತರಲಿದೆ.
+      return `ನಿಮ್ಮ ಮಕ್ಕಳ ಶಿಕ್ಷಣ, ಬುದ್ಧಿಶಕ್ತಿ ಹಾಗೂ ಭವಿಷ್ಯದ ರಂಗಗಳಲ್ಲಿ ಉತ್ತಮ ಸಾಧನೆ ಮಾಡುವ ಶುಭ ಸೂಚನೆಗಳು ಜಾತಕದಲ್ಲಿ ಎದ್ದು ಕಾಣುತ್ತಿವೆ. ಪಂಚಮಾಧಿಪತಿಯಾದ ${house5Lord} ಗ್ರಹದ ಶುಭ ಪ್ರಭಾವದಿಂದಾಗಿ ಮಕ್ಕಳು ಸನ್ಮಾರ್ಗದಲ್ಲಿ ನಡೆಯುತ್ತಾರೆ ಹಾಗೂ ಶೈಕ್ಷಣಿಕ ಕ್ಷೇತ್ರದಲ್ಲಿ ಉತ್ತಮ ಸಾಧನೆ ಮೆರೆಯಲಿದ್ದಾರೆ. ಅವರ ಜ್ಞಾನಾರ್ಜನೆ ಹಾಗೂ ಸನ್ನಡತೆಯು ಕುಟುಂಬಕ್ಕೆ ಒಳ್ಳೆಯ ಕೀರ್ತಿಯನ್ನು ತರಲಿದೆ.
 
 ಅವರ ಉನ್ನತ ವ್ಯಾಸಂಗ, ವೃತ್ತಿಜೀವನ ಹಾಗೂ ವೈಯಕ್ತಿಕ ಬೆಳವಣಿಗೆಗೆ ನಿಮ್ಮ ಪ್ರೀತಿ, ಬೆಂಬಲ ಮತ್ತು ಸರಿಯಾದ ಮಾರ್ಗದರ್ಶನವು ದಾರಿದೀಪವಾಗಲಿದೆ. ಮಕ್ಕಳೊಂದಿಗೆ ನಿಕಟ ಬಾಂಧವ್ಯವನ್ನು ಕಾಯ್ದುಕೊಳ್ಳುವುದು ಅವರ ಆತ್ಮವಿಶ್ವಾಸವನ್ನು ಹೆಚ್ಚಿಸುತ್ತದೆ.
 
 ಮಕ್ಕಳ ಏಳಿಗೆ, ಏಕಾಗ್ರತೆ ಹಾಗೂ ದೀರ್ಘಾಯುಷ್ಯಕ್ಕಾಗಿ ಸರಸ್ವತಿ ಪೂಜೆ ಹಾಗೂ ಗಣಪತಿಗೆ ಅಥರ್ವಶೀರ್ಷ ಅಭಿಷೇಕ ಮಾಡಿಸುವುದು ಶ್ರೇಯಸ್ಕರ. ಪ್ರತಿ ಬುಧವಾರ ನವಗ್ರಹ ಪ್ರಾರ್ಥನೆ ಮಾಡುವುದರಿಂದ ಅವರ ವಿದ್ಯಾಭ್ಯಾಸದಲ್ಲಿ ಬರುವ ಅಡೆತಡೆಗಳು ನಿವಾರಣೆಯಾಗಲಿವೆ.`;
+    }
+    if (baseLang === "hi") {
+      return `आपकी कुंडली में पंचमेश ${house5Lord} के शुभ प्रभाव से बच्चों की शिक्षा, बुद्धि और भविष्य के कार्यों में उत्तम सफलता के संकेत हैं। वे सुसंस्कृत मार्ग पर चलेंगे और अपने ज्ञान व प्रतिभा से परिवार का मान-सम्मान बढ़ाएंगे।
+
+उनकी उच्च शिक्षा, करियर और व्यक्तिगत विकास में आपका स्नेह, मार्गदर्शन और प्रोत्साहन अत्यंत महत्वपूर्ण सिद्ध होगा। उनके साथ आत्मीय संवाद बनाए रखने से उनका आत्मविश्वास बढ़ेगा।
+
+बच्चों की एकाग्रता, उन्नति और दीर्घायु के लिए मां सरस्वती की पूजा तथा भगवान गणेश को अथर्वशीर्ष अभिषेक कराना अत्यंत लाभकारी है। बुधवार को गणपति आराधना से विद्या में आने वाले विघ्न दूर होते हैं।`;
+    }
+    if (baseLang === "te") {
+      return `మీ జాతకంలో 5వ అధిపతి ${house5Lord} శుభ ప్రభావంతో పిల్లల విద్య, బుద్ధికుశలత మరియు భవిష్యత్ రంగాలలో విశేష పురోగతి కనిపిస్తోంది. వారు సన్మార్గంలో పయనిస్తూ తమ ప్రతిభతో కుటుంబానికి మంచి పేరు తెస్తారు.
+
+వారి ఉన్నత చదువులు మరియు కెరీర్ అభివృద్ధికి మీ ఆదరణ మరియు సరైన మార్గదర్శకత్వం కొండంత అండగా నిలుస్తాయి.
+
+పిల్లల ఏకాగ్రత, ఉన్నతి మరియు ఆయురారోగ్యాల కోసం సరస్వతి పూజ మరియు గణపతి అథర్వశీర్ష అభిషేకం నిర్వహించడం ఎంతో శుభప్రదం.`;
+    }
+    if (baseLang === "ta") {
+      return `உங்கள் ஜாதகத்தில் 5 ஆம் அதிபதி ${house5Lord} சுப பார்வையால் குழந்தைகளின் கல்வி, அறிவுத்திறன் மற்றும் எதிர்கால சாதனைகளில் சிறந்த முன்னேற்றம் ஏற்படும். அவர்களின் நன்னடத்தை குடும்பத்திற்கு பெருமை சேர்க்கும்.
+
+அவர்களின் உயர்கல்வி மற்றும் வேலைவாய்ப்பு வளர்ச்சிக்கு உங்கள் அன்பும் வழிகாட்டுதலும் சிறந்த பலமாக விளங்கும்.
+
+குழந்தைகளின் கல்வி வளர்ச்சி, மன அமைதி மற்றும் ஆரோக்கியத்திற்கு சரஸ்வதி பூஜை மற்றும் கணபதி அதர்வசீর্ষ அபிஷேகம் செய்வது மிகவும் நன்மையளிக்கும்.`;
     }
     return `Your children show promising signs of excellence in education, intellect, and future career pursuits. The benefic influence of your 5th house lord ${house5Lord} guides them on a virtuous path, ensuring strong focus and academic achievements that bring honor to your family.
 
 Your parental guidance, emotional support, and encouragement will be instrumental in shaping their higher education and professional milestones. Maintaining clear, loving communication nurtures their self-confidence.
 
 To ensure their continued progress, health, and academic focus, offering Saraswati Pooja and Ganapati Atharvashirsha Abhishekam is highly beneficial. Wednesday prayers to Lord Ganesha dissolve study distractions.`;
+  } else {
+    // general
+    if (baseLang === "kn") {
+      return `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಪಂಚಮ ಭಾವವು ಪೂರ್ವ ಪುಣ್ಯ, ಬುದ್ಧಿಶಕ್ತಿ ಹಾಗೂ ಸಂತಾನ ಸೌಭಾಗ್ಯವನ್ನು ಸೂಚಿಸುತ್ತದೆ. ಪಂಚಮಾಧಿಪತಿಯಾದ ${house5Lord} ಗ್ರಹದ ಸ್ಥಾನ ಹಾಗೂ ಗುರು ಗ್ರಹದ ಅನುಗ್ರಹವು ಜ್ಞಾನಾರ್ಜನೆ, ತಾರ್ಕಿಕ ಚಿಂತನೆ ಹಾಗೂ ವಂಶಾಭಿವೃದ್ಧಿಯ ಶಕ್ತಿಯನ್ನು ನೀಡುತ್ತದೆ.
+
+ಸೃಜನಶೀಲ ಕಾರ್ಯಗಳು ಹಾಗೂ ಆಧ್ಯಾತ್ಮಿಕ ಸಾಧನೆಗಳಲ್ಲಿ ತೊಡಗಿಸಿಕೊಳ್ಳುವುದು ನಿಮ್ಮ ಜೀವನಕ್ಕೆ ಸಾರ್ಥಕತೆಯನ್ನು ತರಲಿದೆ. ಪೂರ್ವಾರ್ಜಿತ ಸತ್ಕರ್ಮಗಳ ಫಲವು ಕುಟುಂಬದ ಸರ್ವತೋಮುಖ ಏಳಿಗೆಗೆ ನೆರವಾಗಲಿದೆ.
+
+ಪಂಚಮ ಭಾವದ ಶುಭ ಫಲಗಳ ವೃದ್ಧಿಗಾಗಿ ನಿತ್ಯವೂ ಪ್ರಾತಃಕಾಲ ಶ್ರೀ ಗಾಯತ್ರಿ ಮಂತ್ರ ಜಪ ಹಾಗೂ ವಿದ್ಯಾ-ಸಂತಾನ ಪ್ರದಾಯಕ ಗಣಪತಿ ಪೂಜೆ ಮಾಡುವುದು ಅತ್ಯಂತ ಫಲಪ್ರದವಾಗಿದೆ.`;
+    }
+    if (baseLang === "hi") {
+      return `आपकी कुंडली में पंचम भाव पूर्व पुण्य, बुद्धि और संतान सुख का प्रतिनिधित्व करता है। पंचमेश ${house5Lord} की शुभ स्थिति और गुरु की कृपा से ज्ञान, बौद्धिक क्षमता और वंश वृद्धि का आशीर्वाद प्राप्त होता है।
+
+रचनात्मक कार्यों और आध्यात्मिक साधना में संलग्न होना आपके जीवन को सार्थकता प्रदान करेगा। पूर्व जन्म के शुभ कर्म परिवार की उन्नति में सहायक होंगे।
+
+पंचम भाव के शुभ फलों की वृद्धि के लिए नित्य गायत्री मंत्र जप तथा विघ्नहर्ता गणेश जी की पूजा करना अत्यंत शुभ फलदायक है।`;
+    }
+    if (baseLang === "te") {
+      return `మీ జాతకంలో 5వ భావం పూర్వ పుణ్యం, బుద్ధికుశలత మరియు సంతాన సౌభాగ్యాన్ని సూచిస్తుంది. 5వ అధిపతి ${house5Lord} స్థానం మరియు గురు గ్రహ అనుగ్రహం జ్ఞానం మరియు వంశాభివృద్ధిని ప్రసాదిస్తాయి.
+
+సృజనాత్మక పనులలో రాణించడం మరియు ఆధ్యాత్మిక సాధన మీ జీవితానికి గొప్ప తృప్తినిస్తాయి.
+
+5వ భావ శుభ ఫలితాల కోసం నిత్యం గాయత్రీ మంత్ర జపం మరియు గణపతి పూజ చేయడం ఎంతో శ్రేయస్కరం.`;
+    }
+    if (baseLang === "ta") {
+      return `உங்கள் ஜாதகத்தில் 5 ஆம் இடம் பூர்வ புண்ணியம், புத்தி கூர்மை மற்றும் சந்ததி பாக்கியத்தை குறிக்கிறது. 5 ஆம் அதிபதி ${house5Lord} மற்றும் குருவின் அருள் ஞானத்தையும் வம்ச விருத்தியையும் வழங்கும்.
+
+படைப்பாற்றல் மற்றும் ஆன்மீக ஈடுபாடு உங்கள் வாழ்க்கைக்கு மேன்மை தரும்.
+
+5 ஆம் இடத்து சுப பலன்கள் பெருக தினமும் காயத்ரி மந்திர ஜபமும் விநாயகர் வழிபாடும் செய்வது நற்பலன் அளிக்கும்.`;
+    }
+    return `In your birth chart, the 5th house represents Poorva Punya (past meritorious deeds), intellect, and progeny blessings. The placement of your 5th lord ${house5Lord} and Jupiter's grace bestow sharp intellect, creative vision, and family lineage strength.
+
+Engaging in creative endeavors, scholarly pursuits, and spiritual practices activates your chart's positive karmic potential, supporting steady family prosperity.
+
+To enhance the benefic vibrations of the 5th house, daily chanting of the Gayatri Mantra and prayers to Lord Ganesha are highly auspicious.`;
   }
 }
 import PdfPersonalizationModal, { PersonalizationState } from "./PdfPersonalizationModal";
@@ -1262,7 +1374,7 @@ Return ONLY this JSON format:
         const dashaName = mahaLord ? pick(GRAHA_L5[mahaLord], lang) : "Dasha";
         const bhuktiName = bhuktiLord ? pick(GRAHA_L5[bhuktiLord], lang) : "Bhukti";
 
-        if (personalization.maritalStatus === "unmarried" || personalization.maritalStatus === "married") {
+        if (personalization.maritalStatus) {
           const userGender = (session.input as any).gender || "Male";
           const marriageText = buildPersonalizedMarriageText(lang, lagnaStr, moonStr, personalization.maritalStatus, lagnaIdx, dashaName, bhuktiName, userGender as "Male" | "Female");
 
@@ -1283,7 +1395,7 @@ Return ONLY this JSON format:
           }
         }
 
-        if (personalization.childrenStatus === "no_children" || personalization.childrenStatus === "has_children") {
+        if (personalization.childrenStatus) {
           const childrenText = buildPersonalizedChildrenText(lang, personalization.childrenStatus, lagnaIdx, dashaName, bhuktiName);
 
           const existingIdx = localisedPredictions.findIndex(p => {
@@ -1318,7 +1430,9 @@ Return ONLY this JSON format:
         birthTime: session.input.birthTime,
         latitude: session.input.latitude,
         longitude: session.input.longitude,
-        lang
+        lang,
+        isMarried: personalization?.maritalStatus === "married" ? true : personalization?.maritalStatus === "unmarried" ? false : undefined,
+        hasChildren: personalization?.childrenStatus === "has_children" ? true : personalization?.childrenStatus === "no_children" ? false : undefined
       });
 
       const parseGeminiJSON = (text: string) => {
@@ -1363,8 +1477,8 @@ Return ONLY this JSON format:
         name: session.input.name,
         gender: userGender as "Male" | "Female",
         ageYears,
-        maritalStatus: (personalization?.maritalStatus === "unmarried" || personalization?.maritalStatus === "married") ? personalization.maritalStatus : undefined,
-        hasChildren: (personalization?.childrenStatus === "no_children" || personalization?.childrenStatus === "has_children") ? personalization.childrenStatus : undefined,
+        maritalStatus: personalization?.maritalStatus || "general",
+        hasChildren: personalization?.childrenStatus || "general",
         lagnaRashiIndex: session.result.lagnaRashi?.index ?? null,
         moonRashiIndex: session.result.moonSign.index,
         moonNakshatraIndex: moonPlanet?.nakshatra.index ?? null,
