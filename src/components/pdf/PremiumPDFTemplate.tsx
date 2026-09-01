@@ -6,6 +6,7 @@ import { calculateTraditionalBaggona } from "../../core/TraditionalBaggonaEngine
 import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { stripJayashreeIntro } from "../../features/premiumPdf/premiumPdfLocale";
+import { generatePanchangaAngaSynthesis } from "../../core/PanchangaAngaSynthesisEngine";
 
 interface PremiumPDFTemplateProps {
   prediction: MasterPredictionResult;
@@ -67,6 +68,16 @@ export const PremiumPDFTemplate: React.FC<PremiumPDFTemplateProps> = ({ predicti
   const rawSummaryText = narrative.summary || "";
   const summaryText = stripJayashreeIntro(rawSummaryText);
   const ashirvadaText = narrative.ashirvada || "";
+
+  // Panchanga 5-Angas Unified Prescriptions
+  const targetKundli = session?.result || null;
+  const synthesis = targetKundli ? generatePanchangaAngaSynthesis(targetKundli, {
+    birthDate: prediction.metadata?.birthDate || session?.input?.birthDate || "1990-01-01",
+    birthTime: prediction.metadata?.birthTime || session?.input?.birthTime || "12:00",
+    latitude: 14.5479,
+    longitude: 74.3187,
+    lang
+  }) : null;
 
   return (
     <div id="premium-pdf-container">
@@ -507,6 +518,70 @@ export const PremiumPDFTemplate: React.FC<PremiumPDFTemplateProps> = ({ predicti
                 {getRestOfText(summaryText)}
             </p>
           </div>
+      )}
+
+      {/* CHAPTER X: Panchanga Prescriptions & Remedies */}
+      {synthesis && (
+        <div className="pdf-page">
+          <div className="chapter-num">{t.chapter} X</div>
+          <h2>{isKn ? "ಪಂಚಾಂಗ ಸಮಗ್ರ ರಕ್ಷಾ ಕವಚ & ಭಾಗ್ಯ ರತ್ನ" : "Panchanga Prescriptions & Sacred Armor"}</h2>
+          
+          <div style={{ marginTop: "20px" }}>
+            <div className="yoga-entry" style={{ marginBottom: "25px", borderLeft: "4px solid var(--gold)", paddingLeft: "15px" }}>
+              <span className="yoga-name" style={{ fontSize: "14pt", color: "var(--gold)" }}>
+                📿 {isKn ? "ಶಿಫಾರಸು ಮಾಡಿದ ರುದ್ರಾಕ್ಷಿ:" : "Prescribed Rudraksha:"} {synthesis.prescriptions.rudraksha.nameKn}
+              </span>
+              <p style={{ textIndent: 0, marginTop: "8px" }}>
+                <b>{isKn ? "ಅಧಿಪತಿ ದೇವತೆ:" : "Ruling Deity:"}</b> {synthesis.prescriptions.rudraksha.deity} • <b>{isKn ? "ಗ್ರಹ:" : "Planet:"}</b> {synthesis.prescriptions.rudraksha.planet}
+              </p>
+              <p style={{ textIndent: 0 }}>
+                <b>{isKn ? "ಶಾಸ್ತ್ರೀಯ ಕಾರಣ:" : "Astrological Reason:"}</b> {synthesis.prescriptions.rudraksha.astrologicalReason}
+              </p>
+              <p style={{ textIndent: 0, fontSize: "11pt", color: "#2f855a" }}>
+                ✨ <b>{isKn ? "ಪಂಚಾಂಗ ಸಮನ್ವಯ:" : "Panchanga Synergy:"}</b> {synthesis.prescriptions.rudraksha.panchangaSynergy}
+              </p>
+              <p style={{ textIndent: 0, fontSize: "11pt", color: "#4a5568" }}>
+                <b>{isKn ? "ಧರಿಸುವ ವಿಧಾನ:" : "Wearing Method:"}</b> {synthesis.prescriptions.rudraksha.wearingMethod}
+              </p>
+            </div>
+
+            <div className="yoga-entry" style={{ marginBottom: "25px", borderLeft: "4px solid var(--gold)", paddingLeft: "15px" }}>
+              <span className="yoga-name" style={{ fontSize: "14pt", color: "var(--gold)" }}>
+                💍 {isKn ? "ಭಾಗ್ಯ ರತ್ನ ಉಂಗುರ:" : "Prescribed Gemstone Ring:"} {synthesis.prescriptions.gemstoneRing.primaryGemstoneKn}
+              </span>
+              <p style={{ textIndent: 0, marginTop: "8px" }}>
+                <b>{isKn ? "ತೂಕ & ಲೋಹ:" : "Weight & Metal:"}</b> {synthesis.prescriptions.gemstoneRing.caratWeight} • {synthesis.prescriptions.gemstoneRing.metalKn}
+              </p>
+              <p style={{ textIndent: 0 }}>
+                <b>{isKn ? "ಬೆರಳು & ಶುಭ ಕಾಲ:" : "Finger & Day:"}</b> {synthesis.prescriptions.gemstoneRing.fingerKn} ({synthesis.prescriptions.gemstoneRing.activationDay})
+              </p>
+              <p style={{ textIndent: 0 }}>
+                <b>{isKn ? "ಶಾಸ್ತ್ರೀಯ ಕಾರಣ:" : "Astrological Reason:"}</b> {synthesis.prescriptions.gemstoneRing.astrologicalReason}
+              </p>
+              <p style={{ textIndent: 0, fontSize: "11pt", color: "#2f855a" }}>
+                ✨ <b>{isKn ? "ಪಂಚಾಂಗ ಸಮನ್ವಯ:" : "Panchanga Synergy:"}</b> {synthesis.prescriptions.gemstoneRing.panchangaSynergy}
+              </p>
+            </div>
+
+            <div style={{ background: "var(--gold-light)", padding: "15px 20px", borderRadius: "8px", border: "1px solid rgba(183, 144, 67, 0.3)", marginTop: "20px" }}>
+              <h3 style={{ fontSize: "12pt", margin: "0 0 10px 0", color: "var(--primary-dark)" }}>
+                🚗 {isKn ? "ಅದೃಷ್ಟ ವಾಹನ ಬಣ್ಣಗಳು & ದಿಕ್ಕುಗಳು:" : "Lucky Vehicle Colors & Directions:"}
+              </h3>
+              <p style={{ textIndent: 0, fontSize: "11pt", margin: "0 0 6px 0" }}>
+                <b>{isKn ? "ಅದೃಷ್ಟ ವಾಹನ ಬಣ್ಣ:" : "Car/Bike Colors:"}</b> {synthesis.prescriptions.luckyAttributes.carColors.join(", ")}
+              </p>
+              <p style={{ textIndent: 0, fontSize: "11pt", margin: "0 0 6px 0" }}>
+                <b>{isKn ? "ಅದೃಷ್ಟ ವಸ್ತ್ರ ಬಣ್ಣ:" : "Garment Colors:"}</b> {synthesis.prescriptions.luckyAttributes.clothColors.join(", ")}
+              </p>
+              <p style={{ textIndent: 0, fontSize: "11pt", margin: "0 0 6px 0", color: "#c53030" }}>
+                <b>{isKn ? "ವರ್ಜಿಸಬೇಕಾದ ಬಣ್ಣ:" : "Colors to Avoid:"}</b> {synthesis.prescriptions.luckyAttributes.avoidColors.join(", ")}
+              </p>
+              <p style={{ textIndent: 0, fontSize: "11pt", margin: 0, color: "var(--gold)" }}>
+                <b>{isKn ? "ಅದೃಷ್ಟ ದಿಕ್ಕು & ಸಂಖ್ಯೆಗಳು:" : "Lucky Directions & Numbers:"}</b> {synthesis.prescriptions.luckyAttributes.directions.join(", ")} (ಸಂಖ್ಯೆಗಳು: {synthesis.prescriptions.luckyAttributes.numbers.join(", ")})
+              </p>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* END OF READING MARKER */}

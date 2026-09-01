@@ -3,6 +3,7 @@ import { findBhuktiAtAge } from "../../core/DashaBhuktiEngine";
 import { ageDecimalYearsAt } from "../../core/birthTime";
 import { siderealLongitudes } from "../../core/EphemerisEngine";
 import { degreeToRashi } from "../../core/AstroMath";
+import { generateAstrologicalPrescriptions } from "../../core/PanchangaAngaSynthesisEngine";
 
 export type SupportedLanguage = "kn" | "en" | "hi" | "te" | "ta";
 
@@ -197,6 +198,9 @@ export function generateKundliRemedyReport(
   const isSaturnAfflicted = [6, 8, 12].includes(saturn?.house || 1) || saturn?.rashi.english === "Aries" || saturn?.isDebilitated;
   const isRahuKetuStrong = (rahu?.house === 1 || rahu?.house === 7 || rahu?.house === 8);
   const isJupiterAfflicted = jupiter?.rashi.english === "Capricorn" || jupiter?.isDebilitated || [6, 8, 12].includes(jupiter?.house || 1);
+
+  // Unified 5-Anga Prescriptions (100% synchronized with PanchangaAngaSynthesisEngine)
+  const prescriptions = generateAstrologicalPrescriptions(kundli);
 
   // Compute Psychological Scores
   let krodhaLevel = 45;
@@ -842,25 +846,57 @@ export function generateKundliRemedyReport(
       }
     },
     rudrakshaRecommendation: {
-      mukhi: isMarsAfflicted
-        ? { kn: "೩-ಮುಖಿ (ಅಗ್ನಿ/ಕುಜ ಶಾಂತಿ) ಅಥವಾ ೨-ಮುಖಿ (ಚಂದ್ರ ಶಾಂತಿ)", en: "3-Mukhi (Mars Pacifier) or 2-Mukhi (Moon Peace)", hi: "३-मुखी अथवा २-मुखी रुद्राक्ष", te: "3-ముఖి లేదా 2-ముఖి రుద్రాక్ష", ta: "3-முக அல்லது 2-முக ருத்ராட்சம்" }
-        : { kn: "೫-ಮುಖಿ (ಶಿವ ಕೃಪೆ) ಹಾಗೂ ೨-ಮುಖಿ (ಮನಃಶಾಂತಿ)", en: "5-Mukhi (Shiva) with 2-Mukhi (Mind Peace)", hi: "५-मुखी एवं २-मुखी रुद्राक्ष", te: "5-ముఖి & 2-ముఖి రుద్రాక్ష", ta: "5-முக மற்றும் 2-முக ருத்ராட்சம்" },
-      deity: { kn: "ಅಗ್ನಿ ದೇವ ಹಾಗೂ ಗೌರೀ-ಶಂಕರ", en: "Agni Deva & Gauri-Shankara", hi: "अग्नि देव एवं गौरी-शंकर", te: "అగ్ని దేవుడు & శివపార్వతులు", ta: "அக்னி தேவன் & கௌரி-சங்கரர்" },
+      mukhi: {
+        kn: `${prescriptions.rudraksha.mukhi} Mukhi (${prescriptions.rudraksha.nameKn})`,
+        en: `${prescriptions.rudraksha.mukhi}-Mukhi (${prescriptions.rudraksha.nameEn})`,
+        hi: `${prescriptions.rudraksha.mukhi}-मुखी रुद्राक्ष`,
+        te: `${prescriptions.rudraksha.mukhi}-ముఖి రుద్రాక్ష`,
+        ta: `${prescriptions.rudraksha.mukhi}-முக ருத்ராட்சம்`
+      },
+      deity: {
+        kn: prescriptions.rudraksha.deity,
+        en: prescriptions.rudraksha.deity,
+        hi: prescriptions.rudraksha.deity,
+        te: prescriptions.rudraksha.deity,
+        ta: prescriptions.rudraksha.deity
+      },
       benefits: {
-        kn: "ಮನಸ್ಸಿನ ಆವೇಶ, ಆತಂಕ ಮತ್ತು ಆಲಸ್ಯವನ್ನು ನಿವಾರಿಸಿ ಧೃತಿ ಮತ್ತು ಏಕಾಗ್ರತೆಯನ್ನು ಹೆಚ್ಚಿಸುತ್ತದೆ.",
-        en: "Quenches destructive fiery temper, grounds the nervous system, and anchors supreme emotional stability.",
+        kn: prescriptions.rudraksha.astrologicalReason,
+        en: prescriptions.rudraksha.wearingMethod,
         hi: "क्रोध, चिंता को दूर कर एकाग्रता और आत्मशांति प्रदान करता है।",
         te: "కోపాన్ని తగ్గించి మానసిక ఏకాగ్రతను పెంచుతుంది.",
         ta: "கோபத்தை தணித்து மனதை ஒருமுகப்படுத்தும்."
       }
     },
     gemstoneRecommendation: {
-      stone: isMarsAfflicted 
-        ? { kn: "ಶುದ್ಧ ಮುತ್ತು ಅಥವಾ ಕೆಂಪು ಹವಳ", en: "Natural Pearl (Chandra) or Red Coral", hi: "शुद्ध मोती अथवा मूंगा", te: "ముత్యం లేదా పగడం", ta: "முத்து அல்லது பவளம்" }
-        : { kn: "ಸ್ಪಟಿಕ ಮಣಿ ಅಥವಾ ಹಳದಿ ಪುಷ್ಯರಾಗ", en: "Clear Quartz (Spatika) or Yellow Sapphire", hi: "स्फटिक अथवा पुखराज", te: "స్పటికం లేదా పుష్యరాగం", ta: "ஸ்படிகம் அல்லது புஷ்பராகம்" },
-      metal: { kn: "ಶುದ್ಧ ಬೆಳ್ಳಿ", en: "Pure Silver", hi: "शुद्ध चांदी", te: "స్వచ్ఛమైన వెండి", ta: "தூய வெள்ளி" },
-      finger: { kn: "ಕಿರುಬೆರಳು ಅಥವಾ ಉಂಗುರದ ಬೆರಳು", en: "Little finger or Ring finger", hi: "कनिष्ठिका अथवा अनामिका", te: "చిటికెన వేలు లేదా ఉంగరపు వేలు", ta: "சுண்டு விரல் அல்லது மோதிர விரல்" },
-      dayToWear: { kn: "ಶುಕ್ಲಪಕ್ಷದ ಸೋಮವಾರ ಸೂರ್ಯೋದಯ ವೇಳೆ", en: "Monday during waxing moon (Shukla Paksha) at sunrise", hi: "शुक्ल पक्ष के सोमवार को सूर्योदय समय", te: "శుక్లపక్ష సోమవారం సూర్యోదయం వేళ", ta: "வளர்பிறை திங்கட்கிழமை சூரிய உதய வேளையில்" }
+      stone: {
+        kn: `${prescriptions.gemstoneRing.primaryGemstoneKn} (${prescriptions.gemstoneRing.caratWeight})`,
+        en: `${prescriptions.gemstoneRing.primaryGemstoneEn} (${prescriptions.gemstoneRing.caratWeight})`,
+        hi: prescriptions.gemstoneRing.sanskritName,
+        te: prescriptions.gemstoneRing.primaryGemstoneEn,
+        ta: prescriptions.gemstoneRing.primaryGemstoneEn
+      },
+      metal: {
+        kn: prescriptions.gemstoneRing.metalKn,
+        en: prescriptions.gemstoneRing.metalEn,
+        hi: prescriptions.gemstoneRing.metalEn,
+        te: prescriptions.gemstoneRing.metalEn,
+        ta: prescriptions.gemstoneRing.metalEn
+      },
+      finger: {
+        kn: prescriptions.gemstoneRing.fingerKn,
+        en: prescriptions.gemstoneRing.fingerEn,
+        hi: prescriptions.gemstoneRing.fingerEn,
+        te: prescriptions.gemstoneRing.fingerEn,
+        ta: prescriptions.gemstoneRing.fingerEn
+      },
+      dayToWear: {
+        kn: prescriptions.gemstoneRing.activationDay,
+        en: prescriptions.gemstoneRing.activationDay,
+        hi: prescriptions.gemstoneRing.activationDay,
+        te: prescriptions.gemstoneRing.activationDay,
+        ta: prescriptions.gemstoneRing.activationDay
+      }
     },
     donationDaana: {
       item: {

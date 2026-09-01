@@ -11,6 +11,31 @@ import { askGemini } from "../core/GeminiEngine";
 import Card from "../components/ui/Card";
 import GrahaSpinner from "../components/ui/GrahaSpinner";
 
+/**
+ * Sanitizes astrology text to guarantee clean presentation:
+ * 1. Strips all markdown asterisks (** or *) and hashes (#).
+ * 2. Converts any Kannada digits (೦-೯) to English digits (0-9).
+ * 3. Removes stray non-standard artifacts.
+ */
+export function cleanAstrologyText(text: string): string {
+  if (!text) return "";
+  let cleaned = text
+    .replace(/\*\*/g, "")
+    .replace(/\*/g, "")
+    .replace(/#{1,6}\s?/g, "")
+    .replace(/`/g, "")
+    .replace(/_{1,2}/g, "")
+    .trim();
+
+  // Convert Kannada digits to English digits
+  const knDigits = ["೦", "೧", "೨", "೩", "೪", "೫", "೬", "೭", "೮", "೯"];
+  knDigits.forEach((kd, idx) => {
+    cleaned = cleaned.replaceAll(kd, idx.toString());
+  });
+
+  return cleaned;
+}
+
 export default function InstantReadingPage(): JSX.Element {
   const { t, i18n } = useTranslation();
   const setPage = useAppStore((s) => s.setPage);
@@ -22,14 +47,14 @@ export default function InstantReadingPage(): JSX.Element {
   const [aiNarration, setAiNarration] = useState<string[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
 
-  // Selected Category & Active Question Modal / Drawer
+  // Selected Category & Active Question Drawer
   const [activeCategory, setActiveCategory] = useState<"all" | "career" | "marriage" | "mind" | "wealth">("all");
   const [selectedQA, setSelectedQA] = useState<InstantQAQuestion | null>(null);
 
   // Custom Q&A State
   const [questionInput, setQuestionInput] = useState("");
   const [answering, setAnswering] = useState(false);
-  const [qaHistory, setQaHistory] = useState<{ question: string; answer: string; basis?: string }[]>([]);
+  const [qaHistory, setQaHistory] = useState<{ question: string; answer: string }[]>([]);
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<any>(null);
 
@@ -54,10 +79,10 @@ export default function InstantReadingPage(): JSX.Element {
     });
 
     setSynthesisData(data);
-    setAiNarration(data.multiParagraphExecutiveReading);
+    setAiNarration(data.multiParagraphExecutiveReading.map(cleanAstrologyText));
     setLoading(false);
 
-    // Trigger AI enhanced live reading
+    // Trigger AI enhanced live reading with strict formatting instructions
     void (async () => {
       setAiLoading(true);
       try {
@@ -67,21 +92,27 @@ Birth Details: ${birthDate} at ${birthTime} (Lat: ${lat}, Lon: ${lon})
 Lagna: ${session.result.lagnaRashi.english} (${session.result.lagnaRashi.sanskrit})
 Moon Rashi: ${session.result.moonSign.english} (${session.result.moonSign.sanskrit})
 Moon Nakshatra: ${session.result.planets.find((p) => p.name === "Moon")?.nakshatra.english || "Ashwini"}
-Panchanga Angas:
+Panchanga 5-Angas:
 - Vara: ${data.panchanga.vara.nameKn} (${data.panchanga.vara.tatva})
 - Tithi: ${data.panchanga.tithi.nameKn}
 - Nakshatra: ${data.panchanga.nakshatra.nameKn}
 - Yoga: ${data.panchanga.yoga.nameKn} (${data.panchanga.yoga.rule.isAuspicious ? "Auspicious" : "Requires Care"})
 - Karana: ${data.panchanga.karana.nameKn} (${data.panchanga.karana.rule.type})
-Current Life Issue Diagnosis:
-- Mental State: ${data.currentDiagnosis.mentalStateIssue.diagnosis}
-- Primary Challenge: ${data.currentDiagnosis.primaryLifeChallenge.area} -> ${data.currentDiagnosis.primaryLifeChallenge.description} (${data.currentDiagnosis.primaryLifeChallenge.planetaryRootCause})
-- Dasha Sthiti: ${data.currentDiagnosis.prasthuthaSthiti.runningDashaSummary}
-- Prescribed Rudraksha: ${data.prescriptions.rudraksha.nameKn}
-- Prescribed Gemstone Ring: ${data.prescriptions.gemstoneRing.primaryGemstoneKn} (${data.prescriptions.gemstoneRing.caratWeight}) on ${data.prescriptions.gemstoneRing.fingerKn}
+Technical Astrological Placements:
+- 4th House: ${data.currentDiagnosis.technicalAspects.fourthHouseDetail}
+- 5th House: ${data.currentDiagnosis.technicalAspects.fifthHouseDetail}
+- 7th House: ${data.currentDiagnosis.technicalAspects.seventhHouseDetail}
+- 10th House: ${data.currentDiagnosis.technicalAspects.tenthHouseDetail}
+- Running Dasha & Gochara: ${data.currentDiagnosis.prasthuthaSthiti.runningDashaSummary}
+- Current Challenge: ${data.currentDiagnosis.primaryLifeChallenge.area} -> ${data.currentDiagnosis.primaryLifeChallenge.description} (${data.currentDiagnosis.primaryLifeChallenge.planetaryRootCause})
+- Prescriptions: ${data.prescriptions.rudraksha.nameKn}, ${data.prescriptions.gemstoneRing.primaryGemstoneKn} (${data.prescriptions.gemstoneRing.caratWeight}) on ${data.prescriptions.gemstoneRing.fingerKn}.
 
-Task: Write a deeply empathetic, highly accurate 3-to-4 paragraph personalized astrological reading in fluent, pure ${isKn ? "Kannada" : "English"}.
-Highlight exactly what the person is feeling inside (Manassu/peace of mind), where they are facing friction right now (work, family, health, or finance), and provide clear astrological reassurance and practical remedies. Do not use generic fluff.
+STRICT WRITING RULES:
+1. Write 3 to 4 impactful, expert paragraphs in pure, natural ${isKn ? "Kannada" : "English"}.
+2. DO NOT use markdown bold asterisks (no ** or *). Use clean, plain text.
+3. ALL NUMBERS MUST BE IN ENGLISH DIGITS (e.g. 4.25 - 6.5 Carat, 9 Mukhi, 7th house, 10th house, 4 to 6 months). Do not use Kannada digits.
+4. Mention technical astrological placements (4th house mind, 5th house intellect, 7th house aspect, 10th house career) to demonstrate deep astrological mastery.
+5. Highlight what they are feeling internally (Overthinking, anxiety), where the active friction is (family/work), and provide practical remedies.
 `;
 
         const response = await askGemini(
@@ -93,9 +124,10 @@ Highlight exactly what the person is feeling inside (Manassu/peace of mind), whe
         );
 
         if (response) {
-          const paragraphs = response.split("\n\n").filter((p) => p.trim().length > 0);
-          if (paragraphs.length >= 2) {
-            setAiNarration(paragraphs);
+          const rawParagraphs = response.split("\n\n").filter((p) => p.trim().length > 0);
+          const cleaned = rawParagraphs.map(cleanAstrologyText);
+          if (cleaned.length >= 2) {
+            setAiNarration(cleaned);
           }
         }
       } catch (err) {
@@ -149,14 +181,17 @@ Highlight exactly what the person is feeling inside (Manassu/peace of mind), whe
 Devotee: ${session.input.name || "Devotee"}
 Lagna: ${session.result.lagnaRashi.english} | Moon: ${session.result.moonSign.english} | Nakshatra: ${session.result.planets.find(p => p.name === "Moon")?.nakshatra.english}
 Panchanga 5-Angas: Vara=${synthesisData.panchanga.vara.nameKn}, Tithi=${synthesisData.panchanga.tithi.nameKn}, Yoga=${synthesisData.panchanga.yoga.nameKn}, Karana=${synthesisData.panchanga.karana.nameKn}
-Dasha & Diagnosis: ${synthesisData.currentDiagnosis.prasthuthaSthiti.runningDashaSummary}. Current challenge: ${synthesisData.currentDiagnosis.primaryLifeChallenge.description}.
-Prescriptions: Rudraksha=${synthesisData.prescriptions.rudraksha.nameKn}, Gemstone=${synthesisData.prescriptions.gemstoneRing.primaryGemstoneKn}.
+Technical: 4th=${synthesisData.currentDiagnosis.technicalAspects.fourthHouseDetail}, 7th=${synthesisData.currentDiagnosis.technicalAspects.seventhHouseDetail}, 10th=${synthesisData.currentDiagnosis.technicalAspects.tenthHouseDetail}.
+Dasha: ${synthesisData.currentDiagnosis.prasthuthaSthiti.runningDashaSummary}.
+Prescriptions: ${synthesisData.prescriptions.rudraksha.nameKn}, ${synthesisData.prescriptions.gemstoneRing.primaryGemstoneKn}.
 
 Question from Devotee: "${q}"
 
 Task: Give a direct, expert Pandit response in ${isKn ? "Kannada" : "English"}.
-First give 2 punchy spoken sentences that the Astrologer can tell the devotee immediately.
-Then specify the exact planetary/house basis and the 1 practical Vedic remedy.
+1. First give 2 punchy spoken sentences that the Astrologer can tell the devotee immediately.
+2. DO NOT use markdown bold asterisks (**). Output clean text.
+3. ALL NUMBERS MUST BE IN ENGLISH DIGITS (1, 2, 3, 4.25 Carat, etc.).
+4. Then specify the technical house/drishti basis and the practical remedy.
 `;
 
       const ans = await askGemini(
@@ -167,7 +202,7 @@ Then specify the exact planetary/house basis and the 1 practical Vedic remedy.
         { temperature: 0.2 }
       );
 
-      setQaHistory((prev) => [{ question: q, answer: ans }, ...prev]);
+      setQaHistory((prev) => [{ question: q, answer: cleanAstrologyText(ans) }, ...prev]);
       setQuestionInput("");
     } catch (err: any) {
       alert(isKn ? "ಪ್ರತಿಕ್ರಿಯೆ ಪಡೆಯಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ. ದಯವಿಟ್ಟು ಮತ್ತೊಮ್ಮೆ ಪ್ರಯತ್ನಿಸಿ." : "Failed to get answer. Please check network/API key and try again.");
@@ -235,7 +270,7 @@ Then specify the exact planetary/house basis and the 1 practical Vedic remedy.
           </div>
           <div className="px-4 py-2 rounded-2xl bg-amber-900/40 border border-amber-400/40 text-right">
             <span className="text-[10px] text-amber-300 uppercase font-bold block">ಪಂಚಾಂಗ ವಿಶ್ಲೇಷಣೆ</span>
-            <span className="text-sm font-black text-white">೧೦೦% ಶಾಸ್ತ್ರೋಕ್ತ ಫಲಿತ</span>
+            <span className="text-sm font-black text-white">100% ಶಾಸ್ತ್ರೋಕ್ತ ಫಲಿತ</span>
           </div>
         </div>
       </div>
@@ -275,19 +310,19 @@ Then specify the exact planetary/house basis and the 1 practical Vedic remedy.
                 <div className="p-3.5 rounded-2xl bg-white/5 border border-emerald-500/20 space-y-1">
                   <span className="text-emerald-400 font-bold block text-[11px]">1. ಆರಂಭಿಕ ಮಾತು (Opening Icebreaker):</span>
                   <p className="text-slate-200 italic leading-relaxed">
-                    "{currentDiagnosis.astrologerTalkingPoints.openingIceBreakerKn}"
+                    "{cleanAstrologyText(currentDiagnosis.astrologerTalkingPoints.openingIceBreakerKn)}"
                   </p>
                 </div>
                 <div className="p-3.5 rounded-2xl bg-white/5 border border-emerald-500/20 space-y-1">
                   <span className="text-emerald-400 font-bold block text-[11px]">2. ಆಂತರಿಕ ರಹಸ್ಯ (Hidden Subconscious Worry):</span>
                   <p className="text-slate-200 italic leading-relaxed">
-                    "{currentDiagnosis.astrologerTalkingPoints.hiddenSubconsciousWorryKn}"
+                    "{cleanAstrologyText(currentDiagnosis.astrologerTalkingPoints.hiddenSubconsciousWorryKn)}"
                   </p>
                 </div>
                 <div className="p-3.5 rounded-2xl bg-white/5 border border-emerald-500/20 space-y-1">
                   <span className="text-emerald-400 font-bold block text-[11px]">3. ತಿರುವು ನೀಡುವ ಕಾಲ (Turning Point Timeline):</span>
                   <p className="text-slate-200 italic leading-relaxed">
-                    "{currentDiagnosis.astrologerTalkingPoints.immediateTurningPointKn}"
+                    "{cleanAstrologyText(currentDiagnosis.astrologerTalkingPoints.immediateTurningPointKn)}"
                   </p>
                 </div>
               </div>
@@ -312,7 +347,7 @@ Then specify the exact planetary/house basis and the 1 practical Vedic remedy.
             <div className="space-y-3.5 text-xs md:text-sm text-stone-700 leading-relaxed">
               {aiNarration.map((para, idx) => (
                 <p key={idx} className="bg-stone-50/80 p-4 rounded-2xl border border-stone-100/90 text-stone-800">
-                  {para}
+                  {cleanAstrologyText(para)}
                 </p>
               ))}
             </div>
@@ -325,7 +360,7 @@ Then specify the exact planetary/house basis and the 1 practical Vedic remedy.
                     🧠 ಮಾನಸಿಕ ಸ್ಥಿತಿ (Mind & Inner Peace)
                   </span>
                   <p className="text-xs text-amber-950 font-medium">
-                    {currentDiagnosis.mentalStateIssue.diagnosis}
+                    {cleanAstrologyText(currentDiagnosis.mentalStateIssue.diagnosis)}
                   </p>
                 </div>
                 <div className="p-3.5 rounded-2xl bg-indigo-50/80 border border-indigo-200/80">
@@ -333,7 +368,7 @@ Then specify the exact planetary/house basis and the 1 practical Vedic remedy.
                     🎯 ಪ್ರಮುಖ ಜೀವನ ಸವಾಲು ({currentDiagnosis.primaryLifeChallenge.area})
                   </span>
                   <p className="text-xs text-indigo-950 font-medium">
-                    {currentDiagnosis.primaryLifeChallenge.description}
+                    {cleanAstrologyText(currentDiagnosis.primaryLifeChallenge.description)}
                   </p>
                 </div>
               </div>
@@ -407,15 +442,15 @@ Then specify the exact planetary/house basis and the 1 practical Vedic remedy.
                         <b className="block text-[11px] uppercase tracking-wider text-amber-900 mb-1">
                           🗣️ ದೈವಜ್ಞರ ನೇರ ಮಾತು (Say to Devotee):
                         </b>
-                        <p className="leading-relaxed font-medium">"{qa.panditScriptKn}"</p>
+                        <p className="leading-relaxed font-medium">"{cleanAstrologyText(qa.panditScriptKn)}"</p>
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
                         <div className="p-2.5 rounded-xl bg-white border border-stone-200 text-stone-700">
-                          <b>ಶಾಸ್ತ್ರೀಯ ಆಧಾರ:</b> {qa.astrologicalBasisKn}
+                          <b>ಶಾಸ್ತ್ರೀಯ ಆಧಾರ:</b> {cleanAstrologyText(qa.astrologicalBasisKn)}
                         </div>
                         <div className="p-2.5 rounded-xl bg-white border border-emerald-200 text-emerald-950">
-                          <b>ತಕ್ಷಣದ ಪರಿಹಾರ:</b> {qa.immediateRemedyKn}
+                          <b>ತಕ್ಷಣದ ಪರಿಹಾರ:</b> {cleanAstrologyText(qa.immediateRemedyKn)}
                         </div>
                       </div>
                     </div>
@@ -434,7 +469,7 @@ Then specify the exact planetary/house basis and the 1 practical Vedic remedy.
                     ॥ ಪಂಚಾಂಗ ಸಮಗ್ರ ರಕ್ಷಾ ಕವಚ ॥
                   </span>
                   <h3 className="text-lg md:text-xl font-black text-amber-950 font-serif">
-                    {isKn ? "ಜಾತಕ & ಪಂಚಾಂಗಾಧಾರಿತ ೧೦೦% ನಿಖರ ರತ್ನ, ರುದ್ರಾಕ್ಷಿ & ಅದೃಷ್ಟ ವಾಹನ ಬಣ್ಣಗಳು" : "Panchanga Unified Astrological Prescriptions (100% Accurate)"}
+                    {isKn ? "ಜಾತಕ & ಪಂಚಾಂಗಾಧಾರಿತ 100% ನಿಖರ ರತ್ನ, ರುದ್ರಾಕ್ಷಿ & ಅದೃಷ್ಟ ವಾಹನ ಬಣ್ಣಗಳು" : "Panchanga Unified Astrological Prescriptions (100% Accurate)"}
                   </h3>
                 </div>
                 <span className="text-2xl">💍</span>
@@ -451,13 +486,13 @@ Then specify the exact planetary/house basis and the 1 practical Vedic remedy.
                     <b>ದೇವತೆ:</b> {prescriptions.rudraksha.deity} • <b>ಅಧಿಪತಿ ಗ್ರಹ:</b> {prescriptions.rudraksha.planet}
                   </p>
                   <p className="text-xs text-amber-950 bg-amber-50/80 p-2.5 rounded-xl border border-amber-100">
-                    💡 <b>ಶಾಸ್ತ್ರೀಯ ಕಾರಣ:</b> {prescriptions.rudraksha.astrologicalReason}
+                    💡 <b>ಶಾಸ್ತ್ರೀಯ ಕಾರಣ:</b> {cleanAstrologyText(prescriptions.rudraksha.astrologicalReason)}
                   </p>
                   <p className="text-[11px] text-emerald-800 font-medium">
-                    ✨ <b>ಪಂಚಾಂಗ ಸಮನ್ವಯ:</b> {prescriptions.rudraksha.panchangaSynergy}
+                    ✨ <b>ಪಂಚಾಂಗ ಸಮನ್ವಯ:</b> {cleanAstrologyText(prescriptions.rudraksha.panchangaSynergy)}
                   </p>
                   <p className="text-[11px] text-stone-500">
-                    <b>ಧರಿಸುವ ಕ್ರಮ:</b> {prescriptions.rudraksha.wearingMethod}
+                    <b>ಧರಿಸುವ ಕ್ರಮ:</b> {cleanAstrologyText(prescriptions.rudraksha.wearingMethod)}
                   </p>
                 </div>
 
@@ -471,13 +506,13 @@ Then specify the exact planetary/house basis and the 1 practical Vedic remedy.
                     <b>ತೂಕ:</b> {prescriptions.gemstoneRing.caratWeight} • <b>ಲೋಹ:</b> {prescriptions.gemstoneRing.metalKn}
                   </p>
                   <p className="text-xs text-amber-950 bg-amber-50/80 p-2.5 rounded-xl border border-amber-100">
-                    💡 <b>ಶಾಸ್ತ್ರೀಯ ಕಾರಣ:</b> {prescriptions.gemstoneRing.astrologicalReason}
+                    💡 <b>ಶಾಸ್ತ್ರೀಯ ಕಾರಣ:</b> {cleanAstrologyText(prescriptions.gemstoneRing.astrologicalReason)}
                   </p>
                   <p className="text-[11px] text-emerald-800 font-medium">
-                    ✨ <b>ಪಂಚಾಂಗ ಸಮನ್ವಯ:</b> {prescriptions.gemstoneRing.panchangaSynergy}
+                    ✨ <b>ಪಂಚಾಂಗ ಸಮನ್ವಯ:</b> {cleanAstrologyText(prescriptions.gemstoneRing.panchangaSynergy)}
                   </p>
                   <p className="text-[11px] text-stone-500">
-                    <b>ಬೆರಳು & ಶುಭ ವಾರ:</b> {prescriptions.gemstoneRing.fingerKn} ({prescriptions.gemstoneRing.activationDay})
+                    <b>ಬೆರಳು & ಶುಭ ವಾರ:</b> {cleanAstrologyText(prescriptions.gemstoneRing.fingerKn)} ({prescriptions.gemstoneRing.activationDay})
                   </p>
                 </div>
               </div>
@@ -521,7 +556,7 @@ Then specify the exact planetary/house basis and the 1 practical Vedic remedy.
               </h3>
               <p className="text-xs text-slate-300 mt-1">
                 {isKn 
-                  ? "ಕ್ಲೈಂಟ್ ಕೇಳುವ ಯಾವುದೇ ಅನಿರೀಕ್ಷಿತ ಪ್ರಶ್ನೆಗೆ ಮೈಕ್ ಮೂಲಕ ಅಥವಾ ಟೈಪ್ ಮಾಡಿ ೧೦೦% ಶಾಸ್ತ್ರೋಕ್ತ ಉತ್ತರ ಪಡೆಯಿರಿ."
+                  ? "ಕ್ಲೈಂಟ್ ಕೇಳುವ ಯಾವುದೇ ಅನಿರೀಕ್ಷಿತ ಪ್ರಶ್ನೆಗೆ ಮೈಕ್ ಮೂಲಕ ಅಥವಾ ಟೈಪ್ ಮಾಡಿ 100% ಶಾಸ್ತ್ರೋಕ್ತ ಉತ್ತರ ಪಡೆಯಿರಿ."
                   : "Get accurate, direct answers for any client follow-up question based on their chart."}
               </p>
             </div>
@@ -572,7 +607,7 @@ Then specify the exact planetary/house basis and the 1 practical Vedic remedy.
                       <span>{item.question}</span>
                     </p>
                     <p className="text-xs md:text-sm text-slate-100 leading-relaxed bg-black/40 p-3 rounded-xl border border-white/5 whitespace-pre-line">
-                      {item.answer}
+                      {cleanAstrologyText(item.answer)}
                     </p>
                   </div>
                 ))}
