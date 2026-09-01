@@ -70,23 +70,21 @@ describe("365-Day Daily Inspiration & Clean WhatsApp Share Almanac", () => {
       "../features/darshana/dailyBlessingBackgrounds"
     );
 
-    // Verify all 366 days generate valid background configurations
+    // Verify all 366 days generate valid luxury background configurations
     for (let day = 1; day <= 366; day++) {
       const config = getDailyBackgroundConfig(day);
       expect(config.dayOfYear).toBe(day);
-      expect(config.skyGradient.start).toBeTruthy();
-      expect(config.skyGradient.mid).toBeTruthy();
-      expect(config.skyGradient.end).toBeTruthy();
-      expect(config.sun.color).toBeTruthy();
-      expect(config.sun.rayCount).toBeGreaterThan(5);
-      expect(config.sceneryType).toBeTruthy();
+      expect(config.gradientCss).toBeTruthy();
+      expect(config.accentGold).toBeTruthy();
+      expect(config.borderGold).toBeTruthy();
+      expect(config.glowAura).toBeTruthy();
+      expect(config.deityIcon).toBeTruthy();
+      expect(config.motifs.bokehCount).toBeGreaterThan(0);
 
       const svgString = renderDailyVedicSvgBackground(config);
       expect(svgString).toContain("<svg");
       expect(svgString).toContain("</svg>");
-      expect(svgString).toContain("<linearGradient");
       expect(svgString).toContain("<radialGradient");
-      expect(svgString).toContain("<rect");
       expect(svgString).toContain("<circle");
     }
   });

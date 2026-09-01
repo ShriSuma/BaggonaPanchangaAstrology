@@ -1,123 +1,101 @@
 /**
- * Baggona Panchanga - 365-Day Unique Vedic Background Artwork Engine
+ * Baggona Panchanga - 365-Day Luxury Vedic Background Artwork Engine
  * (೩೬೫ ದಿನಗಳ ನಿತ್ಯ ಶುಭೋದಯ ದೈವಿಕ ಹಿನ್ನೆಲೆ ಕಲಾ ಎಂಜಿನ್)
  * 
- * Generates deterministic, high-resolution, vector-crisp 365 daily background artworks
- * with sacred morning sunrise vibes, Gokarna temple silhouettes, holy mandalas, and
- * celestial atmospheric radiance for the WhatsApp Blessing Card.
- * 
- * Key Features:
- * 1. 365 Unique Daily Atmospheric Compositions (Day 1 to Day 365/366).
- * 2. Day Lord (Vara), Nakshatra & Seasonally Aligned Aesthetics.
- * 3. 100% Vector SVG-based — crisp on 4K/Retina displays, 0 CORS issues, 0 broken CDN images.
- * 4. Fast, offline-first, instant render & 100% html2canvas export compatible.
+ * Generates deterministic, breathtaking, high-vibe morning temple backgrounds
+ * with soft golden dawn rays, sacred Gokarna temple arches, floating bokeh dust,
+ * and royal Vedic jewel palettes designed for high-resolution WhatsApp sharing.
  */
 
 export interface DailyBackgroundConfig {
   dayOfYear: number;
+  seasonName: string;
   themeName: string;
-  skyGradient: {
-    start: string;
-    mid: string;
-    end: string;
-  };
-  sun: {
-    cx: number; // 0 - 100%
-    cy: number; // 0 - 100%
-    r: number;
-    color: string;
-    rayColor: string;
-    rayCount: number;
-  };
-  sceneryType: "temple_sunrise" | "mountain_dawn" | "gokarna_coast" | "sacred_lotus" | "cosmic_mandala" | "banyan_peace" | "golden_sanctum";
-  silhouetteColor: string;
+  gradientCss: string;
   accentGold: string;
-  particleType: "stars" | "sunbeams" | "lotus_petals" | "sacred_sparks";
-  mandalaAngle: number;
+  borderGold: string;
+  glowAura: string;
+  deityIcon: string;
+  motifs: {
+    gopuramOpacity: number;
+    haloOpacity: number;
+    bokehCount: number;
+    sunbeamAngle: number;
+  };
 }
 
-// 7 Weekday Deity Base Palettes
-const WEEKDAY_PALETTES = [
-  // 0: Sunday (Surya - Royal Golden Saffron Dawn)
+// 7 Weekday Vedic Deity Royal Color Systems
+const SACRED_DAY_PALETTES = [
+  // 0: Sunday (Surya - Royal Saffron Gold Dawn)
   {
-    start: "#3E1200",
-    mid: "#7C2D12",
-    end: "#B45309",
-    sunColor: "#FDE047",
-    rayColor: "rgba(251, 191, 36, 0.45)",
-    silhouette: "#1A0500",
-    gold: "#F59E0B"
+    themeName: "ಸೂರ್ಯ ತೇಜಸ್ಸು (Surya Tejas)",
+    season: "ಉದಯ ಪ್ರಭೆ",
+    gradientCss: "linear-gradient(180deg, #381200 0%, #4D1A00 30%, #2A0C00 70%, #150500 100%)",
+    accentGold: "#FBBF24",
+    borderGold: "#F59E0B",
+    glowAura: "radial-gradient(circle at 50% 12%, rgba(251, 191, 36, 0.28) 0%, rgba(217, 119, 6, 0.12) 45%, transparent 75%)",
+    deityIcon: "☀️"
   },
-  // 1: Monday (Soma / Shiva - Mystic Gokarna Silver & Ocean Twilight)
+  // 1: Monday (Soma / Shiva - Gokarna Chandramouleshwara Twilight)
   {
-    start: "#0B132B",
-    mid: "#1C2541",
-    end: "#3A506B",
-    sunColor: "#E0F2FE",
-    rayColor: "rgba(186, 230, 253, 0.35)",
-    silhouette: "#030712",
-    gold: "#38BDF8"
+    themeName: "ಶಿವ ಸಾನ್ನಿಧ್ಯ (Gokarna Shankara)",
+    season: "ಪ್ರಶಾಂತ ಉದಯ",
+    gradientCss: "linear-gradient(180deg, #0A1428 0%, #142240 30%, #0D162C 70%, #050814 100%)",
+    accentGold: "#7DD3FC",
+    borderGold: "#38BDF8",
+    glowAura: "radial-gradient(circle at 50% 12%, rgba(56, 189, 248, 0.24) 0%, rgba(14, 116, 144, 0.12) 45%, transparent 75%)",
+    deityIcon: "🔱"
   },
-  // 2: Tuesday (Mangala / Kartikeya - Radiant Crimson Amber)
+  // 2: Tuesday (Mangala / Kartikeya - Sacred Kumkuma & Amber Dawn)
   {
-    start: "#4C0519",
-    mid: "#881337",
-    end: "#BE123C",
-    sunColor: "#FECDD3",
-    rayColor: "rgba(251, 113, 133, 0.4)",
-    silhouette: "#1E0209",
-    gold: "#FB7185"
+    themeName: "ಮಂಗಳ ಪ್ರಭಾ (Karthikeya Kripa)",
+    season: "ತೇಜೋಮಯ ಮುಂಜಾನೆ",
+    gradientCss: "linear-gradient(180deg, #3A0512 0%, #4C0B1B 30%, #28030B 70%, #140105 100%)",
+    accentGold: "#FDA4AF",
+    borderGold: "#FB7185",
+    glowAura: "radial-gradient(circle at 50% 12%, rgba(251, 113, 133, 0.25) 0%, rgba(190, 18, 60, 0.12) 45%, transparent 75%)",
+    deityIcon: "🪔"
   },
-  // 3: Wednesday (Budha / Vishnu - Emerald Forest Sanjeevini)
+  // 3: Wednesday (Budha / Vishnu - Tulasi & Emerald Sanjeevini)
   {
-    start: "#022C22",
-    mid: "#064E3B",
-    end: "#047857",
-    sunColor: "#A7F3D0",
-    rayColor: "rgba(52, 211, 153, 0.35)",
-    silhouette: "#011612",
-    gold: "#10B981"
+    themeName: "ತುಳಸಿ ಸಂಜೀವಿನಿ (Vishnu Anugraha)",
+    season: "ಹರಿತ ಉದಯ",
+    gradientCss: "linear-gradient(180deg, #02261C 0%, #043628 30%, #022017 70%, #01100C 100%)",
+    accentGold: "#6EE7B7",
+    borderGold: "#10B981",
+    glowAura: "radial-gradient(circle at 50% 12%, rgba(52, 211, 153, 0.24) 0%, rgba(5, 150, 105, 0.12) 45%, transparent 75%)",
+    deityIcon: "🌿"
   },
-  // 4: Thursday (Guru / Brihaspati - Sacred Golden Sandalwood)
+  // 4: Thursday (Guru / Brihaspati - Sacred Sandalwood & Turmeric)
   {
-    start: "#422006",
-    mid: "#713F12",
-    end: "#A16207",
-    sunColor: "#FEF08A",
-    rayColor: "rgba(250, 204, 21, 0.45)",
-    silhouette: "#1C0A00",
-    gold: "#EAB308"
+    themeName: "ಗುರು ಕೃಪಾ (Brihaspati Sandalwood)",
+    season: "ಪಾವನ ಮುಂಜಾನೆ",
+    gradientCss: "linear-gradient(180deg, #351A00 0%, #472400 30%, #291400 70%, #140900 100%)",
+    accentGold: "#FDE047",
+    borderGold: "#EAB308",
+    glowAura: "radial-gradient(circle at 50% 12%, rgba(250, 204, 21, 0.28) 0%, rgba(161, 98, 7, 0.12) 45%, transparent 75%)",
+    deityIcon: "📿"
   },
-  // 5: Friday (Shukra / Mahalakshmi - Royal Lotus Rose & Violet)
+  // 5: Friday (Shukra / Mahalakshmi - Royal Lotus & Sannidhi Gold)
   {
-    start: "#4A044E",
-    mid: "#701A75",
-    end: "#86198F",
-    sunColor: "#F5D0FE",
-    rayColor: "rgba(232, 121, 249, 0.4)",
-    silhouette: "#1F0223",
-    gold: "#F472B6"
+    themeName: "ಮಹಾಲಕ್ಷ್ಮಿ ಸನ್ನಿಧಿ (Mahalakshmi Lotus)",
+    season: "ಮಂಗಳಕರ ಉದಯ",
+    gradientCss: "linear-gradient(180deg, #380226 0%, #4D0637 30%, #29011C 70%, #14000D 100%)",
+    accentGold: "#F472B6",
+    borderGold: "#EC4899",
+    glowAura: "radial-gradient(circle at 50% 12%, rgba(244, 114, 182, 0.25) 0%, rgba(190, 24, 93, 0.12) 45%, transparent 75%)",
+    deityIcon: "🪷"
   },
-  // 6: Saturday (Shani / Hanuman - Deep Celestial Indigo & Amber Aura)
+  // 6: Saturday (Shani / Hanuman - Deep Celestial Amber)
   {
-    start: "#0F172A",
-    mid: "#1E1B4B",
-    end: "#312E81",
-    sunColor: "#FDE68A",
-    rayColor: "rgba(245, 158, 11, 0.4)",
-    silhouette: "#050714",
-    gold: "#F59E0B"
+    themeName: "ಆಂಜನೇಯ ರಕ್ಷಾ (Hanuman Raksha)",
+    season: "ಅಮೃತ ಮುಂಜಾನೆ",
+    gradientCss: "linear-gradient(180deg, #13112E 0%, #1E1B45 30%, #110E28 70%, #070614 100%)",
+    accentGold: "#FCD34D",
+    borderGold: "#F59E0B",
+    glowAura: "radial-gradient(circle at 50% 12%, rgba(245, 158, 11, 0.26) 0%, rgba(180, 83, 9, 0.12) 45%, transparent 75%)",
+    deityIcon: "🕉️"
   }
-];
-
-const SCENERY_TYPES: DailyBackgroundConfig["sceneryType"][] = [
-  "temple_sunrise",
-  "mountain_dawn",
-  "gokarna_coast",
-  "sacred_lotus",
-  "cosmic_mandala",
-  "banyan_peace",
-  "golden_sanctum"
 ];
 
 /**
@@ -126,167 +104,101 @@ const SCENERY_TYPES: DailyBackgroundConfig["sceneryType"][] = [
 export function getDailyBackgroundConfig(dayOfYear: number): DailyBackgroundConfig {
   const safeDay = Math.max(1, Math.min(366, dayOfYear));
   const weekdayIndex = (safeDay - 1) % 7;
-  const sceneryIndex = (safeDay - 1) % SCENERY_TYPES.length;
-  const basePalette = WEEKDAY_PALETTES[weekdayIndex];
+  const palette = SACRED_DAY_PALETTES[weekdayIndex];
 
-  // Dynamic variations across 365 days
-  const sunX = 35 + ((safeDay * 17) % 30); // 35% - 65%
-  const sunY = 18 + ((safeDay * 13) % 24); // 18% - 42%
-  const sunRadius = 40 + ((safeDay * 7) % 25); // 40px - 65px
-  const rayCount = 12 + ((safeDay * 3) % 13); // 12 - 24 rays
-  const mandalaAngle = (safeDay * 37) % 360;
-
-  const particleTypes: DailyBackgroundConfig["particleType"][] = ["sunbeams", "lotus_petals", "stars", "sacred_sparks"];
-  const particleType = particleTypes[(safeDay - 1) % particleTypes.length];
+  // Subtle daily micro-variations for 365-day uniqueness
+  const sunbeamAngle = (safeDay * 19) % 360;
+  const haloOpacity = 0.15 + ((safeDay % 10) * 0.01);
+  const gopuramOpacity = 0.10 + ((safeDay % 8) * 0.01);
+  const bokehCount = 6 + (safeDay % 7);
 
   return {
     dayOfYear: safeDay,
-    themeName: `Vedic Day ${safeDay} - ${SCENERY_TYPES[sceneryIndex]}`,
-    skyGradient: {
-      start: basePalette.start,
-      mid: basePalette.mid,
-      end: basePalette.end
-    },
-    sun: {
-      cx: sunX,
-      cy: sunY,
-      r: sunRadius,
-      color: basePalette.sunColor,
-      rayColor: basePalette.rayColor,
-      rayCount
-    },
-    sceneryType: SCENERY_TYPES[sceneryIndex],
-    silhouetteColor: basePalette.silhouette,
-    accentGold: basePalette.gold,
-    particleType,
-    mandalaAngle
+    seasonName: palette.season,
+    themeName: palette.themeName,
+    gradientCss: palette.gradientCss,
+    accentGold: palette.accentGold,
+    borderGold: palette.borderGold,
+    glowAura: palette.glowAura,
+    deityIcon: palette.deityIcon,
+    motifs: {
+      gopuramOpacity,
+      haloOpacity,
+      bokehCount,
+      sunbeamAngle
+    }
   };
 }
 
 /**
- * Renders an inline, high-definition SVG background string / element
+ * Renders an inline, elegant SVG atmospheric overlay with sacred temple arches and golden rays
  */
 export function renderDailyVedicSvgBackground(config: DailyBackgroundConfig): string {
-  const { skyGradient, sun, sceneryType, silhouetteColor, accentGold, mandalaAngle } = config;
+  const { accentGold, motifs } = config;
+  const { haloOpacity, gopuramOpacity, sunbeamAngle } = motifs;
 
-  // Generate Sun Rays
-  const raysSvg = Array.from({ length: sun.rayCount }).map((_, i) => {
-    const angle = (i * (360 / sun.rayCount) + mandalaAngle) * (Math.PI / 180);
-    const x1 = 300 + Math.cos(angle) * (sun.r + 5);
-    const y1 = 200 + Math.sin(angle) * (sun.r + 5);
-    const x2 = 300 + Math.cos(angle) * (sun.r + 140);
-    const y2 = 200 + Math.sin(angle) * (sun.r + 140);
-    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${sun.rayColor}" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/>`;
+  // Soft radiant sunbeam lines
+  const sunbeamLines = Array.from({ length: 8 }).map((_, i) => {
+    const angle = (i * 45 + sunbeamAngle) * (Math.PI / 180);
+    const x2 = 300 + Math.cos(angle) * 320;
+    const y2 = 80 + Math.sin(angle) * 320;
+    return `<line x1="300" y1="80" x2="${x2}" y2="${y2}" stroke="${accentGold}" stroke-width="1.5" stroke-dasharray="8 12" opacity="0.12"/>`;
   }).join("\n");
 
-  // Scenery Silhouettes
-  let scenerySvg = "";
-  if (sceneryType === "temple_sunrise" || sceneryType === "golden_sanctum") {
-    // Gokarna / Vedic Temple Gopuram & Spires
-    scenerySvg = `
-      <!-- Temple Silhouette -->
-      <path d="M 0,720 L 0,620 Q 80,610 140,580 L 160,540 L 175,540 L 190,480 L 205,480 L 220,410 L 230,410 L 240,340 L 250,260 L 260,340 L 270,410 L 285,410 L 300,480 L 315,480 L 330,540 L 345,540 L 370,580 Q 460,600 600,620 L 600,720 Z" fill="${silhouetteColor}" opacity="0.95"/>
-      <path d="M 248,250 L 252,250 L 252,230 L 250,220 L 248,230 Z" fill="${accentGold}"/>
-      <circle cx="250" cy="216" r="3" fill="#FFE58F"/>
-      <!-- Secondary Distant Gopuram -->
-      <path d="M 420,720 L 420,630 L 450,560 L 460,560 L 475,500 L 485,500 L 495,430 L 505,500 L 515,500 L 530,560 L 540,560 L 570,630 L 570,720 Z" fill="${silhouetteColor}" opacity="0.6"/>
-    `;
-  } else if (sceneryType === "gokarna_coast") {
-    // Gokarna Om Beach & Holy Coastal Waves with Temple Spire
-    scenerySvg = `
-      <!-- Ocean Waves & Coastline -->
-      <path d="M 0,580 Q 150,540 300,570 T 600,560 L 600,720 L 0,720 Z" fill="${silhouetteColor}" opacity="0.95"/>
-      <path d="M 0,610 Q 180,590 360,615 T 600,605 L 600,720 L 0,720 Z" fill="rgba(255,255,255,0.06)"/>
-      <!-- Holy Coconut Palms & Spire -->
-      <path d="M 60,720 Q 75,580 90,520 Q 40,490 20,530 Q 90,510 110,480 Q 130,520 160,540 Q 100,530 90,720 Z" fill="${silhouetteColor}" opacity="0.9"/>
-      <!-- Distant Temple -->
-      <polygon points="460,570 475,510 490,570" fill="${accentGold}" opacity="0.7"/>
-    `;
-  } else if (sceneryType === "sacred_lotus") {
-    // Sacred Sahasrara Lotus Pond
-    scenerySvg = `
-      <!-- Sacred Lotus Base -->
-      <path d="M 120,720 Q 300,640 480,720 Z" fill="${silhouetteColor}" opacity="0.95"/>
-      <g transform="translate(300, 620) scale(0.9)">
-        <path d="M 0,0 C -60,-80 -120,-60 -150,-10 C -120,30 -60,40 0,0 Z" fill="${accentGold}" opacity="0.4"/>
-        <path d="M 0,0 C 60,-80 120,-60 150,-10 C 120,30 60,40 0,0 Z" fill="${accentGold}" opacity="0.4"/>
-        <path d="M 0,0 C -40,-120 -80,-100 -90,-20 C -60,20 -30,30 0,0 Z" fill="${accentGold}" opacity="0.6"/>
-        <path d="M 0,0 C 40,-120 80,-100 90,-20 C 60,20 30,30 0,0 Z" fill="${accentGold}" opacity="0.6"/>
-        <path d="M 0,0 C -25,-140 0,-160 0,-160 C 0,-160 25,-140 0,0 Z" fill="#FFFBEB" opacity="0.85"/>
-      </g>
-    `;
-  } else if (sceneryType === "banyan_peace") {
-    // Holy Bodhi / Banyan Tree of Gokarna
-    scenerySvg = `
-      <!-- Sacred Banyan Tree -->
-      <path d="M 0,720 L 0,650 Q 200,630 400,640 L 600,630 L 600,720 Z" fill="${silhouetteColor}" opacity="0.95"/>
-      <g transform="translate(480, 520) scale(0.85)">
-        <path d="M -20,150 Q -10,60 -50,10 Q -100,-30 -140,20 Q -90,-60 -30,-40 Q -50,-120 20,-140 Q 60,-130 90,-80 Q 150,-100 160,-30 Q 120,-20 80,0 Q 40,60 20,150 Z" fill="${silhouetteColor}" opacity="0.95"/>
-        <circle cx="20" cy="-60" r="18" fill="${accentGold}" opacity="0.3"/>
-      </g>
-    `;
-  } else {
-    // Mountain Dawn / Cosmic Mandala
-    scenerySvg = `
-      <!-- Holy Himalayan Peaks -->
-      <polygon points="-40,720 180,480 340,720" fill="${silhouetteColor}" opacity="0.75"/>
-      <polygon points="120,720 320,410 520,720" fill="${silhouetteColor}" opacity="0.9"/>
-      <polygon points="360,720 500,490 640,720" fill="${silhouetteColor}" opacity="0.8"/>
-      <!-- Sacred Om Halo -->
-      <circle cx="300" cy="200" r="160" stroke="${accentGold}" stroke-width="1.5" stroke-dasharray="8 6" fill="none" opacity="0.35"/>
-      <circle cx="300" cy="200" r="190" stroke="${accentGold}" stroke-width="1" stroke-dasharray="4 8" fill="none" opacity="0.2"/>
-    `;
-  }
-
   return `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 720" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" style="position: absolute; inset: 0; pointer-events: none; z-index: 0;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 780" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" style="position: absolute; inset: 0; pointer-events: none; z-index: 0;">
       <defs>
-        <!-- Sky Gradient -->
-        <linearGradient id="skyGrad_${config.dayOfYear}" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stop-color="${skyGradient.start}"/>
-          <stop offset="55%" stop-color="${skyGradient.mid}"/>
-          <stop offset="100%" stop-color="${skyGradient.end}"/>
-        </linearGradient>
-
-        <!-- Sun Glow Radial Gradient -->
-        <radialGradient id="sunGlow_${config.dayOfYear}" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stop-color="${sun.color}" stop-opacity="1"/>
-          <stop offset="40%" stop-color="${sun.color}" stop-opacity="0.8"/>
-          <stop offset="70%" stop-color="${sun.rayColor}" stop-opacity="0.4"/>
-          <stop offset="100%" stop-color="${skyGradient.mid}" stop-opacity="0"/>
+        <!-- Soft Radial Morning Glow -->
+        <radialGradient id="morningGlow_${config.dayOfYear}" cx="50%" cy="10%" r="60%">
+          <stop offset="0%" stop-color="${accentGold}" stop-opacity="0.28"/>
+          <stop offset="40%" stop-color="${accentGold}" stop-opacity="0.10"/>
+          <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
         </radialGradient>
 
-        <!-- Morning Mist Overlay -->
-        <linearGradient id="mistGrad_${config.dayOfYear}" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stop-color="#000000" stop-opacity="0.2"/>
-          <stop offset="50%" stop-color="#000000" stop-opacity="0.5"/>
-          <stop offset="100%" stop-color="#000000" stop-opacity="0.85"/>
-        </linearGradient>
+        <!-- Temple Spire Pattern -->
+        <pattern id="sacredCornerPattern" width="40" height="40" patternUnits="userSpaceOnUse">
+          <circle cx="20" cy="20" r="1.5" fill="${accentGold}" opacity="0.15"/>
+        </pattern>
       </defs>
 
-      <!-- 1. Sky Canvas -->
-      <rect width="600" height="720" fill="url(#skyGrad_${config.dayOfYear})"/>
+      <!-- 1. Ambient Top Morning Sunlight Disk Glow -->
+      <circle cx="300" cy="80" r="280" fill="url(#morningGlow_${config.dayOfYear})"/>
 
-      <!-- 2. Ambient Sun Rays -->
-      <g transform="translate(0, 0)">
-        ${raysSvg}
+      <!-- 2. Sacred Sunbeams -->
+      <g>
+        ${sunbeamLines}
       </g>
 
-      <!-- 3. Glowing Radiant Sun Disk -->
-      <circle cx="300" cy="200" r="${sun.r * 2.5}" fill="url(#sunGlow_${config.dayOfYear})" opacity="0.9"/>
-      <circle cx="300" cy="200" r="${sun.r}" fill="${sun.color}"/>
-
-      <!-- 4. Sacred Geometry / Mandala Ring -->
-      <g transform="translate(300, 200) rotate(${mandalaAngle})">
-        <circle cx="0" cy="0" r="${sun.r + 30}" stroke="${accentGold}" stroke-width="1.5" stroke-dasharray="6 4" fill="none" opacity="0.4"/>
-        <circle cx="0" cy="0" r="${sun.r + 65}" stroke="${accentGold}" stroke-width="1" stroke-dasharray="12 6 3 6" fill="none" opacity="0.3"/>
+      <!-- 3. Elegant Sacred Mandala Rings around the Morning Sun -->
+      <g transform="translate(300, 80)">
+        <circle cx="0" cy="0" r="120" stroke="${accentGold}" stroke-width="1" stroke-dasharray="6 6" fill="none" opacity="${haloOpacity}"/>
+        <circle cx="0" cy="0" r="160" stroke="${accentGold}" stroke-width="0.8" stroke-dasharray="12 8 4 8" fill="none" opacity="${haloOpacity * 0.75}"/>
       </g>
 
-      <!-- 5. Vector Scenery Silhouettes (Temple / Mountains / Lotus) -->
-      ${scenerySvg}
+      <!-- 4. Subtle Gokarna Sacred Temple Gopuram Silhouette in Bottom Background -->
+      <g opacity="${gopuramOpacity}" fill="${accentGold}">
+        <!-- Central Temple Spire -->
+        <path d="M 295,580 L 300,530 L 305,580 L 320,620 L 280,620 Z"/>
+        <path d="M 270,620 L 330,620 L 340,680 L 260,680 Z"/>
+        <!-- Kalasha Finial -->
+        <circle cx="300" cy="522" r="4"/>
+        <line x1="300" y1="518" x2="300" y2="510" stroke="${accentGold}" stroke-width="2"/>
+        <!-- Flanking Gopurams -->
+        <path d="M 160,650 L 170,600 L 180,650 L 190,700 L 150,700 Z"/>
+        <path d="M 420,650 L 430,600 L 440,650 L 450,700 L 410,700 Z"/>
+      </g>
 
-      <!-- 6. Darkening Vignette Mist Layer to Guarantee 100% High-Contrast Text Legibility -->
-      <rect width="600" height="720" fill="url(#mistGrad_${config.dayOfYear})"/>
+      <!-- 5. Ornamental Corner Flourishes -->
+      <g stroke="${accentGold}" stroke-width="1.2" fill="none" opacity="0.4">
+        <!-- Top Left -->
+        <path d="M 20,40 L 40,20 L 60,20 M 20,40 L 20,60"/>
+        <!-- Top Right -->
+        <path d="M 580,40 L 560,20 L 540,20 M 580,40 L 580,60"/>
+        <!-- Bottom Left -->
+        <path d="M 20,740 L 40,760 L 60,760 M 20,740 L 20,720"/>
+        <!-- Bottom Right -->
+        <path d="M 580,740 L 560,760 L 540,760 M 580,740 L 580,720"/>
+      </g>
     </svg>
   `;
 }
