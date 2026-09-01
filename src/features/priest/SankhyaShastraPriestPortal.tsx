@@ -13,21 +13,23 @@ import {
   generateSankhyaPrashnaReading,
   generateSankhyaNameSuggestion,
   generateSankhyaMobileVehicleSuggestion,
+  generateSankhyaJanmaReading,
   type SankhyaPrashnaResult,
   type SankhyaNameResult,
-  type SankhyaMobileVehicleResult
+  type SankhyaMobileVehicleResult,
+  type SankhyaJanmaResult
 } from "./sankhyaShastraPriestEngine";
 import { SpeechRecognitionSession } from "../../utils/speechRecognitionHelper";
 import { setDoc, doc } from "firebase/firestore";
 import { firestore } from "../../services/firebase";
-import { updateUserPassword, isPriestAccountActive, isPriestFirstTimeSetupDone } from "../../db/firestoreDb";
+import { updateUserPassword, isPriestAccountActive, isPriestFirstTimeSetupDone, getUserProfile } from "../../db/firestoreDb";
 import { hashPassword } from "../auth/authStore";
 import { notifyPasswordResetCompleted, notifySystemFailureAlert } from "../notifications/notificationService";
 import { CoinDeductionModal } from "../../components/wallet/CoinDeductionModal";
 import { FallingCoinsRefillModal } from "../../components/wallet/FallingCoinsRefillModal";
 import { SankhyaNumerologyLoader } from "../../components/sankhyashastra/SankhyaNumerologyLoader";
 
-type SankhyaTab = "prashna" | "name_numbers" | "wallet";
+type SankhyaTab = "janma" | "prashna" | "name_numbers" | "wallet";
 
 const PRIEST_SANKHYA_STORAGE_KEY = "baggona_priest_sankhya_active_session";
 
@@ -67,8 +69,10 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
   // 5-Second Dismissible Royal Welcome Toast
   const [showWelcomeToast, setShowWelcomeToast] = useState(true);
 
-  // First-Time Password Setup Modal
+  // First-Time Password Setup & Profile Reset Modal (4 Mandatory Fields)
   const [showPasswordSetup, setShowPasswordSetup] = useState(false);
+  const [priestEmail, setPriestEmail] = useState("");
+  const [priestPhone, setPriestPhone] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordMsg, setPasswordMsg] = useState<string | null>(null);
@@ -84,6 +88,15 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
     description: string;
     onConfirm: () => Promise<void>;
   } | null>(null);
+
+  // Tab 0: Janma Vedic Grid & Dasha Analysis State (500 Coins / ₹50)
+  const [janmaDevoteeName, setJanmaDevoteeName] = useState(() => savedSankhya?.janmaDevoteeName || "");
+  const [janmaGothra, setJanmaGothra] = useState(() => savedSankhya?.janmaGothra || "ಕಾಶ್ಯಪ");
+  const [janmaBirthDate, setJanmaBirthDate] = useState(() => savedSankhya?.janmaBirthDate || "1994-08-14");
+  const [janmaTargetDate, setJanmaTargetDate] = useState(() => savedSankhya?.janmaTargetDate || new Date().toISOString().split("T")[0]);
+  const [janmaQuestion, setJanmaQuestion] = useState(() => savedSankhya?.janmaQuestion || "");
+  const [janmaResult, setJanmaResult] = useState<SankhyaJanmaResult | null>(() => savedSankhya?.janmaResult || null);
+  const [isCalculatingJanma, setIsCalculatingJanma] = useState(false);
 
   // Tab 1: Prashna Oracle State (200 Coins / ₹20) - Empty text box by default as requested
   const [devoteeName, setDevoteeName] = useState(() => savedSankhya?.devoteeName || "");
@@ -133,6 +146,12 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
     try {
       const stateToSave = {
         activeTab,
+        janmaDevoteeName,
+        janmaGothra,
+        janmaBirthDate,
+        janmaTargetDate,
+        janmaQuestion,
+        janmaResult,
         devoteeName,
         gothra,
         prashnaNumber,
@@ -154,6 +173,12 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
     }
   }, [
     activeTab,
+    janmaDevoteeName,
+    janmaGothra,
+    janmaBirthDate,
+    janmaTargetDate,
+    janmaQuestion,
+    janmaResult,
     devoteeName,
     gothra,
     prashnaNumber,
@@ -175,6 +200,12 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
     try {
       localStorage.removeItem(PRIEST_SANKHYA_STORAGE_KEY);
     } catch {}
+    setJanmaDevoteeName("");
+    setJanmaGothra("ಕಾಶ್ಯಪ");
+    setJanmaBirthDate("1994-08-14");
+    setJanmaTargetDate(new Date().toISOString().split("T")[0]);
+    setJanmaQuestion("");
+    setJanmaResult(null);
     setDevoteeName("");
     setGothra("ಕಾಶ್ಯಪ");
     setPrashnaNumber("");
@@ -185,10 +216,10 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
     setBirthDate(new Date().toISOString().split("T")[0]);
     setNameResult(null);
     setMobileVehicleResult(null);
-    setActiveTab("prashna");
+    setActiveTab("janma");
     setFeedback({
       type: "success",
-      text: "ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ವಿವರಗಳನ್ನು ಯಶಸ್ವಿಯಾಗಿ ರಿಸೆಟ್ ಮಾಡಲಾಗಿದೆ. ನೀವು ಹೊಸ ಪ್ರಶ್ನೆಯನ್ನು ನಮೂದಿಸಬಹುದು (Reset successful)."
+      text: "ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ವಿವರಗಳನ್ನು ಯಶಸ್ವಿಯಾಗಿ ರಿಸೆಟ್ ಮಾಡಲಾಗಿದೆ. (Reset successful)."
     });
   };
 
@@ -233,6 +264,15 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
       }
       void initWallet(resolvedUser, resolvedName);
 
+      // Pre-load existing email & phone from user profile if available
+      try {
+        const prof = await getUserProfile(resolvedUser);
+        if (prof?.email) setPriestEmail(prof.email);
+        if (prof?.phone || prof?.mobileNumber) setPriestPhone(prof.phone || prof.mobileNumber || "");
+      } catch (err) {
+        console.warn("[SankhyaPriestPortal] Error preloading profile:", err);
+      }
+
       // Strict DB Validation: Check if this user has already completed password setup/reset
       if (isResetOrFirstTime) {
         const setupDone = await isPriestFirstTimeSetupDone(resolvedUser);
@@ -265,7 +305,8 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
   const coinBalance = wallet?.coinBalance ?? 700;
 
   // Handle Voice Input
-  const handleVoiceInput = (targetField: "name" | "gothra" | "question" | "nameInput") => {
+  // Handle Voice Input
+  const handleVoiceInput = (targetField: "name" | "gothra" | "question" | "nameInput" | "janmaName" | "janmaGothra" | "janmaQuestion") => {
     const session = new SpeechRecognitionSession("kn-IN");
     if (!session.isAvailable()) {
       setSpeechError("ನಿಮ್ಮ ಬ್ರೌಸರ್‌ನಲ್ಲಿ ಧ್ವನಿ ಗುರುತಿಸುವಿಕೆ ಲಭ್ಯವಿಲ್ಲ.");
@@ -279,6 +320,9 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
     else if (targetField === "gothra") setGothra("");
     else if (targetField === "question") setPrashnaQuestion("");
     else if (targetField === "nameInput") setNameInput("");
+    else if (targetField === "janmaName") setJanmaDevoteeName("");
+    else if (targetField === "janmaGothra") setJanmaGothra("");
+    else if (targetField === "janmaQuestion") setJanmaQuestion("");
 
     session.startListening(
       (transcript) => {
@@ -286,6 +330,9 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
         else if (targetField === "gothra") setGothra(transcript);
         else if (targetField === "question") setPrashnaQuestion(transcript);
         else if (targetField === "nameInput") setNameInput(transcript);
+        else if (targetField === "janmaName") setJanmaDevoteeName(transcript);
+        else if (targetField === "janmaGothra") setJanmaGothra(transcript);
+        else if (targetField === "janmaQuestion") setJanmaQuestion(transcript);
         setIsListeningFor(null);
       },
       () => setIsListeningFor(null),
@@ -294,6 +341,91 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
         setIsListeningFor(null);
       }
     );
+  };
+
+  // 0. Submit Janma Vedic Grid & Dasha Reading (500 Coins / ₹50) with Pre-Action Confirmation
+  const executeJanmaCalculation = async (cost: number) => {
+    if (isCalculatingJanma) return;
+    setIsCalculatingJanma(true);
+    setFeedback(null);
+
+    const targetDevotee = janmaDevoteeName.trim() || "ಶ್ರೀಯುತ ಭಕ್ತರು";
+
+    // Deduct 500 Coins
+    const deductRes = await deductForService(cost, "ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಜನ್ಮ ಗ್ರಿಡ್ & ದಶಾ ವಿಶ್ಲೇಷಣೆ", targetDevotee);
+    if (!deductRes.success) {
+      setFeedback({ type: "error", text: deductRes.error || "ನಾಣ್ಯ ಕಡಿತ ವಿಫಲವಾಗಿದೆ." });
+      setIsCalculatingJanma(false);
+      return;
+    }
+
+    try {
+      const result = await generateSankhyaJanmaReading({
+        devoteeName: targetDevotee,
+        gothra: janmaGothra || "ಕಾಶ್ಯಪ",
+        birthDateStr: janmaBirthDate,
+        targetDateStr: janmaTargetDate,
+        question: janmaQuestion.trim()
+      });
+
+      setJanmaResult(result);
+      setFeedback({
+        type: "success",
+        text: `ಶ್ರೀ ${targetDevotee} ಅವರ ಜನ್ಮ ವೇದಿಕ ಗ್ರಿಡ್ ಹಾಗೂ ದಶಾ ಫಲ ಸಿದ್ಧವಾಗಿದೆ. (${cost} ನಾಣ್ಯಗಳು / ₹${Math.round(cost / 10)} ಕಡಿತಗೊಂಡಿವೆ)`
+      });
+
+      // Save to Cloud Firestore
+      try {
+        const janmaRef = doc(firestore, "sankhyashastra_janma_history", `janma_${Date.now()}`);
+        await setDoc(janmaRef, {
+          userId: currentUser || "priest_sankhya",
+          priestName: activePriestDisplayName,
+          portalType: "sankhyashastra_janma",
+          devoteeName: targetDevotee,
+          gothra: janmaGothra || "ಕಾಶ್ಯಪ",
+          birthDateStr: janmaBirthDate,
+          targetDateStr: janmaTargetDate,
+          question: janmaQuestion,
+          result,
+          costCoins: cost,
+          createdAt: new Date().toISOString()
+        });
+      } catch (e) {
+        console.warn("[SankhyaShastraPriestPortal] Firestore janma log warning:", e);
+      }
+    } catch (err: any) {
+      console.error("[SankhyaShastraPriestPortal] Janma reading failed:", err);
+      // Auto Refund coins on computation failure
+      await refundCoins(cost, "ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಜನ್ಮ ಗ್ರಿಡ್ ವಿಶ್ಲೇಷಣೆ ವಿಫಲ (ಮರುಪಾವತಿ)");
+      setFeedback({
+        type: "error",
+        text: "ವಿಶ್ಲೇಷಣೆ ಪ್ರಕ್ರಿಯೆಯಲ್ಲಿ ದೋಷ ಉಂಟಾಗಿದೆ. ನಾಣ್ಯಗಳನ್ನು ನಿಮ್ಮ ವಾಲೆಟ್‌ಗೆ ಮರುಪಾವತಿಸಲಾಗಿದೆ."
+      });
+    } finally {
+      setIsCalculatingJanma(false);
+    }
+  };
+
+  const handleJanmaSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const cost = SERVICE_COIN_COSTS.SANKHYA_JANMA_ANALYSIS?.coins || 500;
+    if (coinBalance < cost) {
+      setIsRechargeOpen(true);
+      return;
+    }
+
+    setPendingDeduction({
+      isOpen: true,
+      serviceTitle: "Sankhya Janma & Dasha Analysis",
+      serviceTitleKannada: "ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಜನ್ಮ ಗ್ರಿಡ್ & ದಶಾ ವಿಶ್ಲೇಷಣೆ",
+      costCoins: cost,
+      devoteeName: janmaDevoteeName.trim() || "ಶ್ರೀಯುತ ಭಕ್ತರು",
+      description: `ಜನ್ಮ ದಿನಾಂಕ ${janmaBirthDate} ಆಧಾರಿತ ೩x೩ ವೇದಿಕ ಗ್ರಿಡ್, ೩೭ ಯೋಗಗಳು, ಮಹಾದಶೆ-ಅಂತರ್ದಶೆ & ಪರಿಹಾರಗಳ ಸಮಗ್ರ ವಿಶ್ಲೇಷಣೆ (ದರ: 🪙 ${cost} ನಾಣ್ಯಗಳು / ₹${Math.round(cost / 10)})`,
+      onConfirm: async () => {
+        setPendingDeduction(null);
+        await executeJanmaCalculation(cost);
+      }
+    });
   };
 
   // 1. Submit Prashna Oracle (200 Coins / ₹20) with Pre-Action Confirmation
@@ -498,24 +630,51 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
     });
   };
 
-  // Password Reset / Setup
+  // Password Reset / Setup (4 Mandatory Fields: Email, Mobile, Password, Confirm Password)
   const handlePasswordSetupSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newPassword.length < 6) {
-      setPasswordMsg("ಪಾಸ್‌ವರ್ಡ್ ಕನಿಷ್ಠ ೬ ಅಕ್ಷರಗಳನ್ನು ಹೊಂದಿರಬೇಕು.");
+    const cleanEmail = priestEmail.trim().toLowerCase();
+    const cleanPhone = priestPhone.replace(/\D/g, "");
+
+    // 1. Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!cleanEmail || !emailRegex.test(cleanEmail)) {
+      setPasswordMsg("ದಯವಿಟ್ಟು ಮಾನ್ಯವಾದ ಇಮೇಲ್ ವಿಳಾಸವನ್ನು ನಮೂದಿಸಿ (Valid email address is mandatory).");
       return;
     }
+
+    // 2. Phone validation (10 digits)
+    if (!cleanPhone || cleanPhone.length < 10) {
+      setPasswordMsg("ದಯವಿಟ್ಟು ೧೦ ಅಂಕಿಗಳ ಮಾನ್ಯವಾದ ಮೊಬೈಲ್ ಸಂಖ್ಯೆಯನ್ನು ನಮೂದಿಸಿ (Valid 10-digit mobile number is mandatory).");
+      return;
+    }
+
+    // 3. Password length
+    if (newPassword.length < 6) {
+      setPasswordMsg("ಪಾಸ್‌ವರ್ಡ್ ಕನಿಷ್ಠ ೬ ಅಕ್ಷರಗಳನ್ನು ಹೊಂದಿರಬೇಕು (Minimum 6 characters).");
+      return;
+    }
+
+    // 4. Confirm Password Match
     if (newPassword !== confirmPassword) {
-      setPasswordMsg("ಎರಡೂ ಪಾಸ್‌ವರ್ಡ್‌ಗಳು ಹೊಂದಾಣಿಕೆಯಾಗುತ್ತಿಲ್ಲ.");
+      setPasswordMsg("ಎರಡೂ ಪಾಸ್‌ವರ್ಡ್‌ಗಳು ಹೊಂದಾಣಿಕೆಯಾಗುತ್ತಿಲ್ಲ (Passwords do not match).");
       return;
     }
 
     try {
       const hashed = await hashPassword(newPassword);
       const uid = currentUser || (typeof window !== "undefined" ? localStorage.getItem("baggona_sankhya_priest_id") : null) || "priest_sankhya";
-      await updateUserPassword(uid, hashed);
+      
+      await updateUserPassword(uid, hashed, {
+        email: cleanEmail,
+        phone: cleanPhone.slice(-10),
+        mobileNumber: cleanPhone.slice(-10)
+      });
+
       if (typeof window !== "undefined") {
         localStorage.setItem("baggona_pwd_setup_done_" + uid, "true");
+        localStorage.setItem("baggona_priest_email_" + uid, cleanEmail);
+        localStorage.setItem("baggona_priest_phone_" + uid, cleanPhone.slice(-10));
         try {
           const url = new URL(window.location.href);
           url.searchParams.delete("reset");
@@ -524,8 +683,13 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
           window.history.replaceState({}, document.title, url.pathname + (newSearch ? `?${newSearch}` : "") + url.hash);
         } catch {}
       }
-      void notifyPasswordResetCompleted({ username: uid });
-      setPasswordMsg("✓ ಪಾಸ್‌ವರ್ಡ್ ಯಶಸ್ವಿಯಾಗಿ ನವೀಕರಿಸಲಾಗಿದೆ!");
+
+      void notifyPasswordResetCompleted({
+        username: uid,
+        recipientEmail: cleanEmail
+      });
+
+      setPasswordMsg("✓ ಪ್ರೊಫೈಲ್ ಮತ್ತು ಪಾಸ್‌ವರ್ಡ್ ಯಶಸ್ವಿಯಾಗಿ ನವೀಕರಿಸಲಾಗಿದೆ!");
       setTimeout(() => setShowPasswordSetup(false), 1500);
     } catch {
       setPasswordMsg("ದೋಷ ಉಂಟಾಗಿದೆ. ದಯವಿಟ್ಟು ಮರುಪ್ರಯತ್ನಿಸಿ.");
@@ -662,7 +826,13 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
             <span className="hidden xs:inline text-emerald-800 font-black">ಲೈವ್</span>
             <span className="bg-amber-200/80 px-1.5 py-0.5 rounded border border-amber-400 font-mono text-[9px]">
-              {activeTab === "prashna" ? "ಪ್ರಶ್ನಾವಳಿ (200🪙)" : activeTab === "name_numbers" ? "ನಾಮ/ಸಂಖ್ಯೆ (200🪙)" : "ವಾಲೆಟ್"}
+              {activeTab === "janma"
+                ? "ಜನ್ಮ ಗ್ರಿಡ್ (500🪙)"
+                : activeTab === "prashna"
+                ? "ಪ್ರಶ್ನಾವಳಿ (200🪙)"
+                : activeTab === "name_numbers"
+                ? "ನಾಮ/ಸಂಖ್ಯೆ (200🪙)"
+                : "ವಾಲೆಟ್"}
             </span>
           </div>
         </div>
@@ -694,7 +864,20 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
 
       {/* Mobile Tab Switcher */}
       <div className="px-4 mt-3.5">
-        <div className="grid grid-cols-3 gap-1.5 p-1.5 bg-[#FFFDF7] border-2 border-amber-400/60 rounded-2xl shadow-sm">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 p-1.5 bg-[#FFFDF7] border-2 border-amber-400/60 rounded-2xl shadow-sm">
+          <button
+            type="button"
+            onClick={() => setActiveTab("janma")}
+            className={`py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+              activeTab === "janma"
+                ? "bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 text-slate-950 shadow-md font-black"
+                : "text-amber-900 hover:bg-amber-50"
+            }`}
+          >
+            <span>📐</span>
+            <span>ಜನ್ಮ ಗ್ರಿಡ್ (🪙 ೫೦೦)</span>
+          </button>
+
           <button
             type="button"
             onClick={() => setActiveTab("prashna")}
@@ -735,6 +918,275 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* TAB 0: ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಜನ್ಮ ಗ್ರಿಡ್ & ದಶಾ ಭವಿಷ್ಯ (500 Coins) */}
+      {activeTab === "janma" && (
+        <div className="px-4 mt-4 space-y-4">
+          <div className="bg-[#FFFDF7] border-2 border-amber-400/80 rounded-3xl p-4 sm:p-5 shadow-md">
+            <div className="flex items-center justify-between border-b border-amber-200 pb-3 mb-4">
+              <h2 className="text-sm font-black text-amber-950 flex items-center gap-2">
+                <span>📐</span>
+                <span>ವೈದಿಕ ಜನ್ಮ ಗ್ರಿಡ್, ೩೭ ಯೋಗಗಳು & ದಶಾ ವಿಶ್ಲೇಷಣೆ</span>
+              </h2>
+              <span className="text-[10px] font-mono font-black text-amber-900 bg-[#FFF5D6] px-2.5 py-1 rounded-full border border-amber-400">
+                ದರ: 🪙 ೫೦೦ ನಾಣ್ಯಗಳು (500 Coins / ₹50)
+              </span>
+            </div>
+
+            <form onSubmit={handleJanmaSubmit} className="space-y-3.5 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div>
+                  <label className="block text-amber-950 font-bold mb-1">ಭಕ್ತರ ಪೂರ್ಣ ಹೆಸರು *</label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={janmaDevoteeName}
+                      onChange={(e) => setJanmaDevoteeName(e.target.value)}
+                      placeholder="ಉದಾ: ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ / SACHIN TENDULKAR"
+                      required
+                      className="w-full px-3 py-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 font-semibold focus:outline-none focus:border-amber-500 pr-8 shadow-inner"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleVoiceInput("janmaName")}
+                      className={`absolute right-1.5 top-2 p-1 rounded-lg ${
+                        isListeningFor === "janmaName" ? "bg-red-500 text-white animate-pulse" : "text-amber-700"
+                      }`}
+                    >
+                      🎤
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-amber-950 font-bold mb-1">ಗೋತ್ರ</label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={janmaGothra}
+                      onChange={(e) => setJanmaGothra(e.target.value)}
+                      placeholder="ಉದಾ: ಕಾಶ್ಯಪ / ಶ್ರೀವತ್ಸ"
+                      className="w-full px-3 py-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 font-semibold focus:outline-none focus:border-amber-500 pr-8 shadow-inner"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleVoiceInput("janmaGothra")}
+                      className={`absolute right-1.5 top-2 p-1 rounded-lg ${
+                        isListeningFor === "janmaGothra" ? "bg-red-500 text-white animate-pulse" : "text-amber-700"
+                      }`}
+                    >
+                      🎤
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div>
+                  <label className="block text-amber-950 font-bold mb-1">ಜನ್ಮ ದಿನಾಂಕ (Date of Birth) *</label>
+                  <input
+                    type="date"
+                    value={janmaBirthDate}
+                    onChange={(e) => setJanmaBirthDate(e.target.value)}
+                    required
+                    className="w-full px-3 py-2 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 font-bold focus:outline-none focus:border-amber-500 shadow-inner"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-amber-950 font-bold mb-1">ದಶಾ ಭವಿಷ್ಯ ಗುರಿ ದಿನಾಂಕ (Target Date)</label>
+                  <input
+                    type="date"
+                    value={janmaTargetDate}
+                    onChange={(e) => setJanmaTargetDate(e.target.value)}
+                    className="w-full px-3 py-2 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 font-bold focus:outline-none focus:border-amber-500 shadow-inner"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-amber-950 font-bold mb-1">ನಿರ್ದಿಷ್ಟ ಪ್ರಶ್ನೆ / ಸಮಾಲೋಚನೆ (ಐಚ್ಛಿಕ)</label>
+                <div className="relative">
+                  <textarea
+                    value={janmaQuestion}
+                    onChange={(e) => setJanmaQuestion(e.target.value)}
+                    placeholder="ಉದಾ: ಉದ್ಯೋಗ ಬಡ್ತಿ, ವಿದೇಶ ಪ್ರಯಾಣ, ಆರ್ಥಿಕ ಪ್ರಗತಿ, ವಿವಾಹ ಕಾಲ..."
+                    rows={2}
+                    className="w-full px-3.5 py-2 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 font-semibold focus:outline-none focus:border-amber-500 pr-8 shadow-inner"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleVoiceInput("janmaQuestion")}
+                    className={`absolute right-1.5 top-2 p-1 rounded-lg ${
+                      isListeningFor === "janmaQuestion" ? "bg-red-500 text-white animate-pulse" : "text-amber-700"
+                    }`}
+                  >
+                    🎤
+                  </button>
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  disabled={isCalculatingJanma}
+                  className="w-full py-3.5 bg-gradient-to-r from-amber-700 via-amber-800 to-amber-900 hover:from-amber-800 hover:to-amber-950 text-white font-black text-sm rounded-2xl shadow-lg border border-amber-400 active:scale-[0.98] transition flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  <span>{isCalculatingJanma ? "⌛" : "📐"}</span>
+                  <span>
+                    {isCalculatingJanma
+                      ? "ಜಾತಕ ಗಣಿತ ಲೆಕ್ಕಾಚಾರವಾಗುತ್ತಿದೆ..."
+                      : "ಜನ್ಮ ಗ್ರಿಡ್ & ದಶಾ ಫಲ ಪಡೆಯಿರಿ (🪙 ೫೦೦ / ₹೫೦)"}
+                  </span>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* Janma Results Presentation */}
+          {janmaResult && (
+            <div className="space-y-4 animate-fadeIn">
+              {/* Top Banner */}
+              <div className="bg-gradient-to-r from-[#FFF9E6] via-[#FFFDF7] to-[#FFF5D6] border-2 border-amber-400 rounded-3xl p-5 shadow-lg">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-300 pb-3 mb-4">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold tracking-wider text-amber-800">
+                      ವೈದಿಕ ಸಾಂಖ್ಯ ಶಾಸ್ತ್ರ ಪೂರ್ಣ ಜಾತಕ
+                    </span>
+                    <h3 className="text-lg font-black text-amber-950">
+                      ಶ್ರೀ {janmaResult.devoteeName} ({janmaResult.gothra} ಗೋತ್ರ)
+                    </h3>
+                    <p className="text-xs text-slate-600">
+                      ಜನ್ಮ ದಿನಾಂಕ: {janmaResult.birthDateStr} | ಗಣಿತ ಸೂತ್ರ: ಡಿಜಿಟಲ್ ರೂಟ್ R9(x)
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-amber-200/90 border border-amber-400 px-3 py-1 text-xs font-black text-amber-950">
+                    {janmaResult.priestVerdictBadgeKn}
+                  </span>
+                </div>
+
+                {/* 4 Core Number Cards */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-4">
+                  <div className="rounded-2xl border border-amber-300 bg-white p-3 text-center shadow-xs">
+                    <span className="text-[10px] font-bold text-amber-800">ಮೂಲಾಂಕ (Psychic)</span>
+                    <div className="text-2xl font-black text-amber-700">{janmaResult.profile.moolankInfo.moolank}</div>
+                    <div className="text-[10px] font-bold text-slate-700">
+                      {janmaResult.profile.moolankInfo.rulingGraha.name.kn}
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-orange-300 bg-white p-3 text-center shadow-xs">
+                    <span className="text-[10px] font-bold text-orange-800">ಭಾಗ್ಯಾಂಕ (Destiny)</span>
+                    <div className="text-2xl font-black text-orange-700">{janmaResult.profile.bhagyankInfo.bhagyank}</div>
+                    <div className="text-[10px] font-bold text-slate-700">
+                      {janmaResult.profile.bhagyankInfo.rulingGraha.name.kn}
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-emerald-300 bg-white p-3 text-center shadow-xs">
+                    <span className="text-[10px] font-bold text-emerald-800">ನಾಮಾಂಕ (Chaldean)</span>
+                    <div className="text-2xl font-black text-emerald-700">{janmaResult.profile.nameInfo.namank}</div>
+                    <div className="text-[10px] font-bold text-slate-700">
+                      {janmaResult.profile.nameInfo.rulingGraha.name.kn}
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-indigo-300 bg-white p-3 text-center shadow-xs">
+                    <span className="text-[10px] font-bold text-indigo-800">ಆತ್ಮೇಚ್ಛೆ & ವ್ಯಕ್ತಿತ್ವ</span>
+                    <div className="text-sm font-black text-indigo-900 mt-1">
+                      SU: {janmaResult.profile.nameInfo.soulUrge} | Pn: {janmaResult.profile.nameInfo.personality}
+                    </div>
+                    <div className="text-[9px] text-slate-600">ಸ್ವರ / ವ್ಯಂಜನ ಕಂಪನ</div>
+                  </div>
+                </div>
+
+                {/* 3x3 Vedic Grid Visualizer */}
+                <div className="rounded-2xl border border-amber-300 bg-amber-50/50 p-4 mb-4">
+                  <h4 className="font-bold text-xs text-amber-950 mb-2.5 flex items-center justify-between">
+                    <span>📐 ೩x೩ ನವಗ್ರಹ ವೇದಿಕ ಗ್ರಿಡ್ ಕೋಷ್ಟಕ</span>
+                    <span className="text-[10px] text-amber-800">ಶತಮಾನ ಅಂಕಿ ಹೊರತುಪಡಿಸಿದ ನೈಜ ಗ್ರಿಡ್</span>
+                  </h4>
+                  <div className="grid grid-cols-3 gap-2 max-w-sm mx-auto">
+                    {[3, 1, 9, 6, 7, 5, 2, 8, 4].map((num) => {
+                      const cell = janmaResult.profile.gridMatrix.cells[num];
+                      const count = cell.count;
+                      return (
+                        <div
+                          key={num}
+                          className={`rounded-xl border p-2.5 text-center flex flex-col items-center justify-center ${
+                            count === 0
+                              ? "border-slate-200 bg-white text-slate-400 opacity-50"
+                              : count === 1
+                              ? "border-emerald-300 bg-emerald-50 text-emerald-950 font-bold"
+                              : count === 2
+                              ? "border-amber-400 bg-amber-100 text-amber-950 font-black ring-2 ring-amber-300"
+                              : "border-rose-400 bg-rose-100 text-rose-950 font-black ring-2 ring-rose-300"
+                          }`}
+                        >
+                          <div className="text-xl font-black">{num}</div>
+                          <div className="text-[10px] leading-tight">{cell.grahaMeta.sanskritName}</div>
+                          <div className="text-[9px] font-mono mt-0.5">
+                            {count > 0 ? `×${count}` : "೦"}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* 37 Yogas & Dasha Analysis */}
+                <div className="space-y-3 mb-4">
+                  <div className="rounded-2xl border border-amber-300 bg-white p-4">
+                    <h4 className="font-bold text-xs text-amber-950 mb-2">
+                      ✨ ಸಕ್ರಿಯ ಸಂಖ್ಯಾ ಯೋಗಗಳು ({janmaResult.profile.yogasResult.activeYogas.length})
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {janmaResult.profile.yogasResult.activeYogas.map((y) => (
+                        <div
+                          key={y.id}
+                          className={`rounded-xl border p-2.5 text-xs ${
+                            y.isPositive ? "border-emerald-200 bg-emerald-50/50 text-slate-800" : "border-amber-200 bg-amber-50/50 text-slate-800"
+                          }`}
+                        >
+                          <div className="font-bold flex items-center justify-between mb-1">
+                            <span>{y.name.kn} ({y.combination.join("-")})</span>
+                            <span className={y.isPositive ? "text-emerald-700" : "text-amber-700"}>
+                              {y.isPositive ? "🟢 ಶುಭ" : "⚠️ ಎಚ್ಚರಿಕೆ"}
+                            </span>
+                          </div>
+                          <p className="text-[11px] leading-relaxed text-slate-600">{y.manifestation.kn}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-amber-300 bg-white p-4">
+                    <h4 className="font-bold text-xs text-amber-950 mb-1.5">
+                      ⏳ ದಶಾ ಕಾಲಚಕ್ರ & ಸಾಂದ್ರತಾ ಸ್ಥಿತಿ
+                    </h4>
+                    <div className="text-xs text-slate-700 mb-2 leading-relaxed">
+                      <strong>ಮಹಾದಶೆ:</strong> {janmaResult.profile.nestedDasha.activeMahadasha.grahaMeta.name.kn} ({janmaResult.profile.nestedDasha.activeMahadasha.grahaNumber}) | <strong>ಅಂತರ್ದಶೆ:</strong> {janmaResult.profile.nestedDasha.activeAntardasha.grahaMeta.name.kn} ({janmaResult.profile.nestedDasha.activeAntardasha.grahaNumber}) | <strong>ಪ್ರತ್ಯಂತರ್ದಶೆ:</strong> {janmaResult.profile.nestedDasha.activePratyantardasha.grahaMeta.name.kn} ({janmaResult.profile.nestedDasha.activePratyantardasha.grahaNumber})
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-950">
+                      {janmaResult.profile.nestedDasha.multiplicityStatus.explanationKn}
+                    </div>
+                  </div>
+                </div>
+
+                {/* AI Deep Reading */}
+                {janmaResult.aiDeepReadingKn && (
+                  <div className="rounded-2xl border border-amber-300 bg-white p-4 text-xs text-slate-800 leading-relaxed whitespace-pre-line shadow-xs">
+                    <h4 className="font-bold text-amber-950 mb-1.5 border-b border-amber-100 pb-1">
+                      🔮 ಗುರುಗಳ ಶಾಸ್ತ್ರೀಯ ಭವಿಷ್ಯ ಫಲ
+                    </h4>
+                    {janmaResult.aiDeepReadingKn}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* TAB 1: ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಪ್ರಶ್ನಾವಳಿ (200 Coins) */}
       {activeTab === "prashna" && (
@@ -1292,16 +1744,20 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
             <h3 className="font-black text-amber-950">📊 ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಸೇವಾ ಶುಲ್ಕ ದರಪಟ್ಟಿ (🪙 ನಾಣ್ಯ ಕೋಶ):</h3>
             <div className="divide-y divide-amber-200 font-semibold">
               <div className="py-2 flex justify-between">
+                <span className="text-slate-800">ವೈದಿಕ ಜನ್ಮ ಗ್ರಿಡ್, ೩೭ ಯೋಗಗಳು & ದಶಾ ವಿಶ್ಲೇಷಣೆ</span>
+                <span className="font-mono font-bold text-amber-900">🪙 ೫೦೦ ನಾಣ್ಯಗಳು (500 Coins / ₹50)</span>
+              </div>
+              <div className="py-2 flex justify-between">
                 <span className="text-slate-800">ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಪ್ರಶ್ನಾವಳಿ ದರ್ಶನ</span>
-                <span className="font-mono font-bold text-amber-900">🪙 ೨೦೦ ನಾಣ್ಯಗಳು (200 Coins)</span>
+                <span className="font-mono font-bold text-amber-900">🪙 ೨೦೦ ನಾಣ್ಯಗಳು (200 Coins / ₹20)</span>
               </div>
               <div className="py-2 flex justify-between">
                 <span className="text-slate-800">ಶುಭ ನಾಮ ಸಂಖ್ಯಾ ಸೂಚನೆ</span>
-                <span className="font-mono font-bold text-amber-900">🪙 ೨೦೦ ನಾಣ್ಯಗಳು (200 Coins)</span>
+                <span className="font-mono font-bold text-amber-900">🪙 ೨೦೦ ನಾಣ್ಯಗಳು (200 Coins / ₹20)</span>
               </div>
               <div className="py-2 flex justify-between">
                 <span className="text-slate-800">ಮೊಬೈಲ್ & ವಾಹನ ಸಂಖ್ಯಾ ಸೂಚನೆ</span>
-                <span className="font-mono font-bold text-amber-900">🪙 ೨೦೦ ನಾಣ್ಯಗಳು (200 Coins)</span>
+                <span className="font-mono font-bold text-amber-900">🪙 ೨೦೦ ನಾಣ್ಯಗಳು (200 Coins / ₹20)</span>
               </div>
             </div>
           </div>
@@ -1355,29 +1811,76 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
               </div>
             )}
 
-            <form onSubmit={handlePasswordSetupSubmit} className="space-y-3.5 text-xs">
+            <form onSubmit={handlePasswordSetupSubmit} className="space-y-3 text-xs">
               <div>
-                <label className="block text-amber-950 font-bold mb-1">ಹೊಸ ಪಾಸ್‌ವರ್ಡ್</label>
-                <input
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="ಕನಿಷ್ಠ ೬ ಅಕ್ಷರಗಳು"
-                  required
-                  className="w-full px-3.5 py-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 font-semibold focus:outline-none focus:border-amber-500"
-                />
+                <label className="block text-amber-950 font-bold mb-1">
+                  ಇಮೇಲ್ ವಿಳಾಸ <span className="text-red-600 font-black">*</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2.5 text-slate-400 text-sm">✉️</span>
+                  <input
+                    type="email"
+                    value={priestEmail}
+                    onChange={(e) => setPriestEmail(e.target.value)}
+                    placeholder="priest@gmail.com"
+                    required
+                    className="w-full pl-9 pr-3.5 py-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 font-semibold focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+                <p className="text-[10px] text-amber-800 mt-0.5 font-medium">ಅಧಿಸೂಚನೆಗಳು ಹಾಗೂ ಖಾತೆ ಪುನಃಸ್ಥಾಪನೆಗೆ ಕಡ್ಡಾಯ</p>
               </div>
 
               <div>
-                <label className="block text-amber-950 font-bold mb-1">ಪಾಸ್‌ವರ್ಡ್ ದೃಢೀಕರಿಸಿ</label>
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="ಮತ್ತೊಮ್ಮೆ ನಮೂದಿಸಿ"
-                  required
-                  className="w-full px-3.5 py-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 font-semibold focus:outline-none focus:border-amber-500"
-                />
+                <label className="block text-amber-950 font-bold mb-1">
+                  ಮೊಬೈಲ್ ಸಂಖ್ಯೆ <span className="text-red-600 font-black">*</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2.5 text-slate-400 text-sm">📱</span>
+                  <input
+                    type="tel"
+                    value={priestPhone}
+                    onChange={(e) => setPriestPhone(e.target.value)}
+                    placeholder="9108135387 (೧೦ ಅಂಕಿಗಳು)"
+                    maxLength={10}
+                    required
+                    className="w-full pl-9 pr-3.5 py-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 font-semibold focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+                <p className="text-[10px] text-amber-800 mt-0.5 font-medium">೧೦ ಅಂಕಿಗಳ ಅಧಿಕೃತ ಮೊಬೈಲ್ ಸಂಖ್ಯೆ</p>
+              </div>
+
+              <div>
+                <label className="block text-amber-950 font-bold mb-1">
+                  ಹೊಸ ಪಾಸ್‌ವರ್ಡ್ <span className="text-red-600 font-black">*</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2.5 text-slate-400 text-sm">🔑</span>
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="ಕನಿಷ್ಠ ೬ ಅಕ್ಷರಗಳು"
+                    required
+                    className="w-full pl-9 pr-3.5 py-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 font-semibold focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-amber-950 font-bold mb-1">
+                  ಪಾಸ್‌ವರ್ಡ್ ದೃಢೀಕರಿಸಿ <span className="text-red-600 font-black">*</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2.5 text-slate-400 text-sm">🛡️</span>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="ಮತ್ತೊಮ್ಮೆ ನಮೂದಿಸಿ"
+                    required
+                    className="w-full pl-9 pr-3.5 py-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 font-semibold focus:outline-none focus:border-amber-500"
+                  />
+                </div>
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
@@ -1395,15 +1898,15 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
                     }
                     setShowPasswordSetup(false);
                   }}
-                  className="px-4 py-2 bg-slate-200 text-slate-700 font-bold rounded-xl"
+                  className="px-4 py-2 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300 transition-colors"
                 >
                   ನಂತರ
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-gradient-to-r from-amber-600 to-amber-500 text-slate-950 font-black rounded-xl shadow-md"
+                  className="px-5 py-2 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-black rounded-xl shadow-md transition-all transform active:scale-95"
                 >
-                  ಪಾಸ್‌ವರ್ಡ್ ಉಳಿಸಿ
+                  ಪ್ರೊಫೈಲ್ & ಪಾಸ್‌ವರ್ಡ್ ಉಳಿಸಿ
                 </button>
               </div>
             </form>
@@ -1412,11 +1915,13 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
       )}
 
       {/* Beautiful Animated Numerology Loader for all GenAI / Calculation Requests */}
-      {(isCalculatingPrashna || isCalculatingSuggestion) && (
+      {(isCalculatingPrashna || isCalculatingSuggestion || isCalculatingJanma) && (
         <SankhyaNumerologyLoader
           isKn={true}
           message={
-            isCalculatingPrashna
+            isCalculatingJanma
+              ? "೩x೩ ವೇದಿಕ ಗ್ರಿಡ್, ೩೭ ಯೋಗಗಳು, ದಶಾ ಚಕ್ರ ಹಾಗೂ ಪರಿಹಾರಗಳ ನಿಖರ ವಿಶ್ಲೇಷಣೆ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..."
+              : isCalculatingPrashna
               ? "ಪ್ರಶ್ನಾ ಲಗ್ನ, ಗ್ರಹ ಗೋಚಾರ ಹಾಗೂ ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ವಿಶ್ಲೇಷಣೆಯೊಂದಿಗೆ ನಿಖರ ಉತ್ತರ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..."
               : "ನಾಮ ಹಾಗೂ ಸಂಖ್ಯಾ ಕಂಪನ ಗಣಿತ ವಿಶ್ಲೇಷಣೆ ಪ್ರಕ್ರಿಯೆಯಲ್ಲಿದೆ..."
           }

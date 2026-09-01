@@ -30,6 +30,13 @@ import { hashPassword } from "../auth/authStore";
 import { sendAllFourDailyReports, notifyLowAiQuotaRemaining } from "../notifications/notificationService";
 import { extendPassValidity } from "../seva/ashirvadaPassService";
 import {
+  subscribeCalendarDevoteeSubscriptions,
+  purgeAllCalendarSubscriptionsAndVisits,
+  extendSubscriptionValidity,
+  deleteDevoteeSubscription,
+  type DevoteeCalendarSubscriptionDoc
+} from "../seva/calendarVisitService";
+import {
   AVAILABLE_MODULES,
   type AvailableModuleKey,
   type AppModuleConfig
@@ -329,13 +336,18 @@ export const SuperAdminDashboard: React.FC = () => {
   // State for Firestore collections
   const [kundlis, setKundlis] = useState<KundliHistoryDoc[]>([]);
   const [ashirvadaPasses, setAshirvadaPasses] = useState<AshirvadaPassDoc[]>([]);
+  const [subscriptions, setSubscriptions] = useState<DevoteeCalendarSubscriptionDoc[]>([]);
   const [auditLogs, setAuditLogs] = useState<SystemAuditLogDoc[]>([]);
   const [premiumDownloads, setPremiumDownloads] = useState<PremiumPdfDownloadDoc[]>([]);
 
   // Filter/Search states
   const [kundliSearch, setKundliSearch] = useState("");
   const [auditSearch, setAuditSearch] = useState("");
+  const [subscriptionSearch, setSubscriptionSearch] = useState("");
+  const [subscriptionFilter, setSubscriptionFilter] = useState<"all" | "active" | "near_expiry" | "expired">("all");
   const [isDeduplicating, setIsDeduplicating] = useState(false);
+  const [isPurgingCalendarData, setIsPurgingCalendarData] = useState(false);
+  const [showPurgeConfirmModal, setShowPurgeConfirmModal] = useState(false);
 
   // Modals & Actions
   const [selectedPriest, setSelectedPriest] = useState<PriestWalletDoc | null>(null);
@@ -455,6 +467,7 @@ export const SuperAdminDashboard: React.FC = () => {
 
     const unsubKundlis = subscribeAllKundlis((list) => setKundlis(list));
     const unsubPasses = subscribeAshirvadaPasses((list) => setAshirvadaPasses(list));
+    const unsubSubscriptions = subscribeCalendarDevoteeSubscriptions((list) => setSubscriptions(list));
     const unsubAudit = subscribeSystemAuditLogs((list) => setAuditLogs(list));
     const unsubPdf = subscribePremiumPdfDownloads((list) => setPremiumDownloads(list));
     const unsubAi = subscribeTodayAiQuota((q) => {
@@ -468,6 +481,7 @@ export const SuperAdminDashboard: React.FC = () => {
     return () => {
       unsubKundlis();
       unsubPasses();
+      unsubSubscriptions();
       unsubAudit();
       unsubPdf();
       unsubAi();
@@ -727,6 +741,112 @@ export const SuperAdminDashboard: React.FC = () => {
       setFeedback({ type: "success", text: "ಎಲ್ಲಾ ಮಾದರಿ ಆಶೀರ್ವಾದ ಪಾಸ್‌ಗಳನ್ನು ಡೇಟಾಬೇಸ್‌ನಿಂದ ಯಶಸ್ವಿಯಾಗಿ ತೆರವುಗೊಳಿಸಲಾಗಿದೆ." });
     } catch {
       setFeedback({ type: "error", text: "ಪಾಸ್‌ಗಳನ್ನು ತೆರವುಗೊಳಿಸುವಾಗ ದೋಷ ಸಂಭವಿಸಿದೆ." });
+    }
+  };
+
+  const handleExportDevoteeMarketingCsv = () => {
+    if (subscriptions.length === 0) {
+      setFeedback({ type: "error", text: "ರಫ್ತು ಮಾಡಲು ಯಾವುದೇ ಭಕ್ತರ ಚಂದಾದಾರಿಕೆಗಳು ಲಭ್ಯವಿಲ್ಲ (No subscriptions to export)." });
+      return;
+    }
+    const headers = [
+      "Devotee Name",
+      "Mobile Number",
+      "Email Address",
+      "Gotra",
+      "Rashi",
+      "Nakshatra",
+      "Lagna",
+      "Duration (Days)",
+      "Start Date",
+      "Expiry Date",
+      "Days Consumed",
+      "Days Remaining",
+      "Total Visits",
+      "Status",
+      "Priest Name",
+      "First Visit At",
+      "Last Visit At"
+    ];
+
+    const rows = subscriptions.map((s) => [
+      `"${s.devoteeName || ""}"`,
+      `"${s.phone || ""}"`,
+      `"${s.email || ""}"`,
+      `"${s.gotra || ""}"`,
+      `"${s.rashi || ""}"`,
+      `"${s.nakshatra || ""}"`,
+      `"${s.lagnaRashi || ""}"`,
+      s.durationDays || 90,
+      s.startDate || "",
+      s.expiryDate || "",
+      s.daysConsumed || 0,
+      s.daysRemaining || 0,
+      s.totalVisitsCount || s.totalHits || 0,
+      s.isExpired ? "EXPIRED" : s.daysRemaining <= 7 ? "EXPIRING_SOON" : "ACTIVE",
+      `"${s.priestName || "Shreeram Pandit"}"`,
+      s.firstVisitAt || "",
+      s.lastVisitAt || ""
+    ]);
+
+    const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `Baggona_Devotee_Marketing_Contacts_${new Date().toISOString().split("T")[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setFeedback({ type: "success", text: "ಭಕ್ತರ ಮಾರ್ಕೆಟಿಂಗ್ ಸಂಪರ್ಕ ವಿವರಗಳ CSV ಯಶಸ್ವಿಯಾಗಿ ಡೌನ್‌ಲೋಡ್ ಆಗಿದೆ." });
+  };
+
+  const handlePurgeAllCalendarSubscriptions = async () => {
+    setIsPurgingCalendarData(true);
+    try {
+      const { removedCount } = await purgeAllCalendarSubscriptionsAndVisits();
+      setShowPurgeConfirmModal(false);
+      setSubscriptions([]);
+      setAshirvadaPasses([]);
+      setFeedback({
+        type: "success",
+        text: `ಹಳೆಯ ${removedCount} ಟೆಸ್ಟ್ ಮತ್ತು ಮಾದರಿ ದಾಖಲೆಗಳನ್ನು ಸಂಪೂರ್ಣವಾಗಿ ತೆರವುಗೊಳಿಸಲಾಗಿದೆ. ಇಂದಿನಿಂದ ಹೊಸ ಭಕ್ತರ ದಾಖಲಾತಿಗಳು ತಾಜಾವಾಗಿ ದಾಖಲಾಗುತ್ತವೆ.`
+      });
+    } catch (err) {
+      console.error("Purge error:", err);
+      setFeedback({ type: "error", text: "ದಾಖಲೆಗಳನ್ನು ತೆರವುಗೊಳಿಸಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ." });
+    } finally {
+      setIsPurgingCalendarData(false);
+    }
+  };
+
+  const handleExtendDevoteeSubscription = async (devoteeId: string, days: number = 90) => {
+    try {
+      const ok = await extendSubscriptionValidity(devoteeId, days);
+      if (ok) {
+        setFeedback({
+          type: "success",
+          text: `ಭಕ್ತರ ಚಂದಾದಾರಿಕೆ ಮಾನ್ಯತೆಯನ್ನು ${days} ದಿನಗಳಿಗೆ ಯಶಸ್ವಿಯಾಗಿ ವಿಸ್ತರಿಸಲಾಗಿದೆ.`
+        });
+      } else {
+        setFeedback({ type: "error", text: "ಮಾನ್ಯತೆ ವಿಸ್ತರಿಸಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ." });
+      }
+    } catch {
+      setFeedback({ type: "error", text: "ಮಾನ್ಯತೆ ವಿಸ್ತರಿಸುವಾಗ ದೋಷ ಸಂಭವಿಸಿದೆ." });
+    }
+  };
+
+  const handleDeleteDevoteeSubscription = async (devoteeId: string) => {
+    if (!window.confirm("ಖಂಡಿತವಾಗಿ ಈ ಭಕ್ತರ ದಾಖಲೆಯನ್ನು ಅಳಿಸಲು ಬಯಸುವಿರಾ?")) return;
+    try {
+      const ok = await deleteDevoteeSubscription(devoteeId);
+      if (ok) {
+        setSubscriptions((prev) => prev.filter((s) => s.id !== devoteeId));
+        setFeedback({ type: "success", text: "ಭಕ್ತರ ಚಂದಾದಾರಿಕೆ ದಾಖಲೆಯನ್ನು ಅಳಿಸಲಾಗಿದೆ." });
+      } else {
+        setFeedback({ type: "error", text: "ದಾಖಲೆ ಅಳಿಸಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ." });
+      }
+    } catch {
+      setFeedback({ type: "error", text: "ದಾಖಲೆ ಅಳಿಸುವಾಗ ದೋಷ ಸಂಭವಿಸಿದೆ." });
     }
   };
 
@@ -2138,137 +2258,415 @@ export const SuperAdminDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* 6. TAB 3: Ashirvada QR Passes & 90-Day Countdown */}
-      {activeTab === "ashirvada" && (
-        <div className="bg-[#FFFDF7] border-2 border-amber-300 rounded-3xl p-5 shadow-md space-y-4">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-amber-200 pb-3">
-            <div>
-              <h2 className="text-base font-black text-amber-950 flex items-center gap-2">
-                <span>🪔</span>
-                <span>ಆಶೀರ್ವಾದ ಪತ್ರ & QR ಕೋಡ್ ಪಾಸ್ ೯೦-ದಿನಗಳ ಕೌಂಟ್‌ಡೌನ್ (Ashirvada Pass Tracker)</span>
-              </h2>
-              <p className="text-xs text-amber-800 font-semibold mt-0.5">
-                Live tracking of remaining active days from 90-day validity window. Super Admin can 1-click Reset/Extend or Delete.
-              </p>
-            </div>
+      {/* 6. TAB 3: Ashirvada QR Passes & Devotee Calendar Subscription CRM */}
+      {activeTab === "ashirvada" && (() => {
+        const filteredSubs = subscriptions.filter((s) => {
+          if (subscriptionFilter === "active" && (s.isExpired || s.daysRemaining <= 7)) return false;
+          if (subscriptionFilter === "near_expiry" && (s.isExpired || s.daysRemaining > 7)) return false;
+          if (subscriptionFilter === "expired" && !s.isExpired) return false;
 
-            <div className="flex items-center gap-2 flex-wrap">
-              <button
-                type="button"
-                disabled={isDeduplicating}
-                onClick={handleDeduplicateCalendarVisits}
-                className="px-3 py-1.5 bg-purple-100 hover:bg-purple-200 text-purple-950 border-2 border-purple-300 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-sm"
-              >
-                <span>🧹</span>
-                <span>{isDeduplicating ? "ಶುದ್ಧೀಕರಿಸಲಾಗುತ್ತಿದೆ..." : "ಡ್ಯೂಪ್ಲಿಕೇಟ್ & ಟೆಸ್ಟ್ ದಾಖಲೆ ತೆರವುಗೊಳಿಸಿ"}</span>
-              </button>
+          if (!subscriptionSearch.trim()) return true;
+          const q = subscriptionSearch.toLowerCase();
+          return (
+            (s.devoteeName || "").toLowerCase().includes(q) ||
+            (s.phone || "").toLowerCase().includes(q) ||
+            (s.email || "").toLowerCase().includes(q) ||
+            (s.gotra || "").toLowerCase().includes(q) ||
+            (s.rashi || "").toLowerCase().includes(q) ||
+            (s.nakshatra || "").toLowerCase().includes(q) ||
+            (s.priestName || "").toLowerCase().includes(q)
+          );
+        });
 
-              {ashirvadaPasses.length > 0 && (
+        const totalSubs = subscriptions.length;
+        const activeSubs = subscriptions.filter((s) => !s.isExpired && s.daysRemaining > 7).length;
+        const nearExpirySubs = subscriptions.filter((s) => !s.isExpired && s.daysRemaining <= 7).length;
+        const expiredSubs = subscriptions.filter((s) => s.isExpired).length;
+
+        return (
+          <div className="bg-[#FFFDF7] border-2 border-amber-300 rounded-3xl p-5 shadow-md space-y-5">
+            {/* Header with Title & Action Controls */}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-amber-200 pb-4">
+              <div>
+                <h2 className="text-lg font-black text-amber-950 flex items-center gap-2">
+                  <span>🪔</span>
+                  <span>ಭಕ್ತರ ಕ್ಯಾಲೆಂಡರ್ ಚಂದಾದಾರಿಕೆ & ಆಶೀರ್ವಾದ ಪಾಸ್ CRM (Devotee Calendar CRM)</span>
+                </h2>
+                <p className="text-xs text-amber-800 font-semibold mt-1">
+                  ದೈನಂದಿನ ದರ್ಶನ ಭೇಟಿಗಳು, ೯೦-ದಿನಗಳ ಮಾನ್ಯತೆ ಕೌಂಟ್‌ಡೌನ್, ಮೊಬೈಲ್/ಇಮೇಲ್ ಮಾರ್ಕೆಟಿಂಗ್ ಸಂಪರ್ಕಗಳು ಮತ್ತು ನವೀಕರಣ ನಿರ್ವಹಣೆ.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 flex-wrap">
+                {/* Export CSV */}
                 <button
                   type="button"
-                  onClick={handleClearAllPasses}
-                  className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-900 border border-red-300 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-sm"
+                  onClick={handleExportDevoteeMarketingCsv}
+                  disabled={totalSubs === 0}
+                  className="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-50 cursor-pointer"
+                  title="ಮಾರ್ಕೆಟಿಂಗ್‌ಗಾಗಿ ಭಕ್ತರ ಸಂಪರ್ಕಗಳನ್ನು CSV ಫೈಲ್‌ಗೆ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ"
                 >
-                  <span>🗑️</span>
-                  <span>ಎಲ್ಲಾ ಮಾದರಿ ಪಾಸ್‌ಗಳನ್ನು ತೆರವುಗೊಳಿಸಿ (Clear All Passes)</span>
+                  <span>📥</span>
+                  <span>ಭಕ್ತರ ಸಂಪರ್ಕಗಳ CSV ರಫ್ತು ({totalSubs})</span>
                 </button>
-              )}
-            </div>
-          </div>
 
-          {ashirvadaPasses.length === 0 ? (
-            <div className="text-center py-16 px-4 bg-[#FEFCF4] rounded-3xl border-2 border-amber-200 space-y-3">
-              <div className="text-4xl">🪔</div>
-              <div className="font-black text-amber-950 text-sm">
-                ಯಾವುದೇ ಆಶೀರ್ವಾದ ಪಾಸ್‌ಗಳು ಸಕ್ರಿಯವಾಗಿಲ್ಲ (No Ashirvada Passes Issued)
+                {/* Deduplicate */}
+                <button
+                  type="button"
+                  disabled={isDeduplicating}
+                  onClick={handleDeduplicateCalendarVisits}
+                  className="px-3 py-2 bg-purple-100 hover:bg-purple-200 text-purple-950 border-2 border-purple-300 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-sm"
+                >
+                  <span>🧹</span>
+                  <span>{isDeduplicating ? "ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ..." : "ಡ್ಯೂಪ್ಲಿಕೇಟ್ ಶುದ್ಧೀಕರಿಸಿ"}</span>
+                </button>
+
+                {/* Purge All & Fresh Start */}
+                <button
+                  type="button"
+                  onClick={() => setShowPurgeConfirmModal(true)}
+                  className="px-3.5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+                  title="ಹಳೆಯ ಎಲ್ಲಾ ಟೆಸ್ಟ್ ಡೇಟಾ ತೆರವುಗೊಳಿಸಿ ಇಂದಿನಿಂದ ಹೊಸ ದಾಖಲಾತಿ ಪ್ರಾರಂಭಿಸಿ"
+                >
+                  <span>🚨</span>
+                  <span>ಟೆಸ್ಟ್ ಡೇಟಾ ತೆರವುಗೊಳಿಸಿ (Start Fresh)</span>
+                </button>
               </div>
-              <p className="text-xs text-amber-800 font-semibold max-w-md mx-auto">
-                ಭಕ್ತರು ಸೇವಾ ಮತ್ತು ಪ್ರಸಾದ ಪುಟದಲ್ಲಿ ನೋಂದಣಿ ಮಾಡಿಕೊಂಡಾಗ ಅವರ 90-ದಿನಗಳ ಮಾನ್ಯತೆಯುಳ್ಳ ಆಶೀರ್ವಾದ ಪಾಸ್‌ಗಳು ಇಲ್ಲಿ ನೇರವಾಗಿ ಕಾಣಿಸಿಕೊಳ್ಳುತ್ತವೆ.
-              </p>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {ashirvadaPasses.map((pass) => {
-                const percentLeft = Math.min(100, Math.max(0, Math.round((pass.daysRemaining / (pass.totalDays || 90)) * 100)));
-                const isExpired = pass.daysRemaining <= 0;
 
-                return (
-                  <div
-                    key={pass.id}
-                    className="p-4 bg-[#FEFCF4] border-2 border-amber-300 rounded-2xl space-y-3 shadow-sm"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="font-black text-amber-950 text-sm">{pass.devoteeName}</div>
-                        <div className="text-xs text-amber-800 font-semibold">ಸೇವೆ: {pass.sevaName}</div>
-                      </div>
-                      <span className="text-[10px] text-slate-500 font-mono font-bold">By {pass.priestName}</span>
-                    </div>
+            {/* Top Analytics KPI Metric Cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div
+                onClick={() => setSubscriptionFilter("all")}
+                className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${
+                  subscriptionFilter === "all"
+                    ? "bg-amber-100 border-amber-500 shadow-sm"
+                    : "bg-[#FEFCF4] border-amber-200 hover:border-amber-400"
+                }`}
+              >
+                <div className="text-[11px] font-bold text-amber-800 uppercase tracking-wider">👥 ಒಟ್ಟು ಭಕ್ತರು</div>
+                <div className="text-2xl font-black text-amber-950 font-mono mt-1">{totalSubs}</div>
+                <div className="text-[10px] text-amber-700 font-semibold mt-0.5">ಒಟ್ಟು ನೋಂದಾಯಿತ ಚಂದಾದಾರರು</div>
+              </div>
 
-                    {/* Progress Bar & Countdown Days */}
-                    <div>
-                      <div className="flex items-center justify-between text-xs mb-1">
-                        <span className="text-slate-600 font-bold text-[10px] uppercase">
-                          ಉಳಿದ ಮಾನ್ಯತೆ (Remaining Validity):
-                        </span>
-                        <span
-                          className={`font-mono font-black ${
-                            isExpired ? "text-red-600" : pass.daysRemaining <= 10 ? "text-orange-600" : "text-emerald-700"
-                          }`}
-                        >
-                          {isExpired ? "ಮುಕ್ತಾಯಗೊಂಡಿದೆ (EXPIRED)" : `⏳ ${pass.daysRemaining} of ${pass.totalDays} Days Left`}
-                        </span>
-                      </div>
-                      <div className="w-full bg-amber-100 rounded-full h-2.5 overflow-hidden border border-amber-300">
-                        <div
-                          className={`h-full transition-all ${
-                            isExpired
-                              ? "bg-red-500"
-                              : pass.daysRemaining <= 10
-                              ? "bg-orange-500"
-                              : "bg-gradient-to-r from-emerald-500 to-amber-500"
-                          }`}
-                          style={{ width: `${percentLeft}%` }}
-                        />
-                      </div>
-                      <div className="flex items-center justify-between text-[10px] text-slate-500 font-bold mt-1">
-                        <span>ನೀಡಿದ ದಿನ: {new Date(pass.issuedAt).toLocaleDateString("en-IN")}</span>
-                        <span>ಮುಕ್ತಾಯ ದಿನ: {new Date(pass.expiresAt).toLocaleDateString("en-IN")}</span>
-                      </div>
-                    </div>
+              <div
+                onClick={() => setSubscriptionFilter("active")}
+                className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${
+                  subscriptionFilter === "active"
+                    ? "bg-emerald-100 border-emerald-500 shadow-sm"
+                    : "bg-[#FEFCF4] border-emerald-200 hover:border-emerald-400"
+                }`}
+              >
+                <div className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider">🟢 ಸಕ್ರಿಯ ಪಾಸ್‌ಗಳು</div>
+                <div className="text-2xl font-black text-emerald-900 font-mono mt-1">{activeSubs}</div>
+                <div className="text-[10px] text-emerald-700 font-semibold mt-0.5">&gt; ೭ ದಿನಗಳ ಮಾನ್ಯತೆ ಉಳಿದಿದೆ</div>
+              </div>
 
-                    <div className="flex items-center justify-between pt-2 border-t border-amber-200">
-                      <span className="text-[11px] text-slate-600 font-semibold">
-                        📥 ಡೌನ್‌ಲೋಡ್ ಸಂಖ್ಯೆ: <strong>{pass.downloadCount || 0}</strong>
-                      </span>
+              <div
+                onClick={() => setSubscriptionFilter("near_expiry")}
+                className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${
+                  subscriptionFilter === "near_expiry"
+                    ? "bg-yellow-100 border-yellow-500 shadow-sm"
+                    : "bg-[#FEFCF4] border-yellow-200 hover:border-yellow-400"
+                }`}
+              >
+                <div className="text-[11px] font-bold text-yellow-800 uppercase tracking-wider">🟡 ಮುಕ್ತಾಯ ಸಮೀಪ</div>
+                <div className="text-2xl font-black text-yellow-950 font-mono mt-1">{nearExpirySubs}</div>
+                <div className="text-[10px] text-yellow-700 font-semibold mt-0.5">≤ ೭ ದಿನಗಳಲ್ಲಿ ಮುಕ್ತಾಯ (ಆಫರ್ ಕಳುಹಿಸಿ)</div>
+              </div>
 
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          disabled={deletingPassId === pass.id}
-                          onClick={() => handleDeletePass(pass.id)}
-                          className="px-2.5 py-1.5 bg-red-100 hover:bg-red-200 text-red-900 border border-red-300 rounded-lg text-xs font-bold transition-all disabled:opacity-50"
-                        >
-                          {deletingPassId === pass.id ? "..." : "🗑️ ಅಳಿಸಿ"}
-                        </button>
-
-                        <button
-                          type="button"
-                          disabled={resettingPassId === pass.id}
-                          onClick={() => handleResetValidity(pass.id)}
-                          className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-lg text-xs font-black transition-all disabled:opacity-50 shadow-sm"
-                        >
-                          {resettingPassId === pass.id ? "Resetting..." : "🔄 ೯೦ ದಿನಗಳಿಗೆ ವಿಸ್ತರಿಸಿ"}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+              <div
+                onClick={() => setSubscriptionFilter("expired")}
+                className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${
+                  subscriptionFilter === "expired"
+                    ? "bg-red-100 border-red-500 shadow-sm"
+                    : "bg-[#FEFCF4] border-red-200 hover:border-red-400"
+                }`}
+              >
+                <div className="text-[11px] font-bold text-red-800 uppercase tracking-wider">🔴 ಮುಕ್ತಾಯಗೊಂಡಿದೆ</div>
+                <div className="text-2xl font-black text-red-900 font-mono mt-1">{expiredSubs}</div>
+                <div className="text-[10px] text-red-700 font-semibold mt-0.5">ದರ್ಶನ ಪ್ರವೇಶ ನಿರ್ಬಂಧಿಸಲಾಗಿದೆ</div>
+              </div>
             </div>
-          )}
-        </div>
-      )}
+
+            {/* Filter Tabs & Search Bar */}
+            <div className="flex flex-col md:flex-row items-center justify-between gap-3 pt-1">
+              <div className="flex items-center gap-1.5 p-1 bg-amber-100/70 rounded-2xl border border-amber-200 w-full md:w-auto overflow-x-auto">
+                <button
+                  type="button"
+                  onClick={() => setSubscriptionFilter("all")}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all ${
+                    subscriptionFilter === "all" ? "bg-amber-600 text-white shadow-xs" : "text-amber-900 hover:bg-amber-200/60"
+                  }`}
+                >
+                  ಎಲ್ಲಾ ({totalSubs})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSubscriptionFilter("active")}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all ${
+                    subscriptionFilter === "active" ? "bg-emerald-700 text-white shadow-xs" : "text-emerald-900 hover:bg-emerald-100"
+                  }`}
+                >
+                  🟢 ಸಕ್ರಿಯ ({activeSubs})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSubscriptionFilter("near_expiry")}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all ${
+                    subscriptionFilter === "near_expiry" ? "bg-amber-500 text-amber-950 shadow-xs" : "text-yellow-900 hover:bg-yellow-100"
+                  }`}
+                >
+                  🟡 ಮುಕ್ತಾಯ ಸಮೀಪ ({nearExpirySubs})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSubscriptionFilter("expired")}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all ${
+                    subscriptionFilter === "expired" ? "bg-red-600 text-white shadow-xs" : "text-red-900 hover:bg-red-100"
+                  }`}
+                >
+                  🔴 ಮುಕ್ತಾಯ ({expiredSubs})
+                </button>
+              </div>
+
+              <div className="w-full md:w-80">
+                <input
+                  type="text"
+                  value={subscriptionSearch}
+                  onChange={(e) => setSubscriptionSearch(e.target.value)}
+                  placeholder="ಹುಡುಕಿ: ಹೆಸರು, ಮೊಬೈಲ್, ಇಮೇಲ್, ರಾಶಿ..."
+                  className="w-full px-3.5 py-2 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-xs text-slate-900 placeholder-slate-400 font-semibold focus:outline-none focus:border-amber-500 shadow-inner"
+                />
+              </div>
+            </div>
+
+            {/* Devotee Subscriptions Table */}
+            {filteredSubs.length === 0 ? (
+              <div className="text-center py-16 px-4 bg-[#FEFCF4] rounded-3xl border-2 border-amber-200 space-y-3">
+                <div className="text-4xl">🪔</div>
+                <div className="font-black text-amber-950 text-sm">
+                  {totalSubs === 0
+                    ? "ಯಾವುದೇ ಭಕ್ತರ ಚಂದಾದಾರಿಕೆಗಳು ದಾಖಲಾಗಿಲ್ಲ (No Devotee Subscriptions Yet)"
+                    : "ಹುಡುಕಾಟಕ್ಕೆ ಯಾವುದೇ ಫಲಿತಾಂಶಗಳು ದೊರೆತಿಲ್ಲ."}
+                </div>
+                <p className="text-xs text-amber-800 font-semibold max-w-md mx-auto">
+                  ಭಕ್ತರು ತಮ್ಮ ಕ್ಯಾಲೆಂಡರ್ ಲಿಂಕ್ ಅಥವಾ QR ಕೋಡ್ ಮೂಲಕ ದರ್ಶನ ಪಡೆದಾಗ ಅವರ ಸಂಪರ್ಕ ವಿವರ, ಜಾತಕ ಮತ್ತು ಮಾನ್ಯತೆಯ ಸಂಪೂರ್ಣ ವಿವರಗಳು ಇಲ್ಲಿ ದಾಖಲಾಗುತ್ತವೆ.
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto rounded-2xl border-2 border-amber-200 shadow-inner bg-[#FEFCF4]">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-amber-100/80 text-amber-950 font-black border-b border-amber-300">
+                      <th className="py-3 px-3.5">ಭಕ್ತರ ಹೆಸರು & ಗೋತ್ರ</th>
+                      <th className="py-3 px-3">ಸಂಪರ್ಕ (ಮೊಬೈಲ್ & ಇಮೇಲ್)</th>
+                      <th className="py-3 px-3">ಜನ್ಮ ಕುಂಡಲಿ</th>
+                      <th className="py-3 px-3">ಅವಧಿ & ದಿನಾಂಕಗಳು</th>
+                      <th className="py-3 px-3 text-center">ಬಳಕೆ & ಭೇಟಿಗಳು</th>
+                      <th className="py-3 px-3 text-center">ಉಳಿದ ಮಾನ್ಯತೆ</th>
+                      <th className="py-3 px-3 text-center">ಸ್ಥಿತಿ</th>
+                      <th className="py-3 px-3 text-right">ಮಾರ್ಕೆಟಿಂಗ್ & ಆಕ್ಷನ್ಸ್</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-amber-200/70">
+                    {filteredSubs.map((s) => {
+                      const percentLeft = Math.min(100, Math.max(0, Math.round((s.daysRemaining / (s.durationDays || 90)) * 100)));
+                      const isExpired = s.isExpired;
+                      const isNearExpiry = !isExpired && s.daysRemaining <= 7;
+
+                      const cleanPhone = (s.phone || "").replace(/[^\d]/g, "");
+                      const waPhone = cleanPhone.startsWith("91") ? cleanPhone : cleanPhone ? `91${cleanPhone}` : "";
+
+                      const waMessage = encodeURIComponent(
+                        `ನಮಸ್ಕಾರ ${s.devoteeName} ಅವರೇ,\nಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಪೋರ್ಟಲ್‌ನಿಂದ ಶುಭಾಶಯಗಳು.\nನಿಮ್ಮ ${s.durationDays || 90}-ದಿನಗಳ ದೈನಂದಿನ ದರ್ಶನ ಮತ್ತು ಮುಹೂರ್ತ ಪಾಸ್ ${
+                          isExpired ? `ದಿನಾಂಕ ${s.expiryDate} ರಂದು ಮುಕ್ತಾಯಗೊಂಡಿದೆ.` : `ದಿನಾಂಕ ${s.expiryDate} ರಂದು ಮುಕ್ತಾಯಗೊಳ್ಳಲಿದೆ (${s.daysRemaining} ದಿನಗಳು ಬಾಕಿ).`
+                        }\nನಿಮ್ಮ ದೈನಂದಿನ ಜಾತಕ ಫಲಗಳು ಮತ್ತು ಪಂಚಾಂಗ ಸೇವೆಗಳನ್ನು ನಿರಂತರವಾಗಿ ಮುಂದುವರಿಸಲು ನವೀಕರಿಸಿಕೊಳ್ಳಿ.\n॥ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ · ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ॥`
+                      );
+
+                      return (
+                        <tr key={s.id} className="hover:bg-amber-50/60 transition-colors">
+                          {/* Devotee Name & Gotra */}
+                          <td className="py-3.5 px-3.5 align-top">
+                            <div className="font-black text-slate-900 text-xs flex items-center gap-1">
+                              <span>👤</span>
+                              <span>{s.devoteeName}</span>
+                            </div>
+                            <div className="text-[11px] text-amber-900 font-semibold mt-0.5">
+                              ಗೋತ್ರ: {s.gotra || "—"}
+                            </div>
+                            <div className="text-[10px] text-slate-500 font-mono mt-0.5">
+                              Priest: {s.priestName || "Shreeram Pandit"}
+                            </div>
+                          </td>
+
+                          {/* Contact Details (Phone & Email) */}
+                          <td className="py-3.5 px-3 align-top">
+                            <div className="space-y-1">
+                              {s.phone ? (
+                                <div className="flex items-center gap-1.5 font-mono text-xs font-bold text-slate-900">
+                                  <span>📱</span>
+                                  <a href={`tel:${s.phone}`} className="hover:underline text-amber-950">
+                                    {s.phone}
+                                  </a>
+                                  {waPhone && (
+                                    <a
+                                      href={`https://wa.me/${waPhone}?text=${waMessage}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="px-1.5 py-0.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded text-[10px] font-black border border-emerald-300"
+                                      title="WhatsApp ಸಂದೇಶ ಕಳುಹಿಸಿ"
+                                    >
+                                      WA
+                                    </a>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-[10px] text-red-600 font-bold bg-red-50 px-1.5 py-0.5 rounded border border-red-200">
+                                  📱 ಫೋನ್ ಇಲ್ಲ
+                                </span>
+                              )}
+
+                              {s.email ? (
+                                <div className="flex items-center gap-1 text-[11px] font-medium text-slate-700">
+                                  <span>✉️</span>
+                                  <a href={`mailto:${s.email}`} className="hover:underline truncate max-w-[140px] block" title={s.email}>
+                                    {s.email}
+                                  </a>
+                                </div>
+                              ) : (
+                                <span className="text-[10px] text-slate-500 font-normal">✉️ ಇಮೇಲ್ ಇಲ್ಲ</span>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* Janma Kundali */}
+                          <td className="py-3.5 px-3 align-top">
+                            <div className="space-y-0.5 text-[11px]">
+                              <div className="font-bold text-amber-950">
+                                🌙 {s.rashi || "—"}
+                              </div>
+                              <div className="text-slate-700 font-medium">
+                                ⭐ {s.nakshatra || "—"}
+                              </div>
+                              {s.lagnaRashi && (
+                                <div className="text-[10px] text-slate-500 font-medium">
+                                  ಲಗ್ನ: {s.lagnaRashi}
+                                </div>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* Duration & Dates */}
+                          <td className="py-3.5 px-3 align-top text-xs">
+                            <div className="font-black text-slate-900">
+                              ⏱️ {s.durationDays || 90} ದಿನಗಳು
+                            </div>
+                            <div className="text-[10px] text-slate-600 font-mono mt-0.5">
+                              ಆರಂಭ: {s.startDate || "—"}
+                            </div>
+                            <div className="text-[10px] font-mono font-bold mt-0.5 text-slate-700">
+                              ಮುಕ್ತಾಯ: {s.expiryDate || "—"}
+                            </div>
+                          </td>
+
+                          {/* Consumed / Total Hits */}
+                          <td className="py-3.5 px-3 align-top text-center">
+                            <div className="font-black text-amber-950 font-mono text-sm">
+                              {s.daysConsumed || 0} <span className="text-[10px] font-normal text-slate-600">ದಿನ</span>
+                            </div>
+                            <div className="text-[10px] text-slate-500 font-mono font-semibold mt-0.5">
+                              ಒಟ್ಟು {s.totalVisitsCount || s.totalHits || 0} ಭೇಟಿಗಳು
+                            </div>
+                          </td>
+
+                          {/* Days Remaining & Progress Bar */}
+                          <td className="py-3.5 px-3 align-top">
+                            <div className="w-28 mx-auto">
+                              <div className="flex items-center justify-between text-[11px] mb-1 font-mono font-black">
+                                <span className={isExpired ? "text-red-600" : isNearExpiry ? "text-yellow-700" : "text-emerald-700"}>
+                                  {isExpired ? "0 ದಿನ" : `${s.daysRemaining} ದಿನ ಬಾಕಿ`}
+                                </span>
+                              </div>
+                              <div className="w-full bg-amber-200/80 rounded-full h-2 overflow-hidden border border-amber-300">
+                                <div
+                                  className={`h-full transition-all ${
+                                    isExpired
+                                      ? "bg-red-500"
+                                      : isNearExpiry
+                                      ? "bg-yellow-500"
+                                      : "bg-emerald-500"
+                                  }`}
+                                  style={{ width: `${percentLeft}%` }}
+                                />
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* Status Badge */}
+                          <td className="py-3.5 px-3 align-top text-center">
+                            <span
+                              className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-black border ${
+                                isExpired
+                                  ? "bg-red-100 text-red-900 border-red-300"
+                                  : isNearExpiry
+                                  ? "bg-yellow-100 text-yellow-950 border-yellow-400"
+                                  : "bg-emerald-100 text-emerald-950 border-emerald-400"
+                              }`}
+                            >
+                              {isExpired ? "🔴 ಮುಕ್ತಾಯ" : isNearExpiry ? "🟡 ಮುಕ್ತಾಯ ಸಮೀಪ" : "🟢 ಸಕ್ರಿಯ"}
+                            </span>
+                          </td>
+
+                          {/* Marketing Actions */}
+                          <td className="py-3.5 px-3 align-top text-right">
+                            <div className="flex flex-col items-end gap-1.5">
+                              {/* WhatsApp Renewal CTA */}
+                              {waPhone && (
+                                <a
+                                  href={`https://wa.me/${waPhone}?text=${waMessage}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[11px] font-black shadow-xs flex items-center gap-1 transition"
+                                  title="ನವೀಕರಣಕ್ಕಾಗಿ WhatsApp ಸಂದೇಶ ರವಾನಿಸಿ"
+                                >
+                                  <span>💬</span>
+                                  <span>ನವೀಕರಣ ಸಂದೇಶ</span>
+                                </a>
+                              )}
+
+                              {/* Extend +90 Days */}
+                              <div className="flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => handleExtendDevoteeSubscription(s.id, 90)}
+                                  className="px-2 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-lg text-[10px] font-black shadow-xs transition cursor-pointer"
+                                  title="ಈ ಭಕ್ತರ ಮಾನ್ಯತೆಯನ್ನು ೯೦ ದಿನಗಳಿಗೆ ವಿಸ್ತರಿಸಿ"
+                                >
+                                  +90d ವಿಸ್ತರಿಸಿ
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteDevoteeSubscription(s.id)}
+                                  className="px-2 py-1 bg-red-100 hover:bg-red-200 text-red-900 rounded-lg text-[10px] font-bold border border-red-300 transition cursor-pointer"
+                                  title="ದಾಖಲೆ ಅಳಿಸಿ"
+                                >
+                                  🗑️
+                                </button>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* 7. TAB 4: System Audit Logs */}
       {activeTab === "audit" && (
@@ -4713,6 +5111,65 @@ export const SuperAdminDashboard: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* 5. MODAL: PURGE ALL OLD TEST DATA & START FRESH */}
+      {showPurgeConfirmModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fade-in">
+          <div className="bg-gradient-to-br from-[#FFFDF7] via-white to-red-50 border-2 border-red-400 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-red-200 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🚨</span>
+                <h3 className="text-base font-black text-red-950">
+                  ಎಲ್ಲಾ ಟೆಸ್ಟ್ ಡೇಟಾ ತೆರವುಗೊಳಿಸಿ (Purge & Start Fresh)
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPurgeConfirmModal(false)}
+                disabled={isPurgingCalendarData}
+                className="text-slate-400 hover:text-slate-800 text-lg font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-3.5 bg-red-100/70 border border-red-300 rounded-2xl text-xs text-red-950 space-y-2">
+              <div className="font-black text-red-900 flex items-center gap-1.5">
+                <span>⚠️</span>
+                <span>ಎಚ್ಚರಿಕೆ (Warning): ಈ ಕೆಳಗಿನ ಎಲ್ಲಾ ಹಳೆಯ ದಾಖಲೆಗಳು ಶಾಶ್ವತವಾಗಿ ಅಳಿಸಲ್ಪಡುತ್ತವೆ:</span>
+              </div>
+              <ul className="list-disc list-inside space-y-1 font-semibold text-[11px] text-red-900">
+                <li>ಹಳೆಯ ೯೦-ದಿನ / ೩೦-ದಿನಗಳ QR ಕೋಡ್ ಭೇಟಿಗಳು (calendarVisits)</li>
+                <li>ಭಕ್ತರ ಹಳೆಯ ಚಂದಾದಾರಿಕೆ ಟ್ರ್ಯಾಕಿಂಗ್ (calendarDevoteeEngagement)</li>
+                <li>ಹಳೆಯ ಮಾದರಿ ಆಶೀರ್ವಾದ ಪಾಸ್‌ಗಳು (ashirvada_passes)</li>
+              </ul>
+              <div className="text-[11px] text-emerald-900 font-bold bg-emerald-100 p-2 rounded-xl border border-emerald-300 mt-2">
+                ✨ ಇಂದಿನಿಂದ ಬರುವ ಪ್ರತಿಯೊಬ್ಬ ಭಕ್ತರ ಹೆಸರು, ಮೊಬೈಲ್, ಇಮೇಲ್ ಮತ್ತು ಜಾತಕ ವಿವರಗಳು ಹೊಸದಾಗಿ ದಾಖಲಾಗುತ್ತವೆ.
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-amber-200">
+              <button
+                type="button"
+                onClick={() => setShowPurgeConfirmModal(false)}
+                disabled={isPurgingCalendarData}
+                className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold rounded-xl transition cursor-pointer"
+              >
+                ರದ್ದುಮಾಡಿ (Cancel)
+              </button>
+              <button
+                type="button"
+                onClick={handlePurgeAllCalendarSubscriptions}
+                disabled={isPurgingCalendarData}
+                className="px-5 py-2 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-black text-xs rounded-xl shadow-md transition disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
+              >
+                <span>🧹</span>
+                <span>{isPurgingCalendarData ? "ತೆರವುಗೊಳಿಸಲಾಗುತ್ತಿದೆ..." : "ಹೌದು, ಸಂಪೂರ್ಣ ತೆರವುಗೊಳಿಸಿ"}</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

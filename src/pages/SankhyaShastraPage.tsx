@@ -30,6 +30,7 @@ import { GirlsNumerologyTab } from "../components/sankhyashastra/GirlsNumerology
 import { SankhyaShastraPdfTemplate } from "../components/sankhyashastra/SankhyaShastraPdfTemplate";
 import { sanitizeAIText } from "../utils/textFormatter";
 import { SankhyaNumerologyLoader } from "../components/sankhyashastra/SankhyaNumerologyLoader";
+import { VedicGridDashaTab } from "../components/sankhyashastra/VedicGridDashaTab";
 import AudioPlayerButton from "../components/ui/AudioPlayerButton";
 
 type ChatMessage = {
@@ -40,7 +41,7 @@ type ChatMessage = {
   timestamp: string;
 };
 
-type TabType = "prashna" | "match" | "boys" | "girls" | "name" | "item" | "mulank";
+type TabType = "vedic_grid" | "prashna" | "match" | "boys" | "girls" | "name" | "item" | "mulank";
 
 export default function SankhyaShastraPage(): JSX.Element {
   const appLanguage = useAppStore((s) => s.language);
@@ -53,8 +54,8 @@ export default function SankhyaShastraPage(): JSX.Element {
 
   const devoteeName = session?.input?.name || (isKn ? "ಶ್ರೀಯುತ ಭಕ್ತರು" : "Devotee");
 
-  // Tab State
-  const [activeTab, setActiveTab] = useState<TabType>("prashna");
+  // Tab State (Default to new Vedic Grid & Dasha Bhavishya)
+  const [activeTab, setActiveTab] = useState<TabType>("vedic_grid");
 
   // ----------------------------------------------------------------------
   // TAB 1: PRASHNA ORACLE STATES
@@ -379,8 +380,21 @@ export default function SankhyaShastraPage(): JSX.Element {
         </div>
       </Card>
 
-      {/* 7 Interactive Navigation Tabs Bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 bg-amber-100/60 p-1.5 rounded-2xl border border-amber-300/80 shadow-sm">
+      {/* 8 Interactive Navigation Tabs Bar */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 bg-amber-100/60 p-1.5 rounded-2xl border border-amber-300/80 shadow-sm">
+        <button
+          type="button"
+          onClick={() => setActiveTab("vedic_grid")}
+          className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs font-bold transition ${
+            activeTab === "vedic_grid"
+              ? "bg-gradient-to-r from-amber-700 via-amber-800 to-amber-900 text-white shadow-md"
+              : "bg-white/80 text-amber-950 hover:bg-amber-100"
+          }`}
+        >
+          <span>📐</span>
+          <span>{isKn ? "ವೇದಿಕ ಗ್ರಿಡ್" : "Vedic Grid"}</span>
+        </button>
+
         <button
           type="button"
           onClick={() => setActiveTab("prashna")}
@@ -391,7 +405,7 @@ export default function SankhyaShastraPage(): JSX.Element {
           }`}
         >
           <span>🔮</span>
-          <span>{isKn ? "ಪ್ರಶ್ನಾವಳಿ" : "Prashna Oracle"}</span>
+          <span>{isKn ? "ಪ್ರಶ್ನಾವಳಿ" : "Prashna"}</span>
         </button>
 
         <button
@@ -472,6 +486,18 @@ export default function SankhyaShastraPage(): JSX.Element {
           <span>{isKn ? "ಮೂಲಾಂಕ" : "Mulank"}</span>
         </button>
       </div>
+
+      {/* ====================================================================== */}
+      {/* TAB 0: VEDIC GRID & DASHA BHAVISHYA                                    */}
+      {/* ====================================================================== */}
+      {activeTab === "vedic_grid" && (
+        <VedicGridDashaTab
+          selectedLang={selectedLang}
+          apiKey={geminiApiKey}
+          initialDevoteeName={devoteeName}
+          initialBirthDate="1994-08-14"
+        />
+      )}
 
       {/* ====================================================================== */}
       {/* TAB 1: PRASHNA ORACLE                                                  */}

@@ -1,4 +1,8 @@
 import { askGemini } from "../../core/GeminiEngine";
+import {
+  buildCompleteVedicNumerologyProfile,
+  type CompleteVedicNumerologyProfile
+} from "../sankhyashastra/vedicNumerologyEngine";
 
 export type MotionNature = "ಸ್ಥಿರ (ಶಾಶ್ವತ ನಿರ್ಧಾರ / ಧೃಢ)" | "ಚರ (ಶೀಘ್ರ ಗತಿ / ತಕ್ಷಣದ ಬದಲಾವಣೆ)" | "ಉಭಯ (ಮಿಶ್ರಿತ ಫಲ / ದ್ವಂದ್ವ)";
 
@@ -9,6 +13,18 @@ export type VargaVarna =
   | "ಶೂದ್ರ ವರ್ಗ";
 
 export type VarnaInfluence = VargaVarna;
+
+export interface SankhyaJanmaResult {
+  profile: CompleteVedicNumerologyProfile;
+  devoteeName: string;
+  gothra: string;
+  birthDateStr: string;
+  targetDateStr: string;
+  question: string;
+  priestSummaryKn: string;
+  priestVerdictBadgeKn: string;
+  aiDeepReadingKn?: string;
+}
 
 export interface SankhyaPrashnaResult {
   number: number;
@@ -418,5 +434,79 @@ export async function generateSankhyaMobileVehicleSuggestion(params: {
     recommendedCombinations,
     reasonsKn,
     guidelinesKn
+  };
+}
+
+/**
+ * Full Birth Date & Name Vedic Grid & Dasha Reading Engine for Priest Portal (500 Coins / ₹50)
+ */
+export async function generateSankhyaJanmaReading(params: {
+  devoteeName: string;
+  gothra?: string;
+  birthDateStr: string; // YYYY-MM-DD
+  targetDateStr?: string; // YYYY-MM-DD
+  question?: string;
+  apiKey?: string;
+}): Promise<SankhyaJanmaResult> {
+  const { devoteeName, gothra = "ಶ್ರೀ ವತ್ಸ", birthDateStr, targetDateStr, question = "", apiKey = "" } = params;
+
+  const parts = (birthDateStr || "1994-08-14").split("-");
+  const year = parseInt(parts[0], 10) || 1994;
+  const month = parseInt(parts[1], 10) || 8;
+  const day = parseInt(parts[2], 10) || 14;
+
+  const targetDate = targetDateStr ? new Date(targetDateStr) : new Date();
+
+  // Compute 100% Deterministic Vedic Profile
+  const profile = buildCompleteVedicNumerologyProfile(devoteeName, day, month, year, targetDate);
+
+  const priestVerdictBadgeKn = profile.nestedDasha.multiplicityStatus.isOverload
+    ? "⚠️ ದಶಾ ಸಾಂದ್ರತೆಯ ಎಚ್ಚರಿಕೆ (ಪರಿಹಾರ ಅಗತ್ಯ)"
+    : profile.nestedDasha.multiplicityStatus.isSmoothPhase
+    ? "🟢 ಶುಭ ಸುಲಭ ಕಾಲ (ಅತ್ಯುನ್ನತ ಅಭಿವೃದ್ಧಿ)"
+    : "🟡 ಸಾಧಾರಣ ಸಮತೋಲನ ಕಾಲ";
+
+  const priestSummaryKn = `ಶ್ರೀ ${devoteeName} ಅವರ ಮೂಲಾಂಕ ${profile.moolankInfo.moolank} (${profile.moolankInfo.rulingGraha.name.kn}), ಭಾಗ್ಯಾಂಕ ${profile.bhagyankInfo.bhagyank} (${profile.bhagyankInfo.rulingGraha.name.kn}) ಹಾಗೂ ಚಾಲ್ಡಿಯನ್ ನಾಮಾಂಕ ${profile.nameInfo.namank} (${profile.nameInfo.rulingGraha.name.kn}) ಆಗಿದೆ. ವೇದಿಕ ಗ್ರಿಡ್‌ನಲ್ಲಿ ${profile.yogasResult.activeYogas.length} ಯೋಗಗಳು ಸಕ್ರಿಯವಾಗಿವೆ. ಪ್ರಸ್ತುತ ${profile.nestedDasha.activeMahadasha.grahaMeta.name.kn} ಮಹಾದಶೆ (${profile.nestedDasha.activeMahadasha.grahaNumber}) ಹಾಗೂ ${profile.nestedDasha.activeAntardasha.grahaMeta.name.kn} ಅಂತರ್ದಶೆ (${profile.nestedDasha.activeAntardasha.grahaNumber}) ನಡೆಯುತ್ತಿದ್ದು, ${profile.nestedDasha.multiplicityStatus.explanationKn}`;
+
+  let aiDeepReadingKn = "";
+  const activeKey = (apiKey || import.meta.env.VITE_GEMINI_API_KEY || "").trim();
+  if (activeKey) {
+    try {
+      const prompt = `ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯ ಗುರುವಾಗಿ ಸಂಕ್ಷಿಪ್ತ ಶಾಸ್ತ್ರೀಯ ವಿಶ್ಲೇಷಣೆ ನೀಡಿ:
+ಭಕ್ತರು: ${devoteeName} (${gothra} ಗೋತ್ರ)
+ಜನ್ಮ ದಿನಾಂಕ: ${day}-${month}-${year}
+ಮೂಲಾಂಕ: ${profile.moolankInfo.moolank}, ಭಾಗ್ಯಾಂಕ: ${profile.bhagyankInfo.bhagyank}, ನಾಮಾಂಕ: ${profile.nameInfo.namank}
+ಸಕ್ರಿಯ ಯೋಗಗಳು: ${profile.yogasResult.activeYogas.map((y) => y.name.kn).join(", ")}
+ದಶೆ: ${profile.nestedDasha.activeMahadasha.grahaMeta.name.kn} ಮಹಾದಶೆ, ${profile.nestedDasha.activeAntardasha.grahaMeta.name.kn} ಅಂತರ್ದಶೆ.
+ಪ್ರಶ್ನೆ: ${question || "ವೃತ್ತಿ, ಆರ್ಥಿಕ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಪ್ರಗತಿ"}
+
+೪ ಪ್ಯಾರಾಗಳಲ್ಲಿ ನಿಖರ ಶಾಸ್ತ್ರ ಫಲ ನೀಡಿ:
+೧. ಗ್ರಹ ಸಂಖ್ಯಾ ಬಲ
+೨. ವೇದಿಕ ಯೋಗಗಳ ಫಲ
+೩. ದಶಾ ಫಲ
+೪. ಬಗ್ಗೋಣ ಕ್ಷೇತ್ರದ ಪರಿಹಾರ ಮತ್ತು ಆಶೀರ್ವಾದ`;
+
+      aiDeepReadingKn = await askGemini(
+        `Priest Vedic Numerology for ${devoteeName}`,
+        prompt,
+        activeKey,
+        "kn",
+        { raw: true, temperature: 0.2 }
+      );
+    } catch {
+      aiDeepReadingKn = priestSummaryKn;
+    }
+  }
+
+  return {
+    profile,
+    devoteeName,
+    gothra,
+    birthDateStr,
+    targetDateStr: targetDate.toISOString().split("T")[0],
+    question,
+    priestSummaryKn,
+    priestVerdictBadgeKn,
+    aiDeepReadingKn: aiDeepReadingKn || priestSummaryKn
   };
 }

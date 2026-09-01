@@ -48,6 +48,8 @@ export interface DevoteeTokenPayload {
   dy?: number;
   phone?: string;
   ph?: string;
+  email?: string;
+  em?: string;
   startDate?: string;
   sd?: string;
   overrideCalendarPhone?: boolean;
@@ -133,6 +135,7 @@ export function encodeDevoteeToken(payload: DevoteeTokenPayload): string {
     const rawDob = payload.dob ?? "";
     const rawTob = payload.tob ?? "";
     const rawPhone = payload.phone ?? payload.ph ?? "";
+    const rawEmail = payload.email ?? payload.em ?? "";
     const rawStartDate = payload.startDate ?? payload.sd ?? "";
     const rawOverrideContact = Boolean(payload.overrideCalendarPhone ?? payload.ocp);
     const rawVoiceId = payload.voiceId ?? payload.vid ?? "";
@@ -159,6 +162,7 @@ export function encodeDevoteeToken(payload: DevoteeTokenPayload): string {
       ...(rawDob ? { dob: rawDob } : {}),
       ...(rawTob ? { tob: rawTob } : {}),
       ...(rawPhone ? { ph: rawPhone } : {}),
+      ...(rawEmail ? { em: rawEmail } : {}),
       ...(rawStartDate ? { sd: rawStartDate } : {}),
       ...(rawOverrideContact ? { ocp: 1 } : {}),
       ...(rawVoiceId ? { vid: rawVoiceId } : {})
@@ -293,6 +297,7 @@ export function decodeDevoteeToken(token: string): (DevoteeTokenPayload & {
     const startDate = parsed.sd || parsed.startDate || undefined;
     const days = typeof parsed.dy === "number" && parsed.dy > 0 ? parsed.dy : (typeof parsed.days === "number" && parsed.days > 0 ? parsed.days : 90);
     const phone = parsed.ph || parsed.phone || undefined;
+    const email = parsed.em || parsed.email || undefined;
     const overrideCalendarPhone = Boolean(parsed.ocp || parsed.overrideCalendarPhone);
     const voiceId = parsed.vid || parsed.voiceId || "voice_shrisuma_master";
 
@@ -335,6 +340,8 @@ export function decodeDevoteeToken(token: string): (DevoteeTokenPayload & {
       tob,
       phone,
       ph: phone,
+      email,
+      em: email,
       overrideCalendarPhone,
       ocp: overrideCalendarPhone,
       voiceId,

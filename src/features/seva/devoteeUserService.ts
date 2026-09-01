@@ -144,6 +144,24 @@ export async function checkAndRegisterDevoteeUser(params: DevoteeRegistrationPar
 
     if (snap.exists()) {
       const existingData = snap.data() as DevoteeUserRecord;
+
+      // If users doc doesn't have phone or email, check calendarDevoteeEngagement
+      if (!existingData.phone && !existingData.email) {
+        try {
+          const engDocRef = doc(firestore, "calendarDevoteeEngagement", devoteeId);
+          const engSnap = await getDoc(engDocRef);
+          if (engSnap.exists()) {
+            const engData = engSnap.data();
+            if (engData.phone && !existingData.phone) existingData.phone = engData.phone;
+            if (engData.email && !existingData.email) existingData.email = engData.email;
+          }
+        } catch {}
+      }
+
+      // If params have phone/email from token/URL and existingData is missing them, enrich
+      if (params.phone && !existingData.phone) existingData.phone = params.phone;
+      if (params.email && !existingData.email) existingData.email = params.email;
+
       const merged: DevoteeUserRecord = {
         ...fallbackRecord,
         ...existingData,
@@ -151,19 +169,35 @@ export async function checkAndRegisterDevoteeUser(params: DevoteeRegistrationPar
         lastVisitAt: nowIso
       };
 
-      // Background update of lastVisitAt
-      void updateDoc(userDocRef, {
-        lastVisitAt: nowIso
-      }).catch(() => {});
+      // Background update of lastVisitAt and merged contact details
+      const updates: Record<string, any> = { lastVisitAt: nowIso };
+      if (merged.phone && !existingData.phone) updates.phone = merged.phone;
+      if (merged.email && !existingData.email) updates.email = merged.email;
+
+      void updateDoc(userDocRef, updates).catch(() => {});
 
       if (typeof window !== "undefined") {
         try {
           localStorage.setItem(`baggona_devotee_user_${devoteeId}`, JSON.stringify(merged));
+          if (hasDevoteeContactDetails(merged)) {
+            localStorage.setItem(`baggona_contact_collected_${devoteeId}`, "true");
+          }
         } catch {}
       }
 
       return merged;
     } else {
+      // Check if calendarDevoteeEngagement has existing contact details before creating fresh
+      try {
+        const engDocRef = doc(firestore, "calendarDevoteeEngagement", devoteeId);
+        const engSnap = await getDoc(engDocRef);
+        if (engSnap.exists()) {
+          const engData = engSnap.data();
+          if (engData.phone && !fallbackRecord.phone) fallbackRecord.phone = engData.phone;
+          if (engData.email && !fallbackRecord.email) fallbackRecord.email = engData.email;
+        }
+      } catch {}
+
       // Create new user in Firestore with sanitized data
       const cleanData = cleanFirestoreObject({
         ...fallbackRecord,
@@ -176,6 +210,9 @@ export async function checkAndRegisterDevoteeUser(params: DevoteeRegistrationPar
       if (typeof window !== "undefined") {
         try {
           localStorage.setItem(`baggona_devotee_user_${devoteeId}`, JSON.stringify(fallbackRecord));
+          if (hasDevoteeContactDetails(fallbackRecord)) {
+            localStorage.setItem(`baggona_contact_collected_${devoteeId}`, "true");
+          }
         } catch {}
       }
 
@@ -222,6 +259,7 @@ export async function updateDevoteeContact(
   if (typeof window !== "undefined") {
     try {
       localStorage.setItem(`baggona_devotee_user_${devoteeId}`, JSON.stringify(updated));
+      localStorage.setItem(`baggona_contact_collected_${devoteeId}`, "true");
     } catch {}
   }
 
@@ -239,6 +277,20 @@ export async function updateDevoteeContact(
       serverTimestamp: serverTimestamp()
     });
     await setDoc(userDocRef, cleanUpdate, { merge: true });
+
+    // Also synchronize calendarDevoteeEngagement document if present
+    try {
+      const engDocRef = doc(firestore, "calendarDevoteeEngagement", devoteeId);
+      const engSnap = await getDoc(engDocRef);
+      if (engSnap.exists()) {
+        const engUpdates: Record<string, any> = { updatedAt: nowIso };
+        if (cleanPhone) engUpdates.phone = cleanPhone;
+        if (cleanEmail) engUpdates.email = cleanEmail;
+        await updateDoc(engDocRef, engUpdates);
+      }
+    } catch (engErr) {
+      console.warn("[DevoteeUserService] Engagement contact sync notice:", engErr);
+    }
 
     return { success: true, updatedUser: updated };
   } catch (err) {

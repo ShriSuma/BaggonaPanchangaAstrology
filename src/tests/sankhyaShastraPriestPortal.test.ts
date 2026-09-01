@@ -8,6 +8,7 @@ import {
   generateSankhyaPrashnaReading,
   generateSankhyaNameSuggestion,
   generateSankhyaMobileVehicleSuggestion,
+  generateSankhyaJanmaReading,
   calculateNameNumber,
   calculateMulankaBhagyanka
 } from "../features/priest/sankhyaShastraPriestEngine";
@@ -16,6 +17,11 @@ import { sendSystemTestEmail } from "../features/notifications/notificationServi
 
 describe("Sankhya Shastra Priest Portal & Engine Validation", () => {
   it("verifies accurate pricing for Sankhya Shastra services", () => {
+    // New 500 Coins (₹50) Janma & Dasha Full Analysis
+    expect(SERVICE_COIN_COSTS.SANKHYA_JANMA_ANALYSIS.coins).toBe(500);
+    expect(SERVICE_COIN_COSTS.SANKHYA_JANMA_ANALYSIS.inrEquivalent).toBe(50);
+
+    // Existing 200 Coins (₹20) Prashna Oracle
     expect(SERVICE_COIN_COSTS.SANKHYA_PRASHNA.coins).toBe(200);
     expect(SERVICE_COIN_COSTS.SANKHYA_PRASHNA.inrEquivalent).toBe(20);
 
@@ -24,6 +30,29 @@ describe("Sankhya Shastra Priest Portal & Engine Validation", () => {
 
     expect(SERVICE_COIN_COSTS.SANKHYA_MOBILE_VEHICLE.coins).toBe(200);
     expect(SERVICE_COIN_COSTS.SANKHYA_MOBILE_VEHICLE.inrEquivalent).toBe(20);
+  });
+
+  it("generates complete Janma Vedic Grid & Dasha Reading for Priest Portal (500 Coins / ₹50)", async () => {
+    const res = await generateSankhyaJanmaReading({
+      devoteeName: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
+      gothra: "ಕಾಶ್ಯಪ",
+      birthDateStr: "1994-08-14",
+      targetDateStr: "2026-08-19",
+      question: "ವೃತ್ತಿ ಪ್ರಗತಿ ಹಾಗೂ ಆರ್ಥಿಕ ಶಾಂತಿ"
+    });
+
+    expect(res.devoteeName).toBe("ಶ್ರೀರಾಮ್ ಪಂಡಿತ್");
+    expect(res.profile.moolankInfo.moolank).toBe(5);
+    expect(res.profile.bhagyankInfo.bhagyank).toBe(9);
+    expect(res.profile.gridMatrix.cells[1].count).toBe(1);
+    expect(res.profile.gridMatrix.cells[4].count).toBe(2);
+    expect(res.profile.gridMatrix.cells[5].count).toBe(1);
+    expect(res.profile.gridMatrix.cells[8].count).toBe(1);
+    expect(res.profile.gridMatrix.cells[9].count).toBe(2);
+    expect(res.profile.yogasResult.activeYogas.length).toBeGreaterThan(0);
+    expect(res.profile.nestedDasha.multiplicityStatus.isOverload).toBe(true);
+    expect(res.priestVerdictBadgeKn).toBeDefined();
+    expect(res.priestSummaryKn).toContain("ಮೂಲಾಂಕ 5");
   });
 
   it("computes Mulanka and Bhagyanka correctly from birth date", () => {

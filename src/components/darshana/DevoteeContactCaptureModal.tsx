@@ -158,7 +158,8 @@ export const DevoteeContactCaptureModal: React.FC<DevoteeContactCaptureModalProp
 
     // If email is provided, validate structure
     if (cleanEmail) {
-      if (!cleanEmail.includes("@") || !cleanEmail.includes(".") || cleanEmail.length < 5) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(cleanEmail)) {
         setErrorMessage(t.errorInvalidEmail);
         return;
       }
@@ -172,13 +173,16 @@ export const DevoteeContactCaptureModal: React.FC<DevoteeContactCaptureModalProp
       });
 
       if (res.success && res.updatedUser) {
+        if (typeof window !== "undefined") {
+          localStorage.setItem(`baggona_contact_collected_${devoteeId}`, "true");
+        }
         setSuccessMessage(t.successMsg);
         if (onSuccess) {
           onSuccess(res.updatedUser);
         }
         setTimeout(() => {
           onClose();
-        }, 1200);
+        }, 1000);
       } else {
         setErrorMessage("ದಯವಿಟ್ಟು ಪುನಃ ಪ್ರಯತ್ನಿಸಿ (Please try again).");
       }
@@ -192,12 +196,8 @@ export const DevoteeContactCaptureModal: React.FC<DevoteeContactCaptureModalProp
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in"
-      onClick={(e) => {
-        if (e.target === e.currentTarget && !isSubmitting) {
-          onClose();
-        }
-      }}
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/90 backdrop-blur-lg animate-fade-in"
+      style={{ touchAction: "none" }}
     >
       <div
         className="relative w-full max-w-lg overflow-hidden rounded-3xl border-2 border-amber-400/90 shadow-2xl transition-all"
@@ -207,18 +207,7 @@ export const DevoteeContactCaptureModal: React.FC<DevoteeContactCaptureModalProp
         }}
       >
         {/* Top Gold Ornamental Trim */}
-        <div className="h-2 w-full bg-gradient-to-r from-amber-600 via-yellow-400 to-amber-600" />
-
-        {/* Modal Close Icon Button */}
-        <button
-          type="button"
-          onClick={onClose}
-          disabled={isSubmitting}
-          className="absolute top-4 right-4 flex h-9 w-9 items-center justify-center rounded-full border border-amber-400/40 bg-amber-950/60 text-amber-300 transition-all hover:bg-amber-800 hover:text-white"
-          title={t.closeBtn}
-        >
-          ✕
-        </button>
+        <div className="h-2.5 w-full bg-gradient-to-r from-amber-600 via-yellow-300 to-amber-600 shadow-md" />
 
         <div className="p-6 md:p-8">
           {/* Header Badge & Title */}
@@ -259,7 +248,7 @@ export const DevoteeContactCaptureModal: React.FC<DevoteeContactCaptureModalProp
             <div>
               <label className="block text-xs font-extrabold text-amber-200 mb-1.5 flex items-center justify-between">
                 <span>📱 {t.phoneLabel}</span>
-                <span className="text-[10px] text-amber-400/60 font-normal">WhatsApp Alerts</span>
+                <span className="text-[10px] text-amber-400/70 font-semibold">WhatsApp & SMS</span>
               </label>
               <div className="relative">
                 <input
@@ -267,7 +256,7 @@ export const DevoteeContactCaptureModal: React.FC<DevoteeContactCaptureModalProp
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder={t.phonePlaceholder}
-                  className="w-full rounded-xl border border-amber-500/50 bg-black/50 px-4 py-3 text-sm font-semibold text-amber-50 placeholder-amber-200/30 shadow-inner focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400/30 transition"
+                  className="w-full rounded-xl border border-amber-500/50 bg-black/50 px-4 py-3 text-sm font-semibold text-amber-50 placeholder-amber-200/30 shadow-inner focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400/30 transition font-mono"
                 />
               </div>
             </div>
@@ -276,7 +265,7 @@ export const DevoteeContactCaptureModal: React.FC<DevoteeContactCaptureModalProp
             <div>
               <label className="block text-xs font-extrabold text-amber-200 mb-1.5 flex items-center justify-between">
                 <span>✉️ {t.emailLabel}</span>
-                <span className="text-[10px] text-amber-400/60 font-normal">Panchanga Digest</span>
+                <span className="text-[10px] text-amber-400/70 font-semibold">Daily Panchanga</span>
               </label>
               <div className="relative">
                 <input
@@ -289,9 +278,10 @@ export const DevoteeContactCaptureModal: React.FC<DevoteeContactCaptureModalProp
               </div>
             </div>
 
-            {/* Required Hint Banner */}
-            <div className="rounded-xl border border-amber-500/30 bg-amber-900/30 p-2.5 text-[11px] text-amber-200/90 leading-tight">
-              {t.requiredHint}
+            {/* Mandatory Requirement Banner */}
+            <div className="rounded-xl border border-amber-500/40 bg-amber-950/60 p-3 text-xs text-amber-200 leading-tight font-medium flex items-center gap-2">
+              <span className="text-base shrink-0">🔒</span>
+              <span>{t.requiredHint}</span>
             </div>
 
             {/* Error / Success Feedback */}
@@ -307,23 +297,15 @@ export const DevoteeContactCaptureModal: React.FC<DevoteeContactCaptureModalProp
               </div>
             )}
 
-            {/* Action Buttons */}
-            <div className="pt-2 flex flex-col gap-2.5">
+            {/* Mandatory Submit Action */}
+            <div className="pt-2">
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full rounded-2xl bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 px-6 py-3.5 text-sm font-black text-amber-950 shadow-lg shadow-amber-500/25 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+                className="w-full rounded-2xl bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 px-6 py-3.5 text-sm font-black text-amber-950 shadow-lg shadow-amber-500/25 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
               >
-                {isSubmitting ? `⏳ ${t.submitting}` : `✨ ${t.submitBtn}`}
-              </button>
-
-              <button
-                type="button"
-                onClick={onClose}
-                disabled={isSubmitting}
-                className="w-full rounded-2xl border border-amber-400/30 bg-amber-950/30 px-4 py-2.5 text-xs font-bold text-amber-300 transition hover:bg-amber-900/50 hover:text-white"
-              >
-                {t.closeBtn}
+                <span>{isSubmitting ? "⏳" : "✨"}</span>
+                <span>{isSubmitting ? t.submitting : t.submitBtn}</span>
               </button>
             </div>
           </form>

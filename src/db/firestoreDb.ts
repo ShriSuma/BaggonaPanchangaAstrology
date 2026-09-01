@@ -30,6 +30,7 @@ export interface UserProfileDoc {
   mustResetPassword?: boolean;
   allowedModules?: string[]; // ["panchanga", "sankhyashastra", "diksuchi", "purva_janma"]
   phone?: string;
+  mobileNumber?: string;
   email?: string;
   knownIps?: string[];
   lastKnownIp?: string;
@@ -47,6 +48,9 @@ export interface PriestWalletDoc {
   totalCoinsCredited: number;
   totalCoinsSpent: number;
   allowedModules?: string[]; // ["panchanga", "sankhyashastra", "diksuchi", "purva_janma"]
+  email?: string;
+  phone?: string;
+  mobileNumber?: string;
   updatedAt: string;
 }
 
@@ -650,39 +654,94 @@ export async function directAdminCoinAdjustment(
   }
 }
 
+// --------------------------------------------------------------------------
+// AUTHENTICATION & SECURITY OPERATIONS
+// --------------------------------------------------------------------------
+
 /**
- * Updates a user's password hash in Firestore
+ * Updates a user's password hash, email, and mobile number in Firestore
  */
 export async function updateUserPassword(
   usernameOrId: string,
-  passwordHash: string
+  passwordHash: string,
+  extraFields?: { email?: string; phone?: string; mobileNumber?: string }
 ): Promise<boolean> {
   try {
+    const cleanId = usernameOrId.trim().toLowerCase();
+    const updatePayload: Record<string, any> = {
+      passwordHash,
+      firstTimeSetupCompleted: true,
+      mustResetPassword: false,
+      updatedAt: new Date().toISOString()
+    };
+
+    if (extraFields?.email) {
+      updatePayload.email = extraFields.email.trim().toLowerCase();
+    }
+    if (extraFields?.phone || extraFields?.mobileNumber) {
+      const cleanPhone = (extraFields.phone || extraFields.mobileNumber || "").trim();
+      updatePayload.phone = cleanPhone;
+      updatePayload.mobileNumber = cleanPhone;
+    }
+
     const q = query(collection(firestore, USERS_COL), where("username", "==", usernameOrId));
     const snap = await getDocs(q);
     if (!snap.empty) {
       const userDoc = snap.docs[0];
-      await updateDoc(userDoc.ref, {
-        passwordHash,
-        firstTimeSetupCompleted: true,
-        mustResetPassword: false,
-        updatedAt: new Date().toISOString()
-      });
+      await updateDoc(userDoc.ref, updatePayload);
+
+      // Also synchronize priest_wallets document if it exists
+      try {
+        const walletRef = doc(firestore, WALLETS_COL, cleanId);
+        const walletSnap = await getDoc(walletRef);
+        if (walletSnap.exists()) {
+          const wUpdates: Record<string, any> = { updatedAt: new Date().toISOString() };
+          if (extraFields?.email) wUpdates.email = extraFields.email.trim().toLowerCase();
+          if (extraFields?.phone || extraFields?.mobileNumber) {
+            wUpdates.phone = (extraFields.phone || extraFields.mobileNumber || "").trim();
+            wUpdates.mobileNumber = wUpdates.phone;
+          }
+          await updateDoc(walletRef, wUpdates);
+        }
+      } catch (wErr) {
+        console.warn("[Firestore] updateUserPassword wallet sync notice:", wErr);
+      }
       return true;
     }
+
     // Try by ID directly
-    const directRef = doc(firestore, USERS_COL, usernameOrId);
+    const directRef = doc(firestore, USERS_COL, cleanId);
     const directSnap = await getDoc(directRef);
     if (directSnap.exists()) {
-      await updateDoc(directRef, {
-        passwordHash,
-        firstTimeSetupCompleted: true,
-        mustResetPassword: false,
-        updatedAt: new Date().toISOString()
-      });
-      return true;
+      await updateDoc(directRef, updatePayload);
+    } else {
+      await setDoc(directRef, {
+        id: cleanId,
+        username: usernameOrId,
+        name: usernameOrId,
+        role: "priest",
+        createdAt: new Date().toISOString(),
+        ...updatePayload
+      }, { merge: true });
     }
-    return false;
+
+    // Also synchronize priest_wallets document if it exists
+    try {
+      const walletRef = doc(firestore, WALLETS_COL, cleanId);
+      const walletSnap = await getDoc(walletRef);
+      if (walletSnap.exists()) {
+        const wUpdates: Record<string, any> = { updatedAt: new Date().toISOString() };
+        if (extraFields?.email) wUpdates.email = extraFields.email.trim().toLowerCase();
+        if (extraFields?.phone || extraFields?.mobileNumber) {
+          wUpdates.phone = (extraFields.phone || extraFields.mobileNumber || "").trim();
+          wUpdates.mobileNumber = wUpdates.phone;
+        }
+        await updateDoc(walletRef, wUpdates);
+      }
+    } catch (wErr) {
+      console.warn("[Firestore] updateUserPassword wallet sync notice:", wErr);
+    }
+    return true;
   } catch (err) {
     console.warn("[Firestore] updateUserPassword error:", err);
     return false;

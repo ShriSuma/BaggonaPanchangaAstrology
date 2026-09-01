@@ -20,7 +20,7 @@ import {
 import { SpeechRecognitionSession } from "../../utils/speechRecognitionHelper";
 import SouthIndianChart from "../../components/kundli/SouthIndianChart";
 import TraditionalSouthPatrika from "../../components/kundli/TraditionalSouthPatrika";
-import { saveKundliToFirestore, updateUserPassword, logPremiumPdfDownload, isPriestAccountActive, isPriestFirstTimeSetupDone } from "../../db/firestoreDb";
+import { saveKundliToFirestore, updateUserPassword, logPremiumPdfDownload, isPriestAccountActive, isPriestFirstTimeSetupDone, getUserProfile } from "../../db/firestoreDb";
 import { hashPassword } from "../auth/authStore";
 import { notifyPasswordResetCompleted, notifySystemFailureAlert, notifyPremiumPdfDownloaded } from "../notifications/notificationService";
 import { calculateTraditionalBaggona } from "../../core/TraditionalBaggonaEngine";
@@ -258,8 +258,10 @@ export const PriestMobilePortal: React.FC = () => {
   // 5-Second Dismissible Royal Welcome Toast
   const [showWelcomeToast, setShowWelcomeToast] = useState(true);
 
-  // First-Time Password Setup Modal
+  // First-Time Password Setup & Profile Reset Modal (4 Mandatory Fields)
   const [showPasswordSetup, setShowPasswordSetup] = useState(false);
+  const [priestEmail, setPriestEmail] = useState("");
+  const [priestPhone, setPriestPhone] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordMsg, setPasswordMsg] = useState<string | null>(null);
@@ -436,6 +438,15 @@ export const PriestMobilePortal: React.FC = () => {
         return;
       }
       void initWallet(resolvedUser, resolvedName);
+
+      // Pre-load existing email & phone from user profile if available
+      try {
+        const prof = await getUserProfile(resolvedUser);
+        if (prof?.email) setPriestEmail(prof.email);
+        if (prof?.phone || prof?.mobileNumber) setPriestPhone(prof.phone || prof.mobileNumber || "");
+      } catch (err) {
+        console.warn("[PriestMobilePortal] Error preloading profile:", err);
+      }
 
       // Strict DB Validation: Check if this user has already completed password setup/reset
       if (isResetOrFirstTime) {
@@ -1290,24 +1301,51 @@ export const PriestMobilePortal: React.FC = () => {
     }
   };
 
-  // Handle Password Reset / Setup
+  // Handle Password Reset / Setup (4 Mandatory Fields: Email, Mobile, Password, Confirm Password)
   const handlePasswordSetupSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newPassword.length < 6) {
-      setPasswordMsg("ಪಾಸ್‌ವರ್ಡ್ ಕನಿಷ್ಠ ೬ ಅಕ್ಷರಗಳನ್ನು ಹೊಂದಿರಬೇಕು.");
+    const cleanEmail = priestEmail.trim().toLowerCase();
+    const cleanPhone = priestPhone.replace(/\D/g, "");
+
+    // 1. Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!cleanEmail || !emailRegex.test(cleanEmail)) {
+      setPasswordMsg("ದಯವಿಟ್ಟು ಮಾನ್ಯವಾದ ಇಮೇಲ್ ವಿಳಾಸವನ್ನು ನಮೂದಿಸಿ (Valid email address is mandatory).");
       return;
     }
+
+    // 2. Phone validation (10 digits)
+    if (!cleanPhone || cleanPhone.length < 10) {
+      setPasswordMsg("ದಯವಿಟ್ಟು ೧೦ ಅಂಕಿಗಳ ಮಾನ್ಯವಾದ ಮೊಬೈಲ್ ಸಂಖ್ಯೆಯನ್ನು ನಮೂದಿಸಿ (Valid 10-digit mobile number is mandatory).");
+      return;
+    }
+
+    // 3. Password length
+    if (newPassword.length < 6) {
+      setPasswordMsg("ಪಾಸ್‌ವರ್ಡ್ ಕನಿಷ್ಠ ೬ ಅಕ್ಷರಗಳನ್ನು ಹೊಂದಿರಬೇಕು (Minimum 6 characters).");
+      return;
+    }
+
+    // 4. Confirm Password Match
     if (newPassword !== confirmPassword) {
-      setPasswordMsg("ಎರಡೂ ಪಾಸ್‌ವರ್ಡ್‌ಗಳು ಹೊಂದಾಣಿಕೆಯಾಗುತ್ತಿಲ್ಲ.");
+      setPasswordMsg("ಎರಡೂ ಪಾಸ್‌ವರ್ಡ್‌ಗಳು ಹೊಂದಾಣಿಕೆಯಾಗುತ್ತಿಲ್ಲ (Passwords do not match).");
       return;
     }
 
     try {
       const hashed = await hashPassword(newPassword);
       const uid = currentUser || (typeof window !== "undefined" ? localStorage.getItem("baggona_priest_id") : null) || "priest_shreeram";
-      await updateUserPassword(uid, hashed);
+      
+      await updateUserPassword(uid, hashed, {
+        email: cleanEmail,
+        phone: cleanPhone.slice(-10),
+        mobileNumber: cleanPhone.slice(-10)
+      });
+
       if (typeof window !== "undefined") {
         localStorage.setItem("baggona_pwd_setup_done_" + uid, "true");
+        localStorage.setItem("baggona_priest_email_" + uid, cleanEmail);
+        localStorage.setItem("baggona_priest_phone_" + uid, cleanPhone.slice(-10));
         try {
           const url = new URL(window.location.href);
           url.searchParams.delete("reset");
@@ -1316,8 +1354,13 @@ export const PriestMobilePortal: React.FC = () => {
           window.history.replaceState({}, document.title, url.pathname + (newSearch ? `?${newSearch}` : "") + url.hash);
         } catch {}
       }
-      void notifyPasswordResetCompleted({ username: uid });
-      setPasswordMsg("✓ ಪಾಸ್‌ವರ್ಡ್ ಯಶಸ್ವಿಯಾಗಿ ನವೀಕರಿಸಲಾಗಿದೆ!");
+
+      void notifyPasswordResetCompleted({
+        username: uid,
+        recipientEmail: cleanEmail
+      });
+
+      setPasswordMsg("✓ ಪ್ರೊಫೈಲ್ ಮತ್ತು ಪಾಸ್‌ವರ್ಡ್ ಯಶಸ್ವಿಯಾಗಿ ನವೀಕರಿಸಲಾಗಿದೆ!");
       setTimeout(() => setShowPasswordSetup(false), 1500);
     } catch {
       setPasswordMsg("ದೋಷ ಉಂಟಾಗಿದೆ. ದಯವಿಟ್ಟು ಮರುಪ್ರಯತ್ನಿಸಿ.");
@@ -2384,29 +2427,76 @@ export const PriestMobilePortal: React.FC = () => {
               </div>
             )}
 
-            <form onSubmit={handlePasswordSetupSubmit} className="space-y-3.5 text-xs">
+            <form onSubmit={handlePasswordSetupSubmit} className="space-y-3 text-xs">
               <div>
-                <label className="block text-amber-950 font-bold mb-1">ಹೊಸ ಪಾಸ್‌ವರ್ಡ್</label>
-                <input
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="ಕನಿಷ್ಠ ೬ ಅಕ್ಷರಗಳು"
-                  required
-                  className="w-full px-3.5 py-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 font-semibold focus:outline-none focus:border-amber-500"
-                />
+                <label className="block text-amber-950 font-bold mb-1">
+                  ಇಮೇಲ್ ವಿಳಾಸ <span className="text-red-600 font-black">*</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2.5 text-slate-400 text-sm">✉️</span>
+                  <input
+                    type="email"
+                    value={priestEmail}
+                    onChange={(e) => setPriestEmail(e.target.value)}
+                    placeholder="priest@gmail.com"
+                    required
+                    className="w-full pl-9 pr-3.5 py-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 font-semibold focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+                <p className="text-[10px] text-amber-800 mt-0.5 font-medium">ಅಧಿಸೂಚನೆಗಳು ಹಾಗೂ ಖಾತೆ ಪುನಃಸ್ಥಾಪನೆಗೆ ಕಡ್ಡಾಯ</p>
               </div>
 
               <div>
-                <label className="block text-amber-950 font-bold mb-1">ಪಾಸ್‌ವರ್ಡ್ ದೃಢೀಕರಿಸಿ</label>
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="ಮತ್ತೊಮ್ಮೆ ನಮೂದಿಸಿ"
-                  required
-                  className="w-full px-3.5 py-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 font-semibold focus:outline-none focus:border-amber-500"
-                />
+                <label className="block text-amber-950 font-bold mb-1">
+                  ಮೊಬೈಲ್ ಸಂಖ್ಯೆ <span className="text-red-600 font-black">*</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2.5 text-slate-400 text-sm">📱</span>
+                  <input
+                    type="tel"
+                    value={priestPhone}
+                    onChange={(e) => setPriestPhone(e.target.value)}
+                    placeholder="9108135387 (೧೦ ಅಂಕಿಗಳು)"
+                    maxLength={10}
+                    required
+                    className="w-full pl-9 pr-3.5 py-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 font-semibold focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+                <p className="text-[10px] text-amber-800 mt-0.5 font-medium">೧೦ ಅಂಕಿಗಳ ಅಧಿಕೃತ ಮೊಬೈಲ್ ಸಂಖ್ಯೆ</p>
+              </div>
+
+              <div>
+                <label className="block text-amber-950 font-bold mb-1">
+                  ಹೊಸ ಪಾಸ್‌ವರ್ಡ್ <span className="text-red-600 font-black">*</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2.5 text-slate-400 text-sm">🔑</span>
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="ಕನಿಷ್ಠ ೬ ಅಕ್ಷರಗಳು"
+                    required
+                    className="w-full pl-9 pr-3.5 py-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 font-semibold focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-amber-950 font-bold mb-1">
+                  ಪಾಸ್‌ವರ್ಡ್ ದೃಢೀಕರಿಸಿ <span className="text-red-600 font-black">*</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2.5 text-slate-400 text-sm">🛡️</span>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="ಮತ್ತೊಮ್ಮೆ ನಮೂದಿಸಿ"
+                    required
+                    className="w-full pl-9 pr-3.5 py-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 font-semibold focus:outline-none focus:border-amber-500"
+                  />
+                </div>
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
@@ -2424,15 +2514,15 @@ export const PriestMobilePortal: React.FC = () => {
                     }
                     setShowPasswordSetup(false);
                   }}
-                  className="px-4 py-2 bg-slate-200 text-slate-700 font-bold rounded-xl"
+                  className="px-4 py-2 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300 transition-colors"
                 >
                   ನಂತರ
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-gradient-to-r from-amber-600 to-amber-500 text-slate-950 font-black rounded-xl shadow-md"
+                  className="px-5 py-2 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-black rounded-xl shadow-md transition-all transform active:scale-95"
                 >
-                  ಪಾಸ್‌ವರ್ಡ್ ಉಳಿಸಿ
+                  ಪ್ರೊಫೈಲ್ & ಪಾಸ್‌ವರ್ಡ್ ಉಳಿಸಿ
                 </button>
               </div>
             </form>

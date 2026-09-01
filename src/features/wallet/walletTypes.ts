@@ -91,6 +91,13 @@ export const SERVICE_COIN_COSTS: Record<string, ServiceCost> = {
     inrEquivalent: 50,
     description: "Individual specific life / career / marriage question analysis (500 Coins / ₹50)"
   },
+  SANKHYA_JANMA_ANALYSIS: {
+    key: "SANKHYA_JANMA_ANALYSIS",
+    name: "Sankhya Janma Vedic Grid & Dasha Analysis",
+    coins: 500,
+    inrEquivalent: 50,
+    description: "Complete Vedic Numerology Janma Grid, 37 Yogas, Dasha Timeline & Remedies (500 Coins / ₹50)"
+  },
   SANKHYA_PRASHNA: {
     key: "SANKHYA_PRASHNA",
     name: "Sankhya Shastra Prashna Oracle",

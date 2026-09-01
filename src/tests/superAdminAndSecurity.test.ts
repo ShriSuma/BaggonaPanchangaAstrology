@@ -199,7 +199,11 @@ describe("Super Admin & Intrusion Security Engine", () => {
 
   it("verifies isPriestFirstTimeSetupDone returns true for configured priests and prevents repeated popups", async () => {
     const { isPriestFirstTimeSetupDone, updateUserPassword } = await import("../db/firestoreDb");
-    const priestUser = "priest_subrahmanya_test";
+    const priestUser = `priest_subrahmanya_${Date.now()}`;
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("baggona_pwd_setup_done_" + priestUser);
+    }
+    await db.users.where("username").equals(priestUser).delete();
 
     // 1. Initial user has not configured password
     const notDoneInitially = await isPriestFirstTimeSetupDone(priestUser);
@@ -217,5 +221,32 @@ describe("Super Admin & Intrusion Security Engine", () => {
     // 3. Next time priest opens URL (even with firstTime=true), isPriestFirstTimeSetupDone must be true
     const isDoneNow = await isPriestFirstTimeSetupDone(priestUser);
     expect(isDoneNow).toBe(true);
+  });
+
+  it("updates and stores priest email and 10-digit mobile number alongside password hash in DB", async () => {
+    const { updateUserPassword, getUserProfile, getOrCreatePriestWallet } = await import("../db/firestoreDb");
+    const testPriest = `priest_gokarna_${Date.now()}`;
+    const testEmail = "shreeram.gokarna@gmail.com";
+    const testPhone = "9108135387";
+    const newHashed = await hashPassword("GokarnaTemple#2026");
+
+    // Initialize wallet and user profile
+    await getOrCreatePriestWallet(testPriest, "ಶ್ರೀರಾಮ್ ಭಟ್", ["panchanga", "sankhyashastra"]);
+
+    // Update with 4 mandatory fields (Email, Phone, Password)
+    const success = await updateUserPassword(testPriest, newHashed, {
+      email: testEmail,
+      phone: testPhone,
+      mobileNumber: testPhone
+    });
+    expect(success).toBe(true);
+
+    // Verify Firestore user profile
+    const profile = await getUserProfile(testPriest);
+    expect(profile).toBeDefined();
+    expect(profile?.email).toBe(testEmail);
+    expect(profile?.phone).toBe(testPhone);
+    expect(profile?.firstTimeSetupCompleted).toBe(true);
+    expect(profile?.mustResetPassword).toBe(false);
   });
 });

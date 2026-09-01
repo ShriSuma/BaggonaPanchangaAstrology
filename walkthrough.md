@@ -1,71 +1,73 @@
-# Baggona Panchanga: Dedicated Priest Calendar Engine & Master Web Portal (ಪುರೋಹಿತ ಪಂಚಾಂಗ ಮಹಾದರ್ಶನ)
+# Devotee Calendar Subscription CRM, Mandatory Contact Capture & Renewal Engine — Complete Walkthrough
 
-## Summary of Completed Work
+## Summary of Accomplishments
 
-### 1. Dedicated Priest Calendar Engine (`src/core/PriestCalendarEngine.ts`)
-- **Strict Print Book Parity (104-Page Physical Replica)**:
-  - Computed from [`src/core/ParabhavaBookEngine.ts`](file:///Users/shreesuma/AntigravityProjects/BaggonaPanchangaAstrology/BaggonaPanchangaAstrology/src/core/ParabhavaBookEngine.ts) with zero hallucinations.
-  - Generates full **Left Page** data (Tithi, Ghati-Vighati, End Times, Shraddha Tithi determination, Dinapramana, Visha/Amritha Ghati, Suryodaya/Suryasta) and **Right Page** data (12 Dina Lagna Ending Times from Meena to Kumbha, Navagraha Spashta with Rashi, Nakshatra, Pada, and Retrograde markers).
-- **Location & IST Wall-Clock Timings**:
-  - Dynamically calculates Pincode-specific IST timings (Gokarna `581326`: `14.5479°N, 74.3187°E`) for Brahma Muhurtha, Pratahkala Sandhya, Abhijit Muhurtha, Aparahna Shraddha Window, Sayankala Pradosha, Nishita Kaala, Rahu Kaala, Gulika Kaala, and Yamaganda.
-- **Smart Next-Day / Eve Preparation Alerts**:
-  - Automatically generates religious alerts for upcoming Ekadashi (Dashami fasting & preparation rule), Purnima (Satyanarayana puja prep), Amavasya (Pitrutarpana & Tilatarpana), Pradosha, and major annual festivals.
-- **180-Day RFC 5545 `.ics` Export**:
-  - Produces compliant `.ics` calendars with double `VALARM` (05:00 AM daily briefing and previous-day 18:00 IST preparation alerts) and rich HTML formatting.
+We have successfully designed, codified, tested, and built the complete **Devotee Calendar Subscription CRM, Mandatory Contact Capture (Phone/Email), Expiry Guard, and Super Admin Marketing Suite** for Baggona Panchanga Astrology.
 
 ---
 
-### 2. Luxury Priest Web Portal (`src/pages/PriestPanchangaPage.tsx`)
-- **Route**: `/priest-panchanga?date=YYYY-MM-DD&pincode=581326`
-- **Royal Aesthetics**:
-  - Sacred Cream (`#FFFDF7`) & Gold (`#D97706`, `#B45309`) palette with Chief Priest Badge (**ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ - 9972339362**).
-- **Interactive Date Bar & Year Navigator**:
-  - Full Samvatsara date range selector (`2026-03-19` to `2027-04-07`), previous/next day buttons, quick festival pills, real-time text search, and Web Speech API Voice Mic Input 🎙️ (Kannada `kn-IN`).
-- **Live Gochara Transit Kundali (South Indian 12-House Grid)**:
-  - Displays real-time planetary positions for that day so the priest can consult devotees immediately on Gochara transit questions.
-- **1-Click Calendar Export & QR Code Modal**:
-  - 30, 60, 90, 180-day `.ics` generator and scannable QR code.
+## Key Architecture & Features Implemented
+
+### 1. Mandatory Devotee Contact Collection Modal (`DevoteeContactCaptureModal.tsx`)
+- **Strict Enforcement**: Removed the top `✕` close button, backdrop click dismissal, and "Skip for Now" options.
+- **Data Validation**: Enforces that devotees visiting the Sanctum must submit at least one valid contact channel:
+  - 10-digit Mobile Number (for WhatsApp Alerts & SMS reminders)
+  - Valid Email Address (for Panchanga Digest)
+- **Synchronized Cloud Profile**: Updates both Firestore `users/{devoteeId}` and `calendarDevoteeEngagement/{devoteeId}` collections in real-time.
+
+### 2. Devotee Token Cipher & Backward Compatibility (`tokenCipher.ts`)
+- Added `email` / `em` parameter encoding and decoding in `DevoteeTokenPayload`.
+- Preserves 100% backward compatibility for existing calendar links and token versions (`v1`, unencrypted fallback query params).
+
+### 3. Comprehensive Devotee Subscription Lifecycle & Visit Engine (`calendarVisitService.ts`)
+- **Rich Data Capture**: Each devotee visit records:
+  - Devotee Name & Gotra
+  - Phone Number & Email Address
+  - Janma Kundali Summary (Rashi, Nakshatra, Lagna Rashi, Sun Sign, DOB, TOB, Place, Pincode)
+  - Duration (30, 90, 180, 365 Days)
+  - `startDate` & `expiryDate` (calculated as `startDate + durationDays`)
+  - `daysConsumed` (unique days visited count)
+  - `totalVisitsCount` (cumulative visit hits)
+  - `daysRemaining` & Progress calculation
+  - `isExpired` boolean flag
+  - `marketingStatus`: `"active"` | `"near_expiry"` (<= 7 days) | `"expired"` | `"renewed"`
+- **Lifecycle Methods**:
+  - `subscribeCalendarDevoteeSubscriptions`: Real-time Firestore listener for SuperAdmin CRM.
+  - `extendSubscriptionValidity(devoteeId, days)`: 1-click subscription extension (+30 / +90 / +180 days).
+  - `deleteDevoteeSubscription(devoteeId)`: 1-click devotee subscription record removal.
+  - `purgeAllCalendarSubscriptionsAndVisits()`: 1-click test data cleanup to start fresh.
+
+### 4. Sanctum Access Expiry & Renewal Guard (`DailyDarshanaPage.tsx`)
+- Dynamic pass status evaluation on load (`checkPassExpiration`).
+- When a pass has expired (`isExpired === true`):
+  - Prominently displays the **Ashirvada Pass Expired Alert Banner** ("ಆಶೀರ್ವಾದ ಪಂಚಾಂಗ ಪಾಸ್ ಕಾಲಾವಧಿ ಮುಕ್ತಾಯಗೊಂಡಿದೆ").
+  - Direct 📞 **Call Priest** (`tel:...`) and 💬 **WhatsApp Renewal** buttons with pre-filled renewal messages.
+
+### 5. Super Admin Marketing CRM Suite (`SuperAdminDashboard.tsx`)
+- **Top Analytics KPI Metric Cards**:
+  - 👥 **Total Devotees**
+  - 🟢 **Active Passes**
+  - 🟡 **Expiring Soon (<= 7 Days)** (for promotional renewal offers)
+  - 🔴 **Expired Passes**
+- **1-Click Marketing Export**:
+  - 📥 **Export Devotee Marketing Contacts (CSV)**: Generates UTF-8 BOM CSV containing names, phones, emails, Gotras, Kundli details, start/expiry dates, days consumed, visits, and status.
+- **1-Click Fresh Start**:
+  - 🚨 **Purge Old Test Data & Start Fresh**: Confirmation modal to clear old sample records from `calendarDevoteeEngagement`, `calendarVisits`, and `ashirvada_passes`.
+- **Interactive Devotee Subscriptions Table**:
+  - Devotee Name & Gotra
+  - Phone (direct Call & WhatsApp buttons)
+  - Email (direct `mailto:` button)
+  - Janma Kundali (Rashi, Nakshatra, Lagna)
+  - Duration & Start Date
+  - Expiry Date
+  - Days Consumed & Total Visits
+  - Days Remaining with visual progress bar
+  - Status Badge (`🟢 Active`, `🟡 Expiring Soon`, `🔴 Expired`)
+  - Direct Marketing & Action Controls (WhatsApp Renewal Trigger, +90d Extend, Delete)
 
 ---
 
-### 3. Integrated Calendar Sync Modal (`src/components/seva/SevaCalendarSyncModal.tsx`)
-- Added Segmented Mode Switcher:
-  - **ಭಕ್ತರ ದೈನಂದಿನ ಲಯ ಕ್ಯಾಲೆಂಡರ್ (Devotee Rhythm Calendar)**
-  - **ಪುರೋಹಿತ ಪಂಚಾಂಗ ಮಹಾದರ್ಶನ (Priest Panchanga Calendar — 30 to 180 Days)**
-- Direct link and QR code generation for the Priest Portal.
+## Test & Build Verification Results
 
----
-
-### 4. Verification & Validation
-- **Unit & Integration Tests**: All 398 tests passed across 89 test suites (`npx vitest run`).
-- **Production Build**: Clean TypeScript compilation and Vite PWA build with 0 errors (`npm run build`).
-- **Git Commit & Push**: Committed and pushed to `origin/release/varamahalakshmi-vratha` (commit `3e53f67`).
-
-## 5. Root Cause Analysis & Fixes Executed
-
-### 🌐 Phonetic Devotee Name Transliteration Engine (`transliterator.ts`)
-- **Root Cause:** Custom user names entered in English (e.g. `"Swayam Naik"`) were staying in English when Kannada or another Indic language was selected because the transliterator dictionary only had exact matches for hardcoded names.
-- **Fix Implemented:** Built a full 5-language phonetic transliteration engine with word-level and character-level Indic mapping in `transliterator.ts`:
-  - **Swayam Naik:** Kannada (`ಸ್ವಯಂ ನಾಯಕ್`), Hindi (`स्वयं नायक`), Telugu (`స్వయం నాయక్`), Tamil (`ஸ்வயம் நாயக்`), English (`Swayam Naik`).
-
-### 🔑 Token Base64URL UTF-8 Encoding & Universal DOB/TOB Resolution (`tokenCipher.ts`, `universalDevoteeKundli.ts`, `icsCalendarGenerator.ts`, `SevaCalendarSyncModal.tsx`, `KundliPage.tsx`)
-- **Root Cause Discovered:**
-  1. The user entered Swayam Naik's birth profile as **`05-02-2006`** (5th February 2006) at **`14:04`** (2:04 PM IST).
-  2. Previously, when generating a token or sharing a link/QR code, `dob` and `tob` were not explicitly attached to `encodeDevoteeToken({ ... })`, nor was `baggona_kundli_session` saved to `localStorage` on Kundli generation.
-  3. Consequently, the token omitted `dob` and `tob`, causing `DailyDarshanaPage.tsx` to fall back to the default reference birth date of `1994-01-06`, resulting in incorrect ages and invalid Dasha/Kundali outputs across Tab 2, 3, and 4!
-- **Fix Implemented:**
-  - Updated `KundliPage.tsx` to persist `baggona_kundli_session` (`birthDate: "2006-02-05"`, `birthTime: "14:04"`) directly to `localStorage` upon Kundli creation.
-  - Updated `SevaCalendarSyncModal.tsx` and `icsCalendarGenerator.ts` to ALWAYS include explicit `dob` (`"2006-02-05"`) and `tob` (`"14:04"`) in every generated token payload.
-  - Verified Swayam Naik's exact birth chart for **05-Feb-2006 at 14:04 IST**:
-    - **Lagna:** Vrishabha Lagna (Taurus - Index 1)
-    - **Moon Rashi:** Mesha Rashi (Aries - Index 0)
-    - **Moon Nakshatra:** Bharani Nakshatra (Index 1)
-    - **Age (Aug 2026):** 20.53 Years
-    - **Active Vimshottari Dasha:** Moon Mahadasha - Sun Antardasha (20.21 to 20.71 years / Feb 2026 - Aug 2026)
-
----
-
-## 2. Verification & Test Results
-- **Vitest Unit Test Suite:** **62/62 test files passed (223/223 tests passed)**.
-- **Production Build:** `npm run build` succeeded with **0 errors**.
-- **Git Push:** Committed and pushed to `origin release/varamahalakshmi-vratha` (`commit 5d976fe`).
+- **Unit & Integration Test Suites**: All **102 test files passed** (494 / 494 tests passing).
+- **Production Compilation**: Clean `npm run build` completed in 13.97s with zero TypeScript errors.

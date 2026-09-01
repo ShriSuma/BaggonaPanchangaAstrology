@@ -29,7 +29,13 @@ import { signLord } from "../core/KundliInsightsEngine";
 import { normalizeDegree } from "../core/AstroMath";
 import { PlanetName, type KundliOutput, type PlanetPosition } from "../core/AstroTypes";
 import { transliterateName } from "../utils/transliterator";
-import { recordCalendarVisit, getPoojaStreak, fetchPoojaStreakFromCloud, type PoojaStreakInfo } from "../features/seva/calendarVisitService";
+import {
+  recordCalendarVisit,
+  getPoojaStreak,
+  fetchPoojaStreakFromCloud,
+  checkPassExpiration,
+  type PoojaStreakInfo
+} from "../features/seva/calendarVisitService";
 import {
   checkAndRegisterDevoteeUser,
   hasDevoteeContactDetails,
@@ -1480,10 +1486,11 @@ export default function DailyDarshanaPage(): JSX.Element {
           setPoojaStreak(cloudStreak);
         }
 
-        // Check if Contact details (Phone or Email) are present in Firestore database
-        const hasContact = hasDevoteeContactDetails(userRec);
+        // Check if Contact details (Phone or Email) are present in Firestore database or local storage
+        const isLocallyCollected = typeof window !== "undefined" && localStorage.getItem(`baggona_contact_collected_${devoteeUserId}`) === "true";
+        const hasContact = hasDevoteeContactDetails(userRec) || isLocallyCollected;
         if (!hasContact) {
-          // Show popup asking for Phone or Email
+          // Show popup asking for Phone or Email only if never provided
           setIsContactCaptureOpen(true);
         } else {
           setIsContactCaptureOpen(false);
@@ -1499,6 +1506,13 @@ export default function DailyDarshanaPage(): JSX.Element {
     };
   }, [devoteeUserId, devoteeDisplayName, devoteeGotra, moonRashiIdx, moonNakshatraIdx, resolvedBirth, tokenParam, decoded, urlParams, isFromCalendarRedirect]);
 
+  // 90-Day / Custom Duration Pass Expiry Calculation
+  const rawStartDate = decoded?.sd || decoded?.startDate || urlParams.get("startDate") || urlParams.get("sd") || "";
+  const rawDuration = decoded?.dy || decoded?.days || Number(urlParams.get("days")) || 90;
+  const passExpiration = useMemo(() => {
+    return checkPassExpiration(rawStartDate, rawDuration);
+  }, [rawStartDate, rawDuration]);
+
   // Track calendar visit for metrics and priest sync
   useEffect(() => {
     const todayYmd = new Date().toISOString().split("T")[0];
@@ -1512,9 +1526,41 @@ export default function DailyDarshanaPage(): JSX.Element {
       tabVisited: activeTab,
       rashiIndex: moonRashiIdx,
       nakshatraIndex: moonNakshatraIdx,
-      priestName: activePanditName
+      priestName: activePanditName,
+      dob: resolvedBirth.dob,
+      tob: resolvedBirth.tob,
+      gotra: devoteeGotra,
+      rashi: rashiName(moonRashiIdx, "en"),
+      nakshatra: nakshatraName(moonNakshatraIdx, "en"),
+      lagnaRashi: birthKundli?.lagnaRashi?.english || "Dhanu",
+      sunSign: birthKundli?.sunSign?.english || "Mesha",
+      placeName: decoded?.loc || urlParams.get("location") || "Gokarna",
+      pincode: decoded?.pc || urlParams.get("pincode") || "581326",
+      phone: devoteeUser?.phone || decoded?.ph || decoded?.phone || urlParams.get("phone") || "",
+      email: devoteeUser?.email || (decoded as any)?.email || (decoded as any)?.em || urlParams.get("email") || "",
+      durationDays: rawDuration,
+      startDate: rawStartDate,
+      source: isFromCalendarRedirect ? "calendar_redirect" : "direct_darshana"
     });
-  }, [dateParam, activeTab, lang, devoteeDisplayName, tokenParam, moonRashiIdx, moonNakshatraIdx, activePanditName]);
+  }, [
+    dateParam,
+    activeTab,
+    lang,
+    devoteeDisplayName,
+    tokenParam,
+    moonRashiIdx,
+    moonNakshatraIdx,
+    activePanditName,
+    resolvedBirth,
+    devoteeGotra,
+    birthKundli,
+    decoded,
+    urlParams,
+    devoteeUser,
+    rawDuration,
+    rawStartDate,
+    isFromCalendarRedirect
+  ]);
 
   // Mobile local device caching for date-specific payload
   useEffect(() => {
@@ -1833,6 +1879,72 @@ export default function DailyDarshanaPage(): JSX.Element {
           </div>
         </div>
       </header>
+
+      {/* Ashirvada Pass Expired & Renewal Alert Banner */}
+      {passExpiration.isExpired && (
+        <div style={{
+          maxWidth: 600,
+          margin: "14px auto 8px",
+          padding: "16px",
+          borderRadius: "18px",
+          background: "linear-gradient(135deg, #450A0A 0%, #7F1D1D 100%)",
+          border: "2px solid #EF4444",
+          boxShadow: "0 8px 25px rgba(239, 68, 68, 0.35)",
+          textAlign: "center"
+        }}>
+          <div style={{ fontSize: "26px", marginBottom: "4px" }}>⏳</div>
+          <h3 style={{ color: "#FEE2E2", fontSize: "16px", fontWeight: 900, margin: "0 0 6px" }}>
+            {lang === "kn" ? "ಆಶೀರ್ವಾದ ಪಂಚಾಂಗ ಪಾಸ್ ಕಾಲಾವಧಿ ಮುಕ್ತಾಯಗೊಂಡಿದೆ" : "Ashirvada Calendar Pass Expired"}
+          </h3>
+          <p style={{ color: "#FECACA", fontSize: "12px", margin: "0 0 12px", lineHeight: 1.5 }}>
+            {lang === "kn"
+              ? `ನಿಮ್ಮ ${rawDuration}-ದಿನಗಳ ದೈನಂದಿನ ದರ್ಶನ ಪಾಸ್ ದಿನಾಂಕ ${passExpiration.expiryDate} ರಂದು ಮುಕ್ತಾಯಗೊಂಡಿದೆ. ಪಂಚಾಂಗ ಸೇವೆ ಮತ್ತು ಮುಹೂರ್ತಗಳ ನವೀಕರಣಕ್ಕಾಗಿ ದಯವಿಟ್ಟು ಪುರೋಹಿತರನ್ನು ಸಂಪರ್ಕಿಸಿ.`
+              : `Your ${rawDuration}-day Daily Darshana pass expired on ${passExpiration.expiryDate}. Please contact the priest to renew your sanctum access.`}
+          </p>
+          <div style={{ display: "flex", gap: "8px", justifyContent: "center", flexWrap: "wrap" }}>
+            <a
+              href={`tel:${activePanditPhone.replace(/[^\d+]/g, "")}`}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                padding: "8px 16px",
+                borderRadius: "12px",
+                background: "#DC2626",
+                color: "#FFFFFF",
+                fontSize: "12px",
+                fontWeight: 800,
+                textDecoration: "none",
+                boxShadow: "0 4px 12px rgba(220, 38, 38, 0.4)"
+              }}
+            >
+              📞 {lang === "kn" ? "ಪಂಡಿತರಿಗೆ ಕರೆ ಮಾಡಿ" : "Call Priest"}
+            </a>
+            <a
+              href={`https://wa.me/?text=${encodeURIComponent(
+                `ನಮಸ್ಕಾರ ಶ್ರೀರಾಮ್ ಪಂಡಿತರೆ, ನನ್ನ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಆಶೀರ್ವಾದ ಪಾಸ್ (${rawDuration} ದಿನಗಳು) ಮುಕ್ತಾಯಗೊಂಡಿದೆ. ನವೀಕರಣಕ್ಕಾಗಿ ದಯವಿಟ್ಟು ಸಹಾಯ ಮಾಡಿ.\nಭಕ್ತರ ಹೆಸರು: ${devoteeDisplayName}\nಗೋತ್ರ: ${devoteeGotra}\nದಿನಾಂಕ: ${mockDay.ymd}`
+              )}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                padding: "8px 16px",
+                borderRadius: "12px",
+                background: "#16A34A",
+                color: "#FFFFFF",
+                fontSize: "12px",
+                fontWeight: 800,
+                textDecoration: "none",
+                boxShadow: "0 4px 12px rgba(22, 163, 74, 0.4)"
+              }}
+            >
+              💬 WhatsApp {lang === "kn" ? "ನವೀಕರಣ" : "Renew"}
+            </a>
+          </div>
+        </div>
+      )}
 
       {/* Sticky Mobile 3-Tab Navigation */}
       <nav style={{
@@ -2878,7 +2990,7 @@ export default function DailyDarshanaPage(): JSX.Element {
       )}
       {/* Devotee Contact Details Capture Modal (Phone / Email Popup) */}
       <DevoteeContactCaptureModal
-        isOpen={isContactCaptureOpen}
+        isOpen={isContactCaptureOpen && !hasDevoteeContactDetails(devoteeUser)}
         onClose={() => setIsContactCaptureOpen(false)}
         devoteeId={devoteeUserId}
         devoteeName={devoteeDisplayName}
@@ -2889,6 +3001,9 @@ export default function DailyDarshanaPage(): JSX.Element {
         onSuccess={(updatedUser) => {
           setDevoteeUser(updatedUser);
           setIsContactCaptureOpen(false);
+          if (typeof window !== "undefined") {
+            localStorage.setItem(`baggona_contact_collected_${devoteeUserId}`, "true");
+          }
         }}
       />
 
