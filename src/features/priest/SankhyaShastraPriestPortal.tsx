@@ -28,6 +28,7 @@ import { notifyPasswordResetCompleted, notifySystemFailureAlert } from "../notif
 import { CoinDeductionModal } from "../../components/wallet/CoinDeductionModal";
 import { FallingCoinsRefillModal } from "../../components/wallet/FallingCoinsRefillModal";
 import { SankhyaNumerologyLoader } from "../../components/sankhyashastra/SankhyaNumerologyLoader";
+import AudioPlayerButton from "../../components/ui/AudioPlayerButton";
 
 type SankhyaTab = "janma" | "prashna" | "name_numbers" | "wallet";
 
@@ -1352,48 +1353,67 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
                 </div>
               </div>
 
-              {/* Context Summary Strip */}
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[11px] font-bold text-amber-900 bg-[#FEFCF4] p-3 rounded-2xl border border-amber-300/80">
-                <span>🪐 ಗ್ರಹಾಧಿಪತಿ: <strong className="text-amber-950 font-black">{prashnaResult.rulingPlanetKn}</strong></span>
-                <span>•</span>
-                <span>👥 ವರ್ಗ: <strong className="text-amber-950 font-black">{prashnaResult.varnaKn}</strong></span>
-                <span>•</span>
-                <span>🔄 ಪ್ರಕೃತಿ: <strong className="text-amber-950 font-black">{prashnaResult.natureKn}</strong></span>
-                <span>•</span>
-                <span>🧭 ದಿಕ್ಕು & ಕಾಲ: <strong className="text-amber-950 font-black">{prashnaResult.rulingDirectionKn} ({prashnaResult.auspiciousTimeframeKn})</strong></span>
+              {/* Revered Priest Divination Header & Highlights */}
+              <div className="bg-gradient-to-r from-[#FFF8E7] via-[#FFFDF7] to-[#FFF8E7] border-2 border-amber-400/90 rounded-2xl p-4 shadow-sm space-y-3">
+                <div className="flex items-center justify-between border-b border-amber-200 pb-2">
+                  <div>
+                    <span className="text-[10px] font-black uppercase text-amber-800 tracking-wider">
+                      🛕 ಗೋಕರ್ಣ-ಬಗ್ಗೋಣ ಕ್ಷೇತ್ರ • ಶ್ರೀ ಮಹಾಗಣಪತಿ ಸಾನ್ನಿಧ್ಯ
+                    </span>
+                    <h3 className="text-sm font-black text-amber-950 flex items-center gap-1.5 mt-0.5">
+                      <span>📜</span>
+                      <span>ಅರ್ಚಕರ ಸಾಕ್ಷಾತ್ ವಾಣಿ & ದೈವಿಕ ನಿರ್ಣಯ ಮುಖ್ಯಾಂಶಗಳು</span>
+                    </h3>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <AudioPlayerButton
+                      text={prashnaResult.technicalParagraphs.map(p => `${p.titleKn}. ${p.contentKn}`).join(" ")}
+                      lang="kn-IN"
+                      voiceType="priest"
+                      className="bg-amber-200 text-amber-950 px-2.5 py-1 text-xs font-bold rounded-xl border border-amber-400 shadow-xs hover:bg-amber-300"
+                    />
+                  </div>
+                </div>
+
+                {/* 6 Actionable Prediction Pillars Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                  <div className="p-2.5 bg-white rounded-xl border border-amber-300 space-y-0.5 shadow-xs">
+                    <span className="text-[10px] font-extrabold text-amber-800 uppercase block">🪐 ಗ್ರಹಾಧಿಪತಿ & ತರಂಗ</span>
+                    <span className="font-black text-amber-950">{prashnaResult.rulingPlanetKn}</span>
+                    <span className="text-[10px] text-slate-600 block">({prashnaResult.natureKn})</span>
+                  </div>
+
+                  <div className="p-2.5 bg-white rounded-xl border border-amber-300 space-y-0.5 shadow-xs">
+                    <span className="text-[10px] font-extrabold text-amber-800 uppercase block">🧭 ಶೋಧನಾ / ಕಾರ್ಯ ದಿಕ್ಕು</span>
+                    <span className="font-black text-amber-950">{prashnaResult.rulingDirectionKn}</span>
+                  </div>
+
+                  <div className="p-2.5 bg-white rounded-xl border border-amber-300 space-y-0.5 shadow-xs">
+                    <span className="text-[10px] font-extrabold text-amber-800 uppercase block">⏳ ಫಲ ಸಿದ್ಧಿ ಕಾಲಾವಧಿ</span>
+                    <span className="font-black text-amber-950">{prashnaResult.auspiciousTimeframeKn}</span>
+                  </div>
+
+                  <div className="p-2.5 bg-white rounded-xl border border-amber-300 space-y-0.5 shadow-xs col-span-2 sm:col-span-1">
+                    <span className="text-[10px] font-extrabold text-amber-800 uppercase block">👥 ವರ್ಗ & ಜನರ ಮನಸ್ಥಿತಿ</span>
+                    <span className="font-black text-amber-950">{prashnaResult.varnaKn}</span>
+                  </div>
+
+                  <div className="p-2.5 bg-[#FEFCF4] rounded-xl border-2 border-amber-400 space-y-0.5 shadow-xs col-span-2">
+                    <span className="text-[10px] font-black text-amber-900 uppercase block">🗝️ ವಸ್ತು / ಸ್ಥಳ / ಪರಿಸರದ ನೈಜ ಸುಳಿವು</span>
+                    <span className="font-bold text-amber-950 leading-relaxed block">{prashnaResult.lostArticleOrPersonKn}</span>
+                  </div>
+                </div>
               </div>
 
-              {/* Varga & Lost/Found Article Divination Highlight Box */}
-              <div className="p-4 bg-gradient-to-r from-amber-50 via-[#FFFDF7] to-amber-50 border-2 border-amber-400 rounded-2xl space-y-2 shadow-xs">
-                <div className="flex items-center justify-between border-b border-amber-200 pb-1.5">
-                  <h4 className="text-xs font-black text-amber-950 flex items-center gap-1.5">
-                    <span>🔍</span>
-                    <span>ಶಾಸ್ತ್ರೀಯ ವರ್ಗ & ವಸ್ತು / ವ್ಯಕ್ತಿ ನಿರ್ಣಯ (Varga & Lost Item Guidance):</span>
-                  </h4>
-                  <span className="text-[10px] font-black text-amber-900 bg-amber-200/80 px-2 py-0.5 rounded-md border border-amber-300">
-                    {prashnaResult.varnaKn}
-                  </span>
-                </div>
-                <div className="space-y-1 text-xs">
-                  <p className="text-slate-800 font-semibold leading-relaxed">
-                    <strong className="text-amber-950">ವರ್ಗ ಲಕ್ಷಣ:</strong> {prashnaResult.varnaDescriptionKn || prashnaResult.varnaKn}
-                  </p>
-                  <p className="text-amber-900 font-bold bg-[#FEFCF4] p-2.5 rounded-xl border border-amber-300 leading-relaxed">
-                    <span>🗝️ <strong>ವಸ್ತು/ಸ್ಥಳ/ವ್ಯಕ್ತಿಯ ಸುಳಿವು:</strong> </span>
-                    <span>{prashnaResult.lostArticleOrPersonKn}</span>
-                  </p>
-                </div>
-              </div>
-
-              {/* Unified 4 In-Depth Paragraphs Reading */}
-              <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-[#FEFCF4] to-white border-2 border-amber-300/80 space-y-3.5 shadow-xs">
+              {/* Unified 4 In-Depth Priest Scholarly Paragraphs Reading */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-[#FEFCF4] to-white border-2 border-amber-300/80 space-y-4 shadow-xs">
                 {prashnaResult.technicalParagraphs.map((para, idx) => (
-                  <div key={idx} className="space-y-1">
-                    <h4 className="text-xs font-black text-amber-900 flex items-center gap-1.5">
+                  <div key={idx} className="space-y-1.5 pb-3 border-b border-amber-100 last:border-b-0 last:pb-0">
+                    <h4 className="text-xs font-black text-amber-950 flex items-center gap-1.5">
                       <span className="text-amber-600">✦</span>
                       <span>{para.titleKn}</span>
                     </h4>
-                    <p className="text-xs sm:text-[13px] text-slate-800 leading-relaxed font-medium pl-3 border-l-2 border-amber-300">
+                    <p className="text-xs sm:text-[13px] text-slate-800 leading-relaxed font-medium pl-3 border-l-2 border-amber-400">
                       {para.contentKn}
                     </p>
                   </div>
@@ -1402,12 +1422,12 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
 
               {/* Remedies */}
               {prashnaResult.remedyListKn && (
-                <div className="p-4 bg-gradient-to-br from-amber-100/70 to-orange-50 rounded-2xl border-2 border-amber-400 space-y-1.5">
-                  <h4 className="text-xs font-black text-amber-950 flex items-center gap-2">
+                <div className="p-4 bg-gradient-to-br from-amber-100/70 to-orange-50 rounded-2xl border-2 border-amber-400 space-y-2 shadow-xs">
+                  <h4 className="text-xs font-black text-amber-950 flex items-center gap-2 border-b border-amber-300 pb-1.5">
                     <span>🪔</span>
-                    <span>ಬಗ್ಗೋಣ ಕ್ಷೇತ್ರದ ಪರಿಹಾರ ಮತ್ತು ಜಪಾನುಷ್ಠಾನ:</span>
+                    <span>ಬಗ್ಗೋಣ ಶ್ರೀ ಮಹಾಗಣಪತಿ ದೈವಿಕ ಪರಿಹಾರ & ಮಂತ್ರ ಜಪಾನುಷ್ಠಾನ:</span>
                   </h4>
-                  <ul className="space-y-1.5 text-xs text-amber-950 pl-4 list-disc font-semibold">
+                  <ul className="space-y-1.5 text-xs text-amber-950 pl-4 list-disc font-semibold leading-relaxed">
                     {prashnaResult.remedyListKn.map((r, i) => (
                       <li key={i}>{r}</li>
                     ))}

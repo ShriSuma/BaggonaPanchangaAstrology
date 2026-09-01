@@ -4,7 +4,7 @@ interface AudioPlayerButtonProps {
   text: string;
   lang?: string;
   className?: string;
-  voiceType?: "default" | "jayashree" | "dramatic";
+  voiceType?: "default" | "jayashree" | "dramatic" | "priest";
 }
 
 export default function AudioPlayerButton({ text, lang = "kn-IN", className = "", voiceType = "default" }: AudioPlayerButtonProps) {
@@ -40,7 +40,10 @@ export default function AudioPlayerButton({ text, lang = "kn-IN", className = ""
     utterance.lang = lang;
     
     // Add emotion based on voiceType
-    if (voiceType === "jayashree") {
+    if (voiceType === "priest") {
+      utterance.rate = 0.88; // Deep, calm, authoritative tempo
+      utterance.pitch = 0.85; // Resonant priest baritone
+    } else if (voiceType === "jayashree") {
       utterance.rate = 0.85; // Slower, older, wiser
       utterance.pitch = 0.8; // Deeper voice
     } else if (voiceType === "dramatic") {
