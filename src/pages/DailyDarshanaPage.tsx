@@ -1487,7 +1487,10 @@ export default function DailyDarshanaPage(): JSX.Element {
         }
 
         // Check if Contact details (Phone or Email) are present in Firestore database or local storage
-        const isLocallyCollected = typeof window !== "undefined" && localStorage.getItem(`baggona_contact_collected_${devoteeUserId}`) === "true";
+        const isLocallyCollected = typeof window !== "undefined" && (
+          localStorage.getItem(`baggona_contact_collected_${devoteeUserId}`) === "true" ||
+          localStorage.getItem("baggona_contact_collected_global") === "true"
+        );
         const hasContact = hasDevoteeContactDetails(userRec) || isLocallyCollected;
         if (!hasContact) {
           // Show popup asking for Phone or Email only if never provided
@@ -3074,7 +3077,13 @@ export default function DailyDarshanaPage(): JSX.Element {
       {/* Devotee Contact Details Capture Modal (Phone / Email Popup) */}
       <DevoteeContactCaptureModal
         isOpen={isContactCaptureOpen && !hasDevoteeContactDetails(devoteeUser)}
-        onClose={() => setIsContactCaptureOpen(false)}
+        onClose={() => {
+          setIsContactCaptureOpen(false);
+          if (typeof window !== "undefined") {
+            localStorage.setItem(`baggona_contact_collected_${devoteeUserId}`, "true");
+            localStorage.setItem("baggona_contact_collected_global", "true");
+          }
+        }}
         devoteeId={devoteeUserId}
         devoteeName={devoteeDisplayName}
         gotra={devoteeGotra}
@@ -3086,6 +3095,7 @@ export default function DailyDarshanaPage(): JSX.Element {
           setIsContactCaptureOpen(false);
           if (typeof window !== "undefined") {
             localStorage.setItem(`baggona_contact_collected_${devoteeUserId}`, "true");
+            localStorage.setItem("baggona_contact_collected_global", "true");
           }
         }}
       />

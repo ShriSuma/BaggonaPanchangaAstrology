@@ -55,13 +55,20 @@ describe("Priest Authentication & First-Time Force Password Setup Engine", () =>
     expect(updatedProfile?.firstTimeSetupCompleted).toBe(true);
     expect(updatedProfile?.mustResetPassword).toBe(false);
 
-    // 5. Logout and log in again with new permanent password
+    // 5. Logout and log in again with new permanent password (requires MFA from 2nd login onwards)
     useAuthStore.getState().logout();
     expect(useAuthStore.getState().isAuthenticated).toBe(false);
 
     const secondLoginRes = await useAuthStore.getState().login(priestUsername, newPermanentPassword);
     expect(secondLoginRes.success).toBe(true);
-    expect(secondLoginRes.requiresPasswordChange).toBeUndefined();
+    expect(secondLoginRes.requiresMfa).toBe(true);
+    expect(useAuthStore.getState().step).toBe("mfa_pending");
+
+    // 6. Verify MFA OTP to complete second login
+    const activeOtp = useAuthStore.getState().activeOtp;
+    expect(activeOtp).toBeDefined();
+    const mfaRes = await useAuthStore.getState().verifyMfaOtp(activeOtp!);
+    expect(mfaRes.success).toBe(true);
     expect(useAuthStore.getState().isAuthenticated).toBe(true);
     expect(useAuthStore.getState().currentUser).toBe(priestUsername);
   });

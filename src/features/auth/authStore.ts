@@ -373,9 +373,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         return { success: true, requiresPasswordChange: true };
       }
 
-      // 4. RETURNING PRIEST OR EXPLICIT SKIP-MFA LOGIN
-      // (Do not block external priests with SuperAdmin's email MFA OTP)
-      if (options?.skipMfa || (userRole === "priest" && user.username.toLowerCase() !== "baggona")) {
+      // 4. EXPLICIT SKIP-MFA LOGIN (for testing / programmatic bypass)
+      if (options?.skipMfa) {
         await db.users.update(user.id!, { lastLoginAt: new Date().toISOString() });
         const sessionToken = `session-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
         localStorage.setItem(
@@ -405,15 +404,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         return { success: true };
       }
 
-      // 5. SUPER ADMIN & MASTER PRIEST LOGIN -> Dispatches 6-digit MFA OTP
+      // 5. SUBSEQUENT LOGINS (2nd time onwards) -> Requires Multi-Factor Authentication (MFA)
       const otpCode = generate6DigitOtp();
       const expiresAt = Date.now() + 3 * 60 * 1000; // Strictly 3 minutes validity
+      const targetEmail = remoteProfile?.email || (user as any)?.email || HARDCODED_MFA_EMAIL;
 
       // Register OTP in Firestore database
-      await saveMfaOtpToDb(user.username, otpCode, HARDCODED_MFA_EMAIL, 3);
+      await saveMfaOtpToDb(user.username, otpCode, targetEmail, 3);
 
-      // Dispatch Email with 6-digit OTP code to spshreepandit@gmail.com
-      await sendMfaOtpEmail(otpCode, user.username, HARDCODED_MFA_EMAIL);
+      // Dispatch Email with 6-digit OTP code to user's registered email
+      await sendMfaOtpEmail(otpCode, user.username, targetEmail);
 
       set({
         step: "mfa_pending",
@@ -421,6 +421,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         pendingUserId: user.id!,
         activeOtp: otpCode,
         otpExpiresAt: expiresAt,
+        mfaEmail: targetEmail,
         role: userRole,
         isLoading: false
       });
@@ -428,7 +429,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return {
         success: true,
         requiresMfa: true,
-        maskedEmail: maskEmail(HARDCODED_MFA_EMAIL)
+        maskedEmail: maskEmail(targetEmail)
       };
     } catch (err: any) {
       console.error("Login failed:", err);
@@ -605,8 +606,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const newOtp = generate6DigitOtp();
     const newExpiresAt = Date.now() + 3 * 60 * 1000; // Strictly 3 minutes validity
 
-    await saveMfaOtpToDb(state.pendingUsername, newOtp, HARDCODED_MFA_EMAIL, 3);
-    await sendMfaOtpEmail(newOtp, state.pendingUsername, HARDCODED_MFA_EMAIL);
+    const targetEmail = state.mfaEmail || HARDCODED_MFA_EMAIL;
+    await saveMfaOtpToDb(state.pendingUsername, newOtp, targetEmail, 3);
+    await sendMfaOtpEmail(newOtp, state.pendingUsername, targetEmail);
 
     set({
       activeOtp: newOtp,
@@ -615,7 +617,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     return {
       success: true,
-      maskedEmail: maskEmail(HARDCODED_MFA_EMAIL)
+      maskedEmail: maskEmail(targetEmail)
     };
   },
 

@@ -1361,7 +1361,12 @@ export const PriestMobilePortal: React.FC = () => {
       });
 
       setPasswordMsg("✓ ಪ್ರೊಫೈಲ್ ಮತ್ತು ಪಾಸ್‌ವರ್ಡ್ ಯಶಸ್ವಿಯಾಗಿ ನವೀಕರಿಸಲಾಗಿದೆ!");
-      setTimeout(() => setShowPasswordSetup(false), 1500);
+      setTimeout(() => {
+        setShowPasswordSetup(false);
+        setPasswordMsg("");
+        setNewPassword("");
+        setConfirmPassword("");
+      }, 600);
     } catch {
       setPasswordMsg("ದೋಷ ಉಂಟಾಗಿದೆ. ದಯವಿಟ್ಟು ಮರುಪ್ರಯತ್ನಿಸಿ.");
     }

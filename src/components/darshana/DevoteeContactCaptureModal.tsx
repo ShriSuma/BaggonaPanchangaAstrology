@@ -175,14 +175,16 @@ export const DevoteeContactCaptureModal: React.FC<DevoteeContactCaptureModalProp
       if (res.success && res.updatedUser) {
         if (typeof window !== "undefined") {
           localStorage.setItem(`baggona_contact_collected_${devoteeId}`, "true");
+          localStorage.setItem("baggona_contact_collected_global", "true");
         }
         setSuccessMessage(t.successMsg);
         if (onSuccess) {
           onSuccess(res.updatedUser);
         }
+        // Auto-close popup cleanly so user is never blocked
         setTimeout(() => {
           onClose();
-        }, 1000);
+        }, 500);
       } else {
         setErrorMessage("ದಯವಿಟ್ಟು ಪುನಃ ಪ್ರಯತ್ನಿಸಿ (Please try again).");
       }
