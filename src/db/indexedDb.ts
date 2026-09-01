@@ -151,6 +151,31 @@ export type TokenMappingRecord = {
   lastAccessedAt?: string;
 };
 
+export type PunyaKarmaLedgerRecord = {
+  id: string;
+  userId?: string;
+  devoteeToken?: string;
+  dateYmd: string;
+  deedTitle: string;
+  action: "done" | "maybe_later" | "no";
+  punyaDelta: number;
+  karmaDelta: number;
+  remindAfterTimestamp?: number;
+  timestamp: number;
+  notes?: string;
+};
+
+export type PunyaKarmaSummaryRecord = {
+  id: string;
+  totalPunya: number;
+  totalKarma: number;
+  completedDaysCount: number;
+  missedDaysCount: number;
+  lastActionYmd?: string;
+  lastActionTimestamp?: number;
+  updatedAt: number;
+};
+
 class AppDatabase extends Dexie {
   settings!: Table<SettingsRecord>;
   kundlis!: Table<KundliRecord>;
@@ -165,6 +190,8 @@ class AppDatabase extends Dexie {
   userSankalpas!: Table<UserSankalpaRecord>;
   devoteeTokens!: Table<DevoteeTokenRecord>;
   tokenMappings!: Table<TokenMappingRecord>;
+  punyaKarmaLedger!: Table<PunyaKarmaLedgerRecord>;
+  punyaKarmaSummary!: Table<PunyaKarmaSummaryRecord>;
 
   constructor() {
     super("baggona-panchanga-db");
@@ -229,6 +256,23 @@ class AppDatabase extends Dexie {
       userSankalpas: "id,userId,category,isActive,createdAt",
       devoteeTokens: "id,shortCode,devoteeName,priestName,expiresAt,status",
       tokenMappings: "id,legacyToken,newTokenId,shortCode,expiresAt"
+    });
+    this.version(12).stores({
+      settings: "++id,language,createdAt,consentChoice,analyticsEnabled,chartStyle",
+      kundlis: "id,userId,name,createdAt",
+      panchangCache: "id,date,location,cachedAt",
+      predictionCache: "id,kundliId,period,periodKey,cachedAt",
+      scheduledNotifications: "id,type,scheduledTime,fired",
+      analyticsEvents: "++id,eventName,timestamp",
+      geocodeCache: "placeName,cachedAt",
+      translationCache: "id,lang,cachedAt",
+      users: "id,username",
+      dailyHits: "date",
+      userSankalpas: "id,userId,category,isActive,createdAt",
+      devoteeTokens: "id,shortCode,devoteeName,priestName,expiresAt,status",
+      tokenMappings: "id,legacyToken,newTokenId,shortCode,expiresAt",
+      punyaKarmaLedger: "id,dateYmd,action,userId,devoteeToken,timestamp",
+      punyaKarmaSummary: "id,totalPunya,totalKarma,updatedAt"
     });
   }
 }

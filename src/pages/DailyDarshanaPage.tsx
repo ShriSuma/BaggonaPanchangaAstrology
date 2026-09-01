@@ -2159,13 +2159,17 @@ export default function DailyDarshanaPage(): JSX.Element {
           </div>
         </div>
 
-        {/* 🌸 Prominently Featured Daily Satkarma (Good Deed) Practice Card with 3-Button Interactive Check-in */}
-        <DailySatkarmaPracticeCard
-          day={mockDay}
-          lang={lang}
-          devoteeName={devoteeDisplayName}
-          panditName={localizedPandit}
-        />
+        {/* 🌸 Prominently Featured Daily Satkarma (Good Deed) Practice Card - Only in Darshana & Pooja Tabs */}
+        {(activeTab === "darshana" || activeTab === "guidance") && (
+          <DailySatkarmaPracticeCard
+            day={mockDay}
+            lang={lang}
+            devoteeName={devoteeDisplayName}
+            panditName={localizedPandit}
+            userId={devoteeUserId || devoteeDisplayName || "guest_devotee"}
+            devoteeToken={tokenParam || undefined}
+          />
+        )}
 
         {/* ── TAB 1: SACRED SANCTUM & DARSHANA ── */}
         {activeTab === "darshana" && (

@@ -1,24 +1,33 @@
 /**
  * Baggona Panchanga Daily Satkarma Practice Card (ಇಂದಿನ ಸತ್ಕರ್ಮ ಆಚರಣೆ)
  * 
- * Prominently featured on DailyDarshanaPage above main contents.
+ * Prominently featured on DailyDarshanaPage (strictly on Darshana & Pooja tabs).
  * Provides:
  * 1. Simple, zero-cost, positive-vibe daily good deed matched to day's Vedic energy.
- * 2. 3-Button Interactive Check-in: Yes (ಹೌದು) | Still Not Yet (ಇನ್ನೂ ಇಲ್ಲ) | No (ಇಲ್ಲ).
- * 3. Dynamic real-time countdown for "Still Not Yet" with inspiring encouragement.
- * 4. Uplifting, guilt-free motivation for "No" encouraging fresh start tomorrow.
- * 5. Full 5-language localization (Kannada, Hindi, Telugu, Tamil, English).
+ * 2. 3-Button Interactive Check-in:
+ *    - ✨ Yes (ಹೌದು): +1 point to Punya Butte (ಪುಣ್ಯ ಬುಟ್ಟಿ) in DB. Dismisses for the rest of today.
+ *    - ⏳ Still Not Yet (ಇನ್ನೂ ಇಲ್ಲ): Snoozes card for 3 hours (clock ticking in DB), reappears after 3h.
+ *    - 🌿 No (ಇಂದು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ): +1 point to Karma Butte (ಕರ್ಮ ಬುಟ್ಟಿ) in DB. Dismisses for today.
+ * 3. Saves Punya/Karma ledger records silently in DB without exposing raw tallies to UI yet.
+ * 4. Full 5-language localization (Kannada, Hindi, Telugu, Tamil, English).
  */
 
 import React, { useState, useEffect, useMemo } from "react";
 import type { SevaLang } from "../../features/seva/sevaLocale";
 import type { RhythmDay } from "../../core/DailyRhythmEngine";
+import {
+  shouldShowDailySatkarmaCard,
+  recordSatkarmaAction,
+  type SatkarmaActionType
+} from "../../features/darshana/punyaKarmaService";
 
 export interface DailySatkarmaPracticeCardProps {
   day: RhythmDay;
   lang: SevaLang;
   devoteeName?: string;
   panditName?: string;
+  userId?: string;
+  devoteeToken?: string;
 }
 
 export type SatkarmaStatus = "yes" | "not_yet" | "no" | null;
@@ -150,33 +159,33 @@ const WEEKDAY_SATKARMAS: SatkarmaItem[] = [
       en: "Bow in reverence to parents/mentors; share an uplifting, positive thought or helpful guidance with someone."
     },
     benefit: {
-      kn: "ಗುರು ಕೃಪೆ, ಸನ್ಮಾರ್ಗದ ದಾರಿದೀಪ ಹಾಗೂ ಆತ್ಮಗೌರವ ವೃದ್ಧಿಸುತ್ತದೆ.",
-      hi: "गुरु कृपा, जीवन में सही दिशा और आत्मिक संतोष प्राप्त होता है।",
-      te: "గురు కటాక్షం, జీవితంలో సన్మార్గం మరియు గౌరవం లభిస్తాయి.",
-      ta: "குருவருள், நல்வழி மற்றும் மனத்தெளிவு கிட்டும்.",
-      en: "Attracts divine blessings, wise direction in life, and deep inner fulfillment."
+      kn: "ಗುರುಬಲ ವೃದ್ಧಿಯಾಗಿ, ಕುಟುಂಬದಲ್ಲಿ ಗೌರವ ಮತ್ತು ವಿದ್ಯೆ-ಉದ್ಯೋಗದಲ್ಲಿ ಸಿದ್ಧಿ ಲಭಿಸುತ್ತದೆ.",
+      hi: "गुरु कृपा से समाज में मान-सम्मान और ज्ञान-विवेक की वृद्धि होती है।",
+      te: "గురు కృప, గౌరవం మరియు విద్యా-వృత్తులలో విజయం కలుగుతాయి.",
+      ta: "குருவருள் கூடும், அறிவு விருத்தியாகி சகல நன்மைகளும் சேரும்.",
+      en: "Strengthens Jupiter's divine grace, bestows clarity, respect, and auspicious learning."
     }
   },
-  // 5: Friday (Shukra / Joy & Evening Lamp)
+  // 5: Friday (Shukra / Harmony & Joyful Ambiance)
   {
     icon: "🌸",
     title: {
-      kn: "ದೀಪ ಬೆಳಗಿಸಿ & ನಗು ಮುಖದ ಆನಂದ ಹರಡಿ",
-      hi: "संध्या दीप प्रज्वलन और मुस्कान बिखेरें",
-      te: "దీపారాధన & ఆనందాన్ని పంచడం",
-      ta: "தீபமேற்றுதல் & மகிழ்ச்சி பரப்புதல்",
-      en: "Light an Evening Lamp & Spread Joy"
+      kn: "ಮನೆ ಶೃಂಗಾರ & ನಗುಮುಖದ ಮಾತು",
+      hi: "गृह शुद्धि और मधुर संभाषण",
+      te: "గృహ శోభ & మధుర సంభాషణ",
+      ta: "இல்ல தூய்மை & இன்சொல்",
+      en: "Cleanse Sanctuary & Speak Joyfully"
     },
     action: {
-      kn: "ಸಂಜೆ ಮನೆಯಲ್ಲಿ ಒಂದು ಪುಟ್ಟ ದೀಪವನ್ನು ಪ್ರಾರ್ಥನೆಯೊಂದಿಗೆ ಬೆಳಗಿಸಿ; ಮನೆಯವರಲ್ಲಿ ಅಥವಾ ಸ್ನೇಹಿತರಲ್ಲಿ ನಗು ತರುವ ಮಾತಾಡಿ.",
-      hi: "शाम को घर में श्रद्धा से एक दीपक जलाएं; परिवार या मित्रों के चेहरे पर मुस्कान लाने वाली बात करें।",
-      te: "సాయంత్రం ఇంట్లో భక్తితో దీపం వెలిగించండి; కుటుంబ సభ్యులకు లేదా మిత్రులకు సంతోషాన్నిచ్చే మాట చెప్పండి.",
-      ta: "மாலையில் வீட்டில் விளக்கேற்றி பிரார்த்தனை செய்யுங்கள்; குடும்பத்தினர் அல்லது நண்பர்களுக்கு மகிழ்ச்சி தரும் வார்த்தை பேசுங்கள்.",
-      en: "Light a gentle evening lamp with prayer; say a warm, cheerful word that brings a genuine smile to someone's face."
+      kn: "ದೇವರ ಮಂದಿರ ಅಥವಾ ಮನೆಯ ಮುಖ್ಯ ದ್ವಾರವನ್ನು ಸ್ವಚ್ಛಗೊಳಿಸಿ; ಕುಟುಂಬದವರೊಂದಿಗೆ ಸಂತೋಷದಿಂದ ನಗುಮುಖದ ಸಂಭಾಷಣೆ ನಡೆಸಿ.",
+      hi: "पूजा स्थल या मुख्य द्वार को स्वच्छ करें; परिवार के साथ आनंदपूर्वक समय बिताएं।",
+      te: "పూజా మందిరాన్ని లేదా ఇంటి గుమ్మాన్ని శుభ్రం చేయండి; కుటుంబ సభ్యులతో సంతోషంగా గడపండి.",
+      ta: "பூஜை அறை அல்லது வீட்டின் வாசலை தூய்மைப்படுத்துங்கள்; குடும்பத்தோடு மகிழ்ச்சியாகப் பேசுங்கள்.",
+      en: "Tidy up your prayer altar or home entrance; bring a joyful, appreciative atmosphere to your family."
     },
     benefit: {
-      kn: "ಮನೆಯಲ್ಲಿ ಲಕ್ಷ್ಮೀ ಕೃಪೆ, ಸೌಭಾಗ್ಯ ಮತ್ತು ಆನಂದಮಯ ವಾತಾವರಣ ನಿರ್ಮಾಣವಾಗುತ್ತದೆ.",
-      hi: "घर में सुख-समृद्धि, सकारात्मक ऊर्जा और सौहार्द का वास होता है।",
+      kn: "ಮಹಾಲಕ್ಷ್ಮಿಯ ಕೃಪೆ, ಸೌಭಾಗ್ಯ ಮತ್ತು ಆರ್ಥಿಕ ಸಮೃದ್ಧಿ ಸದಾ ಮನೆಯಲ್ಲಿ ನೆಲೆಸುತ್ತದೆ.",
+      hi: "महालक्ष्मी का वास होता है, सौभाग्य और सुख-समृद्धि में वृद्धि होती है।",
       te: "ఇంట్లో లక్ష్మీ కటాక్షం, ఆనందం మరియు శ్రేయస్సు కలుగుతాయి.",
       ta: "இல்லத்தில் லக்ஷ்மி கடாட்சம், மகிழ்ச்சி மற்றும் அமைதி நிறையும்.",
       en: "Invites auspicious prosperity, peace of mind, and harmonious joy into the home."
@@ -213,10 +222,11 @@ export const DailySatkarmaPracticeCard: React.FC<DailySatkarmaPracticeCardProps>
   day,
   lang,
   devoteeName,
-  panditName = "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್"
+  panditName = "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
+  userId = "guest_devotee",
+  devoteeToken
 }) => {
   const ymd = day?.ymd || new Date().toISOString().split("T")[0];
-  const storageKey = `baggona_satkarma_${ymd}`;
 
   // Get current weekday (0-6)
   const dayOfWeek = useMemo(() => {
@@ -230,75 +240,102 @@ export const DailySatkarmaPracticeCard: React.FC<DailySatkarmaPracticeCardProps>
 
   const satkarma = WEEKDAY_SATKARMAS[dayOfWeek] || WEEKDAY_SATKARMAS[0];
 
-  // Local state for user check-in response
-  const [status, setStatus] = useState<SatkarmaStatus>(() => {
-    try {
-      if (typeof window !== "undefined") {
-        const saved = localStorage.getItem(storageKey);
-        if (saved === "yes" || saved === "not_yet" || saved === "no") return saved;
-      }
-    } catch {}
-    return null;
-  });
+  // Local state for user check-in response & DB visibility guard
+  const [status, setStatus] = useState<SatkarmaStatus>(null);
+  const [isVisible, setIsVisible] = useState<boolean>(true);
+  const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
 
-  // Calculate live hours and minutes left until midnight today
-  const [timeLeft, setTimeLeft] = useState<{ hours: number; minutes: number }>(() => calculateTimeLeftToday());
-
+  // Check DB on load for today's dismissal / 3-hour snooze
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(calculateTimeLeftToday());
-    }, 60000);
-    return () => clearInterval(timer);
-  }, []);
-
-  function calculateTimeLeftToday(): { hours: number; minutes: number } {
-    const now = new Date();
-    const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
-    const diffMs = Math.max(0, midnight.getTime() - now.getTime());
-    const hours = Math.floor(diffMs / (1000 * 60 * 60));
-    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-    return { hours, minutes };
-  }
-
-  const handleSelect = (choice: SatkarmaStatus) => {
-    setStatus(choice);
-    try {
-      if (typeof window !== "undefined" && choice) {
-        localStorage.setItem(storageKey, choice);
-      } else if (typeof window !== "undefined") {
-        localStorage.removeItem(storageKey);
+    let isMounted = true;
+    const checkVisibility = async () => {
+      const canShow = await shouldShowDailySatkarmaCard(ymd, userId);
+      if (isMounted) {
+        setIsVisible(canShow);
       }
-    } catch {}
+    };
+    void checkVisibility();
+    return () => {
+      isMounted = false;
+    };
+  }, [ymd, userId]);
+
+  const handleSelect = async (choice: SatkarmaStatus) => {
+    if (!choice) return;
+    setStatus(choice);
+
+    const actionType: SatkarmaActionType =
+      choice === "yes" ? "done" : choice === "not_yet" ? "maybe_later" : "no";
+
+    const deedTitle = satkarma.title[lang] || satkarma.title.kn;
+
+    // Record action silently into DB (Punya Butte +1 or Karma Butte +1 or 3-hour snooze)
+    await recordSatkarmaAction(actionType, deedTitle, ymd, userId, devoteeToken);
+
+    if (choice === "yes") {
+      setFeedbackMessage(
+        lang === "kn"
+          ? "ಅದ್ಭುತ! ಇಂದಿನ ಪುಣ್ಯ ಕಾರ್ಯ ಸಂಪನ್ನಗೊಂಡಿದೆ. ನಿಮ್ಮ ಪುಣ್ಯ ಬುಟ್ಟಿ ಭರ್ತಿಯಾಗಿದೆ! 🌸"
+          : "Wonderful! Good deed accomplished today. Punya recorded! 🌸"
+      );
+      // Dismiss for the rest of today after 2.5 seconds
+      setTimeout(() => {
+        setIsVisible(false);
+      }, 2500);
+    } else if (choice === "not_yet") {
+      setFeedbackMessage(
+        lang === "kn"
+          ? "ಸರಿ, ೩ ಗಂಟೆಗಳ ನಂತರ ಮತ್ತೆ ನೆನಪಿಸಲಾಗುವುದು (3 Hours Reminder set in DB) ⏳"
+          : "Okay, we will remind you in 3 hours ⏳"
+      );
+      // Dismiss immediately / after short confirmation for 3 hours
+      setTimeout(() => {
+        setIsVisible(false);
+      }, 2000);
+    } else if (choice === "no") {
+      setFeedbackMessage(
+        lang === "kn"
+          ? "ಚಿಂತಿಸಬೇಡಿ, ನಾಳೆಯಿಂದ ಈ ಸತ್ಕರ್ಮವನ್ನು ಆಚರಿಸಿ (Karma entry logged) 🌿"
+          : "No worries, make a fresh start tomorrow 🌿"
+      );
+      // Dismiss for the rest of today after 2 seconds
+      setTimeout(() => {
+        setIsVisible(false);
+      }, 2200);
+    }
   };
 
+  // If card is dismissed for the day or snoozed for 3h, render null
+  if (!isVisible) {
+    return null;
+  }
+
   // Translated question texts
-  const questionLabel = useMemo(() => {
-    switch (lang) {
-      case "hi": return "क्या आपने आज यह सरल सत्कर्म किया?";
-      case "te": return "మీరు ఈ రోజు ఈ సత్కర్మను ఆచరించారా?";
-      case "ta": return "இன்று நீங்கள் இந்த நற்செயலைச் செய்தீர்களா?";
-      case "en": return "Have you practiced this simple good deed today?";
-      default: return "ನೀವು ಇಂದು ಈ ಪುಟ್ಟ ಸತ್ಕರ್ಮವನ್ನು ಆಚರಿಸಿದಿರಾ?";
-    }
-  }, [lang]);
+  const questionLabel = lang === "hi"
+    ? "क्या आपने आज यह सरल सत्कर्म किया?"
+    : lang === "te"
+    ? "మీరు ఈ రోజు ఈ సత్కర్మను ఆచరించారా?"
+    : lang === "ta"
+    ? "இன்று நீங்கள் இந்த நற்செயலைச் செய்தீர்களா?"
+    : lang === "en"
+    ? "Have you practiced this simple good deed today?"
+    : "ನೀವು ಇಂದು ಈ ಪುಟ್ಟ ಸತ್ಕರ್ಮವನ್ನು ಆಚರಿಸಿದಿರಾ?";
 
-  const headerTitle = useMemo(() => {
-    switch (lang) {
-      case "hi": return "ಇಂದಿನ ಸತ್ಕರ್ಮ / आज का शुभ सत्कर्म अभ्यास";
-      case "te": return "ಇಂದಿನ ಸತ್ಕರ್ಮ / నేటి సత్కర్మ సంకల్పం";
-      case "ta": return "ಇಂದಿನ ಸತ್ಕರ್ಮ / இன்றைய நற்செயல் பயிற்சி";
-      case "en": return "Daily Good Karma Practice (ಇಂದಿನ ಸತ್ಕರ್ಮ)";
-      default: return "॥ ಇಂದಿನ ಸತ್ಕರ್ಮ ಆಚರಣೆ ॥ (Daily Good Deed)";
-    }
-  }, [lang]);
+  const headerTitle = lang === "hi"
+    ? "ಇಂದಿನ ಸತ್ಕರ್ಮ / आज का शुभ सत्कर्म अभ्यास"
+    : lang === "te"
+    ? "ಇಂದಿನ ಸತ್ಕರ್ಮ / నేటి సత్కర్మ సంకల్పం"
+    : lang === "ta"
+    ? "ಇಂದಿನ ಸತ್ಕರ್ಮ / இன்றைய நற்செயல் பயிற்சி"
+    : lang === "en"
+    ? "Daily Good Karma Practice (ಇಂದಿನ ಸತ್ಕರ್ಮ)"
+    : "॥ ಇಂದಿನ ಸತ್ಕರ್ಮ ಆಚರಣೆ ॥ (DAILY GOOD DEED)";
 
-  const buttonLabels = useMemo(() => {
-    return {
-      yes: lang === "kn" ? "✨ ಹೌದು (Done)" : lang === "hi" ? "✨ हाँ (किया)" : lang === "te" ? "✨ చేశాను (Yes)" : lang === "ta" ? "✨ ஆம் (செய்தேன்)" : "✨ Yes (Done)",
-      not_yet: lang === "kn" ? "⏳ ಇನ್ನೂ ಇಲ್ಲ (Still Not Yet)" : lang === "hi" ? "⏳ अभी नहीं (Not Yet)" : lang === "te" ? "⏳ ఇంకా లేదు (Not Yet)" : lang === "ta" ? "⏳ இன்னும் இல்லை (Not Yet)" : "⏳ Still Not Yet",
-      no: lang === "kn" ? "🌿 ಇಂದು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ (No)" : lang === "hi" ? "🌿 आज नहीं हो पाया (No)" : lang === "te" ? "🌿 ఈ రోజు కుదరలేదు (No)" : lang === "ta" ? "🌿 இன்று இயலவில்லை (No)" : "🌿 Not Today"
-    };
-  }, [lang]);
+  const buttonLabels = {
+    yes: lang === "kn" ? "✨ ಹೌದು (Done)" : lang === "hi" ? "✨ हाँ (किया)" : lang === "te" ? "✨ చేశాను (Yes)" : lang === "ta" ? "✨ ஆம் (செய்தேன்)" : "✨ Yes (Done)",
+    not_yet: lang === "kn" ? "⏳ ಇನ್ನೂ ಇಲ್ಲ (Still Not Yet)" : lang === "hi" ? "⏳ अभी नहीं (Not Yet)" : lang === "te" ? "⏳ ఇంకా లేదు (Not Yet)" : lang === "ta" ? "⏳ இன்னும் இல்லை (Not Yet)" : "⏳ Still Not Yet",
+    no: lang === "kn" ? "🌿 ಇಂದು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ (No)" : lang === "hi" ? "🌿 आज नहीं हो पाया (No)" : lang === "te" ? "🌿 ఈ రోజు కుదరలేదు (No)" : lang === "ta" ? "🌿 இன்று இயலவில்லை (No)" : "🌿 Not Today"
+  };
 
   return (
     <div style={{
@@ -348,224 +385,115 @@ export const DailySatkarmaPracticeCard: React.FC<DailySatkarmaPracticeCardProps>
       {/* Main Good Deed Description */}
       <div style={{
         background: "rgba(0, 0, 0, 0.35)",
-        border: "1px solid rgba(253, 230, 138, 0.25)",
         borderRadius: 14,
         padding: "12px 14px",
-        marginBottom: 14
+        border: "1px solid rgba(251, 191, 36, 0.3)",
+        marginBottom: 12
       }}>
-        <div style={{ fontSize: 15, fontWeight: 900, color: "#FFFFFF", marginBottom: 6 }}>
-          🌟 {satkarma.title[lang] || satkarma.title.kn}
+        <div style={{ fontSize: 14, fontWeight: 900, color: "#FFFFFF", marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
+          <span>⭐</span>
+          <span>{satkarma.title[lang] || satkarma.title.kn}</span>
         </div>
-        <div style={{ fontSize: 13, color: "#FEF3C7", lineHeight: 1.5, marginBottom: 8 }}>
+        <div style={{ fontSize: 12.5, color: "#FEF3C7", lineHeight: 1.55, marginBottom: 8 }}>
           {satkarma.action[lang] || satkarma.action.kn}
         </div>
-        <div style={{ fontSize: 11, color: "#A7F3D0", fontStyle: "italic", display: "flex", alignItems: "center", gap: 5 }}>
+        <div style={{ fontSize: 11.5, color: "#86EFAC", fontWeight: 700, display: "flex", alignItems: "center", gap: 6, borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: 6 }}>
           <span>💎 {lang === "kn" ? "ಫಲ:" : "Benefit:"}</span>
           <span>{satkarma.benefit[lang] || satkarma.benefit.kn}</span>
         </div>
       </div>
 
-      {/* Interactive Check-in Area */}
-      <div>
-        <div style={{ fontSize: 12, fontWeight: 800, color: "#FDE68A", marginBottom: 10, textAlign: "center" }}>
-          ❓ {questionLabel}
-        </div>
-
-        {/* 3 Buttons */}
+      {/* Confirmation / Feedback Message banner if clicked */}
+      {feedbackMessage ? (
         <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
-          gap: 8,
-          marginBottom: status ? 12 : 0
+          background: status === "yes" ? "rgba(16, 185, 129, 0.25)" : "rgba(245, 158, 11, 0.25)",
+          border: status === "yes" ? "1px solid #34D399" : "1px solid #FDE68A",
+          borderRadius: 12,
+          padding: "10px 14px",
+          textAlign: "center",
+          color: "#FEF3C7",
+          fontSize: 13,
+          fontWeight: 800,
+          animation: "pulse 1.5s infinite"
         }}>
-          {/* Button 1: Yes */}
-          <button
-            onClick={() => handleSelect("yes")}
-            style={{
-              background: status === "yes"
-                ? "linear-gradient(135deg, #10B981, #047857)"
-                : "rgba(255, 255, 255, 0.08)",
-              color: status === "yes" ? "#FFFFFF" : "#D1FAE5",
-              border: status === "yes" ? "2px solid #6EE7B7" : "1px solid rgba(110, 231, 183, 0.3)",
-              padding: "10px 4px",
-              borderRadius: 12,
-              fontSize: 11,
-              fontWeight: 800,
-              cursor: "pointer",
-              textAlign: "center",
-              boxShadow: status === "yes" ? "0 4px 14px rgba(16, 185, 129, 0.4)" : "none",
-              transition: "all 0.2s"
-            }}
-          >
-            {buttonLabels.yes}
-          </button>
-
-          {/* Button 2: Still Not Yet */}
-          <button
-            onClick={() => handleSelect("not_yet")}
-            style={{
-              background: status === "not_yet"
-                ? "linear-gradient(135deg, #D97706, #B45309)"
-                : "rgba(255, 255, 255, 0.08)",
-              color: status === "not_yet" ? "#FFFFFF" : "#FDE68A",
-              border: status === "not_yet" ? "2px solid #FDE68A" : "1px solid rgba(253, 230, 138, 0.3)",
-              padding: "10px 4px",
-              borderRadius: 12,
-              fontSize: 11,
-              fontWeight: 800,
-              cursor: "pointer",
-              textAlign: "center",
-              boxShadow: status === "not_yet" ? "0 4px 14px rgba(217, 119, 6, 0.4)" : "none",
-              transition: "all 0.2s"
-            }}
-          >
-            {buttonLabels.not_yet}
-          </button>
-
-          {/* Button 3: No */}
-          <button
-            onClick={() => handleSelect("no")}
-            style={{
-              background: status === "no"
-                ? "linear-gradient(135deg, #4F46E5, #3730A3)"
-                : "rgba(255, 255, 255, 0.08)",
-              color: status === "no" ? "#FFFFFF" : "#C7D2FE",
-              border: status === "no" ? "2px solid #A5B4FC" : "1px solid rgba(165, 180, 252, 0.3)",
-              padding: "10px 4px",
-              borderRadius: 12,
-              fontSize: 11,
-              fontWeight: 800,
-              cursor: "pointer",
-              textAlign: "center",
-              boxShadow: status === "no" ? "0 4px 14px rgba(79, 70, 229, 0.4)" : "none",
-              transition: "all 0.2s"
-            }}
-          >
-            {buttonLabels.no}
-          </button>
+          {feedbackMessage}
         </div>
+      ) : (
+        <>
+          {/* Question Prompt */}
+          <div style={{ textAlign: "center", marginBottom: 10, fontSize: 12.5, fontWeight: 800, color: "#FDE68A" }}>
+            ❓ {questionLabel}
+          </div>
 
-        {/* Dynamic Response Box */}
-        {status === "yes" && (
-          <div style={{
-            background: "rgba(6, 78, 59, 0.85)",
-            border: "1.5px solid #34D399",
-            borderRadius: 12,
-            padding: "12px 14px",
-            textAlign: "center"
-          }}>
-            <div style={{ fontSize: 18, marginBottom: 4 }}>🌸 🪔 🌸</div>
-            <div style={{ fontSize: 13, fontWeight: 900, color: "#A7F3D0", marginBottom: 4 }}>
-              {lang === "kn" ? "ಅದ್ಭುತ! ಸತ್ಕರ್ಮ ಸಂಪನ್ನಗೊಂಡಿದೆ" : "Wonderful! Good Deed Accomplished"}
-            </div>
-            <div style={{ fontSize: 12, color: "#ECFDF5", lineHeight: 1.4 }}>
-              {lang === "kn"
-                ? "ನಿಮ್ಮ ಈ ಸಣ್ಣ ಪುಣ್ಯಕರ್ಮ ನಿಮ್ಮ ಬದುಕಿಗೆ ಸಕಾರಾತ್ಮಕ ಶಕ್ತಿ, ನೆಮ್ಮದಿ ಮತ್ತು ಭಗವಂತನ ಕೃಪೆಯನ್ನು ತರಲಿ. ಸತ್ಕರ್ಮದ ಫಲ ನಿಮ್ಮೊಂದಿಗೆ ಸದಾ ಇರಲಿ!"
-                : lang === "hi"
-                ? "आपका यह सत्कर्म आपके जीवन में शांति, सकारात्मक ऊर्जा और ईश्वर का आशीर्वाद लाए!"
-                : lang === "te"
-                ? "మీ ఈ సత్కర్మ మీ జీవితంలో ప్రశాంతత, సానుకూల శక్తి మరియు దైవానుగ్రహాన్ని తెస్తుంది!"
-                : lang === "ta"
-                ? "உங்கள் இந்த நற்செயல் உங்கள் வாழ்வில் அமைதியையும் நேர்மறை ஆற்றலையும் சேர்க்கட்டும்!"
-                : "Your simple good deed radiates peaceful energy and accumulates spiritual blessings for you and your family!"}
-            </div>
+          {/* 3-Button Interactive Check-in */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
             <button
-              onClick={() => handleSelect(null)}
+              type="button"
+              onClick={() => handleSelect("yes")}
               style={{
-                marginTop: 8,
-                background: "transparent",
-                border: "none",
-                color: "#6EE7B7",
-                fontSize: 10,
-                textDecoration: "underline",
-                cursor: "pointer"
+                background: "linear-gradient(135deg, #10B981, #059669)",
+                color: "#FFFFFF",
+                border: "1.5px solid #34D399",
+                borderRadius: 12,
+                padding: "8px 4px",
+                fontSize: 11.5,
+                fontWeight: 900,
+                cursor: "pointer",
+                boxShadow: "0 2px 8px rgba(16, 185, 129, 0.35)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                textAlign: "center"
               }}
             >
-              {lang === "kn" ? "ಬದಲಾಯಿಸಿ (Undo)" : "Change response"}
+              <span>{buttonLabels.yes}</span>
             </button>
-          </div>
-        )}
 
-        {status === "not_yet" && (
-          <div style={{
-            background: "rgba(120, 53, 15, 0.85)",
-            border: "1.5px solid #FBBF24",
-            borderRadius: 12,
-            padding: "12px 14px",
-            textAlign: "center"
-          }}>
-            <div style={{ fontSize: 14, fontWeight: 900, color: "#FDE68A", marginBottom: 4 }}>
-              ⏳ {lang === "kn"
-                ? `ಇಂದಿನ ದಿನ ಮುಗಿಯಲು ಇನ್ನೂ ${timeLeft.hours} ಗಂಟೆ ${timeLeft.minutes} ನಿಮಿಷ ಬಾಕಿ ಇದೆ!`
-                : `You still have ${timeLeft.hours}h ${timeLeft.minutes}m left today!`}
-            </div>
-            <div style={{ fontSize: 12, color: "#FEF3C7", lineHeight: 1.4 }}>
-              {lang === "kn"
-                ? "ಚಿಂತಿಸಬೇಡಿ! ದಿನ ಮುಗಿಯಲು ಇನ್ನೂ ಸಾಕಷ್ಟು ಸಮಯವಿದೆ. ನೀವು ಖಂಡಿತ ಇದನ್ನು ಮಾಡಬಲ್ಲಿರಿ, ನನಗೆ ನಿಮ್ಮ ಮೇಲೆ ನಂಬಿಕೆಯಿದೆ. ಈಗಲೇ 1 ನಿಮಿಷದಲ್ಲಿ ಈ ಪುಟ್ಟ ಕಾರ್ಯ ಮಾಡಿ ದಿನವನ್ನು ಸಾರ್ಥಕಗೊಳಿಸಿ! ✨"
-                : lang === "hi"
-                ? "चिंता न करें! दिन समाप्त होने में अभी पर्याप्त समय है। आप इसे अवश्य कर सकते हैं। बस 1 मिनट में यह सरल कार्य पूरा करें! ✨"
-                : lang === "te"
-                ? "చింతించకండి! ఇంకా సమయం ఉంది. మీరు ఖచ్చితంగా చేయగలరు. ఈ రోజే ఈ చిన్న మంచి పనిని పూర్తి చేయండి! ✨"
-                : lang === "ta"
-                ? "கவலைப்படாதீர்கள்! இன்னும் நேரம் உள்ளது. நீங்கள் இதை நிச்சயம் செய்வீர்கள். 1 நிமிடத்தில் செய்து முடியுங்கள்! ✨"
-                : "No worries at all! There is plenty of time left today. I know you can do this, and I know you will. Take a quick moment to do this simple good deed! ✨"}
-            </div>
             <button
-              onClick={() => handleSelect(null)}
+              type="button"
+              onClick={() => handleSelect("not_yet")}
               style={{
-                marginTop: 8,
-                background: "transparent",
-                border: "none",
+                background: "linear-gradient(135deg, #F59E0B, #D97706)",
+                color: "#1C0A00",
+                border: "1.5px solid #FDE68A",
+                borderRadius: 12,
+                padding: "8px 4px",
+                fontSize: 11.5,
+                fontWeight: 900,
+                cursor: "pointer",
+                boxShadow: "0 2px 8px rgba(245, 158, 11, 0.35)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                textAlign: "center"
+              }}
+            >
+              <span>{buttonLabels.not_yet}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleSelect("no")}
+              style={{
+                background: "rgba(255, 255, 255, 0.12)",
                 color: "#FDE68A",
-                fontSize: 10,
-                textDecoration: "underline",
-                cursor: "pointer"
+                border: "1px solid rgba(251, 191, 36, 0.4)",
+                borderRadius: 12,
+                padding: "8px 4px",
+                fontSize: 11.5,
+                fontWeight: 800,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                textAlign: "center"
               }}
             >
-              {lang === "kn" ? "ಬದಲಾಯಿಸಿ (Undo)" : "Change response"}
+              <span>{buttonLabels.no}</span>
             </button>
           </div>
-        )}
-
-        {status === "no" && (
-          <div style={{
-            background: "rgba(49, 46, 129, 0.85)",
-            border: "1.5px solid #A5B4FC",
-            borderRadius: 12,
-            padding: "12px 14px",
-            textAlign: "center"
-          }}>
-            <div style={{ fontSize: 14, fontWeight: 900, color: "#E0E7FF", marginBottom: 4 }}>
-              🌿 {lang === "kn" ? "ಪರವಾಗಿಲ್ಲ! ನಾಳೆ ಹೊಸ ಆರಂಭ" : "That's completely fine! Tomorrow is a fresh start"}
-            </div>
-            <div style={{ fontSize: 12, color: "#C7D2FE", lineHeight: 1.4 }}>
-              {lang === "kn"
-                ? "ಇಂದು ಸಾಧ್ಯವಾಗದಿದ್ದರೆ ಚಿಂತಿಸಬೇಡಿ. ನಾಳೆಯಿಂದ ಈ ಸತ್ಕರ್ಮವನ್ನು ಅಭ್ಯಾಸ ಮಾಡಿ — ಇದು ಇತರರಿಗಷ್ಟೇ ಅಲ್ಲ, ನಿಮ್ಮ ಮನಸ್ಸಿಗೂ ಅಪಾರ ಆಂತರಿಕ ಶಾಂತಿ, ಶಕ್ತಿ ಮತ್ತು ಸಕಾರಾತ್ಮಕತೆಯನ್ನು ತರುತ್ತದೆ! 🌸"
-                : lang === "hi"
-                ? "आज संभव नहीं हुआ तो कोई बात नहीं। कल से प्रयास करें — यह आपके मन को भी असीम शांति और आत्मबल देगा! 🌸"
-                : lang === "te"
-                ? "ఈ రోజు కుదరకపోతే పర్వాలేదు. రేపటి నుండి ప్రయత్నించండి — ఇది మీ మనస్సుకు ఎంతో ప్రశాంతతను మరియు శక్తిని ఇస్తుంది! 🌸"
-                : lang === "ta"
-                ? "இன்று முடியாவிட்டால் பரவாயில்லை. நாளையிலிருந்து தொடங்குங்கள் — இது உங்கள் மனதுக்கும் அமைதியைத் தரும்! 🌸"
-                : "Don't worry if it wasn't possible today. Tomorrow is a fresh opportunity. Practicing this brings immense inner peace and strength to you as well! 🌸"}
-            </div>
-            <button
-              onClick={() => handleSelect(null)}
-              style={{
-                marginTop: 8,
-                background: "transparent",
-                border: "none",
-                color: "#A5B4FC",
-                fontSize: 10,
-                textDecoration: "underline",
-                cursor: "pointer"
-              }}
-            >
-              {lang === "kn" ? "ಬದಲಾಯಿಸಿ (Undo)" : "Change response"}
-            </button>
-          </div>
-        )}
-      </div>
+        </>
+      )}
     </div>
   );
 };
