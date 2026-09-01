@@ -64,6 +64,9 @@ export type RhythmDay = {
   /** 1..15 within the paksha. */
   tithiInPaksha: number;
   paksha: "shukla" | "krishna";
+  majorityTithiNumber?: number;
+  majorityTithiInPaksha?: number;
+  majorityPaksha?: "shukla" | "krishna";
   tithiGroup: TithiGroup;
 
   tara: TaraResult;

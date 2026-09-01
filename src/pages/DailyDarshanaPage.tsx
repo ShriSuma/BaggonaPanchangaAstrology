@@ -1108,17 +1108,34 @@ export default function DailyDarshanaPage(): JSX.Element {
     return (resolvedTokenData?.payload as any) || initialDecoded;
   }, [resolvedTokenData, initialDecoded]);
 
+  const isPriest = useMemo(() => {
+    return (
+      (decoded as any)?.role === "priest" ||
+      (decoded as any)?.isPriest === true ||
+      params.get("role") === "priest" ||
+      params.get("priestAuth") === "true"
+    );
+  }, [decoded, params]);
+
   const dateParam = useMemo(() => {
-    const urlDate = params.get("date") || decoded?.d;
-    if (urlDate && urlDate.trim().length > 0) return urlDate.trim();
     // Location-based local date calculation using user's longitude
     const userLongitude = decoded?.lg ?? decoded?.lng ?? 74.3187;
     const now = new Date();
     const localOffsetMinutes = Math.round(userLongitude * 4);
     const utcMs = now.getTime() + (now.getTimezoneOffset() * 60000);
     const localTime = new Date(utcMs + (localOffsetMinutes * 60000));
-    return localTime.toISOString().split("T")[0];
-  }, [params, decoded]);
+    const todayStr = localTime.toISOString().split("T")[0];
+
+    // Devotees: Strictly locked to TODAY's date (cannot jump into future dates)
+    if (!isPriest) {
+      return todayStr;
+    }
+
+    // Priests: Allowed to preview/inspect specific calendar dates
+    const urlDate = params.get("date") || decoded?.d;
+    if (urlDate && urlDate.trim().length > 0) return urlDate.trim();
+    return todayStr;
+  }, [params, decoded, isPriest]);
 
   const langParam = (decoded?.l || params.get("lang") || "kn") as SevaLang;
   const nameParam = decoded?.n || params.get("name") || "";

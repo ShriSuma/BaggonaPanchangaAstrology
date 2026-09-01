@@ -292,13 +292,16 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
         ref={cardRef}
         data-blessing-card="true"
         style={{
-          background: bgConfig.gradientCss,
+          backgroundImage: `linear-gradient(180deg, rgba(14, 5, 1, 0.68) 0%, rgba(22, 8, 2, 0.82) 40%, rgba(10, 3, 0, 0.92) 100%), url(${bgConfig.posterImageUrl})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center top",
+          backgroundRepeat: "no-repeat",
           border: `2.5px solid ${bgConfig.borderGold || "#D4AF37"}`,
           borderRadius: "22px",
           padding: "22px 18px 20px 18px",
           position: "relative",
           overflow: "hidden",
-          boxShadow: "0 14px 40px rgba(0,0,0,0.75)",
+          boxShadow: "0 14px 40px rgba(0,0,0,0.85)",
           textAlign: "center",
           maxWidth: "580px",
           margin: "0 auto 16px",

@@ -67,4 +67,14 @@ describe("Daily Darshana Roja & Swayam Naik Token Verification", () => {
     expect(bhukti?.maha.planet).toBe("Saturn");
     expect(bhukti?.bhukti).toBe("Mercury");
   });
+
+  it("evaluates majority dominant Tithi for 2026-09-01 as Krishna Paksha Panchami", async () => {
+    const { calculateDeterministicRhythmDay } = await import("../features/seva/icsCalendarGenerator");
+    const { tithiLabel } = await import("../features/seva/sevaPresentation");
+    const rhythmDay = calculateDeterministicRhythmDay("2026-09-01", 0, 0);
+    const labelKn = tithiLabel(rhythmDay, "kn");
+    expect(labelKn).toContain("ಪಂಚಮಿ");
+    expect(labelKn).toContain("ಕೃಷ್ಣ ಪಕ್ಷ");
+  });
 });
+
