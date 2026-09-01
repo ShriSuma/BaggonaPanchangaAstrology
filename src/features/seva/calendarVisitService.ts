@@ -22,6 +22,7 @@ import {
 } from "firebase/firestore";
 import { saveKundliToFirestore, type KundliHistoryDoc } from "../../db/firestoreDb";
 import type { KundliOutput } from "../../core/AstroTypes";
+import { isTestEnvironment, isMockDevotee } from "../../utils/testEnvGuard";
 
 export interface CalendarVisitRecord {
   id?: string;
@@ -110,34 +111,56 @@ export function checkPassExpiration(
 
 /**
  * Record a calendar click/visit event into Firestore & update 90-day engagement metrics.
+ * Features strict deduplication and test-environment protection.
  */
 export async function recordCalendarVisit(params: CalendarVisitRecord): Promise<void> {
   try {
+    // 0. Protection against test suite execution polluting live database
+    if (isTestEnvironment() || isMockDevotee(params.tokenIdentifier) || isMockDevotee(params.devoteeName)) {
+      return;
+    }
+
     if (!firestore) return;
 
     const tokenKey = (params.tokenIdentifier || "guest").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 40);
-    const visitId = `visit_${tokenKey}_${params.dateClicked}_${Date.now()}`;
-    const cleanRecord = {
-      ...params,
-      id: visitId,
-      timestamp: new Date().toISOString()
-    };
+    const visitDate = params.actualDate || new Date().toISOString().split("T")[0];
+    const clickDate = params.dateClicked || visitDate;
+    const visitId = `visit_${tokenKey}_${visitDate}_${clickDate}`;
+    const nowIso = new Date().toISOString();
 
-    // 1. Log discrete visit record
+    // 1. Log or update canonical visit record (deduplicated per devotee per date)
     const visitDocRef = doc(firestore, "calendarVisits", visitId);
-    await setDoc(visitDocRef, cleanRecord);
+    const visitSnap = await getDoc(visitDocRef);
+
+    if (visitSnap.exists()) {
+      const prevData = visitSnap.data();
+      await updateDoc(visitDocRef, {
+        hitCount: (Number(prevData.hitCount) || 1) + 1,
+        lastVisitAt: nowIso,
+        tabVisited: params.tabVisited || prevData.tabVisited,
+        lang: params.lang || prevData.lang,
+        updatedAt: nowIso
+      });
+    } else {
+      const cleanRecord = {
+        ...params,
+        id: visitId,
+        hitCount: 1,
+        firstVisitAt: nowIso,
+        lastVisitAt: nowIso,
+        timestamp: nowIso
+      };
+      await setDoc(visitDocRef, cleanRecord);
+    }
 
     // 2. Update aggregate engagement document for this devotee
     const engDocRef = doc(firestore, "calendarDevoteeEngagement", tokenKey);
     const engSnap = await getDoc(engDocRef);
 
-    const nowIso = new Date().toISOString();
     if (engSnap.exists()) {
       const existing = engSnap.data() as DevoteeCalendarEngagementDoc;
-      const visitedDates = Array.isArray(existing.visitedDates) ? [...existing.visitedDates] : [];
-      if (!visitedDates.includes(params.dateClicked)) {
-        visitedDates.push(params.dateClicked);
-      }
+      const rawVisited = Array.isArray(existing.visitedDates) ? existing.visitedDates : [];
+      const visitedDates = Array.from(new Set([...rawVisited, clickDate]));
 
       const passStatus = checkPassExpiration(existing.startDate, 90);
 
@@ -150,7 +173,7 @@ export async function recordCalendarVisit(params: CalendarVisitRecord): Promise<
         updatedAt: nowIso
       });
     } else {
-      const startDate = params.dateClicked || new Date().toISOString().split("T")[0];
+      const startDate = clickDate || visitDate;
       const passStatus = checkPassExpiration(startDate, 90);
 
       const newEngDoc: DevoteeCalendarEngagementDoc = {
@@ -158,7 +181,7 @@ export async function recordCalendarVisit(params: CalendarVisitRecord): Promise<
         devoteeName: params.devoteeName || "Devotee",
         totalHits: 1,
         uniqueDaysVisitedCount: 1,
-        visitedDates: [params.dateClicked],
+        visitedDates: [clickDate],
         startDate,
         expiryDate: passStatus.expiryDate,
         isExpired: passStatus.isExpired,
@@ -209,6 +232,7 @@ export async function syncDevoteeKundliOnVisit(params: {
     } = params;
 
     if (!devoteeName || !birthDate || !birthTime) return;
+    if (isTestEnvironment() || isMockDevotee(devoteeName)) return;
 
     const cleanName = devoteeName.trim();
     const cleanDob = birthDate.trim();
@@ -405,7 +429,7 @@ export async function recordPoojaSankalpaCompleted(
 
   // Cloud Firestore Sync (Non-blocking across users, devoteeStreaks, and devoteePoojaSankalpas)
   try {
-    if (firestore) {
+    if (!isTestEnvironment() && !isMockDevotee(devoteeKey) && !isMockDevotee(devoteeName) && firestore) {
       // 1. Log daily discrete sankalpa record
       const sankalpaRef = doc(firestore, "devoteePoojaSankalpas", `sankalpa_${devoteeKey}_${today}`);
       void setDoc(sankalpaRef, {

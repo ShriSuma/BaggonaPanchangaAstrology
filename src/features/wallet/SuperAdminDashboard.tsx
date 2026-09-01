@@ -21,6 +21,7 @@ import {
   syncUserProfile,
   getUserProfile,
   cleanupDuplicateKundlis,
+  cleanupDuplicateCalendarVisitsAndEngagement,
   updateUserAllowedModules,
   deletePriestAccount
 } from "../../db/firestoreDb";
@@ -74,6 +75,7 @@ import {
   type VoiceCloneProvider
 } from "../audio/aiVoiceCloneEngine";
 import type { SevaLang } from "../seva/sevaLocale";
+import { SarvamAiUsageGrid } from "../../components/audio/SarvamAiUsageGrid";
 
 
 export type AdminTab = "wallets" | "kundlis" | "ashirvada" | "audit" | "mindmap" | "panchanga_engine" | "voice_db";
@@ -750,6 +752,28 @@ export const SuperAdminDashboard: React.FC = () => {
     }
   };
 
+  const handleDeduplicateCalendarVisits = async () => {
+    setIsDeduplicating(true);
+    try {
+      const { removedCount } = await cleanupDuplicateCalendarVisitsAndEngagement();
+      if (removedCount > 0) {
+        setFeedback({
+          type: "success",
+          text: `ಕ್ಯಾಲೆಂಡರ್ ಡೇಟಾಬೇಸ್ ಶುದ್ಧೀಕರಣ ಯಶಸ್ವಿ: ${removedCount} ನಕಲಿ ಮತ್ತು ಟೆಸ್ಟ್ ದಾಖಲೆಗಳನ್ನು ತೆರವುಗೊಳಿಸಲಾಗಿದೆ.`
+        });
+      } else {
+        setFeedback({
+          type: "success",
+          text: "ಕ್ಯಾಲೆಂಡರ್ ಡೇಟಾಬೇಸ್ ಶುದ್ಧವಾಗಿದೆ: ಯಾವುದೇ ನಕಲಿ ಅಥವಾ ಟೆಸ್ಟ್ ದಾಖಲೆಗಳು ಕಂಡುಬಂದಿಲ್ಲ."
+        });
+      }
+    } catch {
+      setFeedback({ type: "error", text: "ಕ್ಯಾಲೆಂಡರ್ ದಾಖಲೆಗಳನ್ನು ತೆರವುಗೊಳಿಸುವಾಗ ದೋಷ ಸಂಭವಿಸಿದೆ." });
+    } finally {
+      setIsDeduplicating(false);
+    }
+  };
+
   const handleCreatePriestSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newPriestName.trim() || !newPriestUsername.trim()) {
@@ -1311,6 +1335,9 @@ export const SuperAdminDashboard: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Sarvam AI Voice Quota & Telemetry Sentinel Grid */}
+      <SarvamAiUsageGrid className="mb-4" />
 
       {/* 3. 360° VISUAL TELEMETRY METERS & GAUGES GRID */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-3.5">
@@ -2125,16 +2152,28 @@ export const SuperAdminDashboard: React.FC = () => {
               </p>
             </div>
 
-            {ashirvadaPasses.length > 0 && (
+            <div className="flex items-center gap-2 flex-wrap">
               <button
                 type="button"
-                onClick={handleClearAllPasses}
-                className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-900 border border-red-300 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-sm"
+                disabled={isDeduplicating}
+                onClick={handleDeduplicateCalendarVisits}
+                className="px-3 py-1.5 bg-purple-100 hover:bg-purple-200 text-purple-950 border-2 border-purple-300 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-sm"
               >
-                <span>🗑️</span>
-                <span>ಎಲ್ಲಾ ಮಾದರಿ ಪಾಸ್‌ಗಳನ್ನು ತೆರವುಗೊಳಿಸಿ (Clear All Passes)</span>
+                <span>🧹</span>
+                <span>{isDeduplicating ? "ಶುದ್ಧೀಕರಿಸಲಾಗುತ್ತಿದೆ..." : "ಡ್ಯೂಪ್ಲಿಕೇಟ್ & ಟೆಸ್ಟ್ ದಾಖಲೆ ತೆರವುಗೊಳಿಸಿ"}</span>
               </button>
-            )}
+
+              {ashirvadaPasses.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleClearAllPasses}
+                  className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-900 border border-red-300 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-sm"
+                >
+                  <span>🗑️</span>
+                  <span>ಎಲ್ಲಾ ಮಾದರಿ ಪಾಸ್‌ಗಳನ್ನು ತೆರವುಗೊಳಿಸಿ (Clear All Passes)</span>
+                </button>
+              )}
+            </div>
           </div>
 
           {ashirvadaPasses.length === 0 ? (
@@ -3428,6 +3467,9 @@ export const SuperAdminDashboard: React.FC = () => {
                   </button>
                 </div>
               )}
+
+              {/* Sarvam AI Quota Sentinel */}
+              <SarvamAiUsageGrid className="my-3" />
 
               {/* Live Interactive Voice Clone Tester Studio */}
               <div className="p-4 bg-gradient-to-r from-[#2A1205] to-[#1F0D04] rounded-2xl border-2 border-amber-400/80 space-y-4 shadow-xl">

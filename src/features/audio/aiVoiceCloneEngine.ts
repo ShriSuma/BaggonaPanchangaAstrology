@@ -17,6 +17,7 @@ import {
   isPlaybackTokenActive,
   registerActiveAudio
 } from "./globalAudioManager";
+import { recordSarvamAudioUsage } from "./sarvamQuotaService";
 
 export type VoiceCloneProvider = "master_recording" | "sarvam_ai" | "elevenlabs" | "huggingface_xtts" | "web_dsp";
 
@@ -285,6 +286,9 @@ async function fetchSarvamAITTS(
 
   const data = await response.json();
   if (data?.audios && data.audios.length > 0 && data.audios[0]) {
+    // Record character consumption & check for < 10% critical email alert
+    void recordSarvamAudioUsage(text.length, text.slice(0, 100));
+
     const base64Audio = data.audios[0];
     return `data:audio/wav;base64,${base64Audio}`;
   }

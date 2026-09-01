@@ -8,7 +8,8 @@ import {
   renderDailyPriestUsageSummaryEmail,
   renderDailyCoinReloadSummaryEmail,
   renderDailyPremiumPdfSummaryEmail,
-  renderSystemFailureAlertEmail
+  renderSystemFailureAlertEmail,
+  renderSarvamCriticalQuotaEmail
 } from "./emailTemplates";
 
 export const DEFAULT_NOTIFICATION_EMAIL = "spshreepandit@gmail.com";
@@ -585,3 +586,26 @@ export async function notifySystemFailureAlert(data: {
     data: { ...data, timestamp }
   });
 }
+
+/**
+ * Sends a high-urgency Critical Alert Email when Sarvam AI voice quota drops below 10%
+ */
+export async function sendSarvamCriticalQuotaAlertEmail(data: {
+  totalQuota: number;
+  consumed: number;
+  remaining: number;
+  remainingPercentage: number;
+  totalCalls: number;
+  lastSnippet?: string;
+}): Promise<{ success: boolean }> {
+  const timestamp = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+  const html = renderSarvamCriticalQuotaEmail({ ...data, timestamp });
+
+  return await sendEmailNotification({
+    subject: `🚨 [CRITICAL ALERT] Sarvam AI Voice Quota Below 10% (${data.remainingPercentage.toFixed(1)}% Left)`,
+    html,
+    type: "system_alert",
+    data: { ...data, timestamp, alertType: "sarvam_ai_quota_critical" }
+  });
+}
+

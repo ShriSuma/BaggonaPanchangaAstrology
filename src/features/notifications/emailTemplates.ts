@@ -914,5 +914,76 @@ export function renderLowAiQuotaAlertEmail(data: {
 `;
 }
 
+export function renderSarvamCriticalQuotaEmail(data: {
+  totalQuota: number;
+  consumed: number;
+  remaining: number;
+  remainingPercentage: number;
+  totalCalls: number;
+  lastSnippet?: string;
+  timestamp: string;
+}): string {
+  return `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="${BASE_STYLES}">
+  <div style="${CARD_STYLES}">
+    <div style="background: linear-gradient(135deg, #7f1d1d, #991b1b, #450a0a); padding: 24px; text-align: center; border-bottom: 2px solid #ef4444;">
+      <div style="font-size: 28px; font-weight: bold; margin-bottom: 4px; color: #fee2e2;">🚨 ತುರ್ತು ಎಚ್ಚರಿಕೆ (CRITICAL ALERT)</div>
+      <div style="font-size: 14px; font-weight: 700; color: #fca5a5; text-transform: uppercase; letter-spacing: 2px;">Sarvam AI Voice Quota Below 10%</div>
+    </div>
+    
+    <div style="padding: 24px; line-height: 1.6;">
+      <p style="font-size: 16px; color: #fca5a5; margin-top: 0;"><strong>ನಮಸ್ಕಾರ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ / ಅಡ್ಮಿನಿಸ್ಟ್ರೇಟರ್ (Namaskara Administrator),</strong></p>
+      
+      <p style="color: #cbd5e1; font-size: 14px;">
+        ನಮ್ಮ ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಧ್ವನಿ ಕ್ಲೋನ್ ಮತ್ತು ಮಂತ್ರ ಪಠಣಕ್ಕಾಗಿ ಬಳಸಲಾಗುವ <strong>Sarvam AI Indic Neural Voice (Bulbul:v1)</strong> ಕೋಟಾವು <strong>${data.remainingPercentage.toFixed(1)}%</strong> ಗೆ ಇಳಿದಿದೆ.
+      </p>
+
+      <div style="background: rgba(127, 29, 29, 0.4); border: 2px solid #ef4444; border-radius: 12px; padding: 18px; margin: 20px 0;">
+        <table style="width: 100%; font-size: 14px; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 6px 0; color: #fca5a5;">⚠️ ಉಳಿದ ಕೋಟಾ (Remaining Quota):</td>
+            <td style="padding: 6px 0; color: #ef4444; font-weight: 900; font-size: 18px; text-align: right;">${data.remaining.toLocaleString()} chars (${data.remainingPercentage.toFixed(1)}%)</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #94a3b8;">📊 ಒಟ್ಟು ಮಿತಿ (Total Quota):</td>
+            <td style="padding: 6px 0; color: #f8fafc; font-weight: bold; text-align: right;">${data.totalQuota.toLocaleString()} chars</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #94a3b8;">🎙️ ಬಳಸಲಾದ ಅಕ್ಷರಗಳು (Consumed):</td>
+            <td style="padding: 6px 0; color: #fef08a; font-weight: bold; text-align: right;">${data.consumed.toLocaleString()} chars</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #94a3b8;">⚡ ಒಟ್ಟು TTS ಧ್ವನಿ ವಿನಂತಿಗಳು:</td>
+            <td style="padding: 6px 0; color: #f8fafc; text-align: right;">${data.totalCalls} Calls</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #94a3b8;">🕒 ಎಚ್ಚರಿಕೆ ಸಮಯ (Timestamp):</td>
+            <td style="padding: 6px 0; color: #cbd5e1; text-align: right;">${data.timestamp}</td>
+          </tr>
+        </table>
+      </div>
+
+      <div style="background: rgba(15, 23, 42, 0.9); border: 1px solid #f59e0b; border-radius: 12px; padding: 16px; margin: 20px 0; font-size: 13px; color: #fef08a;">
+        <strong>💡 ತಕ್ಷಣ ಕೈಗೊಳ್ಳಬೇಕಾದ ಕ್ರಮಗಳು (Immediate Action Steps):</strong>
+        <ol style="margin: 8px 0 0 0; padding-left: 20px; color: #cbd5e1; line-height: 1.7;">
+          <li><a href="https://dashboard.sarvam.ai" target="_blank" style="color: #f59e0b; font-weight: bold; text-decoration: underline;">dashboard.sarvam.ai</a> ಗೆ ಲಾಗಿನ್ ಆಗಿ ನಿಮ್ಮ ಸಬ್‌ಸ್ಕ್ರಿಪ್ಷನ್ ಬ್ಯಾಲೆನ್ಸ್ ರೀಚಾರ್ಜ್ ಮಾಡಿ.</li>
+          <li>ಅಥವಾ Super Admin ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ನಲ್ಲಿ ನೂತನ Sarvam AI API Key ಅನ್ನು ನವೀಕರಿಸಿ.</li>
+        </ol>
+      </div>
+    </div>
+    
+    <div style="${FOOTER_STYLES}">
+      Baggona Panchanga Telemetry & Voice Sentinel • Gokarna Heritage Automation
+    </div>
+  </div>
+</body>
+</html>
+`;
+}
+
+
 
 

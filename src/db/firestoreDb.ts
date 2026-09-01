@@ -866,6 +866,52 @@ export async function cleanupDuplicateKundlis(): Promise<{ removedCount: number 
 }
 
 /**
+ * Super Admin: One-click Background Deduplicator for Calendar Visits & Devotee Engagement Database
+ * Cleans duplicate calendar visit documents and test entries.
+ */
+export async function cleanupDuplicateCalendarVisitsAndEngagement(): Promise<{ removedCount: number }> {
+  try {
+    if (!firestore) return { removedCount: 0 };
+    const snap = await getDocs(query(collection(firestore, "calendarVisits"), limit(500)));
+    const seen = new Map<string, string>(); // canonicalKey -> primaryDocId
+    let removedCount = 0;
+
+    for (const docSnap of snap.docs) {
+      const data = docSnap.data();
+      const devoteeName = (data.devoteeName || "").trim().toLowerCase();
+      const token = (data.tokenIdentifier || "").trim();
+      const dateClicked = (data.dateClicked || "").trim();
+      const actualDate = (data.actualDate || "").trim();
+
+      // Check if it's a test/mock entry
+      if (
+        devoteeName.includes("test") ||
+        devoteeName.includes("mock") ||
+        token.includes("test") ||
+        token.includes("mock")
+      ) {
+        await deleteDoc(docSnap.ref);
+        removedCount++;
+        continue;
+      }
+
+      const canonicalKey = `${token}_${actualDate}_${dateClicked}`;
+      if (seen.has(canonicalKey)) {
+        await deleteDoc(docSnap.ref);
+        removedCount++;
+      } else {
+        seen.set(canonicalKey, docSnap.id);
+      }
+    }
+
+    return { removedCount };
+  } catch (err) {
+    console.error("[Firestore] Calendar visits deduplication error:", err);
+    return { removedCount: 0 };
+  }
+}
+
+/**
  * Audit notification dispatch
  */
 export async function logNotificationAudit(log: NotificationLogDoc): Promise<void> {

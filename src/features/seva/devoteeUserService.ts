@@ -18,6 +18,7 @@ import {
   serverTimestamp
 } from "firebase/firestore";
 import type { UserProfileDoc } from "../../db/firestoreDb";
+import { isTestEnvironment, isMockDevotee } from "../../utils/testEnvGuard";
 
 export interface DevoteeRegistrationParams {
   name: string;
@@ -133,7 +134,7 @@ export async function checkAndRegisterDevoteeUser(params: DevoteeRegistrationPar
     } catch {}
   }
 
-  if (!firestore) {
+  if (!firestore || isTestEnvironment() || isMockDevotee(devoteeId) || isMockDevotee(params.name)) {
     return fallbackRecord;
   }
 
@@ -224,7 +225,7 @@ export async function updateDevoteeContact(
     } catch {}
   }
 
-  if (!firestore) {
+  if (!firestore || isTestEnvironment() || isMockDevotee(devoteeId)) {
     return { success: true, updatedUser: updated };
   }
 
