@@ -119,4 +119,49 @@ describe("Dina Bhavishya Engine & Date Locking", () => {
     expect(secondCall.overview).toBe(firstCall.overview);
     expect(secondCall.energyScore).toBe(firstCall.energyScore);
   });
+
+  it("calculates active Dasha-Bhukti and integrates it into daily predictions", async () => {
+    const todayYmd = new Date().toISOString().split("T")[0];
+    const result = await getOrComputeDinaBhavishya({
+      targetDateRequested: todayYmd,
+      devoteeName: "Venkatesh Bhat",
+      birthDate: "1985-06-12",
+      birthTime: "06:30",
+      natalMoonRashi: 11, // Meena
+      natalNakshatra: 26, // Revati (starts in Mercury Mahadasha)
+      lang: "kn",
+      userIdentifier: "test_venkatesh_dasha"
+    });
+
+    expect(result.activeDashaSummary).toBeDefined();
+    expect(result.activeDashaSummary).toContain("ಮಹಾದಶಾ");
+    expect(result.careerAndFinance).toBeDefined();
+    expect(result.careerAndFinance.length).toBeGreaterThan(30);
+  });
+
+  it("identifies Chandrashtama (8th house) transit and caps energy score with protection guidance", async () => {
+    const todayYmd = new Date().toISOString().split("T")[0];
+    const gochara = computeGocharaMoonForDate(todayYmd);
+    
+    // Set natal Moon to 8 signs behind transit Moon so transit Moon is exactly in 8th house
+    const chandrashtamaNatalRashi = (gochara.transitMoonRashi - 7 + 12) % 12;
+
+    const result = await getOrComputeDinaBhavishya({
+      targetDateRequested: todayYmd,
+      devoteeName: "Ramesh Sharma",
+      birthDate: "1990-01-01",
+      birthTime: "10:00",
+      natalMoonRashi: chandrashtamaNatalRashi,
+      natalNakshatra: 0,
+      lang: "kn",
+      userIdentifier: "test_chandrashtama_user",
+      forceRegenerate: true
+    });
+
+    expect(result.chandraBalaHouse).toBe(8);
+    expect(result.energyScore).toBeLessThanOrEqual(48);
+    expect(result.chandraBalaText).toContain("ಚಂದ್ರಾಷ್ಟಮ");
+    expect(result.healthAndFamily).toContain("ಚಂದ್ರಾಷ್ಟಮ");
+  });
 });
+

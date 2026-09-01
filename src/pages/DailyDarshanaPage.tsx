@@ -58,6 +58,8 @@ import { SanctumPrayerBox } from "../components/darshana/SanctumPrayerBox";
 import { playTempleBellChime } from "../features/seva/priestAudioNarrator";
 import { synthesizeAndPlayClonedVoice, stopClonedAudio } from "../features/audio/aiVoiceCloneEngine";
 import { stopAllAudioGlobal, onGlobalAudioStop } from "../features/audio/globalAudioManager";
+import { useAppStore } from "../stores/appStore";
+import { getOrComputeDinaBhavishya, type DinaBhavishyaPayload } from "../features/seva/dinaBhavishyaEngine";
 
 // Comprehensive 5-Language Dictionary for DailyDarshanaPage
 const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
@@ -1026,27 +1028,28 @@ function getTodayBhavishyaHighlights(
   targetDateStr: string,
   lang: SevaLang,
   rhythmDay: RhythmDay,
-  dashaPredictions: ReturnType<typeof getDynamicDashaPredictions>
+  dashaPredictions: ReturnType<typeof getDynamicDashaPredictions>,
+  dinaBhavishyaData?: DinaBhavishyaPayload | null
 ): TodayBhavishyaData {
   const code = lang || "en";
-  const score = rhythmDay?.energyScore ?? 85;
+  const score = dinaBhavishyaData?.energyScore ?? rhythmDay?.energyScore ?? 85;
   const guidance = getDailyActionableGuidance(rhythmDay, lang);
 
-  const vehiclePoint = guidance.find(p => p.icon === "🚗") || {
-    category: code === "kn" ? "ವಾಹನ, ಆಸ್ತಿ & ಪ್ರಯಾಣ" : code === "hi" ? "वाहन, संपत्ति व यात्रा" : code === "te" ? "వాహన & ఆస్తి మార్గదర్శకత్వం" : code === "ta" ? "வாகனம், சொத்து & பயணம்" : "Vehicle, Asset & Travel",
-    text: "Favorable day for planned travels."
+  const vehiclePoint = {
+    category: code === "kn" ? "ವಾಹನ, ಶುಭ ಮುಹೂರ್ತ & ಪ್ರಯಾಣ" : code === "hi" ? "वाहन, शुभ मुहूर्त व यात्रा" : code === "te" ? "వాహన & శుభ ముహూర్తం" : code === "ta" ? "வாகனம், சுப முகூர்த்தம் & பயணம்" : "Vehicle, Muhurtha & Travel",
+    text: dinaBhavishyaData?.travelAndInitiatives || guidance.find(p => p.icon === "🚗")?.text || "Favorable day for planned travels."
   };
-  const careerPoint = guidance.find(p => p.icon === "💰") || {
-    category: code === "kn" ? "ವೃತ್ತಿ & ಧನ ಲಾಭ" : code === "hi" ? "धन वृद्धि एवं करियर" : code === "te" ? "ధన లాభం & ఉద్యోగం" : code === "ta" ? "தன லாபம் & தொழில்" : "Financial Growth & Career",
-    text: "Steady financial growth."
+  const careerPoint = {
+    category: code === "kn" ? "ವೃತ್ತಿ, ವ್ಯಾಪಾರ & ಧನ ಲಾಭ" : code === "hi" ? "धन वृद्धि एवं करियर" : code === "te" ? "ధన లాభం & ఉద్యోగం" : code === "ta" ? "தன லாபம் & தொழில்" : "Financial Growth & Career",
+    text: dinaBhavishyaData?.careerAndFinance || guidance.find(p => p.icon === "💰")?.text || "Steady financial growth."
   };
-  const mindPoint = guidance.find(p => p.icon === "🧠") || {
-    category: code === "kn" ? "ಮನಃಸ್ಥಿತಿ & ಕುಟುಂಬ" : code === "hi" ? "मनोस्थिति व पारिवारिक सौहार्द" : code === "te" ? "మానసిక ప్రశాంతత & కుటుంబం" : code === "ta" ? "மன நிலை & குடும்ப அமைதி" : "Mindset & Family",
-    text: "Peaceful domestic environment."
+  const mindPoint = {
+    category: code === "kn" ? "ಮನಃಸ್ಥಿತಿ, ಆರೋಗ್ಯ & ಕುಟುಂಬ" : code === "hi" ? "मनोस्थिति व पारिवारिक सौहार्द" : code === "te" ? "మానసిక ప్రశాంతత & కుటుంబం" : code === "ta" ? "மன நிலை & குடும்ப அமைதி" : "Mindset & Family",
+    text: dinaBhavishyaData?.healthAndFamily || guidance.find(p => p.icon === "🧠")?.text || "Peaceful domestic environment."
   };
-  const spiritualPoint = guidance.find(p => p.icon === "🪔") || {
-    category: code === "kn" ? "ದೈವಿಕ ಕೃಪೆ & ಉಪಾಸನೆ" : code === "hi" ? "दैवीय संकल्प एवं पूजा" : code === "te" ? "దైవిక సంకల్పం & పూజ" : code === "ta" ? "தெய்வீக சங்கல்பம் & பூஜை" : "Spiritual Grace & Remedy",
-    text: "Deity prayers bring blessings."
+  const spiritualPoint = {
+    category: code === "kn" ? "ದೈವಿಕ ಕೃಪೆ, ಮಂತ್ರ & ಉಪಾಸನೆ" : code === "hi" ? "दैवीय संकल्प एवं पूजा" : code === "te" ? "దైవిక సంకల్పం & పూజ" : code === "ta" ? "தெய்வீக சங்கல்பம் & பூஜை" : "Spiritual Grace & Remedy",
+    text: dinaBhavishyaData ? `${dinaBhavishyaData.deityName} - ${dinaBhavishyaData.siddhaMantra}` : (guidance.find(p => p.icon === "🪔")?.text || "Deity prayers bring blessings.")
   };
 
   return {
@@ -1056,32 +1059,32 @@ function getTodayBhavishyaHighlights(
               code === "te" ? "మీ జన్మ జాతకం, దశా-భుక్తి & గోచార ఆధారిత 4 ముఖ్య మార్గదర్శకాలు" :
               code === "ta" ? "உங்கள் ஜாதகம், திசை-புக்தி மற்றும் கோச்சார அடிப்படையிலான 4 முக்கிய வழிகாட்டுதல்கள்" :
               "4 Key Actionable Focus Points based on Birth Kundli, Dasha & Gochara",
-    overallVibe: rhythmDay?.band === "high" ? "🟢 Auspicious" : rhythmDay?.band === "rest" ? "🔴 Rest Day" : "🟡 Steady Day",
+    overallVibe: dinaBhavishyaData ? `${dinaBhavishyaData.badgeEmoji} ${dinaBhavishyaData.chandraBalaText}` : (rhythmDay?.band === "high" ? "🟢 Auspicious" : rhythmDay?.band === "rest" ? "🔴 Rest Day" : "🟡 Steady Day"),
     energyScore: score,
     points: [
       {
         icon: "🚗",
         category: vehiclePoint.category,
         prediction: vehiclePoint.text,
-        advice: score >= 75 ? (code === "kn" ? "ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ ನೂತನ ಕಾರ್ಯಾರಂಭ ಮಾಡಿ." : "Proceed during auspicious Muhurtha.") : (code === "kn" ? "ಸಾಮಾನ್ಯ ಪ್ರಯಾಣಗಳಿಗೆ ಮಾತ್ರ ಆದ್ಯತೆ ನೀಡಿ." : "Focus on essential routine travels.")
+        advice: dinaBhavishyaData ? `${dinaBhavishyaData.abhijitMuhurtha} | ${code === "kn" ? "ಅದೃಷ್ಟ ಬಣ್ಣ:" : "Lucky Color:"} ${dinaBhavishyaData.luckyColor}` : (score >= 75 ? (code === "kn" ? "ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ ನೂತನ ಕಾರ್ಯಾರಂಭ ಮಾಡಿ." : "Proceed during auspicious Muhurtha.") : (code === "kn" ? "ಸಾಮಾನ್ಯ ಪ್ರಯಾಣಗಳಿಗೆ ಮಾತ್ರ ಆದ್ಯತೆ ನೀಡಿ." : "Focus on essential routine travels."))
       },
       {
         icon: "💼",
         category: careerPoint.category,
-        prediction: `${dashaPredictions.activePhase} - ${careerPoint.text}`,
-        advice: dashaPredictions.wealthDesc || (code === "kn" ? "ವೃತ್ತಿಪರ ನಿರ್ಧಾರಗಳಲ್ಲಿ ಸ್ಥಿರತೆ ಕಾಯ್ದುಕೊಳ್ಳಿ." : "Maintain professional focus.")
+        prediction: careerPoint.text,
+        advice: dinaBhavishyaData?.activeDashaSummary || dashaPredictions.wealthDesc || (code === "kn" ? "ವೃತ್ತಿಪರ ನಿರ್ಧಾರಗಳಲ್ಲಿ ಸ್ಥಿರತೆ ಕಾಯ್ದುಕೊಳ್ಳಿ." : "Maintain professional focus.")
       },
       {
         icon: "🧠",
         category: mindPoint.category,
         prediction: mindPoint.text,
-        advice: rhythmDay?.isChandrashtama ? (code === "kn" ? "ಧ್ಯಾನ, ಸಾತ್ವಿಕತೆ ಹಾಗೂ ದೈವ ಪ್ರಾರ್ಥನೆಯಿಂದ ಶಾಂತಿ ಕಂಡುಕೊಳ್ಳಿ." : "Maintain calm focus with prayer and meditation.") : (code === "kn" ? "ಹಿರಿಯರ ಆಶೀರ್ವಾದ ಪಡೆದು ದಿನವನ್ನು ಶುಭವಾಗಿಸಿ." : "Seek elders blessings for a prosperous day.")
+        advice: (dinaBhavishyaData?.chandraBalaHouse === 8 || rhythmDay?.isChandrashtama) ? (code === "kn" ? "ಚಂದ್ರಾಷ್ಟಮ ರಕ್ಷಣೆ: ಧ್ಯಾನ, ಸಾತ್ವಿಕತೆ ಹಾಗೂ ದೈವ ಪ್ರಾರ್ಥನೆಯಿಂದ ಶಾಂತಿ ಕಂಡುಕೊಳ್ಳಿ." : "Chandrashtama: Maintain calm focus with prayer and meditation.") : (code === "kn" ? "ಹಿರಿಯರ ಆಶೀರ್ವಾದ ಪಡೆದು ದಿನವನ್ನು ಶುಭವಾಗಿಸಿ." : "Seek elders blessings for a prosperous day.")
       },
       {
         icon: "🕉️",
         category: spiritualPoint.category,
         prediction: spiritualPoint.text,
-        advice: code === "kn" ? "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ಆತ್ಮಲಿಂಗ ಸ್ಮರಿಸಿ." : "Meditate upon the sacred Gokarna Atmalinga."
+        advice: dinaBhavishyaData ? `${code === "kn" ? "ಜಪ ಸಂಖ್ಯಾ:" : "Japa Count:"} ${dinaBhavishyaData.japaRecommendation}` : (code === "kn" ? "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ಆತ್ಮಲಿಂಗ ಸ್ಮರಿಸಿ." : "Meditate upon the sacred Gokarna Atmalinga.")
       }
     ]
   };
@@ -1184,6 +1187,9 @@ export default function DailyDarshanaPage(): JSX.Element {
   const [devoteeUser, setDevoteeUser] = useState<DevoteeUserRecord | null>(null);
   const [isPoojaModalOpen, setIsPoojaModalOpen] = useState(false);
   const [isManageSankalpaOpen, setIsManageSankalpaOpen] = useState(false);
+  const geminiApiKey = useAppStore((s) => s.geminiApiKey) || (typeof import.meta !== "undefined" ? (import.meta as any).env?.VITE_GEMINI_API_KEY : "") || "";
+  const [dinaBhavishyaData, setDinaBhavishyaData] = useState<DinaBhavishyaPayload | null>(null);
+  const [isDinaBhavishyaLoading, setIsDinaBhavishyaLoading] = useState<boolean>(false);
 
   const activeVoiceId = useMemo(() => {
     return (decoded as any)?.vid || (decoded as any)?.voiceId || params.get("vid") || params.get("voiceId") || "voice_shrisuma_master";
@@ -1480,8 +1486,8 @@ export default function DailyDarshanaPage(): JSX.Element {
 
   // Dynamic Today's Personalized Bhavishya Highlights (4 Key Actionable Focus Points)
   const todayBhavishya = useMemo(() => {
-    return getTodayBhavishyaHighlights(birthKundli, dateParam, lang, mockDay, dashaPredictions);
-  }, [birthKundli, dateParam, lang, mockDay, dashaPredictions]);
+    return getTodayBhavishyaHighlights(birthKundli, dateParam, lang, mockDay, dashaPredictions, dinaBhavishyaData);
+  }, [birthKundli, dateParam, lang, mockDay, dashaPredictions, dinaBhavishyaData]);
 
   const devoteeUserId = useMemo(() => {
     return getDevoteeUserId({
@@ -1491,6 +1497,42 @@ export default function DailyDarshanaPage(): JSX.Element {
       token: tokenParam || undefined
     });
   }, [devoteeDisplayName, resolvedBirth, tokenParam]);
+
+  // Dynamic Live Dina Bhavishya Resolution (100% Vedic Astrological Computation & GenAI)
+  useEffect(() => {
+    let isMounted = true;
+    setIsDinaBhavishyaLoading(true);
+
+    void getOrComputeDinaBhavishya({
+      targetDateRequested: dateParam,
+      devoteeName: devoteeDisplayName,
+      birthDate: resolvedBirth.dob,
+      birthTime: resolvedBirth.tob || "12:00",
+      natalMoonRashi: moonRashiIdx,
+      natalNakshatra: moonNakshatraIdx,
+      natalLagnaRashi: ascendantRashiIdx,
+      lang: (lang as SevaLang) || "kn",
+      userLat: 14.5479,
+      userLng: 74.3187,
+      userPincode: "581326",
+      userIdentifier: devoteeUserId,
+      geminiApiKey: geminiApiKey || undefined
+    }).then((data) => {
+      if (isMounted) {
+        setDinaBhavishyaData(data);
+        setIsDinaBhavishyaLoading(false);
+      }
+    }).catch((err) => {
+      console.warn("[DailyDarshanaPage] Error resolving Dina Bhavishya:", err);
+      if (isMounted) {
+        setIsDinaBhavishyaLoading(false);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [dateParam, devoteeDisplayName, resolvedBirth.dob, resolvedBirth.tob, moonRashiIdx, moonNakshatraIdx, ascendantRashiIdx, lang, devoteeUserId, geminiApiKey]);
 
   // Check & Register Devotee in Firestore on page load / calendar redirect
   useEffect(() => {
@@ -2694,34 +2736,50 @@ export default function DailyDarshanaPage(): JSX.Element {
               <h2 style={{ fontSize: 20, fontWeight: 900, color: "#FFFFFF", margin: "6px 0 4px", fontFamily: "serif" }}>
                 {lang === "kn" ? "ಇಂದಿನ ದೈನಂದಿನ ದಿನ ಭವಿಷ್ಯ" : "Today's Personalized Daily Horoscope"}
               </h2>
-              <div style={{ fontSize: 13, fontWeight: 800, color: "#F59E0B", marginBottom: 8 }}>
-                📅 {formatLongDate(mockDay, lang)} ({rashiName(moonRashiIdx, lang)})
+              <div style={{ fontSize: 13, fontWeight: 800, color: "#F59E0B", marginBottom: 8, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                <span>📅 {formatLongDate(mockDay, lang)} ({rashiName(moonRashiIdx, lang)})</span>
+                {dinaBhavishyaData && (
+                  <span style={{ background: "rgba(212, 175, 55, 0.2)", border: "1px solid #D4AF37", borderRadius: 8, padding: "2px 8px", fontSize: 11, color: "#FDE68A" }}>
+                    {dinaBhavishyaData.badgeEmoji} {lang === "kn" ? `ಶಕ್ತಿ ಸ್ಕೋರ್: ${dinaBhavishyaData.energyScore}%` : `Energy: ${dinaBhavishyaData.energyScore}%`}
+                  </span>
+                )}
               </div>
               <p style={{ fontSize: 12, color: "#FEF3C7", margin: 0, lineHeight: 1.5 }}>
-                {lang === "kn"
-                  ? `${devoteeDisplayName} ಅವರ ಜನ್ಮ ಲಗ್ನ, ಚಂದ್ರ ರಾಶಿ ಹಾಗೂ ಇಂದಿನ ನವಗ್ರಹ ಸಂಚಾರ ಆಧರಿಸಿ ${activePanditName} ಗಣಿಸಿದ ಇಂದಿನ ಶುಭ ಫಲಗಳು.`
-                  : `Personalized daily predictions computed for ${devoteeDisplayName} based on birth chart planetary alignments and today's Gochara transits.`}
+                {dinaBhavishyaData?.activeDashaSummary
+                  ? (lang === "kn"
+                      ? `${devoteeDisplayName} ಅವರ ಜನ್ಮ ಲಗ್ನ, ಚಂದ್ರ ರಾಶಿ, ${dinaBhavishyaData.activeDashaSummary} ಹಾಗೂ ಇಂದಿನ ಗೋಚಾರ ಚಂದ್ರನ ಸ್ಥಾನ (${dinaBhavishyaData.chandraBalaText}) ಆಧರಿಸಿ ಗಣಿಸಿದ ವೈದಿಕ ಫಲಗಳು.`
+                      : `Computed for ${devoteeDisplayName} based on Natal Kundali, ${dinaBhavishyaData.activeDashaSummary}, and today's transit Moon in ${dinaBhavishyaData.chandraBalaText}.`)
+                  : (lang === "kn"
+                      ? `${devoteeDisplayName} ಅವರ ಜನ್ಮ ಲಗ್ನ, ಚಂದ್ರ ರಾಶಿ ಹಾಗೂ ಇಂದಿನ ನವಗ್ರಹ ಸಂಚಾರ ಆಧರಿಸಿ ${activePanditName} ಗಣಿಸಿದ ಇಂದಿನ ಶುಭ ಫಲಗಳು.`
+                      : `Personalized daily predictions computed for ${devoteeDisplayName} based on birth chart planetary alignments and today's Gochara transits.`)}
               </p>
             </div>
 
-            {/* Section 1: Daily Highlight */}
+            {/* Section 1: Daily Highlight & Cosmic Overview */}
             <div style={{
               background: "rgba(30, 10, 0, 0.85)",
               border: "1.5px solid rgba(212, 175, 55, 0.4)",
               borderRadius: 14,
               padding: "16px 18px"
             }}>
-              <div style={{ fontSize: 14, fontWeight: 800, color: "#FCD34D", marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
-                <span>🌟</span> {lang === "kn" ? "ದಿನದ ಮುಖ್ಯಾಂಶ ಹಾಗೂ ದೈವಿಕ ಶಕ್ತಿ" : "Daily Overview & Spiritual Vibe"}
+              <div style={{ fontSize: 14, fontWeight: 800, color: "#FCD34D", marginBottom: 8, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span>🌟</span> {lang === "kn" ? "ದಿನದ ಮುಖ್ಯಾಂಶ ಹಾಗೂ ದೈವಿಕ ಶಕ್ತಿ" : "Daily Overview & Cosmic Energy"}
+                </span>
+                {dinaBhavishyaData && (
+                  <span style={{ fontSize: 11, color: "#A7F3D0", background: "rgba(16, 185, 129, 0.15)", border: "1px solid #10B981", padding: "2px 8px", borderRadius: 6 }}>
+                    {dinaBhavishyaData.taraBalaText}
+                  </span>
+                )}
               </div>
               <p style={{ fontSize: 13, color: "#FEE2E2", lineHeight: 1.6, margin: 0 }}>
-                {lang === "kn"
-                  ? `ಇಂದು ನಿಮ್ಮ ಚಂದ್ರ ರಾಶಿಯಾದ ${rashiName(moonRashiIdx, "kn")}ಗೆ ಗೋಚಾರ ಚಂದ್ರನ ಶುಭ ಸಂಚಾರದಿಂದ ಕಾರ್ಯಗಳಲ್ಲಿ ಯಶಸ್ಸು ಹಾಗೂ ಮಾನಸಿಕ ಪ್ರಸನ್ನತೆ ಲಭಿಸಲಿದೆ. ನೂತನ ಯೋಜನೆಗಳನ್ನು ಪ್ರಾರಂಭಿಸಲು ಹಾಗೂ ಕುಟುಂಬದಲ್ಲಿ ಮಹತ್ವದ ಚರ್ಚೆ ನಡೆಸಲು ಅತ್ಯಂತ ಪ್ರಶಸ್ತವಾದ ದಿನ.`
-                  : `Today, with favorable Moon transits relative to your Moon sign ${rashiName(moonRashiIdx, "en")}, you will experience mental clarity and success in daily tasks. Ideal day for initiating key discussions.`}
+                {dinaBhavishyaData?.overview || (lang === "kn"
+                  ? `ಇಂದು ನಿಮ್ಮ ಚಂದ್ರ ರಾಶಿಯಾದ ${rashiName(moonRashiIdx, "kn")}ಗೆ ಗೋಚಾರ ಚಂದ್ರನ ಶುಭ ಸಂಚಾರದಿಂದ ಕಾರ್ಯಗಳಲ್ಲಿ ಯಶಸ್ಸು ಹಾಗೂ ಮಾನಸಿಕ ಪ್ರಸನ್ನತೆ ಲಭಿಸಲಿದೆ.`
+                  : `Today, with favorable Moon transits relative to your Moon sign ${rashiName(moonRashiIdx, "en")}, you will experience mental clarity and success in daily tasks.`)}
               </p>
             </div>
 
-            {/* Section 2: Career & Wealth */}
+            {/* Section 2: Career, Business & Finance */}
             <div style={{
               background: "rgba(30, 10, 0, 0.85)",
               border: "1.5px solid rgba(212, 175, 55, 0.4)",
@@ -2732,13 +2790,13 @@ export default function DailyDarshanaPage(): JSX.Element {
                 <span>💼</span> {lang === "kn" ? "ಉದ್ಯೋಗ, ವ್ಯಾಪಾರ ಹಾಗೂ ಧನ ಲಾಭ" : "Career, Business & Finance"}
               </div>
               <p style={{ fontSize: 13, color: "#FEE2E2", lineHeight: 1.6, margin: 0 }}>
-                {lang === "kn"
-                  ? `ವೃತ್ತಿರಂಗದಲ್ಲಿ ಶ್ರಮಕ್ಕೆ ಸೂಕ್ತ ಮಾನ್ಯತೆ ಲಭಿಸಲಿದೆ. ಹಣಕಾಸಿನ ವಹಿವಾಟುಗಳಲ್ಲಿ ಪ್ರಗತಿ ಕಂಡುಬರಲಿದ್ದು, ಹಳೆಯ ಬಾಕಿ ಹಣ ಕೈಸೇರುವ ಯೋಗವಿದೆ. ನೂತನ ಹೂಡಿಕೆ ಹಾಗೂ ವ್ಯಾಪಾರ ವಿಸ್ತರಣೆಗೆ ಹಿರಿಯರ ಸಲಹೆ ಸ್ವೀಕರಿಸಿ.`
-                  : `Professional efforts will be recognized. Good financial flow and recovery of pending dues expected. Consult mentors before making fresh capital investments.`}
+                {dinaBhavishyaData?.careerAndFinance || (lang === "kn"
+                  ? `ವೃತ್ತಿರಂಗದಲ್ಲಿ ಶ್ರಮಕ್ಕೆ ಸೂಕ್ತ ಮಾನ್ಯತೆ ಲಭಿಸಲಿದೆ. ಹಣಕಾಸಿನ ವಹಿವಾಟುಗಳಲ್ಲಿ ಪ್ರಗತಿ ಕಂಡುಬರಲಿದ್ದು, ಹಳೆಯ ಬಾಕಿ ಹಣ ಕೈಸೇರುವ ಯೋಗವಿದೆ.`
+                  : `Professional efforts will be recognized. Good financial flow and recovery of pending dues expected.`)}
               </p>
             </div>
 
-            {/* Section 3: Health & Family */}
+            {/* Section 3: Health & Family Harmony */}
             <div style={{
               background: "rgba(30, 10, 0, 0.85)",
               border: "1.5px solid rgba(212, 175, 55, 0.4)",
@@ -2746,14 +2804,78 @@ export default function DailyDarshanaPage(): JSX.Element {
               padding: "16px 18px"
             }}>
               <div style={{ fontSize: 14, fontWeight: 800, color: "#FCD34D", marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
-                <span>🧘</span> {lang === "kn" ? "ಆರೋಗ್ಯ, ಕುಟುಂಬ ಹಾಗೂ ಬಾಂಧವ್ಯ" : "Health & Family Harmony"}
+                <span>🧘</span> {lang === "kn" ? "ಆರೋಗ್ಯ, ಮನಃಸ್ಥಿತಿ ಹಾಗೂ ಕುಟುಂಬ" : "Health, Mindset & Family Harmony"}
               </div>
               <p style={{ fontSize: 13, color: "#FEE2E2", lineHeight: 1.6, margin: 0 }}>
-                {lang === "kn"
-                  ? `ದೈಹಿಕ ಅರೋಗ್ಯ ಉತ್ತಮವಾಗಿರಲಿದ್ದು, ಮನಸ್ಸಿನಲ್ಲಿ ಸಕಾರಾತ್ಮಕ ಶಕ್ತಿ ತುಂಬಿರುತ್ತದೆ. ಗೃಹದಲ್ಲಿ ಮಂಗಳಕರ ವಾತಾವರಣ ಹಾಗೂ ಬಂಧುಗಳೊಂದಿಗೆ ಪ್ರೀತಿಪೂರ್ವಕ ಸಂಬಂಧ ಸೌಹಾರ್ದತೆಯಿಂದ ಕೂಡಿರುತ್ತದೆ.`
-                  : `Physical vitality remains strong with positive energy. Domestic atmosphere is peaceful, fostering warm bonds with family and friends.`}
+                {dinaBhavishyaData?.healthAndFamily || (lang === "kn"
+                  ? `ದೈಹಿಕ ಅರೋಗ್ಯ ಉತ್ತಮವಾಗಿರಲಿದ್ದು, ಮನಸ್ಸಿನಲ್ಲಿ ಸಕಾರಾತ್ಮಕ ಶಕ್ತಿ ತುಂಬಿರುತ್ತದೆ. ಗೃಹದಲ್ಲಿ ಮಂಗಳಕರ ವಾತಾವರಣ ನೆಲೆಸಲಿದೆ.`
+                  : `Physical vitality remains strong with positive energy. Domestic atmosphere is peaceful, fostering warm bonds.`)}
               </p>
             </div>
+
+            {/* Section 4: Travel, Auspicious Muhurtha & Day Guidelines */}
+            <div style={{
+              background: "rgba(30, 10, 0, 0.85)",
+              border: "1.5px solid rgba(212, 175, 55, 0.4)",
+              borderRadius: 14,
+              padding: "16px 18px"
+            }}>
+              <div style={{ fontSize: 14, fontWeight: 800, color: "#FCD34D", marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
+                <span>🚗</span> {lang === "kn" ? "ಪ್ರಯಾಣ, ಶುಭ ಮುಹೂರ್ತ ಹಾಗೂ ಮಾರ್ಗದರ್ಶನ" : "Travel, Auspicious Timing & Day Guidance"}
+              </div>
+              <p style={{ fontSize: 13, color: "#FEE2E2", lineHeight: 1.6, margin: "0 0 10px" }}>
+                {dinaBhavishyaData?.travelAndInitiatives || (lang === "kn"
+                  ? `ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ ಕೈಗೊಳ್ಳುವ ಪ್ರಯಾಣ ಹಾಗೂ ನೂತನ ಕಾರ್ಯಾರಂಭಗಳು ಯಶಸ್ವಿಯಾಗಲಿವೆ.`
+                  : `Auspicious window for planned travel and starting key tasks.`)}
+              </p>
+              {dinaBhavishyaData && (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontSize: 12 }}>
+                  <div style={{ background: "rgba(0,0,0,0.3)", padding: "8px 10px", borderRadius: 8, border: "1px solid rgba(212, 175, 55, 0.2)" }}>
+                    <span style={{ color: "#FCD34D", fontWeight: 700 }}>⏱️ {lang === "kn" ? "ಅಭಿಜಿತ್ ಮುಹೂರ್ತ:" : "Abhijit:"} </span>
+                    <span style={{ color: "#FEF3C7" }}>{dinaBhavishyaData.abhijitMuhurtha}</span>
+                  </div>
+                  <div style={{ background: "rgba(0,0,0,0.3)", padding: "8px 10px", borderRadius: 8, border: "1px solid rgba(239, 68, 68, 0.2)" }}>
+                    <span style={{ color: "#FCA5A5", fontWeight: 700 }}>⚠️ {lang === "kn" ? "ರಾಹು ಕಾಲ:" : "Rahu Kaala:"} </span>
+                    <span style={{ color: "#FEF3C7" }}>{dinaBhavishyaData.rahuKaala}</span>
+                  </div>
+                  <div style={{ background: "rgba(0,0,0,0.3)", padding: "8px 10px", borderRadius: 8, border: "1px solid rgba(212, 175, 55, 0.2)" }}>
+                    <span style={{ color: "#FCD34D", fontWeight: 700 }}>🎨 {lang === "kn" ? "ಅದೃಷ್ಟ ಬಣ್ಣ:" : "Lucky Color:"} </span>
+                    <span style={{ color: "#FEF3C7" }}>{dinaBhavishyaData.luckyColor}</span>
+                  </div>
+                  <div style={{ background: "rgba(0,0,0,0.3)", padding: "8px 10px", borderRadius: 8, border: "1px solid rgba(212, 175, 55, 0.2)" }}>
+                    <span style={{ color: "#FCD34D", fontWeight: 700 }}>🧭 {lang === "kn" ? "ಅದೃಷ್ಟ ದಿಕ್ಕು:" : "Direction:"} </span>
+                    <span style={{ color: "#FEF3C7" }}>{dinaBhavishyaData.luckyDirection}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Sacred Deity & Priest Blessing Card */}
+            {dinaBhavishyaData && (
+              <div style={{
+                background: "linear-gradient(135deg, rgba(45, 20, 7, 0.95), rgba(28, 10, 0, 0.95))",
+                border: "2px solid #D4AF37",
+                borderRadius: 16,
+                padding: "16px 18px",
+                textAlign: "center"
+              }}>
+                <div style={{ fontSize: 13, fontWeight: 800, color: "#FCD34D", marginBottom: 4 }}>
+                  🕉️ {lang === "kn" ? "ಇಂದಿನ ದೇವತೋಪಾಸನೆ & ಸಿದ್ಧ ಮಂತ್ರ" : "Today's Sacred Deity & Siddha Mantra"}
+                </div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: "#FFFFFF", margin: "4px 0" }}>
+                  {dinaBhavishyaData.deityName}
+                </div>
+                <div style={{ background: "rgba(0,0,0,0.4)", border: "1px solid rgba(212, 175, 55, 0.4)", borderRadius: 10, padding: "10px 14px", margin: "10px 0", color: "#FDE68A", fontSize: 14, fontWeight: 700, fontFamily: "serif" }}>
+                  {dinaBhavishyaData.siddhaMantra}
+                </div>
+                <div style={{ fontSize: 12, color: "#FEF3C7", marginBottom: 8 }}>
+                  📿 {lang === "kn" ? `ಜಪ ಸಂಖ್ಯೆ: ${dinaBhavishyaData.japaRecommendation}` : `Japa Recommendation: ${dinaBhavishyaData.japaRecommendation}`}
+                </div>
+                <div style={{ fontSize: 12, fontStyle: "italic", color: "#FCD34D", borderTop: "1px solid rgba(212, 175, 55, 0.3)", paddingTop: 8 }}>
+                  {dinaBhavishyaData.priestBlessing}
+                </div>
+              </div>
+            )}
 
             {/* Major Planetary Gochara Transits */}
             <div style={{
