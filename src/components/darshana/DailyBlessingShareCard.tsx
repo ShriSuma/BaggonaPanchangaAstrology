@@ -70,7 +70,7 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
   }, [dateStr, selectedLang, tithiStr, nakshatraStr]);
 
   /**
-   * Generates High-Resolution Canvas with pixel-perfect Indic vertical centering
+   * Generates High-Resolution Canvas with pixel-perfect Indic vertical centering and high-contrast text backing
    */
   const generateCardCanvas = async (): Promise<HTMLCanvasElement | null> => {
     if (!cardRef.current) return null;
@@ -86,6 +86,47 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
           cardEl.style.maxWidth = "580px";
           cardEl.style.letterSpacing = "normal";
         }
+
+        // 1. Give text boxes an opaque dark gold parchment backing in canvas so text is 100% legible
+        const glassBoxes = clonedDoc.querySelectorAll("[data-glass-box='true']");
+        glassBoxes.forEach((el) => {
+          const htmlEl = el as HTMLElement;
+          htmlEl.style.backgroundColor = "rgba(10, 3, 0, 0.88)";
+        });
+
+        // 2. Mathematically center all pills and chips in html2canvas
+        const pills = clonedDoc.querySelectorAll("[data-pill='true']");
+        pills.forEach((el) => {
+          const htmlEl = el as HTMLElement;
+          htmlEl.style.display = "flex";
+          htmlEl.style.alignItems = "center";
+          htmlEl.style.justifyContent = "center";
+          htmlEl.style.backgroundColor = "rgba(10, 3, 0, 0.90)";
+          htmlEl.style.lineHeight = "1";
+          const span = htmlEl.querySelector("span");
+          if (span) {
+            span.style.display = "inline-block";
+            span.style.lineHeight = "1";
+            span.style.transform = "translateY(-1.5px)";
+          }
+        });
+
+        // 3. Ensure Shubha Muhurtha pill also has green backing in canvas
+        const greenPills = clonedDoc.querySelectorAll("[data-green-pill='true']");
+        greenPills.forEach((el) => {
+          const htmlEl = el as HTMLElement;
+          htmlEl.style.display = "flex";
+          htmlEl.style.alignItems = "center";
+          htmlEl.style.justifyContent = "center";
+          htmlEl.style.backgroundColor = "rgba(6, 78, 59, 0.92)";
+          htmlEl.style.lineHeight = "1";
+          const span = htmlEl.querySelector("span");
+          if (span) {
+            span.style.display = "inline-block";
+            span.style.lineHeight = "1";
+            span.style.transform = "translateY(-1.5px)";
+          }
+        });
       }
     });
   };
@@ -287,7 +328,7 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
         </div>
       </div>
 
-      {/* Visual Blessing Card Preview (100% Visible, Luminous, Unobscured Photographic Artwork with Glassmorphism) */}
+      {/* Visual Blessing Card Preview (100% Visible Artwork with Frosted Glass Text Boxes) */}
       <div
         ref={cardRef}
         data-blessing-card="true"
@@ -323,14 +364,16 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
         {/* 1. Kshetra Insignia Banner - Dead-Center Mathematical Grid Alignment */}
         <div style={{ textAlign: "center", marginBottom: "12px" }}>
           <div
+            data-pill="true"
             style={{
               position: "relative",
               zIndex: 10,
-              display: "inline-grid",
-              placeItems: "center",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
               height: "36px",
               padding: "0 22px",
-              background: "rgba(0, 0, 0, 0.45)",
+              background: "rgba(10, 3, 0, 0.75)",
               backdropFilter: "blur(8px)",
               WebkitBackdropFilter: "blur(8px)",
               border: `1.5px solid ${bgConfig.accentGold || "#F59E0B"}`,
@@ -360,13 +403,15 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
           }}
         >
           <div
+            data-pill="true"
             style={{
-              display: "inline-grid",
-              placeItems: "center",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
               height: "32px",
               padding: "0 16px",
               borderRadius: "999px",
-              background: "rgba(0, 0, 0, 0.45)",
+              background: "rgba(10, 3, 0, 0.75)",
               backdropFilter: "blur(8px)",
               WebkitBackdropFilter: "blur(8px)",
               border: "1.2px solid rgba(251, 191, 36, 0.65)",
@@ -381,13 +426,15 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
           </div>
           {tithiStr && (
             <div
+              data-pill="true"
               style={{
-                display: "inline-grid",
-                placeItems: "center",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
                 height: "32px",
                 padding: "0 16px",
                 borderRadius: "999px",
-                background: "rgba(0, 0, 0, 0.45)",
+                background: "rgba(10, 3, 0, 0.75)",
                 backdropFilter: "blur(8px)",
                 WebkitBackdropFilter: "blur(8px)",
                 border: "1.2px solid rgba(251, 191, 36, 0.65)",
@@ -403,13 +450,15 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
           )}
           {nakshatraStr && (
             <div
+              data-pill="true"
               style={{
-                display: "inline-grid",
-                placeItems: "center",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
                 height: "32px",
                 padding: "0 16px",
                 borderRadius: "999px",
-                background: "rgba(0, 0, 0, 0.45)",
+                background: "rgba(10, 3, 0, 0.75)",
                 backdropFilter: "blur(8px)",
                 WebkitBackdropFilter: "blur(8px)",
                 border: "1.2px solid rgba(251, 191, 36, 0.65)",
@@ -428,15 +477,17 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
         {/* 3. Shubha Muhurtha Pill - Dead-Center Mathematical Grid Alignment */}
         <div style={{ textAlign: "center", marginBottom: "12px" }}>
           <div
+            data-green-pill="true"
             style={{
               position: "relative",
               zIndex: 10,
-              display: "inline-grid",
-              placeItems: "center",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
               height: "32px",
               padding: "0 20px",
               borderRadius: "999px",
-              background: "rgba(6, 78, 59, 0.65)",
+              background: "rgba(6, 78, 59, 0.85)",
               backdropFilter: "blur(8px)",
               WebkitBackdropFilter: "blur(8px)",
               border: "1.5px solid #34D399",
@@ -451,20 +502,21 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
           </div>
         </div>
 
-        {/* 4. Good Morning Vibe - Sleek Frosted Glass Card */}
+        {/* 4. Good Morning Vibe - Sleek Frosted Glass Card with High-Contrast Backing */}
         <div
+          data-glass-box="true"
           style={{
             position: "relative",
             zIndex: 10,
-            background: "rgba(0, 0, 0, 0.40)",
+            background: "rgba(8, 2, 0, 0.75)",
             backdropFilter: "blur(8px)",
             WebkitBackdropFilter: "blur(8px)",
-            border: "1.2px solid rgba(251, 191, 36, 0.4)",
+            border: "1.2px solid rgba(251, 191, 36, 0.5)",
             borderRadius: "14px",
-            padding: "10px 14px",
+            padding: "11px 15px",
             marginBottom: "10px",
             textAlign: "center",
-            boxShadow: "0 4px 16px rgba(0,0,0,0.35)"
+            boxShadow: "0 4px 16px rgba(0,0,0,0.45)"
           }}
         >
           <div
@@ -482,7 +534,7 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
               fontSize: "13px",
               color: "#FFF8E7",
               lineHeight: "1.5",
-              fontWeight: 600
+              fontWeight: 700
             }}
           >
             {morningVibe}
@@ -491,10 +543,11 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
 
         {/* 5. Sacred Daily Shloka & Meaning - Sleek Frosted Glass Card */}
         <div
+          data-glass-box="true"
           style={{
             position: "relative",
             zIndex: 10,
-            background: "rgba(0, 0, 0, 0.45)",
+            background: "rgba(8, 2, 0, 0.78)",
             backdropFilter: "blur(8px)",
             WebkitBackdropFilter: "blur(8px)",
             border: `1.5px solid ${bgConfig.accentGold || "#F59E0B"}`,
@@ -502,7 +555,7 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
             padding: "14px 16px",
             marginBottom: "10px",
             textAlign: "center",
-            boxShadow: "0 6px 20px rgba(0,0,0,0.4)"
+            boxShadow: "0 6px 20px rgba(0,0,0,0.5)"
           }}
         >
           <div
@@ -532,7 +585,7 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
               color: "#FEF3C7",
               fontStyle: "italic",
               lineHeight: "1.5",
-              borderTop: "1px solid rgba(251, 191, 36, 0.25)",
+              borderTop: "1px solid rgba(251, 191, 36, 0.35)",
               paddingTop: "6px"
             }}
           >
@@ -540,7 +593,7 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
           </div>
         </div>
 
-        {/* 6. Two-Column Grid: Good Karma Deed & Motivational Thought - Sleek Frosted Glass */}
+        {/* 6. Two-Column Grid: Good Karma Deed & Motivational Thought */}
         <div
           style={{
             position: "relative",
@@ -553,14 +606,15 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
           }}
         >
           <div
+            data-glass-box="true"
             style={{
-              background: "rgba(0, 0, 0, 0.40)",
+              background: "rgba(8, 2, 0, 0.75)",
               backdropFilter: "blur(8px)",
               WebkitBackdropFilter: "blur(8px)",
-              border: "1.2px solid rgba(52, 211, 153, 0.5)",
+              border: "1.2px solid rgba(52, 211, 153, 0.55)",
               borderRadius: "12px",
               padding: "10px 12px",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.3)"
+              boxShadow: "0 4px 12px rgba(0,0,0,0.4)"
             }}
           >
             <div
@@ -586,14 +640,15 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
           </div>
 
           <div
+            data-glass-box="true"
             style={{
-              background: "rgba(0, 0, 0, 0.40)",
+              background: "rgba(8, 2, 0, 0.75)",
               backdropFilter: "blur(8px)",
               WebkitBackdropFilter: "blur(8px)",
-              border: "1.2px solid rgba(251, 191, 36, 0.5)",
+              border: "1.2px solid rgba(251, 191, 36, 0.55)",
               borderRadius: "12px",
               padding: "10px 12px",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.3)"
+              boxShadow: "0 4px 12px rgba(0,0,0,0.4)"
             }}
           >
             <div
@@ -621,6 +676,7 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
 
         {/* 7. Bottom Temple Benediction & Dynamic Selected Priest Stamp */}
         <div
+          data-glass-box="true"
           style={{
             position: "relative",
             zIndex: 10,
@@ -631,11 +687,11 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
             fontSize: "11px",
             fontWeight: 800,
             color: "#FDE68A",
-            background: "rgba(0, 0, 0, 0.45)",
+            background: "rgba(8, 2, 0, 0.75)",
             backdropFilter: "blur(8px)",
             WebkitBackdropFilter: "blur(8px)",
             borderRadius: "10px",
-            padding: "6px 12px",
+            padding: "7px 12px",
             border: "1px solid rgba(245, 158, 11, 0.35)"
           }}
         >
