@@ -455,17 +455,12 @@ export async function getOrComputeDinaBhavishya(params: DinaBhavishyaParams): Pr
   const localTodayObj = new Date(utcMs + (localOffsetMinutes * 60000));
   const todayYmd = localTodayObj.toISOString().split("T")[0];
 
-  let effectiveDate = targetDateRequested && targetDateRequested.trim().length > 0
+  const effectiveDate = targetDateRequested && targetDateRequested.trim().length > 0
     ? targetDateRequested.trim()
     : todayYmd;
 
-  let wasFutureRequested = false;
-  if (effectiveDate > todayYmd) {
-    wasFutureRequested = true;
-    effectiveDate = todayYmd;
-  }
-
   const isToday = effectiveDate === todayYmd;
+  const wasFutureRequested = effectiveDate > todayYmd;
   const cacheKey = getDinaBhavishyaCacheKey(userIdentifier || devoteeName, effectiveDate, lang);
 
   // 1. Tier 1: In-Memory Cache

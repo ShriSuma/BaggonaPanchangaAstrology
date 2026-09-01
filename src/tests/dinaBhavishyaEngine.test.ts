@@ -37,7 +37,7 @@ describe("Dina Bhavishya Engine & Date Locking", () => {
     expect(enDate).toBe("31 August 2026");
   });
 
-  it("STRICT DATE GUARD: Locks future requested dates (e.g. 2026-09-20) to Today's live date and sets wasFutureRequested=true", async () => {
+  it("90-DAY MULTI-DAY SUPPORT: Computes personalized Dina Bhavishya for requested calendar dates (e.g. 2026-09-20) and flags wasFutureRequested accurately", async () => {
     const result = await getOrComputeDinaBhavishya({
       targetDateRequested: "2026-09-20", // Future date!
       devoteeName: "Pramod Kodagi",
@@ -49,10 +49,8 @@ describe("Dina Bhavishya Engine & Date Locking", () => {
       userIdentifier: "test_devotee_future"
     });
 
-    const todayYmd = new Date().toISOString().split("T")[0];
-    expect(result.targetDate).toBe(todayYmd);
+    expect(result.targetDate).toBe("2026-09-20");
     expect(result.wasFutureRequested).toBe(true);
-    expect(result.isToday).toBe(true);
     expect(result.overview.length).toBeGreaterThan(20);
     expect(result.siddhaMantra).toContain("ॐ");
     expect(result.priestBlessing).toContain("ಆಶೀರ್ವಚನ");
