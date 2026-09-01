@@ -77,6 +77,10 @@ export function initDailyReportScheduler(): void {
 
   schedulerTimer = setTimeout(async () => {
     await sendDailyReportEmail();
+    try {
+      const { scheduleMidnightBlessingImagePrecompute } = await import("../darshana/dailyBlessingImageAiEngine");
+      await scheduleMidnightBlessingImagePrecompute();
+    } catch {}
     // Recursively reschedule for next day
     initDailyReportScheduler();
   }, msRemaining);
