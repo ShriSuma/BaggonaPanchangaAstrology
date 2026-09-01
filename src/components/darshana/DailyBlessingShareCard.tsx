@@ -77,7 +77,7 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
     return await html2canvas(cardRef.current, {
       scale: 2.5,
       useCORS: true,
-      backgroundColor: "#1A0600",
+      backgroundColor: null,
       logging: false,
       onclone: (clonedDoc) => {
         const cardEl = clonedDoc.querySelector("[data-blessing-card]") as HTMLElement;
@@ -287,28 +287,28 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
         </div>
       </div>
 
-      {/* Visual Blessing Card Preview (Luminous, Crystal Clear Background Artwork with Perfect Vertical Centering) */}
+      {/* Visual Blessing Card Preview (100% Visible, Luminous, Unobscured Photographic Artwork with Glassmorphism) */}
       <div
         ref={cardRef}
         data-blessing-card="true"
         style={{
-          backgroundImage: `linear-gradient(180deg, rgba(10, 4, 1, 0.18) 0%, rgba(15, 6, 2, 0.32) 40%, rgba(10, 3, 0, 0.58) 100%), url(${bgConfig.posterImageUrl})`,
+          backgroundImage: `url(${bgConfig.posterImageUrl})`,
           backgroundSize: "cover",
-          backgroundPosition: "center top",
+          backgroundPosition: "center center",
           backgroundRepeat: "no-repeat",
           border: `2.5px solid ${bgConfig.borderGold || "#D4AF37"}`,
           borderRadius: "22px",
-          padding: "24px 18px 20px 18px",
+          padding: "20px 16px 16px 16px",
           position: "relative",
           overflow: "hidden",
-          boxShadow: "0 14px 40px rgba(0,0,0,0.85)",
+          boxShadow: "0 16px 45px rgba(0,0,0,0.9)",
           textAlign: "center",
           maxWidth: "580px",
           margin: "0 auto 16px",
           boxSizing: "border-box"
         }}
       >
-        {/* Soft Golden Sunrise Rays (Thin & Subtle) */}
+        {/* Soft Transparent Golden Sunbeams Overlay */}
         <div
           style={{
             position: "absolute",
@@ -320,34 +320,33 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
           dangerouslySetInnerHTML={{ __html: svgBackgroundHtml }}
         />
 
-        {/* Kshetra Insignia Banner - Perfectly Centered Vertically & Horizontally */}
-        <div style={{ textAlign: "center", marginBottom: "14px" }}>
+        {/* 1. Kshetra Insignia Banner - Dead-Center Mathematical Grid Alignment */}
+        <div style={{ textAlign: "center", marginBottom: "12px" }}>
           <div
             style={{
               position: "relative",
               zIndex: 10,
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "10px 24px",
-              background: "rgba(10, 3, 0, 0.86)",
+              display: "inline-grid",
+              placeItems: "center",
+              height: "36px",
+              padding: "0 22px",
+              background: "rgba(0, 0, 0, 0.45)",
+              backdropFilter: "blur(8px)",
+              WebkitBackdropFilter: "blur(8px)",
               border: `1.5px solid ${bgConfig.accentGold || "#F59E0B"}`,
               borderRadius: "999px",
-              fontSize: "13px",
+              fontSize: "12.5px",
               fontWeight: 800,
               color: "#FFFBEB",
-              lineHeight: "1.4",
-              textAlign: "center",
-              letterSpacing: "normal",
               boxSizing: "border-box",
-              boxShadow: "0 4px 18px rgba(0,0,0,0.65)"
+              boxShadow: "0 4px 18px rgba(0,0,0,0.6)"
             }}
           >
             <span>✨ ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಕ್ಷೇತ್ರ • ಗೋಕರ್ಣ ಸನ್ನಿಧಿ ॥ ✨</span>
           </div>
         </div>
 
-        {/* Date & Panchanga Chips - Perfectly Centered Vertically & Horizontally */}
+        {/* 2. Date & Panchanga Chips - Dead-Center Mathematical Grid Alignment */}
         <div
           style={{
             position: "relative",
@@ -357,145 +356,153 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
             alignItems: "center",
             justifyContent: "center",
             gap: "8px",
-            marginBottom: "14px",
-            fontSize: "12px"
+            marginBottom: "12px"
           }}
         >
-          <span
+          <div
             style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "8px 16px",
-              borderRadius: "14px",
-              background: "rgba(10, 3, 0, 0.86)",
-              border: "1.2px solid rgba(251, 191, 36, 0.55)",
+              display: "inline-grid",
+              placeItems: "center",
+              height: "32px",
+              padding: "0 16px",
+              borderRadius: "999px",
+              background: "rgba(0, 0, 0, 0.45)",
+              backdropFilter: "blur(8px)",
+              WebkitBackdropFilter: "blur(8px)",
+              border: "1.2px solid rgba(251, 191, 36, 0.65)",
               color: "#FEF3C7",
-              fontWeight: 700,
-              lineHeight: "1.4",
+              fontWeight: 800,
+              fontSize: "12px",
               boxSizing: "border-box",
               boxShadow: "0 2px 8px rgba(0,0,0,0.4)"
             }}
           >
             <span>📅 {dateStr}</span>
-          </span>
+          </div>
           {tithiStr && (
-            <span
+            <div
               style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: "8px 16px",
-                borderRadius: "14px",
-                background: "rgba(10, 3, 0, 0.86)",
-                border: "1.2px solid rgba(251, 191, 36, 0.55)",
+                display: "inline-grid",
+                placeItems: "center",
+                height: "32px",
+                padding: "0 16px",
+                borderRadius: "999px",
+                background: "rgba(0, 0, 0, 0.45)",
+                backdropFilter: "blur(8px)",
+                WebkitBackdropFilter: "blur(8px)",
+                border: "1.2px solid rgba(251, 191, 36, 0.65)",
                 color: "#FEF3C7",
-                fontWeight: 700,
-                lineHeight: "1.4",
+                fontWeight: 800,
+                fontSize: "12px",
                 boxSizing: "border-box",
                 boxShadow: "0 2px 8px rgba(0,0,0,0.4)"
               }}
             >
               <span>✨ {tithiStr}</span>
-            </span>
+            </div>
           )}
           {nakshatraStr && (
-            <span
+            <div
               style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: "8px 16px",
-                borderRadius: "14px",
-                background: "rgba(10, 3, 0, 0.86)",
-                border: "1.2px solid rgba(251, 191, 36, 0.55)",
+                display: "inline-grid",
+                placeItems: "center",
+                height: "32px",
+                padding: "0 16px",
+                borderRadius: "999px",
+                background: "rgba(0, 0, 0, 0.45)",
+                backdropFilter: "blur(8px)",
+                WebkitBackdropFilter: "blur(8px)",
+                border: "1.2px solid rgba(251, 191, 36, 0.65)",
                 color: "#FEF3C7",
-                fontWeight: 700,
-                lineHeight: "1.4",
+                fontWeight: 800,
+                fontSize: "12px",
                 boxSizing: "border-box",
                 boxShadow: "0 2px 8px rgba(0,0,0,0.4)"
               }}
             >
               <span>⭐ {nakshatraStr}</span>
-            </span>
+            </div>
           )}
         </div>
 
-        {/* Shubha Muhurtha Pill - Dedicated Row Perfectly Centered */}
-        <div style={{ textAlign: "center", marginBottom: "14px" }}>
-          <span
+        {/* 3. Shubha Muhurtha Pill - Dead-Center Mathematical Grid Alignment */}
+        <div style={{ textAlign: "center", marginBottom: "12px" }}>
+          <div
             style={{
               position: "relative",
               zIndex: 10,
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "8px 22px",
-              borderRadius: "14px",
-              background: "rgba(6, 78, 59, 0.92)",
+              display: "inline-grid",
+              placeItems: "center",
+              height: "32px",
+              padding: "0 20px",
+              borderRadius: "999px",
+              background: "rgba(6, 78, 59, 0.65)",
+              backdropFilter: "blur(8px)",
+              WebkitBackdropFilter: "blur(8px)",
               border: "1.5px solid #34D399",
               color: "#A7F3D0",
               fontWeight: 800,
-              fontSize: "12.5px",
-              lineHeight: "1.4",
+              fontSize: "12px",
               boxSizing: "border-box",
               boxShadow: "0 3px 12px rgba(6, 78, 59, 0.5)"
             }}
           >
             <span>⏳ ಶುಭ ಮುಹೂರ್ತ: {goldenHourStr}</span>
-          </span>
+          </div>
         </div>
 
-        {/* Good Morning Vibe Card */}
+        {/* 4. Good Morning Vibe - Sleek Frosted Glass Card */}
         <div
           style={{
             position: "relative",
             zIndex: 10,
-            background: "rgba(10, 3, 0, 0.80)",
-            border: "1.5px solid rgba(251, 191, 36, 0.4)",
-            borderRadius: "16px",
-            padding: "14px 16px",
-            marginBottom: "12px",
+            background: "rgba(0, 0, 0, 0.40)",
+            backdropFilter: "blur(8px)",
+            WebkitBackdropFilter: "blur(8px)",
+            border: "1.2px solid rgba(251, 191, 36, 0.4)",
+            borderRadius: "14px",
+            padding: "10px 14px",
+            marginBottom: "10px",
             textAlign: "center",
-            boxShadow: "0 6px 20px rgba(0,0,0,0.45)"
+            boxShadow: "0 4px 16px rgba(0,0,0,0.35)"
           }}
         >
           <div
             style={{
-              fontSize: "12px",
+              fontSize: "11.5px",
               fontWeight: 900,
               color: "#FBBF24",
-              marginBottom: "6px",
-              letterSpacing: "normal"
+              marginBottom: "4px"
             }}
           >
             ☀️ {isKn ? "ಶುಭೋದಯ ಸಂದೇಶ (Morning Blessing)" : "Good Morning Blessing"}
           </div>
           <div
             style={{
-              fontSize: "13.5px",
+              fontSize: "13px",
               color: "#FFF8E7",
-              lineHeight: "1.6",
-              fontWeight: 600,
-              letterSpacing: "normal"
+              lineHeight: "1.5",
+              fontWeight: 600
             }}
           >
             {morningVibe}
           </div>
         </div>
 
-        {/* Sacred Daily Shloka & Meaning */}
+        {/* 5. Sacred Daily Shloka & Meaning - Sleek Frosted Glass Card */}
         <div
           style={{
             position: "relative",
             zIndex: 10,
-            background: "rgba(10, 3, 0, 0.84)",
+            background: "rgba(0, 0, 0, 0.45)",
+            backdropFilter: "blur(8px)",
+            WebkitBackdropFilter: "blur(8px)",
             border: `1.5px solid ${bgConfig.accentGold || "#F59E0B"}`,
             borderRadius: "16px",
-            padding: "16px",
-            marginBottom: "12px",
+            padding: "14px 16px",
+            marginBottom: "10px",
             textAlign: "center",
-            boxShadow: "0 8px 24px rgba(0,0,0,0.5)"
+            boxShadow: "0 6px 20px rgba(0,0,0,0.4)"
           }}
         >
           <div
@@ -503,78 +510,75 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
               fontSize: "11px",
               fontWeight: 900,
               color: "#FDE68A",
-              marginBottom: "8px",
-              letterSpacing: "normal"
+              marginBottom: "6px"
             }}
           >
             🪔 {isKn ? `ಇಂದಿನ ದೈವಿಕ ಶ್ಲೋಕ (${inspiration.deitySource})` : `Daily Sacred Shloka (${inspiration.deitySource})`}
           </div>
           <div
             style={{
-              fontSize: "14px",
+              fontSize: "13.5px",
               fontWeight: 800,
               color: "#FFFFFF",
-              lineHeight: "1.65",
-              marginBottom: "10px",
-              letterSpacing: "normal"
+              lineHeight: "1.6",
+              marginBottom: "8px"
             }}
           >
             "{shlokaText}"
           </div>
           <div
             style={{
-              fontSize: "12px",
+              fontSize: "11.5px",
               color: "#FEF3C7",
               fontStyle: "italic",
-              lineHeight: "1.6",
+              lineHeight: "1.5",
               borderTop: "1px solid rgba(251, 191, 36, 0.25)",
-              paddingTop: "8px",
-              letterSpacing: "normal"
+              paddingTop: "6px"
             }}
           >
             {shlokaMeaning}
           </div>
         </div>
 
-        {/* Two-Column Grid: Good Karma Deed & Motivational Thought */}
+        {/* 6. Two-Column Grid: Good Karma Deed & Motivational Thought - Sleek Frosted Glass */}
         <div
           style={{
             position: "relative",
             zIndex: 10,
             display: "grid",
             gridTemplateColumns: "1fr 1fr",
-            gap: "10px",
-            marginBottom: "14px",
+            gap: "8px",
+            marginBottom: "10px",
             textAlign: "left"
           }}
         >
           <div
             style={{
-              background: "rgba(8, 2, 0, 0.82)",
-              border: "1.5px solid rgba(52, 211, 153, 0.5)",
-              borderRadius: "14px",
-              padding: "12px 14px",
-              boxShadow: "0 4px 14px rgba(0,0,0,0.4)"
+              background: "rgba(0, 0, 0, 0.40)",
+              backdropFilter: "blur(8px)",
+              WebkitBackdropFilter: "blur(8px)",
+              border: "1.2px solid rgba(52, 211, 153, 0.5)",
+              borderRadius: "12px",
+              padding: "10px 12px",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.3)"
             }}
           >
             <div
               style={{
-                fontSize: "11px",
+                fontSize: "10.5px",
                 fontWeight: 900,
                 color: "#6EE7B7",
-                marginBottom: "4px",
-                letterSpacing: "normal"
+                marginBottom: "3px"
               }}
             >
               🌱 {isKn ? "ಇಂದಿನ ಪುಣ್ಯ ಕಾರ್ಯ (Good Karma):" : "Today's Good Karma:"}
             </div>
             <div
               style={{
-                fontSize: "12px",
+                fontSize: "11.5px",
                 fontWeight: 600,
                 color: "#ECFDF5",
-                lineHeight: "1.55",
-                letterSpacing: "normal"
+                lineHeight: "1.45"
               }}
             >
               {goodDeed}
@@ -583,31 +587,31 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
 
           <div
             style={{
-              background: "rgba(8, 2, 0, 0.82)",
-              border: "1.5px solid rgba(251, 191, 36, 0.5)",
-              borderRadius: "14px",
-              padding: "12px 14px",
-              boxShadow: "0 4px 14px rgba(0,0,0,0.4)"
+              background: "rgba(0, 0, 0, 0.40)",
+              backdropFilter: "blur(8px)",
+              WebkitBackdropFilter: "blur(8px)",
+              border: "1.2px solid rgba(251, 191, 36, 0.5)",
+              borderRadius: "12px",
+              padding: "10px 12px",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.3)"
             }}
           >
             <div
               style={{
-                fontSize: "11px",
+                fontSize: "10.5px",
                 fontWeight: 900,
                 color: "#FDE68A",
-                marginBottom: "4px",
-                letterSpacing: "normal"
+                marginBottom: "3px"
               }}
             >
               💡 {isKn ? "ಸ್ಫೂರ್ತಿದಾಯಕ ಚಿಂತನೆ (Life Insight):" : "Life Insight:"}
             </div>
             <div
               style={{
-                fontSize: "12px",
+                fontSize: "11.5px",
                 fontWeight: 600,
                 color: "#FFFBEB",
-                lineHeight: "1.55",
-                letterSpacing: "normal"
+                lineHeight: "1.45"
               }}
             >
               "{motivationalQuote}"
@@ -615,7 +619,7 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
           </div>
         </div>
 
-        {/* Bottom Temple Benediction & Dynamic Selected Priest Stamp */}
+        {/* 7. Bottom Temple Benediction & Dynamic Selected Priest Stamp */}
         <div
           style={{
             position: "relative",
@@ -627,8 +631,12 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
             fontSize: "11px",
             fontWeight: 800,
             color: "#FDE68A",
-            borderTop: "1px solid rgba(245, 158, 11, 0.35)",
-            paddingTop: "10px"
+            background: "rgba(0, 0, 0, 0.45)",
+            backdropFilter: "blur(8px)",
+            WebkitBackdropFilter: "blur(8px)",
+            borderRadius: "10px",
+            padding: "6px 12px",
+            border: "1px solid rgba(245, 158, 11, 0.35)"
           }}
         >
           <span>🛕 ಬಗ್ಗೋಣ ಶ್ರೀ ಮಹಾಗಣಪತಿ ಸನ್ನಿಧಿ</span>
