@@ -233,34 +233,37 @@ export function getPreviousDayPreparationAlert(currentDateStr: string): string |
   const nextDay = getParabhavaDayDetails(nextDateStr);
   const nextFest = getFestivalByDate(nextDateStr);
 
-  const alerts: string[] = [];
-
-  // Ekadashi alert
-  if (nextDay.tithiKn.includes("ಏಕಾದಶಿ")) {
-    alerts.push(`🔔 ನಾಳೆ ${nextDay.tithiKn} (${nextFest ? nextFest.nameKn : "ಏಕಾದಶಿ ವ್ರತ"}). ಇಂದು ದಶಮೀ ನಿಯಮ ಪಾಲಿಸಿ, ರಾತ್ರಿ ಲಘು ಆಹಾರ & ಉಪವಾಸ ಸಂಕಲ್ಪ.`);
+  // 1. Ekadashi alert (Dashami evening prep & fasting sankalpa)
+  if (nextDay.tithiKn.includes("ಏಕಾದಶಿ") || (nextFest && nextFest.nameKn.includes("ಏಕಾದಶಿ"))) {
+    return `🔔 ನಾಳೆ ${nextFest ? nextFest.nameKn : nextDay.tithiKn} (ಏಕಾದಶಿ ವ್ರತ). ಇಂದು ದಶಮೀ ನಿಯಮ ಪಾಲಿಸಿ, ರಾತ್ರಿ ಲಘು ಆಹಾರ & ಉಪವಾಸ ಸಂಕಲ್ಪ.`;
   }
 
-  // Purnima alert
-  if (nextDay.tithiKn.includes("ಹುಣ್ಣಿಮೆ") || nextDay.tithiKn.includes("ಪೂರ್ಣಿಮಾ")) {
-    alerts.push(`🌕 ನಾಳೆ ${nextDay.chandramanaMasaKn} ಹುಣ್ಣಿಮೆ (${nextFest ? nextFest.nameKn : "ಸತ್ಯನಾರಾಯಣ ಪೂಜೆ"}). ಸಂಜೆ ದೇವತಾ ಆರಾಧನೆ & ವ್ರತ ಸಿದ್ಧತೆ.`);
-  }
-
-  // Amavasya alert
-  if (nextDay.tithiKn.includes("ಅಮಾವಾಸ್ಯೆ")) {
-    alerts.push(`🌑 ನಾಳೆ ${nextDay.chandramanaMasaKn} ದರ್ಶ ಅಮಾವಾಸ್ಯೆ. ಪಿತೃ ತರ್ಪಣ & ತಿಲತರ್ಪಣ ಶ್ರಾದ್ಧ ಕಾರ್ಯಗಳ ಪೂರ್ವಸಿದ್ಧತೆ.`);
-  }
-
-  // Pradosha alert
-  if (nextDay.tithiKn.includes("ತ್ರಯೋದಶಿ")) {
-    alerts.push(`🔱 ನಾಳೆ ಪ್ರದೋಷ ವ್ರತ. ಸಂಜೆ ರುದ್ರಾಭಿಷೇಕ & ಶಿವಪೂಜಾ ದ್ರವ್ಯಗಳ ಸಿದ್ಧತೆ.`);
-  }
-
-  // Major Festival alert
+  // 2. Major Festival alert (Ugadi, Maha Shivaratri, Shri Rama Navami, Varamahalakshmi, etc.)
   if (nextFest && nextFest.category === "Major Festival") {
-    alerts.push(`🪔 ನಾಳೆ ಮಹಾಪರ್ವ: ${nextFest.nameKn}! ${nextFest.pujaWindow ? `ಪೂಜಾ ಮುಹೂರ್ತ: ${nextFest.pujaWindow}` : "ದಿನದ ಪ್ರಾತಃಕಾಲ ಪೂಜೆ"}.`);
+    return `🪔 ನಾಳೆ ಮಹಾಪರ್ವ: ${nextFest.nameKn}! ${nextFest.pujaWindow ? `ಪೂಜಾ ಮುಹೂರ್ತ: ${nextFest.pujaWindow}` : "ದಿನದ ಪ್ರಾತಃಕಾಲ ಪೂಜೆ"}.`;
   }
 
-  return alerts.length > 0 ? alerts.join("\n") : undefined;
+  // 3. Purnima alert
+  if (nextDay.tithiKn.includes("ಹುಣ್ಣಿಮೆ") || nextDay.tithiKn.includes("ಪೂರ್ಣಿಮಾ")) {
+    return `🌕 ನಾಳೆ ${nextDay.chandramanaMasaKn} ಹುಣ್ಣಿಮೆ (${nextFest ? nextFest.nameKn : "ಸತ್ಯನಾರಾಯಣ ಪೂಜೆ"}). ಸಂಜೆ ದೇವತಾ ಆರಾಧನೆ & ವ್ರತ ಸಿದ್ಧತೆ.`;
+  }
+
+  // 4. Amavasya alert
+  if (nextDay.tithiKn.includes("ಅಮಾವಾಸ್ಯೆ")) {
+    return `🌑 ನಾಳೆ ${nextDay.chandramanaMasaKn} ದರ್ಶ ಅಮಾವಾಸ್ಯೆ. ಪಿತೃ ತರ್ಪಣ & ತಿಲತರ್ಪಣ ಶ್ರಾದ್ಧ ಕಾರ್ಯಗಳ ಪೂರ್ವಸಿದ್ಧತೆ.`;
+  }
+
+  // 5. Pradosha alert
+  if (nextDay.tithiKn.includes("ತ್ರಯೋದಶಿ")) {
+    return `🔱 ನಾಳೆ ಪ್ರದೋಷ ವ್ರತ. ಸಂಜೆ ರುದ್ರಾಭಿಷೇಕ & ಶಿವಪೂಜಾ ದ್ರವ್ಯಗಳ ಸಿದ್ಧತೆ.`;
+  }
+
+  // 6. Other religious festival alert
+  if (nextFest) {
+    return `🪔 ನಾಳೆ ಧಾರ್ಮಿಕ ವಿಶೇಷ: ${nextFest.nameKn}! ${nextFest.pujaWindow ? `ಪೂಜಾ ಮುಹೂರ್ತ: ${nextFest.pujaWindow}` : "ದಿನದ ಪ್ರಾತಃಕಾಲ ಪೂಜೆ"}.`;
+  }
+
+  return undefined;
 }
 
 const dossierCache = new Map<string, PriestDayDossier>();

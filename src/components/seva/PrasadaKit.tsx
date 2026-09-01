@@ -532,7 +532,7 @@ export default function PrasadaKit({
           });
         } catch (qrErr) {
           console.warn("High-density QR payload failed, generating fallback QR:", qrErr);
-          const fallbackPayload = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent("Baggona 90-Day Panchanga Calendar")}&details=${encodeURIComponent("Baggona Panchanga Astrology - Gokarna Kshetra")}&recur=RRULE:FREQ=DAILY;COUNT=90&ctz=Asia/Kolkata`;
+          const fallbackPayload = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent("Baggona 90-Day Panchanga Calendar")}&details=${encodeURIComponent("Baggona Panchanga Astrology - Gokarna Kshetra")}&ctz=Asia/Kolkata`;
           currentQr = await QRCode.toDataURL(fallbackPayload, {
             errorCorrectionLevel: "L",
             margin: 2,

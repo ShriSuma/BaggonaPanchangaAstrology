@@ -20,12 +20,16 @@ describe("Special Vrata Deduplication and Priest Calendar Integration", () => {
     for (let i = 0; i < list.length - 1; i++) {
       const cur = list[i];
       const next = list[i + 1];
-      if (cur.category === next.category && cur.category !== "NONE") {
-        // Must not be consecutive day
+      if (cur.category === next.category && cur.category !== "NONE" && cur.category !== "FESTIVAL") {
+        // Monthly vratas (Ekadashi, Amavasya, Purnima, Sankashti, Pradosham) must not be on consecutive days
         const curD = new Date(cur.ymd).getTime();
         const nextD = new Date(next.ymd).getTime();
         const diffDays = Math.round((nextD - curD) / 86400000);
         expect(diffDays).toBeGreaterThan(1);
+      }
+      if (cur.category === "FESTIVAL" && next.category === "FESTIVAL") {
+        // Consecutive distinct festivals (e.g. Swarna Gowri on Sept 13 and Ganesha Chaturthi on Sept 14) must have distinct names
+        expect(cur.vrataName).not.toBe(next.vrataName);
       }
     }
   });

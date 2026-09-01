@@ -1,6 +1,7 @@
 import { siderealLongitudes } from "../../core/EphemerisEngine";
 import { normalizeDegree } from "../../core/AstroMath";
 import { getDetailedTithiInfo } from "../../core/VedicCalculations";
+import { getFestivalByDate } from "../../core/ParabhavaBookEngine";
 import { pick, type SevaLang } from "./sevaLocale";
 
 /**
@@ -225,45 +226,30 @@ export function detectSpecialVrata(ymd: string, lang = "kn"): SpecialVrataInfo {
   let category: SpecialVrataCategory = "NONE";
   let festivalTitle = "";
 
-  // 1. Check Tithi Categories using Canonical Udaya Tithi (Tithi at Sunrise ~ 06:00 AM IST)
-  // This guarantees each Vrata falls on EXACTLY ONE canonical calendar day, preventing duplicate triggers.
-  if (sunriseTithiVal === 29 || (majorityTithiVal === 29 && sunriseTithiVal === 28)) {
-    category = "AMAVASYA";
-  } else if (sunriseTithiVal === 14 || (majorityTithiVal === 14 && sunriseTithiVal === 13)) {
-    category = "PURNIMA";
-  } else if (sunriseInPaksha === 11 || (majorityInPaksha === 11 && sunriseInPaksha === 10)) {
-    category = "EKADASHI";
-  } else if ((!isSunriseShukla && sunriseInPaksha === 4) || (!isMajorityShukla && majorityInPaksha === 4 && sunriseInPaksha === 3)) {
-    category = "SANKASHTI";
-  } else if (sunriseInPaksha === 13 || (majorityInPaksha === 13 && sunriseInPaksha === 12)) {
-    category = "PRADOSHAM";
-  }
-
-  // 2. Ephemeris & Seasonal Festival Overrides using Vedic Lunar Month (Masa)
-  // Bhadrapada Shukla Chaturthi (Ganesha Chaturthi) — lunar month 5 (Bhadrapada)
-  if (lunarMonth === 5 && ((isSunriseShukla && sunriseInPaksha === 4) || (isMajorityShukla && majorityInPaksha === 4 && sunriseInPaksha === 3))) {
+  // 1. Primary Source of Truth: Canonical Baggona Panchanga Annual Festivals Database (ParabhavaBookEngine)
+  // This guarantees each annual festival falls on EXACTLY ONE canonical calendar date without duplicates.
+  const bookFest = getFestivalByDate(ymd);
+  if (bookFest) {
     category = "FESTIVAL";
-    festivalTitle = validCode === "kn" ? "🐘 ಶ್ರೀ ಗಣೇಶ ಚತುರ್ಥಿ ಮಹೋತ್ಸವ" : "🐘 Sri Ganesha Chaturthi Festival";
-  }
-  // Shravana Varamahalakshmi Vratha — Friday in Shravana Masa (lunar month 4) during Shukla Paksha
-  // Strictly the Friday immediately preceding Shravana Purnima
-  else if (weekday === 5 && lunarMonth === 4 && (isSunriseShukla || isMajorityShukla) && ((sunriseInPaksha >= 8 && sunriseInPaksha <= 14) || (majorityInPaksha >= 8 && majorityInPaksha <= 14))) {
-    category = "FESTIVAL";
-    festivalTitle = validCode === "kn" ? "🌸 ಶ್ರೀ ವರಮಹಾಲಕ್ಷ್ಮಿ ವ್ರತ ಮಹೋತ್ಸವ" :
-                    validCode === "hi" ? "🌸 श्री वरमहालक्ष्मी व्रत महोत्सव" :
-                    validCode === "te" ? "🌸 శ్రీ వరమహాలక్ష్మి వ్రత మహోత్సవం" :
-                    validCode === "ta" ? "🌸 ஸ்ரீ வரமகாலக்ஷ்மி விரத திருவிழா" :
-                    "🌸 Sri Varamahalakshmi Vrata Festival";
-  }
-  // Shravana Krishna Ashtami (Janmashtami) — lunar month 4 (Shravana)
-  else if (lunarMonth === 4 && ((!isSunriseShukla && sunriseInPaksha === 8) || (!isMajorityShukla && majorityInPaksha === 8 && sunriseInPaksha === 7))) {
-    category = "FESTIVAL";
-    festivalTitle = validCode === "kn" ? "🪈 ಶ್ರೀ ಕೃಷ್ಣ ಜನ್ಮಾಷ್ಟಮಿ" : "🪈 Sri Krishna Janmashtami";
-  }
-  // Ashvina Shukla Dashami (Vijayadashami) — lunar month 6 (Ashvina)
-  else if (lunarMonth === 6 && ((isSunriseShukla && (sunriseInPaksha === 10 || sunriseInPaksha === 9)) || (isMajorityShukla && majorityInPaksha === 10 && sunriseInPaksha === 8))) {
-    category = "FESTIVAL";
-    festivalTitle = validCode === "kn" ? "⚔️ ಶ್ರೀ ವಿಜಯದಶಮಿ & ಮಹಾನವಮಿ" : "⚔️ Sri Vijayadashami & Mahanavami";
+    festivalTitle = validCode === "kn" ? `🪔 ${bookFest.nameKn}` :
+                    validCode === "hi" ? `🪔 ${bookFest.nameKn}` :
+                    validCode === "te" ? `🪔 ${bookFest.nameKn}` :
+                    validCode === "ta" ? `🪔 ${bookFest.nameKn}` :
+                    `🪔 ${bookFest.nameEn} (${bookFest.nameKn})`;
+  } else {
+    // 2. Check Tithi Categories using Canonical Udaya Tithi (Tithi at Sunrise ~ 06:00 AM IST)
+    // Guarantees each monthly Vrata falls on EXACTLY ONE canonical calendar day, preventing duplicate triggers.
+    if (sunriseTithiVal === 29 || (majorityTithiVal === 29 && sunriseTithiVal === 28)) {
+      category = "AMAVASYA";
+    } else if (sunriseTithiVal === 14 || (majorityTithiVal === 14 && sunriseTithiVal === 13)) {
+      category = "PURNIMA";
+    } else if (sunriseInPaksha === 11 || (majorityInPaksha === 11 && sunriseInPaksha === 10)) {
+      category = "EKADASHI";
+    } else if ((!isSunriseShukla && sunriseInPaksha === 4) || (!isMajorityShukla && majorityInPaksha === 4 && sunriseInPaksha === 3)) {
+      category = "SANKASHTI";
+    } else if (sunriseInPaksha === 13 || (majorityInPaksha === 13 && sunriseInPaksha === 12)) {
+      category = "PRADOSHAM";
+    }
   }
 
   if (category === "NONE") {
@@ -335,27 +321,28 @@ export function get90DaySpecialVratas(
   const sm = (parts[1] || 1) - 1;
   const sd = parts[2] || 1;
 
-  // Track previous day's category+vrataName to deduplicate Tithi spans
-  // (a single Tithi can span 2 consecutive calendar days)
-  let prevCategoryKey = "";
+  const seenFestivalNames = new Set<string>();
+  const lastSeenCategoryDay = new Map<string, number>();
 
   for (let i = 0; i < 90; i++) {
     const noonUtc = new Date(Date.UTC(sy, sm, sd + i, 12, 0, 0));
     const ymd = noonUtc.toISOString().slice(0, 10);
     const info = detectSpecialVrata(ymd, lang);
     if (info.isSpecial) {
-      // Deduplication: if the same category+vrataName was flagged on the previous day,
-      // skip this duplicate (keep only the first occurrence where the Tithi begins)
-      const categoryKey = `${info.category}:${info.vrataName}`;
-      if (categoryKey === prevCategoryKey) {
-        // Same Tithi spanning into next day — skip duplicate
-        prevCategoryKey = categoryKey;
-        continue;
+      if (info.category === "FESTIVAL") {
+        if (seenFestivalNames.has(info.vrataName)) {
+          continue; // Annual festival triggers strictly once
+        }
+        seenFestivalNames.add(info.vrataName);
+        specialList.push(info);
+      } else {
+        const lastDay = lastSeenCategoryDay.get(info.category);
+        if (lastDay !== undefined && (i - lastDay) <= 10) {
+          continue; // Suppress consecutive-day tithi span duplicate
+        }
+        lastSeenCategoryDay.set(info.category, i);
+        specialList.push(info);
       }
-      prevCategoryKey = categoryKey;
-      specialList.push(info);
-    } else {
-      prevCategoryKey = "";
     }
   }
 

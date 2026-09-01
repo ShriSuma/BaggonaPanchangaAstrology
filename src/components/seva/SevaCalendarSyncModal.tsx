@@ -295,7 +295,7 @@ export default function SevaCalendarSyncModal({
           // Compact ASCII-only fallback to guarantee scannable QR
           const fallback = calendarMode === "priest"
             ? `${origin}/priest-panchanga?date=${selectedDay?.ymd || "2026-03-19"}`
-            : `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent("Baggona 90-Day Panchanga")}&recur=RRULE:FREQ=DAILY;COUNT=90&ctz=Asia/Kolkata`;
+            : `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent("Baggona 90-Day Panchanga")}&ctz=Asia/Kolkata`;
           QRCode.toDataURL(fallback, { errorCorrectionLevel: "L", margin: 2, width: 280 })
             .then((fallbackUrl) => setQrDataUrl(fallbackUrl));
         });

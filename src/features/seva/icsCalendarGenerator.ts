@@ -1024,7 +1024,7 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
   const sanitizedDevoteeToken = baseToken.replace(/[^a-zA-Z0-9]/g, "").slice(0, 32);
 
   const scheduledEveAlerts = new Set<string>();
-  const seenVrataDays = new Set<string>();
+  const lastSeenVrataIndexMap = new Map<string, number>();
 
   days.forEach((day, idx) => {
     const ymdCompact = formatYmdCompact(day.ymd);
@@ -1063,11 +1063,19 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
     const tithiFullStr = tithiLabel(day, lang);
     const nakName = nakshatraName(day.moonNakshatraIndex, lang as SevaLang);
 
-    // Detect Special Vrata (Amavasya, Ekadashi, Sankashti, Purnima, Festivals) with deduplication
+    // Detect Special Vrata (Amavasya, Ekadashi, Sankashti, Purnima, Festivals) with strict deduplication
     const vrata = detectSpecialVrata(day.ymd, lang);
-    const isNewVrataDay = vrata.isSpecial && !seenVrataDays.has(`${day.ymd}_${vrata.category}`);
-    if (vrata.isSpecial) {
-      seenVrataDays.add(`${day.ymd}_${vrata.category}`);
+    const vrataKey = `${vrata.category}_${vrata.vrataName}`;
+    const lastSeenIdx = lastSeenVrataIndexMap.get(vrataKey);
+    // For FESTIVAL: strictly once across the entire calendar.
+    // For regular monthly Vratas: only trigger if not triggered within the last 10 days (prevents consecutive-day duplicate triggers).
+    const isNewVrataDay = vrata.isSpecial && (
+      vrata.category === "FESTIVAL"
+        ? lastSeenIdx === undefined
+        : (lastSeenIdx === undefined || (idx - lastSeenIdx) > 10)
+    );
+    if (vrata.isSpecial && isNewVrataDay) {
+      lastSeenVrataIndexMap.set(vrataKey, idx);
     }
 
     const summaryPrefix = isNewVrataDay
@@ -1262,7 +1270,7 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
 
       if (!scheduledEveAlerts.has(eveKey)) {
         scheduledEveAlerts.add(eveKey);
-        const eveUid = `baggona-eve-${prevYmdCompact}-${sanitizedDevoteeToken}@baggona.app`;
+        const eveUid = `baggona-eve-${prevYmdCompact}-${vrata.category.toLowerCase()}-${sanitizedDevoteeToken}@baggona.app`;
         const eveDtStart = `${prevYmdCompact}T200000`; // 8:00 PM previous evening
         const eveDtEnd = `${prevYmdCompact}T203000`;   // 8:30 PM IST
 
@@ -1581,18 +1589,10 @@ export function generateCompactGoogleCalendarUrlForQR(options: {
   const sanctumUrl = `${origin}/daily?token=${devoteeToken}`;
 
   // Compact ASCII-only summary for QR (no emojis, no Unicode)
-  const summary = `Baggona Panchanga - 90 Day Seva Calendar`;
+  const summary = `Baggona Panchanga - 90 Day Calendar`;
 
-  // Short ASCII details that stay within QR capacity
-  const details = [
-    `Baggona Panchanga Astrology (Gokarna Kshetra)`,
-    `Priest: ${safePandit}`,
-    `Devotee: ${devoteeDisplayName}`,
-    `90-Day Daily Guidance with Tithi, Nakshatra, Mantras`,
-    ``,
-    `Full Details: ${sanctumUrl}`,
-    `Import 90-Day Calendar: ${origin}/daily?token=${devoteeToken}&action=ics90`
-  ].join("\n");
+  // Short ASCII details that stay strictly within 400-500 chars
+  const details = `Baggona Panchanga - ${safePandit} | ${devoteeDisplayName}\n${sanctumUrl}`;
 
   const baseUrl = "https://calendar.google.com/calendar/render";
   const params = new URLSearchParams({

@@ -96,9 +96,9 @@ export default function RoyalBookletTab({
         });
         if (isMounted) setQrDataUrl(url);
       } catch (e) {
-        const fallbackPayload = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent("Baggona 90-Day Panchanga Calendar")}&recur=RRULE:FREQ=DAILY;COUNT=90&ctz=Asia/Kolkata`;
+        const fallbackPayload = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent("Baggona 90-Day Panchanga Calendar")}&ctz=Asia/Kolkata`;
         const url = await QRCode.toDataURL(fallbackPayload, {
-          errorCorrectionLevel: "M",
+          errorCorrectionLevel: "L",
           margin: 2,
           width: 320,
           color: { dark: "#78350F", light: "#FFFFFF" }
