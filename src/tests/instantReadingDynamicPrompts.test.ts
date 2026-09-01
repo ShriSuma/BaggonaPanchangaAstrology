@@ -6,6 +6,7 @@ import {
 } from "../core/PanchangaAngaSynthesisEngine";
 import { calculateKundli } from "../core/KundliEngine";
 import { cleanAstrologyText } from "../pages/InstantReadingPage";
+import { toKannadaPlanet, toKannadaRashi, toKannadaNakshatra } from "../utils/kannadaAstrologyTerms";
 
 describe("Instant Reading Dynamic 5-Field Astrologer Verbal Prompts & Synthesis Suite", () => {
   const sampleBirth1 = {
@@ -109,11 +110,11 @@ describe("Instant Reading Dynamic 5-Field Astrologer Verbal Prompts & Synthesis 
     const knDigitsRegex = /[೦-೯]/;
     expect(knDigitsRegex.test(allText)).toBe(false);
 
-    // Should contain English digits like 3, 5, 2:00 AM, 4:30 AM
+    // Should contain English digits like 3, 5, 2:00, 4:30
     expect(allText).toMatch(/\d+/);
   });
 
-  it("generates deep, conversational spoken Kannada pandit scripts for all 1-click questions", () => {
+  it("generates COMPLETE 4 DENSE PARAGRAPHS for each sub-level question in 100% pure Kannada", () => {
     const devoteeName = "Pramod";
     const output = generatePanchangaAngaSynthesis(kundli2, {
       birthDate: sampleBirth2.birthDate,
@@ -128,10 +129,26 @@ describe("Instant Reading Dynamic 5-Field Astrologer Verbal Prompts & Synthesis 
     expect(qaList.length).toBeGreaterThanOrEqual(8);
 
     for (const q of qaList) {
-      expect(q.panditScriptKn.length).toBeGreaterThan(300);
-      expect(q.panditScriptKn.split("\n\n").length).toBeGreaterThanOrEqual(3);
+      // Must have exactly 4 dense paragraphs
+      const paragraphs = q.panditScriptKn.split("\n\n");
+      expect(paragraphs.length).toBe(4);
+
+      // Total script length must be substantial (>600 characters for 4 dense paragraphs)
+      expect(q.panditScriptKn.length).toBeGreaterThan(600);
+
+      // Must NOT contain raw English planet names
+      expect(q.panditScriptKn).not.toMatch(/\bMars\b/i);
+      expect(q.panditScriptKn).not.toMatch(/\bSun\b/i);
+      expect(q.panditScriptKn).not.toMatch(/\bLeo\b/i);
+      expect(q.panditScriptKn).not.toMatch(/\bCancer\b/i);
+
+      // Must use pure traditional Kannada terminology (Kuja, Ravi)
+      expect(q.panditScriptKn).not.toContain("ಮಂಗಳ");
+      expect(q.panditScriptKn).not.toContain("ಸೂರ್ಯ");
+
       expect(q.astrologicalBasisKn).toBeTruthy();
       expect(q.immediateRemedyKn).toBeTruthy();
+
       // Verifies conversational spoken greeting with devotee's name
       expect(q.panditScriptKn).toContain(`ನಮಸ್ಕಾರ ${devoteeName}`);
     }
@@ -141,7 +158,8 @@ describe("Instant Reading Dynamic 5-Field Astrologer Verbal Prompts & Synthesis 
     expect(qMind).toBeDefined();
     expect(qMind?.panditScriptKn).toContain("ನಾನ್ ನಿಮ್ಮ ಜಾತಕ ನೋಡಿದೆ");
     expect(qMind?.panditScriptKn).toContain("ನಿದ್ರಾಹೀನತೆಯಾಗಿ");
-    expect(qMind?.panditScriptKn).toContain("2:00 AM ರಿಂದ 4:30 AM");
+    expect(qMind?.panditScriptKn).toContain("2:00");
+    expect(qMind?.panditScriptKn).toContain("4:30");
   });
 
   it("cleanAstrologyText sanitizer strips markdown bold asterisks and normalizes text", () => {
@@ -152,5 +170,15 @@ describe("Instant Reading Dynamic 5-Field Astrologer Verbal Prompts & Synthesis 
     expect(cleaned).not.toContain("#");
     expect(cleaned).toContain("3ನೇ");
     expect(cleaned).toContain("10ನೇ");
+  });
+
+  it("kannadaAstrologyTerms correctly maps Mars to Kuja and Sun to Ravi", () => {
+    expect(toKannadaPlanet("Mars")).toBe("ಕುಜ");
+    expect(toKannadaPlanet("Sun")).toBe("ರವಿ");
+    expect(toKannadaPlanet("Mangala")).toBe("ಕುಜ");
+    expect(toKannadaPlanet("Surya")).toBe("ರವಿ");
+    expect(toKannadaRashi("Leo")).toBe("ಸಿಂಹ");
+    expect(toKannadaRashi("Cancer")).toBe("ಕರ್ಕಾಟಕ");
+    expect(toKannadaNakshatra("Pushya")).toBe("ಪುಷ್ಯ");
   });
 });

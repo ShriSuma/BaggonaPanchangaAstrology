@@ -1,3 +1,4 @@
+import { toKannadaRashi, toKannadaNakshatra, toKannadaPlanet, sanitizeAstrologyKannadaText } from "../utils/kannadaAstrologyTerms";
 import React, { useEffect, useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useAppStore } from "../stores/appStore";
@@ -18,22 +19,7 @@ import GrahaSpinner from "../components/ui/GrahaSpinner";
  * 3. Removes stray non-standard artifacts.
  */
 export function cleanAstrologyText(text: string): string {
-  if (!text) return "";
-  let cleaned = text
-    .replace(/\*\*/g, "")
-    .replace(/\*/g, "")
-    .replace(/#{1,6}\s?/g, "")
-    .replace(/`/g, "")
-    .replace(/_{1,2}/g, "")
-    .trim();
-
-  // Convert Kannada digits to English digits
-  const knDigits = ["೦", "೧", "೨", "೩", "೪", "೫", "೬", "೭", "೮", "೯"];
-  knDigits.forEach((kd, idx) => {
-    cleaned = cleaned.replaceAll(kd, idx.toString());
-  });
-
-  return cleaned;
+  return sanitizeAstrologyKannadaText(text);
 }
 
 export default function InstantReadingPage(): JSX.Element {
@@ -116,7 +102,14 @@ Technical Astrological Placements:
 - Prescriptions: ${data.prescriptions.rudraksha.nameKn}, ${data.prescriptions.gemstoneRing.primaryGemstoneKn} (${data.prescriptions.gemstoneRing.caratWeight}) on ${data.prescriptions.gemstoneRing.fingerKn}.
 
 STRICT WRITING & ASTROLOGER PERSONA RULES:
-1. Speak DIRECTLY to the devotee in authoritative, deeply empathetic, face-to-face Vedic Astrologer spoken voice in pure, natural ${isKn ? "Kannada" : "English"}. Do not sound like a computer or mobile app reading a report.
+1. Speak DIRECTLY to the devotee in authoritative, deeply empathetic, face-to-face Vedic Astrologer spoken voice in 100% PURE ${isKn ? "Kannada" : "English"}. NO English words or foreign language mix-up (e.g. NEVER write 'Leo', 'Cancer', 'Pushya', 'Mars', 'Sun' inside Kannada sentences).
+2. Use standard traditional Vedic planetary terminology:
+   - Use 'ರವಿ' (Ravi) for Sun (NEVER 'Sun' or 'ಸೂರ್ಯ').
+   - Use 'ಕುಜ' (Kuja) for Mars (NEVER 'Mars' or 'ಮಂಗಳ').
+   - Use 'ಗುರು' for Jupiter, 'ಶುಕ್ರ' for Venus, 'ಶನಿ' for Saturn, 'ಬುಧ' for Mercury, 'ಚಂದ್ರ' for Moon, 'ರಾಹು' for Rahu, 'ಕೇತು' for Ketu.
+   - Use pure Kannada Rashi names: ಮೇಷ, ವೃಷಭ, ಮಿಥುನ, ಕರ್ಕಾಟಕ, ಸಿಂಹ, ಕನ್ಯಾ, ತುಲಾ, ವೃಶ್ಚಿಕ, ಧನುಸ್ಸು, ಮಕರ, ಕುಂಭ, ಮೀನ.
+   - Use pure Kannada Nakshatra names with perfect Vathakshara: ಅಶ್ವಿನಿ, ಭರಣಿ, ಕೃತ್ತಿಕಾ, ರೋಹಿಣಿ, ಮೃಗಶಿರಾ, ಆರಿದ್ರಾ, ಪುನರ್ವಸು, ಪುಷ್ಯ, ಆಶ್ಲೇಷ, ಮಖಾ, ಪುಬ್ಬಾ, ಉತ್ತರಾ, ಹಸ್ತಾ, ಚಿತ್ತಾ, ಸ್ವಾತಿ, ವಿಶಾಖಾ, ಅನೂರಾಧಾ, ಜ್ಯೇಷ್ಠಾ, ಮೂಲಾ, ಪೂರ್ವಾಷಾಢಾ, ಉತ್ತರಾಷಾಢಾ, ಶ್ರವಣ, ಧನಿಷ್ಠಾ, ಶತಭಿಷಾ, ಪೂರ್ವಾಭಾದ್ರಾ, ಉತ್ತರಾಭಾದ್ರಾ, ರೇವತಿ.
+3. Every sub-level reading and question response MUST have COMPLETE 4 DETAILED DENSE PARAGRAPHS (at least 6 to 7 lines per paragraph), 100% accurate to their Kundali, running Dasha-Bhukti, and Gochara.
 2. Must write EXACTLY 4 comprehensive, dense paragraphs:
    - Paragraph 1: Address the devotee directly. Reveal that you know why they came today—an unexpected incident or turmoil recently disturbed their peace. Mention their 4th house and Moon's sensitive placement causing late-night overthinking (2:00 AM to 4:30 AM) and unspoken inner burden.
    - Paragraph 2: Explain the exact active friction in their life right now (${data.currentDiagnosis.primaryLifeChallenge.area} & ${data.currentDiagnosis.primaryLifeChallenge.description}). Explain how their good intentions have been misunderstood, or how their efforts are being delayed despite immense dedication.
@@ -331,7 +324,7 @@ STRICT RULES:
               {session.input.name || "Devotee"} {isKn ? "ಅವರ ಪ್ರಸ್ತುತ ಜೀವನ ಸ್ಥಿತಿ & ಫಲಿತ ದರ್ಶನ" : "- Live Life Situation Reading"}
             </h1>
             <p className="text-xs text-stone-300 mt-1">
-              ಲಗ್ನ: <b className="text-amber-200">{session.result.lagnaRashi.english}</b> • ರಾಶಿ: <b className="text-amber-200">{session.result.moonSign.english}</b> • ನಕ್ಷತ್ರ: <b className="text-amber-200">{session.result.planets.find(p => p.name === "Moon")?.nakshatra.english} (ಪಾದ {session.result.moonPada})</b> • ಪ್ರಸ್ತುತ ದಶಾ: <b className="text-yellow-300">{currentDiagnosis?.prasthuthaSthiti.runningDashaSummary.split("|")[0]}</b>
+              ಲಗ್ನ: <b className="text-amber-200">{toKannadaRashi(session.result.lagnaRashi.english)}</b> • ರಾಶಿ: <b className="text-amber-200">{toKannadaRashi(session.result.moonSign.english)}</b> • ನಕ್ಷತ್ರ: <b className="text-amber-200">{toKannadaNakshatra(session.result.planets.find(p => p.name === "Moon")?.nakshatra.english)} (ಪಾದ {session.result.moonPada})</b> • ಪ್ರಸ್ತುತ ದಶಾ: <b className="text-yellow-300">{cleanAstrologyText(currentDiagnosis?.prasthuthaSthiti.runningDashaSummary.split("|")[0] || "")}</b>
             </p>
           </div>
           <div className="px-4 py-2 rounded-2xl bg-amber-900/40 border border-amber-400/40 text-right">
