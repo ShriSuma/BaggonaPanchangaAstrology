@@ -35,6 +35,7 @@ export default function InstantReadingPage(): JSX.Element {
   const [dynamicTalkingPoints, setDynamicTalkingPoints] = useState<{
     openingIceBreakerKn: string;
     hiddenSubconsciousWorryKn: string;
+    maandiKarmicImpactKn: string;
     karmaFinancialRealityKn: string;
     immediateTurningPointKn: string;
     siddhaPariharaRemedyKn: string;
@@ -125,7 +126,8 @@ OUTPUT FORMAT INSTRUCTIONS:
 Return a valid JSON object matching this schema:
 {
   "openingIceBreaker": "2 dense paragraphs starting with 'ನೋಡಿ...' naming their Lagna, Nakshatra, uncovering their core personality and revealing the recent trigger incident/turmoil that disturbed their peace.",
-  "hiddenSubconsciousWorry": "2 dense paragraphs describing their unspoken inner anxiety, late-night overthinking (2:00 AM to 4:30 AM), emotional dilemma, and feelings of being misunderstood.",
+  "hiddenSubconsciousWorry": "2 dense paragraphs describing their unspoken inner anxiety, late-night overthinking (2:00 ರಿಂದ 4:30), emotional dilemma, and feelings of being misunderstood.",
+  "maandiKarmicImpact": "2 dense paragraphs in pure Kannada analyzing shadow planet Maandi in their house, its karmic influence, and Gokarna Maandi Shanti remedy.",
   "karmaFinancialReality": "2 dense paragraphs detailing their 10th house karma, workplace struggle, why rewards are delayed despite 100% dedication, and money leakage.",
   "immediateTurningPoint": "2 dense paragraphs detailing the exact turning point timeline (Next 3 to 5 Months) using ENGLISH DIGITS, explaining the Dasha-Bhukti and Gochara planetary shift.",
   "siddhaPariharaRemedy": "2 dense paragraphs detailing the exact Gemstone (${data.prescriptions.gemstoneRing.primaryGemstoneKn}, ${data.prescriptions.gemstoneRing.caratWeight}), Rudraksha (${data.prescriptions.rudraksha.nameKn}), daily rituals, and Gokarna Kshetra Sankalpa.",
@@ -159,6 +161,7 @@ STRICT RULES:
               setDynamicTalkingPoints({
                 openingIceBreakerKn: cleanAstrologyText(parsed.openingIceBreaker),
                 hiddenSubconsciousWorryKn: cleanAstrologyText(parsed.hiddenSubconsciousWorry),
+                maandiKarmicImpactKn: cleanAstrologyText(parsed.maandiKarmicImpact || data.currentDiagnosis.astrologerTalkingPoints.maandiKarmicImpactKn),
                 karmaFinancialRealityKn: cleanAstrologyText(parsed.karmaFinancialReality || data.currentDiagnosis.astrologerTalkingPoints.karmaFinancialRealityKn),
                 immediateTurningPointKn: cleanAstrologyText(parsed.immediateTurningPoint || data.currentDiagnosis.astrologerTalkingPoints.immediateTurningPointKn),
                 siddhaPariharaRemedyKn: cleanAstrologyText(parsed.siddhaPariharaRemedy || data.currentDiagnosis.astrologerTalkingPoints.siddhaPariharaRemedyKn)
@@ -289,6 +292,7 @@ STRICT RULES:
   const activeTalkingPoints = dynamicTalkingPoints || (currentDiagnosis ? {
     openingIceBreakerKn: isKn ? currentDiagnosis.astrologerTalkingPoints.openingIceBreakerKn : (currentDiagnosis.astrologerTalkingPoints.openingIceBreakerEn || currentDiagnosis.astrologerTalkingPoints.openingIceBreakerKn),
     hiddenSubconsciousWorryKn: isKn ? currentDiagnosis.astrologerTalkingPoints.hiddenSubconsciousWorryKn : (currentDiagnosis.astrologerTalkingPoints.hiddenSubconsciousWorryEn || currentDiagnosis.astrologerTalkingPoints.hiddenSubconsciousWorryKn),
+    maandiKarmicImpactKn: isKn ? currentDiagnosis.astrologerTalkingPoints.maandiKarmicImpactKn : (currentDiagnosis.astrologerTalkingPoints.maandiKarmicImpactEn || currentDiagnosis.astrologerTalkingPoints.maandiKarmicImpactKn),
     karmaFinancialRealityKn: isKn ? currentDiagnosis.astrologerTalkingPoints.karmaFinancialRealityKn : (currentDiagnosis.astrologerTalkingPoints.karmaFinancialRealityEn || currentDiagnosis.astrologerTalkingPoints.karmaFinancialRealityKn),
     immediateTurningPointKn: isKn ? currentDiagnosis.astrologerTalkingPoints.immediateTurningPointKn : (currentDiagnosis.astrologerTalkingPoints.immediateTurningPointEn || currentDiagnosis.astrologerTalkingPoints.immediateTurningPointKn),
     siddhaPariharaRemedyKn: isKn ? currentDiagnosis.astrologerTalkingPoints.siddhaPariharaRemedyKn : (currentDiagnosis.astrologerTalkingPoints.siddhaPariharaRemedyEn || currentDiagnosis.astrologerTalkingPoints.siddhaPariharaRemedyKn)
@@ -356,13 +360,13 @@ STRICT RULES:
                       ದೈವಜ್ಞರ ನೇರ ನುಡಿ ಮಾರ್ಗದರ್ಶಿ (Astrologer's Direct Verbal Prompts)
                     </span>
                     <h3 className="text-base md:text-lg font-black text-emerald-100">
-                      {isKn ? "ಕ್ಲೈಂಟ್‌ಗೆ ನೇರವಾಗಿ ಹೇಳಬೇಕಾದ ೫ ಪ್ರಮುಖ ಸತ್ಯಾಂಶಗಳು (Say these directly)" : "5 Master Authoritative Speaking Points"}
+                      {isKn ? "ಕ್ಲೈಂಟ್‌ಗೆ ನೇರವಾಗಿ ಹೇಳಬೇಕಾದ ೬ ಪ್ರಮುಖ ಸತ್ಯಾಂಶಗಳು (Say these directly)" : "6 Master Authoritative Speaking Points"}
                     </h3>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-black border border-emerald-500/40">
-                    5 Secret Astrologer Cues
+                    6 Secret Astrologer Cues
                   </span>
                 </div>
               </div>
@@ -405,12 +409,30 @@ STRICT RULES:
                   </div>
                 </div>
 
-                {/* 3. Karma & Career Bottleneck */}
+                {/* 3. Maandi Sthiti & Karmic Node Impact (3RD PLACE) */}
+                <div className="p-5 rounded-2xl bg-white/[0.07] border border-amber-400/50 space-y-2.5 shadow-lg ring-1 ring-amber-400/30">
+                  <div className="flex items-center justify-between border-b border-amber-400/30 pb-2">
+                    <span className="text-amber-300 font-black text-sm flex items-center gap-1.5">
+                      <span>🪐</span>
+                      <span>೩. ಮಾಂದಿ ಗ್ರಹ ಸ್ಥಿತಿ & ಸೂಕ್ಷ್ಮ ಛಾಯಾ ಪ್ರಭಾವ (Maandi Karmic Node):</span>
+                    </span>
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-amber-400/20 text-amber-200 font-bold">Maandi Sthiti</span>
+                  </div>
+                  <div className="text-slate-100 leading-relaxed space-y-2">
+                    {activeTalkingPoints.maandiKarmicImpactKn.split("\n\n").map((p, i) => (
+                      <p key={i} className="italic bg-black/20 p-3 rounded-xl border border-white/5">
+                        "{cleanAstrologyText(p)}"
+                      </p>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 4. Karma & Career Bottleneck */}
                 <div className="p-5 rounded-2xl bg-white/[0.07] border border-emerald-500/30 space-y-2.5 shadow-lg">
                   <div className="flex items-center justify-between border-b border-emerald-500/20 pb-2">
                     <span className="text-emerald-300 font-black text-sm flex items-center gap-1.5">
                       <span>💼</span>
-                      <span>೩. ಕರ್ಮ & ಆರ್ಥಿಕ ವಾಸ್ತವ (Karma & Financial Bottleneck):</span>
+                      <span>೪. ಕರ್ಮ & ಆರ್ಥಿಕ ವಾಸ್ತವ (Karma & Financial Bottleneck):</span>
                     </span>
                     <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">Career & Wealth</span>
                   </div>
@@ -428,7 +450,7 @@ STRICT RULES:
                   <div className="flex items-center justify-between border-b border-emerald-500/20 pb-2">
                     <span className="text-emerald-300 font-black text-sm flex items-center gap-1.5">
                       <span>⏳</span>
-                      <span>೪. ತಿರುವು ನೀಡುವ ಕಾಲ (Turning Point Timeline):</span>
+                      <span>೫. ತಿರುವು ನೀಡುವ ಕಾಲ (Turning Point Timeline):</span>
                     </span>
                     <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">Dasha & Gochara</span>
                   </div>
@@ -446,7 +468,7 @@ STRICT RULES:
                   <div className="flex items-center justify-between border-b border-emerald-500/20 pb-2">
                     <span className="text-emerald-300 font-black text-sm flex items-center gap-1.5">
                       <span>🪔</span>
-                      <span>೫. ಸಿದ್ಧ ಪರಿಹಾರ & ರಕ್ಷಾ ಕವಚ (Siddha Remedies & Grace):</span>
+                      <span>೬. ಸಿದ್ಧ ಪರಿಹಾರ & ರಕ್ಷಾ ಕವಚ (Siddha Remedies & Grace):</span>
                     </span>
                     <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">Gem & Temple</span>
                   </div>

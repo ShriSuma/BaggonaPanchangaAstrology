@@ -156,12 +156,14 @@ export interface CurrentLifeDiagnosis {
   astrologerTalkingPoints: {
     openingIceBreakerKn: string;
     hiddenSubconsciousWorryKn: string;
+    maandiKarmicImpactKn: string; // 3RD PLACE: MAANDI KARMIC NODE IMPACT
     karmaFinancialRealityKn: string;
     immediateTurningPointKn: string;
     siddhaPariharaRemedyKn: string;
     technicalAspectsCueKn: string;
     openingIceBreakerEn?: string;
     hiddenSubconsciousWorryEn?: string;
+    maandiKarmicImpactEn?: string;
     karmaFinancialRealityEn?: string;
     immediateTurningPointEn?: string;
     siddhaPariharaRemedyEn?: string;
@@ -445,7 +447,36 @@ export const generateCurrentLifeDiagnosis = (
 
   const hiddenSubconsciousWorryKn = `${hiddenP1}\n\n${hiddenP2}`;
 
-  // Field 3: Karma, Career & Financial Bottleneck
+  // Field 3: Maandi (ಮಾಂದಿ) Sthiti & Karmic Shadow Node Impact (3RD PLACE)
+  const mHouse = kundli.maandi ? (((kundli.maandi.rashi.index - kundli.lagnaRashi.index + 12) % 12) + 1) : 1;
+  const mRashiKn = kundli.maandi ? toKannadaRashi(kundli.maandi.rashi.english) : lagnaName;
+  const isUpachaya = [3, 6, 10, 11].includes(mHouse);
+
+  const maandiP1 = isUpachaya
+    ? `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಅದೃಶ್ಯ ಛಾಯಾಗ್ರಹವಾದ ಮಾಂದಿಯು ${mHouse}ನೇ ಉಪಚಯ ಸ್ಥಾನದಲ್ಲಿ (${mRashiKn} ರಾಶಿಯಲ್ಲಿ) ಸ್ಥಿತನಾಗಿದ್ದಾನೆ. ಶಾಸ್ತ್ರದ ದೃಢ ನಿಯಮದ ಪ್ರಕಾರ, ಉಪಚಯದಲ್ಲಿರುವ ಮಾಂದಿಯು ಅಪಾರ ಶತ್ರು ಸಂಹಾರಕ ಶಕ್ತಿಯನ್ನು ನೀಡುತ್ತಾನೆ ಮತ್ತು ಯಾವುದೇ ಕಠಿಣ ಪರಿಸ್ಥಿತಿ ಬಂದರೂ ನಿಮ್ಮನ್ನು ಮಣಿಯಲು ಬಿಡುವುದಿಲ್ಲ. ಆದರೆ ಆರಂಭಿಕ ಹಂತದಲ್ಲಿ ಇದು ಕೆಲಸಗಳಲ್ಲಿ ವಿಳಂಬ, ಹಠಾತ್ ಧನವ್ಯಯ ಅಥವಾ ಸಾಲದ ಸಣ್ಣಪುಟ್ಟ ಒತ್ತಡಗಳನ್ನು ಉಂಟುಮಾಡುತ್ತದೆ. ನೀವು ಧೃತಿಗೆಡದೆ ಸಾಗಿದರೆ ಮಧ್ಯವಯಸ್ಸಿನ ನಂತರ ಅನಿರೀಕ್ಷಿತ ಭೂ-ಆಸ್ತಿ ಮತ್ತು ಅಧಿಕಾರ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ.`
+    : mHouse === 1
+    ? `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಮಾಂದಿಯು 1ನೇ ಭಾವದಲ್ಲಿ (ಲಗ್ನ - ${mRashiKn} ರಾಶಿಯಲ್ಲಿ) ಸ್ಥಿತನಾಗಿದ್ದಾನೆ. ಇದು ನಿಮ್ಮ ದೇಹ ಪ್ರಕೃತಿಯಲ್ಲಿ ಜೀರ್ಣಾಂಗ ಅಗ್ನಿಮಾಂದ್ಯತೆ, ತಲೆನೋವು, ಶೀತ ಅಥವಾ ಆಗಾಗ ಅಕಾರಣ ಆಯಾಸ ಮತ್ತು ನಿಶ್ಯಕ್ತಿಯನ್ನು ತರಬಹುದು. ಹೊರಗೆ ನೀವು ಧೈರ್ಯವಾಗಿ ಕಂಡರೂ ಒಳಗೆ ನಕಾರಾತ್ಮಕ ಶಕ್ತಿಗಳ ಕಂಪನಗಳು ನಿಮ್ಮನ್ನು ತಕ್ಷಣವೇ ಬಾಧಿಸುತ್ತವೆ. ನಿಯಮಿತ ಯೋಗಾಭ್ಯಾಸ ಮತ್ತು ಶಿವಾರಾಧನೆಯಿಂದ ಈ ಲಗ್ನ ಮಾಂದಿ ದೋಷವು ಸಂಪೂರ್ಣವಾಗಿ ಶಮನಗೊಳ್ಳುತ್ತದೆ.`
+    : mHouse === 2
+    ? `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಮಾಂದಿಯು 2ನೇ ಭಾವದಲ್ಲಿ (ಧನ ಸ್ಥಾನ - ${mRashiKn} ರಾಶಿಯಲ್ಲಿ) ಇರುವುದರಿಂದ, ಕೈಗೆ ಬಂದ ಹಣ ಕಣ್ಣಿಗೆ ಕಾಣದಂತೆ ಖರ್ಚಾಗುವುದು ಅಥವಾ ಆಪ್ತರೊಂದಿಗೆ ಹಣಕಾಸಿನ ವಿಚಾರದಲ್ಲಿ ತಪ್ಪು ತಿಳುವಳಿಕೆಗಳು ಉಂಟಾಗಬಹುದು. ನಂಬಿದ ವ್ಯಕ್ತಿಗಳಿಗೆ ಸಾಲ ಕೊಟ್ಟರೆ ಮರಳಿ ಬರುವುದು ವಿಳಂಬವಾಗುತ್ತದೆ. ಶನಿವಾರ ಸಂಜೆ ಕಾಗೆಗಳಿಗೆ ಎಳ್ಳನ್ನ ಅರ್ಪಿಸುವುದು ಮತ್ತು ನಿತ್ಯವೂ ಧನ ರಕ್ಷಾ ಸ್ತೋತ್ರ ಪಠಿಸುವುದು ಶ್ರೇಷ್ಠ.`
+    : mHouse === 4
+    ? `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಮಾಂದಿಯು 4ನೇ ಭಾವದಲ್ಲಿ (ಸುಖ/ಮಾತೃ ಸ್ಥಾನ - ${mRashiKn} ರಾಶಿಯಲ್ಲಿ) ಸ್ಥಿತನಾಗಿರುವುದರಿಂದ, ಮನೆಯಲ್ಲಿ ಕಾರಣವಿಲ್ಲದೆ ಮಾನಸಿಕ ಅಶಾಂತಿ, ವಾಹನ ದುರಸ್ತಿ ಅಥವಾ ನಿದ್ರೆಯಲ್ಲಿ ಅಡಚಣೆಗಳು ಕಾಣಿಸಿಕೊಳ್ಳಬಹುದು. ನಿಮ್ಮ ಸ್ವಂತ ಮನೆಯಲ್ಲೇ ನಿಮಗೆ ಪರಕೀಯ ಭಾವನೆ ಕಾಡಬಹುದು. ಗೋಮಾತೆಯ ಸೇವೆ ಮತ್ತು ಮನೆಯಲ್ಲಿ ಶುದ್ಧ ಸಾಂಬ್ರಾಣಿ ಧೂಪ ಹಾಕುವುದು ಗೃಹ ಶಾಂತಿಯನ್ನು ಕಾಪಾಡುತ್ತದೆ.`
+    : mHouse === 5
+    ? `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಮಾಂದಿಯು 5ನೇ ಭಾವದಲ್ಲಿ (ಬುದ್ಧಿ/ಪೂರ್ವಪುಣ್ಯ ಸ್ಥಾನ - ${mRashiKn} ರಾಶಿಯಲ್ಲಿ) ಇರುವುದರಿಂದ, ಪ್ರಮುಖ ನಿರ್ಧಾರಗಳನ್ನು ತೆಗೆದುಕೊಳ್ಳುವಾಗ ದ್ವಂದ್ವ, ಸಂತಾನ ವಿಚಾರದಲ್ಲಿ ಸೂಕ್ಷ್ಮ ವಿಳಂಬ ಅಥವಾ ಅಧ್ಯಯನದಲ್ಲಿ ಏಕಾಗ್ರತೆಯ ಕೊರತೆ ಕಾಡಬಹುದು. ಸಂತಾನ ಗೋಪಾಲ ಅಥವಾ ಸುಬ್ರಹ್ಮಣ್ಯ ಪ್ರಾರ್ಥನೆಯು ಈ ದೋಷವನ್ನು ಕರಗಿಸಲಿದೆ.`
+    : mHouse === 7
+    ? `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಮಾಂದಿಯು 7ನೇ ಭಾವದಲ್ಲಿ (ಕಳತ್ರ/ಪಾಲುದಾರಿಕೆ ಸ್ಥಾನ - ${mRashiKn} ರಾಶಿಯಲ್ಲಿ) ಇರುವುದರಿಂದ, ದಾಂಪತ್ಯದಲ್ಲಿ ಸಂಗಾತಿಯ ಹಠಮಾರಿತನ ಅಥವಾ ವ್ಯಾಪಾರ ಪಾಲುದಾರಿಕೆಯಲ್ಲಿ ಅಪನಂಬಿಕೆಯ ಸನ್ನಿವೇಶಗಳು ಎದುರಾಗಬಹುದು. ದಂಪತಿ ಸಮೇತರಾಗಿ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದಲ್ಲಿ ಶಿವಲಿಂಗಕ್ಕೆ ಬಿಲ್ವಾರ್ಚನೆ ಮತ್ತು ಕ್ಷೀರಾಭಿಷೇಕ ಮಾಡಿಸುವುದು ದಾಂಪತ್ಯದಲ್ಲಿ ಸುಖ ತರಲಿದೆ.`
+    : mHouse === 8
+    ? `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಮಾಂದಿಯು 8ನೇ ಭಾವದಲ್ಲಿ (ಆಯುಷ್ಯ/ಗೂಢ ಸ್ಥಾನ - ${mRashiKn} ರಾಶಿಯಲ್ಲಿ) ಸ್ಥಿತನಾಗಿರುವುದರಿಂದ, ತೀಕ್ಷ್ಣವಾದ ಒಳದೃಷ್ಟಿ ಮತ್ತು ಅಂತಃಪ್ರಜ್ಞೆ ಹೆಚ್ಚಿರುತ್ತದೆ; ಆದರೆ ದೂರ ಪ್ರಯಾಣ, ಜಲ ಪ್ರದೇಶ ಹಾಗೂ ಅಪರಿಚಿತ ವಾಹನ ಚಾಲನೆಯಲ್ಲಿ ಸದಾ ಎಚ್ಚರಿಕೆ ವಹಿಸಬೇಕು. ಮಹಾಮೃತ್ಯುಂಜಯ ಜಪವು ನಿಮಗೆ ಅಭೇದ್ಯ ಕವಚವಾಗಲಿದೆ.`
+    : mHouse === 9
+    ? `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಮಾಂದಿಯು 9ನೇ ಭಾವದಲ್ಲಿ (ಭಾಗ್ಯ/ಧರ್ಮ ಸ್ಥಾನ - ${mRashiKn} ರಾಶಿಯಲ್ಲಿ) ಇರುವುದರಿಂದ, ಧಾರ್ಮಿಕ ಕಾರ್ಯಗಳಲ್ಲಿ ಆರಂಭಿಕ ಅಡೆತಡೆಗಳು ಎದುರಾಗಬಹುದು. ಆದರೆ ಕೊನೆಯಲ್ಲಿ ದೈವಬಲವೇ ನಿಮ್ಮನ್ನು ಕೈಹಿಡಿದು ಮುನ್ನಡೆಸಲಿದೆ.`
+    : `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಮಾಂದಿಯು 12ನೇ ಭಾವದಲ್ಲಿ (ವ್ಯಯ ಸ್ಥಾನ - ${mRashiKn} ರಾಶಿಯಲ್ಲಿ) ಸ್ಥಿತನಾಗಿರುವುದರಿಂದ, ಅನಿರೀಕ್ಷಿತ ಪ್ರಯಾಣದ ಖರ್ಚುಗಳು ಮತ್ತು ರಾತ್ರಿ ನಿದ್ರೆಯಲ್ಲಿ ತೊಂದರೆಗಳು ಉಂಟಾಗಬಹುದು. ಶನಿವಾರ ಸಂಜೆ ನೈಋತ್ಯ ದಿಕ್ಕಿನಲ್ಲಿ ಎಳ್ಳೆಣ್ಣೆ ದೀಪ ಬೆಳಗಿಸುವುದು ಉತ್ತಮ.`;
+
+  const maandiP2 = `ಮಾಂದಿ ಛಾಯಾ ಗ್ರಹದ ಸಂಪೂರ್ಣ ಶಾಂತಿಗಾಗಿ ಪರಮ ಪವಿತ್ರ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ಮಾಂದಿ-ಶನಿ ದೋಷ ನಿವಾರಣಾ ಸಂಕಲ್ಪ ಸೇವೆ ನೆರವೇರಿಸಿ. ದಿನನಿತ್ಯ ಪ್ರಾತಃಕಾಲ 'ಓಂ ಮಂದಪುತ್ರಾಯ ವಿದ್ಮಹೇ ಮೃತ್ಯುರೂಪಾಯ ಧೀಮಹಿ ತನ್ನೋ ಮಾಂದಿಃ ಪ್ರಚೋದಯಾತ್' ಮಂತ್ರವನ್ನು 11 ಬಾರಿ ಪಠಿಸುವುದರಿಂದ ಸಕಲ ಛಾಯಾ ದೋಷಗಳು ನಿವಾರಣೆಯಾಗಿ, ನಿಮ್ಮ ಕರ್ಮ ಮಾರ್ಗವು ಸುಗಮವಾಗಲಿದೆ.`;
+
+  const maandiKarmicImpactKn = sanitizeAstrologyKannadaText(`${maandiP1}\n\n${maandiP2}`);
+
+  const maandiKarmicImpactEn = `In your horoscope, subtle shadow planet Maandi is posited in House ${mHouse} (${kundli.maandi?.rashi.english || lagnaEng}). ${isUpachaya ? "Being in an Upachaya house, Maandi functions as an invincible shield against adversaries and grants massive breakthrough after initial tests." : "It indicates a karmic pressure point requiring energy balance and ancestral propitiation."}\n\nPerforming Maandi-Shani Shanti Sankalpa at sacred Gokarna Mahabaleshwara Kshetra and chanting the Mahamrityunjaya Mantra 11 times daily provides complete protection.`;
+
+  // Field 4: Karma, Career & Financial Bottleneck
   const karmaP1 = `ಕರ್ಮ ಸ್ಥಾನವಾದ 10ನೇ ಮನೆ ಹಾಗೂ ಧನ ಸ್ಥಾನವಾದ 2ನೇ ಮತ್ತು 11ನೇ ಮನೆಗಳ ಗ್ರಹಬಲದ ಲೆಕ್ಕಾಚಾರದ ಪ್ರಕಾರ, ನಿಮ್ಮ ವೃತ್ತಿ, ಉದ್ಯೋಗ ಅಥವಾ ವ್ಯಾಪಾರ ಕ್ಷೇತ್ರದಲ್ಲಿ ನೀವು ಶೇಕಡಾ 100 ರಷ್ಟು ನಿಷ್ಠೆ ಮತ್ತು ಕಠಿಣ ಪರಿಶ್ರಮವನ್ನು ಹಾಕುತ್ತಿದ್ದರೂ, ಪ್ರಸ್ತುತ ಸಿಗುತ್ತಿರುವ ಪ್ರತಿಫಲ ಮಾತ್ರ ಕೇವಲ ಶೇಕಡಾ 40 ರಿಂದ 50 ರಷ್ಟು ಮಾತ್ರ. ನಿಮ್ಮ ಅರ್ಹತೆಗೆ ತಕ್ಕ ವೇತನ, ಬಡ್ತಿ ಅಥವಾ ಮಾರುಕಟ್ಟೆ ಮನ್ನಣೆ ಸಿಗದೆ, ನಿಮ್ಮ ಜಾಗದಲ್ಲಿ ಕಡಿಮೆ ಪರಿಶ್ರಮದ ವ್ಯಕ್ತಿಗಳು ಸುಲಭವಾಗಿ ಲಾಭ ಪಡೆಯುತ್ತಿರುವುದು ನಿಮ್ಮ ಕರ್ಮದ ಅಗ್ನಿಪರೀಕ್ಷೆಯಾಗಿದೆ.`;
 
   const karmaP2 = `ಇದಲ್ಲದೆ, ಕೈಗೆ ಬಂದ ಆದಾಯವು ಉಳಿತಾಯವಾಗದೆ ಯಾವುದಾದರೊಂದು ಅನಿರೀಕ್ಷಿತ ಖರ್ಚು, ಆರೋಗ್ಯ ಸಮಸ್ಯೆ, ವಾಹನ ದುರಸ್ತಿ ಅಥವಾ ಕೌಟುಂಬಿಕ ತುರ್ತು ಅಗತ್ಯಗಳಿಗೆ ನೀರಿನಂತೆ ಸೋರಿಹೋಗುತ್ತಿದೆ. 'ನನ್ನ ಶ್ರಮಕ್ಕೆ ಶಾಶ್ವತ ಫಲ ಸಿಗುವ ಕಾಲ ಯಾವಾಗ ಬರಲಿದೆ?' ಎಂಬ ಪ್ರಶ್ನೆ ನಿಮ್ಮನ್ನು ಸದಾ ಕಾಡುತ್ತಿದೆ. ಆದರೆ ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿರುವ ಕರ್ಮದ ಅಧಿಪತಿಯು ನಿಮ್ಮನ್ನು ವೃತ್ತಿಪರವಾಗಿ ಹದಗೊಳಿಸುತ್ತಿದ್ದಾನೆ; ಈ ಹಿನ್ನಡೆಗಳು ನಿಮ್ಮ ಮುಂದಿನ ಮಹತ್ತರ ಜಯಕ್ಕೆ ಅಡಿಪಾಯವಾಗಲಿವೆ.`;
@@ -505,12 +536,14 @@ export const generateCurrentLifeDiagnosis = (
     astrologerTalkingPoints: {
       openingIceBreakerKn,
       hiddenSubconsciousWorryKn,
+      maandiKarmicImpactKn, // 3RD PLACE
       karmaFinancialRealityKn,
       immediateTurningPointKn,
       siddhaPariharaRemedyKn,
       technicalAspectsCueKn,
       openingIceBreakerEn,
       hiddenSubconsciousWorryEn,
+      maandiKarmicImpactEn,
       karmaFinancialRealityEn,
       immediateTurningPointEn,
       siddhaPariharaRemedyEn

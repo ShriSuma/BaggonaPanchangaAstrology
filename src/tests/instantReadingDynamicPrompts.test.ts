@@ -8,7 +8,7 @@ import { calculateKundli } from "../core/KundliEngine";
 import { cleanAstrologyText } from "../pages/InstantReadingPage";
 import { toKannadaPlanet, toKannadaRashi, toKannadaNakshatra } from "../utils/kannadaAstrologyTerms";
 
-describe("Instant Reading Dynamic 5-Field Astrologer Verbal Prompts & Synthesis Suite", () => {
+describe("Instant Reading Dynamic 6-Field Astrologer Verbal Prompts & Synthesis Suite", () => {
   const sampleBirth1 = {
     name: "Manoj Poornamatha",
     birthDate: "1993-03-16",
@@ -30,7 +30,7 @@ describe("Instant Reading Dynamic 5-Field Astrologer Verbal Prompts & Synthesis 
   const kundli1 = calculateKundli(sampleBirth1);
   const kundli2 = calculateKundli(sampleBirth2);
 
-  it("generates all 5 Master Astrologer Verbal Prompts with at least 2 dense paragraphs each", () => {
+  it("generates all 6 Master Astrologer Verbal Prompts with Maandi in 3rd place (2 dense paragraphs each)", () => {
     const output = generatePanchangaAngaSynthesis(kundli1, {
       birthDate: sampleBirth1.birthDate,
       birthTime: sampleBirth1.birthTime,
@@ -42,9 +42,10 @@ describe("Instant Reading Dynamic 5-Field Astrologer Verbal Prompts & Synthesis 
 
     const points = output.currentDiagnosis.astrologerTalkingPoints;
 
-    // Verify all 5 master fields exist
+    // Verify all 6 master fields exist
     expect(points.openingIceBreakerKn).toBeTruthy();
     expect(points.hiddenSubconsciousWorryKn).toBeTruthy();
+    expect(points.maandiKarmicImpactKn).toBeTruthy(); // 3RD PLACE: MAANDI
     expect(points.karmaFinancialRealityKn).toBeTruthy();
     expect(points.immediateTurningPointKn).toBeTruthy();
     expect(points.siddhaPariharaRemedyKn).toBeTruthy();
@@ -52,13 +53,19 @@ describe("Instant Reading Dynamic 5-Field Astrologer Verbal Prompts & Synthesis 
     // Verify each field has at least 2 paragraphs (separated by \n\n)
     expect(points.openingIceBreakerKn.split("\n\n").length).toBeGreaterThanOrEqual(2);
     expect(points.hiddenSubconsciousWorryKn.split("\n\n").length).toBeGreaterThanOrEqual(2);
+    expect(points.maandiKarmicImpactKn.split("\n\n").length).toBeGreaterThanOrEqual(2);
     expect(points.karmaFinancialRealityKn.split("\n\n").length).toBeGreaterThanOrEqual(2);
     expect(points.immediateTurningPointKn.split("\n\n").length).toBeGreaterThanOrEqual(2);
     expect(points.siddhaPariharaRemedyKn.split("\n\n").length).toBeGreaterThanOrEqual(2);
 
+    // Verify Maandi specific content
+    expect(points.maandiKarmicImpactKn).toContain("ಮಾಂದಿ");
+    expect(points.maandiKarmicImpactKn).toContain("ಗೋಕರ್ಣ");
+
     // Verify depth (>200 chars per field)
     expect(points.openingIceBreakerKn.length).toBeGreaterThan(250);
     expect(points.hiddenSubconsciousWorryKn.length).toBeGreaterThan(250);
+    expect(points.maandiKarmicImpactKn.length).toBeGreaterThan(250);
     expect(points.karmaFinancialRealityKn.length).toBeGreaterThan(250);
     expect(points.immediateTurningPointKn.length).toBeGreaterThan(250);
     expect(points.siddhaPariharaRemedyKn.length).toBeGreaterThan(250);
@@ -88,13 +95,14 @@ describe("Instant Reading Dynamic 5-Field Astrologer Verbal Prompts & Synthesis 
 
     // Must be distinct and contain respective Lagna / Moon / Nakshatra details
     expect(points1.openingIceBreakerKn).not.toBe(points2.openingIceBreakerKn);
+    expect(points1.maandiKarmicImpactKn).not.toBe(points2.maandiKarmicImpactKn);
     expect(points1.siddhaPariharaRemedyKn).not.toBe(points2.siddhaPariharaRemedyKn);
 
     expect(points1.openingIceBreakerKn).toContain(kundli1.lagnaRashi.sanskrit);
     expect(points2.openingIceBreakerKn).toContain(kundli2.lagnaRashi.sanskrit);
   });
 
-  it("strictly enforces English digits across all 5 talking points and remedies", () => {
+  it("strictly enforces English digits across all 6 talking points and remedies", () => {
     const output = generatePanchangaAngaSynthesis(kundli1, {
       birthDate: sampleBirth1.birthDate,
       birthTime: sampleBirth1.birthTime,
@@ -104,7 +112,7 @@ describe("Instant Reading Dynamic 5-Field Astrologer Verbal Prompts & Synthesis 
     });
 
     const points = output.currentDiagnosis.astrologerTalkingPoints;
-    const allText = `${points.openingIceBreakerKn} ${points.hiddenSubconsciousWorryKn} ${points.karmaFinancialRealityKn} ${points.immediateTurningPointKn} ${points.siddhaPariharaRemedyKn}`;
+    const allText = `${points.openingIceBreakerKn} ${points.hiddenSubconsciousWorryKn} ${points.maandiKarmicImpactKn} ${points.karmaFinancialRealityKn} ${points.immediateTurningPointKn} ${points.siddhaPariharaRemedyKn}`;
 
     // Should NOT contain Kannada digits ೦-೯
     const knDigitsRegex = /[೦-೯]/;
