@@ -5,6 +5,10 @@ import {
   buildCleanDailyWhatsAppShareText,
   type SupportedLang
 } from "../../features/darshana/dailyInspirationAlmanac";
+import {
+  getDailyBackgroundConfig,
+  renderDailyVedicSvgBackground
+} from "../../features/darshana/dailyBlessingBackgrounds";
 
 export interface DailyBlessingShareCardProps {
   devoteeName?: string;
@@ -31,9 +35,29 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
     ["kn", "en", "hi", "te", "ta"].includes(lang) ? (lang as SupportedLang) : "kn"
   );
 
+  // Exact deterministic date for all 365 days
+  const parsedDate = useMemo(() => {
+    try {
+      const parts = dateStr.split("-").map(Number);
+      if (parts.length === 3 && !isNaN(parts[0])) {
+        return new Date(parts[0], parts[1] - 1, parts[2]);
+      }
+    } catch {}
+    return new Date();
+  }, [dateStr]);
+
   const inspiration = useMemo(() => {
-    return getDailyInspiration();
-  }, []);
+    return getDailyInspiration(parsedDate);
+  }, [parsedDate]);
+
+  // 365-Day Deterministic High-Definition Vedic Background Configuration
+  const bgConfig = useMemo(() => {
+    return getDailyBackgroundConfig(inspiration.dayOfYear);
+  }, [inspiration.dayOfYear]);
+
+  const svgBackgroundHtml = useMemo(() => {
+    return renderDailyVedicSvgBackground(bgConfig);
+  }, [bgConfig]);
 
   const morningVibe = inspiration.goodMorningVibe[selectedLang] || inspiration.goodMorningVibe.kn;
   const shlokaText = selectedLang === "en" ? inspiration.shlokaText.transliteration : inspiration.shlokaText.kn;
@@ -96,7 +120,7 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
               {isKn ? "ನಿತ್ಯ ಶುಭೋದಯ ಸಂದೇಶ & ಆಶೀರ್ವಾದ ಎನ್‌ವಲಪ್" : "Daily Good Morning & Shloka Blessings"}
             </h3>
             <span className="text-[11px] text-amber-300 font-bold">
-              {isKn ? "೩೬೫ ದಿನಗಳ ವಿಶಿಷ್ಟ ಶ್ಲೋಕ, ಸತ್ಕಾರ್ಯ ಸಂಕಲ್ಪ & ವಾಟ್ಸಾಪ್ ಹಂಚಿಕೆ" : "365 Days Daily Shloka, Good Karma Action & WhatsApp Share"}
+              {isKn ? `೩೬೫ ದಿನಗಳ ವಿಶಿಷ್ಟ ಶ್ಲೋಕ, ಸೂರ್ಯೋದಯ ಕಲಾಚಿತ್ರ & ವಾಟ್ಸಾಪ್ ಹಂಚಿಕೆ (ದಿನ ${inspiration.dayOfYear})` : `365 Days Daily Shloka, Sunrise Art & WhatsApp Share (Day ${inspiration.dayOfYear})`}
             </span>
           </div>
         </div>
@@ -120,92 +144,98 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
         </div>
       </div>
 
-      {/* Visual Blessing Card Preview (Renderable to High-Res PNG) */}
+      {/* Visual Blessing Card Preview (Renderable to High-Res PNG with 365-Day Background) */}
       <div
         ref={cardRef}
         style={{
-          background: inspiration.theme.bgGradient,
-          borderColor: inspiration.theme.borderGold
+          borderColor: bgConfig.accentGold || "#F59E0B",
+          minHeight: 520
         }}
         className="relative overflow-hidden rounded-3xl border-2 p-5 text-amber-50 shadow-2xl text-center space-y-3.5"
       >
+        {/* 🌟 365-Day High-Definition Vector SVG Background (Vedic Sunrise, Sun Rays, Temple Spires, Gokarna Waves) */}
+        <div
+          className="absolute inset-0 z-0 overflow-hidden pointer-events-none"
+          dangerouslySetInnerHTML={{ __html: svgBackgroundHtml }}
+        />
+
         {/* Decorative Golden Corner Accents */}
-        <div className="absolute top-2 left-2 text-amber-300/40 text-xs font-serif font-black">✦ ✦</div>
-        <div className="absolute top-2 right-2 text-amber-300/40 text-xs font-serif font-black">✦ ✦</div>
-        <div className="absolute bottom-2 left-2 text-amber-300/40 text-xs font-serif font-black">✦ ✦</div>
-        <div className="absolute bottom-2 right-2 text-amber-300/40 text-xs font-serif font-black">✦ ✦</div>
+        <div className="relative z-10">
+          <div className="absolute -top-3 -left-3 text-amber-300/60 text-xs font-serif font-black">✦ ✦</div>
+          <div className="absolute -top-3 -right-3 text-amber-300/60 text-xs font-serif font-black">✦ ✦</div>
+        </div>
 
         {/* Kshetra Insignia Banner */}
-        <div className="inline-flex items-center gap-1.5 px-3.5 py-1 bg-black/40 text-amber-300 border border-amber-400/80 rounded-full text-[11px] font-black uppercase tracking-widest shadow-inner">
+        <div className="relative z-10 inline-flex items-center gap-1.5 px-4 py-1.5 bg-black/60 backdrop-blur-md text-amber-300 border border-amber-400/80 rounded-full text-[11px] font-black uppercase tracking-widest shadow-xl">
           ✨ ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಕ್ಷೇತ್ರ • ಗೋಕರ್ಣ ಸನ್ನಿಧಿ ॥ ✨
         </div>
 
         {/* Date & Panchanga Chips */}
-        <div className="flex flex-wrap items-center justify-center gap-2 text-xs">
-          <span className="px-2.5 py-0.5 rounded-lg bg-black/30 border border-amber-400/40 text-amber-200 font-bold">
+        <div className="relative z-10 flex flex-wrap items-center justify-center gap-2 text-xs">
+          <span className="px-2.5 py-0.5 rounded-lg bg-black/50 backdrop-blur-md border border-amber-400/50 text-amber-200 font-bold shadow-md">
             📅 {dateStr}
           </span>
           {tithiStr && (
-            <span className="px-2.5 py-0.5 rounded-lg bg-black/30 border border-amber-400/40 text-amber-200 font-bold">
+            <span className="px-2.5 py-0.5 rounded-lg bg-black/50 backdrop-blur-md border border-amber-400/50 text-amber-200 font-bold shadow-md">
               ✨ {tithiStr}
             </span>
           )}
           {nakshatraStr && (
-            <span className="px-2.5 py-0.5 rounded-lg bg-black/30 border border-amber-400/40 text-amber-200 font-bold">
+            <span className="px-2.5 py-0.5 rounded-lg bg-black/50 backdrop-blur-md border border-amber-400/50 text-amber-200 font-bold shadow-md">
               ⭐ {nakshatraStr}
             </span>
           )}
-          <span className="px-2.5 py-0.5 rounded-lg bg-emerald-950/80 border border-emerald-400/60 text-emerald-300 font-bold">
+          <span className="px-2.5 py-0.5 rounded-lg bg-emerald-950/80 backdrop-blur-md border border-emerald-400/70 text-emerald-300 font-bold shadow-md">
             ⏳ ಶುಭ ಮುಹೂರ್ತ: {goldenHourStr}
           </span>
         </div>
 
         {/* Good Morning Vibe */}
-        <div className="bg-black/30 p-3 rounded-2xl border border-amber-400/30 text-xs sm:text-[13px] font-semibold text-amber-100 leading-relaxed shadow-sm">
-          <span className="text-amber-400 font-black block mb-0.5 text-[11px] uppercase">
+        <div className="relative z-10 bg-black/55 backdrop-blur-md p-3.5 rounded-2xl border border-amber-400/40 text-xs sm:text-[13.5px] font-semibold text-amber-100 leading-relaxed shadow-lg">
+          <span className="text-amber-300 font-black block mb-1 text-[11px] uppercase tracking-wider">
             ☀️ {isKn ? "ಶುಭೋದಯ ಸಂದೇಶ (Morning Blessing)" : "Good Morning Blessing"}
           </span>
           {morningVibe}
         </div>
 
         {/* Sacred Daily Shloka & Meaning */}
-        <div className="bg-gradient-to-r from-amber-950/80 via-black/60 to-amber-950/80 p-3.5 rounded-2xl border border-amber-400/60 text-center space-y-1.5 shadow-md">
-          <span className="text-[10px] font-black text-amber-300 uppercase tracking-wider block">
+        <div className="relative z-10 bg-black/60 backdrop-blur-md p-4 rounded-2xl border-2 border-amber-400/70 text-center space-y-2 shadow-xl">
+          <span className="text-[10px] font-black text-amber-300 uppercase tracking-widest block">
             🪔 {isKn ? `ಇಂದಿನ ದೈವಿಕ ಶ್ಲೋಕ (${inspiration.deitySource})` : `Daily Sacred Shloka (${inspiration.deitySource})`}
           </span>
-          <p className="text-xs sm:text-sm font-black text-white font-serif leading-relaxed text-amber-100 drop-shadow-sm">
+          <p className="text-xs sm:text-sm font-black text-white font-serif leading-relaxed text-amber-100 drop-shadow-md">
             "{shlokaText}"
           </p>
-          <p className="text-[11px] text-amber-200/90 italic font-medium leading-relaxed pt-1 border-t border-amber-500/20">
+          <p className="text-[11px] sm:text-xs text-amber-200/95 italic font-medium leading-relaxed pt-1.5 border-t border-amber-500/30">
             {shlokaMeaning}
           </p>
         </div>
 
         {/* Two-Column Grid: Good Karma Deed & Motivational Thought */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-left text-xs">
-          <div className="p-3 bg-black/40 rounded-2xl border border-amber-400/40 space-y-1 shadow-xs">
-            <span className="text-[10px] font-black text-emerald-400 uppercase flex items-center gap-1">
+        <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-left text-xs">
+          <div className="p-3.5 bg-black/55 backdrop-blur-md rounded-2xl border border-emerald-400/50 space-y-1 shadow-lg">
+            <span className="text-[10.5px] font-black text-emerald-300 uppercase flex items-center gap-1">
               <span>🌱</span>
               <span>{isKn ? "ಇಂದಿನ ಪುಣ್ಯ ಕಾರ್ಯ (Good Karma Deed):" : "Today's Good Karma Action:"}</span>
             </span>
-            <p className="text-[11px] font-semibold text-amber-100 leading-relaxed">
+            <p className="text-[11.5px] font-semibold text-amber-100 leading-relaxed">
               {goodDeed}
             </p>
           </div>
 
-          <div className="p-3 bg-black/40 rounded-2xl border border-amber-400/40 space-y-1 shadow-xs">
-            <span className="text-[10px] font-black text-amber-300 uppercase flex items-center gap-1">
+          <div className="p-3.5 bg-black/55 backdrop-blur-md rounded-2xl border border-amber-400/50 space-y-1 shadow-lg">
+            <span className="text-[10.5px] font-black text-amber-300 uppercase flex items-center gap-1">
               <span>💡</span>
               <span>{isKn ? "ಸ್ಫೂರ್ತಿದಾಯಕ ಚಿಂತನೆ (Life Insight):" : "Daily Inspiration:"}</span>
             </span>
-            <p className="text-[11px] font-semibold text-amber-100 leading-relaxed">
+            <p className="text-[11.5px] font-semibold text-amber-100 leading-relaxed">
               "{motivationalQuote}"
             </p>
           </div>
         </div>
 
         {/* Bottom Temple Benediction & Priest Stamp */}
-        <div className="flex flex-wrap items-center justify-between text-[10px] font-bold text-amber-300/90 pt-2 border-t border-amber-500/30 px-1">
+        <div className="relative z-10 flex flex-wrap items-center justify-between text-[11px] font-bold text-amber-200 pt-2 border-t border-amber-500/40 px-2">
           <span>🛕 ಬಗ್ಗೋಣ ಶ್ರೀ ಮಹಾಗಣಪತಿ ಸನ್ನಿಧಿ</span>
           <span>ಮುಖ್ಯ ಅರ್ಚಕರು: {priestName}</span>
         </div>
@@ -216,7 +246,7 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
         <button
           type="button"
           onClick={handleWhatsAppShare}
-          className="py-3 px-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-black text-xs rounded-2xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-1.5 border border-emerald-400"
+          className="py-3 px-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-black text-xs rounded-2xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-1.5 border border-emerald-400 cursor-pointer"
         >
           <span>💬</span>
           <span>{isKn ? "WhatsApp ನಲ್ಲಿ ಹಂಚಿ (Clean Share)" : "Share on WhatsApp"}</span>
@@ -226,7 +256,7 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
           type="button"
           onClick={handleDownloadCardImage}
           disabled={isGeneratingImage}
-          className="py-3 px-3 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 hover:from-amber-500 hover:to-amber-300 text-slate-950 font-black text-xs rounded-2xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-1.5 border border-amber-400 disabled:opacity-50"
+          className="py-3 px-3 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 hover:from-amber-500 hover:to-amber-300 text-slate-950 font-black text-xs rounded-2xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-1.5 border border-amber-400 disabled:opacity-50 cursor-pointer"
         >
           <span>📸</span>
           <span>{isGeneratingImage ? (isKn ? "ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : "Generating Image...") : (isKn ? "ಕಾರ್ಡ್ ಇಮೇಜ್ ಡೌನ್‌ಲೋಡ್ (PNG)" : "Download Card Image")}</span>
@@ -235,7 +265,7 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
         <button
           type="button"
           onClick={handleCopyMessage}
-          className="py-3 px-3 bg-[#FFFDF7] hover:bg-amber-50 text-slate-900 font-black text-xs rounded-2xl border border-amber-300 shadow-md transition-all active:scale-95 flex items-center justify-center gap-1.5"
+          className="py-3 px-3 bg-[#FFFDF7] hover:bg-amber-50 text-slate-900 font-black text-xs rounded-2xl border border-amber-300 shadow-md transition-all active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
         >
           <span>📋</span>
           <span>{isCopied ? (isKn ? "ಕಾಪಿ ಆಗಿದೆ! ✓" : "Copied! ✓") : (isKn ? "ಸಂದೇಶ ಕಾಪಿ ಮಾಡಿ" : "Copy Text")}</span>

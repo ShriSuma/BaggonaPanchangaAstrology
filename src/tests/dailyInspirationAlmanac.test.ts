@@ -62,5 +62,32 @@ describe("365-Day Daily Inspiration & Clean WhatsApp Share Almanac", () => {
     expect(textKn).not.toContain("bhaktaru=");
     expect(textEn).not.toContain("http://");
     expect(textEn).not.toContain("https://");
+    expect(textEn).not.toContain("token=");
+  });
+
+  it("generates deterministic 365-day unique vector SVG backgrounds with sacred morning sunrise vibes", async () => {
+    const { getDailyBackgroundConfig, renderDailyVedicSvgBackground } = await import(
+      "../features/darshana/dailyBlessingBackgrounds"
+    );
+
+    // Verify all 366 days generate valid background configurations
+    for (let day = 1; day <= 366; day++) {
+      const config = getDailyBackgroundConfig(day);
+      expect(config.dayOfYear).toBe(day);
+      expect(config.skyGradient.start).toBeTruthy();
+      expect(config.skyGradient.mid).toBeTruthy();
+      expect(config.skyGradient.end).toBeTruthy();
+      expect(config.sun.color).toBeTruthy();
+      expect(config.sun.rayCount).toBeGreaterThan(5);
+      expect(config.sceneryType).toBeTruthy();
+
+      const svgString = renderDailyVedicSvgBackground(config);
+      expect(svgString).toContain("<svg");
+      expect(svgString).toContain("</svg>");
+      expect(svgString).toContain("<linearGradient");
+      expect(svgString).toContain("<radialGradient");
+      expect(svgString).toContain("<rect");
+      expect(svgString).toContain("<circle");
+    }
   });
 });

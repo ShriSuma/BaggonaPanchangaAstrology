@@ -377,7 +377,14 @@ export function buildCleanDailyWhatsAppShareText(
   tithiStr?: string,
   nakshatraStr?: string
 ): string {
-  const insp = getDailyInspiration();
+  let targetDate = new Date();
+  try {
+    const parts = dateStr.split("-").map(Number);
+    if (parts.length === 3 && !isNaN(parts[0])) {
+      targetDate = new Date(parts[0], parts[1] - 1, parts[2]);
+    }
+  } catch {}
+  const insp = getDailyInspiration(targetDate);
   const morning = insp.goodMorningVibe[lang] || insp.goodMorningVibe.kn;
   const shloka = insp.shlokaText.kn;
   const meaning = insp.shlokaMeaning[lang] || insp.shlokaMeaning.kn;
