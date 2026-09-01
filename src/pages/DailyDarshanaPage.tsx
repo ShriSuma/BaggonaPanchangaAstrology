@@ -18,6 +18,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { getDevoteeSalutation, buildDeterministicPriestBenediction } from "../features/seva/sevaPriestNarrativeEngine";
 import { getDailyKaalaTimings, getEnergyMeterAndVibe, generateSevaICalendarString, downloadIcsFile, getDayLordIndex, calculateDeterministicRhythmDay, getTaraBalaInfo, getChandraBalaInfo } from "../features/seva/icsCalendarGenerator";
 import { decodeDevoteeToken } from "../utils/tokenCipher";
+import { resolveDevoteeToken, type ResolveTokenResult } from "../features/seva/devoteeTokenDbService";
 import { getUniversalBirthDetails } from "../utils/universalDevoteeKundli";
 import type { RhythmDay } from "../core/DailyRhythmEngine";
 import type { DetailedTithiInfo } from "../core/VedicCalculations";
@@ -1088,7 +1089,23 @@ function getTodayBhavishyaHighlights(
 export default function DailyDarshanaPage(): JSX.Element {
   const params = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : new URLSearchParams();
   const tokenParam = params.get("token");
-  const decoded = useMemo(() => (tokenParam ? decodeDevoteeToken(tokenParam) : null), [tokenParam]);
+  const initialDecoded = useMemo(() => (tokenParam ? decodeDevoteeToken(tokenParam) : null), [tokenParam]);
+  const [resolvedTokenData, setResolvedTokenData] = useState<ResolveTokenResult | null>(null);
+
+  useEffect(() => {
+    if (!tokenParam) return;
+    let isMounted = true;
+    void resolveDevoteeToken(tokenParam).then((res) => {
+      if (isMounted && res) {
+        setResolvedTokenData(res);
+      }
+    });
+    return () => { isMounted = false; };
+  }, [tokenParam]);
+
+  const decoded = useMemo(() => {
+    return (resolvedTokenData?.payload as any) || initialDecoded;
+  }, [resolvedTokenData, initialDecoded]);
 
   const dateParam = useMemo(() => {
     const urlDate = params.get("date") || decoded?.d;

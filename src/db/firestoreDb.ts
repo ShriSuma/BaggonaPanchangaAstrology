@@ -1479,3 +1479,275 @@ export async function deleteDevoteeSankalpaFromCloud(sankalpaId: string): Promis
     return false;
   }
 }
+
+// ── 90-Day Devotee Tokens & Backward Compatibility Mapping Tables ─────────
+export const DEVOTEE_TOKENS_COL = "devotee_tokens";
+export const TOKEN_MAPPINGS_COL = "token_mappings";
+
+export interface DevoteeTokenDoc {
+  id: string; // e.g. "bgn_tk_7f9a1b2c3d"
+  shortCode: string; // 8-char base62 code, e.g. "K9X2M4P7"
+  devoteeName: string;
+  nakshatra?: number;
+  rashi?: number;
+  gotra?: string;
+  priestName: string;
+  startDate: string;
+  totalDays: number; // default 90
+  lang: string;
+  notificationTime: string;
+  dob?: string;
+  tob?: string;
+  pincode?: string;
+  lat?: number;
+  lng?: number;
+  locationName?: string;
+  sevaType?: string;
+  platform?: "android" | "apple";
+  target?: "google" | "webcal" | "sanctum";
+  phone?: string;
+  email?: string;
+  overrideCalendarPhone?: boolean;
+  voiceId?: string;
+  includePriestCalendar?: boolean;
+  fullPayload: Record<string, any>;
+  legacyToken?: string;
+  createdAt: string;
+  expiresAt: string; // Exactly createdAt + 90 days
+  lastAccessedAt?: string;
+  accessCount: number;
+  status: "active" | "expired" | "revoked";
+  updatedAt: string;
+}
+
+export interface TokenMappingDoc {
+  id: string; // Hash or key of legacy token
+  legacyToken: string; // Full Base64URL string
+  newTokenId: string; // Reference to DevoteeTokenDoc.id
+  shortCode: string;
+  devoteeName: string;
+  priestName: string;
+  migratedAt: string;
+  expiresAt: string; // 90 days from migration
+  accessCount: number;
+  lastAccessedAt?: string;
+}
+
+// In-memory fallback stores for offline / tests
+const memoryDevoteeTokens = new Map<string, DevoteeTokenDoc>();
+const memoryTokenMappings = new Map<string, TokenMappingDoc>();
+
+/**
+ * Save or update a Devotee Token document in Firestore (and in-memory fallback)
+ */
+export async function saveDevoteeTokenToDb(tokenDoc: DevoteeTokenDoc): Promise<void> {
+  memoryDevoteeTokens.set(tokenDoc.id, { ...tokenDoc });
+  if (tokenDoc.shortCode) {
+    memoryDevoteeTokens.set(tokenDoc.shortCode, { ...tokenDoc });
+  }
+
+  try {
+    if (!firestore) return;
+    const docRef = doc(firestore, DEVOTEE_TOKENS_COL, tokenDoc.id);
+    await setDoc(docRef, sanitizeFirestoreData(tokenDoc), { merge: true });
+  } catch (err) {
+    console.warn("[Firestore] saveDevoteeTokenToDb error:", err);
+  }
+}
+
+/**
+ * Fetch a Devotee Token by ID or 8-char short code
+ */
+export async function getDevoteeTokenFromDb(tokenIdOrShortCode: string): Promise<DevoteeTokenDoc | null> {
+  const cleanKey = (tokenIdOrShortCode || "").trim();
+  if (!cleanKey) return null;
+
+  // Check memory store first
+  if (memoryDevoteeTokens.has(cleanKey)) {
+    return memoryDevoteeTokens.get(cleanKey)!;
+  }
+
+  try {
+    if (!firestore) return null;
+    // 1. Try by document ID
+    const docRef = doc(firestore, DEVOTEE_TOKENS_COL, cleanKey);
+    const snap = await getDoc(docRef);
+    if (snap.exists()) {
+      const data = snap.data() as DevoteeTokenDoc;
+      memoryDevoteeTokens.set(data.id, data);
+      if (data.shortCode) memoryDevoteeTokens.set(data.shortCode, data);
+      return data;
+    }
+
+    // 2. Try querying by shortCode
+    const q = query(collection(firestore, DEVOTEE_TOKENS_COL), where("shortCode", "==", cleanKey), limit(1));
+    const qSnap = await getDocs(q);
+    if (!qSnap.empty) {
+      const data = qSnap.docs[0].data() as DevoteeTokenDoc;
+      memoryDevoteeTokens.set(data.id, data);
+      if (data.shortCode) memoryDevoteeTokens.set(data.shortCode, data);
+      return data;
+    }
+  } catch (err) {
+    console.warn("[Firestore] getDevoteeTokenFromDb error:", err);
+  }
+
+  return null;
+}
+
+/**
+ * Record access count and last accessed timestamp for a token
+ */
+export async function recordDevoteeTokenAccess(tokenId: string): Promise<void> {
+  const now = new Date().toISOString();
+  const existing = memoryDevoteeTokens.get(tokenId);
+  if (existing) {
+    existing.accessCount = (existing.accessCount || 0) + 1;
+    existing.lastAccessedAt = now;
+    existing.updatedAt = now;
+    memoryDevoteeTokens.set(existing.id, existing);
+    if (existing.shortCode) memoryDevoteeTokens.set(existing.shortCode, existing);
+  }
+
+  try {
+    if (!firestore) return;
+    const docRef = doc(firestore, DEVOTEE_TOKENS_COL, tokenId);
+    await updateDoc(docRef, {
+      accessCount: (existing?.accessCount || 1),
+      lastAccessedAt: now,
+      updatedAt: now
+    });
+  } catch (err) {
+    // Non-critical background telemetry
+  }
+}
+
+/**
+ * Save a legacy token to new short token mapping for backward compatibility
+ */
+export async function saveTokenMappingToDb(mapping: TokenMappingDoc): Promise<void> {
+  memoryTokenMappings.set(mapping.id, { ...mapping });
+  memoryTokenMappings.set(mapping.legacyToken, { ...mapping });
+
+  try {
+    if (!firestore) return;
+    const docRef = doc(firestore, TOKEN_MAPPINGS_COL, mapping.id);
+    await setDoc(docRef, sanitizeFirestoreData(mapping), { merge: true });
+  } catch (err) {
+    console.warn("[Firestore] saveTokenMappingToDb error:", err);
+  }
+}
+
+/**
+ * Get a token mapping entry by legacy token string or mapping ID
+ */
+export async function getTokenMappingFromDb(legacyTokenOrKey: string): Promise<TokenMappingDoc | null> {
+  const cleanKey = (legacyTokenOrKey || "").trim();
+  if (!cleanKey) return null;
+
+  if (memoryTokenMappings.has(cleanKey)) {
+    return memoryTokenMappings.get(cleanKey)!;
+  }
+
+  try {
+    if (!firestore) return null;
+    // 1. Try by document ID
+    const docRef = doc(firestore, TOKEN_MAPPINGS_COL, cleanKey);
+    const snap = await getDoc(docRef);
+    if (snap.exists()) {
+      const data = snap.data() as TokenMappingDoc;
+      memoryTokenMappings.set(data.id, data);
+      memoryTokenMappings.set(data.legacyToken, data);
+      return data;
+    }
+
+    // 2. Try by legacyToken exact match
+    const q = query(collection(firestore, TOKEN_MAPPINGS_COL), where("legacyToken", "==", cleanKey), limit(1));
+    const qSnap = await getDocs(q);
+    if (!qSnap.empty) {
+      const data = qSnap.docs[0].data() as TokenMappingDoc;
+      memoryTokenMappings.set(data.id, data);
+      memoryTokenMappings.set(data.legacyToken, data);
+      return data;
+    }
+  } catch (err) {
+    console.warn("[Firestore] getTokenMappingFromDb error:", err);
+  }
+
+  return null;
+}
+
+/**
+ * Super Admin & Scheduled Maintenance: Automatically delete tokens & mappings older than 90 days
+ */
+export async function deleteExpiredTokensAndMappings(): Promise<{ deletedTokens: number; deletedMappings: number }> {
+  const now = new Date().toISOString();
+  let deletedTokens = 0;
+  let deletedMappings = 0;
+
+  // Cleanup in-memory store
+  for (const [key, token] of memoryDevoteeTokens.entries()) {
+    if (token.expiresAt && token.expiresAt < now) {
+      memoryDevoteeTokens.delete(key);
+      deletedTokens++;
+    }
+  }
+  for (const [key, mapDoc] of memoryTokenMappings.entries()) {
+    if (mapDoc.expiresAt && mapDoc.expiresAt < now) {
+      memoryTokenMappings.delete(key);
+      deletedMappings++;
+    }
+  }
+
+  try {
+    if (!firestore) return { deletedTokens, deletedMappings };
+
+    // Query expired tokens in Firestore
+    const tokenQ = query(collection(firestore, DEVOTEE_TOKENS_COL), where("expiresAt", "<", now));
+    const tokenSnap = await getDocs(tokenQ);
+    for (const d of tokenSnap.docs) {
+      await deleteDoc(d.ref);
+    }
+
+    // Query expired mappings in Firestore
+    const mapQ = query(collection(firestore, TOKEN_MAPPINGS_COL), where("expiresAt", "<", now));
+    const mapSnap = await getDocs(mapQ);
+    for (const d of mapSnap.docs) {
+      await deleteDoc(d.ref);
+    }
+  } catch (err) {
+    console.warn("[Firestore] deleteExpiredTokensAndMappings error:", err);
+  }
+
+  return { deletedTokens, deletedMappings };
+}
+
+/**
+ * Real-time subscription to active devotee tokens for Priest / Admin tracking
+ */
+export function subscribeDevoteeTokens(
+  onUpdate: (tokens: DevoteeTokenDoc[]) => void
+): Unsubscribe {
+  if (!firestore) {
+    onUpdate(Array.from(memoryDevoteeTokens.values()));
+    return () => {};
+  }
+
+  try {
+    const q = query(collection(firestore, DEVOTEE_TOKENS_COL), orderBy("createdAt", "desc"), limit(100));
+    return onSnapshot(q, (snapshot) => {
+      const list: DevoteeTokenDoc[] = [];
+      snapshot.forEach((docSnap) => {
+        list.push(docSnap.data() as DevoteeTokenDoc);
+      });
+      onUpdate(list);
+    }, (err) => {
+      console.warn("[Firestore] subscribeDevoteeTokens listener error:", err);
+      onUpdate(Array.from(memoryDevoteeTokens.values()));
+    });
+  } catch (err) {
+    onUpdate(Array.from(memoryDevoteeTokens.values()));
+    return () => {};
+  }
+}
+

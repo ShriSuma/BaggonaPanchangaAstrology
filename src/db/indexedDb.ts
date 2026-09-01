@@ -120,6 +120,37 @@ export type DailyHitRecord = {
   lastUpdated: string;
 };
 
+export type DevoteeTokenRecord = {
+  id: string;
+  shortCode: string;
+  devoteeName: string;
+  priestName: string;
+  startDate: string;
+  totalDays: number;
+  lang: string;
+  notificationTime: string;
+  fullPayload: Record<string, any>;
+  legacyToken?: string;
+  createdAt: string;
+  expiresAt: string;
+  lastAccessedAt?: string;
+  accessCount: number;
+  status: string;
+};
+
+export type TokenMappingRecord = {
+  id: string;
+  legacyToken: string;
+  newTokenId: string;
+  shortCode: string;
+  devoteeName: string;
+  priestName: string;
+  migratedAt: string;
+  expiresAt: string;
+  accessCount: number;
+  lastAccessedAt?: string;
+};
+
 class AppDatabase extends Dexie {
   settings!: Table<SettingsRecord>;
   kundlis!: Table<KundliRecord>;
@@ -132,6 +163,8 @@ class AppDatabase extends Dexie {
   users!: Table<UserRecord>;
   dailyHits!: Table<DailyHitRecord>;
   userSankalpas!: Table<UserSankalpaRecord>;
+  devoteeTokens!: Table<DevoteeTokenRecord>;
+  tokenMappings!: Table<TokenMappingRecord>;
 
   constructor() {
     super("baggona-panchanga-db");
@@ -181,6 +214,21 @@ class AppDatabase extends Dexie {
       users: "id,username",
       dailyHits: "date",
       userSankalpas: "id,userId,category,isActive,createdAt"
+    });
+    this.version(11).stores({
+      settings: "++id,language,createdAt,consentChoice,analyticsEnabled,chartStyle",
+      kundlis: "id,userId,name,createdAt",
+      panchangCache: "id,date,location,cachedAt",
+      predictionCache: "id,kundliId,period,periodKey,cachedAt",
+      scheduledNotifications: "id,type,scheduledTime,fired",
+      analyticsEvents: "++id,eventName,timestamp",
+      geocodeCache: "placeName,cachedAt",
+      translationCache: "id,lang,cachedAt",
+      users: "id,username",
+      dailyHits: "date",
+      userSankalpas: "id,userId,category,isActive,createdAt",
+      devoteeTokens: "id,shortCode,devoteeName,priestName,expiresAt,status",
+      tokenMappings: "id,legacyToken,newTokenId,shortCode,expiresAt"
     });
   }
 }
