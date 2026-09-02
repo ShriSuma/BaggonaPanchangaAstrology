@@ -74,7 +74,12 @@ export function getUniversalBirthDetails(
   if (displayName.includes("Dilip") || displayName.includes("ದಿಲೀಪ್")) {
     return { dob: "1993-03-22", tob: "23:40", isDerived: true };
   }
-  if (displayName.includes("Pramod") || displayName.includes("ಪ್ರಮೋದ್")) {
+  if (
+    displayName.includes("Shreeram") ||
+    displayName.includes("ಶ್ರೀರಾಮ್") ||
+    displayName.includes("Pramod") ||
+    displayName.includes("ಪ್ರಮೋದ್")
+  ) {
     return { dob: "1993-05-31", tob: "09:25", isDerived: true };
   }
 

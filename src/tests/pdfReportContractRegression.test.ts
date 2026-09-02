@@ -220,7 +220,7 @@ describe('PDF Report Contract & Regression Test Suite', () => {
       
       // Ensure fillTestKundali is inside the import.meta.env.DEV block
       const devBlockIdx = fileContent.indexOf('import.meta.env.DEV');
-      const testButtonIdx = fileContent.indexOf('Fill Test Details (Pramod Kodgi)');
+      const testButtonIdx = fileContent.indexOf('Fill Test Details (Shreeram Pandit)');
 
       expect(devBlockIdx).toBeGreaterThan(0);
       expect(testButtonIdx).toBeGreaterThan(devBlockIdx);

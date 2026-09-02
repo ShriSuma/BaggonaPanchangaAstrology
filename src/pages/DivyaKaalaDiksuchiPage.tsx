@@ -335,7 +335,7 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
                 required
                 value={personName}
                 onChange={(e) => setPersonName(e.target.value)}
-                placeholder="ಉದಾ: ಪ್ರಮೋದ್ ಕೊಡಗಿ"
+                placeholder={selectedLang === "kn" ? "ಉದಾ: ಶ್ರೀರಾಮ್ ಪಂಡಿತ್" : "e.g., Shreeram Pandit"}
                 className="w-full px-4 py-3 rounded-2xl border-2 border-amber-300 dark:border-slate-700 bg-amber-50/60 dark:bg-slate-800 text-slate-950 dark:text-white font-semibold text-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none"
               />
             </div>

@@ -588,7 +588,7 @@ export default function KundliPage(): JSX.Element {
     const testDate = new Date(1993, 4, 31, 9, 25, 0);
     setForm(f => ({
       ...f,
-      name: "Pramod Kodgi",
+      name: "Shreeram Pandit",
       birthDate: "1993-05-31",
       birthTime: "09:25",
       gothra: "Vasishtha",
@@ -614,7 +614,7 @@ export default function KundliPage(): JSX.Element {
                 className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-amber-300 bg-amber-50 text-xs font-bold text-amber-900 hover:bg-amber-100 shadow-sm transition"
               >
                 <span>⚡</span>
-                <span>Fill Test Details (Pramod Kodgi)</span>
+                <span>Fill Test Details (Shreeram Pandit)</span>
               </button>
             )}
           </div>
