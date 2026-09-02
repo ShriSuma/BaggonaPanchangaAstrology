@@ -23,6 +23,7 @@ import {
   generateDynamicLifeInsights,
   generateDynamicQaFallback,
   generateDeepPersonalityAnalysis,
+  generateAuthenticRemediesWithReasoning,
   generateCustomQuestionAstrologyAnswer,
   getLocalizedRashiName,
   getLocalizedNakshatraName,
@@ -246,6 +247,12 @@ export default function PublicKundliPage(): JSX.Element {
   const deepPersonalityData: DeepPersonalityOutput | null = useMemo(() => {
     if (!publicProfile || !result) return null;
     return generateDeepPersonalityAnalysis(publicProfile, result, selectedLang);
+  }, [publicProfile, result, selectedLang]);
+
+  // Dynamic Remedies with full Astrological Reasoning in current language
+  const remediesData = useMemo(() => {
+    if (!publicProfile || !result) return null;
+    return generateAuthenticRemediesWithReasoning(publicProfile, result, selectedLang);
   }, [publicProfile, result, selectedLang]);
 
   // --------------------------------------------------------------------------
@@ -1194,99 +1201,6 @@ ${publicProfile.name}`;
                   />
                 </div>
 
-                {/* Full Planetary Positions Table */}
-                <div className="bg-slate-900 border border-amber-500/30 rounded-3xl p-6 md:p-8 shadow-2xl space-y-6 overflow-x-auto">
-                  <div className="border-b border-amber-500/20 pb-3 flex items-center justify-between">
-                    <h3 className="text-lg font-bold text-amber-300 flex items-center gap-2">
-                      <span>🪐</span> {txt("planetaryTableHeading")}
-                    </h3>
-                    <span className="text-xs text-slate-400 font-mono">Lahiri Sidereal Ayanamsa</span>
-                  </div>
-
-                  <table className="w-full text-left text-xs border-collapse">
-                    <thead>
-                      <tr className="border-b border-amber-500/30 text-amber-300 bg-slate-950/50">
-                        <th className="p-3">{txt("planetCol")}</th>
-                        <th className="p-3">{txt("rashiCol")}</th>
-                        <th className="p-3 text-center">{txt("degreeCol")}</th>
-                        <th className="p-3 text-center">{txt("houseCol")}</th>
-                        <th className="p-3">{txt("nakshatraCol")}</th>
-                        <th className="p-3 text-center">{txt("padaCol")}</th>
-                        <th className="p-3">{txt("lordCol")}</th>
-                        <th className="p-3 text-center">{txt("dignityCol")}</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-800">
-                      {publicProfile.planetaryRows.map((row, idx) => (
-                        <tr
-                          key={idx}
-                          className={`hover:bg-slate-800/40 transition-colors ${
-                            row.name === "Lagna" ? "text-amber-300 font-bold bg-amber-500/5" : "text-slate-300"
-                          }`}
-                        >
-                          <td className="p-3 font-semibold">
-                            {row.sanskritName || row.name} {row.isRetrograde ? `(${txt("retrogradeLabel")})` : ""}
-                          </td>
-                          <td className="p-3">
-                            {getLocalizedRashiName(row.rashi, selectedLang)}
-                          </td>
-                          <td className="p-3 text-center font-mono text-amber-200/90">
-                            {row.degreeStr}
-                          </td>
-                          <td className="p-3 text-center font-bold text-amber-400">
-                            {row.house}
-                          </td>
-                          <td className="p-3">{getLocalizedNakshatraName(row.nakshatra, row.pada, selectedLang)}</td>
-                          <td className="p-3 text-center">{row.pada}</td>
-                          <td className="p-3">{row.lord}</td>
-                          <td className="p-3 text-center">
-                            <span
-                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                                row.dignity === "Exalted"
-                                  ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
-                                  : row.dignity === "Debilitated"
-                                  ? "bg-red-500/20 text-red-300 border border-red-500/30"
-                                  : "bg-slate-800 text-slate-400"
-                              }`}
-                            >
-                              {row.dignity}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-
-                  {/* House Lords Summary */}
-                  <div className="bg-slate-950/80 border border-amber-500/20 rounded-2xl p-5 space-y-3">
-                    <h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider">
-                      🏛️ {txt("houseLordsSummaryTitle")}
-                    </h4>
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-xs">
-                      <div className="bg-slate-900 border border-slate-800 rounded-xl p-3">
-                        <span className="text-slate-400 block text-[10px]">{txt("lagnaLordTitle")}</span>
-                        <strong className="text-amber-300 text-sm">{publicProfile.lagnaLord}</strong>
-                      </div>
-                      <div className="bg-slate-900 border border-slate-800 rounded-xl p-3">
-                        <span className="text-slate-400 block text-[10px]">{txt("lord10Title")}</span>
-                        <strong className="text-amber-300 text-sm">{publicProfile.lord10}</strong>
-                      </div>
-                      <div className="bg-slate-900 border border-slate-800 rounded-xl p-3">
-                        <span className="text-slate-400 block text-[10px]">{txt("lord7Title")}</span>
-                        <strong className="text-amber-300 text-sm">{publicProfile.lord7}</strong>
-                      </div>
-                      <div className="bg-slate-900 border border-slate-800 rounded-xl p-3">
-                        <span className="text-slate-400 block text-[10px]">{txt("lord6Title")}</span>
-                        <strong className="text-amber-300 text-sm">{publicProfile.lord6}</strong>
-                      </div>
-                      <div className="bg-slate-900 border border-slate-800 rounded-xl p-3">
-                        <span className="text-slate-400 block text-[10px]">{txt("lord5Title")}</span>
-                        <strong className="text-amber-300 text-sm">{publicProfile.lord5}</strong>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
                 {/* Divine Remedies & Gokarna Temple Pariharas */}
                 <div className="bg-slate-900 border border-amber-500/30 rounded-3xl p-6 md:p-8 shadow-2xl space-y-6">
                   <div className="border-b border-amber-500/20 pb-3">
@@ -1299,59 +1213,121 @@ ${publicProfile.name}`;
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-slate-950/80 border border-amber-500/20 rounded-2xl p-4 space-y-1">
-                      <span className="text-[10px] uppercase font-bold text-amber-400 tracking-wider block">
-                        💎 {txt("gemstoneLabel")}
+                    {/* Gemstone */}
+                    <div className="bg-slate-950/80 border border-amber-500/20 rounded-2xl p-4 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] uppercase font-bold text-amber-400 tracking-wider block">
+                          💎 {txt("gemstoneLabel")}
+                        </span>
+                      </div>
+                      <span className="text-sm md:text-base font-extrabold text-amber-200 block">
+                        {remediesData?.gemstone || publicProfile.gemstone}
                       </span>
-                      <span className="text-sm font-extrabold text-slate-100">
-                        {publicProfile.gemstone}
-                      </span>
+                      {(remediesData?.gemstoneReason || publicProfile.gemstoneReason) && (
+                        <div className="bg-slate-900/90 border border-amber-500/20 rounded-xl p-3 text-xs text-slate-300 leading-relaxed">
+                          <span className="text-amber-400 font-bold block text-[11px] mb-1">
+                            📜 {selectedLang === "kn" ? "ಶಾಸ್ತ್ರೀಯ ಕಾರಣ:" : "Astrological Reason:"}
+                          </span>
+                          {remediesData?.gemstoneReason || publicProfile.gemstoneReason}
+                        </div>
+                      )}
                     </div>
 
-                    <div className="bg-slate-950/80 border border-amber-500/20 rounded-2xl p-4 space-y-1">
-                      <span className="text-[10px] uppercase font-bold text-amber-400 tracking-wider block">
-                        📿 {txt("rudrakshaLabel")}
+                    {/* Rudraksha */}
+                    <div className="bg-slate-950/80 border border-amber-500/20 rounded-2xl p-4 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] uppercase font-bold text-amber-400 tracking-wider block">
+                          📿 {txt("rudrakshaLabel")}
+                        </span>
+                      </div>
+                      <span className="text-sm md:text-base font-extrabold text-amber-200 block">
+                        {remediesData?.rudraksha || publicProfile.rudraksha}
                       </span>
-                      <span className="text-sm font-extrabold text-slate-100">
-                        {publicProfile.rudraksha}
-                      </span>
+                      {(remediesData?.rudrakshaReason || publicProfile.rudrakshaReason) && (
+                        <div className="bg-slate-900/90 border border-amber-500/20 rounded-xl p-3 text-xs text-slate-300 leading-relaxed">
+                          <span className="text-amber-400 font-bold block text-[11px] mb-1">
+                            📜 {selectedLang === "kn" ? "ಶಾಸ್ತ್ರೀಯ ಕಾರಣ:" : "Astrological Reason:"}
+                          </span>
+                          {remediesData?.rudrakshaReason || publicProfile.rudrakshaReason}
+                        </div>
+                      )}
                     </div>
 
-                    <div className="bg-slate-950/80 border border-amber-500/20 rounded-2xl p-4 space-y-1">
-                      <span className="text-[10px] uppercase font-bold text-amber-400 tracking-wider block">
-                        📅 {txt("auspiciousDayLabel")}
+                    {/* Auspicious Day */}
+                    <div className="bg-slate-950/80 border border-amber-500/20 rounded-2xl p-4 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] uppercase font-bold text-amber-400 tracking-wider block">
+                          📅 {txt("auspiciousDayLabel")}
+                        </span>
+                      </div>
+                      <span className="text-sm md:text-base font-extrabold text-amber-200 block">
+                        {remediesData?.auspiciousDay || publicProfile.auspiciousDay}
                       </span>
-                      <span className="text-sm font-extrabold text-slate-100">
-                        {publicProfile.auspiciousDay}
-                      </span>
+                      {(remediesData?.auspiciousDayReason || publicProfile.auspiciousDayReason) && (
+                        <div className="bg-slate-900/90 border border-amber-500/20 rounded-xl p-3 text-xs text-slate-300 leading-relaxed">
+                          <span className="text-amber-400 font-bold block text-[11px] mb-1">
+                            📜 {selectedLang === "kn" ? "ಶಾಸ್ತ್ರೀಯ ಕಾರಣ:" : "Astrological Reason:"}
+                          </span>
+                          {remediesData?.auspiciousDayReason || publicProfile.auspiciousDayReason}
+                        </div>
+                      )}
                     </div>
 
-                    <div className="bg-slate-950/80 border border-amber-500/20 rounded-2xl p-4 space-y-1">
-                      <span className="text-[10px] uppercase font-bold text-amber-400 tracking-wider block">
-                        🕉️ {txt("deityLabel")}
+                    {/* Aradhya Deity */}
+                    <div className="bg-slate-950/80 border border-amber-500/20 rounded-2xl p-4 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] uppercase font-bold text-amber-400 tracking-wider block">
+                          🕉️ {txt("deityLabel")}
+                        </span>
+                      </div>
+                      <span className="text-sm md:text-base font-extrabold text-amber-200 block">
+                        {remediesData?.deity || publicProfile.deity}
                       </span>
-                      <span className="text-sm font-extrabold text-slate-100">
-                        {publicProfile.deity}
-                      </span>
+                      {(remediesData?.deityReason || publicProfile.deityReason) && (
+                        <div className="bg-slate-900/90 border border-amber-500/20 rounded-xl p-3 text-xs text-slate-300 leading-relaxed">
+                          <span className="text-amber-400 font-bold block text-[11px] mb-1">
+                            📜 {selectedLang === "kn" ? "ಶಾಸ್ತ್ರೀಯ ಕಾರಣ:" : "Astrological Reason:"}
+                          </span>
+                          {remediesData?.deityReason || publicProfile.deityReason}
+                        </div>
+                      )}
                     </div>
                   </div>
 
+                  {/* Mantra */}
                   <div className="bg-slate-950/90 border border-amber-500/30 rounded-2xl p-5 space-y-2">
                     <span className="text-xs uppercase font-bold text-amber-300 tracking-wider block">
                       📜 {txt("mantraLabel")}
                     </span>
-                    <p className="text-sm md:text-base font-serif text-amber-200 italic">
-                      "{publicProfile.mantra}"
+                    <p className="text-sm md:text-base font-serif text-amber-200 italic font-semibold">
+                      "{remediesData?.mantra || publicProfile.mantra}"
                     </p>
+                    {(remediesData?.mantraReason || publicProfile.mantraReason) && (
+                      <div className="bg-slate-900/90 border border-amber-500/20 rounded-xl p-3 text-xs text-slate-300 leading-relaxed mt-2">
+                        <span className="text-amber-400 font-bold block text-[11px] mb-1">
+                          📜 {selectedLang === "kn" ? "ಶಾಸ್ತ್ರೀಯ ಕಾರಣ:" : "Astrological Reason:"}
+                        </span>
+                        {remediesData?.mantraReason || publicProfile.mantraReason}
+                      </div>
+                    )}
                   </div>
 
+                  {/* Gokarna Seva */}
                   <div className="bg-gradient-to-r from-amber-950/60 via-slate-950 to-amber-950/60 border border-amber-500/40 rounded-2xl p-5 space-y-2">
                     <span className="text-xs uppercase font-bold text-amber-300 tracking-wider block">
                       🏛️ {txt("gokarnaSevaLabel")}
                     </span>
                     <p className="text-sm md:text-base font-extrabold text-amber-100">
-                      {publicProfile.gokarnaSevaName}
+                      {remediesData?.gokarnaSevaName || publicProfile.gokarnaSevaName}
                     </p>
+                    {(remediesData?.gokarnaSevaReason || publicProfile.gokarnaSevaReason) && (
+                      <div className="bg-slate-900/90 border border-amber-500/20 rounded-xl p-3 text-xs text-slate-300 leading-relaxed mt-2">
+                        <span className="text-amber-400 font-bold block text-[11px] mb-1">
+                          📜 {selectedLang === "kn" ? "ಶಾಸ್ತ್ರೀಯ ಕಾರಣ:" : "Astrological Reason:"}
+                        </span>
+                        {remediesData?.gokarnaSevaReason || publicProfile.gokarnaSevaReason}
+                      </div>
+                    )}
                   </div>
                 </div>
 

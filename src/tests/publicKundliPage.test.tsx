@@ -293,10 +293,13 @@ describe("Public Kundli & Live Astrology Analysis 100% Dynamic Engine Test Suite
       expect(screen.getByRole("button", { name: /⏳ ದಶಾ & ಭುಕ್ತಿ ಕಾಲಚಕ್ರ/i })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: /🔒 ವ್ಯಕ್ತಿತ್ವ & ನಿಗೂಢ ರಹಸ್ಯ \(1,000 Coins\)/i })).toBeInTheDocument();
 
-      // Tab 1 (Patrika) is default active: 8-Page Premium Dwadasha Bhava chart, Planetary table, Remedies
+      // Tab 1 (Patrika) is default active: 8-Page Premium Dwadasha Bhava chart, Remedies with reasoning
       expect(screen.getAllByText(/ದ್ವಾದಶ ಭಾವ ಕುಂಡಲಿ/i).length).toBeGreaterThanOrEqual(1);
-      expect(screen.getByText(/ಗ್ರಹ ಸ್ಥಿತಿ & ಅಂಶ ಕೋಷ್ಟಕ/i)).toBeInTheDocument();
+      // Planetary placements table is removed per user instruction
+      expect(screen.queryByText(/ಗ್ರಹ ಸ್ಥಿತಿ & ಅಂಶ ಕೋಷ್ಟಕ/i)).toBeNull();
       expect(screen.getByText(/ದೈವಿಕ ಪರಿಹಾರಗಳು & ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಸೇವೆಗಳು/i)).toBeInTheDocument();
+      // Verify Astrological Reasons (ಶಾಸ್ತ್ರೀಯ ಕಾರಣ) are rendered for remedies
+      expect(screen.getAllByText(/ಶಾಸ್ತ್ರೀಯ ಕಾರಣ:/i).length).toBeGreaterThanOrEqual(4);
     });
 
     it("verifies Tab 2 Dasha & Bhukti with expandable 9 Bhuktis accordion and 2-line predictive phrases", async () => {

@@ -67,9 +67,10 @@ export const DwadashaBhavaKundliChart: React.FC<DwadashaBhavaKundliChartProps> =
     const maandiRashiIdx = RASHI_ORDER_EN.indexOf(profile.maandiRashi);
     if (maandiRashiIdx >= 0) {
       const maandiLabel = isKn ? "ಮಾಂದಿ" : "Maandi";
+      const maandiDeg = profile.maandiDegreeStr || "14°";
       planetsByRashi[maandiRashiIdx].push({
         name: maandiLabel,
-        degreeStr: isKn ? toKnNum("8°") : "8°"
+        degreeStr: isKn ? toKnNum(maandiDeg) : maandiDeg
       });
     }
   }
@@ -116,7 +117,7 @@ export const DwadashaBhavaKundliChart: React.FC<DwadashaBhavaKundliChartProps> =
               className="text-[#1E3A8A] font-bold text-[10px] md:text-[11px] leading-tight flex items-center justify-between"
             >
               <span>
-                {pl.name} {pl.isRetro && <span className="text-rose-600 text-[9px]">(ವ)</span>}
+                {pl.name} {pl.isRetro && <span className="text-rose-600 font-bold text-[9px]">({isKn ? "ವಕ್ರ" : "Retro"})</span>}
               </span>
               <span className="text-[9px] text-slate-500 font-mono">{pl.degreeStr}</span>
             </div>
