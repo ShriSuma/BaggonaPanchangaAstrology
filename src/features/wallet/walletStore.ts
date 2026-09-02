@@ -20,6 +20,13 @@ import {
 } from "./walletTypes";
 import { notifyCoinRechargeRequested, notifyCoinRechargeApproved } from "../notifications/notificationService";
 
+export interface ActiveDeductionAnimation {
+  id: string;
+  coins: number;
+  serviceName: string;
+  timestamp: number;
+}
+
 export interface WalletState {
   wallet: PriestWalletDoc | null;
   allPriestWallets: PriestWalletDoc[];
@@ -32,6 +39,7 @@ export interface WalletState {
   isLoading: boolean;
   error: string | null;
   successMessage: string | null;
+  recentDeductions: ActiveDeductionAnimation[];
 
   // Unsubscribe callbacks
   walletUnsub: (() => void) | null;
@@ -52,6 +60,7 @@ export interface WalletState {
   approveTx: (txId: string) => Promise<boolean>;
   directCoinAdjustment: (userId: string, coins: number, reason: string) => Promise<{ success: boolean; error?: string }>;
   refundCoins: (coins: number, reason: string) => Promise<{ success: boolean; error?: string }>;
+  clearRecentDeduction: (id: string) => void;
   clearMessages: () => void;
   cleanup: () => void;
 }
@@ -68,6 +77,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
   isLoading: false,
   error: null,
   successMessage: null,
+  recentDeductions: [],
 
   walletUnsub: null,
   txUnsub: null,
@@ -211,7 +221,33 @@ export const useWalletStore = create<WalletState>((set, get) => ({
       return { success: false, error: res.error ?? "Deduction failed" };
     }
 
+    // Register active floating deduction animation
+    const animId = `deduct_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;
+    const newDeduction: ActiveDeductionAnimation = {
+      id: animId,
+      coins,
+      serviceName,
+      timestamp: Date.now()
+    };
+
+    set((state) => ({
+      recentDeductions: [...state.recentDeductions.slice(-4), newDeduction]
+    }));
+
+    // Auto dismiss animation after 3.2 seconds
+    if (typeof window !== "undefined") {
+      setTimeout(() => {
+        get().clearRecentDeduction(animId);
+      }, 3200);
+    }
+
     return { success: true };
+  },
+
+  clearRecentDeduction: (id: string) => {
+    set((state) => ({
+      recentDeductions: state.recentDeductions.filter((d) => d.id !== id)
+    }));
   },
 
   approveTx: async (txId: string) => {

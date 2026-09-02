@@ -14,6 +14,7 @@ import { useAuthStore } from "../features/auth/authStore";
 import { useWalletStore } from "../features/wallet/walletStore";
 import { PriestWalletModal } from "../features/wallet/PriestWalletModal";
 import { AdminCoinApprovalModal } from "../features/wallet/AdminCoinApprovalModal";
+import { FloatingCoinDeductionBadge } from "./wallet/FloatingCoinDeductionBadge";
 import { getNavLabel } from "../i18n/navigationLocale";
 import InstallPrompt from "./InstallPrompt";
 
@@ -175,28 +176,31 @@ export default function Layout({ children }: Props): JSX.Element {
             </button>
           )}
 
-          {/* Priest Coin Wallet Pill with Red Low/Zero Balance Alert */}
-          <button
-            onClick={openRechargeModal}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all text-xs font-semibold shadow-sm ${
-              isLowCoins
-                ? "bg-red-950/90 border-2 border-red-500 text-red-200 hover:bg-red-900 shadow-red-900/40 animate-pulse ring-2 ring-red-500/40"
-                : "bg-amber-500/15 border border-amber-500/40 text-amber-300 hover:bg-amber-500/25 hover:border-amber-400"
-            }`}
-            title={isLowCoins ? "⚠️ ನಾಣ್ಯಗಳ ಕೊರತೆ! Click to refill coins" : "Priest Coin Wallet • Click to recharge"}
-          >
-            <span className="text-sm">{isLowCoins ? "⚠️" : "🪙"}</span>
-            <span className={`font-mono font-black ${isLowCoins ? "text-red-200" : "text-amber-200"}`}>
-              {coinBalance.toLocaleString()} {isLowCoins ? "🪙" : ""}
-            </span>
-            <span className={`hidden sm:inline text-[9px] font-extrabold px-1.5 py-0.5 rounded-md uppercase ${
-              isLowCoins
-                ? "bg-gradient-to-r from-red-600 to-rose-600 text-white animate-bounce"
-                : "bg-gradient-to-r from-amber-600 to-amber-500 text-slate-950"
-            }`}>
-              {isLowCoins ? "+ ರೀಫಿಲ್" : "+ Recharge"}
-            </span>
-          </button>
+          {/* Priest Coin Wallet Pill with Floating Deduction Animation & Red Low/Zero Balance Alert */}
+          <div className="relative inline-flex items-center">
+            <FloatingCoinDeductionBadge />
+            <button
+              onClick={openRechargeModal}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all text-xs font-semibold shadow-sm ${
+                isLowCoins
+                  ? "bg-red-950/90 border-2 border-red-500 text-red-200 hover:bg-red-900 shadow-red-900/40 animate-pulse ring-2 ring-red-500/40"
+                  : "bg-amber-500/15 border border-amber-500/40 text-amber-300 hover:bg-amber-500/25 hover:border-amber-400"
+              }`}
+              title={isLowCoins ? "⚠️ ನಾಣ್ಯಗಳ ಕೊರತೆ! Click to refill coins" : "Priest Coin Wallet • Click to recharge"}
+            >
+              <span className="text-sm">{isLowCoins ? "⚠️" : "🪙"}</span>
+              <span className={`font-mono font-black ${isLowCoins ? "text-red-200" : "text-amber-200"}`}>
+                {coinBalance.toLocaleString()} {isLowCoins ? "🪙" : ""}
+              </span>
+              <span className={`hidden sm:inline text-[9px] font-extrabold px-1.5 py-0.5 rounded-md uppercase ${
+                isLowCoins
+                  ? "bg-gradient-to-r from-red-600 to-rose-600 text-white animate-bounce"
+                  : "bg-gradient-to-r from-amber-600 to-amber-500 text-slate-950"
+              }`}>
+                {isLowCoins ? "+ ರೀಫಿಲ್" : "+ Recharge"}
+              </span>
+            </button>
+          </div>
 
           {/* Reset / Edit Kundali button if a kundali exists */}
           {session && (

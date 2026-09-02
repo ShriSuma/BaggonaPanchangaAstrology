@@ -1751,3 +1751,91 @@ export function subscribeDevoteeTokens(
   }
 }
 
+// ── Super Admin Dynamic Service Pricing Cloud Collection ──────────────────
+export const SERVICE_PRICING_DOC_ID = "service_pricing";
+export const LOCAL_STORAGE_SERVICE_PRICING_KEY = "baggona_service_pricing_config_cache";
+
+export interface ServicePricingConfigDoc {
+  id: string;
+  pricing: Record<string, {
+    key: string;
+    name: string;
+    kannadaName: string;
+    coins: number;
+    inrEquivalent: number;
+    description: string;
+    category: string;
+  }>;
+  updatedAt: string;
+  updatedBy: string;
+}
+
+/**
+ * Real-time subscription to dynamic service coin pricing configuration
+ */
+export function subscribeServicePricingConfig(
+  callback: (pricingMap: Record<string, any>) => void
+): Unsubscribe {
+  try {
+    if (firestore) {
+      const docRef = doc(firestore, APP_CONFIGS_COL, SERVICE_PRICING_DOC_ID);
+      return onSnapshot(
+        docRef,
+        (snap) => {
+          if (snap.exists()) {
+            const data = snap.data() as ServicePricingConfigDoc;
+            if (data.pricing && Object.keys(data.pricing).length > 0) {
+              try {
+                localStorage.setItem(LOCAL_STORAGE_SERVICE_PRICING_KEY, JSON.stringify(data.pricing));
+              } catch (_) {}
+              callback(data.pricing);
+              return;
+            }
+          }
+          callback({});
+        },
+        (err) => {
+          console.warn("[Firestore] subscribeServicePricingConfig error:", err);
+          callback({});
+        }
+      );
+    }
+  } catch (err) {
+    console.warn("[Firestore] subscribeServicePricingConfig setup error:", err);
+  }
+
+  callback({});
+  return () => {};
+}
+
+/**
+ * Save / update dynamic service coin pricing in Cloud Firestore
+ */
+export async function saveServicePricingConfig(
+  pricing: Record<string, any>,
+  adminId: string = "superadmin"
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const configDoc: ServicePricingConfigDoc = {
+      id: SERVICE_PRICING_DOC_ID,
+      pricing,
+      updatedAt: new Date().toISOString(),
+      updatedBy: adminId
+    };
+
+    try {
+      localStorage.setItem(LOCAL_STORAGE_SERVICE_PRICING_KEY, JSON.stringify(pricing));
+    } catch (_) {}
+
+    if (firestore) {
+      const docRef = doc(firestore, APP_CONFIGS_COL, SERVICE_PRICING_DOC_ID);
+      await setDoc(docRef, configDoc, { merge: true });
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    console.error("[Firestore] saveServicePricingConfig error:", err);
+    return { success: false, error: err?.message || "Failed to save service pricing to cloud" };
+  }
+}
+

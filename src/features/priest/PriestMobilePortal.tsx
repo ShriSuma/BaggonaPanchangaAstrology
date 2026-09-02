@@ -10,6 +10,7 @@ import {
   DEFAULT_PRIEST_NAME,
   RECHARGE_PACKAGES
 } from "../wallet/walletTypes";
+import { usePricingConfigStore } from "../wallet/pricingConfigStore";
 import { calculateKundliWithPlaceSun } from "../../core/KundliEngine";
 import { type KundliOutput, type PlanetPosition } from "../../core/AstroTypes";
 import {
@@ -173,6 +174,12 @@ export const PriestMobilePortal: React.FC = () => {
     setSelectedPackage,
     isSubmittingRecharge
   } = useWalletStore();
+
+  const { getCoins } = usePricingConfigStore();
+  const kundliCost = getCoins("KUNDLI_CALCULATION", 500);
+  const stdPdfCost = getCoins("STANDARD_JANANA_KUNDLI_PDF", 1000);
+  const premPdfCost = getCoins("PREMIUM_KUNDLI_PDF", 3500);
+  const questionCost = getCoins("ASTROLOGY_QUESTION", 500);
 
   const { currentUser } = useAuthStore();
   const [urlPriestName, setUrlPriestName] = useState<string>("");
@@ -519,7 +526,7 @@ export const PriestMobilePortal: React.FC = () => {
   // Generate Kundli Handler with 500 Coin (₹50) Deduction & Pre-Action Confirmation Modal
   const handleGenerateKundli = (e: React.FormEvent) => {
     e.preventDefault();
-    const cost = SERVICE_COIN_COSTS.KUNDLI_CALCULATION?.coins || 500; // 500 Coins (₹50)
+    const cost = kundliCost;
 
     if (coinBalance < cost) {
       setFeedback({
@@ -725,7 +732,7 @@ export const PriestMobilePortal: React.FC = () => {
       return;
     }
 
-    const cost = SERVICE_COIN_COSTS.STANDARD_JANANA_KUNDLI_PDF?.coins || 1000; // 1,000 Coins
+    const cost = stdPdfCost;
     if (coinBalance < cost) {
       setFeedback({
         type: "error",
@@ -836,7 +843,7 @@ export const PriestMobilePortal: React.FC = () => {
       return;
     }
 
-    const cost = SERVICE_COIN_COSTS.PREMIUM_KUNDLI_PDF?.coins || 3500; // 3,500 Coins
+    const cost = premPdfCost;
     if (coinBalance < cost) {
       setFeedback({
         type: "error",
@@ -1209,7 +1216,7 @@ export const PriestMobilePortal: React.FC = () => {
       return;
     }
 
-    const cost = SERVICE_COIN_COSTS.ASTROLOGY_QUESTION?.coins || 500;
+    const cost = questionCost;
 
     if (coinBalance < cost) {
       setFeedback({

@@ -8,6 +8,7 @@ import { RASHI_L5, NAKSHATRA_L5 } from "../../features/seva/sevaLocale";
 import { SpeechRecognitionSession } from "../../utils/speechRecognitionHelper";
 import { CoinDeductionModal } from "../wallet/CoinDeductionModal";
 import { SERVICE_COIN_COSTS } from "../../features/wallet/walletTypes";
+import { usePricingConfigStore } from "../../features/wallet/pricingConfigStore";
 import { useWalletStore } from "../../features/wallet/walletStore";
 
 export interface VahanaKharidiMuhurthaTabProps {
@@ -52,7 +53,7 @@ export const VahanaKharidiMuhurthaTab: React.FC<VahanaKharidiMuhurthaTabProps> =
   // Confirmation modal state
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
-  const cost = SERVICE_COIN_COSTS.VAHANA_MUHURTHA?.coins || 500;
+  const cost = usePricingConfigStore((s) => s.getCoins("VAHANA_MUHURTHA", 500));
 
   const handleVoiceInput = () => {
     const session = new SpeechRecognitionSession("kn-IN");
@@ -170,7 +171,7 @@ export const VahanaKharidiMuhurthaTab: React.FC<VahanaKharidiMuhurthaTabProps> =
                 ವಾಹನ ಖರೀದಿ ಶುಭ ಮುಹೂರ್ತ (Vehicle Purchase Good Days)
               </h2>
               <p className="text-xs text-amber-900 font-semibold mt-0.5">
-                ಶ್ರೀ {devoteeName || "ಭಕ್ತರ"} ಜನ್ಮ ರಾಶಿ & ನಕ್ಷತ್ರಾನುಸಾರ ಅತ್ಯುತ್ತಮ ದಿನಗಳು (🪙 500 Coins)
+                ಶ್ರೀ {devoteeName || "ಭಕ್ತರ"} ಜನ್ಮ ರಾಶಿ & ನಕ್ಷತ್ರಾನುಸಾರ ಅತ್ಯುತ್ತಮ ದಿನಗಳು (🪙 {cost} Coins / ₹{Math.round(cost / 10)})
               </p>
             </div>
           </div>

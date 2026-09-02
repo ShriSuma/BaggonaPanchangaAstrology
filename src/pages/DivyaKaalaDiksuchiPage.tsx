@@ -17,6 +17,7 @@ import { getPriestProfile } from "../features/seva/sevaPriestDirectory";
 import { useAppStore } from "../stores/appStore";
 import { useWalletStore } from "../features/wallet/walletStore";
 import { SERVICE_COIN_COSTS } from "../features/wallet/walletTypes";
+import { usePricingConfigStore } from "../features/wallet/pricingConfigStore";
 import { CoinDeductionModal } from "../components/wallet/CoinDeductionModal";
 import { FallingCoinsRefillModal } from "../components/wallet/FallingCoinsRefillModal";
 import html2canvas from "html2canvas";
@@ -33,6 +34,7 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
   const wallet = useWalletStore((s) => s.wallet);
   const deductForService = useWalletStore((s) => s.deductForService);
   const coinBalance = wallet?.coinBalance ?? 0;
+  const diksuchiCost = usePricingConfigStore((s) => s.getCoins("KAALA_DIKSUCHI_QUESTION", 200));
 
   const [pendingDeduction, setPendingDeduction] = useState<{
     isOpen: boolean;
@@ -160,7 +162,7 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
   const handleCalculate = (e: React.FormEvent) => {
     e.preventDefault();
     if (!dob) return;
-    const cost = SERVICE_COIN_COSTS.KAALA_DIKSUCHI_QUESTION?.coins || 200;
+    const cost = diksuchiCost;
 
     setPendingDeduction({
       isOpen: true,
@@ -284,17 +286,17 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
                 ದಿವ್ಯ ಕಾಲ ದಿಕ್ಸೂಚಿ ವಿಶ್ಲೇಷಣೆ (Divya Kaala Diksuchi)
               </span>
               <span className="text-[11px] text-amber-800 dark:text-amber-400 font-bold">
-                ದರ: 🪙 ೨೦೦ ನಾಣ್ಯಗಳು (200 Coins) ಪ್ರತಿ ಪ್ರಶ್ನೆಗೆ
+                ದರ: 🪙 {diksuchiCost} ನಾಣ್ಯಗಳು ({diksuchiCost} Coins / ₹{Math.round(diksuchiCost / 10)}) ಪ್ರತಿ ಪ್ರಶ್ನೆಗೆ
               </span>
             </div>
           </div>
           <div className="flex items-center gap-2 self-end sm:self-auto">
             <span className={`text-xs font-mono font-black px-3 py-1 rounded-xl border-2 ${
-              coinBalance < 200
+              coinBalance < diksuchiCost
                 ? "bg-red-100 text-red-900 border-red-400 animate-pulse"
                 : "bg-amber-100 text-amber-950 border-amber-400"
             }`}>
-              {coinBalance < 200 ? `⚠️ ${coinBalance} 🪙 (ಕೊರತೆ)` : `${coinBalance} 🪙`}
+              {coinBalance < diksuchiCost ? `⚠️ ${coinBalance} 🪙 (ಕೊರತೆ)` : `${coinBalance} 🪙`}
             </span>
             <button
               type="button"
@@ -1198,7 +1200,7 @@ export const DivyaKaalaDiksuchiPage: React.FC = () => {
       <FallingCoinsRefillModal
         isOpen={isRefillOpen}
         onClose={() => setIsRefillOpen(false)}
-        requiredCoins={100}
+        requiredCoins={diksuchiCost}
       />
 
       {/* Pre-Action Coin Deduction Confirmation Modal */}

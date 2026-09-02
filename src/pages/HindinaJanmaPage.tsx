@@ -21,6 +21,7 @@ import { HindinaJanmaPdfTemplate } from "../components/hindinajanma/HindinaJanma
 import { useAppStore } from "../stores/appStore";
 import { useWalletStore } from "../features/wallet/walletStore";
 import { SERVICE_COIN_COSTS } from "../features/wallet/walletTypes";
+import { usePricingConfigStore } from "../features/wallet/pricingConfigStore";
 import { CoinDeductionModal } from "../components/wallet/CoinDeductionModal";
 import { FallingCoinsRefillModal } from "../components/wallet/FallingCoinsRefillModal";
 import { sanitizeAIText } from "../utils/textFormatter";
@@ -38,6 +39,7 @@ export const HindinaJanmaPage: React.FC = () => {
   const wallet = useWalletStore((s) => s.wallet);
   const deductForService = useWalletStore((s) => s.deductForService);
   const coinBalance = wallet?.coinBalance ?? 0;
+  const purvaJanmaCost = usePricingConfigStore((s) => s.getCoins("PURVA_JANMA_QUESTION", 200));
 
   const [pendingDeduction, setPendingDeduction] = useState<{
     isOpen: boolean;
@@ -165,7 +167,7 @@ export const HindinaJanmaPage: React.FC = () => {
   const handleCalculate = (e: React.FormEvent) => {
     e.preventDefault();
     if (!dob) return;
-    const cost = SERVICE_COIN_COSTS.PURVA_JANMA_QUESTION?.coins || 200;
+    const cost = purvaJanmaCost;
 
     setPendingDeduction({
       isOpen: true,
@@ -282,17 +284,17 @@ export const HindinaJanmaPage: React.FC = () => {
                 {isKn ? "ಹಿಂದಿನ ಜನ್ಮದ ರಹಸ್ಯ ಭವಿಷ್ಯ (Past Life Blueprint)" : "Past Life Karmic Blueprint"}
               </span>
               <span className="text-[11px] text-amber-800 dark:text-amber-400 font-bold">
-                {isKn ? "ದರ: 🪙 ೨೦೦ ನಾಣ್ಯಗಳು (200 Coins) ಪ್ರತಿ ಪ್ರಶ್ನೆಗೆ" : "Cost: 🪙 200 Coins per question"}
+                {isKn ? `ದರ: 🪙 ${purvaJanmaCost} ನಾಣ್ಯಗಳು (${purvaJanmaCost} Coins / ₹${Math.round(purvaJanmaCost / 10)}) ಪ್ರತಿ ಪ್ರಶ್ನೆಗೆ` : `Cost: 🪙 ${purvaJanmaCost} Coins (₹${Math.round(purvaJanmaCost / 10)}) per question`}
               </span>
             </div>
           </div>
           <div className="flex items-center gap-2 self-end sm:self-auto">
             <span className={`text-xs font-mono font-black px-3 py-1 rounded-xl border-2 ${
-              coinBalance < 200
+              coinBalance < purvaJanmaCost
                 ? "bg-red-100 text-red-900 border-red-400 animate-pulse"
                 : "bg-amber-100 text-amber-950 border-amber-400"
             }`}>
-              {coinBalance < 200 ? `⚠️ ${coinBalance} 🪙 (ಕೊರತೆ)` : `${coinBalance} 🪙`}
+              {coinBalance < purvaJanmaCost ? `⚠️ ${coinBalance} 🪙 (ಕೊರತೆ)` : `${coinBalance} 🪙`}
             </span>
             <button
               type="button"
@@ -1036,11 +1038,11 @@ export const HindinaJanmaPage: React.FC = () => {
         </div>
       )}
 
-      {/* Falling Coins Refill Modal with Dropping Animation */}
+      {/* Falling Coins Refill Modal with Dropping Coins Animation */}
       <FallingCoinsRefillModal
         isOpen={isRefillOpen}
         onClose={() => setIsRefillOpen(false)}
-        requiredCoins={100}
+        requiredCoins={purvaJanmaCost}
       />
 
       {/* Pre-Action Coin Deduction Confirmation Modal */}

@@ -9,6 +9,7 @@ import {
   DEFAULT_PRIEST_NAME,
   RECHARGE_PACKAGES
 } from "../wallet/walletTypes";
+import { usePricingConfigStore } from "../wallet/pricingConfigStore";
 import {
   generateSankhyaPrashnaReading,
   generateSankhyaNameSuggestion,
@@ -61,6 +62,13 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
 
   const { currentUser } = useAuthStore();
   const [urlPriestName, setUrlPriestName] = useState<string>("");
+
+  // Dynamic Service Pricing Store
+  const getCoins = usePricingConfigStore((s) => s.getCoins);
+  const janmaCost = getCoins("SANKHYA_JANMA_ANALYSIS", 500);
+  const prashnaCost = getCoins("SANKHYA_PRASHNA", 250);
+  const nameCost = getCoins("SANKHYA_NAME_SUGGESTION", 500);
+  const vehicleCost = getCoins("SANKHYA_MOBILE_VEHICLE", 500);
 
   // Load Saved Session from localStorage (Anti-Reset Guard for Refresh / Mobile Disconnects)
   const savedSankhya = useMemo(() => loadSavedPriestSankhyaState(), []);
@@ -410,7 +418,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
 
   const handleJanmaSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const cost = SERVICE_COIN_COSTS.SANKHYA_JANMA_ANALYSIS?.coins || 500;
+    const cost = janmaCost;
     if (coinBalance < cost) {
       setIsRechargeOpen(true);
       return;
@@ -521,7 +529,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
     }
 
     setNumberError(null);
-    const cost = SERVICE_COIN_COSTS.SANKHYA_PRASHNA?.coins || 250;
+    const cost = prashnaCost;
 
     setPendingDeduction({
       isOpen: true,
@@ -611,9 +619,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
     e.preventDefault();
     if (isCalculatingSuggestion) return;
 
-    const cost = suggestionType === "name"
-      ? (SERVICE_COIN_COSTS.SANKHYA_NAME_SUGGESTION?.coins || 250)
-      : (SERVICE_COIN_COSTS.SANKHYA_MOBILE_VEHICLE?.coins || 250);
+    const cost = suggestionType === "name" ? nameCost : vehicleCost;
 
     const serviceName = suggestionType === "name" ? "ಶುಭ ನಾಮ ಸಂಖ್ಯಾ ಸೂಚನೆ" : "ಮೊಬೈಲ್ ಮತ್ತು ವಾಹನ ಸಂಖ್ಯಾ ಸೂಚನೆ";
 
@@ -936,7 +942,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
                 <span>ವೈದಿಕ ಜನ್ಮ ಗ್ರಿಡ್, ೩೭ ಯೋಗಗಳು & ದಶಾ ವಿಶ್ಲೇಷಣೆ</span>
               </h2>
               <span className="text-[10px] font-mono font-black text-amber-900 bg-[#FFF5D6] px-2.5 py-1 rounded-full border border-amber-400">
-                ದರ: 🪙 ೫೦೦ ನಾಣ್ಯಗಳು (500 Coins / ₹50)
+                ದರ: 🪙 {janmaCost} ನಾಣ್ಯಗಳು ({janmaCost} Coins / ₹{Math.round(janmaCost / 10)})
               </span>
             </div>
 
@@ -1205,7 +1211,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
                 <span>ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಪ್ರಶ್ನಾವಳಿ ದರ್ಶನ</span>
               </h2>
               <span className="text-[10px] font-mono font-black text-amber-900 bg-[#FFF5D6] px-2.5 py-1 rounded-full border border-amber-400">
-                ದರ: 🪙 ೨೦೦ ನಾಣ್ಯಗಳು (200 Coins)
+                ದರ: 🪙 {prashnaCost} ನಾಣ್ಯಗಳು ({prashnaCost} Coins / ₹{Math.round(prashnaCost / 10)})
               </span>
             </div>
 
@@ -1515,7 +1521,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
                 <span>ಶುಭ ನಾಮ & ಸಂಖ್ಯಾ ಸಂಯೋಜನೆ</span>
               </h2>
               <span className="text-[10px] font-mono font-black text-amber-900 bg-[#FFF5D6] px-2.5 py-1 rounded-full border border-amber-400">
-                ದರ: 🪙 ೨೫೦ ನಾಣ್ಯಗಳು (250 Coins)
+                ದರ: 🪙 {suggestionType === "name" ? nameCost : vehicleCost} ನಾಣ್ಯಗಳು ({suggestionType === "name" ? nameCost : vehicleCost} Coins / ₹{Math.round((suggestionType === "name" ? nameCost : vehicleCost) / 10)})
               </span>
             </div>
 
@@ -1804,19 +1810,19 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
             <div className="divide-y divide-amber-200 font-semibold">
               <div className="py-2 flex justify-between">
                 <span className="text-slate-800">ವೈದಿಕ ಜನ್ಮ ಗ್ರಿಡ್, ೩೭ ಯೋಗಗಳು & ದಶಾ ವಿಶ್ಲೇಷಣೆ</span>
-                <span className="font-mono font-bold text-amber-900">🪙 ೫೦೦ ನಾಣ್ಯಗಳು (500 Coins / ₹50)</span>
+                <span className="font-mono font-bold text-amber-900">🪙 {janmaCost} ನಾಣ್ಯಗಳು ({janmaCost} Coins / ₹{Math.round(janmaCost / 10)})</span>
               </div>
               <div className="py-2 flex justify-between">
                 <span className="text-slate-800">ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಪ್ರಶ್ನಾವಳಿ ದರ್ಶನ</span>
-                <span className="font-mono font-bold text-amber-900">🪙 ೨೫೦ ನಾಣ್ಯಗಳು (250 Coins / ₹25)</span>
+                <span className="font-mono font-bold text-amber-900">🪙 {prashnaCost} ನಾಣ್ಯಗಳು ({prashnaCost} Coins / ₹{Math.round(prashnaCost / 10)})</span>
               </div>
               <div className="py-2 flex justify-between">
-                <span className="text-slate-800">ಶುಭ ನಾಮ ಸಂಖ್ಯಾ ಸೂಚನೆ</span>
-                <span className="font-mono font-bold text-amber-900">🪙 ೨೫೦ ನಾಣ್ಯಗಳು (250 Coins / ₹25)</span>
+                <span className="text-slate-800">ಶುಭ ನಾಮ ಸಂಖ್ಯಾ ಸೂಚನೆ (Name Degree)</span>
+                <span className="font-mono font-bold text-amber-900">🪙 {nameCost} ನಾಣ್ಯಗಳು ({nameCost} Coins / ₹{Math.round(nameCost / 10)})</span>
               </div>
               <div className="py-2 flex justify-between">
                 <span className="text-slate-800">ಮೊಬೈಲ್ & ವಾಹನ ಸಂಖ್ಯಾ ಸೂಚನೆ</span>
-                <span className="font-mono font-bold text-amber-900">🪙 ೨೫೦ ನಾಣ್ಯಗಳು (250 Coins / ₹25)</span>
+                <span className="font-mono font-bold text-amber-900">🪙 {vehicleCost} ನಾಣ್ಯಗಳು ({vehicleCost} Coins / ₹{Math.round(vehicleCost / 10)})</span>
               </div>
             </div>
           </div>

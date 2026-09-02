@@ -25,13 +25,13 @@ describe("Sankhya Shastra Priest Portal & Engine Validation", () => {
     expect(SERVICE_COIN_COSTS.SANKHYA_PRASHNA.coins).toBe(250);
     expect(SERVICE_COIN_COSTS.SANKHYA_PRASHNA.inrEquivalent).toBe(25);
 
-    // 250 Coins (₹25) Name Suggestion
-    expect(SERVICE_COIN_COSTS.SANKHYA_NAME_SUGGESTION.coins).toBe(250);
-    expect(SERVICE_COIN_COSTS.SANKHYA_NAME_SUGGESTION.inrEquivalent).toBe(25);
+    // 500 Coins (₹50) Name Suggestion
+    expect(SERVICE_COIN_COSTS.SANKHYA_NAME_SUGGESTION.coins).toBe(500);
+    expect(SERVICE_COIN_COSTS.SANKHYA_NAME_SUGGESTION.inrEquivalent).toBe(50);
 
-    // 250 Coins (₹25) Mobile/Vehicle Suggestion
-    expect(SERVICE_COIN_COSTS.SANKHYA_MOBILE_VEHICLE.coins).toBe(250);
-    expect(SERVICE_COIN_COSTS.SANKHYA_MOBILE_VEHICLE.inrEquivalent).toBe(25);
+    // 500 Coins (₹50) Mobile/Vehicle Suggestion
+    expect(SERVICE_COIN_COSTS.SANKHYA_MOBILE_VEHICLE.coins).toBe(500);
+    expect(SERVICE_COIN_COSTS.SANKHYA_MOBILE_VEHICLE.inrEquivalent).toBe(50);
   });
 
   it("generates complete Janma Vedic Grid & Dasha Reading for Priest Portal (500 Coins / ₹50)", async () => {
