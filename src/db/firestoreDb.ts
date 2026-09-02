@@ -444,37 +444,60 @@ export async function deletePriestAccount(userId: string): Promise<boolean> {
  */
 export async function isPriestAccountActive(userId: string): Promise<boolean> {
   try {
-    const cleanId = userId.trim().toLowerCase();
-    // Default master priests/admins are always allowed
-    if (cleanId === "superadmin" || cleanId === "baggona" || cleanId === "priest_shreeram") {
+    const rawId = (userId || "").trim();
+    const cleanId = rawId.toLowerCase();
+
+    // 1. Master priests and Super Admin accounts are always unconditionally active
+    const isMasterOrSuperAdmin =
+      cleanId === "superadmin" ||
+      cleanId === "$hrisuma" ||
+      cleanId === "shrisuma" ||
+      cleanId === "baggona" ||
+      cleanId === "priest_shreeram" ||
+      cleanId === "shreerampandit" ||
+      cleanId === "superadmin_dollar_shrisuma" ||
+      cleanId === "superadmin_shrisuma" ||
+      cleanId === "superadmin_master" ||
+      rawId === "$hriSuma" ||
+      rawId === "ShriSuma";
+
+    if (isMasterOrSuperAdmin) {
       return true;
     }
 
     if (firestore) {
-      // Check Firestore user doc
-      const userRef = doc(firestore, USERS_COL, cleanId);
-      const snap = await getDoc(userRef);
-      if (snap.exists()) {
-        return true;
+      // 2. Check direct doc IDs (cleanId, rawId, deterministic superadmin format)
+      for (const candidateId of [cleanId, rawId, `superadmin_${cleanId}`]) {
+        const userRef = doc(firestore, USERS_COL, candidateId);
+        const snap = await getDoc(userRef);
+        if (snap.exists()) {
+          return true;
+        }
       }
 
-      // Check query by username in Firestore
-      const q = query(collection(firestore, USERS_COL), where("username", "==", cleanId));
-      const qSnap = await getDocs(q);
-      if (!qSnap.empty) {
-        return true;
+      // 3. Check query by username in Firestore (both rawId and cleanId)
+      for (const candidateUsername of [rawId, cleanId]) {
+        const q = query(collection(firestore, USERS_COL), where("username", "==", candidateUsername));
+        const qSnap = await getDocs(q);
+        if (!qSnap.empty) {
+          return true;
+        }
       }
 
-      // Check wallet existence in Firestore
-      const walletRef = doc(firestore, WALLETS_COL, cleanId);
-      const walletSnap = await getDoc(walletRef);
-      if (walletSnap.exists()) {
-        return true;
+      // 4. Check wallet existence in Firestore
+      for (const candidateWalletId of [cleanId, rawId]) {
+        const walletRef = doc(firestore, WALLETS_COL, candidateWalletId);
+        const walletSnap = await getDoc(walletRef);
+        if (walletSnap.exists()) {
+          return true;
+        }
       }
     }
 
-    // Check IndexedDB
-    const localUser = await db.users.where("username").equals(cleanId).first();
+    // 5. Check IndexedDB (both cleanId and rawId)
+    const localUser =
+      (await db.users.where("username").equals(cleanId).first()) ||
+      (await db.users.where("username").equals(rawId).first());
     if (localUser) {
       return true;
     }

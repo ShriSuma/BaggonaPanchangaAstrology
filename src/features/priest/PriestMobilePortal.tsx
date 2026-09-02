@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import QRCode from "qrcode";
 import { useWalletStore } from "../wallet/walletStore";
-import { useAuthStore } from "../auth/authStore";
+import { useAuthStore, SUPER_ADMIN_USERNAMES } from "../auth/authStore";
 import { useAppStore } from "../../stores/appStore";
 import {
   SERVICE_COIN_COSTS,
@@ -181,7 +181,10 @@ export const PriestMobilePortal: React.FC = () => {
   const premPdfCost = getCoins("PREMIUM_KUNDLI_PDF", 3500);
   const questionCost = getCoins("ASTROLOGY_QUESTION", 500);
 
-  const { currentUser } = useAuthStore();
+  const { currentUser, role } = useAuthStore();
+  const isSuperAdmin =
+    role === "superadmin" ||
+    (currentUser && SUPER_ADMIN_USERNAMES.some((u) => u.toLowerCase() === currentUser.toLowerCase() || u === currentUser));
   const [urlPriestName, setUrlPriestName] = useState<string>("");
 
   // Allowed modules resolution: URL param "modules" takes precedence, then wallet.allowedModules, then portal query param
@@ -435,6 +438,32 @@ export const PriestMobilePortal: React.FC = () => {
     const isResetOrFirstTime = typeof window !== "undefined" && (new URLSearchParams(window.location.search).get("reset") === "true" || new URLSearchParams(window.location.search).get("firstTime") === "true");
 
     const checkActive = async () => {
+      const isSuper =
+        role === "superadmin" ||
+        SUPER_ADMIN_USERNAMES.some(
+          (u) => u.toLowerCase() === resolvedUser.toLowerCase() || u === resolvedUser
+        );
+
+      if (isSuper) {
+        setIsAccessRevoked(false);
+        // If super admin is accessing without an explicit priest user param, link to master priest account
+        const hasExplicitPriestParam =
+          typeof window !== "undefined" && Boolean(new URLSearchParams(window.location.search).get("user"));
+        const targetPriestUser = hasExplicitPriestParam ? resolvedUser : "priest_shreeram";
+        const targetPriestName = hasExplicitPriestParam ? resolvedName : "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಪ್ರಧಾನ ಪುರೋಹಿತರು)";
+
+        void initWallet(targetPriestUser, targetPriestName);
+
+        try {
+          const prof = await getUserProfile(targetPriestUser);
+          if (prof?.email) setPriestEmail(prof.email);
+          if (prof?.phone || prof?.mobileNumber) setPriestPhone(prof.phone || prof.mobileNumber || "");
+        } catch (err) {
+          console.warn("[PriestMobilePortal] Error preloading profile:", err);
+        }
+        return;
+      }
+
       const active = await isPriestAccountActive(resolvedUser);
       if (!active) {
         setIsAccessRevoked(true);
@@ -444,6 +473,7 @@ export const PriestMobilePortal: React.FC = () => {
         }
         return;
       }
+      setIsAccessRevoked(false);
       void initWallet(resolvedUser, resolvedName);
 
       // Pre-load existing email & phone from user profile if available
@@ -1435,6 +1465,27 @@ export const PriestMobilePortal: React.FC = () => {
             className="p-1 text-slate-900 hover:text-white font-bold text-xs rounded-full bg-amber-400/40"
           >
             ✕
+          </button>
+        </div>
+      )}
+
+      {/* Super Admin Master Oversight Notice Bar */}
+      {isSuperAdmin && (
+        <div className="bg-gradient-to-r from-slate-950 via-amber-950 to-slate-950 text-amber-300 border-b border-amber-500/40 px-3 sm:px-4 py-2 text-xs flex flex-wrap items-center justify-between gap-2 shadow-md">
+          <div className="flex items-center gap-2 font-bold">
+            <span className="text-base">🛡️</span>
+            <span>
+              ಪ್ರಧಾನ ಆಡಳಿತ ವೀಕ್ಷಣೆ (Super Admin Master Oversight) • ಪುರೋಹಿತ ಖಾತೆ:{" "}
+              <span className="text-white font-black">{activePriestDisplayName}</span>
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => useAppStore.getState().setPage("superadmindashboard")}
+            className="px-3 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-lg text-[11px] transition cursor-pointer shadow flex items-center gap-1"
+          >
+            <span>🛡️ Super Admin Control Center</span>
+            <span>➔</span>
           </button>
         </div>
       )}

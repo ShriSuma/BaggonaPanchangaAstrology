@@ -249,4 +249,20 @@ describe("Super Admin & Intrusion Security Engine", () => {
     expect(profile?.firstTimeSetupCompleted).toBe(true);
     expect(profile?.mustResetPassword).toBe(false);
   });
+
+  it("guarantees Super Admin accounts ($hriSuma, ShriSuma, superadmin) are always active in isPriestAccountActive", async () => {
+    const { isPriestAccountActive } = await import("../db/firestoreDb");
+
+    // All variations of Super Admin accounts must be unconditionally recognized
+    expect(await isPriestAccountActive("$hriSuma")).toBe(true);
+    expect(await isPriestAccountActive("ShriSuma")).toBe(true);
+    expect(await isPriestAccountActive("superadmin")).toBe(true);
+    expect(await isPriestAccountActive("superadmin_dollar_shrisuma")).toBe(true);
+    expect(await isPriestAccountActive("priest_shreeram")).toBe(true);
+    expect(await isPriestAccountActive("baggona")).toBe(true);
+
+    // Non-existent synthetic priest should return false
+    expect(await isPriestAccountActive("completely_fake_nonexistent_priest_999")).toBe(false);
+  });
 });
+
