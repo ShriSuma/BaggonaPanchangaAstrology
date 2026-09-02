@@ -159,7 +159,7 @@ export const ServicePricingManager: React.FC = () => {
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3.5">
           {/* 1. Kundli Generation */}
           <div className="bg-slate-900 border border-amber-500/30 rounded-xl p-3.5 space-y-2">
             <div className="flex items-center justify-between">
@@ -235,6 +235,26 @@ export const ServicePricingManager: React.FC = () => {
                 value={draftPricing["PUBLIC_TAB_UNLOCK"]?.coins ?? 200}
                 onChange={(e) => handleCoinsChange("PUBLIC_TAB_UNLOCK", parseInt(e.target.value) || 0)}
                 className="w-24 px-2.5 py-1 text-xs font-mono font-bold bg-slate-950 border border-amber-500/40 text-amber-300 rounded-lg text-center"
+              />
+              <span className="text-xs font-bold text-slate-400">Coins</span>
+            </div>
+          </div>
+
+          {/* 5. Custom Question QA */}
+          <div className="bg-slate-900 border border-indigo-500/40 rounded-xl p-3.5 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-indigo-300">❓ ಇತರ ಪ್ರಶ್ನೆ (Any Question)</span>
+              <span className="text-[10px] text-indigo-200 font-mono font-bold">₹{draftPricing["PUBLIC_CUSTOM_QUESTION_QA"]?.inrEquivalent ?? 50}</span>
+            </div>
+            <p className="text-[11px] text-slate-400">Custom question to Chief Astrologer (per question)</p>
+            <div className="flex items-center gap-2 pt-1">
+              <input
+                type="number"
+                min="0"
+                step="50"
+                value={draftPricing["PUBLIC_CUSTOM_QUESTION_QA"]?.coins ?? 500}
+                onChange={(e) => handleCoinsChange("PUBLIC_CUSTOM_QUESTION_QA", parseInt(e.target.value) || 0)}
+                className="w-24 px-2.5 py-1 text-xs font-mono font-bold bg-slate-950 border border-indigo-500/40 text-indigo-300 rounded-lg text-center"
               />
               <span className="text-xs font-bold text-slate-400">Coins</span>
             </div>

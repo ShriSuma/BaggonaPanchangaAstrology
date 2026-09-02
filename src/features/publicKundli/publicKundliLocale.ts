@@ -1243,8 +1243,128 @@ export const T_PUBLIC_KUNDLI: Record<string, Record<PublicKundliLang, string>> =
     kn: "ನಮಸ್ಕಾರ! ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಕಾರ್ಯಾಲಯದ ವೈಯಕ್ತಿಕ ಜನನ ಕುಂಡಲಿ ಮತ್ತು ಪ್ರಸ್ತುತ ಜೀವನ ವಿಶ್ಲೇಷಣೆಯನ್ನು ವೀಕ್ಷಿಸಿ:",
     en: "Namaskara! View your authentic Baggona Panchanga Janma Kundali and Live Life Astrology guidance here:",
     hi: "नमस्कार! अपनी बग्गोण पंचांग जन्म कुंडली और प्रत्यक्ष जीवन ज्योतिष मार्गदर्शन यहाँ देखें:",
-    te: "నమస్కారం! మీ బగ్గోణ పంచాంగ జనన కుಂಡలి మరియు ప్రత్యక్ష జీవిత విశ్లేషణను ఇక్కడ వీక్షించండి:",
+    te: "నమస్కారం! మీ బగ్గోణ పంచాంగ జనన కుండలి మరియు ప్రత్యక్ష జీవిత విశ్లేషణను ఇక్కడ వీక్షించండి:",
     ta: "வணக்கம்! உங்கள் பக்கோண பஞ்சாங்க பிறப்பு ஜாதகம் மற்றும் நேரடி வாழ்க்கை ஜோதிட வழிகாட்டலை இங்கே காண்க:"
+  },
+
+  // Tab 3: Personality Section Titles (100% Pure Localized)
+  personalityReadingTitle: {
+    kn: "ಜನ್ಮ ಲಗ್ನ & ಸಹಜ ವ್ಯಕ್ತಿತ್ವ ವಿಶ್ಲೇಷಣೆ",
+    en: "Ascendant & Natural Demeanor Analysis",
+    hi: "जन्म लग्न एवं स्वाभाविक व्यक्तित्व विश्लेषण",
+    te: "జన్మ లగ్నం & సహజ వ్యక్తిత్వ విశ్లేషణ",
+    ta: "பிறப்பு லக்னம் & இயல்பான ஆளுமை பகுப்பாய்வு"
+  },
+  hiddenSecretsTitle: {
+    kn: "ಚಂದ್ರ ರಾಶಿ, ಸುಪ್ತ ಮನಸ್ಸು & ಅಂತರಂಗದ ನಿಗೂಢ ರಹಸ್ಯ",
+    en: "Moon Sign, Subconscious Mind & Hidden Secrets",
+    hi: "चन्द्र राशि, अवचेतन मन एवं अंतर्मन के गूढ़ रहस्य",
+    te: "చంద్ర రాశి, అంతర్గత మనస్సు & నిగూఢ రహస్యాలు",
+    ta: "சந்திர ராசி, ஆழ்மனம் & அந்தரங்க ரகசியங்கள்"
+  },
+  currentDashaClimateTitle: {
+    kn: "ಪ್ರಸ್ತುತ ದಶಾ-ಗೋಚಾರ ಪ್ರಭಾವ & ಜ್ಯೋತಿಷ್ಯದ ಮೊರೆ ಹೋಗಲು ಕಾರಣ",
+    en: "Active Dasha-Transit Climate & Astrological Purpose",
+    hi: "वर्तमान दशा-गोचर प्रभाव एवं ज्योतिष परामर्श का कारण",
+    te: "ప్రస్తుత దశా-గోచార ప్రభావం & జ్యోతిష్య సంప్రదింపు కారణం",
+    ta: "தற்போதைய தசா-கோச்சார தாக்கம் & ஜோதிட ஆலோசனை நோக்கம்"
+  },
+  whyConsultingTitle: {
+    kn: "ಮನದಾಳದಲ್ಲಿ ಕಾಡುತ್ತಿರುವ ಜ್ವಲಂತ ಪ್ರಶ್ನೆಗಳು & ಸಂದಿಗ್ಧತೆ",
+    en: "Burning Inward Questions & Life Uncertainties",
+    hi: "हृदय में उठते ज्वलंत प्रश्न एवं दुविधाएँ",
+    te: "మనస్సులో మెదిలే జ్వలించే ప్రశ్నలు & సంశయాలు",
+    ta: "மனதில் எழும் முக்கிய கேள்விகள் & குழப்பங்கள்"
+  },
+  maandiKarmicShadowTitle: {
+    kn: "ಮಾಂದಿ (ಗುಳಿಕ) ಕರ್ಮ ಛಾಯೆ & ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಶಮನ ಪರಿಹಾರ",
+    en: "Maandi Karmic Shadow & Gokarna Temple Parihara",
+    hi: "मांदि (गुलिक) कर्म छाया एवं गोकर्ण क्षेत्र शमन परिहार",
+    te: "మాంది కర్మ ఛాయ & గోకర్ణ క్షేత్ర ఉపశమన పరిహారం",
+    ta: "மாந்தி கர்ம நிழல் & கோகர்ண க்ஷேத்ர பரிகாரம்"
+  },
+
+  // Tab 1: Dwadasha Bhava Chart
+  dwadashaBhavaChartTitle: {
+    kn: "ದ್ವಾದಶ ಭಾವ ಕುಂಡಲಿ",
+    en: "Dwadasha Bhava Kundali",
+    hi: "द्वादश भाव कुंडली",
+    te: "ద్వాదశ భావ కుండలి",
+    ta: "துவாதச பாவ ஜாதகம்"
+  },
+
+  // Tab 2: Color Coded Dasha-Bhukti Indicators
+  dashaFavorableBadge: {
+    kn: "ಶುಭ ಫಲ",
+    en: "Favorable",
+    hi: "शुभ फल",
+    te: "శుభ ఫలితం",
+    ta: "சுப பலன்"
+  },
+  dashaChallengingBadge: {
+    kn: "ಕಷ್ಟಕರ ಕಾಲ / ಎಚ್ಚರಿಕೆ",
+    en: "Challenging / Precaution",
+    hi: "कष्टकारी समय / सावधानी",
+    te: "క్లిష్ట సమయం / జాగ్రత్త",
+    ta: "சவாலான காலம் / எச்சரிக்கை"
+  },
+  dashaModerateBadge: {
+    kn: "ಮಿಶ್ರ ಫಲ",
+    en: "Moderate / Mixed",
+    hi: "मिश्र फल",
+    te: "మిశ్రమ ఫలితం",
+    ta: "மிதமான பலன்"
+  },
+
+  // Custom Question QA Section (500 Coins)
+  customQuestionSectionTitle: {
+    kn: "ಇತರ ಯಾವುದೇ ವೈಯಕ್ತಿಕ ಪ್ರಶ್ನೆಯನ್ನು ಕೇಳಿ",
+    en: "Ask Any Other Personal Question to Chief Priest",
+    hi: "अन्य कोई भी व्यक्तिगत प्रश्न पूछें",
+    te: "ఇతర ఏదైనా వ్యక్తిగత ప్రశ్నను అడగండి",
+    ta: "மற்ற ஏதேனும் தனிப்பட்ட கேள்வியைக் கேளுங்கள்"
+  },
+  customQuestionSectionSubtitle: {
+    kn: "ನಿಮ್ಮ ಜೀವನದ ಯಾವುದೇ ನಿರ್ದಿಷ್ಟ ಸಮಸ್ಯೆ, ಉದ್ಯೋಗ, ವ್ಯಾಪಾರ, ವಿವಾಹ ಅಥವಾ ಸಂತಾನ ಕುರಿತು ಗೋಕರ್ಣ ಸಿದ್ಧ ಜ್ಯೋತಿಷ್ಯ ಉತ್ತರ ಪಡೆಯಿರಿ.",
+    en: "Receive authentic Gokarna astrological guidance for career, business, marriage, health, or personal matters.",
+    hi: "अपने जीवन, करियर, व्यापार, विवाह या स्वास्थ्य से जुड़े किसी भी प्रश्न पर गोकर्ण सिद्ध ज्योतिषीय मार्गदर्शन प्राप्त करें।",
+    te: "మీ జీవితం, కెరీర్, వ్యాపారం, వివాహం లేదా ఆరోగ్యానికి సంబంధించిన ఏ ప్రశ్నకైనా గోకర్ణ జ్యోతిష్య మార్గదర్శనం పొందండి.",
+    ta: "உங்கள் தொழில், வியாபாரம், திருமணம் அல்லது ஆரோக்கியம் குறித்த எந்தவொரு கேள்விக்கும் கோகர்ண ஜோதிட வழிகாட்டல் பெறுங்கள்."
+  },
+  customQuestionPlaceholder: {
+    kn: "ನಿಮ್ಮ ನಿರ್ದಿಷ್ಟ ಪ್ರಶ್ನೆಯನ್ನು ಇಲ್ಲಿ ನಮೂದಿಸಿ (ಉದಾ: ಮುಂದಿನ ವರ್ಷ ಹೊಸ ವ್ಯಾಪಾರ ಅಥವಾ ಉದ್ಯೋಗ ಬದಲಾವಣೆಗೆ ಸೂಕ್ತವೇ?)...",
+    en: "Enter your specific question here (e.g. Is the upcoming year auspicious for job change or starting a business?)...",
+    hi: "अपना विशिष्ट प्रश्न यहाँ लिखें (उदा. क्या आगामी वर्ष नौकरी बदलने या नया व्यवसाय शुरू करने के लिए शुभ है?)...",
+    te: "మీ నిర్దిష్ట ప్రశ్నను ఇక్కడ రాయండి...",
+    ta: "உங்கள் குறிப்பிட்ட கேள்வியை இங்கே உள்ளிடவும்..."
+  },
+  customQuestionSubmitBtn: {
+    kn: "ಪ್ರಶ್ನೆ ಸಲ್ಲಿಸಿ (Ask Question)",
+    en: "Submit Question",
+    hi: "प्रश्न पूछें",
+    te: "ప్రశ్న అడగండి",
+    ta: "கேள்வி கேட்கவும்"
+  },
+  customQuestionCostPill: {
+    kn: "ಪ್ರತಿ ಪ್ರಶ್ನೆಗೆ 500 ನಾಣ್ಯಗಳು (Coins)",
+    en: "500 Coins per question",
+    hi: "प्रति प्रश्न 500 सिक्के",
+    te: "ప్రతి ప్రశ్నకు 500 నాణేలు",
+    ta: "ஒரு கேள்விக்கு 500 நாணயங்கள்"
+  },
+  customQuestionEmptyAlert: {
+    kn: "ದಯವಿಟ್ಟು ನಿಮ್ಮ ಪ್ರಶ್ನೆಯನ್ನು ನಮೂದಿಸಿ.",
+    en: "Please enter your question.",
+    hi: "कृपया अपना प्रश्न लिखें।",
+    te: "దయచేసి మీ ప్రశ్నను నమోదు చేయండి.",
+    ta: "தயவுசெய்து உங்கள் கேள்வியை உள்ளிடவும்."
+  },
+  customQuestionAnswerHeading: {
+    kn: "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಜ್ಯೋತಿಷ್ಯ ಕಾರ್ಯಾಲಯದ ಸಿದ್ಧ ಮಾರ್ಗದರ್ಶನ",
+    en: "Guidance from Sri Gokarna Mahabaleshwara Astrology Office",
+    hi: "श्री गोकर्ण महाबलेश्वर ज्योतिष कार्यालय का सिद्ध मार्गदर्शन",
+    te: "శ్రీ గోకర్ణ మహాబలేశ్వర జ్యోతిష్య కార్యాలయ మార్గదర్శనం",
+    ta: "ஸ்ரீ கோகர்ண மஹாபலேஷ்வரர் ஜோதிட அலுவலக வழிகாட்டல்"
   }
 };
 

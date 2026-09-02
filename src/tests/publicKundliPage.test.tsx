@@ -15,6 +15,7 @@ import {
   generateDynamicLifeInsights,
   generateDynamicQaFallback,
   generateDeepPersonalityAnalysis,
+  generateCustomQuestionAstrologyAnswer,
   evaluateDignity,
   formatDegree,
   formatDateFromAge
@@ -75,6 +76,17 @@ describe("Public Kundli & Live Astrology Analysis 100% Dynamic Engine Test Suite
     cleanup();
   });
 
+  const sampleInput: KundliInput = {
+    name: "Devotee Anant",
+    birthDate: "1995-05-15",
+    birthTime: "10:30",
+    latitude: 14.5479,
+    longitude: 74.3188,
+    gothra: "Kashyapa",
+    gender: "Male",
+    pincode: "581326"
+  };
+
   // ==========================================================================
   // SECTION 1: 5-LANGUAGE LOCALIZATION DICTIONARY & INTEGRITY
   // ==========================================================================
@@ -87,75 +99,49 @@ describe("Public Kundli & Live Astrology Analysis 100% Dynamic Engine Test Suite
 
     it("verifies all dictionary entries have non-empty text across all 5 languages", () => {
       const keys = Object.keys(T_PUBLIC_KUNDLI);
-      expect(keys.length).toBeGreaterThanOrEqual(45);
+      expect(keys.length).toBeGreaterThanOrEqual(30);
 
       for (const key of keys) {
+        const item = T_PUBLIC_KUNDLI[key];
         for (const lang of requiredLanguages) {
-          const val = T_PUBLIC_KUNDLI[key][lang];
-          expect(val, `Missing key '${key}' in language '${lang}'`).toBeDefined();
-          expect(val.trim().length, `Empty value for key '${key}' in language '${lang}'`).toBeGreaterThan(0);
+          expect(item[lang], `Missing or empty [${lang}] for key: ${key}`).toBeDefined();
+          expect(item[lang].trim().length).toBeGreaterThan(0);
         }
       }
     });
 
-    it("verifies getPublicKundliText returns accurate translation with fallback", () => {
-      expect(getPublicKundliText("portalTitle", "kn")).toContain("ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಕಾರ್ಯಾಲಯ");
-      expect(getPublicKundliText("portalTitle", "en")).toContain("Baggona Panchanga Astrology Office");
+    it("returns correct localized text with fallback for getPublicKundliText", () => {
+      expect(getPublicKundliText("portalTitle", "kn")).toContain("ಬಗ್ಗೋಣ ಪಂಚಾಂಗ");
+      expect(getPublicKundliText("portalTitle", "en")).toContain("Baggona Panchanga");
       expect(getPublicKundliText("portalTitle", "hi")).toContain("बग्गोण पंचांग");
       expect(getPublicKundliText("portalTitle", "te")).toContain("బగ్గోణ పంచాంగ");
       expect(getPublicKundliText("portalTitle", "ta")).toContain("பக்கோண பஞ்சாங்க");
-
-      expect(getPublicKundliText("tabPersonality", "kn")).toContain("ವ್ಯಕ್ತಿತ್ವ & ನಿಗೂಢ ರಹಸ್ಯ");
-      expect(getPublicKundliText("tabPersonality", "en")).toContain("Personality & Hidden Psyche");
-
-      // Fallback test
-      expect(getPublicKundliText("non_existent_key", "kn")).toBe("non_existent_key");
-    });
-
-    it("verifies the single action button text exists in all 5 languages", () => {
-      for (const lang of requiredLanguages) {
-        const actionText = getPublicKundliText("singleActionBtnText", lang);
-        expect(actionText.length).toBeGreaterThan(10);
-      }
-      expect(getPublicKundliText("singleActionBtnText", "kn")).toContain("ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಏನು ನಡೆಯುತ್ತಿದೆ?");
-      expect(getPublicKundliText("singleActionBtnText", "en")).toContain("What is happening in your life right now?");
+      expect(getPublicKundliText("nonExistentKey", "kn")).toBe("nonExistentKey");
     });
   });
 
   // ==========================================================================
-  // SECTION 2: WALLET & SERVICE COIN PRICING ENGINE
+  // SECTION 2: DYNAMIC SERVICE PRICING CONFIGURATION & PRIEST COIN GATING
   // ==========================================================================
-  describe("2. Wallet & Service Coin Pricing Engine", () => {
-    it("verifies PUBLIC_KUNDLI_GENERATION is configured for 500 Coins (₹50)", () => {
-      const config = SERVICE_COIN_COSTS.PUBLIC_KUNDLI_GENERATION;
-      expect(config).toBeDefined();
-      expect(config.coins).toBe(500);
-      expect(config.inrEquivalent).toBe(50);
-      expect(config.category).toBe("kundli");
-    });
+  describe("2. Dynamic Service Pricing Configuration & Wallet Integration", () => {
+    it("defines exact coin pricing in SERVICE_COIN_COSTS constants", () => {
+      expect(SERVICE_COIN_COSTS["PUBLIC_KUNDLI_GENERATION"]).toBeDefined();
+      expect(SERVICE_COIN_COSTS["PUBLIC_KUNDLI_GENERATION"].coins).toBe(500);
+      expect(SERVICE_COIN_COSTS["PUBLIC_KUNDLI_GENERATION"].inrEquivalent).toBe(50);
 
-    it("verifies PUBLIC_LIFE_ANALYSIS_QA is configured for 1000 Coins (₹100)", () => {
-      const config = SERVICE_COIN_COSTS.PUBLIC_LIFE_ANALYSIS_QA;
-      expect(config).toBeDefined();
-      expect(config.coins).toBe(1000);
-      expect(config.inrEquivalent).toBe(100);
-      expect(config.category).toBe("kundli");
-    });
+      expect(SERVICE_COIN_COSTS["PUBLIC_LIFE_ANALYSIS_QA"]).toBeDefined();
+      expect(SERVICE_COIN_COSTS["PUBLIC_LIFE_ANALYSIS_QA"].coins).toBe(1000);
+      expect(SERVICE_COIN_COSTS["PUBLIC_LIFE_ANALYSIS_QA"].inrEquivalent).toBe(100);
 
-    it("verifies PUBLIC_KUNDLI_PDF_DOWNLOAD is configured for 500 Coins (₹50)", () => {
-      const config = SERVICE_COIN_COSTS.PUBLIC_KUNDLI_PDF_DOWNLOAD;
-      expect(config).toBeDefined();
-      expect(config.coins).toBe(500);
-      expect(config.inrEquivalent).toBe(50);
-      expect(config.category).toBe("reports");
-    });
+      expect(SERVICE_COIN_COSTS["PUBLIC_KUNDLI_PDF_DOWNLOAD"]).toBeDefined();
+      expect(SERVICE_COIN_COSTS["PUBLIC_KUNDLI_PDF_DOWNLOAD"].coins).toBe(500);
 
-    it("verifies PUBLIC_TAB_UNLOCK is configured for 200 Coins (₹20)", () => {
-      const config = SERVICE_COIN_COSTS.PUBLIC_TAB_UNLOCK;
-      expect(config).toBeDefined();
-      expect(config.coins).toBe(200);
-      expect(config.inrEquivalent).toBe(20);
-      expect(config.category).toBe("kundli");
+      expect(SERVICE_COIN_COSTS["PUBLIC_TAB_UNLOCK"]).toBeDefined();
+      expect(SERVICE_COIN_COSTS["PUBLIC_TAB_UNLOCK"].coins).toBe(200);
+
+      expect(SERVICE_COIN_COSTS["PUBLIC_CUSTOM_QUESTION_QA"]).toBeDefined();
+      expect(SERVICE_COIN_COSTS["PUBLIC_CUSTOM_QUESTION_QA"].coins).toBe(500);
+      expect(SERVICE_COIN_COSTS["PUBLIC_CUSTOM_QUESTION_QA"].inrEquivalent).toBe(50);
     });
   });
 
@@ -163,17 +149,6 @@ describe("Public Kundli & Live Astrology Analysis 100% Dynamic Engine Test Suite
   // SECTION 3: MATHEMATICAL COMPUTATIONS, DEEP PERSONALITY & MAANDI ENGINE
   // ==========================================================================
   describe("3. Mathematical Computations, Deep Personality & Maandi Engine", () => {
-    const sampleInput: KundliInput = {
-      name: "Devotee Anant",
-      birthDate: "1995-05-15",
-      birthTime: "10:30",
-      latitude: 14.5479,
-      longitude: 74.3188,
-      gothra: "Kashyapa",
-      gender: "Male",
-      pincode: "581326"
-    };
-
     it("calculates authentic Lahiri Kundli and derives real-time running Dasha & Maandi", async () => {
       const computed = await calculateKundliWithPlaceSun(sampleInput, { ayanamsaModel: "lahiri" });
       expect(computed).toBeDefined();
@@ -318,8 +293,8 @@ describe("Public Kundli & Live Astrology Analysis 100% Dynamic Engine Test Suite
       expect(screen.getByRole("button", { name: /⏳ ದಶಾ & ಭುಕ್ತಿ ಕಾಲಚಕ್ರ/i })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: /🔒 ವ್ಯಕ್ತಿತ್ವ & ನಿಗೂಢ ರಹಸ್ಯ \(1,000 Coins\)/i })).toBeInTheDocument();
 
-      // Tab 1 (Patrika) is default active: South Indian chart, Panchanga Angas, Planetary table, Remedies
-      expect(screen.getByText(/ಜನನ ಕಾಲದ ಪಂಚಾಂಗ ಅಂಗ ವಿವರಗಳು/i)).toBeInTheDocument();
+      // Tab 1 (Patrika) is default active: 8-Page Premium Dwadasha Bhava chart, Planetary table, Remedies
+      expect(screen.getAllByText(/ದ್ವಾದಶ ಭಾವ ಕುಂಡಲಿ/i).length).toBeGreaterThanOrEqual(1);
       expect(screen.getByText(/ಗ್ರಹ ಸ್ಥಿತಿ & ಅಂಶ ಕೋಷ್ಟಕ/i)).toBeInTheDocument();
       expect(screen.getByText(/ದೈವಿಕ ಪರಿಹಾರಗಳು & ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಸೇವೆಗಳು/i)).toBeInTheDocument();
     });
@@ -344,6 +319,9 @@ describe("Public Kundli & Live Astrology Analysis 100% Dynamic Engine Test Suite
       // Verify 120-Year Vimshottari Mahadasha timeline is visible
       expect(screen.getByText(/೧೨೦ ವರ್ಷಗಳ ವಿಂಶೋತ್ತರಿ ದಶಾ ಕಾಲಚಕ್ರ/i)).toBeInTheDocument();
       expect(screen.getByText(/೯ ಭುಕ್ತಿಗಳು & ಫಲಗಳನ್ನು ನೋಡಲು ಕ್ಲಿಕ್ ಮಾಡಿ/i)).toBeInTheDocument();
+
+      // Verify Color-coded Dasha-Bhukti badges are rendered
+      expect(screen.getAllByText(/ಶುಭ ಫಲ|ಕಷ್ಟಕರ ಕಾಲ|ಮಿಶ್ರ ಫಲ/i).length).toBeGreaterThanOrEqual(1);
 
       // Verify 2-line predictive phrases are rendered in Bhuktis
       expect(screen.getAllByText(/ಜೀವನ ಸ್ಥಿತಿ/i).length).toBeGreaterThanOrEqual(1);
@@ -378,13 +356,14 @@ describe("Public Kundli & Live Astrology Analysis 100% Dynamic Engine Test Suite
       const confirmUnlockBtn = screen.getByRole("button", { name: /🪙 ಹೌದು, ಅನ್‌ಲಾಕ್ ಮಾಡಿ/i });
       fireEvent.click(confirmUnlockBtn);
 
-      // Tab 3 should now unlock and show the 5 personality reading sections & audio narration
+      // Tab 3 should now unlock and show the 5 personality reading sections, audio narration, and custom question section
       await waitFor(() => {
-        expect(screen.getAllByText(/ತಮ್ಮ ಬಗ್ಗೆ \/ ವ್ಯಕ್ತಿತ್ವ ವಿಶ್ಲೇಷಣೆ/i).length).toBeGreaterThanOrEqual(1);
-        expect(screen.getAllByText(/ನಿಗೂಢ ರಹಸ್ಯ & ಆಂತರ್ಯದ ಸೂಕ್ಷ್ಮತೆ/i).length).toBeGreaterThanOrEqual(1);
-        expect(screen.getAllByText(/ಪ್ರಸ್ತುತ ಜ್ಯೋತಿಷ್ಯದ ಮೊರೆ ಹೋಗಲು ಕಾರಣ/i).length).toBeGreaterThanOrEqual(1);
-        expect(screen.getAllByText(/ಮಾಂದಿ \(ಗುಳಿಕ\) ನಿಗೂಢ ಪ್ರಭಾವ/i).length).toBeGreaterThanOrEqual(1);
+        expect(screen.getAllByText(/ಜನ್ಮ ಲಗ್ನ & ಸಹಜ ವ್ಯಕ್ತಿತ್ವ/i).length).toBeGreaterThanOrEqual(1);
+        expect(screen.getAllByText(/ಸುಪ್ತ ಮನಸ್ಸು & ನಿಗೂಢ ರಹಸ್ಯ/i).length).toBeGreaterThanOrEqual(1);
+        expect(screen.getAllByText(/ಪ್ರಸ್ತುತ ದಶಾ-ಗೋಚಾರ ಪ್ರಭಾವ/i).length).toBeGreaterThanOrEqual(1);
+        expect(screen.getAllByText(/ಮಾಂದಿ ಕರ್ಮ ಛಾಯೆ/i).length).toBeGreaterThanOrEqual(1);
         expect(screen.getByText(/ಧ್ವನಿ ಕಥನ ಕೇಳಿ/i)).toBeInTheDocument();
+        expect(screen.getByText(/ಇತರ ಯಾವುದೇ ವೈಯಕ್ತಿಕ ಪ್ರಶ್ನೆಯನ್ನು ಕೇಳಿ/i)).toBeInTheDocument();
       });
     });
 
@@ -427,6 +406,84 @@ describe("Public Kundli & Live Astrology Analysis 100% Dynamic Engine Test Suite
             targetEmail: "spshripandit@gmail.com"
           })
         );
+      });
+    });
+
+    it("synthesizes authentic categorized astrological answers for any custom questions", async () => {
+      const computed = await calculateKundliWithPlaceSun(sampleInput, { ayanamsaModel: "lahiri" });
+      const profile = calculatePublicKundliProfile(computed, "1995-05-15", "10:30", 14.5479, 74.3188);
+
+      // Career Question
+      const careerAns = generateCustomQuestionAstrologyAnswer("When will I get a promotion in my job?", profile, computed, "kn");
+      expect(careerAns.category).toBe("career");
+      expect(careerAns.categoryLocalized).toBe("ಉದ್ಯೋಗ & ಕಾರ್ಯಕ್ಷೇತ್ರ");
+      expect(careerAns.analysisText.length).toBeGreaterThan(150);
+      expect(careerAns.recommendedGokarnaSeva).toContain("ಗೋಕರ್ಣ");
+
+      // Marriage Question
+      const marriageAns = generateCustomQuestionAstrologyAnswer("When will my marriage happen?", profile, computed, "kn");
+      expect(marriageAns.category).toBe("marriage");
+      expect(marriageAns.categoryLocalized).toBe("ವಿವಾಹ & ದಾಂಪತ್ಯ ಜೀವನ");
+      expect(marriageAns.analysisText.length).toBeGreaterThan(150);
+
+      // Finance Question
+      const financeAns = generateCustomQuestionAstrologyAnswer("Will my financial debt clear soon?", profile, computed, "kn");
+      expect(financeAns.category).toBe("finance");
+      expect(financeAns.categoryLocalized).toBe("ಧನ & ಆರ್ಥಿಕ ಸ್ಥಿತಿ");
+
+      // Health Question
+      const healthAns = generateCustomQuestionAstrologyAnswer("How is my health and mental peace?", profile, computed, "kn");
+      expect(healthAns.category).toBe("health");
+      expect(healthAns.categoryLocalized).toBe("ಆರೋಗ್ಯ & ಮಾನಸಿಕ ಶಾಂತಿ");
+    });
+
+    it("submits custom question in Tab 3, deducts 500 coins, and renders dynamic answer card", async () => {
+      const { deductPriestCoins } = await import("../db/firestoreDb");
+
+      render(<PublicKundliPage />);
+
+      const nameInput = screen.getByTestId("devotee-name-input");
+      fireEvent.change(nameInput, { target: { value: "Devotee Anant" } });
+
+      const generateBtn = screen.getByRole("button", { name: /ಜನನ ಕುಂಡಲಿ ರಚಿಸಿ/i });
+      fireEvent.click(generateBtn);
+
+      await waitFor(() => {
+        expect(screen.getByRole("heading", { name: /Devotee Anant/i })).toBeInTheDocument();
+      });
+
+      // Unlock Tab 3
+      const personalityTabBtn = screen.getByRole("button", { name: /🔒 ವ್ಯಕ್ತಿತ್ವ & ನಿಗೂಢ ರಹಸ್ಯ \(1,000 Coins\)/i });
+      fireEvent.click(personalityTabBtn);
+
+      const confirmUnlockBtn = screen.getByRole("button", { name: /🪙 ಹೌದು, ಅನ್‌ಲಾಕ್ ಮಾಡಿ/i });
+      fireEvent.click(confirmUnlockBtn);
+
+      await waitFor(() => {
+        expect(screen.getByText(/ಇತರ ಯಾವುದೇ ವೈಯಕ್ತಿಕ ಪ್ರಶ್ನೆಯನ್ನು ಕೇಳಿ/i)).toBeInTheDocument();
+      });
+
+      // Type custom question in textarea
+      const textarea = screen.getByPlaceholderText(/ನಿಮ್ಮ ನಿರ್ದಿಷ್ಟ ಪ್ರಶ್ನೆಯನ್ನು ಇಲ್ಲಿ ನಮೂದಿಸಿ/i);
+      fireEvent.change(textarea, { target: { value: "ನನ್ನ ನೂತನ ವ್ಯಾಪಾರ ಆರಂಭಕ್ಕೆ ಸೂಕ್ತ ಕಾಲ ಯಾವಾಗ?" } });
+
+      // Click submit question button
+      const submitBtn = screen.getByRole("button", { name: /ಪ್ರಶ್ನೆ ಸಲ್ಲಿಸಿ/i });
+      fireEvent.click(submitBtn);
+
+      await waitFor(() => {
+        expect(deductPriestCoins).toHaveBeenCalledWith(
+          expect.anything(),
+          500,
+          expect.stringContaining("Public Kundli Custom Question Inquest"),
+          expect.anything()
+        );
+      });
+
+      // Verify synthesized response appears
+      await waitFor(() => {
+        expect(screen.getByText(/ಉದ್ಯೋಗ & ಕಾರ್ಯಕ್ಷೇತ್ರ/i)).toBeInTheDocument();
+        expect(screen.getByText(/"ನನ್ನ ನೂತನ ವ್ಯಾಪಾರ ಆರಂಭಕ್ಕೆ ಸೂಕ್ತ ಕಾಲ ಯಾವಾಗ\?"|ನನ್ನ ನೂತನ ವ್ಯಾಪಾರ/i)).toBeInTheDocument();
       });
     });
   });

@@ -43,6 +43,7 @@ export interface PublicBhuktiRow {
   endDateStr: string;
   durationYears: number;
   isActive: boolean;
+  nature: "favorable" | "challenging" | "moderate";
   predictions: Record<PublicKundliLang, { climate: string; issue: string }>;
 }
 
@@ -64,6 +65,7 @@ export interface PublicDashaRow {
   endDateStr: string;
   durationYears: number;
   status: "active" | "completed" | "upcoming";
+  nature: "favorable" | "challenging" | "moderate";
   bhuktis: PublicBhuktiRow[];
 }
 
@@ -702,6 +704,70 @@ export function analyzeKundliDoshas(kundli: KundliOutput, lang: PublicKundliLang
   return doshas;
 }
 
+/**
+ * Evaluates whether a Mahadasha-Bhukti period is Favorable (Green), Challenging/Harder (Red), or Moderate (Amber)
+ */
+export function evaluateDashaBhuktiNature(
+  mahaPlanet: string,
+  bhuktiPlanet: string,
+  kundli?: KundliOutput
+): "favorable" | "challenging" | "moderate" {
+  const mal = ["Saturn", "Rahu", "Ketu", "Mars"];
+  const ben = ["Jupiter", "Venus", "Moon", "Mercury"];
+
+  // 1. Severe Malefic Confluences (Red / Challenging periods)
+  const isSevereDuo =
+    (mahaPlanet === "Rahu" && (bhuktiPlanet === "Saturn" || bhuktiPlanet === "Ketu" || bhuktiPlanet === "Mars")) ||
+    (mahaPlanet === "Saturn" && (bhuktiPlanet === "Rahu" || bhuktiPlanet === "Ketu" || bhuktiPlanet === "Sun")) ||
+    (mahaPlanet === "Ketu" && (bhuktiPlanet === "Saturn" || bhuktiPlanet === "Mars" || bhuktiPlanet === "Rahu")) ||
+    (mahaPlanet === "Mars" && (bhuktiPlanet === "Rahu" || bhuktiPlanet === "Saturn")) ||
+    (mahaPlanet === "Sun" && bhuktiPlanet === "Saturn") ||
+    (mahaPlanet === "Saturn" && bhuktiPlanet === "Mars");
+
+  // 2. Dasha Chidra (last bhuktis before change of major period, traditionally turbulent)
+  const isDashaChidra =
+    (mahaPlanet === "Jupiter" && bhuktiPlanet === "Rahu") ||
+    (mahaPlanet === "Saturn" && bhuktiPlanet === "Jupiter") ||
+    (mahaPlanet === "Mercury" && bhuktiPlanet === "Ketu") ||
+    (mahaPlanet === "Venus" && bhuktiPlanet === "Ketu") ||
+    (mahaPlanet === "Sun" && bhuktiPlanet === "Venus");
+
+  if (isSevereDuo || isDashaChidra) {
+    return "challenging";
+  }
+
+  // 3. Highly Favorable Confluences (Green / Auspicious periods)
+  const isSuperFavorable =
+    (mahaPlanet === "Jupiter" && (bhuktiPlanet === "Jupiter" || bhuktiPlanet === "Sun" || bhuktiPlanet === "Moon" || bhuktiPlanet === "Mars")) ||
+    (mahaPlanet === "Venus" && (bhuktiPlanet === "Venus" || bhuktiPlanet === "Mercury" || bhuktiPlanet === "Saturn")) ||
+    (mahaPlanet === "Sun" && (bhuktiPlanet === "Jupiter" || bhuktiPlanet === "Mars" || bhuktiPlanet === "Moon")) ||
+    (mahaPlanet === "Moon" && (bhuktiPlanet === "Jupiter" || bhuktiPlanet === "Mars" || bhuktiPlanet === "Sun")) ||
+    (mahaPlanet === "Mercury" && (bhuktiPlanet === "Venus" || bhuktiPlanet === "Jupiter" || bhuktiPlanet === "Mercury"));
+
+  if (isSuperFavorable) {
+    return "favorable";
+  }
+
+  if (mal.includes(mahaPlanet) && mal.includes(bhuktiPlanet)) {
+    return "challenging";
+  }
+
+  if (ben.includes(mahaPlanet) && ben.includes(bhuktiPlanet)) {
+    return "favorable";
+  }
+
+  return "moderate";
+}
+
+export function evaluateMahadashaNature(
+  mahaPlanet: string,
+  kundli?: KundliOutput
+): "favorable" | "challenging" | "moderate" {
+  if (mahaPlanet === "Jupiter" || mahaPlanet === "Venus") return "favorable";
+  if (mahaPlanet === "Rahu" || mahaPlanet === "Ketu" || mahaPlanet === "Saturn") return "challenging";
+  return "moderate";
+}
+
 export function calculatePublicKundliProfile(
   kundli: KundliOutput,
   birthDate: string,
@@ -854,6 +920,7 @@ export function calculatePublicKundliProfile(
       };
 
       const predictions = generateDashaBhuktiPredictions(item.planet, b.planet, kundli, bIsActive);
+      const bNature = evaluateDashaBhuktiNature(item.planet, b.planet, kundli);
 
       return {
         mahaPlanet: item.planet,
@@ -865,6 +932,7 @@ export function calculatePublicKundliProfile(
         endDateStr: bEndDateStr,
         durationYears: Number(b.years.toFixed(2)),
         isActive: bIsActive,
+        nature: bNature,
         predictions
       };
     });
@@ -878,6 +946,7 @@ export function calculatePublicKundliProfile(
       endDateStr: formatDateFromAge(birthDate, item.endAge),
       durationYears: Number(item.durationYears.toFixed(1)),
       status,
+      nature: evaluateMahadashaNature(item.planet, kundli),
       bhuktis
     };
   });
@@ -1038,27 +1107,27 @@ export function generateDeepPersonalityAnalysis(
 
     return {
       personality: {
-        title: "ತಮ್ಮ ಬಗ್ಗೆ / ವ್ಯಕ್ತಿತ್ವ ವಿಶ್ಲೇಷಣೆ (Core Nature & Demeanor)",
+        title: "ತಮ್ಮ ಬಗ್ಗೆ / ಜನ್ಮ ಲಗ್ನ ವ್ಯಕ್ತಿತ್ವ",
         paragraph1: p1_kn,
         paragraph2: p2_kn
       },
       hiddenSecrets: {
-        title: "ನಿಗೂಢ ರಹಸ್ಯ & ಆಂತರ್ಯದ ಸೂಕ್ಷ್ಮತೆ (Hidden Secrets & Subconscious Psyche)",
+        title: "ಸುಪ್ತ ಮನಸ್ಸು & ನಿಗೂಢ ರಹಸ್ಯ",
         paragraph1: s1_kn,
         paragraph2: s2_kn
       },
       whyAstrology: {
-        title: "ಪ್ರಸ್ತುತ ಜ್ಯೋತಿಷ್ಯದ ಮೊರೆ ಹೋಗಲು ಕಾರಣ & ನಿರೀಕ್ಷೆಗಳು (Why You Came to Astrology Right Now)",
+        title: "ಪ್ರಸ್ತುತ ದಶಾ-ಗೋಚಾರ ಪ್ರಭಾವ & ಸನ್ನಿವೇಶ",
         paragraph1: w1_kn,
         paragraph2: w2_kn
       },
       internalQuestions: {
-        title: "ಮನದಾಳದಲ್ಲಿರುವ ಪ್ರಮುಖ ಪ್ರಶ್ನೆಗಳು & ಸಂದಿಗ್ಧತೆಗಳು (Burning Questions Carried Inside Your Heart)",
+        title: "ಮನದಾಳದ ಜ್ವಲಂತ ಪ್ರಶ್ನೆಗಳು",
         paragraph1: q1_kn,
         paragraph2: q2_kn
       },
       maandiAnalysis: {
-        title: "ಮಾಂದಿ (ಗುಳಿಕ) ನಿಗೂಢ ಪ್ರಭಾವ & ದೋಷ ನಿವಾರಣೆ (Maandi Karmic Shadow & Gokarna Parihara)",
+        title: "ಮಾಂದಿ ಕರ್ಮ ಛಾಯೆ & ಶಮನ ಪರಿಹಾರ",
         paragraph1: m1_kn,
         paragraph2: m2_kn
       },
@@ -1437,5 +1506,152 @@ function getRemediesForLagna(lagnaLord: string, dashaLord: string) {
     auspiciousDay: choice.day,
     deity: choice.deity,
     gokarnaSevaName: choice.seva
+  };
+}
+
+export interface CustomQuestionAnswerResult {
+  question: string;
+  category: "career" | "finance" | "marriage" | "health" | "children" | "spiritual" | "general";
+  categoryLocalized: string;
+  shortVerdict: string;
+  analysisText: string;
+  auspiciousWindow: string;
+  recommendedGokarnaSeva: string;
+}
+
+/**
+ * Dynamically synthesizes an authentic Vedic astrological answer to any user custom question
+ */
+export function generateCustomQuestionAstrologyAnswer(
+  question: string,
+  profile: PublicKundliProfile,
+  kundli: KundliOutput,
+  lang: string = "kn"
+): CustomQuestionAnswerResult {
+  const isKn = lang === "kn";
+  const qLower = question.toLowerCase();
+
+  const dashaLordLocalized = GRAHA_NAMES_5L[profile.currentMahadasha]?.[lang as PublicKundliLang] || profile.currentMahadasha;
+  const bhuktiLordLocalized = GRAHA_NAMES_5L[profile.currentBhukti]?.[lang as PublicKundliLang] || profile.currentBhukti;
+  const lagnaLordLocalized = GRAHA_NAMES_5L[profile.lagnaLord]?.[lang as PublicKundliLang] || profile.lagnaLord;
+
+  let category: "career" | "finance" | "marriage" | "health" | "children" | "spiritual" | "general" = "general";
+  let categoryLocalized = isKn ? "ಸಾಮಾನ್ಯ ಜೀವನ & ಕಾಲಚಕ್ರ" : "General Life & Timeline Guidance";
+  let shortVerdict = isKn ? "ಅನುಕೂಲಕರ ಬದಲಾವಣೆಗಳು ಸನ್ನಿಹಿತವಾಗಿವೆ" : "Favorable developments emerging";
+  let analysisText = "";
+  let auspiciousWindow = isKn ? "ಮುಂದಿನ ೩ ರಿಂದ ೬ ತಿಂಗಳುಗಳಲ್ಲಿ ಸಕಾರಾತ್ಮಕ ಫಲ ಗೋಚರಿಸಲಿದೆ" : "Positive shifts expected within the next 3 to 6 months";
+  let recommendedGokarnaSeva = isKn
+    ? "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಗೆ ಮಹಾರುದ್ರಾಭಿಷೇಕ ಹಾಗೂ ಶ್ರೀ ಮಹಾಗಣಪತಿಗೆ ಅಪ್ಪದ ಕಜ್ಜಾಯ ಸೇವೆ"
+    : "Sri Gokarna Mahabaleshwara Mahadrudrabhisheka & Maha Ganapati Seva";
+
+  // Career / Job / Promotion / Business
+  if (
+    qLower.includes("job") || qLower.includes("career") || qLower.includes("promotion") ||
+    qLower.includes("work") || qLower.includes("business") || qLower.includes("ಉದ್ಯೋಗ") ||
+    qLower.includes("ಕೆಲಸ") || qLower.includes("ವ್ಯಾಪಾರ") || qLower.includes("ಬಡ್ತಿ")
+  ) {
+    category = "career";
+    categoryLocalized = isKn ? "ಉದ್ಯೋಗ & ಕಾರ್ಯಕ್ಷೇತ್ರ" : "Career & Professional Growth";
+    shortVerdict = isKn ? "ಸ್ಥಿರತೆ ಹಾಗೂ ನವೀನ ಅವಕಾಶಗಳ ಕಾಲ" : "Stability & New Professional Opportunities Ahead";
+    auspiciousWindow = isKn ? "ಪ್ರಸ್ತುತ ದಶಾ ಸಂಧಿಕಾಲ ಮುಗಿದು ಮುಂದಿನ ೪ ರಿಂದ ೭ ತಿಂಗಳುಗಳಲ್ಲಿ ಉತ್ತಮ ಪ್ರಗತಿ" : "Strong progress anticipated in the next 4 to 7 months";
+    recommendedGokarnaSeva = isKn
+      ? "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ರುದ್ರಾಭಿಷೇಕ ಹಾಗೂ ೧೦ನೇ ಕರ್ಮಾಧಿಪತಿಗೆ ವಿಶೇಷ ಪ್ರಾರ್ಥನೆ"
+      : "Rudrabhisheka at Gokarna Mahabaleshwara & 10th Lord empowerment prayer";
+    analysisText = isKn
+      ? `ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಗಮನಿಸಿದಾಗ, ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dashaLordLocalized} ಮಹಾದಶೆಯಲ್ಲಿ ${bhuktiLordLocalized} ಭುಕ್ತಿಯ ಪ್ರಭಾವವು ನಿಮ್ಮ ಕಾರ್ಯಕ್ಷೇತ್ರದಲ್ಲಿ ನಿರ್ಣಾಯಕ ತಿರುವನ್ನು ತರಲಿದೆ. ನಿಮ್ಮ ದಶಮಾಧಿಪತಿ ಗ್ರಹವು ಉದ್ಯೋಗ ಸ್ಥಾನಕ್ಕೆ ಚೈತನ್ಯವನ್ನು ತುಂಬುತ್ತಿದ್ದು, ನೀವು ಈವರೆಗೆ ಪಟ್ಟ ಪರಿಶ್ರಮಕ್ಕೆ ಯೋಗ್ಯ ಮನ್ನಣೆ ಹಾಗೂ ಅಧಿಕಾರದ ಗೌರವ ದೊರೆಯುವ ಸಾಧ್ಯತೆಗಳಿವೆ. ಆದಾಗ್ಯೂ, ತಾತ್ಕಾಲಿಕವಾಗಿ ಗೋಚಾರದಲ್ಲಿ ಶನಿ ಅಥವಾ ರಾಹುವಿನ ದೃಷ್ಟಿ ಇರುವುದರಿಂದ ಸಹೋದ್ಯೋಗಿಗಳೊಂದಿಗೆ ತಾಳ್ಮೆ ಅತ್ಯಗತ್ಯ. ಯಾವುದೇ ಆತುರದ ನಿರ್ಧಾರಗಳನ್ನು ಕೈಗೊಳ್ಳದೆ, ಯೋಜಿತವಾಗಿ ಹೆಜ್ಜೆ ಇಡುವುದು ಶ್ರೇಯಸ್ಕರ.`
+      : `Analyzing your natal chart with your active ${profile.currentMahadasha} Mahadasha and ${profile.currentBhukti} Bhukti, cosmic energy is activating your 10th house of profession. While the past cycle presented delays, the current planetary configuration indicates favorable new opportunities, recognition, or a strategic transition. Maintain diplomatic patience with superiors and avoid impulsive decisions during retrograde cycles.`;
+  }
+  // Marriage / Love / Relationship
+  else if (
+    qLower.includes("marriage") || qLower.includes("wedding") || qLower.includes("love") ||
+    qLower.includes("relationship") || qLower.includes("husband") || qLower.includes("wife") ||
+    qLower.includes("ವಿವಾಹ") || qLower.includes("ಮದುವೆ") || qLower.includes("ಸಂಬಂಧ") ||
+    qLower.includes("ದಾಂಪತ್ಯ")
+  ) {
+    category = "marriage";
+    categoryLocalized = isKn ? "ವಿವಾಹ & ದಾಂಪತ್ಯ ಜೀವನ" : "Marriage & Relationship Milestones";
+    shortVerdict = isKn ? "ಶುಭ ಕಂಕಣ ಬಲ & ಸಾಮರಸ್ಯ ಪ್ರಾಪ್ತಿ" : "Auspicious Vivaha Yoga & Relationship Harmony";
+    auspiciousWindow = isKn ? "ಮುಂದಿನ ಗುರು ಬಲ ಸಂಚಾರದ ಕಾಲಾವಧಿಯಲ್ಲಿ (೬-೯ ತಿಂಗಳು) ಕಂಕಣ ಬಲ ಪ್ರಾಪ್ತಿ" : "Auspicious marital window opening over the next 6-9 months";
+    recommendedGokarnaSeva = isKn
+      ? "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಶ್ರೀ ತಾಮ್ರಗೌರಿ ಅಮ್ಮನವರಿಗೆ ಕುಂಕುಮಾರ್ಚನೆ ಹಾಗೂ ಮಂಗಳ ಗೌರಿ ಕಲ್ಯಾಣ ಸಂಕಲ್ಪ"
+      : "Kumkumarchana to Sri Tamra Gauri & Mangala Gauri Kalyana Sankalpa at Gokarna";
+    analysisText = isKn
+      ? `ನಿಮ್ಮ ಸಪ್ತಮ ಭಾವ (೭ನೇ ಮನೆ) ಹಾಗೂ ಕಳತ್ರಕಾರಕ ಗ್ರಹದ ಸ್ಥಿತಿಯನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ಪ್ರಸ್ತುತ ${dashaLordLocalized} ದಶಾ ಕಾಲವು ವಿವಾಹ ಹಾಗೂ ಸಂಬಂಧಗಳ ವಿಷಯದಲ್ಲಿ ಪಕ್ವತೆಯನ್ನು ಉಂಟುಮಾಡುತ್ತಿದೆ. ಹಿಂದಿನ ಅಪಾರ್ಥಗಳು ಅಥವಾ ವಿಳಂಬಗಳಿಗೆ ಕುಂಡಲಿಯ ಸಪ್ತಮ ಅಥವಾ ಅಷ್ಟಮ ದೃಷ್ಟಿ ಕಾರಣವಾಗಿತ್ತು. ಮುಂದಿನ ಗುರುಬಲದ ಸಂಚಾರದೊಂದಿಗೆ ಕುಟುಂಬದಲ್ಲಿ ವಿವಾಹದ ಮಾತುಕತೆಗಳು ಫಲಪ್ರದವಾಗಲಿದ್ದು, ಯೋಗ್ಯ ಜೀವನ ಸಂಗಾತಿಯ ಆಯ್ಕೆಗೆ ದೈವಿಕ ಮಾರ್ಗ ಮುಕ್ತವಾಗಲಿದೆ.`
+      : `Looking at your 7th house and Venus dynamics under the running ${profile.currentMahadasha} Mahadasha, the period of emotional friction and unexplained delays is resolving. With supportive Jupiterian transit approaching, marriage prospects and harmony in domestic partnerships will experience major positive momentum.`;
+  }
+  // Finance / Wealth / Investment / Debt
+  else if (
+    qLower.includes("money") || qLower.includes("wealth") || qLower.includes("finance") ||
+    qLower.includes("investment") || qLower.includes("debt") || qLower.includes("loss") ||
+    qLower.includes("ಹಣ") || qLower.includes("ಧನ") || qLower.includes("ಸಾಲ") ||
+    qLower.includes("ಹೂಡಿಕೆ") || qLower.includes("ಆರ್ಥಿಕ")
+  ) {
+    category = "finance";
+    categoryLocalized = isKn ? "ಧನ & ಆರ್ಥಿಕ ಸ್ಥಿತಿ" : "Wealth, Finance & Investments";
+    shortVerdict = isKn ? "ಆದಾಯ ವೃದ್ಧಿ & ಸಾಲ ಪರಿಹಾರದ ಮುನ್ಸೂಚನೆ" : "Financial Inflow & Debt Relief Horizon";
+    auspiciousWindow = isKn ? "ಮುಂದಿನ ೪ ರಿಂದ ೮ ತಿಂಗಳುಗಳಲ್ಲಿ ಆರ್ಥಿಕ ಸ್ಥಿತಿಯಲ್ಲಿ ಮಹತ್ತರ ಚೇತರಿಕೆ" : "Substantial financial consolidation within 4 to 8 months";
+    recommendedGokarnaSeva = isKn
+      ? "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಲಕ್ಷ್ಮಿ ಪೂಜೆ ಹಾಗೂ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ಪವಿತ್ರ ತರ್ಪಣ ಸೇವೆ"
+      : "Sri Mahalakshmi Pooja and Kotiteertha holy Tarpana at Gokarna";
+    analysisText = isKn
+      ? `ನಿಮ್ಮ ದ್ವಿತೀಯ (ಧನ) ಹಾಗೂ ಏಕಾದಶ (ಲಾಭ) ಭಾವಗಳ ಸಂರಚನೆಯನ್ನು ಗಮನಿಸಿದಾಗ, ಪ್ರಸ್ತುತ ${dashaLordLocalized}-${bhuktiLordLocalized} ಕಾಲಚಕ್ರವು ಹೊಸ ಆರ್ಥಿಕ ಮಾರ್ಗಗಳನ್ನು ತೆರೆಯುವ ಶಕ್ತಿಯನ್ನು ಹೊಂದಿದೆ. ಈ ಹಿಂದೆ ಅನಗತ್ಯ ಧನವ್ಯಯ ಅಥವಾ ಸಾಲದ ಬಾಧೆಯು ನಿಮ್ಮನ್ನು ಕಾಡಿದ್ದರೂ, ಮುಂಬರುವ ದಿನಗಳಲ್ಲಿ ಬಾಕಿ ಬರಬೇಕಾದ ಹಣವು ಕೈಸೇರುವ ಯೋಗವಿದೆ. ಆದಾಗ್ಯೂ, ಷೇರು ಮಾರುಕಟ್ಟೆ ಅಥವಾ ಊಹಾತ್ಮಕ ಅಪಾಯಕಾರಿ ಹೂಡಿಕೆಗಳಲ್ಲಿ ಎಚ್ಚರ ವಹಿಸುವುದು ಅವಶ್ಯಕ.`
+      : `Your 2nd house of wealth and 11th house of gains under the active ${profile.currentMahadasha} Mahadasha show promising financial inflow. Unwarranted expenses and debt burdens from past cycles will gradually subside as stalled funds return. Avoid high-risk speculative trading without proper hedging during this period.`;
+  }
+  // Health / Illness / Peace of Mind
+  else if (
+    qLower.includes("health") || qLower.includes("illness") || qLower.includes("pain") ||
+    qLower.includes("mental") || qLower.includes("peace") || qLower.includes("ಆರೋಗ್ಯ") ||
+    qLower.includes("ನೆಮ್ಮದಿ") || qLower.includes("ಕಾಯಿಲೆ") || qLower.includes("ಮಾನಸಿಕ")
+  ) {
+    category = "health";
+    categoryLocalized = isKn ? "ಆರೋಗ್ಯ & ಮಾನಸಿಕ ಶಾಂತಿ" : "Health, Vitality & Mental Serenity";
+    shortVerdict = isKn ? "ರೋಗ ನಿವಾರಣೆ & ಆತ್ಮಶಾಂತಿ ಸಿದ್ಧಿ" : "Recovery of Vitality & Spiritual Peace";
+    auspiciousWindow = isKn ? "ಮುಂದಿನ ೨ ರಿಂದ ೫ ತಿಂಗಳುಗಳಲ್ಲಿ ಪರಿಪೂರ್ಣ ಆರೋಗ್ಯ ಚೇತರಿಕೆ" : "Marked improvement and relief over the next 2 to 5 months";
+    recommendedGokarnaSeva = isKn
+      ? "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಮಹಾ ಮೃತ್ಯುಂಜಯ ಹೋಮ ಹಾಗೂ ಆಯುಷ್ಯ ಸೂಕ್ತ ಹವನ"
+      : "Maha Mrityunjaya Homa & Ayushya Sukta Havanam at Gokarna";
+    analysisText = isKn
+      ? `ನಿಮ್ಮ ಜಾತಕದ ಲಗ್ನಾಧಿಪತಿ ಹಾಗೂ ೬ನೇ (ರೋಗ/ಶತ್ರು) ಭಾವಗಳ ಸ್ಥಿತಿಯನ್ನು ಅವಲೋಕಿಸಿದಾಗ, ಪ್ರಸ್ತುತ ದಶಾ ಕಾಲವು ಮಾನಸಿಕ ಒತ್ತಡ ಹಾಗೂ ದೈಹಿಕ ಆಯಾಸವನ್ನು ಶಮನಗೊಳಿಸುವತ್ತ ಮುನ್ನಡೆಯುತ್ತಿದೆ. ನಿಮ್ಮ ಮನಸ್ಸಿನಲ್ಲಿರುವ ಅತಿಕಲ್ಪನೆ ಅಥವಾ ಆತಂಕವನ್ನು ನಿಯಂತ್ರಿಸಲು ನಿತ್ಯ ಪ್ರಾಣಾಯಾಮ ಹಾಗೂ ದೇವತಾರಾಧನೆ ಅತ್ಯಂತ ಸಹಕಾರಿ. ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಮೃತ್ಯುಂಜಯ ಜಪ ಕೈಗೊಳ್ಳುವುದರಿಂದ ದೀರ್ಘಕಾಲದ ದೈಹಿಕ ಬಾಧೆಗಳು ಶಮನವಾಗಲಿವೆ.`
+      : `Your Ascendant lord and 6th house dynamics indicate that current physical fatigue and mental anxiety are reaching a resolution phase. Regular meditation, balanced lifestyle, and the protective grace of Sri Gokarna Mahabaleshwara through Mrityunjaya Japa will dissolve these health stressors and restore lasting peace.`;
+  }
+  // Children / Education / Future
+  else if (
+    qLower.includes("child") || qLower.includes("baby") || qLower.includes("study") ||
+    qLower.includes("education") || qLower.includes("exam") || qLower.includes("ಮಕ್ಕಳು") ||
+    qLower.includes("ಸಂತಾನ") || qLower.includes("ಶಿಕ್ಷಣ") || qLower.includes("ವಿದ್ಯಾಭ್ಯಾಸ")
+  ) {
+    category = "children";
+    categoryLocalized = isKn ? "ಸಂತಾನ & ವಿದ್ಯಾಭ್ಯಾಸ" : "Children, Education & Academic Future";
+    shortVerdict = isKn ? "ವಿದ್ಯಾ ಪ್ರಗತಿ & ಸಂತಾನ ಭಾಗ್ಯ ವೃದ್ಧಿ" : "Academic Brilliance & Auspicious Progeny Blessings";
+    auspiciousWindow = isKn ? "ಮುಂದಿನ ಶೈಕ್ಷಣಿಕ/ಸಂತಾನ ಕಾಲಚಕ್ರದಲ್ಲಿ ಮಹತ್ತರ ಯಶಸ್ಸು" : "Optimal academic and progeny window unfolding";
+    recommendedGokarnaSeva = isKn
+      ? "ಶ್ರೀ ಗೋಕರ್ಣ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸರಸ್ವತೀ ಹೋಮ ಹಾಗೂ ಸಂತಾನ ಗೋಪಾಲ ಮಂತ್ರಾನುಷ್ಠಾನ"
+      : "Saraswati Homa & Santana Gopala Mantranushtana at Gokarna";
+    analysisText = isKn
+      ? `ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ ಪಂಚಮ ಭಾವ (೫ನೇ ಮನೆ - ಜ್ಞಾನ & ಸಂತಾನ ಸ್ಥಾನ) ಹಾಗೂ ಗುರು ಗ್ರಹದ ಶುಭ ಸ್ಥಿತಿಯು ಉನ್ನತ ವಿದ್ಯಾಭ್ಯಾಸ ಹಾಗೂ ಸಂತಾನ ಪ್ರಗತಿಗೆ ಪೂರಕವಾಗಿದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dashaLordLocalized} ದಶೆಯು ಜ್ಞಾನದ ಆಳವನ್ನು ವಿಸ್ತರಿಸಲಿದ್ದು, ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆಗಳಲ್ಲಿ ಅಥವಾ ಉನ್ನತ ಅಧ್ಯಯನದಲ್ಲಿ ಉತ್ಕೃಷ್ಟ ಜಯ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ. ಸಂತಾನ ಅಪೇಕ್ಷಿಗಳಿಗೆ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದಲ್ಲಿ ಗೋಪಾಲ ಕೃಷ್ಣ ಸೇವೆ ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ.`
+      : `Your 5th house of intellect, creative fruition, and progeny blessed by Jupiter indicates exceptional breakthroughs in education, competitive pursuits, and family progeny. Under the active ${profile.currentMahadasha} Mahadasha, your intellectual clarity and efforts will yield high laurels.`;
+  }
+  // General / Spiritual
+  else {
+    category = "general";
+    categoryLocalized = isKn ? "ಸಾಮಾನ್ಯ ಜೀವನ & ಕಾಲಚಕ್ರ" : "General Life & Timeline Guidance";
+    shortVerdict = isKn ? "ಕರ್ಮ ಪರಿಪಕ್ವತೆ & ದೈವಾನುಗ್ರಹದಿಂದ ಕಾರ್ಯಸಿದ್ಧಿ" : "Karmic Resolution & Divine Grace Manifesting";
+    auspiciousWindow = isKn ? "ಮುಂದಿನ ೩ ರಿಂದ ೬ ತಿಂಗಳುಗಳಲ್ಲಿ ಸಕಾರಾತ್ಮಕ ಫಲ ಗೋಚರಿಸಲಿದೆ" : "Positive shifts expected within the next 3 to 6 months";
+    recommendedGokarnaSeva = isKn
+      ? "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಗೆ ಮಹಾರುದ್ರಾಭಿಷೇಕ ಹಾಗೂ ಶ್ರೀ ಮಹಾಗಣಪತಿಗೆ ಅಪ್ಪದ ಕಜ್ಜಾಯ ಸೇವೆ"
+      : "Sri Gokarna Mahabaleshwara Mahadrudrabhisheka & Maha Ganapati Seva";
+    analysisText = isKn
+      ? `ನಿಮ್ಮ ಜಾತಕವನ್ನು ಸಮಗ್ರವಾಗಿ ವಿಶ್ಲೇಷಿಸಿದಾಗ, ಪ್ರಸ್ತುತ ${dashaLordLocalized} ಮಹಾದಶೆಯಲ್ಲಿ ${bhuktiLordLocalized} ಭುಕ್ತಿ ಕಾಲವು ನಿಮ್ಮ ಜೀವನದ ಕರ್ಮಿಕ ಪರಿವರ್ತನೆಗೆ ಸಾಕ್ಷಿಯಾಗಿದೆ. ನಿಮ್ಮ ಲಗ್ನಾಧಿಪತಿ ${lagnaLordLocalized} ಗ್ರಹವು ನಿಮಗೆ ಅಚಲವಾದ ಆತ್ಮವಿಶ್ವಾಸವನ್ನು ನೀಡುತ್ತಿದ್ದು, ಪ್ರಸ್ತುತ ಎದುರಾಗುತ್ತಿರುವ ಯಾವುದೇ ಅಡ್ಡಿ-ಆತಂಕಗಳು ಶಾಶ್ವತವಲ್ಲ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸಂಕಲ್ಪ ಪೂಜೆ ಕೈಗೊಳ್ಳುವುದರಿಂದ ನಿಮ್ಮ ಸಂಕಷ್ಟಗಳು ನಿವಾರಣೆಯಾಗಿ ಸರ್ವತೋಮುಖ ಶುಭ ಉಂಟಾಗಲಿದೆ.`
+      : `Looking across your natal planetary blueprint under the running ${profile.currentMahadasha} Mahadasha and ${profile.currentBhukti} Bhukti, your life is undergoing a significant karmic recalibration. Your Ascendant Lord ${profile.lagnaLord} grants you tremendous internal fortitude. Sincere prayers and recommended temple sevas at Sri Kshetra Gokarna will harmonize all opposing forces into supportive momentum.`;
+  }
+
+  return {
+    question,
+    category,
+    categoryLocalized,
+    shortVerdict,
+    analysisText,
+    auspiciousWindow,
+    recommendedGokarnaSeva
   };
 }

@@ -23,6 +23,7 @@ import {
   generateDynamicLifeInsights,
   generateDynamicQaFallback,
   generateDeepPersonalityAnalysis,
+  generateCustomQuestionAstrologyAnswer,
   getLocalizedRashiName,
   getLocalizedNakshatraName,
   getLocalizedDashaBhukti,
@@ -31,9 +32,10 @@ import {
   type DeepPersonalityOutput,
   type PublicDashaRow,
   type PublicBhuktiRow,
-  type PublicKundliDoshaItem
+  type PublicKundliDoshaItem,
+  type CustomQuestionAnswerResult
 } from "../features/publicKundli/publicKundliEngine";
-import TraditionalSouthPatrika from "../components/kundli/TraditionalSouthPatrika";
+import { DwadashaBhavaKundliChart } from "../components/kundli/DwadashaBhavaKundliChart";
 import DatePicker from "../components/DatePicker";
 import BirthTimePicker from "../components/BirthTimePicker";
 import { decodeDevoteeToken } from "../utils/tokenCipher";
@@ -55,6 +57,7 @@ export default function PublicKundliPage(): JSX.Element {
   const liveAnalysisCost = getCoins("PUBLIC_LIFE_ANALYSIS_QA", 1000);
   const pdfDownloadCost = getCoins("PUBLIC_KUNDLI_PDF_DOWNLOAD", 500);
   const tabUnlockCost = getCoins("PUBLIC_TAB_UNLOCK", 200);
+  const customQuestionCost = getCoins("PUBLIC_CUSTOM_QUESTION_QA", 500);
 
   // 1. Language State (default Kannada)
   const [selectedLang, setSelectedLang] = useState<PublicKundliLang>("kn");
@@ -601,7 +604,50 @@ As the Chief Baggona Panchanga Gokarna Astrologer speaking directly to the devot
     }
   };
 
-  // Action 5: Send Details to spshripandit@gmail.com
+  // Action 5: Ask Any Other Custom Question (500 Coins)
+  const [customQuestionInput, setCustomQuestionInput] = useState<string>("");
+  const [customQuestionAnswers, setCustomQuestionAnswers] = useState<CustomQuestionAnswerResult[]>([]);
+  const [isSubmittingQuestion, setIsSubmittingQuestion] = useState<boolean>(false);
+  const [customQuestionError, setCustomQuestionError] = useState<string | null>(null);
+
+  const handleAskCustomQuestion = async () => {
+    if (!customQuestionInput.trim()) {
+      setCustomQuestionError(txt("customQuestionEmptyAlert"));
+      return;
+    }
+    if (!publicProfile || !result) return;
+
+    setCustomQuestionError(null);
+    setIsSubmittingQuestion(true);
+
+    try {
+      if (linkedUserId) {
+        await deductPriestCoins(
+          linkedUserId,
+          customQuestionCost,
+          `Public Kundli Custom Question Inquest: "${customQuestionInput.slice(0, 30)}..."`,
+          form.name || "Devotee"
+        );
+      }
+
+      const ans = generateCustomQuestionAstrologyAnswer(
+        customQuestionInput.trim(),
+        publicProfile,
+        result,
+        selectedLang
+      );
+
+      setCustomQuestionAnswers((prev) => [ans, ...prev]);
+      setCustomQuestionInput("");
+    } catch (err: any) {
+      console.error("[PublicKundli] Custom question error:", err);
+      setCustomQuestionError(err?.message || "Failed to process question. Please try again.");
+    } finally {
+      setIsSubmittingQuestion(false);
+    }
+  };
+
+  // Action 6: Send Details to spshripandit@gmail.com
   const [isSendingEmail, setIsSendingEmail] = useState<boolean>(false);
   const [emailStatusSuccess, setEmailStatusSuccess] = useState<string | null>(null);
 
@@ -1136,71 +1182,16 @@ ${publicProfile.name}`;
             {/* ============================================================== */}
             {activeTab === "patrika" && (
               <div className="space-y-6 animate-fade-in">
-                {/* Traditional South Indian Chart */}
-                <div className="rounded-3xl border border-amber-500/30 bg-white p-4 md:p-8 shadow-2xl overflow-x-auto flex justify-center">
-                  <TraditionalSouthPatrika
+                {/* Authentic 8-Page Premium Replica: Dwadasha Bhava Kundali Chart */}
+                <div className="rounded-3xl border border-amber-500/30 bg-slate-900/90 p-4 md:p-8 shadow-2xl overflow-x-auto flex justify-center">
+                  <DwadashaBhavaKundliChart
                     kundli={result}
+                    profile={publicProfile}
                     personName={form.name}
-                    gothra={form.gothra}
                     birthDate={birthDatePicker ? formatPickerDateLocalYmd(birthDatePicker) : form.birthDate}
                     birthTime={birthTimeHm}
-                    latitude={form.latitude}
-                    longitude={form.longitude}
-                    placeLabel={placeDisplay}
-                    pincode={form.pincode}
-                    ayanamsaModel="lahiri"
+                    lang={selectedLang}
                   />
-                </div>
-
-                {/* Sacred Panchanga Angas */}
-                <div className="bg-slate-900 border border-amber-500/30 rounded-3xl p-6 md:p-8 shadow-2xl space-y-4">
-                  <div className="border-b border-amber-500/20 pb-3">
-                    <h3 className="text-lg font-bold text-amber-300 flex items-center gap-2">
-                      <span>📜</span> {txt("panchangaDetailsTitle")}
-                    </h3>
-                  </div>
-
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                    <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-3">
-                      <span className="text-slate-400 block text-[10px] uppercase font-bold">{txt("samvatsaraLabel")}</span>
-                      <strong className="text-amber-300">{pAttr?.samvatsaraKn} ({pAttr?.samvatsara})</strong>
-                    </div>
-
-                    <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-3">
-                      <span className="text-slate-400 block text-[10px] uppercase font-bold">{txt("masaLabel")}</span>
-                      <strong className="text-amber-300">{pAttr?.masaKn} ({pAttr?.pakshaKn})</strong>
-                    </div>
-
-                    <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-3">
-                      <span className="text-slate-400 block text-[10px] uppercase font-bold">{txt("tithiLabel")}</span>
-                      <strong className="text-amber-300">{pAttr?.tithiKn}</strong>
-                    </div>
-
-                    <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-3">
-                      <span className="text-slate-400 block text-[10px] uppercase font-bold">{txt("varaLabel")}</span>
-                      <strong className="text-amber-300">{pAttr?.weekdayKn}</strong>
-                    </div>
-
-                    <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-3">
-                      <span className="text-slate-400 block text-[10px] uppercase font-bold">{txt("nakshatraLabel")}</span>
-                      <strong className="text-amber-300">{getLocalizedNakshatraName(publicProfile.moonNakshatra, publicProfile.moonPada, selectedLang)}</strong>
-                    </div>
-
-                    <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-3">
-                      <span className="text-slate-400 block text-[10px] uppercase font-bold">{txt("yogaLabel")}</span>
-                      <strong className="text-amber-300">{pAttr?.yogaKn}</strong>
-                    </div>
-
-                    <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-3">
-                      <span className="text-slate-400 block text-[10px] uppercase font-bold">{txt("karanaLabel")}</span>
-                      <strong className="text-amber-300">{pAttr?.karanaKn}</strong>
-                    </div>
-
-                    <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-3">
-                      <span className="text-slate-400 block text-[10px] uppercase font-bold">{txt("yoniLabel")} / {txt("ganaLabel")}</span>
-                      <strong className="text-amber-300">{pAttr?.yoniKn} / {pAttr?.ganaKn}</strong>
-                    </div>
-                  </div>
                 </div>
 
                 {/* Full Planetary Positions Table */}
@@ -1447,7 +1438,11 @@ ${publicProfile.name}`;
                           key={`${d.planet}_${d.startAge}_${idx}`}
                           className={`border rounded-2xl transition-all overflow-hidden ${
                             isActiveMaha
-                              ? "bg-slate-950/90 border-emerald-500/60 shadow-lg"
+                              ? "bg-slate-950/90 border-emerald-500/70 shadow-lg ring-1 ring-emerald-500/30"
+                              : d.nature === "challenging"
+                              ? "bg-slate-950/70 border-rose-500/50 hover:border-rose-400"
+                              : d.nature === "favorable"
+                              ? "bg-slate-950/70 border-emerald-500/50 hover:border-emerald-400"
                               : "bg-slate-950/60 border-slate-800 hover:border-amber-500/40"
                           }`}
                         >
@@ -1463,6 +1458,10 @@ ${publicProfile.name}`;
                                 className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm font-black ${
                                   isActiveMaha
                                     ? "bg-emerald-500 text-slate-950 font-bold"
+                                    : d.nature === "challenging"
+                                    ? "bg-rose-950 text-rose-300 border border-rose-500/40"
+                                    : d.nature === "favorable"
+                                    ? "bg-emerald-950 text-emerald-300 border border-emerald-500/40"
                                     : "bg-slate-800 text-amber-300"
                                 }`}
                               >
@@ -1479,17 +1478,38 @@ ${publicProfile.name}`;
                               </div>
                             </div>
 
-                            <div className="flex items-center gap-3">
+                            <div className="flex flex-wrap items-center gap-2.5">
+                              {/* Color Coded Period Indicator */}
+                              <span
+                                className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1 ${
+                                  d.nature === "challenging"
+                                    ? "bg-rose-500/20 text-rose-300 border border-rose-500/40"
+                                    : d.nature === "favorable"
+                                    ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
+                                    : "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                                }`}
+                              >
+                                <span>{d.nature === "challenging" ? "🔴" : d.nature === "favorable" ? "🟢" : "🟡"}</span>
+                                <span>
+                                  {d.nature === "challenging"
+                                    ? txt("dashaChallengingBadge")
+                                    : d.nature === "favorable"
+                                    ? txt("dashaFavorableBadge")
+                                    : txt("dashaModerateBadge")}
+                                </span>
+                              </span>
+
                               <span className="text-xs font-mono text-slate-400">
                                 {d.startDateStr} → {d.endDateStr}
                               </span>
+
                               <span
                                 className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
                                   isActiveMaha
                                     ? "bg-emerald-500 text-slate-950 shadow-sm"
                                     : d.status === "completed"
                                     ? "bg-slate-800 text-slate-400"
-                                    : "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                                    : "bg-slate-900 text-slate-300 border border-slate-700"
                                 }`}
                               >
                                 {isActiveMaha
@@ -1519,15 +1539,40 @@ ${publicProfile.name}`;
                                       key={`${d.planet}_${b.bhuktiPlanet}_${b.startAge}`}
                                       className={`rounded-xl p-3 border transition-all ${
                                         isCurrentBhukti
-                                          ? "bg-emerald-950/40 border-emerald-400/60 shadow-md ring-1 ring-emerald-400/30"
+                                          ? "bg-emerald-950/40 border-emerald-400/80 shadow-md ring-2 ring-emerald-400/40"
+                                          : b.nature === "challenging"
+                                          ? "bg-rose-950/20 border-rose-500/50 hover:border-rose-400"
+                                          : b.nature === "favorable"
+                                          ? "bg-emerald-950/20 border-emerald-500/50 hover:border-emerald-400"
                                           : "bg-slate-950/70 border-slate-800/80 hover:border-slate-700"
                                       }`}
                                     >
                                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-slate-800/60 pb-1.5 mb-2">
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex flex-wrap items-center gap-2">
                                           <span className="text-xs font-bold text-amber-300">
                                             {b.bhuktiNameLocalized[selectedLang] || b.bhuktiNameLocalized.kn}
                                           </span>
+
+                                          {/* Bhukti Nature Color Indicator */}
+                                          <span
+                                            className={`text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 ${
+                                              b.nature === "challenging"
+                                                ? "bg-rose-500/20 text-rose-300 border border-rose-500/40"
+                                                : b.nature === "favorable"
+                                                ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
+                                                : "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                                            }`}
+                                          >
+                                            <span>{b.nature === "challenging" ? "🔴" : b.nature === "favorable" ? "🟢" : "🟡"}</span>
+                                            <span>
+                                              {b.nature === "challenging"
+                                                ? txt("dashaChallengingBadge")
+                                                : b.nature === "favorable"
+                                                ? txt("dashaFavorableBadge")
+                                                : txt("dashaModerateBadge")}
+                                            </span>
+                                          </span>
+
                                           {isCurrentBhukti && (
                                             <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500 text-slate-950">
                                               {txt("activeBhuktiBadge")}
@@ -1613,7 +1658,7 @@ ${publicProfile.name}`;
                               <span>🎙️</span> {txt("astrologerDirectNarration")}
                             </h3>
                             <p className="text-[11px] text-amber-200/80">
-                              {isPlayingNarration ? txt("narrationPlayingBadge") : "Chief Astrologer Face-to-Face Voice Narration"}
+                              {isPlayingNarration ? txt("narrationPlayingBadge") : txt("astrologerDirectNarration")}
                             </p>
                           </div>
 
@@ -1760,6 +1805,114 @@ ${publicProfile.name}`;
                             </button>
                           ))}
                         </div>
+                      </div>
+
+                      {/* Section 7: Ask Any Other Custom Question (500 Coins) */}
+                      <div className="bg-gradient-to-b from-slate-900 via-slate-900 to-indigo-950/40 border border-indigo-500/40 rounded-3xl p-6 md:p-8 shadow-2xl space-y-4">
+                        <div className="border-b border-indigo-500/20 pb-3 flex flex-wrap items-center justify-between gap-2">
+                          <div>
+                            <h4 className="text-base md:text-lg font-black text-indigo-300 flex items-center gap-2">
+                              <span>❓</span> {txt("customQuestionSectionTitle")}
+                            </h4>
+                            <p className="text-xs text-slate-400 mt-0.5">
+                              {txt("customQuestionSectionSubtitle")}
+                            </p>
+                          </div>
+                          <span className="text-xs px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 font-extrabold border border-indigo-500/40 shadow-sm flex items-center gap-1">
+                            <span>🪙</span> {customQuestionCost} Coins ({txt("customQuestionCostPill")})
+                          </span>
+                        </div>
+
+                        {/* Textarea Input */}
+                        <div className="space-y-2">
+                          <textarea
+                            value={customQuestionInput}
+                            onChange={(e) => {
+                              setCustomQuestionInput(e.target.value);
+                              if (customQuestionError) setCustomQuestionError(null);
+                            }}
+                            rows={3}
+                            placeholder={txt("customQuestionPlaceholder")}
+                            className="w-full bg-slate-950/90 border border-indigo-500/30 focus:border-indigo-400 rounded-2xl p-3.5 text-xs md:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-400 transition-all resize-none shadow-inner"
+                          />
+
+                          {customQuestionError && (
+                            <p className="text-xs text-rose-400 font-medium animate-fade-in flex items-center gap-1">
+                              <span>⚠️</span> {customQuestionError}
+                            </p>
+                          )}
+
+                          <div className="flex justify-end">
+                            <button
+                              type="button"
+                              onClick={handleAskCustomQuestion}
+                              disabled={isSubmittingQuestion}
+                              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-600 to-indigo-600 hover:from-indigo-400 hover:to-indigo-500 text-white font-extrabold text-xs md:text-sm shadow-lg shadow-indigo-500/20 transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2"
+                            >
+                              {isSubmittingQuestion ? (
+                                <>
+                                  <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                  <span>{txt("answeringLoader")}</span>
+                                </>
+                              ) : (
+                                <>
+                                  <span>✨</span>
+                                  <span>{txt("customQuestionSubmitBtn")}</span>
+                                  <span className="text-[10px] opacity-80 font-mono">({customQuestionCost} 🪙)</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* List of Answered Custom Questions */}
+                        {customQuestionAnswers.length > 0 && (
+                          <div className="space-y-3 pt-3 border-t border-indigo-500/20">
+                            <div className="text-xs font-bold text-indigo-300 uppercase tracking-wider flex items-center gap-1.5">
+                              <span>📜</span> {txt("customQuestionAnswerHeading")} ({customQuestionAnswers.length})
+                            </div>
+
+                            {customQuestionAnswers.map((item, idx) => (
+                              <div
+                                key={idx}
+                                className="bg-slate-950/80 border border-indigo-500/30 rounded-2xl p-4 md:p-5 space-y-3 shadow-md"
+                              >
+                                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-indigo-500/20 pb-2">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/40">
+                                      {item.categoryLocalized}
+                                    </span>
+                                    <span className="text-xs font-bold text-slate-200">
+                                      "{item.question}"
+                                    </span>
+                                  </div>
+                                  <span className="text-[11px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+                                    {item.shortVerdict}
+                                  </span>
+                                </div>
+
+                                <p className="text-xs md:text-sm text-slate-200 leading-relaxed text-justify">
+                                  {item.analysisText}
+                                </p>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-1">
+                                  <div className="bg-slate-900/90 border border-emerald-500/30 rounded-xl p-2.5 flex items-start gap-1.5">
+                                    <span className="text-emerald-400 font-bold min-w-[70px]">
+                                      {selectedLang === "kn" ? "ಶುಭ ಕಾಲಾವಧಿ:" : "Time Window:"}
+                                    </span>
+                                    <span className="text-slate-200">{item.auspiciousWindow}</span>
+                                  </div>
+                                  <div className="bg-slate-900/90 border border-amber-500/30 rounded-xl p-2.5 flex items-start gap-1.5">
+                                    <span className="text-amber-400 font-bold min-w-[70px]">
+                                      {selectedLang === "kn" ? "ಗೋಕರ್ಣ ಸೇವೆ:" : "Gokarna Seva:"}
+                                    </span>
+                                    <span className="text-amber-200 font-medium">{item.recommendedGokarnaSeva}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                   )

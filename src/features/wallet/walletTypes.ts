@@ -262,6 +262,15 @@ export const SERVICE_COIN_COSTS: Record<string, ServiceCost> = {
     inrEquivalent: 20,
     description: "Individual Explorer Tab Detailed Astrological Reading (200 Coins / ₹20)",
     category: "kundli"
+  },
+  PUBLIC_CUSTOM_QUESTION_QA: {
+    key: "PUBLIC_CUSTOM_QUESTION_QA",
+    name: "Public Custom Question Inquest",
+    kannadaName: "ಸಾರ್ವಜನಿಕ ಕುಂಡಲಿ ಹೆಚ್ಚುವರಿ ಪ್ರಶ್ನೆ (ಪ್ರತಿ ಪ್ರಶ್ನೆಗೆ)",
+    coins: 500,
+    inrEquivalent: 50,
+    description: "Ask Any Custom Question to Chief Astrologer (500 Coins / ₹50 per question)",
+    category: "kundli"
   }
 };
 
