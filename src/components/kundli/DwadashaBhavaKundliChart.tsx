@@ -118,7 +118,7 @@ export const DwadashaBhavaKundliChart: React.FC<DwadashaBhavaKundliChartProps> =
 
         {/* Lagna Indicator with authentic Amshaka */}
         {isLagnaCell && (
-          <div className="text-[#B91C1C] font-black text-[11px] md:text-xs mb-0.5 flex items-center justify-between">
+          <div className="text-[#B91C1C] font-black text-[11px] md:text-xs mb-0.5 flex items-center gap-1.5">
             <span>🚩 {isKn ? "ಲಗ್ನ" : "Lagna"}</span>
             <span className="font-extrabold text-[#B91C1C]">
               {formatChartHouseNumber(patrikaNavamshaFromDegree(kundli.ascendant), lang)}
@@ -126,12 +126,12 @@ export const DwadashaBhavaKundliChart: React.FC<DwadashaBhavaKundliChartProps> =
           </div>
         )}
 
-        {/* Occupant Planets with authentic Amshaka (e.g. ಶುಕ್ರ ೧, ಕೇತು ೨) */}
+        {/* Occupant Planets with authentic Amshaka placed right next to planet name (e.g. ಶುಕ್ರ ೧, ಕೇತು ೨) */}
         <div className="space-y-0.5">
           {planetsHere.map((pl, idx) => (
             <div
               key={idx}
-              className="text-[#1E3A8A] font-bold text-[10px] md:text-[11px] leading-tight flex items-center justify-between"
+              className="text-[#1E3A8A] font-bold text-[10px] md:text-[11px] leading-tight flex items-center gap-1.5"
             >
               <span>
                 {pl.name} {pl.isRetro && <span className="text-rose-600 font-bold text-[9px]">({isKn ? "ವಕ್ರ" : "Retro"})</span>}
