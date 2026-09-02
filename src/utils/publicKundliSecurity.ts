@@ -155,7 +155,7 @@ export function setCachedLiveAnalysis(cacheKey: string, output: DynamicLifeAnaly
 // ============================================================================
 
 const GUEST_WALLET_STORAGE_KEY = "baggona_public_guest_wallet";
-const DEFAULT_GUEST_COINS = 2500; // 2,500 complimentary coins for guest exploration
+const DEFAULT_GUEST_COINS = 0; // Strictly 0 complimentary coins - Paid-only service policy
 
 export interface PublicGuestWallet {
   sessionId: string;
@@ -167,6 +167,7 @@ export interface PublicGuestWallet {
 /**
  * Retrieves or initializes the isolated Public Guest Wallet.
  * This completely isolates anonymous public traffic from touching wallets/PRIEST.
+ * Initialized strictly with 0 coins. Users must recharge/pay to receive coins.
  */
 export function getPublicGuestWallet(): PublicGuestWallet {
   try {
@@ -174,6 +175,15 @@ export function getPublicGuestWallet(): PublicGuestWallet {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (typeof parsed.coinBalance === "number") {
+        // Cleanse legacy unearned complimentary 2,500 coins from previous deployments
+        if (parsed.coinBalance === 2500 && parsed.totalCoinsSpent === 0) {
+          parsed.coinBalance = 0;
+          try {
+            localStorage.setItem(GUEST_WALLET_STORAGE_KEY, JSON.stringify(parsed));
+          } catch {
+            // ignore
+          }
+        }
         return parsed as PublicGuestWallet;
       }
     }
@@ -181,7 +191,7 @@ export function getPublicGuestWallet(): PublicGuestWallet {
     // Ignore storage issues
   }
 
-  // Initialize new guest session
+  // Initialize new guest session with strictly 0 coins
   const newGuest: PublicGuestWallet = {
     sessionId: `guest_pub_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
     coinBalance: DEFAULT_GUEST_COINS,
@@ -198,6 +208,22 @@ export function getPublicGuestWallet(): PublicGuestWallet {
   }
 
   return newGuest;
+}
+
+/**
+ * Credits coins into the isolated Public Guest Wallet upon verified payment / recharge.
+ */
+export function creditGuestCoins(coinsToCredit: number): PublicGuestWallet {
+  const wallet = getPublicGuestWallet();
+  wallet.coinBalance += Math.max(0, coinsToCredit);
+  try {
+    if (typeof window !== "undefined") {
+      localStorage.setItem(GUEST_WALLET_STORAGE_KEY, JSON.stringify(wallet));
+    }
+  } catch {
+    // Ignore
+  }
+  return wallet;
 }
 
 /**

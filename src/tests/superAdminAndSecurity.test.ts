@@ -264,5 +264,15 @@ describe("Super Admin & Intrusion Security Engine", () => {
     // Non-existent synthetic priest should return false
     expect(await isPriestAccountActive("completely_fake_nonexistent_priest_999")).toBe(false);
   });
+
+  it("enforces paid-only policy: getOrCreatePriestWallet initializes with strictly 0 free coins", async () => {
+    const { getOrCreatePriestWallet } = await import("../db/firestoreDb");
+    const testWalletId = `zero_coin_test_${Date.now()}`;
+    const wallet = await getOrCreatePriestWallet(testWalletId, "Zero Coin Test Priest");
+    expect(wallet.coinBalance).toBe(0);
+    expect(wallet.totalCoinsCredited).toBe(0);
+    expect(wallet.totalRechargedInr).toBe(0);
+  });
 });
+
 

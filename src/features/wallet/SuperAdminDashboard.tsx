@@ -370,7 +370,7 @@ export const SuperAdminDashboard: React.FC = () => {
   const [newPriestName, setNewPriestName] = useState("");
   const [newPriestUsername, setNewPriestUsername] = useState("");
   const [newPriestPassword, setNewPriestPassword] = useState("baggona123");
-  const [newPriestWelcomeCoins, setNewPriestWelcomeCoins] = useState("1000");
+  const [newPriestWelcomeCoins, setNewPriestWelcomeCoins] = useState("0");
   const [selectedModulesForNewPriest, setSelectedModulesForNewPriest] = useState<AvailableModuleKey[]>([]);
   const [createdPriestResult, setCreatedPriestResult] = useState<{
     name: string;
@@ -938,7 +938,8 @@ export const SuperAdminDashboard: React.FC = () => {
 
     const cleanUsername = newPriestUsername.trim().toLowerCase().replace(/\s+/g, "_");
     const passwordToSet = newPriestPassword.trim() || "baggona123";
-    const welcomeCoinsNum = parseInt(newPriestWelcomeCoins, 10) || 1000;
+    const parsedCoins = parseInt(newPriestWelcomeCoins, 10);
+    const welcomeCoinsNum = isNaN(parsedCoins) ? 0 : Math.max(0, parsedCoins);
     const modulesToAssign = [...selectedModulesForNewPriest];
 
     setIsCreatingPriest(true);
@@ -1773,13 +1774,13 @@ export const SuperAdminDashboard: React.FC = () => {
                     type="number"
                     value={newPriestWelcomeCoins}
                     onChange={(e) => setNewPriestWelcomeCoins(e.target.value)}
-                    placeholder="1000"
+                    placeholder="0"
                     className="w-full pl-3.5 pr-9 py-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 text-xs font-mono font-bold focus:border-amber-500 focus:outline-none shadow-inner"
                   />
                   <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
                     <VoiceDictationButton
                       onTranscript={(text) => setNewPriestWelcomeCoins(text)}
-                      transform={(raw) => raw.replace(/[^0-9]/g, "") || "1000"}
+                      transform={(raw) => raw.replace(/[^0-9]/g, "") || "0"}
                       tooltip="ಧ್ವನಿ ಮೂಲಕ ನಾಣ್ಯಗಳ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ"
                     />
                   </div>

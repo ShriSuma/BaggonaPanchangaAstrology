@@ -296,9 +296,9 @@ export async function getOrCreatePriestWallet(
       id: userId,
       userId,
       priestName,
-      coinBalance: 1000, // Welcome bonus 1,000 free coins for priest/user first time
+      coinBalance: 0, // Paid-only service policy: strictly 0 initial free coins
       totalRechargedInr: 0,
-      totalCoinsCredited: 1000,
+      totalCoinsCredited: 0,
       totalCoinsSpent: 0,
       allowedModules: allowedModules || ["panchanga", "sankhyashastra", "diksuchi", "purva_janma"],
       updatedAt: new Date().toISOString()
@@ -312,9 +312,9 @@ export async function getOrCreatePriestWallet(
       id: userId,
       userId,
       priestName,
-      coinBalance: 1000,
+      coinBalance: 0,
       totalRechargedInr: 0,
-      totalCoinsCredited: 1000,
+      totalCoinsCredited: 0,
       totalCoinsSpent: 0,
       allowedModules: allowedModules || ["panchanga", "sankhyashastra", "diksuchi", "purva_janma"],
       updatedAt: new Date().toISOString()

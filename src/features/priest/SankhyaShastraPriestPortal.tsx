@@ -341,7 +341,7 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
   }, [currentUser, initWallet]);
 
   const activePriestDisplayName = urlPriestName || wallet?.priestName || (typeof window !== "undefined" ? localStorage.getItem("baggona_sankhya_priest_name") : null) || "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್";
-  const coinBalance = wallet?.coinBalance ?? 700;
+  const coinBalance = wallet?.coinBalance ?? 0;
 
   // Handle Voice Input
   // Handle Voice Input

@@ -524,24 +524,30 @@ describe("Public Kundli & Live Astrology Analysis 100% Dynamic Engine Test Suite
       expect(sanitizeDevoteeInput(longInput, 50).length).toBe(50);
     });
 
-    it("shields master wallet and isolates anonymous public guest deductions", async () => {
-      const { getPublicGuestWallet, deductGuestCoins } = await import("../utils/publicKundliSecurity");
+    it("shields master wallet and isolates anonymous public guest deductions with 0 free coins policy", async () => {
+      const { getPublicGuestWallet, deductGuestCoins, creditGuestCoins } = await import("../utils/publicKundliSecurity");
 
       const wallet = getPublicGuestWallet();
       expect(wallet.isGuest).toBe(true);
-      expect(wallet.coinBalance).toBeGreaterThanOrEqual(2500);
+      expect(wallet.coinBalance).toBe(0);
 
-      // Deduct 500 coins
-      const initialBalance = wallet.coinBalance;
+      // Attempting to deduct with 0 coins fails
+      const failedDeduction = deductGuestCoins(500, "Test Kundli Generation");
+      expect(failedDeduction.success).toBe(false);
+      expect(failedDeduction.error).toContain("ಅತಿಥಿ ನಾಣ್ಯಗಳು ಸಾಲುತ್ತಿಲ್ಲ");
+
+      // Once credited through paid recharge, deduction succeeds
+      creditGuestCoins(2000);
       const res1 = deductGuestCoins(500, "Test Kundli Generation");
       expect(res1.success).toBe(true);
-      expect(res1.newBalance).toBe(initialBalance - 500);
+      expect(res1.newBalance).toBe(1500);
 
       // Deduct 1000 coins (Personality unlock)
       const res2 = deductGuestCoins(1000, "Test Personality Unlock");
       expect(res2.success).toBe(true);
-      expect(res2.newBalance).toBe(initialBalance - 1500);
+      expect(res2.newBalance).toBe(500);
     });
+
 
     it("enforces AI rate limiting with cooldown and window quota checks", async () => {
       const { checkLiveAiRateLimit, recordLiveAiInvocation } = await import("../utils/publicKundliSecurity");

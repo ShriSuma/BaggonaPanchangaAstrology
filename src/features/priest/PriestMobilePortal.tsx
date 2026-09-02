@@ -515,7 +515,7 @@ export const PriestMobilePortal: React.FC = () => {
   }, [currentUser, initWallet]);
 
   const activePriestDisplayName = urlPriestName || wallet?.priestName || (typeof window !== "undefined" ? localStorage.getItem("baggona_priest_name") : null) || "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್";
-  const coinBalance = wallet?.coinBalance ?? 700;
+  const coinBalance = wallet?.coinBalance ?? 0;
 
   // Handle Voice Input with auto-clear of target field
   const handleVoiceInput = (targetField: "name" | "gothra" | "place" | "question") => {
