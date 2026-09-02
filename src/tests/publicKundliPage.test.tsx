@@ -499,4 +499,61 @@ describe("Public Kundli & Live Astrology Analysis 100% Dynamic Engine Test Suite
       });
     });
   });
+
+  // ==========================================================================
+  // SECTION 5: 100% ENTERPRISE SECURITY & ISOLATION HARDENING TESTS
+  // ==========================================================================
+  describe("5. 100% Security Engine: Anti-XSS, AI Rate Limiting & Guest Wallet Shield", () => {
+    it("neutralizes malicious HTML, script tags, event handlers, and control characters via sanitizeDevoteeInput", async () => {
+      const { sanitizeDevoteeInput } = await import("../utils/publicKundliSecurity");
+
+      // 1. Script injection
+      const maliciousScript = "<script>alert('xss')</script>ಶ್ರೀರಾಮ ಭಟ್";
+      expect(sanitizeDevoteeInput(maliciousScript, 60)).toBe("alert('xss')ಶ್ರೀರಾಮ ಭಟ್");
+
+      // 2. HTML elements and attributes
+      const maliciousHtml = "<img src=x onerror=alert(1)>ಸುರೇಶ್ <a href='javascript:void(0)'>ಲಿಂಕ್</a>";
+      expect(sanitizeDevoteeInput(maliciousHtml, 60)).toBe("ಸುರೇಶ್ ಲಿಂಕ್");
+
+      // 3. Control characters
+      const controlChars = "ಪ್ರಮೋದ್\x00\x08\x0E\x1F ಭಟ್";
+      expect(sanitizeDevoteeInput(controlChars, 60)).toBe("ಪ್ರಮೋದ್ ಭಟ್");
+
+      // 4. Length truncation
+      const longInput = "ಅ".repeat(120);
+      expect(sanitizeDevoteeInput(longInput, 50).length).toBe(50);
+    });
+
+    it("shields master wallet and isolates anonymous public guest deductions", async () => {
+      const { getPublicGuestWallet, deductGuestCoins } = await import("../utils/publicKundliSecurity");
+
+      const wallet = getPublicGuestWallet();
+      expect(wallet.isGuest).toBe(true);
+      expect(wallet.coinBalance).toBeGreaterThanOrEqual(2500);
+
+      // Deduct 500 coins
+      const initialBalance = wallet.coinBalance;
+      const res1 = deductGuestCoins(500, "Test Kundli Generation");
+      expect(res1.success).toBe(true);
+      expect(res1.newBalance).toBe(initialBalance - 500);
+
+      // Deduct 1000 coins (Personality unlock)
+      const res2 = deductGuestCoins(1000, "Test Personality Unlock");
+      expect(res2.success).toBe(true);
+      expect(res2.newBalance).toBe(initialBalance - 1500);
+    });
+
+    it("enforces AI rate limiting with cooldown and window quota checks", async () => {
+      const { checkLiveAiRateLimit, recordLiveAiInvocation } = await import("../utils/publicKundliSecurity");
+
+      // Record an AI call
+      recordLiveAiInvocation();
+
+      // Immediate subsequent call should be rejected due to cooldown
+      const check1 = checkLiveAiRateLimit();
+      expect(check1.allowed).toBe(false);
+      expect(check1.waitSeconds).toBeGreaterThan(0);
+      expect(check1.reason).toContain("ದಯವಿಟ್ಟು ನಿರೀಕ್ಷಿಸಿ");
+    });
+  });
 });

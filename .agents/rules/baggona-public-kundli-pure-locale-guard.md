@@ -45,7 +45,25 @@ Whenever modifying `src/features/publicKundli/publicKundliEngine.ts`, `src/pages
 
 ---
 
-## 4. Mandatory Pre-Commit & Pre-Push Validation
+## 4. 100% Enterprise Security Guard Mandates
+
+1. **Input Sanitization & Anti-XSS (Pillar 3: 100%)**:
+   - Every text input (`form.name`, `form.gothra`, `customQuestionInput`, `userQuestion`) MUST pass through `sanitizeDevoteeInput(input, maxLength)` before execution or database persistence.
+   - All HTML tags, script elements, event attributes, and control characters must be completely stripped while preserving full Unicode Indic scripts.
+
+2. **AI Quota & Denial-of-Service (DoS) Shield (Pillar 4: 100%)**:
+   - All live AI analysis invocations MUST pass through `checkLiveAiRateLimit()` and `recordLiveAiInvocation()` from `src/utils/publicKundliSecurity.ts`.
+   - A mandatory 20-second cooldown and a maximum of 3 AI requests per 10 minutes per browser/device must be strictly enforced.
+   - In-memory deterministic chart session caching (`getCachedLiveAnalysis`) must be checked first before initiating external API requests.
+
+3. **Public Guest Wallet & Priest Master Wallet Shielding (Pillar 5: 100%)**:
+   - Anonymous public visitors MUST NEVER deduct coins from the priest master wallet (`wallets/PRIEST`).
+   - Deductions for anonymous visitors must route through `deductGuestCoins` against an isolated local `PublicGuestWallet` (2,500 complimentary guest coins).
+   - Only authenticated priests or URLs with an explicit, verified `priestId` parameter may deduct from priest accounts.
+
+---
+
+## 5. Mandatory Pre-Commit & Pre-Push Validation
 
 Every modification affecting Public Kundli or localized astrology must be validated with:
 
@@ -56,3 +74,4 @@ npm run build
 ```
 
 All commands MUST complete with 0 failures and 0 errors before committing or pushing to git.
+

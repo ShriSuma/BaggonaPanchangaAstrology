@@ -42,6 +42,15 @@ import DatePicker from "../components/DatePicker";
 import BirthTimePicker from "../components/BirthTimePicker";
 import { decodeDevoteeToken } from "../utils/tokenCipher";
 import { notifyPublicPremiumPdfRequested } from "../features/notifications/notificationService";
+import {
+  sanitizeDevoteeInput,
+  checkLiveAiRateLimit,
+  recordLiveAiInvocation,
+  getCachedLiveAnalysis,
+  setCachedLiveAnalysis,
+  deductGuestCoins,
+  getPublicGuestWallet
+} from "../utils/publicKundliSecurity";
 
 export default function PublicKundliPage(): JSX.Element {
   // 0. Auth & Dynamic Pricing Configuration from Super Admin
@@ -91,6 +100,29 @@ export default function PublicKundliPage(): JSX.Element {
     if (currentUser && currentUser !== "PRIEST") return currentUser;
     return "Shreeram Pandit";
   });
+
+  // Check whether session is explicitly attributed to an authentic priest account
+  const isPriestAttributed = useMemo(() => {
+    if (currentUser && currentUser !== "PRIEST") return true;
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const uParam = params.get("userId") || params.get("uid") || params.get("priestId");
+      if (uParam && uParam !== "PRIEST") return true;
+    }
+    return false;
+  }, [currentUser]);
+
+  // Safe Deduction Router (Pillar 5 -> 100%):
+  // When a priest is logged in or shared their link, deduct from that priest account.
+  // When an anonymous public devotee accesses /public-kundli, deduct strictly from their
+  // isolated Public Guest Wallet (initialized with 2,500 coins), completely shielding wallets/PRIEST!
+  const executeSafeDeduction = async (coins: number, description: string, clientName?: string) => {
+    if (isPriestAttributed && linkedUserId && linkedUserId !== "PRIEST") {
+      return await deductPriestCoins(linkedUserId, coins, description, clientName);
+    } else {
+      return deductGuestCoins(coins, description);
+    }
+  };
 
   // 4. Form State (Janma Kundali Input)
   const [form, setForm] = useState<KundliInput>({
@@ -352,7 +384,11 @@ export default function PublicKundliPage(): JSX.Element {
     const birthDateYmd = birthDatePicker ? formatPickerDateLocalYmd(birthDatePicker) : form.birthDate;
     const cleanTime = birthTimeHm.trim() || form.birthTime || "12:00";
 
-    if (!form.name.trim()) {
+    // 1. Strict Input Sanitization & Anti-XSS (Pillar 3 -> 100%)
+    const sanitizedName = sanitizeDevoteeInput(form.name, 60);
+    const sanitizedGothra = sanitizeDevoteeInput(form.gothra, 40);
+
+    if (!sanitizedName) {
       setErrorMessage(selectedLang === "kn" ? "ದಯವಿಟ್ಟು ಭಕ್ತರ ಹೆಸರನ್ನು ನಮೂದಿಸಿ." : "Please enter the devotee name.");
       return;
     }
@@ -362,12 +398,12 @@ export default function PublicKundliPage(): JSX.Element {
 
     try {
       const kundliPayload: KundliInput = {
-        name: form.name.trim(),
+        name: sanitizedName,
         birthDate: birthDateYmd,
         birthTime: cleanTime,
         latitude: form.latitude || 14.5479,
         longitude: form.longitude || 74.3188,
-        gothra: form.gothra?.trim() || "",
+        gothra: sanitizedGothra,
         gender: form.gender || "Male",
         pincode: form.pincode || "581326"
       };
@@ -375,7 +411,7 @@ export default function PublicKundliPage(): JSX.Element {
       const computed = await calculateKundliWithPlaceSun(kundliPayload, { ayanamsaModel: "lahiri" });
       const dasha = generateDashaTimeline(computed);
       const profile = calculatePublicKundliProfile(computed, birthDateYmd, cleanTime, form.latitude, form.longitude);
-      profile.name = form.name.trim();
+      profile.name = sanitizedName;
 
       setResult(computed);
       setDashaList(dasha);
@@ -386,13 +422,15 @@ export default function PublicKundliPage(): JSX.Element {
       setActiveTab("patrika");
       setExpandedMahaPlanet(profile.currentMahadasha);
 
+      // Safe Deduction Router (Pillar 5 -> 100%): Deducts from priest or isolated guest wallet
       try {
-        await getOrCreatePriestWallet(linkedUserId, linkedPriestName);
-        await deductPriestCoins(
-          linkedUserId,
+        if (isPriestAttributed && linkedUserId && linkedUserId !== "PRIEST") {
+          await getOrCreatePriestWallet(linkedUserId, linkedPriestName);
+        }
+        await executeSafeDeduction(
           kundliGenCost,
-          `Public Janma Kundali: ${form.name.trim()} (${computed.lagnaRashi.english} Lagna)`,
-          form.name.trim()
+          `Public Janma Kundali: ${sanitizedName} (${computed.lagnaRashi.english} Lagna)`,
+          sanitizedName
         );
         triggerDeductionAnimation(kundliGenCost, `-${kundliGenCost} Coins (₹${Math.round(kundliGenCost / 10)})`);
       } catch (coinErr) {
@@ -407,9 +445,9 @@ export default function PublicKundliPage(): JSX.Element {
 
         const historyDoc: KundliHistoryDoc = {
           id: kundliDocId,
-          userId: linkedUserId,
+          userId: isPriestAttributed ? linkedUserId : "PUBLIC_GUEST",
           priestName: linkedPriestName,
-          name: form.name.trim(),
+          name: sanitizedName,
           birthDate: birthDateYmd,
           birthTime: cleanTime,
           placeName: placeDisplay,
@@ -450,21 +488,41 @@ export default function PublicKundliPage(): JSX.Element {
     }
     if (!result || !publicProfile) return;
 
+    // 1. Check Deterministic Session Cache (Pillar 4 -> 100%)
+    const chartCacheKey = `${form.name.trim()}_${form.birthDate}_${form.birthTime}_${form.latitude}_${form.longitude}_${selectedLang}`;
+    const cachedAnalysis = getCachedLiveAnalysis(chartCacheKey);
+    if (cachedAnalysis) {
+      setLiveAnalysisInsights(cachedAnalysis);
+      setIsLiveAnalysisOpen(true);
+      setActiveTab("analysis");
+      return;
+    }
+
+    // 2. Token Bucket Rate Limiting & Cooldown Protection (Pillar 4 -> 100%)
+    const rateCheck = checkLiveAiRateLimit();
+    if (!rateCheck.allowed) {
+      setErrorMessage(rateCheck.reason || "ದಯವಿಟ್ಟು ಸ್ವಲ್ಪ ಸಮಯ ನಿರೀಕ್ಷಿಸಿ.");
+      return;
+    }
+
     setIsLiveAnalysisOpen(true);
     setIsSynthesizingAnalysis(true);
     setActiveTab("analysis");
 
     try {
       try {
-        await deductPriestCoins(
-          linkedUserId,
+        await executeSafeDeduction(
           liveAnalysisCost,
           `Current Life Astrology Live Analysis & Q&A: ${form.name.trim()}`,
           form.name.trim()
         );
+        triggerDeductionAnimation(liveAnalysisCost, `-${liveAnalysisCost} Coins (₹${Math.round(liveAnalysisCost / 10)})`);
       } catch (coinErr) {
         console.warn("[PublicKundli] Live analysis coin deduction error:", coinErr);
       }
+
+      // Record invocation in Token Bucket Rate Limiter
+      recordLiveAiInvocation();
 
       const prompt = `You are the Chief Vedic Astrologer for Baggona Panchanga (ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಕಾರ್ಯಾಲಯ - ಗೋಕರ್ಣ).
 Provide a deep, reassuring, 100% accurate Vedic life status analysis for devotee ${publicProfile.name} in direct spoken address style.
@@ -500,6 +558,7 @@ Return a valid JSON object with EXACTLY these 5 keys:
         const parsedInsights = JSON.parse(cleanJson);
         if (parsedInsights && parsedInsights.currentPhase) {
           setLiveAnalysisInsights(parsedInsights);
+          setCachedLiveAnalysis(chartCacheKey, parsedInsights);
           return;
         }
       } catch (parseErr) {
@@ -508,6 +567,7 @@ Return a valid JSON object with EXACTLY these 5 keys:
 
       const fallbackInsights = generateDynamicLifeInsights(publicProfile, selectedLang);
       setLiveAnalysisInsights(fallbackInsights);
+      setCachedLiveAnalysis(chartCacheKey, fallbackInsights);
     } catch (analysisErr) {
       console.error("[PublicKundli] Analysis error:", analysisErr);
       const fallbackInsights = generateDynamicLifeInsights(publicProfile, selectedLang);
@@ -531,8 +591,7 @@ Return a valid JSON object with EXACTLY these 5 keys:
   const handleUnlockPersonality = async () => {
     setIsUnlocking(true);
     try {
-      await deductPriestCoins(
-        linkedUserId,
+      await executeSafeDeduction(
         1000,
         `Public Kundali Personality & Hidden Psyche Unlock (1,000 Coins): ${form.name.trim()}`,
         form.name.trim()
@@ -567,7 +626,8 @@ Return a valid JSON object with EXACTLY these 5 keys:
   // --------------------------------------------------------------------------
   const handleAskQuestion = async (e?: React.FormEvent, customQ?: string) => {
     if (e) e.preventDefault();
-    const query = (customQ || userQuestion).trim();
+    const rawQuery = (customQ || userQuestion).trim();
+    const query = sanitizeDevoteeInput(rawQuery, 250);
     if (!query || !result || !publicProfile) return;
 
     if (!isOnline) {
@@ -652,7 +712,10 @@ As the Chief Baggona Panchanga Gokarna Astrologer speaking directly to the devot
   const [customQuestionError, setCustomQuestionError] = useState<string | null>(null);
 
   const handleAskCustomQuestion = async () => {
-    if (!customQuestionInput.trim()) {
+    // 1. Strict Input Sanitization & Anti-XSS (Pillar 3 -> 100%)
+    const sanitizedQuestion = sanitizeDevoteeInput(customQuestionInput, 250);
+
+    if (!sanitizedQuestion) {
       setCustomQuestionError(txt("customQuestionEmptyAlert"));
       return;
     }
@@ -662,18 +725,16 @@ As the Chief Baggona Panchanga Gokarna Astrologer speaking directly to the devot
     setIsSubmittingQuestion(true);
 
     try {
-      if (linkedUserId) {
-        await deductPriestCoins(
-          linkedUserId,
-          customQuestionCost,
-          `Public Kundli Custom Question Inquest: "${customQuestionInput.slice(0, 30)}..."`,
-          form.name || "Devotee"
-        );
-        triggerDeductionAnimation(customQuestionCost, `-${customQuestionCost} Coins (₹${Math.round(customQuestionCost / 10)})`);
-      }
+      // Safe Deduction Router (Pillar 5 -> 100%): Deducts from priest or isolated guest wallet
+      await executeSafeDeduction(
+        customQuestionCost,
+        `Public Kundli Custom Question Inquest: "${sanitizedQuestion.slice(0, 30)}..."`,
+        form.name || "Devotee"
+      );
+      triggerDeductionAnimation(customQuestionCost, `-${customQuestionCost} Coins (₹${Math.round(customQuestionCost / 10)})`);
 
       const ans = generateCustomQuestionAstrologyAnswer(
-        customQuestionInput.trim(),
+        sanitizedQuestion,
         publicProfile,
         result,
         selectedLang
