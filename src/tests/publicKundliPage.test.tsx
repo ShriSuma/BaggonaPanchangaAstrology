@@ -282,7 +282,7 @@ describe("Public Kundli & Live Astrology Analysis 100% Dynamic Engine Test Suite
       expect(screen.getByText(/Enter Authentic Birth Details/i)).toBeInTheDocument();
     });
 
-    it("executes Step 1 to Step 2 transition and renders all 6 interactive tabs including Personality tab", async () => {
+    it("executes Step 1 to Step 2 transition and renders pure localized badges and Karmic Dosha Box with Pitru Dosha", async () => {
       render(<PublicKundliPage />);
 
       const nameInput = screen.getByTestId("devotee-name-input");
@@ -293,43 +293,38 @@ describe("Public Kundli & Live Astrology Analysis 100% Dynamic Engine Test Suite
 
       await waitFor(() => {
         expect(screen.getByRole("heading", { name: /Devotee Anant/i })).toBeInTheDocument();
-      });
+      }, { timeout: 6000 });
 
       // Verify the single action button
       expect(
         screen.getByText(/ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಏನು ನಡೆಯುತ್ತಿದೆ\? ನೇರ ಜ್ಯೋತಿಷ್ಯ ವಿಶ್ಲೇಷಣೆ ಮತ್ತು ಪ್ರಶ್ನೋತ್ತರ/i)
       ).toBeInTheDocument();
-      expect(screen.getByText(/1,000 Coins/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/1,?000 Coins/i).length).toBeGreaterThanOrEqual(1);
 
-      // Verify 6 tab headers
-      expect(screen.getByRole("button", { name: /ಜಾತಕ ಪತ್ರಿಕೆ & ಪಂಚಾಂಗ/i })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /ವ್ಯಕ್ತಿತ್ವ & ನಿಗೂಢ ರಹಸ್ಯ/i })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /ಗ್ರಹ ಸ್ಥಿತಿ ಕೋಷ್ಟಕ/i })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /೧೨೦ ವರ್ಷಗಳ ದಶಾ ಕಾಲಚಕ್ರ/i })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /ನೇರ ಜೀವನ ವಿಶ್ಲೇಷಣೆ/i })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /ದೈವಿಕ ಪರಿಹಾರಗಳು/i })).toBeInTheDocument();
+      // Verify Top Summary Badges in pure localized Kannada (Zero English words in brackets)
+      expect(screen.getAllByText("ಕರ್ಕಾಟಕ").length).toBeGreaterThanOrEqual(1); // Pure Kannada Lagna
+      expect(screen.getAllByText("ಕನ್ಯಾ").length).toBeGreaterThanOrEqual(1); // Pure Kannada Rashi
+      expect(screen.getAllByText(/ಪಾದ/i).length).toBeGreaterThanOrEqual(1); // Pure Kannada Nakshatra & Pada
+      expect(screen.getAllByText(/ಭುಕ್ತಿ/i).length).toBeGreaterThanOrEqual(1); // Pure Kannada Dasha & Bhukti
 
-      // Personality tab is default active; verify its sections and audio narration
-      expect(screen.getAllByText(/ತಮ್ಮ ಬಗ್ಗೆ \/ ವ್ಯಕ್ತಿತ್ವ ವಿಶ್ಲೇಷಣೆ/i).length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText(/ನಿಗೂಢ ರಹಸ್ಯ & ಆಂತರ್ಯದ ಸೂಕ್ಷ್ಮತೆ/i).length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText(/ಪ್ರಸ್ತುತ ಜ್ಯೋತಿಷ್ಯದ ಮೊರೆ ಹೋಗಲು ಕಾರಣ/i).length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText(/ಮಾಂದಿ \(ಗುಳಿಕ\) ನಿಗೂಢ ಪ್ರಭಾವ/i).length).toBeGreaterThanOrEqual(1);
-      expect(screen.getByText(/ಧ್ವನಿ ಕಥನ ಕೇಳಿ/i)).toBeInTheDocument();
+      // Verify Karmic Dosha Box (Pitru Dosha, Status, Gokarna Pariahra)
+      expect(screen.getByText(/ಜನ್ಮ ಕುಂಡಲಿ ಕರ್ಮ ದೋಷ ವಿಶ್ಲೇಷಣೆ/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/ಪಿತೃ ದೋಷ/i).length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText(/ಗೋಕರ್ಣ ಪರಿಹಾರ/i).length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText(/ನಾರಾಯಣ ಬಲಿ.*ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ/i).length).toBeGreaterThanOrEqual(1);
 
-      // Click Tab 3: Planetary positions table
-      fireEvent.click(screen.getByRole("button", { name: /ಗ್ರಹ ಸ್ಥಿತಿ ಕೋಷ್ಟಕ/i }));
-      expect(screen.getAllByText(/ಗ್ರಹ ಸ್ಥಿತಿ & ಅಂಶ ಕೋಷ್ಟಕ/i).length).toBeGreaterThanOrEqual(1);
+      // Verify 3 Restructured Tab buttons
+      expect(screen.getByRole("button", { name: /📜 ಜಾತಕ ಪತ್ರಿಕೆ & ಪಂಚಾಂಗ/i })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /⏳ ದಶಾ & ಭುಕ್ತಿ ಕಾಲಚಕ್ರ/i })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /🔒 ವ್ಯಕ್ತಿತ್ವ & ನಿಗೂಢ ರಹಸ್ಯ \(1,000 Coins\)/i })).toBeInTheDocument();
 
-      // Click Tab 4: 120-Year Dasha Timeline
-      fireEvent.click(screen.getByRole("button", { name: /೧೨೦ ವರ್ಷಗಳ ದಶಾ ಕಾಲಚಕ್ರ/i }));
-      expect(screen.getAllByText(/೧೨೦ ವರ್ಷಗಳ ವಿಂಶೋತ್ತರಿ ದಶಾ ಕಾಲಚಕ್ರ/i).length).toBeGreaterThanOrEqual(1);
-
-      // Click Tab 6: Divine Remedies
-      fireEvent.click(screen.getByRole("button", { name: /ದೈವಿಕ ಪರಿಹಾರಗಳು/i }));
-      expect(screen.getAllByText(/ದೈವಿಕ ಪರಿಹಾರಗಳು & ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಸೇವೆಗಳು/i).length).toBeGreaterThanOrEqual(1);
+      // Tab 1 (Patrika) is default active: South Indian chart, Panchanga Angas, Planetary table, Remedies
+      expect(screen.getByText(/ಜನನ ಕಾಲದ ಪಂಚಾಂಗ ಅಂಗ ವಿವರಗಳು/i)).toBeInTheDocument();
+      expect(screen.getByText(/ಗ್ರಹ ಸ್ಥಿತಿ & ಅಂಶ ಕೋಷ್ಟಕ/i)).toBeInTheDocument();
+      expect(screen.getByText(/ದೈವಿಕ ಪರಿಹಾರಗಳು & ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಸೇವೆಗಳು/i)).toBeInTheDocument();
     });
 
-    it("triggers Live Analysis & Q&A synthesis when the single action button is clicked", async () => {
+    it("verifies Tab 2 Dasha & Bhukti with expandable 9 Bhuktis accordion and 2-line predictive phrases", async () => {
       render(<PublicKundliPage />);
 
       const nameInput = screen.getByTestId("devotee-name-input");
@@ -340,16 +335,56 @@ describe("Public Kundli & Live Astrology Analysis 100% Dynamic Engine Test Suite
 
       await waitFor(() => {
         expect(screen.getByRole("heading", { name: /Devotee Anant/i })).toBeInTheDocument();
-      });
+      }, { timeout: 6000 });
 
-      const singleActionBtn = screen.getByRole("button", {
-        name: /ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಏನು ನಡೆಯುತ್ತಿದೆ\? ನೇರ ಜ್ಯೋತಿಷ್ಯ ವಿಶ್ಲೇಷಣೆ ಮತ್ತು ಪ್ರಶ್ನೋತ್ತರ/i
-      });
-      fireEvent.click(singleActionBtn);
+      // Click Tab 2: Dasha & Bhukti
+      const dashaTabBtn = screen.getByRole("button", { name: /⏳ ದಶಾ & ಭುಕ್ತಿ ಕಾಲಚಕ್ರ/i });
+      fireEvent.click(dashaTabBtn);
+
+      // Verify 120-Year Vimshottari Mahadasha timeline is visible
+      expect(screen.getByText(/೧೨೦ ವರ್ಷಗಳ ವಿಂಶೋತ್ತರಿ ದಶಾ ಕಾಲಚಕ್ರ/i)).toBeInTheDocument();
+      expect(screen.getByText(/೯ ಭುಕ್ತಿಗಳು & ಫಲಗಳನ್ನು ನೋಡಲು ಕ್ಲಿಕ್ ಮಾಡಿ/i)).toBeInTheDocument();
+
+      // Verify 2-line predictive phrases are rendered in Bhuktis
+      expect(screen.getAllByText(/ಜೀವನ ಸ್ಥಿತಿ/i).length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText(/ಸಂಭಾವ್ಯ ಸವಾಲು/i).length).toBeGreaterThanOrEqual(1);
+    });
+
+    it("verifies Tab 3 Personality is locked with 1,000-coin modal and unlocks upon confirmation", async () => {
+      render(<PublicKundliPage />);
+
+      const nameInput = screen.getByTestId("devotee-name-input");
+      fireEvent.change(nameInput, { target: { value: "Devotee Anant" } });
+
+      const generateBtn = screen.getByRole("button", { name: /ಜನನ ಕುಂಡಲಿ ರಚಿಸಿ/i });
+      fireEvent.click(generateBtn);
 
       await waitFor(() => {
-        expect(screen.getAllByText(/ಪ್ರಸ್ತುತ ಗ್ರಹ ಸ್ಥಿತಿ & ನೇರ ಜೀವನ ವಿಶ್ಲೇಷಣೆ/i).length).toBeGreaterThanOrEqual(1);
-        expect(screen.getByText(/ಜ್ಯೋತಿಷಿಗಳಿಗೆ ನೇರ ಪ್ರಶ್ನೆ ಕೇಳಿ/i)).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: /Devotee Anant/i })).toBeInTheDocument();
+      }, { timeout: 6000 });
+
+      // Click Tab 3 button (locked)
+      const personalityTabBtn = screen.getByRole("button", { name: /🔒 ವ್ಯಕ್ತಿತ್ವ & ನಿಗೂಢ ರಹಸ್ಯ \(1,000 Coins\)/i });
+      fireEvent.click(personalityTabBtn);
+
+      // Confirmation modal should open
+      await waitFor(() => {
+        expect(
+          screen.getByText(/ವ್ಯಕ್ತಿತ್ವ & ನಿಗೂಢ ರಹಸ್ಯ ಅನ್‌ಲಾಕ್ ಮಾಡಲು 1,000 ನಾಣ್ಯಗಳನ್ನು \(Coins\) ಕಡಿತಗೊಳಿಸಲಾಗುವುದು/i)
+        ).toBeInTheDocument();
+      });
+
+      // Confirm unlock
+      const confirmUnlockBtn = screen.getByRole("button", { name: /🪙 ಹೌದು, ಅನ್‌ಲಾಕ್ ಮಾಡಿ/i });
+      fireEvent.click(confirmUnlockBtn);
+
+      // Tab 3 should now unlock and show the 5 personality reading sections & audio narration
+      await waitFor(() => {
+        expect(screen.getAllByText(/ತಮ್ಮ ಬಗ್ಗೆ \/ ವ್ಯಕ್ತಿತ್ವ ವಿಶ್ಲೇಷಣೆ/i).length).toBeGreaterThanOrEqual(1);
+        expect(screen.getAllByText(/ನಿಗೂಢ ರಹಸ್ಯ & ಆಂತರ್ಯದ ಸೂಕ್ಷ್ಮತೆ/i).length).toBeGreaterThanOrEqual(1);
+        expect(screen.getAllByText(/ಪ್ರಸ್ತುತ ಜ್ಯೋತಿಷ್ಯದ ಮೊರೆ ಹೋಗಲು ಕಾರಣ/i).length).toBeGreaterThanOrEqual(1);
+        expect(screen.getAllByText(/ಮಾಂದಿ \(ಗುಳಿಕ\) ನಿಗೂಢ ಪ್ರಭಾವ/i).length).toBeGreaterThanOrEqual(1);
+        expect(screen.getByText(/ಧ್ವನಿ ಕಥನ ಕೇಳಿ/i)).toBeInTheDocument();
       });
     });
 

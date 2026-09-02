@@ -23,9 +23,15 @@ import {
   generateDynamicLifeInsights,
   generateDynamicQaFallback,
   generateDeepPersonalityAnalysis,
+  getLocalizedRashiName,
+  getLocalizedNakshatraName,
+  getLocalizedDashaBhukti,
   type PublicKundliProfile,
   type DynamicLifeAnalysisOutput,
-  type DeepPersonalityOutput
+  type DeepPersonalityOutput,
+  type PublicDashaRow,
+  type PublicBhuktiRow,
+  type PublicKundliDoshaItem
 } from "../features/publicKundli/publicKundliEngine";
 import TraditionalSouthPatrika from "../components/kundli/TraditionalSouthPatrika";
 import DatePicker from "../components/DatePicker";
@@ -106,10 +112,14 @@ export default function PublicKundliPage(): JSX.Element {
   const [publicProfile, setPublicProfile] = useState<PublicKundliProfile | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // 6. Interactive 6-Tab State in Result Screen
+  // 6. Interactive 3 Restructured Tabs (Patrika default, Dasha-Bhukti, Personality locked 1000 coins)
   const [activeTab, setActiveTab] = useState<
-    "patrika" | "personality" | "planets" | "dasha" | "analysis" | "remedies"
-  >("personality");
+    "patrika" | "dasha" | "personality" | "analysis"
+  >("patrika");
+  const [isPersonalityUnlocked, setIsPersonalityUnlocked] = useState<boolean>(false);
+  const [showUnlockModal, setShowUnlockModal] = useState<boolean>(false);
+  const [isUnlocking, setIsUnlocking] = useState<boolean>(false);
+  const [expandedMahaPlanet, setExpandedMahaPlanet] = useState<string | null>(null);
 
   // 7. Live Life Analysis & Devotee Q&A State
   const [isLiveAnalysisOpen, setIsLiveAnalysisOpen] = useState<boolean>(false);
@@ -345,7 +355,8 @@ export default function PublicKundliPage(): JSX.Element {
 
       const deterministicInsights = generateDynamicLifeInsights(profile, selectedLang);
       setLiveAnalysisInsights(deterministicInsights);
-      setActiveTab("personality");
+      setActiveTab("patrika");
+      setExpandedMahaPlanet(profile.currentMahadasha);
 
       try {
         await getOrCreatePriestWallet(linkedUserId, linkedPriestName);
@@ -478,28 +489,32 @@ Return a valid JSON object with EXACTLY these 5 keys:
   };
 
   // --------------------------------------------------------------------------
-  // Tab Unlock and Selection Handler (200 Coins for detailed tab reading)
+  // 3-Tab Selection & 1,000 Coin Unlock Handler
   // --------------------------------------------------------------------------
-  const [unlockedTabs, setUnlockedTabs] = useState<Set<string>>(
-    new Set(["patrika", "personality"])
-  );
-
-  const handleSelectTab = async (
-    tabId: "patrika" | "personality" | "planets" | "dasha" | "analysis" | "remedies"
-  ) => {
+  const handleSelectTab = (tabId: "patrika" | "dasha" | "personality" | "analysis") => {
+    if (tabId === "personality" && !isPersonalityUnlocked) {
+      setShowUnlockModal(true);
+      return;
+    }
     setActiveTab(tabId);
-    if (!unlockedTabs.has(tabId) && result && publicProfile && tabId !== "analysis") {
-      setUnlockedTabs((prev) => new Set([...prev, tabId]));
-      try {
-        await deductPriestCoins(
-          linkedUserId,
-          tabUnlockCost,
-          `Public Kundali Tab Unlock (${tabId.toUpperCase()}): ${form.name.trim()}`,
-          form.name.trim()
-        );
-      } catch (err) {
-        console.warn("[PublicKundli] Tab unlock coin deduction error:", err);
-      }
+  };
+
+  const handleUnlockPersonality = async () => {
+    setIsUnlocking(true);
+    try {
+      await deductPriestCoins(
+        linkedUserId,
+        1000,
+        `Public Kundali Personality & Hidden Psyche Unlock (1,000 Coins): ${form.name.trim()}`,
+        form.name.trim()
+      );
+    } catch (err) {
+      console.warn("[PublicKundli] Personality unlock coin deduction error:", err);
+    } finally {
+      setIsPersonalityUnlocked(true);
+      setShowUnlockModal(false);
+      setIsUnlocking(false);
+      setActiveTab("personality");
     }
   };
 
@@ -939,14 +954,14 @@ ${publicProfile.name}`;
                 </button>
               </div>
 
-              {/* 4 Core Astrological Badges */}
+              {/* 4 Core Astrological Badges (100% Pure Localized Language - Zero English in Kannada) */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
                 <div className="bg-slate-950/80 border border-amber-500/20 rounded-2xl p-3 text-center">
                   <span className="text-[10px] uppercase tracking-wider text-slate-400 block font-semibold">
                     {txt("lagnaBadge")}
                   </span>
                   <span className="text-base font-extrabold text-amber-300">
-                    {publicProfile.lagnaSign} ({publicProfile.lagnaSanskrit})
+                    {getLocalizedRashiName(publicProfile.lagnaSign, selectedLang)}
                   </span>
                 </div>
 
@@ -955,7 +970,7 @@ ${publicProfile.name}`;
                     {txt("rashiBadge")}
                   </span>
                   <span className="text-base font-extrabold text-amber-300">
-                    {publicProfile.moonSign} ({publicProfile.moonSanskrit})
+                    {getLocalizedRashiName(publicProfile.moonSign, selectedLang)}
                   </span>
                 </div>
 
@@ -964,7 +979,7 @@ ${publicProfile.name}`;
                     {txt("nakshatraBadge")}
                   </span>
                   <span className="text-base font-extrabold text-amber-300">
-                    {publicProfile.moonNakshatra} ({publicProfile.moonPada})
+                    {getLocalizedNakshatraName(publicProfile.moonNakshatra, publicProfile.moonPada, selectedLang)}
                   </span>
                 </div>
 
@@ -973,11 +988,93 @@ ${publicProfile.name}`;
                     {txt("dashaBadge")}
                   </span>
                   <span className="text-base font-extrabold text-emerald-300">
-                    {publicProfile.currentMahadasha} ({publicProfile.currentBhukti})
+                    {getLocalizedDashaBhukti(publicProfile.currentMahadasha, publicProfile.currentBhukti, selectedLang)}
                   </span>
                   <span className="text-[10px] text-emerald-400/80 block mt-0.5 font-mono">
                     {publicProfile.dashaStartDateStr} → {publicProfile.dashaEndDateStr}
                   </span>
+                </div>
+              </div>
+
+              {/* Karmic Dosha Inspection Box (Pitru Dosha, Kala Sarpa, Manglik, Guru Chandal) */}
+              <div className="mt-4 bg-slate-950/90 border border-amber-500/30 rounded-2xl p-4 shadow-xl">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-3 border-b border-amber-500/20 pb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-amber-400 text-lg">⚡</span>
+                    <h4 className="text-xs md:text-sm font-bold text-amber-200 tracking-wide">
+                      {txt("doshaSectionTitle")}
+                    </h4>
+                  </div>
+                  <span className="text-[10px] text-amber-400/80 font-mono">
+                    ॥ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿ ಗೋಕರ್ಣ ॥
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {publicProfile.karmicDoshas?.map((dosha) => {
+                    const isDetected = dosha.isDetected;
+                    return (
+                      <div
+                        key={dosha.id}
+                        className={`rounded-xl p-3 border transition-all ${
+                          isDetected
+                            ? "bg-rose-950/30 border-rose-500/40 text-rose-100"
+                            : "bg-emerald-950/20 border-emerald-500/30 text-emerald-100"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-2 mb-1.5">
+                          <div className="flex items-center gap-2">
+                            <span className="text-base">
+                              {isDetected ? "🔴" : "🟢"}
+                            </span>
+                            <span className="text-xs font-extrabold tracking-wide">
+                              {dosha.name[selectedLang] || dosha.name.kn}
+                            </span>
+                          </div>
+                          <span
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                              isDetected
+                                ? "bg-rose-900/60 text-rose-200 border-rose-500/50"
+                                : "bg-emerald-900/60 text-emerald-200 border-emerald-500/50"
+                            }`}
+                          >
+                            {isDetected ? txt("doshaDetectedBadge") : txt("doshaCleanBadge")}
+                          </span>
+                        </div>
+
+                        <div className="text-[11px] text-slate-300 space-y-1 mt-2">
+                          <div className="flex items-start gap-1.5">
+                            <span className="text-amber-400 font-semibold min-w-[70px]">
+                              {txt("priorityLabel")}:
+                            </span>
+                            <span className={isDetected ? "text-rose-300 font-bold" : "text-emerald-300 font-medium"}>
+                              {dosha.priority[selectedLang] || dosha.priority.kn}
+                            </span>
+                          </div>
+
+                          <div className="flex items-start gap-1.5">
+                            <span className="text-amber-400 font-semibold min-w-[70px]">
+                              {txt("reasonLabel")}:
+                            </span>
+                            <span className="text-slate-200 leading-snug">
+                              {dosha.reason[selectedLang] || dosha.reason.kn}
+                            </span>
+                          </div>
+
+                          <div className={`flex items-start gap-1.5 pt-1.5 border-t mt-1.5 ${
+                            isDetected ? "border-rose-500/20" : "border-emerald-500/20"
+                          }`}>
+                            <span className="text-amber-300 font-semibold min-w-[70px]">
+                              {isDetected ? txt("pariharaLabel") : (selectedLang === "kn" ? "ಗೋಕರ್ಣ ಸೇವೆ" : "Gokarna Seva")}:
+                            </span>
+                            <span className={`${isDetected ? "text-amber-200 font-medium" : "text-slate-300"} leading-snug`}>
+                              {dosha.gokarnaParihara[selectedLang] || dosha.gokarnaParihara.kn}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -985,6 +1082,7 @@ ${publicProfile.name}`;
             {/* 2. THE SINGLE ACTION BUTTON */}
             <div className="text-center py-2">
               <button
+                data-testid="single-action-btn"
                 type="button"
                 onClick={handleOpenLiveAnalysis}
                 disabled={isSynthesizingAnalysis || !isOnline}
@@ -1006,21 +1104,23 @@ ${publicProfile.name}`;
               </button>
             </div>
 
-            {/* 3. 6 RICH EXPLORER TABS (Includes Dedicated Personality Tab) */}
+            {/* 3 CORE RESTRUCTURED TABS (Patrika default, Dasha-Bhukti dropdown, Personality locked 1000 coins) */}
             <div className="flex flex-wrap items-center justify-center gap-2 bg-slate-900/80 border border-amber-500/20 p-2 rounded-2xl shadow-inner">
               {[
                 { id: "patrika", label: `📜 ${txt("tabPatrika")}` },
-                { id: "personality", label: `🔮 ${txt("tabPersonality")}` },
-                { id: "planets", label: `🪐 ${txt("tabPlanets")}` },
                 { id: "dasha", label: `⏳ ${txt("tabDasha")}` },
-                { id: "analysis", label: `🌟 ${txt("tabAnalysis")}` },
-                { id: "remedies", label: `🪔 ${txt("tabRemedies")}` }
+                {
+                  id: "personality",
+                  label: isPersonalityUnlocked
+                    ? `🔓 ${txt("tabPersonality")}`
+                    : `🔒 ${txt("tabPersonality")} (1,000 Coins)`
+                }
               ].map((tab) => (
                 <button
                   key={tab.id}
                   type="button"
                   onClick={() => handleSelectTab(tab.id as any)}
-                  className={`px-3.5 py-2 text-xs md:text-sm font-bold rounded-xl transition-all ${
+                  className={`px-4 py-2.5 text-xs md:text-sm font-bold rounded-xl transition-all ${
                     activeTab === tab.id
                       ? "bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-md scale-105"
                       : "text-amber-200/80 hover:text-amber-100 hover:bg-slate-800/60"
@@ -1032,152 +1132,11 @@ ${publicProfile.name}`;
             </div>
 
             {/* ============================================================== */}
-            {/* TAB CONTENT 2: PERSONALITY, HIDDEN PSYCHE & MAANDI INQUEST      */}
+            {/* TAB 1: SACRED PATRIKA & PANCHANGA (DEFAULT ACTIVE TAB)         */}
             {/* ============================================================== */}
-            {activeTab === "personality" && deepPersonalityData && (
-              <div className="space-y-6 animate-fade-in">
-                {/* Audio Narration Toolbar */}
-                <div className="bg-gradient-to-r from-amber-950/80 via-slate-900 to-amber-950/80 border border-amber-500/40 rounded-3xl p-5 shadow-2xl backdrop-blur-md">
-                  <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div className="space-y-0.5">
-                      <h3 className="text-sm md:text-base font-extrabold text-amber-300 flex items-center gap-2">
-                        <span>🎙️</span> {txt("astrologerDirectNarration")}
-                      </h3>
-                      <p className="text-[11px] text-amber-200/80">
-                        {isPlayingNarration ? txt("narrationPlayingBadge") : "Chief Astrologer Face-to-Face Voice Narration"}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      {!isPlayingNarration ? (
-                        <button
-                          type="button"
-                          onClick={handlePlayNarration}
-                          className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-bold text-xs shadow-md transition-all flex items-center gap-1.5 active:scale-95"
-                        >
-                          <span>▶</span> {txt("narrationPlayBtn")}
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={handlePauseNarration}
-                          className="px-3.5 py-2 rounded-xl bg-amber-600 text-slate-950 font-bold text-xs shadow-md transition-all flex items-center gap-1.5"
-                        >
-                          <span>⏸</span> {txt("narrationPauseBtn")}
-                        </button>
-                      )}
-
-                      <button
-                        type="button"
-                        onClick={handleStopNarration}
-                        disabled={!isPlayingNarration && !isPausedNarration}
-                        className="px-3 py-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-bold text-xs border border-slate-700 disabled:opacity-40"
-                      >
-                        <span>⏹</span> {txt("narrationStopBtn")}
-                      </button>
-
-                      {/* Narration Speed Switcher */}
-                      <select
-                        value={narrationSpeed}
-                        onChange={(e) => setNarrationSpeed(parseFloat(e.target.value))}
-                        className="bg-slate-950 border border-amber-500/30 text-amber-300 text-xs rounded-xl px-2.5 py-2 focus:outline-none"
-                      >
-                        <option value={0.85}>0.85x</option>
-                        <option value={1.0}>1.0x</option>
-                        <option value={1.15}>1.15x</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Section 1: Core Personality & Demeanor */}
-                <div className="bg-slate-900/90 border border-amber-500/30 rounded-3xl p-6 md:p-8 shadow-2xl space-y-3">
-                  <h3 className="text-base md:text-lg font-extrabold text-amber-300 flex items-center gap-2 border-b border-amber-500/20 pb-3">
-                    <span>👤</span> {deepPersonalityData.personality.title}
-                  </h3>
-                  <div className="space-y-3 text-xs md:text-sm text-slate-200 leading-relaxed text-justify">
-                    <p>{deepPersonalityData.personality.paragraph1}</p>
-                    <p>{deepPersonalityData.personality.paragraph2}</p>
-                  </div>
-                </div>
-
-                {/* Section 2: Hidden Secrets & Subconscious Psyche */}
-                <div className="bg-slate-900/90 border border-amber-500/30 rounded-3xl p-6 md:p-8 shadow-2xl space-y-3">
-                  <h3 className="text-base md:text-lg font-extrabold text-amber-300 flex items-center gap-2 border-b border-amber-500/20 pb-3">
-                    <span>👁️</span> {deepPersonalityData.hiddenSecrets.title}
-                  </h3>
-                  <div className="space-y-3 text-xs md:text-sm text-slate-200 leading-relaxed text-justify">
-                    <p>{deepPersonalityData.hiddenSecrets.paragraph1}</p>
-                    <p>{deepPersonalityData.hiddenSecrets.paragraph2}</p>
-                  </div>
-                </div>
-
-                {/* Section 3: Why Astrology Right Now */}
-                <div className="bg-slate-900/90 border border-emerald-500/30 rounded-3xl p-6 md:p-8 shadow-2xl space-y-3 bg-emerald-950/10">
-                  <h3 className="text-base md:text-lg font-extrabold text-emerald-300 flex items-center gap-2 border-b border-emerald-500/20 pb-3">
-                    <span>⏳</span> {deepPersonalityData.whyAstrology.title}
-                  </h3>
-                  <div className="space-y-3 text-xs md:text-sm text-emerald-100/90 leading-relaxed text-justify">
-                    <p>{deepPersonalityData.whyAstrology.paragraph1}</p>
-                    <p>{deepPersonalityData.whyAstrology.paragraph2}</p>
-                  </div>
-                </div>
-
-                {/* Section 4: Burning Internal Questions */}
-                <div className="bg-slate-900/90 border border-amber-500/30 rounded-3xl p-6 md:p-8 shadow-2xl space-y-3">
-                  <h3 className="text-base md:text-lg font-extrabold text-amber-300 flex items-center gap-2 border-b border-amber-500/20 pb-3">
-                    <span>❓</span> {deepPersonalityData.internalQuestions.title}
-                  </h3>
-                  <div className="space-y-3 text-xs md:text-sm text-slate-200 leading-relaxed text-justify">
-                    <p>{deepPersonalityData.internalQuestions.paragraph1}</p>
-                    <p>{deepPersonalityData.internalQuestions.paragraph2}</p>
-                  </div>
-                </div>
-
-                {/* Section 5: Maandi (Gulika) Deep Analysis */}
-                <div className="bg-slate-900/90 border-2 border-red-500/40 rounded-3xl p-6 md:p-8 shadow-2xl space-y-3 bg-red-950/10">
-                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-red-500/20 pb-3">
-                    <h3 className="text-base md:text-lg font-extrabold text-red-300 flex items-center gap-2">
-                      <span>🪐</span> {deepPersonalityData.maandiAnalysis.title}
-                    </h3>
-                    <span className="text-xs px-3 py-0.5 rounded-full bg-red-950 border border-red-500/40 text-red-300 font-mono font-bold">
-                      {publicProfile.maandiHouse}th House · {publicProfile.maandiRashi}
-                    </span>
-                  </div>
-                  <div className="space-y-3 text-xs md:text-sm text-red-100/90 leading-relaxed text-justify">
-                    <p>{deepPersonalityData.maandiAnalysis.paragraph1}</p>
-                    <p>{deepPersonalityData.maandiAnalysis.paragraph2}</p>
-                  </div>
-                </div>
-
-                {/* Section 6: Dynamic Seed Questions */}
-                <div className="bg-slate-900/90 border border-amber-500/30 rounded-3xl p-6 md:p-8 shadow-2xl space-y-4">
-                  <h4 className="text-sm md:text-base font-bold text-amber-300 flex items-center gap-2">
-                    <span>💬</span> {txt("sampleQuestionsLabel")}
-                  </h4>
-                  <div className="space-y-2">
-                    {deepPersonalityData.seedQuestions.map((sq, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => {
-                          setActiveTab("analysis");
-                          handleAskQuestion(undefined, sq);
-                        }}
-                        className="w-full text-left text-xs md:text-sm bg-slate-950 border border-slate-800 hover:border-amber-500/60 text-amber-200/90 hover:text-white p-3.5 rounded-2xl transition-all flex items-start gap-2.5 shadow-sm"
-                      >
-                        <span className="text-amber-400 font-bold">#{idx + 1}</span>
-                        <span>{sq}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* TAB CONTENT 1: SACRED PATRIKA & PANCHANGA */}
             {activeTab === "patrika" && (
               <div className="space-y-6 animate-fade-in">
+                {/* Traditional South Indian Chart */}
                 <div className="rounded-3xl border border-amber-500/30 bg-white p-4 md:p-8 shadow-2xl overflow-x-auto flex justify-center">
                   <TraditionalSouthPatrika
                     kundli={result}
@@ -1193,6 +1152,7 @@ ${publicProfile.name}`;
                   />
                 </div>
 
+                {/* Sacred Panchanga Angas */}
                 <div className="bg-slate-900 border border-amber-500/30 rounded-3xl p-6 md:p-8 shadow-2xl space-y-4">
                   <div className="border-b border-amber-500/20 pb-3">
                     <h3 className="text-lg font-bold text-amber-300 flex items-center gap-2">
@@ -1223,7 +1183,7 @@ ${publicProfile.name}`;
 
                     <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-3">
                       <span className="text-slate-400 block text-[10px] uppercase font-bold">{txt("nakshatraLabel")}</span>
-                      <strong className="text-amber-300">{publicProfile.moonNakshatra} ({publicProfile.moonPada})</strong>
+                      <strong className="text-amber-300">{getLocalizedNakshatraName(publicProfile.moonNakshatra, publicProfile.moonPada, selectedLang)}</strong>
                     </div>
 
                     <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-3">
@@ -1242,173 +1202,572 @@ ${publicProfile.name}`;
                     </div>
                   </div>
                 </div>
+
+                {/* Full Planetary Positions Table */}
+                <div className="bg-slate-900 border border-amber-500/30 rounded-3xl p-6 md:p-8 shadow-2xl space-y-6 overflow-x-auto">
+                  <div className="border-b border-amber-500/20 pb-3 flex items-center justify-between">
+                    <h3 className="text-lg font-bold text-amber-300 flex items-center gap-2">
+                      <span>🪐</span> {txt("planetaryTableHeading")}
+                    </h3>
+                    <span className="text-xs text-slate-400 font-mono">Lahiri Sidereal Ayanamsa</span>
+                  </div>
+
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="border-b border-amber-500/30 text-amber-300 bg-slate-950/50">
+                        <th className="p-3">{txt("planetCol")}</th>
+                        <th className="p-3">{txt("rashiCol")}</th>
+                        <th className="p-3 text-center">{txt("degreeCol")}</th>
+                        <th className="p-3 text-center">{txt("houseCol")}</th>
+                        <th className="p-3">{txt("nakshatraCol")}</th>
+                        <th className="p-3 text-center">{txt("padaCol")}</th>
+                        <th className="p-3">{txt("lordCol")}</th>
+                        <th className="p-3 text-center">{txt("dignityCol")}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800">
+                      {publicProfile.planetaryRows.map((row, idx) => (
+                        <tr
+                          key={idx}
+                          className={`hover:bg-slate-800/40 transition-colors ${
+                            row.name === "Lagna" ? "text-amber-300 font-bold bg-amber-500/5" : "text-slate-300"
+                          }`}
+                        >
+                          <td className="p-3 font-semibold">
+                            {row.sanskritName || row.name} {row.isRetrograde ? `(${txt("retrogradeLabel")})` : ""}
+                          </td>
+                          <td className="p-3">
+                            {getLocalizedRashiName(row.rashi, selectedLang)}
+                          </td>
+                          <td className="p-3 text-center font-mono text-amber-200/90">
+                            {row.degreeStr}
+                          </td>
+                          <td className="p-3 text-center font-bold text-amber-400">
+                            {row.house}
+                          </td>
+                          <td className="p-3">{getLocalizedNakshatraName(row.nakshatra, row.pada, selectedLang)}</td>
+                          <td className="p-3 text-center">{row.pada}</td>
+                          <td className="p-3">{row.lord}</td>
+                          <td className="p-3 text-center">
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                row.dignity === "Exalted"
+                                  ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                                  : row.dignity === "Debilitated"
+                                  ? "bg-red-500/20 text-red-300 border border-red-500/30"
+                                  : "bg-slate-800 text-slate-400"
+                              }`}
+                            >
+                              {row.dignity}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+
+                  {/* House Lords Summary */}
+                  <div className="bg-slate-950/80 border border-amber-500/20 rounded-2xl p-5 space-y-3">
+                    <h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider">
+                      🏛️ {txt("houseLordsSummaryTitle")}
+                    </h4>
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-xs">
+                      <div className="bg-slate-900 border border-slate-800 rounded-xl p-3">
+                        <span className="text-slate-400 block text-[10px]">{txt("lagnaLordTitle")}</span>
+                        <strong className="text-amber-300 text-sm">{publicProfile.lagnaLord}</strong>
+                      </div>
+                      <div className="bg-slate-900 border border-slate-800 rounded-xl p-3">
+                        <span className="text-slate-400 block text-[10px]">{txt("lord10Title")}</span>
+                        <strong className="text-amber-300 text-sm">{publicProfile.lord10}</strong>
+                      </div>
+                      <div className="bg-slate-900 border border-slate-800 rounded-xl p-3">
+                        <span className="text-slate-400 block text-[10px]">{txt("lord7Title")}</span>
+                        <strong className="text-amber-300 text-sm">{publicProfile.lord7}</strong>
+                      </div>
+                      <div className="bg-slate-900 border border-slate-800 rounded-xl p-3">
+                        <span className="text-slate-400 block text-[10px]">{txt("lord6Title")}</span>
+                        <strong className="text-amber-300 text-sm">{publicProfile.lord6}</strong>
+                      </div>
+                      <div className="bg-slate-900 border border-slate-800 rounded-xl p-3">
+                        <span className="text-slate-400 block text-[10px]">{txt("lord5Title")}</span>
+                        <strong className="text-amber-300 text-sm">{publicProfile.lord5}</strong>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Divine Remedies & Gokarna Temple Pariharas */}
+                <div className="bg-slate-900 border border-amber-500/30 rounded-3xl p-6 md:p-8 shadow-2xl space-y-6">
+                  <div className="border-b border-amber-500/20 pb-3">
+                    <h3 className="text-lg font-bold text-amber-300 flex items-center gap-2">
+                      <span>🪔</span> {txt("pariharaHeading")}
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Authentic Graha Parihara & Sri Kshetra Gokarna Mahabaleshwara Temple Sevas
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-slate-950/80 border border-amber-500/20 rounded-2xl p-4 space-y-1">
+                      <span className="text-[10px] uppercase font-bold text-amber-400 tracking-wider block">
+                        💎 {txt("gemstoneLabel")}
+                      </span>
+                      <span className="text-sm font-extrabold text-slate-100">
+                        {publicProfile.gemstone}
+                      </span>
+                    </div>
+
+                    <div className="bg-slate-950/80 border border-amber-500/20 rounded-2xl p-4 space-y-1">
+                      <span className="text-[10px] uppercase font-bold text-amber-400 tracking-wider block">
+                        📿 {txt("rudrakshaLabel")}
+                      </span>
+                      <span className="text-sm font-extrabold text-slate-100">
+                        {publicProfile.rudraksha}
+                      </span>
+                    </div>
+
+                    <div className="bg-slate-950/80 border border-amber-500/20 rounded-2xl p-4 space-y-1">
+                      <span className="text-[10px] uppercase font-bold text-amber-400 tracking-wider block">
+                        📅 {txt("auspiciousDayLabel")}
+                      </span>
+                      <span className="text-sm font-extrabold text-slate-100">
+                        {publicProfile.auspiciousDay}
+                      </span>
+                    </div>
+
+                    <div className="bg-slate-950/80 border border-amber-500/20 rounded-2xl p-4 space-y-1">
+                      <span className="text-[10px] uppercase font-bold text-amber-400 tracking-wider block">
+                        🕉️ {txt("deityLabel")}
+                      </span>
+                      <span className="text-sm font-extrabold text-slate-100">
+                        {publicProfile.deity}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-950/90 border border-amber-500/30 rounded-2xl p-5 space-y-2">
+                    <span className="text-xs uppercase font-bold text-amber-300 tracking-wider block">
+                      📜 {txt("mantraLabel")}
+                    </span>
+                    <p className="text-sm md:text-base font-serif text-amber-200 italic">
+                      "{publicProfile.mantra}"
+                    </p>
+                  </div>
+
+                  <div className="bg-gradient-to-r from-amber-950/60 via-slate-950 to-amber-950/60 border border-amber-500/40 rounded-2xl p-5 space-y-2">
+                    <span className="text-xs uppercase font-bold text-amber-300 tracking-wider block">
+                      🏛️ {txt("gokarnaSevaLabel")}
+                    </span>
+                    <p className="text-sm md:text-base font-extrabold text-amber-100">
+                      {publicProfile.gokarnaSevaName}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Unlock CTA Banner for Tab 3 (Personality) */}
+                {!isPersonalityUnlocked && (
+                  <div className="bg-gradient-to-r from-amber-950/70 via-slate-900 to-amber-950/70 border-2 border-amber-400/60 rounded-3xl p-6 shadow-xl flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
+                    <div>
+                      <div className="flex items-center justify-center md:justify-start gap-2">
+                        <span className="text-2xl">🔒</span>
+                        <h4 className="text-base md:text-lg font-black text-amber-300">
+                          {txt("unlockPersonalityPromptTitle")}
+                        </h4>
+                      </div>
+                      <p className="text-xs text-slate-300 mt-1 max-w-xl leading-relaxed">
+                        {txt("unlockPersonalityPromptDesc")}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowUnlockModal(true)}
+                      className="px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-black text-xs md:text-sm shadow-lg whitespace-nowrap active:scale-95 transition-all flex items-center gap-2"
+                    >
+                      <span>🪙</span>
+                      <span>{txt("unlockPersonalityConfirmBtn")}</span>
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
-            {/* TAB CONTENT 3: PLANETARY POSITIONS TABLE */}
-            {activeTab === "planets" && (
-              <div className="bg-slate-900 border border-amber-500/30 rounded-3xl p-6 md:p-8 shadow-2xl space-y-6 animate-fade-in overflow-x-auto">
-                <div className="border-b border-amber-500/20 pb-3 flex items-center justify-between">
-                  <h3 className="text-lg font-bold text-amber-300 flex items-center gap-2">
-                    <span>🪐</span> {txt("planetaryTableHeading")}
-                  </h3>
-                  <span className="text-xs text-slate-400">Lahiri Ayanamsa</span>
+            {/* ============================================================== */}
+            {/* TAB 2: DASHA & BHUKTI (INTERACTIVE ACCORDIONS + 2-LINE PREDICTIONS) */}
+            {/* ============================================================== */}
+            {activeTab === "dasha" && (
+              <div className="space-y-6 animate-fade-in">
+                {/* Active Running Dasha & Bhukti Card */}
+                <div className="bg-gradient-to-r from-slate-950 via-emerald-950/40 to-slate-950 border-2 border-emerald-500/50 rounded-3xl p-5 md:p-6 shadow-2xl">
+                  <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                    <div>
+                      <span className="text-[11px] uppercase tracking-wider text-emerald-400 font-bold block mb-1">
+                        {txt("dashaBadge")}
+                      </span>
+                      <h3 className="text-xl md:text-2xl font-black text-amber-300">
+                        {getLocalizedDashaBhukti(publicProfile.currentMahadasha, publicProfile.currentBhukti, selectedLang)}
+                      </h3>
+                      <p className="text-xs text-slate-300 mt-1">
+                        <span className="text-emerald-400 font-mono font-semibold">
+                          {publicProfile.dashaStartDateStr} → {publicProfile.dashaEndDateStr}
+                        </span>{" "}
+                        ({publicProfile.dashaStartAge} - {publicProfile.dashaEndAge} {txt("yearsLabel")})
+                      </p>
+                    </div>
+
+                    <div className="px-4 py-2 rounded-2xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-200 text-xs font-bold flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                      {txt("activeBhuktiBadge")}
+                    </div>
+                  </div>
                 </div>
 
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead>
-                    <tr className="border-b border-amber-500/30 text-amber-300 bg-slate-950/50">
-                      <th className="p-3">{txt("planetCol")}</th>
-                      <th className="p-3">{txt("rashiCol")}</th>
-                      <th className="p-3 text-center">{txt("degreeCol")}</th>
-                      <th className="p-3 text-center">{txt("houseCol")}</th>
-                      <th className="p-3">{txt("nakshatraCol")}</th>
-                      <th className="p-3 text-center">{txt("padaCol")}</th>
-                      <th className="p-3">{txt("lordCol")}</th>
-                      <th className="p-3 text-center">{txt("dignityCol")}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-800">
-                    {publicProfile.planetaryRows.map((row, idx) => (
-                      <tr
-                        key={idx}
-                        className={`hover:bg-slate-800/40 transition-colors ${
-                          row.name === "Lagna" ? "text-amber-300 font-bold bg-amber-500/5" : "text-slate-300"
-                        }`}
-                      >
-                        <td className="p-3 font-semibold">
-                          {row.name} {row.isRetrograde ? `(${txt("retrogradeLabel")})` : ""}
-                        </td>
-                        <td className="p-3">
-                          {row.rashi} ({row.sanskritRashi})
-                        </td>
-                        <td className="p-3 text-center font-mono text-amber-200/90">
-                          {row.degreeStr}
-                        </td>
-                        <td className="p-3 text-center font-bold text-amber-400">
-                          {row.house}
-                        </td>
-                        <td className="p-3">{row.nakshatra}</td>
-                        <td className="p-3 text-center">{row.pada}</td>
-                        <td className="p-3">{row.lord}</td>
-                        <td className="p-3 text-center">
-                          <span
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                              row.dignity === "Exalted"
-                                ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
-                                : row.dignity === "Debilitated"
-                                ? "bg-red-500/20 text-red-300 border border-red-500/30"
-                                : "bg-slate-800 text-slate-400"
-                            }`}
-                          >
-                            {row.dignity}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                {/* 120-Year Vimshottari Mahadashas with Expandable 9 Bhuktis Accordion */}
+                <div className="bg-slate-900 border border-amber-500/30 rounded-3xl p-5 md:p-8 shadow-2xl space-y-4">
+                  <div className="border-b border-amber-500/20 pb-3 flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-bold text-amber-300 flex items-center gap-2">
+                        <span>⏳</span> {txt("dashaTimelineHeading")}
+                      </h3>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        {txt("clickToExpandBhuktis")}
+                      </p>
+                    </div>
+                    <span className="text-xs text-emerald-400 font-semibold font-mono">
+                      120-Year Vimshottari
+                    </span>
+                  </div>
 
-                {/* House Lords Summary */}
-                <div className="bg-slate-950/80 border border-amber-500/20 rounded-2xl p-5 space-y-3">
-                  <h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider">
-                    🏛️ {txt("houseLordsSummaryTitle")}
-                  </h4>
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-xs">
-                    <div className="bg-slate-900 border border-slate-800 rounded-xl p-3">
-                      <span className="text-slate-400 block text-[10px]">{txt("lagnaLordTitle")}</span>
-                      <strong className="text-amber-300 text-sm">{publicProfile.lagnaLord}</strong>
-                    </div>
-                    <div className="bg-slate-900 border border-slate-800 rounded-xl p-3">
-                      <span className="text-slate-400 block text-[10px]">{txt("lord10Title")}</span>
-                      <strong className="text-amber-300 text-sm">{publicProfile.lord10}</strong>
-                    </div>
-                    <div className="bg-slate-900 border border-slate-800 rounded-xl p-3">
-                      <span className="text-slate-400 block text-[10px]">{txt("lord7Title")}</span>
-                      <strong className="text-amber-300 text-sm">{publicProfile.lord7}</strong>
-                    </div>
-                    <div className="bg-slate-900 border border-slate-800 rounded-xl p-3">
-                      <span className="text-slate-400 block text-[10px]">{txt("lord6Title")}</span>
-                      <strong className="text-amber-300 text-sm">{publicProfile.lord6}</strong>
-                    </div>
-                    <div className="bg-slate-900 border border-slate-800 rounded-xl p-3">
-                      <span className="text-slate-400 block text-[10px]">{txt("lord5Title")}</span>
-                      <strong className="text-amber-300 text-sm">{publicProfile.lord5}</strong>
-                    </div>
+                  <div className="space-y-3">
+                    {publicProfile.dashaTimelineRows.map((d, idx) => {
+                      const isExpanded = expandedMahaPlanet === d.planet;
+                      const isActiveMaha = d.status === "active";
+
+                      return (
+                        <div
+                          key={`${d.planet}_${d.startAge}_${idx}`}
+                          className={`border rounded-2xl transition-all overflow-hidden ${
+                            isActiveMaha
+                              ? "bg-slate-950/90 border-emerald-500/60 shadow-lg"
+                              : "bg-slate-950/60 border-slate-800 hover:border-amber-500/40"
+                          }`}
+                        >
+                          {/* Mahadasha Header Row */}
+                          <div
+                            onClick={() =>
+                              setExpandedMahaPlanet(isExpanded ? null : d.planet)
+                            }
+                            className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 cursor-pointer select-none"
+                          >
+                            <div className="flex items-center gap-3">
+                              <span
+                                className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm font-black ${
+                                  isActiveMaha
+                                    ? "bg-emerald-500 text-slate-950 font-bold"
+                                    : "bg-slate-800 text-amber-300"
+                                }`}
+                              >
+                                {isExpanded ? "▲" : "▼"}
+                              </span>
+                              <div>
+                                <h4 className="text-sm md:text-base font-extrabold text-amber-200">
+                                  {d.sanskritPlanet || d.planet}{" "}
+                                  {selectedLang === "kn" ? "ಮಹಾದಶಾ" : "Mahadasha"}
+                                </h4>
+                                <span className="text-xs text-slate-400 font-mono">
+                                  {d.durationYears} {txt("yearsLabel")} ({d.startAge} - {d.endAge})
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                              <span className="text-xs font-mono text-slate-400">
+                                {d.startDateStr} → {d.endDateStr}
+                              </span>
+                              <span
+                                className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                                  isActiveMaha
+                                    ? "bg-emerald-500 text-slate-950 shadow-sm"
+                                    : d.status === "completed"
+                                    ? "bg-slate-800 text-slate-400"
+                                    : "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                                }`}
+                              >
+                                {isActiveMaha
+                                  ? txt("activeDashaBadge")
+                                  : d.status === "completed"
+                                  ? txt("completedDashaBadge")
+                                  : txt("upcomingDashaBadge")}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Expandable 9 Bhuktis Accordion Panel */}
+                          {isExpanded && d.bhuktis && (
+                            <div className="bg-slate-900/90 border-t border-slate-800/80 p-3 md:p-4 space-y-3 animate-fade-in">
+                              <div className="text-[11px] font-bold uppercase tracking-wider text-amber-400/90 mb-2 px-1">
+                                {d.sanskritPlanet || d.planet}{" "}
+                                {selectedLang === "kn" ? "ಮಹಾದಶೆಯ ೯ ಭುಕ್ತಿಗಳು ಮತ್ತು ಫಲಗಳು" : "9 Bhuktis & Predictions"}
+                              </div>
+
+                              <div className="grid grid-cols-1 gap-2.5">
+                                {d.bhuktis.map((b) => {
+                                  const isCurrentBhukti = b.isActive;
+                                  const pred = b.predictions[selectedLang] || b.predictions.kn;
+
+                                  return (
+                                    <div
+                                      key={`${d.planet}_${b.bhuktiPlanet}_${b.startAge}`}
+                                      className={`rounded-xl p-3 border transition-all ${
+                                        isCurrentBhukti
+                                          ? "bg-emerald-950/40 border-emerald-400/60 shadow-md ring-1 ring-emerald-400/30"
+                                          : "bg-slate-950/70 border-slate-800/80 hover:border-slate-700"
+                                      }`}
+                                    >
+                                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-slate-800/60 pb-1.5 mb-2">
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-xs font-bold text-amber-300">
+                                            {b.bhuktiNameLocalized[selectedLang] || b.bhuktiNameLocalized.kn}
+                                          </span>
+                                          {isCurrentBhukti && (
+                                            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500 text-slate-950">
+                                              {txt("activeBhuktiBadge")}
+                                            </span>
+                                          )}
+                                        </div>
+                                        <div className="text-[11px] text-slate-400 font-mono">
+                                          {b.startDateStr} → {b.endDateStr} ({b.durationYears} {txt("yearsLabel")})
+                                        </div>
+                                      </div>
+
+                                      {/* 2-Line Dynamic Astrological Predictive Phrases */}
+                                      <div className="text-xs space-y-1.5">
+                                        <div className="flex items-start gap-1.5">
+                                          <span className="text-emerald-400 font-semibold min-w-[85px] text-[11px]">
+                                            {txt("bhuktiClimateHeader")}
+                                          </span>
+                                          <span className="text-slate-200 leading-relaxed">
+                                            {pred.climate}
+                                          </span>
+                                        </div>
+                                        <div className="flex items-start gap-1.5 pt-1 border-t border-slate-800/40">
+                                          <span className="text-amber-400 font-semibold min-w-[85px] text-[11px]">
+                                            {txt("bhuktiIssueHeader")}
+                                          </span>
+                                          <span className="text-amber-200/90 leading-relaxed">
+                                            {pred.issue}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
             )}
 
-            {/* TAB CONTENT 4: 120-YEAR DASHA TIMELINE */}
-            {activeTab === "dasha" && (
-              <div className="bg-slate-900 border border-amber-500/30 rounded-3xl p-6 md:p-8 shadow-2xl space-y-5 animate-fade-in overflow-x-auto">
-                <div className="border-b border-amber-500/20 pb-3 flex items-center justify-between">
-                  <h3 className="text-lg font-bold text-amber-300 flex items-center gap-2">
-                    <span>⏳</span> {txt("dashaTimelineHeading")}
-                  </h3>
-                  <span className="text-xs text-emerald-400 font-semibold">
-                    120-Year Vimshottari Cycle
-                  </span>
-                </div>
+            {/* ============================================================== */}
+            {/* TAB 3: PERSONALITY & HIDDEN PSYCHE (LOCKED WITH 1,000 COIN GATE)*/}
+            {/* ============================================================== */}
+            {activeTab === "personality" && (
+              <div className="space-y-6 animate-fade-in">
+                {!isPersonalityUnlocked ? (
+                  <div className="bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-amber-500/50 rounded-3xl p-6 md:p-10 shadow-2xl text-center space-y-5">
+                    <div className="w-20 h-20 rounded-full bg-amber-500/20 border-2 border-amber-400 flex items-center justify-center mx-auto text-4xl shadow-[0_0_30px_rgba(245,158,11,0.3)]">
+                      🔒
+                    </div>
+                    <div>
+                      <h3 className="text-xl md:text-2xl font-black text-amber-300">
+                        {txt("unlockPersonalityPromptTitle")}
+                      </h3>
+                      <p className="text-xs md:text-sm text-slate-300 mt-2 max-w-xl mx-auto leading-relaxed">
+                        {txt("unlockPersonalityPromptDesc")}
+                      </p>
+                    </div>
 
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead>
-                    <tr className="border-b border-amber-500/30 text-amber-300 bg-slate-950/50">
-                      <th className="p-3">{txt("thDashaLord")}</th>
-                      <th className="p-3 text-center">{txt("thDuration")}</th>
-                      <th className="p-3 text-center">{txt("thAgeRange")}</th>
-                      <th className="p-3 text-center">{txt("thDates")}</th>
-                      <th className="p-3 text-center">{txt("thActiveStatus")}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-800">
-                    {publicProfile.dashaTimelineRows.map((d, idx) => (
-                      <tr
-                        key={idx}
-                        className={`transition-colors ${
-                          d.status === "active"
-                            ? "bg-emerald-500/10 border-l-4 border-emerald-400 text-emerald-200 font-bold"
-                            : "text-slate-300 hover:bg-slate-800/40"
-                        }`}
+                    <div className="pt-3">
+                      <button
+                        type="button"
+                        onClick={() => setShowUnlockModal(true)}
+                        className="px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-black text-sm md:text-base shadow-[0_0_40px_rgba(245,158,11,0.4)] hover:scale-105 active:scale-95 transition-all inline-flex items-center gap-2"
                       >
-                        <td className="p-3 font-semibold">
-                          {d.planet} ({d.sanskritPlanet})
-                        </td>
-                        <td className="p-3 text-center">
-                          {d.durationYears} {txt("yearsLabel")}
-                        </td>
-                        <td className="p-3 text-center font-mono">
-                          {d.startAge} - {d.endAge}
-                        </td>
-                        <td className="p-3 text-center font-mono text-slate-400">
-                          {d.startDateStr} → {d.endDateStr}
-                        </td>
-                        <td className="p-3 text-center">
-                          <span
-                            className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                              d.status === "active"
-                                ? "bg-emerald-500 text-slate-950 shadow-sm"
-                                : d.status === "completed"
-                                ? "bg-slate-800 text-slate-500"
-                                : "bg-amber-500/20 text-amber-300 border border-amber-500/30"
-                            }`}
-                          >
-                            {d.status === "active"
-                              ? txt("activeDashaBadge")
-                              : d.status === "completed"
-                              ? txt("completedDashaBadge")
-                              : txt("upcomingDashaBadge")}
+                        <span>🪙</span>
+                        <span>{txt("unlockPersonalityConfirmBtn")}</span>
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  deepPersonalityData && (
+                    <div className="space-y-6 animate-fade-in">
+                      {/* Audio Narration Toolbar */}
+                      <div className="bg-gradient-to-r from-amber-950/80 via-slate-900 to-amber-950/80 border border-amber-500/40 rounded-3xl p-5 shadow-2xl backdrop-blur-md">
+                        <div className="flex flex-wrap items-center justify-between gap-4">
+                          <div className="space-y-0.5">
+                            <h3 className="text-sm md:text-base font-extrabold text-amber-300 flex items-center gap-2">
+                              <span>🎙️</span> {txt("astrologerDirectNarration")}
+                            </h3>
+                            <p className="text-[11px] text-amber-200/80">
+                              {isPlayingNarration ? txt("narrationPlayingBadge") : "Chief Astrologer Face-to-Face Voice Narration"}
+                            </p>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            {!isPlayingNarration ? (
+                              <button
+                                type="button"
+                                onClick={handlePlayNarration}
+                                className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-bold text-xs shadow-md transition-all flex items-center gap-1.5 active:scale-95"
+                              >
+                                <span>▶</span> {txt("narrationPlayBtn")}
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={handlePauseNarration}
+                                className="px-3.5 py-2 rounded-xl bg-amber-600 text-slate-950 font-bold text-xs shadow-md transition-all flex items-center gap-1.5"
+                              >
+                                <span>⏸</span> {txt("narrationPauseBtn")}
+                              </button>
+                            )}
+
+                            <button
+                              type="button"
+                              onClick={handleStopNarration}
+                              disabled={!isPlayingNarration && !isPausedNarration}
+                              className="px-3 py-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-bold text-xs border border-slate-700 disabled:opacity-40"
+                            >
+                              <span>⏹</span> {txt("narrationStopBtn")}
+                            </button>
+
+                            {/* Narration Speed Switcher */}
+                            <select
+                              value={narrationSpeed}
+                              onChange={(e) => setNarrationSpeed(parseFloat(e.target.value))}
+                              className="bg-slate-950 border border-amber-500/30 text-amber-300 text-xs rounded-xl px-2.5 py-2 focus:outline-none"
+                            >
+                              <option value={0.85}>0.85x</option>
+                              <option value={1.0}>1.0x</option>
+                              <option value={1.15}>1.15x</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Section 1: Lagna External Personality */}
+                      <div className="bg-slate-900/90 border border-amber-500/30 rounded-3xl p-6 md:p-8 shadow-2xl space-y-4">
+                        <div className="border-b border-amber-500/20 pb-3 flex items-center justify-between">
+                          <h4 className="text-base md:text-lg font-bold text-amber-300 flex items-center gap-2">
+                            <span>👤</span> {txt("personalityReadingTitle")}
+                          </h4>
+                          <span className="text-xs px-3 py-1 rounded-full bg-amber-500/10 text-amber-400 font-mono border border-amber-500/30">
+                            {deepPersonalityData.personality.title}
                           </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                        </div>
+                        <div className="space-y-3 text-xs md:text-sm text-slate-200 leading-relaxed text-justify">
+                          <p>{deepPersonalityData.personality.paragraph1}</p>
+                          <p>{deepPersonalityData.personality.paragraph2}</p>
+                        </div>
+                      </div>
+
+                      {/* Section 2: Moon Subconscious Mind & Secrets */}
+                      <div className="bg-slate-900/90 border border-amber-500/30 rounded-3xl p-6 md:p-8 shadow-2xl space-y-4">
+                        <div className="border-b border-amber-500/20 pb-3 flex items-center justify-between">
+                          <h4 className="text-base md:text-lg font-bold text-amber-300 flex items-center gap-2">
+                            <span>🌙</span> {txt("hiddenSecretsTitle")}
+                          </h4>
+                          <span className="text-xs px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-300 font-mono border border-indigo-500/30">
+                            {deepPersonalityData.hiddenSecrets.title}
+                          </span>
+                        </div>
+                        <div className="space-y-3 text-xs md:text-sm text-slate-200 leading-relaxed text-justify">
+                          <p>{deepPersonalityData.hiddenSecrets.paragraph1}</p>
+                          <p>{deepPersonalityData.hiddenSecrets.paragraph2}</p>
+                        </div>
+                      </div>
+
+                      {/* Section 3: Current Dasha & Gochara Climate */}
+                      <div className="bg-slate-900/90 border border-amber-500/30 rounded-3xl p-6 md:p-8 shadow-2xl space-y-4">
+                        <div className="border-b border-amber-500/20 pb-3 flex items-center justify-between">
+                          <h4 className="text-base md:text-lg font-bold text-amber-300 flex items-center gap-2">
+                            <span>⏳</span> {txt("currentDashaClimateTitle")}
+                          </h4>
+                          <span className="text-xs px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-300 font-mono border border-emerald-500/30">
+                            {deepPersonalityData.whyAstrology.title}
+                          </span>
+                        </div>
+                        <div className="space-y-3 text-xs md:text-sm text-slate-200 leading-relaxed text-justify">
+                          <p>{deepPersonalityData.whyAstrology.paragraph1}</p>
+                          <p>{deepPersonalityData.whyAstrology.paragraph2}</p>
+                        </div>
+                      </div>
+
+                      {/* Section 4: Devotee's Burning Inquest */}
+                      <div className="bg-slate-900/90 border border-amber-500/30 rounded-3xl p-6 md:p-8 shadow-2xl space-y-4">
+                        <div className="border-b border-amber-500/20 pb-3 flex items-center justify-between">
+                          <h4 className="text-base md:text-lg font-bold text-amber-300 flex items-center gap-2">
+                            <span>❓</span> {txt("whyConsultingTitle")}
+                          </h4>
+                          <span className="text-xs px-3 py-1 rounded-full bg-purple-500/10 text-purple-300 font-mono border border-purple-500/30">
+                            {deepPersonalityData.internalQuestions.title}
+                          </span>
+                        </div>
+                        <div className="space-y-3 text-xs md:text-sm text-slate-200 leading-relaxed text-justify">
+                          <p>{deepPersonalityData.internalQuestions.paragraph1}</p>
+                          <p>{deepPersonalityData.internalQuestions.paragraph2}</p>
+                        </div>
+                      </div>
+
+                      {/* Section 5: Maandi Karmic Shadow & Gokarna Remedy */}
+                      <div className="bg-slate-900/90 border border-red-500/30 rounded-3xl p-6 md:p-8 shadow-2xl space-y-4">
+                        <div className="border-b border-red-500/20 pb-3 flex items-center justify-between">
+                          <h4 className="text-base md:text-lg font-bold text-red-300 flex items-center gap-2">
+                            <span>🪐</span> {txt("maandiKarmicShadowTitle")}
+                          </h4>
+                          <span className="text-xs px-3 py-1 rounded-full bg-red-500/10 text-red-300 font-mono border border-red-500/30">
+                            {deepPersonalityData.maandiAnalysis.title}
+                          </span>
+                        </div>
+                        <div className="space-y-3 text-xs md:text-sm text-red-100/90 leading-relaxed text-justify">
+                          <p>{deepPersonalityData.maandiAnalysis.paragraph1}</p>
+                          <p>{deepPersonalityData.maandiAnalysis.paragraph2}</p>
+                        </div>
+                      </div>
+
+                      {/* Section 6: Dynamic Seed Questions */}
+                      <div className="bg-slate-900/90 border border-amber-500/30 rounded-3xl p-6 md:p-8 shadow-2xl space-y-4">
+                        <h4 className="text-sm md:text-base font-bold text-amber-300 flex items-center gap-2">
+                          <span>💬</span> {txt("sampleQuestionsLabel")}
+                        </h4>
+                        <div className="space-y-2">
+                          {deepPersonalityData.seedQuestions.map((sq, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => {
+                                setActiveTab("analysis");
+                                handleAskQuestion(undefined, sq);
+                              }}
+                              className="w-full text-left text-xs md:text-sm bg-slate-950 border border-slate-800 hover:border-amber-500/60 text-amber-200/90 hover:text-white p-3.5 rounded-2xl transition-all flex items-start gap-2.5 shadow-sm"
+                            >
+                              <span className="text-amber-400 font-bold">#{idx + 1}</span>
+                              <span>{sq}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                )}
               </div>
             )}
 
-            {/* TAB CONTENT 5: LIVE LIFE ANALYSIS & DEVOTEE Q&A */}
+            {/* TAB CONTENT: LIVE LIFE ANALYSIS & DEVOTEE Q&A (OPENED BY THE SINGLE ACTION BUTTON) */}
             {activeTab === "analysis" && (
               <div className="bg-slate-900 border-2 border-amber-500/50 rounded-3xl p-6 md:p-8 shadow-2xl backdrop-blur-md space-y-6 animate-fade-in relative overflow-hidden">
                 <div className="border-b border-amber-500/20 pb-4 flex items-center justify-between">
@@ -1466,164 +1825,71 @@ ${publicProfile.name}`;
                         </p>
                       </div>
 
-                      <div className="bg-gradient-to-r from-amber-950/70 via-slate-950 to-amber-950/70 border border-amber-500/40 rounded-2xl p-4 md:p-5 space-y-1">
+                      <div className="bg-gradient-to-r from-amber-950/40 via-slate-950 to-amber-950/40 border border-amber-500/40 rounded-2xl p-4 md:p-5 space-y-1">
                         <h4 className="text-xs font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
-                          <span>🪔</span> {txt("gokarnaRemedyTitle")}
+                          <span>🪔</span> {txt("gokarnaTempleRemedyTitle")}
                         </h4>
-                        <p className="text-xs md:text-sm text-amber-100/90 leading-relaxed font-medium">
+                        <p className="text-xs md:text-sm text-amber-100 leading-relaxed">
                           {liveAnalysisInsights.gokarnaRemedy}
                         </p>
-                      </div>
-
-                      {/* Devotee Live Q&A Box */}
-                      <div className="border-t border-amber-500/20 pt-6 space-y-4">
-                        <h4 className="text-sm md:text-base font-bold text-amber-300 flex items-center gap-2">
-                          <span>🎙️</span> {txt("askQuestionHeader")}
-                        </h4>
-
-                        <div className="space-y-1.5">
-                          <span className="text-[11px] text-slate-400 block">
-                            {txt("sampleQuestionsLabel")}
-                          </span>
-                          <div className="flex flex-wrap gap-2">
-                            {[txt("sampleQ1"), txt("sampleQ2"), txt("sampleQ3")].map((sq, idx) => (
-                              <button
-                                key={idx}
-                                type="button"
-                                onClick={() => handleAskQuestion(undefined, sq)}
-                                className="text-left text-xs bg-slate-950 border border-slate-800 hover:border-amber-500/50 text-amber-200/90 px-3 py-1.5 rounded-xl transition-all"
-                              >
-                                💬 {sq}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        <form onSubmit={(e) => handleAskQuestion(e)} className="flex items-center gap-2">
-                          <input
-                            type="text"
-                            value={userQuestion}
-                            onChange={(e) => setUserQuestion(e.target.value)}
-                            placeholder={isListening ? txt("voiceListening") : txt("questionPlaceholder")}
-                            className="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-xs md:text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-amber-400"
-                          />
-
-                          <button
-                            type="button"
-                            onClick={handleToggleVoiceDictation}
-                            title="Voice Input"
-                            className={`p-3 rounded-xl border transition-all ${
-                              isListening
-                                ? "bg-red-500 border-red-400 text-white animate-pulse"
-                                : "bg-slate-800 border-slate-700 text-amber-300 hover:bg-slate-700"
-                            }`}
-                          >
-                            🎤
-                          </button>
-
-                          <button
-                            type="submit"
-                            disabled={isAnsweringQuestion || !userQuestion.trim()}
-                            className={`px-5 py-3 rounded-xl font-bold text-xs md:text-sm transition-all ${
-                              isAnsweringQuestion || !userQuestion.trim()
-                                ? "bg-slate-800 text-slate-500 cursor-not-allowed"
-                                : "bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 hover:from-amber-400 hover:to-amber-500 font-extrabold shadow-md"
-                            }`}
-                          >
-                            {isAnsweringQuestion ? "⏳ ..." : txt("askBtn")}
-                          </button>
-                        </form>
-
-                        {qaHistory.length > 0 && (
-                          <div className="space-y-3 pt-3">
-                            {qaHistory.map((item, index) => (
-                              <div
-                                key={index}
-                                className="bg-slate-950/90 border border-slate-800 rounded-2xl p-4 space-y-2 animate-fade-in"
-                              >
-                                <div className="text-xs font-bold text-amber-400 flex items-center gap-2">
-                                  <span>👤</span> {item.question}
-                                </div>
-                                <div className="text-xs md:text-sm text-slate-200 leading-relaxed border-l-2 border-amber-500 pl-3">
-                                  {item.answer}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
                       </div>
                     </div>
                   )
                 )}
-              </div>
-            )}
 
-            {/* TAB CONTENT 6: PARIHARA & GOKARNA SEVAS */}
-            {activeTab === "remedies" && (
-              <div className="bg-slate-900 border border-amber-500/30 rounded-3xl p-6 md:p-8 shadow-2xl space-y-6 animate-fade-in">
-                <div className="border-b border-amber-500/20 pb-3">
-                  <h3 className="text-lg font-bold text-amber-300 flex items-center gap-2">
-                    <span>🪔</span> {txt("pariharaHeading")}
-                  </h3>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    Authentic Graha Parihara & Sri Kshetra Gokarna Mahabaleshwara Temple Sevas
-                  </p>
-                </div>
+                {/* Devotee Q&A Interactive Input */}
+                <div className="pt-4 border-t border-amber-500/20 space-y-4">
+                  <h4 className="text-sm md:text-base font-extrabold text-amber-300 flex items-center gap-2">
+                    <span>💬</span> {txt("askAstrologerInputLabel")}
+                  </h4>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-slate-950/80 border border-amber-500/20 rounded-2xl p-4 space-y-1">
-                    <span className="text-[10px] uppercase font-bold text-amber-400 tracking-wider block">
-                      💎 {txt("gemstoneLabel")}
-                    </span>
-                    <span className="text-sm font-extrabold text-slate-100">
-                      {publicProfile.gemstone}
-                    </span>
-                  </div>
+                  <form onSubmit={(e) => handleAskQuestion(e)} className="space-y-3">
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={userQuestion}
+                        onChange={(e) => setUserQuestion(e.target.value)}
+                        placeholder={txt("askAstrologerPlaceholder")}
+                        className="w-full bg-slate-950 border border-amber-500/40 rounded-2xl px-4 py-3.5 pr-24 text-xs md:text-sm text-amber-200 placeholder-slate-500 focus:outline-none focus:border-amber-400 shadow-inner"
+                      />
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={handleToggleVoiceDictation}
+                          className={`p-2 rounded-xl transition-all ${
+                            isListening ? "bg-red-500 text-white animate-pulse" : "bg-slate-800 text-amber-300 hover:bg-slate-700"
+                          }`}
+                          title={txt("micTitle")}
+                        >
+                          🎤
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={isAnsweringQuestion || !userQuestion.trim()}
+                          className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:bg-slate-800 disabled:text-slate-600 text-slate-950 font-bold text-xs shadow-md transition-all flex items-center gap-1"
+                        >
+                          {isAnsweringQuestion ? "..." : "➤"}
+                        </button>
+                      </div>
+                    </div>
+                  </form>
 
-                  <div className="bg-slate-950/80 border border-amber-500/20 rounded-2xl p-4 space-y-1">
-                    <span className="text-[10px] uppercase font-bold text-amber-400 tracking-wider block">
-                      📿 {txt("rudrakshaLabel")}
-                    </span>
-                    <span className="text-sm font-extrabold text-slate-100">
-                      {publicProfile.rudraksha}
-                    </span>
-                  </div>
-
-                  <div className="bg-slate-950/80 border border-amber-500/20 rounded-2xl p-4 space-y-1">
-                    <span className="text-[10px] uppercase font-bold text-amber-400 tracking-wider block">
-                      📅 {txt("auspiciousDayLabel")}
-                    </span>
-                    <span className="text-sm font-extrabold text-slate-100">
-                      {publicProfile.auspiciousDay}
-                    </span>
-                  </div>
-
-                  <div className="bg-slate-950/80 border border-amber-500/20 rounded-2xl p-4 space-y-1">
-                    <span className="text-[10px] uppercase font-bold text-amber-400 tracking-wider block">
-                      🕉️ {txt("deityLabel")}
-                    </span>
-                    <span className="text-sm font-extrabold text-slate-100">
-                      {publicProfile.deity}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="bg-slate-950/90 border border-amber-500/30 rounded-2xl p-5 space-y-2">
-                  <span className="text-xs uppercase font-bold text-amber-300 tracking-wider block">
-                    📜 {txt("mantraLabel")}
-                  </span>
-                  <p className="text-sm md:text-base font-serif text-amber-200 italic">
-                    "{publicProfile.mantra}"
-                  </p>
-                </div>
-
-                <div className="bg-gradient-to-r from-amber-950/60 via-slate-950 to-amber-950/60 border border-amber-500/40 rounded-2xl p-5 space-y-2">
-                  <span className="text-xs uppercase font-bold text-amber-300 tracking-wider block">
-                    🏛️ {txt("gokarnaSevaLabel")}
-                  </span>
-                  <p className="text-sm md:text-base font-extrabold text-amber-100">
-                    {publicProfile.gokarnaSevaName}
-                  </p>
+                  {/* Q&A Thread History */}
+                  {qaHistory.length > 0 && (
+                    <div className="space-y-3 pt-2">
+                      {qaHistory.map((item, idx) => (
+                        <div key={idx} className="bg-slate-950 border border-amber-500/20 rounded-2xl p-4 space-y-2">
+                          <div className="flex items-start gap-2 text-xs font-bold text-amber-400">
+                            <span>Q:</span>
+                            <span>{item.question}</span>
+                          </div>
+                          <div className="flex items-start gap-2 text-xs text-slate-200 pl-4 border-l-2 border-amber-500/40 leading-relaxed">
+                            <span>{item.answer}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -1730,7 +1996,46 @@ ${publicProfile.name}`;
             </div>
           </div>
         )}
-      </main>
+      
+      {/* ============================================================== */}
+      {/* CONFIRMATION MODAL: 1,000 COIN DEDUCTION FOR PERSONALITY TAB    */}
+      {/* ============================================================== */}
+      {showUnlockModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border-2 border-amber-500/60 rounded-3xl p-6 md:p-8 max-w-md w-full shadow-[0_0_50px_rgba(245,158,11,0.4)] text-center space-y-4 animate-scale-up">
+            <div className="w-16 h-16 rounded-full bg-amber-500/20 border border-amber-400/50 flex items-center justify-center mx-auto text-3xl">
+              🔒
+            </div>
+            <h3 className="text-lg md:text-xl font-black text-amber-300">
+              {txt("unlockPersonalityPromptTitle")}
+            </h3>
+            <p className="text-xs md:text-sm text-slate-300 leading-relaxed">
+              {selectedLang === "kn"
+                ? "ವ್ಯಕ್ತಿತ್ವ & ನಿಗೂಢ ರಹಸ್ಯ ಅನ್‌ಲಾಕ್ ಮಾಡಲು 1,000 ನಾಣ್ಯಗಳನ್ನು (Coins) ಕಡಿತಗೊಳಿಸಲಾಗುವುದು. ಮುಂದುವರಿಯಬೇಕೆ?"
+                : "Unlocking Personality & Hidden Secrets will deduct 1,000 Coins from your wallet. Do you wish to proceed?"}
+            </p>
+            <div className="pt-2 flex items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => setShowUnlockModal(false)}
+                className="px-5 py-2.5 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-bold transition-all"
+              >
+                {selectedLang === "kn" ? "ರದ್ದುಗೊಳಿಸಿ" : "Cancel"}
+              </button>
+              <button
+                type="button"
+                onClick={handleUnlockPersonality}
+                disabled={isUnlocking}
+                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-600 text-slate-950 hover:from-yellow-300 hover:to-amber-400 font-extrabold text-xs md:text-sm shadow-lg transition-all flex items-center gap-2"
+              >
+                {isUnlocking ? "ಅನ್‌ಲಾಕ್ ಆಗುತ್ತಿದೆ..." : "🪙 ಹೌದು, ಅನ್‌ಲಾಕ್ ಮಾಡಿ"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+    </main>
     </div>
   );
 }

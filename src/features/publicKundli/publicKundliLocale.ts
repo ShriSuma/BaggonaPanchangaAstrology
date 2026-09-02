@@ -191,21 +191,21 @@ export const T_PUBLIC_KUNDLI: Record<string, Record<PublicKundliLang, string>> =
     ta: "॥ ஸ்ரீ பக்கோண பஞ்சாங்க பிறப்பு ஜாதகம் ॥"
   },
   lagnaBadge: {
-    kn: "ಲಗ್ನ (Ascendant)",
+    kn: "ಲಗ್ನ",
     en: "Lagna (Ascendant)",
     hi: "लग्न",
     te: "లగ్నం",
     ta: "லக்னம்"
   },
   rashiBadge: {
-    kn: "ಚಂದ್ರ ರಾಶಿ (Moon Sign)",
+    kn: "ಚಂದ್ರ ರಾಶಿ",
     en: "Moon Sign (Rashi)",
     hi: "चन्द्र राशि",
     te: "చంద్ర రాశి",
     ta: "சந்திர ராசி"
   },
   nakshatraBadge: {
-    kn: "ಜನ್ಮ ನಕ್ಷತ್ರ (Nakshatra)",
+    kn: "ಜನ್ಮ ನಕ್ಷತ್ರ",
     en: "Birth Nakshatra",
     hi: "जन्म नक्षत्र",
     te: "జన్మ నక్షత్రం",
@@ -220,10 +220,136 @@ export const T_PUBLIC_KUNDLI: Record<string, Record<PublicKundliLang, string>> =
   },
   dashaBadge: {
     kn: "ಪ್ರಸ್ತುತ ಮಹಾದಶಾ & ಭುಕ್ತಿ",
-    en: "Current Running Dasha & Bhukti",
+    en: "Current Mahadasha & Bhukti",
     hi: "वर्तमान महादशा एवं भुक्ति",
-    te: "ప్రస్తుత నడుస్తున్న మహాదశ & భుక్తి",
-    ta: "தற்போதைய மகாதிசை மற்றும் புக்தி"
+    te: "ప్రస్తుత మహాదశ & భుక్తి",
+    ta: "தற்போதைய மகாதிசை & புக்தி"
+  },
+  bhuktiBadge: {
+    kn: "ಭುಕ್ತಿ",
+    en: "Bhukti",
+    hi: "भुक्ति",
+    te: "భుక్తి",
+    ta: "புக்தி"
+  },
+  doshaSectionTitle: {
+    kn: "ಜನ್ಮ ಕುಂಡಲಿ ಕರ್ಮ ದೋಷ ವಿಶ್ಲೇಷಣೆ & ಗೋಕರ್ಣ ಪರಿಹಾರ",
+    en: "Karmic Dosha Analysis & Sri Kshetra Gokarna Temple Parihara",
+    hi: "जन्म कुंडली कर्म दोष विश्लेषण एवं गोकर्ण परिहार",
+    te: "జన్మ కుండలి కర్మ దోష విశ్లేషణ & గోకర్ణ పరిహారం",
+    ta: "பிறப்பு ஜாதக கர்ம தோஷ பகுப்பாய்வு & கோகர்ண பரிகாரம்"
+  },
+  doshaDetectedBadge: {
+    kn: "ದೋಷ ಕಂಡುಬಂದಿದೆ",
+    en: "Dosha Detected",
+    hi: "दोष उपस्थित",
+    te: "దోషం గుర్తించబడింది",
+    ta: "தோஷம் உள்ளது"
+  },
+  doshaCleanBadge: {
+    kn: "ದೋಷವಿಲ್ಲ (ಶುಭ)",
+    en: "Clear (Auspicious)",
+    hi: "दोष मुक्त (शुभ)",
+    te: "దోషం లేదు (శుభం)",
+    ta: "தோஷம் இல்லை (சுபம்)"
+  },
+  priorityLabel: {
+    kn: "ಪ್ರಾಮುಖ್ಯತೆ",
+    en: "Priority",
+    hi: "प्राथमिकता",
+    te: "ప్రాధాన్యత",
+    ta: "முன்னுரிமை"
+  },
+  reasonLabel: {
+    kn: "ಜ್ಯೋತಿಷ್ಯ ಕಾರಣ",
+    en: "Astrological Reason",
+    hi: "ज्योतिषीय कारण",
+    te: "జ్యోతిష్య కారణం",
+    ta: "ஜோதிட காரணம்"
+  },
+  pariharaLabel: {
+    kn: "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಪರಿಹಾರ",
+    en: "Gokarna Temple Parihara",
+    hi: "गोकर्ण क्षेत्र परिहार",
+    te: "గోకర్ణ క్షేత్ర పరిహారం",
+    ta: "கோகர்ண பரிகாரம்"
+  },
+  highPriorityText: {
+    kn: "ಅತ್ಯಂತ ಅವಶ್ಯಕ (High Priority)",
+    en: "High Priority (Urgent)",
+    hi: "अति आवश्यक (उच्च प्राथमिकता)",
+    te: "అత్యంత అవసరం (High Priority)",
+    ta: "மிகவும் அவசியம் (High Priority)"
+  },
+  mediumPriorityText: {
+    kn: "ಮಧ್ಯಮ (Medium Priority)",
+    en: "Medium Priority",
+    hi: "मध्यम प्राथमिकता",
+    te: "మధ్యమ ప్రాధాన్యత",
+    ta: "நடுத்தர முன்னுரிமை"
+  },
+  cleanPriorityText: {
+    kn: "ಶುಭ (No Action Needed)",
+    en: "Auspicious (No Action Needed)",
+    hi: "शुभ (उपाय आवश्यक नहीं)",
+    te: "శుభం (పరిహారం అవసరం లేదు)",
+    ta: "சுபம் (பரிகாரம் தேவையில்லை)"
+  },
+  unlockPersonalityPromptTitle: {
+    kn: "🔒 ವ್ಯಕ್ತಿತ್ವ & ನಿಗೂಢ ರಹಸ್ಯ ಅನ್‌ಲಾಕ್ ಮಾಡಿ",
+    en: "🔒 Unlock Personality & Hidden Secrets",
+    hi: "🔒 व्यक्तित्व एवं गूढ़ रहस्य अनलॉक करें",
+    te: "🔒 వ్యక్తిత్వం & అంతరంగ రహస్యాలు అన్‌లాక్ చేయండి",
+    ta: "🔒 ஆளுமை & மறைக்கப்பட்ட ரகசியங்களை திறக்கவும்"
+  },
+  unlockPersonalityPromptDesc: {
+    kn: "ಈ ವಿಶೇಷ ವಿಭಾಗದಲ್ಲಿ ತಮ್ಮ ಸಹಜ ಸ್ವಭಾವ, ಅಂತರಂಗದ ನಿಗೂಢ ರಹಸ್ಯಗಳು, ಪ್ರಸ್ತುತ ಸಂದಿಗ್ಧತೆಗಳು ಹಾಗೂ ಮಾಂದಿ (ಗುಳಿಕ) ಪ್ರಭಾವದ ಮುಖಾಮುಖಿ ಜ್ಯೋತಿಷ್ಯ ಕಥನ ಮತ್ತು ಧ್ವನಿ ವಿವರಣೆ ಲಭ್ಯವಿದೆ.",
+    en: "Unlock in-depth face-to-face personality reading, subconscious secrets, burning questions, and Maandi karmic shadow with voice narration.",
+    hi: "गहन व्यक्तित्व विश्लेषण, अंतर्मन के गूढ़ रहस्य, वर्तमान जीवन मोड़ एवं मांदि कर्म प्रभाव का प्रत्यक्ष फलादेश अनलॉक करें।",
+    te: "వ్యక్తిత్వ విశ్లేషణ, అంతరంగ రహస్యాలు, ప్రస్తుత సందిగ్ధతలు మరియు మాంది కర్మ ప్రభావాన్ని అన్‌లాక్ చేయండి.",
+    ta: "ஆழ்ந்த ஆளுமை பகுப்பாய்வு, மறைக்கப்பட்ட ரகசியங்கள் மற்றும் மாந்தி கர்ம தாக்கத்தை திறக்கவும்."
+  },
+  unlockPersonalityConfirmBtn: {
+    kn: "🪙 1,000 Coins ನೀಡಿ ಅನ್‌ಲಾಕ್ ಮಾಡಿ (Unlock Now)",
+    en: "🪙 Unlock with 1,000 Coins (Unlock Now)",
+    hi: "🪙 1,000 Coins देकर अनलॉक करें",
+    te: "🪙 1,000 Coins చెల్లించి అన్‌లాక్ చేయండి",
+    ta: "🪙 1,000 Coins செலுத்தி திறக்கவும்"
+  },
+  personalityUnlockedBadge: {
+    kn: "🔓 ಅನ್‌ಲಾಕ್ ಆಗಿದೆ",
+    en: "🔓 Unlocked",
+    hi: "🔓 अनलॉक किया गया",
+    te: "🔓 అన్‌లాక్ చేయబడింది",
+    ta: "🔓 திறக்கப்பட்டது"
+  },
+  activeBhuktiBadge: {
+    kn: "⭐ ಪ್ರಸ್ತುತ ಸಕ್ರಿಯ ಭುಕ್ತಿ",
+    en: "⭐ Currently Active Bhukti",
+    hi: "⭐ वर्तमान सक्रिय भुक्ति",
+    te: "⭐ ప్రస్తుతం నడుస్తున్న భుక్తి",
+    ta: "⭐ தற்போது செயலில் உள்ள புக்தி"
+  },
+  clickToExpandBhuktis: {
+    kn: "೯ ಭುಕ್ತಿಗಳು & ಫಲಗಳನ್ನು ನೋಡಲು ಕ್ಲಿಕ್ ಮಾಡಿ",
+    en: "Click to expand 9 Bhuktis & 2-Line Predictions",
+    hi: "9 भुक्ति एवं फल देखने हेतु क्लिक करें",
+    te: "9 భుక్తులు మరియు ఫలితాలు చూడటానికి క్లిక్ చేయండి",
+    ta: "9 புக்திகள் & பலன்களைக் காண கிளிக் செய்யவும்"
+  },
+  bhuktiClimateHeader: {
+    kn: "ಜೀವನ ಸ್ಥಿತಿ & ಪ್ರಭಾವ:",
+    en: "Life Climate & Influences:",
+    hi: "जीवन स्थिति एवं प्रभाव:",
+    te: "జీవిత స్థితి & ప్రభావం:",
+    ta: "வாழ்க்கை நிலை & தாக்கம்:"
+  },
+  bhuktiIssueHeader: {
+    kn: "ಸಂಭಾವ್ಯ ಸವಾಲು & ಎಚ್ಚರಿಕೆ:",
+    en: "Potential Issues & Challenges:",
+    hi: "संभावित चुनौतियां एवं सावधानी:",
+    te: "సంభావ్య సవాళ్లు & హెచ్చరిక:",
+    ta: "சாத்தியமான சவால்கள் & எச்சரிக்கை:"
   },
   activeSpanLabel: {
     kn: "ಸಕ್ರಿಯ ಕಾಲಾವಧಿ",
@@ -263,11 +389,11 @@ export const T_PUBLIC_KUNDLI: Record<string, Record<PublicKundliLang, string>> =
     ta: "கிரக நிலை அட்டவணை"
   },
   tabDasha: {
-    kn: "೧೨೦ ವರ್ಷಗಳ ದಶಾ ಕಾಲಚಕ್ರ",
-    en: "120-Year Dasha Timeline",
-    hi: "120 वर्षीय दशा कालचक्र",
-    te: "120 సంవత్సరాల దశా కాలచక్రం",
-    ta: "120 வருட திசா காலச்சக்கரம்"
+    kn: "ದಶಾ & ಭುಕ್ತಿ ಕಾಲಚಕ್ರ",
+    en: "Dasha & Bhukti Timeline",
+    hi: "दशा एवं भुक्ति कालचक्र",
+    te: "దశా ಮತ್ತು భుక్తి కాలచక్రం",
+    ta: "திசா & புக்தி காலச்சக்கரம்"
   },
   tabAnalysis: {
     kn: "ನೇರ ಜೀವನ ವಿಶ್ಲೇಷಣೆ & ಪ್ರಶ್ನೋತ್ತರ",

@@ -10,6 +10,7 @@ import {
   findBhuktiAtAge,
   findMahadashaAtAge,
   generateDashaTimeline,
+  generateBhuktisInMahadasha,
   type DashaEntry
 } from "../../core/DashaBhuktiEngine";
 import { computeMaandi } from "../../core/MaandiEngine";
@@ -32,6 +33,28 @@ export interface PublicPlanetaryRow {
   isRetrograde: boolean;
 }
 
+export interface PublicBhuktiRow {
+  mahaPlanet: string;
+  bhuktiPlanet: string;
+  bhuktiNameLocalized: Record<PublicKundliLang, string>;
+  startAge: number;
+  endAge: number;
+  startDateStr: string;
+  endDateStr: string;
+  durationYears: number;
+  isActive: boolean;
+  predictions: Record<PublicKundliLang, { climate: string; issue: string }>;
+}
+
+export interface PublicKundliDoshaItem {
+  id: "pitru" | "kalasarpa" | "manglik" | "guruchandal";
+  name: Record<PublicKundliLang, string>;
+  isDetected: boolean;
+  priority: Record<PublicKundliLang, string>;
+  reason: Record<PublicKundliLang, string>;
+  gokarnaParihara: Record<PublicKundliLang, string>;
+}
+
 export interface PublicDashaRow {
   planet: string;
   sanskritPlanet: string;
@@ -41,6 +64,7 @@ export interface PublicDashaRow {
   endDateStr: string;
   durationYears: number;
   status: "active" | "completed" | "upcoming";
+  bhuktis: PublicBhuktiRow[];
 }
 
 export interface PublicPanchangaAttributes {
@@ -125,6 +149,7 @@ export interface PublicKundliProfile {
   planetaryRows: PublicPlanetaryRow[];
   dashaTimelineRows: PublicDashaRow[];
   panchangaAttributes: PublicPanchangaAttributes;
+  karmicDoshas: PublicKundliDoshaItem[];
   deepPersonality?: DeepPersonalityOutput;
   gemstone: string;
   rudraksha: string;
@@ -167,19 +192,68 @@ export const GRAHA_NAMES_5L: Record<string, Record<PublicKundliLang, string>> = 
 };
 
 export const RASHI_NAMES_5L: Record<string, Record<PublicKundliLang, string>> = {
-  Aries: { kn: "ಮೇಷ (Mesha)", en: "Aries", hi: "मेष", te: "మేషం", ta: "மேஷம்" },
-  Taurus: { kn: "ವೃಷಭ (Vrishabha)", en: "Taurus", hi: "वृषभ", te: "వృషభం", ta: "ரிஷபம்" },
-  Gemini: { kn: "ಮಿಥುನ (Mithuna)", en: "Gemini", hi: "मिथुन", te: "మిథునం", ta: "மிதுனம்" },
-  Cancer: { kn: "ಕರ್ಕಾಟಕ (Karkataka)", en: "Cancer", hi: "कर्क", te: "కర్కాటకం", ta: "கடகம்" },
-  Leo: { kn: "ಸಿಂಹ (Simha)", en: "Leo", hi: "सिंह", te: "సింహం", ta: "சிம்மம்" },
-  Virgo: { kn: "ಕನ್ಯಾ (Kanya)", en: "Virgo", hi: "कन्या", te: "కన్య", ta: "கன்னி" },
-  Libra: { kn: "ತುಲಾ (Tula)", en: "Libra", hi: "तुला", te: "తుల", ta: "துலாம்" },
-  Scorpio: { kn: "ವೃಶ್ಚಿಕ (Vrishchika)", en: "Scorpio", hi: "वृश्चिक", te: "వృశ్చికం", ta: "விருச்சிகம்" },
-  Sagittarius: { kn: "ಧನುಸ್ಸು (Dhanus)", en: "Sagittarius", hi: "धनु", te: "ధనుస్సు", ta: "தனுசு" },
-  Capricorn: { kn: "ಮಕರ (Makara)", en: "Capricorn", hi: "मकर", te: "మకరం", ta: "மகரம்" },
-  Aquarius: { kn: "ಕುಂಭ (Kumbha)", en: "Aquarius", hi: "कुम्भ", te: "కుంభం", ta: "கும்பம்" },
-  Pisces: { kn: "ಮೀನ (Meena)", en: "Pisces", hi: "मीन", te: "మీనం", ta: "மீனம்" }
+  Aries: { kn: "ಮೇಷ", en: "Aries", hi: "मेष", te: "మేషం", ta: "மேஷம்" },
+  Taurus: { kn: "ವೃಷಭ", en: "Taurus", hi: "वृषभ", te: "వృషభం", ta: "ரிஷபம்" },
+  Gemini: { kn: "ಮಿಥುನ", en: "Gemini", hi: "मिथुन", te: "మిథునం", ta: "மிதுனம்" },
+  Cancer: { kn: "ಕರ್ಕಾಟಕ", en: "Cancer", hi: "कर्क", te: "కర్కాటకం", ta: "கடகம்" },
+  Leo: { kn: "ಸಿಂಹ", en: "Leo", hi: "सिंह", te: "సింహం", ta: "சிம்மம்" },
+  Virgo: { kn: "ಕನ್ಯಾ", en: "Virgo", hi: "कन्या", te: "కన్య", ta: "கன்னி" },
+  Libra: { kn: "ತುಲಾ", en: "Libra", hi: "तुला", te: "తుల", ta: "துலாம்" },
+  Scorpio: { kn: "ವೃಶ್ಚಿಕ", en: "Scorpio", hi: "वृश्चिक", te: "వృశ్చికం", ta: "விருச்சிகம்" },
+  Sagittarius: { kn: "ಧನುಸ್ಸು", en: "Sagittarius", hi: "धनु", te: "ధనుస్సు", ta: "தனுசு" },
+  Capricorn: { kn: "ಮಕರ", en: "Capricorn", hi: "मकर", te: "మకరం", ta: "மகரம்" },
+  Aquarius: { kn: "ಕುಂಭ", en: "Aquarius", hi: "कुम्भ", te: "కుంభం", ta: "கும்பம்" },
+  Pisces: { kn: "ಮೀನ", en: "Pisces", hi: "मीन", te: "మీనం", ta: "மீனம்" }
 };
+
+export const NAKSHATRA_NAMES_5L: Record<string, Record<PublicKundliLang, string>> = {
+  Ashwini: { kn: "ಅಶ್ವಿನಿ", en: "Ashwini", hi: "अश्विनी", te: "అశ్విని", ta: "அசுவினி" },
+  Bharani: { kn: "ಭರಣಿ", en: "Bharani", hi: "भरणी", te: "భరణి", ta: "பரணி" },
+  Krittika: { kn: "ಕೃತ್ತಿಕಾ", en: "Krittika", hi: "कृत्तिका", te: "కృత్తిక", ta: "கார்த்திகை" },
+  Rohini: { kn: "ರೋಹಿಣಿ", en: "Rohini", hi: "रोहिणी", te: "రోహిణి", ta: "ரோகிணி" },
+  Mrigashira: { kn: "ಮೃಗಶಿರ", en: "Mrigashira", hi: "मृगशिरा", te: "మృగశిర", ta: "மிருகசீரிடம்" },
+  Ardra: { kn: "ಆರ್ದ್ರಾ", en: "Ardra", hi: "आर्द्रा", te: "ఆర్ద్ర", ta: "திருவாதிரை" },
+  Punarvasu: { kn: "ಪುನರ್ವಸು", en: "Punarvasu", hi: "पुनर्वसु", te: "పునర్వసు", ta: "புனர்பூசம்" },
+  Pushya: { kn: "ಪುಷ್ಯ", en: "Pushya", hi: "पुष्य", te: "పుష్యమి", ta: "பூசம்" },
+  Ashlesha: { kn: "ಆಶ್ಲೇಷಾ", en: "Ashlesha", hi: "ஆश्लेषा", te: "ఆశ్లేష", ta: "ஆயில்யம்" },
+  Magha: { kn: "ಮಘಾ", en: "Magha", hi: "मघा", te: "మఖ", ta: "மகம்" },
+  "Purva Phalguni": { kn: "ಪೂರ್ವ ಫಲ್ಗುಣಿ (ಪುಬ್ಬಾ)", en: "Purva Phalguni", hi: "पूर्वा फाल्गुनी", te: "పూర్వ ఫల్గుణి", ta: "பூரம்" },
+  "Uttara Phalguni": { kn: "ಉತ್ತರ ಫಲ್ಗುಣಿ (ಉತ್ತರಾ)", en: "Uttara Phalguni", hi: "उत्तरा फाल्गुनी", te: "ఉత్తర ఫల్గుణి", ta: "உத்திரம்" },
+  Hasta: { kn: "ಹಸ್ತ", en: "Hasta", hi: "हस्त", te: "హస్త", ta: "அஸ்தம்" },
+  Chitra: { kn: "ಚಿತ್ರಾ", en: "Chitra", hi: "चित्रा", te: "చిత్త", ta: "சித்திரை" },
+  Swati: { kn: "ಸ್ವಾತಿ", en: "Swati", hi: "स्वाति", te: "స్వాతి", ta: "சுவாதி" },
+  Vishakha: { kn: "ವಿಶಾಖಾ", en: "Vishakha", hi: "विशाखा", te: "విశాఖ", ta: "விசாகம்" },
+  Anuradha: { kn: "ಅನುರಾಧಾ", en: "Anuradha", hi: "अनुराधा", te: "అనూరాధ", ta: "அனுஷம்" },
+  Jyeshtha: { kn: "ಜ್ಯೇಷ್ಠಾ", en: "Jyeshtha", hi: "ज्येष्ठा", te: "జ్యేష్ఠ", ta: "கேட்டை" },
+  Mula: { kn: "ಮೂಲ", en: "Mula", hi: "मूल", te: "మూల", ta: "மூலம்" },
+  "Purva Ashadha": { kn: "ಪೂರ್ವಾಷಾಢ", en: "Purva Ashadha", hi: "पूर्वाषाढ़ा", te: "పూర్వాషాఢ", ta: "பூராடம்" },
+  "Uttara Ashadha": { kn: "ಉತ್ತರಾಷಾಢ", en: "Uttara Ashadha", hi: "उत्तराषाढ़ा", te: "ఉత్తరాషాఢ", ta: "உத்திராடம்" },
+  Shravana: { kn: "ಶ್ರವಣ", en: "Shravana", hi: "श्रवण", te: "శ్రవణం", ta: "திருவோணம்" },
+  Dhanishta: { kn: "ಧನಿಷ್ಠಾ", en: "Dhanishta", hi: "धनिष्ठा", te: "ధనిష్ఠ", ta: "அவிட்டம்" },
+  Shatabhisha: { kn: "ಶತಭಿಷಾ", en: "Shatabhisha", hi: "शतभिषा", te: "శతభిషం", ta: "சதயம்" },
+  "Purva Bhadrapada": { kn: "ಪೂರ್ವ ಭಾದ್ರಪದ", en: "Purva Bhadrapada", hi: "पूर्व भाद्रपद", te: "పూర్వాభాద్ర", ta: "பூரட்டாதி" },
+  "Uttara Bhadrapada": { kn: "ಉತ್ತರ ಭಾದ್ರಪದ", en: "Uttara Bhadrapada", hi: "उत्तर भाद्रपद", te: "ఉత్తరాభాద్ర", ta: "உத்திரட்டாதி" },
+  Revati: { kn: "ರೇವತಿ", en: "Revati", hi: "रेवती", te: "రేవతి", ta: "ரேவதி" }
+};
+
+export function getLocalizedRashiName(rashi: string, lang: PublicKundliLang): string {
+  return RASHI_NAMES_5L[rashi]?.[lang] || rashi;
+}
+
+export function getLocalizedNakshatraName(nakshatra: string, pada: number, lang: PublicKundliLang): string {
+  const nakName = NAKSHATRA_NAMES_5L[nakshatra]?.[lang] || nakshatra;
+  const padaWord = lang === "kn" ? "ಪಾದ" : lang === "hi" ? "चरण" : lang === "te" ? "పాదం" : lang === "ta" ? "பாதம்" : "Pada";
+  const knDigits = ["೦", "೧", "೨", "೩", "೪", "೫", "೬", "೭", "೮", "೯"];
+  const padaDisp = lang === "kn" && pada >= 0 && pada <= 9 ? knDigits[pada] : String(pada);
+  return `${nakName} (${padaWord} ${padaDisp})`;
+}
+
+export function getLocalizedDashaBhukti(maha: string, bhukti: string, lang: PublicKundliLang): string {
+  const mahaName = GRAHA_NAMES_5L[maha]?.[lang] || maha;
+  const bhuktiName = GRAHA_NAMES_5L[bhukti]?.[lang] || bhukti;
+  const bhuktiWord = lang === "kn" ? "ಭುಕ್ತಿ" : lang === "hi" ? "भुक्ति" : lang === "te" ? "భుక్తి" : lang === "ta" ? "புக்தி" : "Bhukti";
+  return `${mahaName} (${bhuktiName} ${bhuktiWord})`;
+}
 
 export function formatDegree(totalDeg: number): string {
   const norm = ((totalDeg % 30) + 30) % 30;
@@ -303,6 +377,331 @@ export function calculateGocharaClimate(moonRashiIdx: number) {
 /**
  * 100% Dynamic Public Kundli Profile Derivation
  */
+/**
+ * Generates dynamic 2-line climate and potential issues phrases for any Dasha-Bhukti pair
+ */
+export function generateDashaBhuktiPredictions(
+  mahaPlanet: string,
+  bhuktiPlanet: string,
+  kundli: KundliOutput,
+  isCurrent: boolean
+): Record<PublicKundliLang, { climate: string; issue: string }> {
+  const beneficSet = new Set(["Jupiter", "Venus", "Moon", "Mercury"]);
+  const isMahaBenefic = beneficSet.has(mahaPlanet);
+  const isBhuktiBenefic = beneficSet.has(bhuktiPlanet);
+
+  let climateKn = "";
+  let issueKn = "";
+  let climateEn = "";
+  let issueEn = "";
+  let climateHi = "";
+  let issueHi = "";
+  let climateTe = "";
+  let issueTe = "";
+  let climateTa = "";
+  let issueTa = "";
+
+  if (mahaPlanet === "Jupiter") {
+    if (bhuktiPlanet === "Saturn") {
+      climateKn = "ಗುರು-ಶನಿ ಸಂಯೋಗ: ವೃತ್ತಿ ಕ್ಷೇತ್ರದಲ್ಲಿ ಮಹತ್ವದ ಜವಾಬ್ದಾರಿಗಳು, ಆರ್ಥಿಕ ಸ್ಥಿರತೆ ಹಾಗೂ ಆಂತರಿಕ ಅಧ್ಯಾತ್ಮಿಕ ಪಕ್ವತೆ ಉಂಟಾಗುವ ಕಾಲಘಟ್ಟ.";
+      issueKn = "ಸಂಭಾವ್ಯ ಸವಾಲು: ಶನಿಯ ಕರ್ಮ ಪ್ರಭಾವದಿಂದ ಕೆಲಸಗಳಲ್ಲಿ ವಿಳಂಬ, ಜವಾಬ್ದಾರಿಗಳ ಮಾನಸಿಕ ಒತ್ತಡ; ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ರುದ್ರಾಭಿಷೇಕದಿಂದ ಶಾಂತಿ.";
+      climateEn = "Jupiter-Saturn alignment: Significant career consolidation, financial maturity, and spiritual contemplation.";
+      issueEn = "Potential issue: Work delays due to Saturnian weight, heavy familial obligations; Gokarna Rudrabhisheka ensures relief.";
+      climateHi = "गुरु-शनि प्रभाव: कार्यक्षेत्र में दायित्व, आर्थिक स्थिरता एवं आंतरिक आध्यात्मिक परिपक्वता।";
+      issueHi = "संभावित समस्या: शनि के प्रभाव से कार्यों में विलंब एवं तनाव; गोकर्ण रुद्राभिषेक से शांति।";
+      climateTe = "గురు-శని ప్రభావం: వృత్తిలో కీలక బాధ్యతలు, ఆర్థిక స్థిరత్వం మరియు ఆధ్యాత్మిక పరిపక్వత.";
+      issueTe = "సంభావ్య సమస్య: పనులలో జాప్యం మరియు మానసిక ఒత్తిడి; గోకర్ణ రుద్రాభిషేకంతో ఉపశమనం.";
+      climateTa = "குரு-சனி தாக்கம்: பணியிடத்தில் முக்கிய பொறுப்புகள், நிதி நிலைத்தன்மை மற்றும் ஆன்மீக வளர்ச்சி.";
+      issueTa = "சாத்தியமான சவால்: பணிகளில் தாமதம் மற்றும் மன அழுத்தம்; கோகர்ண ருத்ராபிஷேகம் அமைதி தரும்.";
+    } else if (bhuktiPlanet === "Jupiter") {
+      climateKn = "ಸ್ವ-ಗುರು ಭುಕ್ತಿ: ಜ್ಞಾನ ವೃದ್ಧಿ, ಭಾಗ್ಯೋದಯ, ನೂತನ ಶುಭಾರಂಭ ಹಾಗೂ ಗುರು-ಹಿರಿಯರ ದೈವಿಕ ಆಶೀರ್ವಾದ ಲಭಿಸುವ ಸುವರ್ಣ ಕಾಲ.";
+      issueKn = "ಸಂಭಾವ್ಯ ಸವಾಲು: ಅತಿಯಾದ ನಿರೀಕ್ಷೆಗಳು ಅಥವಾ ಧಾರ್ಮಿಕ ಅಹಂಭಾವದಿಂದ ಎಚ್ಚರ; ಜ್ಞಾನ ವಿನಯತೆ ಕಾಪಾಡಿಕೊಳ್ಳುವುದು ಅಗತ್ಯ.";
+      climateEn = "Swa-Jupiter Bhukti: Expansion of wisdom, spiritual elevation, auspicious beginnings, and divine blessings.";
+      issueEn = "Potential challenge: Guard against over-optimism or dogmatism; humility in decisions recommended.";
+      climateHi = "स्व-गुरु भुक्ति: ज्ञान में वृद्धि, भाग्योदय एवं शुभ कार्यों का श्रीगणेश।";
+      issueHi = "संभावित समस्या: अत्यधिक उम्मीदों से बचें; निर्णय में संतुलन रखें।";
+      climateTe = "స్వ-గురు భుక్తి: జ్ఞాన వృద్ధి, భాగ్యోదయం మరియు శుభకార్యాల ఆరంభం.";
+      issueTe = "సంభావ్య సమస్య: అతి ఆశావాదానికి దూరంగా ఉండండి.";
+      climateTa = "சுய-குரு புக்தி: ஞான வளர்ச்சி, பாக்கியோதயம் மற்றும் புதிய சுப காரியங்கள்.";
+      issueTa = "சாத்தியமான சவால்: அதீத எதிர்பார்ப்புகளைத் தவிர்க்கவும்.";
+    } else if (isBhuktiBenefic) {
+      const plKn = GRAHA_NAMES_5L[bhuktiPlanet]?.kn || bhuktiPlanet;
+      climateKn = `${plKn} ಶುಭ ಪ್ರಭಾವ: ಆರ್ಥಿಕ ಸಮೃದ್ಧಿ, ಸಮಾಜದಲ್ಲಿ ಗೌರವ, ಕೌಟುಂಬಿಕ ಸೌಖ್ಯ ಹಾಗೂ ಧನಾತ್ಮಕ ಚಿಂತನೆಗಳು.`;
+      issueKn = "ಸಂಭಾವ್ಯ ಸವಾಲು: ಸಣ್ಣಪುಟ್ಟ ನಿರ್ಲಕ್ಷ್ಯದಿಂದ ವೆಚ್ಚಗಳ ಹೆಚ್ಚಳ; ದೈವಿಕ ಧ್ಯಾನ ಮತ್ತು ಗೋಕರ್ಣ ದೇವತಾ ಪ್ರಾರ್ಥನೆ ಅಗತ್ಯ.";
+      climateEn = `Auspicious ${bhuktiPlanet} influence: Financial elevation, societal recognition, and family harmony.`;
+      issueEn = "Potential challenge: Casual spending spikes; temple prayers provide grounded stability.";
+      climateHi = `${bhuktiPlanet} का शुभ प्रभाव: आर्थिक उन्नति, मान-सम्मान एवं सकारात्मक विचार।`;
+      issueHi = "संभावित समस्या: खर्चों में वृद्धि; नियमित पूजा से लाभ होगा।";
+      climateTe = `${bhuktiPlanet} శుభ ప్రభావం: ఆర్థిక పురోగతి, సమాజంలో గౌరవం మరియు కుటుంబ శాంతి.`;
+      issueTe = "సంభావ్య సమస్య: ఖర్చులపై నియంత్రణ అవసరం.";
+      climateTa = `${bhuktiPlanet} சுப தாக்கம்: நிதி முன்னேற்றம் மற்றும் குடும்ப அமைதி.`;
+      issueTa = "சாத்தியமான சவால்: தேவையற்ற செலவுகளைக் கட்டுப்படுத்தவும்.";
+    } else {
+      const plKn = GRAHA_NAMES_5L[bhuktiPlanet]?.kn || bhuktiPlanet;
+      climateKn = `ಗುರು ಮಹಾದಶೆಯಲ್ಲಿ ${plKn} ಭುಕ್ತಿ: ಕಠಿಣ ಪರಿಶ್ರಮದಿಂದ ಯಶಸ್ಸು, ವೃತ್ತಿಪರ ಜವಾಬ್ದಾರಿಗಳ ಪರೀಕ್ಷೆ ಹಾಗೂ ಆಂತರಿಕ ಧೈರ್ಯ.`;
+      issueKn = `ಸಂಭಾವ್ಯ ಸವಾಲು: ಆತುರದ ನಿರ್ಧಾರಗಳು, ಆರೋಗ್ಯದ ಏರುಪೇರು ಅಥವಾ ತಾಳ್ಮೆಯ ಕೊರತೆ; ಗೋಕರ್ಣ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರನಿಗೆ ಕ್ಷೀರಾಭಿಷೇಕದಿಂದ ಶಾಂತಿ.`;
+      climateEn = `${bhuktiPlanet} in Jupiter Mahadasha: Success earned through persistence and professional endurance.`;
+      issueEn = `Potential challenge: Impulsive choices, health fluctuations, or fatigue; remedial worship alleviates pressure.`;
+      climateHi = `गुरु महादशा में ${bhuktiPlanet} भुक्ति: कठिन परिश्रम से सफलता एवं आंतरिक शक्ति।`;
+      issueHi = "संभावित समस्या: जल्दबाजी में लिए गए निर्णय से बचें; स्वास्थ्य का ध्यान रखें।";
+      climateTe = `గురు మహాదశలో ${bhuktiPlanet} భుక్తి: శ్రమతో విజయం మరియు ఆత్మవిశ్వాసం.`;
+      issueTe = "సంభావ్య సమస్య: తొందరపాటు నిర్ణయాలు మరియు అలసటపై జాగ్రత్త.";
+      climateTa = `குரு மகாதிசையில் ${bhuktiPlanet} புக்தி: விடாமுயற்சியால் வெற்றி மற்றும் தைரியம்.`;
+      issueTa = "சாத்தியமான சவால்: அவசர முடிவுகளைத் தவிர்க்கவும்.";
+    }
+  } else if (isMahaBenefic && isBhuktiBenefic) {
+    const mKn = GRAHA_NAMES_5L[mahaPlanet]?.kn || mahaPlanet;
+    const bKn = GRAHA_NAMES_5L[bhuktiPlanet]?.kn || bhuktiPlanet;
+    climateKn = `${mKn} - ${bKn} ಶುಭ ಯೋಗ: ಸೌಭಾಗ್ಯ ವೃದ್ಧಿ, ಆರ್ಥಿಕ ಪ್ರಗತಿ, ಬೌದ್ಧಿಕ ಯಶಸ್ಸು ಹಾಗೂ ಕುಟುಂಬದಲ್ಲಿ ಮಂಗಳ ಕಾರ್ಯಗಳು.`;
+    issueKn = "ಸಂಭಾವ್ಯ ಸವಾಲು: ಆಲಸ್ಯ ಅಥವಾ ಅತಿಯಾದ ಭೋಗಾಸಕ್ತಿಯಿಂದ ಸಮಯ ವ್ಯರ್ಥವಾಗದಂತೆ ಜಾಗರೂಕರಾಗಿರಿ.";
+    climateEn = `${mahaPlanet}-${bhuktiPlanet} Auspicious Synergy: Prosperity, mental clarity, financial elevation, and family blessings.`;
+    issueEn = "Potential challenge: Avoid complacency or overindulgence; maintain disciplined progress.";
+    climateHi = `${mahaPlanet}-${bhuktiPlanet} शुभ योग: सौभाग्य वृद्धि, आर्थिक उन्नति एवं पारिवारिक सुख।`;
+    issueHi = "संभावित समस्या: आलस्य से बचें; समय का सदुपयोग करें।";
+    climateTe = `${mahaPlanet}-${bhuktiPlanet} శుభ యోగం: సౌభాగ్య వృద్ధి, ఆర్థిక పురోగతి మరియు శుభకార్యాలు.`;
+    issueTe = "సంభావ్య సమస్య: బద్ధకం మరియు భోగాలకు దూరంగా ఉండండి.";
+    climateTa = `${mahaPlanet}-${bhuktiPlanet} சுப யோகம்: செழிப்பு மற்றும் குடும்ப சுப நிகழ்வுகள்.`;
+    issueTa = "சாத்தியமான சவால்: சோம்பலைத் தவிர்க்கவும்.";
+  } else if (!isMahaBenefic && !isBhuktiBenefic) {
+    const mKn = GRAHA_NAMES_5L[mahaPlanet]?.kn || mahaPlanet;
+    const bKn = GRAHA_NAMES_5L[bhuktiPlanet]?.kn || bhuktiPlanet;
+    climateKn = `${mKn} - ${bKn} ಕರ್ಮ ಪರೀಕ್ಷಾ ಕಾಲ: ತೀವ್ರ ಶಿಸ್ತು, ಕರ್ತವ್ಯ ನಿಷ್ಠೆ ಹಾಗೂ ಹಳೆಯ ಬಾಕಿ ಕರ್ಮಗಳ ತೀರುವಳಿ.`;
+    issueKn = "ಸಂಭಾವ್ಯ ಸವಾಲು: ಮಾನಸಿಕ ಆತಂಕ, ವಿವಾದಗಳು, ನಷ್ಟದ ಭೀತಿ ಅಥವಾ ಆರೋಗ್ಯ ಬಾಧೆ; ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ವಿಶೇಷ ಸಂಕಲ್ಪ ಶಾಂತಿ ಅತ್ಯಗತ್ಯ.";
+    climateEn = `${mahaPlanet}-${bhuktiPlanet} Karmic Testing Phase: Demands high discipline, perseverance, and resolution of karmic debts.`;
+    issueEn = "Potential challenge: Anxiety, disputes, financial delays, or vitality dips; Gokarna temple parihara provides vital sanctuary.";
+    climateHi = `${mahaPlanet}-${bhuktiPlanet} कर्म परीक्षा काल: कठोर अनुशासन एवं कर्तव्यनिष्ठा का समय।`;
+    issueHi = "संभावित समस्या: तनाव, विवाद एवं स्वास्थ्य समस्याएं; गोकर्ण पूजा से शांति।";
+    climateTe = `${mahaPlanet}-${bhuktiPlanet} కర్మ పరీక్షా కాలం: క్రమశిక్షణ, సహనం మరియు పాత కర్మ బంధాల విముక్తి.`;
+    issueTe = "సంభావ్య సమస్య: ఆందోళన, వివాదాలు; గోకర్ణంలో పూజలు అత్యవసరం.";
+    climateTa = `${mahaPlanet}-${bhuktiPlanet} கர்ம சோதனைக் காலம்: தீவிர ஒழுக்கம் மற்றும் பொறுமை தேவை.`;
+    issueTa = "சாத்தியமான சவால்: மனக்கவலை மற்றும் வாக்குவாதங்கள்; கோகர்ண பரிகாரம் நலம் தரும்.";
+  } else {
+    const mKn = GRAHA_NAMES_5L[mahaPlanet]?.kn || mahaPlanet;
+    const bKn = GRAHA_NAMES_5L[bhuktiPlanet]?.kn || bhuktiPlanet;
+    climateKn = `${mKn} - ${bKn} ಮಿಶ್ರ ಫಲಿತಾಂಶ: ಒಂದು ಕಡೆ ಪ್ರಗತಿ, ಇನ್ನೊಂದು ಕಡೆ ನೂತನ ಜವಾಬ್ದಾರಿಗಳ ಹೊಣೆಗಾರಿಕೆ.`;
+    issueKn = "ಸಂಭಾವ್ಯ ಸವಾಲು: ಅನಿರೀಕ್ಷಿತ ಅಡೆತಡೆಗಳು ಅಥವಾ ಆಪ್ತರೊಂದಿಗೆ ಭಿನ್ನಾಭಿಪ್ರಾಯ; ತಾಳ್ಮೆ ಮತ್ತು ಸತ್ಸಂಗದಿಂದ ಶಾಂತಿ ಸಾಧ್ಯ.";
+    climateEn = `${mahaPlanet}-${bhuktiPlanet} Mixed Phase: Notable progress accompanied by demanding responsibilities.`;
+    issueEn = "Potential challenge: Unforeseen hurdles or friction with peers; patience and measured speech required.";
+    climateHi = `${mahaPlanet}-${bhuktiPlanet} मिश्रित परिणाम: एक ओर प्रगति तो दूसरी ओर नए दायित्व।`;
+    issueHi = "संभावित समस्या: अप्रत्याशित बाधाएं; धैर्य से काम लें।";
+    climateTe = `${mahaPlanet}-${bhuktiPlanet} మిశ్రమ ఫలితాలు: అభివృద్ధి మరియు నూతన బాధ్యతల సమన్వయం.`;
+    issueTe = "సంభావ్య సమస్య: ఊహించని అడ్డంకులు; ఓర్పుతో వ్యవహరించండి.";
+    climateTa = `${mahaPlanet}-${bhuktiPlanet} கலவையான பலன்கள்: முன்னேற்றம் மற்றும் புதிய பொறுப்புகள்.`;
+    issueTa = "சாத்தியமான சவால்: எதிர்பாராத தடைகள்; பொறுமையுடன் கையாளவும்.";
+  }
+
+  return {
+    kn: { climate: climateKn, issue: issueKn },
+    en: { climate: climateEn, issue: issueEn },
+    hi: { climate: climateHi, issue: issueHi },
+    te: { climate: climateTe, issue: issueTe },
+    ta: { climate: climateTa, issue: issueTa }
+  };
+}
+
+/**
+ * Authentic Vedic Karmic Dosha Analyzer (Pitru, Kala Sarpa, Manglik, Guru Chandal)
+ */
+export function analyzeKundliDoshas(kundli: KundliOutput, lang: PublicKundliLang = "kn"): PublicKundliDoshaItem[] {
+  const doshas: PublicKundliDoshaItem[] = [];
+
+  const lagnaIdx = kundli.lagnaRashi?.index !== undefined ? kundli.lagnaRashi.index : 0;
+  const sun = kundli.planets.find((p) => p.name === "Sun");
+  const moon = kundli.planets.find((p) => p.name === "Moon");
+  const mars = kundli.planets.find((p) => p.name === "Mars");
+  const jupiter = kundli.planets.find((p) => p.name === "Jupiter");
+  const saturn = kundli.planets.find((p) => p.name === "Saturn");
+  const rahu = kundli.planets.find((p) => p.name === "Rahu");
+  const ketu = kundli.planets.find((p) => p.name === "Ketu");
+
+  const sunRashiIdx = sun?.rashi?.index ?? -1;
+  const rahuRashiIdx = rahu?.rashi?.index ?? -1;
+  const ketuRashiIdx = ketu?.rashi?.index ?? -1;
+  const saturnRashiIdx = saturn?.rashi?.index ?? -1;
+  const marsRashiIdx = mars?.rashi?.index ?? -1;
+  const jupiterRashiIdx = jupiter?.rashi?.index ?? -1;
+
+  // 1. Pitru Dosha
+  const house9RashiIdx = (lagnaIdx + 8) % 12;
+  const isSunWithRahuKetuSaturn = sunRashiIdx >= 0 && (sunRashiIdx === rahuRashiIdx || sunRashiIdx === ketuRashiIdx || sunRashiIdx === saturnRashiIdx);
+  const is9thHouseAfflicted = rahuRashiIdx === house9RashiIdx || ketuRashiIdx === house9RashiIdx || saturnRashiIdx === house9RashiIdx;
+  const isSunIn9th = sunRashiIdx === house9RashiIdx;
+  const isPitruDetected = isSunWithRahuKetuSaturn || is9thHouseAfflicted || (isSunIn9th && (saturnRashiIdx === house9RashiIdx || marsRashiIdx === house9RashiIdx));
+
+  doshas.push({
+    id: "pitru",
+    name: {
+      kn: "ಪಿತೃ ದೋಷ (Pitru Dosha)",
+      en: "Pitru Dosha (Ancestral Karmic Debt)",
+      hi: "पितृ दोष (Pitru Dosha)",
+      te: "పితృ దోషం (Pitru Dosha)",
+      ta: "பித்ரு தோஷம் (Pitru Dosha)"
+    },
+    isDetected: isPitruDetected,
+    priority: {
+      kn: isPitruDetected ? "ಅತ್ಯಂತ ಅವಶ್ಯಕ (High Priority)" : "ಶುಭ (No Action Needed)",
+      en: isPitruDetected ? "High Priority (Urgent)" : "Auspicious (Clean)",
+      hi: isPitruDetected ? "अति आवश्यक (उच्च प्राथमिकता)" : "शुभ",
+      te: isPitruDetected ? "అత్యంత అవసరం" : "శుభం",
+      ta: isPitruDetected ? "மிகவும் அவசியம்" : "சுபம்"
+    },
+    reason: {
+      kn: isPitruDetected
+        ? "ಸೂರ್ಯ ಗ್ರಹದ ಮೇಲೆ ರಾಹು/ಕೇತು/ಶನಿಯ ಯುತಿ ಅಥವಾ ೯ನೇ ಪಿತೃ ಸ್ಥಾನದಲ್ಲಿ ಪಾಪಗ್ರಹಗಳ ಪ್ರಭಾವ ಕಂಡುಬಂದಿದೆ."
+        : "೯ನೇ ಪಿತೃ ಭಾವ ಹಾಗೂ ಸೂರ್ಯ ಗ್ರಹ ಶುಭ ಸ್ಥಿತಿಯಲ್ಲಿದ್ದು ಪಿತೃ ದೋಷದ ಬಾಧೆ ಇಲ್ಲ.",
+      en: isPitruDetected
+        ? "Sun (Pitrukaraka) is afflicted by Rahu/Ketu/Saturn or the 9th ancestral house has malefic occupation."
+        : "The 9th ancestral house and Sun are auspiciously placed without malefic affliction.",
+      hi: isPitruDetected ? "सूर्य पर राहु/केतु/शनि का प्रभाव अथवा नवम भाव में पाप ग्रहों का प्रभाव पाया गया है।" : "नवम भाव एवं सूर्य शुभ स्थिति में हैं।",
+      te: isPitruDetected ? "సూర్యునిపై రాహు/కేతు/శని ప్రభావం లేదా 9వ స్థానంలో పాపగ్రహాల స్థితి గుర్తించబడింది." : "9వ స్థానం మరియు సూర్యుడు శుభంగా ఉన్నారు.",
+      ta: isPitruDetected ? "சூரியன் மீது ராகு/கேது/சனி சேர்க்கை அல்லது 9ஆம் வீட்டில் அசுப கிரக தாக்கம் காணப்படுகிறது." : "9ஆம் வீடு மற்றும் சூரியன் சுபமாக உள்ளனர்."
+    },
+    gokarnaParihara: {
+      kn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಪವಿತ್ರ ಕೋಟಿತೀರ್ಥ ಸನ್ನಿಧಿಯಲ್ಲಿ ನಾರಾಯಣ ಬಲಿ, ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ ಹಾಗೂ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಗೆ ಮಹಾರುದ್ರಾಭಿಷೇಕ ಸಂಕಲ್ಪ ಸೇವೆ ಕೈಗೊಳ್ಳುವುದು ಅತ್ಯಂತ ಫಲಪ್ರದ.",
+      en: "Perform sacred Narayana Bali, Tripindi Shraddha at Kotiteertha and Mahabaleshwara temple Mahaprarthana at Sri Kshetra Gokarna.",
+      hi: "श्री क्षेत्र गोकर्ण में कोटितीर्थ पर नारायण बलि, त्रिपिंडी श्राद्ध एवं महाबलेश्वर स्वामी को महारुद्राभिषेक कराएं।",
+      te: "శ్రీ క్షేత్ర గోకర్ణ కోటితీర్థంలో నారాయణ బలి, త్రిపిండి శ్రాద్ధం మరియు మహాబలేశ్వరునికి రుద్రాభిషేకం శ్రేయస్కరం.",
+      ta: "ஸ்ரீ க்ஷேத்ர கோகர்ண கோடிதீர்த்தத்தில் நாராயண பலி, திரிபிண்டி சிரார்த்தம் மற்றும் மகாபலேஸ்வரருக்கு ருத்ராபிஷேகம் செய்யவும்."
+    }
+  });
+
+  // 2. Kala Sarpa Dosha
+  let isKalaSarpa = false;
+  if (rahu && ketu) {
+    const rDeg = rahu.degree;
+    const kDeg = ketu.degree;
+    const minDeg = Math.min(rDeg, kDeg);
+    const maxDeg = Math.max(rDeg, kDeg);
+    const otherPlanets = kundli.planets.filter((p) => p.name !== "Rahu" && p.name !== "Ketu");
+    const allOneSide = otherPlanets.every((p) => p.degree >= minDeg && p.degree <= maxDeg);
+    const allOtherSide = otherPlanets.every((p) => p.degree < minDeg || p.degree > maxDeg);
+    isKalaSarpa = allOneSide || allOtherSide;
+  }
+
+  doshas.push({
+    id: "kalasarpa",
+    name: {
+      kn: "ಕಾಳಸರ್ಪ ಯೋಗ / ದೋಷ (Kala Sarpa)",
+      en: "Kala Sarpa Dosha / Yoga",
+      hi: "कालसर्प दोष",
+      te: "కాలసర్ప దోషం",
+      ta: "காலசர்ப்ப தோஷம்"
+    },
+    isDetected: isKalaSarpa,
+    priority: {
+      kn: isKalaSarpa ? "ಅತ್ಯಂತ ಅವಶ್ಯಕ (High Priority)" : "ಶುಭ (No Action Needed)",
+      en: isKalaSarpa ? "High Priority (Urgent)" : "Auspicious (Clean)",
+      hi: isKalaSarpa ? "अति आवश्यक" : "शुभ",
+      te: isKalaSarpa ? "అత్యంత అవసరం" : "శుభం",
+      ta: isKalaSarpa ? "மிகவும் அவசியம்" : "சுபம்"
+    },
+    reason: {
+      kn: isKalaSarpa
+        ? "ಸಕಲ ಸಪ್ತ ಗ್ರಹಗಳು ರಾಹು-ಕೇತುಗಳ ಅಕ್ಷದ ನಡುವೆ ನೆಲೆಸಿದ್ದು ಕಾಲಾನುಕಾಲಕ್ಕೆ ಕಾರ್ಯ ವಿಳಂಬ ತರಬಹುದು."
+        : "ಗ್ರಹಗಳು ರಾಹು-ಕೇತುಗಳ ಬಂಧನದಿಂದ ಮುಕ್ತವಾಗಿದ್ದು ಕಾಳಸರ್ಪ ದೋಷವಿಲ್ಲ.",
+      en: isKalaSarpa
+        ? "All seven classical planets are hemmed between the Rahu-Ketu nodal axis."
+        : "Planets are free from nodal axis confinement; no Kala Sarpa affliction.",
+      hi: isKalaSarpa ? "सभी सात ग्रह राहु-केतु अक्ष के मध्य स्थित हैं।" : "कुंडली कालसर्प दोष से मुक्त है।",
+      te: isKalaSarpa ? "సప్త గ్రహాలు రాహు-కేతువుల మధ్య బంధించబడి ఉన్నాయి." : "కాలసర్ప దోషం లేదు.",
+      ta: isKalaSarpa ? "அனைத்து கிரகங்களும் ராகு-கேது அச்சுகளுக்கு இடையே சிக்கியுள்ளன." : "காலசர்ப்ப தோஷம் இல்லை."
+    },
+    gokarnaParihara: {
+      kn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಸರ್ಪ ಸಂಸ್ಕಾರ, ನಾಗಪ್ರತಿಷ್ಠಾಪನೆ ಹಾಗೂ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ವಿಶೇಷ ಕ್ಷೀರಾಭಿಷೇಕ ಸಂಕಲ್ಪ ಸೇವೆ.",
+      en: "Perform Sarpa Samskara, Naga Pratishtha and special Ksheerabhisheka at Sri Kshetra Gokarna Mahabaleshwara temple.",
+      hi: "श्री क्षेत्र गोकर्ण में सर्प संस्कार, नाग प्रतिष्ठा एवं विशेष रुद्राभिषेक कराएं।",
+      te: "శ్రీ క్షేత్ర గోకర్ణంలో సర్ప సంస్కార, నాగ ప్రతిష్ఠాపన పూజలు నిర్వహించండి.",
+      ta: "ஸ்ரீ க்ஷேத்ர கோகர்ணத்தில் சர்ப்ப சமஸ்கார பூஜை மற்றும் நாக பிரதிஷ்டை செய்யவும்."
+    }
+  });
+
+  // 3. Manglik / Kuja Dosha
+  let isManglik = false;
+  let marsHouse = 1;
+  if (mars) {
+    marsHouse = ((marsRashiIdx - lagnaIdx + 12) % 12) + 1;
+    isManglik = [1, 2, 4, 7, 8, 12].includes(marsHouse);
+  }
+
+  doshas.push({
+    id: "manglik",
+    name: {
+      kn: "ಮಾಂಗಲ್ಯ / ಕುಜ ದೋಷ (Manglik / Kuja)",
+      en: "Manglik / Kuja Dosha",
+      hi: "मांगलिक / कुज दोष",
+      te: "మాంగళ్య / కుజ దోషం",
+      ta: "மாங்கல்ய / செவ்வாய் தோஷம்"
+    },
+    isDetected: isManglik,
+    priority: {
+      kn: isManglik ? "ಮಧ್ಯಮ (Medium Priority)" : "ಶುಭ (No Action Needed)",
+      en: isManglik ? "Medium Priority" : "Auspicious (Clean)",
+      hi: isManglik ? "मध्यम प्राथमिकता" : "शुभ",
+      te: isManglik ? "మధ్యమ ప్రాధాన్యత" : "శుభం",
+      ta: isManglik ? "நடுத்தர முன்னுரிமை" : "சுபம்"
+    },
+    reason: {
+      kn: isManglik
+        ? `ಕುಜ ಗ್ರಹವು ಜನ್ಮ ಲಗ್ನದಿಂದ ${marsHouse}ನೇ ಮನೆಯಲ್ಲಿ ಸ್ಥಿತನಾಗಿದ್ದು ವೈವಾಹಿಕ/ಸಾಂಸಾರಿಕ ವಿಚಾರದಲ್ಲಿ ಶಾಂತಿ ಅಪೇಕ್ಷಿಸುತ್ತದೆ.`
+        : "ಕುಜ ಗ್ರಹವು ಶುಭ ಸ್ಥಾನದಲ್ಲಿದ್ದು ಮಾಂಗಲ್ಯ ದೋಷದ ಬಾಧೆ ಇಲ್ಲ.",
+      en: isManglik
+        ? `Mars is positioned in house ${marsHouse} from Lagna, indicating marital / relational energetic intensity.`
+        : "Mars is comfortably placed; no Manglik affliction found.",
+      hi: isManglik ? `मंगल लग्न से ${marsHouse}वें भाव में स्थित है।` : "मंगल शुभ भाव में स्थित है।",
+      te: isManglik ? `కుజుడు లగ్నం నుండి ${marsHouse}వ స్థానంలో ఉన్నాడు.` : "కుజ దోషం లేదు.",
+      ta: isManglik ? `செவ்வாய் லக்னத்திலிருந்து ${marsHouse}ஆம் வீட்டில் உள்ளார்.` : "செவ்வாய் தோஷம் இல்லை."
+    },
+    gokarnaParihara: {
+      kn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಸುಬ್ರಹ್ಮಣ್ಯ ಶಾಂತಿ, ಮಂಗಳವಾರದ ವಿಶೇಷ ಕ್ಷೀರಾಭಿಷೇಕ ಹಾಗೂ ಕಲ್ಯಾಣೋತ್ಸವ ಸಂಕಲ್ಪ ಸೇವೆ.",
+      en: "Subramanya Shanti, Tuesday Ksheerabhisheka and Kalyana sankalpa seva at Sri Kshetra Gokarna.",
+      hi: "गोकर्ण क्षेत्र में सुब्रह्मण्य शांति एवं मंगलवार को विशेष क्षीराभिषेक कराएं।",
+      te: "గోకర్ణంలో సుబ్రహ్మణ్య శాంతి మరియు మంగళవారం క్షీరాభిషేకం జరిపించండి.",
+      ta: "கோகர்ணத்தில் சுப்பிரமணிய சாந்தி மற்றும் செவ்வாய்க்கிழமை சிறப்பு அபிஷேகம் செய்யவும்."
+    }
+  });
+
+  // 4. Guru Chandal Dosha
+  const isGuruChandal = jupiterRashiIdx >= 0 && rahuRashiIdx >= 0 && jupiterRashiIdx === rahuRashiIdx;
+  doshas.push({
+    id: "guruchandal",
+    name: {
+      kn: "ಗುರು ಚಾಂಡಾಲ ದೋಷ (Guru Chandal)",
+      en: "Guru Chandal Dosha",
+      hi: "गुरु चांडाल दोष",
+      te: "గురు చాండాల దోషం",
+      ta: "குரு சண்டாள தோஷம்"
+    },
+    isDetected: isGuruChandal,
+    priority: {
+      kn: isGuruChandal ? "ಮಧ್ಯಮ (Medium Priority)" : "ಶುಭ (No Action Needed)",
+      en: isGuruChandal ? "Medium Priority" : "Auspicious (Clean)",
+      hi: isGuruChandal ? "मध्यम" : "शुभ",
+      te: isGuruChandal ? "మధ్యమ" : "శుభం",
+      ta: isGuruChandal ? "நடுத்தர" : "சுபம்"
+    },
+    reason: {
+      kn: isGuruChandal
+        ? "ಗುರು ಮತ್ತು ರಾಹು ಒಂದೇ ರಾಶಿಯಲ್ಲಿ ಯುತಿ ಹೊಂದಿದ್ದು ನಿರ್ಧಾರ ತೆಗೆದುಕೊಳ್ಳುವಲ್ಲಿ ವಿವೇಕ ಮತ್ತು ಜಾಗರೂಕತೆ ಅಗತ್ಯ."
+        : "ಗುರು ಗ್ರಹವು ಶುಭವಾಗಿದ್ದು ಚಾಂಡಾಲ ದೋಷದ ಬಾಧೆ ಇಲ್ಲ.",
+      en: isGuruChandal
+        ? "Conjunction of Jupiter and Rahu in the same zodiac sign; disciplined spiritual guidance needed."
+        : "Jupiter is unhindered by Rahu; no Chandal affliction.",
+      hi: isGuruChandal ? "गुरु और राहु की युति एक ही राशि में स्थित है।" : "गुरु चांडाल दोष नहीं है।",
+      te: isGuruChandal ? "గురు మరియు రాహువు ఒకే రాశిలో కలిసి ఉన్నారు." : "గురు చాండాల దోషం లేదు.",
+      ta: isGuruChandal ? "குரு மற்றும் ராகு ஒரே ராசியில் இணைந்துள்ளனர்." : "குரு சண்டாள தோஷம் இல்லை."
+    },
+    gokarnaParihara: {
+      kn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಗುರು ಶಾಂತಿ, ಬ್ರಾಹ್ಮಣ ಭೋಜನ ಹಾಗೂ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಗೆ ತುಪ್ಪದ ದೀಪ ಸೇವೆ.",
+      en: "Perform Guru Shanti, Brahmana Anna Dana and Ghee lamp seva at Sri Kshetra Gokarna.",
+      hi: "श्री क्षेत्र गोकर्ण में गुरु शांति एवं घी का दीपदान कराएं।",
+      te: "గోకర్ణంలో గురు శాంతి మరియు నేతి దీపారాధన నిర్వహించండి.",
+      ta: "கோகர்ணத்தில் குரு சாந்தி மற்றும் நெய் தீப சேவை செய்யவும்."
+    }
+  });
+
+  return doshas;
+}
+
 export function calculatePublicKundliProfile(
   kundli: KundliOutput,
   birthDate: string,
@@ -426,7 +825,7 @@ export function calculatePublicKundliProfile(
     isRetrograde: false
   });
 
-  // 5. 120-Year Vimshottari Timeline
+  // 5. 120-Year Vimshottari Timeline with Expandable 9 Bhuktis & 2-Line Predictions
   const rawTimeline = generateDashaTimeline(kundli, 120);
   const dashaTimelineRows: PublicDashaRow[] = rawTimeline.map((item: DashaEntry) => {
     let status: "active" | "completed" | "upcoming" = "upcoming";
@@ -436,6 +835,40 @@ export function calculatePublicKundliProfile(
       status = "active";
     }
 
+    const rawBhuktis = generateBhuktisInMahadasha(item.planet as any, item.durationYears);
+    let bhuktiCumulativeAge = item.startAge;
+    const bhuktis: PublicBhuktiRow[] = rawBhuktis.map((b) => {
+      const bStartAge = Number(bhuktiCumulativeAge.toFixed(2));
+      bhuktiCumulativeAge += b.years;
+      const bEndAge = Number(bhuktiCumulativeAge.toFixed(2));
+      const bIsActive = ageYears >= bStartAge && ageYears < bEndAge;
+      const bStartDateStr = formatDateFromAge(birthDate, bStartAge);
+      const bEndDateStr = formatDateFromAge(birthDate, bEndAge);
+
+      const localizedNames: Record<PublicKundliLang, string> = {
+        kn: `${GRAHA_NAMES_5L[b.planet]?.kn || b.planet} ಭುಕ್ತಿ`,
+        en: `${b.planet} Bhukti`,
+        hi: `${GRAHA_NAMES_5L[b.planet]?.hi || b.planet} भुक्ति`,
+        te: `${GRAHA_NAMES_5L[b.planet]?.te || b.planet} భుక్తి`,
+        ta: `${GRAHA_NAMES_5L[b.planet]?.ta || b.planet} புக்தி`
+      };
+
+      const predictions = generateDashaBhuktiPredictions(item.planet, b.planet, kundli, bIsActive);
+
+      return {
+        mahaPlanet: item.planet,
+        bhuktiPlanet: b.planet,
+        bhuktiNameLocalized: localizedNames,
+        startAge: bStartAge,
+        endAge: bEndAge,
+        startDateStr: bStartDateStr,
+        endDateStr: bEndDateStr,
+        durationYears: Number(b.years.toFixed(2)),
+        isActive: bIsActive,
+        predictions
+      };
+    });
+
     return {
       planet: item.planet,
       sanskritPlanet: GRAHA_NAMES_5L[item.planet]?.kn || item.planet,
@@ -444,7 +877,8 @@ export function calculatePublicKundliProfile(
       startDateStr: formatDateFromAge(birthDate, item.startAge),
       endDateStr: formatDateFromAge(birthDate, item.endAge),
       durationYears: Number(item.durationYears.toFixed(1)),
-      status
+      status,
+      bhuktis
     };
   });
 
@@ -527,6 +961,7 @@ export function calculatePublicKundliProfile(
     planetaryRows,
     dashaTimelineRows,
     panchangaAttributes,
+    karmicDoshas: analyzeKundliDoshas(kundli, "kn"),
     ...remedies
   };
 
