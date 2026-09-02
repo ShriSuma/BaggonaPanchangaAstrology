@@ -1197,6 +1197,7 @@ ${publicProfile.name}`;
                     personName={form.name}
                     birthDate={birthDatePicker ? formatPickerDateLocalYmd(birthDatePicker) : form.birthDate}
                     birthTime={birthTimeHm}
+                    gothra={form.gothra}
                     lang={selectedLang}
                   />
                 </div>

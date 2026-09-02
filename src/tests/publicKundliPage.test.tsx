@@ -293,8 +293,15 @@ describe("Public Kundli & Live Astrology Analysis 100% Dynamic Engine Test Suite
       expect(screen.getByRole("button", { name: /⏳ ದಶಾ & ಭುಕ್ತಿ ಕಾಲಚಕ್ರ/i })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: /🔒 ವ್ಯಕ್ತಿತ್ವ & ನಿಗೂಢ ರಹಸ್ಯ \(1,000 Coins\)/i })).toBeInTheDocument();
 
-      // Tab 1 (Patrika) is default active: 8-Page Premium Dwadasha Bhava chart, Remedies with reasoning
+      // Tab 1 (Patrika) is default active: Jyotishya Saramsha table, Dwadasha Bhava chart, Remedies with reasoning
+      expect(screen.getByText(/ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಸಾರಾಂಶ/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/ಘಟಿ/i).length).toBeGreaterThanOrEqual(5);
       expect(screen.getAllByText(/ದ್ವಾದಶ ಭಾವ ಕುಂಡಲಿ/i).length).toBeGreaterThanOrEqual(1);
+
+      // Verify Center Box contains Devotee Name, Date, Time, Rashi, Nakshatra, Lagna
+      expect(screen.getAllByText(/Devotee Anant/i).length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText(/ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸಿದ್ಧ ರಕ್ಷೆ/i).length).toBeGreaterThanOrEqual(1);
+
       // Planetary placements table is removed per user instruction
       expect(screen.queryByText(/ಗ್ರಹ ಸ್ಥಿತಿ & ಅಂಶ ಕೋಷ್ಟಕ/i)).toBeNull();
       expect(screen.getByText(/ದೈವಿಕ ಪರಿಹಾರಗಳು & ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಸೇವೆಗಳು/i)).toBeInTheDocument();

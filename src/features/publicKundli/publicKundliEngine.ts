@@ -11,11 +11,15 @@ import {
   findMahadashaAtAge,
   generateDashaTimeline,
   generateBhuktisInMahadasha,
+  vimshottariBalanceAtBirth,
+  vimshottariBalanceYmdPatrika,
   type DashaEntry
 } from "../../core/DashaBhuktiEngine";
 import { computeMaandi } from "../../core/MaandiEngine";
 import { calculateTraditionalBaggona, type TraditionalBaggonaPanchanga } from "../../core/TraditionalBaggonaEngine";
 import { patrikaMetaForNakshatraIndex } from "../../core/nakshatraPatrikaMeta";
+import { degreeInSign } from "../../core/localeNumbers";
+import { RASHI_L5 } from "../seva/sevaLocale";
 import type { PublicKundliLang } from "./publicKundliLocale";
 
 export interface PublicPlanetaryRow {
@@ -165,6 +169,8 @@ export interface PublicKundliProfile {
   deityReason?: string;
   gokarnaSevaName: string;
   gokarnaSevaReason?: string;
+  traditionalPanchanga?: TraditionalBaggonaPanchanga | null;
+  dashaBalanceAtBirth?: { lord: string; years: number; months: number; days: number };
 }
 
 export interface DynamicLifeAnalysisOutput {
@@ -1002,19 +1008,33 @@ export function calculatePublicKundliProfile(
 
   const remedies = getRemediesForLagna(lagnaLord, currentMahadasha);
 
+  let dashaBalanceAtBirth: { lord: string; years: number; months: number; days: number } | undefined;
+  try {
+    const dashaBal = vimshottariBalanceAtBirth(kundli);
+    const ymd = vimshottariBalanceYmdPatrika(dashaBal.balanceYears);
+    dashaBalanceAtBirth = {
+      lord: dashaBal.lord,
+      years: ymd.y,
+      months: ymd.m,
+      days: ymd.d
+    };
+  } catch (err) {
+    console.warn("[PublicKundliEngine] dashaBalance fallback:", err);
+  }
+
   const profile: PublicKundliProfile = {
     name: "Devotee",
     birthDate,
     birthTime,
     ageYears: Number(ageYears.toFixed(1)),
     lagnaSign: kundli.lagnaRashi?.english || "Aries",
-    lagnaSanskrit: kundli.lagnaRashi?.sanskrit || "ಮೇಷ",
-    lagnaDegreeStr: formatDegree(ascDeg),
+    lagnaSanskrit: (RASHI_L5[kundli.lagnaRashi ? kundli.lagnaRashi.index : 0] as any)?.kn || "ಕರ್ಕಾಟಕ",
+    lagnaDegreeStr: formatDegree(degreeInSign(ascDeg)),
     lagnaNakshatra: lagnaNakObj.english,
     lagnaPada,
     lagnaLord,
     moonSign: kundli.moonSign?.english || "Aries",
-    moonSanskrit: kundli.moonSign?.sanskrit || "ಮೇಷ",
+    moonSanskrit: (RASHI_L5[kundli.moonSign ? kundli.moonSign.index : 0] as any)?.kn || "ಕನ್ಯಾ",
     moonNakshatra: moonNakName,
     moonPada,
     sunSign: kundli.sunSign?.english || "Aries",
@@ -1036,6 +1056,8 @@ export function calculatePublicKundliProfile(
     planetaryRows,
     dashaTimelineRows,
     panchangaAttributes,
+    traditionalPanchanga: tradPanchanga,
+    dashaBalanceAtBirth,
     karmicDoshas: analyzeKundliDoshas(kundli, "kn"),
     ...remedies
   };
