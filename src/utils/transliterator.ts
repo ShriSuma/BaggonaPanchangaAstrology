@@ -162,6 +162,74 @@ export function detectScript(text: string): "kn" | "hi" | "te" | "ta" | "en" {
   return "en";
 }
 
+/** Indic (Kannada, Devanagari, Telugu, Tamil) to Latin/English phonetic transliteration */
+export function transliterateIndicToLatin(text: string): string {
+  if (!text) return "";
+
+  // Common titles & prefixes
+  let s = text
+    .replace(/ಶ್ರೀರಾಮ್|ಶ್ರೀರಾಮ/g, "Shreeram ")
+    .replace(/ಶ್ರೀ/g, "Shree ")
+    .replace(/ಶ್ರೀಯುತ/g, "Shriyuta ")
+    .replace(/ಪಂಡಿತ್|ಪಂಡಿತ/g, "Pandit ")
+    .replace(/ಅರ್ಚಕ/g, "Archaka ")
+    .replace(/ಶಾಸ್ತ್ರಿ/g, "Shastri ")
+    .replace(/ಪೂಜಾರಿ/g, "Pujari ")
+    .replace(/ಭಟ್|ಭಟ್ಟ/g, "Bhat ")
+    .replace(/ಹೆಗ್ಡೆ/g, "Hegde ")
+    .replace(/ಜೋಶಿ/g, "Joshi ")
+    .replace(/ರಾವ್/g, "Rao ")
+    .replace(/ಗೌಡ/g, "Gowda ")
+    .replace(/ನಾಯಕ್|ನಾಯ್ಕ/g, "Nayak ")
+    .replace(/ಕುಮಾರ್/g, "Kumar ")
+    .replace(/ಶರ್ಮಾ/g, "Sharma ")
+    .replace(/ಮಂಜುನಾಥ್/g, "Manjunath ")
+    .replace(/ವೆಂಕಟೇಶ್/g, "Venkatesh ")
+    .replace(/ಗಜಾನನ/g, "Gajanana ")
+    .replace(/ಗೌತಮ್/g, "Gowtam ");
+
+  // Character mapping for Kannada Unicode (0x0C80 - 0x0CFF)
+  const knMap: Record<string, string> = {
+    // Vowels
+    "ಅ": "a", "ಆ": "aa", "ಇ": "i", "ಈ": "ee", "ಉ": "u", "ಊ": "oo", "ಋ": "ru",
+    "ಎ": "e", "ಏ": "e", "ಐ": "ai", "ಒ": "o", "ಓ": "o", "ಔ": "au", "ಅಂ": "am", "ಅಃ": "ah",
+    // Consonants (with default 'a' inherent vowel)
+    "ಕ": "ka", "ಖ": "kha", "ಗ": "ga", "ಘ": "gha", "ಙ": "nga",
+    "ಚ": "cha", "ಛ": "chha", "ಜ": "ja", "ಝ": "jha", "ಞ": "nya",
+    "ಟ": "ta", "ಠ": "tha", "ಡ": "da", "ಢ": "dha", "ಣ": "na",
+    "ತ": "ta", "ಥ": "tha", "ದ": "da", "ಧ": "dha", "ನ": "na",
+    "ಪ": "pa", "ಫ": "pha", "ಬ": "ba", "ಭ": "bha", "ಮ": "ma",
+    "ಯ": "ya", "ರ": "ra", "ಱ": "ra", "ಲ": "la", "ವ": "va",
+    "ಶ": "sha", "ಷ": "sha", "ಸ": "sa", "ಹ": "ha", "ಳ": "la",
+    // Matras (vowel signs) - replaces preceding 'a'
+    "ಾ": "aa", "ಿ": "i", "ೀ": "ee", "ು": "u", "ೂ": "oo", "ೃ": "ru",
+    "ೆ": "e", "ೇ": "e", "ೈ": "ai", "ೊ": "o", "ೋ": "o", "ೌ": "au",
+    "ಂ": "m", "ಃ": "h", "್": ""
+  };
+
+  let out = "";
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    if (ch === "್") {
+      // Halant removes the trailing 'a' of previous consonant
+      if (out.endsWith("a")) {
+        out = out.slice(0, -1);
+      }
+    } else if (["ಾ", "ಿ", "ೀ", "ು", "ೂ", "ೃ", "ೆ", "ೇ", "ೈ", "ೊ", "ೋ", "ೌ"].includes(ch)) {
+      if (out.endsWith("a")) {
+        out = out.slice(0, -1);
+      }
+      out += knMap[ch] || "";
+    } else if (knMap[ch] !== undefined) {
+      out += knMap[ch];
+    } else {
+      out += ch;
+    }
+  }
+
+  return out.replace(/\s+/g, " ").trim();
+}
+
 /**
  * Transliterates English/Indic names into the requested target language (kn, hi, te, ta, en).
  */
@@ -177,7 +245,7 @@ export function transliterateName(inputName: string, targetLang: string): string
   }
 
   if (langCode === "en") {
-    // If target is English and input is in Indic script, attempt reverse dictionary lookup
+    // 1. Direct whole-name reverse lookup
     const lowerWhole = nameTrimmed.toLowerCase();
     for (const map of Object.values(NAME_DICTIONARY)) {
       for (const val of Object.values(map)) {
@@ -186,7 +254,22 @@ export function transliterateName(inputName: string, targetLang: string): string
         }
       }
     }
-    return nameTrimmed;
+
+    // 2. Token-by-token reverse lookup
+    const words = nameTrimmed.split(/\s+/);
+    const translatedWords = words.map((word) => {
+      const wLower = word.toLowerCase();
+      for (const map of Object.values(NAME_DICTIONARY)) {
+        for (const val of Object.values(map)) {
+          if (val.toLowerCase() === wLower) {
+            return map.en || val;
+          }
+        }
+      }
+      return transliterateIndicToLatin(word);
+    });
+
+    return translatedWords.join(" ").trim();
   }
 
   const lowerWhole = nameTrimmed.toLowerCase();

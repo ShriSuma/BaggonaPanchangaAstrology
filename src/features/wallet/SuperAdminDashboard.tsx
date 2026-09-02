@@ -84,6 +84,8 @@ import {
 import type { SevaLang } from "../seva/sevaLocale";
 import { SarvamAiUsageGrid } from "../../components/audio/SarvamAiUsageGrid";
 import { VoiceDictationButton } from "../../components/ui/VoiceDictationButton";
+import { UserIdSuggestionChips } from "../../components/ui/UserIdSuggestionChips";
+import { generateSmartUserIdSuggestions } from "../../utils/userIdSuggestionEngine";
 
 export type AdminTab = "wallets" | "kundlis" | "ashirvada" | "audit" | "mindmap" | "panchanga_engine" | "voice_db";
 
@@ -1644,7 +1646,16 @@ export const SuperAdminDashboard: React.FC = () => {
                   <input
                     type="text"
                     value={newPriestName}
-                    onChange={(e) => setNewPriestName(e.target.value)}
+                    onChange={(e) => {
+                      const nameVal = e.target.value;
+                      setNewPriestName(nameVal);
+                      if (nameVal.trim()) {
+                        const suggestions = generateSmartUserIdSuggestions(nameVal, "priest");
+                        if (suggestions.length > 0 && (!newPriestUsername.trim() || newPriestUsername.startsWith("priest_") || newPriestUsername.startsWith("pandit_"))) {
+                          setNewPriestUsername(suggestions[0].id);
+                        }
+                      }
+                    }}
                     placeholder="ಉದಾ: ಶ್ರೀರಾಮ್ ಪಂಡಿತ್"
                     required
                     className="w-full pl-3.5 pr-9 py-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 text-xs font-bold focus:border-amber-500 focus:outline-none shadow-inner"
@@ -1653,9 +1664,11 @@ export const SuperAdminDashboard: React.FC = () => {
                     <VoiceDictationButton
                       onTranscript={(text) => {
                         setNewPriestName(text);
-                        if (!newPriestUsername.trim()) {
-                          const suggested = text.trim().toLowerCase().replace(/\s+/g, "_");
-                          setNewPriestUsername(`priest_${suggested}`);
+                        if (text.trim()) {
+                          const suggestions = generateSmartUserIdSuggestions(text, "priest");
+                          if (suggestions.length > 0) {
+                            setNewPriestUsername(suggestions[0].id);
+                          }
                         }
                       }}
                       tooltip="ಧ್ವನಿ ಮೂಲಕ ಪುರೋಹಿತರ ಹೆಸರು ನಮೂದಿಸಿ"
@@ -1742,6 +1755,18 @@ export const SuperAdminDashboard: React.FC = () => {
                   <span>{isCreatingPriest ? "ರಚಿಸಲಾಗುತ್ತಿದೆ..." : "ನೋಂದಾಯಿಸಿ & ಲಿಂಕ್ ಪಡೆಯಿರಿ"}</span>
                 </button>
               </div>
+
+              {/* Smart User ID Suggestion Chips Bar */}
+              {newPriestName.trim() && (
+                <div className="sm:col-span-2 lg:col-span-5 bg-gradient-to-r from-amber-50/90 via-amber-100/50 to-orange-50/90 border-2 border-amber-300/80 rounded-2xl p-3 shadow-inner">
+                  <UserIdSuggestionChips
+                    name={newPriestName}
+                    currentUserId={newPriestUsername}
+                    onSelectUserId={(id) => setNewPriestUsername(id)}
+                    role="priest"
+                  />
+                </div>
+              )}
 
               {/* Multi-Select Modules Selector */}
               <div className="sm:col-span-2 lg:col-span-5 bg-[#FEFCF4] border-2 border-amber-300 rounded-2xl p-3.5 space-y-2 mt-2">
