@@ -2,6 +2,7 @@ import React, { useState, useRef } from "react";
 import Card from "../components/ui/Card";
 import { executeMaranottaraCalculation, generateMaranottaraAIConsolation, MaranottaraResult, MasikaDurationYears } from "../features/maranottara/maranottaraEngine";
 import { T_MARANOTTARA, MaranottaraLang } from "../features/maranottara/maranottaraLocale";
+import { downloadMaranottaraIcsFile } from "../features/maranottara/maranottaraIcsGenerator";
 import { useAppStore } from "../stores/appStore";
 import { MaranottaraPdfTemplate } from "../components/maranottara/MaranottaraPdfTemplate";
 import { sanitizeAIText } from "../utils/textFormatter";
@@ -15,13 +16,13 @@ export const MaranottaraPage: React.FC = () => {
   const [selectedLang, setSelectedLang] = useState<MaranottaraLang>(
     ["kn", "en", "hi", "te", "ta"].includes(globalLang) ? globalLang : "kn"
   );
-  const isKn = selectedLang === "kn";
 
   const [personName, setPersonName] = useState<string>("");
   const [demiseDate, setDemiseDate] = useState<string>("");
   const [demiseTime, setDemiseTime] = useState<string>("");
   const [location, setLocation] = useState<string>("Gokarna, Karnataka");
   const [yearsCount, setYearsCount] = useState<MasikaDurationYears>(1);
+  const [filterYear, setFilterYear] = useState<number | "all">("all");
 
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [result, setResult] = useState<MaranottaraResult | null>(null);
@@ -33,17 +34,17 @@ export const MaranottaraPage: React.FC = () => {
 
   const resultsRef = useRef<HTMLDivElement>(null);
 
+  const t = (key: string): string => {
+    return T_MARANOTTARA[key]?.[selectedLang] || T_MARANOTTARA[key]?.kn || "";
+  };
+
   // Web Speech API Voice Recognition
   const handleMicToggle = (field: "name" | "place") => {
     const SpeechRecognition =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-      alert(
-        isKn
-          ? "ನಿಮ್ಮ ಬ್ರೌಸರ್ ಧ್ವನಿ ಇನ್‌ಪುಟ್ ಬೆಂಬಲಿಸುವುದಿಲ್ಲ. ದಯವಿಟ್ಟು ಟೈಪ್ ಮಾಡಿ."
-          : "Speech recognition is not supported in your browser. Please type your text."
-      );
+      alert(t("speechNotSupported"));
       return;
     }
 
@@ -101,8 +102,19 @@ export const MaranottaraPage: React.FC = () => {
     setIsProcessing(true);
 
     setTimeout(async () => {
+      const defaultName =
+        selectedLang === "kn"
+          ? "ಶ್ರೀಯುತ ಮೃತ ಆತ್ಮ"
+          : selectedLang === "hi"
+          ? "दिवंगत आत्मा"
+          : selectedLang === "te"
+          ? "దివంగత ఆత్మ"
+          : selectedLang === "ta"
+          ? "மறைந்த ஆன்மா"
+          : "Deceased Soul";
+
       const calcResult = executeMaranottaraCalculation({
-        personName: personName.trim() || (isKn ? "ಶ್ರೀಯುತ ಮೃತ ಆತ್ಮ" : "Deceased Soul"),
+        personName: personName.trim() || defaultName,
         demiseDate,
         demiseTime: demiseTime || undefined,
         location: location.trim() || "Gokarna, Karnataka",
@@ -115,6 +127,7 @@ export const MaranottaraPage: React.FC = () => {
       calcResult.aiConsolationText = aiText;
 
       setResult(calcResult);
+      setFilterYear("all");
       setIsProcessing(false);
 
       setTimeout(() => {
@@ -154,15 +167,28 @@ export const MaranottaraPage: React.FC = () => {
         pdf.addImage(imgData, "JPEG", 0, 0, 210, 297);
       }
 
-      const cleanName = (result.personName || "Soul").replace(/[^a-zA-Z0-9]/g, "_");
+      const cleanName = (result.personName || "Soul").replace(/[^a-zA-Z0-9_\u0C80-\u0CFF]/g, "_");
       pdf.save(`Baggona_Maranottara_Report_${cleanName}.pdf`);
     } catch (err) {
       console.error("PDF generation failed:", err);
-      alert(isKn ? "PDF ಡೌನ್‌ಲೋಡ್ ಮಾಡುವಾಗ ದೋಷ ಸಂಭವಿಸಿದೆ. ದಯವಿಟ್ಟು ಪುನಃ ಪ್ರಯತ್ನಿಸಿ." : "Failed to generate PDF report. Please try again.");
+      alert(t("pdfError"));
     } finally {
       setIsGeneratingPdf(false);
     }
   };
+
+  const handleDownloadIcs = () => {
+    if (!result) return;
+    downloadMaranottaraIcsFile(result, selectedLang);
+  };
+
+  // Filter Masika items based on selected year (if applicable)
+  const displayedMasikaSchedule =
+    result?.masikaSchedule.filter((item) => {
+      if (filterYear === "all") return true;
+      const yr = Math.ceil(item.monthIndex / 12);
+      return yr === filterYear;
+    }) || [];
 
   return (
     <div className="min-h-screen py-4 sm:py-6 px-3 sm:px-6 max-w-5xl mx-auto space-y-6 text-slate-900 dark:text-slate-100">
@@ -172,9 +198,9 @@ export const MaranottaraPage: React.FC = () => {
         <div className="relative z-10">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
             <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[11px] font-extrabold tracking-wider uppercase bg-amber-500/30 text-amber-200 border border-amber-400/50">
-              ॥ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿ ಧರ್ಮಶಾಸ್ತ್ರ ಪದ್ಧತಿ ॥
+              {t("sanctumTitle")}
             </span>
-            {/* Language Switcher */}
+            {/* 5-Language Switcher */}
             <div className="flex items-center gap-1 bg-black/60 p-1 rounded-2xl border border-amber-500/40 overflow-x-auto max-w-full">
               {(["kn", "en", "hi", "te", "ta"] as MaranottaraLang[]).map((l) => (
                 <button
@@ -194,16 +220,16 @@ export const MaranottaraPage: React.FC = () => {
           </div>
 
           <h1 className="text-xl sm:text-3xl font-black text-amber-200 tracking-tight leading-snug">
-            {T_MARANOTTARA.heroTitle[selectedLang]}
+            {t("heroTitle")}
           </h1>
           <p className="mt-2 text-xs sm:text-sm text-amber-100 max-w-3xl leading-relaxed font-medium">
-            {T_MARANOTTARA.heroSubtitle[selectedLang]}
+            {t("heroSubtitle")}
           </p>
 
           <div className="mt-4 flex flex-wrap items-center gap-2 sm:gap-4 text-[11px] sm:text-xs text-amber-300 font-bold">
-            <span className="bg-black/40 px-3 py-1 rounded-xl border border-amber-500/30">✓ ೧-೧೨ ದಿನಗಳ ಅಂತ್ಯೇಷ್ಟಿ ವಿಧಿ</span>
-            <span className="bg-black/40 px-3 py-1 rounded-xl border border-amber-500/30">✓ ೧ ರಿಂದ ೫ ವರ್ಷಗಳ ಮಾಸಿಕ ಕೋಷ್ಟಕ</span>
-            <span className="bg-black/40 px-3 py-1 rounded-xl border border-amber-500/30">✓ ಪಂಚಕ ದೋಷ & ಅಸ್ಥಿ ವಿಸರ್ಜನೆ</span>
+            <span className="bg-black/40 px-3 py-1 rounded-xl border border-amber-500/30">{t("pill1Antyesti")}</span>
+            <span className="bg-black/40 px-3 py-1 rounded-xl border border-amber-500/30">{t("pill2Masika")}</span>
+            <span className="bg-black/40 px-3 py-1 rounded-xl border border-amber-500/30">{t("pill3Panchaka")}</span>
           </div>
         </div>
       </div>
@@ -212,7 +238,7 @@ export const MaranottaraPage: React.FC = () => {
       <Card className="border-2 border-amber-300 dark:border-amber-500/40 bg-white dark:bg-slate-900 p-5 sm:p-7 shadow-2xl rounded-3xl">
         <h3 className="font-extrabold text-sm sm:text-base text-amber-950 dark:text-amber-300 mb-4 flex items-center gap-2 border-b-2 border-amber-100 dark:border-slate-800 pb-3">
           <span>🕯️</span>
-          <span>{isKn ? "ಮೃತರ ವಿವರಗಳು & ಮರಣ ಸನ್ನಿವೇಶ ಮಾಹಿತಿ" : "Enter Deceased Person & Demise Details"}</span>
+          <span>{t("formCardTitle")}</span>
         </h3>
 
         <form onSubmit={handleCalculate} className="space-y-4">
@@ -221,7 +247,7 @@ export const MaranottaraPage: React.FC = () => {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="block text-xs font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-300">
-                  {T_MARANOTTARA.formName[selectedLang]} *
+                  {t("formName")}
                 </label>
                 <button
                   type="button"
@@ -231,10 +257,10 @@ export const MaranottaraPage: React.FC = () => {
                       ? "bg-rose-600 text-white animate-pulse"
                       : "bg-amber-100 dark:bg-slate-800 text-amber-950 dark:text-amber-200 border border-amber-400 hover:bg-amber-200"
                   }`}
-                  title={isKn ? "ಧ್ವನಿ ಮೂಲಕ ಹೆಸರನ್ನು ಹೇಳಿ" : "Dictate name via mic"}
+                  title={t("dictateName")}
                 >
                   <span>{activeMicField === "name" ? "🔴" : "🎙️"}</span>
-                  <span>{activeMicField === "name" ? (isKn ? "ಆಲಿಸಲಾಗುತ್ತಿದೆ..." : "Listening...") : (isKn ? "ಧ್ವನಿ (Mic)" : "Mic")}</span>
+                  <span>{activeMicField === "name" ? t("listening") : t("mic")}</span>
                 </button>
               </div>
               <input
@@ -242,7 +268,7 @@ export const MaranottaraPage: React.FC = () => {
                 required
                 value={personName}
                 onChange={(e) => setPersonName(e.target.value)}
-                placeholder={isKn ? "ಉದಾ: ಶ್ರೀ ರಾಮಕೃಷ್ಣ ಭಟ್" : "e.g., Sri Ramakrishna Bhat"}
+                placeholder={t("namePlaceholder")}
                 className="w-full rounded-2xl border-2 border-amber-300 dark:border-slate-700 bg-amber-50/60 dark:bg-slate-800 px-4 py-3 text-sm font-semibold text-slate-950 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-amber-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none"
               />
             </div>
@@ -251,10 +277,10 @@ export const MaranottaraPage: React.FC = () => {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="block text-xs font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-300">
-                  {T_MARANOTTARA.formDobDeath[selectedLang]}
+                  {t("formDobDeath")}
                 </label>
                 <span className="text-[10px] px-2 py-0.5 rounded-md bg-amber-200/80 dark:bg-amber-900/60 text-amber-900 dark:text-amber-200 font-extrabold">
-                  IST (UTC+05:30)
+                  {t("istTimeBadge")}
                 </span>
               </div>
               <input
@@ -270,10 +296,10 @@ export const MaranottaraPage: React.FC = () => {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="block text-xs font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-300">
-                  {T_MARANOTTARA.formTimeDeath[selectedLang]}
+                  {t("formTimeDeath")}
                 </label>
                 <span className="text-[10px] text-amber-700 dark:text-amber-400 font-bold">
-                  {isKn ? "ಐಚ್ಛಿಕ (IST)" : "Optional (IST)"}
+                  {t("optionalTime")}
                 </span>
               </div>
               <input
@@ -283,7 +309,7 @@ export const MaranottaraPage: React.FC = () => {
                 className="w-full rounded-2xl border-2 border-amber-300 dark:border-slate-700 bg-amber-50/60 dark:bg-slate-800 px-4 py-3 text-sm font-semibold text-slate-950 dark:text-white focus:border-amber-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none"
               />
               <span className="text-[10px] text-amber-800 dark:text-amber-400 font-bold block mt-1">
-                {isKn ? "* ಸಮಯ ನೀಡಿದರೆ ಹಗಲು/ರಾತ್ರಿ ಸಂಧ್ಯಾ ದೋಷ ಗಣನೆ ಸಾಧ್ಯ." : "* Time enables precision Day/Night transition analysis."}
+                {t("timeHelper")}
               </span>
             </div>
 
@@ -291,7 +317,7 @@ export const MaranottaraPage: React.FC = () => {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="block text-xs font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-300">
-                  {T_MARANOTTARA.formPlace[selectedLang]}
+                  {t("formPlace")}
                 </label>
                 <button
                   type="button"
@@ -301,17 +327,17 @@ export const MaranottaraPage: React.FC = () => {
                       ? "bg-rose-600 text-white animate-pulse"
                       : "bg-amber-100 dark:bg-slate-800 text-amber-950 dark:text-amber-200 border border-amber-400 hover:bg-amber-200"
                   }`}
-                  title={isKn ? "ಧ್ವನಿ ಮೂಲಕ ಸ್ಥಳ ಹೇಳಿ" : "Dictate location via mic"}
+                  title={t("dictatePlace")}
                 >
                   <span>{activeMicField === "place" ? "🔴" : "🎙️"}</span>
-                  <span>{activeMicField === "place" ? (isKn ? "ಆಲಿಸಲಾಗುತ್ತಿದೆ..." : "Listening...") : (isKn ? "ಧ್ವನಿ (Mic)" : "Mic")}</span>
+                  <span>{activeMicField === "place" ? t("listening") : t("mic")}</span>
                 </button>
               </div>
               <input
                 type="text"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                placeholder="581326 (Gokarna)"
+                placeholder={t("placePlaceholder")}
                 className="w-full rounded-2xl border-2 border-amber-300 dark:border-slate-700 bg-amber-50/60 dark:bg-slate-800 px-4 py-3 text-sm font-semibold text-slate-950 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-amber-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none"
               />
             </div>
@@ -319,7 +345,7 @@ export const MaranottaraPage: React.FC = () => {
             {/* Duration Years Selection */}
             <div className="sm:col-span-2">
               <label className="block text-xs font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-300 mb-1.5">
-                {T_MARANOTTARA.formYears[selectedLang]}
+                {t("formYears")}
               </label>
               <div className="grid grid-cols-5 gap-2">
                 {([1, 2, 3, 4, 5] as MasikaDurationYears[]).map((y) => (
@@ -333,7 +359,7 @@ export const MaranottaraPage: React.FC = () => {
                         : "bg-amber-50/80 dark:bg-slate-800 text-amber-950 dark:text-amber-200 border-amber-300 dark:border-slate-700 hover:bg-amber-100"
                     }`}
                   >
-                    {y} {isKn ? "ವರ್ಷ" : "Yr"} ({y * 12}M)
+                    {y} {t("yearUnit")} ({y * 12}{t("monthUnit")})
                   </button>
                 ))}
               </div>
@@ -345,9 +371,9 @@ export const MaranottaraPage: React.FC = () => {
             <button
               type="submit"
               disabled={isProcessing || !demiseDate}
-              className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-black text-sm sm:text-base shadow-xl hover:shadow-2xl disabled:opacity-50 transition transform active:scale-95 border border-amber-400/40"
+              className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-black text-sm sm:text-base shadow-xl hover:shadow-2xl disabled:opacity-50 transition transform active:scale-95 border border-amber-400/40 cursor-pointer"
             >
-              {isProcessing ? (isKn ? "⌛ ಲೆಕ್ಕಾಚಾರ ನಡೆಯುತ್ತಿದೆ..." : "Calculating Blueprint...") : T_MARANOTTARA.submitBtn[selectedLang]}
+              {isProcessing ? t("calculatingBtn") : t("submitBtn")}
             </button>
           </div>
         </form>
@@ -369,7 +395,7 @@ export const MaranottaraPage: React.FC = () => {
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
               {result.aiConsolationText && (
                 <AudioPlayerButton
                   text={result.aiConsolationText}
@@ -377,13 +403,24 @@ export const MaranottaraPage: React.FC = () => {
                   className="px-4 py-3 bg-amber-500 hover:bg-amber-400 text-amber-950 font-black rounded-xl text-xs shadow-lg transition cursor-pointer"
                 />
               )}
+              {/* Priest .ICS Calendar Download Button */}
+              <button
+                type="button"
+                onClick={handleDownloadIcs}
+                className="px-4 py-3 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white text-xs font-black rounded-xl shadow-lg transition flex items-center justify-center gap-1.5 cursor-pointer border border-emerald-400/40"
+                title={t("downloadIcsBtn")}
+              >
+                <span>📅</span>
+                <span>{t("downloadIcsBtn")}</span>
+              </button>
+              {/* PDF Download Button */}
               <button
                 type="button"
                 onClick={handleDownloadPdf}
                 disabled={isGeneratingPdf}
-                className="w-full sm:w-auto px-5 py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white text-xs font-black rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer"
+                className="px-5 py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white text-xs font-black rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer"
               >
-                <span>{isGeneratingPdf ? (isKn ? "⌛ PDF ರಚನೆಯಾಗುತ್ತಿದೆ..." : "Generating PDF...") : T_MARANOTTARA.downloadPdfBtn[selectedLang]}</span>
+                <span>{isGeneratingPdf ? t("generatingPdfBtn") : t("downloadPdfBtn")}</span>
               </button>
             </div>
           </div>
@@ -391,20 +428,20 @@ export const MaranottaraPage: React.FC = () => {
           {/* Navigation Tabs Bar with touch scroll */}
           <div className="flex overflow-x-auto no-scrollbar gap-2 p-1.5 bg-slate-100 dark:bg-slate-800/90 rounded-2xl border border-amber-200/60 dark:border-slate-700">
             {[
-              { id: "schedule", label: T_MARANOTTARA.tabSchedule[selectedLang] },
-              { id: "antyesti", label: T_MARANOTTARA.tabAntyesti12Days[selectedLang] },
-              { id: "dosha", label: T_MARANOTTARA.tabDoshaShanti[selectedLang] },
-              { id: "asthi", label: T_MARANOTTARA.tabAsthiVisarjana[selectedLang] },
-              { id: "garuda", label: T_MARANOTTARA.tabGarudaPurana[selectedLang] },
-              { id: "mahalaya", label: T_MARANOTTARA.tabMahalayaTarpana[selectedLang] },
-              { id: "gokarna", label: T_MARANOTTARA.tabGokarnaSevas[selectedLang] },
-              { id: "consolation", label: T_MARANOTTARA.tabAiConsolation[selectedLang] }
+              { id: "schedule", label: t("tabSchedule") },
+              { id: "antyesti", label: t("tabAntyesti12Days") },
+              { id: "dosha", label: t("tabDoshaShanti") },
+              { id: "asthi", label: t("tabAsthiVisarjana") },
+              { id: "garuda", label: t("tabGarudaPurana") },
+              { id: "mahalaya", label: t("tabMahalayaTarpana") },
+              { id: "gokarna", label: t("tabGokarnaSevas") },
+              { id: "consolation", label: t("tabAiConsolation") }
             ].map((tab) => (
               <button
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`px-3.5 py-2.5 text-xs font-extrabold rounded-xl whitespace-nowrap transition-all ${
+                className={`px-3.5 py-2.5 text-xs font-extrabold rounded-xl whitespace-nowrap transition-all cursor-pointer ${
                   activeTab === tab.id
                     ? "bg-amber-500 text-white shadow-lg font-black"
                     : "bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:bg-amber-50 dark:hover:bg-slate-700"
@@ -418,23 +455,67 @@ export const MaranottaraPage: React.FC = () => {
           {/* TAB 1: Masika Schedule Grid */}
           {activeTab === "schedule" && (
             <Card className="border-2 border-amber-300 dark:border-amber-500/40 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-xl rounded-3xl space-y-5">
-              <div className="flex items-center justify-between border-b-2 border-amber-100 dark:border-slate-800 pb-3">
-                <h3 className="text-base font-black text-amber-950 dark:text-amber-300 flex items-center gap-2">
-                  <span>📅</span>
-                  <span>{isKn ? `ಮೃತರ ಶ್ರಾದ್ಧ ಮಾಸಿಕ ಕೋಷ್ಟಕ (${result.yearsCount} ವರ್ಷಗಳು)` : `Monthly Masika Schedule (${result.yearsCount} Years)`}</span>
-                </h3>
-                <div className="rounded-full bg-amber-100 dark:bg-amber-950 border border-amber-300 dark:border-amber-700 px-3 py-1 text-xs font-black text-amber-900 dark:text-amber-200">
-                  {result.demiseTithi[selectedLang] || result.demiseTithi.kn} · {result.demisePaksha[selectedLang] || result.demisePaksha.kn}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-2 border-amber-100 dark:border-slate-800 pb-3">
+                <div>
+                  <h3 className="text-base font-black text-amber-950 dark:text-amber-300 flex items-center gap-2">
+                    <span>📅</span>
+                    <span>{t("scheduleHeading")} ({result.yearsCount} {t("yearUnit")})</span>
+                  </h3>
+                  <p className="text-xs text-amber-800 dark:text-amber-400 font-medium mt-0.5">
+                    {result.demiseTithi[selectedLang] || result.demiseTithi.kn} · {result.demisePaksha[selectedLang] || result.demisePaksha.kn}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleDownloadIcs}
+                    className="px-3.5 py-2 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <span>📅</span>
+                    <span>{t("downloadIcsBtn")}</span>
+                  </button>
                 </div>
               </div>
 
+              {/* Multi-Year Sub-Filter if yearsCount > 1 */}
+              {result.yearsCount > 1 && (
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+                  <button
+                    type="button"
+                    onClick={() => setFilterYear("all")}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+                      filterYear === "all"
+                        ? "bg-amber-600 text-white font-extrabold shadow"
+                        : "bg-amber-50 dark:bg-slate-800 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-slate-700"
+                    }`}
+                  >
+                    {t("allYears")} ({result.masikaSchedule.length}M)
+                  </button>
+                  {Array.from({ length: result.yearsCount }, (_, i) => i + 1).map((yr) => (
+                    <button
+                      key={yr}
+                      type="button"
+                      onClick={() => setFilterYear(yr)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap ${
+                        filterYear === yr
+                          ? "bg-amber-600 text-white font-extrabold shadow"
+                          : "bg-amber-50 dark:bg-slate-800 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-slate-700"
+                      }`}
+                    >
+                      {t("yearLabel")} {yr} (M{(yr - 1) * 12 + 1} - M{yr * 12})
+                    </button>
+                  ))}
+                </div>
+              )}
+
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {result.masikaSchedule.map((item) => (
+                {displayedMasikaSchedule.map((item) => (
                   <div
                     key={item.monthIndex}
                     className={`rounded-2xl p-4 border-2 transition ${
                       item.isVarshikaShraddha
-                        ? "bg-amber-100/80 dark:bg-amber-950/60 border-amber-400 dark:border-amber-600 shadow-md"
+                        ? "bg-amber-100/90 dark:bg-amber-950/70 border-amber-500 dark:border-amber-500 shadow-md ring-2 ring-amber-400/30"
                         : item.isSpecialMilestone
                         ? "bg-amber-50/70 dark:bg-slate-800/80 border-amber-300 dark:border-slate-700 shadow-sm"
                         : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 shadow-sm"
@@ -451,9 +532,21 @@ export const MaranottaraPage: React.FC = () => {
                       <span className="text-xs font-bold text-amber-700 dark:text-amber-400">({item.dayOfWeek[selectedLang] || item.dayOfWeek.kn})</span>
                     </div>
 
+                    {item.aparahnaWindow && (
+                      <div className="text-[11px] font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800 my-1">
+                        ⏳ {selectedLang === "kn" ? "ಅಪರಾಹ್ನ ಕಾಲ:" : "Aparahna Window:"} {item.aparahnaWindow}
+                      </div>
+                    )}
+
                     <div className="text-xs text-slate-800 dark:text-slate-200 font-semibold space-y-0.5 mt-2">
-                      <div><strong>{isKn ? "ತಿಥಿ:" : "Tithi:"}</strong> {item.tithiName[selectedLang] || item.tithiName.kn}</div>
-                      <div><strong>{isKn ? "ಪಕ್ಷ:" : "Paksha:"}</strong> {item.paksha[selectedLang] || item.paksha.kn}</div>
+                      <div>
+                        <strong>{selectedLang === "kn" ? "ತಿಥಿ:" : selectedLang === "hi" ? "तिथि:" : selectedLang === "te" ? "తిథి:" : selectedLang === "ta" ? "திதி:" : "Tithi:"}</strong>{" "}
+                        {item.tithiName[selectedLang] || item.tithiName.kn}
+                      </div>
+                      <div>
+                        <strong>{selectedLang === "kn" ? "ಪಕ್ಷ:" : selectedLang === "hi" ? "पक्ष:" : selectedLang === "te" ? "పక్షం:" : selectedLang === "ta" ? "பக்ஷம்:" : "Paksha:"}</strong>{" "}
+                        {item.paksha[selectedLang] || item.paksha.kn}
+                      </div>
                       <div className="text-[11px] text-amber-950 dark:text-amber-200 italic mt-2 bg-amber-50 dark:bg-slate-900 p-2 rounded-xl border border-amber-200 dark:border-slate-700">
                         {item.ritualNotes[selectedLang] || item.ritualNotes.kn}
                       </div>
@@ -469,10 +562,10 @@ export const MaranottaraPage: React.FC = () => {
             <Card className="border-2 border-amber-300 dark:border-amber-500/40 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-xl rounded-3xl space-y-5">
               <div>
                 <span className="text-xs font-extrabold uppercase tracking-wider text-amber-900 dark:text-amber-300">
-                  ಶಾಸ್ತ್ರೋಕ್ತ ೧ ರಿಂದ ೧೨ ದಿನಗಳ ಸಂಸ್ಕಾರ ಕೈಪಿಡಿ
+                  {selectedLang === "kn" ? "ಶಾಸ್ತ್ರೋಕ್ತ ೧ ರಿಂದ ೧೨ ದಿನಗಳ ಸಂಸ್ಕಾರ ಕೈಪಿಡಿ" : "Vedic 1-12 Days Samskara Manual"}
                 </span>
                 <h3 className="text-base sm:text-lg font-black text-slate-950 dark:text-white mt-1">
-                  🕯️ ೧ ರಿಂದ ೧೩ ದಿನಗಳ ಆಶೌಚ, ಪಿಂಡ ಪ್ರದಾನ & ಸಪಿಂಡೀಕರಣ ಮಹಾ ವಿಧಿ
+                  🕯️ {selectedLang === "kn" ? "೧ ರಿಂದ ೧೩ ದಿನಗಳ ಆಶೌಚ, ಪಿಂಡ ಪ್ರದಾನ & ಸಪಿಂಡೀಕರಣ ಮಹಾ ವಿಧಿ" : "1-13 Days Antyesti, Pinda Pradana & Sapindikarana Rites"}
                 </h3>
               </div>
 
@@ -495,13 +588,13 @@ export const MaranottaraPage: React.FC = () => {
                     </div>
 
                     <div className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 leading-relaxed font-medium">
-                      <strong>{isKn ? "ನೆರವೇರಿಸಬೇಕಾದ ವಿಧಿ:" : "Ritual Procedure:"}</strong> {day.rituals[selectedLang] || day.rituals.kn}
+                      <strong>{selectedLang === "kn" ? "ನೆರವೇರಿಸಬೇಕಾದ ವಿಧಿ:" : "Ritual Procedure:"}</strong> {day.rituals[selectedLang] || day.rituals.kn}
                     </div>
                     <div className="text-xs text-amber-900 dark:text-amber-300 font-semibold">
-                      <strong>{isKn ? "ಆಧ್ಯಾತ್ಮಿಕ ಮಹತ್ವ:" : "Spiritual Significance:"}</strong> {day.significance[selectedLang] || day.significance.kn}
+                      <strong>{selectedLang === "kn" ? "ಆಧ್ಯಾತ್ಮಿಕ ಮಹತ್ವ:" : "Spiritual Significance:"}</strong> {day.significance[selectedLang] || day.significance.kn}
                     </div>
                     <div className="text-xs bg-amber-100/70 dark:bg-slate-900 p-2.5 rounded-xl border border-amber-300 dark:border-slate-700 text-amber-950 dark:text-amber-200 font-bold">
-                      🎁 <strong>{isKn ? "ಮುಖ್ಯ ದ್ರವ್ಯಗಳು / ದಾನ:" : "Offerings & Charity:"}</strong> {day.keyOfferings[selectedLang] || day.keyOfferings.kn}
+                      🎁 <strong>{selectedLang === "kn" ? "ಮುಖ್ಯ ದ್ರವ್ಯಗಳು / ದಾನ:" : "Offerings & Charity:"}</strong> {day.keyOfferings[selectedLang] || day.keyOfferings.kn}
                     </div>
                   </div>
                 ))}
@@ -514,10 +607,10 @@ export const MaranottaraPage: React.FC = () => {
             <Card className="border-2 border-amber-300 dark:border-amber-500/40 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-xl rounded-3xl space-y-5">
               <div>
                 <span className="text-xs font-extrabold uppercase tracking-wider text-amber-900 dark:text-amber-300">
-                  ಮರಣ ಸಮಯ, ನಕ್ಷತ್ರ & ತಿಥಿ ವಿಶ್ಲೇಷಣೆ
+                  {selectedLang === "kn" ? "ಮರಣ ಸಮಯ, ನಕ್ಷತ್ರ & ತಿಥಿ ವಿಶ್ಲೇಷಣೆ" : "Demise Timing, Nakshatra & Tithi Astrological Analysis"}
                 </span>
                 <h3 className="text-base sm:text-lg font-black text-slate-950 dark:text-white mt-1">
-                  🔱 ಪಂಚಕ / ತ್ರಿಪಾದ ಮರಣ ದೋಷ & ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಶಾಂತಿ ವಿಧಿ
+                  🔱 {selectedLang === "kn" ? "ಪಂಚಕ / ತ್ರಿಪಾದ ಮರಣ ದೋಷ & ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಶಾಂತಿ ವಿಧಿ" : "Panchaka / Tripada Demise Dosha & Gokarna Shanti Remedies"}
                 </h3>
               </div>
 
@@ -527,9 +620,10 @@ export const MaranottaraPage: React.FC = () => {
 
               {result.doshaAnalysis.putthaliVidhanaRequired && (
                 <div className="p-4 bg-rose-50 dark:bg-rose-950/30 rounded-2xl border-2 border-rose-300 dark:border-rose-900/60 text-xs font-bold text-rose-900 dark:text-rose-200">
-                  ⚠️ <strong>{isKn ? "ಪುತ್ತಳಿ ವಿಧಾನ ಎಚ್ಚರಿಕೆ:" : "Putthali Vidhana Required:"}</strong> {isKn
-                    ? "ಪಂಚಕ ನಕ್ಷತ್ರದಲ್ಲಿ ಮರಣ ಸಂಭವಿಸಿರುವುದರಿಂದ ಶವದೊಂದಿಗೆ ೪-೫ ದರ್ಭೆಯ ಬೊಂಬೆಗಳನ್ನು (ಪುತ್ತಳಿ) ಇಟ್ಟು ಮಂತ್ರಪೂರ್ವಕ ಸಂಸ್ಕಾರ ಮಾಡುವುದು ಕುಲ ಕ್ಷೇಮಕ್ಕೆ ಅತ್ಯಗತ್ಯ."
-                    : "Panchaka demise requires Darbha Putthalis along with cremation rites to ward off ancestral affliction."}
+                  ⚠️ <strong>{selectedLang === "kn" ? "ಪುತ್ತಳಿ ವಿಧಾನ ಎಚ್ಚರಿಕೆ:" : "Putthali Vidhana Required:"}</strong>{" "}
+                  {selectedLang === "kn"
+                    ? `ಪಂಚಕ ನಕ್ಷತ್ರದಲ್ಲಿ ಮರಣ ಸಂಭವಿಸಿರುವುದರಿಂದ ಶವದೊಂದಿಗೆ ${result.doshaAnalysis.putthaliCount || 4} ದರ್ಭೆಯ ಬೊಂಬೆಗಳನ್ನು (ಪುತ್ತಳಿ) ಇಟ್ಟು ಮಂತ್ರಪೂರ್ವಕ ಸಂಸ್ಕಾರ ಮಾಡುವುದು ಕುಲ ಕ್ಷೇಮಕ್ಕೆ ಅತ್ಯಗತ್ಯ.`
+                    : `Panchaka demise requires ${result.doshaAnalysis.putthaliCount || 4} Darbha Putthalis along with cremation rites to ward off ancestral affliction.`}
                 </div>
               )}
 
@@ -544,7 +638,7 @@ export const MaranottaraPage: React.FC = () => {
                       {pooja.description[selectedLang] || pooja.description.kn}
                     </p>
                     <div className="text-xs text-amber-950 dark:text-amber-200 bg-amber-50 dark:bg-slate-900 p-2.5 rounded-xl border border-amber-200 dark:border-slate-700 font-bold">
-                      <strong>{isKn ? "ಶ್ರೇಷ್ಠ ದಾನ ಪದಾರ್ಥಗಳು:" : "Recommended Charity (Dana):"}</strong> {pooja.danaItems[selectedLang] || pooja.danaItems.kn}
+                      <strong>{selectedLang === "kn" ? "ಶ್ರೇಷ್ಠ ದಾನ ಪದಾರ್ಥಗಳು:" : "Recommended Charity (Dana):"}</strong> {pooja.danaItems[selectedLang] || pooja.danaItems.kn}
                     </div>
                   </div>
                 ))}
@@ -557,15 +651,15 @@ export const MaranottaraPage: React.FC = () => {
             <Card className="border-2 border-amber-300 dark:border-amber-500/40 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-xl rounded-3xl space-y-5">
               <div>
                 <span className="text-xs font-extrabold uppercase tracking-wider text-amber-900 dark:text-amber-300">
-                  ಪವಿತ್ರ ನದಿ & ಸಮುದ್ರ ಸಂಗಮ ಮಾರ್ಗದರ್ಶನ
+                  {selectedLang === "kn" ? "ಪವಿತ್ರ ನದಿ & ಸಮುದ್ರ ಸಂಗಮ ಮಾರ್ಗದರ್ಶನ" : "Sacred River & Ocean Confluence Pilgrimage"}
                 </span>
                 <h3 className="text-base sm:text-lg font-black text-slate-950 dark:text-white mt-1">
-                  🌊 ಅಸ್ಥಿ ವಿಸರ್ಜನೆ ವಿಧಿ, ಶುಭ ದಿನಗಳು & ತೀರ್ಥ ಕ್ಷೇತ್ರಗಳು
+                  🌊 {selectedLang === "kn" ? "ಅಸ್ಥಿ ವಿಸರ್ಜನೆ ವಿಧಿ, ಶುಭ ದಿನಗಳು & ತೀರ್ಥ ಕ್ಷೇತ್ರಗಳು" : "Asthi Visarjana Ritual, Auspicious Days & Sacred Tirthas"}
                 </h3>
               </div>
 
               <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-2xl border-2 border-amber-300 text-xs sm:text-sm text-slate-900 dark:text-slate-100 font-semibold leading-relaxed">
-                <strong>{isKn ? "ಶುಭ ಕಾಲಾವಧಿ:" : "Optimal Timing:"}</strong> {result.asthiGuide.optimalTiming[selectedLang] || result.asthiGuide.optimalTiming.kn}
+                <strong>{selectedLang === "kn" ? "ಶುಭ ಕಾಲಾವಧಿ:" : "Optimal Timing:"}</strong> {result.asthiGuide.optimalTiming[selectedLang] || result.asthiGuide.optimalTiming.kn}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -586,7 +680,7 @@ export const MaranottaraPage: React.FC = () => {
 
               <div className="p-4 bg-amber-100/70 dark:bg-slate-800 rounded-2xl border border-amber-300 space-y-2">
                 <h4 className="font-bold text-xs text-amber-950 dark:text-amber-200">
-                  📜 {isKn ? "ಅಸ್ಥಿ ವಿಸರ್ಜನಾ ಮಹಾ ಮಂತ್ರ:" : "Sacred Immersion Mantra:"}
+                  📜 {selectedLang === "kn" ? "ಅಸ್ಥಿ ವಿಸರ್ಜನಾ ಮಹಾ ಮಂತ್ರ:" : "Sacred Immersion Mantra:"}
                 </h4>
                 <p className="font-serif font-black text-sm text-amber-900 dark:text-amber-300">
                   {result.asthiGuide.mantra}
@@ -600,17 +694,17 @@ export const MaranottaraPage: React.FC = () => {
             <Card className="border-2 border-amber-300 dark:border-amber-500/40 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-xl rounded-3xl space-y-5">
               <div>
                 <span className="text-xs font-extrabold uppercase tracking-wider text-amber-900 dark:text-amber-300">
-                  ಶಾಶ್ವತ ವೇದಜ್ಞ ತತ್ವ & ಜೀವ ಗತಿ
+                  {selectedLang === "kn" ? "ಶಾಶ್ವತ ವೇದಜ್ಞ ತತ್ವ & ಜೀವ ಗತಿ" : "Vedic Philosophy & The Soul's Transmigration"}
                 </span>
                 <h3 className="text-base sm:text-lg font-black text-slate-950 dark:text-white mt-1">
-                  📜 ಗರುಡ ಪುರಾಣ ಸಾರ: ಆತ್ಮದ ೧-ವರ್ಷದ ಪಯಣ & ಪಿಂಡದ ಮಹತ್ವ
+                  📜 {selectedLang === "kn" ? "ಗರುಡ ಪುರಾಣ ಸಾರ: ಆತ್ಮದ ೧-ವರ್ಷದ ಪಯಣ & ಪಿಂಡದ ಮಹತ್ವ" : "Garuda Purana Wisdom: 1-Year Journey & The Power of Pinda Dana"}
                 </h3>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-2xl border-2 border-amber-300">
                   <h4 className="font-bold text-xs text-amber-950 dark:text-amber-300 mb-1">
-                    🌌 {isKn ? "ಮರಣದ ನಂತರ ಆತ್ಮದ ಪಯಣ:" : "Soul's Post-Mortem Journey:"}
+                    🌌 {selectedLang === "kn" ? "ಮರಣದ ನಂತರ ಆತ್ಮದ ಪಯಣ:" : "Soul's Post-Mortem Journey:"}
                   </h4>
                   <p className="text-xs sm:text-sm text-slate-800 dark:text-slate-200 font-medium leading-relaxed">
                     {result.garudaWisdom.soulJourneySummary[selectedLang] || result.garudaWisdom.soulJourneySummary.kn}
@@ -619,7 +713,7 @@ export const MaranottaraPage: React.FC = () => {
 
                 <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-2xl border-2 border-amber-300">
                   <h4 className="font-bold text-xs text-amber-950 dark:text-amber-300 mb-1">
-                    🌾 {isKn ? "ದಿನನಿತ್ಯದ ಪಿಂಡದ ರಹಸ್ಯ:" : "Mystery of Daily Pinda Dana:"}
+                    🌾 {selectedLang === "kn" ? "ದಿನನಿತ್ಯದ ಪಿಂಡದ ರಹಸ್ಯ:" : "Mystery of Daily Pinda Dana:"}
                   </h4>
                   <p className="text-xs sm:text-sm text-slate-800 dark:text-slate-200 font-medium leading-relaxed">
                     {result.garudaWisdom.pindaDanaMeaning[selectedLang] || result.garudaWisdom.pindaDanaMeaning.kn}
@@ -628,7 +722,7 @@ export const MaranottaraPage: React.FC = () => {
 
                 <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-2xl border-2 border-amber-300">
                   <h4 className="font-bold text-xs text-amber-950 dark:text-amber-300 mb-1">
-                    🐄 {isKn ? "ವೈತರಣಿ ನದಿ & ಗೋದಾನ:" : "Vaitarani River & Godana:"}
+                    🐄 {selectedLang === "kn" ? "ವೈತರಣಿ ನದಿ & ಗೋದಾನ:" : "Vaitarani River & Godana:"}
                   </h4>
                   <p className="text-xs sm:text-sm text-slate-800 dark:text-slate-200 font-medium leading-relaxed">
                     {result.garudaWisdom.vaitaraniGodanaImportance[selectedLang] || result.garudaWisdom.vaitaraniGodanaImportance.kn}
@@ -637,7 +731,7 @@ export const MaranottaraPage: React.FC = () => {
 
                 <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-2xl border-2 border-amber-300">
                   <h4 className="font-bold text-xs text-amber-950 dark:text-amber-300 mb-1">
-                    🕉️ {isKn ? "ಮೋಕ್ಷ ತತ್ವ & ಪಿತೃ ಆಶೀರ್ವಾದ:" : "Moksha & Ancestral Blessings:"}
+                    🕉️ {selectedLang === "kn" ? "ಮೋಕ್ಷ ತತ್ವ & ಪಿತೃ ಆಶೀರ್ವಾದ:" : "Moksha & Ancestral Blessings:"}
                   </h4>
                   <p className="text-xs sm:text-sm text-slate-800 dark:text-slate-200 font-medium leading-relaxed">
                     {result.garudaWisdom.mokshaPhilosophy[selectedLang] || result.garudaWisdom.mokshaPhilosophy.kn}
@@ -652,24 +746,24 @@ export const MaranottaraPage: React.FC = () => {
             <Card className="border-2 border-amber-300 dark:border-amber-500/40 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-xl rounded-3xl space-y-5">
               <div>
                 <span className="text-xs font-extrabold uppercase tracking-wider text-amber-900 dark:text-amber-300">
-                  ವಾರ್ಷಿಕ ಪಿತೃ ಪಕ್ಷ & ಅಮಾವಾಸ್ಯೆ ನಿಯಮಗಳು
+                  {selectedLang === "kn" ? "ವಾರ್ಷಿಕ ಪಿತೃ ಪಕ್ಷ & ಅಮಾವಾಸ್ಯೆ ನಿಯಮಗಳು" : "Annual Pitru Paksha & Amavasya Protocols"}
                 </span>
                 <h3 className="text-base sm:text-lg font-black text-slate-950 dark:text-white mt-1">
-                  🪔 ಮಹಾಲಯ ಪಕ್ಷ & ಅಮಾವಾಸ್ಯೆ ಪಿತೃ ತರ್ಪಣ ವಿಧಿ
+                  🪔 {selectedLang === "kn" ? "ಮಹಾಲಯ ಪಕ್ಷ & ಅಮಾವಾಸ್ಯೆ ಪಿತೃ ತರ್ಪಣ ವಿಧಿ" : "Mahalaya Paksha & Amavasya Pitru Tarpana"}
                 </h3>
               </div>
 
               <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-2xl border-2 border-amber-300 text-xs sm:text-sm text-slate-900 dark:text-slate-100 font-semibold leading-relaxed">
-                <strong>{isKn ? "ಮಹಾಲಯ ಪಕ್ಷದ ಮಹತ್ವ:" : "Mahalaya Paksha:"}</strong> {result.mahalayaRules.mahalayaOverview[selectedLang] || result.mahalayaRules.mahalayaOverview.kn}
+                <strong>{selectedLang === "kn" ? "ಮಹಾಲಯ ಪಕ್ಷದ ಮಹತ್ವ:" : "Mahalaya Paksha Significance:"}</strong> {result.mahalayaRules.mahalayaOverview[selectedLang] || result.mahalayaRules.mahalayaOverview.kn}
               </div>
 
               <div className="p-4 bg-amber-100/60 dark:bg-slate-800 rounded-2xl border-2 border-amber-300 text-xs sm:text-sm text-slate-900 dark:text-slate-100 font-semibold leading-relaxed">
-                <strong>{isKn ? "ಅಮಾವಾಸ್ಯೆ ತರ್ಪಣ ವಿಧಾನ:" : "Amavasya Tarpana Procedure:"}</strong> {result.mahalayaRules.amavasyaTarpanaProcedure[selectedLang] || result.mahalayaRules.amavasyaTarpanaProcedure.kn}
+                <strong>{selectedLang === "kn" ? "ಅಮಾವಾಸ್ಯೆ ತರ್ಪಣ ವಿಧಾನ:" : "Amavasya Tarpana Procedure:"}</strong> {result.mahalayaRules.amavasyaTarpanaProcedure[selectedLang] || result.mahalayaRules.amavasyaTarpanaProcedure.kn}
               </div>
 
               <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl border-2 border-amber-200 space-y-2">
                 <h4 className="font-extrabold text-xs text-amber-950 dark:text-amber-300">
-                  🎁 {isKn ? "ಪಿತೃ ತರ್ಪಣಕ್ಕೆ ಅತ್ಯಗತ್ಯವಾದ ದಾನ ಪದಾರ್ಥಗಳು:" : "Essential Charity Items for Ancestors:"}
+                  🎁 {selectedLang === "kn" ? "ಪಿತೃ ತರ್ಪಣಕ್ಕೆ ಅತ್ಯಗತ್ಯವಾದ ದಾನ ಪದಾರ್ಥಗಳು:" : "Essential Charity Items for Ancestors:"}
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-bold text-amber-900 dark:text-amber-200">
                   {(result.mahalayaRules.essentialDanaItems[selectedLang] || result.mahalayaRules.essentialDanaItems.kn || []).map((item, idx) => (
@@ -688,17 +782,17 @@ export const MaranottaraPage: React.FC = () => {
             <Card className="border-2 border-amber-300 dark:border-amber-500/40 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-xl rounded-3xl space-y-5">
               <div>
                 <span className="text-xs font-extrabold uppercase tracking-wider text-amber-900 dark:text-amber-300">
-                  ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಆತ್ಮಲಿಂಗ ಸನ್ನಿಧಿ
+                  {selectedLang === "kn" ? "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಆತ್ಮಲಿಂಗ ಸನ್ನಿಧಿ" : "Sri Kshetra Gokarna Mahabaleshwara Sacred Sanctum"}
                 </span>
                 <h3 className="text-base sm:text-lg font-black text-slate-950 dark:text-white mt-1">
-                  🏛️ ಗೋಕರ್ಣ ನಾರಾಯಣಬಲಿ, ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ & ಮೋಕ್ಷ ಪೂಜೆಗಳು
+                  🏛️ {selectedLang === "kn" ? "ಗೋಕರ್ಣ ನಾರಾಯಣಬಲಿ, ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ & ಮೋಕ್ಷ ಪೂಜೆಗಳು" : "Gokarna Narayanabali, Tripindi Shraddha & Moksha Sevas"}
                 </h3>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-2xl border-2 border-amber-300 space-y-1">
                   <h4 className="font-extrabold text-sm text-amber-950 dark:text-amber-300">
-                    🪔 ನಾರಾಯಣಬಲಿ ಮಹಾ ಪೂಜೆ (Narayanabali)
+                    🪔 {selectedLang === "kn" ? "ನಾರಾಯಣಬಲಿ ಮಹಾ ಪೂಜೆ" : "Narayanabali Maha Pooja"}
                   </h4>
                   <p className="text-xs text-slate-800 dark:text-slate-200 font-medium leading-relaxed">
                     {result.gokarnaSevas.narayanabaliOverview[selectedLang] || result.gokarnaSevas.narayanabaliOverview.kn}
@@ -707,7 +801,7 @@ export const MaranottaraPage: React.FC = () => {
 
                 <div className="p-4 bg-amber-50 dark:bg-slate-800 rounded-2xl border-2 border-amber-300 space-y-1">
                   <h4 className="font-extrabold text-sm text-amber-950 dark:text-amber-300">
-                    🔱 ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ (Tripindi Shraddha)
+                    🔱 {selectedLang === "kn" ? "ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ" : "Tripindi Shraddha"}
                   </h4>
                   <p className="text-xs text-slate-800 dark:text-slate-200 font-medium leading-relaxed">
                     {result.gokarnaSevas.tripindiShraddhaOverview[selectedLang] || result.gokarnaSevas.tripindiShraddhaOverview.kn}
@@ -722,14 +816,16 @@ export const MaranottaraPage: React.FC = () => {
                     🕉️ {result.gokarnaSevas.priestName}
                   </h4>
                   <p className="text-xs text-slate-700 dark:text-slate-300 font-medium mt-1">
-                    ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದಲ್ಲಿ ಶಾಸ್ತ್ರೋಕ್ತ ಶ್ರಾದ್ಧ, ನಾರಾಯಣಬಲಿ & ಗೋತ್ರ ಸಂಕಲ್ಪ ಸೇವೆಗಳಿಗೆ ನೇರ ಸಮಾಲೋಚನೆ
+                    {selectedLang === "kn"
+                      ? "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದಲ್ಲಿ ಶಾಸ್ತ್ರೋಕ್ತ ಶ್ರಾದ್ಧ, ನಾರಾಯಣಬಲಿ & ಗೋತ್ರ ಸಂಕಲ್ಪ ಸೇವೆಗಳಿಗೆ ನೇರ ಸಮಾಲೋಚನೆ"
+                      : "Direct Vedic consultation for Narayanabali, Tripindi Shraddha, Asthi Visarjana & Gotra Sankalpa at Gokarna."}
                   </p>
                 </div>
                 <a
                   href={`tel:+91${result.gokarnaSevas.priestPhone}`}
                   className="px-5 py-3 bg-gradient-to-r from-amber-600 to-amber-700 text-white text-xs font-black rounded-xl shadow-lg flex items-center gap-1.5 whitespace-nowrap"
                 >
-                  <span>📞 {result.gokarnaSevas.priestPhone} ಗೆ ಕರೆ ಮಾಡಿ</span>
+                  <span>📞 {result.gokarnaSevas.priestPhone}</span>
                 </a>
               </div>
             </Card>
@@ -741,10 +837,10 @@ export const MaranottaraPage: React.FC = () => {
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div>
                   <span className="text-xs font-extrabold uppercase tracking-wider text-amber-900 dark:text-amber-300">
-                    ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ದೈವಿಕ ಸದ್ಗತಿ ಸಂದೇಶ
+                    {selectedLang === "kn" ? "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ದೈವಿಕ ಸದ್ಗತಿ ಸಂದೇಶ" : "Divine Solace & Shanti Message from Gokarna Kshetra"}
                   </span>
                   <h3 className="text-base sm:text-lg font-black text-slate-950 dark:text-white mt-1">
-                    ✨ ದೈವಿಕ ಸಾಂತ್ವನ ಸಂದೇಶ & ಶಾಂತಿ ಮಂತ್ರಗಳು
+                    ✨ {selectedLang === "kn" ? "ದೈವಿಕ ಸಾಂತ್ವನ ಸಂದೇಶ & ಶಾಂತಿ ಮಂತ್ರಗಳು" : "Divine Consolation & Vedic Shanti Mantras"}
                   </h3>
                 </div>
                 {result.aiConsolationText && (

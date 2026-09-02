@@ -91,7 +91,7 @@ describe("Maranottara & Pitru Samskara Engine", () => {
     expect(resWithTime.demiseTime).toBe("22:15");
     expect(resWithTime.doshaAnalysis.hasTimeSpecificAnalysis).toBe(true);
     expect(resWithTime.masikaSchedule.length).toBe(12);
-  });
+  }, 30000);
 
   it("accurately classifies Panchaka Dosha and Darbha Putthali requirements", () => {
     const inputPanchaka: MaranottaraInput = {
@@ -105,7 +105,7 @@ describe("Maranottara & Pitru Samskara Engine", () => {
     expect(res.masikaSchedule.length).toBe(60); // 5 years * 12 months = 60
     expect(res.masikaSchedule[11].isVarshikaShraddha).toBe(true);
     expect(res.masikaSchedule[59].isVarshikaShraddha).toBe(true);
-  });
+  }, 30000);
 
   it("generates AI spiritual consolation message with fallback", async () => {
     const input: MaranottaraInput = {

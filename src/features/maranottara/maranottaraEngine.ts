@@ -1,7 +1,10 @@
+import SunCalc from "suncalc";
 import { askGemini } from "../../core/GeminiEngine";
 import { siderealLongitudes } from "../../core/EphemerisEngine";
 import { calculateTraditionalBaggona } from "../../core/TraditionalBaggonaEngine";
+import { calculateUnifiedBaggona } from "../../core/PanchangaCalculationDispatcher";
 import { wallClockBirthToUtc } from "../../core/birthTime";
+import { resolveSunTimesForJyotish } from "../../core/hinduSunTimes";
 import type { MaranottaraLang } from "./maranottaraLocale";
 
 export type MasikaDurationYears = 1 | 2 | 3 | 4 | 5;
@@ -13,6 +16,8 @@ export type MaranottaraInput = {
   location?: string;
   yearsCount: MasikaDurationYears;
   lang?: MaranottaraLang;
+  lat?: number;
+  lng?: number;
 };
 
 export type MasikaScheduleItem = {
@@ -26,6 +31,8 @@ export type MasikaScheduleItem = {
   isVarshikaShraddha: boolean;
   isSpecialMilestone: boolean;
   ritualNotes: Record<string, string>;
+  aparahnaWindow?: string; // e.g. "01:25 PM - 03:45 PM IST"
+  panchangaSummary?: Record<string, string>;
 };
 
 export type AntyestiDailyRoadmapItem = {
@@ -97,6 +104,8 @@ export type MaranottaraResult = {
   demiseTithi: Record<string, string>;
   demiseNakshatra: Record<string, string>;
   demisePaksha: Record<string, string>;
+  demiseMasa?: Record<string, string>;
+  demiseSamvatsara?: Record<string, string>;
   masikaSchedule: MasikaScheduleItem[];
   antyestiRoadmap: AntyestiDailyRoadmapItem[];
   doshaAnalysis: DoshaAnalysisResult;
@@ -119,6 +128,101 @@ export const WEEKDAYS_5LANG: Record<number, Record<string, string>> = {
   4: { kn: "ಗುರುವಾರ", en: "Thursday", hi: "गुरुवार", te: "గురువారం", ta: "வியாழன்" },
   5: { kn: "ಶುಕ್ರವಾರ", en: "Friday", hi: "शुक्रवार", te: "శుక్రవారం", ta: "வெள்ளி" },
   6: { kn: "ಶನಿವಾರ", en: "Saturday", hi: "शनिवार", te: "శనివారం", ta: "சனி" }
+};
+
+export const PAKSHAS_5LANG: Record<string, Record<string, string>> = {
+  shukla: {
+    kn: "ಶುಕ್ಲ ಪಕ್ಷ",
+    en: "Shukla Paksha",
+    hi: "शुक्ल पक्ष",
+    te: "శుక్ల పక్షం",
+    ta: "சுக்ல பக்ஷம்"
+  },
+  krishna: {
+    kn: "ಕೃಷ್ಣ ಪಕ್ಷ",
+    en: "Krishna Paksha",
+    hi: "कृष्ण पक्ष",
+    te: "కృష్ణ పక్షం",
+    ta: "கிருஷ்ண பக்ஷம்"
+  }
+};
+
+export const TITHIS_5LANG: Record<number, Record<string, string>> = {
+  0: { kn: "ಶುಕ್ಲ ಪಾಡ್ಯ (ಪ್ರಥಮಾ)", en: "Shukla Pratipada", hi: "शुक्ल प्रतिपदा", te: "శుక్ల పాడ్యమి", ta: "சுக்ல பிரதமை" },
+  1: { kn: "ಶುಕ್ಲ ಬಿದಿಗೆ (ದ್ವಿತೀಯಾ)", en: "Shukla Dvitiya", hi: "शुक्ल द्वितीया", te: "శుక్ల విదియ", ta: "சுக்ல துவிதியை" },
+  2: { kn: "ಶುಕ್ಲ ತದಿಗೆ (ತೃತೀಯಾ)", en: "Shukla Tritiya", hi: "शुक्ल तृतीया", te: "శుక్ల తదియ", ta: "சுக்ல திருதியை" },
+  3: { kn: "ಶುಕ್ಲ ಚೌತಿ (ಚತುರ್ಥೀ)", en: "Shukla Chaturthi", hi: "शुक्ल चतुर्थी", te: "శుక్ల చవితి", ta: "சுக்ல சதுர்த்தி" },
+  4: { kn: "ಶುಕ್ಲ ಪಂಚಮೀ", en: "Shukla Panchami", hi: "शुक्ल पंचमी", te: "శుక్ల పంచమి", ta: "சுக்ல பஞ்சமி" },
+  5: { kn: "ಶುಕ್ಲ ಷಷ್ಠೀ", en: "Shukla Shashthi", hi: "शुक्ल षष्ठी", te: "శుక్ల షష్ఠి", ta: "சுக்ல சஷ்டி" },
+  6: { kn: "ಶುಕ್ಲ ಸಪ್ತಮೀ", en: "Shukla Saptami", hi: "शुक्ल सप्तमी", te: "శుక్ల సప్తమి", ta: "சுக்ல சப்தமி" },
+  7: { kn: "ಶುಕ್ಲ ಅಷ್ಟಮೀ", en: "Shukla Ashtami", hi: "शुक्ल अष्टमी", te: "శుక్ల అష్టమి", ta: "சுக்ல அஷ்டமி" },
+  8: { kn: "ಶುಕ್ಲ ನವಮೀ", en: "Shukla Navami", hi: "शुक्ल नवमी", te: "శుక్ల నవమి", ta: "சுக்ல நவமி" },
+  9: { kn: "ಶುಕ್ಲ ದಶಮೀ", en: "Shukla Dashami", hi: "शुक्ल दशमी", te: "శుక్ల దశమి", ta: "சுக்ல தசமி" },
+  10: { kn: "ಶುಕ್ಲ ಏಕಾದಶೀ", en: "Shukla Ekadashi", hi: "शुक्ल एकादशी", te: "శుక్ల ఏకాదశి", ta: "சுக்ல ஏகாதசி" },
+  11: { kn: "ಶುಕ್ಲ ದ್ವಾದಶೀ", en: "Shukla Dvadashi", hi: "शुक्ल द्वादशी", te: "శుక్ల ద్వాదశి", ta: "சுக்ல துவாதசி" },
+  12: { kn: "ಶುಕ್ಲ ತ್ರಯೋದಶೀ", en: "Shukla Trayodashi", hi: "शुक्ल त्रयोदशी", te: "శుక్ల త్రయోదశి", ta: "சுக்ல திரயோதசி" },
+  13: { kn: "ಶುಕ್ಲ ಚತುರ್ದಶೀ", en: "Shukla Chaturdashi", hi: "शुक्ल चतुर्दशी", te: "శుక్ల చతుర్దశి", ta: "சுக்ல சதுர்த்தசி" },
+  14: { kn: "ಹುಣ್ಣಿಮೆ (ಪೂರ್ಣಿಮಾ)", en: "Purnima", hi: "पूर्णिमा", te: "పూర్ణిమ", ta: "பௌர்ணமி" },
+  15: { kn: "ಕೃಷ್ಣ ಪಾಡ್ಯ (ಪ್ರಥಮಾ)", en: "Krishna Pratipada", hi: "कृष्ण प्रतिपदा", te: "కృష్ణ పాడ్యమి", ta: "கிருஷ்ண பிரதமை" },
+  16: { kn: "ಕೃಷ್ಣ ಬಿದಿಗೆ (ದ್ವಿತೀಯಾ)", en: "Krishna Dvitiya", hi: "कृष्ण द्वितीया", te: "కృష్ణ విదియ", ta: "கிருஷ்ண துவிதியை" },
+  17: { kn: "ಕೃಷ್ಣ ತದಿಗೆ (ತೃತೀಯಾ)", en: "Krishna Tritiya", hi: "कृष्ण तृतीया", te: "కృష్ణ తదియ", ta: "கிருஷ்ண திருதியை" },
+  18: { kn: "ಕೃಷ್ಣ ಚೌತಿ (ಚತುರ್ಥೀ)", en: "Krishna Chaturthi", hi: "कृष्ण चतुर्थी", te: "కృష్ణ చవితి", ta: "கிருஷ்ண சதுர்த்தி" },
+  19: { kn: "ಕೃಷ್ಣ ಪಂಚಮೀ", en: "Krishna Panchami", hi: "कृष्ण पंचमी", te: "కృష్ణ పంచమి", ta: "கிருஷ்ண பஞ்சமி" },
+  20: { kn: "ಕೃಷ್ಣ ಷಷ್ಠೀ", en: "Krishna Shashthi", hi: "कृष्ण षष्ठी", te: "కృష్ణ షష్ఠి", ta: "கிருஷ்ண சஷ்டி" },
+  21: { kn: "ಕೃಷ್ಣ ಸಪ್ತಮೀ", en: "Krishna Saptami", hi: "कृष्ण सप्तमी", te: "కృష్ణ సప్తమి", ta: "கிருஷ்ண சப்தமி" },
+  22: { kn: "ಕೃಷ್ಣ ಅಷ್ಟಮೀ", en: "Krishna Ashtami", hi: "कृष्ण अष्टमी", te: "కృష్ణ అష్టమి", ta: "கிருஷ்ண அஷ்டமி" },
+  23: { kn: "ಕೃಷ್ಣ ನವಮೀ", en: "Krishna Navami", hi: "कृष्ण नवमी", te: "కృష్ణ నవమి", ta: "கிருஷ்ண நவமி" },
+  24: { kn: "ಕೃಷ್ಣ ದಶಮೀ", en: "Krishna Dashami", hi: "कृष्ण दशमी", te: "కృష్ణ దశమి", ta: "கிருஷ்ண தசமி" },
+  25: { kn: "ಕೃಷ್ಣ ಏಕಾದಶೀ", en: "Krishna Ekadashi", hi: "कृष्ण एकादशी", te: "కృష్ణ ఏకాదశి", ta: "கிருஷ்ண ஏகாதசி" },
+  26: { kn: "ಕೃಷ್ಣ ದ್ವಾದಶೀ", en: "Krishna Dvadashi", hi: "कृष्ण द्वादशी", te: "కృష్ణ ద్వాదశి", ta: "கிருஷ்ண துவாதசி" },
+  27: { kn: "ಕೃಷ್ಣ ತ್ರಯೋದಶೀ", en: "Krishna Trayodashi", hi: "कृष्ण त्रयोदशी", te: "కృష్ణ త్రయోదశి", ta: "கிருஷ்ண திரயோதசி" },
+  28: { kn: "ಕೃಷ್ಣ ಚತುರ್ದಶೀ", en: "Krishna Chaturdashi", hi: "कृष्ण चतुर्दशी", te: "కృష్ణ చతుర్దశి", ta: "கிருஷ்ண சதுர்த்தசி" },
+  29: { kn: "ಅಮಾವಾಸ್ಯೆ", en: "Amavasya", hi: "अमावस्या", te: "అమావాస్య", ta: "அமாவாசை" }
+};
+
+export const NAKSHATRAS_5LANG: Record<number, Record<string, string>> = {
+  0: { kn: "ಅಶ್ವಿನಿ", en: "Ashwini", hi: "अश्विनी", te: "అశ్విని", ta: "அஸ்வினி" },
+  1: { kn: "ಭರಣಿ", en: "Bharani", hi: "भरणी", te: "భరణి", ta: "பரணி" },
+  2: { kn: "ಕೃತ್ತಿಕಾ", en: "Krittika", hi: "कृत्तिका", te: "కృత్తిక", ta: "கார்த்திகை" },
+  3: { kn: "ರೋಹಿಣಿ", en: "Rohini", hi: "रोहिणी", te: "రోహిణి", ta: "ரோகிணி" },
+  4: { kn: "ಮೃಗಶಿರಾ", en: "Mrigashira", hi: "मृगशिरा", te: "మృగశిర", ta: "மிருகசீரிஷம்" },
+  5: { kn: "ಆರ್ದ್ರಾ", en: "Ardra", hi: "आर्द्रा", te: "ఆర్ద్ర", ta: "திருவாதிரை" },
+  6: { kn: "ಪುನರ್ವಸು", en: "Punarvasu", hi: "पुनर्वसु", te: "పునర్వసు", ta: "புனர்பூசம்" },
+  7: { kn: "ಪುಷ್ಯ", en: "Pushya", hi: "पुष्य", te: "పుష్యమి", ta: "பூசம்" },
+  8: { kn: "ಆಶ್ಲೇಷಾ", en: "Ashlesha", hi: "आश्लेषा", te: "ఆశ్లేష", ta: "ஆயில்யம்" },
+  9: { kn: "ಮಘಾ", en: "Magha", hi: "मघा", te: "మఖ", ta: "மகம்" },
+  10: { kn: "ಪೂರ್ವ ಫಲ್ಗುಣಿ (ಪುಬ್ಬಾ)", en: "Purva Phalguni", hi: "पूर्वा फाल्गुनी", te: "పూర్వ ఫల్గుణి", ta: "பூரம்" },
+  11: { kn: "ಉತ್ತರ ಫಲ್ಗುಣಿ (ಉತ್ತರಾ)", en: "Uttara Phalguni", hi: "उत्तरा फाल्गुनी", te: "ఉత్తర ఫల్గుణి", ta: "உத்திரம்" },
+  12: { kn: "ಹಸ್ತಾ", en: "Hasta", hi: "हस्त", te: "హస్త", ta: "அஸ்தம்" },
+  13: { kn: "ಚಿತ್ರಾ", en: "Chitra", hi: "चित्रा", te: "చిత్త", ta: "சித்திரை" },
+  14: { kn: "ಸ್ವಾತಿ", en: "Swati", hi: "स्वाति", te: "స్వాతి", ta: "சுவாதி" },
+  15: { kn: "ವಿಶಾಖಾ", en: "Vishakha", hi: "विशाखा", te: "విశాఖ", ta: "விசாகம்" },
+  16: { kn: "ಅನುರಾಧಾ", en: "Anuradha", hi: "अनुराधा", te: "అనూరాధ", ta: "அனுஷம்" },
+  17: { kn: "ಜ್ಯೇಷ್ಠಾ", en: "Jyeshtha", hi: "ज्येष्ठा", te: "జ్యేష్ఠ", ta: "கேட்டை" },
+  18: { kn: "ಮೂಲಾ", en: "Mula", hi: "मूल", te: "మూల", ta: "மூலம்" },
+  19: { kn: "ಪೂರ್ವಾಷಾಢಾ", en: "Purva Ashadha", hi: "पूर्वाषाढ़ा", te: "పూర్వాషాఢ", ta: "பூராடம்" },
+  20: { kn: "ಉತ್ತರಾಷಾಢಾ", en: "Uttara Ashadha", hi: "उत्तराषाढ़ा", te: "ఉత్తరాషాఢ", ta: "உத்திராடம்" },
+  21: { kn: "ಶ್ರವಣ", en: "Shravana", hi: "श्रवण", te: "శ్రవణం", ta: "திருவோணம்" },
+  22: { kn: "ಧನಿಷ್ಠಾ", en: "Dhanishta", hi: "धनिष्ठा", te: "ధనిష్ఠ", ta: "அவிட்டம்" },
+  23: { kn: "ಶತಭಿಷಾ", en: "Shatabhisha", hi: "शतभिषा", te: "శతభిషం", ta: "சதயம்" },
+  24: { kn: "ಪೂರ್ವಭಾದ್ರಪದಾ", en: "Purva Bhadrapada", hi: "पूर्व भाद्रपद", te: "పూర్వాభాద్ర", ta: "பூரட்டாதி" },
+  25: { kn: "ಉತ್ತರಭಾದ್ರಪದಾ", en: "Uttara Bhadrapada", hi: "उत्तर भाद्रपद", te: "ఉత్తరాభాద్ర", ta: "உத்திரட்டாதி" },
+  26: { kn: "ರೇವತಿ", en: "Revati", hi: "रेवती", te: "రేవతి", ta: "ரேவதி" }
+};
+
+export const MASAS_5LANG: Record<number, Record<string, string>> = {
+  0: { kn: "ಚೈತ್ರ", en: "Chaitra", hi: "चैत्र", te: "చైత్రం", ta: "சித்திரை" },
+  1: { kn: "ವೈಶಾಖ", en: "Vaishakha", hi: "वैशाख", te: "వైశాఖం", ta: "வைகாசி" },
+  2: { kn: "ಜ್ಯೇಷ್ಠ", en: "Jyeshtha", hi: "ज्येष्ठ", te: "జ్యేష్ఠం", ta: "ஆனி" },
+  3: { kn: "ಆಷಾಢ", en: "Ashadha", hi: "आषाढ़", te: "ఆషాఢం", ta: "ஆடி" },
+  4: { kn: "ಶ್ರಾವಣ", en: "Shravana", hi: "श्रावण", te: "శ్రావణం", ta: "ஆவணி" },
+  5: { kn: "ಭಾದ್ರಪದ", en: "Bhadrapada", hi: "भाद्रपद", te: "భాద్రపదం", ta: "புரட்டாசி" },
+  6: { kn: "ಆಶ್ವಯುಜ", en: "Ashvina", hi: "आश्विन", te: "ఆశ్వయుజం", ta: "ஐப்பசி" },
+  7: { kn: "ಕಾರ್ತೀಕ", en: "Kartika", hi: "कार्तिक", te: "కార్తీకం", ta: "கார்த்திகை" },
+  8: { kn: "ಮಾರ್ಗಶಿರ", en: "Margashira", hi: "मार्गशीर्ष", te: "మార్గాశిరం", ta: "மார்கழி" },
+  9: { kn: "ಪುಷ್ಯ", en: "Pushya", hi: "पौष", te: "పుష్యం", ta: "தை" },
+  10: { kn: "ಮಾಘ", en: "Magha", hi: "माघ", te: "మాఘం", ta: "மாசி" },
+  11: { kn: "ಫಾಲ್ಗುಣ", en: "Phalguna", hi: "फाल्गुन", te: "ఫాల్గుణం", ta: "பங்குனி" }
 };
 
 /** Convert a Date object to formatted display string in Indian Standard Time (IST) */
@@ -164,74 +268,100 @@ export function getTithiFromUtc(utcDate: Date): {
   tithiIndex: number; // 0..29
   tithiNumber: number; // 1..15
   isShukla: boolean;
-  tithiKn: string;
-  tithiEn: string;
-  pakshaKn: string;
-  pakshaEn: string;
+  tithi5Lang: Record<string, string>;
+  paksha5Lang: Record<string, string>;
 } {
   const longs = siderealLongitudes(utcDate, "lahiri");
-  let diff = (longs.moon - longs.sun + 360) % 360;
+  const diff = (longs.moon - longs.sun + 360) % 360;
   const tithiIndex = Math.floor(diff / 12) % 30; // 0 to 29
   const isShukla = tithiIndex < 15;
   const tithiNumber = (tithiIndex % 15) + 1; // 1 to 15
 
-  const TITHI_NAMES_KN = [
-    "ಪಾಡ್ಯ (ಪ್ರಥಮಾ)", "ದ್ವಿತೀಯಾ", "ತೃತೀಯಾ", "ಚತುರ್ಥಿ", "ಪಂಚಮೀ", "ಷಷ್ಠೀ", "ಸಪ್ತಮೀ", "ಅಷ್ಟಮೀ",
-    "ನವಮೀ", "ದಶಮೀ", "ಏಕಾದಶೀ", "ದ್ವಾದಶೀ", "ತ್ರಯೋದಶೀ", "ಚತುರ್ದಶೀ", "ಹುಣ್ಣಿಮೆ (ಪೂರ್ಣಿಮಾ)"
-  ];
-  const TITHI_NAMES_KN_KRISHNA = [
-    "ಪಾಡ್ಯ (ಪ್ರಥಮಾ)", "ದ್ವಿತೀಯಾ", "ತೃತೀಯಾ", "ಚತುರ್ಥಿ", "ಪಂಚಮೀ", "ಷಷ್ಠೀ", "ಸಪ್ತಮೀ", "ಅಷ್ಟಮೀ",
-    "ನವಮೀ", "ದಶಮೀ", "ಏಕಾದಶೀ", "ದ್ವಾದಶೀ", "ತ್ರಯೋದಶೀ", "ಚತುರ್ದಶೀ", "ಅಮಾವಾಸ್ಯೆ"
-  ];
-  const TITHI_NAMES_EN = [
-    "Prathama", "Dvitiya", "Tritiya", "Chaturthi", "Panchami", "Shashthi", "Saptami", "Ashtami",
-    "Navami", "Dashami", "Ekadashi", "Dvadashi", "Trayodashi", "Chaturdashi", "Purnima"
-  ];
-  const TITHI_NAMES_EN_KRISHNA = [
-    "Prathama", "Dvitiya", "Tritiya", "Chaturthi", "Panchami", "Shashthi", "Saptami", "Ashtami",
-    "Navami", "Dashami", "Ekadashi", "Dvadashi", "Trayodashi", "Chaturdashi", "Amavasya"
-  ];
-
-  const tithiKn = isShukla ? TITHI_NAMES_KN[tithiNumber - 1] : TITHI_NAMES_KN_KRISHNA[tithiNumber - 1];
-  const tithiEn = isShukla ? TITHI_NAMES_EN[tithiNumber - 1] : TITHI_NAMES_EN_KRISHNA[tithiNumber - 1];
+  const tithi5Lang = TITHIS_5LANG[tithiIndex] || TITHIS_5LANG[0];
+  const paksha5Lang = isShukla ? PAKSHAS_5LANG.shukla : PAKSHAS_5LANG.krishna;
 
   return {
     tithiIndex,
     tithiNumber,
     isShukla,
-    tithiKn,
-    tithiEn,
-    pakshaKn: isShukla ? "ಶುಕ್ಲ ಪಕ್ಷ" : "ಕೃಷ್ಣ ಪಕ್ಷ",
-    pakshaEn: isShukla ? "Shukla Paksha" : "Krishna Paksha"
+    tithi5Lang,
+    paksha5Lang
+  };
+}
+
+/** Compute local Aparahna Kaala window (3/5 to 4/5 of daytime) for a given calendar day in IST */
+export function computeDayAparahnaWindow(
+  dateStr: string,
+  lat: number = 14.5479,
+  lng: number = 74.3188
+): {
+  aparahnaStartUtc: Date;
+  aparahnaEndUtc: Date;
+  aparahnaMidUtc: Date;
+  windowLabel: string;
+} {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const localDate = new Date(Date.UTC(y, m - 1, d, 6, 0, 0)); // approximate day
+  const scTimes = SunCalc.getTimes(localDate, lat, lng);
+  const sunTimes = resolveSunTimesForJyotish({ sunrise: scTimes.sunrise, sunset: scTimes.sunset }, lat, lng);
+
+  const sunriseMs = sunTimes.sunrise.getTime();
+  const sunsetMs = sunTimes.sunset.getTime();
+  const daySpanMs = Math.max(10 * 3600 * 1000, sunsetMs - sunriseMs);
+
+  const startMs = sunriseMs + (3 / 5) * daySpanMs;
+  const endMs = sunriseMs + (4 / 5) * daySpanMs;
+  const midMs = (startMs + endMs) / 2;
+
+  const toIstHm = (utcMs: number) => {
+    const ist = new Date(utcMs + IST_OFFSET_MS);
+    const h = ist.getUTCHours();
+    const min = ist.getUTCMinutes();
+    const ampm = h >= 12 ? "PM" : "AM";
+    const h12 = h % 12 === 0 ? 12 : h % 12;
+    return `${String(h12).padStart(2, "0")}:${String(min).padStart(2, "0")} ${ampm}`;
+  };
+
+  return {
+    aparahnaStartUtc: new Date(startMs),
+    aparahnaEndUtc: new Date(endMs),
+    aparahnaMidUtc: new Date(midMs),
+    windowLabel: `${toIstHm(startMs)} - ${toIstHm(endMs)} IST`
   };
 }
 
 /**
- * Find the exact Gregorian date in a future lunar cycle that carries the demise Tithi during Aparahna Kaala (1:30 PM - 3:30 PM IST).
+ * Authentic Baggona Panchanga Shraddha Tithi determination:
+ * Finds the exact Gregorian date carrying the demise Tithi during Aparahna Kaala (ಅಪರಾಹ್ನ ಕಾಲ).
  */
-export function findExactMasikaTithiDate(
+export function findBaggonaMasikaShraddhaDate(
   demiseTithiIndex: number,
   monthOffset: number,
-  demiseUtc: Date
-): Date {
+  demiseUtc: Date,
+  lat: number = 14.5479,
+  lng: number = 74.3188
+): {
+  matchedUtc: Date;
+  aparahnaWindow: string;
+  panchangaDay?: any;
+} {
+  // Center of the target lunar cycle
   const approxSynodicMs = 29.530588 * 24 * 60 * 60 * 1000;
   const centerMs = demiseUtc.getTime() + monthOffset * approxSynodicMs;
 
-  // Search a ±4 day window around the approximate center day at 14:00 IST (08:30 UTC)
   let bestDate = new Date(centerMs);
+  let bestWindow = "01:30 PM - 03:45 PM IST";
   let minDiff = 999;
+  let bestPanchanga: any = null;
 
+  // Search a ±4 day window around center
   for (let offsetDays = -4; offsetDays <= 4; offsetDays++) {
     const candidateMs = centerMs + offsetDays * 24 * 60 * 60 * 1000;
     const testDate = new Date(candidateMs);
+    const dateStr = toIstYmdString(testDate);
 
-    // Set time to 14:00 IST (Aparahna Kaala, 08:30 UTC)
-    const istYmd = toIstYmdString(testDate);
-    const [y, m, d] = istYmd.split("-").map(Number);
-    // 14:00 IST = 08:30 UTC
-    const aparahnaUtc = new Date(Date.UTC(y, m - 1, d, 8, 30, 0));
-
-    const tithiInfo = getTithiFromUtc(aparahnaUtc);
+    const { aparahnaMidUtc, windowLabel } = computeDayAparahnaWindow(dateStr, lat, lng);
+    const tithiInfo = getTithiFromUtc(aparahnaMidUtc);
 
     let tithiDiff = Math.abs(tithiInfo.tithiIndex - demiseTithiIndex);
     if (tithiDiff > 15) {
@@ -239,19 +369,40 @@ export function findExactMasikaTithiDate(
     }
 
     if (tithiDiff === 0) {
-      return aparahnaUtc;
+      // Exact Aparahna match
+      try {
+        const pDay = calculateUnifiedBaggona(dateStr, "14:00", lat, lng, "lahiri");
+        return {
+          matchedUtc: aparahnaMidUtc,
+          aparahnaWindow: windowLabel,
+          panchangaDay: pDay
+        };
+      } catch (_) {
+        return {
+          matchedUtc: aparahnaMidUtc,
+          aparahnaWindow: windowLabel
+        };
+      }
     }
 
     if (tithiDiff < minDiff) {
       minDiff = tithiDiff;
-      bestDate = aparahnaUtc;
+      bestDate = aparahnaMidUtc;
+      bestWindow = windowLabel;
+      try {
+        bestPanchanga = calculateUnifiedBaggona(dateStr, "14:00", lat, lng, "lahiri");
+      } catch (_) {}
     }
   }
 
-  return bestDate;
+  return {
+    matchedUtc: bestDate,
+    aparahnaWindow: bestWindow,
+    panchangaDay: bestPanchanga
+  };
 }
 
-/** 13-Day Antyesti & Asoucha Roadmap anchored to IST */
+/** 13-Day Antyesti & Asoucha Roadmap anchored to IST with 5-language descriptions */
 export function compute12DaysRoadmap(demiseDateStr: string, demiseTime?: string): AntyestiDailyRoadmapItem[] {
   const [y, m, d] = demiseDateStr.split("-").map(Number);
   const timeParts = (demiseTime || "12:00").split(":").map(Number);
@@ -286,7 +437,13 @@ export function compute12DaysRoadmap(demiseDateStr: string, demiseTime?: string)
         te: "స్థూల శరీరాన్ని వదిలి సూక్ష్మ శరీర ధారణ ప్రారంభమవుతుంది. 1వ పిండంతో శిరస్సు నిర్మాణం.",
         ta: "சூட்சும உடல் உருவாக்கம் தொடங்குகிறது. 1ம் பிண்டத்தால் தலைப் பகுதி உருவாகிறது."
       },
-      keyOfferings: { kn: "ದರ್ಭೆ, ಕಪ್ಪು ಎಳ್ಳು, ಮಣ್ಣಿನ ಪಾತ್ರೆ, ಜಲ, ಹತ್ತಿ ಬತ್ತಿ.", en: "Darbha, Black sesame, Earthen pot, Water, Lamp.", hi: "दर्भ, काले तिल, मिट्टी का पात्र, जल।", te: "దర్భ, నల్ల నువ్వులు, మట్టి పాత్ర, జలం.", ta: "தர்ப்பை, கருப்பு எள், மண்பாண்டம், நீர்." }
+      keyOfferings: {
+        kn: "ದರ್ಭೆ, ಕಪ್ಪು ಎಳ್ಳು, ಮಣ್ಣಿನ ಪಾತ್ರೆ, ಜಲ, ಹತ್ತಿ ಬತ್ತಿ.",
+        en: "Darbha, Black sesame, Earthen pot, Water, Lamp.",
+        hi: "दर्भ, काले तिल, मिट्टी का पात्र, जल।",
+        te: "దర్భ, నల్ల నువ్వులు, మట్టి పాత్ర, జలం.",
+        ta: "தர்ப்பை, கருப்பு எள், மண்பாண்டம், நீர்."
+      }
     },
     {
       day: 2,
@@ -311,7 +468,13 @@ export function compute12DaysRoadmap(demiseDateStr: string, demiseTime?: string)
         te: "ఆత్మ దాహాన్ని తీర్చి శాంతిని కలిగిస్తుంది.",
         ta: "ஆன்மாவின் தாகத்தைத் தணித்து அமைதி அளிக்கிறது."
       },
-      keyOfferings: { kn: "ಅನ್ನ ಪಿಂಡ, ಕಪ್ಪು ಎಳ್ಳು, ತೀರ್ಥ, ಹಾಲು.", en: "Rice Pinda, Black sesame, Milk, Holy water.", hi: "अन्न पिंड, काले तिल, दूध, जल।", te: "ಅನ್ನ ಪಿಂಡಂ, ನಲ್ಲ నువ్వులు, పాలు.", ta: "அன்ன பிண்டம், கருப்பு எள், தீர்த்தம், பால்." }
+      keyOfferings: {
+        kn: "ಅನ್ನ ಪಿಂಡ, ಕಪ್ಪು ಎಳ್ಳು, ತೀರ್ಥ, ಹಾಲು.",
+        en: "Rice Pinda, Black sesame, Milk, Holy water.",
+        hi: "अन्न पिंड, काले तिल, दूध, जल।",
+        te: "అన్న పిండం, నల్ల నువ్వులు, పాలు.",
+        ta: "அன்ன பிண்டம், கருப்பு எள், தீர்த்தம், பால்."
+      }
     },
     {
       day: 3,
@@ -336,7 +499,13 @@ export function compute12DaysRoadmap(demiseDateStr: string, demiseTime?: string)
         te: "2వ పిండంతో కళ్లు, చెవులు మరియు నాసిక రూపొందుతాయి.",
         ta: "இரண்டாம் பிண்டத்தால் கண், காது, மூக்கு உருவாகிறது."
       },
-      keyOfferings: { kn: "ಅನ್ನ ಪಿಂಡ, ದರ್ಭೆ, ಕಪ್ಪು ಎಳ್ಳು.", en: "Rice Pinda, Darbha, Black sesame.", hi: "अन्न पिंड, दर्भ, काले तिल।", te: "ಅನ್ನ ಪಿಂಡಂ, ದర్భ, ನಲ್ಲ నువ్వులు.", ta: "அன்ன பிண்டம், தர்ப்பை, எள்." }
+      keyOfferings: {
+        kn: "ಅನ್ನ ಪಿಂಡ, ದರ್ಭೆ, ಕಪ್ಪು ಎಳ್ಳು.",
+        en: "Rice Pinda, Darbha, Black sesame.",
+        hi: "अन्न पिंड, दर्भ, काले तिल।",
+        te: "అన్న పిండం, దర్భ, నల్ల నువ్వులు.",
+        ta: "அன்ன பிண்டம், தர்ப்பை, எள்."
+      }
     },
     {
       day: 4,
@@ -361,7 +530,13 @@ export function compute12DaysRoadmap(demiseDateStr: string, demiseTime?: string)
         te: "3వ పిండంతో కంఠం, భుజాలు మరియు ఛాతీ భాగం రూపొందుతుంది.",
         ta: "கழுத்து மற்றும் மார்புப் பகுதி உருவாகிறது."
       },
-      keyOfferings: { kn: "ಅನ್ನ ಪಿಂಡ, ಕಪ್ಪು ಎಳ್ಳು, ಮಂತ್ರಜಲ.", en: "Rice Pinda, Black sesame, Sanctified water.", hi: "अन्न पिंड, काले तिल, मंत्र जल।", te: "ಅನ್ನ ಪಿಂಡಂ, ನಲ್ಲ నువ్వులు, మంత్ర జలం.", ta: "அன்ன பிண்டம், எள், மந்திர தீர்த்தம்." }
+      keyOfferings: {
+        kn: "ಅನ್ನ ಪಿಂಡ, ಕಪ್ಪು ಎಳ್ಳು, ಮಂತ್ರಜಲ.",
+        en: "Rice Pinda, Black sesame, Sanctified water.",
+        hi: "अन्न पिंड, काले तिल, मंत्र जल।",
+        te: "అన్న పిండం, నల్ల నువ్వులు, మంత్ర జలం.",
+        ta: "அன்ன பிண்டம், எள், மந்திர தீர்த்தம்."
+      }
     },
     {
       day: 5,
@@ -386,7 +561,13 @@ export function compute12DaysRoadmap(demiseDateStr: string, demiseTime?: string)
         te: "4వ పిండంతో నాభి మరియు ఉదర కోశాలు రూపుదిద్దుకుంటాయి.",
         ta: "தொப்புள் மற்றும் வயிறுப் பகுதி உருவாகிறது."
       },
-      keyOfferings: { kn: "ಅನ್ನ ಪಿಂಡ, ತಾಮ್ರ ಪಾತ್ರೆ ಜಲ.", en: "Rice Pinda, Copper vessel water.", hi: "अन्न पिंड, ताम्र पात्र जल।", te: "ಅನ್ನ ಪಿಂಡಂ, రాగి పాత్ర జలం.", ta: "அன்ன பிண்டம், தாமிர பாத்திர தீர்த்தம்." }
+      keyOfferings: {
+        kn: "ಅನ್ನ ಪಿಂಡ, ತಾಮ್ರ ಪಾತ್ರೆ ಜಲ.",
+        en: "Rice Pinda, Copper vessel water.",
+        hi: "अन्न पिंड, ताम्र पात्र जल।",
+        te: "అన్న పిండం, రాగి పాత్ర జలం.",
+        ta: "அன்ன பிண்டம், தாமிர பாத்திர தீர்த்தம்."
+      }
     },
     {
       day: 6,
@@ -411,7 +592,13 @@ export function compute12DaysRoadmap(demiseDateStr: string, demiseTime?: string)
         te: "5వ పిండంతో నడుము మరియు తొడలు రూపొందుతాయి.",
         ta: "இடுப்பு மற்றும் தொடைகள் உருவாகின்றன."
       },
-      keyOfferings: { kn: "ಅನ್ನ ಪಿಂಡ, ದರ್ಭೆ, ಜಲ.", en: "Rice Pinda, Darbha, Water.", hi: "अन्न पिंड, दर्भ, जल।", te: "ಅನ್ನ ಪಿಂಡಂ, దర్భ, జలం.", ta: "அன்ன பிண்டம், தர்ப்பை." }
+      keyOfferings: {
+        kn: "ಅನ್ನ ಪಿಂಡ, ದರ್ಭೆ, ಜಲ.",
+        en: "Rice Pinda, Darbha, Water.",
+        hi: "अन्न पिंड, दर्भ, जल।",
+        te: "అన్న పిండం, దర్భ, జలం.",
+        ta: "அன்ன பிண்டம், தர்ப்பை."
+      }
     },
     {
       day: 7,
@@ -436,7 +623,13 @@ export function compute12DaysRoadmap(demiseDateStr: string, demiseTime?: string)
         te: "6వ పిండంతో ప్రాణ నాడులు మరియు మర్మ స్థానాలు అనుసంధానమవుతాయి.",
         ta: "சூட்சும நாடிகள் மற்றும் நரம்பு மண்டலம் இணைகிறது."
       },
-      keyOfferings: { kn: "ಅನ್ನ ಪಿಂಡ, ಕಪ್ಪು ಎಳ್ಳು.", en: "Rice Pinda, Black sesame.", hi: "अन्न पिंड, काले तिल।", te: "ಅನ್ನ ಪಿಂಡಂ, ನಲ್ಲ నువ్వులు.", ta: "அன்ன பிண்டம், எள்." }
+      keyOfferings: {
+        kn: "ಅನ್ನ ಪಿಂಡ, ಕಪ್ಪು ಎಳ್ಳು.",
+        en: "Rice Pinda, Black sesame.",
+        hi: "अन्न पिंड, काले तिल।",
+        te: "అన్న పిండం, నల్ల నువ్వులు.",
+        ta: "அன்ன பிண்டம், எள்."
+      }
     },
     {
       day: 8,
@@ -461,7 +654,13 @@ export function compute12DaysRoadmap(demiseDateStr: string, demiseTime?: string)
         te: "7వ పిండంతో ఎముకలు మరియు సూక్ష్మ చర్మ కవచం పూర్తవుతుంది.",
         ta: "எலும்பு, மஜ்ஜை மற்றும் சூட்சும தோல் படலம் நிறைகிறது."
       },
-      keyOfferings: { kn: "ಅನ್ನ ಪಿಂಡ, ಹಾಲು, ಜಲ.", en: "Rice Pinda, Milk, Water.", hi: "अन्न पिंड, दूध, जल।", te: "ಅನ್ನ ಪಿಂಡಂ, పాలు, జలం.", ta: "அன்ன பிண்டம், பால், நீர்." }
+      keyOfferings: {
+        kn: "ಅನ್ನ ಪಿಂಡ, ಹಾಲು, ಜಲ.",
+        en: "Rice Pinda, Milk, Water.",
+        hi: "अन्न पिंड, दूध, जल।",
+        te: "అన్న పిండం, పాలు, జలం.",
+        ta: "அன்ன பிண்டம், பால், நீர்."
+      }
     },
     {
       day: 9,
@@ -483,10 +682,16 @@ export function compute12DaysRoadmap(demiseDateStr: string, demiseTime?: string)
         kn: "೮ನೇ ಪಿಂಡದಿಂದ ದೇಹಕ್ಕೆ ಹಸಿವು-ಬಾಯಾರಿಕೆಗಳನ್ನು ತೃಪ್ತಿಪಡಿಸಿಕೊಳ್ಳುವ ಶಕ್ತಿ ಪ್ರಾಪ್ತವಾಗುತ್ತದೆ.",
         en: "The 8th Pinda grants the Yatana body the faculty to assimilate food/water offerings.",
         hi: "अष्टम पिंड से आत्मा को क्षुधा-पिपासा तृप्त करने की शक्ति प्राप्त होती है।",
-        te: "8వ పిండంతో ఆకలి దప్పులను తీర్చుకునే शक्ति లభిస్తుంది.",
+        te: "8వ పిండంతో ఆకలి దప్పులను తీర్చుకునే శక్తి లభిస్తుంది.",
         ta: "ஆன்மாவுக்கு பசி, தாகத்தை உணரும் ஆற்றல் கிடைக்கிறது."
       },
-      keyOfferings: { kn: "ಅನ್ನ ಪಿಂಡ, ಎಳ್ಳು, ಮಧು (ಜೇನುತುಪ್ಪ).", en: "Rice Pinda, Sesame, Honey.", hi: "अन्न पिंड, तिल, मधु (शहद)।", te: "ಅನ್ನ పిండಂ, నువ్వులు, తేనె.", ta: "அன்ன பிண்டம், எள், தேன்." }
+      keyOfferings: {
+        kn: "ಅನ್ನ ಪಿಂಡ, ಎಳ್ಳು, ಮಧು (ಜೇನುತುಪ್ಪ).",
+        en: "Rice Pinda, Sesame, Honey.",
+        hi: "अन्न पिंड, तिल, मधु (शहद)।",
+        te: "అన్న పిండం, నువ్వులు, తేనె.",
+        ta: "அன்ன பிண்டம், எள், தேன்."
+      }
     },
     {
       day: 10,
@@ -593,7 +798,7 @@ export function compute12DaysRoadmap(demiseDateStr: string, demiseTime?: string)
       rituals: {
         kn: "ಆನಂದ ಹೋಮ, ಗೃಹ ಶುದ್ಧಿ, ಪುಣ್ಯಾಹ ವಾಚನ, ಶುಭ ಸ್ವೀಕಾರ, ದೇವತಾರ್ಚನೆ ಹಾಗೂ ಮಹಾ ಅನ್ನ ಸಂತರ್ಪಣೆ.",
         en: "Ananda Homa, Griha Shuddhi, Punyahavachana, Shubha Sweekara, temple worship, and community feast.",
-        hi: "आनंद होम, गृह शुद्धि, पुण्याह वाचन, शुभ स्वीकार, देवतार्चन तथा महा अन्न संर्पण।",
+        hi: "आनंद होम, गृह शुद्धि, पुण्याह वाचन, शुभ स्वीकार, देवतार्चन तथा महा अन्न संतर्पण।",
         te: "ఆనంద హోమం, గృహ శుద్ధి, పుణ్యాహవాచనం, శుభ స్వీకారం మరియు మహా అన్నదానం.",
         ta: "ஆனந்த ஹோமம், கிரக சுத்தி, புண்யாகவாசனம், சுப ஸ்வீகாரம், அன்னதானம்."
       },
@@ -634,31 +839,103 @@ export function computeAsthiVisarjanaGuide(): AsthiVisarjanaGuide {
   return {
     optimalTiming: {
       kn: "ಮರಣ ಹೊಂದಿದ ೩ನೇ, ೭ನೇ, ೯ನೇ ಅಥವಾ ೧೦ನೇ ದಿನದೊಳಗೆ ಅಸ್ಥಿ ವಿಸರ್ಜನೆ ಮಾಡುವುದು ಶ್ರೇಷ್ಠ. ಸಾಧ್ಯವಾಗದಿದ್ದಲ್ಲಿ ೧ ವರ್ಷದೊಳಗೆ ಪವಿತ್ರ ಗಂಗಾ, ಗೋಕರ್ಣ ಅಥವಾ ಕಾವೇರಿ ಸಂಗಮದಲ್ಲಿ ವಿಸರ್ಜಿಸಬೇಕು.",
-      en: "Best performed on the 3rd, 7th, 9th or within the 10th day of demise. Alternatively within 1 year at sacred rivers like Gokarna Samudra, Ganga, or Kaveri.",
+      en: "Best performed on the 3rd, 7th, 9th or within the 10th day of demise. Alternatively within 1 year at sacred waters like Gokarna Samudra, Ganga, or Kaveri.",
       hi: "मृत्यु के 3रे, 7वें, 9वें या 10वें दिन के भीतर अस्थि विसर्जन सर्वोत्तम है। अन्यथा 1 वर्ष के भीतर गंगा, गोकर्ण या त्रिवेणी में विसर्जित करें।",
-      te: "మరణించిన 3, 7, 9 లేదా 10వ రోజులోపు అస్థి విసర్జన చేయడం శ్రేష్ఠం.",
-      ta: "மரணமடைந்த 3, 7, 9 அல்லது 10ம் நாளுக்குள் அஸ்தி விசர்ஜனம் செய்வது உத்தமம்."
+      te: "మరణించిన 3, 7, 9 లేదా 10వ రోజులోపు అస్థి విసర్జన చేయడం శ్రేష్ఠం. వీలుకానిచో 1 సంవత్సరంలోపు గోకర్ణ లేదా గంగా నదిలో విసర్జించాలి.",
+      ta: "மரணமடைந்த 3, 7, 9 அல்லது 10ம் நாளுக்குள் அஸ்தி விசர்ஜனம் செய்வது உத்தமம். இயலாவிடில் 1 வருடத்திற்குள் கோகர்ண அல்லது கங்கை சங்கமத்தில் கரைக்கலாம்."
     },
     sacredTirthas: [
       {
-        name: { kn: "ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥ & ಸಮುದ್ರ ಸಂಗಮ", en: "Gokarna Kotitirtha & Ocean Sangama", hi: "गोकर्ण कोटितीर्थ एवं समुद्र संगम", te: "గోకర్ణ కోటితీర్థం & సముద్ర సంగమం", ta: "கோகர்ண கோடிதீர்த்தம் & கடல் சங்கமம்" },
-        location: { kn: "ಗೋಕರ್ಣ, ಉತ್ತರ ಕನ್ನಡ, ಕರ್ನಾಟಕ", en: "Gokarna, Uttara Kannada, Karnataka", hi: "गोकर्ण, कर्नाटक", te: "గోకర్ణ, కర్ణాటక", ta: "கோகர்ண, கர்நாடகா" },
-        spiritualSignificance: { kn: "ರುದ್ರಪಾದ ಸನ್ನಿಧಿ — ಇಲ್ಲಿ ಅಸ್ಥಿ ವಿಸರ್ಜನೆ ಮಾಡಿದರೆ ಆತ್ಮವು ಸಕಲ ಪಾಪಗಳಿಂದ ಮುಕ್ತವಾಗಿ ಶಿವ ಸಾಯುಜ್ಯ ಪಡೆಯುತ್ತದೆ.", en: "Sacred Rudrapada — Dissolves all sins and grants immediate liberation (Shiva Sayujya) to the soul.", hi: "रुद्रपाद सन्निधि — समस्त पापों का क्षय होकर आत्मा को शिव सायुज्य की प्राप्ति होती है।", te: "రుద్రపాద సన్నిధి — సమస్త పాపాలు నశించి ఆత్మకు మోక్షం లభిస్తుంది.", ta: "ருத்ரபாத சன்னதி — சகல பாவங்களும் நீங்கி ஆன்மா முக்தி அடைகிறது." }
+        name: {
+          kn: "ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥ & ಸಮುದ್ರ ಸಂಗಮ",
+          en: "Gokarna Kotitirtha & Ocean Sangama",
+          hi: "गोकर्ण कोटितीर्थ एवं समुद्र संगम",
+          te: "గోకర్ణ కోటితీర్థం & సముద్ర సంగమం",
+          ta: "கோகர்ண கோடிதீர்த்தம் & கடல் சங்கமம்"
+        },
+        location: {
+          kn: "ಗೋಕರ್ಣ, ಉತ್ತರ ಕನ್ನಡ, ಕರ್ನಾಟಕ",
+          en: "Gokarna, Uttara Kannada, Karnataka",
+          hi: "गोकर्ण, उत्तर कन्नड़, कर्नाटक",
+          te: "గోకర్ణ, ఉత్తర కన్నడ, కర్ణాటక",
+          ta: "கோகர்ணம், உத்தர கன்னட, கர்நாடகா"
+        },
+        spiritualSignificance: {
+          kn: "ರುದ್ರಪಾದ ಸನ್ನಿಧಿ — ಇಲ್ಲಿ ಅಸ್ಥಿ ವಿಸರ್ಜನೆ ಮಾಡಿದರೆ ಆತ್ಮವು ಸಕಲ ಪಾಪಗಳಿಂದ ಮುಕ್ತವಾಗಿ ಶಿವ ಸಾಯುಜ್ಯ ಪಡೆಯುತ್ತದೆ.",
+          en: "Sacred Rudrapada — Dissolves all sins and grants immediate liberation (Shiva Sayujya) to the departed soul.",
+          hi: "रुद्रपाद सन्निधि — समस्त पापों का क्षय होकर आत्मा को शिव सायुज्य की प्राप्ति होती है।",
+          te: "రుద్రపాద సన్నిధి — సమస్త పాపాలు నశించి ఆత్మకు శివ సాయుజ్యం మరియు శాశ్వత మోక్షం లభిస్తుంది.",
+          ta: "ருத்ரபாத சன்னதி — சகல பாவங்களும் நீங்கி ஆன்மா சிவ சாயுஜ்ய முக்தி அடைகிறது."
+        }
       },
       {
-        name: { kn: "ವಾರಣಾಸಿ (ಕಾಶೀ ಗಂಗಾ ತೀರ)", en: "Varanasi (Kashi Ganga Manikarnika)", hi: "वाराणसी (काशी गंगा मणिकर्णिका)", te: "వారణాసి (కాశీ గంగ)", ta: "வாரணாசி (காசி கங்கை)" },
-        location: { kn: "ವಾರಣಾಸಿ, ಉತ್ತರ ಪ್ರದೇಶ", en: "Varanasi, Uttar Pradesh", hi: "वाराणसी, उत्तर प्रदेश", te: "వారణాసి, ఉత్తరప్రదేశ్", ta: "வாரணாசி, உ.பி." },
-        spiritualSignificance: { kn: "ಕಾಶೀ ಮರಣಾನ್ಮುಕ್ತಿಃ — ಗಂಗಾ ಜಲದಲ್ಲಿ ಅಸ್ಥಿ ಲೀನವಾದರೆ ಪುನರ್ಜನ್ಮ ರಹಿತ ಶಾಶ್ವತ ಮೋಕ್ಷ.", en: "Ganga water immersion grants liberation from cycle of rebirths (Kashi Moksha).", hi: "गंगा जल में अस्थि विसर्जन से पुनर्जन्म रहित शाश्वत मोक्ष की प्राप्ति।", te: "గంగా జలంలో అస్థి విసర్జనతో శాశ్వత మోక్షం.", ta: "கங்கையில் அஸ்தி கரைப்பதால் மறுபிறப்பற்ற மோக்ஷம்." }
+        name: {
+          kn: "ವಾರಣಾಸಿ (ಕಾಶೀ ಗಂಗಾ ತೀರ)",
+          en: "Varanasi (Kashi Ganga Manikarnika)",
+          hi: "वाराणसी (काशी गंगा मणिकर्णिका)",
+          te: "వారణాసి (కాశీ గంగ)",
+          ta: "வாரணாசி (காசி கங்கை)"
+        },
+        location: {
+          kn: "ವಾರಣಾಸಿ, ಉತ್ತರ ಪ್ರದೇಶ",
+          en: "Varanasi, Uttar Pradesh",
+          hi: "वाराणसी, उत्तर प्रदेश",
+          te: "వారణాసి, ఉత్తరప్రదేశ్",
+          ta: "வாரணாசி, உ.பி."
+        },
+        spiritualSignificance: {
+          kn: "ಕಾಶೀ ಮರಣಾನ್ಮುಕ್ತಿಃ — ಗಂಗಾ ಜಲದಲ್ಲಿ ಅಸ್ಥಿ ಲೀನವಾದರೆ ಪುನರ್ಜನ್ಮ ರಹಿತ ಶಾಶ್ವತ ಮೋಕ್ಷ.",
+          en: "Ganga water immersion grants liberation from cycle of rebirths (Kashi Moksha).",
+          hi: "गंगा जल में अस्थि विसर्जन से पुनर्जन्म रहित शाश्वत मोक्ष की प्राप्ति।",
+          te: "గంగా జలంలో అస్థి విసర్జనతో పునర్జన్మ రహిత శాశ్వత మోక్షం.",
+          ta: "கங்கையில் அஸ்தி கரைப்பதால் மறுபிறப்பற்ற மோக்ஷம்."
+        }
       },
       {
-        name: { kn: "ಪ್ರಯಾಗರಾಜ್ (ತ್ರಿವೇಣಿ ಸಂಗಮ)", en: "Prayagraj (Triveni Sangam)", hi: "प्रयागराज (त्रिवेणी संगम)", te: "ప్రయాగ్‌రాజ్ (త్రివేణి సంగమం)", ta: "பிரயாக்ராஜ் (திரிவேணி சங்கமம்)" },
-        location: { kn: "ಪ್ರಯಾಗರಾಜ್, ಉತ್ತರ ಪ್ರದೇಶ", en: "Prayagraj, Uttar Pradesh", hi: "प्रयागराज, उत्तर प्रदेश", te: "ప్రయాగ్‌రాజ్, ఉత్తరప్రదేశ్", ta: "பிரயாக்ராஜ், உ.பி." },
-        spiritualSignificance: { kn: "ಗಂಗಾ, ಯಮುನಾ, ಸರಸ್ವತೀ ಸಂಗಮದಲ್ಲಿ ಅಸ್ಥಿ ಸಮರ್ಪಣೆ ಸರ್ವ ಪಿತೃಗಳಿಗೆ ತೃಪ್ತಿದಾಯಕ.", en: "Confluence of 3 sacred rivers pacifies all ancestral debts across 21 generations.", hi: "त्रिवेणी संगम में अस्थि समर्पण से 21 पीढ़ियों के पितरों की तृप्ति होती है।", te: "త్రివేణి సంగమంలో అస్థి సమర్పణతో 21 తరాల పితృ తృప్తి.", ta: "திரிவேணி சங்கமத்தில் அஸ்தி கரைப்பது 21 தலைமுறை பித்ருக்களுக்கு திருப்தி அளிக்கும்." }
+        name: {
+          kn: "ಪ್ರಯಾಗರಾಜ್ (ತ್ರಿವೇಣಿ ಸಂಗಮ)",
+          en: "Prayagraj (Triveni Sangam)",
+          hi: "प्रयागराज (त्रिवेणी संगम)",
+          te: "ప్రయాగ్‌రాజ్ (త్రివేణి సంగమం)",
+          ta: "பிரயாக்ராஜ் (திரிவேணி சங்கமம்)"
+        },
+        location: {
+          kn: "ಪ್ರಯಾಗರಾಜ್, ಉತ್ತರ ಪ್ರದೇಶ",
+          en: "Prayagraj, Uttar Pradesh",
+          hi: "प्रयागराज, उत्तर प्रदेश",
+          te: "ప్రయాగ్‌రాజ్, ఉత్తరప్రదేశ్",
+          ta: "பிரயாக்ராஜ், உ.பி."
+        },
+        spiritualSignificance: {
+          kn: "ಗಂಗಾ, ಯಮುನಾ, ಸರಸ್ವತೀ ಸಂಗಮದಲ್ಲಿ ಅಸ್ಥಿ ಸಮರ್ಪಣೆ ಸರ್ವ ಪಿತೃಗಳಿಗೆ ತೃಪ್ತಿದಾಯಕ.",
+          en: "Confluence of 3 sacred rivers pacifies all ancestral debts across 21 generations.",
+          hi: "त्रिवेणी संगम में अस्थि समर्पण से 21 पीढ़ियों के पितरों की तृप्ति होती है।",
+          te: "త్రివేణి సంగమంలో అస్థి సమర్పణతో 21 తరాల పితృ తృప్తి.",
+          ta: "திரிவேணி சங்கமத்தில் அஸ்தி கரைப்பது 21 தலைமுறை பித்ருக்களுக்கு திருப்தி அளிக்கும்."
+        }
       },
       {
-        name: { kn: "ಶ್ರೀರಂಗಪಟ್ಟಣ (ಪಶ್ಚಿಮ ವಾಹಿನಿ ಕಾವೇರಿ)", en: "Srirangapatna (Paschima Vahini Kaveri)", hi: "श्रीरंगपट्टण (पश्चिम वाहिनी कावेरी)", te: "శ్రీరంగపట్నం (పశ్చిమ వాహిని కావేరి)", ta: "ஸ்ரீரங்கப்பட்டினம் (காவேரி சங்கமம்)" },
-        location: { kn: "ಮಂಡ್ಯ ಜಿಲ್ಲೆ, ಕರ್ನಾಟಕ", en: "Mandya Dist, Karnataka", hi: "मांड्या, कर्नाटक", te: "మండ్య, కర్ణాటక", ta: "மண்டியா, கர்நாடகா" },
-        spiritualSignificance: { kn: "ದಕ್ಷಿಣ ಭಾರತದ ಪ್ರಸಿದ್ಧ ಪವಿತ್ರ ಪಶ್ಚಿಮ ವಾಹಿನಿ ಕಾವೇರಿ ತೀರ್ಥ.", en: "Renowned sacred southern tirtha where Kaveri flows westward.", hi: "दक्षिण भारत का परम पावन पश्चिम वाहिनी कावेरी तीर्थ।", te: "దక్షిణ భారత ప్రసిద్ధ పశ్చిమ వాహిని కావేరి తీర్థం.", ta: "தென்னிந்தியாவின் பிரசித்தி பெற்ற காவேரி சங்கம தீர்த்தம்." }
+        name: {
+          kn: "ಶ್ರೀರಂಗಪಟ್ಟಣ (ಪಶ್ಚಿಮ ವಾಹಿನಿ ಕಾವೇರಿ)",
+          en: "Srirangapatna (Paschima Vahini Kaveri)",
+          hi: "श्रीरंगपट्टण (पश्चिम वाहिनी कावेरी)",
+          te: "శ్రీరంగపట్నం (పశ్చిమ వాహిని కావేరి)",
+          ta: "ஸ்ரீரங்கப்பட்டினம் (காவேரி சங்கமம்)"
+        },
+        location: {
+          kn: "ಮಂಡ್ಯ ಜಿಲ್ಲೆ, ಕರ್ನಾಟಕ",
+          en: "Mandya Dist, Karnataka",
+          hi: "मांड्या, कर्नाटक",
+          te: "మండ్య, కర్ణాటక",
+          ta: "மண்டியா, கர்நாடகா"
+        },
+        spiritualSignificance: {
+          kn: "ದಕ್ಷಿಣ ಭಾರತದ ಪ್ರಸಿದ್ಧ ಪವಿತ್ರ ಪಶ್ಚಿಮ ವಾಹಿನಿ ಕಾವೇರಿ ತೀರ್ಥ.",
+          en: "Renowned sacred southern tirtha where Kaveri flows westward.",
+          hi: "दक्षिण भारत का परम पावन पश्चिम वाहिनी कावेरी तीर्थ।",
+          te: "దక్షిణ భారత ప్రసిద్ధ పశ్చిమ వాహిని కావేరి తీర్థం.",
+          ta: "தென்னிந்தியாவின் பிரசித்தி பெற்ற காவேரி சங்கம தீர்த்தம்."
+        }
       }
     ],
     procedureSteps: {
@@ -673,6 +950,24 @@ export function computeAsthiVisarjanaGuide(): AsthiVisarjanaGuide {
         "Perform Pitru Sankalpa with priest, offering milk, ghee, black sesame, and flowers to the Asthi.",
         "Facing East or South in sacred deep waters, immerse the ashes chanting 'Om Namo Narayanaya'.",
         "Take a complete holy dip, offer Surya Arghya, and donate sesame, clothes, and Dakshina."
+      ],
+      hi: [
+        "अस्थि कलश को पवित्र वस्त्र में लपेटकर पूर्ण शुद्धि का पालन करें।",
+        "तीर्थ पुरोहित के साथ 'पितृ संकल्प' कर दुग्ध, घृत, तिल एवं पुष्पों से अस्थि पूजन करें।",
+        "पवित्र जल में पूर्व या दक्षिण की ओर मुख कर 'ॐ नमो नारायणाय' जपते हुए अस्थि विसर्जन करें।",
+        "तत्काल सचैल स्नान कर सूर्यदेव को अर्घ्य दें एवं ब्राह्मण को तिल, वस्त्र व दक्षिणा दान करें।"
+      ],
+      te: [
+        "అస్థి కలశాన్ని పవిత్ర వస్త్రంతో చుట్టి శుచిగా ఉంచండి.",
+        "పురోహితులతో 'పితృ సంకల్పం' చేసి పాలు, నెయ్యి, నువ్వులు, పుష్పాలతో అస్థి పూజ చేయండి.",
+        "లోతైన పవిత్ర జలంలో తూర్పు లేదా దక్షిణాభిముఖంగా నిలబడి 'ఓం నమో నారాయణాయ' జపిస్తూ అస్థి నిమజ్జనం చేయండి.",
+        "వెంటనే స్నానం చేసి సూర్యునికి అర్ఘ్యం సమర్పించి, బ్రాహ్మణులకు నువ్వులు, వస్త్రాలు, దక్షిణ దానం చేయండి."
+      ],
+      ta: [
+        "அஸ்தி கலசத்தை தூய வஸ்திரத்தில் சுற்றி புனிதமாக வைத்திருக்கவும்.",
+        "புரோகிதருடன் 'பித்ரு சங்கல்பம்' செய்து பால், நெய், எள் மற்றும் மலர்களால் அஸ்தி பூஜை செய்யவும்.",
+        "புனித நீரில் கிழக்கு அல்லது தெற்கு நோக்கி நின்று 'ஓம் நமோ நாராயணாய' என ஜெபித்து அஸ்தி விசர்ஜனம் செய்யவும்.",
+        "உடனடியாக ஸ்நானம் செய்து சூரிய தேவருக்கு அர்க்கியம் அளித்து, எள், வஸ்திரம், தக்ஷிணை தானம் செய்யவும்."
       ]
     },
     mantra: "॥ ಓಂ ಅಸ್ಥಿ ಸಂಚಯನ ಪುಣ್ಯೇ ತೀರ್ಥೇ ವಿಸರ್ಜಯಾಮಿ, ದಿವ್ಯ ಲೋಕಂ ಗಚ್ಛತು ಸದ್ಗತಿಃ ಭವತು ॥"
@@ -683,19 +978,31 @@ export function computeGarudaPuranaWisdom(): GarudaPuranaWisdom {
   return {
     soulJourneySummary: {
       kn: "ಗರುಡ ಪುರಾಣದ ಪ್ರಕಾರ, ಮರಣದ ನಂತರ ಜೀವವು ೧೨ ದಿನಗಳ ಕಾಲ ಗೃಹ ಹಾಗೂ ಚಿತಾಭೂಮಿಯ ಬಳಿಯೇ ಸೂಕ್ಷ್ಮವಾಗಿ ಇರುತ್ತದೆ. ನಾವು ನೀಡುವ ದಿನನಿತ್ಯದ ಪಿಂಡ & ತರ್ಪಣಗಳಿಂದ ಸೂಕ್ಷ್ಮ ಯಾತನಾ ದೇಹ ನಿರ್ಮಾಣವಾಗಿ ೧ ವರ್ಷದ ಕಾಲ ಯಮಮಾರ್ಗದಲ್ಲಿ ಪಯಣಿಸಿ ಪಿತೃಲೋಕವನ್ನು ಸೇರುತ್ತದೆ.",
-      en: "According to Garuda Purana, the soul lingers near home and pyre for 12 days. Daily Pinda and Tila offerings build its subtle vessel, sustaining its 1-year journey along the cosmic path to Pitru Loka."
+      en: "According to Garuda Purana, the soul lingers near home and pyre for 12 days. Daily Pinda and Tila offerings build its subtle vessel, sustaining its 1-year journey along the cosmic path to Pitru Loka.",
+      hi: "गरुड़ पुराण के अनुसार मृत्यु के पश्चात आत्मा 12 दिनों तक सूक्ष्म रूप से निवास करती है। नित्य दिए जाने वाले पिंड व तिलांजलि से सूक्ष्म देह बनकर 1 वर्ष की यात्रा पूर्ण कर पितृलोक में प्रवेश करती है।",
+      te: "గరుడ పురాణం ప్రకారం మరణం తర్వాత ఆత్మ 12 రోజుల పాటు సూక్ష్మంగా ఉంటుంది. మనం సమర్పించే పిండాలు, తిలాంజలి ద్వారా సూక్ష్మ శరీరం రూపుదిద్దుకుని 1 సంవత్సరం ప్రయాణించి పితృలోకం చేరుతుంది.",
+      ta: "கருட புராணத்தின்படி மரணத்திற்குப் பின் ஆன்மா 12 நாட்கள் சூட்சுமமாக இருக்கும். நாம் செய்யும் தினசரி பிண்ட தானம் மூலம் சூட்சும உடல் பெற்று 1 ஆண்டு பயணம் செய்து பித்ரு லோகத்தை அடைகிறது."
     },
     pindaDanaMeaning: {
       kn: "ಪ್ರತಿಯೊಂದು ದಿನದ ಪಿಂಡವು ಜೀವದ ಅಂಗಾಂಗಗಳನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ರೂಪಿಸುತ್ತದೆ (೧ನೇ ದಿನ ಶಿರ, ೨ನೇ ದಿನ ಕಣ್ಣು-ಕಿವಿ, ೧೦ನೇ ದಿನ ಸಂಪೂರ್ಣ ದೇಹ). ೧೦ನೇ ದಿನದ ನಂತರ ಪ್ರೇತತ್ವ ಮುಗಿಯುತ್ತದೆ.",
-      en: "Each day's Pinda forms specific organs of the subtle body (Day 1 head, Day 2 perception, Day 10 completion), transmuting the ghost (Preta) state into a peaceful ancestral spirit."
+      en: "Each day's Pinda forms specific organs of the subtle body (Day 1 head, Day 2 perception, Day 10 completion), transmuting the ghost (Preta) state into an elevated Pitru spirit.",
+      hi: "प्रत्येक दिन का पिंड सूक्ष्म अंगों का निर्माण करता है (प्रथम दिन सिर, 10वें दिन पूर्ण देह)। 10वें दिन के उपरांत प्रेतत्व समाप्त होता है।",
+      te: "ప్రతి రోజు ఇచ్చే పిండం సూక్ష్మ అంగాలను నిర్మిస్తుంది (1వ రోజు శిరస్సు, 10వ రోజు సంపూర్ణ శరీరం). 10వ రోజు తర్వాత ప్రేతత్వం తొలగుతుంది.",
+      ta: "ஒவ்வொரு நாள் பிண்டமும் சூட்சும உறுப்புகளை உருவாக்குகிறது (1ம் நாள் தலை, 10ம் நாள் முழு உடல்). 10ம் நாளுக்குப் பின் பிரேத நிலை நீங்குகிறது."
     },
     vaitaraniGodanaImportance: {
       kn: "ಯಮಲೋಕದ ಮಾರ್ಗದಲ್ಲಿ ಅತ್ಯಂತ ಭಯಂಕರವಾದ 'ವೈತರಣಿ' ನದಿ ಹರಿಯುತ್ತದೆ. ೧೧ನೇ ದಿನ ಗೋವಿನ ಬಾಲ ಹಿಡಿದು ಸಂಕಲ್ಪ ಮಾಡುವ 'ವೈತರಣಿ ಗೋದಾನ'ದಿಂದ ಜೀವವು ಆ ನದಿಯನ್ನು ಸುಲಭವಾಗಿ ದಾಟುತ್ತದೆ.",
-      en: "The arduous journey involves crossing the stormy river Vaitarani. The 11th-day Vaitarani Cow donation ensures effortless passage across this spiritual threshold."
+      en: "The arduous journey involves crossing the stormy river Vaitarani. The 11th-day Vaitarani Cow donation ensures effortless passage across this spiritual threshold.",
+      hi: "यमलोक के मार्ग में भयानक वैतरणी नदी बहती है। 11वें दिन गोदान करने से जीवात्मा सुगमतापूर्वक उस नदी को पार कर जाती है।",
+      te: "యమలోక మార్గంలో భయంకరమైన వైతరణి నది ఉంటుంది. 11వ రోజు గోదానం చేయడం ద్వారా ఆత్మ సులభంగా ఆ నదిని దాటగలదు.",
+      ta: "எமலோக வழியில் கொடிய வைதரணி நதி பாய்கிறது. 11ம் நாள் செய்யப்படும் கோதானம் ஆன்மாவை அந்நதியை எளிதாகக் கடக்கச் செய்கிறது."
     },
     mokshaPhilosophy: {
       kn: "ಆತ್ಮವು ಅಮರ, ದೇಹ ಮಾತ್ರ ನಶ್ವರ. ಶ್ರದ್ಧೆಯಿಂದ ನೆರವೇರಿಸುವ ಶ್ರಾದ್ಧ ಕರ್ಮಗಳು ಪಿತೃಗಳಿಗೆ ತೃಪ್ತಿ ನೀಡಿ, ಅವರ ಆಶೀರ್ವಾದದಿಂದ ಮುಂದಿನ ಪೀಳಿಗೆಗೆ ಆಯುಷ್ಯ, ಆರೋಗ್ಯ ಹಾಗೂ ಸಂತಾನ ಸಮೃದ್ಧಿ ಲಭಿಸುತ್ತದೆ.",
-      en: "The soul is immortal and transcendent. Diligent Shraddha rituals satisfy ancestors, showering the family with longevity, health, and multi-generational prosperity."
+      en: "The soul is immortal and transcendent. Diligent Shraddha rituals satisfy ancestors, showering the family with longevity, health, and multi-generational prosperity.",
+      hi: "आत्मा अमर है, केवल देह नश्वर है। श्रद्धापूर्वक किए गए श्राद्ध कर्मों से पितृ तृप्त होकर कुल को दीर्घायु, स्वास्थ्य एवं वंश वृद्धि का वरदान देते हैं।",
+      te: "ఆత్మ అమరం, శరీరం మాత్రమే నశ్వరం. శ్రద్ధతో చేసే శ్రాద్ధ కర్మలు పితృదేవతలను తృప్తిపరచి వంశానికి ఆయురారోగ్యాలు, సంతానవృద్ధిని ప్రసాదిస్తాయి.",
+      ta: "ஆன்மா அழிவற்றது, உடலே அழியக்கூடியது. சிரத்தையுடன் செய்யப்படும் சிரார்த்த காரியங்கள் பித்ருக்களுக்கு திருப்தி அளித்து வம்சத்திற்கு நீண்ட ஆயுளையும் சுபிட்சத்தையும் தரும்."
     }
   };
 }
@@ -704,11 +1011,17 @@ export function computeMahalayaTarpanaRules(): MahalayaTarpanaRules {
   return {
     mahalayaOverview: {
       kn: "ಪ್ರತಿ ವರ್ಷ ಭಾದ್ರಪದ ಮಾಸದ ಶುಕ್ಲ ಪೂರ್ಣಿಮೆಯಿಂದ ಅಮಾವಾಸ್ಯೆಯವರೆಗಿನ ೧೬ ದಿನಗಳ ಕಾಲ 'ಮಹಾಲಯ ಪಕ್ಷ' ಅಥವಾ 'ಪಿತೃ ಪಕ್ಷ'. ಈ ಸಮಯದಲ್ಲಿ ಸಕಲ ಪಿತೃ ದೇವತೆಗಳು ಭೂಮಿಗೆ ಆಗಮಿಸುತ್ತಾರೆ.",
-      en: "Mahalaya Paksha (Pitru Paksha) spans the 16 lunar days from Bhadrapada Purnima to Amavasya. Ancestors descend to the earth realm to receive offerings from descendants."
+      en: "Mahalaya Paksha (Pitru Paksha) spans the 16 lunar days from Bhadrapada Purnima to Amavasya. Ancestors descend to the earth realm to receive offerings from descendants.",
+      hi: "प्रतिवर्ष भाद्रपद शुक्ल पूर्णिमा से सर्वपितृ अमावस्या तक के 16 दिन 'महालय पक्ष' या 'पितृ पक्ष' कहलाते हैं। इस काल में समस्त पितृगण पृथ्वी पर पधारते हैं।",
+      te: "ప్రతి సంవత్సరం భాద్రపద పూర్ణిమ నుండి అమావాస్య వరకు గల 16 రోజులను 'మహాలయ పక్షం' అంటారు. ఈ సమయంలో పితృదేవతలు భూమిపైకి విచ్చేస్తారు.",
+      ta: "ஒவ்வொரு ஆண்டும் புரட்டாசி பௌர்ணமி முதல் அமாவாசை வரையிலான 16 நாட்கள் 'மஹாளய பக்ஷம்' எனப்படும். இக்காலத்தில் பித்ருக்கள் பூமிக்கு வருகை தருகின்றனர்."
     },
     amavasyaTarpanaProcedure: {
       kn: "ಪ್ರತಿ ತಿಂಗಳ ಅಮಾವಾಸ್ಯೆ, ಸಂಕ್ರಾಂತಿ ಹಾಗೂ ಮಹಾಲಯದಂದು ಮಧ್ಯಾಹ್ನ ಅಪರಾಹ್ನ ಕಾಲದಲ್ಲಿ ದರ್ಭೆ, ಕಪ್ಪು ಎಳ್ಳು, ತುಳಸಿ ಹಾಗೂ ಗಂಗಾಜಲದಿಂದ ಪಿತೃ ತರ್ಪಣ ನೀಡುವುದು ಅತ್ಯಂತ ಪುಣ್ಯಪ್ರದ.",
-      en: "Offering Pitru Tarpana during Aparahna (afternoon) on every Amavasya, Sankranti, and Mahalaya using Darbha, Black Sesame, Tulasi, and holy water brings immense peace."
+      en: "Offering Pitru Tarpana during Aparahna (afternoon) on every Amavasya, Sankranti, and Mahalaya using Darbha, Black Sesame, Tulasi, and holy water brings immense peace.",
+      hi: "प्रत्येक अमावस्या, संक्रांति एवं महालय के दिन अपराह्न काल में दर्भ, काले तिल, तुलसी एवं गंगाजल से पितृ तर्पण करना अत्यंत पुण्यदायी है।",
+      te: "ప్రతి అమావాస్య, సంక్రాంతి మరియు మహాలయ దినాలలో అపరాహ్న కాలంలో దర్భ, నల్ల నువ్వులు, తులసి, గంగాజలంతో పితృ తర్పణం సమర్పించడం పుణ్యప్రదం.",
+      ta: "ஒவ்வொரு அமாவாசை, சங்கராந்தி மற்றும் மஹாளய நாட்களில் அபராஹ்ண காலத்தில் தர்ப்பை, எள், துளசி, தீர்த்தம் கொண்டு பித்ரு தர்பணம் செய்வது மகா புண்ணியம்."
     },
     essentialDanaItems: {
       kn: [
@@ -724,6 +1037,27 @@ export function computeMahalayaTarpanaRules(): MahalayaTarpanaRules {
         "Vastra-Dana (Cloth / Shawl / Dhoti)",
         "Silver / Copper Water Vessels",
         "Go-Seva (Feeding sacred cows with grass & jaggery)"
+      ],
+      hi: [
+        "काले तिल एवं पवित्र दर्भ",
+        "अन्नदान एवं ब्राह्मण भोजन",
+        "वस्त्रदान (धोती / शॉल)",
+        "रजत अथवा ताम्र पात्र दान",
+        "गोसेवा एवं गुड़-घास समर्पण"
+      ],
+      te: [
+        "నల్ల నువ్వులు మరియు పవిత్ర దర్భ",
+        "అన్నదానం మరియు బ్రాహ్మణ భోజనం",
+        "వస్త్రదానం (ధోవతి / శాలువా)",
+        "వెండి లేదా రాగి పాత్ర దానం",
+        "గోసేవ మరియు బెల్లం-గడ్డి సమర్పణ"
+      ],
+      ta: [
+        "கருப்பு எள் மற்றும் புனித தர்ப்பை",
+        "அன்னதானம் மற்றும் அந்தணர் போஜனம்",
+        "வஸ்திர தானம் (வேஷ்டி / சால்வை)",
+        "வெள்ளி அல்லது தாமிர பாத்திர தானம்",
+        "கோ சேவை மற்றும் வெல்லம்-புல் அளித்தல்"
       ]
     }
   };
@@ -731,77 +1065,97 @@ export function computeMahalayaTarpanaRules(): MahalayaTarpanaRules {
 
 export function computeGokarnaMokshaSevas(): GokarnaMokshaSevaInfo {
   return {
-    priestName: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (Chief Priest, Gokarna Kshetra)",
+    priestName: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (Sri Shreeram Pandit)",
     priestPhone: "+91 99723 39362",
     narayanabaliOverview: {
       kn: "ನಾರಾಯಣಬಲಿ ಮಹಾ ಪೂಜೆ: ಅಕಾಲ ಮರಣ, ಅಪಘಾತ ಅಥವಾ ಸರ್ಪದೋಷದಿಂದ ಉಂಟಾದ ಪಿತೃ ಬಾಧೆ ನಿವಾರಣೆಗಾಗಿ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ನೆರವೇರಿಸುವ ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ ಪ್ರಾಯಶ್ಚಿತ್ತ ವಿಧಿ.",
-      en: "Narayanabali Maha Pooja: Supreme Vedic rite performed at Gokarna Mahabaleshwara to liberate souls from untimely demise, accidental deaths, or intense Pitru doshas."
+      en: "Narayanabali Maha Pooja: Supreme Vedic rite performed at Gokarna Mahabaleshwara to liberate souls from untimely demise, accidental deaths, or intense Pitru doshas.",
+      hi: "नारायणबलि महा पूजा: अकाल मृत्यु, दुर्घटना अथवा सर्प दोष जनित पितृ बाधा निवारण हेतु गोकर्ण महाबलेश्वर सन्निधि में संपन्न होने वाला सर्वश्रेष्ठ प्रायश्चित्त विधान।",
+      te: "నారాయణబలి మహా పూజ: అకాల మరణం, ప్రమాదాలు లేదా పితృ దోషాల నివారణకు గోకర్ణ మహాబలేశ్వర సన్నిధిలో నిర్వహించే పరమోత్కృష్ట శాంతి విధి.",
+      ta: "நாராயணபலி மகா பூஜை: துர்மரணம், விபத்து அல்லது பித்ரு தோஷ நிவர்த்திக்காக கோகர்ண மகாபலேஸ்வரர் சன்னதியில் செய்யப்படும் மிக உயர்ந்த சாந்தி பரிகாரம்."
     },
     tripindiShraddhaOverview: {
       kn: "ಮೂರು ತಲೆಮಾರುಗಳ (ಪಿತೃ, ಪಿತಾಮಹ, ಪ್ರಪಿತಾಮಹ) ಅತೃಪ್ತ ಆತ್ಮಗಳ ಮುಕ್ತಿಗಾಗಿ ಬ್ರಹ್ಮ, ವಿಷ್ಣು, ರುದ್ರ ರೂಪದ ೩ ಪಿಂಡಗಳಿಂದ ನೆರವೇರಿಸುವ ಮಹಾ ಶ್ರಾದ್ಧ.",
-      en: "Grand Shraddha offering 3 cosmic Pindas to Brahma, Vishnu, and Rudra to satisfy restless spirits across 3 generations."
+      en: "Grand Shraddha offering 3 cosmic Pindas to Brahma, Vishnu, and Rudra to satisfy restless spirits across 3 generations.",
+      hi: "तीन पीढ़ियों (पितृ, पितामह, प्रपितामह) की अतृप्त आत्माओं की मुक्ति हेतु ब्रह्मा, विष्णु, रुद्र रूप 3 पिंडों से संपन्न होने वाला महा श्राद्ध।",
+      te: "మూడు తరాల (పితృ, పితామహ, ప్రపితామహ) తృప్తి కోసం బ్రహ్మ, విష్ణు, రుద్ర రూపాలలో 3 పిండాలతో నిర్వహించే మహా శ్రాద్ధం.",
+      ta: "மூன்று தலைமுறை பித்ருக்களின் ஆத்ம சாந்திக்காக பிரம்மா, விஷ்ணு, ருத்ர ரூபத்தில் 3 பிண்டங்கள் வைத்து செய்யப்படும் மகா சிரார்த்தம்."
     },
     kshetraImportance: {
       kn: "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರವು ಪರಮಶಿವನ ಆತ್ಮಲಿಂಗವಿರುವ ಪರಮ ಪವಿತ್ರ ಮುಕ್ತಿ ಕ್ಷೇತ್ರ. ಇಲ್ಲಿ ಮಾಡುವ ಪಿಂಡ ಪ್ರದಾನವು ಕಾಶೀ-ಗಯಾ ಕ್ಷೇತ್ರಗಳಿಗೆ ಸಮಾನವಾದ ಫಲ ನೀಡುತ್ತದೆ.",
-      en: "Gokarna is the sacred abode of Lord Shiva's Atmalinga. Pinda Dana here bestows merit equivalent to Kashi and Gaya."
+      en: "Gokarna is the sacred abode of Lord Shiva's Atmalinga. Pinda Dana here bestows merit equivalent to Kashi and Gaya.",
+      hi: "गोकर्ण क्षेत्र भगवान शिव के आत्मलिंग से सुशोभित परम पावन मुक्ति क्षेत्र है। यहाँ किया गया पिंडदान काशी-गया के समान फलदायी है।",
+      te: "గోకర్ణ క్షేత్రం పరమశివుని ఆత్మలింగం వెలసిన పరమ పవిత్ర ముక్తి క్షేత్రం. ఇక్కడ చేసే పిండ ప్రదానం కాశీ, గయలతో సమానమైన ఫలాన్నిస్తుంది.",
+      ta: "கோகர்ணம் சிவபெருமானின் ஆத்மலிங்கம் அமைந்துள்ள புண்ணிய முக்தி ஸ்தலம். இங்கு செய்யப்படும் பிண்ட தானம் காசி மற்றும் கயைக்கு இணையான பலனைத் தரும்."
     }
   };
 }
 
 /** Execute complete Maranottara, Masika, Antyesti, Dosha & Pilgrimage Calculations */
 export function executeMaranottaraCalculation(input: MaranottaraInput): MaranottaraResult {
-  const { personName, demiseDate, demiseTime, location = "Gokarna, Karnataka", yearsCount = 1 } = input;
+  const {
+    personName,
+    demiseDate,
+    demiseTime,
+    location = "Gokarna, Karnataka",
+    yearsCount = 1,
+    lat = 14.5479,
+    lng = 74.3188
+  } = input;
   const timeStr = demiseTime || "12:00";
 
   // Calculate precise UTC moment using wallClockBirthToUtc
-  const demiseUtc = wallClockBirthToUtc(demiseDate, timeStr, 14.5479, 74.3188, "581326");
+  const demiseUtc = wallClockBirthToUtc(demiseDate, timeStr, lat, lng, "581326");
 
-  const engineResult = calculateTraditionalBaggona(
+  const baggonaResult = calculateTraditionalBaggona(
     demiseDate,
     timeStr,
-    14.5479,
-    74.3188,
+    lat,
+    lng,
     "lahiri"
   );
 
   const tithiInfo = getTithiFromUtc(demiseUtc);
   const demiseTithiNum = tithiInfo.tithiNumber;
-  const tithiNameStr = tithiInfo.tithiKn || engineResult?.tithiKn || "ದ್ವಿತೀಯಾ";
-  const nakshatraNameStr = engineResult?.moonNakshatraKn || "ಅನುರಾಧಾ";
-  const nakshatraNameEn = engineResult?.moonNakshatra || "Anuradha";
-  const pakshaStr = tithiInfo.pakshaKn || "ಶುಕ್ಲ ಪಕ್ಷ";
-  const pakshaEn = tithiInfo.pakshaEn || "Shukla Paksha";
 
-  const demiseTithiObj: Record<string, string> = {
-    kn: tithiNameStr,
-    en: tithiInfo.tithiEn,
-    hi: tithiNameStr,
-    te: tithiNameStr,
-    ta: tithiNameStr
+  // Derive Masa & Samvatsara
+  const demiseMasaObj: Record<string, string> = {
+    kn: baggonaResult.masaKn || "ಶ್ರಾವಣ",
+    en: baggonaResult.masa || "Shravana",
+    hi: baggonaResult.masa || "श्रावण",
+    te: baggonaResult.masaKn || "శ్రావణం",
+    ta: baggonaResult.masa || "ஆவணி"
   };
 
-  const demiseNakshatraObj: Record<string, string> = {
-    kn: nakshatraNameStr,
-    en: nakshatraNameEn,
-    hi: nakshatraNameStr,
-    te: nakshatraNameStr,
-    ta: nakshatraNameStr
+  const demiseSamvatsaraObj: Record<string, string> = {
+    kn: baggonaResult.samvatsaraKn || "ಪರಾಭವ",
+    en: baggonaResult.samvatsara || "Parabhava",
+    hi: baggonaResult.samvatsara || "पराभव",
+    te: baggonaResult.samvatsaraKn || "పరాభవ",
+    ta: baggonaResult.samvatsara || "பராபவ"
   };
 
-  const demisePakshaObj: Record<string, string> = {
-    kn: pakshaStr,
-    en: pakshaEn,
-    hi: pakshaStr,
-    te: pakshaStr,
-    ta: pakshaStr
-  };
+  // 5-Language Demise Metadata Objects
+  const demiseTithiObj = tithiInfo.tithi5Lang;
+  const demisePakshaObj = tithiInfo.paksha5Lang;
 
-  // Generate Monthly Masika Dates for chosen duration (12, 24, 36, 48, 60 months) with Aparahna Tithi matching
+  const nakshatraLongs = siderealLongitudes(demiseUtc, "lahiri");
+  const nakIdx = Math.floor((nakshatraLongs.moon % 360) / (360 / 27)) % 27;
+  const demiseNakshatraObj = NAKSHATRAS_5LANG[nakIdx] || NAKSHATRAS_5LANG[0];
+
+  // Generate Monthly Masika Dates for chosen duration (12, 24, 36, 48, 60 months) with Aparahna Kaala matching
   const totalMonths = yearsCount * 12;
   const masikaSchedule: MasikaScheduleItem[] = [];
 
   for (let m = 1; m <= totalMonths; m++) {
-    const matchedUtc = findExactMasikaTithiDate(tithiInfo.tithiIndex, m, demiseUtc);
+    const { matchedUtc, aparahnaWindow, panchangaDay } = findBaggonaMasikaShraddhaDate(
+      tithiInfo.tithiIndex,
+      m,
+      demiseUtc,
+      lat,
+      lng
+    );
+
     const dayOfWeekIdx = getIstWeekday(matchedUtc);
     const dayOfWeekObj = WEEKDAYS_5LANG[dayOfWeekIdx] || WEEKDAYS_5LANG[0];
 
@@ -810,43 +1164,87 @@ export function executeMaranottaraCalculation(input: MaranottaraInput): Maranott
     const monthInYear = m % 12 === 0 ? 12 : m % 12;
     const isSpecial = isVarshika || monthInYear === 1 || monthInYear === 3 || monthInYear === 6;
 
-    let masikaTitleKn = `${m} ನೇ ಮಾಸಿಕ ಶ್ರಾದ್ಧ`;
+    let masikaTitleKn = `${m}ನೇ ಮಾಸಿಕ ಶ್ರಾದ್ಧ`;
     let masikaTitleEn = `Month ${m} Masika Shraddha`;
+    let masikaTitleHi = `${m}वां मासिक श्राद्ध`;
+    let masikaTitleTe = `${m}వ మాసిక శ్రాద్ధం`;
+    let masikaTitleTa = `${m}ம் மாசிக சிரார்த்தம்`;
 
     if (monthInYear === 1) {
       masikaTitleKn = `೧ನೇ ಮಾಸಿಕ ಶ್ರಾದ್ಧ (ಪ್ರಥಮ ಮಾಸಿಕ)`;
       masikaTitleEn = `1st Month Masika (Prathama Masika)`;
+      masikaTitleHi = `प्रथम मासिक श्राद्ध (मास १)`;
+      masikaTitleTe = `1వ మాసిక శ్రాద్ధం (ప్రథమ మాసికం)`;
+      masikaTitleTa = `1ம் மாசிக சிரார்த்தம் (முதலாம் மாதம்)`;
     } else if (monthInYear === 3) {
       masikaTitleKn = `೩ನೇ ಮಾಸಿಕ ಶ್ರಾದ್ಧ (ತ್ರೈಮಾಸಿಕ)`;
       masikaTitleEn = `3rd Month Masika (Traimasika)`;
+      masikaTitleHi = `तृतीय मासिक श्राद्ध (त्रैमासिक)`;
+      masikaTitleTe = `3వ మాసిక శ్రాద్ధం (త్రైమాసికం)`;
+      masikaTitleTa = `3ம் மாசிக சிரார்த்தம் (த்ரைமாசிகம்)`;
     } else if (monthInYear === 6) {
       masikaTitleKn = `೬ನೇ ಮಾಸಿಕ ಶ್ರಾದ್ಧ (ಷಣ್ಮಾಸಿಕ)`;
       masikaTitleEn = `6th Month Masika (Shanmasika)`;
+      masikaTitleHi = `षष्ठ मासिक श्राद्ध (षण्मासिक)`;
+      masikaTitleTe = `6వ మాసిక శ్రాద్ధం (షణ్మాసికం)`;
+      masikaTitleTa = `6ம் மாசிக சிரார்த்தம் (ஷண்மாசிகம்)`;
     } else if (isVarshika) {
-      masikaTitleKn = `🌟 ${yearNumber} ನೇ ವರ್ಷದ ವಾರ್ಷಿಕ ಶ್ರಾದ್ಧ (Varshika Shraddha)`;
-      masikaTitleEn = `🌟 Year ${yearNumber} Varshika Shraddha`;
+      const knDigits = ["೦", "೧", "೨", "೩", "೪", "೫", "೬", "೭", "೮", "೯"];
+      const yKn = String(yearNumber).split("").map((d) => knDigits[Number(d)] || d).join("");
+      masikaTitleKn = `🌟 ${yKn}ನೇ ವರ್ಷದ ವಾರ್ಷಿಕ ಮಹಾ ಶ್ರಾದ್ಧ (Varshika Shraddha)`;
+      masikaTitleEn = `🌟 Year ${yearNumber} Annual Varshika Shraddha`;
+      masikaTitleHi = `🌟 ${yearNumber}वें वर्ष का वार्षिक महा श्राद्ध`;
+      masikaTitleTe = `🌟 ${yearNumber}వ సంవత్సర వార్షిక మహా శ్రాద్ధం`;
+      masikaTitleTa = `🌟 ${yearNumber}ம் ஆண்டு வருடாந்திர மகா சிரார்த்தம்`;
     }
 
     const ritualNotesObj: Record<string, string> = {
       kn: isVarshika
-        ? `ಮೃತರ ಪುಣ್ಯತಿಥಿ · ವಾರ್ಷಿಕ ಮಹಾ ಶ್ರಾದ್ಧ, ಸಪಿಂಡೀಕರಣ & ಬ್ರಾಹ್ಮಣ ಭೋಜನ.`
+        ? `ಮೃತರ ಪುಣ್ಯತಿಥಿ · ವಾರ್ಷಿಕ ಮಹಾ ಶ್ರಾದ್ಧ, ಸಪಿಂಡೀಕರಣ, ಪಿಂಡ ಪ್ರದಾನ & ಬ್ರಾಹ್ಮಣ ಭೋಜನ.`
         : monthInYear === 1
         ? `ಪ್ರಥಮ ಮಾಸಿಕ ತರ್ಪಣ, ಎಳ್ಳು-ನೀರು ಸಮರ್ಪಣೆ & ವಸ್ತ್ರದಾನ.`
         : monthInYear === 6
         ? `ಷಣ್ಮಾಸಿಕ ಮಹಾ ಶ್ರಾದ್ಧ & ಪಿತೃ ತರ್ಪಣ.`
-        : `ಮಾಸಿಕ ತರ್ಪಣ & ದಾನ ಧರ್ಮ ಕರ್ಮ.`,
+        : `ಮಾಸಿಕ ಪಿತೃ ತರ್ಪಣ, ಎಳ್ಳು-ನೀರು ಸಮರ್ಪಣೆ & ದಾನ ಧರ್ಮ ಕರ್ಮ.`,
       en: isVarshika
         ? `Annual Sacred Varshika Shraddha, Pinda Pradana & Brahmana Bhojana.`
         : monthInYear === 1
         ? `First Month Masika Tarpana, Sesame water oblations & Charity.`
         : monthInYear === 6
         ? `Six-Month (Shanmasika) Shraddha & Ancestral libation.`
-        : `Monthly Pitru Tarpana & Sacred Offerings.`
+        : `Monthly Pitru Tarpana, Sesame oblations & Sacred Charity.`,
+      hi: isVarshika
+        ? `दिवंगत की पुण्यतिथि · वार्षिक महा श्राद्ध, पिंडदान एवं ब्राह्मण भोजन।`
+        : monthInYear === 1
+        ? `प्रथम मासिक तर्पण, तिल-जल समर्पण एवं वस्त्रदान।`
+        : monthInYear === 6
+        ? `षण्मासिक महा श्राद्ध एवं पितृ तर्पण।`
+        : `मासिक पितृ तर्पण एवं दान-धर्म कर्म।`,
+      te: isVarshika
+        ? `దివంగతుల పుణ్యతిథి · వార్షిక మహా శ్రాద్ధం, పిండ ప్రదానం మరియు బ్రాహ్మణ భోజనం.`
+        : monthInYear === 1
+        ? `ప్రథమ మాసిక తర్పణం, నువ్వులు-నీళ్ల సమర్పణ మరియు దానం.`
+        : monthInYear === 6
+        ? `షణ్మాసిక మహా శ్రాద్ధం మరియు పితృ తర్పణం.`
+        : `మాసిక పితృ తర్పణం మరియు దానధర్మాలు.`,
+      ta: isVarshika
+        ? `வருடாந்திர மகா சிரார்த்தம், பிண்ட தானம் மற்றும் அந்தணர் போஜனம்.`
+        : monthInYear === 1
+        ? `முதலாம் மாத மாசிக தர்பணம், எள்-நீர் சமர்ப்பணம்.`
+        : monthInYear === 6
+        ? `ஷண்மாசிக மகா சிரார்த்தம் & பித்ரு தர்பணம்.`
+        : `மாதாந்திர பித்ரு தர்பணம் மற்றும் தான தர்மங்கள்.`
     };
 
     masikaSchedule.push({
       monthIndex: m,
-      masikaName: { kn: masikaTitleKn, en: masikaTitleEn, hi: masikaTitleKn, te: masikaTitleKn, ta: masikaTitleKn },
+      masikaName: {
+        kn: masikaTitleKn,
+        en: masikaTitleEn,
+        hi: masikaTitleHi,
+        te: masikaTitleTe,
+        ta: masikaTitleTa
+      },
       tithiName: demiseTithiObj,
       gregorianDate: toIstYmdString(matchedUtc),
       formattedDateStr: {
@@ -860,7 +1258,14 @@ export function executeMaranottaraCalculation(input: MaranottaraInput): Maranott
       paksha: demisePakshaObj,
       isVarshikaShraddha: isVarshika,
       isSpecialMilestone: isSpecial,
-      ritualNotes: ritualNotesObj
+      ritualNotes: ritualNotesObj,
+      aparahnaWindow,
+      panchangaSummary: panchangaDay
+        ? {
+            kn: `${panchangaDay.masaKn || ""} ${panchangaDay.pakshaKn || ""} ${panchangaDay.tithiKn || ""}`,
+            en: `${panchangaDay.masa || ""} ${panchangaDay.paksha || ""} ${panchangaDay.tithi || ""}`
+          }
+        : undefined
     });
   }
 
@@ -871,95 +1276,198 @@ export function executeMaranottaraCalculation(input: MaranottaraInput): Maranott
   const hasSpecificTime = !!demiseTime;
 
   // Authentic Panchaka Nakshatra Check
-  const nakshatraNameLower = nakshatraNameStr.toLowerCase();
+  const nakshatraNameLower = (demiseNakshatraObj.en || "").toLowerCase();
+  const nakshatraNameKn = demiseNakshatraObj.kn || "";
+
   const isTripadaNakshatra =
     nakshatraNameLower.includes("dhanishta") ||
     nakshatraNameLower.includes("shatabhisha") ||
     nakshatraNameLower.includes("bhadra") ||
     nakshatraNameLower.includes("revati") ||
-    nakshatraNameLower.includes("ಧನಿಷ್ಠಾ") ||
-    nakshatraNameLower.includes("ಶತಭಿಷಾ") ||
-    nakshatraNameLower.includes("ರೇವತಿ") ||
-    nakshatraNameLower.includes("ಕೃತ್ತಿಕಾ") ||
-    nakshatraNameLower.includes("ಪುನರ್ವಸು") ||
-    nakshatraNameLower.includes("ಉತ್ತರಾಷಾಢ");
+    nakshatraNameLower.includes("krittika") ||
+    nakshatraNameLower.includes("punarvasu") ||
+    nakshatraNameLower.includes("uttarashadha") ||
+    nakshatraNameKn.includes("ಧನಿಷ್ಠಾ") ||
+    nakshatraNameKn.includes("ಶತಭಿಷಾ") ||
+    nakshatraNameKn.includes("ರೇವತಿ") ||
+    nakshatraNameKn.includes("ಕೃತ್ತಿಕಾ") ||
+    nakshatraNameKn.includes("ಪುನರ್ವಸು") ||
+    nakshatraNameKn.includes("ಉತ್ತರಾಷಾಢ");
 
   const hasPanchaka = isTripadaNakshatra || demiseTithiNum === 4 || demiseTithiNum === 9 || demiseTithiNum === 14;
 
   // Determine Panchaka Type & Putthali Count
-  let panchakaTypeKn = "ಸಾಮಾನ್ಯ";
-  let panchakaTypeEn = "Normal";
+  let panchakaTypeObj: Record<string, string> = {
+    kn: "ಸಾಮಾನ್ಯ",
+    en: "Normal",
+    hi: "सामान्य",
+    te: "సాధారణం",
+    ta: "சாதாரண"
+  };
   let putthaliCount = 0;
 
   if (hasPanchaka) {
     if (demiseDayOfWeek === 0) {
-      panchakaTypeKn = "ಮೃತ್ಯು ಪಂಚಕ (Mrityu Panchaka — ರವಿವಾರ)";
-      panchakaTypeEn = "Mrityu Panchaka (Sunday)";
+      panchakaTypeObj = {
+        kn: "ಮೃತ್ಯು ಪಂಚಕ (Mrityu Panchaka — ರವಿವಾರ)",
+        en: "Mrityu Panchaka (Sunday Demise)",
+        hi: "मृत्यु पंचक (रविवार)",
+        te: "మృత్యు పంచకం (ఆదివారం)",
+        ta: "மிருத்யு பஞ்சகம் (ஞாயிறு)"
+      };
       putthaliCount = 5;
     } else if (demiseDayOfWeek === 2) {
-      panchakaTypeKn = "ಅಗ್ನಿ ಪಂಚಕ (Agni Panchaka — ಮಂಗಳವಾರ)";
-      panchakaTypeEn = "Agni Panchaka (Tuesday)";
+      panchakaTypeObj = {
+        kn: "ಅಗ್ನಿ ಪಂಚಕ (Agni Panchaka — ಮಂಗಳವಾರ)",
+        en: "Agni Panchaka (Tuesday Demise)",
+        hi: "अग्नि पंचक (मंगलवार)",
+        te: "అగ్ని పంచకం (మంగళవారం)",
+        ta: "அக்னி பஞ்சகம் (செவ்வாய்)"
+      };
       putthaliCount = 5;
     } else if (demiseDayOfWeek === 5) {
-      panchakaTypeKn = "ರಾಜ ಪಂಚಕ (Raja Panchaka — ಶುಕ್ರವಾರ)";
-      panchakaTypeEn = "Raja Panchaka (Friday)";
+      panchakaTypeObj = {
+        kn: "ರಾಜ ಪಂಚಕ (Raja Panchaka — ಶುಕ್ರವಾರ)",
+        en: "Raja Panchaka (Friday Demise)",
+        hi: "राज पंचक (शुक्रवार)",
+        te: "రాజ పంచకం (శుక్రవారం)",
+        ta: "ராஜ பஞ்சகம் (வெள்ளி)"
+      };
       putthaliCount = 4;
     } else if (demiseDayOfWeek === 6) {
-      panchakaTypeKn = "ಚೋರ ಪಂಚಕ (Chora Panchaka — ಶನಿವಾರ)";
-      panchakaTypeEn = "Chora Panchaka (Saturday)";
+      panchakaTypeObj = {
+        kn: "ಚೋರ ಪಂಚಕ (Chora Panchaka — ಶನಿವಾರ)",
+        en: "Chora Panchaka (Saturday Demise)",
+        hi: "चोर पंचक (शनिवार)",
+        te: "చోర పంచకం (శనివారం)",
+        ta: "சோர பஞ்சகம் (சனி)"
+      };
       putthaliCount = 5;
     } else {
-      panchakaTypeKn = "ರೋಗ ಪಂಚಕ (Roga Panchaka — ಸೋಮ/ಬುಧ/ಗುರುವಾರ)";
-      panchakaTypeEn = "Roga Panchaka (Mon/Wed/Thu)";
+      panchakaTypeObj = {
+        kn: "ರೋಗ ಪಂಚಕ (Roga Panchaka — ಸೋಮ/ಬುಧ/ಗುರುವಾರ)",
+        en: "Roga Panchaka (Mon/Wed/Thu Demise)",
+        hi: "रोग पंचक (सोम/बुध/गुरुवार)",
+        te: "రోగ పంచకం (సోమ/బుధ/గురువారం)",
+        ta: "ரோக பஞ்சகம் (திங்கள்/புதன்/வியாழன்)"
+      };
       putthaliCount = 3;
     }
   }
 
+  const pTypeStr = panchakaTypeObj.kn;
+
   const doshaSummaryObj: Record<string, string> = {
     kn: hasPanchaka
-      ? `ಮರಣ ಹೊಂದಿದ ನಕ್ಷತ್ರ/ವಾರದ ಅನುಸಾರ '${panchakaTypeKn}' ಸೂಚಿತವಾಗಿದೆ. ಕುಲರಕ್ಷಣೆಗಾಗಿ ದರ್ಭೆಯ ${putthaliCount} ಪುತ್ತಳಿಗಳ ದಹನ (ಪುತ್ತಳಿ ವಿಧಾನ) ಹಾಗೂ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಪಂಚಕ ಶಾಂತಿ & ಸರ್ಪಾಹುತಿ ಹೋಮ ಅತ್ಯಾವಶ್ಯಕ.`
+      ? `ಮರಣ ಹೊಂದಿದ ನಕ್ಷತ್ರ/ವಾರದ ಅನುಸಾರ '${pTypeStr}' ಸೂಚಿತವಾಗಿದೆ. ಕುಲರಕ್ಷಣೆಗಾಗಿ ದರ್ಭೆಯ ${putthaliCount} ಪುತ್ತಳಿಗಳ ದಹನ (ಪುತ್ತಳಿ ವಿಧಾನ) ಹಾಗೂ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಪಂಚಕ ಶಾಂತಿ & ಸರ್ಪಾಹುತಿ ಹೋಮ ಅತ್ಯಾವಶ್ಯಕ.`
       : hasSpecificTime && isNight
       ? `ರಾತ್ರಿ ಕಾಲದ ಮರಣ ಸನ್ನಿವೇಶದಿಂದ ಲಘು ಸಂಧ್ಯಾ ದೋಷ ಸೂಚಿತವಾಗಿದೆ. ಪ್ರಥಮ ವರ್ಷ ತಿಲ ತರ್ಪಣ ಹಾಗೂ ಗೋದಾನದಿಂದ ಶಾಂತಿ ಲಭಿಸುತ್ತದೆ.`
       : `ಮರಣ ಸಮಯವು ಸಾಮಾನ್ಯ ಸನ್ಮಂಗಲಕರವಾಗಿದೆ. ನಿಯಮಿತ ಮಾಸಿಕ ಶ್ರಾದ್ಧ ಹಾಗೂ ಪಿಂಡ ಪ್ರದಾನ ಕರ್ಮಗಳನ್ನು ನೆರವೇರಿಸಿ.`,
     en: hasPanchaka
-      ? `${panchakaTypeEn} detected. Vedic Putthali Vidhana (${putthaliCount} Darbha effigies) and Gokarna Panchaka Shanti Homa strongly recommended for family protection.`
+      ? `${panchakaTypeObj.en} detected. Vedic Putthali Vidhana (${putthaliCount} Darbha effigies) and Gokarna Panchaka Shanti Homa strongly recommended for family protection.`
       : hasSpecificTime && isNight
       ? `Nocturnal transition indicated. Regular monthly Tarpana and Go-Dana recommended.`
-      : `No severe demise doshas. Perform regular monthly Masika & Pitru Tarpana rituals diligently.`
+      : `No severe demise doshas. Perform regular monthly Masika & Pitru Tarpana rituals diligently.`,
+    hi: hasPanchaka
+      ? `${panchakaTypeObj.hi} सूचित है। कुल रक्षा हेतु दर्भ की ${putthaliCount} पुतलियों का दाह (पुत्तली विधान) एवं गोकर्ण महाबलेश्वर में पंचक शांति होम अत्यंत आवश्यक है।`
+      : hasSpecificTime && isNight
+      ? `रात्रि कालीन मृत्यु से लघु संध्या दोष है। प्रथम वर्ष तिल तर्पण एवं गोदान से शांति प्राप्त होगी।`
+      : `मृत्यु समय सामान्य शुभ है। नियमित मासिक श्राद्ध एवं पिंडदान करें।`,
+    te: hasPanchaka
+      ? `${panchakaTypeObj.te} సూచించబడింది. కుటుంబ రక్షణ కోసం ${putthaliCount} దర్భ పుత్తళ్ల దహనం మరియు గోకర్ణంలో పంచక శాంతి హోమం అవసరం.`
+      : hasSpecificTime && isNight
+      ? `రాత్రి వేళ మరణం వల్ల సంధ్యా దోషం ఉంది. మొదటి సంవత్సరం తిల తర్పణం, గోదానం శ్రేయస్కరం.`
+      : `మరణ సమయం సాధారణంగా ఉంది. నియమిత మాసిక శ్రాద్ధాలు నెరవేర్చండి.`,
+    ta: hasPanchaka
+      ? `${panchakaTypeObj.ta} ஏற்பட்டுள்ளது. குடும்ப நன்மைக்காக ${putthaliCount} தர்ப்பை பொம்மைகள் தகனம் மற்றும் கோகர்ணத்தில் பஞ்சக சாந்தி ஹோமம் அவசியம்.`
+      : hasSpecificTime && isNight
+      ? `இரவு நேர மரணத்தால் சந்தி தோஷம் உள்ளது. தில தர்பணம் மற்றும் கோதானம் நன்மை தரும்.`
+      : `மரண நேரம் இயல்பானது. வழக்கமான மாசிக சிரார்த்தங்களைச் செய்யவும்.`
   };
 
   const poojas: PoojaRemedyItem[] = [
     {
-      title: { kn: `🪔 ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಪಂಚಕ ಶಾಂತಿ & ${putthaliCount || 3} ಪುತ್ತಳಿ ವಿಧಾನ`, en: `Gokarna Panchaka Shanti & ${putthaliCount || 3} Putthali Vidhana` },
+      title: {
+        kn: `🪔 ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಪಂಚಕ ಶಾಂತಿ & ${putthaliCount || 3} ಪುತ್ತಳಿ ವಿಧಾನ`,
+        en: `Gokarna Panchaka Shanti & ${putthaliCount || 3} Putthali Vidhana`,
+        hi: `गोकर्ण पंचक शांति एवं ${putthaliCount || 3} पुत्तली विधान`,
+        te: `గోకర్ణ పంచక శాంతి & ${putthaliCount || 3} పుత్తళి విధానం`,
+        ta: `கோகர்ண பஞ்சக சாந்தி & ${putthaliCount || 3} பொம்மை சாந்தி`
+      },
       description: {
         kn: `ಮರಣ ದೋಷ ನಿವಾರಣೆಗಾಗಿ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ತ್ರಿಪಾದ/ಪಂಚಕ ಶಾಂತಿ ಹೋಮ, ರುದ್ರಾಭಿಷೇಕ ಹಾಗೂ ದರ್ಭೆಯ ${putthaliCount || 3} ಪುತ್ತಳಿ ದಹನ ವಿಧಾನ.`,
-        en: `Panchaka Shanti Homa, Rudrabhishekam and Darbha Putthali Vidhana at Gokarna Mahabaleshwara for soul liberation.`
+        en: `Panchaka Shanti Homa, Rudrabhishekam and Darbha Putthali Vidhana at Gokarna Mahabaleshwara for soul liberation.`,
+        hi: `मृत्यु दोष निवारण हेतु गोकर्ण महाबलेश्वर में पंचक शांति होम, रुद्राभिषेक एवं दर्भ पुत्तली दाह विधान।`,
+        te: `మరణ దోష నివారణకు గోకర్ణంలో పంచక శాంతి హోమం, రుద్రాభిషేకం మరియు దర్భ పుత్తళి దహన విధి.`,
+        ta: `மரண தோஷ நிவர்த்திக்காக கோகர்ணத்தில் பஞ்சக சாந்தி ஹோமம், ருத்ராபிஷேகம் மற்றும் தர்ப்பை பொம்மை தகன விதி.`
       },
-      danaItems: { kn: "ತಿಲ ದಾನ, ವಸ್ತ್ರ ದಾನ, ತಾಮ್ರ ಪಾತ್ರೆ & ದಕ್ಷಿಣೆ", en: "Sesame (Tila), Cloth, Copper Vessel & Dakshina" }
+      danaItems: {
+        kn: "ತಿಲ ದಾನ, ವಸ್ತ್ರ ದಾನ, ತಾಮ್ರ ಪಾತ್ರೆ & ದಕ್ಷಿಣೆ",
+        en: "Sesame (Tila), Cloth, Copper Vessel & Dakshina",
+        hi: "तिल दान, वस्त्र दान, ताम्र पात्र एवं दक्षिणा",
+        te: "నువ్వుల దానం, వస్త్ర దానం, రాగి పాత్ర & దక్షిణ",
+        ta: "எள் தானம், வஸ்திர தானம், தாமிர பாத்திரம் & தக்ஷிணை"
+      }
     },
     {
-      title: { kn: "🥛 ಪ್ರಥಮ ವರ್ಷ ತಿಲ ತರ್ಪಣ & ಬ್ರಾಹ್ಮಣ ಭೋಜನ", en: "First Year Tila Tarpana & Brahmana Bhojana" },
+      title: {
+        kn: "🥛 ಪ್ರಥಮ ವರ್ಷ ತಿಲ ತರ್ಪಣ & ಬ್ರಾಹ್ಮಣ ಭೋಜನ",
+        en: "First Year Tila Tarpana & Brahmana Bhojana",
+        hi: "प्रथम वर्ष तिल तर्पण एवं ब्राह्मण भोजन",
+        te: "మొదటి సంవత్సరం తిల తర్పణం & బ్రాహ్మణ భోజనం",
+        ta: "முதலாம் ஆண்டு தில தர்பணம் & அந்தணர் போஜனம்"
+      },
       description: {
         kn: "ಪ್ರತಿಯೊಂದು ಮಾಸಿಕ ತಿಥಿಯಂದು ಅಪರಾಹ್ನ ಕಾಲದಲ್ಲಿ ಪಿತೃಗಳಿಗೆ ಎಳ್ಳು-ನೀರಿನ ತರ್ಪಣ ನೀಡಬೇಕು.",
-        en: "Offer Tila (Sesame) water tarpana to ancestors on every monthly Masika date during Aparahna Kaala."
+        en: "Offer Tila (Sesame) water tarpana to ancestors on every monthly Masika date during Aparahna Kaala.",
+        hi: "प्रत्येक मासिक तिथि के दिन अपराह्न काल में पितरों को तिल-जल का तर्पण अर्पित करें।",
+        te: "ప్రతి మాసిక తిథి నాడు అపరాహ్న సమయంలో పితృదేవతలకు తిలాంజలి సమర్పించాలి.",
+        ta: "ஒவ்வொரு மாசிக திதியிலும் அபராஹ்ண காலத்தில் பித்ருக்களுக்கு எள்-நீர் தர்பணம் செய்ய வேண்டும்."
       },
-      danaItems: { kn: "ಅನ್ನದಾನ, ಜಲಪಾತ್ರೆ ದಾನ", en: "Food donation & Sacred Water Vessel" }
+      danaItems: {
+        kn: "ಅನ್ನದಾನ, ಜಲಪಾತ್ರೆ ದಾನ",
+        en: "Food donation & Sacred Water Vessel",
+        hi: "अन्नदान एवं जलपात्र दान",
+        te: "అన్నదానం & జలపాత్ర దానం",
+        ta: "அன்னதானம் & தீர்த்த பாத்திர தானம்"
+      }
     },
     {
-      title: { kn: "🐄 ವೈತರಣಿ ಗೋದಾನ & ಶಯ್ಯಾದಾನ", en: "Vaitarani Godana & Shayyadana" },
+      title: {
+        kn: "🐄 ವೈತರಣಿ ಗೋದಾನ & ಶಯ್ಯಾದಾನ",
+        en: "Vaitarani Godana & Shayyadana",
+        hi: "वैतरणी गोदान एवं शय्यादान",
+        te: "వైతరణి గోదానం & శయ్యాదానం",
+        ta: "வைதரணி கோதானம் & சய்யாதானம்"
+      },
       description: {
         kn: "ಆತ್ಮವು ಪರಲೋಕ ಪಯಣದಲ್ಲಿ ವೈತರಣಿ ನದಿಯನ್ನು ಸುಲಭವಾಗಿ ದಾಟಲು ಗೋಕರ್ಣ ಅಥವಾ ತೀರ್ಥ ಕ್ಷೇತ್ರದಲ್ಲಿ ಗೋದಾನ ಸಮರ್ಪಣೆ.",
-        en: "Vaitarani Cow donation ensuring peaceful transit across spiritual realms."
+        en: "Vaitarani Cow donation ensuring peaceful transit across spiritual realms.",
+        hi: "परलोक यात्रा में वैतरणी नदी को सुगमता से पार करने हेतु गोकर्ण तीर्थ में गोदान समर्पण।",
+        te: "పరలోక ప్రయాణంలో వైతరణి నదిని దాటడానికి గోకర్ణ క్షేత్రంలో గోదాన సమర్పణ.",
+        ta: "பரலோக பயணத்தில் வைதரணி நதியைக் கடக்க கோகர்ணத்தில் கோதானம் செய்தல்."
       },
-      danaItems: { kn: "ಗೋಸೇವೆ, ಬೆಳ್ಳಿ/ತಾಮ್ರ ಪಾತ್ರೆ, ವಸ್ತ್ರ, ಶಯ್ಯಾ ಉಪಕರಣಗಳು", en: "Cow worship, Silver vessel, Clothes, Bedding items" }
+      danaItems: {
+        kn: "ಗೋಸೇವೆ, ಬೆಳ್ಳಿ/ತಾಮ್ರ ಪಾತ್ರೆ, ವಸ್ತ್ರ, ಶಯ್ಯಾ ಉಪಕರಣಗಳು",
+        en: "Cow worship, Silver vessel, Clothes, Bedding items",
+        hi: "गोसेवा, रजत/ताम्र पात्र, वस्त्र, शय्या सामग्री",
+        te: "గోసేవ, వెండి/రాగి పాత్ర, వస్త్రాలు, శయ్యా సామాగ్రి",
+        ta: "பசு சேவை, வெள்ளி/தாமிர பாத்திரம், வஸ்திரம், படுக்கை பொருட்கள்"
+      }
     }
   ];
 
   const doshaAnalysis: DoshaAnalysisResult = {
     hasPanchakaDosha: hasPanchaka,
-    panchakaType: { kn: panchakaTypeKn, en: panchakaTypeEn },
+    panchakaType: panchakaTypeObj,
     hasNakshatraDosha: isTripadaNakshatra,
-    nakshatraDoshaType: { kn: isTripadaNakshatra ? `${nakshatraNameStr} (ತ್ರಿಪಾದ/ಪಂಚಕ ನಕ್ಷತ್ರ)` : "ಸಾಮಾನ್ಯ", en: isTripadaNakshatra ? `${nakshatraNameStr} (Tripada/Panchaka)` : "Normal" },
+    nakshatraDoshaType: {
+      kn: isTripadaNakshatra ? `${demiseNakshatraObj.kn} (ತ್ರಿಪಾದ/ಪಂಚಕ ನಕ್ಷತ್ರ)` : "ಸಾಮಾನ್ಯ",
+      en: isTripadaNakshatra ? `${demiseNakshatraObj.en} (Tripada/Panchaka)` : "Normal",
+      hi: isTripadaNakshatra ? `${demiseNakshatraObj.hi} (त्रिपाद/पंचक नक्षत्र)` : "सामान्य",
+      te: isTripadaNakshatra ? `${demiseNakshatraObj.te} (త్రిపాద/పంచక నక్షత్రం)` : "సాధారణం",
+      ta: isTripadaNakshatra ? `${demiseNakshatraObj.ta} (பஞ்சக நட்சத்திரம்)` : "சாதாரண"
+    },
     hasSandhyaRatriDosha: isNight,
     hasTimeSpecificAnalysis: hasSpecificTime,
     doshaSummary: doshaSummaryObj,
@@ -983,6 +1491,8 @@ export function executeMaranottaraCalculation(input: MaranottaraInput): Maranott
     demiseTithi: demiseTithiObj,
     demiseNakshatra: demiseNakshatraObj,
     demisePaksha: demisePakshaObj,
+    demiseMasa: demiseMasaObj,
+    demiseSamvatsara: demiseSamvatsaraObj,
     masikaSchedule,
     antyestiRoadmap,
     doshaAnalysis,

@@ -1,0 +1,299 @@
+/**
+ * Comprehensive 5-Language Locale Dictionary for Personal Complete Life Guidance
+ * (ವೈಯಕ್ತಿಕ ಪರಿಪೂರ್ಣ ಜೀವನ ಮಾರ್ಗದರ್ಶನ / Life Guidance Page)
+ * Supports: Kannada (kn), English (en), Hindi (hi), Telugu (te), Tamil (ta)
+ */
+
+export const T_LIFE_GUIDANCE: Record<string, Record<string, string>> = {
+  // Sanctuary & Hero Header
+  sanctuaryPill: {
+    kn: "॥ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿ ಸಿದ್ಧ ಜಾತಕ ರಕ್ಷಾ ॥",
+    en: "॥ Sri Gokarna Mahabaleshwara Kshetra Vedic Life Guidance ॥",
+    hi: "॥ श्री गोकर्ण महाबलेश्वर सन्निधि सिद्ध जातक रक्षा ॥",
+    te: "॥ శ్రీ గోకర్ణ మహాబలేశ్వర సన్నిధి సిద్ధ జాతక రక్ష ॥",
+    ta: "॥ ஸ்ரீ கோகர்ண மஹாபலேஸ்வரர் சந்நிதி சித்த ஜாதக ரக்ஷா ॥"
+  },
+  pageTitle: {
+    kn: "🔮 ವೈಯಕ್ತಿಕ ಪರಿಪೂರ್ಣ ಜೀವನ ಮಾರ್ಗದರ್ಶನ",
+    en: "🔮 Hyper-Personalized Life Guidance & Predictions",
+    hi: "🔮 व्यक्तिगत परिपूर्ण जीवन मार्गदर्शन एवं भविष्यफल",
+    te: "🔮 వ్యక్తిగత పరిపూర్ణ జీవన మార్గదర్శనం & భవిష్యవాణి",
+    ta: "🔮 தனிப்பட்ட முழுமையான வாழ்க்கை வழிகாட்டுதல் & பலன்கள்"
+  },
+  pageSubtitle: {
+    kn: "ವೃತ್ತಿ ಧನ ಯೋಗ, ದಾಂಪತ್ಯ ಅನುಕೂಲತೆ, ಶಾರೀರಿಕ ದೀರ್ಘಾಯುಷ್ಯ ಹಾಗೂ ಸಂತಾನ ಭಾಗ್ಯದ ಪೂರ್ಣ ೪-ಹಂತದ ಸಿದ್ಧ ಜಾತಕ ವಿಶ್ಲೇಷಣೆ.",
+    en: "Authentic 4-domain Vedic prediction forecast for Career & Wealth, Marriage & Family, Health & Longevity, and Children & Lineage.",
+    hi: "आजीविका एवं धन योग, दांपत्य सुख, शारीरिक दीर्घायु एवं संतान भाग्य का प्रामाणिक ४-चरणीय जन्म कुंडली विश्लेषण।",
+    te: "వృత్తి ధన యోగం, దాంపత్య అనుకూలత, శారీరక దీర్ఘాయుష్షు మరియు సంతాన భాగ్యాల సంపూర్ణ ౪-దశల సిద్ధ జాతక విశ్లేషణ.",
+    ta: "தொழில் மற்றும் தன யோகம், திருமண இணக்கம், உடல் நலம் & நீண்ட ஆயுள், சந்தான பாக்கியத்தின் முழுமையான 4-படி நிலை சித்த ஜாதக கணிப்பு."
+  },
+
+  // Form Section
+  formHeader: {
+    kn: "ಜಾತಕರ ಜನನ ವಿವರಗಳನ್ನು ನಮೂದಿಸಿ",
+    en: "Enter Devotee Birth Details for Life Guidance",
+    hi: "जातक का जन्म विवरण दर्ज करें",
+    te: "జాతకుని జన్మ వివరాలను నమోదు చేయండి",
+    ta: "ஜாதகரின் பிறப்பு விவரங்களை உள்ளிடவும்"
+  },
+  nameLabel: {
+    kn: "ಜಾತಕರ ಹೆಸರು (Full Name):",
+    en: "Devotee Full Name:",
+    hi: "जातक का पूरा नाम:",
+    te: "జాతకుని పూర్తి పేరు:",
+    ta: "ஜாதகரின் முழுப் பெயர்:"
+  },
+  namePlaceholder: {
+    kn: "ಉದಾ: ಶ್ರೀ ರಾಮಕೃಷ್ಣ ಭಟ್",
+    en: "e.g. Sri Ramakrishna Bhat",
+    hi: "उदा: श्री रामकृष्ण भट्ट",
+    te: "ఉదా: శ్రీ రామకృష్ణ భట్",
+    ta: "உதா: ஸ்ரீ ராமகிருஷ்ண பட்"
+  },
+  dobLabel: {
+    kn: "ಜನನ ದಿನಾಂಕ (Date of Birth): *",
+    en: "Date of Birth: *",
+    hi: "जन्म तिथि: *",
+    te: "పుట్టిన తేదీ: *",
+    ta: "பிறந்த தேதி: *"
+  },
+  tobLabel: {
+    kn: "ಜನನ ಸಮಯ (Time of Birth):",
+    en: "Time of Birth:",
+    hi: "जन्म समय:",
+    te: "పుట్టిన సమయం:",
+    ta: "பிறந்த நேரம்:"
+  },
+  genderLabel: {
+    kn: "ಲಿಂಗ (Gender):",
+    en: "Gender:",
+    hi: "लिंग:",
+    te: "లింగం:",
+    ta: "பாலினம்:"
+  },
+  genderMale: {
+    kn: "ಪುರುಷ (Male)",
+    en: "Male",
+    hi: "पुरुष (Male)",
+    te: "పురుషుడు (Male)",
+    ta: "ஆண் (Male)"
+  },
+  genderFemale: {
+    kn: "ಮಹಿಳೆ (Female)",
+    en: "Female",
+    hi: "महिला (Female)",
+    te: "స్త్రీ (Female)",
+    ta: "பெண் (Female)"
+  },
+  genderOther: {
+    kn: "ಇತರೆ (Other)",
+    en: "Other",
+    hi: "अन्य (Other)",
+    te: "ఇతర (Other)",
+    ta: "மற்றவை (Other)"
+  },
+  calculateBtn: {
+    kn: "🔮 ಪೂರ್ಣ ಜೀವನ ಮಾರ್ಗದರ್ಶನ ಲೆಕ್ಕಾಚಾರ ಮಾಡಿ",
+    en: "🔮 Calculate Complete Life Guidance",
+    hi: "🔮 संपूर्ण जीवन मार्गदर्शन की गणना करें",
+    te: "🔮 సంపూర్ణ జీవన మార్గదర్శనం లెక్కించండి",
+    ta: "🔮 முழுமையான வாழ்க்கை வழிகாட்டலைக் கணக்கிடுங்கள்"
+  },
+  calculatingBtn: {
+    kn: "⌛ ಪೂರ್ಣ ಜಾತಕ ವಿಶ್ಲೇಷಣೆ ನಡೆಯುತ್ತಿದೆ...",
+    en: "⌛ Analyzing Complete Natal Chart...",
+    hi: "⌛ संपूर्ण कुंडली विश्लेषण प्रगति पर है...",
+    te: "⌛ సంపూర్ణ జాతక విశ్లేషణ జరుగుతోంది...",
+    ta: "⌛ முழு ஜாதக பகுப்பாய்வு நடக்கிறது..."
+  },
+
+  // Loader Text
+  loaderTitle: {
+    kn: "ಪರಿಪೂರ್ಣ ಜೀವನ ಮಾರ್ಗದರ್ಶನ ವಿಶ್ಲೇಷಿಸಲಾಗುತ್ತಿದೆ...",
+    en: "Analyzing Hyper-Personalized Life Guidance...",
+    hi: "परिपूर्ण जीवन मार्गदर्शन का विश्लेषण किया जा रहा है...",
+    te: "పరిపూర్ణ జీవన మార్గదర్శనం విశ్లేషించబడుతోంది...",
+    ta: "முழுமையான வாழ்க்கை வழிகாட்டுதல் பகுப்பாய்வு செய்யப்படுகிறது..."
+  },
+  loaderSubtitle: {
+    kn: "ವೃತ್ತಿ, ದಾಂಪತ್ಯ, ಆರೋಗ್ಯ ಹಾಗೂ ಸಂತಾನ ಭಾವಗಳ ನಿಖರ ದಶಾ-ಗೋಚಾರ ಲೆಕ್ಕಾಚಾರ...",
+    en: "Calculating 10th, 7th, 6th & 5th house planetary alignments and Dasha transits...",
+    hi: "दशम, सप्तम, षष्ठ एवं पंचम भावों के सटीक दशा-गोचर की गणना...",
+    te: "10, 7, 6 మరియు 5వ భావాల ఖచ్చితమైన దశా-గోచార గణన...",
+    ta: "10, 7, 6 மற்றும் 5ம் வீடுகளின் துல்லியமான தசா-கோசார கணிப்பு..."
+  },
+
+  // Priest Sanctuary Header
+  priestSanctuaryHeader: {
+    kn: "॥ ಗೋಕರ್ಣ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿ ಅಧಿಕೃತ ಅರ್ಚಕರು ॥",
+    en: "॥ Sri Gokarna Mahabaleshwara Kshetra Certified Chief Priest ॥",
+    hi: "॥ श्री गोकर्ण महाबलेश्वर सन्निधि अधिकृत मुख्य अर्चक ॥",
+    te: "॥ శ్రీ గోకర్ణ మహాబలేశ్వర సన్నిధి అధికారిక ప్రధాన అర్చకులు ॥",
+    ta: "॥ ஸ்ரீ கோகர்ண மஹாபலேஸ்வரர் சந்நிதி அங்கீகரிக்கப்பட்ட தலைமை அர்ச்சகர் ॥"
+  },
+  priestConsultDesc: {
+    kn: "ನಿಮ್ಮ ಜಾತಕದ ಪಿತೃ ದೋಷ (ತ್ರಿಪಿಂಡೀ/ನಾರಾಯಣ ಬಲಿ), ಕಾಲಸರ್ಪ, ಸರ್ಪ ಶಾಪ, ಕುಜ ದೋಷ ಹಾಗೂ ಮಾಂದಿ ಶಾಂತ್ಯುಕ್ತ ಸೇವೆಗಳಿಗೆ ಮುಂಗಡವಾಗಿ ಸಂಪರ್ಕಿಸಿ.",
+    en: "For Pitru Dosha, Narayana Bali, Kalasarpa Shanti, Nagapratishtha & Kuja Shanti, contact Priest directly.",
+    hi: "अपनी कुंडली के पितृ दोष (त्रिपिंडी/नारायण बलि), कालसर्प, सर्प शाप, कुज दोष एवं मांदि शांतियुक्त सेवाओं हेतु संपर्क करें।",
+    te: "మీ జాతకంలోని పితృ దోషం (త్రిపిండీ/నారాయణ బలి), కాలసర్ప, సర్ప శాపం, కుజ దోషం మరియు మాంది శాంతులకై సంప్రదించండి.",
+    ta: "உங்கள் ஜாதக பித்ரு தோஷம் (நாராயண பலி), காலசர்ப்ப தோஷம், நாக சாபம், செவ்வாய் தோஷம் சாந்தி சேவைகளுக்கு அர்ச்சகரை தொடர்பு கொள்ளவும்."
+  },
+  selectPriestLabel: {
+    kn: "PDF ವರದಿ ಹಾಗೂ ಸಂಪರ್ಕಕ್ಕೆ ಪುರೋಹಿತರನ್ನು ಆಯ್ಕೆ ಮಾಡಿ (Select Priest):",
+    en: "Select Priest for PDF Report & Puja Consultation:",
+    hi: "PDF रिपोर्ट एवं पूजा परामर्श हेतु पुरोहित चुनें:",
+    te: "PDF నివేదిక మరియు పూజ సంప్రదింపులకై పురోహితుడిని ఎంచుకోండి:",
+    ta: "PDF அறிக்கை மற்றும் பூஜை ஆலோசனைக்கு புரோஹிதரைத் தேர்ந்தெடுக்கவும்:"
+  },
+
+  // Tabs
+  tabCareer: {
+    kn: "ವೃತ್ತಿ & ಧನ",
+    en: "Career & Wealth",
+    hi: "आजीविका एवं धन",
+    te: "వృత్తి & సంపద",
+    ta: "தொழில் & செல்வம்"
+  },
+  tabRelationship: {
+    kn: "ದಾಂಪತ್ಯ & ಕುಟುಂಬ",
+    en: "Relationship & Family",
+    hi: "दांपत्य एवं परिवार",
+    te: "దాంపత్యం & కుటుంబం",
+    ta: "திருமணம் & குடும்பம்"
+  },
+  tabHealth: {
+    kn: "ಆರೋಗ್ಯ & ಆಯುಷ್ಯ",
+    en: "Health & Longevity",
+    hi: "स्वास्थ्य एवं आयु",
+    te: "ఆరోగ్యం & ఆయుష్షు",
+    ta: "ஆரோக்கியம் & ஆயுள்"
+  },
+  tabChildren: {
+    kn: "ಸಂತಾನ ಭಾಗ್ಯ",
+    en: "Children & Lineage",
+    hi: "संतान एवं वंश",
+    te: "సంతాన భాగ్యం",
+    ta: "குழந்தை பாக்கியம்"
+  },
+  tabCustom: {
+    kn: "ಸ್ವಂತ ಪ್ರಶ್ನೆ (Q&A)",
+    en: "Custom Question (Q&A)",
+    hi: "व्यक्तिगत प्रश्न (Q&A)",
+    te: "సొంత ప్రశ్న (Q&A)",
+    ta: "சுய கேள்வி (Q&A)"
+  },
+
+  // Download PDF Button
+  downloadPdfBtn: {
+    kn: "ಪೂರ್ಣ ೪-ಹಂತದ ಜೀವನ PDF ಡೌನ್‌ಲೋಡ್",
+    en: "Download Complete 4-Stage Life PDF Report",
+    hi: "संपूर्ण ४-चरणीय जीवन PDF रिपोर्ट डाउनलोड करें",
+    te: "సంపూర్ణ ౪-దశల జీవన PDF నివేదిక డౌన్‌లోడ్",
+    ta: "முழுமையான 4-படி வாழ்க்கை PDF அறிக்கையைப் பதிவிறக்கவும்"
+  },
+  generatingPdfBtn: {
+    kn: "⌛ PDF ಸಿದ್ಧವಾಗುತ್ತಿದೆ...",
+    en: "⌛ Generating PDF...",
+    hi: "⌛ PDF तैयार हो रहा है...",
+    te: "⌛ PDF రూపొందుతోంది...",
+    ta: "⌛ PDF தயாராகிறது..."
+  },
+
+  // Custom Question Form
+  customTitle: {
+    kn: "ಸ್ವಂತ ಪ್ರಶ್ನೆ ಹಾಗೂ ಧ್ವನಿ ವಿವರಣೆ ಸೌಲಭ್ಯ",
+    en: "Ask Custom Astrological Question (Voice / Type)",
+    hi: "व्यक्तिगत प्रश्न एवं ध्वनि इनपुट सुविधा",
+    te: "వ్యక్తిగత ప్రశ్న మరియు వాయిస్ ఇన్పుట్ సదుపాయం",
+    ta: "சுய கேள்வி மற்றும் குரல் பதிவு வசதி"
+  },
+  customPlaceholder: {
+    kn: "ನಿಮ್ಮ ಸ್ವಂತ ಪ್ರಶ್ನೆ ಟೈಪ್ ಮಾಡಿ ಅಥವಾ ಧ್ವನಿ ಮೈಕ್ ಬಟನ್ ಒತ್ತಿ ಮಾತನಾಡಿ...",
+    en: "Type your custom question or tap the mic button to speak...",
+    hi: "अपना प्रश्न टाइप करें या माइक बटन दबाकर बोलें...",
+    te: "మీ సొంత ప్రశ్నను టైప్ చేయండి లేదా మైక్ బటన్ నొక్కి మాట్లాడండి...",
+    ta: "உங்கள் கேள்வியைத் தட்டச்சு செய்யவும் அல்லது மைக் பொத்தானை அழுத்திப் பேசவும்..."
+  },
+  micTitle: {
+    kn: "ಧ್ವನಿ ಮೈಕ್ ಬಟನ್ (ಹಳೆಯ ಇನ್‌ಪುಟ್ ತೆರವುಗೊಳಿಸಿ ಧ್ವನಿ ರೆಕಾರ್ಡ್)",
+    en: "Voice Mic (Auto-clears text & records speech)",
+    hi: "माइक बटन (पिछला टेक्स्ट हटाकर नई आवाज रिकॉर्ड करें)",
+    te: "వాయిస్ మైక్ (పాత టెక్స్ట్ క్లియర్ చేసి వాయిస్ రికార్డ్ చేయండి)",
+    ta: "குரல் மைக் (பழைய உரையை அழித்து புதிய குரலைப் பதிவு செய்யுங்கள்)"
+  },
+  askBtn: {
+    kn: "🔮 ಉತ್ತರ ಪಡೆಯಿರಿ (Get 4-5 Para Guidance)",
+    en: "🔮 Get Detailed Astrological Guidance",
+    hi: "🔮 विस्तृत ज्योतिषीय मार्गदर्शन प्राप्त करें",
+    te: "🔮 సమగ్ర జ్యోతిష్య మార్గదర్శనం పొందండి",
+    ta: "🔮 விரிவான ஜோதிட வழிகாட்டுதலைப் பெறுங்கள்"
+  },
+  askingBtn: {
+    kn: "⌛ ೪-೫ ಪ್ಯಾರಾಗ್ರಾಫ್ ಜ್ಯೋತಿಷ್ಯ ಉತ್ತರ ಸಿದ್ಧವಾಗುತ್ತಿದೆ...",
+    en: "⌛ Preparing Detailed Astrological Guidance...",
+    hi: "⌛ विस्तृत ज्योतिषीय उत्तर तैयार किया जा रहा है...",
+    te: "⌛ సమగ్ర జ్యోతిష్య సమాధానం సిద్ధమవుతోంది...",
+    ta: "⌛ விரிவான ஜோதிட விடை தயாராகிறது..."
+  },
+  questionPrefix: {
+    kn: "❓ ಪ್ರಶ್ನೆ:",
+    en: "❓ Question:",
+    hi: "❓ प्रश्न:",
+    te: "❓ ప్రశ్న:",
+    ta: "❓ கேள்வி:"
+  },
+
+  // Key Milestones & Directions
+  keyAgesLabel: {
+    kn: "🌟 ಪ್ರಮುಖ ವಯೋಮಾನ ಮೈಲಿಗಲ್ಲುಗಳು (Key Ages):",
+    en: "🌟 Key Age Milestones:",
+    hi: "🌟 प्रमुख आयु पड़ाव (Key Ages):",
+    te: "🌟 ముఖ్యమైన వయస్సు మైలురాళ్ళు (Key Ages):",
+    ta: "🌟 முக்கிய வயது மைல்கற்கள் (Key Ages):"
+  },
+  yearsSuffix: {
+    kn: "ವರ್ಷಗಳು",
+    en: "Years",
+    hi: "वर्ष",
+    te: "సంవత్సరాలు",
+    ta: "ஆண்டுகள்"
+  },
+  favorableDirectionsLabel: {
+    kn: "🧭 ಅನುಕೂಲಕರ ದಿಕ್ಪಾಲಕ ದಿಕ್ಕುಗಳು:",
+    en: "🧭 Favorable Directions:",
+    hi: "🧭 अनुकूल दिशाएं:",
+    te: "🧭 అనుకూల దిక్కులు:",
+    ta: "🧭 சாதகமான திசைகள்:"
+  },
+
+  // Gokarna Seva Card Headings
+  whyRequiredLabel: {
+    kn: "• ಕುಂಡಲಿ ವಿಶ್ಲೇಷಣೆ (ಯಾಕೆ ಬೇಕು / WHY Required?):",
+    en: "• Kundli Analysis (WHY Required?):",
+    hi: "• कुंडली विश्लेषण (क्यों आवश्यक है / WHY Required?):",
+    te: "• జాతక విశ్లేషణ (ఎందుకు అవసరం / WHY Required?):",
+    ta: "• ஜாதக பகுப்பாய்வு (ஏன் தேவை / WHY Required?):"
+  },
+  whatSignificanceLabel: {
+    kn: "• ಗೋಕರ್ಣ ಸನ್ನಿಧಿ ವೈಶಿಷ್ಟ್ಯ (ಮಹತ್ತ್ವವೇನು / WHAT Significance?):",
+    en: "• Kshetra Significance (WHAT Significance?):",
+    hi: "• गोकर्ण सन्निधि महात्म्य (महत्व क्या है / WHAT Significance?):",
+    te: "• గోకర్ణ క్షేత్ర ప్రాశస్త్యం (ప్రాముఖ్యత ఏమిటి / WHAT Significance?):",
+    ta: "• கோகர்ண சந்நிதி சிறப்பு (முக்கியத்துவம் என்ன / WHAT Significance?):"
+  },
+  howTransformsLabel: {
+    kn: "• ಪೂಜಾನಂತರ ದಕ್ಕುವ ಸಿದ್ಧಿ (ಪರಿಣಾಮವೇನು / HOW it Transforms?):",
+    en: "• Life Transformation (HOW it Transforms?):",
+    hi: "• पूजा के पश्चात जीवन परिवर्तन (प्रभाव क्या होगा / HOW it Transforms?):",
+    te: "• పూజానంతర జీవిత పరివర్తన (ఫలితం ఏమిటి / HOW it Transforms?):",
+    ta: "• பூஜைக்குப் பின் வாழ்க்கை மாற்றம் (தாக்கம் என்ன / HOW it Transforms?):"
+  }
+};
+
+/** Lookup localized string with fallback */
+export function getLifeGuidanceText(key: string, lang: string = "kn"): string {
+  const code = (lang || "kn").slice(0, 2);
+  const entry = T_LIFE_GUIDANCE[key];
+  if (!entry) return key;
+  return entry[code] || entry.kn || entry.en || key;
+}
