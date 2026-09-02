@@ -121,13 +121,14 @@ function computePersonalGoldenHour(dateStr: string, nakshatraIndex = 18) {
   const startTimeStr = formatTime(chosen.start);
   const endTimeStr = formatTime(chosen.end);
 
-  const now = new Date();
-  const todayYmd = now.toISOString().slice(0, 10);
+  // Enforce strict Indian Standard Time (+05:30) calculation regardless of local browser timezone
+  const istNow = new Date(Date.now() + 330 * 60 * 1000);
+  const todayYmd = istNow.toISOString().slice(0, 10);
+  const nowMinutes = istNow.getUTCHours() * 60 + istNow.getUTCMinutes();
 
   let status: "upcoming" | "active" | "passed" = "upcoming";
 
   if (dateStr === todayYmd) {
-    const nowMinutes = now.getHours() * 60 + now.getMinutes();
     if (nowMinutes >= chosen.start && nowMinutes <= chosen.end) {
       status = "active";
     } else if (nowMinutes > chosen.end) {

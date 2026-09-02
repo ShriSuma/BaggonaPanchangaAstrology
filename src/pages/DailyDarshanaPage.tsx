@@ -1292,14 +1292,39 @@ export default function DailyDarshanaPage(): JSX.Element {
     return Math.floor((targetMs - startMs) / (1000 * 60 * 60 * 24));
   }, [decoded, dateParam]);
 
-  const kaala = useMemo(() => getDailyKaalaTimings(dayLordIdx, lang, dateParam, decoded?.lt, decoded?.lg, decoded?.pc), [dayLordIdx, lang, dateParam, decoded]);
-  // Extract dynamic birth inputs for the specific user from URL params / decoded token payload / stored session
+  // Extract dynamic birth & location inputs for the specific user from URL params / decoded token payload / stored session
   const urlParams = useMemo(() => {
     if (typeof window !== "undefined") {
       return new URLSearchParams(window.location.search);
     }
     return new URLSearchParams();
   }, []);
+
+  const userLat = useMemo(() => {
+    const pLat = urlParams.get("lat") || urlParams.get("lt");
+    if (pLat && !isNaN(Number(pLat))) return Number(pLat);
+    return decoded?.lt ?? decoded?.lat ?? storedSession?.latitude ?? 14.5479;
+  }, [decoded, storedSession, urlParams]);
+
+  const userLng = useMemo(() => {
+    const pLng = urlParams.get("lng") || urlParams.get("lg");
+    if (pLng && !isNaN(Number(pLng))) return Number(pLng);
+    return decoded?.lg ?? decoded?.lng ?? storedSession?.longitude ?? 74.3187;
+  }, [decoded, storedSession, urlParams]);
+
+  const userPincode = useMemo(() => {
+    const pPin = urlParams.get("pincode") || urlParams.get("pc");
+    if (pPin && pPin.trim()) return pPin.trim();
+    return decoded?.pc || storedSession?.pincode || "581326";
+  }, [decoded, storedSession, urlParams]);
+
+  const userLocationName = useMemo(() => {
+    const pLoc = urlParams.get("location") || urlParams.get("loc");
+    if (pLoc && pLoc.trim()) return pLoc.trim();
+    return (decoded as any)?.loc || (decoded as any)?.location || storedSession?.placeName || "Gokarna";
+  }, [decoded, storedSession, urlParams]);
+
+  const kaala = useMemo(() => getDailyKaalaTimings(dayLordIdx, lang, dateParam, userLat, userLng, userPincode), [dayLordIdx, lang, dateParam, userLat, userLng, userPincode]);
 
   const localizedPandit = useMemo(() => getLocalizedPanditName(panditParam, lang), [panditParam, lang]);
 
@@ -1355,22 +1380,6 @@ export default function DailyDarshanaPage(): JSX.Element {
 
   const birthDateStr = resolvedBirth.dob;
   const birthTimeStr = resolvedBirth.tob;
-
-  const userLat = useMemo(() => {
-    return decoded?.lt ?? decoded?.lat ?? storedSession?.latitude ?? 14.5479;
-  }, [decoded, storedSession]);
-
-  const userLng = useMemo(() => {
-    return decoded?.lg ?? decoded?.lng ?? storedSession?.longitude ?? 74.3187;
-  }, [decoded, storedSession]);
-
-  const userPincode = useMemo(() => {
-    return decoded?.pc || storedSession?.pincode || "581326";
-  }, [decoded, storedSession]);
-
-  const userLocationName = useMemo(() => {
-    return (decoded as any)?.loc || (decoded as any)?.location || storedSession?.placeName || "Gokarna";
-  }, [decoded, storedSession]);
 
   // 100% Dynamic Synchronous Birth Kundli calculation for the specific user's DOB, TOB, Lat, Lng
   const birthKundli = useMemo<KundliOutput>(() => {
@@ -1516,11 +1525,12 @@ export default function DailyDarshanaPage(): JSX.Element {
       natalNakshatra: moonNakshatraIdx,
       natalLagnaRashi: ascendantRashiIdx,
       lang: (lang as SevaLang) || "kn",
-      userLat: 14.5479,
-      userLng: 74.3187,
+      userLat,
+      userLng,
+      userPincode,
       priestName: activePanditName
     });
-  }, [birthKundli, devoteeDisplayName, devoteeGotra, resolvedBirth.dob, resolvedBirth.tob, dateParam, moonRashiIdx, moonNakshatraIdx, ascendantRashiIdx, lang, activePanditName]);
+  }, [birthKundli, devoteeDisplayName, devoteeGotra, resolvedBirth.dob, resolvedBirth.tob, dateParam, moonRashiIdx, moonNakshatraIdx, ascendantRashiIdx, lang, userLat, userLng, userPincode, activePanditName]);
 
   const deity = useMemo(() => {
     const d = darshanaPersonalization.deity;
@@ -1606,9 +1616,9 @@ export default function DailyDarshanaPage(): JSX.Element {
       natalNakshatra: moonNakshatraIdx,
       natalLagnaRashi: ascendantRashiIdx,
       lang: (lang as SevaLang) || "kn",
-      userLat: 14.5479,
-      userLng: 74.3187,
-      userPincode: "581326",
+      userLat,
+      userLng,
+      userPincode,
       userIdentifier: devoteeUserId,
       geminiApiKey: geminiApiKey || undefined
     }).then((data) => {
@@ -1626,7 +1636,7 @@ export default function DailyDarshanaPage(): JSX.Element {
     return () => {
       isMounted = false;
     };
-  }, [dateParam, devoteeDisplayName, resolvedBirth.dob, resolvedBirth.tob, moonRashiIdx, moonNakshatraIdx, ascendantRashiIdx, lang, devoteeUserId, geminiApiKey]);
+  }, [dateParam, devoteeDisplayName, resolvedBirth.dob, resolvedBirth.tob, moonRashiIdx, moonNakshatraIdx, ascendantRashiIdx, lang, userLat, userLng, userPincode, devoteeUserId, geminiApiKey]);
 
   // Check & Register Devotee in Firestore on page load / calendar redirect
   useEffect(() => {

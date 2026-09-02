@@ -587,11 +587,12 @@ export function computePersonalizedDarshanaPayload(params: PersonalizeDarshanaPa
     lang = "kn",
     userLat = 14.5479,
     userLng = 74.3187,
+    userPincode = "581326",
     priestName = "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್"
   } = params;
 
   // 1. Compute Live Astronomical Gochara Moon
-  const gochara = computeGocharaMoonForDate(targetDate);
+  const gochara = computeGocharaMoonForDate(targetDate, userLat, userLng, userPincode);
   const chandraBalaHouse = ((gochara.transitMoonRashi - natalMoonRashi + 12) % 12) + 1;
   const isChandrashtama = (chandraBalaHouse === 8);
   const taraBalaNumber = (((gochara.transitMoonNakshatra - natalNakshatra + 27) % 27) % 9) + 1;
