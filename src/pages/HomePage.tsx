@@ -468,10 +468,30 @@ export default function HomePage(): JSX.Element {
         );
         setShowLocationPanel(false);
       } else {
-        setPinError("Pincode not found. Try another PIN.");
+        if (typeof navigator !== "undefined" && !navigator.onLine) {
+          await setDefaultLocation(
+            14.5479,
+            74.3188,
+            "Gokarna (581326)",
+            "581326"
+          );
+          setShowLocationPanel(false);
+        } else {
+          setPinError("Pincode not found. Try another PIN.");
+        }
       }
     } catch (err) {
-      setPinError((err as Error).message);
+      if (typeof navigator !== "undefined" && !navigator.onLine) {
+        await setDefaultLocation(
+          14.5479,
+          74.3188,
+          "Gokarna (581326)",
+          "581326"
+        );
+        setShowLocationPanel(false);
+      } else {
+        setPinError((err as Error).message);
+      }
     } finally {
       setResolvingPin(false);
     }

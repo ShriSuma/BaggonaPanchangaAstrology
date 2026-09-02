@@ -137,6 +137,25 @@ export default function KundliPage(): JSX.Element {
       .then((place) => {
         if (gen !== pinResolveGen.current) return;
         if (!place) {
+          if (typeof navigator !== "undefined" && !navigator.onLine) {
+            const fallbackCore = "Gokarna (581326)";
+            setForm((f) => ({
+              ...f,
+              latitude: 14.5479,
+              longitude: 74.3188,
+              pincode: "581326"
+            }));
+            setLocationCore(fallbackCore);
+            setResult(null);
+            lastResolvedPinRef.current = "581326";
+            void setDefaultLocation(
+              14.5479,
+              74.3188,
+              homePlaceName.trim() ? `${homePlaceName.trim()} · ${fallbackCore}` : fallbackCore,
+              "581326"
+            );
+            return;
+          }
           setLocationCore(`${pin} · ${t("location.pinNotFound")}`);
           return;
         }
@@ -159,6 +178,25 @@ export default function KundliPage(): JSX.Element {
       })
       .catch(() => {
         if (gen !== pinResolveGen.current) return;
+        if (typeof navigator !== "undefined" && !navigator.onLine) {
+          const fallbackCore = "Gokarna (581326)";
+          setForm((f) => ({
+            ...f,
+            latitude: 14.5479,
+            longitude: 74.3188,
+            pincode: "581326"
+          }));
+          setLocationCore(fallbackCore);
+          setResult(null);
+          lastResolvedPinRef.current = "581326";
+          void setDefaultLocation(
+            14.5479,
+            74.3188,
+            homePlaceName.trim() ? `${homePlaceName.trim()} · ${fallbackCore}` : fallbackCore,
+            "581326"
+          );
+          return;
+        }
         setLocationCore(`${pin} · ${t("location.pinNotFound")}`);
       })
       .finally(() => {
@@ -368,18 +406,36 @@ export default function KundliPage(): JSX.Element {
       setError(t("kundli.requiredFields"));
       return;
     }
-    if (!form.pincode || !/^[1-9]\d{5}$/.test(form.pincode.trim())) {
-      setError(t("kundli.pincodeRequired"));
-      return;
+    let pin = form.pincode?.trim() || "";
+    let lat = form.latitude;
+    let lng = form.longitude;
+    const isOffline = typeof navigator !== "undefined" && !navigator.onLine;
+
+    if (!pin || !/^[1-9]\d{5}$/.test(pin)) {
+      if (isOffline) {
+        pin = "581326";
+        lat = 14.5479;
+        lng = 74.3188;
+      } else {
+        setError(t("kundli.pincodeRequired"));
+        return;
+      }
+    }
+
+    if (isOffline && (!lat || !lng)) {
+      lat = 14.5479;
+      lng = 74.3188;
     }
 
     const birthDate = formatPickerDateLocalYmd(birthDatePicker);
     const birthTime = birthTimeHm.trim();
     const payload: KundliInput = {
       ...form,
+      latitude: lat,
+      longitude: lng,
+      pincode: pin,
       birthDate,
-      birthTime,
-      pincode: form.pincode && /^\d{6}$/.test(form.pincode) ? form.pincode : undefined
+      birthTime
     };
 
     setError("");

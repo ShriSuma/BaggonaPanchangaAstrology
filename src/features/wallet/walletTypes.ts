@@ -226,6 +226,42 @@ export const SERVICE_COIN_COSTS: Record<string, ServiceCost> = {
     inrEquivalent: 20,
     description: "Official temple seva sankalpa & 90-day QR pass (200 Coins / ₹20)",
     category: "reports"
+  },
+  PUBLIC_KUNDLI_GENERATION: {
+    key: "PUBLIC_KUNDLI_GENERATION",
+    name: "Public Janma Kundali Generation",
+    kannadaName: "ಸಾರ್ವಜನಿಕ ಜನನ ಕುಂಡಲಿ ರಚನೆ",
+    coins: 500,
+    inrEquivalent: 50,
+    description: "Public authentic birth chart generation with Lagna, Rashi, Nakshatra & Graha degrees (500 Coins / ₹50)",
+    category: "kundli"
+  },
+  PUBLIC_LIFE_ANALYSIS_QA: {
+    key: "PUBLIC_LIFE_ANALYSIS_QA",
+    name: "Current Life Astrology Analysis & Q&A",
+    kannadaName: "ಪ್ರಸ್ತುತ ಜೀವನ ನೇರ ವಿಶ್ಲೇಷಣೆ & ಪ್ರಶ್ನೋತ್ತರ",
+    coins: 1000,
+    inrEquivalent: 100,
+    description: "What is happening in your life right now? Live AI Astrology Analysis & Devotee Q&A (1,000 Coins / ₹100)",
+    category: "kundli"
+  },
+  PUBLIC_KUNDLI_PDF_DOWNLOAD: {
+    key: "PUBLIC_KUNDLI_PDF_DOWNLOAD",
+    name: "Public Kundali High-Res PDF Download",
+    kannadaName: "ಜನನ ಕುಂಡಲಿ ೬-ಪುಟಗಳ ಪ್ರಿಂಟಬಲ್ PDF ಡೌನ್‌ಲೋಡ್",
+    coins: 500,
+    inrEquivalent: 50,
+    description: "Public Devotee High-Resolution 6-Page Janma Kundali PDF Download (500 Coins / ₹50)",
+    category: "reports"
+  },
+  PUBLIC_TAB_UNLOCK: {
+    key: "PUBLIC_TAB_UNLOCK",
+    name: "Public Detailed Tab Exploration Unlock",
+    kannadaName: "ಕುಂಡಲಿ ವಿವರಣಾತ್ಮಕ ವಿಭಾಗ ವೀಕ್ಷಣೆ (Tab Unlock)",
+    coins: 200,
+    inrEquivalent: 20,
+    description: "Individual Explorer Tab Detailed Astrological Reading (200 Coins / ₹20)",
+    category: "kundli"
   }
 };
 
@@ -233,7 +269,7 @@ export const DEFAULT_PRIEST_UPI_ID = "9108135387@ybl";
 export const DEFAULT_PRIEST_MOBILE_NUMBER = "9108135387";
 export const DEFAULT_PRIEST_NAME = "Shreeram Pandit";
 
-export type AvailableModuleKey = "panchanga" | "sankhyashastra" | "diksuchi" | "purva_janma" | "vahana_muhurtha";
+export type AvailableModuleKey = "panchanga" | "sankhyashastra" | "diksuchi" | "purva_janma" | "vahana_muhurtha" | "public_kundli";
 
 export interface AppModuleConfig {
   key: AvailableModuleKey;
@@ -249,6 +285,18 @@ export interface AppModuleConfig {
 }
 
 export const AVAILABLE_MODULES: AppModuleConfig[] = [
+  {
+    key: "public_kundli",
+    label: "Public Kundli & Life Inquest",
+    kannadaLabel: "ಸಾರ್ವಜನಿಕ ಕುಂಡಲಿ & ಅಂತರಂಗ ದರ್ಶನ",
+    icon: "🌟",
+    description: "Public Devotee Janma Kundli, Personality, 120-Yr Dasha & Live Analysis (₹50 = 500 Coins, ₹100 = 1000 Coins)",
+    kannadaDescription: "ಸಾರ್ವಜನಿಕ ಭಕ್ತರ ಜನನ ಜಾತಕ, ವ್ಯಕ್ತಿತ್ವ, ೧೨೦-ವರ್ಷಗಳ ದಶಾ ಕಾಲಚಕ್ರ & ನೇರ ಜೀವನ ವಿಶ್ಲೇಷಣೆ",
+    costPerQuestionCoins: 500,
+    costPerQuestionInr: 50,
+    portalParam: "public_kundli",
+    pageKey: "publickundli"
+  },
   {
     key: "panchanga",
     label: "Baggona Panchanga",

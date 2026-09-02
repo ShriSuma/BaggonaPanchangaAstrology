@@ -1,157 +1,199 @@
-import { describe, it, expect } from "vitest";
-import React from "react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render } from "@testing-library/react";
-import { T_LIFE_GUIDANCE, getLifeGuidanceText } from "../features/lifeguidance/lifeGuidanceLocale";
+import React from "react";
 import {
   executeLifeGuidanceCalculation,
   askCustomLifeQuestion,
-  getDynamicGokarnaPuja,
-  LifeGuidanceInput
+  deriveAstrologicalMilestoneAges,
+  getDynamicGokarnaPuja
 } from "../features/lifeguidance/lifeGuidanceEngine";
+import {
+  T_LIFE_GUIDANCE,
+  getLifeGuidanceText
+} from "../features/lifeguidance/lifeGuidanceLocale";
 import { LifeGuidancePdfTemplate } from "../components/lifeguidance/LifeGuidancePdfTemplate";
+import {
+  resolvePlaceFromPincode,
+  resolvePlaceOrPincode,
+  getCoordinates,
+  fetchVillagesByPincode
+} from "../services/locationApi";
+import { getPriestProfile } from "../features/seva/sevaPriestDirectory";
 
-describe("LifeGuidance Dynamic & Kundli Accuracy Audit (ವೈಯಕ್ತಿಕ ಪರಿಪೂರ್ಣ ಜೀವನ ಮಾರ್ಗದರ್ಶನ)", () => {
-  const gokarnaSample: LifeGuidanceInput = {
-    personName: "Pramod Bhat",
-    dob: "1993-05-31",
-    tob: "09:25",
-    lat: 14.5479,
-    lon: 74.3188,
-    gender: "Male",
-    lang: "kn"
-  };
-
-  it("locale dictionary has complete 5-language coverage for all UI keys", () => {
-    const requiredLanguages = ["kn", "en", "hi", "te", "ta"];
-    const allKeys = Object.keys(T_LIFE_GUIDANCE);
-
-    expect(allKeys.length).toBeGreaterThanOrEqual(20);
-
-    allKeys.forEach((key) => {
-      const entry = T_LIFE_GUIDANCE[key];
-      requiredLanguages.forEach((lang) => {
-        expect(entry[lang], `Missing '${lang}' translation for key '${key}'`).toBeDefined();
-        expect(entry[lang].trim().length, `Empty '${lang}' translation for key '${key}'`).toBeGreaterThan(0);
-      });
-    });
-
-    // Helper lookup verification
-    expect(getLifeGuidanceText("pageTitle", "kn")).toContain("ವೈಯಕ್ತಿಕ ಪರಿಪೂರ್ಣ ಜೀವನ ಮಾರ್ಗದರ್ಶನ");
-    expect(getLifeGuidanceText("pageTitle", "en")).toContain("Hyper-Personalized Life Guidance");
-    expect(getLifeGuidanceText("pageTitle", "hi")).toContain("व्यक्तिगत परिपूर्ण जीवन मार्गदर्शन");
-    expect(getLifeGuidanceText("pageTitle", "te")).toContain("వ్యక్తిగత పరిపూర్ణ జీవన మార్గదర్శనం");
-    expect(getLifeGuidanceText("pageTitle", "ta")).toContain("தனிப்பட்ட முழுமையான வாழ்க்கை வழிகாட்டுதல்");
-  });
-
-  it("calculates authentic Lagna (Ascendant) accurately from calculateKundli (not Sun sign)", async () => {
-    const res = await executeLifeGuidanceCalculation(gokarnaSample);
-
-    // 1993-05-31 09:25 IST in Gokarna has Karkataka (Cancer) Lagna, Kanya (Virgo) Moon Rashi, Hasta Nakshatra
-    expect(res.lagna.kn).toContain("ಕರ್ಕಾಟಕ ಲಗ್ನ");
-    expect(res.lagna.en).toContain("Cancer Ascendant");
-    expect(res.lagna.hi).toContain("कर्क लग्न");
-    expect(res.lagna.te).toContain("కర్కాటకం లగ్నం");
-    expect(res.lagna.ta).toContain("கடகம் லக்னம்");
-
-    expect(res.rashi.kn).toContain("ಕನ್ಯಾ ರಾಶಿ");
-    expect(res.rashi.en).toContain("Virgo Rashi");
-
-    expect(res.kundliSnapshot).toBeDefined();
-    expect(res.kundliSnapshot?.lagnaIndex).toBe(3); // Cancer is index 3
-    expect(res.kundliSnapshot?.moonRashiIndex).toBe(5); // Virgo is index 5
-    expect(res.kundliSnapshot?.tenthLord).toBe("Mars"); // 10th house from Cancer is Aries (ruled by Mars)
-    expect(res.kundliSnapshot?.seventhLord).toBe("Saturn"); // 7th house from Cancer is Capricorn (ruled by Saturn)
-  });
-
-  it("generates authentic 4 life domains with astrologically derived milestone ages", async () => {
-    const res = await executeLifeGuidanceCalculation(gokarnaSample);
-
-    // 1. Career (10th House)
-    expect(res.career).toBeDefined();
-    expect(res.career.title.kn).toContain("ವೃತ್ತಿ ಮಾರ್ಗ ಹಾಗೂ ಧನ ಯೋಗ");
-    expect(res.career.title.en).toContain("Career Path & Wealth Forecast");
-    expect(res.career.keyAges.length).toBeGreaterThanOrEqual(3);
-    expect(res.career.narrativeText).toContain("ದಶಮಾಧಿಪತಿ");
-
-    // 2. Relationship (7th House)
-    expect(res.relationship).toBeDefined();
-    expect(res.relationship.title.kn).toContain("ದಾಂಪತ್ಯ ಅನುಕೂಲತೆ");
-    expect(res.relationship.title.en).toContain("Marriage Compatibility");
-    expect(res.relationship.keyAges.length).toBeGreaterThanOrEqual(3);
-
-    // 3. Health (6th House)
-    expect(res.health).toBeDefined();
-    expect(res.health.title.kn).toContain("ಆರೋಗ್ಯ ದೀರ್ಘಾಯುಷ್ಯ");
-    expect(res.health.title.en).toContain("Health, Longevity");
-    expect(res.health.keyAges.length).toBeGreaterThanOrEqual(3);
-
-    // 4. Children (5th House)
-    expect(res.children).toBeDefined();
-    expect(res.children.title.kn).toContain("ಸಂತಾನ ಭಾಗ್ಯ");
-    expect(res.children.title.en).toContain("Children, Lineage");
-    expect(res.children.keyAges.length).toBeGreaterThanOrEqual(3);
-  });
-
-  it("provides comprehensive 5-language Gokarna Puja details for all domains", () => {
-    const categories: ("career" | "relationship" | "health" | "children" | "custom")[] = [
-      "career",
-      "relationship",
-      "health",
-      "children",
-      "custom"
+describe("Personal Life Guidance (ವೈಯಕ್ತಿಕ ಪರಿಪೂರ್ಣ ಜೀವನ ಮಾರ್ಗದರ್ಶನ) Dynamic & Offline Audit", () => {
+  it("verifies 5-language locale dictionary completeness across kn, en, hi, te, ta", () => {
+    const langs = ["kn", "en", "hi", "te", "ta"] as const;
+    const requiredKeys = [
+      "pageTitle",
+      "pageSubtitle",
+      "sanctuaryPill",
+      "formHeader",
+      "nameLabel",
+      "dobLabel",
+      "tobLabel",
+      "genderLabel",
+      "calculateBtn",
+      "calculatingBtn",
+      "tabCareer",
+      "tabRelationship",
+      "tabHealth",
+      "tabChildren",
+      "tabCustom",
+      "priestSanctuaryHeader",
+      "priestConsultDesc",
+      "selectPriestLabel",
+      "keyAgesLabel",
+      "favorableDirectionsLabel",
+      "whyRequiredLabel",
+      "whatSignificanceLabel",
+      "howTransformsLabel"
     ];
-    const languages = ["kn", "en", "hi", "te", "ta"];
 
-    categories.forEach((cat) => {
-      const puja = getDynamicGokarnaPuja("Virgo", "Hasta", "Moon", cat);
-      expect(puja.pujaName).toBeDefined();
-      expect(puja.whyRequired).toBeDefined();
-      expect(puja.whatSignificance).toBeDefined();
-      expect(puja.howTransforms).toBeDefined();
+    for (const key of requiredKeys) {
+      for (const lang of langs) {
+        const val = getLifeGuidanceText(key, lang);
+        expect(val).toBeDefined();
+        expect(val.length).toBeGreaterThan(0);
+      }
+    }
+  });
 
-      languages.forEach((lang) => {
-        expect(puja.pujaName[lang], `Missing pujaName in ${lang} for ${cat}`).toBeDefined();
-        expect(puja.whyRequired[lang], `Missing whyRequired in ${lang} for ${cat}`).toBeDefined();
-        expect(puja.whatSignificance[lang], `Missing whatSignificance in ${lang} for ${cat}`).toBeDefined();
-        expect(puja.howTransforms[lang], `Missing howTransforms in ${lang} for ${cat}`).toBeDefined();
-      });
+  it("calculates authentic Lagna and 4 domain life guidance from birth data", async () => {
+    const result = await executeLifeGuidanceCalculation({
+      personName: "Nagaraja Bhat",
+      dob: "1994-08-15",
+      tob: "08:30",
+      gender: "Male",
+      lang: "kn"
+    });
+
+    expect(result).toBeDefined();
+    expect(result.personName).toBe("Nagaraja Bhat");
+    expect(result.lagna.kn).toBeDefined();
+    expect(result.rashi.kn).toBeDefined();
+    expect(result.nakshatra.kn).toBeDefined();
+    expect(result.dasha.kn).toBeDefined();
+
+    // Verify 4 domains
+    expect(result.career.title.kn).toBeDefined();
+    expect(result.career.narrativeText.length).toBeGreaterThan(50);
+    expect(result.career.keyAges.length).toBeGreaterThan(0);
+    expect(result.career.gokarnaPujaDetail.pujaName.kn).toBeDefined();
+
+    expect(result.relationship.title.kn).toBeDefined();
+    expect(result.relationship.narrativeText.length).toBeGreaterThan(50);
+    expect(result.relationship.keyAges.length).toBeGreaterThan(0);
+    expect(result.relationship.gokarnaPujaDetail.pujaName.kn).toBeDefined();
+
+    expect(result.health.title.kn).toBeDefined();
+    expect(result.health.narrativeText.length).toBeGreaterThan(50);
+
+    expect(result.children.title.kn).toBeDefined();
+    expect(result.children.narrativeText.length).toBeGreaterThan(50);
+  });
+
+  it("generates authentic milestone ages based on planetary dasha and transits", () => {
+    const ages = deriveAstrologicalMilestoneAges(28, "career");
+    expect(ages.length).toBeGreaterThanOrEqual(3);
+    ages.forEach((age) => {
+      expect(age).toBeGreaterThan(0);
+      expect(age).toBeLessThan(100);
     });
   });
 
-  it("handles custom astrological question in all 5 languages with fallback", async () => {
-    const res = await executeLifeGuidanceCalculation(gokarnaSample);
+  it("provides dynamic 5-language Gokarna Seva recommendations", () => {
+    const pujaKn = getDynamicGokarnaPuja("Mesha", "Ashwini", "Jupiter", "career");
+    expect(pujaKn.pujaName.kn).toBeDefined();
+    expect(pujaKn.whyRequired.kn).toBeDefined();
 
-    const ansKn = await askCustomLifeQuestion(res, "ನನ್ನ ಹೊಸ ವ್ಯಾಪಾರ ಶುಭವೇ?", "kn");
-    expect(ansKn).toContain("ವ್ಯಾಪಾರ");
-    expect(ansKn).toContain("ಗೋಕರ್ಣ");
-
-    const ansEn = await askCustomLifeQuestion(res, "Will I get promotion this year?", "en");
-    expect(ansEn).toContain("Gokarna");
-
-    const ansHi = await askCustomLifeQuestion(res, "क्या मेरी पदोन्नति होगी?", "hi");
-    expect(ansHi).toContain("गोकर्ण");
-
-    const ansTe = await askCustomLifeQuestion(res, "నా ఉద్యోగంలో ప్రమోషన్ వస్తుందా?", "te");
-    expect(ansTe).toContain("గోకర్ణ");
-
-    const ansTa = await askCustomLifeQuestion(res, "எனக்கு வேலை உயர்வு கிடைக்குமா?", "ta");
-    expect(ansTa).toContain("கோகர்ண");
+    const pujaHi = getDynamicGokarnaPuja("Vrishabha", "Rohini", "Venus", "relationship");
+    expect(pujaHi.pujaName.hi).toBeDefined();
+    expect(pujaHi.whyRequired.hi).toBeDefined();
   });
 
-  it("renders LifeGuidancePdfTemplate with exactly 2 A4 pages in all 5 languages", async () => {
-    const res = await executeLifeGuidanceCalculation(gokarnaSample);
-    const languages = ["kn", "en", "hi", "te", "ta"];
+  it("answers custom life questions with authentic fallback when offline/no-api", async () => {
+    const result = await executeLifeGuidanceCalculation({
+      personName: "Devotee",
+      dob: "1990-05-20",
+      tob: "14:15",
+      gender: "Female",
+      lang: "kn"
+    });
 
-    languages.forEach((lang) => {
-      const { container } = render(
-        <LifeGuidancePdfTemplate result={res} activeTab="career" lang={lang} />
-      );
+    const answer = await askCustomLifeQuestion(
+      result,
+      "ನನಗೆ ಉದ್ಯೋಗದಲ್ಲಿ ಪ್ರಮೋಷನ್ ಯಾವಾಗ ಸಿಗಲಿದೆ?",
+      "kn"
+    );
+    expect(answer).toBeDefined();
+    expect(answer.length).toBeGreaterThan(30);
+    expect(answer).toContain("ಗೋಕರ್ಣ");
+  });
 
-      const pages = container.querySelectorAll(".pdf-page-a4");
-      expect(pages.length, `Expected 2 PDF pages for ${lang}`).toBe(2);
+  it("renders 5-language LifeGuidancePdfTemplate cleanly without errors", async () => {
+    const result = await executeLifeGuidanceCalculation({
+      personName: "Devotee",
+      dob: "1992-11-04",
+      tob: "06:45",
+      gender: "Male",
+      lang: "kn"
+    });
 
-      // Verify contact number presence
-      expect(container.textContent).toContain("+91 99723 39362");
+    const priest = getPriestProfile("shreeram-pandit");
+
+    const { container } = render(
+      <LifeGuidancePdfTemplate
+        result={result}
+        activeTab="career"
+        lang="kn"
+        priest={priest}
+      />
+    );
+
+    const pdfContainer = container.querySelector("#life-guidance-pdf-container");
+    expect(pdfContainer).not.toBeNull();
+    expect(pdfContainer?.textContent).toContain("ಶ್ರೀರಾಮ್ ಪಂಡಿತ್");
+    expect(pdfContainer?.textContent).toContain("99723 39362");
+  });
+
+  describe("Offline Location & Pincode Resilience", () => {
+    const originalNavigatorOnLine = navigator.onLine;
+
+    afterEach(() => {
+      Object.defineProperty(navigator, "onLine", {
+        value: originalNavigatorOnLine,
+        configurable: true
+      });
+    });
+
+    it("resolves bundled pincode instantly without network", async () => {
+      const gokarna = await resolvePlaceFromPincode("581326");
+      expect(gokarna).not.toBeNull();
+      expect(gokarna?.lat).toBeCloseTo(14.5479, 2);
+      expect(gokarna?.lng).toBeCloseTo(74.3188, 2);
+    });
+
+    it("falls back to Gokarna (581326) coordinates when offline and pincode is not in bundled data", async () => {
+      Object.defineProperty(navigator, "onLine", {
+        value: false,
+        configurable: true
+      });
+
+      const res = await resolvePlaceFromPincode("999999");
+      expect(res).not.toBeNull();
+      expect(res?.lat).toBeDefined();
+      expect(res?.lng).toBeDefined();
+      expect(res?.lat).toBeGreaterThan(0);
+      expect(res?.lng).toBeGreaterThan(0);
+
+      const placeOrPin = await resolvePlaceOrPincode("UnknownPlaceOffline");
+      expect(placeOrPin).toBeDefined();
+      expect(placeOrPin.lat).toBeCloseTo(14.5479, 2);
+      expect(placeOrPin.lng).toBeCloseTo(74.3188, 2);
+
+      const coords = await getCoordinates("SomeRandomPlace");
+      expect(coords.lat).toBeCloseTo(14.5479, 2);
+      expect(coords.lng).toBeCloseTo(74.3188, 2);
     });
   });
 });

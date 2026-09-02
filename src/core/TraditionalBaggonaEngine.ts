@@ -163,16 +163,16 @@ export function calculateTraditionalBaggona(
   let noonUtc = wallClockBirthToUtc(birthDate, "12:00", latitude, longitude, pincode);
   let scTimes = SunCalc.getTimes(noonUtc, latitude, longitude);
   let jyotish = resolveSunTimesForJyotish({ sunrise: scTimes.sunrise, sunset: scTimes.sunset }, latitude, longitude);
-  let sunriseUtc = jyotish.sunrise;
-  let sunsetUtc = jyotish.sunset;
+  let sunriseUtc = jyotish.sunrise && !isNaN(jyotish.sunrise.getTime()) ? jyotish.sunrise : new Date(noonUtc.getTime() - 6 * 60 * 60 * 1000);
+  let sunsetUtc = jyotish.sunset && !isNaN(jyotish.sunset.getTime()) ? jyotish.sunset : new Date(noonUtc.getTime() + 6 * 60 * 60 * 1000);
 
   // If birth is before sunrise on the calendar date, use the previous day's sunrise/sunset as baseline
   if (birthUtc.getTime() < sunriseUtc.getTime()) {
     const prevDayUtc = new Date(noonUtc.getTime() - 24 * 60 * 60 * 1000);
     scTimes = SunCalc.getTimes(prevDayUtc, latitude, longitude);
     jyotish = resolveSunTimesForJyotish({ sunrise: scTimes.sunrise, sunset: scTimes.sunset }, latitude, longitude);
-    sunriseUtc = jyotish.sunrise;
-    sunsetUtc = jyotish.sunset;
+    if (jyotish.sunrise && !isNaN(jyotish.sunrise.getTime())) sunriseUtc = jyotish.sunrise;
+    if (jyotish.sunset && !isNaN(jyotish.sunset.getTime())) sunsetUtc = jyotish.sunset;
   }
 
 

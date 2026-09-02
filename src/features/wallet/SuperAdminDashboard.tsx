@@ -2236,9 +2236,24 @@ export const SuperAdminDashboard: React.FC = () => {
                                   window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, "_blank");
                                 }}
                                 className="py-1.5 px-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-950 border border-emerald-400 rounded-lg text-xs font-bold transition-all shadow-xs shrink-0"
-                                title="Share on WhatsApp"
+                                title="Share Priest Portal on WhatsApp"
                               >
                                 📲 WhatsApp
+                              </button>
+
+                              {/* Public Kundli Link Generator for Devotees */}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const origin = typeof window !== "undefined" ? window.location.origin : "https://baggona-panchanga.firebaseapp.com";
+                                  const publicUrl = `${origin}/?portal=public_kundli&user=${encodeURIComponent(priest.userId)}&name=${encodeURIComponent(priest.priestName)}`;
+                                  const msg = `🕉️ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಕಾರ್ಯಾಲಯ - ಗೋಕರ್ಣ 🕉️\n\nನಮಸ್ಕಾರ!\nನಿಮ್ಮ ವೈಯಕ್ತಿಕ ಜನನ ಕುಂಡಲಿ ರಚನೆ ಮತ್ತು ಪ್ರಸ್ತುತ ಜೀವನ ಜ್ಯೋತಿಷ್ಯ ನೇರ ವಿಶ್ಲೇಷಣೆಗಾಗಿ ಕೆಳಗಿನ ಲಿಂಕ್ ಬಳಸಿ:\n\n🔗 ಸಾರ್ವಜನಿಕ ಕುಂಡಲಿ ಲಿಂಕ್:\n${publicUrl}\n\n🏛️ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಧಾನ ಅರ್ಚಕರು: ${priest.priestName}\n॥ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ ॥`;
+                                  window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, "_blank");
+                                }}
+                                className="py-1.5 px-2 bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-400 rounded-lg text-xs font-bold transition-all shadow-xs shrink-0"
+                                title="ಭಕ್ತರಿಗೆ ಸಾರ್ವಜನಿಕ ಕುಂಡಲಿ ಲಿಂಕ್ ಕಳುಹಿಸಿ (Share Public Kundli Link to Devotees on WhatsApp)"
+                              >
+                                🔮 ಕುಂಡಲಿ ಲಿಂಕ್
                               </button>
 
                               {/* Coin Adjustment Button */}

@@ -609,3 +609,71 @@ export async function sendSarvamCriticalQuotaAlertEmail(data: {
   });
 }
 
+/**
+ * Sends a notification email for Public ₹350 Premium Kundali PDF & Consultation Request to spshripandit@gmail.com
+ */
+export async function notifyPublicPremiumPdfRequested(data: {
+  userName: string;
+  birthDate: string;
+  birthTime: string;
+  rashi?: string;
+  nakshatra?: string;
+  pada?: number | string;
+  lagna?: string;
+  location: string;
+  pincode?: string;
+  dasha?: string;
+  targetEmail?: string;
+}): Promise<{ success: boolean; error?: string }> {
+  const recipient = data.targetEmail || "spshripandit@gmail.com";
+  const subject = `[Baggona Panchanga] ₹350 Premium Kundali PDF Request: ${data.userName}`;
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 2px solid #f59e0b; border-radius: 12px; padding: 24px; background: #fffcf2;">
+      <h2 style="color: #92400e; margin-top: 0;">🕉️ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಕಾರ್ಯಾಲಯ - ಗೋಕರ್ಣ</h2>
+      <h3 style="color: #b45309; border-bottom: 1px solid #fde68a; padding-bottom: 8px;">₹350 Premium Grand Royal Kundali PDF Request</h3>
+      <p style="font-size: 14px; color: #374151;">A devotee has requested the full 8-10 Page Luxury Gold Printable Janma Kundali PDF & Telephone Consultation:</p>
+      
+      <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin: 16px 0;">
+        <tr><td style="padding: 6px 0; font-weight: bold; width: 40%;">👤 Devotee Name:</td><td>${data.userName}</td></tr>
+        <tr><td style="padding: 6px 0; font-weight: bold;">📅 Date of Birth:</td><td>${data.birthDate}</td></tr>
+        <tr><td style="padding: 6px 0; font-weight: bold;">⏰ Time of Birth:</td><td>${data.birthTime}</td></tr>
+        <tr><td style="padding: 6px 0; font-weight: bold;">🪐 Lagna (Ascendant):</td><td>${data.lagna || "N/A"}</td></tr>
+        <tr><td style="padding: 6px 0; font-weight: bold;">🌙 Rashi (Moon Sign):</td><td>${data.rashi || "N/A"}</td></tr>
+        <tr><td style="padding: 6px 0; font-weight: bold;">✨ Nakshatra & Pada:</td><td>${data.nakshatra || "N/A"} (Pada ${data.pada || "N/A"})</td></tr>
+        <tr><td style="padding: 6px 0; font-weight: bold;">📍 Location / City:</td><td>${data.location}</td></tr>
+        <tr><td style="padding: 6px 0; font-weight: bold;">📮 Pincode:</td><td>${data.pincode || "N/A"}</td></tr>
+        <tr><td style="padding: 6px 0; font-weight: bold;">⏳ Running Dasha:</td><td>${data.dasha || "N/A"}</td></tr>
+      </table>
+
+      <div style="background: #fef3c7; border-left: 4px solid #d97706; padding: 12px; margin-top: 16px; border-radius: 4px;">
+        <strong>Requested Deliverables (₹350 Service):</strong>
+        <ul style="margin: 8px 0 0 0; padding-left: 20px; font-size: 13px; color: #78350f;">
+          <li>8-10 Page Luxury Gold Grand Royal Horoscope PDF Booklet</li>
+          <li>Complete Planetary Yogas (Kala Sarpa, Manglik, Raj Yogas)</li>
+          <li>120-Year Micro Dasha-Bhukti-Antara Predictions</li>
+          <li>1-on-1 Telephone Consultation with Chief Priest Sri Shreeram Pandit (+91 99723 39362)</li>
+        </ul>
+      </div>
+      
+      <p style="font-size: 12px; color: #9ca3af; margin-top: 20px; text-align: center;">
+        Sri Kshetra Gokarna Mahabaleshwara Temple · Chief Priest Sri Shreeram Pandit (+91 99723 39362) · spshripandit@gmail.com
+      </p>
+    </div>
+  `;
+
+  return sendEmailNotification({
+    to: recipient,
+    subject,
+    html,
+    type: "pdf_downloaded",
+    data: {
+      userName: data.userName,
+      birthDate: data.birthDate,
+      birthTime: data.birthTime,
+      location: data.location,
+      rashi: data.rashi,
+      nakshatra: data.nakshatra
+    }
+  });
+}
+

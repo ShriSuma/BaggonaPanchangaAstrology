@@ -105,7 +105,7 @@ const PLANET_NAMES_5LANG: Record<string, Record<string, string>> = {
 /**
  * Derives authentic milestone ages using natal chart Dasha transitions & major planetary returns
  */
-function deriveAstrologicalMilestoneAges(
+export function deriveAstrologicalMilestoneAges(
   currentAge: number,
   category: LifeGuidanceTabKey
 ): number[] {

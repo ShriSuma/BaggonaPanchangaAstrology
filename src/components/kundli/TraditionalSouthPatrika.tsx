@@ -38,13 +38,13 @@ export default function TraditionalSouthPatrika({
   ayanamsaModel
 }: Props): JSX.Element {
   const { t, i18n } = useTranslation();
-  const ayanModel = ayanamsaModel ?? "lahiri";
   const exportRef = useRef<HTMLDivElement>(null);
-  const lang = i18n.language;
-  const isKn = lang.startsWith("kn");
+  const ayanModel = ayanamsaModel ?? "lahiri";
+  const lang = i18n?.language || "kn";
+  const isKn = Boolean(lang.startsWith("kn"));
 
   const traditionalData = useMemo(() => {
-    return calculateTraditionalBaggona(birthDate, birthTime, latitude, longitude, ayanModel);
+    return calculateTraditionalBaggona(birthDate, birthTime, latitude, longitude, ayanModel) || ({} as any);
   }, [birthDate, birthTime, latitude, longitude, ayanModel]);
 
   const byRashi = useMemo(() => {

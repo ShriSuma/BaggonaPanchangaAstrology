@@ -37,6 +37,7 @@ import DailyDarshanaPage from "./pages/DailyDarshanaPage";
 import KundliAcademyStandalonePage from "./pages/KundliAcademyStandalonePage";
 import { PriestPanchangaPage } from "./pages/PriestPanchangaPage";
 import InstantReadingPage from "./pages/InstantReadingPage";
+import PublicKundliPage from "./pages/PublicKundliPage";
 
 export default function App(): JSX.Element {
   const isPriestPanchangaRoute = typeof window !== "undefined" && (
@@ -62,7 +63,16 @@ export default function App(): JSX.Element {
     window.location.search.includes("action=ics")
   );
 
-  const isPriestPortalRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && !isDailyRoute && (
+  const isPublicKundliRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && !isDailyRoute && (
+    window.location.pathname.startsWith("/public-kundli") ||
+    window.location.pathname.startsWith("/kundli-darshana") ||
+    window.location.search.includes("portal=public_kundli") ||
+    window.location.search.includes("portal=kundli_public") ||
+    window.location.search.includes("portal=public") ||
+    window.location.hash.includes("#/public-kundli")
+  );
+
+  const isPriestPortalRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && !isDailyRoute && !isPublicKundliRoute && (
     window.location.pathname.startsWith("/priest") ||
     window.location.pathname.startsWith("/purohita") ||
     window.location.pathname.startsWith("/sankhya") ||
@@ -109,6 +119,7 @@ export default function App(): JSX.Element {
           urlParams.has("reset") ||
           isDailyRoute ||
           isAcademyRoute ||
+          isPublicKundliRoute ||
           isPriestPortalRoute
         ) {
           localStorage.setItem("jk-consent", "accepted");
@@ -123,7 +134,7 @@ export default function App(): JSX.Element {
       await analytics.track("app_loaded");
     };
     void run();
-  }, [hydrateSettings, checkSession, setConsentResolved, isDailyRoute, isAcademyRoute, isPriestPortalRoute]);
+  }, [hydrateSettings, checkSession, setConsentResolved, isDailyRoute, isAcademyRoute, isPublicKundliRoute, isPriestPortalRoute]);
 
   if (isPriestPanchangaRoute) {
     return <PriestPanchangaPage />;
@@ -135,6 +146,10 @@ export default function App(): JSX.Element {
 
   if (isDailyRoute) {
     return <DailyDarshanaPage />;
+  }
+
+  if (isPublicKundliRoute) {
+    return <PublicKundliPage />;
   }
 
   if (isLoading) {
@@ -200,6 +215,7 @@ export default function App(): JSX.Element {
         {currentPage === "superadmindashboard" && <SuperAdminDashboard />}
         {currentPage === "priest_panchanga" && <PriestPanchangaPage />}
         {currentPage === "instant_reading" && <InstantReadingPage />}
+        {currentPage === "public_kundli" && <PublicKundliPage />}
       </Layout>
     </ErrorBoundary>
   );

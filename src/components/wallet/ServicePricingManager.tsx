@@ -145,6 +145,103 @@ export const ServicePricingManager: React.FC = () => {
         </div>
       )}
 
+      {/* SPECIAL SECTION: PUBLIC KUNDLI & LIFE INQUEST PRICING MASTER */}
+      <div className="bg-slate-950/90 border-2 border-amber-500/50 rounded-2xl p-5 space-y-4 shadow-xl">
+        <div className="flex items-center justify-between border-b border-amber-500/30 pb-2.5">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">🔮</span>
+            <h3 className="font-extrabold text-sm md:text-base text-amber-300">
+              ಸಾರ್ವಜನಿಕ ಕುಂಡಲಿ ಸೇವಾ ಶುಲ್ಕ ನಿಯೋಜನೆ (Public Kundli & Analysis Pricing)
+            </h3>
+          </div>
+          <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold">
+            Public Portal Real-Time Sync
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+          {/* 1. Kundli Generation */}
+          <div className="bg-slate-900 border border-amber-500/30 rounded-xl p-3.5 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-amber-300">🪐 ಕುಂಡಲಿ ರಚನೆ (Generation)</span>
+              <span className="text-[10px] text-slate-400 font-mono">₹{draftPricing["PUBLIC_KUNDLI_GENERATION"]?.inrEquivalent ?? 50}</span>
+            </div>
+            <p className="text-[11px] text-slate-400">Public Janma Kundali birth calculation & initial chart</p>
+            <div className="flex items-center gap-2 pt-1">
+              <input
+                type="number"
+                min="0"
+                step="50"
+                value={draftPricing["PUBLIC_KUNDLI_GENERATION"]?.coins ?? 500}
+                onChange={(e) => handleCoinsChange("PUBLIC_KUNDLI_GENERATION", parseInt(e.target.value) || 0)}
+                className="w-24 px-2.5 py-1 text-xs font-mono font-bold bg-slate-950 border border-amber-500/40 text-amber-300 rounded-lg text-center"
+              />
+              <span className="text-xs font-bold text-slate-400">Coins</span>
+            </div>
+          </div>
+
+          {/* 2. Live Analysis & Inquest */}
+          <div className="bg-slate-900 border-2 border-yellow-400/60 rounded-xl p-3.5 space-y-2 bg-yellow-950/10">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-yellow-300">🌟 ನೇರ ವಿಶ್ಲೇಷಣೆ (1-Click Inquest)</span>
+              <span className="text-[10px] text-yellow-200 font-mono font-bold">₹{draftPricing["PUBLIC_LIFE_ANALYSIS_QA"]?.inrEquivalent ?? 100}</span>
+            </div>
+            <p className="text-[11px] text-slate-400">What is happening in life right now? Live AI Analysis & Q&A</p>
+            <div className="flex items-center gap-2 pt-1">
+              <input
+                type="number"
+                min="0"
+                step="50"
+                value={draftPricing["PUBLIC_LIFE_ANALYSIS_QA"]?.coins ?? 1000}
+                onChange={(e) => handleCoinsChange("PUBLIC_LIFE_ANALYSIS_QA", parseInt(e.target.value) || 0)}
+                className="w-24 px-2.5 py-1 text-xs font-mono font-extrabold bg-slate-950 border-2 border-yellow-400 text-yellow-300 rounded-lg text-center"
+              />
+              <span className="text-xs font-bold text-yellow-400">Coins</span>
+            </div>
+          </div>
+
+          {/* 3. PDF Download */}
+          <div className="bg-slate-900 border border-amber-500/30 rounded-xl p-3.5 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-amber-300">📄 PDF ಡೌನ್‌ಲೋಡ್ (Download)</span>
+              <span className="text-[10px] text-slate-400 font-mono">₹{draftPricing["PUBLIC_KUNDLI_PDF_DOWNLOAD"]?.inrEquivalent ?? 50}</span>
+            </div>
+            <p className="text-[11px] text-slate-400">High-resolution 6-page printable Janma Kundali PDF booklet</p>
+            <div className="flex items-center gap-2 pt-1">
+              <input
+                type="number"
+                min="0"
+                step="50"
+                value={draftPricing["PUBLIC_KUNDLI_PDF_DOWNLOAD"]?.coins ?? 500}
+                onChange={(e) => handleCoinsChange("PUBLIC_KUNDLI_PDF_DOWNLOAD", parseInt(e.target.value) || 0)}
+                className="w-24 px-2.5 py-1 text-xs font-mono font-bold bg-slate-950 border border-amber-500/40 text-amber-300 rounded-lg text-center"
+              />
+              <span className="text-xs font-bold text-slate-400">Coins</span>
+            </div>
+          </div>
+
+          {/* 4. Tab Unlocks */}
+          <div className="bg-slate-900 border border-amber-500/30 rounded-xl p-3.5 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-amber-300">📑 ವಿಭಾಗ ವೀಕ್ಷಣೆ (Tab Unlock)</span>
+              <span className="text-[10px] text-slate-400 font-mono">₹{draftPricing["PUBLIC_TAB_UNLOCK"]?.inrEquivalent ?? 20}</span>
+            </div>
+            <p className="text-[11px] text-slate-400">Individual detailed tab view for planets, dasha & remedies</p>
+            <div className="flex items-center gap-2 pt-1">
+              <input
+                type="number"
+                min="0"
+                step="50"
+                value={draftPricing["PUBLIC_TAB_UNLOCK"]?.coins ?? 200}
+                onChange={(e) => handleCoinsChange("PUBLIC_TAB_UNLOCK", parseInt(e.target.value) || 0)}
+                className="w-24 px-2.5 py-1 text-xs font-mono font-bold bg-slate-950 border border-amber-500/40 text-amber-300 rounded-lg text-center"
+              />
+              <span className="text-xs font-bold text-slate-400">Coins</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Category Filter Pills & Search */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full">

@@ -26,7 +26,7 @@ type Props = {
 
 export default function DatePicker({ selected, onChange, id }: Props): JSX.Element {
   const { i18n } = useTranslation();
-  const isKn = i18n.language.startsWith("kn");
+  const isKn = Boolean(i18n?.language?.startsWith("kn"));
 
   // Selected values
   const selectedYear = selected ? selected.getFullYear() : "";

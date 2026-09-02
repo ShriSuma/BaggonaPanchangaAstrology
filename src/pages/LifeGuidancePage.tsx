@@ -234,6 +234,12 @@ export const LifeGuidancePage: React.FC<LifeGuidancePageProps> = ({ initialInput
       alert(
         selectedLang === "kn"
           ? "PDF ಡೌನ್‌ಲೋಡ್ ಮಾಡುವಾಗ ದೋಷ ಸಂಭವಿಸಿದೆ."
+          : selectedLang === "hi"
+          ? "PDF डाउनलोड करते समय त्रुटि हुई।"
+          : selectedLang === "te"
+          ? "PDF డౌన్‌లోడ్ చేయడంలో లోపం సంభవించింది."
+          : selectedLang === "ta"
+          ? "PDF பதிவிறக்கும் போது பிழை ஏற்பட்டது."
           : "Failed to generate PDF report."
       );
     } finally {
@@ -430,23 +436,23 @@ export const LifeGuidancePage: React.FC<LifeGuidancePageProps> = ({ initialInput
           <Card className="border border-amber-300 bg-amber-50/60 p-4 shadow-sm">
             <div className="text-xs font-extrabold text-amber-950 uppercase tracking-wider mb-2 flex items-center gap-2">
               <span>🌟</span>
-              <span>{selectedLang === "kn" ? "ಜಾತಕರ ಜನನ ಕುಂಡಲಿ ಸಾರಾಂಶ" : "Devotee Natal Chart Snapshot"}</span>
+              <span>{t("natalSnapshotHeader")}</span>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
               <div className="bg-white p-2.5 rounded-xl border border-amber-200">
-                <span className="text-amber-800 block font-semibold">{selectedLang === "kn" ? "ಲಗ್ನ:" : "Lagna:"}</span>
+                <span className="text-amber-800 block font-semibold">{t("lagnaLabel")}:</span>
                 <strong className="text-amber-950 font-bold">{result.lagna[selectedLang] || result.lagna.kn}</strong>
               </div>
               <div className="bg-white p-2.5 rounded-xl border border-amber-200">
-                <span className="text-amber-800 block font-semibold">{selectedLang === "kn" ? "ರಾಶಿ:" : "Rashi:"}</span>
+                <span className="text-amber-800 block font-semibold">{t("rashiLabel")}:</span>
                 <strong className="text-amber-950 font-bold">{result.rashi[selectedLang] || result.rashi.kn}</strong>
               </div>
               <div className="bg-white p-2.5 rounded-xl border border-amber-200">
-                <span className="text-amber-800 block font-semibold">{selectedLang === "kn" ? "ನಕ್ಷತ್ರ:" : "Nakshatra:"}</span>
+                <span className="text-amber-800 block font-semibold">{t("nakshatraLabel")}:</span>
                 <strong className="text-amber-950 font-bold">{result.nakshatra[selectedLang] || result.nakshatra.kn}</strong>
               </div>
               <div className="bg-white p-2.5 rounded-xl border border-amber-200">
-                <span className="text-amber-800 block font-semibold">{selectedLang === "kn" ? "ದಶಾ:" : "Dasha:"}</span>
+                <span className="text-amber-800 block font-semibold">{t("dashaLabel")}:</span>
                 <strong className="text-amber-950 font-bold">{result.dasha[selectedLang] || result.dasha.kn}</strong>
               </div>
             </div>

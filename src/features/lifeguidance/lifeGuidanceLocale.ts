@@ -287,6 +287,136 @@ export const T_LIFE_GUIDANCE: Record<string, Record<string, string>> = {
     hi: "• पूजा के पश्चात जीवन परिवर्तन (प्रभाव क्या होगा / HOW it Transforms?):",
     te: "• పూజానంతర జీవిత పరివర్తన (ఫలితం ఏమిటి / HOW it Transforms?):",
     ta: "• பூஜைக்குப் பின் வாழ்க்கை மாற்றம் (தாக்கம் என்ன / HOW it Transforms?):"
+  },
+
+  // Natal Snapshot & Labels
+  natalSnapshotHeader: {
+    kn: "ಜಾತಕರ ಜನನ ಕುಂಡಲಿ ಸಾರಾಂಶ (Natal Chart Snapshot)",
+    en: "Devotee Natal Chart Snapshot",
+    hi: "जातक जन्म कुंडली सारांश (Natal Chart Snapshot)",
+    te: "జాతకుని జన్మ కుండలి సారాంశం (Natal Chart Snapshot)",
+    ta: "ஜாதகரின் பிறப்பு ஜாதக சுருக்கம் (Natal Chart Snapshot)"
+  },
+  lagnaLabel: {
+    kn: "ಲಗ್ನ (Ascendant)",
+    en: "Lagna (Ascendant)",
+    hi: "लग्न (Lagna)",
+    te: "లగ్నం (Lagna)",
+    ta: "லக்னம் (Lagna)"
+  },
+  rashiLabel: {
+    kn: "ರಾಶಿ (Moon Sign)",
+    en: "Rashi (Moon Sign)",
+    hi: "राशि (Moon Sign)",
+    te: "రాశి (Moon Sign)",
+    ta: "ராசி (Moon Sign)"
+  },
+  nakshatraLabel: {
+    kn: "ನಕ್ಷತ್ರ (Birth Star)",
+    en: "Nakshatra (Birth Star)",
+    hi: "नक्षत्र (Birth Star)",
+    te: "నక్షత్రం (Birth Star)",
+    ta: "நட்சத்திரம் (Birth Star)"
+  },
+  dashaLabel: {
+    kn: "ಪ್ರಸ್ತುತ ಮಹಾದಶಾ",
+    en: "Current Mahadasha",
+    hi: "वर्तमान महादशा",
+    te: "ప్రస్తుత మహాదశ",
+    ta: "தற்போதைய மஹாதசா"
+  },
+  lagnaLordLabel: {
+    kn: "ಲಗ್ನಾಧಿಪತಿ",
+    en: "Lagna Lord",
+    hi: "लग्नेश",
+    te: "లగ్నాధిపతి",
+    ta: "லக்னாதிபதி"
+  },
+  doshasLabel: {
+    kn: "ವಿಶೇಷ ದೋಷ ಗಮನಿಕೆ",
+    en: "Notable Doshas / Afflictions",
+    hi: "विशेष दोष अवलोकन",
+    te: "ప్రత్యేక దోష గమనిక",
+    ta: "குறிப்பிடத்தக்க தோஷங்கள்"
+  },
+  noDoshaFound: {
+    kn: "ಯಾವುದೇ ತೀವ್ರ ದೋಷಗಳಿಲ್ಲ (ಶುಭ)",
+    en: "No severe afflictions detected (Auspicious)",
+    hi: "कोई गंभीर दोष नहीं (शुभ)",
+    te: "ఎలాంటి తీవ్ర దోషాలు లేవు (శుభం)",
+    ta: "கடுமையான தோஷங்கள் இல்லை (சுபம்)"
+  },
+
+  // PDF Specific Keys
+  pdfPage1Header: {
+    kn: "॥ ಬಗ್ಗೋಣ ಪರಿಪೂರ್ಣ ಜೀವನ ಮಾರ್ಗದರ್ಶನ ವರದಿ (ಭಾಗ ೧) ॥",
+    en: "Baggona Hyper-Personalized Life Guidance Report (Part 1)",
+    hi: "॥ बग्गोण परिपूर्ण जीवन मार्गदर्शन रिपोर्ट (भाग १) ॥",
+    te: "॥ బగ్గోణ పరిపూర్ణ జీవన మార్గదర్శక నివేదిక (భాగం 1) ॥",
+    ta: "॥ பக்கோண முழுமையான வாழ்க்கை வழிகாட்டுதல் அறிக்கை (பகுதி 1) ॥"
+  },
+  pdfPage2Header: {
+    kn: "॥ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ವೈದಿಕ ಶಾಂತಿ, ಹೋಮ & ದಶಾ ಗೋಚಾರ ವಿಶ್ಲೇಷಣೆ (ಭಾಗ ೨) ॥",
+    en: "Gokarna Vedic Blessings, Dasha Bhukti & Puja Guide (Part 2)",
+    hi: "॥ गोकर्ण क्षेत्र वैदिक शांति, होम एवं दशा गोचर विश्लेषण (भाग २) ॥",
+    te: "॥ గోకర్ణ క్షేత్ర వైదిక శాంతి, హోమం & దశా గోచార విశ్లేషణ (భాగం 2) ॥",
+    ta: "॥ கோகர்ண க்ஷேத்திர வேத சாந்தி, ஹோமம் & தசா கோசார விளக்கம் (பகுதி 2) ॥"
+  },
+  pdfSub1: {
+    kn: "ಶ್ರೀ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದ ಸಿದ್ಧ ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯ ಗಣನ ಪದ್ಧತಿ",
+    en: "Vedic Astrology & Planetary Guidance from Gokarna Kshetra",
+    hi: "श्री गोकर्ण क्षेत्र की सिद्ध वैदिक ज्योतिष गणना पद्धति",
+    te: "శ్రీ గోకర్ణ క్షేత్ర సిద్ధ వైదిక జ్యోతిష్య గణన పద్ధతి",
+    ta: "ஸ்ரீ கோகர்ண க்ஷேத்திரத்தின் சித்த வேத ஜோதிட கணிப்பு முறை"
+  },
+  pdfSub2: {
+    kn: "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿ ಆತ್ಮಲಿಂಗ ಸನ್ನಿಧಿಯ ದಿವ್ಯ ಅನುಗ್ರಹ ಸಿದ್ಧಿ",
+    en: "Divine Grace from Sri Gokarna Mahabaleshwara Atmalinga Kshetra",
+    hi: "श्री महाबलेश्वर स्वामी आत्मलिंग सन्निधि की दिव्य अनुग्रह सिद्धि",
+    te: "శ్రీ మహాబలేశ్వర స్వామి ఆత్మలింగ సన్నిధి దివ్య అనుగ్రహ సిద్ధి",
+    ta: "ஸ்ரீ மஹாபலேஸ்வரர் ஆத்மலிங்க சந்நிதியின் திவ்ய அருள் சித்தி"
+  },
+  pdfDevoteeParams: {
+    kn: "👤 ಜಾತಕರ ಕುಂಡಲಿ ವಿವರಗಳು",
+    en: "👤 Devotee Natal Parameters",
+    hi: "👤 जातक कुंडली विवरण",
+    te: "👤 జాతకుని కుండలి వివరాలు",
+    ta: "👤 ஜாதகரின் பிறப்பு விவரங்கள்"
+  },
+  pdfArchakaBlessingTitle: {
+    kn: "೨. ಶ್ರೀ ಗೋಕರ್ಣ ವೈದಿಕ ಅರ್ಚಕಾಶೀರ್ವಚನ (Vedic Blessing):",
+    en: "2. Gokarna Vedic Archaka Blessing:",
+    hi: "२. श्री गोकर्ण वैदिक अर्चका आशीर्वाद (Vedic Blessing):",
+    te: "2. శ్రీ గోకర్ణ వైదిక అర్చకా ఆశీర్వచనం (Vedic Blessing):",
+    ta: "2. ஸ்ரீ கோகர்ண வேத அர்ச்சகர் ஆசீர்வாதம் (Vedic Blessing):"
+  },
+  pdfHomeRemediesTitle: {
+    kn: "೩. ಜಾತಕಾನುಸಾರ ಗೃಹ ಸಿದ್ಧ ಪೂಜಾ ಪರಿಹಾರಗಳು (Daily Home Remedies):",
+    en: "3. Personalized Daily Home Remedies:",
+    hi: "३. कुंडली अनुसार दैनिक गृह पूजा उपाय (Daily Home Remedies):",
+    te: "3. జాతకానుసార దైనందిన గృహ పూజా పరిహారాలు (Daily Home Remedies):",
+    ta: "3. ஜாதகப்படி தினசரி வீட்டுப் பரிகாரங்கள் (Daily Home Remedies):"
+  },
+  pdfDashaBhuktiTitle: {
+    kn: "೧. ಪ್ರಸ್ತುತ ದಶಾ ಭುಕ್ತಿ ಹಾಗೂ ಗ್ರಹ ಗೋಚಾರ ಫಲ ವಿಶ್ಲೇಷಣೆ:",
+    en: "1. Current Dasha Bhukti & Planetary Transit Analysis:",
+    hi: "१. वर्तमान दशा-भुक्ति एवं ग्रह गोचर फल विश्लेषण:",
+    te: "1. ప్రస్తుత దశా భుక్తి మరియు గ్రహ గోచార ఫల విశ్లేషణ:",
+    ta: "1. தற்போதைய தசா புத்தி மற்றும் கிரக கோசார பலன் பகுப்பாய்வு:"
+  },
+  pdfNatalSummaryTitle: {
+    kn: "📊 ಜನನ ಕುಂಡಲಿ ನವಗ್ರಹ ಸನ್ನಿವೇಶ ಸಾರಾಂಶ:",
+    en: "📊 Natal Planetary Positions Summary:",
+    hi: "📊 जन्म कुंडली नवग्रह स्थिति सारांश:",
+    te: "📊 జన్మ కుండలి నవగ్రహ స్థితి సారాంశం:",
+    ta: "📊 பிறப்பு ஜாதக நவக்கிரக நிலைகள் சுருக்கம்:"
+  },
+  pdfPhoneContact: {
+    kn: "ದೂರವಾಣಿ / WhatsApp ಪೂಜಾ ಸಂಪರ್ಕ:",
+    en: "Direct Phone / WhatsApp:",
+    hi: "दूरभाष / WhatsApp पूजा संपर्क:",
+    te: "ఫోన్ / WhatsApp పూజా సంప్రదింపు:",
+    ta: "தொலைபேசி / WhatsApp பூஜை தொடர்பு:"
   }
 };
 

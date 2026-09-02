@@ -147,6 +147,11 @@ export const fetchVillagesByPincode = async (pincode: string): Promise<Village[]
   const bundled = bundledVillagesByPincode(pincode);
   if (bundled.length) return bundled;
 
+  // Offline fast-path: immediately return local bundled or null without attempting network
+  if (typeof navigator !== "undefined" && !navigator.onLine) {
+    return bundled.length ? bundled : null;
+  }
+
   try {
     const response = await withTimeout(fetch(`https://api.postalpincode.in/pincode/${encodeURIComponent(pincode)}`));
     if (!response.ok) throw new Error("Postal API request failed");
@@ -302,28 +307,37 @@ export const resolvePlaceFromPincode = async (pincode: string): Promise<Resolved
     };
   }
 
-  try {
-    const districtName =
-      (districts as District[]).find((d) => d.code === districtCode)?.name ?? "";
-    const query = `${villageName}, ${pincode}, ${districtName}, India`;
-    const coords = await withTimeout(getCoordinates(query), NOMINATIM_TIMEOUT_MS);
-    lat = coords.lat;
-    lng = coords.lng;
-  } catch {
-    // If Nominatim search fails, fallback to regional postal centroid
+  const isOffline = typeof navigator !== "undefined" && !navigator.onLine;
+
+  if (!isOffline) {
+    try {
+      const districtName =
+        (districts as District[]).find((d) => d.code === districtCode)?.name ?? "";
+      const query = `${villageName}, ${pincode}, ${districtName}, India`;
+      const coords = await withTimeout(getCoordinates(query), NOMINATIM_TIMEOUT_MS);
+      lat = coords.lat;
+      lng = coords.lng;
+    } catch {
+      // If Nominatim search fails, fallback to regional postal centroid
+      const fallbackCoords = getPostalRegionCentroid(pincode);
+      lat = fallbackCoords.lat;
+      lng = fallbackCoords.lng;
+    }
+  } else {
+    // Fast offline fallback to regional centroid or Gokarna default
     const fallbackCoords = getPostalRegionCentroid(pincode);
-    lat = fallbackCoords.lat;
-    lng = fallbackCoords.lng;
+    lat = fallbackCoords.lat || 14.5479;
+    lng = fallbackCoords.lng || 74.3188;
   }
 
   if (!lat || !lng) {
     const fallbackCoords = getPostalRegionCentroid(pincode);
-    lat = fallbackCoords.lat;
-    lng = fallbackCoords.lng;
+    lat = fallbackCoords.lat || 14.5479;
+    lng = fallbackCoords.lng || 74.3188;
   }
 
   return {
-    villageName,
+    villageName: villageName || "Gokarna",
     districtCode,
     stateCode,
     lat,
@@ -358,8 +372,8 @@ export const resolvePlaceOrPincode = async (
     const centroid = getPostalRegionCentroid(q);
     return {
       placeName: `PIN ${q}`,
-      lat: centroid.lat,
-      lng: centroid.lng,
+      lat: centroid.lat || 14.5479,
+      lng: centroid.lng || 74.3188,
       pincode: q
     };
   }
@@ -378,7 +392,7 @@ export const resolvePlaceOrPincode = async (
     console.warn("Geocoding lookup fallback for:", q, err);
   }
 
-  return { placeName: q, lat: 14.5479, lng: 74.3188, pincode: "581326" };
+  return { placeName: q || "Gokarna, Karnataka", lat: 14.5479, lng: 74.3188, pincode: "581326" };
 };
 
 export const getCoordinates = async (placeName: string): Promise<{ lat: number; lng: number }> => {
@@ -386,6 +400,11 @@ export const getCoordinates = async (placeName: string): Promise<{ lat: number; 
   const cached = await getGeocode(normalized);
   if (cached) {
     return cached;
+  }
+
+  const isOffline = typeof navigator !== "undefined" && !navigator.onLine;
+  if (isOffline) {
+    return { lat: 14.5479, lng: 74.3188 };
   }
 
   const now = Date.now();
@@ -418,7 +437,7 @@ export const getCoordinates = async (placeName: string): Promise<{ lat: number; 
     await cacheGeocode(normalized, lat, lng);
     return { lat, lng };
   } catch {
-    throw new Error("Unable to fetch location coordinates. Please try again.");
+    return { lat: 14.5479, lng: 74.3188 };
   }
 };
 
