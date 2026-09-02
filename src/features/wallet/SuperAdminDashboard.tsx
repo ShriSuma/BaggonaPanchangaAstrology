@@ -22,6 +22,7 @@ import {
   getUserProfile,
   cleanupDuplicateKundlis,
   cleanupDuplicateCalendarVisitsAndEngagement,
+  cleanupAllTestAndMockProfiles,
   updateUserAllowedModules,
   deletePriestAccount
 } from "../../db/firestoreDb";
@@ -892,6 +893,32 @@ export const SuperAdminDashboard: React.FC = () => {
       }
     } catch {
       setFeedback({ type: "error", text: "ಕ್ಯಾಲೆಂಡರ್ ದಾಖಲೆಗಳನ್ನು ತೆರವುಗೊಳಿಸುವಾಗ ದೋಷ ಸಂಭವಿಸಿದೆ." });
+    } finally {
+      setIsDeduplicating(false);
+    }
+  };
+
+  const handlePurgeAllTestProfiles = async () => {
+    if (!window.confirm("ನೀವು ಖಂಡಿತವಾಗಿಯೂ ಎಲ್ಲಾ ಟೆಸ್ಟಿಂಗ್ ಪ್ರೊಫೈಲ್, ನಕಲಿ ಯೂಸರ್‌ಗಳು ಮತ್ತು ಅಪ್ರಸ್ತುತ ದಾಖಲೆಗಳನ್ನು ಡೇಟಾಬೇಸ್‌ನಿಂದ ಶಾಶ್ವತವಾಗಿ ಅಳಿಸಲು ಬಯಸುವಿರಾ? (Do you want to purge all test & mock profiles from Firestore?)")) {
+      return;
+    }
+    setIsDeduplicating(true);
+    try {
+      const rep = await cleanupAllTestAndMockProfiles();
+      const totalPurged = rep.removedUsers + rep.removedWallets + rep.removedVisits + rep.removedEngagement + rep.removedTokens + rep.removedKundlis;
+      if (totalPurged > 0) {
+        setFeedback({
+          type: "success",
+          text: `🧹 ಟೆಸ್ಟಿಂಗ್ ಪ್ರೊಫೈಲ್ ಶುದ್ಧೀಕರಣ ಯಶಸ್ವಿ! ${rep.removedUsers} ಟೆಸ್ಟ್ ಬಳಕೆದಾರರು, ${rep.removedWallets} ವಾಲೆಟ್‌ಗಳು, ${rep.removedEngagement} ಭಕ್ತ ಪ್ರೊಫೈಲ್‌ಗಳು ಹಾಗೂ ${rep.removedVisits} ಭೇಟಿ ದಾಖಲೆಗಳನ್ನು ಶಾಶ್ವತವಾಗಿ ಅಳಿಸಲಾಗಿದೆ.`
+        });
+      } else {
+        setFeedback({
+          type: "success",
+          text: "✨ ಡೇಟಾಬೇಸ್ ಸಂಪೂರ್ಣ ಶುದ್ಧವಾಗಿದೆ: ಯಾವುದೇ ಟೆಸ್ಟ್ ಅಥವಾ ನಕಲಿ ಪ್ರೊಫೈಲ್‌ಗಳು ಕಂಡುಬಂದಿಲ್ಲ (0 mock profiles found)."
+        });
+      }
+    } catch {
+      setFeedback({ type: "error", text: "ಟೆಸ್ಟ್ ಪ್ರೊಫೈಲ್ ಅಳಿಸುವಾಗ ದೋಷ ಸಂಭವಿಸಿದೆ." });
     } finally {
       setIsDeduplicating(false);
     }
@@ -2060,7 +2087,7 @@ export const SuperAdminDashboard: React.FC = () => {
 
           {/* All Priests Network Table */}
           <div className="bg-[#FFFDF7] border-2 border-amber-300 rounded-3xl p-5 shadow-md space-y-4">
-            <div className="flex items-center justify-between border-b border-amber-200 pb-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-amber-200 pb-3 gap-2">
               <div>
                 <h2 className="text-base font-black text-amber-950 flex items-center gap-2">
                   <span>👥</span>
@@ -2070,6 +2097,16 @@ export const SuperAdminDashboard: React.FC = () => {
                   Click "⚡ ನಾಣ್ಯ ಹೊಂದಾಣಿಕೆ" to directly credit or deduct coins, or "🛡️ ಮಾಡ್ಯೂಲ್‌ಗಳು" to manage permissions.
                 </p>
               </div>
+              <button
+                type="button"
+                disabled={isDeduplicating}
+                onClick={handlePurgeAllTestProfiles}
+                className="px-3.5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-sm cursor-pointer whitespace-nowrap"
+                title="ಡೇಟಾಬೇಸ್‌ನಲ್ಲಿರುವ ಎಲ್ಲಾ ನಕಲಿ / ಟೆಸ್ಟಿಂಗ್ ಪ್ರೊಫೈಲ್‌ಗಳನ್ನು ಶಾಶ್ವತವಾಗಿ ಅಳಿಸಿ"
+              >
+                <span>🧹</span>
+                <span>{isDeduplicating ? "ಶುದ್ಧೀಕರಿಸಲಾಗುತ್ತಿದೆ..." : "ಟೆಸ್ಟ್ ಪ್ರೊಫೈಲ್‌ಗಳ ಶುದ್ಧೀಕರಣ (Purge Test Users)"}</span>
+              </button>
             </div>
 
             {allPriestWallets.length === 0 ? (

@@ -212,9 +212,11 @@ function sanitizeFirestoreData<T extends Record<string, any>>(obj: T): T {
  */
 export async function syncUserProfile(profile: UserProfileDoc): Promise<void> {
   try {
-    const userRef = doc(firestore, USERS_COL, profile.id);
+    const cleanId = (profile.id || profile.username || "").trim().toLowerCase();
+    const userRef = doc(firestore, USERS_COL, cleanId);
     await setDoc(userRef, sanitizeFirestoreData({
       ...profile,
+      id: cleanId,
       updatedAt: new Date().toISOString()
     }), { merge: true });
   } catch (err) {
@@ -227,20 +229,31 @@ export async function syncUserProfile(profile: UserProfileDoc): Promise<void> {
  */
 export async function getUserProfile(userId: string): Promise<UserProfileDoc | null> {
   try {
-    const cleanId = userId.trim().toLowerCase();
+    const rawId = userId.trim();
+    const cleanId = rawId.toLowerCase();
     if (firestore) {
       const userRef = doc(firestore, USERS_COL, cleanId);
       const snap = await getDoc(userRef);
       if (snap.exists()) {
         return snap.data() as UserProfileDoc;
       }
+      const rawRef = doc(firestore, USERS_COL, rawId);
+      const rawSnap = await getDoc(rawRef);
+      if (rawSnap.exists()) {
+        return rawSnap.data() as UserProfileDoc;
+      }
       const q = query(collection(firestore, USERS_COL), where("username", "==", cleanId));
       const qSnap = await getDocs(q);
       if (!qSnap.empty) {
         return qSnap.docs[0].data() as UserProfileDoc;
       }
+      const qRaw = query(collection(firestore, USERS_COL), where("username", "==", rawId));
+      const qRawSnap = await getDocs(qRaw);
+      if (!qRawSnap.empty) {
+        return qRawSnap.docs[0].data() as UserProfileDoc;
+      }
     }
-    const local = await db.users.where("username").equals(cleanId).first();
+    const local = (await db.users.where("username").equals(cleanId).first()) || (await db.users.where("username").equals(rawId).first());
     if (local) {
       return {
         id: local.id || cleanId,
@@ -967,6 +980,137 @@ export async function cleanupDuplicateCalendarVisitsAndEngagement(): Promise<{ r
   } catch (err) {
     console.error("[Firestore] Calendar visits deduplication error:", err);
     return { removedCount: 0 };
+  }
+}
+
+export interface TestCleanupReport {
+  removedUsers: number;
+  removedWallets: number;
+  removedVisits: number;
+  removedEngagement: number;
+  removedTokens: number;
+  removedKundlis: number;
+  details: string[];
+}
+
+/**
+ * Super Admin Utility to Purge all Test/Mock Profiles & Legacy Synthetic Data
+ * Ensures production Cloud Firestore only retains authentic users created by Super Admin or real calendar logins.
+ */
+export async function cleanupAllTestAndMockProfiles(): Promise<TestCleanupReport> {
+  const report: TestCleanupReport = {
+    removedUsers: 0,
+    removedWallets: 0,
+    removedVisits: 0,
+    removedEngagement: 0,
+    removedTokens: 0,
+    removedKundlis: 0,
+    details: []
+  };
+
+  try {
+    if (!firestore) return report;
+
+    const isTestEntry = (str: string) => {
+      const s = (str || "").toLowerCase().trim();
+      return (
+        s.startsWith("test") ||
+        s.startsWith("mock") ||
+        s.startsWith("sample") ||
+        s.startsWith("vitest") ||
+        s.startsWith("demo_") ||
+        s.includes("test_priest") ||
+        s.includes("test-priest") ||
+        s.includes("mock_user") ||
+        s.includes("mock-user") ||
+        s.includes("user_priest_test") ||
+        s.includes("priest_remote_test")
+      );
+    };
+
+    // 1. Purge Test Users
+    const usersSnap = await getDocs(query(collection(firestore, USERS_COL), limit(500)));
+    for (const docSnap of usersSnap.docs) {
+      const data = docSnap.data();
+      const uname = data.username || docSnap.id;
+      const name = data.name || "";
+      // Protect superadmin and authentic priests
+      if (uname === "$hriSuma" || uname === "superadmin" || uname === "shreerampandit") continue;
+
+      if (isTestEntry(uname) || isTestEntry(name) || isTestEntry(data.email || "")) {
+        await deleteDoc(docSnap.ref);
+        report.removedUsers++;
+        report.details.push(`User: ${uname}`);
+      }
+    }
+
+    // 2. Purge Test Wallets
+    const walletsSnap = await getDocs(query(collection(firestore, WALLETS_COL), limit(500)));
+    for (const docSnap of walletsSnap.docs) {
+      const data = docSnap.data();
+      const userId = data.userId || docSnap.id;
+      const priestName = data.priestName || "";
+      if (userId === "$hriSuma" || userId === "superadmin" || userId === "shreerampandit") continue;
+
+      if (isTestEntry(userId) || isTestEntry(priestName)) {
+        await deleteDoc(docSnap.ref);
+        report.removedWallets++;
+        report.details.push(`Wallet: ${userId}`);
+      }
+    }
+
+    // 3. Purge Test Calendar Visits
+    const visitsSnap = await getDocs(query(collection(firestore, "calendarVisits"), limit(500)));
+    for (const docSnap of visitsSnap.docs) {
+      const data = docSnap.data();
+      const name = data.devoteeName || "";
+      const token = data.tokenIdentifier || "";
+      if (isTestEntry(name) || isTestEntry(token)) {
+        await deleteDoc(docSnap.ref);
+        report.removedVisits++;
+      }
+    }
+
+    // 4. Purge Test Calendar Devotee Engagement
+    const engSnap = await getDocs(query(collection(firestore, "calendarDevoteeEngagement"), limit(500)));
+    for (const docSnap of engSnap.docs) {
+      const data = docSnap.data();
+      const name = data.devoteeName || "";
+      const phone = data.mobileNumber || "";
+      if (isTestEntry(name) || isTestEntry(docSnap.id) || phone === "0000000000" || phone === "9999999999") {
+        await deleteDoc(docSnap.ref);
+        report.removedEngagement++;
+      }
+    }
+
+    // 5. Purge Test Kundlis
+    const kundliSnap = await getDocs(query(collection(firestore, KUNDLIS_COL), limit(500)));
+    for (const docSnap of kundliSnap.docs) {
+      const data = docSnap.data();
+      const name = data.name || "";
+      const uId = data.userId || "";
+      if (isTestEntry(name) || isTestEntry(uId)) {
+        await deleteDoc(docSnap.ref);
+        report.removedKundlis++;
+      }
+    }
+
+    // 6. Purge Test Devotee Tokens
+    const tokensSnap = await getDocs(query(collection(firestore, DEVOTEE_TOKENS_COL), limit(500)));
+    for (const docSnap of tokensSnap.docs) {
+      const data = docSnap.data();
+      const name = data.devoteeName || "";
+      const sc = data.shortCode || "";
+      if (isTestEntry(name) || isTestEntry(sc)) {
+        await deleteDoc(docSnap.ref);
+        report.removedTokens++;
+      }
+    }
+
+    return report;
+  } catch (err) {
+    console.error("[Firestore] cleanupAllTestAndMockProfiles failed:", err);
+    return report;
   }
 }
 
