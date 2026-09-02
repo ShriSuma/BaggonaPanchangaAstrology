@@ -105,6 +105,7 @@ export type PalmReadingResult = {
   specialMarks: Array<{
     mark: Record<string, string>;
     meaning: Record<string, string>;
+    mountLocation?: Record<string, string>;
   }>;
 
   // Life Stage Milestones

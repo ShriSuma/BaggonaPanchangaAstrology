@@ -1,6 +1,7 @@
 import React from "react";
 import Card from "../ui/Card";
 import type { PalmMountAnalysis, PalmReadingResult } from "../../features/palmreading/palmReadingEngine";
+import { VEDIC_7_MOUNTS_CATALOG } from "../../features/palmreading/samudrikaKnowledge";
 
 export type PalmMountsTabProps = {
   result?: PalmReadingResult | null;
@@ -15,80 +16,115 @@ export const PalmMountsTab: React.FC<PalmMountsTabProps> = ({
   lang = "kn",
   devoteeName = "Devotee"
 }) => {
-  const isKn = (lang || "kn").slice(0, 2) === "kn";
+  type SupportedLang = "kn" | "en" | "hi" | "te" | "ta";
+  const langKey: SupportedLang = (["kn", "en", "hi", "te", "ta"].includes(lang) ? lang : "kn") as SupportedLang;
+  const isKn = langKey === "kn";
 
-  const defaultMountsData = [
-    {
-      nameKn: "೧. ಗುರು ಪರ್ವತ (Mount of Jupiter)",
-      nameEn: "1. Mount of Jupiter (Guru)",
-      planet: "Jupiter (ಗುರು)",
-      energy: 92,
-      chakraKn: "ಆಜ್ಞಾ ಚಕ್ರ (Third Eye)",
-      gemKn: "ಪುಷ್ಯರಾಗ (Yellow Sapphire)",
-      fingerKn: "ತರ್ಜನಿ (Index Finger)",
-      descriptionKn: "ಅತ್ಯುನ್ನತ ನಾಯಕತ್ವ, ಆಧ್ಯಾತ್ಮಿಕ ಗೌರವ, ಧರ್ಮನಿಷ್ಠೆ ಹಾಗೂ ಸಮಾಜದಲ್ಲಿ ಶ್ರೇಷ್ಠ ಪ್ರಭಾವ."
+  const tDict: Record<string, Record<string, string>> = {
+    shastraHeader: {
+      kn: "॥ ವರಾಹಮಿಹಿರ ಬೃಹತ್ ಸಂಹಿತಾ & ಗರುಡ ಪುರಾಣ ಶಾಸ್ತ್ರ ॥",
+      en: "॥ Classical Brihat Samhita & Garuda Purana Hastarekha Shastra ॥",
+      hi: "॥ वराहमिहिर बृहत्संहिता एवं गरुड़ पुराण सामुद्रिक शास्त्र ॥",
+      te: "॥ వరాహమిహిర బృహత్సంహిత & గరుడ పురాణ సాముద్రిక శాస్త్రం ॥",
+      ta: "॥ வராகமிஹிர பிருஹத் சம்ஹிதை & கருட புராண சாமுத்ரிக சாஸ்திரம் ॥"
     },
-    {
-      nameKn: "೨. ಶನಿ ಪರ್ವತ (Mount of Saturn)",
-      nameEn: "2. Mount of Saturn (Shani)",
-      planet: "Saturn (ಶನಿ)",
-      energy: 85,
-      chakraKn: "ಮೂಲಾಧಾರ ಚಕ್ರ (Root Chakra)",
-      gemKn: "ಇಂದ್ರನೀಲ (Blue Sapphire)",
-      fingerKn: "ಮಧ್ಯಮಾ (Middle Finger)",
-      descriptionKn: "ಶಿಸ್ತು, ತಾಳ್ಮೆ, ದೀರ್ಘಕಾಲಿಕ ಯಶಸ್ಸು, ನ್ಯಾಯನಿಷ್ಠೆ ಹಾಗೂ ಆರ್ಥಿಕ ಸ್ಥಿರತೆ."
+    title: {
+      kn: "ಸಪ್ತ ಗ್ರಹ ಪರ್ವತಗಳು & ಹಸ್ತ ತತ್ತ್ವ ವಿಶ್ಲೇಷಣೆ",
+      en: "7 Planetary Mounts & Chironomy Analysis",
+      hi: "सप्त ग्रह पर्वत एवं हस्त तत्त्व विश्लेषण",
+      te: "సప్త గ్రహ పర్వతాలు & హస్త తత్త్వ విశ్లేషణ",
+      ta: "சப்த கிரக மேடுகள் & ஹஸ்த தத்துவ ஆய்வு"
     },
-    {
-      nameKn: "೩. ಸೂರ್ಯ ಪರ್ವತ (Mount of Sun / Apollo)",
-      nameEn: "3. Mount of Sun (Surya)",
-      planet: "Sun (ಸೂರ್ಯ)",
-      energy: 88,
-      chakraKn: "ಮಣಿಪೂರ ಚಕ್ರ (Solar Plexus)",
-      gemKn: "ಮಾಣಿಕ್ಯ (Ruby)",
-      fingerKn: "ಅನಾಮಿಕಾ (Ring Finger)",
-      descriptionKn: "ತೇಜಸ್ಸು, ಕೀರ್ತಿ, ಸೌಂದರ್ಯಪ್ರಜ್ಞೆ, ರಾಜ ಸನ್ಮಾನ ಹಾಗೂ ಉನ್ನತ ಪ್ರತಿಷ್ಠೆ."
+    intro: {
+      kn: "ಪ್ರಾಚೀನ ಸಾಮುದ್ರಿಕ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ಹಸ್ತದ ೭ ಪರ್ವತಗಳು ನವಗ್ರಹಗಳ ಕಾಸ್ಮಿಕ್ ಕಿರಣಗಳನ್ನು ಹೀರಿಕೊಂಡು ಮನುಷ್ಯನ ವ್ಯಕ್ತಿತ್ವ, ಸಾಮರ್ಥ್ಯ ಹಾಗೂ ಭಾಗ್ಯೋದಯವನ್ನು ನಿರ್ಧರಿಸುತ್ತವೆ.",
+      en: "Classical Vedic Samudrika Shastra details how the 7 planetary mounts channel celestial cosmic rays, governing executive ambition, wealth resilience, and spiritual elevation.",
+      hi: "प्राचीन सामुद्रिक शास्त्र के अनुसार हथेली के ७ पर्वत नवग्रहों की कॉस्मिक ऊर्जा को ग्रहण कर व्यक्ति के चरित्र, सामर्थ्य एवं भाग्योदय का निर्धारण करते हैं।",
+      te: "ప్రాచీన సాముద్రిక శాస్త్రం ప్రకారం అరచేతిలోని 7 పర్వతాలు నవగ్రహాల శక్తిని గ్రహించి వ్యక్తిత్వం, సంపద & భాగ్యోదయాలను నిర్ణయిస్తాయి.",
+      ta: "பண்டைய சாமுத்ரிக சாஸ்திரத்தின்படி உள்ளங்கையின் 7 மேடுகள் நவகிரகங்களின் காஸ்மிக் ஆற்றலை ஈர்த்து ஆளுமை, செல்வம் மற்றும் வெற்றியை நிர்ணயிக்கின்றன."
     },
-    {
-      nameKn: "೪. ಬುಧ ಪರ್ವತ (Mount of Mercury)",
-      nameEn: "4. Mount of Mercury (Budha)",
-      planet: "Mercury (ಬುಧ)",
-      energy: 86,
-      chakraKn: "ವಿಶುದ್ಧ ಚಕ್ರ (Throat Chakra)",
-      gemKn: "ಪಚ್ಚೆ (Emerald)",
-      fingerKn: "ಕನಿಷ್ಠಿಕಾ (Little Finger)",
-      descriptionKn: "ವಾಕ್ ಸಿದ್ಧಿ, ವ್ಯಾಪಾರ ಚಾಕಚಕ್ಯತೆ, ಗಣಿತ ವಿಶ್ಲೇಷಣೆ ಹಾಗೂ ಸಂವಹನ ಕಲೆ."
+    chironomyTitle: {
+      kn: "ಹಸ್ತ ತತ್ತ್ವ & ಅಂಗುಷ್ಠ (ಹೆಬ್ಬೆರಳು) ರಹಸ್ಯ",
+      en: "Chironomy Hand Element & Thumb (Angushtha) Secrets",
+      hi: "हस्त पंचतत्त्व एवं अंगुष्ठ (अंगूठा) रहस्य",
+      te: "హస్త తత్త్వం & బొటనవేలి అంతరార్థం",
+      ta: "ஹஸ்த தத்துவம் & பெருவிரல் (அங்குஷ்ட) ரகசியம்"
     },
-    {
-      nameKn: "೫. ಶುಕ್ರ ಪರ್ವತ (Mount of Venus)",
-      nameEn: "5. Mount of Venus (Shukra)",
-      planet: "Venus (ಶುಕ್ರ)",
-      energy: 90,
-      chakraKn: "ಸ್ವಾಧಿಷ್ಠಾನ ಚಕ್ರ (Sacral Chakra)",
-      gemKn: "ವಜ್ರ (Diamond)",
-      fingerKn: "ಅಂಗುಷ್ಠ ಮೂಲ (Thumb Base)",
-      descriptionKn: "ಆಕರ್ಷಕ ವ್ಯಕ್ತಿತ್ವ, ವಾಹನ ಸೌಭಾಗ್ಯ, ಕಲಾತ್ಮಕ ರಸಿಕತೆ ಹಾಗೂ ಸಕಲ ಭೋಗ ಯೋಗ."
+    elementLabel: {
+      kn: "ಹಸ್ತ ಪಂಚಭೂತ ತತ್ತ್ವ:",
+      en: "Elemental Hand Type:",
+      hi: "हस्त पंचभूत तत्त्व:",
+      te: "హస్త పంచభూత తత్త్వం:",
+      ta: "கை பஞ்சபூத தத்துவம்:"
     },
-    {
-      nameKn: "೬. ಚಂದ್ರ ಪರ್ವತ (Mount of Moon)",
-      nameEn: "6. Mount of Moon (Chandra)",
-      planet: "Moon (ಚಂದ್ರ)",
-      energy: 84,
-      chakraKn: "ಸಹಸ್ರಾರ ಚಕ್ರ (Crown Chakra)",
-      gemKn: "ಮುತ್ತು (Natural Pearl)",
-      fingerKn: "ಹಸ್ತದ ಕೆಳಭಾಗ (Palm Base)",
-      descriptionKn: "ತೀಕ್ಷ್ಣ ಕಲ್ಪನಾ ಶಕ್ತಿ, ಅಂತಃಸ್ಫೂರ್ತಿ, ಜಲ/ವಿದೇಶ ಪ್ರಯಾಣ ಯೋಗ ಹಾಗೂ ಪ್ರಶಾಂತ ಮನಸ್ಸು."
+    yavaLabel: {
+      kn: "ಅಂಗುಷ್ಠ ಯವ ಚಿಹ್ನೆ (ಶಿವ ನೇತ್ರ):",
+      en: "Thumb Yava (Eye of Shiva):",
+      hi: "अंगुष्ठ यव चिह्न (शिव नेत्र):",
+      te: "బొటనవేలి యవ చిహ్నం (శివ నేత్రం):",
+      ta: "பெருவிரல் யவ குறியீடு (சிவ நேத்திரம்):"
     },
-    {
-      nameKn: "೭. ಕುಜ ಪರ್ವತ (Mount of Mars - Upper & Lower)",
-      nameEn: "7. Mount of Mars (Kuja)",
-      planet: "Mars (ಮಂಗಳ)",
-      energy: 87,
-      chakraKn: "ಮೂಲಾಧಾರ / ಮಣಿಪೂರ",
-      gemKn: "ಹವಳ (Red Coral)",
-      fingerKn: "ಹಸ್ತದ ಮಧ್ಯ ವಲಯ",
-      descriptionKn: "ಮಾನಸಿಕ ಧೈರ್ಯ, ಶತ್ರು ಜಯ, ರಕ್ಷಣಾ ಶಕ್ತಿ ಹಾಗೂ ಅಚಲ ಹೋರಾಟ ಮನೋಭಾವ."
+    willpower: {
+      kn: "ಇಚ್ಛಾ ಶಕ್ತಿ:",
+      en: "Willpower:",
+      hi: "इच्छा शक्ति:",
+      te: "ఇచ్ఛా శక్తి:",
+      ta: "இச்சா சக்தி:"
+    },
+    logic: {
+      kn: "ತರ್ಕ ಶಕ್ತಿ:",
+      en: "Logic & Reason:",
+      hi: "तर्क शक्ति:",
+      te: "తర్క శక్తి:",
+      ta: "தர்க்க சக்தி:"
+    },
+    strengthBadge: {
+      kn: "ಬಲ",
+      en: "Strength",
+      hi: "शक्ति",
+      te: "బలం",
+      ta: "பலம்"
+    },
+    rulingPlanet: {
+      kn: "ಅಧಿಪತಿ ಗ್ರಹ:",
+      en: "Ruling Planet:",
+      hi: "शासक ग्रह:",
+      te: "అధిపతి గ్రహం:",
+      ta: "ஆளும் கிரகம்:"
+    },
+    associatedFinger: {
+      kn: "ಸಂಬಂಧಿತ ಬೆರಳು:",
+      en: "Associated Finger:",
+      hi: "संबंधित अंगुली:",
+      te: "సంబంధిత వేలు:",
+      ta: "தொடர்புடைய விரல்:"
+    },
+    gemChakra: {
+      kn: "ರತ್ನ & ಚಕ್ರ:",
+      en: "Gemstone & Chakra:",
+      hi: "रत्न एवं चक्र:",
+      te: "రత్నం & చక్రం:",
+      ta: "ரத்தினம் & சக்கரம்:"
+    },
+    vedicImpact: {
+      kn: "ದೈವಿಕ ಫಲ (Vedic Impact):",
+      en: "Vedic Impact & Divine Fruit:",
+      hi: "दैवीय फल (Vedic Impact):",
+      te: "దైవిక ఫలితం:",
+      ta: "தெய்வீக பலன்:"
+    },
+    statusLabel: {
+      kn: "ಪರ್ವತ ಸ್ಥಿತಿ:",
+      en: "Mount Status:",
+      hi: "पर्वत स्थिति:",
+      te: "పర్వత స్థితి:",
+      ta: "மேட்டின் நிலை:"
     }
-  ];
+  };
+
+  const getT = (key: string) => tDict[key]?.[langKey] || tDict[key]?.kn || "";
+
+  // Combine AI mounts with catalog
+  const effectiveMounts = mounts || result?.mounts || [];
 
   return (
     <div className="space-y-6">
@@ -98,15 +134,13 @@ export const PalmMountsTab: React.FC<PalmMountsTabProps> = ({
           <span className="text-3xl select-none filter drop-shadow">🪐</span>
           <div className="space-y-1">
             <div className="text-[10px] font-extrabold tracking-widest text-amber-800 uppercase">
-              ॥ ವರಾಹಮಿಹಿರ ಬೃಹತ್ ಸಂಹಿತಾ & ಗರುಡ ಪುರಾಣ ಶಾಸ್ತ್ರ ॥
+              {getT("shastraHeader")}
             </div>
             <h3 className="font-serif text-base font-bold text-amber-950">
-              {isKn ? "ಸಪ್ತ ಗ್ರಹ ಪರ್ವತಗಳು & ಹಸ್ತ ತತ್ತ್ವ ವಿಶ್ಲೇಷಣೆ" : "7 Planetary Mounts & Chironomy Analysis"}
+              {getT("title")}
             </h3>
             <p className="text-xs text-amber-900/90 leading-relaxed font-medium">
-              {isKn
-                ? "ಪ್ರಾಚೀನ ಸಾಮುದ್ರಿಕ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ಹಸ್ತದ ೭ ಪರ್ವತಗಳು ನವಗ್ರಹಗಳ ಕಾಸ್ಮಿಕ್ ಕಿರಣಗಳನ್ನು ಹೀರಿಕೊಂಡು ಮನುಷ್ಯನ ವ್ಯಕ್ತಿತ್ವ, ಸಾಮರ್ಥ್ಯ ಹಾಗೂ ಭಾಗ್ಯೋದಯವನ್ನು ನಿರ್ಧರಿಸುತ್ತವೆ."
-                : "Classical Vedic Samudrika Shastra details how the 7 planetary mounts channel cosmic energies, governing ambition, wealth, intellect, and spiritual protection."}
+              {getT("intro")}
             </p>
           </div>
         </div>
@@ -117,34 +151,53 @@ export const PalmMountsTab: React.FC<PalmMountsTabProps> = ({
         <Card className="border border-amber-300 bg-gradient-to-br from-amber-50/90 to-white p-5 shadow-sm space-y-4">
           <div className="font-serif text-sm font-bold text-amber-950 border-b border-amber-200 pb-1.5 flex items-center gap-2">
             <span>🖐️</span>
-            <span>{isKn ? "ಹಸ್ತ ತತ್ತ್ವ & ಅಂಗುಷ್ಠ (ಹೆಬ್ಬೆರಳು) ರಹಸ್ಯ" : "Chironomy Element & Thumb (Angushtha) Secrets"}</span>
+            <span>{getT("chironomyTitle")}</span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
             {/* Hand Type */}
             <div className="rounded-xl bg-white p-3.5 border border-amber-200 shadow-sm space-y-1">
               <span className="font-bold text-amber-900 block">
-                {isKn ? "ಹಸ್ತ ಪಂಚಭೂತ ತತ್ತ್ವ:" : "Elemental Hand Type:"}
+                {getT("elementLabel")}
               </span>
               <span className="font-extrabold text-amber-950 text-sm block">
-                {result.chironomyHandType.element[lang] || result.chironomyHandType.element.kn}
+                {result.chironomyHandType?.element?.[langKey] ||
+                  result.chironomyHandType?.element?.en ||
+                  result.chironomyHandType?.element?.kn ||
+                  "Earth (Prithvi)"}
               </span>
               <p className="text-amber-900/90 font-medium pt-1 leading-relaxed">
-                {result.chironomyHandType.traits[lang] || result.chironomyHandType.traits.kn}
+                {result.chironomyHandType?.traits?.[langKey] ||
+                  result.chironomyHandType?.traits?.en ||
+                  result.chironomyHandType?.traits?.kn ||
+                  ""}
               </p>
             </div>
 
             {/* Thumb Shiva Eye */}
             <div className="rounded-xl bg-white p-3.5 border border-amber-200 shadow-sm space-y-1">
               <span className="font-bold text-emerald-900 block">
-                {isKn ? "ಅಂಗುಷ್ಠ ಯವ ಚಿಹ್ನೆ (ಶಿವ ನೇತ್ರ):" : "Thumb Yava (Eye of Shiva):"}
+                {getT("yavaLabel")}
               </span>
               <span className="font-bold text-amber-950 block">
-                {result.thumbAnalysis.yavaSign[lang] || result.thumbAnalysis.yavaSign.kn}
+                {result.thumbAnalysis?.yavaSign?.[langKey] ||
+                  result.thumbAnalysis?.yavaSign?.en ||
+                  result.thumbAnalysis?.yavaSign?.kn ||
+                  "Sacred Eye of Shiva Present"}
               </span>
               <div className="text-[11px] text-amber-900 pt-1 space-y-0.5">
-                <div><strong>{isKn ? "ಇಚ್ಛಾ ಶಕ್ತಿ:" : "Willpower:"}</strong> {result.thumbAnalysis.willpower[lang] || result.thumbAnalysis.willpower.kn}</div>
-                <div><strong>{isKn ? "ತರ್ಕ ಶಕ್ತಿ:" : "Logic:"}</strong> {result.thumbAnalysis.logic[lang] || result.thumbAnalysis.logic.kn}</div>
+                <div>
+                  <strong>{getT("willpower")}</strong>{" "}
+                  {result.thumbAnalysis?.willpower?.[langKey] ||
+                    result.thumbAnalysis?.willpower?.en ||
+                    result.thumbAnalysis?.willpower?.kn}
+                </div>
+                <div>
+                  <strong>{getT("logic")}</strong>{" "}
+                  {result.thumbAnalysis?.logic?.[langKey] ||
+                    result.thumbAnalysis?.logic?.en ||
+                    result.thumbAnalysis?.logic?.kn}
+                </div>
               </div>
             </div>
           </div>
@@ -153,46 +206,103 @@ export const PalmMountsTab: React.FC<PalmMountsTabProps> = ({
 
       {/* 7 Mounts Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {defaultMountsData.map((m, idx) => (
-          <Card
-            key={idx}
-            className="border-2 border-amber-300/80 bg-white hover:border-amber-400 p-4 shadow-sm hover:shadow-md transition space-y-3"
-          >
-            <div className="flex items-center justify-between border-b border-amber-200 pb-2">
-              <span className="font-serif text-sm font-bold text-amber-950">
-                {isKn ? m.nameKn : m.nameEn}
-              </span>
-              <span className="text-[11px] bg-amber-100 text-amber-900 font-extrabold px-2.5 py-0.5 rounded-full border border-amber-300">
-                ಬಲ: {m.energy}%
-              </span>
-            </div>
+        {VEDIC_7_MOUNTS_CATALOG.map((catDef, idx) => {
+          // Attempt to locate AI analyzed mount by keyword or index
+          const aiMount = effectiveMounts.find(
+            m =>
+              m.mountName?.en?.toLowerCase().includes(catDef.planetKey.toLowerCase()) ||
+              m.mountName?.kn?.includes(catDef.planetKey) ||
+              m.mountName?.kn?.includes(catDef.planetName.kn.split(" ")[0])
+          ) || effectiveMounts[idx];
 
-            <div className="space-y-1.5 text-xs text-slate-800 leading-relaxed">
-              <div className="flex justify-between">
-                <span className="text-amber-900 font-bold">{isKn ? "ಅಧಿಪತಿ ಗ್ರಹ:" : "Ruling Planet:"}</span>
-                <span className="font-semibold text-amber-950">{m.planet}</span>
-              </div>
+          // Compute dynamic personalized energy percentage
+          let dynamicEnergy = catDef.baseEnergy;
+          if (aiMount?.strength) {
+            const strVal = Object.values(aiMount.strength).join(" ").toLowerCase();
+            if (strVal.includes("prominent") || strVal.includes("elevated") || strVal.includes("ಉನ್ನತ") || strVal.includes("ಪ್ರಬಲ")) {
+              dynamicEnergy = Math.min(96, catDef.baseEnergy + 4);
+            } else if (strVal.includes("moderate") || strVal.includes("ಮಧ್ಯಮ") || strVal.includes("ಸಾಮಾನ್ಯ")) {
+              dynamicEnergy = Math.max(78, catDef.baseEnergy - 6);
+            } else if (strVal.includes("low") || strVal.includes("weak") || strVal.includes("ಕ್ಷೀಣ")) {
+              dynamicEnergy = Math.max(68, catDef.baseEnergy - 14);
+            }
+          }
 
-              <div className="flex justify-between">
-                <span className="text-amber-900 font-bold">{isKn ? "ಸಂಬಂಧಿತ ಬೆರಳು:" : "Associated Finger:"}</span>
-                <span className="font-medium text-slate-900">{m.fingerKn}</span>
-              </div>
+          // Modulation based on overall devotee score if present
+          if (result?.overallScore) {
+            const delta = Math.round((result.overallScore - 85) / 4);
+            dynamicEnergy = Math.min(98, Math.max(65, dynamicEnergy + delta));
+          }
 
-              <div className="flex justify-between">
-                <span className="text-amber-900 font-bold">{isKn ? "ರತ್ನ & ಚಕ್ರ:" : "Gemstone & Chakra:"}</span>
-                <span className="font-medium text-slate-900">{m.gemKn} · {m.chakraKn}</span>
-              </div>
+          const localizedMountName = catDef.name[langKey] || catDef.name.kn;
+          const localizedPlanet = catDef.planetName[langKey] || catDef.planetName.kn;
+          const localizedFinger = catDef.finger[langKey] || catDef.finger.kn;
+          const localizedChakra = catDef.chakra[langKey] || catDef.chakra.kn;
+          const localizedGem = catDef.gemstone[langKey] || catDef.gemstone.kn;
+          const localizedVirtue =
+            aiMount?.indication?.[langKey] ||
+            aiMount?.indication?.en ||
+            aiMount?.indication?.kn ||
+            catDef.virtues[langKey] ||
+            catDef.virtues.kn;
 
-              <div className="rounded-xl bg-amber-50/70 p-2.5 border border-amber-200 mt-2">
-                <span className="font-bold text-amber-950 block mb-0.5">
-                  🪔 {isKn ? "ದೈವಿಕ ಫಲ (Vedic Impact):" : "Vedic Impact:"}
+          const localizedStrengthStatus =
+            aiMount?.strength?.[langKey] ||
+            aiMount?.strength?.en ||
+            aiMount?.strength?.kn;
+
+          return (
+            <Card
+              key={catDef.id}
+              className="border-2 border-amber-300/80 bg-white hover:border-amber-400 p-4 shadow-sm hover:shadow-md transition space-y-3"
+            >
+              <div className="flex items-center justify-between border-b border-amber-200 pb-2">
+                <span className="font-serif text-sm font-bold text-amber-950">
+                  {localizedMountName}
                 </span>
-                <span className="text-amber-900 font-medium">{m.descriptionKn}</span>
+                <span className="text-[11px] bg-amber-100 text-amber-900 font-extrabold px-2.5 py-0.5 rounded-full border border-amber-300">
+                  {getT("strengthBadge")}: {dynamicEnergy}%
+                </span>
               </div>
-            </div>
-          </Card>
-        ))}
+
+              <div className="space-y-1.5 text-xs text-slate-800 leading-relaxed">
+                <div className="flex justify-between">
+                  <span className="text-amber-900 font-bold">{getT("rulingPlanet")}</span>
+                  <span className="font-semibold text-amber-950">{localizedPlanet}</span>
+                </div>
+
+                <div className="flex justify-between">
+                  <span className="text-amber-900 font-bold">{getT("associatedFinger")}</span>
+                  <span className="font-medium text-slate-900">{localizedFinger}</span>
+                </div>
+
+                <div className="flex justify-between">
+                  <span className="text-amber-900 font-bold">{getT("gemChakra")}</span>
+                  <span className="font-medium text-slate-900">{localizedGem} · {localizedChakra}</span>
+                </div>
+
+                {localizedStrengthStatus && (
+                  <div className="flex justify-between">
+                    <span className="text-amber-900 font-bold">{getT("statusLabel")}</span>
+                    <span className="font-semibold text-emerald-800">{localizedStrengthStatus}</span>
+                  </div>
+                )}
+
+                <div className="rounded-xl bg-amber-50/70 p-2.5 border border-amber-200 mt-2">
+                  <span className="font-bold text-amber-950 block mb-0.5">
+                    🪔 {getT("vedicImpact")}
+                  </span>
+                  <span className="text-amber-900 font-medium leading-relaxed block">
+                    {localizedVirtue}
+                  </span>
+                </div>
+              </div>
+            </Card>
+          );
+        })}
       </div>
     </div>
   );
 };
+
+export default PalmMountsTab;

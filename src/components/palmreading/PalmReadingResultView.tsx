@@ -97,7 +97,17 @@ export const PalmReadingResultView: React.FC<PalmReadingResultViewProps> = ({
         <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="space-y-1.5">
             <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/40 bg-amber-500/20 px-3 py-1 text-[11px] font-extrabold uppercase tracking-widest text-amber-300">
-              <span>॥ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸಿದ್ಧ ಸಾಮುದ್ರಿಕ ದರ್ಶನ ॥</span>
+              <span>
+                {lang === "kn"
+                  ? "॥ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸಿದ್ಧ ಸಾಮುದ್ರಿಕ ದರ್ಶನ ॥"
+                  : lang === "hi"
+                  ? "॥ गोकर्ण महाबलेश्वर सिद्ध सामुद्रिक दर्शन ॥"
+                  : lang === "te"
+                  ? "॥ గోకర్ణ మహాబలేశ్వర సిద్ధ సాముద్రిక దర్శనం ॥"
+                  : lang === "ta"
+                  ? "॥ கோகர்ண மகாபலேஸ்வரர் சித்த சாமுத்ரிக தரிசனம் ॥"
+                  : "॥ Sri Gokarna Mahabaleshwara Sacred Samudrika Darshana ॥"}
+              </span>
             </div>
             <h2 className="font-serif text-xl sm:text-2xl font-extrabold text-amber-100 flex items-center gap-2">
               <span>✋</span>
@@ -114,7 +124,17 @@ export const PalmReadingResultView: React.FC<PalmReadingResultViewProps> = ({
 
           <div className="flex flex-wrap items-center gap-2.5">
             <div className="rounded-2xl border border-amber-400/60 bg-gradient-to-b from-amber-600/30 to-amber-900/60 px-4 py-2 text-center shadow-inner">
-              <div className="text-[10px] uppercase font-bold text-amber-300">ಸಾಮುದ್ರಿಕ ಬಲ</div>
+              <div className="text-[10px] uppercase font-bold text-amber-300">
+                {lang === "kn"
+                  ? "ಸಾಮುದ್ರಿಕ ಬಲ"
+                  : lang === "hi"
+                  ? "सामुद्रिक बल"
+                  : lang === "te"
+                  ? "సాముద్రిక బలం"
+                  : lang === "ta"
+                  ? "சாமுத்ரிக பலம்"
+                  : "Palmistry Score"}
+              </div>
               <div className="text-xl font-black text-amber-100">{result.overallScore}%</div>
             </div>
 
@@ -156,6 +176,7 @@ export const PalmReadingResultView: React.FC<PalmReadingResultViewProps> = ({
         personName={devoteeName}
         lang={lang}
         handSide={result.handSide}
+        milestones={result.lifeStageMilestones}
       />
 
       {/* 🔮 Natal Janma Kundali Sync (If Generated) */}

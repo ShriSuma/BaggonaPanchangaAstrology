@@ -26,6 +26,8 @@ import { estimateBirthDetailsFromPalmImage } from "../features/palmreading/palmD
 import { PalmScannerLoader } from "../components/palmreading/PalmScannerLoader";
 import { calculateKundliWithPlaceSun } from "../core/KundliEngine";
 import { calculateTraditionalBaggona } from "../core/TraditionalBaggonaEngine";
+import { vimshottariBalanceAtBirth } from "../core/DashaBhuktiEngine";
+import { PLANET_NAMES_L5 } from "../features/palmreading/samudrikaKnowledge";
 import { formatRashiAmsha } from "../core/localeNumbers";
 import SouthIndianChart from "../components/kundli/SouthIndianChart";
 import { generatePDFFromElement } from "../utils/pdfGenerator";
@@ -64,8 +66,18 @@ export default function PalmReadingPage(): JSX.Element {
   const [activeTab, setActiveTab] = useState<TabType>("reading");
 
   // Devotee Name & Details Inputs
-  const [devoteeName, setDevoteeName] = useState<string>(session?.input?.name || "");
-  const [gotraInput, setGotraInput] = useState<string>(session?.input?.gothra || "");
+  const [devoteeName, setDevoteeName] = useState<string>(() => session?.input?.name || "");
+  const [gotraInput, setGotraInput] = useState<string>(() => session?.input?.gothra || "");
+
+  // Synchronize devotee name and gotra if session hydrates
+  useEffect(() => {
+    if (session?.input?.name && !devoteeName) {
+      setDevoteeName(session.input.name);
+    }
+    if (session?.input?.gothra && !gotraInput) {
+      setGotraInput(session.input.gothra);
+    }
+  }, [session?.input?.name, session?.input?.gothra]);
 
   const [handSide, setHandSide] = useState<HandSide>("right");
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
@@ -172,22 +184,47 @@ export default function PalmReadingPage(): JSX.Element {
 
   // Kundli Generator Modal States
   const [showKundliModal, setShowKundliModal] = useState<boolean>(false);
-  const [birthDatePicker, setBirthDatePicker] = useState<Date | null>(() => new Date(1992, 4, 15));
-  const [birthTimeHm, setBirthTimeHm] = useState<string>("08:30");
-  const [selectedLoc, setSelectedLoc] = useState<SelectedLocation>({
+  const [birthDatePicker, setBirthDatePicker] = useState<Date | null>(() => {
+    if (session?.input?.birthDate) {
+      const parts = session.input.birthDate.split("-").map(Number);
+      if (parts.length === 3) return new Date(parts[0], parts[1] - 1, parts[2]);
+    }
+    return new Date(1992, 4, 15);
+  });
+  const [birthTimeHm, setBirthTimeHm] = useState<string>(() => session?.input?.birthTime || "08:30");
+  const [selectedLoc, setSelectedLoc] = useState<SelectedLocation>(() => ({
     stateCode: "KA",
     districtCode: "UK",
     villageName: placeLabelStore || "Gokarna",
-    lat: defaultLat,
-    lng: defaultLng,
-    pincode: pincodeStore || "581326"
-  });
+    lat: session?.input?.latitude || defaultLat,
+    lng: session?.input?.longitude || defaultLng,
+    pincode: session?.input?.pincode || pincodeStore || "581326"
+  }));
   const [generatedKundliData, setGeneratedKundliData] = useState<PalmReadingResult["kundliData"] | undefined>(undefined);
   const [isEstimatingDetails, setIsEstimatingDetails] = useState<boolean>(false);
   const [estimationInfo, setEstimationInfo] = useState<string | null>(null);
 
   const handleOpenKundliModal = async () => {
     setShowKundliModal(true);
+    if (!imageDataUrl && session?.input?.birthDate) {
+      const parts = session.input.birthDate.split("-").map(Number);
+      if (parts.length === 3) {
+        setBirthDatePicker(new Date(parts[0], parts[1] - 1, parts[2]));
+      }
+      if (session.input.birthTime) {
+        setBirthTimeHm(session.input.birthTime);
+      }
+      if (session.input.latitude && session.input.longitude) {
+        setSelectedLoc({
+          stateCode: "KA",
+          districtCode: "UK",
+          villageName: placeLabelStore || "Gokarna",
+          lat: session.input.latitude,
+          lng: session.input.longitude,
+          pincode: session.input.pincode || pincodeStore || "581326"
+        });
+      }
+    }
     if (imageDataUrl) {
       setIsEstimatingDetails(true);
       try {
@@ -266,7 +303,9 @@ export default function PalmReadingPage(): JSX.Element {
     const rashiAmsha = String(kundli.moonSign || "ಮೇಷ");
     const nakshatraName = isKn ? traditional.moonNakshatraKn : traditional.moonNakshatra;
     const maandiRashi = String(kundli.maandi?.rashi || "ಧನಸ್ಸು");
-    const dashaLord = "ಬುಧ";
+    const dashaBal = vimshottariBalanceAtBirth(kundli);
+    const dashaPlanetName = String(dashaBal.lord);
+    const dashaLord = PLANET_NAMES_L5[dashaPlanetName]?.[selectedLang] || PLANET_NAMES_L5[dashaPlanetName]?.kn || dashaPlanetName;
 
     const attached: PalmReadingResult["kundliData"] = {
       lagna: lagnaAmsha,
@@ -1268,6 +1307,7 @@ export default function PalmReadingPage(): JSX.Element {
       {/* ====================================================================== */}
       {activeTab === "yogas" && (
         <SamudrikaYogasTab
+          result={activeResult}
           lang={selectedLang}
           devoteeName={devoteeName}
         />
@@ -1278,6 +1318,7 @@ export default function PalmReadingPage(): JSX.Element {
       {/* ====================================================================== */}
       {activeTab === "remedies" && (
         <PalmRemediesTab
+          result={activeResult}
           lang={selectedLang}
           devoteeName={devoteeName}
         />
