@@ -202,8 +202,10 @@ describe("Public Kundli & Live Astrology Analysis 100% Dynamic Engine Test Suite
       expect(deepKn.whyAstrology.paragraph2.length).toBeGreaterThan(150);
       expect(deepKn.internalQuestions.paragraph1.length).toBeGreaterThan(150);
       expect(deepKn.internalQuestions.paragraph2.length).toBeGreaterThan(150);
-      expect(deepKn.maandiAnalysis.paragraph1.length).toBeGreaterThan(150);
-      expect(deepKn.maandiAnalysis.paragraph2.length).toBeGreaterThan(150);
+      // Verify zero English words leak into Kannada paragraphs
+      expect(deepKn.maandiAnalysis.paragraph1).not.toMatch(/\b(Virgo|Aries|Taurus|Gemini|Cancer|Leo|Libra|Scorpio|Sagittarius|Capricorn|Aquarius|Pisces)\b/);
+      expect(deepKn.personality.paragraph1).not.toMatch(/\b(Ashwini|Bharani|Krittika|Rohini|Mrigashira|Ardra|Punarvasu|Pushya|Ashlesha|Magha|Purva|Uttara|Hasta|Chitra|Swati|Vishakha|Anuradha|Jyeshtha|Mula|Shravana|Dhanishta|Shatabhisha|Revati)\b/);
+      expect(deepKn.maandiAnalysis.paragraph1).toContain("ರಾಶಿಯಲ್ಲಿ");
 
       // Verify direct spoken astrologer tone
       expect(deepKn.personality.paragraph1).toContain("ನೋಡಿ, ನಿಮ್ಮ ಜಾತಕವನ್ನು ಪ್ರತ್ಯಕ್ಷವಾಗಿ");

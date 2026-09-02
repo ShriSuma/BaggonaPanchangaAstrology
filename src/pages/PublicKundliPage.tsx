@@ -7,6 +7,7 @@ import { formatPickerDateLocalYmd } from "../core/birthTime";
 import { askGemini } from "../core/GeminiEngine";
 import { useAuthStore } from "../features/auth/authStore";
 import { usePricingConfigStore } from "../features/wallet/pricingConfigStore";
+import { useWalletStore } from "../features/wallet/walletStore";
 import {
   deductPriestCoins,
   saveKundliToFirestore,
@@ -124,6 +125,23 @@ export default function PublicKundliPage(): JSX.Element {
   const [showUnlockModal, setShowUnlockModal] = useState<boolean>(false);
   const [isUnlocking, setIsUnlocking] = useState<boolean>(false);
   const [expandedMahaPlanet, setExpandedMahaPlanet] = useState<string | null>(null);
+
+  // Floating coin deduction animation indicator state (-1,000 in red rising upwards)
+  const [floatingDeductions, setFloatingDeductions] = useState<
+    Array<{ id: number; amount: number; label: string }>
+  >([]);
+
+  const triggerDeductionAnimation = (amount: number, label?: string) => {
+    const newId = Date.now() + Math.random();
+    const displayLabel = label || `-${amount.toLocaleString()} Coins`;
+    setFloatingDeductions((prev) => [
+      ...prev.slice(-3),
+      { id: newId, amount, label: displayLabel }
+    ]);
+    setTimeout(() => {
+      setFloatingDeductions((prev) => prev.filter((d) => d.id !== newId));
+    }, 3200);
+  };
 
   // 7. Live Life Analysis & Devotee Q&A State
   const [isLiveAnalysisOpen, setIsLiveAnalysisOpen] = useState<boolean>(false);
@@ -376,6 +394,7 @@ export default function PublicKundliPage(): JSX.Element {
           `Public Janma Kundali: ${form.name.trim()} (${computed.lagnaRashi.english} Lagna)`,
           form.name.trim()
         );
+        triggerDeductionAnimation(kundliGenCost, `-${kundliGenCost} Coins (₹${Math.round(kundliGenCost / 10)})`);
       } catch (coinErr) {
         console.warn("[PublicKundli] Coin deduction log error:", coinErr);
       }
@@ -518,6 +537,21 @@ Return a valid JSON object with EXACTLY these 5 keys:
         `Public Kundali Personality & Hidden Psyche Unlock (1,000 Coins): ${form.name.trim()}`,
         form.name.trim()
       );
+      // Trigger floating deduction animation (-1,000 Coins) in vibrant red rising upwards
+      triggerDeductionAnimation(1000, "-1,000 Coins (₹100)");
+      try {
+        const ws = useWalletStore.getState();
+        if (ws && ws.recentDeductions) {
+          ws.recentDeductions.push({
+            id: `deduct_${Date.now()}`,
+            coins: 1000,
+            serviceName: "Public Kundali Personality Unlock",
+            timestamp: Date.now()
+          });
+        }
+      } catch (e) {
+        // ignore
+      }
     } catch (err) {
       console.warn("[PublicKundli] Personality unlock coin deduction error:", err);
     } finally {
@@ -635,6 +669,7 @@ As the Chief Baggona Panchanga Gokarna Astrologer speaking directly to the devot
           `Public Kundli Custom Question Inquest: "${customQuestionInput.slice(0, 30)}..."`,
           form.name || "Devotee"
         );
+        triggerDeductionAnimation(customQuestionCost, `-${customQuestionCost} Coins (₹${Math.round(customQuestionCost / 10)})`);
       }
 
       const ans = generateCustomQuestionAstrologyAnswer(
@@ -815,6 +850,28 @@ ${publicProfile.name}`;
               ✕
             </button>
           </div>
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------------ */}
+      {/* 🪙 Floating Coin Deduction Upward Animation Toast (In Red)         */}
+      {/* ------------------------------------------------------------------ */}
+      {floatingDeductions.length > 0 && (
+        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[9999] pointer-events-none flex flex-col items-center gap-2">
+          {floatingDeductions.map((d) => (
+            <div
+              key={d.id}
+              className="animate-coin-deduct-float flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white font-mono font-black text-base md:text-lg shadow-[0_10px_35px_rgba(239,68,68,0.8)] border-2 border-amber-300 ring-4 ring-red-500/60 backdrop-blur-md whitespace-nowrap"
+            >
+              <span className="text-lg">🪙</span>
+              <span className="tracking-wide text-white font-black drop-shadow-md">
+                -{d.amount.toLocaleString()} Coins
+              </span>
+              <span className="text-xs font-sans font-bold bg-black/40 px-2 py-0.5 rounded text-amber-200">
+                (₹{Math.round(d.amount / 10)})
+              </span>
+            </div>
+          ))}
         </div>
       )}
 
@@ -1158,7 +1215,7 @@ ${publicProfile.name}`;
             </div>
 
             {/* 3 CORE RESTRUCTURED TABS (Patrika default, Dasha-Bhukti dropdown, Personality locked 1000 coins) */}
-            <div className="flex flex-wrap items-center justify-center gap-2 bg-slate-900/80 border border-amber-500/20 p-2 rounded-2xl shadow-inner">
+            <div className="flex flex-wrap items-center justify-center gap-2 bg-slate-900/80 border border-amber-500/20 p-2 rounded-2xl shadow-inner relative">
               {[
                 { id: "patrika", label: `📜 ${txt("tabPatrika")}` },
                 { id: "dasha", label: `⏳ ${txt("tabDasha")}` },
@@ -1169,18 +1226,31 @@ ${publicProfile.name}`;
                     : `🔒 ${txt("tabPersonality")} (1,000 Coins)`
                 }
               ].map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => handleSelectTab(tab.id as any)}
-                  className={`px-4 py-2.5 text-xs md:text-sm font-bold rounded-xl transition-all ${
-                    activeTab === tab.id
-                      ? "bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-md scale-105"
-                      : "text-amber-200/80 hover:text-amber-100 hover:bg-slate-800/60"
-                  }`}
-                >
-                  {tab.label}
-                </button>
+                <div key={tab.id} className="relative inline-block">
+                  <button
+                    type="button"
+                    onClick={() => handleSelectTab(tab.id as any)}
+                    className={`px-4 py-2.5 text-xs md:text-sm font-bold rounded-xl transition-all ${
+                      activeTab === tab.id
+                        ? "bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-md scale-105"
+                        : "text-amber-200/80 hover:text-amber-100 hover:bg-slate-800/60"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+
+                  {/* 🪙 Red Floating Deduction Upward Animation Over Tab 3 When Unlocked */}
+                  {tab.id === "personality" &&
+                    floatingDeductions.some((d) => d.amount === 1000) && (
+                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 pointer-events-none z-50 animate-coin-deduct-float flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white font-mono font-black text-xs md:text-sm shadow-2xl border-2 border-amber-300 ring-4 ring-red-500/60 whitespace-nowrap">
+                        <span className="text-sm">🪙</span>
+                        <span className="tracking-wide text-white font-extrabold">-1,000</span>
+                        <span className="text-[10px] bg-black/40 px-1 rounded text-amber-200 font-sans">
+                          ₹100
+                        </span>
+                      </div>
+                    )}
+                </div>
               ))}
             </div>
 
