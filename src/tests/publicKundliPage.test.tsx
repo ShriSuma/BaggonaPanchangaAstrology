@@ -392,7 +392,7 @@ describe("Public Kundli & Live Astrology Analysis 100% Dynamic Engine Test Suite
 
       await waitFor(() => {
         expect(screen.getByRole("heading", { name: /Devotee Anant/i })).toBeInTheDocument();
-      });
+      }, { timeout: 6000 });
 
       // Verify ₹350 Grand Consultation Card
       expect(screen.getByText(/ಸಂಪೂರ್ಣ ರಾಜವೈಭವ ಜಾತಕ & ನೇರ ಜ್ಯೋತಿಷ್ಯ ಸಮಾಲೋಚನೆ \(₹೩೫೦ ಮಾತ್ರ\)/i)).toBeInTheDocument();

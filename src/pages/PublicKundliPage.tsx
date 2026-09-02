@@ -422,20 +422,8 @@ export default function PublicKundliPage(): JSX.Element {
       setActiveTab("patrika");
       setExpandedMahaPlanet(profile.currentMahadasha);
 
-      // Safe Deduction Router (Pillar 5 -> 100%): Deducts from priest or isolated guest wallet
-      try {
-        if (isPriestAttributed && linkedUserId && linkedUserId !== "PRIEST") {
-          await getOrCreatePriestWallet(linkedUserId, linkedPriestName);
-        }
-        await executeSafeDeduction(
-          kundliGenCost,
-          `Public Janma Kundali: ${sanitizedName} (${computed.lagnaRashi.english} Lagna)`,
-          sanitizedName
-        );
-        triggerDeductionAnimation(kundliGenCost, `-${kundliGenCost} Coins (₹${Math.round(kundliGenCost / 10)})`);
-      } catch (coinErr) {
-        console.warn("[PublicKundli] Coin deduction log error:", coinErr);
-      }
+      // Basic Janma Kundali Lagna chart, Bhavas & Dasha timeline are rendered for free preview.
+      // Coin deductions only occur on explicit confirmation of paid services (Tab 3 Personality, Live AI, Q&A, PDF).
 
       try {
         const kundliDocId = `kundli_pub_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
@@ -510,16 +498,17 @@ export default function PublicKundliPage(): JSX.Element {
     setActiveTab("analysis");
 
     try {
-      try {
-        await executeSafeDeduction(
-          liveAnalysisCost,
-          `Current Life Astrology Live Analysis & Q&A: ${form.name.trim()}`,
-          form.name.trim()
-        );
-        triggerDeductionAnimation(liveAnalysisCost, `-${liveAnalysisCost} Coins (₹${Math.round(liveAnalysisCost / 10)})`);
-      } catch (coinErr) {
-        console.warn("[PublicKundli] Live analysis coin deduction error:", coinErr);
+      const res = await executeSafeDeduction(
+        liveAnalysisCost,
+        `Current Life Astrology Live Analysis & Q&A: ${form.name.trim()}`,
+        form.name.trim()
+      );
+      if (!res.success) {
+        setErrorMessage(res.error || "ನಾಣ್ಯಗಳ ಕೊರತೆ ಇದೆ. ದಯವಿಟ್ಟು ರೀಚಾರ್ಜ್ ಮಾಡಿ.");
+        setIsSynthesizingAnalysis(false);
+        return;
       }
+      triggerDeductionAnimation(liveAnalysisCost, `-${liveAnalysisCost} Coins (₹${Math.round(liveAnalysisCost / 10)})`);
 
       // Record invocation in Token Bucket Rate Limiter
       recordLiveAiInvocation();
@@ -590,36 +579,32 @@ Return a valid JSON object with EXACTLY these 5 keys:
 
   const handleUnlockPersonality = async () => {
     setIsUnlocking(true);
+    setErrorMessage(null);
     try {
-      await executeSafeDeduction(
+      const res = await executeSafeDeduction(
         1000,
         `Public Kundali Personality & Hidden Psyche Unlock (1,000 Coins): ${form.name.trim()}`,
         form.name.trim()
       );
+      if (!res.success) {
+        setErrorMessage(res.error || "ನಾಣ್ಯಗಳ ಕೊರತೆ ಇದೆ. ದಯವಿಟ್ಟು ರೀಚಾರ್ಜ್ ಮಾಡಿ.");
+        setIsUnlocking(false);
+        return;
+      }
+
       // Trigger floating deduction animation (-1,000 Coins) in vibrant red rising upwards
       triggerDeductionAnimation(1000, "-1,000 Coins (₹100)");
-      try {
-        const ws = useWalletStore.getState();
-        if (ws && ws.recentDeductions) {
-          ws.recentDeductions.push({
-            id: `deduct_${Date.now()}`,
-            coins: 1000,
-            serviceName: "Public Kundali Personality Unlock",
-            timestamp: Date.now()
-          });
-        }
-      } catch (e) {
-        // ignore
-      }
-    } catch (err) {
-      console.warn("[PublicKundli] Personality unlock coin deduction error:", err);
-    } finally {
       setIsPersonalityUnlocked(true);
       setShowUnlockModal(false);
       setIsUnlocking(false);
       setActiveTab("personality");
+    } catch (err) {
+      console.warn("[PublicKundli] Personality unlock coin deduction error:", err);
+      setErrorMessage("ನಾಣ್ಯ ಕಡಿತ ಪ್ರಕ್ರಿಯೆಯಲ್ಲಿ ದೋಷ ಸಂಭವಿಸಿದೆ.");
+      setIsUnlocking(false);
     }
   };
+
 
   // --------------------------------------------------------------------------
   // Action 3: Devotee Custom Q&A
@@ -726,11 +711,16 @@ As the Chief Baggona Panchanga Gokarna Astrologer speaking directly to the devot
 
     try {
       // Safe Deduction Router (Pillar 5 -> 100%): Deducts from priest or isolated guest wallet
-      await executeSafeDeduction(
+      const res = await executeSafeDeduction(
         customQuestionCost,
         `Public Kundli Custom Question Inquest: "${sanitizedQuestion.slice(0, 30)}..."`,
         form.name || "Devotee"
       );
+      if (!res.success) {
+        setCustomQuestionError(res.error || "ನಾಣ್ಯಗಳ ಕೊರತೆ ಇದೆ. ದಯವಿಟ್ಟು ರೀಚಾರ್ಜ್ ಮಾಡಿ.");
+        setIsSubmittingQuestion(false);
+        return;
+      }
       triggerDeductionAnimation(customQuestionCost, `-${customQuestionCost} Coins (₹${Math.round(customQuestionCost / 10)})`);
 
       const ans = generateCustomQuestionAstrologyAnswer(

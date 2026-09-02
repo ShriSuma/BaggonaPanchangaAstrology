@@ -12,6 +12,7 @@ import {
   limit,
   onSnapshot,
   serverTimestamp,
+  runTransaction,
   type Unsubscribe
 } from "firebase/firestore";
 import { firestore } from "../services/firebase";
@@ -829,57 +830,101 @@ export async function isPriestFirstTimeSetupDone(userId: string): Promise<boolea
 }
 
 /**
- * Deduct coins from Priest wallet for a service
+ * Deduct coins from Priest wallet for a service with 100% ACID properties (Atomicity, Consistency, Isolation, Durability)
+ * Uses Firestore runTransaction to guarantee:
+ * 1. Atomicity: Wallet balance update and transaction ledger write happen all-or-nothing.
+ * 2. Consistency & Isolation: Atomic read-and-decrement prevents race conditions, duplicate spends, or negative balances.
+ * 3. Idempotency: Optional idempotencyKey / deduplication lock prevents double-deduction on rapid duplicate clicks.
  */
 export async function deductPriestCoins(
   userId: string,
   coinsToDeduct: number,
   description: string,
-  clientName?: string
-): Promise<{ success: boolean; newBalance: number; error?: string }> {
+  clientName?: string,
+  idempotencyKey?: string
+): Promise<{ success: boolean; newBalance: number; error?: string; txId?: string }> {
+  if (coinsToDeduct <= 0) {
+    return { success: true, newBalance: 0 };
+  }
+
   try {
     const walletRef = doc(firestore, WALLETS_COL, userId);
-    const walletSnap = await getDoc(walletRef);
-    if (!walletSnap.exists()) {
-      return { success: false, newBalance: 0, error: "Wallet not found" };
-    }
+    const txId = idempotencyKey || `tx_deduct_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    const txRef = doc(firestore, TRANSACTIONS_COL, txId);
 
-    const wallet = walletSnap.data() as PriestWalletDoc;
-    if (wallet.coinBalance < coinsToDeduct) {
+    const result = await runTransaction(firestore, async (transaction) => {
+      // 1. Check idempotency: If this transaction already exists, return current wallet state
+      const existingTx = await transaction.get(txRef);
+      if (existingTx.exists()) {
+        const walletSnap = await transaction.get(walletRef);
+        const wData = walletSnap.exists() ? (walletSnap.data() as PriestWalletDoc) : null;
+        return {
+          success: true,
+          newBalance: wData?.coinBalance ?? 0,
+          txId,
+          alreadyProcessed: true
+        };
+      }
+
+      // 2. Atomic read of wallet
+      const walletSnap = await transaction.get(walletRef);
+      if (!walletSnap.exists()) {
+        throw new Error("WALLET_NOT_FOUND");
+      }
+
+      const wallet = walletSnap.data() as PriestWalletDoc;
+      const currentBalance = wallet.coinBalance || 0;
+
+      if (currentBalance < coinsToDeduct) {
+        throw new Error(`INSUFFICIENT_COINS:${currentBalance}`);
+      }
+
+      const newBalance = currentBalance - coinsToDeduct;
+      const nowIso = new Date().toISOString();
+
+      // 3. Atomic wallet balance update
+      transaction.update(walletRef, {
+        coinBalance: newBalance,
+        totalCoinsSpent: (wallet.totalCoinsSpent || 0) + coinsToDeduct,
+        updatedAt: nowIso
+      });
+
+      // 4. Atomic transaction ledger creation
+      const txDoc: WalletTransactionDoc = {
+        id: txId,
+        walletId: userId,
+        userId,
+        priestName: wallet.priestName,
+        type: "deduction",
+        coins: -coinsToDeduct,
+        status: "completed",
+        description,
+        clientName,
+        createdAt: nowIso
+      };
+      transaction.set(txRef, txDoc);
+
+      return { success: true, newBalance, txId };
+    });
+
+    return result;
+  } catch (err: any) {
+    console.error("[Firestore] ACID Deduct coins error:", err);
+    if (err?.message?.startsWith("INSUFFICIENT_COINS:")) {
+      const available = err.message.split(":")[1] || "0";
       return {
         success: false,
-        newBalance: wallet.coinBalance,
-        error: `Insufficient coins (${wallet.coinBalance} available, ${coinsToDeduct} needed)`
+        newBalance: Number(available),
+        error: `ನಾಣ್ಯಗಳ ಕೊರತೆ ಇದೆ (${available} ನಾಣ್ಯಗಳು ಲಭ್ಯವಿದೆ, ${coinsToDeduct} ನಾಣ್ಯಗಳು ಅಗತ್ಯವಿದೆ). ದಯವಿಟ್ಟು ರೀಚಾರ್ಜ್ ಮಾಡಿ.`
       };
     }
-
-    const newBalance = wallet.coinBalance - coinsToDeduct;
-    await updateDoc(walletRef, {
-      coinBalance: newBalance,
-      totalCoinsSpent: (wallet.totalCoinsSpent || 0) + coinsToDeduct,
-      updatedAt: new Date().toISOString()
-    });
-
-    // Create deduction record
-    const txId = `tx_deduct_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-    await createWalletTransaction({
-      id: txId,
-      walletId: userId,
-      userId,
-      type: "deduction",
-      coins: -coinsToDeduct,
-      status: "completed",
-      description,
-      clientName,
-      createdAt: new Date().toISOString()
-    });
-
-    return { success: true, newBalance };
-  } catch (err) {
-    console.error("[Firestore] Deduct coins error:", err);
-    return { success: false, newBalance: 0, error: "Database deduction error" };
+    if (err?.message === "WALLET_NOT_FOUND") {
+      return { success: false, newBalance: 0, error: "ಪುರೋಹಿತರ ವಾಲೆಟ್ ಕಂಡುಬಂದಿಲ್ಲ." };
+    }
+    return { success: false, newBalance: 0, error: "ವಹಿವಾಟು ಪ್ರಕ್ರಿಯೆಯಲ್ಲಿ ದೋಷ ಸಂಭವಿಸಿದೆ." };
   }
 }
+
 
 /**
  * Save Panchanga record to cloud Firestore

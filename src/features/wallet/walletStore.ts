@@ -47,6 +47,8 @@ export interface WalletState {
   adminUnsub: (() => void) | null;
   allWalletsUnsub: (() => void) | null;
 
+  isDeductingService: boolean;
+
   // Actions
   initWallet: (userId: string, priestName?: string) => Promise<void>;
   subscribeAllWallets: () => void;
@@ -56,7 +58,7 @@ export interface WalletState {
   openAdminApprovalModal: () => void;
   closeAdminApprovalModal: () => void;
   submitUpiRecharge: (upiUtr: string) => Promise<{ success: boolean; error?: string }>;
-  deductForService: (coins: number, serviceName: string, clientName?: string) => Promise<{ success: boolean; error?: string }>;
+  deductForService: (coins: number, serviceName: string, clientName?: string, idempotencyKey?: string) => Promise<{ success: boolean; error?: string }>;
   approveTx: (txId: string) => Promise<boolean>;
   directCoinAdjustment: (userId: string, coins: number, reason: string) => Promise<{ success: boolean; error?: string }>;
   refundCoins: (coins: number, reason: string) => Promise<{ success: boolean; error?: string }>;
@@ -74,6 +76,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
   isRechargeModalOpen: false,
   isAdminApprovalModalOpen: false,
   isSubmittingRecharge: false,
+  isDeductingService: false,
   isLoading: false,
   error: null,
   successMessage: null,
@@ -203,8 +206,11 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     }
   },
 
-  deductForService: async (coins: number, serviceName: string, clientName?: string) => {
-    const { wallet } = get();
+  deductForService: async (coins: number, serviceName: string, clientName?: string, idempotencyKey?: string) => {
+    const { wallet, isDeductingService } = get();
+    if (isDeductingService) {
+      return { success: false, error: "ವಹಿವಾಟು ಪ್ರಕ್ರಿಯೆಯಲ್ಲಿದೆ. ದಯವಿಟ್ಟು ನಿರೀಕ್ಷಿಸಿ." };
+    }
     if (!wallet) {
       return { success: false, error: "Wallet not connected" };
     }
@@ -216,33 +222,44 @@ export const useWalletStore = create<WalletState>((set, get) => ({
       };
     }
 
-    const res = await deductPriestCoins(wallet.userId, coins, serviceName, clientName);
-    if (!res.success) {
-      return { success: false, error: res.error ?? "Deduction failed" };
+    set({ isDeductingService: true, error: null });
+
+    try {
+      const generatedKey = idempotencyKey || `idemp_${wallet.userId}_${serviceName.replace(/\s+/g, "_")}_${Math.floor(Date.now() / 3000)}`;
+      const res = await deductPriestCoins(wallet.userId, coins, serviceName, clientName, generatedKey);
+      if (!res.success) {
+        set({ isDeductingService: false, error: res.error ?? "Deduction failed" });
+        return { success: false, error: res.error ?? "Deduction failed" };
+      }
+
+      // Register active floating deduction animation
+      const animId = `deduct_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;
+      const newDeduction: ActiveDeductionAnimation = {
+        id: animId,
+        coins,
+        serviceName,
+        timestamp: Date.now()
+      };
+
+      set((state) => ({
+        isDeductingService: false,
+        recentDeductions: [...state.recentDeductions.slice(-4), newDeduction]
+      }));
+
+      // Auto dismiss animation after 3.2 seconds
+      if (typeof window !== "undefined") {
+        setTimeout(() => {
+          get().clearRecentDeduction(animId);
+        }, 3200);
+      }
+
+      return { success: true };
+    } catch (err) {
+      set({ isDeductingService: false, error: "Deduction error occurred" });
+      return { success: false, error: "Deduction error occurred" };
     }
-
-    // Register active floating deduction animation
-    const animId = `deduct_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;
-    const newDeduction: ActiveDeductionAnimation = {
-      id: animId,
-      coins,
-      serviceName,
-      timestamp: Date.now()
-    };
-
-    set((state) => ({
-      recentDeductions: [...state.recentDeductions.slice(-4), newDeduction]
-    }));
-
-    // Auto dismiss animation after 3.2 seconds
-    if (typeof window !== "undefined") {
-      setTimeout(() => {
-        get().clearRecentDeduction(animId);
-      }, 3200);
-    }
-
-    return { success: true };
   },
+
 
   clearRecentDeduction: (id: string) => {
     set((state) => ({
