@@ -73,7 +73,7 @@ export default function SankhyaShastraPage(): JSX.Element {
   // ----------------------------------------------------------------------
   // TAB 5: LUCKY NAME NUMEROLOGY STATES
   // ----------------------------------------------------------------------
-  const [nameInput, setNameInput] = useState<string>(session?.input?.name || "Shreeram Pandit");
+  const [nameInput, setNameInput] = useState<string>(() => session?.input?.name || "Shreeram Pandit");
   const [nameTargetNumber, setNameTargetNumber] = useState<number>(5);
   const [isAiValidatingName, setIsAiValidatingName] = useState<boolean>(false);
   const [aiNameSuggestions, setAiNameSuggestions] = useState<NameCorrectionSuggestion[] | null>(null);
@@ -88,7 +88,29 @@ export default function SankhyaShastraPage(): JSX.Element {
   // ----------------------------------------------------------------------
   // TAB 7: MULANK & BHAGYANK STATES
   // ----------------------------------------------------------------------
-  const [birthDatePicker, setBirthDatePicker] = useState<Date | null>(() => new Date(1993, 4, 15));
+  const [birthDatePicker, setBirthDatePicker] = useState<Date | null>(() => {
+    const rawDob = session?.birthDateYmd || session?.input?.birthDate;
+    if (rawDob) {
+      const parts = rawDob.split("-").map(Number);
+      if (parts.length === 3 && parts[0] && parts[1] && parts[2]) {
+        return new Date(parts[0], parts[1] - 1, parts[2]);
+      }
+    }
+    return new Date(1993, 4, 15);
+  });
+
+  useEffect(() => {
+    if (session) {
+      if (session.input?.name) setNameInput(session.input.name);
+      const rawDob = session.birthDateYmd || session.input?.birthDate;
+      if (rawDob) {
+        const parts = rawDob.split("-").map(Number);
+        if (parts.length === 3 && parts[0] && parts[1] && parts[2]) {
+          setBirthDatePicker(new Date(parts[0], parts[1] - 1, parts[2]));
+        }
+      }
+    }
+  }, [session]);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
 

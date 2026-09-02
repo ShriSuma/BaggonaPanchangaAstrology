@@ -1,7 +1,8 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { useAppStore } from "../stores/appStore";
+import { useKundliViewerStore } from "../stores/kundliViewerStore";
 import type { SupportedLanguage } from "../stores/appStore";
 import Card from "../components/ui/Card";
 import AudioPlayerButton from "../components/ui/AudioPlayerButton";
@@ -19,14 +20,31 @@ import { AyurSanjeeviniPdfTemplate } from "../components/ayursanjeevini/AyurSanj
 
 export const AyurSanjeeviniPage: React.FC = () => {
   const language = useAppStore((state) => state.language) as SupportedLanguage;
+  const placeLabel = useAppStore((state) => state.placeLabel);
+  const pincodeStore = useAppStore((state) => state.pincode);
+  const kundliSession = useKundliViewerStore((state) => state.session);
 
   const [mode, setMode] = useState<AyurMode>("janma");
-  const [personName, setPersonName] = useState("");
-  const [dob, setDob] = useState("1992-06-15");
-  const [tob, setTob] = useState("07:30");
-  const [pob, setPob] = useState("581326 Gokarna");
-  const [gotra, setGotra] = useState("Kashyapa");
+  const [personName, setPersonName] = useState(() => kundliSession?.input?.name || "");
+  const [dob, setDob] = useState(() => kundliSession?.birthDateYmd || kundliSession?.input?.birthDate || "1992-06-15");
+  const [tob, setTob] = useState(() => kundliSession?.birthTimeHm || kundliSession?.input?.birthTime || "07:30");
+  const [pob, setPob] = useState(() => kundliSession?.placeLabel || (pincodeStore ? `${pincodeStore} ${placeLabel}` : "581326 Gokarna"));
+  const [gotra, setGotra] = useState(() => kundliSession?.input?.gothra || "Kashyapa");
   const [customConcern, setCustomConcern] = useState("");
+
+  useEffect(() => {
+    if (kundliSession) {
+      if (kundliSession.input?.name) setPersonName(kundliSession.input.name);
+      if (kundliSession.birthDateYmd || kundliSession.input?.birthDate) {
+        setDob(kundliSession.birthDateYmd || kundliSession.input.birthDate);
+      }
+      if (kundliSession.birthTimeHm || kundliSession.input?.birthTime) {
+        setTob(kundliSession.birthTimeHm || kundliSession.input.birthTime);
+      }
+      if (kundliSession.placeLabel) setPob(kundliSession.placeLabel);
+      if (kundliSession.input?.gothra) setGotra(kundliSession.input.gothra);
+    }
+  }, [kundliSession]);
 
   const [activeTab, setActiveTab] = useState<string>("tab1");
   const [result, setResult] = useState<AyurSanjeeviniResult | null>(null);

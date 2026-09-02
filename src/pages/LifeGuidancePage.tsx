@@ -5,6 +5,7 @@ import { LifeGuidancePdfTemplate } from "../components/lifeguidance/LifeGuidance
 import { PREDEFINED_PRIESTS, getPriestProfile } from "../features/seva/sevaPriestDirectory";
 import { sanitizeAIText } from "../utils/textFormatter";
 import { useAppStore } from "../stores/appStore";
+import { useKundliViewerStore } from "../stores/kundliViewerStore";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
@@ -19,17 +20,35 @@ export type LifeGuidancePageProps = {
 
 export const LifeGuidancePage: React.FC<LifeGuidancePageProps> = ({ initialInput }) => {
   const activeKey = useAppStore((state) => state.geminiApiKey);
+  const session = useKundliViewerStore((state) => state.session);
 
   const [selectedLang, setSelectedLang] = useState<string>("kn");
   const isKn = selectedLang === "kn";
 
-  const [personName, setPersonName] = useState<string>(initialInput?.personName || "");
-  const [dob, setDob] = useState<string>(initialInput?.dob || "");
-  const [tob, setTob] = useState<string>(initialInput?.tob || "12:00");
-  const [gender, setGender] = useState<string>(initialInput?.gender || "Male");
+  const effectiveName = initialInput?.personName || session?.input?.name || "";
+  const effectiveDob = initialInput?.dob || session?.birthDateYmd || session?.input?.birthDate || "";
+  const effectiveTob = initialInput?.tob || session?.birthTimeHm || session?.input?.birthTime || "12:00";
+  const effectiveGender = initialInput?.gender || (session?.input as any)?.gender || "Male";
+
+  const [personName, setPersonName] = useState<string>(effectiveName);
+  const [dob, setDob] = useState<string>(effectiveDob);
+  const [tob, setTob] = useState<string>(effectiveTob);
+  const [gender, setGender] = useState<string>(effectiveGender);
 
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [result, setResult] = useState<LifeGuidanceResult | null>(null);
+
+  React.useEffect(() => {
+    if (session) {
+      if (!personName && session.input?.name) setPersonName(session.input.name);
+      if (!dob && (session.birthDateYmd || session.input?.birthDate)) {
+        setDob(session.birthDateYmd || session.input.birthDate);
+      }
+      if (session.birthTimeHm || session.input?.birthTime) {
+        setTob(session.birthTimeHm || session.input.birthTime);
+      }
+    }
+  }, [session]);
 
   // Auto-calculate if initialInput with DOB is provided
   React.useEffect(() => {
