@@ -2,10 +2,8 @@ import React from "react";
 import Card from "../ui/Card";
 import type { FacialFeatureAnalysis, FaceReadingResult } from "../../features/facereading/faceReadingEngine";
 import {
-  VEDIC_PANCHA_MAHABHUTA_FACES,
-  VEDIC_MAHAPURUSHA_FACIAL_ARCHETYPES,
   VEDIC_LALATA_PLANETARY_LINES,
-  VEDIC_EYE_TYPES
+  VEDIC_7_FACIAL_FEATURES_CATALOG_L5
 } from "../../features/facereading/samudrikaFaceKnowledge";
 
 type Props = {
@@ -14,68 +12,111 @@ type Props = {
   lang: string;
 };
 
-const DEFAULT_FEATURES: FacialFeatureAnalysis[] = [
-  {
-    featureKey: "forehead",
-    name: { kn: "೧. ಲಲಾಟ (Forehead)", en: "1. Forehead (Lalata)" },
-    planetaryRuler: { kn: "ಗುರು & ರವಿ (ಜ್ಞಾನ & ನಾಯಕತ್ವ)", en: "Jupiter & Sun (Wisdom & Leadership)" },
-    observedStructure: { kn: "ವಿಶಾಲ ಹಾಗೂ ಉನ್ನತ ಲಲಾಟ (Broad & Elevated)", en: "Broad and elevated forehead" },
-    vedicIndication: { kn: "ಉನ್ನತ ಬುದ್ಧಿಶಕ್ತಿ, ಆಡಳಿತ ನಾಯಕತ್ವ ಹಾಗೂ ಸ್ವತಂತ್ರ ಚಿಂತನೆ.", en: "Executive intellect, strategic leadership and independent thought." },
-    score: 92
-  },
-  {
-    featureKey: "eyes",
-    name: { kn: "೨. ನೇತ್ರ (Eyes)", en: "2. Eyes (Netra)" },
-    planetaryRuler: { kn: "ರವಿ (ಬಲ) & ಚಂದ್ರ (ಎಡ)", en: "Sun (Right) & Moon (Left)" },
-    observedStructure: { kn: "ಪದ್ಮಾಕಾರದ ನೇತ್ರಗಳು (Lotus Shaped)", en: "Lotus/Almond shaped eyes" },
-    vedicIndication: { kn: "ದೈವಿಕ ಅಂತಃಸ್ಫೂರ್ತಿ, ಸತ್ಯನಿಷ್ಠೆ ಹಾಗೂ ಸೂಕ್ಷ್ಮ ಗ್ರಹಣ ಶಕ್ತಿ.", en: "Deep intuition, integrity, and perceptive foresight." },
-    score: 88
-  },
-  {
-    featureKey: "nose",
-    name: { kn: "೩. ನಾಸಿಕ (Nose & Bridge)", en: "3. Nose & Wealth Bridge (Nasika)" },
-    planetaryRuler: { kn: "ಗುರು & ಬುಧ (ಕುಬೇರ ಸ್ಥಾನ)", en: "Jupiter & Mercury (Kuber Sthana)" },
-    observedStructure: { kn: "ಉನ್ನತ ಧನ ರೇಖಾ ಸೇತುವೆ & ಮಾಂಸಲ ತುದಿ", en: "High bridge with well-rounded wealth tip" },
-    vedicIndication: { kn: "ಸ್ಥಿರ ಧನ ವೃದ್ಧಿ, ಕುಬೇರ ಯೋಗ ಹಾಗೂ ಉತ್ತಮ ಆರ್ಥಿಕ ನಿರ್ವಹಣೆ.", en: "Continuous wealth accumulation, financial wisdom and prosperity." },
-    score: 90
-  },
-  {
-    featureKey: "lips",
-    name: { kn: "೪. ಓಷ್ಠ & ಮುಖ (Lips & Mouth)", en: "4. Lips & Expression (Oshtha)" },
-    planetaryRuler: { kn: "ಶುಕ್ರ & ಬುಧ (ವಾಕ್ ಸಿದ್ಧಿ)", en: "Venus & Mercury (Vak Siddhi)" },
-    observedStructure: { kn: "ಸಮತೋಲಿತ ಹಾಗೂ ಆಕರ್ಷಕ ಓಷ್ಠ", en: "Harmonious and expressive lips" },
-    vedicIndication: { kn: "ಚಾಣಾಕ್ಷ ವಾಕ್ಚಾತುರ್ಯ, ಸೌಹಾರ್ದಯುತ ಮಾತು ಹಾಗೂ ಆಕರ್ಷಕ ವ್ಯಕ್ತಿತ್ವ.", en: "Articulate eloquence, diplomatic charm and warm affection." },
-    score: 86
-  },
-  {
-    featureKey: "chin",
-    name: { kn: "೫. ಚಿಬುಕ & ಹನು (Chin & Jaw)", en: "5. Chin & Jawline (Chibuka)" },
-    planetaryRuler: { kn: "ಶನಿ & ಮಂಗಳ (ಭೂಮಿ ಯೋಗ)", en: "Saturn & Mars (Bhoomi Yoga)" },
-    observedStructure: { kn: "ದೃಢ ಹಾಗೂ ಬಲಯುತ ಚಿಬುಕ", en: "Firm, well-rounded and strong chin" },
-    vedicIndication: { kn: "ಅಚಲ ಮನೋಬಲ, ಸ್ವಂತ ಆಸ್ತಿ ನಿರ್ಮಾಣ ಹಾಗೂ ಸುಖಕರ ವೃದ್ಧಾಪ್ಯ.", en: "Unshakeable willpower, real estate ownership and serene late life." },
-    score: 91
-  },
-  {
-    featureKey: "ears",
-    name: { kn: "೬. ಕರ್ಣ (Ears & Lobes)", en: "6. Ears & Lobes (Karna)" },
-    planetaryRuler: { kn: "ಗುರು (ಆಯುಷ್ಯ ರಕ್ಷೆ)", en: "Jupiter (Longevity & Grace)" },
-    observedStructure: { kn: "ದೀರ್ಘ ಹಾಗೂ ಸುಂದರ ಕರ್ಣ ಪಾಲಿಕೆಗಳು", en: "Long, auspicious and thick earlobes" },
-    vedicIndication: { kn: "ದೀರ್ಘಾಯುಷ್ಯ, ದೈವಿಕ ರಕ್ಷೆ ಹಾಗೂ ಹಿರಿಯರ ಆಶೀರ್ವಾದ.", en: "Longevity, spiritual protection and blessing of ancestors." },
-    score: 87
-  },
-  {
-    featureKey: "cheeks",
-    name: { kn: "೭. ಗಂಡಸ್ಥಳ & ತೇಜಸ್ಸು (Cheeks & Aura)", en: "7. Cheeks & Aura Radiance (Gandasthala)" },
-    planetaryRuler: { kn: "ರವಿ & ಚಂದ್ರ (ತೇಜಸ್ಸು)", en: "Sun & Moon (Tejas & Ojas)" },
-    observedStructure: { kn: "ಕಾಂತಿಯುತ ಗಂಡಸ್ಥಳ ಹಾಗೂ ತೇಜಸ್ಸು", en: "Radiant cheek contour with natural luster" },
-    vedicIndication: { kn: "ಸಮಾಜದಲ್ಲಿ ಉನ್ನತ ಗೌರವ, ಜನಪ್ರಿಯತೆ ಹಾಗೂ ಸಾತ್ವಿಕ ಪ್ರಭಾವ.", en: "High societal respect, magnetic goodwill and pure charisma." },
-    score: 89
-  }
-];
+const STRENGTH_LABELS: Record<string, string> = {
+  kn: "ಬಲ:",
+  en: "Strength:",
+  hi: "शक्ति:",
+  te: "బలం:",
+  ta: "பலம்:"
+};
+
+const RULING_PLANET_LABELS: Record<string, string> = {
+  kn: "ಅಧಿಪತಿ ಗ್ರಹ:",
+  en: "Ruling Planet:",
+  hi: "स्वामी ग्रह:",
+  te: "అధిపతి గ్రహం:",
+  ta: "அதிபதி கிரகம்:"
+};
+
+const STRUCTURE_LABELS: Record<string, string> = {
+  kn: "ಮುಖ ಲಕ್ಷಣ ರಚನೆ:",
+  en: "Structure Observed:",
+  hi: "लक्षण संरचना:",
+  te: "లక్షణ నిర్మాణం:",
+  ta: "அமைப்பு வடிவம்:"
+};
+
+const VEDIC_INDICATION_LABELS: Record<string, string> = {
+  kn: "ದೈವಿಕ ಸಾಮುದ್ರಿಕ ಫಲ (Vedic Indication):",
+  en: "Vedic Indication:",
+  hi: "वैदिक फल (Vedic Indication):",
+  te: "వైదిక ఫలం (Vedic Indication):",
+  ta: "வேத பலன் (Vedic Indication):"
+};
+
+const INTRO_TITLES: Record<string, string> = {
+  kn: "ಸಪ್ತ ಮುಖ ಲಕ್ಷಣಗಳು, ಮಹಾಪುರುಷ ಯೋಗ & ಲಲಾಟ ರೇಖೆಗಳು",
+  en: "7 Facial Features, Mahapurusha Yogas & Metoposcopy",
+  hi: "सप्त मुख लक्षण, महापुरुष योग एवं ललाट रेखाएं",
+  te: "సప్త ముఖ లక్షణాలు, మహాపురుష యోగాలు & లలాట రేఖలు",
+  ta: "ஏழு முக லட்சணங்கள், மகாபுருஷ யோகம் & நெற்றி ரேகைகள்"
+};
+
+const INTRO_TEXTS: Record<string, string> = {
+  kn: "ಪ್ರಾಚೀನ ಮುಖ ಸಾಮುದ್ರಿಕ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ಮುಖದ ಪ್ರತಿಯೊಂದು ಅಂಗವೂ ವ್ಯಕ್ತಿಯ ಪೂರ್ವಜನ್ಮದ ಸುಕೃತ, ಪಂಚಮಹಾಭೂತ ತತ್ತ್ವ ಹಾಗೂ ನವಗ್ರಹ ಕರ್ಮಫಲವನ್ನು ಪ್ರಕಟಿಸುತ್ತದೆ.",
+  en: "According to classical Vedic Samudrika Shastra, every facial contour reflects the native's past merit, elemental balance, and planetary governance.",
+  hi: "प्राचीन वैदिक सामुद्रिक शास्त्र के अनुसार मुख का प्रत्येक अंग पूर्वजन्म के पुण्य, पंचमहाभूत तत्व व नवग्रह कर्मफल को दर्शाता है।",
+  te: "ప్రాచీన ముఖ సాಮುద్రಿಕ శాస్త్రం ప్రకారం ముఖంలోని ప్రతి అంగమూ పూర్వజన్మ సుకృతం, పంచభూత తత్త్వం & నవగ్రహ కర్మఫలాన్ని తెలియజేస్తుంది.",
+  ta: "பழங்கால முக சாமுத்ரிகா சாஸ்திரப்படி முகத்தின் ஒவ்வொரு பகுதியும் பூர்வ புண்ணியம், பஞ்சபூத தத்துவம் மற்றும் நவகிரக கர்ம பலனைப் பிரதிபலிக்கிறது."
+};
+
+const CONSTITUTION_TITLES: Record<string, string> = {
+  kn: "ಪಂಚ ಮಹಾಪುರುಷ ಯೋಗ & ದೈವಿಕ ಸಂವಿಧಾನ",
+  en: "Pancha Mahapurusha Archetype & Constitution",
+  hi: "पंच महापुरुष योग एवं प्रकृति",
+  te: "పంచ మహాపురుష యోగం & ప్రకృతి",
+  ta: "பஞ்ச மகாபுருஷ யோகம் & உடல் தத்துவம்"
+};
+
+const MAHAPURUSHA_LABELS: Record<string, string> = {
+  kn: "ಮಹಾಪುರುಷ ಯೋಗ:",
+  en: "Mahapurusha Yoga:",
+  hi: "महापुरुष योग:",
+  te: "మహాపురుష యోగం:",
+  ta: "மகாபுருஷ யோகம்:"
+};
+
+const ELEMENT_LABELS: Record<string, string> = {
+  kn: "ಪಂಚಭೂತ ತತ್ತ್ವ:",
+  en: "Elemental Constitution:",
+  hi: "पंचमहाभूत तत्व:",
+  te: "పంచభూత తత్త్వం:",
+  ta: "பஞ்சபூத தத்துவம்:"
+};
+
+const EYE_SHAPE_LABELS: Record<string, string> = {
+  kn: "ನೇತ್ರ ರೂಪ (Eye Shape):",
+  en: "Vedic Eye Shape:",
+  hi: "नेत्र रूप (Eye Shape):",
+  te: "నేత్ర రూపం (Eye Shape):",
+  ta: "கண் வடிவம் (Eye Shape):"
+};
+
+const METOPOSCOPY_TITLES: Record<string, string> = {
+  kn: "ಲಲಾಟ ಸಪ್ತ ಗ್ರಹ ರೇಖಾ ವಿಶ್ಲೇಷಣೆ (Forehead Metoposcopy)",
+  en: "7 Forehead Planetary Lines (Metoposcopy)",
+  hi: "ललाट सप्त ग्रह रेखा विश्लेषण (Metoposcopy)",
+  te: "లలాట సప్త గ్రహ రేఖా విశ్లేషణ (Metoposcopy)",
+  ta: "நெற்றி சப்த கிரக ரேகை ஆய்வு (Metoposcopy)"
+};
+
+const LALATA_BADGES: Record<string, string> = {
+  kn: "ಲಲಾಟ ರೇಖಾ",
+  en: "Lalata Rekha",
+  hi: "ललाट रेखा",
+  te: "లలాట రేఖ",
+  ta: "லலாட ரேகை"
+};
+
+function formatText(value: Record<string, string> | { kn: string; en: string; hi?: string; te?: string; ta?: string } | string | undefined, lang: string): string {
+  if (!value) return "";
+  if (typeof value === "string") return value;
+  const dict = value as Record<string, string>;
+  return dict[lang] || dict.kn || dict.en || "";
+}
 
 export const FaceFeaturesTab: React.FC<Props> = ({ result, features, lang }) => {
-  const isKn = lang === "kn";
-  const featureList = features && features.length > 0 ? features : (result?.features || DEFAULT_FEATURES);
+  const featureList = features && features.length > 0 ? features : (result?.features || VEDIC_7_FACIAL_FEATURES_CATALOG_L5);
 
   return (
     <div className="space-y-6">
@@ -88,12 +129,10 @@ export const FaceFeaturesTab: React.FC<Props> = ({ result, features, lang }) => 
               ॥ ವರಾಹಮಿಹಿರ ಬೃಹತ್ ಸಂಹಿತಾ & ಗರುಡ ಪುರಾಣ ಶಾಸ್ತ್ರ ॥
             </div>
             <h3 className="font-serif text-base font-bold text-amber-950">
-              {isKn ? "ಸಪ್ತ ಮುಖ ಲಕ್ಷಣಗಳು, ಮಹಾಪುರುಷ ಯೋಗ & ಲಲಾಟ ರೇಖೆಗಳು" : "7 Facial Features, Mahapurusha Yogas & Metoposcopy"}
+              {INTRO_TITLES[lang] || INTRO_TITLES.en}
             </h3>
             <p className="text-xs text-amber-900/90 leading-relaxed font-medium">
-              {isKn
-                ? "ಪ್ರಾಚೀನ ಮುಖ ಸಾಮುದ್ರಿಕ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ಮುಖದ ಪ್ರತಿಯೊಂದು ಅಂಗವೂ ವ್ಯಕ್ತಿಯ ಪೂರ್ವಜನ್ಮದ ಸುಕೃತ, ಪಂಚಮಹಾಭೂತ ತತ್ತ್ವ ಹಾಗೂ ನವಗ್ರಹ ಕರ್ಮಫಲವನ್ನು ಪ್ರಕಟಿಸುತ್ತದೆ."
-                : "According to classical Vedic Samudrika Shastra, every facial contour reflects the native's past merit, elemental balance, and planetary governance."}
+              {INTRO_TEXTS[lang] || INTRO_TEXTS.en}
             </p>
           </div>
         </div>
@@ -104,23 +143,23 @@ export const FaceFeaturesTab: React.FC<Props> = ({ result, features, lang }) => 
         <Card className="border border-amber-300 bg-gradient-to-br from-amber-50/90 to-white p-5 shadow-sm space-y-3">
           <div className="font-serif text-sm font-bold text-amber-950 border-b border-amber-200 pb-1.5 flex items-center gap-2">
             <span>👑</span>
-            <span>{isKn ? "ಪಂಚ ಮಹಾಪುರುಷ ಯೋಗ & ದೈವಿಕ ಸಂವಿಧಾನ" : "Pancha Mahapurusha Archetype & Constitution"}</span>
+            <span>{CONSTITUTION_TITLES[lang] || CONSTITUTION_TITLES.en}</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
             <div className="rounded-xl bg-white p-3 border border-amber-200 shadow-sm">
-              <span className="font-bold text-amber-900 block">{isKn ? "ಮಹಾಪುರುಷ ಯೋಗ:" : "Mahapurusha Yoga:"}</span>
-              <span className="font-extrabold text-amber-950 text-sm mt-0.5 block">{result.facialConstitution.mahapurushaArchetype[lang] || result.facialConstitution.mahapurushaArchetype.kn}</span>
+              <span className="font-bold text-amber-900 block">{MAHAPURUSHA_LABELS[lang] || MAHAPURUSHA_LABELS.en}</span>
+              <span className="font-extrabold text-amber-950 text-sm mt-0.5 block">{formatText(result.facialConstitution.mahapurushaArchetype, lang)}</span>
             </div>
 
             <div className="rounded-xl bg-white p-3 border border-amber-200 shadow-sm">
-              <span className="font-bold text-amber-900 block">{isKn ? "ಪಂಚಭೂತ ತತ್ತ್ವ:" : "Elemental Constitution:"}</span>
-              <span className="font-bold text-amber-950 mt-0.5 block">{result.facialConstitution.primaryElement[lang] || result.facialConstitution.primaryElement.kn}</span>
+              <span className="font-bold text-amber-900 block">{ELEMENT_LABELS[lang] || ELEMENT_LABELS.en}</span>
+              <span className="font-bold text-amber-950 mt-0.5 block">{formatText(result.facialConstitution.primaryElement, lang)}</span>
             </div>
 
             <div className="rounded-xl bg-white p-3 border border-amber-200 shadow-sm">
-              <span className="font-bold text-amber-900 block">{isKn ? "ನೇತ್ರ ರೂಪ (Eye Shape):" : "Vedic Eye Shape:"}</span>
-              <span className="font-bold text-emerald-900 mt-0.5 block">{result.facialConstitution.eyeShapeType[lang] || result.facialConstitution.eyeShapeType.kn}</span>
+              <span className="font-bold text-amber-900 block">{EYE_SHAPE_LABELS[lang] || EYE_SHAPE_LABELS.en}</span>
+              <span className="font-bold text-emerald-900 mt-0.5 block">{formatText(result.facialConstitution.eyeShapeType, lang)}</span>
             </div>
           </div>
         </Card>
@@ -135,29 +174,29 @@ export const FaceFeaturesTab: React.FC<Props> = ({ result, features, lang }) => 
           >
             <div className="flex items-center justify-between border-b border-amber-200 pb-2">
               <span className="font-serif text-sm font-bold text-amber-950">
-                {f.name[lang] || f.name.kn}
+                {formatText(f.name, lang)}
               </span>
               <span className="text-[11px] bg-amber-100 text-amber-900 font-extrabold px-2.5 py-0.5 rounded-full border border-amber-300">
-                ಬಲ: {f.score}%
+                {STRENGTH_LABELS[lang] || STRENGTH_LABELS.en} {f.score}%
               </span>
             </div>
 
             <div className="space-y-1.5 text-xs text-slate-800 leading-relaxed">
               <div>
-                <span className="font-bold text-amber-900">{isKn ? "ಅಧಿಪತಿ ಗ್ರಹ:" : "Ruling Planet:"}</span>{" "}
-                <span className="font-semibold text-amber-950">{f.planetaryRuler[lang] || f.planetaryRuler.kn}</span>
+                <span className="font-bold text-amber-900">{RULING_PLANET_LABELS[lang] || RULING_PLANET_LABELS.en}</span>{" "}
+                <span className="font-semibold text-amber-950">{formatText(f.planetaryRuler, lang)}</span>
               </div>
 
               <div>
-                <span className="font-bold text-amber-900">{isKn ? "ಮುಖ ಲಕ್ಷಣ ರಚನೆ:" : "Structure Observed:"}</span>{" "}
-                <span className="font-medium text-slate-900">{f.observedStructure[lang] || f.observedStructure.kn}</span>
+                <span className="font-bold text-amber-900">{STRUCTURE_LABELS[lang] || STRUCTURE_LABELS.en}</span>{" "}
+                <span className="font-medium text-slate-900">{formatText(f.observedStructure, lang)}</span>
               </div>
 
               <div className="rounded-xl bg-amber-50/70 p-2.5 border border-amber-200 mt-2">
                 <span className="font-bold text-amber-950 block mb-0.5">
-                  🪔 {isKn ? "ದೈವಿಕ ಸಾಮುದ್ರಿಕ ಫಲ (Vedic Indication):" : "Vedic Indication:"}
+                  🪔 {VEDIC_INDICATION_LABELS[lang] || VEDIC_INDICATION_LABELS.en}
                 </span>
-                <span className="text-amber-900 font-medium">{f.vedicIndication[lang] || f.vedicIndication.kn}</span>
+                <span className="text-amber-900 font-medium">{formatText(f.vedicIndication, lang)}</span>
               </div>
             </div>
           </Card>
@@ -169,10 +208,10 @@ export const FaceFeaturesTab: React.FC<Props> = ({ result, features, lang }) => 
         <div className="flex items-center justify-between border-b border-amber-200 pb-2">
           <h4 className="font-serif text-sm font-bold text-amber-950 flex items-center gap-2">
             <span>✨</span>
-            <span>{isKn ? "ಲಲಾಟ ಸಪ್ತ ಗ್ರಹ ರೇಖಾ ವಿಶ್ಲೇಷಣೆ (Forehead Metoposcopy)" : "7 Forehead Planetary Lines"}</span>
+            <span>{METOPOSCOPY_TITLES[lang] || METOPOSCOPY_TITLES.en}</span>
           </h4>
           <span className="text-[10px] bg-amber-100 text-amber-900 font-extrabold px-2.5 py-0.5 rounded-full border border-amber-300">
-            Lalata Rekha
+            {LALATA_BADGES[lang] || LALATA_BADGES.en}
           </span>
         </div>
 
@@ -180,13 +219,13 @@ export const FaceFeaturesTab: React.FC<Props> = ({ result, features, lang }) => 
           {VEDIC_LALATA_PLANETARY_LINES.map((line, idx) => (
             <div key={idx} className="rounded-xl bg-amber-50/60 p-3 border border-amber-200/80 space-y-1">
               <div className="font-bold text-amber-950 flex items-center justify-between">
-                <span>{line.planetKn}</span>
+                <span>{formatText(line.planet, lang)}</span>
                 <span className="text-[10px] bg-amber-200/80 text-amber-900 px-2 py-0.5 rounded font-extrabold">
                   #{line.lineIndex}
                 </span>
               </div>
               <p className="text-amber-900 font-medium leading-relaxed">
-                {isKn ? line.meaningKn : line.meaningEn}
+                {formatText(line.meaning, lang)}
               </p>
             </div>
           ))}

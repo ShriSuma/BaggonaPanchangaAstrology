@@ -1,28 +1,76 @@
 import React, { useEffect, useState } from "react";
 
 type Props = {
-  isKn: boolean;
+  lang?: string;
+  isKn?: boolean;
 };
 
-const SCAN_STEPS_KN = [
-  "೧. ಮುಖದ ರಚನೆ ಹಾಗೂ ಲಲಾಟ (ಹಣೆ) ಗುರು-ರವಿ ರೇಖೆಗಳ ಪರಿಶೀಲನೆ...",
-  "೨. ನೇತ್ರ (ಕಣ್ಣುಗಳು) ಹಾಗೂ ಭ್ರೂಮಧ್ಯ ಆಜ್ಞಾ ಚಕ್ರ ತೇಜಸ್ಸು ಗಣನೆ...",
-  "೩. ನಾಸಿಕ (ಮೂಗು) ಕುಬೇರ ಸ್ಥಾನ & ಧನ ಸೇತುವೆ ಸಾಮುದ್ರಿಕ ಅಳತೆ...",
-  "೪. ಓಷ್ಠ (ತುಟಿಗಳು), ವಾಕ್ ಸಿದ್ಧಿ ಹಾಗೂ ಚಿಬುಕ (ಗಡ್ಡ) ಸ್ಥಿರಾಸ್ತಿ ಯೋಗ...",
-  "೫. ೧೦೦-ವರ್ಷ ಮುಖ ಕಾಲಚಕ್ರ & ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ದೈವಿಕ ಫಲ ಸಿದ್ಧಿ!"
-];
+const SCAN_STEPS_BY_LANG: Record<string, string[]> = {
+  kn: [
+    "೧. ಮುಖದ ರಚನೆ ಹಾಗೂ ಲಲಾಟ (ಹಣೆ) ಗುರು-ರವಿ ರೇಖೆಗಳ ಪರಿಶೀಲನೆ...",
+    "೨. ನೇತ್ರ (ಕಣ್ಣುಗಳು) ಹಾಗೂ ಭ್ರೂಮಧ್ಯ ಆಜ್ಞಾ ಚಕ್ರ ತೇಜಸ್ಸು ಗಣನೆ...",
+    "೩. ನಾಸಿಕ (ಮೂಗು) ಕುಬೇರ ಸ್ಥಾನ & ಧನ ಸೇತುವೆ ಸಾಮುದ್ರಿಕ ಅಳತೆ...",
+    "೪. ಓಷ್ಠ (ತುಟಿಗಳು), ವಾಕ್ ಸಿದ್ಧಿ ಹಾಗೂ ಚಿಬುಕ (ಗಡ್ಡ) ಸ್ಥಿರಾಸ್ತಿ ಯೋಗ...",
+    "೫. ೧೦೦-ವರ್ಷ ಮುಖ ಕಾಲಚಕ್ರ & ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ದೈವಿಕ ಫಲ ಸಿದ್ಧಿ!"
+  ],
+  en: [
+    "1. Scanning Forehead (Lalata) & Jupiter-Sun Leadership lines...",
+    "2. Analyzing Eyes (Netra), Sclera luster & Ajna Chakra radiance...",
+    "3. Measuring Nose Bridge (Dhana Rekha) & Kuber Sthana wealth vault...",
+    "4. Inspecting Lips (Vak Siddhi), Chin (Land assets) & Jaw fortitude...",
+    "5. Mapping 100-Year Face Chronology & Sacred Gokarna Blessings!"
+  ],
+  hi: [
+    "1. ललाट (माथा) एवं गुरु-सूर्य नेतृत्व रेखाओं का सूक्ष्म विश्लेषण...",
+    "2. नयन (आँखें) एवं आज्ञा चक्र की सात्विक कांति का परीक्षण...",
+    "3. नासिका (नाक) एवं कुबेर स्थान धन योग का सामुद्रिक मापन...",
+    "4. ओष्ठ (होंठ), वाक् सिद्धि एवं चिबुक (ठोड़ी) अचल संपत्ति योग...",
+    "5. 100-वर्षीय मुख कालचक्र एवं श्री गोकर्ण महाबलेश्वर दिव्य कृपा!"
+  ],
+  te: [
+    "1. లలాటం (నుదురు) & గురు-సూర్య నాయకత్వ రేఖల పరిశీలన...",
+    "2. నేత్రాలు & ఆజ్ఞా చక్ర సాత్విక తేజస్సు విశ్లేషణ...",
+    "3. నాసిక (ముక్కు) కుబేర స్థానం & ధన సంపద యోగ మాపనం...",
+    "4. పెదవులు, వాక్ సిద్ధి & చిబుకం (గడ్డం) స్థిరాస్తి భాగ్యం...",
+    "5. 100-సంవత్సరాల ముఖ కాలచక్రం & గోకర్ణ మహాబలేశ్వర దివ్య ఆశీస్సులు!"
+  ],
+  ta: [
+    "1. நெற்றி (லலாடம்) & குரு-சூரிய தலைமை ரேகைகள் ஸ்கேன் செய்யப்படுகின்றன...",
+    "2. கண்கள் (நேத்ரம்) & ஆக்ஞா சக்கர தேஜஸ் பரிசோதனை...",
+    "3. நாசிகா (மூக்கு) குபேர தன யோகம் மற்றும் ஐஸ்வர்ய ஆய்வு...",
+    "4. உதடுகள், வாக் சித்தி & தாடை சொத்து யோகக் கணிப்பு...",
+    "5. 100-ஆண்டு முக காலச்சக்கரம் & கோகர்ண மகாபலேஸ்வரர் அருள் ஆசீர்வாதம்!"
+  ]
+};
 
-const SCAN_STEPS_EN = [
-  "1. Scanning Forehead (Lalata) & Jupiter-Sun Leadership lines...",
-  "2. Analyzing Eyes (Netra), Sclera luster & Ajna Chakra radiance...",
-  "3. Measuring Nose Bridge (Dhana Rekha) & Kuber Sthana wealth vault...",
-  "4. Inspecting Lips (Vak Siddhi), Chin (Land assets) & Jaw fortitude...",
-  "5. Mapping 100-Year Face Chronology & Sacred Gokarna Blessings!"
-];
+const SCANNER_TITLES: Record<string, string> = {
+  kn: "ಪ್ರಾಚೀನ ಮುಖ ಲಕ್ಷಣ ಸ್ಕ್ಯಾನರ್",
+  en: "Vedic Physiognomy Scanner",
+  hi: "वैदिक मुख सामुद्रिक स्कैनर",
+  te: "వైదిక ముఖ సాముద్రిక స్కానర్",
+  ta: "வேத முக சாமுத்ரிகா ஸ்கேனர்"
+};
 
-export const FaceScannerLoader: React.FC<Props> = ({ isKn }) => {
+const SUBTITLES: Record<string, string> = {
+  kn: "॥ ಮುಖ ಸಾಮುದ್ರಿಕ ಲಕ್ಷ್ಮೀ ಶಾಸ್ತ್ರ ॥",
+  en: "॥ MUKHA SAMUDRIKA LAKSHMI SHASTRA ॥",
+  hi: "॥ मुख सामुद्रिक लक्ष्मी शास्त्र ॥",
+  te: "॥ ముఖ సాముద్రిక లక్ష్మీ శాస్త్రం ॥",
+  ta: "॥ முக சாமுத்ரிகா லட்சுமி சாஸ்திரம் ॥"
+};
+
+const SHLOKAS: Record<string, string> = {
+  kn: "॥ ಮುಖಂ ವದತಿ ಧರ್ಮಜ್ಞಂ ಲಕ್ಷಣಂ ಜಯದಾಯಕಮ್ ॥",
+  en: "॥ Mukham Vadati Dharmajnam Lakshanam Jayadayakam ॥",
+  hi: "॥ मुखं वदति धर्मज्ञं लक्षणं जयदायकम् ॥",
+  te: "॥ ముఖం వదति धर्मज्ञं लक्षणं जयदायकम् ॥",
+  ta: "॥ முகம் வததி தர்மஜ்ஞம் லட்சணம் ஜயதாயகம் ॥"
+};
+
+export const FaceScannerLoader: React.FC<Props> = ({ lang, isKn }) => {
+  const currentLang = lang || (isKn ? "kn" : "en");
+  const steps = SCAN_STEPS_BY_LANG[currentLang] || SCAN_STEPS_BY_LANG.en;
   const [stepIdx, setStepIdx] = useState(0);
-  const steps = isKn ? SCAN_STEPS_KN : SCAN_STEPS_EN;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -64,10 +112,10 @@ export const FaceScannerLoader: React.FC<Props> = ({ isKn }) => {
         {/* Title & Mantras */}
         <div className="space-y-2">
           <div className="text-[11px] font-extrabold tracking-widest text-amber-300 uppercase">
-            ॥ ಮುಖ ಸಾಮುದ್ರಿಕ ಲಕ್ಷ್ಮೀ ಶಾಸ್ತ್ರ ॥
+            {SUBTITLES[currentLang] || SUBTITLES.kn}
           </div>
           <h3 className="font-serif text-lg font-bold text-amber-100">
-            {isKn ? "ಪ್ರಾಚೀನ ಮುಖ ಲಕ್ಷಣ ಸ್ಕ್ಯಾನರ್" : "Vedic Physiognomy Scanner"}
+            {SCANNER_TITLES[currentLang] || SCANNER_TITLES.en}
           </h3>
         </div>
 
@@ -78,7 +126,7 @@ export const FaceScannerLoader: React.FC<Props> = ({ isKn }) => {
 
         {/* Sacred Shloka */}
         <div className="text-[11px] font-serif italic text-amber-300/80">
-          {isKn ? "॥ ಮುಖಂ ವದತಿ ಧರ್ಮಜ್ಞಂ ಲಕ್ಷಣಂ ಜಯದಾಯಕಮ್ ॥" : "॥ Mukham Vadati Dharmajnam Lakshanam Jayadayakam ॥"}
+          {SHLOKAS[currentLang] || SHLOKAS.en}
         </div>
       </div>
 

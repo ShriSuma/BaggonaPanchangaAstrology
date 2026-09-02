@@ -16,6 +16,9 @@ import { FaceMolesTab } from "../components/facereading/FaceMolesTab";
 import { FaceReadingPdfTemplate } from "../components/facereading/FaceReadingPdfTemplate";
 import { FaceScannerLoader } from "../components/facereading/FaceScannerLoader";
 import { sanitizeAIText } from "../utils/textFormatter";
+import { vimshottariBalanceAtBirth } from "../core/DashaBhuktiEngine";
+import { PLANET_NAMES_L5 } from "../features/palmreading/samudrikaKnowledge";
+import { PlanetName } from "../core/AstroTypes";
 
 type ChatMessage = {
   id: string;
@@ -26,6 +29,251 @@ type ChatMessage = {
 };
 
 type ActiveTab = "reading" | "features" | "chronology" | "moles";
+
+const FACE_PAGE_DICT: Record<string, Record<string, string>> = {
+  sanctumTitle: {
+    kn: "॥ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿ ॥",
+    en: "॥ SRI GOKARNA MAHABALESHWARA SANCTUM ॥",
+    hi: "॥ श्री गोकर्ण महाबलेश्वर सन्निधि ॥",
+    te: "॥ శ్రీ గోకర్ణ మహాబలేశ్వర సన్నిధి ॥",
+    ta: "॥ ஶ்ரீ கோகர்ண மகாபலேஸ்வரர் சந்நிதி ॥"
+  },
+  headerTitle: {
+    kn: "ಮುಖ ಸಾಮುದ್ರಿಕ ಶಾಸ್ತ್ರ",
+    en: "Vedic Face Reading (Physiognomy)",
+    hi: "वैदिक मुख सामुद्रिक शास्त्र",
+    te: "వైదిక ముఖ సాముద్రిక శాస్త్రం",
+    ta: "வேத முக சாமுத்ரிகா சாஸ்திரம்"
+  },
+  headerSubtitle: {
+    kn: "ಸಪ್ತ ಮುಖ ಲಕ್ಷಣಗಳು, ಕುಬೇರ ನಾಸಿಕ ಧನಯೋಗ, ಆಜ್ಞಾ ಚಕ್ರ ತೇಜಸ್ಸು ಹಾಗೂ ೧೦೦-ವರ್ಷ ಮುಖ ಕಾಲಚಕ್ರದ ಪ್ರಾಚೀನ ಸಾಮುದ್ರಿಕ ಫಲ.",
+    en: "Authentic Vedic Physiognomy: 7 Facial Features, Nose Bridge Wealth Vault, Ajna Chakra Tejas & 100-Year Life Chronology.",
+    hi: "सप्त मुख लक्षण, कुबेर नासिका धन योग, आज्ञा चक्र तेज व 100-वर्षीय मुख कालचक्र का प्रामाणिक सामुद्रिक फलादेश।",
+    te: "సప్త ముఖ లక్షణాలు, కుబేర నాసిక ధన యోగం, ఆజ్ఞా చక్ర వర్చస్సు & 100-సంవత్సరాల ముఖ కాలచక్ర ప్రామాణిక ఫలం.",
+    ta: "ஏழு முக லட்சணங்கள், குபேர நாசிகா தன யோகம், ஆக்ஞா சக்கர தேஜஸ் & 100-ஆண்டு முக காலச்சக்கர வேத சாமுத்ரிகா பலன்."
+  },
+  devoteePlaceholder: {
+    kn: "ಭಕ್ತರ ಹೆಸರು",
+    en: "Devotee Name",
+    hi: "जातक का नाम",
+    te: "భక్తుల పేరు",
+    ta: "பக்தர் பெயர்"
+  },
+  tabReading: {
+    kn: "ಮುಖ ಸ್ಕ್ಯಾನರ್ & ಫಲ",
+    en: "Face Scanner & Reading",
+    hi: "मुख स्कैनर व फल",
+    te: "ముఖ స్కానర్ & ఫలం",
+    ta: "முக ஸ்கேனர் & பலன்"
+  },
+  tabFeatures: {
+    kn: "ಸಪ್ತ ಮುಖ ಲಕ್ಷಣಗಳು",
+    en: "7 Facial Features",
+    hi: "सप्त मुख लक्षण",
+    te: "సప్త ముఖ లక్షణాలు",
+    ta: "ஏழு முக லட்சணங்கள்"
+  },
+  tabChronology: {
+    kn: "೧೦೦-ವರ್ಷ ಮುಖ ಕಾಲಚಕ್ರ",
+    en: "100-Year Age Map",
+    hi: "100-वर्षीय मुख कालचक्र",
+    te: "100-సంవత్సరాల ముఖ కాలచక్రం",
+    ta: "100-ஆண்டு முக காலச்சக்கரம்"
+  },
+  tabMoles: {
+    kn: "ಮಚ್ಚೆ ಶಾಸ್ತ್ರ & ಪರಿಹಾರ",
+    en: "Moles & Remedies",
+    hi: "तिल शास्त्र व उपाय",
+    te: "మచ్చల శాస్త్రం & పరిహారాలు",
+    ta: "மச்ச சாஸ்திரம் & பரிகாரங்கள்"
+  },
+  tabLockedHelp: {
+    kn: "ಮುಖದ ಛಾಯಾಚಿತ್ರವನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ 'ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ಫಲಿತಾಂಶ ಪಡೆಯಿರಿ' ಕ್ಲಿಕ್ ಮಾಡಿದ ನಂತರ ಎಲ್ಲಾ ವಿಶ್ಲೇಷಣಾ ಟ್ಯಾಬ್‌ಗಳು ತೆರೆಯಲ್ಪಡುತ್ತವೆ.",
+    en: "Upload your face photo and generate reading to unlock the 7 Features, 100-Year Age Map, and Moles analysis tabs.",
+    hi: "अपनी मुख छवि अपलोड कर फलादेश प्राप्त करें, जिससे सप्त लक्षण, 100-वर्षीय कालचक्र व तिल शास्त्र टैब खुल जाएंगे।",
+    te: "ముఖ చిత్రాన్ని అప్‌లోడ్ చేసి ఫలం పొందిన తరువాత సప్త లక్షణాలు, 100-సంవత్సరాల కాలచక్రం & మచ్చల ట్యాబ్‌లు అన్‌లాక్ అవుతాయి.",
+    ta: "முக புகைப்படத்தை பதிவேற்றி பலன் பெற்றவுடன் ஏழு லட்சணங்கள், 100-ஆண்டு காலச்சக்கரம் மற்றும் மச்ச சாஸ்திர பகுதிகள் திறக்கப்படும்."
+  },
+  tabUnlockedSuccess: {
+    kn: "ಮುಖ ಸಾಮುದ್ರಿಕ ಫಲ ಸಿದ್ಧವಾಗಿದೆ! ಮೇಲಿನ ಎಲ್ಲಾ ಟ್ಯಾಬ್‌ಗಳು ಈಗ ತೆರೆದಿವೆ (Unlocked).",
+    en: "Face reading analysis is complete! All tabs above are now unlocked.",
+    hi: "मुख सामुद्रिक फलादेश तैयार है! ऊपर के सभी टैब अब अनलॉक हैं।",
+    te: "ముఖ సాముద్రిక ఫలం సిద్ధమైంది! పై అన్ని ట్యాబ్‌లు ఇప్పుడు అన్‌లాక్ చేయబడ్డాయి.",
+    ta: "முக சாமுத்ரிகா பலன் தயார்! மேலே உள்ள அனைத்து பகுதிகளும் இப்போது திறக்கப்பட்டுள்ளன."
+  },
+  tabsActiveCount: {
+    kn: "೪ / ೪ ಟ್ಯಾಬ್ ಸಕ್ರಿಯ",
+    en: "4 / 4 Tabs Active",
+    hi: "4 / 4 टैब सक्रिय",
+    te: "4 / 4 ట్యాబ్‌లు సక్రియం",
+    ta: "4 / 4 பகுதிகள் தயார்"
+  },
+  uploadTitle: {
+    kn: "ಮುಖದ ಛಾಯಾಚಿತ್ರ ಅಪ್‌ಲೋಡ್ ಅಥವಾ ಕ್ಯಾಮೆರಾ",
+    en: "Upload or Capture Front Face Photo",
+    hi: "मुख छवि अपलोड अथवा कैमरा",
+    te: "ముఖ చిత్రం అప్‌లోడ్ లేదా కెమెరా",
+    ta: "முக புகைப்படம் பதிவேற்றம் அல்லது கேமரா"
+  },
+  uploadSubtitle: {
+    kn: "ಉತ್ತಮ ಬೆಳಕಿನಲ್ಲಿ ನಿಮ್ಮ ಮುಖದ ಮುಂಭಾಗದ ಚಿತ್ರವನ್ನು ತೆಗೆಯಿರಿ. ಹಣೆ, ಕಣ್ಣುಗಳು, ಮೂಗು ಹಾಗೂ ಗಡ್ಡ ಸ್ಪಷ್ಟವಾಗಿ ಕಾಣುವಂತೆ ಹಿಡಿಯಿರಿ.",
+    en: "Capture or upload a clear, front-facing portrait photo in bright natural light with all facial features visible.",
+    hi: "अच्छे प्रकाश में अपने मुख के सामने की छवि लें। ललाट, नेत्र, नासिका एवं चिबुक स्पष्ट रूप से दिखाई देने चाहिए।",
+    te: "మంచి వెలుతురులో మీ ముఖం ముందు భాగాన్ని ఫోటో తీయండి. లలాటం, నేత్రాలు, నాసిక & చిబుకం స్పష్టంగా కనిపించాలి.",
+    ta: "நல்ல வெளிச்சத்தில் உங்கள் முகத்தின் நேர் தோற்றத்தை படம் பிடிக்கவும். நெற்றி, கண்கள், மூக்கு மற்றும் தாடை தெளிவாக தெரிய வேண்டும்."
+  },
+  verifiedBadge: {
+    kn: "✅ ೧೦೦% ಸಫಲ (ಪರಿಶೀಲಿತ)",
+    en: "✅ 100% Authentic (Verified)",
+    hi: "✅ 100% प्रामाणिक (सत्यापित)",
+    te: "✅ 100% ప్రామాణికం (ధృవీకరించబడింది)",
+    ta: "✅ 100% உண்மையானது (சரிபார்க்கப்பட்டது)"
+  },
+  takePhotoBtn: {
+    kn: "ಕ್ಯಾಮೆರಾದಿಂದ ತೆಗೆಯಿರಿ",
+    en: "Take Photo (Camera)",
+    hi: "कैमरे से फोटो लें",
+    te: "కెమెరాతో ఫోటో తీయండి",
+    ta: "கேமராவில் படம் எடுக்கவும்"
+  },
+  uploadPhotoBtn: {
+    kn: "ಫೋಟೋ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ",
+    en: "Upload Face Photo",
+    hi: "फोटो अपलोड करें",
+    te: "ఫోటో అప్‌లోడ్ చేయండి",
+    ta: "புகைப்படம் பதிவேற்றவும்"
+  },
+  validatingText: {
+    kn: "ಮುಖದ ಚಿತ್ರದ ಗುಣಮಟ್ಟ & ಲಕ್ಷಣಗಳನ್ನು ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ...",
+    en: "Validating facial clarity and features...",
+    hi: "मुख छवि की गुणवत्ता व लक्षणों की जांच हो रही है...",
+    te: "ముఖ చిత్ర నాణ్యత & లక్షణాలను పరిశీలిస్తున్నారు...",
+    ta: "முக படத்தின் தெளிவு மற்றும் லட்சணங்கள் பரிசீலிக்கப்படுகின்றன..."
+  },
+  removePhoto: {
+    kn: "ತೆಗೆದುಹಾಕಿ",
+    en: "Remove",
+    hi: "हटाएं",
+    te: "తొలగించు",
+    ta: "நீக்கு"
+  },
+  generateReadingBtn: {
+    kn: "ಮುಖ ಸಾಮುದ್ರಿಕ ಶಾಸ್ತ್ರ ಫಲ ಪಡೆಯಿರಿ (Generate Face Reading)",
+    en: "Generate Vedic Face Reading",
+    hi: "वैदिक मुख सामुद्रिक फल प्राप्त करें",
+    te: "వైదిక ముఖ సాముద్రిక ఫలం పొందండి",
+    ta: "வேத முக சாமுத்ரிகா பலன் பெறுக"
+  },
+  chatTitle: {
+    kn: "ಗೋಕರ್ಣ ಮುಖ ಸಾಮುದ್ರಿಕ ಶಾಸ್ತ್ರ ಸಂವಾದ",
+    en: "Gokarna Face Reading Guidance & Chat",
+    hi: "गोकर्ण मुख सामुद्रिक शास्त्र संवाद",
+    te: "గోకర్ణ ముఖ సాముద్రిక శాస్త్ర సంవాదం",
+    ta: "கோகர்ண முக சாமுத்ரிகா சாஸ்திர உரையாடல்"
+  },
+  tejasLabel: {
+    kn: "ತೇಜಸ್ಸು:",
+    en: "Tejas:",
+    hi: "तेज:",
+    te: "వర్చస్సు:",
+    ta: "தேஜஸ்:"
+  },
+  ageLabel: {
+    kn: "ವಯಸ್ಸು:",
+    en: "Age:",
+    hi: "आयु:",
+    te: "వయస్సు:",
+    ta: "வயது:"
+  },
+  yearsSuffix: {
+    kn: "ವರ್ಷಗಳು",
+    en: "Years",
+    hi: "वर्ष",
+    te: "సంవత్సరాలు",
+    ta: "ஆண்டுகள்"
+  },
+  elementLabel: {
+    kn: "ಪಂಚಭೂತ ತತ್ತ್ವ:",
+    en: "Element Constitution:",
+    hi: "पंचमहाभूत तत्व:",
+    te: "పంచభూత తత్త్వం:",
+    ta: "பஞ்சபூத தத்துவம்:"
+  },
+  doshaLabel: {
+    kn: "ದೋಷ:",
+    en: "Dosha:",
+    hi: "दोष:",
+    te: "దోషం:",
+    ta: "தோஷம்:"
+  },
+  downloadPdf: {
+    kn: "PDF ಡೌನ್‌ಲೋಡ್",
+    en: "Download PDF",
+    hi: "PDF डाउनलोड",
+    te: "PDF డౌన్‌లోడ్",
+    ta: "PDF பதிவிறக்கம்"
+  },
+  priestName: {
+    kn: "🕉️ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಗೋಕರ್ಣ ಮುಖ್ಯ ಅರ್ಚಕರು)",
+    en: "🕉️ Sri Shreeram Pandit (Gokarna Priest)",
+    hi: "🕉️ श्रीराम पंडित (गोकर्ण मुख्य अर्चक)",
+    te: "🕉️ శ్రీరామ్ పండిట్ (గోకర్ణ ప్రధాన అర్చకులు)",
+    ta: "🕉️ ஸ்ரீராம் பண்டிட் (கோகர்ண தலைமை அர்ச்சகர்)"
+  },
+  contoursHeading: {
+    kn: "👁️ ಸಪ್ತ ಮುಖ ಲಕ್ಷಣ ವಿಶ್ಲೇಷಣೆ (7 Facial Contours):",
+    en: "👁️ 7 Facial Contours Analysis:",
+    hi: "👁️ सप्त मुख लक्षण विश्लेषण (7 Facial Contours):",
+    te: "👁️ సప్త ముఖ లక్షణాల విశ్లేషణ (7 Facial Contours):",
+    ta: "👁️ ஏழு முக லட்சண பகுப்பாய்வு (7 Facial Contours):"
+  },
+  guidanceHeading: {
+    kn: "📜 ಪೂರ್ಣ ಮುಖ ಸಾಮುದ್ರಿಕ ಭವಿಷ್ಯ (Vedic Guidance):",
+    en: "📜 Complete Vedic Face Reading Guidance:",
+    hi: "📜 संपूर्ण मुख सामुद्रिक मार्गदर्शन (Vedic Guidance):",
+    te: "📜 సంపూర్ణ ముఖ సాముద్రిక మార్గదర్శకత్వం:",
+    ta: "📜 முழுமையான வேத முக சாமுத்ரிகா வழிகாட்டல்:"
+  },
+  remedyHeading: {
+    kn: "🪔 ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ದೈವಿಕ ಪರಿಹಾರ (Sacred Remedy):",
+    en: "🪔 Sacred Gokarna Mahabaleshwara Remedy:",
+    hi: "🪔 श्री गोकर्ण महाबलेश्वर दिव्य उपाय:",
+    te: "🪔 శ్రీ గోకర్ణ మహాబలేశ్వర దివ్య పరిహారం:",
+    ta: "🪔 ஶ்ரீ கோகர்ண மகாபலேஸ்வரர் திவ்ய பரிகாரம்:"
+  },
+  inputPlaceholder: {
+    kn: "ಮುಖ ಲಕ್ಷಣಗಳ ಕುರಿತು ಪೂರಕ ಪ್ರಶ್ನೆ ಕೇಳಿ (ಅಥವಾ ಮೈಕ್ ಬಳಸಿ)...",
+    en: "Ask a follow-up question regarding face reading (or use mic)...",
+    hi: "मुख लक्षणों के बारे में अनुवर्ती प्रश्न पूछें (या माइक का उपयोग करें)...",
+    te: "ముఖ లక్షణాల గురించి ప్రశ్న అడగండి (లేదా మైక్ ఉపయోగించండి)...",
+    ta: "முக லட்சணங்கள் குறித்து தொடர் கேள்விகள் கேளுங்கள் (அல்லது மைக் பயன்படுத்தவும்)..."
+  },
+  voiceTitle: {
+    kn: "ಧ್ವನಿ ಮೂಲಕ ಪ್ರಶ್ನೆ ಕೇಳಿ (Voice Input)",
+    en: "Ask by voice (Voice Input)",
+    hi: "ध्वनि द्वारा प्रश्न पूछें (Voice Input)",
+    te: "ధ్వని ద్వారా అడగండి (Voice Input)",
+    ta: "குரல் மூலம் கேட்கவும் (Voice Input)"
+  },
+  askBtn: {
+    kn: "ಕೇಳಿ",
+    en: "Ask",
+    hi: "पूछें",
+    te: "అడగండి",
+    ta: "கேட்க"
+  },
+  tabLockedBadge: {
+    kn: "ಲಾಕ್",
+    en: "Locked",
+    hi: "बंद",
+    te: "లాక్",
+    ta: "பூட்டு"
+  }
+};
+
+function t(key: string, lang: string): string {
+  return FACE_PAGE_DICT[key]?.[lang] || FACE_PAGE_DICT[key]?.kn || FACE_PAGE_DICT[key]?.en || "";
+}
 
 export default function FaceReadingPage(): JSX.Element {
   const selectedLang = useAppStore((state) => state.language) || "kn";
@@ -150,11 +398,29 @@ export default function FaceReadingPage(): JSX.Element {
 
     setIsProcessing(true);
     try {
+      let attachedKundli: FaceReadingResult["kundliData"] = undefined;
+      if (session?.result) {
+        const k = session.result;
+        const dashaBal = vimshottariBalanceAtBirth(k);
+        const dashaPlanetName = String(dashaBal.lord);
+        const dashaLord = PLANET_NAMES_L5[dashaPlanetName]?.[selectedLang] || PLANET_NAMES_L5[dashaPlanetName]?.kn || dashaPlanetName;
+        const moonPos = k.planets.find((p) => p.name === PlanetName.Moon);
+
+        attachedKundli = {
+          lagna: k.lagnaRashi?.sanskrit || "ಮೇಷ",
+          rashi: k.moonSign?.sanskrit || "ಮೇಷ",
+          nakshatra: moonPos?.nakshatra?.sanskrit || "ಅಶ್ವಿನಿ",
+          maandi: k.maandi?.rashi?.sanskrit || "ಧನಸ್ಸು",
+          dasha: dashaLord
+        };
+      }
+
       const result = await executeFaceReading(
         imageDataUrl,
         devoteeName,
         selectedLang,
-        geminiApiKey
+        geminiApiKey,
+        attachedKundli
       );
 
       setActiveResult(result);
@@ -221,7 +487,7 @@ export default function FaceReadingPage(): JSX.Element {
     setIsGeneratingPdf(true);
 
     try {
-      const container = document.getElementById("face-reading-pdf-container");
+      const container = document.getElementById("face-reading-pdf-container") || document.getElementById("facereading-pdf-printable");
       if (!container) throw new Error("PDF container not found");
 
       const canvas = await html2canvas(container, {
@@ -255,15 +521,13 @@ export default function FaceReadingPage(): JSX.Element {
             <span className="text-4xl filter drop-shadow">👤</span>
             <div>
               <div className="text-[11px] font-extrabold tracking-widest text-amber-800 uppercase">
-                ॥ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿ ॥
+                {t("sanctumTitle", selectedLang)}
               </div>
               <h1 className="font-serif text-xl sm:text-2xl font-bold text-amber-950">
-                {isKn ? "ಮುಖ ಸಾಮುದ್ರಿಕ ಶಾಸ್ತ್ರ" : "Vedic Face Reading (Physiognomy)"}
+                {t("headerTitle", selectedLang)}
               </h1>
               <p className="text-xs text-amber-900/90 leading-relaxed font-medium mt-0.5">
-                {isKn
-                  ? "ಸಪ್ತ ಮುಖ ಲಕ್ಷಣಗಳು, ಕುಬೇರ ನಾಸಿಕ ಧನಯೋಗ, ಆಜ್ಞಾ ಚಕ್ರ ತೇಜಸ್ಸು ಹಾಗೂ ೧೦೦-ವರ್ಷ ಮುಖ ಕಾಲಚಕ್ರದ ಪ್ರಾಚೀನ ಸಾಮುದ್ರಿಕ ಫಲ."
-                  : "Authentic Vedic Physiognomy: 7 Facial Features, Nose Bridge Wealth Vault, Ajna Chakra Tejas & 100-Year Life Chronology."}
+                {t("headerSubtitle", selectedLang)}
               </p>
             </div>
           </div>
@@ -273,7 +537,7 @@ export default function FaceReadingPage(): JSX.Element {
               type="text"
               value={devoteeName}
               onChange={(e) => setDevoteeName(e.target.value)}
-              placeholder={isKn ? "ಭಕ್ತರ ಹೆಸರು" : "Devotee Name"}
+              placeholder={t("devoteePlaceholder", selectedLang)}
               className="rounded-xl border border-amber-300 bg-white px-3 py-1.5 text-xs font-bold text-amber-950 focus:border-amber-500 focus:outline-none shadow-sm"
             />
           </div>
@@ -292,14 +556,14 @@ export default function FaceReadingPage(): JSX.Element {
           }`}
         >
           <span>👤</span>
-          <span>{isKn ? "ಮುಖ ಸ್ಕ್ಯಾನರ್ & ಫಲ" : "Face Scanner & Reading"}</span>
+          <span>{t("tabReading", selectedLang)}</span>
         </button>
 
         <button
           type="button"
           disabled={!activeResult}
           onClick={() => activeResult && setActiveTab("features")}
-          title={!activeResult ? (isKn ? "ಫೋಟೋ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ಫಲಿತಾಂಶ ಪಡೆದ ನಂತರ ತೆರೆಯುತ್ತದೆ" : "Upload and analyze photo first") : ""}
+          title={!activeResult ? t("tabLockedHelp", selectedLang) : ""}
           className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold transition shadow-sm ${
             activeTab === "features"
               ? "bg-amber-800 text-amber-50 shadow"
@@ -309,10 +573,10 @@ export default function FaceReadingPage(): JSX.Element {
           }`}
         >
           <span>{activeResult ? "👁️" : "🔒"}</span>
-          <span>{isKn ? "ಸಪ್ತ ಮುಖ ಲಕ್ಷಣಗಳು" : "7 Facial Features"}</span>
+          <span>{t("tabFeatures", selectedLang)}</span>
           {!activeResult && (
             <span className="text-[9px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-bold">
-              {isKn ? "ಲಾಕ್" : "Locked"}
+              {t("tabLockedBadge", selectedLang)}
             </span>
           )}
         </button>
@@ -321,7 +585,7 @@ export default function FaceReadingPage(): JSX.Element {
           type="button"
           disabled={!activeResult}
           onClick={() => activeResult && setActiveTab("chronology")}
-          title={!activeResult ? (isKn ? "ಫೋಟೋ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ಫಲಿತಾಂಶ ಪಡೆದ ನಂತರ ತೆರೆಯುತ್ತದೆ" : "Upload and analyze photo first") : ""}
+          title={!activeResult ? t("tabLockedHelp", selectedLang) : ""}
           className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold transition shadow-sm ${
             activeTab === "chronology"
               ? "bg-amber-800 text-amber-50 shadow"
@@ -331,10 +595,10 @@ export default function FaceReadingPage(): JSX.Element {
           }`}
         >
           <span>{activeResult ? "⏳" : "🔒"}</span>
-          <span>{isKn ? "೧೦೦-ವರ್ಷ ಮುಖ ಕಾಲಚಕ್ರ" : "100-Year Age Map"}</span>
+          <span>{t("tabChronology", selectedLang)}</span>
           {!activeResult && (
             <span className="text-[9px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-bold">
-              {isKn ? "ಲಾಕ್" : "Locked"}
+              {t("tabLockedBadge", selectedLang)}
             </span>
           )}
         </button>
@@ -343,7 +607,7 @@ export default function FaceReadingPage(): JSX.Element {
           type="button"
           disabled={!activeResult}
           onClick={() => activeResult && setActiveTab("moles")}
-          title={!activeResult ? (isKn ? "ಫೋಟೋ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ಫಲಿತಾಂಶ ಪಡೆದ ನಂತರ ತೆರೆಯುತ್ತದೆ" : "Upload and analyze photo first") : ""}
+          title={!activeResult ? t("tabLockedHelp", selectedLang) : ""}
           className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold transition shadow-sm ${
             activeTab === "moles"
               ? "bg-amber-800 text-amber-50 shadow"
@@ -353,10 +617,10 @@ export default function FaceReadingPage(): JSX.Element {
           }`}
         >
           <span>{activeResult ? "🪔" : "🔒"}</span>
-          <span>{isKn ? "ಮಚ್ಚೆ ಶಾಸ್ತ್ರ & ಪರಿಹಾರ" : "Moles & Remedies"}</span>
+          <span>{t("tabMoles", selectedLang)}</span>
           {!activeResult && (
             <span className="text-[9px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-bold">
-              {isKn ? "ಲಾಕ್" : "Locked"}
+              {t("tabLockedBadge", selectedLang)}
             </span>
           )}
         </button>
@@ -366,11 +630,7 @@ export default function FaceReadingPage(): JSX.Element {
       {!activeResult && (
         <div className="rounded-xl bg-amber-50 border border-amber-200 px-3.5 py-2 text-xs text-amber-900 flex items-center gap-2">
           <span>ℹ️</span>
-          <span>
-            {isKn
-              ? "ಮುಖದ ಛಾಯಾಚಿತ್ರವನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ 'ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ಫಲಿತಾಂಶ ಪಡೆಯಿರಿ' ಕ್ಲಿಕ್ ಮಾಡಿದ ನಂತರ ಎಲ್ಲಾ ವಿಶ್ಲೇಷಣಾ ಟ್ಯಾಬ್‌ಗಳು ತೆರೆಯಲ್ಪಡುತ್ತವೆ."
-              : "Upload your face photo and generate reading to unlock the 7 Features, 100-Year Age Map, and Moles analysis tabs."}
-          </span>
+          <span>{t("tabLockedHelp", selectedLang)}</span>
         </div>
       )}
 
@@ -379,14 +639,10 @@ export default function FaceReadingPage(): JSX.Element {
         <div className="rounded-xl bg-emerald-50 border border-emerald-300 px-3.5 py-2 text-xs text-emerald-900 flex items-center justify-between gap-2 shadow-sm animate-fade-in">
           <div className="flex items-center gap-2 font-bold">
             <span>✨</span>
-            <span>
-              {isKn
-                ? "ಮುಖ ಸಾಮುದ್ರಿಕ ಫಲ ಸಿದ್ಧವಾಗಿದೆ! ಮೇಲಿನ ಎಲ್ಲಾ ಟ್ಯಾಬ್‌ಗಳು ಈಗ ತೆರೆದಿವೆ (Unlocked)."
-                : "Face reading analysis is complete! All tabs above are now unlocked."}
-            </span>
+            <span>{t("tabUnlockedSuccess", selectedLang)}</span>
           </div>
           <span className="text-[10px] bg-emerald-200 text-emerald-950 font-extrabold px-2 py-0.5 rounded-full">
-            4 / 4 {isKn ? "ಟ್ಯಾಬ್ ಸಕ್ರಿಯ" : "Tabs Active"}
+            {t("tabsActiveCount", selectedLang)}
           </span>
         </div>
       )}
@@ -399,19 +655,17 @@ export default function FaceReadingPage(): JSX.Element {
             <div className="flex items-center justify-between border-b border-amber-200 pb-2">
               <span className="font-serif text-sm font-bold text-amber-950 flex items-center gap-2">
                 <span>📸</span>
-                <span>{isKn ? "ಮುಖದ ಛಾಯಾಚಿತ್ರ ಅಪ್‌ಲೋಡ್ ಅಥವಾ ಕ್ಯಾಮೆರಾ" : "Upload or Capture Front Face Photo"}</span>
+                <span>{t("uploadTitle", selectedLang)}</span>
               </span>
               {validationResult.isValid === true && (
                 <span className="text-xs bg-emerald-100 text-emerald-900 font-extrabold px-3 py-1 rounded-full border border-emerald-300 flex items-center gap-1 shadow-sm">
-                  ✅ ೧೦೦% ಸಫಲ (Verified)
+                  {t("verifiedBadge", selectedLang)}
                 </span>
               )}
             </div>
 
             <p className="text-xs text-amber-900/90 leading-relaxed font-medium">
-              {isKn
-                ? "ಉತ್ತಮ ಬೆಳಕಿನಲ್ಲಿ ನಿಮ್ಮ ಮುಖದ ಮುಂಭಾಗದ ಚಿತ್ರವನ್ನು ತೆಗೆಯಿರಿ. ಹಣೆ, ಕಣ್ಣುಗಳು, ಮೂಗು ಹಾಗೂ ಗಡ್ಡ ಸ್ಪಷ್ಟವಾಗಿ ಕಾಣುವಂತೆ ಹಿಡಿಯಿರಿ."
-                : "Capture or upload a clear, front-facing portrait photo in bright natural light with all facial features visible."}
+              {t("uploadSubtitle", selectedLang)}
             </p>
 
             {/* Hidden File Inputs */}
@@ -439,7 +693,7 @@ export default function FaceReadingPage(): JSX.Element {
                 className="flex-1 min-w-[140px] rounded-xl bg-amber-100 border border-amber-300 hover:bg-amber-200 py-2.5 text-xs font-bold text-amber-950 flex items-center justify-center gap-2 shadow-sm"
               >
                 <span>📸</span>
-                <span>{isKn ? "ಕ್ಯಾಮೆರಾದಿಂದ ತೆಗೆಯಿರಿ" : "Take Photo (Camera)"}</span>
+                <span>{t("takePhotoBtn", selectedLang)}</span>
               </button>
 
               <button
@@ -448,7 +702,7 @@ export default function FaceReadingPage(): JSX.Element {
                 className="flex-1 min-w-[140px] rounded-xl bg-white border border-amber-300 hover:bg-amber-50 py-2.5 text-xs font-bold text-amber-950 flex items-center justify-center gap-2 shadow-sm"
               >
                 <span>📁</span>
-                <span>{isKn ? "ಫೋಟೋ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ" : "Upload Face Photo"}</span>
+                <span>{t("uploadPhotoBtn", selectedLang)}</span>
               </button>
             </div>
 
@@ -456,7 +710,7 @@ export default function FaceReadingPage(): JSX.Element {
             {isValidating && (
               <div className="rounded-xl border border-amber-300 bg-amber-100/70 p-3 text-xs text-amber-950 font-bold flex items-center gap-2 animate-pulse">
                 <span>⌛</span>
-                <span>{isKn ? "ಮುಖದ ಚಿತ್ರದ ಗುಣಮಟ್ಟ & ಲಕ್ಷಣಗಳನ್ನು ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ..." : "Validating facial clarity and features..."}</span>
+                <span>{t("validatingText", selectedLang)}</span>
               </div>
             )}
 
@@ -489,7 +743,7 @@ export default function FaceReadingPage(): JSX.Element {
                   }}
                   className="absolute top-2 right-2 bg-rose-600 text-white text-[11px] px-2.5 py-1 rounded-lg font-bold shadow hover:bg-rose-700"
                 >
-                  Remove
+                  {t("removePhoto", selectedLang)}
                 </button>
               </div>
             )}
@@ -504,14 +758,14 @@ export default function FaceReadingPage(): JSX.Element {
                   className="w-full rounded-2xl bg-gradient-to-r from-amber-700 via-amber-800 to-amber-900 py-3.5 text-sm font-extrabold text-amber-50 shadow-lg hover:from-amber-800 hover:to-amber-950 flex items-center justify-center gap-2 transition transform active:scale-95 disabled:opacity-50"
                 >
                   <span>🔮</span>
-                  <span>{isKn ? "ಮುಖ ಸಾಮುದ್ರಿಕ ಶಾಸ್ತ್ರ ಫಲ ಪಡೆಯಿರಿ (Generate Face Reading)" : "Generate Vedic Face Reading"}</span>
+                  <span>{t("generateReadingBtn", selectedLang)}</span>
                 </button>
               </div>
             )}
           </Card>
 
           {/* Full-Screen Animated Golden Face Scanner Overlay */}
-          {isProcessing && <FaceScannerLoader isKn={isKn} />}
+          {isProcessing && <FaceScannerLoader lang={selectedLang} isKn={isKn} />}
 
           {/* Reading Results & Chat View */}
           {messages.length > 0 && (
@@ -519,12 +773,12 @@ export default function FaceReadingPage(): JSX.Element {
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-amber-200 pb-3">
                 <h3 className="font-serif text-base font-bold text-amber-950 flex items-center gap-2">
                   <span>💬</span>
-                  <span>{isKn ? "ಗೋಕರ್ಣ ಮುಖ ಸಾಮುದ್ರಿಕ ಶಾಸ್ತ್ರ ಸಂವಾದ" : "Gokarna Face Reading Guidance & Chat"}</span>
+                  <span>{t("chatTitle", selectedLang)}</span>
                 </h3>
                 {activeResult && (
                   <div className="flex items-center gap-2">
                     <div className="rounded-full bg-amber-100 border border-amber-300 px-3 py-1 text-xs font-bold text-amber-900">
-                      ತೇಜಸ್ಸು: {activeResult.overallTejasScore}% · ವಯಸ್ಸು: ~{activeResult.estimatedAge} ವರ್ಷಗಳು
+                      {t("tejasLabel", selectedLang)} {activeResult.overallTejasScore}% · {t("ageLabel", selectedLang)} ~{activeResult.estimatedAge} {t("yearsSuffix", selectedLang)}
                     </div>
                     <button
                       type="button"
@@ -533,7 +787,7 @@ export default function FaceReadingPage(): JSX.Element {
                       className="rounded-xl bg-amber-800 hover:bg-amber-900 text-amber-50 px-3 py-1 text-xs font-bold flex items-center gap-1.5 shadow"
                     >
                       <span>📥</span>
-                      <span>{isGeneratingPdf ? "..." : (isKn ? "PDF ಡೌನ್‌ಲೋಡ್" : "Download PDF")}</span>
+                      <span>{isGeneratingPdf ? "..." : t("downloadPdf", selectedLang)}</span>
                     </button>
                   </div>
                 )}
@@ -546,7 +800,7 @@ export default function FaceReadingPage(): JSX.Element {
                     className={`flex flex-col ${msg.sender === "user" ? "items-end" : "items-start"}`}
                   >
                     <div className="flex items-center gap-1.5 text-[11px] font-bold text-amber-800 mb-1 px-1">
-                      <span>{msg.sender === "user" ? `👤 ${devoteeName}` : "🕉️ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (Gokarna Priest)"}</span>
+                      <span>{msg.sender === "user" ? `👤 ${devoteeName}` : t("priestName", selectedLang)}</span>
                       <span>·</span>
                       <span>{msg.timestamp}</span>
                     </div>
@@ -567,24 +821,33 @@ export default function FaceReadingPage(): JSX.Element {
                                 {msg.result.verdictTitle[selectedLang] || msg.result.verdictTitle.kn}
                               </div>
                               <div className="text-xs text-amber-800 font-semibold mt-0.5">
-                                ಪಂಚಭೂತ ತತ್ತ್ವ: <span className="font-bold text-amber-950">{msg.result.facialConstitution.primaryElement[selectedLang] || msg.result.facialConstitution.primaryElement.kn}</span> · ದೋಷ: <span className="font-bold text-amber-950">{msg.result.facialConstitution.ayurvedicDosha[selectedLang] || msg.result.facialConstitution.ayurvedicDosha.kn}</span>
+                                {t("elementLabel", selectedLang)}{" "}
+                                <span className="font-bold text-amber-950">
+                                  {msg.result.facialConstitution.primaryElement[selectedLang] || msg.result.facialConstitution.primaryElement.kn}
+                                </span>{" "}
+                                · {t("doshaLabel", selectedLang)}{" "}
+                                <span className="font-bold text-amber-950">
+                                  {msg.result.facialConstitution.ayurvedicDosha[selectedLang] || msg.result.facialConstitution.ayurvedicDosha.kn}
+                                </span>
                               </div>
                             </div>
 
                             <div className="text-xs font-black px-3 py-1.5 rounded-xl bg-amber-100 text-amber-900 border border-amber-300">
-                              ತೇಜಸ್ಸು: {msg.result.overallTejasScore}%
+                              {t("tejasLabel", selectedLang)} {msg.result.overallTejasScore}%
                             </div>
                           </div>
 
                           {/* 7 Facial Features Summary Matrix */}
                           <div className="rounded-xl border border-amber-300 bg-white p-3.5 shadow-sm space-y-2">
                             <div className="text-xs font-bold text-amber-950 border-b border-amber-200 pb-1">
-                              👁️ {isKn ? "ಸಪ್ತ ಮುಖ ಲಕ್ಷಣ ವಿಶ್ಲೇಷಣೆ (7 Facial Contours):" : "7 Facial Contours:"}
+                              {t("contoursHeading", selectedLang)}
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                               {msg.result.features.map((f, i) => (
                                 <div key={i} className="rounded-lg bg-amber-50/70 p-2 border border-amber-200/60">
-                                  <div className="font-bold text-amber-900">{f.name[selectedLang] || f.name.kn} ({f.planetaryRuler[selectedLang] || f.planetaryRuler.kn}):</div>
+                                  <div className="font-bold text-amber-900">
+                                    {f.name[selectedLang] || f.name.kn} ({f.planetaryRuler[selectedLang] || f.planetaryRuler.kn}):
+                                  </div>
                                   <div className="text-amber-950">{f.vedicIndication[selectedLang] || f.vedicIndication.kn}</div>
                                 </div>
                               ))}
@@ -594,7 +857,7 @@ export default function FaceReadingPage(): JSX.Element {
                           {/* Detailed AI Prediction */}
                           <div className="rounded-xl border border-amber-300 bg-white p-3.5 shadow-sm space-y-2">
                             <div className="text-xs font-bold text-amber-950 border-b border-amber-200 pb-1">
-                              📜 {isKn ? "ಪೂರ್ಣ ಮುಖ ಸಾಮುದ್ರಿಕ ಭವಿಷ್ಯ (Vedic Guidance):" : "Vedic Guidance & Prediction:"}
+                              {t("guidanceHeading", selectedLang)}
                             </div>
                             <div className="text-xs text-amber-950 leading-relaxed font-medium">
                               {sanitizeAIText(msg.text)}
@@ -604,7 +867,7 @@ export default function FaceReadingPage(): JSX.Element {
                           {/* Sacred Remedy */}
                           <div className="rounded-xl border border-amber-300 bg-amber-100/60 p-3.5 shadow-sm space-y-1">
                             <div className="text-xs font-bold text-amber-950">
-                              🪔 {isKn ? "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ದೈವಿಕ ಪರಿಹಾರ (Sacred Remedy):" : "Sacred Gokarna Mahabaleshwara Remedy:"}
+                              {t("remedyHeading", selectedLang)}
                             </div>
                             <p className="text-xs text-amber-900 font-semibold leading-relaxed">
                               {msg.result.remedyRecommendation[selectedLang] || msg.result.remedyRecommendation.kn}
@@ -626,13 +889,13 @@ export default function FaceReadingPage(): JSX.Element {
                   value={followUpInput}
                   onChange={(e) => setFollowUpInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSendFollowUp()}
-                  placeholder={isKn ? "ಮುಖ ಲಕ್ಷಣಗಳ ಕುರಿತು ಪೂರಕ ಪ್ರಶ್ನೆ ಕೇಳಿ (ಅಥವಾ ಮೈಕ್ ಬಳಸಿ)..." : "Ask a follow-up question regarding face reading..."}
+                  placeholder={t("inputPlaceholder", selectedLang)}
                   className="flex-1 rounded-xl border border-amber-300 bg-white px-4 py-2 text-xs font-medium text-amber-950 focus:border-amber-500 focus:outline-none"
                 />
                 <button
                   type="button"
                   onClick={handleVoiceInput}
-                  title={isKn ? "ಧ್ವನಿ ಮೂಲಕ ಪ್ರಶ್ನೆ ಕೇಳಿ (Voice Input)" : "Ask by voice"}
+                  title={t("voiceTitle", selectedLang)}
                   className={`p-2 rounded-xl border transition shadow-sm flex items-center justify-center ${
                     isListening
                       ? "bg-red-500 border-red-600 text-white animate-pulse"
@@ -647,7 +910,7 @@ export default function FaceReadingPage(): JSX.Element {
                   onClick={handleSendFollowUp}
                   className="rounded-xl bg-amber-800 px-5 py-2 text-xs font-bold text-white hover:bg-amber-900 disabled:opacity-50 shadow"
                 >
-                  {isAnswering ? "..." : (isKn ? "ಕೇಳಿ" : "Ask")}
+                  {isAnswering ? "..." : t("askBtn", selectedLang)}
                 </button>
               </div>
             </Card>
@@ -676,9 +939,10 @@ export default function FaceReadingPage(): JSX.Element {
 
       {/* Hidden Container for PDF Export */}
       {activeResult && (
-        <div style={{ position: "absolute", left: "-9999px", top: "-9999px" }}>
+        <div id="face-reading-pdf-container" style={{ position: "absolute", left: "-9999px", top: "-9999px" }}>
           <FaceReadingPdfTemplate
             result={activeResult}
+            devoteeName={devoteeName}
             personName={devoteeName}
             lang={selectedLang}
             messages={messages}
