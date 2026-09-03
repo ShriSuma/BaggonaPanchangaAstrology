@@ -85,6 +85,9 @@ export interface DevoteeCalendarSubscriptionDoc {
   daysRemaining: number; // Remaining days until expiry
   totalVisitsCount: number; // Total hit count
   totalHits: number; // Alias for backward compatibility
+  todayVisitsCount?: number; // Visits on the current date
+  lastVisitDate?: string; // YYYY-MM-DD
+  isLocked?: boolean; // Protected from bulk deletion
   uniqueDaysVisitedCount: number; // Alias for backward compatibility
   visitedDates: string[]; // List of unique YYYY-MM-DD dates visited
   isExpired: boolean;
@@ -170,11 +173,13 @@ export async function recordCalendarVisit(params: CalendarVisitRecord): Promise<
 
     if (!firestore) return;
 
-    const tokenKey = (params.tokenIdentifier || "guest").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 40);
+    const rawToken = (params.tokenIdentifier || "guest").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 40);
+    const tokenKey = rawToken.length > 0 ? rawToken : `dev_${Date.now().toString(36)}`;
     const visitDate = params.actualDate || new Date().toISOString().split("T")[0];
     const clickDate = params.dateClicked || visitDate;
     const visitId = `visit_${tokenKey}_${visitDate}_${clickDate}`;
     const nowIso = new Date().toISOString();
+    const todayYmd = nowIso.split("T")[0];
     const durationDays = Number(params.durationDays) > 0 ? Number(params.durationDays) : 90;
 
     // 1. Log or update canonical visit record (deduplicated per devotee per date)
@@ -225,9 +230,16 @@ export async function recordCalendarVisit(params: CalendarVisitRecord): Promise<
         ? "near_expiry"
         : "active";
 
+      const isSameDay = existing.lastVisitDate === todayYmd;
+      const todayVisitsCount = isSameDay ? (Number(existing.todayVisitsCount) || 0) + 1 : 1;
+      const totalVisitsCount = (existing.totalVisitsCount || existing.totalHits || 0) + 1;
+
       const updates: Partial<DevoteeCalendarSubscriptionDoc> = {
-        totalHits: (existing.totalHits || existing.totalVisitsCount || 0) + 1,
-        totalVisitsCount: (existing.totalVisitsCount || existing.totalHits || 0) + 1,
+        totalHits: totalVisitsCount,
+        totalVisitsCount,
+        todayVisitsCount,
+        lastVisitDate: todayYmd,
+        isLocked: existing.isLocked !== undefined ? existing.isLocked : true,
         visitedDates,
         uniqueDaysVisitedCount: daysConsumed,
         daysConsumed,
@@ -291,8 +303,11 @@ export async function recordCalendarVisit(params: CalendarVisitRecord): Promise<
         expiryDate: passStatus.expiryDate,
         daysConsumed: 1,
         daysRemaining,
+        todayVisitsCount: 1,
+        lastVisitDate: todayYmd,
         totalVisitsCount: 1,
         totalHits: 1,
+        isLocked: true,
         uniqueDaysVisitedCount: 1,
         visitedDates: [clickDate],
         isExpired,
@@ -821,4 +836,27 @@ export async function deleteDevoteeSubscription(devoteeId: string): Promise<bool
     return false;
   }
 }
+
+/**
+ * Super Admin: Toggle Lock status of a Devotee Calendar Subscription
+ */
+export async function toggleDevoteeSubscriptionLock(devoteeId: string, lockState?: boolean): Promise<boolean> {
+  try {
+    if (!firestore) return false;
+    const cleanId = devoteeId.trim();
+    const engRef = doc(firestore, "calendarDevoteeEngagement", cleanId);
+    const snap = await getDoc(engRef);
+    if (snap.exists()) {
+      const current = snap.data()?.isLocked;
+      const nextLock = lockState !== undefined ? lockState : !current;
+      await updateDoc(engRef, { isLocked: nextLock, updatedAt: new Date().toISOString() });
+      return true;
+    }
+    return false;
+  } catch (err) {
+    console.error("[CalendarVisitService] Toggle lock error:", err);
+    return false;
+  }
+}
+
 

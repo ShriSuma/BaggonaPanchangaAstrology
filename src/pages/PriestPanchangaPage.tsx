@@ -11,6 +11,7 @@ import {
   isDateInParabhavaYear
 } from "../core/ParabhavaBookEngine";
 import { recordPriestCalendarAction } from "../features/seva/calendarVisitService";
+import { getSafeProductionOrigin } from "../features/seva/icsCalendarGenerator";
 
 export const PriestPanchangaPage: React.FC = () => {
   // Read initial params from window.location.search
@@ -78,7 +79,7 @@ export const PriestPanchangaPage: React.FC = () => {
 
   // Generate QR code data URL
   useEffect(() => {
-    const origin = typeof window !== "undefined" ? window.location.origin : "https://baggona.app";
+    const origin = getSafeProductionOrigin();
     const qrUrl = `${origin}/priest-panchanga?date=${selectedDate}&pincode=${pincode}`;
     QRCode.toDataURL(qrUrl, {
       errorCorrectionLevel: "M",
@@ -131,7 +132,7 @@ export const PriestPanchangaPage: React.FC = () => {
 
   // Download Priest ICS
   const handleDownloadPriestICS = () => {
-    const origin = typeof window !== "undefined" ? window.location.origin : "https://baggona.app";
+    const origin = getSafeProductionOrigin();
     const icsContent = generatePriestICalendarString({
       startDateStr: selectedDate,
       daysCount: calendarSpanDays,
@@ -763,7 +764,7 @@ export const PriestPanchangaPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => {
-                    const origin = typeof window !== "undefined" ? window.location.origin : "https://baggona.app";
+                    const origin = getSafeProductionOrigin();
                     navigator.clipboard.writeText(`${origin}/priest-panchanga?date=${selectedDate}&pincode=${pincode}`);
                     setCopySuccess(true);
                     setTimeout(() => setCopySuccess(false), 2000);

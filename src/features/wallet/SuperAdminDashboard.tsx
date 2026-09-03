@@ -35,6 +35,7 @@ import {
   purgeAllCalendarSubscriptionsAndVisits,
   extendSubscriptionValidity,
   deleteDevoteeSubscription,
+  toggleDevoteeSubscriptionLock,
   type DevoteeCalendarSubscriptionDoc
 } from "../seva/calendarVisitService";
 import {
@@ -840,7 +841,11 @@ export const SuperAdminDashboard: React.FC = () => {
   };
 
   const handleDeleteDevoteeSubscription = async (devoteeId: string) => {
-    if (!window.confirm("ಖಂಡಿತವಾಗಿ ಈ ಭಕ್ತರ ದಾಖಲೆಯನ್ನು ಅಳಿಸಲು ಬಯಸುವಿರಾ?")) return;
+    const target = subscriptions.find((s) => s.id === devoteeId);
+    const confirmMsg = target?.isLocked !== false
+      ? "⚠️ ಗಮನಿಸಿ: ಈ ಭಕ್ತರ ದಾಖಲೆ ರಕ್ಷಿತವಾಗಿದೆ (Locked). ನೀವು ಖಂಡಿತವಾಗಿ ಅನ್-ಲಾಕ್ ಮಾಡಿ ಈ ದಾಖಲೆಯನ್ನು ಶಾಶ್ವತವಾಗಿ ಅಳಿಸಲು ಬಯಸುವಿರಾ?"
+      : "ಖಂಡಿತವಾಗಿ ಈ ಭಕ್ತರ ದಾಖಲೆಯನ್ನು ಅಳಿಸಲು ಬಯಸುವಿರಾ?";
+    if (!window.confirm(confirmMsg)) return;
     try {
       const ok = await deleteDevoteeSubscription(devoteeId);
       if (ok) {
@@ -2616,9 +2621,11 @@ export const SuperAdminDashboard: React.FC = () => {
                       <th className="py-3 px-3">ಸಂಪರ್ಕ (ಮೊಬೈಲ್ & ಇಮೇಲ್)</th>
                       <th className="py-3 px-3">ಜನ್ಮ ಕುಂಡಲಿ</th>
                       <th className="py-3 px-3">ಅವಧಿ & ದಿನಾಂಕಗಳು</th>
-                      <th className="py-3 px-3 text-center">ಬಳಕೆ & ಭೇಟಿಗಳು</th>
+                      <th className="py-3 px-3 text-center">ಇಂದಿನ ಭೇಟಿ</th>
+                      <th className="py-3 px-3 text-center">ಒಟ್ಟು ಭೇಟಿ</th>
                       <th className="py-3 px-3 text-center">ಉಳಿದ ಮಾನ್ಯತೆ</th>
                       <th className="py-3 px-3 text-center">ಸ್ಥಿತಿ</th>
+                      <th className="py-3 px-3 text-center">ಲಾಕ್ & ರಕ್ಷಣೆ</th>
                       <th className="py-3 px-3 text-right">ಮಾರ್ಕೆಟಿಂಗ್ & ಆಕ್ಷನ್ಸ್</th>
                     </tr>
                   </thead>
@@ -2723,13 +2730,23 @@ export const SuperAdminDashboard: React.FC = () => {
                             </div>
                           </td>
 
-                          {/* Consumed / Total Hits */}
+                          {/* Today's Visits */}
                           <td className="py-3.5 px-3 align-top text-center">
                             <div className="font-black text-amber-950 font-mono text-sm">
-                              {s.daysConsumed || 0} <span className="text-[10px] font-normal text-slate-600">ದಿನ</span>
+                              {s.todayVisitsCount || 1}
+                            </div>
+                            <div className="text-[10px] text-slate-500 font-semibold mt-0.5">
+                              ಇಂದು ಭೇಟಿ
+                            </div>
+                          </td>
+
+                          {/* Total Visits & Consumed */}
+                          <td className="py-3.5 px-3 align-top text-center">
+                            <div className="font-black text-slate-900 font-mono text-sm">
+                              {s.totalVisitsCount || s.totalHits || 1}
                             </div>
                             <div className="text-[10px] text-slate-500 font-mono font-semibold mt-0.5">
-                              ಒಟ್ಟು {s.totalVisitsCount || s.totalHits || 0} ಭೇಟಿಗಳು
+                              {s.daysConsumed || 1} ದಿನ ಬಳಕೆ
                             </div>
                           </td>
 
@@ -2769,6 +2786,32 @@ export const SuperAdminDashboard: React.FC = () => {
                             >
                               {isExpired ? "🔴 ಮುಕ್ತಾಯ" : isNearExpiry ? "🟡 ಮುಕ್ತಾಯ ಸಮೀಪ" : "🟢 ಸಕ್ರಿಯ"}
                             </span>
+                          </td>
+
+                          {/* Lock / Protection Status Toggle */}
+                          <td className="py-3.5 px-3 align-top text-center">
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                const nextState = s.isLocked === false ? true : false;
+                                await toggleDevoteeSubscriptionLock(s.id, nextState);
+                                setSubscriptions((prev) =>
+                                  prev.map((item) => (item.id === s.id ? { ...item, isLocked: nextState } : item))
+                                );
+                              }}
+                              className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-black border transition cursor-pointer shadow-xs ${
+                                s.isLocked !== false
+                                  ? "bg-emerald-50 text-emerald-900 border-emerald-300 hover:bg-emerald-100"
+                                  : "bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200"
+                              }`}
+                              title={
+                                s.isLocked !== false
+                                  ? "ಈ ಭಕ್ತರ ದಾಖಲೆ ರಕ್ಷಿತವಾಗಿದೆ (ಬಲ್ಕ್ ಡಿಲೀಟ್‌ಗೆ ಒಳಪಡಲ್ಲ). ಕ್ಲಿಕ್ ಮಾಡಿ ಅನ್-ಲಾಕ್ ಮಾಡಲು."
+                                  : "ದಾಖಲೆ ಅನ್-ಲಾಕ್ ಆಗಿದೆ. ಕ್ಲಿಕ್ ಮಾಡಿ ರಕ್ಷಿಸಲು (ಲಾಕ್ ಮಾಡಲು)."
+                              }
+                            >
+                              <span>{s.isLocked !== false ? "🔒 ಲಾಕ್" : "🔓 ಮುಕ್ತ"}</span>
+                            </button>
                           </td>
 
                           {/* Marketing Actions */}

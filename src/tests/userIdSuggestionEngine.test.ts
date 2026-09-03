@@ -6,6 +6,10 @@ import {
   suggestUserIdsWithAI
 } from "../utils/userIdSuggestionEngine";
 
+vi.mock("../core/GeminiEngine", () => ({
+  askGemini: vi.fn().mockResolvedValue('["shreeram_divine", "pandit_shreeram_gokarna", "shreeram_acharya"]')
+}));
+
 describe("Smart User ID Suggestion Engine (ಸ್ಮಾರ್ಟ್ ಯೂಸರ್ ID ಎಂಜಿನ್)", () => {
   it("transliterates and extracts clean tokens from Kannada Priest names", () => {
     const tokens = extractCleanNameTokens("ಶ್ರೀರಾಮ್ ಪಂಡಿತ್");

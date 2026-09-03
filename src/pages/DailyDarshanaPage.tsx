@@ -1135,12 +1135,15 @@ export default function DailyDarshanaPage(): JSX.Element {
 
   const dateParam = useMemo(() => {
     if (selectedDateOverride && /^\d{4}-\d{2}-\d{2}$/.test(selectedDateOverride)) {
+      if (selectedDateOverride > todayStr) return todayStr;
       return selectedDateOverride;
     }
 
     const urlDate = params.get("date") || params.get("d") || decoded?.d;
     if (urlDate && urlDate.trim().length > 0 && /^\d{4}-\d{2}-\d{2}$/.test(urlDate.trim())) {
-      return urlDate.trim();
+      const cleanUrlDate = urlDate.trim();
+      if (cleanUrlDate > todayStr) return todayStr;
+      return cleanUrlDate;
     }
     return todayStr;
   }, [params, decoded, selectedDateOverride, todayStr]);
@@ -1149,6 +1152,13 @@ export default function DailyDarshanaPage(): JSX.Element {
 
   const handleDateChange = (newDateStr: string) => {
     if (/^\d{4}-\d{2}-\d{2}$/.test(newDateStr)) {
+      if (newDateStr > todayStr) {
+        alert(lang === "kn"
+          ? "⚠️ ಭವಿಷ್ಯದ ದಿನಗಳ ಪಂಚಾಂಗ ಲಭ್ಯವಿಲ್ಲ. ಕೇವಲ ಇಂದಿನ ಪಂಚಾಂಗ ದರ್ಶನವನ್ನು ಮಾತ್ರ ವೀಕ್ಷಿಸಬಹುದು."
+          : "⚠️ Future day predictions are locked. Please view today's sanctum darshana."
+        );
+        return;
+      }
       setSelectedDateOverride(newDateStr);
       if (typeof window !== "undefined") {
         const newUrl = new URL(window.location.href);
@@ -1166,9 +1176,13 @@ export default function DailyDarshanaPage(): JSX.Element {
   };
 
   const handleNextDay = () => {
+    if (dateParam >= todayStr) {
+      return;
+    }
     const current = new Date(dateParam);
     current.setDate(current.getDate() + 1);
     const nextYmd = current.toISOString().split("T")[0];
+    if (nextYmd > todayStr) return;
     handleDateChange(nextYmd);
   };
 
@@ -1439,13 +1453,14 @@ export default function DailyDarshanaPage(): JSX.Element {
   // Surrounding 7-Day Strip for fast 1-tap navigation across 90/180/365 days
   const surroundingDays = useMemo(() => {
     const base = new Date(dateParam);
-    const list: { ymd: string; dayNum: number; weekdayKn: string; weekdayEn: string; isCurrent: boolean; energyEmoji: string }[] = [];
+    const list: { ymd: string; dayNum: number; weekdayKn: string; weekdayEn: string; isCurrent: boolean; isFuture: boolean; energyEmoji: string }[] = [];
     const knWeekdays = ["ಭಾನು", "ಸೋಮ", "ಮಂಗಳ", "ಬುಧ", "ಗುರು", "ಶುಕ್ರ", "ಶನಿ"];
     const enWeekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-    for (let offset = -2; offset <= 4; offset++) {
+    for (let offset = -4; offset <= 2; offset++) {
       const d = new Date(base.getTime() + offset * 86400000);
       const ymd = d.toISOString().split("T")[0];
+      const isFuture = ymd > todayStr;
       const rDay = calculateDeterministicRhythmDay(ymd, moonNakshatraIdx, moonRashiIdx, ymd);
       const v = getEnergyMeterAndVibe(rDay, lang);
       list.push({
@@ -1454,11 +1469,12 @@ export default function DailyDarshanaPage(): JSX.Element {
         weekdayKn: knWeekdays[d.getDay()] || "ದಿನ",
         weekdayEn: enWeekdays[d.getDay()] || "Day",
         isCurrent: ymd === dateParam,
-        energyEmoji: v.badgeEmoji
+        isFuture,
+        energyEmoji: isFuture ? "🔒" : v.badgeEmoji
       });
     }
     return list;
-  }, [dateParam, moonNakshatraIdx, moonRashiIdx, lang]);
+  }, [dateParam, moonNakshatraIdx, moonRashiIdx, lang, todayStr]);
 
   // Derived user astro indices
   const ascendantRashiIdx = useMemo(() => {
@@ -2148,42 +2164,42 @@ export default function DailyDarshanaPage(): JSX.Element {
         </div>
       </header>
 
-      {/* Ashirvada Pass Expired & Renewal Alert Banner */}
-      {passExpiration.isExpired && (
+      {/* Ashirvada Pass Expired & Renewal Screen (Locks Content on 30d/90d Expiry) */}
+      {passExpiration.isExpired ? (
         <div style={{
           maxWidth: 600,
-          margin: "14px auto 8px",
-          padding: "16px",
-          borderRadius: "18px",
-          background: "linear-gradient(135deg, #450A0A 0%, #7F1D1D 100%)",
+          margin: "24px auto",
+          padding: "32px 20px",
+          borderRadius: "24px",
+          background: "linear-gradient(180deg, rgba(69, 10, 10, 0.95) 0%, rgba(28, 10, 0, 0.98) 100%)",
           border: "2px solid #EF4444",
-          boxShadow: "0 8px 25px rgba(239, 68, 68, 0.35)",
+          boxShadow: "0 12px 35px rgba(239, 68, 68, 0.4)",
           textAlign: "center"
         }}>
-          <div style={{ fontSize: "26px", marginBottom: "4px" }}>⏳</div>
-          <h3 style={{ color: "#FEE2E2", fontSize: "16px", fontWeight: 900, margin: "0 0 6px" }}>
-            {lang === "kn" ? "ಆಶೀರ್ವಾದ ಪಂಚಾಂಗ ಪಾಸ್ ಕಾಲಾವಧಿ ಮುಕ್ತಾಯಗೊಂಡಿದೆ" : "Ashirvada Calendar Pass Expired"}
-          </h3>
-          <p style={{ color: "#FECACA", fontSize: "12px", margin: "0 0 12px", lineHeight: 1.5 }}>
+          <div style={{ fontSize: "52px", marginBottom: "12px" }}>🔒</div>
+          <h2 style={{ color: "#FDE68A", fontSize: "20px", fontWeight: 900, margin: "0 0 10px" }}>
+            {lang === "kn" ? "॥ ಆಶೀರ್ವಾದ ಪಂಚಾಂಗ ಪಾಸ್ ಮುಕ್ತಾಯಗೊಂಡಿದೆ ॥" : "॥ Sanctum Access Pass Expired ॥"}
+          </h2>
+          <p style={{ color: "#FECACA", fontSize: "14px", lineHeight: 1.6, margin: "0 0 24px" }}>
             {lang === "kn"
-              ? `ನಿಮ್ಮ ${rawDuration}-ದಿನಗಳ ದೈನಂದಿನ ದರ್ಶನ ಪಾಸ್ ದಿನಾಂಕ ${passExpiration.expiryDate} ರಂದು ಮುಕ್ತಾಯಗೊಂಡಿದೆ. ಪಂಚಾಂಗ ಸೇವೆ ಮತ್ತು ಮುಹೂರ್ತಗಳ ನವೀಕರಣಕ್ಕಾಗಿ ದಯವಿಟ್ಟು ಪುರೋಹಿತರನ್ನು ಸಂಪರ್ಕಿಸಿ.`
-              : `Your ${rawDuration}-day Daily Darshana pass expired on ${passExpiration.expiryDate}. Please contact the priest to renew your sanctum access.`}
+              ? `ನಿಮ್ಮ ${rawDuration}-ದಿನಗಳ ದೈನಂದಿನ ದರ್ಶನ ಪಾಸ್ ದಿನಾಂಕ ${passExpiration.expiryDate} ರಂದು ಮುಕ್ತಾಯಗೊಂಡಿದೆ. ಮುಂದಿನ ದಿನಗಳ ಪಂಚಾಂಗ, ವೈದಿಕ ಜಾತಕ ಫಲಗಳು ಮತ್ತು ಶುಭ ಮುಹೂರ್ತಗಳ ನವೀಕರಣಕ್ಕಾಗಿ ಪುರೋಹಿತರನ್ನು ಸಂಪರ್ಕಿಸಿ.`
+              : `Your ${rawDuration}-day Daily Darshana pass expired on ${passExpiration.expiryDate}. Please contact the priest to renew your sanctum access and daily predictions.`}
           </p>
-          <div style={{ display: "flex", gap: "8px", justifyContent: "center", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
             <a
               href={`tel:${activePanditPhone.replace(/[^\d+]/g, "")}`}
               style={{
                 display: "inline-flex",
                 alignItems: "center",
-                gap: "6px",
-                padding: "8px 16px",
-                borderRadius: "12px",
+                gap: "8px",
+                padding: "12px 24px",
+                borderRadius: "14px",
                 background: "#DC2626",
                 color: "#FFFFFF",
-                fontSize: "12px",
-                fontWeight: 800,
+                fontSize: "14px",
+                fontWeight: 900,
                 textDecoration: "none",
-                boxShadow: "0 4px 12px rgba(220, 38, 38, 0.4)"
+                boxShadow: "0 6px 18px rgba(220, 38, 38, 0.5)"
               }}
             >
               📞 {lang === "kn" ? "ಪಂಡಿತರಿಗೆ ಕರೆ ಮಾಡಿ" : "Call Priest"}
@@ -2197,23 +2213,23 @@ export default function DailyDarshanaPage(): JSX.Element {
               style={{
                 display: "inline-flex",
                 alignItems: "center",
-                gap: "6px",
-                padding: "8px 16px",
-                borderRadius: "12px",
+                gap: "8px",
+                padding: "12px 24px",
+                borderRadius: "14px",
                 background: "#16A34A",
                 color: "#FFFFFF",
-                fontSize: "12px",
-                fontWeight: 800,
+                fontSize: "14px",
+                fontWeight: 900,
                 textDecoration: "none",
-                boxShadow: "0 4px 12px rgba(22, 163, 74, 0.4)"
+                boxShadow: "0 6px 18px rgba(22, 163, 74, 0.5)"
               }}
             >
               💬 WhatsApp {lang === "kn" ? "ನವೀಕರಣ" : "Renew"}
             </a>
           </div>
         </div>
-      )}
-
+      ) : (
+        <>
       {/* Sticky Mobile 3-Tab Navigation */}
       <nav style={{
         position: "sticky",
@@ -2424,20 +2440,29 @@ export default function DailyDarshanaPage(): JSX.Element {
               <button
                 key={item.ymd}
                 type="button"
-                onClick={() => handleDateChange(item.ymd)}
+                disabled={item.isFuture}
+                onClick={() => !item.isFuture && handleDateChange(item.ymd)}
                 style={{
                   background: item.isCurrent
                     ? "linear-gradient(180deg, rgba(217, 119, 6, 0.5) 0%, rgba(146, 64, 14, 0.8) 100%)"
+                    : item.isFuture
+                    ? "rgba(40, 10, 10, 0.4)"
                     : "rgba(0, 0, 0, 0.35)",
-                  border: item.isCurrent ? "2px solid #FDE68A" : "1px solid rgba(212, 175, 55, 0.25)",
+                  border: item.isCurrent
+                    ? "2px solid #FDE68A"
+                    : item.isFuture
+                    ? "1px dashed rgba(239, 68, 68, 0.4)"
+                    : "1px solid rgba(212, 175, 55, 0.25)",
                   borderRadius: 10,
                   padding: "6px 2px",
-                  cursor: "pointer",
+                  cursor: item.isFuture ? "not-allowed" : "pointer",
                   textAlign: "center",
-                  color: item.isCurrent ? "#FFF8E7" : "#D1D5DB",
+                  color: item.isCurrent ? "#FFF8E7" : item.isFuture ? "#9CA3AF" : "#D1D5DB",
+                  opacity: item.isFuture ? 0.6 : 1,
                   boxShadow: item.isCurrent ? "0 0 10px rgba(253, 230, 138, 0.5)" : "none",
                   transition: "all 0.15s ease"
                 }}
+                title={item.isFuture ? (lang === "kn" ? "ಭವಿಷ್ಯದ ದಿನ ಲಾಕ್ ಆಗಿದೆ" : "Future day is locked") : undefined}
               >
                 <div style={{ fontSize: 9.5, fontWeight: 800, color: item.isCurrent ? "#FDE68A" : "#9CA3AF" }}>
                   {lang === "kn" ? item.weekdayKn : item.weekdayEn}
@@ -3505,6 +3530,8 @@ export default function DailyDarshanaPage(): JSX.Element {
           </button>
         </div>
       </main>
+      </>
+      )}
 
       {/* Priest Direct Contact Modal */}
       {showContactModal && (

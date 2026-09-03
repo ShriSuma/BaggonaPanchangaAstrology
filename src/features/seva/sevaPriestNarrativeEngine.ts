@@ -10,6 +10,7 @@ import type { RhythmDay } from "../../core/DailyRhythmEngine";
 import { askGemini } from "../../core/GeminiEngine";
 import { nakshatraName, rashiName } from "./sevaPresentation";
 import { TARA_L5, pick } from "./sevaLocale";
+import { getSafeProductionOrigin } from "./icsCalendarGenerator";
 
 export interface PriestDayNarrative {
   greeting: string;
@@ -290,12 +291,7 @@ Requirements:
     ? (isKn ? "🟢 ಅತ್ಯುನ್ನತ ಶುಭ ದಿನ (Golden Auspicious Day)" : "🟢 Highly Auspicious Day")
     : (isKn ? "🟡 ಸಮತೋಲಿತ ದಿನ (Balanced Duty Day)" : "🟡 Balanced Day");
 
-  const baseUrl =
-    webAppBaseUrl && !webAppBaseUrl.includes("localhost") && !webAppBaseUrl.includes("127.0.0.1")
-      ? webAppBaseUrl
-      : (typeof window !== "undefined" && window.location?.origin && !window.location.origin.includes("localhost") && !window.location.origin.includes("127.0.0.1")
-          ? window.location.origin
-          : "https://baggona.app");
+  const baseUrl = getSafeProductionOrigin(webAppBaseUrl);
   const webSanctumUrl = `${baseUrl}/daily?date=${day.ymd}&lang=${lang}&name=${encodeURIComponent(name)}`;
 
   return {

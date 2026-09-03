@@ -23,6 +23,7 @@ import {
   decodeDevoteeToken,
   encodeDevoteeToken
 } from "../../utils/tokenCipher";
+import { getSafeProductionOrigin } from "./icsCalendarGenerator";
 
 const BASE62_CHARS = "0123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
@@ -83,7 +84,7 @@ export interface ResolveTokenResult {
 export async function createDatabaseDevoteeToken(
   payload: DevoteeTokenPayload,
   totalDays: number = 90,
-  origin: string = "https://baggona.app"
+  origin: string = getSafeProductionOrigin()
 ): Promise<CreateDatabaseTokenResult> {
   const now = new Date();
   const expiresAt = new Date(now.getTime() + totalDays * 24 * 60 * 60 * 1000);

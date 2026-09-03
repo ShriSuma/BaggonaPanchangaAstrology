@@ -147,27 +147,32 @@ export default function App(): JSX.Element {
     const run = async () => {
       // Check for URL parameters (?reset=true or ?reset=false)
       if (typeof window !== "undefined") {
-        const urlParams = new URLSearchParams(window.location.search);
-        const resetParam = urlParams.get("reset");
-        
-        if (resetParam === "true" || resetParam === "1") {
-          // Explicit reset requested: clear session cache
-          localStorage.removeItem("baggona_priest_kundli_active_session");
-          localStorage.removeItem("baggona_priest_sankhya_active_session");
-        }
+        try {
+          const urlParams = new URLSearchParams(window.location.search);
+          const resetParam = urlParams.get("reset");
+          
+          if (resetParam === "true" || resetParam === "1") {
+            // Explicit reset requested: clear session cache
+            localStorage.removeItem("baggona_priest_kundli_active_session");
+            localStorage.removeItem("baggona_priest_sankhya_active_session");
+          }
 
-        // If coming from a deep link URL (token, portal, or reset flag), validate URL once and bypass recurring popups
-        if (
-          urlParams.has("token") ||
-          urlParams.has("portal") ||
-          urlParams.has("fromCal") ||
-          urlParams.has("reset") ||
-          isDailyRoute ||
-          isAcademyRoute ||
-          isPublicKundliRoute ||
-          isPriestPortalRoute
-        ) {
-          localStorage.setItem("jk-consent", "accepted");
+          // If coming from a deep link URL (token, portal, or reset flag), validate URL once and bypass recurring popups
+          if (
+            urlParams.has("token") ||
+            urlParams.has("portal") ||
+            urlParams.has("fromCal") ||
+            urlParams.has("reset") ||
+            isDailyRoute ||
+            isAcademyRoute ||
+            isPublicKundliRoute ||
+            isPriestPortalRoute
+          ) {
+            localStorage.setItem("jk-consent", "accepted");
+            setConsentResolved(true);
+          }
+        } catch (e) {
+          console.warn("[App] LocalStorage sandbox notice:", e);
           setConsentResolved(true);
         }
       }

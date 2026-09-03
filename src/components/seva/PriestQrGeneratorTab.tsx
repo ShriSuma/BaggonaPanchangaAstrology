@@ -11,6 +11,7 @@ import {
   type PriestProfile
 } from "../../features/seva/sevaPriestDirectory";
 import { encodeDevoteeToken } from "../../utils/tokenCipher";
+import { getSafeProductionOrigin } from "../../features/seva/icsCalendarGenerator";
 import { PriestQrCard1PageTemplate } from "./pdf/PriestQrCard1PageTemplate";
 
 type PriestQrGeneratorTabProps = {
@@ -135,13 +136,7 @@ export default function PriestQrGeneratorTab({
 
   // Generate dynamic QR code payload encoding duration, language, and priest details
   useEffect(() => {
-    const origin =
-      typeof window !== "undefined" &&
-      window.location?.origin &&
-      !window.location.origin.includes("localhost") &&
-      !window.location.origin.includes("127.0.0.1")
-        ? window.location.origin
-        : "https://baggona.app";
+    const origin = getSafeProductionOrigin();
 
     const token = encodeDevoteeToken({
       n: identity.personName || "Devotee",

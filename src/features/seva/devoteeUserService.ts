@@ -50,13 +50,26 @@ export interface DevoteeUserRecord extends UserProfileDoc {
   lastSankalpaDate?: string;
   totalSankalpas?: number;
   lastVisitAt?: string;
+  todayVisitsCount?: number;
+  totalVisitsCount?: number;
+  lastVisitDate?: string;
+  isLocked?: boolean;
 }
 
 /**
  * Computes a deterministic, clean Devotee Key / User ID.
+ * Unicode-safe for Indic languages (Kannada, Hindi, Telugu, Tamil).
  */
 export function getDevoteeUserId(params: { name: string; dob?: string; tob?: string; token?: string }): string {
-  const cleanName = (params.name || "devotee").trim().toLowerCase().replace(/[^a-z0-9]/g, "_");
+  let cleanName = (params.name || "devotee").trim().toLowerCase().replace(/[^a-z0-9]/g, "_").replace(/_+/g, "_").replace(/^_+|_+$/g, "");
+  if (!cleanName) {
+    let hash = 5381;
+    for (let i = 0; i < (params.name || "").length; i++) {
+      hash = ((hash << 5) + hash) + params.name.charCodeAt(i);
+      hash &= 0x7FFFFFFF;
+    }
+    cleanName = `dev_${hash.toString(36)}`;
+  }
   const cleanDob = (params.dob || "").trim().replace(/[^0-9]/g, "");
   const cleanTob = (params.tob || "").trim().replace(/[^0-9]/g, "");
 
@@ -100,6 +113,7 @@ function cleanFirestoreObject<T extends Record<string, any>>(obj: T): Partial<T>
 export async function checkAndRegisterDevoteeUser(params: DevoteeRegistrationParams): Promise<DevoteeUserRecord> {
   const devoteeId = getDevoteeUserId(params);
   const nowIso = new Date().toISOString();
+  const todayYmd = nowIso.split("T")[0];
 
   const fallbackRecord: DevoteeUserRecord = {
     id: devoteeId,
@@ -120,6 +134,10 @@ export async function checkAndRegisterDevoteeUser(params: DevoteeRegistrationPar
     highestStreak: 1,
     lastSankalpaDate: "",
     totalSankalpas: 0,
+    todayVisitsCount: 1,
+    totalVisitsCount: 1,
+    lastVisitDate: todayYmd,
+    isLocked: true,
     createdAt: nowIso,
     lastVisitAt: nowIso
   };
@@ -162,15 +180,29 @@ export async function checkAndRegisterDevoteeUser(params: DevoteeRegistrationPar
       if (params.phone && !existingData.phone) existingData.phone = params.phone;
       if (params.email && !existingData.email) existingData.email = params.email;
 
+      const isSameDay = existingData.lastVisitDate === todayYmd;
+      const todayVisitsCount = isSameDay ? (Number(existingData.todayVisitsCount) || 0) + 1 : 1;
+      const totalVisitsCount = (Number(existingData.totalVisitsCount) || 0) + 1;
+
       const merged: DevoteeUserRecord = {
         ...fallbackRecord,
         ...existingData,
+        todayVisitsCount,
+        totalVisitsCount,
+        lastVisitDate: todayYmd,
+        isLocked: existingData.isLocked !== undefined ? existingData.isLocked : true,
         // Update visit timestamp
         lastVisitAt: nowIso
       };
 
       // Background update of lastVisitAt and merged contact details
-      const updates: Record<string, any> = { lastVisitAt: nowIso };
+      const updates: Record<string, any> = {
+        lastVisitAt: nowIso,
+        todayVisitsCount,
+        totalVisitsCount,
+        lastVisitDate: todayYmd,
+        isLocked: merged.isLocked
+      };
       if (merged.phone && !existingData.phone) updates.phone = merged.phone;
       if (merged.email && !existingData.email) updates.email = merged.email;
 

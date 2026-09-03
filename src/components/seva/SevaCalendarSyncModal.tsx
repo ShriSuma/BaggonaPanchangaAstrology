@@ -6,6 +6,7 @@ import {
   generateGoogleCalendarUrl,
   generateQrPayloadByTarget,
   generateSevaICalendarString,
+  getSafeProductionOrigin,
   validate90DayCalendarPayload,
   type QrCalendarTarget
 } from "../../features/seva/icsCalendarGenerator";
@@ -147,13 +148,7 @@ export default function SevaCalendarSyncModal({
     { label: "10:00 AM", value: "10:00" }
   ];
 
-  const origin =
-    typeof window !== "undefined" &&
-    window.location?.origin &&
-    !window.location.origin.includes("localhost") &&
-    !window.location.origin.includes("127.0.0.1")
-      ? window.location.origin
-      : "https://baggona.app";
+  const origin = getSafeProductionOrigin();
 
   const devoteeToken = useMemo(() => {
     const selectedDay = days && days.length > 0 ? days[0] : null;

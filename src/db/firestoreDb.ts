@@ -1103,7 +1103,14 @@ export async function cleanupAllTestAndMockProfiles(): Promise<TestCleanupReport
       const uname = data.username || docSnap.id;
       const name = data.name || "";
       // Protect superadmin and authentic priests
-      if (uname === "$hriSuma" || uname === "superadmin" || uname === "shreerampandit") continue;
+      if (uname === "$hriSuma" || uname === "superadmin" || uname === "shreerampandit" || uname.includes("baggona")) continue;
+
+      // Protect locked devotees, active visitors, and devotees with real contact details
+      if (data.isLocked === true) continue;
+      if (data.source === "calendar_redirect" || data.source === "superadmin_copylink") continue;
+      if (Number(data.totalVisitsCount) > 0 || Number(data.todayVisitsCount) > 0) continue;
+      if (data.phone && data.phone.trim().length >= 10 && data.phone !== "0000000000" && data.phone !== "9999999999") continue;
+      if (data.email && data.email.includes("@") && !data.email.includes("test") && !data.email.includes("mock")) continue;
 
       if (isTestEntry(uname) || isTestEntry(name) || isTestEntry(data.email || "")) {
         await deleteDoc(docSnap.ref);
@@ -1144,7 +1151,14 @@ export async function cleanupAllTestAndMockProfiles(): Promise<TestCleanupReport
     for (const docSnap of engSnap.docs) {
       const data = docSnap.data();
       const name = data.devoteeName || "";
-      const phone = data.mobileNumber || "";
+      const phone = data.mobileNumber || data.phone || "";
+
+      // Protect locked devotees and active URL visitors
+      if (data.isLocked === true) continue;
+      if (data.source === "calendar_redirect" || data.source === "superadmin_copylink") continue;
+      if (Number(data.totalVisitsCount) > 0 || Number(data.totalHits) > 0) continue;
+      if (phone && phone.trim().length >= 10 && phone !== "0000000000" && phone !== "9999999999") continue;
+
       if (isTestEntry(name) || isTestEntry(docSnap.id) || phone === "0000000000" || phone === "9999999999") {
         await deleteDoc(docSnap.ref);
         report.removedEngagement++;
