@@ -14,6 +14,7 @@ import {
 import { BaggonaBookLoaderModal } from "../../components/admin/BaggonaBookLoaderModal";
 import { UniversalBaggonaPageRenderer } from "../../components/admin/BaggonaBookPageTemplates";
 import { KN_SAMVATSARAS } from "../../core/VedicCalculations";
+import { generatePDFFromElement } from "../../utils/pdfGenerator";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
@@ -448,7 +449,7 @@ export const BaggonaBookPublisherDashboard: React.FC = () => {
         }}
       >
         {allPages.map((p) => (
-          <div key={p.pageNumber} className="pdf-page-a4">
+          <div key={p.pageNumber} className="baggona-page-item">
             <UniversalBaggonaPageRenderer page={p} meta={currentMeta} />
           </div>
         ))}

@@ -21,40 +21,41 @@ export const BaggonaPageFrame: React.FC<{
 }> = ({ pageNumber, titleKn, headerSubKn, children }) => {
   return (
     <div
-      className="pdf-page-a4 relative w-[794px] h-[1123px] bg-[#FFFDF7] p-[28px] box-border text-slate-900 overflow-hidden flex flex-col justify-between"
+      className="pdf-page pdf-page-a4 relative w-[794px] h-[1123px] bg-[#FFFDF7] p-[16px] box-border text-slate-900 overflow-hidden"
       style={{
         fontFamily: "'Noto Sans Kannada', sans-serif",
-        border: "3px double #78350f",
-        boxShadow: "inset 0 0 0 2px #d97706, inset 0 0 0 5px #78350f"
+        border: "4px solid #78350f"
       }}
     >
-      {/* Top Header */}
-      <div className="text-center pb-2 border-b-2 border-amber-900/60 flex-shrink-0">
-        <div className="text-xs font-black tracking-widest text-amber-900 uppercase">
-          -: {pageNumber} :-
-        </div>
-        {titleKn && (
-          <h2 className="text-sm font-black text-amber-950 mt-0.5 leading-snug">
-            {titleKn}
-          </h2>
-        )}
-        {headerSubKn && (
-          <div className="text-[10px] font-bold text-amber-800/90 font-sans">
-            {headerSubKn}
+      <div className="w-full h-full border-2 border-amber-600 p-[18px] box-border flex flex-col justify-between bg-[#FFFDF7]">
+        {/* Top Header */}
+        <div className="text-center pb-2 border-b-2 border-amber-900/60 flex-shrink-0">
+          <div className="text-xs font-black tracking-widest text-amber-900 uppercase">
+            -: {pageNumber} :-
           </div>
-        )}
-      </div>
+          {titleKn && (
+            <h2 className="text-sm font-black text-amber-950 mt-0.5 leading-snug">
+              {titleKn}
+            </h2>
+          )}
+          {headerSubKn && (
+            <div className="text-[10px] font-bold text-amber-800/90 font-sans">
+              {headerSubKn}
+            </div>
+          )}
+        </div>
 
-      {/* Main Content Body */}
-      <div className="flex-1 py-2 overflow-hidden flex flex-col justify-start text-[11px] leading-snug">
-        {children}
-      </div>
+        {/* Main Content Body */}
+        <div className="flex-1 py-2 overflow-hidden flex flex-col justify-start text-[11px] leading-snug">
+          {children}
+        </div>
 
-      {/* Classical Footer */}
-      <div className="pt-1.5 border-t border-amber-900/40 text-[9px] font-sans font-bold text-amber-900 flex justify-between items-center flex-shrink-0">
-        <span>॥ ಶ್ರೀ ಕುಲದೇವತಾ ಪ್ರಸನ್ನ ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ</span>
-        <span>ಪುಟ {pageNumber} / ೧೦೪</span>
-        <span>ಗೋಕರ್ಣ ದೃಗ್ಗಣಿತ ಪದ್ಧತಿ</span>
+        {/* Classical Footer */}
+        <div className="pt-1.5 border-t border-amber-900/40 text-[9px] font-sans font-bold text-amber-900 flex justify-between items-center flex-shrink-0">
+          <span>॥ ಶ್ರೀ ಕುಲದೇವತಾ ಪ್ರಸನ್ನ ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ</span>
+          <span>ಪುಟ {pageNumber} / ೧೦೪</span>
+          <span>ಗೋಕರ್ಣ ದೃಗ್ಗಣಿತ ಪದ್ಧತಿ</span>
+        </div>
       </div>
     </div>
   );
@@ -66,8 +67,8 @@ export const BaggonaPageFrame: React.FC<{
 
 export const Page01Avataranike: React.FC<PageTemplateProps> = ({ page, meta }) => {
   const toc: any[] = page.contentData?.toc || [];
-  const col1 = toc.slice(0, 18);
-  const col2 = toc.slice(18);
+  const col1 = toc.slice(0, 16);
+  const col2 = toc.slice(16);
 
   const rahuGulikTable = [
     { day: "ರವಿವಾರ", rahu: "4.30 - 6.00", gulika: "3.00 - 4.30" },
@@ -95,9 +96,9 @@ export const Page01Avataranike: React.FC<PageTemplateProps> = ({ page, meta }) =
             </div>
             <div className="divide-y divide-amber-200">
               {col1.map((item, idx) => (
-                <div key={idx} className="p-1 flex justify-between bg-white hover:bg-amber-50">
+                <div key={idx} className="px-1.5 py-0.5 flex justify-between bg-white hover:bg-amber-50 text-[9px]">
                   <span className="truncate pr-1">{item.serialNo}. {item.titleKn}</span>
-                  <span className="font-mono font-bold text-amber-950">{item.pageRange}</span>
+                  <span className="font-mono font-bold text-amber-950 flex-shrink-0">{item.pageRange}</span>
                 </div>
               ))}
             </div>
@@ -109,11 +110,11 @@ export const Page01Avataranike: React.FC<PageTemplateProps> = ({ page, meta }) =
                 <span>ಅ.ನಂ. ವಿವರಣೆ</span>
                 <span>ಪುಟ</span>
               </div>
-              <div className="divide-y divide-amber-200 max-h-48 overflow-y-auto">
+              <div className="divide-y divide-amber-200">
                 {col2.map((item, idx) => (
-                  <div key={idx} className="p-1 flex justify-between bg-white hover:bg-amber-50">
+                  <div key={idx} className="px-1.5 py-0.5 flex justify-between bg-white hover:bg-amber-50 text-[9px]">
                     <span className="truncate pr-1">{item.serialNo}. {item.titleKn}</span>
-                    <span className="font-mono font-bold text-amber-950">{item.pageRange}</span>
+                    <span className="font-mono font-bold text-amber-950 flex-shrink-0">{item.pageRange}</span>
                   </div>
                 ))}
               </div>
@@ -476,17 +477,17 @@ export const PagePanchangaLeft: React.FC<PageTemplateProps> = ({ page, meta }) =
             </thead>
             <tbody className="divide-y divide-amber-200">
               {days.map((d) => (
-                <tr key={d} className={`text-[8.5px] ${d % 2 === 0 ? "bg-amber-50/40" : "bg-white"}`}>
-                  <td className="p-0.5 font-bold border-r border-amber-200">{d}</td>
-                  <td className="p-0.5 font-black border-r border-amber-200">{d} {["ರ", "ಚಂ", "ಕು", "ಬು", "ಗು", "ಶು", "ಶ"][d % 7]}</td>
-                  <td className="p-0.5 border-r border-amber-200 font-mono">15/46 12:49</td>
-                  <td className="p-0.5 border-r border-amber-200">ರೇವತಿ ೪</td>
-                  <td className="p-0.5 border-r border-amber-200 font-mono">ಅಶ್ವಿನಿ 16/34</td>
-                  <td className="p-0.5 border-r border-amber-200">ಸುಕರ್ಮ</td>
-                  <td className="p-0.5 border-r border-amber-200">ಬವ</td>
-                  <td className="p-0.5 border-r border-amber-200 font-mono">18/45-28/44</td>
-                  <td className="p-0.5 border-r border-amber-200 font-mono">30-15</td>
-                  <td className="p-0.5 text-left pl-1 truncate font-semibold">ಪಾಡ್ಯ ಶ್ರಾದ್ಧ | ವತ್ಸರಾರಂಭಃ</td>
+                <tr key={d} className={`text-[9.5px] ${d % 2 === 0 ? "bg-amber-50/40" : "bg-white"}`}>
+                  <td className="p-1 font-bold border-r border-amber-200">{d}</td>
+                  <td className="p-1 font-black border-r border-amber-200">{d} {["ರ", "ಚಂ", "ಕು", "ಬು", "ಗು", "ಶು", "ಶ"][d % 7]}</td>
+                  <td className="p-1 border-r border-amber-200 font-mono">15/46 12:49</td>
+                  <td className="p-1 border-r border-amber-200">ರೇವತಿ ೪</td>
+                  <td className="p-1 border-r border-amber-200 font-mono">ಅಶ್ವಿನಿ 16/34</td>
+                  <td className="p-1 border-r border-amber-200">ಸುಕರ್ಮ</td>
+                  <td className="p-1 border-r border-amber-200">ಬವ</td>
+                  <td className="p-1 border-r border-amber-200 font-mono">18/45-28/44</td>
+                  <td className="p-1 border-r border-amber-200 font-mono">30-15</td>
+                  <td className="p-1 text-left pl-1.5 truncate font-semibold">ಪಾಡ್ಯ ಶ್ರಾದ್ಧ | ವತ್ಸರಾರಂಭಃ</td>
                 </tr>
               ))}
             </tbody>
