@@ -97,22 +97,80 @@ export const BaggonaBookPublisherDashboard: React.FC = () => {
     }
   };
 
-  // Full 104-Page Press-Ready PDF Download (via HTML2Canvas, zero mojibake)
-  const handleDownloadPressReadyPdf = async () => {
+  // Real-Time Progress, Non-Blocking Chunking & Direct Blob Download State
+  const [generationProgress, setGenerationProgress] = useState<{
+    percent: number;
+    currentPage: number;
+    stageTextKn: string;
+    isReady: boolean;
+    downloadUrl: string | null;
+    fileName: string;
+    fileSizeBytes?: number;
+    errorMessage: string | null;
+  }>({
+    percent: 0,
+    currentPage: 0,
+    stageTextKn: "",
+    isReady: false,
+    downloadUrl: null,
+    fileName: "",
+    errorMessage: null
+  });
+
+  const handleNativePrint = () => {
+    window.print();
+  };
+
+  // Full 104-Page Press-Ready PDF Download (Chunked, Live Page-by-Page Progress, Zero Mojibake, Direct Link Fallback)
+  const start104PageGeneration = async () => {
+    const fileName = `Baggona_Panchanga_${currentMeta.samvatsaraEn}_Shaka_${currentMeta.shakaYear}_104_Pages_Press_Ready.pdf`;
+
+    setGenerationProgress({
+      percent: 0,
+      currentPage: 0,
+      stageTextKn: "ಪಂಚಾಂಗ ಪುಟಗಳ ಸಂಸ್ಕರಣೆ ಆರಂಭವಾಗುತ್ತಿದೆ...",
+      isReady: false,
+      downloadUrl: null,
+      fileName,
+      errorMessage: null
+    });
+    setShowLoaderModal(true);
+    setIsGeneratingPdf(true);
+
     try {
-      setIsGeneratingPdf(true);
+      // Yield to let React render the loader modal
+      await new Promise((r) => setTimeout(r, 150));
+
+      const hiddenHost = document.getElementById("baggona-offscreen-render-host");
+      if (!hiddenHost) throw new Error("Offscreen PDF container missing (ಮುದ್ರಣ ಕಂಟೈನರ್ ಲಭ್ಯವಿಲ್ಲ)");
+
+      const pageElements = hiddenHost.querySelectorAll(".pdf-page-a4");
+      const total = pageElements.length || 104;
+
       const doc = new jsPDF({
         orientation: "portrait",
         unit: "mm",
         format: "a4"
       });
 
-      const hiddenHost = document.getElementById("baggona-offscreen-render-host");
-      if (!hiddenHost) throw new Error("Offscreen PDF container missing");
-
-      const pageElements = hiddenHost.querySelectorAll(".pdf-page-a4");
       for (let i = 0; i < pageElements.length; i++) {
         const pageEl = pageElements[i] as HTMLElement;
+        const pageNum = i + 1;
+        const pageMeta = allPages[i];
+        const pageTitle = pageMeta?.titleKn || `ಪುಟ ${pageNum}`;
+
+        // Update real live progress
+        const percent = Math.round((pageNum / total) * 100);
+        setGenerationProgress((prev) => ({
+          ...prev,
+          percent,
+          currentPage: pageNum,
+          stageTextKn: `ಪುಟ ${pageNum}: ${pageTitle}`
+        }));
+
+        // Yield to browser main thread to prevent UI freezing
+        await new Promise((r) => setTimeout(r, 15));
+
         const canvas = await html2canvas(pageEl, {
           scale: 1.5,
           useCORS: true,
@@ -123,14 +181,46 @@ export const BaggonaBookPublisherDashboard: React.FC = () => {
         const imgData = canvas.toDataURL("image/jpeg", 0.92);
         if (i > 0) doc.addPage();
         doc.addImage(imgData, "JPEG", 0, 0, 210, 297);
+
+        // Immediate memory cleanup
+        canvas.width = 0;
+        canvas.height = 0;
       }
 
-      doc.save(`Baggona_Panchanga_${currentMeta.samvatsaraEn}_Shaka_${currentMeta.shakaYear}_104_Pages_Press_Ready.pdf`);
-    } catch (err) {
+      // Build Blob & Object URL for 100% reliable direct download
+      const pdfBlob = doc.output("blob");
+      const blobUrl = URL.createObjectURL(pdfBlob);
+
+      setGenerationProgress((prev) => ({
+        ...prev,
+        percent: 100,
+        currentPage: total,
+        stageTextKn: "೧೦೪ ಪುಟಗಳ ಪಿಡಿಎಫ್ ಯಶಸ್ವಿಯಾಗಿ ಸಿದ್ಧವಾಗಿದೆ!",
+        isReady: true,
+        downloadUrl: blobUrl,
+        fileSizeBytes: pdfBlob.size
+      }));
+
+      // Programmatic auto-download trigger
+      try {
+        const link = document.createElement("a");
+        link.href = blobUrl;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } catch (e) {
+        console.warn("Direct download link click was suppressed by browser security:", e);
+      }
+
+    } catch (err: any) {
       console.error("104-page PDF generation failed:", err);
+      setGenerationProgress((prev) => ({
+        ...prev,
+        errorMessage: err?.message || "ಪಿಡಿಎಫ್ ರಚನೆಯ ಸಮಯದಲ್ಲಿ ದೋಷ ಸಂಭವಿಸಿದೆ. ದಯವಿಟ್ಟು ಪುನಃ ಪ್ರಯತ್ನಿಸಿ."
+      }));
     } finally {
       setIsGeneratingPdf(false);
-      setShowLoaderModal(false);
     }
   };
 
@@ -160,12 +250,21 @@ export const BaggonaBookPublisherDashboard: React.FC = () => {
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <button
-              onClick={() => setShowLoaderModal(true)}
+              onClick={() => void start104PageGeneration()}
               disabled={isGeneratingPdf}
               className="px-6 py-3.5 bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black rounded-xl shadow-xl flex items-center justify-center gap-2 border border-emerald-300/40 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
             >
               <span>{isGeneratingPdf ? "⏳" : "📥"}</span>
-              <span>{isGeneratingPdf ? "ಪಿಡಿಎಫ್ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : "೧೦೪-ಪುಟಗಳ ಮುದ್ರಣ ಪಿಡಿಎಫ್ ಡೌನ್‌ಲೋಡ್"}</span>
+              <span>{isGeneratingPdf ? `ಸಿದ್ಧವಾಗುತ್ತಿದೆ (${generationProgress.percent}%)...` : "೧೦೪-ಪುಟಗಳ ಮುದ್ರಣ ಪಿಡಿಎಫ್ ಡೌನ್‌ಲೋಡ್"}</span>
+            </button>
+
+            <button
+              onClick={handleNativePrint}
+              className="px-4 py-3.5 bg-amber-800/90 hover:bg-amber-800 text-amber-100 font-bold rounded-xl border border-amber-600 shadow-md flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95"
+              title="ಬ್ರೌಸರ್ ಪ್ರಿಂಟ್ ಸಂವಾದವನ್ನು ತೆರೆಯಿರಿ (Direct Print / Save as PDF)"
+            >
+              <span>🖨️</span>
+              <span>ನೇರ ಪ್ರಿಂಟ್ (Native Print)</span>
             </button>
           </div>
         </div>
@@ -438,14 +537,14 @@ export const BaggonaBookPublisherDashboard: React.FC = () => {
         id="baggona-offscreen-render-host"
         style={{
           position: "fixed",
-          left: 0,
+          left: isGeneratingPdf ? 0 : -99999,
           top: 0,
           width: 794,
-          opacity: 0,
+          opacity: isGeneratingPdf ? 0.01 : 0,
           pointerEvents: "none",
-          zIndex: -1,
-          overflow: "hidden",
-          height: 0
+          zIndex: isGeneratingPdf ? -10 : -9999,
+          overflow: isGeneratingPdf ? "visible" : "hidden",
+          height: isGeneratingPdf ? "auto" : 0
         }}
       >
         {allPages.map((p) => (
@@ -455,18 +554,24 @@ export const BaggonaBookPublisherDashboard: React.FC = () => {
         ))}
       </div>
 
-      {/* Interactive Baggona Front Cover Loader Modal */}
+      {/* Interactive Baggona Front Cover Loader Modal with Real Live Progress & Direct Link */}
       <BaggonaBookLoaderModal
         isOpen={showLoaderModal}
         samvatsaraKn={currentMeta.samvatsaraKn}
         samvatsaraEn={currentMeta.samvatsaraEn}
         shakaYear={currentMeta.shakaYear}
         gregorianYears={currentMeta.gregorianYears}
-        onComplete={async () => {
-          await handleDownloadPressReadyPdf();
-          setShowLoaderModal(false);
-        }}
+        progressPercent={generationProgress.percent}
+        currentPage={generationProgress.currentPage}
+        totalPages={allPages.length}
+        stageTextKn={generationProgress.stageTextKn}
+        isReady={generationProgress.isReady}
+        downloadUrl={generationProgress.downloadUrl}
+        fileName={generationProgress.fileName}
+        fileSizeBytes={generationProgress.fileSizeBytes}
+        errorMessage={generationProgress.errorMessage}
         onClose={() => setShowLoaderModal(false)}
+        onPrintNative={handleNativePrint}
       />
     </div>
   );

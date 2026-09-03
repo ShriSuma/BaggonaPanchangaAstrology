@@ -351,6 +351,29 @@ section:hover {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
-
-
-
+/* 🖨️ 104-Page Baggona Panchanga Book Native Print Media Query */
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+  #baggona-offscreen-render-host,
+  #baggona-offscreen-render-host * {
+    visibility: visible !important;
+  }
+  #baggona-offscreen-render-host {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    opacity: 1 !important;
+    z-index: 999999 !important;
+    display: block !important;
+  }
+  .pdf-page-a4 {
+    page-break-after: always !important;
+    break-after: page !important;
+    margin: 0 auto !important;
+    box-sizing: border-box !important;
+  }
+}
