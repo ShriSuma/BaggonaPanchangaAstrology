@@ -208,6 +208,43 @@ export async function notifyCoinRechargeApproved(data: {
 }
 
 /**
+ * Trigger: When coins are credited, adjusted, or spent by Public Devotee or Priest
+ * Dispatches real-time email report to spshreepandit@gmail.com
+ */
+export async function notifyWalletCoinChange(data: {
+  userId: string;
+  priestName: string;
+  coins: number;
+  changeType: "credit" | "deduction" | "bonus";
+  reason: string;
+  clientName?: string;
+  newBalance?: number;
+}): Promise<void> {
+  const sign = data.changeType === "deduction" ? "-" : "+";
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 2px solid #D97706; border-radius: 12px; background-color: #FFFDF7;">
+      <h2 style="color: #92400E; margin-top: 0;">🪙 ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ವಾಲೆಟ್ ನಾಣ್ಯ ಬದಲಾವಣೆ ವರದಿ (Wallet Update)</h2>
+      <p style="font-size: 14px; color: #1E293B;">ಶ್ರೀ ಶ್ರೀರಾಮ್ ಪಂಡಿತರೇ, ವಾಲೆಟ್‌ನಲ್ಲಿ ನಾಣ್ಯಗಳ ಬದಲಾವಣೆಯಾಗಿದೆ:</p>
+      <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
+        <tr><td style="padding: 8px; border-bottom: 1px solid #FDE68A; font-weight: bold;">ಪುರೋಹಿತರು / ಖಾತೆ (User):</td><td style="padding: 8px; border-bottom: 1px solid #FDE68A;">${data.priestName} (${data.userId})</td></tr>
+        <tr><td style="padding: 8px; border-bottom: 1px solid #FDE68A; font-weight: bold;">ಬದಲಾವಣೆ (Change):</td><td style="padding: 8px; border-bottom: 1px solid #FDE68A; font-weight: bold; color: ${data.changeType === "deduction" ? "#DC2626" : "#059669"};">${sign}${Math.abs(data.coins).toLocaleString()} Coins</td></tr>
+        <tr><td style="padding: 8px; border-bottom: 1px solid #FDE68A; font-weight: bold;">ಸೇವೆ / ಕಾರಣ (Reason):</td><td style="padding: 8px; border-bottom: 1px solid #FDE68A;">${data.reason}</td></tr>
+        ${data.clientName ? `<tr><td style="padding: 8px; border-bottom: 1px solid #FDE68A; font-weight: bold;">ಭಕ್ತರ ಹೆಸರು (Client):</td><td style="padding: 8px; border-bottom: 1px solid #FDE68A;">${data.clientName}</td></tr>` : ""}
+        ${typeof data.newBalance === "number" ? `<tr><td style="padding: 8px; border-bottom: 1px solid #FDE68A; font-weight: bold;">ಉಳಿದಿರುವ ಶಿಲ್ಕು (New Balance):</td><td style="padding: 8px; border-bottom: 1px solid #FDE68A; font-weight: bold;">${data.newBalance.toLocaleString()} Coins</td></tr>` : ""}
+        <tr><td style="padding: 8px; border-bottom: 1px solid #FDE68A; font-weight: bold;">ಸಮಯ (Time IST):</td><td style="padding: 8px; border-bottom: 1px solid #FDE68A;">${new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}</td></tr>
+      </table>
+      <p style="font-size: 12px; color: #64748B;">ಈ ವರದಿಯನ್ನು ಸ್ವಯಂಚಾಲಿತವಾಗಿ spshreepandit@gmail.com ಗೆ ರವಾನಿಸಲಾಗಿದೆ.</p>
+    </div>
+  `;
+  await sendEmailNotification({
+    subject: `[Baggona Wallet] 🪙 Coin ${data.changeType.toUpperCase()}: ${sign}${Math.abs(data.coins).toLocaleString()} Coins for ${data.priestName} (${data.reason})`,
+    html,
+    type: "coin_approved",
+    data
+  });
+}
+
+/**
  * Trigger: When a login is authenticated from an unrecognized IP address or mobile network
  */
 export async function notifyNewIpLoginDetected(data: {

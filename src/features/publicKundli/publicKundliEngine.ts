@@ -1184,57 +1184,14 @@ export function generateDeepPersonalityAnalysis(
 
   const p2_en = `Your natal Sun placed in ${sunTxt} reinforces your personal aura and vital willpower. You rarely depend on the mercy of others; an unshakeable drive to build an independent life through pure self-effort runs deep in your blood. Those in your trusted circle deeply respect your loyalty and protective instincts, yet if someone violates your self-respect, you find it nearly impossible to trust them again. Your astrological constitution grants you enormous resilience to withstand severe life storms and emerge victorious through righteous endurance.`;
 
-  const s1_en = `Analyzing the deep subconscious depths of your Moon Sign ${moonTxt} and ${p.moonNakshatra} Nakshatra (Pada ${p.moonPada}), you harbor an intensely sensitive, guarded emotional world that you never reveal to society. Externally, you project unflinching strength and decisive leadership, but in absolute solitude, you carry unexpressed anxieties regarding future security, the emotional burden of family obligations, and silent wounds from past betrayals. This guarded emotional vulnerability is simultaneously your greatest creative engine and your silent emotional weight.`;
-
-  const s2_en = `Governed by the occult dynamics of your 8th and 12th houses, you possess an active sixth sense and profound intuitive radar. You possess an uncanny knack for sensing deceit before a word is spoken and feeling impending shifts before they materialize in the physical world. This latent spiritual sensitivity and ancestral karmic protection acts as an invisible shield during severe life crises, guiding your instincts when rational logic reaches its limits. Regular meditation and Ishwara worship substantially amplify this protective psychic radar.`;
-
-  const w1_en = `There is a very precise cosmic reason why you are sitting before me seeking astrological counsel at this exact juncture of your life. At your current age of ${p.ageYears} years, you are traversing the active cycle of ${dashaTxt} Mahadasha with ${bhuktiTxt} Bhukti, concurrent with ${gochara.isSadeSati ? "Saturn's Sade Sati transit" : gochara.isAshtamaShani ? "Ashtama Shani transit" : "Saturn's transit"} and ${gochara.hasGuruBala ? "favorable Jupiter support" : "transitional Jupiter movements"}. This energetic confluence has brought your life to a crucial crossroad (Turning Point). Despite putting in immense effort recently, you have experienced friction, unexpected delays, and mental fatigue that logic alone cannot resolve.`;
-
-  const w2_en = `You did not come here merely for generic predictions; you are seeking sacred clarity on pivotal impending decisions—career transition, financial investments, family harmony, or relationship milestones. Deep inside, your spirit is asking: "When will my continuous toil bear its true fruit?", "Is my chosen path cosmically aligned?", and "How do I overcome these recurring unseen roadblocks?" Gaining clear timelines and divine reassurance to move forward with certainty is your core expectation today.`;
-
-  const q1_en = `Looking into the planetary signatures of your chart, there are 4 burning questions currently dominating your mind: First, with 10th Lord ${lord10Txt} active, when will stability, elevated authority, and financial recognition manifest in your career? Second, influenced by 7th Lord ${lord7Txt}, when will relationship friction dissolve and auspicious domestic harmony prevail? Third, under 6th Lord ${lord6Txt}, when will you achieve permanent liberation from hidden competitors, financial debt, or physical fatigue?`;
-
-  const q2_en = `Fourth, influenced by 5th Lord ${lord5Txt}, will your upcoming speculative investments, higher creative plans, or children's welfare succeed as envisioned? These questions have peaked right now because Dasha Lord ${dashaTxt} and Gochara transits are putting your karmic foundation through a decisive test. Through the divine grace of Sri Kshetra Gokarna Mahabaleshwara, effective Vedic remedies will dissolve these obstacles.`;
-
-  const m1_en = `In your birth chart, the shadow upagraha Maandi (Gulika) is situated in ${p.maandiRashi} in the ${p.maandiHouse}th house from your Ascendant. In classical Vedic Siddhanta, Maandi is the potent karmic shadow son of Saturn, representing unmanifested ancestral (Pitri/Kula) karma and subtle energetic resistance. In your ${p.maandiHouse}th house, Maandi tends to induce eleventh-hour delays in crucial tasks, sudden inexplicable energy drains, and lingering subconscious pessimism.`;
-
-  const m2_en = `To permanently neutralize this Maandi shadow and awaken your full auspicious potential, performing Maandi Shanti, Rudrabhisheka, and Amavasya Pitri Tarpana at Sri Kshetra Gokarna Mahabaleshwara (Atmalinga) is highly recommended. Daily chanting of your protective mantra "${p.mantra}" and lighting a sesame oil lamp on Saturdays will transmute these karmic roadblocks into divine protective armor.`;
-
-  const seedQuestions_en = [
-    `When will my active ${dashaTxt} Mahadasha bring a definitive career promotion and financial breakthrough?`,
-    `What specific Gokarna temple seva should I perform to neutralize the delays caused by Maandi and Saturn transit?`,
-    `Which upcoming months are most auspicious for marriage, family peace, and emotional stability?`,
-    `Which Vedic gemstone or Rudraksha is recommended to empower my 10th house lord ${lord10Txt}?`,
-    `Is the next 6-month cycle favorable for launching a new business or executing major property investments?`
-  ];
-
-  const narrationFull_en = `Salutations to the Divine Guru. Devotee ${p.name}, examining your Janma Kundali directly, I shall now reveal your complete core personality, hidden psyche, and destiny timeline. ` +
-    `Your natal Lagna is ${lagnaTxt}, Moon sign is ${moonTxt}, and Nakshatra is ${p.moonNakshatra}. ` +
-    `${p1_en} ${p2_en} ` +
-    `Examining your deepest hidden psyche, ${s1_en} ${s2_en} ` +
-    `The cosmic reason you have sought astrological guidance today is that ${w1_en} ${w2_en} ` +
-    `The core questions dominating your heart are: ${q1_en} ${q2_en} ` +
-    `Regarding the karmic placement of Maandi in your chart, ${m1_en} ${m2_en} ` +
-    `May Lord Sri Gokarna Mahabaleshwara shower His divine blessings upon you and grant you complete success and peace. Om Namah Shivaya.`;
-
-  // --------------------------------------------------------------------------
-  // HINDI (हिन्दी)
-  // --------------------------------------------------------------------------
   if (lang === "hi") {
-    const p1_hi = `आपकी जन्म कुंडली का प्रत्यक्ष अवलोकन करने पर स्पष्ट दिखाई दे रहा है कि आपका जन्म लग्न ${lagnaTxt} है, जिसके स्वामी ${lagnaLordTxt} आपके व्यक्तित्व को अद्भुत नेतृत्व क्षमता, स्वाभिमान एवं दृढ़ इच्छाशक्ति प्रदान करते हैं। आप स्वभाव से सिद्धांतवादी हैं और किसी भी परिस्थिति में अपने आत्मसम्मान से समझौता नहीं करते। आपके लग्न नक्षत्र ${lagnaNakTxt} के प्रभाव से आपकी बुद्धि अत्यंत सूक्ष्म एवं दूरदर्शी है। बाहर से आप शांत और गंभीर दिखाई देते हैं, परंतु आपके अंतर्मन में निरंतर उच्च लक्ष्य प्राप्त करने की अग्नि प्रज्वलित रहती है।`;
-
-    const p2_hi = `आपके जन्मकालिक सूर्य का ${sunTxt} राशि में स्थित होना आपके आत्मविश्वास को दृढ़ता प्रदान करता है। आप दूसरों की कृपा पर निर्भर रहने के बजाय अपने बाहुबल और परिश्रम से आत्मनिर्भर जीवन जीने में विश्वास रखते हैं। आपके अपने लोग आपके समर्पण का सम्मान करते हैं, किंतु यदि कोई आपके विश्वास को ठेस पहुंचाए, तो आप उसे पुनः सहज रूप से स्वीकार नहीं करते।`;
-
-    const s1_hi = `आपकी चन्द्र राशि ${moonTxt} एवं ${moonNakTxt} नक्षत्र के आंतरिक रहस्यों को देखें तो संसार के सामने अपनी अचल शक्ति प्रदर्शित करने वाले आपके व्यक्तित्व के भीतर एक अत्यंत संवेदनशील और भावुक संसार छिपा है। एकांत में भविष्य की अनिश्चितता, पारिवारिक दायित्वों का बोझ एवं अतीत के कड़वे अनुभवों का आघात आपके मन को व्यथित करता है, जिसे आप किसी से साझा नहीं करते।`;
-
-    const s2_hi = `आपकी कुंडली के अष्टम एवं द्वादश भाव के प्रभाव से आपके भीतर एक सक्रिय पूर्वाभास (Sixth Sense) की शक्ति विद्यमान है। किसी व्यक्ति की कपटपूर्ण मंशा या भविष्य में आने वाली किसी प्रतिकूल घटना का आभास आपके अंतर्मन को पहले ही हो जाता है। यह पूर्वजन्म के संचित कर्मों की दिव्य रक्षा प्रणाली है, जो संकट के समय आपको सही दिशा दिखाती है।`;
-
-    const w1_hi = `आज इस समय आपके द्वारा ज्योतिषीय परामर्श लेने के पीछे एक अत्यंत महत्वपूर्ण ग्रहीय चक्र सक्रिय है। वर्तमान में ${p.ageYears} वर्ष की आयु में आपकी ${dashaTxt} महादशा में ${bhuktiTxt} भुक्ति चल रही है, साथ ही गोचर में ${gochara.isSadeSati ? "शनि की साढ़ेसाती" : gochara.isAshtamaShani ? "अष्टम शनि" : "शनि का गोचर"} आपके जीवन में एक महत्वपूर्ण मोड़ (Turning Point) लेकर आया है। निरंतर कठोर परिश्रम के उपरांत भी अंतिम परिणामों में आ रहा विलंब एवं मानसिक अशांति आपको यहाँ खींच लाई है।`;
-
-    const w2_hi = `आप केवल सामान्य भविष्य जानने नहीं आए हैं, अपितु अपने जीवन के अत्यंत महत्वपूर्ण निर्णयों (कार्यक्षेत्र परिवर्तन, आर्थिक निवेश, पारिवारिक सुख एवं विवाह) को लेकर ईश्वरीय संकेत एवं सटीक समय सीमा की स्पष्टता चाहते हैं। आपके अंतर्मन का प्रश्न है: "मेरे इस अथक परिश्रम का शुभ फल कब मिलेगा?"`;
-
-    const q1_hi = `आपकी कुंडली के अनुसार वर्तमान में आपके मन में 4 प्रमुख प्रश्न चल रहे हैं: पहला, दशमेश ${lord10Txt} के अनुसार कार्यक्षेत्र एवं आजीविका में स्थिरता तथा पदोन्नति कब प्राप्त होगी? दूसरा, सप्तमेश ${lord7Txt} के प्रभाव से वैवाहिक जीवन, पारिवारिक सामंजस्य कब सुदृढ़ होगा? तीसरा, षष्ठेश ${lord6Txt} के अनुसार ऋण, गुप्त शत्रु एवं स्वास्थ्य बाधाओं से स्थायी मुक्ति कब मिलेगी?`;
-
+    const p1_hi = `आपकी जन्म कुंडली का प्रत्यक्ष अवलोकन करने पर स्पष्ट दिखाई दे रहा है कि आपका जन्म लग्न ${lagnaTxt} है, जिसके स्वामी ${lagnaLordTxt} आपके व्यक्तित्व को अद्भुत नेतृत्व क्षमता, स्वाभिमान एवं दृढ़ इच्छाशक्ति प्रदान करते हैं। आप स्वभाव से सिद्धांतवादी हैं और किसी भी परिस्थिति में अपने आत्मसम्मान से समझौता नहीं करते।`;
+    const p2_hi = `आपके जन्मकालिक सूर्य का ${sunTxt} राशि में स्थित होना आपके आत्मविश्वास को दृढ़ता प्रदान करता है। आप दूसरों की कृपा पर निर्भर रहने के बजाय अपने परिश्रम से आत्मनिर्भर जीवन जीने में विश्वास रखते हैं।`;
+    const s1_hi = `आपकी चन्द्र राशि ${moonTxt} एवं ${moonNakTxt} नक्षत्र के आंतरिक रहस्यों को देखें तो आपके भीतर एक अत्यंत संवेदनशील और भावुक संसार छिपा है जिसे आप किसी से साझा नहीं करते।`;
+    const s2_hi = `आपकी कुंडली के अष्टम एवं द्वादश भाव के प्रभाव से आपके भीतर एक सक्रिय पूर्वाभास (Sixth Sense) की शक्ति विद्यमान है। यह पूर्वजन्म के संचित कर्मों की दिव्य रक्षा प्रणाली है।`;
+    const w1_hi = `वर्तमान में ${p.ageYears} वर्ष की आयु में आपकी ${dashaTxt} महादशा में ${bhuktiTxt} भुक्ति चल रही है, जो आपके जीवन में एक महत्वपूर्ण मोड़ लेकर आया है।`;
+    const w2_hi = `आप केवल सामान्य भविष्य जानने नहीं आए हैं, अपितु अपने जीवन के अत्यंत महत्वपूर्ण निर्णयों के लिए ईश्वरीय संकेत की स्पष्टता चाहते हैं।`;
+    const q1_hi = `आपकी कुंडली के अनुसार वर्तमान में आपके मन में 4 प्रमुख प्रश्न चल रहे हैं: पहला, दशमेश ${lord10Txt} के अनुसार कार्यक्षेत्र में स्थिरता कब? दूसरा, सप्तमेश ${lord7Txt} के प्रभाव से वैवाहिक सुख कब? तीसरा, षष्ठेश ${lord6Txt} के अनुसार शत्रु/ऋण बाधा से मुक्ति कब?`;
     const q2_hi = `चौथा, पंचमेश ${lord5Txt} के प्रभाव से आगामी निवेश एवं संतान पक्ष की उन्नति कब फलीभूत होगी? वर्तमान दशा स्वामी ${dashaTxt} एवं गोचर के प्रभाव से आपके कर्म की कड़ी परीक्षा हो रही है, जिसका समाधान श्री गोकर्ण महाबलेश्वर की कृपा से निश्चित रूप से संभव है।`;
 
     const m1_hi = `आपकी कुंडली में उपग्रह मांदि (गुलिक) ${maandiRashiTxt} राशि में, लग्न से ${p.maandiHouse}वें भाव में स्थित है। मांदि शनि के पुत्र एवं सूक्ष्म प्रारब्ध कर्मों के अधिपति माने जाते हैं। ${p.maandiHouse}वें भाव में मांदि की उपस्थिति के कारण महत्वपूर्ण कार्यों में ऐन वक्त पर विलंब, पारिवारिक कार्यों में पितृ दोष की छाया एवं अकारण मानसिक अवसाद का अनुभव होता है।`;
@@ -1250,11 +1207,7 @@ export function generateDeepPersonalityAnalysis(
 
     const narrationFull_hi = `श्री गुरुभ्यो नमः। जातक ${p.name} जी, आपकी जन्म कुंडली का प्रत्यक्ष अध्ययन कर आपके समग्र व्यक्तित्व, अंतर्मन एवं भविष्य चक्र का विवरण प्रस्तुत कर रहा हूँ। ` +
       `आपका जन्म लग्न ${lagnaTxt}, चन्द्र राशि ${moonTxt} और नक्षत्र ${moonNakTxt} है। ` +
-      `${p1_hi} ${p2_hi} ` +
-      `आपके अंतर्मन के गूढ़ रहस्यों के अनुसार, ${s1_hi} ${s2_hi} ` +
-      `वर्तमान में ज्योतिष परामर्श की आवश्यकता इसलिए पड़ी क्योंकि ${w1_hi} ${w2_hi} ` +
-      `आपके मन में चल रहे मुख्य प्रश्न: ${q1_hi} ${q2_hi} ` +
-      `मांदि के प्रभाव की बात करें तो, ${m1_hi} ${m2_hi} ` +
+      `${p1_hi} ${p2_hi} ${s1_hi} ${s2_hi} ${w1_hi} ${w2_hi} ${q1_hi} ${q2_hi} ${m1_hi} ${m2_hi} ` +
       `श्री गोकर्ण महाबलेश्वर की असीम कृपा से आपके सभी मनोरथ सिद्ध हों। ॐ नमः शिवाय।`;
 
     return {
@@ -1287,6 +1240,38 @@ export function generateDeepPersonalityAnalysis(
       spokenNarrationFullText: narrationFull_hi
     };
   }
+
+  // --------------------------------------------------------------------------
+  // ENGLISH - Direct Face-to-Face Spoken Vedic Dialogue
+  // --------------------------------------------------------------------------
+  const s1_en = `Analyzing the deep subconscious depths of your Moon Sign ${moonTxt} and ${moonNakTxt} Nakshatra, you harbor an intensely sensitive, guarded emotional world that you never reveal to society. Externally, you project unflinching strength and decisive leadership, but in absolute solitude, you carry unexpressed anxieties regarding future security, the emotional burden of family obligations, and silent wounds from past betrayals.`;
+
+  const s2_en = `Governed by the occult dynamics of your 8th and 12th houses, you possess an active sixth sense and profound intuitive radar. You possess an uncanny knack for sensing deceit before a word is spoken and feeling impending shifts before they materialize in the physical world. Regular meditation and Ishwara worship substantially amplify this protective psychic radar.`;
+
+  const w1_en = `There is a very precise cosmic reason why you are sitting before me seeking astrological counsel at this exact juncture of your life. At your current age of ${p.ageYears} years, you are traversing the active cycle of ${dashaTxt} Mahadasha with ${bhuktiTxt} Bhukti, concurrent with ${gochara.isSadeSati ? "Saturn's Sade Sati transit" : gochara.isAshtamaShani ? "Ashtama Shani transit" : "Saturn's transit"} and ${gochara.hasGuruBala ? "favorable Jupiter support" : "transitional Jupiter movements"}. This energetic confluence has brought your life to a crucial crossroad (Turning Point).`;
+
+  const w2_en = `You did not come here merely for generic predictions; you are seeking sacred clarity on pivotal impending decisions—career transition, financial investments, family harmony, or relationship milestones. Deep inside, your spirit is asking: "When will my continuous toil bear its true fruit?" and "Is my chosen path cosmically aligned?"`;  
+
+  const q1_en = `Looking into the planetary signatures of your chart, there are 4 burning questions currently dominating your mind: First, with 10th Lord ${lord10Txt} active, when will stability, elevated authority, and financial recognition manifest in your career? Second, influenced by 7th Lord ${lord7Txt}, when will relationship friction dissolve? Third, under 6th Lord ${lord6Txt}, when will you achieve permanent liberation from hidden competitors, financial debt, or physical fatigue?`;
+
+  const q2_en = `Fourth, influenced by 5th Lord ${lord5Txt}, will your upcoming speculative investments, higher creative plans, or children's welfare succeed as envisioned? These questions have peaked right now because Dasha Lord ${dashaTxt} and Gochara transits are putting your karmic foundation through a decisive test. Through the divine grace of Sri Kshetra Gokarna Mahabaleshwara, effective Vedic remedies will dissolve these obstacles.`;
+
+  const m1_en = `In your birth chart, the shadow upagraha Maandi (Gulika) is situated in ${maandiRashiTxt} in the ${p.maandiHouse}th house from your Ascendant. In classical Vedic Siddhanta, Maandi is the potent karmic shadow son of Saturn, representing unmanifested ancestral karma and subtle energetic resistance. In your ${p.maandiHouse}th house, Maandi tends to induce eleventh-hour delays in crucial tasks, sudden inexplicable energy drains, and lingering subconscious pessimism.`;
+
+  const m2_en = `To permanently neutralize this Maandi shadow and awaken your full auspicious potential, performing Maandi Shanti, Rudrabhisheka, and Amavasya Pitri Tarpana at Sri Kshetra Gokarna Mahabaleshwara (Atmalinga) is highly recommended. Daily chanting of your protective mantra and lighting a sesame oil lamp on Saturdays will transmute these karmic roadblocks into divine protective armor.`;
+
+  const seedQuestions_en = [
+    `When will my active ${dashaTxt} Mahadasha bring a definitive career promotion and financial breakthrough?`,
+    `What specific Gokarna temple seva should I perform to neutralize the delays caused by Maandi and Saturn transit?`,
+    `Which upcoming months are most auspicious for marriage, family peace, and emotional stability?`,
+    `Which Vedic gemstone or Rudraksha is recommended to empower my 10th house lord ${lord10Txt}?`,
+    `Is the next 6-month cycle favorable for launching a new business or executing major property investments?`
+  ];
+
+  const narrationFull_en = `Salutations to the Divine Guru. Devotee ${p.name}, examining your Janma Kundali directly, I shall now reveal your complete core personality, hidden psyche, and destiny timeline. ` +
+    `Your natal Lagna is ${lagnaTxt}, Moon sign is ${moonTxt}, and Nakshatra is ${moonNakTxt}. ` +
+    `${p1_en} ${p2_en} ${s1_en} ${s2_en} ${w1_en} ${w2_en} ${q1_en} ${q2_en} ${m1_en} ${m2_en} ` +
+    `May Lord Sri Gokarna Mahabaleshwara shower His divine blessings upon you and grant you complete success and peace. Om Namah Shivaya.`;
 
   // --------------------------------------------------------------------------
   // TELUGU (తెలుగు) & TAMIL (தமிழ்) Fallbacks handled dynamically
@@ -1502,22 +1487,65 @@ export function generateAuthenticRemediesWithReasoning(
   const panch = p.panchangaAttributes;
   const yogaTxt = panch.yogaKn || panch.yoga;
   const karanaTxt = panch.karanaKn || panch.karana;
-  const varaTxt = panch.weekdayKn || panch.weekday;
 
-  // Detect debilitated or afflicted planets in the chart
-  const debPl = p.planetaryRows.find((row) => row.dignity === "Debilitated");
-  const isMoonDebilitated = p.moonSign === "Scorpio";
-  const isSunDebilitated = p.sunSign === "Libra";
+  // ── Derive 9th Lord (Bhagyeshadhipati) from Lagna index ───────────────────
+  const lagnaIdx = RASHI_ORDER.indexOf(p.lagnaSign);
+  const ninthLord = RASHI_LORDS[(lagnaIdx + 8) % 12] || "Jupiter";  // 9th house lord
+  const ninthLordTxt = GRAHA_NAMES_5L[ninthLord]?.[code] || ninthLord;
 
-  // Target planet to empower (Lagna Lord or afflicted functional benefic)
-  let targetPlanet = p.lagnaLord;
-  if (isMoonDebilitated && p.lagnaLord === "Moon") {
-    targetPlanet = "Moon";
-  } else if (isSunDebilitated && p.lagnaLord === "Sun") {
-    targetPlanet = "Sun";
-  } else if (debPl && (debPl.name === p.lagnaLord || debPl.name === "Moon")) {
-    targetPlanet = debPl.name;
-  }
+  // ── Navamsha (D-9) pada 1-9 for 9th lord planet ───────────────────────────
+  const ninthLordPlanet = kundli.planets.find((pl) => pl.name === ninthLord);
+  const ninthLordHouse = ninthLordPlanet
+    ? (((ninthLordPlanet.rashi?.index ?? 0) - lagnaIdx + 12) % 12) + 1
+    : ((lagnaIdx + 8) % 12) + 1;
+  const ninthLordNavamsha = ninthLordPlanet
+    ? (() => {
+        const inSign = normalizeDegree(ninthLordPlanet.degree) % 30;
+        return Math.floor((inSign * 9) / 30) + 1;
+      })()
+    : 1;
+
+  // ── Yogakaraka: owns both Kendra + Trikona for this Lagna ─────────────────
+  const YOGAKARAKA_BY_LAGNA: Record<string, string> = {
+    Cancer: "Mars", Leo: "Mars",
+    Taurus: "Saturn", Libra: "Saturn",
+    Capricorn: "Venus", Aquarius: "Venus",
+    Aries: "Jupiter", Sagittarius: "Jupiter",
+    Scorpio: "Jupiter"
+  };
+  const yogakaraka = YOGAKARAKA_BY_LAGNA[p.lagnaSign] || null;
+
+  // ── Multi-dimensional per-card source planets ──────────────────────────────
+  // 1. GEMSTONE → Bhagyeshadhipati (9th lord) or Yogakaraka
+  const gemPlanet = yogakaraka || ninthLord;
+  const gemPlanetTxt = GRAHA_NAMES_5L[gemPlanet]?.[code] || gemPlanet;
+
+  // 2. RUDRAKSHA → Running Mahadasha Lord (Dasha Shanti)
+  const rudrPlanet = p.currentMahadasha;
+  const rudrPlanetTxt = GRAHA_NAMES_5L[rudrPlanet]?.[code] || rudrPlanet;
+  const nakshLordOfMoon = (() => {
+    const NAK_LORDS = [
+      "Ketu","Venus","Sun","Moon","Mars","Rahu","Jupiter","Saturn","Mercury",
+      "Ketu","Venus","Sun","Moon","Mars","Rahu","Jupiter","Saturn","Mercury",
+      "Ketu","Venus","Sun","Moon","Mars","Rahu","Jupiter","Saturn","Mercury"
+    ];
+    const moonNakIdx = kundli.planets.find(pl => pl.name === "Moon")?.nakshatra?.index ?? 0;
+    return NAK_LORDS[moonNakIdx % 27] || "Moon";
+  })();
+  const nakLordTxt = GRAHA_NAMES_5L[nakshLordOfMoon]?.[code] || nakshLordOfMoon;
+
+  // 3. AUSPICIOUS DAY → Lagna Lord or Yogakaraka
+  const dayPlanet = yogakaraka || p.lagnaLord;
+  const dayPlanetTxt = GRAHA_NAMES_5L[dayPlanet]?.[code] || dayPlanet;
+
+  // 4. DEITY → 5th Lord (Ishta Devata) or 9th Lord (Dharma Devata)
+  const deityPlanet = p.lord5 || ninthLord;
+  const deityPlanetTxt = GRAHA_NAMES_5L[deityPlanet]?.[code] || deityPlanet;
+
+  // 5. MANTRA → MUST be Mahadasha Lord's Beeja mantra (critical fix)
+  const mantraPlanet = p.currentMahadasha;
+
+  // Deprecated single-cfg approach removed. Each card now has its own cfg below.
 
   const BASE_CONFIGS: Record<string, {
     gem: Record<PublicKundliLang, string>;
@@ -1601,9 +1629,27 @@ export function generateAuthenticRemediesWithReasoning(
     }
   };
 
-  const cfg = BASE_CONFIGS[targetPlanet] || BASE_CONFIGS.Moon;
+  // ── Per-card configs from independent sources ─────────────────────────────
+  const gemCfg    = BASE_CONFIGS[gemPlanet]    || BASE_CONFIGS.Jupiter; // Bhagyeshadhipati/Yogakaraka
+  const rudrCfg   = BASE_CONFIGS[rudrPlanet]   || BASE_CONFIGS.Jupiter; // Mahadasha Lord
+  const dayCfg    = BASE_CONFIGS[dayPlanet]    || BASE_CONFIGS.Jupiter; // Lagna Lord or Yogakaraka
+  const deityCfg  = BASE_CONFIGS[deityPlanet]  || BASE_CONFIGS.Jupiter; // 5th Lord (Ishta Devata)
+  const mantraCfg = BASE_CONFIGS[mantraPlanet] || BASE_CONFIGS.Jupiter; // Mahadasha Lord's Beeja mantra
 
-  // Synthesize Deep Astrological Reasons in current language
+  // ── Gokarna Seva: synthesized from Maandi house + primary Doshas ──────────
+  const karmicDoshas = p.karmicDoshas || [];
+  const hasPitruDosha = karmicDoshas.some(d => d.id === "pitru");
+  const hasKalasarpa  = karmicDoshas.some(d => d.id === "kalasarpa");
+  const hasManglik    = karmicDoshas.some(d => d.id === "manglik");
+  const sevaCfg = hasKalasarpa
+    ? BASE_CONFIGS.Rahu
+    : hasManglik
+    ? BASE_CONFIGS.Mars
+    : hasPitruDosha
+    ? BASE_CONFIGS.Saturn
+    : mantraCfg;
+
+  // ── Build localized reasoning strings ─────────────────────────────────────
   let gemReason = "";
   let rudrReason = "";
   let dayReason = "";
@@ -1612,49 +1658,67 @@ export function generateAuthenticRemediesWithReasoning(
   let sevaReason = "";
 
   if (isKn) {
-    gemReason = isMoonDebilitated
-      ? `ಜನ್ಮ ಲಗ್ನ ${lagnaTxt}ವಾಗಿದ್ದು ಲಗ್ನಾಧಿಪತಿ ಚಂದ್ರನು ${moonTxt} ರಾಶಿಯಲ್ಲಿ ನೀಚಸ್ಥಾನದಲ್ಲಿದ್ದಾನೆ (Debilitated). ಅಲ್ಲದೆ ಜನ್ಮ ನಕ್ಷತ್ರ ${nakTxt}ದ ಪ್ರಭಾವ ಹಾಗೂ ಪ್ರಸ್ತುತ ${dashaTxt} ಮಹಾದಶೆಯಲ್ಲಿ ${bhuktiTxt} ಭುಕ್ತಿಯ ಸಂಧಿಕಾಲ ನಡೆಯುತ್ತಿದೆ. ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ, ಜನ್ಮ ಲಗ್ನಾಧಿಪತಿಯನ್ನು ಬಲಪಡಿಸುವುದು ಆಯುಷ್ಯ, ಮಾನಸಿಕ ನೆಮ್ಮದಿ ಹಾಗೂ ತೇಜಸ್ಸಿಗೆ ಅತ್ಯಗತ್ಯ. ಆದ್ದರಿಂದ ಮನೋಕಾರಕ ಚಂದ್ರನ ಬಲವರ್ಧನೆಗೆ ಮತ್ತು ಶನಿ ಭುಕ್ತಿಯ ಒತ್ತಡ ಶಮನಕ್ಕೆ ${cfg.gem.kn} ಧಾರಣೆ ಶಾಸ್ತ್ರೋಕ್ತ ರಕ್ಷೆಯಾಗಿದೆ.`
-      : `ಜನ್ಮ ಲಗ್ನ ${lagnaTxt}ದ ಅಧಿಪತಿಯಾದ ${lagnaLordTxt} ಗ್ರಹದ ಬಲವರ್ಧನೆಗೆ ಹಾಗೂ ಜನ್ಮ ಕಾಲದ ${yogaTxt} ಯೋಗ, ${nakTxt} ನಕ್ಷತ್ರ ಮತ್ತು ಪ್ರಸ್ತುತ ${dashaTxt} ದಶಾ ಕಾಲಚಕ್ರದ ಅನುಕೂಲಕರ ಸಿದ್ಧಿಗಾಗಿ ${cfg.gem.kn} ಧರಿಸುವುದು ಪರಮ ಶ್ರೇಯಸ್ಕರವಾಗಿದೆ.`;
+    // Gemstone: Bhagyeshadhipati (9th lord) or Yogakaraka
+    if (yogakaraka) {
+      gemReason = `ಜನ್ಮ ಲಗ್ನ ${lagnaTxt}ಕ್ಕೆ ${gemPlanetTxt} ಗ್ರಹವು ಯೋಗಕಾರಕ (ಕೇಂದ್ರ-ತ್ರಿಕೋಣ ಒಡೆತನ) ಆಗಿದ್ದು, ಈ ಗ್ರಹದ ಬಲವರ್ಧನೆ ಜೀವಿತಾವಧಿಯ ಸಮಗ್ರ ಉನ್ನತಿ ನೀಡುತ್ತದೆ. ಜನ್ಮ ನಕ್ಷತ್ರ ${nakTxt} ಮತ್ತು ಪ್ರಸ್ತುತ ${dashaTxt}-${bhuktiTxt} ದಶಾ ಸಂಧಿಯಲ್ಲಿ ${gemCfg.gem.kn} ಧಾರಣೆ ಶ್ರೇಯಸ್ಕರ.`;
+    } else {
+      gemReason = `ಜನ್ಮ ಲಗ್ನ ${lagnaTxt}ದ ಭಾಗ್ಯಾಧಿಪತಿ (೯ನೇ ಭಾವ ನಾಥ) ${ninthLordTxt} ಜನ್ಮ ಕಾಲಕ್ಕೆ ${ninthLordHouse}ನೇ ಭಾವದಲ್ಲಿ ನವಾಂಶ (ಡಿ-೯) ${ninthLordNavamsha}ನೇ ಅಂಶದಲ್ಲಿ ಸ್ಥಿತ. ಭಾಗ್ಯ ಮತ್ತು ಧರ್ಮ ಬಲಕ್ಕೆ ${gemCfg.gem.kn} ಧಾರಣೆ ${dashaTxt}-${bhuktiTxt} ದಶಾ ಸಂಧಿಯಲ್ಲಿ ಪರಮ ಶ್ರೇಯಸ್ಕರ.`;
+    }
 
-    rudrReason = `ಪಂಚಾಂಗದ ${yogaTxt} ಯೋಗ ಮತ್ತು ${karanaTxt} ಕರಣದ ದೋಷ ಶಮನಕ್ಕೆ ಹಾಗೂ ಜಾತಕದ ಲಗ್ನಾಧಿಪತಿ ${lagnaLordTxt} ಮತ್ತು ಪ್ರಸ್ತುತ ${dashaTxt} ದಶಾನಾಥನ ಆಶೀರ್ವಾದ ಪಡೆಯಲು ${cfg.rudraksha.kn}ವು ಅಂತರಂಗದ ಶಾಂತಿ, ತೇಜಸ್ಸು ಮತ್ತು ನವಗ್ರಹ ರಕ್ಷಣಾ ಕವಚವನ್ನು ನೀಡುತ್ತದೆ.`;
+    // Rudraksha: Running Mahadasha lord for Dasha Shanti
+    rudrReason = `ಪ್ರಸ್ತುತ ${dashaTxt} ಮಹಾದಶೆಯು ${bhuktiTxt} ಭುಕ್ತಿಯಲ್ಲಿ ಸಾಗುತ್ತಿದ್ದು, ಜನ್ಮ ನಕ್ಷತ್ರ ${nakTxt}ದ ನಾಥ ${nakLordTxt} ಗ್ರಹದ ಕರ್ಮ ಶಮನ ಮತ್ತು ${dashaTxt} ದಶಾ ಶಾಂತಿಗಾಗಿ ${rudrCfg.rudraksha.kn}ವನ್ನು ಧರಿಸುವುದು ಅತ್ಯಂತ ಪ್ರಭಾವಕಾರಿ. ನಿತ್ಯ ಜಲಾಭಿಷೇಕ ಮಾಡಿ ಧರಿಸಬೇಕು.`;
 
-    dayReason = `ಲಗ್ನಾಧಿಪತಿ ${lagnaLordTxt}ನ ಕಾರಕತ್ವ ಹೊಂದಿರುವ ${cfg.day.kn}ವು ಜಾತಕರಿಗೆ ಅತೀವ ಸಿದ್ಧಿದಾಯಕ ದಿನ. ಪಂಚಾಂಗದ ಶುಭ ಮುಹೂರ್ತ ಹಾಗೂ ಗೋಚಾರ ಗ್ರಹಗಳ ಶುಭ ಕಿರಣಗಳು ಈ ದಿನ ಅಧಿಕವಾಗಿ ಸಿದ್ಧಿಯನ್ನು ಕರುಣಿಸುವುದರಿಂದ ಮಹತ್ವದ ಕಾರ್ಯಾರಂಭಕ್ಕೆ ಇದು ಅತ್ಯಂತ ಪ್ರಶಸ್ತ.`;
+    // Auspicious Day: Lagna Lord or Yogakaraka
+    if (yogakaraka) {
+      dayReason = `ಲಗ್ನ ${lagnaTxt}ಕ್ಕೆ ಯೋಗಕಾರಕ ${dayPlanetTxt}ನ ಕಾರಕ ದಿನವಾದ ${dayCfg.day.kn}ವು ಜಾತಕರಿಗೆ ಅತ್ಯಂತ ಫಲದಾಯಕ. ಮಹತ್ವದ ಕಾರ್ಯಾರಂಭ ಮತ್ತು ದೈವದರ್ಶನಕ್ಕೆ ಈ ದಿನ ಅತ್ಯಂತ ಪ್ರಶಸ್ತ.`;
+    } else {
+      dayReason = `ಲಗ್ನಾಧಿಪತಿ ${lagnaLordTxt}ನ ಕಾರಕ ದಿನ ${dayCfg.day.kn}ವು ಜಾತಕರಿಗೆ ಸಿದ್ಧಿದಾಯಕ. ಪಂಚಾಂಗ ${yogaTxt} ಯೋಗ ಮತ್ತು ಗೋಚಾರ ಶುಭ ಕಿರಣಗಳು ಈ ದಿನ ವಿಶೇಷ ಸಿದ್ಧಿ ನೀಡುತ್ತವೆ.`;
+    }
 
-    deityReason = `ಜನ್ಮ ಕುಂಡಲಿಯ ಲಗ್ನ ದೋಷ, ೫ನೇ ಮನೆಯಲ್ಲಿರುವ ಮಾಂದಿಯ ಕರ್ಮ ಛಾಯೆ ಮತ್ತು ${dashaTxt} ದಶಾ ಪ್ರಭಾವವನ್ನು ಶಾಂತಗೊಳಿಸಲು ${cfg.deity.kn} ಆರಾಧನೆಯು ಸರ್ವರೋಗ-ಸಂಕಷ್ಟ ಹರ ಪರಮ ಕವಚವಾಗಿದೆ.`;
+    // Deity: 5th lord (Ishta Devata)
+    deityReason = `ಜನ್ಮ ಕುಂಡಲಿಯ ಐದನೇ ಭಾವಾಧಿಪತಿ (ಇಷ್ಟದೇವತಾ ಕಾರಕ) ${deityPlanetTxt} ಗ್ರಹ ಮತ್ತು ಮಾಂದಿ ${p.maandiHouse}ನೇ ಮನೆಯ ಕರ್ಮ ಛಾಯೆ ಶಮನಕ್ಕೆ ${deityCfg.deity.kn} ಆರಾಧನೆ ಪರಮ ಮಂಗಳಕರ.`;
 
-    mantraReason = `ಪ್ರಸ್ತುತ ${dashaTxt} ಮಹಾದಶೆಯಲ್ಲಿ ${bhuktiTxt} ಭುಕ್ತಿಯ ಸಂಧಿಕಾಲದಲ್ಲಿ ಮಾನಸಿಕ ಏಕಾಗ್ರತೆ, ಗ್ರಹಶಾಂತಿ ಹಾಗೂ ಪಂಚಾಂಗದ ನಕ್ಷತ್ರ-ತಿಥಿ ದೋಷ ನಿವಾರಣೆಗೆ ನಿತ್ಯ ೧೦೮ ಬಾರಿ ಈ ಮಂತ್ರ ಜಪವು ಅತ್ಯುನ್ನತ ಸಿದ್ಧಿಯನ್ನು ಒದಗಿಸುತ್ತದೆ.`;
+    // Mantra: MUST match running Mahadasha lord
+    mantraReason = `ಪ್ರಸ್ತುತ ${dashaTxt} ಮಹಾದಶೆಯಲ್ಲಿ ${bhuktiTxt} ಭುಕ್ತಿ ಸಾಗುತ್ತಿದ್ದು, ${dashaTxt} ಗ್ರಹದ ಈ ಬೀಜ ಮಂತ್ರ ನಿತ್ಯ ೧೦೮ ಬಾರಿ ಜಪಿಸುವುದರಿಂದ ಗ್ರಹಶಾಂತಿ ಮತ್ತು ದಶಾ ದೋಷ ನಿವಾರಣೆ ಆಗುತ್ತದೆ. ನಕ್ಷತ್ರ ${nakTxt} ಮತ್ತು ${yogaTxt} ಯೋಗದ ಸಹಕಾರದಿಂದ ಈ ಜಪ ಅತ್ಯಂತ ಫಲದಾಯಕ.`;
 
-    sevaReason = `ಜಾತಕದಲ್ಲಿ ಮಾಂದಿ ಲಗ್ನದಿಂದ ${p.maandiHouse}ನೇ ಮನೆಯಲ್ಲಿದ್ದು, ಜನ್ಮ ಪತ್ರಿಕೆಯಲ್ಲಿ ಪಿತೃ ಕರ್ಮ ಹಾಗೂ ದಶಾ-ಗೋಚಾರದ ಪರೀಕ್ಷೆಯಿರುವುದರಿಂದ, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ${cfg.seva.kn} ಮಾಡಿಸುವುದರಿಂದ ಸಕಲ ವಿಘ್ನಗಳು ಪರಿಹಾರವಾಗಿ ಮಹಾಬಲೇಶ್ವರರ ಅನುಗ್ರಹ ಪ್ರಾಪ್ತಿಯಾಗುತ್ತದೆ.`;
+    sevaReason = `ಜಾತಕದಲ್ಲಿ ಮಾಂದಿ ಲಗ್ನದಿಂದ ${p.maandiHouse}ನೇ ಮನೆಯಲ್ಲಿದ್ದು${hasPitruDosha ? ", ಪಿತೃ ದೋಷದ ಛಾಯೆ ಜನ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ಕಂಡುಬರುತ್ತದೆ" : ""}${hasKalasarpa ? ", ಕಾಳಸರ್ಪ ಯೋಗ ಪ್ರಭಾವ ಗಮನಾರ್ಹ" : ""}${hasManglik ? ", ಕುಜ ದೋಷ ಸ್ಪಷ್ಟ" : ""}. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ${sevaCfg.seva.kn} ಮಾಡಿಸುವುದರಿಂದ ಸಕಲ ವಿಘ್ನ ಪರಿಹಾರ ಮತ್ತು ಮಹಾಬಲೇಶ್ವರರ ಅನುಗ್ರಹ ಪ್ರಾಪ್ತಿಯಾಗುತ್ತದೆ.`;
+
   } else {
-    // English fallback & default
-    gemReason = isMoonDebilitated
-      ? `Your natal Lagna is ${lagnaTxt} and its lord Moon is placed in ${moonTxt} in debilitation. Coupled with ${nakTxt} Nakshatra dynamics under active ${dashaTxt} Mahadasha and ${bhuktiTxt} Bhukti, empowering the Lagna Lord is classical Jyotish priority for mental clarity and somatic resilience. Wearing ${cfg.gem[code] || cfg.gem.en} neutralizes planetary fatigue and elevates vital composure.`
-      : `Fortifying your Lagna Lord ${lagnaLordTxt} is vital for sustaining personal authority and aligning with birth Yoga (${yogaTxt}) and ${nakTxt} Nakshatra under your current ${dashaTxt} Mahadasha cycle.`;
+    // English and multi-language fallback
+    if (yogakaraka) {
+      gemReason = `${gemPlanetTxt} is the Yogakaraka (owns both Kendra and Trikona) for ${lagnaTxt} Lagna. Wearing ${gemCfg.gem[code] || gemCfg.gem.en} amplifies its blessings under the active ${dashaTxt} Mahadasha and ${bhuktiTxt} Bhukti.`;
+    } else {
+      gemReason = `${ninthLordTxt} is your Bhagyeshadhipati (9th Lord of Fortune), in the ${ninthLordHouse}th house, Navamsha (D-9) pada ${ninthLordNavamsha}. Strengthening this planet with ${gemCfg.gem[code] || gemCfg.gem.en} activates fortune under the ${dashaTxt}-${bhuktiTxt} Dasha cycle.`;
+    }
 
-    rudrReason = `Balancing the subtle frequencies of birth Yoga (${yogaTxt}) and Karana (${karanaTxt}), wearing ${cfg.rudraksha[code] || cfg.rudraksha.en} aligns mental equanimity and shields your nervous system during the active Dasha transition.`;
+    rudrReason = `Your current Mahadasha is ${dashaTxt} with ${bhuktiTxt} Bhukti active. Janma Nakshatra lord is ${nakLordTxt}. Wearing ${rudrCfg.rudraksha[code] || rudrCfg.rudraksha.en} pacifies ${dashaTxt} Dasha energies and shields the nervous system from transit turbulence.`;
 
-    dayReason = `${cfg.day[code] || cfg.day.en}, governed by your Lagna Lord ${lagnaLordTxt}, channels peak astral harmony for your birth chart, making it the most auspicious window for commencing ventures or devotional practices.`;
+    if (yogakaraka) {
+      dayReason = `${dayPlanetTxt} is the Yogakaraka for ${lagnaTxt} Lagna. ${dayCfg.day[code] || dayCfg.day.en}, governed by this planet, is the most auspicious weekday for important undertakings and devotional practices.`;
+    } else {
+      dayReason = `${dayCfg.day[code] || dayCfg.day.en}, governed by Lagna Lord ${lagnaLordTxt}, channels peak astral harmony for your chart. Commence important ventures on this day for maximum fruition.`;
+    }
 
-    deityReason = `Worshipping ${cfg.deity[code] || cfg.deity.en} permanently neutralizes the karmic shadow of Maandi in the ${p.maandiHouse}th house and anchors divine sanctuary against transit turbulence.`;
+    deityReason = `${deityPlanetTxt} is your 5th House Lord (Ishta Devata principle per Parashara). Worshipping ${deityCfg.deity[code] || deityCfg.deity.en} neutralizes the Maandi karmic shadow in the ${p.maandiHouse}th house and deepens inner spiritual connection.`;
 
-    mantraReason = `Chanting this sacred Beeja mantra 108 times daily purifies the subconscious mind and mitigates planetary friction during the active ${dashaTxt}-${bhuktiTxt} timeline.`;
+    mantraReason = `This Beeja Mantra propitiates ${dashaTxt}, your current Mahadasha Lord, active with ${bhuktiTxt} Bhukti. Chanting 108 times daily purifies planetary friction and aligns you with the ${dashaTxt} Dasha's positive potential. Do NOT miss this during the active ${dashaTxt} period.`;
 
-    sevaReason = `With Maandi positioned in the ${p.maandiHouse}th house and active karmic cycles running, performing ${cfg.seva[code] || cfg.seva.en} at Sri Kshetra Gokarna releases ancestral karmic bonds and unlocks prosperity.`;
+    sevaReason = `With Maandi in the ${p.maandiHouse}th house${hasPitruDosha ? " and Pitru Dosha present" : ""}${hasKalasarpa ? " and Kalasarpa influence detected" : ""}${hasManglik ? " and Kuja Dosha active" : ""}, performing ${sevaCfg.seva[code] || sevaCfg.seva.en} at Sri Kshetra Gokarna releases ancestral karmic bonds and unlocks divine grace.`;
   }
 
   return {
-    gemstone: cfg.gem[code] || cfg.gem.kn,
-    gemstoneReason: gemReason,
-    rudraksha: cfg.rudraksha[code] || cfg.rudraksha.kn,
+    gemstone:        gemCfg.gem[code]      || gemCfg.gem.kn,
+    gemstoneReason:  gemReason,
+    rudraksha:       rudrCfg.rudraksha[code] || rudrCfg.rudraksha.kn,
     rudrakshaReason: rudrReason,
-    auspiciousDay: cfg.day[code] || cfg.day.kn,
+    auspiciousDay:      dayCfg.day[code]   || dayCfg.day.kn,
     auspiciousDayReason: dayReason,
-    deity: cfg.deity[code] || cfg.deity.kn,
-    deityReason: deityReason,
-    mantra: cfg.mantra,
-    mantraReason: mantraReason,
-    gokarnaSevaName: cfg.seva[code] || cfg.seva.kn,
-    gokarnaSevaReason: sevaReason
+    deity:           deityCfg.deity[code]  || deityCfg.deity.kn,
+    deityReason:     deityReason,
+    mantra:          mantraCfg.mantra,     // ← ALWAYS matches Mahadasha Lord's Beeja mantra
+    mantraReason:    mantraReason,
+    gokarnaSevaName:    sevaCfg.seva[code] || sevaCfg.seva.kn,
+    gokarnaSevaReason:  sevaReason
   };
 }
 

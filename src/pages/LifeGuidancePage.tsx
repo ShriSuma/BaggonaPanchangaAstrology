@@ -14,6 +14,7 @@ import { useAppStore } from "../stores/appStore";
 import { useKundliViewerStore } from "../stores/kundliViewerStore";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import { VedicTimePickerModal } from "../components/VedicTimePickerModal";
 
 export type LifeGuidancePageProps = {
   initialInput?: {
@@ -321,14 +322,12 @@ export const LifeGuidancePage: React.FC<LifeGuidancePageProps> = ({ initialInput
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-amber-900 mb-1">
-                {t("tobLabel")}
-              </label>
-              <input
-                type="time"
-                value={tob}
-                onChange={(e) => setTob(e.target.value)}
-                className="w-full rounded-xl border border-amber-300 bg-amber-50/30 px-3.5 py-2.5 text-xs font-semibold text-amber-950 focus:border-amber-600 focus:outline-none"
+              <VedicTimePickerModal
+                value={tob || "12:00"}
+                onChange={(val) => setTob(val)}
+                label={t("tobLabel")}
+                theme="gold"
+                id="life_guidance_tob"
               />
             </div>
 

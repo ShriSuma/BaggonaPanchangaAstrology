@@ -12,13 +12,15 @@ export interface FallingCoinsRefillModalProps {
   onClose: () => void;
   requiredCoins?: number;
   serviceTitle?: string;
+  currentCoins?: number;
 }
 
 export const FallingCoinsRefillModal: React.FC<FallingCoinsRefillModalProps> = ({
   isOpen,
   onClose,
   requiredCoins,
-  serviceTitle
+  serviceTitle,
+  currentCoins
 }) => {
   const {
     wallet,
@@ -84,7 +86,8 @@ export const FallingCoinsRefillModal: React.FC<FallingCoinsRefillModalProps> = (
     onClose();
   };
 
-  const isZeroOrLow = (wallet?.coinBalance ?? 0) < (requiredCoins ?? 100);
+  const effectiveBalance = currentCoins !== undefined ? currentCoins : (wallet?.coinBalance ?? 0);
+  const isZeroOrLow = effectiveBalance < (requiredCoins ?? 100);
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto animate-in fade-in duration-200">
@@ -103,7 +106,7 @@ export const FallingCoinsRefillModal: React.FC<FallingCoinsRefillModalProps> = (
               <p className="text-[11px] text-amber-800 font-bold">
                 ಬ್ಯಾಲೆನ್ಸ್:{" "}
                 <span className="font-extrabold text-amber-950 font-mono text-xs">
-                  {(wallet?.coinBalance ?? 0).toLocaleString()} 🪙
+                  {effectiveBalance.toLocaleString()} 🪙
                 </span>
                 {isZeroOrLow && (
                   <span className="ml-1.5 px-1.5 py-0.5 bg-red-100 text-red-700 border border-red-300 rounded-md text-[9px] font-black uppercase animate-pulse">

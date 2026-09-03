@@ -38,6 +38,9 @@ import { DivyaKaalaDiksuchiPage } from "../../pages/DivyaKaalaDiksuchiPage";
 import { HindinaJanmaPage } from "../../pages/HindinaJanmaPage";
 import PublicKundliPage from "../../pages/PublicKundliPage";
 import { FloatingCoinDeductionBadge } from "../../components/wallet/FloatingCoinDeductionBadge";
+import { KundliChakraLoader } from "../../components/loaders/KundliChakraLoader";
+import { BhavishyaMasterLoader } from "../../components/loaders/BhavishyaMasterLoader";
+import { VedicTimePickerModal } from "../../components/VedicTimePickerModal";
 import type { AvailableModuleKey } from "../wallet/walletTypes";
 import { exportPanchangaWithDashaPdf, exportElementAsPdf } from "../../core/ExportUtils";
 import { patrikaMetaForNakshatraIndex } from "../../core/nakshatraPatrikaMeta";
@@ -199,13 +202,19 @@ export const PriestMobilePortal: React.FC = () => {
       const parsed: AvailableModuleKey[] = modulesParam
         .split(",")
         .map((m) => m.trim().toLowerCase())
-        .filter((m): m is AvailableModuleKey => ["panchanga", "sankhyashastra", "diksuchi", "purva_janma", "vahana_muhurtha"].includes(m as any));
+        .filter((m): m is AvailableModuleKey =>
+          ["public_kundli", "panchanga", "sankhyashastra", "diksuchi", "purva_janma", "vahana_muhurtha"].includes(m as any)
+        );
       if (parsed.length > 0) return parsed;
     }
     if (wallet?.allowedModules && wallet.allowedModules.length > 0) {
-      return wallet.allowedModules.filter((m): m is AvailableModuleKey =>
+      const list = wallet.allowedModules.filter((m): m is AvailableModuleKey =>
         ["public_kundli", "panchanga", "sankhyashastra", "diksuchi", "purva_janma", "vahana_muhurtha"].includes(m as any)
       );
+      if (isSuperAdmin && !list.includes("public_kundli")) {
+        list.unshift("public_kundli");
+      }
+      return list;
     }
     const portal = params.get("portal")?.toLowerCase();
     if (portal === "public_kundli" || portal === "public") return ["public_kundli"];
@@ -220,10 +229,10 @@ export const PriestMobilePortal: React.FC = () => {
   const visibleTabs = useMemo(() => {
     const tabs: Array<{ id: PriestTab; label: string; icon: string }> = [];
     if (allowedModules.includes("public_kundli")) {
-      tabs.push({ id: "public_kundli", label: "ಸಾರ್ವಜನಿಕ ಕುಂಡಲಿ", icon: "🌟" });
+      tabs.push({ id: "public_kundli", label: "ಸಾರ್ವಜನಿಕ ಕುಂಡಲಿ [Top 1]", icon: "🌟" });
     }
     if (allowedModules.includes("panchanga")) {
-      tabs.push({ id: "kundli", label: "ಜನನ ಕುಂಡಲಿ", icon: "🔮" });
+      tabs.push({ id: "kundli", label: "ಜನನ ಕುಂಡಲಿ [Top 2]", icon: "🔮" });
       tabs.push({ id: "questions", label: "ಪ್ರಶ್ನೋತ್ತರ", icon: "💬" });
     }
     if (allowedModules.includes("sankhyashastra")) {
@@ -246,9 +255,10 @@ export const PriestMobilePortal: React.FC = () => {
   // Load Saved Session from localStorage (Anti-Reset Guard for Refresh / Mobile Disconnects)
   const savedSession = useMemo(() => loadSavedPriestKundliState(), []);
 
-  // Active Tab
+  // Active Tab (Defaults to Top 1 / First Grade Public Kundli with Black Theme)
   const [activeTab, setActiveTab] = useState<PriestTab>(() => {
     if (savedSession?.activeTab) return savedSession.activeTab;
+    if (allowedModules.includes("public_kundli")) return "public_kundli";
     return "kundli";
   });
 
@@ -1500,77 +1510,104 @@ export const PriestMobilePortal: React.FC = () => {
       {/* Floating Coin Deduction Animation Indicator */}
       <FloatingCoinDeductionBadge />
 
-      {/* 1. Royal Brand Header Bar (Golden-White Dual-Tier Mobile-First Theme) */}
+      {/* 🪔 Full-Page Blocking Dedicated Themed Vedic Loaders */}
+      {isCalculatingKundli && (
+        <KundliChakraLoader
+          isKn={true}
+          title="✨ ವೇದೋಕ್ತ ಜನನ ಕುಂಡಲಿ ಗಣನೆ ನಡೆಯುತ್ತಿದೆ..."
+          message={`ಶ್ರೀ ${devoteeName || "ಭಕ್ತರ"} ಜನನ ಕುಂಡಲಿ, ನವಾಂಶ, ಭಾವ ಸಂಧಿ ಹಾಗೂ ದಶಾ-ಭುಕ್ತಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ...`}
+        />
+      )}
+      {isGeneratingJananaPdf && (
+        <KundliChakraLoader
+          isKn={true}
+          title="📜 ಜನನ ಕುಂಡಲಿ PDF ಸಿದ್ಧವಾಗುತ್ತಿದೆ..."
+          message="ಸಾಂಪ್ರದಾಯಿಕ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜಾತಕ ಪತ್ರಿಕೆ (೧,೦೦೦ ನಾಣ್ಯಗಳ ಸೇವೆ) ಸಿದ್ಧಗೊಂಡು ಡೌನ್‌ಲೋಡ್ ಆಗುತ್ತಿದೆ..."
+        />
+      )}
+      {isGeneratingPdf && (
+        <BhavishyaMasterLoader
+          isKn={true}
+          title="📄 ಪ್ರೀಮಿಯಂ AI ಜಾತಕ ಭವಿಷ್ಯ PDF ಮುದ್ರಣಗೊಳ್ಳುತ್ತಿದೆ..."
+          message="ಸಂಪೂರ್ಣ ೧೨ ತಿಂಗಳ ಮಾರ್ಗದರ್ಶನ ಹಾಗೂ ಮಹರ್ಷಿ ಫಲ ವರದಿ (೩,೫೦೦ ನಾಣ್ಯಗಳ ಸೇವೆ) ಸಿದ್ಧವಾಗುತ್ತಿದೆ..."
+        />
+      )}
+      {isConsulting && (
+        <BhavishyaMasterLoader
+          isKn={true}
+          title="✨ ಪ್ರಶ್ನಾ ಸಮಾಲೋಚನೆ ವಿಶ್ಲೇಷಣೆ ನಡೆಯುತ್ತಿದೆ..."
+          message="ಪ್ರಶ್ನಾ ಲಗ್ನ, ಗೋಚಾರ ಗ್ರಹ ಸ್ಥಿತಿ ಹಾಗೂ ಶಾಸ್ತ್ರೀಯ ಮಾರ್ಗದರ್ಶನ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..."
+        />
+      )}
+
+      {/* 1. Royal Brand Header Bar (Golden-White Mobile-First Theme with Zero-Overflow Protection) */}
       <header className="sticky top-0 z-30 bg-[#FFFDF7]/98 backdrop-blur-md border-b-2 border-amber-400/80 shadow-md">
         {/* Top Brand & Actions Bar */}
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between gap-2">
+        <div className="max-w-7xl mx-auto px-2.5 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between gap-1.5 overflow-hidden">
           {/* Left: Brand Icon + Title in Guaranteed Single Line */}
-          <div className="flex items-center gap-2 shrink-0">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-tr from-amber-600 via-amber-500 to-amber-300 flex items-center justify-center text-slate-950 text-base sm:text-xl font-bold shadow-md shadow-amber-500/20 border border-amber-400 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink min-w-0">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-amber-600 via-amber-500 to-amber-300 flex items-center justify-center text-slate-950 text-base sm:text-lg font-bold shadow-md shadow-amber-500/20 border border-amber-400 shrink-0">
               🕉️
             </div>
-            <div className="flex items-center gap-1.5 whitespace-nowrap">
-              <h1 className="text-sm sm:text-base md:text-lg font-black text-amber-950 tracking-tight leading-none">
+            <div className="min-w-0">
+              <h1 className="text-xs sm:text-base font-black text-amber-950 tracking-tight leading-none truncate">
                 ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ॥
               </h1>
-              <span className="hidden xs:inline-block px-1.5 py-0.5 bg-amber-200/90 border border-amber-400 rounded-md text-[9px] font-black text-amber-950 font-mono">
-                v1.0
+              <span className="text-[9px] sm:text-[10px] text-amber-800 font-bold block leading-tight truncate">
+                ಜ್ಯೋತಿಷ್ಯ ಕಾರ್ಯಾಲಯ
               </span>
             </div>
           </div>
 
-          {/* Right: Reset Action & Coin Balance Pill */}
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            {/* Priest Reset Action Button (Anti-Reset Guard: State is only wiped on explicit Priest click) */}
+          {/* Right: Reset Action & Coin Balance Pill - Compact & Never Overflowing */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            {/* Priest Reset Action Button */}
             <button
               type="button"
               onClick={handleResetKundli}
-              className="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-xl bg-amber-100/90 hover:bg-amber-200 border border-amber-400 text-amber-950 font-bold text-[10px] sm:text-xs shadow-xs transition-all active:scale-95 whitespace-nowrap"
+              className="flex items-center gap-1 px-2 py-1.5 rounded-xl bg-amber-100/90 hover:bg-amber-200 border border-amber-400 text-amber-950 font-bold text-[10px] sm:text-xs shadow-xs transition-all active:scale-95 shrink-0"
               title="ಹೊಸ ಜಾತಕ ನಮೂದಿಸಲು ರಿಸೆಟ್ ಮಾಡಿ"
             >
               <span>🔄</span>
               <span className="hidden sm:inline">ಹೊಸ ಜಾತಕ</span>
-              <span className="sm:hidden">ರಿಸೆಟ್</span>
             </button>
 
             {/* Quick Balance & Refill Pill */}
             <button
               type="button"
               onClick={() => setIsRechargeOpen(true)}
-              className={`flex items-center gap-1.5 px-2 sm:px-3 py-1 rounded-xl transition-all shadow-xs active:scale-95 whitespace-nowrap border-2 ${
+              className={`flex items-center gap-1 px-2 sm:px-2.5 py-1.5 rounded-xl transition-all shadow-xs active:scale-95 shrink-0 border-2 ${
                 coinBalance < 200
                   ? "bg-red-50 border-red-500 text-red-950 animate-pulse ring-1 ring-red-400"
-                  : "bg-[#FFF9E6] border-amber-400 hover:bg-amber-100 text-amber-950"
+                  : "bg-gradient-to-r from-amber-500/20 to-amber-400/10 border-amber-400/90 hover:bg-amber-100 text-amber-950"
               }`}
               title={coinBalance < 200 ? "⚠️ ನಾಣ್ಯಗಳ ಕೊರತೆ! ರೀಫಿಲ್ ಮಾಡಲು ಕ್ಲಿಕ್ ಮಾಡಿ" : "ನಾಣ್ಯಗಳನ್ನು ರೀಚಾರ್ಜ್ ಮಾಡಿ"}
             >
-              <span className="text-xs sm:text-sm">{coinBalance < 200 ? "⚠️" : "🪙"}</span>
-              <div className="text-left">
-                <div className={`text-[11px] sm:text-xs font-mono font-black leading-tight ${coinBalance < 200 ? "text-red-700 font-bold" : "text-amber-950"}`}>
-                  {coinBalance.toLocaleString()} 🪙
-                </div>
-                <div className={`text-[8px] sm:text-[9px] font-extrabold leading-none ${coinBalance < 200 ? "text-red-600 animate-bounce" : "text-emerald-700"}`}>
-                  {coinBalance < 200 ? "ಕೊರತೆ (+ರೀಫಿಲ್)" : "+ ರೀಚಾರ್ಜ್"}
-                </div>
-              </div>
+              <span className="text-xs sm:text-sm shrink-0">{coinBalance < 200 ? "⚠️" : "🪙"}</span>
+              <span className={`font-mono font-black text-xs sm:text-sm shrink-0 ${coinBalance < 200 ? "text-red-700" : "text-amber-950"}`}>
+                {coinBalance.toLocaleString()}
+              </span>
+              <span className="text-[8px] sm:text-[9px] font-black px-1.5 py-0.5 rounded-md bg-amber-500 text-slate-950 shrink-0 uppercase tracking-tighter">
+                {coinBalance < 200 ? "ರೀಫಿಲ್" : "+"}
+              </span>
             </button>
           </div>
         </div>
 
         {/* Sub-Header: Dedicated Mobile-Friendly Priest Greeting & Status Bar */}
-        <div className="bg-gradient-to-r from-[#FFF5D6] via-[#FFF9E6] to-[#FFF5D6] border-t border-amber-300/80 px-3 sm:px-4 py-1.5 flex items-center justify-between text-xs">
-          <div className="flex items-center gap-1.5 min-w-0">
+        <div className="bg-gradient-to-r from-[#FFF5D6] via-[#FFF9E6] to-[#FFF5D6] border-t border-amber-300/80 px-2.5 sm:px-4 py-1.5 flex items-center justify-between text-xs overflow-hidden">
+          <div className="flex items-center gap-1.5 min-w-0 flex-1">
             <span className="text-sm shrink-0">🙏</span>
             <span className="font-extrabold text-amber-950 truncate text-[11px] sm:text-xs">
               ನಮಸ್ಕಾರ <strong className="text-amber-900 font-black">{activePriestDisplayName}</strong> ಅವರೇ
             </span>
-            <span className="hidden sm:inline-block text-[10px] text-amber-800 font-semibold">• ಅಧಿಕೃತ ಜ್ಯೋತಿಷಿ</span>
+            <span className="hidden sm:inline-block text-[10px] text-amber-800 font-semibold truncate">• ಅಧಿಕೃತ ಜ್ಯೋತಿಷಿ</span>
           </div>
           <div className="flex items-center gap-1.5 shrink-0 text-[10px] font-bold text-amber-900">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
             <span className="hidden xs:inline text-emerald-800 font-black">ಲೈವ್</span>
             <span className="bg-amber-200/80 px-1.5 py-0.5 rounded border border-amber-400 font-mono text-[9px]">
-              {activeTab === "kundli" ? "ಜನನ ಕುಂಡಲಿ" : activeTab === "questions" ? "ಪ್ರಶ್ನೋತ್ತರ" : "ವಾಲೆಟ್"}
+              {activeTab === "kundli" ? "ಜನನ ಕುಂಡಲಿ" : activeTab === "questions" ? "ಪ್ರಶ್ನೋತ್ತರ" : activeTab === "sankhyashastra" ? "ಸಂಖ್ಯಾಶಾಸ್ತ್ರ" : activeTab === "public_kundli" ? "ಸಾರ್ವಜನಿಕ" : "ವಾಲೆಟ್"}
             </span>
           </div>
         </div>
@@ -1579,32 +1616,32 @@ export const PriestMobilePortal: React.FC = () => {
       {/* Global Feedback Banner */}
       {feedback && (
         <div
-          className={`mx-4 mt-3 p-3 rounded-2xl text-xs flex items-center justify-between border-2 shadow-sm ${
+          className={`mx-2 sm:mx-4 mt-3 p-3 rounded-2xl text-xs flex items-center justify-between border-2 shadow-sm ${
             feedback.type === "success"
               ? "bg-emerald-50 border-emerald-400 text-emerald-900"
               : "bg-red-50 border-red-400 text-red-900"
           }`}
         >
-          <div className="flex items-center gap-2 font-bold">
-            <span>{feedback.type === "success" ? "✓" : "⚠️"}</span>
-            <span>{feedback.text}</span>
+          <div className="flex items-center gap-2 font-bold min-w-0">
+            <span className="shrink-0">{feedback.type === "success" ? "✓" : "⚠️"}</span>
+            <span className="truncate">{feedback.text}</span>
           </div>
-          <button onClick={() => setFeedback(null)} className="text-slate-500 font-black px-1">
+          <button onClick={() => setFeedback(null)} className="text-slate-500 font-black px-1 shrink-0">
             ✕
           </button>
         </div>
       )}
 
       {speechError && (
-        <div className="mx-4 mt-2 p-2.5 rounded-xl bg-amber-50 border-2 border-amber-400 text-amber-900 text-[11px] font-bold flex items-center justify-between">
-          <span>🎤 {speechError}</span>
-          <button onClick={() => setSpeechError(null)} className="text-amber-800">✕</button>
+        <div className="mx-2 sm:mx-4 mt-2 p-2.5 rounded-xl bg-amber-50 border-2 border-amber-400 text-amber-900 text-[11px] font-bold flex items-center justify-between">
+          <span className="truncate">🎤 {speechError}</span>
+          <button onClick={() => setSpeechError(null)} className="text-amber-800 shrink-0">✕</button>
         </div>
       )}
 
-      {/* 2. Mobile Tab Switcher (Royal Cream & Gold - Dynamic Multi-Module Support) */}
-      <div className="px-3 sm:px-4 mt-3.5">
-        <div className="flex flex-wrap gap-1.5 p-1.5 bg-[#FFFDF7] border-2 border-amber-400/60 rounded-2xl shadow-sm">
+      {/* 2. Mobile Tab Switcher (Royal Cream & Gold - Smooth Horizontal Touch Scroll) */}
+      <div className="px-2 sm:px-4 mt-2.5">
+        <div className="flex items-center gap-1.5 p-1.5 bg-[#FFFDF7] border-2 border-amber-400/70 rounded-2xl shadow-sm overflow-x-auto no-scrollbar scroll-smooth">
           {visibleTabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
@@ -1612,13 +1649,13 @@ export const PriestMobilePortal: React.FC = () => {
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 min-w-[95px] py-2 px-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+                className={`shrink-0 py-2 px-3 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 active:scale-95 ${
                   isActive
                     ? "bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 text-slate-950 shadow-md font-black ring-1 ring-amber-500"
-                    : "text-amber-900 hover:bg-amber-50"
+                    : "text-amber-950 bg-amber-50/60 hover:bg-amber-100/70 border border-amber-300/40"
                 }`}
               >
-                <span>{tab.icon}</span>
+                <span className="text-sm">{tab.icon}</span>
                 <span className="whitespace-nowrap">{tab.label}</span>
               </button>
             );
@@ -1656,16 +1693,16 @@ export const PriestMobilePortal: React.FC = () => {
 
       {/* 3. TAB 1: ಜನನ ಕುಂಡಲಿ (Janana Kundli & Dasha-Bhukti) */}
       {activeTab === "kundli" && (
-        <div className="px-4 mt-4 space-y-4">
+        <div className="px-2 sm:px-4 mt-3 space-y-4">
           {/* Input Card */}
-          <div className="bg-[#FFFDF7] border-2 border-amber-400/80 rounded-3xl p-5 shadow-md">
-            <div className="flex items-center justify-between border-b border-amber-200 pb-3 mb-4">
-              <h2 className="text-sm font-black text-amber-950 flex items-center gap-2">
-                <span>📜</span>
-                <span>ಭಕ್ತರ ಜನ್ಮ ವಿವರಗಳ ನಮೂದು</span>
+          <div className="bg-[#FFFDF7] border-2 border-amber-400/80 rounded-3xl p-4 sm:p-5 shadow-md">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-200 pb-3 mb-4">
+              <h2 className="text-xs sm:text-sm font-black text-amber-950 flex items-center gap-1.5 min-w-0 flex-1">
+                <span className="shrink-0">📜</span>
+                <span className="truncate">ಭಕ್ತರ ಜನ್ಮ ವಿವರಗಳ ನಮೂದು</span>
               </h2>
-              <span className="text-[10px] font-mono font-black text-amber-900 bg-[#FFF5D6] px-2.5 py-1 rounded-full border border-amber-400">
-                ದರ: 🪙 ೨೫೦ ನಾಣ್ಯಗಳು
+              <span className="shrink-0 text-[10px] font-mono font-black text-amber-950 bg-[#FFF5D6] px-2.5 py-1 rounded-full border border-amber-400 shadow-xs">
+                ದರ: 🪙 ೨೫೦ (₹೨೫)
               </span>
             </div>
 
@@ -1754,13 +1791,12 @@ export const PriestMobilePortal: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-amber-950 font-bold mb-1">ಜನನ ಸಮಯ</label>
-                  <input
-                    type="time"
+                  <VedicTimePickerModal
                     value={birthTime}
-                    onChange={(e) => setBirthTime(e.target.value)}
-                    required
-                    className="w-full px-3 py-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 font-mono font-bold focus:outline-none focus:border-amber-500 shadow-inner"
+                    onChange={(val) => setBirthTime(val)}
+                    label="ಜನನ ಸಮಯ (Birth Time)"
+                    theme="gold"
+                    id="priest_birth_time_picker"
                   />
                 </div>
               </div>
@@ -1893,19 +1929,19 @@ export const PriestMobilePortal: React.FC = () => {
 
               {/* Authentic Royal South Indian Janana Kundali Patrika (100% Pure Kannada - Exact PDF Replica) */}
               <div className="bg-[#FFFDF7] border-2 border-amber-400/90 rounded-3xl p-3 sm:p-5 shadow-lg space-y-3">
-                <div className="flex items-center justify-between border-b border-amber-200 pb-2.5">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl">📜✨</span>
-                    <div>
-                      <h3 className="text-xs sm:text-sm font-black text-amber-950">
-                        ದಕ್ಷಿಣ ಭಾರತೀಯ ಸಾಂಪ್ರದಾಯಿಕ ಜನನ ಕುಂಡಲಿ ಪತ್ರಿಕೆ (South Indian Patrika)
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-200 pb-2.5">
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <span className="text-xl shrink-0">📜✨</span>
+                    <div className="min-w-0">
+                      <h3 className="text-xs sm:text-sm font-black text-amber-950 truncate">
+                        ದಕ್ಷಿಣ ಭಾರತೀಯ ಸಾಂಪ್ರದಾಯಿಕ ಜನನ ಕುಂಡಲಿ ಪತ್ರಿಕೆ
                       </h3>
-                      <p className="text-[10px] text-amber-800 font-semibold">
+                      <p className="text-[10px] text-amber-800 font-semibold truncate">
                         ೧೦೦% ಶುದ್ಧ ಕನ್ನಡ • ಲಗ್ನ, ಮಾಂದಿ, ನವಾಂಶ ಅಂಶಕ & ಪಂಚಾಂಗ ವಿವರಗಳು
                       </p>
                     </div>
                   </div>
-                  <span className="text-[10px] font-black text-emerald-900 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-300">
+                  <span className="shrink-0 text-[10px] font-black text-emerald-900 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-300">
                     PDF ಹೋಲಿಕೆ (Exact Replica)
                   </span>
                 </div>
@@ -1926,21 +1962,21 @@ export const PriestMobilePortal: React.FC = () => {
               </div>
 
               {/* Baggona Panchanga Janana Kundli PDF Download Card with Radio Options (1,000 Coins / ₹100) */}
-              <div className="bg-[#FFFDF7] border-2 border-amber-400/90 rounded-3xl p-5 shadow-md space-y-4">
-                <div className="flex items-center justify-between border-b border-amber-200 pb-2.5">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl">📜✨</span>
-                    <div>
-                      <h3 className="text-xs font-black text-amber-950">
-                        ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜನನ ಕುಂಡಲಿ PDF (Janana Kundli)
+              <div className="bg-[#FFFDF7] border-2 border-amber-400/90 rounded-3xl p-4 sm:p-5 shadow-md space-y-3.5">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-200 pb-2.5">
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <span className="text-xl shrink-0">📜✨</span>
+                    <div className="min-w-0">
+                      <h3 className="text-xs sm:text-sm font-black text-amber-950 truncate">
+                        ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜನನ ಕುಂಡಲಿ PDF
                       </h3>
-                      <p className="text-[10px] text-amber-700 font-semibold">
+                      <p className="text-[10px] text-amber-700 font-semibold truncate">
                         ದಶಾ-ಭುಕ್ತಿ ವಿವರಗಳು ಹಾಗೂ ಸಾಂಪ್ರದಾಯಿಕ ಪಂಚಾಂಗ ಜಾತಕ ಪತ್ರಿಕೆ
                       </p>
                     </div>
                   </div>
-                  <span className="text-[10px] font-mono font-black text-amber-900 bg-[#FFF5D6] px-2.5 py-1 rounded-full border border-amber-400">
-                    🪙 ೧,೦೦೦ ನಾಣ್ಯಗಳು
+                  <span className="shrink-0 text-[10px] font-mono font-black text-amber-950 bg-gradient-to-r from-amber-200 to-amber-100 px-2.5 py-1 rounded-full border border-amber-400 shadow-xs">
+                    🪙 ೧,೦೦೦ (₹೧೦೦)
                   </span>
                 </div>
 
@@ -2018,21 +2054,21 @@ export const PriestMobilePortal: React.FC = () => {
               </div>
 
               {/* Premium Bhavishya GenAI PDF Download Card with Language Selection */}
-              <div className="bg-[#FFFDF7] border-2 border-indigo-400/90 rounded-3xl p-5 shadow-md space-y-4">
-                <div className="flex items-center justify-between border-b border-indigo-200 pb-2.5">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl">📄✨</span>
-                    <div>
-                      <h3 className="text-xs font-black text-indigo-950">
+              <div className="bg-[#FFFDF7] border-2 border-indigo-400/90 rounded-3xl p-4 sm:p-5 shadow-md space-y-3.5">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-indigo-200 pb-2.5">
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <span className="text-xl shrink-0">📄✨</span>
+                    <div className="min-w-0">
+                      <h3 className="text-xs sm:text-sm font-black text-indigo-950 truncate">
                         ಪ್ರೀಮಿಯಂ ಭವಿಷ್ಯ PDF (Bhavishya GenAI)
                       </h3>
-                      <p className="text-[10px] text-indigo-700 font-semibold">
+                      <p className="text-[10px] text-indigo-700 font-semibold truncate">
                         ಸಂಪೂರ್ಣ AI ಮಾಸ್ಟರ್ ಭವಿಷ್ಯ, ಯೋಗ, ದೋಷ ಮತ್ತು ೧೨ ತಿಂಗಳ ಮಾರ್ಗಸೂಚಿ
                       </p>
                     </div>
                   </div>
-                  <span className="text-[10px] font-mono font-black text-indigo-950 bg-indigo-50 px-2.5 py-1 rounded-full border border-indigo-400">
-                    🪙 ೩,೫೦೦ ನಾಣ್ಯಗಳು
+                  <span className="shrink-0 text-[10px] font-mono font-black text-indigo-950 bg-indigo-50 px-2.5 py-1 rounded-full border border-indigo-400 shadow-xs">
+                    🪙 ೩,೫೦೦ (₹೩೫೦)
                   </span>
                 </div>
 
@@ -2109,15 +2145,15 @@ export const PriestMobilePortal: React.FC = () => {
 
       {/* 4. TAB 2: ಪ್ರಶ್ನೋತ್ತರ ವಿಭಾಗ (Consultation Q&A) */}
       {activeTab === "questions" && (
-        <div className="px-4 mt-4 space-y-4">
-          <div className="bg-[#FFFDF7] border-2 border-amber-400/80 rounded-3xl p-5 shadow-md">
-            <div className="flex items-center justify-between border-b border-amber-200 pb-3 mb-4">
-              <h2 className="text-sm font-black text-amber-950 flex items-center gap-2">
-                <span>❓</span>
-                <span>ಶಾಸ್ತ್ರೀಯ ಪ್ರಶ್ನೋತ್ತರ ಸಮಾಲೋಚನೆ</span>
+        <div className="px-2 sm:px-4 mt-3 space-y-4">
+          <div className="bg-[#FFFDF7] border-2 border-amber-400/80 rounded-3xl p-4 sm:p-5 shadow-md">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-200 pb-3 mb-4">
+              <h2 className="text-xs sm:text-sm font-black text-amber-950 flex items-center gap-1.5 min-w-0 flex-1">
+                <span className="shrink-0">❓</span>
+                <span className="truncate">ಶಾಸ್ತ್ರೀಯ ಪ್ರಶ್ನೋತ್ತರ ಸಮಾಲೋಚನೆ</span>
               </h2>
-              <span className="text-[10px] font-mono font-black text-amber-900 bg-[#FFF5D6] px-2.5 py-1 rounded-full border border-amber-400">
-                ದರ: 🪙 {selectedCategoryKey === "kaaladiksuchi" || selectedCategoryKey === "purvajanma" ? "೨೦೦" : "೭೫೦"} ನಾಣ್ಯಗಳು
+              <span className="shrink-0 text-[10px] font-mono font-black text-amber-950 bg-[#FFF5D6] px-2.5 py-1 rounded-full border border-amber-400 shadow-xs">
+                ದರ: 🪙 {selectedCategoryKey === "kaaladiksuchi" || selectedCategoryKey === "purvajanma" ? "೨೦೦ (₹೨೦)" : "೭೫೦ (₹೭೫)"}
               </span>
             </div>
 
@@ -2383,9 +2419,9 @@ export const PriestMobilePortal: React.FC = () => {
 
       {/* 8. TAB 7: ವಾಲೆಟ್ & ಲೆಡ್ಜರ್ (Wallet & Refill) */}
       {activeTab === "wallet" && (
-        <div className="px-4 mt-4 space-y-4">
+        <div className="px-2 sm:px-4 mt-3 space-y-4">
           {/* Wallet Summary Card */}
-          <div className="bg-[#FFFDF7] border-2 border-amber-400/80 rounded-3xl p-5 shadow-md flex items-center justify-between">
+          <div className="bg-[#FFFDF7] border-2 border-amber-400/80 rounded-3xl p-4 sm:p-5 shadow-md flex flex-wrap items-center justify-between gap-3">
             <div>
               <span className="text-[10px] text-amber-800 uppercase font-black">ಸಕ್ರಿಯ ನಾಣ್ಯ ಶಿಲ್ಕು</span>
               <div className="text-2xl font-mono font-black text-amber-950 mt-0.5">
@@ -2400,53 +2436,53 @@ export const PriestMobilePortal: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsRechargeOpen(true)}
-              className="py-2.5 px-4 bg-gradient-to-r from-amber-600 to-amber-500 text-slate-950 font-black text-xs rounded-2xl shadow-md border border-amber-400"
+              className="py-2.5 px-4 bg-gradient-to-r from-amber-600 to-amber-500 text-slate-950 font-black text-xs rounded-2xl shadow-md border border-amber-400 shrink-0 active:scale-95"
             >
               + ನಾಣ್ಯ ರೀಚಾರ್ಜ್
             </button>
           </div>
 
           {/* Pricing Standard Card */}
-          <div className="bg-[#FFFDF7] border-2 border-amber-300 rounded-3xl p-5 text-xs space-y-2.5 shadow-sm">
-            <h3 className="font-black text-amber-950">📊 ಸೇವಾ ಶುಲ್ಕ ದರಪಟ್ಟಿ (Service Rates - ₹1 = 10 ನಾಣ್ಯಗಳು):</h3>
+          <div className="bg-[#FFFDF7] border-2 border-amber-300 rounded-3xl p-4 sm:p-5 text-xs space-y-2.5 shadow-sm">
+            <h3 className="font-black text-amber-950 text-xs sm:text-sm">📊 ಸೇವಾ ಶುಲ್ಕ ದರಪಟ್ಟಿ (₹1 = 10 ನಾಣ್ಯಗಳು):</h3>
             <div className="divide-y divide-amber-200 font-semibold">
-              <div className="py-2 flex justify-between">
-                <span className="text-slate-800">🔮 ಜನನ ಕುಂಡಲಿ ರಚನೆ (Full Kundli Chart)</span>
-                <span className="font-mono font-bold text-amber-900">🪙 ೫೦೦ ನಾಣ್ಯಗಳು (₹೫೦)</span>
+              <div className="py-2 flex flex-wrap items-center justify-between gap-1">
+                <span className="text-slate-800 text-[11px] sm:text-xs">🔮 ಜನನ ಕುಂಡಲಿ ರಚನೆ (Full Kundli)</span>
+                <span className="font-mono font-bold text-amber-900 text-[11px] sm:text-xs shrink-0">🪙 ೫೦೦ (₹೫೦)</span>
               </div>
-              <div className="py-2 flex justify-between">
-                <span className="text-slate-800">💬 ಜ್ಯೋತಿಷ್ಯ ಪ್ರಶ್ನೆ ಸಮಾಲೋಚನೆ (Astrology Consultation)</span>
-                <span className="font-mono font-bold text-amber-900">🪙 ೫೦೦ ನಾಣ್ಯಗಳು (₹೫೦)</span>
+              <div className="py-2 flex flex-wrap items-center justify-between gap-1">
+                <span className="text-slate-800 text-[11px] sm:text-xs">💬 ಜ್ಯೋತಿಷ್ಯ ಸಮಾಲೋಚನೆ (Consultation)</span>
+                <span className="font-mono font-bold text-amber-900 text-[11px] sm:text-xs shrink-0">🪙 ೫೦೦ (₹೫೦)</span>
               </div>
-              <div className="py-2 flex justify-between">
-                <span className="text-slate-800">🔢 ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಪ್ರಶ್ನಾವಳಿ & ಹೆಸರು/ಸಂಖ್ಯೆ</span>
-                <span className="font-mono font-bold text-amber-900">🪙 ೫೦೦ ನಾಣ್ಯಗಳು (₹೫೦)</span>
+              <div className="py-2 flex flex-wrap items-center justify-between gap-1">
+                <span className="text-slate-800 text-[11px] sm:text-xs">🔢 ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಪ್ರಶ್ನಾವಳಿ & ಹೆಸರು</span>
+                <span className="font-mono font-bold text-amber-900 text-[11px] sm:text-xs shrink-0">🪙 ೫೦೦ (₹೫೦)</span>
               </div>
-              <div className="py-2 flex justify-between">
-                <span className="text-slate-800">🧭 ದಿವ್ಯ ಕಾಲ ದಿಕ್ಸೂಚಿ ವಿಶ್ಲೇಷಣೆ</span>
-                <span className="font-mono font-bold text-amber-900">🪙 ೫೦೦ ನಾಣ್ಯಗಳು (₹೫೦)</span>
+              <div className="py-2 flex flex-wrap items-center justify-between gap-1">
+                <span className="text-slate-800 text-[11px] sm:text-xs">🧭 ದಿವ್ಯ ಕಾಲ ದಿಕ್ಸೂಚಿ ವಿಶ್ಲೇಷಣೆ</span>
+                <span className="font-mono font-bold text-amber-900 text-[11px] sm:text-xs shrink-0">🪙 ೫೦೦ (₹೫೦)</span>
               </div>
-              <div className="py-2 flex justify-between">
-                <span className="text-slate-800">📜 ಹಿಂದಿನ ಜನ್ಮ ಕರ್ಮ ರಹಸ್ಯ</span>
-                <span className="font-mono font-bold text-amber-900">🪙 ೫೦೦ ನಾಣ್ಯಗಳು (₹೫೦)</span>
+              <div className="py-2 flex flex-wrap items-center justify-between gap-1">
+                <span className="text-slate-800 text-[11px] sm:text-xs">📜 ಹಿಂದಿನ ಜನ್ಮ ಕರ್ಮ ರಹಸ್ಯ</span>
+                <span className="font-mono font-bold text-amber-900 text-[11px] sm:text-xs shrink-0">🪙 ೫೦೦ (₹೫೦)</span>
               </div>
-              <div className="py-2 flex justify-between">
-                <span className="text-slate-800">🚗 ವಾಹನ ಖರೀದಿ ಶುಭ ಮುಹೂರ್ತ (Vehicle Purchase)</span>
-                <span className="font-mono font-bold text-amber-900">🪙 ೫೦೦ ನಾಣ್ಯಗಳು (₹೫೦)</span>
+              <div className="py-2 flex flex-wrap items-center justify-between gap-1">
+                <span className="text-slate-800 text-[11px] sm:text-xs">🚗 ವಾಹನ ಖರೀದಿ ಶುಭ ಮುಹೂರ್ತ</span>
+                <span className="font-mono font-bold text-amber-900 text-[11px] sm:text-xs shrink-0">🪙 ೫೦೦ (₹೫೦)</span>
               </div>
-              <div className="py-2 flex justify-between">
-                <span className="text-slate-800">📑 ಪ್ರೀಮಿಯಂ ಜಾತಕ ಭವಿಷ್ಯ PDF (Baggona Bhavishya)</span>
-                <span className="font-mono font-bold text-amber-900">🪙 ೩,೫೦೦ ನಾಣ್ಯಗಳು (₹೩೫೦)</span>
+              <div className="py-2 flex flex-wrap items-center justify-between gap-1">
+                <span className="text-slate-800 text-[11px] sm:text-xs">📑 ಪ್ರೀಮಿಯಂ ಜಾತಕ ಭವಿಷ್ಯ PDF</span>
+                <span className="font-mono font-bold text-amber-900 text-[11px] sm:text-xs shrink-0">🪙 ೩,೫೦೦ (₹೩೫೦)</span>
               </div>
-              <div className="py-2 flex justify-between">
-                <span className="text-slate-800">🌅 ದೈನಂದಿನ ಪಂಚಾಂಗ ದರ್ಶನ</span>
-                <span className="font-mono font-bold text-emerald-700">ಉಚಿತ (FREE)</span>
+              <div className="py-2 flex flex-wrap items-center justify-between gap-1">
+                <span className="text-slate-800 text-[11px] sm:text-xs">🌅 ದೈನಂದಿನ ಪಂಚಾಂಗ ದರ್ಶನ</span>
+                <span className="font-mono font-bold text-emerald-700 text-[11px] sm:text-xs shrink-0">ಉಚಿತ (FREE)</span>
               </div>
             </div>
           </div>
 
           {/* Recent Ledger */}
-          <div className="bg-[#FFFDF7] border-2 border-amber-300 rounded-3xl p-5 space-y-3 shadow-sm">
+          <div className="bg-[#FFFDF7] border-2 border-amber-300 rounded-3xl p-4 sm:p-5 space-y-3 shadow-sm">
             <h3 className="font-black text-amber-950 text-xs">ಇತ್ತೀಚಿನ ವಹಿವಾಟುಗಳು (Transactions)</h3>
             {transactions.length === 0 ? (
               <div className="text-center py-6 text-slate-400 text-xs">

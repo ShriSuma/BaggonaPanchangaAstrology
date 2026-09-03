@@ -988,15 +988,15 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
 
       {/* TAB 0: ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಜನ್ಮ ಗ್ರಿಡ್ & ದಶಾ ಭವಿಷ್ಯ (500 Coins) */}
       {activeTab === "janma" && (
-        <div className="px-4 mt-4 space-y-4">
+        <div className="px-2 sm:px-4 mt-3 space-y-4">
           <div className="bg-[#FFFDF7] border-2 border-amber-400/80 rounded-3xl p-4 sm:p-5 shadow-md">
-            <div className="flex items-center justify-between border-b border-amber-200 pb-3 mb-4">
-              <h2 className="text-sm font-black text-amber-950 flex items-center gap-2">
-                <span>📐</span>
-                <span>ವೈದಿಕ ಜನ್ಮ ಗ್ರಿಡ್, ೩೭ ಯೋಗಗಳು & ದಶಾ ವಿಶ್ಲೇಷಣೆ</span>
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-200 pb-3 mb-4">
+              <h2 className="text-xs sm:text-sm font-black text-amber-950 flex items-center gap-1.5 min-w-0 flex-1">
+                <span className="shrink-0">📐</span>
+                <span className="truncate">ವೈದಿಕ ಜನ್ಮ ಗ್ರಿಡ್, ೩೭ ಯೋಗಗಳು & ದಶಾ ವಿಶ್ಲೇಷಣೆ</span>
               </h2>
-              <span className="text-[10px] font-mono font-black text-amber-900 bg-[#FFF5D6] px-2.5 py-1 rounded-full border border-amber-400">
-                ದರ: 🪙 {janmaCost} ನಾಣ್ಯಗಳು ({janmaCost} Coins / ₹{Math.round(janmaCost / 10)})
+              <span className="shrink-0 text-[10px] font-mono font-black text-amber-950 bg-[#FFF5D6] px-2.5 py-1 rounded-full border border-amber-400 shadow-xs">
+                ದರ: 🪙 {janmaCost} (₹{Math.round(janmaCost / 10)})
               </span>
             </div>
 
@@ -1257,15 +1257,15 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
 
       {/* TAB 1: ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಪ್ರಶ್ನಾವಳಿ (200 Coins) */}
       {activeTab === "prashna" && (
-        <div className="px-4 mt-4 space-y-4">
+        <div className="px-2 sm:px-4 mt-3 space-y-4">
           <div className="bg-[#FFFDF7] border-2 border-amber-400/80 rounded-3xl p-4 sm:p-5 shadow-md">
-            <div className="flex items-center justify-between border-b border-amber-200 pb-3 mb-4">
-              <h2 className="text-sm font-black text-amber-950 flex items-center gap-2">
-                <span>🔮</span>
-                <span>ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಪ್ರಶ್ನಾವಳಿ ದರ್ಶನ</span>
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-200 pb-3 mb-4">
+              <h2 className="text-xs sm:text-sm font-black text-amber-950 flex items-center gap-1.5 min-w-0 flex-1">
+                <span className="shrink-0">🔮</span>
+                <span className="truncate">ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಪ್ರಶ್ನಾವಳಿ ದರ್ಶನ</span>
               </h2>
-              <span className="text-[10px] font-mono font-black text-amber-900 bg-[#FFF5D6] px-2.5 py-1 rounded-full border border-amber-400">
-                ದರ: 🪙 {prashnaCost} ನಾಣ್ಯಗಳು ({prashnaCost} Coins / ₹{Math.round(prashnaCost / 10)})
+              <span className="shrink-0 text-[10px] font-mono font-black text-amber-950 bg-[#FFF5D6] px-2.5 py-1 rounded-full border border-amber-400 shadow-xs">
+                ದರ: 🪙 {prashnaCost} (₹{Math.round(prashnaCost / 10)})
               </span>
             </div>
 
@@ -1567,15 +1567,15 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
 
       {/* TAB 2: ಶುಭ ನಾಮ ಮತ್ತು ಮೊಬೈಲ್/ವಾಹನ ಸೂಚನೆ (250 Coins) */}
       {activeTab === "name_numbers" && (
-        <div className="px-4 mt-4 space-y-4">
+        <div className="px-2 sm:px-4 mt-3 space-y-4">
           <div className="bg-[#FFFDF7] border-2 border-amber-400/80 rounded-3xl p-4 sm:p-5 shadow-md">
-            <div className="flex items-center justify-between border-b border-amber-200 pb-3 mb-4">
-              <h2 className="text-sm font-black text-amber-950 flex items-center gap-2">
-                <span>✍️</span>
-                <span>ಶುಭ ನಾಮ & ಸಂಖ್ಯಾ ಸಂಯೋಜನೆ</span>
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-200 pb-3 mb-4">
+              <h2 className="text-xs sm:text-sm font-black text-amber-950 flex items-center gap-1.5 min-w-0 flex-1">
+                <span className="shrink-0">✍️</span>
+                <span className="truncate">ಶುಭ ನಾಮ & ಸಂಖ್ಯಾ ಸಂಯೋಜನೆ</span>
               </h2>
-              <span className="text-[10px] font-mono font-black text-amber-900 bg-[#FFF5D6] px-2.5 py-1 rounded-full border border-amber-400">
-                ದರ: 🪙 {suggestionType === "name" ? nameCost : vehicleCost} ನಾಣ್ಯಗಳು ({suggestionType === "name" ? nameCost : vehicleCost} Coins / ₹{Math.round((suggestionType === "name" ? nameCost : vehicleCost) / 10)})
+              <span className="shrink-0 text-[10px] font-mono font-black text-amber-950 bg-[#FFF5D6] px-2.5 py-1 rounded-full border border-amber-400 shadow-xs">
+                ದರ: 🪙 {suggestionType === "name" ? nameCost : vehicleCost} (₹{Math.round((suggestionType === "name" ? nameCost : vehicleCost) / 10)})
               </span>
             </div>
 

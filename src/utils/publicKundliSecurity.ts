@@ -154,8 +154,14 @@ export function setCachedLiveAnalysis(cacheKey: string, output: DynamicLifeAnaly
 // 4. PUBLIC GUEST WALLET & MASTER WALLET SHIELD (Pillar 5 -> 100%)
 // ============================================================================
 
+export const isLocalTestEnvironment = (): boolean => {
+  if (typeof window === "undefined") return false;
+  const h = window.location.hostname;
+  return h === "localhost" || h === "127.0.0.1" || h === "" || h.includes("127.0.0.1");
+};
+
 const GUEST_WALLET_STORAGE_KEY = "baggona_public_guest_wallet";
-const DEFAULT_GUEST_COINS = 0; // Strictly 0 complimentary coins - Paid-only service policy
+const DEFAULT_GUEST_COINS = 0; // Production default
 
 export interface PublicGuestWallet {
   sessionId: string;
@@ -167,22 +173,23 @@ export interface PublicGuestWallet {
 /**
  * Retrieves or initializes the isolated Public Guest Wallet.
  * This completely isolates anonymous public traffic from touching wallets/PRIEST.
- * Initialized strictly with 0 coins. Users must recharge/pay to receive coins.
+ * On localhost testing, defaults to 5,000 coins as instructed for end-to-end deduction testing.
  */
 export function getPublicGuestWallet(): PublicGuestWallet {
+  const isLocal = isLocalTestEnvironment();
   try {
     const raw = typeof window !== "undefined" ? localStorage.getItem(GUEST_WALLET_STORAGE_KEY) : null;
     if (raw) {
       const parsed = JSON.parse(raw);
       if (typeof parsed.coinBalance === "number") {
-        // Cleanse legacy unearned complimentary 2,500 coins from previous deployments
-        if (parsed.coinBalance === 2500 && parsed.totalCoinsSpent === 0) {
-          parsed.coinBalance = 0;
+        // On localhost testing, if balance was previously set to 0 or 2500, initialize to 5000 testing coins
+        if (isLocal && (parsed.coinBalance === 0 || parsed.coinBalance === 2500)) {
+          parsed.coinBalance = 5000;
           try {
-            localStorage.setItem(GUEST_WALLET_STORAGE_KEY, JSON.stringify(parsed));
-          } catch {
-            // ignore
-          }
+            if (typeof window !== "undefined") {
+              localStorage.setItem(GUEST_WALLET_STORAGE_KEY, JSON.stringify(parsed));
+            }
+          } catch {}
         }
         return parsed as PublicGuestWallet;
       }
@@ -191,10 +198,11 @@ export function getPublicGuestWallet(): PublicGuestWallet {
     // Ignore storage issues
   }
 
-  // Initialize new guest session with strictly 0 coins
+  // Initialize new guest session (5,000 coins on localhost for testing)
+  const initialCoins = isLocal ? 5000 : DEFAULT_GUEST_COINS;
   const newGuest: PublicGuestWallet = {
     sessionId: `guest_pub_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-    coinBalance: DEFAULT_GUEST_COINS,
+    coinBalance: initialCoins,
     totalCoinsSpent: 0,
     isGuest: true
   };
@@ -240,7 +248,7 @@ export function deductGuestCoins(
     return {
       success: false,
       newBalance: wallet.coinBalance,
-      error: `ಅತಿಥಿ ನಾಣ್ಯಗಳು ಸಾಲುತ್ತಿಲ್ಲ (${wallet.coinBalance} ಲಭ್ಯ, ${coinsToDeduct} ಅಗತ್ಯ)`
+      error: `ನಾಣ್ಯಗಳ ಕೊರತೆ ಇದೆ (${wallet.coinBalance.toLocaleString()} ಲಭ್ಯ, ${coinsToDeduct.toLocaleString()} ಅಗತ್ಯ)`
     };
   }
 

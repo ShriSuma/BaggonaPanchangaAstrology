@@ -263,6 +263,15 @@ export const SERVICE_COIN_COSTS: Record<string, ServiceCost> = {
     description: "Individual Explorer Tab Detailed Astrological Reading (200 Coins / ₹20)",
     category: "kundli"
   },
+  PUBLIC_PERSONALITY_UNLOCK: {
+    key: "PUBLIC_PERSONALITY_UNLOCK",
+    name: "Public Personality & Hidden Psyche Unlock",
+    kannadaName: "ವ್ಯಕ್ತಿತ್ವ & ನಿಗೂಢ ರಹಸ್ಯ ಸಂಪೂರ್ಣ ಅನ್‌ಲಾಕ್",
+    coins: 1000,
+    inrEquivalent: 100,
+    description: "Deep Personality, Hidden Psyche, Life Questions & Astrologer Audio Narration Unlock (1,000 Coins / ₹100)",
+    category: "kundli"
+  },
   PUBLIC_CUSTOM_QUESTION_QA: {
     key: "PUBLIC_CUSTOM_QUESTION_QA",
     name: "Public Custom Question Inquest",
@@ -296,11 +305,11 @@ export interface AppModuleConfig {
 export const AVAILABLE_MODULES: AppModuleConfig[] = [
   {
     key: "public_kundli",
-    label: "Public Kundli & Life Inquest",
-    kannadaLabel: "ಸಾರ್ವಜನಿಕ ಕುಂಡಲಿ & ಅಂತರಂಗ ದರ್ಶನ",
+    label: "Top 1: Public Kundli [First Grade - Black Theme]",
+    kannadaLabel: "ಪ್ರಥಮ ದರ್ಜೆ: ಸಾರ್ವಜನಿಕ ಕುಂಡಲಿ [ಕಪ್ಪು ಥೀಮ್ - Top 1]",
     icon: "🌟",
-    description: "Public Devotee Janma Kundli, Personality, 120-Yr Dasha & Live Analysis (₹50 = 500 Coins, ₹100 = 1000 Coins)",
-    kannadaDescription: "ಸಾರ್ವಜನಿಕ ಭಕ್ತರ ಜನನ ಜಾತಕ, ವ್ಯಕ್ತಿತ್ವ, ೧೨೦-ವರ್ಷಗಳ ದಶಾ ಕಾಲಚಕ್ರ & ನೇರ ಜೀವನ ವಿಶ್ಲೇಷಣೆ",
+    description: "Top 1 (Primary / First Grade): Black Cosmic Theme Devotee Janma Kundli, Dwadasha Bhava Chart, 120-Yr Dasha & Live AI Analysis (₹50 = 500 Coins, ₹100 = 1000 Coins)",
+    kannadaDescription: "ಪ್ರಥಮ ದರ್ಜೆ (Top 1): ಕಪ್ಪು ಕಾಸ್ಮಿಕ್ ಥೀಮ್ ಭಕ್ತರ ಜನನ ಜಾತಕ, ದ್ವಾದಶ ಭಾವ ಕುಂಡಲಿ, ೧೨೦-ವರ್ಷಗಳ ದಶಾ ಕಾಲಚಕ್ರ & ನೇರ ಜೀವನ ವಿಶ್ಲೇಷಣೆ",
     costPerQuestionCoins: 500,
     costPerQuestionInr: 50,
     portalParam: "public_kundli",
@@ -308,11 +317,11 @@ export const AVAILABLE_MODULES: AppModuleConfig[] = [
   },
   {
     key: "panchanga",
-    label: "Baggona Panchanga",
-    kannadaLabel: "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ & ಜಾತಕ",
+    label: "Top 2: Traditional Janana Kundli [Secondary - Cream Theme]",
+    kannadaLabel: "ದ್ವಿತೀಯ ದರ್ಜೆ: ಸಾಂಪ್ರದಾಯಿಕ ಜನನ ಕುಂಡಲಿ [ಕ್ರೀಮ್ ಥೀಮ್ - Top 2]",
     icon: "🔮",
-    description: "Vedic Panchanga, Birth Kundli, Calendar & Dasha Bhukti (₹50 = 500 Coins)",
-    kannadaDescription: "ವೈದಿಕ ಪಂಚಾಂಗ, ಜನ್ಮ ಜಾತಕ, ೯೦-ದಿನಗಳ ದಿನದರ್ಶನ ಹಾಗೂ ದಶಾ ಭುಕ್ತಿ (₹೫೦ = ೫೦೦ ನಾಣ್ಯ)",
+    description: "Top 2 (Secondary): Authentic South Indian Traditional Janmapatrika replica, 90-Day Darshana & Priest desk (₹50 = 500 Coins)",
+    kannadaDescription: "ದ್ವಿತೀಯ ದರ್ಜೆ (Top 2): ಸಾಂಪ್ರದಾಯಿಕ ದಕ್ಷಿಣ ಭಾರತೀಯ ಗೋಕರ್ಣ ಲಗ್ನ ಪತ್ರಿಕೆ, ೯೦-ದಿನಗಳ ದಿನದರ್ಶನ ಹಾಗೂ ಪುರೋಹಿತ ಸಮಾಲೋಚನೆ (₹೫೦ = ೫೦೦ ನಾಣ್ಯ)",
     costPerQuestionCoins: 500,
     costPerQuestionInr: 50,
     portalParam: "panchanga",

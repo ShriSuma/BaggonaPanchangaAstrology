@@ -10,6 +10,7 @@ import { CoinDeductionModal } from "../wallet/CoinDeductionModal";
 import { SERVICE_COIN_COSTS } from "../../features/wallet/walletTypes";
 import { usePricingConfigStore } from "../../features/wallet/pricingConfigStore";
 import { useWalletStore } from "../../features/wallet/walletStore";
+import { VahanaMuhurthaLoader } from "../loaders/VahanaMuhurthaLoader";
 
 export interface VahanaKharidiMuhurthaTabProps {
   onDeductCoins?: (cost: number, reason: string, devoteeName: string) => Promise<{ success: boolean; error?: string }>;
@@ -480,6 +481,15 @@ export const VahanaKharidiMuhurthaTab: React.FC<VahanaKharidiMuhurthaTabProps> =
             </div>
           </div>
         </div>
+      )}
+
+      {/* 🪔 Full-Page Blocking Dedicated Themed Vedic Loader */}
+      {isCalculating && (
+        <VahanaMuhurthaLoader
+          isKn={true}
+          title="✨ ವಾಹನ ಖರೀದಿ ಶುಭ ಮುಹೂರ್ತ ಶೋಧನೆ..."
+          message={`ಶ್ರೀ ${devoteeName || "ಭಕ್ತರ"} ನಕ್ಷತ್ರ ಹಾಗೂ ರಾಶಿ ಅನುಗುಣವಾಗಿ ಶ್ರೇಷ್ಠ ಅಮೃತ ಸಿದ್ಧಿ ಮುಹೂರ್ತಗಳ ಗಣನೆ ನಡೆಯುತ್ತಿದೆ...`}
+        />
       )}
     </div>
   );

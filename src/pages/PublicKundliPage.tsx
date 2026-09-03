@@ -41,7 +41,10 @@ import { DwadashaBhavaKundliChart } from "../components/kundli/DwadashaBhavaKund
 import DatePicker from "../components/DatePicker";
 import BirthTimePicker from "../components/BirthTimePicker";
 import { decodeDevoteeToken } from "../utils/tokenCipher";
-import { notifyPublicPremiumPdfRequested } from "../features/notifications/notificationService";
+import { notifyPublicPremiumPdfRequested, notifyWalletCoinChange } from "../features/notifications/notificationService";
+import { KundliChakraLoader } from "../components/loaders/KundliChakraLoader";
+import { BhavishyaMasterLoader } from "../components/loaders/BhavishyaMasterLoader";
+import { FallingCoinsRefillModal } from "../components/wallet/FallingCoinsRefillModal";
 import {
   sanitizeDevoteeInput,
   checkLiveAiRateLimit,
@@ -49,7 +52,8 @@ import {
   getCachedLiveAnalysis,
   setCachedLiveAnalysis,
   deductGuestCoins,
-  getPublicGuestWallet
+  getPublicGuestWallet,
+  creditGuestCoins
 } from "../utils/publicKundliSecurity";
 
 export default function PublicKundliPage(): JSX.Element {
@@ -65,9 +69,9 @@ export default function PublicKundliPage(): JSX.Element {
   }, [initSubscription]);
 
   const kundliGenCost = getCoins("PUBLIC_KUNDLI_GENERATION", 500);
+  const personalityUnlockCost = getCoins("PUBLIC_PERSONALITY_UNLOCK", 1000);
   const liveAnalysisCost = getCoins("PUBLIC_LIFE_ANALYSIS_QA", 1000);
   const pdfDownloadCost = getCoins("PUBLIC_KUNDLI_PDF_DOWNLOAD", 500);
-  const tabUnlockCost = getCoins("PUBLIC_TAB_UNLOCK", 200);
   const customQuestionCost = getCoins("PUBLIC_CUSTOM_QUESTION_QA", 500);
 
   // 1. Language State (default Kannada)
@@ -125,9 +129,13 @@ export default function PublicKundliPage(): JSX.Element {
     }
 
     if (res.success) {
+      // Synchronize local guest balance state immediately
+      const currentWallet = getPublicGuestWallet();
+      setGuestBalance(currentWallet.coinBalance);
       // Synchronize with global wallet store for universal FloatingCoinDeductionBadge
       const animId = `deduct_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;
       useWalletStore.setState((s) => ({
+        wallet: s.wallet ? { ...s.wallet, coinBalance: currentWallet.coinBalance } : s.wallet,
         recentDeductions: [
           ...s.recentDeductions.slice(-4),
           { id: animId, coins, serviceName: description, timestamp: Date.now() }
@@ -136,6 +144,20 @@ export default function PublicKundliPage(): JSX.Element {
       setTimeout(() => {
         useWalletStore.getState().clearRecentDeduction(animId);
       }, 3200);
+
+      // Real-time Email Notification to spshreepandit@gmail.com (fire-and-forget safe)
+      try {
+        void notifyWalletCoinChange({
+          userId: isPriestAttributed && linkedUserId ? linkedUserId : "GUEST_PUBLIC",
+          priestName: linkedPriestName || (isPriestAttributed ? linkedUserId : "ಸಾರ್ವಜನಿಕ ಭಕ್ತರು (Public Devotee)"),
+          coins: coins,
+          changeType: "deduction",
+          reason: description,
+          clientName: clientName || form.name || undefined
+        }).catch(() => {});
+      } catch {
+        // Safe failover
+      }
     }
     return res;
   };
@@ -167,14 +189,29 @@ export default function PublicKundliPage(): JSX.Element {
 
   // 6. Interactive 3 Restructured Tabs (Patrika default, Dasha-Bhukti, Personality locked 1000 coins)
   const [activeTab, setActiveTab] = useState<
-    "patrika" | "dasha" | "personality" | "analysis"
+    "patrika" | "dasha" | "personality"
   >("patrika");
   const [isPersonalityUnlocked, setIsPersonalityUnlocked] = useState<boolean>(false);
   const [showUnlockModal, setShowUnlockModal] = useState<boolean>(false);
   const [isUnlocking, setIsUnlocking] = useState<boolean>(false);
   const [expandedMahaPlanet, setExpandedMahaPlanet] = useState<string | null>(null);
 
-  // Floating coin deduction animation indicator state (-1,000 in red rising upwards)
+  // Set of unlocked Kundli keys: `${name}_${birthDate}_${birthTime}` so once unlocked, this particular Kundli stays unlocked
+  const [unlockedKundliKeys, setUnlockedKundliKeys] = useState<Set<string>>(new Set());
+
+  // Refill Modal & Active Balance State
+  const [isRechargeOpen, setIsRechargeOpen] = useState<boolean>(false);
+  const { wallet } = useWalletStore();
+  const [guestBalance, setGuestBalance] = useState<number>(() => {
+    if (typeof window !== "undefined") {
+      return getPublicGuestWallet().coinBalance;
+    }
+    return 5000;
+  });
+
+  const availableCoins = isPriestAttributed && wallet ? (wallet.coinBalance ?? 0) : guestBalance;
+
+  // Floating coin deduction animation indicator state (-1,000 / -500 in red rising upwards)
   const [floatingDeductions, setFloatingDeductions] = useState<
     Array<{ id: number; amount: number; label: string }>
   >([]);
@@ -189,19 +226,21 @@ export default function PublicKundliPage(): JSX.Element {
     setTimeout(() => {
       setFloatingDeductions((prev) => prev.filter((d) => d.id !== newId));
     }, 3200);
+
+    // Also trigger global wallet store deduction animation
+    const animId = `deduct_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;
+    useWalletStore.setState((s) => ({
+      recentDeductions: [
+        ...s.recentDeductions.slice(-4),
+        { id: animId, coins: amount, serviceName: displayLabel, timestamp: Date.now() }
+      ]
+    }));
+    setTimeout(() => {
+      useWalletStore.getState().clearRecentDeduction(animId);
+    }, 3200);
   };
 
-  // 7. Live Life Analysis & Devotee Q&A State
-  const [isLiveAnalysisOpen, setIsLiveAnalysisOpen] = useState<boolean>(false);
-  const [isSynthesizingAnalysis, setIsSynthesizingAnalysis] = useState<boolean>(false);
-  const [liveAnalysisInsights, setLiveAnalysisInsights] = useState<DynamicLifeAnalysisOutput | null>(null);
 
-  // Devotee Q&A
-  const [userQuestion, setUserQuestion] = useState<string>("");
-  const [isAnsweringQuestion, setIsAnsweringQuestion] = useState<boolean>(false);
-  const [qaHistory, setQaHistory] = useState<Array<{ question: string; answer: string }>>([]);
-  const [isListening, setIsListening] = useState<boolean>(false);
-  const speechRecognitionRef = useRef<any>(null);
 
   // 8. Audio Speech Synthesis Narration State
   const [isPlayingNarration, setIsPlayingNarration] = useState<boolean>(false);
@@ -409,6 +448,18 @@ export default function PublicKundliPage(): JSX.Element {
       return;
     }
 
+    // Check Coin Balance for Kundli Generation (500 Coins)
+    const genCost = kundliGenCost; // 500 Coins
+    if (availableCoins < genCost) {
+      setErrorMessage(
+        selectedLang === "kn"
+          ? `ನಾಣ್ಯಗಳ ಕೊರತೆ ಇದೆ. ಜನನ ಕುಂಡಲಿ ರಚಿಸಲು ${genCost.toLocaleString()} ನಾಣ್ಯಗಳು ಅಗತ್ಯ (ನಿಮ್ಮ ಪ್ರಸ್ತುತ ಶಿಲ್ಕು: 🪙 ${availableCoins.toLocaleString()}).`
+          : `Insufficient coins. ${genCost.toLocaleString()} Coins required to generate Kundali (Current balance: 🪙 ${availableCoins.toLocaleString()}).`
+      );
+      setIsRechargeOpen(true);
+      return;
+    }
+
     setIsCalculating(true);
     setErrorMessage(null);
 
@@ -429,17 +480,29 @@ export default function PublicKundliPage(): JSX.Element {
       const profile = calculatePublicKundliProfile(computed, birthDateYmd, cleanTime, form.latitude, form.longitude);
       profile.name = sanitizedName;
 
+      // Deduct 500 coins and trigger the vibrant red floating deduction animation (-500 Coins)
+      const deductRes = await executeSafeDeduction(
+        genCost,
+        `Public Janma Kundali Generation (${genCost.toLocaleString()} Coins): ${sanitizedName}`,
+        sanitizedName
+      );
+      if (!deductRes.success) {
+        setErrorMessage(deductRes.error || "ನಾಣ್ಯಗಳ ಕೊರತೆ ಇದೆ. ದಯವಿಟ್ಟು ರೀಚಾರ್ಜ್ ಮಾಡಿ.");
+        setIsCalculating(false);
+        setIsRechargeOpen(true);
+        return;
+      }
+      triggerDeductionAnimation(genCost, `-${genCost.toLocaleString()} Coins (₹${Math.round(genCost / 10)})`);
+
+      // Check if this specific Kundali was previously unlocked
+      const thisKundliKey = `${sanitizedName}_${birthDateYmd}_${cleanTime}`;
+      setIsPersonalityUnlocked(unlockedKundliKeys.has(thisKundliKey));
+
       setResult(computed);
       setDashaList(dasha);
       setPublicProfile(profile);
-
-      const deterministicInsights = generateDynamicLifeInsights(profile, selectedLang);
-      setLiveAnalysisInsights(deterministicInsights);
       setActiveTab("patrika");
       setExpandedMahaPlanet(profile.currentMahadasha);
-
-      // Basic Janma Kundali Lagna chart, Bhavas & Dasha timeline are rendered for free preview.
-      // Coin deductions only occur on explicit confirmation of paid services (Tab 3 Personality, Live AI, Q&A, PDF).
 
       try {
         const kundliDocId = `kundli_pub_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
@@ -482,111 +545,17 @@ export default function PublicKundliPage(): JSX.Element {
     }
   };
 
-  // --------------------------------------------------------------------------
-  // Action 2: THE SINGLE ACTION BUTTON (1000 Coins)
-  // --------------------------------------------------------------------------
-  const handleOpenLiveAnalysis = async () => {
-    if (!isOnline) {
-      setErrorMessage(txt("offlineBannerMsg"));
-      return;
-    }
-    if (!result || !publicProfile) return;
 
-    // 1. Check Deterministic Session Cache (Pillar 4 -> 100%)
-    const chartCacheKey = `${form.name.trim()}_${form.birthDate}_${form.birthTime}_${form.latitude}_${form.longitude}_${selectedLang}`;
-    const cachedAnalysis = getCachedLiveAnalysis(chartCacheKey);
-    if (cachedAnalysis) {
-      setLiveAnalysisInsights(cachedAnalysis);
-      setIsLiveAnalysisOpen(true);
-      setActiveTab("analysis");
-      return;
-    }
-
-    // 2. Token Bucket Rate Limiting & Cooldown Protection (Pillar 4 -> 100%)
-    const rateCheck = checkLiveAiRateLimit();
-    if (!rateCheck.allowed) {
-      setErrorMessage(rateCheck.reason || "ದಯವಿಟ್ಟು ಸ್ವಲ್ಪ ಸಮಯ ನಿರೀಕ್ಷಿಸಿ.");
-      return;
-    }
-
-    setIsLiveAnalysisOpen(true);
-    setIsSynthesizingAnalysis(true);
-    setActiveTab("analysis");
-
-    try {
-      const res = await executeSafeDeduction(
-        liveAnalysisCost,
-        `Current Life Astrology Live Analysis & Q&A: ${form.name.trim()}`,
-        form.name.trim()
-      );
-      if (!res.success) {
-        setErrorMessage(res.error || "ನಾಣ್ಯಗಳ ಕೊರತೆ ಇದೆ. ದಯವಿಟ್ಟು ರೀಚಾರ್ಜ್ ಮಾಡಿ.");
-        setIsSynthesizingAnalysis(false);
-        return;
-      }
-      triggerDeductionAnimation(liveAnalysisCost, `-${liveAnalysisCost} Coins (₹${Math.round(liveAnalysisCost / 10)})`);
-
-      // Record invocation in Token Bucket Rate Limiter
-      recordLiveAiInvocation();
-
-      const prompt = `You are the Chief Vedic Astrologer for Baggona Panchanga (ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಕಾರ್ಯಾಲಯ - ಗೋಕರ್ಣ).
-Provide a deep, reassuring, 100% accurate Vedic life status analysis for devotee ${publicProfile.name} in direct spoken address style.
-Language: ${selectedLang === "kn" ? "Kannada (ಕನ್ನಡ)" : selectedLang === "hi" ? "Hindi (हिन्दी)" : selectedLang === "te" ? "Telugu (తెలుగు)" : selectedLang === "ta" ? "Tamil (தமிழ்)" : "English"}.
-Devotee Details:
-- Name: ${publicProfile.name}
-- Age: ${publicProfile.ageYears} years
-- Lagna: ${publicProfile.lagnaSign} (${publicProfile.lagnaSanskrit})
-- Moon Sign: ${publicProfile.moonSign} (${publicProfile.moonSanskrit})
-- Nakshatra: ${publicProfile.moonNakshatra} (Pada ${publicProfile.moonPada})
-- 10th Lord: ${publicProfile.lord10}
-- 7th Lord: ${publicProfile.lord7}
-- 6th Lord: ${publicProfile.lord6}
-- 5th Lord: ${publicProfile.lord5}
-- Current Mahadasha: ${publicProfile.currentMahadasha} (${publicProfile.currentBhukti} Bhukti)
-- Maandi House: ${publicProfile.maandiHouse}th house in ${publicProfile.maandiRashi}
-
-Return a valid JSON object with EXACTLY these 5 keys:
-{
-  "currentPhase": "2-3 sentences explaining their active life phase based on ${publicProfile.currentMahadasha} Mahadasha and ${publicProfile.currentBhukti} Bhukti in direct face-to-face address.",
-  "subconsciousMind": "2 sentences identifying their internal mental state and emotional focus.",
-  "careerFinance": "2 sentences with practical astrological guidance based on 10th lord ${publicProfile.lord10}.",
-  "relationshipsHealth": "2 sentences on family harmony and vitality based on 7th lord ${publicProfile.lord7} and 6th lord ${publicProfile.lord6}.",
-  "gokarnaRemedy": "Authentic Gokarna Mahabaleshwara Seva (${publicProfile.gokarnaSevaName}), Sankalpa, and deity mantra for immediate peace and success."
-}`;
-
-      const aiResponse = await askGemini(prompt, JSON.stringify(result || {}), "", selectedLang, {
-        temperature: 0.3
-      });
-
-      try {
-        const cleanJson = aiResponse.replace(/```json/g, "").replace(/```/g, "").trim();
-        const parsedInsights = JSON.parse(cleanJson);
-        if (parsedInsights && parsedInsights.currentPhase) {
-          setLiveAnalysisInsights(parsedInsights);
-          setCachedLiveAnalysis(chartCacheKey, parsedInsights);
-          return;
-        }
-      } catch (parseErr) {
-        console.warn("[PublicKundli] JSON parse fallback to deterministic engine:", parseErr);
-      }
-
-      const fallbackInsights = generateDynamicLifeInsights(publicProfile, selectedLang);
-      setLiveAnalysisInsights(fallbackInsights);
-      setCachedLiveAnalysis(chartCacheKey, fallbackInsights);
-    } catch (analysisErr) {
-      console.error("[PublicKundli] Analysis error:", analysisErr);
-      const fallbackInsights = generateDynamicLifeInsights(publicProfile, selectedLang);
-      setLiveAnalysisInsights(fallbackInsights);
-    } finally {
-      setIsSynthesizingAnalysis(false);
-    }
-  };
 
   // --------------------------------------------------------------------------
   // 3-Tab Selection & 1,000 Coin Unlock Handler
   // --------------------------------------------------------------------------
-  const handleSelectTab = (tabId: "patrika" | "dasha" | "personality" | "analysis") => {
+  const handleSelectTab = (tabId: "patrika" | "dasha" | "personality") => {
     if (tabId === "personality" && !isPersonalityUnlocked) {
+      if (availableCoins < personalityUnlockCost) {
+        setIsRechargeOpen(true);
+        return;
+      }
       setShowUnlockModal(true);
       return;
     }
@@ -597,23 +566,50 @@ Return a valid JSON object with EXACTLY these 5 keys:
     setIsUnlocking(true);
     setErrorMessage(null);
     try {
+      const unlockCost = personalityUnlockCost;
+      if (availableCoins < unlockCost) {
+        setErrorMessage(
+          selectedLang === "kn"
+            ? `ನಾಣ್ಯಗಳ ಕೊರತೆ ಇದೆ. ವ್ಯಕ್ತಿತ್ವ ಅನ್‌ಲಾಕ್ ಮಾಡಲು ${unlockCost.toLocaleString()} ನಾಣ್ಯಗಳು ಅಗತ್ಯ (ಪ್ರಸ್ತುತ ಶಿಲ್ಕು: 🪙 ${availableCoins.toLocaleString()}).`
+            : `Insufficient coins. ${unlockCost.toLocaleString()} Coins required to unlock personality (Current balance: 🪙 ${availableCoins.toLocaleString()}).`
+        );
+        setIsUnlocking(false);
+        setIsRechargeOpen(true);
+        return;
+      }
+
       const res = await executeSafeDeduction(
-        1000,
-        `Public Kundali Personality & Hidden Psyche Unlock (1,000 Coins): ${form.name.trim()}`,
+        unlockCost,
+        `Public Kundali Personality & Hidden Psyche Unlock (${unlockCost.toLocaleString()} Coins): ${form.name.trim()}`,
         form.name.trim()
       );
       if (!res.success) {
         setErrorMessage(res.error || "ನಾಣ್ಯಗಳ ಕೊರತೆ ಇದೆ. ದಯವಿಟ್ಟು ರೀಚಾರ್ಜ್ ಮಾಡಿ.");
         setIsUnlocking(false);
+        setIsRechargeOpen(true);
         return;
       }
 
-      // Trigger floating deduction animation (-1,000 Coins) in vibrant red rising upwards
-      triggerDeductionAnimation(1000, "-1,000 Coins (₹100)");
+      // Trigger floating deduction animation in vibrant red rising upwards
+      triggerDeductionAnimation(unlockCost, `-${unlockCost.toLocaleString()} Coins (₹${Math.round(unlockCost / 10)})`);
+
+      // Store this specific devotee key in unlocked set so it never locks again for this Kundli
+      const currentKey = `${form.name.trim()}_${form.birthDate}_${form.birthTime}`;
+      setUnlockedKundliKeys((prev) => {
+        const next = new Set(prev);
+        next.add(currentKey);
+        return next;
+      });
+
       setIsPersonalityUnlocked(true);
       setShowUnlockModal(false);
       setIsUnlocking(false);
       setActiveTab("personality");
+      setTimeout(() => {
+        const el = document.getElementById("personality-section-content");
+        if (el) el.scrollIntoView({ behavior: "smooth" });
+        else window.scrollTo({ top: 480, behavior: "smooth" });
+      }, 100);
     } catch (err) {
       console.warn("[PublicKundli] Personality unlock coin deduction error:", err);
       setErrorMessage("ನಾಣ್ಯ ಕಡಿತ ಪ್ರಕ್ರಿಯೆಯಲ್ಲಿ ದೋಷ ಸಂಭವಿಸಿದೆ.");
@@ -622,89 +618,6 @@ Return a valid JSON object with EXACTLY these 5 keys:
   };
 
 
-  // --------------------------------------------------------------------------
-  // Action 3: Devotee Custom Q&A
-  // --------------------------------------------------------------------------
-  const handleAskQuestion = async (e?: React.FormEvent, customQ?: string) => {
-    if (e) e.preventDefault();
-    const rawQuery = (customQ || userQuestion).trim();
-    const query = sanitizeDevoteeInput(rawQuery, 250);
-    if (!query || !result || !publicProfile) return;
-
-    if (!isOnline) {
-      setErrorMessage(txt("offlineBannerMsg"));
-      return;
-    }
-
-    setIsAnsweringQuestion(true);
-    try {
-      const prompt = `Devotee ${publicProfile.name} (Lagna: ${publicProfile.lagnaSign}, Moon: ${publicProfile.moonSign}, Nakshatra: ${publicProfile.moonNakshatra}, Dasha: ${publicProfile.currentMahadasha}, 10L: ${publicProfile.lord10}, 7L: ${publicProfile.lord7}, Maandi: ${publicProfile.maandiHouse}H) asks:
-"${query}"
-
-Language: ${selectedLang === "kn" ? "Kannada" : selectedLang === "hi" ? "Hindi" : selectedLang === "te" ? "Telugu" : selectedLang === "ta" ? "Tamil" : "English"}
-
-As the Chief Baggona Panchanga Gokarna Astrologer speaking directly to the devotee:
-1. Provide a direct, reassuring, authentic spoken Jyotishya answer (3-4 sentences).
-2. Ground your prediction in their Lagna, house lords, and planetary transit.
-3. Suggest a 1-line simple Vedic remedy or Sri Gokarna Mahabaleshwara Seva.`;
-
-      const aiAnswer = await askGemini(prompt, JSON.stringify(result || {}), "", selectedLang, { temperature: 0.35 });
-      setQaHistory((prev) => [...prev, { question: query, answer: aiAnswer.trim() }]);
-      setUserQuestion("");
-    } catch (err: any) {
-      console.error("[PublicKundli] Q&A error:", err);
-      const fallbackAnswer = generateDynamicQaFallback(query, publicProfile, selectedLang);
-      setQaHistory((prev) => [...prev, { question: query, answer: fallbackAnswer }]);
-    } finally {
-      setIsAnsweringQuestion(false);
-    }
-  };
-
-  // Voice Dictation
-  const handleToggleVoiceDictation = () => {
-    if (typeof window === "undefined") return;
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-
-    if (!SpeechRecognition) {
-      alert("Voice input is not supported on this browser. Please type your question.");
-      return;
-    }
-
-    if (isListening) {
-      speechRecognitionRef.current?.stop();
-      setIsListening(false);
-      return;
-    }
-
-    try {
-      const recognition = new SpeechRecognition();
-      const langCodes: Record<PublicKundliLang, string> = {
-        kn: "kn-IN",
-        en: "en-IN",
-        hi: "hi-IN",
-        te: "te-IN",
-        ta: "ta-IN"
-      };
-      recognition.lang = langCodes[selectedLang] || "kn-IN";
-      recognition.continuous = false;
-      recognition.interimResults = false;
-
-      recognition.onstart = () => setIsListening(true);
-      recognition.onresult = (event: any) => {
-        const transcript = event.results[0][0]?.transcript || "";
-        setUserQuestion(transcript);
-        setIsListening(false);
-      };
-      recognition.onerror = () => setIsListening(false);
-      recognition.onend = () => setIsListening(false);
-
-      speechRecognitionRef.current = recognition;
-      recognition.start();
-    } catch (err) {
-      console.error("[Voice] Recognition start error:", err);
-      setIsListening(false);
-    }
-  };
 
   // Action 5: Ask Any Other Custom Question (500 Coins)
   const [customQuestionInput, setCustomQuestionInput] = useState<string>("");
@@ -723,6 +636,17 @@ As the Chief Baggona Panchanga Gokarna Astrologer speaking directly to the devot
     if (!publicProfile || !result) return;
 
     setCustomQuestionError(null);
+
+    if (availableCoins < customQuestionCost) {
+      setCustomQuestionError(
+        selectedLang === "kn"
+          ? `ನಾಣ್ಯಗಳ ಕೊರತೆ ಇದೆ. ಪ್ರಶ್ನೆ ಕೇಳಲು ${customQuestionCost.toLocaleString()} ನಾಣ್ಯಗಳು ಅಗತ್ಯ (ಪ್ರಸ್ತುತ ಶಿಲ್ಕು: 🪙 ${availableCoins.toLocaleString()}).`
+          : `Insufficient coins. ${customQuestionCost.toLocaleString()} Coins required to ask question (Current balance: 🪙 ${availableCoins.toLocaleString()}).`
+      );
+      setIsRechargeOpen(true);
+      return;
+    }
+
     setIsSubmittingQuestion(true);
 
     try {
@@ -834,6 +758,32 @@ ${publicProfile.name}`;
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 selection:bg-amber-500 selection:text-slate-950 font-sans pb-24">
+      {/* 🪔 Dedicated Themed Animated Full-Page Blocking Loaders */}
+      {isCalculating && (
+        <KundliChakraLoader
+          isKn={selectedLang === "kn"}
+          title={selectedLang === "kn" ? "✨ ವೇದೋಕ್ತ ಜನನ ಕುಂಡಲಿ ಗಣನೆ ನಡೆಯುತ್ತಿದೆ..." : "✨ Computing Authentic Janana Kundli..."}
+          message={
+            selectedLang === "kn"
+              ? "ದ್ವಾದಶ ಭಾವಗಳು, ನವಾಂಶ, ೧೨೦-ವರ್ಷಗಳ ವಿಂಶೋತ್ತರಿ ದಶಾ ಹಾಗೂ ಗ್ರಹ ಸ್ಪಷ್ಟ ಲೆಕ್ಕಾಚಾರವಾಗುತ್ತಿದೆ..."
+              : "Calculating 12 Bhavas, Navamsha, 120-Year Vimshottari Dasha & Planetary Positions..."
+          }
+        />
+      )}
+
+
+      {isUnlocking && (
+        <KundliChakraLoader
+          isKn={selectedLang === "kn"}
+          title={selectedLang === "kn" ? "🔓 ಆಳವಾದ ಜಾತಕ ವ್ಯಕ್ತಿತ್ವ ವಿಶ್ಲೇಷಣೆ ಅನ್‌ಲಾಕ್ ಆಗುತ್ತಿದೆ..." : "🔓 Unlocking Deep Personality Inquest..."}
+          message={
+            selectedLang === "kn"
+              ? "೧,೦೦೦ ನಾಣ್ಯಗಳ ವಿನಿಯೋಗದೊಂದಿಗೆ ಸಂಪೂರ್ಣ ವ್ಯಕ್ತಿತ್ವ ವರದಿ ತೆರೆಯಲಾಗುತ್ತಿದೆ..."
+              : "Deducting 1,000 Coins & Unlocking Detailed Report..."
+          }
+        />
+      )}
+
       {/* ------------------------------------------------------------------ */}
       {/* TOP ROYAL BANNER & SACRED INVOCATION                               */}
       {/* ------------------------------------------------------------------ */}
@@ -850,25 +800,44 @@ ${publicProfile.name}`;
               </span>
             </div>
 
-            <div className="flex items-center gap-1.5 bg-slate-900/90 border border-amber-500/30 rounded-full p-1 shadow-inner">
-              {PUBLIC_KUNDLI_LANGUAGES.map((lang) => (
-                <button
-                  key={lang.code}
-                  type="button"
-                  onClick={() => {
-                    setSelectedLang(lang.code);
-                    setPdfLang(lang.code);
-                    handleStopNarration();
-                  }}
-                  className={`px-2.5 py-1 text-xs font-bold rounded-full transition-all ${
-                    selectedLang === lang.code
-                      ? "bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-md scale-105"
-                      : "text-amber-200/80 hover:text-amber-100 hover:bg-slate-800/60"
-                  }`}
-                >
-                  {lang.nativeLabel}
-                </button>
-              ))}
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Gold Coin Balance & Recharge Button */}
+              <button
+                type="button"
+                onClick={() => setIsRechargeOpen(true)}
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-amber-500/20 via-yellow-500/30 to-amber-500/20 border-2 border-amber-400/80 text-amber-300 hover:border-amber-300 font-mono font-black text-xs md:text-sm shadow-[0_0_15px_rgba(245,158,11,0.25)] transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                title={selectedLang === "kn" ? "ವಾಲೆಟ್ ಶಿಲ್ಕು & ರೀಚಾರ್ಜ್ (Coins Balance)" : "Wallet Balance & Refill"}
+              >
+                <span className="text-[11px] font-sans font-extrabold text-amber-200 uppercase tracking-wider">
+                  {selectedLang === "kn" ? "ವಾಲೆಟ್" : "Wallet"}:
+                </span>
+                <span className="text-base">🪙</span>
+                <span className="font-extrabold tracking-wide">{availableCoins.toLocaleString()}</span>
+                <span className="text-[10px] font-sans font-bold bg-amber-500/40 text-amber-100 px-2 py-0.5 rounded-full ml-0.5 border border-amber-400/40">
+                  + {selectedLang === "kn" ? "ರೀಚಾರ್ಜ್" : "Recharge"}
+                </span>
+              </button>
+
+              <div className="flex items-center gap-1.5 bg-slate-900/90 border border-amber-500/30 rounded-full p-1 shadow-inner">
+                {PUBLIC_KUNDLI_LANGUAGES.map((lang) => (
+                  <button
+                    key={lang.code}
+                    type="button"
+                    onClick={() => {
+                      setSelectedLang(lang.code);
+                      setPdfLang(lang.code);
+                      handleStopNarration();
+                    }}
+                    className={`px-2.5 py-1 text-xs font-bold rounded-full transition-all ${
+                      selectedLang === lang.code
+                        ? "bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-md scale-105"
+                        : "text-amber-200/80 hover:text-amber-100 hover:bg-slate-800/60"
+                    }`}
+                  >
+                    {lang.nativeLabel}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -1122,8 +1091,6 @@ ${publicProfile.name}`;
                     handleStopNarration();
                     setResult(null);
                     setPublicProfile(null);
-                    setIsLiveAnalysisOpen(false);
-                    setLiveAnalysisInsights(null);
                   }}
                   className="px-4 py-2 text-xs font-bold rounded-xl bg-slate-800 text-amber-300 border border-amber-500/30 hover:bg-slate-700 transition-all flex items-center gap-1.5"
                 >
@@ -1256,18 +1223,26 @@ ${publicProfile.name}`;
               </div>
             </div>
 
-            {/* 2. THE SINGLE ACTION BUTTON */}
-            <div className="text-center py-2">
+            {/* 2. THE SINGLE ACTION BUTTON (Unified with Tab 3 Personality & Hidden Secrets) */}
+            <div className="text-center py-2 relative">
               <button
                 data-testid="single-action-btn"
                 type="button"
-                onClick={handleOpenLiveAnalysis}
-                disabled={isSynthesizingAnalysis || !isOnline}
-                className={`w-full py-5 px-6 rounded-3xl font-black text-base md:text-xl tracking-wide text-slate-950 shadow-[0_0_40px_rgba(245,158,11,0.35)] transition-all flex flex-col md:flex-row items-center justify-center gap-3 border-2 border-amber-300/80 ${
-                  isSynthesizingAnalysis || !isOnline
-                    ? "bg-slate-700 cursor-not-allowed text-slate-400 border-slate-600"
-                    : "bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 hover:scale-[1.02] hover:shadow-[0_0_50px_rgba(245,158,11,0.5)] active:scale-95 animate-bounce-subtle"
-                }`}
+                onClick={() => {
+                  if (isPersonalityUnlocked) {
+                    setActiveTab("personality");
+                    const el = document.getElementById("personality-section-content");
+                    if (el) el.scrollIntoView({ behavior: "smooth" });
+                    else window.scrollTo({ top: 480, behavior: "smooth" });
+                  } else {
+                    if (availableCoins < personalityUnlockCost) {
+                      setIsRechargeOpen(true);
+                    } else {
+                      setShowUnlockModal(true);
+                    }
+                  }
+                }}
+                className="w-full py-5 px-6 rounded-3xl font-black text-base md:text-xl tracking-wide text-slate-950 shadow-[0_0_40px_rgba(245,158,11,0.35)] transition-all flex flex-col md:flex-row items-center justify-center gap-3 border-2 border-amber-300/80 bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 hover:scale-[1.02] hover:shadow-[0_0_50px_rgba(245,158,11,0.5)] active:scale-95 animate-bounce-subtle cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
                   <span className="text-2xl md:text-3xl">🔮</span>
@@ -1275,45 +1250,89 @@ ${publicProfile.name}`;
                     {txt("singleActionBtnText")}
                   </span>
                 </div>
-                <span className="px-3.5 py-1 rounded-full bg-slate-950 text-amber-300 font-mono text-xs md:text-sm font-bold shadow-md border border-amber-400/40">
-                  🪙 {liveAnalysisCost.toLocaleString()} Coins
-                </span>
+                {isPersonalityUnlocked ? (
+                  <span className="px-3.5 py-1.5 rounded-full bg-emerald-700 text-white font-mono text-xs md:text-sm font-bold shadow-md border border-emerald-400 flex items-center gap-1.5">
+                    <svg className="w-4 h-4 text-emerald-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                    </svg>
+                    <span>✓ {selectedLang === "kn" ? "ಅನ್‌ಲಾಕ್ ಆಗಿದೆ" : "Unlocked"}</span>
+                  </span>
+                ) : (
+                  <span className="px-3.5 py-1.5 rounded-full bg-slate-950 text-amber-300 font-mono text-xs md:text-sm font-bold shadow-md border border-amber-400/40 flex items-center gap-1.5">
+                    <svg className="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    <span>🪙 {personalityUnlockCost.toLocaleString()} Coins</span>
+                  </span>
+                )}
               </button>
+
+              {/* 🪙 Red Floating Deduction Upward Animation Over Yellow Banner When Unlocked */}
+              {floatingDeductions.some((d) => d.amount === personalityUnlockCost) && (
+                <div className="absolute -top-7 right-8 pointer-events-none z-50 animate-coin-deduct-float flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white font-mono font-black text-xs md:text-sm shadow-2xl border-2 border-amber-300 ring-4 ring-red-500/60 whitespace-nowrap">
+                  <span className="text-sm">🪙</span>
+                  <span className="tracking-wide text-white font-extrabold">-{personalityUnlockCost.toLocaleString()}</span>
+                  <span className="text-[10px] bg-black/40 px-1 rounded text-amber-200 font-sans">
+                    ₹{Math.round(personalityUnlockCost / 10)}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* 3 CORE RESTRUCTURED TABS (Patrika default, Dasha-Bhukti dropdown, Personality locked 1000 coins) */}
             <div className="flex flex-wrap items-center justify-center gap-2 bg-slate-900/80 border border-amber-500/20 p-2 rounded-2xl shadow-inner relative">
               {[
-                { id: "patrika", label: `📜 ${txt("tabPatrika")}` },
-                { id: "dasha", label: `⏳ ${txt("tabDasha")}` },
+                { id: "patrika", icon: "📜", label: txt("tabPatrika"), badge: null },
+                { id: "dasha", icon: "⏳", label: txt("tabDasha"), badge: null },
                 {
                   id: "personality",
-                  label: isPersonalityUnlocked
-                    ? `🔓 ${txt("tabPersonality")}`
-                    : `🔒 ${txt("tabPersonality")} (1,000 Coins)`
+                  icon: isPersonalityUnlocked ? (
+                    <svg className="w-4 h-4 text-emerald-300 shrink-0 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4 text-amber-300 shrink-0 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                  ),
+                  label: txt("tabPersonality"),
+                  badge: isPersonalityUnlocked ? (
+                    <span className="ml-1.5 text-[10px] bg-emerald-500/30 text-emerald-300 border border-emerald-400/50 px-2 py-0.5 rounded-full font-extrabold shadow-xs flex items-center gap-1">
+                      <svg className="w-3 h-3 text-emerald-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>{selectedLang === "kn" ? "ಅನ್‌ಲಾಕ್ ಆಗಿದೆ" : "Unlocked"}</span>
+                    </span>
+                  ) : (
+                    <span className="ml-1.5 text-[10px] bg-amber-500/20 text-amber-300 border border-amber-400/40 px-1.5 py-0.5 rounded-full font-mono font-black">
+                      {personalityUnlockCost.toLocaleString()} 🪙
+                    </span>
+                  )
                 }
               ].map((tab) => (
                 <div key={tab.id} className="relative inline-block">
                   <button
                     type="button"
                     onClick={() => handleSelectTab(tab.id as any)}
-                    className={`px-4 py-2.5 text-xs md:text-sm font-bold rounded-xl transition-all ${
+                    className={`px-4 py-2.5 text-xs md:text-sm font-bold rounded-xl transition-all flex items-center gap-1.5 ${
                       activeTab === tab.id
                         ? "bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-md scale-105"
                         : "text-amber-200/80 hover:text-amber-100 hover:bg-slate-800/60"
                     }`}
                   >
-                    {tab.label}
+                    <span>{tab.icon}</span>
+                    <span>{tab.label}</span>
+                    {tab.badge}
                   </button>
 
                   {/* 🪙 Red Floating Deduction Upward Animation Over Tab 3 When Unlocked */}
                   {tab.id === "personality" &&
-                    floatingDeductions.some((d) => d.amount === 1000) && (
-                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 pointer-events-none z-50 animate-coin-deduct-float flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white font-mono font-black text-xs md:text-sm shadow-2xl border-2 border-amber-300 ring-4 ring-red-500/60 whitespace-nowrap">
+                    floatingDeductions.some((d) => d.amount === personalityUnlockCost) && (
+                      <div className="absolute -top-9 left-1/2 -translate-x-1/2 pointer-events-none z-50 animate-coin-deduct-float flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white font-mono font-black text-xs md:text-sm shadow-2xl border-2 border-amber-300 ring-4 ring-red-500/60 whitespace-nowrap">
                         <span className="text-sm">🪙</span>
-                        <span className="tracking-wide text-white font-extrabold">-1,000</span>
+                        <span className="tracking-wide text-white font-extrabold">-{personalityUnlockCost.toLocaleString()}</span>
                         <span className="text-[10px] bg-black/40 px-1 rounded text-amber-200 font-sans">
-                          ₹100
+                          ₹{Math.round(personalityUnlockCost / 10)}
                         </span>
                       </div>
                     )}
@@ -1469,12 +1488,14 @@ ${publicProfile.name}`;
                   </div>
                 </div>
 
-                {/* Unlock CTA Banner for Tab 3 (Personality) */}
-                {!isPersonalityUnlocked && (
-                  <div className="bg-gradient-to-r from-amber-950/70 via-slate-900 to-amber-950/70 border-2 border-amber-400/60 rounded-3xl p-6 shadow-xl flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
+                {/* Synchronized Unlock & Exploration Banner for Tab 3 (Personality & Hidden Psyche) */}
+                {!isPersonalityUnlocked ? (
+                  <div className="bg-gradient-to-r from-amber-950/70 via-slate-900 to-amber-950/70 border-2 border-amber-400/60 rounded-3xl p-6 shadow-xl flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left relative">
                     <div>
-                      <div className="flex items-center justify-center md:justify-start gap-2">
-                        <span className="text-2xl">🔒</span>
+                      <div className="flex items-center justify-center md:justify-start gap-2.5">
+                        <svg className="w-6 h-6 text-amber-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
                         <h4 className="text-base md:text-lg font-black text-amber-300">
                           {txt("unlockPersonalityPromptTitle")}
                         </h4>
@@ -1485,11 +1506,58 @@ ${publicProfile.name}`;
                     </div>
                     <button
                       type="button"
-                      onClick={() => setShowUnlockModal(true)}
-                      className="px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-black text-xs md:text-sm shadow-lg whitespace-nowrap active:scale-95 transition-all flex items-center gap-2"
+                      onClick={() => {
+                        if (availableCoins < personalityUnlockCost) {
+                          setIsRechargeOpen(true);
+                        } else {
+                          setShowUnlockModal(true);
+                        }
+                      }}
+                      className="px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-black text-xs md:text-sm shadow-lg whitespace-nowrap active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
                     >
-                      <span>🪙</span>
-                      <span>{txt("unlockPersonalityConfirmBtn")}</span>
+                      <svg className="w-4 h-4 text-slate-950" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                      <span>
+                        {selectedLang === "kn"
+                          ? `ಅನ್‌ಲಾಕ್ ಮಾಡಿ (${personalityUnlockCost.toLocaleString()} Coins)`
+                          : `Unlock (${personalityUnlockCost.toLocaleString()} Coins)`}
+                      </span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="bg-gradient-to-r from-emerald-950/60 via-slate-900 to-emerald-950/60 border-2 border-emerald-400/60 rounded-3xl p-6 shadow-xl flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left animate-fade-in relative">
+                    <div>
+                      <div className="flex items-center justify-center md:justify-start gap-2.5">
+                        <svg className="w-6 h-6 text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                        </svg>
+                        <h4 className="text-base md:text-lg font-black text-emerald-300 flex items-center gap-2">
+                          <span>{txt("unlockPersonalityPromptTitle")}</span>
+                          <span className="text-[10px] bg-emerald-500/30 text-emerald-200 border border-emerald-400/50 px-2 py-0.5 rounded-full font-extrabold shadow-xs flex items-center gap-1">
+                            <svg className="w-3 h-3 text-emerald-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span>{selectedLang === "kn" ? "ಅನ್‌ಲಾಕ್ ಆಗಿದೆ" : "Unlocked"}</span>
+                          </span>
+                        </h4>
+                      </div>
+                      <p className="text-xs text-slate-300 mt-1 max-w-xl leading-relaxed">
+                        {selectedLang === "kn"
+                          ? "ನಿಮ್ಮ ಜಾತಕದ ಆಳವಾದ ವ್ಯಕ್ತಿತ್ವ, ಅಂತರಂಗ ಪ್ರಶ್ನೆಗಳು ಹಾಗೂ ಪ್ರಾಚೀನ ರಹಸ್ಯಗಳು ಸಂಪೂರ್ಣ ಅನ್‌ಲಾಕ್ ಆಗಿವೆ."
+                          : "Your deep personality insights, hidden psyche, and secret questions are fully unlocked."}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveTab("personality");
+                        window.scrollTo({ top: 450, behavior: "smooth" });
+                      }}
+                      className="px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-400 to-teal-500 hover:from-emerald-300 hover:to-teal-400 text-slate-950 font-black text-xs md:text-sm shadow-lg whitespace-nowrap active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
+                    >
+                      <span>🔓</span>
+                      <span>{selectedLang === "kn" ? "ವ್ಯಕ್ತಿತ್ವ ವರದಿ ವೀಕ್ಷಿಸಿ →" : "View Personality Report →"}</span>
                     </button>
                   </div>
                 )}
@@ -1735,11 +1803,13 @@ ${publicProfile.name}`;
             {/* TAB 3: PERSONALITY & HIDDEN PSYCHE (LOCKED WITH 1,000 COIN GATE)*/}
             {/* ============================================================== */}
             {activeTab === "personality" && (
-              <div className="space-y-6 animate-fade-in">
+              <div id="personality-section-content" className="space-y-6 animate-fade-in">
                 {!isPersonalityUnlocked ? (
                   <div className="bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-amber-500/50 rounded-3xl p-6 md:p-10 shadow-2xl text-center space-y-5">
-                    <div className="w-20 h-20 rounded-full bg-amber-500/20 border-2 border-amber-400 flex items-center justify-center mx-auto text-4xl shadow-[0_0_30px_rgba(245,158,11,0.3)]">
-                      🔒
+                    <div className="w-20 h-20 rounded-full bg-amber-500/20 border-2 border-amber-400 flex items-center justify-center mx-auto text-amber-400 shadow-[0_0_30px_rgba(245,158,11,0.3)]">
+                      <svg className="w-10 h-10 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
                     </div>
                     <div>
                       <h3 className="text-xl md:text-2xl font-black text-amber-300">
@@ -1753,11 +1823,23 @@ ${publicProfile.name}`;
                     <div className="pt-3">
                       <button
                         type="button"
-                        onClick={() => setShowUnlockModal(true)}
-                        className="px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-black text-sm md:text-base shadow-[0_0_40px_rgba(245,158,11,0.4)] hover:scale-105 active:scale-95 transition-all inline-flex items-center gap-2"
+                        onClick={() => {
+                          if (availableCoins < personalityUnlockCost) {
+                            setIsRechargeOpen(true);
+                          } else {
+                            setShowUnlockModal(true);
+                          }
+                        }}
+                        className="px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-black text-sm md:text-base shadow-[0_0_40px_rgba(245,158,11,0.4)] hover:scale-105 active:scale-95 transition-all inline-flex items-center gap-2 cursor-pointer"
                       >
-                        <span>🪙</span>
-                        <span>{txt("unlockPersonalityConfirmBtn")}</span>
+                        <svg className="w-5 h-5 text-slate-950" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                        <span>
+                          {selectedLang === "kn"
+                            ? `ಅನ್‌ಲಾಕ್ ಮಾಡಿ (${personalityUnlockCost.toLocaleString()} Coins)`
+                            : `Unlock (${personalityUnlockCost.toLocaleString()} Coins)`}
+                        </span>
                       </button>
                     </div>
                   </div>
@@ -1909,8 +1991,9 @@ ${publicProfile.name}`;
                               key={idx}
                               type="button"
                               onClick={() => {
-                                setActiveTab("analysis");
-                                handleAskQuestion(undefined, sq);
+                                setCustomQuestionInput(sq);
+                                const el = document.getElementById("custom-question-textarea");
+                                if (el) el.scrollIntoView({ behavior: "smooth" });
                               }}
                               className="w-full text-left text-xs md:text-sm bg-slate-950 border border-slate-800 hover:border-amber-500/60 text-amber-200/90 hover:text-white p-3.5 rounded-2xl transition-all flex items-start gap-2.5 shadow-sm"
                             >
@@ -1940,6 +2023,7 @@ ${publicProfile.name}`;
                         {/* Textarea Input */}
                         <div className="space-y-2">
                           <textarea
+                            id="custom-question-textarea"
                             value={customQuestionInput}
                             onChange={(e) => {
                               setCustomQuestionInput(e.target.value);
@@ -2034,132 +2118,6 @@ ${publicProfile.name}`;
               </div>
             )}
 
-            {/* TAB CONTENT: LIVE LIFE ANALYSIS & DEVOTEE Q&A (OPENED BY THE SINGLE ACTION BUTTON) */}
-            {activeTab === "analysis" && (
-              <div className="bg-slate-900 border-2 border-amber-500/50 rounded-3xl p-6 md:p-8 shadow-2xl backdrop-blur-md space-y-6 animate-fade-in relative overflow-hidden">
-                <div className="border-b border-amber-500/20 pb-4 flex items-center justify-between">
-                  <h3 className="text-lg md:text-xl font-extrabold text-amber-300 flex items-center gap-2">
-                    <span>🌟</span> {txt("liveAnalysisHeading")}
-                  </h3>
-                  <span className="text-xs px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-semibold">
-                    ✓ 100% Authentic Lahiri Engine
-                  </span>
-                </div>
-
-                {isSynthesizingAnalysis ? (
-                  <div className="py-12 text-center space-y-3">
-                    <div className="w-10 h-10 border-4 border-amber-400 border-t-transparent rounded-full animate-spin mx-auto" />
-                    <p className="text-sm font-medium text-amber-200">
-                      {txt("answeringLoader")}
-                    </p>
-                  </div>
-                ) : (
-                  liveAnalysisInsights && (
-                    <div className="space-y-5">
-                      <div className="bg-slate-950/80 border border-amber-500/20 rounded-2xl p-4 md:p-5 space-y-1">
-                        <h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
-                          <span>🪐</span> {txt("currentPhaseTitle")}
-                        </h4>
-                        <p className="text-xs md:text-sm text-slate-200 leading-relaxed">
-                          {liveAnalysisInsights.currentPhase}
-                        </p>
-                      </div>
-
-                      <div className="bg-slate-950/80 border border-amber-500/20 rounded-2xl p-4 md:p-5 space-y-1">
-                        <h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
-                          <span>🧠</span> {txt("subconsciousMindTitle")}
-                        </h4>
-                        <p className="text-xs md:text-sm text-slate-200 leading-relaxed">
-                          {liveAnalysisInsights.subconsciousMind}
-                        </p>
-                      </div>
-
-                      <div className="bg-slate-950/80 border border-amber-500/20 rounded-2xl p-4 md:p-5 space-y-1">
-                        <h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
-                          <span>💼</span> {txt("careerFinanceTitle")}
-                        </h4>
-                        <p className="text-xs md:text-sm text-slate-200 leading-relaxed">
-                          {liveAnalysisInsights.careerFinance}
-                        </p>
-                      </div>
-
-                      <div className="bg-slate-950/80 border border-amber-500/20 rounded-2xl p-4 md:p-5 space-y-1">
-                        <h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
-                          <span>❤️</span> {txt("relationshipsHealthTitle")}
-                        </h4>
-                        <p className="text-xs md:text-sm text-slate-200 leading-relaxed">
-                          {liveAnalysisInsights.relationshipsHealth}
-                        </p>
-                      </div>
-
-                      <div className="bg-gradient-to-r from-amber-950/40 via-slate-950 to-amber-950/40 border border-amber-500/40 rounded-2xl p-4 md:p-5 space-y-1">
-                        <h4 className="text-xs font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
-                          <span>🪔</span> {txt("gokarnaTempleRemedyTitle")}
-                        </h4>
-                        <p className="text-xs md:text-sm text-amber-100 leading-relaxed">
-                          {liveAnalysisInsights.gokarnaRemedy}
-                        </p>
-                      </div>
-                    </div>
-                  )
-                )}
-
-                {/* Devotee Q&A Interactive Input */}
-                <div className="pt-4 border-t border-amber-500/20 space-y-4">
-                  <h4 className="text-sm md:text-base font-extrabold text-amber-300 flex items-center gap-2">
-                    <span>💬</span> {txt("askAstrologerInputLabel")}
-                  </h4>
-
-                  <form onSubmit={(e) => handleAskQuestion(e)} className="space-y-3">
-                    <div className="relative">
-                      <input
-                        type="text"
-                        value={userQuestion}
-                        onChange={(e) => setUserQuestion(e.target.value)}
-                        placeholder={txt("askAstrologerPlaceholder")}
-                        className="w-full bg-slate-950 border border-amber-500/40 rounded-2xl px-4 py-3.5 pr-24 text-xs md:text-sm text-amber-200 placeholder-slate-500 focus:outline-none focus:border-amber-400 shadow-inner"
-                      />
-                      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                        <button
-                          type="button"
-                          onClick={handleToggleVoiceDictation}
-                          className={`p-2 rounded-xl transition-all ${
-                            isListening ? "bg-red-500 text-white animate-pulse" : "bg-slate-800 text-amber-300 hover:bg-slate-700"
-                          }`}
-                          title={txt("micTitle")}
-                        >
-                          🎤
-                        </button>
-                        <button
-                          type="submit"
-                          disabled={isAnsweringQuestion || !userQuestion.trim()}
-                          className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:bg-slate-800 disabled:text-slate-600 text-slate-950 font-bold text-xs shadow-md transition-all flex items-center gap-1"
-                        >
-                          {isAnsweringQuestion ? "..." : "➤"}
-                        </button>
-                      </div>
-                    </div>
-                  </form>
-
-                  {/* Q&A Thread History */}
-                  {qaHistory.length > 0 && (
-                    <div className="space-y-3 pt-2">
-                      {qaHistory.map((item, idx) => (
-                        <div key={idx} className="bg-slate-950 border border-amber-500/20 rounded-2xl p-4 space-y-2">
-                          <div className="flex items-start gap-2 text-xs font-bold text-amber-400">
-                            <span>Q:</span>
-                            <span>{item.question}</span>
-                          </div>
-                          <div className="flex items-start gap-2 text-xs text-slate-200 pl-4 border-l-2 border-amber-500/40 leading-relaxed">
-                            <span>{item.answer}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
 
             {/* 4. GRAND PREMIUM CONSULTATION & DIRECT ASTROLOGER CALL (₹350) */}
             <div className="bg-gradient-to-b from-amber-950/80 via-slate-900 to-slate-950 border-2 border-amber-400/80 rounded-3xl p-6 md:p-10 shadow-[0_0_50px_rgba(245,158,11,0.25)] space-y-6 relative overflow-hidden">
@@ -2268,38 +2226,136 @@ ${publicProfile.name}`;
       {/* CONFIRMATION MODAL: 1,000 COIN DEDUCTION FOR PERSONALITY TAB    */}
       {/* ============================================================== */}
       {showUnlockModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
           <div className="bg-slate-900 border-2 border-amber-500/60 rounded-3xl p-6 md:p-8 max-w-md w-full shadow-[0_0_50px_rgba(245,158,11,0.4)] text-center space-y-4 animate-scale-up">
             <div className="w-16 h-16 rounded-full bg-amber-500/20 border border-amber-400/50 flex items-center justify-center mx-auto text-3xl">
-              🔒
+              <svg className="w-8 h-8 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
             </div>
             <h3 className="text-lg md:text-xl font-black text-amber-300">
               {txt("unlockPersonalityPromptTitle")}
             </h3>
             <p className="text-xs md:text-sm text-slate-300 leading-relaxed">
               {selectedLang === "kn"
-                ? "ವ್ಯಕ್ತಿತ್ವ & ನಿಗೂಢ ರಹಸ್ಯ ಅನ್‌ಲಾಕ್ ಮಾಡಲು 1,000 ನಾಣ್ಯಗಳನ್ನು (Coins) ಕಡಿತಗೊಳಿಸಲಾಗುವುದು. ಮುಂದುವರಿಯಬೇಕೆ?"
-                : "Unlocking Personality & Hidden Secrets will deduct 1,000 Coins from your wallet. Do you wish to proceed?"}
+                ? `ವ್ಯಕ್ತಿತ್ವ & ನಿಗೂಢ ರಹಸ್ಯ ಅನ್‌ಲಾಕ್ ಮಾಡಲು ${personalityUnlockCost.toLocaleString()} ನಾಣ್ಯಗಳನ್ನು (Coins) ಕಡಿತಗೊಳಿಸಲಾಗುವುದು. ಮುಂದುವರಿಯಬೇಕೆ?`
+                : `Unlocking Personality & Hidden Secrets will deduct ${personalityUnlockCost.toLocaleString()} Coins from your wallet. Do you wish to proceed?`}
             </p>
+
+            {/* Structured 2-Row Price & Balance Display (Requested by User) */}
+            <div className="space-y-2.5 bg-slate-950/90 border border-amber-500/30 rounded-2xl p-4 text-xs">
+              {/* Row 1: Required Coins */}
+              <div className="flex items-center justify-between pb-2.5 border-b border-slate-800">
+                <span className="text-slate-300 font-bold flex items-center gap-1.5">
+                  <span>🏷️</span>
+                  <span>{selectedLang === "kn" ? "ಇದಕ್ಕೆ ಬೇಕಾಗುವ ಕಾಯಿನ್ಸ್ ಗಳು:" : "Coins Required:"}</span>
+                </span>
+                <span className="font-mono font-black text-sm md:text-base text-amber-300 flex items-center gap-1">
+                  <span>🪙</span>
+                  <span>{personalityUnlockCost.toLocaleString()} Coins</span>
+                  <span className="text-[10px] font-sans text-amber-200/70 ml-1">
+                    (₹{Math.round(personalityUnlockCost / 10)})
+                  </span>
+                </span>
+              </div>
+
+              {/* Row 2: Available Coins */}
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-slate-300 font-bold flex items-center gap-1.5">
+                  <span>💼</span>
+                  <span>{selectedLang === "kn" ? "ನಿಮ್ಮ ಹತ್ತಿರ ಇರುವ ಕಾಯಿನ್ಸ್ ಗಳು:" : "Coins You Have:"}</span>
+                </span>
+                <span className={`font-mono font-black text-sm md:text-base flex items-center gap-1 ${
+                  availableCoins >= personalityUnlockCost ? "text-emerald-400" : "text-rose-400"
+                }`}>
+                  <span>🪙</span>
+                  <span>{availableCoins.toLocaleString()} Coins</span>
+                </span>
+              </div>
+            </div>
+
+            {/* If Coins Insufficient: Show exact shortage and 1-Click Instant Refill */}
+            {availableCoins < personalityUnlockCost && (
+              <div className="bg-rose-950/50 border border-rose-500/60 rounded-2xl p-3.5 text-xs text-rose-200 text-left space-y-2.5 animate-fade-in">
+                <div className="flex items-center gap-2 font-bold text-rose-300">
+                  <span className="text-base">⚠️</span>
+                  <span>
+                    {selectedLang === "kn"
+                      ? `ನಿಮ್ಮ ಹತ್ತಿರ ${(personalityUnlockCost - availableCoins).toLocaleString()} ನಾಣ್ಯಗಳ ಕೊರತೆ ಇದೆ.`
+                      : `You need ${(personalityUnlockCost - availableCoins).toLocaleString()} more Coins to unlock.`}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const shortage = personalityUnlockCost - availableCoins;
+                    creditGuestCoins(shortage);
+                    setGuestBalance(getPublicGuestWallet().coinBalance);
+                    setErrorMessage(null);
+                  }}
+                  className="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-extrabold text-xs shadow-md hover:from-emerald-400 hover:to-teal-500 transition flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                >
+                  <span>⚡</span>
+                  <span>
+                    {selectedLang === "kn"
+                      ? `+${(personalityUnlockCost - availableCoins).toLocaleString()} ನಾಣ್ಯಗಳನ್ನು ಸೇರಿಸಿ (ರೀಚಾರ್ಜ್)`
+                      : `+${(personalityUnlockCost - availableCoins).toLocaleString()} Coins Refill`}
+                  </span>
+                </button>
+              </div>
+            )}
+
+            {/* Inline Error Display */}
+            {errorMessage && (
+              <div className="bg-rose-950/80 border border-rose-500 text-rose-200 p-2.5 rounded-xl text-xs font-bold text-left">
+                ⚠️ {errorMessage}
+              </div>
+            )}
+
             <div className="pt-2 flex items-center justify-center gap-3">
               <button
                 type="button"
-                onClick={() => setShowUnlockModal(false)}
-                className="px-5 py-2.5 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-bold transition-all"
+                onClick={() => {
+                  setShowUnlockModal(false);
+                  setErrorMessage(null);
+                }}
+                className="px-5 py-2.5 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-bold transition-all cursor-pointer"
               >
                 {selectedLang === "kn" ? "ರದ್ದುಗೊಳಿಸಿ" : "Cancel"}
               </button>
               <button
                 type="button"
                 onClick={handleUnlockPersonality}
-                disabled={isUnlocking}
-                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-600 text-slate-950 hover:from-yellow-300 hover:to-amber-400 font-extrabold text-xs md:text-sm shadow-lg transition-all flex items-center gap-2"
+                disabled={isUnlocking || availableCoins < personalityUnlockCost}
+                className={`px-6 py-2.5 rounded-xl font-extrabold text-xs md:text-sm shadow-lg transition-all flex items-center gap-2 cursor-pointer active:scale-95 ${
+                  availableCoins >= personalityUnlockCost
+                    ? "bg-gradient-to-r from-amber-400 to-amber-600 text-slate-950 hover:from-yellow-300 hover:to-amber-400"
+                    : "bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700"
+                }`}
               >
-                {isUnlocking ? "ಅನ್‌ಲಾಕ್ ಆಗುತ್ತಿದೆ..." : "🪙 ಹೌದು, ಅನ್‌ಲಾಕ್ ಮಾಡಿ"}
+                {isUnlocking
+                  ? (selectedLang === "kn" ? "ಅನ್‌ಲಾಕ್ ಆಗುತ್ತಿದೆ..." : "Unlocking...")
+                  : (selectedLang === "kn"
+                      ? `🪙 ಹೌದು, ಅನ್‌ಲಾಕ್ ಮಾಡಿ (${personalityUnlockCost.toLocaleString()} Coins)`
+                      : `🪙 Yes, Unlock (${personalityUnlockCost.toLocaleString()} Coins)`)}
               </button>
             </div>
           </div>
         </div>
+      )}
+
+      {/* Universal 1-Click Falling Coins Refill Modal */}
+      {isRechargeOpen && (
+        <FallingCoinsRefillModal
+          isOpen={isRechargeOpen}
+          onClose={() => {
+            setIsRechargeOpen(false);
+            setGuestBalance(getPublicGuestWallet().coinBalance);
+          }}
+          requiredCoins={personalityUnlockCost}
+          currentCoins={availableCoins}
+          serviceTitle={selectedLang === "kn" ? "ಸಾರ್ವಜನಿಕ ಕುಂಡಲಿ ಸೇವೆಗಳು" : "Public Kundli Services"}
+        />
       )}
 
     </main>

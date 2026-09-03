@@ -44,9 +44,13 @@ describe("Dynamic Service Coin Pricing Engine & Visual Deduction", () => {
     expect(getCoins("KUNDLI_CALCULATION")).toBe(500);
     expect(getCoins("ASTROLOGY_QUESTION")).toBe(500);
 
-    // Reports
+    // Reports & Public Kundli
     expect(getCoins("STANDARD_JANANA_KUNDLI_PDF")).toBe(1000);
     expect(getCoins("PREMIUM_KUNDLI_PDF")).toBe(3500);
+    expect(getCoins("PUBLIC_KUNDLI_GENERATION")).toBe(500);
+    expect(getCoins("PUBLIC_PERSONALITY_UNLOCK")).toBe(1000);
+    expect(getInr("PUBLIC_PERSONALITY_UNLOCK")).toBe(100);
+    expect(getKannadaName("PUBLIC_PERSONALITY_UNLOCK")).toContain("ವ್ಯಕ್ತಿತ್ವ & ನಿಗೂಢ ರಹಸ್ಯ");
   });
 
   it("2. Super Admin can update individual service price dynamically", async () => {

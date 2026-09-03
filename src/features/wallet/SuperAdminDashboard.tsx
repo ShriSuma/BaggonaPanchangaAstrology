@@ -1820,7 +1820,7 @@ export const SuperAdminDashboard: React.FC = () => {
                   <div className="flex items-center gap-2 text-[10px]">
                     <button
                       type="button"
-                      onClick={() => setSelectedModulesForNewPriest(["panchanga", "sankhyashastra", "diksuchi", "purva_janma", "vahana_muhurtha"])}
+                      onClick={() => setSelectedModulesForNewPriest(["public_kundli", "panchanga", "sankhyashastra", "diksuchi", "purva_janma", "vahana_muhurtha"])}
                       className="text-amber-900 font-bold hover:underline"
                     >
                       ಎಲ್ಲವನ್ನೂ ಆಯ್ಕೆಮಾಡಿ (Select All)
@@ -1836,10 +1836,18 @@ export const SuperAdminDashboard: React.FC = () => {
                     <span>•</span>
                     <button
                       type="button"
+                      onClick={() => setSelectedModulesForNewPriest(["public_kundli"])}
+                      className="text-amber-600 font-black hover:underline"
+                    >
+                      🌟 Top 1: ಸಾರ್ವಜನಿಕ ಕುಂಡಲಿ ಮಾತ್ರ
+                    </button>
+                    <span>•</span>
+                    <button
+                      type="button"
                       onClick={() => setSelectedModulesForNewPriest(["panchanga"])}
                       className="text-amber-900 font-bold hover:underline"
                     >
-                      ಪಂಚಾಂಗ ಮಾತ್ರ
+                      🔮 Top 2: ಜನನ ಕುಂಡಲಿ ಮಾತ್ರ
                     </button>
                     <span>•</span>
                     <button

@@ -273,4 +273,84 @@ section:hover {
   pointer-events: none;
 }
 
+/* 🪔 Vedic Luxury Animation Keyframes & Loader Utilities */
+@keyframes spin-slow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes spin-reverse {
+  0% { transform: rotate(360deg); }
+  100% { transform: rotate(0deg); }
+}
+
+@keyframes compass-sway {
+  0% { transform: rotate(-35deg); }
+  25% { transform: rotate(45deg); }
+  50% { transform: rotate(-15deg); }
+  75% { transform: rotate(20deg); }
+  100% { transform: rotate(-35deg); }
+}
+
+@keyframes pulse-celestial {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(0.97);
+    filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.4));
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.03);
+    filter: drop-shadow(0 0 25px rgba(245, 158, 11, 0.8));
+  }
+}
+
+@keyframes karmic-orbit {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(180deg) scale(1.04); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+@keyframes shimmer-gold {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 16s linear infinite;
+}
+
+.animate-spin-reverse {
+  animation: spin-reverse 12s linear infinite;
+}
+
+.animate-compass-needle {
+  animation: compass-sway 3.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  transform-origin: 50% 50%;
+}
+
+.animate-pulse-celestial {
+  animation: pulse-celestial 2.5s ease-in-out infinite;
+}
+
+.animate-karmic-orbit {
+  animation: karmic-orbit 20s linear infinite;
+}
+
+.shimmer-gold {
+  background: linear-gradient(90deg, rgba(251,191,36,0.1) 0%, rgba(251,191,36,0.45) 50%, rgba(251,191,36,0.1) 100%);
+  background-size: 200% 100%;
+  animation: shimmer-gold 2.4s infinite;
+}
+
+/* 📱 No-Scrollbar Utility for Native-like Mobile Horizontal Pill Scrolling */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+
 

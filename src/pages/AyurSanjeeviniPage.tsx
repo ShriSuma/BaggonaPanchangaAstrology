@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import { VedicTimePickerModal } from "../components/VedicTimePickerModal";
 import { useAppStore } from "../stores/appStore";
 import { useKundliViewerStore } from "../stores/kundliViewerStore";
 import type { SupportedLanguage } from "../stores/appStore";
@@ -320,14 +321,12 @@ export const AyurSanjeeviniPage: React.FC = () => {
 
               {/* Time of Birth / Demise */}
               <div>
-                <label className="block text-xs font-semibold text-amber-400 mb-1">
-                  {mode === "janma" ? t.formTobJanana[language] : t.formTobMarana[language]}
-                </label>
-                <input
-                  type="time"
-                  value={tob}
-                  onChange={(e) => setTob(e.target.value)}
-                  className="w-full rounded-xl bg-slate-950/80 border border-amber-500/30 px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-400"
+                <VedicTimePickerModal
+                  value={tob || "12:00"}
+                  onChange={(val) => setTob(val)}
+                  label={mode === "janma" ? t.formTobJanana[language] : t.formTobMarana[language]}
+                  theme="dark"
+                  id="ayur_tob_picker"
                 />
               </div>
 

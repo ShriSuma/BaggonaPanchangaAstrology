@@ -64,6 +64,7 @@ vi.mock("../core/ExportUtils", () => ({
 
 vi.mock("../features/notifications/notificationService", () => ({
   notifyPublicPremiumPdfRequested: vi.fn().mockResolvedValue({ success: true }),
+  notifyWalletCoinChange: vi.fn().mockResolvedValue({ success: true }),
   sendEmailNotification: vi.fn().mockResolvedValue({ success: true })
 }));
 
@@ -293,7 +294,7 @@ describe("Public Kundli & Live Astrology Analysis 100% Dynamic Engine Test Suite
       // Verify 3 Restructured Tab buttons
       expect(screen.getByRole("button", { name: /📜 ಜಾತಕ ಪತ್ರಿಕೆ & ಪಂಚಾಂಗ/i })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: /⏳ ದಶಾ & ಭುಕ್ತಿ ಕಾಲಚಕ್ರ/i })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /🔒 ವ್ಯಕ್ತಿತ್ವ & ನಿಗೂಢ ರಹಸ್ಯ \(1,000 Coins\)/i })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /ವ್ಯಕ್ತಿತ್ವ & ನಿಗೂಢ ರಹಸ್ಯ/i })).toBeInTheDocument();
 
       // Tab 1 (Patrika) is default active: Jyotishya Saramsha table, Dwadasha Bhava chart, Remedies with reasoning
       expect(screen.getByText(/ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಸಾರಾಂಶ/i)).toBeInTheDocument();
@@ -354,7 +355,7 @@ describe("Public Kundli & Live Astrology Analysis 100% Dynamic Engine Test Suite
       }, { timeout: 6000 });
 
       // Click Tab 3 button (locked)
-      const personalityTabBtn = screen.getByRole("button", { name: /🔒 ವ್ಯಕ್ತಿತ್ವ & ನಿಗೂಢ ರಹಸ್ಯ \(1,000 Coins\)/i });
+      const personalityTabBtn = screen.getByRole("button", { name: /ವ್ಯಕ್ತಿತ್ವ & ನಿಗೂಢ ರಹಸ್ಯ/i });
       fireEvent.click(personalityTabBtn);
 
       // Confirmation modal should open
@@ -465,7 +466,7 @@ describe("Public Kundli & Live Astrology Analysis 100% Dynamic Engine Test Suite
       });
 
       // Unlock Tab 3
-      const personalityTabBtn = screen.getByRole("button", { name: /🔒 ವ್ಯಕ್ತಿತ್ವ & ನಿಗೂಢ ರಹಸ್ಯ \(1,000 Coins\)/i });
+      const personalityTabBtn = screen.getByRole("button", { name: /ವ್ಯಕ್ತಿತ್ವ & ನಿಗೂಢ ರಹಸ್ಯ/i });
       fireEvent.click(personalityTabBtn);
 
       const confirmUnlockBtn = screen.getByRole("button", { name: /🪙 ಹೌದು, ಅನ್‌ಲಾಕ್ ಮಾಡಿ/i });
@@ -524,28 +525,28 @@ describe("Public Kundli & Live Astrology Analysis 100% Dynamic Engine Test Suite
       expect(sanitizeDevoteeInput(longInput, 50).length).toBe(50);
     });
 
-    it("shields master wallet and isolates anonymous public guest deductions with 0 free coins policy", async () => {
+    it("shields master wallet and isolates anonymous public guest deductions with localhost 5000 coins policy", async () => {
       const { getPublicGuestWallet, deductGuestCoins, creditGuestCoins } = await import("../utils/publicKundliSecurity");
 
       const wallet = getPublicGuestWallet();
       expect(wallet.isGuest).toBe(true);
-      expect(wallet.coinBalance).toBe(0);
+      // On localhost test environment, starts with 5,000 coins for seamless end-to-end testing
+      expect(wallet.coinBalance).toBe(5000);
 
-      // Attempting to deduct with 0 coins fails
-      const failedDeduction = deductGuestCoins(500, "Test Kundli Generation");
-      expect(failedDeduction.success).toBe(false);
-      expect(failedDeduction.error).toContain("ಅತಿಥಿ ನಾಣ್ಯಗಳು ಸಾಲುತ್ತಿಲ್ಲ");
-
-      // Once credited through paid recharge, deduction succeeds
-      creditGuestCoins(2000);
+      // Deduct 500 coins for Kundli Generation
       const res1 = deductGuestCoins(500, "Test Kundli Generation");
       expect(res1.success).toBe(true);
-      expect(res1.newBalance).toBe(1500);
+      expect(res1.newBalance).toBe(4500);
 
-      // Deduct 1000 coins (Personality unlock)
+      // Deduct 1000 coins for Personality Unlock
       const res2 = deductGuestCoins(1000, "Test Personality Unlock");
       expect(res2.success).toBe(true);
-      expect(res2.newBalance).toBe(500);
+      expect(res2.newBalance).toBe(3500);
+
+      // Deducting more than available balance fails safely
+      const failedDeduction = deductGuestCoins(10000, "Excessive deduction");
+      expect(failedDeduction.success).toBe(false);
+      expect(failedDeduction.error).toContain("ನಾಣ್ಯಗಳ ಕೊರತೆ ಇದೆ");
     });
 
 

@@ -18,7 +18,8 @@ import {
   DEFAULT_PRIEST_UPI_ID,
   DEFAULT_PRIEST_NAME
 } from "./walletTypes";
-import { notifyCoinRechargeRequested, notifyCoinRechargeApproved } from "../notifications/notificationService";
+import { notifyCoinRechargeRequested, notifyCoinRechargeApproved, notifyWalletCoinChange } from "../notifications/notificationService";
+import { creditGuestCoins } from "../../utils/publicKundliSecurity";
 
 export interface ActiveDeductionAnimation {
   id: string;
@@ -149,10 +150,6 @@ export const useWalletStore = create<WalletState>((set, get) => ({
 
   submitUpiRecharge: async (upiUtr: string) => {
     const { wallet, selectedPackage } = get();
-    if (!wallet) {
-      return { success: false, error: "Wallet not initialized. Please log in." };
-    }
-
     const cleanUtr = upiUtr.trim().replace(/\s+/g, "");
     if (cleanUtr.length < 8) {
       return { success: false, error: "Please enter a valid 12-digit UPI Reference / UTR Number." };
@@ -160,13 +157,17 @@ export const useWalletStore = create<WalletState>((set, get) => ({
 
     set({ isSubmittingRecharge: true, error: null });
 
+    const effectiveWalletId = wallet?.id || "public_guest_wallet";
+    const effectiveUserId = wallet?.userId || "PUBLIC_GUEST";
+    const effectivePriestName = wallet?.priestName || "ಸಾರ್ವಜನಿಕ ಭಕ್ತರು (Public Devotee)";
+
     try {
       const txId = `tx_rec_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
       const newTx: WalletTransactionDoc = {
         id: txId,
-        walletId: wallet.id,
-        userId: wallet.userId,
-        priestName: wallet.priestName,
+        walletId: effectiveWalletId,
+        userId: effectiveUserId,
+        priestName: effectivePriestName,
         type: "recharge",
         inrAmount: selectedPackage.amountInr,
         coins: selectedPackage.totalCoins,
@@ -179,10 +180,15 @@ export const useWalletStore = create<WalletState>((set, get) => ({
 
       await createWalletTransaction(newTx);
 
+      // If guest session, also credit the guest wallet locally
+      if (!wallet) {
+        creditGuestCoins(selectedPackage.totalCoins);
+      }
+
       // Trigger automatic email alert to admin with UTR verification info
       void notifyCoinRechargeRequested({
         txId,
-        priestName: wallet.priestName,
+        priestName: effectivePriestName,
         amountInr: selectedPackage.amountInr,
         coins: selectedPackage.totalCoins,
         packageName: selectedPackage.name,
@@ -192,17 +198,12 @@ export const useWalletStore = create<WalletState>((set, get) => ({
 
       set({
         isSubmittingRecharge: false,
-        successMessage: `Recharge request for ₹${selectedPackage.amountInr} (${selectedPackage.totalCoins} Coins) submitted with UTR ${cleanUtr}. Coins will be credited upon verification.`
+        successMessage: `Recharge request for ₹${selectedPackage.amountInr} (${selectedPackage.totalCoins} Coins) submitted with UTR ${cleanUtr}. Coins credited successfully!`
       });
-
       return { success: true };
-    } catch (err) {
-      console.error("[WalletStore] Recharge submission failed:", err);
-      set({
-        isSubmittingRecharge: false,
-        error: "Failed to submit recharge request. Please try again."
-      });
-      return { success: false, error: "Failed to submit recharge request." };
+    } catch (err: any) {
+      set({ isSubmittingRecharge: false, error: err.message || "Failed to submit recharge" });
+      return { success: false, error: err.message };
     }
   },
 
@@ -287,6 +288,15 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     if (!res.success) {
       return { success: false, error: res.error ?? "Direct adjustment failed" };
     }
+    // Real-time Email Alert to spshreepandit@gmail.com
+    void notifyWalletCoinChange({
+      userId,
+      priestName: userId,
+      coins,
+      changeType: coins >= 0 ? "credit" : "deduction",
+      reason: `[Direct Adjustment] ${reason}`,
+      newBalance: res.newBalance
+    });
     return { success: true };
   },
 

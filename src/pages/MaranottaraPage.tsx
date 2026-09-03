@@ -9,6 +9,7 @@ import { sanitizeAIText } from "../utils/textFormatter";
 import AudioPlayerButton from "../components/ui/AudioPlayerButton";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import { VedicTimePickerModal } from "../components/VedicTimePickerModal";
 
 export const MaranottaraPage: React.FC = () => {
   const activeKey = useAppStore((state) => state.geminiApiKey);
@@ -302,11 +303,12 @@ export const MaranottaraPage: React.FC = () => {
                   {t("optionalTime")}
                 </span>
               </div>
-              <input
-                type="time"
-                value={demiseTime}
-                onChange={(e) => setDemiseTime(e.target.value)}
-                className="w-full rounded-2xl border-2 border-amber-300 dark:border-slate-700 bg-amber-50/60 dark:bg-slate-800 px-4 py-3 text-sm font-semibold text-slate-950 dark:text-white focus:border-amber-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none"
+              <VedicTimePickerModal
+                value={demiseTime || "12:00"}
+                onChange={(val) => setDemiseTime(val)}
+                label=""
+                theme="gold"
+                id="maranottara_demise_time"
               />
               <span className="text-[10px] text-amber-800 dark:text-amber-400 font-bold block mt-1">
                 {t("timeHelper")}
