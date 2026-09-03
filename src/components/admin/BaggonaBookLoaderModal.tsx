@@ -41,12 +41,31 @@ export const BaggonaBookLoaderModal: React.FC<BaggonaBookLoaderModalProps> = ({
   const fileSizeMb = fileSizeBytes ? (fileSizeBytes / 1024 / 1024).toFixed(2) : null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn cursor-pointer"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
       {/* Front Cover Container (Exact replica style of Baggona Panchanga front page) */}
-      <div className="relative w-full max-w-lg bg-[#FAF5E6] border-8 border-double border-amber-800 rounded-3xl p-6 md:p-8 shadow-2xl text-amber-950 font-serif overflow-hidden ring-4 ring-amber-400/40">
+      <div
+        className="relative w-full max-w-lg bg-[#FAF5E6] border-8 border-double border-amber-800 rounded-3xl p-6 md:p-8 shadow-2xl text-amber-950 font-serif overflow-hidden ring-4 ring-amber-400/40 cursor-default"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Top-Right Dedicated Close Button (Always accessible) */}
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute top-3 right-3 z-30 w-8 h-8 md:w-9 md:h-9 rounded-full bg-amber-900 hover:bg-amber-950 text-amber-100 hover:text-white flex items-center justify-center font-black text-sm md:text-base shadow-xl border-2 border-amber-400 transition-all hover:scale-110 active:scale-90 cursor-pointer"
+          title="ಮುಚ್ಚಿ (Close / Dismiss)"
+          aria-label="Close"
+        >
+          ✕
+        </button>
+
         {/* Decorative corner ornaments */}
         <div className="absolute top-2 left-2 text-xl text-amber-700 select-none">卐</div>
-        <div className="absolute top-2 right-2 text-xl text-amber-700 select-none">卐</div>
+        <div className="absolute top-2 right-12 text-xl text-amber-700 select-none">卐</div>
         <div className="absolute bottom-2 left-2 text-xl text-amber-700 select-none">🕉️</div>
         <div className="absolute bottom-2 right-2 text-xl text-amber-700 select-none">🕉️</div>
 
@@ -193,6 +212,18 @@ export const BaggonaBookLoaderModal: React.FC<BaggonaBookLoaderModalProps> = ({
           ) : (
             <span className="text-amber-700 animate-pulse">ದೃಗ್ಗಣಿತ ಮುದ್ರಣ ಚಾಲ್ತಿಯಲ್ಲಿದೆ...</span>
           )}
+        </div>
+
+        {/* User Dismiss Action */}
+        <div className="mt-3 flex justify-center">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-5 py-2 rounded-xl bg-amber-200/80 hover:bg-amber-300/90 text-amber-950 text-xs font-black transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5 border border-amber-500/50 shadow-sm cursor-pointer"
+          >
+            <span>✕</span>
+            <span>{isReady ? "ಸಂವಾದ ಮುಚ್ಚಿ (Close Dialog)" : "ರದ್ದುಮಾಡಿ / ಮುಚ್ಚಿ (Cancel / Close)"}</span>
+          </button>
         </div>
       </div>
     </div>

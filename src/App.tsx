@@ -45,9 +45,21 @@ export default function App(): JSX.Element {
   const isPriestPanchangaRoute = typeof window !== "undefined" && (
     window.location.pathname.startsWith("/priest-panchanga") ||
     window.location.pathname.startsWith("/priest_panchanga") ||
+    window.location.pathname.startsWith("/purohita-panchanga") ||
+    window.location.pathname.startsWith("/purohita_panchanga") ||
+    window.location.pathname.startsWith("/purohita") ||
+    (window.location.pathname.startsWith("/priest") && !window.location.pathname.startsWith("/priest-portal") && !window.location.pathname.startsWith("/priest_portal") && window.location.search.includes("date=")) ||
+    window.location.pathname.startsWith("/priestpanchanga") ||
     window.location.search.includes("portal=priest_panchanga") ||
+    window.location.search.includes("portal=priest-panchanga") ||
+    window.location.search.includes("portal=purohita") ||
+    window.location.search.includes("portal=panchanga") ||
     window.location.search.includes("page=priest_panchanga") ||
-    window.location.hash.includes("#/priest-panchanga")
+    window.location.search.includes("page=priest-panchanga") ||
+    window.location.search.includes("page=panchanga") ||
+    window.location.search.includes("page=purohita") ||
+    window.location.hash.includes("#/priest-panchanga") ||
+    window.location.hash.includes("#/purohita")
   );
 
   const isAcademyRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && (
@@ -75,19 +87,17 @@ export default function App(): JSX.Element {
   );
 
   const isPriestPortalRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && !isDailyRoute && !isPublicKundliRoute && (
-    window.location.pathname.startsWith("/priest") ||
-    window.location.pathname.startsWith("/purohita") ||
+    window.location.pathname.startsWith("/priest-portal") ||
+    window.location.pathname.startsWith("/priest_portal") ||
     window.location.pathname.startsWith("/sankhya") ||
-    window.location.search.includes("portal=priest") ||
-    window.location.search.includes("portal=panchanga") ||
-    window.location.search.includes("portal=purohita") ||
+    window.location.search.includes("portal=priest_admin") ||
     window.location.search.includes("portal=sankhya") ||
     window.location.search.includes("portal=sankhyashastra") ||
     window.location.search.includes("portal=diksuchi") ||
     window.location.search.includes("portal=purva_janma") ||
     window.location.search.includes("portal=vahana_muhurtha") ||
     window.location.search.includes("modules=") ||
-    window.location.hash.includes("#/priest") ||
+    window.location.hash.includes("#/priest-admin") ||
     window.location.hash.includes("#/sankhya")
   );
 

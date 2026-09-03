@@ -2477,6 +2477,55 @@ export default function DailyDarshanaPage(): JSX.Element {
             ))}
           </div>
         </div>
+
+        {/* 👑 Direct Purohita Panchanga Banner (Left & Right Book Details) */}
+        <div style={{ marginBottom: 14 }}>
+          <a
+            href={`/priest-panchanga?date=${mockDay.ymd}&pincode=${userPincode || "581326"}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              background: "linear-gradient(135deg, rgba(217, 119, 6, 0.35) 0%, rgba(120, 53, 15, 0.6) 100%)",
+              border: "1.5px solid #F59E0B",
+              borderRadius: 16,
+              padding: "12px 16px",
+              color: "#FDE68A",
+              textDecoration: "none",
+              boxShadow: "0 4px 16px rgba(0,0,0,0.5)",
+              transition: "all 0.2s ease"
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 24 }}>👑</span>
+              <div style={{ textAlign: "left" }}>
+                <div style={{ fontSize: 13, fontWeight: 900, color: "#FFFFFF" }}>
+                  {lang === "kn" ? "ಪುರೋಹಿತ ಪಂಚಾಂಗ ಮಹಾದರ್ಶನ (Left & Right Page Details)" : "Priest Panchanga (Full Left & Right Page Details)"}
+                </div>
+                <div style={{ fontSize: 10.5, color: "#FDE68A", marginTop: 2 }}>
+                  {lang === "kn" ? "ಹಬ್ಬ-ಹರಿದಿನಗಳು, ೧೨ ಲಗ್ನ ಅಂತ್ಯಗಳು, ಶ್ರಾದ್ಧ ತಿಥಿ & ಗೋಚಾರ ಕುಂಡಲಿ" : "Festivals, 12 Dina Lagnas, Shraddha Tithi & Gochara Kundali"}
+                </div>
+              </div>
+            </div>
+            <div style={{
+              background: "rgba(245, 158, 11, 0.2)",
+              border: "1px solid #F59E0B",
+              borderRadius: 10,
+              padding: "4px 8px",
+              fontSize: 11,
+              fontWeight: 900,
+              color: "#FFF",
+              display: "flex",
+              alignItems: "center",
+              gap: 4
+            }}>
+              <span>{lang === "kn" ? "ವೀಕ್ಷಿಸಿ" : "View"}</span>
+              <span>➜</span>
+            </div>
+          </a>
+        </div>
         
         {/* Devotee Greeting Header (Pavitra Darshana Sannidhi) */}
         <div style={{

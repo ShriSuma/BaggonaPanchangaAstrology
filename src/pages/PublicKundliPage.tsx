@@ -852,6 +852,20 @@ ${publicProfile.name}`;
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-semibold mt-1">
               <span>🏛️ {txt("priestTitle")} : {txt("priestName")}</span>
             </div>
+
+            {/* 👑 Direct Purohita Panchanga Deep Link */}
+            <div className="pt-2">
+              <a
+                href={`/priest-panchanga?date=${new Date().toISOString().slice(0, 10)}&pincode=581326`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-2xl bg-gradient-to-r from-amber-800/90 via-amber-700/90 to-amber-900/90 border border-amber-400/80 text-amber-100 text-xs font-black shadow-md hover:brightness-110 active:scale-95 transition-all"
+              >
+                <span>👑</span>
+                <span>{selectedLang === "kn" ? "ಪುರೋಹಿತ ಪಂಚಾಂಗ ಮಹಾದರ್ಶನ (Left & Right Book Details)" : "Priest Panchanga (Full Left & Right Page Details)"}</span>
+                <span>➜</span>
+              </a>
+            </div>
           </div>
         </div>
       </header>
@@ -1266,6 +1280,29 @@ ${publicProfile.name}`;
                   </span>
                 )}
               </button>
+
+              {/* 👑 Direct Purohita Panchanga Deep Link (Left & Right Book Details) */}
+              <div className="pt-3">
+                <a
+                  href={`/priest-panchanga?date=${new Date().toISOString().slice(0, 10)}&pincode=${form.pincode || "581326"}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-3 px-4 rounded-2xl font-black text-sm tracking-wide text-amber-100 shadow-lg transition-all flex items-center justify-between border-2 border-amber-500/60 bg-gradient-to-r from-amber-950 via-amber-900 to-amber-950 hover:brightness-110 active:scale-98 cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">👑</span>
+                    <div className="text-left">
+                      <div className="text-xs md:text-sm font-black text-amber-200">
+                        {selectedLang === "kn" ? "ಪುರೋಹಿತ ಪಂಚಾಂಗ ಮಹಾದರ್ಶನ (Left & Right Book Details)" : "Priest Panchanga (Full Left & Right Page Details)"}
+                      </div>
+                      <div className="text-[10px] md:text-[11px] text-amber-300/80 font-normal">
+                        {selectedLang === "kn" ? "ಹಬ್ಬ-ಹರಿದಿನಗಳು, ೧೨ ಲಗ್ನ ಅಂತ್ಯಗಳು, ಶ್ರಾದ್ಧ ತಿಥಿ & ಗೋಚಾರ ಫಲಗಳು" : "Festivals, 12 Dina Lagnas, Shraddha Tithi & Gochara Kundali"}
+                      </div>
+                    </div>
+                  </div>
+                  <span className="text-amber-300 font-black text-base md:text-lg">➜</span>
+                </a>
+              </div>
 
               {/* 🪙 Red Floating Deduction Upward Animation Over Yellow Banner When Unlocked */}
               {floatingDeductions.some((d) => d.amount === personalityUnlockCost) && (
