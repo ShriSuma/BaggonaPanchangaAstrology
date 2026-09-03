@@ -117,11 +117,27 @@ export default function PublicKundliPage(): JSX.Element {
   // When an anonymous public devotee accesses /public-kundli, deduct strictly from their
   // isolated Public Guest Wallet (initialized with 2,500 coins), completely shielding wallets/PRIEST!
   const executeSafeDeduction = async (coins: number, description: string, clientName?: string) => {
+    let res: { success: boolean; error?: string };
     if (isPriestAttributed && linkedUserId && linkedUserId !== "PRIEST") {
-      return await deductPriestCoins(linkedUserId, coins, description, clientName);
+      res = await deductPriestCoins(linkedUserId, coins, description, clientName);
     } else {
-      return deductGuestCoins(coins, description);
+      res = deductGuestCoins(coins, description);
     }
+
+    if (res.success) {
+      // Synchronize with global wallet store for universal FloatingCoinDeductionBadge
+      const animId = `deduct_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;
+      useWalletStore.setState((s) => ({
+        recentDeductions: [
+          ...s.recentDeductions.slice(-4),
+          { id: animId, coins, serviceName: description, timestamp: Date.now() }
+        ]
+      }));
+      setTimeout(() => {
+        useWalletStore.getState().clearRecentDeduction(animId);
+      }, 3200);
+    }
+    return res;
   };
 
   // 4. Form State (Janma Kundali Input)

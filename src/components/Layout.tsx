@@ -102,21 +102,33 @@ export default function Layout({ children }: Props): JSX.Element {
   const openRechargeModal = useWalletStore((s) => s.openRechargeModal);
   const openAdminApprovalModal = useWalletStore((s) => s.openAdminApprovalModal);
   const pendingAdminTransactions = useWalletStore((s) => s.pendingAdminTransactions);
+  const currentUser = useAuthStore((s) => s.currentUser);
   const role = useAuthStore((s) => s.role);
+
+  // MANDATORY SECURITY RULE:
+  // ONLY Super Admin and Baggona Master Profile ever get Burger Control & full access!
+  const isMasterOrSuperAdmin =
+    role === "superadmin" ||
+    currentUser?.toLowerCase() === "baggona" ||
+    currentUser?.toLowerCase() === "shrisuma" ||
+    currentUser === "$hriSuma" ||
+    currentUser?.toLowerCase() === "superadmin";
 
   const coinBalance = wallet?.coinBalance ?? 0;
   const isLowCoins = coinBalance < 100;
 
   // Module access permissions
-  const allowedModules: string[] = (wallet?.allowedModules && wallet.allowedModules.length > 0)
+  const allowedModules: string[] = isMasterOrSuperAdmin
+    ? ["public_kundli", "panchanga", "sankhyashastra", "diksuchi", "purva_janma", "vahana_muhurtha"]
+    : (wallet?.allowedModules && wallet.allowedModules.length > 0)
     ? wallet.allowedModules
-    : ["panchanga", "sankhyashastra", "diksuchi", "purva_janma"];
+    : ["public_kundli"];
 
-  const isSuperOrAdmin = role === "superadmin" || role === "admin";
-  const hasPanchanga = isSuperOrAdmin || allowedModules.includes("panchanga");
-  const hasSankhya = isSuperOrAdmin || allowedModules.includes("sankhyashastra");
-  const hasDiksuchi = isSuperOrAdmin || allowedModules.includes("diksuchi");
-  const hasPurvaJanma = isSuperOrAdmin || allowedModules.includes("purva_janma");
+  const hasPanchanga = isMasterOrSuperAdmin || allowedModules.includes("panchanga");
+  const hasSankhya = isMasterOrSuperAdmin || allowedModules.includes("sankhyashastra");
+  const hasDiksuchi = isMasterOrSuperAdmin || allowedModules.includes("diksuchi");
+  const hasPurvaJanma = isMasterOrSuperAdmin || allowedModules.includes("purva_janma");
+  const hasPublicKundli = isMasterOrSuperAdmin || allowedModules.includes("public_kundli");
 
   return (
     <div className="min-h-screen text-[color:var(--jk-card-fg)] overflow-x-hidden relative">
@@ -132,16 +144,27 @@ export default function Layout({ children }: Props): JSX.Element {
       {/* Header with Hamburger & Priest Coin Wallet */}
       <header className="border-b border-slate-800 bg-slate-950 px-3 md:px-4 py-2.5 shadow-md flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <button 
-            onClick={() => setIsDrawerOpen(true)}
-            className="p-2 -ml-1 text-amber-500 hover:text-amber-400 rounded-lg transition-colors focus:outline-none"
-            aria-label="Open Menu"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
-          </button>
+          {/* BURGER CONTROL: Strictly only for Super Admin and Baggona Master Profile */}
+          {isMasterOrSuperAdmin ? (
+            <button 
+              onClick={() => setIsDrawerOpen(true)}
+              className="p-2 -ml-1 text-amber-500 hover:text-amber-400 rounded-lg transition-colors focus:outline-none"
+              aria-label="Open Menu"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+            </button>
+          ) : (
+            <div className="flex items-center gap-1 py-1">
+              <span className="text-xl pl-1 pr-0.5 select-none" aria-hidden>🪔</span>
+            </div>
+          )}
           <div>
             <span className="text-base md:text-lg font-semibold tracking-tight text-amber-400 block leading-tight">{t("app.title")}</span>
-            <p className="text-[10px] md:text-xs text-amber-100/70">{t("app.subtitle")}</p>
+            <p className="text-[10px] md:text-xs text-amber-100/70">
+              {currentUser && !isMasterOrSuperAdmin
+                ? `🙏 ${wallet?.priestName || currentUser}`
+                : t("app.subtitle")}
+            </p>
           </div>
         </div>
 
@@ -218,6 +241,20 @@ export default function Layout({ children }: Props): JSX.Element {
               <span className="hidden sm:inline">{t("app.reset", "Reset")}</span>
             </button>
           )}
+          {/* Direct Sign Out Button for restricted priest profiles without drawer */}
+          {!isMasterOrSuperAdmin && (
+            <button
+              type="button"
+              onClick={() => {
+                useAuthStore.getState().logout();
+              }}
+              className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-rose-300 bg-rose-950/80 border border-rose-500/40 rounded-xl hover:bg-rose-900 transition-colors shadow-sm"
+              title="Sign Out"
+            >
+              <span>🚪</span>
+              <span className="hidden sm:inline">ನಿರ್ಗಮನ</span>
+            </button>
+          )}
         </div>
       </header>
 
@@ -230,110 +267,113 @@ export default function Layout({ children }: Props): JSX.Element {
       <PriestWalletModal />
       <AdminCoinApprovalModal />
 
-      {/* Drawer Overlay */}
-      {isDrawerOpen && (
+      {/* Side Drawer Navigation - STRICTLY ONLY RENDERED FOR MASTER/SUPERADMIN */}
+      {isMasterOrSuperAdmin && isDrawerOpen && (
         <div 
           className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm transition-opacity" 
           onClick={() => setIsDrawerOpen(false)}
         />
       )}
       
-      {/* Side Drawer Navigation */}
-      <div 
-        className={`fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-slate-900 shadow-2xl transform transition-transform duration-300 ease-in-out ${
-          isDrawerOpen ? "translate-x-0" : "-translate-x-full"
-        } flex flex-col overflow-hidden`}
-      >
-        <div className="p-6 border-b border-amber-100 dark:border-slate-800 bg-amber-50/50 dark:bg-slate-900 flex justify-between items-center">
-          <div>
-            <h2 className="text-xl font-bold text-amber-900 dark:text-amber-100">{t("app.title")}</h2>
-            <p className="text-xs text-amber-700/70 dark:text-amber-400/70 mt-1 font-medium tracking-wide">{getNavLabel("menuHeader", language)}</p>
+      {isMasterOrSuperAdmin && (
+        <div 
+          className={`fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-slate-900 shadow-2xl transform transition-transform duration-300 ease-in-out ${
+            isDrawerOpen ? "translate-x-0" : "-translate-x-full"
+          } flex flex-col overflow-hidden`}
+        >
+          <div className="p-6 border-b border-amber-100 dark:border-slate-800 bg-amber-50/50 dark:bg-slate-900 flex justify-between items-center">
+            <div>
+              <h2 className="text-xl font-bold text-amber-900 dark:text-amber-100">{t("app.title")}</h2>
+              <p className="text-xs text-amber-700/70 dark:text-amber-400/70 mt-1 font-medium tracking-wide">{getNavLabel("menuHeader", language)}</p>
+            </div>
+            <button onClick={() => setIsDrawerOpen(false)} className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
           </div>
-          <button onClick={() => setIsDrawerOpen(false)} className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-          </button>
-        </div>
-        
-        <nav className="flex-1 overflow-y-auto py-2">
-          <TabButton page="home" icon="⌂" label={getNavLabel("home", language)} onClose={() => setIsDrawerOpen(false)} />
-          {role === "superadmin" && (
-            <TabButton page="superadmindashboard" icon="🛡️" label={getNavLabel("superadmindashboard", language)} onClose={() => setIsDrawerOpen(false)} />
-          )}
-          <TabButton page="priestdashboard" icon="🪙" label={getNavLabel("priestdashboard", language)} onClose={() => setIsDrawerOpen(false)} />
           
-          {hasPanchanga && (
-            <>
-              <TabButton page="varamahalakshmi" icon="🌸" label={getNavLabel("varamahalakshmi", language)} onClose={() => setIsDrawerOpen(false)} />
-              <TabButton page="kundli" icon="◈" label={getNavLabel("kundli", language)} onClose={() => setIsDrawerOpen(false)} />
-              
-              {(session || isSuperOrAdmin || role === "priest") && (
-                <>
-                  <div className="px-6 py-3 mt-2 mb-1 text-xs font-bold text-amber-700/80 dark:text-amber-500/80 uppercase tracking-widest bg-amber-50/30 dark:bg-slate-800/30">
-                    {getNavLabel("premiumSection", language)}
-                  </div>
-                  <TabButton page="baggona" icon="📜" label={getNavLabel("baggona", language)} onClose={() => setIsDrawerOpen(false)} />
-                  <TabButton page="bhagyodaya" icon="🌟" label={getNavLabel("bhagyodaya", language)} onClose={() => setIsDrawerOpen(false)} />
-                  <TabButton page="predictions" icon="✦" label={getNavLabel("predictions", language)} onClose={() => setIsDrawerOpen(false)} />
-                  <TabButton page="insights" icon="☍" label={getNavLabel("insights", language)} onClose={() => setIsDrawerOpen(false)} />
-                  <TabButton page="ramanbhavishya" icon="📖" label={getNavLabel("ramanbhavishya", language)} onClose={() => setIsDrawerOpen(false)} />
-                  <TabButton page="aiaastrologer" icon="🤖" label={getNavLabel("aiaastrologer", language)} onClose={() => setIsDrawerOpen(false)} />
-                  <TabButton page="seva" icon="🪔" label={getNavLabel("seva", language)} onClose={() => setIsDrawerOpen(false)} />
-                  <div className="my-2 border-t border-slate-100 dark:border-slate-800"></div>
-                </>
-              )}
-              
-              <TabButton page="muhurtha" icon="🔔" label={getNavLabel("muhurtha", language)} onClose={() => setIsDrawerOpen(false)} />
-            </>
-          )}
+          <nav className="flex-1 overflow-y-auto py-2">
+            <TabButton page="home" icon="⌂" label={getNavLabel("home", language)} onClose={() => setIsDrawerOpen(false)} />
+            {role === "superadmin" && (
+              <TabButton page="superadmindashboard" icon="🛡️" label={getNavLabel("superadmindashboard", language)} onClose={() => setIsDrawerOpen(false)} />
+            )}
+            <TabButton page="public_kundli" icon="🌟" label={getNavLabel("public_kundli", language)} onClose={() => setIsDrawerOpen(false)} />
+            <TabButton page="priestdashboard" icon="🪙" label={getNavLabel("priestdashboard", language)} onClose={() => setIsDrawerOpen(false)} />
+            
+            {hasPanchanga && (
+              <>
+                <TabButton page="varamahalakshmi" icon="🌸" label={getNavLabel("varamahalakshmi", language)} onClose={() => setIsDrawerOpen(false)} />
+                <TabButton page="kundli" icon="◈" label={getNavLabel("kundli", language)} onClose={() => setIsDrawerOpen(false)} />
+                
+                {(session || isMasterOrSuperAdmin) && (
+                  <>
+                    <div className="px-6 py-3 mt-2 mb-1 text-xs font-bold text-amber-700/80 dark:text-amber-500/80 uppercase tracking-widest bg-amber-50/30 dark:bg-slate-800/30">
+                      {getNavLabel("premiumSection", language)}
+                    </div>
+                    <TabButton page="baggona" icon="📜" label={getNavLabel("baggona", language)} onClose={() => setIsDrawerOpen(false)} />
+                    <TabButton page="bhagyodaya" icon="🌟" label={getNavLabel("bhagyodaya", language)} onClose={() => setIsDrawerOpen(false)} />
+                    <TabButton page="predictions" icon="✦" label={getNavLabel("predictions", language)} onClose={() => setIsDrawerOpen(false)} />
+                    <TabButton page="insights" icon="☍" label={getNavLabel("insights", language)} onClose={() => setIsDrawerOpen(false)} />
+                    <TabButton page="ramanbhavishya" icon="📖" label={getNavLabel("ramanbhavishya", language)} onClose={() => setIsDrawerOpen(false)} />
+                    <TabButton page="aiaastrologer" icon="🤖" label={getNavLabel("aiaastrologer", language)} onClose={() => setIsDrawerOpen(false)} />
+                    <TabButton page="seva" icon="🪔" label={getNavLabel("seva", language)} onClose={() => setIsDrawerOpen(false)} />
+                    <div className="my-2 border-t border-slate-100 dark:border-slate-800"></div>
+                  </>
+                )}
+                
+                <TabButton page="muhurtha" icon="🔔" label={getNavLabel("muhurtha", language)} onClose={() => setIsDrawerOpen(false)} />
+              </>
+            )}
 
-          {hasSankhya && (
-            <TabButton page="sankhyashastra" icon="🔢" label={getNavLabel("sankhyashastra", language)} onClose={() => setIsDrawerOpen(false)} />
-          )}
+            {hasSankhya && (
+              <TabButton page="sankhyashastra" icon="🔢" label={getNavLabel("sankhyashastra", language)} onClose={() => setIsDrawerOpen(false)} />
+            )}
 
-          {hasPanchanga && (
-            <>
-              <TabButton page="palmreading" icon="✋" label={getNavLabel("palmreading", language)} onClose={() => setIsDrawerOpen(false)} />
-              <TabButton page="facereading" icon="👤" label={getNavLabel("facereading", language)} onClose={() => setIsDrawerOpen(false)} />
-              <TabButton page="maranottara" icon="🪔" label={getNavLabel("maranottara", language)} onClose={() => setIsDrawerOpen(false)} />
-            </>
-          )}
+            {hasPanchanga && (
+              <>
+                <TabButton page="palmreading" icon="✋" label={getNavLabel("palmreading", language)} onClose={() => setIsDrawerOpen(false)} />
+                <TabButton page="facereading" icon="👤" label={getNavLabel("facereading", language)} onClose={() => setIsDrawerOpen(false)} />
+                <TabButton page="maranottara" icon="🪔" label={getNavLabel("maranottara", language)} onClose={() => setIsDrawerOpen(false)} />
+              </>
+            )}
 
-          {hasPurvaJanma && (
-            <TabButton page="hindinajanma" icon="🕉️" label={getNavLabel("hindinajanma", language)} onClose={() => setIsDrawerOpen(false)} />
-          )}
+            {hasPurvaJanma && (
+              <TabButton page="hindinajanma" icon="🕉️" label={getNavLabel("hindinajanma", language)} onClose={() => setIsDrawerOpen(false)} />
+            )}
 
-          {hasPanchanga && (
-            <TabButton page="lifeguidance" icon="🔮" label={getNavLabel("lifeguidance", language)} onClose={() => setIsDrawerOpen(false)} />
-          )}
+            {hasPanchanga && (
+              <TabButton page="lifeguidance" icon="🔮" label={getNavLabel("lifeguidance", language)} onClose={() => setIsDrawerOpen(false)} />
+            )}
 
-          {hasDiksuchi && (
-            <TabButton page="kaaladiksuchi" icon="🧭" label={getNavLabel("kaaladiksuchi", language)} onClose={() => setIsDrawerOpen(false)} />
-          )}
+            {hasDiksuchi && (
+              <TabButton page="kaaladiksuchi" icon="🧭" label={getNavLabel("kaaladiksuchi", language)} onClose={() => setIsDrawerOpen(false)} />
+            )}
 
-          {hasPanchanga && (
-            <>
-              <TabButton page="ayursanjeevini" icon="🛡️" label={getNavLabel("ayursanjeevini", language)} onClose={() => setIsDrawerOpen(false)} />
-              <TabButton page="astrogames" icon="🎮" label={getNavLabel("astrogames", language)} onClose={() => setIsDrawerOpen(false)} />
-              <TabButton page="varshabavishya" icon="🔮" label={getNavLabel("varshabavishya", language)} onClose={() => setIsDrawerOpen(false)} />
-              <TabButton page="melapak" icon="💞" label={getNavLabel("melapak", language)} onClose={() => setIsDrawerOpen(false)} />
-            </>
-          )}
-          <div className="my-2 border-t border-slate-100 dark:border-slate-800"></div>
-          <TabButton page="settings" icon="⚙" label={getNavLabel("settings", language)} onClose={() => setIsDrawerOpen(false)} />
-          <div className="my-2 border-t border-slate-100 dark:border-slate-800"></div>
-          <button
-            type="button"
-            onClick={() => {
-              setIsDrawerOpen(false);
-              useAuthStore.getState().logout();
-            }}
-            className="flex items-center w-full px-6 py-4 text-left text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors font-medium"
-          >
-            <span className="w-8 text-xl" aria-hidden>🚪</span>
-            <span>{getNavLabel("signOut", language)}</span>
-          </button>
-        </nav>
-      </div>
+            {hasPanchanga && (
+              <>
+                <TabButton page="ayursanjeevini" icon="🛡️" label={getNavLabel("ayursanjeevini", language)} onClose={() => setIsDrawerOpen(false)} />
+                <TabButton page="astrogames" icon="🎮" label={getNavLabel("astrogames", language)} onClose={() => setIsDrawerOpen(false)} />
+                <TabButton page="varshabavishya" icon="🔮" label={getNavLabel("varshabavishya", language)} onClose={() => setIsDrawerOpen(false)} />
+                <TabButton page="melapak" icon="💞" label={getNavLabel("melapak", language)} onClose={() => setIsDrawerOpen(false)} />
+              </>
+            )}
+            <div className="my-2 border-t border-slate-100 dark:border-slate-800"></div>
+            <TabButton page="settings" icon="⚙" label={getNavLabel("settings", language)} onClose={() => setIsDrawerOpen(false)} />
+            <div className="my-2 border-t border-slate-100 dark:border-slate-800"></div>
+            <button
+              type="button"
+              onClick={() => {
+                setIsDrawerOpen(false);
+                useAuthStore.getState().logout();
+              }}
+              className="flex items-center w-full px-6 py-4 text-left text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors font-medium"
+            >
+              <span className="w-8 text-xl" aria-hidden>🚪</span>
+              <span>{getNavLabel("signOut", language)}</span>
+            </button>
+          </nav>
+        </div>
+      )}
     </div>
   );
 }
+

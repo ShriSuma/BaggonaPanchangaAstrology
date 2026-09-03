@@ -36,6 +36,8 @@ import { VahanaKharidiMuhurthaTab } from "../../components/muhurtha/VahanaKharid
 import { SankhyaShastraPriestPortal } from "./SankhyaShastraPriestPortal";
 import { DivyaKaalaDiksuchiPage } from "../../pages/DivyaKaalaDiksuchiPage";
 import { HindinaJanmaPage } from "../../pages/HindinaJanmaPage";
+import PublicKundliPage from "../../pages/PublicKundliPage";
+import { FloatingCoinDeductionBadge } from "../../components/wallet/FloatingCoinDeductionBadge";
 import type { AvailableModuleKey } from "../wallet/walletTypes";
 import { exportPanchangaWithDashaPdf, exportElementAsPdf } from "../../core/ExportUtils";
 import { patrikaMetaForNakshatraIndex } from "../../core/nakshatraPatrikaMeta";
@@ -141,6 +143,7 @@ function enrichYogaDescription(name: string, impact: string, lang: string, lagna
 }
 
 export type PriestTab =
+  | "public_kundli"
   | "kundli"
   | "questions"
   | "sankhyashastra"
@@ -201,20 +204,24 @@ export const PriestMobilePortal: React.FC = () => {
     }
     if (wallet?.allowedModules && wallet.allowedModules.length > 0) {
       return wallet.allowedModules.filter((m): m is AvailableModuleKey =>
-        ["panchanga", "sankhyashastra", "diksuchi", "purva_janma", "vahana_muhurtha"].includes(m as any)
+        ["public_kundli", "panchanga", "sankhyashastra", "diksuchi", "purva_janma", "vahana_muhurtha"].includes(m as any)
       );
     }
     const portal = params.get("portal")?.toLowerCase();
+    if (portal === "public_kundli" || portal === "public") return ["public_kundli"];
     if (portal === "sankhyashastra" || portal === "sankhya") return ["sankhyashastra"];
     if (portal === "diksuchi") return ["diksuchi"];
     if (portal === "purva_janma" || portal === "hindinajanma") return ["purva_janma"];
     if (portal === "vahana_muhurtha" || portal === "vahanamuhurtha") return ["vahana_muhurtha"];
     if (portal === "panchanga") return ["panchanga"];
-    return ["panchanga", "sankhyashastra", "diksuchi", "purva_janma", "vahana_muhurtha"];
+    return ["public_kundli", "panchanga", "sankhyashastra", "diksuchi", "purva_janma", "vahana_muhurtha"];
   }, [wallet?.allowedModules]);
 
   const visibleTabs = useMemo(() => {
     const tabs: Array<{ id: PriestTab; label: string; icon: string }> = [];
+    if (allowedModules.includes("public_kundli")) {
+      tabs.push({ id: "public_kundli", label: "ಸಾರ್ವಜನಿಕ ಕುಂಡಲಿ", icon: "🌟" });
+    }
     if (allowedModules.includes("panchanga")) {
       tabs.push({ id: "kundli", label: "ಜನನ ಕುಂಡಲಿ", icon: "🔮" });
       tabs.push({ id: "questions", label: "ಪ್ರಶ್ನೋತ್ತರ", icon: "💬" });
@@ -1490,6 +1497,9 @@ export const PriestMobilePortal: React.FC = () => {
         </div>
       )}
 
+      {/* Floating Coin Deduction Animation Indicator */}
+      <FloatingCoinDeductionBadge />
+
       {/* 1. Royal Brand Header Bar (Golden-White Dual-Tier Mobile-First Theme) */}
       <header className="sticky top-0 z-30 bg-[#FFFDF7]/98 backdrop-blur-md border-b-2 border-amber-400/80 shadow-md">
         {/* Top Brand & Actions Bar */}
@@ -1635,6 +1645,13 @@ export const PriestMobilePortal: React.FC = () => {
             setIsRechargeOpen(true);
           }}
         />
+      )}
+
+      {/* 2. TAB: ಸಾರ್ವಜನಿಕ ಕುಂಡಲಿ & ಅಂತರಂಗ ದರ್ಶನ (Public Kundli & Life Inquest) */}
+      {activeTab === "public_kundli" && (
+        <div className="mt-2">
+          <PublicKundliPage />
+        </div>
       )}
 
       {/* 3. TAB 1: ಜನನ ಕುಂಡಲಿ (Janana Kundli & Dasha-Bhukti) */}

@@ -183,6 +183,13 @@ export const T_DRAWER_NAV: Record<string, Record<SupportedNavLang, string>> = {
     te: "పురోహిత పోర్టల్ & కాయిన్ వాలెట్",
     ta: "புரோகிதர் போர்டல் & நாணய பணப்பை"
   },
+  public_kundli: {
+    kn: "ಸಾರ್ವಜನಿಕ ಕುಂಡಲಿ & ಅಂತರಂಗ ದರ್ಶನ",
+    en: "Public Kundli & Life Inquest",
+    hi: "सार्वजनिक कुंडली एवं अंतरंग दर्शन",
+    te: "సార్వజనిక కుండలి & అంతరంగ దర్శనం",
+    ta: "பொது ஜாதகம் & அந்தரங்க தரிசனம்"
+  },
   superadmindashboard: {
     kn: "ಪ್ರಧಾನ ಆಡಳಿತ ಕೇಂದ್ರ (Super Admin)",
     en: "Super Admin Control Center",

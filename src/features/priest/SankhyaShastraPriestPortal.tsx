@@ -29,6 +29,7 @@ import { hashPassword } from "../auth/authStore";
 import { notifyPasswordResetCompleted, notifySystemFailureAlert } from "../notifications/notificationService";
 import { CoinDeductionModal } from "../../components/wallet/CoinDeductionModal";
 import { FallingCoinsRefillModal } from "../../components/wallet/FallingCoinsRefillModal";
+import { FloatingCoinDeductionBadge } from "../../components/wallet/FloatingCoinDeductionBadge";
 import { SankhyaNumerologyLoader } from "../../components/sankhyashastra/SankhyaNumerologyLoader";
 import { VoiceDictationButton } from "../../components/ui/VoiceDictationButton";
 import AudioPlayerButton from "../../components/ui/AudioPlayerButton";
@@ -777,6 +778,9 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
       }}
       className="min-h-screen bg-[#FAF7F0] text-slate-800 font-sans pb-28 selection:bg-amber-200 selection:text-amber-900"
     >
+      {/* Floating Coin Deduction Animation Indicator */}
+      <FloatingCoinDeductionBadge />
+
       {/* 5-Second Dismissible Royal Welcome Toast */}
       {showWelcomeToast && (
         <div className="sticky top-0 z-50 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-slate-950 px-4 py-2.5 shadow-lg border-b border-amber-400 flex items-center justify-between animate-fadeIn cursor-pointer">

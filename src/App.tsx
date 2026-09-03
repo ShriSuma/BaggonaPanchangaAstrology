@@ -31,6 +31,8 @@ import { SuperAdminDashboard } from "./features/wallet/SuperAdminDashboard";
 import { SankhyaShastraPriestPortal } from "./features/priest/SankhyaShastraPriestPortal";
 import { useAppStore } from "./stores/appStore";
 import { useAuthStore } from "./features/auth/authStore";
+import { useWalletStore } from "./features/wallet/walletStore";
+import { FloatingCoinDeductionBadge } from "./components/wallet/FloatingCoinDeductionBadge";
 import { LoginPage } from "./components/auth/LoginPage";
 import { initDailyReportScheduler } from "./features/reports/dailyScheduler";
 import DailyDarshanaPage from "./pages/DailyDarshanaPage";
@@ -97,6 +99,49 @@ export default function App(): JSX.Element {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const isLoading = useAuthStore((state) => state.isLoading);
   const checkSession = useAuthStore((state) => state.checkSession);
+  const currentUser = useAuthStore((state) => state.currentUser);
+  const role = useAuthStore((state) => state.role);
+  const wallet = useWalletStore((state) => state.wallet);
+  const initWallet = useWalletStore((state) => state.initWallet);
+
+  // Auto-fetch priest wallet when authenticated
+  useEffect(() => {
+    if (isAuthenticated && currentUser) {
+      void initWallet(currentUser);
+    }
+  }, [isAuthenticated, currentUser, initWallet]);
+
+  // MANDATORY SECURITY RBAC GUARD:
+  // Non-master users (e.g. Venkataramana Pandit, new priests) are strictly locked to their allowed modules!
+  const isMasterOrSuperAdmin =
+    role === "superadmin" ||
+    currentUser?.toLowerCase() === "baggona" ||
+    currentUser?.toLowerCase() === "shrisuma" ||
+    currentUser === "$hriSuma" ||
+    currentUser?.toLowerCase() === "superadmin";
+
+  useEffect(() => {
+    if (isAuthenticated && !isMasterOrSuperAdmin && wallet) {
+      const allowed = (wallet.allowedModules && wallet.allowedModules.length > 0)
+        ? wallet.allowedModules
+        : ["public_kundli"];
+
+      const allowedPages: string[] = [];
+      if (allowed.includes("public_kundli")) allowedPages.push("public_kundli");
+      if (allowed.includes("panchanga")) allowedPages.push("priestdashboard", "kundli");
+      if (allowed.includes("sankhyashastra")) allowedPages.push("sankhyashastra");
+      if (allowed.includes("diksuchi")) allowedPages.push("kaaladiksuchi");
+      if (allowed.includes("purva_janma")) allowedPages.push("hindinajanma");
+      if (allowed.includes("vahana_muhurtha")) allowedPages.push("vahanamuhurtha", "muhurtha");
+      allowedPages.push("settings");
+
+      // Auto-redirect unauthorized pages back to their designated allowed module
+      if (!allowedPages.includes(currentPage)) {
+        const targetPage = allowedPages[0] || "public_kundli";
+        useAppStore.getState().setPage(targetPage as any);
+      }
+    }
+  }, [isAuthenticated, isMasterOrSuperAdmin, wallet?.allowedModules, currentPage]);
 
   useEffect(() => {
     const run = async () => {
@@ -180,6 +225,7 @@ export default function App(): JSX.Element {
 
   return (
     <ErrorBoundary>
+      <FloatingCoinDeductionBadge />
       {!consentResolved && (
         <PrivacyConsent
           onResolved={() => {
