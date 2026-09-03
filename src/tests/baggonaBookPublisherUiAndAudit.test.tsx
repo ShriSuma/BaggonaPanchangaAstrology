@@ -63,6 +63,6 @@ describe("Baggona Book Publisher UI & Multi-Year Audit (೧೦೪-ಪುಟಗ�
     expect(screen.getByText(/ಸಂವತ್ಸರ ಮತ್ತು ಶಕ ವರ್ಷ ಆಯ್ಕೆ:/i)).toBeInTheDocument();
 
     // Default viewing page (Page 1)
-    expect(screen.getByText(/ಪುಟ 1 \/ 104/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/ಪುಟ 1 \/ 104/i).length).toBeGreaterThan(0);
   });
 });

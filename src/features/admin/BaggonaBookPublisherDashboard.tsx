@@ -12,6 +12,9 @@ import {
   type BookValidationReport
 } from "../../core/BaggonaBookValidationEngine";
 import { BaggonaBookLoaderModal } from "../../components/admin/BaggonaBookLoaderModal";
+import { UniversalBaggonaPageRenderer } from "../../components/admin/BaggonaBookPageTemplates";
+import { KN_SAMVATSARAS } from "../../core/VedicCalculations";
+import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
 export const BaggonaBookPublisherDashboard: React.FC = () => {
@@ -20,7 +23,6 @@ export const BaggonaBookPublisherDashboard: React.FC = () => {
   const [viewingPageNumber, setViewingPageNumber] = useState<number>(1);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);
   const [showLoaderModal, setShowLoaderModal] = useState<boolean>(false);
-  const [hasGenerated, setHasGenerated] = useState<boolean>(true);
 
   // Metadata & Validation
   const currentMeta: SamvatsaraMetadata = useMemo(() => {
@@ -49,7 +51,52 @@ export const BaggonaBookPublisherDashboard: React.FC = () => {
     return allPages.find((p) => p.pageNumber === viewingPageNumber) || allPages[0];
   }, [allPages, viewingPageNumber]);
 
-  // PDF Download Handler (Press-ready 104-page generator)
+  // 60-Samvatsara Jovian Cycle mapping
+  const ALL_60_SAMVATSARAS = useMemo(() => {
+    return KN_SAMVATSARAS.map((kn, idx) => {
+      // Current cycle: Prabhava is index 0 -> Shaka 1909 (1987) to Akshaya index 59 -> Shaka 1968 (2046)
+      const shaka = 1909 + idx;
+      const gregStart = shaka + 78;
+      return {
+        index: idx,
+        shaka,
+        nameKn: kn,
+        label: `${idx + 1}. ಶ್ರೀ ${kn} ಸಂವತ್ಸರ (ಶಕ ${shaka} / ${gregStart}–${gregStart + 1})`
+      };
+    });
+  }, []);
+
+  // Single-Page High-Resolution PDF Download
+  const handleDownloadSinglePagePdf = async () => {
+    try {
+      setIsGeneratingPdf(true);
+      const pageEl = document.querySelector("#baggona-live-preview-page .pdf-page-a4") as HTMLElement;
+      if (!pageEl) return;
+
+      const canvas = await html2canvas(pageEl, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#FFFDF7"
+      });
+
+      const doc = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4"
+      });
+
+      const imgData = canvas.toDataURL("image/jpeg", 0.95);
+      doc.addImage(imgData, "JPEG", 0, 0, 210, 297);
+      doc.save(`Baggona_Panchanga_${currentMeta.samvatsaraEn}_Page_${currentPage.pageNumber}.pdf`);
+    } catch (err) {
+      console.error("Single page PDF generation failed:", err);
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
+  // Full 104-Page Press-Ready PDF Download (via HTML2Canvas, zero mojibake)
   const handleDownloadPressReadyPdf = async () => {
     try {
       setIsGeneratingPdf(true);
@@ -59,61 +106,30 @@ export const BaggonaBookPublisherDashboard: React.FC = () => {
         format: "a4"
       });
 
-      // Generate all 104 pages into PDF
-      for (let i = 0; i < allPages.length; i++) {
+      const hiddenHost = document.getElementById("baggona-offscreen-render-host");
+      if (!hiddenHost) throw new Error("Offscreen PDF container missing");
+
+      const pageElements = hiddenHost.querySelectorAll(".pdf-page-a4");
+      for (let i = 0; i < pageElements.length; i++) {
+        const pageEl = pageElements[i] as HTMLElement;
+        const canvas = await html2canvas(pageEl, {
+          scale: 1.5,
+          useCORS: true,
+          logging: false,
+          backgroundColor: "#FFFDF7"
+        });
+
+        const imgData = canvas.toDataURL("image/jpeg", 0.92);
         if (i > 0) doc.addPage();
-        const p = allPages[i];
-
-        // Traditional ornamental border
-        doc.setLineWidth(1.2);
-        doc.setDrawColor(120, 53, 15); // amber-900
-        doc.rect(10, 10, 190, 277);
-        doc.setLineWidth(0.4);
-        doc.rect(12, 12, 186, 273);
-
-        // Header
-        doc.setFontSize(14);
-        doc.setTextColor(120, 53, 15);
-        doc.text(`-: ${p.pageNumber} :-`, 105, 18, { align: "center" });
-
-        // Title
-        doc.setFontSize(11);
-        doc.setTextColor(30, 41, 59);
-        doc.text(p.titleKn, 105, 26, { align: "center" });
-
-        // Section details text
-        doc.setFontSize(9);
-        doc.setTextColor(71, 85, 105);
-        doc.text(`Samvatsara: ${p.samvatsaraKn} (Shaka ${p.shakaYear})`, 20, 36);
-        doc.text(`Section: ${p.sectionCategory}`, 20, 42);
-
-        // Page content preview box
-        doc.setFillColor(254, 252, 246);
-        doc.roundedRect(18, 48, 174, 210, 3, 3, "F");
-
-        doc.setFontSize(10);
-        doc.setTextColor(15, 23, 42);
-        doc.text(`॥ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ॥`, 105, 60, { align: "center" });
-        doc.text(`${p.titleKn}`, 105, 68, { align: "center" });
-
-        // Layout template specifics
-        doc.setFontSize(8);
-        doc.setTextColor(100, 116, 139);
-        doc.text(`Layout Template: ${p.layoutTemplateId}`, 24, 80);
-        doc.text(`Verification Hash: BAG-${p.shakaYear}-${p.pageNumber}-OK`, 24, 86);
-        doc.text(`Official Press Stamp: Shri Rama Venkataramana Pandit Trust, Gokarna`, 24, 92);
-
-        // Footer
-        doc.setFontSize(8);
-        doc.setTextColor(146, 64, 14);
-        doc.text(`ಶ್ರೀ ${p.samvatsaraKn} ಸಂವತ್ಸರದ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ — ಪುಟ ${p.pageNumber}/104`, 105, 280, { align: "center" });
+        doc.addImage(imgData, "JPEG", 0, 0, 210, 297);
       }
 
       doc.save(`Baggona_Panchanga_${currentMeta.samvatsaraEn}_Shaka_${currentMeta.shakaYear}_104_Pages_Press_Ready.pdf`);
     } catch (err) {
-      console.error("PDF generation failed:", err);
+      console.error("104-page PDF generation failed:", err);
     } finally {
       setIsGeneratingPdf(false);
+      setShowLoaderModal(false);
     }
   };
 
@@ -154,24 +170,53 @@ export const BaggonaBookPublisherDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Samvatsara Selector Bar */}
+      {/* Samvatsara Selector Bar (All 60 Samvatsaras + Custom Shaka Input) */}
       <div className="bg-amber-50/80 border-2 border-amber-300 rounded-2xl p-5 shadow-sm space-y-4">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <span className="text-base font-black text-amber-950">ಸಂವತ್ಸರ ಮತ್ತು ಶಕ ವರ್ಷ ಆಯ್ಕೆ:</span>
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-sm font-black text-amber-950">ಸಂವತ್ಸರ ಮತ್ತು ಶಕ ವರ್ಷ ಆಯ್ಕೆ:</span>
             <select
               value={selectedShaka}
               onChange={(e) => {
                 setSelectedShaka(Number(e.target.value));
                 setViewingPageNumber(1);
               }}
-              className="px-4 py-2.5 rounded-xl bg-white border-2 border-amber-400 font-bold text-amber-950 text-sm shadow-inner focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="px-4 py-2.5 rounded-xl bg-white border-2 border-amber-400 font-bold text-amber-950 text-sm shadow-inner focus:outline-none focus:ring-2 focus:ring-amber-500 max-w-md"
             >
-              <option value={1948}>ಶ್ರೀ ಪರಾಭವ ಸಂವತ್ಸರ (೨೦೨೬–೨೦೨೭, ಶಕ ೧೯೪೮) • ಅಧಿಕ ಜ್ಯೇಷ್ಠ ಸಹಿತ [13 ಮಾಸಗಳು]</option>
-              <option value={1947}>ಶ್ರೀ ವಿಶ್ವಾವಸು ಸಂವತ್ಸರ (೨೦೨೫–೨೦೨೬, ಶಕ ೧೯೪೭) • ಸಾಮಾನ್ಯ ವರ್ಷ [12 ಮಾಸಗಳು]</option>
-              <option value={1946}>ಶ್ರೀ ಕ್ರೋಧಿ ಸಂವತ್ಸರ (೨೦೨೪–೨೦೨೫, ಶಕ ೧೯೪೬) • ಸಾಮಾನ್ಯ ವರ್ಷ [12 ಮಾಸಗಳು]</option>
-              <option value={1949}>ಶ್ರೀ ಪ್ಲವಂಗ ಸಂವತ್ಸರ (೨೦೨೭–೨೦೨೮, ಶಕ ೧೯೪೯) • ಸಾಮಾನ್ಯ ವರ್ಷ [12 ಮಾಸಗಳು]</option>
+              <optgroup label="ಅಧಿಕೃತ ಆವೃತ್ತಿಗಳು (Benchmark Editions)">
+                <option value={1948}>೩೯. ಶ್ರೀ ಪರಾಭವ ಸಂವತ್ಸರ (೨೦೨೬–೨೦೨೭, ಶಕ ೧೯೪೮) • ಅಧಿಕ ಜ್ಯೇಷ್ಠ [13 ಮಾಸಗಳು]</option>
+                <option value={1947}>೩೮. ಶ್ರೀ ವಿಶ್ವಾವಸು ಸಂವತ್ಸರ (೨೦೨೫–೨೦೨೬, ಶಕ ೧೯೪೭) • ಸಾಮಾನ್ಯ ವರ್ಷ [12 ಮಾಸಗಳು]</option>
+                <option value={1946}>೩೭. ಶ್ರೀ ಕ್ರೋಧಿ ಸಂವತ್ಸರ (೨೦೨೪–೨೦೨೫, ಶಕ ೧೯೪೬) • ಸಾಮಾನ್ಯ ವರ್ಷ [12 ಮಾಸಗಳು]</option>
+                <option value={1949}>೪೦. ಶ್ರೀ ಪ್ಲವಂಗ ಸಂವತ್ಸರ (೨೦೨೭–೨೦೨೮, ಶಕ ೧೯೪೯) • ಸಾಮಾನ್ಯ ವರ್ಷ [12 ಮಾಸಗಳು]</option>
+              </optgroup>
+              <optgroup label="ಸಂಪೂರ್ಣ ೬೦ ಸಂವತ್ಸರಗಳ ಚಕ್ರ (All 60 Samvatsaras Cycle)">
+                {ALL_60_SAMVATSARAS.map((s) => (
+                  <option key={s.shaka} value={s.shaka}>
+                    {s.label}
+                  </option>
+                ))}
+              </optgroup>
             </select>
+
+            {/* Custom Shaka Year Input */}
+            <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-amber-300">
+              <span className="text-xs font-black text-amber-900">ಶಕ ವರ್ಷ:</span>
+              <input
+                type="number"
+                value={selectedShaka}
+                onChange={(e) => {
+                  const val = Number(e.target.value);
+                  if (val > 1000 && val < 3000) {
+                    setSelectedShaka(val);
+                    setViewingPageNumber(1);
+                  }
+                }}
+                className="w-20 px-2 py-1 text-xs font-mono font-black border border-amber-300 rounded bg-amber-50 text-amber-950 focus:outline-none"
+              />
+              <span className="text-[11px] font-semibold text-slate-500">
+                ({currentMeta.gregorianYears} CE)
+              </span>
+            </div>
           </div>
 
           {/* Verification Badge */}
@@ -228,286 +273,139 @@ export const BaggonaBookPublisherDashboard: React.FC = () => {
         }`}
       >
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4 pb-3 border-b border-emerald-200">
-          <div className="flex items-center gap-3">
-            <span className="text-3xl p-2 bg-white rounded-2xl border border-emerald-300 shadow-sm">🛡️</span>
-            <div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">{validationReport.isGreenHighlighted ? "🛡️" : "⚠️"}</span>
               <h2 className="text-lg font-black text-emerald-950">
-                ೪ ಪಂಚಾಂಗ ಪುಸ್ತಕಗಳ ಕ್ರಾಸ್-ವೆರಿಫಿಕೇಶನ್ & ಕ್ವಾಲಿಟಿ ಆಡಿಟ್ ವರದಿ
+                {validationReport.isGreenHighlighted
+                  ? "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ೧೦೪-ಪುಟಗಳ ಗುಣಮಟ್ಟ ಪರಿಶೀಲನೆ (100% Passed)"
+                  : "ಗುಣಮಟ್ಟ ಪರಿಶೀಲನೆ ಅಪೂರ್ಣ"}
               </h2>
-              <p className="text-xs text-emerald-900 font-bold">
-                Automatic Verification against 4 master benchmark PDFs: Krodhi, Vishvavasu, Parabhava, and Plavanga
-              </p>
             </div>
+            <p className="text-xs text-emerald-900 font-medium mt-0.5">
+              ೪ ಅಧಿಕೃತ ಪಂಚಾಂಗಗಳ (ಕ್ರೋಧಿ, ವಿಶ್ವಾವಸು, ಪರಾಭವ, ಪ್ಲವಂಗ) ನೈಜ ದತ್ತಾಂಶ ಹಾಗೂ ವಿನ್ಯಾಸಕ್ಕೆ ಅನುಗುಣವಾಗಿ ತಪಾಸಣೆ.
+            </p>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="px-3 py-1 bg-emerald-600 text-white rounded-full font-black text-xs">
-              {validationReport.passedChecksCount} / {validationReport.totalChecks} ನಿಯಮಗಳು ಪಾಸಾಗಿವೆ (100%)
+
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-bold text-emerald-800">ಒಟ್ಟು ಅಂಕಗಳು:</span>
+            <span className="text-xl font-black font-mono text-emerald-950 bg-white px-3 py-1 rounded-xl border border-emerald-400 shadow-sm">
+              {validationReport.scorePercentage} / 100
             </span>
           </div>
         </div>
 
-        {/* Validation Checks Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {validationReport.checks.map((check) => (
+        {/* 9 Validation Check Badges */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {validationReport.checks.map((chk) => (
             <div
-              key={check.id}
-              className="bg-white/90 backdrop-blur p-3.5 rounded-xl border border-emerald-300 shadow-sm flex items-start gap-2.5"
-            >
-              <span className="text-lg text-emerald-600">✓</span>
-              <div className="flex-1 min-w-0">
-                <h4 className="text-xs font-black text-slate-900 leading-tight">{check.nameKn}</h4>
-                <p className="text-[11px] text-slate-600 mt-0.5 leading-normal">{check.detailsKn}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-4 p-3 bg-emerald-200/50 rounded-xl border border-emerald-300 text-xs font-bold text-emerald-950 flex items-center justify-between">
-          <span>{validationReport.summaryKn}</span>
-          <span className="px-2 py-0.5 bg-emerald-800 text-white text-[10px] rounded uppercase font-black">
-            Approved for Print
-          </span>
-        </div>
-      </div>
-
-      {/* Page Navigation & Filter Bar */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 bg-white p-4 rounded-2xl border-2 border-amber-200 shadow-sm">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-black text-amber-950 mr-1">ವಿಭಾಗ ಫಿಲ್ಟರ್:</span>
-          {[
-            { id: "all", label: "ಎಲ್ಲಾ ೧೦೪ ಪುಟಗಳು" },
-            { id: "Front Matter", label: "ಮುಖಪುಟ & ಪ್ರಸ್ತಾವನೆ (1-10)" },
-            { id: "Annual Astro Overview", label: "ಸಂವತ್ಸರ ಫಲ & ಗ್ರಹಣ (11-19)" },
-            { id: "Varsha Bhavishya", label: "ವರ್ಷಭವಿಷ್ಯ (20-25)" },
-            { id: "Panchanga Dual-Page Left", label: "ಎಡಪುಟ ಪಂಚಾಂಗ (Even)" },
-            { id: "Panchanga Dual-Page Right", label: "ಬಲಪುಟ ಲಗ್ನಗಳು (Odd)" },
-            { id: "Muhurtha & Astrological Tables", label: "ಮುಹೂರ್ತ & ಕೋಷ್ಟಕಗಳು" }
-          ].map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setSelectedSectionFilter(cat.id)}
-              className={`text-xs px-3 py-1.5 rounded-lg font-bold transition-all ${
-                selectedSectionFilter === cat.id
-                  ? "bg-amber-800 text-amber-50 shadow-sm"
-                  : "bg-amber-100/60 text-amber-900 hover:bg-amber-200/70"
+              key={chk.id}
+              className={`p-3 rounded-xl border flex items-start gap-2.5 ${
+                chk.passed
+                  ? "bg-white/90 border-emerald-300 text-emerald-950 shadow-xs"
+                  : "bg-red-100 border-red-300 text-red-950"
               }`}
             >
-              {cat.label}
-            </button>
+              <span className="text-base">{chk.passed ? "✅" : "❌"}</span>
+              <div className="space-y-0.5">
+                <div className="text-xs font-black">{chk.nameKn}</div>
+                <div className="text-[11px] text-slate-600 leading-tight">{chk.detailsKn}</div>
+              </div>
+            </div>
           ))}
-        </div>
-
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-black text-amber-950">ಪುಟಕ್ಕೆ ಹೋಗಿ:</span>
-          <select
-            value={viewingPageNumber}
-            onChange={(e) => setViewingPageNumber(Number(e.target.value))}
-            className="px-3 py-1.5 bg-amber-50 border border-amber-300 rounded-lg text-xs font-bold text-amber-950"
-          >
-            {allPages.map((p) => (
-              <option key={p.pageNumber} value={p.pageNumber}>
-                ಪುಟ {p.pageNumber} — {p.titleKn.substring(0, 30)}
-              </option>
-            ))}
-          </select>
         </div>
       </div>
 
-      {/* Live Press-Ready Layout Page Viewer (Exact Replica Layout) */}
-      <div className="bg-[#FAF7EF] border-4 border-double border-amber-800/60 rounded-3xl p-6 md:p-10 shadow-2xl relative">
-        {/* Classical Header */}
-        <div className="text-center pb-4 border-b-2 border-amber-800/40 relative">
-          <div className="text-xs font-black tracking-widest text-amber-800 uppercase mb-1">
-            -: {currentPage.pageNumber} :-
+      {/* 104-Page Grid & Navigation */}
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-black text-amber-950">
+              ಪುಟಗಳ ಸೂಚಿ ಮತ್ತು ಪೂರ್ವವೀಕ್ಷಣೆ (Page Directory & Preview)
+            </h2>
+            <p className="text-xs text-amber-800">
+              ೧ ರಿಂದ ೧೦೪ ಪುಟಗಳಲ್ಲಿ ಯಾವುದೇ ಪುಟವನ್ನು ಕ್ಲಿಕ್ ಮಾಡಿ ನೈಜ ವಿನ್ಯಾಸ ವೀಕ್ಷಿಸಿ.
+            </p>
           </div>
-          <h2 className="text-xl md:text-2xl font-black text-amber-950">
-            {currentPage.titleKn}
-          </h2>
-          <div className="text-xs font-bold text-amber-900/80 mt-1">
-            ಶ್ರೀ {currentPage.samvatsaraKn} ಸಂವತ್ಸರದ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ (ಶಕ {currentPage.shakaYear})
+
+          {/* Section Filter Pills */}
+          <div className="flex flex-wrap gap-1.5 text-xs font-bold">
+            {[
+              { id: "all", label: "ಎಲ್ಲಾ ಪುಟಗಳು (104)" },
+              { id: "front_matter", label: "ಮುಖಪುಟ (1-10)" },
+              { id: "astronomy_forecast", label: "ಫಲಶ್ರುತಿ/ಗ್ರಹಣ (11-19)" },
+              { id: "rashi_bhavishya", label: "ವರ್ಷಭವಿಷ್ಯ (20-25)" },
+              { id: "classical_rituals", label: "ಆಶೌಚ/ಮುಹೂರ್ತ (26-39)" },
+              { id: "daily_panchanga", label: "ದೈನಂದಿನ ಪಂಚಾಂಗ (40-91)" },
+              { id: "back_matter", label: "ಅಂತಿಮ ಕೋಷ್ಟಕಗಳು (92-104)" }
+            ].map((f) => (
+              <button
+                key={f.id}
+                onClick={() => setSelectedSectionFilter(f.id)}
+                className={`px-3 py-1.5 rounded-lg transition-all ${
+                  selectedSectionFilter === f.id
+                    ? "bg-amber-800 text-white shadow-sm"
+                    : "bg-amber-100 text-amber-950 hover:bg-amber-200"
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* Page Content Render Body based on layoutTemplateId */}
-        <div className="py-6 min-h-[420px]">
-          {/* 1. Page 1: Table of Contents & Rahukala */}
-          {currentPage.layoutTemplateId === "page_01_index_and_rahukala" && (
-            <div className="space-y-6">
-              <div className="text-center">
-                <span className="px-4 py-1 border-y-2 border-amber-800 text-sm font-black text-amber-950">
-                  --: ಅವತರಣಿಕೆ :--
-                </span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-bold text-amber-950">
-                <div className="border border-amber-300 rounded-xl overflow-hidden bg-white">
-                  <div className="bg-amber-100/80 p-2 font-black border-b border-amber-300 flex justify-between">
-                    <span>ವಿವರಣೆ</span>
-                    <span>ಪುಟ ಸಂಖ್ಯೆ</span>
-                  </div>
-                  <div className="p-2 space-y-1 max-h-80 overflow-y-auto">
-                    {currentPage.contentData.toc.slice(0, 17).map((item: any) => (
-                      <div key={item.serialNo} className="flex justify-between border-b border-amber-100 py-0.5">
-                        <span>{item.serialNo}. {item.titleKn}</span>
-                        <span className="font-mono font-black">{item.pageRange}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+        {/* Compact Page Number Matrix */}
+        <div className="bg-amber-50/60 p-4 rounded-2xl border border-amber-200 shadow-inner max-h-48 overflow-y-auto">
+          <div className="grid grid-cols-8 sm:grid-cols-13 gap-1.5 text-xs text-center font-bold">
+            {filteredPages.map((p) => {
+              const isSelected = p.pageNumber === viewingPageNumber;
+              return (
+                <button
+                  key={p.pageNumber}
+                  onClick={() => setViewingPageNumber(p.pageNumber)}
+                  className={`p-1.5 rounded-lg border transition-all ${
+                    isSelected
+                      ? "bg-amber-900 text-white border-amber-950 ring-2 ring-amber-500 scale-105"
+                      : "bg-white text-amber-900 border-amber-200 hover:bg-amber-100"
+                  }`}
+                  title={`${p.pageNumber}. ${p.titleKn}`}
+                >
+                  <span className="block font-mono text-[11px] font-black">{p.pageNumber}</span>
+                  <span className="block text-[8px] truncate font-medium">{p.layoutTemplateId.substring(0, 4)}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
 
-                <div className="space-y-3">
-                  <div className="border border-amber-300 rounded-xl overflow-hidden bg-white">
-                    <div className="bg-amber-100/80 p-2 font-black border-b border-amber-300 flex justify-between">
-                      <span>ವಿವರಣೆ</span>
-                      <span>ಪುಟ ಸಂಖ್ಯೆ</span>
-                    </div>
-                    <div className="p-2 space-y-1 max-h-44 overflow-y-auto">
-                      {currentPage.contentData.toc.slice(17).map((item: any) => (
-                        <div key={item.serialNo} className="flex justify-between border-b border-amber-100 py-0.5">
-                          <span>{item.serialNo}. {item.titleKn}</span>
-                          <span className="font-mono font-black">{item.pageRange}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+      {/* Live Page Preview Frame (Actual High-Fidelity Baggona Print Frame) */}
+      <div className="bg-amber-50/70 border-2 border-amber-300 rounded-3xl p-6 shadow-md space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b-2 border-amber-800/30 gap-2">
+          <div>
+            <span className="text-xs font-black uppercase text-amber-800 bg-amber-200/80 px-2.5 py-0.5 rounded-full">
+              ಪುಟ {currentPage.pageNumber} / 104 • {currentPage.sectionCategory}
+            </span>
+            <h3 className="text-xl font-black text-amber-950 mt-1">{currentPage.titleKn}</h3>
+          </div>
 
-                  {/* Rahukala & Gulikakala table */}
-                  <div className="border border-amber-300 rounded-xl overflow-hidden bg-white">
-                    <div className="bg-amber-900 text-white p-2 font-black text-center">
-                      ರಾಹುಕಾಲ ಮತ್ತು ಗುಳಿಕಕಾಲ ಕೋಷ್ಟಕ
-                    </div>
-                    <div className="p-2 text-[11px] grid grid-cols-2 gap-1">
-                      {currentPage.contentData.rahukalaTable.map((row: any) => (
-                        <div key={row.weekdayKn} className="border-b border-amber-100 py-0.5 flex justify-between">
-                          <span>{row.weekdayKn}</span>
-                          <span>ರಾ: {row.rahu} | ಗು: {row.gulika}</span>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="p-2 text-[10px] text-amber-900 bg-amber-50/80 border-t border-amber-200">
-                      {currentPage.contentData.sunriseWarningKn}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleDownloadSinglePagePdf}
+              disabled={isGeneratingPdf}
+              className="px-4 py-2 bg-amber-800 hover:bg-amber-900 text-white font-black text-xs rounded-xl shadow flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
+            >
+              <span>📄</span>
+              <span>ಪುಟ {currentPage.pageNumber} ಮಾತ್ರ ಡೌನ್‌ಲೋಡ್ (High-Res PDF)</span>
+            </button>
+          </div>
+        </div>
 
-          {/* 2. Page 9: Prastavane & Shraddha Nirnaya */}
-          {currentPage.layoutTemplateId === "prastavane_and_shraddha_nirnaya" && (
-            <div className="space-y-4 text-xs font-serif text-amber-950">
-              <div className="p-4 bg-white rounded-xl border border-amber-300 space-y-2">
-                <h4 className="font-black text-sm text-amber-900">ಪ್ರಸ್ತಾವನೆ</h4>
-                <p className="leading-relaxed">{currentPage.contentData.editorIntroductionKn}</p>
-              </div>
-              <div className="p-4 bg-white rounded-xl border border-amber-300 space-y-2">
-                <h4 className="font-black text-sm text-amber-900">ಶ್ರಾದ್ಧ ತಿಥಿ ನಿರ್ಣಯ ಸೂತ್ರಗಳು</h4>
-                <p className="leading-relaxed">{currentPage.contentData.shraddhaRulesKn}</p>
-              </div>
-            </div>
-          )}
-
-          {/* 3. Page 12: Navanayakas & Year Result */}
-          {currentPage.layoutTemplateId === "navanayakas_and_year_result" && (
-            <div className="space-y-4">
-              <div className="text-center font-black text-amber-900 text-sm">
-                ॥ ಶ್ರೀ {currentPage.samvatsaraKn} ಸಂವತ್ಸರಸ್ಯ ರಾಜಾದಿ ನವಾಧಿಪತಯಃ ॥
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                {Object.entries(currentPage.contentData.navanayakagalu).map(([key, nayaka]: any) => (
-                  <div key={key} className="bg-white p-3.5 rounded-xl border border-amber-300 shadow-sm space-y-1">
-                    <div className="flex justify-between items-center border-b border-amber-200 pb-1">
-                      <span className="font-black text-amber-950 text-xs">{nayaka.titleKn}:</span>
-                      <span className="font-black text-amber-800 text-sm bg-amber-100 px-2.5 py-0.5 rounded-full">
-                        {nayaka.lordKn}
-                      </span>
-                    </div>
-                    <div className="text-[10px] italic text-amber-800/90 font-serif pt-1">{nayaka.shloka}</div>
-                    <p className="text-[11px] text-slate-800 font-medium leading-relaxed">{nayaka.phalaKn}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* 4. Panchanga Left Page (Even Page: 10 Columns) */}
-          {currentPage.layoutTemplateId === "panchanga_left_even_page" && (
-            <div className="space-y-4">
-              <div className="bg-white rounded-xl border-2 border-amber-400 overflow-x-auto shadow-sm">
-                <table className="w-full text-[11px] text-left border-collapse">
-                  <thead>
-                    <tr className="bg-amber-900 text-white font-black text-[10px] text-center border-b border-amber-950">
-                      <th className="p-1 border-r border-amber-800">ಸೌರ</th>
-                      <th className="p-1 border-r border-amber-800">ಚಾಂದ್ರ/ವಾರ</th>
-                      <th className="p-1 border-r border-amber-800">ತಿಥಿ ಅಂತ್ಯ (ಘ/ಗಂ)</th>
-                      <th className="p-1 border-r border-amber-800">ರವಿನಕ್ಷತ್ರ</th>
-                      <th className="p-1 border-r border-amber-800">ಚಂದ್ರನಕ್ಷತ್ರ ಅಂತ್ಯ</th>
-                      <th className="p-1 border-r border-amber-800">ಯೋಗ</th>
-                      <th className="p-1 border-r border-amber-800">ಕರಣ</th>
-                      <th className="p-1 border-r border-amber-800">ವಿಷ/ಅಮೃತ ಘಟಿ</th>
-                      <th className="p-1 border-r border-amber-800">ದಿನಪ್ರಮಾಣ</th>
-                      <th className="p-1">ಶ್ರಾದ್ಧ ತಿಥಿ & ಧಾರ್ಮಿಕ ವಿಶೇಷಗಳು</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map((d) => (
-                      <tr key={d} className={`border-b border-amber-200 text-center ${d % 2 === 0 ? "bg-amber-50/40" : "bg-white"}`}>
-                        <td className="p-1 font-black border-r border-amber-200">{d}</td>
-                        <td className="p-1 font-bold border-r border-amber-200">ಪಾಡ್ಯ {["ರವಿ", "ಚಂ", "ಕು", "ಬು", "ಗು", "ಶು", "ಶ"][d % 7]}</td>
-                        <td className="p-1 border-r border-amber-200 font-mono">15/46 (12:49)</td>
-                        <td className="p-1 border-r border-amber-200">ರೇವತಿ 4</td>
-                        <td className="p-1 border-r border-amber-200 font-mono">ಅಶ್ವಿನಿ 13/44</td>
-                        <td className="p-1 border-r border-amber-200">ಸುಕರ್ಮ</td>
-                        <td className="p-1 border-r border-amber-200">ಬವ</td>
-                        <td className="p-1 border-r border-amber-200 font-mono">18/45 - 28/44</td>
-                        <td className="p-1 border-r border-amber-200 font-mono">30-15</td>
-                        <td className="p-1 text-left font-semibold">ಪಾಡ್ಯ ಶ್ರಾದ್ಧ | ವತ್ಸರಾರಂಭಃ</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="p-3 bg-white rounded-xl border border-amber-300 text-xs font-bold text-center text-amber-900">
-                ಮಾಸಾಂತ ಸೂರ್ಯೋದಯ ಗ್ರಹಸ್ಪಷ್ಟ ಕೋಷ್ಟಕ & ದಕ್ಷಿಣ ಭಾರತೀಯ ಚೌಕ ಗ್ರಹಕುಂಡಲಿ (South Indian Graha Chakra)
-              </div>
-            </div>
-          )}
-
-          {/* 5. Panchanga Right Page (Odd Page: 12 Lagna Endings & Graha Spashta) */}
-          {currentPage.layoutTemplateId === "panchanga_right_odd_page" && (
-            <div className="space-y-4">
-              <div className="p-3 bg-white rounded-xl border border-amber-300 text-xs font-black text-center text-amber-950">
-                ಗೋಕರ್ಣ ಅಕ್ಷಾಂಶ ೧೪° ೩೨' ಕ್ಕೆ ದಿವಾ ಲಗ್ನಗಳ ಸಮಾಪ್ತಿ ಕಾಲ (ಗಂಟೆ-ನಿಮಿಷ) & ನಿತ್ಯ ಗ್ರಹಸ್ಪಷ್ಟ
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-                {["ಮೇಷ: 07:15", "ವೃಷಭ: 09:27", "ಮಿಥುನ: 11:38", "ಕರ್ಕಾಟಕ: 13:43", "ಸಿಂಹ: 15:46", "ಕನ್ಯಾ: 17:54", "ತುಲಾ: 20:06", "ವೃಶ್ಚಿಕ: 22:14", "ಧನು: 24:08", "ಮಕರ: 25:49", "ಕುಂಭ: 27:27", "ಮೀನ: 29:14"].map((l) => (
-                  <div key={l} className="bg-white p-2 rounded-lg border border-amber-200 font-mono font-bold text-center">
-                    {l}
-                  </div>
-                ))}
-              </div>
-              <div className="p-3 bg-amber-100/60 rounded-xl border border-amber-300 text-xs font-semibold text-amber-900 text-center">
-                ಚಂದ್ರ ನಕ್ಷತ್ರ ಚರಣ ಸಮಾಪ್ತಿಯ ಗಂಟೆ.ಮಿನಿಟು ಮತ್ತು ಸೂರ್ಯೋದಯ ಕಾಲದ ಗ್ರಹಸ್ಪಷ್ಟ ಕೋಷ್ಟಕ
-              </div>
-            </div>
-          )}
-
-          {/* 6. Default Content Fallback */}
-          {currentPage.layoutTemplateId !== "page_01_index_and_rahukala" &&
-            currentPage.layoutTemplateId !== "prastavane_and_shraddha_nirnaya" &&
-            currentPage.layoutTemplateId !== "navanayakas_and_year_result" &&
-            currentPage.layoutTemplateId !== "panchanga_left_even_page" &&
-            currentPage.layoutTemplateId !== "panchanga_right_odd_page" && (
-              <div className="p-8 bg-white rounded-2xl border-2 border-amber-200 text-center space-y-3">
-                <div className="text-3xl">📜</div>
-                <h3 className="text-lg font-black text-amber-950">{currentPage.titleKn}</h3>
-                <p className="text-xs text-amber-800 max-w-xl mx-auto font-medium">
-                  {currentPage.samvatsaraKn} ಸಂವತ್ಸರದ ಅಧಿಕೃತ ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಪುಟ {currentPage.pageNumber} ರ ಶಾಸ್ತ್ರೀಯ ಲೇಖನ, ಕೋಷ್ಟಕ ಮತ್ತು ವಿನ್ಯಾಸ.
-                </p>
-                <div className="inline-block px-3 py-1 bg-amber-100 text-amber-900 rounded-lg text-[10px] font-mono font-bold">
-                  Template ID: {currentPage.layoutTemplateId} • Section: {currentPage.sectionCategory}
-                </div>
-              </div>
-            )}
+        {/* Live Authentic Render of Current Page */}
+        <div className="flex justify-center items-center py-4 bg-amber-950/20 rounded-2xl overflow-x-auto shadow-inner p-2">
+          <div id="baggona-live-preview-page" className="scale-90 sm:scale-100 origin-top shadow-2xl">
+            <UniversalBaggonaPageRenderer page={currentPage} meta={currentMeta} />
+          </div>
         </div>
 
         {/* Page Navigation Footer */}
@@ -532,6 +430,28 @@ export const BaggonaBookPublisherDashboard: React.FC = () => {
             ಮುಂದಿನ ಪುಟ ({viewingPageNumber + 1}) →
           </button>
         </div>
+      </div>
+
+      {/* Offscreen Container for HTML2Canvas PDF Rendering (Conforms strictly to baggona-pdf-layout-guard) */}
+      <div
+        id="baggona-offscreen-render-host"
+        style={{
+          position: "fixed",
+          left: 0,
+          top: 0,
+          width: 794,
+          opacity: 0,
+          pointerEvents: "none",
+          zIndex: -1,
+          overflow: "hidden",
+          height: 0
+        }}
+      >
+        {allPages.map((p) => (
+          <div key={p.pageNumber} className="pdf-page-a4">
+            <UniversalBaggonaPageRenderer page={p} meta={currentMeta} />
+          </div>
+        ))}
       </div>
 
       {/* Interactive Baggona Front Cover Loader Modal */}
