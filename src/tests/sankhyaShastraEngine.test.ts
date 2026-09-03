@@ -103,13 +103,11 @@ describe("Sankhya Shastra Prashna Engine", () => {
     expect(result.suspectAndLocationProfile.kn).toBeTruthy();
     expect(result.remedyRecommendation.kn).toBeTruthy();
 
-    // Verify 6-paragraph structure starting with Priest Direct Verdict FIRST
-    expect(result.aiPrediction).toMatch(/(೧\.|ಅರ್ಚಕರ ನೇರ|ಪ್ರಶ್ನೆಗೆ)/);
-    expect(result.aiPrediction).toMatch(/(೨\.|ಮೂಲ)/);
-    expect(result.aiPrediction).toMatch(/(೩\.|ವಸ್ತು\/ಸ್ಥಳ\/ವ್ಯಕ್ತಿಯ ಸ್ಥಿತಿ)/);
-    expect(result.aiPrediction).toMatch(/(೪\.|ನಿಖರ ಫಲ ಕಾಲಾವಧಿ)/);
-    expect(result.aiPrediction).toMatch(/(೫\.|ಗೋಕರ್ಣ)/);
-    expect(result.aiPrediction).toMatch(/(೬\.|ಅರ್ಚಕರ|ಗುರುಗಳ)/);
+    // Verify 2-paragraph structure starting with Priest Direct Screen Observation & Verdict FIRST
+    const paras = result.aiPrediction.split(/\n\n+/).filter((p) => p.trim().length > 0);
+    expect(paras).toHaveLength(2);
+    expect(paras[0]).toMatch(/(ನೋಡಿ ಭಕ್ತರೇ|ಸಂಖ್ಯಾ ಕುಂಡಲಿ|ಪ್ರತ್ಯಕ್ಷವಾಗಿ ನೋಡುತ್ತಿದ್ದೇನೆ)/);
+    expect(paras[1]).toMatch(/(ಸಾಕಾರಗೊಳ್ಳಲಿದೆ|ಗೋಕರ್ಣ-ಬಗ್ಗೋಣ ದೈವಿಕ|ಸಾಕ್ಷಾತ್ ಆಶೀರ್ವದಿಸುತ್ತೇನೆ)/);
   });
 });
 

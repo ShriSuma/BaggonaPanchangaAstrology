@@ -88,11 +88,9 @@ describe("Sankhya Shastra Priest Portal & Engine Validation", () => {
     expect(result.varnaDescriptionKn).toBeDefined();
     expect(result.lostArticleOrPersonKn).toBeDefined();
     expect(result.lostArticleOrPersonKn.length).toBeGreaterThan(10);
-    expect(result.technicalParagraphs).toHaveLength(4);
-    expect(result.technicalParagraphs[0].titleKn).toMatch(/(೧\.|ನಿರ್ಣಯ|ವಿಶ್ಲೇಷಣೆ)/);
-    expect(result.technicalParagraphs[1].titleKn).toMatch(/(೨\.|ತರಂಗ|ಮನಸ್ಥಿತಿ|ವರ್ಗ)/);
-    expect(result.technicalParagraphs[2].titleKn).toMatch(/(೩\.|ಪರಿಹಾರ|ಸಂವಹನ)/);
-    expect(result.technicalParagraphs[3].titleKn).toMatch(/(೪\.|ದೈವಿಕ|ಕಾಲಾವಧಿ)/);
+    expect(result.technicalParagraphs).toHaveLength(2);
+    expect(result.technicalParagraphs[0].titleKn).toMatch(/(೧\.|ಕುಂಡಲಿ|ನಿರ್ಣಯ|ವಿಶ್ಲೇಷಣೆ)/);
+    expect(result.technicalParagraphs[1].titleKn).toMatch(/(೨\.|ಕಾಲಾವಧಿ|ಪರಿಹಾರ)/);
     expect(result.remedyListKn.length).toBeGreaterThan(0);
   });
 

@@ -631,49 +631,17 @@ export async function executeSankhyaShastraPrashna(
     9: { kn: "ಶ್ರೀ ಸುಬ್ರಹ್ಮಣ್ಯ ಅಷ್ಟೋತ್ತರ ಪಾರಾಯಣ, ಮಂಗಳವಾರ ಕೆಂಪು ಹೂವಿನ ಅರ್ಚನೆ ಹಾಗೂ ಋಣವಿಮೋಚಕ ಸ್ತೋತ್ರ.", en: "Chant Sri Subramanya Ashtottaram & offer red flowers on Tuesdays for debt/obstacle freedom." }
   };
 
-  // 8. Deterministic Fallback 6-Paragraph Builder
-  const buildDeterministic6ParagraphReading = (): string => {
+  // 8. Deterministic Fallback 2-Paragraph Builder
+  const buildDeterministic2ParagraphReading = (): string => {
     if (langCode === "kn") {
-      return `೧. ಅರ್ಚಕರ ನೇರ ಶಾಸ್ತ್ರೀಯ ನಿರ್ಣಯ & ಪರಿಸ್ಥಿತಿ ವಿಶ್ಲೇಷಣೆ:
-ನೋಡಿ ಭಕ್ತರೇ, ನೀವು ಕೇಳಿರುವ ಪ್ರಶ್ನೆಯನ್ನು ("${rawQuestion}") ವೈದಿಕ ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಹಾಗೂ ಗೋಕರ್ಣ-ಬಗ್ಗೋಣ ಕ್ಷೇತ್ರದ ಪವಿತ್ರ ಪ್ರಶ್ನಾ ಲಗ್ನದ ಮೂಲಕ ನಾವು ಅವಲೋಕಿಸಿದಾಗ ವಾಸ್ತವ ಚಿತ್ರಣವು ಅತ್ಯಂತ ಸ್ಪಷ್ಟವಾಗಿ ಗೋಚರಿಸುತ್ತಿದೆ. ನಿಮ್ಮ ಪ್ರಶ್ನೆಯ ಸಂಖ್ಯಾ ಬಲವು ಶೇಕಡಾ ${finalScore}% ಇದ್ದು, ${verdictLabels[verdictCat].kn} ಸಿದ್ಧಿಯಾಗಲಿದೆ. ಸದ್ಯದ ಪರಿಸ್ಥಿತಿಯಲ್ಲಿ ಮಾನಸಿಕ ತೊಳಲಾಟವಿದ್ದರೂ, ಕಾಲಚಕ್ರವು ನಿಧಾನವಾಗಿ ನಿಮ್ಮ ಅನುಕೂಲಕ್ಕೆ ತಿರುಗುತ್ತಿದೆ. ಯಾವುದೇ ಕಾರಣಕ್ಕೂ ಧೃತಿಗೆಡದೆ, ಶಾಸ್ತ್ರೀಯ ಮಾರ್ಗದಲ್ಲಿ ಮುನ್ನಡೆದರೆ ನಿಮ್ಮ ಸಂಕಲ್ಪವು ಸಾಕಾರಗೊಳ್ಳಲಿದೆ.
+      return `ನೋಡಿ ಭಕ್ತರೇ, ನಿಮ್ಮ ಈ ಪ್ರಶ್ನೆಯನ್ನು ("${rawQuestion}") ನಿಮ್ಮ ಸಂಖ್ಯಾ ಕುಂಡಲಿ ಹಾಗೂ ಪ್ರಶ್ನಾ ಲಗ್ನದ ಗಣಿತದಲ್ಲಿ ನಾನು ಸ್ಕ್ರೀನ್ ಮೇಲೆ ಪ್ರತ್ಯಕ್ಷವಾಗಿ ನೋಡುತ್ತಿದ್ದೇನೆ. ನೀವು ಆಯ್ದ ಸಂಖ್ಯಾ ಬಲ ${userNumber} ರ ಏಕಾಂಕ ${rootNum} ಆಗಿದ್ದು, ಇದರ ನೇರ ಅಧಿಪತಿ ಗ್ರಹ ${rootData.ruler.kn} ಮತ್ತು ರಕ್ಷಕ ದೇವತೆ ${rootData.deity.kn}. ಪ್ರಸ್ತುತ ಪ್ರಶ್ನಾ ಲಗ್ನವು ${houseNum}ನೇ ಮನೆಯಾದ ${lagnaName.kn} ರಾಶಿಯಲ್ಲಿ ಉದಯಿಸಿದ್ದು, ಇದರ ಅಧಿಪತಿ ${lagnaLord.kn} ಹಾಗೂ ಕಾರ್ಯ ಸ್ಥಾನವಾದ ${karyaLabel.kn} ದಲ್ಲಿ ಗೋಚಾರ ಗ್ರಹಗಳು ಸಂಚರಿಸುತ್ತಿವೆ. ನಿಮ್ಮ ಪ್ರಶ್ನೆಗೆ ನೇರ ಶಾಸ್ತ್ರೀಯ ನಿರ್ಣಯವೇನೆಂದರೆ: ನಿಮ್ಮ ಪ್ರಶ್ನೆಯ ಸಂಖ್ಯಾ ಬಲವು ಶೇಕಡಾ ${finalScore}% ರಷ್ಟಿದ್ದು, ${verdictLabels[verdictCat].kn} ಸಿದ್ಧಿಯಾಗಲಿದೆ. ಸದ್ಯದ ಗೊಂದಲವು ತಾತ್ಕಾಲಿಕವಾಗಿದ್ದು, ${objSuspectInfo.objectMobility.kn} ${dirInfo.labels.kn}: ${dirInfo.environmentalMarker.kn} ${objSuspectInfo.suspectProfile.kn} ಯಾವುದೇ ಕಾರಣಕ್ಕೂ ಧೃತಿಗೆಡದೆ, ಶಾಸ್ತ್ರೀಯ ಮಾರ್ಗದಲ್ಲಿ ಮುನ್ನಡೆದರೆ ನಿಮ್ಮ ಸಂಕಲ್ಪವು ಸಾಕಾರಗೊಳ್ಳಲಿದೆ.
 
-೨. ಮೂಲ ಗ್ರಹಾಧಿಪತ್ಯ & ಸಂಖ್ಯಾ-ತರಂಗ ವಿಶ್ಲೇಷಣೆ:
-ನೀವು ಆಯ್ಕೆ ಮಾಡಿದ ಸಂಖ್ಯಾ ಬಲ ${userNumber} ರ ಏಕಾಂಕ ${rootNum} ಆಗಿದ್ದು, ಇದರ ನೇರ ಅಧಿಪತಿ ಗ್ರಹ ${rootData.ruler.kn} ಮತ್ತು ರಕ್ಷಕ ದೇವತೆ ${rootData.deity.kn}. ಪ್ರಸ್ತುತ ಪ್ರಶ್ನಾ ಲಗ್ನವು ${houseNum}ನೇ ಮನೆಯಾದ ${lagnaName.kn} ರಾಶಿಯಲ್ಲಿ ಉದಯಿಸಿದ್ದು, ಇದರ ಅಧಿಪತಿ ${lagnaLord.kn}. ಗೋಚಾರ ಗ್ರಹಗಳ ಸೂಕ್ಷ್ಮ ಸಂಚಾರ ಹಾಗೂ ಕಾರ್ಯ ಸ್ಥಾನವಾದ ${karyaLabel.kn} ದ ಪ್ರಭಾವದಿಂದಾಗಿ ಈ ಸನ್ನಿವೇಶವು ಸೃಷ್ಟಿಯಾಗಿದೆ. ದೈವಿಕ ಸಂಖ್ಯಾ ತರಂಗವು ನಿಮ್ಮ ಪರವಾಗಿದ್ದು, ವಿಘ್ನಗಳು ನಿಧಾನವಾಗಿ ಕರಗಲಿವೆ.
-
-೩. ವಸ್ತು/ಸ್ಥಳ/ವ್ಯಕ್ತಿಯ ಸ್ಥಿತಿ, ಚಲನೆ ಹಾಗೂ ದಿಕ್ಕಿನ ಮಾರ್ಗದರ್ಶನ:
-${objSuspectInfo.objectMobility.kn}
-${dirInfo.labels.kn}: ${dirInfo.environmentalMarker.kn}
-${objSuspectInfo.suspectProfile.kn}
-
-೪. ನಿಖರ ಫಲ ಕಾಲಾವಧಿ & ಮುನ್ನಡೆಯ ಹಂತಗಳು:
-${timeHorizonLabels[mobility].kn}. ಈ ಕಾರ್ಯದ ಸಿದ್ಧಿಗಾಗಿ ನೀವು ವಿಳಂಬ ಮಾಡದೆ, ಶಾಂತಚಿತ್ತರಾಗಿ ಮೇಲ್ಕಂಡ ದಿಕ್ಕಿನಲ್ಲಿ ಹಾಗೂ ಸೂಚಿತ ಸ್ಥಳಗಳಲ್ಲಿ ಪ್ರಯತ್ನ ಮುಂದುವರಿಸಿ. ಆಪ್ತರ ಜತೆ ಸೌಮ್ಯ ಸಂವಾದ ನಡೆಸಿ, ಅಗತ್ಯ ದಾಖಲೆಗಳನ್ನು ಮರುಪರಿಶೀಲಿಸಿ ಮುನ್ನಡೆಯುವುದು ಅತ್ಯಂತ ಶ್ರೇಯಸ್ಕರ.
-
-೫. ಗೋಕರ್ಣ-ಬಗ್ಗೋಣ ದೈವಿಕ ಮಹಾ ಪರಿಹಾರ & ಮಂತ್ರ ಜಪ:
-ಈ ಕಾರ್ಯದಲ್ಲಿ ಎದುರಾಗಬಹುದಾದ ಸೂಕ್ಷ್ಮ ದೋಷಗಳನ್ನು ನಿವಾರಿಸಲು: ${remedyLabels[rootNum]?.kn || remedyLabels[1]!.kn}. ಪ್ರತಿದಿನ ಮುಂಜಾನೆ ಸ್ನಾನದ ನಂತರ ಶ್ರೀ ${rootData.deity.kn} ರನ್ನು ಧ್ಯಾನಿಸಿ, "ಓಂ ನಮಃ ಶಿವಾಯ" ಅಥವಾ "ಓಂ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರಾಯ ನಮಃ" ಮಂತ್ರವನ್ನು ೧೦೮ ಬಾರಿ ಭಕ್ತಿಯಿಂದ ಜಪಿಸಿ.
-
-೬. ಪ್ರಧಾನ ಅರ್ಚಕರ ದೈವಿಕ ಅಭಯ & ಆಶೀರ್ವಾದ:
-ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿ, ಶ್ರೀ ತಾಮ್ರಗೌರಿ ಅಮ್ಮನವರು ಹಾಗೂ ಬಗ್ಗೋಣ ಶ್ರೀ ಮಹಾಗಣಪತಿಯ ದಿವ್ಯ ಕೃಪಾಕಟಾಕ್ಷವು ಸದಾ ನಿಮ್ಮ ಮೇಲಿರಲಿ. ನಿಮ್ಮ ಪ್ರಾಮಾಣಿಕ ಪ್ರಯತ್ನಕ್ಕೆ ದೈವಬಲವು ಜತೆಯಾಗಲಿದ್ದು, ಶೀಘ್ರವೇ ನಿಮ್ಮ ಇಷ್ಟಾರ್ಥವು ನೆರವೇರಲಿದೆ. ಶ್ರೀರಾಮ ಪಂಡಿತರ ಹೃದಯಪೂರ್ವಕ ಆಶೀರ್ವಾದಗಳು.`;
+ಈ ಕಾರ್ಯದ ಪೂರ್ಣ ಫಲ ಹಾಗೂ ಸಿದ್ಧಿಯು ${timeHorizonLabels[mobility].kn} ಅವಧಿಯಲ್ಲಿ ನಿಮ್ಮ ಕಣ್ಣಮುಂದೆ ಸಾಕಾರಗೊಳ್ಳಲಿದೆ ಎಂದು ಕುಂಡಲಿಯು ಸ್ಪಷ್ಟಪಡಿಸುತ್ತಿದೆ. ಈ ಕಾರ್ಯವನ್ನು ಸುಗಮವಾಗಿ ಸಾಧಿಸಲು, ನೀವು ಯಾವುದೇ ಮೂರನೇ ವ್ಯಕ್ತಿಯ ಅಪಪ್ರಚಾರಕ್ಕೆ ಕಿವಿಗೊಡದೆ, ಸೂಚಿತ ದಿಕ್ಕಿನಲ್ಲಿ ಸೌಮ್ಯ ಸಂವಾದ ನಡೆಸಿ ಮತ್ತು ಅಗತ್ಯ ದಾಖಲೆಗಳನ್ನು ಮರುಪರಿಶೀಲಿಸಿ ಮುನ್ನಡೆಯಿರಿ. ಈ ಸನ್ನಿವೇಶದಲ್ಲಿ ದೋಷ ನಿವಾರಣೆಗಾಗಿ ಗೋಕರ್ಣ-ಬಗ್ಗೋಣ ದೈವಿಕ ಮಹಾ ಪರಿಹಾರ: ${remedyLabels[rootNum]?.kn || remedyLabels[1]!.kn}. ಪ್ರತಿದಿನ ಮುಂಜಾನೆ ಸ್ನಾನದ ನಂತರ ಶ್ರೀ ${rootData.deity.kn} ರನ್ನು ಧ್ಯಾನಿಸಿ, "ಓಂ ನಮಃ ಶಿವಾಯ" ಅಥವಾ "ಓಂ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರಾಯ ನಮಃ" ಮಂತ್ರವನ್ನು ೧೦೮ ಬಾರಿ ಭಕ್ತಿಯಿಂದ ಜಪಿಸಿ. ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿ, ಶ್ರೀ ತಾಮ್ರಗೌರಿ ಅಮ್ಮನವರು ಹಾಗೂ ಬಗ್ಗೋಣ ಶ್ರೀ ಮಹಾಗಣಪತಿಯ ದಿವ್ಯ ಕೃಪಾಕಟಾಕ್ಷದಿಂದ ನಿಶ್ಚಿತ ಜಯ ಲಭಿಸಲಿದೆ ಎಂದು ಶ್ರೀರಾಮ ಪಂಡಿತರಾದ ನಾನು ಸಾಕ್ಷಾತ್ ಆಶೀರ್ವದಿಸುತ್ತೇನೆ.`;
     }
 
-    return `1. Priest's Direct Astrological Verdict & Immediate Outcome:
-Regarding your specific query ("${rawQuestion}"), the sacred Vedic Sankhya Prashna Oracle from Gokarna-Baggona Kshetra reveals a clear and profound reading. With an auspicious Prashna Strength Score of ${finalScore}% (${verdictLabels[verdictCat].en}), your objective is actively progressing towards positive fulfillment. Though temporary uncertainty may be felt, the cosmic cycles are realigning in your favor. Step forward with calm conviction.
+    return `Dear devotee, I am directly looking at your numbers and Prashna Kundli on the screen regarding your specific query ("${rawQuestion}"). Your chosen intuitive number is ${userNumber} with root ${rootNum}, governed by ${rootData.ruler.en} and protected by ${rootData.deity.en}. Rising in House ${houseNum} (${lagnaName.en}), your planetary transit alignment in the ${karyaLabel.en} reveals a Prashna Bala Score of ${finalScore}% (${verdictLabels[verdictCat].en}). The direct astrological verdict is: ${objSuspectInfo.objectMobility.en} ${dirInfo.labels.en}: ${dirInfo.environmentalMarker.en} ${objSuspectInfo.suspectProfile.en}. Any current obstruction is temporary and cosmic forces are actively realigning in your favor.
 
-2. Root Planetary Ruler & Vibrational Energy Matrix:
-Your chosen number ${userNumber} holds the digital root ${rootNum}, governed directly by ${rootData.ruler.en} and protected by ${rootData.deity.en}. The Prashna Lagna rises in House ${houseNum} (${lagnaName.en}), ruled by ${lagnaLord.en}. The dynamic transit alignment in the ${karyaLabel.en} confirms that the underlying cosmic vibrations are actively clearing previous stagnation and realigning your path towards success.
-
-3. Situational Reality, Movement & Directional Guidance:
-${objSuspectInfo.objectMobility.en}
-${dirInfo.labels.en}: ${dirInfo.environmentalMarker.en}
-${objSuspectInfo.suspectProfile.en}
-
-4. Exact Timing Horizon & Actionable Roadmap:
-${timeHorizonLabels[mobility].en}. To accelerate this favorable outcome, maintain calm focus and follow the directional guidance provided above without hesitation. Systematic action coupled with patience will ensure the desired victory.
-
-5. Sacred Kshetra Remedy & Daily Divine Japa:
-To dissolve any lingering negative obstacles: ${remedyLabels[rootNum]?.en || remedyLabels[1]!.en}. Daily morning meditation on Lord ${rootData.deity.en} and chanting "Om Namah Shivaya" 108 times will invoke strong divine protection.
-
-6. Chief Priest's Divine Benediction & Blessings:
-May the supreme grace of Lord Mahabaleshwara, Goddess Tamragauri, and Lord Maha Ganapati of Gokarna Kshetra protect and guide you always. Step forward with full confidence; your auspicious realization is assured. Divine blessings from Sri Shreeram Pandit.`;
+The complete fulfillment of this query will unfold within ${timeHorizonLabels[mobility].en} as indicated by your chart. To ensure smooth progress, proceed with calm dialogue in the indicated direction without paying heed to hearsay, and re-examine key documents. For obstacle removal, your sacred remedy is: ${remedyLabels[rootNum]?.en || remedyLabels[1]!.en}. Chant "Om Namah Shivaya" 108 times daily after morning ablutions. May Lord Mahabaleshwara, Goddess Tamragauri, and Baggona Maha Ganapati bless you with complete victory. Blessings from Sri Shreeram Pandit.`;
   };
 
   // 9. Format Deterministic Summary for AI Prompt
@@ -697,31 +665,20 @@ May the supreme grace of Lord Mahabaleshwara, Goddess Tamragauri, and Lord Maha 
 ================================================================
 `;
 
-  // 10. Gemini AI Prompt Enforcing Rich Descriptive Paragraphs Answering Question FIRST in Priest's Authentic Voice
+  // 10. Gemini AI Prompt Enforcing 2 In-Depth Paragraphs Answering Question FIRST in Screen-Viewing Priest's Voice
   const narrationPrompt = `
-You are a revered Chief Priest and Vedic Sankhya Shastra Master from Gokarna-Baggona Kshetra.
+You are revered Chief Priest Sri Shreeram Pandit from Gokarna-Baggona Kshetra.
 
 USER'S CRITICAL REQUIREMENTS:
-1. NARRATION PERSPECTIVE: Speak directly in the authentic, authoritative, and compassionate voice of a revered Vedic scholar giving a personalized in-person consultation (ಗುರುಮುಖೇನ ಸಾಕ್ಷಾತ್ ವಾಣಿ). It MUST feel like the priest is speaking from profound personal scriptural mastery and inner intuition, NOT mechanically reading from a screen or phone.
+1. NARRATION PERSPECTIVE: Speak directly to the devotee as if in an in-person face-to-face consultation, actively looking at their Prashna Kundli, numbers, Lagna, and transits directly on the screen. It MUST sound like the priest is looking at the Kundli and telling them directly, NOT reading pre-written text from a book or mobile phone!
 2. STRICTLY NO GREETINGS OR META INTROS (DO NOT write 'ನಮಸ್ಕಾರ', 'ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪಂಡಿತ್', 'ನಾನು ಜ್ಯೋತಿಷಿ', 'ಸ್ವಾಗತ' at the beginning).
-3. ANSWER THE QUESTION FIRST IN DEPTH. Devotees want the immediate, clear, direct answer to their specific situation ("${rawQuestion}") right in the opening sentence.
-   - For relationship/family/job friction questions: directly diagnose the underlying human cause (e.g. misunderstanding, jealousy, suspicion, financial strain, or communication breakdown) and provide reassurance.
-   - For Lost Items, Theft, Missing Property, Gold, Money, Vehicle, or Assets:
-     * State whether the item is Fixed (ಸ್ಥಿರ - in the same place/house), Moving (ಚರ - changing locations/hands), or Dual (ದ್ವಿಸ್ವಭಾವ - in bag/vehicle).
-     * State the EXACT DIRECTION to search (East, West, North, South, NE, SE, NW, SW) and physical environment (near water, under furniture, in high shelf, in drawer, etc.).
-     * State WHO is suspected/involved (inside family/domestic acquaintance vs outside stranger).
-4. If the question is about Career, Marriage, Finance, Court, Health, or Studies, provide concrete, specific, multi-layered predictive details with step-by-step guidance.
-5. Structure the response into distinct, in-depth paragraphs (at least 4 to 5 lines per paragraph).
+3. NO BLUFFING, NO HALLUCINATIONS: Keep the points crisp, clear, authoritative, and 100% accurate based on the technical parameters.
+4. ANSWER THE QUESTION FIRST IN DEPTH: Give the direct answer to "${rawQuestion}" right in the opening sentence.
+5. STRICTLY EXACTLY TWO (2) IN-DEPTH PARAGRAPHS ONLY. Each paragraph MUST have at least 6 lines:
+   - PARAGRAPH 1 (At least 6 lines): Direct screen-viewing analysis of devotee's Prashna Kundli & immediate verdict (devotee's number ${userNumber}, root ${rootNum}, planet ${rootData.ruler[langCode] || rootData.ruler.en}, Lagna ${lagnaName[langCode] || lagnaName.en}, Karya Sthana, direct root cause, situational reality, direction, and item/matter status).
+   - PARAGRAPH 2 (At least 6 lines): Concrete timeline (${timeHorizonLabels[mobility][langCode] || timeHorizonLabels[mobility].en}), actionable steps/search method, Gokarna-Baggona sacred remedy (${remedyLabels[rootNum]?.[langCode as keyof typeof remedyLabels[1]] || remedyLabels[1]!['kn']}), daily mantra, and direct blessings from Sri Shreeram Pandit.
 
-Structure:
-- ಅರ್ಚಕರ ನೇರ ಶಾಸ್ತ್ರೀಯ ನಿರ್ಣಯ & ಪರಿಸ್ಥಿತಿ ವಿಶ್ಲೇಷಣೆ (Direct In-Depth Answer to the Devotee's Question & Immediate Outcome)
-- ಮೂಲ ಗ್ರಹಾಧಿಪತ್ಯ & ಸಂಖ್ಯಾ-ತರಂಗ ವಿಶ್ಲೇಷಣೆ (Root Cause & Astrological/Numerological Vibration Analysis)
-- ವಸ್ತು/ಸ್ಥಳ/ವ್ಯಕ್ತಿಯ ಸ್ಥಿತಿ, ಚಲನೆ ಹಾಗೂ ಸಂವಹನ ಮಾರ್ಗದರ್ಶನ (Situational Reality, Direction & Practical Communication Steps)
-- ನಿಖರ ಫಲ ಕಾಲಾವಧಿ & ಮುನ್ನಡೆಯ ಹಂತಗಳು (Exact Timing Horizon & Actionable Roadmap)
-- ಗೋಕರ್ಣ-ಬಗ್ಗೋಣ ದೈವಿಕ ಪರಿಹಾರ & ಮಂತ್ರೋಪಾಸನೆ (Sacred Divine Remedy & Mantra Guidance)
-- ಪ್ರಧಾನ ಅರ್ಚಕರ ದೈವಿಕ ಅಭಯ & ಆಶೀರ್ವಾದ (Chief Priest's Divine Benediction & Concluding Grace)
-
-Write EXCLUSIVELY in the native script of requested language: ${langCode} (${lang === "kn" ? "Kannada" : lang}).
+Write EXCLUSIVELY in the native script of requested language: ${langCode} (${lang === "kn" ? "Kannada" : lang}). No other language should interrupt.
 `;
 
   let aiPrediction = "";
@@ -734,10 +691,10 @@ Write EXCLUSIVELY in the native script of requested language: ${langCode} (${lan
       });
     } catch (err) {
       console.warn("AI Prashna narration failed, falling back to deterministic reading:", err);
-      aiPrediction = buildDeterministic6ParagraphReading();
+      aiPrediction = buildDeterministic2ParagraphReading();
     }
   } else {
-    aiPrediction = buildDeterministic6ParagraphReading();
+    aiPrediction = buildDeterministic2ParagraphReading();
   }
 
   return {
