@@ -11,12 +11,18 @@ Whenever the user references this skill (or asks to generate, replicate, or buil
 
 ---
 
-## 1. 📁 Master Blueprint Reference
+## 1. 📁 Master Benchmark References (All 4 Editions)
 
-- **Primary Blueprint File**: `/Users/shreesuma/Downloads/parabav2026-27 (1).pdf`
-- **Edition**: ಶ್ರೀ ಪರಾಭವ ನಾಮ ಸಂವತ್ಸರದ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ (೨೦೨೬–೨೦೨೭)
-- **Total Pages**: 104 Pages
+The engine is ground-truthed against 4 complete consecutive historical and forthcoming editions in `/Users/shreesuma/Downloads/drive-download-20260903T110552Z-1-001/`:
+1. **`Final Proof Krodhi Panchanga print.pdf`**: ಶ್ರೀ ಕ್ರೋಧಿ ಸಂವತ್ಸರ (೨೦೨೪–೨೦೨೫, ಶಕ ೧೯೪೬, ೧೪೩ನೇ ಆವೃತ್ತಿ - ೧೨ ಮಾಸಗಳು)
+2. **`DOC-20240815-WA0024..pdf`**: ಶ್ರೀ ವಿಶ್ವಾವಸು ಸಂವತ್ಸರ (೨೦೨೫–೨೦೨೬, ಶಕ ೧೯೪೭, ೧೪೪ನೇ ಆವೃತ್ತಿ - ೧೨ ಮಾಸಗಳು)
+3. **`1-104 parabhava.pdf`**: ಶ್ರೀ ಪರಾಭವ ಸಂವತ್ಸರ (೨೦೨೬–೨೦೨೭, ಶಕ ೧೯೪೮, ೧೪೫ನೇ ಆವೃತ್ತಿ - **ಅಧಿಕ ಜ್ಯೇಷ್ಠ ಸಹಿತ ೧೩ ಮಾಸಗಳು**, ೧೦೪ ಪುಟಗಳು)
+4. **`plavang final.pdf`**: ಶ್ರೀ ಪ್ಲವಂಗ ಸಂವತ್ಸರ (೨೦೨೭–೨೦೨೮, ಶಕ ೧೯೪೯, ೧೪೬ನೇ ಆವೃತ್ತಿ - ೧೨ ಮಾಸಗಳು)
+
 - **Format**: High-density Drik Ganita ephemeris, Kannada typography, dual-page monthly tables, Graha Chakras, and classical Vedic predictions.
+- **Engine Core**: `src/core/BaggonaUniversalBookEngine.ts`
+- **Quality Audit Guard**: `src/core/BaggonaBookValidationEngine.ts`
+- **Super Admin Hub**: `src/features/admin/BaggonaBookPublisherDashboard.tsx` & `src/components/admin/BaggonaBookLoaderModal.tsx`
 
 ---
 

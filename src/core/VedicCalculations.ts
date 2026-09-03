@@ -4,7 +4,7 @@ import { siderealLongitudes } from "./EphemerisEngine";
 import type { AyanamsaModel } from "./AstroTypes";
 
 // Names of 60 Samvatsaras (Jovian cycle years)
-const KN_SAMVATSARAS = [
+export const KN_SAMVATSARAS = [
   "ಪ್ರಭವ", "ವಿಭವ", "ಶುಕ್ಲ", "ಪ್ರಮೋದೂತ", "ಪ್ರಜೋತ್ಪತ್ತಿ", "ಆಂಗೀರಸ", "ಶ್ರೀಮುಖ", "ಭಾವ", "ಯುವ", "ಧಾತೃ",
   "ಈಶ್ವರ", "ಬಹುಧಾನ್ಯ", "ಪ್ರಮಾಥಿ", "ವಿಕ್ರಮ", "ವೃಷ", "ಚಿತ್ರಭಾನು", "ಸ್ವಭಾನು", "ತಾರಣ", "ಪಾರ್ಥಿವ", "ವ್ಯಯ",
   "ಸರ್ವಜಿತ್", "ಸರ್ವಧಾರಿ", "ವಿರೋಧಿ", "ವಿಕೃತಿ", "ಖರ", "ನಂದನ", "ವಿಜಯ", "Jaya", "ಮನ್ಮಥ", "ದುರ್ಮುಖಿ",
@@ -13,7 +13,7 @@ const KN_SAMVATSARAS = [
   "ಪಿಂಗಳ", "ಕಾಲಯುಕ್ತಿ", "ಸಿದ್ಧಾರ್ಥಿ", "ರೌದ್ರಿ", "ದುರ್ಮತಿ", "ದುಂದುಭಿ", "ರುಧಿರೋದ್ಗಾರಿ", "ರಕ್ತಾಕ್ಷಿ", "ಕ್ರೋಧನ", "ಅಕ್ಷಯ"
 ];
 
-const EN_SAMVATSARAS = [
+export const EN_SAMVATSARAS = [
   "Prabhava", "Vibhava", "Shukla", "Pramodoota", "Prajopathi", "Angirasa", "Shrimukha", "Bhava", "Yuva", "Dhatri",
   "Eeshvara", "Bahudhanya", "Pramathi", "Vikrama", "Vrusha", "Chitrabanu", "Subhanu", "Tarana", "Parthiva", "Vyaya",
   "Sarvajitu", "Sarvadhari", "Virodhi", "Vikruthi", "Khara", "Nandana", "Vijaya", "Jaya", "Manmatha", "Durmukhi",
@@ -23,24 +23,24 @@ const EN_SAMVATSARAS = [
 ];
 
 // Names of 12 Lunar Months (Masas)
-const KN_MASAS = [
+export const KN_MASAS = [
   "ಚೈತ್ರ", "ವೈಶಾಖ", "ಜ್ಯೇಷ್ಠ", "ಆಷಾಢ", "ಶ್ರಾವಣ", "ಭಾದ್ರಪದ",
   "ಆಶ್ವೀಜ", "ಕಾರ್ತಿಕ", "ಮಾರ್ಗಶಿರ", "ಪುಷ್ಯ", "ಮಾಘ", "ಫಾಲ್ಗುಣ"
 ];
 
-const EN_MASAS = [
+export const EN_MASAS = [
   "Chaitra", "Vaishakha", "Jyeshtha", "Ashadha", "Shravana", "Bhadrapada",
   "Ashwija", "Kartika", "Margashirsha", "Pausha", "Magha", "Phalguni"
 ];
 
 // Visha Ghati starting points for 27 Nakshatras
-const VISHA_GHATI_START: Record<number, number> = {
+export const VISHA_GHATI_START: Record<number, number> = {
   0: 50, 1: 24, 2: 30, 3: 40, 4: 14, 5: 21, 6: 30, 7: 20, 8: 32, 9: 30,
   10: 20, 11: 18, 12: 21, 13: 20, 14: 14, 15: 14, 16: 10, 17: 14, 18: 20, 19: 24,
   20: 20, 21: 10, 22: 10, 23: 18, 24: 16, 25: 24, 26: 30
 };
 
-const AMRITHA_GHATI_START: Record<number, number> = {
+export const AMRITHA_GHATI_START: Record<number, number> = {
   0: 42, 1: 48, 2: 54, 3: 52, 4: 38, 5: 35, 6: 54, 7: 44, 8: 56, 9: 54,
   10: 44, 11: 42, 12: 45, 13: 44, 14: 38, 15: 38, 16: 34, 17: 38, 18: 44, 19: 48,
   20: 44, 21: 34, 22: 34, 23: 42, 24: 40, 25: 48, 26: 54

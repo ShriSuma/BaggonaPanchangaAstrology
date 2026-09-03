@@ -89,8 +89,9 @@ import { VoiceDictationButton } from "../../components/ui/VoiceDictationButton";
 import { UserIdSuggestionChips } from "../../components/ui/UserIdSuggestionChips";
 import { generateSmartUserIdSuggestions } from "../../utils/userIdSuggestionEngine";
 import { ServicePricingManager } from "../../components/wallet/ServicePricingManager";
+import { BaggonaBookPublisherDashboard } from "../admin/BaggonaBookPublisherDashboard";
 
-export type AdminTab = "wallets" | "kundlis" | "ashirvada" | "audit" | "mindmap" | "panchanga_engine" | "voice_db" | "pricing";
+export type AdminTab = "wallets" | "kundlis" | "ashirvada" | "audit" | "mindmap" | "panchanga_engine" | "book_publisher" | "voice_db" | "pricing";
 
 /* -------------------------------------------------------------------------- */
 /* 360° COMPLETE CIRCULAR PROGRESS RING COMPONENT (Visual Telemetry Gauge)    */
@@ -1630,6 +1631,22 @@ export const SuperAdminDashboard: React.FC = () => {
               }`}
             >
               {panchangaEngineConfig.engineMode === "baggona_book" ? "Print Book" : "Drik-Math"}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("book_publisher")}
+            className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
+              activeTab === "book_publisher"
+                ? "bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 text-white shadow-md scale-100 ring-2 ring-emerald-400"
+                : "text-amber-950 hover:bg-amber-100"
+            }`}
+          >
+            <span>📖</span>
+            <span>೧೦೪-ಪುಟಗಳ ಪಂಚಾಂಗ ಪ್ರಕಾಶನ (Book Publisher)</span>
+            <span className="px-1.5 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-100 text-emerald-950 border border-emerald-300">
+              1-Click Print
             </span>
           </button>
 
@@ -3595,6 +3612,11 @@ export const SuperAdminDashboard: React.FC = () => {
             })()}
           </div>
         </div>
+      )}
+
+      {/* TAB: 104-PAGE BAGGONA PANCHANGA BOOK PUBLISHER (Super Admin Exclusive) */}
+      {activeTab === "book_publisher" && (
+        <BaggonaBookPublisherDashboard />
       )}
 
       {/* 8. TAB CONTENT: PRIEST VOICE DATABASE & VOICE CLONE VAULT (SuperAdmin Only) */}
