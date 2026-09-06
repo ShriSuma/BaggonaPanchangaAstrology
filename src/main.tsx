@@ -5,6 +5,13 @@ import App from "./App";
 import "./index.css";
 import "./i18n";
 import { initDatabase } from "./db/indexedDb";
+// Auto-recover if dynamic chunk hashes changed after deployment
+if (typeof window !== "undefined") {
+  window.addEventListener("vite:preloadError", (event) => {
+    console.warn("[PWA] Dynamic chunk fetch failed after deployment, auto-reloading shell...", event);
+    window.location.reload();
+  });
+}
 
 registerSW({ immediate: true });
 

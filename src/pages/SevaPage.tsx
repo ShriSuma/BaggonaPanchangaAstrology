@@ -326,6 +326,8 @@ export default function SevaPage(): JSX.Element {
         personName={identity.personName}
         dob={identity.dob}
         tob={identity.tob}
+        nakshatraIndex={identity.nakshatraIndex}
+        rashiIndex={identity.rashiIndex}
         lang={lang}
         isOpen={isSyncModalOpen}
         onClose={() => setIsSyncModalOpen(false)}

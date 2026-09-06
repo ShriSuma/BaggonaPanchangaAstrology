@@ -2,7 +2,7 @@
 import { clientsClaim } from "workbox-core";
 import { precacheAndRoute } from "workbox-precaching";
 import { registerRoute } from "workbox-routing";
-import { CacheFirst, StaleWhileRevalidate } from "workbox-strategies";
+import { NetworkFirst, StaleWhileRevalidate } from "workbox-strategies";
 
 declare let self: ServiceWorkerGlobalScope;
 
@@ -10,6 +10,21 @@ self.skipWaiting();
 clientsClaim();
 
 precacheAndRoute(self.__WB_MANIFEST);
+
+// Purge obsolete caches on activation
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys.map((key) => {
+          if (key !== "bpa-static-assets" && key !== "bpa-app-shell") {
+            return caches.delete(key);
+          }
+        })
+      )
+    )
+  );
+});
 
 registerRoute(
   ({ request, url }) =>
@@ -23,10 +38,12 @@ registerRoute(
   })
 );
 
+// Crucial fix: NetworkFirst for navigation ensures users always fetch fresh HTML/chunks when online
 registerRoute(
   ({ request }) => request.mode === "navigate",
-  new CacheFirst({
-    cacheName: "bpa-app-shell"
+  new NetworkFirst({
+    cacheName: "bpa-app-shell",
+    networkTimeoutSeconds: 3
   })
 );
 

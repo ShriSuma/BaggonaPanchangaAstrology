@@ -33,6 +33,8 @@ type Props = {
   personName: string;
   dob?: string;
   tob?: string;
+  nakshatraIndex?: number;
+  rashiIndex?: number;
   lang: string;
   isOpen: boolean;
   onClose: () => void;
@@ -43,6 +45,8 @@ export default function SevaCalendarSyncModal({
   personName,
   dob,
   tob,
+  nakshatraIndex,
+  rashiIndex,
   lang,
   isOpen,
   onClose
@@ -228,35 +232,61 @@ export default function SevaCalendarSyncModal({
     }
   };
 
+  const activeDob = useMemo(() => {
+    if (dob) return dob;
+    try {
+      const stored = localStorage.getItem("baggona_kundli_session");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        return parsed.birthDate || parsed.birthDateYmd;
+      }
+    } catch (e) {}
+    return undefined;
+  }, [dob]);
+
+  const activeTob = useMemo(() => {
+    if (tob) return tob;
+    try {
+      const stored = localStorage.getItem("baggona_kundli_session");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        return parsed.birthTime || parsed.birthTimeHm;
+      }
+    } catch (e) {}
+    return undefined;
+  }, [tob]);
+
+  const activeNak = useMemo(() => {
+    if (nakshatraIndex !== undefined) return nakshatraIndex;
+    try {
+      const stored = localStorage.getItem("baggona_kundli_session");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.nakshatraIndex !== undefined) return Number(parsed.nakshatraIndex);
+      }
+    } catch (e) {}
+    return undefined;
+  }, [nakshatraIndex]);
+
+  const activeRashi = useMemo(() => {
+    if (rashiIndex !== undefined) return rashiIndex;
+    try {
+      const stored = localStorage.getItem("baggona_kundli_session");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.rashiIndex !== undefined) return Number(parsed.rashiIndex);
+      }
+    } catch (e) {}
+    return undefined;
+  }, [rashiIndex]);
+
   // Generate QR Code dynamically whenever target or options change
   useEffect(() => {
     if (!isOpen) return;
 
     try {
-      const activeDob = dob || (() => {
-        try {
-          const stored = localStorage.getItem("baggona_kundli_session");
-          if (stored) {
-            const parsed = JSON.parse(stored);
-            return parsed.birthDate || parsed.birthDateYmd;
-          }
-        } catch (e) {}
-        return undefined;
-      })();
-
-      const activeTob = tob || (() => {
-        try {
-          const stored = localStorage.getItem("baggona_kundli_session");
-          if (stored) {
-            const parsed = JSON.parse(stored);
-            return parsed.birthTime || parsed.birthTimeHm;
-          }
-        } catch (e) {}
-        return undefined;
-      })();
-
       const payload = calendarMode === "priest"
-        ? `${origin}/priest-panchanga?date=${selectedDay?.ymd || "2026-03-19"}&pincode=${pincodeInput}`
+        ? `${origin}/priest-panchanga?date=${days[0]?.ymd || "2026-03-19"}&pincode=${pincodeInput}`
         : generateQrPayloadByTarget(target, {
             days: days || [],
             lang,
@@ -271,6 +301,8 @@ export default function SevaCalendarSyncModal({
             locationName,
             dob: activeDob,
             tob: activeTob,
+            birthNakshatraIndex: activeNak,
+            birthRashiIndex: activeRashi,
             includePriestCalendar: includePriestCalendar || (calendarMode as string) === "priest",
             daysCount: calendarSpanDays
           });
@@ -287,9 +319,8 @@ export default function SevaCalendarSyncModal({
         .then((url) => setQrDataUrl(url))
         .catch((err) => {
           console.error("Error generating QR code:", err);
-          // Compact ASCII-only fallback to guarantee scannable QR
           const fallback = calendarMode === "priest"
-            ? `${origin}/priest-panchanga?date=${selectedDay?.ymd || "2026-03-19"}`
+            ? `${origin}/priest-panchanga?date=${days[0]?.ymd || "2026-03-19"}`
             : `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent("Baggona 90-Day Panchanga")}&ctz=Asia/Kolkata`;
           QRCode.toDataURL(fallback, { errorCorrectionLevel: "L", margin: 2, width: 280 })
             .then((fallbackUrl) => setQrDataUrl(fallbackUrl));
@@ -300,7 +331,7 @@ export default function SevaCalendarSyncModal({
       QRCode.toDataURL(fallback, { errorCorrectionLevel: "L", margin: 2, width: 280 })
         .then((fallbackUrl) => setQrDataUrl(fallbackUrl));
     }
-  }, [days, lang, panditName, notificationTime, personName, platform, target, isOpen, webSanctumUrl, origin, pincodeInput, lat, lng, locationName, calendarMode]);
+  }, [days, lang, panditName, notificationTime, personName, platform, target, isOpen, webSanctumUrl, origin, pincodeInput, lat, lng, locationName, calendarMode, activeDob, activeTob, activeNak, activeRashi]);
 
   if (!isOpen) return null;
 
@@ -331,6 +362,10 @@ export default function SevaCalendarSyncModal({
           lng,
           locationName,
           aiPanchangaMap,
+          birthNakshatraIndex: activeNak,
+          birthRashiIndex: activeRashi,
+          dob: activeDob,
+          tob: activeTob,
           includePriestCalendar: includePriestCalendar || (calendarMode as string) === "priest"
         });
 
@@ -378,6 +413,10 @@ export default function SevaCalendarSyncModal({
       lng,
       locationName,
       aiPanchangaMap,
+      birthNakshatraIndex: activeNak,
+      birthRashiIndex: activeRashi,
+      dob: activeDob,
+      tob: activeTob,
       includePriestCalendar: includePriestCalendar || (calendarMode as string) === "priest"
     });
     window.open(url, "_blank");
@@ -407,6 +446,10 @@ export default function SevaCalendarSyncModal({
           lng,
           locationName,
           aiPanchangaMap,
+          birthNakshatraIndex: activeNak,
+          birthRashiIndex: activeRashi,
+          dob: activeDob,
+          tob: activeTob,
           includePriestCalendar: includePriestCalendar || (calendarMode as string) === "priest"
         });
     const dataUri = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsContent)}`;

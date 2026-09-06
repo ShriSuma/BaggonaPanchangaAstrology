@@ -649,7 +649,7 @@ export function calculateDeterministicRhythmDay(
   if (isPurnima || isEkadashi) baseScore += 5;
 
   const scoreVal = Math.max(15, Math.min(98, baseScore));
-  const bandType: "high" | "steady" | "rest" = (isChandrashtamaDay || isDifficultTara || scoreVal < 50) ? "rest" : (isTaraFav && isChandraFav && scoreVal >= 75) ? "high" : "steady";
+  const bandType: "high" | "steady" | "rest" = (isChandrashtamaDay || scoreVal < 50) ? "rest" : (isTaraFav && isChandraFav && scoreVal >= 70) ? "high" : "steady";
 
   const dayLordsMap: Record<number, GrahaKey> = {
     0: "Sun", 1: "Moon", 2: "Mars", 3: "Mercury", 4: "Jupiter", 5: "Venus", 6: "Saturn"
@@ -677,6 +677,8 @@ export function calculateDeterministicRhythmDay(
     year,
     moonNakshatraIndex: transitNak,
     moonRashiIndex: transitRashi,
+    janmaNakshatraIndex: birthNakIdx,
+    janmaRashiIndex: birthRashiIdx,
     tithiNumber,
     tithiInPaksha,
     paksha,
@@ -989,8 +991,6 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
   const origin = getSafeProductionOrigin(webAppBaseUrl);
 
   const startDateStr = days[0]?.ymd || new Date().toISOString().slice(0, 10);
-  const birthNakIdx = birthNakshatraIndex ?? (days[0] as any)?.janmaNakshatraIndex ?? days[0]?.moonNakshatraIndex ?? 12;
-  const birthRashiIdx = birthRashiIndex ?? (days[0] as any)?.janmaRashiIndex ?? days[0]?.moonRashiIndex ?? 5;
   const localizedPandit = getLocalizedPanditName(panditName, lang);
   const devoteeDisplayName = (personName && personName.trim().length > 0) ? personName.trim() : labels.defaultDevotee;
 
@@ -998,11 +998,14 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
     dob,
     tob,
     name: devoteeDisplayName,
-    nakshatraIndex: birthNakIdx,
-    rashiIndex: birthRashiIdx
+    nakshatraIndex: birthNakshatraIndex,
+    rashiIndex: birthRashiIndex
   });
   const resolvedDob = resolvedBirth.dob;
   const resolvedTob = resolvedBirth.tob;
+
+  const birthNakIdx = birthNakshatraIndex ?? (days[0] as any)?.janmaNakshatraIndex ?? (dob ? resolvedBirth.nakshatraIndex : undefined) ?? days[0]?.moonNakshatraIndex ?? resolvedBirth.nakshatraIndex ?? 18;
+  const birthRashiIdx = birthRashiIndex ?? (days[0] as any)?.janmaRashiIndex ?? (dob ? resolvedBirth.rashiIndex : undefined) ?? days[0]?.moonRashiIndex ?? resolvedBirth.rashiIndex ?? 8;
 
   const baseToken = encodeDevoteeToken({
     n: devoteeDisplayName,
@@ -1026,7 +1029,26 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
   const scheduledEveAlerts = new Set<string>();
   const lastSeenVrataIndexMap = new Map<string, number>();
 
-  days.forEach((day, idx) => {
+  // Mandatory Parity Guard: Normalize every single day in the calendar to use
+  // calculateDeterministicRhythmDay so that calendar events and DailyDarshanaPage.tsx
+  // match 100% identically across energy score, band, and color vibe.
+  const alignedDays = days.map((rawDay) => {
+    if (rawDay.band && rawDay.energyScore && rawDay.tara && rawDay.chandra && days.length < 5) {
+      return rawDay;
+    }
+    const detDay = calculateDeterministicRhythmDay(rawDay.ymd, birthNakIdx, birthRashiIdx, startDateStr);
+    return {
+      ...rawDay,
+      ...detDay,
+      energyScore: detDay.energyScore,
+      band: detDay.band,
+      tara: detDay.tara,
+      chandra: detDay.chandra,
+      isChandrashtama: detDay.isChandrashtama
+    };
+  });
+
+  alignedDays.forEach((day, idx) => {
     const ymdCompact = formatYmdCompact(day.ymd);
     const dayUid = `baggona-day-${ymdCompact}-${sanitizedDevoteeToken}@baggona.app`;
     const dtStart = `${ymdCompact}T${hh}${mm}00`;
@@ -1054,7 +1076,7 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
       ph: options.overrideCalendarPhone ? options.priestPhone : undefined,
       ocp: options.overrideCalendarPhone ? 1 : undefined
     });
-    const sanctumUrl = `${origin}/daily?token=${dayToken}`;
+    const sanctumUrl = `${origin}/daily?token=${dayToken}&date=${day.ymd}`;
 
     const aiItem = aiPanchangaMap?.[day.ymd];
     // Canonical Drik Ganita Udaya Tithi at 06:00 AM IST from day ensures 100% parity with DailyDarshanaPage web sanctum links
@@ -1338,6 +1360,8 @@ export function generateGoogleCalendarUrl(options: {
   locationName?: string;
   dob?: string;
   tob?: string;
+  birthNakshatraIndex?: number;
+  birthRashiIndex?: number;
   aiPanchangaMap?: Record<string, DayPanchangaAiItem>;
   includePriestCalendar?: boolean;
 }): string {
@@ -1355,6 +1379,8 @@ export function generateGoogleCalendarUrl(options: {
     locationName = "Gokarna",
     dob,
     tob,
+    birthNakshatraIndex,
+    birthRashiIndex,
     aiPanchangaMap
   } = options;
   const day = (singleDay || (days && days.length > 0 ? days[0] : null) || {
@@ -1381,19 +1407,6 @@ export function generateGoogleCalendarUrl(options: {
   const endHours = parseInt(hh, 10) + Math.floor((parseInt(mm, 10) + 30) / 60);
   const dtEnd = `${ymdCompact}T${String(endHours).padStart(2, "0")}${String(endMinutes).padStart(2, "0")}00`;
 
-  const vibe = getEnergyMeterAndVibe(day, lang);
-  const kaalaRaw = getDailyKaalaTimings(day.dayLord, lang, day.ymd, lat, lng, pincode);
-  const aiItem = aiPanchangaMap?.[day.ymd];
-  const kaala = {
-    sunrise: aiItem?.suryodaya || kaalaRaw.sunrise,
-    sunset: aiItem?.suryasta || kaalaRaw.sunset,
-    rahu: aiItem?.rahuKaala || kaalaRaw.rahu,
-    gulika: aiItem?.gulikaKaala || kaalaRaw.gulika,
-    yamaganda: aiItem?.yamagandaKaala || kaalaRaw.yamaganda
-  };
-  const dayIdx = getDayLordIndex(day.dayLord);
-  const deity = DEITY_MANTRAS[dayIdx] || DEITY_MANTRAS[0];
-
   const isKn = lang.startsWith("kn");
   const isHi = lang.startsWith("hi");
   const isTe = lang.startsWith("te");
@@ -1402,9 +1415,42 @@ export function generateGoogleCalendarUrl(options: {
   const localizedPandit = getLocalizedPanditName(panditName, lang);
   const devoteeDisplayName = (personName && personName.trim().length > 0) ? personName.trim() : (isKn ? "ಭಕ್ತರು" : "Devotee");
 
+  const resolvedBirth = getUniversalBirthDetails({
+    dob,
+    tob,
+    name: devoteeDisplayName,
+    nakshatraIndex: birthNakshatraIndex,
+    rashiIndex: birthRashiIndex
+  });
+  const birthNakIdx = birthNakshatraIndex ?? resolvedBirth.nakshatraIndex ?? (day as any)?.janmaNakshatraIndex ?? 18;
+  const birthRashiIdx = birthRashiIndex ?? resolvedBirth.rashiIndex ?? (day as any)?.janmaRashiIndex ?? 8;
+
+  // Single source of truth calculation
+  const deterministicDay = calculateDeterministicRhythmDay(day.ymd, birthNakIdx, birthRashiIdx, day.ymd);
+  const activeDay = {
+    ...day,
+    ...deterministicDay,
+    energyScore: deterministicDay.energyScore,
+    band: deterministicDay.band,
+    tara: deterministicDay.tara,
+    chandra: deterministicDay.chandra,
+    isChandrashtama: deterministicDay.isChandrashtama
+  };
+
+  const vibe = getEnergyMeterAndVibe(activeDay, lang);
+  const kaalaRaw = getDailyKaalaTimings(activeDay.dayLord, lang, activeDay.ymd, lat, lng, pincode);
+  const aiItem = aiPanchangaMap?.[activeDay.ymd];
+  const kaala = {
+    sunrise: aiItem?.suryodaya || kaalaRaw.sunrise,
+    sunset: aiItem?.suryasta || kaalaRaw.sunset,
+    rahu: aiItem?.rahuKaala || kaalaRaw.rahu,
+    gulika: aiItem?.gulikaKaala || kaalaRaw.gulika,
+    yamaganda: aiItem?.yamagandaKaala || kaalaRaw.yamaganda
+  };
+  const dayIdx = getDayLordIndex(activeDay.dayLord);
+  const deity = DEITY_MANTRAS[dayIdx] || DEITY_MANTRAS[0];
+
   const startDateStr = (days && days.length > 0 ? days[0].ymd : day.ymd) || new Date().toISOString().slice(0, 10);
-  const birthNakIdx = (days && days.length > 0 ? days[0].moonNakshatraIndex : day.moonNakshatraIndex) ?? 0;
-  const birthRashiIdx = (days && days.length > 0 ? days[0].moonRashiIndex : day.moonRashiIndex) ?? 0;
 
   const devoteeToken = encodeDevoteeToken({
     n: devoteeDisplayName,
@@ -1420,13 +1466,13 @@ export function generateGoogleCalendarUrl(options: {
     lt: lat,
     lg: lng,
     loc: locationName,
-    dob: options.dob,
-    tob: options.tob,
+    dob: resolvedBirth.dob,
+    tob: resolvedBirth.tob,
     ph: options.overrideCalendarPhone ? options.priestPhone : undefined,
     ocp: options.overrideCalendarPhone ? 1 : undefined
   });
   const origin = getSafeProductionOrigin(webAppBaseUrl);
-  const sanctumUrl = `${origin}/daily?token=${devoteeToken}`;
+  const sanctumUrl = `${origin}/daily?token=${devoteeToken}&date=${day.ymd}`;
 
   const panchangaTitle = isKn ? "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ" : isHi ? "बग्गोण पंचांग" : isTe ? "బగ్గోణ పంచాಂಗం" : isTa ? "பக்கோண பஞ்சாங்கம்" : "Baggona Panchanga";
   const kshetraTitle = isKn ? "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ" : isHi ? "गोकर्ण क्षेत्र" : isTe ? "గోకర్ణ క్షేత్రం" : isTa ? "கோகர்ண க்ஷேத்திரம்" : "Gokarna Kshetra";
@@ -1529,6 +1575,8 @@ export function generateCompactGoogleCalendarUrlForQR(options: {
   locationName?: string;
   dob?: string;
   tob?: string;
+  birthNakshatraIndex?: number;
+  birthRashiIndex?: number;
 }): string {
   const {
     day: singleDay,
@@ -1543,7 +1591,9 @@ export function generateCompactGoogleCalendarUrlForQR(options: {
     lng = 74.31,
     locationName = "Gokarna",
     dob,
-    tob
+    tob,
+    birthNakshatraIndex,
+    birthRashiIndex
   } = options;
   const day = (singleDay || (days && days.length > 0 ? days[0] : null) || {
     ymd: new Date().toISOString().slice(0, 10),
@@ -1573,26 +1623,32 @@ export function generateCompactGoogleCalendarUrlForQR(options: {
   const devoteeDisplayName = (personName && personName.trim().length > 0) ? personName.trim() : "Devotee";
   const safePandit = panditName || "Archaka";
 
+  const resolvedBirth = getUniversalBirthDetails({
+    dob,
+    tob,
+    name: devoteeDisplayName,
+    nakshatraIndex: birthNakshatraIndex,
+    rashiIndex: birthRashiIndex
+  });
+  const birthNakIdx = birthNakshatraIndex ?? resolvedBirth.nakshatraIndex ?? (day as any)?.janmaNakshatraIndex ?? 18;
+  const birthRashiIdx = birthRashiIndex ?? resolvedBirth.rashiIndex ?? (day as any)?.janmaRashiIndex ?? 8;
+
   const devoteeToken = encodeDevoteeToken({
     n: devoteeDisplayName,
-    nk: day.moonNakshatraIndex,
-    r: day.moonRashiIndex,
+    nk: birthNakIdx,
+    r: birthRashiIdx,
     p: safePandit,
     d: day.ymd,
     l: lang,
     tm: notificationTime,
     pl: "android",
-    t: "google",
-    dob,
-    tob
+    t: "google"
   });
-  const sanctumUrl = `${origin}/daily?token=${devoteeToken}`;
+  const sanctumUrl = `${origin}/daily?token=${devoteeToken}&date=${day.ymd}`;
 
-  // Compact ASCII-only summary for QR (no emojis, no Unicode)
-  const summary = `Baggona Panchanga - 90 Day Calendar`;
-
-  // Short ASCII details that stay strictly within 400-500 chars
-  const details = `Baggona Panchanga - ${safePandit} | ${devoteeDisplayName}\n${sanctumUrl}`;
+  // Compact ASCII-only summary for QR (strictly under 600 chars)
+  const summary = `Baggona Panchanga`;
+  const details = sanctumUrl;
 
   const baseUrl = "https://calendar.google.com/calendar/render";
   const params = new URLSearchParams({
@@ -1645,12 +1701,22 @@ export function generateQrPayloadByTarget(
   const safePandit = panditName || "ಶ್ರೀ ಚೈತನ್ಯ ಪಂಡಿತ್";
   const devoteeDisplayName = (personName && personName.trim().length > 0) ? personName.trim() : (lang.startsWith("kn") ? "ಭಕ್ತರು" : "Devotee");
 
+  const resolvedBirth = getUniversalBirthDetails({
+    dob,
+    tob,
+    name: devoteeDisplayName,
+    nakshatraIndex: options.birthNakshatraIndex,
+    rashiIndex: options.birthRashiIndex
+  });
+  const birthNakIdx = options.birthNakshatraIndex ?? (firstDay as any)?.janmaNakshatraIndex ?? (dob ? resolvedBirth.nakshatraIndex : undefined) ?? firstDay?.moonNakshatraIndex ?? resolvedBirth.nakshatraIndex ?? 18;
+  const birthRashiIdx = options.birthRashiIndex ?? (firstDay as any)?.janmaRashiIndex ?? (dob ? resolvedBirth.rashiIndex : undefined) ?? firstDay?.moonRashiIndex ?? resolvedBirth.rashiIndex ?? 8;
+
   const origin = getSafeProductionOrigin(webAppBaseUrl);
 
   const token = encodeDevoteeToken({
     n: devoteeDisplayName,
-    nk: firstDay?.moonNakshatraIndex,
-    r: firstDay?.moonRashiIndex,
+    nk: birthNakIdx,
+    r: birthRashiIdx,
     p: safePandit,
     d: firstDay?.ymd || new Date().toISOString().slice(0, 10),
     l: lang,
@@ -1660,8 +1726,8 @@ export function generateQrPayloadByTarget(
     lt: lat,
     lg: lng,
     loc: locationName,
-    dob,
-    tob
+    dob: resolvedBirth.dob,
+    tob: resolvedBirth.tob
   });
 
   if (target === "google" || target === "webcal") {

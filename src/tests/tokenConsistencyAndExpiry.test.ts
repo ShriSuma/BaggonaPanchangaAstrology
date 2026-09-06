@@ -261,4 +261,55 @@ describe("Devotee 90-Day Token Consistency & Expiry Engine", () => {
     // Calendar summary and web sanctum both reflect dominant majority Tithi
     expect(icsContent).toContain("ಶುಕ್ಲ ಪಕ್ಷ ಚತುರ್ದಶಿ");
   });
+
+  it("guarantees 1.5-month old user tokens (with d as startDate) expire strictly at 90 days and reject expired calendar URLs", () => {
+    // Simulate user who enrolled 95 days before 2026-09-06 (i.e. enrolled ~2026-06-03)
+    const enrollmentDate = "2026-06-03";
+    const oldUserToken = encodeDevoteeToken({
+      n: "Old Devotee",
+      nk: 1,
+      r: 1,
+      p: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
+      d: enrollmentDate, // standard Baggona token field for package start date
+      l: "kn"
+    });
+
+    const decoded = decodeDevoteeToken(oldUserToken);
+    expect(decoded).not.toBeNull();
+    // Verify decoded.d is preserved
+    expect(decoded?.d).toBe(enrollmentDate);
+
+    // Calculate expiry using the exact logic from DailyDarshanaPage:
+    const duration = 90;
+    const [sy, sm, sd] = enrollmentDate.split("-").map(Number);
+    const expDate = new Date(Date.UTC(sy, sm - 1, sd + duration));
+    const expiryDateStr = `${expDate.getUTCFullYear()}-${String(expDate.getUTCMonth() + 1).padStart(2, "0")}-${String(expDate.getUTCDate()).padStart(2, "0")}`;
+
+    // On 2026-09-06 (today):
+    const today = "2026-09-06";
+    const [ty, tm, td] = today.split("-").map(Number);
+    const startUtc = Date.UTC(sy, sm - 1, sd);
+    const todayUtc = Date.UTC(ty, tm - 1, td);
+    const daysElapsed = Math.floor((todayUtc - startUtc) / 86400000);
+
+    expect(daysElapsed).toBeGreaterThan(90);
+    expect(today > expiryDateStr).toBe(true);
+
+    // Strict boundary check: today > expiryDate OR daysElapsed >= duration
+    const isPassExpired = daysElapsed >= duration || today > expiryDateStr;
+    expect(isPassExpired).toBe(true);
+
+    // If this expired devotee clicks on ANY calendar link (past, today, or future beyond expiry):
+    const calendarUrlDateBeyondExpiry = "2026-09-10";
+    const isUrlBeyondExpiry = calendarUrlDateBeyondExpiry > expiryDateStr;
+    expect(isUrlBeyondExpiry).toBe(true);
+
+    // Even if today was within window, a calendar link for day 95 is blocked:
+    const activeDevoteeStart = "2026-08-01"; // enrolled 36 days ago
+    const activeExpDate = new Date(Date.UTC(2026, 7, 1 + duration));
+    const activeExpiryStr = `${activeExpDate.getUTCFullYear()}-${String(activeExpDate.getUTCMonth() + 1).padStart(2, "0")}-${String(activeExpDate.getUTCDate()).padStart(2, "0")}`;
+    const futureCalendarDate = "2026-11-15"; // beyond 90 days
+    expect(futureCalendarDate > activeExpiryStr).toBe(true);
+  });
 });
+

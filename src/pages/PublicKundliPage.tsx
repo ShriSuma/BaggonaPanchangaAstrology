@@ -154,7 +154,7 @@ export default function PublicKundliPage(): JSX.Element {
           changeType: "deduction",
           reason: description,
           clientName: clientName || form.name || undefined
-        }).catch(() => {});
+        }).catch(() => { });
       } catch {
         // Safe failover
       }
@@ -828,11 +828,10 @@ ${publicProfile.name}`;
                       setPdfLang(lang.code);
                       handleStopNarration();
                     }}
-                    className={`px-2.5 py-1 text-xs font-bold rounded-full transition-all ${
-                      selectedLang === lang.code
+                    className={`px-2.5 py-1 text-xs font-bold rounded-full transition-all ${selectedLang === lang.code
                         ? "bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-md scale-105"
                         : "text-amber-200/80 hover:text-amber-100 hover:bg-slate-800/60"
-                    }`}
+                      }`}
                   >
                     {lang.nativeLabel}
                   </button>
@@ -851,20 +850,6 @@ ${publicProfile.name}`;
             </p>
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-semibold mt-1">
               <span>🏛️ {txt("priestTitle")} : {txt("priestName")}</span>
-            </div>
-
-            {/* 👑 Direct Purohita Panchanga Deep Link */}
-            <div className="pt-2">
-              <a
-                href={`/priest-panchanga?date=${new Date().toISOString().slice(0, 10)}&pincode=581326`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-2xl bg-gradient-to-r from-amber-800/90 via-amber-700/90 to-amber-900/90 border border-amber-400/80 text-amber-100 text-xs font-black shadow-md hover:brightness-110 active:scale-95 transition-all"
-              >
-                <span>👑</span>
-                <span>{selectedLang === "kn" ? "ಪುರೋಹಿತ ಪಂಚಾಂಗ ಮಹಾದರ್ಶನ (Left & Right Book Details)" : "Priest Panchanga (Full Left & Right Page Details)"}</span>
-                <span>➜</span>
-              </a>
             </div>
           </div>
         </div>
@@ -973,11 +958,10 @@ ${publicProfile.name}`;
                         key={g}
                         type="button"
                         onClick={() => setForm({ ...form, gender: g as any })}
-                        className={`py-2.5 text-xs font-bold rounded-xl border transition-all ${
-                          form.gender === g
+                        className={`py-2.5 text-xs font-bold rounded-xl border transition-all ${form.gender === g
                             ? "bg-amber-500/20 border-amber-400 text-amber-300 shadow-sm"
                             : "bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700"
-                        }`}
+                          }`}
                       >
                         {g === "Male" ? txt("genderMale") : g === "Female" ? txt("genderFemale") : txt("genderOther")}
                       </button>
@@ -1058,11 +1042,10 @@ ${publicProfile.name}`;
                 <button
                   type="submit"
                   disabled={isCalculating || !isOnline}
-                  className={`w-full py-4 px-6 rounded-2xl font-extrabold text-base md:text-lg tracking-wide text-slate-950 shadow-2xl transition-all flex items-center justify-center gap-3 ${
-                    isCalculating || !isOnline
+                  className={`w-full py-4 px-6 rounded-2xl font-extrabold text-base md:text-lg tracking-wide text-slate-950 shadow-2xl transition-all flex items-center justify-center gap-3 ${isCalculating || !isOnline
                       ? "bg-slate-700 cursor-not-allowed text-slate-400"
                       : "bg-gradient-to-r from-amber-400 via-amber-500 to-amber-400 hover:from-amber-300 hover:to-amber-500 hover:scale-[1.01] hover:shadow-amber-500/20 active:scale-95"
-                  }`}
+                    }`}
                 >
                   {isCalculating ? (
                     <>
@@ -1174,11 +1157,10 @@ ${publicProfile.name}`;
                     return (
                       <div
                         key={dosha.id}
-                        className={`rounded-xl p-3 border transition-all ${
-                          isDetected
+                        className={`rounded-xl p-3 border transition-all ${isDetected
                             ? "bg-rose-950/30 border-rose-500/40 text-rose-100"
                             : "bg-emerald-950/20 border-emerald-500/30 text-emerald-100"
-                        }`}
+                          }`}
                       >
                         <div className="flex items-center justify-between gap-2 mb-1.5">
                           <div className="flex items-center gap-2">
@@ -1190,11 +1172,10 @@ ${publicProfile.name}`;
                             </span>
                           </div>
                           <span
-                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                              isDetected
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${isDetected
                                 ? "bg-rose-900/60 text-rose-200 border-rose-500/50"
                                 : "bg-emerald-900/60 text-emerald-200 border-emerald-500/50"
-                            }`}
+                              }`}
                           >
                             {isDetected ? txt("doshaDetectedBadge") : txt("doshaCleanBadge")}
                           </span>
@@ -1219,9 +1200,8 @@ ${publicProfile.name}`;
                             </span>
                           </div>
 
-                          <div className={`flex items-start gap-1.5 pt-1.5 border-t mt-1.5 ${
-                            isDetected ? "border-rose-500/20" : "border-emerald-500/20"
-                          }`}>
+                          <div className={`flex items-start gap-1.5 pt-1.5 border-t mt-1.5 ${isDetected ? "border-rose-500/20" : "border-emerald-500/20"
+                            }`}>
                             <span className="text-amber-300 font-semibold min-w-[70px]">
                               {isDetected ? txt("pariharaLabel") : (selectedLang === "kn" ? "ಗೋಕರ್ಣ ಸೇವೆ" : "Gokarna Seva")}:
                             </span>
@@ -1281,29 +1261,6 @@ ${publicProfile.name}`;
                 )}
               </button>
 
-              {/* 👑 Direct Purohita Panchanga Deep Link (Left & Right Book Details) */}
-              <div className="pt-3">
-                <a
-                  href={`/priest-panchanga?date=${new Date().toISOString().slice(0, 10)}&pincode=${form.pincode || "581326"}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full py-3 px-4 rounded-2xl font-black text-sm tracking-wide text-amber-100 shadow-lg transition-all flex items-center justify-between border-2 border-amber-500/60 bg-gradient-to-r from-amber-950 via-amber-900 to-amber-950 hover:brightness-110 active:scale-98 cursor-pointer"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">👑</span>
-                    <div className="text-left">
-                      <div className="text-xs md:text-sm font-black text-amber-200">
-                        {selectedLang === "kn" ? "ಪುರೋಹಿತ ಪಂಚಾಂಗ ಮಹಾದರ್ಶನ (Left & Right Book Details)" : "Priest Panchanga (Full Left & Right Page Details)"}
-                      </div>
-                      <div className="text-[10px] md:text-[11px] text-amber-300/80 font-normal">
-                        {selectedLang === "kn" ? "ಹಬ್ಬ-ಹರಿದಿನಗಳು, ೧೨ ಲಗ್ನ ಅಂತ್ಯಗಳು, ಶ್ರಾದ್ಧ ತಿಥಿ & ಗೋಚಾರ ಫಲಗಳು" : "Festivals, 12 Dina Lagnas, Shraddha Tithi & Gochara Kundali"}
-                      </div>
-                    </div>
-                  </div>
-                  <span className="text-amber-300 font-black text-base md:text-lg">➜</span>
-                </a>
-              </div>
-
               {/* 🪙 Red Floating Deduction Upward Animation Over Yellow Banner When Unlocked */}
               {floatingDeductions.some((d) => d.amount === personalityUnlockCost) && (
                 <div className="absolute -top-7 right-8 pointer-events-none z-50 animate-coin-deduct-float flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white font-mono font-black text-xs md:text-sm shadow-2xl border-2 border-amber-300 ring-4 ring-red-500/60 whitespace-nowrap">
@@ -1351,11 +1308,10 @@ ${publicProfile.name}`;
                   <button
                     type="button"
                     onClick={() => handleSelectTab(tab.id as any)}
-                    className={`px-4 py-2.5 text-xs md:text-sm font-bold rounded-xl transition-all flex items-center gap-1.5 ${
-                      activeTab === tab.id
+                    className={`px-4 py-2.5 text-xs md:text-sm font-bold rounded-xl transition-all flex items-center gap-1.5 ${activeTab === tab.id
                         ? "bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-md scale-105"
                         : "text-amber-200/80 hover:text-amber-100 hover:bg-slate-800/60"
-                    }`}
+                      }`}
                   >
                     <span>{tab.icon}</span>
                     <span>{tab.label}</span>
@@ -1655,15 +1611,14 @@ ${publicProfile.name}`;
                       return (
                         <div
                           key={`${d.planet}_${d.startAge}_${idx}`}
-                          className={`border rounded-2xl transition-all overflow-hidden ${
-                            isActiveMaha
+                          className={`border rounded-2xl transition-all overflow-hidden ${isActiveMaha
                               ? "bg-slate-950/90 border-emerald-500/70 shadow-lg ring-1 ring-emerald-500/30"
                               : d.nature === "challenging"
-                              ? "bg-slate-950/70 border-rose-500/50 hover:border-rose-400"
-                              : d.nature === "favorable"
-                              ? "bg-slate-950/70 border-emerald-500/50 hover:border-emerald-400"
-                              : "bg-slate-950/60 border-slate-800 hover:border-amber-500/40"
-                          }`}
+                                ? "bg-slate-950/70 border-rose-500/50 hover:border-rose-400"
+                                : d.nature === "favorable"
+                                  ? "bg-slate-950/70 border-emerald-500/50 hover:border-emerald-400"
+                                  : "bg-slate-950/60 border-slate-800 hover:border-amber-500/40"
+                            }`}
                         >
                           {/* Mahadasha Header Row */}
                           <div
@@ -1674,15 +1629,14 @@ ${publicProfile.name}`;
                           >
                             <div className="flex items-center gap-3">
                               <span
-                                className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm font-black ${
-                                  isActiveMaha
+                                className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm font-black ${isActiveMaha
                                     ? "bg-emerald-500 text-slate-950 font-bold"
                                     : d.nature === "challenging"
-                                    ? "bg-rose-950 text-rose-300 border border-rose-500/40"
-                                    : d.nature === "favorable"
-                                    ? "bg-emerald-950 text-emerald-300 border border-emerald-500/40"
-                                    : "bg-slate-800 text-amber-300"
-                                }`}
+                                      ? "bg-rose-950 text-rose-300 border border-rose-500/40"
+                                      : d.nature === "favorable"
+                                        ? "bg-emerald-950 text-emerald-300 border border-emerald-500/40"
+                                        : "bg-slate-800 text-amber-300"
+                                  }`}
                               >
                                 {isExpanded ? "▲" : "▼"}
                               </span>
@@ -1700,21 +1654,20 @@ ${publicProfile.name}`;
                             <div className="flex flex-wrap items-center gap-2.5">
                               {/* Color Coded Period Indicator */}
                               <span
-                                className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1 ${
-                                  d.nature === "challenging"
+                                className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1 ${d.nature === "challenging"
                                     ? "bg-rose-500/20 text-rose-300 border border-rose-500/40"
                                     : d.nature === "favorable"
-                                    ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
-                                    : "bg-amber-500/20 text-amber-300 border border-amber-500/30"
-                                }`}
+                                      ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
+                                      : "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                                  }`}
                               >
                                 <span>{d.nature === "challenging" ? "🔴" : d.nature === "favorable" ? "🟢" : "🟡"}</span>
                                 <span>
                                   {d.nature === "challenging"
                                     ? txt("dashaChallengingBadge")
                                     : d.nature === "favorable"
-                                    ? txt("dashaFavorableBadge")
-                                    : txt("dashaModerateBadge")}
+                                      ? txt("dashaFavorableBadge")
+                                      : txt("dashaModerateBadge")}
                                 </span>
                               </span>
 
@@ -1723,19 +1676,18 @@ ${publicProfile.name}`;
                               </span>
 
                               <span
-                                className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                                  isActiveMaha
+                                className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${isActiveMaha
                                     ? "bg-emerald-500 text-slate-950 shadow-sm"
                                     : d.status === "completed"
-                                    ? "bg-slate-800 text-slate-400"
-                                    : "bg-slate-900 text-slate-300 border border-slate-700"
-                                }`}
+                                      ? "bg-slate-800 text-slate-400"
+                                      : "bg-slate-900 text-slate-300 border border-slate-700"
+                                  }`}
                               >
                                 {isActiveMaha
                                   ? txt("activeDashaBadge")
                                   : d.status === "completed"
-                                  ? txt("completedDashaBadge")
-                                  : txt("upcomingDashaBadge")}
+                                    ? txt("completedDashaBadge")
+                                    : txt("upcomingDashaBadge")}
                               </span>
                             </div>
                           </div>
@@ -1756,15 +1708,14 @@ ${publicProfile.name}`;
                                   return (
                                     <div
                                       key={`${d.planet}_${b.bhuktiPlanet}_${b.startAge}`}
-                                      className={`rounded-xl p-3 border transition-all ${
-                                        isCurrentBhukti
+                                      className={`rounded-xl p-3 border transition-all ${isCurrentBhukti
                                           ? "bg-emerald-950/40 border-emerald-400/80 shadow-md ring-2 ring-emerald-400/40"
                                           : b.nature === "challenging"
-                                          ? "bg-rose-950/20 border-rose-500/50 hover:border-rose-400"
-                                          : b.nature === "favorable"
-                                          ? "bg-emerald-950/20 border-emerald-500/50 hover:border-emerald-400"
-                                          : "bg-slate-950/70 border-slate-800/80 hover:border-slate-700"
-                                      }`}
+                                            ? "bg-rose-950/20 border-rose-500/50 hover:border-rose-400"
+                                            : b.nature === "favorable"
+                                              ? "bg-emerald-950/20 border-emerald-500/50 hover:border-emerald-400"
+                                              : "bg-slate-950/70 border-slate-800/80 hover:border-slate-700"
+                                        }`}
                                     >
                                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-slate-800/60 pb-1.5 mb-2">
                                         <div className="flex flex-wrap items-center gap-2">
@@ -1774,21 +1725,20 @@ ${publicProfile.name}`;
 
                                           {/* Bhukti Nature Color Indicator */}
                                           <span
-                                            className={`text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 ${
-                                              b.nature === "challenging"
+                                            className={`text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 ${b.nature === "challenging"
                                                 ? "bg-rose-500/20 text-rose-300 border border-rose-500/40"
                                                 : b.nature === "favorable"
-                                                ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
-                                                : "bg-amber-500/20 text-amber-300 border border-amber-500/30"
-                                            }`}
+                                                  ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
+                                                  : "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                                              }`}
                                           >
                                             <span>{b.nature === "challenging" ? "🔴" : b.nature === "favorable" ? "🟢" : "🟡"}</span>
                                             <span>
                                               {b.nature === "challenging"
                                                 ? txt("dashaChallengingBadge")
                                                 : b.nature === "favorable"
-                                                ? txt("dashaFavorableBadge")
-                                                : txt("dashaModerateBadge")}
+                                                  ? txt("dashaFavorableBadge")
+                                                  : txt("dashaModerateBadge")}
                                             </span>
                                           </span>
 
@@ -2258,144 +2208,142 @@ ${publicProfile.name}`;
             </div>
           </div>
         )}
-      
-      {/* ============================================================== */}
-      {/* CONFIRMATION MODAL: 1,000 COIN DEDUCTION FOR PERSONALITY TAB    */}
-      {/* ============================================================== */}
-      {showUnlockModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-slate-900 border-2 border-amber-500/60 rounded-3xl p-6 md:p-8 max-w-md w-full shadow-[0_0_50px_rgba(245,158,11,0.4)] text-center space-y-4 animate-scale-up">
-            <div className="w-16 h-16 rounded-full bg-amber-500/20 border border-amber-400/50 flex items-center justify-center mx-auto text-3xl">
-              <svg className="w-8 h-8 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-            </div>
-            <h3 className="text-lg md:text-xl font-black text-amber-300">
-              {txt("unlockPersonalityPromptTitle")}
-            </h3>
-            <p className="text-xs md:text-sm text-slate-300 leading-relaxed">
-              {selectedLang === "kn"
-                ? `ವ್ಯಕ್ತಿತ್ವ & ನಿಗೂಢ ರಹಸ್ಯ ಅನ್‌ಲಾಕ್ ಮಾಡಲು ${personalityUnlockCost.toLocaleString()} ನಾಣ್ಯಗಳನ್ನು (Coins) ಕಡಿತಗೊಳಿಸಲಾಗುವುದು. ಮುಂದುವರಿಯಬೇಕೆ?`
-                : `Unlocking Personality & Hidden Secrets will deduct ${personalityUnlockCost.toLocaleString()} Coins from your wallet. Do you wish to proceed?`}
-            </p>
 
-            {/* Structured 2-Row Price & Balance Display (Requested by User) */}
-            <div className="space-y-2.5 bg-slate-950/90 border border-amber-500/30 rounded-2xl p-4 text-xs">
-              {/* Row 1: Required Coins */}
-              <div className="flex items-center justify-between pb-2.5 border-b border-slate-800">
-                <span className="text-slate-300 font-bold flex items-center gap-1.5">
-                  <span>🏷️</span>
-                  <span>{selectedLang === "kn" ? "ಇದಕ್ಕೆ ಬೇಕಾಗುವ ಕಾಯಿನ್ಸ್ ಗಳು:" : "Coins Required:"}</span>
-                </span>
-                <span className="font-mono font-black text-sm md:text-base text-amber-300 flex items-center gap-1">
-                  <span>🪙</span>
-                  <span>{personalityUnlockCost.toLocaleString()} Coins</span>
-                  <span className="text-[10px] font-sans text-amber-200/70 ml-1">
-                    (₹{Math.round(personalityUnlockCost / 10)})
+        {/* ============================================================== */}
+        {/* CONFIRMATION MODAL: 1,000 COIN DEDUCTION FOR PERSONALITY TAB    */}
+        {/* ============================================================== */}
+        {showUnlockModal && (
+          <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+            <div className="bg-slate-900 border-2 border-amber-500/60 rounded-3xl p-6 md:p-8 max-w-md w-full shadow-[0_0_50px_rgba(245,158,11,0.4)] text-center space-y-4 animate-scale-up">
+              <div className="w-16 h-16 rounded-full bg-amber-500/20 border border-amber-400/50 flex items-center justify-center mx-auto text-3xl">
+                <svg className="w-8 h-8 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+              <h3 className="text-lg md:text-xl font-black text-amber-300">
+                {txt("unlockPersonalityPromptTitle")}
+              </h3>
+              <p className="text-xs md:text-sm text-slate-300 leading-relaxed">
+                {selectedLang === "kn"
+                  ? `ವ್ಯಕ್ತಿತ್ವ & ನಿಗೂಢ ರಹಸ್ಯ ಅನ್‌ಲಾಕ್ ಮಾಡಲು ${personalityUnlockCost.toLocaleString()} ನಾಣ್ಯಗಳನ್ನು (Coins) ಕಡಿತಗೊಳಿಸಲಾಗುವುದು. ಮುಂದುವರಿಯಬೇಕೆ?`
+                  : `Unlocking Personality & Hidden Secrets will deduct ${personalityUnlockCost.toLocaleString()} Coins from your wallet. Do you wish to proceed?`}
+              </p>
+
+              {/* Structured 2-Row Price & Balance Display (Requested by User) */}
+              <div className="space-y-2.5 bg-slate-950/90 border border-amber-500/30 rounded-2xl p-4 text-xs">
+                {/* Row 1: Required Coins */}
+                <div className="flex items-center justify-between pb-2.5 border-b border-slate-800">
+                  <span className="text-slate-300 font-bold flex items-center gap-1.5">
+                    <span>🏷️</span>
+                    <span>{selectedLang === "kn" ? "ಇದಕ್ಕೆ ಬೇಕಾಗುವ ಕಾಯಿನ್ಸ್ ಗಳು:" : "Coins Required:"}</span>
                   </span>
-                </span>
-              </div>
-
-              {/* Row 2: Available Coins */}
-              <div className="flex items-center justify-between pt-1">
-                <span className="text-slate-300 font-bold flex items-center gap-1.5">
-                  <span>💼</span>
-                  <span>{selectedLang === "kn" ? "ನಿಮ್ಮ ಹತ್ತಿರ ಇರುವ ಕಾಯಿನ್ಸ್ ಗಳು:" : "Coins You Have:"}</span>
-                </span>
-                <span className={`font-mono font-black text-sm md:text-base flex items-center gap-1 ${
-                  availableCoins >= personalityUnlockCost ? "text-emerald-400" : "text-rose-400"
-                }`}>
-                  <span>🪙</span>
-                  <span>{availableCoins.toLocaleString()} Coins</span>
-                </span>
-              </div>
-            </div>
-
-            {/* If Coins Insufficient: Show exact shortage and 1-Click Instant Refill */}
-            {availableCoins < personalityUnlockCost && (
-              <div className="bg-rose-950/50 border border-rose-500/60 rounded-2xl p-3.5 text-xs text-rose-200 text-left space-y-2.5 animate-fade-in">
-                <div className="flex items-center gap-2 font-bold text-rose-300">
-                  <span className="text-base">⚠️</span>
-                  <span>
-                    {selectedLang === "kn"
-                      ? `ನಿಮ್ಮ ಹತ್ತಿರ ${(personalityUnlockCost - availableCoins).toLocaleString()} ನಾಣ್ಯಗಳ ಕೊರತೆ ಇದೆ.`
-                      : `You need ${(personalityUnlockCost - availableCoins).toLocaleString()} more Coins to unlock.`}
+                  <span className="font-mono font-black text-sm md:text-base text-amber-300 flex items-center gap-1">
+                    <span>🪙</span>
+                    <span>{personalityUnlockCost.toLocaleString()} Coins</span>
+                    <span className="text-[10px] font-sans text-amber-200/70 ml-1">
+                      (₹{Math.round(personalityUnlockCost / 10)})
+                    </span>
                   </span>
                 </div>
+
+                {/* Row 2: Available Coins */}
+                <div className="flex items-center justify-between pt-1">
+                  <span className="text-slate-300 font-bold flex items-center gap-1.5">
+                    <span>💼</span>
+                    <span>{selectedLang === "kn" ? "ನಿಮ್ಮ ಹತ್ತಿರ ಇರುವ ಕಾಯಿನ್ಸ್ ಗಳು:" : "Coins You Have:"}</span>
+                  </span>
+                  <span className={`font-mono font-black text-sm md:text-base flex items-center gap-1 ${availableCoins >= personalityUnlockCost ? "text-emerald-400" : "text-rose-400"
+                    }`}>
+                    <span>🪙</span>
+                    <span>{availableCoins.toLocaleString()} Coins</span>
+                  </span>
+                </div>
+              </div>
+
+              {/* If Coins Insufficient: Show exact shortage and 1-Click Instant Refill */}
+              {availableCoins < personalityUnlockCost && (
+                <div className="bg-rose-950/50 border border-rose-500/60 rounded-2xl p-3.5 text-xs text-rose-200 text-left space-y-2.5 animate-fade-in">
+                  <div className="flex items-center gap-2 font-bold text-rose-300">
+                    <span className="text-base">⚠️</span>
+                    <span>
+                      {selectedLang === "kn"
+                        ? `ನಿಮ್ಮ ಹತ್ತಿರ ${(personalityUnlockCost - availableCoins).toLocaleString()} ನಾಣ್ಯಗಳ ಕೊರತೆ ಇದೆ.`
+                        : `You need ${(personalityUnlockCost - availableCoins).toLocaleString()} more Coins to unlock.`}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const shortage = personalityUnlockCost - availableCoins;
+                      creditGuestCoins(shortage);
+                      setGuestBalance(getPublicGuestWallet().coinBalance);
+                      setErrorMessage(null);
+                    }}
+                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-extrabold text-xs shadow-md hover:from-emerald-400 hover:to-teal-500 transition flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                  >
+                    <span>⚡</span>
+                    <span>
+                      {selectedLang === "kn"
+                        ? `+${(personalityUnlockCost - availableCoins).toLocaleString()} ನಾಣ್ಯಗಳನ್ನು ಸೇರಿಸಿ (ರೀಚಾರ್ಜ್)`
+                        : `+${(personalityUnlockCost - availableCoins).toLocaleString()} Coins Refill`}
+                    </span>
+                  </button>
+                </div>
+              )}
+
+              {/* Inline Error Display */}
+              {errorMessage && (
+                <div className="bg-rose-950/80 border border-rose-500 text-rose-200 p-2.5 rounded-xl text-xs font-bold text-left">
+                  ⚠️ {errorMessage}
+                </div>
+              )}
+
+              <div className="pt-2 flex items-center justify-center gap-3">
                 <button
                   type="button"
                   onClick={() => {
-                    const shortage = personalityUnlockCost - availableCoins;
-                    creditGuestCoins(shortage);
-                    setGuestBalance(getPublicGuestWallet().coinBalance);
+                    setShowUnlockModal(false);
                     setErrorMessage(null);
                   }}
-                  className="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-extrabold text-xs shadow-md hover:from-emerald-400 hover:to-teal-500 transition flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                  className="px-5 py-2.5 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-bold transition-all cursor-pointer"
                 >
-                  <span>⚡</span>
-                  <span>
-                    {selectedLang === "kn"
-                      ? `+${(personalityUnlockCost - availableCoins).toLocaleString()} ನಾಣ್ಯಗಳನ್ನು ಸೇರಿಸಿ (ರೀಚಾರ್ಜ್)`
-                      : `+${(personalityUnlockCost - availableCoins).toLocaleString()} Coins Refill`}
-                  </span>
+                  {selectedLang === "kn" ? "ರದ್ದುಗೊಳಿಸಿ" : "Cancel"}
                 </button>
-              </div>
-            )}
-
-            {/* Inline Error Display */}
-            {errorMessage && (
-              <div className="bg-rose-950/80 border border-rose-500 text-rose-200 p-2.5 rounded-xl text-xs font-bold text-left">
-                ⚠️ {errorMessage}
-              </div>
-            )}
-
-            <div className="pt-2 flex items-center justify-center gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowUnlockModal(false);
-                  setErrorMessage(null);
-                }}
-                className="px-5 py-2.5 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-bold transition-all cursor-pointer"
-              >
-                {selectedLang === "kn" ? "ರದ್ದುಗೊಳಿಸಿ" : "Cancel"}
-              </button>
-              <button
-                type="button"
-                onClick={handleUnlockPersonality}
-                disabled={isUnlocking || availableCoins < personalityUnlockCost}
-                className={`px-6 py-2.5 rounded-xl font-extrabold text-xs md:text-sm shadow-lg transition-all flex items-center gap-2 cursor-pointer active:scale-95 ${
-                  availableCoins >= personalityUnlockCost
-                    ? "bg-gradient-to-r from-amber-400 to-amber-600 text-slate-950 hover:from-yellow-300 hover:to-amber-400"
-                    : "bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700"
-                }`}
-              >
-                {isUnlocking
-                  ? (selectedLang === "kn" ? "ಅನ್‌ಲಾಕ್ ಆಗುತ್ತಿದೆ..." : "Unlocking...")
-                  : (selectedLang === "kn"
+                <button
+                  type="button"
+                  onClick={handleUnlockPersonality}
+                  disabled={isUnlocking || availableCoins < personalityUnlockCost}
+                  className={`px-6 py-2.5 rounded-xl font-extrabold text-xs md:text-sm shadow-lg transition-all flex items-center gap-2 cursor-pointer active:scale-95 ${availableCoins >= personalityUnlockCost
+                      ? "bg-gradient-to-r from-amber-400 to-amber-600 text-slate-950 hover:from-yellow-300 hover:to-amber-400"
+                      : "bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700"
+                    }`}
+                >
+                  {isUnlocking
+                    ? (selectedLang === "kn" ? "ಅನ್‌ಲಾಕ್ ಆಗುತ್ತಿದೆ..." : "Unlocking...")
+                    : (selectedLang === "kn"
                       ? `🪙 ಹೌದು, ಅನ್‌ಲಾಕ್ ಮಾಡಿ (${personalityUnlockCost.toLocaleString()} Coins)`
                       : `🪙 Yes, Unlock (${personalityUnlockCost.toLocaleString()} Coins)`)}
-              </button>
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Universal 1-Click Falling Coins Refill Modal */}
-      {isRechargeOpen && (
-        <FallingCoinsRefillModal
-          isOpen={isRechargeOpen}
-          onClose={() => {
-            setIsRechargeOpen(false);
-            setGuestBalance(getPublicGuestWallet().coinBalance);
-          }}
-          requiredCoins={personalityUnlockCost}
-          currentCoins={availableCoins}
-          serviceTitle={selectedLang === "kn" ? "ಸಾರ್ವಜನಿಕ ಕುಂಡಲಿ ಸೇವೆಗಳು" : "Public Kundli Services"}
-        />
-      )}
+        {/* Universal 1-Click Falling Coins Refill Modal */}
+        {isRechargeOpen && (
+          <FallingCoinsRefillModal
+            isOpen={isRechargeOpen}
+            onClose={() => {
+              setIsRechargeOpen(false);
+              setGuestBalance(getPublicGuestWallet().coinBalance);
+            }}
+            requiredCoins={personalityUnlockCost}
+            currentCoins={availableCoins}
+            serviceTitle={selectedLang === "kn" ? "ಸಾರ್ವಜನಿಕ ಕುಂಡಲಿ ಸೇವೆಗಳು" : "Public Kundli Services"}
+          />
+        )}
 
-    </main>
+      </main>
     </div>
   );
 }

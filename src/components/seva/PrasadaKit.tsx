@@ -458,7 +458,10 @@ export default function PrasadaKit({
       pincode,
       lat: pincodeLocation.lat,
       lng: pincodeLocation.lng,
-      locationName: pincodeLocation.villageName
+      locationName: pincodeLocation.villageName,
+      birthNakshatraIndex: identity.nakshatraIndex,
+      birthRashiIndex: identity.rashiIndex,
+      dob: identity.dob
     });
     const blob = new Blob([csStr], { type: "text/calendar;charset=utf-8" });
     const url = URL.createObjectURL(blob);

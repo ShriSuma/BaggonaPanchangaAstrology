@@ -93,6 +93,7 @@ function toBase64Url(str: string): string {
 }
 
 function fromBase64Url(base64Url: string): string {
+  if (!base64Url || typeof base64Url !== "string") return "";
   try {
     if (typeof Buffer !== "undefined") {
       return Buffer.from(base64Url, "base64url").toString("utf-8");
@@ -100,16 +101,22 @@ function fromBase64Url(base64Url: string): string {
   } catch {
     // Fallback below
   }
-  let base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-  while (base64.length % 4) {
-    base64 += "=";
+  try {
+    const clean = base64Url.trim().replace(/\s+/g, "+");
+    let base64 = clean.replace(/-/g, "+").replace(/_/g, "/");
+    while (base64.length % 4) {
+      base64 += "=";
+    }
+    const bin = atob(base64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) {
+      bytes[i] = bin.charCodeAt(i);
+    }
+    return new TextDecoder("utf-8", { fatal: false }).decode(bytes);
+  } catch (err) {
+    console.warn("fromBase64Url fallback decoding failed:", err);
+    return "";
   }
-  const bin = atob(base64);
-  const bytes = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) {
-    bytes[i] = bin.charCodeAt(i);
-  }
-  return new TextDecoder("utf-8").decode(bytes);
 }
 
 /**

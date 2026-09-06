@@ -1058,7 +1058,7 @@ function getTodayBhavishyaHighlights(
     title: code === "kn" ? "🔮 ಇಂದಿನ ದಿನ ಭವಿಷ್ಯ" : code === "hi" ? "🔮 आज का मुख्य राशिफल मार्गदर्शन" : code === "te" ? "🔮 నేటి ముఖ్య రోజు జాతక మార్గదర్శకత్వం" : code === "ta" ? "🔮 இன்றைய முக்கிய தின பலன்கள்" : "🔮 Today's Personalized Bhavishya Highlights",
     subtitle: code === "kn" ? "ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿ, ದಶಾ-ಭುಕ್ತಿ ಹಾಗೂ ಗೋಚಾರ ಆಧಾರಿತ 4 ಪ್ರಮುಖ ಮಾರ್ಗದರ್ಶನಗಳು" :
               code === "hi" ? "आपकी जन्म कुंडली, दशा-भुक्ति एवं गोचर आधारित 4 मुख्य मार्गदर्शन" :
-              code === "te" ? "మీ జన్మ జాతకం, దశా-భుక్తి & గోచార ఆధారిత 4 ముఖ్య మార్గదర్శకాలు" :
+              code === "te" ? "మీ జన్ಮ జాతకం, దశా-భుక్తి & గోచార ఆధారిత 4 ముఖ్య మార్గదర్శకాలు" :
               code === "ta" ? "உங்கள் ஜாதகம், திசை-புக்தி மற்றும் கோச்சார அடிப்படையிலான 4 முக்கிய வழிகாட்டுதல்கள்" :
               "4 Key Actionable Focus Points based on Birth Kundli, Dasha & Gochara",
     overallVibe: dinaBhavishyaData ? `${dinaBhavishyaData.badgeEmoji} ${dinaBhavishyaData.chandraBalaText}` : (rhythmDay?.band === "high" ? "🟢 Auspicious" : rhythmDay?.band === "rest" ? "🔴 Rest Day" : "🟡 Steady Day"),
@@ -1068,7 +1068,7 @@ function getTodayBhavishyaHighlights(
         icon: "🚗",
         category: vehiclePoint.category,
         prediction: vehiclePoint.text,
-        advice: dinaBhavishyaData ? `${dinaBhavishyaData.abhijitMuhurtha} | ${code === "kn" ? "ಅದೃಷ್ಟ ಬಣ್ಣ:" : "Lucky Color:"} ${dinaBhavishyaData.luckyColor}` : (score >= 75 ? (code === "kn" ? "ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ ನೂತನ ಕಾರ್ಯಾರಂಭ ಮಾಡಿ." : "Proceed during auspicious Muhurtha.") : (code === "kn" ? "ಸಾಮಾನ್ಯ ಪ್ರಯಾಣಗಳಿಗೆ ಮಾತ್ರ ಆದ್ಯತೆ ನೀಡಿ." : "Focus on essential routine travels."))
+        advice: dinaBhavishyaData ? `${dinaBhavishyaData.abhijitMuhurtha} | ${code === "kn" ? "అదೃಷ್ಟ బಣ್ಣ:" : "Lucky Color:"} ${dinaBhavishyaData.luckyColor}` : (score >= 75 ? (code === "kn" ? "ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ ನೂತನ ಕಾರ್ಯಾರಂಭ ಮಾಡಿ." : "Proceed during auspicious Muhurtha.") : (code === "kn" ? "సామాన్య ಪ್ರಯಾಣಗಳಿಗೆ ಮಾತ್ರ ಆದ್ಯತೆ ನೀಡಿ." : "Focus on essential routine travels."))
       },
       {
         icon: "💼",
@@ -1095,7 +1095,15 @@ function getTodayBhavishyaHighlights(
 export default function DailyDarshanaPage(): JSX.Element {
   const params = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : new URLSearchParams();
   const tokenParam = params.get("token");
-  const initialDecoded = useMemo(() => (tokenParam ? decodeDevoteeToken(tokenParam) : null), [tokenParam]);
+  const initialDecoded = useMemo(() => {
+    if (!tokenParam) return null;
+    try {
+      return decodeDevoteeToken(tokenParam);
+    } catch (e) {
+      console.warn("Initial token decode failed:", e);
+      return null;
+    }
+  }, [tokenParam]);
   const [resolvedTokenData, setResolvedTokenData] = useState<ResolveTokenResult | null>(null);
 
   useEffect(() => {
@@ -1105,6 +1113,8 @@ export default function DailyDarshanaPage(): JSX.Element {
       if (isMounted && res) {
         setResolvedTokenData(res);
       }
+    }).catch((err) => {
+      console.warn("resolveDevoteeToken error:", err);
     });
     return () => { isMounted = false; };
   }, [tokenParam]);
@@ -1122,73 +1132,23 @@ export default function DailyDarshanaPage(): JSX.Element {
     );
   }, [decoded, params]);
 
-  const [selectedDateOverride, setSelectedDateOverride] = useState<string | null>(null);
-
   const todayStr = useMemo(() => {
     const userLongitude = decoded?.lg ?? decoded?.lng ?? 74.3187;
+    const userLat = decoded?.lt ?? decoded?.lat ?? 14.5479;
     const now = new Date();
-    const localOffsetMinutes = Math.round(userLongitude * 4);
+    // India Standard Time (IST) offset is exactly 330 minutes (+05:30)
+    const isIndia = (userLongitude >= 68 && userLongitude <= 98 && userLat >= 6 && userLat <= 38) || Math.abs(userLongitude - 74.3187) < 5;
+    const offsetMinutes = isIndia ? 330 : Math.round(userLongitude / 15) * 60;
     const utcMs = now.getTime() + (now.getTimezoneOffset() * 60000);
-    const localTime = new Date(utcMs + (localOffsetMinutes * 60000));
+    const localTime = new Date(utcMs + (offsetMinutes * 60000));
     return localTime.toISOString().split("T")[0];
   }, [decoded]);
 
-  const dateParam = useMemo(() => {
-    if (selectedDateOverride && /^\d{4}-\d{2}-\d{2}$/.test(selectedDateOverride)) {
-      if (selectedDateOverride > todayStr) return todayStr;
-      return selectedDateOverride;
-    }
-
-    const urlDate = params.get("date") || params.get("d") || decoded?.d;
-    if (urlDate && urlDate.trim().length > 0 && /^\d{4}-\d{2}-\d{2}$/.test(urlDate.trim())) {
-      const cleanUrlDate = urlDate.trim();
-      if (cleanUrlDate > todayStr) return todayStr;
-      return cleanUrlDate;
-    }
-    return todayStr;
-  }, [params, decoded, selectedDateOverride, todayStr]);
-
-  const isSelectedDateToday = dateParam === todayStr;
-
-  const handleDateChange = (newDateStr: string) => {
-    if (/^\d{4}-\d{2}-\d{2}$/.test(newDateStr)) {
-      if (newDateStr > todayStr) {
-        alert(lang === "kn"
-          ? "⚠️ ಭವಿಷ್ಯದ ದಿನಗಳ ಪಂಚಾಂಗ ಲಭ್ಯವಿಲ್ಲ. ಕೇವಲ ಇಂದಿನ ಪಂಚಾಂಗ ದರ್ಶನವನ್ನು ಮಾತ್ರ ವೀಕ್ಷಿಸಬಹುದು."
-          : "⚠️ Future day predictions are locked. Please view today's sanctum darshana."
-        );
-        return;
-      }
-      setSelectedDateOverride(newDateStr);
-      if (typeof window !== "undefined") {
-        const newUrl = new URL(window.location.href);
-        newUrl.searchParams.set("date", newDateStr);
-        window.history.replaceState({}, "", newUrl.toString());
-      }
-    }
-  };
-
-  const handlePrevDay = () => {
-    const current = new Date(dateParam);
-    current.setDate(current.getDate() - 1);
-    const prevYmd = current.toISOString().split("T")[0];
-    handleDateChange(prevYmd);
-  };
-
-  const handleNextDay = () => {
-    if (dateParam >= todayStr) {
-      return;
-    }
-    const current = new Date(dateParam);
-    current.setDate(current.getDate() + 1);
-    const nextYmd = current.toISOString().split("T")[0];
-    if (nextYmd > todayStr) return;
-    handleDateChange(nextYmd);
-  };
-
-  const handleResetToToday = () => {
-    handleDateChange(todayStr);
-  };
+  // Strict Sanctum Rule: The page is strictly locked to TODAY only.
+  // Clicking any calendar event (future or past) loads today's sacred darshana itself.
+  // Devotees cannot browse past or future dates.
+  const dateParam = todayStr;
+  const isSelectedDateToday = true;
 
   const langParam = (decoded?.l || params.get("lang") || "kn") as SevaLang;
   const nameParam = decoded?.n || params.get("name") || "";
@@ -1450,31 +1410,6 @@ export default function DailyDarshanaPage(): JSX.Element {
     });
   }, [dateParam, userLat, userLng, userPincode]);
 
-  // Surrounding 7-Day Strip for fast 1-tap navigation across 90/180/365 days
-  const surroundingDays = useMemo(() => {
-    const base = new Date(dateParam);
-    const list: { ymd: string; dayNum: number; weekdayKn: string; weekdayEn: string; isCurrent: boolean; isFuture: boolean; energyEmoji: string }[] = [];
-    const knWeekdays = ["ಭಾನು", "ಸೋಮ", "ಮಂಗಳ", "ಬುಧ", "ಗುರು", "ಶುಕ್ರ", "ಶನಿ"];
-    const enWeekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
-    for (let offset = -4; offset <= 2; offset++) {
-      const d = new Date(base.getTime() + offset * 86400000);
-      const ymd = d.toISOString().split("T")[0];
-      const isFuture = ymd > todayStr;
-      const rDay = calculateDeterministicRhythmDay(ymd, moonNakshatraIdx, moonRashiIdx, ymd);
-      const v = getEnergyMeterAndVibe(rDay, lang);
-      list.push({
-        ymd,
-        dayNum: d.getDate(),
-        weekdayKn: knWeekdays[d.getDay()] || "ದಿನ",
-        weekdayEn: enWeekdays[d.getDay()] || "Day",
-        isCurrent: ymd === dateParam,
-        isFuture,
-        energyEmoji: isFuture ? "🔒" : v.badgeEmoji
-      });
-    }
-    return list;
-  }, [dateParam, moonNakshatraIdx, moonRashiIdx, lang, todayStr]);
 
   // Derived user astro indices
   const ascendantRashiIdx = useMemo(() => {
@@ -1618,8 +1553,60 @@ export default function DailyDarshanaPage(): JSX.Element {
     });
   }, [devoteeDisplayName, resolvedBirth, tokenParam]);
 
+  // 90-Day / Custom Duration Pass Expiry Calculation
+  // Supports database-backed tokens, backward-compatible tokens (decoded.d), and URL query params
+  const rawStartDate =
+    resolvedTokenData?.payload?.startDate ||
+    resolvedTokenData?.payload?.d ||
+    (resolvedTokenData?.createdAt ? resolvedTokenData.createdAt.slice(0, 10) : "") ||
+    decoded?.sd ||
+    decoded?.startDate ||
+    decoded?.d ||
+    urlParams.get("startDate") ||
+    urlParams.get("sd") ||
+    "";
+  const rawDuration =
+    resolvedTokenData?.payload?.days ||
+    resolvedTokenData?.payload?.dy ||
+    decoded?.dy ||
+    decoded?.days ||
+    Number(urlParams.get("days")) ||
+    90;
+
+  const passExpiration = useMemo(() => {
+    return checkPassExpiration(rawStartDate, rawDuration);
+  }, [rawStartDate, rawDuration]);
+
+  // Strict Expiry Boundary Guard:
+  // 1. If 90 days have elapsed from startDate, pass is expired.
+  // 2. If today is past the calculated expiry date, access is strictly locked.
+  // 3. If a devotee clicked an event in their calendar whose date is beyond the 90-day expiry date, access is locked.
+  // ZERO Panchanga or Dina Bhavishya data is returned to expired devotees.
+  const isPassExpired = useMemo(() => {
+    if (passExpiration.isExpired) return true;
+    if (passExpiration.expiryDate && todayStr > passExpiration.expiryDate) return true;
+
+    // Strict boundary check on any clicked calendar event date
+    const rawUrlDate = params.get("date") || params.get("d");
+    if (rawUrlDate && /^\d{4}-\d{2}-\d{2}$/.test(rawUrlDate.trim()) && passExpiration.expiryDate) {
+      if (rawUrlDate.trim() > passExpiration.expiryDate) {
+        return true;
+      }
+    }
+
+    if (resolvedTokenData?.isExpired === true) {
+      return true;
+    }
+
+    return false;
+  }, [passExpiration, todayStr, params, resolvedTokenData]);
+
   // Dynamic Live Dina Bhavishya Resolution (100% Vedic Astrological Computation & GenAI)
   useEffect(() => {
+    if (isPassExpired) {
+      setIsDinaBhavishyaLoading(false);
+      return;
+    }
     let isMounted = true;
     setIsDinaBhavishyaLoading(true);
 
@@ -1707,12 +1694,6 @@ export default function DailyDarshanaPage(): JSX.Element {
     };
   }, [devoteeUserId, devoteeDisplayName, devoteeGotra, moonRashiIdx, moonNakshatraIdx, resolvedBirth, tokenParam, decoded, urlParams, isFromCalendarRedirect]);
 
-  // 90-Day / Custom Duration Pass Expiry Calculation
-  const rawStartDate = decoded?.sd || decoded?.startDate || urlParams.get("startDate") || urlParams.get("sd") || "";
-  const rawDuration = decoded?.dy || decoded?.days || Number(urlParams.get("days")) || 90;
-  const passExpiration = useMemo(() => {
-    return checkPassExpiration(rawStartDate, rawDuration);
-  }, [rawStartDate, rawDuration]);
 
   // Track calendar visit for metrics and priest sync
   useEffect(() => {
@@ -2165,7 +2146,7 @@ export default function DailyDarshanaPage(): JSX.Element {
       </header>
 
       {/* Ashirvada Pass Expired & Renewal Screen (Locks Content on 30d/90d Expiry) */}
-      {passExpiration.isExpired ? (
+      {isPassExpired ? (
         <div style={{
           maxWidth: 600,
           margin: "24px auto",
@@ -2306,225 +2287,40 @@ export default function DailyDarshanaPage(): JSX.Element {
       {/* Main Content Area */}
       <main style={{ maxWidth: 600, margin: "0 auto", padding: "16px 12px" }}>
 
-        {/* 🗓️ 90-Day / Multi-Day Interactive Calendar & Date Navigator */}
+        {/* Sacred Today Darshana Date Card (Locked to Today Only) */}
         <div style={{
           background: "linear-gradient(135deg, #2D0C02 0%, #170500 100%)",
           border: "2px solid #D4AF37",
           borderRadius: 18,
-          padding: "12px 14px",
+          padding: "14px 18px",
           marginBottom: 14,
-          boxShadow: "0 8px 24px rgba(0,0,0,0.6)"
+          boxShadow: "0 8px 24px rgba(0,0,0,0.6)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between"
         }}>
-          {/* Top Bar: Prev Day, Date Picker / Current Day Pill, Next Day, Today Jump */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
-            <button
-              type="button"
-              onClick={handlePrevDay}
-              title={lang === "kn" ? "ಹಿಂದಿನ ದಿನ" : "Previous Day"}
-              style={{
-                background: "rgba(212, 175, 55, 0.15)",
-                color: "#FDE68A",
-                border: "1px solid rgba(212, 175, 55, 0.4)",
-                borderRadius: 10,
-                padding: "8px 12px",
-                fontSize: 12,
-                fontWeight: 900,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: 4,
-                transition: "all 0.2s ease"
-              }}
-            >
-              <span>◀</span>
-              <span className="hidden sm:inline">{lang === "kn" ? "ಹಿಂದೆ" : "Prev"}</span>
-            </button>
-
-            {/* Clickable Date Selector with Native Calendar Input Trigger */}
-            <div style={{ position: "relative", flex: 1, textAlign: "center" }}>
-              <label
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 6,
-                  background: "rgba(0, 0, 0, 0.5)",
-                  border: "1.5px solid #F59E0B",
-                  borderRadius: 12,
-                  padding: "6px 12px",
-                  cursor: "pointer",
-                  width: "100%",
-                  maxWidth: 280,
-                  boxShadow: "inset 0 2px 6px rgba(0,0,0,0.4)"
-                }}
-              >
-                <span style={{ fontSize: 16 }}>🗓️</span>
-                <span style={{ fontSize: 13, fontWeight: 900, color: "#FDE68A", letterSpacing: "0.3px" }}>
-                  {formatLongDate(mockDay, lang)}
-                </span>
-                <span style={{ fontSize: 12 }}>{vibe.badgeEmoji}</span>
-                <input
-                  type="date"
-                  value={dateParam}
-                  onChange={(e) => {
-                    if (e.target.value) handleDateChange(e.target.value);
-                  }}
-                  style={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    width: "100%",
-                    height: "100%",
-                    opacity: 0,
-                    cursor: "pointer"
-                  }}
-                />
-              </label>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleNextDay}
-              title={lang === "kn" ? "ಮುಂದಿನ ದಿನ" : "Next Day"}
-              style={{
-                background: "rgba(212, 175, 55, 0.15)",
-                color: "#FDE68A",
-                border: "1px solid rgba(212, 175, 55, 0.4)",
-                borderRadius: 10,
-                padding: "8px 12px",
-                fontSize: 12,
-                fontWeight: 900,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: 4,
-                transition: "all 0.2s ease"
-              }}
-            >
-              <span className="hidden sm:inline">{lang === "kn" ? "ಮುಂದೆ" : "Next"}</span>
-              <span>▶</span>
-            </button>
-
-            {!isSelectedDateToday && (
-              <button
-                type="button"
-                onClick={handleResetToToday}
-                title={lang === "kn" ? "ಇಂದಿನ ದಿನಕ್ಕೆ ಮರಳಿ" : "Return to Today"}
-                style={{
-                  background: "linear-gradient(135deg, #D97706 0%, #B45309 100%)",
-                  color: "#FFFFFF",
-                  border: "1px solid #FDE68A",
-                  borderRadius: 10,
-                  padding: "8px 10px",
-                  fontSize: 11,
-                  fontWeight: 900,
-                  cursor: "pointer",
-                  whiteSpace: "nowrap"
-                }}
-              >
-                📍 {lang === "kn" ? "ಇಂದು" : "Today"}
-              </button>
-            )}
-          </div>
-
-          {/* Quick 7-Day Pill Strip */}
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(7, 1fr)",
-            gap: 4,
-            marginTop: 10,
-            paddingTop: 8,
-            borderTop: "1px solid rgba(212, 175, 55, 0.2)"
-          }}>
-            {surroundingDays.map((item) => (
-              <button
-                key={item.ymd}
-                type="button"
-                disabled={item.isFuture}
-                onClick={() => !item.isFuture && handleDateChange(item.ymd)}
-                style={{
-                  background: item.isCurrent
-                    ? "linear-gradient(180deg, rgba(217, 119, 6, 0.5) 0%, rgba(146, 64, 14, 0.8) 100%)"
-                    : item.isFuture
-                    ? "rgba(40, 10, 10, 0.4)"
-                    : "rgba(0, 0, 0, 0.35)",
-                  border: item.isCurrent
-                    ? "2px solid #FDE68A"
-                    : item.isFuture
-                    ? "1px dashed rgba(239, 68, 68, 0.4)"
-                    : "1px solid rgba(212, 175, 55, 0.25)",
-                  borderRadius: 10,
-                  padding: "6px 2px",
-                  cursor: item.isFuture ? "not-allowed" : "pointer",
-                  textAlign: "center",
-                  color: item.isCurrent ? "#FFF8E7" : item.isFuture ? "#9CA3AF" : "#D1D5DB",
-                  opacity: item.isFuture ? 0.6 : 1,
-                  boxShadow: item.isCurrent ? "0 0 10px rgba(253, 230, 138, 0.5)" : "none",
-                  transition: "all 0.15s ease"
-                }}
-                title={item.isFuture ? (lang === "kn" ? "ಭವಿಷ್ಯದ ದಿನ ಲಾಕ್ ಆಗಿದೆ" : "Future day is locked") : undefined}
-              >
-                <div style={{ fontSize: 9.5, fontWeight: 800, color: item.isCurrent ? "#FDE68A" : "#9CA3AF" }}>
-                  {lang === "kn" ? item.weekdayKn : item.weekdayEn}
-                </div>
-                <div style={{ fontSize: 13, fontWeight: 900, marginTop: 1 }}>
-                  {item.dayNum}
-                </div>
-                <div style={{ fontSize: 9, marginTop: 1 }}>
-                  {item.energyEmoji}
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* 👑 Direct Purohita Panchanga Banner (Left & Right Book Details) */}
-        <div style={{ marginBottom: 14 }}>
-          <a
-            href={`/priest-panchanga?date=${mockDay.ymd}&pincode=${userPincode || "581326"}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              background: "linear-gradient(135deg, rgba(217, 119, 6, 0.35) 0%, rgba(120, 53, 15, 0.6) 100%)",
-              border: "1.5px solid #F59E0B",
-              borderRadius: 16,
-              padding: "12px 16px",
-              color: "#FDE68A",
-              textDecoration: "none",
-              boxShadow: "0 4px 16px rgba(0,0,0,0.5)",
-              transition: "all 0.2s ease"
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 24 }}>👑</span>
-              <div style={{ textAlign: "left" }}>
-                <div style={{ fontSize: 13, fontWeight: 900, color: "#FFFFFF" }}>
-                  {lang === "kn" ? "ಪುರೋಹಿತ ಪಂಚಾಂಗ ಮಹಾದರ್ಶನ (Left & Right Page Details)" : "Priest Panchanga (Full Left & Right Page Details)"}
-                </div>
-                <div style={{ fontSize: 10.5, color: "#FDE68A", marginTop: 2 }}>
-                  {lang === "kn" ? "ಹಬ್ಬ-ಹರಿದಿನಗಳು, ೧೨ ಲಗ್ನ ಅಂತ್ಯಗಳು, ಶ್ರಾದ್ಧ ತಿಥಿ & ಗೋಚಾರ ಕುಂಡಲಿ" : "Festivals, 12 Dina Lagnas, Shraddha Tithi & Gochara Kundali"}
-                </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <span style={{ fontSize: 26 }}>🗓️</span>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 900, color: "#FDE68A", letterSpacing: "0.3px" }}>
+                {formatLongDate(mockDay, lang)}
+              </div>
+              <div style={{ fontSize: 11.5, color: "#D1D5DB", marginTop: 3 }}>
+                {vibe.vibeTag}
               </div>
             </div>
-            <div style={{
-              background: "rgba(245, 158, 11, 0.2)",
-              border: "1px solid #F59E0B",
-              borderRadius: 10,
-              padding: "4px 8px",
-              fontSize: 11,
-              fontWeight: 900,
-              color: "#FFF",
-              display: "flex",
-              alignItems: "center",
-              gap: 4
-            }}>
-              <span>{lang === "kn" ? "ವೀಕ್ಷಿಸಿ" : "View"}</span>
-              <span>➜</span>
-            </div>
-          </a>
+          </div>
+          <div style={{
+            background: "rgba(212, 175, 55, 0.15)",
+            border: "1px solid #D4AF37",
+            borderRadius: 10,
+            padding: "5px 12px",
+            fontSize: 12,
+            fontWeight: 800,
+            color: "#FDE68A"
+          }}>
+            {vibe.badgeEmoji} {lang === "kn" ? "ಇಂದಿನ ದರ್ಶನ" : "Today's Darshana"}
+          </div>
         </div>
         
         {/* Devotee Greeting Header (Pavitra Darshana Sannidhi) */}

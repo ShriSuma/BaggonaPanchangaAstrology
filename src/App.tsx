@@ -205,7 +205,11 @@ export default function App(): JSX.Element {
   }
 
   if (isDailyRoute) {
-    return <DailyDarshanaPage />;
+    return (
+      <ErrorBoundary>
+        <DailyDarshanaPage />
+      </ErrorBoundary>
+    );
   }
 
   if (isPublicKundliRoute) {
