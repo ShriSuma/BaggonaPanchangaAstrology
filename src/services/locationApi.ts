@@ -75,46 +75,119 @@ const tokenOverlapScore = (a: string, b: string): number => {
   return score;
 };
 
+const STATE_ALIASES: Record<string, string> = {
+  tamilnadu: "TN",
+  "tamil nadu": "TN",
+  orissa: "OR",
+  odisha: "OR",
+  uttaranchal: "UT",
+  uttarakhand: "UT",
+  pondicherry: "PY",
+  puducherry: "PY",
+  "jammu & kashmir": "JK",
+  "jammu and kashmir": "JK",
+  "andaman & nicobar": "AN",
+  "andaman & nicobar islands": "AN",
+  "andaman and nicobar islands": "AN",
+  "dadra & nagar haveli": "DN",
+  "daman & diu": "DN",
+  "dadra and nagar haveli and daman and diu": "DN",
+  telengana: "TG",
+  telangana: "TG",
+  delhi: "DL",
+  "new delhi": "DL",
+  "nct of delhi": "DL",
+  karnataka: "KA",
+  maharashtra: "MH",
+  kerala: "KL",
+  "andhra pradesh": "AP",
+  gujarat: "GJ",
+  rajasthan: "RJ",
+  "madhya pradesh": "MP",
+  "west bengal": "WB",
+  bengal: "WB",
+  "uttar pradesh": "UP",
+  bihar: "BR",
+  punjab: "PB",
+  haryana: "HR",
+  assam: "AS",
+  jharkhand: "JH",
+  chhattisgarh: "CT",
+  chattisgarh: "CT",
+  goa: "GA",
+  "himachal pradesh": "HP",
+  tripura: "TR",
+  manipur: "MN",
+  meghalaya: "ML",
+  nagaland: "NL",
+  mizoram: "MZ",
+  sikkim: "SK",
+  "arunachal pradesh": "AR",
+  chandigarh: "CH",
+  ladakh: "LA",
+  lakshadweep: "LD"
+};
+
 export const stateCodeFromPostalName = (postalStateName: string): string | undefined => {
-  const t = postalStateName.trim().toLowerCase();
+  if (!postalStateName) return undefined;
+  const raw = postalStateName.trim().toLowerCase();
+  
+  // Direct alias lookup
+  if (STATE_ALIASES[raw]) return STATE_ALIASES[raw];
+
+  // Check for ISO code pattern like "IN-TN"
+  const isoMatch = postalStateName.trim().toUpperCase().match(/^IN-([A-Z]{2})$/);
+  if (isoMatch) return isoMatch[1];
+
   for (const s of states as State[]) {
-    if (s.name.toLowerCase() === t) return s.code;
+    if (s.name.toLowerCase() === raw || s.code.toLowerCase() === raw) return s.code;
   }
   return undefined;
 };
 
-/** Map India Post district label to our sparse district list for a state. */
+/** Map India Post district label to our district list or create deterministic code for a state. */
 export const findDistrictCodeForPostal = (stateCode: string, postalDistrict: string): string => {
   const dists = (districts as District[]).filter((d) => d.stateCode === stateCode);
-  if (!dists.length) return "MH-MUM";
+  const pd = (postalDistrict || "").trim();
+  const pdLower = pd.toLowerCase();
 
-  const pd = postalDistrict.trim().toLowerCase();
-  if (stateCode === "KA" && (pd.includes("bangalore") || pd.includes("bengaluru"))) {
+  if (stateCode === "KA" && (pdLower.includes("bangalore") || pdLower.includes("bengaluru"))) {
     const blr = dists.find((d) => d.code === "KA-BLR");
     if (blr) return blr.code;
   }
   if (
     stateCode === "KA" &&
-    (pd.includes("uttara") || pd.includes("karwar") || pd.includes("kumta") || pd.includes("honnavar") || pd.includes("sirsi"))
+    (pdLower.includes("uttara") || pdLower.includes("karwar") || pdLower.includes("kumta") || pdLower.includes("honnavar") || pdLower.includes("sirsi"))
   ) {
     const ukn = dists.find((d) => d.code === "KA-UKN");
     if (ukn) return ukn.code;
   }
-  if (stateCode === "MH" && (pd.includes("mumbai") || pd.includes("thane") || pd.includes("navi mumbai"))) {
+  if (stateCode === "MH" && (pdLower.includes("mumbai") || pdLower.includes("thane") || pdLower.includes("navi mumbai"))) {
     const m = dists.find((d) => d.code === "MH-MUM" || d.name.toLowerCase().includes("mumbai"));
     if (m) return m.code;
   }
 
-  let best = dists[0]!.code;
+  let best = "";
   let bestScore = 0;
   for (const d of dists) {
-    const score = tokenOverlapScore(postalDistrict, d.name);
+    if (d.name.toLowerCase() === pdLower) return d.code;
+    const score = tokenOverlapScore(pd, d.name);
     if (score > bestScore) {
       bestScore = score;
       best = d.code;
     }
   }
-  return best;
+  if (best && bestScore > 0) return best;
+
+  // If district name is available, generate deterministic code e.g. "TN-TIR" for Tiruvallur
+  if (pd.length >= 3) {
+    const cleanSlug = pd.replace(/[^a-zA-Z]/g, "").slice(0, 3).toUpperCase();
+    if (cleanSlug.length >= 3) {
+      return `${stateCode}-${cleanSlug}`;
+    }
+  }
+
+  return dists[0]?.code || `${stateCode}-DST`;
 };
 
 type PostalPincodeResponse = {
@@ -126,6 +199,12 @@ type PostalPincodeResponse = {
     State?: string;
     Latitude?: string;
     Longitude?: string;
+    BranchType?: string;
+    Block?: string;
+    Circle?: string;
+    Division?: string;
+    Region?: string;
+    Country?: string;
   }>;
 };
 
@@ -174,12 +253,13 @@ export const fetchVillagesByPincode = async (pincode: string): Promise<Village[]
       const apiLat = Number.isFinite(lat) && lat !== 0 ? lat : 0;
       const apiLng = Number.isFinite(lng) && lng !== 0 ? lng : 0;
       const fb = bundled.find((b) => b.name === po.Name) ?? bundled[0];
+      const centroid = getPostalRegionCentroid(po.Pincode || pincode);
       out.push({
         name: po.Name,
         districtCode,
         stateCode,
-        lat: apiLat || fb?.lat || 0,
-        lng: apiLng || fb?.lng || 0,
+        lat: apiLat || fb?.lat || centroid.lat,
+        lng: apiLng || fb?.lng || centroid.lng,
         pincode: po.Pincode || pincode
       });
     }
@@ -251,93 +331,299 @@ export type ResolvedPinPlace = {
   pincode: string;
 };
 
-export const getPostalRegionCentroid = (pincode: string): { lat: number; lng: number } => {
-  const prefix = pincode.trim().slice(0, 2);
-  const p1 = pincode.trim().slice(0, 1);
-  if (["50", "51", "52", "53"].includes(prefix)) return { lat: 16.5062, lng: 80.6480 };
-  if (["56", "57", "58", "59"].includes(prefix)) return { lat: 14.5479, lng: 74.3188 };
-  if (["60", "61", "62", "63", "64"].includes(prefix)) return { lat: 13.0827, lng: 80.2707 };
-  if (["67", "68", "69"].includes(prefix)) return { lat: 9.9312, lng: 76.2673 };
-  if (["40", "41", "42", "43", "44"].includes(prefix)) return { lat: 19.0760, lng: 72.8777 };
-  if (["45", "46", "47", "48", "49"].includes(prefix)) return { lat: 23.2599, lng: 77.4126 };
-  if (["36", "37", "38", "39"].includes(prefix)) return { lat: 23.0225, lng: 72.5714 };
-  if (["30", "31", "32", "33", "34", "35"].includes(prefix)) return { lat: 26.9124, lng: 75.7873 };
-  if (["11", "12", "13", "14", "15", "16", "17", "18", "19"].includes(prefix)) return { lat: 28.6139, lng: 77.2090 };
-  if (["20", "21", "22", "23", "24", "25", "26", "27", "28"].includes(prefix)) return { lat: 26.8467, lng: 80.9462 };
-  if (["70", "71", "72", "73", "74", "75", "76", "77", "78", "79"].includes(prefix)) return { lat: 22.5726, lng: 88.3639 };
-  if (["80", "81", "82", "83", "84", "85"].includes(prefix)) return { lat: 25.5941, lng: 85.1376 };
-  if (p1 === "5") return { lat: 15.3173, lng: 75.7139 };
-  return { lat: 21.1458, lng: 79.0882 };
+export type PostalCentroid = {
+  lat: number;
+  lng: number;
+  stateCode: string;
+  regionName: string;
 };
 
-/** Resolve first post office for a PIN to coordinates (bundled catalog, API, or Nominatim). */
+const PIN_PREFIX_CENTROIDS: Record<string, PostalCentroid> = {
+  // Northern Region
+  "11": { lat: 28.6139, lng: 77.2090, stateCode: "DL", regionName: "Delhi" },
+  "12": { lat: 28.4595, lng: 77.0266, stateCode: "HR", regionName: "Gurugram / South Haryana" },
+  "13": { lat: 30.1290, lng: 77.2674, stateCode: "HR", regionName: "Ambala / North Haryana" },
+  "14": { lat: 30.9010, lng: 75.8573, stateCode: "PB", regionName: "Ludhiana / Central Punjab" },
+  "15": { lat: 30.2110, lng: 74.9455, stateCode: "PB", regionName: "Bathinda / South Punjab" },
+  "16": { lat: 30.7333, lng: 76.7794, stateCode: "CH", regionName: "Chandigarh" },
+  "17": { lat: 31.1048, lng: 77.1734, stateCode: "HP", regionName: "Shimla / Himachal Pradesh" },
+  "18": { lat: 32.7266, lng: 74.8570, stateCode: "JK", regionName: "Jammu" },
+  "19": { lat: 34.0837, lng: 74.7973, stateCode: "JK", regionName: "Srinagar / Kashmir" },
+
+  // Uttar Pradesh & Uttarakhand
+  "20": { lat: 27.8974, lng: 78.0880, stateCode: "UP", regionName: "Aligarh / Western UP" },
+  "21": { lat: 25.4358, lng: 81.8463, stateCode: "UP", regionName: "Prayagraj / Central UP" },
+  "22": { lat: 26.8467, lng: 80.9462, stateCode: "UP", regionName: "Lucknow / Awadh" },
+  "23": { lat: 25.1337, lng: 82.5644, stateCode: "UP", regionName: "Mirzapur / Eastern UP" },
+  "24": { lat: 28.8386, lng: 78.7733, stateCode: "UP", regionName: "Moradabad / Bareilly" },
+  "25": { lat: 28.9845, lng: 77.7064, stateCode: "UP", regionName: "Meerut / NCR East" },
+  "26": { lat: 27.9135, lng: 79.9288, stateCode: "UP", regionName: "Shahjahanpur / Terai" },
+  "27": { lat: 26.7606, lng: 83.3732, stateCode: "UP", regionName: "Gorakhpur / Purvanchal" },
+  "28": { lat: 27.1767, lng: 78.0081, stateCode: "UP", regionName: "Agra / Jhansi" },
+
+  // Rajasthan
+  "30": { lat: 26.9124, lng: 75.7873, stateCode: "RJ", regionName: "Jaipur / Central Rajasthan" },
+  "31": { lat: 24.5854, lng: 73.7125, stateCode: "RJ", regionName: "Udaipur / Mewar" },
+  "32": { lat: 25.2138, lng: 75.8648, stateCode: "RJ", regionName: "Kota / Hadoti" },
+  "33": { lat: 28.0229, lng: 73.3119, stateCode: "RJ", regionName: "Bikaner / North Rajasthan" },
+  "34": { lat: 26.2389, lng: 73.0243, stateCode: "RJ", regionName: "Jodhpur / Marwar" },
+  "35": { lat: 26.9124, lng: 70.9000, stateCode: "RJ", regionName: "Jaisalmer / West Rajasthan" },
+
+  // Gujarat
+  "36": { lat: 22.3039, lng: 70.8022, stateCode: "GJ", regionName: "Rajkot / Saurashtra" },
+  "37": { lat: 23.2420, lng: 69.6669, stateCode: "GJ", regionName: "Bhuj / Kutch" },
+  "38": { lat: 23.0225, lng: 72.5714, stateCode: "GJ", regionName: "Ahmedabad / North Gujarat" },
+  "39": { lat: 21.1702, lng: 72.8311, stateCode: "GJ", regionName: "Surat / South Gujarat" },
+
+  // Maharashtra & Goa
+  "40": { lat: 18.9916, lng: 72.8540, stateCode: "MH", regionName: "Mumbai / Konkan / Goa" },
+  "41": { lat: 18.5204, lng: 73.8567, stateCode: "MH", regionName: "Pune / Western Maharashtra" },
+  "42": { lat: 20.0000, lng: 73.7800, stateCode: "MH", regionName: "Nashik / Khandesh" },
+  "43": { lat: 19.8762, lng: 75.3433, stateCode: "MH", regionName: "Chhatrapati Sambhajinagar" },
+  "44": { lat: 21.1458, lng: 79.0882, stateCode: "MH", regionName: "Nagpur / Vidarbha" },
+
+  // Madhya Pradesh & Chhattisgarh
+  "45": { lat: 22.7196, lng: 75.8577, stateCode: "MP", regionName: "Indore / Malwa" },
+  "46": { lat: 23.2599, lng: 77.4126, stateCode: "MP", regionName: "Bhopal / Central MP" },
+  "47": { lat: 26.2183, lng: 78.1828, stateCode: "MP", regionName: "Gwalior / Chambal" },
+  "48": { lat: 23.1815, lng: 79.9864, stateCode: "MP", regionName: "Jabalpur / Mahakoshal" },
+  "49": { lat: 21.2514, lng: 81.6296, stateCode: "CT", regionName: "Raipur / Chhattisgarh" },
+
+  // Andhra Pradesh & Telangana
+  "50": { lat: 17.3850, lng: 78.4867, stateCode: "TG", regionName: "Hyderabad / Telangana" },
+  "51": { lat: 14.4673, lng: 78.8242, stateCode: "AP", regionName: "Kadapa / Rayalaseema" },
+  "52": { lat: 16.5062, lng: 80.6480, stateCode: "AP", regionName: "Vijayawada / Coastal Andhra" },
+  "53": { lat: 17.6868, lng: 83.2185, stateCode: "AP", regionName: "Visakhapatnam / North Coastal AP" },
+
+  // Karnataka
+  "56": { lat: 12.9716, lng: 77.5946, stateCode: "KA", regionName: "Bengaluru / South Karnataka" },
+  "57": { lat: 13.3409, lng: 74.7421, stateCode: "KA", regionName: "Coastal / Central Karnataka" },
+  "58": { lat: 14.5479, lng: 74.3188, stateCode: "KA", regionName: "Gokarna / Uttara Kannada" },
+  "59": { lat: 15.8497, lng: 74.4977, stateCode: "KA", regionName: "Belagavi / North Karnataka" },
+
+  // Tamil Nadu & Kerala
+  "60": { lat: 13.0827, lng: 80.2707, stateCode: "TN", regionName: "Chennai / Tiruvallur / Kanchipuram" },
+  "61": { lat: 10.7905, lng: 78.7047, stateCode: "TN", regionName: "Tiruchirappalli / Thanjavur" },
+  "62": { lat: 9.9252, lng: 78.1198, stateCode: "TN", regionName: "Madurai / South Tamil Nadu" },
+  "63": { lat: 12.9165, lng: 79.1325, stateCode: "TN", regionName: "Vellore / North Tamil Nadu" },
+  "64": { lat: 11.0168, lng: 76.9558, stateCode: "TN", regionName: "Coimbatore / Kongu Nadu" },
+  "67": { lat: 11.2588, lng: 75.7804, stateCode: "KL", regionName: "Kozhikode / Malabar" },
+  "68": { lat: 9.9312, lng: 76.2673, stateCode: "KL", regionName: "Kochi / Central Kerala" },
+  "69": { lat: 8.5241, lng: 76.9366, stateCode: "KL", regionName: "Thiruvananthapuram / South Kerala" },
+
+  // Eastern & North Eastern
+  "70": { lat: 22.5726, lng: 88.3639, stateCode: "WB", regionName: "Kolkata / South Bengal" },
+  "71": { lat: 23.5204, lng: 87.3119, stateCode: "WB", regionName: "Durgapur / Bardhaman" },
+  "72": { lat: 22.4257, lng: 87.3199, stateCode: "WB", regionName: "Midnapore / South West Bengal" },
+  "73": { lat: 26.7271, lng: 88.3953, stateCode: "WB", regionName: "Siliguri / North Bengal" },
+  "74": { lat: 24.0954, lng: 88.2562, stateCode: "WB", regionName: "Murshidabad / Nadia" },
+  "75": { lat: 20.2961, lng: 85.8245, stateCode: "OR", regionName: "Bhubaneswar / Coastal Odisha" },
+  "76": { lat: 19.3149, lng: 84.7941, stateCode: "OR", regionName: "Berhampur / South Odisha" },
+  "77": { lat: 21.4669, lng: 83.9812, stateCode: "OR", regionName: "Sambalpur / West Odisha" },
+  "78": { lat: 26.1445, lng: 91.7362, stateCode: "AS", regionName: "Guwahati / Assam" },
+  "79": { lat: 25.5788, lng: 91.8933, stateCode: "ML", regionName: "Shillong / North East India" },
+
+  // Bihar & Jharkhand
+  "80": { lat: 25.5941, lng: 85.1376, stateCode: "BR", regionName: "Patna / Central Bihar" },
+  "81": { lat: 25.2425, lng: 86.9842, stateCode: "BR", regionName: "Bhagalpur / East Bihar" },
+  "82": { lat: 24.7914, lng: 85.0002, stateCode: "BR", regionName: "Gaya / South Bihar" },
+  "83": { lat: 23.3441, lng: 85.3096, stateCode: "JH", regionName: "Ranchi / South Jharkhand" },
+  "84": { lat: 26.1209, lng: 85.3647, stateCode: "BR", regionName: "Muzaffarpur / North Bihar" },
+  "85": { lat: 25.7711, lng: 87.4704, stateCode: "BR", regionName: "Purnia / Seemanchal" }
+};
+
+export const getPostalRegionCentroid = (
+  pincode: string
+): PostalCentroid => {
+  const clean = (pincode || "").trim();
+  const prefix = clean.slice(0, 2);
+  if (PIN_PREFIX_CENTROIDS[prefix]) {
+    return PIN_PREFIX_CENTROIDS[prefix];
+  }
+  const p1 = clean.slice(0, 1);
+  if (p1 === "5") return { lat: 15.3173, lng: 75.7139, stateCode: "KA", regionName: "Karnataka" };
+  if (p1 === "6") return { lat: 11.1271, lng: 78.6569, stateCode: "TN", regionName: "Tamil Nadu" };
+  if (p1 === "4") return { lat: 19.7515, lng: 75.7139, stateCode: "MH", regionName: "Maharashtra" };
+  if (p1 === "1" || p1 === "2") return { lat: 28.6139, lng: 77.2090, stateCode: "DL", regionName: "North India" };
+  if (p1 === "7") return { lat: 22.5726, lng: 88.3639, stateCode: "WB", regionName: "East India" };
+  if (p1 === "8") return { lat: 25.5941, lng: 85.1376, stateCode: "BR", regionName: "Bihar / Jharkhand" };
+  if (p1 === "3") return { lat: 26.9124, lng: 75.7873, stateCode: "RJ", regionName: "West India" };
+  return { lat: 21.1458, lng: 79.0882, stateCode: "MH", regionName: "India" };
+};
+
+/** Formats clean, recognizable Google Maps style location name (Town/Taluk, District). */
+export const formatGoogleStylePlaceName = (primary?: string, district?: string, state?: string): string => {
+  let p = (primary || "").trim();
+  // Strip administrative suffixes like "Tahsil", "Taluk", "Mandal", "M.Corp."
+  p = p.replace(/\s*\([^)]*\)/g, "").trim();
+  p = p.replace(/\s+(Tahsil|Tehsil|Taluk|Taluka|Mandal|Block|M\.Corp\.|Municipal Corporation)$/i, "").trim();
+
+  let d = (district || "").replace(/\s+(District|Dist|City District)$/i, "").trim();
+  const s = (state || "").trim();
+
+  if (!p && !d) return s || "India";
+  if (!p) return d;
+  if (!d) return p;
+
+  const pLow = p.toLowerCase();
+  const dLow = d.toLowerCase();
+
+  // If identical
+  if (pLow === dLow) return p;
+
+  // If district is just town + "Urban" / "Rural" / "Central" / "North" / "South"
+  const dBase = dLow.replace(/\s+(urban|rural|central|north|south|east|west|metropolitan)$/i, "").trim();
+  if (dBase === pLow) return p;
+
+  const pBase = pLow.replace(/\s+(urban|rural|central|north|south|east|west|metropolitan)$/i, "").trim();
+  if (pBase === dLow) return d;
+
+  // If district contains primary (or vice-versa) as a distinct word
+  if (dLow.includes(pLow) && dLow.length - pLow.length < 8) return p;
+  if (pLow.includes(dLow) && pLow.length - dLow.length < 8) return p;
+
+  return `${p}, ${d}`;
+};
+
+/** Resolve Indian PIN to coordinates and Google-style place name using Nominatim & India Post synergy. */
 export const resolvePlaceFromPincode = async (pincode: string): Promise<ResolvedPinPlace | null> => {
   if (!/^[1-9]\d{5}$/.test(pincode)) return null;
-  const list = await fetchVillagesByPincode(pincode);
-  const v = list?.[0];
-  const districtCode = v?.districtCode ?? "KA-UKN";
-  const stateCode = v?.stateCode ?? districtCode.split("-")[0] ?? "KA";
-  const villageName = v?.name ?? `Pincode ${pincode}`;
 
-  let lat = v?.lat || 0;
-  let lng = v?.lng || 0;
-
-  if (lat && lng) {
-    return {
-      villageName,
-      districtCode,
-      stateCode,
-      lat,
-      lng,
-      pincode
-    };
-  }
-
-  const fb = bundledVillagesByPincode(pincode)[0];
+  // 1. Instant check from bundled catalog (offline fast-path for key locations like Gokarna 581326)
+  const bundled = bundledVillagesByPincode(pincode);
+  const fb = bundled[0];
   if (fb?.lat && fb?.lng) {
-    lat = fb.lat;
-    lng = fb.lng;
     return {
-      villageName,
-      districtCode,
-      stateCode,
-      lat,
-      lng,
+      villageName: fb.name,
+      districtCode: fb.districtCode,
+      stateCode: fb.stateCode || fb.districtCode.split("-")[0] || "KA",
+      lat: fb.lat,
+      lng: fb.lng,
       pincode
     };
   }
+
+  // 2. Check IndexedDB geocode cache for quick repeat lookups
+  const cached = await getGeocode(`pin:${pincode}`);
 
   const isOffline = typeof navigator !== "undefined" && !navigator.onLine;
 
   if (!isOffline) {
     try {
-      const districtName =
-        (districts as District[]).find((d) => d.code === districtCode)?.name ?? "";
-      const query = `${villageName}, ${pincode}, ${districtName}, India`;
-      const coords = await withTimeout(getCoordinates(query), NOMINATIM_TIMEOUT_MS);
-      lat = coords.lat;
-      lng = coords.lng;
+      // 3. Dual-source network resolution: Nominatim structured postal search + India Post API in parallel
+      const nomPromise = withTimeout(
+        fetch(
+          `https://nominatim.openstreetmap.org/search?postalcode=${encodeURIComponent(pincode)}&country=India&format=json&limit=1&addressdetails=1`,
+          {
+            headers: {
+              Accept: "application/json",
+              "User-Agent": "BaggonaPanchangaAstrologyPWA/1.0 (offline-first astrology; contact: local-app)"
+            }
+          }
+        ).then(async (r) => (r.ok ? ((await r.json()) as any[]) : null)),
+        NOMINATIM_TIMEOUT_MS
+      ).catch(() => null);
+
+      const postPromise = withTimeout(
+        fetch(`https://api.postalpincode.in/pincode/${encodeURIComponent(pincode)}`).then(async (r) =>
+          r.ok ? ((await r.json()) as PostalPincodeResponse[]) : null
+        ),
+        REQUEST_TIMEOUT_MS
+      ).catch(() => null);
+
+      const [nomRes, postRes] = await Promise.all([nomPromise, postPromise]);
+
+      const nomRecord = Array.isArray(nomRes) && nomRes.length ? nomRes[0] : null;
+      const postOffices =
+        Array.isArray(postRes) && postRes[0]?.Status === "Success" && postRes[0].PostOffice
+          ? postRes[0].PostOffice
+          : [];
+
+      // Identify primary post office (Sub Post Office or Head Post Office is the postal hub)
+      const mainPo =
+        postOffices.find((o) => o.BranchType === "Head Post Office") ||
+        postOffices.find((o) => o.BranchType === "Sub Post Office") ||
+        postOffices[0];
+
+      // Locality / Town candidates
+      const nomCounty = nomRecord?.address?.county;
+      const nomCity =
+        nomRecord?.address?.city ||
+        nomRecord?.address?.town ||
+        nomRecord?.address?.village ||
+        nomRecord?.address?.suburb ||
+        nomRecord?.address?.municipality;
+      const postTown = mainPo?.Name;
+      const postBlock = mainPo?.Block;
+
+      const rawPrimary = nomCounty || nomCity || postBlock || postTown || "";
+      const rawDistrict = mainPo?.District || nomRecord?.address?.state_district || "";
+      const rawState = mainPo?.State || nomRecord?.address?.state || "";
+
+      const stateCode =
+        stateCodeFromPostalName(rawState) ||
+        getPostalRegionCentroid(pincode).stateCode ||
+        "KA";
+      const districtCode = findDistrictCodeForPostal(stateCode, rawDistrict);
+
+      // Coordinates
+      let lat = Number(nomRecord?.lat) || 0;
+      let lng = Number(nomRecord?.lon) || 0;
+
+      if (!lat || !lng) {
+        if (cached?.lat && cached?.lng) {
+          lat = cached.lat;
+          lng = cached.lng;
+        } else if (rawPrimary || rawDistrict) {
+          // Fallback geocode via text search
+          try {
+            const query = `${rawPrimary || rawDistrict}, ${rawDistrict || rawState}, India`;
+            const coords = await withTimeout(getCoordinates(query), NOMINATIM_TIMEOUT_MS);
+            if (coords && coords.lat && coords.lng) {
+              lat = coords.lat;
+              lng = coords.lng;
+            }
+          } catch {
+            // will fall back to centroid
+          }
+        }
+      }
+
+      if (!lat || !lng) {
+        const centroid = getPostalRegionCentroid(pincode);
+        lat = centroid.lat;
+        lng = centroid.lng;
+      }
+
+      const villageName = formatGoogleStylePlaceName(rawPrimary, rawDistrict, rawState);
+
+      // Cache for offline repeat access
+      await cacheGeocode(`pin:${pincode}`, lat, lng);
+      await cacheGeocode(villageName.toLowerCase(), lat, lng);
+
+      return {
+        villageName,
+        districtCode,
+        stateCode,
+        lat,
+        lng,
+        pincode
+      };
     } catch {
-      // If Nominatim search fails, fallback to regional postal centroid
-      const fallbackCoords = getPostalRegionCentroid(pincode);
-      lat = fallbackCoords.lat;
-      lng = fallbackCoords.lng;
+      // If network calls fail, proceed to centroid fallback
     }
-  } else {
-    // Fast offline fallback to regional centroid or Gokarna default
-    const fallbackCoords = getPostalRegionCentroid(pincode);
-    lat = fallbackCoords.lat || 14.5479;
-    lng = fallbackCoords.lng || 74.3188;
   }
 
-  if (!lat || !lng) {
-    const fallbackCoords = getPostalRegionCentroid(pincode);
-    lat = fallbackCoords.lat || 14.5479;
-    lng = fallbackCoords.lng || 74.3188;
-  }
+  // 4. Offline / Failure fallback to cached or accurate regional centroid
+  const centroid = getPostalRegionCentroid(pincode);
+  const lat = cached?.lat || centroid.lat || 14.5479;
+  const lng = cached?.lng || centroid.lng || 74.3188;
+  const stateCode = centroid.stateCode || "KA";
+  const districtCode = `${stateCode}-DST`;
+  const villageName = centroid.regionName ? `${centroid.regionName}` : `Pincode ${pincode}`;
 
   return {
-    villageName: villageName || "Gokarna",
+    villageName,
     districtCode,
     stateCode,
     lat,
@@ -371,7 +657,7 @@ export const resolvePlaceOrPincode = async (
     }
     const centroid = getPostalRegionCentroid(q);
     return {
-      placeName: `PIN ${q}`,
+      placeName: `${centroid.regionName || "PIN " + q} (${q})`,
       lat: centroid.lat || 14.5479,
       lng: centroid.lng || 74.3188,
       pincode: q
@@ -407,6 +693,14 @@ export const getCoordinates = async (placeName: string): Promise<{ lat: number; 
     return { lat: 14.5479, lng: 74.3188 };
   }
 
+  // Check if query is or contains a 6-digit Indian PIN code
+  const pinMatch = placeName.match(/\b([1-9]\d{5})\b/);
+  if (pinMatch) {
+    const pin = pinMatch[1];
+    const pinCached = await getGeocode(`pin:${pin}`);
+    if (pinCached) return pinCached;
+  }
+
   const now = Date.now();
   const elapsed = now - lastNominatimCallMs;
   if (elapsed < 1000) {
@@ -415,15 +709,45 @@ export const getCoordinates = async (placeName: string): Promise<{ lat: number; 
   lastNominatimCallMs = Date.now();
 
   try {
-    // Nominatim usage policy: max 1 req/s; identify app via User-Agent (https://operations.osmfoundation.org/policies/nominatim/)
-    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(placeName)},India&format=json&limit=1`;
+    // If a 6-digit pincode is present, try structured postal search first
+    if (pinMatch) {
+      try {
+        const pinUrl = `https://nominatim.openstreetmap.org/search?postalcode=${encodeURIComponent(pinMatch[1])}&country=India&format=json&limit=1`;
+        const pinResp = await withTimeout(
+          fetch(pinUrl, {
+            headers: {
+              Accept: "application/json",
+              "User-Agent": "BaggonaPanchangaAstrologyPWA/1.0 (offline-first astrology; contact: local-app)"
+            }
+          }),
+          NOMINATIM_TIMEOUT_MS
+        );
+        if (pinResp.ok) {
+          const pinRecords = (await pinResp.json()) as Array<{ lat: string; lon: string }>;
+          if (pinRecords.length && Number(pinRecords[0].lat) && Number(pinRecords[0].lon)) {
+            const lat = Number(pinRecords[0].lat);
+            const lng = Number(pinRecords[0].lon);
+            await cacheGeocode(normalized, lat, lng);
+            await cacheGeocode(`pin:${pinMatch[1]}`, lat, lng);
+            return { lat, lng };
+          }
+        }
+      } catch {
+        // Fallback to unstructured query below
+      }
+    }
+
+    // Nominatim usage policy: max 1 req/s; identify app via User-Agent
+    const cleanPlace = placeName.replace(/,\s*india$/i, "").trim();
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cleanPlace)},India&format=json&limit=1`;
     const response = await withTimeout(
       fetch(url, {
         headers: {
           Accept: "application/json",
           "User-Agent": "BaggonaPanchangaAstrologyPWA/1.0 (offline-first astrology; contact: local-app)"
         }
-      })
+      }),
+      NOMINATIM_TIMEOUT_MS
     );
     if (!response.ok) {
       throw new Error("Unable to fetch coordinates right now");
@@ -437,6 +761,10 @@ export const getCoordinates = async (placeName: string): Promise<{ lat: number; 
     await cacheGeocode(normalized, lat, lng);
     return { lat, lng };
   } catch {
+    if (pinMatch) {
+      const centroid = getPostalRegionCentroid(pinMatch[1]);
+      return { lat: centroid.lat, lng: centroid.lng };
+    }
     return { lat: 14.5479, lng: 74.3188 };
   }
 };

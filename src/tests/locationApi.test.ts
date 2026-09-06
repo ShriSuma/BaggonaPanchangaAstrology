@@ -73,6 +73,82 @@ describe("locationApi", () => {
     expect(cityRes.lat).toBeGreaterThan(0);
     expect(cityRes.lng).toBeGreaterThan(0);
 
+    // PIN 601201 offline fallback to Tamil Nadu centroid (NEVER Gokarna)
+    const tnFallback = await resolvePlaceFromPincode("601201");
+    expect(tnFallback).not.toBeNull();
+    expect(tnFallback?.stateCode).toBe("TN");
+    expect(tnFallback?.lat).toBeCloseTo(13.0827, 2);
+    expect(tnFallback?.lng).toBeCloseTo(80.2707, 2);
+    // Crucial check: must NOT be Gokarna coordinates
+    expect(tnFallback?.lat).not.toBeCloseTo(14.5479, 2);
+
+    vi.unstubAllGlobals();
+  });
+
+  it("resolves 601201 with exact Gummidipoondi, Tiruvallur place name and coordinates", async () => {
+    const fetchMock = vi.fn(async (url: RequestInfo | URL) => {
+      const urlStr = url.toString();
+      if (urlStr.includes("nominatim.openstreetmap.org/search?postalcode=601201")) {
+        return {
+          ok: true,
+          json: async () => [
+            {
+              lat: "13.4295847",
+              lon: "80.1168189",
+              address: {
+                county: "Gummidipoondi",
+                state_district: "Thiruvallur",
+                state: "Tamil Nadu"
+              }
+            }
+          ]
+        } as unknown as Response;
+      }
+      if (urlStr.includes("api.postalpincode.in/pincode/601201")) {
+        return {
+          ok: true,
+          json: async () => [
+            {
+              Status: "Success",
+              PostOffice: [
+                {
+                  Name: "Gummidipundi",
+                  BranchType: "Sub Post Office",
+                  District: "Tiruvallur",
+                  State: "Tamil Nadu",
+                  Pincode: "601201"
+                },
+                {
+                  Name: "Arambakkam",
+                  BranchType: "Branch Post Office",
+                  District: "Tiruvallur",
+                  State: "Tamil Nadu",
+                  Pincode: "601201"
+                }
+              ]
+            }
+          ]
+        } as unknown as Response;
+      }
+      return { ok: false } as unknown as Response;
+    });
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    const res = await resolvePlaceFromPincode("601201");
+    expect(res).not.toBeNull();
+    expect(res?.villageName).toBe("Gummidipoondi, Tiruvallur");
+    expect(res?.stateCode).toBe("TN");
+    expect(res?.districtCode).toBe("TN-TIR");
+    expect(res?.lat).toBeCloseTo(13.4296, 3);
+    expect(res?.lng).toBeCloseTo(80.1168, 3);
+
+    // Universal resolver formatted output
+    const placeRes = await resolvePlaceOrPincode("601201");
+    expect(placeRes.placeName).toBe("Gummidipoondi, Tiruvallur (601201)");
+    expect(placeRes.lat).toBeCloseTo(13.4296, 3);
+    expect(placeRes.lng).toBeCloseTo(80.1168, 3);
+
     vi.unstubAllGlobals();
   });
 });
