@@ -13,6 +13,7 @@
   { "code": "TN-CHE", "stateCode": "TN", "name": "Chennai" },
   { "code": "TN-CBE", "stateCode": "TN", "name": "Coimbatore" },
   { "code": "TN-MDU", "stateCode": "TN", "name": "Madurai" },
+  { "code": "TN-KRI", "stateCode": "TN", "name": "Krishnagiri" },
   { "code": "DL-ND", "stateCode": "DL", "name": "New Delhi" },
   { "code": "DL-NW", "stateCode": "DL", "name": "North West Delhi" },
   { "code": "TG-HYD", "stateCode": "TG", "name": "Hyderabad" },

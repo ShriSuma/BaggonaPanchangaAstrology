@@ -17,6 +17,24 @@ import { detectAffairIndicators } from "../../core/layers/NatalLayer";
 import { askGemini } from "../../core/GeminiEngine";
 import { getTransitsForDate } from "../../core/BaggonaPredictionEngine";
 import { calculateTraditionalBaggona } from "../../core/TraditionalBaggonaEngine";
+import {
+  analyzeKundali,
+  buildDynamicMarriageFallback,
+  buildDynamicChildrenFallback,
+  buildDynamicCareerFallback,
+  buildDynamicWealthFallback,
+  buildDynamicHealthFallback,
+  buildDynamicChildEducationFallback,
+  buildDynamicChildActivitiesFallback,
+  buildDynamicChildFoundationFallback,
+  buildDynamicChildFamilyFallback,
+  buildDynamicChildPediatricHealthFallback,
+  buildDynamicCharacteristicsFallback,
+  buildDynamicDarkSecretFallback,
+  buildDynamicCurrentPhaseFallback,
+  buildDynamicGocharaFallback,
+  buildDynamicSummaryFallback
+} from "../../features/premiumPdf/dynamicBhavishyaEngine";
 import type { PlanetName } from "../../core/AstroTypes";
 import { PremiumPDFTemplate } from "../pdf/PremiumPDFTemplate";
 import { generatePDFFromElement } from "../../utils/pdfGenerator";
@@ -115,6 +133,66 @@ const RASHI_LORDS_L5: Record<string, Record<number, string>> = {
   en: { 0: "Mars (Kuja)", 1: "Venus (Shukra)", 2: "Mercury (Budha)", 3: "Moon (Chandra)", 4: "Sun (Surya)", 5: "Mercury (Budha)", 6: "Venus (Shukra)", 7: "Mars (Kuja)", 8: "Jupiter (Guru)", 9: "Saturn (Shani)", 10: "Saturn (Shani)", 11: "Jupiter (Guru)" }
 };
 
+export interface DynamicChartContext {
+  planets: Array<{
+    name: string;
+    house: number;
+    rashiIndex: number;
+    isExalted?: boolean;
+    isDebilitated?: boolean;
+    isRetrograde?: boolean;
+  }>;
+  transits?: TransitPlacement[];
+  moonRashiIndex?: number;
+  ageYears?: number;
+}
+
+export function robustParseGeminiJSON(text: string): Record<string, any> {
+  if (!text || typeof text !== "string") return {};
+  try {
+    let clean = text.trim();
+    const codeBlockMatch = clean.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+    if (codeBlockMatch) {
+      clean = codeBlockMatch[1].trim();
+    }
+    const jsonMatch = clean.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return {};
+    const jsonStr = jsonMatch[0];
+
+    try {
+      return JSON.parse(jsonStr);
+    } catch {
+      let sanitized = "";
+      let inString = false;
+      let escaped = false;
+      for (let i = 0; i < jsonStr.length; i++) {
+        const char = jsonStr[i];
+        if (char === '"' && !escaped) {
+          inString = !inString;
+          sanitized += char;
+        } else if (inString) {
+          if (char === '\n') {
+            sanitized += '\\n';
+          } else if (char === '\r') {
+            sanitized += '\\r';
+          } else if (char === '\t') {
+            sanitized += '\\t';
+          } else {
+            sanitized += char;
+          }
+        } else {
+          sanitized += char;
+        }
+        escaped = (char === '\\' && !escaped);
+      }
+      return JSON.parse(sanitized);
+    }
+  } catch (e) {
+    console.error("robustParseGeminiJSON fallback failed:", e);
+    return {};
+  }
+}
+
 export function buildPersonalizedMarriageText(
   lang: string,
   lagnaStr: string,
@@ -123,120 +201,52 @@ export function buildPersonalizedMarriageText(
   lagnaIndex: number = 0,
   dashaStr: string = "Running Dasha",
   bhuktiStr: string = "Sub Dasha",
-  gender: "Male" | "Female" = "Male"
+  gender: "Male" | "Female" = "Male",
+  context?: DynamicChartContext
 ): string {
   const baseLang = (lang || "en").split("-")[0];
   const lDict = RASHI_LORDS_L5[baseLang] || RASHI_LORDS_L5.en;
 
   const house7SignIdx = (lagnaIndex + 6) % 12;
   const house7Lord = lDict[house7SignIdx] || lDict[0];
-  const house7SignName = pick(RASHI_L5[house7SignIdx], baseLang);
 
-  if (status === "unmarried") {
-    if (baseLang === "kn") {
-      return `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${lagnaStr}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${moonStr}) ಆಧಾರದ ಮೇಲೆ, ನಿಮ್ಮ 7ನೇ ಮನೆಯಾದ ${house7SignName} ರಾಶಿ ಹಾಗೂ ಅದರ ಅಧಿಪತಿಯಾದ ${house7Lord} ಗ್ರಹದ ಬಲ ಹಾಗೂ ನಿಮ್ಮ ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dashaStr} ಮಹಾದಶಾ ಮತ್ತು ${bhuktiStr} ಭುಕ್ತಿ ಕಾಲಘಟ್ಟವು ವಿವಾಹ ಯೋಗವನ್ನು ಪ್ರಬಲವಾಗಿ ಸಕ್ರಿಯಗೊಳಿಸುತ್ತದೆ. ಜಾತಕದ 7ನೇ ಮನೆಯ ಮೇಲೆ ಶುಭ ಗ್ರಹಗಳ ದೃಷ್ಟಿಯು ಬೀಳುತ್ತಿರುವುದರಿಂದ, ಕೌಟುಂಬಿಕ ಮಾತುಕತೆಗಳು ಸರಾಗವಾಗಿ ಮುನ್ನಡೆದು ಶೀಘ್ರದಲ್ಲಿಯೇ ಶ್ರೇಷ್ಠ ಕಲ್ಯಾಣ ಯೋಗ ಕೂಡಿ ಬರಲಿದೆ. ನಿಮ್ಮ ಗ್ರಹಗತಿಗಳ ನಿಖರ ಲೆಕ್ಕಾಚಾರದಂತೆ ಮುಂಬರುವ ಗೋಚಾರ ಸಂಚಾರವು ವೈವಾಹಿಕ ಮುಹೂರ್ತಕ್ಕೆ ಅತ್ಯಂತ ಪ್ರಶಸ್ತವಾಗಿದೆ.
+  const natalPlanets: NatalPlacement[] = (context && context.planets && context.planets.length > 0)
+    ? context.planets.map(p => ({
+        graha: toGraha(p.name),
+        rashiIndex: p.rashiIndex,
+        house: p.house,
+        exalted: p.isExalted,
+        debilitated: p.isDebilitated,
+        retrograde: p.isRetrograde
+      }))
+    : [
+        { graha: "Sun", rashiIndex: lagnaIndex, house: 1 },
+        { graha: "Moon", rashiIndex: context?.moonRashiIndex ?? ((lagnaIndex + 3) % 12), house: 4 },
+        { graha: "Mars", rashiIndex: (lagnaIndex + 1) % 12, house: 2 },
+        { graha: "Mercury", rashiIndex: (lagnaIndex + 2) % 12, house: 3 },
+        { graha: "Jupiter", rashiIndex: (lagnaIndex + 8) % 12, house: 9 },
+        { graha: "Venus", rashiIndex: (lagnaIndex + 3) % 12, house: 4 },
+        { graha: "Saturn", rashiIndex: (lagnaIndex + 9) % 12, house: 10 },
+        { graha: "Rahu", rashiIndex: (lagnaIndex + 10) % 12, house: 11 },
+        { graha: "Ketu", rashiIndex: (lagnaIndex + 4) % 12, house: 5 }
+      ];
 
-ನಿಮಗೆ ಲಭಿಸುವ ಜೀವನ ಸಂಗಾತಿಯು ಅತ್ಯಂತ ಶಿಸ್ತುಬದ್ಧ, ದೈವಭಕ್ತಿ ಉಳ್ಳವರು ಹಾಗೂ ಸಂಸ್ಕೃತಿಕ ಗೌರವ ಹೊಂದಿರುವ ಶ್ರೇಷ್ಠ ಕುಟುಂಬದ ಹಿನ್ನೆಲೆಯಿಂದ ಬರುವವರಾಗಿದ್ದಾರೆ. ಅವರ ಸೌಮ್ಯ ಸ್ವಭಾವ, ತರ್ಕಬದ್ಧ ಆಲೋಚನೆ ಹಾಗೂ ಉದ್ಯೋಗ ಅಥವಾ ಉದ್ಯಮ ಕ್ಷೇತ್ರದಲ್ಲಿನ ಯಶಸ್ಸು ನಿಮ್ಮ ಮುಂಬರುವ ಸಂಸಾರಕ್ಕೆ ಬಲ ತುಂಬಲಿದೆ. ಜಾತಕದ ದಿಕ್ಬಲ ನಿಯಮಗಳ ಪ್ರಕಾರ, ನಿಮ್ಮ ಜನ್ಮಸ್ಥಳದಿಂದ ಪೂರ್ವ ಅಥವಾ ಈಶಾನ್ಯ ದಿಕ್ಕಿನಿಂದ ಅತ್ಯುತ್ತಮ ಹಾಗೂ ಯೋಗ್ಯವಾದ ವೈವಾಹಿಕ ಸಂಬಂಧಗಳು ಒದಗಿಬರುವ ಶುಭ ಸಾಧ್ಯತೆಗಳು ದಟ್ಟವಾಗಿವೆ. ಸಂಗಾತಿಯ ಆಗಮನದಿಂದ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ನೆಮ್ಮದಿ ಹಾಗೂ ಸಕಲ ಸೌಭಾಗ್ಯಗಳು ವೃದ್ಧಿಯಾಗಲಿವೆ.
+  const chart = analyzeKundali({
+    lagnaRashiIndex: lagnaIndex,
+    moonRashiIndex: context?.moonRashiIndex ?? ((lagnaIndex + 3) % 12),
+    natalPlanets,
+    transits: context?.transits,
+    gender,
+    ageYears: context?.ageYears ?? 30,
+    lang: baseLang
+  });
+  chart.lagnaSignName = lagnaStr || chart.lagnaSignName;
+  chart.moonSignName = moonStr || chart.moonSignName;
+  if (dashaStr && dashaStr !== "Running Dasha") chart.mahaLordName = dashaStr;
+  if (bhuktiStr && bhuktiStr !== "Sub Dasha") chart.bhuktiLordName = bhuktiStr;
+  chart.houses[7].lordName = house7Lord;
 
-ವೈವಾಹಿಕ ಕಾರ್ಯಗಳಲ್ಲಿ ಕಂಡುಬರುವ ಸಣ್ಣಪುಟ್ಟ ವಿಳಂಬ ಅಥವಾ ಕುಜನ ದೋಷದ ಪ್ರಭಾವ ನಿವಾರಣೆಗಾಗಿ ಮಂಗಳವಾರ ಮತ್ತು ಶುಕ್ರವಾರದ ದಿನಗಳಲ್ಲಿ ಸುಬ್ರಹ್ಮಣ್ಯ ಸ್ವಾಮಿ ಮತ್ತು ಗೌರಿ ಪೂಜೆಯನ್ನು ನಿಷ್ಠೆಯಿಂದ ನೆರವೇರಿಸುವುದು ಶ್ರೇಷ್ಠವಾಗಿದೆ. ನಿತ್ಯವೂ ಪ್ರಾತಃಕಾಲದಲ್ಲಿ "ಓಂ ಶ್ರೀಂ ಗೌರ್ಯೈ ನಮಃ" ಹಾಗೂ "ಓಂ ಸಪ್ತಮಾಧಿಪತಯೇ ನಮಃ" ಮಂತ್ರಗಳನ್ನು 108 ಬಾರಿ ಜಪಿಸುವುದರಿಂದ ಮಂಗಲ ದೋಷ ಶಾಂತಿಯಾಗುತ್ತದೆ. ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಕ್ಷೇತ್ರದಲ್ಲಿ ಮಂಗಲ ಸೇವೆ ಸಮರ್ಪಿಸುವುದರಿಂದ ಸಕಲ ವಿಘ್ನಗಳು ನಿವಾರಣೆಯಾಗಿ ಶೀಘ್ರ ಕಲ್ಯಾಣ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ.`;
-    }
-    if (baseLang === "hi") {
-      return `आपकी जन्म लग्न (${lagnaStr}) और चंद्र राशि (${moonStr}) के आधार पर, आपके सप्तम भाव (${house7SignName}) के स्वामी ${house7Lord} की स्थिति तथा आपकी वर्तमान ${dashaStr} महादशा एवं ${bhuktiStr} भुक्ति का प्रभाव विवाह योग को अत्यंत प्रबल रूप से सक्रिय करता है। सप्तम भाव पर शुभ ग्रहों की दृष्टि से पारिवारिक चर्चाएं सुचारू रूप से आगे बढ़ेंगी और विवाह के प्रयास शीघ्र ही सफलता में परिणत होंगे। ग्रहों के इस निपुण प्रभाव से वैवाहिक अड़चनें समाप्त होकर शीघ्र कल्याण योग बनेगा।
-
-आपके भावी जीवनसाथी एक अत्यंत संस्कारी, बुद्धिमान, अनुशासित तथा प्रतिष्ठित परिवार से संबंध रखने वाले होंगे। उनका सौम्य व्यवहार, तार्किक सोच और करियर या व्यवसाय में उनकी सफलता आपके दांपत्य जीवन को संबल प्रदान करेगी। ज्योतिषीय दिशा नियमों के अनुसार, आपके जन्मस्थान से पूर्व या उत्तर-पूर्व दिशा से अत्यंत योग्य और उत्तम विवाह प्रस्ताव आने की प्रबल संभावना है। जीवनसाथी के आगमन से आपके जीवन में सुख, समृद्धि और शांति का विस्तार होगा।
-
-विवाह में आ रहे किसी भी प्रकार के विलंब या मंगल दोष के प्रभाव के निवारण हेतु मंगलवार और शुक्रवार को श्री सुब्रह्मण्य स्वामी और गौरी माता की पूजा निष्ठापूर्वक करें। प्रतिदिन प्रातःकाल "ॐ श्रीं गौर्यै नमः" और "ॐ सप्तमेशाय नमः" मंत्र का 108 बार जाप करने से मंगल दोष शांत होता है। गोकर्ण क्षेत्र में मंगल सेवा समर्पित करने से समस्त बाधाएं दूर होकर शीघ्र विवाह योग सिद्ध होता है।`;
-    }
-    if (baseLang === "te") {
-      return `మీ జన్మ లగ్నం (${lagnaStr}) మరియు చంద్ర రాశి (${moonStr}) ఆధారంగా, 7వ అధిపతి అయిన ${house7Lord} స్థానం మరియు మీ ప్రస్తుత ${dashaStr} మహాతశ, ${bhuktiStr} భుక్తి కాలం వివాహ యోగాన్ని మిక్కిలి బలంగా సక్రియం చేస్తుంది. 7వ భావంపై శుభ గ్రహాల అమృత దృష్టి ప్రసరించడం వలన కుటుంబ సంభాషణలు సునాయాసంగా సాగి, త్వరలోనే కళ్యాణ యోగం కుదురుతుంది. ఈ సమయం మీ జీవితంలో శుభ కార్యాలకు ఎంతో అనుకూలమైనది.
-
-మీకు లభించే జీవిత భాగస్వామి మిక్కిలి క్రమశిక్షణ, దైవభక్తి మరియు సాంస్కృతిక గౌరవం కలిగిన ఉదాత్తమైన కుటుంబ నేపథ్యం నుండి వచ్చేవారవుతారు. వారి సౌమ్య స్వభావం, తెలివితేటలు మరియు వృత్తి రంగంలో వారు సాధించే విజయం మీ జీవితానికి గొప్ప బలాన్ని ఇస్తాయి. జాతక దిశా నియమాల ప్రకారం, మీ జన్మస్థలం నుండి తూర్పు లేదా ఈశాన్య దిశల నుండి అత్యుత్తమ వివాహ ప్రతిపాదనలు వచ్చే అవకాశాలు మెండుగా ఉన్నాయి.
-
-వివాహ ప్రయత్నాలలో ఎదురయ్యే ఆలస్యం లేదా కుజ దోష నివారణకు మంగళవారం మరియు శుక్రవారాల్లో శ్రీ సుబ్రహ్మణ్య స్వామి మరియు గౌరీ పూజలను భక్తిశ్రద్ధలతో నిర్వహించడం శ్రేయస్కరం. నిత్యం ఉదయాన్నే "ఓం శ్రీం గౌర్యై నమః" మరియు "ఓం సప్తమాధిపతయే నమః" మంత్రాలను 108 సార్లు జపించడం వలన మంగళ దోష నివారణ జరుగుతుంది. గోకర్ణ క్షేత్రంలో మంగళ సేవ సమర్పించడం ద్వారా శీఘ్ర వివాహ సిద్ధి లభిస్తుంది.`;
-    }
-    if (baseLang === "ta") {
-      return `உங்கள் லக்னம் (${lagnaStr}) மற்றும் சந்திர ராசி (${moonStr}) அடிப்படையில், 7 ஆம் அதிபதி ${house7Lord} மற்றும் தற்போதைய ${dashaStr} தசா, ${bhuktiStr} புக்தி காலம் திருமண யோகத்தை மிகவும் வலுவாக உருவாக்குகிறது. 7 ஆம் இடத்தின் மீது சுப கிரகங்களின் பார்வை பதிவதால், குடும்பப் பேச்சுகள் சுமுகமாக நடந்து விரைவில் திருமண யோகம் கூடிவரும். கிரகங்களின் சுப பலத்தினால் திருமணத் தடைகள் விலகி நன்மைகள் நடக்கும்.
-
-உங்களுக்கு அமையவிருக்கும் வாழ்க்கைத்துணை சிறந்த பண்பாடும், இறைநம்பிக்கையும், சமூக மரியாதையும் கொண்ட குடும்பத்தைச் சேர்ந்தவராக இருப்பார். அவரின் அமைதியான சுபாவம், அறிவாற்றல் மற்றும் தொழில் சார்ந்த வெற்றிகள் உங்கள் வாழ்க்கைக்கு பெரும் பலமாக அமையும். திசை பலன்களின்படி, உங்கள் பிறந்த இடத்திலிருந்து கிழக்கு அல்லது வடகிழக்கு திசையிலிருந்து நல்ல வரன்கள் வர வாய்ப்புள்ளது.
-
-திருமண காரியங்களில் ஏற்படும் தாமதங்கள் மற்றும் செவ்வாய் தோஷ பலன்களைப் போக்க செவ்வாய் மற்றும் வெள்ளிக்கிழமைகளில் ஸ்ரீ சுப்பிரமணிய சுவாமி மற்றும் கௌரி அம்மன் வழிபாடு செய்வது மிகவும் நன்மையளிக்கும். தினமும் காலையில் "ஓம் ஸ்ரீம் கௌர்யை நமஹ" மந்திரத்தை 108 முறை ஜபித்து, கோகர்ண க்ஷேத்திரத்தில் மங்கள சேவை சமர்ப்பிப்பதன் மூலம் திருமண தடைகள் நீங்கி விரைவில் சுபயோகம் கூடிவரும்.`;
-    }
-    return `Based on your birth Lagna (${lagnaStr}) and Moon sign (${moonStr}), the strength of your 7th house lord ${house7Lord} along with your current ${dashaStr} Mahadasha and ${bhuktiStr} Bhukti strongly activates an auspicious marriage window. The benefic planetary aspects upon the 7th house ensure that family discussions progress smoothly and obstacles dissolve naturally, aligning planetary transits for sacred matrimony.
-
-Your future life partner will hail from an esteemed, culturally rooted family background, embodying discipline, deep empathy, and strong moral principles. Their intellect, calm demeanor, and achievements in professional spheres will provide immense strength to your joint journey. According to directional planetary strength, auspicious alliance proposals are most likely to emerge from the East or North-East direction relative to your birthplace.
-
-To overcome any subtle karmic delays or marital obstacles caused by Kuja/Manglik planetary afflictions, performing Gauri Pooja and Sri Subramanya Seva on Tuesdays and Fridays is highly recommended. Daily morning chanting of "Om Shreem Gauryai Namah" 108 times, alongside offering a Mangala Seva at Gokarna Mahabaleshwara Kshetra, will neutralize afflictions, remove delays, and grant early marital blessings.`;
-  } else if (status === "married") {
-    // married
-    if (baseLang === "kn") {
-      return `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${lagnaStr}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${moonStr}) ಆಧಾರದ ಮೇಲೆ, ಸಪ್ತಮ ಭಾವಾಧಿಪತಿಯಾದ ${house7Lord} ಹಾಗೂ ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dashaStr} ಮಹಾದಶಾ ಮತ್ತು ${bhuktiStr} ಭುಕ್ತಿ ಕಾಲಘಟ್ಟದ ಶುಭ ಬಲದಿಂದಾಗಿ ನಿಮ್ಮ ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿ ಪರಸ್ಪರ ನಂಬಿಕೆ, ಆಳವಾದ ಪ್ರೀತಿ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಸಾಮರಸ್ಯವು ನಿರಂತರವಾಗಿ ವೃದ್ಧಿಯಾಗುತ್ತದೆ. ಗ್ರಹಗಳ ಶುಭ ಸ್ಥಿತಿಯು ಗೃಹದಲ್ಲಿ ಸುಖ, ಶಾಂತಿ ಹಾಗೂ ಭದ್ರತೆಯನ್ನು ಕಾಪಾಡುತ್ತದೆ.
-
-ಕೌಟುಂಬಿಕ ಹಾಗೂ ಆರ್ಥಿಕ ನಿರ್ಧಾರಗಳನ್ನು ಕೈಗೊಳ್ಳುವಾಗ ನಿಮ್ಮ ಸಂಗಾತಿಯ ಸಲಹೆ ಮತ್ತು ಅಭಿಪ್ರಾಯಗಳನ್ನು ಗೌರವಿಸುವುದು ದಾಂಪತ್ಯವನ್ನು ಮತ್ತಷ್ಟು ಸುದೃಢಗೊಳಿಸುತ್ತದೆ. ಇಬ್ಬರೂ ಒಟ್ಟಾಗಿ ಕೈಗೊಳ್ಳುವ ದೀರ್ಘಾವಧಿ ಯೋಜನೆಗಳು ಆಸ್ತಿ ಹಾಗೂ ಆರ್ಥಿಕ ಸಮೃದ್ಧಿಗೆ ದಾರಿಯಾಗಲಿವೆ. ಪರಸ್ಪರ ಗೌರವ ಹಾಗೂ ಸಹನೆಯು ನಿಮ್ಮ ಕುಟುಂಬದ ನೆಮ್ಮದಿಗೆ ಮೂಲಾಧಾರವಾಗಲಿದೆ.
-
-ದಾಂಪತ್ಯದಲ್ಲಿ ಒಮ್ಮೊಮ್ಮೆ ಕಂಡುಬರುವ ಸಣ್ಣಪುಟ್ಟ ಮನಸ್ತಾಪಗಳನ್ನು ಶಾಂತಚಿತ್ತದ ಮುಕ್ತ ಮಾತುಕತೆಯ ಮೂಲಕ ಪರಿಹರಿಸಿಕೊಳ್ಳಿ. ಪ್ರತಿ ಶುಕ್ರವಾರ ಮನೆಯಲ್ಲಿ ದೇವಿಗೆ ದೀಪ ಹಚ್ಚಿ ಶ್ರೀ ಲಕ್ಷ್ಮೀ ನಾರಾಯಣ ಅಥವಾ ಗೌರಿ-ಶಂಕರ ಪೂಜೆ ಮಾಡಿಸುವುದು ಹಾಗೂ ಪ್ರಾರ್ಥಿಸುವುದು ಕೌಟುಂಬಿಕ ಸೌಖ್ಯ ಹಾಗೂ ಅಷ್ಟೈಶ್ವರ್ಯಗಳನ್ನು ವೃದ್ಧಿಸುತ್ತದೆ.`;
-    }
-    if (baseLang === "hi") {
-      return `आपकी जन्म लग्न (${lagnaStr}) और चंद्र राशि (${moonStr}) के आधार पर, सप्तमेश ${house7Lord} तथा वर्तमान ${dashaStr} महादशा एवं ${bhuktiStr} भुक्ति के शुभ प्रभाव से दांपत्य जीवन में परस्पर विश्वास, गहरा प्रेम और पारिवारिक सामंजस्य निरंतर मजबूत होगा। गृहस्थी में सुख, शांति और सुरक्षा का वातावरण बना रहेगा।
-
-पारिवारिक एवं वित्तीय निर्णय लेते समय अपने जीवनसाथी की सलाह का सम्मान करना रिश्ते को और अधिक प्रगाढ़ बनाएगा। संयुक्त रूप से बनाई गई योजनाएं भविष्य की समृद्धि और स्थिरता का मार्ग प्रशस्त करेंगी।
-
-वैवाहिक जीवन में कभी-कभी उत्पन्न होने वाले मतभेदों को धैर्य और सौहार्दपूर्ण संवाद से सुलझाएं। प्रत्येक शुक्रवार को श्री लक्ष्मी नारायण अथवा गौरी-शंकर पूजन करने से दांपत्य में सुख-समृद्धि एवं असीम शांति की वृद्धि होगी।`;
-    }
-    if (baseLang === "te") {
-      return `మీ జన్మ లగ్నం (${lagnaStr}) మరియు చంద్ర రాశి (${moonStr}) ఆధారంగా, 7వ అధిపతి ${house7Lord} మరియు ప్రస్తుత ${dashaStr} మహాతశ, ${bhuktiStr} భుక్తి ప్రభావం వలన దాంపత్య జీవితంలో పరస్పర నమ్మకం, అనురాగం మరియు కుటుంబ సామరస్యం మరింతగా బలపడతాయి. ఇంట్లో శాంతి మరియు సుఖసంతోషాలు నెలకొంటాయి.
-
-కుటుంబ మరియు ఆర్థిక నిర్ణయాలలో భాగస్వామి సలహాలను గౌరవించడం దాంపత్య బంధాన్ని మరింత దృఢపరుస్తుంది. ఇద్దరూ కలిసి చేసే ప్రయత్నాలు భవిష్యత్ అభివృద్ధికి బాటలు వేస్తాయి.
-
-వైవాహిక జీవితంలో వచ్చే చిన్నపాటి అభిప్రాయ భేదాలను ప్రశాంతమైన సంభాషణలతో పరిష్కరించుకోండి. ప్రతి శుక్రవారం లక్ష్మీ నారాయణ లేదా గౌరీ శంకర పూజ నిర్వహించడం ద్వారా దాంపత్య సౌఖ్యం మరియు అష్టైశ్వర్యాలు సమకూరుతాయి.`;
-    }
-    if (baseLang === "ta") {
-      return `உங்கள் லக்னம் (${lagnaStr}) மற்றும் சந்திர ராசி (${moonStr}) அடிப்படையில், 7 ஆம் அதிபதி ${house7Lord} மற்றும் தற்போதைய ${dashaStr} தசா, ${bhuktiStr} புக்தி சுப பலனால் இல்லற வாழ்க்கையில் பரஸ்பர அன்பும், நம்பிக்கையும், குடும்ப அமைதியும் மேலோங்கும். வீட்டில் மகிழ்ச்சியும் பாதுகாப்பும் நீடிக்கும்.
-
-குடும்ப மற்றும் பொருளாதார முடிவுகளில் வாழ்க்கைத் துணையின் ஆலோசனைகளை மதித்து நடப்பது தம்பதியரிடையே ஒற்றுமையை அதிகரிக்கும். இருவரும் இணைந்து எடுக்கும் முயற்சிகள் குடும்ப வளர்ச்சிக்கு வழிவகுக்கும்.
-
-சிறு மனஸ்தாபங்களை பொறுமையுடனும் அன்பான பேச்சுவார்த்தையுடனும் தீர்த்துக் கொள்ளுங்கள். வெள்ளிக்கிழமைகளில் ஸ்ரீ லக்ஷ்மி நாராயணர் அல்லது கௌரி சங்கரர் வழிபாடு செய்வது குடும்பத்தில் சுபயோகத்தையும் நீண்ட ஆயுள் ஆரோக்கியத்தையும் தரும்.`;
-    }
-    return `Based on your birth Lagna (${lagnaStr}) and Moon sign (${moonStr}), the position of your 7th house lord ${house7Lord} along with your running ${dashaStr} Mahadasha and ${bhuktiStr} Bhukti fosters strong mutual trust, affection, and domestic harmony in your married life. Benefic planetary placements ensure long-term stability and warmth within the household.
-
-Involving your spouse in key financial and family decisions will further fortify your relationship. Joint planning creates a prosperous roadmap for future growth and domestic stability. Your shared values will inspire warmth and cohesion among all family members.
-
-To maintain enduring happiness and resolve occasional minor friction, open and empathetic communication is key. Performing Lakshmi Narayan or Gauri-Shankara Pooja on Fridays and maintaining a serene home altar will enhance prosperity and domestic bliss.`;
-  } else {
-    // general
-    if (baseLang === "kn") {
-      return `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${lagnaStr}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${moonStr}) ಆಧಾರದ ಮೇಲೆ, 7ನೇ ಮನೆಯಾದ ${house7SignName} ರಾಶಿ ಹಾಗೂ ಅದರ ಅಧಿಪತಿಯಾದ ${house7Lord} ಗ್ರಹದ ಸ್ಥಿತಿಯು ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಸಂಬಂಧಗಳು ಮತ್ತು ಸಹಭಾಗಿತ್ವದ ಕ್ಷೇತ್ರವನ್ನು ನಿಯಂತ್ರಿಸುತ್ತದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dashaStr} ದಶಾ ಮತ್ತು ${bhuktiStr} ಭುಕ್ತಿ ಕಾಲಘಟ್ಟವು ವೈಯಕ್ತಿಕ ಬಾಂಧವ್ಯಗಳಲ್ಲಿ ಸ್ಥಿರತೆಯನ್ನು ತರಲಿದೆ.
-
-ಜಾತಕದ ಸಪ್ತಮ ಭಾವದ ಮೇಲೆ ಬೀಳುವ ಗ್ರಹಗಳ ದೃಷ್ಟಿಯು ಪರಸ್ಪರ ನಂಬಿಕೆ, ನೈತಿಕ ಹೊಣೆಗಾರಿಕೆ ಹಾಗೂ ಸಹಬಾಳ್ವೆಯ ಮಹತ್ವವನ್ನು ಸಾರುತ್ತದೆ. ಯಾವುದೇ ಮಹತ್ವದ ಸಂಬಂಧಗಳಲ್ಲಿ ಸ್ಪಷ್ಟ ಸಂವಹನ ಹಾಗೂ ಪ್ರಾಮಾಣಿಕತೆಯು ಯಶಸ್ಸನ್ನು ನೀಡುತ್ತದೆ.
-
-ಗ್ರಹಗಳ ಬಲವರ್ಧನೆಗೆ ಮತ್ತು ಕೌಟುಂಬಿಕ ಸಾಮರಸ್ಯಕ್ಕಾಗಿ ನಿತ್ಯವೂ ಪ್ರಾತಃಕಾಲ ಇಷ್ಟದೇವತಾ ಪ್ರಾರ್ಥನೆ ಹಾಗೂ ಶುಕ್ರವಾರದಂದು ಮಹಾಲಕ್ಷ್ಮಿ ದೇವಿಯ ಆರಾಧನೆ ಮಾಡುವುದು ಅತ್ಯಂತ ಮಂಗಳಕರವಾಗಿದೆ.`;
-    }
-    if (baseLang === "hi") {
-      return `आपकी जन्म लग्न (${lagnaStr}) एवं चंद्र राशि (${moonStr}) के आधार पर, सप्तम भाव (${house7SignName}) और उसके स्वामी ${house7Lord} की स्थिति आपके जीवन में साझेदारी और संबंधों का मार्गदर्शन करती है। वर्तमान ${dashaStr} महादशा एवं ${bhuktiStr} भुक्ति का प्रभाव संबंधों में स्थिरता और परिपक्वता प्रदान करेगा।
-
-सप्तम भाव पर ग्रहों का प्रभाव आपसी विश्वास, कर्तव्यनिष्ठा और सामंजस्य के महत्व को रेखांकित करता है। किसी भी रिश्ते में स्पष्ट संवाद और सद्भाव सफलता की कुंजी है।
-
-ग्रहों के अनुकूल प्रभाव और पारिवारिक सौहार्द के लिए प्रतिदिन प्रातःकाल कुलदेवी/इष्टदेव की आराधना तथा शुक्रवार को मां लक्ष्मी की पूजा करना अत्यंत शुभ फलदायी है।`;
-    }
-    if (baseLang === "te") {
-      return `మీ జన్మ లగ్నం (${lagnaStr}) మరియు చంద్ర రాశి (${moonStr}) ఆధారంగా, 7వ భావం (${house7SignName}) మరియు దాని అధిపతి ${house7Lord} మీ జీవితంలో భాగస్వామ్యాలు మరియు సంబంధాలను ప్రభావితం చేస్తాయి. ప్రస్తుత ${dashaStr} దశా మరియు ${bhuktiStr} భుక్తి కాలం సంబంధాలలో స్థిరత్వాన్ని చేకూరుస్తుంది.
-
-స్పష్టమైన సంభాషణ మరియు పరస్పర గౌరవం మీ సంబంధాల విజయానికి దోహదపడతాయి.
-
-గ్రహ శాంతికి మరియు కుటుంబ శ్రేయస్సుకు ప్రతిరోజూ ఇష్టదేవతారాధన మరియు శుక్రవారాల్లో మహాలక్ష్మి పూజ చేయడం ఎంతో శ్రేయస్కరం.`;
-    }
-    if (baseLang === "ta") {
-      return `உங்கள் லக்னம் (${lagnaStr}) மற்றும் சந்திர ராசி (${moonStr}) அடிப்படையில், 7 ஆம் இடம் (${house7SignName}) மற்றும் அதன் அதிபதி ${house7Lord} உங்கள் உறவுகள் மற்றும் கூட்டாண்மைகளை வழிநடத்துகின்றனர். தற்போதைய ${dashaStr} தசா மற்றும் ${bhuktiStr} புக்தி காலத்தில் உறவுகளில் அமைதியும் நிலைத்தன்மையும் உண்டாகும்.
-
-பரஸ்பர மரியாதையும் தெளிவான கருத்துப் பரிமாற்றமும் உறவுகளின் வளர்ச்சிக்கு பலம் சேர்க்கும்.
-
-குடும்ப அமைதி மற்றும் கிரக சுப பலன்களுக்கு தினமும் இஷ்ட தெய்வ வழிபாடு மற்றும் வெள்ளிக்கிழமைகளில் மகாலக்ஷ்மி பூஜை செய்வது நன்மை தரும்.`;
-    }
-    return `Based on your birth Lagna (${lagnaStr}) and Moon sign (${moonStr}), the 7th house (${house7SignName}) and its lord ${house7Lord} govern partnerships, mutual commitments, and harmony in your chart. The running ${dashaStr} Mahadasha and ${bhuktiStr} Bhukti foster balance and emotional maturity in all key relationships.
-
-Benefic planetary aspects on the 7th house emphasize mutual respect, transparent communication, and shared responsibilities as pillars for long-term stability.
-
-For relationship harmony and peace, daily prayers to your Ishta Devata and offering archana to Goddess Lakshmi on Fridays are highly recommended.`;
-  }
+  return buildDynamicMarriageFallback(chart, status);
 }
 
 export function buildPersonalizedChildrenText(
@@ -244,7 +254,8 @@ export function buildPersonalizedChildrenText(
   status: "no_children" | "has_children" | "general",
   lagnaIndex: number = 0,
   dashaStr: string = "Running Dasha",
-  bhuktiStr: string = "Sub Dasha"
+  bhuktiStr: string = "Sub Dasha",
+  context?: DynamicChartContext
 ): string {
   const baseLang = (lang || "en").split("-")[0];
   const lDict = RASHI_LORDS_L5[baseLang] || RASHI_LORDS_L5.en;
@@ -252,126 +263,135 @@ export function buildPersonalizedChildrenText(
   const house5SignIdx = (lagnaIndex + 4) % 12;
   const house5Lord = lDict[house5SignIdx] || lDict[0];
 
-  if (status === "no_children") {
-    if (baseLang === "kn") {
-      return `ನಿಮ್ಮ ಜಾತಕದ ಪಂಚಮ ಭಾವ ಹಾಗೂ ಪಂಚಮಾಧಿಪತಿಯಾದ ${house5Lord} ಗ್ರಹದ ಸ್ಥಿತಿಯೊಂದಿಗೆ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ (ಪುತ್ರಕಾರಕ) ಶುಭ ದೃಷ್ಟಿಯು ಸಂತಾನ ಯೋಗವನ್ನು ಅತ್ಯಂತ ಪ್ರಬಲವಾಗಿ ಸೂಚಿಸುತ್ತದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dashaStr} ದಶಾ ಹಾಗೂ ${bhuktiStr} ಭುಕ್ತಿ ಕಾಲವು ವಂಶಾಭಿವೃದ್ಧಿ ಹಾಗೂ ಸಂತಾನ ಸೌಖ್ಯವನ್ನು ವೃದ್ಧಿಸುತ್ತದೆ. ದೈವಿಕ ಅನುಗ್ರಹದಿಂದಾಗಿ ಶೀಘ್ರದಲ್ಲಿಯೇ ಮಂದಸ್ಮಿತ ಸಂತಾನ ಭಾಗ್ಯವು ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ.
+  const natalPlanets: NatalPlacement[] = (context && context.planets && context.planets.length > 0)
+    ? context.planets.map(p => ({
+        graha: toGraha(p.name),
+        rashiIndex: p.rashiIndex,
+        house: p.house,
+        exalted: p.isExalted,
+        debilitated: p.isDebilitated,
+        retrograde: p.isRetrograde
+      }))
+    : [
+        { graha: "Sun", rashiIndex: lagnaIndex, house: 1 },
+        { graha: "Moon", rashiIndex: context?.moonRashiIndex ?? ((lagnaIndex + 3) % 12), house: 4 },
+        { graha: "Mars", rashiIndex: (lagnaIndex + 1) % 12, house: 2 },
+        { graha: "Mercury", rashiIndex: (lagnaIndex + 2) % 12, house: 3 },
+        { graha: "Jupiter", rashiIndex: (lagnaIndex + 8) % 12, house: 9 },
+        { graha: "Venus", rashiIndex: (lagnaIndex + 3) % 12, house: 4 },
+        { graha: "Saturn", rashiIndex: (lagnaIndex + 9) % 12, house: 10 },
+        { graha: "Rahu", rashiIndex: (lagnaIndex + 10) % 12, house: 11 },
+        { graha: "Ketu", rashiIndex: (lagnaIndex + 4) % 12, house: 5 }
+      ];
 
-ಶುಭ ಗ್ರಹಗಳ ಗೋಚಾರ ಸಂಚಾರವು ಸಂತಾನೋತ್ಪತ್ತಿಗೆ ಹಾಗೂ ಗರ್ಭಧಾರಣೆಗೆ ಅತ್ಯಂತ ಅನುಕೂಲಕರವಾದ ದಿವ್ಯ ಕಾಲಘಟ್ಟವನ್ನು ತೆರೆಯುತ್ತದೆ. ಈ ಅವಧಿಯಲ್ಲಿ ಕೈಗೊಳ್ಳುವ ವೈದ್ಯಕೀಯ ಹಾಗೂ ಆಧ್ಯಾತ್ಮಿಕ ಪ್ರಯತ್ನಗಳು ಯಶಸ್ವಿಯಾಗಿ ಫಲ ನೀಡಲಿವೆ. ಸಂತಾನ ನಿರೀಕ್ಷೆಯಲ್ಲಿರುವ ದಂಪತಿಗಳಿಗೆ ಮನೆಮನಗಳಲ್ಲಿ ಶುಭ ವಾರ್ತೆ ಕೇಳಿಬರಲಿದೆ.
+  const chart = analyzeKundali({
+    lagnaRashiIndex: lagnaIndex,
+    moonRashiIndex: context?.moonRashiIndex ?? ((lagnaIndex + 3) % 12),
+    natalPlanets,
+    transits: context?.transits,
+    ageYears: context?.ageYears ?? 30,
+    lang: baseLang
+  });
+  if (dashaStr && dashaStr !== "Running Dasha") chart.mahaLordName = dashaStr;
+  if (bhuktiStr && bhuktiStr !== "Sub Dasha") chart.bhuktiLordName = bhuktiStr;
+  chart.houses[5].lordName = house5Lord;
 
-ಸಂತಾನ ಭಾಗ್ಯದಲ್ಲಿ ಕಂಡುಬರುವ ಸಣ್ಣಪುಟ್ಟ ವಿಳಂಬ ಅಥವಾ ದೋಷಗಳ ನಿವಾರಣೆಗಾಗಿ ನಿತ್ಯವೂ ಪ್ರಾತಃಕಾಲ ಶ್ರೀ ಸಂತಾನ ಗೋಪಾಲ ಕವಚ ಹಾಗೂ ಮಂತ್ರ ಪಠಣ ಮಾಡುವುದು ಶ್ರೇಷ್ಠ ಪರಿಹಾರವಾಗಿದೆ. ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದಲ್ಲಿ ಸುಬ್ರಹ್ಮಣ್ಯ ಹೋಮ ನೆರವೇರಿಸುವುದು ಹಾಗೂ ಪ್ರತಿ ಗುರುವಾರ ಶುದ್ಧ ಹಾಲಿನಿಂದ ಶಿವಲಿಂಗಕ್ಕೆ ಅಭಿಷೇಕ ಮಾಡಿಸುವುದು ಸಂತಾನ ಪ್ರತಿಬಂಧಕ ದೋಷಗಳನ್ನು ನಿವಾರಿಸಿ ಶೀಘ್ರ ಸಂತಾನ ಭಾಗ್ಯವನ್ನು ಕರುಣಿಸುತ್ತದೆ.`;
-    }
-    if (baseLang === "hi") {
-      return `आपकी कुंडली के पंचम भाव और पंचमेश ${house5Lord} की स्थिति के साथ देवगुरु बृहस्पति की शुभ दृष्टि संतान प्राप्ति के योग को अत्यंत प्रबल रूप से दर्शाती है। वर्तमान ${dashaStr} महादशा एवं ${bhuktiStr} भुक्ति का आशीर्वाद परिवार वृद्धि एवं संतान सुख को बढ़ाता है।
-
-अनुकूल ग्रहों का गोचर संतान गर्भाधान तथा स्वास्थ्य के लिए अत्यंत शुभ समय प्रदान करता है। इस अवधि में किए गए चिकित्सीय और आध्यात्मिक प्रयास पूर्ण सफलता प्रदान करेंगे। दंपत्ति को शीघ्र ही शुभ समाचार प्राप्त होगा।
-
-संतान प्राप्ति में आ रहे विलंब या सूक्ष्म दोषों के निवारण हेतु प्रतिदिन प्रातःकाल संतान गोपाल मंत्र का जाप करें। गोಕರ್ण क्षेत्र में सुब्रह्मण्य होम का आयोजन तथा प्रत्येक गुरुवार को शिवलिंग पर कच्चे दूध से अभिषेक करने से समस्त बाधाएं दूर होकर शीघ्र संतान सुख की प्राप्ति होती है।`;
-    }
-    if (baseLang === "te") {
-      return `మీ జాతకంలో 5వ భావం మరియు 5వ అధిపతి అయిన ${house5Lord} స్థానంతో పాటు దేవగురు బృహస్పతి శుభ దృష్టి సంతాన ప్రాప్తి యోగాన్ని మిక్కిలి బలంగా సూచిస్తున్నాయి. ప్రస్తుత ${dashaStr} దశా మరియు ${bhuktiStr} భుక్తి కాలం వంశాభివృద్ధిని పెంపొందిస్తుంది.
-
-అనుకూల గ్రహ గోచారం సంతానోత్పత్తికి మరియు గర్భధారణకు ఎంతో అనుకూలమైన దివ్య కాలాన్ని అందిస్తుంది. ఈ సమయంలో చేసే ప్రయత్నాలు సంపూర్ణ ఫలితాలను ఇస్తాయి. సంతాన నిరీక్షణలో ఉన్న దంపతులకు త్వరలోనే తీపి కబురు అందుతుంది.
-
-సంతాన దోషాల నివారణకు ప్రతిరోజూ సంతాన గోపాల మంత్ర జపం చేయడం శ్రేష్ఠమైన పరిహారం. గోకర్ణ క్షేత్రంలో సుబ్రహ్మణ్య హోమం నిర్వహించడం మరియు ప్రతి గురువారం పాలు తో అభిషేకం చేయడం వలన సంతాన ప్రతిబంధకాలు తొలగి శీఘ్ర సంతాన ప్రాప్తి లభిస్తుంది.`;
-    }
-    if (baseLang === "ta") {
-      return `உங்கள் ஜாதகத்தில் 5 ஆம் இடம் மற்றும் 5 ஆம் அதிபதி ${house5Lord} உடன் குரு பகவானின் பார்வை குழந்தை பாக்கிய யோகத்தை மிகவும் வலுவாகக் காட்டுகிறது. தற்போதைய ${dashaStr} தசா மற்றும் ${bhuktiStr} புக்தி காலம் வம்ச விருத்தியையும் சந்ததி யோகத்தையும் உயர்த்தும்.
-
-சாதகமான கோசார கிரகங்கள் குழந்தை பாக்கியத்திற்கும் கர்ப்பத்திற்கும் மிகவும் உகந்த காலத்தை உருவாக்குகின்றன. இந்த காலத்தில் மேற்கொள்ளும் ஆன்மீக மற்றும் மருத்துவ முயற்சிகள் முழு வெற்றி தரும்.
-
-குழந்தை பாக்கிய தாமதத்தைப் போக்க தினமும் சந்தான கோபால மந்திரம் ஜபிக்கவும். கோகர்ண க்ஷேத்திரத்தில் சுப்பிரமணிய ஹோமம் செய்வது மற்றும் வியாழக்கிழமைகளில் பாலாபிஷேகம் செய்வது குழந்தை பாக்கிய தடைகளை நீக்கி சுபயோகம் தரும்.`;
-    }
-    return `The 5th house and your 5th house lord ${house5Lord} along with Jupiter's benefic aspect indicate strong Santana Yoga (progeny blessings) in your birth chart. Running ${dashaStr} Mahadasha and ${bhuktiStr} Bhukti enhance family expansion and long-term parental happiness.
-
-Favorable planetary transits create an ideal time window for child conception and maternal health. Medical and spiritual endeavors initiated during this period will yield successful results, bringing joyful news to your household.
-
-To remove any subtle progeny obstacles or delays, chanting the Santana Gopala Mantra daily is highly effective. Performing Subramanya Seva / Homa at Gokarna Kshetra and offering milk archana on Thursdays will dissolve afflictions and grant early progeny blessings.`;
-  } else if (status === "has_children") {
-    // has_children
-    if (baseLang === "kn") {
-      return `ನಿಮ್ಮ ಮಕ್ಕಳ ಶಿಕ್ಷಣ, ಬುದ್ಧಿಶಕ್ತಿ ಹಾಗೂ ಭವಿಷ್ಯದ ರಂಗಗಳಲ್ಲಿ ಉತ್ತಮ ಸಾಧನೆ ಮಾಡುವ ಶುಭ ಸೂಚನೆಗಳು ಜಾತಕದಲ್ಲಿ ಎದ್ದು ಕಾಣುತ್ತಿವೆ. ಪಂಚಮಾಧಿಪತಿಯಾದ ${house5Lord} ಗ್ರಹದ ಶುಭ ಪ್ರಭಾವದಿಂದಾಗಿ ಮಕ್ಕಳು ಸನ್ಮಾರ್ಗದಲ್ಲಿ ನಡೆಯುತ್ತಾರೆ ಹಾಗೂ ಶೈಕ್ಷಣಿಕ ಕ್ಷೇತ್ರದಲ್ಲಿ ಉತ್ತಮ ಸಾಧನೆ ಮೆರೆಯಲಿದ್ದಾರೆ. ಅವರ ಜ್ಞಾನಾರ್ಜನೆ ಹಾಗೂ ಸನ್ನಡತೆಯು ಕುಟುಂಬಕ್ಕೆ ಒಳ್ಳೆಯ ಕೀರ್ತಿಯನ್ನು ತರಲಿದೆ.
-
-ಅವರ ಉನ್ನತ ವ್ಯಾಸಂಗ, ವೃತ್ತಿಜೀವನ ಹಾಗೂ ವೈಯಕ್ತಿಕ ಬೆಳವಣಿಗೆಗೆ ನಿಮ್ಮ ಪ್ರೀತಿ, ಬೆಂಬಲ ಮತ್ತು ಸರಿಯಾದ ಮಾರ್ಗದರ್ಶನವು ದಾರಿದೀಪವಾಗಲಿದೆ. ಮಕ್ಕಳೊಂದಿಗೆ ನಿಕಟ ಬಾಂಧವ್ಯವನ್ನು ಕಾಯ್ದುಕೊಳ್ಳುವುದು ಅವರ ಆತ್ಮವಿಶ್ವಾಸವನ್ನು ಹೆಚ್ಚಿಸುತ್ತದೆ.
-
-ಮಕ್ಕಳ ಏಳಿಗೆ, ಏಕಾಗ್ರತೆ ಹಾಗೂ ದೀರ್ಘಾಯುಷ್ಯಕ್ಕಾಗಿ ಸರಸ್ವತಿ ಪೂಜೆ ಹಾಗೂ ಗಣಪತಿಗೆ ಅಥರ್ವಶೀರ್ಷ ಅಭಿಷೇಕ ಮಾಡಿಸುವುದು ಶ್ರೇಯಸ್ಕರ. ಪ್ರತಿ ಬುಧವಾರ ನವಗ್ರಹ ಪ್ರಾರ್ಥನೆ ಮಾಡುವುದರಿಂದ ಅವರ ವಿದ್ಯಾಭ್ಯಾಸದಲ್ಲಿ ಬರುವ ಅಡೆತಡೆಗಳು ನಿವಾರಣೆಯಾಗಲಿವೆ.`;
-    }
-    if (baseLang === "hi") {
-      return `आपकी कुंडली में पंचमेश ${house5Lord} के शुभ प्रभाव से बच्चों की शिक्षा, बुद्धि और भविष्य के कार्यों में उत्तम सफलता के संकेत हैं। वे सुसंस्कृत मार्ग पर चलेंगे और अपने ज्ञान व प्रतिभा से परिवार का मान-सम्मान बढ़ाएंगे।
-
-उनकी उच्च शिक्षा, करियर और व्यक्तिगत विकास में आपका स्नेह, मार्गदर्शन और प्रोत्साहन अत्यंत महत्वपूर्ण सिद्ध होगा। उनके साथ आत्मीय संवाद बनाए रखने से उनका आत्मविश्वास बढ़ेगा।
-
-बच्चों की एकाग्रता, उन्नति और दीर्घायु के लिए मां सरस्वती की पूजा तथा भगवान गणेश को अथर्वशीर्ष अभिषेक कराना अत्यंत लाभकारी है। बुधवार को गणपति आराधना से विद्या में आने वाले विघ्न दूर होते हैं।`;
-    }
-    if (baseLang === "te") {
-      return `మీ జాతకంలో 5వ అధిపతి ${house5Lord} శుభ ప్రభావంతో పిల్లల విద్య, బుద్ధికుశలత మరియు భవిష్యత్ రంగాలలో విశేష పురోగతి కనిపిస్తోంది. వారు సన్మార్గంలో పయనిస్తూ తమ ప్రతిభతో కుటుంబానికి మంచి పేరు తెస్తారు.
-
-వారి ఉన్నత చదువులు మరియు కెరీర్ అభివృద్ధికి మీ ఆదరణ మరియు సరైన మార్గదర్శకత్వం కొండంత అండగా నిలుస్తాయి.
-
-పిల్లల ఏకాగ్రత, ఉన్నతి మరియు ఆయురారోగ్యాల కోసం సరస్వతి పూజ మరియు గణపతి అథర్వశీర్ష అభిషేకం నిర్వహించడం ఎంతో శుభప్రదం.`;
-    }
-    if (baseLang === "ta") {
-      return `உங்கள் ஜாதகத்தில் 5 ஆம் அதிபதி ${house5Lord} சுப பார்வையால் குழந்தைகளின் கல்வி, அறிவுத்திறன் மற்றும் எதிர்கால சாதனைகளில் சிறந்த முன்னேற்றம் ஏற்படும். அவர்களின் நன்னடத்தை குடும்பத்திற்கு பெருமை சேர்க்கும்.
-
-அவர்களின் உயர்கல்வி மற்றும் வேலைவாய்ப்பு வளர்ச்சிக்கு உங்கள் அன்பும் வழிகாட்டுதலும் சிறந்த பலமாக விளங்கும்.
-
-குழந்தைகளின் கல்வி வளர்ச்சி, மன அமைதி மற்றும் ஆரோக்கியத்திற்கு சரஸ்வதி பூஜை மற்றும் கணபதி அதர்வசீর্ষ அபிஷேகம் செய்வது மிகவும் நன்மையளிக்கும்.`;
-    }
-    return `Your children show promising signs of excellence in education, intellect, and future career pursuits. The benefic influence of your 5th house lord ${house5Lord} guides them on a virtuous path, ensuring strong focus and academic achievements that bring honor to your family.
-
-Your parental guidance, emotional support, and encouragement will be instrumental in shaping their higher education and professional milestones. Maintaining clear, loving communication nurtures their self-confidence.
-
-To ensure their continued progress, health, and academic focus, offering Saraswati Pooja and Ganapati Atharvashirsha Abhishekam is highly beneficial. Wednesday prayers to Lord Ganesha dissolve study distractions.`;
-  } else {
-    // general
-    if (baseLang === "kn") {
-      return `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಪಂಚಮ ಭಾವವು ಪೂರ್ವ ಪುಣ್ಯ, ಬುದ್ಧಿಶಕ್ತಿ ಹಾಗೂ ಸಂತಾನ ಸೌಭಾಗ್ಯವನ್ನು ಸೂಚಿಸುತ್ತದೆ. ಪಂಚಮಾಧಿಪತಿಯಾದ ${house5Lord} ಗ್ರಹದ ಸ್ಥಾನ ಹಾಗೂ ಗುರು ಗ್ರಹದ ಅನುಗ್ರಹವು ಜ್ಞಾನಾರ್ಜನೆ, ತಾರ್ಕಿಕ ಚಿಂತನೆ ಹಾಗೂ ವಂಶಾಭಿವೃದ್ಧಿಯ ಶಕ್ತಿಯನ್ನು ನೀಡುತ್ತದೆ.
-
-ಸೃಜನಶೀಲ ಕಾರ್ಯಗಳು ಹಾಗೂ ಆಧ್ಯಾತ್ಮಿಕ ಸಾಧನೆಗಳಲ್ಲಿ ತೊಡಗಿಸಿಕೊಳ್ಳುವುದು ನಿಮ್ಮ ಜೀವನಕ್ಕೆ ಸಾರ್ಥಕತೆಯನ್ನು ತರಲಿದೆ. ಪೂರ್ವಾರ್ಜಿತ ಸತ್ಕರ್ಮಗಳ ಫಲವು ಕುಟುಂಬದ ಸರ್ವತೋಮುಖ ಏಳಿಗೆಗೆ ನೆರವಾಗಲಿದೆ.
-
-ಪಂಚಮ ಭಾವದ ಶುಭ ಫಲಗಳ ವೃದ್ಧಿಗಾಗಿ ನಿತ್ಯವೂ ಪ್ರಾತಃಕಾಲ ಶ್ರೀ ಗಾಯತ್ರಿ ಮಂತ್ರ ಜಪ ಹಾಗೂ ವಿದ್ಯಾ-ಸಂತಾನ ಪ್ರದಾಯಕ ಗಣಪತಿ ಪೂಜೆ ಮಾಡುವುದು ಅತ್ಯಂತ ಫಲಪ್ರದವಾಗಿದೆ.`;
-    }
-    if (baseLang === "hi") {
-      return `आपकी कुंडली में पंचम भाव पूर्व पुण्य, बुद्धि और संतान सुख का प्रतिनिधित्व करता है। पंचमेश ${house5Lord} की शुभ स्थिति और गुरु की कृपा से ज्ञान, बौद्धिक क्षमता और वंश वृद्धि का आशीर्वाद प्राप्त होता है।
-
-रचनात्मक कार्यों और आध्यात्मिक साधना में संलग्न होना आपके जीवन को सार्थकता प्रदान करेगा। पूर्व जन्म के शुभ कर्म परिवार की उन्नति में सहायक होंगे।
-
-पंचम भाव के शुभ फलों की वृद्धि के लिए नित्य गायत्री मंत्र जप तथा विघ्नहर्ता गणेश जी की पूजा करना अत्यंत शुभ फलदायक है।`;
-    }
-    if (baseLang === "te") {
-      return `మీ జాతకంలో 5వ భావం పూర్వ పుణ్యం, బుద్ధికుశలత మరియు సంతాన సౌభాగ్యాన్ని సూచిస్తుంది. 5వ అధిపతి ${house5Lord} స్థానం మరియు గురు గ్రహ అనుగ్రహం జ్ఞానం మరియు వంశాభివృద్ధిని ప్రసాదిస్తాయి.
-
-సృజనాత్మక పనులలో రాణించడం మరియు ఆధ్యాత్మిక సాధన మీ జీవితానికి గొప్ప తృప్తినిస్తాయి.
-
-5వ భావ శుభ ఫలితాల కోసం నిత్యం గాయత్రీ మంత్ర జపం మరియు గణపతి పూజ చేయడం ఎంతో శ్రేయస్కరం.`;
-    }
-    if (baseLang === "ta") {
-      return `உங்கள் ஜாதகத்தில் 5 ஆம் இடம் பூர்வ புண்ணியம், புத்தி கூர்மை மற்றும் சந்ததி பாக்கியத்தை குறிக்கிறது. 5 ஆம் அதிபதி ${house5Lord} மற்றும் குருவின் அருள் ஞானத்தையும் வம்ச விருத்தியையும் வழங்கும்.
-
-படைப்பாற்றல் மற்றும் ஆன்மீக ஈடுபாடு உங்கள் வாழ்க்கைக்கு மேன்மை தரும்.
-
-5 ஆம் இடத்து சுப பலன்கள் பெருக தினமும் காயத்ரி மந்திர ஜபமும் விநாயகர் வழிபாடும் செய்வது நற்பலன் அளிக்கும்.`;
-    }
-    return `In your birth chart, the 5th house represents Poorva Punya (past meritorious deeds), intellect, and progeny blessings. The placement of your 5th lord ${house5Lord} and Jupiter's grace bestow sharp intellect, creative vision, and family lineage strength.
-
-Engaging in creative endeavors, scholarly pursuits, and spiritual practices activates your chart's positive karmic potential, supporting steady family prosperity.
-
-To enhance the benefic vibrations of the 5th house, daily chanting of the Gayatri Mantra and prayers to Lord Ganesha are highly auspicious.`;
-  }
+  return buildDynamicChildrenFallback(chart, status);
 }
+
 import PdfPersonalizationModal, { PersonalizationState } from "./PdfPersonalizationModal";
 import { MultiQuestionPdfTemplate, MultiQuestionItem } from "./MultiQuestionPdfTemplate";
 
 const MULTI_QUESTION_TOPICS = [
   { id: "career", label: { en: "💼 Career & Promotion", kn: "💼 ಉದ್ಯೋಗ ಹಾಗೂ ಬಡ್ತಿ", te: "💼 ఉద్యోగం మరియు పదోన్నతి", ta: "💼 வேலை மற்றும் உயர்வு", hi: "💼 करियर और पदोन्नति" }, defaultQ: { en: "When will I get a job promotion or career growth?", kn: "ನನಗೆ ಯಾವಾಗ ಉದ್ಯೋಗದಲ್ಲಿ ಬಡ್ತಿ ಹಾಗೂ ವೃತ್ತಿ ಏಳಿಗೆ ದೊರೆಯಲಿದೆ?", te: "నాకు ఎప్పుడు ఉద్యోగంలో పదోన్నతి లభిస్తుంది?", ta: "எனக்கு எப்போது வேலையில் உயர்வு கிடைக்கும்?", hi: "मुझे करियर में पदोन्नति कब मिलेगी?" } },
-  { id: "marriage", label: { en: "💍 Marriage & Timing", kn: "💍 ವಿವಾಹ ಹಾಗೂ ಸಂಬಂಧ", te: "💍 వివాహం మరియు సమయం", ta: "திருமணம் மற்றும் காலம்", hi: "💍 विवाह और समय" }, defaultQ: { en: "What is the exact marriage timing window and spouse nature?", kn: "ನನ್ನ ಕಲ್ಯಾಣ ಯೋಗದ ನಿಖರ ಸಮಯ ಹಾಗೂ ಸಂಗಾತಿಯ ಗುಣಲಕ್ಷಣಗಳೇನು?", te: "నా వివాహ సమయం మరియు భాగస్వామి స్వభావం ఎలా ఉంటుంది?", ta: "என் திருமண காலம் மற்றும் வரனின் சுபாவம் எப்படி இருக்கும்?", hi: "विवाह का सटीक समय और जीवनसाथी का स्वभाव कैसा होगा?" } },
+  { id: "marriage", label: { en: "💍 Marriage & Timing", kn: "💍 ವಿವಾಹ ಹಾಗೂ ಸಂಬಂಧ", te: "💍 వివాహం మరియు సమయం", ta: "💍 திருமணம் மற்றும் காலம்", hi: "💍 विवाह और समय" }, defaultQ: { en: "What is the exact marriage timing window and spouse nature?", kn: "ನನ್ನ ಕಲ್ಯಾಣ ಯೋಗದ ನಿಖರ ಸಮಯ ಹಾಗೂ ಸಂಗಾತಿಯ ಗುಣಲಕ್ಷಣಗಳೇನು?", te: "నా వివాహ సమయం మరియు భాగస్వామి స్వభావం ఎలా ఉంటుంది?", ta: "என் திருமண காலம் மற்றும் வரனின் சுபாவம் எப்படி இருக்கும்?", hi: "विवाह का सटीक समय और जीवनसाथी का स्वभाव कैसा होगा?" } },
   { id: "finance", label: { en: "💰 Wealth & Investment", kn: "💰 ಧನ ಲಾಭ ಹಾಗೂ ಸಂಪತ್ತು", te: "💰 ధన లాభం మరియు సంపద", ta: "💰 தன லாபம் மற்றும் செல்வம்", hi: "💰 धन लाभ और संपत्ति" }, defaultQ: { en: "How will my financial growth and property gains be?", kn: "ನನ್ನ ಆರ್ಥಿಕ ಸ್ಥಿತಿ ಹಾಗೂ ಆಸ್ತಿ ಗಳಿಕೆ ಹೇಗೆ ಇರಲಿದೆ?", te: "నా ఆర్థిక స్థితి మరియు ఆస్తి సమకూరుట ఎలా ఉంటుంది?", ta: "என் நிதி நிலையும் சொத்து சேர்க்கையும் எப்படி இருக்கும்?", hi: "मेरी वित्तीय स्थिति और संपत्ति लाभ कैसा रहेगा?" } },
   { id: "travel", label: { en: "✈️ Foreign Travel & Visa", kn: "✈️ ವಿದೇಶ ಪ್ರಯಾಣ ಹಾಗೂ ವೀಸಾ", te: "✈️ విదేశీ ప్రయాణం మరియు వీసా", ta: "✈️ வெளிநாட்டுப் பயணம் மற்றும் விசா", hi: "✈️ विदेश यात्रा और वीजा" }, defaultQ: { en: "Is foreign settlement or overseas job travel indicated?", kn: "ನನಗೆ ವಿದೇಶಿ ಯೋಗ ಹಾಗೂ ಸ್ಥಳಾಂತರ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆಯೇ?", te: "నాకు విదేశీ ప్రయాణం మరియు ఉద్యోగ యోగం ఉందా?", ta: "எனக்கு வெளிநாட்டு வேலை வாய்ப்பு யோகம் உள்ளதா?", hi: "क्या मुझे विदेश यात्रा और वहां बसने का योग है?" } },
   { id: "health", label: { en: "🩺 Health & Wellbeing", kn: "🩺 ಆರೋಗ್ಯ ಹಾಗೂ ಆಯುಷ್ಯ", te: "🩺 ఆరోగ్యం మరియు ఆయుష్షు", ta: "🩺 ஆரோக்கியம் மற்றும் ஆயுள்", hi: "🩺 स्वास्थ्य और दीर्घायु" }, defaultQ: { en: "What remedies are needed for health stability and peace?", kn: "ನನ್ನ ಆರೋಗ್ಯ ಸುಧಾರಣೆಗೆ ಯಾವ ಧಾರ್ಮಿಕ ಶಮನ ಪರಿಹಾರಗಳು ಅಗತ್ಯ?", te: "నా ఆరోగ్య శ్రేయస్సుకు ఏ పరిహారాలు చేయాలి?", ta: "என் ஆரோக்கியத்திற்கு என்ன பரிகாரங்கள் செய்ய வேண்டும்?", hi: "स्वास्थ्य स्थिरता के लिए क्या उपाय करने चाहिए?" } },
   { id: "children", label: { en: "👶 Children & Progeny", kn: "👶 ಸಂತಾನ ಹಾಗೂ ಮಕ್ಕಳು", te: "👶 సంతానం మరియు పిల్లలు", ta: "👶 சந்ததி மற்றும் குழந்தைகள்", hi: "👶 संतान और बच्चे" }, defaultQ: { en: "What is the progeny blessing timing and children progress?", kn: "ನನ್ನ ಸಂತಾನ ಭಾಗ್ಯದ ಸಮಯ ಹಾಗೂ ಮಕ್ಕಳ ಭವಿಷ್ಯ ಹೇಗಿರಲಿದೆ?", te: "నా సంతాన ప్రాప్తి సమయం మరియు పిల్లల భవిష్యత్తు ఎలా ఉంటుంది?", ta: "என் குழந்தை பாக்கிய யோகமும் குழந்தைகளின் எதிர்காலமும் எப்படி இருக்கும்?", hi: "संतान प्राप्ति का समय और बच्चों का भविष्य कैसा रहेगा?" } },
-  { id: "property", label: { en: "🏠 House & Vehicle Purchase", kn: "🏠 ಮನೆ ಹಾಗೂ ವಾಹನ ಖರೀದಿ", te: "🏠 ఇల్లు మరియు వాహన కొనుగోలు", ta: "🏠 வீடு மற்றும் வாகனம் வாங்குதல்", hi: "🏠 मकान और वाहन खरीद" }, defaultQ: { en: "When will I purchase my own house or vehicle?", kn: "ನಾನು ಸ್ವಂತ ಮನೆ ಹಾಗೂ ವಾಹನವನ್ನು ಯಾವಾಗ ಖರೀದಿಸಲಿದ್ದೇನೆ?", te: "నేను సొಂತ ఇల్లు మరియు వాహನವನ್ನು ಯಾವಾಗ ಖರೀದಿಸಲಿದ್ದೇನೆ?", ta: "நான் சொந்த வீடும் வாகனமும் எப்போது வாங்குவேன்?", hi: "मैं अपना घर और वाहन कब खरीद पाऊंगा?" } }
+  { id: "property", label: { en: "🏠 House & Vehicle Purchase", kn: "🏠 ಮನೆ ಹಾಗೂ ವಾಹನ ಖರೀದಿ", te: "🏠 ఇల్లు మరియు వాహన కొనుగోలు", ta: "🏠 வீடு மற்றும் வாகனம் வாங்குதல்", hi: "🏠 मकान और वाहन खरीद" }, defaultQ: { en: "When will I purchase my own house or vehicle?", kn: "ನಾನು ಸ್ವಂತ ಮನೆ ಹಾಗೂ ವಾಹನವನ್ನು ಯಾವಾಗ ಖರೀದಿಸಲಿದ್ದೇನೆ?", te: "నేను సొంత ఇల్లు మరియు వాహనాన్ని ఎప్పుడు కొనుగోలు చేస్తాను?", ta: "நான் சொந்த வீடும் வாகனமும் எப்போது வாங்குவேன்?", hi: "मैं अपना घर और वाहन कब खरीद पाऊंगा?" } }
 ];
 
+export function buildPersonalizedCareerText(
+  lang: string,
+  lagnaIndex: number = 0,
+  dashaStr: string = "Running Dasha",
+  bhuktiStr: string = "Sub Dasha",
+  context?: DynamicChartContext
+): string {
+  const chart = analyzeKundali({
+    lagnaRashiIndex: lagnaIndex,
+    moonRashiIndex: context?.moonRashiIndex ?? 0,
+    natalPlanets: (context?.planets || []).map(p => ({
+      graha: toGraha(p.name),
+      rashiIndex: p.rashiIndex,
+      house: p.house,
+      exalted: p.isExalted,
+      debilitated: p.isDebilitated,
+      retrograde: p.isRetrograde
+    })),
+    transits: context?.transits,
+    ageYears: context?.ageYears ?? 30,
+    lang
+  });
+  if (dashaStr && dashaStr !== "Running Dasha") chart.mahaLordName = dashaStr;
+  if (bhuktiStr && bhuktiStr !== "Sub Dasha") chart.bhuktiLordName = bhuktiStr;
+  return buildDynamicCareerFallback(chart);
+}
 
+export function buildPersonalizedWealthText(
+  lang: string,
+  lagnaIndex: number = 0,
+  dashaStr: string = "Running Dasha",
+  bhuktiStr: string = "Sub Dasha",
+  context?: DynamicChartContext
+): string {
+  const chart = analyzeKundali({
+    lagnaRashiIndex: lagnaIndex,
+    moonRashiIndex: context?.moonRashiIndex ?? 0,
+    natalPlanets: (context?.planets || []).map(p => ({
+      graha: toGraha(p.name),
+      rashiIndex: p.rashiIndex,
+      house: p.house,
+      exalted: p.isExalted,
+      debilitated: p.isDebilitated,
+      retrograde: p.isRetrograde
+    })),
+    transits: context?.transits,
+    ageYears: context?.ageYears ?? 30,
+    lang
+  });
+  if (dashaStr && dashaStr !== "Running Dasha") chart.mahaLordName = dashaStr;
+  if (bhuktiStr && bhuktiStr !== "Sub Dasha") chart.bhuktiLordName = bhuktiStr;
+  return buildDynamicWealthFallback(chart);
+}
+
+export function buildPersonalizedHealthText(
+  lang: string,
+  lagnaIndex: number = 0,
+  dashaStr: string = "Running Dasha",
+  bhuktiStr: string = "Sub Dasha",
+  context?: DynamicChartContext
+): string {
+  const chart = analyzeKundali({
+    lagnaRashiIndex: lagnaIndex,
+    moonRashiIndex: context?.moonRashiIndex ?? 0,
+    natalPlanets: (context?.planets || []).map(p => ({
+      graha: toGraha(p.name),
+      rashiIndex: p.rashiIndex,
+      house: p.house,
+      exalted: p.isExalted,
+      debilitated: p.isDebilitated,
+      retrograde: p.isRetrograde
+    })),
+    transits: context?.transits,
+    ageYears: context?.ageYears ?? 30,
+    lang
+  });
+  if (dashaStr && dashaStr !== "Running Dasha") chart.mahaLordName = dashaStr;
+  if (bhuktiStr && bhuktiStr !== "Sub Dasha") chart.bhuktiLordName = bhuktiStr;
+  return buildDynamicHealthFallback(chart);
+}
 
 export function buildKundaliCurrentPhaseFallback(
   lang: string,
@@ -484,6 +504,10 @@ export default function BhavishyaView() {
   const [pdfDeepInsights, setPdfDeepInsights] = useState<Record<string, string> | null>(null);
 
   const [isGeneratingPremiumPdf, setIsGeneratingPremiumPdf] = useState(false);
+  const [isGeneratingPremiumPdfV1, setIsGeneratingPremiumPdfV1] = useState(false);
+  const [v1PdfProgress, setV1PdfProgress] = useState(10);
+  const [v1PdfStageText, setV1PdfStageText] = useState("");
+  const [modalTriggerSource, setModalTriggerSource] = useState<"regular" | "v1">("regular");
   const [isPersonalizationModalOpen, setIsPersonalizationModalOpen] = useState(false);
   const [pdfLanguage, setPdfLanguage] = useState(language);
   const [premiumDataForPdf, setPremiumDataForPdf] = useState<PremiumData | null>(null);
@@ -608,6 +632,8 @@ export default function BhavishyaView() {
         remedyTitle: tp("remedyTitle", lang),
         characteristicsTitle: tp("characteristicsTitle", lang),
         darkSecretTitle: tp("darkSecretTitle", lang),
+        currentPhaseTitle: tp("currentPhaseTitle", lang),
+        currentPhaseGuidanceTitle: tp("currentPhaseGuidanceTitle", lang),
         timelineTitle: tp("timelineTitle", lang),
         gocharaTitle: tp("gocharaTitle", lang),
         summaryTitle: tp("summaryTitle", lang),
@@ -1344,6 +1370,8 @@ Return ONLY this JSON format:
         remedyTitle: tp("remedyTitle", lang),
         characteristicsTitle: tp("characteristicsTitle", lang),
         darkSecretTitle: tp("darkSecretTitle", lang),
+        currentPhaseTitle: tp("currentPhaseTitle", lang),
+        currentPhaseGuidanceTitle: tp("currentPhaseGuidanceTitle", lang),
         timelineTitle: tp("timelineTitle", lang),
         gocharaTitle: tp("gocharaTitle", lang),
         summaryTitle: tp("summaryTitle", lang),
@@ -1379,8 +1407,48 @@ Return ONLY this JSON format:
           }))
         );
 
-      // Inject personalized targeted deep predictions if requested
-      if (personalization) {
+      // Real transit positions for today, counted from the birth Moon.
+      const liveTransits = getTransitsForDate(session.result.moonSign.index, now, ayanamsaModel);
+      const transits: TransitPlacement[] = Object.entries(liveTransits).map(([planet, pos]) => ({
+        graha: toGraha(planet),
+        rashiIndex: pos.rashiIndex,
+        houseFromMoon: pos.house
+      }));
+
+      const natalPlanets: NatalPlacement[] = session.result.planets.map(p => ({
+        graha: toGraha(p.name),
+        rashiIndex: p.rashi.index,
+        house: p.house,
+        retrograde: p.isRetrograde,
+        debilitated: p.isDebilitated,
+        exalted: p.isExalted
+      }));
+
+      const dynamicCtx: DynamicChartContext = {
+        planets: session.result.planets.map(p => ({
+          name: p.name,
+          house: p.house,
+          rashiIndex: p.rashi.index,
+          isExalted: p.isExalted,
+          isDebilitated: p.isDebilitated,
+          isRetrograde: p.isRetrograde
+        })),
+        transits,
+        moonRashiIndex: session.result.moonSign.index,
+        ageYears
+      };
+
+      setV1PdfProgress(38);
+      setV1PdfStageText(
+        pdfLanguage === "kn"
+          ? "೨. ವಿವಾಹ, ಸಂತಾನ, ಉದ್ಯೋಗ, ಆರ್ಥಿಕ ಹಾಗೂ ಆರೋಗ್ಯ ಅಧ್ಯಾಯಗಳ ನಿಖರ ಸಂಶ್ಲೇಷಣೆ..."
+          : pdfLanguage === "hi"
+          ? "2. विवाह, संतान, करियर, धन एवं स्वास्थ्य का विश्लेषण..."
+          : "2. Synthesizing Dynamic Marriage, Children, Career, Wealth & Health..."
+      );
+
+      // Inject personalized targeted deep predictions if requested (Adults only, age >= 8)
+      if (personalization && ageYears >= 8) {
         const isKn = lang === "kn";
         const baseLang = (lang || "en").split("-")[0];
         const lagnaStr = session.result.lagnaRashi ? pick(RASHI_L5[session.result.lagnaRashi.index], lang) : "";
@@ -1392,11 +1460,11 @@ Return ONLY this JSON format:
 
         if (personalization.maritalStatus) {
           const userGender = (session.input as any).gender || "Male";
-          const marriageText = buildPersonalizedMarriageText(lang, lagnaStr, moonStr, personalization.maritalStatus, lagnaIdx, dashaName, bhuktiName, userGender as "Male" | "Female");
+          const marriageText = buildPersonalizedMarriageText(lang, lagnaStr, moonStr, personalization.maritalStatus, lagnaIdx, dashaName, bhuktiName, userGender as "Male" | "Female", dynamicCtx);
 
           const existingIdx = localisedPredictions.findIndex(p => {
             const cat = `${p.translatedCategory || ''} ${p.category || ''}`.toLowerCase();
-            return cat.includes("marriage") || cat.includes("ಮದುವೆ") || cat.includes("ವಿವಾಹ") || cat.includes("विवाह") || cat.includes("వివాహ") || cat.includes("திருமணம்");
+            return cat.includes("marriage") || cat.includes("ಮದುವೆ") || cat.includes("ವಿವಾಹ") || cat.includes("ವಿवाह") || cat.includes("വിవాహ") || cat.includes("திருಮணம்");
           });
           if (existingIdx >= 0) {
             localisedPredictions[existingIdx].text = marriageText;
@@ -1412,11 +1480,11 @@ Return ONLY this JSON format:
         }
 
         if (personalization.childrenStatus) {
-          const childrenText = buildPersonalizedChildrenText(lang, personalization.childrenStatus, lagnaIdx, dashaName, bhuktiName);
+          const childrenText = buildPersonalizedChildrenText(lang, personalization.childrenStatus, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
 
           const existingIdx = localisedPredictions.findIndex(p => {
             const cat = `${p.translatedCategory || ''} ${p.category || ''}`.toLowerCase();
-            return cat.includes("children") || cat.includes("ಸಂತಾನ") || cat.includes("ಮಕ್ಕಳು") || cat.includes("संतान") || cat.includes("సంతాన") || cat.includes("குழந்தை");
+            return cat.includes("children") || cat.includes("ಸಂತಾನ") || cat.includes("ಮಕ್ಕಳು") || cat.includes("संतान") || cat.includes("ಸಂತಾನ") || cat.includes("குழந்தை");
           });
           if (existingIdx >= 0) {
             localisedPredictions[existingIdx].text = childrenText;
@@ -1430,6 +1498,15 @@ Return ONLY this JSON format:
             });
           }
         }
+      }
+
+      if (ageYears < 8) {
+        localisedPredictions = localisedPredictions.filter(p => {
+          const cat = `${p.translatedCategory || ''} ${p.category || ''}`.toLowerCase();
+          const isAdult = cat.includes("marriage") || cat.includes("ಮದುವೆ") || cat.includes("ವಿವಾಹ") || cat.includes("ವಿवाह") || cat.includes("विवाह") || cat.includes("వివాహ") || cat.includes("திருಮணம்") ||
+                          cat.includes("children") || cat.includes("ಸಂತಾನ") || cat.includes("ಮಕ್ಕಳು") || cat.includes("संतान") || cat.includes("ಸಂತಾನ") || cat.includes("குழந்தை");
+          return !isAdult;
+        });
       }
 
       setPremiumPredictions(localisedPredictions);
@@ -1451,40 +1528,13 @@ Return ONLY this JSON format:
         hasChildren: personalization?.childrenStatus === "has_children" ? true : personalization?.childrenStatus === "no_children" ? false : undefined
       });
 
-      const parseGeminiJSON = (text: string) => {
-        try {
-          const match = text.match(/\{[\s\S]*\}/);
-          return match ? JSON.parse(match[0]) : {};
-        } catch (e) {
-          console.error("JSON parse error from Gemini:", e);
-          return {};
-        }
-      };
+      const parseGeminiJSON = robustParseGeminiJSON;
 
       // Affair indicator detection using B.V. Raman classical rules
       const affairResult = detectAffairIndicators(session.result);
       const affairNote = (affairResult.hasAffairIndicators && affairResult.confidence !== "low")
         ? `The chart carries ${affairResult.confidence}-confidence classical indicators of hidden romantic complexity (${affairResult.indicators.slice(0, 2).join("; ")}). Give this one short paragraph, framed as a karmic soul-pattern in dignified language. Never judgemental.`
         : `This chart shows no confirmed indicator of a secret relationship. Do not raise the subject at all.`;
-
-      // Real transit positions for today, counted from the birth Moon. The old prompt
-      // passed the natal chart under a "current transits" label, so every Gochara
-      // chapter was written against the wrong sky.
-      const liveTransits = getTransitsForDate(session.result.moonSign.index, now, ayanamsaModel);
-      const transits: TransitPlacement[] = Object.entries(liveTransits).map(([planet, pos]) => ({
-        graha: toGraha(planet),
-        rashiIndex: pos.rashiIndex,
-        houseFromMoon: pos.house
-      }));
-
-      const natalPlanets: NatalPlacement[] = session.result.planets.map(p => ({
-        graha: toGraha(p.name),
-        rashiIndex: p.rashi.index,
-        house: p.house,
-        retrograde: p.isRetrograde,
-        debilitated: p.isDebilitated,
-        exalted: p.isExalted
-      }));
 
       const userGender = (session.input as any).gender || "Male";
       const prompts = buildPremiumPrompts({
@@ -1537,7 +1587,7 @@ Return ONLY this JSON format:
       console.log("[PDF Generation] Initiating Batch 1 AI calls (Soul & Personality)...");
       const [resCharacteristics, resDarkSecret, resCurrentPhase, resYogas, resDoshas] = await Promise.all([
         safeAsk("Generate Characteristics", prompts.characteristics, 0.3),
-        safeAsk("Generate Dark Secret", prompts.darkSecret, 0.3),
+        ageYears < 8 ? Promise.resolve('{"darkSecret":[]}') : safeAsk("Generate Dark Secret", prompts.darkSecret, 0.3),
         safeAsk("Generate Current Phase", prompts.currentPhase, 0.3),
         safeAsk("Generate Premium Yogas", prompts.yogas, 0.4),
         safeAsk("Generate Premium Doshas", prompts.doshas, 0.4),
@@ -1769,6 +1819,500 @@ Return ONLY this JSON format:
     }
   };
 
+  // 100% Mathematically Grounded & AI-First Premium PDF V1 Engine
+  const generatePremiumPDFV1 = async (personalization?: PersonalizationState) => {
+    if (!session || isGeneratingPremiumPdfV1) return;
+    setIsGeneratingPremiumPdfV1(true);
+    setV1PdfProgress(15);
+    setV1PdfStageText(
+      pdfLanguage === "kn"
+        ? "೧. ಜನ್ಮ ಲಗ್ನ, ನವಾಂಶ ಮತ್ತು ಗ್ರಹಗಳ ಗಣನೆ..."
+        : pdfLanguage === "hi"
+        ? "1. जन्म लग्न, नवांश एवं ग्रह गणना..."
+        : "1. Calculating Natal Lagna, Bhavas & Navamsha..."
+    );
+
+    try {
+      if (!session) throw new Error("No session");
+
+      const lang = pdfLanguage;
+      const baseLang = (lang || "en").split("-")[0];
+      const runId = newRunId();
+
+      const moonPlanet = session.result.planets.find(p => p.name === 'Moon');
+      const now = new Date();
+      const ageYears = ageDecimalYearsAt(
+        session.input.birthDate,
+        session.input.birthTime,
+        session.input.latitude,
+        session.input.longitude,
+        now
+      );
+      const currentBhuktiData = findBhuktiAtAge(session.result, ageYears);
+      const mahaLord = currentBhuktiData ? toGraha(currentBhuktiData.maha.planet) : null;
+      const bhuktiLord = currentBhuktiData ? toGraha(currentBhuktiData.bhukti) : null;
+      const panchanga = calculateTraditionalBaggona(session.birthDateYmd, session.birthTimeHm, session.input.latitude, session.input.longitude);
+
+      const ashirvadaSource = ashirvada
+        || "May the divine forces grant you strength, clarity and peace, and may you trust your own resilience.";
+
+      const translatedData: PdfTranslations = {
+        title: tp("title", lang),
+        subtitle: tp("subtitle", lang),
+        nameLabel: tp("nameLabel", lang),
+        nameValue: session.input.name,
+        dobLabel: tp("dobLabel", lang),
+        dobValue: formatBirthLine(lang, session.input.birthDate, session.input.birthTime),
+        lagnaLabel: tp("lagnaLabel", lang),
+        lagnaValue: session.result.lagnaRashi ? pick(RASHI_L5[session.result.lagnaRashi.index], lang) : "",
+        moonLabel: tp("moonLabel", lang),
+        moonValue: pick(RASHI_L5[session.result.moonSign.index], lang),
+        nakshatraLabel: tp("nakshatraLabel", lang),
+        nakshatraValue: moonPlanet ? pick(NAKSHATRA_L5[moonPlanet.nakshatra.index], lang) : "",
+        eraLabel: tp("eraLabel", lang),
+        dashaLabel: tp("dashaLabel", lang),
+        bhuktiLabel: tp("bhuktiLabel", lang),
+        dashaPlanetValue: mahaLord ? pick(GRAHA_L5[mahaLord], lang) : "",
+        bhuktiPlanetValue: bhuktiLord ? pick(GRAHA_L5[bhuktiLord], lang) : "",
+        ashirvadaTitle: tp("ashirvadaTitle", lang),
+        ashirvadaValue: await translateText(ashirvadaSource, lang),
+        footer: tp("footer", lang),
+        yogasTitle: tp("yogasTitle", lang),
+        doshasTitle: tp("doshasTitle", lang),
+        remedyTitle: tp("remedyTitle", lang),
+        characteristicsTitle: tp("characteristicsTitle", lang),
+        darkSecretTitle: tp("darkSecretTitle", lang),
+        currentPhaseTitle: tp("currentPhaseTitle", lang),
+        currentPhaseGuidanceTitle: tp("currentPhaseGuidanceTitle", lang),
+        timelineTitle: tp("timelineTitle", lang),
+        gocharaTitle: tp("gocharaTitle", lang),
+        summaryTitle: tp("summaryTitle", lang),
+        introTitle: tp("introTitle", lang),
+        introGreeting: greetingLine(lang, session.input.name),
+        introPrepared: buildComprehensiveIntro(lang, {
+          name: session.input.name,
+          lagna: session.result.lagnaRashi ? pick(RASHI_L5[session.result.lagnaRashi.index], lang) : "",
+          moonSign: pick(RASHI_L5[session.result.moonSign.index], lang),
+          nakshatra: moonPlanet ? pick(NAKSHATRA_L5[moonPlanet.nakshatra.index], lang) : "",
+          birthWeekday: pick(WEEKDAY_L5[panchanga.weekdayIndex], lang),
+          birthDateFormatted: formatBirthLine(lang, session.input.birthDate, session.input.birthTime).split(",")[0],
+          birthTime: session.input.birthTime,
+          mahaLord: mahaLord ? pick(GRAHA_L5[mahaLord], lang) : "",
+          bhuktiLord: bhuktiLord ? pick(GRAHA_L5[bhuktiLord], lang) : ""
+        }),
+        introRunning: mahaLord && bhuktiLord ? runningPeriodSentence(lang, mahaLord, bhuktiLord) : "",
+        introBegin: tp("introBegin", lang),
+      };
+
+      setPdfTranslations(translatedData);
+
+      // Real transit positions for today, counted from birth Moon
+      const liveTransits = getTransitsForDate(session.result.moonSign.index, now, ayanamsaModel);
+      const transits: TransitPlacement[] = Object.entries(liveTransits).map(([planet, pos]) => ({
+        graha: toGraha(planet),
+        rashiIndex: pos.rashiIndex,
+        houseFromMoon: pos.house
+      }));
+
+      const natalPlanets: NatalPlacement[] = session.result.planets.map(p => ({
+        graha: toGraha(p.name),
+        rashiIndex: p.rashi.index,
+        house: p.house,
+        retrograde: p.isRetrograde,
+        debilitated: p.isDebilitated,
+        exalted: p.isExalted
+      }));
+
+      const userGender = (session.input as any).gender || "Male";
+      const parsedKundali = analyzeKundali({
+        lagnaRashiIndex: session.result.lagnaRashi?.index ?? 0,
+        moonRashiIndex: session.result.moonSign.index,
+        moonNakshatraIndex: moonPlanet?.nakshatra.index ?? null,
+        natalPlanets,
+        transits,
+        mahaLord,
+        bhuktiLord,
+        gender: userGender as "Male" | "Female",
+        ageYears,
+        lang
+      });
+
+      const dynamicCtx: DynamicChartContext = {
+        planets: session.result.planets.map(p => ({
+          name: p.name,
+          house: p.house,
+          rashiIndex: p.rashi.index,
+          isExalted: p.isExalted,
+          isDebilitated: p.isDebilitated,
+          isRetrograde: p.isRetrograde
+        })),
+        transits,
+        moonRashiIndex: session.result.moonSign.index,
+        ageYears
+      };
+
+      setV1PdfProgress(38);
+      setV1PdfStageText(
+        pdfLanguage === "kn"
+          ? "೨. ವಿವಾಹ, ಸಂತಾನ, ಉದ್ಯೋಗ, ಆರ್ಥಿಕ ಹಾಗೂ ಆರೋಗ್ಯ ಅಧ್ಯಾಯಗಳ ನಿಖರ ಸಂಶ್ಲೇಷಣೆ..."
+          : pdfLanguage === "hi"
+          ? "2. विवाह, संतान, करियर, धन एवं स्वास्थ्य का विश्लेषण..."
+          : "2. Synthesizing Dynamic Marriage, Children, Career, Wealth & Health..."
+      );
+
+      const result = await generateMasterPrediction(session.result, {
+        name: session.input.name,
+        birthDate: session.input.birthDate,
+        birthTime: session.input.birthTime,
+        latitude: session.input.latitude,
+        longitude: session.input.longitude,
+        lang,
+        isMarried: personalization?.maritalStatus === "married" ? true : personalization?.maritalStatus === "unmarried" ? false : undefined,
+        hasChildren: personalization?.childrenStatus === "has_children" ? true : personalization?.childrenStatus === "no_children" ? false : undefined
+      });
+
+      const parseGeminiJSON = robustParseGeminiJSON;
+
+      const affairResult = detectAffairIndicators(session.result);
+      const affairNote = (affairResult.hasAffairIndicators && affairResult.confidence !== "low")
+        ? `The chart carries ${affairResult.confidence}-confidence classical indicators of hidden romantic complexity (${affairResult.indicators.slice(0, 2).join("; ")}). Give this one short paragraph, framed as a karmic soul-pattern in dignified language. Never judgemental.`
+        : `This chart shows no confirmed indicator of a secret relationship. Do not raise the subject at all.`;
+
+      const prompts = buildPremiumPrompts({
+        lang,
+        runId,
+        name: session.input.name,
+        gender: userGender as "Male" | "Female",
+        ageYears,
+        maritalStatus: personalization?.maritalStatus || "general",
+        hasChildren: personalization?.childrenStatus || "general",
+        lagnaRashiIndex: session.result.lagnaRashi?.index ?? null,
+        moonRashiIndex: session.result.moonSign.index,
+        moonNakshatraIndex: moonPlanet?.nakshatra.index ?? null,
+        sunRashiIndex: session.result.sunSign?.index ?? null,
+        natalPlanets,
+        transits,
+        mahaLord,
+        bhuktiLord,
+        bhuktiEndsAtAge: currentBhuktiData?.bhuktiEndAge ?? null,
+        engineYogas: result.aiGeneratedNarrative?.yogas ?? [],
+        engineDoshas: result.aiGeneratedNarrative?.doshas ?? [],
+        pariharas: (result.pariharas ?? []).map(
+          p => `${p.doshaName}: ${p.poojaName} (${p.whenToDo}, ${p.whereToDo})`
+        ),
+        shadowSelf: result.natalLayer.shadowSelf.bluntTruth,
+        karmicBaggage: result.natalLayer.karmicBaggage.soulPurpose,
+        lifePhase: result.timingLayer.lifeClock.currentPhase,
+        overallTone: stripJayashreeIntro(result.masterSynthesis.overallTone),
+        careerNote: result.masterSynthesis.career,
+        financeNote: result.masterSynthesis.finance,
+        roadmap: result.timingLayer.twelveMonthRoadmap,
+        affairNote
+      });
+
+      // 3-retry mechanism with exponential backoff for guaranteed resilience
+      const callGeminiWithRetry = async (label: string, prompt: string, temp = 0.3, maxRetries = 3): Promise<string> => {
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+          try {
+            const raw = await askGemini(label, prompt, geminiApiKey, lang, { raw: true, temperature: temp });
+            if (typeof raw === "string" && (raw.includes("Sorry, I encountered an error") || raw.includes("check your API key") || raw.includes("Error:"))) {
+              console.warn(`[V1 AI Attempt ${attempt}/${maxRetries}] Error string detected for ${label}, retrying...`);
+              if (attempt < maxRetries) {
+                await new Promise(r => setTimeout(r, attempt * 1000));
+                continue;
+              }
+              return "";
+            }
+            if (typeof raw === "string" && raw.trim().length > 20) {
+              return raw;
+            }
+          } catch (e) {
+            console.warn(`[V1 AI Attempt ${attempt}/${maxRetries}] AI call failed for ${label}:`, e);
+            if (attempt < maxRetries) {
+              await new Promise(r => setTimeout(r, attempt * 1000));
+              continue;
+            }
+            return "";
+          }
+        }
+        return "";
+      };
+
+      // Controlled Batching: 2 calls per batch with 500ms delay to eliminate rate limits
+      console.log("[V1 PDF] Batch 1: Characteristics & Dark Secret...");
+      const [resCharacteristics, resDarkSecret] = await Promise.all([
+        callGeminiWithRetry("Generate Characteristics", prompts.characteristics, 0.3),
+        ageYears < 8 ? Promise.resolve('{"darkSecret":[]}') : callGeminiWithRetry("Generate Dark Secret", prompts.darkSecret, 0.3)
+      ]);
+      await new Promise(r => setTimeout(r, 500));
+
+      console.log("[V1 PDF] Batch 2: Current Phase & Yogas...");
+      const [resCurrentPhase, resYogas] = await Promise.all([
+        callGeminiWithRetry("Generate Current Phase", prompts.currentPhase, 0.3),
+        callGeminiWithRetry("Generate Premium Yogas", prompts.yogas, 0.4)
+      ]);
+      await new Promise(r => setTimeout(r, 500));
+
+      console.log("[V1 PDF] Batch 3: Doshas & Timeline...");
+      const [resDoshas, resTimeline] = await Promise.all([
+        callGeminiWithRetry("Generate Premium Doshas", prompts.doshas, 0.4),
+        callGeminiWithRetry("Generate Planetary Timeline", prompts.timeline, 0.4)
+      ]);
+      await new Promise(r => setTimeout(r, 500));
+
+      console.log("[V1 PDF] Batch 4: Gochara & Summary...");
+      const [resGochara, resSummary] = await Promise.all([
+        callGeminiWithRetry("Generate Gochara", prompts.gochara, 0.4),
+        callGeminiWithRetry("Generate Summary", prompts.summary, 0.3)
+      ]);
+      await new Promise(r => setTimeout(r, 500));
+
+      console.log("[V1 PDF] Batch 5: Bhavishya Life Areas...");
+      const resBhavishya = await callGeminiWithRetry("Generate Bhavishya Life Areas", prompts.bhavishya, 0.3);
+
+      const dataCharacteristics = parseGeminiJSON(resCharacteristics);
+      const dataDarkSecret = parseGeminiJSON(resDarkSecret);
+      const dataCurrentPhase = parseGeminiJSON(resCurrentPhase);
+      const dataYogas = parseGeminiJSON(resYogas);
+      const dataDoshas = parseGeminiJSON(resDoshas);
+      const dataTimeline = parseGeminiJSON(resTimeline);
+      const dataGochara = parseGeminiJSON(resGochara);
+      const dataSummary = parseGeminiJSON(resSummary);
+      const dataBhavishya = parseGeminiJSON(resBhavishya);
+
+      // Helper to strictly ensure at least 2 substantial paragraphs of 5-6 lines
+      const isSufficientDepth = (text: string | undefined, minParas: number = 2, minChars: number = 260): boolean => {
+        if (!text || text.trim().length < minChars) return false;
+        const paras = text.split(/\n\n+/).filter(p => p.trim().length > 35);
+        return paras.length >= minParas;
+      };
+
+      // Cleanly Assemble Chapter V (Life Stage Predictions) - STRICTLY DEDUPLICATED
+      const isChild = ageYears < 8;
+      const v1Predictions: TranslatedPrediction[] = [];
+      const aiB = dataBhavishya?.bhavishya || {};
+
+      const lagnaIdx = session.result.lagnaRashi?.index ?? 0;
+      const lagnaStr = session.result.lagnaRashi ? pick(RASHI_L5[session.result.lagnaRashi.index], lang) : "";
+      const moonStr = pick(RASHI_L5[session.result.moonSign.index], lang);
+      const dashaName = mahaLord ? pick(GRAHA_L5[mahaLord], lang) : "Dasha";
+      const bhuktiName = bhuktiLord ? pick(GRAHA_L5[bhuktiLord], lang) : "Bhukti";
+
+      if (isChild) {
+        // Child: 5 Dedicated Non-Adult Pedagogical Categories (Strict 2 Paras, 5-6 Lines Each)
+        const catEd = baseLang === "kn" ? "ವಿದ್ಯಾಭ್ಯಾಸ ಹಾಗೂ ಬುದ್ಧಿಶಕ್ತಿ (Education)" : baseLang === "hi" ? "शिक्षा एवं बौद्धिक विकास (Education)" : "Education & Early Intellect";
+        const textEd = isSufficientDepth(aiB.marriage, 2, 240) ? aiB.marriage : buildDynamicChildEducationFallback(parsedKundali);
+        v1Predictions.push({ category: "Education & Early Intellect", translatedCategory: catEd, text: textEd, translatedText: textEd });
+
+        const catAct = baseLang === "kn" ? "ಪ್ರತಿಭೆ, ಕ್ರೀಡೆ ಹಾಗೂ ಸೃಜನಶೀಲತೆ (Talents & Sports)" : baseLang === "hi" ? "प्रतिभा, खेल एवं रचनात्मकता (Activities & Creativity)" : "Talents, Activities & Sports";
+        const textAct = isSufficientDepth(aiB.children, 2, 240) ? aiB.children : buildDynamicChildActivitiesFallback(parsedKundali);
+        v1Predictions.push({ category: "Talents, Activities & Sports", translatedCategory: catAct, text: textAct, translatedText: textAct });
+
+        const catFdn = baseLang === "kn" ? "ವ್ಯಕ್ತಿತ್ವ ವಿಕಾಸ ಹಾಗೂ ಸಂಸ್ಕಾರ (Future Foundation)" : baseLang === "hi" ? "चरित्र निर्माण एवं संस्कार (Future Foundation)" : "Future Foundation & Character";
+        const textFdn = isSufficientDepth(aiB.career, 2, 240) ? aiB.career : buildDynamicChildFoundationFallback(parsedKundali);
+        v1Predictions.push({ category: "Future Foundation & Character", translatedCategory: catFdn, text: textFdn, translatedText: textFdn });
+
+        const catFam = baseLang === "kn" ? "ಕೌಟುಂಬಿಕ ಪ್ರೀತಿ ಹಾಗೂ ಪೋಷಣೆ (Family Environment)" : baseLang === "hi" ? "पारिवारिक वातावरण एवं लालन-पालन (Family Upbringing)" : "Family Environment & Upbringing";
+        const textFam = isSufficientDepth(aiB.wealth, 2, 240) ? aiB.wealth : buildDynamicChildFamilyFallback(parsedKundali);
+        v1Predictions.push({ category: "Family Environment & Upbringing", translatedCategory: catFam, text: textFam, translatedText: textFam });
+
+        const catHlt = baseLang === "kn" ? "ಬಾಲ ಆರೋಗ್ಯ ಹಾಗೂ ಚೈತನ್ಯ (Pediatric Health)" : baseLang === "hi" ? "बाल स्वास्थ्य एवं रोग प्रतिरोधक क्षमता (Pediatric Health)" : "Pediatric Health & Vitality";
+        const textHlt = isSufficientDepth(aiB.health, 2, 240) ? aiB.health : buildDynamicChildPediatricHealthFallback(parsedKundali);
+        v1Predictions.push({ category: "Pediatric Health & Vitality", translatedCategory: catHlt, text: textHlt, translatedText: textHlt });
+      } else {
+        // Adult: Exactly 5 Dedicated Core Categories (Strict 2-3 Paras, 5-6 Lines Each)
+        // 1. Marriage & Relationships
+        const catMar = baseLang === "kn" ? "ವಿವಾಹ ಹಾಗೂ ಸಂಬಂಧ (Marriage & Relationships)" : baseLang === "hi" ? "विवाह एवं संबंध (Marriage & Relationships)" : "Marriage & Relationships";
+        let textMar = (aiB.marriage || "").trim();
+        if (isSufficientDepth(textMar, 2, 280)) {
+          const mParas = textMar.split("\n").filter((pText: string) => {
+            const pLower = pText.toLowerCase();
+            return !pLower.includes("ಸಂತಾನ") && !pLower.includes("ಮಕ್ಕಳ") && !pLower.includes("ಪಂಚಮ ಭಾವ") && !pLower.includes("progeny") && !pLower.includes("children");
+          });
+          textMar = mParas.join("\n\n").trim() || textMar;
+        }
+        if (!isSufficientDepth(textMar, 2, 280)) {
+          textMar = buildPersonalizedMarriageText(lang, lagnaStr, moonStr, personalization?.maritalStatus || "general", lagnaIdx, dashaName, bhuktiName, userGender as "Male" | "Female", dynamicCtx);
+        }
+        v1Predictions.push({ category: "Marriage & Relationships", translatedCategory: catMar, text: textMar, translatedText: textMar });
+
+        // 2. Children & Progeny
+        const catChd = baseLang === "kn" ? "ಸಂತಾನ ಹಾಗೂ ಮಕ್ಕಳು (Children & Progeny)" : baseLang === "hi" ? "संतान एवं बच्चे (Children & Progeny)" : "Children & Progeny";
+        const textChd = isSufficientDepth(aiB.children, 2, 260)
+          ? aiB.children
+          : buildPersonalizedChildrenText(lang, personalization?.childrenStatus || "general", lagnaIdx, dashaName, bhuktiName, dynamicCtx);
+        v1Predictions.push({ category: "Children & Progeny", translatedCategory: catChd, text: textChd, translatedText: textChd });
+
+        // 3. Career & Profession
+        const catCar = baseLang === "kn" ? "ಉದ್ಯೋಗ ಹಾಗೂ ವೃತ್ತಿ ಏಳಿಗೆ (Career & Profession)" : baseLang === "hi" ? "करियर एवं पदोन्नति योग (Career & Profession)" : "Career & Profession";
+        const textCar = isSufficientDepth(aiB.career, 2, 260)
+          ? aiB.career
+          : buildPersonalizedCareerText(lang, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
+        v1Predictions.push({ category: "Career & Profession", translatedCategory: catCar, text: textCar, translatedText: textCar });
+
+        // 4. Wealth & Family Finance
+        const catWlh = baseLang === "kn" ? "ಧನ ಆಸ್ತಿ ಹಾಗೂ ಆರ್ಥಿಕ ಯೋಗ (Wealth & Finance)" : baseLang === "hi" ? "धन संपत्ति एवं आर्थिक योग (Wealth & Finance)" : "Wealth & Family Finance";
+        const textWlh = isSufficientDepth(aiB.wealth, 2, 260)
+          ? aiB.wealth
+          : buildPersonalizedWealthText(lang, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
+        v1Predictions.push({ category: "Wealth & Family Finance", translatedCategory: catWlh, text: textWlh, translatedText: textWlh });
+
+        // 5. Health & Vitality
+        const catHlt = baseLang === "kn" ? "ಆರೋಗ್ಯ ಹಾಗೂ ಚೈತನ್ಯ (Health & Vitality)" : baseLang === "hi" ? "स्वास्थ्य एवं आरोग्य (Health & Vitality)" : "Health & Vitality";
+        const textHlt = isSufficientDepth(aiB.health, 2, 260)
+          ? aiB.health
+          : buildPersonalizedHealthText(lang, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
+        v1Predictions.push({ category: "Health & Vitality", translatedCategory: catHlt, text: textHlt, translatedText: textHlt });
+      }
+
+      // Clean English leaks from regional scripts
+      const cleanedV1Predictions = v1Predictions.map(p => ({
+        ...p,
+        translatedText: cleanEnglishFromRegionalText(p.translatedText, lang)
+      }));
+
+      setPremiumPredictions(cleanedV1Predictions);
+      const deepInsights: Record<string, string> = {};
+      for (const pred of cleanedV1Predictions) {
+        deepInsights[pred.translatedCategory] = pred.translatedText;
+      }
+      setPdfDeepInsights(deepInsights);
+
+      // Chapters II, III, IV, VII, VIII, IX Fallbacks
+      const charFallbackText = buildDynamicCharacteristicsFallback(parsedKundali);
+      const secretFallbackText = buildDynamicDarkSecretFallback(parsedKundali);
+      const currentPhaseFallbackText = buildDynamicCurrentPhaseFallback(parsedKundali);
+      const rawSummaryFallback = buildDynamicSummaryFallback(parsedKundali);
+
+      const finalCharacteristics = await ensureValidSection(dataCharacteristics.characteristics, charFallbackText, lang);
+      const finalDarkSecret = isChild ? [] : await ensureValidSection(dataDarkSecret.darkSecret, secretFallbackText, lang);
+      const finalCurrentPhase = await ensureValidSection(dataCurrentPhase.currentPhase, currentPhaseFallbackText, lang);
+      const finalSummary = await ensureValidSection(dataSummary.summary, rawSummaryFallback, lang);
+
+      setV1PdfProgress(65);
+      setV1PdfStageText(
+        pdfLanguage === "kn"
+          ? "೩. ವಿಂಶೋತ್ತರಿ ದಶಾ-ಭುಕ್ತಿ ಮತ್ತು ಪ್ರಸ್ತುತ ಗೋಚಾರ ಗ್ರಹಗಳ ಸಮನ್ವಯ..."
+          : pdfLanguage === "hi"
+          ? "3. विंशोत्तरी दशा-भुक्ति एवं लाइव गोचर समन्वय..."
+          : "3. Harmonizing Vimshottari Dasha-Bhukti & Live Planetary Transits..."
+      );
+
+      const rawYogasFallback = (result.aiGeneratedNarrative?.yogas || [{ name: "Dasha Yoga", significance: result.masterSynthesis.overallTone }]).map(y => ({
+        name: y.name,
+        impact: enrichYogaDescription(y.name, asText(y.significance) || result.masterSynthesis.overallTone, lang, lagnaStr, moonStr)
+      }));
+      const rawYogasArray = toSafeArray(dataYogas.yogas).filter((y: any) => (y?.impact || "").trim().length > 10).length > 0
+        ? dataYogas.yogas
+        : rawYogasFallback;
+      const finalYogas = (rawYogasArray || []).map((y: any) => ({
+        ...y,
+        impact: enrichYogaDescription(y.name || y.trait || "", y.impact || "", lang, lagnaStr, moonStr)
+      }));
+
+      const rawDoshasFallback = (result.aiGeneratedNarrative?.doshas || [{ name: "Karmic Challenge", significance: result.natalLayer.karmicBaggage.description, remedy: result.natalLayer.karmicBaggage.soulPurpose }]).map(d => ({
+        name: d.name,
+        impact: asText(d.significance) || result.natalLayer.karmicBaggage.description,
+        remedy: d.remedy || result.natalLayer.karmicBaggage.soulPurpose
+      }));
+      const finalDoshas = toSafeArray(dataDoshas.doshas).filter((d: any) => (d?.impact || "").trim().length > 10).length > 0
+        ? dataDoshas.doshas
+        : rawDoshasFallback;
+
+      const engineRoadmap6 = result.timingLayer.twelveMonthRoadmap.slice(0, 6);
+      const fallbackTimeline = engineRoadmap6.map(r => ({
+        dateRange: r.month,
+        impact: r.prediction
+      }));
+      const validTimelineItems = toSafeArray(dataTimeline.timeline).filter((t: any) => (t?.impact || "").trim().length > 10);
+      const finalTimeline = validTimelineItems.length >= 4 ? validTimelineItems : fallbackTimeline;
+
+      const rawGocharaFallback = buildDynamicGocharaFallback(parsedKundali);
+      const finalGochara = toSafeArray(dataGochara.gochara).filter((g: any) => (g?.impact || "").trim().length > 10).length > 0
+        ? dataGochara.gochara
+        : rawGocharaFallback;
+
+      const premiumDataPayload = {
+        characteristics: finalCharacteristics,
+        darkSecret: finalDarkSecret,
+        currentPhase: finalCurrentPhase,
+        yogas: finalYogas,
+        doshas: finalDoshas,
+        timeline: finalTimeline,
+        gochara: finalGochara,
+        summary: finalSummary
+      };
+
+      const payloadAuditStr = JSON.stringify(premiumDataPayload).toLowerCase();
+      if (payloadAuditStr.includes("sorry, i encountered an error") || payloadAuditStr.includes("check your api key")) {
+        console.error("[V1 PDF Quality Audit] Error detected in payload. Healing with dynamic mathematical fallbacks.");
+        premiumDataPayload.summary = [{ impact: rawSummaryFallback }];
+        premiumDataPayload.characteristics = [{ impact: charFallbackText }];
+        premiumDataPayload.darkSecret = [{ impact: secretFallbackText }];
+      }
+
+      setPremiumDataForPdf(premiumDataPayload);
+
+      setV1PdfProgress(85);
+      setV1PdfStageText(
+        pdfLanguage === "kn"
+          ? "೪. ಉನ್ನತ ರೆಸಲ್ಯೂಷನ್ ಅಧಿಕೃತ ಬಗ್ಗೋಣ ಪಿಡಿಎಫ್ ಮುದ್ರಣ ಸಿದ್ಧತೆ..."
+          : pdfLanguage === "hi"
+          ? "4. उच्च-रिज़ॉल्यूशन आधिकारिक बग्गोण पीडीएफ मुद्रण तैयारी..."
+          : "4. Assembling High-Resolution Official Baggona PDF Document..."
+      );
+
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      if (!premiumPdfRef.current) throw new Error("Premium PDF ref not found");
+
+      const containerEl = premiumPdfRef.current;
+      const parentEl = containerEl.parentElement;
+      const originalStyle = parentEl?.getAttribute("style") || "";
+      if (parentEl) {
+        parentEl.setAttribute("style", "position: fixed; left: 0; top: 0; z-index: -9999; pointer-events: none; opacity: 1; visibility: visible; width: 900px; background-color: #FFFFFF;");
+      }
+
+      await document.fonts.ready;
+      await new Promise(resolve => setTimeout(resolve, 400));
+
+      const domHeight = containerEl.scrollHeight || containerEl.offsetHeight;
+      const safeScale = domHeight > 0 ? Math.min(2, Math.max(1, 30000 / domHeight)) : 2;
+
+      const canvas = await html2canvas(containerEl, {
+        scale: safeScale,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#FFFFFF",
+        allowTaint: true
+      });
+
+      if (parentEl) {
+        parentEl.setAttribute("style", originalStyle);
+      }
+
+      const imgData = canvas.toDataURL("image/jpeg", 0.75);
+      const pdfWidth = 210;
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      const pdf = new jsPDF({ orientation: "p", unit: "mm", format: [pdfWidth, pdfHeight], compress: true });
+      pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
+      const langNames: Record<string, string> = { "kn": "Kannada", "ta": "Tamil", "te": "Telugu", "hi": "Hindi", "en": "English" };
+      const langName = langNames[pdfLanguage] || "English";
+      pdf.save(`Baggona_Panchanga_Prediction_V1_${langName}_${session?.input.name.replace(/\s+/g, '_') || 'Reading'}.pdf`);
+
+    } catch (err: any) {
+      console.error("[V1 PDF Generation Error]", err);
+      alert(err.message || "Failed to generate Premium PDF V1. Please try again.");
+    } finally {
+      setIsGeneratingPremiumPdfV1(false);
+      setV1PdfProgress(0);
+      setV1PdfStageText("");
+      setPremiumDataForPdf(null);
+      setPremiumPredictions(null);
+    }
+  };
+
   // A4 Multi-Page PDF: same content as Premium, split into proper A4 pages
   const generateA4PDF = async () => {
     setIsGeneratingA4Pdf(true);
@@ -1879,14 +2423,7 @@ Return ONLY this JSON format:
         }
       );
 
-      const parseGeminiJSON = (raw: string): Record<string, unknown> => {
-        try {
-          const match = raw.match(/```json\s*([\s\S]*?)\s*```/) || raw.match(/({[\s\S]*})/);
-          return match ? JSON.parse(match[1]) : JSON.parse(raw);
-        } catch {
-          return {};
-        }
-      };
+      const parseGeminiJSON = robustParseGeminiJSON;
 
       const ashirvadaText = ashirvada || "May the stars guide your path.";
       const promptYogas = `You are an expert Vedic astrologer. Based on the provided data, generate 4-6 Yogas (planetary combinations) in JSON format. Language: ${pdfLanguage}. Data: ${JSON.stringify(result.aiGeneratedNarrative?.yogas || [])}. Return { "yogas": [{ "name": "", "impact": "", "remedy": "" }] }.`;
@@ -1951,7 +2488,7 @@ Return ONLY this JSON (no extra text before or after):
       console.log("[A4 PDF Generation] Initiating Batch 1 AI calls (Characteristics, Secret, Yogas)...");
       const [resCharacteristics, resDarkSecret, resYogas] = await Promise.all([
         safeAskA4("Generate Characteristics", promptCharacteristics, 0.3),
-        safeAskA4("Generate Dark Secret", promptDarkSecret, 0.3),
+        ageYears < 8 ? Promise.resolve('{"darkSecret":[]}') : safeAskA4("Generate Dark Secret", promptDarkSecret, 0.3),
         safeAskA4("Generate Yogas", promptYogas, 0.4)
       ]);
 
@@ -2138,10 +2675,52 @@ Return ONLY this JSON (no extra text before or after):
             ))}
           </div>
 
+          {/* Dedicated Executive Feature Card: 100% Dynamic Premium PDF V1 Engine (Separated from standard PDF buttons) */}
+          <div className="w-full bg-gradient-to-r from-amber-950 via-slate-900 to-amber-950 border-2 border-amber-400/90 rounded-2xl p-4 sm:p-5 shadow-xl relative overflow-hidden mb-4 ring-2 ring-amber-400/20">
+            <div className="absolute top-0 right-0 -mr-6 -mt-6 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
+            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="space-y-1.5 text-center md:text-left">
+                <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-400/40 px-3 py-0.5 rounded-full text-[10px] font-extrabold text-amber-300 uppercase tracking-widest">
+                  <span>✨ ಅಧಿಕೃತ V1 ಪ್ರಕಾಶನ • 100% Dynamic Engine</span>
+                </div>
+                <h4 className="text-base sm:text-lg font-black text-amber-100 font-serif tracking-wide">
+                  {pdfLanguage === "kn"
+                    ? "ಸಂಪೂರ್ಣ ೧೦-ಅಧ್ಯಾಯಗಳ ವಿಸ್ತೃತ ಜೀವಮಾನ ಭವಿಷ್ಯವಾಣಿ (V1 Engine)"
+                    : pdfLanguage === "hi"
+                    ? "सम्पूर्ण १०-अध्यायों का विस्तृत जीवन भविष्यफल (V1 Engine)"
+                    : "Comprehensive 10-Chapter Astrological Life Forecast (V1 Engine)"}
+                </h4>
+                <p className="text-xs text-amber-200/80 font-sans max-w-2xl leading-relaxed">
+                  {pdfLanguage === "kn"
+                    ? "ನಿಖರ ಜನ್ಮ ಕುಂಡಲಿ, ಸಪ್ತಮ/ಪಂಚಮ ಭಾವ, ನವಾಂಶ, ದಶಾ-ಭುಕ್ತಿ ಮತ್ತು ನೈಜ ಸಮಯದ ಗ್ರಹ ಗೋಚಾರದ ಆಧಾರದಲ್ಲಿ ರಚಿಸಲಾಗುವ ಪರಿಪೂರ್ಣ ಭವಿಷ್ಯ ವರದಿ. ಕನಿಷ್ಠ ೨-೩ ವಿಸ್ತೃತ ಪರಿಚ್ಛೇದಗಳೊಂದಿಗೆ ೧೦೦% ಗಣಿತಾಧಾರಿತ ನಿರೂಪಣೆ."
+                    : pdfLanguage === "hi"
+                    ? "सटीक जन्म कुंडली, सप्तम/पंचम भाव, नवांश, दशा-भुक्ति एवं लाइव गोचर पर आधारित संपूर्ण भविष्यफल रिपोर्ट। प्रत्येक अध्याय में विस्तृत २-३ पैराग्राफ।"
+                    : "100% mathematically calculated from your exact birth chart, 7th/5th house lords, Navamsha, Vimshottari Dasha, and live transits. Every chapter features minimum 2-3 substantial paragraphs with strict 5-6 lines."}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setModalTriggerSource("v1");
+                  setIsPersonalizationModalOpen(true);
+                }}
+                disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingPremiumPdfV1 || isGeneratingA4Pdf || isGeneratingSummaryPdf}
+                className={`shrink-0 flex items-center justify-center gap-2.5 bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-500 hover:from-amber-400 hover:via-yellow-400 hover:to-orange-400 text-slate-950 px-5 py-3.5 rounded-xl font-black text-sm transition-all duration-300 shadow-xl border-2 border-yellow-300 hover:scale-[1.02] active:scale-[0.98] cursor-pointer ${
+                  isGeneratingPremiumPdfV1 ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              >
+                <span className="text-xl animate-pulse">📜✨</span>
+                <span>{isGeneratingPremiumPdfV1 ? "Crafting V1 Report..." : "Generate Premium PDF V1"}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Standard 4-Button PDF Generation Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 w-full">
             <button
               onClick={generatePDF}
-              disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingA4Pdf || isGeneratingSummaryPdf}
+              disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingPremiumPdfV1 || isGeneratingA4Pdf || isGeneratingSummaryPdf}
               className={`group flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-4 py-3 rounded-xl font-bold text-sm transition-all duration-300 shadow-md hover:shadow-lg border border-amber-400 w-full ${isGeneratingPdf ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}
             >
               {isGeneratingPdf ? (
@@ -2155,8 +2734,11 @@ Return ONLY this JSON (no extra text before or after):
             </button>
 
             <button
-              onClick={() => setIsPersonalizationModalOpen(true)}
-              disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingA4Pdf || isGeneratingSummaryPdf}
+              onClick={() => {
+                setModalTriggerSource("regular");
+                setIsPersonalizationModalOpen(true);
+              }}
+              disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingPremiumPdfV1 || isGeneratingA4Pdf || isGeneratingSummaryPdf}
               className={`group flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-4 py-3 rounded-xl font-bold text-sm transition-all duration-300 shadow-md hover:shadow-lg border border-indigo-400 w-full ${isGeneratingPremiumPdf ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}
             >
               {isGeneratingPremiumPdf ? (
@@ -2169,7 +2751,7 @@ Return ONLY this JSON (no extra text before or after):
 
             <button
               onClick={generateA4PDF}
-              disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingA4Pdf || isGeneratingSummaryPdf}
+              disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingPremiumPdfV1 || isGeneratingA4Pdf || isGeneratingSummaryPdf}
               className={`group flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-4 py-3 rounded-xl font-bold text-sm transition-all duration-300 shadow-md hover:shadow-lg border border-emerald-400 w-full ${isGeneratingA4Pdf ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}
             >
               {isGeneratingA4Pdf ? (
@@ -2182,7 +2764,7 @@ Return ONLY this JSON (no extra text before or after):
 
             <button
               onClick={generateSummaryPDF}
-              disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingA4Pdf || isGeneratingSummaryPdf}
+              disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingPremiumPdfV1 || isGeneratingA4Pdf || isGeneratingSummaryPdf}
               className={`group flex items-center justify-center gap-2 bg-gradient-to-r from-amber-600 via-orange-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700 text-white px-4 py-3 rounded-xl font-bold text-sm transition-all duration-300 shadow-md hover:shadow-lg border border-amber-400 w-full ${isGeneratingSummaryPdf ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}
             >
               {isGeneratingSummaryPdf ? (
@@ -2682,9 +3264,104 @@ Return ONLY this JSON (no extra text before or after):
         onClose={() => setIsPersonalizationModalOpen(false)}
         onConfirm={(personalization) => {
           setIsPersonalizationModalOpen(false);
-          generatePremiumPDF(personalization);
+          if (modalTriggerSource === "v1") {
+            generatePremiumPDFV1(personalization);
+          } else {
+            generatePremiumPDF(personalization);
+          }
         }}
       />
+
+      {/* Full-Screen Luxury Blocking Loader for Premium PDF V1 */}
+      {isGeneratingPremiumPdfV1 && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl animate-fadeIn select-none cursor-wait">
+          {/* Central Sacred Card */}
+          <div className="relative w-full max-w-lg bg-[#0c0a09]/95 border-4 border-amber-500/80 rounded-3xl p-6 md:p-8 shadow-[0_0_60px_rgba(245,158,11,0.35)] text-amber-100 font-serif overflow-hidden ring-4 ring-amber-400/30">
+            {/* Ambient gold glow elements */}
+            <div className="absolute top-0 right-0 w-36 h-36 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-36 h-36 bg-orange-600/15 rounded-full blur-3xl pointer-events-none" />
+
+            {/* Decorative Heritage Corner Marks */}
+            <div className="absolute top-3 left-4 text-xl text-amber-400/70 select-none">卐</div>
+            <div className="absolute top-3 right-4 text-xl text-amber-400/70 select-none">卐</div>
+            <div className="absolute bottom-3 left-4 text-xl text-amber-400/70 select-none">🕉️</div>
+            <div className="absolute bottom-3 right-4 text-xl text-amber-400/70 select-none">🕉️</div>
+
+            {/* Header Invocations */}
+            <div className="text-center space-y-1.5 pb-4 border-b border-amber-500/30">
+              <div className="text-xs font-bold tracking-widest text-amber-400 uppercase font-sans">
+                ॥ ಶ್ರೀ ಕುಲದೇವತಾ ಪ್ರಸನ್ನ ॥
+              </div>
+              <h3 className="text-2xl md:text-3xl font-black text-amber-200 tracking-wider font-serif">
+                ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ॥
+              </h3>
+              <div className="text-xs font-semibold text-amber-300/90 font-sans">
+                {pdfLanguage === "kn"
+                  ? "ಸಂಪೂರ್ಣ ೧೦-ಅಧ್ಯಾಯಗಳ ವಿಸ್ತೃತ ಜೀವಮಾನ ಭವಿಷ್ಯವಾಣಿ (V1 Engine)"
+                  : pdfLanguage === "hi"
+                  ? "सम्पूर्ण १०-अध्यायों का विस्तृत जीवन भविष्यफल (V1 Engine)"
+                  : "10-Chapter Comprehensive Astrological Life Forecast (V1)"}
+              </div>
+            </div>
+
+            {/* Sacred Rotating Graha Mandala Animation */}
+            <div className="my-6 flex flex-col items-center justify-center relative">
+              <div className="relative w-28 h-28 flex items-center justify-center">
+                {/* Outer spinning celestial mandala */}
+                <div className="absolute inset-0 rounded-full border-4 border-dashed border-amber-400/60 animate-[spin_8s_linear_infinite]" />
+                {/* Middle counter-rotating ring */}
+                <div className="absolute inset-2 rounded-full border-2 border-dashed border-orange-400/50 animate-[spin_6s_linear_infinite_reverse]" />
+                {/* Pulsing inner glow ring */}
+                <div className="absolute inset-4 rounded-full border border-yellow-300/40 animate-ping" />
+                {/* Center sacred Jyoti / Diya */}
+                <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-amber-600 via-amber-400 to-yellow-200 flex items-center justify-center shadow-lg border-2 border-amber-300 shadow-amber-500/50">
+                  <span className="text-3xl animate-bounce">🪔</span>
+                </div>
+              </div>
+
+              {/* Real-time Percentage Counter */}
+              <div className="mt-3 text-center">
+                <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-100 font-mono tracking-wider">
+                  {v1PdfProgress}%
+                </span>
+                <div className="text-[11px] font-bold text-amber-400 uppercase tracking-widest mt-0.5 font-sans">
+                  {pdfLanguage === "kn" ? "ಗಣಿತಾಧಾರಿತ ಸಂಶ್ಲೇಷಣೆ ಚಾಲ್ತಿಯಲ್ಲಿದೆ..." : "Vedic Synthesis in Progress..."}
+                </div>
+              </div>
+            </div>
+
+            {/* Dynamic Stage Progress Bar & Description */}
+            <div className="space-y-3 bg-amber-950/60 p-4 rounded-2xl border border-amber-500/40 shadow-inner font-sans">
+              <div className="flex justify-between items-center text-xs font-bold text-amber-200">
+                <span className="flex items-center gap-2">
+                  <span className="inline-block w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
+                  <span>{pdfLanguage === "kn" ? "ಲೈವ್ ಪ್ರಗತಿ (Live Pipeline):" : "Live Processing Pipeline:"}</span>
+                </span>
+                <span className="font-mono text-amber-300 bg-amber-900/60 px-2 py-0.5 rounded-md border border-amber-500/40 text-[11px]">
+                  {v1PdfProgress >= 90 ? "ಹಂತ ೪/೪ (Step 4/4)" : v1PdfProgress >= 60 ? "ಹಂತ ೩/೪ (Step 3/4)" : v1PdfProgress >= 30 ? "ಹಂತ ೨/೪ (Step 2/4)" : "ಹಂತ ೧/೪ (Step 1/4)"}
+                </span>
+              </div>
+
+              <div className="w-full h-3 bg-black/60 rounded-full overflow-hidden p-0.5 border border-amber-500/50">
+                <div
+                  className="h-full bg-gradient-to-r from-amber-600 via-yellow-400 to-emerald-400 rounded-full transition-all duration-300 shadow-sm"
+                  style={{ width: `${Math.max(v1PdfProgress, 8)}%` }}
+                />
+              </div>
+
+              <p className="text-xs text-amber-200/90 font-medium text-center italic min-h-[2.5em] flex items-center justify-center px-2 leading-relaxed">
+                {v1PdfStageText || (pdfLanguage === "kn" ? "ನಿಖರ ಜನ್ಮ ಕುಂಡಲಿ ಹಾಗೂ ಗ್ರಹ ಸ್ಥಿತಿಗಳನ್ನು ವಿಶ್ಲೇಷಿಸಲಾಗುತ್ತಿದೆ..." : "Synthesizing 100% accurate mathematical Kundali and transit positions...")}
+              </p>
+            </div>
+
+            {/* Bottom Heritage Seal & Sanskrit Shanti Mantra */}
+            <div className="mt-4 pt-3 border-t border-amber-500/30 flex flex-col sm:flex-row items-center justify-between text-[11px] text-amber-300/80 font-sans gap-2">
+              <span className="italic">॥ ಸರ್ವೇ ಭವಂತು ಸುಖಿನಃ ಸರ್ವೇ ಸಂತು ನಿರಾಮಯಾಃ ॥</span>
+              <span className="font-bold text-amber-400">ಗೋಕರ್ಣ ದೃಗ್ಗಣಿತ • ಶ್ರೀ ರಾಮ ಪಂಡಿತ</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -217,7 +217,7 @@ MUST BE 100% MATHEMATICALLY ACCURATE to the birth chart above. Explicitly analyz
 ${JSON_RULE}
 {"characteristics":[{"impact":"paragraph one\\n\\nparagraph two"}]}`;
 
-  const darkSecret = `${header(
+  const darkSecret = input.ageYears < 8 ? "" : `${header(
     input,
     "darkSecret",
     "You are an authoritative Vedic astrologer revealing the hidden soul pattern strictly based on 8th/12th house placements and karmic planets."
@@ -321,48 +321,151 @@ ${JSON_RULE}
 
   const maritalSel = input.maritalStatus || (input as any).marital || "general";
   const childrenSel = input.hasChildren || (input as any).childrenStatus || "general";
-  const h7Idx = input.lagnaRashiIndex !== null ? (input.lagnaRashiIndex + 6) % 12 : 6;
-  const h7SignName = rashiName(h7Idx, lang);
-  const h5Idx = input.lagnaRashiIndex !== null ? (input.lagnaRashiIndex + 4) % 12 : 4;
-  const h5SignName = rashiName(h5Idx, lang);
+  const lagnaIdx = input.lagnaRashiIndex !== null ? input.lagnaRashiIndex : 0;
 
-  const bhavishya = `${header(
+  const RASHI_LORD_GRAHAS: GrahaKey[] = [
+    "Mars", "Venus", "Mercury", "Moon", "Sun", "Mercury",
+    "Venus", "Mars", "Jupiter", "Saturn", "Saturn", "Jupiter"
+  ];
+
+  const getHouseInfo = (houseNum: number) => {
+    const signIdx = (lagnaIdx + houseNum - 1) % 12;
+    const sign = rashiName(signIdx, lang);
+    const lord = RASHI_LORD_GRAHAS[signIdx];
+    const lordStr = grahaName(lord, lang);
+    const lordPlacement = input.natalPlanets.find(p => p.graha === lord);
+    const occupants = input.natalPlanets.filter(p => p.house === houseNum).map(p => grahaName(p.graha, lang));
+    const lordFlags: string[] = [];
+    if (lordPlacement?.exalted) lordFlags.push("exalted");
+    if (lordPlacement?.debilitated) lordFlags.push("debilitated");
+    if (lordPlacement?.retrograde) lordFlags.push("retrograde");
+    const lordDignity = lordFlags.length ? ` (${lordFlags.join(", ")})` : "";
+    const lordWhere = lordPlacement ? `in Bhava ${lordPlacement.house} (${rashiName(lordPlacement.rashiIndex, lang)})${lordDignity}` : "unplaced";
+    const occStr = occupants.length ? occupants.join(", ") : "no planets occupying";
+    return { signIdx, sign, lord, lordStr, lordWhere, occStr };
+  };
+
+  const h1 = getHouseInfo(1);
+  const h2 = getHouseInfo(2);
+  const h5 = getHouseInfo(5);
+  const h6 = getHouseInfo(6);
+  const h7 = getHouseInfo(7);
+  const h8 = getHouseInfo(8);
+  const h10 = getHouseInfo(10);
+  const h11 = getHouseInfo(11);
+  const h12 = getHouseInfo(12);
+
+  const marsPlacement = input.natalPlanets.find(p => p.graha === "Mars");
+  const isManglik = marsPlacement && [1, 4, 7, 8, 12].includes(marsPlacement.house);
+  const venusPlacement = input.natalPlanets.find(p => p.graha === "Venus");
+  const jupiterPlacement = input.natalPlanets.find(p => p.graha === "Jupiter");
+  const saturnPlacement = input.natalPlanets.find(p => p.graha === "Saturn");
+
+  const directionsByElement = ["East", "South", "West", "North", "East", "South", "West", "North", "East", "South", "West", "North"];
+  const spouseDirection = directionsByElement[h7.signIdx] || "East";
+
+  const shaniTransit = input.transits.find(t => t.graha === "Saturn");
+  const guruTransit = input.transits.find(t => t.graha === "Jupiter");
+  const isGuruBala = guruTransit && [2, 5, 7, 9, 11].includes(guruTransit.houseFromMoon);
+
+  const isChild = input.ageYears < 8;
+
+  const bhavishya = isChild ? `${header(
+    input,
+    "bhavishya",
+    "You are a wise and compassionate Vedic astrologer specializing in child horoscopes, analyzing early intellectual development, education, activities, creative talents, health, and parental nurturing."
+  )}
+CRITICAL CHILD HOROSCOPE ACCURACY REQUIREMENT:
+The native is a young child (${Math.floor(input.ageYears)} years old). DO NOT generate any adult marriage, romantic, or progeny predictions.
+Instead, write deep astrological guidance for the child's development across these key areas:
+
+1. Education & Early Intellect (Vidya & Buddhi):
+   - 4th House (Vidya): ${getHouseInfo(4).sign} (Lord ${getHouseInfo(4).lordStr} ${getHouseInfo(4).lordWhere}). 5th House (Buddhi): ${h5.sign} (Lord ${h5.lordStr} ${h5.lordWhere}).
+   - Mercury (Budha): ${input.natalPlanets.find(p => p.graha === "Mercury") ? `in Bhava ${input.natalPlanets.find(p => p.graha === "Mercury")!.house}` : "present"}. Jupiter (Guru): ${jupiterPlacement ? `in Bhava ${jupiterPlacement.house}` : "present"}.
+   - Write THREE detailed paragraphs detailing memory power, grasping capacity, academic inclination, intellectual focus, and optimal learning environment.
+
+2. Talents, Activities & Sports (Kala, Kreeda & Kaushalya):
+   - 3rd House (Parakrama): ${getHouseInfo(3).sign}. 5th House: ${h5.sign}. Mars: ${marsPlacement ? `in Bhava ${marsPlacement.house}` : "present"}. Venus: ${venusPlacement ? `in Bhava ${venusPlacement.house}` : "present"}.
+   - Write TWO detailed paragraphs detailing extracurricular inclinations, sports, creative hobbies, artistic expressions, and active energy channeling.
+
+3. Future Foundation & Character:
+   - Write TWO detailed paragraphs on building strong moral character, leadership qualities, discipline, and noble values.
+
+4. Family Environment & Upbringing:
+   - Write TWO detailed paragraphs on family warmth, parental guidance, emotional security, and auspicious home atmosphere.
+
+5. Health, Vitality & Pediatric Care (Bala Arogya):
+   - 1st House (Lagna): ${h1.sign} (Lord ${h1.lordStr} ${h1.lordWhere}). 6th House: ${h6.sign}.
+   - Write TWO detailed paragraphs on pediatric vitality, seasonal immunity care, balanced nutrition, and classical remedies for child health and longevity.
+
+${JSON_RULE}
+{"bhavishya":{"marriage":"three paragraphs for education and learning","children":"two paragraphs for activities and creativity","career":"two paragraphs for future foundation","wealth":"two paragraphs for family upbringing","health":"two paragraphs for pediatric health and immunity"}}`
+  : `${header(
     input,
     "bhavishya",
     "You are an authoritative Vedic astrologer analyzing specific life areas based strictly on 7th house lord, 5th house lord, 10th house lord, and 2nd house lord."
   )}
 CRITICAL PERSONALIZED ACCURACY REQUIREMENT:
-Provide a 100% personalized astrological reading for the following 5 life categories based on this chart's exact placements:
+Provide a 100% personalized astrological reading for the following 5 life categories based on this chart's exact computed placements:
 
 1. Marriage & Relationships (User Selected Status: ${maritalSel.toUpperCase()}):
-   - 7th House Sign: ${h7SignName}.
+   - 7th House Sign: ${h7.sign}. 7th House Lord: ${h7.lordStr} is placed ${h7.lordWhere}.
+   - Occupants of 7th House: ${h7.occStr}.
    - Native Gender: ${(input.gender || "Male").toUpperCase()}.
+   - Karaka Placement: ${(input.gender || "Male") === "Female" ? `Jupiter (Jeevakaraka) is placed ${jupiterPlacement ? `in Bhava ${jupiterPlacement.house} (${rashiName(jupiterPlacement.rashiIndex, lang)})` : "in chart"}, 8th House (Mangalya Sthana) is ${h8.sign} with lord ${h8.lordStr}` : `Venus (Shukrakaraka) is placed ${venusPlacement ? `in Bhava ${venusPlacement.house} (${rashiName(venusPlacement.rashiIndex, lang)})` : "in chart"}`}.
+   - Kuja / Manglik Status: ${isManglik ? `Kuja Dosha indicated (Mars in Bhava ${marsPlacement?.house})` : "No Kuja Dosha (Mars is comfortably placed outside 1/4/7/8/12)"}.
+   - Direction of Spouse Alignment: ${spouseDirection} direction from birthplace.
+   - Vivaha Yoga & Transits: Running ${dashaLine}. Jupiter transit: ${guruTransit ? `${guruTransit.houseFromMoon} from Chandra (${isGuruBala ? "Guru Bala active" : "Guru testing"})` : "active"}. Saturn transit: ${shaniTransit ? `${shaniTransit.houseFromMoon} from Chandra` : "active"}.
    - CRITICAL RULE: MUST CONTAIN ONLY MARRIAGE & RELATIONSHIP CONTENT. DO NOT INCLUDE ANY CHILDREN OR PROGENY CONTENT IN THIS ITEM.
-   - ${(input.gender || "Male") === "Female" 
-       ? "For FEMALE NATIVE: Analyze 7th House Lord + Jupiter (Jeevakaraka) + 8th House (Mangalya Sthana) for husband's characteristics, profession, and marital protection." 
-       : "For MALE NATIVE: Analyze 7th House Lord + Venus (Shukrakaraka) for wife's characteristics, profession, and domestic harmony."}
    - ${maritalSel === "married"
-       ? "Write EXACTLY THREE detailed paragraphs for MARRIED status: Paragraph 1 analyzes 7th house lord placement, running " + dashaLine + ", transit influences, and gender karaka (Venus for male, Jupiter/8th house for female) on mutual trust and domestic security. Paragraph 2 details deep mutual understanding and how partners support each other, mutual respect in key financial and family decisions, navigating life's milestones together with patience and empathy. Paragraph 3 details joint career/financial growth with spouse, household prosperity, resolving occasional minor friction with open communication, and Lakshmi Narayan / Gauri Shankara home remedies."
+       ? `Write EXACTLY THREE detailed paragraphs for MARRIED status:
+         Paragraph 1: Grounded in 7th lord ${h7.lordStr} ${h7.lordWhere}, running ${dashaLine}, and transit influences. Analyze how these planets govern mutual trust, domestic stability, and emotional depth.
+         Paragraph 2: Detailed psychological and practical dynamics of partnership—mutual respect in financial and household decisions, spouse's temperament reflecting ${h7.lordStr} and 7th house qualities, and shared milestones.
+         Paragraph 3: Domestic peace, harmonizing occasional differences through empathetic communication, and targeted classical remedies (${isManglik ? "Subramanya / Mangala Pooja" : "Lakshmi-Narayana / Gauri-Shankara Pooja"}).`
        : maritalSel === "unmarried"
-       ? "Write EXACTLY THREE detailed paragraphs for UNMARRIED status: Paragraph 1 analyzes 7th house lord placement, Venus/Jupiter aspect, running " + dashaLine + ", and live transits to determine the precise timing of Vivaha Yoga (Kankana Bhagya) and past delay reasons. Paragraph 2 details spouse's personality, intellect, moral values, family background, profession, and direction of arrival relative to birthplace. Paragraph 3 details Kuja/Manglik planetary afflictions, subtle karmic delays, exact daily mantra remedies ('Om Shreem Gauryai Namah', 'Om Saptamadhipataye Namah'), Gauri/Subramanya Pooja, and Gokarna Mangala Seva."
-       : "Write EXACTLY THREE detailed paragraphs for GENERAL status: Paragraph 1 analyzes 7th house lord placement, running " + dashaLine + ", and benefic/malefic aspects on partnership karma. Paragraph 2 details mutual understanding, emotional compatibility, and relational growth. Paragraph 3 details classical remedies for marital and relationship harmony."}
+       ? `Write EXACTLY THREE detailed paragraphs for UNMARRIED status:
+         Paragraph 1: Grounded in 7th lord ${h7.lordStr} ${h7.lordWhere}, running ${dashaLine}, and live transits (${guruTransit?.houseFromMoon}th house Guru, ${shaniTransit?.houseFromMoon}th house Shani). Calculate the exact Vivaha Yoga timing window and reasons for past delays.
+         Paragraph 2: Spouse's characteristics, intellect, moral values, profession, and physical/emotional demeanor derived strictly from 7th house ${h7.sign} and lord ${h7.lordStr}, with arrival indicated from the ${spouseDirection} direction.
+         Paragraph 3: Addressing any planetary friction (${isManglik ? "Kuja/Manglik remedy" : "planetary alignment"}), exact daily mantra ("Om Shreem Gauryai Namah" / "Om Saptamadhipataye Namah"), and auspicious alliance timing.`
+       : `Write EXACTLY THREE detailed paragraphs for GENERAL status:
+         Paragraph 1: Natal analysis of 7th house ${h7.sign}, lord ${h7.lordStr} ${h7.lordWhere}, and running ${dashaLine}.
+         Paragraph 2: Relationship compatibility, emotional bonding, and practical partnerships.
+         Paragraph 3: Remedies for harmony, mutual understanding, and relational longevity.`}
 
 2. Children & Progeny (User Selected Status: ${childrenSel.toUpperCase()}):
-   - 5th House Sign: ${h5SignName}.
+   - 5th House Sign: ${h5.sign}. 5th House Lord: ${h5.lordStr} is placed ${h5.lordWhere}.
+   - Occupants of 5th House: ${h5.occStr}.
+   - Putrakaraka Jupiter (Guru): placed ${jupiterPlacement ? `in Bhava ${jupiterPlacement.house} (${rashiName(jupiterPlacement.rashiIndex, lang)})` : "in chart"}.
+   - Progeny Transit: Jupiter transit ${guruTransit?.houseFromMoon} from Chandra. Running ${dashaLine}.
    - ${childrenSel === "has_children"
-       ? "Write EXACTLY TWO detailed paragraphs for HAS CHILDREN status: Paragraph 1 analyzes 5th house lord placement, Jupiter (Putrakaraka), and planetary influences on children's academic success, intellect, unique talents, and moral virtues. Paragraph 2 details their future growth, career prospects, health, family bond, and parental spiritual guidance."
+       ? `Write EXACTLY TWO detailed paragraphs for HAS CHILDREN status:
+         Paragraph 1: Detailed analysis of children's intellect, academic excellence, specialized talents, and moral character derived from 5th lord ${h5.lordStr} and Putrakaraka Jupiter.
+         Paragraph 2: Parental guidance, children's future growth, family bonding, and spiritual blessings (Saraswati / Ganapati Atharvashirsha).`
        : childrenSel === "no_children"
-       ? "Write EXACTLY TWO detailed paragraphs for SEEKING PROGENY (NO CHILDREN) status: Paragraph 1 analyzes 5th house (Santana Bhava), 5th lord placement, Jupiter (Putrakaraka) aspect, running " + dashaLine + ", and live transits to calculate the auspicious conception and progeny window. Paragraph 2 details progeny obstacle removal, subtle Santana doshas (Sarpa/Pitru/Guru Chandal), daily Santana Gopala Mantra chanting, and Gokarna Subramanya Homa / Shanti remedies."
-       : "Write EXACTLY TWO detailed paragraphs for GENERAL status: Paragraph 1 analyzes 5th house (Poorva Punya & Progeny), 5th house lord dignity, and Jupiter's benefic influence on intelligence and progeny lineage. Paragraph 2 details intellectual legacy, creative endeavors, and classical remedies for family prosperity."}
+       ? `Write EXACTLY TWO detailed paragraphs for SEEKING PROGENY status:
+         Paragraph 1: 5th house (Santana Bhava) ${h5.sign}, lord ${h5.lordStr} ${h5.lordWhere}, Putrakaraka Jupiter, running ${dashaLine}, and transit window for auspicious conception.
+         Paragraph 2: Removal of progeny obstacles, Santana Gopala Mantra, and Subramanya / Gokarna Shanti remedies.`
+       : `Write EXACTLY TWO detailed paragraphs for GENERAL status:
+         Paragraph 1: 5th house (Poorva Punya & Intellect) ${h5.sign}, lord ${h5.lordStr}, and Jupiter's influence on intellect and lineage.
+         Paragraph 2: Creative achievements, intellectual legacy, and family blessings.`}
 
 3. Career & Profession:
-   - Write TWO detailed paragraphs on 10th house lord, job stability, promotions, and business growth.
+   - 10th House Sign: ${h10.sign}. 10th House Lord: ${h10.lordStr} is placed ${h10.lordWhere}.
+   - Occupants of 10th House: ${h10.occStr}.
+   - Karmakaraka Saturn (Shani): placed ${saturnPlacement ? `in Bhava ${saturnPlacement.house} (${rashiName(saturnPlacement.rashiIndex, lang)})` : "in chart"}.
+   - Write TWO expansive paragraphs (minimum 5 to 6 full lines each, at least 75-90 words per paragraph) analyzing career stability, leadership prospects, professional growth, and timing of milestones under running ${dashaLine}.
 
-4. Wealth & Family:
-   - Write TWO detailed paragraphs on 2nd/11th house lords, financial accumulation, property gains, and family harmony.
+4. Wealth & Family Finance:
+   - 2nd House (Accumulated Wealth): ${h2.sign} (Lord ${h2.lordStr} ${h2.lordWhere}, occupants: ${h2.occStr}).
+   - 11th House (Income & Gains): ${h11.sign} (Lord ${h11.lordStr} ${h11.lordWhere}, occupants: ${h11.occStr}).
+   - Dhanakaraka Jupiter: ${jupiterPlacement ? `in Bhava ${jupiterPlacement.house}` : "present"}.
+   - Write TWO expansive paragraphs (minimum 5 to 6 full lines each, at least 75-90 words per paragraph) on financial accumulation, investments, property gains, family prosperity, and wealth preservation.
 
 5. Health & Vitality:
-   - Write TWO detailed paragraphs on 1st/6th house lords, physical vitality, immune strength, and wellness remedies.
+   - 1st House (Lagna / Physical Constitution): ${h1.sign} (Lord ${h1.lordStr} ${h1.lordWhere}).
+   - 6th House (Roga Sthana): ${h6.sign} (Lord ${h6.lordStr} ${h6.lordWhere}).
+   - Sun (Vitality) and Moon (Mental Equanimity) dignity in chart.
+   - Write TWO expansive paragraphs (minimum 5 to 6 full lines each, at least 75-90 words per paragraph) on physical stamina, seasonal wellness precautions, emotional resilience, and Ayurvedic/spiritual remedies.
 
 ${JSON_RULE}
 {"bhavishya":{"marriage":"three paragraphs","children":"two paragraphs","career":"two paragraphs","wealth":"two paragraphs","health":"two paragraphs"}}`;
@@ -374,7 +477,7 @@ ${JSON_RULE}
   )}
 CRITICAL ACCURACY REQUIREMENT:
 Write two or three detailed paragraphs synthesizing the entire chart reading.
-MUST BE 100% ACCURATE to the running Dasha-Bhukti period (${dashaLine}) and live transit influences from the facts above.
+MUST BE 100% ACCURATE to the running Dasha-Bhukti period (${dashaLine}), Lagna (${h1.sign}), Moon (${rashiName(input.moonRashiIndex, lang)}), and live transit influences from the facts above.
 Weigh the chart strengths against the challenges honestly, name the ONE primary life focus for the coming year, and close with genuine spiritual encouragement.
 Do not list chapters again. Speak to them directly as 'you'.
 
@@ -383,3 +486,4 @@ ${JSON_RULE}
 
   return { characteristics, darkSecret, currentPhase, bhavishya, yogas, doshas, gochara, timeline, summary };
 };
+

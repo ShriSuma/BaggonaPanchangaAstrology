@@ -1,7 +1,7 @@
 import states from "../data/india-states.json";
 import districts from "../data/india-districts.json";
 import villages from "../data/india-villages.json";
-import { staticVillagesByPincode } from "../data/pincodeFallback";
+import { PINCODE_FALLBACK, staticVillagesByPincode } from "../data/pincodeFallback";
 import { cacheGeocode, getGeocode } from "../db/indexedDb";
 
 export type State = {
@@ -240,8 +240,31 @@ export const fetchVillagesByPincode = async (pincode: string): Promise<Village[]
       return bundled.length ? bundled : null;
     }
 
+    // Prioritize post offices: Sub Post Office / Head Post Office / Block hub first
+    const sortedPOs = [...first.PostOffice].sort((a, b) => {
+      const aHub =
+        a.BranchType === "Head Post Office"
+          ? 3
+          : a.BranchType === "Sub Post Office"
+          ? 2
+          : a.Block && a.Name.toLowerCase() === a.Block.toLowerCase()
+          ? 1
+          : 0;
+      const bHub =
+        b.BranchType === "Head Post Office"
+          ? 3
+          : b.BranchType === "Sub Post Office"
+          ? 2
+          : b.Block && b.Name.toLowerCase() === b.Block.toLowerCase()
+          ? 1
+          : 0;
+      return bHub - aHub;
+    });
+
     const out: Village[] = [];
-    for (const po of first.PostOffice) {
+    const seen = new Set<string>();
+
+    for (const po of sortedPOs) {
       const stateName = po.State?.trim();
       if (!stateName) continue;
       const stateCode = stateCodeFromPostalName(stateName);
@@ -252,16 +275,35 @@ export const fetchVillagesByPincode = async (pincode: string): Promise<Village[]
       const lng = Number(po.Longitude);
       const apiLat = Number.isFinite(lat) && lat !== 0 ? lat : 0;
       const apiLng = Number.isFinite(lng) && lng !== 0 ? lng : 0;
-      const fb = bundled.find((b) => b.name === po.Name) ?? bundled[0];
+      const fb = bundled.find((b) => b.name.toLowerCase() === po.Name.toLowerCase()) ?? bundled[0];
       const centroid = getPostalRegionCentroid(po.Pincode || pincode);
-      out.push({
-        name: po.Name,
-        districtCode,
-        stateCode,
-        lat: apiLat || fb?.lat || centroid.lat,
-        lng: apiLng || fb?.lng || centroid.lng,
-        pincode: po.Pincode || pincode
-      });
+      const entryLat = apiLat || fb?.lat || centroid.lat;
+      const entryLng = apiLng || fb?.lng || centroid.lng;
+
+      // Handle common spelling alias Barugur -> Bargur
+      if (/^barugur$/i.test(po.Name.trim()) && !seen.has("Bargur")) {
+        seen.add("Bargur");
+        out.push({
+          name: "Bargur",
+          districtCode,
+          stateCode,
+          lat: entryLat,
+          lng: entryLng,
+          pincode: po.Pincode || pincode
+        });
+      }
+
+      if (!seen.has(po.Name)) {
+        seen.add(po.Name);
+        out.push({
+          name: po.Name,
+          districtCode,
+          stateCode,
+          lat: entryLat,
+          lng: entryLng,
+          pincode: po.Pincode || pincode
+        });
+      }
     }
     return out.length ? out : bundled.length ? bundled : null;
   } catch {
@@ -556,7 +598,10 @@ export const resolvePlaceFromPincode = async (pincode: string): Promise<Resolved
       const postTown = mainPo?.Name;
       const postBlock = mainPo?.Block;
 
-      const rawPrimary = nomCounty || nomCity || postBlock || postTown || "";
+      let rawPrimary = nomCounty || nomCity || postBlock || postTown || "";
+      if (/^barugur$/i.test(rawPrimary.trim())) {
+        rawPrimary = "Bargur";
+      }
       const rawDistrict = mainPo?.District || nomRecord?.address?.state_district || "";
       const rawState = mainPo?.State || nomRecord?.address?.state || "";
 
@@ -686,6 +731,14 @@ export const getCoordinates = async (placeName: string): Promise<{ lat: number; 
   const cached = await getGeocode(normalized);
   if (cached) {
     return cached;
+  }
+
+  // Fast-path for bundled catalog places (e.g. Gokarna, Bargur, Sirsi)
+  const staticMatch = PINCODE_FALLBACK.find(
+    (v) => v.name.toLowerCase() === normalized
+  );
+  if (staticMatch) {
+    return { lat: staticMatch.lat, lng: staticMatch.lng };
   }
 
   const isOffline = typeof navigator !== "undefined" && !navigator.onLine;

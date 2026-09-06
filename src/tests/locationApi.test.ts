@@ -151,5 +151,25 @@ describe("locationApi", () => {
 
     vi.unstubAllGlobals();
   });
+
+  it("resolves 635104 to Bargur, Krishnagiri (Tamil Nadu)", async () => {
+    // 1. Instant fallback / bundled catalog test
+    const list = await fetchVillagesByPincode("635104");
+    expect(list).not.toBeNull();
+    expect(list?.some((v) => v.name === "Bargur")).toBe(true);
+
+    const place = await resolvePlaceFromPincode("635104");
+    expect(place).not.toBeNull();
+    expect(place?.villageName).toMatch(/Bargur/);
+    expect(place?.stateCode).toBe("TN");
+    expect(place?.districtCode).toBe("TN-KRI");
+    expect(place?.lat).toBeCloseTo(12.5426, 2);
+    expect(place?.lng).toBeCloseTo(78.3567, 2);
+
+    // 2. Universal place name resolver test
+    const textRes = await resolvePlaceOrPincode("Bargur");
+    expect(textRes.lat).toBeCloseTo(12.5426, 2);
+    expect(textRes.lng).toBeCloseTo(78.3567, 2);
+  });
 });
 

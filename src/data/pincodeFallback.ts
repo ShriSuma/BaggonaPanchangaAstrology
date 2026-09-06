@@ -44,6 +44,22 @@ export const PINCODE_FALLBACK: Village[] = [
     lat: 14.6204,
     lng: 74.8358,
     pincode: "581401"
+  },
+  {
+    name: "Bargur",
+    districtCode: "TN-KRI",
+    stateCode: "TN",
+    lat: 12.5426,
+    lng: 78.3567,
+    pincode: "635104"
+  },
+  {
+    name: "Barugur",
+    districtCode: "TN-KRI",
+    stateCode: "TN",
+    lat: 12.5426,
+    lng: 78.3567,
+    pincode: "635104"
   }
 ];
 

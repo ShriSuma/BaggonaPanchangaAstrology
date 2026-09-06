@@ -956,6 +956,8 @@ export const PriestMobilePortal: React.FC = () => {
         remedyTitle: tp("remedyTitle", lang),
         characteristicsTitle: tp("characteristicsTitle", lang),
         darkSecretTitle: tp("darkSecretTitle", lang),
+        currentPhaseTitle: tp("currentPhaseTitle", lang),
+        currentPhaseGuidanceTitle: tp("currentPhaseGuidanceTitle", lang),
         timelineTitle: tp("timelineTitle", lang),
         gocharaTitle: tp("gocharaTitle", lang),
         summaryTitle: tp("summaryTitle", lang),
@@ -1062,7 +1064,7 @@ export const PriestMobilePortal: React.FC = () => {
 
       const [resCharacteristics, resDarkSecret, resCurrentPhase, resYogas, resDoshas] = await Promise.all([
         safeAsk("Generate Characteristics", prompts.characteristics, 0.3),
-        safeAsk("Generate Dark Secret", prompts.darkSecret, 0.3),
+        ageYears < 8 ? Promise.resolve("") : safeAsk("Generate Dark Secret", prompts.darkSecret, 0.3),
         safeAsk("Generate Current Phase", prompts.currentPhase, 0.3),
         safeAsk("Generate Premium Yogas", prompts.yogas, 0.4),
         safeAsk("Generate Premium Doshas", prompts.doshas, 0.4),

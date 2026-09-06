@@ -63,13 +63,35 @@ interface Props {
   translations: PdfTranslations;
   deepInsights?: Record<string, string>;
   premiumData?: PremiumData;
+  ageYears?: number;
 }
 
-export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predictions, translations, deepInsights, premiumData }, ref) => {
+export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predictions, translations, deepInsights, premiumData, ageYears }, ref) => {
   if (!session) return null;
+
+  const nativeAge = ageYears !== undefined ? ageYears : (() => {
+    try {
+      const bd = new Date(session.input.birthDate);
+      const now = new Date();
+      return (now.getTime() - bd.getTime()) / (365.25 * 24 * 3600 * 1000);
+    } catch {
+      return 30;
+    }
+  })();
+  const isChildUnder8 = nativeAge < 8;
 
   const validPredictions = predictions.filter(p => {
     const text = (p.translatedText || "").trim().toLowerCase();
+    const cat = `${p.translatedCategory || ''} ${p.category || ''}`.toLowerCase();
+    // For children below 8 years old, hide adult Marriage and Progeny sections
+    if (isChildUnder8) {
+      if (cat.includes("marriage") || cat.includes("ಮದುವೆ") || cat.includes("ವಿವಾಹ") || cat.includes("विवाह") || cat.includes("వివాహ") || cat.includes("திருமணம்")) {
+        return false;
+      }
+      if (cat.includes("children") || cat.includes("ಸಂತಾನ") || cat.includes("ಮಕ್ಕಳು") || cat.includes("संतान") || cat.includes("సంతాన") || cat.includes("குழந்தை")) {
+        return false;
+      }
+    }
     return text.length > 0 && !text.includes("no prediction available") && !text.includes("ಮಾಹಿತಿ ಲಭ್ಯವಿಲ್ಲ");
   });
 
@@ -236,8 +258,8 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
         </div>
       )}
 
-      {/* ── Dark Secret Section ───────────────────────────────────────────── */}
-      {hasContent(premiumData?.darkSecret) && (
+      {/* ── Dark Secret Section (Hidden for children below 8 years old) ───────────────────────────────────────────── */}
+      {!isChildUnder8 && hasContent(premiumData?.darkSecret) && (
         <div className={sectionClass}>
           <h2 className="text-3xl font-bold text-slate-800 leading-normal border-b-2 border-slate-700/30 pb-2 mb-8">
             {translations.darkSecretTitle}
@@ -260,7 +282,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
       {hasContent(premiumData?.currentPhase) && (
         <div className={sectionClass}>
           <h2 className="text-3xl font-bold text-amber-900 leading-normal border-b-2 border-amber-700/30 pb-2 mb-8">
-            {translations.currentPhaseGuidanceTitle || "ಪ್ರಸ್ತುತ ಗ್ರಹ ಬಲ ಹಾಗೂ ದೈವಿಕ ಮಾರ್ಗದರ್ಶನ"}
+            {translations.currentPhaseGuidanceTitle || translations.currentPhaseTitle || translations.title || "Present Planetary Influence & Divine Guidance"}
           </h2>
           <div className="space-y-10">
             {premiumData!.currentPhase!.map((cp, idx) => (

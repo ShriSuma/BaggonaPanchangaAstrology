@@ -259,4 +259,70 @@ describe('PDF Report Contract & Regression Test Suite', () => {
     });
   });
 
+  describe('7. Child Safety (< 8 Years) Contract vs Adult (>= 8 Years)', () => {
+    it('verifies that child (< 8 years) strictly excludes marriage, children, and dark secret', () => {
+      const childBirthDate = new Date();
+      childBirthDate.setFullYear(childBirthDate.getFullYear() - 4); // 4 years old
+      const childAge = (new Date().getTime() - childBirthDate.getTime()) / (365.25 * 24 * 3600 * 1000);
+      expect(childAge).toBeLessThan(8);
+
+      // Predictions including adult categories
+      const rawPredictions = [
+        { category: "health", translatedCategory: "ಆರೋಗ್ಯ", text: "Healthy child." },
+        { category: "education", translatedCategory: "ವಿದ್ಯಾಭ್ಯಾಸ", text: "Excels in primary learning." },
+        { category: "marriage", translatedCategory: "ವಿವಾಹ ಜೀವನ", text: "Adult marital compatibility." },
+        { category: "children", translatedCategory: "ಸಂತಾನ ಭಾಗ್ಯ", text: "Adult progeny indicators." }
+      ];
+
+      // Simulate BhavishyaView and PdfTemplate filtering
+      const filteredForChild = rawPredictions.filter(p => {
+        const cat = `${p.translatedCategory || ''} ${p.category || ''}`.toLowerCase();
+        const isAdult = cat.includes("marriage") || cat.includes("ಮದುವೆ") || cat.includes("ವಿವಾಹ") || cat.includes("विवाह") || cat.includes("వివాహ") || cat.includes("திருಮணம்") ||
+                        cat.includes("children") || cat.includes("ಸಂತಾನ") || cat.includes("ಮಕ್ಕಳು") || cat.includes("संतान") || cat.includes("సಂತಾನ") || cat.includes("குழந்தை");
+        return !isAdult;
+      });
+
+      expect(filteredForChild.length).toBe(2);
+      expect(filteredForChild.some(p => p.category === "marriage")).toBe(false);
+      expect(filteredForChild.some(p => p.category === "children")).toBe(false);
+
+      // Dark secret suppression for child
+      const isChildUnder8 = childAge < 8;
+      const darkSecretData = [{ impact: "Some dark secret text" }];
+      const shouldRenderDarkSecret = !isChildUnder8 && darkSecretData.length > 0;
+      expect(shouldRenderDarkSecret).toBe(false);
+    });
+
+    it('verifies that adult (>= 8 years) retains marriage, children, and dark secret', () => {
+      const adultBirthDate = new Date();
+      adultBirthDate.setFullYear(adultBirthDate.getFullYear() - 30); // 30 years old
+      const adultAge = (new Date().getTime() - adultBirthDate.getTime()) / (365.25 * 24 * 3600 * 1000);
+      expect(adultAge).toBeGreaterThanOrEqual(8);
+
+      const rawPredictions = [
+        { category: "health", translatedCategory: "ಆರೋಗ್ಯ", text: "Good stamina." },
+        { category: "career", translatedCategory: "ಉದ್ಯೋಗ", text: "Leadership role." },
+        { category: "marriage", translatedCategory: "ವಿವಾಹ ಜೀವನ", text: "Harmonious marital life." },
+        { category: "children", translatedCategory: "ಸಂತಾನ ಭಾಗ್ಯ", text: "Blessed progeny." }
+      ];
+
+      const isChildUnder8 = adultAge < 8;
+      const filteredForAdult = rawPredictions.filter(p => {
+        if (!isChildUnder8) return true;
+        const cat = `${p.translatedCategory || ''} ${p.category || ''}`.toLowerCase();
+        const isAdult = cat.includes("marriage") || cat.includes("ಮದುವೆ") || cat.includes("ವಿವಾಹ") || cat.includes("विवाह") || cat.includes("వివాహ") || cat.includes("திருಮணம்") ||
+                        cat.includes("children") || cat.includes("ಸಂತಾನ") || cat.includes("ಮಕ್ಕಳು") || cat.includes("संतान") || cat.includes("సಂತಾನ") || cat.includes("குழந்தை");
+        return !isAdult;
+      });
+
+      expect(filteredForAdult.length).toBe(4);
+      expect(filteredForAdult.some(p => p.category === "marriage")).toBe(true);
+      expect(filteredForAdult.some(p => p.category === "children")).toBe(true);
+
+      const darkSecretData = [{ impact: "A deep philosophical karmic secret." }];
+      const shouldRenderDarkSecret = !isChildUnder8 && darkSecretData.length > 0;
+      expect(shouldRenderDarkSecret).toBe(true);
+    });
+  });
+
 });

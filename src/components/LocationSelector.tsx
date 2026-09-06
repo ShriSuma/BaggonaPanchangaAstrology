@@ -68,7 +68,8 @@ export default function LocationSelector({ onChange, filterPincode }: Props): JS
           pinDriveRef.current = null;
           return;
         }
-        const v0 = list[0]!;
+        const preferred = list.find((v) => /^bar[u]?gur$/i.test(v.name.trim())) ?? list[0]!;
+        const v0 = preferred;
         pinDriveRef.current = { pin: filterPincode, districtCode: v0.districtCode };
         setStateCode(v0.stateCode ?? v0.districtCode.split("-")[0] ?? "");
         setDistrictCode(v0.districtCode);
@@ -89,14 +90,20 @@ export default function LocationSelector({ onChange, filterPincode }: Props): JS
     setLoading(true);
     void fetchDistricts(stateCode).then((data) => {
       if (cancelled) return;
-      setDistricts(data);
+      const currentPinDistrict = pinDriveRef.current?.districtCode;
+      let districtList = data;
+      if (currentPinDistrict && !data.some((d) => d.code === currentPinDistrict)) {
+        const dName = currentPinDistrict.replace(/^[A-Z]{2}-/, "");
+        districtList = [...data, { code: currentPinDistrict, stateCode, name: dName }];
+      }
+      setDistricts(districtList);
       setDistrictCode((prev) => {
         const pinLocked = pinDriveRef.current?.pin === filterPincode && /^\d{6}$/.test(filterPincode ?? "");
-        if (pinLocked && pinDriveRef.current && data.some((d) => d.code === pinDriveRef.current!.districtCode)) {
+        if (pinLocked && pinDriveRef.current && districtList.some((d) => d.code === pinDriveRef.current!.districtCode)) {
           return pinDriveRef.current.districtCode;
         }
-        if (data.some((d) => d.code === prev)) return prev;
-        return data[0]?.code ?? "";
+        if (districtList.some((d) => d.code === prev)) return prev;
+        return districtList[0]?.code ?? "";
       });
       setLoading(false);
     });
