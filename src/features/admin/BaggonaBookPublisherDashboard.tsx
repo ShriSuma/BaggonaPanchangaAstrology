@@ -19,7 +19,15 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
 export const BaggonaBookPublisherDashboard: React.FC = () => {
-  const [selectedShaka, setSelectedShaka] = useState<number>(1948); // Parabhava (2026-27) by default
+  const [selectedShaka, setSelectedShaka] = useState<number>(() => {
+    if (typeof window !== "undefined") {
+      const s = new URLSearchParams(window.location.search).get("shaka");
+      if (s && !isNaN(Number(s))) {
+        return Number(s);
+      }
+    }
+    return 1948;
+  });
   const [selectedSectionFilter, setSelectedSectionFilter] = useState<string>("all");
   const [viewingPageNumber, setViewingPageNumber] = useState<number>(() => {
     if (typeof window !== "undefined") {

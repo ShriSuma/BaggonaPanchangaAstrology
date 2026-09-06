@@ -2,6 +2,8 @@ import React from "react";
 import {
   type UniversalBookPageResponse,
   type SamvatsaraMetadata,
+  type PanchangaLeftPageData,
+  computeDynamicPanchangaLeftPageData,
   GOKARNA_RASHI_MANA_GHATI
 } from "../../core/BaggonaUniversalBookEngine";
 
@@ -48,6 +50,7 @@ export const BaggonaLandscapeFrame: React.FC<{
   hideTopNumber?: boolean;
   hideFlourishes?: boolean;
   singleBorder?: boolean;
+  noOuterBorder?: boolean;
   topCenterText?: string;
   innerPadding?: string;
   children: React.ReactNode;
@@ -57,6 +60,7 @@ export const BaggonaLandscapeFrame: React.FC<{
   hideTopNumber = false,
   hideFlourishes = false,
   singleBorder = false,
+  noOuterBorder = false,
   topCenterText,
   innerPadding,
   children
@@ -78,7 +82,7 @@ export const BaggonaLandscapeFrame: React.FC<{
 
       {/* Outer Frame */}
       {singleBorder ? (
-        <div className="relative w-full flex-1 border-[2px] border-black box-border flex flex-col bg-white overflow-hidden">
+        <div className={`relative w-full flex-1 ${noOuterBorder ? "" : "border-[2px] border-black"} box-border flex flex-col bg-white overflow-hidden`}>
           {children}
         </div>
       ) : (
@@ -2763,88 +2767,620 @@ export const Page30VrishtiNirdeshyaAndChitrapurFestivals: React.FC<PageTemplateP
 /* PAGES 40–91: MONTHLY PANCHANGA DUAL-PAGE SPREADS (52 PAGES)                */
 /* -------------------------------------------------------------------------- */
 
+const toLatinDigits = (s?: string): string => {
+  if (!s) return "";
+  return s.replace(/[೦-೯]/g, (d) => String.fromCharCode(d.charCodeAt(0) - 0x0ce6 + 48));
+};
+
 export const PagePanchangaLeft: React.FC<PageTemplateProps> = ({ page, meta }) => {
   return (
-    <BaggonaLandscapeFrame pageNumber={page.pageNumber}>
-      <div className="h-full flex flex-col justify-between text-[8.5px] leading-tight">
-        {/* Top Header */}
-        <div className="bg-black text-white px-2 py-0.5 flex justify-between items-center text-[10.5px] font-black">
-          <span>ಸೌರ: ಮೇಷ ಮಾಸ</span>
-          <span>ಶ್ರೀ ಶಾ ಗತಶಕೆ {meta.shakaYear} {meta.samvatsaraKn} ಸಂವತ್ಸರಸ್ಯ ಚೈತ್ರ ಶುಕ್ಲ ಪಕ್ಷಃ ವಸಂತಋತುಃ (ಏಪ್ರಿಲ್–೨೦೨೬) ಉತ್ತರಾಯಣಂ</span>
-          <span>ದಿನಮಾನ: ೩೦ ಘಟಿ</span>
+    <BaggonaLandscapeFrame
+      pageNumber={38}
+      topCenterText="-:38:-"
+      singleBorder={true}
+      noOuterBorder={true}
+      hideFlourishes={true}
+      innerPadding="p-0"
+    >
+      <style>{`
+        .blueprint-container {
+            width: 100%;
+            height: 100%;
+            margin: 0 auto;
+            background-color: #fff;
+            border: 4px solid #000;
+            padding: 2px;
+            font-family: 'Anek Kannada', sans-serif;
+            color: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        /* Top Header Strip */
+        .top-header {
+            background-color: #000;
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 8px;
+            font-weight: 700;
+            font-size: 14px;
+            border-bottom: 2px solid #000;
+            height: 30px;
+            box-sizing: border-box;
+            flex-shrink: 0;
+        }
+
+        /* Main Panchanga Table Grid */
+        .panchanga-table-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            width: 100%;
+            min-height: 0;
+        }
+
+        .panchanga-grid {
+            width: 100%;
+            height: 100%;
+            border-collapse: collapse;
+            border: 2px solid #000;
+            font-size: 11px;
+            line-height: 1.1;
+        }
+
+        .panchanga-grid th, .panchanga-grid td {
+            border: 1px solid #000;
+            text-align: center;
+            padding: 1px 2px;
+            white-space: nowrap;
+        }
+
+        .panchanga-grid thead tr:first-child th {
+            font-weight: 700;
+            vertical-align: middle;
+            padding: 2px 2px;
+            height: 42px;
+            box-sizing: border-box;
+        }
+
+        .panchanga-grid tbody tr {
+            height: calc((100% - 42px) / 14);
+        }
+
+        /* Left-aligned text for the last column */
+        .panchanga-grid td.text-col {
+            text-align: left;
+            white-space: normal;
+            font-weight: 600;
+            padding: 2px 4px;
+            min-width: 250px;
+            line-height: 1.25;
+        }
+
+        /* Vertical text styling for the month column */
+        .vertical-month {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            transform: rotate(180deg);
+            font-weight: 700;
+            letter-spacing: 2px;
+            padding: 6px 2px !important;
+            border-right: 2px solid #000 !important;
+            background-color: #f9fafb;
+        }
+        
+        .month-divider td {
+            border-top: 2px solid #000 !important;
+        }
+
+        /* Bottom Panels Grid: 240px height to fill 100% A4 proportionally */
+        .bottom-panels {
+            display: flex;
+            border: 2px solid #000;
+            border-top: none;
+            font-size: 11px;
+            line-height: 1.2;
+            height: 240px;
+            flex-shrink: 0;
+            box-sizing: border-box;
+            background-color: #fff;
+        }
+        
+        .panel-left, .panel-center, .panel-right {
+            border-right: 2px solid #000;
+            padding: 2px 4px;
+            height: 100%;
+            box-sizing: border-box;
+        }
+        .panel-right {
+            border-right: none;
+            flex: 1.4;
+            padding: 4px 6px;
+            font-size: 10.5px;
+            line-height: 1.32;
+            overflow: hidden;
+        }
+        .panel-left {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .panel-center {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Kundali / Graha Chakra Table: balanced South Indian square */
+        .kundali-table {
+            width: 100%;
+            height: 210px;
+            border-collapse: collapse;
+            border: 2px solid #000;
+            margin-top: auto;
+            box-sizing: border-box;
+        }
+        .kundali-table td {
+            width: 33.33%;
+            height: 70px;
+            border: 1px solid #000;
+            text-align: center;
+            vertical-align: middle;
+            font-weight: 700;
+            padding: 2px;
+            font-size: 11px;
+            line-height: 1.25;
+        }
+        .kundali-table .center-black {
+            background-color: #000;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        
+        /* Stats table inside left panel */
+        .stats-table {
+            width: 100%;
+            height: 210px;
+            border-collapse: collapse;
+            margin-top: auto;
+            border: 1px solid #000;
+            box-sizing: border-box;
+        }
+        .stats-table td, .stats-table th {
+            border: 1px solid #000;
+            text-align: center;
+            padding: 1px 2px;
+            font-weight: 600;
+            font-size: 11px;
+            height: 25px;
+        }
+      `}</style>
+
+      <div className="blueprint-container">
+        {/* Header Strip */}
+        <div className="top-header">
+          <span>ಸೌರ:</span>
+          <span className="flex-1 text-center">ಶ್ರೀ ಶಾ ಗತಶಕ ೧೯೪೯ ಪ್ಲವಂಗ ಸಂವತ್ಸರಸ್ಯ ಚೈತ್ರ ಶುಕ್ಲಪಕ್ಷಃ ವಸಂತ ಋತುಃ (ಎಪ್ರೀಲ್ 2027)ಉದಗಯನಂ</span>
+          <span></span>
         </div>
 
-        {/* 10-Column Daily Panchanga Table */}
-        <div className="border border-black flex-1 overflow-hidden my-1">
-          <table className="w-full border-collapse text-[8px] text-center">
+        <div className="panchanga-table-wrapper">
+          <table className="panchanga-grid">
             <thead>
-              <tr className="border-b border-black font-black bg-slate-100">
-                <th className="border-r border-black p-[1px] w-[22px]">ತೇ</th>
-                <th className="border-r border-black p-[1px] w-[22px]">ದಿ</th>
-                <th className="border-r border-black p-[1px] text-left px-1">ತಿಥಿವಾಸರೌ</th>
-                <th className="border-r border-black p-[1px] w-[45px]">ಘಂ.ಮಿ. ಮುಕ್ತಾಯ</th>
-                <th className="border-r border-black p-[1px]">ರವಿನಕ್ಷತ್ರ</th>
-                <th className="border-r border-black p-[1px]">ಚಂದ್ರನಕ್ಷತ್ರ</th>
-                <th className="border-r border-black p-[1px] w-[45px]">ಘಂ.ಮಿ. ಮುಕ್ತಾಯ</th>
-                <th className="border-r border-black p-[1px]">ಯೋಗ</th>
-                <th className="border-r border-black p-[1px]">ಕರಣ</th>
-                <th className="border-r border-black p-[1px] w-[60px]">ಶ್ರಾದ್ಧತಿಥಿ & ಹಬ್ಬಗಳು</th>
+              <tr>
+                <th rowSpan={2}>ಮಾ</th>
+                <th rowSpan={2}>ದಿ</th>
+                <th rowSpan={2} className="w-6 leading-tight">ಅ<br />ಗ್ನಿ</th>
+                {/* Tithi (1) & Vara (1) = 2 Cols */}
+                <th colSpan={2}>ತಿಥಿವಾಸರೌ</th>
+                {/* Hr (1) & Min (1) = 2 Cols */}
+                <th colSpan={2}>ಘಂ.ಮಿ<br />ಮುಕ್ತಾಯ</th>
+                {/* Nakshatra Name (1), Hr (1), Min (1) = 3 Cols */}
+                <th colSpan={3}>ರವಿನಕ್ಷತ್ರ</th>
+                {/* Nakshatra Name (1), Hr (1), Min (1) = 3 Cols */}
+                <th colSpan={3}>ಚಂದ್ರನಕ್ಷತ್ರ</th>
+                {/* Hr (1) & Min (1) = 2 Cols */}
+                <th colSpan={2}>ಘಂ.ಮಿ<br />ಮುಕ್ತಾಯ</th>
+                {/* Yoga Name (1), Hr (1), Min (1) = 3 Cols */}
+                <th colSpan={3}>ಯೋಗ</th>
+                {/* Karana Name (1), Hr (1), Min (1) = 3 Cols */}
+                <th colSpan={3}>ಕರಣ</th>
+                {/* Hr (1) & Min (1) = 2 Cols */}
+                <th colSpan={2}>ವಿಷಪ್ರಾ</th>
+                {/* Hr (1) & Min (1) = 2 Cols */}
+                <th colSpan={2}>ಅಮೃತ<br />ಪ್ರಾ</th>
+                {/* Day Length (1), Sunrise (1), Sunset (1) = 3 Distinct Columns */}
+                <th className="px-0.5 leading-tight">
+                  <div>ದಿ.</div>
+                  <div className="border-t border-black text-[9px]">ಘಟಿ</div>
+                </th>
+                <th className="px-0.5 leading-tight">
+                  <div>ಉ.</div>
+                  <div className="border-t border-black text-[9px]">ಘಂ</div>
+                </th>
+                <th className="px-0.5 leading-tight">
+                  <div>ಅ.</div>
+                  <div className="border-t border-black text-[9px]">ಘಂ</div>
+                </th>
+                <th rowSpan={2}>ತಾ</th>
+                <th rowSpan={2} className="text-left px-2 w-[280px]">ಪ್ರಾಗುದಿತಃ ಗುರುಃ<br />ಪ್ರಾಗುದಿತಃ ಶುಕ್ರಃ</th>
               </tr>
             </thead>
             <tbody>
-              {Array.from({ length: 15 }).map((_, idx) => (
-                <tr key={idx} className="border-b border-black/30 hover:bg-slate-50">
-                  <td className="border-r border-black p-[1px] font-bold font-mono">{idx + 1}</td>
-                  <td className="border-r border-black p-[1px] font-bold">{idx + 1}</td>
-                  <td className="border-r border-black p-[1px] text-left px-1 font-bold">ಶುಕ್ಲ {idx + 1}</td>
-                  <td className="border-r border-black p-[1px] font-mono">28/52</td>
-                  <td className="border-r border-black p-[1px]">ಅಶ್ವಿನಿ ೧</td>
-                  <td className="border-r border-black p-[1px]">ರೇವತಿ ೪</td>
-                  <td className="border-r border-black p-[1px] font-mono">14/30</td>
-                  <td className="border-r border-black p-[1px]">ವಿಷ್ಕಂಭ</td>
-                  <td className="border-r border-black p-[1px]">ಬವ</td>
-                  <td className="border-r border-black p-[1px] text-left px-1 truncate">
-                    {idx === 0 ? "ಯುಗಾದಿ ಹಬ್ಬ, ವಸಂತ ನವರಾತ್ರಿ ಆರಂಭ" : idx === 8 ? "ಶ್ರೀ ರಾಮನವಮಿ" : "ಸಾಮಾನ್ಯ ದಿನ"}
-                  </td>
-                </tr>
-              ))}
+              {/* ROW 1 (Date 24) */}
+              <tr>
+                {/* 1 */} <td rowSpan={7} className="vertical-month">ಮೀನಮಾಸಃ</td>
+                {/* 2 */} <td>೨೪</td>
+                {/* 3 AGNI ICON */} 
+                <td className="text-red-600 align-middle">
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-[14px] h-[14px] mx-auto">
+                    <path d="M12 2c0 0-3 4-3 7 0 2.5 1.5 4 3 5 1.5-1 3-2.5 3-5 0-3-3-7-3-7z"/>
+                    <path d="M12 22c-3.3 0-6-2.7-6-6 0-2 1-3.5 2-5 0 0-1 2-1 4 0 2.2 1.8 4 4 4s4-1.8 4-4c0-2-1-4-1-4 1 1.5 2 3 2 5 0 3.3-2.7 6-6 6z"/>
+                  </svg>
+                </td>
+                {/* 4 TITHI (Stacked 1 & 2) */} 
+                <td className="p-0">
+                  <div className="border-b border-black py-[1px]">೧</div>
+                  <div className="py-[1px]">೨</div>
+                </td>
+                {/* 5 VARA */} <td className="align-middle">ಬು</td>
+                {/* 6 TITHI END HR */} 
+                <td className="p-0">
+                  <div className="border-b border-black py-[1px]">೫೫</div>
+                  <div className="py-[1px]">೨೮</div>
+                </td>
+                {/* 7 TITHI END MIN */} 
+                <td className="p-0">
+                  <div className="border-b border-black py-[1px]">೨</div>
+                  <div className="py-[1px]">೨೮</div>
+                </td>
+                {/* 8 RAVI NAK NAME */} <td>ರೇ</td>
+                {/* 9 RAVI NAK HR */} <td>೨೭</td>
+                {/* 10 RAVI NAK MIN */} <td>೩೨</td>
+                {/* 11 CHANDRA NAK NAME */} <td>ರೇ</td>
+                {/* 12 CHANDRA NAK HR */} <td>೨೯</td>
+                {/* 13 CHANDRA NAK MIN */} <td>೫೯</td>
+                {/* 14 CHANDRA END HR */} <td>೧೮</td>
+                {/* 15 CHANDRA END MIN */} <td>೨೫</td>
+                {/* 16 YOGA NAME */} <td>ಐ</td>
+                {/* 17 YOGA HR */} <td>೨೫</td>
+                {/* 18 YOGA MIN */} <td>೫೪</td>
+                {/* 19 KARANA NAME (Stacked) */} 
+                <td className="p-0">
+                  <div className="border-b border-black py-[1px]">ಕಿಂ</div>
+                  <div className="py-[1px]">ಬಾ</div>
+                </td>
+                {/* 20 KARANA HR */} 
+                <td className="p-0">
+                  <div className="border-b border-black py-[1px]">೨೯</div>
+                  <div className="py-[1px]">೫೫</div>
+                </td>
+                {/* 21 KARANA MIN */} 
+                <td className="p-0">
+                  <div className="border-b border-black py-[1px]">೧೮</div>
+                  <div className="py-[1px]">೨</div>
+                </td>
+                {/* 22 VISHA HR */} <td>೨</td>
+                {/* 23 VISHA MIN */} <td>೫೫</td>
+                {/* 24 AMRUTA HR */} <td>೨</td>
+                {/* 25 AMRUTA MIN */} <td>೫೫</td>
+                {/* 26 DAY LENGTH */} <td>೩೦ ೨</td>
+                {/* 27 SUNRISE */} <td>೬ ೨೫</td>
+                {/* 28 SUNSET */} <td>೬ ೪೪</td>
+                {/* 29 TA */} <td>೭</td>
+                {/* 30 EVENTS */} <td className="text-col">ವತ್ಸರಪ್ರಾರಂಭಃ|ಅಭ್ಯಂಗಃ|ಧ್ವಜಾರೋಹಣಂ(7)</td>
+              </tr>
+
+              {/* ROW 2 (Date 25) */}
+              <tr>
+                <td>೨೫</td>
+                <td className="text-red-600 align-middle">
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-[14px] h-[14px] mx-auto"><path d="M12 2c0 0-3 4-3 7 0 2.5 1.5 4 3 5 1.5-1 3-2.5 3-5 0-3-3-7-3-7z"/><path d="M12 22c-3.3 0-6-2.7-6-6 0-2 1-3.5 2-5 0 0-1 2-1 4 0 2.2 1.8 4 4 4s4-1.8 4-4c0-2-1-4-1-4 1 1.5 2 3 2 5 0 3.3-2.7 6-6 6z"/></svg>
+                </td>
+                <td>೨</td> <td>ಗು</td> <td>೫೦</td> <td>೫೬</td> 
+                <td>ರೇ</td> <td>೨೭</td> <td>೧೦</td> 
+                <td>ರೇ</td> <td>೩೦</td> <td>೪೯</td> 
+                <td>೧೭</td> <td>೫೯</td> 
+                <td>ವಿ</td> <td>೩೨</td> <td>೨೯</td> 
+                <td>ಬಾ</td> <td>೨೨</td> <td>೨೦</td> 
+                <td>೨</td> <td>೧೮</td> 
+                <td>೦</td> <td>೦</td> 
+                <td>೩೦ ೧</td> <td>೬ ೨೪</td> <td>೬ ೪೪</td> <td>೮</td>
+                <td className="text-col">ಬಿದಿಗೆಶ್ರಾದ್ಧ|ಚಂದ್ರದರ್ಶನ|ಬಾಲೇಂದುಪೂಜಾ|</td>
+              </tr>
+
+              {/* ROW 3 (Date 26) */}
+              <tr>
+                <td>೨೬</td>
+                <td className="text-red-600 align-middle">
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-[14px] h-[14px] mx-auto"><path d="M12 2c0 0-3 4-3 7 0 2.5 1.5 4 3 5 1.5-1 3-2.5 3-5 0-3-3-7-3-7z"/><path d="M12 22c-3.3 0-6-2.7-6-6 0-2 1-3.5 2-5 0 0-1 2-1 4 0 2.2 1.8 4 4 4s4-1.8 4-4c0-2-1-4-1-4 1 1.5 2 3 2 5 0 3.3-2.7 6-6 6z"/></svg>
+                </td>
+                <td>೩</td> <td>ಶು</td> <td>೪೭</td> <td>೪೯</td> 
+                <td>ರೇ</td> <td>೨೫</td> <td>೩೧</td> 
+                <td>ರೇ</td> <td>೩೩</td> <td>೦೪</td> 
+                <td>೧೭</td> <td>೧೧</td> 
+                <td>ಪ್ರೀ</td> <td>೪೪</td> <td>೨೫</td> 
+                <td>ತೈ</td> <td>೧೬</td> <td>೪೦</td> 
+                <td>೧೧</td> <td>೪೬</td> 
+                <td>೪೮</td> <td>೨೪</td> 
+                <td>೩೦ ೦</td> <td>೬ ೨೩</td> <td>೬ ೪೪</td> <td>೯</td>
+                <td className="text-col">ಮತ್ಸ್ಯಜಯಂತಿ|ತದಿಗೆಶ್ರಾದ್ಧ|ಮನ್ವಾದಿಃ|</td>
+              </tr>
+
+              {/* ROW 4 (Date 27) */}
+              <tr>
+                <td>೨೭</td>
+                <td className="text-red-600 align-middle">
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-[14px] h-[14px] mx-auto"><path d="M12 2c0 0-3 4-3 7 0 2.5 1.5 4 3 5 1.5-1 3-2.5 3-5 0-3-3-7-3-7z"/><path d="M12 22c-3.3 0-6-2.7-6-6 0-2 1-3.5 2-5 0 0-1 2-1 4 0 2.2 1.8 4 4 4s4-1.8 4-4c0-2-1-4-1-4 1 1.5 2 3 2 5 0 3.3-2.7 6-6 6z"/></svg>
+                </td>
+                <td>೪</td> <td>ಶ</td> <td>೪೩</td> <td>೦೦</td> 
+                <td>ರೇ</td> <td>೨೩</td> <td>೪೦</td> 
+                <td>ರೇ</td> <td>೪೦</td> <td>೪೦</td> 
+                <td>೧೬</td> <td>೦೭</td> 
+                <td>ಆ</td> <td>೪೪</td> <td>೧೦</td> 
+                <td>ವೈ</td> <td>೧೪</td> <td>೧೬</td> 
+                <td>೭</td> <td>೨೯</td> 
+                <td>೫೨</td> <td>೪೪</td> 
+                <td>೨೯ ೫೯</td> <td>೬ ೨೩</td> <td>೬ ೪೪</td> <td>೧೦</td>
+                <td className="text-col">ವೈನಾಯಕೀ|ಚೌತಿಶ್ರಾದ್ಧ|ಅಮೃತಸಿಘಂ16-7ನಂ|</td>
+              </tr>
+
+              {/* ROW 5 (Date 28) */}
+              <tr>
+                <td>೨೮</td>
+                <td className="text-red-600 align-middle">
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-[14px] h-[14px] mx-auto"><path d="M12 2c0 0-3 4-3 7 0 2.5 1.5 4 3 5 1.5-1 3-2.5 3-5 0-3-3-7-3-7z"/><path d="M12 22c-3.3 0-6-2.7-6-6 0-2 1-3.5 2-5 0 0-1 2-1 4 0 2.2 1.8 4 4 4s4-1.8 4-4c0-2-1-4-1-4 1 1.5 2 3 2 5 0 3.3-2.7 6-6 6z"/></svg>
+                </td>
+                <td>೫</td> <td>ರ</td> <td>೩೮</td> <td>೦೦</td> 
+                <td>ರೇ</td> <td>೨೧</td> <td>೩೯</td> 
+                <td>ರೇ</td> <td>೪೫</td> <td>೪೫</td> 
+                <td>೧೪</td> <td>೫೩</td> 
+                <td>ಸೌ</td> <td>೪೪</td> <td>೧೪</td> 
+                <td>ಬ</td> <td>೧೦</td> <td>೧೪</td> 
+                <td>೫೩</td> <td>೨೩</td> 
+                <td>೩</td> <td>೪೪</td> 
+                <td>೨೯ ೫೮</td> <td>೬ ೨೨</td> <td>೬ ೪೫</td> <td>೧೧</td>
+                <td className="text-col">ಕಲ್ಪಾದಿಃ|ಪಂಚಮಿಶ್ರಾದ್ಧ|</td>
+              </tr>
+
+              {/* ROW 6 (Date 29) */}
+              <tr>
+                <td>೨೯</td>
+                <td className="text-red-600 align-middle">
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-[14px] h-[14px] mx-auto"><path d="M12 2c0 0-3 4-3 7 0 2.5 1.5 4 3 5 1.5-1 3-2.5 3-5 0-3-3-7-3-7z"/><path d="M12 22c-3.3 0-6-2.7-6-6 0-2 1-3.5 2-5 0 0-1 2-1 4 0 2.2 1.8 4 4 4s4-1.8 4-4c0-2-1-4-1-4 1 1.5 2 3 2 5 0 3.3-2.7 6-6 6z"/></svg>
+                </td>
+                <td>೬</td> <td>ಚ</td> <td>೩೩</td> <td>೦೨</td> 
+                <td>ರೇ</td> <td>೧೯</td> <td>೩೪</td> 
+                <td>ರೇ</td> <td>೪೯</td> <td>೩೦</td> 
+                <td>೧೩</td> <td>೩೪</td> 
+                <td>ಶೋ</td> <td>೪೪</td> <td>೧೩</td> 
+                <td>ಕೌ</td> <td>೧೦</td> <td>೧೩</td> 
+                <td>೩೪</td> <td>೧೬</td> 
+                <td>೩</td> <td>೪೪</td> 
+                <td>೨೯ ೫೮</td> <td>೬ ೨೨</td> <td>೬ ೪೫</td> <td>೧೨</td>
+                <td className="text-col">ಷಷ್ಠಿಶ್ರಾದ್ಧ|</td>
+              </tr>
+
+              {/* ROW 7 (Date 30) */}
+              <tr>
+                <td>೩೦</td>
+                <td className="text-red-600 align-middle">
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-[14px] h-[14px] mx-auto"><path d="M12 2c0 0-3 4-3 7 0 2.5 1.5 4 3 5 1.5-1 3-2.5 3-5 0-3-3-7-3-7z"/><path d="M12 22c-3.3 0-6-2.7-6-6 0-2 1-3.5 2-5 0 0-1 2-1 4 0 2.2 1.8 4 4 4s4-1.8 4-4c0-2-1-4-1-4 1 1.5 2 3 2 5 0 3.3-2.7 6-6 6z"/></svg>
+                </td>
+                <td>೭</td> <td>ಕು</td> <td>೨೭</td> <td>೪೨</td> 
+                <td>ರೇ</td> <td>೧೭</td> <td>೨೯</td> 
+                <td>ರೇ</td> <td>೫೪</td> <td>೫೪</td> 
+                <td>೧೨</td> <td>೧೨</td> 
+                <td>ಆ</td> <td>೪೪</td> <td>೧೨</td> 
+                <td>ಗ</td> <td>೧೦</td> <td>೧೨</td> 
+                <td>೧೨</td> <td>೦೯</td> 
+                <td>೪</td> <td>೪೪</td> 
+                <td>೨೯ ೫೭</td> <td>೬ ೨೧</td> <td>೬ ೪೫</td> <td>೧೩</td>
+                <td className="text-col">ಸಪ್ತಮಿಶ್ರಾದ್ಧ|ಯಮಘಂ12-12ಪ|</td>
+              </tr>
+
+              {/* ROW 8 (Mesha Masa Starts) */}
+              <tr className="month-divider">
+                <td rowSpan={7} className="vertical-month bg-gray-50 border-t-2 border-black">ಮೇಷಮಾಸಃ</td>
+                <td>೧</td>
+                <td className="text-red-600 align-middle">
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-[14px] h-[14px] mx-auto"><path d="M12 2c0 0-3 4-3 7 0 2.5 1.5 4 3 5 1.5-1 3-2.5 3-5 0-3-3-7-3-7z"/><path d="M12 22c-3.3 0-6-2.7-6-6 0-2 1-3.5 2-5 0 0-1 2-1 4 0 2.2 1.8 4 4 4s4-1.8 4-4c0-2-1-4-1-4 1 1.5 2 3 2 5 0 3.3-2.7 6-6 6z"/></svg>
+                </td>
+                <td>೮</td> <td>ಬು</td> <td>೨೨</td> <td>೪೪</td> 
+                <td>ರೇ</td> <td>೧೫</td> <td>೨೩</td> 
+                <td>ರೇ</td> <td>೫೮</td> <td>೦೯</td> 
+                <td>೧೦</td> <td>೫೨</td> 
+                <td>ಸು</td> <td>೪೪</td> <td>೧೧</td> 
+                <td>ಬ</td> <td>೧೦</td> <td>೧೦</td> 
+                <td>೫೨</td> <td>೦೨</td> 
+                <td>೩</td> <td>೪೪</td> 
+                <td>೨೯ ೫೬</td> <td>೬ ೨೦</td> <td>೬ ೪೫</td> <td>೧೪</td>
+                <td className="text-col font-bold">ಅಷ್ಟಮಿ-ನವಮಿಶ್ರಾದ್ಧ| <span className="float-right font-normal">(14)</span></td>
+              </tr>
+
+              {/* ROW 9 */}
+              <tr>
+                <td>೨</td>
+                <td className="text-red-600 align-middle">
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-[14px] h-[14px] mx-auto"><path d="M12 2c0 0-3 4-3 7 0 2.5 1.5 4 3 5 1.5-1 3-2.5 3-5 0-3-3-7-3-7z"/><path d="M12 22c-3.3 0-6-2.7-6-6 0-2 1-3.5 2-5 0 0-1 2-1 4 0 2.2 1.8 4 4 4s4-1.8 4-4c0-2-1-4-1-4 1 1.5 2 3 2 5 0 3.3-2.7 6-6 6z"/></svg>
+                </td>
+                <td>೯</td> <td>ಗು</td> <td>೧೮</td> <td>೨೦</td> 
+                <td>ಅ</td> <td>೧೩</td> <td>೨೧</td> 
+                <td>ಅ</td> <td>೦೨</td> <td>೪೨</td> 
+                <td>೦೯</td> <td>೩೩</td> 
+                <td>ಧೃ</td> <td>೪೪</td> <td>೦೯</td> 
+                <td>ಕೌ</td> <td>೧೦</td> <td>೦೯</td> 
+                <td>೩೩</td> <td>೫೩</td>  
+                <td>೧</td> <td>೪೪</td> 
+                <td>೨೯ ೫೫</td> <td>೬ ೨೦</td> <td>೬ ೪೫</td> <td>೧೫</td>
+                <td className="text-col font-bold">ಶ್ರೀರಾಮನವಮೀ|ದಶಮಿಶ್ರಾದ್ಧ| <span className="float-right font-normal">(15)</span></td>
+              </tr>
+
+              {/* ROW 10 */}
+              <tr>
+                <td>೩</td>
+                <td className="text-red-600 align-middle">
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-[14px] h-[14px] mx-auto"><path d="M12 2c0 0-3 4-3 7 0 2.5 1.5 4 3 5 1.5-1 3-2.5 3-5 0-3-3-7-3-7z"/><path d="M12 22c-3.3 0-6-2.7-6-6 0-2 1-3.5 2-5 0 0-1 2-1 4 0 2.2 1.8 4 4 4s4-1.8 4-4c0-2-1-4-1-4 1 1.5 2 3 2 5 0 3.3-2.7 6-6 6z"/></svg>
+                </td>
+                <td>೧೦</td> <td>ಶು</td> <td>೧೪</td> <td>೨೪</td> 
+                <td>ಅ</td> <td>೧೧</td> <td>೨೧</td> 
+                <td>ಅ</td> <td>೦೭</td> <td>೦೮</td> 
+                <td>೦೮</td> <td>೧೮</td> 
+                <td>ಗಂ</td> <td>೪೪</td> <td>೦೮</td> 
+                <td>ಗ</td> <td>೧೦</td> <td>೦೮</td> 
+                <td>೧೮</td> <td>೪೧</td> 
+                <td>೨೮</td> <td>೪೪</td> 
+                <td>೨೯ ೫೪</td> <td>೬ ೧೯</td> <td>೬ ೪೫</td> <td>೧೬</td>
+                <td className="text-col">ಏಕಾದಶಿಶ್ರಾದ್ಧ|ಚಿತ್ರಾಪುರಧ್ವಜಾರೋಪಣಂ| <span className="float-right">(16)</span></td>
+              </tr>
+
+              {/* ROW 11 */}
+              <tr>
+                <td>೪</td>
+                <td className="text-red-600 align-middle">
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-[14px] h-[14px] mx-auto"><path d="M12 2c0 0-3 4-3 7 0 2.5 1.5 4 3 5 1.5-1 3-2.5 3-5 0-3-3-7-3-7z"/><path d="M12 22c-3.3 0-6-2.7-6-6 0-2 1-3.5 2-5 0 0-1 2-1 4 0 2.2 1.8 4 4 4s4-1.8 4-4c0-2-1-4-1-4 1 1.5 2 3 2 5 0 3.3-2.7 6-6 6z"/></svg>
+                </td>
+                <td>೧೧</td> <td>ಶ</td> <td>೧೧</td> <td>೫೧</td>  
+                <td>ಅ</td> <td>೦೯</td> <td>೨೭</td> 
+                <td>ಅ</td> <td>೧೧</td> <td>೩೮</td> 
+                <td>೦೭</td> <td>೦೭</td> 
+                <td>ವೃ</td> <td>೪೪</td> <td>೦೭</td> 
+                <td>ಭ</td> <td>೧೦</td> <td>೦೭</td> 
+                <td>೦೭</td> <td>೪೪</td> 
+                <td>೧೪</td> <td>೪೪</td> 
+                <td>೨೯ ೫೩</td> <td>೬ ೧೯</td> <td>೬ ೪೫</td> <td>೧೭</td>
+                <td className="text-col font-bold">ಸರ್ವೇಷಾಮೇಕಾದಶೀ|ಕಾಮದಾ|ದ್ವಾದಶಿಶ್ರಾದ್ಧ|</td>
+              </tr>
+
+              {/* ROW 12 */}
+              <tr>
+                <td>೫</td>
+                <td className="text-red-600 align-middle">
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-[14px] h-[14px] mx-auto"><path d="M12 2c0 0-3 4-3 7 0 2.5 1.5 4 3 5 1.5-1 3-2.5 3-5 0-3-3-7-3-7z"/><path d="M12 22c-3.3 0-6-2.7-6-6 0-2 1-3.5 2-5 0 0-1 2-1 4 0 2.2 1.8 4 4 4s4-1.8 4-4c0-2-1-4-1-4 1 1.5 2 3 2 5 0 3.3-2.7 6-6 6z"/></svg>
+                </td>
+                <td>೧೨</td> <td>ರ</td> <td>೧೦</td> <td>೩೯</td> 
+                <td>ಅ</td> <td>೦೭</td> <td>೪೨</td> 
+                <td>ಅ</td> <td>೧೫</td> <td>೫೬</td>  
+                <td>೦೫</td> <td>೫೮</td>  
+                <td>ಧ್ರು</td> <td>೪೪</td> <td>೦೬</td> 
+                <td>ಬಾ</td> <td>೧೦</td> <td>೦೬</td> 
+                <td>೧೪</td> <td>೩೮</td> 
+                <td>೧೪</td> <td>೪೪</td> 
+                <td>೨೯ ೫೨</td> <td>೬ ೧೮</td> <td>೬ ೪೫</td> <td>೧೮</td>
+                <td className="text-col font-bold">ಪ್ರದೋಷ|ಅನಂಗಪೂಜಾ|ತ್ರಯೋದಶಿಶ್ರಾದ್ಧ| <span className="float-right font-normal">(18)</span></td>
+              </tr>
+
+              {/* ROW 13 */}
+              <tr>
+                <td>೬</td>
+                <td className="text-red-600 align-middle">
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-[14px] h-[14px] mx-auto"><path d="M12 2c0 0-3 4-3 7 0 2.5 1.5 4 3 5 1.5-1 3-2.5 3-5 0-3-3-7-3-7z"/><path d="M12 22c-3.3 0-6-2.7-6-6 0-2 1-3.5 2-5 0 0-1 2-1 4 0 2.2 1.8 4 4 4s4-1.8 4-4c0-2-1-4-1-4 1 1.5 2 3 2 5 0 3.3-2.7 6-6 6z"/></svg>
+                </td>
+                <td>೧೩</td> <td>ಚ</td> <td>೧೦</td> <td>೪೬</td> 
+                <td>ಅ</td> <td>೦೫</td> <td>೩೦</td> 
+                <td>ಅ</td> <td>೨೦</td> <td>೦೯</td> 
+                <td>೦೪</td> <td>೫೪</td>  
+                <td>ವ್ಯಾ</td> <td>೪೪</td> <td>೦೫</td> 
+                <td>ಗ</td> <td>೧೦</td> <td>೦೫</td> 
+                <td>೪೦</td> <td>೩೩</td> 
+                <td>೪೨</td> <td>೪೪</td> 
+                <td>೨೯ ೫೧</td> <td>೬ ೧೭</td> <td>೬ ೪೬</td> <td>೧೯</td>
+                <td className="text-col">ಶಿವದಮನೋತ್ಸವಃ|ಚತುರ್ದಶಿಶ್ರಾದ್ಧ|</td>
+              </tr>
+
+              {/* ROW 14 */}
+              <tr>
+                <td>೭</td>
+                <td className="text-red-600 align-middle">
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-[14px] h-[14px] mx-auto"><path d="M12 2c0 0-3 4-3 7 0 2.5 1.5 4 3 5 1.5-1 3-2.5 3-5 0-3-3-7-3-7z"/><path d="M12 22c-3.3 0-6-2.7-6-6 0-2 1-3.5 2-5 0 0-1 2-1 4 0 2.2 1.8 4 4 4s4-1.8 4-4c0-2-1-4-1-4 1 1.5 2 3 2 5 0 3.3-2.7 6-6 6z"/></svg>
+                </td>
+                <td>೧೪</td> <td>ಕು</td> <td>೧೨</td> <td>೪೮</td> 
+                <td>ಅ</td> <td>೦೪</td> <td>೨೭</td> 
+                <td>ಅ</td> <td>೨೪</td> <td>೧೨</td> 
+                <td>೦೩</td> <td>೫೧</td> 
+                <td>ಹ</td> <td>೪೪</td> <td>೦೪</td> 
+                <td>ಭ</td> <td>೧೦</td> <td>೦೪</td> 
+                <td>೨೮</td> <td>೨೮</td> 
+                <td>೫೨</td> <td>೪೪</td> 
+                <td>೨೯ ೫೦</td> <td>೬ ೧೭</td> <td>೬ ೪೬</td> <td>೨೦</td>
+                <td className="text-col font-bold">ಹನುಮಜ್ಜಯಂತಿ|ಅನ್ವಾಧಾನಂ|ಮನ್ವಾದಿಃ|| <span className="float-right font-normal">(20)</span></td>
+              </tr>
             </tbody>
           </table>
         </div>
 
-        {/* Bottom Section: Month-End Graha Chakra & Degrees Table */}
-        <div className="border border-black p-1.5 flex flex-row justify-between items-center gap-2 bg-slate-50">
-          <div className="w-[35%] border border-black p-1 bg-white text-center">
-            <div className="font-black text-[9px] border-b border-black pb-0.5">
-              ಮಾಸಾಂತ ಸೂರ್ಯೋದಯ ಕಾಲದ ಗ್ರಹಕುಂಡಲಿ
-            </div>
-            <div className="grid grid-cols-4 gap-0.5 p-1 text-[7.5px] font-mono font-bold">
-              <div className="border border-black p-1">ಮೀನ: ರವಿ, ಬುಧ</div>
-              <div className="border border-black p-1">ಮೇಷ: ಶುಕ್ರ</div>
-              <div className="border border-black p-1">ವೃಷಭ: ಚಂದ್ರ</div>
-              <div className="border border-black p-1">ಮಿಥುನ: ಗುರು</div>
-              <div className="border border-black p-1">ಕುಂಭ: ಶನಿ</div>
-              <div className="border border-black p-1 col-span-2 bg-black text-white font-black flex items-center justify-center">
-                ಗ್ರಹಚಕ್ರಂ
-              </div>
-              <div className="border border-black p-1">ಕಟಕ: ─</div>
-              <div className="border border-black p-1">ಮಕರ: ಕುಜ</div>
-              <div className="border border-black p-1">ಧನು: ಕೇತು</div>
-              <div className="border border-black p-1">ವೃಶ್ಚಿಕ: ─</div>
-              <div className="border border-black p-1">ಕನ್ಯಾ: ರಾಹು</div>
-            </div>
+        {/* Bottom Panels Grid */}
+        <div className="bottom-panels">
+          {/* Panel 1: Info and Stats */}
+          <div className="panel-left">
+            <div className="font-bold border-b border-black pb-1 mb-1 px-1">ಚೈ/ಶು/೧೫/ಕುಜೇ/ಮೇಷಾದ್ಯಹರ್ಗಣ: ೬</div>
+            <table className="stats-table">
+              <thead>
+                <tr><th>ರ</th><th>ಚ</th><th>ಕು</th><th>ಬು</th><th>ಗು</th><th>ಶು</th><th>ಶ</th><th>ರಾ</th><th>ಕೇ</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>೦</td><td>೫</td><td>೨</td><td>೧೧</td><td>೨</td><td>೧೧</td><td>೧೧</td><td>೪</td><td>೧೦</td></tr>
+                <tr><td>೫</td><td>೨೪</td><td>೨೦</td><td>೨೫</td><td>೨೨</td><td>೫</td><td>೨೪</td><td>೨೨</td><td>೨೨</td></tr>
+                <tr><td>೨೦</td><td>೧೫</td><td>೬</td><td>೫</td><td>೫೦</td><td>೬</td><td>೫೮</td><td>೫೭</td><td>೫೭</td></tr>
+                <tr><td>ಗ</td><td>ಗ</td><td>ಗ</td><td>ಗ</td><td>ಗ</td><td>ಗ</td><td>ಗ</td><td>ವಗ</td><td>ವಗ</td></tr>
+                <tr><td>೫೯</td><td>೮೦</td><td>೮೦</td><td>೧೦೪</td><td>೮</td><td>೨೩</td><td>೨</td><td>೨</td><td>೨</td></tr>
+                <tr><td>ಅ</td><td>ಚಿ</td><td>ಶ್ರೇ</td><td>ರೇ</td><td>ಶ್ರೇ</td><td>ಉಭ</td><td>ರೇ</td><td>ಶ್ರ</td><td>ತಿ</td></tr>
+                <tr><td>೨</td><td>೦</td><td>೪</td><td>೩</td><td>೨</td><td>೧</td><td>೩</td><td>೪</td><td>೨</td></tr>
+              </tbody>
+            </table>
           </div>
 
-          <div className="flex-1 text-[8.5px] font-serif leading-tight">
-            <div className="font-bold border-b border-black pb-0.5">
-              ವಿಶೇಷ ಪರ್ವಕಾಲ & ಮಾಸಿಕ ಟಿಪ್ಪಣಿಗಳು:
+          {/* Panel 2: Ayanamsha & Graha Chakra (Kundali) */}
+          <div className="panel-center px-2 pb-1">
+            <div className="flex justify-between font-bold mb-1 px-1">
+              <span>ಅಯನಾಂಶಾಃ: ೨೪/೧೪/೨೮</span>
+              <span>ದಿನ ೧೫</span>
             </div>
-            <p className="mt-1">
-              ಅಯನಾಂಶಃ ೨೪°/೧೩'/೨೮" • ಚೈತ್ರ ಶುಕ್ಲ ಪಾಡ್ಯಮಿ ಯುಗಾದಿ ಹಬ್ಬದಂದು ನೂತನ ವತ್ಸರಾರಂಭ, ಪಂಚಾಂಗ ಶ್ರವಣ.
-            </p>
-            <p className="mt-0.5">
-              ಶ್ರೀ ರಾಮನವಮಿ ವ್ರತ, ಹನುಮಜ್ಜಯಂತಿ ಮಹೋತ್ಸವ ಮತ್ತು ವಸಂತ ನವರಾತ್ರಿ ಪೂರ್ಣಾಹುತಿ.
-            </p>
+            {/* 3x3 Grid strictly following the layout from the provided image */}
+            <table className="kundali-table">
+              <tbody>
+                <tr>
+                  <td>ಶುಕ್ರ ೫ <br /> ಬುಧ ೧೧ <br /> ಶನಿ ೧೧</td>
+                  <td>ರವಿ ೨</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>ರಾಹು ೪</td>
+                  <td className="center-black">
+                    ಕೊನೆಯ ದಿನದ<br />
+                    ಸೂರ್ಯೋದಯದ<br />
+                    ಗ್ರಹಚಕ್ರಂ
+                  </td>
+                  <td>ಕುಜ ೧೨ <br /> ಗುರು ೧೦ <br /> ಕೇತು ೧೦</td>
+                </tr>
+                <tr>
+                  <td></td>
+                  <td>ಚಂದ್ರ ೫</td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          {/* Panel 3: Notes */}
+          <div className="panel-right">
+            <ul className="space-y-[2px]">
+              <li className="flex"><span className="w-8 shrink-0">(7)</span> <span>ವಸಂತನವರಾತ್ರಾಪ್ರಾರಂಭಃ|ನೂತನಪಂಚಾಗಶ್ರವಣಂ|ಇಷ್ಟಿಃ|<br />ಕಲ್ಪಾದಿಃ|ಪಂಚಕಮುಘಂ18-25ನಂ|ವೈಧೃತಿಶ್ರಾದ್ಧ|ಪಾಡ್ಯಶ್ರಾದ್ಧ|<br />ಮೃತ್ಯುಘಂ18-25ನಂ|</span></li>
+              <li className="flex"><span className="w-8 shrink-0">(14)</span> <span>ಮೇಷೇರವಿಃಘಟಿ೨೨/೫೦|ಸಂಕ್ರಾಂತಿಶ್ರಾದ್ಧ|</span></li>
+              <li className="flex"><span className="w-8 shrink-0">(15)</span> <span>ಸೌರಯುಗಾದಿ|ಅಮೃತಸಿದ್ಧಿಘಂ9-33ಪ|</span></li>
+              <li className="flex"><span className="w-8 shrink-0">(16)</span> <span>ಪ್ರಾಗಸ್ತಃ ಬುಧಃ|</span></li>
+              <li className="flex"><span className="w-8 shrink-0">(18)</span> <span>ಮಹಾವೀರಜಯಂತೀ|ದಗ್ಧಘಂ7-42ಪ|ಅಮೃತಸಿದ್ಧಿಘಂ29-14ನಂ|</span></li>
+              <li className="flex"><span className="w-8 shrink-0">(20)</span> <span>ಚಿತ್ರಾಪುರರಥೋತ್ಸವಃ|ಹುಣ್ಣಿಮೆಶ್ರಾದ್ಧ|ಸರ್ವದೇವದಮನೋತ್ಸವಃ|<br />ವೃಷಾಯನಂಘಂಟೆ 13-15|</span></li>
+            </ul>
           </div>
         </div>
       </div>

@@ -377,3 +377,18 @@ section:hover {
     box-sizing: border-box !important;
   }
 }
+
+/* 📜 Authentic Baggona Panchanga Book Print Typography */
+.baggona-book-typography {
+  font-family: 'Noto Serif Kannada', 'Kannada Sangam MN', 'Tiro Kannada', 'Noto Sans Kannada', serif !important;
+  font-feature-settings: "kern" 1, "liga" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+.baggona-num {
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em;
+}
+
