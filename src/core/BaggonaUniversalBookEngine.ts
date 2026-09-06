@@ -788,25 +788,45 @@ export function generateUniversal104PageBook(shakaYear: number): UniversalBookPa
         sunriseWarningKn:
           "ಈ ಮೇಲಿನ ಘಂಟೆಗಳನ್ನು ಸೂರ್ಯೋದಯವು ೬ ಘಂಟೆ ಎಂತಲೂ, ದಿನಮಾನ ಘಟಿ ೩೦ ಎಂತಲೂ ಇಟ್ಟುಕೊಂಡು ಬರೆದಿರುತ್ತೇವೆ. ಸೂರ್ಯೋದಯ ಮತ್ತು ದಿನಮಾನ ವ್ಯತ್ಯಾಸವಾದಾಗ ಹೆಚ್ಚು ಕಡಿಮೆ ಮಾಡಿಕೊಳ್ಳತಕ್ಕದ್ದು."
       };
-    } else if (page >= 2 && page <= 5) {
+    } else if (page === 2) {
       sectionCategory = "Front Matter";
-      titleKn = "ಪಾರಂಪರಿಕ ಜಾಹೀರಾತು / ಪ್ರಾಯೋಜಕತ್ವ";
-      layoutTemplateId = "heritage_advertisement_full";
-      contentData = { pageNumber: page, sponsorName: "ಶ್ರೀ ಗಜಾನನ ಸ್ಟೋರ್ಸ್ / ಟಿ.ಎಸ್.ಎಸ್. ಗೋಲ್ಡ್" };
+      titleKn = "ಶ್ರೀ ಗಜಾನನ ಸ್ಟೋರ್ಸ್ ಸಿದ್ದಾಪುರ (೬೮ ವರ್ಷಗಳ ಸೇವೆ)";
+      layoutTemplateId = "page_02_gajanana_stores";
+      contentData = { sponsor: "ಶ್ರೀ ಗಜಾನನ ಸ್ಟೋರ್ಸ್, ಸಿದ್ದಾಪುರ", pageNumber: 2 };
+    } else if (page === 3) {
+      sectionCategory = "Front Matter";
+      titleKn = "ಶ್ರೀ ಕೃಷ್ಣ ಪೂಜಾ ಭಂಡಾರ ಸಿರ್ಸಿ";
+      layoutTemplateId = "page_03_krishna_pooja_bhandara";
+      contentData = { sponsor: "ಶ್ರೀ ಕೃಷ್ಣ ಪೂಜಾ ಭಂಡಾರ, ಸಿರ್ಸಿ", pageNumber: 3 };
+    } else if (page === 4) {
+      sectionCategory = "Front Matter";
+      titleKn = "ಶ್ರೀ ಕ್ಷೇತ್ರ ಬಂಗಾರಮಕ್ಕಿ ವೀರಾಂಜನೇಯ ವಾರ್ಷಿಕೋತ್ಸವಗಳು & ಹುಣ್ಣಿಮೆ ಅಮಾವಾಸ್ಯೆ";
+      layoutTemplateId = "page_04_bangaramakki_festivals";
+      contentData = { temple: "ಶ್ರೀ ಬಂಗಾರಮಕ್ಕಿ ವೀರಾಂಜನೇಯ ದೇವಸ್ಥಾನ", pageNumber: 4 };
+    } else if (page === 5) {
+      sectionCategory = "Front Matter";
+      titleKn = "ಟಿ.ಎಸ್.ಎಸ್. ಚಿನ್ನಾಭರಣ ಶಾಖೆ ಸಿರ್ಸಿ";
+      layoutTemplateId = "page_05_tss_jewellery";
+      contentData = { sponsor: "ದಿ ತೋಟಿಗಾರ್ಸ್ ಕೋ-ಆಪರೇಟಿವ್ ಸೇಲ್ ಸೊಸೈಟಿ ಲಿ.", pageNumber: 5 };
     } else if (page === 6) {
       sectionCategory = "Front Matter";
-      titleKn = "ಶ್ರೀ ಸ್ವರ್ಣವಲ್ಲೀ ಮಹಾಸಂಸ್ಥಾನದ ವಾರ್ಷಿಕ ಉತ್ಸವಗಳು";
-      layoutTemplateId = "swarnavalli_annual_festivals";
-      contentData = { temple: "ಶ್ರೀ ಸೋಂದಾ ಸ್ವರ್ಣವಲ್ಲೀ ಮಹಾಸಂಸ್ಥಾನ", shakaYear: meta.shakaYear };
+      titleKn = "ಶ್ರೀ ಸ್ವರ್ಣವಲ್ಲೀ ಮಹಾಸಂಸ್ಥಾನದ ವಾರ್ಷಿಕ ಉತ್ಸವಗಳು & ಕಶ್ಯಪ ಟ್ರೇಡರ್ಸ್";
+      layoutTemplateId = "page_06_swarnavalli_kashyapa";
+      contentData = { temple: "ಶ್ರೀ ಸೋಂದಾ ಸ್ವರ್ಣವಲ್ಲೀ ಮಹಾಸಂಸ್ಥಾನ", shakaYear: meta.shakaYear, pageNumber: 6 };
+    } else if (page === 7) {
+      sectionCategory = "Front Matter";
+      titleKn = "ಶ್ರೀ ಅನ್ನಪೂರ್ಣೇಶ್ವರೀ ಜ್ಯೋತಿಷ್ಯಾಲಯ ಸಿರ್ಸಿ";
+      layoutTemplateId = "page_07_annapoorneshwari_jyotishya";
+      contentData = { sponsor: "ಶ್ರೀ ಅನ್ನಪೂರ್ಣೇಶ್ವರೀ ಜ್ಯೋತಿಷ್ಯಾಲಯ", pageNumber: 7 };
     } else if (page === 8) {
       sectionCategory = "Front Matter";
-      titleKn = "ಇಡಗುಂಜಿ ಶ್ರೀ ವಿನಾಯಕ ದೇವಸ್ಥಾನದ ವಾರ್ಷಿಕ ಕಾರ್ಯಕ್ರಮಗಳು";
-      layoutTemplateId = "idagunji_annual_festivals";
-      contentData = { temple: "ಶ್ರೀ ವಿನಾಯಕ ದೇವಸ್ಥಾನ ಇಡಗುಂಜಿ", shakaYear: meta.shakaYear };
+      titleKn = "ಇಡಗುಂಜಿ ಶ್ರೀ ವಿನಾಯಕ ದೇವಸ್ಥಾನದ ವಾರ್ಷಿಕ ಕಾರ್ಯಕ್ರಮಗಳು & ಗಯಾ ಕ್ಷೇತ್ರ";
+      layoutTemplateId = "page_08_idagunji_gaya";
+      contentData = { temple: "ಶ್ರೀ ವಿನಾಯಕ ದೇವಸ್ಥಾನ ಇಡಗುಂಜಿ", shakaYear: meta.shakaYear, pageNumber: 8 };
     } else if (page === 9) {
       sectionCategory = "Front Matter";
-      titleKn = "ಪ್ರಸ್ತಾವನೆ & ಶ್ರಾದ್ಧ ತಿಥಿ ನಿರ್ಣಯ";
-      layoutTemplateId = "prastavane_and_shraddha_nirnaya";
+      titleKn = "ಪ್ರಸ್ತಾವನೆ, ಕಂದಾಯಗಳು & ಶ್ರಾದ್ಧ ತಿಥಿ ನಿರ್ಣಯ";
+      layoutTemplateId = "page_09_prastavane_shraddha";
       contentData = {
         editorIntroductionKn:
           "ವಂದೇಽರವಿಂದರಮಣಂ ವೃಂದಾರಕ ವೃಂದವಂದಿತಂ ತರಣಿಂ... ಬಗ್ಗೋಣ ಪಂಚಾಂಗವು ಸೂರ್ಯ-ಚಂದ್ರರ ಸೂಕ್ಷ್ಮ ದೃಗ್ಗಣಿತ ಪದ್ಧತಿಯಿಂದ ಸಿದ್ಧವಾಗಿದ್ದು, ಭಕ್ತರಿಗೆ ಶ್ರದ್ಧೆಯಿಂದ ಸಮರ್ಪಿಸುತ್ತಿದ್ದೇವೆ.",
@@ -824,7 +844,7 @@ export function generateUniversal104PageBook(shakaYear: number): UniversalBookPa
     } else if (page === 10) {
       sectionCategory = "Front Matter";
       titleKn = "ಶ್ರೀಮುಖ (ಶ್ರೀ ಜಗದ್ಗುರುಗಳ ಆಶೀರ್ವಾದ ಪತ್ರ)";
-      layoutTemplateId = "shreemukha_blessings";
+      layoutTemplateId = "page_10_shreemukha";
       contentData = {
         kanchiShreemukha: "ಶ್ರೀ ಕಾಂಚೀ ಕಾಮಕೋಟಿ ಪೀಠಾಧೀಶ ಜಗದ್ಗುರು ಶ್ರೀ ಶಂಕರಾಚಾರ್ಯ ವರ್ಯರು ಬಗ್ಗೋಣ ಪಂಚಾಂಗವನ್ನು ಸನ್ಮಾನಿಸಿ ದಯಪಾಲಿಸಿದ ಶ್ರೀಮುಖ.",
         swarnavalliShreemukha: "ಶ್ರೀ ಸ್ವರ್ಣವಲ್ಲೀ ಮಹಾಸಂಸ್ಥಾನಾಧೀಶ ಶ್ರೀ ಗಂಗಾಧರೇಂದ್ರ ಸರಸ್ವತೀ ಶ್ರೀಸ್ವಾಮಿಗಳವರ ಸಂಸ್ಕೃತ ನಾರಾಯಣ ಸ್ಮೃತಿ ಆಶೀರ್ವಾದ ಪತ್ರ."
@@ -832,62 +852,102 @@ export function generateUniversal104PageBook(shakaYear: number): UniversalBookPa
     } else if (page === 11) {
       sectionCategory = "Annual Astro Overview";
       titleKn = `${meta.samvatsaraKn} ಸಂವತ್ಸರ ಫಲಶ್ರುತಿ`;
-      layoutTemplateId = "samvatsara_phala_shruti";
+      layoutTemplateId = "page_11_samvatsara_phalashruti";
       contentData = { meta };
     } else if (page === 12) {
       sectionCategory = "Annual Astro Overview";
-      titleKn = "ರಾಜಾದಿ ನವನಾಯಕರು & ಸಂವತ್ಸರ ಫಲಂ";
-      layoutTemplateId = "navanayakas_and_year_result";
+      titleKn = "ಅಥ ಸಂವತ್ಸರ ಫಲಂ & ನವನಾಯಕ ಫಲಂ";
+      layoutTemplateId = "page_12_samvatsara_phalam";
       contentData = { navanayakagalu };
     } else if (page === 13) {
       sectionCategory = "Annual Astro Overview";
-      titleKn = "ಆರ್ದ್ರಾ ಪ್ರವೇಶ ಕಾಲಫಲಂ";
-      layoutTemplateId = "aridra_pravesha_rainfall";
+      titleKn = "ಅಥ ಆರಿದ್ರಾ ಪ್ರವೇಶ ಕಾಲಫಲಂ & ಮಳೆ ಮುನ್ಸೂಚನೆ";
+      layoutTemplateId = "page_13_aridra_pravesha_rainfall";
       contentData = { meta };
     } else if (page === 14) {
       sectionCategory = "Annual Astro Overview";
-      titleKn = "ಸಂಕ್ರಮಣ ಫಲಂ, ಗುರು-ಶುಕ್ರ ಅಸ್ತೋದಯ, ಗ್ರಹಣಗಳು";
-      layoutTemplateId = "sankramana_maudhya_eclipses";
+      titleKn = "ಸಂಕ್ರಮಣ ಫಲಂ, ಮೌಢ್ಯ & ಗ್ರಹಣ ವಿಚಾರ";
+      layoutTemplateId = "page_14_sankramana_maudhya_eclipses";
       contentData = { meta };
+    } else if (page === 15) {
+      sectionCategory = "Annual Astro Overview";
+      titleKn = "ಹರಿದಾಸ ನಾರಾಯಣದಾಸರು & ಭಾರತ ಬುಕ್ ಡಿಪೋ";
+      layoutTemplateId = "page_15_haridasa_bharatha_depot";
+      contentData = {};
+    } else if (page === 16) {
+      sectionCategory = "Annual Astro Overview";
+      titleKn = "ಶ್ರೀ ಮಹಾಲಕ್ಷ್ಮಿ ಜ್ಯೋತಿಷ್ಯಾಲಯ ಜಾಹೀರಾತು";
+      layoutTemplateId = "page_16_mahalakshmi_jyotishya_ad";
+      contentData = {};
     } else if (page === 17) {
       sectionCategory = "Annual Astro Overview";
-      titleKn = "ಶುಭ ಕಾರ್ಯಗಳಿಗೆ ಉಪಯುಕ್ತ ನಕ್ಷತ್ರಗಳು & ಪಂಚಾಂಗ ದೇವತೆಗಳು";
-      layoutTemplateId = "shubha_karyagalu_nakshatras";
+      titleKn = "ಶುಭಕಾರ್ಯಗಳು, ನಕ್ಷತ್ರ ಹಾಗೂ ಯೋಗದೇವತೆಗಳು";
+      layoutTemplateId = "page_17_subha_karyagalu_deities";
       contentData = { vishaGhatiStart: VISHA_GHATI_START, amrithaGhatiStart: AMRITHA_GHATI_START };
     } else if (page === 18) {
       sectionCategory = "Annual Astro Overview";
-      titleKn = "ವಾರ್ಷಿಕ ಹಬ್ಬ-ಹುಣ್ಣಿಮೆಗಳ ಪಟ್ಟಿ";
-      layoutTemplateId = "annual_festivals_calendar";
+      titleKn = "ವಾರ್ಷಿಕ ಹಬ್ಬ-ಹುಣ್ಣಿಮೆಗಳು & ರಾಮಕೃಷ್ಣ ಸ್ಟೋರ್ಸ್";
+      layoutTemplateId = "page_18_festivals_ramakrishna_stores";
       contentData = { meta };
     } else if (page === 19) {
       sectionCategory = "Annual Astro Overview";
-      titleKn = "ಜಾತಕ ತತ್ವಗಳು & ನವಗ್ರಹ ಕಾರಕತ್ವಗಳು";
-      layoutTemplateId = "jataka_tatvagalu_navagraha";
+      titleKn = "ಜಾತಕ ತತ್ವಗಳು, ನವಗ್ರಹ ಕಾರಕತ್ವ & ವಿ.ಜಿ. ಹೆಗಡೆ";
+      layoutTemplateId = "page_19_jataka_tatvagalu_navagraha";
       contentData = {};
-    } else if (page >= 20 && page <= 25) {
+    } else if (page === 20) {
       sectionCategory = "Varsha Bhavishya";
-      titleKn = "ದ್ವಾದಶ ರಾಶಿಗಳ ಸಮಗ್ರ ವರ್ಷಭವಿಷ್ಯ";
-      layoutTemplateId = "rashi_varsha_bhavishya";
-      contentData = { pageNumber: page };
+      titleKn = "ವರ್ಷಭವಿಷ್ಯ: ಮೇಷ & ವೃಷಭ ರಾಶಿಗಳು";
+      layoutTemplateId = "page_20_mesha_vrishabha_bhavishya";
+      contentData = { pageNumber: 20 };
+    } else if (page === 21) {
+      sectionCategory = "Varsha Bhavishya";
+      titleKn = "ವರ್ಷಭವಿಷ್ಯ: ಮಿಥುನ & ಕರ್ಕಾಟಕ ರಾಶಿಗಳು";
+      layoutTemplateId = "page_21_mithuna_karkataka_bhavishya";
+      contentData = { pageNumber: 21 };
+    } else if (page === 22) {
+      sectionCategory = "Varsha Bhavishya";
+      titleKn = "ವರ್ಷಭವಿಷ್ಯ: ಸಿಂಹ & ಕನ್ಯಾ ರಾಶಿಗಳು";
+      layoutTemplateId = "page_22_simha_kanya_bhavishya";
+      contentData = { pageNumber: 22 };
+    } else if (page === 23) {
+      sectionCategory = "Varsha Bhavishya";
+      titleKn = "ವರ್ಷಭವಿಷ್ಯ: ತುಲಾ & ವೃಶ್ಚಿಕ ರಾಶಿಗಳು";
+      layoutTemplateId = "page_23_tula_vrishchika_bhavishya";
+      contentData = { pageNumber: 23 };
+    } else if (page === 24) {
+      sectionCategory = "Varsha Bhavishya";
+      titleKn = "ವರ್ಷಭವಿಷ್ಯ: ಧನು & ಮಕರ ರಾಶಿಗಳು";
+      layoutTemplateId = "page_24_dhanu_makara_bhavishya";
+      contentData = { pageNumber: 24 };
+    } else if (page === 25) {
+      sectionCategory = "Varsha Bhavishya";
+      titleKn = "ವರ್ಷಭವಿಷ್ಯ: ಕುಂಭ & ಮೀನ • ಶ್ರದ್ಧಾಂಜಲಿ";
+      layoutTemplateId = "page_25_kumbha_meena_memorial";
+      contentData = { pageNumber: 25 };
     } else if (page === 26) {
       sectionCategory = "Temple & Ritual Laws";
-      titleKn = "ಗೋಕರ್ಣ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ದೇವಸ್ಥಾನದ ಉತ್ಸವಗಳು & ಕೃಷ್ಯಾಡಿ ಕರ್ಮಗಳು";
-      layoutTemplateId = "gokarna_utsava_and_krishi";
+      titleKn = "ಕೃಷ್ಯಾದಿ ಕರ್ಮಗಳು & ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಉತ್ಸವಗಳು";
+      layoutTemplateId = "page_26_krishi_gokarna_utsavas";
       contentData = {};
     } else if (page === 27) {
       sectionCategory = "Temple & Ritual Laws";
-      titleKn = "ಅಥ ಗೋಚರ ಫಲಂ & ಶಿವಲಿಖಿತಂ";
-      layoutTemplateId = "gochara_phalam_and_shivalikhita";
+      titleKn = "ಶಿವಲಿಖಿತಂ ಮುಹೂರ್ತ ಚಕ್ರ & ಅಥ ಗೋಚಾರ ಫಲಂ";
+      layoutTemplateId = "page_27_shivalikhitam_gochara";
       contentData = {};
-    } else if (page === 28 || page === 29) {
+    } else if (page === 28) {
       sectionCategory = "Temple & Ritual Laws";
-      titleKn = "ಆಶೌಚ ನಿರ್ಣಯ (ಜನನ-ಮರಣ ಸೂತಕ ನಿಯಮಗಳು)";
-      layoutTemplateId = "ashoucha_nirnaya_rules";
+      titleKn = "ಆಶೌಚ ನಿರ್ಣಯ (ಭಾಗ ೧)";
+      layoutTemplateId = "page_28_ashoucha_nirnaya_part1";
+      contentData = { rules: BAGGONA_ASHOUCHA_RULES_KN };
+    } else if (page === 29) {
+      sectionCategory = "Temple & Ritual Laws";
+      titleKn = "ಆಶೌಚ ನಿರ್ಣಯ (ಭಾಗ ೨)";
+      layoutTemplateId = "page_29_ashoucha_nirnaya_part2";
       contentData = { rules: BAGGONA_ASHOUCHA_RULES_KN };
     } else if (page === 30) {
       sectionCategory = "Temple & Ritual Laws";
-      titleKn = "ಶ್ರೀ ಚಿತ್ರಾಪುರಮಠ ಶಿರಾಲಿಯಲ್ಲಿ ನಡೆಯುವ ವಿಶೇಷ ಹಬ್ಬಗಳು & ವೃಷ್ಟ್ಯಾದಿ ನಿರ್ದೇಶ್ಯಫಲಂ";
-      layoutTemplateId = "chitrapur_matha_festivals";
+      titleKn = "ವೃಷ್ಟ್ಯಾದಿ ನಿರ್ದೇಶ್ಯಫಲಂ & ಚಿತ್ರಾಪುರ ಮಠ ಉತ್ಸವಗಳು";
+      layoutTemplateId = "page_30_vrishtyadi_chitrapur_utsavas";
       contentData = {};
     } else if (page >= 31 && page <= 33) {
       sectionCategory = "Muhurtha & Astrological Tables";

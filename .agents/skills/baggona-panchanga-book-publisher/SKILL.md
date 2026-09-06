@@ -147,3 +147,57 @@ When training or updating the engine:
    - Solar eclipse and lunar eclipse precision down to the exact minute.
    - Month-end Graha Chakra degree matching.
 3. Validate zero layout distortion across all 104 printable pages.
+
+---
+
+## 6. 🔍 Benchmark Scan Fidelity & Editorial Rules (Pages 11–30 Standards)
+
+Whenever working on pages 11–30 (Samvatsara Phalam, Rashi Bhavishya, Eclipse, Muhurtha, and Shastric calculations):
+
+### A. Frame & Border Guidelines
+- For pages requiring authentic single-line framing matching the historical letterpress (such as Page 12):
+  - Set `singleBorder={true}` on `<BaggonaLandscapeFrame>` to remove double borders.
+  - Set `hideFlourishes={true}` to omit ornamental corners.
+  - Use `topCenterText="12"` (or appropriate page number) for minimal, authentic top headers.
+
+### B. Page 12 (Samvatsara Phalam & Navadhipati) Master Spec
+- **Left Column Top Description (Yuga & Shaka Calculations)**:
+  - Must be formatted as an authentic **9-line shastric paragraph**.
+  - **Exact Verified Text**:
+    ```text
+    ಘಾತಿಕೇ: ಗತಶಕಾಬ್ದಾ: ೧೯೪೬। ಸದ್ಯ ಶಕಾಬ್ದಾ: ೧೬೦೫೪ ಗತಕಲ್ಯಬ್ದಾ: ೫೧೨೪। ಸದ್ಯಕಲ್ಯಬ್ದಾ: ೪೨೬೮೭೬। ಕಲ್ಪಾದ್ಯಹರ್ಗಣಃ ೧೮ ಲಕ್ಷ ೨೨ ಸಾವಿರ ೦೪೭ (ದ್ವಾಪರಯುಗದಲ್ಲಿ ೮ ಲಕ್ಷ ೬೪ ಸಾವಿರ ವರ್ಷಗಳು. ಈ ಯುಗದಲ್ಲಿ ಶ್ರೀ ಕೃಷ್ಣನ ಅವತಾರ ಆಗಿದೆ. ಆಯುಷ್ಯ ಪ್ರಮಾಣ ೧ ಸಾವಿರ ವರ್ಷಗಳು. ಚತುರ್ಥ ಪ್ರಣಾವಾಗಿದೆ. ೪ ನೇ ಕಲಿಯುಗದಲ್ಲಿ ೪ ಲಕ್ಷ ೩೨ ಸಾವಿರ ವರ್ಷಗಳು. ಈ ವರ್ಷಗಳಲ್ಲಿ ಬುದ್ಧ ಹಾಗೂ ಕಲ್ಕಿ ಅವತಾರಗಳು ಹೇಳಲ್ಪಟ್ಟಿದೆ. ಈ ಯುಗದಲ್ಲಿ ೬ ಶಕಕರ್ತರು ಯುಧಿಷ್ಠಿರ ಶಕ, ೩ ಸಾವಿರ ೪ ನೂರು ವರ್ಷಗಳು. ವಿಕ್ರಮಶಕ ವರ್ಷ ೧೩೫ ವರ್ಷಗಳು. ಶಾಲಿವಾಹನ ಶಕವು ೧೮ ಸಾವಿರ ವರ್ಷಗಳು. ವಿಜಯಾಭಿನಂದನ ಶಕವು ೧೦ ಸಾವಿರ ವರ್ಷಗಳು. ನಾಗಾರ್ಜುನ ಶಕವು ೪ ಲಕ್ಷ ವರ್ಷಗಳು. ಕಲಿಯುಗದ ಅಂತ್ಯ ಕಾಲಕ್ಕೆ ಕಾವೇರಿತೀರದಲ್ಲಿ ಕಲ್ಕಿ ಅವತಾರವು ೮೨೧ ವರ್ಷಗಳು. ಶ್ವಾನಗತ ಪ್ರಾಣವು ಅಂದರೆ ಶ್ವಾನ ನಿಂತರ ಪ್ರಾಣವು ಇಲ್ಲ ಎಂದರ್ಥ. ಪ್ರಸ್ತುತ ಶಾಲಿವಾಹನ ಭೂಪತಿಯ ಶಕದ ಶಕವರ್ಷಗಳು ೧೯೪೬. ಉಳಿದ ಶಕವರ್ಷಗಳು ೧೬ ಸಾವಿರ ೫೪ ವರ್ಷ ಇದೆ. ಕಲಿಯುಗ ಪ್ರಾರಂಭವಾಗಿ ೫೧೨೪ ವರ್ಷ ಕಳೆದಿದೆ. ೪ ಲಕ್ಷ ೨೬ ಸಾವಿರ ೮೭೬ ವರ್ಷಗಳು ಉಳಿದಿವೆ. ಕಲ್ಪಾದಿಯ ಅಹರ್ಗಣವು ೧೮ ಲಕ್ಷ ೨೨ ಸಾವಿರ ೦೪೭ ಇದೆ.
+    ```
+  - **Key Shastric Guardrails**:
+    - `ಸದ್ಯ ಶಕಾಬ್ದಾ: ೧೬೦೫೪` (NOT ೧೭೦೫೧)
+    - `ಸದ್ಯಕಲ್ಯಬ್ದಾ: ೪೨೬೮೭೬।` (NOT ೪೨೮೮೭೨)
+    - `ಕಲ್ಪಾದ್ಯಹರ್ಗಣಃ ೧೮ ಲಕ್ಷ ೨೨ ಸಾವಿರ ೦೪೭` (NOT ೧೮೮೬)
+    - `೬ ಶಕಕರ್ತರು` (NOT ೭)
+  - **Typography**:
+    - Column grid: `grid-cols-[51%_49%]`
+    - Font: `font-serif font-medium text-[11.2px] leading-[26px] tracking-tight text-justify`
+    - Padding: `px-2 py-2 border-b-[1.5px] border-black`
+    - Wrapping: Line 1 cleanly wraps at `೧೮ ಲಕ್ಷ ೨೨ ಸಾವಿರ`, Line 2 begins with `೦೪೭ (ದ್ವಾಪರಯುಗದಲ್ಲಿ...`
+- **Left Column Tables (Bottom Half)**:
+  - Table 1: `ಪ್ಲವಂಗ ಸಂವತ್ಸರದ ರಾಜಾದಿ ನವಾಧಿಪತಿಗಳು` (8 columns)
+  - Table 2: `ಉಪ ನವಾಧಿಪತಿಗಳು` (6 columns)
+  - Table 3: `ತ್ರಯೋದಶಾಧಿಪತಿಗಳು` (7 columns, 2 rows of headers + data)
+- **Right Column**:
+  - Banner: `॥ ಅಥ ಸಂವತ್ಸರ ಫಲಂ ॥` (Black background, white text)
+  - Plavanga Samvatsara Phalam Shlokas + Phala prose paragraphs with clear spacing.
+
+---
+
+## 7. 🚀 Instant Resume & Page Workflow Protocol
+
+Whenever the user asks to resume or work on any specific page:
+1. **Mention the Skill**: Reference `baggona-panchanga-book-publisher` or specify the page number (e.g. "Work on Page 13" or "Resume Panchanga Publisher").
+2. **Locate Benchmark Page**:
+   - Reference PDFs: `/Users/shreesuma/Downloads/drive-download-20260903T110552Z-1-001/`
+   - Pre-extracted PNGs: `scratch/pages_11_30/page_0XX.png`
+3. **Compare in Browser**:
+   - URL: `http://localhost:5173/?portal=publisher&page=XX`
+   - Capture screenshot using `browser_subagent` and compare directly with the scanned physical page.
+4. **Enforce Zero Typographical Errors**:
+   - Double-check every Sanskrit/Kannada numeral against traditional formulas before rendering.
+5. **Verify Build**:
+   - Run `npx tsc --noEmit` before concluding.

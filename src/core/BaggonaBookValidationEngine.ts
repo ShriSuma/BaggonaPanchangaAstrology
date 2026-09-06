@@ -165,7 +165,9 @@ export function validateBaggonaBook(shakaYear: number): BookValidationReport {
   });
 
   // Check 7: Ashoucha Nirnaya 40 Rules Repository
-  const ashouchaPage = pages.find((p) => p.layoutTemplateId === "ashoucha_nirnaya_rules");
+  const ashouchaPage = pages.find(
+    (p) => p.layoutTemplateId === "ashoucha_nirnaya_rules" || p.layoutTemplateId.includes("ashoucha")
+  );
   const ashouchaPassed = Boolean(ashouchaPage && ashouchaPage.contentData.rules?.length > 0);
   checks.push({
     id: "ashoucha_rules_check",

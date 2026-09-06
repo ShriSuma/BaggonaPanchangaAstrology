@@ -21,7 +21,16 @@ import jsPDF from "jspdf";
 export const BaggonaBookPublisherDashboard: React.FC = () => {
   const [selectedShaka, setSelectedShaka] = useState<number>(1948); // Parabhava (2026-27) by default
   const [selectedSectionFilter, setSelectedSectionFilter] = useState<string>("all");
-  const [viewingPageNumber, setViewingPageNumber] = useState<number>(1);
+  const [viewingPageNumber, setViewingPageNumber] = useState<number>(() => {
+    if (typeof window !== "undefined") {
+      const p = new URLSearchParams(window.location.search).get("page");
+      if (p && !isNaN(Number(p))) {
+        const num = Number(p);
+        if (num >= 1 && num <= 104) return num;
+      }
+    }
+    return 1;
+  });
   const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);
   const [showLoaderModal, setShowLoaderModal] = useState<boolean>(false);
 
@@ -82,13 +91,13 @@ export const BaggonaBookPublisherDashboard: React.FC = () => {
       });
 
       const doc = new jsPDF({
-        orientation: "portrait",
+        orientation: "landscape",
         unit: "mm",
         format: "a4"
       });
 
       const imgData = canvas.toDataURL("image/jpeg", 0.95);
-      doc.addImage(imgData, "JPEG", 0, 0, 210, 297);
+      doc.addImage(imgData, "JPEG", 0, 0, 297, 210);
       doc.save(`Baggona_Panchanga_${currentMeta.samvatsaraEn}_Page_${currentPage.pageNumber}.pdf`);
     } catch (err) {
       console.error("Single page PDF generation failed:", err);
@@ -148,7 +157,7 @@ export const BaggonaBookPublisherDashboard: React.FC = () => {
       const total = pageElements.length || 104;
 
       const doc = new jsPDF({
-        orientation: "portrait",
+        orientation: "landscape",
         unit: "mm",
         format: "a4"
       });
@@ -180,7 +189,7 @@ export const BaggonaBookPublisherDashboard: React.FC = () => {
 
         const imgData = canvas.toDataURL("image/jpeg", 0.92);
         if (i > 0) doc.addPage();
-        doc.addImage(imgData, "JPEG", 0, 0, 210, 297);
+        doc.addImage(imgData, "JPEG", 0, 0, 297, 210);
 
         // Immediate memory cleanup
         canvas.width = 0;
@@ -501,9 +510,35 @@ export const BaggonaBookPublisherDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Live Authentic Render of Current Page */}
+        {/* Dedicated Pages 11–30 Quick Jump Verification Bar */}
+        <div className="bg-amber-950/10 border-2 border-amber-800/30 rounded-2xl p-3 flex flex-col md:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-black uppercase tracking-wider text-amber-950 bg-amber-200/90 px-3 py-1 rounded-lg border border-amber-800/30 flex items-center gap-1.5">
+              <span>🔍</span>
+              <span>ಪುಟ ೧೧ ರಿಂದ ೩೦ ಪರಿಶೀಲನೆ (Pages 11–30 Verification):</span>
+            </span>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-1.5">
+            {Array.from({ length: 20 }, (_, i) => 11 + i).map((pNum) => (
+              <button
+                key={pNum}
+                onClick={() => setViewingPageNumber(pNum)}
+                className={`w-8 h-8 rounded-lg font-mono font-black text-xs transition-all shadow-sm ${
+                  viewingPageNumber === pNum
+                    ? "bg-amber-900 text-white shadow-md scale-110 ring-2 ring-amber-500 font-bold"
+                    : "bg-amber-100/90 hover:bg-amber-200 text-amber-900 hover:scale-105"
+                }`}
+                title={`ಪುಟ ${pNum} ಪರಿಶೀಲಿಸಿ`}
+              >
+                {pNum}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Live Authentic Render of Current Page (A4 Landscape 1123 x 794 px) */}
         <div className="flex justify-center items-center py-4 bg-amber-950/20 rounded-2xl overflow-x-auto shadow-inner p-2">
-          <div id="baggona-live-preview-page" className="scale-90 sm:scale-100 origin-top shadow-2xl">
+          <div id="baggona-live-preview-page" className="scale-75 sm:scale-90 lg:scale-100 origin-top shadow-2xl my-2">
             <UniversalBaggonaPageRenderer page={currentPage} meta={currentMeta} />
           </div>
         </div>
@@ -539,7 +574,7 @@ export const BaggonaBookPublisherDashboard: React.FC = () => {
           position: "fixed",
           left: isGeneratingPdf ? 0 : -99999,
           top: 0,
-          width: 794,
+          width: 1123,
           opacity: isGeneratingPdf ? 0.01 : 0,
           pointerEvents: "none",
           zIndex: isGeneratingPdf ? -10 : -9999,

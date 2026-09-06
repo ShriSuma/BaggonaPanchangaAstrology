@@ -40,6 +40,7 @@ import KundliAcademyStandalonePage from "./pages/KundliAcademyStandalonePage";
 import { PriestPanchangaPage } from "./pages/PriestPanchangaPage";
 import InstantReadingPage from "./pages/InstantReadingPage";
 import PublicKundliPage from "./pages/PublicKundliPage";
+import { BaggonaBookPublisherDashboard } from "./features/admin/BaggonaBookPublisherDashboard";
 
 export default function App(): JSX.Element {
   const isPriestPanchangaRoute = typeof window !== "undefined" && (
@@ -84,6 +85,14 @@ export default function App(): JSX.Element {
     window.location.search.includes("portal=kundli_public") ||
     window.location.search.includes("portal=public") ||
     window.location.hash.includes("#/public-kundli")
+  );
+
+  const isPublisherRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && !isDailyRoute && (
+    window.location.pathname.startsWith("/publisher") ||
+    window.location.pathname.startsWith("/book-publisher") ||
+    window.location.search.includes("portal=publisher") ||
+    window.location.search.includes("portal=book") ||
+    window.location.hash.includes("#/publisher")
   );
 
   const isPriestPortalRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && !isDailyRoute && !isPublicKundliRoute && (
@@ -214,6 +223,16 @@ export default function App(): JSX.Element {
 
   if (isPublicKundliRoute) {
     return <PublicKundliPage />;
+  }
+
+  if (isPublisherRoute) {
+    return (
+      <ErrorBoundary>
+        <div className="min-h-screen bg-slate-950 p-2 sm:p-4 text-amber-100">
+          <BaggonaBookPublisherDashboard />
+        </div>
+      </ErrorBoundary>
+    );
   }
 
   if (isLoading) {
