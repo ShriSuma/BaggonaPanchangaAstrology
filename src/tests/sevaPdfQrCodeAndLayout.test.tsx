@@ -490,4 +490,61 @@ describe("Seva PDF 5-Page Suite & QR Code Verification", () => {
     expect(screen.getByText("ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ದೇವಸ್ಥಾನ, ಗೋಕರ್ಣ")).toBeInTheDocument();
     unmountDefault();
   });
+
+  it("renders SevaPoojaMahatmePrint with localized 4 Graha Beeja Mantras in Tamil with zero Kannada leakage", () => {
+    const { container, unmount } = render(
+      <SevaPoojaMahatmePrint
+        lang="ta"
+        identity={mockIdentity}
+        panditName="Shreeram Pandit"
+      />
+    );
+
+    // Assert Tamil Mantras are present
+    expect(screen.getByText("ஓம் ஹ்ராம் ஹ்ரீம் ஸஃ சூர்யாய நமஃ")).toBeInTheDocument();
+    expect(screen.getByText("ஓம் தத்புருஷாய வித்மஹே மஹாதேவாய தீமஹி தந்நோ ருத்ரஃ ப்ரசோதயாத்")).toBeInTheDocument();
+    expect(screen.getByText("ஓம் ஸ்ரீம் ஹ்ரீம் க்லீம் மஹாலக்ஷ்ம்யை நமஃ")).toBeInTheDocument();
+    expect(screen.getByText("ஓம் ப்ரம் காலபைரவாய நமஃ")).toBeInTheDocument();
+
+    // Assert NO Kannada script leakage in the mantra cards
+    const textContent = container.textContent || "";
+    expect(textContent).not.toContain("ಸೂರ್ಯಾಯ ನಮಃ");
+    expect(textContent).not.toContain("ಪ್ರಚೋದಯಾತ್");
+    expect(textContent).not.toContain("ಮಹಾಲಕ್ಷ್ಮ್ಯೈ ನಮಃ");
+    expect(textContent).not.toContain("ಕಾಲಭೈರವಾಯ ನಮಃ");
+
+    unmount();
+  });
+
+  it("renders SevaPoojaMahatmePrint with localized 4 Graha Beeja Mantras in Telugu and Hindi", () => {
+    // 1. Telugu
+    const { unmount: unmountTe } = render(
+      <SevaPoojaMahatmePrint
+        lang="te"
+        identity={mockIdentity}
+        panditName="Shreeram Pandit"
+      />
+    );
+
+    expect(screen.getByText("ఓం హ్రాం హ్రీం సః సూర్యాయ నమః")).toBeInTheDocument();
+    expect(screen.getByText("ఓం తత్పురుషాయ విద్మహే మహాదేవాయ ధీమహి తన్నో రుద్రః ప్రచోదయాత్")).toBeInTheDocument();
+    expect(screen.getByText("ఓం శ్రీం హ్రీం క్లీం మహాలక్ష్మ్యై నమః")).toBeInTheDocument();
+    expect(screen.getByText("ఓం భ్రం కాలభైరవాయ నమః")).toBeInTheDocument();
+    unmountTe();
+
+    // 2. Hindi
+    const { unmount: unmountHi } = render(
+      <SevaPoojaMahatmePrint
+        lang="hi"
+        identity={mockIdentity}
+        panditName="Shreeram Pandit"
+      />
+    );
+
+    expect(screen.getByText("ॐ ह्रां ह्रीं सः सूर्याय नमः")).toBeInTheDocument();
+    expect(screen.getByText("ॐ तत्पुरुषाय विद्महे महादेवाय धीमहि तन्नो रुद्रः प्रचोदयात्")).toBeInTheDocument();
+    expect(screen.getByText("ॐ श्रीं ह्रीं क्लीं महालक्ष्म्यै नमः")).toBeInTheDocument();
+    expect(screen.getByText("ॐ भ्रं कालभैरवाय नमः")).toBeInTheDocument();
+    unmountHi();
+  });
 });
