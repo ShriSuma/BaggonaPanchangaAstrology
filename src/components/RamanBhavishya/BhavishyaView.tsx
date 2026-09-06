@@ -48,11 +48,27 @@ const toGraha = (planet: PlanetName | string): GrahaKey => String(planet) as Gra
 const asText = (value: string | string[] | undefined): string =>
   Array.isArray(value) ? value.join(" ") : value ?? "";
 
-const toSafeArray = (val: any): any[] => {
+export const toSafeArray = (val: any): any[] => {
   if (!val) return [];
-  if (Array.isArray(val)) return val;
+  if (Array.isArray(val)) {
+    return val.map(item => {
+      if (typeof item === "string") return { impact: item };
+      if (item && typeof item === "object") {
+        return {
+          ...item,
+          impact: item.impact || item.summary || item.description || item.trait || item.text || ""
+        };
+      }
+      return item;
+    });
+  }
   if (typeof val === "string") return [{ impact: val }];
-  if (typeof val === "object") return [val];
+  if (typeof val === "object") {
+    return [{
+      ...val,
+      impact: val.impact || val.summary || val.description || val.trait || val.text || ""
+    }];
+  }
   return [];
 };
 
@@ -1715,9 +1731,12 @@ Return ONLY this JSON format:
       await document.fonts.ready;
       await new Promise(resolve => setTimeout(resolve, 400));
 
+      const domHeight = containerEl.scrollHeight || containerEl.offsetHeight;
+      const safeScale = domHeight > 0 ? Math.min(2, Math.max(1, 30000 / domHeight)) : 2;
+
       // Generate PDF
       const canvas = await html2canvas(containerEl, {
-        scale: 2,
+        scale: safeScale,
         useCORS: true,
         logging: false,
         backgroundColor: "#FFFFFF",

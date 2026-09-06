@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildPersonalizedMarriageText, buildPersonalizedChildrenText } from '../components/RamanBhavishya/BhavishyaView';
+import { buildPersonalizedMarriageText, buildPersonalizedChildrenText, toSafeArray } from '../components/RamanBhavishya/BhavishyaView';
 import { cleanEnglishFromRegionalText } from '../features/premiumPdf/premiumPdfLocale';
 import { buildPremiumPrompts } from '../features/premiumPdf/premiumPrompts';
 import fs from 'fs';
@@ -224,6 +224,38 @@ describe('PDF Report Contract & Regression Test Suite', () => {
 
       expect(devBlockIdx).toBeGreaterThan(0);
       expect(testButtonIdx).toBeGreaterThan(devBlockIdx);
+    });
+  });
+
+  describe('6. Premium PDF Section Data Normalization & Summary Integrity', () => {
+    it('normalizes string arrays from Gemini into objects with impact property', () => {
+      const rawGeminiSummary = [
+        "Parameshwar, your thirty-fifth year rests under the steady influence of Jupiter.",
+        "Balancing this professional growth requires careful management.",
+        "May you walk this path with quiet confidence and an open heart."
+      ];
+
+      const safe = toSafeArray(rawGeminiSummary);
+      expect(safe.length).toBe(3);
+      expect(safe[0]).toEqual({ impact: rawGeminiSummary[0] });
+      expect(safe[1]).toEqual({ impact: rawGeminiSummary[1] });
+      expect(safe[2]).toEqual({ impact: rawGeminiSummary[2] });
+
+      // Ensure that hasContent / length check passes
+      const hasContent = safe.some(item => (item.impact || "").trim().length > 10);
+      expect(hasContent).toBe(true);
+    });
+
+    it('normalizes objects with alternative summary/text keys into impact', () => {
+      const altObj = { summary: "This is a comprehensive astrological summary for the year." };
+      const safe = toSafeArray(altObj);
+      expect(safe.length).toBe(1);
+      expect(safe[0].impact).toBe(altObj.summary);
+
+      const altArr = [{ text: "Key spiritual and career milestones ahead." }];
+      const safeArr = toSafeArray(altArr);
+      expect(safeArr.length).toBe(1);
+      expect(safeArr[0].impact).toBe(altArr[0].text);
     });
   });
 
