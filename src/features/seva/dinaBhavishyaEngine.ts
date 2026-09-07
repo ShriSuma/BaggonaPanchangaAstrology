@@ -26,7 +26,9 @@ import { normalizeDegree } from "../../core/AstroMath";
 import { type KundliOutput, type PlanetPosition, PlanetName } from "../../core/AstroTypes";
 import { findBhuktiAtAge } from "../../core/DashaBhuktiEngine";
 import { askGemini } from "../../core/GeminiEngine";
-import { getDailyKaalaTimings, getDayLordIndex } from "./icsCalendarGenerator";
+import { getDailyKaalaTimings, getDayLordIndex, getEnergyMeterAndVibe } from "./icsCalendarGenerator";
+import type { RhythmDay } from "../../core/DailyRhythmEngine";
+import { getIndianStandardDateStr } from "../../core/placeTime";
 import {
   RASHI_L5,
   NAKSHATRA_L5,
@@ -261,82 +263,122 @@ const WEEKDAY_NAMES: Record<number, Record<SevaLang, string>> = {
 const DEITY_CONFIG: Record<number, {
   deityL5: Record<SevaLang, string>;
   mantra: string;
+  countL5: Record<SevaLang, string>;
   count: string;
+  colorL5: Record<SevaLang, string>;
   colorKn: string;
   colorEn: string;
+  colorKey: ColourKey;
   number: string;
+  directionL5: Record<SevaLang, string>;
   directionKn: string;
   directionEn: string;
+  directionKey: DirectionKey;
 }> = {
   0: {
     deityL5: { kn: "ಶ್ರೀ ಸೂರ್ಯನಾರಾಯಣ ಸ್ವಾಮಿ", en: "Lord Surya Narayana", hi: "भगवान सूर्यनारायण", te: "శ్రీ సూర్యనారాయణ స్వామి", ta: "ஸ்ரீ சூரியநாராயணர்" },
     mantra: "ॐ ಹ್ರಾಂ ಹ್ರೀಂ ಹ್ರೌಂ ಸಃ ಸೂರ್ಯಾಯ ನಮಃ",
+    countL5: { kn: "೧೨ ಬಾರಿ", hi: "१२ बार", te: "౧౨ సార్లు", ta: "12 முறைகள்", en: "12 times" },
     count: "12 ಬಾರಿ (12 times)",
+    colorL5: { kn: "ಕೆಂಪು ಮತ್ತು ಕೇಸರಿ", hi: "लाल एवं केसरिया", te: "ఎరుపు మరియు కాషాయం", ta: "சிவப்பு மற்றும் ஆரஞ்சு", en: "Ruby Red & Saffron" },
     colorKn: "ಕೆಂಪು ಮತ್ತು ಕೇಸರಿ",
     colorEn: "Ruby Red & Saffron",
+    colorKey: "red",
     number: "1 · 4 · 7",
+    directionL5: DIRECTION_L5.east,
     directionKn: "ಪೂರ್ವ",
-    directionEn: "East"
+    directionEn: "East",
+    directionKey: "east"
   },
   1: {
     deityL5: { kn: "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ & ಚಂದ್ರಮೌಳೀಶ್ವರ", en: "Lord Gokarna Mahabaleshwara & Chandramouleshwara", hi: "भगवान महाबलेश्वर एवं चंद्रमौलेश्वर", te: "శ్రీ మహాబలేశ్వర & చంద్రమౌళీశ్వర", ta: "ஸ்ரீ மகாதேவர் & சந்திரமௌலீஸ்வரர்" },
     mantra: "ॐ ನಮಃ ಶಿವಾಯ | ॐ ಶ್ರಾಂ ಶ್ರೀಂ ಶ್ರೌಂ ಸಃ ಚಂದ್ರಮಸೇ ನಮಃ",
+    countL5: { kn: "೧೧ ಬಾರಿ", hi: "११ बार", te: "౧౧ సార్లు", ta: "11 முறைகள்", en: "11 times" },
     count: "11 ಬಾರಿ (11 times)",
+    colorL5: { kn: "ಶುಭ್ರ ಬಿಳಿ ಮತ್ತು ಮುತ್ತಿನ ಬಣ್ಣ", hi: "श्वेत एवं मोती रंग", te: "స్వచ్ఛమైన తెలుపు & ముత్యం", ta: "தூய வெள்ளை & முத்து", en: "Pure White & Pearl" },
     colorKn: "ಶುಭ್ರ ಬಿಳಿ ಮತ್ತು ಮುತ್ತಿನ ಬಣ್ಣ",
     colorEn: "Pure White & Pearl",
+    colorKey: "white",
     number: "2 · 7 · 9",
+    directionL5: DIRECTION_L5.northwest,
     directionKn: "ವಾಯವ್ಯ",
-    directionEn: "North-West"
+    directionEn: "North-West",
+    directionKey: "northwest"
   },
   2: {
     deityL5: { kn: "ಶ್ರೀ ಸುಬ್ರಹ್ಮಣ್ಯ ಸ್ವಾಮಿ & ಮಂಗಳ", en: "Lord Subramanya & Mangala", hi: "भगवान सुब्रमण्य एवं मंगल देव", te: "శ్రీ సుబ్రహ్మణ్య స్వామి & అంగారకుడు", ta: "ஸ்ரீ முருகப் பெருமான் & அங்காரகன்" },
     mantra: "ॐ ಕ್ರಾಂ ಕ್ರೀಂ ಕ್ರೌಂ ಸಃ ಭೌಮಾಯ ನಮಃ | ॐ ಶರವಣಭವಾಯ ನಮಃ",
+    countL5: { kn: "೨೧ ಬಾರಿ", hi: "२१ बार", te: "౨౧ సార్లు", ta: "21 முறைகள்", en: "21 times" },
     count: "21 ಬಾರಿ (21 times)",
+    colorL5: { kn: "ಹವಳದ ಕೆಂಪು", hi: "मूंगा लाल", te: "పగడపు ఎరుపు", ta: "பவள சிவப்பு", en: "Coral Red" },
     colorKn: "ಹವಳದ ಕೆಂಪು",
     colorEn: "Coral Red",
+    colorKey: "red",
     number: "9 · 3 · 6",
+    directionL5: DIRECTION_L5.south,
     directionKn: "ದಕ್ಷಿಣ",
-    directionEn: "South"
+    directionEn: "South",
+    directionKey: "south"
   },
   3: {
     deityL5: { kn: "ಶ್ರೀ ಮಹಾವಿಷ್ಣು & ಬುಧ ಸ್ವಾಮಿ", en: "Lord Mahavishnu & Budha", hi: "भगवान महाविष्णु एवं बुध देव", te: "శ్రీ మహావిష్ణువు & బుధుడు", ta: "ஸ்ரீ மகாவிஷ்ணு & புதன் பகவான்" },
     mantra: "ॐ ಬ್ರಾಂ ಬ್ರೀಂ ಬ್ರೌಂ ಸಃ ಬುಧಾಯ ನಮಃ | ॐ ನಮೋ ನಾರಾಯಣಾಯ",
+    countL5: { kn: "೧೭ ಬಾರಿ", hi: "१७ बार", te: "౧೭ సార్లు", ta: "17 முறைகள்", en: "17 times" },
     count: "17 ಬಾರಿ (17 times)",
+    colorL5: { kn: "ಹಸಿರು (ಮರಕತ)", hi: "पन्ना हरा", te: "పచ్చని ఆకుపచ్చ", ta: "மரகத பச்சை", en: "Emerald Green" },
     colorKn: "ಹಸಿರು (ಮರಕತ)",
     colorEn: "Emerald Green",
+    colorKey: "green",
     number: "5 · 1 · 8",
+    directionL5: DIRECTION_L5.north,
     directionKn: "ಉತ್ತರ",
-    directionEn: "North"
+    directionEn: "North",
+    directionKey: "north"
   },
   4: {
     deityL5: { kn: "ಶ್ರೀ ಗುರು ರಾಘವೇಂದ್ರ & ಬೃಹಸ್ಪತಿ ಸ್ವಾಮಿ", en: "Lord Guru Raghavendra & Brihaspati", hi: "भगवान गुरु राघवेंद्र एवं बृहस्पति", te: "శ్రీ గురు రాఘవేంద్ర & బృహస్పతి", ta: "ஸ்ரீ குரு ராகவேந்திரர் & பிரகஸ்பதி" },
     mantra: "ॐ ಗ್ರಾಂ ಗ್ರೀಂ ಗ್ರೌಂ ಸಃ ಗುರವೇ ನಮಃ | ॐ ಶ್ರೀ ರಾಘವೇಂದ್ರಾಯ ನಮಃ",
+    countL5: { kn: "೧೯ ಬಾರಿ", hi: "१९ बार", te: "౧౯ సార్లు", ta: "19 முறைகள்", en: "19 times" },
     count: "19 ಬಾರಿ (19 times)",
+    colorL5: { kn: "ಚಿನ್ನದ ಹಳದಿ", hi: "स्वर्ण पीला", te: "బంగారు పసుపు", ta: "பொன் மஞ்சள்", en: "Golden Yellow" },
     colorKn: "ಚಿನ್ನದ ಹಳದಿ",
     colorEn: "Golden Yellow",
+    colorKey: "yellow",
     number: "3 · 7 · 9",
+    directionL5: DIRECTION_L5.northeast,
     directionKn: "ಈಶಾನ್ಯ",
-    directionEn: "North-East"
+    directionEn: "North-East",
+    directionKey: "northeast"
   },
   5: {
     deityL5: { kn: "ಶ್ರೀ ಮಹಾಲಕ್ಷ್ಮಿ & ಶುಕ್ರಾಚಾರ್ಯ", en: "Goddess Mahalakshmi & Shukra", hi: "माता महालक्ष्मी एवं शुक्र देव", te: "శ్రీ మహాలక్ష్మి & శుక్రుడు", ta: "ஸ்ரீ மகாலட்சுமி & சுக்கிரன்" },
     mantra: "ॐ ದ್ರಾಂ ದ್ರೀಂ ದ್ರೌಂ ಸಃ ಶುಕ್ರಾಯ ನಮಃ | ॐ ಶ್ರೀಂ ಮಹಾಲಕ್ಷ್ಮ್ಯೈ ನಮಃ",
+    countL5: { kn: "೧೬ ಬಾರಿ", hi: "१६ बार", te: "౧౬ సార్లు", ta: "16 முறைகள்", en: "16 times" },
     count: "16 ಬಾರಿ (16 times)",
+    colorL5: { kn: "ಗುಲಾಬಿ ಮತ್ತು ರೇಷ್ಮೆ ಶ್ವೇತ", hi: "गुलाबी एवं रेशमी श्वेत", te: "గులాబీ & పట్టు తెలుపు", ta: "ரோஸ் & பட்டு வெள்ளை", en: "Rose Pink & Silk White" },
     colorKn: "ಗುಲಾಬಿ ಮತ್ತು ರೇಷ್ಮೆ ಶ್ವೇತ",
     colorEn: "Rose Pink & Silk White",
+    colorKey: "pink",
     number: "6 · 5 · 8",
+    directionL5: DIRECTION_L5.southeast,
     directionKn: "ಆಗ್ನೇಯ",
-    directionEn: "South-East"
+    directionEn: "South-East",
+    directionKey: "southeast"
   },
   6: {
     deityL5: { kn: "ಶ್ರೀ ಹನುಮಂತ & ಶನೈಶ್ಚರ ಸ್ವಾಮಿ", en: "Lord Hanuman & Shanaishchara", hi: "भगवान हनुमान एवं शनैश्चर देव", te: "శ్రీ హనుమాన్ & శనీశ్వరుడు", ta: "ஸ்ரீ ஆஞ்சநேயர் & சனீஸ்வரர்" },
     mantra: "ॐ ಪ್ರಾಂ ಪ್ರೀಂ ಪ್ರೌಂ ಸಃ ಶನೈಶ್ಚರಾಯ ನಮಃ | ॐ ಹಂ ಹನುಮತೇ ನಮಃ",
+    countL5: { kn: "೨೩ ಬಾರಿ", hi: "२३ बार", te: "౨౩ సార్లు", ta: "23 முறைகள்", en: "23 times" },
     count: "23 ಬಾರಿ (23 times)",
+    colorL5: { kn: "ಕಡು ನೀಲಿ / ಕಪ್ಪು", hi: "गहरा नीला / काला", te: "ముదురు నీలం / నలుపు", ta: "அடர் நீலம் / கருப்பு", en: "Royal Navy Blue" },
     colorKn: "ಕಡು ನೀಲಿ / ಕಪ್ಪು",
     colorEn: "Royal Navy Blue",
+    colorKey: "darkblue",
     number: "8 · 4 · 6",
+    directionL5: DIRECTION_L5.west,
     directionKn: "ಪಶ್ಚಿಮ",
-    directionEn: "West"
+    directionEn: "West",
+    directionKey: "west"
   }
 };
 
@@ -428,6 +470,7 @@ export interface DinaBhavishyaParams {
   userIdentifier?: string;
   geminiApiKey?: string;
   forceRegenerate?: boolean;
+  rhythmDay?: RhythmDay;
 }
 
 export async function getOrComputeDinaBhavishya(params: DinaBhavishyaParams): Promise<DinaBhavishyaPayload> {
@@ -445,15 +488,12 @@ export async function getOrComputeDinaBhavishya(params: DinaBhavishyaParams): Pr
     userPincode = "581326",
     userIdentifier = "devotee",
     geminiApiKey,
-    forceRegenerate = false
+    forceRegenerate = false,
+    rhythmDay
   } = params;
 
-  // Strict local date determination
-  const now = new Date();
-  const localOffsetMinutes = Math.round(userLng * 4);
-  const utcMs = now.getTime() + (now.getTimezoneOffset() * 60000);
-  const localTodayObj = new Date(utcMs + (localOffsetMinutes * 60000));
-  const todayYmd = localTodayObj.toISOString().split("T")[0];
+  // Strict Indian Standard Time (IST, UTC+05:30) date determination
+  const todayYmd = getIndianStandardDateStr(new Date());
 
   const effectiveDate = targetDateRequested && targetDateRequested.trim().length > 0
     ? targetDateRequested.trim()
@@ -562,18 +602,29 @@ export async function getOrComputeDinaBhavishya(params: DinaBhavishyaParams): Pr
     }
   }
 
-  activeDashaSummary = lang === "kn"
-    ? `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${activeMaha} ಮಹಾದಶಾ ಮತ್ತು ${activeBhukti} ಭುಕ್ತಿ`
-    : `Running ${activeMaha} Mahadasha & ${activeBhukti} Bhukti`;
+  const mahaName = pick(GRAHA_L5[activeMaha as GrahaKey], lang) || activeMaha;
+  const bhuktiName = pick(GRAHA_L5[activeBhukti as GrahaKey], lang) || activeBhukti;
 
-  // Energy Score computation
-  let baseScore = 75;
-  if (chandraBalaInfo.isFavorable) baseScore += 12;
-  else baseScore -= 18;
-  if (taraBalaInfo.isGood) baseScore += 8;
-  else baseScore -= 12;
-  if (chandraBalaHouse === 8) baseScore = Math.min(baseScore, 46); // Chandrashtama cap
-  const energyScore = Math.max(35, Math.min(98, baseScore));
+  activeDashaSummary = lang === "kn"
+    ? `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${mahaName} ಮಹಾದಶಾ ಮತ್ತು ${bhuktiName} ಭುಕ್ತಿ`
+    : lang === "hi"
+    ? `वर्तमान में चल रही ${mahaName} महादशा एवं ${bhuktiName} भुक्ति`
+    : lang === "te"
+    ? `ప్రస్తుతం నడుస్తున్న ${mahaName} మహార్దశ మరియు ${bhuktiName} భుక్తి`
+    : lang === "ta"
+    ? `தற்போது நடைபெற்று வரும் ${mahaName} மகாதசை மற்றும் ${bhuktiName} புக்தி`
+    : `Running ${mahaName} Mahadasha & ${bhuktiName} Bhukti`;
+
+  // Energy Score computation (100% synchronized with Calendar deterministic score)
+  const energyScore = rhythmDay?.energyScore ?? (() => {
+    let baseScore = 75;
+    if (chandraBalaInfo.isFavorable) baseScore += 12;
+    else baseScore -= 18;
+    if (taraBalaInfo.isGood) baseScore += 8;
+    else baseScore -= 12;
+    if (chandraBalaHouse === 8) baseScore = Math.min(baseScore, 46); // Chandrashtama cap
+    return Math.max(35, Math.min(98, baseScore));
+  })();
 
   const deity = DEITY_CONFIG[dayLordIdx] || DEITY_CONFIG[1];
   const kaala = getDailyKaalaTimings(dayLordIdx, lang, effectiveDate, userLat, userLng, userPincode);
@@ -744,7 +795,7 @@ Section 4: Travel, Auspicious Timing & Day Guidance (Abhijit Muhurtha & Lucky at
     lagnaName: localizedLagna,
     energyScore,
     overallVibe: overview,
-    badgeEmoji: energyScore >= 75 ? "🟢" : energyScore >= 50 ? "🟡" : "🔴",
+    badgeEmoji: rhythmDay ? getEnergyMeterAndVibe(rhythmDay, lang).badgeEmoji : (energyScore >= 75 ? "🟢" : (energyScore < 50 || chandraBalaHouse === 8) ? "🔴" : "🟡"),
     chandraBalaHouse,
     chandraBalaText: chandraBalaInfo.title,
     taraBalaNumber,
@@ -757,12 +808,18 @@ Section 4: Travel, Auspicious Timing & Day Guidance (Abhijit Muhurtha & Lucky at
     travelAndInitiatives,
     abhijitMuhurtha,
     rahuKaala: kaala.rahu,
-    luckyColor: lang === "kn" ? deity.colorKn : deity.colorEn,
-    luckyNumber: deity.number,
-    luckyDirection: lang === "kn" ? deity.directionKn : deity.directionEn,
+    luckyColor: rhythmDay?.luckyColour
+      ? (pick(COLOUR_L5[rhythmDay.luckyColour as ColourKey], lang) || rhythmDay.luckyColour)
+      : (pick(deity.colorL5, lang) || deity.colorL5.en),
+    luckyNumber: Array.isArray(rhythmDay?.luckyNumbers)
+      ? rhythmDay.luckyNumbers.join(" · ")
+      : deity.number,
+    luckyDirection: rhythmDay?.luckyDirection
+      ? (pick(DIRECTION_L5[rhythmDay.luckyDirection as DirectionKey], lang) || rhythmDay.luckyDirection)
+      : (pick(deity.directionL5, lang) || deity.directionL5.en),
     deityName: deity.deityL5[lang] || deity.deityL5.en,
     siddhaMantra: deity.mantra,
-    japaRecommendation: deity.count,
+    japaRecommendation: deity.countL5[lang] || deity.countL5.en,
     priestBlessing
   };
 

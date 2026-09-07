@@ -23,6 +23,7 @@ import {
   decodeDevoteeToken,
   encodeDevoteeToken
 } from "../../utils/tokenCipher";
+import { getIndianStandardDateStr } from "../../core/placeTime";
 import { getSafeProductionOrigin } from "./icsCalendarGenerator";
 
 const BASE62_CHARS = "0123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
@@ -93,7 +94,7 @@ export async function createDatabaseDevoteeToken(
 
   const devoteeName = payload.name ?? payload.n ?? "Devotee";
   const priestName = payload.pandit ?? payload.p ?? "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್";
-  const startDate = payload.startDate ?? payload.sd ?? payload.date ?? payload.d ?? now.toISOString().split("T")[0];
+  const startDate = payload.startDate ?? payload.sd ?? payload.date ?? payload.d ?? getIndianStandardDateStr(now);
   const lang = payload.lang ?? payload.l ?? "kn";
   const time = payload.time ?? payload.tm ?? "08:00";
 
@@ -279,7 +280,7 @@ export async function resolveDevoteeToken(
     rashi: decoded.rashi ?? decoded.r,
     gotra: decoded.gotra ?? decoded.g,
     priestName: decoded.pandit || decoded.p || "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
-    startDate: decoded.startDate || decoded.sd || decoded.date || decoded.d || now.toISOString().split("T")[0],
+    startDate: decoded.startDate || decoded.sd || decoded.date || decoded.d || getIndianStandardDateStr(now),
     totalDays,
     lang: decoded.lang || decoded.l || "kn",
     notificationTime: decoded.time || decoded.tm || "08:00",

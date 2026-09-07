@@ -10,7 +10,7 @@
 
 import type { SevaLang } from "./sevaLocale";
 import { getVoiceProfileById, type PriestAudioKey } from "../audio/priestVoiceDatabase";
-import { synthesizeAndPlayClonedVoice, stopClonedAudio } from "../audio/aiVoiceCloneEngine";
+import { synthesizeAndPlayClonedVoice, stopClonedAudio, resolveBestVedicVoice } from "../audio/aiVoiceCloneEngine";
 import {
   stopAllAudioGlobal,
   startNewAudioSession,
@@ -101,25 +101,52 @@ export function speakPriestNarration(
     return () => {};
   }
 
-  const token = startNewAudioSession();
-  const profile = getVoiceProfileById(voiceId);
+  // NOTE: synthesizeAndPlayClonedVoice manages its own audio session token.
+  // Do NOT call startNewAudioSession() here, which would bump currentPlaybackToken
+  // and cause isPlaybackTokenActive(token) to immediately fail upon completion!
+  let cancelCloneFn: (() => void) | null = null;
+  let isCancelled = false;
+
+  const safeOnEnd = () => {
+    if (!isCancelled && onEnd) {
+      onEnd();
+    }
+  };
+
+  const safeOnStart = () => {
+    if (!isCancelled && onStart) {
+      onStart();
+    }
+  };
 
   // Pure Real-time AI Voice Synthesis (Sarvam AI Neural TTS with Web Speech Fallback)
-  let cancelCloneFn: (() => void) | null = null;
-  synthesizeAndPlayClonedVoice(text, lang, voiceId, onEnd, onStart).then((cancelFn) => {
-    if (!isPlaybackTokenActive(token)) {
+  synthesizeAndPlayClonedVoice(text, lang, voiceId, safeOnEnd, safeOnStart).then((cancelFn) => {
+    if (isCancelled) {
       if (cancelFn) cancelFn();
       return;
     }
     cancelCloneFn = cancelFn;
-  }).catch(() => {
-    if (!isPlaybackTokenActive(token)) return;
-    cancelCloneFn = fallbackMaleTTS(text, lang, onEnd, profile?.voicePitch || 0.74, profile?.voiceRate || 0.86, onStart, token);
+  }).catch((err) => {
+    if (isCancelled) return;
+    console.warn("[PriestAudioNarrator] AI Voice Clone error, falling back:", err);
+    const profile = getVoiceProfileById(voiceId);
+    cancelCloneFn = fallbackMaleTTS(
+      text,
+      lang,
+      safeOnEnd,
+      profile?.voicePitch || 0.74,
+      profile?.voiceRate || 0.86,
+      safeOnStart
+    );
   });
 
   return () => {
-    if (cancelCloneFn) cancelCloneFn();
-    stopAllAudioGlobal();
+    isCancelled = true;
+    if (cancelCloneFn) {
+      cancelCloneFn();
+    } else {
+      stopAllAudioGlobal();
+    }
   };
 }
 
@@ -155,44 +182,9 @@ function fallbackMaleTTS(
   utterance.rate = rate;  // Solemn, authoritative Vedic recitation pace
   utterance.volume = 1.0;
 
-  // Strict blacklist to banish Mikaela, Coral, Samantha, and any female synth voices
-  const bannedFemaleNames = [
-    "mikaela", "coral", "samantha", "victoria", "karen", "tessa", "kyoko",
-    "moira", "fiona", "siri", "zira", "veena", "sangeeta", "kalpana", "neerja",
-    "heera", "sunita", "harita", "shruti", "priya", "pooja", "female", "girl"
-  ];
-
-  const preferredMaleNames = [
-    "rishi", "ravi", "hemant", "gagan", "madhav", "deep", "pradeep", "manoj",
-    "pankaj", "tarun", "kiran", "male", "daniel", "fred", "alex", "george", "guy"
-  ];
-
   const voices = window.speechSynthesis.getVoices();
-
   if (voices && voices.length > 0) {
-    const indianMale = voices.find(v => {
-      const name = v.name.toLowerCase();
-      const isIndian = v.lang.includes("IN") || v.lang.includes("kn") || v.lang.includes("hi");
-      const isBanned = bannedFemaleNames.some(b => name.includes(b));
-      const isMale = preferredMaleNames.some(m => name.includes(m));
-      return isIndian && isMale && !isBanned;
-    });
-
-    const anyIndianNonFemale = voices.find(v => {
-      const name = v.name.toLowerCase();
-      const isIndian = v.lang.includes("IN") || v.lang.includes("kn") || v.lang.includes("hi");
-      const isBanned = bannedFemaleNames.some(b => name.includes(b));
-      return isIndian && !isBanned;
-    });
-
-    const anyMale = voices.find(v => {
-      const name = v.name.toLowerCase();
-      const isBanned = bannedFemaleNames.some(b => name.includes(b));
-      const isMale = preferredMaleNames.some(m => name.includes(m));
-      return isMale && !isBanned;
-    });
-
-    const chosenVoice = indianMale || anyIndianNonFemale || anyMale;
+    const chosenVoice = resolveBestVedicVoice(voices, lang);
     if (chosenVoice) {
       utterance.voice = chosenVoice;
     }

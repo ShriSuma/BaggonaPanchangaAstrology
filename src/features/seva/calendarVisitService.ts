@@ -30,6 +30,7 @@ import {
 import { saveKundliToFirestore, type KundliHistoryDoc } from "../../db/firestoreDb";
 import type { KundliOutput } from "../../core/AstroTypes";
 import { isTestEnvironment, isMockDevotee } from "../../utils/testEnvGuard";
+import { getIndianStandardDateStr } from "../../core/placeTime";
 
 export interface CalendarVisitRecord {
   id?: string;
@@ -120,12 +121,12 @@ export function checkPassExpiration(
   startDateStr?: string,
   totalDays = 90
 ): PassExpirationResult {
-  const fallbackStart = new Date().toISOString().split("T")[0];
+  const fallbackStart = getIndianStandardDateStr();
   const startYmd = startDateStr && startDateStr.trim().length === 10 ? startDateStr.trim() : fallbackStart;
   
   const start = new Date(startYmd);
   const now = new Date();
-  const todayYmd = now.toISOString().split("T")[0];
+  const todayYmd = getIndianStandardDateStr(now);
   const today = new Date(todayYmd);
 
   if (isNaN(start.getTime())) {
@@ -148,7 +149,7 @@ export function checkPassExpiration(
   const isExpired = daysElapsed >= totalDays;
 
   const expDateObj = new Date(startUtc + totalDays * 24 * 60 * 60 * 1000);
-  const expiryDate = expDateObj.toISOString().split("T")[0];
+  const expiryDate = getIndianStandardDateStr(expDateObj);
 
   return {
     isExpired,
@@ -175,11 +176,11 @@ export async function recordCalendarVisit(params: CalendarVisitRecord): Promise<
 
     const rawToken = (params.tokenIdentifier || "guest").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 40);
     const tokenKey = rawToken.length > 0 ? rawToken : `dev_${Date.now().toString(36)}`;
-    const visitDate = params.actualDate || new Date().toISOString().split("T")[0];
+    const visitDate = params.actualDate || getIndianStandardDateStr(new Date());
     const clickDate = params.dateClicked || visitDate;
     const visitId = `visit_${tokenKey}_${visitDate}_${clickDate}`;
     const nowIso = new Date().toISOString();
-    const todayYmd = nowIso.split("T")[0];
+    const todayYmd = getIndianStandardDateStr(new Date());
     const durationDays = Number(params.durationDays) > 0 ? Number(params.durationDays) : 90;
 
     // 1. Log or update canonical visit record (deduplicated per devotee per date)
@@ -458,7 +459,7 @@ export function getPoojaStreak(devoteeKey = "devotee_default"): PoojaStreakInfo 
     }
 
     const data = JSON.parse(raw);
-    const today = new Date().toISOString().split("T")[0];
+    const today = getIndianStandardDateStr();
     const isCompletedToday = data.lastSankalpaDate === today;
 
     // Check if streak is still active (yesterday or today)
@@ -500,7 +501,7 @@ export async function recordPoojaSankalpaCompleted(
   gotra = "ಕಾಶ್ಯಪ",
   priestName = "Shreeram Pandit"
 ): Promise<PoojaStreakInfo> {
-  const today = new Date().toISOString().split("T")[0];
+  const today = getIndianStandardDateStr();
   const current = getPoojaStreak(devoteeKey);
 
   if (current.isCompletedToday) {
@@ -627,7 +628,7 @@ export async function fetchPoojaStreakFromCloud(devoteeKey = "devotee_default"):
       const cloudLastDate = String(data.lastSankalpaDate || "");
       const cloudTotal = Number(data.totalSankalpas) || 0;
 
-      const today = new Date().toISOString().split("T")[0];
+      const today = getIndianStandardDateStr();
       const isCompletedToday = cloudLastDate === today;
 
       let validStreak = cloudStreak;
@@ -798,9 +799,9 @@ export async function extendSubscriptionValidity(
     const snap = await getDoc(engRef);
 
     const now = new Date();
-    const todayYmd = now.toISOString().split("T")[0];
+    const todayYmd = getIndianStandardDateStr(now);
     const newExpiryObj = new Date(now.getTime() + additionalDays * 24 * 60 * 60 * 1000);
-    const newExpiryYmd = newExpiryObj.toISOString().split("T")[0];
+    const newExpiryYmd = getIndianStandardDateStr(newExpiryObj);
 
     if (snap.exists()) {
       await updateDoc(engRef, {

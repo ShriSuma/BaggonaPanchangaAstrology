@@ -1,4 +1,4 @@
-import React, { useRef, useState, useMemo } from "react";
+import React, { useRef, useState, useMemo, useEffect } from "react";
 import html2canvas from "html2canvas";
 import {
   getDailyInspiration,
@@ -42,6 +42,12 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
     ["kn", "en", "hi", "te", "ta"].includes(lang) ? (lang as SupportedLang) : "kn"
   );
 
+  useEffect(() => {
+    if (["kn", "en", "hi", "te", "ta"].includes(lang)) {
+      setSelectedLang(lang as SupportedLang);
+    }
+  }, [lang]);
+
   // Exact deterministic date for all 365 days
   const parsedDate = useMemo(() => {
     try {
@@ -67,15 +73,28 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
   }, [bgConfig]);
 
   const morningVibe = inspiration.goodMorningVibe[selectedLang] || inspiration.goodMorningVibe.kn;
-  const shlokaText = customShlokaText || (selectedLang === "en" ? inspiration.shlokaText.transliteration : inspiration.shlokaText.kn);
+  const shlokaText = customShlokaText || (
+    selectedLang === "en" ? inspiration.shlokaText.transliteration :
+    selectedLang === "hi" ? (inspiration.shlokaText.hi || inspiration.shlokaText.sa) :
+    selectedLang === "te" ? (inspiration.shlokaText.te || inspiration.shlokaText.sa) :
+    selectedLang === "ta" ? (inspiration.shlokaText.ta || inspiration.shlokaText.sa) :
+    inspiration.shlokaText.kn
+  );
   const shlokaMeaning = customShlokaMeaning || (inspiration.shlokaMeaning[selectedLang] || inspiration.shlokaMeaning.kn);
   const deitySourceText = customDeitySource || inspiration.deitySource;
   const goodDeed = inspiration.goodDeedOfTheDay[selectedLang] || inspiration.goodDeedOfTheDay.kn;
   const motivationalQuote = inspiration.motivationalQuote[selectedLang] || inspiration.motivationalQuote.kn;
 
   const shareText = useMemo(() => {
-    return buildCleanDailyWhatsAppShareText(dateStr, selectedLang, tithiStr, nakshatraStr);
-  }, [dateStr, selectedLang, tithiStr, nakshatraStr]);
+    return buildCleanDailyWhatsAppShareText(
+      dateStr,
+      selectedLang,
+      tithiStr,
+      nakshatraStr,
+      customShlokaText,
+      customDeitySource
+    );
+  }, [dateStr, selectedLang, tithiStr, nakshatraStr, customShlokaText, customDeitySource]);
 
   /**
    * Generates High-Resolution Canvas with pixel-perfect Indic vertical centering and high-contrast text backing

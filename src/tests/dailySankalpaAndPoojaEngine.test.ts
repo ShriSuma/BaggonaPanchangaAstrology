@@ -92,6 +92,47 @@ describe("3-5 Minute Daily Vedic Sankalpa & Deva Pooja Engine", () => {
       });
     });
   });
+
+  it("provides authentic Sanskrit mantras across all 5 languages (kn, hi, te, ta, en)", () => {
+    const languages = ["kn", "hi", "te", "ta", "en"] as const;
+
+    languages.forEach((selectedLang) => {
+      const steps = buildDailyPoojaSteps({
+        ...testParams,
+        lang: selectedLang
+      });
+
+      expect(steps).toHaveLength(5);
+      steps.forEach((step) => {
+        expect(step.sanskritMantraL5).toBeDefined();
+        // Each language has its authentic localized mantra
+        expect(step.sanskritMantraL5?.[selectedLang]).toBeTruthy();
+        expect(step.sanskritMantraL5?.kn).toBeTruthy();
+        expect(step.sanskritMantraL5?.hi).toBeTruthy();
+        expect(step.sanskritMantraL5?.te).toBeTruthy();
+        expect(step.sanskritMantraL5?.ta).toBeTruthy();
+        expect(step.sanskritMantraL5?.en).toBeTruthy();
+      });
+    });
+
+    // Verify script authenticity on Step 1 (Deepa & Achamana)
+    const knSteps = buildDailyPoojaSteps({ ...testParams, lang: "kn" });
+    const hiSteps = buildDailyPoojaSteps({ ...testParams, lang: "hi" });
+    const teSteps = buildDailyPoojaSteps({ ...testParams, lang: "te" });
+    const taSteps = buildDailyPoojaSteps({ ...testParams, lang: "ta" });
+    const enSteps = buildDailyPoojaSteps({ ...testParams, lang: "en" });
+
+    // Kannada script
+    expect(knSteps[0].sanskritMantraL5?.kn).toContain("ದೀಪಜ್ಯೋತಿಃ");
+    // Hindi Devanagari script
+    expect(hiSteps[0].sanskritMantraL5?.hi).toContain("दीपज्योतिः");
+    // Telugu script
+    expect(teSteps[0].sanskritMantraL5?.te).toContain("దీపజ్యోతిః");
+    // Tamil script
+    expect(taSteps[0].sanskritMantraL5?.ta).toContain("தீபஜ்யோதிஃ");
+    // English Romanized IAST
+    expect(enSteps[0].sanskritMantraL5?.en).toContain("Dīpajyotiḥ");
+  });
 });
 
 describe("Personal Devotee Sankalpa Management & CRUD Engine", () => {

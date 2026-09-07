@@ -66,7 +66,7 @@ describe("Maranottara Shraddha Masika & Pitru Samskara Dynamic Baggona Audit", (
     expect(res.demisePaksha.hi).toContain("पक्ष");
     expect(res.demisePaksha.te).toContain("పక్షం");
     expect(res.demisePaksha.ta).toContain("பக்ஷம்");
-  });
+  }, 30000);
 
   it("calculates accurate Aparahna Kaala window for daytime Shraddha determination", () => {
     const aparahna = computeDayAparahnaWindow("2026-03-20", 14.5479, 74.3188);

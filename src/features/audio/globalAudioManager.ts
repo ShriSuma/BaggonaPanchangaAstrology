@@ -76,6 +76,11 @@ if (typeof window !== "undefined") {
       }
     });
   }
+
+  // Stop audio when window loses focus (app switch, minimize, backgrounding)
+  window.addEventListener("blur", () => {
+    stopAllAudioLocal();
+  });
 }
 
 /**

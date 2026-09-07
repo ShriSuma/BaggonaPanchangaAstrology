@@ -253,6 +253,46 @@ export default defineConfig(({ mode }) => {
             }
           }
         });
+
+        server.middlewares.use("/api/indic-tts", async (req, res) => {
+          if (req.method === "OPTIONS") {
+            res.statusCode = 204;
+            res.end();
+            return;
+          }
+          if (req.method !== "POST") {
+            res.statusCode = 405;
+            res.setHeader("Content-Type", "application/json");
+            res.end(JSON.stringify({ error: "Method not allowed" }));
+            return;
+          }
+          try {
+            const chunks: Buffer[] = [];
+            for await (const chunk of req) {
+              chunks.push(chunk as Buffer);
+            }
+            const body = JSON.parse(Buffer.concat(chunks).toString("utf8")) as {
+              text?: string;
+              lang?: string;
+            };
+            if (!body.text) {
+              res.statusCode = 400;
+              res.setHeader("Content-Type", "application/json");
+              res.end(JSON.stringify({ error: "text required" }));
+              return;
+            }
+            // @ts-expect-error server helper
+            const { generateIndicTtsAudioServer } = await import("./lib/indicTtsCore.mjs");
+            const audioUrl = await generateIndicTtsAudioServer(body.text, body.lang || "kn", env.VITE_HF_API_KEY);
+            res.statusCode = 200;
+            res.setHeader("Content-Type", "application/json");
+            res.end(JSON.stringify({ audioUrl }));
+          } catch (e) {
+            res.statusCode = 502;
+            res.setHeader("Content-Type", "application/json");
+            res.end(JSON.stringify({ error: e instanceof Error ? e.message : String(e) }));
+          }
+        });
       }
     },
     VitePWA({

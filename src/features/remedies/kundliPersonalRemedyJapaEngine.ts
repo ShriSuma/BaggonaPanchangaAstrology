@@ -19,6 +19,7 @@ export interface PersonalRemedyJapaInfo {
   afflictionTitle: Record<SevaLang, string>;
   afflictionReason: Record<SevaLang, string>;
   sanskritShloka: string;
+  sanskritShlokaL5?: Record<SevaLang, string>;
   transliteration: string;
   meaning: Record<SevaLang, string>;
   calmingBenefit: Record<SevaLang, string>;
@@ -64,6 +65,23 @@ const REMEDY_DATABASE: Record<PlanetName | "sarvadosha", Omit<PersonalRemedyJapa
     sanskritShloka: `ನೀಲಾಂಜನ ಸಮಾಭಾಸಂ ರವಿಪುತ್ರಂ ಯಮಾಗ್ರಜಮ್ ।
 ಛಾಯಾಮಾರ್ತಾಂಡ ಸಂಭೂತಂ ತಂ ನಮಾಮಿ ಶನೈಶ್ಚರಮ್ ॥
 ಓಂ ನಮಃ ಶಿವಾಯ ॥`,
+    sanskritShlokaL5: {
+      kn: `ನೀಲಾಂಜನ ಸಮಾಭಾಸಂ ರವಿಪುತ್ರಂ ಯಮಾಗ್ರಜಮ್ ।
+ಛಾಯಾಮಾರ್ತಾಂಡ ಸಂಭೂತಂ ತಂ ನಮಾಮಿ ಶನೈಶ್ಚರಮ್ ॥
+ಓಂ ನಮಃ ಶಿವಾಯ ॥`,
+      hi: `नीलांजन समाभासं रविपुत्रं यमाग्रजम् ।
+छायामार्तण्ड संभूतं तं नमामि शनैश्चरम् ॥
+ॐ नमः शिवाय ॥`,
+      te: `నీలాంజన సమాభాసం రవిపుత్రం యమాగ్రజమ్ ।
+ఛాయామారార్తాండ సంభూతం తం నమామి శనైశ్చరమ్ ॥
+ఓం నమః శివాయ ॥`,
+      ta: `நீலாஞ்ஜன ஸமாபாஸம் ரவிபுத்ரம் யமாக்ரஜம் ।
+சாயாமார்த்தாண்ட ஸம்பூதம் தம் நமாமி சனைச்சரம் ॥
+ஓம் நமஃ சிவாய ॥`,
+      en: `Nīlāñjana samābhāsaṁ raviputraṁ yamāgrajam |
+Chāyāmārtāṇḍa sambhūtaṁ taṁ namāmi shanaiścharam ||
+Om Namaḥ Śivāya ||`
+    },
     transliteration: "Nīlāñjana samābhāsaṁ raviputraṁ yamāgrajam | Chāyāmārtāṇḍa sambhūtaṁ taṁ namāmi shanaiścharam || Om Namaḥ Śivāya ||",
     meaning: {
       kn: "ಕಡುನೀಲಿ ಕಾಂತಿಯುಳ್ಳವನು, ಸೂರ್ಯನ ಪುತ್ರನು, ಯಮನ ಹಿರಿಯಣ್ಣನು ಹಾಗೂ ಛಾಯಾದೇವಿಯ ಗರ್ಭಸಂಜಾತನಾದ ಶ್ರೀ ಶನೈಶ್ಚರ ದೇವರಿಗೆ ಮತ್ತು ಪರಮೇಶ್ವರನಿಗೆ ನಮಸ್ಕರಿಸುತ್ತೇನೆ.",
@@ -96,10 +114,10 @@ const REMEDY_DATABASE: Record<PlanetName | "sarvadosha", Omit<PersonalRemedyJapa
     },
     audioNarrationText: {
       kn: "ಹರಿ ಓಂ. ನಿಮ್ಮ ಕುಂಡಲಿಯ ಶನಿ ಶಾಂತಿಗಾಗಿ ೧೧ ಬಾರಿ ಜಪವನ್ನು ಪ್ರಾರಂಭಿಸಿ: ನೀಲಾಂಜನ ಸಮಾಭಾಸಂ ರವಿಪುತ್ರಂ ಯಮಾಗ್ರಜಮ್...",
-      hi: "हरि ॐ। आपकी कुंडली के शनि दोष निवारण हेतु ११ बार पावन जप प्रारंभ करें...",
-      te: "హరి ఓం. మీ కుండలి శని శాంతి కొరకు 11 సార్లు జపం ప్రారంభించండి...",
-      ta: "ஹரி ஓம். உங்கள் ஜாதக சனி சாந்திக்காக 11 முறை ஜபம் தொடங்குங்கள்...",
-      en: "Hari Om. For Saturn pacification and mental calm, begin the 11 sacred chants..."
+      hi: "हरि ॐ। आपकी कुंडली के शनि दोष निवारण हेतु ११ बार पावन जप प्रारंभ करें: नीलांजन समाभासं...",
+      te: "హరి ఓం. మీ కుండలి శని శాంతి కొరకు 11 సార్లు జపం ప్రారంభించండి: నీలాంజన సమాభాసం...",
+      ta: "ஹரி ஓம். உங்கள் ஜாதக சனி சாந்திக்காக 11 முறை ஜபம் தொடங்குங்கள்: நீலாஞ்ஜன ஸமாபாஸம்...",
+      en: "Hari Om. For Saturn pacification and mental calm, begin the 11 sacred chants: Nīlāñjana samābhāsaṁ..."
     }
   },
 
@@ -129,6 +147,23 @@ const REMEDY_DATABASE: Record<PlanetName | "sarvadosha", Omit<PersonalRemedyJapa
     sanskritShloka: `ಸರ್ವಮಂಗಳ ಮಾಂಗಲ್ಯೇ ಶಿವೇ ಸರ್ವಾರ್ಥ ಸಾಧಿಕೇ ।
 ಶರಣ್ಯೇ ತ್ರ್ಯಂಬಕೇ ಗೌರಿ ನಾರಾಯಣಿ ನಮೋಸ್ತು ತೇ ॥
 ಓಂ ರಾಹವೇ ನಮಃ ॥`,
+    sanskritShlokaL5: {
+      kn: `ಸರ್ವಮಂಗಳ ಮಾಂಗಲ್ಯೇ ಶಿವೇ ಸರ್ವಾರ್ಥ ಸಾಧಿಕೇ ।
+ಶರಣ್ಯೇ ತ್ರ್ಯಂಬಕೇ ಗೌರಿ ನಾರಾಯಣಿ ನಮೋಸ್ತು ತೇ ॥
+ಓಂ ರಾಹವೇ ನಮಃ ॥`,
+      hi: `सर्वमंगल मांगल्ये शिवे सर्वार्थ साधिके ।
+शरण्ये त्र्यम्बके गौरि नारायणि नमोऽस्तु ते ॥
+ॐ राहवे नमः ॥`,
+      te: `సర్వమంగళ మాంగల్యే శివే సర్వార్థ సాధికే ।
+శరణ్యే త్ర్యంబకే గౌరి నారాయణి నమోస్తు తే ॥
+ఓం రాహవే నమః ॥`,
+      ta: `ஸர்வமங்கள மாங்கல்யே சிவே ஸர்வார்த்த சாதிகே ।
+சரண்யே த்ரியம்பகே கௌரி நாராயணி நமோஸ்து தே ॥
+ஓம் ராஹவே நமஃ ॥`,
+      en: `Sarvamaṅgala māṅgalye śive sarvārtha sādhike |
+Śaraṇye tryambake gauri nārāyaṇi namo'stu te ||
+Om Rāhave Namaḥ ||`
+    },
     transliteration: "Sarvamaṅgala māṅgalye śive sarvārtha sādhike | Śaraṇye tryambake gauri nārāyaṇi namo'stu te || Om Rāhave Namaḥ ||",
     meaning: {
       kn: "ಸಕಲ ಮಂಗಳವನ್ನುಂಟುಮಾಡುವ, ಸರ್ವಾರ್ಥಗಳನ್ನು ಸಾಧಿಸುವ, ತ್ರಿನೇತ್ರಧಾರಿಯಾದ ಶ್ರೀ ದುರ್ಗಾದೇವಿಗೆ ಭಕ್ತಿಯ ನಮನಗಳು.",
@@ -161,10 +196,10 @@ const REMEDY_DATABASE: Record<PlanetName | "sarvadosha", Omit<PersonalRemedyJapa
     },
     audioNarrationText: {
       kn: "ಹರಿ ಓಂ. ರಾಹು ಶಾಂತಿ ಹಾಗೂ ಮಾನಸಿಕ ಧೈರ್ಯಕ್ಕಾಗಿ ೧೧ ಬಾರಿ ಈ ಪವಿತ್ರ ಮಂತ್ರ ಜಪಿಸಿ: ಸರ್ವಮಂಗಳ ಮಾಂಗಲ್ಯೇ ಶಿವೇ ಸರ್ವಾರ್ಥ ಸಾಧಿಕೇ...",
-      hi: "हरि ॐ। राहु शांति एवं मानसिक शक्ति हेतु ११ बार इस पावन मंत्र का जप करें...",
-      te: "హరి ఓం. రాహు శాంతి కొరకు 11 సార్లు ఈ పవిత్ర మంత్రాన్ని జపించండి...",
-      ta: "ஹரி ஓம். ராகு சாந்திக்காக 11 முறை இந்த புனித மந்திரத்தை ஜபியுங்கள்...",
-      en: "Hari Om. For inner fearlessness and peace, chant this sacred mantra 11 times..."
+      hi: "हरि ॐ। राहु शांति एवं मानसिक शक्ति हेतु ११ बार इस पावन मंत्र का जप करें: सर्वमंगल मांगल्ये...",
+      te: "హరి ఓం. రాహు శాంతి కొరకు 11 సార్లు ఈ పవిత్ర మంత్రాన్ని జపించండి: సర్వమంగళ మాంగల్యే...",
+      ta: "ஹரி ஓம். ராகு சாந்திக்காக 11 முறை இந்த புனித மந்திரத்தை ஜபியுங்கள்: ஸர்வமங்கள மாங்கல்யே...",
+      en: "Hari Om. For inner fearlessness and peace, chant this sacred mantra 11 times: Sarvamaṅgala māṅgalye..."
     }
   },
 
@@ -194,6 +229,23 @@ const REMEDY_DATABASE: Record<PlanetName | "sarvadosha", Omit<PersonalRemedyJapa
     sanskritShloka: `ಗಣಾನಾಂ ತ್ವಾ ಗಣಪತಿಂ ಹವಾಮಹೇ ಕವಿಂ ಕವೀನಾಮುಪಮಶ್ರವಸ್ತಮಮ್ ।
 ಜ್ಯೇಷ್ಠರಾಜಂ ಬ್ರಹ್ಮಣಾಂ ಬ್ರಹ್ಮಣಸ್ಪತ ಆ ನಃ ಶೃಣ್ವನ್ನೋತಿಭಿಃ ಸೀದ ಸಾದನಮ್ ॥
 ಓಂ ಕೇತವೇ ನಮಃ ॥`,
+    sanskritShlokaL5: {
+      kn: `ಗಣಾನಾಂ ತ್ವಾ ಗಣಪತಿಂ ಹವಾಮಹೇ ಕವಿಂ ಕವೀನಾಮುಪಮಶ್ರವಸ್ತಮಮ್ ।
+ಜ್ಯೇಷ್ಠರಾಜಂ ಬ್ರಹ್ಮಣಾಂ ಬ್ರಹ್ಮಣಸ್ಪತ ಆ ನಃ ಶೃಣ್ವನ್ನೋತಿಭಿಃ ಸೀದ ಸಾದನಮ್ ॥
+ಓಂ ಕೇತವೇ ನಮಃ ॥`,
+      hi: `गणानां त्वा गणपतिं हवामहे कविं कवीनामुपमश्रवस्तमम् ।
+ज्येष्ठराजं ब्रह्मणां ब्रह्मणस्पत आ नः शृण्वन्नूतिभिः सीद सादनम् ॥
+ॐ केतवे नमः ॥`,
+      te: `గణానాం త్వా గణపతిం హవామహే కవిం కవీనాముపమశ్రవస్తమమ్ ।
+జ్యేష్ఠరాజం బ్రహ్మణాం బ్రహ్మణస్పత ఆ నః శృణ్వన్నూతిభిః సీద సాధనమ్ ॥
+ఓం కేతవే నమః ॥`,
+      ta: `கணானாம் த்வா கணபதிம் ஹவாமஹே கவிம் கவீனாம் உபமச்ரவஸ்தமம் ।
+ஜ்யேஷ்டராஜம் பிரம்மணாம் பிரம்மணஸ்பத ஆ நஃ சிருண்வன்னூதிபிஃ சீத சாதனம் ॥
+ஓம் கேதவே நமஃ ॥`,
+      en: `Gaṇānāṁ tvā gaṇapatiṁ havāmahe kaviṁ kavīnāmupamaśravastamam |
+Jyeṣṭharājaṁ brahmaṇāṁ brahmaṇaspata ā naḥ śṛṇvannūtibhiḥ sīda sādanam ||
+Om Ketave Namaḥ ||`
+    },
     transliteration: "Gaṇānāṁ tvā gaṇapatiṁ havāmahe kaviṁ kavīnāmupamaśravastamam | Jyeṣṭharājaṁ brahmaṇāṁ brahmaṇaspata ā naḥ śṛṇvannūtibhiḥ sīda sādanam || Om Ketave Namaḥ ||",
     meaning: {
       kn: "ಗಣಗಳ ಒಡೆಯನಾದ, ಮಹಾ ವಿದ್ವಾಂಸನಾದ, ಜೇಷ್ಠರಾಜನಾದ ಶ್ರೀ ಮಹಾಗಣಪತಿಯನ್ನು ಪ್ರಾರ್ಥಿಸುತ್ತೇವೆ. ನಮ್ಮ ಆಹ್ವಾನವನ್ನು ಸ್ವೀಕರಿಸಿ ನಮ್ಮ ಮನಸ್ಸಿನಲ್ಲಿ ನೆಲೆಸು.",
@@ -226,10 +278,10 @@ const REMEDY_DATABASE: Record<PlanetName | "sarvadosha", Omit<PersonalRemedyJapa
     },
     audioNarrationText: {
       kn: "ಹರಿ ಓಂ. ಮನಸ್ಸಿನ ಶಾಂತಿ ಹಾಗೂ ಕೇತು ಪರಿಹಾರಕ್ಕಾಗಿ ೧೧ ಬಾರಿ ಈ ಮಂತ್ರ ಜಪಿಸಿ: ಗಣಾನಾಂ ತ್ವಾ ಗಣಪತಿಂ ಹವಾಮಹೇ...",
-      hi: "हरि ॐ। मन की शांति हेतु ११ बार इस पावन गणपति मंत्र का जप करें...",
-      te: "హరి ఓం. మనశ్శాంతి కొరకు 11 సార్లు ఈ గణపతి మంత్రాన్ని జపించండి...",
-      ta: "ஹரி ஓம். மன அமைதிக்காக 11 முறை இந்த கணபதி மந்திரத்தை ஜபியுங்கள்...",
-      en: "Hari Om. For inner peace and focus, chant this Ganapati mantra 11 times..."
+      hi: "हरि ॐ। मन की शांति एवं केतु शांति हेतु ११ बार इस पावन मंत्र का जप करें: गणानां त्वा गणपतिं हवामहे...",
+      te: "హరి ఓం. మనశ్శాంతి మరియు కేతు శాంతి కొరకు 11 సార్లు ఈ పవిత్ర మంత్రాన్ని జపించండి: గణానాం త్వా గణపతిం హవామహే...",
+      ta: "ஹரி ஓம். மன அமைதி மற்றும் கேது சாந்திக்காக 11 முறை இந்த புனித மந்திரத்தை ஜபியுங்கள்: கணானாம் த்வா கணபதிம் ஹவாமஹே...",
+      en: "Hari Om. For inner peace and focus, chant this Ganapati mantra 11 times: Gaṇānāṁ tvā gaṇapatiṁ havāmahe..."
     }
   },
 
@@ -259,6 +311,23 @@ const REMEDY_DATABASE: Record<PlanetName | "sarvadosha", Omit<PersonalRemedyJapa
     sanskritShloka: `ಧರಣೀಗರ್ಭ ಸಂಭೂತಂ ವಿದ್ಯುತ್ಕಾಂತಿ ಸಮಪ್ರಭಮ್ ।
 ಕುಮಾರಂ ಶಕ್ತಿಹಸ್ತಂ ಚ ಮಂಗಲಂ ಪ್ರಣಮಾಮ್ಯಹಮ್ ॥
 ಓಂ ಹಂ ಹನುಮತೇ ನಮಃ ॥`,
+    sanskritShlokaL5: {
+      kn: `ಧರಣೀಗರ್ಭ ಸಂಭೂತಂ ವಿದ್ಯುತ್ಕಾಂತಿ ಸಮಪ್ರಭಮ್ ।
+ಕುಮಾರಂ ಶಕ್ತಿಹಸ್ತಂ ಚ ಮಂಗಲಂ ಪ್ರಣಮಾಮ್ಯಹಮ್ ॥
+ಓಂ ಹಂ ಹನುಮತೇ ನಮಃ ॥`,
+      hi: `धरणीगर्भ संभूतं विद्युत्कान्ति समप्रभम् ।
+कुमारं शक्तिहस्तं च मंगलं प्रणमाम्यहम् ॥
+ॐ हं हनुमते नमः ॥`,
+      te: `ధరణీగర్భ సంభూతం విద్యుత్కాంతి సమప్రభమ్ ।
+కుమారం శక్తిహస్తం చ మంగళం ప్రణమామ్యహమ్ ॥
+ఓం హం హనుమతే నమః ॥`,
+      ta: `தரணீகர்ப ஸம்பூதம் வித்யுத்காந்தி ஸமப்ரபம் ।
+குமாரம் சக்திஹஸ்தம் ச மங்களம் ப்ரணமாம்யஹம் ॥
+ஓம் ஹம் ஹனுமதே நமஃ ॥`,
+      en: `Dharaṇīgarbha sambhūtaṁ vidyutkānti samaprabham |
+Kumāraṁ śaktihastaṁ cha maṅgalaṁ praṇamāmyaham ||
+Om Haṁ Hanumate Namaḥ ||`
+    },
     transliteration: "Dharaṇīgarbha sambhūtaṁ vidyutkānti samaprabham | Kumāraṁ śaktihastaṁ cha maṅgalaṁ praṇamāmyaham || Om Haṁ Hanumate Namaḥ ||",
     meaning: {
       kn: "ಭೂದೇವಿಯ ಪುತ್ರನು, ಮಿಂಚಿನಂತೆ ಹೊಳೆಯುವ ತೇಜಸ್ಸಿನವನು, ಕೈಯಲ್ಲಿ ಶಕ್ತಿ ಆಯುಧವನ್ನು ಧರಿಸಿದ ಶ್ರೀ ಮಂಗಳ ದೇವರಿಗೆ ಹಾಗೂ ಶ್ರೀ ಹನುಮಂತನಿಗೆ ನಮಸ್ಕರಿಸುತ್ತೇನೆ.",
@@ -291,10 +360,10 @@ const REMEDY_DATABASE: Record<PlanetName | "sarvadosha", Omit<PersonalRemedyJapa
     },
     audioNarrationText: {
       kn: "ಹರಿ ಓಂ. ಸಿಟ್ಟು ಶಮನ ಹಾಗೂ ಮನೆಯ ಶಾಂತಿಗಾಗಿ ೧೧ ಬಾರಿ ಈ ಪವಿತ್ರ ಮಂತ್ರ ಜಪಿಸಿ: ಧರಣೀಗರ್ಭ ಸಂಭೂತಂ...",
-      hi: "हरि ॐ। क्रोध शमन एवं शांति हेतु ११ बार इस मंत्र का जप करें...",
-      te: "హరి ఓం. కోప నివారణ & శాంతి కొరకు 11 సార్లు ఈ మంత్రాన్ని జపించండి...",
-      ta: "ஹரி ஓம். கோப தணிப்பு மற்றும் அமைதிக்காக 11 முறை இந்த மந்திரத்தை ஜபியுங்கள்...",
-      en: "Hari Om. For calming anger and bringing domestic peace, chant this 11 times..."
+      hi: "हरि ॐ। क्रोध शमन एवं शांति हेतु ११ बार इस मंगल मंत्र का जप करें: धरणीगर्भ संभूतं...",
+      te: "హరి ఓం. కోప నివారణ & శాంతి కొరకు 11 సార్లు ఈ కుజ మంత్రాన్ని జపించండి: ధరణీగర్భ సంభూతం...",
+      ta: "ஹரி ஓம். கோப தணிப்பு மற்றும் குடும்ப அமைதிக்காக 11 முறை இந்த அங்காரக மந்திரத்தை ஜபியுங்கள்: தரணீகர்ப ஸம்பூதம்...",
+      en: "Hari Om. For calming anger and bringing domestic peace, chant this 11 times: Dharaṇīgarbha sambhūtaṁ..."
     }
   },
 
@@ -324,6 +393,23 @@ const REMEDY_DATABASE: Record<PlanetName | "sarvadosha", Omit<PersonalRemedyJapa
     sanskritShloka: `ದಧಿಶಂಖತುಷಾರಾಭಂ ಕ್ಷೀರೋದಾರ್ಣವ ಸಂಭವಮ್ ।
 ನಮಾಮಿ ಶಶಿನಂ ಸೋಮಂ ಶಂಭೋರ್ಮುಕುಟ ಭೂಷಣಮ್ ॥
 ಓಂ ನಮಃ ಶಿವಾಯ ॥`,
+    sanskritShlokaL5: {
+      kn: `ದಧಿಶಂಖತುಷಾರಾಭಂ ಕ್ಷೀರೋದಾರ್ಣವ ಸಂಭವಮ್ ।
+ನಮಾಮಿ ಶಶಿನಂ ಸೋಮಂ ಶಂಭೋರ್ಮುಕುಟ ಭೂಷಣಮ್ ॥
+ಓಂ ನಮಃ ಶಿವಾಯ ॥`,
+      hi: `दधिशङ्खतुषाराभं क्षीरोदार्णव सम्भवम् ।
+नमामि शशिनं सोमं शम्भोर्मुकुट भूषणम् ॥
+ॐ नमः शिवाय ॥`,
+      te: `దధిశంఖతుషారాభం క్షీరోదార్ణవ సంభవమ్ ।
+నమామి శశినం సోమం శంభోర్ముకుట భూషణమ్ ॥
+ఓం నమః శివాయ ॥`,
+      ta: `ததிசங்கதுஷாராபம் க்ஷீரோதார்ணவ ஸம்பவம் ।
+நமாமி சசினம ஸோமம் சம்போர்முகுட பூஷணம் ॥
+ஓம் நமஃ சிவாய ॥`,
+      en: `Dadhiśaṅkhatuṣārābhaṁ kṣīrodārṇava sambhavam |
+Namāmi śaśinaṁ somaṁ śambhormukuṭa bhūṣaṇam ||
+Om Namaḥ Śivāya ||`
+    },
     transliteration: "Dadhiśaṅkhatuṣārābhaṁ kṣīrodārṇava sambhavam | Namāmi śaśinaṁ somaṁ śambhormukuṭa bhūṣaṇam || Om Namaḥ Śivāya ||",
     meaning: {
       kn: "ಮೊಸರು, ಶಂಖ ಮತ್ತು ಹಿಮದಂತೆ ಬಿಳಿಯಾದ ಕಾಂತಿಯುಳ್ಳವನು, ಕ್ಷೀರಸಮುದ್ರದಿಂದ ಉದ್ಭವಿಸಿದವನು ಹಾಗೂ ಈಶ್ವರನ ಮುಡಿಯ ಅಲಂಕಾರವಾದ ಶ್ರೀ ಸೋಮ ದೇವರಿಗೆ ನಮಸ್ಕರಿಸುತ್ತೇನೆ.",
@@ -356,10 +442,10 @@ const REMEDY_DATABASE: Record<PlanetName | "sarvadosha", Omit<PersonalRemedyJapa
     },
     audioNarrationText: {
       kn: "ಹರಿ ಓಂ. ಮನಸ್ಸಿನ ಪರಿಪೂರ್ಣ ಶಾಂತಿಗಾಗಿ ೧೧ ಬಾರಿ ಈ ಚಂದ್ರ ಶಾಂತಿ ಮಂತ್ರ ಜಪಿಸಿ: ದಧಿಶಂಖತುಷಾರಾಭಂ...",
-      hi: "हरि ॐ। मन की शांति हेतु ११ बार इस चंद्र मंत्र का पावन जप करें...",
-      te: "హరి ఓం. మనశ్శాంతి కొరకు 11 సార్లు ఈ చంద్ర మంత్రాన్ని జపించండి...",
-      ta: "ஹரி ஓம். மன அமைதிக்காக 11 முறை இந்த சந்திர மந்திரத்தை ஜபியுங்கள்...",
-      en: "Hari Om. For complete emotional peace, chant this Moon pacification mantra 11 times..."
+      hi: "हरि ॐ। मन की शांति हेतु ११ बार इस चंद्र मंत्र का पावन जप करें: दधिशङ्खतुषाराभं...",
+      te: "హరి ఓం. మనశ్శాంతి కొరకు 11 సార్లు ఈ చంద్ర మంత్రాన్ని జపించండి: దధిశంఖతుషారాభం...",
+      ta: "ஹரி ஓம். மன அமைதிக்காக 11 முறை இந்த சந்திர மந்திரத்தை ஜபியுங்கள்: ததிசங்கதுஷாராபம்...",
+      en: "Hari Om. For complete emotional peace, chant this Moon pacification mantra 11 times: Dadhiśaṅkhatuṣārābhaṁ..."
     }
   },
 
@@ -389,6 +475,23 @@ const REMEDY_DATABASE: Record<PlanetName | "sarvadosha", Omit<PersonalRemedyJapa
     sanskritShloka: `ಗುರುರ್ಬ್ರಹ್ಮಾ ಗುರುರ್ವಿಷ್ಣುಃ ಗುರುರ್ದೇವೋ ಮಹೇಶ್ವರಃ ।
 ಗುರುಸ್ಸಾಕ್ಷಾತ್ ಪರಬ್ರಹ್ಮ ತಸ್ಮೈ ಶ್ರೀ ಗುರವೇ ನಮಃ ॥
 ಓಂ ಗುರವೇ ನಮಃ ॥`,
+    sanskritShlokaL5: {
+      kn: `ಗುರುರ್ಬ್ರಹ್ಮಾ ಗುರುರ್ವಿಷ್ಣುಃ ಗುರುರ್ದೇವೋ ಮಹೇಶ್ವರಃ ।
+ಗುರುಸ್ಸಾಕ್ಷಾತ್ ಪರಬ್ರಹ್ಮ ತಸ್ಮೈ ಶ್ರೀ ಗುರವೇ ನಮಃ ॥
+ಓಂ ಗುರವೇ ನಮಃ ॥`,
+      hi: `गुरुर्ब्रह्मा गुरुर्विष्णुः गुरुर्देवो महेश्वरः ।
+गुरुः साक्षात् परब्रह्म तस्मै श्री गुरवे नमः ॥
+ॐ गुरवे नमः ॥`,
+      te: `గురుర్బ్రహ్మా గురుర్విష్ణుః గురుర్దేవో మహేశ్వరః ।
+గురుస్సాక్షాత్ పరబ్రహ్మ తస్మై శ్రీ గురవే నమః ॥
+ఓం గురవే నమః ॥`,
+      ta: `குருர்பிரம்மா குருர்விஷ்ணுஃ குருர்தேவோ மஹேஸ்வரஃ ।
+குருஸ்சாக்ஷாத் பரப்ரம்ஹ தஸ்மை ஸ்ரீ குரவே நமஃ ॥
+ஓம் குரவே நமஃ ॥`,
+      en: `Gururbrahmā gururviṣṇuḥ gururdevo maheśvaraḥ |
+Gurussākṣāt parabrahma tasmai śrī gurave namaḥ ||
+Om Gurave Namaḥ ||`
+    },
     transliteration: "Gururbrahmā gururviṣṇuḥ gururdevo maheśvaraḥ | Gurussākṣāt parabrahma tasmai śrī gurave namaḥ || Om Gurave Namaḥ ||",
     meaning: {
       kn: "ಗುರುವೇ ಬ್ರಹ್ಮ, ಗುರುವೇ ವಿಷ್ಣು, ಗುರುವೇ ಮಹೇಶ್ವರ. ಸಾಕ್ಷಾತ್ ಪರಬ್ರಹ್ಮ ಸ್ವರೂಪಿಯಾದ ಶ್ರೀ ಗುರುವಿಗೆ ಭಕ್ತಿಪೂರ್ವಕ ನಮಸ್ಕಾರಗಳು.",
@@ -421,10 +524,10 @@ const REMEDY_DATABASE: Record<PlanetName | "sarvadosha", Omit<PersonalRemedyJapa
     },
     audioNarrationText: {
       kn: "ಹರಿ ಓಂ. ಗುರು ಕೃಪೆ ಹಾಗೂ ನಿರ್ಮಲ ಶಾಂತಿಗಾಗಿ ೧೧ ಬಾರಿ ಈ ಮಂತ್ರ ಜಪಿಸಿ: ಗುರುರ್ಬ್ರಹ್ಮಾ ಗುರುರ್ವಿಷ್ಣುಃ...",
-      hi: "हरि ॐ। गुरु कृपा एवं शांति हेतु ११ बार इस मंत्र का पावन जप करें...",
-      te: "హరి ఓం. గురు కృప కొరకు 11 సార్లు ఈ మంత్రాన్ని జపించండి...",
-      ta: "ஹரி ஓம். குரு அருள் பெற 11 முறை இந்த மந்திரத்தை ஜபியுங்கள்...",
-      en: "Hari Om. For wisdom and inner guidance, chant this sacred Guru mantra 11 times..."
+      hi: "हरि ॐ। गुरु कृपा एवं शांति हेतु ११ बार इस पावन गुरु मंत्र का जप करें: गुरुर्ब्रह्मा गुरुर्विष्णुः...",
+      te: "హరి ఓం. గురు కృప కొరకు 11 సార్లు ఈ పవిత్ర మంత్రాన్ని జపించండి: గురుర్బ్రహ్మా గురుర్విష్ణుః...",
+      ta: "ஹரி ஓம். குரு அருள் பெற 11 முறை இந்த புனித மந்திரத்தை ஜபியுங்கள்: குருர்பிரம்மா குருர்விஷ்ணுஃ...",
+      en: "Hari Om. For wisdom and inner guidance, chant this sacred Guru mantra 11 times: Gururbrahmā gururviṣṇuḥ..."
     }
   },
 
@@ -454,6 +557,23 @@ const REMEDY_DATABASE: Record<PlanetName | "sarvadosha", Omit<PersonalRemedyJapa
     sanskritShloka: `ಜಪಾಕುಸುಮ ಸಂಕಾಶಂ ಕಾಶ್ಯಪೇಯಂ ಮಹಾದ್ಯುತಿಮ್ ।
 ತಮೋಽರಿಂ ಸರ್ವಪಾಪಘ್ನಂ ಪ್ರಣತೋಽಸ್ಮಿ ದಿವಾಕರಮ್ ॥
 ಓಂ ಸೂರ್ಯಾಯ ನಮಃ ॥`,
+    sanskritShlokaL5: {
+      kn: `ಜಪಾಕುಸುಮ ಸಂಕಾಶಂ ಕಾಶ್ಯಪೇಯಂ ಮಹಾದ್ಯುತಿಮ್ ।
+ತಮೋಽರಿಂ ಸರ್ವಪಾಪಘ್ನಂ ಪ್ರಣತೋಽಸ್ಮಿ ದಿವಾಕರಮ್ ॥
+ಓಂ ಸೂರ್ಯಾಯ ನಮಃ ॥`,
+      hi: `जपाकुसुम संकाशं काश्यपेयं महाद्युतिम् ।
+तमोऽरिं सर्वपापघ्नं प्रणतोऽस्मि दिवाकरम् ॥
+ॐ सूर्याय नमः ॥`,
+      te: `జపాకుసుమ సంకాశం కాశ్యపేయం మహాద్యుతిమ్ ।
+తమోಽరిం సర్వపాపఘ్నం ప్రణతోಽస్మి దివాకరమ్ ॥
+ఓం సూర్యాయ నమః ॥`,
+      ta: `ஜபாகுஸும ஸங்காசம் காச்யபேயம் மஹத்யுதிம் ।
+தமோரிம் ஸர்வபாபக்னம் ப்ரணதோஸ்மி திவாகரம் ॥
+ஓம் சூர்யாய நமஃ ॥`,
+      en: `Japākusuma saṅkāśaṁ kāśyapeyaṁ mahādyutim |
+Tamo'riṁ sarvapāpaghnaṁ praṇato'smi divākaram ||
+Om Sūryāya Namaḥ ||`
+    },
     transliteration: "Japākusuma saṅkāśaṁ kāśyapeyaṁ mahādyutim | Tamo'riṁ sarvapāpaghnaṁ praṇato'smi divākaram || Om Sūryāya Namaḥ ||",
     meaning: {
       kn: "ದಾಸವಾಳ ಪುಷ್ಪದಂತೆ ಕೆಂಪಾದ ಕಾಂತಿಯುಳ್ಳವನು, ಕಶ್ಯಪರ ಪುತ್ರನು, ಮಹಾ ತೇಜಸ್ವಿಯು ಹಾಗೂ ಕತ್ತಲೆಯನ್ನು ಓಡಿಸುವ ಸೂರ್ಯ ದೇವರಿಗೆ ನಮಸ್ಕರಿಸುತ್ತೇನೆ.",
@@ -486,10 +606,10 @@ const REMEDY_DATABASE: Record<PlanetName | "sarvadosha", Omit<PersonalRemedyJapa
     },
     audioNarrationText: {
       kn: "ಹರಿ ಓಂ. ಆರೋಗ್ಯ ಮತ್ತು ಚೈತನ್ಯಕ್ಕಾಗಿ ೧೧ ಬಾರಿ ಈ ಸೂರ್ಯ ಮಂತ್ರ ಜಪಿಸಿ: ಜಪಾಕುಸುಮ ಸಂಕಾಶಂ...",
-      hi: "हरि ॐ। स्वास्थ्य एवं तेज हेतु ११ बार इस सूर्य मंत्र का जप करें...",
-      te: "హరి ఓం. ఆరోగ్యం కొరకు 11 సార్లు ఈ సూర్య మంత్రాన్ని జపించండి...",
-      ta: "ஹரி ஓம். உடல் நலனுக்காக 11 முறை இந்த சூரிய மந்திரத்தை ஜபியுங்கள்...",
-      en: "Hari Om. For health and divine vitality, chant this Sun mantra 11 times..."
+      hi: "हरि ॐ। स्वास्थ्य एवं तेज हेतु ११ बार इस सूर्य मंत्र का जप करें: जपाकुसुम संकाशं...",
+      te: "హరి ఓం. ఆరోగ్యం కొరకు 11 సార్లు ఈ సూర్య మంత్రాన్ని జపించండి: జపాకుసుమ సంకాశం...",
+      ta: "ஹரி ஓம். உடல் நலனுக்காக 11 முறை இந்த சூரிய மந்திரத்தை ஜபியுங்கள்: ஜபாகுஸும ஸங்காசம்...",
+      en: "Hari Om. For health and divine vitality, chant this Sun mantra 11 times: Japākusuma saṅkāśaṁ..."
     }
   },
 
@@ -519,6 +639,23 @@ const REMEDY_DATABASE: Record<PlanetName | "sarvadosha", Omit<PersonalRemedyJapa
     sanskritShloka: `ಪ್ರಿಯಂಗು ಕಲಿಕಾಶ್ಯಾಮಂ ರೂಪೇಣಾಪ್ರತಿಮಂ ಬುಧಮ್ ।
 ಸೌಮ್ಯಂ ಸೌಮ್ಯಗುಣೋಪೇತಂ ತಂ ಬುಧಂ ಪ್ರಣಮಾಮ್ಯಹಮ್ ॥
 ಓಂ ನಮೋ ನಾರಾಯಣಾಯ ॥`,
+    sanskritShlokaL5: {
+      kn: `ಪ್ರಿಯಂಗು ಕಲಿಕಾಶ್ಯಾಮಂ ರೂಪೇಣಾಪ್ರತಿಮಂ ಬುಧಮ್ ।
+ಸೌಮ್ಯಂ ಸೌಮ್ಯಗುಣೋಪೇತಂ ತಂ ಬುಧಂ ಪ್ರಣಮಾಮ್ಯಹಮ್ ॥
+ಓಂ ನಮೋ ನಾರಾಯಣಾಯ ॥`,
+      hi: `प्रियंगु कलिकाश्यामं रूपेणाप्रतिमं बुधम् ।
+सौम्यं सौम्यगुणोपेतं तं बुधं प्रणमाम्यहम् ॥
+ॐ नमो नारायणाय ॥`,
+      te: `ప్రియంగు కలికాశ్యామం రూపేణాప్రతిమం బుధమ్ ।
+సౌమ్యం సౌమ్యగుణోపేతం తం బుధం ప్రణమామ్యహమ్ ॥
+ఓం నమో నారాయణాయ ॥`,
+      ta: `ப்ரியங்கு கலிகாச்யாமம் ரூபேணாப்ரதிமம் புதம் ।
+ஸௌம்யம் ஸௌம்யகுணோபேதம் தம் புதம் ப்ரணமாம்யஹம் ॥
+ஓம் நமோ நாராயணாய ॥`,
+      en: `Priyaṅgu kalikāśyāmaṁ rūpeṇāpratimaṁ budham |
+Saumyaṁ saumyaguṇopetaṁ taṁ budhaṁ praṇamāmyaham ||
+Om Namo Nārāyaṇāya ||`
+    },
     transliteration: "Priyaṅgu kalikāśyāmaṁ rūpeṇāpratimaṁ budham | Saumyaṁ saumyaguṇopetaṁ taṁ budhaṁ praṇamāmyaham || Om Namo Nārāyaṇāya ||",
     meaning: {
       kn: "ಪ್ರಿಯಂಗು ಹೂವಿನ ಮೊಗ್ಗಿನಂತೆ ಹಸಿರು ಕಾಂತಿಯುಳ್ಳವನು, ಸಾಟಿಯಿಲ್ಲದ ರೂಪವಂತನು ಹಾಗೂ ಸೌಮ್ಯ ಗುಣಗಳಿಂದ ಕೂಡಿದ ಶ್ರೀ ಬುಧ ದೇವರಿಗೆ ಮತ್ತು ನಾರಾಯಣನಿಗೆ ನಮಸ್ಕರಿಸುತ್ತೇನೆ.",
@@ -538,7 +675,7 @@ const REMEDY_DATABASE: Record<PlanetName | "sarvadosha", Omit<PersonalRemedyJapa
     celebrationHurrayText: {
       kn: "🎉 ಶುಭ ಜಯಸಿದ್ಧಿ! ೧೧ ಬಾರಿ ಬುಧ ಮಂತ್ರ ಜಪ ಯಶಸ್ವಿಯಾಗಿ ಸಂಪನ್ನವಾಯಿತು!",
       hi: "🎉 शुभ जयसिद्धि! ११ बार बुध मंत्र जप पूर्ण हुआ!",
-      te: "🎉 శుభ ಜಯಸಿದ್ಧಿ! 11 ಸార్లు ಬುಧ ಜಪಂ ಪೂರ್ತಯಿಂದಿ!",
+      te: "🎉 శుభ జయసిద్ధి! 11 సార్లు బుధ జపం పూర్తయింది!",
       ta: "🎉 சுப ஜெயசித்தி! 11 முறை புதன் மந்திர ஜபம் நிறைவடைந்தது!",
       en: "🎉 Hurray! 11 Chants Completed! Mental Clarity & Eloquence Activated!"
     },
@@ -551,10 +688,10 @@ const REMEDY_DATABASE: Record<PlanetName | "sarvadosha", Omit<PersonalRemedyJapa
     },
     audioNarrationText: {
       kn: "ಹರಿ ಓಂ. ಬುದ್ಧಿ ಸ್ಪಷ್ಟತೆ ಹಾಗೂ ಬುಧ ಶಾಂತಿಗಾಗಿ ೧೧ ಬಾರಿ ಈ ಮಂತ್ರ ಜಪಿಸಿ: ಪ್ರಿಯಂಗು ಕಲಿಕಾಶ್ಯಾಮಂ...",
-      hi: "हरि ॐ। बुद्धि शुद्धि एवं शांति हेतु ११ बार इस मंत्र का पावन जप करें...",
-      te: "హరి ఓం. బుద్ధి వికాసం కొరకు 11 సార్లు ఈ బుధ మంత్రాన్ని జపించండి...",
-      ta: "ஹரி ஓம். அறிவு விருத்திக்காக 11 முறை இந்த புதன் மந்திரத்தை ஜபியுங்கள்...",
-      en: "Hari Om. For intellect and calm eloquence, chant this Mercury mantra 11 times..."
+      hi: "हरि ॐ। बुद्धि शुद्धि एवं शांति हेतु ११ बार इस मंत्र का पावन जप करें: प्रियंगु कलिकाश्यामं...",
+      te: "హరి ఓం. బుద్ధి వికాసం కొరకు 11 సార్లు ఈ బుధ మంత్రాన్ని జపించండి: ప్రియంగు కలికాశ్యామం...",
+      ta: "ஹரி ஓம். அறிவு விருத்திக்காக 11 முறை இந்த புதன் மந்திரத்தை ஜபியுங்கள்: ப்ரியங்கு கலிகாச்யாமம்...",
+      en: "Hari Om. For intellect and calm eloquence, chant this Mercury mantra 11 times: Priyaṅgu kalikāśyāmaṁ..."
     }
   },
 
@@ -584,6 +721,23 @@ const REMEDY_DATABASE: Record<PlanetName | "sarvadosha", Omit<PersonalRemedyJapa
     sanskritShloka: `ಹಿಮಕುಂದ ಮೃಣಾಲಾಭಂ ದೈತ್ಯಾನಾಂ ಪರಮಂ ಗುರುಮ್ ।
 ಸರ್ವಶಾಸ್ತ್ರ ಪ್ರವಕ್ತಾರಂ ಭಾರ್ಗವಂ ಪ್ರಣಮಾಮ್ಯಹಮ್ ॥
 ಓಂ ಶ್ರೀಂ ಮಹಾಲಕ್ಷ್ಮ್ಯೈ ನಮಃ ॥`,
+    sanskritShlokaL5: {
+      kn: `ಹಿಮಕುಂದ ಮೃಣಾಲಾಭಂ ದೈತ್ಯಾನಾಂ ಪರಮಂ ಗುರುಮ್ ।
+ಸರ್ವಶಾಸ್ತ್ರ ಪ್ರವಕ್ತಾರಂ ಭಾರ್ಗವಂ ಪ್ರಣಮಾಮ್ಯಹಮ್ ॥
+ಓಂ ಶ್ರೀಂ ಮಹಾಲಕ್ಷ್ಮ್ಯೈ ನಮಃ ॥`,
+      hi: `हिमकुन्द मृणालाभं दैत्यानां परमं गुरुम् ।
+सर्वशास्त्र प्रवक्तारं भार्गवं प्रणमाम्यहम् ॥
+ॐ श्रीं महालक्ष्म्यै नमः ॥`,
+      te: `హిమకుంద మృణాలాభం దైత్యానాం పరమం గురుమ్ ।
+సర్వశాస్త్ర ప్రవక్తారం భార్గవం ప్రణమామ్యహమ్ ॥
+ఓం శ్రీం మహాలక్ష్మ్యై నమః ॥`,
+      ta: `ஹிமகுந்த மிருணாளாபம் தைத்யானாம் பரமம் குரும் ।
+ஸர்வசாஸ்த்ரப்ரவಕ್ತாரம் பார்கவம் ப்ரணமாம்யஹம் ॥
+ஓம் ஸ்ரீம் மஹாலக்ஷ்ம்யை நமஃ ॥`,
+      en: `Himakunda mṛṇālābhaṁ daityānāṁ paramaṁ gurum |
+Sarvaśāstra pravaktāraṁ bhārgavaṁ praṇamāmyaham ||
+Om Śrīṁ Mahālakṣmyai Namaḥ ||`
+    },
     transliteration: "Himakunda mṛṇālābhaṁ daityānāṁ paramaṁ gurum | Sarvaśāstra pravaktāraṁ bhārgavaṁ praṇamāmyaham || Om Śrīṁ Mahālakṣmyai Namaḥ ||",
     meaning: {
       kn: "ಹಿಮ, ಮಲ್ಲಿಗೆ ಮತ್ತು ಕಮಲದ ದಂಟಿನಂತೆ ಬೆಳ್ಳಗಿರುವ, ಸಕಲ ಶಾಸ್ತ್ರಗಳನ್ನು ಬಲ್ಲ ಶ್ರೀ ಶುಕ್ರ ದೇವರಿಗೆ ಮತ್ತು ಶ್ರೀ ಮಹಾಲಕ್ಷ್ಮಿಗೆ ನಮಸ್ಕರಿಸುತ್ತೇನೆ.",
@@ -616,10 +770,10 @@ const REMEDY_DATABASE: Record<PlanetName | "sarvadosha", Omit<PersonalRemedyJapa
     },
     audioNarrationText: {
       kn: "ಹರಿ ಓಂ. ಕೌಟುಂಬಿಕ ಸೌಖ್ಯ ಹಾಗೂ ಲಕ್ಷ್ಮೀ ಕೃಪೆಗಾಗಿ ೧೧ ಬಾರಿ ಈ ಮಂತ್ರ ಜಪಿಸಿ: ಹಿಮಕುಂದ ಮೃಣಾಲಾಭಂ...",
-      hi: "हरि ॐ। पारिवारिक सुख एवं समृद्धि हेतु ११ बार इस मंत्र का जप करें...",
-      te: "హరి ఓం. కుటుంబ సౌఖ్యం కొరకు 11 సార్లు ఈ మంత్రాన్ని జపించండి...",
-      ta: "ஹரி ஓம். குடும்ப சுபிட்சத்திற்காக 11 முறை இந்த மந்திரத்தை ஜபியுங்கள்...",
-      en: "Hari Om. For domestic bliss and Mahalakshmi grace, chant this 11 times..."
+      hi: "हरि ॐ। पारिवारिक सुख एवं समृद्धि हेतु ११ बार इस मंत्र का जप करें: हिमकुन्द मृणालाभं...",
+      te: "హరి ఓం. కుటుంబ సౌఖ్యం కొరకు 11 సార్లు ఈ మంత్రాన్ని జపించండి: హిమకుంద మృణాలాభం...",
+      ta: "ஹரி ஓம். குடும்ப சுபிட்சத்திற்காக 11 முறை இந்த மந்திரத்தை ஜபியுங்கள்: ஹிமகுந்த மிருணாளாபம்...",
+      en: "Hari Om. For domestic bliss and Mahalakshmi grace, chant this 11 times: Himakunda mṛṇālābhaṁ..."
     }
   },
 
@@ -649,6 +803,23 @@ const REMEDY_DATABASE: Record<PlanetName | "sarvadosha", Omit<PersonalRemedyJapa
     sanskritShloka: `ಓಂ ತ್ರ್ಯಂಬಕಂ ಯಜಾಮಹೇ ಸುಗಂಧಿಂ ಪುಷ್ಟಿವರ್ಧನಮ್ ।
 ಉರ್ವಾರುಕಮಿವ ಬಂಧನಾನ್ ಮೃತ್ಯೋರ್ಮುಕ್ಷೀಯ ಮಾಽಮೃತಾತ್ ॥
 ಓಂ ನಮಃ ಶಿವಾಯ ॥`,
+    sanskritShlokaL5: {
+      kn: `ಓಂ ತ್ರ್ಯಂಬಕಂ ಯಜಾಮಹೇ ಸುಗಂಧಿಂ ಪುಷ್ಟಿವರ್ಧನಮ್ ।
+ಉರ್ವಾರುಕಮಿವ ಬಂಧನಾನ್ ಮೃತ್ಯೋರ್ಮುಕ್ಷೀಯ ಮಾಽಮೃತಾತ್ ॥
+ಓಂ ನಮಃ ಶಿವಾಯ ॥`,
+      hi: `ॐ त्र्यम्बकं यजामहे सुगन्धिं पुष्टिवर्धनम् ।
+उर्वारुकमिव बन्धनान् मृत्योर्मुक्षीय मामृतात् ॥
+ॐ नमः शिवाय ॥`,
+      te: `ఓం త్ర్యంబకం యజామహే సుగంధిం పుష్టివర్ధనమ్ ।
+ఉర్వారుకమివ బంధనాన్ మృత్యోర్ముక్షీయ మాಽమృతాత్ ॥
+ఓం నమః శివాయ ॥`,
+      ta: `ஓம் த்ரியம்பகம் யஜாமஹே ஸுகந்திம் புஷ்டிவர்த்தனம் ।
+உர்வாருகமிவ பந்தனான் ம்ருத்யோர்முக்ஷீய மாம்ருதாத் ॥
+ஓம் நமஃ சிவாய ॥`,
+      en: `Om Tryambakaṁ yajāmahe sugandhiṁ puṣṭivardhanam |
+Urvārukamiva bandhanān mṛtyormukṣīya mā'mṛtāt ||
+Om Namaḥ Śivāya ||`
+    },
     transliteration: "Om Tryambakaṁ yajāmahe sugandhiṁ puṣṭivardhanam | Urvārukamiva bandhanān mṛtyormukṣīya mā'mṛtāt || Om Namaḥ Śivāya ||",
     meaning: {
       kn: "ಸುಗಂಧಭರಿತನಾದ, ಸಕಲ ಪೋಷಕನಾದ ತ್ರಿನೇತ್ರಧಾರಿ ಈಶ್ವರನನ್ನು ಪೂಜಿಸುತ್ತೇವೆ. ಹಣ್ಣು ತೊಟ್ಟಿನಿಂದ ಕಳಚುವಂತೆ ನಮ್ಮನ್ನು ಸಂಸಾರ ಬಂಧನ, ರೋಗ, ಭಯ ಮತ್ತು ಆತಂಕಗಳಿಂದ ಮುಕ್ತಗೊಳಿಸು.",
@@ -668,7 +839,7 @@ const REMEDY_DATABASE: Record<PlanetName | "sarvadosha", Omit<PersonalRemedyJapa
     celebrationHurrayText: {
       kn: "🎉 ಶುಭ ಜಯಸಿದ್ಧಿ! ೧೧ ಬಾರಿ ಮಹಾ ಮೃತ್ಯುಂಜಯ ಜಪ ಯಶಸ್ವಿಯಾಗಿ ಸಂಪನ್ನವಾಯಿತು!",
       hi: "🎉 शुभ जयसिद्धि! ११ बार महामृत्युंजय जप संपन्न हुआ!",
-      te: "🎉 ಶುಭ ಜಯಸಿದ್ಧಿ! 11 ಸార్లు మహా మృత్యుంజయ జపం పూర్తయింది!",
+      te: "🎉 శుభ ಜಯಸಿದ್ಧಿ! 11 ಸార్లు మహా మృత్యుంజయ జపం పూర్తయింది!",
       ta: "🎉 சுப ஜெயசித்தி! 11 முறை மகா மிருத்யுஞ்சய ஜபம் நிறைவடைந்தது!",
       en: "🎉 Hurray! 11 Maha Mrityunjaya Chants Completed! Divine Shield Active!"
     },
@@ -681,10 +852,10 @@ const REMEDY_DATABASE: Record<PlanetName | "sarvadosha", Omit<PersonalRemedyJapa
     },
     audioNarrationText: {
       kn: "ಹರಿ ಓಂ. ಸಕಲ ದೋಷ ನಿವಾರಣೆ ಹಾಗೂ ಅಪಾರ ಮನಶ್ಶಾಂತಿಗಾಗಿ ೧೧ ಬಾರಿ ಈ ಪವಿತ್ರ ಮಂತ್ರ ಜಪಿಸಿ: ಓಂ ತ್ರ್ಯಂಬಕಂ ಯಜಾಮಹೇ...",
-      hi: "हरि ॐ। सर्वदोष निवारण एवं परम शांति हेतु ११ बार इस महामंत्र का जप करें...",
-      te: "హరి ఓం. సమస్త దోష నివారణ కొరకు 11 సార్లు ఈ మహా మంత్రాన్ని జపించండి...",
-      ta: "ஹரி ஓம். சர்வ தோஷ நிவர்த்திக்காக 11 முறை இந்த மகா மந்திரத்தை ஜபியுங்கள்...",
-      en: "Hari Om. For universal peace and dissolving all anxieties, chant this 11 times..."
+      hi: "हरि ॐ। सर्वदोष निवारण एवं परम शांति हेतु ११ बार इस महामंत्र का जप करें: ॐ त्र्यम्बकं यजामहे...",
+      te: "హరి ఓం. సమస్త దోష నివారణ కొరకు 11 సార్లు ఈ మహా మంత్రాన్ని జపించండి: ఓం త్ర్యంబకం యజామహే...",
+      ta: "ஹரி ஓம். சர்வ தோஷ நிவர்த்திக்காக 11 முறை இந்த மகா மந்திரத்தை ஜபியுங்கள்: ஓம் த்ரியம்பகம் யஜாமஹே...",
+      en: "Hari Om. For universal peace and dissolving all anxieties, chant this 11 times: Om Tryambakaṁ yajāmahe..."
     }
   }
 };

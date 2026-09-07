@@ -188,12 +188,12 @@ export function transliterateIndicToLatin(text: string): string {
     .replace(/ಗಜಾನನ/g, "Gajanana ")
     .replace(/ಗೌತಮ್/g, "Gowtam ");
 
-  // Character mapping for Kannada Unicode (0x0C80 - 0x0CFF)
-  const knMap: Record<string, string> = {
-    // Vowels
+  // Comprehensive character mapping for Indic Unicode: Kannada, Tamil, Telugu, Devanagari
+  const indicMap: Record<string, string> = {
+    // Kannada Vowels
     "ಅ": "a", "ಆ": "aa", "ಇ": "i", "ಈ": "ee", "ಉ": "u", "ಊ": "oo", "ಋ": "ru",
     "ಎ": "e", "ಏ": "e", "ಐ": "ai", "ಒ": "o", "ಓ": "o", "ಔ": "au", "ಅಂ": "am", "ಅಃ": "ah",
-    // Consonants (with default 'a' inherent vowel)
+    // Kannada Consonants
     "ಕ": "ka", "ಖ": "kha", "ಗ": "ga", "ಘ": "gha", "ಙ": "nga",
     "ಚ": "cha", "ಛ": "chha", "ಜ": "ja", "ಝ": "jha", "ಞ": "nya",
     "ಟ": "ta", "ಠ": "tha", "ಡ": "da", "ಢ": "dha", "ಣ": "na",
@@ -201,27 +201,78 @@ export function transliterateIndicToLatin(text: string): string {
     "ಪ": "pa", "ಫ": "pha", "ಬ": "ba", "ಭ": "bha", "ಮ": "ma",
     "ಯ": "ya", "ರ": "ra", "ಱ": "ra", "ಲ": "la", "ವ": "va",
     "ಶ": "sha", "ಷ": "sha", "ಸ": "sa", "ಹ": "ha", "ಳ": "la",
-    // Matras (vowel signs) - replaces preceding 'a'
+    // Kannada Matras
     "ಾ": "aa", "ಿ": "i", "ೀ": "ee", "ು": "u", "ೂ": "oo", "ೃ": "ru",
     "ೆ": "e", "ೇ": "e", "ೈ": "ai", "ೊ": "o", "ೋ": "o", "ೌ": "au",
-    "ಂ": "m", "ಃ": "h", "್": ""
+    "ಂ": "m", "ಃ": "h",
+
+    // Tamil Vowels (0x0B80 - 0x0BFF)
+    "அ": "a", "ஆ": "aa", "இ": "i", "ஈ": "ee", "உ": "u", "ஊ": "oo",
+    "எ": "e", "ஏ": "e", "ஐ": "ai", "ஒ": "o", "ஓ": "o", "ஔ": "au", "ஃ": "h",
+    // Tamil Consonants
+    "க": "ka", "ங": "nga", "ச": "cha", "ஞ": "nya", "ட": "ta", "ண": "na",
+    "த": "ta", "ந": "na", "ன": "na", "ப": "pa", "ம": "ma", "ய": "ya",
+    "ர": "ra", "ற": "ra", "ல": "la", "ள": "la", "ழ": "zha", "வ": "va",
+    "ஷ": "sha", "ஸ": "sa", "ஹ": "ha", "ஜ": "ja",
+    // Tamil Matras
+    "ா": "aa", "ி": "i", "ீ": "ee", "ு": "u", "ூ": "oo",
+    "ெ": "e", "ே": "e", "ை": "ai", "ொ": "o", "ோ": "o", "ௌ": "au",
+
+    // Telugu Vowels (0x0C00 - 0x0C7F)
+    "అ": "a", "ఆ": "aa", "ఇ": "i", "ఈ": "ee", "ఉ": "u", "ఊ": "oo", "ఋ": "ru",
+    "ఎ": "e", "ఏ": "e", "ఐ": "ai", "ఒ": "o", "ఓ": "o", "ఔ": "au", "అం": "am", "అః": "ah",
+    // Telugu Consonants
+    "క": "ka", "ఖ": "kha", "గ": "ga", "ఘ": "gha", "ఙ": "nga",
+    "చ": "cha", "ఛ": "chha", "జ": "ja", "ఝ": "jha", "ఞ": "nya",
+    "ట": "ta", "ఠ": "tha", "డ": "da", "ఢ": "dha", "ణ": "na",
+    "త": "ta", "థ": "tha", "ద": "da", "ధ": "dha", "న": "na",
+    "ప": "pa", "ఫ": "pha", "బ": "ba", "భ": "bha", "మ": "ma",
+    "య": "ya", "ర": "ra", "ఱ": "ra", "ల": "la", "వ": "va",
+    "శ": "sha", "ష": "sha", "స": "sa", "హ": "ha", "ళ": "la",
+    // Telugu Matras
+    "ా": "aa", "ి": "i", "ీ": "ee", "ు": "u", "ూ": "oo", "ృ": "ru",
+    "ె": "e", "ే": "e", "ై": "ai", "ొ": "o", "ో": "o", "ౌ": "au",
+    "ం": "m", "ః": "h",
+
+    // Devanagari Vowels (0x0900 - 0x097F)
+    "अ": "a", "आ": "aa", "इ": "i", "ई": "ee", "उ": "u", "ऊ": "oo", "ऋ": "ru",
+    "ए": "e", "ऐ": "ai", "ओ": "o", "औ": "au", "अं": "am", "अः": "ah", "ॐ": "Om",
+    // Devanagari Consonants
+    "क": "ka", "ख": "kha", "ग": "ga", "घ": "gha", "ङ": "nga",
+    "च": "cha", "छ": "chha", "ज": "ja", "झ": "jha", "ञ": "nya",
+    "ट": "ta", "ठ": "tha", "ड": "da", "ढ": "dha", "ण": "na",
+    "त": "ta", "थ": "tha", "द": "da", "ध": "dha", "न": "na",
+    "प": "pa", "फ": "pha", "ब": "ba", "भ": "bha", "म": "ma",
+    "य": "ya", "र": "ra", "ल": "la", "व": "va",
+    "श": "sha", "ष": "sha", "स": "sa", "ह": "ha", "ळ": "la",
+    // Devanagari Matras
+    "ा": "aa", "ि": "i", "ी": "ee", "ु": "u", "ू": "oo", "ृ": "ru",
+    "े": "e", "ै": "ai", "ो": "o", "ौ": "au", "ं": "m", "ः": "h"
   };
+
+  const viramas = new Set(["್", "்", "్", "्"]);
+  const matras = new Set([
+    "ಾ", "ಿ", "ೀ", "ು", "ೂ", "ೃ", "ೆ", "ೇ", "ೈ", "ೊ", "ೋ", "ೌ",
+    "ா", "ி", "ீ", "ு", "ூ", "ெ", "ே", "ை", "ொ", "ோ", "ௌ",
+    "ా", "ి", "ీ", "ు", "ూ", "ృ", "ె", "ే", "ై", "ొ", "ో", "ౌ",
+    "ा", "ि", "ी", "ु", "ू", "ृ", "े", "ै", "ो", "ौ"
+  ]);
 
   let out = "";
   for (let i = 0; i < s.length; i++) {
     const ch = s[i];
-    if (ch === "್") {
-      // Halant removes the trailing 'a' of previous consonant
+    if (viramas.has(ch)) {
+      // Halant/Virama/Pulli removes the trailing 'a' of previous consonant
       if (out.endsWith("a")) {
         out = out.slice(0, -1);
       }
-    } else if (["ಾ", "ಿ", "ೀ", "ು", "ೂ", "ೃ", "ೆ", "ೇ", "ೈ", "ೊ", "ೋ", "ೌ"].includes(ch)) {
+    } else if (matras.has(ch)) {
       if (out.endsWith("a")) {
         out = out.slice(0, -1);
       }
-      out += knMap[ch] || "";
-    } else if (knMap[ch] !== undefined) {
-      out += knMap[ch];
+      out += indicMap[ch] || "";
+    } else if (indicMap[ch] !== undefined) {
+      out += indicMap[ch];
     } else {
       out += ch;
     }

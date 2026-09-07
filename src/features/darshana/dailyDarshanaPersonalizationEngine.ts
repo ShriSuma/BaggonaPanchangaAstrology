@@ -14,7 +14,16 @@
  */
 
 import { PlanetName, type KundliOutput } from "../../core/AstroTypes";
-import type { SevaLang } from "../seva/sevaLocale";
+import {
+  COLOUR_L5,
+  COLOUR_HEX,
+  DIRECTION_L5,
+  GRAHA_L5,
+  type SevaLang,
+  type ColourKey,
+  type DirectionKey
+} from "../seva/sevaLocale";
+import type { RhythmDay } from "../../core/DailyRhythmEngine";
 import { computeGocharaMoonForDate } from "../seva/dinaBhavishyaEngine";
 import { findBhuktiAtAge } from "../../core/DashaBhuktiEngine";
 import { calculatePanchang } from "../../core/PanchangEngine";
@@ -38,12 +47,13 @@ export interface PersonalizedDarshanaPayload {
     karana: string;
   };
 
-  // 1. Dynamic Presiding Deity & Sacred Vedic Shloka
+  // 1. Dynamic Presiding Deity & Sacred Vedic Shloka (Janma Kundali + Gochara + Dasha)
   deity: {
     key: string;
     name: Record<SevaLang, string>;
     primaryColor: string;
     sanskritShloka: string;
+    allShlokas?: Record<SevaLang, string>;
     transliteration: string;
     beejaMantra: Record<SevaLang, string>;
     meaning: Record<SevaLang, string>;
@@ -70,6 +80,7 @@ export interface PersonalizedDarshanaPayload {
       borderClass: string;
     };
     luckyDigit: number;
+    luckyNumbers?: number[];
     luckyDirection: {
       name: Record<SevaLang, string>;
       degrees: string;
@@ -108,6 +119,7 @@ export interface PersonalizeDarshanaParams {
   userLng?: number;
   userPincode?: string;
   priestName?: string;
+  rhythmDay?: RhythmDay;
 }
 
 // ── SACRED DEITY & VEDIC SHLOKA REPOSITORY ──
@@ -115,7 +127,7 @@ interface DeityVedicShlokaRecord {
   key: string;
   name: Record<SevaLang, string>;
   primaryColor: string;
-  sanskritShloka: string;
+  sanskritShloka: Record<SevaLang, string>;
   transliteration: string;
   beejaMantra: Record<SevaLang, string>;
   meaning: Record<SevaLang, string>;
@@ -134,9 +146,13 @@ const DEITY_SHLOKA_DATABASE: Record<string, DeityVedicShlokaRecord> = {
       ta: "ஸ்ரீ மகாபலேஸ்வர சுவாமி (கோகர்ண ஆத்மலிங்கம்)"
     },
     primaryColor: "#0284C7",
-    sanskritShloka: `ತ್ರಯಂಬಕಂ ಯಜಾಮಹೇ ಸುಗಂಧಿಂ ಪುಷ್ಟಿವರ್ಧನಮ್ ।
-ಉರ್ವಾರುಕಮಿವ ಬಂಧನಾನ್ ಮೃತ್ಯೋರ್ಮುಕ್ಷೀಯ ಮಾಮೃತಾತ್ ॥
-ಓಂ ನಮಃ ಶಿವಾಯ ॥`,
+    sanskritShloka: {
+      kn: "ತ್ರಯಂಬಕಂ ಯಜಾಮಹೇ ಸುಗಂಧಿಂ ಪುಷ್ಟಿವರ್ಧನಮ್ ।\nಉರ್ವಾರುಕಮಿವ ಬಂಧನಾನ್ ಮೃತ್ಯೋರ್ಮುಕ್ಷೀಯ ಮಾಮೃತಾತ್ ॥\nಓಂ ನಮಃ ಶಿವಾಯ ॥",
+      en: "Tryambakaṁ yajāmahe sugandhiṁ puṣṭivardhanam | Urvārukamiva bandhanān mṛtyormukṣīya māmṛtāt || Om Namaḥ Śivāya ||",
+      hi: "त्र्यम्बकं यजामहे सुगन्धिं पुष्टिवर्धनम् ।\nउर्वारुकमिव बन्धनान् मृत्योर्मुक्षीय मामृतात् ॥\nॐ नमः शिवाय ॥",
+      te: "త్ర్యంబకం యజామహే సుగంధిం పుష్టివర్ధనమ్ ।\nఉర్వారుకమివ బంధనాన్ మృత్యోర్ముక్షీయ మామృతాత్ ॥\nఓం నమః శివాయ ॥",
+      ta: "த்ரயம்பகம் யஜாமஹே சுகந்திம் புஷ்டிவர்தனம் ।\nஉர்வாருகமிவ பந்தனான் ம்ருத்யோர்முக்ஷீய மாம்ருதாத் ॥\nஓம் நமஃ சிவாய ॥"
+    },
     transliteration: "Tryambakaṁ yajāmahe sugandhiṁ puṣṭivardhanam | Urvārukamiva bandhanān mṛtyormukṣīya māmṛtāt || Om Namaḥ Śivāya ||",
     beejaMantra: {
       kn: "ॐ ಹೌಂ ಜೂಂ ಸಃ ॐ ಭೂರ್ಭುವಃ ಸ್ವಃ ॐ ತ್ರ್ಯಂಬಕಂ ಯಜಾಮಹೇ ॐ ನಮಃ ಶಿವಾಯ",
@@ -168,13 +184,17 @@ const DEITY_SHLOKA_DATABASE: Record<string, DeityVedicShlokaRecord> = {
       kn: "ಶ್ರೀ ಮಹಾಗಣಪತಿ (ವಿಘ್ನವಿನಾಶಕ)",
       en: "Lord Maha Ganapati (Remover of Obstacles)",
       hi: "श्री महागणपति (विघ्नहर्ता)",
-      te: "శ్రీ మహాగణపతి (విఘ్నవినాశకుడు)",
+      te: "శ్రీ మహాగణపతి (విగ్నవినాశకుడు)",
       ta: "ஸ்ரீ மகா கணபதி (விக்ன விநாயகர்)"
     },
     primaryColor: "#DC2626",
-    sanskritShloka: `ಗಜಾನನಂ ಭೂತಗಣಾದಿಸೇವಿತಂ ಕಪಿತ್ಥಜಂಬೂಫಲಸಾರಭಕ್ಷಿತಮ್ ।
-ಉಮಾಸುತಂ ಶೋಕವಿನಾಶಕಾರಣಂ ನಮಾಮಿ ವಿಘ್ನೇಶ್ವರ ಪಾದಪಂಕಜಮ್ ॥
-ಓಂ ಗಂ ಗಣಪತಯೇ ನಮಃ ॥`,
+    sanskritShloka: {
+      kn: "ಗಜಾನನಂ ಭೂತಗಣಾದಿಸೇವಿತಂ ಕಪಿತ್ಥಜಂಬೂಫಲಸಾರಭಕ್ಷಿತಮ್ ।\nಉಮಾಸುತಂ ಶೋಕವಿನಾಶಕಾರಣಂ ನಮಾಮಿ ವಿಘ್ನೇಶ್ವರ ಪಾದಪಂಕಜಮ್ ॥\nಓಂ ಗಂ ಗಣಪತಯೇ ನಮಃ ॥",
+      en: "Gajānanaṁ bhūtagaṇādisevitaṁ kapitthajambūphalasārabhakṣitam |\nUmāsutaṁ śokavināśakāraṇaṁ namāmi vighneśvara pādapaṅkajam ||\nOm Gaṁ Gaṇapataye Namaḥ ||",
+      hi: "गजाननं भूतगणादिसेवितं कपित्थजम्बूफलसारभक्षितम् ।\nउमासुतं शोकविनाशकारणं नमामि विघ्नेश्वर पादपंकजम् ॥\nॐ गं गणपतये नमः ॥",
+      te: "గజాననం భూతగణాదిసేవితం కపిత్థజంబూఫలసారభక్షితమ్ ।\nఉమాసుతం శోకవినాశకారణం నమామి విఘ్నేశ్వర పాదపంకజమ్ ॥\nఓం గం గణపతయే నమః ॥",
+      ta: "கஜானனம் பூதகணாதிசேவிதம் கபித்தஜம்பூபலசாரபக்ஷிதம் ।\nஉமாசுதம் சோகவிநாசகாரணம் நமாமி விக்னேஸ்வர பாதபங்கஜம் ॥\nஓம் கம் கணபதயே நமஃ ॥"
+    },
     transliteration: "Gajānanaṁ bhūtagaṇādisevitaṁ kapitthajambūphalasārabhakṣitam | Umāsutaṁ śokavināśakāraṇaṁ namāmi vighneśvara pādapaṅkajam || Om Gaṁ Gaṇapataye Namaḥ ||",
     beejaMantra: {
       kn: "ॐ ಶ್ರೀಂ ಹ್ರೀಂ ಕ್ಲೀಂ ಗ್ಲೌಂ ಗಂ ಗಣಪತಯೇ ವರವರದ ಸರ್ವಜನಂ ಮೇ ವಶಮಾನಯ ಸ್ವಾಹಾ",
@@ -210,10 +230,13 @@ const DEITY_SHLOKA_DATABASE: Record<string, DeityVedicShlokaRecord> = {
       ta: "ஸ்ரீ மகாலட்சுமி தேவி (தனதான்ய சௌபாக்யதாயினி)"
     },
     primaryColor: "#D97706",
-    sanskritShloka: `ನಮಸ್ತೇಽಸ್ತು ಮಹಾಮಾಯೇ ಶ್ರೀಪೀಠೇ ಸುರಪೂಜಿತೇ ।
-ಶಂಖಚಕ್ರಗದಾಹಸ್ತೇ ಮಹಾಲಕ್ಷ್ಮಿ ನಮೋಽಸ್ತು ತೇ ॥
-ಸರ್ವಜ್ಞೇ ಸರ್ವವರದೇ ಸರ್ವದುಷ್ಟಭಯಂಕರಿ ।
-ಸರ್ವದುಃಖಹರೇ ದೇವಿ ಮಹಾಲಕ್ಷ್ಮಿ ನಮೋಽಸ್ತು ತೇ ॥`,
+    sanskritShloka: {
+      kn: "ನಮಸ್ತೇಽಸ್ತು ಮಹಾಮಾಯೇ ಶ್ರೀಪೀಠೇ ಸುರಪೂಜಿತೇ ।\nಶಂಖಚಕ್ರಗದಾಹಸ್ತೇ ಮಹಾಲಕ್ಷ್ಮಿ ನಮೋಽಸ್ತು ತೇ ॥\nಸರ್ವಜ್ಞೇ ಸರ್ವವರದೇ ಸರ್ವದುಷ್ಟಭಯಂಕರಿ ।\nಸರ್ವದುಃಖಹರೇ ದೇವಿ ಮಹಾಲಕ್ಷ್ಮಿ ನಮೋಽಸ್ತು ತೇ ॥",
+      en: "Namaste'stu mahāmāye śrīpīṭhe surapūjite |\nŚaṅkhacakragadāhaste mahālakṣmi namo'stu te ||\nSarvajñe sarvavarade sarvaduṣṭabhayaṅkari |\nSarvaduḥkhahare devi mahālakṣmi namo'stu te ||",
+      hi: "नमस्तेऽस्तु महामाये श्रीपीठे सुरपूजिते ।\nशंखचक्रगदाहस्ते महालक्ष्मि नमोऽस्तु ते ॥\nसर्वज्ञे सर्ववरदे सर्वदुष्टभयंकरि ।\nसर्वदुःखहरे देवि महालक्ष्मि नमोऽस्तु ते ॥",
+      te: "నమస్తేಽస్తు మహామాయే శ్రీపీఠే సురపూజితే ।\nశంఖచక్రగదాహస్తే మహాలక్ష్మి నమోಽస్తు తే ॥\nసర్వజ్ఞే సర్వవరదే సర్వదుష్టభయంకరి ।\nసర్వదుఃఖహరే దేవి మహాలక్ష్మి నమోಽస్తు తే ॥",
+      ta: "நமஸ்தேऽஸ்து மஹாமாயே ஸ்ரீபீடே சுரபூஜிதே ।\nசங்கசக்ரகதாஹஸ்தே மஹாலக்ஷ்மி நமோऽஸ்து தே ॥\nசர்வஜ்ஞே சர்வவரதே சர்வதுஷ்டபயங்கரி ।\nசர்வதுஃகஹரே தேவி மஹாலக்ஷ்மி நமோऽஸ்து தே ॥"
+    },
     transliteration: "Namaste'stu mahāmāye śrīpīṭhe surapūjite | Śaṅkhacakragadāhaste mahālakṣmi namo'stu te || Sarvajñe sarvavarade sarvaduṣṭabhayaṅkari | Sarvaduḥkhahare devi mahālakṣmi namo'stu te ||",
     beejaMantra: {
       kn: "ॐ ಶ್ರೀಂ ಹ್ರೀಂ ಕ್ಲೀಂ ಶ್ರೀಂ ಮಹಾಲಕ್ಷ್ಮ್ಯೈ ನಮಃ",
@@ -249,9 +272,13 @@ const DEITY_SHLOKA_DATABASE: Record<string, DeityVedicShlokaRecord> = {
       ta: "ஸ்ரீ வீர ஆஞ்சநேயர் (தைரியம் & ரக்ஷா கவசம்)"
     },
     primaryColor: "#EA580C",
-    sanskritShloka: `ಮನೋಜವಂ ಮಾರುತತುಲ್ಯವೇಗಂ ಜಿತೇಂದ್ರಿಯಂ ಬುದ್ಧಿಮತಾಂ ವರಿಷ್ಠಮ್ ।
-ವಾತಾತ್ಮಜಂ ವಾನರಯೂಥಮುಖ್ಯಂ ಶ್ರೀರಾಮದೂತಂ ಶಿರಸಾ ನಮಾಮಿ ॥
-ಓಂ ಹಂ ಹನುಮತೇ ನಮಃ ॥`,
+    sanskritShloka: {
+      kn: "ಮನೋಜವಂ ಮಾರುತತುಲ್ಯವೇಗಂ ಜಿತೇಂದ್ರಿಯಂ ಬುದ್ಧಿಮತಾಂ ವರಿಷ್ಠಮ್ ।\nವಾತಾತ್ಮಜಂ ವಾನರಯೂಥಮುಖ್ಯಂ ಶ್ರೀರಾಮದೂತಂ ಶಿರಸಾ ನಮಾಮಿ ॥\nಓಂ ಹಂ ಹನುಮತೇ ನಮಃ ॥",
+      en: "Manojavaṁ mārutatulyavegaṁ jitendriyaṁ buddhimatāṁ variṣṭham |\nVātātmajaṁ vānarayūthamukhyaṁ śrīrāmadūtaṁ śirasā namāmi ||\nOm Haṁ Hanumate Namaḥ ||",
+      hi: "मनोजवं मारुततुल्यवेगं जितेन्द्रियं बुद्धिमतां वरिष्ठम् ।\nवातात्मजं वानरयूथमुख्यं श्रीरामदूतं शिरसा नमामि ॥\nॐ हं हनुमते नमः ॥",
+      te: "మనోజవం మారుతతుల్యవేగం జితేంద్రియం బుద్ధిమతాం వరిష్ఠమ్ ।\nవాతాత్మజం వానరయూథముఖ్యం శ్రీరామదూతం శిరసా నమామి ॥\nఓం హం హనుమతే నమః ॥",
+      ta: "மனோஜவம் மாருததுல்யவேகம் ஜிதேந்த்ரியம் புத்திமதாம் வரிஷ்டம் ।\nவாதாத்மஜம் வானரயூதமுக்யம் ஸ்ரீராமதூதம் சிரஸா நமாமி ॥\nஓம் ஹம் ஹனுமதே நமஃ ॥"
+    },
     transliteration: "Manojavaṁ mārutatulyavegaṁ jitendriyaṁ buddhimatāṁ variṣṭham | Vātātmajaṁ vānarayūthamukhyaṁ śrīrāmadūtaṁ śirasā namāmi || Om Haṁ Hanumate Namaḥ ||",
     beejaMantra: {
       kn: "ॐ ಹ್ರಾಂ ಹ್ರೀಂ ಹ್ರೌಂ ಸಃ ಹನುಮತೇ ರುದ್ರಾವತಾರಾಯ ನಮಃ",
@@ -287,10 +314,13 @@ const DEITY_SHLOKA_DATABASE: Record<string, DeityVedicShlokaRecord> = {
       ta: "ஸ்ரீ குரு ராகவேந்திரர் & பிரகஸ்பதி (ஞானம் & குரு அருள்)"
     },
     primaryColor: "#CA8A04",
-    sanskritShloka: `ಪೂಜ್ಯಾಯ ರಾಘವೇಂದ್ರಾಯ ಸತ್ಯಧರ್ಮರತಾಯ ಚ ।
-ಭಜತಾಂ ಕಲ್ಪವೃಕ್ಷಾಯ ನಮತಾಂ ಕಾಮಧೇನವೇ ॥
-ಗುರುರ್ಬ್ರಹ್ಮಾ ಗುರುರ್ವಿಷ್ಣುಃ ಗುರುರ್ದೇವೋ ಮಹೇಶ್ವರಃ ।
-ಗುರುಸ್ಸಾಕ್ಷಾತ್ ಪರಬ್ರಹ್ಮ ತಸ್ಮೈ ಶ್ರೀ ಗುರವೇ ನಮಃ ॥`,
+    sanskritShloka: {
+      kn: "ಪೂಜ್ಯಾಯ ರಾಘವೇಂದ್ರಾಯ ಸತ್ಯಧರ್ಮರತಾಯ ಚ ।\nಭಜತಾಂ ಕಲ್ಪವೃಕ್ಷಾಯ ನಮತಾಂ ಕಾಮಧೇನವೇ ॥\nಗುರುರ್ಬ್ರಹ್ಮಾ ಗುರುರ್ವಿಷ್ಣುಃ ಗುರುರ್ದೇವೋ ಮಹೇಶ್ವರಃ ।\nಗುರುಸ್ಸಾಕ್ಷಾತ್ ಪರಬ್ರಹ್ಮ ತಸ್ಮೈ ಶ್ರೀ ಗುರವೇ ನಮಃ ॥",
+      en: "Pūjyāya rāghavendrāya satyadharmaratāya ca |\nBhajatāṁ kalpavṛkṣāya namatāṁ kāmadhenave ||\nGururbrahmā gururviṣṇuḥ gururdevo maheśvaraḥ |\nGurussākṣāt parabrahma tasmai śrī gurave namaḥ ||",
+      hi: "पूज्याय राघवेंद्राय सत्यधर्मरताय च ।\nभजतां कल्पवृक्षाय नमतां कामधेनवे ॥\nगुरुर्ब्रह्मा गुरुर्विष्णुः गुरुर्देवो महेश्वरः ।\nगुरुस्साक्षात् परब्रह्म तस्मै श्री गुरवे नमः ॥",
+      te: "పూజ్యాయ రాఘవేంద్రాయ సత్యధర్మరతాయ చ ।\nభజతాం కల్పవృక్షాయ నమతాం కామధేనవే ॥\nగురుర్బ్రహ్మా గురుర్విష్ణుః గురుర్దేవో మహేశ్వరః ।\nగురుస్సాక్షಾತ್ ಪರಬ್ರಹ್ಮ ತಸ್ಮೈ ಶ್ರೀ ಗುರವೇ ನಮಃ ॥",
+      ta: "பூஜ்யாய ராகவேந்த்ராய சத்யதர்மரதாய ச ।\nபஜதாம் கல்பவ்ருக்ஷாய நமதாம் காமதேனவே ॥\nகுருர்ப்ரம்மா குருர்விஷ்ணுஃ குருர்தேவோ மஹேஸ்வரஃ ।\nகுருஸ்ஸாக்ஷாத் பரப்ரம்ம தஸ்மை ஸ்ரீ குரவே நமஃ ॥"
+    },
     transliteration: "Pūjyāya rāghavendrāya satyadharmaratāya ca | Bhajatāṁ kalpavṛkṣāya namatāṁ kāmadhenave || Gururbrahmā gururviṣṇuḥ gururdevo maheśvaraḥ | Gurussākṣāt parabrahma tasmai śrī gurave namaḥ ||",
     beejaMantra: {
       kn: "ॐ ಗ್ರಾಂ ಗ್ರೀಂ ಗ್ರೌಂ ಸಃ ಗುರವೇ ನಮಃ · ॐ ಶ್ರೀ ರಾಘವೇಂದ್ರಾಯ ನಮಃ",
@@ -326,9 +356,13 @@ const DEITY_SHLOKA_DATABASE: Record<string, DeityVedicShlokaRecord> = {
       ta: "ஸ்ரீ சூர்ய நாராயணர் (ஆரோக்கியம் & தேஜஸ்)"
     },
     primaryColor: "#B45309",
-    sanskritShloka: `ನಮಃ ಸವಿತ್ರೇ ಜಗದೇಕಚಕ್ಷುಷೇ ಜಗತ್ಪ್ರಸೂತಿಸ್ಥಿತಿನಾಶಹೇತವೇ ।
-ತ್ರಯೀಮಯಾಯ ತ್ರಿಗುಣಾತ್ಮಧಾರಿಣೇ ವಿರಿಂಚಿನಾರಾಯಣಶಂಕರಾತ್ಮನೇ ॥
-ಓಂ ಸೂರ್ಯಾಯ ನಮಃ ॥`,
+    sanskritShloka: {
+      kn: "ನಮಃ ಸವಿತ್ರೇ ಜಗದೇಕಚಕ್ಷುಷೇ ಜಗತ್ಪ್ರಸೂತಿಸ್ಥಿತಿನಾಶಹೇತವೇ ।\nತ್ರಯೀಮಯಾಯ ತ್ರಿಗುಣಾತ್ಮಧಾರಿಣೇ ವಿರಿಂಚಿನಾರಾಯಣಶಂಕರಾತ್ಮನೇ ॥\nಓಂ ಸೂರ್ಯಾಯ ನಮಃ ॥",
+      ta: "நமஃ சவித்ரே ஜகதேகசக்ஷுஷே ஜகத்ப்ரசூதிஸ்திதிநாசஹேதவே ।\nத்ரயீமயாய த்ரிகுணாத்மதாரிணே விரிஞ்சிநாராயணசங்கராத்மனே ॥\nஓம் சூர்யாய நமஃ ॥",
+      te: "నమః సవిత్రే జగదేకచక్షుషే జగత్ప్రసూతిస్థితినాశహేతవే ।\nత్రయీమయాయ త్రిగుణాత్మధారిణే విరించినారాయణశంకరాత్మనే ॥\nఓం సూర్యాయ నమః ॥",
+      hi: "नमः सवित्रे जगदेकचक्षुषे जगत्प्रसूतिस्थितिनाशहेतवे ।\nत्रयीमयाय त्रिगुणात्मधारिणे विरिञ्चिनारायणशंकरात्मने ॥\nॐ सूर्याय नमः ॥",
+      en: "Namaḥ savitre jagadekachakṣuṣe jagatprasūtisthitināśahetave |\nTrayīmayāya triguṇātmadhāriṇe viriñcinārāyaṇaśaṅkarātmane ||\nOm Sūryāya Namaḥ ||"
+    },
     transliteration: "Namaḥ savitre jagadekachakṣuṣe jagatprasūtisthitināśahetave | Trayīmayāya triguṇātmadhāriṇe viriñcinārāyaṇaśaṅkarātmane || Om Sūryāya Namaḥ ||",
     beejaMantra: {
       kn: "ॐ ಹ್ರಾಂ ಹ್ರೀಂ ಹ್ರೌಂ ಸಃ ಸೂರ್ಯಾಯ ನಮಃ",
@@ -364,10 +398,13 @@ const DEITY_SHLOKA_DATABASE: Record<string, DeityVedicShlokaRecord> = {
       ta: "ஸ்ரீ மகாவிஷ்ணு / நாராயணன் (சர்வ ரட்சகர்)"
     },
     primaryColor: "#059669",
-    sanskritShloka: `ಶಾಂತಾಕಾರಂ ಭುಜಗಶಯನಂ ಪದ್ಮನಾಭಂ ಸುರೇಶಂ
-ವಿಶ್ವಾಧಾರಂ ಗಗನಸದೃಶಂ ಮೇಘವರ್ಣಂ ಶುಭಾಂಗಮ್ ।
-ಲಕ್ಷ್ಮೀಕಾಂತಂ ಕಮಲನಯನಂ ಯೋಗಿಹೃರ್ದ್ಧ್ಯಾನಗಮ್ಯಂ
-ವಂದೇ ವಿಷ್ಣುಂ ಭವಭಯಹರಂ ಸರ್ವಲೋಕೈಕನಾಥಮ್ ॥`,
+    sanskritShloka: {
+      kn: "ಶಾಂತಾಕಾರಂ ಭುಜಗಶಯನಂ ಪದ್ಮನಾಭಂ ಸುರೇಶಂ\nವಿಶ್ವಾಧಾರಂ ಗಗನಸದೃಶಂ ಮೇಘವರ್ಣಂ ಶುಭಾಂಗಮ್ ।\nಲಕ್ಷ್ಮೀಕಾಂತಂ ಕಮಲನಯನಂ ಯೋಗಿಹೃರ್ದ್ಧ್ಯಾನಗಮ್ಯಂ\nವಂದೇ ವಿಷ್ಣುಂ ಭವಭಯಹರಂ ಸರ್ವಲೋಕೈಕನಾಥಮ್ ॥",
+      ta: "சாந்தாகாரம் புஜகசயனம் பத்மநாபம் சுரேசம்\nவிஸ்வாதாரம் ககனசத்ருசம் மேகவர்ணம் சுபாங்கம் ।\nலக்ஷ்மீகாந்தம் கமலநயனம் யோகிஹ்ருத்த்யானகம்யம்\nவந்தே விஷ்ணும் பவபயஹரம் சர்வலோகைகநாதம் ॥",
+      te: "శాంతాకారం భుజగశయనం పద్మనాభం సురేశం\nవిశ్వాధారం గగనసదృశం మేఘవర్ణం శుభాంగమ్ ।\nలక్ష్మీకాంతం కమలనయనం యోగిహృద్ధ్యానగమ్యం\nవందే విష్ణుం భవభయహరం సర్వలోకైకనాథమ్ ॥",
+      hi: "शान्ताकारं भुजगशयनं पद्मनाभं सुरेशं\nविश्वाधारं गगनसदृशं मेघवर्णं शुभाङ्गम् ।\nलक्ष्मीकान्तं कमलनयनं योगिहृद्ध्यानगम्यं\nवन्दे विष्णुं भवभयहरं सर्वलोकैकनाथम् ॥",
+      en: "Śāntākāraṁ bhujagaśayanaṁ padmanābhaṁ sureśaṁ\nviśvādhāraṁ gaganasadṛśaṁ meghavarṇaṁ śubhāṅgam |\nLakṣmīkāntaṁ kamalanayanaṁ yogihṛddhyānagamyaṁ\nvande viṣṇuṁ bhavabhayaharaṁ sarvalokaikanātham ||"
+    },
     transliteration: "Śāntākāraṁ bhujagaśayanaṁ padmanābhaṁ sureśaṁ viśvādhāraṁ gaganasadṛśaṁ meghavarṇaṁ śubhāṅgam | Lakṣmīkāntaṁ kamalanayanaṁ yogihṛddhyānagamyaṁ vande viṣṇuṁ bhavabhayaharaṁ sarvalokaikanātham ||",
     beejaMantra: {
       kn: "ॐ ನಮೋ ಭಗವತೇ ವಾಸುದೇವಾಯ · ॐ ಬ್ರಾಂ ಬ್ರೀಂ ಬ್ರೌಂ ಸಃ ಬುಧಾಯ ನಮಃ",
@@ -403,9 +440,13 @@ const DEITY_SHLOKA_DATABASE: Record<string, DeityVedicShlokaRecord> = {
       ta: "ஸ்ரீ சுப்பிரமணிய சுவாமி (முருகப் பெருமான் - வெற்றி வடிவேலன்)"
     },
     primaryColor: "#E11D48",
-    sanskritShloka: `ಷಡಾನನಂ ಚಂದನಲೇಪಿತಾಂಗಂ ಮಹೋರಸಂ ದಿವ್ಯಮಯೂರವಾಹನಮ್ ।
-ರುದ್ರಸ್ಯ ಸೂನುಂ ಸುರಸೈನ್ಯನಾಥಂ ಗುಹಂ ಸದಾ ಶರಣಮಹಂ ಪ್ರಪದ್ಯೇ ॥
-ಓಂ ಶರವಣಭವಾಯ ನಮಃ ॥`,
+    sanskritShloka: {
+      kn: "ಷಡಾನನಂ ಚಂದನಲೇಪಿತಾಂಗಂ ಮಹೋರಸಂ ದಿವ್ಯಮಯೂರವಾಹನಮ್ ।\nರುದ್ರಸ್ಯ ಸೂನುಂ ಸುರಸೈನ್ಯನಾಥಂ ಗುಹಂ ಸದಾ ಶರಣಮಹಂ ಪ್ರಪದ್ಯೇ ॥\nಓಂ ಶರವಣಭವಾಯ ನಮಃ ॥",
+      ta: "ஷடானனம் சந்தனலேபிதாங்கம் மஹோரசம் திவ்யமயூரவாஹனம் ।\nருத்ரஸ்ய சூனும் சுரசைன்யநாதம் குஹம் சதா சரணமஹம் ப்ரபத்யே ॥\nஓம் சரவணபவாய நமஃ ॥",
+      te: "షడాననం చందనలేపితాంగం మహోరసం దివ్యమయూరవాహనమ్ ।\nరుద్రస్య సూనుం సురసైన్యనాథం గుహం సదా శరణమహం ప్రపద్యే ॥\nఓం శరవణభవాయ నమః ॥",
+      hi: "षडाननं चन्दनलेपिताङ्गं महोरसं दिव्यमयूरवाहनम् ।\nरुद्रस्य सूनुं सुरसैन्यनाथं गुहं सदा शरणमहं प्रपद्ये ॥\nॐ शरवणभवाय नमः ॥",
+      en: "Ṣaḍānanaṁ candanalepitāṅgaṁ mahorasaṁ divyamayūravāhanam |\nRudrasya sūnuṁ surasainyanāthaṁ guhaṁ sadā śaraṇamahaṁ prapadye ||\nOm Śaravaṇabhavāya Namaḥ ||"
+    },
     transliteration: "Ṣaḍānanaṁ candanalepitāṅgaṁ mahorasaṁ divyamayūravāhanam | Rudrasya sūnuṁ surasainyanāthaṁ guhaṁ sadā śaraṇamahaṁ prapadye || Om Śaravaṇabhavāya Namaḥ ||",
     beejaMantra: {
       kn: "ॐ ಕ್ರಾಂ ಕ್ರೀಂ ಕ್ರೌಂ ಸಃ ಭೌಮಾಯ ನಮಃ · ॐ ಶರವಣಭವಾಯ ನಮಃ",
@@ -588,7 +629,8 @@ export function computePersonalizedDarshanaPayload(params: PersonalizeDarshanaPa
     userLat = 14.5479,
     userLng = 74.3187,
     userPincode = "581326",
-    priestName = "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್"
+    priestName = "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
+    rhythmDay
   } = params;
 
   // 1. Compute Live Astronomical Gochara Moon
@@ -798,13 +840,32 @@ export function computePersonalizedDarshanaPayload(params: PersonalizeDarshanaPa
 
   const chosenDeity = DEITY_SHLOKA_DATABASE[chosenDeityKey] || DEITY_SHLOKA_DATABASE.shiva;
 
+  // Localized Dasha Summary across all 5 languages (pure localization)
+  const getPlanetNameL5 = (p: string): Record<SevaLang, string> => {
+    const key = (Object.keys(GRAHA_L5) as (keyof typeof GRAHA_L5)[]).find(
+      (k) => k.toLowerCase() === p.toLowerCase()
+    ) || "Jupiter";
+    return GRAHA_L5[key];
+  };
+
+  const mahaL5 = getPlanetNameL5(runningMahadashaLord);
+  const antardashaL5 = getPlanetNameL5(runningAntardashaLord);
+
+  const runningDashaSummaryL5: Record<SevaLang, string> = {
+    kn: `${mahaL5.kn} ಮಹಾದಶಾ · ${antardashaL5.kn} ಭುಕ್ತಿ`,
+    en: `${mahaL5.en} Mahadasha · ${antardashaL5.en} Bhukti`,
+    hi: `${mahaL5.hi} महादशा · ${antardashaL5.hi} भुक्ति`,
+    te: `${mahaL5.te} మహాదశ · ${antardashaL5.te} భుక్తి`,
+    ta: `${mahaL5.ta} மகாதிசை · ${antardashaL5.ta} புக்தி`
+  };
+
   // 5. Dynamic Chief Priest Benediction
   const priestBenediction: Record<SevaLang, string> = {
-    kn: `ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಿಂದ ಪ್ರಧಾನ ಅರ್ಚಕ ${priestName} ಅವರ ಸತ್ಯ ಆಶೀರ್ವಚನ: ${devoteeName} ಅವರೇ, ಇಂದು ನಿಮ್ಮ ಚಂದ್ರ ರಾಶಿಗೆ ${chandraBalaHouse}ನೇ ಭಾವದ ಗೋಚಾರ ಚಂದ್ರ ಸಂಚಾರ ಹಾಗೂ ${runningDashaSummary} ನಡೆಯುತ್ತಿದೆ. ${isChandrashtama ? "ಇಂದು ಚಂದ್ರಾಷ್ಟಮವಿರುವುದರಿಂದ ಶಾಂತಚಿತ್ತದಿಂದ ಶಿವಸ್ಮರಣೆ ಮಾಡಿ ದಿನವನ್ನು ಶುಭವಾಗಿಸಿಕೊಳ್ಳಿ." : "ಇಂದು ನವಗ್ರಹಗಳ ಪೂರ್ಣ ಕೃಪೆಯಿಂದ ಕೈಗೊಂಡ ಸತ್ಕಾರ್ಯಗಳಲ್ಲಿ ಯಶಸ್ಸು ಲಭಿಸಲಿ."} ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಮತ್ತು ${chosenDeity.name.kn} ನಿಮ್ಮ ಕುಟುಂಬಕ್ಕೆ ಆಯುರಾರೋಗ್ಯ ಐಶ್ವರ್ಯ ಕರುಣಿಸಲಿ.`,
-    en: `Chief Priest ${priestName} from Sri Gokarna Kshetra blesses ${devoteeName}: Today, your transit Moon is in house ${chandraBalaHouse} with active ${runningDashaSummary}. ${isChandrashtama ? "Maintain mindful calm with Lord Shiva's prayers during Chandrashtama." : "May your noble endeavors prosper under auspicious planetary alignments."} May Sri Mahabaleshwara and ${chosenDeity.name.en} bless your home with health, peace, and abundance.`,
-    hi: `श्री गोकर्ण महाबलेश्वर सन्निधि से मुख्य अर्चक ${priestName} का पावन आशीर्वाद: ${devoteeName} जी, आज आपके लिए ${chandraBalaHouse}वें भाव का गोचर चंद्र एवं ${runningDashaSummary} प्रभावी है। ${isChandrashtama ? "चंद्राष्टम के कारण शांत मन से शिव स्मरण करें।" : "नवग्रहों की पावन कृपा से आपके सभी कार्य सफल हों।"} श्री महाबलेश्वर एवं ${chosenDeity.name.hi} आपके परिवार को आरोग्यता और समृद्धि प्रदान करें।`,
-    te: `శ్రీ గోకర్ణ మహాబలేశ్వర సన్నిధి నుండి ప్రధాన అర్చకులు ${priestName} గారి దివ్య ఆశీస్సులు: ${devoteeName} గారూ, నేడు మీకు ${chandraBalaHouse}వ భావ గోచార చంద్రుడు మరియు ${runningDashaSummary} నడుస్తున్నది. ${isChandrashtama ? "చంద్రాష్టమం కారణంగా ప్రశాంతంగా శివస్మరణ చేయండి." : "నవగ్రహాల శుభ అనుగ్రహంతో మీ సత్కార్యాలు విజయవంతమగుగాక."} శ్రీ మహాబలేశ్వరుడు మరియు ${chosenDeity.name.te} మీకు ఆయురారోగ్య ఐశ్వర్యములు ప్రసాదించుగాక.`,
-    ta: `ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சன்னிதியிலிருந்து முதன்மை அர்ச்சகர் ${priestName} அவர்களின் ஆசி: ${devoteeName} அவர்களே, இன்று உங்கள் ராசிக்கு ${chandraBalaHouse}ஆம் இடத்து சந்திரனும் ${runningDashaSummary}வும் நடப்பில் உள்ளது. ${isChandrashtama ? "சந்திராஷ்டம தினத்தில் அமைதியுடன் சிவதியானம் செய்யவும்." : "நவகிரக சுப அருளால் அனைத்து நல்ல முயற்சிகளும் வெற்றியடையட்டும்."} மகாபலேஸ்வரர் மற்றும் ${chosenDeity.name.ta} உங்கள் குடும்பத்திற்கு சகல சௌபாக்கியங்களையும் அருளட்டும்.`
+    kn: `ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಿಂದ ಪ್ರಧಾನ ಅರ್ಚಕ ${priestName} ಅವರ ಸತ್ಯ ಆಶೀರ್ವಚನ: ${devoteeName} ಅವರೇ, ಇಂದು ನಿಮ್ಮ ಚಂದ್ರ ರಾಶಿಗೆ ${chandraBalaHouse}ನೇ ಭಾವದ ಗೋಚಾರ ಚಂದ್ರ ಸಂಚಾರ ಹಾಗೂ ${runningDashaSummaryL5.kn} ನಡೆಯುತ್ತಿದೆ. ${isChandrashtama ? "ಇಂದು ಚಂದ್ರಾಷ್ಟಮವಿರುವುದರಿಂದ ಶಾಂತಚಿತ್ತದಿಂದ ಶಿವಸ್ಮರಣೆ ಮಾಡಿ ದಿನವನ್ನು ಶುಭವಾಗಿಸಿಕೊಳ್ಳಿ." : "ಇಂದು ನವಗ್ರಹಗಳ ಪೂರ್ಣ ಕೃಪೆಯಿಂದ ಕೈಗೊಂಡ ಸತ್ಕಾರ್ಯಗಳಲ್ಲಿ ಯಶಸ್ಸು ಲಭಿಸಲಿ."} ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಮತ್ತು ${chosenDeity.name.kn} ನಿಮ್ಮ ಕುಟುಂಬಕ್ಕೆ ಆಯುರಾರೋಗ್ಯ ಐಶ್ವರ್ಯ ಕರುಣಿಸಲಿ.`,
+    en: `Chief Priest ${priestName} from Sri Gokarna Kshetra blesses ${devoteeName}: Today, your transit Moon is in house ${chandraBalaHouse} with active ${runningDashaSummaryL5.en}. ${isChandrashtama ? "Maintain mindful calm with Lord Shiva's prayers during Chandrashtama." : "May your noble endeavors prosper under auspicious planetary alignments."} May Sri Mahabaleshwara and ${chosenDeity.name.en} bless your home with health, peace, and abundance.`,
+    hi: `श्री गोकर्ण महाबलेश्वर सन्निधि से मुख्य अर्चक ${priestName} का पावन आशीर्वाद: ${devoteeName} जी, आज आपके लिए ${chandraBalaHouse}वें भाव का गोचर चंद्र एवं ${runningDashaSummaryL5.hi} प्रभावी है। ${isChandrashtama ? "चंद्राष्टम के कारण शांत मन से शिव स्मरण करें।" : "नवग्रहों की पावन कृपा से आपके सभी कार्य सफल हों।"} श्री महाबलेश्वर एवं ${chosenDeity.name.hi} आपके परिवार को आरोग्यता और समृद्धि प्रदान करें।`,
+    te: `శ్రీ గోకర్ణ మహాబలేశ్వర సన్నిధి నుండి ప్రధాన అర్చకులు ${priestName} గారి దివ్య ఆశీస్సులు: ${devoteeName} గారూ, నేడు మీకు ${chandraBalaHouse}వ భావ గోచార చంద్రుడు మరియు ${runningDashaSummaryL5.te} నడుస్తున్నది. ${isChandrashtama ? "చంద్రాష్టమం కారణంగా ప్రశాంతంగా శివస్మరణ చేయండి." : "నవగ్రహాల శుభ అనుగ్రహంతో మీ సత్కార్యాలు విజయవంతమగుగాక."} శ్రీ మహాబలేశ్వరుడు మరియు ${chosenDeity.name.te} మీకు ఆయురారోగ్య ఐశ్వర్యములు ప్రసాదించుగాక.`,
+    ta: `ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சன்னிதியிலிருந்து முதன்மை அர்ச்சகர் ${priestName} அவர்களின் ஆசி: ${devoteeName} அவர்களே, இன்று உங்கள் ராசிக்கு ${chandraBalaHouse}ஆம் இடத்து சந்திரனும் ${runningDashaSummaryL5.ta}வும் நடப்பில் உள்ளது. ${isChandrashtama ? "சந்திராஷ்டம தினத்தில் அமைதியுடன் சிவதியானம் செய்யவும்." : "நவகிரக சுப அருளால் அனைத்து நல்ல முயற்சிகளும் வெற்றியடையட்டும்."} மகாபலேஸ்வரர் மற்றும் ${chosenDeity.name.ta} உங்கள் குடும்பத்திற்கு சகல சௌபாக்கியங்களையும் அருளட்டும்.`
   };
 
   // 6. Dynamic Astrological Karma Navigator (Do's, Don'ts & Micro-Parihara)
@@ -858,12 +919,51 @@ export function computePersonalizedDarshanaPayload(params: PersonalizeDarshanaPa
     ta: "பறவைகளுக்கு தானியம்/தண்ணீர் வைக்கவும் அல்லது புனித துளசியை வழிபடவும்."
   };
 
-  // 7. Power Metrics & Lucky Alignments
+  // 7. Power Metrics & Lucky Alignments (100% Calendar Synced)
   const planetKey = runningAntardashaLord || runningMahadashaLord || "Jupiter";
   const palette = PLANET_POWER_PALETTES[planetKey] || PLANET_POWER_PALETTES.Jupiter;
 
   const dObj = new Date(targetDate);
-  const luckyDigit = (((dObj.getDate() + natalMoonRashi + natalNakshatra + chandraBalaHouse) % 9) + 1);
+  const calculatedLuckyDigit = (((dObj.getDate() + natalMoonRashi + natalNakshatra + chandraBalaHouse) % 9) + 1);
+  const luckyDigit = rhythmDay?.luckyNumbers?.[0] ?? calculatedLuckyDigit;
+  const luckyNumbers = rhythmDay?.luckyNumbers || [luckyDigit];
+
+  const luckyColorKey = rhythmDay?.luckyColour as ColourKey | undefined;
+  const luckyDirectionKey = rhythmDay?.luckyDirection as DirectionKey | undefined;
+
+  const resolvedLuckyColor = luckyColorKey && COLOUR_L5[luckyColorKey]
+    ? {
+        name: COLOUR_L5[luckyColorKey],
+        hex: COLOUR_HEX[luckyColorKey] || palette.hex,
+        borderClass: "border-amber-400"
+      }
+    : {
+        name: {
+          kn: palette.colorKn,
+          en: palette.colorEn,
+          hi: palette.colorHi,
+          te: palette.colorTe,
+          ta: palette.colorTa
+        },
+        hex: palette.hex,
+        borderClass: palette.borderClass
+      };
+
+  const resolvedLuckyDirection = luckyDirectionKey && DIRECTION_L5[luckyDirectionKey]
+    ? {
+        name: DIRECTION_L5[luckyDirectionKey],
+        degrees: palette.degrees
+      }
+    : {
+        name: {
+          kn: palette.dirKn,
+          en: palette.dirEn,
+          hi: palette.dirHi,
+          te: palette.dirTe,
+          ta: palette.dirTa
+        },
+        degrees: palette.degrees
+      };
 
   // Golden Hour Calculation (Aligned with Abhijit Muhurtha / Tara Bala)
   const baseStart = 10 * 60 + 48; // 10:48 AM
@@ -891,6 +991,8 @@ export function computePersonalizedDarshanaPayload(params: PersonalizeDarshanaPa
     panchanga: livePanchanga,
     deity: {
       ...chosenDeity,
+      sanskritShloka: chosenDeity.sanskritShloka[lang] || chosenDeity.sanskritShloka.kn,
+      allShlokas: chosenDeity.sanskritShloka,
       selectionReason
     },
     priestBenediction,
@@ -901,28 +1003,10 @@ export function computePersonalizedDarshanaPayload(params: PersonalizeDarshanaPa
       microPariharaDesc
     },
     powerMetrics: {
-      luckyColor: {
-        name: {
-          kn: palette.colorKn,
-          en: palette.colorEn,
-          hi: palette.colorHi,
-          te: palette.colorTe,
-          ta: palette.colorTa
-        },
-        hex: palette.hex,
-        borderClass: palette.borderClass
-      },
+      luckyColor: resolvedLuckyColor,
       luckyDigit,
-      luckyDirection: {
-        name: {
-          kn: palette.dirKn,
-          en: palette.dirEn,
-          hi: palette.dirHi,
-          te: palette.dirTe,
-          ta: palette.dirTa
-        },
-        degrees: palette.degrees
-      },
+      luckyNumbers,
+      luckyDirection: resolvedLuckyDirection,
       goldenHour: {
         startMinutes,
         endMinutes,
@@ -939,10 +1023,10 @@ export function computePersonalizedDarshanaPayload(params: PersonalizeDarshanaPa
     },
     astrologyMeta: {
       runningDashaSummary,
-      chandraBalaHouse,
-      taraBalaNumber,
-      isChandrashtama,
-      energyScore: isChandrashtama ? 44 : Math.min(96, 68 + taraBalaNumber * 3)
+      chandraBalaHouse: rhythmDay?.chandra?.house ?? chandraBalaHouse,
+      taraBalaNumber: rhythmDay?.tara?.tara ?? taraBalaNumber,
+      isChandrashtama: rhythmDay ? Boolean(rhythmDay.isChandrashtama) : isChandrashtama,
+      energyScore: rhythmDay?.energyScore ?? (isChandrashtama ? 44 : Math.min(96, 68 + taraBalaNumber * 3))
     }
   };
 }

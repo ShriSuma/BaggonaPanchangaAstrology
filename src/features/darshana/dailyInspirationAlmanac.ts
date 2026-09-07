@@ -31,6 +31,9 @@ export interface DailyInspirationData {
     kn: string;
     sa: string;
     transliteration: string;
+    te?: string;
+    ta?: string;
+    hi?: string;
   };
   shlokaMeaning: Record<SupportedLang, string>;
   goodDeedOfTheDay: Record<SupportedLang, string>;
@@ -94,6 +97,8 @@ interface SeedInspiration {
   deitySource: string;
   shlokaSa: string;
   shlokaKn: string;
+  shlokaTe: string;
+  shlokaTa: string;
   shlokaTranslit: string;
   shlokaMeaningKn: string;
   shlokaMeaningEn: string;
@@ -122,6 +127,8 @@ const SEED_INSPIRATIONS: SeedInspiration[] = [
     deitySource: "ಶ್ರೀ ಮಹಾಗಣಪತಿ ಸ್ತೋತ್ರ",
     shlokaSa: "वक्रतुण्ड महाकाय सूर्यकोटि समप्रभ। निर्विघ्नं कुरु मे देव सर्वकार्येषु सर्वदा॥",
     shlokaKn: "ವಕ್ರತುಂಡ ಮಹಾಕಾಯ ಸೂರ್ಯಕೋಟಿ ಸಮಪ್ರಭ। ನಿರ್ವಿಘ್ನಂ ಕುರು ಮೇ ದೇವ ಸರ್ವಕಾರ್ಯೇಷು ಸರ್ವದಾ॥",
+    shlokaTe: "వక్రతుండ మహాకాయ సూర్యకోటి సమప్రభ। నిర్విఘ్నం కురు మే దేవ సర్వకార్యేషు సర్వదా॥",
+    shlokaTa: "வக்ரதுண்ட மஹாகாய ஸூர்யகோடி ஸமப்ரப। நிர்விக்னம் குரு மே தேவ ஸர்வகார்யேஷு ஸர்வதா॥",
     shlokaTranslit: "Vakratunda Mahakaya Suryakoti Samaprabha | Nirvighnam Kuru Me Deva Sarvakaryeshu Sarvada ||",
     shlokaMeaningKn: "ವಕ್ರವಾದ ಶುಂಡಿಲವುಳ್ಳ, ಬೃಹದಾಕಾರದ, ಕೋಟಿ ಸೂರ್ಯರ ತೇಜಸ್ಸನ್ನು ಹೊಂದಿರುವ ಎಲೈ ಮಹಾಗಣಪತಿಯೇ, ನನ್ನ ಸಕಲ ಸತ್ಕಾರ್ಯಗಳಿಗೂ ಸದಾಕಾಲ ನಿರ್ವಿಘ್ನತೆ ಮತ್ತು ವಿಜಯವನ್ನು ದಯಪಾಲಿಸು.",
     shlokaMeaningEn: "O Lord Ganesha with a curved trunk and colossal form, radiating the brilliance of a million suns, always remove all obstacles from every noble task I undertake.",
@@ -148,6 +155,8 @@ const SEED_INSPIRATIONS: SeedInspiration[] = [
     deitySource: "ಶ್ರೀ ಗಾಯತ್ರಿ ಮಹಾಮಂತ್ರ",
     shlokaSa: "ॐ भूर्भुवः स्वः तत्सवितुर्वरेण्यं भर्गो देवस्य धीमहि धियो यो नः प्रचोदयात्॥",
     shlokaKn: "ಓಂ ಭೂರ್ಭುವಃ ಸ್ವಃ ತತ್ಸವಿತುರ್ವರೇಣ್ಯಂ ಭರ್ಗೋ ದೇವಸ್ಯ ಧೀಮಹಿ ಧಿಯೋ ಯೋ ನಃ ಪ್ರಚೋದಯಾತ್॥",
+    shlokaTe: "ఓం భూర్భువః స్వః తత్సవితుర్వరేణ్యం భర్గో దేవస్య ధీమహి ధియో యో నః ప్రచోదయాత్॥",
+    shlokaTa: "ஓம் பூர்புவஸ்வஃ தத்ஸவிதுர்வரேண்யம் பர்கோ தேவஸ்ய தீமஹி தியோ யோ நஃ ப்ரசோதயாத்॥",
     shlokaTranslit: "Om Bhur Bhuvah Svah Tat Savitur Varenyam Bhargo Devasya Dheemahi Dhiyo Yo Nah Prachodayat ||",
     shlokaMeaningKn: "ಭೂಮಿ, ಅಂತರಿಕ್ಷ ಮತ್ತು ಸ್ವರ್ಗಗಳನ್ನು ಬೆಳಗುತ್ತಿರುವ ದಿವ್ಯ ಸೂರ್ಯದೇವನ ಜ್ಯೋತಿಯನ್ನು ನಾವು ಧ್ಯಾನಿಸುತ್ತೇವೆ. ಆ ಪರಂಜ್ಯೋತಿಯು ನಮ್ಮ ಬುದ್ಧಿ-ವಿವೇಕಗಳನ್ನು ಧರ್ಮಮಾರ್ಗದಲ್ಲಿ ಪ್ರಚೋದಿಸಲಿ.",
     shlokaMeaningEn: "We meditate on the supreme transcendental radiance of the divine Sun who illuminates all realms. May that sacred light illuminate and guide our intellect toward truth.",
@@ -174,6 +183,8 @@ const SEED_INSPIRATIONS: SeedInspiration[] = [
     deitySource: "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ (ಶಿವ ಪಂಚಾಕ್ಷರ)",
     shlokaSa: "नागेन्द्रहाराय त्रिलोचनाय भस्माङ्गरागाय महेश्वराय। नित्याय शुद्धाय दिगम्बराय तस्मै नकाराय नमः शिवाय॥",
     shlokaKn: "ನಾಗೇಂದ್ರಹಾರಾಯ ತ್ರಿಲೋಚನಾಯ ಭಸ್ಮಾಂಗರಾಗಾಯ ಮಹೇಶ್ವರಾಯ। ನಿತ್ಯಾಯ ಶುದ್ಧಾಯ ದಿಗಂಬರಾಯ ತಸ್ಮೈ ನಕಾರಾಯ ನಮಃ ಶಿವಾಯ॥",
+    shlokaTe: "నాగేంద్రహారాయ త్రిలోచనాయ భస్మాంగరాగాయ మహేశ్వరాయ। నిత్యాయ శుద్ధాయ దిగంబరాయ తస్మై నకారాయ నమః శివాయ॥",
+    shlokaTa: "நாகேந்த்ரஹாராய த்ரிலோசனாய பஸ்மாங்கராகாய மஹேஸ்வராய। நித்யாய சுத்தாய திகம்பராய தஸ்மை நகாராய நமஃ சிவாய॥",
     shlokaTranslit: "Nagendraharaya Trilochanaya Bhasmangaragaya Maheshwaraya | Nityaya Shuddhaya Digambaraya Tasmai Nakaraya Namah Shivaya ||",
     shlokaMeaningKn: "ಸರ್ಪರಾಜನನ್ನೇ ಹಾರವಾಗಿ ಧರಿಸಿರುವ, ತ್ರಿನೇತ್ರನಾದ, ಪವಿತ್ರ ಭಸ್ಮಾಲಂಕೃತನಾದ, ನಿತ್ಯನೂ ಪರಮಶುದ್ಧನೂ ಆದ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಮಹಾದೇವನಿಗೆ ಭಕ್ತಿಪೂರ್ವಕ ನಮನಗಳು.",
     shlokaMeaningEn: "Salutations to Lord Shiva, adorned with the serpent king as garland, having three eyes, smeared with sacred ash, eternal, purely divine, and the supreme protector.",
@@ -200,6 +211,8 @@ const SEED_INSPIRATIONS: SeedInspiration[] = [
     deitySource: "ಶ್ರೀ ಮಹಾಲಕ್ಷ್ಮಿ ಅಷ್ಟಕಂ",
     shlokaSa: "नमस्तेऽस्तु महामाये श्रीपीठे सुरपूजिते। शङ्खचक्रगदाहस्ते महालक्ष्मि नमोऽस्तु ते॥",
     shlokaKn: "ನಮಸ್ತೇಽಸ್ತು ಮಹಾಮಾಯೇ ಶ್ರೀಪೀಠೇ ಸುರಪೂಜಿತೇ। ಶಂಖಚಕ್ರಗದಾಹಸ್ತೇ ಮಹಾಲಕ್ಷ್ಮಿ ನಮೋಽಸ್ತು ತೇ॥",
+    shlokaTe: "నమస్తేస్తు మహామాయే శ్రీపీఠే సురపూజితే। శంఖచక్రగదాహస్తే మహాలక్ష్మి నమోస్తు తే॥",
+    shlokaTa: "நமஸ்தேஸ்து மஹாமாயே ஸ்ரீபீடே ஸுரபூஜிதே। சங்கசக்ரகதாஹஸ்தே மஹாலக்ஷ்மி நமோஸ்து தே॥",
     shlokaTranslit: "Namastestu Mahamaye Shreepithe Surapoojite | Shankhachakragadahaste Mahalakshmi Namostu Te ||",
     shlokaMeaningKn: "ಶ್ರೀಪೀಠದಲ್ಲಿ ನೆಲೆಸಿರುವ, ದೇವತೆಗಳಿಂದ ಪೂಜಿಸಲ್ಪಡುವ, ಶಂಖ-ಚಕ್ರ-ಗದೆಗಳನ್ನು ಧರಿಸಿರುವ ಮಹಾಮಾಯೆಯಾದ ಹೇ ಶ್ರೀ ಮಹಾಲಕ್ಷ್ಮೀ, ನಿನಗೆ ಅನಂತ ಪ್ರಣಾಮಗಳು.",
     shlokaMeaningEn: "Salutations to Goddess Mahalakshmi, the supreme divine mother enthroned in the holy sanctum, worshipped by celestials, holding the conch, discus, and mace.",
@@ -226,6 +239,8 @@ const SEED_INSPIRATIONS: SeedInspiration[] = [
     deitySource: "ಶ್ರೀ ಸೂರ್ಯ ನಮಸ್ಕಾರ ಮಂತ್ರ",
     shlokaSa: "ध्येयः सदा सवितृमण्डल मध्यवर्ती नारायणः सरसिजासन सन्निविष्टः। केयूरवान् मकरकुण्डलवान् किरीटी हारी हिरण्मयवपुर्धृतशङ्खचक्रः॥",
     shlokaKn: "ಧ್ಯೇಯಃ ಸದಾ ಸವಿತೃಮಂಡಲ ಮಧ್ಯವರ್ತೀ ನಾರಾಯಣಃ ಸರಸಿಜಾಸನ ಸನ್ನಿವಿಷ್ಟಃ। ಕೇಯೂರವಾನ್ ಮಕರಕುಂಡಲವಾನ್ ಕಿರೀಟೀ ಹಾರೀ ಹಿರಣ್ಮಯವಪುರ್ಧೃತಶಂಖಚಕ್ರಃ॥",
+    shlokaTe: "ధ్యేయః సదా సవితృమండల మధ్యవర్తీ నారాయణః సరసిజాసన సన్నివిష్టః। కేయూరవాన్ మకరకుండలవాన్ కిరీటీ హారీ హిరణ్మయవపుర్ధృతశంఖచక్రః॥",
+    shlokaTa: "த்யேயஃ ஸதா ஸவித்ருமண்டல மத்யவர்தீ நாராயணஃ ஸரஸிஜாஸன ஸந்நிவிஷ்டஃ। கேயூரவான் மகரகுண்டலவான் கிரீடீ ஹாரீ ஹிரண்மயவபுர்த்ருதசங்கசக்ரஃ॥",
     shlokaTranslit: "Dhyeyah Sada Savitrumandala Madhyavarti Narayanah Sarasijasana Sannivishtah | Keyuravan Makarakundalavan Kireeti Haari Hiranmayavapur Dhritashankhachakrah ||",
     shlokaMeaningKn: "ಸೂರ್ಯಮಂಡಲದ ಮಧ್ಯದಲ್ಲಿ ಕಮಲದ ಮೇಲೆ ಆಸೀನನಾಗಿರುವ, ಸುವರ್ಣ ತೇಜಸ್ಸಿನ ಶಂಖ-ಚಕ್ರಧಾರಿ ಶ್ರೀ ಸೂರ್ಯನಾರಾಯಣನನ್ನು ನಾವು ಸದಾ ನಮಸ್ಕರಿಸುತ್ತೇವೆ.",
     shlokaMeaningEn: "We constantly meditate on Lord Suryanarayana seated upon the lotus in the heart of the solar sphere, radiating golden brilliance with conch and discus.",
@@ -252,6 +267,8 @@ const SEED_INSPIRATIONS: SeedInspiration[] = [
     deitySource: "ಶ್ರೀ ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಸ್ತೋತ್ರ",
     shlokaSa: "शान्ताकारं भुजगशयनं पद्मनाभं सुरेशं विश्वाधारं गगनसदृशं मेघवर्णं शुभाङ्गम्। लक्ष्मीकान्तं कमलनयनं योगिभिर्ध्यानगम्यं वन्दे विष्णुं भवभयहरं सर्वलोकैकनाथम्॥",
     shlokaKn: "ಶಾಂತಾಕಾರಂ ಭುಜಗಶಯನಂ ಪದ್ಮನಾಭಂ ಸುರೇಶಂ ವಿಶ್ವಾಧಾರಂ ಗಗನಸದೃಶಂ ಮೇಘವರ್ಣಂ ಶುಭಾಂಗಮ್। ಲಕ್ಷ್ಮೀಕಾಂತಂ ಕಮಲನಯನಂ ಯೋಗಿಭಿರ್ಧ್ವಾನಗಮ್ಯಂ ವಂದೇ ವಿಷ್ಣುಂ ಭವಭಯಹರಂ ಸರ್ವಲೋಕೈಕನಾಥಮ್॥",
+    shlokaTe: "శాంతాకారం భుజగశయనం పద్మనాభం సురేశం విశ్వాధారం గగనసదృశం మేఘవర్ణం శుభాంగమ్। లక్ష్మీకాంతం కమలనయనం యోగిభిర్ధ్యానగమ్యం వందే విష్ణుం భవభయహరం సర్వలోకైకనాథమ్॥",
+    shlokaTa: "சாந்தாகாரம் புஜகசயனம் பத்மநாபம் ஸுரேசம் விஸ்வாதாரம் ககனஸத்ருசம் மேகவர்ணம் சுபாங்கம்। லக்ஷ்மீகாந்தம் கமலநயனம் யோகிபிர்த்யானகம்யம் வந்தே விஷ்ணும் பவபயஹரம் ஸர்வலோகைகநாதம்॥",
     shlokaTranslit: "Shantakaram Bhujagashayanam Padmanabham Suresham Vishwadharam Gaganasadrisham Meghavarnam Shubhangam | Lakshmikantam Kamalanayanam Yogibhirdhyanagamyam Vande Vishnum Bhavabhayaharam Sarvalokaikanatham ||",
     shlokaMeaningKn: "ಪರಮ ಶಾಂತ ಸ್ವರೂಪನಾದ, ಶೇಷಶಯನನಾದ, ಸರ್ವಲೋಕಗಳ ನಾಥನಾದ ಶ್ರೀ ಮಹಾವಿಷ್ಣುವಿಗೆ ವಂದನೆಗಳು. ಆತನು ಭವಭಯಗಳನ್ನು ನಿವಾರಿಸಿ ಸಕಲರಿಗೂ ಮಂಗಲವನ್ನು ಕರುಣಿಸಲಿ.",
     shlokaMeaningEn: "Salutations to Lord Vishnu, the serene sustainer resting upon the serpent Adisesha, the cosmic foundation, who dispels all worldly fears and protects all realms.",
@@ -278,6 +295,8 @@ const SEED_INSPIRATIONS: SeedInspiration[] = [
     deitySource: "ಶ್ರೀ ಧನ್ವಂತರಿ ಆರೋಗ್ಯ ಮಂತ್ರ",
     shlokaSa: "ॐ नमो भगवते महासुदर्शनाय वासुदेवाय धन्वन्तरये अमृतकलशहस्ताय सर्वभयविनाशाय सर्वरोगनिवारणाय त्रैलोक्यपतये त्रैलोक्यनिधये श्रीमहाविष्णुस्वरूप श्रीधन्वन्तरि स्वरूप श्री श्री श्री औषधचक्र नारायणाय नमः॥",
     shlokaKn: "ಓಂ ನಮೋ ಭಗವತೇ ಮಹಾಸುದರ್ಶನಾಯ ವಾಸುದೇವಾಯ ಧನ್ವಂತರಯೇ ಅಮೃತಕಲಶಹಸ್ತಾಯ ಸರ್ವಭಯವಿನಾಶಾಯ ಸರ್ವರೋಗನಿವಾರಣಾಯ ತ್ರೈಲೋಕ್ಯಪತಯೇ ತ್ರೈಲೋಕ್ಯನಿಧಯೇ ಶ್ರೀಮಹಾವಿಷ್ಣುಸ್ವರೂಪ ಶ್ರೀಧನ್ವಂತರಿ ಸ್ವರೂಪ ನಮಃ॥",
+    shlokaTe: "ఓం నమో భగవతే వాసుదేవాయ ధన్వంతరయే అమృతకలశహస్తాయ సర్వభయవినాశాయ సర్వరోగనివారణాయ త్రైలోక్యపతయే త్రైలోక్యనిధయే శ్రీమహావిష్ణుస్వరూపాయ నమః॥",
+    shlokaTa: "ஓம் நமோ பகவதே வாஸுதேவாய தன்வந்தரயே அம்ருதகலசஹஸ்தாய ஸர்வபயவிநாசாய ஸர்வரோகநிவாரணாய த்ரைலோக்யபதயே த்ரைலோக்யநிதயே ஸ்ரீமகாவிஷ்ணுஸ்வரூபாய நமஃ॥",
     shlokaTranslit: "Om Namo Bhagavate Vasudevaya Dhanvantaraye Amritakalashahastaya Sarvabhayanashanaya Sarvaroganivaranaya Namah ||",
     shlokaMeaningKn: "ಅಮೃತಕಲಶವನ್ನು ಕೈಯಲ್ಲಿ ಹಿಡಿದಿರುವ, ಸಕಲ ರೋಗ-ರುಜಿನಗಳನ್ನು ಮತ್ತು ಭಯವನ್ನು ನಿವಾರಿಸುವ ದೈವಿಕ ವೈದ್ಯ ಶ್ರೀ ಧನ್ವಂತರಿ ಭಗವಂತನಿಗೆ ಅನಂತ ನಮನಗಳು.",
     shlokaMeaningEn: "Salutations to Lord Dhanvantari, holding the vessel of celestial nectar, the divine healer who destroys all ailments and dispels all disease and fear.",
@@ -342,7 +361,10 @@ export function getDailyInspiration(date: Date = new Date()): DailyInspirationDa
     shlokaText: {
       kn: seed.shlokaKn,
       sa: seed.shlokaSa,
-      transliteration: seed.shlokaTranslit
+      transliteration: seed.shlokaTranslit,
+      te: seed.shlokaTe,
+      ta: seed.shlokaTa,
+      hi: seed.shlokaSa
     },
     shlokaMeaning: {
       kn: seed.shlokaMeaningKn,
@@ -370,12 +392,15 @@ export function getDailyInspiration(date: Date = new Date()): DailyInspirationDa
 
 /**
  * Builds a clean, viral WhatsApp shareable text without exposing private/internal URLs
+ * Fully localized in Kannada (kn), English (en), Hindi (hi), Telugu (te), and Tamil (ta).
  */
 export function buildCleanDailyWhatsAppShareText(
   dateStr: string,
   lang: SupportedLang = "kn",
   tithiStr?: string,
-  nakshatraStr?: string
+  nakshatraStr?: string,
+  customShloka?: string,
+  customDeitySource?: string
 ): string {
   let targetDate = new Date();
   try {
@@ -386,27 +411,78 @@ export function buildCleanDailyWhatsAppShareText(
   } catch {}
   const insp = getDailyInspiration(targetDate);
   const morning = insp.goodMorningVibe[lang] || insp.goodMorningVibe.kn;
-  const shloka = insp.shlokaText.kn;
+  const shloka = customShloka || (
+    lang === "en" ? insp.shlokaText.transliteration :
+    lang === "hi" ? (insp.shlokaText.hi || insp.shlokaText.sa) :
+    lang === "te" ? (insp.shlokaText.te || insp.shlokaText.sa) :
+    lang === "ta" ? (insp.shlokaText.ta || insp.shlokaText.sa) :
+    insp.shlokaText.kn
+  );
   const meaning = insp.shlokaMeaning[lang] || insp.shlokaMeaning.kn;
   const deed = insp.goodDeedOfTheDay[lang] || insp.goodDeedOfTheDay.kn;
   const quote = insp.motivationalQuote[lang] || insp.motivationalQuote.kn;
+
+  const defaultDeityTitle: Record<SupportedLang, string> = {
+    kn: insp.deitySource,
+    en: "Daily Vedic Shloka",
+    hi: "दैनिक वैदिक श्लोक",
+    te: "రోజువారీ వేద శ్లోకం",
+    ta: "தினசரி வேத சுலோகம்"
+  };
+  const deityTitle = customDeitySource || defaultDeityTitle[lang] || insp.deitySource;
 
   if (lang === "en") {
     return `🕉️ *Good Morning! Daily Baggona Panchanga Blessings*\n` +
       `📅 *Date:* ${dateStr} ${tithiStr ? `· ${tithiStr}` : ""} ${nakshatraStr ? `· ${nakshatraStr}` : ""}\n\n` +
       `✨ *Morning Vibe:*\n${morning}\n\n` +
-      `📜 *Sacred Shloka (${insp.deitySource}):*\n"${shloka}"\n_${meaning}_\n\n` +
+      `📜 *Sacred Shloka (${deityTitle}):*\n"${shloka}"\n_${meaning}_\n\n` +
       `🌱 *Today's Good Karma Action:*\n👉 ${deed}\n\n` +
       `💡 *Daily Inspiration:*\n"${quote}"\n\n` +
-      `॥ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಕ್ಷೇತ್ರ • ಗೋಕರ್ಣ ಸನ್ನಿಧಿ ॥\n` +
+      `॥ Baggona Panchanga Astrology Kshetra • Gokarna Sannidhi ॥\n` +
       `🙏 May this day bring immense peace, good health & prosperity!`;
+  }
+
+  if (lang === "ta") {
+    return `🕉️ *இனிய காலை வணக்கம்! இன்றைய பக்கோண பஞ்சாங்க தெய்வீக ஆசி*\n` +
+      `📅 *தேதி:* ${dateStr} ${tithiStr ? `· ${tithiStr}` : ""} ${nakshatraStr ? `· ${nakshatraStr}` : ""}\n\n` +
+      `✨ *காலை சுப செய்தி:*\n${morning}\n\n` +
+      `📜 *இன்றைய தெய்வீக சுலோகம் (${deityTitle}):*\n"${shloka}"\n\n` +
+      `📖 *சுலோக பொருள்:*\n_${meaning}_\n\n` +
+      `🌱 *இன்றைய நற்பணி (Good Karma Deed):*\n👉 ${deed}\n\n` +
+      `💡 *வாழ்வியல் சிந்தனை:*\n"${quote}"\n\n` +
+      `॥ பக்கோண பஞ்சாங்க ஜோதிட க்ஷேத்திரம் • கோகர்ண சந்நிதி ॥\n` +
+      `🙏 உங்கள் இன்றைய நாள் சகல சௌபாக்கியங்களும் அமைதியும் வெற்றியும் தருவதாக அமையட்டும்!`;
+  }
+
+  if (lang === "te") {
+    return `🕉️ *శుభోదయం! నేటి బగ్గోణ పంచాంగ దివ్య ఆశీర్వాదం*\n` +
+      `📅 *తేదీ:* ${dateStr} ${tithiStr ? `· ${tithiStr}` : ""} ${nakshatraStr ? `· ${nakshatraStr}` : ""}\n\n` +
+      `✨ *ఉదయ శుభ సందేశం:*\n${morning}\n\n` +
+      `📜 *నేటి దివ్య శ్లోకం (${deityTitle}):*\n"${shloka}"\n\n` +
+      `📖 *శ్లోక భావార్థం:*\n_${meaning}_\n\n` +
+      `🌱 *నేటి పుణ్య సంకల్పం (Good Karma Deed):*\n👉 ${deed}\n\n` +
+      `💡 *స్ఫూర్తిదాయక ఆలోచన:*\n"${quote}"\n\n` +
+      `॥ బగ్గోణ పంచాంగ జ్యోతిష్య క్షేత్రం • గోకర్ణ సన్నిధి ॥\n` +
+      `🙏 మీ నేటి దినం సర్వ కార్యసిద్ధి, ఆయురారోగ్యాలు మరియు శాంతితో వర్ధిల్లాలి!`;
+  }
+
+  if (lang === "hi") {
+    return `🕉️ *सुप्रभात! आज का बग्गोण पंचांग पावन आशीर्वाद*\n` +
+      `📅 *दिनांक:* ${dateStr} ${tithiStr ? `· ${tithiStr}` : ""} ${nakshatraStr ? `· ${nakshatraStr}` : ""}\n\n` +
+      `✨ *आज का शुभ प्रभात संदेश:*\n${morning}\n\n` +
+      `📜 *आज का दिव्य श्लोक (${deityTitle}):*\n"${shloka}"\n\n` +
+      `📖 *श्लोक भावार्थ:*\n_${meaning}_\n\n` +
+      `🌱 *आज का पुण्य संकल्प (Good Karma Deed):*\n👉 ${deed}\n\n` +
+      `💡 *प्रेरक विचार:*\n"${quote}"\n\n` +
+      `॥ बग्गोण पंचांग ज्योतिष क्षेत्र • गोकर्ण सन्निधि ॥\n` +
+      `🙏 आपका आज का दिन सुख, शांति, उत्तम स्वास्थ्य एवं सफलता से परिपूर्ण हो!`;
   }
 
   return `🕉️ *ಶುಭೋದಯ! ಇಂದಿನ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ದೈವಿಕ ಆಶೀರ್ವಾದ*\n` +
     `📅 *ದಿನಾಂಕ:* ${dateStr} ${tithiStr ? `· ${tithiStr}` : ""} ${nakshatraStr ? `· ${nakshatraStr}` : ""}\n\n` +
     `✨ *ಇಂದಿನ ಶುಭೋದಯ ಸಂದೇಶ:*\n${morning}\n\n` +
-    `📜 *ಇಂದಿನ ದೈವಿಕ ಶ್ಲೋಕ (${insp.deitySource}):*\n${shloka}\n\n` +
-    `📖 *ಶ್ಲೋಕ ಭಾವಾರ್ಥ:*\n${meaning}\n\n` +
+    `📜 *ಇಂದಿನ ದೈವಿಕ ಶ್ಲೋಕ (${deityTitle}):*\n${shloka}\n\n` +
+    `📖 *ಶ್ಲೋಕ ಭಾವಾರ್ಥ:*\n_${meaning}_\n\n` +
     `🌱 *ಇಂದಿನ ಪುಣ್ಯ ಸಂಕಲ್ಪ (Good Karma Deed):*\n👉 ${deed}\n\n` +
     `💡 *ಸ್ಫೂರ್ತಿದಾಯಕ ಚಿಂತನೆ:*\n"${quote}"\n\n` +
     `॥ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಕ್ಷೇತ್ರ • ಗೋಕರ್ಣ ಸಾನ್ನಿಧ್ಯ ॥\n` +

@@ -1,5 +1,6 @@
 import Dexie, { type Table } from "dexie";
 import type { AyanamsaModel, KundliInput, KundliOutput, PanchangOutput, PredictionOutput, NodeType } from "../core/AstroTypes";
+import { getIndianStandardDateStr } from "../core/placeTime";
 
 export type SettingsRecord = {
   id?: number;
@@ -490,7 +491,7 @@ export const setTranslationCache = async (
 };
 
 export const recordDailyHit = async (): Promise<number> => {
-  const today = new Date().toISOString().split("T")[0];
+  const today = getIndianStandardDateStr();
   const existing = await db.dailyHits.get(today);
   const newCount = (existing?.count ?? 0) + 1;
   await db.dailyHits.put({
@@ -502,7 +503,7 @@ export const recordDailyHit = async (): Promise<number> => {
 };
 
 export const getDailyHitsCount = async (dateStr?: string): Promise<number> => {
-  const targetDate = dateStr ?? new Date().toISOString().split("T")[0];
+  const targetDate = dateStr ?? getIndianStandardDateStr();
   const record = await db.dailyHits.get(targetDate);
   return record?.count ?? 0;
 };

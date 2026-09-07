@@ -1,4 +1,5 @@
 import { logNotificationAudit, getTodayPremiumPdfDownloads } from "../../db/firestoreDb";
+import { getIndianStandardDateStr } from "../../core/placeTime";
 import {
   renderPanchangaCreatedEmail,
   renderPremiumPdfDownloadedEmail,
@@ -23,14 +24,14 @@ const DAILY_SENT_KEY_PREFIX = "baggona_email_sent_count_";
 
 export function getTodayEmailSentCount(): number {
   if (typeof window === "undefined") return 0;
-  const dateKey = new Date().toISOString().split("T")[0];
+  const dateKey = getIndianStandardDateStr();
   const count = localStorage.getItem(`${DAILY_SENT_KEY_PREFIX}${dateKey}`);
   return count ? parseInt(count, 10) || 0 : 0;
 }
 
 export function incrementTodayEmailSentCount(): number {
   if (typeof window === "undefined") return 1;
-  const dateKey = new Date().toISOString().split("T")[0];
+  const dateKey = getIndianStandardDateStr();
   const current = getTodayEmailSentCount() + 1;
   localStorage.setItem(`${DAILY_SENT_KEY_PREFIX}${dateKey}`, current.toString());
   return current;
@@ -502,7 +503,7 @@ export async function sendAllFourDailyReports(reportData?: {
     }>;
   };
 }): Promise<{ success: boolean }> {
-  const dateStr = new Date().toISOString().split("T")[0];
+  const dateStr = getIndianStandardDateStr();
 
   console.log(`[Daily Dispatcher] 📤 Dispatching all 4 End-of-Day summary reports for ${dateStr} at 11:30 PM IST...`);
 

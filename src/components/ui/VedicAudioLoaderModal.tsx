@@ -1,27 +1,74 @@
 import React from "react";
 import { stopAllAudioGlobal } from "../../features/audio/globalAudioManager";
+import type { SevaLang } from "../../features/seva/sevaLocale";
 
 interface VedicAudioLoaderModalProps {
   isOpen: boolean;
   onCancel?: () => void;
+  onClose?: () => void;
+  lang?: SevaLang;
+  title?: string;
+  subtitle?: string;
   titleKn?: string;
   titleEn?: string;
   subtitleKn?: string;
 }
 
+const MODAL_DEFAULTS: Record<SevaLang, { tag: string; defaultTitle: string; defaultSubtitle: string; cancelBtn: string }> = {
+  kn: {
+    tag: "॥ ವೇದ ನಾದ ಸಂಶ್ಲೇಷಣೆ ॥",
+    defaultTitle: "ಶ್ರೀ ದೈವಜ್ಞರ ದೈವಿಕ ಧ್ವನಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ...",
+    defaultSubtitle: "ವೇದ ಮಂತ್ರಗಳು & ಪವಿತ್ರ ಸಂಕಲ್ಪದ ಆಡಿಯೋ ಸಿದ್ಧವಾಗುತ್ತಿದೆ, ದಯವಿಟ್ಟು ೨-೩ ಕ್ಷಣ ನಿರೀಕ್ಷಿಸಿ.",
+    cancelBtn: "ರದ್ದುಗೊಳಿಸಿ"
+  },
+  te: {
+    tag: "॥ వేద నాద సంశ్లేషణ ॥",
+    defaultTitle: "శ్రీ దైవజ్ఞుల దివ్య ధ్వని సిద్ధమవుతోంది...",
+    defaultSubtitle: "వేద మంత్రాలు & పవిత్ర సంకల్పం ఆడియో సిద్ధమవుతోంది, దయచేసి ౨-౩ క్షణాలు వేచి ఉండండి.",
+    cancelBtn: "రద్దు చేయండి"
+  },
+  ta: {
+    tag: "॥ வேத நாத ஒலி அமைப்பு ॥",
+    defaultTitle: "முதன்மை அர்ச்சகரின் தெய்வீக குரல் தயாராகிறது...",
+    defaultSubtitle: "வேத மந்திரங்கள் & புனித சங்கல்ப ஆடியோ தயாராகிறது, தயவுசெய்து சிறிது நேரம் காத்திருக்கவும்.",
+    cancelBtn: "ரத்து செய்"
+  },
+  hi: {
+    tag: "॥ वेद नाद संश्लेषण ॥",
+    defaultTitle: "श्री दैवज्ञ का पावन स्वर तैयार हो रहा है...",
+    defaultSubtitle: "वैदिक मंत्र एवं पवित्र संकल्प ऑडियो तैयार हो रहा है, कृपया २-३ क्षण प्रतीक्षा करें।",
+    cancelBtn: "रद्द करें"
+  },
+  en: {
+    tag: "॥ VEDIC NEURAL AUDIO SYNTHESIS ॥",
+    defaultTitle: "Synthesizing Sacred Priest Voice...",
+    defaultSubtitle: "Generating sacred Sanskrit chants & blessings via Sarvam AI Indic Neural TTS.",
+    cancelBtn: "Cancel Audio"
+  }
+};
+
 export const VedicAudioLoaderModal: React.FC<VedicAudioLoaderModalProps> = ({
   isOpen,
   onCancel,
-  titleKn = "ಶ್ರೀ ದೈವಜ್ಞರ ದೈವಿಕ ಧ್ವನಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ...",
+  onClose,
+  lang = "kn",
+  title,
+  subtitle,
+  titleKn,
   titleEn = "Synthesizing Sacred Priest Voice (Sarvam AI Indic Neural TTS)...",
-  subtitleKn = "ವೇದ ಮಂತ್ರಗಳು & ಪವಿತ್ರ ಸಂಕಲ್ಪದ ಆಡಿಯೋ ಸಿದ್ಧವಾಗುತ್ತಿದೆ, ದಯವಿಟ್ಟು ೨-೩ ಕ್ಷಣ ನಿರೀಕ್ಷಿಸಿ."
+  subtitleKn
 }) => {
   if (!isOpen) return null;
 
   const handleCancel = () => {
     stopAllAudioGlobal();
     if (onCancel) onCancel();
+    if (onClose) onClose();
   };
+
+  const defaults = MODAL_DEFAULTS[lang] || MODAL_DEFAULTS.kn;
+  const resolvedTitle = title || titleKn || defaults.defaultTitle;
+  const resolvedSubtitle = subtitle || subtitleKn || defaults.defaultSubtitle;
 
   return (
     <div
@@ -42,17 +89,19 @@ export const VedicAudioLoaderModal: React.FC<VedicAudioLoaderModalProps> = ({
         {/* Titles */}
         <div className="space-y-2">
           <span className="inline-block px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-[11px] font-black uppercase tracking-wider border border-amber-500/30">
-            ॥ ವೇದ ನಾದ ಸಂಶ್ಲೇಷಣೆ ॥
+            {defaults.tag}
           </span>
           <h3 className="text-lg md:text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-300 font-serif">
-            {titleKn}
+            {resolvedTitle}
           </h3>
           <p className="text-xs text-stone-300 leading-relaxed font-medium">
-            {subtitleKn}
+            {resolvedSubtitle}
           </p>
-          <p className="text-[10px] text-stone-400">
-            {titleEn}
-          </p>
+          {lang === "en" && titleEn && (
+            <p className="text-[10px] text-stone-400">
+              {titleEn}
+            </p>
+          )}
         </div>
 
         {/* Pulsing Loading Bar */}
@@ -67,7 +116,7 @@ export const VedicAudioLoaderModal: React.FC<VedicAudioLoaderModalProps> = ({
           className="w-full py-2.5 rounded-xl bg-stone-800/90 hover:bg-stone-700 text-stone-300 hover:text-white text-xs font-bold transition-all border border-stone-600/50 flex items-center justify-center gap-2"
         >
           <span>✕</span>
-          <span>ರದ್ದುಗೊಳಿಸಿ (Cancel Audio)</span>
+          <span>{defaults.cancelBtn}</span>
         </button>
       </div>
     </div>

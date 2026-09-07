@@ -1,5 +1,6 @@
 import { getDailyHitsCount } from "../../db/indexedDb";
 import { sendAllFourDailyReports, DEFAULT_NOTIFICATION_EMAIL } from "../notifications/notificationService";
+import { getIndianStandardDateStr } from "../../core/placeTime";
 
 export const REPORT_EMAIL_RECIPIENT = DEFAULT_NOTIFICATION_EMAIL;
 
@@ -8,21 +9,19 @@ export const REPORT_EMAIL_RECIPIENT = DEFAULT_NOTIFICATION_EMAIL;
  */
 export function getMsUntil1130PMIST(): number {
   const now = new Date();
+  const istTodayYmd = getIndianStandardDateStr(now);
+  const istTarget = new Date(`${istTodayYmd}T23:30:00+05:30`);
 
-  // Convert current time to IST components (UTC + 5:30)
-  const istOffsetMs = 5.5 * 60 * 60 * 1000;
-  const utcNowMs = now.getTime() + now.getTimezoneOffset() * 60 * 1000;
-  const istNow = new Date(utcNowMs + istOffsetMs);
-
-  const istTarget = new Date(istNow);
-  istTarget.setHours(23, 30, 0, 0);
-
-  if (istNow.getTime() >= istTarget.getTime()) {
+  if (now.getTime() >= istTarget.getTime()) {
     // If it's already past 23:30 IST today, schedule for 23:30 IST tomorrow
-    istTarget.setDate(istTarget.getDate() + 1);
+    const [year, month, day] = istTodayYmd.split("-").map(Number);
+    const nextDay = new Date(Date.UTC(year, month - 1, day + 1));
+    const nextYmd = nextDay.toISOString().split("T")[0];
+    const nextTarget = new Date(`${nextYmd}T23:30:00+05:30`);
+    return nextTarget.getTime() - now.getTime();
   }
 
-  return istTarget.getTime() - istNow.getTime();
+  return istTarget.getTime() - now.getTime();
 }
 
 /**
@@ -39,7 +38,7 @@ export async function sendDailyReportEmail(): Promise<{
   count: number;
   email: string;
 }> {
-  const dateStr = new Date().toISOString().split("T")[0];
+  const dateStr = getIndianStandardDateStr();
   const count = await getDailyHitsCount(dateStr);
 
   console.log(`[Daily Report] Dispatching 4 End-of-Day summary reports to ${REPORT_EMAIL_RECIPIENT} at 11:30 PM IST. Hits today: ${count}`);

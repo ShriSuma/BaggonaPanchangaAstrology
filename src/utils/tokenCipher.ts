@@ -11,6 +11,8 @@
  * - Zero external runtime dependencies
  */
 
+import { getIndianStandardDateStr } from "../core/placeTime";
+
 export interface DevoteeTokenPayload {
   name?: string;
   n?: string;
@@ -129,7 +131,7 @@ export function encodeDevoteeToken(payload: DevoteeTokenPayload): string {
     const rawRashi = payload.rashi !== undefined ? payload.rashi : payload.r !== undefined ? payload.r : -1;
     const rawGotra = payload.gotra ?? payload.g ?? "";
     const rawPandit = payload.pandit ?? payload.p ?? "ಶ್ರೀ ಚೈತನ್ಯ ಪಂಡಿತ್";
-    const rawDate = payload.date ?? payload.d ?? new Date().toISOString().split("T")[0];
+    const rawDate = payload.date ?? payload.d ?? getIndianStandardDateStr(new Date());
     const rawLang = payload.lang ?? payload.l ?? "kn";
     const rawTime = payload.time ?? payload.tm ?? "08:00";
     const rawSeva = payload.sevaType ?? payload.s ?? "";
@@ -289,7 +291,7 @@ export function decodeDevoteeToken(token: string): (DevoteeTokenPayload & {
     const rashi = typeof parsed.r === "number" && parsed.r >= 0 ? parsed.r : (typeof parsed.rashi === "number" ? parsed.rashi : undefined);
     const gotra = parsed.g || parsed.gotra || undefined;
     const pandit = parsed.p || parsed.pandit || "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್";
-    const date = parsed.d || parsed.date || new Date().toISOString().split("T")[0];
+    const date = parsed.d || parsed.date || getIndianStandardDateStr(new Date());
     const lang = parsed.l || parsed.lang || "kn";
     const time = parsed.tm || parsed.time || "08:00";
     const sevaType = parsed.s || parsed.seva || undefined;

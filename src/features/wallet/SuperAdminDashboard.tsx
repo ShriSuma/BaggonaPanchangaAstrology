@@ -3943,8 +3943,9 @@ export const SuperAdminDashboard: React.FC = () => {
               </div>
 
               {/* Provider Selection */}
-              <div className="grid grid-cols-1 sm:grid-cols-5 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-6 gap-2">
                 {[
+                  { id: "indic_parler" as VoiceCloneProvider, title: "🇮🇳 Indic-Parler TTS", desc: "India's Premier 22+ Indic Neural Voice (AI4Bharat)" },
                   { id: "master_recording" as VoiceCloneProvider, title: "✨ ಶ್ರೀಸುಮ ನೈಜ ಧ್ವನಿ", desc: "Authentic recorded voice of ShriSuma" },
                   { id: "sarvam_ai" as VoiceCloneProvider, title: "🇮🇳 Sarvam AI Bulbul", desc: "India's #1 Kannada Neural Voice (sarvam.ai)" },
                   { id: "elevenlabs" as VoiceCloneProvider, title: "🔑 ElevenLabs Clone", desc: "Instant voice clone with API Key & Voice ID" },
@@ -3971,19 +3972,39 @@ export const SuperAdminDashboard: React.FC = () => {
                 ))}
               </div>
 
-              {/* API Keys Settings for Sarvam AI / ElevenLabs / HuggingFace */}
-              {(cloneConfig.provider === "sarvam_ai" || cloneConfig.provider === "elevenlabs" || cloneConfig.provider === "huggingface_xtts") && (
+              {/* API Keys Settings for Indic-Parler / Sarvam AI / ElevenLabs / HuggingFace */}
+              {(cloneConfig.provider === "indic_parler" || cloneConfig.provider === "sarvam_ai" || cloneConfig.provider === "elevenlabs" || cloneConfig.provider === "huggingface_xtts") && (
                 <div className="p-4 bg-black/60 rounded-2xl border border-amber-500/40 space-y-3 animate-in fade-in">
                   <div className="text-xs font-black text-amber-300 flex items-center gap-1.5">
                     <span>⚙️</span>
                     <span>
-                      {cloneConfig.provider === "sarvam_ai"
+                      {cloneConfig.provider === "indic_parler"
+                        ? "AI4Bharat Indic-Parler-TTS (Hugging Face) Settings"
+                        : cloneConfig.provider === "sarvam_ai"
                         ? "Sarvam AI (Bulbul:v1 Indic Neural Engine) Settings"
                         : cloneConfig.provider === "elevenlabs"
                         ? "ElevenLabs Voice Cloning Settings"
                         : "Hugging Face Inference Settings"}
                     </span>
                   </div>
+
+                  {(cloneConfig.provider === "indic_parler" || cloneConfig.provider === "huggingface_xtts") && (
+                    <div className="space-y-2">
+                      <label className="text-[11px] text-amber-200 block">
+                        Hugging Face User Access Token (Free at huggingface.co/settings/tokens):
+                      </label>
+                      <input
+                        type="password"
+                        value={cloneConfig.hfApiKey || ""}
+                        onChange={(e) => setCloneConfig({ ...cloneConfig, hfApiKey: e.target.value })}
+                        placeholder="hf_..."
+                        className="w-full px-3 py-2 text-xs bg-black/80 border border-amber-500/50 rounded-xl text-white font-mono focus:outline-none focus:border-amber-400"
+                      />
+                      <p className="text-[10px] text-amber-300/80">
+                        ⚡ Powered by AI4Bharat Indic-Parler-TTS. Provides authentic traditional Indian voice chanting for Kannada, Tamil, Telugu, Hindi, and English without quota limits.
+                      </p>
+                    </div>
+                  )}
 
                   {cloneConfig.provider === "sarvam_ai" && (
                     <div className="space-y-3">
@@ -3993,7 +4014,7 @@ export const SuperAdminDashboard: React.FC = () => {
                         </label>
                         <input
                           type="password"
-                          value={cloneConfig.sarvamApiKey || "sk_duxld45s_658vBx71bZPMfKeLfCXxXwF0"}
+                          value={cloneConfig.sarvamApiKey || "sk_to6dgvkm_syC6toS54v62n8puNjBE82vk"}
                           onChange={(e) => setCloneConfig({ ...cloneConfig, sarvamApiKey: e.target.value })}
                           placeholder="sk_..."
                           className="w-full px-3 py-2 text-xs bg-black/80 border border-amber-500/50 rounded-xl text-white font-mono focus:outline-none focus:border-amber-400 mt-1"
@@ -4053,21 +4074,6 @@ export const SuperAdminDashboard: React.FC = () => {
                           className="w-full px-3 py-2 text-xs bg-black/80 border border-amber-500/50 rounded-xl text-white font-mono focus:outline-none focus:border-amber-400"
                         />
                       </div>
-                    </div>
-                  )}
-
-                  {cloneConfig.provider === "huggingface_xtts" && (
-                    <div className="space-y-2">
-                      <label className="text-[11px] text-amber-200 block">
-                        Hugging Face User Access Token (Free at huggingface.co/settings/tokens):
-                      </label>
-                      <input
-                        type="password"
-                        value={cloneConfig.hfApiKey || ""}
-                        onChange={(e) => setCloneConfig({ ...cloneConfig, hfApiKey: e.target.value })}
-                        placeholder="hf_..."
-                        className="w-full px-3 py-2 text-xs bg-black/80 border border-amber-500/50 rounded-xl text-white font-mono focus:outline-none focus:border-amber-400"
-                      />
                     </div>
                   )}
 

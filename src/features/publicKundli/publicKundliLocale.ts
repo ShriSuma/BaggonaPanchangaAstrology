@@ -454,25 +454,25 @@ export const T_PUBLIC_KUNDLI: Record<string, Record<PublicKundliLang, string>> =
     ta: "தலைமை ஜோதிடரின் நேரடி வாய்மொழி விளக்கம்"
   },
   narrationPlayBtn: {
-    kn: "ಧ್ವನಿ ಕಥನ ಕೇಳಿ (Play Audio Narration)",
-    en: "Listen to Voice Narration (Play)",
-    hi: "ध्वनि व्याख्या सुनें (Play)",
-    te: "వాయిస్ వివరణ వినండి (Play)",
-    ta: "குரல் விளக்கத்தைக் கேளுங்கள் (Play)"
+    kn: "ಧ್ವನಿ ಕಥನ ಕೇಳಿ",
+    en: "Listen to Voice Narration",
+    hi: "ध्वनि व्याख्या सुनें",
+    te: "వాయిస్ వివరణ వినండి",
+    ta: "குரல் விளக்கத்தைக் கேளுங்கள்"
   },
   narrationPauseBtn: {
-    kn: "ವಿರಾಮ (Pause)",
+    kn: "ವಿರಾಮ",
     en: "Pause Audio",
-    hi: "विराम (Pause)",
-    te: "పాజ్ (Pause)",
-    ta: "நிறுத்து (Pause)"
+    hi: "विराम",
+    te: "విరామం",
+    ta: "இடைநிறுத்து"
   },
   narrationStopBtn: {
-    kn: "ನಿಲ್ಲಿಸಿ (Stop)",
+    kn: "ನಿಲ್ಲಿಸಿ",
     en: "Stop Audio",
-    hi: "रोकें (Stop)",
-    te: "ఆపు (Stop)",
-    ta: "நிறுத்து (Stop)"
+    hi: "रोकें",
+    te: "ఆపండి",
+    ta: "நிறுத்து"
   },
   narrationPlayingBadge: {
     kn: "ಜ್ಯೋತಿಷಿ ಕಥನ ಪ್ರಸಾರವಾಗುತ್ತಿದೆ...",

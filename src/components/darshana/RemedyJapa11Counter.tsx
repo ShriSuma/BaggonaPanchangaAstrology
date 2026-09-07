@@ -2,9 +2,10 @@ import React, { useState, useEffect } from "react";
 import type { SevaLang } from "../../features/seva/sevaLocale";
 import type { PersonalRemedyJapaInfo } from "../../features/remedies/kundliPersonalRemedyJapaEngine";
 import { playTempleBellChime } from "../../features/seva/priestAudioNarrator";
-import { synthesizeAndPlayClonedVoice, stopClonedAudio } from "../../features/audio/aiVoiceCloneEngine";
+import { synthesizeAndPlayClonedVoice, stopClonedAudio, prewarmIndicAudio } from "../../features/audio/aiVoiceCloneEngine";
 import { stopAllAudioGlobal, onGlobalAudioStop } from "../../features/audio/globalAudioManager";
 import { recordDevoteeJapaCompleted, type DevoteeStreakRecord, type DevoteeMilestoneReward } from "../../features/seva/devoteeStreakService";
+import { VedicAudioLoaderModal } from "../ui/VedicAudioLoaderModal";
 
 export interface RemedyJapa11CounterProps {
   remedyInfo: PersonalRemedyJapaInfo;
@@ -15,6 +16,104 @@ export interface RemedyJapa11CounterProps {
   onJapaCompleted?: (streak: DevoteeStreakRecord, unlocked: DevoteeMilestoneReward[]) => void;
   className?: string;
 }
+
+const REMEDY_COUNTER_TEXTS: Record<SevaLang, {
+  badge: string;
+  stopAudio: string;
+  synthesizing: string;
+  listenWithPriest: string;
+  remedyPurpose: string;
+  mantraBoxTitle: string;
+  meaning: string;
+  progressTitle: string;
+  tapToChant: (count: number) => string;
+  instruction: string;
+  unlockedReward: string;
+  chantAgain: string;
+  loaderTitle: string;
+  loaderSubtitle: string;
+}> = {
+  kn: {
+    badge: "೧೧ ಬಾರಿ ಪರಿಹಾರ ಮಂತ್ರ ಜಪ",
+    stopAudio: "ಧ್ವನಿ ನಿಲ್ಲಿಸಿ",
+    synthesizing: "ಧ್ವನಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ...",
+    listenWithPriest: "ಗುರುಮುಖೇನ ಶ್ರವಣ",
+    remedyPurpose: "ದೋಷ ನಿವಾರಣಾ ಮಾರ್ಗ:",
+    mantraBoxTitle: "॥ ದಿವ್ಯ ಜಪ ಮಂತ್ರ ॥",
+    meaning: "ಭಾವಾರ್ಥ:",
+    progressTitle: "ಜಪಮಾಲೆ ಪ್ರಗತಿ (೧೧ ಮಣಿಗಳು):",
+    tapToChant: (count) => `ಜಪಿಸಲು ಸ್ಪರ್ಶಿಸಿ (${count} / ೧೧ ಮುಗಿದಿದೆ)`,
+    instruction: "ಪ್ರತಿ ಮಂತ್ರ ಪಠಿಸಿದ ನಂತರ ಬಟನ್ ಸ್ಪರ್ಶಿಸಿ ೧೧ ಬಾರಿ ಜಪ ಪೂರ್ಣಗೊಳಿಸಿ",
+    unlockedReward: "🌟 ಹೊಸ ಪುರಸ್ಕಾರ ಅನ್‌ಲಾಕ್: ",
+    chantAgain: "ಮತ್ತೊಮ್ಮೆ ೧೧ ಬಾರಿ ಜಪಿಸಿ",
+    loaderTitle: "ದೋಷ ಪರಿಹಾರ ಮಂತ್ರ ಧ್ವನಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ...",
+    loaderSubtitle: "ಕುಂಡಲಿ ದೋಷ ನಿವಾರಣೆಗಾಗಿ ಗುರುಮುಖೇನ ಮಂತ್ರ ಶ್ರವಣ ಸಿದ್ಧವಾಗುತ್ತಿದೆ, ದಯವಿಟ್ಟು ನಿರೀಕ್ಷಿಸಿ."
+  },
+  te: {
+    badge: "11 సార్లు పరిహార మంత్ర జపం",
+    stopAudio: "ధ్వని ఆపండి",
+    synthesizing: "ధ్వని సిద్ధమవుతోంది...",
+    listenWithPriest: "గురుముఖేన వినండి",
+    remedyPurpose: "దోష నివారణ మార్గం:",
+    mantraBoxTitle: "॥ దివ్య జప మంత్రం ॥",
+    meaning: "భావార్థం:",
+    progressTitle: "జపమాల పురోగతి (11 పూసలు):",
+    tapToChant: (count) => `జపించుటకు తాకండి (${count} / 11 పూర్తయింది)`,
+    instruction: "ప్రతి మంత్రం పఠించిన తర్వాత బటన్ తాకి 11 సార్లు జపం పూర్తి చేయండి",
+    unlockedReward: "🌟 నూతన పురస్కారం అన్‌లాక్ అయింది: ",
+    chantAgain: "మరోసారి 11 సార్లు జపించండి",
+    loaderTitle: "దోష నివారణ మంత్ర ధ్వని సిద్ధమవుతోంది...",
+    loaderSubtitle: "కుండలి దోష నివారణ కొరకు గురుముఖేన మంత్ర శ్రవణం సిద్ధమవుతోంది, దయచేసి వేచి ఉండండి."
+  },
+  ta: {
+    badge: "11 முறை பரிகார மந்திர ஜபம்",
+    stopAudio: "குரலை நிறுத்து",
+    synthesizing: "குரல் தயாராகிறது...",
+    listenWithPriest: "குரு குரலில் கேட்க",
+    remedyPurpose: "தோஷ நிவர்த்தி வழி:",
+    mantraBoxTitle: "॥ திவ்ய ஜப மந்திரம் ॥",
+    meaning: "பொருள்:",
+    progressTitle: "ஜபமாலை முன்னேற்றம் (11 மணிகள்):",
+    tapToChant: (count) => `ஜபிக்க தொடவும் (${count} / 11 முடிந்தது)`,
+    instruction: "ஒவ்வொரு மந்திரத்திற்கும் பின் பொத்தானைத் தொட்டு 11 முறை ஜபத்தை முடிக்கவும்",
+    unlockedReward: "🌟 புதிய பரிசு திறக்கப்பட்டது: ",
+    chantAgain: "மீண்டும் 11 முறை ஜபிக்கவும்",
+    loaderTitle: "தோஷ பரிகார மந்திர ஆடியோ தயாராகிறது...",
+    loaderSubtitle: "ஜாதக தோஷ நிவர்த்திக்கான குரு குரல் மந்திரம் தயாராகிறது, தயவுசெய்து காத்திருக்கவும்."
+  },
+  hi: {
+    badge: "११ बार निवारण मंत्र जप",
+    stopAudio: "ध्वनि रोकें",
+    synthesizing: "ध्वनि तैयार हो रही है...",
+    listenWithPriest: "गुरुमुख से श्रवण",
+    remedyPurpose: "दोष निवारण मार्ग:",
+    mantraBoxTitle: "॥ दिव्य जप मंत्र ॥",
+    meaning: "भावार्थ:",
+    progressTitle: "जपमाला प्रगति (११ मनके):",
+    tapToChant: (count) => `जप हेतु स्पर्श करें (${count} / ११ पूर्ण)`,
+    instruction: "प्रत्येक मंत्र पाठ के बाद बटन दबाकर ११ बार जप पूर्ण करें",
+    unlockedReward: "🌟 नया पुरस्कार अनलॉक हुआ: ",
+    chantAgain: "पुनः ११ बार जप करें",
+    loaderTitle: "दोष निवारण मंत्र ध्वनि तैयार हो रही है...",
+    loaderSubtitle: "कुंडली दोष निवारण हेतु गुरुमुख से मंत्र श्रवण तैयार हो रहा है, कृपया प्रतीक्षा करें।"
+  },
+  en: {
+    badge: "11-Time Vedic Remedy Japa",
+    stopAudio: "Stop Audio",
+    synthesizing: "Synthesizing...",
+    listenWithPriest: "Listen with Priest",
+    remedyPurpose: "Remedy Purpose:",
+    mantraBoxTitle: "॥ Sacred Vedic Shloka ॥",
+    meaning: "Meaning:",
+    progressTitle: "Japamala Progress (11 Beads):",
+    tapToChant: (count) => `Tap to Chant (${count} / 11 Completed)`,
+    instruction: "Tap after each chant to complete the 11 sacred rounds",
+    unlockedReward: "🌟 New Milestone Unlocked: ",
+    chantAgain: "Chant 11 Times Again",
+    loaderTitle: "Synthesizing Vedic Remedy Mantra Voice...",
+    loaderSubtitle: "Synthesizing Vedic personal remedy chant via Sarvam AI Indic Neural TTS, please wait a moment."
+  }
+};
 
 export const RemedyJapa11Counter: React.FC<RemedyJapa11CounterProps> = ({
   remedyInfo,
@@ -32,6 +131,7 @@ export const RemedyJapa11Counter: React.FC<RemedyJapa11CounterProps> = ({
   const [showConfetti, setShowConfetti] = useState<boolean>(false);
   const [unlockedRewards, setUnlockedRewards] = useState<DevoteeMilestoneReward[]>([]);
 
+  const t = REMEDY_COUNTER_TEXTS[lang] || REMEDY_COUNTER_TEXTS.en;
   const devoteeKey = devoteeName.toLowerCase().replace(/\s+/g, "_") || "devotee_default";
 
   useEffect(() => {
@@ -44,6 +144,17 @@ export const RemedyJapa11Counter: React.FC<RemedyJapa11CounterProps> = ({
       stopAllAudioGlobal();
     };
   }, []);
+
+  // Proactive Speculative Audio Pre-warming for 11 Japa Shloka
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const timer = setTimeout(() => {
+      const currentShloka = remedyInfo.sanskritShlokaL5?.[lang] || remedyInfo.sanskritShloka;
+      const textToSpeak = remedyInfo.audioNarrationText?.[lang] || remedyInfo.audioNarrationText?.kn || `${remedyInfo.deityName[lang] || remedyInfo.deityName.kn}. ${currentShloka}. ${remedyInfo.calmingBenefit[lang] || remedyInfo.calmingBenefit.kn}`;
+      void prewarmIndicAudio(textToSpeak, lang);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [remedyInfo, lang]);
 
   const handleIncrementJapa = async () => {
     if (japaCount >= 11) return;
@@ -95,7 +206,8 @@ export const RemedyJapa11Counter: React.FC<RemedyJapa11CounterProps> = ({
     setIsPlayingPriestAudio(false);
     playTempleBellChime();
 
-    const textToSpeak = `${remedyInfo.deityName[lang] || remedyInfo.deityName.kn}. ${remedyInfo.sanskritShloka}. ${remedyInfo.calmingBenefit[lang] || remedyInfo.calmingBenefit.kn}`;
+    const currentShloka = remedyInfo.sanskritShlokaL5?.[lang] || remedyInfo.sanskritShloka;
+    const textToSpeak = remedyInfo.audioNarrationText?.[lang] || remedyInfo.audioNarrationText?.kn || `${remedyInfo.deityName[lang] || remedyInfo.deityName.kn}. ${currentShloka}. ${remedyInfo.calmingBenefit[lang] || remedyInfo.calmingBenefit.kn}`;
 
     try {
       await synthesizeAndPlayClonedVoice(
@@ -131,7 +243,7 @@ export const RemedyJapa11Counter: React.FC<RemedyJapa11CounterProps> = ({
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-semibold uppercase tracking-wider mb-2">
             <span>📿</span>
-            <span>{lang === "kn" ? "೧೧ ಬಾರಿ ಪರಿಹಾರ ಮಂತ್ರ ಜಪ" : "11-Time Vedic Remedy Japa"}</span>
+            <span>{t.badge}</span>
           </div>
           <h3 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-400 bg-clip-text text-transparent">
             {remedyInfo.afflictionTitle[lang] || remedyInfo.afflictionTitle.kn}
@@ -155,17 +267,17 @@ export const RemedyJapa11Counter: React.FC<RemedyJapa11CounterProps> = ({
           {isPlayingPriestAudio ? (
             <>
               <span>⏹️</span>
-              <span>{lang === "kn" ? "ಧ್ವನಿ ನಿಲ್ಲಿಸಿ" : "Stop Audio"}</span>
+              <span>{t.stopAudio}</span>
             </>
           ) : isLoadingPriestAudio ? (
             <>
               <span className="inline-block animate-spin">⏳</span>
-              <span>{lang === "kn" ? "ಧ್ವನಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : "Synthesizing..."}</span>
+              <span>{t.synthesizing}</span>
             </>
           ) : (
             <>
               <span>🎙️</span>
-              <span>{lang === "kn" ? "ಗುರುಮುಖೇನ ಶ್ರವಣ" : "Listen with Priest"}</span>
+              <span>{t.listenWithPriest}</span>
             </>
           )}
         </button>
@@ -173,23 +285,25 @@ export const RemedyJapa11Counter: React.FC<RemedyJapa11CounterProps> = ({
 
       {/* Affliction Diagnosis Reason */}
       <div className="mt-5 p-3.5 rounded-2xl bg-amber-950/40 border border-amber-500/20 text-xs md:text-sm text-amber-200/90 leading-relaxed">
-        <span className="font-semibold text-amber-300">💡 {lang === "kn" ? "ದೋಷ ನಿವಾರಣಾ ಮಾರ್ಗ:" : "Remedy Purpose:"} </span>
+        <span className="font-semibold text-amber-300">💡 {t.remedyPurpose} </span>
         {remedyInfo.afflictionReason[lang] || remedyInfo.afflictionReason.kn}
       </div>
 
       {/* Sacred Mantra Display Box */}
       <div className="mt-5 rounded-2xl bg-black/50 border border-amber-500/30 p-5 text-center shadow-inner relative group">
         <div className="text-xs text-amber-400/70 font-mono uppercase tracking-wider mb-2">
-          {lang === "kn" ? "॥ ದಿವ್ಯ ಜಪ ಮಂತ್ರ ॥" : "॥ Sacred Vedic Shloka ॥"}
+          {t.mantraBoxTitle}
         </div>
         <p className="text-lg md:text-2xl font-serif font-bold text-amber-100 leading-relaxed whitespace-pre-line tracking-wide drop-shadow-md">
-          {remedyInfo.sanskritShloka}
+          {remedyInfo.sanskritShlokaL5?.[lang] || remedyInfo.sanskritShloka}
         </p>
-        <p className="mt-3 text-xs md:text-sm text-amber-300/80 italic font-mono">
-          {remedyInfo.transliteration}
-        </p>
+        {lang === "en" && remedyInfo.transliteration && (
+          <p className="mt-3 text-xs md:text-sm text-amber-300/80 italic font-mono">
+            {remedyInfo.transliteration}
+          </p>
+        )}
         <div className="mt-4 pt-3 border-t border-amber-500/20 text-xs md:text-sm text-amber-200/90">
-          <span className="font-semibold text-amber-400">{lang === "kn" ? "ಭಾವಾರ್ಥ: " : "Meaning: "}</span>
+          <span className="font-semibold text-amber-400">{t.meaning} </span>
           {remedyInfo.meaning[lang] || remedyInfo.meaning.kn}
         </div>
       </div>
@@ -197,7 +311,7 @@ export const RemedyJapa11Counter: React.FC<RemedyJapa11CounterProps> = ({
       {/* 11-Bead Japamala Track */}
       <div className="mt-6">
         <div className="flex items-center justify-between text-xs text-amber-300 font-semibold mb-3">
-          <span>{lang === "kn" ? "ಜಪಮಾಲೆ ಪ್ರಗತಿ (೧೧ ಮಣಿಗಳು):" : "Japamala Progress (11 Beads):"}</span>
+          <span>{t.progressTitle}</span>
           <span className="text-amber-400 font-mono text-sm">{japaCount} / {targetCount} ({progressPercent}%)</span>
         </div>
 
@@ -238,18 +352,14 @@ export const RemedyJapa11Counter: React.FC<RemedyJapa11CounterProps> = ({
           >
             <span className="text-2xl animate-spin">📿</span>
             <span>
-              {lang === "kn"
-                ? `ಜಪಿಸಲು ಸ್ಪರ್ಶಿಸಿ (${japaCount} / ೧೧ ಮುಗಿದಿದೆ)`
-                : `Tap to Chant (${japaCount} / 11 Completed)`}
+              {t.tapToChant(japaCount)}
             </span>
             <span className="text-sm px-2.5 py-1 rounded-full bg-black/20 text-amber-950 font-mono">
               +1
             </span>
           </button>
           <p className="text-xs text-amber-300/60 mt-2">
-            {lang === "kn"
-              ? "ಪ್ರತಿ ಮಂತ್ರ ಪಠಿಸಿದ ನಂತರ ಬಟನ್ ಸ್ಪರ್ಶಿಸಿ ೧೧ ಬಾರಿ ಜಪ ಪೂರ್ಣಗೊಳಿಸಿ"
-              : "Tap after each chant to complete the 11 sacred rounds"}
+            {t.instruction}
           </p>
         </div>
       ) : (
@@ -276,7 +386,7 @@ export const RemedyJapa11Counter: React.FC<RemedyJapa11CounterProps> = ({
           {/* Unlocked Milestone Alert if any */}
           {unlockedRewards.length > 0 && (
             <div className="mt-4 p-3 rounded-xl bg-amber-500/20 border border-amber-400/50 text-amber-200 text-sm">
-              <span className="font-bold text-yellow-300">🌟 ಹೊಸ ಪುರಸ್ಕಾರ ಅನ್‌ಲಾಕ್: </span>
+              <span className="font-bold text-yellow-300">{t.unlockedReward}</span>
               {unlockedRewards.map((r) => r.rewardTitle[lang] || r.rewardTitle.kn).join(" · ")}
             </div>
           )}
@@ -287,11 +397,24 @@ export const RemedyJapa11Counter: React.FC<RemedyJapa11CounterProps> = ({
               onClick={handleResetJapa}
               className="px-5 py-2 rounded-xl bg-emerald-800/60 hover:bg-emerald-700/60 border border-emerald-400/40 text-emerald-100 text-xs font-semibold transition-all"
             >
-              🔄 {lang === "kn" ? "ಮತ್ತೊಮ್ಮೆ ೧೧ ಬಾರಿ ಜಪಿಸಿ" : "Chant 11 Times Again"}
+              🔄 {t.chantAgain}
             </button>
           </div>
         </div>
       )}
+
+      {/* Prominent Vedic Audio Loader Modal for Sarvam AI Voice */}
+      <VedicAudioLoaderModal
+        isOpen={isLoadingPriestAudio}
+        onCancel={() => {
+          stopAllAudioGlobal();
+          setIsLoadingPriestAudio(false);
+          setIsPlayingPriestAudio(false);
+        }}
+        lang={lang}
+        title={t.loaderTitle}
+        subtitle={t.loaderSubtitle}
+      />
     </div>
   );
 };

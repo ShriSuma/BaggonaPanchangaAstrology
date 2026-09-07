@@ -28,9 +28,35 @@ describe("Kundli Personal Remedy & 11-Time Japa Engine", () => {
     expect(remedy.grahaKey).toBe(PlanetName.Saturn);
     expect(remedy.recommendedJapaCount).toBe(11);
     expect(remedy.sanskritShloka).toContain("ನೀಲಾಂಜನ ಸಮಾಭಾಸಂ");
+    expect(remedy.sanskritShlokaL5?.ta).toContain("நீலாஞ்ஜன ஸமாபாஸம்");
+    expect(remedy.sanskritShlokaL5?.te).toContain("నీలాంజన సమాభాసం");
+    expect(remedy.sanskritShlokaL5?.hi).toContain("नीलांजन समाभासं");
     expect(remedy.afflictionTitle.kn).toContain("ಶನಿ ದೋಷ");
     expect(remedy.celebrationHurrayText.kn).toContain("🎉 ಶುಭ ಜಯಸಿದ್ಧಿ!");
     expect(remedy.freshMindBlessingText.kn).toContain("ಪ್ರಶಾಂತ ಹಾಗೂ ಮುಕ್ತ ಮನಸ್ಸಿನಿಂದ");
+  });
+
+  it("detects Ketu affliction and provides authentic 5-language Tamil/Telugu/Hindi/Kannada Shlokas", () => {
+    const ketuKundli = {
+      planets: [
+        { name: PlanetName.Ketu, degree: 15, rashi: { index: 0, sanskrit: "Mesha", english: "Aries" }, house: 1, isRetrograde: false } as PlanetPosition
+      ],
+      houses: []
+    } as unknown as KundliOutput;
+
+    const remedy = determineKundliPersonalRemedy({
+      birthKundli: ketuKundli,
+      devoteeName: "பக்தர்",
+      lang: "ta"
+    });
+
+    expect(remedy.grahaKey).toBe(PlanetName.Ketu);
+    expect(remedy.sanskritShlokaL5?.ta).toContain("கணானாம் த்வா கணபதிம் ஹவாமஹே");
+    expect(remedy.sanskritShlokaL5?.te).toContain("గణానాం త్వా గణపతిం హవామహే");
+    expect(remedy.sanskritShlokaL5?.hi).toContain("गणानां त्वा गणपतिं हवामहे");
+    expect(remedy.sanskritShlokaL5?.kn).toContain("ಗಣಾನಾಂ ತ್ವಾ ಗಣಪತಿಂ ಹವಾಮಹೇ");
+    expect(remedy.deityName.ta).toContain("ஸ்ரீ மஹாகணபதி");
+    expect(remedy.meaning.ta).toContain("கணங்களின் தலைவரும்");
   });
 
   it("detects afflicted Moon in Scorpio and prescribes Moon / Shiva pacification Shloka", () => {
@@ -51,6 +77,7 @@ describe("Kundli Personal Remedy & 11-Time Japa Engine", () => {
     expect(remedy.grahaKey).toBe(PlanetName.Moon);
     expect(remedy.recommendedJapaCount).toBe(11);
     expect(remedy.sanskritShloka).toContain("ದಧಿಶಂಖತುಷಾರಾಭಂ");
+    expect(remedy.sanskritShlokaL5?.ta).toContain("ததிசங்கதுஷாராபம்");
     expect(remedy.transliteration).toContain("Dadhiśaṅkha");
     expect(remedy.celebrationHurrayText.en).toContain("Hurray");
     expect(remedy.freshMindBlessingText.en).toContain("Today go with a fresh, tranquil heart");
@@ -66,6 +93,7 @@ describe("Kundli Personal Remedy & 11-Time Japa Engine", () => {
     expect(remedy.grahaKey).toBe("sarvadosha");
     expect(remedy.recommendedJapaCount).toBe(11);
     expect(remedy.sanskritShloka).toContain("ಓಂ ತ್ರ್ಯಂಬಕಂ ಯಜಾಮಹೇ");
+    expect(remedy.sanskritShlokaL5?.ta).toContain("ஓம் த்ரியம்பகம் யஜாமஹே");
     expect(remedy.freshMindBlessingText.kn).toContain("ಪ್ರಶಾಂತ ಹಾಗೂ ಮುಕ್ತ ಮನಸ್ಸಿನಿಂದ ಪ್ರಾರಂಭಿಸಿ");
   });
 });

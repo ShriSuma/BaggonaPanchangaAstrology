@@ -70,6 +70,27 @@ export const calendarYmdInTimeZone = (d: Date, timeZone: string): string =>
   }).format(d);
 
 /**
+ * Returns Gregorian YYYY-MM-DD for `d` strictly in Indian Standard Time (Asia/Kolkata, UTC+05:30).
+ * Guaranteed to reflect authentic Indian calendar date regardless of client/server machine timezone.
+ */
+export const getIndianStandardDateStr = (d: Date = new Date()): string =>
+  calendarYmdInTimeZone(d, "Asia/Kolkata");
+
+/**
+ * Calculates exact milliseconds from `now` until the next 12:00:05 AM midnight in Indian Standard Time (Asia/Kolkata).
+ * Eliminates UTC / browser timezone drift for daily midnight cache rotation and refresh schedules.
+ */
+export const getMsUntilNextMidnightIST = (now: Date = new Date()): number => {
+  const istTodayYmd = getIndianStandardDateStr(now);
+  const [year, month, day] = istTodayYmd.split("-").map(Number);
+  const nextDay = new Date(Date.UTC(year, month - 1, day + 1));
+  const nextYmd = nextDay.toISOString().split("T")[0];
+  const nextMidnightIst = new Date(`${nextYmd}T00:00:05+05:30`).getTime();
+  const diff = nextMidnightIst - now.getTime();
+  return diff > 0 ? diff : 86400000;
+};
+
+/**
  * Civil "today" for Panchang at the map pin: IST calendar date in India bbox, otherwise the browser's local zone date.
  * Matches how sites like Drik Panchang label "today" for Indian locations.
  */

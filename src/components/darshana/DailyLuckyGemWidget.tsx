@@ -14,6 +14,7 @@ export interface DailyLuckyGemWidgetProps {
     borderClass: string;
   };
   dynamicLuckyDigit?: number;
+  dynamicLuckyNumbers?: number[];
   dynamicLuckyDirection?: {
     name: Record<SevaLang, string>;
     degrees: string;
@@ -30,17 +31,21 @@ const LUCKY_TEXTS: Record<SevaLang, {
   japaCompleted: string;
   chantBtn: string;
   resetMala: string;
+  mantraTitle: string;
+  auspiciousVibe: (n: string | number) => string;
 }> = {
   kn: {
-    title: "ದಿನದ ದೈವಿಕ ಶಕ್ತಿ ರತ್ನ & ಶುಭ ಮಾರ್ಗದರ್ಶಿ (Daily Power Gem)",
+    title: "ದಿನದ ದೈವಿಕ ಶಕ್ತಿ ರತ್ನ & ಶುಭ ಮಾರ್ಗದರ್ಶಿ",
     subtitle: "ನಿಮ್ಮ ಜನ್ಮ ಜಾತಕ & ಗೋಚಾರ ಆಧಾರಿತ ಶುಭ ವರ್ಣ, ಸಂಖ್ಯೆ, ದಿಕ್ಕು & ೧೧-ಮಣಿಗಳ ಡಿಜಿಟಲ್ ಜಪಮಾಲೆ",
     powerColorTitle: "ದಿನದ ಅದೃಷ್ಟ ವರ್ಣ",
     luckyDigitTitle: "ದಿನದ ಅದೃಷ್ಟ ಸಂಖ್ಯೆ",
     directionTitle: "ದಿನದ ಶುಭ ಸಂಚಾರ ದಿಕ್ಕು",
-    japaMalaTitle: "೧೧-ಮಣಿಗಳ ಡಿಜಿಟಲ್ ಜಪಮಾಲೆ (11-Bead Digital Mala)",
+    japaMalaTitle: "೧೧-ಮಣಿಗಳ ಡಿಜಿಟಲ್ ಜಪಮಾಲೆ",
     japaCompleted: "🎉 ೧೧ ಬಾರಿ ಪವಿತ್ರ ಜಪ ಸಂಪನ್ನವಾಯಿತು! ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರರ ಅನುಗ್ರಹ ಸದಾ ಇರಲಿ.",
-    chantBtn: "📿 ಮಂತ್ರ ಜಪಿಸಿ (Chant)",
-    resetMala: "↺ ಮರು ಜಪ (Reset)"
+    chantBtn: "📿 ಮಂತ್ರ ಜಪಿಸಿ",
+    resetMala: "↺ ಮರು ಜಪ",
+    mantraTitle: "ಇಂದಿನ ಪವಿತ್ರ ಜಪ ಮಂತ್ರ",
+    auspiciousVibe: (n) => `ಸಂಖ್ಯೆ ${n} (ಶುಭ ಕಂಪನ)`
   },
   en: {
     title: "Daily Power Gem & Auspicious Guidance",
@@ -51,7 +56,9 @@ const LUCKY_TEXTS: Record<SevaLang, {
     japaMalaTitle: "11-Bead Sacred Digital Mala",
     japaCompleted: "🎉 11 Chants Completed! May Lord Mahabaleshwara bless your day.",
     chantBtn: "📿 Chant Mantra",
-    resetMala: "↺ Reset Mala"
+    resetMala: "↺ Reset Mala",
+    mantraTitle: "Today's Sacred Japa Mantra",
+    auspiciousVibe: (n) => `Number ${n} (Auspicious)`
   },
   hi: {
     title: "दैनिक दिव्य शक्ति रत्न एवं शुभ मार्गदर्शन",
@@ -62,7 +69,9 @@ const LUCKY_TEXTS: Record<SevaLang, {
     japaMalaTitle: "११-मनकों की डिजिटल जपमाला",
     japaCompleted: "🎉 ११ पावन जप संपन्न! भगवान महाबलेश्वर की कृपा बनी रहे।",
     chantBtn: "📿 मंत्र जपें",
-    resetMala: "↺ पुनः जप"
+    resetMala: "↺ पुनः जप",
+    mantraTitle: "आज का पावन जप मंत्र",
+    auspiciousVibe: (n) => `संख्या ${n} (शुभ स्पंदन)`
   },
   te: {
     title: "నేటి దివ్య శక్తి రత్నం & శుభ మార్గదర్శి",
@@ -73,7 +82,9 @@ const LUCKY_TEXTS: Record<SevaLang, {
     japaMalaTitle: "౧౧-పూసల డిజిటల్ జపమాల",
     japaCompleted: "🎉 ౧౧ జపాలు పూర్తయ్యాయి! శ్రీ మహాబలేశ్వరుని అనుగ్రహం లభించుగాక.",
     chantBtn: "📿 మంత్రం జపించండి",
-    resetMala: "↺ రీసెట్ మాల"
+    resetMala: "↺ రీసెట్ మాల",
+    mantraTitle: "నేటి పవిత్ర జప మంత్రం",
+    auspiciousVibe: (n) => `సంఖ్య ${n} (శుభ కంపనం)`
   },
   ta: {
     title: "இன்றைய சக்தி ரத்தினம் & சுப வழிகாட்டி",
@@ -84,26 +95,144 @@ const LUCKY_TEXTS: Record<SevaLang, {
     japaMalaTitle: "11-மணி புனித டிஜிட்டல் ஜபமாலை",
     japaCompleted: "🎉 11 முறை ஜபம் நிறைவடைந்தது! மகாபலேஸ்வரர் அருள் நிலைக்கட்டும்.",
     chantBtn: "📿 மந்திரம் ஜபிக்கவும்",
-    resetMala: "↺ மீண்டும் ஜபிக்க"
+    resetMala: "↺ மீண்டும் ஜபிக்க",
+    mantraTitle: "இன்றைய புனித ஜப மந்திரம்",
+    auspiciousVibe: (n) => `எண் ${n} (சுப அதிர்வு)`
   }
 };
 
-const COLOR_MAP = [
-  { nameKn: "ಮಾಣಿಕ್ಯ ಕೆಂಪು (Ruby Red) • ಸೂರ್ಯ ಬಲ", nameEn: "Ruby Red (Sun Vitality)", hex: "#DC2626", borderClass: "border-rose-400" },
-  { nameKn: "ಮುತ್ತಿನ ಬಿಳಿ (Pearl White) • ಚಂದ್ರ ಶಾಂತಿ", nameEn: "Pearl White (Moon Peace)", hex: "#F8FAFC", borderClass: "border-slate-300" },
-  { nameKn: "ಹವಳ ಕೇಸರಿ (Coral Saffron) • ಕುಜ ತೇಜಸ್ಸು", nameEn: "Coral Saffron (Mars Aura)", hex: "#EA580C", borderClass: "border-orange-400" },
-  { nameKn: "ಪಚ್ಚೆ ಹಸಿರು (Emerald Green) • ಬುಧ ಬುದ್ಧಿ", nameEn: "Emerald Green (Mercury Intellect)", hex: "#10B981", borderClass: "border-emerald-400" },
-  { nameKn: "ಪೀತಾಂಬರ ಹಳದಿ (Golden Yellow) • ಗುರು ಕೃಪೆ", nameEn: "Golden Yellow (Jupiter Grace)", hex: "#F59E0B", borderClass: "border-yellow-400" },
-  { nameKn: "ವಜ್ರ ಶುಭ್ರ (Diamond White) • ಶುಕ್ರ ಸೌಖ್ಯ", nameEn: "Diamond White (Venus Radiance)", hex: "#EC4899", borderClass: "border-pink-300" },
-  { nameKn: "ನೀಲಮಣಿ ನೀಲಿ (Sapphire Blue) • ಶನಿ ರಕ್ಷೆ", nameEn: "Sapphire Blue (Saturn Shield)", hex: "#1E3A8A", borderClass: "border-blue-400" }
+const COLOR_MAP: Array<{
+  name: Record<SevaLang, string>;
+  hex: string;
+  borderClass: string;
+}> = [
+  {
+    name: {
+      kn: "ಮಾಣಿಕ್ಯ ಕೆಂಪು • ಸೂರ್ಯ ಬಲ",
+      en: "Ruby Red • Sun Vitality",
+      hi: "माणिक्य लाल • सूर्य बल",
+      te: "మాణిక్య ఎరుపు • సూర్య బలం",
+      ta: "மாணிக்க சிவப்பு • சூரிய பலம்"
+    },
+    hex: "#DC2626",
+    borderClass: "border-rose-400"
+  },
+  {
+    name: {
+      kn: "ಮುತ್ತಿನ ಬಿಳಿ • ಚಂದ್ರ ಶಾಂತಿ",
+      en: "Pearl White • Moon Peace",
+      hi: "मोती श्वेत • चन्द्र शांति",
+      te: "ముత్యపు తెలుపు • చంద్ర శాంతి",
+      ta: "முத்து வெள்ளை • சந்திர சாந்தி"
+    },
+    hex: "#F8FAFC",
+    borderClass: "border-slate-300"
+  },
+  {
+    name: {
+      kn: "ಹವಳ ಕೇಸರಿ • ಕುಜ ತೇಜಸ್ಸು",
+      en: "Coral Saffron • Mars Aura",
+      hi: "मूंगा केसरिया • मंगल तेज",
+      te: "పగడపు కేసరి • కుజ తేజస్సు",
+      ta: "பவள காவி • செவ்வாய் தேஜஸ்"
+    },
+    hex: "#EA580C",
+    borderClass: "border-orange-400"
+  },
+  {
+    name: {
+      kn: "ಪಚ್ಚೆ ಹಸಿರು • ಬುಧ ಬುದ್ಧಿ",
+      en: "Emerald Green • Mercury Intellect",
+      hi: "पन्ना हरा • बुध बुद्धि",
+      te: "పచ్చ ఆకుపచ్చ • బుధ బుద్ధి",
+      ta: "மரகத பச்சை • புதன் அறிவு"
+    },
+    hex: "#10B981",
+    borderClass: "border-emerald-400"
+  },
+  {
+    name: {
+      kn: "ಪೀತಾಂಬರ ಹಳದಿ • ಗುರು ಕೃಪೆ",
+      en: "Golden Yellow • Jupiter Grace",
+      hi: "पीतांबर पीला • गुरु कृपा",
+      te: "పీతాంబర పసుపు • గురు కృప",
+      ta: "பீதாம்பர மஞ்சள் • குரு கிருபை"
+    },
+    hex: "#F59E0B",
+    borderClass: "border-yellow-400"
+  },
+  {
+    name: {
+      kn: "ವಜ್ರ ಶುಭ್ರ • ಶುಕ್ರ ಸೌಖ್ಯ",
+      en: "Diamond White • Venus Radiance",
+      hi: "हीरा शुभ्र • शुक्र सौख्य",
+      te: "వజ్ర శుభ్రం • శుక్ర సౌఖ్యం",
+      ta: "வைர வெள்ளை • சுக்கிர சௌக்கியம்"
+    },
+    hex: "#EC4899",
+    borderClass: "border-pink-300"
+  },
+  {
+    name: {
+      kn: "ನೀಲಮಣಿ ನೀಲಿ • ಶನಿ ರಕ್ಷೆ",
+      en: "Sapphire Blue • Saturn Shield",
+      hi: "नीलम नीला • शनि रक्षा",
+      te: "నీలమణి నీలం • శని రక్ష",
+      ta: "நீலமணி நீலம் • சனி ரக்ஷை"
+    },
+    hex: "#1E3A8A",
+    borderClass: "border-blue-400"
+  }
 ];
 
-const DIRECTION_MAP = [
-  { dirKn: "ಉತ್ತರ (North) • ಕುಬೇರ ದಿಕ್ಕು", dirEn: "North (Wealth & Growth)" },
-  { dirKn: "ಈಶಾನ್ಯ (North-East) • ಈಶ್ವರ ದಿಕ್ಕು", dirEn: "North-East (Spiritual Sanctuary)" },
-  { dirKn: "ಪೂರ್ವ (East) • ಸೂರ್ಯೋದಯ ದಿಕ್ಕು", dirEn: "East (Vitality & Success)" },
-  { dirKn: "ಪಶ್ಚಿಮ (West) • ವರುಣ ದಿಕ್ಕು", dirEn: "West (Trade & Networking)" },
-  { dirKn: "ವಾಯುವ್ಯ (North-West) • ವಾಯು ದಿಕ್ಕು", dirEn: "North-West (Speed & Travel)" }
+const DIRECTION_MAP: Array<{
+  dir: Record<SevaLang, string>;
+}> = [
+  {
+    dir: {
+      kn: "ಉತ್ತರ • ಕುಬೇರ ದಿಕ್ಕು",
+      en: "North (Wealth & Growth)",
+      hi: "उत्तर • कुबेर दिशा",
+      te: "ఉత్తరం • కుబేర దిశ",
+      ta: "வடக்கு • குபேர திசை"
+    }
+  },
+  {
+    dir: {
+      kn: "ಈಶಾನ್ಯ • ಈಶ್ವರ ದಿಕ್ಕು",
+      en: "North-East (Spiritual Sanctuary)",
+      hi: "ईशान • ईश्वर दिशा",
+      te: "ఈశాన్యం • ఈశ్వర దిశ",
+      ta: "ஈசான்யம் • ஈஸ்வர திசை"
+    }
+  },
+  {
+    dir: {
+      kn: "ಪೂರ್ವ • ಸೂರ್ಯೋದಯ ದಿಕ್ಕು",
+      en: "East (Vitality & Success)",
+      hi: "पूर्व • सूर्योदय दिशा",
+      te: "తూర్పు • సూర్యోదయ దిశ",
+      ta: "கிழக்கு • சூரியோதய திசை"
+    }
+  },
+  {
+    dir: {
+      kn: "ಪಶ್ಚಿಮ • ವರುಣ ದಿಕ್ಕು",
+      en: "West (Trade & Networking)",
+      hi: "पश्चिम • वरुण दिशा",
+      te: "పడమర • వరుణ దిశ",
+      ta: "மேற்கு • வருண திசை"
+    }
+  },
+  {
+    dir: {
+      kn: "ವಾಯುವ್ಯ • ವಾಯು ದಿಕ್ಕು",
+      en: "North-West (Speed & Travel)",
+      hi: "वायव्य • वायु दिशा",
+      te: "వాయువ్యం • వాయు దిశ",
+      ta: "வாயுவ்யம் • வாயு திசை"
+    }
+  }
 ];
 
 export const DailyLuckyGemWidget: React.FC<DailyLuckyGemWidgetProps> = ({
@@ -114,6 +243,7 @@ export const DailyLuckyGemWidget: React.FC<DailyLuckyGemWidgetProps> = ({
   deityMantra = "ಓಂ ನಮಃ ಶಿವಾಯ",
   dynamicLuckyColor,
   dynamicLuckyDigit,
+  dynamicLuckyNumbers,
   dynamicLuckyDirection
 }) => {
   const [japaCount, setJapaCount] = useState<number>(0);
@@ -130,11 +260,12 @@ export const DailyLuckyGemWidget: React.FC<DailyLuckyGemWidgetProps> = ({
     return { color, luckyDigit, direction };
   }, [dateStr, rashiIndex, nakshatraIndex]);
 
-  const colorName = dynamicLuckyColor?.name[lang] || dynamicLuckyColor?.name.kn || (lang === "kn" ? gemData.color.nameKn : gemData.color.nameEn);
+  const colorName = dynamicLuckyColor?.name[lang] || dynamicLuckyColor?.name.en || gemData.color.name[lang] || gemData.color.name.en;
   const colorHex = dynamicLuckyColor?.hex || gemData.color.hex;
   const colorBorder = dynamicLuckyColor?.borderClass || gemData.color.borderClass;
-  const digitVal = dynamicLuckyDigit !== undefined ? dynamicLuckyDigit : gemData.luckyDigit;
-  const dirName = dynamicLuckyDirection?.name[lang] || dynamicLuckyDirection?.name.kn || (lang === "kn" ? gemData.direction.dirKn : gemData.direction.dirEn);
+  const digitVal = dynamicLuckyDigit !== undefined ? dynamicLuckyDigit : (dynamicLuckyNumbers?.[0] ?? gemData.luckyDigit);
+  const numberStr = dynamicLuckyNumbers && dynamicLuckyNumbers.length > 0 ? dynamicLuckyNumbers.join(" · ") : String(digitVal);
+  const dirName = dynamicLuckyDirection?.name[lang] || dynamicLuckyDirection?.name.en || gemData.direction.dir[lang] || gemData.direction.dir.en;
 
   const handleBeadClick = () => {
     if (japaCount < 11) {
@@ -180,6 +311,7 @@ export const DailyLuckyGemWidget: React.FC<DailyLuckyGemWidgetProps> = ({
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {/* Lucky Color */}
         <div className="p-3.5 bg-black/40 rounded-2xl border border-amber-500/30 flex items-center gap-3 shadow-inner">
           <div
             className={`w-11 h-11 rounded-xl shadow-md border-2 ${colorBorder} flex items-center justify-center shrink-0`}
@@ -197,6 +329,7 @@ export const DailyLuckyGemWidget: React.FC<DailyLuckyGemWidgetProps> = ({
           </div>
         </div>
 
+        {/* Lucky Digit */}
         <div className="p-3.5 bg-black/40 rounded-2xl border border-amber-500/30 flex items-center gap-3 shadow-inner">
           <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-400 text-slate-950 font-black font-mono text-xl shadow-md border border-amber-300 flex items-center justify-center shrink-0">
             {digitVal}
@@ -206,7 +339,7 @@ export const DailyLuckyGemWidget: React.FC<DailyLuckyGemWidgetProps> = ({
               {t.luckyDigitTitle}
             </div>
             <div className="text-xs font-black text-white leading-tight mt-0.5">
-              {lang === "kn" ? `ಸಂಖ್ಯೆ ${digitVal} (ಶುಭ ಕಂಪನ)` : `Number ${digitVal} (Auspicious)`}
+              {t.auspiciousVibe(numberStr)}
             </div>
           </div>
         </div>
@@ -241,7 +374,7 @@ export const DailyLuckyGemWidget: React.FC<DailyLuckyGemWidgetProps> = ({
 
         {/* Deity Mantra Box */}
         <div className="p-3 bg-black/50 rounded-xl border border-amber-500/30 text-center">
-          <span className="text-[10px] text-amber-300 font-bold block uppercase tracking-wider">ಇಂದಿನ ಪವಿತ್ರ ಜಪ ಮಂತ್ರ</span>
+          <span className="text-[10px] text-amber-300 font-bold block uppercase tracking-wider">{t.mantraTitle}</span>
           <h4 className="text-sm sm:text-base font-serif font-black text-[#FDE68A] mt-1 tracking-wide">
             "{deityMantra}"
           </h4>

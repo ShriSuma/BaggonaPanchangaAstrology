@@ -18,6 +18,7 @@ import {
 import { firestore } from "../services/firebase";
 import type { KundliOutput, PanchangOutput } from "../core/AstroTypes";
 import { db } from "./indexedDb";
+import { getIndianStandardDateStr } from "../core/placeTime";
 
 export type UserRole = "priest" | "admin" | "superadmin" | "devotee";
 
@@ -1393,7 +1394,7 @@ export async function logPremiumPdfDownload(data: Omit<PremiumPdfDownloadDoc, "i
  * Query today's Premium PDF downloads from Firestore
  */
 export async function getTodayPremiumPdfDownloads(targetDate?: string): Promise<PremiumPdfDownloadDoc[]> {
-  const dateKey = targetDate || new Date().toISOString().split("T")[0];
+  const dateKey = targetDate || getIndianStandardDateStr();
   try {
     const q = query(
       collection(firestore, PREMIUM_PDF_DOWNLOADS_COL),

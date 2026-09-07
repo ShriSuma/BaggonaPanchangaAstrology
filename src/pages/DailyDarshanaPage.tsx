@@ -56,12 +56,13 @@ import { DailyBlessingShareCard } from "../components/darshana/DailyBlessingShar
 import { buildCleanDailyWhatsAppShareText } from "../features/darshana/dailyInspirationAlmanac";
 import { SanctumPrayerBox } from "../components/darshana/SanctumPrayerBox";
 import { playTempleBellChime } from "../features/seva/priestAudioNarrator";
-import { synthesizeAndPlayClonedVoice, stopClonedAudio } from "../features/audio/aiVoiceCloneEngine";
+import { synthesizeAndPlayClonedVoice, stopClonedAudio, prewarmIndicAudio } from "../features/audio/aiVoiceCloneEngine";
 import { stopAllAudioGlobal, onGlobalAudioStop } from "../features/audio/globalAudioManager";
 import { VedicAudioLoaderModal } from "../components/ui/VedicAudioLoaderModal";
 import { useAppStore } from "../stores/appStore";
 import { getOrComputeDinaBhavishya, type DinaBhavishyaPayload } from "../features/seva/dinaBhavishyaEngine";
 import { computePersonalizedDarshanaPayload } from "../features/darshana/dailyDarshanaPersonalizationEngine";
+import { getIndianStandardDateStr } from "../core/placeTime";
 
 // Comprehensive 5-Language Dictionary for DailyDarshanaPage
 const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
@@ -92,7 +93,7 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     sunrise: "ಸೂರ್ಯೋದಯ",
     sunset: "ಸೂರ್ಯಾಸ್ತ",
     deityMantra: "ಇಂದಿನ ದೇವತಾ ಜಪ ಮಂತ್ರ",
-    playBell: "ದೇವಸ್ಥಾನದ ಘಂಟಾನಾದ (Play)",
+    playBell: "ದೇವಸ್ಥಾನದ ಘಂಟಾನಾದ",
     bellPlaying: "ಘಂಟಾನಾದ ಧ್ವನಿಸುತ್ತಿದೆ...",
     priestBenediction: "ಪ್ರಧಾನ ಅರ್ಚಕರ ಆಶೀರ್ವಚನ & ಆಶೀರ್ವಾದ",
     birthAttributes: "ಜನ್ಮ ಕುಂಡಲಿ ಮೂಲ ವಿವರಗಳು",
@@ -119,7 +120,7 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     remediesTitle: "ವೈದಿಕ ಪರಿಹಾರಗಳು & ಆರಾಧನೆಗಳು",
     dashaHeader: "ಪ್ರಸ್ತುತ ಚಾಲ್ತಿಯಲ್ಲಿರುವ ವಿಂಶೋತ್ತರಿ ದಶಾ ಕಾಲ",
     activePhase: "ರಾಹು ಮಹಾದಶಾ · ಶುಕ್ರ ಅಂತರ್ದಶಾ",
-    dashaPeriod: "ಅವಧಿ: 2023 ರಿಂದ 2026 (ಶುಭ ಫಲದಾಯಕ ಕಾಲ)",
+    dashaPeriod: "ಅವಧಿ: 2023 ರಿಂದ 2026 · ಶುಭ ಫಲದಾಯಕ ಕಾಲ",
     dashaPhalaTitle: "ದಶಾ ಫಲ ವಿವರಣೆ",
     careerTitle: "ಉದ್ಯೋಗ & ಪದೋನ್ನತಿ",
     careerDesc: "ಗುರು-ಶುಕ್ರರ ಶುಭ ಯೋಗದಿಂದ ಉದ್ಯೋಗದಲ್ಲಿ ಗೌರವ, ನೂತನ ಅವಕಾಶಗಳು ಹಾಗೂ ವೃತ್ತಿಪರ ಯಶಸ್ಸು ಉಂಟಾಗಲಿದೆ.",
@@ -136,7 +137,42 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     panditRole: "ಮುಖ್ಯ ಅರ್ಚಕರು - ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ",
     callNow: "ನೇರ ಕರೆ: 9972339362",
     downloadIcs: "೯೦ ದಿನಗಳ ಪಂಚಾಂಗ ಕ್ಯಾಲೆಂಡರ್ ಪಡೆಯಿರಿ (.ics)",
-    icsDownloaded: "೯೦ ದಿನಗಳ ಪಂಚಾಂಗ ಕ್ಯಾಲೆಂಡರ್ ಡೌನ್‌ಲೋಡ್ ಆಗಿದೆ ✓"
+    icsDownloaded: "೯೦ ದಿನಗಳ ಪಂಚಾಂಗ ಕ್ಯಾಲೆಂಡರ್ ಡೌನ್‌ಲೋಡ್ ಆಗಿದೆ ✓",
+    passExpiredTitle: "॥ ಆಶೀರ್ವಾದ ಪಂಚಾಂಗ ಪಾಸ್ ಮುಕ್ತಾಯಗೊಂಡಿದೆ ॥",
+    callPriestBtn: "ಪಂಡಿತರಿಗೆ ಕರೆ ಮಾಡಿ",
+    renewWhatsappBtn: "ನವೀಕರಣ",
+    todaysDarshana: "ಇಂದಿನ ದರ್ಶನ",
+    blessedBadge: "ಆಶೀರ್ವಾದ",
+    dailyPoojaBannerTitle: "೩-೫ ನಿಮಿಷಗಳ ನಿತ್ಯ ದೈವಿಕ ಸಂಕಲ್ಪ & ಸರಳ ಪೂಜೆ",
+    manageSankalpasBtn: "ನಿಮ್ಮ ಸಂಕಲ್ಪಗಳು",
+    startPoojaBtn: "ಪೂಜೆ ಆರಂಭಿಸಿ",
+    deityPrayerHeader: "ಇಂದಿನ ಇಷ್ಟದೇವತಾ ಪ್ರಾರ್ಥನೆ & ಸಿದ್ಧ ವೈದಿಕ ಶ್ಲೋಕ",
+    meaningLabel: "ಭಾವಾರ್ಥ:",
+    stopMantra: "ಮಂತ್ರ ನಿಲ್ಲಿಸಿ",
+    synthesizingMantra: "ಮಂತ್ರ ಸಿದ್ಧವಾಗುತ್ತಿದೆ...",
+    listenMantra: "ಮಂತ್ರ ಶ್ರವಣ",
+    stopVoice: "ಧ್ವನಿ ನಿಲ್ಲಿಸಿ",
+    generatingVoice: "ಧ್ವನಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ...",
+    listenVoice: "ಧ್ವನಿಯಲ್ಲಿ ಆಲಿಸಿ",
+    dinaBhavishyaBlessed: "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಅನುಗ್ರಹ ಪ್ರಸಾದಿತ",
+    dinaBhavishyaTitle: "ಇಂದಿನ ದೈನಂದಿನ ದಿನ ಭವಿಷ್ಯ",
+    dinaOverviewTitle: "ದಿನದ ಮುಖ್ಯಾಂಶ ಹಾಗೂ ದೈವಿಕ ಶಕ್ತಿ",
+    dinaCareerTitle: "ಉದ್ಯೋಗ, ವ್ಯಾಪಾರ ಹಾಗೂ ಧನ ಲಾಭ",
+    dinaCareerFallback: "ವೃತ್ತಿರಂಗದಲ್ಲಿ ಶ್ರಮಕ್ಕೆ ಸೂಕ್ತ ಮಾನ್ಯತೆ ಲಭಿಸಲಿದೆ. ಹಣಕಾಸಿನ ವಹಿವಾಟುಗಳಲ್ಲಿ ಪ್ರಗತಿ ಕಂಡುಬರಲಿದ್ದು, ಹಳೆಯ ಬಾಕಿ ಹಣ ಕೈಸೇರುವ ಯೋಗವಿದೆ.",
+    dinaHealthTitle: "ಆರೋಗ್ಯ, ಮನಃಸ್ಥಿತಿ ಹಾಗೂ ಕುಟುಂಬ",
+    dinaHealthFallback: "ದೈಹಿಕ ಅರೋಗ್ಯ ಉತ್ತಮವಾಗಿರಲಿದ್ದು, ಮನಸ್ಸಿನಲ್ಲಿ ಸಕಾರಾತ್ಮಕ ಶಕ್ತಿ ತುಂಬಿರುತ್ತದೆ. ಗೃಹದಲ್ಲಿ ಮಂಗಳಕರ ವಾತಾವರಣ ನೆಲೆಸಲಿದೆ.",
+    dinaTravelTitle: "ಪ್ರಯಾಣ, ಶುಭ ಮುಹೂರ್ತ ಹಾಗೂ ಮಾರ್ಗದರ್ಶನ",
+    dinaTravelFallback: "ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ ಕೈಗೊಳ್ಳುವ ಪ್ರಯಾಣ ಹಾಗೂ ನೂತನ ಕಾರ್ಯಾರಂಭಗಳು ಯಶಸ್ವಿಯಾಗಲಿವೆ.",
+    abhijitLabel: "ಅಭಿಜಿತ್ ಮುಹೂರ್ತ:",
+    rahuKaalaLabel: "ರಾಹು ಕಾಲ:",
+    luckyColorLabel: "ಅದೃಷ್ಟ ಬಣ್ಣ:",
+    luckyDirectionLabel: "ಅದೃಷ್ಟ ದಿಕ್ಕು:",
+    dinaDeityTitle: "ಇಂದಿನ ದೇವತೋಪಾಸನೆ & ಸಿದ್ಧ ಮಂತ್ರ",
+    accordionTitle: "ಸಂಪೂರ್ಣ ಜನ್ಮ ಕುಂಡಲಿ, ಗೋಚಾರ & ದಶಾ ವಿವರಗಳು",
+    calendarContactPrompt: "ಈ ಕ್ಯಾಲೆಂಡರ್ ಪಡೆಯಲು ಅಥವಾ ನಿಮ್ಮ ಇಂದಿನ ಜೀವನದ ಜಾತಕದ ವಿವರಗಳನ್ನು ಪಡೆಯಲು ಈ ಕೆಳಗಿನ ಪ್ರಧಾನ ಅರ್ಚಕರನ್ನು ಸಂಪರ್ಕಿಸಿ:",
+    panditTitle: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಪ್ರಧಾನ ಅರ್ಚಕರು)",
+    priestModalDesc: "ಪೂಜೆ, ಅನುಷ್ಠಾನ, ಪಂಚಾಂಗ ಜಾತಕ ವಿವರಗಳಿಗೆ ಪ್ರಧಾನ ಅರ್ಚಕರನ್ನು ನೇರವಾಗಿ ಸಂಪರ್ಕಿಸಿ.",
+    closeModalBtn: "ಮುಚ್ಚಿ"
   },
   en: {
     tabSanctum: "Sanctum & Pooja",
@@ -181,7 +217,7 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     statusCol: "Status",
     chandraBala: "Chandra Bala",
     taraBala: "Tara Bala",
-    gocharaChartTitle: "Live Gochara Rashi Kundali (Transit Chart)",
+    gocharaChartTitle: "Live Gochara Rashi Kundali",
     gocharaTransitsTitle: "Major Planetary Gochara Transits",
     guruTransitTitle: "Jupiter Transit (Guru Gochara)",
     guruTransitDesc: "Jupiter casts an auspicious aspect on your Moon sign, elevating wisdom, financial growth, and spiritual harmony.",
@@ -192,7 +228,7 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     remediesTitle: "Prescribed Vedic Remedies & Pujas",
     dashaHeader: "Active Vimshottari Dasha Phase",
     activePhase: "Rahu Mahadasha · Venus (Shukra) Antardasha",
-    dashaPeriod: "Period: 2023 to 2026 (Auspicious Phase)",
+    dashaPeriod: "Period: 2023 to 2026 · Auspicious Phase",
     dashaPhalaTitle: "Comprehensive Dasha Phala Insights",
     careerTitle: "Career & Profession",
     careerDesc: "Jupiter-Venus harmony fosters professional recognition, new growth opportunities, and executive success.",
@@ -209,7 +245,42 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     panditRole: "Chief Archaka - Gokarna Kshetra",
     callNow: "Call Directly: +91 9972339362",
     downloadIcs: "Download 90-Day Calendar (.ics)",
-    icsDownloaded: "90-Day Calendar Downloaded! Download Again"
+    icsDownloaded: "90-Day Calendar Downloaded! Download Again",
+    passExpiredTitle: "॥ Sanctum Access Pass Expired ॥",
+    callPriestBtn: "Call Priest",
+    renewWhatsappBtn: "Renew",
+    todaysDarshana: "Today's Darshana",
+    blessedBadge: "Blessed",
+    dailyPoojaBannerTitle: "3-5 Min Vedic Daily Sankalpa & Pooja",
+    manageSankalpasBtn: "Manage Sankalpas",
+    startPoojaBtn: "Start 3-5 Min Pooja",
+    deityPrayerHeader: "Today's Sacred Deity & Vedic Shloka",
+    meaningLabel: "Meaning:",
+    stopMantra: "Stop Mantra",
+    synthesizingMantra: "Synthesizing Mantra...",
+    listenMantra: "Listen Mantra",
+    stopVoice: "Stop Voice",
+    generatingVoice: "Generating Voice...",
+    listenVoice: "Listen in Cloned Voice",
+    dinaBhavishyaBlessed: "Sri Gokarna Mahabaleshwara Blessed",
+    dinaBhavishyaTitle: "Today's Personalized Daily Horoscope",
+    dinaOverviewTitle: "Daily Overview & Cosmic Energy",
+    dinaCareerTitle: "Career, Business & Finance",
+    dinaCareerFallback: "Professional efforts will be recognized. Good financial flow and recovery of pending dues expected.",
+    dinaHealthTitle: "Health, Mindset & Family Harmony",
+    dinaHealthFallback: "Physical vitality remains strong with positive energy. Domestic atmosphere is peaceful, fostering warm bonds.",
+    dinaTravelTitle: "Travel, Auspicious Timing & Day Guidance",
+    dinaTravelFallback: "Auspicious window for planned travel and starting key tasks.",
+    abhijitLabel: "Abhijit:",
+    rahuKaalaLabel: "Rahu Kaala:",
+    luckyColorLabel: "Lucky Color:",
+    luckyDirectionLabel: "Direction:",
+    dinaDeityTitle: "Today's Sacred Deity & Siddha Mantra",
+    accordionTitle: "Complete Janma Kundali, Gochara & Dasha Details",
+    calendarContactPrompt: "To get this calendar or to get current life related details/predictions, you can contact Chief Archaka:",
+    panditTitle: "Shreeram Pandit (Chief Archaka)",
+    priestModalDesc: "Contact Chief Archaka directly for Seva booking, Panchanga consultations, and Vedic rituals.",
+    closeModalBtn: "Close"
   },
   hi: {
     tabSanctum: "दर्शन एवं पूजा",
@@ -238,7 +309,7 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     sunrise: "सूर्योदय",
     sunset: "सूर्यास्त",
     deityMantra: "आज का देव मंत्र",
-    playBell: "मन्दिर की घंटी (Play)",
+    playBell: "मन्दिर की घंटी",
     bellPlaying: "घंटी बज रही है...",
     priestBenediction: "मुख्य अर्चक का आशीर्वाद",
     birthAttributes: "जन्म विवरण",
@@ -265,7 +336,7 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     remediesTitle: "वैदिक उपाय एवं पूजा संकल्प",
     dashaHeader: "वर्तमान विंशोत्तरी दशा",
     activePhase: "राहु महादशा · शुक्र अंतर्दशा",
-    dashaPeriod: "अवधि: 2023 से 2026 (शुभ फलदायी)",
+    dashaPeriod: "अवधि: 2023 से 2026 · शुभ फलदायी",
     dashaPhalaTitle: "दशा फल विश्लेषण",
     careerTitle: "करियर एवं पदोन्नति",
     careerDesc: "गुरु-शुक्र के योग से कार्यक्षेत्र में सम्मान एवं नए अवसर प्राप्त होंगे।",
@@ -282,7 +353,42 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     panditRole: "मुख्य अर्चक - गोकर्ण क्षेत्र",
     callNow: "सीधा कॉल करें: 9972339362",
     downloadIcs: "90-दिवसीय पंचांग कैलेंडर डाउनलोड करें (.ics)",
-    icsDownloaded: "90-दिवसीय पंचांग कैलेंडर डाउनलोड हुआ ✓"
+    icsDownloaded: "90-दिवसीय पंचांग कैलेंडर डाउनलोड हुआ ✓",
+    passExpiredTitle: "॥ आशीर्वाद पंचांग पास समाप्त हुआ ॥",
+    callPriestBtn: "पंडित जी को कॉल करें",
+    renewWhatsappBtn: "नवीनीकरण",
+    todaysDarshana: "आज का दर्शन",
+    blessedBadge: "आशीर्वाद",
+    dailyPoojaBannerTitle: "३-५ मिनट दैनिक वैदिक संकल्प एवं सरल पूजा",
+    manageSankalpasBtn: "आपके संकल्प",
+    startPoojaBtn: "पूजा आरंभ करें",
+    deityPrayerHeader: "आज की इष्टदेवता प्रार्थना एवं सिद्ध वैदिक श्लोक",
+    meaningLabel: "भावार्थ:",
+    stopMantra: "मंत्र रोकें",
+    synthesizingMantra: "मंत्र तैयार हो रहा है...",
+    listenMantra: "मंत्र श्रवण",
+    stopVoice: "आवाज रोकें",
+    generatingVoice: "आवाज तैयार हो रही है...",
+    listenVoice: "आवाज में सुनें",
+    dinaBhavishyaBlessed: "श्री गोकर्ण महाबलेश्वर अनुग्रह प्रसादित",
+    dinaBhavishyaTitle: "आज का दैनिक राशिफल",
+    dinaOverviewTitle: "दिन का मुख्य सारांश एवं ऊर्जा",
+    dinaCareerTitle: "आजीविका, व्यापार एवं धन लाभ",
+    dinaCareerFallback: "कार्यक्षेत्र में मेहनत की सराहना होगी। आर्थिक लेन-देन में प्रगति होगी और बकाया धन मिलने के योग हैं।",
+    dinaHealthTitle: "स्वास्थ्य, मनोदशा एवं पारिवारिक सौहार्द",
+    dinaHealthFallback: "स्वास्थ्य उत्तम रहेगा और मन में सकारात्मक ऊर्जा रहेगी। घर में सुख-शांति का वातावरण रहेगा।",
+    dinaTravelTitle: "यात्रा, शुभ मुहूर्त एवं मार्गदर्शन",
+    dinaTravelFallback: "शुभ मुहूर्त में की गई यात्रा एवं नए कार्यों की शुरुआत सफल रहेगी।",
+    abhijitLabel: "अभिजीत मुहूर्त:",
+    rahuKaalaLabel: "राहु काल:",
+    luckyColorLabel: "शुभ रंग:",
+    luckyDirectionLabel: "शुभ दिशा:",
+    dinaDeityTitle: "आज की देव उपासना एवं सिद्ध मंत्र",
+    accordionTitle: "संपूर्ण जन्म कुंडली, गोचर व दशा विवरण",
+    calendarContactPrompt: "यह कैलेंडर प्राप्त करने या अपने वर्तमान जीवन से संबंधित विवरण व फलादेश पाने के लिए मुख्य अर्चक से संपर्क करें:",
+    panditTitle: "श्रीराम पंडित (मुख्य अर्चक)",
+    priestModalDesc: "पूजा, अनुष्ठान और पंचांग फलादेश के लिए मुख्य अर्चक से सीधे संपर्क करें।",
+    closeModalBtn: "बंद करें"
   },
   te: {
     tabSanctum: "దర్శనం & పూజ",
@@ -311,7 +417,7 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     sunrise: "సూర్యోదయం",
     sunset: "సూర్యాస్తమయం",
     deityMantra: "నేటి దేవుని జప మంత్రం",
-    playBell: "దేవాలయ ఘంటానాదం (Play)",
+    playBell: "దేవాలయ ఘంటానాదం",
     bellPlaying: "ఘంటానాదం మోగుతోంది...",
     priestBenediction: "ముఖ్య అర్చకుల ఆశీర్వచనం",
     birthAttributes: "జన్మ వివరాలు",
@@ -338,7 +444,7 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     remediesTitle: "వైదిక పరిహారాలు & పూజలు",
     dashaHeader: "ప్రస్తుత వింశోత్తరీ దశా కాలం",
     activePhase: "రాహు మహాదశ · శుక్ర అంతర్దశ",
-    dashaPeriod: "వ్యవధి: 2023 నుండి 2026 (శుభ ఫలదాయకం)",
+    dashaPeriod: "వ్యవధి: 2023 నుండి 2026 · శుభ ఫలదాయకం",
     dashaPhalaTitle: "దశా ఫల విశ్లేషణ",
     careerTitle: "ఉద్యోగం & వృత్తి",
     careerDesc: "గురు-శుక్రుల యోగం వల్ల ఉద్యోగంలో గౌరవం, నూతన అవకాశాలు పొందుతారు.",
@@ -355,7 +461,42 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     panditRole: "ముఖ్య అర్చకులు - గోకర్ణ క్షేత్రం",
     callNow: "నేరుగా కాల్ చేయండి: 9972339362",
     downloadIcs: "90 రోజుల పంచాంగ క్యాలెండర్ పొందండి (.ics)",
-    icsDownloaded: "90 రోజుల పంచాంగ క్యాలెండర్ డౌన్‌లోడ్ అయింది ✓"
+    icsDownloaded: "90 రోజుల పంచాంగ క్యాలెండర్ డౌన్‌లోడ్ అయింది ✓",
+    passExpiredTitle: "॥ ఆశీర్వాద పంచాంగ పాస్ ముగిసింది ॥",
+    callPriestBtn: "పండితుడికి కాల్ చేయండి",
+    renewWhatsappBtn: "పునరుద్ధరణ",
+    todaysDarshana: "నేటి దర్శనం",
+    blessedBadge: "ఆశీర్వాదం",
+    dailyPoojaBannerTitle: "3-5 నిమిషాల నిత్య దైవిక సంకల్పం & పూజ",
+    manageSankalpasBtn: "మీ సంకల్పాలు",
+    startPoojaBtn: "పూజ ప్రారంభించండి",
+    deityPrayerHeader: "నేటి ఇష్టదేవతా ప్రార్థన & సిద్ధ వైదిక శ్లోకం",
+    meaningLabel: "భావార్థం:",
+    stopMantra: "మంత్రం ఆపండి",
+    synthesizingMantra: "మంత్రం సిద్ధమవుతోంది...",
+    listenMantra: "మంత్ర శ్రవణం",
+    stopVoice: "ధ్వని ఆపండి",
+    generatingVoice: "ధ్వని సిద్ధమవుతోంది...",
+    listenVoice: "వాయిస్‌లో వినండి",
+    dinaBhavishyaBlessed: "శ్రీ గోకర్ణ మహాబలేశ్వర అనుగ్రహ ప్రసాదం",
+    dinaBhavishyaTitle: "నేటి దిన ఫలాలు",
+    dinaOverviewTitle: "రోజు ముఖ్యాంశాలు & దైవిక శక్తి",
+    dinaCareerTitle: "ఉద్యోగం, వ్యాపారం & ధన లాభం",
+    dinaCareerFallback: "వృత్తిలో శ్రమకు తగిన గుర్తింపు లభిస్తుంది. ఆర్థిక వ్యవహారాల్లో పురోగతి కనిపిస్తుంది మరియు బాకీలు వసూలవుతాయి.",
+    dinaHealthTitle: "ఆరోగ్యం, మానసిక స్థితి & కుటుంబం",
+    dinaHealthFallback: "ఆరోగ్యం బాగుంటుంది మరియు మనస్సులో సానుకూల శక్తి నిండి ఉంటుంది. గృహంలో ప్రశాంత వాతావరణం నెలకొంటుంది.",
+    dinaTravelTitle: "ప్రయాణం, శుభ ముహూర్తం & మార్గదర్శనం",
+    dinaTravelFallback: "శుభ ముహూర్తంలో ప్రారంభించే ప్రయాణాలు మరియు కొత్త పనులు విజయవంతమవుతాయి.",
+    abhijitLabel: "అభిజిత్ ముహూర్తం:",
+    rahuKaalaLabel: "రాహు కాలం:",
+    luckyColorLabel: "అదృష్ట రంగు:",
+    luckyDirectionLabel: "అదృష్ట దిక్కు:",
+    dinaDeityTitle: "నేటి దేవతోపాసన & సిద్ధ మంత్రం",
+    accordionTitle: "పూర్తి జన్మ జాతకం, గోచారం & దశా వివరాలు",
+    calendarContactPrompt: "ఈ క్యాలెండర్ పొందుటకు లేదా మీ ప్రస్తుత జీవిత జాతక ఫలాల వివరాలు పొందుటకు ఈ క్రింది ప్రధాన అర్చకుడిని సంప్రదించండి:",
+    panditTitle: "శ్రీరామ్ పండిత్ (ప్రధాన అర్చకులు)",
+    priestModalDesc: "పూజ, అనుష్ఠానం, పంచాంగ జాతక వివరాల కోసం ప్రధాన అర్చకులను నేరుగా సంప్రదించండి.",
+    closeModalBtn: "మూసివేయండి"
   },
   ta: {
     tabSanctum: "தரிசனம் & பூஜை",
@@ -384,7 +525,7 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     sunrise: "சூரியோதயம்",
     sunset: "சூரிய அஸ்தமனம்",
     deityMantra: "இன்றைய தெய்வ மந்திரம்",
-    playBell: "ஆலய மணி ஓசை (Play)",
+    playBell: "ஆலய மணி ஓசை",
     bellPlaying: "மணி ஒலிக்கிறது...",
     priestBenediction: "முதன்மை அர்ச்சகரின் ஆசி",
     birthAttributes: "ஜன்ம விவரங்கள்",
@@ -407,10 +548,11 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     shaniTransitTitle: "சனி கோச்சாரம்",
     shaniTransitDesc: "சனி பகவான் நற்பலன்களை வழங்கி உழைப்பிற்கு ஏற்ற முன்னேற்றம் தருவார்.",
     rahuKetuTitle: "ரஹு-கேது கோச்சாரம்",
+    rahuKetuDesc: "கர்ம வினை தீர்வு மற்றும் ஆன்மீக சாதனைக்கு உகந்தது. ஸ்ரீ துர்க்கை, கணபதி வழிபாடு மேன்மை தரும்.",
     remediesTitle: "வைதீக பரிகாரங்கள் & பூஜைகள்",
     dashaHeader: "தற்போது நடக்கும் விம்சொத்தரி தசா காலம்",
     activePhase: "ராகு மகாதிசை · சுக்கிரன் புக்தி",
-    dashaPeriod: "காலம்: 2023 முதல் 2026 (சுப பலன் காலம்)",
+    dashaPeriod: "காலம்: 2023 முதல் 2026 · சுப பலன் காலம்",
     dashaPhalaTitle: "தசா பலன் பகுப்பாய்வு",
     careerTitle: "தொழில் & பதவி உயர்வு",
     careerDesc: "குரு-சுக்கிர சேர்க்கையால் தொழிலில் நற்பெயர், புதிய வாய்ப்புகள் உருவாகும்.",
@@ -427,7 +569,228 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     panditRole: "முதன்மை அர்ச்சகர் - கோகர்ண க்ஷேத்திரம்",
     callNow: "நேரடி அழைப்பு: 9972339362",
     downloadIcs: "90 நாட்களுக்கான பஞ்சாங்க காலண்டர் பெறுக (.ics)",
-    icsDownloaded: "90 நாட்களுக்கான பஞ்சாங்க காலண்டர் பதிவிறக்கம் செய்யப்பட்டது ✓"
+    icsDownloaded: "90 நாட்களுக்கான பஞ்சாங்க காலண்டர் பதிவிறக்கம் செய்யப்பட்டது ✓",
+    passExpiredTitle: "॥ ஆசீர்வாத பஞ்சாங்க பாஸ் காலாவதியானது ॥",
+    callPriestBtn: "பண்டிதருக்கு அழைக்கவும்",
+    renewWhatsappBtn: "புதுப்பித்தல்",
+    todaysDarshana: "இன்றைய தரிசனம்",
+    blessedBadge: "ஆசீர்வாதம்",
+    dailyPoojaBannerTitle: "3-5 நிமிட நித்ய வைதீக சங்கல்பம் & பூஜை",
+    manageSankalpasBtn: "உங்கள் சங்கல்பங்கள்",
+    startPoojaBtn: "பூஜையைத் தொடங்குங்கள்",
+    deityPrayerHeader: "இன்றைய இஷ்டதேவதை பிரார்த்தனை மற்றும் சித்த வேத சுலோகம்",
+    meaningLabel: "பொருள்:",
+    stopMantra: "மந்திரத்தை நிறுத்துக",
+    synthesizingMantra: "மந்திரம் தயாராகிறது...",
+    listenMantra: "மந்திரம் கேட்க",
+    stopVoice: "குரலை நிறுத்துக",
+    generatingVoice: "குரல் தயாராகிறது...",
+    listenVoice: "குரலில் கேட்க",
+    dinaBhavishyaBlessed: "ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் அருள்பெற்றது",
+    dinaBhavishyaTitle: "இன்றைய தின பலன்கள்",
+    dinaOverviewTitle: "நாளின் முக்கிய குறிப்பு & தெய்வீக ஆற்றல்",
+    dinaCareerTitle: "தொழில், வியாபாரம் & பண வரவு",
+    dinaCareerFallback: "தொழிலில் உழைப்புக்குரிய அங்கீகாரம் கிடைக்கும். நிதி பரிவர்த்தனைகளில் முன்னேற்றம் ஏற்படும், பழைய பாக்கிகள் வசூலாகும்.",
+    dinaHealthTitle: "ஆரோக்கியம், மனநிலை & குடும்ப அமைதி",
+    dinaHealthFallback: "உடல் நலம் சீராக இருக்கும், மனதில் நேர்மறை ஆற்றல் நிறையும். வீட்டில் மங்களகரமான அமைதி நிலவும்.",
+    dinaTravelTitle: "பயணம், சுப முகூர்த்தம் & வழிகாட்டல்",
+    dinaTravelFallback: "சுப முகூர்த்தத்தில் மேற்கொள்ளும் பயணங்களும் புதிய தொடக்கங்களும் வெற்றியைத் தரும்.",
+    abhijitLabel: "அபிஜித் முகூர்த்தம்:",
+    rahuKaalaLabel: "ராகு காலம்:",
+    luckyColorLabel: "அதிர்ஷ்ட நிறம்:",
+    luckyDirectionLabel: "அதிர்ஷ்ட திசை:",
+    dinaDeityTitle: "இன்றைய தெய்வ வழிபாடு & சித்த மந்திரம்",
+    accordionTitle: "முழு ஜாதகம், கோச்சாரம் & தசா விவரங்கள்",
+    calendarContactPrompt: "இந்த காலண்டரைப் பெற அல்லது உங்களின் தற்போதைய வாழ்க்கை பலன்களைப் பெற கீழே உள்ள முதன்மை அர்ச்சகரைத் தொடர்பு கொள்ளவும்:",
+    panditTitle: "ஸ்ரீராம் பண்டிட் (முதன்மை அர்ச்சகர்)",
+    priestModalDesc: "பூஜை, அனுஷ்டானம், பஞ்சாங்க ஜாதக விவரங்களுக்கு முதன்மை அர்ச்சகரை நேரடியாகத் தொடர்பு கொள்ளவும்.",
+    closeModalBtn: "மூடுக"
+  }
+};
+
+// Grid labels for SouthIndianKundaliGrid
+const KUNDALI_GRID_LABELS: Record<SevaLang, { gocharaCenter: string; birthCenter: string; gocharaSub: string; birthSub: string; chandraMarker: string; lagnaMarker: string }> = {
+  kn: { gocharaCenter: "ಗೋಚಾರ ಬಿಂಬ (ಚಂದ್ರ ಲಗ್ನ)", birthCenter: "ಜನ್ಮ ಚಕ್ರ", gocharaSub: "ಗೋಕರ್ಣ ಪಂಚಾಂಗ", birthSub: "ದಕ್ಷಿಣ ಭಾರತೀಯ ಚಕ್ರ", chandraMarker: "ಚಂದ್ರ", lagnaMarker: "ಲಗ್ನ" },
+  en: { gocharaCenter: "Gochara Transit (Chandra Lagna)", birthCenter: "Birth Chart", gocharaSub: "Gokarna Panchanga", birthSub: "South Indian Grid", chandraMarker: "Chandra", lagnaMarker: "Lagna" },
+  hi: { gocharaCenter: "गोचर बिंब (चंद्र लग्न)", birthCenter: "जन्म चक्र", gocharaSub: "गोकर्ण पंचांग", birthSub: "दक्षिण भारतीय चक्र", chandraMarker: "चंद्र", lagnaMarker: "लग्न" },
+  te: { gocharaCenter: "గోచార బింబం (చంద్ర లగ్నం)", birthCenter: "జన్మ చక్రం", gocharaSub: "గోకర్ణ పంచాంగం", birthSub: "దక్షిణ భారత చక్రం", chandraMarker: "చంద్ర", lagnaMarker: "లగ్నం" },
+  ta: { gocharaCenter: "கோசார பிம்பம் (சந்திர லக்னம்)", birthCenter: "ஜன்ம சக்கரம்", gocharaSub: "கோகர்ண பஞ்சாங்கம்", birthSub: "தென்னிந்திய கட்டம்", chandraMarker: "சந்திரன்", lagnaMarker: "லக்னம்" }
+};
+
+// ICS Download dynamic label template
+const ICS_DOWNLOAD_TEMPLATES: Record<SevaLang, (days: number) => string> = {
+  kn: (days) => `${days} ದಿನಗಳ ಪಂಚಾಂಗ ಕ್ಯಾಲೆಂಡರ್ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ (.ics)`,
+  en: (days) => `Download ${days}-Day Calendar (.ics)`,
+  hi: (days) => `${days}-दिवसीय कैलेंडर डाउनलोड करें (.ics)`,
+  te: (days) => `${days} రోజుల క్యాలెండర్ డౌన్‌లోడ్ చేయండి (.ics)`,
+  ta: (days) => `${days} நாட்கள் காலண்டர் பதிவிறக்கு (.ics)`
+};
+
+// Pass expired message template
+const PASS_EXPIRED_TEMPLATES: Record<SevaLang, (duration: number, expiryDate: string) => string> = {
+  kn: (d, dt) => `ನಿಮ್ಮ ${d}-ದಿನಗಳ ದೈನಂದಿನ ದರ್ಶನ ಪಾಸ್ ದಿನಾಂಕ ${dt} ರಂದು ಮುಕ್ತಾಯಗೊಂಡಿದೆ. ಮುಂದಿನ ದಿನಗಳ ಪಂಚಾಂಗ, ವೈದಿಕ ಜಾತಕ ಫಲಗಳು ಮತ್ತು ಶುಭ ಮುಹೂರ್ತಗಳ ನವೀಕರಣಕ್ಕಾಗಿ ಪುರೋಹಿತರನ್ನು ಸಂಪರ್ಕಿಸಿ.`,
+  en: (d, dt) => `Your ${d}-day Daily Darshana pass expired on ${dt}. Please contact the priest to renew your sanctum access and daily predictions.`,
+  hi: (d, dt) => `आपका ${d}-दिवसीय दैनिक दर्शन पास ${dt} को समाप्त हो गया है। पंचांग एवं दैनिक राशिफल नवीनीकरण के लिए पंडित जी से संपर्क करें।`,
+  te: (d, dt) => `మీ ${d}-రోజుల దైనందిన దర్శన పాస్ ${dt} తేదీన ముగిసింది. పంచాంగం మరియు రాశిఫలాల పునరుద్ధరణ కోసం ప్రధాన అర్చకులను సంప్రదించండి.`,
+  ta: (d, dt) => `உங்கள் ${d}-நாட்கள் தினசரி தரிசன பாஸ் ${dt} அன்று காலாவதியானது. பஞ்சாங்கம் மற்றும் தினசரி பலன்களைப் புதுப்பிக்க முதன்மை அர்ச்சகரைத் தொடர்பு கொள்ளவும்.`
+};
+
+// Daily Pooja Subtitle Template
+const POOJA_BANNER_SUBTITLES: Record<SevaLang, (deityName: string, streak: number) => string> = {
+  kn: (d, s) => `ಇಂದಿನ ಅರ್ಚನೆ: ${d} · ನಿಮ್ಮ ವೈಯಕ್ತಿಕ ಸಂಕಲ್ಪಗಳೊಂದಿಗೆ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದ ವೇದ ಪಂಡಿತರ ಧ್ವನಿ ಮಾರ್ಗದರ್ಶನ · ಪೂಜಾ ನಿರಂತರತೆ: ${s} ದಿನ`,
+  en: (d, s) => `Today's Archana: ${d} · 3-5 Min Vedic morning pooja guided by Chief Priest with your personal Sankalpas · Streak: ${s} Days`,
+  hi: (d, s) => `आज की पूजा: ${d} · व्यक्तिगत संकल्पों के साथ वैदिक पंडित मार्गदर्शन · संकल्प: ${s} दिन`,
+  te: (d, s) => `నేటి పూజ: ${d} · వ్యక్తిగత సంకల్పాలతో వైదిక పండితుల మార్గదర్శనం · క్రమం: ${s} రోజులు`,
+  ta: (d, s) => `இன்றைய பூஜை: ${d} · தனிப்பட்ட சங்கல்பங்களுடன் வைதீக பண்டிதர் வழிகாட்டல் · தொடர்ச்சி: ${s} நாட்கள்`
+};
+
+// Tithi Transition Labels
+const TITHI_TRANSITION_LABELS: Record<SevaLang, {
+  cardHeading: string;
+  activeTithiLabel: string;
+  untilLabel: string;
+  nextTithiLabel: string;
+  nextDurationLabel: string;
+  majorityHeading: string;
+  sunriseMajority: string;
+  nextMajority: string;
+}> = {
+  kn: {
+    cardHeading: "ತಿಥಿ ಸಮಯ & ವಿವರ",
+    activeTithiLabel: "ಪ್ರಸ್ತುತ ತಿಥಿ (ಸೂರ್ಯೋದಯ)",
+    untilLabel: "ಮುಕ್ತಾಯ ಸಮಯ",
+    nextTithiLabel: "ನಂತರದ ತಿಥಿ (ಉಪರಿ ತಿಥಿ)",
+    nextDurationLabel: "ಅವಧಿ",
+    majorityHeading: "ದಿನದ ಪ್ರಮುಖ ಶಕ್ತಿ ಆಧಾರ",
+    sunriseMajority: "ದಿನದ ಬಹುಪಾಲು ಸಮಯ ಸೂರ್ಯೋದಯ ತಿಥಿ ಮುಂದುವರಿಯುತ್ತದೆ",
+    nextMajority: "ದಿನದ ಬಹುಪಾಲು ಸಮಯ ಉಪರಿ ತಿಥಿ ಆಳುತ್ತದೆ"
+  },
+  en: {
+    cardHeading: "Tithi Timings & Transitions",
+    activeTithiLabel: "Primary Tithi (Sunrise)",
+    untilLabel: "Active Until (IST)",
+    nextTithiLabel: "Next Tithi",
+    nextDurationLabel: "Duration",
+    majorityHeading: "Dominant Day Energy",
+    sunriseMajority: "Active for majority of day",
+    nextMajority: "Subsequent tithi governs majority waking hours"
+  },
+  hi: {
+    cardHeading: "तिथि समय एवं विवरण",
+    activeTithiLabel: "वर्तमान तिथि (सूर्योदय)",
+    untilLabel: "समाप्ति समय",
+    nextTithiLabel: "आगामी तिथि (उपरी तिथि)",
+    nextDurationLabel: "अवधि",
+    majorityHeading: "दिन का मुख्य ऊर्जा आधार",
+    sunriseMajority: "दिन के अधिकांश समय सूर्योदय तिथि प्रभावी रहेगी",
+    nextMajority: "दिन के अधिकांश समय आगामी तिथि प्रभावी रहेगी"
+  },
+  te: {
+    cardHeading: "తిథి సమయాలు & వివరాలు",
+    activeTithiLabel: "ప్రస్తుత తిథి (సూర్యోదయం)",
+    untilLabel: "ముగింపు సమయం",
+    nextTithiLabel: "తదుపరి తిథి",
+    nextDurationLabel: "వ్యవధి",
+    majorityHeading: "రోజు ప్రధాన శక్తి ఆధారం",
+    sunriseMajority: "రోజులో ఎక్కువ సమయం సూర్యోదయ తిథి కొనసాగుతుంది",
+    nextMajority: "రోజులో ఎక్కువ సమయం తదుపరి తిథి ప్రభావం ఉంటుంది"
+  },
+  ta: {
+    cardHeading: "திதி நேரம் மற்றும் விவரங்கள்",
+    activeTithiLabel: "தற்போதைய திதி (சூரியோதயம்)",
+    untilLabel: "முடிவு நேரம்",
+    nextTithiLabel: "அடுத்த திதி",
+    nextDurationLabel: "கால அளவு",
+    majorityHeading: "நாளின் முதன்மை ஆற்றல் அடிப்படை",
+    sunriseMajority: "நாளின் பெரும்பகுதி சூரியோதய திதி தொடர்கிறது",
+    nextMajority: "நாளின் பெரும்பகுதி அடுத்த திதி ஆதிக்கம் செலுத்துகிறது"
+  }
+};
+
+// Priest Benediction Title Templates
+const PRIEST_BENEDICTION_TITLES: Record<SevaLang, (pandit: string) => string> = {
+  kn: (p) => `ಪ್ರಧಾನ ಅರ್ಚಕ ${p} ಅವರ ಆಶೀರ್ವಚನ ಹಾಗೂ ಆಶೀರ್ವಾದ`,
+  en: (p) => `Chief Priest ${p}'s Sacred Benediction & Blessings`,
+  hi: (p) => `मुख्य अर्चक ${p} का पावन आशीर्वाद`,
+  te: (p) => `ప్రధాన అర్చకులు ${p} గారి ఆశీర్వచనం మరియు ఆశీర్వాదం`,
+  ta: (p) => `முதன்மை அர்ச்சகர் ${p} அவர்களின் புனித ஆசி`
+};
+
+// Energy score template
+const ENERGY_SCORE_TEMPLATES: Record<SevaLang, (score: number) => string> = {
+  kn: (s) => `ಶಕ್ತಿ ಸ್ಕೋರ್: ${s}%`,
+  en: (s) => `Energy: ${s}%`,
+  hi: (s) => `ऊर्जा स्कोर: ${s}%`,
+  te: (s) => `శక్తి స్కోర్: ${s}%`,
+  ta: (s) => `ஆற்றல் மதிப்பெண்: ${s}%`
+};
+
+// Dina Bhavishya intro text templates
+const DINA_BHAVISHYA_INTRO_TEMPLATES: Record<SevaLang, {
+  withDasha: (name: string, dasha: string, chandraBala: string) => string;
+  withoutDasha: (name: string, pandit: string) => string;
+}> = {
+  kn: {
+    withDasha: (name, dasha, chandraBala) => `${name} ಅವರ ಜನ್ಮ ಲಗ್ನ, ಚಂದ್ರ ರಾಶಿ, ${dasha} ಹಾಗೂ ಇಂದಿನ ಗೋಚಾರ ಚಂದ್ರನ ಸ್ಥಾನ (${chandraBala}) ಆಧರಿಸಿ ಗಣಿಸಿದ ವೈದಿಕ ಫಲಗಳು.`,
+    withoutDasha: (name, pandit) => `${name} ಅವರ ಜನ್ಮ ಲಗ್ನ, ಚಂದ್ರ ರಾಶಿ ಹಾಗೂ ಇಂದಿನ ನವಗ್ರಹ ಸಂಚಾರ ಆಧರಿಸಿ ${pandit} ಗಣಿಸಿದ ಇಂದಿನ ಶುಭ ಫಲಗಳು.`
+  },
+  en: {
+    withDasha: (name, dasha, chandraBala) => `Computed for ${name} based on Natal Kundali, ${dasha}, and today's transit Moon in ${chandraBala}.`,
+    withoutDasha: (name, _pandit) => `Personalized daily predictions computed for ${name} based on birth chart planetary alignments and today's Gochara transits.`
+  },
+  hi: {
+    withDasha: (name, dasha, chandraBala) => `${name} के जन्म लग्न, चंद्र राशि, ${dasha} और आज के गोचर चंद्रमा की स्थिति (${chandraBala}) पर आधारित वैदिक फलादेश।`,
+    withoutDasha: (name, pandit) => `${name} के जन्म लग्न, चंद्र राशि और आज के नवग्रह गोचर के आधार पर ${pandit} द्वारा आकलित शुभ फल।`
+  },
+  te: {
+    withDasha: (name, dasha, chandraBala) => `${name} గారి జన్మ లగ్నం, చంద్ర రాశి, ${dasha} మరియు నేటి గోచార చంద్ర స్థితి (${chandraBala}) ఆధారంగా లెక్కించిన వైదిక ఫలితాలు.`,
+    withoutDasha: (name, pandit) => `${name} గారి జన్మ లగ్నం, చంద్ర రాశి మరియు నేటి నవగ్రహ సంచారం ఆధారంగా ${pandit} గణించిన శుభ ఫలితాలు.`
+  },
+  ta: {
+    withDasha: (name, dasha, chandraBala) => `${name} அவர்களின் ஜன்ம லக்னம், சந்திர ராசி, ${dasha} மற்றும் இன்றைய கோசார சந்திர நிலை (${chandraBala}) அடிப்படையில் கணிக்கப்பட்ட வேத பலன்கள்.`,
+    withoutDasha: (name, pandit) => `${name} அவர்களின் ஜன்ம லக்னம், சந்திர ராசி மற்றும் இன்றைய நவகிரக சஞ்சாரத்தின் அடிப்படையில் ${pandit} கணித்த சுப பலன்கள்.`
+  }
+};
+
+// Dina Overview fallbacks
+const DINA_OVERVIEW_FALLBACKS: Record<SevaLang, (rashi: string) => string> = {
+  kn: (r) => `ಇಂದು ನಿಮ್ಮ ಚಂದ್ರ ರಾಶಿಯಾದ ${r}ಗೆ ಗೋಚಾರ ಚಂದ್ರನ ಶುಭ ಸಂಚಾರದಿಂದ ಕಾರ್ಯಗಳಲ್ಲಿ ಯಶಸ್ಸು ಹಾಗೂ ಮಾನಸಿಕ ಪ್ರಸನ್ನತೆ ಲಭಿಸಲಿದೆ.`,
+  en: (r) => `Today, with favorable Moon transits relative to your Moon sign ${r}, you will experience mental clarity and success in daily tasks.`,
+  hi: (r) => `आज आपकी चंद्र राशि ${r} में चंद्रमा के शुभ गोचर से कार्यों में सफलता और मानसिक शांति मिलेगी।`,
+  te: (r) => `నేడు మీ చంద్ర రాశి అయిన ${r}కి గోచార చంద్రుని శుభ సంచారం వల్ల పనుల్లో విజయం మరియు మానసిక ప్రశాంతత లభిస్తాయి.`,
+  ta: (r) => `இன்று உங்கள் சந்திர ராசியான ${r}க்கு கோசார சந்திரனின் சுப சஞ்சாரத்தால் காரிய வெற்றி மற்றும் மன அமைதி கிடைக்கும்.`
+};
+
+// Japa count recommendation template
+const JAPA_RECOMMENDATION_TEMPLATES: Record<SevaLang, (rec: string | number) => string> = {
+  kn: (r) => `ಜಪ ಸಂಖ್ಯೆ: ${r}`,
+  en: (r) => `Japa Recommendation: ${r}`,
+  hi: (r) => `जप संख्या: ${r}`,
+  te: (r) => `జప సంఖ్య: ${r}`,
+  ta: (r) => `ஜப எண்ணிக்கை: ${r}`
+};
+
+// Kundali Chart Title Templates
+const KUNDALI_CHART_TITLES: Record<SevaLang, { birth: (name: string) => string; gochara: (name: string) => string }> = {
+  kn: {
+    birth: (n) => `📜 ${n} ಅವರ ಜನ್ಮ ಕುಂಡಲಿ`,
+    gochara: (n) => `🌌 ${n} ಅವರ ಲೈವ್ ಗೋಚಾರ ಕುಂಡಲಿ`
+  },
+  en: {
+    birth: (n) => `📜 Janma Kundali of ${n}`,
+    gochara: (n) => `🌌 Live Gochara Transit Chart for ${n}`
+  },
+  hi: {
+    birth: (n) => `📜 ${n} जी की जन्म कुंडली`,
+    gochara: (n) => `🌌 ${n} जी की लाइव गोचर कुंडली`
+  },
+  te: {
+    birth: (n) => `📜 ${n} గారి జన్మ జాతక చక్రం`,
+    gochara: (n) => `🌌 ${n} గారి లైవ్ గోచార జాతకం`
+  },
+  ta: {
+    birth: (n) => `📜 ${n} அவர்களின் ஜாதகக் கட்டம்`,
+    gochara: (n) => `🌌 ${n} அவர்களின் கோச்சார ஜாதகம்`
   }
 };
 
@@ -647,7 +1010,7 @@ const SouthIndianKundaliGrid: React.FC<RashiGridProps> = ({
         }}>
           <div style={{ fontSize: 20 }}>🛕</div>
           <div style={{ fontSize: 11.5, fontWeight: 900, color: "#FDE68A", marginTop: 3 }}>
-            {isGochara ? (lang === "kn" ? "ಗೋಚಾರ ಬಿಂಬ (ಚಂದ್ರ ಲಗ್ನ)" : "Gochara Transit (Chandra Lagna)") : "ಜನ್ಮ ಚಕ್ರ"}
+            {isGochara ? (KUNDALI_GRID_LABELS[lang] || KUNDALI_GRID_LABELS.en).gocharaCenter : (KUNDALI_GRID_LABELS[lang] || KUNDALI_GRID_LABELS.en).birthCenter}
           </div>
           {devoteeName && (
             <div style={{ fontSize: 12.5, fontWeight: 900, color: "#FFFFFF", marginTop: 2, textShadow: "0 1px 3px rgba(0,0,0,0.8)" }}>
@@ -655,7 +1018,7 @@ const SouthIndianKundaliGrid: React.FC<RashiGridProps> = ({
             </div>
           )}
           <div style={{ fontSize: 9.5, color: "#F59E0B", marginTop: 2, fontWeight: 700 }}>
-            {isGochara ? (lang === "kn" ? "ಗೋಕರ್ಣ ಪಂಚಾಂಗ" : "Gokarna Panchanga") : "South Indian Grid"}
+            {isGochara ? (KUNDALI_GRID_LABELS[lang] || KUNDALI_GRID_LABELS.en).gocharaSub : (KUNDALI_GRID_LABELS[lang] || KUNDALI_GRID_LABELS.en).birthSub}
           </div>
         </div>
 
@@ -698,7 +1061,7 @@ const SouthIndianKundaliGrid: React.FC<RashiGridProps> = ({
                 </span>
                 {isLagna && (
                   <span style={{ fontSize: 8, fontWeight: 900, color: "#10B981", background: "rgba(16, 185, 129, 0.25)", padding: "0 3px", borderRadius: 3, border: "0.5px solid #10B981" }}>
-                    {isGochara ? (lang === "kn" ? "ಚಂದ್ರ" : "Chandra") : "Lagna"}
+                    {isGochara ? (KUNDALI_GRID_LABELS[lang] || KUNDALI_GRID_LABELS.en).chandraMarker : (KUNDALI_GRID_LABELS[lang] || KUNDALI_GRID_LABELS.en).lagnaMarker}
                   </span>
                 )}
                 {isMoonRashi && !isLagna && (
@@ -1133,16 +1496,9 @@ export default function DailyDarshanaPage(): JSX.Element {
   }, [decoded, params]);
 
   const todayStr = useMemo(() => {
-    const userLongitude = decoded?.lg ?? decoded?.lng ?? 74.3187;
-    const userLat = decoded?.lt ?? decoded?.lat ?? 14.5479;
-    const now = new Date();
-    // India Standard Time (IST) offset is exactly 330 minutes (+05:30)
-    const isIndia = (userLongitude >= 68 && userLongitude <= 98 && userLat >= 6 && userLat <= 38) || Math.abs(userLongitude - 74.3187) < 5;
-    const offsetMinutes = isIndia ? 330 : Math.round(userLongitude / 15) * 60;
-    const utcMs = now.getTime() + (now.getTimezoneOffset() * 60000);
-    const localTime = new Date(utcMs + (offsetMinutes * 60000));
-    return localTime.toISOString().split("T")[0];
-  }, [decoded]);
+    // Strictly Indian Standard Time (IST, UTC+05:30) for authentic Baggona Panchanga calculations
+    return getIndianStandardDateStr(new Date());
+  }, []);
 
   // Strict Sanctum Rule: The page is strictly locked to TODAY only.
   // Clicking any calendar event (future or past) loads today's sacred darshana itself.
@@ -1243,6 +1599,7 @@ export default function DailyDarshanaPage(): JSX.Element {
   }, [activeTab, dateParam]);
 
   const handleLangChange = (newLang: SevaLang) => {
+    stopAllAudioGlobal();
     setLang(newLang);
     if (typeof window !== "undefined" && window.history) {
       const newUrl = new URL(window.location.href);
@@ -1327,7 +1684,7 @@ export default function DailyDarshanaPage(): JSX.Element {
     if (nameParam && nameParam.trim().length > 0) raw = nameParam.trim();
     else if (decoded?.n && decoded.n.trim().length > 0) raw = decoded.n.trim();
     else if (storedSession?.name && storedSession.name.trim().length > 0) raw = storedSession.name.trim();
-    else raw = lang === "kn" ? "ಭಕ್ತರು" : "Devotee";
+    else raw = DARSHANA_LABELS[lang]?.devotee || "Devotee";
     return transliterateName(raw, lang);
   }, [nameParam, decoded, storedSession, lang]);
 
@@ -1399,7 +1756,7 @@ export default function DailyDarshanaPage(): JSX.Element {
 
   // 100% Dynamic Synchronous Transit Kundli calculation for TODAY
   const transitKundli = useMemo<KundliOutput>(() => {
-    const targetYmd = dateParam || new Date().toISOString().split("T")[0];
+    const targetYmd = dateParam || getIndianStandardDateStr(new Date());
     return calculateKundli({
       name: "Transit",
       birthDate: targetYmd,
@@ -1425,7 +1782,7 @@ export default function DailyDarshanaPage(): JSX.Element {
   }, [rashiLordPlanet, lang]);
 
   const mockDay: RhythmDay = useMemo(() => {
-    const startDateStr = decoded?.d || dateParam || new Date().toISOString().split("T")[0];
+    const startDateStr = decoded?.d || dateParam || getIndianStandardDateStr(new Date());
     return calculateDeterministicRhythmDay(dateParam, moonNakshatraIdx, moonRashiIdx, startDateStr);
   }, [dateParam, decoded, moonNakshatraIdx, moonRashiIdx]);
 
@@ -1485,18 +1842,24 @@ export default function DailyDarshanaPage(): JSX.Element {
 
   const deity = useMemo(() => {
     const d = darshanaPersonalization.deity;
+    const resolvedShloka = d.allShlokas
+      ? (d.allShlokas[lang] || d.allShlokas.kn)
+      : (typeof d.sanskritShloka === "object"
+          ? ((d.sanskritShloka as any)[lang] || (d.sanskritShloka as any).kn)
+          : d.sanskritShloka);
     return {
       key: d.key,
       name: d.name,
       mantra: d.beejaMantra,
-      shloka: d.sanskritShloka,
+      shloka: resolvedShloka,
+      allShlokas: d.allShlokas || (typeof d.sanskritShloka === "object" ? d.sanskritShloka : undefined),
       transliteration: d.transliteration,
       meaning: d.meaning,
       significance: d.spiritualSignificance,
       selectionReason: d.selectionReason,
       color: d.primaryColor
     };
-  }, [darshanaPersonalization]);
+  }, [darshanaPersonalization, lang]);
 
   const benediction = useMemo(() => {
     return darshanaPersonalization.priestBenediction[lang] || darshanaPersonalization.priestBenediction.kn || buildDeterministicPriestBenediction(mockDay, lang, devoteeDisplayName);
@@ -1697,7 +2060,7 @@ export default function DailyDarshanaPage(): JSX.Element {
 
   // Track calendar visit for metrics and priest sync
   useEffect(() => {
-    const todayYmd = new Date().toISOString().split("T")[0];
+    const todayYmd = getIndianStandardDateStr(new Date());
     const tokenIdentifier = tokenParam || (decoded as any)?.n || devoteeDisplayName;
     void recordCalendarVisit({
       devoteeName: devoteeDisplayName,
@@ -1900,6 +2263,12 @@ export default function DailyDarshanaPage(): JSX.Element {
 
   const toggleMantraVoice = async () => {
     const mantraText = deity.mantra[lang] || deity.mantra.kn;
+    const activeShloka = typeof deity.shloka === "object"
+      ? ((deity.shloka as any)[lang] || (deity.shloka as any).kn || "")
+      : (deity.shloka || "");
+    const fullChantText = `${activeShloka} । ${mantraText}`;
+    const translitChant = deity.transliteration;
+
     if (activeVoiceKey === "mantra" && (activeVoiceState === "loading" || activeVoiceState === "playing")) {
       stopAllAudioGlobal();
       setActiveVoiceKey("none");
@@ -1913,7 +2282,7 @@ export default function DailyDarshanaPage(): JSX.Element {
 
     try {
       await synthesizeAndPlayClonedVoice(
-        mantraText,
+        fullChantText,
         lang,
         activeVoiceId,
         () => {
@@ -1923,7 +2292,8 @@ export default function DailyDarshanaPage(): JSX.Element {
         () => {
           setActiveVoiceKey("mantra");
           setActiveVoiceState("playing");
-        }
+        },
+        translitChant
       );
     } catch {
       setActiveVoiceKey((prev) => (prev === "mantra" ? "none" : prev));
@@ -1934,16 +2304,21 @@ export default function DailyDarshanaPage(): JSX.Element {
   // Sanctum Voice Section Ref for out-of-viewport auto-stop
   const sanctumVoiceSectionRef = useRef<HTMLDivElement>(null);
 
-  // Auto-stop background voice if the user scrolls the audio section out of viewport
+  // Auto-stop background voice only if the user actively scrolled the playing section out of viewport
   useEffect(() => {
     if (typeof window === "undefined" || !("IntersectionObserver" in window)) return;
     const target = sanctumVoiceSectionRef.current;
     if (!target) return;
 
+    let hasBeenVisible = false;
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (!entry.isIntersecting && (activeVoiceState === "playing" || activeVoiceState === "loading" || isPlayingAudio)) {
+          if (entry.isIntersecting) {
+            hasBeenVisible = true;
+          } else if (hasBeenVisible && (activeVoiceState === "playing" || isPlayingAudio)) {
+            // ONLY stop if previously visible and then scrolled away WHILE ACTIVELY PLAYING (never while loading)
             stopAllAudioGlobal();
             setActiveVoiceKey("none");
             setActiveVoiceState("idle");
@@ -1958,23 +2333,42 @@ export default function DailyDarshanaPage(): JSX.Element {
     return () => observer.disconnect();
   }, [activeVoiceState, isPlayingAudio]);
 
+  // Proactive Speculative Audio Pre-warming
+  // Silently pre-generates and caches Mantra & Benediction audio in IndexedDB / disk cache
+  // so that devotee clicks play instantly in < 50ms without waiting for Hugging Face queue!
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const timer = setTimeout(() => {
+      const mantraText = deity.mantra[lang] || deity.mantra.kn;
+      const activeShloka = typeof deity.shloka === "object"
+        ? ((deity.shloka as any)[lang] || (deity.shloka as any).kn || "")
+        : (deity.shloka || "");
+      const fullChantText = `${activeShloka} । ${mantraText}`;
+
+      // Prewarm mantra first, then benediction
+      void prewarmIndicAudio(fullChantText, lang).then(() => {
+        if (benediction) {
+          void prewarmIndicAudio(benediction, lang);
+        }
+      });
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [deity, benediction, lang]);
+
   const requestedCalendarDays = useMemo(() => {
     const raw = Number((decoded as any)?.dy || (decoded as any)?.days || (decoded as any)?.duration || params.get("days") || 90);
     return Number.isFinite(raw) && raw > 0 ? raw : 90;
   }, [params, decoded]);
 
   const downloadIcsLabel = useMemo(() => {
-    if (lang === "kn") return `${requestedCalendarDays} ದಿನಗಳ ಪಂಚಾಂಗ ಕ್ಯಾಲೆಂಡರ್ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ (.ics)`;
-    if (lang === "hi") return `${requestedCalendarDays}-दिवसीय कैलेंडर डाउनलोड करें (.ics)`;
-    if (lang === "te") return `${requestedCalendarDays} రోజుల క్యాలెండర్ డౌన్‌లోడ్ చేయండి (.ics)`;
-    if (lang === "ta") return `${requestedCalendarDays} நாட்கள் காலண்டர் பதிவிறக்கு (.ics)`;
-    return `Download ${requestedCalendarDays}-Day Calendar (.ics)`;
+    return (ICS_DOWNLOAD_TEMPLATES[lang] || ICS_DOWNLOAD_TEMPLATES.en)(requestedCalendarDays);
   }, [requestedCalendarDays, lang]);
 
   // Helper to generate & download dynamic duration .ics file
   const handleDownload90DayIcs = () => {
     try {
-      const startDateStr = decoded?.d || dateParam || new Date().toISOString().split("T")[0];
+      const startDateStr = decoded?.d || dateParam || getIndianStandardDateStr(new Date());
       const parts = startDateStr.split("-").map(Number);
       const sy = parts[0] || 2026;
       const sm = (parts[1] || 1) - 1;
@@ -2159,12 +2553,10 @@ export default function DailyDarshanaPage(): JSX.Element {
         }}>
           <div style={{ fontSize: "52px", marginBottom: "12px" }}>🔒</div>
           <h2 style={{ color: "#FDE68A", fontSize: "20px", fontWeight: 900, margin: "0 0 10px" }}>
-            {lang === "kn" ? "॥ ಆಶೀರ್ವಾದ ಪಂಚಾಂಗ ಪಾಸ್ ಮುಕ್ತಾಯಗೊಂಡಿದೆ ॥" : "॥ Sanctum Access Pass Expired ॥"}
+            {dict.passExpiredTitle}
           </h2>
           <p style={{ color: "#FECACA", fontSize: "14px", lineHeight: 1.6, margin: "0 0 24px" }}>
-            {lang === "kn"
-              ? `ನಿಮ್ಮ ${rawDuration}-ದಿನಗಳ ದೈನಂದಿನ ದರ್ಶನ ಪಾಸ್ ದಿನಾಂಕ ${passExpiration.expiryDate} ರಂದು ಮುಕ್ತಾಯಗೊಂಡಿದೆ. ಮುಂದಿನ ದಿನಗಳ ಪಂಚಾಂಗ, ವೈದಿಕ ಜಾತಕ ಫಲಗಳು ಮತ್ತು ಶುಭ ಮುಹೂರ್ತಗಳ ನವೀಕರಣಕ್ಕಾಗಿ ಪುರೋಹಿತರನ್ನು ಸಂಪರ್ಕಿಸಿ.`
-              : `Your ${rawDuration}-day Daily Darshana pass expired on ${passExpiration.expiryDate}. Please contact the priest to renew your sanctum access and daily predictions.`}
+            {(PASS_EXPIRED_TEMPLATES[lang] || PASS_EXPIRED_TEMPLATES.en)(rawDuration, passExpiration.expiryDate)}
           </p>
           <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
             <a
@@ -2183,7 +2575,7 @@ export default function DailyDarshanaPage(): JSX.Element {
                 boxShadow: "0 6px 18px rgba(220, 38, 38, 0.5)"
               }}
             >
-              📞 {lang === "kn" ? "ಪಂಡಿತರಿಗೆ ಕರೆ ಮಾಡಿ" : "Call Priest"}
+              📞 {dict.callPriestBtn}
             </a>
             <a
               href={`https://wa.me/?text=${encodeURIComponent(
@@ -2205,7 +2597,7 @@ export default function DailyDarshanaPage(): JSX.Element {
                 boxShadow: "0 6px 18px rgba(22, 163, 74, 0.5)"
               }}
             >
-              💬 WhatsApp {lang === "kn" ? "ನವೀಕರಣ" : "Renew"}
+              💬 WhatsApp {dict.renewWhatsappBtn}
             </a>
           </div>
         </div>
@@ -2319,7 +2711,7 @@ export default function DailyDarshanaPage(): JSX.Element {
             fontWeight: 800,
             color: "#FDE68A"
           }}>
-            {vibe.badgeEmoji} {lang === "kn" ? "ಇಂದಿನ ದರ್ಶನ" : "Today's Darshana"}
+            {vibe.badgeEmoji} {dict.todaysDarshana}
           </div>
         </div>
         
@@ -2359,7 +2751,7 @@ export default function DailyDarshanaPage(): JSX.Element {
             }}>
               <div style={{ fontSize: 20 }}>🪔</div>
               <div style={{ fontSize: 10, color: "#FDE68A", fontWeight: 800, marginTop: 2 }}>
-                {lang === "kn" ? "ಆಶೀರ್ವಾದ" : "Blest"}
+                {dict.blessedBadge}
               </div>
             </div>
           </div>
@@ -2397,18 +2789,10 @@ export default function DailyDarshanaPage(): JSX.Element {
                   <span style={{ fontSize: 26 }}>🪔</span>
                   <div>
                     <span style={{ fontSize: 13.5, fontWeight: 900, color: "#FDE68A", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                      {lang === "kn" ? "೩-೫ ನಿಮಿಷಗಳ ನಿತ್ಯ ದೈವಿಕ ಸಂಕಲ್ಪ & ಸರಳ ಪೂಜೆ" :
-                       lang === "hi" ? "३-५ मिनट दैनिक वैदिक संकल्प एवं सरल पूजा" :
-                       lang === "te" ? "3-5 నిమిషాల నిత్య దైవిక సంకల్పం & పూజ" :
-                       lang === "ta" ? "3-5 நிமிட நித்ய வைதீக சங்கல்பம் & பூஜை" :
-                       "3-5 Min Vedic Daily Sankalpa & Pooja"}
+                      {dict.dailyPoojaBannerTitle}
                     </span>
                     <div style={{ fontSize: 11.5, color: "#FEF3C7", marginTop: 2, lineHeight: 1.4 }}>
-                      {lang === "kn" ? `ಇಂದಿನ ಅರ್ಚನೆ: ${deity.name.kn} · ನಿಮ್ಮ ವೈಯಕ್ತಿಕ ಸಂಕಲ್ಪಗಳೊಂದಿಗೆ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದ ವೇದ ಪಂಡಿತರ ಧ್ವನಿ ಮಾರ್ಗದರ್ಶನ · ಪೂಜಾ ನಿರಂತರತೆ: ${poojaStreak.currentStreak} ದಿನ` :
-                       lang === "hi" ? `आज की पूजा: ${deity.name.hi || deity.name.en} · व्यक्तिगत संकल्पों के साथ वैदिक पंडित मार्गदर्शन · संकल्प: ${poojaStreak.currentStreak} दिन` :
-                       lang === "te" ? `నేటి పూజ: ${deity.name.te || deity.name.en} · వ్యక్తిగత సంకల్పాలతో వైదిక పండితుల మార్గదర్శనం · క్రమం: ${poojaStreak.currentStreak} రోజులు` :
-                       lang === "ta" ? `இன்றைய பூஜை: ${deity.name.ta || deity.name.en} · தனிப்பட்ட சங்கல்பங்களுடன் வைதீக பண்டிதர் வழிகாட்டல் · தொடர்ச்சி: ${poojaStreak.currentStreak} நாட்கள்` :
-                       `Today's Archana: ${deity.name.en} · 3-5 Min Vedic morning pooja guided by Chief Priest with your personal Sankalpas · Streak: ${poojaStreak.currentStreak} Days`}
+                      {(POOJA_BANNER_SUBTITLES[lang] || POOJA_BANNER_SUBTITLES.en)(deity.name[lang] || deity.name.en, poojaStreak.currentStreak)}
                     </div>
                   </div>
                 </div>
@@ -2436,7 +2820,7 @@ export default function DailyDarshanaPage(): JSX.Element {
                   }}
                 >
                   <span>📝</span>
-                  <span>{lang === "kn" ? "ನಿಮ್ಮ ಸಂಕಲ್ಪಗಳು (Manage)" : "Manage Sankalpas"}</span>
+                  <span>{dict.manageSankalpasBtn}</span>
                 </button>
 
                 <button
@@ -2459,7 +2843,7 @@ export default function DailyDarshanaPage(): JSX.Element {
                   }}
                 >
                   <span>🪔</span>
-                  <span>{lang === "kn" ? "ಪೂಜೆ ಆರಂಭಿಸಿ (Start Pooja)" : "Start 3-5 Min Pooja"}</span>
+                  <span>{dict.startPoojaBtn}</span>
                 </button>
               </div>
             </div>
@@ -2511,42 +2895,7 @@ export default function DailyDarshanaPage(): JSX.Element {
             {(() => {
               const dt = (mockDay as any).detailedTithi as DetailedTithiInfo | undefined;
               if (!dt) return null;
-
-              const cardHeading = lang === "kn" ? "ತಿಥಿ ಸಮಯ & ವಿವರ" :
-                lang === "hi" ? "तिथि समय एवं विवरण" :
-                lang === "te" ? "తిథి సమయాలు & వివరాలు" :
-                lang === "ta" ? "திதி நேரம் மற்றும் விவரங்கள்" :
-                "Tithi Timings & Transitions";
-
-              const activeTithiLabel = lang === "kn" ? "ಪ್ರಸ್ತುತ ತಿಥಿ (ಸೂರ್ಯೋದಯ)" :
-                lang === "hi" ? "वर्तमान तिथि (सूर्योदय)" :
-                lang === "te" ? "ప్రస్తుత తిథి (సూర్యోదయం)" :
-                lang === "ta" ? "தற்போதைய திதி (சூரியோதயம்)" :
-                "Primary Tithi (Sunrise)";
-
-              const untilLabel = lang === "kn" ? "ಮುಕ್ತಾಯ ಸಮಯ (IST)" :
-                lang === "hi" ? "समाप्ति समय (IST)" :
-                lang === "te" ? "ముగింపు సమయం (IST)" :
-                lang === "ta" ? "முடிவு நேரம் (IST)" :
-                "Active Until (IST)";
-
-              const nextTithiLabel = lang === "kn" ? "ನಂತರದ ತಿಥಿ (ಉಪರಿ ತಿಥಿ)" :
-                lang === "hi" ? "आगामी तिथि (उपरी तिथि)" :
-                lang === "te" ? "తదుపరి తిథಿ" :
-                lang === "ta" ? "அடுத்த திதி" :
-                "Next Tithi";
-
-              const nextDurationLabel = lang === "kn" ? "ಅವಧಿ" :
-                lang === "hi" ? "अवधि" :
-                lang === "te" ? "వ్యವಧಿ" :
-                lang === "ta" ? "கால அளவு" :
-                "Duration";
-
-              const majorityHeading = lang === "kn" ? "ದಿನದ ಪ್ರಮುಖ ಶಕ್ತಿ ಆಧಾರ" :
-                lang === "hi" ? "दिन का मुख्य ऊर्जा आधार" :
-                lang === "te" ? "రోజు ప్రధాన శక్తి ఆధారం" :
-                lang === "ta" ? "நாளின் முதன்மை ஆற்றல் அடிப்படை" :
-                "Dominant Day Energy";
+              const tLabels = TITHI_TRANSITION_LABELS[lang] || TITHI_TRANSITION_LABELS.en;
 
               return (
                 <div style={{
@@ -2560,7 +2909,7 @@ export default function DailyDarshanaPage(): JSX.Element {
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
                     <div style={{ fontSize: 13, fontWeight: 800, color: "#FDE68A", display: "flex", alignItems: "center", gap: 6 }}>
                       <span>📜</span>
-                      <span>{cardHeading}</span>
+                      <span>{tLabels.cardHeading}</span>
                     </div>
                     <span style={{ fontSize: 11, fontWeight: 700, color: "#F59E0B", background: "rgba(245, 158, 11, 0.15)", padding: "2px 8px", borderRadius: 8, border: "1px solid rgba(245, 158, 11, 0.3)" }}>
                       100% IST
@@ -2577,14 +2926,14 @@ export default function DailyDarshanaPage(): JSX.Element {
                       padding: 12
                     }}>
                       <div style={{ fontSize: 10, color: "#F59E0B", fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.5 }}>
-                        🌅 {activeTithiLabel}
+                        🌅 {tLabels.activeTithiLabel}
                       </div>
                       <div style={{ fontSize: 15, fontWeight: 900, color: "#FFFFFF", marginTop: 4 }}>
                         {dt.tithiFullLabel[lang] || dt.tithiFullLabel.en}
                       </div>
                       <div style={{ fontSize: 11, color: "#FDE68A", marginTop: 6, display: "flex", alignItems: "center", gap: 4 }}>
                         <span>⏱️</span>
-                        <span>{untilLabel}: <strong style={{ color: "#86EFAC" }}>{dt.tithiEndTimeStr}</strong></span>
+                        <span>{tLabels.untilLabel}: <strong style={{ color: "#86EFAC" }}>{dt.tithiEndTimeStr}</strong></span>
                       </div>
                     </div>
 
@@ -2596,14 +2945,14 @@ export default function DailyDarshanaPage(): JSX.Element {
                       padding: 12
                     }}>
                       <div style={{ fontSize: 10, color: "#93C5FD", fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.5 }}>
-                        🌙 {nextTithiLabel}
+                        🌙 {tLabels.nextTithiLabel}
                       </div>
                       <div style={{ fontSize: 15, fontWeight: 900, color: "#FFFFFF", marginTop: 4 }}>
                         {dt.nextTithiFullLabel[lang] || dt.nextTithiFullLabel.en}
                       </div>
                       <div style={{ fontSize: 11, color: "#E0E7FF", marginTop: 6, display: "flex", alignItems: "center", gap: 4 }}>
                         <span>⏳</span>
-                        <span>{nextDurationLabel}: <strong style={{ color: "#FDE047" }}>{dt.nextTithiDurationStr[lang] || dt.nextTithiDurationStr.en}</strong></span>
+                        <span>{tLabels.nextDurationLabel}: <strong style={{ color: "#FDE047" }}>{dt.nextTithiDurationStr[lang] || dt.nextTithiDurationStr.en}</strong></span>
                       </div>
                     </div>
                   </div>
@@ -2622,14 +2971,12 @@ export default function DailyDarshanaPage(): JSX.Element {
                   }}>
                     <span style={{ fontSize: 16 }}>⚡</span>
                     <div>
-                      <strong style={{ color: "#FDE68A" }}>{majorityHeading}:</strong>{" "}
+                      <strong style={{ color: "#FDE68A" }}>{tLabels.majorityHeading}:</strong>{" "}
                       <span style={{ color: "#86EFAC", fontWeight: 700 }}>
                         {dt.majorityTithiName[lang] || dt.majorityTithiName.en}
                       </span>{" "}
                       <span style={{ fontSize: 11, color: "rgba(255, 248, 231, 0.8)" }}>
-                        ({dt.isSunriseTithiMajority 
-                          ? (lang === "kn" ? "ದಿನದ ಬಹುಪಾಲು ಸಮಯ ಸೂರ್ಯೋದಯ ತಿಥಿ ಮುಂದುವರಿಯುತ್ತದೆ" : "Active for majority of day") 
-                          : (lang === "kn" ? "ದಿನದ ಬಹುಪಾಲು ಸಮಯ ಉಪರಿ ತಿಥಿ ಆಳುತ್ತದೆ" : "Subsequent tithi governs majority waking hours")})
+                        ({dt.isSunriseTithiMajority ? tLabels.sunriseMajority : tLabels.nextMajority})
                       </span>
                     </div>
                   </div>
@@ -2637,7 +2984,7 @@ export default function DailyDarshanaPage(): JSX.Element {
               );
             })()}
 
-            {/* 100% Native 5-Language Actionable Guidance Grid */}
+{/* 100% Native 5-Language Actionable Guidance Grid */}
             <div style={{
               display: "grid",
               gridTemplateColumns: "1fr 1fr",
@@ -2703,7 +3050,7 @@ export default function DailyDarshanaPage(): JSX.Element {
               }}
             >
               <div style={{ fontSize: 11, textTransform: "uppercase", color: "#FDE68A", fontWeight: 800, marginBottom: 4, letterSpacing: "0.5px" }}>
-                🪔 {lang === "kn" ? "ಇಂದಿನ ಇಷ್ಟದೇವತಾ ಪ್ರಾರ್ಥನೆ & ಸಿದ್ಧ ವೈದಿಕ ಶ್ಲೋಕ" : "Today's Sacred Deity & Vedic Shloka"} · {deity.name[lang] || deity.name.en}
+                🪔 {dict.deityPrayerHeader} · {deity.name[lang] || deity.name.en}
               </div>
 
               {/* Astrological Selection Reason Pill */}
@@ -2715,12 +3062,12 @@ export default function DailyDarshanaPage(): JSX.Element {
 
               {/* Full Sanskrit Vedic Shloka */}
               <div style={{ fontSize: 14.5, fontWeight: 900, color: "#FDE68A", margin: "8px 0", lineHeight: 1.6, fontFamily: "serif", background: "rgba(0,0,0,0.3)", border: "1px dashed rgba(212, 175, 55, 0.4)", borderRadius: 10, padding: "10px 14px" }}>
-                "{deity.shloka}"
+                "{typeof deity.shloka === "object" ? ((deity.shloka as any)[lang] || (deity.shloka as any).kn) : deity.shloka}"
               </div>
 
               {/* Meaning & Spiritual Significance */}
               <div style={{ fontSize: 12, color: "#FEF3C7", lineHeight: 1.5, margin: "8px 0 12px", fontStyle: "italic", textAlign: "left", padding: "0 6px" }}>
-                <strong style={{ color: "#FCD34D", fontStyle: "normal" }}>{lang === "kn" ? "ಭಾವಾರ್ಥ:" : "Meaning:"} </strong>
+                <strong style={{ color: "#FCD34D", fontStyle: "normal" }}>{dict.meaningLabel} </strong>
                 {deity.meaning[lang] || deity.meaning.kn}
               </div>
 
@@ -2772,17 +3119,17 @@ export default function DailyDarshanaPage(): JSX.Element {
                   {isMantraPlaying ? (
                     <>
                       <span>⏹️</span>
-                      <span>{lang === "kn" ? "ಮಂತ್ರ ನಿಲ್ಲಿಸಿ (Stop)" : "Stop Mantra"}</span>
+                      <span>{dict.stopMantra}</span>
                     </>
                   ) : isMantraLoading ? (
                     <>
                       <span className="inline-block animate-spin">⏳</span>
-                      <span>{lang === "kn" ? "ಮಂತ್ರ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : "Synthesizing Mantra..."}</span>
+                      <span>{dict.synthesizingMantra}</span>
                     </>
                   ) : (
                     <>
                       <span>🔊</span>
-                      <span>{lang === "kn" ? "ಮಂತ್ರ ಶ್ರವಣ (Listen Mantra)" : "Listen Mantra"}</span>
+                      <span>{dict.listenMantra}</span>
                     </>
                   )}
                 </button>
@@ -2798,15 +3145,7 @@ export default function DailyDarshanaPage(): JSX.Element {
               marginBottom: 16
             }}>
               <div style={{ fontSize: 13, fontWeight: 800, color: "#FDE68A", marginBottom: 8, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
-                <span>📜 {lang === "kn"
-                  ? `ಪ್ರಧಾನ ಅರ್ಚಕ ${localizedPandit} ಅವರ ಆಶೀರ್ವಚನ ಹಾಗೂ ಆಶೀರ್ವಾದ`
-                  : lang === "hi"
-                  ? `मुख्य अर्चक ${localizedPandit} का पावन आशीर्वाद`
-                  : lang === "te"
-                  ? `ప్రధాన అర్చకులు ${localizedPandit} గారి ఆశీర్వచనం మరియు ಆಶೀರ್వాదం`
-                  : lang === "ta"
-                  ? `முதன்மை அர்ச்சகர் ${localizedPandit} அவர்களின் புனித ஆசி`
-                  : `Chief Priest ${localizedPandit}'s Sacred Benediction & Blessings`}</span>
+                <span>📜 {(PRIEST_BENEDICTION_TITLES[lang] || PRIEST_BENEDICTION_TITLES.en)(localizedPandit)}</span>
                 <button
                   type="button"
                   onClick={toggleBenedictionVoice}
@@ -2832,17 +3171,17 @@ export default function DailyDarshanaPage(): JSX.Element {
                   {isBenedictionPlaying ? (
                     <>
                       <span>⏹️</span>
-                      <span>{lang === "kn" ? "ನಿಲ್ಲಿಸಿ (Stop)" : "Stop Voice"}</span>
+                      <span>{dict.stopVoice}</span>
                     </>
                   ) : isBenedictionLoading ? (
                     <>
                       <span className="inline-block animate-spin">⏳</span>
-                      <span>{lang === "kn" ? "ಧ್ವನಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : "Generating Voice..."}</span>
+                      <span>{dict.generatingVoice}</span>
                     </>
                   ) : (
                     <>
                       <span>🔊</span>
-                      <span>{lang === "kn" ? "ಧ್ವನಿಯಲ್ಲಿ ಆಲಿಸಿ (Listen in Cloned Voice)" : "Listen in Cloned Voice"}</span>
+                      <span>{dict.listenVoice}</span>
                     </>
                   )}
                 </button>
@@ -2930,27 +3269,30 @@ export default function DailyDarshanaPage(): JSX.Element {
               boxShadow: "0 6px 20px rgba(0,0,0,0.5)"
             }}>
               <div style={{ fontSize: 13, fontWeight: 800, color: "#FCD34D", letterSpacing: "0.5px" }}>
-                ✨ {lang === "kn" ? "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಅನುಗ್ರಹ ಪ್ರಸಾದಿತ" : "Sri Gokarna Mahabaleshwara Blessed"}
+                ✨ {dict.dinaBhavishyaBlessed}
               </div>
               <h2 style={{ fontSize: 20, fontWeight: 900, color: "#FFFFFF", margin: "6px 0 4px", fontFamily: "serif" }}>
-                {lang === "kn" ? "ಇಂದಿನ ದೈನಂದಿನ ದಿನ ಭವಿಷ್ಯ" : "Today's Personalized Daily Horoscope"}
+                {dict.dinaBhavishyaTitle}
               </h2>
               <div style={{ fontSize: 13, fontWeight: 800, color: "#F59E0B", marginBottom: 8, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                 <span>📅 {formatLongDate(mockDay, lang)} ({rashiName(moonRashiIdx, lang)})</span>
                 {dinaBhavishyaData && (
                   <span style={{ background: "rgba(212, 175, 55, 0.2)", border: "1px solid #D4AF37", borderRadius: 8, padding: "2px 8px", fontSize: 11, color: "#FDE68A" }}>
-                    {dinaBhavishyaData.badgeEmoji} {lang === "kn" ? `ಶಕ್ತಿ ಸ್ಕೋರ್: ${dinaBhavishyaData.energyScore}%` : `Energy: ${dinaBhavishyaData.energyScore}%`}
+                    {dinaBhavishyaData.badgeEmoji} {(ENERGY_SCORE_TEMPLATES[lang] || ENERGY_SCORE_TEMPLATES.en)(dinaBhavishyaData.energyScore)}
                   </span>
                 )}
               </div>
               <p style={{ fontSize: 12, color: "#FEF3C7", margin: 0, lineHeight: 1.5 }}>
                 {dinaBhavishyaData?.activeDashaSummary
-                  ? (lang === "kn"
-                      ? `${devoteeDisplayName} ಅವರ ಜನ್ಮ ಲಗ್ನ, ಚಂದ್ರ ರಾಶಿ, ${dinaBhavishyaData.activeDashaSummary} ಹಾಗೂ ಇಂದಿನ ಗೋಚಾರ ಚಂದ್ರನ ಸ್ಥಾನ (${dinaBhavishyaData.chandraBalaText}) ಆಧರಿಸಿ ಗಣಿಸಿದ ವೈದಿಕ ಫಲಗಳು.`
-                      : `Computed for ${devoteeDisplayName} based on Natal Kundali, ${dinaBhavishyaData.activeDashaSummary}, and today's transit Moon in ${dinaBhavishyaData.chandraBalaText}.`)
-                  : (lang === "kn"
-                      ? `${devoteeDisplayName} ಅವರ ಜನ್ಮ ಲಗ್ನ, ಚಂದ್ರ ರಾಶಿ ಹಾಗೂ ಇಂದಿನ ನವಗ್ರಹ ಸಂಚಾರ ಆಧರಿಸಿ ${activePanditName} ಗಣಿಸಿದ ಇಂದಿನ ಶುಭ ಫಲಗಳು.`
-                      : `Personalized daily predictions computed for ${devoteeDisplayName} based on birth chart planetary alignments and today's Gochara transits.`)}
+                  ? (DINA_BHAVISHYA_INTRO_TEMPLATES[lang] || DINA_BHAVISHYA_INTRO_TEMPLATES.en).withDasha(
+                      devoteeDisplayName,
+                      dinaBhavishyaData.activeDashaSummary,
+                      dinaBhavishyaData.chandraBalaText
+                    )
+                  : (DINA_BHAVISHYA_INTRO_TEMPLATES[lang] || DINA_BHAVISHYA_INTRO_TEMPLATES.en).withoutDasha(
+                      devoteeDisplayName,
+                      activePanditName
+                    )}
               </p>
             </div>
 
@@ -2963,7 +3305,7 @@ export default function DailyDarshanaPage(): JSX.Element {
             }}>
               <div style={{ fontSize: 14, fontWeight: 800, color: "#FCD34D", marginBottom: 8, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span>🌟</span> {lang === "kn" ? "ದಿನದ ಮುಖ್ಯಾಂಶ ಹಾಗೂ ದೈವಿಕ ಶಕ್ತಿ" : "Daily Overview & Cosmic Energy"}
+                  <span>🌟</span> {dict.dinaOverviewTitle}
                 </span>
                 {dinaBhavishyaData && (
                   <span style={{ fontSize: 11, color: "#A7F3D0", background: "rgba(16, 185, 129, 0.15)", border: "1px solid #10B981", padding: "2px 8px", borderRadius: 6 }}>
@@ -2972,9 +3314,7 @@ export default function DailyDarshanaPage(): JSX.Element {
                 )}
               </div>
               <p style={{ fontSize: 13, color: "#FEE2E2", lineHeight: 1.6, margin: 0 }}>
-                {dinaBhavishyaData?.overview || (lang === "kn"
-                  ? `ಇಂದು ನಿಮ್ಮ ಚಂದ್ರ ರಾಶಿಯಾದ ${rashiName(moonRashiIdx, "kn")}ಗೆ ಗೋಚಾರ ಚಂದ್ರನ ಶುಭ ಸಂಚಾರದಿಂದ ಕಾರ್ಯಗಳಲ್ಲಿ ಯಶಸ್ಸು ಹಾಗೂ ಮಾನಸಿಕ ಪ್ರಸನ್ನತೆ ಲಭಿಸಲಿದೆ.`
-                  : `Today, with favorable Moon transits relative to your Moon sign ${rashiName(moonRashiIdx, "en")}, you will experience mental clarity and success in daily tasks.`)}
+                {dinaBhavishyaData?.overview || (DINA_OVERVIEW_FALLBACKS[lang] || DINA_OVERVIEW_FALLBACKS.en)(rashiName(moonRashiIdx, lang))}
               </p>
             </div>
 
@@ -2986,12 +3326,10 @@ export default function DailyDarshanaPage(): JSX.Element {
               padding: "16px 18px"
             }}>
               <div style={{ fontSize: 14, fontWeight: 800, color: "#FCD34D", marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
-                <span>💼</span> {lang === "kn" ? "ಉದ್ಯೋಗ, ವ್ಯಾಪಾರ ಹಾಗೂ ಧನ ಲಾಭ" : "Career, Business & Finance"}
+                <span>💼</span> {dict.dinaCareerTitle}
               </div>
               <p style={{ fontSize: 13, color: "#FEE2E2", lineHeight: 1.6, margin: 0 }}>
-                {dinaBhavishyaData?.careerAndFinance || (lang === "kn"
-                  ? `ವೃತ್ತಿರಂಗದಲ್ಲಿ ಶ್ರಮಕ್ಕೆ ಸೂಕ್ತ ಮಾನ್ಯತೆ ಲಭಿಸಲಿದೆ. ಹಣಕಾಸಿನ ವಹಿವಾಟುಗಳಲ್ಲಿ ಪ್ರಗತಿ ಕಂಡುಬರಲಿದ್ದು, ಹಳೆಯ ಬಾಕಿ ಹಣ ಕೈಸೇರುವ ಯೋಗವಿದೆ.`
-                  : `Professional efforts will be recognized. Good financial flow and recovery of pending dues expected.`)}
+                {dinaBhavishyaData?.careerAndFinance || dict.dinaCareerFallback}
               </p>
             </div>
 
@@ -3003,12 +3341,10 @@ export default function DailyDarshanaPage(): JSX.Element {
               padding: "16px 18px"
             }}>
               <div style={{ fontSize: 14, fontWeight: 800, color: "#FCD34D", marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
-                <span>🧘</span> {lang === "kn" ? "ಆರೋಗ್ಯ, ಮನಃಸ್ಥಿತಿ ಹಾಗೂ ಕುಟುಂಬ" : "Health, Mindset & Family Harmony"}
+                <span>🧘</span> {dict.dinaHealthTitle}
               </div>
               <p style={{ fontSize: 13, color: "#FEE2E2", lineHeight: 1.6, margin: 0 }}>
-                {dinaBhavishyaData?.healthAndFamily || (lang === "kn"
-                  ? `ದೈಹಿಕ ಅರೋಗ್ಯ ಉತ್ತಮವಾಗಿರಲಿದ್ದು, ಮನಸ್ಸಿನಲ್ಲಿ ಸಕಾರಾತ್ಮಕ ಶಕ್ತಿ ತುಂಬಿರುತ್ತದೆ. ಗೃಹದಲ್ಲಿ ಮಂಗಳಕರ ವಾತಾವರಣ ನೆಲೆಸಲಿದೆ.`
-                  : `Physical vitality remains strong with positive energy. Domestic atmosphere is peaceful, fostering warm bonds.`)}
+                {dinaBhavishyaData?.healthAndFamily || dict.dinaHealthFallback}
               </p>
             </div>
 
@@ -3020,29 +3356,27 @@ export default function DailyDarshanaPage(): JSX.Element {
               padding: "16px 18px"
             }}>
               <div style={{ fontSize: 14, fontWeight: 800, color: "#FCD34D", marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
-                <span>🚗</span> {lang === "kn" ? "ಪ್ರಯಾಣ, ಶುಭ ಮುಹೂರ್ತ ಹಾಗೂ ಮಾರ್ಗದರ್ಶನ" : "Travel, Auspicious Timing & Day Guidance"}
+                <span>🚗</span> {dict.dinaTravelTitle}
               </div>
               <p style={{ fontSize: 13, color: "#FEE2E2", lineHeight: 1.6, margin: "0 0 10px" }}>
-                {dinaBhavishyaData?.travelAndInitiatives || (lang === "kn"
-                  ? `ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ ಕೈಗೊಳ್ಳುವ ಪ್ರಯಾಣ ಹಾಗೂ ನೂತನ ಕಾರ್ಯಾರಂಭಗಳು ಯಶಸ್ವಿಯಾಗಲಿವೆ.`
-                  : `Auspicious window for planned travel and starting key tasks.`)}
+                {dinaBhavishyaData?.travelAndInitiatives || dict.dinaTravelFallback}
               </p>
               {dinaBhavishyaData && (
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontSize: 12 }}>
                   <div style={{ background: "rgba(0,0,0,0.3)", padding: "8px 10px", borderRadius: 8, border: "1px solid rgba(212, 175, 55, 0.2)" }}>
-                    <span style={{ color: "#FCD34D", fontWeight: 700 }}>⏱️ {lang === "kn" ? "ಅಭಿಜಿತ್ ಮುಹೂರ್ತ:" : "Abhijit:"} </span>
+                    <span style={{ color: "#FCD34D", fontWeight: 700 }}>⏱️ {dict.abhijitLabel} </span>
                     <span style={{ color: "#FEF3C7" }}>{dinaBhavishyaData.abhijitMuhurtha}</span>
                   </div>
                   <div style={{ background: "rgba(0,0,0,0.3)", padding: "8px 10px", borderRadius: 8, border: "1px solid rgba(239, 68, 68, 0.2)" }}>
-                    <span style={{ color: "#FCA5A5", fontWeight: 700 }}>⚠️ {lang === "kn" ? "ರಾಹು ಕಾಲ:" : "Rahu Kaala:"} </span>
+                    <span style={{ color: "#FCA5A5", fontWeight: 700 }}>⚠️ {dict.rahuKaalaLabel} </span>
                     <span style={{ color: "#FEF3C7" }}>{dinaBhavishyaData.rahuKaala}</span>
                   </div>
                   <div style={{ background: "rgba(0,0,0,0.3)", padding: "8px 10px", borderRadius: 8, border: "1px solid rgba(212, 175, 55, 0.2)" }}>
-                    <span style={{ color: "#FCD34D", fontWeight: 700 }}>🎨 {lang === "kn" ? "ಅದೃಷ್ಟ ಬಣ್ಣ:" : "Lucky Color:"} </span>
+                    <span style={{ color: "#FCD34D", fontWeight: 700 }}>🎨 {dict.luckyColorLabel} </span>
                     <span style={{ color: "#FEF3C7" }}>{dinaBhavishyaData.luckyColor}</span>
                   </div>
                   <div style={{ background: "rgba(0,0,0,0.3)", padding: "8px 10px", borderRadius: 8, border: "1px solid rgba(212, 175, 55, 0.2)" }}>
-                    <span style={{ color: "#FCD34D", fontWeight: 700 }}>🧭 {lang === "kn" ? "ಅದೃಷ್ಟ ದಿಕ್ಕು:" : "Direction:"} </span>
+                    <span style={{ color: "#FCD34D", fontWeight: 700 }}>🧭 {dict.luckyDirectionLabel} </span>
                     <span style={{ color: "#FEF3C7" }}>{dinaBhavishyaData.luckyDirection}</span>
                   </div>
                 </div>
@@ -3059,7 +3393,7 @@ export default function DailyDarshanaPage(): JSX.Element {
                 textAlign: "center"
               }}>
                 <div style={{ fontSize: 13, fontWeight: 800, color: "#FCD34D", marginBottom: 4 }}>
-                  🕉️ {lang === "kn" ? "ಇಂದಿನ ದೇವತೋಪಾಸನೆ & ಸಿದ್ಧ ಮಂತ್ರ" : "Today's Sacred Deity & Siddha Mantra"}
+                  🕉️ {dict.dinaDeityTitle}
                 </div>
                 <div style={{ fontSize: 15, fontWeight: 800, color: "#FFFFFF", margin: "4px 0" }}>
                   {dinaBhavishyaData.deityName}
@@ -3068,7 +3402,7 @@ export default function DailyDarshanaPage(): JSX.Element {
                   {dinaBhavishyaData.siddhaMantra}
                 </div>
                 <div style={{ fontSize: 12, color: "#FEF3C7", marginBottom: 8 }}>
-                  📿 {lang === "kn" ? `ಜಪ ಸಂಖ್ಯೆ: ${dinaBhavishyaData.japaRecommendation}` : `Japa Recommendation: ${dinaBhavishyaData.japaRecommendation}`}
+                  📿 {(JAPA_RECOMMENDATION_TEMPLATES[lang] || JAPA_RECOMMENDATION_TEMPLATES.en)(dinaBhavishyaData.japaRecommendation)}
                 </div>
                 <div style={{ fontSize: 12, fontStyle: "italic", color: "#FCD34D", borderTop: "1px solid rgba(212, 175, 55, 0.3)", paddingTop: 8 }}>
                   {dinaBhavishyaData.priestBlessing}
@@ -3135,11 +3469,7 @@ export default function DailyDarshanaPage(): JSX.Element {
                 alignItems: "center",
                 justifyContent: "space-between"
               }}>
-                <span>📜 {lang === "kn" ? "ಸಂಪೂರ್ಣ ಜನ್ಮ ಕುಂಡಲಿ, ಗೋಚಾರ & ದಶಾ ವಿವರಗಳು (ಹೆಚ್ಚಿನ ವಿವರ)" :
-                          lang === "hi" ? "संपूर्ण जन्म कुंडली, गोचर व दशा विवरण (विस्तृत)" :
-                          lang === "te" ? "పూర్తి జన్మ జాతకం, గోచారం & దశా వివరాలు (వివరాలు)" :
-                          lang === "ta" ? "முழு ஜாதகம், கோச்சாரம் & தசா விவரங்கள் (விரிவானது)" :
-                          "Complete Janma Kundali, Gochara & Dasha Details"}</span>
+                <span>📜 {dict.accordionTitle}</span>
                 <span style={{ fontSize: 12, color: "#F59E0B" }}>▼</span>
               </summary>
 
@@ -3181,17 +3511,7 @@ export default function DailyDarshanaPage(): JSX.Element {
                   lagnaRashiIndex={ascendantRashiIdx}
                   planetPlacements={birthPlacements}
                   devoteeName={devoteeDisplayName}
-                  title={
-                    lang === "kn"
-                      ? `📜 ${devoteeDisplayName} ಅವರ ಜನ್ಮ ಕುಂಡಲಿ`
-                      : lang === "hi"
-                      ? `📜 ${devoteeDisplayName} जी की जन्म कुंडली`
-                      : lang === "te"
-                      ? `📜 ${devoteeDisplayName} గారి జన్మ జాతక చక్రం`
-                      : lang === "ta"
-                      ? `📜 ${devoteeDisplayName} அவர்களின் ஜாதகக் கட்டம்`
-                      : `📜 Janma Kundali of ${devoteeDisplayName}`
-                  }
+                  title={(KUNDALI_CHART_TITLES[lang] || KUNDALI_CHART_TITLES.en).birth(devoteeDisplayName)}
                   isGochara={false}
                 />
 
@@ -3202,17 +3522,7 @@ export default function DailyDarshanaPage(): JSX.Element {
                   lagnaRashiIndex={moonRashiIdx}
                   planetPlacements={gocharaPlacements}
                   devoteeName={devoteeDisplayName}
-                  title={
-                    lang === "kn"
-                      ? `🌌 ${devoteeDisplayName} ಅವರ ಲೈವ್ ಗೋಚಾರ ಕುಂಡಲಿ`
-                      : lang === "hi"
-                      ? `🌌 ${devoteeDisplayName} जी की लाइव गोचर कुंडली`
-                      : lang === "te"
-                      ? `🌌 ${devoteeDisplayName} గారి లైవ్ గోచార జాతకం`
-                      : lang === "ta"
-                      ? `🌌 ${devoteeDisplayName} அவர்களின் கோச்சார ஜாதகம்`
-                      : `🌌 Live Gochara Transit Chart for ${devoteeDisplayName}`
-                  }
+                  title={(KUNDALI_CHART_TITLES[lang] || KUNDALI_CHART_TITLES.en).gochara(devoteeDisplayName)}
                   isGochara={true}
                 />
 
@@ -3336,22 +3646,10 @@ export default function DailyDarshanaPage(): JSX.Element {
           boxShadow: "0 4px 16px rgba(0,0,0,0.4)"
         }}>
           <div style={{ fontSize: 13, color: "#FDE68A", fontWeight: 800, marginBottom: 4 }}>
-            {lang === "kn"
-              ? "ಈ ಕ್ಯಾಲೆಂಡರ್ ಪಡೆಯಲು ಅಥವಾ ನಿಮ್ಮ ಇಂದಿನ ಜೀವನದ ಜಾತಕದ ವಿವರಗಳನ್ನು ಪಡೆಯಲು ಈ ಕೆಳಗಿನ ಪ್ರಧಾನ ಅರ್ಚಕರನ್ನು ಸಂಪರ್ಕಿಸಿ:"
-              : lang === "hi"
-              ? "यह कैलेंडर प्राप्त करने या अपने वर्तमान जीवन से संबंधित विवरण व फलादेश पाने के लिए मुख्य अर्चक से संपर्क करें:"
-              : lang === "te"
-              ? "ఈ క్యాలెండర్ పొందుటకు లేదా మీ ప్రస్తుత జీవిత జాతక ఫలాల వివరాలు పొందుటకు ఈ క్రింది ప్రధాన అర్చకుడిని సంప్రదించండి:"
-              : lang === "ta"
-              ? "இந்த காலண்டரைப் பெற அல்லது உங்களின் தற்போதைய வாழ்க்கை பலன்களைப் பெற கீழே உள்ள முதன்மை அர்ச்சகரைத் தொடர்பு கொள்ளவும்:"
-              : "To get this calendar or to get current life related details/predictions, you can contact Chief Archaka:"}
+            {dict.calendarContactPrompt}
           </div>
           <div style={{ fontSize: 16, color: "#FFFFFF", fontWeight: 900, marginBottom: 10 }}>
-            🛕 {lang === "kn" ? "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಪ್ರಧಾನ ಅರ್ಚಕರು)" :
-                lang === "hi" ? "श्रीराम पंडित (मुख्य अर्चक)" :
-                lang === "te" ? "శ్రీరామ్ పండిత్ (ప్రధాన అర్చకులు)" :
-                lang === "ta" ? "ஸ்ரீராம் பண்டிட் (முதன்மை அர்ச்சகர்)" :
-                "Shreeram Pandit (Chief Archaka)"}
+            🛕 {dict.panditTitle}
           </div>
           <button
             onClick={() => setShowContactModal(true)}
@@ -3415,9 +3713,7 @@ export default function DailyDarshanaPage(): JSX.Element {
             </div>
             
             <p style={{ fontSize: 13, color: "#E5E7EB", lineHeight: 1.5, marginBottom: 20 }}>
-              {lang === "kn"
-                ? "ಪೂಜೆ, ಅನುಷ್ಠಾನ, ಪಂಚಾಂಗ ಜಾತಕ ವಿವರಗಳಿಗೆ ಪ್ರಧಾನ ಅರ್ಚಕರನ್ನು ನೇರವಾಗಿ ಸಂಪರ್ಕಿಸಿ."
-                : "Contact Chief Archaka directly for Seva booking, Panchanga consultations, and Vedic rituals."}
+              {dict.priestModalDesc}
             </p>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -3450,7 +3746,7 @@ export default function DailyDarshanaPage(): JSX.Element {
                   cursor: "pointer"
                 }}
               >
-                {lang === "kn" ? "ಮುಚ್ಚಿ" : "Close"}
+                {dict.closeModalBtn}
               </button>
             </div>
           </div>
@@ -3520,14 +3816,13 @@ export default function DailyDarshanaPage(): JSX.Element {
       {/* Full Blocking Big Loader for Sarvam AI Voice in Daily Darshana */}
       <VedicAudioLoaderModal
         isOpen={isBenedictionLoading || isMantraLoading}
+        lang={lang}
         onCancel={() => {
           stopAllAudioGlobal();
           setActiveVoiceKey("none");
           setActiveVoiceState("idle");
         }}
-        titleKn={isMantraLoading ? "ಇಷ್ಟದೇವತಾ ಮಂತ್ರ ಧ್ವನಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : "ಪ್ರಧಾನ ಅರ್ಚಕರ ಆಶೀರ್ವಚನ ಧ್ವನಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..."}
-        titleEn="Synthesizing Sacred Priest Voice (Sarvam AI Indic Neural TTS)..."
-        subtitleKn="ಪವಿತ್ರ ಮಂತ್ರ ಹಾಗೂ ಆಶೀರ್ವಾದದ ಆಡಿಯೋ ಸಿದ್ಧವಾಗುತ್ತಿದೆ, ದಯವಿಟ್ಟು ನಿರೀಕ್ಷಿಸಿ."
+        title={isMantraLoading ? dict.synthesizingMantra : dict.generatingVoice}
       />
     </div>
   );

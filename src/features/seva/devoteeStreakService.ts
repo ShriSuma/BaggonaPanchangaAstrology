@@ -9,6 +9,7 @@
 import { firestore } from "../../services/firebase";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import type { SevaLang } from "./sevaLocale";
+import { getIndianStandardDateStr } from "../../core/placeTime";
 
 export interface DevoteeMilestoneReward {
   days: number;
@@ -262,7 +263,7 @@ export async function recordDevoteeJapaCompleted(
   devoteeName = "ಭಕ್ತರು",
   gotra = "ಕಾಶ್ಯಪ"
 ): Promise<{ updatedStreak: DevoteeStreakRecord; newlyUnlockedMilestones: DevoteeMilestoneReward[] }> {
-  const today = new Date().toISOString().split("T")[0];
+  const today = getIndianStandardDateStr(new Date());
   const current = await getDevoteeStreakData(devoteeKey);
 
   const isAlreadyDoneToday = current.lastJapaDate === today;
@@ -270,7 +271,7 @@ export async function recordDevoteeJapaCompleted(
   let newTotalJapas = current.totalJapas + 1;
 
   if (!isAlreadyDoneToday) {
-    const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
+    const yesterday = getIndianStandardDateStr(new Date(Date.now() - 86400000));
     if (current.lastJapaDate === yesterday || current.lastPoojaDate === yesterday || current.lastPoojaDate === today) {
       newCurrentStreak += 1;
     } else if (!current.lastJapaDate) {
