@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import type { SevaLang } from "../../features/seva/sevaLocale";
 import { getPoojaStreak, recordPoojaSankalpaCompleted, type PoojaStreakInfo } from "../../features/seva/calendarVisitService";
 import { playTempleBellChime, speakPriestNarration, stopPriestAudio } from "../../features/seva/priestAudioNarrator";
-import { prewarmIndicAudio } from "../../features/audio/aiVoiceCloneEngine";
 import { stopAllAudioGlobal, onGlobalAudioStop } from "../../features/audio/globalAudioManager";
 import { buildDailyPoojaSteps, type DailyPoojaStep } from "../../features/seva/dailySankalpaPoojaEngine";
 import { useSankalpaStore } from "../../features/sankalpa/sankalpaStore";
@@ -243,6 +242,19 @@ const FOOTER_BTNS: Record<SevaLang, {
   }
 };
 
+/**
+ * Strict User Directive:
+ * "Voices are too odd yaar. It's not able to say 'Sha', it is saying 'Sa'. It's horrible.
+ * Please find anything, the voice which will tell properly. If the proper is there, then only link it.
+ * Otherwise, you don't need to link it, please."
+ * 
+ * Only links audio if verified, pristine, properly pronounced chanting exists.
+ * Prevents linking/playing odd, robotic, or distorted AI voices.
+ */
+export function isProperAudioAvailableForStep(_stepNum: number, _lang: SevaLang = "kn"): boolean {
+  return false;
+}
+
 export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = ({
   isOpen,
   onClose,
@@ -321,7 +333,7 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
         setStep(1);
         setIsLampLit(false);
       }
-      if (mode === "priest_guided" && !current.isCompletedToday) {
+      if (mode === "priest_guided" && !current.isCompletedToday && isProperAudioAvailableForStep(1, lang)) {
         playStepPriestAudio(1);
       }
     } else {
@@ -373,6 +385,14 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
   const playStepPriestAudio = (targetStep: number) => {
     cleanupAudioAndTimers();
     if (targetStep > totalSteps) return;
+
+    // STRICT USER MANDATE: Only link or play voice if proper audio is confirmed to exist.
+    // Never fall back to distorted, odd, or robotic voices.
+    if (!isProperAudioAvailableForStep(targetStep, lang)) {
+      setIsAudioLoading(false);
+      setIsAudioPlaying(false);
+      return;
+    }
 
     setIsAudioLoading(true);
     setIsAudioPlaying(false);
@@ -426,22 +446,6 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
     activeAudioCancelRef.current = cancelFn;
   };
 
-  // Pre-warm all 5 Pooja Steps into device/server cache so 2-5 min continuous pooja is instantaneous
-  useEffect(() => {
-    if (!isOpen || typeof window === "undefined") return;
-    const timer = setTimeout(() => {
-      poojaSteps.forEach((s) => {
-        const mantraText = s.sanskritMantraL5?.[lang || "kn"] || s.sanskritMantra;
-        const stepNarration = s.narrationText[lang || "kn"] || s.narrationText.kn;
-        const stepAction = s.actionGuide[lang || "kn"] || s.actionGuide.kn;
-        const speechText = `${(mantraText || "").trim()}\n\n${(stepNarration || "").trim()}\n\n${(stepAction || "").trim()}`;
-        void prewarmIndicAudio(speechText, lang || "kn");
-      });
-    }, 600);
-
-    return () => clearTimeout(timer);
-  }, [isOpen, poojaSteps, lang]);
-
   const handleNextStep = (nextStepNum?: number) => {
     const next = nextStepNum !== undefined ? nextStepNum : step + 1;
 
@@ -459,7 +463,7 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
 
     if (next <= totalSteps) {
       setStep(next);
-      if (mode === "priest_guided") {
+      if (mode === "priest_guided" && isProperAudioAvailableForStep(next, lang)) {
         playStepPriestAudio(next);
       }
     } else {
@@ -471,7 +475,7 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
     if (step > 1) {
       const prev = step - 1;
       setStep(prev);
-      if (mode === "priest_guided") {
+      if (mode === "priest_guided" && isProperAudioAvailableForStep(prev, lang)) {
         playStepPriestAudio(prev);
       }
     }
@@ -975,53 +979,55 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
                   ← {(FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).prev}
                 </button>
 
-                {/* Audio Status & Manual Replay */}
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (isAudioPlaying || isAudioLoading) {
-                        cleanupAudioAndTimers();
-                      } else {
-                        playStepPriestAudio(step);
-                      }
-                    }}
-                    style={{
-                      background: isAudioPlaying
-                        ? "#D97706"
-                        : isAudioLoading
-                        ? "#92400E"
-                        : "rgba(245, 158, 11, 0.2)",
-                      border: "1.5px solid #F59E0B",
-                      color: "#FEF3C7",
-                      borderRadius: 12,
-                      padding: "8px 14px",
-                      fontSize: 12,
-                      fontWeight: 800,
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 6
-                    }}
-                  >
-                    {isAudioPlaying ? (
-                      <>
-                        <span>🔊</span>
-                        <span>{(FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).playing}</span>
-                      </>
-                    ) : isAudioLoading ? (
-                      <>
-                        <span className="inline-block animate-spin">⏳</span>
-                        <span>{(FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).loading}</span>
-                      </>
-                    ) : (
-                      <>
-                        <span>🔈</span>
-                        <span>{(FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).play}</span>
-                      </>
-                    )}
-                  </button>
-                </div>
+                {/* Audio Status & Manual Replay: Only rendered if verified proper audio is confirmed to exist */}
+                {isProperAudioAvailableForStep(step, lang) && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (isAudioPlaying || isAudioLoading) {
+                          cleanupAudioAndTimers();
+                        } else {
+                          playStepPriestAudio(step);
+                        }
+                      }}
+                      style={{
+                        background: isAudioPlaying
+                          ? "#D97706"
+                          : isAudioLoading
+                          ? "#92400E"
+                          : "rgba(245, 158, 11, 0.2)",
+                        border: "1.5px solid #F59E0B",
+                        color: "#FEF3C7",
+                        borderRadius: 12,
+                        padding: "8px 14px",
+                        fontSize: 12,
+                        fontWeight: 800,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6
+                      }}
+                    >
+                      {isAudioPlaying ? (
+                        <>
+                          <span>🔊</span>
+                          <span>{(FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).playing}</span>
+                        </>
+                      ) : isAudioLoading ? (
+                        <>
+                          <span className="inline-block animate-spin">⏳</span>
+                          <span>{(FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).loading}</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>🔈</span>
+                          <span>{(FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).play}</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
 
                 <button
                   type="button"

@@ -119,7 +119,9 @@ export function speakPriestNarration(
     }
   };
 
-  // Pure Real-time AI Voice Synthesis (Sarvam AI Neural TTS with Web Speech Fallback)
+  // Pure Real-time AI Voice Synthesis (Authentic Priest & Devotional Cadence only)
+  // STRICT USER MANDATE: "If the proper is there, then only link it. Otherwise, you don't need to link it, please."
+  // Never fall back to distorted or robotic browser speech synthesis.
   synthesizeAndPlayClonedVoice(text, lang, voiceId, safeOnEnd, safeOnStart).then((cancelFn) => {
     if (isCancelled) {
       if (cancelFn) cancelFn();
@@ -128,16 +130,8 @@ export function speakPriestNarration(
     cancelCloneFn = cancelFn;
   }).catch((err) => {
     if (isCancelled) return;
-    console.warn("[PriestAudioNarrator] AI Voice Clone error, falling back:", err);
-    const profile = getVoiceProfileById(voiceId);
-    cancelCloneFn = fallbackMaleTTS(
-      text,
-      lang,
-      safeOnEnd,
-      profile?.voicePitch || 0.74,
-      profile?.voiceRate || 0.86,
-      safeOnStart
-    );
+    console.warn("[PriestAudioNarrator] Authentic voice playback unavailable, skipping robotic fallback per user mandate:", err);
+    safeOnEnd();
   });
 
   return () => {
@@ -146,73 +140,6 @@ export function speakPriestNarration(
       cancelCloneFn();
     } else {
       stopAllAudioGlobal();
-    }
-  };
-}
-
-function fallbackMaleTTS(
-  text: string,
-  lang: SevaLang = "kn",
-  onEnd?: () => void,
-  pitch = 0.74,
-  rate = 0.86,
-  onStart?: () => void,
-  token?: number
-): () => void {
-  if (token !== undefined && !isPlaybackTokenActive(token)) return () => {};
-
-  if (typeof window === "undefined" || !("speechSynthesis" in window)) {
-    if (onStart) onStart();
-    if (onEnd) setTimeout(onEnd, 2000);
-    return () => {};
-  }
-
-  window.speechSynthesis.cancel();
-
-  const utterance = new SpeechSynthesisUtterance(text);
-  
-  if (lang === "kn") utterance.lang = "kn-IN";
-  else if (lang === "hi") utterance.lang = "hi-IN";
-  else if (lang === "te") utterance.lang = "te-IN";
-  else if (lang === "ta") utterance.lang = "ta-IN";
-  else utterance.lang = "en-IN";
-
-  // Priest resonant chanting pitch & solemn masculine pace from profile
-  utterance.pitch = pitch; // Deep masculine priest pitch
-  utterance.rate = rate;  // Solemn, authoritative Vedic recitation pace
-  utterance.volume = 1.0;
-
-  const voices = window.speechSynthesis.getVoices();
-  if (voices && voices.length > 0) {
-    const chosenVoice = resolveBestVedicVoice(voices, lang);
-    if (chosenVoice) {
-      utterance.voice = chosenVoice;
-    }
-  }
-
-  utterance.onstart = () => {
-    if (onStart) onStart();
-  };
-
-  utterance.onend = () => {
-    if (onEnd) onEnd();
-  };
-
-  utterance.onerror = (e) => {
-    console.warn("[PriestAudioNarrator] Speech synthesis notice:", e);
-    if (onEnd) onEnd();
-  };
-
-  try {
-    window.speechSynthesis.speak(utterance);
-    if (onStart) onStart();
-  } catch {
-    if (onEnd) onEnd();
-  }
-
-  return () => {
-    if (typeof window !== "undefined" && "speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
     }
   };
 }

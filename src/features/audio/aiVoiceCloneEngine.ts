@@ -233,10 +233,11 @@ export async function synthesizeAndPlayClonedVoice(
     }
   }
 
-  if (!isPlaybackTokenActive(token)) return () => {};
-
-  // 4. Fallback to Male-Only Web Speech DSP (Dynamic browser TTS)
-  return playStrictlyMaleWebSpeechDSP(text, lang, profile, onEnd, config, token, onStart, fallbackTransliteration);
+  // 4. STRICT USER MANDATE: "If the proper is there, then only link it. Otherwise, you don't need to link it, please."
+  // Do NOT fall back to robotic or distorted in-browser speech synthesis.
+  console.warn("[AIVoiceCloneEngine] Proper authentic Indic audio not available for text. Suppressing robotic browser fallback.");
+  if (onEnd) onEnd();
+  return () => {};
 }
 
 /**
@@ -347,104 +348,129 @@ export async function fetchIndicParlerTTS(
 
   if (token !== undefined && !isPlaybackTokenActive(token)) return null;
 
-  // 4. Tier 4: Direct browser-to-HuggingFace Space call via Gradio 5 SSE
-  const controller = new AbortController();
-  const unregisterAbort = registerAbortController(controller);
+  // 4. Tier 4: Direct browser-to-HuggingFace Space call via Gradio 5 SSE with token failover
+  async function attemptQueueCall(useToken: boolean): Promise<string | null> {
+    const controller = new AbortController();
+    const unregisterAbort = registerAbortController(controller);
 
-  // 15-second timeout to prevent hanging
-  const timeoutId = setTimeout(() => {
-    controller.abort();
-  }, 15000);
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, 15000);
 
-  try {
-    const voiceDescription = INDIC_PARLER_VOICE_DESCRIPTIONS[lang] || INDIC_PARLER_VOICE_DESCRIPTIONS.kn;
-    const sessionHash = Math.random().toString(36).substring(2);
+    try {
+      const voiceDescription = INDIC_PARLER_VOICE_DESCRIPTIONS[lang] || INDIC_PARLER_VOICE_DESCRIPTIONS.kn;
+      const sessionHash = Math.random().toString(36).substring(2);
 
-    const joinRes = await fetch("https://ai4bharat-indic-parler-tts.hf.space/gradio_api/queue/join", {
-      method: "POST",
-      signal: controller.signal,
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${hfToken}`
-      },
-      body: JSON.stringify({
-        data: [cleanText, voiceDescription],
-        event_data: null,
-        fn_index: 1, // /generate_finetuned
-        trigger_id: 10,
-        session_hash: sessionHash
-      })
-    });
-
-    if (!joinRes.ok) {
-      throw new Error(`Indic-Parler queue join failed: ${joinRes.status}`);
-    }
-
-    if (token !== undefined && !isPlaybackTokenActive(token)) return null;
-
-    const eventRes = await fetch(`https://ai4bharat-indic-parler-tts.hf.space/gradio_api/queue/data?session_hash=${sessionHash}`, {
-      signal: controller.signal,
-      headers: {
-        "Authorization": `Bearer ${hfToken}`
-      }
-    });
-
-    if (!eventRes.ok || !eventRes.body) {
-      throw new Error(`Indic-Parler stream failed: ${eventRes.status}`);
-    }
-
-    const reader = eventRes.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-
-    while (true) {
-      if (token !== undefined && !isPlaybackTokenActive(token)) {
-        reader.cancel();
-        return null;
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (useToken && hfToken && !hfToken.includes("your_token_here")) {
+        headers["Authorization"] = `Bearer ${hfToken}`;
       }
 
-      const { done, value } = await reader.read();
-      if (done) break;
+      const joinRes = await fetch("https://ai4bharat-indic-parler-tts.hf.space/gradio_api/queue/join", {
+        method: "POST",
+        signal: controller.signal,
+        headers,
+        body: JSON.stringify({
+          data: [cleanText, voiceDescription],
+          event_data: null,
+          fn_index: 1, // /generate_finetuned
+          trigger_id: 10,
+          session_hash: sessionHash
+        })
+      });
 
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split("\n");
-      buffer = lines.pop() || "";
+      if (!joinRes.ok) {
+        throw new Error(`Indic-Parler queue join failed: ${joinRes.status}`);
+      }
 
-      for (const line of lines) {
-        if (line.startsWith("data: ")) {
-          try {
-            const payload = JSON.parse(line.slice(6));
-            if (payload.msg === "process_completed") {
-              clearTimeout(timeoutId);
-              if (payload.output?.error) {
-                console.warn("[AIVoiceCloneEngine] Indic-Parler space notice:", payload.output.error);
-                throw new Error(String(payload.output.error));
-              }
-              const fileData = payload.output?.data?.[0];
-              const rawUrl = fileData?.url || fileData?.path;
-              if (rawUrl) {
-                const audioUrl = rawUrl.startsWith("http")
-                  ? rawUrl
-                  : `https://ai4bharat-indic-parler-tts.hf.space${rawUrl.startsWith("/") ? "" : "/"}${rawUrl}`;
+      if (token !== undefined && !isPlaybackTokenActive(token)) return null;
 
-                if (ttsAudioCache.size >= MAX_CACHE_ENTRIES) {
-                  const firstKey = ttsAudioCache.keys().next().value;
-                  if (firstKey) ttsAudioCache.delete(firstKey);
+      const streamHeaders: Record<string, string> = {};
+      if (useToken && hfToken && !hfToken.includes("your_token_here")) {
+        streamHeaders["Authorization"] = `Bearer ${hfToken}`;
+      }
+
+      const eventRes = await fetch(`https://ai4bharat-indic-parler-tts.hf.space/gradio_api/queue/data?session_hash=${sessionHash}`, {
+        signal: controller.signal,
+        headers: streamHeaders
+      });
+
+      if (!eventRes.ok || !eventRes.body) {
+        throw new Error(`Indic-Parler stream failed: ${eventRes.status}`);
+      }
+
+      const reader = eventRes.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        if (token !== undefined && !isPlaybackTokenActive(token)) {
+          reader.cancel();
+          return null;
+        }
+
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            try {
+              const payload = JSON.parse(line.slice(6));
+              if (payload.msg === "process_completed") {
+                clearTimeout(timeoutId);
+                if (payload.output?.error) {
+                  const errStr = String(payload.output.error);
+                  console.warn("[AIVoiceCloneEngine] Indic-Parler space notice:", errStr);
+                  throw new Error(errStr);
                 }
-                ttsAudioCache.set(cacheKey, audioUrl);
-                void storeAudioInPersistentCache(clientCacheKey, audioUrl, cleanText, lang);
-                return audioUrl;
+                const fileData = payload.output?.data?.[0];
+                const rawUrl = fileData?.url || fileData?.path;
+                if (rawUrl) {
+                  const audioUrl = rawUrl.startsWith("http")
+                    ? rawUrl
+                    : `https://ai4bharat-indic-parler-tts.hf.space${rawUrl.startsWith("/") ? "" : "/"}${rawUrl}`;
+
+                  if (ttsAudioCache.size >= MAX_CACHE_ENTRIES) {
+                    const firstKey = ttsAudioCache.keys().next().value;
+                    if (firstKey) ttsAudioCache.delete(firstKey);
+                  }
+                  ttsAudioCache.set(cacheKey, audioUrl);
+                  void storeAudioInPersistentCache(clientCacheKey, audioUrl, cleanText, lang);
+                  return audioUrl;
+                }
+              }
+            } catch (err) {
+              if (err instanceof Error && (err.message.includes("quota") || err.message.includes("ZeroGPU"))) {
+                throw err;
               }
             }
-          } catch {}
+          }
         }
       }
-    }
 
+      return null;
+    } finally {
+      clearTimeout(timeoutId);
+      unregisterAbort();
+    }
+  }
+
+  try {
+    return await attemptQueueCall(Boolean(hfToken));
+  } catch (err) {
+    if (hfToken) {
+      console.warn("[AIVoiceCloneEngine] Token failed, falling back to guest mode:", err instanceof Error ? err.message : String(err));
+      try {
+        return await attemptQueueCall(false);
+      } catch {
+        return null;
+      }
+    }
     return null;
-  } finally {
-    clearTimeout(timeoutId);
-    unregisterAbort();
   }
 }
 
