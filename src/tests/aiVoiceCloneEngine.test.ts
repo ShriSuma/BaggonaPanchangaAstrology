@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { synthesizeAndPlayClonedVoice, stopClonedAudio, getVoiceCloneConfig, resolveBestVedicVoice, saveVoiceCloneConfig } from "../features/audio/aiVoiceCloneEngine";
+import { synthesizeAndPlayClonedVoice, stopClonedAudio, getVoiceCloneConfig, resolveBestVedicVoice, saveVoiceCloneConfig, sanitizeTextForSpeech } from "../features/audio/aiVoiceCloneEngine";
 import { stopAllAudioGlobal } from "../features/audio/globalAudioManager";
 
 describe("AI Voice Clone Engine & Dynamic Neural TTS", () => {
@@ -225,6 +225,28 @@ describe("AI Voice Clone Engine & Dynamic Neural TTS", () => {
 
     it("returns null or fallback voice gracefully when voice list is empty", () => {
       expect(resolveBestVedicVoice([], "ta")).toBeNull();
+    });
+  });
+
+  describe("sanitizeTextForSpeech (Strict Rule: 100% accurate, zero blah-blah or symbol glitch)", () => {
+    it("strips emojis, markdown, and special icons", () => {
+      const raw = "🪔 ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿ ✨ **ಆಶೀರ್ವಾದ** 📜";
+      expect(sanitizeTextForSpeech(raw)).toBe("ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿ ಆಶೀರ್ವಾದ");
+    });
+
+    it("converts Sanskrit dandas to natural sentence pauses", () => {
+      const raw = "ದೀಪಜ್ಯೋತಿಃ ಪರಬ್ರಹ್ಮ । ದೀಪಜ್ಯೋತಿರ್ಜನಾರ್ದನಃ ॥";
+      expect(sanitizeTextForSpeech(raw)).toBe("ದೀಪಜ್ಯೋತಿಃ ಪರಬ್ರಹ್ಮ , ದೀಪಜ್ಯೋತಿರ್ಜನಾರ್ದನಃ .");
+    });
+
+    it("converts middle dots, bullets, slashes, and colons to natural commas without stuttering", () => {
+      const raw = "ಗುರು ಮகாதிசை · ಶನಿ புக்தி / ಸಂಕಲ್ಪ: ಜಯಸಿದ್ಧಿ...";
+      expect(sanitizeTextForSpeech(raw)).toBe("ಗುರು ಮகாதிசை , ಶನಿ புக்தி , ಸಂಕಲ್ಪ , ಜಯಸಿದ್ಧಿ .");
+    });
+
+    it("removes quotes, brackets, and parenthetical symbols", () => {
+      const raw = '["ಓಂ ನಮಃ ಶಿವಾಯ"] (ಮಂತ್ರ)';
+      expect(sanitizeTextForSpeech(raw)).toBe("ಓಂ ನಮಃ ಶಿವಾಯ ಮಂತ್ರ");
     });
   });
 });

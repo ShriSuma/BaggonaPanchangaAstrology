@@ -206,8 +206,10 @@ export const RemedyJapa11Counter: React.FC<RemedyJapa11CounterProps> = ({
     setIsPlayingPriestAudio(false);
     playTempleBellChime();
 
+    // STRICT USER MANDATE: "100% accurately whatever written, no blah blah added, only what is written clearly needs to be told."
+    // Recite ONLY the exact mantra written in the sacred box. Zero added deity prefix or calming benefit suffix.
     const currentShloka = remedyInfo.sanskritShlokaL5?.[lang] || remedyInfo.sanskritShloka;
-    const textToSpeak = remedyInfo.audioNarrationText?.[lang] || remedyInfo.audioNarrationText?.kn || `${remedyInfo.deityName[lang] || remedyInfo.deityName.kn}. ${currentShloka}. ${remedyInfo.calmingBenefit[lang] || remedyInfo.calmingBenefit.kn}`;
+    const textToSpeak = currentShloka;
 
     try {
       await synthesizeAndPlayClonedVoice(

@@ -406,15 +406,10 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
       return;
     }
 
-    // Full text dynamic recitation: Localized Sanskrit Mantra + Narration + Action Guide
+    // STRICT USER MANDATE: "100% accurately whatever written, no blah blah added, only what is written clearly needs to be told."
+    // Strictly recite ONLY the sacred mantra text. Zero added narration, zero action guide commands.
     const mantraText = stepObj.sanskritMantraL5?.[lang || "kn"] || stepObj.sanskritMantra;
-    const stepNarration = stepObj.narrationText[lang || "kn"] || stepObj.narrationText.kn;
-    const stepAction = stepObj.actionGuide[lang || "kn"] || stepObj.actionGuide.kn;
-
-    const cleanMantra = (mantraText || "").trim();
-    const cleanNarration = (stepNarration || "").trim();
-    const cleanAction = (stepAction || "").trim();
-    const speechText = `${cleanMantra}\n\n${cleanNarration}\n\n${cleanAction}`;
+    const speechText = (mantraText || "").trim();
 
     const cancelFn = speakPriestNarration(
       speechText,

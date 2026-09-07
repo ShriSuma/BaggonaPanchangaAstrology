@@ -228,15 +228,17 @@ export const PersonalGoldenHourWidget: React.FC<PersonalGoldenHourWidgetProps> =
     playTempleBellChime();
     setIsLoadingChant(true);
 
-    const chantText = lang === "kn"
-      ? `ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ. ${devoteeName} ಅವರ ವೈಯಕ್ತಿಕ ಗೋಲ್ಡನ್ ಮುಹೂರ್ತ ಸಮಯ ${goldenHour.startTimeStr} ರಿಂದ ${goldenHour.endTimeStr}. ಓಂ ನಮಃ ಶಿವಾಯ.`
+    // STRICT USER MANDATE: "100% accurately whatever written, no blah blah added, only what is written clearly needs to be told."
+    // Recite strictly the sacred Om Namah Shivaya chant. Zero added meta text.
+    const chantText = lang === "ta"
+      ? "ஓம் நம சிவாய."
       : lang === "te"
-      ? `శ్రీ మహాబలేశ్వర ప్రసన్నం. ${devoteeName} గారి వ్యక్తిగత గోల్డెన్ ముహూర్తం సమయం ${goldenHour.startTimeStr} నుండి ${goldenHour.endTimeStr}. ఓం నమః శివాయ.`
-      : lang === "ta"
-      ? `ஸ்ரீ மகாபலேஸ்வரர் அருள். ${devoteeName} அவர்களின் தனிப்பட்ட பொன் முகூர்த்த நேரம் ${goldenHour.startTimeStr} முதல் ${goldenHour.endTimeStr}. ஓம் நம சிவாய.`
+      ? "ఓం నమః శివాయ."
       : lang === "hi"
-      ? `श्री महाबलेश्वर प्रसन्न। ${devoteeName} जी का व्यक्तिगत गोल्डन मुहूर्त समय ${goldenHour.startTimeStr} से ${goldenHour.endTimeStr}। ॐ नमः शिवाय।`
-      : `Sri Mahabaleshwara Blessed. Personal Golden Hour for ${devoteeName} is from ${goldenHour.startTimeStr} to ${goldenHour.endTimeStr}. Om Namah Shivaya.`;
+      ? "ॐ नमः शिवाय।"
+      : lang === "en"
+      ? "Om Namah Shivaya."
+      : "ಓಂ ನಮಃ ಶಿವಾಯ.";
 
     speakPriestNarration(
       chantText,

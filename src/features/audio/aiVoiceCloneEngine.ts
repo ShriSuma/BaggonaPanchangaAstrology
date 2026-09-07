@@ -146,6 +146,39 @@ const ttsAudioCache = new Map<string, string>();
 const MAX_CACHE_ENTRIES = 50;
 
 /**
+ * STRICT USER MANDATE:
+ * "Could you please check whole sentence are clearly 100% strict rules where 100% accurately whatever written,
+ * no blah blah added, only what is written clearly needs to be told."
+ * 
+ * Sanitizes speech text to remove all formatting artifacts, emojis, special punctuation
+ * (dandas, middle dots, bullets, brackets, slashes) that cause speech engines
+ * to stutter, babble, or produce gibberish ("blah blah") in between words.
+ */
+export function sanitizeTextForSpeech(text: string): string {
+  if (!text) return "";
+  return text
+    // Strip all emojis and pictographs using standard Unicode property escapes
+    .replace(/\p{Extended_Pictographic}/gu, " ")
+    .replace(/\p{Emoji_Presentation}/gu, " ")
+    // Replace Sanskrit double and single dandas with clean sentence stops
+    .replace(/॥/g, " . ")
+    .replace(/।/g, " , ")
+    // Replace middle dots, bullets, slashes, pipes with natural speech pauses
+    .replace(/[·•|/]/g, " , ")
+    // Replace colons and semicolons with commas for natural speech cadence
+    .replace(/[:;]/g, " , ")
+    // Replace multiple dots / ellipses with single sentence stop
+    .replace(/\.{2,}/g, " . ")
+    // Remove quotes, brackets, asterisks, formatting symbols
+    .replace(/["'""'«»()[\]{}*#_~`^]/g, "")
+    // Normalize dashes to simple pauses
+    .replace(/[—–-]/g, " ")
+    // Normalize excessive whitespace & linebreaks
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
  * High-Precision Multi-Engine AI Voice Cloning Synthesizer:
  * 1. Tries Sarvam AI Indic Neural TTS (India's native Kannada Bulbul:v3 engine)
  * 2. Tries ElevenLabs if configured with custom key
@@ -164,6 +197,13 @@ export async function synthesizeAndPlayClonedVoice(
 ): Promise<() => void> {
   const token = startNewAudioSession();
 
+  // STRICT USER MANDATE: Exactly what is written, sanitized for zero "blah blah" or punctuation glitches
+  const cleanText = sanitizeTextForSpeech(text);
+  if (!cleanText) {
+    if (onEnd) onEnd();
+    return () => {};
+  }
+
   const profile = getVoiceProfileById(voiceId);
   const config = getVoiceCloneConfig();
 
@@ -171,7 +211,7 @@ export async function synthesizeAndPlayClonedVoice(
   const activeHfKey = config.hfApiKey || (import.meta as any).env?.VITE_HF_API_KEY || "";
   if (config.provider === "indic_parler" || (!config.provider && activeHfKey)) {
     try {
-      const audioUrl = await fetchIndicParlerTTS(text, lang, activeHfKey, token);
+      const audioUrl = await fetchIndicParlerTTS(cleanText, lang, activeHfKey, token);
       if (!isPlaybackTokenActive(token)) return () => {};
       if (audioUrl) {
         return playAudioUrl(audioUrl, onEnd, token, onStart);
@@ -188,7 +228,7 @@ export async function synthesizeAndPlayClonedVoice(
   if (config.provider === "sarvam_ai" && activeSarvamKey) {
     try {
       const audioUrl = await fetchSarvamAITTS(
-        text,
+        cleanText,
         lang,
         activeSarvamKey,
         config.sarvamSpeaker || "gokul",
@@ -208,7 +248,7 @@ export async function synthesizeAndPlayClonedVoice(
   // 2. Try ElevenLabs if configured with custom key and voice ID
   if (config.provider === "elevenlabs" && config.elevenLabsApiKey && config.elevenLabsVoiceId) {
     try {
-      const audioUrl = await fetchElevenLabsTTS(text, config.elevenLabsApiKey, config.elevenLabsVoiceId);
+      const audioUrl = await fetchElevenLabsTTS(cleanText, config.elevenLabsApiKey, config.elevenLabsVoiceId);
       if (!isPlaybackTokenActive(token)) return () => {};
       if (audioUrl) {
         return playAudioUrl(audioUrl, onEnd, token, onStart);
@@ -223,7 +263,7 @@ export async function synthesizeAndPlayClonedVoice(
   // 3. Try Hugging Face XTTS Zero-Shot API if configured
   if (config.provider === "huggingface_xtts" && config.hfApiKey && profile.sampleAudioUrl) {
     try {
-      const audioUrl = await fetchHuggingFaceXTTS(text, lang, config.hfApiKey, profile.sampleAudioUrl, config.hfModelUrl);
+      const audioUrl = await fetchHuggingFaceXTTS(cleanText, lang, config.hfApiKey, profile.sampleAudioUrl, config.hfModelUrl);
       if (!isPlaybackTokenActive(token)) return () => {};
       if (audioUrl) {
         return playAudioUrl(audioUrl, onEnd, token, onStart);
@@ -308,7 +348,7 @@ export async function fetchIndicParlerTTS(
   hfToken: string = (import.meta as any).env?.VITE_HF_API_KEY || "",
   token?: number
 ): Promise<string | null> {
-  const cleanText = text.trim();
+  const cleanText = sanitizeTextForSpeech(text);
   if (!cleanText) return null;
 
   const cacheKey = `indic_parler_${lang}_${cleanText}`;
@@ -503,7 +543,7 @@ async function fetchSarvamAITTS(
   speaker = "gokul",
   pace = 0.90
 ): Promise<string | null> {
-  const cleanText = text.trim();
+  const cleanText = sanitizeTextForSpeech(text);
   if (!cleanText) return null;
 
   const cleanApiKey = apiKey.trim().replace(/^["']|["']$/g, "");

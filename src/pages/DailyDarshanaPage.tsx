@@ -2266,7 +2266,8 @@ export default function DailyDarshanaPage(): JSX.Element {
     const activeShloka = typeof deity.shloka === "object"
       ? ((deity.shloka as any)[lang] || (deity.shloka as any).kn || "")
       : (deity.shloka || "");
-    const fullChantText = `${activeShloka} । ${mantraText}`;
+    // STRICT USER MANDATE: Exactly what is written, clean natural pause between shloka and mantra. Zero added text.
+    const fullChantText = activeShloka ? `${activeShloka}. ${mantraText}` : mantraText;
     const translitChant = deity.transliteration;
 
     if (activeVoiceKey === "mantra" && (activeVoiceState === "loading" || activeVoiceState === "playing")) {
