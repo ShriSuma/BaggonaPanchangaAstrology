@@ -59,4 +59,18 @@ describe("Global Cross-Tab Audio Coordinator", () => {
     expect(mockAudio.currentTime).toBe(0);
     expect(mockAudio.src).toBe("");
   });
+
+  it("does NOT notify UI listeners when startNewAudioSession is called, preserving caller loading state", () => {
+    const listener = vi.fn();
+    const unreg = onGlobalAudioStop(listener);
+
+    startNewAudioSession();
+
+    expect(listener).not.toHaveBeenCalled();
+
+    stopAllAudioGlobal();
+    expect(listener).toHaveBeenCalledTimes(1);
+
+    unreg();
+  });
 });

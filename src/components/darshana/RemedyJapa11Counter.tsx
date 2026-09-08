@@ -194,7 +194,8 @@ export const RemedyJapa11Counter: React.FC<RemedyJapa11CounterProps> = ({
   };
 
   const handleTogglePriestAudio = async () => {
-    if (isPlayingPriestAudio || isLoadingPriestAudio) {
+    if (isLoadingPriestAudio) return;
+    if (isPlayingPriestAudio) {
       stopAllAudioGlobal();
       setIsPlayingPriestAudio(false);
       setIsLoadingPriestAudio(false);
@@ -257,13 +258,15 @@ export const RemedyJapa11Counter: React.FC<RemedyJapa11CounterProps> = ({
 
         {/* Listen with Priest Audio Button */}
         <button
+          type="button"
+          disabled={isLoadingPriestAudio}
           onClick={handleTogglePriestAudio}
           className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-md ${
             isPlayingPriestAudio
-              ? "bg-rose-600 text-white animate-pulse shadow-rose-900/50"
+              ? "bg-rose-600 text-white animate-pulse shadow-rose-900/50 cursor-pointer"
               : isLoadingPriestAudio
-              ? "bg-amber-800 text-amber-100 shadow-amber-950/50"
-              : "bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-amber-950 hover:text-black shadow-amber-900/40 hover:scale-[1.02]"
+              ? "bg-amber-900/90 text-amber-200 border border-amber-500/50 shadow-amber-950/50 cursor-not-allowed opacity-90"
+              : "bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-amber-950 hover:text-black shadow-amber-900/40 hover:scale-[1.02] cursor-pointer"
           }`}
         >
           {isPlayingPriestAudio ? (

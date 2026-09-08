@@ -2230,7 +2230,10 @@ export default function DailyDarshanaPage(): JSX.Element {
   const isMantraPlaying = activeVoiceKey === "mantra" && activeVoiceState === "playing";
 
   const toggleBenedictionVoice = async () => {
-    if (activeVoiceKey === "benediction" && (activeVoiceState === "loading" || activeVoiceState === "playing")) {
+    if (activeVoiceKey === "benediction" && activeVoiceState === "loading") {
+      return;
+    }
+    if (activeVoiceKey === "benediction" && activeVoiceState === "playing") {
       stopAllAudioGlobal();
       setActiveVoiceKey("none");
       setActiveVoiceState("idle");
@@ -2270,7 +2273,10 @@ export default function DailyDarshanaPage(): JSX.Element {
     const fullChantText = activeShloka ? `${activeShloka}. ${mantraText}` : mantraText;
     const translitChant = deity.transliteration;
 
-    if (activeVoiceKey === "mantra" && (activeVoiceState === "loading" || activeVoiceState === "playing")) {
+    if (activeVoiceKey === "mantra" && activeVoiceState === "loading") {
+      return;
+    }
+    if (activeVoiceKey === "mantra" && activeVoiceState === "playing") {
       stopAllAudioGlobal();
       setActiveVoiceKey("none");
       setActiveVoiceState("idle");
@@ -3097,6 +3103,7 @@ export default function DailyDarshanaPage(): JSX.Element {
                 </button>
                 <button
                   type="button"
+                  disabled={isMantraLoading}
                   onClick={toggleMantraVoice}
                   style={{
                     background: isMantraPlaying
@@ -3110,7 +3117,8 @@ export default function DailyDarshanaPage(): JSX.Element {
                     borderRadius: 20,
                     fontSize: 12,
                     fontWeight: 900,
-                    cursor: "pointer",
+                    cursor: isMantraLoading ? "not-allowed" : "pointer",
+                    opacity: isMantraLoading ? 0.85 : 1,
                     boxShadow: "0 4px 14px rgba(245, 158, 11, 0.4)",
                     display: "inline-flex",
                     alignItems: "center",
@@ -3149,6 +3157,7 @@ export default function DailyDarshanaPage(): JSX.Element {
                 <span>📜 {(PRIEST_BENEDICTION_TITLES[lang] || PRIEST_BENEDICTION_TITLES.en)(localizedPandit)}</span>
                 <button
                   type="button"
+                  disabled={isBenedictionLoading}
                   onClick={toggleBenedictionVoice}
                   style={{
                     background: isBenedictionPlaying
@@ -3162,7 +3171,8 @@ export default function DailyDarshanaPage(): JSX.Element {
                     borderRadius: 12,
                     fontSize: 11,
                     fontWeight: 800,
-                    cursor: "pointer",
+                    cursor: isBenedictionLoading ? "not-allowed" : "pointer",
+                    opacity: isBenedictionLoading ? 0.85 : 1,
                     display: "inline-flex",
                     alignItems: "center",
                     gap: 5,

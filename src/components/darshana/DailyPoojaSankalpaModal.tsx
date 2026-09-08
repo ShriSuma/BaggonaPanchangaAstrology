@@ -281,7 +281,6 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
   const { sankalpas, loadSankalpas } = useSankalpaStore();
 
   const [mode, setMode] = useState<"priest_guided" | "self_guided">("priest_guided");
-  const [isAutoPlay, setIsAutoPlay] = useState<boolean>(true);
   const [step, setStep] = useState<number>(1);
   const [isLampLit, setIsLampLit] = useState(false);
   const [showAkshataAnimation, setShowAkshataAnimation] = useState(false);
@@ -292,7 +291,6 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
   const [isManageSankalpaOpen, setIsManageSankalpaOpen] = useState(false);
 
   const devoteeKey = devoteeId || (devoteeName ? devoteeName.toLowerCase().replace(/[^a-z0-9]/g, "_") : "devotee_default");
-  const autoPlayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const activeAudioCancelRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
@@ -333,9 +331,8 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
         setStep(1);
         setIsLampLit(false);
       }
-      if (mode === "priest_guided" && !current.isCompletedToday && isProperAudioAvailableForStep(1, lang)) {
-        playStepPriestAudio(1);
-      }
+      // STRICT USER MANDATE: Never auto-play audio upon opening pooja modal.
+      // Audio is 100% on-demand when devotee explicitly clicks "ಧ್ವನಿ ಕೇಳಿ".
     } else {
       cleanupAudioAndTimers();
     }
@@ -349,10 +346,6 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
     const unregister = onGlobalAudioStop(() => {
       setIsAudioPlaying(false);
       setIsAudioLoading(false);
-      if (autoPlayTimerRef.current) {
-        clearTimeout(autoPlayTimerRef.current);
-        autoPlayTimerRef.current = null;
-      }
     });
     return () => {
       unregister();
@@ -370,10 +363,6 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
     stopAllAudioGlobal();
     setIsAudioPlaying(false);
     setIsAudioLoading(false);
-    if (autoPlayTimerRef.current) {
-      clearTimeout(autoPlayTimerRef.current);
-      autoPlayTimerRef.current = null;
-    }
   };
 
   const handleCloseModal = () => {
@@ -418,18 +407,8 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
         setIsAudioPlaying(false);
         setIsAudioLoading(false);
         activeAudioCancelRef.current = null;
-        // Automatic continuous transition for 2 to 5 minutes hands-free sacred pooja
-        if (isAutoPlay) {
-          if (targetStep < totalSteps) {
-            autoPlayTimerRef.current = setTimeout(() => {
-              handleNextStep(targetStep + 1);
-            }, 1200);
-          } else if (targetStep === totalSteps) {
-            autoPlayTimerRef.current = setTimeout(() => {
-              handleCompletePooja();
-            }, 1500);
-          }
-        }
+        // STRICT USER MANDATE: ZERO AUTO-ADVANCE!
+        // Never jump to the next step automatically. The user is in full control of their pooja pace.
       },
       undefined,
       voiceId,
@@ -442,6 +421,7 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
   };
 
   const handleNextStep = (nextStepNum?: number) => {
+    cleanupAudioAndTimers();
     const next = nextStepNum !== undefined ? nextStepNum : step + 1;
 
     if (next === 2) {
@@ -458,21 +438,19 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
 
     if (next <= totalSteps) {
       setStep(next);
-      if (mode === "priest_guided" && isProperAudioAvailableForStep(next, lang)) {
-        playStepPriestAudio(next);
-      }
+      // STRICT USER MANDATE: Never auto-play audio on step transition.
+      // Devotee will explicitly click "ಧ್ವನಿ ಕೇಳಿ" if they wish to hear the mantra.
     } else {
       handleCompletePooja();
     }
   };
 
   const handlePrevStep = () => {
+    cleanupAudioAndTimers();
     if (step > 1) {
       const prev = step - 1;
       setStep(prev);
-      if (mode === "priest_guided" && isProperAudioAvailableForStep(prev, lang)) {
-        playStepPriestAudio(prev);
-      }
+      // STRICT USER MANDATE: Never auto-play audio on step transition.
     }
   };
 
@@ -979,10 +957,11 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <button
                       type="button"
+                      disabled={isAudioLoading}
                       onClick={() => {
-                        if (isAudioPlaying || isAudioLoading) {
+                        if (isAudioPlaying) {
                           cleanupAudioAndTimers();
-                        } else {
+                        } else if (!isAudioLoading) {
                           playStepPriestAudio(step);
                         }
                       }}
@@ -998,7 +977,8 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
                         padding: "8px 14px",
                         fontSize: 12,
                         fontWeight: 800,
-                        cursor: "pointer",
+                        cursor: isAudioLoading ? "not-allowed" : "pointer",
+                        opacity: isAudioLoading ? 0.85 : 1,
                         display: "flex",
                         alignItems: "center",
                         gap: 6

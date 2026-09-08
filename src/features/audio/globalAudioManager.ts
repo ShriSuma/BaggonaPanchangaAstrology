@@ -130,8 +130,11 @@ export function onGlobalAudioStop(callback: () => void): () => void {
 
 /**
  * Stops all audio strictly within the CURRENT tab (without re-broadcasting).
+ * @param notifyListeners If true, executes all registered UI stopListeners.
+ *                        Defaults to true. Set to false during startNewAudioSession()
+ *                        so newly initiated caller loading states are not wiped out before audio starts.
  */
-export function stopAllAudioLocal(): void {
+export function stopAllAudioLocal(notifyListeners: boolean = true): void {
   currentPlaybackToken++;
 
   // 1. Abort all in-flight fetch requests (Sarvam AI, ElevenLabs)
@@ -170,12 +173,14 @@ export function stopAllAudioLocal(): void {
   }
   activeAudioContexts.clear();
 
-  // 5. Notify all UI listeners
-  for (const listener of stopListeners) {
-    try {
-      listener();
-    } catch (err) {
-      console.warn("[GlobalAudioManager] Error in stopListener:", err);
+  // 5. Notify all UI listeners (only when requested)
+  if (notifyListeners) {
+    for (const listener of stopListeners) {
+      try {
+        listener();
+      } catch (err) {
+        console.warn("[GlobalAudioManager] Error in stopListener:", err);
+      }
     }
   }
 }
@@ -184,7 +189,7 @@ export function stopAllAudioLocal(): void {
  * Stops all audio in the current tab AND broadcasts the kill signal to all other open tabs/windows.
  */
 export function stopAllAudioGlobal(): void {
-  stopAllAudioLocal();
+  stopAllAudioLocal(true);
 
   // Broadcast to other tabs via BroadcastChannel
   if (syncChannel) {
@@ -215,12 +220,41 @@ export function stopAllAudioGlobal(): void {
 
 /**
  * Starts a new audio session:
- * 1. Immediately stops all other audio across all tabs.
- * 2. Returns a new unique playback token.
- * 3. The caller MUST check `isPlaybackTokenActive(token)` after any async gap before playing sound.
+ * 1. Immediately stops all other active audio and aborts pending network requests in the current tab.
+ * 2. Broadcasts kill signal to other tabs so they terminate any playing audio.
+ * 3. Does NOT notify current tab's stopListeners, preserving the caller's newly set loading state.
+ * 4. Returns a new unique playback token.
+ * 5. The caller MUST check `isPlaybackTokenActive(token)` after any async gap before playing sound.
  */
 export function startNewAudioSession(): number {
-  stopAllAudioGlobal();
+  stopAllAudioLocal(false);
+
+  // Broadcast to other tabs via BroadcastChannel so other tabs stop playing
+  if (syncChannel) {
+    try {
+      syncChannel.postMessage({
+        type: "STOP_ALL_AUDIO",
+        sourceTabId: CURRENT_TAB_ID,
+        timestamp: Date.now()
+      });
+    } catch (err) {
+      console.warn("[GlobalAudioManager] BroadcastChannel postMessage error:", err);
+    }
+  }
+
+  // Fallback broadcast via LocalStorage
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.setItem(
+        STORAGE_KILL_KEY,
+        JSON.stringify({
+          sourceTabId: CURRENT_TAB_ID,
+          timestamp: Date.now()
+        })
+      );
+    } catch {}
+  }
+
   return currentPlaybackToken;
 }
 
