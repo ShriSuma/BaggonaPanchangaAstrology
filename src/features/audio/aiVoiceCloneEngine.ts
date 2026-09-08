@@ -175,28 +175,32 @@ export function sanitizeTextForSpeech(text: string): string {
     .trim();
 }
 
+// Silent MP3 base64 string to unlock autoplay immediately upon click
+export const SILENT_MP3_UNLOCK =
+  "data:audio/mp3;base64,//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq";
+
 /**
- * Real-time Streaming AI Text-to-Speech Engine
+ * Real-time AI Text-to-Speech Engine
  * 
- * Uses GET endpoint and assigns directly to a standard Audio object immediately inside the click handler:
- * 1. Stops any currently playing audio immediately.
- * 2. Constructs GET URL for instant chunked streaming with cache-busting timestamp (&t=).
- * 3. Creates Audio object and calls audio.play() immediately in the click event to satisfy browser autoplay policies.
+ * Uses fetch POST request converting response to Blob with a silent-audio autoplay unlocker:
+ * 1. Stops old audio and unlocks the browser's audio engine instantly upon user interaction.
+ * 2. Fetches audio using our normal TTS POST endpoint.
+ * 3. Converts response to a Blob and plays it through the unlocked audio element.
  */
-export function handleGenerateAudio(
+export async function handleGenerateAudio(
   text: string,
   voiceId: string = "voice_sriram_pandit",
   onEnd?: () => void,
   onStart?: () => void,
   onError?: (error: any) => void
-): HTMLAudioElement | null {
+): Promise<HTMLAudioElement | null> {
   const cleanText = sanitizeTextForSpeech(text);
   if (!cleanText) {
     if (onEnd) onEnd();
     return null;
   }
 
-  // 1. Stop any currently playing audio immediately
+  // 1. Stop old audio and unlock the browser's audio engine instantly
   if (currentAudio) {
     try {
       currentAudio.pause();
@@ -206,75 +210,98 @@ export function handleGenerateAudio(
     currentAudio = null;
   }
 
-  // 2. Construct the GET URL for instant streaming
-  // We add a timestamp (&t=) to bypass browser caching
-  const targetVoiceId = voiceId || "voice_sriram_pandit";
-  const ttsUrl = `https://indian-language-voici-clone-tts-7273.ai.studio/api/admin/tts-stream?voice_id=${targetVoiceId}&text=${encodeURIComponent(cleanText)}&t=${Date.now()}`;
-
-  // 3. Create the audio object and play it immediately in the click event
-  const audio = new Audio(ttsUrl);
-  currentAudio = audio;
-
+  currentAudio = new Audio();
+  const audio = currentAudio;
   const unregister = registerActiveAudio(audio);
 
-  let hasStarted = false;
-  const notifyStart = () => {
-    if (!hasStarted) {
-      hasStarted = true;
-      if (onStart) onStart();
-    }
-  };
+  // Silent MP3 base64 string to unlock autoplay immediately upon click
+  audio.src = SILENT_MP3_UNLOCK;
+  audio.play().catch(() => {});
 
-  audio.addEventListener("playing", notifyStart);
-  audio.addEventListener("play", notifyStart);
-
-  audio.addEventListener("ended", () => {
-    unregister();
-    if (currentAudio === audio) {
-      currentAudio = null;
-    }
-    if (onEnd) onEnd();
-  });
-
-  audio.addEventListener("error", (e) => {
-    console.error("[AIVoiceCloneEngine] Audio playback error:", e, audio.error);
-    unregister();
-    if (currentAudio === audio) {
-      currentAudio = null;
-    }
-    if (onError) onError(audio.error || e);
-    if (onEnd) onEnd();
-  });
+  const targetVoiceId = voiceId || "voice_sriram_pandit";
 
   try {
-    const playPromise = audio.play();
-    if (playPromise && typeof playPromise.catch === "function") {
-      playPromise.catch((error) => {
-        console.error("Audio playback was blocked:", error);
-        unregister();
-        if (currentAudio === audio) {
-          currentAudio = null;
-        }
-        if (onError) onError(error);
-        if (onEnd) onEnd();
-      });
+    // 2. Fetch the audio using our normal TTS POST endpoint
+    const response = await fetch("https://indian-language-voici-clone-tts-7273.ai.studio/api/admin/tts-stream", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ voice_id: targetVoiceId, text: cleanText })
+    });
+
+    if (!response.ok) throw new Error(`TTS Generation failed (${response.status})`);
+
+    // 3. Convert the response to a Blob and play it through the unlocked audio element
+    const rawBlob = await response.blob();
+    const blob = rawBlob.type.includes("audio") ? rawBlob : new Blob([rawBlob], { type: "audio/mpeg" });
+    const audioUrl = URL.createObjectURL(blob);
+
+    // If audio was cancelled or changed while fetching, discard
+    if (currentAudio !== audio) {
+      URL.revokeObjectURL(audioUrl);
+      unregister();
+      return null;
     }
-  } catch (error) {
-    console.error("Audio playback was blocked:", error);
+
+    audio.src = audioUrl;
+
+    let hasStarted = false;
+    const notifyStart = () => {
+      if (!hasStarted) {
+        hasStarted = true;
+        if (onStart) onStart();
+      }
+    };
+
+    audio.addEventListener("playing", notifyStart, { once: true });
+    audio.addEventListener("play", notifyStart, { once: true });
+
+    audio.addEventListener("ended", () => {
+      URL.revokeObjectURL(audioUrl);
+      unregister();
+      if (currentAudio === audio) {
+        currentAudio = null;
+      }
+      if (onEnd) onEnd();
+    }, { once: true });
+
+    audio.addEventListener("error", (e) => {
+      console.error("[AIVoiceCloneEngine] Audio playback error:", e, audio.error);
+      URL.revokeObjectURL(audioUrl);
+      unregister();
+      if (currentAudio === audio) {
+        currentAudio = null;
+      }
+      if (onError) onError(audio.error || e);
+      if (onEnd) onEnd();
+    }, { once: true });
+
+    audio.play().catch((e) => {
+      console.error("Audio playback error:", e);
+      URL.revokeObjectURL(audioUrl);
+      unregister();
+      if (currentAudio === audio) {
+        currentAudio = null;
+      }
+      if (onError) onError(e);
+      if (onEnd) onEnd();
+    });
+
+    return audio;
+  } catch (err) {
+    console.error("[AIVoiceCloneEngine] TTS Generation error:", err);
     unregister();
     if (currentAudio === audio) {
       currentAudio = null;
     }
-    if (onError) onError(error);
+    if (onError) onError(err);
     if (onEnd) onEnd();
+    return null;
   }
-
-  return audio;
 }
 
 /**
- * Synthesizes and plays cloned voice using the Custom Studio GET streaming endpoint.
- * Synchronously starts playback inside the user's click interaction for 100% autoplay compliance.
+ * Synthesizes and plays cloned voice using the Custom Studio POST endpoint with silent unlocker.
+ * Pre-unlocks audio synchronously in click event, then streams the Blob seamlessly.
  */
 export async function synthesizeAndPlayClonedVoice(
   text: string,
@@ -284,24 +311,47 @@ export async function synthesizeAndPlayClonedVoice(
   onStart?: () => void,
   _fallbackTransliteration?: string
 ): Promise<() => void> {
-  const audio = handleGenerateAudio(text, voiceId || "voice_sriram_pandit", onEnd, onStart);
+  let isCancelled = false;
+  const targetVoiceId = voiceId || "voice_sriram_pandit";
+
+  const audioPromise = handleGenerateAudio(
+    text,
+    targetVoiceId,
+    () => {
+      if (!isCancelled && onEnd) onEnd();
+    },
+    () => {
+      if (!isCancelled && onStart) onStart();
+    }
+  );
 
   return () => {
-    if (audio) {
-      try {
-        audio.pause();
-        audio.currentTime = 0;
-        audio.src = "";
-      } catch {}
-      if (currentAudio === audio) {
-        currentAudio = null;
+    isCancelled = true;
+    audioPromise.then((audio) => {
+      if (audio) {
+        try {
+          audio.pause();
+          audio.currentTime = 0;
+          audio.src = "";
+        } catch {}
+        if (currentAudio === audio) {
+          currentAudio = null;
+        }
       }
+    });
+    if (currentAudio) {
+      try {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+        currentAudio.src = "";
+      } catch {}
+      currentAudio = null;
     }
   };
 }
 
 /**
- * Stream alias delegating directly to handleGenerateAudio
+ * Stream alias delegating directly to synthesizeAndPlayClonedVoice
  */
 export async function streamCustomStudioTTS(
   text: string,
@@ -309,18 +359,7 @@ export async function streamCustomStudioTTS(
   onStart?: () => void,
   _token?: number
 ): Promise<(() => void) | null> {
-  const audio = handleGenerateAudio(text, "voice_sriram_pandit", onEnd, onStart);
-  if (!audio) return null;
-  return () => {
-    try {
-      audio.pause();
-      audio.currentTime = 0;
-      audio.src = "";
-    } catch {}
-    if (currentAudio === audio) {
-      currentAudio = null;
-    }
-  };
+  return synthesizeAndPlayClonedVoice(text, "kn", "voice_sriram_pandit", onEnd, onStart);
 }
 
 /**
