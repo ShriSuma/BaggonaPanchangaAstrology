@@ -14,4 +14,5 @@ list_models_prod.mjs
 test_*.mjs
 scratch/
 *.mjs
-!lib/indicTtsCore.mjs
+!lib/*.mjs
+!api/*.mjs
