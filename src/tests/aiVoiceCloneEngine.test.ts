@@ -285,39 +285,35 @@ describe("AI Voice Clone Engine & Dynamic Neural TTS", () => {
     globalThis.Audio = originalAudio;
   });
 
-  it("dynamically synthesizes audio via Sarvam AI API when provider is explicitly set to sarvam_ai", async () => {
-    saveVoiceCloneConfig({ provider: "sarvam_ai" });
+  it("strictly enforces Sarvam AI is completely decommissioned and routes to Custom Studio TTS endpoint", async () => {
+    // Even if legacy state had sarvam_ai, it must be migrated to studio_stream and NEVER call sarvam.ai
+    saveVoiceCloneConfig({ provider: "sarvam_ai" as any });
+
+    let readCount = 0;
+    const mockReader = {
+      read: vi.fn().mockImplementation(() => {
+        readCount++;
+        if (readCount === 1) {
+          return Promise.resolve({
+            done: false,
+            value: new Uint8Array([0x00, 0x10, 0x00, 0x20])
+          });
+        }
+        return Promise.resolve({ done: true, value: undefined });
+      }),
+      cancel: vi.fn().mockResolvedValue(undefined)
+    };
 
     const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce({
       ok: true,
-      json: async () => ({
-        audios: ["UklGRi4AAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA="]
-      })
+      status: 200,
+      body: {
+        getReader: () => mockReader
+      }
     } as any);
 
     const onStart = vi.fn();
     const onEnd = vi.fn();
-
-    const playMock = vi.fn().mockImplementation(function (this: HTMLAudioElement) {
-      if (this.onplay) (this.onplay as any)();
-      return Promise.resolve();
-    });
-
-    const originalAudio = globalThis.Audio;
-    globalThis.Audio = class {
-      src = "";
-      onplay: any = null;
-      onended: any = null;
-      onerror: any = null;
-      play = playMock;
-      pause = vi.fn();
-      currentTime = 0;
-      addEventListener = vi.fn();
-      removeEventListener = vi.fn();
-      constructor(src?: string) {
-        if (src) this.src = src;
-      }
-    } as any;
 
     const stopFn = await synthesizeAndPlayClonedVoice(
       "ಶ್ರೀ ಗಣಪತಯೇ ನಮಃ",
@@ -327,18 +323,30 @@ describe("AI Voice Clone Engine & Dynamic Neural TTS", () => {
       onStart
     );
 
+    // Verify Sarvam AI is NEVER called
+    const sarvamCalls = fetchSpy.mock.calls.filter(call => String(call[0]).includes("sarvam.ai"));
+    expect(sarvamCalls.length).toBe(0);
+
+    // Verify Custom Studio TTS endpoint is called instead
     expect(fetchSpy).toHaveBeenCalledTimes(1);
     expect(fetchSpy).toHaveBeenCalledWith(
-      "https://api.sarvam.ai/text-to-speech",
+      "https://indian-language-voici-clone-tts-7273.ai.studio/api/admin/tts-stream",
       expect.objectContaining({
         method: "POST",
-        body: expect.stringContaining("kn-IN")
+        headers: expect.objectContaining({
+          "Content-Type": "application/json",
+          "xi-api-key": expect.any(String)
+        })
       })
     );
-    expect(onStart).toHaveBeenCalledTimes(1);
+
+    const callPayload = JSON.parse((fetchSpy.mock.calls[0][1] as any).body);
+    expect(callPayload.voice_id).toBe("voice_sriram_pandit");
+    expect(callPayload.text).toBe("ಶ್ರೀ ಗಣಪತಯೇ ನಮಃ");
+    expect(callPayload.language).toBeUndefined();
+    expect(callPayload.lang).toBeUndefined();
 
     stopFn();
-    globalThis.Audio = originalAudio;
   });
 
   describe("resolveBestVedicVoice - Multi-Lingual Indic Speech Resolution Guard", () => {

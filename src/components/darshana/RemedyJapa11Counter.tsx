@@ -111,7 +111,7 @@ const REMEDY_COUNTER_TEXTS: Record<SevaLang, {
     unlockedReward: "🌟 New Milestone Unlocked: ",
     chantAgain: "Chant 11 Times Again",
     loaderTitle: "Synthesizing Vedic Remedy Mantra Voice...",
-    loaderSubtitle: "Synthesizing Vedic personal remedy chant via Sarvam AI Indic Neural TTS, please wait a moment."
+    loaderSubtitle: "Streaming Vedic personal remedy chant in real time, please wait a moment."
   }
 };
 
@@ -405,7 +405,7 @@ export const RemedyJapa11Counter: React.FC<RemedyJapa11CounterProps> = ({
         </div>
       )}
 
-      {/* Prominent Vedic Audio Loader Modal for Sarvam AI Voice */}
+      {/* Prominent Vedic Audio Loader Modal for Sacred Voice */}
       <VedicAudioLoaderModal
         isOpen={isLoadingPriestAudio}
         onCancel={() => {

@@ -3814,7 +3814,7 @@ export default function DailyDarshanaPage(): JSX.Element {
         onOpenPooja={() => setIsPoojaModalOpen(true)}
       />
 
-      {/* Full Blocking Big Loader for Sarvam AI Voice in Daily Darshana */}
+      {/* Full Blocking Big Loader for Sacred Voice in Daily Darshana */}
       <VedicAudioLoaderModal
         isOpen={isBenedictionLoading || isMantraLoading}
         lang={lang}

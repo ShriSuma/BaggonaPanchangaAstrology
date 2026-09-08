@@ -42,7 +42,7 @@ const MODAL_DEFAULTS: Record<SevaLang, { tag: string; defaultTitle: string; defa
   en: {
     tag: "॥ VEDIC NEURAL AUDIO SYNTHESIS ॥",
     defaultTitle: "Synthesizing Sacred Priest Voice...",
-    defaultSubtitle: "Generating sacred Sanskrit chants & blessings via Sarvam AI Indic Neural TTS.",
+    defaultSubtitle: "Streaming sacred Sanskrit chants & blessings in real time.",
     cancelBtn: "Cancel Audio"
   }
 };
@@ -55,7 +55,7 @@ export const VedicAudioLoaderModal: React.FC<VedicAudioLoaderModalProps> = ({
   title,
   subtitle,
   titleKn,
-  titleEn = "Synthesizing Sacred Priest Voice (Sarvam AI Indic Neural TTS)...",
+  titleEn = "Streaming Sacred Priest Voice (Vedic Neural TTS)...",
   subtitleKn
 }) => {
   if (!isOpen) return null;

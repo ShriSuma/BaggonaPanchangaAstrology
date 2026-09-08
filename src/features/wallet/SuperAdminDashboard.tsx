@@ -84,7 +84,6 @@ import {
   type VoiceCloneProvider
 } from "../audio/aiVoiceCloneEngine";
 import type { SevaLang } from "../seva/sevaLocale";
-import { SarvamAiUsageGrid } from "../../components/audio/SarvamAiUsageGrid";
 import { VoiceDictationButton } from "../../components/ui/VoiceDictationButton";
 import { UserIdSuggestionChips } from "../../components/ui/UserIdSuggestionChips";
 import { generateSmartUserIdSuggestions } from "../../utils/userIdSuggestionEngine";
@@ -1492,9 +1491,6 @@ export const SuperAdminDashboard: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Sarvam AI Voice Quota & Telemetry Sentinel Grid */}
-      <SarvamAiUsageGrid className="mb-4" />
 
       {/* 3. 360° VISUAL TELEMETRY METERS & GAUGES GRID */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-3.5">
@@ -3945,9 +3941,9 @@ export const SuperAdminDashboard: React.FC = () => {
               {/* Provider Selection */}
               <div className="grid grid-cols-1 sm:grid-cols-6 gap-2">
                 {[
+                  { id: "studio_stream" as VoiceCloneProvider, title: "🎙️ Custom Studio Stream", desc: "Real-time auto-detecting Indic Gemini Voice Stream (Official)" },
                   { id: "indic_parler" as VoiceCloneProvider, title: "🇮🇳 Indic-Parler TTS", desc: "India's Premier 22+ Indic Neural Voice (AI4Bharat)" },
-                  { id: "master_recording" as VoiceCloneProvider, title: "✨ ಶ್ರೀಸುಮ ನೈಜ ಧ್ವನಿ", desc: "Authentic recorded voice of ShriSuma" },
-                  { id: "sarvam_ai" as VoiceCloneProvider, title: "🇮🇳 Sarvam AI Bulbul", desc: "India's #1 Kannada Neural Voice (sarvam.ai)" },
+                  { id: "master_recording" as any, title: "✨ ಶ್ರೀಸುಮ ನೈಜ ಧ್ವನಿ", desc: "Authentic recorded voice of ShriSuma" },
                   { id: "elevenlabs" as VoiceCloneProvider, title: "🔑 ElevenLabs Clone", desc: "Instant voice clone with API Key & Voice ID" },
                   { id: "huggingface_xtts" as VoiceCloneProvider, title: "🌐 HuggingFace XTTS", desc: "Zero-shot neural clone from audio sample" },
                   { id: "web_dsp" as VoiceCloneProvider, title: "🔊 Web Audio DSP", desc: "Acoustic formant resonance speech cloner" }
@@ -3972,21 +3968,54 @@ export const SuperAdminDashboard: React.FC = () => {
                 ))}
               </div>
 
-              {/* API Keys Settings for Indic-Parler / Sarvam AI / ElevenLabs / HuggingFace */}
-              {(cloneConfig.provider === "indic_parler" || cloneConfig.provider === "sarvam_ai" || cloneConfig.provider === "elevenlabs" || cloneConfig.provider === "huggingface_xtts") && (
+              {/* API Keys Settings for Studio Stream / Indic-Parler / ElevenLabs / HuggingFace */}
+              {(cloneConfig.provider === "studio_stream" || cloneConfig.provider === "indic_parler" || cloneConfig.provider === "elevenlabs" || cloneConfig.provider === "huggingface_xtts") && (
                 <div className="p-4 bg-black/60 rounded-2xl border border-amber-500/40 space-y-3 animate-in fade-in">
                   <div className="text-xs font-black text-amber-300 flex items-center gap-1.5">
                     <span>⚙️</span>
                     <span>
-                      {cloneConfig.provider === "indic_parler"
+                      {cloneConfig.provider === "studio_stream"
+                        ? "Custom Studio Real-Time Streaming Gemini TTS (Official) Settings"
+                        : cloneConfig.provider === "indic_parler"
                         ? "AI4Bharat Indic-Parler-TTS (Hugging Face) Settings"
-                        : cloneConfig.provider === "sarvam_ai"
-                        ? "Sarvam AI (Bulbul:v1 Indic Neural Engine) Settings"
                         : cloneConfig.provider === "elevenlabs"
                         ? "ElevenLabs Voice Cloning Settings"
                         : "Hugging Face Inference Settings"}
                     </span>
                   </div>
+
+                  {cloneConfig.provider === "studio_stream" && (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-[11px] text-amber-200 block">
+                          Streaming Endpoint URL:
+                        </label>
+                        <input
+                          type="text"
+                          readOnly
+                          value={cloneConfig.studioStreamUrl || "https://indian-language-voici-clone-tts-7273.ai.studio/api/admin/tts-stream"}
+                          className="w-full px-3 py-2 text-xs bg-black/80 border border-amber-500/50 rounded-xl text-amber-300 font-mono focus:outline-none mt-1"
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[11px] text-amber-200 block">Voice ID:</label>
+                          <input
+                            type="text"
+                            readOnly
+                            value={cloneConfig.studioVoiceId || "voice_sriram_pandit"}
+                            className="w-full px-3 py-2 text-xs bg-black/80 border border-amber-500/50 rounded-xl text-amber-300 font-mono focus:outline-none mt-1"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[11px] text-amber-200 block">Real-Time Audio Mode:</label>
+                          <div className="w-full px-3 py-2 text-xs bg-emerald-950/80 border border-emerald-500/50 rounded-xl text-emerald-300 font-bold mt-1">
+                            🟢 Chunked Web Audio Streaming (Auto Indic Script Detection)
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {(cloneConfig.provider === "indic_parler" || cloneConfig.provider === "huggingface_xtts") && (
                     <div className="space-y-2">
@@ -4003,52 +4032,6 @@ export const SuperAdminDashboard: React.FC = () => {
                       <p className="text-[10px] text-amber-300/80">
                         ⚡ Powered by AI4Bharat Indic-Parler-TTS. Provides authentic traditional Indian voice chanting for Kannada, Tamil, Telugu, Hindi, and English without quota limits.
                       </p>
-                    </div>
-                  )}
-
-                  {cloneConfig.provider === "sarvam_ai" && (
-                    <div className="space-y-3">
-                      <div>
-                        <label className="text-[11px] text-amber-200 block">
-                          Sarvam AI API Subscription Key (Get free at <a href="https://dashboard.sarvam.ai" target="_blank" rel="noreferrer" className="text-amber-400 underline font-bold">dashboard.sarvam.ai</a>):
-                        </label>
-                        <input
-                          type="password"
-                          value={cloneConfig.sarvamApiKey || "sk_to6dgvkm_syC6toS54v62n8puNjBE82vk"}
-                          onChange={(e) => setCloneConfig({ ...cloneConfig, sarvamApiKey: e.target.value })}
-                          placeholder="sk_..."
-                          className="w-full px-3 py-2 text-xs bg-black/80 border border-amber-500/50 rounded-xl text-white font-mono focus:outline-none focus:border-amber-400 mt-1"
-                        />
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                          <label className="text-[11px] text-amber-200 block">Speaker Persona (Bulbul:v3 Indic Models):</label>
-                          <select
-                            value={cloneConfig.sarvamSpeaker || "gokul"}
-                            onChange={(e) => setCloneConfig({ ...cloneConfig, sarvamSpeaker: e.target.value })}
-                            className="w-full px-3 py-2 text-xs bg-black/80 border border-amber-500/50 rounded-xl text-amber-200 font-bold focus:outline-none focus:border-amber-400 mt-1"
-                          >
-                            <option value="gokul">Gokul (ಗೋಕರ್ಣ ಪಂಡಿತ ಧ್ವನಿ - Gokarna Pandit - Default)</option>
-                            <option value="anand">Anand (ಗಂಭೀರ ಮುಖ್ಯ ಅರ್ಚಕ - Deep Male Priest)</option>
-                            <option value="advait">Advait (ಶಾಸ್ತ್ರೀಯ ವಿದ್ವಾಂಸ ಧ್ವನಿ - Classical Vidwan)</option>
-                            <option value="ashutosh">Ashutosh (ವೇದ ಪಠಣ ಧ್ವನಿ - Vedic Chanting)</option>
-                            <option value="vijay">Vijay (ಸ್ಪಷ್ಟ ಶಾಂತ ಧ್ವನಿ - Calm Clear Male)</option>
-                            <option value="tarun">Tarun (ಯುವ ಗಂಭೀರ ಧ್ವನಿ - Resonant Youth)</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="text-[11px] text-amber-200 block">Pace / Tempo:</label>
-                          <select
-                            value={cloneConfig.sarvamPace || 0.90}
-                            onChange={(e) => setCloneConfig({ ...cloneConfig, sarvamPace: parseFloat(e.target.value) })}
-                            className="w-full px-3 py-2 text-xs bg-black/80 border border-amber-500/50 rounded-xl text-amber-200 font-bold focus:outline-none focus:border-amber-400 mt-1"
-                          >
-                            <option value="0.85">0.85x (ವಿಳಂಬ ವೇದ ಪಠಣ - Slow Chanting)</option>
-                            <option value="0.90">0.90x (ಶಾಸ್ತ್ರೀಯ ಲಯ - Vedic Cadence)</option>
-                            <option value="1.00">1.00x (ಸಾಮಾನ್ಯ - Normal Pace)</option>
-                          </select>
-                        </div>
-                      </div>
                     </div>
                   )}
 
@@ -4089,9 +4072,6 @@ export const SuperAdminDashboard: React.FC = () => {
                   </button>
                 </div>
               )}
-
-              {/* Sarvam AI Quota Sentinel */}
-              <SarvamAiUsageGrid className="my-3" />
 
               {/* Live Interactive Voice Clone Tester Studio */}
               <div className="p-4 bg-gradient-to-r from-[#2A1205] to-[#1F0D04] rounded-2xl border-2 border-amber-400/80 space-y-4 shadow-xl">

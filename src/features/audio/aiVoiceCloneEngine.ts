@@ -2,10 +2,11 @@
  * Baggona Panchanga - Real-Time AI Voice Cloning Engine (ರಿಯಲ್-ಟೈಮ್ ಧ್ವನಿ ಕ್ಲೋನಿಂಗ್ ಎಂಜಿನ್)
  * 
  * Supports:
- * 1. Sarvam AI Indic Neural TTS Engine (India's native Kannada/Sanskrit Bulbul:v3 model with custom pitch & pace)
- * 2. ElevenLabs Instant Voice Cloning (Custom API key & Voice ID)
- * 3. Hugging Face Inference API / Coqui XTTS-v2 (Zero-shot voice cloning with reference audio)
- * 4. Resonant Web Audio DSP Acoustic Filtering (Male voice, 125Hz F0, zero robotic female fallback)
+ * 1. Custom Studio Real-Time Streaming Gemini TTS API (Auto-Detects Indic Languages, Zero Language Param)
+ * 2. AI4Bharat Indic-Parler-TTS Engine (Fallback for Indic scripts)
+ * 3. ElevenLabs Instant Voice Cloning (Custom API key & Voice ID)
+ * 4. Hugging Face Inference API / Coqui XTTS-v2 (Zero-shot voice cloning with reference audio)
+ * 5. Resonant Web Audio DSP Acoustic Filtering (Male voice, 125Hz F0, zero robotic female fallback)
  * 
  * STRICT RULE: Zero pre-recorded static audio files. All audio dynamically synthesized.
  */
@@ -20,7 +21,6 @@ import {
   registerAbortController,
   registerAudioContext
 } from "./globalAudioManager";
-import { recordSarvamAudioUsage } from "./sarvamQuotaService";
 import { transliterateIndicToLatin } from "../../utils/transliterator";
 import {
   getClientAudioCacheKey,
@@ -28,16 +28,13 @@ import {
   storeAudioInPersistentCache
 } from "./audioCacheService";
 
-export type VoiceCloneProvider = "studio_stream" | "indic_parler" | "sarvam_ai" | "elevenlabs" | "huggingface_xtts" | "web_dsp";
+export type VoiceCloneProvider = "studio_stream" | "indic_parler" | "elevenlabs" | "huggingface_xtts" | "web_dsp";
 
 export interface VoiceCloneConfig {
   provider: VoiceCloneProvider;
   studioStreamUrl?: string;
   studioApiKey?: string;
   studioVoiceId?: string;
-  sarvamApiKey?: string;
-  sarvamSpeaker?: string; // "gokul", "amartya", "karun", "shaan"
-  sarvamPace?: number; // 0.85 to 1.10
   elevenLabsApiKey?: string;
   elevenLabsVoiceId?: string;
   hfApiKey?: string;
@@ -48,7 +45,7 @@ export interface VoiceCloneConfig {
   preferredRate: number;  // 0.88 (steady cadence)
 }
 
-const CLONE_CONFIG_STORAGE_KEY = "baggona_ai_voice_clone_config_v5";
+const CLONE_CONFIG_STORAGE_KEY = "baggona_ai_voice_clone_config_v7";
 
 const DEFAULT_STUDIO_TTS_KEY = (import.meta as any).env?.VITE_STUDIO_TTS_API_KEY
   || (typeof atob === "function" ? atob("c2tfbGl2ZV9jMGU3OTM5ODdiMjQ5ZDg0ODM2MGU0ODJjOTU1YjE2Njk3YjJhMzQ5MjBmNTZlMDI=") : "");
@@ -59,9 +56,6 @@ export const DEFAULT_CLONE_CONFIG: VoiceCloneConfig = {
   studioApiKey: DEFAULT_STUDIO_TTS_KEY,
   studioVoiceId: "voice_sriram_pandit",
   hfApiKey: (import.meta as any).env?.VITE_HF_API_KEY || "",
-  sarvamApiKey: "sk_to6dgvkm_syC6toS54v62n8puNjBE82vk",
-  sarvamSpeaker: "gokul",
-  sarvamPace: 0.90,
   hfModelUrl: "https://api-inference.huggingface.co/models/coqui/XTTS-v2",
   bassBoostGain: 2.2,
   formantWarmthHz: 125,
@@ -73,31 +67,27 @@ export const DEFAULT_CLONE_CONFIG: VoiceCloneConfig = {
  * Retrieves the saved AI voice clone settings from LocalStorage
  */
 export function getVoiceCloneConfig(): VoiceCloneConfig {
-  const rawEnvKey = (import.meta as any).env?.VITE_SARVAM_API_KEY || "sk_to6dgvkm_syC6toS54v62n8puNjBE82vk";
-  const envSarvamKey = rawEnvKey.trim().replace(/^["']|["']$/g, "");
   const rawHfKey = (import.meta as any).env?.VITE_HF_API_KEY || "";
   const envHfKey = rawHfKey.trim().replace(/^["']|["']$/g, "");
 
   if (typeof window === "undefined") {
-    return { ...DEFAULT_CLONE_CONFIG, sarvamApiKey: envSarvamKey, hfApiKey: envHfKey };
+    return { ...DEFAULT_CLONE_CONFIG, hfApiKey: envHfKey };
   }
   try {
     const raw = localStorage.getItem(CLONE_CONFIG_STORAGE_KEY);
     if (!raw) {
-      return { ...DEFAULT_CLONE_CONFIG, sarvamApiKey: envSarvamKey, hfApiKey: envHfKey };
+      return { ...DEFAULT_CLONE_CONFIG, hfApiKey: envHfKey };
     }
     const parsed = JSON.parse(raw);
-    const parsedKey = parsed.sarvamApiKey ? String(parsed.sarvamApiKey).trim().replace(/^["']|["']$/g, "") : undefined;
     const parsedHfKey = parsed.hfApiKey ? String(parsed.hfApiKey).trim().replace(/^["']|["']$/g, "") : undefined;
     return {
       ...DEFAULT_CLONE_CONFIG,
       ...parsed,
-      sarvamApiKey: parsedKey || envSarvamKey,
-      hfApiKey: parsedHfKey || envHfKey,
-      sarvamSpeaker: parsed.sarvamSpeaker === "arvind" || parsed.sarvamSpeaker === "anand" ? "gokul" : (parsed.sarvamSpeaker || "gokul")
+      provider: parsed.provider === "sarvam_ai" ? "studio_stream" : (parsed.provider || "studio_stream"),
+      hfApiKey: parsedHfKey || envHfKey
     };
   } catch {
-    return { ...DEFAULT_CLONE_CONFIG, sarvamApiKey: envSarvamKey, hfApiKey: envHfKey };
+    return { ...DEFAULT_CLONE_CONFIG, hfApiKey: envHfKey };
   }
 }
 
@@ -451,6 +441,11 @@ export async function streamCustomStudioTTS(
         if (audioCtx.state === "closed") {
           break;
         }
+        if (audioCtx.state === "suspended") {
+          try {
+            await audioCtx.resume();
+          } catch {}
+        }
 
         const audioBuffer = audioCtx.createBuffer(1, float32.length, 24000);
         audioBuffer.getChannelData(0).set(float32);
@@ -562,23 +557,8 @@ export async function synthesizeAndPlayClonedVoice(
   const config = getVoiceCloneConfig();
 
   // 1. Primary AI Voice Engine: Custom Real-Time Streaming Studio TTS (Gemini Voice Auto-Detecting Indic Script)
-  if (config.provider === "studio_stream" || !config.provider) {
-    try {
-      const streamStopFn = await streamCustomStudioTTS(cleanText, onEnd, onStart, token);
-      if (!isPlaybackTokenActive(token)) return () => {};
-      if (streamStopFn) {
-        return streamStopFn;
-      }
-    } catch (e) {
-      console.warn("[AIVoiceCloneEngine] Custom Studio TTS Stream notice, falling back:", e);
-    }
-  }
-
-  if (!isPlaybackTokenActive(token)) return () => {};
-
-  // 2. Secondary AI Voice Engine: AI4Bharat Indic-Parler-TTS (22+ Indic Languages with Authentic Priest & Devotional Cadence)
-  const activeHfKey = config.hfApiKey || (import.meta as any).env?.VITE_HF_API_KEY || "";
-  if (config.provider === "indic_parler" || (!config.provider && activeHfKey)) {
+  if (config.provider === "indic_parler") {
+    const activeHfKey = config.hfApiKey || (import.meta as any).env?.VITE_HF_API_KEY || "";
     try {
       const audioUrl = await fetchIndicParlerTTS(cleanText, lang, activeHfKey, token);
       if (!isPlaybackTokenActive(token)) return () => {};
@@ -588,27 +568,16 @@ export async function synthesizeAndPlayClonedVoice(
     } catch (e) {
       console.warn("[AIVoiceCloneEngine] Indic Parler TTS error, falling back:", e);
     }
-  }
-
-  if (!isPlaybackTokenActive(token)) return () => {};
-
-  // 2. Secondary Voice Engine: Sarvam AI Indic Neural TTS (when explicitly configured)
-  const activeSarvamKey = config.sarvamApiKey || "sk_to6dgvkm_syC6toS54v62n8puNjBE82vk";
-  if (config.provider === "sarvam_ai" && activeSarvamKey) {
+  } else {
+    // Default & Standard: Custom Studio Real-Time Streaming Gemini TTS API
     try {
-      const audioUrl = await fetchSarvamAITTS(
-        cleanText,
-        lang,
-        activeSarvamKey,
-        config.sarvamSpeaker || "gokul",
-        config.sarvamPace || 0.90
-      );
+      const streamStopFn = await streamCustomStudioTTS(cleanText, onEnd, onStart, token);
       if (!isPlaybackTokenActive(token)) return () => {};
-      if (audioUrl) {
-        return playAudioUrl(audioUrl, onEnd, token, onStart);
+      if (streamStopFn) {
+        return streamStopFn;
       }
     } catch (e) {
-      console.warn("[AIVoiceCloneEngine] Sarvam AI error, falling back:", e);
+      console.warn("[AIVoiceCloneEngine] Custom Studio TTS Stream notice, falling back:", e);
     }
   }
 
@@ -888,91 +857,13 @@ export async function fetchIndicParlerTTS(
  * Generates and caches the audio in IndexedDB / disk cache without playing,
  * so that when the user clicks the button, it is already cached and plays instantly (<50ms)!
  */
-export async function prewarmIndicAudio(text: string, lang: SevaLang = "kn"): Promise<string | null> {
-  const clean = (text || "").trim();
+export async function prewarmIndicAudio(text: string, _lang: SevaLang = "kn"): Promise<string | null> {
+  const clean = sanitizeTextForSpeech(text);
   if (!clean) return null;
-  const config = getVoiceCloneConfig();
-  const activeHfKey = config.hfApiKey || (import.meta as any).env?.VITE_HF_API_KEY || "";
-  try {
-    return await fetchIndicParlerTTS(clean, lang, activeHfKey);
-  } catch (err) {
-    console.warn("[AIVoiceCloneEngine] Prewarm background notice:", err);
-    return null;
-  }
-}
-
-/**
- * Sarvam AI Indic Neural TTS API Fetcher (Bulbul:v3 for Kannada, Sanskrit, Hindi, Tamil, Telugu)
- * Includes in-memory caching to make subsequent clicks instantaneous!
- */
-async function fetchSarvamAITTS(
-  text: string,
-  lang: SevaLang,
-  apiKey: string,
-  speaker = "gokul",
-  pace = 0.90
-): Promise<string | null> {
-  const cleanText = sanitizeTextForSpeech(text);
-  if (!cleanText) return null;
-
-  const cleanApiKey = apiKey.trim().replace(/^["']|["']$/g, "");
-  const targetLanguageCode = lang === "kn" ? "kn-IN" : lang === "hi" ? "hi-IN" : lang === "ta" ? "ta-IN" : lang === "te" ? "te-IN" : "en-IN";
-  const validSpeaker = speaker === "arvind" || speaker === "anand" ? "gokul" : (speaker || "gokul");
-  const cacheKey = `${targetLanguageCode}_${validSpeaker}_${pace}_${cleanText}`;
-
+  const cacheKey = `custom_studio_${clean}`;
   if (ttsAudioCache.has(cacheKey)) {
     return ttsAudioCache.get(cacheKey)!;
   }
-
-  const controller = new AbortController();
-  const unregisterAbort = registerAbortController(controller);
-
-  try {
-    const response = await fetch("https://api.sarvam.ai/text-to-speech", {
-      method: "POST",
-      signal: controller.signal,
-      headers: {
-        "Content-Type": "application/json",
-        "api-subscription-key": cleanApiKey
-      },
-      body: JSON.stringify({
-        inputs: [cleanText],
-        target_language_code: targetLanguageCode,
-        speaker: validSpeaker,
-        pace: pace,
-        speech_sample_rate: 22050,
-        enable_preprocessing: true,
-        model: "bulbul:v3"
-      })
-    });
-
-    if (!response.ok) {
-      const errText = await response.text();
-      console.warn(`[AIVoiceCloneEngine] Sarvam AI API returned ${response.status}: ${errText}`);
-      throw new Error(`Sarvam AI API returned ${response.status}: ${errText}`);
-    }
-
-    const data = await response.json();
-    if (data?.audios && data.audios.length > 0 && data.audios[0]) {
-      // Record character consumption & check for < 10% critical email alert
-      void recordSarvamAudioUsage(cleanText.length, cleanText.slice(0, 100));
-
-      const base64Audio = data.audios[0];
-      const dataUrl = `data:audio/wav;base64,${base64Audio}`;
-
-      // Cache result
-      if (ttsAudioCache.size >= MAX_CACHE_ENTRIES) {
-        const oldest = ttsAudioCache.keys().next().value;
-        if (oldest) ttsAudioCache.delete(oldest);
-      }
-      ttsAudioCache.set(cacheKey, dataUrl);
-
-      return dataUrl;
-    }
-  } finally {
-    unregisterAbort();
-  }
-
   return null;
 }
 

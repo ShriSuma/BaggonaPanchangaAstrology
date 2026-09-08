@@ -1079,7 +1079,7 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
         lang={lang}
       />
 
-      {/* Full Blocking Big Loader for Sarvam AI Voice */}
+      {/* Full Blocking Big Loader for Sacred Priest Voice */}
       <VedicAudioLoaderModal
         isOpen={isAudioLoading}
         onCancel={cleanupAudioAndTimers}
@@ -1090,7 +1090,7 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
           lang === "ta" ? "பூஜை மந்திரம் & சங்கல்ப ஆடியோ தயாராகிறது..." :
           "Synthesizing Sacred Priest Voice..."
         }
-        titleEn="Generating Sacred Priest Audio (Sarvam AI Neural TTS)..."
+        titleEn="Streaming Sacred Priest Audio (Vedic Neural TTS)..."
         subtitleKn={
           lang === "kn" ? "ವೇದ ಮಂತ್ರಗಳ ಉಚ್ಛಾರಣೆ & ಸಂಕಲ್ಪ ಧ್ವನಿ ಲೋಡ್ ಆಗುತ್ತಿದೆ, ದಯವಿಟ್ಟು ನಿರೀಕ್ಷಿಸಿ." :
           lang === "hi" ? "वैदिक मंत्रों का उच्चारण एवं संकल्प ध्वनि लोड हो रही है, कृपया प्रतीक्षा करें।" :
