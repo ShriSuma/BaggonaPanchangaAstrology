@@ -58,7 +58,6 @@ import { SanctumPrayerBox } from "../components/darshana/SanctumPrayerBox";
 import { playTempleBellChime } from "../features/seva/priestAudioNarrator";
 import { synthesizeAndPlayClonedVoice, stopClonedAudio, prewarmIndicAudio } from "../features/audio/aiVoiceCloneEngine";
 import { stopAllAudioGlobal, onGlobalAudioStop } from "../features/audio/globalAudioManager";
-import { VedicAudioLoaderModal } from "../components/ui/VedicAudioLoaderModal";
 import { useAppStore } from "../stores/appStore";
 import { getOrComputeDinaBhavishya, type DinaBhavishyaPayload } from "../features/seva/dinaBhavishyaEngine";
 import { computePersonalizedDarshanaPayload } from "../features/darshana/dailyDarshanaPersonalizationEngine";
@@ -3824,17 +3823,6 @@ export default function DailyDarshanaPage(): JSX.Element {
         onOpenPooja={() => setIsPoojaModalOpen(true)}
       />
 
-      {/* Full Blocking Big Loader for Sacred Voice in Daily Darshana */}
-      <VedicAudioLoaderModal
-        isOpen={isBenedictionLoading || isMantraLoading}
-        lang={lang}
-        onCancel={() => {
-          stopAllAudioGlobal();
-          setActiveVoiceKey("none");
-          setActiveVoiceState("idle");
-        }}
-        title={isMantraLoading ? dict.synthesizingMantra : dict.generatingVoice}
-      />
     </div>
   );
 }

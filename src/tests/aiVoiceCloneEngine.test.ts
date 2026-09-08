@@ -1,12 +1,65 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { synthesizeAndPlayClonedVoice, stopClonedAudio, getVoiceCloneConfig, resolveBestVedicVoice, saveVoiceCloneConfig, sanitizeTextForSpeech } from "../features/audio/aiVoiceCloneEngine";
+import {
+  handleGenerateAudio,
+  synthesizeAndPlayClonedVoice,
+  stopClonedAudio,
+  currentAudio,
+  getVoiceCloneConfig,
+  resolveBestVedicVoice,
+  sanitizeTextForSpeech
+} from "../features/audio/aiVoiceCloneEngine";
 import { stopAllAudioGlobal } from "../features/audio/globalAudioManager";
 import { isProperAudioAvailableForStep } from "../components/darshana/DailyPoojaSankalpaModal";
 
-describe("AI Voice Clone Engine & Dynamic Neural TTS", () => {
+describe("AI Voice Clone Engine & GET Real-Time Audio Streaming", () => {
+  let createdAudios: any[] = [];
+
+  class MockAudio {
+    src = "";
+    currentTime = 0;
+    paused = true;
+    listeners: Record<string, Function[]> = {};
+
+    constructor(src?: string) {
+      if (src) this.src = src;
+      createdAudios.push(this);
+    }
+
+    play = vi.fn().mockImplementation(() => {
+      this.paused = false;
+      const playListeners = this.listeners["play"] || [];
+      playListeners.forEach((cb) => cb());
+      return Promise.resolve();
+    });
+
+    pause = vi.fn().mockImplementation(() => {
+      this.paused = true;
+      const pauseListeners = this.listeners["pause"] || [];
+      pauseListeners.forEach((cb) => cb());
+    });
+
+    addEventListener = vi.fn().mockImplementation((event: string, cb: Function) => {
+      if (!this.listeners[event]) this.listeners[event] = [];
+      this.listeners[event].push(cb);
+    });
+
+    removeEventListener = vi.fn().mockImplementation((event: string, cb: Function) => {
+      if (this.listeners[event]) {
+        this.listeners[event] = this.listeners[event].filter((fn) => fn !== cb);
+      }
+    });
+
+    triggerEvent(event: string, payload?: any) {
+      const cbs = this.listeners[event] || [];
+      cbs.forEach((cb) => cb(payload));
+    }
+  }
+
   beforeEach(() => {
     stopAllAudioGlobal();
     vi.restoreAllMocks();
+    createdAudios = [];
+    (globalThis as any).Audio = MockAudio;
     localStorage.clear();
   });
 
@@ -22,153 +75,104 @@ describe("AI Voice Clone Engine & Dynamic Neural TTS", () => {
     expect(config.studioVoiceId).toBe("voice_sriram_pandit");
   });
 
-  it("streams real-time audio via Custom Studio TTS with zero language param and Web Audio API chunks", async () => {
-    // Generate dummy 24kHz Int16 mono PCM data (4800 bytes = 2400 samples = 0.1s)
-    const pcmChunk1 = new Uint8Array(2400);
-    const pcmChunk2 = new Uint8Array(2400);
-
-    let readCount = 0;
-    const mockReader = {
-      read: vi.fn().mockImplementation(async () => {
-        readCount++;
-        if (readCount === 1) return { done: false, value: pcmChunk1 };
-        if (readCount === 2) return { done: false, value: pcmChunk2 };
-        return { done: true, value: undefined };
-      }),
-      cancel: vi.fn()
-    };
-
-    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce({
-      ok: true,
-      body: {
-        getReader: () => mockReader
-      }
-    } as any);
-
+  it("assigns GET endpoint directly to a standard Audio object and calls play() synchronously inside click event", () => {
     const onStart = vi.fn();
     const onEnd = vi.fn();
 
-    // Mock AudioContext
-    let scheduledBuffers: any[] = [];
-    class MockAudioContext {
-      currentTime = 0;
-      state = "running";
-      destination = {};
-      createBuffer(channels: number, length: number, sampleRate: number) {
-        return {
-          duration: length / sampleRate,
-          getChannelData: () => new Float32Array(length)
-        };
-      }
-      createBufferSource() {
-        const src: any = {
-          buffer: null,
-          connect: vi.fn(),
-          start: vi.fn((time: number) => {
-            scheduledBuffers.push({ src, time });
-          }),
-          onended: null
-        };
-        return src;
-      }
-      resume = vi.fn().mockResolvedValue(undefined);
-      close = vi.fn().mockResolvedValue(undefined);
-    }
-    (globalThis as any).AudioContext = MockAudioContext;
-
-    const stopFn = await synthesizeAndPlayClonedVoice(
+    const audio = handleGenerateAudio(
       "ಓಂ ನಮಃ ಶಿವಾಯ",
-      "kn",
-      undefined,
+      "voice_sriram_pandit",
       onEnd,
       onStart
     );
 
-    expect(fetchSpy).toHaveBeenCalledTimes(1);
-    expect(fetchSpy).toHaveBeenCalledWith(
-      "https://indian-language-voici-clone-tts-7273.ai.studio/api/admin/tts-stream",
-      expect.objectContaining({
-        method: "POST",
-        headers: expect.objectContaining({
-          "Content-Type": "application/json",
-          "xi-api-key": EXPECTED_STUDIO_KEY
-        })
-      })
-    );
+    expect(audio).toBeDefined();
+    expect(createdAudios.length).toBe(1);
 
-    // Verify request body strictly has voice_id and text, and ZERO language parameter
-    const callArgs = fetchSpy.mock.calls[0];
-    const bodyObj = JSON.parse(callArgs[1]?.body as string);
-    expect(bodyObj.voice_id).toBe("voice_sriram_pandit");
-    expect(bodyObj.text).toBe("ಓಂ ನಮಃ ಶಿವಾಯ");
-    expect((bodyObj as any).language).toBeUndefined();
-    expect((bodyObj as any).lang).toBeUndefined();
+    // Verify GET endpoint URL structure with query params: voice_id, text, and cache-busting timestamp &t=
+    expect(audio?.src).toContain("https://indian-language-voici-clone-tts-7273.ai.studio/api/admin/tts-stream");
+    expect(audio?.src).toContain("voice_id=voice_sriram_pandit");
+    expect(audio?.src).toContain("text=");
+    expect(audio?.src).toContain("&t=");
 
-    // Wait microtask for reader loop to process chunk 1
-    await new Promise((r) => setTimeout(r, 50));
+    // Verify synchronous play() call for browser autoplay compliance
+    expect(audio?.play).toHaveBeenCalledTimes(1);
     expect(onStart).toHaveBeenCalledTimes(1);
-
-    stopFn();
   });
 
-  it("strictly prevents overlapping audios by aborting previous stream and closing previous AudioContext", async () => {
-    let abortSignal1: AbortSignal | undefined;
-    let abortSignal2: AbortSignal | undefined;
-    let audioCtxClosed1 = false;
+  it("immediately stops any currently playing audio when new audio is requested", () => {
+    const audio1 = handleGenerateAudio("ದೀಪಜ್ಯೋತಿಃ ಪರಬ್ರಹ್ಮ", "voice_sriram_pandit");
+    expect(audio1).toBeDefined();
 
-    vi.spyOn(globalThis, "fetch").mockImplementation(async (_url: any, opts: any) => {
-      if (!abortSignal1) {
-        abortSignal1 = opts?.signal;
-        // Keep 1st stream pending in-flight
-        return new Promise((resolve) => {
-          opts?.signal?.addEventListener("abort", () => {
-            resolve({ ok: false } as any);
-          });
-        });
-      } else {
-        abortSignal2 = opts?.signal;
-        return {
-          ok: true,
-          body: {
-            getReader: () => ({
-              read: async () => ({ done: true, value: undefined }),
-              cancel: vi.fn()
-            })
-          }
-        } as any;
-      }
-    });
+    // Request second audio
+    const audio2 = handleGenerateAudio("ಮಂಗಳಾಕ್ಷತಾಂ ಸಮರ್ಪಯಾಮಿ", "voice_sriram_pandit");
+    expect(audio2).toBeDefined();
 
-    let contextCount = 0;
-    class MockAudioContext {
-      currentTime = 0;
-      state = "running";
-      destination = {};
-      createBuffer = vi.fn();
-      createBufferSource = vi.fn();
-      resume = vi.fn().mockResolvedValue(undefined);
-      close = vi.fn().mockImplementation(async () => {
-        if (contextCount === 1) audioCtxClosed1 = true;
-      });
-      constructor() {
-        contextCount++;
-      }
+    // Verify audio 1 was stopped and reset
+    expect(audio1?.pause).toHaveBeenCalled();
+    expect(audio1?.currentTime).toBe(0);
+    expect(audio2?.play).toHaveBeenCalled();
+  });
+
+  it("notifies onEnd callback and cleans up currentAudio when playback finishes", () => {
+    const onEnd = vi.fn();
+    const audio = handleGenerateAudio("ಶಾಂತಿ ಮಂತ್ರ", "voice_sriram_pandit", onEnd) as any;
+    expect(audio).toBeDefined();
+
+    // Simulate audio ended event
+    audio.triggerEvent("ended");
+    expect(onEnd).toHaveBeenCalledTimes(1);
+  });
+
+  it("handles blocked autoplay gracefully without unhandled promise rejection", async () => {
+    const originalAudio = (globalThis as any).Audio;
+    class BlockedAudio extends MockAudio {
+      play = vi.fn().mockImplementation(() => Promise.reject(new Error("NotAllowedError: play() failed")));
     }
-    (globalThis as any).AudioContext = MockAudioContext;
+    (globalThis as any).Audio = BlockedAudio;
 
-    // Start 1st audio stream (launches asynchronously in background)
-    void synthesizeAndPlayClonedVoice("ದೀಪಜ್ಯೋತಿಃ ಪರಬ್ರಹ್ಮ", "kn");
+    const onError = vi.fn();
+    const onEnd = vi.fn();
 
-    // Allow fetch to be initiated
-    await new Promise((r) => setTimeout(r, 20));
-    expect(abortSignal1).toBeDefined();
-    expect(abortSignal1?.aborted).toBe(false);
+    handleGenerateAudio("ಅಭಯ ಮಂತ್ರ", "voice_sriram_pandit", onEnd, undefined, onError);
 
-    // Start 2nd audio stream -> must immediately abort 1st stream and close 1st AudioContext
-    await synthesizeAndPlayClonedVoice("ಮಂಗಳಾಕ್ಷತಾಂ ಸಮರ್ಪಯಾಮಿ", "kn");
-    expect(abortSignal1?.aborted).toBe(true);
-    expect(audioCtxClosed1).toBe(true);
-    expect(abortSignal2?.aborted).toBe(false);
+    // Allow rejection handler to execute
+    await new Promise((r) => setTimeout(r, 10));
+    expect(onError).toHaveBeenCalled();
+    expect(onEnd).toHaveBeenCalled();
+
+    (globalThis as any).Audio = originalAudio;
+  });
+
+  it("synthesizeAndPlayClonedVoice starts GET audio stream and returns cancel function", async () => {
+    const onStart = vi.fn();
+    const onEnd = vi.fn();
+
+    const stopFn = await synthesizeAndPlayClonedVoice(
+      "ಶ್ರೀ ಗಣಪತಯೇ ನಮಃ",
+      "kn",
+      "voice_sriram_pandit",
+      onEnd,
+      onStart
+    );
+
+    expect(createdAudios.length).toBe(1);
+    const audio = createdAudios[0];
+    expect(audio.play).toHaveBeenCalledTimes(1);
+
+    // Cancel playback
+    stopFn();
+    expect(audio.pause).toHaveBeenCalled();
+    expect(audio.currentTime).toBe(0);
+  });
+
+  it("stopClonedAudio terminates currently playing audio and invokes global stop", () => {
+    const audio = handleGenerateAudio("ನಮಸ್ಕಾರ", "voice_sriram_pandit");
+    expect(audio).toBeDefined();
+
+    stopClonedAudio();
+    expect(audio?.pause).toHaveBeenCalled();
+    expect(audio?.currentTime).toBe(0);
   });
 
   it("enforces isProperAudioAvailableForStep is active (true) for all 16 Daily Pooja steps across all Indic languages", () => {
@@ -178,175 +182,6 @@ describe("AI Voice Clone Engine & Dynamic Neural TTS", () => {
         expect(isProperAudioAvailableForStep(step, lang)).toBe(true);
       }
     }
-  });
-
-  it("dynamically synthesizes audio via Indic-Parler TTS API when provider is explicitly set to indic_parler", async () => {
-    saveVoiceCloneConfig({ provider: "indic_parler" });
-    const mockAudioUrl = "data:audio/mp3;base64,UklGRi4AAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=";
-    
-    // Mock global fetch for /api/indic-tts proxy
-    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        audioUrl: mockAudioUrl
-      })
-    } as any);
-
-    const onStart = vi.fn();
-    const onEnd = vi.fn();
-
-    // Mock HTMLAudioElement
-    const playMock = vi.fn().mockImplementation(function (this: HTMLAudioElement) {
-      if (this.onplay) (this.onplay as any)();
-      return Promise.resolve();
-    });
-
-    const originalAudio = globalThis.Audio;
-    globalThis.Audio = class {
-      src = "";
-      onplay: any = null;
-      onended: any = null;
-      onerror: any = null;
-      play = playMock;
-      pause = vi.fn();
-      currentTime = 0;
-      addEventListener = vi.fn();
-      removeEventListener = vi.fn();
-      constructor(src?: string) {
-        if (src) this.src = src;
-      }
-    } as any;
-
-    const stopFn = await synthesizeAndPlayClonedVoice(
-      "ಶ್ರೀ ಗಣಪತಯೇ ನಮಃ",
-      "kn",
-      "voice_shrisuma_master",
-      onEnd,
-      onStart
-    );
-
-    expect(fetchSpy).toHaveBeenCalledTimes(1);
-    expect(fetchSpy).toHaveBeenCalledWith(
-      "/api/indic-tts",
-      expect.objectContaining({
-        method: "POST",
-        body: expect.stringContaining("kn")
-      })
-    );
-    expect(onStart).toHaveBeenCalledTimes(1);
-
-    stopFn();
-    globalThis.Audio = originalAudio;
-  });
-
-  it("serves repeated clicks instantaneously from in-memory LRU cache without extra HTTP requests", async () => {
-    saveVoiceCloneConfig({ provider: "indic_parler" });
-    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        audioUrl: "data:audio/mp3;base64,UklGRi4AAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA="
-      })
-    } as any);
-
-    const onStart1 = vi.fn();
-    const onStart2 = vi.fn();
-
-    const originalAudio = globalThis.Audio;
-    globalThis.Audio = class {
-      src = "";
-      onplay: any = null;
-      onended: any = null;
-      onerror: any = null;
-      play = vi.fn().mockImplementation(function (this: HTMLAudioElement) {
-        if (this.onplay) (this.onplay as any)();
-        return Promise.resolve();
-      });
-      pause = vi.fn();
-      currentTime = 0;
-      addEventListener = vi.fn();
-      removeEventListener = vi.fn();
-      constructor(src?: string) {
-        if (src) this.src = src;
-      }
-    } as any;
-
-    const text = "ಓಂ ನಮೋ ನಾರಾಯಣಾಯ ಶುಭಮಸ್ತು";
-
-    // 1st invocation fetches from network
-    await synthesizeAndPlayClonedVoice(text, "kn", undefined, undefined, onStart1);
-    expect(fetchSpy).toHaveBeenCalledTimes(1);
-    expect(onStart1).toHaveBeenCalledTimes(1);
-
-    // 2nd invocation hits in-memory LRU cache (0ms network request)
-    await synthesizeAndPlayClonedVoice(text, "kn", undefined, undefined, onStart2);
-    expect(fetchSpy).toHaveBeenCalledTimes(1); // STILL 1 (no second network request)
-    expect(onStart2).toHaveBeenCalledTimes(1);
-
-    globalThis.Audio = originalAudio;
-  });
-
-  it("strictly enforces Sarvam AI is completely decommissioned and routes to Custom Studio TTS endpoint", async () => {
-    // Even if legacy state had sarvam_ai, it must be migrated to studio_stream and NEVER call sarvam.ai
-    saveVoiceCloneConfig({ provider: "sarvam_ai" as any });
-
-    let readCount = 0;
-    const mockReader = {
-      read: vi.fn().mockImplementation(() => {
-        readCount++;
-        if (readCount === 1) {
-          return Promise.resolve({
-            done: false,
-            value: new Uint8Array([0x00, 0x10, 0x00, 0x20])
-          });
-        }
-        return Promise.resolve({ done: true, value: undefined });
-      }),
-      cancel: vi.fn().mockResolvedValue(undefined)
-    };
-
-    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce({
-      ok: true,
-      status: 200,
-      body: {
-        getReader: () => mockReader
-      }
-    } as any);
-
-    const onStart = vi.fn();
-    const onEnd = vi.fn();
-
-    const stopFn = await synthesizeAndPlayClonedVoice(
-      "ಶ್ರೀ ಗಣಪತಯೇ ನಮಃ",
-      "kn",
-      "voice_shrisuma_master",
-      onEnd,
-      onStart
-    );
-
-    // Verify Sarvam AI is NEVER called
-    const sarvamCalls = fetchSpy.mock.calls.filter(call => String(call[0]).includes("sarvam.ai"));
-    expect(sarvamCalls.length).toBe(0);
-
-    // Verify Custom Studio TTS endpoint is called instead
-    expect(fetchSpy).toHaveBeenCalledTimes(1);
-    expect(fetchSpy).toHaveBeenCalledWith(
-      "https://indian-language-voici-clone-tts-7273.ai.studio/api/admin/tts-stream",
-      expect.objectContaining({
-        method: "POST",
-        headers: expect.objectContaining({
-          "Content-Type": "application/json",
-          "xi-api-key": expect.any(String)
-        })
-      })
-    );
-
-    const callPayload = JSON.parse((fetchSpy.mock.calls[0][1] as any).body);
-    expect(callPayload.voice_id).toBe("voice_sriram_pandit");
-    expect(callPayload.text).toBe("ಶ್ರೀ ಗಣಪತಯೇ ನಮಃ");
-    expect(callPayload.language).toBeUndefined();
-    expect(callPayload.lang).toBeUndefined();
-
-    stopFn();
   });
 
   describe("resolveBestVedicVoice - Multi-Lingual Indic Speech Resolution Guard", () => {

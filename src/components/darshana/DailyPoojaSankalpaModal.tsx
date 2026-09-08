@@ -7,7 +7,6 @@ import { buildDailyPoojaSteps, type DailyPoojaStep } from "../../features/seva/d
 import { useSankalpaStore } from "../../features/sankalpa/sankalpaStore";
 import { ManageSankalpaModal } from "./ManageSankalpaModal";
 import { PostPoojaRemedyJapaCard } from "./PostPoojaRemedyJapaCard";
-import { VedicAudioLoaderModal } from "../ui/VedicAudioLoaderModal";
 import type { KundliOutput } from "../../core/AstroTypes";
 
 export interface DailyPoojaSankalpaModalProps {
@@ -1057,27 +1056,6 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
         userId={devoteeKey}
         devoteeName={devoteeName}
         lang={lang}
-      />
-
-      {/* Full Blocking Big Loader for Sacred Priest Voice */}
-      <VedicAudioLoaderModal
-        isOpen={isAudioLoading}
-        onCancel={cleanupAudioAndTimers}
-        titleKn={
-          lang === "kn" ? "ಪೂಜಾ ಮಂತ್ರ & ಸಂಕಲ್ಪ ಧ್ವನಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." :
-          lang === "hi" ? "पूजा मंत्र एवं संकल्प ध्वनि तैयार हो रही है..." :
-          lang === "te" ? "పూజా మంత్రం & సంకల్ప ధ్వని సిద్ధమవుతోంది..." :
-          lang === "ta" ? "பூஜை மந்திரம் & சங்கல்ப ஆடியோ தயாராகிறது..." :
-          "Synthesizing Sacred Priest Voice..."
-        }
-        titleEn="Streaming Sacred Priest Audio (Vedic Neural TTS)..."
-        subtitleKn={
-          lang === "kn" ? "ವೇದ ಮಂತ್ರಗಳ ಉಚ್ಛಾರಣೆ & ಸಂಕಲ್ಪ ಧ್ವನಿ ಲೋಡ್ ಆಗುತ್ತಿದೆ, ದಯವಿಟ್ಟು ನಿರೀಕ್ಷಿಸಿ." :
-          lang === "hi" ? "वैदिक मंत्रों का उच्चारण एवं संकल्प ध्वनि लोड हो रही है, कृपया प्रतीक्षा करें।" :
-          lang === "te" ? "వేద మంత్రోచ్ఛారణ & సంకల్ప ధ్వని లోడ్ అవుతోంది, దయచేసి వేచి ఉండండి." :
-          lang === "ta" ? "வேத மந்திர பாராயணம் மற்றும் சங்கல்ப குரல் தயாராகிறது, தயவுசெய்து காத்திருங்கள்." :
-          "Loading sacred Vedic recitation & devotee sankalpa audio, please wait a moment."
-        }
       />
     </>
   );

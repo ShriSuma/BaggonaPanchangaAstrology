@@ -5,7 +5,6 @@ import { playTempleBellChime } from "../../features/seva/priestAudioNarrator";
 import { synthesizeAndPlayClonedVoice, stopClonedAudio, prewarmIndicAudio } from "../../features/audio/aiVoiceCloneEngine";
 import { stopAllAudioGlobal, onGlobalAudioStop } from "../../features/audio/globalAudioManager";
 import { recordDevoteeJapaCompleted, type DevoteeStreakRecord, type DevoteeMilestoneReward } from "../../features/seva/devoteeStreakService";
-import { VedicAudioLoaderModal } from "../ui/VedicAudioLoaderModal";
 
 export interface RemedyJapa11CounterProps {
   remedyInfo: PersonalRemedyJapaInfo;
@@ -408,18 +407,6 @@ export const RemedyJapa11Counter: React.FC<RemedyJapa11CounterProps> = ({
         </div>
       )}
 
-      {/* Prominent Vedic Audio Loader Modal for Sacred Voice */}
-      <VedicAudioLoaderModal
-        isOpen={isLoadingPriestAudio}
-        onCancel={() => {
-          stopAllAudioGlobal();
-          setIsLoadingPriestAudio(false);
-          setIsPlayingPriestAudio(false);
-        }}
-        lang={lang}
-        title={t.loaderTitle}
-        subtitle={t.loaderSubtitle}
-      />
     </div>
   );
 };

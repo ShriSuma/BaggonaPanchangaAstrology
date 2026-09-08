@@ -3,7 +3,6 @@ import type { SevaLang } from "../../features/seva/sevaLocale";
 import { downloadIcsFile } from "../../features/seva/icsCalendarGenerator";
 import { playTempleBellChime, speakPriestNarration } from "../../features/seva/priestAudioNarrator";
 import { stopAllAudioGlobal, onGlobalAudioStop } from "../../features/audio/globalAudioManager";
-import { VedicAudioLoaderModal } from "../ui/VedicAudioLoaderModal";
 
 export interface PersonalGoldenHourWidgetProps {
   dateStr: string; // YYYY-MM-DD
@@ -389,17 +388,6 @@ export const PersonalGoldenHourWidget: React.FC<PersonalGoldenHourWidgetProps> =
         </p>
       </div>
 
-      {/* Vedic Audio Loader Modal */}
-      <VedicAudioLoaderModal
-        isOpen={isLoadingChant}
-        onClose={() => {
-          stopAllAudioGlobal();
-          setIsLoadingChant(false);
-        }}
-        title={t.loaderTitle}
-        subtitle={t.loaderSubtitle}
-        lang={lang}
-      />
     </div>
   );
 };
