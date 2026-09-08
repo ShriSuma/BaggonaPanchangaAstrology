@@ -24,7 +24,7 @@ export const PostPoojaRemedyJapaCard: React.FC<PostPoojaRemedyJapaCardProps> = (
   rashiName,
   nakshatraName,
   lang = "kn",
-  voiceId = "voice_shrisuma_master",
+  voiceId = "voice_sriram_pandit",
   onJapaCompleted,
   className = ""
 }) => {

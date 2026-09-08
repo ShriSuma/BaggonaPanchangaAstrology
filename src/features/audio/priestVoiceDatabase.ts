@@ -59,14 +59,14 @@ export interface PriestVoiceProfile {
   updatedAt: string;
 }
 
-export const MASTER_DEFAULT_VOICE_ID = "voice_shrisuma_master";
+export const MASTER_DEFAULT_VOICE_ID = "voice_sriram_pandit";
 
 const STORAGE_KEY = "baggona_priest_voice_profiles_v4";
 
 export const DEFAULT_PROFILES: PriestVoiceProfile[] = [
   {
     id: MASTER_DEFAULT_VOICE_ID,
-    name: "ಶ್ರೀಸುಮ / ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ($hriSuma & Pandit Shreeram Master Voice)",
+    name: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (Pandit Shreeram Master Voice)",
     titleKn: "ಪ್ರಧಾನ ಅರ್ಚಕರು & ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಮುಖ್ಯ ದೈವಜ್ಞರು",
     titleEn: "Chief Priest & Baggona Panchanga Master Astrologer",
     phone: "9972339362",

@@ -308,7 +308,8 @@ export function decodeDevoteeToken(token: string): (DevoteeTokenPayload & {
     const phone = parsed.ph || parsed.phone || undefined;
     const email = parsed.em || parsed.email || undefined;
     const overrideCalendarPhone = Boolean(parsed.ocp || parsed.overrideCalendarPhone);
-    const voiceId = parsed.vid || parsed.voiceId || "voice_shrisuma_master";
+    const rawVid = parsed.vid || parsed.voiceId;
+    const voiceId = (!rawVid || rawVid === "voice_shrisuma_master") ? "voice_sriram_pandit" : rawVid;
 
     return {
       name,

@@ -224,7 +224,6 @@ export const PersonalGoldenHourWidget: React.FC<PersonalGoldenHourWidgetProps> =
     }
 
     stopAllAudioGlobal();
-    playTempleBellChime();
     setIsLoadingChant(true);
 
     // STRICT USER MANDATE: "100% accurately whatever written, no blah blah added, only what is written clearly needs to be told."

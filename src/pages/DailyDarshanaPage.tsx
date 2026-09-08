@@ -1557,7 +1557,8 @@ export default function DailyDarshanaPage(): JSX.Element {
   const [isDinaBhavishyaLoading, setIsDinaBhavishyaLoading] = useState<boolean>(false);
 
   const activeVoiceId = useMemo(() => {
-    return (decoded as any)?.vid || (decoded as any)?.voiceId || params.get("vid") || params.get("voiceId") || "voice_shrisuma_master";
+    const rawVid = (decoded as any)?.vid || (decoded as any)?.voiceId || params.get("vid") || params.get("voiceId");
+    return (!rawVid || rawVid === "voice_shrisuma_master") ? "voice_sriram_pandit" : rawVid;
   }, [decoded, params]);
 
   const [poojaStreak, setPoojaStreak] = useState<PoojaStreakInfo>({

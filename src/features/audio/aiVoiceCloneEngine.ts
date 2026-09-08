@@ -77,6 +77,7 @@ export function getVoiceCloneConfig(): VoiceCloneConfig {
       ...DEFAULT_CLONE_CONFIG,
       ...parsed,
       provider: parsed.provider === "sarvam_ai" ? "studio_stream" : (parsed.provider || "studio_stream"),
+      studioVoiceId: (!parsed.studioVoiceId || parsed.studioVoiceId === "voice_shrisuma_master") ? "voice_sriram_pandit" : parsed.studioVoiceId,
       hfApiKey: parsedHfKey || envHfKey
     };
   } catch {
@@ -218,15 +219,29 @@ export async function handleGenerateAudio(
   audio.src = SILENT_MP3_UNLOCK;
   audio.play().catch(() => {});
 
-  const targetVoiceId = voiceId || "voice_sriram_pandit";
+  // The custom studio server registered voice is "voice_sriram_pandit".
+  // Map any legacy IDs ("voice_shrisuma_master", "default", etc.) to "voice_sriram_pandit"
+  const targetVoiceId = (!voiceId || voiceId === "voice_shrisuma_master" || voiceId === "default" || voiceId === "master" || voiceId === "voice_default")
+    ? "voice_sriram_pandit"
+    : voiceId;
 
   try {
     // 2. Fetch the audio using our normal TTS POST endpoint
-    const response = await fetch("https://indian-language-voici-clone-tts-7273.ai.studio/api/admin/tts-stream", {
+    let response = await fetch("https://indian-language-voici-clone-tts-7273.ai.studio/api/admin/tts-stream", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ voice_id: targetVoiceId, text: cleanText })
     });
+
+    // If a custom voice ID returns 404, immediately retry with the registered master voice
+    if (response.status === 404 && targetVoiceId !== "voice_sriram_pandit") {
+      console.warn(`[AIVoiceCloneEngine] Voice "${targetVoiceId}" not found (404), retrying with voice_sriram_pandit`);
+      response = await fetch("https://indian-language-voici-clone-tts-7273.ai.studio/api/admin/tts-stream", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ voice_id: "voice_sriram_pandit", text: cleanText })
+      });
+    }
 
     if (!response.ok) throw new Error(`TTS Generation failed (${response.status})`);
 
