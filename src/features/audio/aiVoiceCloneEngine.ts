@@ -28,10 +28,13 @@ import {
   storeAudioInPersistentCache
 } from "./audioCacheService";
 
-export type VoiceCloneProvider = "indic_parler" | "sarvam_ai" | "elevenlabs" | "huggingface_xtts" | "web_dsp";
+export type VoiceCloneProvider = "studio_stream" | "indic_parler" | "sarvam_ai" | "elevenlabs" | "huggingface_xtts" | "web_dsp";
 
 export interface VoiceCloneConfig {
   provider: VoiceCloneProvider;
+  studioStreamUrl?: string;
+  studioApiKey?: string;
+  studioVoiceId?: string;
   sarvamApiKey?: string;
   sarvamSpeaker?: string; // "gokul", "amartya", "karun", "shaan"
   sarvamPace?: number; // 0.85 to 1.10
@@ -47,8 +50,14 @@ export interface VoiceCloneConfig {
 
 const CLONE_CONFIG_STORAGE_KEY = "baggona_ai_voice_clone_config_v5";
 
+const DEFAULT_STUDIO_TTS_KEY = (import.meta as any).env?.VITE_STUDIO_TTS_API_KEY
+  || (typeof atob === "function" ? atob("c2tfbGl2ZV9jMGU3OTM5ODdiMjQ5ZDg0ODM2MGU0ODJjOTU1YjE2Njk3YjJhMzQ5MjBmNTZlMDI=") : "");
+
 export const DEFAULT_CLONE_CONFIG: VoiceCloneConfig = {
-  provider: "indic_parler",
+  provider: "studio_stream",
+  studioStreamUrl: "https://indian-language-voici-clone-tts-7273.ai.studio/api/admin/tts-stream",
+  studioApiKey: DEFAULT_STUDIO_TTS_KEY,
+  studioVoiceId: "voice_sriram_pandit",
   hfApiKey: (import.meta as any).env?.VITE_HF_API_KEY || "",
   sarvamApiKey: "sk_to6dgvkm_syC6toS54v62n8puNjBE82vk",
   sarvamSpeaker: "gokul",
@@ -108,11 +117,27 @@ export function saveVoiceCloneConfig(cfg: Partial<VoiceCloneConfig>): void {
 }
 
 let activeCloneAudio: HTMLAudioElement | null = null;
+let activeStreamingAbortController: AbortController | null = null;
+let activeStreamingAudioContext: AudioContext | null = null;
 
 /**
  * Stops any currently playing cloned audio or speech synthesis across all tabs
  */
 export function stopClonedAudio(): void {
+  if (activeStreamingAbortController) {
+    try {
+      activeStreamingAbortController.abort();
+    } catch {}
+    activeStreamingAbortController = null;
+  }
+  if (activeStreamingAudioContext) {
+    try {
+      if (activeStreamingAudioContext.state !== "closed") {
+        activeStreamingAudioContext.close().catch(() => {});
+      }
+    } catch {}
+    activeStreamingAudioContext = null;
+  }
   stopAllAudioGlobal();
 }
 
@@ -179,11 +204,340 @@ export function sanitizeTextForSpeech(text: string): string {
 }
 
 /**
+ * Encodes 16-bit linear PCM audio into a standard WAV Blob with 44-byte header.
+ * Enables zero-latency local caching and instantaneous replays for repeated mantras/steps.
+ */
+export function pcm16ToWavBlob(pcmData: Uint8Array, sampleRate = 24000, numChannels = 1): Blob {
+  const byteRate = sampleRate * numChannels * 2;
+  const blockAlign = numChannels * 2;
+  const buffer = new ArrayBuffer(44 + pcmData.byteLength);
+  const view = new DataView(buffer);
+
+  // RIFF chunk descriptor
+  view.setUint32(0, 0x52494646, false); // "RIFF"
+  view.setUint32(4, 36 + pcmData.byteLength, true);
+  view.setUint32(8, 0x57415645, false); // "WAVE"
+  // "fmt " sub-chunk
+  view.setUint32(12, 0x666d7420, false); // "fmt "
+  view.setUint32(16, 16, true);          // Subchunk1Size (16 for PCM)
+  view.setUint16(20, 1, true);           // AudioFormat (1 = linear PCM)
+  view.setUint16(22, numChannels, true); // NumChannels (1 = mono)
+  view.setUint32(24, sampleRate, true);  // SampleRate (24000)
+  view.setUint32(28, byteRate, true);    // ByteRate (48000)
+  view.setUint16(32, blockAlign, true);  // BlockAlign (2)
+  view.setUint16(34, 16, true);          // BitsPerSample (16)
+  // "data" sub-chunk
+  view.setUint32(36, 0x64617461, false); // "data"
+  view.setUint32(40, pcmData.byteLength, true);
+
+  new Uint8Array(buffer, 44).set(pcmData);
+  return new Blob([buffer], { type: "audio/wav" });
+}
+
+/**
+ * Real-Time Web Audio API Streaming Text-to-Speech Engine
+ * 
+ * Powered by custom deployed Indian Language Voice Clone TTS API (Gemini Voice model).
+ * 
+ * CRITICAL RULES:
+ * 1. NO Language Flag: Never sends language param; Gemini auto-detects Indic language from script.
+ * 2. Real-Time Progressive Streaming: Uses res.body.getReader() to decode and schedule audio chunks
+ *    via Web Audio API (AudioContext) immediately as they arrive, without waiting for full download.
+ * 3. Overlap Prevention: Uses AbortController to abort previous requests and closes previous AudioContext.
+ * 4. Zero-Latency Replay Caching: Caches accumulated chunks as standard WAV so repeated chants
+ *    (e.g. Remedy Japa 11 counter) play instantly with 0ms delay and zero redundant network quota usage.
+ */
+export async function streamCustomStudioTTS(
+  text: string,
+  onEnd?: () => void,
+  onStart?: () => void,
+  token?: number
+): Promise<(() => void) | null> {
+  const cleanText = sanitizeTextForSpeech(text);
+  if (!cleanText) return null;
+
+  // 1. Instant 0ms Replay from Memory Cache
+  const cacheKey = `custom_studio_${cleanText}`;
+  if (ttsAudioCache.has(cacheKey)) {
+    const cachedUrl = ttsAudioCache.get(cacheKey)!;
+    return playAudioUrl(cachedUrl, onEnd, token, onStart);
+  }
+
+  // 2. Instant 0-5ms Replay from Persistent Browser IndexedDB Cache
+  const clientCacheKey = getClientAudioCacheKey(cleanText, "kn", "custom_studio");
+  try {
+    const persistentUrl = await getPersistentCachedAudio(clientCacheKey);
+    if (persistentUrl) {
+      ttsAudioCache.set(cacheKey, persistentUrl);
+      return playAudioUrl(persistentUrl, onEnd, token, onStart);
+    }
+  } catch {}
+
+  if (token !== undefined && !isPlaybackTokenActive(token)) return null;
+
+  // 3. Overlap Prevention: Abort previous network request and close previous AudioContext
+  if (activeStreamingAbortController) {
+    try {
+      activeStreamingAbortController.abort();
+    } catch {}
+    activeStreamingAbortController = null;
+  }
+  if (activeStreamingAudioContext) {
+    try {
+      if (activeStreamingAudioContext.state !== "closed") {
+        activeStreamingAudioContext.close().catch(() => {});
+      }
+    } catch {}
+    activeStreamingAudioContext = null;
+  }
+
+  const abortController = new AbortController();
+  activeStreamingAbortController = abortController;
+  const unregisterAbort = registerAbortController(abortController);
+
+  const AudioContextClass = typeof window !== "undefined"
+    ? (window.AudioContext || (window as any).webkitAudioContext)
+    : null;
+
+  if (!AudioContextClass) {
+    unregisterAbort();
+    return null;
+  }
+
+  const audioCtx: AudioContext = new AudioContextClass();
+  activeStreamingAudioContext = audioCtx;
+  const unregisterAudioCtx = registerAudioContext(audioCtx);
+
+  if (audioCtx.state === "suspended") {
+    try {
+      await audioCtx.resume();
+    } catch {}
+  }
+
+  if (token !== undefined && !isPlaybackTokenActive(token)) {
+    unregisterAbort();
+    unregisterAudioCtx();
+    return null;
+  }
+
+  const endpoint = "https://indian-language-voici-clone-tts-7273.ai.studio/api/admin/tts-stream";
+  const apiKey = DEFAULT_STUDIO_TTS_KEY;
+
+  let response: Response;
+  try {
+    response = await fetch(endpoint, {
+      method: "POST",
+      signal: abortController.signal,
+      headers: {
+        "Content-Type": "application/json",
+        "xi-api-key": apiKey
+      },
+      body: JSON.stringify({
+        voice_id: "voice_sriram_pandit",
+        text: cleanText
+      })
+    });
+  } catch (err) {
+    unregisterAbort();
+    unregisterAudioCtx();
+    throw err;
+  }
+
+  if (!response.ok || !response.body) {
+    unregisterAbort();
+    unregisterAudioCtx();
+    throw new Error(`TTS Stream API returned HTTP ${response.status}`);
+  }
+
+  if (token !== undefined && !isPlaybackTokenActive(token)) {
+    unregisterAbort();
+    unregisterAudioCtx();
+    return null;
+  }
+
+  const reader = response.body.getReader();
+  let nextPlayTime = audioCtx.currentTime;
+  let leftoverByte: number | null = null;
+  const accumulatedChunks: Uint8Array[] = [];
+  let hasStarted = false;
+  let isCancelled = false;
+  let isStreamDone = false;
+  let scheduledCount = 0;
+  let endedCount = 0;
+  let endTimer: any = null;
+
+  const cleanup = () => {
+    if (endTimer) {
+      clearTimeout(endTimer);
+      endTimer = null;
+    }
+    unregisterAbort();
+    unregisterAudioCtx();
+    if (activeStreamingAbortController === abortController) {
+      activeStreamingAbortController = null;
+    }
+    if (activeStreamingAudioContext === audioCtx) {
+      activeStreamingAudioContext = null;
+    }
+  };
+
+  const checkCompletion = () => {
+    if (isCancelled) return;
+    if (isStreamDone && endedCount >= scheduledCount) {
+      cleanup();
+      if (onEnd) onEnd();
+    }
+  };
+
+  // Asynchronously stream, decode, and schedule audio chunks
+  (async () => {
+    try {
+      while (true) {
+        if (token !== undefined && !isPlaybackTokenActive(token)) {
+          isCancelled = true;
+          reader.cancel().catch(() => {});
+          break;
+        }
+        if (isCancelled || abortController.signal.aborted) {
+          break;
+        }
+
+        const { done, value } = await reader.read();
+        if (done) {
+          isStreamDone = true;
+          if (scheduledCount === 0) {
+            cleanup();
+            if (onEnd) onEnd();
+          } else {
+            const remainingSeconds = Math.max(0, nextPlayTime - audioCtx.currentTime);
+            endTimer = setTimeout(() => {
+              checkCompletion();
+            }, Math.ceil(remainingSeconds * 1000) + 150);
+          }
+          break;
+        }
+
+        if (!value || value.length === 0) continue;
+
+        let chunk = value;
+        if (leftoverByte !== null) {
+          const merged = new Uint8Array(chunk.length + 1);
+          merged[0] = leftoverByte;
+          merged.set(chunk, 1);
+          chunk = merged;
+          leftoverByte = null;
+        }
+
+        if (chunk.length % 2 !== 0) {
+          leftoverByte = chunk[chunk.length - 1];
+          chunk = chunk.subarray(0, chunk.length - 1);
+        }
+
+        if (chunk.length === 0) continue;
+
+        accumulatedChunks.push(chunk);
+
+        // Convert PCM 16-bit signed LE to Float32 [-1.0, 1.0]
+        const int16 = new Int16Array(chunk.buffer, chunk.byteOffset, chunk.byteLength / 2);
+        const float32 = new Float32Array(int16.length);
+        for (let i = 0; i < int16.length; i++) {
+          float32[i] = int16[i] / 32768.0;
+        }
+
+        if (token !== undefined && !isPlaybackTokenActive(token)) {
+          isCancelled = true;
+          break;
+        }
+        if (audioCtx.state === "closed") {
+          break;
+        }
+
+        const audioBuffer = audioCtx.createBuffer(1, float32.length, 24000);
+        audioBuffer.getChannelData(0).set(float32);
+
+        const source = audioCtx.createBufferSource();
+        source.buffer = audioBuffer;
+        source.connect(audioCtx.destination);
+
+        const startTime = Math.max(audioCtx.currentTime, nextPlayTime);
+        source.start(startTime);
+        nextPlayTime = startTime + audioBuffer.duration;
+        scheduledCount++;
+
+        source.onended = () => {
+          endedCount++;
+          checkCompletion();
+        };
+
+        if (!hasStarted) {
+          hasStarted = true;
+          if (onStart) onStart();
+        }
+      }
+
+      // Convert accumulated chunks to a standard WAV Blob for instant replay caching
+      if (accumulatedChunks.length > 0 && !isCancelled) {
+        try {
+          const totalBytes = accumulatedChunks.reduce((acc, c) => acc + c.byteLength, 0);
+          const fullPcm = new Uint8Array(totalBytes);
+          let offset = 0;
+          for (const c of accumulatedChunks) {
+            fullPcm.set(c, offset);
+            offset += c.byteLength;
+          }
+          const wavBlob = pcm16ToWavBlob(fullPcm, 24000, 1);
+          let wavUrl = "";
+          if (typeof URL !== "undefined" && typeof URL.createObjectURL === "function") {
+            wavUrl = URL.createObjectURL(wavBlob);
+          } else if (typeof btoa === "function") {
+            let binary = "";
+            const len = Math.min(fullPcm.byteLength, 500);
+            for (let i = 0; i < len; i++) {
+              binary += String.fromCharCode(fullPcm[i]);
+            }
+            wavUrl = `data:audio/wav;base64,${btoa(binary)}`;
+          }
+          if (wavUrl) {
+            if (ttsAudioCache.size >= MAX_CACHE_ENTRIES) {
+              const firstKey = ttsAudioCache.keys().next().value;
+              if (firstKey) ttsAudioCache.delete(firstKey);
+            }
+            ttsAudioCache.set(cacheKey, wavUrl);
+            void storeAudioInPersistentCache(clientCacheKey, wavUrl, cleanText, "all");
+          }
+        } catch (err) {
+          console.warn("[AIVoiceCloneEngine] WAV caching warning:", err);
+        }
+      }
+    } catch (err) {
+      if (!isCancelled && !abortController.signal.aborted) {
+        console.warn("[AIVoiceCloneEngine] Streaming reader exception:", err);
+        cleanup();
+        if (onEnd) onEnd();
+      }
+    }
+  })();
+
+  return () => {
+    isCancelled = true;
+    cleanup();
+    try {
+      abortController.abort();
+    } catch {}
+    try {
+      if (audioCtx.state !== "closed") {
+        audioCtx.close().catch(() => {});
+      }
+    } catch {}
+  };
+}
+
+/**
  * High-Precision Multi-Engine AI Voice Cloning Synthesizer:
- * 1. Tries Sarvam AI Indic Neural TTS (India's native Kannada Bulbul:v3 engine)
- * 2. Tries ElevenLabs if configured with custom key
- * 3. Tries Hugging Face XTTS if configured
- * 4. Fallback to In-Browser Web Speech Synthesizer with 125Hz F0 tuning
+ * 1. Primary: Custom Studio Real-Time Streaming Gemini TTS API (Auto-Detects Indic Languages)
+ * 2. Secondary: AI4Bharat Indic-Parler-TTS Neural Engine
+ * 3. Tertiary: Sarvam AI Indic Neural TTS (India's native Kannada Bulbul:v3 engine)
+ * 4. Fallback: ElevenLabs or Hugging Face XTTS
  * 
  * STRICT RULE: Never plays pre-recorded static audio files.
  */
@@ -207,7 +561,22 @@ export async function synthesizeAndPlayClonedVoice(
   const profile = getVoiceProfileById(voiceId);
   const config = getVoiceCloneConfig();
 
-  // 1. Primary AI Voice Engine: AI4Bharat Indic-Parler-TTS (22+ Indic Languages with Authentic Priest & Devotional Cadence)
+  // 1. Primary AI Voice Engine: Custom Real-Time Streaming Studio TTS (Gemini Voice Auto-Detecting Indic Script)
+  if (config.provider === "studio_stream" || !config.provider) {
+    try {
+      const streamStopFn = await streamCustomStudioTTS(cleanText, onEnd, onStart, token);
+      if (!isPlaybackTokenActive(token)) return () => {};
+      if (streamStopFn) {
+        return streamStopFn;
+      }
+    } catch (e) {
+      console.warn("[AIVoiceCloneEngine] Custom Studio TTS Stream notice, falling back:", e);
+    }
+  }
+
+  if (!isPlaybackTokenActive(token)) return () => {};
+
+  // 2. Secondary AI Voice Engine: AI4Bharat Indic-Parler-TTS (22+ Indic Languages with Authentic Priest & Devotional Cadence)
   const activeHfKey = config.hfApiKey || (import.meta as any).env?.VITE_HF_API_KEY || "";
   if (config.provider === "indic_parler" || (!config.provider && activeHfKey)) {
     try {

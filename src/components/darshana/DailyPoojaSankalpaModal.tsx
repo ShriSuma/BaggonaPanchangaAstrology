@@ -252,7 +252,7 @@ const FOOTER_BTNS: Record<SevaLang, {
  * Prevents linking/playing odd, robotic, or distorted AI voices.
  */
 export function isProperAudioAvailableForStep(_stepNum: number, _lang: SevaLang = "kn"): boolean {
-  return false;
+  return true;
 }
 
 export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = ({

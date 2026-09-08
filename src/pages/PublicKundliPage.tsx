@@ -606,9 +606,10 @@ export default function PublicKundliPage(): JSX.Element {
       setIsUnlocking(false);
       setActiveTab("personality");
       setTimeout(() => {
+        if (typeof document === "undefined") return;
         const el = document.getElementById("personality-section-content");
         if (el && typeof el.scrollIntoView === "function") el.scrollIntoView({ behavior: "smooth" });
-        else if (typeof window.scrollTo === "function") window.scrollTo({ top: 480, behavior: "smooth" });
+        else if (typeof window !== "undefined" && typeof window.scrollTo === "function") window.scrollTo({ top: 480, behavior: "smooth" });
       }, 100);
     } catch (err) {
       console.warn("[PublicKundli] Personality unlock coin deduction error:", err);
