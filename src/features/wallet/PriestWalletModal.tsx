@@ -5,6 +5,7 @@ import {
   RECHARGE_PACKAGES,
   DEFAULT_PRIEST_UPI_ID,
   DEFAULT_PRIEST_UPI_NAME,
+  DEFAULT_PRIEST_MOBILE_NUMBER,
   generateUpiPayUri,
   generatePhonePeUri,
   generateGPayUri,
@@ -279,45 +280,61 @@ export const PriestWalletModal: React.FC = () => {
                       </a>
                     </div>
 
-                    <div className="text-[10px] sm:text-[11px] text-amber-900 leading-relaxed font-semibold">
-                      ✨ PhonePe ಅಥವಾ Google Pay ಮೂಲಕ ಪಾವತಿಸಿದ ನಂತರ, ಕೆಳಗಿನ ಬಟನ್ ಒತ್ತಿ ನಾಣ್ಯಗಳನ್ನು ತಕ್ಷಣವೇ ನಿಮ್ಮ ವಾಲೆಟ್‌ಗೆ ಜಮೆ ಮಾಡಿಕೊಳ್ಳಿ.
+                    <div className="p-2.5 bg-amber-50 border border-amber-300 rounded-xl text-[11px] text-amber-950 font-medium leading-relaxed">
+                      💡 PhonePe ಅಥವಾ Google Pay ಮೂಲಕ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ಪಾವತಿಸಿದ ನಂತರ, ರಶೀದಿಯನ್ನು WhatsApp ಮೂಲಕ ಕಳುಹಿಸಿ ಅಥವಾ UTR ಸಲ್ಲಿಸಿ. ಪರಿಶೀಲನೆಯ ನಂತರ ನಾಣ್ಯಗಳನ್ನು ಲೋಡ್ ಮಾಡಲಾಗುತ್ತದೆ.
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Step 3: Instant Coin Load Action & Optional UTR */}
-              <form onSubmit={handleUtrSubmit} className="space-y-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-3xl p-4 sm:p-5 shadow-sm">
+              {/* Step 3: Payment Verification & Receipt Submission */}
+              <div className="space-y-3 bg-[#FEFCF4] border-2 border-amber-300 rounded-3xl p-4 sm:p-5 shadow-sm">
+                <label className="block text-xs font-black uppercase tracking-wider text-amber-950 text-center sm:text-left">
+                  3. ಪಾವತಿ ವಿವರ ಕಳುಹಿಸಿ (ನಾಣ್ಯಗಳನ್ನು ಲೋಡ್ ಮಾಡಲು)
+                </label>
+
+                {/* Primary: WhatsApp Receipt */}
                 <button
-                  type="submit"
-                  disabled={isSubmittingRecharge}
-                  className="w-full py-3.5 px-4 bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-sm rounded-xl shadow-lg disabled:opacity-50 transition-all flex items-center justify-center gap-2 active:scale-95 border-2 border-emerald-400 cursor-pointer"
+                  type="button"
+                  onClick={() => {
+                    const msg = encodeURIComponent(
+                      `ನಮಸ್ಕಾರ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರೇ,\nನನ್ನ ಪುರೋಹಿತ ID (${wallet?.userId || "Priest"}) ಗೆ ₹${amountInr} (${selectedPackage.totalCoins.toLocaleString()} Coins) PhonePe/GPay ಮೂಲಕ ಪಾವತಿಸಿದ್ದೇನೆ.\nದಯವಿಟ್ಟು ಪರಿಶೀಲಿಸಿ ನನ್ನ ವಾಲೆಟ್‌ಗೆ ನಾಣ್ಯಗಳನ್ನು ಲೋಡ್ ಮಾಡಿ.\nUTR: ${upiUtr || "Done"}`
+                    );
+                    window.open(`https://api.whatsapp.com/send?phone=91${DEFAULT_PRIEST_MOBILE_NUMBER}&text=${msg}`, "_blank");
+                  }}
+                  className="w-full py-3 px-4 bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs sm:text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2 border-2 border-emerald-400 active:scale-95 cursor-pointer"
                 >
-                  <span className="text-lg">⚡</span>
-                  <span>
-                    {isSubmittingRecharge
-                      ? "ನಾಣ್ಯಗಳನ್ನು ಜಮೆ ಮಾಡಲಾಗುತ್ತಿದೆ..."
-                      : `ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ಪಾವತಿಸಿದ್ದೇನೆ • +${selectedPackage.totalCoins.toLocaleString()} ನಾಣ್ಯಗಳನ್ನು ಪಡೆಯಿರಿ`}
-                  </span>
+                  <span className="text-lg">📲</span>
+                  <span>WhatsApp ನಲ್ಲಿ ರಶೀದಿ ಕಳುಹಿಸಿ • ನಾಣ್ಯಗಳನ್ನು ಲೋಡ್ ಮಾಡಿಸಿಕೊಳ್ಳಿ</span>
                 </button>
 
-                <div className="pt-2 border-t border-amber-200">
-                  <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                    UPI UTR / ರೆಫರೆನ್ಸ್ ಸಂಖ್ಯೆ (ಐಚ್ಛಿಕ / Optional):
+                {/* Secondary: UTR Submission */}
+                <form onSubmit={handleUtrSubmit} className="space-y-2 pt-2 border-t border-amber-200">
+                  <label className="block text-[11px] font-bold text-slate-700">
+                    ಅಥವಾ ೧೨-ಅಂಕಿಯ UPI UTR ಸಂಖ್ಯೆ ನಮೂದಿಸಿ ಪರಿಶೀಲನೆಗೆ ಸಲ್ಲಿಸಿ:
                   </label>
-                  <input
-                    type="text"
-                    value={upiUtr}
-                    onChange={(e) => setUpiUtr(e.target.value.replace(/[^0-9a-zA-Z]/g, ""))}
-                    placeholder="ಉದಾ: 423512345678 (ಅಗತ್ಯವಿದ್ದರೆ ಮಾತ್ರ ನಮೂದಿಸಿ)"
-                    maxLength={18}
-                    className="w-full px-3.5 py-2 bg-white border border-amber-300 rounded-xl text-slate-900 placeholder-slate-400 font-mono text-xs font-bold focus:outline-none focus:border-amber-500 shadow-inner"
-                  />
-                </div>
-                <p className="text-[10px] text-amber-800 font-semibold">
-                  ಸಂಪರ್ಕ: ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (9108135387) • ತಕ್ಷಣದ ಸ್ವಯಂ ಜಮೆ.
-                </p>
-              </form>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <input
+                      type="text"
+                      value={upiUtr}
+                      onChange={(e) => setUpiUtr(e.target.value.replace(/[^0-9a-zA-Z]/g, ""))}
+                      placeholder="ಉದಾ: 423512345678 (UTR ಸಂಖ್ಯೆ)"
+                      maxLength={18}
+                      className="flex-1 px-3.5 py-2 bg-white border border-amber-300 rounded-xl text-slate-900 placeholder-slate-400 font-mono text-xs font-bold focus:outline-none focus:border-amber-500 shadow-inner"
+                    />
+                    <button
+                      type="submit"
+                      disabled={isSubmittingRecharge}
+                      className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-black text-xs rounded-xl shadow-md disabled:opacity-50 transition-all cursor-pointer shrink-0"
+                    >
+                      {isSubmittingRecharge ? "ಸಲ್ಲಿಸಲಾಗುತ್ತಿದೆ..." : "ಪರಿಶೀಲನೆಗೆ ಸಲ್ಲಿಸಿ"}
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-slate-500 font-semibold">
+                    ಸಂಪರ್ಕ: ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (9108135387) • ಪರಿಶೀಲಿಸಿ ನಾಣ್ಯಗಳನ್ನು ಲೋಡ್ ಮಾಡಲಾಗುತ್ತದೆ.
+                  </p>
+                </form>
+              </div>
             </div>
           ) : (
             /* Tab 2: Transaction History */

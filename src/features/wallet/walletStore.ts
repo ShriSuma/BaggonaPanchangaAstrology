@@ -162,36 +162,27 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     const effectivePriestName = wallet?.priestName || "ಭಕ್ತರು / ಪುರೋಹಿತರು";
 
     try {
-      const result = await creditWalletCoinsDirectly({
+      const txId = `tx_rec_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+      const newTx: WalletTransactionDoc = {
+        id: txId,
         walletId: effectiveWalletId,
         userId: effectiveUserId,
         priestName: effectivePriestName,
-        amountInr: effectiveAmount,
+        type: "recharge",
+        inrAmount: effectiveAmount,
         coins: effectiveCoins,
         packageKey: selectedPackage.key,
         upiUtr: cleanUtr,
-        paymentMethod: "PhonePe/GPay Scanner",
-        currentBalance: wallet?.coinBalance
-      });
+        status: "pending",
+        description: `PhonePe/GPay Recharge: ₹${effectiveAmount} (${effectiveCoins.toLocaleString()} Coins) - ಪರಿಶೀಲನೆ ಬಾಕಿ (Pending Verification)`,
+        createdAt: new Date().toISOString()
+      };
 
-      // Update active wallet in Zustand store
-      if (wallet) {
-        set({
-          wallet: {
-            ...wallet,
-            coinBalance: result.newBalance,
-            totalRechargedInr: (wallet.totalRechargedInr || 0) + effectiveAmount,
-            totalCoinsCredited: (wallet.totalCoinsCredited || 0) + effectiveCoins,
-            updatedAt: new Date().toISOString()
-          }
-        });
-      } else {
-        creditGuestCoins(effectiveCoins);
-      }
+      await createWalletTransaction(newTx);
 
       // Trigger automatic email alert to admin with UTR verification info
       void notifyCoinRechargeRequested({
-        txId: result.txId,
+        txId,
         priestName: effectivePriestName,
         amountInr: effectiveAmount,
         coins: effectiveCoins,
@@ -202,7 +193,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
 
       set({
         isSubmittingRecharge: false,
-        successMessage: `✨ ₹${effectiveAmount} ಪಾವತಿ ಯಶಸ್ವಿ! ${effectiveCoins.toLocaleString()} ನಾಣ್ಯಗಳನ್ನು ನಿಮ್ಮ ವಾಲೆಟ್‌ಗೆ ತಕ್ಷಣವೇ ಜಮೆ ಮಾಡಲಾಗಿದೆ.`
+        successMessage: `ಪಾವತಿ ಪರಿಶೀಲನೆಗೆ ಸಲ್ಲಿಸಲಾಗಿದೆ (UTR: ${cleanUtr}). ಅರ್ಚಕರು ಪರಿಶೀಲಿಸಿದ ನಂತರ ನಿಮ್ಮ ವಾಲೆಟ್‌ಗೆ ${effectiveCoins.toLocaleString()} ನಾಣ್ಯಗಳನ್ನು ಲೋಡ್ ಮಾಡುತ್ತಾರೆ.`
       });
       return { success: true };
     } catch (err: any) {

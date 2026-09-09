@@ -2275,18 +2275,17 @@ ${publicProfile.name}`;
                   <button
                     type="button"
                     onClick={() => {
-                      const shortage = personalityUnlockCost - availableCoins;
-                      creditGuestCoins(shortage);
-                      setGuestBalance(getPublicGuestWallet().coinBalance);
+                      setShowUnlockModal(false);
+                      setIsRechargeOpen(true);
                       setErrorMessage(null);
                     }}
-                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-extrabold text-xs shadow-md hover:from-emerald-400 hover:to-teal-500 transition flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-slate-950 font-black text-xs shadow-md transition flex items-center justify-center gap-2 cursor-pointer active:scale-95"
                   >
-                    <span>⚡</span>
+                    <span>💳</span>
                     <span>
                       {selectedLang === "kn"
-                        ? `+${(personalityUnlockCost - availableCoins).toLocaleString()} ನಾಣ್ಯಗಳನ್ನು ಸೇರಿಸಿ (ರೀಚಾರ್ಜ್)`
-                        : `+${(personalityUnlockCost - availableCoins).toLocaleString()} Coins Refill`}
+                        ? `PhonePe / GPay ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ರೀಚಾರ್ಜ್ ಮಾಡಿ`
+                        : `Scan & Recharge via PhonePe / GPay`}
                     </span>
                   </button>
                 </div>
