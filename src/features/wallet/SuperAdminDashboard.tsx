@@ -454,6 +454,7 @@ export const SuperAdminDashboard: React.FC = () => {
   const [festivalSearchQuery, setFestivalSearchQuery] = useState("");
   const [selectedFestivalId, setSelectedFestivalId] = useState("yugadi");
   const [isListeningMic, setIsListeningMic] = useState(false);
+  const [copiedPriestPortalLink, setCopiedPriestPortalLink] = useState(false);
 
   // Priest Voice Database State (Super Admin Control)
   const [adminVoiceProfiles, setAdminVoiceProfiles] = useState<PriestVoiceProfile[]>(() => getAllVoiceProfiles());
@@ -4611,26 +4612,129 @@ export const SuperAdminDashboard: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* 1-Click Launch Dedicated Priest Portal Button */}
-                  <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-2 bg-amber-100/70 border border-amber-300 p-3 rounded-2xl">
-                    <div>
-                      <span className="text-xs font-black text-amber-950 block">
-                        👑 ಪುರೋಹಿತ ಪಂಚಾಂಗ ಮಹಾದರ್ಶನ (Priest Panchanga Portal)
-                      </span>
-                      <span className="text-[10px] font-bold text-amber-800">
-                        ಲೈವ್ ಗೋಚಾರ ಗ್ರಹ ಕುಂಡಲಿ, ೧೨ ಲಗ್ನ ಸಮಾಪ್ತಿ & ೧೮೦ ದಿನಗಳ ಕ್ಯಾಲೆಂಡರ್ ರಫ್ತು
-                      </span>
-                    </div>
-                    <a
-                      href={`/priest-panchanga?date=${testDateInspector}&pincode=581326`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-4 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 text-slate-950 border border-amber-600 shadow-xs hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5 shrink-0"
-                    >
-                      <span>🚀</span>
-                      <span>ಪೋರ್ಟಲ್ ತೆರೆಯಿರಿ</span>
-                    </a>
-                  </div>
+                  {/* 1-Click Launch Dedicated Priest Portal & Sharing Controls */}
+                  {(() => {
+                    const origin = typeof window !== "undefined" && window.location.origin && !window.location.hostname.includes("localhost")
+                      ? window.location.origin
+                      : "https://baggona-panchanga-astrology.vercel.app";
+                    const priestShareUrl = `${origin}/?portal=priest_panchanga&date=${testDateInspector}&pincode=581326`;
+                    const localPriestPortalUrl = `/?portal=priest_panchanga&date=${testDateInspector}&pincode=581326`;
+
+                    const handleCopyPriestLink = async () => {
+                      let success = false;
+                      try {
+                        if (navigator?.clipboard?.writeText) {
+                          await navigator.clipboard.writeText(priestShareUrl);
+                          success = true;
+                        }
+                      } catch (err) {
+                        console.warn("navigator.clipboard failed, fallback to textarea", err);
+                      }
+                      if (!success) {
+                        try {
+                          const ta = document.createElement("textarea");
+                          ta.value = priestShareUrl;
+                          ta.style.position = "fixed";
+                          ta.style.left = "-9999px";
+                          document.body.appendChild(ta);
+                          ta.focus();
+                          ta.select();
+                          success = document.execCommand("copy");
+                          document.body.removeChild(ta);
+                        } catch (e) {
+                          console.error("ExecCommand copy failed", e);
+                        }
+                      }
+                      if (success) {
+                        setCopiedPriestPortalLink(true);
+                        setFeedback({
+                          type: "success",
+                          text: "ಪುರೋಹಿತ ಪಂಚಾಂಗ ನೇರ ಪ್ರವೇಶ ಲಿಂಕ್ ಯಶಸ್ವಿಯಾಗಿ ಕಾಪಿ ಮಾಡಲಾಗಿದೆ (Copied Priest Portal Link)!"
+                        });
+                        setTimeout(() => setCopiedPriestPortalLink(false), 3000);
+                      }
+                    };
+
+                    const handleSharePriestWhatsApp = () => {
+                      const shareText = `🕉️ *ಬಗ್ಗೋಣ ಪಂಚಾಂಗ — ಪುರೋಹಿತ ಪಂಚಾಂಗ ಮಹಾದರ್ಶನ*\n\nದಿನಾಂಕ: *${testDateInspector}*\nಸ್ಥಳ: ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ (581326)\n\nಲೈವ್ ಗೋಚಾರ ಗ್ರಹ ಕುಂಡಲಿ, ೧೨ ಲಗ್ನ ಸಮಾಪ್ತಿ ಕಾಲ & ಪಂಚಾಂಗ ವಿವರಗಳನ್ನು ವೀಕ್ಷಿಸಲು ಈ ಕೆಳಗಿನ ನೇರ ಲಿಂಕ್ ಕ್ಲಿಕ್ ಮಾಡಿ:\n👉 ${priestShareUrl}\n\n॥ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ · ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ॥`;
+                      const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
+                      window.open(waUrl, "_blank");
+                    };
+
+                    return (
+                      <div className="pt-2 flex flex-col gap-3 bg-gradient-to-r from-amber-100/90 via-amber-50 to-amber-100/90 border-2 border-amber-300 p-3.5 rounded-2xl shadow-xs">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                          <div>
+                            <span className="text-xs sm:text-sm font-black text-amber-950 flex items-center gap-1.5">
+                              <span>👑</span>
+                              <span>ಪುರೋಹಿತ ಪಂಚಾಂಗ ಮಹಾದರ್ಶನ (Priest Panchanga Portal)</span>
+                            </span>
+                            <span className="text-[11px] font-bold text-amber-800 block mt-0.5">
+                              ಲೈವ್ ಗೋಚಾರ ಗ್ರಹ ಕುಂಡಲಿ, ೧೨ ಲಗ್ನ ಸಮಾಪ್ತಿ, ಪಂಚಾಂಗ ಫಲ & ೧೮೦ ದಿನಗಳ ಕ್ಯಾಲೆಂಡರ್ ರಫ್ತು
+                            </span>
+                          </div>
+
+                          {/* Primary Mobile-Safe Launcher Button */}
+                          <div className="flex items-center gap-2 w-full sm:w-auto">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                window.location.href = localPriestPortalUrl;
+                              }}
+                              className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-xs font-black bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 text-slate-950 border border-amber-600 shadow-sm hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                              title="ಮೊಬೈಲ್ & ಡೆಸ್ಕ್‌ಟಾಪ್‌ನಲ್ಲಿ ನೇರವಾಗಿ ಪೋರ್ಟಲ್ ತೆರೆಯಿರಿ"
+                            >
+                              <span>🚀</span>
+                              <span>ಪೋರ್ಟಲ್ ತೆರೆಯಿರಿ</span>
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Direct Share Link & WhatsApp Action Row */}
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-2 border-t border-amber-200/90">
+                          <div className="flex-1 flex items-center bg-white border border-amber-300 rounded-xl px-2.5 py-1.5 shadow-inner">
+                            <span className="text-[11px] font-bold text-amber-900 mr-2 shrink-0">🔗 ಲಿಂಕ್:</span>
+                            <input
+                              type="text"
+                              readOnly
+                              value={priestShareUrl}
+                              onClick={(e) => (e.target as HTMLInputElement).select()}
+                              className="w-full bg-transparent text-[11px] font-mono text-slate-700 outline-none select-all"
+                              aria-label="ಪುರೋಹಿತ ಪಂಚಾಂಗ ಲಿಂಕ್"
+                            />
+                          </div>
+
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            {/* Copy Link Button */}
+                            <button
+                              type="button"
+                              onClick={handleCopyPriestLink}
+                              className={`flex-1 sm:flex-none px-3.5 py-2 rounded-xl text-xs font-black border transition-all flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer ${
+                                copiedPriestPortalLink
+                                  ? "bg-emerald-500 text-white border-emerald-600 shadow-sm"
+                                  : "bg-amber-200/90 hover:bg-amber-300 text-amber-950 border-amber-400 shadow-xs"
+                              }`}
+                              title="ಪುರೋಹಿತ ಸ್ನೇಹಿತರಿಗೆ ಹಂಚಿಕೊಳ್ಳಲು ಲಿಂಕ್ ಕಾಪಿ ಮಾಡಿ"
+                            >
+                              <span>{copiedPriestPortalLink ? "✅" : "📋"}</span>
+                              <span>{copiedPriestPortalLink ? "ಲಿಂಕ್ ಕಾಪಿ ಆಗಿದೆ!" : "ಲಿಂಕ್ ಕಾಪಿ ಮಾಡಿ"}</span>
+                            </button>
+
+                            {/* WhatsApp Share Button */}
+                            <button
+                              type="button"
+                              onClick={handleSharePriestWhatsApp}
+                              className="flex-1 sm:flex-none px-3.5 py-2 rounded-xl text-xs font-black bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-700 shadow-xs hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                              title="WhatsApp ಮೂಲಕ ಪುರೋಹಿತರಿಗೆ ಹಂಚಿಕೊಳ್ಳಿ"
+                            >
+                              <span>📲</span>
+                              <span>WhatsApp</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               );
             })()}

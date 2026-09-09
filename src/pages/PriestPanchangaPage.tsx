@@ -30,6 +30,7 @@ export const PriestPanchangaPage: React.FC = () => {
   const [showCalendarModal, setShowCalendarModal] = useState<boolean>(false);
   const [calendarSpanDays, setCalendarSpanDays] = useState<number>(90);
   const [copySuccess, setCopySuccess] = useState<boolean>(false);
+  const [headerCopySuccess, setHeaderCopySuccess] = useState<boolean>(false);
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
 
   // Record web visit on load / date change
@@ -162,16 +163,79 @@ export const PriestPanchangaPage: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
+  const origin = getSafeProductionOrigin();
+  const priestShareUrl = `${origin}/?portal=priest_panchanga&date=${selectedDate}&pincode=${pincode}&loc=${encodeURIComponent(locationName)}`;
+
+  const handleHeaderCopyLink = async () => {
+    let success = false;
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(priestShareUrl);
+        success = true;
+      }
+    } catch (err) {
+      console.warn("navigator.clipboard failed, fallback to textarea", err);
+    }
+    if (!success) {
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = priestShareUrl;
+        ta.style.position = "fixed";
+        ta.style.left = "-9999px";
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        success = document.execCommand("copy");
+        document.body.removeChild(ta);
+      } catch (e) {
+        console.error("ExecCommand copy failed", e);
+      }
+    }
+    if (success) {
+      setHeaderCopySuccess(true);
+      setTimeout(() => setHeaderCopySuccess(false), 3000);
+    }
+  };
+
+  const handleHeaderWhatsAppShare = () => {
+    const shareText = `🕉️ *ಬಗ್ಗೋಣ ಪಂಚಾಂಗ — ಪುರೋಹಿತ ಪಂಚಾಂಗ ಮಹಾದರ್ಶನ*\n\nದಿನಾಂಕ: *${selectedDate}*\nಸ್ಥಳ: ${locationName} (${pincode})\n\nಲೈವ್ ಗೋಚಾರ ಗ್ರಹ ಕುಂಡಲಿ, ೧೨ ಲಗ್ನ ಸಮಾಪ್ತಿ ಕಾಲ & ಪಂಚಾಂಗ ವಿವರಗಳನ್ನು ವೀಕ್ಷಿಸಲು ಈ ಕೆಳಗಿನ ನೇರ ಲಿಂಕ್ ಕ್ಲಿಕ್ ಮಾಡಿ:\n👉 ${priestShareUrl}\n\n॥ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ · ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ॥`;
+    const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
+    window.open(waUrl, "_blank");
+  };
+
   return (
     <div className="min-h-screen bg-[#FFFDF7] text-slate-900 font-sans pb-16 selection:bg-amber-200">
       {/* 1. ROYAL PRIEST HEADER */}
       <header className="sticky top-0 z-40 bg-gradient-to-r from-[#FFFDF7] via-amber-50 to-[#FEFCF4] border-b-2 border-amber-300/80 shadow-xs px-4 py-3">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <a href="/" className="p-2 rounded-xl bg-amber-100 hover:bg-amber-200 border border-amber-300 text-amber-950 text-xs font-bold transition-all flex items-center gap-1">
+          <div className="flex items-center gap-2">
+            {/* Back Button */}
+            <button
+              type="button"
+              onClick={() => {
+                if (typeof window !== "undefined" && window.history.length > 1) {
+                  window.history.back();
+                } else {
+                  window.location.href = "/?view=superadmin";
+                }
+              }}
+              className="p-2 rounded-xl bg-amber-100 hover:bg-amber-200 border border-amber-300 text-amber-950 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+              title="ಹಿಂದಿನ ಪುಟಕ್ಕೆ ಹೋಗಿ (Back)"
+            >
+              <span>🔙</span>
+              <span className="hidden sm:inline">ಹಿಂದೆ</span>
+            </button>
+
+            {/* Home Button */}
+            <a
+              href="/"
+              className="p-2 rounded-xl bg-amber-100 hover:bg-amber-200 border border-amber-300 text-amber-950 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+              title="ಮುಖಪುಟಕ್ಕೆ ಹೋಗಿ (Home)"
+            >
               <span>🏠</span>
               <span className="hidden sm:inline">ಮುಖಪುಟ</span>
             </a>
+
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-xl">🕉️</span>
@@ -185,7 +249,8 @@ export const PriestPanchangaPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2 w-full sm:w-auto">
+            {/* Priest Contact */}
             <div className="bg-amber-100/80 border border-amber-300 px-3 py-1 rounded-xl text-right">
               <span className="text-[10px] font-bold text-amber-800 block">ಮುಖ್ಯ ಅರ್ಚಕರು</span>
               <a href="tel:9972339362" className="text-xs font-black text-amber-950 hover:underline flex items-center gap-1">
@@ -194,13 +259,40 @@ export const PriestPanchangaPage: React.FC = () => {
               </a>
             </div>
 
+            {/* Copy Shareable Link */}
+            <button
+              type="button"
+              onClick={handleHeaderCopyLink}
+              className={`px-3 py-2 rounded-xl text-xs font-black border transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer ${
+                headerCopySuccess
+                  ? "bg-emerald-500 text-white border-emerald-600 shadow-sm"
+                  : "bg-amber-100 hover:bg-amber-200 text-amber-950 border-amber-300 shadow-xs"
+              }`}
+              title="ಪುರೋಹಿತ ಪಂಚಾಂಗ ಲಿಂಕ್ ಕಾಪಿ ಮಾಡಿ"
+            >
+              <span>{headerCopySuccess ? "✅" : "📋"}</span>
+              <span className="hidden sm:inline">{headerCopySuccess ? "ಕಾಪಿ ಆಗಿದೆ!" : "ಲಿಂಕ್ ಕಾಪಿ"}</span>
+            </button>
+
+            {/* WhatsApp Share */}
+            <button
+              type="button"
+              onClick={handleHeaderWhatsAppShare}
+              className="px-3 py-2 rounded-xl text-xs font-black bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-700 shadow-xs hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
+              title="WhatsApp ನಲ್ಲಿ ಪುರೋಹಿತರಿಗೆ ಹಂಚಿಕೊಳ್ಳಿ"
+            >
+              <span>📲</span>
+              <span className="hidden sm:inline">WhatsApp</span>
+            </button>
+
+            {/* Calendar Download (ICS) */}
             <button
               type="button"
               onClick={() => setShowCalendarModal(true)}
-              className="px-3.5 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 text-slate-950 border border-amber-600 shadow-sm hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-1.5"
+              className="px-3.5 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 text-slate-950 border border-amber-600 shadow-sm hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
             >
               <span>📅</span>
-              <span>ಕ್ಯಾಲೆಂಡರ್ ಡೌನ್‌ಲೋಡ್ (ICS)</span>
+              <span>ಕ್ಯಾಲೆಂಡರ್ (ICS)</span>
             </button>
           </div>
         </div>

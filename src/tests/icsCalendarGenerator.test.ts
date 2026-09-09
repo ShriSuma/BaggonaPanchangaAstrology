@@ -182,7 +182,7 @@ describe("icsCalendarGenerator", () => {
     expect(sanctumPayload).toContain("https://baggona.app/daily?token=bgn_v1_");
 
     // Decode token and verify data integrity
-    const token = sanctumPayload.split("token=")[1]!;
+    const token = sanctumPayload.split("token=")[1]!.split("&")[0];
     const decoded = decodeDevoteeToken(token);
     expect(decoded?.n).toBe("Pramod Kodagi");
     expect(decoded?.p).toBe("Pandit Chaitanya");
