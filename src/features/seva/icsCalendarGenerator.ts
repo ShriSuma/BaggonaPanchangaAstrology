@@ -1013,6 +1013,10 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
     r: birthRashiIdx,
     p: localizedPandit,
     d: startDateStr,
+    startDate: startDateStr,
+    sd: startDateStr,
+    days: 90,
+    dy: 90,
     l: lang,
     tm: notificationTime,
     pc: pincode,
@@ -1065,6 +1069,10 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
       r: birthRashiIdx,
       p: localizedPandit,
       d: day.ymd,
+      startDate: startDateStr,
+      sd: startDateStr,
+      days: days.length > 0 ? days.length : 90,
+      dy: days.length > 0 ? days.length : 90,
       l: lang,
       tm: notificationTime,
       pc: pincode,
@@ -1076,7 +1084,7 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
       ph: options.overrideCalendarPhone ? options.priestPhone : undefined,
       ocp: options.overrideCalendarPhone ? 1 : undefined
     });
-    const sanctumUrl = `${origin}/daily?token=${dayToken}&date=${day.ymd}`;
+    const sanctumUrl = `${origin}/daily?token=${dayToken}&date=${day.ymd}&sd=${startDateStr}`;
 
     const aiItem = aiPanchangaMap?.[day.ymd];
     // Canonical Drik Ganita Udaya Tithi at 06:00 AM IST from day ensures 100% parity with DailyDarshanaPage web sanctum links
@@ -1458,6 +1466,10 @@ export function generateGoogleCalendarUrl(options: {
     r: birthRashiIdx,
     p: localizedPandit,
     d: startDateStr,
+    startDate: startDateStr,
+    sd: startDateStr,
+    days: 90,
+    dy: 90,
     l: lang,
     tm: notificationTime,
     pl: "android",
@@ -1472,7 +1484,7 @@ export function generateGoogleCalendarUrl(options: {
     ocp: options.overrideCalendarPhone ? 1 : undefined
   });
   const origin = getSafeProductionOrigin(webAppBaseUrl);
-  const sanctumUrl = `${origin}/daily?token=${devoteeToken}&date=${day.ymd}`;
+  const sanctumUrl = `${origin}/daily?token=${devoteeToken}&date=${day.ymd}&sd=${startDateStr}`;
 
   const panchangaTitle = isKn ? "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ" : isHi ? "बग्गोण पंचांग" : isTe ? "బగ్గోణ పంచాಂಗం" : isTa ? "பக்கோண பஞ்சாங்கம்" : "Baggona Panchanga";
   const kshetraTitle = isKn ? "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ" : isHi ? "गोकर्ण क्षेत्र" : isTe ? "గోకర్ణ క్షేత్రం" : isTa ? "கோகர்ண க்ஷேத்திரம்" : "Gokarna Kshetra";
@@ -1633,18 +1645,24 @@ export function generateCompactGoogleCalendarUrlForQR(options: {
   const birthNakIdx = birthNakshatraIndex ?? resolvedBirth.nakshatraIndex ?? (day as any)?.janmaNakshatraIndex ?? 18;
   const birthRashiIdx = birthRashiIndex ?? resolvedBirth.rashiIndex ?? (day as any)?.janmaRashiIndex ?? 8;
 
+  const startDateStr = day.ymd || new Date().toISOString().slice(0, 10);
+
   const devoteeToken = encodeDevoteeToken({
     n: devoteeDisplayName,
     nk: birthNakIdx,
     r: birthRashiIdx,
     p: safePandit,
     d: day.ymd,
+    startDate: startDateStr,
+    sd: startDateStr,
+    days: 90,
+    dy: 90,
     l: lang,
     tm: notificationTime,
     pl: "android",
     t: "google"
   });
-  const sanctumUrl = `${origin}/daily?token=${devoteeToken}&date=${day.ymd}`;
+  const sanctumUrl = `${origin}/daily?token=${devoteeToken}&date=${day.ymd}&sd=${startDateStr}`;
 
   // Compact ASCII-only summary for QR (strictly under 600 chars)
   const summary = `Baggona Panchanga`;
@@ -1698,6 +1716,7 @@ export function generateQrPayloadByTarget(
     tob
   } = options;
   const firstDay = days && days.length > 0 ? days[0] : null;
+  const startDateStr = firstDay?.ymd || new Date().toISOString().slice(0, 10);
   const safePandit = panditName || "ಶ್ರೀ ಚೈತನ್ಯ ಪಂಡಿತ್";
   const devoteeDisplayName = (personName && personName.trim().length > 0) ? personName.trim() : (lang.startsWith("kn") ? "ಭಕ್ತರು" : "Devotee");
 
@@ -1718,7 +1737,11 @@ export function generateQrPayloadByTarget(
     nk: birthNakIdx,
     r: birthRashiIdx,
     p: safePandit,
-    d: firstDay?.ymd || new Date().toISOString().slice(0, 10),
+    d: startDateStr,
+    startDate: startDateStr,
+    sd: startDateStr,
+    days: 90,
+    dy: 90,
     l: lang,
     pl: platform || "android",
     t: target,
@@ -1733,11 +1756,11 @@ export function generateQrPayloadByTarget(
   if (target === "google" || target === "webcal") {
     // Instant 90-day native calendar import engine
     // Triggers direct .ics calendar import on devotee's phone without waiting 24h for Google crawler
-    return `${origin}/daily?token=${token}&action=ics90`;
+    return `${origin}/daily?token=${token}&action=ics90&sd=${startDateStr}`;
   }
 
   // target === "sanctum"
-  return `${origin}/daily?token=${token}`;
+  return `${origin}/daily?token=${token}&sd=${startDateStr}`;
 }
 
 export function generatePlatformSpecificQrPayload(

@@ -88,13 +88,18 @@ export async function createDatabaseDevoteeToken(
   origin: string = getSafeProductionOrigin()
 ): Promise<CreateDatabaseTokenResult> {
   const now = new Date();
-  const expiresAt = new Date(now.getTime() + totalDays * 24 * 60 * 60 * 1000);
+  const resolvedDays = Number(payload.days ?? payload.dy ?? (payload as any).durationDays ?? totalDays);
+  const startDate = payload.startDate ?? payload.sd ?? getIndianStandardDateStr(now);
+  const startObj = new Date(startDate);
+  const startUtc = isNaN(startObj.getTime())
+    ? Date.now()
+    : Date.UTC(startObj.getFullYear(), startObj.getMonth(), startObj.getDate());
+  const expiresAt = new Date(startUtc + resolvedDays * 24 * 60 * 60 * 1000);
   const shortCode = generateShortCode(8);
   const tokenId = `bgn_tk_${shortCode.toLowerCase()}_${Date.now().toString(36)}`;
 
-  const devoteeName = payload.name ?? payload.n ?? "Devotee";
-  const priestName = payload.pandit ?? payload.p ?? "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್";
-  const startDate = payload.startDate ?? payload.sd ?? payload.date ?? payload.d ?? getIndianStandardDateStr(now);
+  const devoteeName = payload.name ?? payload.n ?? (payload as any).devoteeName ?? "Devotee";
+  const priestName = payload.pandit ?? payload.p ?? (payload as any).priestName ?? "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್";
   const lang = payload.lang ?? payload.l ?? "kn";
   const time = payload.time ?? payload.tm ?? "08:00";
 
@@ -110,7 +115,7 @@ export async function createDatabaseDevoteeToken(
     gotra: payload.gotra ?? payload.g,
     priestName,
     startDate,
-    totalDays,
+    totalDays: resolvedDays,
     lang,
     notificationTime: time,
     dob: payload.dob,
@@ -268,7 +273,12 @@ export async function resolveDevoteeToken(
 
   // 3. First time encountering this legacy token: Auto-Migrate to Database Table!
   const totalDays = decoded.days || decoded.dy || 90;
-  const expiresAt = new Date(now.getTime() + totalDays * 24 * 60 * 60 * 1000);
+  const rawStart = decoded.startDate || decoded.sd || getIndianStandardDateStr(now);
+  const startObj = new Date(rawStart);
+  const startUtc = isNaN(startObj.getTime())
+    ? Date.now()
+    : Date.UTC(startObj.getFullYear(), startObj.getMonth(), startObj.getDate());
+  const expiresAt = new Date(startUtc + totalDays * 24 * 60 * 60 * 1000);
   const shortCode = generateShortCode(8);
   const newTokenId = `bgn_tk_mig_${shortCode.toLowerCase()}_${Date.now().toString(36)}`;
 
@@ -280,7 +290,7 @@ export async function resolveDevoteeToken(
     rashi: decoded.rashi ?? decoded.r,
     gotra: decoded.gotra ?? decoded.g,
     priestName: decoded.pandit || decoded.p || "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
-    startDate: decoded.startDate || decoded.sd || decoded.date || decoded.d || getIndianStandardDateStr(now),
+    startDate: rawStart,
     totalDays,
     lang: decoded.lang || decoded.l || "kn",
     notificationTime: decoded.time || decoded.tm || "08:00",

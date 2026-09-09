@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import { useWalletStore } from "./walletStore";
 import { useAuthStore } from "../auth/authStore";
 import { useAppStore } from "../../stores/appStore";
@@ -10,11 +10,20 @@ import {
   type AshirvadaPassDoc,
   type SystemAuditLogDoc,
   type PremiumPdfDownloadDoc,
+  type PurohitaProfileDoc,
+  type PurohitaActivityDoc,
+  type PurohitaDailySummaryDoc,
   subscribeAllKundlis,
   subscribeAshirvadaPasses,
   subscribeSystemAuditLogs,
   subscribePremiumPdfDownloads,
   subscribeWalletTransactions,
+  subscribeAllPurohitaProfiles,
+  subscribePurohitaActivities,
+  subscribePurohitaDailySummaries,
+  savePurohitaProfile,
+  deletePurohitaProfile,
+  recordPurohitaActivity,
   updateUserPassword,
   deleteAshirvadaPass,
   getOrCreatePriestWallet,
@@ -24,19 +33,25 @@ import {
   cleanupDuplicateCalendarVisitsAndEngagement,
   cleanupAllTestAndMockProfiles,
   updateUserAllowedModules,
-  deletePriestAccount
+  deletePriestAccount,
+  restoreAndSeedDefaultPriests
 } from "../../db/firestoreDb";
+import { canonicalPurohitaId } from "../priest/purohitaActivityService";
 import { db } from "../../db/indexedDb";
 import { hashPassword } from "../auth/authStore";
 import { sendAllFourDailyReports, notifyLowAiQuotaRemaining } from "../notifications/notificationService";
 import { extendPassValidity } from "../seva/ashirvadaPassService";
 import {
   subscribeCalendarDevoteeSubscriptions,
+  subscribeAllCalendarRegistrations,
+  subscribeAllDailyVisits,
   purgeAllCalendarSubscriptionsAndVisits,
   extendSubscriptionValidity,
   deleteDevoteeSubscription,
   toggleDevoteeSubscriptionLock,
-  type DevoteeCalendarSubscriptionDoc
+  type DevoteeCalendarSubscriptionDoc,
+  type CalendarRegistrationDoc,
+  type CalendarDailyVisitDoc
 } from "../seva/calendarVisitService";
 import {
   AVAILABLE_MODULES,
@@ -342,8 +357,24 @@ export const SuperAdminDashboard: React.FC = () => {
   const [kundlis, setKundlis] = useState<KundliHistoryDoc[]>([]);
   const [ashirvadaPasses, setAshirvadaPasses] = useState<AshirvadaPassDoc[]>([]);
   const [subscriptions, setSubscriptions] = useState<DevoteeCalendarSubscriptionDoc[]>([]);
+  const [calendarRegistrations, setCalendarRegistrations] = useState<CalendarRegistrationDoc[]>([]);
+  const [dailyVisitLogs, setDailyVisitLogs] = useState<CalendarDailyVisitDoc[]>([]);
+  const [calendarSubView, setCalendarSubView] = useState<"crm" | "registrations" | "daily_visits">("crm");
+  const [durationFilter, setDurationFilter] = useState<number | "all">("all");
   const [auditLogs, setAuditLogs] = useState<SystemAuditLogDoc[]>([]);
   const [premiumDownloads, setPremiumDownloads] = useState<PremiumPdfDownloadDoc[]>([]);
+
+  // Purohita Profiles & Activity Tracker State
+  const [purohitaProfiles, setPurohitaProfiles] = useState<PurohitaProfileDoc[]>([]);
+  const [purohitaDailySummaries, setPurohitaDailySummaries] = useState<PurohitaDailySummaryDoc[]>([]);
+  const [purohitaActivities, setPurohitaActivities] = useState<PurohitaActivityDoc[]>([]);
+  const [priestLedgerSubView, setPriestLedgerSubView] = useState<"wallets" | "activity_tracker" | "daily_summaries">("wallets");
+  const [viewingActivityPriest, setViewingActivityPriest] = useState<PurohitaProfileDoc | null>(null);
+  const [offeringCoinsPriest, setOfferingCoinsPriest] = useState<PurohitaProfileDoc | null>(null);
+  const [offeringCoinsAmount, setOfferingCoinsAmount] = useState<string>("500");
+  const [offeringCoinsReason, setOfferingCoinsReason] = useState<string>("ವಿಶೇಷ ಪುರೋಹಿತ ಗೌರವ ನಾಣ್ಯಗಳ ಕೊಡುಗೆ (Special Purohita Honor)");
+  const [isOfferingCoins, setIsOfferingCoins] = useState(false);
+  const [purohitaSearch, setPurohitaSearch] = useState("");
 
   // Filter/Search states
   const [kundliSearch, setKundliSearch] = useState("");
@@ -351,6 +382,7 @@ export const SuperAdminDashboard: React.FC = () => {
   const [subscriptionSearch, setSubscriptionSearch] = useState("");
   const [subscriptionFilter, setSubscriptionFilter] = useState<"all" | "active" | "near_expiry" | "expired">("all");
   const [isDeduplicating, setIsDeduplicating] = useState(false);
+  const [isRestoringPriests, setIsRestoringPriests] = useState(false);
   const [isPurgingCalendarData, setIsPurgingCalendarData] = useState(false);
   const [showPurgeConfirmModal, setShowPurgeConfirmModal] = useState(false);
 
@@ -473,6 +505,8 @@ export const SuperAdminDashboard: React.FC = () => {
     const unsubKundlis = subscribeAllKundlis((list) => setKundlis(list));
     const unsubPasses = subscribeAshirvadaPasses((list) => setAshirvadaPasses(list));
     const unsubSubscriptions = subscribeCalendarDevoteeSubscriptions((list) => setSubscriptions(list));
+    const unsubRegistrations = subscribeAllCalendarRegistrations((list) => setCalendarRegistrations(list));
+    const unsubDailyVisits = subscribeAllDailyVisits((list) => setDailyVisitLogs(list));
     const unsubAudit = subscribeSystemAuditLogs((list) => setAuditLogs(list));
     const unsubPdf = subscribePremiumPdfDownloads((list) => setPremiumDownloads(list));
     const unsubAi = subscribeTodayAiQuota((q) => {
@@ -482,15 +516,23 @@ export const SuperAdminDashboard: React.FC = () => {
     const unsubEngine = subscribePanchangaEngineConfig((cfg) => {
       setPanchangaEngineConfig(cfg);
     });
+    const unsubPurohitaProfiles = subscribeAllPurohitaProfiles((list) => setPurohitaProfiles(list));
+    const unsubPurohitaSummaries = subscribePurohitaDailySummaries(undefined, (list) => setPurohitaDailySummaries(list));
+    const unsubPurohitaActivities = subscribePurohitaActivities(undefined, 100, (list) => setPurohitaActivities(list));
 
     return () => {
       unsubKundlis();
       unsubPasses();
       unsubSubscriptions();
+      unsubRegistrations();
+      unsubDailyVisits();
       unsubAudit();
       unsubPdf();
       unsubAi();
       unsubEngine();
+      unsubPurohitaProfiles();
+      unsubPurohitaSummaries();
+      unsubPurohitaActivities();
     };
   }, [subscribeAllWallets]);
 
@@ -515,6 +557,194 @@ export const SuperAdminDashboard: React.FC = () => {
   const passValidityScore = ashirvadaPasses.length > 0
     ? Math.round((ashirvadaPasses.filter((p) => p.daysRemaining > 10).length / ashirvadaPasses.length) * 100)
     : 100;
+
+  const todayKey = new Date().toISOString().split("T")[0];
+
+  const mergedPurohitas = useMemo(() => {
+    const map = new Map<string, {
+      purohitaId: string;
+      name: string;
+      mobile: string;
+      email: string;
+      coinBalance: number;
+      totalCoinsSpent: number;
+      totalRechargedInr: number;
+      allowedModules: AvailableModuleKey[];
+      isVerified: boolean;
+      lastActiveAt?: string;
+      todayPagesMap: Record<string, number>;
+      todayPagesVisitedCount: number;
+      todayKundlisCount: number;
+      todayQuestionsCount: number;
+      todayTotalActions: number;
+      profile?: PurohitaProfileDoc;
+      wallet?: PriestWalletDoc;
+    }>();
+
+    // 1. Seed from allPriestWallets
+    for (const w of allPriestWallets) {
+      const cId = canonicalPurohitaId(w.userId);
+      const modules: AvailableModuleKey[] = (w.allowedModules && w.allowedModules.length > 0)
+        ? (w.allowedModules as AvailableModuleKey[])
+        : ["panchanga", "sankhyashastra", "diksuchi", "purva_janma"];
+      map.set(cId, {
+        purohitaId: cId,
+        name: w.priestName || w.userId,
+        mobile: "",
+        email: "",
+        coinBalance: w.coinBalance || 0,
+        totalCoinsSpent: w.totalCoinsSpent || 0,
+        totalRechargedInr: w.totalRechargedInr || 0,
+        allowedModules: modules,
+        isVerified: false,
+        lastActiveAt: w.updatedAt,
+        todayPagesMap: {},
+        todayPagesVisitedCount: 0,
+        todayKundlisCount: 0,
+        todayQuestionsCount: 0,
+        todayTotalActions: 0,
+        wallet: w
+      });
+    }
+
+    // 2. Merge with purohitaProfiles
+    for (const p of purohitaProfiles) {
+      const cId = canonicalPurohitaId(p.purohitaId);
+      const existing = map.get(cId);
+      if (existing) {
+        existing.name = p.name || existing.name;
+        existing.mobile = p.mobile || existing.mobile;
+        existing.email = p.email || existing.email;
+        existing.isVerified = !!p.isVerified || (!!p.mobile && !!p.email);
+        existing.lastActiveAt = p.lastActiveAt || existing.lastActiveAt;
+        if (p.coinBalance !== undefined && existing.coinBalance === 0) {
+          existing.coinBalance = p.coinBalance;
+        }
+        existing.profile = p;
+      } else {
+        map.set(cId, {
+          purohitaId: cId,
+          name: p.name || p.purohitaId,
+          mobile: p.mobile || "",
+          email: p.email || "",
+          coinBalance: p.coinBalance || 0,
+          totalCoinsSpent: 0,
+          totalRechargedInr: 0,
+          allowedModules: (p.allowedModules && p.allowedModules.length > 0)
+            ? (p.allowedModules as AvailableModuleKey[])
+            : ["panchanga", "sankhyashastra", "diksuchi", "purva_janma"],
+          isVerified: !!p.isVerified || (!!p.mobile && !!p.email),
+          lastActiveAt: p.lastActiveAt,
+          todayPagesMap: {},
+          todayPagesVisitedCount: 0,
+          todayKundlisCount: 0,
+          todayQuestionsCount: 0,
+          todayTotalActions: 0,
+          profile: p
+        });
+      }
+    }
+
+    // 3. Attach today's daily summaries
+    for (const summary of purohitaDailySummaries) {
+      if (summary.dateKey !== todayKey) continue;
+      const cId = canonicalPurohitaId(summary.purohitaId);
+      const item = map.get(cId);
+      if (item) {
+        item.todayPagesMap = summary.pageVisits || {};
+        item.todayPagesVisitedCount = Object.values(summary.pageVisits || {}).reduce((a, b) => a + b, 0);
+        item.todayKundlisCount = summary.kundlisGeneratedCount || 0;
+        item.todayQuestionsCount = summary.questionsAskedCount || 0;
+        item.todayTotalActions = summary.totalActions || 0;
+        if (summary.lastActionAt && (!item.lastActiveAt || summary.lastActionAt > item.lastActiveAt)) {
+          item.lastActiveAt = summary.lastActionAt;
+        }
+      }
+    }
+
+    return Array.from(map.values());
+  }, [allPriestWallets, purohitaProfiles, purohitaDailySummaries, todayKey]);
+
+  const filteredMergedPurohitas = useMemo(() => {
+    if (!purohitaSearch.trim()) return mergedPurohitas;
+    const q = purohitaSearch.trim().toLowerCase();
+    return mergedPurohitas.filter((p) =>
+      p.name.toLowerCase().includes(q) ||
+      p.purohitaId.toLowerCase().includes(q) ||
+      p.mobile.includes(q) ||
+      p.email.toLowerCase().includes(q)
+    );
+  }, [mergedPurohitas, purohitaSearch]);
+
+  const handleOfferCoinsSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!offeringCoinsPriest) return;
+
+    const amountNum = parseInt(offeringCoinsAmount, 10);
+    if (isNaN(amountNum) || amountNum <= 0) {
+      setFeedback({ type: "error", text: "ದಯವಿಟ್ಟು ಮಾನ್ಯವಾದ ನಾಣ್ಯಗಳ ಸಂಖ್ಯೆಯನ್ನು ನಮೂದಿಸಿ (Enter valid coin amount)." });
+      return;
+    }
+
+    setIsOfferingCoins(true);
+    setFeedback(null);
+    try {
+      const priestId = offeringCoinsPriest.purohitaId;
+      const reason = offeringCoinsReason.trim() || "ಪುರೋಹಿತರಿಗೆ ಆಡಳಿತಾಧಿಕಾರಿ ಗೌರವ ನಾಣ್ಯಗಳ ಕೊಡುಗೆ";
+
+      // 1. Direct adjustment in priest wallet
+      await directCoinAdjustment(priestId, amountNum, reason);
+
+      // 2. Update purohitaProfile coin balance
+      const currentBal = offeringCoinsPriest.coinBalance || 0;
+      await savePurohitaProfile({
+        ...offeringCoinsPriest,
+        coinBalance: currentBal + amountNum
+      });
+
+      // 3. Record granular activity
+      await recordPurohitaActivity({
+        purohitaId: priestId,
+        priestName: offeringCoinsPriest.priestName || offeringCoinsPriest.name || "ಪುರೋಹಿತರು",
+        purohitaName: offeringCoinsPriest.priestName || offeringCoinsPriest.name || "ಪುರೋಹಿತರು",
+        activityType: "coins_offered",
+        actionType: "coins_offered",
+        page: "dashboard",
+        details: `${amountNum.toLocaleString()} ನಾಣ್ಯಗಳ ಕೊಡುಗೆ: ${reason}`,
+        coinsImpact: amountNum
+      });
+
+      setFeedback({
+        type: "success",
+        text: `✨ ${offeringCoinsPriest.priestName || offeringCoinsPriest.name} ಅವರಿಗೆ ${amountNum.toLocaleString()} ನಾಣ್ಯಗಳನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಕೊಡುಗೆ ನೀಡಲಾಗಿದೆ!`
+      });
+      setOfferingCoinsPriest(null);
+      setOfferingCoinsAmount("500");
+    } catch (err: any) {
+      setFeedback({ type: "error", text: `ನಾಣ್ಯ ಕೊಡುಗೆ ನೀಡುವಲ್ಲಿ ದೋಷ: ${err?.message || "Error"}` });
+    } finally {
+      setIsOfferingCoins(false);
+    }
+  };
+
+  const handleDeletePurohita = async (purohitaId: string, name: string) => {
+    if (!window.confirm(`ಖಚಿತವಾಗಿ ಪುರೋಹಿತರಾದ "${name}" (${purohitaId}) ಅವರ ಖಾತೆ, ಪ್ರೊಫೈಲ್ ಮತ್ತು ಚಟುವಟಿಕೆ ದಾಖಲೆಗಳನ್ನು ಶಾಶ್ವತವಾಗಿ ಅಳಿಸಲು ಬಯಸುವಿರಾ?`)) {
+      return;
+    }
+    try {
+      await deletePurohitaProfile(purohitaId);
+      await deletePriestAccount(purohitaId);
+      setFeedback({
+        type: "success",
+        text: `ಪುರೋಹಿತರ (${name}) ಪ್ರೊಫೈಲ್ ಹಾಗೂ ವಾಲೆಟ್ ಅನ್ನು ಶಾಶ್ವತವಾಗಿ ಅಳಿಸಲಾಗಿದೆ.`
+      });
+    } catch (err: any) {
+      setFeedback({
+        type: "error",
+        text: `ಪ್ರೊಫೈಲ್ ಅಳಿಸುವಾಗ ದೋಷ: ${err?.message || "Error"}`
+      });
+    }
+  };
 
   const handleUpdateAiLimit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -926,6 +1156,25 @@ export const SuperAdminDashboard: React.FC = () => {
       setFeedback({ type: "error", text: "ಟೆಸ್ಟ್ ಪ್ರೊಫೈಲ್ ಅಳಿಸುವಾಗ ದೋಷ ಸಂಭವಿಸಿದೆ." });
     } finally {
       setIsDeduplicating(false);
+    }
+  };
+
+  const handleRestoreAllPriests = async () => {
+    setIsRestoringPriests(true);
+    setFeedback(null);
+    try {
+      const restored = await restoreAndSeedDefaultPriests();
+      setFeedback({
+        type: "success",
+        text: `✨ ಗೋಕರ್ಣದ 10 ಪ್ರಧಾನ ಪುರೋಹಿತರ ಪ್ರೊಫೈಲ್‌ಗಳನ್ನು ಹಾಗೂ ವಾಲೆಟ್‌ಗಳನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಸಿಂಕ್ ಮಾಡಲಾಗಿದೆ (${restored} ಹೊಸ ವಾಲೆಟ್‌ಗಳು ಸೃಷ್ಟಿಯಾಗಿವೆ).`
+      });
+    } catch {
+      setFeedback({
+        type: "error",
+        text: "ಪುರೋಹಿತರ ಪ್ರೊಫೈಲ್ ಸಿಂಕ್ ಮಾಡುವಾಗ ದೋಷ ಸಂಭವಿಸಿದೆ."
+      });
+    } finally {
+      setIsRestoringPriests(false);
     }
   };
 
@@ -2124,192 +2373,663 @@ export const SuperAdminDashboard: React.FC = () => {
                   Click "⚡ ನಾಣ್ಯ ಹೊಂದಾಣಿಕೆ" to directly credit or deduct coins, or "🛡️ ಮಾಡ್ಯೂಲ್‌ಗಳು" to manage permissions.
                 </p>
               </div>
-              <button
-                type="button"
-                disabled={isDeduplicating}
-                onClick={handlePurgeAllTestProfiles}
-                className="px-3.5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-sm cursor-pointer whitespace-nowrap"
-                title="ಡೇಟಾಬೇಸ್‌ನಲ್ಲಿರುವ ಎಲ್ಲಾ ನಕಲಿ / ಟೆಸ್ಟಿಂಗ್ ಪ್ರೊಫೈಲ್‌ಗಳನ್ನು ಶಾಶ್ವತವಾಗಿ ಅಳಿಸಿ"
-              >
-                <span>🧹</span>
-                <span>{isDeduplicating ? "ಶುದ್ಧೀಕರಿಸಲಾಗುತ್ತಿದೆ..." : "ಟೆಸ್ಟ್ ಪ್ರೊಫೈಲ್‌ಗಳ ಶುದ್ಧೀಕರಣ (Purge Test Users)"}</span>
-              </button>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  disabled={isRestoringPriests}
+                  onClick={handleRestoreAllPriests}
+                  className="px-3.5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-amber-950 font-black rounded-xl text-xs transition-all flex items-center gap-1.5 shadow-sm cursor-pointer whitespace-nowrap border border-amber-400"
+                  title="10 ಗೋಕರ್ಣ ಮುಖ್ಯ ಪುರೋಹಿತರ ಪ್ರೊಫೈಲ್ ಮತ್ತು ವಾಲೆಟ್‌ಗಳನ್ನು ಸಿಂಕ್ ಮಾಡಿ ಮರುಸ್ಥಾಪಿಸಿ"
+                >
+                  <span>🔄</span>
+                  <span>{isRestoringPriests ? "ಸಿಂಕ್ ಆಗುತ್ತಿದೆ..." : "ಪುರೋಹಿತರ ಪ್ರೊಫೈಲ್ ಸಿಂಕ್ (Sync & Restore Priests)"}</span>
+                </button>
+                <button
+                  type="button"
+                  disabled={isDeduplicating}
+                  onClick={handlePurgeAllTestProfiles}
+                  className="px-3.5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-sm cursor-pointer whitespace-nowrap"
+                  title="ಡೇಟಾಬೇಸ್‌ನಲ್ಲಿರುವ ಎಲ್ಲಾ ನಕಲಿ / ಟೆಸ್ಟಿಂಗ್ ಪ್ರೊಫೈಲ್‌ಗಳನ್ನು ಶಾಶ್ವತವಾಗಿ ಅಳಿಸಿ"
+                >
+                  <span>🧹</span>
+                  <span>{isDeduplicating ? "ಶುದ್ಧೀಕರಿಸಲಾಗುತ್ತಿದೆ..." : "ಟೆಸ್ಟ್ ಪ್ರೊಫೈಲ್‌ಗಳ ಶುದ್ಧೀಕರಣ (Purge Test Users)"}</span>
+                </button>
+              </div>
             </div>
 
-            {allPriestWallets.length === 0 ? (
-              <div className="text-center py-12 text-slate-400 text-sm">
-                ಯಾವುದೇ ಪುರೋಹಿತರ ಖಾತೆಗಳು ಇನ್ನೂ ನೋಂದಾಯಿಸಲ್ಪಟ್ಟಿಲ್ಲ.
+            {/* Subview Selector Tabs & Search */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1 pb-1">
+              <div className="flex flex-wrap items-center gap-1.5 p-1 bg-amber-100/70 border border-amber-300 rounded-2xl shadow-inner">
+                <button
+                  type="button"
+                  onClick={() => setPriestLedgerSubView("wallets")}
+                  className={`px-3.5 py-1.5 rounded-xl font-black text-xs transition-all flex items-center gap-1.5 cursor-pointer ${
+                    priestLedgerSubView === "wallets"
+                      ? "bg-amber-500 text-slate-950 shadow-sm"
+                      : "text-amber-900 hover:bg-amber-200/60"
+                  }`}
+                >
+                  <span>👥</span>
+                  <span>ಪುರೋಹಿತರ ವಾಲೆಟ್ & ಲಿಂಕ್‌ಗಳು ({allPriestWallets.length})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPriestLedgerSubView("activity_tracker")}
+                  className={`px-3.5 py-1.5 rounded-xl font-black text-xs transition-all flex items-center gap-1.5 cursor-pointer ${
+                    priestLedgerSubView === "activity_tracker"
+                      ? "bg-amber-500 text-slate-950 shadow-sm"
+                      : "text-amber-900 hover:bg-amber-200/60"
+                  }`}
+                >
+                  <span>📊</span>
+                  <span>ಪುರೋಹಿತರ ಚಟುವಟಿಕೆ ಟ್ರ್ಯಾಕರ್ ({mergedPurohitas.length})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPriestLedgerSubView("daily_summaries")}
+                  className={`px-3.5 py-1.5 rounded-xl font-black text-xs transition-all flex items-center gap-1.5 cursor-pointer ${
+                    priestLedgerSubView === "daily_summaries"
+                      ? "bg-amber-500 text-slate-950 shadow-sm"
+                      : "text-amber-900 hover:bg-amber-200/60"
+                  }`}
+                >
+                  <span>📅</span>
+                  <span>ದಿನನಿತ್ಯದ ಸಾರಾಂಶ & ಲೈವ್ ಈವೆಂಟ್ಸ್ ({purohitaActivities.length})</span>
+                </button>
               </div>
-            ) : (
-              <div className="overflow-x-auto rounded-2xl border-2 border-amber-300 bg-white shadow-xs">
-                <table className="w-full text-left text-xs border-collapse min-w-[980px]">
-                  <thead>
-                    <tr className="bg-[#FFF8E7] border-b-2 border-amber-300 text-amber-950 uppercase text-[10px] font-black tracking-wider">
-                      <th className="py-3 px-4">ಪುರೋಹಿತರ ಹೆಸರು</th>
-                      <th className="py-3 px-4">User ID</th>
-                      <th className="py-3 px-4">ಸಕ್ರಿಯ ಬ್ಯಾಲೆನ್ಸ್</th>
-                      <th className="py-3 px-4">ಅನುಮತಿಸಿದ ಮಾಡ್ಯೂಲ್‌ಗಳು</th>
-                      <th className="py-3 px-4">ಒಟ್ಟು ರೀಚಾರ್ಜ್</th>
-                      <th className="py-3 px-4">ಬಳಸಿದ ನಾಣ್ಯಗಳು</th>
-                      <th className="py-3 px-4 text-right">ತ್ವರಿತ ಕ್ರಿಯೆಗಳು (Actions)</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-amber-100 font-semibold">
-                    {allPriestWallets.map((priest) => {
-                      const isLow = (priest.coinBalance || 0) < 500;
-                      const modules: AvailableModuleKey[] = (priest.allowedModules && priest.allowedModules.length > 0)
-                        ? (priest.allowedModules as AvailableModuleKey[])
-                        : ["panchanga", "sankhyashastra", "diksuchi", "purva_janma"];
 
-                      return (
-                        <tr key={priest.id} className="hover:bg-amber-50/60 transition-colors">
-                          <td className="py-3.5 px-4 font-black text-amber-950">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setViewingPriestProfile(priest);
-                                setPriestProfileTab("overview");
-                              }}
-                              className="flex items-center gap-2 hover:text-amber-700 transition group text-left"
-                              title="ಪುರೋಹಿತರ ಪ್ರೊಫೈಲ್, ಇತಿಹಾಸ & ಬಳಕೆಯ ಅಂಕಿಅಂಶಗಳನ್ನು ವೀಕ್ಷಿಸಿ"
-                            >
-                              <span className="text-base group-hover:scale-125 transition-transform">🕉️</span>
-                              <span className="underline decoration-amber-300 group-hover:decoration-amber-600 underline-offset-4 font-black">
-                                {priest.priestName}
-                              </span>
-                              <span className="text-[9px] font-bold text-amber-800 opacity-80 group-hover:opacity-100 bg-amber-100 px-1.5 py-0.5 rounded border border-amber-300 shrink-0">
-                                🔍 ಪ್ರೊಫೈಲ್
-                              </span>
-                            </button>
-                          </td>
-                          <td className="py-3.5 px-4 font-mono text-slate-600 font-bold">{priest.userId}</td>
-                          <td className="py-3.5 px-4">
-                            <div className="flex items-center gap-2">
-                              <span className="font-mono font-black text-sm text-amber-950">
-                                {(priest.coinBalance || 0).toLocaleString()} 🪙
-                              </span>
-                              <span
-                                className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${
-                                  isLow ? "bg-red-100 text-red-800 border-red-300" : "bg-emerald-100 text-emerald-800 border-emerald-300"
-                                }`}
-                              >
-                                {isLow ? "⚠️ ಕಡಿಮೆ" : "🟢 ಸಮೃದ್ಧ"}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <div className="flex flex-wrap gap-1 max-w-xs">
-                              {modules.map((mKey) => {
-                                const cfg = AVAILABLE_MODULES.find((m) => m.key === mKey);
-                                return (
-                                  <span
-                                    key={mKey}
-                                    className="text-[9px] font-black px-2 py-0.5 rounded-md bg-amber-100/80 text-amber-950 border border-amber-300 flex items-center gap-0.5 shadow-xs"
-                                  >
-                                    <span>{cfg?.icon || "✨"}</span>
-                                    <span>{cfg?.kannadaLabel?.split(" ")[0] || mKey}</span>
-                                  </span>
-                                );
-                              })}
-                            </div>
-                          </td>
-                          <td className="py-3.5 px-4 text-emerald-700 font-bold">
-                            ₹{(priest.totalRechargedInr || 0).toLocaleString()}
-                          </td>
-                          <td className="py-3.5 px-4 text-slate-600 font-mono">
-                            {(priest.totalCoinsSpent || 0).toLocaleString()}
-                          </td>
-                          <td className="py-3.5 px-4 text-right whitespace-nowrap">
-                            <div className="flex items-center justify-end gap-1.5">
-                              {/* Detailed Profile & History Button */}
+              {(priestLedgerSubView === "activity_tracker" || priestLedgerSubView === "daily_summaries") && (
+                <div className="w-full sm:w-64 relative flex items-center">
+                  <input
+                    type="text"
+                    value={purohitaSearch}
+                    onChange={(e) => setPurohitaSearch(e.target.value)}
+                    placeholder="ಪುರೋಹಿತರ ಹೆಸರು / ID ಹುಡುಕಿ..."
+                    className="w-full pl-3 pr-8 py-1.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-xs text-slate-900 placeholder-slate-400 font-semibold focus:outline-none focus:border-amber-500 shadow-inner"
+                  />
+                  {purohitaSearch && (
+                    <button
+                      type="button"
+                      onClick={() => setPurohitaSearch("")}
+                      className="absolute right-2 text-slate-400 hover:text-slate-700 text-xs font-bold"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* SUBVIEW 1: Wallets & Direct Module Access Links */}
+            {priestLedgerSubView === "wallets" && (
+              allPriestWallets.length === 0 ? (
+                <div className="text-center py-10 bg-amber-50/60 rounded-2xl border-2 border-dashed border-amber-300 p-6 space-y-3">
+                  <div className="text-4xl animate-bounce">🕉️</div>
+                  <div className="text-sm font-black text-amber-950">
+                    ಯಾವುದೇ ಪುರೋಹಿತರ ಖಾತೆಗಳು ಸದ್ಯಕ್ಕೆ ಕಾಣಿಸುತ್ತಿಲ್ಲ (No Priest Wallets Active)
+                  </div>
+                  <p className="text-xs text-amber-800 max-w-lg mx-auto font-medium">
+                    ಹಿಂದಿನ ಡೇಟಾಬೇಸ್ ಶುದ್ಧೀಕರಣದ ನಂತರ ಪುರೋಹಿತರ ವಾಲೆಟ್‌ಗಳು ಖಾಲಿಯಾಗಿರಬಹುದು. ಕೆಳಗಿನ ಬಟನ್ ಒತ್ತಿದರೆ ಗೋಕರ್ಣದ 10 ಪ್ರಧಾನ ಪುರೋಹಿತರ ಪ್ರೊಫೈಲ್‌ಗಳು ಹಾಗೂ ವಾಲೆಟ್‌ಗಳು ತಕ್ಷಣವೇ ಮರುಸ್ಥಾಪನೆಯಾಗುತ್ತವೆ.
+                  </p>
+                  <button
+                    type="button"
+                    disabled={isRestoringPriests}
+                    onClick={handleRestoreAllPriests}
+                    className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-amber-950 font-black rounded-xl text-xs shadow-md transition-all inline-flex items-center gap-2 cursor-pointer border border-amber-400"
+                  >
+                    <span>🔄</span>
+                    <span>{isRestoringPriests ? "ಮರುಸ್ಥಾಪಿಸಲಾಗುತ್ತಿದೆ..." : "10 ಪುರೋಹಿತರ ಪ್ರೊಫೈಲ್‌ಗಳನ್ನು ಮರುಸ್ಥಾಪಿಸಿ (Restore 10 Priests)"}</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="overflow-x-auto rounded-2xl border-2 border-amber-300 bg-white shadow-xs">
+                  <table className="w-full text-left text-xs border-collapse min-w-[980px]">
+                    <thead>
+                      <tr className="bg-[#FFF8E7] border-b-2 border-amber-300 text-amber-950 uppercase text-[10px] font-black tracking-wider">
+                        <th className="py-3 px-4">ಪುರೋಹಿತರ ಹೆಸರು</th>
+                        <th className="py-3 px-4">User ID</th>
+                        <th className="py-3 px-4">ಸಕ್ರಿಯ ಬ್ಯಾಲೆನ್ಸ್</th>
+                        <th className="py-3 px-4">ಅನುಮತಿಸಿದ ಮಾಡ್ಯೂಲ್‌ಗಳು</th>
+                        <th className="py-3 px-4">ಒಟ್ಟು ರೀಚಾರ್ಜ್</th>
+                        <th className="py-3 px-4">ಬಳಸಿದ ನಾಣ್ಯಗಳು</th>
+                        <th className="py-3 px-4 text-right">ತ್ವರಿತ ಕ್ರಿಯೆಗಳು (Actions)</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-amber-100 font-semibold">
+                      {allPriestWallets.map((priest) => {
+                        const isLow = (priest.coinBalance || 0) < 500;
+                        const modules: AvailableModuleKey[] = (priest.allowedModules && priest.allowedModules.length > 0)
+                          ? (priest.allowedModules as AvailableModuleKey[])
+                          : ["panchanga", "sankhyashastra", "diksuchi", "purva_janma"];
+
+                        return (
+                          <tr key={priest.id} className="hover:bg-amber-50/60 transition-colors">
+                            <td className="py-3.5 px-4 font-black text-amber-950">
                               <button
                                 type="button"
                                 onClick={() => {
                                   setViewingPriestProfile(priest);
                                   setPriestProfileTab("overview");
                                 }}
-                                className="py-1.5 px-2 bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-300 rounded-lg text-xs font-bold transition-all shadow-xs flex items-center gap-1 shrink-0"
-                                title="ಪುರೋಹಿತರ ಸಂಪೂರ್ಣ ಇತಿಹಾಸ & ಅಂಕಿಅಂಶಗಳು (View Profile & History)"
+                                className="flex items-center gap-2 hover:text-amber-700 transition group text-left"
+                                title="ಪುರೋಹಿತರ ಪ್ರೊಫೈಲ್, ಇತಿಹಾಸ & ಬಳಕೆಯ ಅಂಕಿಅಂಶಗಳನ್ನು ವೀಕ್ಷಿಸಿ"
                               >
-                                <span>🔍</span>
-                                <span>ಪ್ರೊಫೈಲ್</span>
+                                <span className="text-base group-hover:scale-125 transition-transform">🕉️</span>
+                                <span className="underline decoration-amber-300 group-hover:decoration-amber-600 underline-offset-4 font-black">
+                                  {priest.priestName}
+                                </span>
+                                <span className="text-[9px] font-bold text-amber-800 opacity-80 group-hover:opacity-100 bg-amber-100 px-1.5 py-0.5 rounded border border-amber-300 shrink-0">
+                                  🔍 ಪ್ರೊಫೈಲ್
+                                </span>
                               </button>
+                            </td>
+                            <td className="py-3.5 px-4 font-mono text-slate-600 font-bold">{priest.userId}</td>
+                            <td className="py-3.5 px-4">
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono font-black text-sm text-amber-950">
+                                  {(priest.coinBalance || 0).toLocaleString()} 🪙
+                                </span>
+                                <span
+                                  className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${
+                                    isLow ? "bg-red-100 text-red-800 border-red-300" : "bg-emerald-100 text-emerald-800 border-emerald-300"
+                                  }`}
+                                >
+                                  {isLow ? "⚠️ ಕಡಿಮೆ" : "🟢 ಸಮೃದ್ಧ"}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="py-3.5 px-4">
+                              <div className="flex flex-wrap gap-1 max-w-xs">
+                                {modules.map((mKey) => {
+                                  const cfg = AVAILABLE_MODULES.find((m) => m.key === mKey);
+                                  return (
+                                    <span
+                                      key={mKey}
+                                      className="text-[9px] font-black px-2 py-0.5 rounded-md bg-amber-100/80 text-amber-950 border border-amber-300 flex items-center gap-0.5 shadow-xs"
+                                    >
+                                      <span>{cfg?.icon || "✨"}</span>
+                                      <span>{cfg?.kannadaLabel?.split(" ")[0] || mKey}</span>
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                            </td>
+                            <td className="py-3.5 px-4 text-emerald-700 font-bold">
+                              ₹{(priest.totalRechargedInr || 0).toLocaleString()}
+                            </td>
+                            <td className="py-3.5 px-4 text-slate-600 font-mono">
+                              {(priest.totalCoinsSpent || 0).toLocaleString()}
+                            </td>
+                            <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                              <div className="flex items-center justify-end gap-1.5">
+                                {/* Detailed Profile & History Button */}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setViewingPriestProfile(priest);
+                                    setPriestProfileTab("overview");
+                                  }}
+                                  className="py-1.5 px-2 bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-300 rounded-lg text-xs font-bold transition-all shadow-xs flex items-center gap-1 shrink-0"
+                                  title="ಪುರೋಹಿತರ ಸಂಪೂರ್ಣ ಇತಿಹಾಸ & ಅಂಕಿಅಂಶಗಳು (View Profile & History)"
+                                >
+                                  <span>🔍</span>
+                                  <span>ಪ್ರೊಫೈಲ್</span>
+                                </button>
 
-                              {/* Manage Modules Button */}
-                              <button
-                                type="button"
-                                onClick={() => handleOpenModuleEditor(priest)}
-                                className="py-1.5 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-950 border border-indigo-300 rounded-lg text-xs font-bold transition-all shadow-xs shrink-0"
-                                title="ಮಾಡ್ಯೂಲ್ ಪ್ರವೇಶಾವಕಾಶ ನಿರ್ವಹಿಸಿ"
-                              >
-                                🛡️ ಮಾಡ್ಯೂಲ್
-                              </button>
+                                {/* Manage Modules Button */}
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenModuleEditor(priest)}
+                                  className="py-1.5 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-950 border border-indigo-300 rounded-lg text-xs font-bold transition-all shadow-xs shrink-0"
+                                  title="ಮಾಡ್ಯೂಲ್ ಪ್ರವೇಶಾವಕಾಶ ನಿರ್ವಹಿಸಿ"
+                                >
+                                  🛡️ ಮಾಡ್ಯೂಲ್
+                                </button>
 
-                              {/* WhatsApp Invite */}
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const origin = typeof window !== "undefined" ? window.location.origin : "https://baggona-panchanga.firebaseapp.com";
-                                  const modulesQuery = modules.length > 0 ? modules.join(",") : "panchanga";
-                                  const unifiedUrl = `${origin}/?portal=priest&user=${encodeURIComponent(priest.userId)}&name=${encodeURIComponent(priest.priestName)}&modules=${encodeURIComponent(modulesQuery)}`;
-                                  const modulesList = modules
-                                    .map((mKey) => {
-                                      const cfg = AVAILABLE_MODULES.find((m) => m.key === mKey);
-                                      return `• ${cfg?.icon || "✨"} ${cfg?.kannadaLabel || mKey}`;
-                                    })
-                                    .join("\n");
+                                {/* WhatsApp Invite */}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const origin = typeof window !== "undefined" ? window.location.origin : "https://baggona-panchanga.firebaseapp.com";
+                                    const modulesQuery = modules.length > 0 ? modules.join(",") : "panchanga";
+                                    const unifiedUrl = `${origin}/?portal=priest&user=${encodeURIComponent(priest.userId)}&name=${encodeURIComponent(priest.priestName)}&modules=${encodeURIComponent(modulesQuery)}`;
+                                    const modulesList = modules
+                                      .map((mKey) => {
+                                        const cfg = AVAILABLE_MODULES.find((m) => m.key === mKey);
+                                        return `• ${cfg?.icon || "✨"} ${cfg?.kannadaLabel || mKey}`;
+                                      })
+                                      .join("\n");
 
-                                  const msg = `ನಮಸ್ಕಾರ ${priest.priestName} ಅವರೇ,\n\nನಿಮಗೆ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಪೋರ್ಟಲ್‌ನ ಪ್ರವೇಶ ಕಳುಹಿಸಲಾಗಿದೆ.\n\n👤 ಯೂಸರ್ ID: ${priest.userId}\n🛡️ ಸಕ್ರಿಯ ಸೌಲಭ್ಯಗಳು:\n${modulesList}\n\n🔗 ನಿಮ್ಮ ಏಕೀಕೃತ ಪ್ರವೇಶ ಲಿಂಕ್ (Single Access URL):\n${unifiedUrl}\n\n॥ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ · ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ॥`;
-                                  window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, "_blank");
-                                }}
-                                className="py-1.5 px-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-950 border border-emerald-400 rounded-lg text-xs font-bold transition-all shadow-xs shrink-0"
-                                title="Share Priest Portal on WhatsApp"
-                              >
-                                📲 WhatsApp
-                              </button>
+                                    const msg = `ನಮಸ್ಕಾರ ${priest.priestName} ಅವರೇ,\n\nನಿಮಗೆ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಪೋರ್ಟಲ್‌ನ ಪ್ರವೇಶ ಕಳುಹಿಸಲಾಗಿದೆ.\n\n👤 ಯೂಸರ್ ID: ${priest.userId}\n🛡️ ಸಕ್ರಿಯ ಸೌಲಭ್ಯಗಳು:\n${modulesList}\n\n🔗 ನಿಮ್ಮ ಏಕೀಕೃತ ಪ್ರವೇಶ ಲಿಂಕ್ (Single Access URL):\n${unifiedUrl}\n\n॥ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ · ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ॥`;
+                                    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, "_blank");
+                                  }}
+                                  className="py-1.5 px-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-950 border border-emerald-400 rounded-lg text-xs font-bold transition-all shadow-xs shrink-0"
+                                  title="Share Priest Portal on WhatsApp"
+                                >
+                                  📲 WhatsApp
+                                </button>
 
-                              {/* Public Kundli Link Generator for Devotees */}
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const origin = typeof window !== "undefined" ? window.location.origin : "https://baggona-panchanga.firebaseapp.com";
-                                  const publicUrl = `${origin}/?portal=public_kundli&user=${encodeURIComponent(priest.userId)}&name=${encodeURIComponent(priest.priestName)}`;
-                                  const msg = `🕉️ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಕಾರ್ಯಾಲಯ - ಗೋಕರ್ಣ 🕉️\n\nನಮಸ್ಕಾರ!\nನಿಮ್ಮ ವೈಯಕ್ತಿಕ ಜನನ ಕುಂಡಲಿ ರಚನೆ ಮತ್ತು ಪ್ರಸ್ತುತ ಜೀವನ ಜ್ಯೋತಿಷ್ಯ ನೇರ ವಿಶ್ಲೇಷಣೆಗಾಗಿ ಕೆಳಗಿನ ಲಿಂಕ್ ಬಳಸಿ:\n\n🔗 ಸಾರ್ವಜನಿಕ ಕುಂಡಲಿ ಲಿಂಕ್:\n${publicUrl}\n\n🏛️ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಧಾನ ಅರ್ಚಕರು: ${priest.priestName}\n॥ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ ॥`;
-                                  window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, "_blank");
-                                }}
-                                className="py-1.5 px-2 bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-400 rounded-lg text-xs font-bold transition-all shadow-xs shrink-0"
-                                title="ಭಕ್ತರಿಗೆ ಸಾರ್ವಜನಿಕ ಕುಂಡಲಿ ಲಿಂಕ್ ಕಳುಹಿಸಿ (Share Public Kundli Link to Devotees on WhatsApp)"
-                              >
-                                🔮 ಕುಂಡಲಿ ಲಿಂಕ್
-                              </button>
+                                {/* Public Kundli Link Generator for Devotees */}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const origin = typeof window !== "undefined" ? window.location.origin : "https://baggona-panchanga.firebaseapp.com";
+                                    const publicUrl = `${origin}/?portal=public_kundli&user=${encodeURIComponent(priest.userId)}&name=${encodeURIComponent(priest.priestName)}`;
+                                    const msg = `🕉️ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಕಾರ್ಯಾಲಯ - ಗೋಕರ್ಣ 🕉️\n\nನಮಸ್ಕಾರ!\nನಿಮ್ಮ ವೈಯಕ್ತಿಕ ಜನನ ಕುಂಡಲಿ ರಚನೆ ಮತ್ತು ಪ್ರಸ್ತುತ ಜೀವನ ಜ್ಯೋತಿಷ್ಯ ನೇರ ವಿಶ್ಲೇಷಣೆಗಾಗಿ ಕೆಳಗಿನ ಲಿಂಕ್ ಬಳಸಿ:\n\n🔗 ಸಾರ್ವಜನಿಕ ಕುಂಡಲಿ ಲಿಂಕ್:\n${publicUrl}\n\n🏛️ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಧಾನ ಅರ್ಚಕರು: ${priest.priestName}\n॥ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ ॥`;
+                                    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, "_blank");
+                                  }}
+                                  className="py-1.5 px-2 bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-400 rounded-lg text-xs font-bold transition-all shadow-xs shrink-0"
+                                  title="ಭಕ್ತರಿಗೆ ಸಾರ್ವಜನಿಕ ಕುಂಡಲಿ ಲಿಂಕ್ ಕಳುಹಿಸಿ (Share Public Kundli Link to Devotees on WhatsApp)"
+                                >
+                                  🔮 ಕುಂಡಲಿ ಲಿಂಕ್
+                                </button>
 
-                              {/* Coin Adjustment Button */}
-                              <button
-                                type="button"
-                                onClick={() => setSelectedPriest(priest)}
-                                className="py-1.5 px-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-lg text-xs transition-all shadow-xs shrink-0"
-                                title="ನಾಣ್ಯ ಹೊಂದಾಣಿಕೆ ಮಾಡಿ"
-                              >
-                                ⚡ ನಾಣ್ಯ
-                              </button>
+                                {/* Coin Adjustment Button */}
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedPriest(priest)}
+                                  className="py-1.5 px-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-lg text-xs transition-all shadow-xs shrink-0"
+                                  title="ನಾಣ್ಯ ಹೊಂದಾಣಿಕೆ ಮಾಡಿ"
+                                >
+                                  ⚡ ನಾಣ್ಯ
+                                </button>
 
-                              {/* PROMINENT DELETE BUTTON */}
-                              <button
-                                type="button"
-                                onClick={() => setDeletingPriest(priest)}
-                                className="py-1.5 px-2.5 bg-red-600 hover:bg-red-700 text-white font-black rounded-lg text-xs transition-all shadow-sm flex items-center gap-1 shrink-0 border border-red-700 active:scale-95"
-                                title="ಪುರೋಹಿತರ ಖಾತೆ & ಪ್ರವೇಶ ಲಿಂಕ್ ಶಾಶ್ವತವಾಗಿ ಅಳಿಸಿ / ರದ್ದುಗೊಳಿಸಿ (Delete Priest Account & Revoke Token)"
-                              >
-                                <span>🗑️</span>
-                                <span>ಅಳಿಸಿ</span>
-                              </button>
-                            </div>
-                          </td>
+                                {/* PROMINENT DELETE BUTTON */}
+                                <button
+                                  type="button"
+                                  onClick={() => setDeletingPriest(priest)}
+                                  className="py-1.5 px-2.5 bg-red-600 hover:bg-red-700 text-white font-black rounded-lg text-xs transition-all shadow-sm flex items-center gap-1 shrink-0 border border-red-700 active:scale-95"
+                                  title="ಪುರೋಹಿತರ ಖಾತೆ & ಪ್ರವೇಶ ಲಿಂಕ್ ಶಾಶ್ವತವಾಗಿ ಅಳಿಸಿ / ರದ್ದುಗೊಳಿಸಿ (Delete Priest Account & Revoke Token)"
+                                >
+                                  <span>🗑️</span>
+                                  <span>ಅಳಿಸಿ</span>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )
+            )}
+
+            {/* SUBVIEW 2: Purohita Activity Tracker & Profiles */}
+            {priestLedgerSubView === "activity_tracker" && (
+              <div className="space-y-4">
+                {/* Metrics Summary Strip */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-2xl">
+                    <span className="text-[10px] uppercase font-black text-amber-800">ಒಟ್ಟು ನೋಂದಾಯಿತ ಪುರೋಹಿತರು</span>
+                    <div className="text-xl font-black text-amber-950 font-mono mt-0.5">{mergedPurohitas.length}</div>
+                  </div>
+                  <div className="p-3 bg-emerald-50/80 border border-emerald-200 rounded-2xl">
+                    <span className="text-[10px] uppercase font-black text-emerald-800">ಪರಿಶೀಲಿತ ಪ್ರೊಫೈಲ್‌ಗಳು</span>
+                    <div className="text-xl font-black text-emerald-950 font-mono mt-0.5">
+                      {mergedPurohitas.filter((p) => p.isVerified).length}
+                    </div>
+                  </div>
+                  <div className="p-3 bg-indigo-50/80 border border-indigo-200 rounded-2xl">
+                    <span className="text-[10px] uppercase font-black text-indigo-800">ಇಂದು ಸಕ್ರಿಯರಾಗಿರುವವರು</span>
+                    <div className="text-xl font-black text-indigo-950 font-mono mt-0.5">
+                      {mergedPurohitas.filter((p) => p.todayTotalActions > 0).length}
+                    </div>
+                  </div>
+                  <div className="p-3 bg-purple-50/80 border border-purple-200 rounded-2xl">
+                    <span className="text-[10px] uppercase font-black text-purple-800">ಇಂದು ಸೃಷ್ಟಿಯಾದ ಕುಂಡಲಿಗಳು</span>
+                    <div className="text-xl font-black text-purple-950 font-mono mt-0.5">
+                      {mergedPurohitas.reduce((acc, p) => acc + p.todayKundlisCount, 0)}
+                    </div>
+                  </div>
+                </div>
+
+                {filteredMergedPurohitas.length === 0 ? (
+                  <div className="text-center py-10 bg-amber-50/60 rounded-2xl border-2 border-dashed border-amber-300 p-6 space-y-2">
+                    <div className="text-3xl">🔍</div>
+                    <div className="text-sm font-black text-amber-950">ಯಾವುದೇ ಪುರೋಹಿತರ ಪ್ರೊಫೈಲ್ ಪತ್ತೆಯಾಗಿಲ್ಲ</div>
+                    <p className="text-xs text-amber-800 font-medium">ಹುಡುಕಾಟದ ಕೀವರ್ಡ್ ಬದಲಾಯಿಸಿ ಅಥವಾ ಪುರೋಹಿತರ ಸಿಂಕ್ ಬಟನ್ ಒತ್ತಿ.</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto rounded-2xl border-2 border-amber-300 bg-white shadow-xs">
+                    <table className="w-full text-left text-xs border-collapse min-w-[1100px]">
+                      <thead>
+                        <tr className="bg-[#FFF8E7] border-b-2 border-amber-300 text-amber-950 uppercase text-[10px] font-black tracking-wider">
+                          <th className="py-3 px-4">ಪುರೋಹಿತರ ವಿವರ (ID & Name)</th>
+                          <th className="py-3 px-4">ಸಂಪರ್ಕ ಮಾಹಿತಿ (Mobile & Email)</th>
+                          <th className="py-3 px-4">ನಾಣ್ಯಗಳ ಬ್ಯಾಲೆನ್ಸ್</th>
+                          <th className="py-3 px-4">ಇಂದು ಬಳಸಿದ ಪುಟಗಳು & ಆವರ್ತನ</th>
+                          <th className="py-3 px-4 text-center">ಇಂದು ಕುಂಡಲಿ</th>
+                          <th className="py-3 px-4 text-center">ಇಂದು ಪ್ರಶ್ನೆ</th>
+                          <th className="py-3 px-4 text-center">ಒಟ್ಟು ಕ್ರಿಯೆ</th>
+                          <th className="py-3 px-4">ಕೊನೆಯ ಸಕ್ರಿಯತೆ</th>
+                          <th className="py-3 px-4 text-right">ನಿರ್ವಹಣೆ & ಕ್ರಿಯೆಗಳು</th>
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                      </thead>
+                      <tbody className="divide-y divide-amber-100 font-semibold">
+                        {filteredMergedPurohitas.map((p) => {
+                          const profileDoc: PurohitaProfileDoc = p.profile || {
+                            id: p.purohitaId,
+                            purohitaId: p.purohitaId,
+                            priestName: p.name,
+                            name: p.name,
+                            mobileNumber: p.mobile,
+                            mobile: p.mobile,
+                            email: p.email,
+                            coinBalance: p.coinBalance,
+                            allowedModules: p.allowedModules,
+                            status: "active",
+                            registeredAt: new Date().toISOString(),
+                            lastActiveAt: p.lastActiveAt || new Date().toISOString(),
+                            updatedAt: new Date().toISOString()
+                          };
+
+                          return (
+                            <tr key={p.purohitaId} className="hover:bg-amber-50/60 transition-colors">
+                              <td className="py-3 px-4">
+                                <div className="space-y-0.5">
+                                  <div className="flex items-center gap-1.5 font-black text-amber-950 text-sm">
+                                    <span>🕉️</span>
+                                    <span>{p.name}</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-mono text-[11px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
+                                      {p.purohitaId}
+                                    </span>
+                                    <span
+                                      className={`text-[9px] font-black px-1.5 py-0.5 rounded ${
+                                        p.isVerified
+                                          ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                                          : "bg-amber-100 text-amber-800 border border-amber-300"
+                                      }`}
+                                    >
+                                      {p.isVerified ? "🟢 ಪರಿಶೀಲಿತ" : "🟡 ಅಪೂರ್ಣ"}
+                                    </span>
+                                  </div>
+                                </div>
+                              </td>
+
+                              <td className="py-3 px-4">
+                                <div className="space-y-1 text-slate-700">
+                                  {p.mobile ? (
+                                    <div className="flex items-center gap-1 font-mono text-[11px] font-bold">
+                                      <span>📞</span>
+                                      <span>{p.mobile}</span>
+                                    </div>
+                                  ) : (
+                                    <div className="text-[10px] text-amber-700 font-bold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 inline-block">
+                                      ⚠️ ಮೊಬೈಲ್ ನಮೂದಿಸಿಲ್ಲ
+                                    </div>
+                                  )}
+                                  {p.email ? (
+                                    <div className="flex items-center gap-1 text-[11px]">
+                                      <span>✉️</span>
+                                      <span className="truncate max-w-[150px]">{p.email}</span>
+                                    </div>
+                                  ) : (
+                                    <div className="text-[10px] text-slate-400 italic">
+                                      ಇಮೇಲ್ ದಾಖಲಾಗಿಲ್ಲ
+                                    </div>
+                                  )}
+                                </div>
+                              </td>
+
+                              <td className="py-3 px-4">
+                                <div className="font-mono font-black text-sm text-amber-950">
+                                  {p.coinBalance.toLocaleString()} 🪙
+                                </div>
+                              </td>
+
+                              <td className="py-3 px-4">
+                                <div className="flex flex-wrap gap-1 max-w-xs">
+                                  {Object.entries(p.todayPagesMap).length > 0 ? (
+                                    Object.entries(p.todayPagesMap).map(([page, count]) => (
+                                      <span
+                                        key={page}
+                                        className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-100/90 text-amber-950 border border-amber-300 flex items-center gap-1 shadow-2xs"
+                                      >
+                                        <span>📄 {page}:</span>
+                                        <span className="font-black text-amber-900 bg-amber-200/80 px-1 rounded">{count}</span>
+                                      </span>
+                                    ))
+                                  ) : (
+                                    <span className="text-[10px] text-slate-400 italic">ಇಂದು ಯಾವುದೇ ಭೇಟಿಗಳಿಲ್ಲ</span>
+                                  )}
+                                </div>
+                              </td>
+
+                              <td className="py-3 px-4 text-center font-mono font-black text-sm text-purple-900">
+                                {p.todayKundlisCount > 0 ? p.todayKundlisCount : <span className="text-slate-300 text-xs font-normal">-</span>}
+                              </td>
+
+                              <td className="py-3 px-4 text-center font-mono font-black text-sm text-indigo-900">
+                                {p.todayQuestionsCount > 0 ? p.todayQuestionsCount : <span className="text-slate-300 text-xs font-normal">-</span>}
+                              </td>
+
+                              <td className="py-3 px-4 text-center font-mono font-black text-sm text-emerald-900">
+                                {p.todayTotalActions > 0 ? p.todayTotalActions : <span className="text-slate-300 text-xs font-normal">-</span>}
+                              </td>
+
+                              <td className="py-3 px-4 whitespace-nowrap font-mono text-[11px] text-slate-600">
+                                {p.lastActiveAt ? (
+                                  <div>
+                                    <div className="font-bold text-slate-800">
+                                      {new Date(p.lastActiveAt).toLocaleDateString("en-IN")}
+                                    </div>
+                                    <div className="text-[10px] text-slate-500">
+                                      {new Date(p.lastActiveAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <span className="text-slate-400 italic">-</span>
+                                )}
+                              </td>
+
+                              <td className="py-3 px-4 text-right whitespace-nowrap">
+                                <div className="flex items-center justify-end gap-1.5">
+                                  {/* Offer Coins Button */}
+                                  <button
+                                    type="button"
+                                    onClick={() => setOfferingCoinsPriest(profileDoc)}
+                                    className="py-1.5 px-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black rounded-lg text-xs shadow-xs transition-all flex items-center gap-1 cursor-pointer border border-amber-400"
+                                    title="ಪುರೋಹಿತರಿಗೆ ನಾಣ್ಯಗಳ ಕೊಡುಗೆ ನೀಡಿ"
+                                  >
+                                    <span>🎁</span>
+                                    <span>ನಾಣ್ಯ ಕೊಡುಗೆ</span>
+                                  </button>
+
+                                  {/* Activity History Button */}
+                                  <button
+                                    type="button"
+                                    onClick={() => setViewingActivityPriest(profileDoc)}
+                                    className="py-1.5 px-2 bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-300 rounded-lg text-xs font-bold transition-all shadow-xs flex items-center gap-1 cursor-pointer"
+                                    title="ಚಟುವಟಿಕೆ ಇತಿಹಾಸ ಪರಿಶೀಲಿಸಿ"
+                                  >
+                                    <span>📜</span>
+                                    <span>ಇತಿಹಾಸ</span>
+                                  </button>
+
+                                  {/* Delete Profile Button */}
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeletePurohita(p.purohitaId, p.name)}
+                                    className="py-1.5 px-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg text-xs transition-all shadow-xs flex items-center gap-1 cursor-pointer border border-red-700"
+                                    title="ಪ್ರೊಫೈಲ್ ಮತ್ತು ಚಟುವಟಿಕೆ ದಾಖಲೆಗಳನ್ನು ಅಳಿಸಿ"
+                                  >
+                                    <span>🗑️</span>
+                                    <span>ಅಳಿಸಿ</span>
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* SUBVIEW 3: Daily Summaries & Real-Time Live Activity Event Log */}
+            {priestLedgerSubView === "daily_summaries" && (
+              <div className="space-y-6">
+                {/* Aggregate stats for today */}
+                <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-300 rounded-2xl space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black text-amber-950 flex items-center gap-1.5">
+                      <span>📅</span>
+                      <span>ಇಂದಿನ ದಿನಾಂಕ ಸಾರಾಂಶ ({todayKey})</span>
+                    </span>
+                    <span className="text-[11px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full border border-amber-300">
+                      ಲೈವ್ ಸಿಂಕ್ ಸಕ್ರಿಯವಾಗಿದೆ
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+                    <div className="bg-white p-3 rounded-xl border border-amber-200 shadow-2xs">
+                      <div className="text-[10px] uppercase font-black text-slate-500">ಇಂದು ಸಕ್ರಿಯ ಪುರೋಹಿತರು</div>
+                      <div className="text-xl font-mono font-black text-amber-950 mt-0.5">
+                        {purohitaDailySummaries.filter((s) => s.dateKey === todayKey).length}
+                      </div>
+                    </div>
+                    <div className="bg-white p-3 rounded-xl border border-amber-200 shadow-2xs">
+                      <div className="text-[10px] uppercase font-black text-slate-500">ಇಂದು ಒಟ್ಟು ಪುಟ ಭೇಟಿಗಳು</div>
+                      <div className="text-xl font-mono font-black text-emerald-950 mt-0.5">
+                        {purohitaDailySummaries
+                          .filter((s) => s.dateKey === todayKey)
+                          .reduce((acc, s) => acc + Object.values(s.pageVisits || {}).reduce((a, b) => a + b, 0), 0)}
+                      </div>
+                    </div>
+                    <div className="bg-white p-3 rounded-xl border border-amber-200 shadow-2xs">
+                      <div className="text-[10px] uppercase font-black text-slate-500">ಇಂದು ರಚಿಸಿದ ಕುಂಡಲಿಗಳು</div>
+                      <div className="text-xl font-mono font-black text-purple-950 mt-0.5">
+                        {purohitaDailySummaries
+                          .filter((s) => s.dateKey === todayKey)
+                          .reduce((acc, s) => acc + (s.kundlisGeneratedCount || 0), 0)}
+                      </div>
+                    </div>
+                    <div className="bg-white p-3 rounded-xl border border-amber-200 shadow-2xs">
+                      <div className="text-[10px] uppercase font-black text-slate-500">ಇಂದು ಕೇಳಲಾದ ಪ್ರಶ್ನೆಗಳು</div>
+                      <div className="text-xl font-mono font-black text-indigo-950 mt-0.5">
+                        {purohitaDailySummaries
+                          .filter((s) => s.dateKey === todayKey)
+                          .reduce((acc, s) => acc + (s.questionsAskedCount || 0), 0)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Daily Summaries Table */}
+                <div className="space-y-3">
+                  <h3 className="text-xs font-black text-amber-950 uppercase tracking-wider flex items-center gap-1.5">
+                    <span>📊</span>
+                    <span>ದಿನವಾರು ಪುರೋಹಿತರ ಸಾರಾಂಶ ಇತಿಹಾಸ (Daily Summary Records)</span>
+                  </h3>
+
+                  {purohitaDailySummaries.length === 0 ? (
+                    <div className="text-center py-6 bg-amber-50/50 rounded-xl border border-amber-200 text-xs text-amber-800">
+                      ಇನ್ನೂ ಯಾವುದೇ ದಿನನಿತ್ಯದ ಸಾರಾಂಶ ದಾಖಲಾಗಿಲ್ಲ.
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto rounded-xl border border-amber-200 bg-white shadow-2xs">
+                      <table className="w-full text-left text-xs border-collapse min-w-[700px]">
+                        <thead>
+                          <tr className="bg-[#FFF8E7] border-b border-amber-200 text-amber-950 text-[10px] font-black uppercase">
+                            <th className="py-2.5 px-3">ದಿನಾಂಕ (Date)</th>
+                            <th className="py-2.5 px-3">ಪುರೋಹಿತರ ಹೆಸರು</th>
+                            <th className="py-2.5 px-3">Purohita ID</th>
+                            <th className="py-2.5 px-3">ಪುಟಗಳ ಭೇಟಿ ವಿವರ</th>
+                            <th className="py-2.5 px-3 text-center">ಕುಂಡಲಿಗಳು</th>
+                            <th className="py-2.5 px-3 text-center">ಪ್ರಶ್ನೆಗಳು</th>
+                            <th className="py-2.5 px-3 text-center">ಒಟ್ಟು ಕ್ರಿಯೆ</th>
+                            <th className="py-2.5 px-3">ಕೊನೆಯ ಕ್ರಿಯೆ</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-amber-100 font-medium">
+                          {purohitaDailySummaries.slice(0, 30).map((summary) => (
+                            <tr key={summary.id} className="hover:bg-amber-50/50">
+                              <td className="py-2 px-3 font-mono font-bold text-slate-800">{summary.dateKey}</td>
+                              <td className="py-2 px-3 font-bold text-amber-950">{summary.purohitaName}</td>
+                              <td className="py-2 px-3 font-mono text-[11px] text-slate-500">{summary.purohitaId}</td>
+                              <td className="py-2 px-3">
+                                <div className="flex flex-wrap gap-1">
+                                  {Object.entries(summary.pageVisits || {}).map(([pg, cnt]) => (
+                                    <span key={pg} className="text-[9px] bg-amber-100 text-amber-950 px-1.5 py-0.5 rounded font-bold border border-amber-300">
+                                      {pg}: {cnt}
+                                    </span>
+                                  ))}
+                                </div>
+                              </td>
+                              <td className="py-2 px-3 text-center font-mono font-black text-purple-900">{summary.kundlisGeneratedCount || 0}</td>
+                              <td className="py-2 px-3 text-center font-mono font-black text-indigo-900">{summary.questionsAskedCount || 0}</td>
+                              <td className="py-2 px-3 text-center font-mono font-black text-emerald-900">{summary.totalActions || 0}</td>
+                              <td className="py-2 px-3 font-mono text-[11px] text-slate-500 whitespace-nowrap">
+                                {summary.lastActionAt ? new Date(summary.lastActionAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : "-"}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+
+                {/* Real-Time Live Activity Event Log Stream */}
+                <div className="space-y-3">
+                  <h3 className="text-xs font-black text-amber-950 uppercase tracking-wider flex items-center gap-1.5">
+                    <span>⚡</span>
+                    <span>ಲೈವ್ ಚಟುವಟಿಕೆ ಸ್ಟ್ರೀಮ್ (Real-Time Live Activities Stream - {purohitaActivities.length} Events)</span>
+                  </h3>
+
+                  {purohitaActivities.length === 0 ? (
+                    <div className="text-center py-6 bg-amber-50/50 rounded-xl border border-amber-200 text-xs text-amber-800">
+                      ಯಾವುದೇ ಚಟುವಟಿಕೆ ದಾಖಲಾಗಿಲ್ಲ.
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto rounded-xl border border-amber-200 bg-white shadow-2xs max-h-96 overflow-y-auto">
+                      <table className="w-full text-left text-xs border-collapse min-w-[650px]">
+                        <thead className="sticky top-0 bg-[#FFF8E7] shadow-xs">
+                          <tr className="border-b border-amber-200 text-amber-950 text-[10px] font-black uppercase">
+                            <th className="py-2.5 px-3">ಸಮಯ</th>
+                            <th className="py-2.5 px-3">ಪುರೋಹಿತರು</th>
+                            <th className="py-2.5 px-3">ವಿಧ (Action)</th>
+                            <th className="py-2.5 px-3">ಪುಟ (Page)</th>
+                            <th className="py-2.5 px-3">ವಿವರಗಳು (Details)</th>
+                            <th className="py-2.5 px-3 text-right">ನಾಣ್ಯಗಳ ಬದಲಾವಣೆ</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-amber-100 font-medium">
+                          {purohitaActivities.slice(0, 50).map((act) => (
+                            <tr key={act.id} className="hover:bg-amber-50/50">
+                              <td className="py-2 px-3 font-mono text-[11px] text-slate-500 whitespace-nowrap">
+                                {act.timestamp ? new Date(act.timestamp).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "-"}
+                              </td>
+                              <td className="py-2 px-3 font-bold text-amber-950 whitespace-nowrap">
+                                <div>{act.purohitaName}</div>
+                                <div className="font-mono text-[9px] text-slate-400">{act.purohitaId}</div>
+                              </td>
+                              <td className="py-2 px-3 whitespace-nowrap">
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-300">
+                                  {act.actionType}
+                                </span>
+                              </td>
+                              <td className="py-2 px-3 font-semibold text-slate-700 whitespace-nowrap">{act.pageName || "-"}</td>
+                              <td className="py-2 px-3 text-slate-800 font-semibold">{act.details || "-"}</td>
+                              <td className="py-2 px-3 text-right font-mono font-bold whitespace-nowrap">
+                                {act.coinsImpact ? (
+                                  <span className={act.coinsImpact > 0 ? "text-emerald-700" : "text-red-700"}>
+                                    {act.coinsImpact > 0 ? `+${act.coinsImpact}` : act.coinsImpact} 🪙
+                                  </span>
+                                ) : "-"}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -2448,6 +3168,38 @@ export const SuperAdminDashboard: React.FC = () => {
         const nearExpirySubs = subscriptions.filter((s) => !s.isExpired && s.daysRemaining <= 7).length;
         const expiredSubs = subscriptions.filter((s) => s.isExpired).length;
 
+        const pass30Count = calendarRegistrations.filter(r => r.durationDays === 30).length;
+        const pass90Count = calendarRegistrations.filter(r => r.durationDays === 90 || !r.durationDays).length;
+        const pass180Count = calendarRegistrations.filter(r => r.durationDays === 180).length;
+        const pass365Count = calendarRegistrations.filter(r => r.durationDays === 365).length;
+
+        const filteredRegistrations = calendarRegistrations.filter((r) => {
+          if (durationFilter !== "all" && r.durationDays !== durationFilter) return false;
+          if (subscriptionFilter === "active" && r.status === "expired") return false;
+          if (subscriptionFilter === "expired" && r.status !== "expired") return false;
+          if (!subscriptionSearch.trim()) return true;
+          const q = subscriptionSearch.toLowerCase();
+          return (
+            (r.userName || "").toLowerCase().includes(q) ||
+            (r.token || "").toLowerCase().includes(q) ||
+            (r.devoteePhone || "").toLowerCase().includes(q) ||
+            (r.devoteeEmail || "").toLowerCase().includes(q) ||
+            (r.priestName || "").toLowerCase().includes(q) ||
+            (r.gotra || "").toLowerCase().includes(q)
+          );
+        });
+
+        const filteredVisits = dailyVisitLogs.filter((v) => {
+          if (!subscriptionSearch.trim()) return true;
+          const q = subscriptionSearch.toLowerCase();
+          return (
+            (v.userName || "").toLowerCase().includes(q) ||
+            (v.token || "").toLowerCase().includes(q) ||
+            (v.visitDate || "").toLowerCase().includes(q) ||
+            (v.priestName || "").toLowerCase().includes(q)
+          );
+        });
+
         return (
           <div className="bg-[#FFFDF7] border-2 border-amber-300 rounded-3xl p-5 shadow-md space-y-5">
             {/* Header with Title & Action Controls */}
@@ -2455,10 +3207,10 @@ export const SuperAdminDashboard: React.FC = () => {
               <div>
                 <h2 className="text-lg font-black text-amber-950 flex items-center gap-2">
                   <span>🪔</span>
-                  <span>ಭಕ್ತರ ಕ್ಯಾಲೆಂಡರ್ ಚಂದಾದಾರಿಕೆ & ಆಶೀರ್ವಾದ ಪಾಸ್ CRM (Devotee Calendar CRM)</span>
+                  <span>ಭಕ್ತರ ಕ್ಯಾಲೆಂಡರ್ ನೋಂದಣಿ & ಭೇಟಿ ಟ್ರ್ಯಾಕಿಂಗ್ CRM (Calendar Registrations & CRM)</span>
                 </h2>
                 <p className="text-xs text-amber-800 font-semibold mt-1">
-                  ದೈನಂದಿನ ದರ್ಶನ ಭೇಟಿಗಳು, ೯೦-ದಿನಗಳ ಮಾನ್ಯತೆ ಕೌಂಟ್‌ಡೌನ್, ಮೊಬೈಲ್/ಇಮೇಲ್ ಮಾರ್ಕೆಟಿಂಗ್ ಸಂಪರ್ಕಗಳು ಮತ್ತು ನವೀಕರಣ ನಿರ್ವಹಣೆ.
+                  ದೈನಂದಿನ ದರ್ಶನ ಭೇಟಿ ಲಾಗ್‌ಗಳು, ಅಧಿಕೃತ ನೋಂದಣಿ ಕೋಷ್ಟಕ, ಅವಧಿ ಮಾನ್ಯತೆ (೩೦/೯೦/೧೮೦/೩೬೫ ದಿನಗಳು), ಮೊಬೈಲ್ ಸಂಪರ್ಕಗಳು ಮತ್ತು ನವೀಕರಣ ನಿರ್ವಹಣೆ.
                 </p>
               </div>
 
@@ -2467,12 +3219,12 @@ export const SuperAdminDashboard: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleExportDevoteeMarketingCsv}
-                  disabled={totalSubs === 0}
+                  disabled={totalSubs === 0 && calendarRegistrations.length === 0}
                   className="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-50 cursor-pointer"
                   title="ಮಾರ್ಕೆಟಿಂಗ್‌ಗಾಗಿ ಭಕ್ತರ ಸಂಪರ್ಕಗಳನ್ನು CSV ಫೈಲ್‌ಗೆ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ"
                 >
                   <span>📥</span>
-                  <span>ಭಕ್ತರ ಸಂಪರ್ಕಗಳ CSV ರಫ್ತು ({totalSubs})</span>
+                  <span>ಭಕ್ತರ ಸಂಪರ್ಕಗಳ CSV ರಫ್ತು ({Math.max(totalSubs, calendarRegistrations.length)})</span>
                 </button>
 
                 {/* Deduplicate */}
@@ -2499,8 +3251,8 @@ export const SuperAdminDashboard: React.FC = () => {
               </div>
             </div>
 
-            {/* Top Analytics KPI Metric Cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {/* KPI Summary Cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               <div
                 onClick={() => setSubscriptionFilter("all")}
                 className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${
@@ -2509,9 +3261,9 @@ export const SuperAdminDashboard: React.FC = () => {
                     : "bg-[#FEFCF4] border-amber-200 hover:border-amber-400"
                 }`}
               >
-                <div className="text-[11px] font-bold text-amber-800 uppercase tracking-wider">👥 ಒಟ್ಟು ಭಕ್ತರು</div>
+                <div className="text-[11px] font-bold text-amber-800 uppercase tracking-wider">👥 ಒಟ್ಟು ಭಕ್ತರು (Total)</div>
                 <div className="text-2xl font-black text-amber-950 font-mono mt-1">{totalSubs}</div>
-                <div className="text-[10px] text-amber-700 font-semibold mt-0.5">ಒಟ್ಟು ನೋಂದಾಯಿತ ಚಂದಾದಾರರು</div>
+                <div className="text-[10px] text-amber-700 font-semibold mt-0.5">ನೋಂದಾಯಿತ: {calendarRegistrations.length} | ಲಾಗ್: {dailyVisitLogs.length}</div>
               </div>
 
               <div
@@ -2523,7 +3275,7 @@ export const SuperAdminDashboard: React.FC = () => {
                 }`}
               >
                 <div className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider">🟢 ಸಕ್ರಿಯ ಪಾಸ್‌ಗಳು</div>
-                <div className="text-2xl font-black text-emerald-900 font-mono mt-1">{activeSubs}</div>
+                <div className="text-2xl font-black text-emerald-950 font-mono mt-1">{activeSubs}</div>
                 <div className="text-[10px] text-emerald-700 font-semibold mt-0.5">&gt; ೭ ದಿನಗಳ ಮಾನ್ಯತೆ ಉಳಿದಿದೆ</div>
               </div>
 
@@ -2537,7 +3289,7 @@ export const SuperAdminDashboard: React.FC = () => {
               >
                 <div className="text-[11px] font-bold text-yellow-800 uppercase tracking-wider">🟡 ಮುಕ್ತಾಯ ಸಮೀಪ</div>
                 <div className="text-2xl font-black text-yellow-950 font-mono mt-1">{nearExpirySubs}</div>
-                <div className="text-[10px] text-yellow-700 font-semibold mt-0.5">≤ ೭ ದಿನಗಳಲ್ಲಿ ಮುಕ್ತಾಯ (ಆಫರ್ ಕಳುಹಿಸಿ)</div>
+                <div className="text-[10px] text-yellow-700 font-semibold mt-0.5">≤ ೭ ದಿನಗಳಲ್ಲಿ ಮುಕ್ತಾಯ (ನವೀಕರಣ ಸಂದೇಶ)</div>
               </div>
 
               <div
@@ -2548,10 +3300,74 @@ export const SuperAdminDashboard: React.FC = () => {
                     : "bg-[#FEFCF4] border-red-200 hover:border-red-400"
                 }`}
               >
-                <div className="text-[11px] font-bold text-red-800 uppercase tracking-wider">🔴 ಮುಕ್ತಾಯಗೊಂಡಿದೆ</div>
+                <div className="text-[11px] font-bold text-red-800 uppercase tracking-wider">🔴 ಮುಕ್ತಾಯಗೊಂಡಿದೆ (Expired)</div>
                 <div className="text-2xl font-black text-red-900 font-mono mt-1">{expiredSubs}</div>
-                <div className="text-[10px] text-red-700 font-semibold mt-0.5">ದರ್ಶನ ಪ್ರವೇಶ ನಿರ್ಬಂಧಿಸಲಾಗಿದೆ</div>
+                <div className="text-[10px] text-red-700 font-semibold mt-0.5">ದರ್ಶನ ಪ್ರವೇಶ ಸಂಪೂರ್ಣ ನಿರ್ಬಂಧಿಸಲಾಗಿದೆ</div>
               </div>
+            </div>
+
+            {/* Pass Duration Breakdown Badges */}
+            <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200 flex flex-wrap items-center justify-between gap-2 text-xs">
+              <span className="font-bold text-amber-950 flex items-center gap-1">
+                <span>⏱️</span>
+                <span>ಅವಧಿ ವರ್ಗೀಕರಣ (Pass Breakdown):</span>
+              </span>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="px-2.5 py-1 bg-white rounded-lg border border-amber-300 font-mono font-bold text-amber-950">
+                  ೩೦ ದಿನಗಳು: <span className="text-amber-700">{pass30Count}</span>
+                </span>
+                <span className="px-2.5 py-1 bg-white rounded-lg border border-amber-300 font-mono font-bold text-amber-950">
+                  ೯೦ ದಿನಗಳು: <span className="text-amber-700">{pass90Count}</span>
+                </span>
+                <span className="px-2.5 py-1 bg-white rounded-lg border border-amber-300 font-mono font-bold text-amber-950">
+                  ೧೮೦ ದಿನಗಳು: <span className="text-amber-700">{pass180Count}</span>
+                </span>
+                <span className="px-2.5 py-1 bg-white rounded-lg border border-amber-300 font-mono font-bold text-amber-950">
+                  ೩೬೫ ದಿನಗಳು: <span className="text-amber-700">{pass365Count}</span>
+                </span>
+              </div>
+            </div>
+
+            {/* Sub-View Switcher: CRM vs Registrations vs Daily Visits */}
+            <div className="flex items-center gap-2 p-1.5 bg-amber-100/80 rounded-2xl border-2 border-amber-300 w-full overflow-x-auto">
+              <button
+                type="button"
+                onClick={() => setCalendarSubView("crm")}
+                className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+                  calendarSubView === "crm"
+                    ? "bg-amber-600 text-white shadow-md scale-[1.01]"
+                    : "text-amber-950 hover:bg-amber-200/60 font-bold"
+                }`}
+              >
+                <span>👥</span>
+                <span>ಚಂದಾದಾರಿಕೆ CRM ({totalSubs})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setCalendarSubView("registrations")}
+                className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+                  calendarSubView === "registrations"
+                    ? "bg-amber-600 text-white shadow-md scale-[1.01]"
+                    : "text-amber-950 hover:bg-amber-200/60 font-bold"
+                }`}
+              >
+                <span>📋</span>
+                <span>ಕ್ಯಾಲೆಂಡರ್ ನೋಂದಣಿ ಕೋಷ್ಟಕ ({calendarRegistrations.length})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setCalendarSubView("daily_visits")}
+                className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+                  calendarSubView === "daily_visits"
+                    ? "bg-amber-600 text-white shadow-md scale-[1.01]"
+                    : "text-amber-950 hover:bg-amber-200/60 font-bold"
+                }`}
+              >
+                <span>🕒</span>
+                <span>ದೈನಂದಿನ ಭೇಟಿಗಳ ಲೈವ್ ಫೀಡ್ ({dailyVisitLogs.length})</span>
+              </button>
             </div>
 
             {/* Filter Tabs & Search Bar */}
@@ -2560,7 +3376,7 @@ export const SuperAdminDashboard: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setSubscriptionFilter("all")}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
                     subscriptionFilter === "all" ? "bg-amber-600 text-white shadow-xs" : "text-amber-900 hover:bg-amber-200/60"
                   }`}
                 >
@@ -2569,7 +3385,7 @@ export const SuperAdminDashboard: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setSubscriptionFilter("active")}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
                     subscriptionFilter === "active" ? "bg-emerald-700 text-white shadow-xs" : "text-emerald-900 hover:bg-emerald-100"
                   }`}
                 >
@@ -2578,7 +3394,7 @@ export const SuperAdminDashboard: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setSubscriptionFilter("near_expiry")}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
                     subscriptionFilter === "near_expiry" ? "bg-amber-500 text-amber-950 shadow-xs" : "text-yellow-900 hover:bg-yellow-100"
                   }`}
                 >
@@ -2587,7 +3403,7 @@ export const SuperAdminDashboard: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setSubscriptionFilter("expired")}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
                     subscriptionFilter === "expired" ? "bg-red-600 text-white shadow-xs" : "text-red-900 hover:bg-red-100"
                   }`}
                 >
@@ -2595,12 +3411,30 @@ export const SuperAdminDashboard: React.FC = () => {
                 </button>
               </div>
 
+              {calendarSubView === "registrations" && (
+                <div className="flex items-center gap-1 p-1 bg-amber-100/50 rounded-xl border border-amber-200 text-xs">
+                  <span className="text-[10px] font-bold text-amber-950 px-1">ಅವಧಿ:</span>
+                  {(["all", 30, 90, 180, 365] as const).map((d) => (
+                    <button
+                      key={String(d)}
+                      type="button"
+                      onClick={() => setDurationFilter(d)}
+                      className={`px-2 py-1 rounded-lg text-[10px] font-bold cursor-pointer ${
+                        durationFilter === d ? "bg-amber-600 text-white" : "text-amber-900 hover:bg-amber-200"
+                      }`}
+                    >
+                      {d === "all" ? "ಎಲ್ಲಾ" : `${d}d`}
+                    </button>
+                  ))}
+                </div>
+              )}
+
               <div className="w-full md:w-80 relative flex items-center">
                 <input
                   type="text"
                   value={subscriptionSearch}
                   onChange={(e) => setSubscriptionSearch(e.target.value)}
-                  placeholder="ಹುಡುಕಿ: ಹೆಸರು, ಮೊಬೈಲ್, ಇಮೇಲ್, ರಾಶಿ..."
+                  placeholder="ಹುಡುಕಿ: ಹೆಸರು, ಮೊಬೈಲ್, ಇಮೇಲ್, ಟೋಕನ್..."
                   className="w-full pl-3.5 pr-9 py-2 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-xs text-slate-900 placeholder-slate-400 font-semibold focus:outline-none focus:border-amber-500 shadow-inner"
                 />
                 <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
@@ -2612,266 +3446,460 @@ export const SuperAdminDashboard: React.FC = () => {
               </div>
             </div>
 
-            {/* Devotee Subscriptions Table */}
-            {filteredSubs.length === 0 ? (
-              <div className="text-center py-16 px-4 bg-[#FEFCF4] rounded-3xl border-2 border-amber-200 space-y-3">
-                <div className="text-4xl">🪔</div>
-                <div className="font-black text-amber-950 text-sm">
-                  {totalSubs === 0
-                    ? "ಯಾವುದೇ ಭಕ್ತರ ಚಂದಾದಾರಿಕೆಗಳು ದಾಖಲಾಗಿಲ್ಲ (No Devotee Subscriptions Yet)"
-                    : "ಹುಡುಕಾಟಕ್ಕೆ ಯಾವುದೇ ಫಲಿತಾಂಶಗಳು ದೊರೆತಿಲ್ಲ."}
+            {/* VIEW 1: Subscriptions CRM Table */}
+            {calendarSubView === "crm" && (
+              filteredSubs.length === 0 ? (
+                <div className="text-center py-16 px-4 bg-[#FEFCF4] rounded-3xl border-2 border-amber-200 space-y-3">
+                  <div className="text-4xl">🪔</div>
+                  <div className="font-black text-amber-950 text-sm">
+                    {totalSubs === 0
+                      ? "ಯಾವುದೇ ಭಕ್ತರ ಚಂದಾದಾರಿಕೆಗಳು ದಾಖಲಾಗಿಲ್ಲ (No Devotee Subscriptions Yet)"
+                      : "ಹುಡುಕಾಟಕ್ಕೆ ಯಾವುದೇ ಫಲಿತಾಂಶಗಳು ದೊರೆತಿಲ್ಲ."}
+                  </div>
+                  <p className="text-xs text-amber-800 font-semibold max-w-md mx-auto">
+                    ಭಕ್ತರು ತಮ್ಮ ಕ್ಯಾಲೆಂಡರ್ ಲಿಂಕ್ ಅಥವಾ QR ಕೋಡ್ ಮೂಲಕ ದರ್ಶನ ಪಡೆದಾಗ ಅವರ ಸಂಪರ್ಕ ವಿವರ, ಜಾತಕ ಮತ್ತು ಮಾನ್ಯತೆಯ ಸಂಪೂರ್ಣ ವಿವರಗಳು ಇಲ್ಲಿ ದಾಖಲಾಗುತ್ತವೆ.
+                  </p>
                 </div>
-                <p className="text-xs text-amber-800 font-semibold max-w-md mx-auto">
-                  ಭಕ್ತರು ತಮ್ಮ ಕ್ಯಾಲೆಂಡರ್ ಲಿಂಕ್ ಅಥವಾ QR ಕೋಡ್ ಮೂಲಕ ದರ್ಶನ ಪಡೆದಾಗ ಅವರ ಸಂಪರ್ಕ ವಿವರ, ಜಾತಕ ಮತ್ತು ಮಾನ್ಯತೆಯ ಸಂಪೂರ್ಣ ವಿವರಗಳು ಇಲ್ಲಿ ದಾಖಲಾಗುತ್ತವೆ.
-                </p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto rounded-2xl border-2 border-amber-200 shadow-inner bg-[#FEFCF4]">
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead>
-                    <tr className="bg-amber-100/80 text-amber-950 font-black border-b border-amber-300">
-                      <th className="py-3 px-3.5">ಭಕ್ತರ ಹೆಸರು & ಗೋತ್ರ</th>
-                      <th className="py-3 px-3">ಸಂಪರ್ಕ (ಮೊಬೈಲ್ & ಇಮೇಲ್)</th>
-                      <th className="py-3 px-3">ಜನ್ಮ ಕುಂಡಲಿ</th>
-                      <th className="py-3 px-3">ಅವಧಿ & ದಿನಾಂಕಗಳು</th>
-                      <th className="py-3 px-3 text-center">ಇಂದಿನ ಭೇಟಿ</th>
-                      <th className="py-3 px-3 text-center">ಒಟ್ಟು ಭೇಟಿ</th>
-                      <th className="py-3 px-3 text-center">ಉಳಿದ ಮಾನ್ಯತೆ</th>
-                      <th className="py-3 px-3 text-center">ಸ್ಥಿತಿ</th>
-                      <th className="py-3 px-3 text-center">ಲಾಕ್ & ರಕ್ಷಣೆ</th>
-                      <th className="py-3 px-3 text-right">ಮಾರ್ಕೆಟಿಂಗ್ & ಆಕ್ಷನ್ಸ್</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-amber-200/70">
-                    {filteredSubs.map((s) => {
-                      const percentLeft = Math.min(100, Math.max(0, Math.round((s.daysRemaining / (s.durationDays || 90)) * 100)));
-                      const isExpired = s.isExpired;
-                      const isNearExpiry = !isExpired && s.daysRemaining <= 7;
+              ) : (
+                <div className="overflow-x-auto rounded-2xl border-2 border-amber-200 shadow-inner bg-[#FEFCF4]">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-amber-100/80 text-amber-950 font-black border-b border-amber-300">
+                        <th className="py-3 px-3.5">ಭಕ್ತರ ಹೆಸರು & ಗೋತ್ರ</th>
+                        <th className="py-3 px-3">ಸಂಪರ್ಕ (ಮೊಬೈಲ್ & ಇಮೇಲ್)</th>
+                        <th className="py-3 px-3">ಜನ್ಮ ಕುಂಡಲಿ</th>
+                        <th className="py-3 px-3">ಅವಧಿ & ದಿನಾಂಕಗಳು</th>
+                        <th className="py-3 px-3 text-center">ಇಂದಿನ ಭೇಟಿ</th>
+                        <th className="py-3 px-3 text-center">ಒಟ್ಟು ಭೇಟಿ</th>
+                        <th className="py-3 px-3 text-center">ಉಳಿದ ಮಾನ್ಯತೆ</th>
+                        <th className="py-3 px-3 text-center">ಸ್ಥಿತಿ</th>
+                        <th className="py-3 px-3 text-center">ಲಾಕ್ & ರಕ್ಷಣೆ</th>
+                        <th className="py-3 px-3 text-right">ಮಾರ್ಕೆಟಿಂಗ್ & ಆಕ್ಷನ್ಸ್</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-amber-200/70">
+                      {filteredSubs.map((s) => {
+                        const percentLeft = Math.min(100, Math.max(0, Math.round((s.daysRemaining / (s.durationDays || 90)) * 100)));
+                        const isExpired = s.isExpired;
+                        const isNearExpiry = !isExpired && s.daysRemaining <= 7;
 
-                      const cleanPhone = (s.phone || "").replace(/[^\d]/g, "");
-                      const waPhone = cleanPhone.startsWith("91") ? cleanPhone : cleanPhone ? `91${cleanPhone}` : "";
+                        const cleanPhone = (s.phone || "").replace(/[^\d]/g, "");
+                        const waPhone = cleanPhone.startsWith("91") ? cleanPhone : cleanPhone ? `91${cleanPhone}` : "";
 
-                      const waMessage = encodeURIComponent(
-                        `ನಮಸ್ಕಾರ ${s.devoteeName} ಅವರೇ,\nಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಪೋರ್ಟಲ್‌ನಿಂದ ಶುಭಾಶಯಗಳು.\nನಿಮ್ಮ ${s.durationDays || 90}-ದಿನಗಳ ದೈನಂದಿನ ದರ್ಶನ ಮತ್ತು ಮುಹೂರ್ತ ಪಾಸ್ ${
-                          isExpired ? `ದಿನಾಂಕ ${s.expiryDate} ರಂದು ಮುಕ್ತಾಯಗೊಂಡಿದೆ.` : `ದಿನಾಂಕ ${s.expiryDate} ರಂದು ಮುಕ್ತಾಯಗೊಳ್ಳಲಿದೆ (${s.daysRemaining} ದಿನಗಳು ಬಾಕಿ).`
-                        }\nನಿಮ್ಮ ದೈನಂದಿನ ಜಾತಕ ಫಲಗಳು ಮತ್ತು ಪಂಚಾಂಗ ಸೇವೆಗಳನ್ನು ನಿರಂತರವಾಗಿ ಮುಂದುವರಿಸಲು ನವೀಕರಿಸಿಕೊಳ್ಳಿ.\n॥ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ · ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ॥`
-                      );
+                        const waMessage = encodeURIComponent(
+                          `ನಮಸ್ಕಾರ ${s.devoteeName} ಅವರೇ,\nಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಪೋರ್ಟಲ್‌ನಿಂದ ಶುಭಾಶಯಗಳು.\nನಿಮ್ಮ ${s.durationDays || 90}-ದಿನಗಳ ದೈನಂದಿನ ದರ್ಶನ ಮತ್ತು ಮುಹೂರ್ತ ಪಾಸ್ ${
+                            isExpired ? `ದಿನಾಂಕ ${s.expiryDate} ರಂದು ಮುಕ್ತಾಯಗೊಂಡಿದೆ.` : `ದಿನಾಂಕ ${s.expiryDate} ರಂದು ಮುಕ್ತಾಯಗೊಳ್ಳಲಿದೆ (${s.daysRemaining} ದಿನಗಳು ಬಾಕಿ).`
+                          }\nನಿಮ್ಮ ದೈನಂದಿನ ಜಾತಕ ಫಲಗಳು ಮತ್ತು ಪಂಚಾಂಗ ಸೇವೆಗಳನ್ನು ನಿರಂತರವಾಗಿ ಮುಂದುವರಿಸಲು ನವೀಕರಿಸಿಕೊಳ್ಳಿ.\n॥ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ · ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ॥`
+                        );
 
-                      return (
-                        <tr key={s.id} className="hover:bg-amber-50/60 transition-colors">
-                          {/* Devotee Name & Gotra */}
-                          <td className="py-3.5 px-3.5 align-top">
+                        return (
+                          <tr key={s.id} className="hover:bg-amber-50/60 transition-colors">
+                            {/* Devotee Name & Gotra */}
+                            <td className="py-3.5 px-3.5 align-top">
+                              <div className="font-black text-slate-900 text-xs flex items-center gap-1">
+                                <span>👤</span>
+                                <span>{s.devoteeName}</span>
+                              </div>
+                              <div className="text-[11px] text-amber-900 font-semibold mt-0.5">
+                                ಗೋತ್ರ: {s.gotra || "—"}
+                              </div>
+                              <div className="text-[10px] text-slate-500 font-mono mt-0.5">
+                                Priest: {s.priestName || "Shreeram Pandit"}
+                              </div>
+                            </td>
+
+                            {/* Contact Details (Phone & Email) */}
+                            <td className="py-3.5 px-3.5 align-top">
+                              <div className="space-y-1">
+                                {s.phone ? (
+                                  <div className="flex items-center gap-1.5 font-mono text-xs font-bold text-slate-900">
+                                    <span>📱</span>
+                                    <a href={`tel:${s.phone}`} className="hover:underline text-amber-950">
+                                      {s.phone}
+                                    </a>
+                                    {waPhone && (
+                                      <a
+                                        href={`https://wa.me/${waPhone}?text=${waMessage}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="px-1.5 py-0.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded text-[10px] font-black border border-emerald-300"
+                                        title="WhatsApp ಸಂದೇಶ ಕಳುಹಿಸಿ"
+                                      >
+                                        WA
+                                      </a>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <span className="text-[10px] text-red-600 font-bold bg-red-50 px-1.5 py-0.5 rounded border border-red-200">
+                                    📱 ಫೋನ್ ಇಲ್ಲ
+                                  </span>
+                                )}
+
+                                {s.email ? (
+                                  <div className="flex items-center gap-1 text-[11px] font-medium text-slate-700">
+                                    <span>✉️</span>
+                                    <a href={`mailto:${s.email}`} className="hover:underline truncate max-w-[140px] block" title={s.email}>
+                                      {s.email}
+                                    </a>
+                                  </div>
+                                ) : (
+                                  <span className="text-[10px] text-slate-500 font-normal">✉️ ಇಮೇಲ್ ಇಲ್ಲ</span>
+                                )}
+                              </div>
+                            </td>
+
+                            {/* Janma Kundali */}
+                            <td className="py-3.5 px-3 align-top">
+                              <div className="space-y-0.5 text-[11px]">
+                                <div className="font-bold text-amber-950">
+                                  🌙 {s.rashi || "—"}
+                                </div>
+                                <div className="text-slate-700 font-medium">
+                                  ⭐ {s.nakshatra || "—"}
+                                </div>
+                                {s.lagnaRashi && (
+                                  <div className="text-[10px] text-slate-500 font-medium">
+                                    ಲಗ್ನ: {s.lagnaRashi}
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+
+                            {/* Duration & Dates */}
+                            <td className="py-3.5 px-3 align-top text-xs">
+                              <div className="font-black text-slate-900">
+                                ⏱️ {s.durationDays || 90} ದಿನಗಳು
+                              </div>
+                              <div className="text-[10px] text-slate-600 font-mono mt-0.5">
+                                ಆರಂಭ: {s.startDate || "—"}
+                              </div>
+                              <div className="text-[10px] font-mono font-bold mt-0.5 text-slate-700">
+                                ಮುಕ್ತಾಯ: {s.expiryDate || "—"}
+                              </div>
+                            </td>
+
+                            {/* Today's Visits */}
+                            <td className="py-3.5 px-3 align-top text-center">
+                              <div className="font-black text-amber-950 font-mono text-sm">
+                                {s.todayVisitsCount || 1}
+                              </div>
+                              <div className="text-[10px] text-slate-500 font-semibold mt-0.5">
+                                ಇಂದು ಭೇಟಿ
+                              </div>
+                            </td>
+
+                            {/* Total Visits & Consumed */}
+                            <td className="py-3.5 px-3 align-top text-center">
+                              <div className="font-black text-slate-900 font-mono text-sm">
+                                {s.totalVisitsCount || s.totalHits || 1}
+                              </div>
+                              <div className="text-[10px] text-slate-500 font-mono font-semibold mt-0.5">
+                                {s.daysConsumed || 1} ದಿನ ಬಳಕೆ
+                              </div>
+                            </td>
+
+                            {/* Days Remaining & Progress Bar */}
+                            <td className="py-3.5 px-3 align-top">
+                              <div className="w-28 mx-auto">
+                                <div className="flex items-center justify-between text-[11px] mb-1 font-mono font-black">
+                                  <span className={isExpired ? "text-red-600" : isNearExpiry ? "text-yellow-700" : "text-emerald-700"}>
+                                    {isExpired ? "0 ದಿನ" : `${s.daysRemaining} ದಿನ ಬಾಕಿ`}
+                                  </span>
+                                </div>
+                                <div className="w-full bg-amber-200/80 rounded-full h-2 overflow-hidden border border-amber-300">
+                                  <div
+                                    className={`h-full transition-all ${
+                                      isExpired
+                                        ? "bg-red-500"
+                                        : isNearExpiry
+                                        ? "bg-yellow-500"
+                                        : "bg-emerald-500"
+                                    }`}
+                                    style={{ width: `${percentLeft}%` }}
+                                  />
+                                </div>
+                              </div>
+                            </td>
+
+                            {/* Status Badge */}
+                            <td className="py-3.5 px-3 align-top text-center">
+                              <span
+                                className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-black border ${
+                                  isExpired
+                                    ? "bg-red-100 text-red-900 border-red-300"
+                                    : isNearExpiry
+                                    ? "bg-yellow-100 text-yellow-950 border-yellow-400"
+                                    : "bg-emerald-100 text-emerald-950 border-emerald-400"
+                                }`}
+                              >
+                                {isExpired ? "🔴 ಮುಕ್ತಾಯ" : isNearExpiry ? "🟡 ಮುಕ್ತಾಯ ಸಮೀಪ" : "🟢 ಸಕ್ರಿಯ"}
+                              </span>
+                            </td>
+
+                            {/* Lock / Protection Status Toggle */}
+                            <td className="py-3.5 px-3 align-top text-center">
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  const nextState = s.isLocked === false ? true : false;
+                                  await toggleDevoteeSubscriptionLock(s.id, nextState);
+                                  setSubscriptions((prev) =>
+                                    prev.map((item) => (item.id === s.id ? { ...item, isLocked: nextState } : item))
+                                  );
+                                }}
+                                className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-black border transition cursor-pointer shadow-xs ${
+                                  s.isLocked !== false
+                                    ? "bg-emerald-50 text-emerald-900 border-emerald-300 hover:bg-emerald-100"
+                                    : "bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200"
+                                }`}
+                                title={
+                                  s.isLocked !== false
+                                    ? "ಈ ಭಕ್ತರ ದಾಖಲೆ ರಕ್ಷಿತವಾಗಿದೆ (ಬಲ್ಕ್ ಡಿಲೀಟ್‌ಗೆ ಒಳಪಡಲ್ಲ). ಕ್ಲಿಕ್ ಮಾಡಿ ಅನ್-ಲಾಕ್ ಮಾಡಲು."
+                                    : "ದಾಖಲೆ ಅನ್-ಲಾಕ್ ಆಗಿದೆ. ಕ್ಲಿಕ್ ಮಾಡಿ ರಕ್ಷಿಸಲು (ಲಾಕ್ ಮಾಡಲು)."
+                                }
+                              >
+                                <span>{s.isLocked !== false ? "🔒 ಲಾಕ್" : "🔓 ಮುಕ್ತ"}</span>
+                              </button>
+                            </td>
+
+                            {/* Marketing Actions */}
+                            <td className="py-3.5 px-3 align-top text-right">
+                              <div className="flex flex-col items-end gap-1.5">
+                                {/* WhatsApp Renewal CTA */}
+                                {waPhone && (
+                                  <a
+                                    href={`https://wa.me/${waPhone}?text=${waMessage}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[11px] font-black shadow-xs flex items-center gap-1 transition"
+                                    title="ನವೀಕರಣಕ್ಕಾಗಿ WhatsApp ಸಂದೇಶ ರವಾನಿಸಿ"
+                                  >
+                                    <span>💬</span>
+                                    <span>ನವೀಕರಣ ಸಂದೇಶ</span>
+                                  </a>
+                                )}
+
+                                {/* Extend +90 Days */}
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleExtendDevoteeSubscription(s.id, 90)}
+                                    className="px-2 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-lg text-[10px] font-black shadow-xs transition cursor-pointer"
+                                    title="ಈ ಭಕ್ತರ ಮಾನ್ಯತೆಯನ್ನು ೯೦ ದಿನಗಳಿಗೆ ವಿಸ್ತರಿಸಿ"
+                                  >
+                                    +90d ವಿಸ್ತರಿಸಿ
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteDevoteeSubscription(s.id)}
+                                    className="px-2 py-1 bg-red-100 hover:bg-red-200 text-red-900 rounded-lg text-[10px] font-bold border border-red-300 transition cursor-pointer"
+                                    title="ದಾಖಲೆ ಅಳಿಸಿ"
+                                  >
+                                    🗑️
+                                  </button>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )
+            )}
+
+            {/* VIEW 2: Calendar Registrations Table */}
+            {calendarSubView === "registrations" && (
+              filteredRegistrations.length === 0 ? (
+                <div className="text-center py-16 px-4 bg-[#FEFCF4] rounded-3xl border-2 border-amber-200 space-y-3">
+                  <div className="text-4xl">📋</div>
+                  <div className="font-black text-amber-950 text-sm">
+                    {calendarRegistrations.length === 0
+                      ? "ಯಾವುದೇ ಕ್ಯಾಲೆಂಡರ್ ನೋಂದಣಿ ದಾಖಲಾಗಿಲ್ಲ (No Calendar Registrations Yet)"
+                      : "ಆಯ್ಕೆ ಮಾಡಿದ ಮಾನದಂಡಕ್ಕೆ ಯಾವುದೇ ನೋಂದಣಿ ದೊರೆತಿಲ್ಲ."}
+                  </div>
+                  <p className="text-xs text-amber-800 font-semibold max-w-md mx-auto">
+                    Priest QR Generator, Seva Calendar Sync, Prasada Kit, ಅಥವಾ Royal Booklet ಮೂಲಕ ಕ್ಯಾಲೆಂಡರ್ ಉತ್ಪಾದಿಸಿದ ತಕ್ಷಣ ಇಲ್ಲಿ ಶಾಶ್ವತ ಡೇಟಾಬೇಸ್ ದಾಖಲೆ ಸೃಷ್ಟಿಯಾಗುತ್ತದೆ.
+                  </p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto rounded-2xl border-2 border-amber-200 shadow-inner bg-[#FEFCF4]">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-amber-100/80 text-amber-950 font-black border-b border-amber-300">
+                        <th className="py-3 px-3.5">ಭಕ್ತರ ಹೆಸರು & ಟೋಕನ್</th>
+                        <th className="py-3 px-3">ಅವಧಿ (Duration)</th>
+                        <th className="py-3 px-3">ಪ್ರಾರಂಭ & ಮುಕ್ತಾಯ</th>
+                        <th className="py-3 px-3">ಪುರೋಹಿತರು (Priest)</th>
+                        <th className="py-3 px-3">ಸಂಪರ್ಕ ವಿವರ</th>
+                        <th className="py-3 px-3 text-center">ಮೂಲ (Source)</th>
+                        <th className="py-3 px-3 text-center">ಸ್ಥಿತಿ</th>
+                        <th className="py-3 px-3 text-right">ನೋಂದಾಯಿತ ಸಮಯ</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-amber-200/70">
+                      {filteredRegistrations.map((reg) => {
+                        const isExpired = reg.status === "expired";
+                        return (
+                          <tr key={reg.id} className="hover:bg-amber-50/60 transition-colors">
+                            <td className="py-3.5 px-3.5 align-top">
+                              <div className="font-black text-slate-900 text-xs flex items-center gap-1">
+                                <span>👤</span>
+                                <span>{reg.userName}</span>
+                              </div>
+                              <div className="text-[10px] text-slate-500 font-mono mt-0.5 truncate max-w-[140px]" title={reg.token}>
+                                Token: {reg.token}
+                              </div>
+                              {reg.gotra && (
+                                <div className="text-[10px] text-amber-900 font-semibold mt-0.5">
+                                  ಗೋತ್ರ: {reg.gotra}
+                                </div>
+                              )}
+                            </td>
+
+                            <td className="py-3.5 px-3 align-top font-black text-slate-900 text-xs">
+                              <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-950 font-mono border border-amber-300">
+                                {reg.durationDays} ದಿನಗಳು
+                              </span>
+                            </td>
+
+                            <td className="py-3.5 px-3 align-top text-xs font-mono">
+                              <div className="text-slate-700 font-semibold">ಆರಂಭ: {reg.startDate}</div>
+                              <div className="text-slate-900 font-bold mt-0.5">ಮುಕ್ತಾಯ: {reg.expiresAt ? reg.expiresAt.slice(0, 10) : "—"}</div>
+                            </td>
+
+                            <td className="py-3.5 px-3 align-top text-xs">
+                              <div className="font-bold text-amber-950">{reg.priestName}</div>
+                              <div className="text-[10px] text-slate-600 font-mono mt-0.5">{reg.priestPhone}</div>
+                            </td>
+
+                            <td className="py-3.5 px-3 align-top text-xs">
+                              {reg.devoteePhone ? (
+                                <div className="font-mono text-slate-900 font-semibold">{reg.devoteePhone}</div>
+                              ) : (
+                                <span className="text-[10px] text-slate-400 font-normal">ಫೋನ್ ಇಲ್ಲ</span>
+                              )}
+                              {reg.devoteeEmail && (
+                                <div className="text-[10px] text-slate-600 truncate max-w-[120px]">{reg.devoteeEmail}</div>
+                              )}
+                            </td>
+
+                            <td className="py-3.5 px-3 align-top text-center">
+                              <span className="inline-block px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-50 text-purple-900 border border-purple-200 uppercase">
+                                {reg.source || "priest_qr"}
+                              </span>
+                            </td>
+
+                            <td className="py-3.5 px-3 align-top text-center">
+                              <span
+                                className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-black border ${
+                                  isExpired
+                                    ? "bg-red-100 text-red-900 border-red-300"
+                                    : "bg-emerald-100 text-emerald-950 border-emerald-400"
+                                }`}
+                              >
+                                {isExpired ? "🔴 ಮುಕ್ತಾಯ" : "🟢 ಸಕ್ರಿಯ"}
+                              </span>
+                            </td>
+
+                            <td className="py-3.5 px-3 align-top text-right text-[11px] font-mono text-slate-600">
+                              {reg.createdAt ? new Date(reg.createdAt).toLocaleDateString() : "—"}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )
+            )}
+
+            {/* VIEW 3: Daily Visits Live Feed Table */}
+            {calendarSubView === "daily_visits" && (
+              filteredVisits.length === 0 ? (
+                <div className="text-center py-16 px-4 bg-[#FEFCF4] rounded-3xl border-2 border-amber-200 space-y-3">
+                  <div className="text-4xl">🕒</div>
+                  <div className="font-black text-amber-950 text-sm">
+                    {dailyVisitLogs.length === 0
+                      ? "ಯಾವುದೇ ದೈನಂದಿನ ಭೇಟಿಗಳು ದಾಖಲಾಗಿಲ್ಲ (No Daily Visits Logged Yet)"
+                      : "ಹುಡುಕಾಟಕ್ಕೆ ಯಾವುದೇ ಭೇಟಿಗಳು ದೊರೆತಿಲ್ಲ."}
+                  </div>
+                  <p className="text-xs text-amber-800 font-semibold max-w-md mx-auto">
+                    ಭಕ್ತರು ದೈನಂದಿನ ದರ್ಶನ ಪುಟಕ್ಕೆ ಭೇಟಿ ನೀಡಿದಾಗ ಪ್ರತಿ ದಿನದ ಭೇಟಿ ಸಂಖ್ಯೆ (1st, 2nd visit today) ಮತ್ತು ಲೈವ್ ಟೈಮ್‌ಸ್ಟ್ಯಾಂಪ್ ಇಲ್ಲಿ ಸ್ವಯಂಚಾಲಿತವಾಗಿ ದಾಖಲಾಗುತ್ತದೆ.
+                  </p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto rounded-2xl border-2 border-amber-200 shadow-inner bg-[#FEFCF4]">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-amber-100/80 text-amber-950 font-black border-b border-amber-300">
+                        <th className="py-3 px-3.5">ಭಕ್ತರ ಹೆಸರು</th>
+                        <th className="py-3 px-3">ದಿನಾಂಕ (Visit Date)</th>
+                        <th className="py-3 px-3">ಸಮಯ (Timestamp)</th>
+                        <th className="py-3 px-3 text-center">ಇಂದಿನ ಭೇಟಿ #</th>
+                        <th className="py-3 px-3 text-center">ಉಳಿದ ದಿನಗಳು</th>
+                        <th className="py-3 px-3 text-center">ಪಾಸ್ ಸ್ಥಿತಿ</th>
+                        <th className="py-3 px-3">ಪುರೋಹಿತರು</th>
+                        <th className="py-3 px-3 text-right">ಟೋಕನ್</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-amber-200/70">
+                      {filteredVisits.map((v) => (
+                        <tr key={v.id} className="hover:bg-amber-50/60 transition-colors">
+                          <td className="py-3 px-3.5 align-middle">
                             <div className="font-black text-slate-900 text-xs flex items-center gap-1">
                               <span>👤</span>
-                              <span>{s.devoteeName}</span>
-                            </div>
-                            <div className="text-[11px] text-amber-900 font-semibold mt-0.5">
-                              ಗೋತ್ರ: {s.gotra || "—"}
-                            </div>
-                            <div className="text-[10px] text-slate-500 font-mono mt-0.5">
-                              Priest: {s.priestName || "Shreeram Pandit"}
+                              <span>{v.userName}</span>
                             </div>
                           </td>
 
-                          {/* Contact Details (Phone & Email) */}
-                          <td className="py-3.5 px-3 align-top">
-                            <div className="space-y-1">
-                              {s.phone ? (
-                                <div className="flex items-center gap-1.5 font-mono text-xs font-bold text-slate-900">
-                                  <span>📱</span>
-                                  <a href={`tel:${s.phone}`} className="hover:underline text-amber-950">
-                                    {s.phone}
-                                  </a>
-                                  {waPhone && (
-                                    <a
-                                      href={`https://wa.me/${waPhone}?text=${waMessage}`}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="px-1.5 py-0.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded text-[10px] font-black border border-emerald-300"
-                                      title="WhatsApp ಸಂದೇಶ ಕಳುಹಿಸಿ"
-                                    >
-                                      WA
-                                    </a>
-                                  )}
-                                </div>
-                              ) : (
-                                <span className="text-[10px] text-red-600 font-bold bg-red-50 px-1.5 py-0.5 rounded border border-red-200">
-                                  📱 ಫೋನ್ ಇಲ್ಲ
-                                </span>
-                              )}
-
-                              {s.email ? (
-                                <div className="flex items-center gap-1 text-[11px] font-medium text-slate-700">
-                                  <span>✉️</span>
-                                  <a href={`mailto:${s.email}`} className="hover:underline truncate max-w-[140px] block" title={s.email}>
-                                    {s.email}
-                                  </a>
-                                </div>
-                              ) : (
-                                <span className="text-[10px] text-slate-500 font-normal">✉️ ಇಮೇಲ್ ಇಲ್ಲ</span>
-                              )}
-                            </div>
+                          <td className="py-3 px-3 align-middle font-mono font-bold text-slate-900">
+                            📅 {v.visitDate}
                           </td>
 
-                          {/* Janma Kundali */}
-                          <td className="py-3.5 px-3 align-top">
-                            <div className="space-y-0.5 text-[11px]">
-                              <div className="font-bold text-amber-950">
-                                🌙 {s.rashi || "—"}
-                              </div>
-                              <div className="text-slate-700 font-medium">
-                                ⭐ {s.nakshatra || "—"}
-                              </div>
-                              {s.lagnaRashi && (
-                                <div className="text-[10px] text-slate-500 font-medium">
-                                  ಲಗ್ನ: {s.lagnaRashi}
-                                </div>
-                              )}
-                            </div>
+                          <td className="py-3 px-3 align-middle font-mono text-[11px] text-slate-600">
+                            {v.visitTimestamp ? new Date(v.visitTimestamp).toLocaleTimeString() : "—"}
                           </td>
 
-                          {/* Duration & Dates */}
-                          <td className="py-3.5 px-3 align-top text-xs">
-                            <div className="font-black text-slate-900">
-                              ⏱️ {s.durationDays || 90} ದಿನಗಳು
-                            </div>
-                            <div className="text-[10px] text-slate-600 font-mono mt-0.5">
-                              ಆರಂಭ: {s.startDate || "—"}
-                            </div>
-                            <div className="text-[10px] font-mono font-bold mt-0.5 text-slate-700">
-                              ಮುಕ್ತಾಯ: {s.expiryDate || "—"}
-                            </div>
-                          </td>
-
-                          {/* Today's Visits */}
-                          <td className="py-3.5 px-3 align-top text-center">
-                            <div className="font-black text-amber-950 font-mono text-sm">
-                              {s.todayVisitsCount || 1}
-                            </div>
-                            <div className="text-[10px] text-slate-500 font-semibold mt-0.5">
-                              ಇಂದು ಭೇಟಿ
-                            </div>
-                          </td>
-
-                          {/* Total Visits & Consumed */}
-                          <td className="py-3.5 px-3 align-top text-center">
-                            <div className="font-black text-slate-900 font-mono text-sm">
-                              {s.totalVisitsCount || s.totalHits || 1}
-                            </div>
-                            <div className="text-[10px] text-slate-500 font-mono font-semibold mt-0.5">
-                              {s.daysConsumed || 1} ದಿನ ಬಳಕೆ
-                            </div>
-                          </td>
-
-                          {/* Days Remaining & Progress Bar */}
-                          <td className="py-3.5 px-3 align-top">
-                            <div className="w-28 mx-auto">
-                              <div className="flex items-center justify-between text-[11px] mb-1 font-mono font-black">
-                                <span className={isExpired ? "text-red-600" : isNearExpiry ? "text-yellow-700" : "text-emerald-700"}>
-                                  {isExpired ? "0 ದಿನ" : `${s.daysRemaining} ದಿನ ಬಾಕಿ`}
-                                </span>
-                              </div>
-                              <div className="w-full bg-amber-200/80 rounded-full h-2 overflow-hidden border border-amber-300">
-                                <div
-                                  className={`h-full transition-all ${
-                                    isExpired
-                                      ? "bg-red-500"
-                                      : isNearExpiry
-                                      ? "bg-yellow-500"
-                                      : "bg-emerald-500"
-                                  }`}
-                                  style={{ width: `${percentLeft}%` }}
-                                />
-                              </div>
-                            </div>
-                          </td>
-
-                          {/* Status Badge */}
-                          <td className="py-3.5 px-3 align-top text-center">
-                            <span
-                              className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-black border ${
-                                isExpired
-                                  ? "bg-red-100 text-red-900 border-red-300"
-                                  : isNearExpiry
-                                  ? "bg-yellow-100 text-yellow-950 border-yellow-400"
-                                  : "bg-emerald-100 text-emerald-950 border-emerald-400"
-                              }`}
-                            >
-                              {isExpired ? "🔴 ಮುಕ್ತಾಯ" : isNearExpiry ? "🟡 ಮುಕ್ತಾಯ ಸಮೀಪ" : "🟢 ಸಕ್ರಿಯ"}
+                          <td className="py-3 px-3 align-middle text-center">
+                            <span className="inline-block px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-950 font-black text-[11px] border border-amber-300 font-mono">
+                              #{v.todayVisitNumber || 1}
                             </span>
                           </td>
 
-                          {/* Lock / Protection Status Toggle */}
-                          <td className="py-3.5 px-3 align-top text-center">
-                            <button
-                              type="button"
-                              onClick={async () => {
-                                const nextState = s.isLocked === false ? true : false;
-                                await toggleDevoteeSubscriptionLock(s.id, nextState);
-                                setSubscriptions((prev) =>
-                                  prev.map((item) => (item.id === s.id ? { ...item, isLocked: nextState } : item))
-                                );
-                              }}
-                              className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-black border transition cursor-pointer shadow-xs ${
-                                s.isLocked !== false
-                                  ? "bg-emerald-50 text-emerald-900 border-emerald-300 hover:bg-emerald-100"
-                                  : "bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200"
-                              }`}
-                              title={
-                                s.isLocked !== false
-                                  ? "ಈ ಭಕ್ತರ ದಾಖಲೆ ರಕ್ಷಿತವಾಗಿದೆ (ಬಲ್ಕ್ ಡಿಲೀಟ್‌ಗೆ ಒಳಪಡಲ್ಲ). ಕ್ಲಿಕ್ ಮಾಡಿ ಅನ್-ಲಾಕ್ ಮಾಡಲು."
-                                  : "ದಾಖಲೆ ಅನ್-ಲಾಕ್ ಆಗಿದೆ. ಕ್ಲಿಕ್ ಮಾಡಿ ರಕ್ಷಿಸಲು (ಲಾಕ್ ಮಾಡಲು)."
-                              }
-                            >
-                              <span>{s.isLocked !== false ? "🔒 ಲಾಕ್" : "🔓 ಮುಕ್ತ"}</span>
-                            </button>
+                          <td className="py-3 px-3 align-middle text-center font-mono font-black">
+                            <span className={v.isExpired ? "text-red-600" : "text-emerald-700"}>
+                              {v.isExpired ? "0 ದಿನ" : `${v.daysRemaining} ದಿನ`}
+                            </span>
                           </td>
 
-                          {/* Marketing Actions */}
-                          <td className="py-3.5 px-3 align-top text-right">
-                            <div className="flex flex-col items-end gap-1.5">
-                              {/* WhatsApp Renewal CTA */}
-                              {waPhone && (
-                                <a
-                                  href={`https://wa.me/${waPhone}?text=${waMessage}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[11px] font-black shadow-xs flex items-center gap-1 transition"
-                                  title="ನವೀಕರಣಕ್ಕಾಗಿ WhatsApp ಸಂದೇಶ ರವಾನಿಸಿ"
-                                >
-                                  <span>💬</span>
-                                  <span>ನವೀಕರಣ ಸಂದೇಶ</span>
-                                </a>
-                              )}
+                          <td className="py-3 px-3 align-middle text-center">
+                            <span
+                              className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black border ${
+                                v.isExpired
+                                  ? "bg-red-100 text-red-900 border-red-300"
+                                  : "bg-emerald-100 text-emerald-950 border-emerald-400"
+                              }`}
+                            >
+                              {v.isExpired ? "🔴 ಮುಕ್ತಾಯ" : "🟢 ಸಕ್ರಿಯ"}
+                            </span>
+                          </td>
 
-                              {/* Extend +90 Days */}
-                              <div className="flex items-center gap-1">
-                                <button
-                                  type="button"
-                                  onClick={() => handleExtendDevoteeSubscription(s.id, 90)}
-                                  className="px-2 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-lg text-[10px] font-black shadow-xs transition cursor-pointer"
-                                  title="ಈ ಭಕ್ತರ ಮಾನ್ಯತೆಯನ್ನು ೯೦ ದಿನಗಳಿಗೆ ವಿಸ್ತರಿಸಿ"
-                                >
-                                  +90d ವಿಸ್ತರಿಸಿ
-                                </button>
+                          <td className="py-3 px-3 align-middle text-xs font-semibold text-slate-800">
+                            {v.priestName || "Shreeram Pandit"}
+                          </td>
 
-                                <button
-                                  type="button"
-                                  onClick={() => handleDeleteDevoteeSubscription(s.id)}
-                                  className="px-2 py-1 bg-red-100 hover:bg-red-200 text-red-900 rounded-lg text-[10px] font-bold border border-red-300 transition cursor-pointer"
-                                  title="ದಾಖಲೆ ಅಳಿಸಿ"
-                                >
-                                  🗑️
-                                </button>
-                              </div>
-                            </div>
+                          <td className="py-3 px-3 align-middle text-right font-mono text-[10px] text-slate-500 truncate max-w-[120px]" title={v.token}>
+                            {v.token}
                           </td>
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )
             )}
           </div>
         );
@@ -5379,6 +6407,249 @@ export const SuperAdminDashboard: React.FC = () => {
               >
                 <span>🧹</span>
                 <span>{isPurgingCalendarData ? "ತೆರವುಗೊಳಿಸಲಾಗುತ್ತಿದೆ..." : "ಹೌದು, ಸಂಪೂರ್ಣ ತೆರವುಗೊಳಿಸಿ"}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 6. MODAL: OFFERING COINS TO PUROHITA (ಗೌರವ ನಾಣ್ಯಗಳ ಕೊಡುಗೆ) */}
+      {offeringCoinsPriest && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+          <div className="relative w-full max-w-md bg-[#FFFDF7] border-2 border-amber-400 rounded-3xl shadow-2xl p-6 text-slate-900 space-y-4">
+            <button
+              type="button"
+              onClick={() => setOfferingCoinsPriest(null)}
+              className="absolute top-4 right-4 p-2 text-slate-500 hover:text-slate-900 rounded-lg text-sm font-bold cursor-pointer"
+            >
+              ✕
+            </button>
+
+            <div className="flex items-center gap-3 border-b border-amber-200 pb-3">
+              <div className="w-12 h-12 rounded-2xl bg-amber-100 border border-amber-300 flex items-center justify-center text-2xl shadow-inner">
+                🎁
+              </div>
+              <div>
+                <h3 className="font-black text-amber-950 text-base">ಪುರೋಹಿತರಿಗೆ ನಾಣ್ಯಗಳ ಕೊಡುಗೆ</h3>
+                <p className="text-xs text-amber-800 font-bold">
+                  {offeringCoinsPriest.priestName || offeringCoinsPriest.name} ({offeringCoinsPriest.purohitaId})
+                </p>
+                <p className="text-[11px] text-slate-600 font-semibold">
+                  ಪ್ರಸ್ತುತ ಬ್ಯಾಲೆನ್ಸ್: <strong className="font-mono text-amber-900 font-black">{(offeringCoinsPriest.coinBalance || 0).toLocaleString()} 🪙</strong>
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={handleOfferCoinsSubmit} className="space-y-4 text-xs">
+              <div>
+                <label className="block text-slate-800 font-bold mb-1.5">ತ್ವರಿತ ನಾಣ್ಯಗಳ ಆಯ್ಕೆ (Quick Presets):</label>
+                <div className="grid grid-cols-4 gap-2">
+                  {["250", "500", "1000", "2500"].map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setOfferingCoinsAmount(preset)}
+                      className={`py-1.5 rounded-xl font-black border-2 transition-all cursor-pointer ${
+                        offeringCoinsAmount === preset
+                          ? "bg-amber-500 border-amber-600 text-slate-950 shadow-sm"
+                          : "bg-[#FEFCF4] border-amber-200 text-slate-700 hover:bg-amber-100/50"
+                      }`}
+                    >
+                      +{preset} 🪙
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-800 font-bold mb-1.5">ನಾಣ್ಯಗಳ ಸಂಖ್ಯೆ (Coin Amount to Offer):</label>
+                <input
+                  type="number"
+                  value={offeringCoinsAmount}
+                  onChange={(e) => setOfferingCoinsAmount(e.target.value)}
+                  placeholder="ಉದಾ: 500"
+                  min={1}
+                  className="w-full px-3.5 py-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl font-mono text-amber-950 font-black text-sm focus:outline-none focus:border-amber-500 shadow-inner"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-800 font-bold mb-1.5">ಕೊಡುಗೆಯ ವಿವರ / ಕಾರಣ (Reason / Occasion):</label>
+                <input
+                  type="text"
+                  value={offeringCoinsReason}
+                  onChange={(e) => setOfferingCoinsReason(e.target.value)}
+                  placeholder="ಉದಾ: ವಿಶೇಷ ಸೇವಾ ಗೌರವ / ಹಬ್ಬದ ಅನುದಾನ"
+                  className="w-full px-3.5 py-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 text-xs font-semibold focus:outline-none focus:border-amber-500 shadow-inner"
+                  required
+                />
+              </div>
+
+              <div className="pt-2 flex justify-end gap-2 border-t border-amber-200">
+                <button
+                  type="button"
+                  onClick={() => setOfferingCoinsPriest(null)}
+                  disabled={isOfferingCoins}
+                  className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold rounded-xl transition cursor-pointer"
+                >
+                  ರದ್ದುಮಾಡಿ (Cancel)
+                </button>
+                <button
+                  type="submit"
+                  disabled={isOfferingCoins}
+                  className="px-5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black text-xs rounded-xl shadow-md transition disabled:opacity-50 flex items-center gap-1.5 cursor-pointer border border-amber-400"
+                >
+                  <span>🎁</span>
+                  <span>{isOfferingCoins ? "ಕೊಡುಗೆ ನೀಡಲಾಗುತ್ತಿದೆ..." : "ನಾಣ್ಯಗಳನ್ನು ಕೊಡುಗೆ ನೀಡಿ (Offer Coins)"}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 7. MODAL: PUROHITA ACTIVITY & USAGE AUDIT (ಚಟುವಟಿಕೆ ಇತಿಹಾಸ ವಿವರ) */}
+      {viewingActivityPriest && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+          <div className="relative w-full max-w-3xl max-h-[85vh] overflow-y-auto bg-[#FFFDF7] border-2 border-amber-400 rounded-3xl shadow-2xl p-6 text-slate-900 space-y-4">
+            <button
+              type="button"
+              onClick={() => setViewingActivityPriest(null)}
+              className="absolute top-4 right-4 p-2 text-slate-500 hover:text-slate-900 rounded-lg text-sm font-bold cursor-pointer"
+            >
+              ✕
+            </button>
+
+            <div className="flex items-center gap-3 border-b border-amber-200 pb-3">
+              <div className="w-12 h-12 rounded-2xl bg-amber-100 border border-amber-300 flex items-center justify-center text-2xl shadow-inner">
+                📜
+              </div>
+              <div>
+                <h3 className="font-black text-amber-950 text-base">ಪುರೋಹಿತರ ಚಟುವಟಿಕೆ ಹಾಗೂ ಬಳಕೆ ವಿವರ</h3>
+                <div className="flex flex-wrap items-center gap-2 mt-0.5 text-xs">
+                  <span className="font-bold text-amber-900">{viewingActivityPriest.priestName || viewingActivityPriest.name}</span>
+                  <span className="font-mono text-slate-600 bg-amber-100/70 px-1.5 py-0.5 rounded border border-amber-300 font-semibold">{viewingActivityPriest.purohitaId}</span>
+                  {(viewingActivityPriest.mobileNumber || viewingActivityPriest.mobile) && (
+                    <span className="text-slate-600 font-semibold">📞 {viewingActivityPriest.mobileNumber || viewingActivityPriest.mobile}</span>
+                  )}
+                  {viewingActivityPriest.email && (
+                    <span className="text-slate-600 font-semibold">✉️ {viewingActivityPriest.email}</span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Recent Granular Activities */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-black text-amber-950 uppercase tracking-wider flex items-center gap-1.5">
+                <span>⚡</span>
+                <span>ಇತ್ತೀಚಿನ ಚಟುವಟಿಕೆಗಳು (Recent Activities)</span>
+              </h4>
+
+              {purohitaActivities.filter((a) => canonicalPurohitaId(a.purohitaId) === canonicalPurohitaId(viewingActivityPriest.purohitaId)).length === 0 ? (
+                <div className="text-center py-6 bg-amber-50/50 rounded-xl border border-amber-200 text-xs text-amber-800">
+                  ಯಾವುದೇ ಚಟುವಟಿಕೆ ದಾಖಲೆಗಳು ಲಭ್ಯವಿಲ್ಲ (No activities recorded yet).
+                </div>
+              ) : (
+                <div className="overflow-x-auto rounded-xl border border-amber-200 bg-white shadow-2xs">
+                  <table className="w-full text-left text-xs border-collapse min-w-[500px]">
+                    <thead>
+                      <tr className="bg-[#FFF8E7] border-b border-amber-200 text-amber-950 text-[10px] font-black uppercase">
+                        <th className="py-2.5 px-3">ಸಮಯ</th>
+                        <th className="py-2.5 px-3">ವಿಧ (Action)</th>
+                        <th className="py-2.5 px-3">ಪುಟ (Page)</th>
+                        <th className="py-2.5 px-3">ವಿವರಗಳು (Details)</th>
+                        <th className="py-2.5 px-3 text-right">ನಾಣ್ಯಗಳ ಬದಲಾವಣೆ</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-amber-100 font-medium">
+                      {purohitaActivities
+                        .filter((a) => canonicalPurohitaId(a.purohitaId) === canonicalPurohitaId(viewingActivityPriest.purohitaId))
+                        .slice(0, 30)
+                        .map((act) => (
+                          <tr key={act.id} className="hover:bg-amber-50/50">
+                            <td className="py-2 px-3 font-mono text-[11px] text-slate-500 whitespace-nowrap">
+                              {act.timestamp ? new Date(act.timestamp).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "-"}
+                            </td>
+                            <td className="py-2 px-3">
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-300">
+                                {act.activityType || act.actionType}
+                              </span>
+                            </td>
+                            <td className="py-2 px-3 font-semibold text-slate-700">{act.page || act.pageName || "-"}</td>
+                            <td className="py-2 px-3 text-slate-800 font-semibold">{act.details || "-"}</td>
+                            <td className="py-2 px-3 text-right font-mono font-bold">
+                              {act.coinsImpact ? (
+                                <span className={act.coinsImpact > 0 ? "text-emerald-700" : "text-red-700"}>
+                                  {act.coinsImpact > 0 ? `+${act.coinsImpact}` : act.coinsImpact} 🪙
+                                </span>
+                              ) : "-"}
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {/* Daily Summaries for this priest */}
+            <div className="space-y-3 pt-2">
+              <h4 className="text-xs font-black text-amber-950 uppercase tracking-wider flex items-center gap-1.5">
+                <span>📅</span>
+                <span>ದಿನವಾರು ಸಾರಾಂಶ (Daily Summary History)</span>
+              </h4>
+
+              {purohitaDailySummaries.filter((s) => canonicalPurohitaId(s.purohitaId) === canonicalPurohitaId(viewingActivityPriest.purohitaId)).length === 0 ? (
+                <div className="text-center py-4 bg-amber-50/50 rounded-xl border border-amber-200 text-xs text-amber-800">
+                  ಯಾವುದೇ ದಿನನಿತ್ಯದ ಸಾರಾಂಶವಿಲ್ಲ.
+                </div>
+              ) : (
+                <div className="overflow-x-auto rounded-xl border border-amber-200 bg-white shadow-2xs">
+                  <table className="w-full text-left text-xs border-collapse min-w-[500px]">
+                    <thead>
+                      <tr className="bg-[#FFF8E7] border-b border-amber-200 text-amber-950 text-[10px] font-black uppercase">
+                        <th className="py-2.5 px-3">ದಿನಾಂಕ</th>
+                        <th className="py-2.5 px-3">ಪುಟ ಭೇಟಿ ವಿವರ</th>
+                        <th className="py-2.5 px-3 text-center">ಕುಂಡಲಿ</th>
+                        <th className="py-2.5 px-3 text-center">ಪ್ರಶ್ನೆ</th>
+                        <th className="py-2.5 px-3 text-center">ಒಟ್ಟು ಕ್ರಿಯೆ</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-amber-100 font-medium">
+                      {purohitaDailySummaries
+                        .filter((s) => canonicalPurohitaId(s.purohitaId) === canonicalPurohitaId(viewingActivityPriest.purohitaId))
+                        .map((summary) => (
+                          <tr key={summary.id} className="hover:bg-amber-50/50">
+                            <td className="py-2 px-3 font-mono font-bold text-slate-800">{summary.date || summary.dateKey}</td>
+                            <td className="py-2 px-3">
+                              <div className="flex flex-wrap gap-1">
+                                {Object.entries(summary.pageVisits || {}).map(([pg, cnt]) => (
+                                  <span key={pg} className="text-[9px] bg-amber-100 text-amber-950 px-1.5 py-0.5 rounded font-bold border border-amber-300">
+                                    {pg}: {cnt}
+                                  </span>
+                                ))}
+                              </div>
+                            </td>
+                            <td className="py-2 px-3 text-center font-mono font-bold text-purple-900">{summary.kundlisGeneratedCount || 0}</td>
+                            <td className="py-2 px-3 text-center font-mono font-bold text-indigo-900">{summary.questionsAskedCount || 0}</td>
+                            <td className="py-2 px-3 text-center font-mono font-bold text-emerald-900">{summary.totalActionsCount ?? summary.totalActions ?? 0}</td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            <div className="pt-2 flex justify-end border-t border-amber-200">
+              <button
+                type="button"
+                onClick={() => setViewingActivityPriest(null)}
+                className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black rounded-xl transition cursor-pointer shadow-sm"
+              >
+                ಮುಚ್ಚಿ (Close)
               </button>
             </div>
           </div>

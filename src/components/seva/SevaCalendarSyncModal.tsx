@@ -12,6 +12,7 @@ import {
 } from "../../features/seva/icsCalendarGenerator";
 import { generatePriestICalendarString } from "../../core/PriestCalendarEngine";
 import { encodeDevoteeToken } from "../../utils/tokenCipher";
+import { registerCalendarAtGeneration } from "../../features/seva/calendarVisitService";
 import { getUniversalBirthDetails } from "../../utils/universalDevoteeKundli";
 import { T, pick } from "../../features/seva/sevaLocale";
 import {
@@ -306,6 +307,24 @@ export default function SevaCalendarSyncModal({
             includePriestCalendar: includePriestCalendar || (calendarMode as string) === "priest",
             daysCount: calendarSpanDays
           });
+
+      if (devoteeToken) {
+        void registerCalendarAtGeneration({
+          userName: personName || (lang.startsWith("kn") ? "ಭಕ್ತರು" : "Devotee"),
+          token: devoteeToken,
+          startDate: days && days.length > 0 ? days[0].ymd : new Date().toISOString().slice(0, 10),
+          durationDays: calendarSpanDays,
+          priestName: panditName,
+          priestPhone: "9972339362",
+          nakshatraIndex: activeNak,
+          rashiIndex: activeRashi,
+          dob: activeDob,
+          tob: activeTob,
+          placeName: locationName,
+          pincode: pincodeInput,
+          source: "calendar_sync"
+        });
+      }
 
       QRCode.toDataURL(payload, {
         errorCorrectionLevel: "L",

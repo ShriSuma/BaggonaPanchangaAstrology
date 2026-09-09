@@ -27,19 +27,175 @@ import {
   type QuerySnapshot,
   type DocumentData
 } from "firebase/firestore";
-import { saveKundliToFirestore, type KundliHistoryDoc } from "../../db/firestoreDb";
+import {
+  saveKundliToFirestore,
+  type KundliHistoryDoc,
+  saveCalendarRegistration,
+  getCalendarRegistration,
+  recordDailyVisitLog,
+  getMemoryTodayVisitsCount,
+  subscribeAllCalendarRegistrations,
+  subscribeAllDailyVisits,
+  type CalendarRegistrationDoc,
+  type CalendarDailyVisitDoc
+} from "../../db/firestoreDb";
+
+export {
+  subscribeAllCalendarRegistrations,
+  subscribeAllDailyVisits,
+  getCalendarRegistration,
+  saveCalendarRegistration,
+  recordDailyVisitLog,
+  type CalendarRegistrationDoc,
+  type CalendarDailyVisitDoc
+};
 import type { KundliOutput } from "../../core/AstroTypes";
 import { isTestEnvironment, isMockDevotee } from "../../utils/testEnvGuard";
 import { getIndianStandardDateStr } from "../../core/placeTime";
 
+export interface RegisterCalendarParams {
+  userId?: string;
+  userName: string;
+  token: string;
+  startDate?: string;
+  durationDays?: number; // 30, 90, 180, 365
+  priestName?: string;
+  priestPhone?: string;
+  devoteePhone?: string;
+  devoteeEmail?: string;
+  nakshatra?: string;
+  nakshatraIndex?: number;
+  rashi?: string;
+  rashiIndex?: number;
+  gotra?: string;
+  dob?: string;
+  tob?: string;
+  placeName?: string;
+  pincode?: string;
+  source: "priest_qr" | "calendar_sync" | "prasada_kit" | "royal_booklet" | "legacy_auto_sync" | "direct_darshana";
+  notes?: string;
+}
+
+/**
+ * Register calendar link/QR generation event into Firestore collection `calendarRegistrations`
+ * and pre-seed engagement doc for CRM visibility.
+ */
+export async function registerCalendarAtGeneration(params: RegisterCalendarParams): Promise<CalendarRegistrationDoc> {
+  const now = new Date();
+  const todayYmd = getIndianStandardDateStr(now);
+  const startDate = params.startDate && params.startDate.length === 10 ? params.startDate : todayYmd;
+  const durationDays = Number(params.durationDays) > 0 ? Number(params.durationDays) : 90;
+
+  // Calculate authentic expiration from startDate (never from current clock date)
+  const startObj = new Date(startDate);
+  const startUtc = isNaN(startObj.getTime())
+    ? Date.now()
+    : Date.UTC(startObj.getFullYear(), startObj.getMonth(), startObj.getDate());
+  const expiresAt = new Date(startUtc + durationDays * 24 * 60 * 60 * 1000).toISOString();
+
+  const token = (params.token || "").trim();
+  const rawId = token ? `reg_${token.slice(0, 48)}` : `reg_${Date.now().toString(36)}`;
+  const userId = params.userId || token || `usr_${Date.now().toString(36)}`;
+  const userName = params.userName?.trim() || "Devotee";
+  const priestName = params.priestName?.trim() || "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್";
+  const priestPhone = params.priestPhone?.trim() || "9972339362";
+
+  const passStatus = checkPassExpiration(startDate, durationDays);
+
+  const regDoc: CalendarRegistrationDoc = {
+    id: rawId,
+    userId,
+    userName,
+    token,
+    startDate,
+    durationDays,
+    expiresAt,
+    priestName,
+    priestPhone,
+    devoteePhone: params.devoteePhone?.trim() || "",
+    devoteeEmail: params.devoteeEmail?.trim() || "",
+    nakshatra: params.nakshatra,
+    nakshatraIndex: params.nakshatraIndex,
+    rashi: params.rashi,
+    rashiIndex: params.rashiIndex,
+    gotra: params.gotra,
+    dob: params.dob,
+    tob: params.tob,
+    placeName: params.placeName,
+    pincode: params.pincode,
+    source: params.source,
+    createdAt: now.toISOString(),
+    updatedAt: now.toISOString(),
+    status: passStatus.isExpired ? "expired" : "active",
+    notes: params.notes
+  };
+
+  await saveCalendarRegistration(regDoc);
+
+  // Pre-seed calendarDevoteeEngagement so admin CRM & engagement counters stay 100% in sync
+  try {
+    if (firestore && !isTestEnvironment()) {
+      const tokenKey = (token || userId).replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 40) || `dev_${Date.now().toString(36)}`;
+      const engDocRef = doc(firestore, "calendarDevoteeEngagement", tokenKey);
+      const engSnap = await getDoc(engDocRef);
+      if (!engSnap.exists()) {
+        const initEngDoc: DevoteeCalendarSubscriptionDoc = {
+          id: tokenKey,
+          tokenKey,
+          devoteeName: userName,
+          phone: params.devoteePhone || "",
+          email: params.devoteeEmail || "",
+          dob: params.dob || "",
+          tob: params.tob || "",
+          gotra: params.gotra || "ಕಾಶ್ಯಪ",
+          rashi: params.rashi || "",
+          rashiIndex: params.rashiIndex ?? -1,
+          nakshatra: params.nakshatra || "",
+          nakshatraIndex: params.nakshatraIndex ?? -1,
+          placeName: params.placeName || "Gokarna",
+          pincode: params.pincode || "581326",
+          durationDays,
+          startDate,
+          expiryDate: passStatus.expiryDate,
+          daysConsumed: 0,
+          daysRemaining: passStatus.daysRemaining,
+          todayVisitsCount: 0,
+          lastVisitDate: "",
+          totalVisitsCount: 0,
+          totalHits: 0,
+          isLocked: true,
+          uniqueDaysVisitedCount: 0,
+          visitedDates: [],
+          isExpired: passStatus.isExpired,
+          marketingStatus: passStatus.isExpired ? "expired" : passStatus.daysRemaining <= 7 ? "near_expiry" : "active",
+          priestName,
+          source: params.source,
+          firstVisitAt: now.toISOString(),
+          lastVisitAt: now.toISOString(),
+          createdAt: now.toISOString(),
+          updatedAt: now.toISOString()
+        };
+        await setDoc(engDocRef, initEngDoc);
+      }
+    }
+  } catch (err) {
+    console.warn("[CalendarVisitService] Engagement pre-seed warning:", err);
+  }
+
+  return regDoc;
+}
+
 export interface CalendarVisitRecord {
   id?: string;
-  devoteeName: string;
-  tokenIdentifier: string;
-  dateClicked: string; // The date clicked in calendar (e.g. 2026-09-16)
-  actualDate: string; // The actual visit date (e.g. 2026-08-31)
-  lang: string;
-  tabVisited: string;
+  userId?: string;
+  devoteeName?: string;
+  userName?: string;
+  tokenIdentifier?: string;
+  token?: string;
+  dateClicked?: string; // The date clicked in calendar (e.g. 2026-09-16)
+  actualDate?: string; // The actual visit date (e.g. 2026-08-31)
+  lang?: string;
+  tabVisited?: string;
   rashiIndex?: number;
   nakshatraIndex?: number;
   priestName?: string;
@@ -162,171 +318,347 @@ export function checkPassExpiration(
 }
 
 /**
- * Record a calendar click/visit event into Firestore & update comprehensive devotee engagement/subscription metrics.
- * Features strict deduplication, test-environment protection, and marketing metadata enrichment.
+ * Detects whether a devotee was assigned a 30-day pass based on name or token markers.
+ * E.g., Ramanatha and other 30-day devotees who were given 30-day access during initial rollout.
  */
-export async function recordCalendarVisit(params: CalendarVisitRecord): Promise<void> {
+export function is30DayDevotee(name?: string, token?: string): boolean {
+  const normName = (name || "").toLowerCase();
+  const normToken = (token || "").toLowerCase();
+  return (
+    normName.includes("ramanath") ||
+    normName.includes("ramanatha") ||
+    normName.includes("ರಾಮನಾಥ") ||
+    normName.includes("ramnath") ||
+    normToken.includes("30d") ||
+    normToken.includes("30_day") ||
+    normToken.includes("30day")
+  );
+}
+
+/**
+ * Record a calendar click/visit event into Firestore & update comprehensive devotee engagement/subscription metrics.
+ * - Logs each visit to `calendarDailyVisits` with devotee ID, timestamp, todayVisitNumber, and days remaining.
+ * - Auto-migrates/registers existing live devotees (~80 live users) into `calendarRegistrations` if missing.
+ * - Features strict deduplication, test-environment protection, and marketing metadata enrichment.
+ */
+export interface RecordCalendarVisitResult {
+  isSuccess: boolean;
+  todayVisitsCount: number;
+  totalVisitsCount: number;
+  daysRemaining: number;
+  isExpired: boolean;
+  registration?: CalendarRegistrationDoc | null;
+}
+
+export async function recordCalendarVisit(params: CalendarVisitRecord): Promise<RecordCalendarVisitResult> {
   try {
-    // 0. Protection against test suite execution polluting live database
-    if (isTestEnvironment() || isMockDevotee(params.tokenIdentifier) || isMockDevotee(params.devoteeName)) {
-      return;
-    }
-
-    if (!firestore) return;
-
-    const rawToken = (params.tokenIdentifier || "guest").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 40);
-    const tokenKey = rawToken.length > 0 ? rawToken : `dev_${Date.now().toString(36)}`;
+    const effectiveDevoteeName = params.devoteeName || params.userName || "Devotee";
+    const effectiveToken = params.tokenIdentifier || params.token || "";
+    const rawToken = effectiveToken.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 40);
+    const tokenKey = params.userId || (rawToken.length > 0 ? rawToken : `dev_${Date.now().toString(36)}`);
     const visitDate = params.actualDate || getIndianStandardDateStr(new Date());
     const clickDate = params.dateClicked || visitDate;
     const visitId = `visit_${tokenKey}_${visitDate}_${clickDate}`;
     const nowIso = new Date().toISOString();
     const todayYmd = getIndianStandardDateStr(new Date());
-    const durationDays = Number(params.durationDays) > 0 ? Number(params.durationDays) : 90;
 
-    // 1. Log or update canonical visit record (deduplicated per devotee per date)
-    const visitDocRef = doc(firestore, "calendarVisits", visitId);
-    const visitSnap = await getDoc(visitDocRef);
+    const is30Day = is30DayDevotee(effectiveDevoteeName, effectiveToken);
+    const durationDays = is30Day
+      ? 30
+      : (Number(params.durationDays) > 0 ? Number(params.durationDays) : 90);
 
-    if (visitSnap.exists()) {
-      const prevData = visitSnap.data();
-      await updateDoc(visitDocRef, {
-        hitCount: (Number(prevData.hitCount) || 1) + 1,
-        lastVisitAt: nowIso,
-        tabVisited: params.tabVisited || prevData.tabVisited,
-        lang: params.lang || prevData.lang,
-        updatedAt: nowIso
+    // 0. Protection against test suite execution polluting live database
+    const skipLiveFirestore = isTestEnvironment() || isMockDevotee(effectiveToken) || isMockDevotee(effectiveDevoteeName);
+
+    // 1. Check or auto-register devotee in calendarRegistrations (100% Backward Compatibility)
+    let regDoc = await getCalendarRegistration(tokenKey);
+    if (!regDoc && effectiveToken) {
+      regDoc = await getCalendarRegistration(effectiveToken);
+    }
+
+    if (!regDoc) {
+      // Query existing calendarDevoteeEngagement to extract authentic legacy startDate & duration
+      let legacyStartDate = (params.startDate && params.startDate.length === 10) ? params.startDate : "";
+      let legacyDuration = durationDays;
+
+      if (!skipLiveFirestore && firestore) {
+        try {
+          const engSnap = await getDoc(doc(firestore, "calendarDevoteeEngagement", tokenKey));
+          if (engSnap.exists()) {
+            const engData = engSnap.data() as DevoteeCalendarSubscriptionDoc;
+            const candidateDates: string[] = [];
+            if (engData.startDate && engData.startDate.length === 10) candidateDates.push(engData.startDate);
+            if (Array.isArray(engData.visitedDates) && engData.visitedDates.length > 0) {
+              candidateDates.push(...engData.visitedDates.filter((d: string) => typeof d === "string" && d.length === 10));
+            }
+            if (engData.firstVisitAt && engData.firstVisitAt.length >= 10) {
+              candidateDates.push(engData.firstVisitAt.slice(0, 10));
+            }
+            if (engData.createdAt && engData.createdAt.length >= 10) {
+              candidateDates.push(engData.createdAt.slice(0, 10));
+            }
+            candidateDates.sort();
+            if (candidateDates.length > 0) {
+              legacyStartDate = candidateDates[0];
+            }
+            if (is30Day) {
+              legacyDuration = 30;
+            } else if (engData.durationDays && engData.durationDays > 0) {
+              legacyDuration = engData.durationDays;
+            }
+          }
+        } catch (e) {
+          console.warn("[calendarVisitService] Legacy engagement recovery notice:", e);
+        }
+      }
+
+      if (!legacyStartDate) {
+        legacyStartDate = clickDate || visitDate;
+      }
+
+      regDoc = await registerCalendarAtGeneration({
+        userId: tokenKey,
+        userName: effectiveDevoteeName,
+        token: effectiveToken || tokenKey,
+        startDate: legacyStartDate,
+        durationDays: legacyDuration,
+        priestName: params.priestName || "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
+        priestPhone: "9972339362",
+        devoteePhone: params.phone,
+        devoteeEmail: params.email,
+        nakshatra: params.nakshatra,
+        nakshatraIndex: params.nakshatraIndex,
+        rashi: params.rashi,
+        rashiIndex: params.rashiIndex,
+        gotra: params.gotra,
+        dob: params.dob,
+        tob: params.tob,
+        placeName: params.placeName,
+        pincode: params.pincode,
+        source: "legacy_auto_sync",
+        notes: `Auto-registered legacy devotee (${legacyDuration} days, started ${legacyStartDate})`
       });
-    } else {
-      const cleanRecord = {
-        ...params,
-        id: visitId,
-        hitCount: 1,
-        durationDays,
-        firstVisitAt: nowIso,
-        lastVisitAt: nowIso,
-        timestamp: nowIso
-      };
-      await setDoc(visitDocRef, cleanRecord);
+    } else if (regDoc) {
+      // Dynamic Calibration: If 30-day devotee was previously auto-registered as 90 days, dynamically correct to 30 days!
+      if (is30Day && regDoc.durationDays !== 30) {
+        regDoc.durationDays = 30;
+        const startObj = new Date(regDoc.startDate);
+        const startUtc = isNaN(startObj.getTime())
+          ? Date.now()
+          : Date.UTC(startObj.getFullYear(), startObj.getMonth(), startObj.getDate());
+        regDoc.expiresAt = new Date(startUtc + 30 * 24 * 60 * 60 * 1000).toISOString();
+        await saveCalendarRegistration(regDoc);
+      }
     }
 
-    // 2. Update aggregate engagement & subscription document for this devotee
-    const engDocRef = doc(firestore, "calendarDevoteeEngagement", tokenKey);
-    const engSnap = await getDoc(engDocRef);
+    // Determine authentic start date and duration strictly from registration
+    const effectiveDuration = regDoc?.durationDays || durationDays;
+    const effectiveStartDate = regDoc?.startDate || params.startDate || clickDate || visitDate;
+    const passStatus = checkPassExpiration(effectiveStartDate, effectiveDuration);
 
-    if (engSnap.exists()) {
-      const existing = engSnap.data() as DevoteeCalendarSubscriptionDoc;
-      const rawVisited = Array.isArray(existing.visitedDates) ? existing.visitedDates : [];
-      const visitedDates = Array.from(new Set([...rawVisited, clickDate]));
+    let todayVisitNumber = 1;
+    let totalVisitsCount = 1;
 
-      const activeDuration = existing.durationDays || durationDays;
-      const activeStartDate = (existing.startDate && existing.startDate.length === 10) ? existing.startDate : (params.startDate || clickDate || visitDate);
-      const passStatus = checkPassExpiration(activeStartDate, activeDuration);
+    if (!skipLiveFirestore && firestore) {
+      // 2. Log or update canonical visit record in calendarVisits (deduplicated per devotee per date)
+      const visitDocRef = doc(firestore, "calendarVisits", visitId);
+      const visitSnap = await getDoc(visitDocRef);
 
-      const daysConsumed = visitedDates.length;
-      const daysRemaining = passStatus.daysRemaining;
-      const isExpired = passStatus.isExpired;
-      const marketingStatus: DevoteeCalendarSubscriptionDoc["marketingStatus"] = isExpired
-        ? "expired"
-        : daysRemaining <= 7
-        ? "near_expiry"
-        : "active";
+      if (visitSnap.exists()) {
+        const prevData = visitSnap.data();
+        await updateDoc(visitDocRef, {
+          hitCount: (Number(prevData.hitCount) || 1) + 1,
+          lastVisitAt: nowIso,
+          tabVisited: params.tabVisited || prevData.tabVisited,
+          lang: params.lang || prevData.lang,
+          updatedAt: nowIso
+        });
+      } else {
+        const cleanRecord = {
+          ...params,
+          id: visitId,
+          hitCount: 1,
+          durationDays: effectiveDuration,
+          startDate: effectiveStartDate,
+          firstVisitAt: nowIso,
+          lastVisitAt: nowIso,
+          timestamp: nowIso
+        };
+        await setDoc(visitDocRef, cleanRecord);
+      }
 
-      const isSameDay = existing.lastVisitDate === todayYmd;
-      const todayVisitsCount = isSameDay ? (Number(existing.todayVisitsCount) || 0) + 1 : 1;
-      const totalVisitsCount = (existing.totalVisitsCount || existing.totalHits || 0) + 1;
+      // 3. Update aggregate engagement & subscription document for this devotee
+      const engDocRef = doc(firestore, "calendarDevoteeEngagement", tokenKey);
+      const engSnap = await getDoc(engDocRef);
 
-      const updates: Partial<DevoteeCalendarSubscriptionDoc> = {
-        totalHits: totalVisitsCount,
-        totalVisitsCount,
-        todayVisitsCount,
-        lastVisitDate: todayYmd,
-        isLocked: existing.isLocked !== undefined ? existing.isLocked : true,
-        visitedDates,
-        uniqueDaysVisitedCount: daysConsumed,
-        daysConsumed,
-        daysRemaining,
-        durationDays: activeDuration,
-        startDate: activeStartDate,
-        expiryDate: passStatus.expiryDate,
-        isExpired,
-        marketingStatus,
-        lastVisitAt: nowIso,
-        updatedAt: nowIso
-      };
+      if (engSnap.exists()) {
+        const existing = engSnap.data() as DevoteeCalendarSubscriptionDoc;
+        const rawVisited = Array.isArray(existing.visitedDates) ? existing.visitedDates : [];
+        const visitedDates = Array.from(new Set([...rawVisited, clickDate]));
 
-      // Enrich with missing contact or Kundli details if available in current visit
-      if (params.phone && !existing.phone) updates.phone = params.phone.trim();
-      if (params.email && !existing.email) updates.email = params.email.trim().toLowerCase();
-      if (params.dob && !existing.dob) updates.dob = params.dob;
-      if (params.tob && !existing.tob) updates.tob = params.tob;
-      if (params.gotra && !existing.gotra) updates.gotra = params.gotra;
-      if (params.rashi && !existing.rashi) updates.rashi = params.rashi;
-      if (params.rashiIndex !== undefined && existing.rashiIndex === undefined) updates.rashiIndex = params.rashiIndex;
-      if (params.nakshatra && !existing.nakshatra) updates.nakshatra = params.nakshatra;
-      if (params.nakshatraIndex !== undefined && existing.nakshatraIndex === undefined) updates.nakshatraIndex = params.nakshatraIndex;
-      if (params.lagnaRashi && !existing.lagnaRashi) updates.lagnaRashi = params.lagnaRashi;
-      if (params.sunSign && !existing.sunSign) updates.sunSign = params.sunSign;
-      if (params.placeName && !existing.placeName) updates.placeName = params.placeName;
-      if (params.pincode && !existing.pincode) updates.pincode = params.pincode;
-      if (params.priestName && !existing.priestName) updates.priestName = params.priestName;
+        const activeDuration = regDoc?.durationDays || existing.durationDays || effectiveDuration;
+        const validExistingStartDate = (existing.startDate && existing.startDate.length === 10) ? existing.startDate : null;
+        const validRegStartDate = (regDoc?.startDate && regDoc.startDate.length === 10) ? regDoc.startDate : null;
+        const validParamStartDate = (params.startDate && params.startDate.length === 10) ? params.startDate : null;
 
-      await updateDoc(engDocRef, updates as Record<string, any>);
+        // Authentic start date priority: Registration DB > Existing doc > params
+        const candidateDates = [validRegStartDate, validExistingStartDate, validParamStartDate].filter(Boolean) as string[];
+        candidateDates.sort();
+        const activeStartDate = candidateDates[0] || effectiveStartDate;
+        const dynamicPassStatus = checkPassExpiration(activeStartDate, activeDuration);
+
+        const daysConsumed = visitedDates.length;
+        const daysRemaining = dynamicPassStatus.daysRemaining;
+        const isExpired = dynamicPassStatus.isExpired;
+        const marketingStatus: DevoteeCalendarSubscriptionDoc["marketingStatus"] = isExpired
+          ? "expired"
+          : daysRemaining <= 7
+          ? "near_expiry"
+          : "active";
+
+        const isSameDay = existing.lastVisitDate === todayYmd;
+        todayVisitNumber = isSameDay ? (Number(existing.todayVisitsCount) || 0) + 1 : 1;
+        totalVisitsCount = (existing.totalVisitsCount || existing.totalHits || 0) + 1;
+
+        const updates: Partial<DevoteeCalendarSubscriptionDoc> = {
+          totalHits: totalVisitsCount,
+          totalVisitsCount,
+          todayVisitsCount: todayVisitNumber,
+          lastVisitDate: todayYmd,
+          isLocked: existing.isLocked !== undefined ? existing.isLocked : true,
+          visitedDates,
+          uniqueDaysVisitedCount: daysConsumed,
+          daysConsumed,
+          daysRemaining,
+          durationDays: activeDuration,
+          startDate: activeStartDate,
+          expiryDate: dynamicPassStatus.expiryDate,
+          isExpired,
+          marketingStatus,
+          lastVisitAt: nowIso,
+          updatedAt: nowIso
+        };
+
+        // Enrich with missing contact or Kundli details if available in current visit
+        if (params.phone && !existing.phone) updates.phone = params.phone.trim();
+        if (params.email && !existing.email) updates.email = params.email.trim().toLowerCase();
+        if (params.dob && !existing.dob) updates.dob = params.dob;
+        if (params.tob && !existing.tob) updates.tob = params.tob;
+        if (params.gotra && !existing.gotra) updates.gotra = params.gotra;
+        if (params.rashi && !existing.rashi) updates.rashi = params.rashi;
+        if (params.rashiIndex !== undefined && existing.rashiIndex === undefined) updates.rashiIndex = params.rashiIndex;
+        if (params.nakshatra && !existing.nakshatra) updates.nakshatra = params.nakshatra;
+        if (params.nakshatraIndex !== undefined && existing.nakshatraIndex === undefined) updates.nakshatraIndex = params.nakshatraIndex;
+        if (params.lagnaRashi && !existing.lagnaRashi) updates.lagnaRashi = params.lagnaRashi;
+        if (params.sunSign && !existing.sunSign) updates.sunSign = params.sunSign;
+        if (params.placeName && !existing.placeName) updates.placeName = params.placeName;
+        if (params.pincode && !existing.pincode) updates.pincode = params.pincode;
+        if (params.priestName && !existing.priestName) updates.priestName = params.priestName;
+
+        await updateDoc(engDocRef, updates as Record<string, any>);
+      } else {
+        const startDate = effectiveStartDate;
+        const daysRemaining = passStatus.daysRemaining;
+        const isExpired = passStatus.isExpired;
+        const marketingStatus: DevoteeCalendarSubscriptionDoc["marketingStatus"] = isExpired
+          ? "expired"
+          : daysRemaining <= 7
+          ? "near_expiry"
+          : "active";
+
+        const newSubscriptionDoc: DevoteeCalendarSubscriptionDoc = {
+          id: tokenKey,
+          tokenKey,
+          devoteeName: params.devoteeName || "Devotee",
+          phone: params.phone ? params.phone.trim() : "",
+          email: params.email ? params.email.trim().toLowerCase() : "",
+          dob: params.dob || "",
+          tob: params.tob || "",
+          gotra: params.gotra || "ಕಾಶ್ಯಪ",
+          rashi: params.rashi || "",
+          rashiIndex: params.rashiIndex ?? -1,
+          nakshatra: params.nakshatra || "",
+          nakshatraIndex: params.nakshatraIndex ?? -1,
+          lagnaRashi: params.lagnaRashi || "",
+          sunSign: params.sunSign || "",
+          placeName: params.placeName || "Gokarna",
+          pincode: params.pincode || "581326",
+          durationDays: effectiveDuration,
+          startDate,
+          expiryDate: passStatus.expiryDate,
+          daysConsumed: 1,
+          daysRemaining,
+          todayVisitsCount: 1,
+          lastVisitDate: todayYmd,
+          totalVisitsCount: 1,
+          totalHits: 1,
+          isLocked: true,
+          uniqueDaysVisitedCount: 1,
+          visitedDates: [clickDate],
+          isExpired,
+          marketingStatus,
+          priestName: params.priestName || "Shreeram Pandit",
+          source: params.source || "calendar_redirect",
+          firstVisitAt: nowIso,
+          lastVisitAt: nowIso,
+          createdAt: nowIso,
+          updatedAt: nowIso
+        };
+
+        await setDoc(engDocRef, newSubscriptionDoc);
+        todayVisitNumber = 1;
+        totalVisitsCount = 1;
+      }
     } else {
-      const startDate = (params.startDate && params.startDate.length === 10) ? params.startDate : (clickDate || visitDate);
-      const passStatus = checkPassExpiration(startDate, durationDays);
-      const daysRemaining = passStatus.daysRemaining;
-      const isExpired = passStatus.isExpired;
-      const marketingStatus: DevoteeCalendarSubscriptionDoc["marketingStatus"] = isExpired
-        ? "expired"
-        : daysRemaining <= 7
-        ? "near_expiry"
-        : "active";
-
-      const newSubscriptionDoc: DevoteeCalendarSubscriptionDoc = {
-        id: tokenKey,
-        tokenKey,
-        devoteeName: params.devoteeName || "Devotee",
-        phone: params.phone ? params.phone.trim() : "",
-        email: params.email ? params.email.trim().toLowerCase() : "",
-        dob: params.dob || "",
-        tob: params.tob || "",
-        gotra: params.gotra || "ಕಾಶ್ಯಪ",
-        rashi: params.rashi || "",
-        rashiIndex: params.rashiIndex ?? -1,
-        nakshatra: params.nakshatra || "",
-        nakshatraIndex: params.nakshatraIndex ?? -1,
-        lagnaRashi: params.lagnaRashi || "",
-        sunSign: params.sunSign || "",
-        placeName: params.placeName || "Gokarna",
-        pincode: params.pincode || "581326",
-        durationDays,
-        startDate,
-        expiryDate: passStatus.expiryDate,
-        daysConsumed: 1,
-        daysRemaining,
-        todayVisitsCount: 1,
-        lastVisitDate: todayYmd,
-        totalVisitsCount: 1,
-        totalHits: 1,
-        isLocked: true,
-        uniqueDaysVisitedCount: 1,
-        visitedDates: [clickDate],
-        isExpired,
-        marketingStatus,
-        priestName: params.priestName || "Shreeram Pandit",
-        source: params.source || "calendar_redirect",
-        firstVisitAt: nowIso,
-        lastVisitAt: nowIso,
-        createdAt: nowIso,
-        updatedAt: nowIso
-      };
-
-      await setDoc(engDocRef, newSubscriptionDoc);
+      // Memory / Offline / Test environment fallback
+      const memoryVisitsToday = getMemoryTodayVisitsCount(tokenKey, todayYmd) || (params.tokenIdentifier ? getMemoryTodayVisitsCount(params.tokenIdentifier, todayYmd) : 0);
+      todayVisitNumber = memoryVisitsToday + 1;
+      totalVisitsCount = todayVisitNumber;
     }
+
+    // 4. Record granular audit trail into calendarDailyVisits
+    const dailyVisitDoc: CalendarDailyVisitDoc = {
+      id: `visit_${tokenKey}_${todayYmd}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      userId: tokenKey,
+      userName: params.devoteeName || regDoc?.userName || "Devotee",
+      token: params.tokenIdentifier || tokenKey,
+      visitDate: todayYmd,
+      visitTimestamp: nowIso,
+      todayVisitNumber,
+      daysRemaining: passStatus.daysRemaining,
+      isExpired: passStatus.isExpired,
+      durationDays: effectiveDuration,
+      startDate: effectiveStartDate,
+      expiryDate: passStatus.expiryDate,
+      tabVisited: params.tabVisited,
+      lang: params.lang,
+      priestName: params.priestName || regDoc?.priestName || "Shreeram Pandit",
+      userAgent: typeof navigator !== "undefined" ? navigator.userAgent : params.userAgent
+    };
+
+    await recordDailyVisitLog(dailyVisitDoc);
+
+    return {
+      isSuccess: true,
+      todayVisitsCount: todayVisitNumber,
+      totalVisitsCount,
+      daysRemaining: passStatus.daysRemaining,
+      isExpired: passStatus.isExpired,
+      registration: regDoc
+    };
   } catch (err) {
     console.warn("[CalendarVisitService] Failed to record visit analytics:", err);
+    return {
+      isSuccess: false,
+      todayVisitsCount: 1,
+      totalVisitsCount: 1,
+      daysRemaining: 0,
+      isExpired: true,
+      registration: null
+    };
   }
 }
+
 
 /**
  * Automatically sync devotee's Janma Kundali into Firestore `kundlis` collection on visit

@@ -21,7 +21,26 @@ import {
 import { SpeechRecognitionSession } from "../../utils/speechRecognitionHelper";
 import SouthIndianChart from "../../components/kundli/SouthIndianChart";
 import TraditionalSouthPatrika from "../../components/kundli/TraditionalSouthPatrika";
-import { saveKundliToFirestore, updateUserPassword, logPremiumPdfDownload, isPriestAccountActive, isPriestFirstTimeSetupDone, getUserProfile } from "../../db/firestoreDb";
+import {
+  saveKundliToFirestore,
+  updateUserPassword,
+  logPremiumPdfDownload,
+  isPriestAccountActive,
+  isPriestFirstTimeSetupDone,
+  getUserProfile,
+  getOrCreatePriestWallet,
+  syncUserProfile,
+  getPurohitaProfile,
+  savePurohitaProfile
+} from "../../db/firestoreDb";
+import {
+  trackPurohitaPageView,
+  trackPurohitaKundliGenerated,
+  trackPurohitaQuestionAsked,
+  canonicalPurohitaId
+} from "./purohitaActivityService";
+import { PurohitaProfileRegistrationModal } from "./PurohitaProfileRegistrationModal";
+import { db } from "../../db/indexedDb";
 import { hashPassword } from "../auth/authStore";
 import { notifyPasswordResetCompleted, notifySystemFailureAlert, notifyPremiumPdfDownloaded } from "../notifications/notificationService";
 import { calculateTraditionalBaggona } from "../../core/TraditionalBaggonaEngine";
@@ -309,6 +328,18 @@ export const PriestMobilePortal: React.FC = () => {
   const [kundliResult, setKundliResult] = useState<KundliOutput | null>(() => savedSession?.kundliResult || null);
   const [isCalculatingKundli, setIsCalculatingKundli] = useState(false);
 
+  // Purohita Tracking & Registration States
+  const [purohitaId, setPurohitaId] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      const urlUser = new URLSearchParams(window.location.search).get("user");
+      if (urlUser) return canonicalPurohitaId(urlUser);
+      const localId = localStorage.getItem("baggona_priest_id");
+      if (localId) return canonicalPurohitaId(localId);
+    }
+    return canonicalPurohitaId(currentUser || "priest_shreeram");
+  });
+  const [showPurohitaRegistrationModal, setShowPurohitaRegistrationModal] = useState<boolean>(false);
+
   // Standard Janana Kundli PDF Options & States (1,000 Coins / ₹100)
   const [selectedJananaPdfOption, setSelectedJananaPdfOption] = useState<"kundli_with_dasha" | "kundli_only">(
     () => savedSession?.selectedJananaPdfOption || "kundli_with_dasha"
@@ -475,6 +506,10 @@ export const PriestMobilePortal: React.FC = () => {
           const prof = await getUserProfile(targetPriestUser);
           if (prof?.email) setPriestEmail(prof.email);
           if (prof?.phone || prof?.mobileNumber) setPriestPhone(prof.phone || prof.mobileNumber || "");
+          setPurohitaId(canonicalPurohitaId(targetPriestUser));
+          const pProf = await getPurohitaProfile(targetPriestUser);
+          if (pProf?.mobileNumber) setPriestPhone(pProf.mobileNumber);
+          if (pProf?.email) setPriestEmail(pProf.email);
         } catch (err) {
           console.warn("[PriestMobilePortal] Error preloading profile:", err);
         }
@@ -483,6 +518,44 @@ export const PriestMobilePortal: React.FC = () => {
 
       const active = await isPriestAccountActive(resolvedUser);
       if (!active) {
+        // If official invite parameters (user & name) exist in URL, auto-provision the priest profile & wallet
+        const userParamFromUrl = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("user") : null;
+        const nameParamFromUrl = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("name") : null;
+        const modulesParamFromUrl = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("modules") : null;
+        const parsedModules = modulesParamFromUrl
+          ? (modulesParamFromUrl.split(",").map((m) => m.trim()).filter(Boolean) as AvailableModuleKey[])
+          : (["panchanga", "sankhyashastra", "diksuchi", "purva_janma"] as AvailableModuleKey[]);
+
+        if (userParamFromUrl && (nameParamFromUrl || resolvedName)) {
+          const validPriestName = (nameParamFromUrl || resolvedName).trim();
+          try {
+            await getOrCreatePriestWallet(resolvedUser, validPriestName, parsedModules);
+            await syncUserProfile({
+              id: resolvedUser,
+              username: resolvedUser,
+              name: validPriestName,
+              role: "priest",
+              allowedModules: parsedModules,
+              createdAt: new Date().toISOString()
+            });
+            const existingLocal = await db.users.where("username").equals(resolvedUser.toLowerCase()).first();
+            if (!existingLocal) {
+              await db.users.add({
+                id: resolvedUser.toLowerCase(),
+                username: resolvedUser.toLowerCase(),
+                passwordHash: await hashPassword("baggona123"),
+                allowedModules: parsedModules,
+                createdAt: new Date().toISOString()
+              });
+            }
+            setIsAccessRevoked(false);
+            void initWallet(resolvedUser, validPriestName);
+            return;
+          } catch (err) {
+            console.warn("[PriestMobilePortal] Auto-provisioning invite priest failed:", err);
+          }
+        }
+
         setIsAccessRevoked(true);
         if (typeof window !== "undefined") {
           localStorage.removeItem("baggona_priest_id");
@@ -492,12 +565,33 @@ export const PriestMobilePortal: React.FC = () => {
       }
       setIsAccessRevoked(false);
       void initWallet(resolvedUser, resolvedName);
+      setPurohitaId(canonicalPurohitaId(resolvedUser));
 
       // Pre-load existing email & phone from user profile if available
       try {
         const prof = await getUserProfile(resolvedUser);
         if (prof?.email) setPriestEmail(prof.email);
         if (prof?.phone || prof?.mobileNumber) setPriestPhone(prof.phone || prof.mobileNumber || "");
+
+        // Check Purohita profile registration in DB (Mobile & Email validation)
+        const pProf = await getPurohitaProfile(resolvedUser);
+        if (pProf?.mobileNumber) setPriestPhone(pProf.mobileNumber);
+        if (pProf?.email) setPriestEmail(pProf.email);
+
+        const isLocallyDone = typeof window !== "undefined" && localStorage.getItem(`baggona_priest_profile_registered_${resolvedUser}`) === "true";
+        const hasContact = Boolean((pProf?.mobileNumber || prof?.phone || prof?.mobileNumber) && (pProf?.email || prof?.email));
+        if (!hasContact && !isLocallyDone && !isSuper) {
+          setShowPurohitaRegistrationModal(true);
+        } else if (hasContact && !pProf) {
+          // Auto-seed into purohitaProfiles
+          void savePurohitaProfile({
+            purohitaId: resolvedUser,
+            priestName: resolvedName,
+            mobileNumber: prof?.phone || prof?.mobileNumber || "",
+            email: prof?.email || "",
+            coinBalance: wallet?.coinBalance || 0
+          });
+        }
       } catch (err) {
         console.warn("[PriestMobilePortal] Error preloading profile:", err);
       }
@@ -533,6 +627,13 @@ export const PriestMobilePortal: React.FC = () => {
 
   const activePriestDisplayName = urlPriestName || wallet?.priestName || (typeof window !== "undefined" ? localStorage.getItem("baggona_priest_name") : null) || "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್";
   const coinBalance = wallet?.coinBalance ?? 0;
+
+  // Purohita Page View Tracking
+  useEffect(() => {
+    if (purohitaId && activeTab) {
+      void trackPurohitaPageView(purohitaId, activePriestDisplayName, activeTab);
+    }
+  }, [purohitaId, activeTab, activePriestDisplayName]);
 
   // Handle Voice Input with auto-clear of target field
   const handleVoiceInput = (targetField: "name" | "gothra" | "place" | "question") => {
@@ -663,6 +764,14 @@ export const PriestMobilePortal: React.FC = () => {
         kundliData: output,
         createdAt: new Date().toISOString()
       });
+
+      // Track Kundli Generation in Purohita Activity Tracker
+      void trackPurohitaKundliGenerated(
+        purohitaId,
+        activePriestDisplayName,
+        devoteeName || "ಭಕ್ತರು",
+        `${output.moonSign.sanskrit} ರಾಶಿ, ${moonPlanet?.nakshatra?.sanskrit || "ಅಶ್ವಿನಿ"} ನಕ್ಷತ್ರ`
+      );
     } catch (err: any) {
       console.error("[PriestMobilePortal] Kundli calc error:", err);
       // Auto-Refund Guard
@@ -1319,6 +1428,14 @@ export const PriestMobilePortal: React.FC = () => {
         type: "success",
         text: `ಶಾಸ್ತ್ರೀಯ ಸಮಾಲೋಚನಾ ವರದಿ ಯಶಸ್ವಿಯಾಗಿ ರಚಿಸಲ್ಪಟ್ಟಿದೆ. (೫೦೦ ನಾಣ್ಯಗಳು / ₹೫೦ ಕಡಿತಗೊಂಡಿವೆ)`
       });
+
+      // Track Question Asked in Purohita Activity Tracker
+      void trackPurohitaQuestionAsked(
+        purohitaId,
+        activePriestDisplayName,
+        customQuestion.trim() || selectedCategoryKey,
+        selectedCategoryKey
+      );
     } catch (err: any) {
       console.error("[PriestMobilePortal] Consultation error:", err);
       // Auto-Refund Guard
@@ -2711,6 +2828,22 @@ export const PriestMobilePortal: React.FC = () => {
           />
         )}
       </div>
+
+      {/* Official Purohita Profile Registration Prompt Modal */}
+      {showPurohitaRegistrationModal && (
+        <PurohitaProfileRegistrationModal
+          purohitaId={purohitaId}
+          initialPriestName={activePriestDisplayName}
+          initialMobile={priestPhone}
+          initialEmail={priestEmail}
+          onCompleted={(profile) => {
+            if (profile.mobileNumber) setPriestPhone(profile.mobileNumber);
+            if (profile.email) setPriestEmail(profile.email);
+            setShowPurohitaRegistrationModal(false);
+          }}
+          onDismiss={() => setShowPurohitaRegistrationModal(false)}
+        />
+      )}
     </div>
   );
 };

@@ -11,6 +11,7 @@ import {
   generateQrPayloadByTarget,
   type QrCalendarTarget
 } from "../../features/seva/icsCalendarGenerator";
+import { registerCalendarAtGeneration } from "../../features/seva/calendarVisitService";
 import { T, pick, SHLOKA_SHANTI, type L5 } from "../../features/seva/sevaLocale";
 import { todayYmd } from "../../features/seva/sevaPresentation";
 import { generatePDFFromElement } from "../../utils/pdfGenerator";
@@ -309,6 +310,29 @@ export default function PrasadaKit({
       dob: identity?.dob,
       tob: identity?.tob
     });
+
+    try {
+      const match = nativeIcsPayload.match(/[?&]token=([^&]+)/);
+      const token = match ? match[1] : "";
+      if (token) {
+        void registerCalendarAtGeneration({
+          userName: identity?.personName || "Devotee",
+          token,
+          startDate: rhythm.days[0]?.ymd || new Date().toISOString().slice(0, 10),
+          durationDays: 90,
+          priestName: panditName,
+          priestPhone: "9972339362",
+          nakshatraIndex: identity?.nakshatraIndex,
+          rashiIndex: identity?.rashiIndex,
+          gotra: identity?.gotra,
+          dob: identity?.dob,
+          tob: identity?.tob,
+          placeName: pincodeLocation.villageName,
+          pincode: pincode,
+          source: "prasada_kit"
+        });
+      }
+    } catch (_) {}
 
     QRCode.toDataURL(nativeIcsPayload, {
       margin: 2,

@@ -289,6 +289,19 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
   const [isAudioLoading, setIsAudioLoading] = useState(false);
   const [isManageSankalpaOpen, setIsManageSankalpaOpen] = useState(false);
 
+  const [isMobile, setIsMobile] = useState<boolean>(() => {
+    return typeof window !== "undefined" ? window.innerWidth < 640 : false;
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const devoteeKey = devoteeId || (devoteeName ? devoteeName.toLowerCase().replace(/[^a-z0-9]/g, "_") : "devotee_default");
   const activeAudioCancelRef = useRef<(() => void) | null>(null);
 
@@ -535,10 +548,10 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
           style={{
             background: "linear-gradient(180deg, #1C0F05 0%, #0D0501 100%)",
             border: "2.5px solid #F59E0B",
-            borderRadius: 24,
+            borderRadius: isMobile ? 18 : 24,
             maxWidth: 720,
             width: "100%",
-            maxHeight: "94vh",
+            maxHeight: isMobile ? "96vh" : "94vh",
             display: "flex",
             flexDirection: "column",
             boxShadow: "0 25px 60px rgba(0,0,0,0.9), 0 0 50px rgba(245, 158, 11, 0.35)",
@@ -548,37 +561,39 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Top Temple Altar Header */}
+          {/* Top Temple Altar Header (Streamlined & Compact on Mobile) */}
           <div
             style={{
               background: "linear-gradient(135deg, #78350F 0%, #451A03 100%)",
               borderBottom: "2px solid #F59E0B",
-              padding: "14px 20px",
+              padding: isMobile ? "8px 12px" : "14px 20px",
               display: "flex",
               alignItems: "center",
-              justifyContent: "space-between"
+              justifyContent: "space-between",
+              gap: 8
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 26 }}>🪔</span>
-              <div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <h2 style={{ margin: 0, fontSize: 16, fontWeight: 900, color: "#FEF3C7" }}>
-                    {lang === "kn" ? "೩-೫ ನಿಮಿಷಗಳ ನಿತ್ಯ ದೈವಿಕ ಸಂಕಲ್ಪ & ಸರಳ ಪೂಜೆ" :
-                     lang === "hi" ? "३-५ मिनट दैनिक वैदिक संकल्प एवं सरल पूजा" :
-                     lang === "te" ? "3-5 నిమిషాల నిత్య దైవిక సంకల్పం & పూజ" :
-                     lang === "ta" ? "3-5 நிமிட நித்ய வைதீக சங்கல்பம் & பூஜை" :
-                     "3-5 Min Vedic Daily Sankalpa & Pooja"}
+            <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 6 : 10, minWidth: 0 }}>
+              <span style={{ fontSize: isMobile ? 20 : 26 }}>🪔</span>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                  <h2 style={{ margin: 0, fontSize: isMobile ? 13 : 16, fontWeight: 900, color: "#FEF3C7", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {lang === "kn" ? "ನಿತ್ಯ ದೈವಿಕ ಸಂಕಲ್ಪ & ಸರಳ ಪೂಜೆ" :
+                     lang === "hi" ? "दैनिक वैदिक संकल्प एवं सरल पूजा" :
+                     lang === "te" ? "నిత్య దైవిక సంకల్పం & పూజ" :
+                     lang === "ta" ? "நித்ய வைதீக சங்கல்பம் & பூஜை" :
+                     "Vedic Daily Sankalpa & Pooja"}
                   </h2>
                   <span
                     style={{
-                      background: "rgba(245, 158, 11, 0.2)",
+                      background: "rgba(245, 158, 11, 0.25)",
                       border: "1px solid #F59E0B",
                       color: "#FDE68A",
-                      fontSize: 10.5,
+                      fontSize: isMobile ? 9.5 : 10.5,
                       fontWeight: 800,
-                      padding: "2px 8px",
-                      borderRadius: 12
+                      padding: "1px 6px",
+                      borderRadius: 10,
+                      whiteSpace: "nowrap"
                     }}
                   >
                     {step <= 5
@@ -586,13 +601,15 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
                       : (COMPLETED_BADGE[lang || "kn"] || COMPLETED_BADGE.kn)}
                   </span>
                 </div>
-                <div style={{ fontSize: 11.5, color: "#FDE68A", marginTop: 2 }}>
-                  {devoteeName} ({gotra} {(META_LABELS[lang || "kn"] || META_LABELS.kn).gotra} · {rashiName} {(META_LABELS[lang || "kn"] || META_LABELS.kn).rashi}) · {priestName} {(META_LABELS[lang || "kn"] || META_LABELS.kn).guidance}
-                </div>
+                {!isMobile && (
+                  <div style={{ fontSize: 11.5, color: "#FDE68A", marginTop: 2 }}>
+                    {devoteeName} ({gotra} {(META_LABELS[lang || "kn"] || META_LABELS.kn).gotra} · {rashiName} {(META_LABELS[lang || "kn"] || META_LABELS.kn).rashi}) · {priestName} {(META_LABELS[lang || "kn"] || META_LABELS.kn).guidance}
+                  </div>
+                )}
               </div>
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 6 : 8, flexShrink: 0 }}>
               {/* Manage Sankalpas Button */}
               <button
                 type="button"
@@ -601,9 +618,9 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
                   background: "rgba(245, 158, 11, 0.25)",
                   border: "1.5px solid #FCD34D",
                   color: "#FEF3C7",
-                  borderRadius: 12,
-                  padding: "6px 12px",
-                  fontSize: 11.5,
+                  borderRadius: 10,
+                  padding: isMobile ? "4px 8px" : "6px 12px",
+                  fontSize: isMobile ? 10.5 : 11.5,
                   fontWeight: 900,
                   cursor: "pointer",
                   display: "flex",
@@ -621,10 +638,10 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
                   background: "rgba(255,255,255,0.15)",
                   border: "1px solid rgba(253, 230, 138, 0.4)",
                   borderRadius: "50%",
-                  width: 32,
-                  height: 32,
+                  width: isMobile ? 26 : 32,
+                  height: isMobile ? 26 : 32,
                   color: "#FEF3C7",
-                  fontSize: 16,
+                  fontSize: isMobile ? 13 : 16,
                   cursor: "pointer",
                   display: "flex",
                   alignItems: "center",
@@ -637,7 +654,7 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
           </div>
 
           {/* Step Progress Bar */}
-          <div style={{ background: "#451A03", height: 6, width: "100%" }}>
+          <div style={{ background: "#451A03", height: isMobile ? 4 : 6, width: "100%" }}>
             <div
               style={{
                 background: "linear-gradient(90deg, #F59E0B, #FBBF24)",
@@ -649,106 +666,121 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
           </div>
 
           {/* Main Scrollable Shrine Area */}
-          <div style={{ padding: "16px 20px", overflowY: "auto", flex: 1, display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ padding: isMobile ? "10px 12px" : "16px 20px", overflowY: "auto", flex: 1, display: "flex", flexDirection: "column", gap: isMobile ? 10 : 16 }}>
             {step <= 5 ? (
               <>
-                {/* Visual Sanctum Altar Card */}
+                {/* Visual Sanctum Altar Card (Mobile: Sleek Horizontal Sanctum Pill; Desktop: Spacious Altar) */}
                 <div
                   style={{
                     background: "radial-gradient(circle at center, #2D1405 0%, #150802 100%)",
-                    border: "2px solid #D97706",
-                    borderRadius: 20,
-                    padding: "18px 16px",
+                    border: "1.5px solid #D97706",
+                    borderRadius: isMobile ? 14 : 20,
+                    padding: isMobile ? "8px 12px" : "18px 16px",
                     display: "flex",
-                    flexDirection: "column",
+                    flexDirection: isMobile ? "row" : "column",
                     alignItems: "center",
+                    justifyContent: isMobile ? "space-between" : "center",
                     position: "relative",
                     overflow: "hidden",
-                    boxShadow: "inset 0 0 40px rgba(0,0,0,0.8)"
+                    boxShadow: "inset 0 0 30px rgba(0,0,0,0.8)",
+                    gap: isMobile ? 10 : 0
                   }}
                 >
                   {/* Altar Deity Aura */}
                   <div
                     style={{
-                      width: 120,
-                      height: 120,
+                      width: isMobile ? 60 : 120,
+                      height: isMobile ? 60 : 120,
                       borderRadius: "50%",
                       background: "radial-gradient(circle, rgba(245, 158, 11, 0.35) 0%, rgba(217, 119, 6, 0) 70%)",
                       position: "absolute",
-                      top: 15,
+                      top: isMobile ? 0 : 15,
+                      left: isMobile ? 10 : undefined,
                       pointerEvents: "none"
                     }}
                   />
 
-                  {/* Icon & Animations */}
-                  <div style={{ fontSize: 56, marginBottom: 8, position: "relative", zIndex: 2 }}>
-                    {currentStepData.icon}
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, position: "relative", zIndex: 2 }}>
+                    {/* Icon & Animations */}
+                    <div style={{ fontSize: isMobile ? 32 : 56, lineHeight: 1 }}>
+                      {currentStepData.icon}
+                    </div>
+
+                    {/* Step Title */}
+                    <div style={{ textAlign: isMobile ? "left" : "center" }}>
+                      <h3 style={{ margin: 0, fontSize: isMobile ? 14 : 18, fontWeight: 900, color: "#FEF3C7" }}>
+                        {lang === "kn" ? currentStepData.titleKn :
+                         lang === "hi" ? currentStepData.titleHi :
+                         lang === "te" ? currentStepData.titleTe :
+                         lang === "ta" ? currentStepData.titleTa :
+                         currentStepData.titleEn}
+                      </h3>
+                      {isMobile && (
+                        <div style={{ fontSize: 10, color: "#FDE68A", marginTop: 1 }}>
+                          {devoteeName} · {rashiName}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* Interactive Visual Cue */}
-                  {currentStepData.key === "deepa_achamana" && (
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
-                      <span style={{ fontSize: 24, filter: isLampLit ? "drop-shadow(0 0 12px #F59E0B)" : "grayscale(80%)" }}>
-                        🪔
-                      </span>
-                      <span style={{ fontSize: 12, fontWeight: 800, color: "#FDE68A" }}>
-                        {isLampLit
-                          ? (VISUAL_CUES[lang || "kn"] || VISUAL_CUES.kn).lampLit
-                          : (VISUAL_CUES[lang || "kn"] || VISUAL_CUES.kn).lightLamp}
-                      </span>
-                    </div>
-                  )}
+                  <div style={{ position: "relative", zIndex: 2, flexShrink: 0 }}>
+                    {currentStepData.key === "deepa_achamana" && (
+                      <div style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(245, 158, 11, 0.15)", padding: isMobile ? "3px 8px" : "4px 10px", borderRadius: 10, border: "1px solid rgba(245, 158, 11, 0.4)" }}>
+                        <span style={{ fontSize: isMobile ? 16 : 24, filter: isLampLit ? "drop-shadow(0 0 10px #F59E0B)" : "grayscale(80%)" }}>
+                          🪔
+                        </span>
+                        <span style={{ fontSize: isMobile ? 10.5 : 12, fontWeight: 800, color: "#FDE68A" }}>
+                          {isLampLit
+                            ? (VISUAL_CUES[lang || "kn"] || VISUAL_CUES.kn).lampLit
+                            : (VISUAL_CUES[lang || "kn"] || VISUAL_CUES.kn).lightLamp}
+                        </span>
+                      </div>
+                    )}
 
-                  {currentStepData.key === "guru_ganapati" && (
-                    <div style={{ fontSize: 12, fontWeight: 800, color: "#FDE68A", marginTop: 4 }}>
-                      {(VISUAL_CUES[lang || "kn"] || VISUAL_CUES.kn).holdAkshata}
-                    </div>
-                  )}
+                    {currentStepData.key === "guru_ganapati" && (
+                      <div style={{ fontSize: isMobile ? 10.5 : 12, fontWeight: 800, color: "#FDE68A", background: "rgba(245, 158, 11, 0.15)", padding: isMobile ? "3px 8px" : "4px 10px", borderRadius: 10, border: "1px solid rgba(245, 158, 11, 0.4)" }}>
+                        {(VISUAL_CUES[lang || "kn"] || VISUAL_CUES.kn).holdAkshata}
+                      </div>
+                    )}
 
-                  {currentStepData.key === "sankalpa_samarpana" && (
-                    <div style={{ fontSize: 12, fontWeight: 800, color: "#34D399", marginTop: 4 }}>
-                      {(VISUAL_CUES[lang || "kn"] || VISUAL_CUES.kn).offerAkshata}
-                    </div>
-                  )}
+                    {currentStepData.key === "sankalpa_samarpana" && (
+                      <div style={{ fontSize: isMobile ? 10.5 : 12, fontWeight: 800, color: "#34D399", background: "rgba(52, 211, 153, 0.15)", padding: isMobile ? "3px 8px" : "4px 10px", borderRadius: 10, border: "1px solid rgba(52, 211, 153, 0.4)" }}>
+                        {(VISUAL_CUES[lang || "kn"] || VISUAL_CUES.kn).offerAkshata}
+                      </div>
+                    )}
 
-                  {currentStepData.key === "deeparadhana_namaskara" && (
-                    <div style={{ fontSize: 12, fontWeight: 800, color: "#FDE68A", marginTop: 4 }}>
-                      {(VISUAL_CUES[lang || "kn"] || VISUAL_CUES.kn).waveArati}
-                    </div>
-                  )}
-
-                  {/* Step Title */}
-                  <h3 style={{ margin: "10px 0 0 0", fontSize: 18, fontWeight: 900, color: "#FEF3C7", textAlign: "center" }}>
-                    {lang === "kn" ? currentStepData.titleKn :
-                     lang === "hi" ? currentStepData.titleHi :
-                     lang === "te" ? currentStepData.titleTe :
-                     lang === "ta" ? currentStepData.titleTa :
-                     currentStepData.titleEn}
-                  </h3>
+                    {currentStepData.key === "deeparadhana_namaskara" && (
+                      <div style={{ fontSize: isMobile ? 10.5 : 12, fontWeight: 800, color: "#FDE68A", background: "rgba(245, 158, 11, 0.15)", padding: isMobile ? "3px 8px" : "4px 10px", borderRadius: 10, border: "1px solid rgba(245, 158, 11, 0.4)" }}>
+                        {(VISUAL_CUES[lang || "kn"] || VISUAL_CUES.kn).waveArati}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Sanskrit Mantra Gold Box */}
                 <div
                   style={{
-                    background: "rgba(254, 243, 199, 0.08)",
-                    border: "1.5px solid #F59E0B",
-                    borderRadius: 16,
-                    padding: "16px 18px",
+                    background: "linear-gradient(180deg, rgba(254, 243, 199, 0.12) 0%, rgba(120, 53, 15, 0.25) 100%)",
+                    border: "2px solid #F59E0B",
+                    borderRadius: isMobile ? 14 : 16,
+                    padding: isMobile ? "12px 14px" : "16px 18px",
                     textAlign: "center",
-                    boxShadow: "0 4px 20px rgba(0,0,0,0.4)"
+                    boxShadow: "0 4px 20px rgba(0,0,0,0.5), inset 0 0 15px rgba(245, 158, 11, 0.1)"
                   }}
                 >
-                  <div style={{ fontSize: 11, fontWeight: 900, color: "#FDE68A", letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>
-                    {MANTRA_HEADER[lang || "kn"] || MANTRA_HEADER.kn}
+                  <div style={{ fontSize: isMobile ? 10 : 11, fontWeight: 900, color: "#FDE68A", letterSpacing: 1, textTransform: "uppercase", marginBottom: isMobile ? 4 : 6 }}>
+                    🕉️ {MANTRA_HEADER[lang || "kn"] || MANTRA_HEADER.kn}
                   </div>
                   <div
                     style={{
-                      fontSize: 14.5,
+                      fontSize: isMobile ? 14 : 15.5,
                       fontWeight: 800,
                       color: "#FFFBEB",
-                      lineHeight: 1.6,
+                      lineHeight: 1.55,
                       whiteSpace: "pre-line",
-                      fontFamily: "'Nirmala UI', sans-serif"
+                      fontFamily: "'Nirmala UI', serif",
+                      textShadow: "0 1px 4px rgba(0,0,0,0.8)"
                     }}
                   >
                     {currentStepData.sanskritMantraL5?.[lang || "kn"] || currentStepData.sanskritMantra}
@@ -811,23 +843,23 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
                 {/* Action & Guidance Box */}
                 <div
                   style={{
-                    background: "linear-gradient(135deg, rgba(69, 26, 3, 0.6) 0%, rgba(28, 15, 5, 0.8) 100%)",
+                    background: "linear-gradient(135deg, rgba(69, 26, 3, 0.7) 0%, rgba(28, 15, 5, 0.9) 100%)",
                     border: "1px solid #B45309",
-                    borderRadius: 16,
-                    padding: "14px 16px",
+                    borderRadius: isMobile ? 12 : 16,
+                    padding: isMobile ? "10px 12px" : "14px 16px",
                     display: "flex",
                     flexDirection: "column",
-                    gap: 6
+                    gap: 4
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, color: "#FDE68A", fontSize: 12, fontWeight: 900 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, color: "#FDE68A", fontSize: isMobile ? 11 : 12, fontWeight: 900 }}>
                     <span>👉</span>
                     <span>{ACTION_GUIDE_HEADER[lang || "kn"] || ACTION_GUIDE_HEADER.kn}</span>
                   </div>
-                  <div style={{ fontSize: 13, color: "#FEF3C7", lineHeight: 1.5, fontWeight: 600 }}>
+                  <div style={{ fontSize: isMobile ? 12 : 13, color: "#FEF3C7", lineHeight: 1.45, fontWeight: 700 }}>
                     {currentStepData.actionGuide[lang || "kn"] || currentStepData.actionGuide.kn}
                   </div>
-                  <div style={{ fontSize: 11.5, color: "#D1D5DB", marginTop: 4, fontStyle: "italic" }}>
+                  <div style={{ fontSize: isMobile ? 10.5 : 11.5, color: "#D1D5DB", marginTop: 2, fontStyle: "italic" }}>
                     🌿 {currentStepData.spiritualSignificance[lang || "kn"] || currentStepData.spiritualSignificance.kn}
                   </div>
                 </div>
@@ -924,11 +956,11 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
             style={{
               background: "#1C0F05",
               borderTop: "1.5px solid #78350F",
-              padding: "14px 20px",
+              padding: isMobile ? "8px 12px" : "14px 20px",
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              gap: 10
+              gap: isMobile ? 6 : 10
             }}
           >
             {step <= 5 ? (
@@ -942,8 +974,8 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
                     color: step === 1 ? "#6B7280" : "#FEF3C7",
                     border: "1px solid rgba(253, 230, 138, 0.2)",
                     borderRadius: 12,
-                    padding: "10px 16px",
-                    fontSize: 12.5,
+                    padding: isMobile ? "8px 12px" : "10px 16px",
+                    fontSize: isMobile ? 11.5 : 12.5,
                     fontWeight: 800,
                     cursor: step === 1 ? "not-allowed" : "pointer"
                   }}
@@ -953,7 +985,7 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
 
                 {/* Audio Status & Manual Replay: Only rendered if verified proper audio is confirmed to exist */}
                 {isProperAudioAvailableForStep(step, lang) && (
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 6 : 10 }}>
                     <button
                       type="button"
                       disabled={isAudioLoading}
@@ -973,14 +1005,14 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
                         border: "1.5px solid #F59E0B",
                         color: "#FEF3C7",
                         borderRadius: 12,
-                        padding: "8px 14px",
-                        fontSize: 12,
+                        padding: isMobile ? "7px 10px" : "8px 14px",
+                        fontSize: isMobile ? 11 : 12,
                         fontWeight: 800,
                         cursor: isAudioLoading ? "not-allowed" : "pointer",
                         opacity: isAudioLoading ? 0.85 : 1,
                         display: "flex",
                         alignItems: "center",
-                        gap: 6
+                        gap: 5
                       }}
                     >
                       {isAudioPlaying ? (
@@ -1011,13 +1043,13 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
                     color: "#1C0A00",
                     border: "1.5px solid #FDE68A",
                     borderRadius: 12,
-                    padding: "10px 20px",
-                    fontSize: 13,
+                    padding: isMobile ? "8px 14px" : "10px 20px",
+                    fontSize: isMobile ? 12 : 13,
                     fontWeight: 900,
                     cursor: "pointer",
                     display: "flex",
                     alignItems: "center",
-                    gap: 6,
+                    gap: 5,
                     boxShadow: "0 4px 12px rgba(245, 158, 11, 0.4)"
                   }}
                 >

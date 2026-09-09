@@ -19,6 +19,7 @@ import { firestore } from "../services/firebase";
 import type { KundliOutput, PanchangOutput } from "../core/AstroTypes";
 import { db } from "./indexedDb";
 import { getIndianStandardDateStr } from "../core/placeTime";
+import { isTestEnvironment } from "../utils/testEnvGuard";
 
 export type UserRole = "priest" | "admin" | "superadmin" | "devotee";
 
@@ -178,6 +179,60 @@ export interface PremiumPdfDownloadDoc {
   dateKey: string; // "YYYY-MM-DD"
 }
 
+export interface PurohitaProfileDoc {
+  id: string; // matches purohitaId
+  purohitaId: string; // canonical priest ID (e.g. "priest_shreeram", "priest_venkataramana")
+  priestName: string;
+  name?: string; // alias for priestName
+  mobileNumber: string;
+  mobile?: string; // alias for mobileNumber
+  phone?: string; // alias
+  email: string;
+  coinBalance: number;
+  allowedModules: string[];
+  status: "active" | "inactive" | "suspended";
+  isVerified?: boolean;
+  registeredAt: string;
+  createdAt?: string;
+  lastActiveAt: string;
+  updatedAt: string;
+  notes?: string;
+}
+
+export interface PurohitaActivityDoc {
+  id: string;
+  purohitaId: string;
+  priestName: string;
+  purohitaName?: string; // alias
+  activityType: "page_view" | "kundli_generated" | "question_asked" | "panchanga_view" | "coin_recharge" | "pdf_download" | "purohita_registered" | "coins_offered";
+  actionType?: string; // alias
+  page: string; // e.g. "priestdashboard", "sankhyashastra", "kundli", "kaaladiksuchi", "hindinajanma", "public_kundli"
+  pageName?: string; // alias
+  details: string;
+  metadata?: Record<string, any>;
+  timestamp: string;
+  date: string; // YYYY-MM-DD IST
+  coinsImpact?: number;
+}
+
+export interface PurohitaDailySummaryDoc {
+  id: string; // "summary_${purohitaId}_${date}"
+  purohitaId: string;
+  priestName: string;
+  purohitaName?: string; // alias
+  date: string; // YYYY-MM-DD IST
+  dateKey?: string; // alias
+  pageVisits: Record<string, number>;
+  totalPageViews: number;
+  kundlisGeneratedCount: number;
+  questionsAskedCount: number;
+  totalActionsCount: number;
+  totalActions?: number; // alias
+  lastActiveTimestamp: string;
+  lastActionAt?: string; // alias
+  updatedAt: string;
+}
+
 // Collection references
 const USERS_COL = "users";
 const WALLETS_COL = "wallets";
@@ -189,6 +244,9 @@ const AUDIT_COL = "systemAuditLogs";
 const NOTIFICATIONS_COL = "notifications";
 const PREMIUM_PDF_DOWNLOADS_COL = "premiumPdfDownloads";
 const APP_CONFIGS_COL = "app_configurations";
+const PUROHITA_PROFILES_COL = "purohitaProfiles";
+const PUROHITA_ACTIVITIES_COL = "purohitaActivities";
+const PUROHITA_DAILY_SUMMARIES_COL = "purohitaDailySummaries";
 
 export const PANCHANGA_ENGINE_DOC_ID = "panchanga_engine_config";
 
@@ -628,6 +686,136 @@ export async function approveRechargeTransaction(txId: string): Promise<boolean>
 }
 
 /**
+ * Canonical Gokarna Kshetra Priests Directory for Auto-Healing and SuperAdmin Restoration
+ */
+export const DEFAULT_GOKARNA_PRIESTS = [
+  {
+    userId: "shreerampandit",
+    name: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
+    phone: "9972339362",
+    title: "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಪ್ರಧಾನ ಪಂಚಾಂಗ ಅರ್ಚಕರು",
+    coins: 5000
+  },
+  {
+    userId: "chaitanya_pandit",
+    name: "ಚೈತನ್ಯ ಪಂಡಿತ್",
+    phone: "9845123456",
+    title: "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಪ್ರಧಾನ ಅರ್ಚಕರು",
+    coins: 2000
+  },
+  {
+    userId: "venkataramana_pandit",
+    name: "ವೆಂಕಟರಮಣ ಪಂಡಿತ್",
+    phone: "9448123456",
+    title: "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಪ್ರಧಾನ ವೈದಿಕ ಅರ್ಚಕರು",
+    coins: 2000
+  },
+  {
+    userId: "dileep_shadakshari",
+    name: "ದಿಲೀಪ್ ಶಡಕ್ಷರಿ",
+    phone: "9731123456",
+    title: "ಷಡಕ್ಷರೀ ವೇದಪೀಠ ಪ್ರಧಾನ ಅರ್ಚಕರು",
+    coins: 2000
+  },
+  {
+    userId: "ganapati_marigodi",
+    name: "ಗಣಪತಿ ಮಾರಿಗೋಡಿ",
+    phone: "9900123456",
+    title: "ಮಾರಿಗೋಡಿ ಸನ್ನಿಧಿ ಹಿರಿಯ ಅರ್ಚಕರು",
+    coins: 2000
+  },
+  {
+    userId: "ganapati_uppunda",
+    name: "ಗಣಪತಿ ಉಪ್ಪುಂದ",
+    phone: "9886123456",
+    title: "ಉಪ್ಪುಂದ ಕ್ಷೇತ್ರ ವೈದಿಕ ಪಂಡಿತರು",
+    coins: 2000
+  },
+  {
+    userId: "parameshwar_jambe",
+    name: "ಪರಮೇಶ್ವರ ಜಂಬೆ",
+    phone: "9480123456",
+    title: "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಜಂಬೆ ಸನ್ನಿಧಿ ಅರ್ಚಕರು",
+    coins: 2000
+  },
+  {
+    userId: "vinayaka_hosabale",
+    name: "ವಿನಾಯಕ ಹೊಸಬಾಳೆ",
+    phone: "9449123456",
+    title: "ಹೊಸಬಾಳೆ ವೈದಿಕ ವಿದ್ವಾಂಸರು",
+    coins: 2000
+  },
+  {
+    userId: "ramachandra_bhat",
+    name: "ರಾಮಚಂದ್ರ ಭಟ್",
+    phone: "9980123456",
+    title: "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಹಿರಿಯ ಅರ್ಚಕರು",
+    coins: 2000
+  },
+  {
+    userId: "krishna_somayaji",
+    name: "ಕೃಷ್ಣ ಸೋಮಯಾಜಿ",
+    phone: "9740123456",
+    title: "ಗೋಕರ್ಣ ಸೋಮಯಾಜಿ ವೇದ ಪಾಠಶಾಲೆ",
+    coins: 2000
+  }
+];
+
+/**
+ * Super Admin / Auto-Heal: Restores and seeds default authentic Gokarna priests into Firestore & IndexedDb
+ */
+export async function restoreAndSeedDefaultPriests(): Promise<number> {
+  if (!firestore) return 0;
+  let restoredCount = 0;
+  const nowIso = new Date().toISOString();
+  const defaultModules = ["panchanga", "sankhyashastra", "diksuchi", "purva_janma"];
+
+  for (const priest of DEFAULT_GOKARNA_PRIESTS) {
+    try {
+      const walletRef = doc(firestore, WALLETS_COL, priest.userId);
+      const snap = await getDoc(walletRef);
+      if (!snap.exists()) {
+        const walletDoc: PriestWalletDoc = {
+          id: priest.userId,
+          userId: priest.userId,
+          priestName: priest.name,
+          coinBalance: priest.coins,
+          totalRechargedInr: priest.coins / 10,
+          totalCoinsCredited: priest.coins,
+          totalCoinsSpent: 0,
+          allowedModules: defaultModules,
+          phone: priest.phone,
+          updatedAt: nowIso
+        };
+        await setDoc(walletRef, walletDoc);
+        restoredCount++;
+      }
+
+      // Ensure profile exists in users collection
+      const userRef = doc(firestore, USERS_COL, priest.userId);
+      const userSnap = await getDoc(userRef);
+      if (!userSnap.exists()) {
+        const userDoc: UserProfileDoc = {
+          id: priest.userId,
+          username: priest.userId,
+          name: priest.name,
+          role: "priest",
+          allowedModules: defaultModules,
+          phone: priest.phone,
+          createdAt: nowIso,
+          firstTimeSetupCompleted: true
+        };
+        await setDoc(userRef, userDoc);
+      }
+    } catch (err) {
+      console.warn("[Firestore] restoreAndSeedDefaultPriests error for:", priest.userId, err);
+    }
+  }
+
+  return restoredCount;
+}
+
+/**
  * Super Admin: Real-time subscription to ALL Priest Wallets in Firestore
  */
 export function subscribeAllPriestWallets(
@@ -635,6 +823,9 @@ export function subscribeAllPriestWallets(
 ): Unsubscribe {
   const q = query(collection(firestore, WALLETS_COL));
   return onSnapshot(q, (snapshot) => {
+    if (snapshot.empty && !isTestEnvironment()) {
+      void restoreAndSeedDefaultPriests();
+    }
     const list: PriestWalletDoc[] = [];
     snapshot.forEach((docSnap) => {
       list.push(docSnap.data() as PriestWalletDoc);
@@ -1104,7 +1295,13 @@ export async function cleanupAllTestAndMockProfiles(): Promise<TestCleanupReport
       const uname = data.username || docSnap.id;
       const name = data.name || "";
       // Protect superadmin and authentic priests
-      if (uname === "$hriSuma" || uname === "superadmin" || uname === "shreerampandit" || uname.includes("baggona")) continue;
+      if (
+        uname === "$hriSuma" ||
+        uname === "superadmin" ||
+        uname === "shreerampandit" ||
+        uname.includes("baggona") ||
+        DEFAULT_GOKARNA_PRIESTS.some((p) => p.userId.toLowerCase() === uname.toLowerCase())
+      ) continue;
 
       // Protect locked devotees, active visitors, and devotees with real contact details
       if (data.isLocked === true) continue;
@@ -1126,7 +1323,12 @@ export async function cleanupAllTestAndMockProfiles(): Promise<TestCleanupReport
       const data = docSnap.data();
       const userId = data.userId || docSnap.id;
       const priestName = data.priestName || "";
-      if (userId === "$hriSuma" || userId === "superadmin" || userId === "shreerampandit") continue;
+      if (
+        userId === "$hriSuma" ||
+        userId === "superadmin" ||
+        userId === "shreerampandit" ||
+        DEFAULT_GOKARNA_PRIESTS.some((p) => p.userId.toLowerCase() === userId.toLowerCase())
+      ) continue;
 
       if (isTestEntry(userId) || isTestEntry(priestName)) {
         await deleteDoc(docSnap.ref);
@@ -2066,3 +2268,622 @@ export async function saveServicePricingConfig(
   }
 }
 
+// ── Calendar Registrations & Daily Visits Tracking Collections ─────────────
+export const CALENDAR_REGISTRATIONS_COL = "calendarRegistrations";
+export const CALENDAR_DAILY_VISITS_COL = "calendarDailyVisits";
+
+export interface CalendarRegistrationDoc {
+  id: string; // token or reg_${cleanToken}
+  userId: string;
+  userName: string;
+  token: string;
+  startDate: string; // YYYY-MM-DD
+  durationDays: number; // 30, 90, 180, 365
+  expiresAt: string; // ISO string
+  priestName: string;
+  priestPhone: string;
+  devoteePhone?: string;
+  devoteeEmail?: string;
+  nakshatra?: string;
+  nakshatraIndex?: number;
+  rashi?: string;
+  rashiIndex?: number;
+  gotra?: string;
+  dob?: string;
+  tob?: string;
+  placeName?: string;
+  pincode?: string;
+  source: "priest_qr" | "calendar_sync" | "prasada_kit" | "royal_booklet" | "legacy_auto_sync" | "direct_darshana";
+  createdAt: string;
+  updatedAt: string;
+  status: "active" | "expired" | "revoked";
+  notes?: string;
+}
+
+export interface CalendarDailyVisitDoc {
+  id: string; // visit_${userId}_${visitDate}_${timestamp}
+  userId: string;
+  userName: string;
+  token: string;
+  visitDate: string; // YYYY-MM-DD
+  visitTimestamp: string; // ISO string
+  todayVisitNumber: number; // 1, 2, 3...
+  daysRemaining: number;
+  isExpired: boolean;
+  durationDays: number;
+  startDate: string;
+  expiryDate: string;
+  tabVisited?: string;
+  lang?: string;
+  priestName?: string;
+  userAgent?: string;
+}
+
+// In-memory fallback stores for tests / offline
+const memoryCalendarRegistrations = new Map<string, CalendarRegistrationDoc>();
+const memoryCalendarDailyVisits = new Map<string, CalendarDailyVisitDoc>();
+
+/**
+ * Save or update a Calendar Registration in Firestore
+ */
+export async function saveCalendarRegistration(reg: CalendarRegistrationDoc): Promise<void> {
+  const cleanId = reg.id || `reg_${reg.token || Date.now().toString(36)}`;
+  const normalizedReg: CalendarRegistrationDoc = {
+    ...reg,
+    id: cleanId,
+    updatedAt: new Date().toISOString()
+  };
+
+  memoryCalendarRegistrations.set(cleanId, normalizedReg);
+  if (normalizedReg.token) memoryCalendarRegistrations.set(normalizedReg.token, normalizedReg);
+  if (normalizedReg.userId) memoryCalendarRegistrations.set(normalizedReg.userId, normalizedReg);
+
+  try {
+    if (!firestore) return;
+    const docRef = doc(firestore, CALENDAR_REGISTRATIONS_COL, cleanId);
+    await setDoc(docRef, sanitizeFirestoreData(normalizedReg), { merge: true });
+  } catch (err) {
+    console.warn("[Firestore] saveCalendarRegistration error:", err);
+  }
+}
+
+/**
+ * Fetch a Calendar Registration by token, document ID, or userId
+ */
+export async function getCalendarRegistration(tokenOrKey: string): Promise<CalendarRegistrationDoc | null> {
+  const cleanKey = (tokenOrKey || "").trim();
+  if (!cleanKey) return null;
+
+  if (memoryCalendarRegistrations.has(cleanKey)) {
+    return memoryCalendarRegistrations.get(cleanKey)!;
+  }
+
+  try {
+    if (!firestore) return null;
+
+    // 1. Try by document ID
+    const docRef = doc(firestore, CALENDAR_REGISTRATIONS_COL, cleanKey);
+    const snap = await getDoc(docRef);
+    if (snap.exists()) {
+      const data = snap.data() as CalendarRegistrationDoc;
+      memoryCalendarRegistrations.set(data.id, data);
+      if (data.token) memoryCalendarRegistrations.set(data.token, data);
+      if (data.userId) memoryCalendarRegistrations.set(data.userId, data);
+      return data;
+    }
+
+    // 2. Try querying by token
+    const qToken = query(collection(firestore, CALENDAR_REGISTRATIONS_COL), where("token", "==", cleanKey), limit(1));
+    const qTokenSnap = await getDocs(qToken);
+    if (!qTokenSnap.empty) {
+      const data = qTokenSnap.docs[0].data() as CalendarRegistrationDoc;
+      memoryCalendarRegistrations.set(data.id, data);
+      if (data.token) memoryCalendarRegistrations.set(data.token, data);
+      if (data.userId) memoryCalendarRegistrations.set(data.userId, data);
+      return data;
+    }
+
+    // 3. Try querying by userId
+    const qUser = query(collection(firestore, CALENDAR_REGISTRATIONS_COL), where("userId", "==", cleanKey), limit(1));
+    const qUserSnap = await getDocs(qUser);
+    if (!qUserSnap.empty) {
+      const data = qUserSnap.docs[0].data() as CalendarRegistrationDoc;
+      memoryCalendarRegistrations.set(data.id, data);
+      if (data.token) memoryCalendarRegistrations.set(data.token, data);
+      if (data.userId) memoryCalendarRegistrations.set(data.userId, data);
+      return data;
+    }
+  } catch (err) {
+    console.warn("[Firestore] getCalendarRegistration error:", err);
+  }
+
+  return null;
+}
+
+/**
+ * Record an authentic daily visit event into calendarDailyVisits
+ */
+export async function recordDailyVisitLog(visit: CalendarDailyVisitDoc): Promise<void> {
+  const cleanId = visit.id || `visit_${visit.userId || "dev"}_${visit.visitDate}_${Date.now()}`;
+  const logDoc = { ...visit, id: cleanId };
+
+  memoryCalendarDailyVisits.set(cleanId, logDoc);
+
+  try {
+    if (!firestore) return;
+    const docRef = doc(firestore, CALENDAR_DAILY_VISITS_COL, cleanId);
+    await setDoc(docRef, sanitizeFirestoreData(logDoc));
+  } catch (err) {
+    console.warn("[Firestore] recordDailyVisitLog error:", err);
+  }
+}
+
+/**
+ * Get count of visits recorded today in memory store
+ */
+export function getMemoryTodayVisitsCount(tokenOrUserId: string, visitDate: string): number {
+  if (!tokenOrUserId) return 0;
+  let count = 0;
+  for (const visit of memoryCalendarDailyVisits.values()) {
+    if ((visit.token === tokenOrUserId || visit.userId === tokenOrUserId) && visit.visitDate === visitDate) {
+      count++;
+    }
+  }
+  return count;
+}
+
+/**
+ * Real-time subscription to all Calendar Registrations in Firestore
+ */
+export function subscribeAllCalendarRegistrations(
+  callback: (regs: CalendarRegistrationDoc[]) => void
+): Unsubscribe {
+  if (!firestore) {
+    callback(Array.from(new Set(memoryCalendarRegistrations.values())));
+    return () => {};
+  }
+
+  try {
+    const q = query(
+      collection(firestore, CALENDAR_REGISTRATIONS_COL),
+      orderBy("createdAt", "desc"),
+      limit(500)
+    );
+
+    return onSnapshot(
+      q,
+      (snap) => {
+        const list: CalendarRegistrationDoc[] = [];
+        snap.forEach((d) => list.push(d.data() as CalendarRegistrationDoc));
+        callback(list);
+      },
+      (err) => {
+        console.warn("[Firestore] subscribeAllCalendarRegistrations error:", err);
+        callback(Array.from(new Set(memoryCalendarRegistrations.values())));
+      }
+    );
+  } catch (err) {
+    console.warn("[Firestore] subscribeAllCalendarRegistrations setup error:", err);
+    callback(Array.from(new Set(memoryCalendarRegistrations.values())));
+    return () => {};
+  }
+}
+
+/**
+ * Real-time subscription to recent Daily Visits in Firestore
+ */
+export function subscribeAllDailyVisits(
+  callback: (visits: CalendarDailyVisitDoc[]) => void,
+  limitCount: number = 200
+): Unsubscribe {
+  if (!firestore) {
+    callback(Array.from(memoryCalendarDailyVisits.values()).reverse().slice(0, limitCount));
+    return () => {};
+  }
+
+  try {
+    const q = query(
+      collection(firestore, CALENDAR_DAILY_VISITS_COL),
+      orderBy("visitTimestamp", "desc"),
+      limit(limitCount)
+    );
+
+    return onSnapshot(
+      q,
+      (snap) => {
+        const list: CalendarDailyVisitDoc[] = [];
+        snap.forEach((d) => list.push(d.data() as CalendarDailyVisitDoc));
+        callback(list);
+      },
+      (err) => {
+        console.warn("[Firestore] subscribeAllDailyVisits error:", err);
+        callback(Array.from(memoryCalendarDailyVisits.values()).reverse().slice(0, limitCount));
+      }
+    );
+  } catch (err) {
+    console.warn("[Firestore] subscribeAllDailyVisits setup error:", err);
+    callback(Array.from(memoryCalendarDailyVisits.values()).reverse().slice(0, limitCount));
+    return () => {};
+  }
+}
+
+// ==========================================
+// PUROHITA PROFILES & ACTIVITY TRACKER SYSTEM
+// ==========================================
+
+export const memoryPurohitaProfiles = new Map<string, PurohitaProfileDoc>();
+export const memoryPurohitaActivities = new Map<string, PurohitaActivityDoc>();
+export const memoryPurohitaDailySummaries = new Map<string, PurohitaDailySummaryDoc>();
+
+/**
+ * Save or update Purohita Profile in Firestore & sync with wallets/users collections
+ */
+export async function savePurohitaProfile(profile: Partial<PurohitaProfileDoc> & { purohitaId: string; priestName?: string }): Promise<PurohitaProfileDoc> {
+  const purohitaId = profile.purohitaId.trim().toLowerCase();
+  const priestName = profile.priestName?.trim() || "ಪುರೋಹಿತರು";
+  const mobileNumber = (profile.mobileNumber || profile.phone || "").replace(/[^0-9]/g, "").slice(-10);
+  const email = (profile.email || "").trim().toLowerCase();
+  const now = new Date().toISOString();
+
+  const existing = memoryPurohitaProfiles.get(purohitaId);
+  const fullDoc: PurohitaProfileDoc = {
+    id: purohitaId,
+    purohitaId,
+    priestName: profile.priestName || profile.name || existing?.priestName || priestName,
+    name: profile.name || profile.priestName || existing?.priestName || priestName,
+    mobileNumber: mobileNumber || existing?.mobileNumber || "",
+    mobile: mobileNumber || existing?.mobileNumber || "",
+    phone: mobileNumber || existing?.phone || "",
+    email: email || existing?.email || "",
+    coinBalance: profile.coinBalance !== undefined ? profile.coinBalance : (existing?.coinBalance ?? 0),
+    allowedModules: profile.allowedModules || existing?.allowedModules || ["panchanga", "sankhyashastra", "diksuchi", "purva_janma"],
+    status: profile.status || existing?.status || "active",
+    isVerified: profile.isVerified !== undefined ? profile.isVerified : (existing?.isVerified !== undefined ? existing.isVerified : (!!mobileNumber && !!email)),
+    registeredAt: existing?.registeredAt || profile.registeredAt || now,
+    lastActiveAt: profile.lastActiveAt || existing?.lastActiveAt || now,
+    updatedAt: now,
+    notes: profile.notes || existing?.notes || ""
+  };
+
+  memoryPurohitaProfiles.set(purohitaId, fullDoc);
+
+  if (firestore) {
+    try {
+      const docRef = doc(firestore, PUROHITA_PROFILES_COL, purohitaId);
+      await setDoc(docRef, sanitizeFirestoreData(fullDoc), { merge: true });
+
+      // Synchronize with wallets collection if wallet exists
+      const walletRef = doc(firestore, WALLETS_COL, purohitaId);
+      await setDoc(walletRef, sanitizeFirestoreData({
+        id: purohitaId,
+        userId: purohitaId,
+        priestName: fullDoc.priestName,
+        email: fullDoc.email,
+        phone: fullDoc.mobileNumber,
+        mobileNumber: fullDoc.mobileNumber,
+        allowedModules: fullDoc.allowedModules,
+        updatedAt: now
+      }), { merge: true });
+
+      // Synchronize with users collection
+      const userRef = doc(firestore, USERS_COL, purohitaId);
+      await setDoc(userRef, sanitizeFirestoreData({
+        id: purohitaId,
+        username: purohitaId,
+        name: fullDoc.priestName,
+        email: fullDoc.email,
+        phone: fullDoc.mobileNumber,
+        mobileNumber: fullDoc.mobileNumber,
+        role: "priest",
+        allowedModules: fullDoc.allowedModules,
+        updatedAt: now
+      }), { merge: true });
+    } catch (err) {
+      console.warn("[Firestore] savePurohitaProfile error:", err);
+    }
+  }
+
+  return fullDoc;
+}
+
+/**
+ * Get single Purohita profile by ID
+ */
+export async function getPurohitaProfile(purohitaId: string): Promise<PurohitaProfileDoc | null> {
+  const cleanId = (purohitaId || "").trim().toLowerCase();
+  if (!cleanId) return null;
+
+  if (memoryPurohitaProfiles.has(cleanId)) {
+    return memoryPurohitaProfiles.get(cleanId)!;
+  }
+
+  if (firestore) {
+    try {
+      const docRef = doc(firestore, PUROHITA_PROFILES_COL, cleanId);
+      const snap = await getDoc(docRef);
+      if (snap.exists()) {
+        const data = snap.data() as PurohitaProfileDoc;
+        memoryPurohitaProfiles.set(cleanId, data);
+        return data;
+      }
+    } catch (err) {
+      console.warn("[Firestore] getPurohitaProfile error:", err);
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Real-time subscription to all Purohita Profiles
+ */
+export function subscribeAllPurohitaProfiles(
+  callback: (profiles: PurohitaProfileDoc[]) => void
+): Unsubscribe {
+  if (!firestore) {
+    callback(Array.from(memoryPurohitaProfiles.values()));
+    return () => {};
+  }
+
+  try {
+    const q = query(
+      collection(firestore, PUROHITA_PROFILES_COL),
+      orderBy("updatedAt", "desc"),
+      limit(200)
+    );
+
+    return onSnapshot(
+      q,
+      (snap) => {
+        const list: PurohitaProfileDoc[] = [];
+        snap.forEach((d) => list.push(d.data() as PurohitaProfileDoc));
+        for (const p of list) {
+          memoryPurohitaProfiles.set(p.purohitaId, p);
+        }
+        callback(list);
+      },
+      (err) => {
+        console.warn("[Firestore] subscribeAllPurohitaProfiles error:", err);
+        callback(Array.from(memoryPurohitaProfiles.values()));
+      }
+    );
+  } catch (err) {
+    console.warn("[Firestore] subscribeAllPurohitaProfiles setup error:", err);
+    callback(Array.from(memoryPurohitaProfiles.values()));
+    return () => {};
+  }
+}
+
+/**
+ * Delete Purohita profile & revoke access completely
+ */
+export async function deletePurohitaProfile(purohitaId: string): Promise<void> {
+  const cleanId = (purohitaId || "").trim().toLowerCase();
+  if (!cleanId) return;
+  memoryPurohitaProfiles.delete(cleanId);
+
+  if (firestore) {
+    try {
+      await deleteDoc(doc(firestore, PUROHITA_PROFILES_COL, cleanId));
+      await deleteDoc(doc(firestore, WALLETS_COL, cleanId));
+      await deleteDoc(doc(firestore, USERS_COL, cleanId));
+    } catch (err) {
+      console.warn("[Firestore] deletePurohitaProfile error:", err);
+    }
+  }
+}
+
+/**
+ * Record a Purohita activity event into `purohitaActivities` and atomically update daily summary in `purohitaDailySummaries`.
+ */
+export async function recordPurohitaActivity(activity: {
+  purohitaId: string;
+  priestName?: string;
+  purohitaName?: string;
+  activityType?: PurohitaActivityDoc["activityType"];
+  actionType?: PurohitaActivityDoc["activityType"];
+  page?: string;
+  pageName?: string;
+  details: string;
+  coinsImpact?: number;
+  metadata?: Record<string, any>;
+  timestamp?: string;
+  date?: string;
+}): Promise<PurohitaActivityDoc> {
+  const purohitaId = (activity.purohitaId || "priest_unknown").trim().toLowerCase();
+  const priestName = activity.priestName?.trim() || activity.purohitaName?.trim() || "ಪುರೋಹಿತರು";
+  const activityType = activity.activityType || activity.actionType || "page_view";
+  const page = activity.page || activity.pageName || "dashboard";
+  const now = new Date();
+  const timestamp = activity.timestamp || now.toISOString();
+  const date = activity.date || getIndianStandardDateStr(now);
+  const cleanId = `act_${purohitaId}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+
+  const activityDoc: PurohitaActivityDoc = {
+    id: cleanId,
+    purohitaId,
+    priestName,
+    purohitaName: priestName,
+    activityType,
+    actionType: activityType,
+    page,
+    pageName: page,
+    details: activity.details,
+    metadata: activity.metadata,
+    coinsImpact: activity.coinsImpact,
+    timestamp,
+    date
+  };
+
+  memoryPurohitaActivities.set(cleanId, activityDoc);
+
+  // Update or create daily summary
+  const summaryId = `summary_${purohitaId}_${date}`;
+  const existingSummary = memoryPurohitaDailySummaries.get(summaryId) || {
+    id: summaryId,
+    purohitaId,
+    priestName,
+    purohitaName: priestName,
+    date,
+    dateKey: date,
+    pageVisits: {},
+    totalPageViews: 0,
+    kundlisGeneratedCount: 0,
+    questionsAskedCount: 0,
+    totalActionsCount: 0,
+    totalActions: 0,
+    lastActiveTimestamp: timestamp,
+    lastActionAt: timestamp,
+    updatedAt: timestamp
+  };
+
+  const updatedPageVisits = { ...(existingSummary.pageVisits || {}) };
+  if (page) {
+    updatedPageVisits[page] = (updatedPageVisits[page] || 0) + 1;
+  }
+
+  const updatedSummary: PurohitaDailySummaryDoc = {
+    ...existingSummary,
+    priestName: priestName || existingSummary.priestName,
+    purohitaName: priestName || existingSummary.priestName,
+    pageVisits: updatedPageVisits,
+    totalPageViews: activityType === "page_view" ? (existingSummary.totalPageViews || 0) + 1 : (existingSummary.totalPageViews || 0),
+    kundlisGeneratedCount: activityType === "kundli_generated" ? (existingSummary.kundlisGeneratedCount || 0) + 1 : (existingSummary.kundlisGeneratedCount || 0),
+    questionsAskedCount: activityType === "question_asked" ? (existingSummary.questionsAskedCount || 0) + 1 : (existingSummary.questionsAskedCount || 0),
+    totalActionsCount: (existingSummary.totalActionsCount || 0) + 1,
+    totalActions: (existingSummary.totalActionsCount || 0) + 1,
+    lastActiveTimestamp: timestamp,
+    lastActionAt: timestamp,
+    updatedAt: timestamp
+  };
+
+  memoryPurohitaDailySummaries.set(summaryId, updatedSummary);
+
+  // Also update lastActiveAt in memory profile
+  const profile = memoryPurohitaProfiles.get(purohitaId);
+  if (profile) {
+    profile.lastActiveAt = timestamp;
+    profile.updatedAt = timestamp;
+  }
+
+  if (firestore) {
+    try {
+      const actRef = doc(firestore, PUROHITA_ACTIVITIES_COL, cleanId);
+      await setDoc(actRef, sanitizeFirestoreData(activityDoc));
+
+      const sumRef = doc(firestore, PUROHITA_DAILY_SUMMARIES_COL, summaryId);
+      await setDoc(sumRef, sanitizeFirestoreData(updatedSummary), { merge: true });
+
+      // Update last active in profile
+      const profRef = doc(firestore, PUROHITA_PROFILES_COL, purohitaId);
+      await setDoc(profRef, { lastActiveAt: timestamp, updatedAt: timestamp }, { merge: true });
+    } catch (err) {
+      console.warn("[Firestore] recordPurohitaActivity error:", err);
+    }
+  }
+
+  return activityDoc;
+}
+
+/**
+ * Real-time subscription to Purohita Activities
+ */
+export function subscribePurohitaActivities(
+  purohitaId?: string,
+  limitCount: number = 100,
+  callback?: (acts: PurohitaActivityDoc[]) => void
+): Unsubscribe {
+  const cb = callback || (() => {});
+  if (!firestore) {
+    const list = Array.from(memoryPurohitaActivities.values())
+      .filter((a) => !purohitaId || a.purohitaId === purohitaId.toLowerCase())
+      .reverse()
+      .slice(0, limitCount);
+    cb(list);
+    return () => {};
+  }
+
+  try {
+    let q = query(
+      collection(firestore, PUROHITA_ACTIVITIES_COL),
+      orderBy("timestamp", "desc"),
+      limit(limitCount)
+    );
+
+    if (purohitaId) {
+      q = query(
+        collection(firestore, PUROHITA_ACTIVITIES_COL),
+        where("purohitaId", "==", purohitaId.toLowerCase()),
+        orderBy("timestamp", "desc"),
+        limit(limitCount)
+      );
+    }
+
+    return onSnapshot(
+      q,
+      (snap) => {
+        const list: PurohitaActivityDoc[] = [];
+        snap.forEach((d) => list.push(d.data() as PurohitaActivityDoc));
+        cb(list);
+      },
+      (err) => {
+        console.warn("[Firestore] subscribePurohitaActivities error:", err);
+        const list = Array.from(memoryPurohitaActivities.values())
+          .filter((a) => !purohitaId || a.purohitaId === purohitaId.toLowerCase())
+          .reverse()
+          .slice(0, limitCount);
+        cb(list);
+      }
+    );
+  } catch (err) {
+    console.warn("[Firestore] subscribePurohitaActivities setup error:", err);
+    return () => {};
+  }
+}
+
+/**
+ * Real-time subscription to Purohita Daily Summaries
+ */
+export function subscribePurohitaDailySummaries(
+  date?: string,
+  callback?: (summaries: PurohitaDailySummaryDoc[]) => void
+): Unsubscribe {
+  const cb = callback || (() => {});
+  const targetDate = date || getIndianStandardDateStr();
+
+  if (!firestore) {
+    const list = Array.from(memoryPurohitaDailySummaries.values())
+      .filter((s) => !date || s.date === date);
+    cb(list);
+    return () => {};
+  }
+
+  try {
+    const q = query(
+      collection(firestore, PUROHITA_DAILY_SUMMARIES_COL),
+      where("date", "==", targetDate),
+      limit(200)
+    );
+
+    return onSnapshot(
+      q,
+      (snap) => {
+        const list: PurohitaDailySummaryDoc[] = [];
+        snap.forEach((d) => list.push(d.data() as PurohitaDailySummaryDoc));
+        for (const s of list) {
+          memoryPurohitaDailySummaries.set(s.id, s);
+        }
+        cb(list);
+      },
+      (err) => {
+        console.warn("[Firestore] subscribePurohitaDailySummaries error:", err);
+        const list = Array.from(memoryPurohitaDailySummaries.values())
+          .filter((s) => !date || s.date === date);
+        cb(list);
+      }
+    );
+  } catch (err) {
+    console.warn("[Firestore] subscribePurohitaDailySummaries setup error:", err);
+    return () => {};
+  }
+}

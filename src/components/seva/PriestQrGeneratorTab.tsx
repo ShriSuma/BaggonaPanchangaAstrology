@@ -12,6 +12,7 @@ import {
 } from "../../features/seva/sevaPriestDirectory";
 import { encodeDevoteeToken } from "../../utils/tokenCipher";
 import { getSafeProductionOrigin } from "../../features/seva/icsCalendarGenerator";
+import { registerCalendarAtGeneration } from "../../features/seva/calendarVisitService";
 import { PriestQrCard1PageTemplate } from "./pdf/PriestQrCard1PageTemplate";
 
 type PriestQrGeneratorTabProps = {
@@ -152,6 +153,21 @@ export default function PriestQrGeneratorTab({
       phone: resolvedPriestPhone,
       overrideCalendarPhone: overridePriestContact,
       includePriestCalendar: includePriestCalendar
+    });
+
+    void registerCalendarAtGeneration({
+      userName: identity.personName || "Devotee",
+      token,
+      startDate: new Date().toISOString().slice(0, 10),
+      durationDays,
+      priestName: resolvedPriestName,
+      priestPhone: resolvedPriestPhone,
+      nakshatraIndex: identity.nakshatraIndex,
+      rashiIndex: identity.rashiIndex,
+      gotra: identity.gotra,
+      dob: identity.dob,
+      tob: identity.tob,
+      source: "priest_qr"
     });
 
     const payloadUrl = `${origin}/daily?token=${token}&action=ics`;

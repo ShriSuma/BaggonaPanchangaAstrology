@@ -36,6 +36,9 @@ import {
   getPoojaStreak,
   fetchPoojaStreakFromCloud,
   checkPassExpiration,
+  getCalendarRegistration,
+  is30DayDevotee,
+  type CalendarRegistrationDoc,
   type PoojaStreakInfo
 } from "../features/seva/calendarVisitService";
 import {
@@ -1916,36 +1919,63 @@ export default function DailyDarshanaPage(): JSX.Element {
     });
   }, [devoteeDisplayName, resolvedBirth, tokenParam]);
 
-  // 90-Day / Custom Duration Pass Expiry Calculation
-  // Supports database-backed tokens, backward-compatible tokens (decoded.d), and URL query params
+  const [dbRegistration, setDbRegistration] = useState<CalendarRegistrationDoc | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    const lookupKey = tokenParam || devoteeUserId;
+    if (!lookupKey) return;
+
+    void getCalendarRegistration(lookupKey).then((reg) => {
+      if (isMounted && reg) {
+        setDbRegistration(reg);
+      }
+    }).catch((err) => {
+      console.warn("[DailyDarshanaPage] getCalendarRegistration error:", err);
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [tokenParam, devoteeUserId]);
+
+  // Pass Expiry Calculation: Database registration strictly supersedes ephemeral or tampered query params!
   const rawStartDate =
+    dbRegistration?.startDate ||
     resolvedTokenData?.payload?.startDate ||
-    resolvedTokenData?.payload?.d ||
-    (resolvedTokenData?.createdAt ? resolvedTokenData.createdAt.slice(0, 10) : "") ||
+    resolvedTokenData?.payload?.sd ||
     decoded?.sd ||
     decoded?.startDate ||
+    resolvedTokenData?.payload?.d ||
     decoded?.d ||
-    urlParams.get("startDate") ||
+    (resolvedTokenData?.createdAt ? resolvedTokenData.createdAt.slice(0, 10) : "") ||
     urlParams.get("sd") ||
+    urlParams.get("startDate") ||
     "";
+
+  const is30Day = is30DayDevotee(devoteeDisplayName, tokenParam || "");
   const rawDuration =
+    dbRegistration?.durationDays ||
     resolvedTokenData?.payload?.days ||
     resolvedTokenData?.payload?.dy ||
     decoded?.dy ||
     decoded?.days ||
-    Number(urlParams.get("days")) ||
-    90;
+    (is30Day ? 30 : (Number(urlParams.get("days")) > 0 && !tokenParam ? Number(urlParams.get("days")) : 90));
 
   const passExpiration = useMemo(() => {
     return checkPassExpiration(rawStartDate, rawDuration);
   }, [rawStartDate, rawDuration]);
 
   // Strict Expiry Boundary Guard:
-  // 1. If 90 days have elapsed from startDate, pass is expired.
-  // 2. If today is past the calculated expiry date, access is strictly locked.
-  // 3. If a devotee clicked an event in their calendar whose date is beyond the 90-day expiry date, access is locked.
+  // 1. If dbRegistration status is "expired" or "revoked", access is locked immediately.
+  // 2. If durationDays have elapsed from startDate, pass is strictly expired.
+  // 3. If today is past the calculated expiry date, access is strictly locked.
+  // 4. If a devotee clicked an event in their calendar whose date is beyond expiry date, access is locked.
   // ZERO Panchanga or Dina Bhavishya data is returned to expired devotees.
   const isPassExpired = useMemo(() => {
+    if (dbRegistration?.status === "expired" || dbRegistration?.status === "revoked") {
+      return true;
+    }
     if (passExpiration.isExpired) return true;
     if (passExpiration.expiryDate && todayStr > passExpiration.expiryDate) return true;
 
@@ -1962,7 +1992,7 @@ export default function DailyDarshanaPage(): JSX.Element {
     }
 
     return false;
-  }, [passExpiration, todayStr, params, resolvedTokenData]);
+  }, [dbRegistration, passExpiration, todayStr, params, resolvedTokenData]);
 
   // Dynamic Live Dina Bhavishya Resolution (100% Vedic Astrological Computation & GenAI)
   useEffect(() => {
@@ -2002,7 +2032,14 @@ export default function DailyDarshanaPage(): JSX.Element {
     return () => {
       isMounted = false;
     };
-  }, [dateParam, devoteeDisplayName, resolvedBirth.dob, resolvedBirth.tob, moonRashiIdx, moonNakshatraIdx, ascendantRashiIdx, lang, userLat, userLng, userPincode, devoteeUserId, geminiApiKey]);
+  }, [dateParam, devoteeDisplayName, resolvedBirth.dob, resolvedBirth.tob, moonRashiIdx, moonNakshatraIdx, ascendantRashiIdx, lang, userLat, userLng, userPincode, devoteeUserId, geminiApiKey, isPassExpired]);
+
+  // Immediately stop any audio synthesis/playback if pass is expired
+  useEffect(() => {
+    if (isPassExpired) {
+      stopAllAudioGlobal();
+    }
+  }, [isPassExpired]);
 
   // Check & Register Devotee in Firestore on page load / calendar redirect
   useEffect(() => {
