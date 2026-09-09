@@ -8,7 +8,8 @@ import {
   DEFAULT_PRIEST_UPI_ID,
   DEFAULT_PRIEST_MOBILE_NUMBER,
   DEFAULT_PRIEST_NAME,
-  RECHARGE_PACKAGES
+  RECHARGE_PACKAGES,
+  generateUpiPayUri
 } from "../wallet/walletTypes";
 import { usePricingConfigStore } from "../wallet/pricingConfigStore";
 import { calculateKundliWithPlaceSun } from "../../core/KundliEngine";
@@ -370,11 +371,7 @@ export const PriestMobilePortal: React.FC = () => {
   // Generate Scannable Dynamic UPI QR Code for Selected Package
   useEffect(() => {
     if (isRechargeOpen) {
-      const payeeName = "Baggona Panchanga";
-      const note = `COINS-${selectedPackage.key.toUpperCase()}-${wallet?.userId || currentUser || "PRIEST"}`;
-      const upiUri = `upi://pay?pa=${encodeURIComponent(DEFAULT_PRIEST_UPI_ID)}&pn=${encodeURIComponent(
-        payeeName
-      )}&am=${selectedPackage.amountInr.toFixed(2)}&cu=INR&tn=${encodeURIComponent(note)}`;
+      const upiUri = generateUpiPayUri(selectedPackage.amountInr, "PanchangaSeva");
 
       QRCode.toDataURL(upiUri, {
         width: 180,
@@ -1459,11 +1456,11 @@ export const PriestMobilePortal: React.FC = () => {
   // Handle Recharge Submission
   const handleRechargeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await submitUpiRecharge(upiUtrInput);
+    const res = await submitUpiRecharge(upiUtrInput.trim() || undefined);
     if (res.success) {
       setRechargeFeedback({
         type: "success",
-        text: "ರೀಚಾರ್ಜ್ ಕೋರಿಕೆ ಯಶಸ್ವಿಯಾಗಿ ಸಲ್ಲಿಕೆಯಾಗಿದೆ. ಅಡ್ಮಿನ್ ಪರಿಶೀಲಿಸಿದ ನಂತರ ನಾಣ್ಯಗಳು ಜಮೆಯಾಗುತ್ತವೆ."
+        text: `✨ ಪಾವತಿ ಯಶಸ್ವಿ! ${selectedPackage.totalCoins.toLocaleString()} ನಾಣ್ಯಗಳನ್ನು ತಕ್ಷಣವೇ ನಿಮ್ಮ ವಾಲೆಟ್‌ಗೆ ಜಮೆ ಮಾಡಲಾಗಿದೆ.`
       });
       setUpiUtrInput("");
     } else {

@@ -10,7 +10,8 @@ import {
   createWalletTransaction,
   approveRechargeTransaction,
   directAdminCoinAdjustment,
-  deductPriestCoins
+  deductPriestCoins,
+  creditWalletCoinsDirectly
 } from "../../db/firestoreDb";
 import {
   type CoinPackage,
@@ -58,7 +59,7 @@ export interface WalletState {
   closeRechargeModal: () => void;
   openAdminApprovalModal: () => void;
   closeAdminApprovalModal: () => void;
-  submitUpiRecharge: (upiUtr: string) => Promise<{ success: boolean; error?: string }>;
+  submitUpiRecharge: (upiUtr?: string, customAmountInr?: number, customCoins?: number) => Promise<{ success: boolean; error?: string }>;
   deductForService: (coins: number, serviceName: string, clientName?: string, idempotencyKey?: string) => Promise<{ success: boolean; error?: string }>;
   approveTx: (txId: string) => Promise<boolean>;
   directCoinAdjustment: (userId: string, coins: number, reason: string) => Promise<{ success: boolean; error?: string }>;
@@ -148,49 +149,52 @@ export const useWalletStore = create<WalletState>((set, get) => ({
   openAdminApprovalModal: () => set({ isAdminApprovalModalOpen: true }),
   closeAdminApprovalModal: () => set({ isAdminApprovalModalOpen: false }),
 
-  submitUpiRecharge: async (upiUtr: string) => {
+  submitUpiRecharge: async (upiUtr?: string, customAmountInr?: number, customCoins?: number) => {
     const { wallet, selectedPackage } = get();
-    const cleanUtr = upiUtr.trim().replace(/\s+/g, "");
-    if (cleanUtr.length < 8) {
-      return { success: false, error: "Please enter a valid 12-digit UPI Reference / UTR Number." };
-    }
+    const cleanUtr = upiUtr ? upiUtr.trim().replace(/\s+/g, "") : `SCAN_PAY_${Date.now()}`;
 
     set({ isSubmittingRecharge: true, error: null });
 
-    const effectiveWalletId = wallet?.id || "public_guest_wallet";
-    const effectiveUserId = wallet?.userId || "PUBLIC_GUEST";
-    const effectivePriestName = wallet?.priestName || "ಸಾರ್ವಜನಿಕ ಭಕ್ತರು (Public Devotee)";
+    const effectiveAmount = customAmountInr !== undefined && customAmountInr > 0 ? customAmountInr : selectedPackage.amountInr;
+    const effectiveCoins = customCoins !== undefined && customCoins > 0 ? customCoins : selectedPackage.totalCoins;
+    const effectiveWalletId = wallet?.id || wallet?.userId || "public_guest_wallet";
+    const effectiveUserId = wallet?.userId || wallet?.id || "PUBLIC_GUEST";
+    const effectivePriestName = wallet?.priestName || "ಭಕ್ತರು / ಪುರೋಹಿತರು";
 
     try {
-      const txId = `tx_rec_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-      const newTx: WalletTransactionDoc = {
-        id: txId,
+      const result = await creditWalletCoinsDirectly({
         walletId: effectiveWalletId,
         userId: effectiveUserId,
         priestName: effectivePriestName,
-        type: "recharge",
-        inrAmount: selectedPackage.amountInr,
-        coins: selectedPackage.totalCoins,
+        amountInr: effectiveAmount,
+        coins: effectiveCoins,
         packageKey: selectedPackage.key,
         upiUtr: cleanUtr,
-        status: "pending",
-        description: `Recharge: ${selectedPackage.name} (₹${selectedPackage.amountInr} for ${selectedPackage.totalCoins.toLocaleString()} Coins)`,
-        createdAt: new Date().toISOString()
-      };
+        paymentMethod: "PhonePe/GPay Scanner",
+        currentBalance: wallet?.coinBalance
+      });
 
-      await createWalletTransaction(newTx);
-
-      // If guest session, also credit the guest wallet locally
-      if (!wallet) {
-        creditGuestCoins(selectedPackage.totalCoins);
+      // Update active wallet in Zustand store
+      if (wallet) {
+        set({
+          wallet: {
+            ...wallet,
+            coinBalance: result.newBalance,
+            totalRechargedInr: (wallet.totalRechargedInr || 0) + effectiveAmount,
+            totalCoinsCredited: (wallet.totalCoinsCredited || 0) + effectiveCoins,
+            updatedAt: new Date().toISOString()
+          }
+        });
+      } else {
+        creditGuestCoins(effectiveCoins);
       }
 
       // Trigger automatic email alert to admin with UTR verification info
       void notifyCoinRechargeRequested({
-        txId,
+        txId: result.txId,
         priestName: effectivePriestName,
-        amountInr: selectedPackage.amountInr,
-        coins: selectedPackage.totalCoins,
+        amountInr: effectiveAmount,
+        coins: effectiveCoins,
         packageName: selectedPackage.name,
         upiUtr: cleanUtr,
         timestamp: new Date().toLocaleString("en-IN")
@@ -198,7 +202,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
 
       set({
         isSubmittingRecharge: false,
-        successMessage: `Recharge request for ₹${selectedPackage.amountInr} (${selectedPackage.totalCoins} Coins) submitted with UTR ${cleanUtr}. Coins credited successfully!`
+        successMessage: `✨ ₹${effectiveAmount} ಪಾವತಿ ಯಶಸ್ವಿ! ${effectiveCoins.toLocaleString()} ನಾಣ್ಯಗಳನ್ನು ನಿಮ್ಮ ವಾಲೆಟ್‌ಗೆ ತಕ್ಷಣವೇ ಜಮೆ ಮಾಡಲಾಗಿದೆ.`
       });
       return { success: true };
     } catch (err: any) {

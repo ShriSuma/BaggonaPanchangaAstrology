@@ -125,8 +125,9 @@ describe("Priest Wallet & Coining Math Engine", () => {
     expect(useWalletStore.getState().isRechargeModalOpen).toBe(false);
   });
 
-  it("validates UTR input length on recharge submission", async () => {
+  it("instantly credits coins to wallet on PhonePe / GPay recharge submission with optional UTR", async () => {
     useWalletStore.setState({
+      selectedPackage: RECHARGE_PACKAGES[1], // Silver package: ₹250 -> 3000 coins
       wallet: {
         id: "test_wallet",
         userId: "test_user",
@@ -141,10 +142,15 @@ describe("Priest Wallet & Coining Math Engine", () => {
 
     const store = useWalletStore.getState();
 
-    // Rejection if UTR is too short
-    const res = await store.submitUpiRecharge("123");
-    expect(res.success).toBe(false);
-    expect(res.error).toContain("valid 12-digit UPI Reference");
+    // Instant coin credit without UTR
+    const resNoUtr = await store.submitUpiRecharge();
+    expect(resNoUtr.success).toBe(true);
+    expect(useWalletStore.getState().wallet?.coinBalance).toBe(4000); // 1000 + 3000 (Silver package)
+
+    // Instant coin credit with custom UTR
+    const resWithUtr = await store.submitUpiRecharge("423512345678", 100, 1100);
+    expect(resWithUtr.success).toBe(true);
+    expect(useWalletStore.getState().wallet?.coinBalance).toBe(5100); // 4000 + 1100
   });
 });
 

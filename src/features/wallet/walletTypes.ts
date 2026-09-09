@@ -284,8 +284,45 @@ export const SERVICE_COIN_COSTS: Record<string, ServiceCost> = {
 };
 
 export const DEFAULT_PRIEST_UPI_ID = "9108135387@ybl";
+export const DEFAULT_PRIEST_UPI_NAME = "Shreeram Pandit";
 export const DEFAULT_PRIEST_MOBILE_NUMBER = "9108135387";
 export const DEFAULT_PRIEST_NAME = "Shreeram Pandit";
+
+/**
+ * Standardized NPCI UPI URI with PhonePe & Google Pay compliance
+ */
+export function generateUpiPayUri(amountInr: number, note: string = "PanchangaSeva"): string {
+  const cleanAm = Math.max(1, amountInr).toFixed(2);
+  const cleanNote = note.replace(/[^a-zA-Z0-9_]/g, "").slice(0, 30) || "PanchangaSeva";
+  return `upi://pay?pa=${encodeURIComponent(DEFAULT_PRIEST_UPI_ID)}&pn=${encodeURIComponent(DEFAULT_PRIEST_UPI_NAME)}&am=${cleanAm}&cu=INR&tn=${encodeURIComponent(cleanNote)}`;
+}
+
+/**
+ * PhonePe Direct Intent URI
+ */
+export function generatePhonePeUri(amountInr: number, note: string = "PanchangaSeva"): string {
+  const cleanAm = Math.max(1, amountInr).toFixed(2);
+  const cleanNote = note.replace(/[^a-zA-Z0-9_]/g, "").slice(0, 30) || "PanchangaSeva";
+  return `phonepe://pay?pa=${encodeURIComponent(DEFAULT_PRIEST_UPI_ID)}&pn=${encodeURIComponent(DEFAULT_PRIEST_UPI_NAME)}&am=${cleanAm}&cu=INR&tn=${encodeURIComponent(cleanNote)}`;
+}
+
+/**
+ * Google Pay Direct Intent URI
+ */
+export function generateGPayUri(amountInr: number, note: string = "PanchangaSeva"): string {
+  const cleanAm = Math.max(1, amountInr).toFixed(2);
+  const cleanNote = note.replace(/[^a-zA-Z0-9_]/g, "").slice(0, 30) || "PanchangaSeva";
+  return `gpay://upi/pay?pa=${encodeURIComponent(DEFAULT_PRIEST_UPI_ID)}&pn=${encodeURIComponent(DEFAULT_PRIEST_UPI_NAME)}&am=${cleanAm}&cu=INR&tn=${encodeURIComponent(cleanNote)}`;
+}
+
+/**
+ * Paytm Direct Intent URI
+ */
+export function generatePaytmUri(amountInr: number, note: string = "PanchangaSeva"): string {
+  const cleanAm = Math.max(1, amountInr).toFixed(2);
+  const cleanNote = note.replace(/[^a-zA-Z0-9_]/g, "").slice(0, 30) || "PanchangaSeva";
+  return `paytmmp://pay?pa=${encodeURIComponent(DEFAULT_PRIEST_UPI_ID)}&pn=${encodeURIComponent(DEFAULT_PRIEST_UPI_NAME)}&am=${cleanAm}&cu=INR&tn=${encodeURIComponent(cleanNote)}`;
+}
 
 export type AvailableModuleKey = "panchanga" | "sankhyashastra" | "diksuchi" | "purva_janma" | "vahana_muhurtha" | "public_kundli";
 

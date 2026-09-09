@@ -4,6 +4,10 @@ import { useWalletStore } from "./walletStore";
 import {
   RECHARGE_PACKAGES,
   DEFAULT_PRIEST_UPI_ID,
+  DEFAULT_PRIEST_UPI_NAME,
+  generateUpiPayUri,
+  generatePhonePeUri,
+  generateGPayUri,
   type CoinPackage
 } from "./walletTypes";
 
@@ -29,13 +33,13 @@ export const PriestWalletModal: React.FC = () => {
 
   const amountInr = selectedPackage.amountInr;
   const upiId = DEFAULT_PRIEST_UPI_ID;
-  const payeeName = "Baggona Panchanga";
-  const note = `COINS-${selectedPackage.key.toUpperCase()}-${wallet?.userId || "PRIEST"}`;
+  const payeeName = DEFAULT_PRIEST_UPI_NAME;
+  const note = `PanchangaSeva`;
 
   // NPCI standard UPI Payment URI
-  const upiUri = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(
-    payeeName
-  )}&am=${amountInr.toFixed(2)}&cu=INR&tn=${encodeURIComponent(note)}`;
+  const upiUri = generateUpiPayUri(amountInr, note);
+  const phonePeUri = generatePhonePeUri(amountInr, note);
+  const gPayUri = generateGPayUri(amountInr, note);
 
   useEffect(() => {
     if (isRechargeModalOpen) {
@@ -64,9 +68,7 @@ export const PriestWalletModal: React.FC = () => {
 
   const handleUtrSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!upiUtr.trim()) return;
-
-    const res = await submitUpiRecharge(upiUtr);
+    const res = await submitUpiRecharge(upiUtr.trim() || undefined);
     if (res.success) {
       setUpiUtr("");
     }
@@ -253,52 +255,67 @@ export const PriestWalletModal: React.FC = () => {
                       </button>
                     </div>
 
-                    {/* Direct Mobile UPI Intent Link */}
-                    <div>
+                    {/* Direct Mobile UPI Intent Links (PhonePe & Google Pay) */}
+                    <div className="space-y-1.5">
+                      <div className="grid grid-cols-2 gap-2">
+                        <a
+                          href={phonePeUri}
+                          className="py-2 px-3 bg-[#5f259f] hover:bg-[#4d1d82] text-white font-black rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-1 active:scale-95 text-center"
+                        >
+                          <span>🟣 PhonePe</span>
+                        </a>
+                        <a
+                          href={gPayUri}
+                          className="py-2 px-3 bg-[#1a73e8] hover:bg-[#1557b0] text-white font-black rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-1 active:scale-95 text-center"
+                        >
+                          <span>🔵 Google Pay</span>
+                        </a>
+                      </div>
                       <a
                         href={upiUri}
-                        className="inline-flex items-center justify-center w-full py-2.5 px-4 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-black rounded-xl text-xs shadow-md transition-all gap-2 active:scale-95"
+                        className="inline-flex items-center justify-center w-full py-2 px-3 bg-slate-900 hover:bg-slate-800 text-white font-black rounded-xl text-xs shadow-md transition-all gap-1.5 active:scale-95"
                       >
-                        <span>📲 ಮೊಬೈಲ್ UPI ಆ್ಯಪ್ ತೆರೆಯಿರಿ (Pay ₹{amountInr})</span>
+                        <span>📲 Open Any UPI App (Pay ₹{amountInr})</span>
                       </a>
                     </div>
 
                     <div className="text-[10px] sm:text-[11px] text-amber-900 leading-relaxed font-semibold">
-                      ✨ ಪಾವತಿ ಪೂರ್ಣಗೊಂಡ ನಂತರ, ನಿಮ್ಮ UPI ಆ್ಯಪ್ ರಶೀದಿಯಿಂದ <strong>12-ಅಂಕಿಯ UTR / Reference ಸಂಖ್ಯೆಯನ್ನು</strong> ಕೆಳಗೆ ನಮೂದಿಸಿ.
+                      ✨ PhonePe ಅಥವಾ Google Pay ಮೂಲಕ ಪಾವತಿಸಿದ ನಂತರ, ಕೆಳಗಿನ ಬಟನ್ ಒತ್ತಿ ನಾಣ್ಯಗಳನ್ನು ತಕ್ಷಣವೇ ನಿಮ್ಮ ವಾಲೆಟ್‌ಗೆ ಜಮೆ ಮಾಡಿಕೊಳ್ಳಿ.
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Step 3: UTR Verification Submission */}
+              {/* Step 3: Instant Coin Load Action & Optional UTR */}
               <form onSubmit={handleUtrSubmit} className="space-y-2.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-3xl p-4 sm:p-5 shadow-sm">
-                <label className="block text-xs font-black uppercase tracking-wider text-amber-950">
-                  3. 12-ಅಂಕಿಯ UTR / Reference ನಂಬರ್ ನಮೂದಿಸಿ
-                </label>
-                <div className="flex flex-col sm:flex-row gap-2">
+                <button
+                  type="submit"
+                  disabled={isSubmittingRecharge}
+                  className="w-full py-3.5 px-4 bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-sm rounded-xl shadow-lg disabled:opacity-50 transition-all flex items-center justify-center gap-2 active:scale-95 border-2 border-emerald-400 cursor-pointer"
+                >
+                  <span className="text-lg">⚡</span>
+                  <span>
+                    {isSubmittingRecharge
+                      ? "ನಾಣ್ಯಗಳನ್ನು ಜಮೆ ಮಾಡಲಾಗುತ್ತಿದೆ..."
+                      : `ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ಪಾವತಿಸಿದ್ದೇನೆ • +${selectedPackage.totalCoins.toLocaleString()} ನಾಣ್ಯಗಳನ್ನು ಪಡೆಯಿರಿ`}
+                  </span>
+                </button>
+
+                <div className="pt-2 border-t border-amber-200">
+                  <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                    UPI UTR / ರೆಫರೆನ್ಸ್ ಸಂಖ್ಯೆ (ಐಚ್ಛಿಕ / Optional):
+                  </label>
                   <input
                     type="text"
                     value={upiUtr}
                     onChange={(e) => setUpiUtr(e.target.value.replace(/[^0-9a-zA-Z]/g, ""))}
-                    placeholder="ಉದಾ: 423512345678"
+                    placeholder="ಉದಾ: 423512345678 (ಅಗತ್ಯವಿದ್ದರೆ ಮಾತ್ರ ನಮೂದಿಸಿ)"
                     maxLength={18}
-                    className="flex-1 px-4 py-3 bg-white border-2 border-amber-300 rounded-xl text-slate-900 placeholder-slate-400 font-mono text-sm font-bold focus:outline-none focus:border-amber-500 shadow-inner"
-                    required
+                    className="w-full px-3.5 py-2 bg-white border border-amber-300 rounded-xl text-slate-900 placeholder-slate-400 font-mono text-xs font-bold focus:outline-none focus:border-amber-500 shadow-inner"
                   />
-                  <button
-                    type="submit"
-                    disabled={isSubmittingRecharge || upiUtr.length < 8}
-                    className="px-6 py-3 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 hover:from-amber-500 hover:to-amber-300 text-slate-950 font-black text-xs sm:text-sm rounded-xl shadow-md disabled:opacity-50 transition-all flex items-center justify-center gap-2 active:scale-95 border border-amber-400 shrink-0"
-                  >
-                    {isSubmittingRecharge ? (
-                      <span>ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ...</span>
-                    ) : (
-                      <span>⚡ ಪರಿಶೀಲಿಸಿ & ನಾಣ್ಯ ಪಡೆಯಿರಿ</span>
-                    )}
-                  </button>
                 </div>
                 <p className="text-[10px] text-amber-800 font-semibold">
-                  ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ದೇವಸ್ಥಾನ ಪ್ರಧಾನ ಆಡಳಿತಕ್ಕೆ ಸ್ವಯಂಚಾಲಿತ ಸೂಚನೆ ರವಾನೆಯಾಗುತ್ತದೆ.
+                  ಸಂಪರ್ಕ: ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (9108135387) • ತಕ್ಷಣದ ಸ್ವಯಂ ಜಮೆ.
                 </p>
               </form>
             </div>
