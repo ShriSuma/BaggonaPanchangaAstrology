@@ -145,6 +145,36 @@ describe("Purohita Profile Registration, Activity Tracking & Devotee Pass Durati
       expect(profile?.isVerified).toBe(true);
     });
 
+    it("retrieves a profile seamlessly across ID variants (bare ID vs priest_ prefixed ID)", async () => {
+      const canonicalId = "priest_narayana_" + Date.now();
+      const bareId = canonicalId.replace(/^priest_/, "");
+
+      await savePurohitaProfile({
+        id: canonicalId,
+        purohitaId: canonicalId,
+        priestName: "Narayana Bhat",
+        mobileNumber: "9845123456",
+        email: "narayana@baggona.org",
+        coinBalance: 3000,
+        allowedModules: ["all"],
+        status: "active",
+        registeredAt: new Date().toISOString(),
+        lastActiveAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+
+      // 1. Retrieve via canonical ID
+      const p1 = await getPurohitaProfile(canonicalId);
+      expect(p1).not.toBeNull();
+      expect(p1?.mobileNumber).toBe("9845123456");
+
+      // 2. Retrieve via bare ID without priest_ prefix
+      const p2 = await getPurohitaProfile(bareId);
+      expect(p2).not.toBeNull();
+      expect(p2?.mobileNumber).toBe("9845123456");
+      expect(p2?.email).toBe("narayana@baggona.org");
+    });
+
     it("deletes a Purohita profile cleanly", async () => {
       const tempId = "priest_to_delete_" + Date.now();
       await savePurohitaProfile({

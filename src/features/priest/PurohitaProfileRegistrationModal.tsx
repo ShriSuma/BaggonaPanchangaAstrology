@@ -64,12 +64,23 @@ export const PurohitaProfileRegistrationModal: React.FC<PurohitaProfileRegistrat
         details: `ಪುರೋಹಿತರ ಅಧಿಕೃತ ಪ್ರೊಫೈಲ್ ನೋಂದಾಯಿಸಲಾಗಿದೆ (Registered: ${cleanMobile}, ${cleanEmail})`
       });
 
-      // Cache locally so it is never prompted again
+      // Cache locally under all ID variations so it is never prompted again
       if (typeof window !== "undefined") {
         try {
+          const rawId = (purohitaId || "").trim().toLowerCase();
+          const bareId = rawId.replace(/^(priest_|pandit_)/, "");
           localStorage.setItem(`baggona_priest_profile_registered_${cleanId}`, "true");
+          if (rawId) localStorage.setItem(`baggona_priest_profile_registered_${rawId}`, "true");
+          if (bareId) localStorage.setItem(`baggona_priest_profile_registered_${bareId}`, "true");
+          localStorage.setItem("baggona_priest_profile_registered_global", "true");
           localStorage.setItem("baggona_priest_phone", cleanMobile);
           localStorage.setItem("baggona_priest_email", cleanEmail);
+          localStorage.setItem(`baggona_priest_phone_${cleanId}`, cleanMobile);
+          localStorage.setItem(`baggona_priest_email_${cleanId}`, cleanEmail);
+          if (bareId) {
+            localStorage.setItem(`baggona_priest_phone_${bareId}`, cleanMobile);
+            localStorage.setItem(`baggona_priest_email_${bareId}`, cleanEmail);
+          }
         } catch {}
       }
 

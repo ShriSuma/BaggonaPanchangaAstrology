@@ -254,6 +254,31 @@ export function isProperAudioAvailableForStep(_stepNum: number, _lang: SevaLang 
   return true;
 }
 
+/**
+ * Assembles the full authentic recitation text for a Daily Pooja step:
+ * 1. The sacred Sanskrit/regional mantra in the gold box at the top.
+ * 2. Followed by the ritual action guide from the downside box ("ನೀವು ಈಗ ಮಾಡಬೇಕಾದ ಪೂಜಾ ಕ್ರಮ: ...").
+ * 3. Followed by the spiritual significance ("🌿 ...").
+ */
+export function getStepNarrationText(stepObj: DailyPoojaStep, lang: SevaLang = "kn"): string {
+  if (!stepObj) return "";
+  const mantraText = (stepObj.sanskritMantraL5?.[lang] || stepObj.sanskritMantra || "").trim();
+  const actionHeader = ACTION_GUIDE_HEADER[lang] || ACTION_GUIDE_HEADER.kn;
+  const actionGuideText = (stepObj.actionGuide?.[lang] || stepObj.actionGuide?.kn || "").trim();
+  const spiritualText = (stepObj.spiritualSignificance?.[lang] || stepObj.spiritualSignificance?.kn || "").trim();
+
+  const speechParts: string[] = [];
+  if (mantraText) speechParts.push(mantraText);
+  if (actionGuideText) {
+    speechParts.push(`${actionHeader} ${actionGuideText}`);
+  }
+  if (spiritualText) {
+    speechParts.push(spiritualText);
+  }
+
+  return speechParts.join(" । ").trim();
+}
+
 export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = ({
   isOpen,
   onClose,
@@ -407,10 +432,8 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
       return;
     }
 
-    // STRICT USER MANDATE: "100% accurately whatever written, no blah blah added, only what is written clearly needs to be told."
-    // Strictly recite ONLY the sacred mantra text. Zero added narration, zero action guide commands.
-    const mantraText = stepObj.sanskritMantraL5?.[lang || "kn"] || stepObj.sanskritMantra;
-    const speechText = (mantraText || "").trim();
+    // Full recitation: sacred Sanskrit mantra + downside ritual action guide + spiritual significance
+    const speechText = getStepNarrationText(stepObj, lang || "kn");
 
     const cancelFn = speakPriestNarration(
       speechText,
@@ -852,9 +875,40 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
                     gap: 4
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, color: "#FDE68A", fontSize: isMobile ? 11 : 12, fontWeight: 900 }}>
-                    <span>👉</span>
-                    <span>{ACTION_GUIDE_HEADER[lang || "kn"] || ACTION_GUIDE_HEADER.kn}</span>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", color: "#FDE68A", fontSize: isMobile ? 11 : 12, fontWeight: 900 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <span>👉</span>
+                      <span>{ACTION_GUIDE_HEADER[lang || "kn"] || ACTION_GUIDE_HEADER.kn}</span>
+                    </div>
+                    {isProperAudioAvailableForStep(step, lang) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (isAudioPlaying) {
+                            cleanupAudioAndTimers();
+                          } else if (!isAudioLoading) {
+                            playStepPriestAudio(step);
+                          }
+                        }}
+                        style={{
+                          background: isAudioPlaying ? "#D97706" : "rgba(245, 158, 11, 0.25)",
+                          border: "1px solid #F59E0B",
+                          color: "#FEF3C7",
+                          borderRadius: 8,
+                          padding: "2px 8px",
+                          fontSize: 11,
+                          fontWeight: 800,
+                          cursor: isAudioLoading ? "not-allowed" : "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 4
+                        }}
+                        title={isAudioPlaying ? (FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).playing : (FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).play}
+                      >
+                        <span>{isAudioPlaying ? "🔊" : "🔈"}</span>
+                        <span>{isAudioPlaying ? (FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).playing : (FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).play}</span>
+                      </button>
+                    )}
                   </div>
                   <div style={{ fontSize: isMobile ? 12 : 13, color: "#FEF3C7", lineHeight: 1.45, fontWeight: 700 }}>
                     {currentStepData.actionGuide[lang || "kn"] || currentStepData.actionGuide.kn}

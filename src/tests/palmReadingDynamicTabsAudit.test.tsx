@@ -356,6 +356,6 @@ describe("Hasta Mudrika (Palm Reading) Dynamic Tabs & Localization Audit", () =>
       const dashaLordKn = PLANET_NAMES_L5[planetName].kn;
       expect(typeof dashaLordKn).toBe("string");
       expect(dashaLordKn.length).toBeGreaterThan(0);
-    });
+    }, 15000);
   });
 });

@@ -427,28 +427,43 @@ describe("Public Kundli & Live Astrology Analysis 100% Dynamic Engine Test Suite
       const computed = await calculateKundliWithPlaceSun(sampleInput, { ayanamsaModel: "lahiri" });
       const profile = calculatePublicKundliProfile(computed, "1995-05-15", "10:30", 14.5479, 74.3188);
 
-      // Career Question
+      // Career Question - Exactly 2 comprehensive paragraphs with deep Vedic Kundali analysis
       const careerAns = generateCustomQuestionAstrologyAnswer("When will I get a promotion in my job?", profile, computed, "kn");
       expect(careerAns.category).toBe("career");
       expect(careerAns.categoryLocalized).toBe("ಉದ್ಯೋಗ & ಕಾರ್ಯಕ್ಷೇತ್ರ");
-      expect(careerAns.analysisText.length).toBeGreaterThan(150);
+      const careerParas = careerAns.analysisText.split("\n\n");
+      expect(careerParas.length).toBe(2);
+      expect(careerParas[0].length).toBeGreaterThan(150);
+      expect(careerParas[1].length).toBeGreaterThan(150);
       expect(careerAns.recommendedGokarnaSeva).toContain("ಗೋಕರ್ಣ");
 
-      // Marriage Question
+      // Marriage Question - Exactly 2 comprehensive paragraphs
       const marriageAns = generateCustomQuestionAstrologyAnswer("When will my marriage happen?", profile, computed, "kn");
       expect(marriageAns.category).toBe("marriage");
       expect(marriageAns.categoryLocalized).toBe("ವಿವಾಹ & ದಾಂಪತ್ಯ ಜೀವನ");
-      expect(marriageAns.analysisText.length).toBeGreaterThan(150);
+      const marriageParas = marriageAns.analysisText.split("\n\n");
+      expect(marriageParas.length).toBe(2);
+      expect(marriageParas[0].length).toBeGreaterThan(150);
+      expect(marriageParas[1].length).toBeGreaterThan(150);
 
       // Finance Question
       const financeAns = generateCustomQuestionAstrologyAnswer("Will my financial debt clear soon?", profile, computed, "kn");
       expect(financeAns.category).toBe("finance");
       expect(financeAns.categoryLocalized).toBe("ಧನ & ಆರ್ಥಿಕ ಸ್ಥಿತಿ");
+      expect(financeAns.analysisText.split("\n\n").length).toBe(2);
 
       // Health Question
       const healthAns = generateCustomQuestionAstrologyAnswer("How is my health and mental peace?", profile, computed, "kn");
       expect(healthAns.category).toBe("health");
       expect(healthAns.categoryLocalized).toBe("ಆರೋಗ್ಯ & ಮಾನಸಿಕ ಶಾಂತಿ");
+      expect(healthAns.analysisText.split("\n\n").length).toBe(2);
+
+      // English Language Custom Question - Exactly 2 comprehensive paragraphs
+      const careerAnsEn = generateCustomQuestionAstrologyAnswer("When will I get a promotion in my job?", profile, computed, "en");
+      expect(careerAnsEn.category).toBe("career");
+      expect(careerAnsEn.analysisText.split("\n\n").length).toBe(2);
+      expect(careerAnsEn.analysisText.split("\n\n")[0].length).toBeGreaterThan(150);
+      expect(careerAnsEn.analysisText.split("\n\n")[1].length).toBeGreaterThan(150);
     });
 
     it("submits custom question in Tab 3, deducts 500 coins, and renders dynamic answer card", async () => {

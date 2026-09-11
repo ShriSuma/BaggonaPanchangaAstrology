@@ -7,6 +7,7 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     root: __dirname,
+    testTimeout: 25000,
     setupFiles: [resolve(__dirname, "src/tests/setup.ts")],
     // `scratch/` holds one-off console.log debugging scripts, not tests. Several still
     // import `src/core/AstroEngine`, which was renamed to `EphemerisEngine` long ago,

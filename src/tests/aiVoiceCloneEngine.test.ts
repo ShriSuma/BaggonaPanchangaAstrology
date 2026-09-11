@@ -9,7 +9,8 @@ import {
   sanitizeTextForSpeech
 } from "../features/audio/aiVoiceCloneEngine";
 import { stopAllAudioGlobal } from "../features/audio/globalAudioManager";
-import { isProperAudioAvailableForStep } from "../components/darshana/DailyPoojaSankalpaModal";
+import { isProperAudioAvailableForStep, getStepNarrationText } from "../components/darshana/DailyPoojaSankalpaModal";
+import { buildDailyPoojaSteps } from "../features/seva/dailySankalpaPoojaEngine";
 
 describe("AI Voice Clone Engine & GET Real-Time Audio Streaming", () => {
   let createdAudios: any[] = [];
@@ -272,4 +273,32 @@ describe("AI Voice Clone Engine & GET Real-Time Audio Streaming", () => {
       expect(sanitizeTextForSpeech(raw)).toBe("ಓಂ ನಮಃ ಶಿವಾಯ ಮಂತ್ರ");
     });
   });
+
+  describe("getStepNarrationText - Downside Ritual Action & Spiritual Significance Audio Narration", () => {
+    it("synthesizes full audio narration text including mantra, downside action guide, and spiritual significance", () => {
+      const steps = buildDailyPoojaSteps({ devoteeName: "ಅನಂತ", priestName: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್" });
+      expect(steps.length).toBe(5);
+
+      // Check Step 1 in Kannada
+      const step1TextKn = getStepNarrationText(steps[0], "kn");
+      expect(step1TextKn).toContain("ದೀಪಜ್ಯೋತಿಃ ಪರಬ್ರಹ್ಮ");
+      expect(step1TextKn).toContain("ನೀವು ಈಗ ಮಾಡಬೇಕಾದ ಪೂಜಾ ಕ್ರಮ:");
+      expect(step1TextKn).toContain(steps[0].actionGuide.kn);
+      expect(step1TextKn).toContain(steps[0].spiritualSignificance.kn);
+
+      // Check Step 1 in English
+      const step1TextEn = getStepNarrationText(steps[0], "en");
+      expect(step1TextEn).toContain("Your Ritual Action:");
+      expect(step1TextEn).toContain(steps[0].actionGuide.en);
+      expect(step1TextEn).toContain(steps[0].spiritualSignificance.en);
+
+      // Check all 5 steps contain the downside action guide
+      for (let i = 0; i < steps.length; i++) {
+        const narration = getStepNarrationText(steps[i], "kn");
+        expect(narration).toContain("ನೀವು ಈಗ ಮಾಡಬೇಕಾದ ಪೂಜಾ ಕ್ರಮ:");
+        expect(narration).toContain(steps[i].actionGuide.kn);
+      }
+    });
+  });
 });
+

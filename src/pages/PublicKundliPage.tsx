@@ -2077,9 +2077,13 @@ ${publicProfile.name}`;
                                   </span>
                                 </div>
 
-                                <p className="text-xs md:text-sm text-slate-200 leading-relaxed text-justify">
-                                  {item.analysisText}
-                                </p>
+                                <div className="space-y-2.5 text-xs md:text-sm text-slate-200 leading-relaxed text-justify">
+                                  {item.analysisText.split("\n\n").map((para, pIdx) => (
+                                    <p key={pIdx} className="leading-relaxed">
+                                      {para.trim()}
+                                    </p>
+                                  ))}
+                                </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-1">
                                   <div className="bg-slate-900/90 border border-emerald-500/30 rounded-xl p-2.5 flex items-start gap-1.5">

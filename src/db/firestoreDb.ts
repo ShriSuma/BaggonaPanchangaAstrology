@@ -2935,10 +2935,13 @@ export async function savePurohitaProfile(profile: Partial<PurohitaProfileDoc> &
   const email = (profile.email || "").trim().toLowerCase();
   const now = new Date().toISOString();
 
-  const existing = memoryPurohitaProfiles.get(purohitaId);
+  const bareId = purohitaId.replace(/^(priest_|pandit_)/, "");
+  const canonicalId = purohitaId.startsWith("priest_") ? purohitaId : `priest_${purohitaId}`;
+
+  const existing = memoryPurohitaProfiles.get(purohitaId) || memoryPurohitaProfiles.get(canonicalId) || memoryPurohitaProfiles.get(bareId);
   const fullDoc: PurohitaProfileDoc = {
-    id: purohitaId,
-    purohitaId,
+    id: canonicalId,
+    purohitaId: canonicalId,
     priestName: profile.priestName || profile.name || existing?.priestName || priestName,
     name: profile.name || profile.priestName || existing?.priestName || priestName,
     mobileNumber: mobileNumber || existing?.mobileNumber || "",
@@ -2955,31 +2958,42 @@ export async function savePurohitaProfile(profile: Partial<PurohitaProfileDoc> &
     notes: profile.notes || existing?.notes || ""
   };
 
+  // Cache under all ID variants in memory
   memoryPurohitaProfiles.set(purohitaId, fullDoc);
+  memoryPurohitaProfiles.set(canonicalId, fullDoc);
+  if (bareId) memoryPurohitaProfiles.set(bareId, fullDoc);
 
   if (firestore) {
     try {
-      const docRef = doc(firestore, PUROHITA_PROFILES_COL, purohitaId);
+      const docRef = doc(firestore, PUROHITA_PROFILES_COL, canonicalId);
       await setDoc(docRef, sanitizeFirestoreData(fullDoc), { merge: true });
 
-      // Synchronize with wallets collection if wallet exists
-      const walletRef = doc(firestore, WALLETS_COL, purohitaId);
-      await setDoc(walletRef, sanitizeFirestoreData({
-        id: purohitaId,
-        userId: purohitaId,
+      // If called with a custom ID, ensure that document also exists
+      if (purohitaId !== canonicalId) {
+        const altDocRef = doc(firestore, PUROHITA_PROFILES_COL, purohitaId);
+        await setDoc(altDocRef, sanitizeFirestoreData(fullDoc), { merge: true });
+      }
+
+      // Synchronize with wallets collection under both IDs
+      const walletSyncPayload = {
+        id: canonicalId,
+        userId: canonicalId,
         priestName: fullDoc.priestName,
         email: fullDoc.email,
         phone: fullDoc.mobileNumber,
         mobileNumber: fullDoc.mobileNumber,
         allowedModules: fullDoc.allowedModules,
         updatedAt: now
-      }), { merge: true });
+      };
+      await setDoc(doc(firestore, WALLETS_COL, canonicalId), sanitizeFirestoreData(walletSyncPayload), { merge: true });
+      if (bareId && bareId !== canonicalId) {
+        await setDoc(doc(firestore, WALLETS_COL, bareId), sanitizeFirestoreData({ ...walletSyncPayload, id: bareId, userId: bareId }), { merge: true });
+      }
 
-      // Synchronize with users collection
-      const userRef = doc(firestore, USERS_COL, purohitaId);
-      await setDoc(userRef, sanitizeFirestoreData({
-        id: purohitaId,
-        username: purohitaId,
+      // Synchronize with users collection under both IDs so login & getUserProfile immediately resolve contact
+      const userSyncPayload = {
+        id: canonicalId,
+        username: canonicalId,
         name: fullDoc.priestName,
         email: fullDoc.email,
         phone: fullDoc.mobileNumber,
@@ -2987,7 +3001,11 @@ export async function savePurohitaProfile(profile: Partial<PurohitaProfileDoc> &
         role: "priest",
         allowedModules: fullDoc.allowedModules,
         updatedAt: now
-      }), { merge: true });
+      };
+      await setDoc(doc(firestore, USERS_COL, canonicalId), sanitizeFirestoreData(userSyncPayload), { merge: true });
+      if (bareId && bareId !== canonicalId) {
+        await setDoc(doc(firestore, USERS_COL, bareId), sanitizeFirestoreData({ ...userSyncPayload, id: bareId, username: bareId }), { merge: true });
+      }
     } catch (err) {
       console.warn("[Firestore] savePurohitaProfile error:", err);
     }
@@ -2997,24 +3015,34 @@ export async function savePurohitaProfile(profile: Partial<PurohitaProfileDoc> &
 }
 
 /**
- * Get single Purohita profile by ID
+ * Get single Purohita profile by ID with multi-variant alias resolution
  */
 export async function getPurohitaProfile(purohitaId: string): Promise<PurohitaProfileDoc | null> {
   const cleanId = (purohitaId || "").trim().toLowerCase();
   if (!cleanId) return null;
 
-  if (memoryPurohitaProfiles.has(cleanId)) {
-    return memoryPurohitaProfiles.get(cleanId)!;
+  const candidateIds = [
+    cleanId,
+    cleanId.startsWith("priest_") ? cleanId : `priest_${cleanId}`,
+    cleanId.replace(/^(priest_|pandit_)/, "")
+  ].filter((v, i, arr) => v && arr.indexOf(v) === i);
+
+  for (const cid of candidateIds) {
+    if (memoryPurohitaProfiles.has(cid)) {
+      return memoryPurohitaProfiles.get(cid)!;
+    }
   }
 
   if (firestore) {
     try {
-      const docRef = doc(firestore, PUROHITA_PROFILES_COL, cleanId);
-      const snap = await getDoc(docRef);
-      if (snap.exists()) {
-        const data = snap.data() as PurohitaProfileDoc;
-        memoryPurohitaProfiles.set(cleanId, data);
-        return data;
+      for (const cid of candidateIds) {
+        const docRef = doc(firestore, PUROHITA_PROFILES_COL, cid);
+        const snap = await getDoc(docRef);
+        if (snap.exists()) {
+          const data = snap.data() as PurohitaProfileDoc;
+          candidateIds.forEach((id) => memoryPurohitaProfiles.set(id, data));
+          return data;
+        }
       }
     } catch (err) {
       console.warn("[Firestore] getPurohitaProfile error:", err);
@@ -3070,13 +3098,21 @@ export function subscribeAllPurohitaProfiles(
 export async function deletePurohitaProfile(purohitaId: string): Promise<void> {
   const cleanId = (purohitaId || "").trim().toLowerCase();
   if (!cleanId) return;
-  memoryPurohitaProfiles.delete(cleanId);
+  const canonicalId = cleanId.startsWith("priest_") ? cleanId : `priest_${cleanId}`;
+  const bareId = cleanId.replace(/^(priest_|pandit_)/i, "");
+
+  const allVariants = Array.from(new Set([cleanId, canonicalId, bareId].filter(Boolean)));
+  for (const v of allVariants) {
+    memoryPurohitaProfiles.delete(v);
+  }
 
   if (firestore) {
     try {
-      await deleteDoc(doc(firestore, PUROHITA_PROFILES_COL, cleanId));
-      await deleteDoc(doc(firestore, WALLETS_COL, cleanId));
-      await deleteDoc(doc(firestore, USERS_COL, cleanId));
+      for (const v of allVariants) {
+        await deleteDoc(doc(firestore, PUROHITA_PROFILES_COL, v));
+        await deleteDoc(doc(firestore, WALLETS_COL, v));
+        await deleteDoc(doc(firestore, USERS_COL, v));
+      }
     } catch (err) {
       console.warn("[Firestore] deletePurohitaProfile error:", err);
     }

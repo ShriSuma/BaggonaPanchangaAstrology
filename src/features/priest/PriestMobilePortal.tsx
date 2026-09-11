@@ -564,30 +564,72 @@ export const PriestMobilePortal: React.FC = () => {
       void initWallet(resolvedUser, resolvedName);
       setPurohitaId(canonicalPurohitaId(resolvedUser));
 
-      // Pre-load existing email & phone from user profile if available
+      // Pre-load existing email & phone from user profile, purohita profile, wallet, and local storage
       try {
-        const prof = await getUserProfile(resolvedUser);
-        if (prof?.email) setPriestEmail(prof.email);
-        if (prof?.phone || prof?.mobileNumber) setPriestPhone(prof.phone || prof.mobileNumber || "");
+        const cId = canonicalPurohitaId(resolvedUser);
+        const bareId = resolvedUser.replace(/^(priest_|pandit_)/, "");
 
-        // Check Purohita profile registration in DB (Mobile & Email validation)
-        const pProf = await getPurohitaProfile(resolvedUser);
-        if (pProf?.mobileNumber) setPriestPhone(pProf.mobileNumber);
-        if (pProf?.email) setPriestEmail(pProf.email);
+        const [profRaw, profCid, profBare, pProf] = await Promise.all([
+          getUserProfile(resolvedUser),
+          getUserProfile(cId),
+          bareId ? getUserProfile(bareId) : Promise.resolve(null),
+          getPurohitaProfile(resolvedUser)
+        ]);
 
-        const isLocallyDone = typeof window !== "undefined" && localStorage.getItem(`baggona_priest_profile_registered_${resolvedUser}`) === "true";
-        const hasContact = Boolean((pProf?.mobileNumber || prof?.phone || prof?.mobileNumber) && (pProf?.email || prof?.email));
+        const prof = profRaw || profCid || profBare;
+
+        const resolvedMobile =
+          pProf?.mobileNumber ||
+          pProf?.phone ||
+          prof?.mobileNumber ||
+          prof?.phone ||
+          (wallet as any)?.mobileNumber ||
+          (wallet as any)?.phone ||
+          (typeof window !== "undefined"
+            ? localStorage.getItem(`baggona_priest_phone_${cId}`) ||
+              localStorage.getItem(`baggona_priest_phone_${resolvedUser}`) ||
+              localStorage.getItem("baggona_priest_phone") ||
+              ""
+            : "");
+
+        const resolvedEmail =
+          pProf?.email ||
+          prof?.email ||
+          (wallet as any)?.email ||
+          (typeof window !== "undefined"
+            ? localStorage.getItem(`baggona_priest_email_${cId}`) ||
+              localStorage.getItem(`baggona_priest_email_${resolvedUser}`) ||
+              localStorage.getItem("baggona_priest_email") ||
+              ""
+            : "");
+
+        if (resolvedEmail) setPriestEmail(resolvedEmail);
+        if (resolvedMobile) setPriestPhone(resolvedMobile);
+
+        const isLocallyDone = typeof window !== "undefined" && (
+          localStorage.getItem(`baggona_priest_profile_registered_${resolvedUser}`) === "true" ||
+          localStorage.getItem(`baggona_priest_profile_registered_${cId}`) === "true" ||
+          (bareId ? localStorage.getItem(`baggona_priest_profile_registered_${bareId}`) === "true" : false) ||
+          localStorage.getItem("baggona_priest_profile_registered_global") === "true"
+        );
+
+        // Devotee/Purohita provided phone and/or email -> Popup MUST NOT appear!
+        const hasContact = Boolean(resolvedMobile && resolvedEmail) || (Boolean(resolvedMobile || resolvedEmail) && isLocallyDone);
+
         if (!hasContact && !isLocallyDone && !isSuper) {
           setShowPurohitaRegistrationModal(true);
-        } else if (hasContact && !pProf) {
-          // Auto-seed into purohitaProfiles
-          void savePurohitaProfile({
-            purohitaId: resolvedUser,
-            priestName: resolvedName,
-            mobileNumber: prof?.phone || prof?.mobileNumber || "",
-            email: prof?.email || "",
-            coinBalance: wallet?.coinBalance || 0
-          });
+        } else {
+          setShowPurohitaRegistrationModal(false);
+          if (hasContact && !pProf) {
+            // Auto-seed into purohitaProfiles under canonical ID
+            void savePurohitaProfile({
+              purohitaId: cId,
+              priestName: resolvedName,
+              mobileNumber: resolvedMobile,
+              email: resolvedEmail,
+              coinBalance: wallet?.coinBalance || 0
+            });
+          }
         }
       } catch (err) {
         console.warn("[PriestMobilePortal] Error preloading profile:", err);
