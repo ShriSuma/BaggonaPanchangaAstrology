@@ -42,6 +42,7 @@ vi.mock("../db/firestoreDb", () => ({
     return () => {};
   }),
   saveServicePricingConfig: vi.fn().mockResolvedValue(true),
+  getDefaultGokarnaWalletDocs: vi.fn().mockReturnValue([]),
   LOCAL_STORAGE_SERVICE_PRICING_KEY: "baggona_service_pricing_cache_test"
 }));
 

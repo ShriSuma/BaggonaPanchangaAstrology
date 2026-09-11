@@ -34,7 +34,8 @@ import {
   cleanupAllTestAndMockProfiles,
   updateUserAllowedModules,
   deletePriestAccount,
-  restoreAndSeedDefaultPriests
+  restoreAndSeedDefaultPriests,
+  getDefaultGokarnaWalletDocs
 } from "../../db/firestoreDb";
 import { canonicalPurohitaId } from "../priest/purohitaActivityService";
 import { db } from "../../db/indexedDb";
@@ -537,11 +538,35 @@ export const SuperAdminDashboard: React.FC = () => {
     };
   }, [subscribeAllWallets]);
 
-  // Aggregate stats
-  const totalPriests = allPriestWallets.length;
-  const totalCoinsInCirculation = allPriestWallets.reduce((acc, w) => acc + (w.coinBalance || 0), 0);
-  const totalRechargedInr = allPriestWallets.reduce((acc, w) => acc + (w.totalRechargedInr || 0), 0);
-  const totalCoinsSpent = allPriestWallets.reduce((acc, w) => acc + (w.totalCoinsSpent || 0), 0);
+  // Resilient Priest Wallets ensuring 0ms instant display, multi-tier fallback, and zero empty state
+  const displayPriestWallets = useMemo(() => {
+    let list = allPriestWallets && allPriestWallets.length > 0
+      ? allPriestWallets
+      : getDefaultGokarnaWalletDocs();
+
+    if (purohitaSearch.trim()) {
+      const q = purohitaSearch.toLowerCase().trim();
+      list = list.filter(
+        (p) =>
+          (p.priestName || "").toLowerCase().includes(q) ||
+          (p.userId || "").toLowerCase().includes(q) ||
+          (p.phone || "").includes(q)
+      );
+    }
+    return list;
+  }, [allPriestWallets, purohitaSearch]);
+
+  const effectiveWallets = useMemo(() => {
+    return allPriestWallets && allPriestWallets.length > 0
+      ? allPriestWallets
+      : getDefaultGokarnaWalletDocs();
+  }, [allPriestWallets]);
+
+  // Aggregate stats from live or resilient default wallets
+  const totalPriests = effectiveWallets.length;
+  const totalCoinsInCirculation = effectiveWallets.reduce((acc, w) => acc + (w.coinBalance || 0), 0);
+  const totalRechargedInr = effectiveWallets.reduce((acc, w) => acc + (w.totalRechargedInr || 0), 0);
+  const totalCoinsSpent = effectiveWallets.reduce((acc, w) => acc + (w.totalCoinsSpent || 0), 0);
 
   // AI Quota Telemetry Calculations
   const aiConsumedCalls = aiQuota?.totalCallsToday ?? 0;
@@ -553,7 +578,7 @@ export const SuperAdminDashboard: React.FC = () => {
   // Calculated Telemetry Percentages for Visual Gauges
   const circulationTarget = 50000;
   const circulationPct = Math.min(100, Math.round((totalCoinsInCirculation / circulationTarget) * 100));
-  const activePriestsRatio = totalPriests > 0 ? Math.round((allPriestWallets.filter((w) => (w.coinBalance || 0) > 0).length / totalPriests) * 100) : 100;
+  const activePriestsRatio = totalPriests > 0 ? Math.round((effectiveWallets.filter((w) => (w.coinBalance || 0) > 0).length / totalPriests) * 100) : 100;
   const quotaHealthScore = 98; // High availability
   const passValidityScore = ashirvadaPasses.length > 0
     ? Math.round((ashirvadaPasses.filter((p) => p.daysRemaining > 10).length / ashirvadaPasses.length) * 100)
@@ -582,8 +607,8 @@ export const SuperAdminDashboard: React.FC = () => {
       wallet?: PriestWalletDoc;
     }>();
 
-    // 1. Seed from allPriestWallets
-    for (const w of allPriestWallets) {
+    // 1. Seed from effectiveWallets (guarantees Gokarna priests are always present)
+    for (const w of effectiveWallets) {
       const cId = canonicalPurohitaId(w.userId);
       const modules: AvailableModuleKey[] = (w.allowedModules && w.allowedModules.length > 0)
         ? (w.allowedModules as AvailableModuleKey[])
@@ -608,7 +633,7 @@ export const SuperAdminDashboard: React.FC = () => {
       });
     }
 
-    // 2. Merge with purohitaProfiles
+    // 2. Overlay with registered Purohita profiles (if any)
     for (const p of purohitaProfiles) {
       const cId = canonicalPurohitaId(p.purohitaId);
       const existing = map.get(cId);
@@ -616,10 +641,15 @@ export const SuperAdminDashboard: React.FC = () => {
         existing.name = p.name || existing.name;
         existing.mobile = p.mobile || existing.mobile;
         existing.email = p.email || existing.email;
-        existing.isVerified = !!p.isVerified || (!!p.mobile && !!p.email);
-        existing.lastActiveAt = p.lastActiveAt || existing.lastActiveAt;
-        if (p.coinBalance !== undefined && existing.coinBalance === 0) {
+        existing.isVerified = p.isVerified ?? existing.isVerified;
+        if (p.coinBalance !== undefined && p.coinBalance !== null) {
           existing.coinBalance = p.coinBalance;
+        }
+        if (p.allowedModules && p.allowedModules.length > 0) {
+          existing.allowedModules = p.allowedModules as AvailableModuleKey[];
+        }
+        if (p.lastActiveAt && (!existing.lastActiveAt || p.lastActiveAt > existing.lastActiveAt)) {
+          existing.lastActiveAt = p.lastActiveAt;
         }
         existing.profile = p;
       } else {
@@ -634,7 +664,7 @@ export const SuperAdminDashboard: React.FC = () => {
           allowedModules: (p.allowedModules && p.allowedModules.length > 0)
             ? (p.allowedModules as AvailableModuleKey[])
             : ["panchanga", "sankhyashastra", "diksuchi", "purva_janma"],
-          isVerified: !!p.isVerified || (!!p.mobile && !!p.email),
+          isVerified: p.isVerified ?? false,
           lastActiveAt: p.lastActiveAt,
           todayPagesMap: {},
           todayPagesVisitedCount: 0,
@@ -646,7 +676,7 @@ export const SuperAdminDashboard: React.FC = () => {
       }
     }
 
-    // 3. Attach today's daily summaries
+    // 3. Overlay today's daily activity summaries
     for (const summary of purohitaDailySummaries) {
       if (summary.dateKey !== todayKey) continue;
       const cId = canonicalPurohitaId(summary.purohitaId);
@@ -664,7 +694,7 @@ export const SuperAdminDashboard: React.FC = () => {
     }
 
     return Array.from(map.values());
-  }, [allPriestWallets, purohitaProfiles, purohitaDailySummaries, todayKey]);
+  }, [effectiveWallets, purohitaProfiles, purohitaDailySummaries, todayKey]);
 
   const filteredMergedPurohitas = useMemo(() => {
     if (!purohitaSearch.trim()) return mergedPurohitas;
@@ -920,6 +950,15 @@ export const SuperAdminDashboard: React.FC = () => {
           type: "success",
           text: `Successfully ${adjustType === "credit" ? "credited" : "deducted"} ${coinsNum.toLocaleString()} Coins for ${selectedPriest.priestName}.`
         });
+        setViewingPriestProfile((prev) => {
+          if (prev && prev.userId === selectedPriest.userId) {
+            return {
+              ...prev,
+              coinBalance: Math.max(0, (prev.coinBalance || 0) + finalCoins)
+            };
+          }
+          return prev;
+        });
         setSelectedPriest(null);
         setAdjustAmount("1000");
       } else {
@@ -1165,6 +1204,7 @@ export const SuperAdminDashboard: React.FC = () => {
     setFeedback(null);
     try {
       const restored = await restoreAndSeedDefaultPriests();
+      useWalletStore.setState({ allPriestWallets: getDefaultGokarnaWalletDocs() });
       setFeedback({
         type: "success",
         text: `✨ ಗೋಕರ್ಣದ 10 ಪ್ರಧಾನ ಪುರೋಹಿತರ ಪ್ರೊಫೈಲ್‌ಗಳನ್ನು ಹಾಗೂ ವಾಲೆಟ್‌ಗಳನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಸಿಂಕ್ ಮಾಡಲಾಗಿದೆ (${restored} ಹೊಸ ವಾಲೆಟ್‌ಗಳು ಸೃಷ್ಟಿಯಾಗಿವೆ).`
@@ -1362,10 +1402,10 @@ export const SuperAdminDashboard: React.FC = () => {
     setIsDispatchingReports(true);
     setFeedback(null);
     try {
-      const activePriestsCount = allPriestWallets.filter((w) => (w.totalCoinsSpent || 0) > 0).length || 1;
-      const todayTotalCoinsSpent = allPriestWallets.reduce((acc, w) => acc + (w.totalCoinsSpent || 0), 0);
+      const activePriestsCount = effectiveWallets.filter((w) => (w.totalCoinsSpent || 0) > 0).length || 1;
+      const todayTotalCoinsSpent = effectiveWallets.reduce((acc, w) => acc + (w.totalCoinsSpent || 0), 0);
       const pendingReloadsCount = pendingAdminTransactions.length;
-      const totalReloadsAmount = allPriestWallets.reduce((acc, w) => acc + (w.totalRechargedInr || 0), 0);
+      const totalReloadsAmount = effectiveWallets.reduce((acc, w) => acc + (w.totalRechargedInr || 0), 0);
 
       // Today's Premium PDF download counts
       const todayDateStr = new Date().toISOString().split("T")[0];
@@ -1383,7 +1423,7 @@ export const SuperAdminDashboard: React.FC = () => {
         priest: {
           totalActivePriests: activePriestsCount,
           totalCoinsSpentToday: todayTotalCoinsSpent,
-          priestBreakdown: allPriestWallets.map((w) => ({
+          priestBreakdown: effectiveWallets.map((w) => ({
             priestName: w.priestName || w.userId,
             username: w.userId,
             coinsSpent: w.totalCoinsSpent || 0,
@@ -1761,7 +1801,7 @@ export const SuperAdminDashboard: React.FC = () => {
           displayValue={`${totalPriests}`}
           color="emerald"
           icon="🕉️"
-          badgeText={`${allPriestWallets.filter((w) => (w.coinBalance || 0) > 0).length} Active`}
+          badgeText={`${effectiveWallets.filter((w) => (w.coinBalance || 0) > 0).length} Active`}
         />
 
         <RadialGauge
@@ -1798,7 +1838,7 @@ export const SuperAdminDashboard: React.FC = () => {
             }`}
           >
             <span>🪙</span>
-            <span>ಪುರೋಹಿತರು & ವಾಲೆಟ್ ({allPriestWallets.length})</span>
+            <span>ಪುರೋಹಿತರು & ವಾಲೆಟ್ ({effectiveWallets.length})</span>
             {pendingAdminTransactions.length > 0 && (
               <span className="bg-red-500 text-white px-1.5 py-0.5 rounded-full text-[9px] font-black animate-pulse">
                 {pendingAdminTransactions.length}
@@ -2411,7 +2451,7 @@ export const SuperAdminDashboard: React.FC = () => {
                   }`}
                 >
                   <span>👥</span>
-                  <span>ಪುರೋಹಿತರ ವಾಲೆಟ್ & ಲಿಂಕ್‌ಗಳು ({allPriestWallets.length})</span>
+                  <span>ಪುರೋಹಿತರ ವಾಲೆಟ್ & ಲಿಂಕ್‌ಗಳು ({effectiveWallets.length})</span>
                 </button>
                 <button
                   type="button"
@@ -2439,48 +2479,61 @@ export const SuperAdminDashboard: React.FC = () => {
                 </button>
               </div>
 
-              {(priestLedgerSubView === "activity_tracker" || priestLedgerSubView === "daily_summaries") && (
-                <div className="w-full sm:w-64 relative flex items-center">
-                  <input
-                    type="text"
-                    value={purohitaSearch}
-                    onChange={(e) => setPurohitaSearch(e.target.value)}
-                    placeholder="ಪುರೋಹಿತರ ಹೆಸರು / ID ಹುಡುಕಿ..."
-                    className="w-full pl-3 pr-8 py-1.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-xs text-slate-900 placeholder-slate-400 font-semibold focus:outline-none focus:border-amber-500 shadow-inner"
-                  />
-                  {purohitaSearch && (
-                    <button
-                      type="button"
-                      onClick={() => setPurohitaSearch("")}
-                      className="absolute right-2 text-slate-400 hover:text-slate-700 text-xs font-bold"
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
-              )}
+              <div className="w-full sm:w-64 relative flex items-center">
+                <input
+                  type="text"
+                  value={purohitaSearch}
+                  onChange={(e) => setPurohitaSearch(e.target.value)}
+                  placeholder="ಪುರೋಹಿತರ ಹೆಸರು / ID ಹುಡುಕಿ..."
+                  className="w-full pl-3 pr-8 py-1.5 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-xs text-slate-900 placeholder-slate-400 font-semibold focus:outline-none focus:border-amber-500 shadow-inner"
+                />
+                {purohitaSearch && (
+                  <button
+                    type="button"
+                    onClick={() => setPurohitaSearch("")}
+                    className="absolute right-2 text-slate-400 hover:text-slate-700 text-xs font-bold"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* SUBVIEW 1: Wallets & Direct Module Access Links */}
             {priestLedgerSubView === "wallets" && (
-              allPriestWallets.length === 0 ? (
+              displayPriestWallets.length === 0 ? (
                 <div className="text-center py-10 bg-amber-50/60 rounded-2xl border-2 border-dashed border-amber-300 p-6 space-y-3">
-                  <div className="text-4xl animate-bounce">🕉️</div>
+                  <div className="text-4xl animate-bounce">🔍</div>
                   <div className="text-sm font-black text-amber-950">
-                    ಯಾವುದೇ ಪುರೋಹಿತರ ಖಾತೆಗಳು ಸದ್ಯಕ್ಕೆ ಕಾಣಿಸುತ್ತಿಲ್ಲ (No Priest Wallets Active)
+                    {purohitaSearch
+                      ? `"${purohitaSearch}" ಹುಡುಕಾಟಕ್ಕೆ ಯಾವುದೇ ಪುರೋಹಿತರ ಖಾತೆ ಪತ್ತೆಯಾಗಿಲ್ಲ`
+                      : "ಯಾವುದೇ ಪುರೋಹಿತರ ಖಾತೆಗಳು ಸದ್ಯಕ್ಕೆ ಕಾಣಿಸುತ್ತಿಲ್ಲ (No Priest Wallets Active)"}
                   </div>
                   <p className="text-xs text-amber-800 max-w-lg mx-auto font-medium">
-                    ಹಿಂದಿನ ಡೇಟಾಬೇಸ್ ಶುದ್ಧೀಕರಣದ ನಂತರ ಪುರೋಹಿತರ ವಾಲೆಟ್‌ಗಳು ಖಾಲಿಯಾಗಿರಬಹುದು. ಕೆಳಗಿನ ಬಟನ್ ಒತ್ತಿದರೆ ಗೋಕರ್ಣದ 10 ಪ್ರಧಾನ ಪುರೋಹಿತರ ಪ್ರೊಫೈಲ್‌ಗಳು ಹಾಗೂ ವಾಲೆಟ್‌ಗಳು ತಕ್ಷಣವೇ ಮರುಸ್ಥಾಪನೆಯಾಗುತ್ತವೆ.
+                    {purohitaSearch
+                      ? "ಹುಡುಕಾಟದ ಕೀವರ್ಡ್ ಬದಲಾಯಿಸಿ ಅಥವಾ ಹುಡುಕಾಟವನ್ನು ರದ್ದುಗೊಳಿಸಿ."
+                      : "ಕೆಳಗಿನ ಬಟನ್ ಒತ್ತಿದರೆ ಗೋಕರ್ಣದ 10 ಪ್ರಧಾನ ಪುರೋಹಿತರ ಪ್ರೊಫೈಲ್‌ಗಳು ಹಾಗೂ ವಾಲೆಟ್‌ಗಳು ತಕ್ಷಣವೇ ಮರುಸ್ಥಾಪನೆಯಾಗುತ್ತವೆ."}
                   </p>
-                  <button
-                    type="button"
-                    disabled={isRestoringPriests}
-                    onClick={handleRestoreAllPriests}
-                    className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-amber-950 font-black rounded-xl text-xs shadow-md transition-all inline-flex items-center gap-2 cursor-pointer border border-amber-400"
-                  >
-                    <span>🔄</span>
-                    <span>{isRestoringPriests ? "ಮರುಸ್ಥಾಪಿಸಲಾಗುತ್ತಿದೆ..." : "10 ಪುರೋಹಿತರ ಪ್ರೊಫೈಲ್‌ಗಳನ್ನು ಮರುಸ್ಥಾಪಿಸಿ (Restore 10 Priests)"}</span>
-                  </button>
+                  {purohitaSearch ? (
+                    <button
+                      type="button"
+                      onClick={() => setPurohitaSearch("")}
+                      className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-amber-950 font-black rounded-xl text-xs shadow-md transition-all inline-flex items-center gap-2 cursor-pointer border border-amber-400"
+                    >
+                      <span>✕</span>
+                      <span>ಹುಡುಕಾಟ ರದ್ದುಗೊಳಿಸಿ (Clear Search)</span>
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={isRestoringPriests}
+                      onClick={handleRestoreAllPriests}
+                      className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-amber-950 font-black rounded-xl text-xs shadow-md transition-all inline-flex items-center gap-2 cursor-pointer border border-amber-400"
+                    >
+                      <span>🔄</span>
+                      <span>{isRestoringPriests ? "ಮರುಸ್ಥಾಪಿಸಲಾಗುತ್ತಿದೆ..." : "10 ಪುರೋಹಿತರ ಪ್ರೊಫೈಲ್‌ಗಳನ್ನು ಮರುಸ್ಥಾಪಿಸಿ (Restore 10 Priests)"}</span>
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div className="overflow-x-auto rounded-2xl border-2 border-amber-300 bg-white shadow-xs">
@@ -2497,7 +2550,7 @@ export const SuperAdminDashboard: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-amber-100 font-semibold">
-                      {allPriestWallets.map((priest) => {
+                      {displayPriestWallets.map((priest) => {
                         const isLow = (priest.coinBalance || 0) < 500;
                         const modules: AvailableModuleKey[] = (priest.allowedModules && priest.allowedModules.length > 0)
                           ? (priest.allowedModules as AvailableModuleKey[])
@@ -5801,7 +5854,7 @@ export const SuperAdminDashboard: React.FC = () => {
 
       {/* 14. PRIEST DEEP PROFILE & HISTORY AUDIT MODAL */}
       {viewingPriestProfile && (() => {
-        const priest = viewingPriestProfile;
+        const priest = effectiveWallets.find((w) => w.userId === viewingPriestProfile.userId) || viewingPriestProfile;
         const priestKundlis = kundlis.filter((k) => k.userId === priest.userId);
         const isLow = (priest.coinBalance || 0) < 500;
         const modules: AvailableModuleKey[] = (priest.allowedModules && priest.allowedModules.length > 0)

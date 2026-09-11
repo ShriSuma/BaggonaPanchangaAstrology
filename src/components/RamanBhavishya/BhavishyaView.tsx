@@ -145,6 +145,7 @@ export interface DynamicChartContext {
   transits?: TransitPlacement[];
   moonRashiIndex?: number;
   ageYears?: number;
+  gender?: "Male" | "Female";
 }
 
 export function robustParseGeminiJSON(text: string): Record<string, any> {
@@ -289,6 +290,7 @@ export function buildPersonalizedChildrenText(
     moonRashiIndex: context?.moonRashiIndex ?? ((lagnaIndex + 3) % 12),
     natalPlanets,
     transits: context?.transits,
+    gender: context?.gender ?? "Male",
     ageYears: context?.ageYears ?? 30,
     lang: baseLang
   });
@@ -331,6 +333,7 @@ export function buildPersonalizedCareerText(
       retrograde: p.isRetrograde
     })),
     transits: context?.transits,
+    gender: context?.gender ?? "Male",
     ageYears: context?.ageYears ?? 30,
     lang
   });
@@ -358,6 +361,7 @@ export function buildPersonalizedWealthText(
       retrograde: p.isRetrograde
     })),
     transits: context?.transits,
+    gender: context?.gender ?? "Male",
     ageYears: context?.ageYears ?? 30,
     lang
   });
@@ -385,6 +389,7 @@ export function buildPersonalizedHealthText(
       retrograde: p.isRetrograde
     })),
     transits: context?.transits,
+    gender: context?.gender ?? "Male",
     ageYears: context?.ageYears ?? 30,
     lang
   });
@@ -678,11 +683,23 @@ Return ONLY this JSON format:
         console.warn("Question PDF AI generation failed, using fallback", e);
       }
 
-      if (!parsedSummary || !parsedSummary.paragraph1 || parsedSummary.paragraph1.length < 20) {
-        const p1 = await translateText(`Based on your birth chart, ${topicLabel} is governed by key planetary houses and aspects.`, lang);
-        const p2 = await translateText(`Your running Dasha and live transits trigger active developments in this chapter of your life.`, lang);
-        const p3 = await translateText(`Focused effort, patience, and strategic decision making will lead to positive outcomes.`, lang);
-        const p4 = await translateText(`Recommended Remedy: Perform morning prayer facing the favorable direction and offer light at your altar. May success attend your path.`, lang);
+      if (!parsedSummary || !parsedSummary.paragraph1 || parsedSummary.paragraph1.length < 100) {
+        const p1 = await translateText(
+          `According to the timeless principles of Vedic astrology and your personal Janma Kundali, the domain of ${topicLabel} is governed by your natal Lagna (${session.result.lagnaRashi?.english || "Ascendant"}), Moon sign (${session.result.moonSign.english}), and their ruling planetary lords. The alignment of your primary Kendra and Trikona houses establishes a clear karmic rhythm, indicating that your past efforts and intrinsic virtues are now converging to create focused opportunities and necessary transformations in this area of life. Recognizing your natural planetary dispositions will allow you to navigate upcoming situations with poise and clarity.`,
+          lang
+        );
+        const p2 = await translateText(
+          `Your running Dasha-Bhukti cycle, combined with the live Gochara transits of Saturn and Jupiter across your natal chart, activates a dynamic 12 to 18-month window of profound development. These planetary movements bring latent issues to the surface, demanding decisive yet balanced action while dismantling previous stagnation. Rather than being passive, this phase calls for strategic foresight, meticulous planning, and the courage to adapt to evolving family or professional circumstances.`,
+          lang
+        );
+        const p3 = await translateText(
+          `To extract the most auspicious outcomes regarding ${topicLabel}, you must anchor yourself in ethical discipline, patience, and deliberate execution. Avoid impulsive choices driven by momentary pressure, and instead consult trusted mentors or family elders before finalizing critical commitments. Channeling your creative energies consistently toward productive goals will turn apparent challenges into permanent stepping stones for long-term security, prosperity, and peace of mind.`,
+          lang
+        );
+        const p4 = await translateText(
+          `Recommended Vedic Remedy: Recite your Ishta Devata mantra and the Navagraha Stotram 108 times daily during morning Brahmi Muhurtha. Light a pure cow ghee or sesame oil lamp facing East in your household altar, offer yellow flowers or sweet offerings on auspicious days, and engage in selfless service (Seva) to cows or the needy. May the divine grace of Baggona Kshetra bestow peace, protection, and auspicious victory upon your path.`,
+          lang
+        );
         parsedSummary = { paragraph1: p1, paragraph2: p2, paragraph3: p3, paragraph4: p4 };
       }
 
@@ -881,12 +898,24 @@ Return ONLY this JSON format:
       } catch (e) {
         console.warn("Error generating answer for question", q.id, e);
       }
-
-      if (!updatedList[i].answer || !updatedList[i].answer?.paragraph1) {
-        const p1 = await translateText(`Based on your birth Lagna and key natal house lords, planetary strength creates active focus around ${q.topicLabel}.`, lang);
-        const p2 = await translateText(`Your running Dasha period and Jupiter-Saturn Gochara transits trigger major developments over the next 12 to 18 months.`, lang);
-        const p3 = await translateText(`Strategic decisions aligned with ethical goals and patient effort will yield highly favorable outcomes and stability.`, lang);
-        const p4 = await translateText(`Recommended Remedy: Recite core planetary mantras 108 times daily facing East, offer light at your altar, and perform charity on auspicious days. May divine grace attend your path.`, lang);
+      const currentAns = updatedList[i].answer;
+      if (!currentAns || !currentAns.paragraph1 || currentAns.paragraph1.trim().length < 100) {
+        const p1 = await translateText(
+          `Analyzing your personal Janma Kundali regarding ${q.topicLabel}, the planetary dispositions of your Lagna (${session.result.lagnaRashi?.english || "Ascendant"}) and Moon sign (${session.result.moonSign.english}) generate concentrated cosmic momentum. The lords governing your key Kendra and Trikona houses are currently directing their planetary rays toward this specific life facet, highlighting both inherent karmic strengths and areas requiring refined focus. This configuration indicates that you are entering a pivotal phase of growth and clarity.`,
+          lang
+        );
+        const p2 = await translateText(
+          `The cosmic backdrop of your active Dasha-Bhukti period, synchronized with the pivotal Gochara transits of Devaguru Jupiter and Karmakaraka Saturn, will trigger significant developments over the next 12 to 18 months. During this timeline, subtle opportunities will present themselves to resolve lingering uncertainties, stabilize your trajectory, and establish firmer ground. Paying attention to timing and maintaining steady perseverance will unlock doors that previously appeared closed.`,
+          lang
+        );
+        const p3 = await translateText(
+          `Achieving maximum success in this sector requires disciplined execution, measured speech, and harmonious coordination with those around you. Steer clear of unvetted shortcuts or hasty decisions; enduring progress is forged through methodical steps and adherence to righteous principles (Dharma). Balancing ambition with inner calm will ensure that any temporary obstacles are smoothly navigated, leaving you with lasting fulfillment and tangible rewards.`,
+          lang
+        );
+        const p4 = await translateText(
+          `Recommended Vedic Remedy: Perform morning prayer facing East, recite the Gayatri Mantra or core planetary Beeja Mantras 108 times with focused devotion, and maintain an oil lamp at your altar at twilight. Practicing charity by feeding birds or offering grain to the deserving on Saturdays strengthens positive planetary vibrations. May divine blessings guide your journey toward auspicious fulfillment and total peace.`,
+          lang
+        );
         updatedList[i].answer = { paragraph1: p1, paragraph2: p2, paragraph3: p3, paragraph4: p4 };
       }
     }
@@ -1097,11 +1126,23 @@ Return ONLY this JSON format:
         console.warn("AI summary generation failed, using structured fallback", e);
       }
 
-      if (!parsedSummary || !parsedSummary.paragraph1 || parsedSummary.paragraph1.length < 20) {
-        const p1 = await translateText(`Currently, you are running ${currentBhuktiData?.maha.planet || "Main"} Dasha and ${currentBhuktiData?.bhukti || "Sub"} Bhukti. This cosmic period brings focus to your core life purpose, inner growth, and key responsibilities.`, lang);
-        const p2 = await translateText(`The current planetary transits (Gochara) across your Moon sign ${session.result.moonSign.english} are triggering dynamic changes in your environment, calling for patience and focused effort.`, lang);
-        const p3 = await translateText(`During this phase, align your actions with long-term goals. Major decisions regarding career, relationships, and health should be taken with calm consideration.`, lang);
-        const p4 = await translateText(`Recommended Remedy: Recite core planetary mantras on Saturdays and Tuesdays, offer light at a local place of worship, and maintain mental equilibrium. May divine blessings attend your journey.`, lang);
+      if (!parsedSummary || !parsedSummary.paragraph1 || parsedSummary.paragraph1.length < 100) {
+        const p1 = await translateText(
+          `Currently, your life path is guided by the running ${currentBhuktiData?.maha.planet || "Main"} Mahadasha and ${currentBhuktiData?.bhukti || "Sub"} Bhukti period. In classical Vedic astrology, this specific planetary combination activates your foundational life purpose, calling forth inner wisdom, self-reliance, and heightened responsibilities across your personal and vocational spheres. This cosmic chapter is designed to refine your innate strengths and prepare you for elevated societal standing and personal maturity.`,
+          lang
+        );
+        const p2 = await translateText(
+          `Concurrently, the live planetary transits (Gochara) of Saturn, Jupiter, and Rahu-Ketu across your natal Moon sign (${session.result.moonSign.english}) are stimulating dynamic currents of change in your immediate environment. While these transits can occasionally induce psychological restlessness or unexpected shifts in routine, their deeper spiritual purpose is to strip away stagnation and cultivate unshakeable resilience. Patience, discernment, and ethical steadfastness are your greatest allies during this transformative phase.`,
+          lang
+        );
+        const p3 = await translateText(
+          `Throughout this pivotal interval, align every significant action with long-term security and family well-being. Important life decisions—such as career transitions, financial investments, or relationship commitments—should be undertaken with calm deliberation rather than emotional urgency. Cultivating daily mindfulness and seeking counsel from wise elders will safeguard your interests, turning potential friction into permanent milestones of achievement.`,
+          lang
+        );
+        const p4 = await translateText(
+          `Recommended Vedic Remedy: Recite core planetary mantras—especially Om Namah Shivaya and the Mahamrityunjaya Stotram—on Tuesdays and Saturdays. Light a fragrant sesame oil or cow ghee lamp at your household sanctum during dusk, perform Go-Seva (serving cows), and support noble educational or spiritual charities. May the sacred grace of Baggona Kshetra continually bless you with sound health, prosperous longevity, and radiant peace of mind.`,
+          lang
+        );
 
         parsedSummary = { paragraph1: p1, paragraph2: p2, paragraph3: p3, paragraph4: p4 };
       }
@@ -1435,7 +1476,8 @@ Return ONLY this JSON format:
         })),
         transits,
         moonRashiIndex: session.result.moonSign.index,
-        ageYears
+        ageYears,
+        gender: (((session.input as any)?.gender || "Male") as "Male" | "Female")
       };
 
       setV1PdfProgress(38);
@@ -1948,7 +1990,8 @@ Return ONLY this JSON format:
         })),
         transits,
         moonRashiIndex: session.result.moonSign.index,
-        ageYears
+        ageYears,
+        gender: ((userGender || "Male") as "Male" | "Female")
       };
 
       setV1PdfProgress(38);
@@ -2099,31 +2142,112 @@ Return ONLY this JSON format:
       const bhuktiName = bhuktiLord ? pick(GRAHA_L5[bhuktiLord], lang) : "Bhukti";
 
       if (isChild) {
-        // Child: 5 Dedicated Non-Adult Pedagogical Categories (Strict 2 Paras, 5-6 Lines Each)
-        const catEd = baseLang === "kn" ? "ವಿದ್ಯಾಭ್ಯಾಸ ಹಾಗೂ ಬುದ್ಧಿಶಕ್ತಿ (Education)" : baseLang === "hi" ? "शिक्षा एवं बौद्धिक विकास (Education)" : "Education & Early Intellect";
-        const textEd = isSufficientDepth(aiB.marriage, 2, 240) ? aiB.marriage : buildDynamicChildEducationFallback(parsedKundali);
+        // Child (< 8 Years): 5 Dedicated Non-Adult Pedagogical Categories
+        const catEd = baseLang === "kn" ? "ವಿದ್ಯಾಭ್ಯಾಸ ಹಾಗೂ ಬುದ್ಧಿಶಕ್ತಿ" : baseLang === "hi" ? "शिक्षा एवं बौद्धिक विकास" : baseLang === "te" ? "విద్యాభ్యాసం మరియు మేధో వికాసం" : baseLang === "ta" ? "கல்வி மற்றும் அறிவு வளர்ச்சி" : "Education & Early Intellect";
+        const textEd = isSufficientDepth(asText(aiB.marriage), 2, 240) ? asText(aiB.marriage) : buildDynamicChildEducationFallback(parsedKundali);
         v1Predictions.push({ category: "Education & Early Intellect", translatedCategory: catEd, text: textEd, translatedText: textEd });
 
-        const catAct = baseLang === "kn" ? "ಪ್ರತಿಭೆ, ಕ್ರೀಡೆ ಹಾಗೂ ಸೃಜನಶೀಲತೆ (Talents & Sports)" : baseLang === "hi" ? "प्रतिभा, खेल एवं रचनात्मकता (Activities & Creativity)" : "Talents, Activities & Sports";
-        const textAct = isSufficientDepth(aiB.children, 2, 240) ? aiB.children : buildDynamicChildActivitiesFallback(parsedKundali);
+        const catAct = baseLang === "kn" ? "ಪ್ರತಿಭೆ, ಕ್ರೀಡೆ ಹಾಗೂ ಸೃಜನಶೀಲತೆ" : baseLang === "hi" ? "प्रतिभा, खेल एवं रचनात्मकता" : baseLang === "te" ? "ప్రతిభ, క్రీడలు మరియు సృజనాత్మకత" : baseLang === "ta" ? "திறமை, விளையாட்டு மற்றும் படைப்பாற்றல்" : "Talents, Activities & Sports";
+        const textAct = isSufficientDepth(asText(aiB.children), 2, 240) ? asText(aiB.children) : buildDynamicChildActivitiesFallback(parsedKundali);
         v1Predictions.push({ category: "Talents, Activities & Sports", translatedCategory: catAct, text: textAct, translatedText: textAct });
 
-        const catFdn = baseLang === "kn" ? "ವ್ಯಕ್ತಿತ್ವ ವಿಕಾಸ ಹಾಗೂ ಸಂಸ್ಕಾರ (Future Foundation)" : baseLang === "hi" ? "चरित्र निर्माण एवं संस्कार (Future Foundation)" : "Future Foundation & Character";
-        const textFdn = isSufficientDepth(aiB.career, 2, 240) ? aiB.career : buildDynamicChildFoundationFallback(parsedKundali);
+        const catFdn = baseLang === "kn" ? "ವ್ಯಕ್ತಿತ್ವ ವಿಕಾಸ ಹಾಗೂ ಸಂಸ್ಕಾರ" : baseLang === "hi" ? "चरित्र निर्माण एवं संस्कार" : baseLang === "te" ? "వ్యక్తిత్వ వికాసం మరియు సంస్కారం" : baseLang === "ta" ? "ஆளுமை வளர்ச்சி மற்றும் நற்பண்புகள்" : "Future Foundation & Character";
+        const textFdn = isSufficientDepth(asText(aiB.career), 2, 240) ? asText(aiB.career) : buildDynamicChildFoundationFallback(parsedKundali);
         v1Predictions.push({ category: "Future Foundation & Character", translatedCategory: catFdn, text: textFdn, translatedText: textFdn });
 
-        const catFam = baseLang === "kn" ? "ಕೌಟುಂಬಿಕ ಪ್ರೀತಿ ಹಾಗೂ ಪೋಷಣೆ (Family Environment)" : baseLang === "hi" ? "पारिवारिक वातावरण एवं लालन-पालन (Family Upbringing)" : "Family Environment & Upbringing";
-        const textFam = isSufficientDepth(aiB.wealth, 2, 240) ? aiB.wealth : buildDynamicChildFamilyFallback(parsedKundali);
+        const catFam = baseLang === "kn" ? "ಕೌಟುಂಬಿಕ ಪ್ರೀತಿ ಹಾಗೂ ಪೋಷಣೆ" : baseLang === "hi" ? "पारिवारिक वातावरण एवं लालन-पालन" : baseLang === "te" ? "కుటుంబ ప్రేమ మరియు లాలన" : baseLang === "ta" ? "குடும்ப பாசம் மற்றும் வளர்ப்பு" : "Family Environment & Upbringing";
+        const textFam = isSufficientDepth(asText(aiB.wealth), 2, 240) ? asText(aiB.wealth) : buildDynamicChildFamilyFallback(parsedKundali);
         v1Predictions.push({ category: "Family Environment & Upbringing", translatedCategory: catFam, text: textFam, translatedText: textFam });
 
-        const catHlt = baseLang === "kn" ? "ಬಾಲ ಆರೋಗ್ಯ ಹಾಗೂ ಚೈತನ್ಯ (Pediatric Health)" : baseLang === "hi" ? "बाल स्वास्थ्य एवं रोग प्रतिरोधक क्षमता (Pediatric Health)" : "Pediatric Health & Vitality";
-        const textHlt = isSufficientDepth(aiB.health, 2, 240) ? aiB.health : buildDynamicChildPediatricHealthFallback(parsedKundali);
+        const catHlt = baseLang === "kn" ? "ಬಾಲ ಆರೋಗ್ಯ ಹಾಗೂ ಚೈತನ್ಯ" : baseLang === "hi" ? "बाल स्वास्थ्य एवं रोग प्रतिरोधक क्षमता" : baseLang === "te" ? "బాల ఆరోగ్యం మరియు రక్షణ" : baseLang === "ta" ? "குழந்தை நலம் மற்றும் ஆரோக்கியம்" : "Pediatric Health & Vitality";
+        const textHlt = isSufficientDepth(asText(aiB.health), 2, 240) ? asText(aiB.health) : buildDynamicChildPediatricHealthFallback(parsedKundali);
         v1Predictions.push({ category: "Pediatric Health & Vitality", translatedCategory: catHlt, text: textHlt, translatedText: textHlt });
+      } else if (ageYears >= 60) {
+        // Senior Devotees (60+ Years): Dedicated Companionship, Legacy, Mentorship, Asset Peace & Geriatric Health
+        // 1. Companionship & Domestic Serenity
+        const catMar = baseLang === "kn" ? "ಧರ್ಮ ಸಹಚಾರ್ಯ ಹಾಗೂ ಕೌಟುಂಬಿಕ ನೆಮ್ಮದಿ" : baseLang === "hi" ? "दांपत्य सौहार्द एवं पारिवारिक शांति" : baseLang === "te" ? "దాంపత్య సౌఖ్యం మరియు కుటుంబ ప్రశాంతత" : baseLang === "ta" ? "தம்பதியர் நல்லிணக்கம் மற்றும் குடும்ப அமைதி" : "Companionship & Domestic Harmony";
+        let textMar = asText(aiB.marriage).trim();
+        if (isSufficientDepth(textMar, 2, 280)) {
+          const mParas = textMar.split("\n").filter((pText: string) => {
+            const pLower = pText.toLowerCase();
+            return !pLower.includes("ಸಂತಾನ") && !pLower.includes("ಮಕ್ಕಳ") && !pLower.includes("progeny") && !pLower.includes("children");
+          });
+          textMar = mParas.join("\n\n").trim() || textMar;
+        }
+        if (!isSufficientDepth(textMar, 2, 280)) {
+          textMar = buildPersonalizedMarriageText(lang, lagnaStr, moonStr, personalization?.maritalStatus || "married", lagnaIdx, dashaName, bhuktiName, userGender as "Male" | "Female", dynamicCtx);
+        }
+        v1Predictions.push({ category: "Companionship & Domestic Harmony", translatedCategory: catMar, text: textMar, translatedText: textMar });
+
+        // 2. Family Legacy & Grandchildren
+        const catChd = baseLang === "kn" ? "ವಂಶಾಭಿವೃದ್ಧಿ ಹಾಗೂ ಮೊಮ್ಮಕ್ಕಳ ಸೌಖ್ಯ" : baseLang === "hi" ? "वंश वृद्धि एवं पौत्र-पौत्री सुख" : baseLang === "te" ? "వంశాభివృద్ధి మరియు మనవలు-మనవరాళ్ల సుఖం" : baseLang === "ta" ? "சந்ததி வளர்ச்சி மற்றும் பேரப்பிள்ளைகள் நலம்" : "Family Legacy & Grandchildren";
+        const textChd = isSufficientDepth(asText(aiB.children).trim(), 2, 260)
+          ? asText(aiB.children).trim()
+          : buildPersonalizedChildrenText(lang, personalization?.childrenStatus || "has_children", lagnaIdx, dashaName, bhuktiName, dynamicCtx);
+        v1Predictions.push({ category: "Family Legacy & Grandchildren", translatedCategory: catChd, text: textChd, translatedText: textChd });
+
+        // 3. Mentorship & Dharmic Leadership
+        const catCar = baseLang === "kn" ? "ಧರ್ಮ ಕಾರ್ಯ, ಸಮಾಜ ಸೇವೆ ಹಾಗೂ ಮಾರ್ಗದರ್ಶನ" : baseLang === "hi" ? "धर्मार्थ कार्य एवं सामाजिक मार्गदर्शन" : baseLang === "te" ? "ధర్మ కార్యాలు మరియు సమాజ మార్గదర్శకత్వం" : baseLang === "ta" ? "தர்ம காரியங்கள் மற்றும் சமூக வழிகாட்டுதல்" : "Mentorship & Dharmic Leadership";
+        const textCar = isSufficientDepth(asText(aiB.career).trim(), 2, 260)
+          ? asText(aiB.career).trim()
+          : buildPersonalizedCareerText(lang, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
+        v1Predictions.push({ category: "Mentorship & Dharmic Leadership", translatedCategory: catCar, text: textCar, translatedText: textCar });
+
+        // 4. Wealth Preservation & Estate Peace
+        const catWlh = baseLang === "kn" ? "ಸಂಪತ್ತು ಸಂರಕ್ಷಣೆ ಹಾಗೂ ಕುಟುಂಬ ಸಮೃದ್ಧಿ" : baseLang === "hi" ? "संपत्ति सुरक्षा एवं पारिवारिक समृद्धि" : baseLang === "te" ? "సంపద పరిరక్షణ మరియు కుటుంబ సుఖం" : baseLang === "ta" ? "செல்வப் பாதுகாப்பு மற்றும் குடும்ப சுபிட்சம்" : "Wealth Preservation & Estate Peace";
+        const textWlh = isSufficientDepth(asText(aiB.wealth).trim(), 2, 260)
+          ? asText(aiB.wealth).trim()
+          : buildPersonalizedWealthText(lang, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
+        v1Predictions.push({ category: "Wealth Preservation & Estate Peace", translatedCategory: catWlh, text: textWlh, translatedText: textWlh });
+
+        // 5. Longevity & Geriatric Wellness
+        const catHlt = baseLang === "kn" ? "ದೀರ್ಘಾಯುಷ್ಯ ಹಾಗೂ ಸ್ವಾಸ್ಥ್ಯ ರಕ್ಷಣೆ" : baseLang === "hi" ? "दीर्घायु एवं स्वास्थ्य रक्षा" : baseLang === "te" ? "దీర్ఘాయుష్షు మరియు ఆరోగ్య రక్షణ" : baseLang === "ta" ? "நீண்ட ஆயுள் மற்றும் ஆரோக்கியப் பாதுகாப்பு" : "Longevity & Geriatric Wellness";
+        const textHlt = isSufficientDepth(asText(aiB.health).trim(), 2, 260)
+          ? asText(aiB.health).trim()
+          : buildPersonalizedHealthText(lang, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
+        v1Predictions.push({ category: "Longevity & Geriatric Wellness", translatedCategory: catHlt, text: textHlt, translatedText: textHlt });
+      } else if (ageYears < 22) {
+        // Youth / Students (12 to 21 Years): Study, Character, Future Career, Financial Literacy & Vitality
+        // 1. Character & Emotional Poise
+        const catMar = baseLang === "kn" ? "ವ್ಯಕ್ತಿತ್ವ ನಿರ್ಮಾಣ ಹಾಗೂ ಮಾನಸಿಕ ಏಕಾಗ್ರತೆ" : baseLang === "hi" ? "चरित्र निर्माण एवं मानसिक एकाग्रता" : baseLang === "te" ? "వ్యక్తిత్వ నిర్మాణం మరియు ఏకాగ్రత" : baseLang === "ta" ? "ஆளுமை உருவாக்கம் மற்றும் மன உறுதி" : "Character & Mental Focus";
+        let textMar = asText(aiB.marriage).trim();
+        if (!isSufficientDepth(textMar, 2, 280)) {
+          textMar = buildPersonalizedMarriageText(lang, lagnaStr, moonStr, "unmarried", lagnaIdx, dashaName, bhuktiName, userGender as "Male" | "Female", dynamicCtx);
+        }
+        v1Predictions.push({ category: "Character & Mental Focus", translatedCategory: catMar, text: textMar, translatedText: textMar });
+
+        // 2. Higher Studies & Intellect
+        const catChd = baseLang === "kn" ? "ಉನ್ನತ ಶಿಕ್ಷಣ ಹಾಗೂ ಜ್ಞಾನಾರ್ಜನೆ" : baseLang === "hi" ? "उच्च शिक्षा एवं बौद्धिक विकास" : baseLang === "te" ? "ఉన్నత విద్య మరియు మేధో వికాసం" : baseLang === "ta" ? "உயர்கல்வி மற்றும் அறிவு வளர்ச்சி" : "Higher Studies & Intellect";
+        const textChd = isSufficientDepth(asText(aiB.children).trim(), 2, 260)
+          ? asText(aiB.children).trim()
+          : buildPersonalizedChildrenText(lang, "no_children", lagnaIdx, dashaName, bhuktiName, dynamicCtx);
+        v1Predictions.push({ category: "Higher Studies & Intellect", translatedCategory: catChd, text: textChd, translatedText: textChd });
+
+        // 3. Future Career Foundation
+        const catCar = baseLang === "kn" ? "ಭವಿಷ್ಯದ ವೃತ್ತಿ ಅಡಿಪಾಯ" : baseLang === "hi" ? "भावी करियर की नींव" : baseLang === "te" ? "భవిష్యత్ కెరీర్ పునాది" : baseLang === "ta" ? "எதிர்கால தொழில் அடித்தளம்" : "Future Career Foundation";
+        const textCar = isSufficientDepth(asText(aiB.career).trim(), 2, 260)
+          ? asText(aiB.career).trim()
+          : buildPersonalizedCareerText(lang, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
+        v1Predictions.push({ category: "Future Career Foundation", translatedCategory: catCar, text: textCar, translatedText: textCar });
+
+        // 4. Financial Discipline & Values
+        const catWlh = baseLang === "kn" ? "ಆರ್ಥಿಕ ಶಿಸ್ತು ಹಾಗೂ ಕೌಟುಂಬಿಕ ಮೌಲ್ಯಗಳು" : baseLang === "hi" ? "वित्तीय अनुशासन एवं पारिवारिक मूल्य" : baseLang === "te" ? "ఆర్థిక క్రమశిక్షణ మరియు కుటుంబ విలువలు" : baseLang === "ta" ? "நிதி ஒழுக்கம் மற்றும் குடும்ப விழுமியங்கள்" : "Financial Discipline & Values";
+        const textWlh = isSufficientDepth(asText(aiB.wealth).trim(), 2, 260)
+          ? asText(aiB.wealth).trim()
+          : buildPersonalizedWealthText(lang, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
+        v1Predictions.push({ category: "Financial Discipline & Values", translatedCategory: catWlh, text: textWlh, translatedText: textWlh });
+
+        // 5. Vitality & Fitness
+        const catHlt = baseLang === "kn" ? "ಯುವ ಚೈತನ್ಯ ಹಾಗೂ ದೈಹಿಕ ದೃಢತೆ" : baseLang === "hi" ? "शारीरिक ऊर्जा एवं स्वास्थ्य संतुलन" : baseLang === "te" ? "శారీరక శక్తి మరియు ఆరోగ్య సమతుల్యత" : baseLang === "ta" ? "உடல் வலிமை மற்றும் ஆரோக்கிய சமநிலை" : "Vitality, Fitness & Screen Balance";
+        const textHlt = isSufficientDepth(asText(aiB.health).trim(), 2, 260)
+          ? asText(aiB.health).trim()
+          : buildPersonalizedHealthText(lang, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
+        v1Predictions.push({ category: "Vitality, Fitness & Screen Balance", translatedCategory: catHlt, text: textHlt, translatedText: textHlt });
       } else {
         // Adult: Exactly 5 Dedicated Core Categories (Strict 2-3 Paras, 5-6 Lines Each)
         // 1. Marriage & Relationships
-        const catMar = baseLang === "kn" ? "ವಿವಾಹ ಹಾಗೂ ಸಂಬಂಧ (Marriage & Relationships)" : baseLang === "hi" ? "विवाह एवं संबंध (Marriage & Relationships)" : "Marriage & Relationships";
-        let textMar = (aiB.marriage || "").trim();
+        const catMar = baseLang === "kn" ? "ವಿವಾಹ ಹಾಗೂ ಸಂಬಂಧ" : baseLang === "hi" ? "विवाह एवं संबंध" : baseLang === "te" ? "వివాహం మరియు సంబంధ బాంధవ్యాలు" : baseLang === "ta" ? "திருமணம் மற்றும் இல்லற வாழ்க்கை" : "Marriage & Relationships";
+        let textMar = asText(aiB.marriage).trim();
         if (isSufficientDepth(textMar, 2, 280)) {
           const mParas = textMar.split("\n").filter((pText: string) => {
             const pLower = pText.toLowerCase();
@@ -2137,30 +2261,30 @@ Return ONLY this JSON format:
         v1Predictions.push({ category: "Marriage & Relationships", translatedCategory: catMar, text: textMar, translatedText: textMar });
 
         // 2. Children & Progeny
-        const catChd = baseLang === "kn" ? "ಸಂತಾನ ಹಾಗೂ ಮಕ್ಕಳು (Children & Progeny)" : baseLang === "hi" ? "संतान एवं बच्चे (Children & Progeny)" : "Children & Progeny";
-        const textChd = isSufficientDepth(aiB.children, 2, 260)
-          ? aiB.children
+        const catChd = baseLang === "kn" ? "ಸಂತಾನ ಹಾಗೂ ಮಕ್ಕಳು" : baseLang === "hi" ? "संतान एवं बच्चे" : baseLang === "te" ? "సంతానం మరియు పిల్లలు" : baseLang === "ta" ? "சந்ததி மற்றும் குழந்தைகள்" : "Children & Progeny";
+        const textChd = isSufficientDepth(asText(aiB.children).trim(), 2, 260)
+          ? asText(aiB.children).trim()
           : buildPersonalizedChildrenText(lang, personalization?.childrenStatus || "general", lagnaIdx, dashaName, bhuktiName, dynamicCtx);
         v1Predictions.push({ category: "Children & Progeny", translatedCategory: catChd, text: textChd, translatedText: textChd });
 
         // 3. Career & Profession
-        const catCar = baseLang === "kn" ? "ಉದ್ಯೋಗ ಹಾಗೂ ವೃತ್ತಿ ಏಳಿಗೆ (Career & Profession)" : baseLang === "hi" ? "करियर एवं पदोन्नति योग (Career & Profession)" : "Career & Profession";
-        const textCar = isSufficientDepth(aiB.career, 2, 260)
-          ? aiB.career
+        const catCar = baseLang === "kn" ? "ಉದ್ಯೋಗ ಹಾಗೂ ವೃತ್ತಿ ಏಳಿಗೆ" : baseLang === "hi" ? "करियर एवं पदोन्नति योग" : baseLang === "te" ? "ఉద్యోగం మరియు వృత్తి ఎదుగుదల" : baseLang === "ta" ? "தொழில் மற்றும் உத்தியோக முன்னேற்றம்" : "Career & Profession";
+        const textCar = isSufficientDepth(asText(aiB.career).trim(), 2, 260)
+          ? asText(aiB.career).trim()
           : buildPersonalizedCareerText(lang, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
         v1Predictions.push({ category: "Career & Profession", translatedCategory: catCar, text: textCar, translatedText: textCar });
 
         // 4. Wealth & Family Finance
-        const catWlh = baseLang === "kn" ? "ಧನ ಆಸ್ತಿ ಹಾಗೂ ಆರ್ಥಿಕ ಯೋಗ (Wealth & Finance)" : baseLang === "hi" ? "धन संपत्ति एवं आर्थिक योग (Wealth & Finance)" : "Wealth & Family Finance";
-        const textWlh = isSufficientDepth(aiB.wealth, 2, 260)
-          ? aiB.wealth
+        const catWlh = baseLang === "kn" ? "ಧನ ಆಸ್ತಿ ಹಾಗೂ ಆರ್ಥಿಕ ಯೋಗ" : baseLang === "hi" ? "धन संपत्ति एवं आर्थिक योग" : baseLang === "te" ? "ధన సంపద మరియు ఆర్థిక యోగం" : baseLang === "ta" ? "தன லாபம் மற்றும் பொருளாதார நிலை" : "Wealth & Family Finance";
+        const textWlh = isSufficientDepth(asText(aiB.wealth).trim(), 2, 260)
+          ? asText(aiB.wealth).trim()
           : buildPersonalizedWealthText(lang, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
         v1Predictions.push({ category: "Wealth & Family Finance", translatedCategory: catWlh, text: textWlh, translatedText: textWlh });
 
         // 5. Health & Vitality
-        const catHlt = baseLang === "kn" ? "ಆರೋಗ್ಯ ಹಾಗೂ ಚೈತನ್ಯ (Health & Vitality)" : baseLang === "hi" ? "स्वास्थ्य एवं आरोग्य (Health & Vitality)" : "Health & Vitality";
-        const textHlt = isSufficientDepth(aiB.health, 2, 260)
-          ? aiB.health
+        const catHlt = baseLang === "kn" ? "ಆರೋಗ್ಯ ಹಾಗೂ ಚೈತನ್ಯ" : baseLang === "hi" ? "स्वास्थ्य एवं आरोग्य" : baseLang === "te" ? "ఆరోగ్యం మరియు శారీరక దృఢత్వం" : baseLang === "ta" ? "ஆரோக்கியம் மற்றும் உடல் பலம்" : "Health & Vitality";
+        const textHlt = isSufficientDepth(asText(aiB.health).trim(), 2, 260)
+          ? asText(aiB.health).trim()
           : buildPersonalizedHealthText(lang, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
         v1Predictions.push({ category: "Health & Vitality", translatedCategory: catHlt, text: textHlt, translatedText: textHlt });
       }

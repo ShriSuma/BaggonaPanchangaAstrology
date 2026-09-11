@@ -7,6 +7,8 @@ import {
   subscribeWalletTransactions,
   subscribePendingTransactions,
   subscribeAllPriestWallets,
+  getDefaultGokarnaWalletDocs,
+  savePriestWalletsToCache,
   createWalletTransaction,
   approveRechargeTransaction,
   directAdminCoinAdjustment,
@@ -71,7 +73,7 @@ export interface WalletState {
 
 export const useWalletStore = create<WalletState>((set, get) => ({
   wallet: null,
-  allPriestWallets: [],
+  allPriestWallets: typeof getDefaultGokarnaWalletDocs === "function" ? getDefaultGokarnaWalletDocs() : [],
   transactions: [],
   pendingAdminTransactions: [],
   selectedPackage: RECHARGE_PACKAGES[1], // Default to Purohita Silver
@@ -283,6 +285,30 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     if (!res.success) {
       return { success: false, error: res.error ?? "Direct adjustment failed" };
     }
+
+    // Optimistically update store state and localStorage immediately
+    set((state) => {
+      const updatedWallets = state.allPriestWallets.map((w) =>
+        w.userId === userId
+          ? {
+              ...w,
+              coinBalance: res.newBalance,
+              totalCoinsCredited: coins > 0 ? (w.totalCoinsCredited || 0) + coins : (w.totalCoinsCredited || 0),
+              totalCoinsSpent: coins < 0 ? (w.totalCoinsSpent || 0) + Math.abs(coins) : (w.totalCoinsSpent || 0),
+              updatedAt: new Date().toISOString()
+            }
+          : w
+      );
+      savePriestWalletsToCache(updatedWallets);
+      return {
+        allPriestWallets: updatedWallets,
+        wallet:
+          state.wallet && state.wallet.userId === userId
+            ? { ...state.wallet, coinBalance: res.newBalance }
+            : state.wallet
+      };
+    });
+
     // Real-time Email Alert to spshreepandit@gmail.com
     void notifyWalletCoinChange({
       userId,
