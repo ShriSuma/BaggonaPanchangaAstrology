@@ -143,6 +143,8 @@ export const buildChartFacts = (input: PremiumPromptInput): string => {
     `Person: ${input.name}`,
     `Gender: ${input.gender || "Male"}`,
     `Age now: ${Math.floor(input.ageYears)}`,
+    `Marital status: ${input.maritalStatus || "general"}`,
+    `Children status: ${input.hasChildren || "general"}`,
     `Lagna: ${rashiName(input.lagnaRashiIndex, lang)}`,
     `Chandra rashi: ${rashiName(input.moonRashiIndex, lang)}`,
     `Janma nakshatra: ${nakshatraName(input.moonNakshatraIndex, lang)}`,
@@ -287,40 +289,67 @@ ${JSON_RULE}
   const timeline = `${header(
     input,
     "timeline",
-    "You are an astrologer laying out the months ahead like a farmer reading the season."
+    "You are an intuitive Vedic astrologer laying out a personalized 6-month journey map for " + input.name + "."
   )}
 Engine roadmap for the coming months:
 ${roadmapText || "  (not available)"}
 
-YOUR TASK
+CRITICAL PERSONALIZATION REQUIREMENT:
+Connect each month directly with ${input.name}'s living reality at age ${Math.floor(input.ageYears)}.
 Provide EXACTLY SIX (6) entries in the 'timeline' array — one entry for EACH of the 6 months listed in the roadmap above.
 For EACH month entry:
 - 'dateRange': Write the month name and year in the target language native script (${input.lang}).
-- 'impact': Write ONE detailed, generous paragraph of at least 4-5 sentences detailing the planetary influence, financial/career/health predictions, and guidance for that month.
+- 'impact': Write ONE generous, detailed paragraph (at least 4-5 sentences) detailing concrete, relatable events happening in their life during that month (financial expenses/relief, family conversations, workplace dynamics, wellness vigilance, or spiritual moments). Avoid vague jargon. Speak directly to 'you'.
 Ensure all 6 months are covered sequentially without skipping any month.
 
 ${JSON_RULE}
 {"timeline":[{"dateRange":"month and year in target script","impact":"one long detailed paragraph"}]}`;
 
+  const maritalSel = input.maritalStatus || (input as any).marital || "general";
+  const childrenSel = input.hasChildren || (input as any).childrenStatus || "general";
+
   const currentPhase = `${header(
     input,
     "currentPhase",
-    "You are an intuitive Vedic astrologer and psychological expert evaluating the person's EXACT present state of mind, current life circumstances, and immediate planetary environment."
+    "You are a deeply empathetic Vedic astrologer and psychological counselor speaking directly to " + input.name + " with profound compassion, warmth, and intimate personal insight."
   )}
-CRITICAL ACCURACY REQUIREMENT:
-Write EXACTLY FOUR (4) FULL, DETAILED PARAGRAPHS analyzing this person's current life phase based strictly on their age (${Math.floor(input.ageYears)}), Lagna (${rashiName(input.lagnaRashiIndex, lang)}), Chandra Rashi (${rashiName(input.moonRashiIndex, lang)}), running ${dashaLine}, and live Gochara transits from the facts above:
-- Paragraph 1: Precise current life situation and daily circumstances happening today (career status, home environment, recent developments).
-- Paragraph 2: Core emotions and psychological mindset right now (feelings of joy, stress, anticipation, or transition).
-- Paragraph 3: Subconscious thoughts, hidden desires, and internal motivations driving their current decisions.
-- Paragraph 4: Actionable astrological advice, planetary remedies, and mindset shifts required to navigate this phase smoothly.
+CRITICAL PERSONAL CONNECTION & LIVING REALITY REQUIREMENT:
+You MUST connect with ${input.name} on a deeply personal, emotional level. Address them directly as 'you' (and greet them by name, ${input.name}).
+Tell them EXACTLY WHAT IS HAPPENING IN THEIR LIFE RIGHT NOW at age ${Math.floor(input.ageYears)} (${input.gender || 'Male'}, ${maritalSel}, ${childrenSel}), grounded strictly in their running ${dashaLine}, Lagna (${rashiName(input.lagnaRashiIndex, lang)}), Moon (${rashiName(input.moonRashiIndex, lang)}), and live Gochara transits.
 
-MUST BE 100% MATHEMATICALLY ACCURATE to the computed Dasha-Bhukti and transits provided above.
+DO NOT write detached textbook astrology or vague abstractions. Describe their living reality, daily emotions, household atmosphere, and workplace/financial circumstances!
+
+Write EXACTLY FOUR (4) FULL, DETAILED PARAGRAPHS (EXPANSIVE AND DEEPLY PERSONAL):
+
+- Paragraph 1 (Exact Daily Life Circumstances Happening Right Now):
+  Describe their concrete daily reality today. What is happening in their household, career/finances, and daily routine?
+  ${input.ageYears >= 60
+    ? `Since ${input.name} is a respected elder (age ${Math.floor(input.ageYears)}), focus on their transition away from routine rat-race competition, bodily vitality and health routines, concern for children/grandchildren settling down, household legacy, and desire for an orderly, peaceful home environment.`
+    : input.ageYears < 23
+    ? `Since ${input.name} is a youth/student (age ${Math.floor(input.ageYears)}), focus on their academic workload, exam pressures, career direction dilemmas, search for personal identity, and emotional expectations from family and peers.`
+    : `Since ${input.name} is an adult (age ${Math.floor(input.ageYears)}), focus on their heavy daily responsibilities, balancing career progression with domestic duties, financial commitments/expenditures, ${maritalSel === 'married' ? (childrenSel === 'no_children' ? 'nurturing deep marital harmony, standing as emotional anchors for each other, and holding shared hopes for family expansion' : 'nurturing marital harmony and children\'s needs') : 'pursuing vocational stability and personal life settlement'}, and feeling that the family\'s stability relies on their shoulders.`
+  }
+  Tie this directly to the energy of running ${dashaLine}.
+
+- Paragraph 2 (Core Emotional State & Mental Weather Happening Right Now):
+  Acknowledge their exact feelings right now. Validate their silent emotional burdens, moments of fatigue, stress, or excitement.
+  Explain how live planetary transits (Saturn's transit from Moon, Jupiter's transit, Rahu-Ketu) are actively coloring their thoughts. If experiencing Sade Sati, Ashtama Shani, or challenging transits, acknowledge the delays, heavy workload, or tests of patience without creating fear. If blessed with Guru Bala, highlight the inner reassurance and divine protection sheltering them.
+
+- Paragraph 3 (Subconscious Thoughts & Hidden Desires Right Now):
+  Unveil what is happening beneath their outward mask. What are their secret thoughts, private doubts, unexpressed yearnings, or internal motivations driving their current decisions?
+  ${input.ageYears >= 60
+    ? `Describe their soul's deep longing for spiritual serenity, authentic family appreciation, and freedom from unnecessary domestic friction.`
+    : input.ageYears < 23
+    ? `Describe their private craving for genuine encouragement, clarity of purpose, and release from self-doubt.`
+    : `Describe their silent anxiety about long-term financial security, craving for genuine appreciation from partner/family, and yearning for a peaceful life where they don't have to carry every burden alone.${maritalSel === 'married' && childrenSel === 'no_children' ? ' Acknowledge also their tender private prayers and shared hopes with their spouse regarding welcoming a child into their life.' : ''}`
+  }
+
+- Paragraph 4 (Compassionate Astrological Guidance & Practical Daily Remedies):
+  Provide wise, actionable guidance on the exact mental attitude to cultivate during this phase. Give 2 practical Vedic remedies (daily dawn prayer, lighting a sacred lamp at dusk, specific mantra japa or charity) to pacify planetary friction and invite peace, prosperity, and divine grace.
 
 ${JSON_RULE}
 {"currentPhase":[{"impact":"paragraph 1\n\nparagraph 2\n\nparagraph 3\n\nparagraph 4"}]}`;
 
-  const maritalSel = input.maritalStatus || (input as any).marital || "general";
-  const childrenSel = input.hasChildren || (input as any).childrenStatus || "general";
   const lagnaIdx = input.lagnaRashiIndex !== null ? input.lagnaRashiIndex : 0;
 
   const RASHI_LORD_GRAHAS: GrahaKey[] = [
@@ -418,11 +447,11 @@ ${input.ageYears >= 60 ? "- SENIOR CITIZEN (60+ YEARS): The native is a senior. 
    - Kuja / Manglik Status: ${isManglik ? `Kuja Dosha indicated (Mars in Bhava ${marsPlacement?.house})` : "No Kuja Dosha (Mars is comfortably placed outside 1/4/7/8/12)"}.
    - Direction of Spouse Alignment: ${spouseDirection} direction from birthplace.
    - Vivaha Yoga & Transits: Running ${dashaLine}. Jupiter transit: ${guruTransit ? `${guruTransit.houseFromMoon} from Chandra (${isGuruBala ? "Guru Bala active" : "Guru testing"})` : "active"}. Saturn transit: ${shaniTransit ? `${shaniTransit.houseFromMoon} from Chandra` : "active"}.
-   - CRITICAL RULE: MUST CONTAIN ONLY MARRIAGE & RELATIONSHIP CONTENT. DO NOT INCLUDE ANY CHILDREN OR PROGENY CONTENT IN THIS ITEM.
+   - CRITICAL RULE: MUST CONTAIN ONLY MARRIAGE & RELATIONSHIP CONTENT. DO NOT INCLUDE ANY CHILDREN OR PROGENY CONTENT IN THIS ITEM. IF USER SELECTED 'no_children', DO NOT MENTION RAISING CHILDREN, SCHOOLING, OR PARENTING. Focus purely on the deep emotional bond between the couple, mutual trust, and facing external questions as a united front.
    - ${maritalSel === "married"
        ? `Write EXACTLY THREE detailed paragraphs for MARRIED status:
          Paragraph 1: Grounded in 7th lord ${h7.lordStr} ${h7.lordWhere}, running ${dashaLine}, and transit influences. Analyze how these planets govern mutual trust, domestic stability, and emotional depth.
-         Paragraph 2: Detailed psychological and practical dynamics of partnership—mutual respect in financial and household decisions, spouse's temperament reflecting ${h7.lordStr} and 7th house qualities, and shared milestones.
+         Paragraph 2: Detailed psychological and practical dynamics of partnership—mutual respect in financial and household decisions, spouse's temperament reflecting ${h7.lordStr} and 7th house qualities, and shared milestones.${childrenSel === 'no_children' ? ' Focus on mutual emotional sanctuary and facing societal questions together.' : ''}
          Paragraph 3: Domestic peace, harmonizing occasional differences through empathetic communication, and targeted classical remedies (${isManglik ? "Subramanya / Mangala Pooja" : "Lakshmi-Narayana / Gauri-Shankara Pooja"}).`
        : maritalSel === "unmarried"
        ? `Write EXACTLY THREE detailed paragraphs for UNMARRIED status:
@@ -444,9 +473,10 @@ ${input.ageYears >= 60 ? "- SENIOR CITIZEN (60+ YEARS): The native is a senior. 
          Paragraph 1: Detailed analysis of children's intellect, academic excellence, specialized talents, and moral character derived from 5th lord ${h5.lordStr} and Putrakaraka Jupiter.
          Paragraph 2: Parental guidance, children's future growth, family bonding, and spiritual blessings (Saraswati / Ganapati Atharvashirsha).`
        : childrenSel === "no_children"
-       ? `Write EXACTLY TWO detailed paragraphs for SEEKING PROGENY status:
-         Paragraph 1: 5th house (Santana Bhava) ${h5.sign}, lord ${h5.lordStr} ${h5.lordWhere}, Putrakaraka Jupiter, running ${dashaLine}, and transit window for auspicious conception.
-         Paragraph 2: Removal of progeny obstacles, Santana Gopala Mantra, and Subramanya / Gokarna Shanti remedies.`
+       ? `Write EXACTLY THREE expansive, deeply empathetic paragraphs for SEEKING PROGENY status addressed to ${input.name}:
+         Paragraph 1: Deep emotional validation of the quiet, unspoken longing and heartfelt prayers for a child. Analyze 5th house (Santana Bhava) ${h5.sign}, lord ${h5.lordStr} ${h5.lordWhere}, Putrakaraka Jupiter, and running ${dashaLine}. Emphasize that lineage continuity is preserved in their Poorva Punya.
+         Paragraph 2: Astrological window and timing for conception based on Jupiter transit and supportive aspects. Reassure them with warmth that delays are periods of karmic refinement, not denial. Encourage standing united as an emotional anchor, combining medical consultations and balanced lifestyle.
+         Paragraph 3: Sacred Baggona & Vedic remedies: Daily Santana Gopala Mantra ('Om Kleem Devakisuta Govinda Vasudeva Jagatpate, Dehi Me Tanayam Krishna Tvamaham Sharanam Gatah') 108 times, Thursday Gau-seva (cow ghee lamp and feeding cow), and Subrahmanya / Naga Shanti Pooja at Gokarna Mahabaleshwara / Baggona Kshetra.`
        : `Write EXACTLY TWO detailed paragraphs for GENERAL status:
          Paragraph 1: 5th house (Poorva Punya & Intellect) ${h5.sign}, lord ${h5.lordStr}, and Jupiter's influence on intellect and lineage.
          Paragraph 2: Creative achievements, intellectual legacy, and family blessings.`}
@@ -470,22 +500,23 @@ ${input.ageYears >= 60 ? "- SENIOR CITIZEN (60+ YEARS): The native is a senior. 
    - Write TWO expansive paragraphs (minimum 5 to 6 full lines each, at least 75-90 words per paragraph) on physical stamina, seasonal wellness precautions, emotional resilience, and Ayurvedic/spiritual remedies.
 
 ${JSON_RULE}
-{"bhavishya":{"marriage":"three paragraphs","children":"two paragraphs","career":"two paragraphs","wealth":"two paragraphs","health":"two paragraphs"}}`;
+{"bhavishya":{"marriage":"three paragraphs","children":"${childrenSel === "no_children" ? "three paragraphs" : "two paragraphs"}","career":"two paragraphs","wealth":"two paragraphs","health":"two paragraphs"}}`;
 
   const summary = `${header(
     input,
     "summary",
-    "You are the master astrologer closing the book, synthesizing the reading with 100% astrological precision."
+    "You are a revered Vedic master astrologer closing the reading for " + input.name + ", synthesizing their chart with profound personal warmth, wisdom, and spiritual authority."
   )}
-CRITICAL ACCURACY REQUIREMENT:
-Write two or three detailed paragraphs synthesizing the entire chart reading.
-MUST BE 100% ACCURATE to the running Dasha-Bhukti period (${dashaLine}), Lagna (${h1.sign}), Moon (${rashiName(input.moonRashiIndex, lang)}), and live transit influences from the facts above.
-Weigh the chart strengths against the challenges honestly, name the ONE primary life focus for the coming year, and close with genuine spiritual encouragement.
-Do not list chapters again. Speak to them directly as 'you'.
+CRITICAL PERSONAL CONNECTION & SYNTHESIS REQUIREMENT:
+Speak directly and intimately to ${input.name} as a caring spiritual mentor.
+Do NOT write academic descriptions of astrological houses (such as listing Kendra or Trikona numbers) or generic textbook statements.
+Write TWO TO THREE (2-3) DEEPLY PERSONAL AND INSPIRING PARAGRAPHS synthesizing their reading:
+- Paragraph 1 (Personal Life Synthesis): Address ${input.name} directly. Synthesize their unique Lagna (${h1.sign}), Moon (${rashiName(input.moonRashiIndex, lang)}), and running ${dashaLine}. Acknowledge their past perseverance, validate their life's journey, and affirm their inner moral strength.
+- Paragraph 2 (The Singular Priority for the Year Ahead): Given their age (${Math.floor(input.ageYears)}), life stage, and planetary weather, identify the ONE single most important life focus for the coming year (${input.ageYears >= 60 ? 'health vitality, peaceful contemplation, and harmonious family guidance' : input.ageYears < 23 ? 'disciplined educational focus, emotional resilience, and steady skill-building' : (maritalSel === 'married' && childrenSel === 'no_children' ? 'strengthening marital unity, patient prayers and healthy preparation for progeny, and steady financial stability' : 'strategic financial consolidation, emotional patience at home, and disciplined career focus')}).
+- Paragraph 3 (Loving Spiritual Blessing): Close with an uplifting, compassionate blessing from the sacred tradition of Baggona Kshetra, inspiring ${input.name} to move forward with unshakeable faith, peace of mind, and divine protection.
 
 ${JSON_RULE}
 {"summary":[{"impact":"two or three paragraphs"}]}`;
 
   return { characteristics, darkSecret, currentPhase, bhavishya, yogas, doshas, gochara, timeline, summary };
 };
-

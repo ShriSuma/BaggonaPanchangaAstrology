@@ -93,10 +93,11 @@ export const toSafeArray = (val: any): any[] => {
 const ensureValidSection = async (
   items: any,
   fallbackText: string,
-  targetLang: string
+  targetLang: string,
+  minChars: number = 10
 ): Promise<{ name?: string; impact: string; remedy?: string; dateRange?: string }[]> => {
   const safeItems = toSafeArray(items);
-  const validItems = safeItems.filter(item => item && (item.impact || item.description || item.trait || "").trim().length > 10);
+  const validItems = safeItems.filter(item => item && (item.impact || item.description || item.trait || "").trim().length >= minChars);
   if (validItems.length > 0) {
     return validItems;
   }
@@ -134,6 +135,9 @@ const RASHI_LORDS_L5: Record<string, Record<number, string>> = {
 };
 
 export interface DynamicChartContext {
+  name?: string;
+  maritalStatus?: string;
+  hasChildren?: string;
   planets: Array<{
     name: string;
     house: number;
@@ -241,6 +245,9 @@ export function buildPersonalizedMarriageText(
     ageYears: context?.ageYears ?? 30,
     lang: baseLang
   });
+  if (context?.name) chart.name = context.name;
+  if (context?.maritalStatus) chart.maritalStatus = context.maritalStatus;
+  if (context?.hasChildren) chart.hasChildren = context.hasChildren;
   chart.lagnaSignName = lagnaStr || chart.lagnaSignName;
   chart.moonSignName = moonStr || chart.moonSignName;
   if (dashaStr && dashaStr !== "Running Dasha") chart.mahaLordName = dashaStr;
@@ -294,6 +301,9 @@ export function buildPersonalizedChildrenText(
     ageYears: context?.ageYears ?? 30,
     lang: baseLang
   });
+  if (context?.name) chart.name = context.name;
+  if (context?.maritalStatus) chart.maritalStatus = context.maritalStatus;
+  if (context?.hasChildren) chart.hasChildren = context.hasChildren;
   if (dashaStr && dashaStr !== "Running Dasha") chart.mahaLordName = dashaStr;
   if (bhuktiStr && bhuktiStr !== "Sub Dasha") chart.bhuktiLordName = bhuktiStr;
   chart.houses[5].lordName = house5Lord;
@@ -403,16 +413,53 @@ export function buildKundaliCurrentPhaseFallback(
   lagnaStr: string,
   moonStr: string,
   dashaName: string,
-  bhuktiName: string
+  bhuktiName: string,
+  name?: string,
+  ageYears: number = 30,
+  _gender: string = "Male"
 ): string {
   const baseLang = (lang || "en").split("-")[0];
+  const isSenior = ageYears >= 60;
+  const isYouth = ageYears < 23;
+  const ageNum = Math.floor(ageYears);
+
   if (baseLang === "kn") {
-    return `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${lagnaStr}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${moonStr}) ಆಧಾರದ ಮೇಲೆ, ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dashaName} ಮಹಾದಶಾ ಹಾಗೂ ${bhuktiName} ಭುಕ್ತಿ ಕಾಲಘಟ್ಟವು ನಿಮ್ಮ ವೈಯಕ್ತಿಕ ಹಾಗೂ ವೃತ್ತಿಜೀವನದಲ್ಲಿ ಅತ್ಯಂತ ಪ್ರಮುಖ ಬದಲಾವಣೆಗಳನ್ನು ಉಂಟುಮಾಡುತ್ತಿದೆ. ಗ್ರಹಗಳ ಪ್ರಚಲಿತ ಸಂಚಾರವು ನಿಮ್ಮ ದೈನಂದಿನ ಕಾರ್ಯಗಳಲ್ಲಿ ಜವಾಬ್ದಾರಿಯನ್ನು ಹೆಚ್ಚಿಸುತ್ತಿದ್ದು, ಹೊಸ ಅವಕಾಶಗಳಿಗೆ ಹಾದಿ ಮಾಡಿಕೊಡುತ್ತಿದೆ.\n\nಈ ಅವಧಿಯಲ್ಲಿ ನಿಮ್ಮ ಮನಸ್ಸಿನಲ್ಲಿ ಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಪ್ರತಿಫಲ ದೊರೆಯುತ್ತಿಲ್ಲವೆಂಬ ಸಣ್ಣಪುಟ್ಟ ಆತಂಕ ಅಥವಾ ಅಸ್ಥಿರತೆಯ ಭಾವನೆ ಮೂಡಬಹುದು. ಆದಾಗ್ಯೂ, ದೇವಗುರು ಹಾಗೂ ಶನಿ ಗ್ರಹಗಳ ಗೋಚಾರ ಬಲವು ನಿಮಗೆ ಧೈರ್ಯ, ಸಹನೆ ಹಾಗೂ ನಿಗ್ರಹ ಶಕ್ತಿಯನ್ನು ಕರುಣಿಸಲಿದೆ.\n\nಅಂತರಂಗದ ಮಟ್ಟದಲ್ಲಿ, ನೀವು ಭವಿಷ್ಯದ ಭದ್ರತೆ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಅಭ್ಯುದಯದ ಕುರಿತು ಆಳವಾಗಿ ಆಲೋಚಿಸುತ್ತಿದ್ದೀರಿ. ಹಳೆಯ ಸಮಸ್ಯೆಗಳನ್ನು ಬಗೆಹರಿಸಿ ಹೊಸ ಆರಂಭವನ್ನು ಮಾಡಲು ನಿಮ್ಮ ಸುಪ್ತ ಮನಸ್ಸು ಸಿದ್ಧವಾಗುತ್ತಿದೆ.\n\nಸತ್ಕರ್ಮಗಳ ಪಾಲನೆ, ನಿತ್ಯ ಪೂಜೆ ಹಾಗೂ ಗುರು-ಹಿರಿಯರ ಆಶೀರ್ವಾದವನ್ನು ಪಡೆಯುವುದರಿಂದ ಈ ಪ್ರಸ್ತುತ ಕಾಲಘಟ್ಟದ ಸಕಲ ಅಡೆತಡೆಗಳು ನಿವಾರಣೆಯಾಗಿ ನಿರಂತರ ಸಿದ್ಧಿ ಲಭಿಸಲಿದೆ.`;
+    const nameSalutation = name ? `${name} ಅವರೇ, ` : "";
+    const p1 = isSenior
+      ? `${nameSalutation}ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${lagnaStr}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${moonStr}) ಆಧಾರದ ಮೇಲೆ, ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dashaName} ಮಹಾದಶಾ ಹಾಗೂ ${bhuktiName} ಭುಕ್ತಿ ಅವಧಿಯು ನಿಮ್ಮ ${ageNum} ವರ್ಷಗಳ ಜೀವಿತಾವಧಿಯಲ್ಲಿ ಅತ್ಯಂತ ಗೌರವಾನ್ವಿತ ಹಾಗೂ ಮಹತ್ವದ ಕಾಲಘಟ್ಟವಾಗಿದೆ. ಈ ವಯೋಮಾನದಲ್ಲಿ ಪ್ರಾಪಂಚಿಕ ಪೈಪೋಟಿಗಿಂತ ಕುಟುಂಬದ ಸುಭದ್ರತೆ, ಆರೋಗ್ಯ ರಕ್ಷಣೆ ಮತ್ತು ಮನಸ್ಸಿನ ಶಾಂತಿಯೇ ನಿಮ್ಮ ದೈನಂದಿನ ಮುಖ್ಯ ಆದ್ಯತೆಯಾಗಿದೆ.`
+      : isYouth
+      ? `${nameSalutation}ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${lagnaStr}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${moonStr}) ಆಧಾರದ ಮೇಲೆ, ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dashaName} ಮಹಾದಶಾ ಹಾಗೂ ${bhuktiName} ಭುಕ್ತಿ ಅವಧಿಯು ನಿಮ್ಮ ${ageNum} ವರ್ಷಗಳ ಯೌವನಾವಸ್ಥೆಯಲ್ಲಿ ಶಿಕ್ಷಣ, ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆಗಳು ಹಾಗೂ ಭವಿಷ್ಯದ ವೃತ್ತಿ ಬುನಾದಿಯನ್ನು ನಿರ್ಮಿಸುವ ಅತ್ಯಂತ ನಿರ್ಣಾಯಕ ಕಾಲಘಟ್ಟವಾಗಿದೆ.`
+      : `${nameSalutation}ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${lagnaStr}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${moonStr}) ಆಧಾರದ ಮೇಲೆ, ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dashaName} ಮಹಾದಶಾ ಹಾಗೂ ${bhuktiName} ಭುಕ್ತಿ ಕಾಲಘಟ್ಟವು ನಿಮ್ಮ ${ageNum} ವರ್ಷಗಳ ಪ್ರೌಢ ಜೀವನದಲ್ಲಿ ವೃತ್ತಿಪರ ಜವಾಬ್ದಾರಿಗಳು, ಆರ್ಥಿಕ ನಿರ್ವಹಣೆ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಸಮತೋಲನದ ಮಹತ್ವದ ಹಂತವನ್ನು ಸೃಷ್ಟಿಸಿದೆ.`;
+
+    const p2 = `ಭಾವನಾತ್ಮಕವಾಗಿ, ಪ್ರಸ್ತುತ ಗ್ರಹಗಳ ಗೋಚಾರ ಸಂಚಾರವು ನಿಮ್ಮ ಸಹನೆ ಮತ್ತು ಆಂತರಿಕ ನಿಗ್ರಹ ಶಕ್ತಿಯನ್ನು ಪರೀಕ್ಷಿಸುತ್ತಿದೆ. ಕಠಿಣ ಶ್ರಮಕ್ಕೆ ತಕ್ಷಣವೇ ಪ್ರತಿಫಲ ಸಿಗುತ್ತಿಲ್ಲವೆಂಬ ಸಣ್ಣಪುಟ್ಟ ಆತಂಕ ಮೂಡಿದರೂ, ದೇವಗುರು ಹಾಗೂ ಶನಿ ಭಗವಾನರ ಅನುಗ್ರಹವು ನಿಮಗೆ ಧೈರ್ಯ ಮತ್ತು ಸ್ಥಿರತೆಯನ್ನು ಕರುಣಿಸಲಿದೆ.`;
+    const p3 = `ಅಂತರಂಗದ ಮಟ್ಟದಲ್ಲಿ, ನೀವು ಭವಿಷ್ಯದ ಭದ್ರತೆ, ಸಾಲ-ಹೊಣೆಗಾರಿಕೆಗಳ ನಿವಾರಣೆ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಅಭ್ಯುದಯದ ಕುರಿತು ಆಳವಾಗಿ ಆಲೋಚಿಸುತ್ತಿದ್ದೀರಿ. ಹಳೆಯ ಸಮಸ್ಯೆಗಳನ್ನು ಬಗೆಹರಿಸಿ ಶಾಂತಿಯುತ ಹೊಸ ಆರಂಭವನ್ನು ಮಾಡಲು ನಿಮ್ಮ ಸುಪ್ತ ಮನಸ್ಸು ಸಿದ್ಧವಾಗುತ್ತಿದೆ.`;
+    const p4 = `ಸತ್ಕರ್ಮಗಳ ಪಾಲನೆ, ನಿತ್ಯ ಮುಂಜಾನೆ ಸೂರ್ಯ ನಮಸ್ಕಾರ, ಸಂಜೆ ದೇವರ ಕೋಣೆಯಲ್ಲಿ ತುಪ್ಪದ ದೀಪ ಬೆಳಗಿಸುವುದು ಹಾಗೂ ಗುರು-ಹಿರಿಯರ ಆಶೀರ್ವಾದವನ್ನು ಪಡೆಯುವುದರಿಂದ ಈ ಪ್ರಸ್ತುತ ಕಾಲಘಟ್ಟದ ಸಕಲ ಅಡೆತಡೆಗಳು ನಿವಾರಣೆಯಾಗಿ ನಿರಂತರ ಸಿದ್ಧಿ ಲಭಿಸಲಿದೆ. ಬಗ್ಗೋಣ ಕ್ಷೇತ್ರದ ಶ್ರೀ ಮುಖ್ಯಪ್ರಾಣ ದೇವರ ದಿವ್ಯ ಆಶೀರ್ವಾದವು ಸದಾ ನಿಮ್ಮ ರಕ್ಷಣೆಗೆ ನಿಂತಿದೆ.`;
+    return `${p1}\n\n${p2}\n\n${p3}\n\n${p4}`;
   }
   if (baseLang === "hi") {
-    return `आपकी जन्म लग्न (${lagnaStr}) एवं चंद्र राशि (${moonStr}) के आधार पर, वर्तमान ${dashaName} महादशा एवं ${bhuktiName} भुक्ति का प्रभाव आपके जीवन में महत्वपूर्ण सकारात्मक परिवर्तन ला रहा है। दैनिक कार्यों में उत्तरदायित्व बढ़ने के साथ ही प्रगति के नए अवसर प्राप्त हो रहे हैं।\n\nइस समय मानसिक रूप से कभी-कभी अस्थिरता या चिंता का अनुभव हो सकता है। परंतु गुरु एवं शनि के गोचर प्रभाव से आपको धैर्य, आत्मबल और मानसिक स्पष्टता प्राप्त होगी।\n\nआंतरिक स्तर पर, आप भविष्य की सुरक्षा एवं पारिवारिक उन्नति के विषय में गंभीर विचार कर रहे हैं। पुरानी समस्याओं को सुलझाकर नए क्षितिज की ओर बढ़ने की दिशा बन रही है।\n\nनित्य पूजन, धर्म पालन एवं बड़ों के आशीर्वाद से वर्तमान समय की समस्त बाधाएं दूर होकर पूर्ण सफलता सिद्ध होगी।`;
+    const nameSalutation = name ? `${name} जी, ` : "";
+    const p1 = isSenior
+      ? `${nameSalutation}आपकी जन्म लग्न (${lagnaStr}) एवं चंद्र राशि (${moonStr}) के आधार पर, वर्तमान ${dashaName} महादशा एवं ${bhuktiName} भुक्ति आपके ${ageNum} वर्षों के जीवन का एक अत्यंत गरिमामयी और निर्णायक समय है। इस अवस्था में परिवार की स्थिरता और स्वास्थ्य रक्षा ही मुख्य ध्येय है।`
+      : isYouth
+      ? `${nameSalutation}आपकी जन्म लग्न (${lagnaStr}) एवं चंद्र राशि (${moonStr}) के आधार पर, वर्तमान ${dashaName} महादशा एवं ${bhuktiName} भुक्ति आपके ${ageNum} वर्षों के युवा काल में शिक्षा एवं करियर की सुदृढ़ नींव रखने का काल है।`
+      : `${nameSalutation}आपकी जन्म लग्न (${lagnaStr}) एवं चंद्र राशि (${moonStr}) के आधार पर, वर्तमान ${dashaName} महादशा एवं ${bhuktiName} भुक्ति का प्रभाव आपके ${ageNum} वर्षों के प्रौढ़ जीवन में महत्वपूर्ण सकारात्मक परिवर्तन और नए दायित्व ला रहा है।`;
+
+    const p2 = `इस समय मानसिक रूप से कभी-कभी अधीरता या चिंता का अनुभव हो सकता है। परंतु गुरु एवं शनि के गोचर प्रभाव से आपको धैर्य, आत्मबल और मानसिक स्पष्टता प्राप्त होगी।`;
+    const p3 = `आंतरिक स्तर पर, आप भविष्य की सुरक्षा एवं पारिवारिक उन्नति के विषय में गंभीर विचार कर रहे हैं। पुरानी समस्याओं को सुलझाकर नए क्षितिज की ओर बढ़ने की दिशा बन रही है।`;
+    const p4 = `नित्य पूजन, धर्म पालन एवं बड़ों के आशीर्वाद से वर्तमान समय की समस्त बाधाएं दूर होकर पूर्ण सफलता सिद्ध होगी। बग्गोण क्षेत्र का दिव्य आशीर्वाद सदैव आपकी रक्षा करेगा।`;
+    return `${p1}\n\n${p2}\n\n${p3}\n\n${p4}`;
   }
-  return `Based on your birth Lagna (${lagnaStr}) and Moon sign (${moonStr}), your running ${dashaName} Mahadasha and ${bhuktiName} Bhukti activate significant developments in both personal and professional spheres. Daily responsibilities expand while opening doors to long-term growth.\n\nMentally, you may experience transient moments of impatience or reflection regarding your efforts. Favorable aspects from Jupiter and Saturn foster internal resilience and strategic clarity.\n\nAt a subconscious level, your primary focus revolves around long-term stability and family prosperity. Your inner self is preparing to resolve lingering issues and embrace constructive new beginnings.\n\nConsistent spiritual practices, disciplined action, and honoring mentors will neutralize minor planetary friction and ensure steady success during this phase.`;
+  const nameSalutation = name ? `Dear ${name}, ` : "";
+  const p1 = isSenior
+    ? `${nameSalutation}based on your birth Lagna (${lagnaStr}) and Moon sign (${moonStr}), your running ${dashaName} Mahadasha and ${bhuktiName} Bhukti represent an honorable, reflective milestone in your ${ageNum} years of life, focusing energy on health maintenance and family harmony.`
+    : isYouth
+    ? `${nameSalutation}based on your birth Lagna (${lagnaStr}) and Moon sign (${moonStr}), your running ${dashaName} Mahadasha and ${bhuktiName} Bhukti represent a foundational interval in your ${ageNum} years of youth, centering on academic excellence and vocational clarity.`
+    : `${nameSalutation}based on your birth Lagna (${lagnaStr}) and Moon sign (${moonStr}), your running ${dashaName} Mahadasha and ${bhuktiName} Bhukti activate significant developments in personal and vocational spheres during this ${ageNum}-year phase.`;
+
+  const p2 = `Mentally, you may experience transient moments of impatience or fatigue regarding your efforts. Favorable aspects from Jupiter and Saturn foster internal resilience and strategic clarity.`;
+  const p3 = `At a subconscious level, your primary focus revolves around long-term stability and family prosperity. Your inner self is preparing to resolve lingering issues and embrace constructive new beginnings.`;
+  const p4 = `Consistent spiritual practices, disciplined action, and honoring mentors will neutralize minor planetary friction and ensure steady success during this phase. May the sacred grace of Baggona Kshetra continually guide and protect you.`;
+  return `${p1}\n\n${p2}\n\n${p3}\n\n${p4}`;
 }
 
 export function enrichYogaDescription(
@@ -1090,22 +1137,29 @@ Return ONLY this JSON format:
 
       setSummaryPdfTranslations(translatedData);
 
-      const summaryPrompt = `You are a world-class Vedic Astrologer. Generate a 4-paragraph comprehensive summary focusing ONLY ON CURRENTLY WHAT IS HAPPENING in this person's life based on their natal chart and transit positions.
+      const userGender = (session.input as any).gender || "Male";
+
+      const summaryPrompt = `You are a world-class Vedic Astrologer. Generate a deeply personal 4-paragraph comprehensive summary focusing ON WHAT IS CURRENTLY HAPPENING IN THIS PERSON'S LIFE based on their natal chart and live transits.
 OUTPUT LANGUAGE: ${lang}.${lang === 'kn' ? ' Write ONLY in Kannada script.' : lang === 'te' ? ' Write ONLY in Telugu script.' : lang === 'ta' ? ' Write ONLY in Tamil script.' : lang === 'hi' ? ' Write ONLY in Hindi (Devanagari).' : ' Write in clear English.'}
 
-USER CHART DETAILS:
-- Name: ${session.input.name}
+USER PROFILE & CHART DETAILS:
+- Devotee Name: ${session.input.name}
+- Current Age: ${ageYears.toFixed(1)} years (${ageYears >= 60 ? "Senior Citizen - Focus on health, family unity, grandchildren, peace, letting go of worldly race" : ageYears < 23 ? "Youth / Student - Focus on education, vocational clarity, exams, emotional stability" : "Working Adult - Focus on career stability, family responsibilities, finances, domestic harmony"})
 - Ascendant (Lagna): ${session.result.lagnaRashi?.english || 'Unknown'}
 - Moon Sign: ${session.result.moonSign.english}
 - Nakshatra: ${moonPlanet?.nakshatra.english || 'Unknown'}
 - Current Running Dasha & Bhukti: ${currentBhuktiData ? currentBhuktiData.maha.planet + ' - ' + currentBhuktiData.bhukti : 'Current Dasha'}
-- Current Age: ${ageYears.toFixed(1)} years
+
+CRITICAL PERSONALIZATION RULES:
+1. Address ${session.input.name} directly with deep reverence, warmth, and intimacy. Speak to their immediate lived reality.
+2. Mirror what is actually happening in their day-to-day life at age ${Math.floor(ageYears)} right now under this Dasha-Bhukti and live transits.
+3. No textbook house numbers or dry academic jargon.
 
 REQUIRED 4 PARAGRAPHS STRUCTURE:
-PARAGRAPH 1 (Current Dasha-Bhukti State): Detail the core planetary theme and current psychological/life chapter governed by ${currentBhuktiData?.maha.planet} Mahadasha and ${currentBhuktiData?.bhukti} Bhukti right now.
+PARAGRAPH 1 (Current Living Reality & Dasha-Bhukti State): Address ${session.input.name} directly. Detail the core planetary theme and current psychological/life chapter governed by ${currentBhuktiData?.maha.planet} Mahadasha and ${currentBhuktiData?.bhukti} Bhukti right now.
 PARAGRAPH 2 (Gochara Planetary Transits): Detail how current major transits (Gochara - Saturn, Jupiter, Rahu/Ketu) are influencing their Moon sign and birth planets currently.
-PARAGRAPH 3 (Immediate Life Outlook & Timing): Describe what is currently manifesting in career, finance, family, and health during this exact phase. Give key timing advice.
-PARAGRAPH 4 (Remedial Guidance & Blessing): Provide 2 practical remedies (Parihara/Mantra/Charity) and an encouraging astrologer's blessing for their current phase.
+PARAGRAPH 3 (Immediate Life Outlook & Timing): Describe what is currently manifesting in their immediate life (career/finance/family/health) during this exact phase. Give key timing advice tailored to their life stage.
+PARAGRAPH 4 (Remedial Guidance & Blessing): Provide 2 practical remedies (Parihara/Mantra/Charity) and an encouraging Baggona Kshetra blessing for their current phase.
 
 Return ONLY this JSON format:
 {
@@ -1127,24 +1181,23 @@ Return ONLY this JSON format:
       }
 
       if (!parsedSummary || !parsedSummary.paragraph1 || parsedSummary.paragraph1.length < 100) {
-        const p1 = await translateText(
-          `Currently, your life path is guided by the running ${currentBhuktiData?.maha.planet || "Main"} Mahadasha and ${currentBhuktiData?.bhukti || "Sub"} Bhukti period. In classical Vedic astrology, this specific planetary combination activates your foundational life purpose, calling forth inner wisdom, self-reliance, and heightened responsibilities across your personal and vocational spheres. This cosmic chapter is designed to refine your innate strengths and prepare you for elevated societal standing and personal maturity.`,
-          lang
+        const fallbackCurrentPhase = buildKundaliCurrentPhaseFallback(
+          lang,
+          session.result.lagnaRashi ? pick(RASHI_L5[session.result.lagnaRashi.index], lang) : "",
+          pick(RASHI_L5[session.result.moonSign.index], lang),
+          mahaLord ? pick(GRAHA_L5[mahaLord], lang) : "Dasha",
+          bhuktiLord ? pick(GRAHA_L5[bhuktiLord], lang) : "Bhukti",
+          session.input.name,
+          ageYears,
+          userGender
         );
-        const p2 = await translateText(
-          `Concurrently, the live planetary transits (Gochara) of Saturn, Jupiter, and Rahu-Ketu across your natal Moon sign (${session.result.moonSign.english}) are stimulating dynamic currents of change in your immediate environment. While these transits can occasionally induce psychological restlessness or unexpected shifts in routine, their deeper spiritual purpose is to strip away stagnation and cultivate unshakeable resilience. Patience, discernment, and ethical steadfastness are your greatest allies during this transformative phase.`,
-          lang
-        );
-        const p3 = await translateText(
-          `Throughout this pivotal interval, align every significant action with long-term security and family well-being. Important life decisions—such as career transitions, financial investments, or relationship commitments—should be undertaken with calm deliberation rather than emotional urgency. Cultivating daily mindfulness and seeking counsel from wise elders will safeguard your interests, turning potential friction into permanent milestones of achievement.`,
-          lang
-        );
-        const p4 = await translateText(
-          `Recommended Vedic Remedy: Recite core planetary mantras—especially Om Namah Shivaya and the Mahamrityunjaya Stotram—on Tuesdays and Saturdays. Light a fragrant sesame oil or cow ghee lamp at your household sanctum during dusk, perform Go-Seva (serving cows), and support noble educational or spiritual charities. May the sacred grace of Baggona Kshetra continually bless you with sound health, prosperous longevity, and radiant peace of mind.`,
-          lang
-        );
-
-        parsedSummary = { paragraph1: p1, paragraph2: p2, paragraph3: p3, paragraph4: p4 };
+        const paras = fallbackCurrentPhase.split("\n\n").filter(p => p.trim().length > 0);
+        parsedSummary = {
+          paragraph1: paras[0] || fallbackCurrentPhase,
+          paragraph2: paras[1] || "",
+          paragraph3: paras[2] || "",
+          paragraph4: paras[3] || ""
+        };
       }
 
       setSummaryDataForPdf(parsedSummary);
@@ -1273,7 +1326,7 @@ Return ONLY this JSON format:
         characteristicsTitle: await translateText("Characteristics (Vyaktitva)", language),
         darkSecretTitle: await translateText("The Dark Secret (Nigoodha Satya)", language),
         timelineTitle: await translateText("6-Month Planetary Timeline", language),
-        gocharaTitle: await translateText("Current Transit Effects (Gochara)", language),
+        gocharaTitle: tp("gocharaTitle", language),
         summaryTitle: await translateText("Astrologer's Summary", language),
       };
 
@@ -1466,6 +1519,9 @@ Return ONLY this JSON format:
       }));
 
       const dynamicCtx: DynamicChartContext = {
+        name: session.input?.name,
+        maritalStatus: personalization?.maritalStatus,
+        hasChildren: personalization?.childrenStatus,
         planets: session.result.planets.map(p => ({
           name: p.name,
           house: p.house,
@@ -1706,13 +1762,22 @@ Return ONLY this JSON format:
 
       const charFallbackText = buildKundaliCharacteristicsFallback(lang, lagnaStr, moonStr, dashaName, bhuktiName);
       const secretFallbackText = buildKundaliDarkSecretFallback(lang, lagnaStr, moonStr, dashaName, bhuktiName);
-      const currentPhaseFallbackText = buildKundaliCurrentPhaseFallback(lang, lagnaStr, moonStr, dashaName, bhuktiName);
-      const rawSummaryFallback = stripJayashreeIntro(`${result.masterSynthesis.overallTone || 'A balanced planetary outlook for the future.'}\n\n${result.masterSynthesis.career || ''}\n\n${result.masterSynthesis.finance || ''}`);
+      const currentPhaseFallbackText = buildKundaliCurrentPhaseFallback(lang, lagnaStr, moonStr, dashaName, bhuktiName, session.input.name, ageYears, userGender);
+      const rawSummaryFallback = buildDynamicSummaryFallback({
+        ...({} as any),
+        lang,
+        name: session.input.name,
+        lagnaName: lagnaStr,
+        moonRashiName: moonStr,
+        runningDashaName: dashaName,
+        runningBhuktiName: bhuktiName,
+        ageYears
+      });
 
       const finalCharacteristics = await ensureValidSection(dataCharacteristics.characteristics, charFallbackText, lang);
       const finalDarkSecret = await ensureValidSection(dataDarkSecret.darkSecret, secretFallbackText, lang);
-      const finalCurrentPhase = await ensureValidSection(dataCurrentPhase.currentPhase, currentPhaseFallbackText, lang);
-      const finalSummary = await ensureValidSection(dataSummary.summary, rawSummaryFallback, lang);
+      const finalCurrentPhase = await ensureValidSection(dataCurrentPhase.currentPhase, currentPhaseFallbackText, lang, 250);
+      const finalSummary = await ensureValidSection(dataSummary.summary, rawSummaryFallback, lang, 150);
 
       const rawYogasFallback = await Promise.all(
         (result.aiGeneratedNarrative?.yogas || [{ name: "Dasha Yoga", significance: stripJayashreeIntro(result.masterSynthesis.overallTone) }]).map(async y => ({
@@ -1758,16 +1823,41 @@ Return ONLY this JSON format:
         )
         : fallbackTimeline;
 
-      const rawGocharaFallback = await Promise.all([
-        {
-          name: await translateText(result.timingLayer.lifeClock.currentPhase || "Current Transit Phase", lang),
-          impact: await translateText(result.timingLayer.lifeClock.description || result.masterSynthesis.overallTone, lang),
-          remedy: await translateText(result.timingLayer.lifeClock.emotionalValidation || "", lang)
-        }
-      ]);
-      const finalGochara = toSafeArray(dataGochara.gochara).filter((g: any) => (g?.impact || "").trim().length > 10).length > 0
-        ? dataGochara.gochara
-        : rawGocharaFallback;
+      const v2ParsedKundali = analyzeKundali({
+        lang,
+        name: session.input.name,
+        gender: userGender as "Male" | "Female",
+        ageYears,
+        maritalStatus: personalization?.maritalStatus || "general",
+        hasChildren: personalization?.childrenStatus || "general",
+        lagnaRashiIndex: session.result.lagnaRashi?.index ?? 0,
+        moonRashiIndex: session.result.moonSign.index,
+        moonNakshatraIndex: moonPlanet?.nakshatra.index ?? null,
+        natalPlanets,
+        transits,
+        mahaLord,
+        bhuktiLord
+      });
+      const rawGocharaFallback = buildDynamicGocharaFallback(v2ParsedKundali);
+      const isSufficientGocharaDepth = (txt: string) => {
+        if (!txt) return false;
+        const trimmed = txt.trim();
+        const lines = trimmed.split("\n").filter(l => l.trim().length > 0);
+        return lines.length >= 2 && trimmed.length >= 140;
+      };
+
+      const aiGocharaValid = toSafeArray(dataGochara.gochara).filter((g: any) => {
+        const impact = (g?.impact || "").trim();
+        if (lang !== "en" && /[a-zA-Z]{3,}/.test(impact)) return false;
+        return isSufficientGocharaDepth(impact);
+      }).length >= 2;
+
+      let finalGochara = aiGocharaValid ? dataGochara.gochara : rawGocharaFallback;
+      finalGochara = finalGochara.map((g: any) => ({
+        name: cleanEnglishFromRegionalText(g.name || "", lang),
+        impact: cleanEnglishFromRegionalText(g.impact || "", lang),
+        remedy: g.remedy ? cleanEnglishFromRegionalText(g.remedy, lang) : undefined
+      }));
 
       const premiumDataPayload = {
         characteristics: finalCharacteristics,
@@ -1976,10 +2066,16 @@ Return ONLY this JSON format:
         bhuktiLord,
         gender: userGender as "Male" | "Female",
         ageYears,
-        lang
+        lang,
+        name: session.input.name,
+        maritalStatus: personalization?.maritalStatus || "general",
+        hasChildren: personalization?.childrenStatus || "general"
       });
 
       const dynamicCtx: DynamicChartContext = {
+        name: session.input.name,
+        maritalStatus: personalization?.maritalStatus,
+        hasChildren: personalization?.childrenStatus,
         planets: session.result.planets.map(p => ({
           name: p.name,
           house: p.house,
@@ -2210,14 +2306,13 @@ Return ONLY this JSON format:
         // Youth / Students (12 to 21 Years): Study, Character, Future Career, Financial Literacy & Vitality
         // 1. Character & Emotional Poise
         const catMar = baseLang === "kn" ? "ವ್ಯಕ್ತಿತ್ವ ನಿರ್ಮಾಣ ಹಾಗೂ ಮಾನಸಿಕ ಏಕಾಗ್ರತೆ" : baseLang === "hi" ? "चरित्र निर्माण एवं मानसिक एकाग्रता" : baseLang === "te" ? "వ్యక్తిత్వ నిర్మాణం మరియు ఏకాగ్రత" : baseLang === "ta" ? "ஆளுமை உருவாக்கம் மற்றும் மன உறுதி" : "Character & Mental Focus";
-        let textMar = asText(aiB.marriage).trim();
-        if (!isSufficientDepth(textMar, 2, 280)) {
-          textMar = buildPersonalizedMarriageText(lang, lagnaStr, moonStr, "unmarried", lagnaIdx, dashaName, bhuktiName, userGender as "Male" | "Female", dynamicCtx);
-        }
+        const textMar = isSufficientDepth(asText(aiB.marriage).trim(), 2, 280)
+          ? asText(aiB.marriage).trim()
+          : buildPersonalizedMarriageText(lang, lagnaStr, moonStr, "unmarried", lagnaIdx, dashaName, bhuktiName, userGender as "Male" | "Female", dynamicCtx);
         v1Predictions.push({ category: "Character & Mental Focus", translatedCategory: catMar, text: textMar, translatedText: textMar });
 
         // 2. Higher Studies & Intellect
-        const catChd = baseLang === "kn" ? "ಉನ್ನತ ಶಿಕ್ಷಣ ಹಾಗೂ ಜ್ಞಾನಾರ್ಜನೆ" : baseLang === "hi" ? "उच्च शिक्षा एवं बौद्धिक विकास" : baseLang === "te" ? "ఉన్నత విద్య మరియు మేధో వికాసం" : baseLang === "ta" ? "உயர்கல்வி மற்றும் அறிவு வளர்ச்சி" : "Higher Studies & Intellect";
+        const catChd = baseLang === "kn" ? "ಉನ್ನತ ಶಿಕ್ಷಣ ಹಾಗೂ ಜ್ಞಾನಾರ್ಜನೆ" : baseLang === "hi" ? "उच्च शिक्षा एवं एकाग्रता" : baseLang === "te" ? "ఉన్నత విద్య మరియు విజ్ఞానం" : baseLang === "ta" ? "உயர்கல்வி மற்றும் ஞானம்" : "Higher Studies & Intellect";
         const textChd = isSufficientDepth(asText(aiB.children).trim(), 2, 260)
           ? asText(aiB.children).trim()
           : buildPersonalizedChildrenText(lang, "no_children", lagnaIdx, dashaName, bhuktiName, dynamicCtx);
@@ -2262,7 +2357,9 @@ Return ONLY this JSON format:
 
         // 2. Children & Progeny
         const catChd = baseLang === "kn" ? "ಸಂತಾನ ಹಾಗೂ ಮಕ್ಕಳು" : baseLang === "hi" ? "संतान एवं बच्चे" : baseLang === "te" ? "సంతానం మరియు పిల్లలు" : baseLang === "ta" ? "சந்ததி மற்றும் குழந்தைகள்" : "Children & Progeny";
-        const textChd = isSufficientDepth(asText(aiB.children).trim(), 2, 260)
+        const minChildrenParas = personalization?.childrenStatus === "no_children" ? 3 : 2;
+        const minChildrenChars = personalization?.childrenStatus === "no_children" ? 320 : 260;
+        const textChd = isSufficientDepth(asText(aiB.children).trim(), minChildrenParas, minChildrenChars)
           ? asText(aiB.children).trim()
           : buildPersonalizedChildrenText(lang, personalization?.childrenStatus || "general", lagnaIdx, dashaName, bhuktiName, dynamicCtx);
         v1Predictions.push({ category: "Children & Progeny", translatedCategory: catChd, text: textChd, translatedText: textChd });
@@ -2310,8 +2407,8 @@ Return ONLY this JSON format:
 
       const finalCharacteristics = await ensureValidSection(dataCharacteristics.characteristics, charFallbackText, lang);
       const finalDarkSecret = isChild ? [] : await ensureValidSection(dataDarkSecret.darkSecret, secretFallbackText, lang);
-      const finalCurrentPhase = await ensureValidSection(dataCurrentPhase.currentPhase, currentPhaseFallbackText, lang);
-      const finalSummary = await ensureValidSection(dataSummary.summary, rawSummaryFallback, lang);
+      const finalCurrentPhase = await ensureValidSection(dataCurrentPhase.currentPhase, currentPhaseFallbackText, lang, 250);
+      const finalSummary = await ensureValidSection(dataSummary.summary, rawSummaryFallback, lang, 150);
 
       setV1PdfProgress(65);
       setV1PdfStageText(
@@ -2352,9 +2449,25 @@ Return ONLY this JSON format:
       const finalTimeline = validTimelineItems.length >= 4 ? validTimelineItems : fallbackTimeline;
 
       const rawGocharaFallback = buildDynamicGocharaFallback(parsedKundali);
-      const finalGochara = toSafeArray(dataGochara.gochara).filter((g: any) => (g?.impact || "").trim().length > 10).length > 0
-        ? dataGochara.gochara
-        : rawGocharaFallback;
+      const isSufficientGocharaDepth = (txt: string) => {
+        if (!txt) return false;
+        const trimmed = txt.trim();
+        const lines = trimmed.split("\n").filter(l => l.trim().length > 0);
+        return lines.length >= 2 && trimmed.length >= 140;
+      };
+
+      const aiGocharaValid = toSafeArray(dataGochara.gochara).filter((g: any) => {
+        const impact = (g?.impact || "").trim();
+        if (lang !== "en" && /[a-zA-Z]{3,}/.test(impact)) return false;
+        return isSufficientGocharaDepth(impact);
+      }).length >= 2;
+
+      let finalGochara = aiGocharaValid ? dataGochara.gochara : rawGocharaFallback;
+      finalGochara = finalGochara.map((g: any) => ({
+        name: cleanEnglishFromRegionalText(g.name || "", lang),
+        impact: cleanEnglishFromRegionalText(g.impact || "", lang),
+        remedy: g.remedy ? cleanEnglishFromRegionalText(g.remedy, lang) : undefined
+      }));
 
       const premiumDataPayload = {
         characteristics: finalCharacteristics,
@@ -2493,12 +2606,12 @@ Return ONLY this JSON format:
         currentPhaseGuidanceTitle: tp("currentPhaseGuidanceTitle", pdfLanguage),
         ashirvadaTitle: await tx("Astrologer's Blessing (Ashirvada)", pdfLanguage),
         ashirvadaValue: await tx(ashirvada || "", pdfLanguage),
-        yogasTitle: await tx("Special Planetary Combinations (Yogas)", pdfLanguage),
-        doshasTitle: await tx("Karmic Challenges (Doshas)", pdfLanguage),
-        remedyTitle: await tx("Remedy", pdfLanguage),
-        timelineTitle: await tx("Next 6-12 Months Timeline", pdfLanguage),
-        gocharaTitle: await tx("Current Planetary Transits (Gochara)", pdfLanguage),
-        summaryTitle: await tx("Astrologer's Summary", pdfLanguage),
+        yogasTitle: tp("yogasTitle", pdfLanguage),
+        doshasTitle: tp("doshasTitle", pdfLanguage),
+        remedyTitle: tp("remedyTitle", pdfLanguage),
+        timelineTitle: tp("timelineTitle", pdfLanguage),
+        gocharaTitle: tp("gocharaTitle", pdfLanguage),
+        summaryTitle: tp("summaryTitle", pdfLanguage),
         footer: await tx("Generated gracefully by Baggona Panchanga Astrology Engine", pdfLanguage),
         introTitle: tp("introTitle", pdfLanguage),
         introGreeting: greetingLine(pdfLanguage, session.input.name),
@@ -2671,14 +2784,59 @@ Return ONLY this JSON (no extra text before or after):
         ? await Promise.all(validTimelineItems.map(async (t: any) => ({ ...t, dateRange: await translateText(t.dateRange || "", pdfLanguage) })))
         : fallbackTimeline;
 
-      const rawGocharaFallback = await Promise.all([
-        {
-          name: await translateText(result.timingLayer.lifeClock.currentPhase || "Current Transit Phase", pdfLanguage),
-          impact: await translateText(result.timingLayer.lifeClock.description || result.masterSynthesis.overallTone, pdfLanguage),
-          remedy: await translateText(result.timingLayer.lifeClock.emotionalValidation || "", pdfLanguage)
-        }
-      ]);
-      const finalGochara = (parsedGochara || []).filter((g: any) => (g?.impact || "").trim().length > 10).length > 0 ? parsedGochara : rawGocharaFallback;
+      const a4LiveTransits = getTransitsForDate(session.result.moonSign.index, now, ayanamsaModel);
+      const a4Transits: TransitPlacement[] = Object.entries(a4LiveTransits).map(([planet, pos]) => ({
+        graha: toGraha(planet),
+        rashiIndex: pos.rashiIndex,
+        houseFromMoon: pos.house
+      }));
+      const a4NatalPlanets: NatalPlacement[] = session.result.planets.map(p => ({
+        graha: toGraha(p.name),
+        rashiIndex: p.rashi.index,
+        house: p.house,
+        retrograde: p.isRetrograde,
+        debilitated: p.isDebilitated,
+        exalted: p.isExalted
+      }));
+      const a4MahaLord = currentBhuktiData?.maha ? toGraha(currentBhuktiData.maha.planet) : null;
+      const a4BhuktiLord = currentBhuktiData?.bhukti ? toGraha(currentBhuktiData.bhukti) : null;
+
+      const a4ParsedKundali = analyzeKundali({
+        lang: pdfLanguage,
+        name: session.input.name,
+        gender: (((session.input as any)?.gender || "Male") as "Male" | "Female"),
+        ageYears,
+        maritalStatus: "general",
+        hasChildren: "general",
+        lagnaRashiIndex: session.result.lagnaRashi?.index ?? 0,
+        moonRashiIndex: session.result.moonSign.index,
+        moonNakshatraIndex: a4MoonPlanet?.nakshatra.index ?? null,
+        natalPlanets: a4NatalPlanets,
+        transits: a4Transits,
+        mahaLord: a4MahaLord,
+        bhuktiLord: a4BhuktiLord
+      });
+
+      const rawGocharaFallback = buildDynamicGocharaFallback(a4ParsedKundali);
+      const isSufficientGocharaDepth = (txt: string) => {
+        if (!txt) return false;
+        const trimmed = txt.trim();
+        const lines = trimmed.split("\n").filter(l => l.trim().length > 0);
+        return lines.length >= 2 && trimmed.length >= 140;
+      };
+
+      const aiGocharaValid = toSafeArray(parsedGochara).filter((g: any) => {
+        const impact = (g?.impact || "").trim();
+        if (pdfLanguage !== "en" && /[a-zA-Z]{3,}/.test(impact)) return false;
+        return isSufficientGocharaDepth(impact);
+      }).length >= 2;
+
+      const safeGocharaSource = (aiGocharaValid && parsedGochara) ? parsedGochara : rawGocharaFallback;
+      const finalGochara = safeGocharaSource.map((g: any) => ({
+        name: cleanEnglishFromRegionalText(g.name || "", pdfLanguage),
+        impact: cleanEnglishFromRegionalText(g.impact || "", pdfLanguage),
+        remedy: g.remedy ? cleanEnglishFromRegionalText(g.remedy, pdfLanguage) : undefined
+      }));
 
       const premiumDataPayload: PremiumData = {
         characteristics: finalChar,

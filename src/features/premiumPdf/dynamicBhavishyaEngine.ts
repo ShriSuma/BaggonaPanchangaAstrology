@@ -14,7 +14,8 @@ import {
   pick,
   GRAHA_L5,
   RASHI_L5,
-  NAKSHATRA_L5
+  NAKSHATRA_L5,
+  cleanEnglishFromRegionalText
 } from "./premiumPdfLocale";
 import type { NatalPlacement, TransitPlacement } from "./premiumPrompts";
 
@@ -29,6 +30,9 @@ export interface KundaliAnalysisInput {
   gender?: "Male" | "Female";
   ageYears?: number;
   lang: string;
+  name?: string;
+  maritalStatus?: string;
+  hasChildren?: string;
 }
 
 export interface HouseFact {
@@ -49,6 +53,7 @@ export interface HouseFact {
 
 export interface ParsedKundaliChart {
   lang: string;
+  name?: string;
   lagnaRashiIndex: number;
   lagnaSignName: string;
   moonRashiIndex: number;
@@ -56,6 +61,8 @@ export interface ParsedKundaliChart {
   nakshatraName: string;
   gender: "Male" | "Female";
   ageYears: number;
+  maritalStatus?: string;
+  hasChildren?: string;
   mahaLordKey: GrahaKey | null;
   mahaLordName: string;
   bhuktiLordKey: GrahaKey | null;
@@ -194,6 +201,7 @@ export function analyzeKundali(input: KundaliAnalysisInput): ParsedKundaliChart 
 
   return {
     lang,
+    name: input.name,
     lagnaRashiIndex,
     lagnaSignName,
     moonRashiIndex,
@@ -201,6 +209,8 @@ export function analyzeKundali(input: KundaliAnalysisInput): ParsedKundaliChart 
     nakshatraName,
     gender,
     ageYears,
+    maritalStatus: input.maritalStatus,
+    hasChildren: input.hasChildren,
     mahaLordKey,
     mahaLordName,
     bhuktiLordKey,
@@ -458,49 +468,98 @@ Your prospective life partner will unmistakably reflect the core planetary quali
 To neutralize subtle planetary friction, dissolve past karmic blockages, and harmonize Kuja/Manglik influences (${chart.isManglik ? "Kuja Dosha is present in your chart and requires dedicated Shanti" : "no severe Kuja Dosha is present, ensuring smooth marital progress"}), performing dedicated Vedic remedies is highly beneficial. Reciting the sacred mantra 'Om Shreem Gauryai Namah' and performing Gauri Pooja alongside Sri Subramanya Seva 108 times during the morning sandhya creates an auspicious energetic shield for domestic bliss. Furthermore, offering archana at Gokarna Mahabaleshwara Kshetra on auspicious Tuesdays or Fridays will remove all lingering impediments, pacify planetary afflictions, and ensure early, blessed marital fulfillment.`;
   } else if (status === "married") {
     if (baseLang === "kn") {
+      const salutation = chart.name ? `${chart.name} ಅವರೇ, ` : "";
       const femaleMangalyaKn = chart.gender === "Female"
         ? `ಮಾಂಗಲ್ಯ ಸ್ಥಾನ ಹಾಗೂ ಜೀವಕಾರಕ ಗುರುವಿನ ಶುಭ ಬಲವು ನಿಮ್ಮ ದಾಂಪತ್ಯ ಬಾಂಧವ್ಯವನ್ನು ರಕ್ಷಿಸುತ್ತದೆ. `
         : "";
-      return `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${chart.lagnaSignName}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${chart.moonSignName}) ಆಧಾರದ ಮೇಲೆ, ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord} ಗ್ರಹವು ${h7Where}ದಲ್ಲಿ ಸ್ಥಿತವಾಗಿರುವುದು ನಿಮ್ಮ ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿ ಆಳವಾದ ಪ್ರೀತಿ, ಪರಸ್ಪರ ರಕ್ಷಣೆ ಹಾಗೂ ಸ್ಥಿರತೆಯನ್ನು ಸೂಚಿಸುತ್ತದೆ. ${femaleMangalyaKn}ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿಯು ಸಂಸಾರದಲ್ಲಿ ನೈತಿಕ ಹೊಣೆಗಾರಿಕೆಗಳನ್ನು ಒಟ್ಟಾಗಿ ನಿರ್ವಹಿಸಲು ಪ್ರೇರೇಪಿಸುತ್ತದೆ. ಗ್ರಹಗಳ ಶುಭ ಬಲವು ನಿಮ್ಮ ಗೃಹದಲ್ಲಿ ಸದಾ ಸುಖ, ಶಾಂತಿ ಹಾಗೂ ಸಮೃದ್ಧಿಯ ವಾತಾವರಣವನ್ನು ಕಾಪಾಡಲಿದೆ.
+
+      if (chart.hasChildren === "no_children") {
+        return `${salutation}ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${chart.lagnaSignName}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${chart.moonSignName}) ಆಧಾರದ ಮೇಲೆ, ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord} ಗ್ರಹವು ${h7Where}ದಲ್ಲಿ ಸ್ಥಿತವಾಗಿರುವುದು ನಿಮ್ಮ ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿ ಆಳವಾದ ಪ್ರೀತಿ, ಪರಸ್ಪರ ರಕ್ಷಣೆ ಹಾಗೂ ಅಚಲವಾದ ನಂಬಿಕೆಯನ್ನು ಸೂಚಿಸುತ್ತದೆ. ${femaleMangalyaKn}ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿಯು ಸಂಸಾರದಲ್ಲಿ ನೀವು ಮತ್ತು ನಿಮ್ಮ ಸಂಗಾತಿ ಪರಸ್ಪರರ ಪರಮ ಆಪ್ತ ಸ್ನೇಹಿತರಾಗಿ, ಭಾವನಾತ್ಮಕ ಆಸರೆಯಾಗಿ ನಿಲ್ಲಲು ಪ್ರೇರೇಪಿಸುತ್ತದೆ. ಗ್ರಹಗಳ ಶುಭ ಬಲವು ನಿಮ್ಮ ಗೃಹದಲ್ಲಿ ಸದಾ ಸುಖ, ಶಾಂತಿ ಹಾಗೂ ದೈವಿಕ ರಕ್ಷಣೆಯನ್ನು ಕಾಪಾಡಲಿದೆ.
+
+ದಾಂಪತ್ಯದಲ್ಲಿ ಪರಸ್ಪರ ಸಾಂತ್ವನ, ಗೌರವ ಹಾಗೂ ಒಬ್ಬರನ್ನೊಬ್ಬರು ಅರಿತುಕೊಳ್ಳುವುದೇ ನಿಮ್ಮ ದಾಂಪತ್ಯದ ಪರಮ ಶಕ್ತಿಯಾಗಿದೆ. ಸಂತಾನ ನಿರೀಕ್ಷೆಯಲ್ಲಿರುವ ಈ ಸೂಕ್ಷ್ಮ ಹಂತದಲ್ಲಿ, ಹೊರಗಿನಿಂದ ಎದುರಾಗುವ ಪ್ರಶ್ನೆಗಳಿಗೆ ವಿಚಲಿತರಾಗದೆ, ದಂಪತಿಗಳಿಬ್ಬರೂ ಪರಸ್ಪರ ಬೆಂಬಲವಾಗಿ ಒಗ್ಗಟ್ಟಿನಿಂದ ಮುನ್ನಡೆಯುವುದು ಅತ್ಯಂತ ಮುಖ್ಯವಾಗಿದೆ. ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord}ನ ಅನುಗ್ರಹದಿಂದಾಗಿ, ನಿಮ್ಮಿಬ್ಬರ ನಡುವಿನ ಮುಕ್ತ ಪ್ರೇಮಪೂರ್ಣ ಸಂಭಾಷಣೆ ಹಾಗೂ ಮಾನಸಿಕ ಪ್ರಶಾಂತತೆಯು ಯಾವುದೇ ಆತಂಕಗಳನ್ನು ದೂರಮಾಡಿ, ಮನೆಯಲ್ಲಿ ಸಂತಸದ ವಾತಾವರಣವನ್ನು ಸೃಷ್ಟಿಸಲಿದೆ. ಇಬ್ಬರೂ ಜೊತೆಯಾಗಿ ಕೈಗೊಳ್ಳುವ ಆರ್ಥಿಕ ಹಾಗೂ ಕೌಟುಂಬಿಕ ನಿರ್ಧಾರಗಳು ಸುಭದ್ರ ಭವಿಷ್ಯಕ್ಕೆ ಭದ್ರ ಬುನಾದಿ ಹಾಕಲಿವೆ.
+
+ದಾಂಪತ್ಯದಲ್ಲಿ ಅಖಂಡ ಪ್ರೇಮ, ಕೌಟುಂಬಿಕ ನೆಮ್ಮದಿ ಹಾಗೂ ವಂಶಾಭಿವೃದ್ಧಿಯ ಶುಭ ಸಂಕಲ್ಪ ಸಿದ್ಧಿಗಾಗಿ ಪ್ರತಿ ಶುಕ್ರವಾರ ಮನೆಯ ದೇವರ ಕೋಣೆಯಲ್ಲಿ ಶುದ್ಧ ಹಸುವಿನ ತುಪ್ಪದ ದೀಪ ಹಚ್ಚಿ ಪ್ರಾರ್ಥಿಸುವುದು ಶ್ರೇಷ್ಠ. ಶ್ರೀ ಲಕ್ಷ್ಮೀ-ನಾರಾಯಣ ಹಾಗೂ ಗೌರಿ-ಶಂಕರ ದೇವಸ್ಥಾನಗಳಲ್ಲಿ ದಂಪತಿ ಸಮೇತರಾಗಿ ಅರ್ಚನೆ ನೆರವೇರಿಸಿ, ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಗೆ ಕ್ಷೀರಾಭಿಷೇಕ ಸಮರ್ಪಿಸುವುದರಿಂದ ಕೌಟುಂಬಿಕ ವಿಘ್ನಗಳು ಪರಿಹಾರವಾಗಿ ದಾಂಪತ್ಯದಲ್ಲಿ ನಿತ್ಯ ಶಾಂತಿ ನೆಲೆಸಲಿದೆ.`;
+      }
+
+      return `${salutation}ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${chart.lagnaSignName}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${chart.moonSignName}) ಆಧಾರದ ಮೇಲೆ, ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord} ಗ್ರಹವು ${h7Where}ದಲ್ಲಿ ಸ್ಥಿತವಾಗಿರುವುದು ನಿಮ್ಮ ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿ ಆಳವಾದ ಪ್ರೀತಿ, ಪರಸ್ಪರ ರಕ್ಷಣೆ ಹಾಗೂ ಸ್ಥಿರತೆಯನ್ನು ಸೂಚಿಸುತ್ತದೆ. ${femaleMangalyaKn}ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿಯು ಸಂಸಾರದಲ್ಲಿ ನೈತಿಕ ಹೊಣೆಗಾರಿಕೆಗಳನ್ನು ಒಟ್ಟಾಗಿ ನಿರ್ವಹಿಸಲು ಪ್ರೇರೇಪಿಸುತ್ತದೆ. ಗ್ರಹಗಳ ಶುಭ ಬಲವು ನಿಮ್ಮ ಗೃಹದಲ್ಲಿ ಸದಾ ಸುಖ, ಶಾಂತಿ ಹಾಗೂ ಸಮೃದ್ಧಿಯ ವಾತಾವರಣವನ್ನು ಕಾಪಾಡಲಿದೆ.
 
 ದಾಂಪತ್ಯದಲ್ಲಿ ಪರಸ್ಪರ ತಿಳುವಳಿಕೆ, ಗೌರವ ಹಾಗೂ ಮುಕ್ತ ಸಂಭಾಷಣೆಯು ನಿಮ್ಮ ಯಶಸ್ಸಿಗೆ ಮುಖ್ಯ ಆಧಾರಸ್ತಂಭಗಳಾಗಿವೆ. ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord}ನ ಪ್ರಭಾವದಿಂದಾಗಿ, ಕೌಟುಂಬಿಕ ಪ್ರಗತಿ ಮತ್ತು ಆರ್ಥಿಕ ಹೂಡಿಕೆಗಳ ನಿರ್ಧಾರಗಳಲ್ಲಿ ನಿಮ್ಮ ಸಂಗಾತಿಯ ವಿವೇಕಯುತ ಸಲಹೆಗಳನ್ನು ಗೌರವಿಸುವುದು ಅದ್ಭುತ ಫಲಗಳನ್ನು ತರಲಿದೆ. ಇಬ್ಬರೂ ಜೊತೆಯಾಗಿ ಕೈಗೊಳ್ಳುವ ದೀರ್ಘಕಾಲಿಕ ಯೋಜನೆಗಳು ಸ್ಥಿರಾಸ್ತಿ ಹಾಗೂ ಸಾಮಾಜಿಕ ಮನ್ನಣೆಯನ್ನು ತಂದುಕೊಡುತ್ತವೆ. ಸಣ್ಣಪುಟ್ಟ ಭಿನ್ನಾಭಿಪ್ರಾಯಗಳನ್ನು ಪ್ರೀತಿ ಹಾಗೂ ಸಮಾಧಾನದಿಂದ ಬಗೆಹರಿಸಿಕೊಳ್ಳುವುದು ಬಾಂಧವ್ಯವನ್ನು ಮತ್ತಷ್ಟು ಗಟ್ಟಿಗೊಳಿಸುತ್ತದೆ.
 
 ದಾಂಪತ್ಯ ಸೌಖ್ಯ, ವಂಶಾಭಿವೃದ್ಧಿ ಹಾಗೂ ಸಕಲ ಸೌಭಾಗ್ಯಗಳ ನಿರಂತರ ವೃದ್ಧಿಗಾಗಿ ಪ್ರತಿ ಶುಕ್ರವಾರ ಮನೆಯ ದೇವರ ಕೋಣೆಯಲ್ಲಿ ಶುದ್ಧ ಹಸುವಿನ ತುಪ್ಪದ ದೀಪ ಹಚ್ಚಿ ಪ್ರಾರ್ಥಿಸುವುದು ಶ್ರೇಷ್ಠ. ಶ್ರೀ ಲಕ್ಷ್ಮೀ-ನಾರಾಯಣ ಹಾಗೂ ಗೌರಿ-ಶಂಕರ ದೇವಸ್ಥಾನಗಳಲ್ಲಿ ದಂಪತಿ ಸಮೇತರಾಗಿ ಅರ್ಚನೆ ನೆರವೇರಿಸಿ, ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಗೆ ಕ್ಷೀರಾಭಿಷೇಕ ಸಮರ್ಪಿಸುವುದರಿಂದ ಕೌಟುಂಬಿಕ ವಿಘ್ನಗಳು ಪರಿಹಾರವಾಗಿ ದಾಂಪತ್ಯದಲ್ಲಿ ನಿತ್ಯ ಶಾಂತಿ ನೆಲೆಸಲಿದೆ.`;
     }
     if (baseLang === "hi") {
+      const salutation = chart.name ? `${chart.name} जी, ` : "";
       const femaleMangalyaHi = chart.gender === "Female"
         ? `मांगल्य भाव एवं जीवकारक बृहस्पति का शुभ प्रभाव आपके दांपत्य को सुरक्षा प्रदान करता है। `
         : "";
-      return `आपकी जन्म लग्न (${chart.lagnaSignName}) एवं चंद्र राशि (${chart.moonSignName}) के अनुसार, सप्तमेश ${h7Lord} की ${h7Where} में स्थिति दांपत्य जीवन में प्रगाढ़ विश्वास, समर्पण और स्थायी सामंजस्य को पुष्ट करती है। ${femaleMangalyaHi}वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति का प्रभाव पारिवारिक उत्तरदायित्वों को गरिमापूर्ण ढंग से निभाने में सहायक सिद्ध होगा। शुभ ग्रहों की स्थिति आपके गृहस्थ जीवन में निरंतर सुख और शांति का वातावरण बनाए रखेगी।
+
+      if (chart.hasChildren === "no_children") {
+        return `${salutation}आपकी जन्म लग्न (${chart.lagnaSignName}) एवं चंद्र राशि (${chart.moonSignName}) के अनुसार, सप्तमेश ${h7Lord} की ${h7Where} में स्थिति दांपत्य जीवन में प्रगाढ़ विश्वास, समर्पण और स्थायी सामंजस्य को पुष्ट करती है। ${femaleMangalyaHi}वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल में आप दोनों का परस्पर भावनात्मक संबल ही गृहस्थी का सबसे बड़ा आधार है। शुभ ग्रहों की स्थिति आपके वैवाहिक जीवन में निरंतर प्रेम और सौहार्द का वातावरण बनाए रखेगी।
+
+दांपत्य जीवन में परस्पर समझ, सम्मान और एक-दूसरे की भावनाओं का आदर ही सच्चा बल है। संतान की प्रतीक्षा के इस संवेदनशील दौर में सामाजिक प्रश्नों या परिजनों की जिज्ञासा से विचलित हुए बिना, पति-पत्नी का एक अटूट स्तंभ बनकर साथ चलना अत्यंत आवश्यक है। सप्तमेश ${h7Lord} के प्रभाव से, वित्तीय योजनाओं और घरेलू निर्णयों में जीवनसाथी के विचारों को महत्व देना गृहस्थी को सुरक्षित और समृद्ध बनाएगा।
+
+गृहस्थी में अखंड शांति, समृद्धि और कुल वृद्धि के शुभ संकल्प की सिद्धि हेतु प्रत्येक शुक्रवार को मां महालक्ष्मी तथा श्री गौरी-शंकर का विधिपूर्वक पूजन करें। गोಕರ್ण क्षेत्र में महाबलेश्वर भगवान का अभिषेक एवं लक्ष्मी नारायण स्तोत्र का पाठ करने से समस्त नकारात्मकता समाप्त होकर दांपत्य जीवन में अपार सुख और समृद्धि का वास होगा।`;
+      }
+
+      return `${salutation}आपकी जन्म लग्न (${chart.lagnaSignName}) एवं चंद्र राशि (${chart.moonSignName}) के अनुसार, सप्तमेश ${h7Lord} की ${h7Where} में स्थिति दांपत्य जीवन में प्रगाढ़ विश्वास, समर्पण और स्थायी सामंजस्य को पुष्ट करती है। ${femaleMangalyaHi}वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति का प्रभाव पारिवारिक उत्तरदायित्वों को गरिमापूर्ण ढंग से निभाने में सहायक सिद्ध होगा। शुभ ग्रहों की स्थिति आपके गृहस्थ जीवन में निरंतर सुख और शांति का वातावरण बनाए रखेगी।
 
 वैवाहिक जीवन में परस्पर समझ, सम्मान और सौहार्दपूर्ण संवाद सफलता का मूल मंत्र है। सप्तमेश ${h7Lord} के प्रभाव से, पारिवारिक एवं वित्तीय योजनाओं में जीवनसाथी के परामर्श को महत्व देने से आर्थिक समृद्धि और मान-सम्मान में दोगुनी वृद्धि होगी। संयुक्त रूप से लिए गए निर्णय भविष्य को सुरक्षित और समृद्ध बनाएंगे। किसी भी प्रकार के मतभेद को शांति और धैर्य से सुलझाने से रिश्ते में नवीन ऊर्जा और मधुरता बनी रहेगी।
 
 गृहस्थी में अखंड शांति, समृद्धि और आरोग्य की वृद्धि हेतु प्रत्येक शुक्रवार को मां महालक्ष्मी तथा श्री गौरी-शंकर का विधिपूर्वक पूजन करें। गोಕರ್ण क्षेत्र में महाबलेश्वर भगवान का अभिषेक एवं लक्ष्मी नारायण स्तोत्र का पाठ करने से समस्त नकारात्मकता समाप्त होकर दांपत्य जीवन में अपार सुख और समृद्धि का वास होगा।`;
     }
     if (baseLang === "te") {
+      const salutation = chart.name ? `${chart.name} గారూ, ` : "";
       const femaleMangalyaTe = chart.gender === "Female"
         ? `మాంగళ్య స్థానం మరియు జీవకారక గురుగ్రహ శుభ దృష్టి మీ దాంపత్య బంధాన్ని కాపాడుతాయి. `
         : "";
-      return `మీ జన్మ లగ్నం (${chart.lagnaSignName}) మరియు చంద్ర రాశి (${chart.moonSignName}) ప్రకారం, సప్తమాధిపతి ${h7Lord} ${h7Where}లో ఉండటం మీ వైవాహిక జీవితంలో ప్రగాఢ విశ్వాసం, అంకితభావం మరియు స్థిరమైన శాంతిని చేకూరుస్తుంది. ${femaleMangalyaTe}ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి ప్రభావం కుటుంబ బాధ్యతలను గౌరవప్రదంగా నిర్వహించడంలో సహాయపడుతుంది. శుభ గ్రహాల స్థానాలు మీ గృహంలో నిరంతరం సుఖశాంతులను నింపుతాయి.
+
+      if (chart.hasChildren === "no_children") {
+        return `${salutation}మీ జన్మ లగ్నం (${chart.lagnaSignName}) మరియు చంద్ర రాశి (${chart.moonSignName}) ప్రకారం, సప్తమాధిపతి ${h7Lord} ${h7Where}లో ఉండటం మీ వైవాహిక జీవితంలో ప్రగాఢ విశ్వాసం, అంకితభావం మరియు పరస్పర రక్షణను చేకూరుస్తుంది. ${femaleMangalyaTe}ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలంలో మీరిద్దరూ ఒకరికొకరు ప్రధాన భావోద్వేగ ఆలంబనగా నిలవడం గృహానికి రక్షణగా ఉంటుంది. శుభ గ్రహాల అనుగ్రహం మీ దాంపత్యంలో శాంతిని నింపుతుంది.
+
+దాంపత్యంలో పరస్పర సాంత్వన, గౌరవం అత్యంత కీలకమైనవి. సంతాన నిరీక్షణలో ఉన్న ఈ సమయంలో, బయటి వ్యక్తుల ప్రశ్నల వల్ల ఒత్తిడికి గురికాకుండా, దంపతులిద్దరూ ఐక్యంగా నిలవడం అత్యంత ముఖ్యం. సప్తమాధిపతి ${h7Lord} ప్రభావంతో, ఆర్థిక మరియు కుటుంబ విషయాల్లో పరస్పర సంప్రదింపులు జరపడం వల్ల గృహంలో ఆనందం, శాంతి నెలకొంటాయి.
+
+ఇంట్లో అఖండ శాంతి మరియు వంశాభివృద్ధి సంకల్ప సిద్ధి కోసం ప్రతి శుక్రవారం లక్ష్మీ-నారాయణ మరియు గౌరీ-శంకరులను పూజించండి. గోకర్ణ క్షేత్రంలో మహాబలేశ్వరునికి అభిషేకం చేయడం వల్ల ప్రతికూలతలు తొలగి దాంపత్య జీవితంలో శాశ్వత సౌఖ్యం కలుగుతుంది.`;
+      }
+
+      return `${salutation}మీ జన్మ లగ్నం (${chart.lagnaSignName}) మరియు చంద్ర రాశి (${chart.moonSignName}) ప్రకారం, సప్తమాధిపతి ${h7Lord} ${h7Where}లో ఉండటం మీ వైవాహిక జీవితంలో ప్రగాఢ విశ్వాసం, అంకితభావం మరియు స్థిరమైన శాంతిని చేకూరుస్తుంది. ${femaleMangalyaTe}ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి ప్రభావం కుటుంబ బాధ్యతలను గౌరవప్రదంగా నిర్వహించడంలో సహాయపడుతుంది. శుభ గ్రహాల స్థానాలు మీ గృహంలో నిరంతరం సుఖశాంతులను నింపుతాయి.
 
 దాంపత్య జీవితంలో పరస్పర అవగాహన, గౌరవం మరియు సత్సంబంధాలు విజయానికి మూలస్తంభాలు. సప్తమాధిపతి ${h7Lord} ప్రభావంతో, కుటుంబ మరియు ఆర్థిక నిర్ణయాల్లో జీవిత భాగస్వామి సలహాలను గౌరవించడం వల్ల సౌభాగ్యం రెట్టింపవుతుంది. ఇద్దరూ కలిసి తీసుకునే నిర్ణయాలు భవిష్యత్తును సురక్షితం చేస్తాయి. చిన్నపాటి అభిప్రాయభేదాలను శాంతితో పరిష్కరించుకోవడం బంధాన్ని మరింత బలపరుస్తుంది.
 
 ఇంట్లో అఖండ శాంతి, సమృద్ధి కోసం ప్రతి శుక్రవారం లక్ష్మీ-నారాయణ మరియు గౌరీ-శంకరులను పూజించండి. గోకర్ణ క్షేత్రంలో మహాబలేశ్వరునికి అభిషేకం చేయడం వల్ల ప్రతికూలతలు తొలగి దాంపత్య జీవితంలో అపారమైన ఆనందం కలుగుతుంది.`;
     }
     if (baseLang === "ta") {
-      return `உங்கள் ஜென்ம லக்னம் (${chart.lagnaSignName}) மற்றும் சந்திர ராசி (${chart.moonSignName}) அடிப்படையில், 7-ம் அதிபதி ${h7Lord} ${h7Where}-ல் அமைந்திருப்பது இல்லற வாழ்வில் ஆழ்ந்த பாசம், அர்ப்பணிப்பு மற்றும் நிலைத்தன்மையை உறுதி செய்கிறது. தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி குடும்பப் பொறுப்புகளை நல்ல முறையில் நிர்வகிக்க உதவும். சுப கிரகங்களின் சேர்க்கை இல்லத்தில் அமைதியையும் மகிழ்ச்சியையும் நிலைநிறுத்தும்.
+      const salutation = chart.name ? `${chart.name} அவர்களே, ` : "";
+
+      if (chart.hasChildren === "no_children") {
+        return `${salutation}உங்கள் ஜென்ம லக்னம் (${chart.lagnaSignName}) மற்றும் சந்திர ராசி (${chart.moonSignName}) அடிப்படையில், 7-ம் அதிபதி ${h7Lord} ${h7Where}-ல் அமைந்திருப்பது இல்லற வாழ்வில் ஆழ்ந்த பாசம், அர்ப்பணிப்பு மற்றும் நிலைத்தன்மையை உறுதி செய்கிறது. தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் தம்பதியர் ஒருவருக்கொருவர் பெரும் பலமாக விளங்க உதவும். சுப கிரகங்களின் சேர்க்கை இல்லத்தில் அமைதியை நிலைநிறுத்தும்.
+
+இல்லற வாழ்வில் பரஸ்பர புரிதல், ஆறுதல் மற்றும் மரியாதை மிக முக்கியமானதாகும். குழந்தைச் செல்வம் எதிர்பார்த்திருக்கும் இக்காலகட்டத்தில், புற அழுத்தங்களுக்கு இடமளிக்காமல், இருவரும் ஒற்றுமையுடன் விளங்குவது அவசியம். 7-ம் அதிபதி ${h7Lord} அருளால், குடும்ப மற்றும் நிதி திட்டங்களில் இருவரும் இணைந்து எடுக்கும் முடிவுகள் எதிர்காலத்தை வளமாக்கும்.
+
+இல்லத்தில் நிம்மதியும் வம்ச விருத்தி நன்மையும் பெருக ஒவ்வொரு வெள்ளிக்கிழமையும் ஸ்ரீ லட்சுமி நாராயணர் மற்றும் கௌரி-சங்கரர் வழிபாடு செய்யவும். கோகர்ணத்தில் மகாபலேஸ்வரருக்கு பாலபிஷேகம் செய்வது இல்லறத்தில் மகிழ்ச்சியையும் நற்பலன்களையும் தரும்.`;
+      }
+
+      return `${salutation}உங்கள் ஜென்ம லக்னம் (${chart.lagnaSignName}) மற்றும் சந்திர ராசி (${chart.moonSignName}) அடிப்படையில், 7-ம் அதிபதி ${h7Lord} ${h7Where}-ல் அமைந்திருப்பது இல்லற வாழ்வில் ஆழ்ந்த பாசம், அர்ப்பணிப்பு மற்றும் நிலைத்தன்மையை உறுதி செய்கிறது. தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி குடும்பப் பொறுப்புகளை நல்ல முறையில் நிர்வகிக்க உதவும். சுப கிரகங்களின் சேர்க்கை இல்லத்தில் அமைதியையும் மகிழ்ச்சியையும் நிலைநிறுத்தும்.
 
 இல்லற வாழ்வில் பரஸ்பர புரிதல், மரியாதை மற்றும் சுமுகமான உறவு வெற்றிக்கான மூலமந்திரமாகும். 7-ம் அதிபதி ${h7Lord} அருளால், குடும்ப மற்றும் நிதி திட்டங்களில் வாழ்க்கைத்துணையின் ஆலோசனையை ஏற்பது செல்வத்தையும் புகழையும் பெருக்கும். இருவரும் இணைந்து எடுக்கும் முடிவுகள் எதிர்காலத்தை வளமாக்கும். கருத்து வேறுபாடுகளை அன்புடன் தீர்த்துக்கொள்வது பிணைப்பை மேலும் உறுதியாக்கும்.
 
 இல்லத்தில் நிம்மதியும் செல்வ வளமும் பெருக ஒவ்வொரு வெள்ளிக்கிழமையும் ஸ்ரீ லட்சுமி நாராயணர் மற்றும் கௌரி-சங்கரர் வழிபாடு செய்யவும். கோகர்ணத்தில் மகாபலேஸ்வரருக்கு பாலபிஷேகம் செய்வது இல்லறத்தில் மகிழ்ச்சியை நிறைக்கும்.`;
     }
+    const salutation = chart.name ? `Dear ${chart.name}, ` : "";
     const femaleNuanceEn = chart.gender === "Female"
       ? ` With the auspicious alignment of your Mangalya Sthana (8th house) and protective grace from Jeevakaraka Jupiter, benefic planetary placements anchor the marital bond in lasting harmony.`
       : ` Benefic planetary placements create an energetic sanctuary within the household, protecting the marriage from external discord and anchoring the relationship in mutual loyalty.`;
 
-    return `Based on your birth Lagna (${chart.lagnaSignName}) and Moon sign (${chart.moonSignName}), the 7th house (${h7Sign}) and 7th house lord ${h7Lord} placed in ${h7Where} alongside your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti fosters enduring trust, emotional warmth, and domestic stability in your married life.${femaleNuanceEn}
+    if (chart.hasChildren === "no_children") {
+      return `${salutation}Based on your birth Lagna (${chart.lagnaSignName}) and Moon sign (${chart.moonSignName}), the 7th house (${h7Sign}) and 7th house lord ${h7Lord} placed in ${h7Where} alongside your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti foster enduring trust, emotional warmth, and domestic sanctuary in your married life.${femaleNuanceEn}
 
-Cultivating deep mutual understanding, respectful communication, and empathy forms the true bedrock of your marital journey. Reflecting the qualities of ${h7Lord}, involving your spouse in pivotal household, financial, and life decisions directly accelerates family prosperity and harmony. Collaborative planning generates constructive milestones for long-term investments and children's upbringing, turning occasional differences into opportunities for deeper emotional intimacy and spiritual cohesion.
+In this tender chapter of waiting for progeny, your spouse stands as your greatest confidant, emotional anchor, and steadfast life companion. Mutual reassurance, empathetic listening, and protecting each other from outside societal or familial questions about children are essential. Reflecting the qualities of ${h7Lord}, uniting as an unwavering team and transparently communicating ensures that emotional pressure dissolves, creating a calm, joyful household atmosphere. Collaborative financial planning and mutual respect lay the firm groundwork for future domestic prosperity.
+
+To invite continuous divine grace, domestic peace, and the fulfillment of your family expansion wishes, offering prayers to Goddess Lakshmi and Lord Narayana on Fridays remains exceptionally beneficial. Maintaining a serene sacred altar at home, reciting the Gauri-Shankara stotram, and offering prayers at Gokarna Mahabaleshwara Kshetra ensures that your marriage remains shielded from discord while enjoying enduring harmony and cosmic blessings.`;
+    }
+
+    return `${salutation}Based on your birth Lagna (${chart.lagnaSignName}) and Moon sign (${chart.moonSignName}), the 7th house (${h7Sign}) and 7th house lord ${h7Lord} placed in ${h7Where} alongside your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti fosters enduring trust, emotional warmth, and domestic stability in your married life.${femaleNuanceEn}
+
+Cultivating deep mutual understanding, respectful communication, and empathy forms the true bedrock of your marital journey. Reflecting the qualities of ${h7Lord}, involving your spouse in pivotal household, financial, and life decisions directly accelerates family prosperity and harmony. Collaborative planning generates constructive milestones for long-term investments and family wellbeing, turning occasional differences into opportunities for deeper emotional intimacy and spiritual cohesion.
 
 To invite continuous divine grace and domestic peace, offering prayers to Goddess Lakshmi and Lord Narayana on Fridays remains exceptionally beneficial. Maintaining a serene sacred altar at home, reciting the Gauri-Shankara stotram, and offering prayers at Gokarna Mahabaleshwara Kshetra ensures that your family remains shielded from negative energies while enjoying lifelong abundance and harmony.`;
   } else {
@@ -629,38 +688,43 @@ To awaken photographic recall, mental focus, and academic distinction, reciting 
   // Adult Native (22 to 59 Years): Seeking Progeny vs Has Children vs General
   if (status === "no_children") {
     if (baseLang === "kn") {
-      return `ನಿಮ್ಮ ಜಾತಕದ ಪಂಚಮ ಭಾವವಾದ ${h5Sign} ಹಾಗೂ ಪಂಚಮಾಧಿಪತಿಯಾದ ${h5Lord} ಗ್ರಹದ ಸ್ಥಿತಿಯೊಂದಿಗೆ ಪುತ್ರಕಾರಕ ಬೃಹಸ್ಪತಿ (Jupiter), ಚಂದ್ರ (Moon) ಹಾಗೂ ಕುಜ (ಮಂಗಳ) ಗ್ರಹಗಳ ಶುಭ ಪ್ರಭಾವವು ಸಂತಾನ ಪ್ರಾಪ್ತಿ ಯೋಗವನ್ನು ದೃಢಪಡಿಸುತ್ತದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಕಾಲವು ವಂಶಾಭಿವೃದ್ಧಿಯ ಶುಭ ಸಂಕೇತಗಳನ್ನು ಹೊತ್ತುತಂದಿದೆ. ಪಂಚಮ ಭಾವದಲ್ಲಿ ಶುಭ ಗ್ರಹಗಳ ಬಲವು ನೈಸರ್ಗಿಕ ಗರ್ಭಧಾರಣೆಗೆ ಹಾಗೂ ಸಂತಾನ ಸೌಖ್ಯಕ್ಕೆ ಪೂರಕವಾದ ದಿವ್ಯ ಶಕ್ತಿಯನ್ನು ಜಾಗೃತಗೊಳಿಸುತ್ತಿದೆ.
+      const salutation = chart.name ? `${chart.name} ಅವರೇ, ` : "";
+      return `${salutation}ನಿಮ್ಮ ಜಾತಕದ ಪಂಚಮ ಭಾವವಾದ ${h5Sign} ಹಾಗೂ ಪಂಚಮಾಧಿಪತಿಯಾದ ${h5Lord} ಗ್ರಹದ ಸ್ಥಿತಿಯೊಂದಿಗೆ ಪುತ್ರಕಾರಕ ಬೃಹಸ್ಪತಿ (Jupiter), ಚಂದ್ರ (Moon) ಹಾಗೂ ಕುಜ (ಮಂಗಳ) ಗ್ರಹಗಳ ಶುಭ ಪ್ರಭಾವವು ಸಂತಾನ ಪ್ರಾಪ್ತಿ ಯೋಗವನ್ನು ದೃಢಪಡಿಸುತ್ತದೆ. ಮನಸ್ಸಿನಲ್ಲಿ ಬಹಳ ದಿನಗಳಿಂದ ಮಗುವಿನ ಆಗಮನಕ್ಕಾಗಿ ನೀವು ಮಾಡುತ್ತಿರುವ ಮೂಕ ಪ್ರಾರ್ಥನೆ, ಕಾಯುವಿಕೆಯ ತಲ್ಲಣ ಹಾಗೂ ಹಂಬಲವನ್ನು ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರವು ಸಂಪೂರ್ಣವಾಗಿ ಗೌರವಿಸುತ್ತದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಕಾಲವು ವಂಶಾಭಿವೃದ್ಧಿಯ ಶುಭ ಸಂಕೇತಗಳನ್ನು ಹೊತ್ತುತಂದಿದ್ದು, ಪಂಚಮ ಭಾವದಲ್ಲಿ ಶುಭ ಗ್ರಹಗಳ ಬಲವು ನೈಸರ್ಗಿಕ ಗರ್ಭಧಾರಣೆಗೆ ಹಾಗೂ ಸಂತಾನ ಸೌಖ್ಯಕ್ಕೆ ಪೂರಕವಾದ ದಿವ್ಯ ಶಕ್ತಿಯನ್ನು ಜಾಗೃತಗೊಳಿಸುತ್ತಿದೆ.
 
-ಶುಭ ಗ್ರಹಗಳ ಪ್ರಸ್ತುತ ಗೋಚಾರ ಸಂಚಾರವು ಗರ್ಭಧಾರಣೆ ಹಾಗೂ ಸಂತಾನೋತ್ಪತ್ತಿಗೆ ಅನುಕೂಲಕರವಾದ ದಿವ್ಯ ಕಾಲಘಟ್ಟವನ್ನು ಸೃಷ್ಟಿಸುತ್ತಿದೆ. ಈ ಅವಧಿಯಲ್ಲಿ ದಂಪತಿಗಳು ಕೈಗೊಳ್ಳುವ ವೈದ್ಯಕೀಯ ಪರೀಕ್ಷೆಗಳು ಹಾಗೂ ಧಾರ್ಮಿಕ ಸಂಕಲ್ಪಗಳು ಶೀಘ್ರ ಯಶಸ್ಸು ನೀಡಲಿವೆ. ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಅನುಗ್ರಹದಿಂದಾಗಿ ಸಂತಾನ ನಿರೀಕ್ಷೆಯಲ್ಲಿರುವ ಕುಟುಂಬದಲ್ಲಿ ಶೀಘ್ರದಲ್ಲೇ ಮಂದಸ್ಮಿತ ಮಗುವಿನ ಆಗಮನದ ಶುಭ ವಾರ್ತೆ ಕೇಳಿಬರಲಿದೆ.
+ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಅನುಕೂಲಕರ ಗೋಚಾರ ಸಂಚಾರ ಹಾಗೂ ಶುಭ ಗ್ರಹಗಳ ದೃಷ್ಟಿಯು ಗರ್ಭಧಾರಣೆ ಹಾಗೂ ಸಂತಾನೋತ್ಪತ್ತಿಗೆ ಶ್ರೇಷ್ಠ ಕಾಲಘಟ್ಟವನ್ನು ರೂಪಿಸುತ್ತಿದೆ. ಜ್ಯೋತಿಷ್ಯದಲ್ಲಿ ಗ್ರಹಗಳ ಈ ನಿಧಾನಗತಿಯು ನಿರಾಕರಣೆಯಲ್ಲ, ಬದಲಿಗೆ ದೈಹಿಕ ಹಾಗೂ ಮಾನಸಿಕ ಶುದ್ಧೀಕರಣದ ಪ್ರಕ್ರಿಯೆಯಾಗಿದೆ. ಈ ಸೂಕ್ಷ್ಮ ಅವಧಿಯಲ್ಲಿ ದಂಪತಿಗಳು ಯಾವುದೇ ಕೀಳರಿಮೆ ಅಥವಾ ಹೊರಗಿನವರ ಮಾತುಗಳಿಂದ ವಿಚಲಿತರಾಗದೆ, ಪರಸ್ಪರ ಮಾನಸಿಕ ಧೈರ್ಯ ತುಂಬಿಕೊಳ್ಳುವುದು ಮತ್ತು ಸೂಕ್ತ ವೈದ್ಯಕೀಯ ಪರೀಕ್ಷೆಗಳು ಹಾಗೂ ಪೌಷ್ಟಿಕ ಜೀವನಶೈಲಿಯನ್ನು ಅನುಸರಿಸುವುದು ಶೀಘ್ರದಲ್ಲೇ ಧನಾತ್ಮಕ ಫಲಿತಾಂಶವನ್ನು ನೀಡಲಿದೆ. ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಕೃಪೆಯಿಂದಾಗಿ ನಿಮ್ಮ ಮನೆಯಲ್ಲಿ ಮಗುವಿನ ಮುದ್ದು ನಗುವಿನ ಸದ್ದು ಶೀಘ್ರದಲ್ಲೇ ಪ್ರತಿಧ್ವನಿಸಲಿದೆ.
 
-ಸಂತಾನ ಪ್ರತಿಬಂಧಕ ದೋಷಗಳ ನಿವಾರಣೆಗಾಗಿ ನಿತ್ಯವೂ ಪ್ರಾತಃಕಾಲ ಶ್ರೀ ಸಂತಾನ ಗೋಪಾಲ ಮಂತ್ರವನ್ನು 108 ಬಾರಿ ಭಕ್ತಿಯಿಂದ ಜಪಿಸುವುದು ಶ್ರೇಷ್ಠ ಪರಿಹಾರವಾಗಿದೆ. ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸುಬ್ರಹ್ಮಣ್ಯ ಹೋಮ ಹಾಗೂ ನಾಗ ಶಾಂತಿ ನೆರವೇರಿಸುವುದು, ಮತ್ತು ಪ್ರತಿ ಗುರುವಾರ ಹಸುವಿಗೆ ಹಸಿರು ಹುಲ್ಲು ಅಥವಾ ಬೆಲ್ಲ-ಕಡಲೆ ನೀಡಿ ಗೋಸೇವೆ ಮಾಡುವುದರಿಂದ ಸಂತಾನ ಯೋಗದ ಸಕಲ ಅಡೆತಡೆಗಳು ನಿವಾರಣೆಯಾಗಲಿವೆ.`;
+ಸಂತಾನ ಪ್ರತಿಬಂಧಕ ಸೂಕ್ಷ್ಮ ದೋಷಗಳ ನಿವಾರಣೆಗಾಗಿ ನಿತ್ಯವೂ ಪ್ರಾತಃಕಾಲ ಶ್ರೀ ಸಂತಾನ ಗೋಪಾಲ ಮಂತ್ರವಾದ 'ಓಂ ಕ್ಲೀಂ ದೇವಕೀಸುತ ಗೋವಿಂದ ವಾಸುದೇವ ಜಗತ್ಪತೇ । ದೇಹಿ ಮೇ ತನಯಂ ಕೃಷ್ಣ ತ್ವಾಮಹಂ ಶರಣಂ ಗತಃ ॥' ಎಂಬ ಶ್ಲೋಕವನ್ನು 108 ಬಾರಿ ದಂಪತಿ ಸಮೇತರಾಗಿ ಭಕ್ತಿಯಿಂದ ಜಪಿಸುವುದು ಪರಮೌಷಧವಾಗಿದೆ. ಪ್ರತಿ ಗುರುವಾರ ಮನೆಯಲ್ಲಿ ಹಸುವಿನ ತುಪ್ಪದ ದೀಪ ಬೆಳಗಿಸಿ, ಗೋಮಾತೆಗೆ ಬೆಲ್ಲ-ಕಡಲೆ ಅಥವಾ ಹಸಿರು ಹುಲ್ಲು ನೀಡಿ ಗೋಸೇವೆ ಮಾಡುವುದು ಶುಭ. ಜೊತೆಗೆ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಅಥವಾ ಬಗ್ಗೋಣ ಕ್ಷೇತ್ರದಲ್ಲಿ ಸುಬ್ರಹ್ಮಣ್ಯ ಪೂಜೆ ಹಾಗೂ ನಾಗ ಶಾಂತಿ ನೆರವೇರಿಸುವುದರಿಂದ ಸಂತಾನ ಯೋಗಕ್ಕೆ ಇರುವ ಸಕಲ ಅಡೆತಡೆಗಳು ನಿವಾರಣೆಯಾಗಿ ಶೀಘ್ರದಲ್ಲೇ ವಂಶಾಭಿವೃದ್ಧಿಯ ಸೌಭಾಗ್ಯ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ.`;
     }
     if (baseLang === "hi") {
-      return `आपकी कुंडली के पंचम भाव (${h5Sign}) और पंचमेश ${h5Lord} की ${h5Where} में स्थिति के साथ संतानकारक देवगुरु बृहस्पति का शुभ प्रभाव वंश वृद्धि एवं संतान प्राप्ति के योग को पुष्ट करता है। वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल संतान सुख की प्राप्ति में अत्यंत सहायक सिद्ध होगा। पंचम भाव का यह प्रभाव दंपत्ति के जीवन में नवीन ऊर्जा और मातृत्व-पितृत्व के शुभ अवसर निर्मित कर रहा है।
+      const salutation = chart.name ? `${chart.name} जी, ` : "";
+      return `${salutation}आपकी कुंडली के पंचम भाव (${h5Sign}) और पंचमेश ${h5Lord} की ${h5Where} में स्थिति के साथ संतानकारक देवगुरु बृहस्पति का शुभ प्रभाव वंश वृद्धि एवं संतान प्राप्ति के प्रबल योग को पुष्ट करता है। मन के भीतर संतान आगमन की जो मूक प्रतीक्षा, गहरी अभिलाषा और ईश्वर से की जाने वाली नित्य प्रार्थनाएं हैं, वैदिक ज्योतिष उन्हें भलीभांति समझता है और सम्मान देता है। वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल मातृत्व-पितृत्व के सुखद अनुभव के लिए शुभ अवसर निर्मित कर रहा है तथा पंचम भाव का यह प्रभाव दंपत्ति के जीवन में नवीन ऊर्जा का संचार कर रहा है।
 
-अनुकूल ग्रहों का वर्तमान गोचर गर्भाधान तथा स्वास्थ्य संवर्धन हेतु अत्यंत फलदायी वातावरण तैयार कर रहा है। इस समय किए जाने वाले चिकित्सीय प्रयास और आध्यात्मिक अनुष्ठान शीघ्र सकारात्मक परिणाम लेकर आएंगे। देवगुरु बृहस्पति की कृपा से संतान अभिलाषी दंपत्ति के घर में शीघ्र ही नन्हें शिशु की किलकारियां गूंजने के प्रबल योग बन रहे हैं।
+गोचर में देवगुरु बृहस्पति का भ्रमण तथा अनुकूल ग्रहों की शुभ दृष्टि गर्भाधान तथा स्वास्थ्य संवर्धन हेतु अत्यंत फलदायी वातावरण तैयार कर रही है। ज्योतिषीय दृष्टि से यह समय किसी अभाव का नहीं, अपितु धैर्य और उचित तैयारी का है। इस संवेदनशील दौर में बाहर के प्रश्नों या जिज्ञासाओं से विचलित हुए बिना, पति-पत्नी का एक-दूसरे को भावनात्मक संबल देना, संतुलित दिनचर्या अपनाना और चिकित्सीय परामर्श लेना शीघ्र सकारात्मक परिणाम लेकर आएगा। ग्रहों का यह शुभ संयोग शीघ्र ही आपके आंगन में नन्हें शिशु की किलकारियां गूंजने का मार्ग प्रशस्त कर रहा है।
 
-संतान प्राप्ति में आ रहे किसी भी सूक्ष्म व्यवधान के निवारणार्थ प्रतिदिन 'ॐ क्लीं देवकीसुत गोविंद वासुदेव जगत्पते। देहि मे तनयं कृष्ण त्वामहं शरणं गतः॥' मंत्र का 108 बार जाप करें। गोಕರ್ण क्षेत्र में सुब्रह्मण्य होम एवं गुरुवार को गौ-माता की सेवा करना समस्त दोषों को शांत कर शीघ्र संतान सुख प्रदान करेगा।`;
+संतान प्राप्ति में आ रहे किसी भी सूक्ष्म व्यवधान या ग्रह दोष के निवारणार्थ प्रतिदिन 'ॐ क्लीं देवकीसुत गोविंद वासुदेव जगत्पते। देहि मे तनयं कृष्ण त्वामहं शरणं गतः॥' मंत्र का 108 बार पति-पत्नी मिलकर श्रद्धापूर्वक जाप करें। प्रत्येक गुरुवार को गौ-माता को हरा चारा या गुड़-चना खिलाकर गौ-सेवा करें तथा देसी घी का दीपक प्रज्वलित करें। इसके अतिरिक्त गोकर्ण क्षेत्र या बग्गोण क्षेत्र में सुब्रह्मण्य स्वामी का पूजन एवं नाग शांति अनुष्ठान कराने से समस्त विघ्न शांत होकर शीघ्र उत्तम संतान सुख की प्राप्ति होगी।`;
     }
     if (baseLang === "te") {
-      return `మీ జాతకంలో 5వ ఇల్లు (${h5Sign}) మరియు పంచమాధిపతి ${h5Lord} స్థితితో పాటు సంతానకారక గురు గ్రహ అనుగ్రహం సంతాన ప్రాప్తి యోగాన్ని బలపరుస్తోంది. ప్రస్తుతం నడుస్తున్న ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం వంశాభివృద్ధికి సంబంధించిన శుభవార్తలను తెస్తుంది. 5వ భావంలో శుభగ్రహాల బలం సంతాన సౌఖ్యానికి అనుకూలమైన శక్తిని అందిస్తోంది.
+      const salutation = chart.name ? `${chart.name} గారూ, ` : "";
+      return `${salutation}మీ జాతకంలో 5వ ఇల్లు (${h5Sign}) మరియు పంచమాధిపతి ${h5Lord} శుభ స్థితితో పాటు సంతానకారక గురు గ్రహ అనుగ్రహం సంతాన ప్రాప్తి యోగాన్ని బలపరుస్తోంది. మీ మనస్సులో పసిపాప రాక కోసం ఎన్నాళ్లుగానో ఉన్న ఆరాటం, నిరీక్షణ మరియు భగవంతునికి చేస్తున్న నిశ్శబ్ద ప్రార్థనలను జ్యోతిషశాస్త్రం సంపూర్ణంగా గుర్తిస్తుంది. ప్రస్తుతం నడుస్తున్న ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం వంశాభివృద్ధికి సంబంధించిన శుభవార్తలను తెచ్చేందుకు అత్యంత అనుకూలంగా ఉంది. 5వ భావంలో శుభగ్రహాల శక్తి గర్భధారణకు మరియు సంతాన సౌఖ్యానికి పవిత్రమైన బలాన్ని చేకూరుస్తోంది.
 
-అనుకూల గోచార గ్రహ సంచారం గర్భధారణకు మరియు ఆరోగ్య వృద్ధికి అత్యంత అనుకూలమైన వాతావరణాన్ని సృష్టిస్తోంది. ఈ సమయంలో చేపట్టే వైద్య పరీక్షలు మరియు దైవ ప్రార్థనలు త్వరిత ఫలితాలను ఇస్తాయి. గురు భగవానుని కృపతో త్వరలోనే మీ ఇంట పసిపాప నవ్వులు విరిసే శుభయోగం ఉంది.
+గోచారంలో గురు భగవానుని అనుకూల సంచారం గర్భధారణకు మరియు శారీరక ఆరోగ్య వృద్ధికి అత్యంత శుభప్రదమైన సమయాన్ని సృష్టిస్తోంది. జ్యోతిషశాస్త్ర పరంగా ఈ తాత్కాలిక జాప్యం ఒక పరీక్ష మాత్రమే కానీ నిరాకరణ కాదు. ఈ సమయంలో సమాజం లేదా ఇతరుల ప్రశ్నల వల్ల మానసిక ఒత్తిడికి లోనుకాకుండా, దంపతులిద్దరూ పరస్పరం ప్రేమతో ధైర్యం చెప్పుకోవడం మరియు సరైన వైద్య సలహాలు, సాత్విక జీవనశైలిని పాటించడం వల్ల త్వరితగతిన సానుకూల ఫలితాలు లభిస్తాయి. గురు భగవానుని కరుణతో త్వరలోనే మీ ఇంట చిరునవ్వుల చిన్నారులు అడుగుపెట్టే యోగం ఉంది.
 
-సంతాన అవరోధాల నివారణకు ప్రతిరోజూ శ్రీ సంతాన గోపాల మంత్రాన్ని 108 సార్లు జపించండి. గోకర్ణ మహాబలేశ్వర క్షేత్రంలో సుబ్రహ్మణ్య హోమం నిర్వహించడం మరియు గురువారం ఆవుకు సేవ చేయడం వలన సకల విఘ్నాలు తొలగి శీఘ్ర సంతాన ప్రాప్తి కలుగుతుంది.`;
+సంతాన ప్రాప్తికి అడ్డంకిగా ఉన్న సూక్ష్మ దోషాల నివారణకు ప్రతిరోజూ 'ఓం క్లీం దేవకీసుత గోవింద వాసుదేవ జగత్పతే । దేహి మే తనయం కృష్ణ త్వామహం శరణం గతః ॥' అనే శ్రీ సంతాన గోపాల మంత్రాన్ని 108 సార్లు భక్తితో జపించండి. ప్రతి గురువారం ఇంట్లో ఆవు నేతితో దీపం వెలిగించి, ఆవుకు బెల్లం మరియు పచ్చి గడ్డి తినిపించి గోసేవ చేయడం విశేష ఫలాలనిస్తుంది. అంతేకాకుండా గోకర్ణ మహాబలేశ్వర క్షేత్రంలో లేదా బగ్గోణ క్షేత్రంలో సుబ్రహ్మణ్య పూజ మరియు నాగ శాంతి నిర్వహించడం ద్వారా సమస్త విఘ్నాలు తొలగి త్వరలోనే సత్సంతాన ప్రాప్తి కలుగుతుంది.`;
     }
     if (baseLang === "ta") {
-      return `உங்கள் ஜாதகத்தில் 5-ம் வீடான ${h5Sign} மற்றும் 5-ம் அதிபதி ${h5Lord} அமைப்புடன் சந்தானகாரக குருவின் சுப பார்வை வம்ச விருத்தி மற்றும் குழந்தை பாக்கிய யோகத்தை பலப்படுத்துகிறது. தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் மழலைச் செல்வம் பெற சாதகமான காலமாக அமைகிறது.
+      const salutation = chart.name ? `${chart.name} அவர்களே, ` : "";
+      return `${salutation}உங்கள் ஜாதகத்தில் 5-ம் வீடான ${h5Sign} மற்றும் 5-ம் அதிபதி ${h5Lord} அமைப்புடன் சந்தானகாரக குருவின் சுப பார்வை வம்ச விருத்தி மற்றும் குழந்தை பாக்கிய யோகத்தை பலப்படுத்துகிறது. உங்கள் மனதில் மழலைச் செல்வத்தின் வருகைக்காக இருக்கும் நீண்ட நாள் ஆசை, எதிர்பார்ப்பு மற்றும் மனப்பூர்வமான பிரார்த்தனைகளை ஜோதிட சாஸ்திரம் ஆழமாக உணர்கிறது. தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் மழலைச் செல்வம் பெற சாதகமான நல்வாய்ப்புகளை உருவாக்கித் தருகிறது. 5-ம் பாவத்தில் சுப கிரகங்களின் ஆற்றல் தாயாகும் மற்றும் தந்தையாகும் வரத்தை அளிக்கத் தயாராக உள்ளது.
 
-சுப கிரகங்களின் கோசார சஞ்சாரம் கருத்தரிப்புக்கும் நல்வாழ்வுக்கும் உகந்த சூழலை உருவாக்குகிறது. இக்காலத்தில் மேற்கொள்ளும் மருத்துவ முயற்சிகளும் ஆன்மீக வழிபாடுகளும் விரைவில் நல்ல பலனைத் தரும். குரு பகவானின் திருவருளால் உங்கள் இல்லத்தில் மழலை குரல் கேட்கும் சுப யோகம் கூடிவருகிறது.
+கோசாரத்தில் குரு பகவானின் அனுகூலமான சஞ்சாரம் கருத்தரிப்புக்கும் நல்ல உடல் ஆரோக்கியத்திற்கும் ஏற்ற காலத்தை உருவாக்குகிறது. சாஸ்திர ரீதியாக இந்த தாமதம் ஒரு மனப்பக்குவத்திற்கான காலமே தவிர நிராகரிப்பு அல்ல. இக்காலகட்டத்தில் மற்றவர்களின் கேள்விகளுக்கு மனமுடைந்து போகாமல், தம்பதியர் ஒருவருக்கொருவர் பக்கபலமாக இருந்து, தகுந்த மருத்துவ ஆலோசனைகள் மற்றும் ஆரோக்கியமான உணவு முறையைக் கடைப்பிடிப்பது விரைவில் நல்ல பலனைத் தரும். குருவின் திருவருளால் உங்கள் இல்லத்தில் மழலை குரல் கேட்கும் சுப யோகம் விரைவில் கைகூடும்.
 
-குழந்தைப் பேற்றுக்கு ஏற்படும் தடைகள் நீங்க தினமும் ஸ்ரீ சந்தான கோபால மந்திரத்தை 108 முறை ஜபிக்கவும். கோகர்ணத்தில் சுப்பிரமணிய ஹோமம் செய்வதும், வியாழக்கிழமைகளில் பசு சேவை செய்வதும் தோஷங்களை நீக்கி விரைவில் குழந்தை பாக்கியம் தரும்.`;
+குழந்தைப் பேற்றுக்கு ஏற்படும் தடைகள் மற்றும் தோஷங்கள் நீங்க தினமும் 'ஓம் க்லீம் தேவகீசுத கோவிந்த வாசுதேவ ஜகத்பதே । தேஹி மே தனயம் கிருஷ்ண த்வாமஹம் சரணம் கத: ॥' என்ற ஸ்ரீ சந்தான கோபால மந்திரத்தை 108 முறை கணவன்-மனைவி இருவரும் சேர்ந்து ஜபிக்கவும். வியாழக்கிழமைகளில் இல்லத்தில் பசு நெய் தீபமேற்றி, பசுவிற்கு அகத்திக்கீரை அல்லது வெல்லம் கொடுத்து பசு சேவை செய்வது பெரும் புண்ணியம் தரும். கோகர்ணம் அல்லது பக்கோண திருத்தலத்தில் சுப்பிரமணிய பூஜை மற்றும் நாக சாந்தி செய்து வழிபட்டால் சர்வ தடைகளும் நீங்கி விரைவில் மழலை பாக்கியம் கிட்டும்.`;
     }
-    return `In your birth chart, the 5th house (${h5Sign}) and 5th lord ${h5Lord} placed in ${h5Where}, along with Putrakaraka Jupiter's benefic disposition in ${jupWhere}, signify strong Santana Yoga (progeny blessings). The 5th house governs Poorva Punya, creative intelligence, and lineage continuity, indicating that your karmic bank carries positive momentum for family expansion. Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period actively stimulate the reproductive houses, creating an auspicious astrological window for conception and parental fulfillment.
+    const salutation = chart.name ? `Dear ${chart.name}, ` : "";
+    return `${salutation}In your birth chart, the 5th house (${h5Sign}) and 5th lord ${h5Lord} placed in ${h5Where}, along with Putrakaraka Jupiter's benefic disposition in ${jupWhere}, signify strong Santana Yoga (progeny blessings). Vedic astrology deeply understands and honours the quiet emotional longing, private prayers, and tender vulnerability you carry in your heart as you await the arrival of a child. Lineage continuity and creative fruitions are rooted in your Poorva Punya, and your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period actively activate the reproductive and generative houses, creating an auspicious astrological window for conception and parental fulfillment.
 
-Favorable planetary transits of Jupiter and supportive planetary aspects establish a fertile and protected window for physical wellbeing and conception. Medical consultations and lifestyle optimizations undertaken during this phase will yield exceptionally positive and timely outcomes. With divine blessings aligning in your chart, the joy of parenthood and the continuation of your lineage are strongly favored to manifest in the coming phase.
+The auspicious live transits of Jupiter and supportive planetary aspects establish a fertile and protected window for physical wellbeing, vitality, and conception. In authentic Jyotisha, temporary planetary delays are not denials, but periods of energetic recalibration. During this sensitive phase, safeguarding yourselves from external inquiries, standing united as an unwavering emotional anchor for each other, and combining medical consultations with nourishing lifestyle rhythms will yield exceptionally positive and timely outcomes. With planetary alignments turning favorable, the sacred joy of welcoming a newborn into your home is strongly indicated.
 
-To eliminate any subtle energetic blockages or pitru-related delays, regular recitation of the Santana Gopala Mantra ('Om Kleem Devakisuta Govinda Vasudeva Jagatpate, Dehi Me Tanayam Krishna Tvamaham Sharanam Gatah') 108 times daily is recommended. Additionally, sponsoring a Subramanya Pooja or Naga Dosha Nivarana at Gokarna Kshetra and performing Gau-seva (cow service) on Thursdays will harmonize planetary energies and grant early, healthy progeny blessings.`;
+To eliminate subtle energetic blockages or karmic delays, the daily joint recitation of the sacred Santana Gopala Mantra ('Om Kleem Devakisuta Govinda Vasudeva Jagatpate, Dehi Me Tanayam Krishna Tvamaham Sharanam Gatah') 108 times during the morning hour is deeply transformative. Lighting a pure cow ghee lamp every Thursday and performing Gau-seva (feeding jaggery, chickpeas, or fresh grass to cows) invites immense parental grace. Additionally, sponsoring a Subramanya Pooja or Naga Dosha Nivarana at Gokarna Mahabaleshwara Kshetra and seeking the divine blessings of Baggona Kshetra will harmonize all cosmic vibrations, granting early, healthy, and blessed progeny.`;
   } else if (status === "has_children") {
     if (baseLang === "kn") {
       return `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಪಂಚಮ ಭಾವವಾದ ${h5Sign} ಹಾಗೂ ಪಂಚಮಾಧಿಪತಿಯಾದ ${h5Lord} ಗ್ರಹದ ಸ್ಥಿತಿಯು ಮಕ್ಕಳ ಶೈಕ್ಷಣಿಕ, ಬೌದ್ಧಿಕ ಹಾಗೂ ಸೃಜನಶೀಲ ರಂಗಗಳಲ್ಲಿ ಅತ್ಯುತ್ತಮ ಪ್ರತಿಭೆಯನ್ನು ಸೂಚಿಸುತ್ತದೆ. ಪುತ್ರಕಾರಕ ಬೃಹಸ್ಪತಿಯ ಶುಭ ದೃಷ್ಟಿಯು ಅವರಲ್ಲಿ ನೈಸರ್ಗಿಕ ಜ್ಞಾನದಾಹ, ಸನ್ನಡತೆ ಹಾಗೂ ಉನ್ನತ ಸಂಸ್ಕಾರವನ್ನು ನೆಲೆನಿಲ್ಲಿಸುತ್ತದೆ. ಮಕ್ಕಳ ತೀಕ್ಷ್ಣ ಗ್ರಹಣಶಕ್ತಿ ಹಾಗೂ ಶಿಸ್ತುಬದ್ಧ ಪರಿಶ್ರಮವು ಕುಟುಂಬದ ಕೀರ್ತಿಯನ್ನು ಸಮಾಜದಲ್ಲಿ ಉನ್ನತೀಕರಿಸಲಿದೆ.
@@ -1219,165 +1283,396 @@ Your current ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti 
 
 export function buildDynamicCurrentPhaseFallback(chart: ParsedKundaliChart): string {
   const baseLang = chart.lang.split("-")[0];
+  const age = chart.ageYears ?? 30;
+  const isSenior = age >= 60;
+  const isYouth = age < 23;
+  const isMarriedNoChildren = !isSenior && !isYouth && chart.maritalStatus === "married" && chart.hasChildren === "no_children";
+  const devoteeName = chart.name ? chart.name.trim() : "";
+
   if (baseLang === "kn") {
-    return `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನವಾದ ${chart.lagnaSignName} ಹಾಗೂ ಚಂದ್ರ ರಾಶಿಯಾದ ${chart.moonSignName} ಆಧಾರದ ಮೇಲೆ, ಪ್ರಸ್ತುತ ಸಾಗುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಅತ್ಯಂತ ಮಹತ್ವದ ಹಾಗೂ ಪರಿವರ್ತನೀಯ ಘಟ್ಟವನ್ನು ಸೃಷ್ಟಿಸುತ್ತಿದೆ. ಈ ಕಾಲಘಟ್ಟವು ಕೇವಲ ಸಾಮಾನ್ಯ ದಿನಚರಿಯಾಗಿರದೆ, ನಿಮ್ಮ ವ್ಯಕ್ತಿತ್ವವನ್ನು ಪಕ್ವಗೊಳಿಸುವ, ಹೊಸ ಕರ್ತವ್ಯಗಳನ್ನು ಮೈಗೂಡಿಸಿಕೊಳ್ಳುವ ಹಾಗೂ ಭವಿಷ್ಯದ ದೀರ್ಘಕಾಲೀನ ಭದ್ರತೆಯನ್ನು ನಿರ್ಮಿಸುವ ದೈವಿಕ ಕಾಲವಾಗಿದೆ. ಕೆಲಸದ ಸ್ಥಳದಲ್ಲಿ ಹೊಸ ಜವಾಬ್ದಾರಿಗಳು, ಕುಟುಂಬದಲ್ಲಿ ಪ್ರಮುಖ ನಿರ್ಧಾರಗಳು ಹಾಗೂ ಸಮಾಜದಲ್ಲಿ ನಿಮ್ಮ ಸ್ಥಾನಮಾನವನ್ನು ಗಟ್ಟಿಗೊಳಿಸುವ ಸಂದರ್ಭಗಳು ಎದುರಾಗಲಿವೆ.
+    const salutation = devoteeName ? `${devoteeName} ಅವರೇ, ` : "";
+    const p1 = isSenior
+      ? `${salutation}ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನವಾದ ${chart.lagnaSignName} ಹಾಗೂ ಚಂದ್ರ ರಾಶಿಯಾದ ${chart.moonSignName} ಆಧಾರದ ಮೇಲೆ, ಪ್ರಸ್ತುತ ಸಾಗುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ನಿಮ್ಮ ಜೀವನದ ಅತ್ಯಂತ ಪಾವನ ಹಾಗೂ ಗೌರವಾನ್ವಿತ ಕಾಲಘಟ್ಟವಾಗಿದೆ. ಈ ಹಿರಿಯ ವಯೋಮಾನದಲ್ಲಿ ಲೌಕಿಕ ಪೈಪೋಟಿಗಿಂತ ಆರೋಗ್ಯ ಸಂರಕ್ಷಣೆ, ಮೊಮ್ಮಕ್ಕಳ ಯೋಗಕ್ಷೇಮ, ಅಧ್ಯಾತ್ಮಿಕ ಚಿಂತನೆ ಹಾಗೂ ಆಂತರಿಕ ಮನಸ್ಸಿನ ಶಾಂತಿಯೇ ನಿಮ್ಮ ದೈನಂದಿನ ಪ್ರಧಾನ ಆದ್ಯತೆಯಾಗಿದೆ.`
+      : isYouth
+      ? `${salutation}ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನವಾದ ${chart.lagnaSignName} ಹಾಗೂ ಚಂದ್ರ ರಾಶಿಯಾದ ${chart.moonSignName} ಆಧಾರದ ಮೇಲೆ, ಪ್ರಸ್ತುತ ಸಾಗುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ನಿಮ್ಮ ಯೌವನಾವಸ್ಥೆಯಲ್ಲಿ ಅತ್ಯಂತ ಮಹತ್ವದ ತಿರುವು ನೀಡುವ ಕಾಲವಾಗಿದೆ. ಈ ಹಂತದಲ್ಲಿ ನಿಮ್ಮ ವಿದ್ಯಾಭ್ಯಾಸ, ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆ, ಗುರಿ ಸಾಧನೆ ಹಾಗೂ ಏಕಾಗ್ರತೆಯು ಭವಿಷ್ಯದ ವೃತ್ತಿ ಬದುಕಿಗೆ ದೃಢವಾದ ಅಡಿಪಾಯವನ್ನು ನಿರ್ಮಿಸಲಿವೆ.`
+      : isMarriedNoChildren
+      ? `${salutation}ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನವಾದ ${chart.lagnaSignName} ಹಾಗೂ ಚಂದ್ರ ರಾಶಿಯಾದ ${chart.moonSignName} ಆಧಾರದ ಮೇಲೆ, ಪ್ರಸ್ತುತ ಸಾಗುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ನಿಮ್ಮ ಗೃಹಸ್ಥ ಜೀವನದಲ್ಲಿ ಅತ್ಯಂತ ಮಹತ್ವದ ಹಾಗೂ ಪರಿವರ್ತನೀಯ ಘಟ್ಟವಾಗಿದೆ. ಈ ಅವಧಿಯಲ್ಲಿ ವೃತ್ತಿಪರ ಜವಾಬ್ದಾರಿ, ಆರ್ಥಿಕ ಭದ್ರತೆ ಹಾಗೂ ದಾಂಪತ್ಯದಲ್ಲಿ ಪರಸ್ಪರ ಪ್ರೀತಿ-ವಿಶ್ವಾಸದೊಂದಿಗೆ ವಂಶಾಭಿವೃದ್ಧಿಯ ಸತ್ಸಂಕಲ್ಪವನ್ನು ಸಾಕಾರಗೊಳಿಸುವ ಚಿಂತನೆಯು ನಿಮ್ಮ ಕೇಂದ್ರ ಧ್ಯೇಯವಾಗಿದೆ.`
+      : `${salutation}ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನವಾದ ${chart.lagnaSignName} ಹಾಗೂ ಚಂದ್ರ ರಾಶಿಯಾದ ${chart.moonSignName} ಆಧಾರದ ಮೇಲೆ, ಪ್ರಸ್ತುತ ಸಾಗುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ನಿಮ್ಮ ಪ್ರೌಢ ಜೀವನದಲ್ಲಿ ಅತ್ಯಂತ ಮಹತ್ವದ ಹಾಗೂ ಪರಿವರ್ತನೀಯ ಘಟ್ಟವಾಗಿದೆ. ಈ ಅವಧಿಯಲ್ಲಿ ವೃತ್ತಿಪರ ಜವಾಬ್ದಾರಿ, ಕುಟುಂಬದ ಬಜೆಟ್ ನಿರ್ವಹಣೆ, ದೈನಂದಿನ ಕರ್ತವ್ಯ ಹಾಗೂ ಆರ್ಥಿಕ ಭದ್ರತೆಯು ನಿಮ್ಮ ಕೇಂದ್ರ ಚಿಂತನೆಯಾಗಿರಲಿದೆ.`;
 
-ಗೋಚಾರ ಗ್ರಹಗಳಾದ ಗುರು ಮತ್ತು ಶನಿ ಭಗವಾನರ ಪ್ರಸ್ತುತ ಸಂಚಾರವು ನಿಮ್ಮ ದೃಢ ಪರಿಶ್ರಮ, ಪ್ರಾಮಾಣಿಕತೆ ಮತ್ತು ಧರ್ಮನಿಷ್ಠೆಗೆ ತಕ್ಕ ಸತ್ಫಲಗಳನ್ನು ನೀಡಲು ಸನ್ನದ್ಧವಾಗಿವೆ. ತಾತ್ಕಾಲಿಕ ಅಡೆತಡೆಗಳು ಎದುರಾದರೂ ಧೃತಿಗೆಡದೆ, ತಾಳ್ಮೆ ಮತ್ತು ಸಂಯಮದಿಂದ ಮುನ್ನಡೆಯುವುದು ಅಪಾರ ಯಶಸ್ಸಿಗೆ ಕಾರಣವಾಗಲಿದೆ. ಗುರು-ಹಿರಿಯರ ಮಾರ್ಗದರ್ಶನವನ್ನು ಗೌರವಿಸುವುದು, ಪ್ರತಿದಿನ ಇಷ್ಟದೇವತಾ ಪ್ರಾರ್ಥನೆ ಮಾಡುವುದು ಹಾಗೂ ಶನಿವಾರ ಎಳ್ಳೆಣ್ಣೆ ದೀಪ ಹಚ್ಚುವುದು ಎಲ್ಲ ನಕಾರಾತ್ಮಕ ಶಕ್ತಿಗಳನ್ನು ನಿವಾರಿಸಲಿದೆ. ಈ ಶುಭ ಕಾಲಘಟ್ಟದಲ್ಲಿ ನಿಮ್ಮ ಪ್ರತಿಯೊಂದು ಸತ್ಸಂಕಲ್ಪವೂ ಈಡೇರಿ, ಜೀವನದಲ್ಲಿ ಶಾಶ್ವತ ಪ್ರಗತಿ, ಶಾಂತಿ ಮತ್ತು ಸಮೃದ್ಧಿ ನೆಲೆಸಲಿದೆ.`;
+    const p2 = `ಗೋಚಾರ ಗ್ರಹಗಳಾದ ದೇವಗುರು ಹಾಗೂ ಶನಿ ಮಹಾತ್ಮರ ಪ್ರಸ್ತುತ ಸಂಚಾರವು ನಿಮ್ಮ ದೃಢ ಪರಿಶ್ರಮ, ಪ್ರಾಮಾಣಿಕತೆ ಮತ್ತು ಧರ್ಮನಿಷ್ಠೆಗೆ ತಕ್ಕ ಸತ್ಫಲಗಳನ್ನು ನೀಡಲು ಸನ್ನದ್ಧವಾಗಿವೆ. ಜೀವನದಲ್ಲಿ ತಾತ್ಕಾಲಿಕ ಜಂಜಾಟಗಳು ಅಥವಾ ನಿಧಾನಗತಿ ಎದುರಾದರೂ ಧೃತಿಗೆಡದೆ, ತಾಳ್ಮೆ ಮತ್ತು ಸಂಯಮದಿಂದ ಕರ್ತವ್ಯಗಳನ್ನು ನಿರ್ವಹಿಸುವುದು ಅಪಾರ ಯಶಸ್ಸಿಗೆ ನಾಂದಿ ಹಾಡಲಿದೆ.`;
+
+    const p3 = `ಆಂತರಿಕವಾಗಿ ನಿಮ್ಮ ಸುಪ್ತ ಮನಸ್ಸು ಭವಿಷ್ಯದ ಸುಭದ್ರತೆ, ಕೌಟುಂಬಿಕ ಸೌಹಾರ್ದತೆ ಹಾಗೂ ಸಾಲ-ಹೊಣೆಗಾರಿಕೆಗಳ ಶಾಶ್ವತ ಮುಕ್ತಿಯ ಬಗ್ಗೆ ಗಾಢವಾಗಿ ಚಿಂತಿಸುತ್ತಿದೆ. ಹಳೆಯ ಕಹಿ ನೆನಪುಗಳನ್ನು ಮರೆತು, ಹೊಸ ಭರವಸೆಯೊಂದಿಗೆ ಕರ್ತವ್ಯ ಪಥದಲ್ಲಿ ಮುನ್ನಡೆಯಲು ಗ್ರಹಗಳ ಶುಭ ಬಲವು ನಿಮ್ಮ ಆತ್ಮಸ್ಥೈರ್ಯವನ್ನು ಹೆಚ್ಚಿಸುತ್ತಿದೆ.`;
+
+    const p4 = `ಗುರು-ಹಿರಿಯರ ಮಾರ್ಗದರ್ಶನವನ್ನು ಗೌರವಿಸುವುದು, ನಿತ್ಯ ಪ್ರಾರ್ಥನೆ ಮಾಡುವುದು ಹಾಗೂ ಸತ್ಪಾತ್ರರಿಗೆ ದಾನ ನೀಡುವುದು ಗ್ರಹ ದೋಷಗಳನ್ನು ಶಮನಗೊಳಿಸಲಿದೆ. ಬಗ್ಗೋಣ ಕ್ಷೇತ್ರದ ಪರಮ ಪಾವನ ಶ್ರೀ ಮುಖ್ಯಪ್ರಾಣ ದೇವರ ದಿವ್ಯ ಆಶೀರ್ವಾದವು ಸದಾ ನಿಮ್ಮ ರಕ್ಷಣೆಗೆ ನಿಂತು, ಜೀವನದಲ್ಲಿ ಶಾಶ್ವತ ಶಾಂತಿ, ಸಕಲ ಸೌಭಾಗ್ಯ ಮತ್ತು ಆಯುರಾರೋಗ್ಯವನ್ನು ಕರುಣಿಸಲಿ.`;
+
+    const full = `${p1}\n\n${p2}\n\n${p3}\n\n${p4}`;
+    return cleanEnglishFromRegionalText(full, "kn");
   }
+
   if (baseLang === "hi") {
-    return `आपकी जन्म लग्न ${chart.lagnaSignName} और चंद्र राशि ${chart.moonSignName} के विश्लेषण से स्पष्ट होता है कि वर्तमान में संचालित ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल आपके जीवन का एक अत्यंत महत्वपूर्ण और परिवर्तनकारी मोड़ सिद्ध हो रहा है। यह समय केवल सामान्य दिनचर्या का नहीं, अपितु आपके अनुभवों को परिपक्व करने, नई जिम्मेदारियों को स्वीकार करने और भविष्य की सुदृढ़ नींव रखने का है। कार्यक्षेत्र में पदोन्नति या नए अवसर, पारिवारिक जीवन में निर्णायक फैसले तथा समाज में आपकी प्रतिष्ठा को सुदृढ़ करने वाले शुभ संयोग बन रहे हैं।
+    const salutation = devoteeName ? `${devoteeName}, ` : "";
+    const p1 = isSenior
+      ? `${salutation}आपकी जन्म लग्न ${chart.lagnaSignName} एवं चंद्र राशि ${chart.moonSignName} के आधार पर, वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल आपके जीवन का एक अत्यंत गरिमामयी और आध्यात्मिक समय है। इस अवस्था में सांसारिक आपाधापी से दूर रहकर स्वास्थ्य रक्षा, नाती-पोतों का स्नेह और आंतरिक मानसिक शांति ही आपकी प्रमुख प्राथमिकता है।`
+      : isYouth
+      ? `${salutation}आपकी जन्म लग्न ${chart.lagnaSignName} एवं चंद्र राशि ${chart.moonSignName} के आधार पर, वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल आपके जीवन का नींव का समय है। इस अवस्था में उच्च शिक्षा, एकाग्रता, प्रतियोगी परीक्षाएं और भविष्य के लक्ष्यों की स्पष्टता ही मुख्य ध्येय है।`
+      : isMarriedNoChildren
+      ? `${salutation}आपकी जन्म लग्न ${chart.lagnaSignName} और चंद्र राशि ${chart.moonSignName} के विश्लेषण से स्पष्ट होता है कि वर्तमान में संचालित ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल आपके दांपत्य जीवन का एक अत्यंत महत्वपूर्ण और परिवर्तनकारी मोड़ सिद्ध हो रहा है। कार्यक्षेत्र में व्यावसायिक जिम्मेदारियां, आर्थिक स्थिरता और जीवनसाथी के साथ सामंजस्य बनाकर परिवार विस्तार के शुभ संकल्प को सिद्ध करना इस समय आपकी केंद्रीय धुरी है।`
+      : `${salutation}आपकी जन्म लग्न ${chart.lagnaSignName} और चंद्र राशि ${chart.moonSignName} के विश्लेषण से स्पष्ट होता है कि वर्तमान में संचालित ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल आपके जीवन का एक अत्यंत महत्वपूर्ण और परिवर्तनकारी मोड़ सिद्ध हो रहा है। कार्यक्षेत्र में व्यावसायिक जिम्मेदारियां, पारिवारिक बजट का प्रबंधन और आर्थिक सुरक्षा इस समय आपकी केंद्रीय धुरी हैं।`;
 
-गोचर में देवगुरु बृहस्पति और शनि देव की चाल आपके धैर्य, अनुशासन और धर्मनिष्ठ कर्मों का उत्तम प्रतिफल देने के लिए तत्पर है। यदि मार्ग में क्षणिक बाधाएं आएं, तो भी विचलित हुए बिना कर्तव्य पथ पर अडिग रहना ही आपकी सबसे बड़ी शक्ति होगी। माता-पिता का आशीर्वाद, प्रातःकाल सूर्य नारायण को जल अर्पण तथा शनिवार को तिल के तेल का दीपक प्रज्वलित करना मार्ग की समस्त रुकावटों को समाप्त करेगा। यह पावन समयावधि आपके जीवन में स्थायी उन्नति, आर्थिक संपन्नता और मानसिक परमानंद लेकर आएगी।`;
+    const p2 = `गोचर में देवगुरु बृहस्पति और शनि देव की चाल आपके धैर्य, अनुशासन और धर्मनिष्ठ कर्मों का उत्तम प्रतिफल देने के लिए तत्पर है। यदि मार्ग में क्षणिक बाधाएं आएं, तो भी विचलित हुए बिना कर्तव्य पथ पर अडिग रहना ही आपकी सबसे बड़ी शक्ति होगी।`;
+
+    const p3 = `आंतरिक स्तर पर, आपका अवचेतन मन भविष्य की सुरक्षा, संचित धन और पारिवारिक सुख-शांति के विषय में गंभीर विचार कर रहा है। पुरानी चिंताओं को त्यागकर नए संकल्पों के साथ आगे बढ़ने के लिए ग्रहों का शुभ बल प्राप्त हो रहा है।`;
+
+    const p4 = `माता-पिता का आशीर्वाद, नित्य भगवद् आराधना तथा सात्विक आचरण मार्ग की समस्त रुकावटों को समाप्त करेगा। बग्गोण क्षेत्र के पावन आशीर्वाद से आपके जीवन में निरंतर स्वास्थ्य, संपन्नता और शांति बनी रहे।`;
+
+    const full = `${p1}\n\n${p2}\n\n${p3}\n\n${p4}`;
+    return cleanEnglishFromRegionalText(full, "hi");
   }
+
   if (baseLang === "te") {
-    return `మీ జన్మ లగ్నం ${chart.lagnaSignName} మరియు చంద్ర రాశి ${chart.moonSignName} ఆధారంగా, ప్రస్తుతం నడుస్తున్న ${chart.mahaLordName} మహర్దశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం మీ జీవితంలో అత్యంత కీలకమైన, నూతన శకానికి నాంది పలికే సమయంగా నిలుస్తుంది. ఇది కేవలం సాధారణ కాలం మాత్రమే కాదు, మీ ప్రతిభను మరింత పదును పెట్టేందుకు, కొత్త బాధ్యతలను భుజాన వేసుకునేందుకు మరియు భవిష్యత్ ఆర్థిక భద్రతను నిర్మించుకునేందుకు వచ్చిన గొప్ప అవకాశం. వృత్తిలో నూతన అవకాశాలు మరియు కుటుంబంలో శుభ పరిణామాలు సంభవిస్తాయి.
+    const salutation = devoteeName ? `${devoteeName}, ` : "";
+    const p1 = isSenior
+      ? `${salutation}మీ జన్మ లగ్నం ${chart.lagnaSignName} మరియు చంద్ర రాశి ${chart.moonSignName} ఆధారంగా, ప్రస్తుతం నడుస్తున్న ${chart.mahaLordName} మహర్దశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం మీ జీవితంలో అత్యంత గౌరవప్రదమైన ఆధ్యాత్మిక ఘట్టం. ఈ వయస్సులో ప్రాపంచిక పోటీల కంటే ఆరోగ్య పరిరక్షణ, మనశ్శాంతి మరియు ఆధ్యాత్మిక సాధనలే మీ ముఖ్య ప్రాధాన్యతలు.`
+      : isYouth
+      ? `${salutation}మీ జన్మ లగ్నం ${chart.lagnaSignName} మరియు చంద్ర రాశి ${chart.moonSignName} ఆధారంగా, ప్రస్తుతం నడుస్తున్న ${chart.mahaLordName} మహర్దశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం విద్యాభ్యాసం, పోటీ పరీక్షలు, ఏకాగ్రత మరియు ఉన్నత లక్ష్యాల సాధనకు బలమైన పునాది వేసే సమయం.`
+      : isMarriedNoChildren
+      ? `${salutation}మీ జన్మ లగ్నం ${chart.lagnaSignName} మరియు చంద్ర రాశి ${chart.moonSignName} ఆధారంగా, ప్రస్తుతం నడుస్తున్న ${chart.mahaLordName} మహర్దశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం మీ దాంపత్య జీవితంలో అత్యంత కీలకమైన సమయం. ఈ దశలో వృత్తిపరమైన బాధ్యతలు, ఆర్థిక భద్రత మరియు జీవిత భాగస్వామితో కలిసి కుటుంబ విస్తరణ మరియు వంశాభివృద్ధి సంకల్పాన్ని సాకారం చేసుకోవడమే మీ ముఖ్య లక్ష్యం.`
+      : `${salutation}మీ జన్మ లగ్నం ${chart.lagnaSignName} మరియు చంద్ర రాశి ${chart.moonSignName} ఆధారంగా, ప్రస్తుతం నడుస్తున్న ${chart.mahaLordName} మహర్దశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం మీ జీవితంలో వృత్తిపరమైన బాధ్యతలు, కుటుంబ బడ్జెట్ నిర్వహణ మరియు ఆర్థిక భద్రతను పటిష్టం చేసే కీలకమైన సమయం.`;
 
-గోచారంలో గురు మరియు శని గ్రహాల సంచారం మీ కష్టానికి తగిన ప్రతిఫలాన్ని మరియు స్థిరత్వాన్ని అందించేందుకు అనుకూలంగా ఉన్నాయి. చిన్నపాటి ఆటంకాలు ఎదురైనా అధైర్యపడకుండా సంయమనంతో వ్యవహరిస్తే తిరుగులేని విజయాలు సాధిస్తారు. పెద్దల ఆశీర్వాదాలు తీసుకోవడం, రోజూ ఇష్టదైవ ప్రార్థన చేయడం మరియు శనివారం నువ్వుల నూనెతో దీపం వెలిగించడం వల్ల గ్రహ దోషాలు తొలగిపోతాయి. ఈ శుభ సమయంలో మీ ఆలోచనలు, ప్రయత్నాలు సఫలమై జీవితంలో శాశ్వత ప్రగతి మరియు ఆనందం చేకూరుతాయి.`;
+    const p2 = `గోచారంలో గురు మరియు శని గ్రహాల సంచారం మీ కష్టానికి తగిన ప్రతిఫలాన్ని మరియు స్థిరత్వాన్ని అందించేందుకు అనుకూలంగా ఉన్నాయి. చిన్నపాటి ఆటంకాలు ఎదురైనా అధైర్యపడకుండా సంయమనంతో వ్యవహరిస్తే తిరుగులేని విజయాలు సాధిస్తారు.`;
+
+    const p3 = `అంతరంగంలో మీ మనస్సు భవిష్యత్ ఆర్థిక స్థిరత్వం, కుటుంబ శ్రేయస్సు మరియు రుణ విముక్తి గురించి లోతుగా ఆలోచిస్తోంది. పాత సమస్యలను పరిష్కరించి ప్రశాంతమైన జీవనాన్ని ప్రారంభించడానికి గ్రహ బలం తోడ్పడుతుంది.`;
+
+    const p4 = `పెద్దల ఆశీర్వాదాలు తీసుకోవడం, నిత్య ఇష్టదైవ ప్రార్థన చేయడం వల్ల గ్రహ దోషాలు తొలగిపోతాయి. బగ్గోణ దివ్య క్షేత్ర ఆశీస్సులతో మీ జీవితంలో ఆయురారోగ్యాలు, శాశ్వత శాంతి మరియు సర్వతోముఖాభివృద్ధి చేకూరుతాయి.`;
+
+    const full = `${p1}\n\n${p2}\n\n${p3}\n\n${p4}`;
+    return cleanEnglishFromRegionalText(full, "te");
   }
+
   if (baseLang === "ta") {
-    return `உங்கள் ஜென்ம லக்னம் ${chart.lagnaSignName} மற்றும் சந்திர ராசி ${chart.moonSignName} அடிப்படையில், தற்பொழுது நடைபெறும் ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் உங்கள் வாழ்க்கையில் ஒரு மிக முக்கியமான திருப்புமுனையை ஏற்படுத்தி வருகிறது. இது வழக்கமான காலம் மட்டுமல்லாமல், உங்கள் அனுபவங்களை முதிர்ச்சியடையச் செய்து, புதிய பொறுப்புகளை ஏற்று, எதிர்காலத்திற்கான வலுவான அடித்தளத்தை அமைக்கும் தெய்வீகத் தருணமாகும். பணியிடத்தில் புதிய வாய்ப்புகள், குடும்பத்தில் சுப நிகழ்வுகள் மற்றும் சமூகத்தில் உங்கள் நற்பெயரை உயர்த்தும் சூழல்கள் கூடி வருகின்றன.
+    const salutation = devoteeName ? `${devoteeName}, ` : "";
+    const p1 = isSenior
+      ? `${salutation}உங்கள் ஜென்ம லக்னம் ${chart.lagnaSignName} மற்றும் சந்திர ராசி ${chart.moonSignName} அடிப்படையில், தற்பொழுது நடைபெறும் ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் உங்கள் வாழ்வில் மிகவும் போற்றத்தக்க ஆன்மீகக் காலமாகும். இந்த முதிர்ந்த வயதில் உலகியல் போட்டிகளைத் தவிர்த்து உடல்நலம், பேரக்குழந்தைகளின் நலம் மற்றும் மன அமைதியே உங்கள் முக்கிய நோக்கமாகும்.`
+      : isYouth
+      ? `${salutation}உங்கள் ஜென்ம லக்னம் ${chart.lagnaSignName} மற்றும் சந்திர ராசி ${chart.moonSignName} அடிப்படையில், தற்பொழுது நடைபெறும் ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் கல்வி, போட்டித் தேர்வுகள், கவனக் குவிப்பு மற்றும் சிறந்த எதிர்கால இலக்குகளை அமைக்கும் காலமாகும்.`
+      : isMarriedNoChildren
+      ? `${salutation}உங்கள் ஜென்ம லக்னம் ${chart.lagnaSignName} மற்றும் சந்திர ராசி ${chart.moonSignName} அடிப்படையில், தற்பொழுது நடைபெறும் ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் உங்கள் இல்லற வாழ்வில் மிக முக்கியமான திருப்பமாகும். தொழில்முறைப் பொறுப்புகள், நிதிப் பாதுகாப்பு மற்றும் வாழ்க்கைத்துணையுடன் இணைந்து குடும்ப வளர்ச்சி மற்றும் வம்ச விருத்தி நன்மையை எட்டுவதே உங்கள் பிரதான நோக்கமாகும்.`
+      : `${salutation}உங்கள் ஜென்ம லக்னம் ${chart.lagnaSignName} மற்றும் சந்திர ராசி ${chart.moonSignName} அடிப்படையில், தற்பொழுது நடைபெறும் ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் உங்கள் வாழ்வில் தொழில்முறைப் பொறுப்புகள், குடும்ப வரவு-செலவு மேலாண்மை மற்றும் நிதிப் பாதுகாப்பை உறுதிப்படுத்தும் முக்கியத் தருணமாகும்.`;
 
-கோசாரத்தில் குரு பகவான் மற்றும் சனி பகவானின் சஞ்சாரம் உங்கள் உண்மையான உழைப்பிற்கும் நேர்மைக்கும் ஏற்ற நற்பலன்களை வாரி வழங்கக் காத்திருக்கின்றன. தற்காலிகத் தடைகள் தோன்றினாலும் தளராமல், பொறுமையுடனும் விவேகத்துடனும் செயல்படுவது மகத்தான வெற்றியைத் தேடித்தரும். பெரியோர்களின் ஆசிகளைப் பெறுவதும், தினசரி இஷ்ட தெய்வ வழிபாடும், சனிக்கிழமைகளில் நல்லெண்ணெய் தீபம் ஏற்றுவதும் அனைத்து தோஷங்களையும் போக்கும். இந்த நற்காலத்தில் உங்கள் நல்லெண்ணங்கள் யாவும் ஈடேறி வாழ்வில் நிலையான வளர்ச்சியும், அமைதியும், சுபிட்சமும் நிறையும்.`;
+    const p2 = `கோசாரத்தில் குரு பகவான் மற்றும் சனி பகவானின் சஞ்சாரம் உங்கள் உண்மையான உழைப்பிற்கும் நேர்மைக்கும் ஏற்ற நற்பலன்களை வாரி வழங்கக் காத்திருக்கின்றன. தற்காலிகத் தடைகள் தோன்றினாலும் தளராமல் விவேகத்துடன் செயல்படுவது வெற்றியைத் தரும்.`;
+
+    const p3 = `ஆழ்மனதில் நீங்கள் எதிர்காலப் பாதுகாப்பு, குடும்ப நலம் மற்றும் கடன்களிலிருந்து விடுபடுவது குறித்து ஆழமாகச் சிந்திக்கிறீர்கள். பழைய கவலைகளை மறந்து புது நம்பிக்கையுடன் செயல்பட கிரகங்களின் அருள் துணைநிற்கிறது.`;
+
+    const p4 = `பெரியோர்களின் ஆசிகளைப் பெறுவதும் தினசரி வழிபாடும் அனைத்து தோஷங்களையும் போக்கும். பக்கோண திருத்தலத்தின் திவ்ய ஆசியுடன் உங்கள் வாழ்வில் நீண்ட ஆயுள், ஆரோக்கியம் மற்றும் நிலையான மன அமைதி நிறையும்.`;
+
+    const full = `${p1}\n\n${p2}\n\n${p3}\n\n${p4}`;
+    return cleanEnglishFromRegionalText(full, "ta");
   }
-  return `Synthesized through your natal Lagna (${chart.lagnaSignName}) and Moon sign (${chart.moonSignName}), your active ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period inaugurate a deeply transformative, consequential life chapter. Rather than routine existence, this cosmic window is designed to accelerate emotional maturity, bestow elevated vocational responsibilities, and solidify long-range security. Strategic decisions made during this interval carry compounding long-term implications, opening prestigious avenues in public standing, asset acquisition, and family dignity.
 
-Live transits of Saturn and Jupiter converge to reward unyielding perseverance, ethical discipline, and professional integrity. Even if transient hurdles arise, greeting them with meditative poise and calculated patience converts apparent friction into substantial stepping stones. Honoring mentors, greeting each dawn with conscious spiritual grounding, and lighting a sesame oil lamp on Saturdays harmonizes karmic forces. Navigating this potent phase with righteous intent guarantees structural advancement, domestic tranquility, and enduring holistic prosperity.`;
+  // English fallback
+  const salutation = devoteeName ? `Dear ${devoteeName}, ` : "";
+  const p1 = isSenior
+    ? `${salutation}synthesized through your natal Lagna (${chart.lagnaSignName}) and Moon sign (${chart.moonSignName}), your active ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period inaugurate an honorable, deeply reflective milestone in your life. During this venerated phase, safeguarding vibrant wellness, nurturing intergenerational familial joy, and cultivating serene spiritual tranquility transcend worldly rat races.`
+    : isYouth
+    ? `${salutation}synthesized through your natal Lagna (${chart.lagnaSignName}) and Moon sign (${chart.moonSignName}), your active ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period represent a seminal developmental interval. Academic dedication, disciplined concentration in competitive pursuits, and crystallization of purposeful vocation establish an enduring bedrock for future eminence.`
+    : isMarriedNoChildren
+    ? `${salutation}synthesized through your natal Lagna (${chart.lagnaSignName}) and Moon sign (${chart.moonSignName}), your active ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period inaugurate a deeply transformative, consequential chapter in your married life. Balancing vocational responsibilities, financial security, and walking hand-in-hand with your spouse toward your shared prayers for family expansion define your daily strategic focus.`
+    : `${salutation}synthesized through your natal Lagna (${chart.lagnaSignName}) and Moon sign (${chart.moonSignName}), your active ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period inaugurate a deeply transformative, consequential life chapter. Balancing vocational leadership, prudent domestic budgeting, and steadfast economic resilience defines your daily strategic focus.`;
+
+  const p2 = `Live transits of Saturn and Jupiter converge to reward unyielding perseverance, ethical discipline, and professional integrity. Even if transient hurdles arise, greeting them with meditative poise and calculated patience converts apparent friction into substantial stepping stones.`;
+
+  const p3 = `At a deeper subconscious tier, your focus centers on long-term family security, dissolving residual liabilities, and orchestrating stable new beginnings. Harmonic planetary placements provide the fortitude and moral clarity needed to transcend historical anxieties.`;
+
+  const p4 = `Consistent spiritual grounding, honoring mentors, and maintaining benevolent deeds will harmonize cosmic forces. Showered with the divine grace of the Baggona sacred sanctum, may your path be perpetually blessed with health, peace, and compounding holistic prosperity.`;
+
+  return `${p1}\n\n${p2}\n\n${p3}\n\n${p4}`;
 }
 
 export function buildDynamicSummaryFallback(chart: ParsedKundaliChart): string {
   const baseLang = chart.lang.split("-")[0];
+  const age = chart.ageYears ?? 30;
+  const isSenior = age >= 60;
+  const isYouth = age < 23;
+  const isMarriedNoChildren = !isSenior && !isYouth && chart.maritalStatus === "married" && chart.hasChildren === "no_children";
+  const devoteeName = chart.name ? chart.name.trim() : "";
+
   if (baseLang === "kn") {
-    return `ನಿಮ್ಮ ಸಮಗ್ರ ಜನ್ಮ ಕುಂಡಲಿಯು ಲಗ್ನ ಭಾವದಿಂದ ದ್ವಾದಶ ಭಾವಗಳವರೆಗಿನ ಗ್ರಹಗಳ ಸ್ಥಿತಿ, ನಕ್ಷತ್ರ ಬಲ, ದಶಾ-ಭುಕ್ತಿ ಹಾಗೂ ಪ್ರಸ್ತುತ ಗೋಚಾರಗಳ ಅದ್ಭುತ ಸಮತೋಲನವನ್ನು ಪ್ರದರ್ಶಿಸುತ್ತದೆ. ಕೇಂದ್ರ ಸ್ಥಾನಗಳಾದ 1, 4, 7, 10 ನೇ ಮನೆಗಳು ಹಾಗೂ ತ್ರಿಕೋಣ ಸ್ಥಾನಗಳಾದ 5, 9 ನೇ ಮನೆಗಳ ಶುಭ ಪ್ರಭಾವವು ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಆರ್ಥಿಕ ಸ್ಥಿರತೆ, ಸುಖಮಯ ಕೌಟುಂಬಿಕ ಬಾಂಧವ್ಯ ಮತ್ತು ವೃತ್ತಿಪರ ಮನ್ನಣೆಯನ್ನು ಶಾಶ್ವತವಾಗಿ ಕರುಣಿಸುವ ದೈವಿಕ ಸಾಮರ್ಥ್ಯವನ್ನು ಹೊಂದಿವೆ. ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿರುವ ಧರ್ಮ-ಕರ್ಮಾಧಿಪತಿ ಯೋಗಗಳು ಹಾಗೂ ಶುಭ ಗ್ರಹಗಳ ದೃಷ್ಟಿಯು ಯಾವುದೇ ಸಂಕಷ್ಟದಿಂದ ಸುಲಭವಾಗಿ ಪಾರಾಗುವ ಅದ್ಭುತ ರಕ್ಷಣಾ ಕವಚವನ್ನು ನಿಮಗೆ ಒದಗಿಸಿವೆ.
+    const salutation = devoteeName ? `${devoteeName} ಅವರೇ, ` : "";
+    const p1 = `${salutation}ನಿಮ್ಮ ಸಮಗ್ರ ಜನ್ಮ ಕುಂಡಲಿಯು ಲಗ್ನ ಭಾವದಿಂದ ದ್ವಾದಶ ಭಾವಗಳವರೆಗಿನ ಗ್ರಹಗಳ ಸ್ಥಿತಿ, ನಕ್ಷತ್ರ ಬಲ, ಪ್ರಸ್ತುತ ಸಾಗುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿಗಳ ಅದ್ಭುತ ಸಮತೋಲನವನ್ನು ಪ್ರದರ್ಶಿಸುತ್ತದೆ. ಕೇಂದ್ರ ಹಾಗೂ ತ್ರಿಕೋಣ ಸ್ಥಾನಗಳ ಶುಭ ಪ್ರಭಾವವು ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಶಾಶ್ವತ ರಕ್ಷಣಾ ಕವಚವನ್ನು ನಿರ್ಮಿಸಿದ್ದು, ಯಾವುದೇ ಸವಾಲುಗಳನ್ನು ಆತ್ಮವಿಶ್ವಾಸದಿಂದ ಎದುರಿಸುವ ಸಾಮರ್ಥ್ಯವನ್ನು ನೀಡಿದೆ.`;
 
-ಬರುವ ವರ್ಷಗಳಲ್ಲಿ ನಿಮ್ಮ ಮುಖ್ಯ ಗುರಿಯು ಆರ್ಥಿಕ ಉಳಿತಾಯದ ಕ್ರೋಡೀಕರಣ, ಕೌಟುಂಬಿಕ ಸೌಹಾರ್ದತೆಯ ಸಂರಕ್ಷಣೆ ಹಾಗೂ ಆತ್ಮವಿಶ್ವಾಸದ ವಿಸ್ತರಣೆಯಾಗಿರಬೇಕು. ನಿಯಮಿತ ಕುಲದೇವತಾ ಪ್ರಾರ್ಥನೆ, ಸತ್ಪಾತ್ರರಿಗೆ ದಾನ, ಧರ್ಮನಿಷ್ಠ ನಡವಳಿಕೆ ಹಾಗೂ ಹಿರಿಯರ ಆಶೀರ್ವಾದಗಳು ನಿಮ್ಮ ಸಕಲ ಸತ್ಸಂಕಲ್ಪಗಳನ್ನು ಸಿದ್ಧಿಗೊಳಿಸಲಿವೆ. ಯಾವುದೇ ಆತುರದ ನಿರ್ಧಾರಗಳನ್ನು ಕೈಗೊಳ್ಳದೆ, ಯೋಚಿಸಿ ಮುನ್ನಡೆಯುವುದು ನಿಮ್ಮನ್ನು ಯಶಸ್ಸಿನ ಶಿಖರಕ್ಕೆ ಕೊಂಡೊಯ್ಯಲಿದೆ. ಬಗ್ಗೋಣ ಕ್ಷೇತ್ರದ ಪರಮ ಪಾವನ ಆಶೀರ್ವಾದದೊಂದಿಗೆ ನಿಮ್ಮ ಜೀವನದುದ್ದಕ್ಕೂ ಆಯುರಾರೋಗ್ಯ, ಸಕಲ ಸೌಭಾಗ್ಯ, ಶಾಂತಿ ಮತ್ತು ಪರಮಾನಂದವು ಸದಾ ನೆಲೆಸಲಿ ಎಂದು ಪ್ರಾರ್ಥಿಸುತ್ತೇವೆ.`;
+    const p2 = isSenior
+      ? `ಬರುವ ವರ್ಷದಲ್ಲಿ ನಿಮ್ಮ ಪ್ರಧಾನ ಆದ್ಯತೆಯು ಉತ್ತಮ ಆರೋಗ್ಯ ಸಂರಕ್ಷಣೆ, ಮೊಮ್ಮಕ್ಕಳೊಂದಿಗೆ ಆನಂದಮಯ ಸಮಯ ಕಳೆಯುವುದು ಹಾಗೂ ಅಧ್ಯಾತ್ಮಿಕ ನೆಮ್ಮದಿಯನ್ನು ವೃದ್ಧಿಸಿಕೊಳ್ಳುವುದಾಗಿರಬೇಕು. ಲೌಕಿಕ ಚಿಂತೆಗಳನ್ನು ಕಡಿಮೆ ಮಾಡಿ, ಕುಲದೇವತಾ ಪ್ರಾರ್ಥನೆ ಹಾಗೂ ಸಾತ್ವಿಕ ಜೀವನಶೈಲಿಯನ್ನು ಅಳವಡಿಸಿಕೊಳ್ಳುವುದು ದೈವಿಕ ಆನಂದವನ್ನು ನೀಡಲಿದೆ.`
+      : isYouth
+      ? `ಬರುವ ವರ್ಷದಲ್ಲಿ ನಿಮ್ಮ ಮುಖ್ಯ ಗುರಿಯು ವಿದ್ಯಾಭ್ಯಾಸದಲ್ಲಿ ಉನ್ನತ ಶ್ರೇಣಿ ಪಡೆಯುವುದು, ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆಗಳಲ್ಲಿ ಯಶಸ್ಸು ಹಾಗೂ ಭವಿಷ್ಯದ ವೃತ್ತಿ ಬದುಕಿನ ಸ್ಪಷ್ಟತೆಯನ್ನು ಕಂಡುಕೊಳ್ಳುವುದಾಗಿರಬೇಕು. ಏಕಾಗ್ರತೆ ಮತ್ತು ನಿಯಮಿತ ಪರಿಶ್ರಮವು ನಿಮ್ಮ ಪ್ರತಿಭೆಗೆ ತಕ್ಕ ಯಶಸ್ಸನ್ನು ಕರುಣಿಸಲಿದೆ.`
+      : isMarriedNoChildren
+      ? `ಬರುವ ವರ್ಷಗಳಲ್ಲಿ ನಿಮ್ಮ ಮುಖ್ಯ ಗುರಿಯು ಆರ್ಥಿಕ ಉಳಿತಾಯದ ಕ್ರೋಡೀಕರಣ, ದಾಂಪತ್ಯ ಸೌಹಾರ್ದತೆಯ ರಕ್ಷಣೆ ಹಾಗೂ ಸಂತಾನ ಪ್ರಾಪ್ತಿಗಾಗಿ ಧಾರ್ಮಿಕ ಮತ್ತು ಆರೋಗ್ಯಕರ ಸಿದ್ಧತೆಗಳನ್ನು ಕೈಗೊಳ್ಳುವುದಾಗಿರಬೇಕು. ಹೊರಗಿನ ಒತ್ತಡಗಳಿಗೆ ಮಣಿಯದೆ, ದಂಪತಿಗಳಿಬ್ಬರೂ ಒಗ್ಗಟ್ಟಿನಿಂದ ಮತ್ತು ಸಮಾಧಾನದಿಂದ ಮುನ್ನಡೆಯುವುದು ನಿಮ್ಮ ಸಕಲ ಸತ್ಸಂಕಲ್ಪಗಳನ್ನು ಶೀಘ್ರ ಈಡೇರಿಸಲಿದೆ.`
+      : `ಬರುವ ವರ್ಷಗಳಲ್ಲಿ ನಿಮ್ಮ ಮುಖ್ಯ ಗುರಿಯು ಆರ್ಥಿಕ ಉಳಿತಾಯದ ಕ್ರೋಡೀಕರಣ, ಕೌಟುಂಬಿಕ ಸೌಹಾರ್ದತೆಯ ಸಂರಕ್ಷಣೆ ಹಾಗೂ ವೃತ್ತಿಪರ ಜವಾಬ್ದಾರಿಗಳ ದೃಢ ನಿರ್ವಹಣೆಯಾಗಿರಬೇಕು. ಯಾವುದೇ ಆತುರದ ನಿರ್ಧಾರಗಳನ್ನು ಕೈಗೊಳ್ಳದೆ, ತಾಳ್ಮೆ ಮತ್ತು ಸಮಾಧಾನದಿಂದ ಮುನ್ನಡೆಯುವುದು ನಿಮ್ಮನ್ನು ಯಶಸ್ಸಿನ ಶಿಖರಕ್ಕೆ ಕೊಂಡೊಯ್ಯಲಿದೆ.`;
+
+    const p3 = `ನಿಯಮಿತ ಪ್ರಾರ್ಥನೆ, ಸತ್ಪಾತ್ರರಿಗೆ ದಾನ, ಧರ್ಮನಿಷ್ಠ ನಡವಳಿಕೆ ಹಾಗೂ ಗುರು-ಹಿರಿಯರ ಆಶೀರ್ವಾದಗಳು ನಿಮ್ಮ ಸಕಲ ಸತ್ಸಂಕಲ್ಪಗಳನ್ನು ಸಿದ್ಧಿಗೊಳಿಸಲಿವೆ. ಬಗ್ಗೋಣ ಕ್ಷೇತ್ರದ ಪರಮ ಪಾವನ ಆಶೀರ್ವಾದದೊಂದಿಗೆ ನಿಮ್ಮ ಜೀವನದುದ್ದಕ್ಕೂ ಆಯುರಾರೋಗ್ಯ, ಸಕಲ ಸೌಭಾಗ್ಯ, ಶಾಂತಿ ಮತ್ತು ಪರಮಾನಂದವು ಸದಾ ನೆಲೆಸಲಿ ಎಂದು ಪ್ರಾರ್ಥಿಸುತ್ತೇವೆ.`;
+
+    const full = `${p1}\n\n${p2}\n\n${p3}`;
+    return cleanEnglishFromRegionalText(full, "kn");
   }
+
   if (baseLang === "hi") {
-    return `आपकी संपूर्ण जन्म कुंडली लग्न भाव से लेकर द्वादश भाव तक के ग्रहों, नक्षत्रों, वर्तमान दशा-भुक्ति एवं गोचर का अत्यंत संतुलित, शुभ और आशाजनक समन्वय प्रस्तुत करती है। केंद्र भावों (1, 4, 7, 10) तथा त्रिकोण भावों (5, 9) का शुभ प्रभाव आपके जीवन में निरंतर आर्थिक समृद्धि, सुदृढ़ पारिवारिक संबंध और व्यावसायिक प्रतिष्ठा का मार्ग प्रशस्त करता है। कुंडली में विद्यमान शुभ ग्रहों की दृष्टि और राजयोग किसी भी विपरीत परिस्थिति से आपको सुरक्षित निकालने के लिए एक दिव्य सुरक्षा कवच की भांति कार्य करते हैं।
+    const salutation = devoteeName ? `${devoteeName}, ` : "";
+    const p1 = `${salutation}आपकी संपूर्ण जन्म कुंडली लग्न भाव से लेकर द्वादश भाव तक के ग्रहों, वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति का अत्यंत संतुलित, शुभ और आशाजनक समन्वय प्रस्तुत करती है। कुंडली में विद्यमान शुभ ग्रहों की दृष्टि किसी भी विपरीत परिस्थिति से आपको सुरक्षित निकालने के लिए एक दिव्य सुरक्षा कवच की भांति कार्य करती है।`;
 
-आगामी वर्षों में आपका मुख्य ध्यान आर्थिक स्थिरता, संचित धन की सुरक्षा, परिवार में सौहार्द और आध्यात्मिक चेतना के विस्तार पर केंद्रित होना चाहिए। अपने कुलदेवता का नित्य स्मरण, सुपात्र को अन्नदान, सात्विक जीवनशैली और माता-पिता का आशीर्वाद आपके समस्त सत्संकल्पों को सिद्ध करेगा। किसी भी जल्दबाजी से बचते हुए धैर्यपूर्वक लिया गया प्रत्येक निर्णय आपको सफलता के सर्वोच्च शिखर पर पहुंचाएगा। बग्गोण क्षेत्र के पावन आशीर्वाद से आपके जीवन में निरंतर स्वास्थ्य, ऐश्वर्य, शांति और समृद्धि की वृद्धि होती रहे।`;
+    const p2 = isSenior
+      ? `आगामी वर्ष में आपका मुख्य ध्यान उत्तम स्वास्थ्य की रक्षा, परिवार में सौहार्द और आध्यात्मिक चेतना के विस्तार पर केंद्रित होना चाहिए। नित्य भगवद् भजन और सात्विक दिनचर्या से मन में परमानंद की अनुभूति होगी।`
+      : isYouth
+      ? `आगामी वर्ष में आपका मुख्य ध्यान उच्च शिक्षा, प्रतियोगी परीक्षाओं की तैयारी और भविष्य के करियर की ठोस नींव रखने पर होना चाहिए। निरंतर एकाग्रता और लगन से समस्त लक्ष्य सिद्ध होंगे।`
+      : isMarriedNoChildren
+      ? `आगामी वर्षों में आपका मुख्य ध्यान आर्थिक स्थिरता, दांपत्य सौहार्द की रक्षा तथा संतान सुख की प्राप्ति हेतु संतुलित जीवनशैली और धार्मिक अनुष्ठानों पर होना चाहिए। बाहरी प्रश्नों से विचलित हुए बिना, दोनों का परस्पर विश्वास और संयम आपके समस्त मनोरथों को सिद्ध करेगा।`
+      : `आगामी वर्षों में आपका मुख्य ध्यान आर्थिक स्थिरता, संचित धन की सुरक्षा, परिवार में सौहार्द और व्यावसायिक जिम्मेदारियों के सुदृढ़ निर्वहन पर केंद्रित होना चाहिए। धैर्यपूर्वक लिया गया प्रत्येक निर्णय आपको सफलता दिलाएगा।`;
+
+    const p3 = `अपने कुलदेवता का नित्य स्मरण, सुपात्र को दान और बड़ों का आशीर्वाद आपके समस्त सत्संकल्पों को सिद्ध करेगा। बग्गोण क्षेत्र के पावन आशीर्वाद से आपके जीवन में निरंतर स्वास्थ्य, ऐश्वर्य, शांति और समृद्धि की वृद्धि होती रहे।`;
+
+    const full = `${p1}\n\n${p2}\n\n${p3}`;
+    return cleanEnglishFromRegionalText(full, "hi");
   }
+
   if (baseLang === "te") {
-    return `మీ సమగ్ర జన్మ కుండలి 12 భావాలలోని గ్రహాల స్థితులు, నక్షత్ర బలం, ప్రస్తుత దశా-భుక్తి మరియు గోచార గ్రహాల అద్భుత సమతుల్యతను ప్రతిబింబిస్తుంది. కేంద్ర స్థానాలైన 1, 4, 7, 10 మరియు త్రికోణ స్థానాలైన 5, 9 భావాల శుభ ప్రభావం మీ జీవితంలో ఆర్థిక స్థిరత్వాన్ని, కుటుంబ సౌఖ్యాన్ని మరియు సమాజంలో ఉన్నత గౌరవాన్ని ప్రసాదిస్తాయి. జాతకంలో ఏర్పడిన శుభ యోగాలు మరియు గ్రహాల అనుకూల వీక్షణలు ఎలాంటి కష్టాల నుంచైనా మిమ్మల్ని సురక్షితంగా రక్షించే దివ్య కవచంలా పనిచేస్తాయి.
+    const salutation = devoteeName ? `${devoteeName}, ` : "";
+    const p1 = `${salutation}మీ సమగ్ర జన్మ కుండలి 12 భావాలలోని గ్రహాల స్థితులు, ప్రస్తుత ${chart.mahaLordName} మహర్దశ మరియు ${chart.bhuktiLordName} భుక్తి కాలాల అద్భుత సమతుల్యతను ప్రతిబింబిస్తుంది. జాతకంలో ఏర్పడిన శుభ గ్రహాల అనుకూల వీక్షణలు ఎలాంటి కష్టాల నుంచైనా మిమ్మల్ని సురక్షితంగా రక్షించే దివ్య కవచంలా పనిచేస్తాయి.`;
 
-రాబోయే కాలంలో మీ దృష్టి ఆర్థిక ప్రణాళిక, సంపద పరిరక్షణ, కుటుంబ సామరస్యం మరియు ఆధ్యాత్మిక సాధనపై నిలపాలి. కులదైవ ప్రార్థన, అర్హులకు దానం చేయడం మరియు పెద్దల ఆశీస్సులు మీ సకల సంకల్పాలను విజయవంతం చేస్తాయి. ఆవేశపూరిత నిర్ణయాలకు దూరంగా ఉండి ఆలోచించి అడుగు వేస్తే అద్భుత ఫలితాలు లభిస్తాయి. బగ్గోణ దివ్య క్షేత్ర ఆశీస్సులతో మీ జీవితం ఆయురారోగ్యాలు, అష్టైశ్వర్యాలు మరియు శాశ్వత శాంతితో వర్ధిల్లాలని ఆకాంక్షిస్తున్నాము.`;
+    const p2 = isSenior
+      ? `రాబోయే కాలంలో మీ దృష్టి ఆరోగ్య పరిరక్షణ, కుటుంబంలో ప్రశాంతత మరియు ఆధ్యాత్మిక సాధనపై నిలపాలి. భగవద్ ప్రార్థన మరియు ప్రశాంత జీవన విధానం మీ మనస్సుకు అమితమైన ఆనందాన్ని ఇస్తాయి.`
+      : isYouth
+      ? `రాబోయే కాలంలో మీ దృష్టి ఉన్నత విద్య, పోటీ పరీక్షలలో విజయం మరియు భావి కెరీర్ లక్ష్యాలను సాధించడంపై నిలపాలి. నిరంతర శ్రమ మీకు తగిన గుర్తింపును తెస్తుంది.`
+      : isMarriedNoChildren
+      ? `రాబోయే కాలంలో మీ ముఖ్య దృష్టి ఆర్థిక స్థిరత్వం, దాంపత్య బంధాన్ని మరింత బలోపేతం చేసుకోవడం మరియు సంతాన ప్రాప్తి కోసం దైవ ప్రార్థనలతో కూడిన ప్రయత్నాలపై నిలపాలి. బాహ్య ఒత్తిళ్లకు తావివ్వకుండా, ఇరువురి పరస్పర సహకారం మరియు ఓర్పు సకల శుభాలను చేకూరుస్తాయి.`
+      : `రాబోయే కాలంలో మీ దృష్టి ఆర్థిక ప్రణాళిక, సంపద పరిరక్షణ, కుటుంబ సామరస్యం మరియు వృత్తిపరమైన బాధ్యతలపై నిలపాలి. ఆలోచించి అడుగు వేస్తే అద్భుత ఫలితాలు లభిస్తాయి.`;
+
+    const p3 = `కులదైవ ప్రార్థన, అర్హులకు దానం చేయడం మరియు పెద్దల ఆశీస్సులు మీ సకల సంకల్పాలను విజయవంతం చేస్తాయి. బగ్గోణ దివ్య క్షేత్ర ఆశీస్సులతో మీ జీవితం ఆయురారోగ్యాలు, అష్టైశ్వర్యాలు మరియు శాశ్వత శాంతితో వర్ధిల్లాలని ఆకాంక్షిస్తున్నాము.`;
+
+    const full = `${p1}\n\n${p2}\n\n${p3}`;
+    return cleanEnglishFromRegionalText(full, "te");
   }
+
   if (baseLang === "ta") {
-    return `உங்கள் முழுமையான ஜாதகக் கட்டமைப்பு 12 பாவங்களின் கிரக நிலைகள், நட்சத்திர பலம், தற்போதைய தசா-புக்தி மற்றும் கோசார கிரகங்களின் அருமையான தெய்வீக சமநிலையைக் காட்டுகிறது. கேந்திர ஸ்தானங்களான 1, 4, 7, 10 மற்றும் திரிகோண ஸ்தானங்களான 5, 9 ஆகியவற்றின் சுப பலன்கள் உங்கள் வாழ்வில் பொருளாதார ஸ்திரத்தன்மை, குடும்ப மகிழ்ச்சி மற்றும் தொழில்முறை நற்பெயரை நிரந்தரமாக வழங்கும் வல்லமை கொண்டவை. ஜாதகத்தில் உள்ள சுப யோகங்களும் சுப கிரகங்களின் பார்வையும் எந்தவொரு சோதனையிலிருந்தும் உங்களைப் பாதுகாக்கும் கவசமாக விளங்குகின்றன.
+    const salutation = devoteeName ? `${devoteeName}, ` : "";
+    const p1 = `${salutation}உங்கள் முழுமையான ஜாதகக் கட்டமைப்பு 12 பாவங்களின் கிரக நிலைகள், தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலத்தின் அருமையான தெய்வீக சமநிலையைக் காட்டுகிறது. ஜாதகத்தில் உள்ள சுப கிரகங்களின் பார்வை எந்தவொரு சோதனையிலிருந்தும் உங்களைப் பாதுகாக்கும் கவசமாக விளங்குகின்றன.`;
 
-வரும் ஆண்டுகளில் உங்கள் முக்கிய கவனம் சேமிப்பை உயர்த்துதல், குடும்ப நல்லிணக்கத்தைப் பாதுகாத்தல் மற்றும் ஆன்மீக அமைதியை வளர்த்தல் ஆகியவற்றில் நிலைத்திருக்க வேண்டும். குலதெய்வ வழிபாடு, ஏழைகளுக்கு அன்னதானம், பெரியோர்களின் நல்லாசி ஆகியவை உங்கள் நல்லெண்ணங்களை யாவும் நிறைவேற்றும். அவசர முடிவுகளைத் தவிர்த்து நிதானமாக சிந்தித்துச் செயல்படுவது உங்களை வெற்றியின் உச்சிக்குக் கொண்டு செல்லும். பக்கவணா திருத்தலத்தின் திவ்ய ஆசியுடன் உங்கள் வாழ்வில் நீண்ட ஆயுள், ஆரோக்கியம், சகல செல்வங்கள் மற்றும் அமைதி நிறைந்து விளங்கப் பிரார்த்திக்கிறோம்.`;
+    const p2 = isSenior
+      ? `வரும் ஆண்டில் உங்கள் முக்கிய கவனம் உடல்நலப் பாதுகாப்பு, குடும்ப அமைதி மற்றும் ஆன்மீகச் சிந்தனைகளில் நிலைத்திருக்க வேண்டும். இறை வழிபாடும் சாத்வீக வாழ்க்கையும் உங்களுக்கு நிம்மதியைத் தரும்.`
+      : isYouth
+      ? `வரும் ஆண்டில் உங்கள் முக்கிய கவனம் கல்வி, போட்டித் தேர்வுகளில் வெற்றி மற்றும் எதிர்கால தொழில் இலக்குகளை அடைவதில் நிலைத்திருக்க வேண்டும். கவனமும் பயிற்சியும் வெற்றியைத் தரும்.`
+      : isMarriedNoChildren
+      ? `வரும் ஆண்டுகளில் உங்கள் பிரதான கவனம் நிதி நிலைத்தன்மை, இல்லற நல்லிணக்கத்தைப் பேணுதல் மற்றும் குழந்தை பாக்கியம் பெறுவதற்கான ஆன்மீக மற்றும் நல்வாழ்வு முயற்சிகளில் நிலைத்திருக்க வேண்டும். புற அழுத்தங்களுக்கு இடமளிக்காமல், இருவரும் ஒற்றுமையுடன் எடுக்கும் முடிவுகள் அனைத்து நன்மைகளையும் நல்கும்.`
+      : `வரும் ஆண்டுகளில் உங்கள் முக்கிய கவனம் சேமிப்பை உயர்த்துதல், குடும்ப நல்லிணக்கத்தைப் பாதுகாத்தல் மற்றும் தொழில்முறைப் பொறுப்புகளில் நிலைத்திருக்க வேண்டும். நிதானமாகச் செயல்படுவது வெற்றியைத் தரும்.`;
+
+    const p3 = `குலதெய்வ வழிபாடு, ஏழைகளுக்கு அன்னதானம், பெரியோர்களின் நல்லாசி ஆகியவை உங்கள் நல்லெண்ணங்களை யாவும் நிறைவேற்றும். பக்கோண திருத்தலத்தின் திவ்ய ஆசியுடன் உங்கள் வாழ்வில் நீண்ட ஆயுள், ஆரோக்கியம், சகல செல்வங்கள் மற்றும் அமைதி நிறைந்து விளங்கப் பிரார்த்திக்கிறோம்.`;
+
+    const full = `${p1}\n\n${p2}\n\n${p3}`;
+    return cleanEnglishFromRegionalText(full, "ta");
   }
-  return `Your comprehensive birth chart demonstrates a resilient, highly auspicious synergy across the 12 Bhavas, harmonizing natal Kendra (1, 4, 7, 10) and Trikona (1, 5, 9) strengths with the progressive momentum of your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period. Favorable planetary aspects and classical Raja Yoga formations weave an enduring protective auric shield around you, granting timely remedies and intuitive guidance to effortlessly transcend temporary worldly turbulence.
 
-In the years ahead, channeling your energy toward financial consolidation, nurturing harmonious family bonds, and cultivating spiritual discipline will unlock compounding multidimensional prosperity. Consistent worship of your Ishta and Kula Devatas, performing charitable acts, and making patient, well-deliberated life decisions ensure uninterrupted evolutionary ascension. Showered with the divine grace of the Baggona sacred sanctum, may your life path be perpetually adorned with robust longevity, joyous fulfillment, radiant prosperity, and abiding supreme peace.`;
+  // English fallback
+  const salutation = devoteeName ? `Dear ${devoteeName}, ` : "";
+  const p1 = `${salutation}your comprehensive birth chart demonstrates a resilient, highly auspicious synergy across the 12 Bhavas, harmonizing natal strengths with the progressive momentum of your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period. Favorable planetary aspects weave an enduring protective auric shield around you, granting timely remedies and intuitive guidance to effortlessly navigate life.`;
+
+  const p2 = isSenior
+    ? `In the year ahead, your primary priority centers on preserving vibrant health, cherishing peaceful moments with loved ones and grandchildren, and deepening spiritual contemplative practices. Releasing worldly pressures welcomes profound soul tranquility and graceful fulfillment.`
+    : isYouth
+    ? `In the year ahead, your single most vital focus should be targeted academic excellence, competitive exam mastery, and crystallizing your vocational calling. Disciplined focus and relentless curiosity will build an unshakable foundation for lifelong achievement.`
+    : isMarriedNoChildren
+    ? `In the coming year, your primary focus must center on consolidating financial security, cherishing marital harmony, and patiently nurturing your shared aspirations for progeny through healthy routines and sacred spiritual alignment. Uniting as an unshakeable team and moving forward with faith will dissolve all delays and fulfill your heartfelt hopes.`
+    : `In the years ahead, channeling your energy toward financial consolidation, nurturing harmonious family bonds, and cultivating professional stability will unlock compounding multidimensional prosperity. Patient, well-deliberated life decisions ensure uninterrupted evolutionary ascension.`;
+
+  const p3 = `Consistent worship of your Ishta and Kula Devatas, performing charitable acts, and honoring mentors guarantee continuous cosmic harmony. Showered with the divine grace of the Baggona sacred sanctum, may your life path be perpetually adorned with robust longevity, joyous fulfillment, radiant prosperity, and abiding supreme peace.`;
+
+  return `${p1}\n\n${p2}\n\n${p3}`;
 }
 
 export function buildDynamicGocharaFallback(chart: ParsedKundaliChart): Array<{ name: string; impact: string; remedy?: string }> {
   const baseLang = chart.lang.split("-")[0];
   const items: Array<{ name: string; impact: string; remedy?: string }> = [];
 
-  if (chart.transitSaturn) {
-    const s = chart.transitSaturn;
-    let sName = "Saturn (Shani) Live Transit";
-    let remedy = "Light sesame oil lamp on Saturdays and chant Shani Stotram.";
+  const s = chart.transitSaturn || {
+    houseFromMoon: 11,
+    isSadeSati: false,
+    isAshtama: false,
+    isKantaka: false
+  };
 
-    if (baseLang === "kn") {
-      sName = "ಶನಿ ಗೋಚಾರ ಸಂಚಾರ (Saturn Transit)";
-      remedy = "ಶನಿವಾರ ಎಳ್ಳೆಣ್ಣೆ ದೀಪ ಹಚ್ಚಿ ಶನಿ ಸ್ತೋತ್ರ ಪಠಿಸುವುದು ಶ್ರೇಷ್ಠ.";
-    } else if (baseLang === "hi") {
-      sName = "शनि गोचर प्रभाव";
-      remedy = "शनिवार को तिल के तेल का दीपक जलाएं तथा शनि स्तोत्र का पाठ करें।";
-    } else if (baseLang === "te") {
-      sName = "శని గోచార సంచారం";
-      remedy = "శనివారం నువ్వుల నూనెతో దీపం వెలిగించి శని స్తోత్రం పఠించడం శుభప్రదం.";
-    } else if (baseLang === "ta") {
-      sName = "சனி பகவான் கோசார பலன்";
-      remedy = "சனிக்கிழமைகளில் நல்லெண்ணெய் தீபம் ஏற்றி சனி ஸ்தோத்திரம் பாராயணம் செய்யவும்.";
-    }
+  const j = chart.transitJupiter || {
+    houseFromMoon: 9,
+    isGuruBala: true
+  };
 
-    let desc = `Saturn is transiting the ${s.houseFromMoon}th house from your natal Moon (${chart.moonSignName}).`;
+  // 1. SATURN (Shani) CARD
+  let sName = "Saturn (Shani) Live Transit";
+  let sRemedy = "Light a sesame oil lamp on Saturdays, chant Dasharatha Shani Stotram, and engage in charitable feeding for the underprivileged to harmonize planetary energies.";
+  let sPara1 = "";
+  let sPara2 = "";
+
+  if (baseLang === "kn") {
+    sName = "ಶನಿ ಭಗವಾನರ ಗೋಚಾರ ಫಲ";
+    sRemedy = "ಪ್ರತಿದಿನ ಅಥವಾ ಶನಿವಾರದಂದು ಎಳ್ಳೆಣ್ಣೆ ದೀಪ ಬೆಳಗಿಸಿ, ಶ್ರೀ ಶನಿ ಅಷ್ಟೋತ್ತರ ಶತನಾಮಾವಳಿ ಅಥವಾ ದಶರಥ ಕೃತ ಶನಿ ಸ್ತೋತ್ರವನ್ನು ಭಕ್ತಿಯಿಂದ ಪಠಿಸುವುದು ಸಕಲ ದೋಷಗಳನ್ನು ಶಮನಗೊಳಿಸುತ್ತದೆ.";
     if (s.isSadeSati) {
-      if (baseLang === "kn") desc += " ಇದು ಏಳರೆ ಶನಿಯ ಕಾಲಘಟ್ಟವಾಗಿದ್ದು, ಶಿಸ್ತು, ಧರ್ಮನಿಷ್ಠೆ ಹಾಗೂ ತಾಳ್ಮೆಯಿಂದ ಕರ್ತವ್ಯಗಳನ್ನು ನಿರ್ವಹಿಸುವುದರಿಂದ ಶನಿ ಮಹಾರಾಜರ ಕೃಪೆ ಲಭಿಸಲಿದೆ.";
-      else if (baseLang === "hi") desc += " यह साढ़ेसाती का प्रभाव काल है, जिसमें धैर्य, संयम और कर्तव्यनिष्ठा से किए गए कार्यों में शनि देव की विशेष कृपा प्राप्त होगी।";
-      else if (baseLang === "te") desc += " ఇది ఏలినాటి శని కాలం, ఓర్పు, ధర్మం మరియు క్రమశిక్షణతో వ్యవహరిస్తే శనీశ్వరుని అనుగ్రహం లభిస్తుంది.";
-      else if (baseLang === "ta") desc += " இது ஏழரை நாட்டுச் சனியின் காலமாகும். பொறுமையுடனும் கடமை உணர்வுடனும் செயல்படுவது சனி பகவானின் அருளைப் பெற்றுத் தரும்.";
-      else desc += " This marks a period of heightened karmic discipline, urging patience and ethical perseverance.";
+      sPara1 = `ಶನಿ ಮಹಾತ್ಮನು ನಿಮ್ಮ ಜನ್ಮ ರಾಶಿಯಿಂದ ${s.houseFromMoon}ನೇ ಭಾವದಲ್ಲಿ ಸಂಚರಿಸುತ್ತಿದ್ದು, ಇದು ಏಳರೆ ಶನಿಯ ಮಹತ್ವದ ಕಾಲಘಟ್ಟವಾಗಿದೆ. ಈ ಅವಧಿಯು ಆಂತರಿಕ ಶಿಸ್ತು, ಧರ್ಮನಿಷ್ಠೆ, ತಾಳ್ಮೆ ಹಾಗೂ ಪ್ರಾಮಾಣಿಕ ಕರ್ತವ್ಯ ನಿರ್ವಹಣೆಯನ್ನು ನಿರೀಕ್ಷಿಸುತ್ತದೆ. ಅನಾವಶ್ಯಕ ಆತುರ ಅಥವಾ ದುಡುಕಿನ ನಿರ್ಧಾರಗಳನ್ನು ನಿಯಂತ್ರಿಸಿ, ಹಿರಿಯರ ಮಾರ್ಗದರ್ಶನದಲ್ಲಿ ಕಾರ್ಯನಿರ್ವಹಿಸುವುದು ಸತ್ಫಲಗಳನ್ನು ನೀಡಲಿದೆ.`;
+    } else if (s.isKantaka) {
+      sPara1 = `ಶನಿ ಮಹಾತ್ಮನು ನಿಮ್ಮ ಜನ್ಮ ರಾಶಿಯಿಂದ ${s.houseFromMoon}ನೇ ಭಾವದಲ್ಲಿ ಸಂಚರಿಸುತ್ತಿದ್ದು, ಇದು ಕಂಟಕ ಶನಿಯ ಸಂಚಾರವಾಗಿದೆ. ಉದ್ಯೋಗ, ನಿವಾಸ ಅಥವಾ ಕೌಟುಂಬಿಕ ಸಂಬಂಧಗಳಲ್ಲಿ ಸಣ್ಣಪುಟ್ಟ ಸ್ಥಾನಪಲ್ಲಟ ಅಥವಾ ಮಾನಸಿಕ ಜಂಜಾಟಗಳು ಉಂಟಾಗಬಹುದು. ಶಿಸ್ತುಬದ್ಧ ಜೀವನಶೈಲಿ ಮತ್ತು ಸಂಯಮದಿಂದ ಮುನ್ನಡೆದರೆ ಶನಿಯ ಅನುಗ್ರಹದಿಂದ ಸ್ಥಿರತೆ ಲಭಿಸುತ್ತದೆ.`;
     } else if (s.isAshtama) {
-      if (baseLang === "kn") desc += " ಇದು ಅಷ್ಟಮ ಶನಿಯ ಸಂಚಾರವಾಗಿದ್ದು, ಆರೋಗ್ಯ ಹಾಗೂ ಆರ್ಥಿಕ ನಿರ್ಧಾರಗಳಲ್ಲಿ ಮುನ್ನೆಚ್ಚರಿಕೆ ವಹಿಸುವುದು ಕ್ಷೇಮಕರ.";
-      else if (baseLang === "hi") desc += " यह अष्टम शनि का गोचर है, जिसमें स्वास्थ्य और आर्थिक निर्णयों में सतर्कता बरतना कल्याणकारी रहेगा।";
-      else if (baseLang === "te") desc += " ఇది అష్టమ శని సంచారం, ఆరోగ్యం మరియు ఆర్థిక విషయాలలో జాగ్రత్తగా ఉండడం మంచిది.";
-      else if (baseLang === "ta") desc += " இது அட்டமச் சனியின் காலமாகும். உடல்நலம் மற்றும் நிதி முடிவுகளில் விழிப்புடன் இருப்பது அவசியம்.";
-      else desc += " Navigating 8th house transit requires conscious focus on wellness precautions and cautious financial choices.";
+      sPara1 = `ಶನಿ ಮಹಾತ್ಮನು ನಿಮ್ಮ ಜನ್ಮ ರಾಶಿಯಿಂದ 8ನೇ ಭಾವದಲ್ಲಿ ಸಂಚರಿಸುತ್ತಿದ್ದು, ಇದು ಅಷ್ಟಮ ಶನಿಯ ಸಂಚಾರವಾಗಿದೆ. ಆರೋಗ್ಯ ರಕ್ಷಣೆ, ಆಹಾರ ನಿಯಮ, ಪ್ರಯಾಣ ಹಾಗೂ ಆರ್ಥಿಕ ವಹಿವಾಟುಗಳಲ್ಲಿ ವಿಶೇಷ ಮುನ್ನೆಚ್ಚರಿಕೆ ವಹಿಸುವುದು ಅತ್ಯಗತ್ಯ. ನಿತ್ಯ ಪ್ರಾಣಾಯಾಮ ಹಾಗೂ ದೈವ ಪ್ರಾರ್ಥನೆಯು ನಿಮ್ಮ ಆತ್ಮಸ್ಥೈರ್ಯವನ್ನು ರಕ್ಷಿಸುತ್ತದೆ.`;
     } else {
-      if (baseLang === "kn") desc += " ಶನಿಯು ಅನುಕೂಲಕರ ಸ್ಥಾನದಲ್ಲಿ ಸಂಚರಿಸುತ್ತಿದ್ದು, ಕಠಿಣ ಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಪ್ರಗತಿ ಹಾಗೂ ಸ್ಥಿರತೆಯನ್ನು ನೀಡಲಿದ್ದಾನೆ.";
-      else if (baseLang === "hi") desc += " शनि शुभ स्थिति में गोचर कर रहे हैं, जिससे आपके परिश्रम का यथोचित फल और जीवन में स्थिरता प्राप्त होगी।";
-      else if (baseLang === "te") desc += " శని అనుకూల స్థానంలో సంచరిస్తూ మీ కష్టానికి తగిన గుర్తింపు మరియు స్థిరత్వాన్ని ప్రసాదిస్తారు.";
-      else if (baseLang === "ta") desc += " சனி பகவான் சாதகமான நிலையில் சஞ்சரிப்பதால் உங்கள் உழைப்பிற்கு ஏற்ற முன்னேற்றமும் ஸ்திரத்தன்மையும் கிட்டும்.";
-      else desc += " Saturn transit provides constructive stability, rewarding focused perseverance with steady career growth.";
+      sPara1 = `ಶನಿ ಮಹಾತ್ಮನು ನಿಮ್ಮ ಜನ್ಮ ರಾಶಿಯಿಂದ ${s.houseFromMoon}ನೇ ಭಾವದಲ್ಲಿ ಅತ್ಯಂತ ಅನುಕೂಲಕರವಾಗಿ ಸಂಚರಿಸುತ್ತಿದ್ದಾನೆ. ನಿಮ್ಮ ಪ್ರಾಮಾಣಿಕ ಪರಿಶ್ರಮಕ್ಕೆ ತಕ್ಕಂತೆ ಉದ್ಯೋಗದಲ್ಲಿ ಸ್ಥಿರತೆ, ಆರ್ಥಿಕ ಅಭಿವೃದ್ಧಿ ಹಾಗೂ ಸಾಮಾಜಿಕ ಗೌರವಗಳು ಹಂತ-ಹಂತವಾಗಿ ವೃದ್ಧಿಯಾಗಲಿವೆ.`;
     }
-    items.push({ name: sName, impact: desc, remedy });
+    sPara2 = "ಕರ್ಮಕಾರಕನಾದ ಶನಿ ಭಗವಾನರು ತಾಳ್ಮೆ ಹಾಗೂ ಸತ್ಯನಿಷ್ಠೆಗೆ ಯಾವಾಗಲೂ ಶ್ರೇಷ್ಠ ಫಲಗಳನ್ನೇ ನೀಡುತ್ತಾರೆ. ನಿಮ್ಮ ದಿನನಿತ್ಯದ ಕರ್ತವ್ಯಗಳನ್ನು ಧರ್ಮದ ಹಾದಿಯಲ್ಲಿ ಮುನ್ನಡೆಸುತ್ತಾ, ಶ್ರಮಿಕರಿಗೆ ಹಾಗೂ ನಿರ್ಗತಿಕರಿಗೆ ಕೈಲಾದ ಸಹಾಯ ಮಾಡುವುದರಿಂದ ಶನಿ ಕೃಪೆಯು ಸದಾ ನಿಮಗೆ ಶ್ರೀರಕ್ಷೆಯಾಗಿ ನಿಲ್ಲಲಿದೆ.";
+  } else if (baseLang === "hi") {
+    sName = "शनि देव का गोचर फल";
+    sRemedy = "प्रत्येक शनिवार को तिल के तेल का दीपक जलाकर शनि चालीसा या दशरथ कृत शनि स्तोत्र का पाठ करें तथा निर्धनों को अन्नदान करें।";
+    if (s.isSadeSati) {
+      sPara1 = "शनि देव आपकी चंद्र राशि से गोचर करते हुए साढ़ेसाती का प्रभाव निर्मित कर रहे हैं। यह समयावधि धैर्य, संयम और कर्तव्यनिष्ठा से किए गए कार्यों में विशेष सफलता और आत्मिक परिपक्वता प्रदान करेगी। अनावश्यक जल्दबाजी से बचें।";
+    } else if (s.isKantaka) {
+      sPara1 = "शनि देव आपकी चंद्र राशि से केंद्र भाव में गोचर करते हुए कंटक शनि का प्रभाव बना रहे हैं। कार्यक्षेत्र और पारिवारिक मामलों में संयम एवं सोच-समझकर निर्णय लेना अत्यंत आवश्यक है।";
+    } else if (s.isAshtama) {
+      sPara1 = "शनि देव आपकी चंद्र राशि से अष्टम भाव में गोचर कर रहे हैं। स्वास्थ्य की देखभाल, खान-पान में नियम और आर्थिक निर्णयों में विशेष सतर्कता बरतना कल्याणकारी रहेगा।";
+    } else {
+      sPara1 = "शनि देव आपकी चंद्र राशि से शुभ भाव में गोचर कर रहे हैं, जिससे आपके परिश्रम का यथोचित फल और जीवन में स्थिरता प्राप्त होगी। सामाजिक मान-प्रतिष्ठा में वृद्धि होगी।";
+    }
+    sPara2 = "कर्मफलदाता शनि देव सत्य और अनुशासन से परिपूर्ण प्रयासों का सदैव उत्तम फल प्रदान करते हैं। नियमित सात्विक दिनचर्या का पालन करने और परोपकार करने से समस्त बाधाएं दूर होंगी।";
+  } else if (baseLang === "te") {
+    sName = "శని భగవానుని గోచార ఫలితం";
+    sRemedy = "శనివారం నువ్వుల నూనెతో దీపం వెలిగించి దశరథ ప్రోక్త శని స్తోత్రం పఠించడం మరియు నిరుపేదలకు అన్నదానం చేయడం దోషాలను నివారిస్తుంది.";
+    if (s.isSadeSati) {
+      sPara1 = "శని భగవానుడు మీ జన్మ రాశి నుండి గోచరిస్తూ ఏలినాటి శని ప్రభావాన్ని చూపుతున్నారు. ఈ కాలంలో ఓర్పు, క్రమశిక్షణ మరియు ధర్మబద్ధమైన జీవనం ద్వారా శనీశ్వరుని సంపూర్ణ అనుగ్రహాన్ని పొందవచ్చు.";
+    } else if (s.isKantaka) {
+      sPara1 = "శని భగవానుడు మీ జన్మ రాశి నుండి కేంద్ర స్థానంలో సంచరిస్తూ కంటక శని ప్రభావాన్ని కలిగిస్తున్నారు. వృత్తి మరియు కుటుంబ వ్యవహారాలలో సంయమనంతో వ్యవహరించడం శ్రేయస్కరం.";
+    } else if (s.isAshtama) {
+      sPara1 = "శని భగవానుడు మీ జన్మ రాశి నుండి 8వ స్థానంలో సంచరిస్తూ అష్టమ శని ప్రభావాన్ని చూపిస్తున్నారు. ఆరోగ్యం మరియు ఆర్థిక విషయాలలో తగిన జాగ్రత్తలు తీసుకోవడం అవసరం.";
+    } else {
+      sPara1 = "శని భగవానుడు మీ జన్మ రాశి నుండి అనుకూల స్థానంలో సంచరిస్తూ మీ కష్టానికి తగిన గుర్తింపు మరియు స్థిరత్వాన్ని ప్రసాదిస్తారు. ఆశించిన ఫలితాలు సులభంగా లభిస్తాయి.";
+    }
+    sPara2 = "కర్మ ప్రదాత అయిన శనీశ్వరుడు నిజాయితీతో కూడిన కృషికి ఎల్లప్పుడూ ఉన్నత ఫలితాలనే అందిస్తారు. ప్రతిరోజూ క్రమశిక్షణతో కూడిన జీవనం సాగిస్తే అడ్డంకులు తొలగి విజయం లభిస్తుంది.";
+  } else if (baseLang === "ta") {
+    sName = "சனி பகவானின் கோசார பலன்";
+    sRemedy = "சனிக்கிழமைகளில் நல்லெண்ணெய் தீபம் ஏற்றி தசரத சனி ஸ்தோத்திரம் பாராயணம் செய்வதும், ஏழைகளுக்கு அன்னதானம் செய்வதும் தோஷங்களை நீக்கும்.";
+    if (s.isSadeSati) {
+      sPara1 = "சனி பகவான் உங்கள் சந்திர ராசியிலிருந்து சஞ்சரித்து ஏழரை நாட்டுச் சனியின் காலத்தை ஏற்படுத்துகிறார். பொறுமையுடனும் கடமை உணர்வுடனும் நேர்மையாகச் செயல்படுவது சனி பகவானின் பரிபூரண அருளைப் பெற்றுத் தரும்.";
+    } else if (s.isKantaka) {
+      sPara1 = "சனி பகவான் உங்கள் சந்திர ராசிக்கு கேந்திர ஸ்தானத்தில் சஞ்சரித்து கண்டகச் சனியின் தாக்கத்தை ஏற்படுத்துகிறார். தொழில் மற்றும் குடும்ப முடிவுகளில் நிதானமும் எச்சரிக்கையும் தேவை.";
+    } else if (s.isAshtama) {
+      sPara1 = "சனி பகவான் உங்கள் சந்திர ராசிக்கு எட்டாம் இடத்தில் சஞ்சரித்து அட்டமச் சனியின் தாக்கத்தை ஏற்படுத்துகிறார். உடல்நலம், உணவுப் பழக்கம் மற்றும் நிதி விவகாரங்களில் விழிப்புடன் இருப்பது அவசியம்.";
+    } else {
+      sPara1 = "சனி பகவான் சாதகமான நிலையில் சஞ்சரிப்பதால் உங்கள் உழைப்பிற்கு ஏற்ற முன்னேற்றமும் ஸ்திரத்தன்மையும் கிட்டும். சமூகத்தில் மதிப்பு உயரும்.";
+    }
+    sPara2 = "நீதிமானான சனி பகவான் உண்மையான உழைப்பிற்கும் நேர்மைக்கும் எப்போதுமே சிறப்பான பலன்களை வழங்குவார். நல்வழியில் கடமைகளை ஆற்றி வந்தால் நன்மைகள் தொடரும்.";
+  } else {
+    // English
+    if (s.isSadeSati) {
+      sPara1 = `Saturn is transiting the ${s.houseFromMoon}th house from your natal Moon (${chart.moonSignName}). This marks a period of heightened karmic discipline, urging patience and ethical perseverance. Life asks you to temper impulse with steady, calculated maturity while restructuring priorities.`;
+    } else if (s.isKantaka) {
+      sPara1 = `Saturn is transiting the ${s.houseFromMoon}th house from your natal Moon (${chart.moonSignName}). This creates the classic Kantaka Shani transit, influencing pivotal angles of profession, domestic peace, and relational equilibrium with demands for methodical focus.`;
+    } else if (s.isAshtama) {
+      sPara1 = `Saturn is transiting the 8th house from your natal Moon (${chart.moonSignName}). Navigating 8th house transit requires conscious focus on wellness precautions and cautious financial choices, transforming hidden anxieties into disciplined inner resilience.`;
+    } else {
+      sPara1 = `Saturn transit provides constructive stability in the ${s.houseFromMoon}th house from your natal Moon (${chart.moonSignName}), rewarding focused perseverance with steady career growth, structural maturity, and enduring stability.`;
+    }
+    sPara2 = "As the supreme lord of justice and karma, Saturn rewards genuine patience, integrity, and humility. By approaching daily responsibilities with deliberate consistency and avoiding hasty commitments, you will convert potential delays into bedrock foundations for lifelong security.";
   }
 
-  if (chart.transitJupiter) {
-    const j = chart.transitJupiter;
-    let jName = "Jupiter (Guru) Live Transit";
-    let remedy = "Offer archana to Guru and engage in cow service on Thursdays.";
+  const sImpact = baseLang === "en"
+    ? `${sPara1}\n\n${sPara2}`
+    : cleanEnglishFromRegionalText(`${sPara1}\n\n${sPara2}`, baseLang);
+  const sCleanName = cleanEnglishFromRegionalText(sName, baseLang);
+  const sCleanRemedy = cleanEnglishFromRegionalText(sRemedy, baseLang);
+  items.push({ name: sCleanName, impact: sImpact, remedy: sCleanRemedy });
 
-    if (baseLang === "kn") {
-      jName = "ಗುರು ಗೋಚಾರ ಸಂಚಾರ (Jupiter Transit)";
-      remedy = "ಗುರುವಾರ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಆರಾಧನೆ ಹಾಗೂ ಗೋಸೇವೆ ಮಾಡುವುದು ಶುಭ.";
-    } else if (baseLang === "hi") {
-      jName = "गुरु गोचर प्रभाव";
-      remedy = "गुरुवार को देवगुरु बृहस्पति की पूजा और गोसेवा करना अत्यंत शुभ रहेगा।";
-    } else if (baseLang === "te") {
-      jName = "గురు గోచార సంచారం";
-      remedy = "గురువారం బృహస్పతి పూజ మరియు గోసేవ చేయడం అత్యంత శుభప్రదం.";
-    } else if (baseLang === "ta") {
-      jName = "குரு பகவான் கோசார பலன்";
-      remedy = "வியாழக்கிழமைகளில் குரு வழிபாடு மற்றும் பசு சேவை செய்வது மிகுந்த நன்மையைத் தரும்.";
-    }
+  // 2. JUPITER (Guru) CARD
+  let jName = "Jupiter (Guru) Live Transit";
+  let jRemedy = "Offer archana to Lord Brihaspati on Thursdays, chant Vishnu Sahasranama, and support cow shelters (Go-Seva) to cultivate expansive spiritual grace.";
+  let jPara1 = "";
+  let jPara2 = "";
 
-    let desc = `Jupiter is transiting the ${j.houseFromMoon}th house from your natal Moon.`;
+  if (baseLang === "kn") {
+    jName = "ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಗೋಚಾರ ಫಲ";
+    jRemedy = "ಪ್ರತಿ ಗುರುವಾರ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಆರಾಧನೆ, ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಪಠಣ ಹಾಗೂ ಗೋಶಾಲೆಗೆ ಹಸಿರು ಹುಲ್ಲು ಅಥವಾ ಬಾಳೆಹಣ್ಣು ನೀಡಿ ಗೋಸೇವೆ ಮಾಡುವುದು ಅತ್ಯಂತ ಮಂಗಳಕರ.";
     if (j.isGuruBala) {
-      if (baseLang === "kn") desc += " ಇದು ಪ್ರಬಲ ಗುರು ಬಲದ ಕಾಲಘಟ್ಟವಾಗಿದ್ದು, ಕಲ್ಯಾಣ ಯೋಗ, ಧನ ಪ್ರಾಪ್ತಿ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಸೌಖ್ಯವನ್ನು ವೃದ್ಧಿಸಲಿದೆ.";
-      else if (baseLang === "hi") desc += " गुरु बल अत्यंत अनुकूल है, जो भाग्योदय, धन लाभ और पारिवारिक सुख-शांति में वृद्धि करेगा।";
-      else if (baseLang === "te") desc += " బలమైన గురు బలం ఉంది, ఇది శుభకార్యాలు, ధనలాభం మరియు కుటుంబ సౌభాగ్యాన్ని చేకూరుస్తుంది.";
-      else if (baseLang === "ta") desc += " சிறப்பான குரு பலம் உள்ளது, இது சுபகாரியங்கள், தனலாபம் மற்றும் குடும்ப மகிழ்ச்சியை அதிகரிக்கும்.";
-      else desc += " Powerful Guru Bala is active, bestowing spiritual clarity, family auspiciousness, and financial expansion.";
+      jPara1 = `ದೇವಗುರು ಬೃಹಸ್ಪತಿಯು ನಿಮ್ಮ ಜನ್ಮ ಚಂದ್ರನಿಂದ ${j.houseFromMoon}ನೇ ಭಾವದಲ್ಲಿ ಸಂಚರಿಸುತ್ತಿದ್ದು, ಪ್ರಸ್ತುತ ಜಾತಕದಲ್ಲಿ ಪ್ರಬಲ ಗುರು ಬಲವು ಸಕ್ರಿಯವಾಗಿದೆ. ಈ ಶುಭ ಸಂಚಾರವು ಬುದ್ಧಿವಂತಿಕೆ, ಗೌರವ, ಕಲ್ಯಾಣ ಯೋಗ ಹಾಗೂ ಆರ್ಥಿಕ ಅಭಿವೃದ್ಧಿಯನ್ನು ಕರುಣಿಸಲಿದೆ. ಕೌಟುಂಬಿಕ ಮಂಗಳ ಕಾರ್ಯಗಳಿಗೆ ಮತ್ತು ಸತ್ಸಂಕಲ್ಪಗಳ ಈಡೇರಿಕೆಗೆ ಇದು ಸುವರ್ಣ ಕಾಲವಾಗಿದೆ.`;
     } else {
-      if (baseLang === "kn") desc += " ಇದು ಆತ್ಮಾವಲೋಕನ ಹಾಗೂ ಆಧ್ಯಾತ್ಮಿಕ ಸಾಧನೆಗೆ ಪ್ರಶಸ್ತವಾದ ಕಾಲಘಟ್ಟವಾಗಿದೆ.";
-      else if (baseLang === "hi") desc += " यह आत्मचिंतन और आध्यात्मिक ज्ञानार्जन के लिए उपयुक्त काल है।";
-      else if (baseLang === "te") desc += " ఇది ఆత్మపరిశీలన మరియు ఆధ్యాత్మిక సాధనకు అనుకూలమైన సమయం.";
-      else if (baseLang === "ta") desc += " இது ஆன்மீக சாதனைக்கும் அக அமைதிக்கும் உகந்த காலமாகும்.";
-      else desc += " This period fosters internal wisdom, study, and contemplative spiritual development.";
+      jPara1 = `ದೇವಗುರು ಬೃಹಸ್ಪತಿಯು ನಿಮ್ಮ ಜನ್ಮ ಚಂದ್ರನಿಂದ ${j.houseFromMoon}ನೇ ಭಾವದಲ್ಲಿ ಸಂಚರಿಸುತ್ತಿದ್ದು, ಇದು ಆಂತರಿಕ ಅನ್ವೇಷಣೆ, ನೈತಿಕ ಜ್ಞಾನಾರ್ಜನೆ ಹಾಗೂ ಆಧ್ಯಾತ್ಮಿಕ ಪರಿಪಕ್ವತೆಗೆ ಅತ್ಯಂತ ಪ್ರಶಸ್ತವಾದ ಕಾಲಘಟ್ಟವಾಗಿದೆ. ಆತುರದ ಹೂಡಿಕೆಗಳಿಗಿಂತ ಅಧ್ಯಯನ ಮತ್ತು ಮುಂದಾಲೋಚನೆಗೆ ಹೆಚ್ಚಿನ ಪ್ರಾಶಸ್ತ್ಯ ನೀಡುವುದು ಕ್ಷೇಮಕರ.`;
     }
-    items.push({ name: jName, impact: desc, remedy });
+    jPara2 = "ಜ್ಞಾನಕಾರಕನಾದ ಗುರುವಿನ ಅನುಗ್ರಹವು ನಿಮ್ಮ ನಿರ್ಧಾರಗಳಲ್ಲಿ ಸ್ಪಷ್ಟತೆಯನ್ನು ತರುತ್ತದೆ. ಗುರು-ಹಿರಿಯರನ್ನು ಗೌರವಿಸುವುದು ಹಾಗೂ ಧಾರ್ಮಿಕ ಕಾರ್ಯಗಳಲ್ಲಿ ಭಾಗವಹಿಸುವುದರಿಂದ ಮನಸ್ಸಿನಲ್ಲಿ ನೆಮ್ಮದಿ, ದೈವಿಕ ರಕ್ಷಣೆ ಮತ್ತು ಹೊಸ ಅವಕಾಶಗಳು ಲಭಿಸಲಿವೆ.";
+  } else if (baseLang === "hi") {
+    jName = "देवगुरु बृहस्पति का गोचर फल";
+    jRemedy = "गुरुवार को देवगुरु बृहस्पति का पूजन करें, विष्णु सहस्त्रनाम का पाठ करें तथा गोशाला में गायों को हरा चारा या गुड़-चना खिलाएं।";
+    if (j.isGuruBala) {
+      jPara1 = "देवगुरु बृहस्पति आपकी चंद्र राशि से अनुकूल भाव में गोचर कर रहे हैं, जिससे प्रबल गुरु बल सक्रिय है। यह शुभ गोचर ज्ञान, प्रतिष्ठा, पारिवारिक मांगलिक कार्यों और आर्थिक समृद्धि में वृद्धि करेगा।";
+    } else {
+      jPara1 = "देवगुरु बृहस्पति आपकी चंद्र राशि से अध्ययन और आत्म-चिंतन के भाव में गोचर कर रहे हैं। यह समय नैतिक मूल्यों के संवर्धन और आध्यात्मिक साधना के लिए अत्यंत फलदायी है।";
+    }
+    jPara2 = "गुरु का पावन आशीर्वाद आपके निर्णयों में विवेक और दूरदर्शिता प्रदान करता है। गुरुजनों का सम्मान करने और दान-धर्म करने से भाग्य में निरंतर वृद्धि होगी।";
+  } else if (baseLang === "te") {
+    jName = "దేవగురు బృహస్పతి గోచార ఫలితం";
+    jRemedy = "ప్రతి గురువారం బృహస్పతి పూజ, విష్ణు సహస్రనామ స్తోత్ర పారాయణం చేయడం మరియు గోసేవ చేయడం విశేష శుభాలను ప్రసాదిస్తుంది.";
+    if (j.isGuruBala) {
+      jPara1 = "దేవగురు బృహస్పతి మీ జన్మ రాశి నుండి అనుకూల స్థానంలో సంచరిస్తూ బలమైన గురు బలాన్ని ప్రసాదిస్తున్నారు. ఈ శుభ గోచారం గౌరవం, శుభకార్యాల నిర్వహణ మరియు ఆర్థిక సౌభాగ్యాన్ని చేకూరుస్తుంది.";
+    } else {
+      jPara1 = "దేవగురు బృహస్పతి మీ జన్మ రాశి నుండి అంతర్మథనం మరియు ఆధ్యాత్మిక సాధనకు అనుకూలమైన స్థానంలో సంచరిస్తున్నారు. విజ్ఞానాన్ని పెంపొందించుకోవడానికి ఇది మంచి సమయం.";
+    }
+    jPara2 = "జ్ఞానకారకుడైన గురువు అనుగ్రహం మీ ఆలోచనలలో స్పష్టతను నింపుతుంది. పెద్దలను, గురువులను సత్కరించడం ద్వారా భవిష్యత్తులో అద్భుతమైన అవకాశాలు చేకూరుతాయి.";
+  } else if (baseLang === "ta") {
+    jName = "தேவகுரு பிரகஸ்பதியின் கோசார பலன்";
+    jRemedy = "வியாழக்கிழமைகளில் குரு வழிபாடு, விஷ்ணு சகஸ்ரநாம பாராயணம் மற்றும் பசுவுக்கு அகத்திக்கீரை அல்லது தீவனம் அளிப்பது அளப்பரிய நற்பலன்களைத் தரும்.";
+    if (j.isGuruBala) {
+      jPara1 = "தேவகுரு பிரகஸ்பதி உங்கள் சந்திர ராசியிலிருந்து சாதகமான பாவத்தில் சஞ்சரித்து சிறப்பான குரு பலத்தை அளிக்கிறார். இது சுபகாரியங்கள், தனலாபம், சமூக அந்தஸ்து மற்றும் குடும்ப மகிழ்ச்சியை அதிகரிக்கும்.";
+    } else {
+      jPara1 = "தேவகுரு பிரகஸ்பதி உங்கள் சந்திர ராசியிலிருந்து ஆன்மீக சாதனைக்கும் ஞான வளர்ச்சிக்கும் உகந்த இடத்தில் சஞ்சரித்து உள்ளார்ந்த அமைதியை ஏற்படுத்துகிறார்.";
+    }
+    jPara2 = "ஞானகாரகரான குருவின் அருள் உங்கள் முடிவுகளில் தெளிவையும் நல்வழியையும் தரும். பெரியோர்களையும் ஆசிரியர்களையும் மதித்து நடப்பது வெற்றியை உறுதி செய்யும்.";
+  } else {
+    // English
+    if (j.isGuruBala) {
+      jPara1 = `Jupiter is transiting the ${j.houseFromMoon}th house from your natal Moon (${chart.moonSignName}). Powerful Guru Bala is active, bestowing spiritual clarity, family auspiciousness, and financial expansion. Auspicious ceremonies, vocational elevation, and intellectual breakthroughs are strongly supported under this transit.`;
+    } else {
+      jPara1 = `Jupiter is transiting the ${j.houseFromMoon}th house from your natal Moon (${chart.moonSignName}). This period fosters internal wisdom, study, and contemplative spiritual development, urging you to consolidate resources and align life choices with timeless philosophical principles.`;
+    }
+    jPara2 = "As the divine preceptor and cosmic protector, Jupiter infuses your consciousness with noble vision and optimism. Cultivating gratitude, honoring teachers, and maintaining ethical standards will magnetize divine benevolence and open doors to benevolent breakthroughs.";
   }
 
-  if (items.length === 0) {
-    let name = "Planetary Transit Impact";
-    let impact = `Running transits through your Moon sign (${chart.moonSignName}) provide cosmic balance, supporting steady progress.`;
-    let remedy = "Daily prayer to Ishta Devata.";
+  const jImpact = baseLang === "en"
+    ? `${jPara1}\n\n${jPara2}`
+    : cleanEnglishFromRegionalText(`${jPara1}\n\n${jPara2}`, baseLang);
+  const jCleanName = cleanEnglishFromRegionalText(jName, baseLang);
+  const jCleanRemedy = cleanEnglishFromRegionalText(jRemedy, baseLang);
+  items.push({ name: jCleanName, impact: jImpact, remedy: jCleanRemedy });
 
-    if (baseLang === "kn") {
-      name = "ಗ್ರಹ ಗೋಚಾರ ಫಲ";
-      impact = `ನಿಮ್ಮ ಚಂದ್ರ ರಾಶಿಯ (${chart.moonSignName}) ಮೂಲಕ ಪ್ರಸ್ತುತ ಸಾಗುತ್ತಿರುವ ಗೋಚಾರವು ಜೀವನದಲ್ಲಿ ಸಮತೋಲನ ಹಾಗೂ ಸ್ಥಿರ ಪ್ರಗತಿಯನ್ನು ನೀಡಲಿದೆ.`;
-      remedy = "ನಿತ್ಯ ಇಷ್ಟದೇವತಾ ಪ್ರಾರ್ಥನೆ ಮಾಡುವುದು ಶುಭ.";
-    } else if (baseLang === "hi") {
-      name = "ग्रह गोचर फल";
-      impact = `आपकी चंद्र राशि (${chart.moonSignName}) में वर्तमान गोचर संतुलित प्रगति और स्थिरता प्रदान करेगा।`;
-      remedy = "नित्य इष्टदेव की आराधना करें।";
-    } else if (baseLang === "te") {
-      name = "గ్రహ గోచార ఫలితం";
-      impact = `మీ చంద్ర రాశి (${chart.moonSignName}) ద్వారా గోచార సంచారం సమతుల్యమైన పురోగతిని అందిస్తుంది.`;
-      remedy = "రోజూ ఇష్టదైవ ప్రార్థన చేయండి.";
-    } else if (baseLang === "ta") {
-      name = "கிரக கோசார பலன்";
-      impact = `உங்கள் சந்திர ராசியில் (${chart.moonSignName}) சஞ்சரிக்கும் கிரகங்கள் சீரான முன்னேற்றத்தை தரும்.`;
-      remedy = "தினசரி இஷ்ட தெய்வத்தை வழிபடவும்.";
-    }
+  // 3. RAHU & KETU CARD
+  let rkName = "Rahu & Ketu Shadow Planets Live Transit";
+  let rkRemedy = "Chant Sri Durga Ashtakam on Tuesdays or Fridays, light a ghee lamp for Mother Durga, and feed wild birds with grains to harmonize shadow planet energies.";
+  let rkPara1 = `The lunar nodes, Rahu and Ketu, are navigating significant nodal axes relative to your natal Moon (${chart.moonSignName}), inaugurating an intense epoch of karmic rebalancing, subconscious evolution, and unconventional opportunities. Rahu magnifies ambitious pursuits, worldly networks, and new horizons, while Ketu instills spiritual detachment and introspective wisdom.`;
+  let rkPara2 = "Navigating this nodal axis demands absolute transparency and grounded realism, steering clear of speculative mirages or impulsive overreach. Grounding everyday decisions in methodical ethics and honoring ancestral traditions transforms shadow tendencies into profound intuitive clarity and breakthrough achievements.";
 
-    items.push({ name, impact, remedy });
+  if (baseLang === "kn") {
+    rkName = "ರಾಹು ಹಾಗೂ ಕೇತು ಛಾಯಾಗ್ರಹಗಳ ಗೋಚಾರ ಫಲ";
+    rkRemedy = "ಪ್ರತಿ ಮಂಗಳವಾರ ಅಥವಾ ಶುಕ್ರವಾರ ದುರ್ಗಾ ದೇವಿಗೆ ತುಪ್ಪದ ದೀಪ ಹಚ್ಚಿ ದುರ್ಗಾ ಅಷ್ಟಕಂ ಪಠಿಸುವುದು ಹಾಗೂ ಪಕ್ಷಿಗಳಿಗೆ ಕಾಳು ಮತ್ತು ನೀರು ನೀಡುವುದು ಛಾಯಾಗ್ರಹ ದೋಷಗಳನ್ನು ನಿವಾರಿಸುತ್ತದೆ.";
+    rkPara1 = "ಛಾಯಾಗ್ರಹಗಳಾದ ರಾಹು ಮತ್ತು ಕೇತುಗಳು ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜನ್ಮ ಚಂದ್ರನಿಂದ ಮಹತ್ವದ ಭಾವಗಳಲ್ಲಿ ಸಂಚರಿಸುತ್ತಿದ್ದು, ಜೀವನದಲ್ಲಿ ನೂತನ ಆಕಾಂಕ್ಷೆಗಳು, ಆಧ್ಯಾತ್ಮಿಕ ಅನುಭವಗಳು ಹಾಗೂ ಕರ್ಮಿಕ ತಿರುವುಗಳನ್ನು ಉಂಟುಮಾಡುತ್ತಿದ್ದಾರೆ. ರಾಹುವಿನ ಸಂಚಾರವು ಲೌಕಿಕ ಪ್ರಗತಿ ಮತ್ತು ಹೊಸ ಸಂಪರ್ಕಗಳನ್ನು ಪ್ರೇರೇಪಿಸಿದರೆ, ಕೇತುವಿನ ಸಂಚಾರವು ಆಂತರಿಕ ವೈರಾಗ್ಯ ಮತ್ತು ಆಧ್ಯಾತ್ಮಿಕ ಒಳನೋಟವನ್ನು ಜಾಗೃತಗೊಳಿಸುತ್ತಿದೆ.";
+    rkPara2 = "ಈ ಅವಧಿಯಲ್ಲಿ ಯಾವುದೇ ಭ್ರಮೆಗಳಿಗೆ ಒಳಗಾಗದೆ, ವಾಸ್ತವ ನೆಲೆಗಟ್ಟಿನಲ್ಲಿ ಯೋಚಿಸಿ ತೀರ್ಮಾನಗಳನ್ನು ಕೈಗೊಳ್ಳುವುದು ಅತ್ಯಂತ ಅವಶ್ಯಕವಾಗಿದೆ. ಕೌಟುಂಬಿಕ ಹಾಗೂ ಪಾಲುದಾರಿಕೆಯ ಸಂಬಂಧಗಳಲ್ಲಿ ಸ್ಪಷ್ಟವಾದ, ಪ್ರಾಮಾಣಿಕ ಮಾತುಕತೆಯನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳುವುದರಿಂದ ಯಾವುದೇ ತಪ್ಪುಗ್ರಹಿಕೆಗಳು ಉಂಟಾಗದಂತೆ ಎಚ್ಚರವಹಿಸಬಹುದು.";
+  } else if (baseLang === "hi") {
+    rkName = "राहु एवं केतु छायाग्रह गोचर फल";
+    rkRemedy = "प्रत्येक मंगलवार अथवा शुक्रवार को मां दुर्गा के समक्ष घी का दीपक जलाकर दुर्गा सप्तशती का पाठ करें तथा पक्षियों को दाना-पानी दें।";
+    rkPara1 = "छायाग्रह राहु और केतु वर्तमान में आपकी चंद्र राशि से महत्वपूर्ण भावों में गोचर कर रहे हैं, जो जीवन में नवीन महत्वाकांक्षाएं, आध्यात्मिक अनुभव और कर्मिक परिवर्तन ला रहे हैं। राहु का गोचर सांसारिक प्रगति, नए संपर्क और दूरगामी योजनाओं को प्रेरित कर रहा है, जबकि केतु का गोचर आत्म-चिंतन और आंतरिक वैराग्य की भावना को जागृत कर रहा है।";
+    rkPara2 = "इस गोचर काल में किसी भी प्रकार के भ्रम या अति-उत्साह से बचते हुए व्यावहारिक दृष्टिकोण बनाए रखना अत्यंत आवश्यक है। पारिवारिक एवं व्यावसायिक संबंधों में पारदर्शिता और सत्यनिष्ठा बनाए रखने से समस्त कार्य निर्विघ्न रूप से सिद्ध होंगे।";
+  } else if (baseLang === "te") {
+    rkName = "రాహువు మరియు కేతువు ఛాయాగ్రహ గోచార ఫలితం";
+    rkRemedy = "ప్రతి మంగళవారం లేదా శుక్రవారం దుర్గాదేవికి నెయ్యి దీపం వెలిగించి, దుర్గా అష్టకం పఠించడం మరియు పక్షులకు ధాన్యాలు వేయడం రాహు-కేతు దోషాలను నివారిస్తుంది.";
+    rkPara1 = "ఛాయాగ్రహాలైన రాహువు మరియు కేతువులు ప్రస్తుతం మీ జన్మ చంద్రుని నుండి కీలక భావాలలో సంచరిస్తూ జీవితంలో నూతన ఆశయాలు, ఆధ్యాత్మిక అనుభవాలు మరియు కర్మిక మార్పులను కలిగిస్తున్నారు. రాహువు సంచారం లౌకిక పురోగతికి తోడ్పడగా, కేతువు సంచారం అంతర్గత వైరాగ్యం మరియు ఆధ్యాత్మిక వికాసాన్ని ప్రోత్సహిస్తుంది.";
+    rkPara2 = "ఈ సమయంలో భ్రమలకు తావివ్వకుండా వాస్తవాలను గ్రహించి సమతుల్యమైన నిర్ణయాలు తీసుకోవడం చాలా ముఖ్యం. కుటుంబ మరియు వ్యాపార సంబంధాలలో నిజాయితీగా వ్యవహరించడం ద్వారా అపార్థాలను సులభంగా నివారించవచ్చు.";
+  } else if (baseLang === "ta") {
+    rkName = "ராகு மற்றும் கேது சாயாகிரக கோசார பலன்";
+    rkRemedy = "செவ்வாய் அல்லது வெள்ளிக்கிழமைகளில் துர்க்கை அம்மனுக்கு நெய் தீபம் ஏற்றி, துர்கா அஷ்டகம் பாராயணம் செய்வது மற்றும் பறவைகளுக்கு தானியமிடுவது தோஷம் நீக்கும்.";
+    rkPara1 = "சாயாகிரகங்களான ராகு மற்றும் கேது பகவான்கள் தற்பொழுது உங்கள் சந்திர ராசியிலிருந்து முக்கிய பாவங்களில் சஞ்சரித்து, வாழ்வில் புதிய இலக்குகள், ஆன்மீக அனுபவங்கள் மற்றும் கர்ம வினைகளின் மாற்றங்களை உண்டாக்குகின்றனர். ராகுவின் சஞ்சாரம் உலகியல் முன்னேற்றத்திற்கும், கேதுவின் சஞ்சாரம் ஆன்மீக ஞானத்திற்கும் வழிவகுக்கும்.";
+    rkPara2 = "இந்த காலகட்டத்தில் வீண் கற்பனைகளைத் தவிர்த்து, எதார்த்தமான சிந்தனையுடன் முடிவுகளை எடுப்பது அவசியமாகும். குடும்பம் மற்றும் தொழில் சார்ந்த உறவுகளில் வெளிப்படைத்தன்மையுடன் பழகுவது தவறான புரிதல்களை நீக்கி நற்பலன்களைத் தரும்.";
   }
+
+  const rkImpact = baseLang === "en"
+    ? `${rkPara1}\n\n${rkPara2}`
+    : cleanEnglishFromRegionalText(`${rkPara1}\n\n${rkPara2}`, baseLang);
+  const rkCleanName = cleanEnglishFromRegionalText(rkName, baseLang);
+  const rkCleanRemedy = cleanEnglishFromRegionalText(rkRemedy, baseLang);
+  items.push({ name: rkCleanName, impact: rkImpact, remedy: rkCleanRemedy });
 
   return items;
 }

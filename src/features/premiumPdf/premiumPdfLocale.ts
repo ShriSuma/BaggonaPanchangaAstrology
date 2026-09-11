@@ -440,6 +440,8 @@ export const newRunId = (): string =>
 export function cleanEnglishFromRegionalText(text: string, lang: string): string {
   if (!text || lang === "en") return text;
   let cleaned = text;
+
+  // 1. Language-specific word replacements
   if (lang.startsWith("kn")) {
     cleaned = cleaned
       .replace(/ಮೂanaditude/gi, "ಮನಸ್ಥಿತಿ")
@@ -449,15 +451,55 @@ export function cleanEnglishFromRegionalText(text: string, lang: string): string
       .replace(/\b(wealth|finance)\b/gi, "ಸಂಪತ್ತು")
       .replace(/\b(marriage)\b/gi, "ವಿವಾಹ")
       .replace(/\b(children|progeny)\b/gi, "ಸಂತಾನ");
-
-    cleaned = cleaned.replace(/[a-zA-Z]+/g, "");
-    cleaned = cleaned.replace(/  +/g, " ");
   } else if (lang.startsWith("hi")) {
     cleaned = cleaned
       .replace(/\b(attitude|mindset)\b/gi, "मनोवृत्ति")
       .replace(/\b(career)\b/gi, "करियर")
       .replace(/\b(health)\b/gi, "स्वास्थ्य")
-      .replace(/\b(wealth|finance)\b/gi, "धन");
+      .replace(/\b(wealth|finance)\b/gi, "धन")
+      .replace(/\b(marriage)\b/gi, "विवाह")
+      .replace(/\b(children|progeny)\b/gi, "संतान");
+  } else if (lang.startsWith("te")) {
+    cleaned = cleaned
+      .replace(/\b(attitude|mindset)\b/gi, "మనోభావం")
+      .replace(/\b(career)\b/gi, "వృత్తి")
+      .replace(/\b(health)\b/gi, "ఆరోగ్యం")
+      .replace(/\b(wealth|finance)\b/gi, "సంపద")
+      .replace(/\b(marriage)\b/gi, "వివాహం")
+      .replace(/\b(children|progeny)\b/gi, "సంతానం");
+  } else if (lang.startsWith("ta")) {
+    cleaned = cleaned
+      .replace(/\b(attitude|mindset)\b/gi, "மனப்பான்மை")
+      .replace(/\b(career)\b/gi, "தொழில்")
+      .replace(/\b(health)\b/gi, "உடல்நலம்")
+      .replace(/\b(wealth|finance)\b/gi, "செல்வம்")
+      .replace(/\b(marriage)\b/gi, "திருமணம்")
+      .replace(/\b(children|progeny)\b/gi, "சந்தானம்");
   }
+
+  // Common transit English phrases removal from regional text
+  cleaned = cleaned
+    .replace(/\b(Saturn\s*Transit|Jupiter\s*Transit|Rahu[\s\-]Ketu\s*Transit)\b/gi, "")
+    .replace(/\b(Transit|Impact|Phase|Remedy)\b/gi, "");
+
+  // 2. Strip all remaining Latin/English alphabets for all regional languages
+  cleaned = cleaned.replace(/[a-zA-Z]+/g, "");
+
+  // 3. Remove empty or orphan parentheses left behind, e.g. "()", "( )", "( , )"
+  cleaned = cleaned.replace(/\(\s*[\.,;:]*\s*\)/g, "");
+  cleaned = cleaned.replace(/（\s*）/g, "");
+  cleaned = cleaned.replace(/【\s*】/g, "");
+
+  // 4. Strip stray non-Indic/non-ASCII characters (e.g. CJK/Chinese/Japanese characters)
+  cleaned = cleaned.replace(/[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uff66-\uff9f]/g, "");
+
+  // 5. Clean whitespace & punctuation spacing
+  cleaned = cleaned
+    .replace(/[ \t]{2,}/g, " ")
+    .replace(/ \./g, ".")
+    .replace(/ ,/g, ",")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+
   return cleaned;
 }
