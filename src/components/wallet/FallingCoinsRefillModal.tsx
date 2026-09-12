@@ -6,6 +6,7 @@ import {
   DEFAULT_PRIEST_UPI_ID,
   DEFAULT_PRIEST_UPI_NAME,
   DEFAULT_PRIEST_MOBILE_NUMBER,
+  DEFAULT_PRIEST_UPI_HANDLES,
   generateUpiPayUri,
   generatePhonePeUri,
   generateGPayUri,
@@ -36,15 +37,19 @@ export const FallingCoinsRefillModal: React.FC<FallingCoinsRefillModalProps> = (
     successMessage,
     setSelectedPackage,
     submitUpiRecharge,
+    verifyAndCreditPayment,
     clearMessages
   } = useWalletStore();
 
   const [upiUtr, setUpiUtr] = useState("");
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>("");
   const [copiedUpi, setCopiedUpi] = useState(false);
+  const [copiedMobile, setCopiedMobile] = useState(false);
+  const [selectedUpiHandle, setSelectedUpiHandle] = useState<string>(DEFAULT_PRIEST_UPI_ID);
   const [customAmount, setCustomAmount] = useState<string>("");
   const [isCustomMode, setIsCustomMode] = useState<boolean>(false);
   const [rechargeSubmitted, setRechargeSubmitted] = useState<boolean>(false);
+  const [instantVerified, setInstantVerified] = useState<{ creditedCoins: number; newBalance: number } | null>(null);
 
   // Compute effective INR amount and Coins
   const parsedCustom = parseInt(customAmount, 10);
@@ -56,14 +61,14 @@ export const FallingCoinsRefillModal: React.FC<FallingCoinsRefillModalProps> = (
     ? parsedCustom * 10
     : selectedPackage.totalCoins;
 
-  const upiId = DEFAULT_PRIEST_UPI_ID;
+  const upiId = selectedUpiHandle || DEFAULT_PRIEST_UPI_ID;
   const payeeName = DEFAULT_PRIEST_UPI_NAME;
   const note = `PanchangaSeva`;
 
-  const upiUri = generateUpiPayUri(effectiveAmountInr, note);
-  const phonePeUri = generatePhonePeUri(effectiveAmountInr, note);
-  const gPayUri = generateGPayUri(effectiveAmountInr, note);
-  const paytmUri = generatePaytmUri(effectiveAmountInr, note);
+  const upiUri = generateUpiPayUri(effectiveAmountInr, note, upiId);
+  const phonePeUri = generatePhonePeUri(effectiveAmountInr, note, upiId);
+  const gPayUri = generateGPayUri(effectiveAmountInr, note, upiId);
+  const paytmUri = generatePaytmUri(effectiveAmountInr, note, upiId);
 
   // Generate Scannable Dynamic PhonePe / Google Pay QR Code
   useEffect(() => {
@@ -92,6 +97,30 @@ export const FallingCoinsRefillModal: React.FC<FallingCoinsRefillModalProps> = (
     }
   };
 
+  const handleCopyMobile = () => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(DEFAULT_PRIEST_MOBILE_NUMBER);
+      setCopiedMobile(true);
+      setTimeout(() => setCopiedMobile(false), 2000);
+    }
+  };
+
+  // Instant Verification & Direct Coin Crediting (No admin approval wait)
+  const handleInstantVerify = async () => {
+    if (!upiUtr.trim()) return;
+    const res = await verifyAndCreditPayment(
+      upiUtr.trim(),
+      effectiveAmountInr,
+      effectiveCoins
+    );
+    if (res.success) {
+      setInstantVerified({
+        creditedCoins: res.coinsCredited || effectiveCoins,
+        newBalance: res.newBalance || ((wallet?.coinBalance ?? 0) + effectiveCoins)
+      });
+    }
+  };
+
   // Submit payment confirmation for verification (Does NOT credit coins directly)
   const handleSubmitPaymentVerification = async () => {
     const res = await submitUpiRecharge(
@@ -114,6 +143,7 @@ export const FallingCoinsRefillModal: React.FC<FallingCoinsRefillModalProps> = (
   const handleClose = () => {
     clearMessages();
     setRechargeSubmitted(false);
+    setInstantVerified(null);
     onClose();
   };
 
@@ -163,8 +193,51 @@ export const FallingCoinsRefillModal: React.FC<FallingCoinsRefillModalProps> = (
         {/* 2. SCROLLABLE INNER BODY */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
 
-          {/* Success Banner when Payment Submitted */}
-          {rechargeSubmitted ? (
+          {/* Instant Verification Celebration Screen */}
+          {instantVerified ? (
+            <div className="p-6 bg-gradient-to-br from-emerald-50 via-teal-50 to-amber-50 border-2 border-emerald-500 rounded-3xl text-center space-y-4 shadow-xl animate-in zoom-in-95 duration-200">
+              <div className="w-16 h-16 mx-auto rounded-full bg-emerald-500 text-white flex items-center justify-center text-3xl shadow-lg border-2 border-emerald-300 animate-bounce">
+                🎉
+              </div>
+              <div className="space-y-1">
+                <span className="px-3 py-1 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-full text-xs font-black uppercase tracking-wider">
+                  ✓ ಪಾವತಿ ದೃಢೀಕರಿಸಲ್ಪಟ್ಟಿದೆ (Instant Verified)
+                </span>
+                <h3 className="text-xl font-black text-slate-900 pt-1">
+                  ನಾಣ್ಯಗಳು ನಿಮ್ಮ ವಾಲೆಟ್‌ಗೆ ತಕ್ಷಣ ಜಮೆಯಾಗಿವೆ!
+                </h3>
+              </div>
+              <div className="p-4 bg-white/90 border border-emerald-200 rounded-2xl max-w-sm mx-auto shadow-inner space-y-1">
+                <div className="text-xs text-slate-500 font-bold uppercase">ಹೊಸ ವಾಲೆಟ್ ಬ್ಯಾಲೆನ್ಸ್ (New Balance)</div>
+                <div className="text-3xl font-black text-emerald-700 font-mono">
+                  {instantVerified.newBalance.toLocaleString()} 🪙
+                </div>
+                <div className="text-[11px] text-emerald-600 font-bold">
+                  +{instantVerified.creditedCoins.toLocaleString()} ನಾಣ್ಯಗಳು (₹{effectiveAmountInr}) ಸೇರಿಸಲಾಗಿದೆ
+                </div>
+              </div>
+              <p className="text-xs text-slate-600 font-semibold max-w-md mx-auto">
+                ನಿಮ್ಮ ವಹಿವಾಟು ಯಶಸ್ವಿಯಾಗಿದೆ. ನೀವು ಈಗ ಯಾವುದೇ ಕಾಯುವಿಕೆ ಇಲ್ಲದೆ ತಕ್ಷಣ ನಿಮ್ಮ ಜ್ಯೋತಿಷ್ಯ ಸೇವೆಯನ್ನು ಮುಂದುವರಿಸಬಹುದು.
+              </p>
+              <div className="pt-2 flex flex-col sm:flex-row justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  className="px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg transition-all active:scale-95 cursor-pointer"
+                >
+                  ✓ ಸೇವೆಯನ್ನು ಮುಂದುವರಿಸಿ (Continue Service)
+                </button>
+                <button
+                  type="button"
+                  onClick={handleWhatsAppReceipt}
+                  className="px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-xl border border-slate-300 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <span>📲</span>
+                  <span>WhatsApp ರಶೀದಿ (Receipt)</span>
+                </button>
+              </div>
+            </div>
+          ) : rechargeSubmitted ? (
             <div className="p-6 bg-gradient-to-br from-amber-50 via-amber-100/70 to-yellow-50 border-2 border-amber-500 rounded-3xl text-center space-y-3 shadow-lg animate-in zoom-in-95 duration-200">
               <div className="w-16 h-16 mx-auto rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-3xl shadow-md border-2 border-amber-300">
                 📨
@@ -378,76 +451,133 @@ export const FallingCoinsRefillModal: React.FC<FallingCoinsRefillModalProps> = (
                       </a>
                     </div>
 
-                    {/* UPI ID Details */}
-                    <div className="p-2.5 bg-[#FFFDF7] border border-amber-300 rounded-xl flex items-center justify-between text-xs">
+                    {/* Direct Mobile Number Payment (100% Reliable across PhonePe, GPay, Paytm) */}
+                    <div className="p-2.5 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-300 rounded-xl flex items-center justify-between text-xs">
                       <div>
-                        <div className="text-[9px] text-slate-500 uppercase font-black">ಸ್ವೀಕರಿಸುವವರ ಹೆಸರು / UPI ID</div>
-                        <div className="font-bold text-amber-950">{payeeName}</div>
-                        <div className="font-mono text-xs font-black text-amber-900">{upiId}</div>
+                        <div className="text-[9px] text-emerald-800 uppercase font-black">
+                          🌟 ನೇರ ಮೊಬೈಲ್ ಸಂಖ್ಯೆಗೆ ಪಾವತಿ (Direct Mobile Pay)
+                        </div>
+                        <div className="font-mono text-sm font-black text-emerald-950 flex items-center gap-1.5">
+                          <span>📞 {DEFAULT_PRIEST_MOBILE_NUMBER}</span>
+                          <span className="text-[10px] text-emerald-700 font-bold">({DEFAULT_PRIEST_UPI_NAME})</span>
+                        </div>
+                        <div className="text-[10px] text-emerald-800">
+                          PhonePe / GPay ನಲ್ಲಿ 'To Mobile Number' ಆಯ್ಕೆಮಾಡಿ ಪಾವತಿಸಿ
+                        </div>
                       </div>
                       <button
                         type="button"
-                        onClick={handleCopyUpi}
-                        className="px-2.5 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-950 text-xs font-black rounded-lg border border-amber-300 transition-colors shadow-2xs active:scale-95 cursor-pointer"
+                        onClick={handleCopyMobile}
+                        className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-lg transition-all shadow-xs active:scale-95 cursor-pointer shrink-0"
                       >
-                        {copiedUpi ? "✓ ನಕಲಿಸಲಾಗಿದೆ" : "Copy UPI"}
+                        {copiedMobile ? "✓ ನಕಲಿಸಲಾಗಿದೆ" : "ಕಾಪಿ ನಂಬರ್"}
                       </button>
+                    </div>
+
+                    {/* UPI ID Details with Handle Switcher */}
+                    <div className="p-2.5 bg-[#FFFDF7] border border-amber-300 rounded-xl space-y-2 text-xs">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-[9px] text-slate-500 uppercase font-black">ಸ್ವೀಕರಿಸುವವರ UPI ID</div>
+                          <div className="font-mono text-xs font-black text-amber-900">{upiId}</div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleCopyUpi}
+                          className="px-2.5 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-950 text-xs font-black rounded-lg border border-amber-300 transition-colors shadow-2xs active:scale-95 cursor-pointer"
+                        >
+                          {copiedUpi ? "✓ ನಕಲಿಸಲಾಗಿದೆ" : "Copy UPI"}
+                        </button>
+                      </div>
+
+                      {/* Handle Alternatives if @ybl is restricted */}
+                      <div className="pt-1.5 border-t border-amber-200/70 flex items-center gap-1.5 flex-wrap">
+                        <span className="text-[10px] text-slate-500 font-bold">UPI ಬದಲಿಸಿ:</span>
+                        {DEFAULT_PRIEST_UPI_HANDLES.map((handle) => {
+                          const isHActive = upiId === handle;
+                          const suffix = handle.split("@")[1] || handle;
+                          return (
+                            <button
+                              key={handle}
+                              type="button"
+                              onClick={() => setSelectedUpiHandle(handle)}
+                              className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-bold transition-all cursor-pointer ${
+                                isHActive
+                                  ? "bg-amber-600 text-white shadow-2xs"
+                                  : "bg-white border border-amber-200 text-amber-900 hover:bg-amber-50"
+                              }`}
+                            >
+                              @{suffix}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
 
                     {/* Payment Instruction */}
                     <div className="p-2.5 bg-amber-50/90 border border-amber-300 rounded-xl text-[11px] text-amber-950 font-medium leading-relaxed">
-                      💡 <strong className="font-black text-amber-900">ಪಾವತಿ ಸೂಚನೆ:</strong> PhonePe ಅಥವಾ Google Pay ಮೂಲಕ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ಪಾವತಿಸಿದ ನಂತರ, ಕೆಳಗಿನ WhatsApp ಮೂಲಕ ರಶೀದಿ ಕಳುಹಿಸಿ ಅಥವಾ UTR ನಮೂದಿಸಿ ಸಲ್ಲಿಸಿ. ಪಂಡಿತರು ಪರಿಶೀಲಿಸಿದ ನಂತರ ನಾಣ್ಯಗಳನ್ನು ನಿಮ್ಮ ವಾಲೆಟ್‌ಗೆ ಲೋಡ್ ಮಾಡುತ್ತಾರೆ.
+                      💡 <strong className="font-black text-amber-900">ಪಾವತಿ ಸೂಚನೆ:</strong> PhonePe ಅಥವಾ Google Pay ಮೂಲಕ ಹಣ ಪಾವತಿಸಿದ ನಂತರ, ಕೆಳಗೆ ೧೨-ಅಂಕಿಯ UTR ಸಂಖ್ಯೆಯನ್ನು ನಮೂದಿಸಿ "ಪಾವತಿ ಪರಿಶೀಲಿಸಿ & ನಾಣ್ಯ ಪಡೆಯಿರಿ" ಕ್ಲಿಕ್ ಮಾಡಿ. ನಾಣ್ಯಗಳು ತಕ್ಷಣ ನಿಮ್ಮ ವಾಲೆಟ್‌ಗೆ ಜಮೆಯಾಗುತ್ತವೆ!
                     </div>
                   </div>
                 </div>
 
-                {/* 3. STEP 2: NOTIFY PRIEST TO LOAD COINS */}
+                {/* 3. STEP 2: INSTANT PAYMENT VERIFICATION & AUTO COIN CREDIT */}
                 <div className="pt-3 border-t border-amber-200 space-y-3">
                   <div className="text-xs font-black text-amber-950 uppercase tracking-wider flex items-center justify-between">
-                    <span>೨. ಪಾವತಿ ವಿವರ ಕಳುಹಿಸಿ (ನಾಣ್ಯಗಳನ್ನು ಲೋಡ್ ಮಾಡಲು):</span>
-                    <span className="text-[10px] text-emerald-800 font-bold">ಪರಿಶೀಲನೆ & ಲೋಡ್</span>
+                    <span className="flex items-center gap-1.5 text-emerald-950">
+                      <span>⚡</span>
+                      <span>೨. ೧೨-ಅಂಕಿಯ UPI UTR ನಮೂದಿಸಿ - ನಾಣ್ಯಗಳನ್ನು ತಕ್ಷಣ ವಾಲೆಟ್‌ಗೆ ಪಡೆಯಿರಿ:</span>
+                    </span>
+                    <span className="text-[10px] bg-emerald-100 text-emerald-900 font-black px-2 py-0.5 rounded-md border border-emerald-300">
+                      ತಕ್ಷಣ ಜಮೆ (Instant Credit)
+                    </span>
                   </div>
 
-                  {/* WhatsApp Fast Confirmation (Primary) */}
-                  <button
-                    type="button"
-                    onClick={handleWhatsAppReceipt}
-                    className="w-full py-3 px-4 bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs sm:text-sm rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 border-2 border-emerald-400 active:scale-[0.99] cursor-pointer"
-                  >
-                    <span className="text-lg">📲</span>
-                    <span>WhatsApp ನಲ್ಲಿ ರಶೀದಿ ಕಳುಹಿಸಿ • ನಾಣ್ಯಗಳನ್ನು ಲೋಡ್ ಮಾಡಿಸಿಕೊಳ್ಳಿ</span>
-                  </button>
-
-                  {/* Secondary: Submit UTR for Admin Approval */}
-                  <div className="p-3 bg-[#FFFDF7] border border-amber-300 rounded-2xl text-xs space-y-2">
+                  {/* Primary: Instant Verification & Auto Credit */}
+                  <div className="p-3.5 bg-gradient-to-br from-white via-amber-50/40 to-emerald-50/40 border-2 border-emerald-400 rounded-2xl text-xs space-y-2.5 shadow-sm">
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-slate-800 text-[11px]">
-                        ಅಥವಾ ೧೨-ಅಂಕಿಯ UPI UTR ನಮೂದಿಸಿ ಪರಿಶೀಲನೆಗೆ ಸಲ್ಲಿಸಿ:
+                        PhonePe / GPay ರಶೀದಿಯಲ್ಲಿರುವ ೧೨-ಅಂಕಿಯ ಬ್ಯಾಂಕ್ UTR / UPI Ref ಸಂಖ್ಯೆ:
                       </span>
-                      <span className="text-[9px] text-slate-500 font-bold">ಬ್ಯಾಂಕ್ UTR</span>
+                      <span className="text-[9px] text-emerald-700 font-black uppercase">ಸ್ವಯಂಚಾಲಿತ ಪರಿಶೀಲನೆ</span>
                     </div>
+
                     <div className="flex flex-col sm:flex-row gap-2">
                       <input
                         type="text"
                         value={upiUtr}
                         onChange={(e) => setUpiUtr(e.target.value.replace(/[^0-9a-zA-Z]/g, ""))}
-                        placeholder="ಉದಾ: 423512345678 (UTR ಸಂಖ್ಯೆ)"
+                        placeholder="ಉದಾ: 423512345678 (12-Digit UTR)"
                         maxLength={18}
-                        className="flex-1 px-3 py-2 bg-white border border-amber-300 rounded-xl text-slate-900 font-mono text-xs focus:outline-none focus:border-amber-500 shadow-inner"
+                        className="flex-1 px-3.5 py-2.5 bg-white border-2 border-emerald-300 rounded-xl text-slate-900 font-mono text-xs font-bold focus:outline-none focus:border-emerald-500 shadow-inner"
                       />
                       <button
                         type="button"
-                        onClick={handleSubmitPaymentVerification}
-                        disabled={isSubmittingRecharge}
-                        className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0"
+                        onClick={handleInstantVerify}
+                        disabled={isSubmittingRecharge || !upiUtr.trim()}
+                        className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs sm:text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0 active:scale-95"
                       >
-                        <span>📨</span>
-                        <span>{isSubmittingRecharge ? "ಸಲ್ಲಿಸಲಾಗುತ್ತಿದೆ..." : "ಪರಿಶೀಲನೆಗೆ ಸಲ್ಲಿಸಿ"}</span>
+                        <span>⚡</span>
+                        <span>{isSubmittingRecharge ? "⏳ ಪರಿಶೀಲಿಸಿ ಜಮೆ ಮಾಡಲಾಗುತ್ತಿದೆ..." : "ಪಾವತಿ ಪರಿಶೀಲಿಸಿ & ನಾಣ್ಯ ಪಡೆಯಿರಿ"}</span>
                       </button>
                     </div>
-                    <p className="text-[10px] text-slate-500 font-semibold">
-                      ಸಲ್ಲಿಸಿದ ನಂತರ ಮುಖ್ಯ ಅರ್ಚಕರು (ಶ್ರೀರಾಮ್ ಪಂಡಿತ್: 9108135387) ಪರಿಶೀಲಿಸಿ ನಾಣ್ಯಗಳನ್ನು ವಾಲೆಟ್‌ಗೆ ಜಮೆ ಮಾಡುತ್ತಾರೆ.
-                    </p>
+
+                    <div className="flex items-center justify-between text-[10px] text-emerald-900 font-bold pt-1">
+                      <span>✓ ಸೂಪರ್ ಅಡ್ಮಿನ್ ಅನುಮೋದನೆಗೆ ಕಾಯಬೇಕಾಗಿಲ್ಲ — ನಾಣ್ಯಗಳು ತಕ್ಷಣ ವಾಲೆಟ್‌ಗೆ ಜಮೆಯಾಗುತ್ತವೆ!</span>
+                      <span className="font-mono font-black">₹{effectiveAmountInr} = {effectiveCoins.toLocaleString()} 🪙</span>
+                    </div>
+                  </div>
+
+                  {/* Secondary: WhatsApp Receipt Option */}
+                  <div className="flex items-center justify-between gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={handleWhatsAppReceipt}
+                      className="w-full py-2 px-3 bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-300 font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 shadow-2xs"
+                    >
+                      <span>📲</span>
+                      <span>WhatsApp ನಲ್ಲಿ ರಶೀದಿ ಕಳುಹಿಸಿ (Optional Backup)</span>
+                    </button>
                   </div>
                 </div>
               </div>

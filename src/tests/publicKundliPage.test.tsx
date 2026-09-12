@@ -72,10 +72,16 @@ vi.mock("../features/notifications/notificationService", () => ({
 describe("Public Kundli & Live Astrology Analysis 100% Dynamic Engine Test Suite", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    if (typeof localStorage !== "undefined") {
+      localStorage.clear();
+    }
   });
 
   afterEach(() => {
     cleanup();
+    if (typeof localStorage !== "undefined") {
+      localStorage.clear();
+    }
   });
 
   const sampleInput: KundliInput = {

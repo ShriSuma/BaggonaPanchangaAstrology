@@ -289,39 +289,63 @@ export const DEFAULT_PRIEST_MOBILE_NUMBER = "9108135387";
 export const DEFAULT_PRIEST_NAME = "Shreeram Pandit";
 
 /**
+ * Multiple supported UPI Handles for Shreeram Pandit (9108135387)
+ * Ensures fallback if PhonePe Yes Bank (@ybl) is restricted by user's bank.
+ */
+export const DEFAULT_PRIEST_UPI_HANDLES = [
+  "9108135387@ybl",
+  "9108135387@ibl",
+  "9108135387@axl",
+  "9108135387@upi"
+];
+
+/**
  * Standardized NPCI UPI URI with PhonePe & Google Pay compliance
  */
-export function generateUpiPayUri(amountInr: number, note: string = "PanchangaSeva"): string {
+export function generateUpiPayUri(
+  amountInr: number,
+  note: string = "PanchangaSeva",
+  upiId: string = DEFAULT_PRIEST_UPI_ID,
+  trRef?: string
+): string {
   const cleanAm = Math.max(1, amountInr).toFixed(2);
   const cleanNote = note.replace(/[^a-zA-Z0-9_]/g, "").slice(0, 30) || "PanchangaSeva";
-  return `upi://pay?pa=${encodeURIComponent(DEFAULT_PRIEST_UPI_ID)}&pn=${encodeURIComponent(DEFAULT_PRIEST_UPI_NAME)}&am=${cleanAm}&cu=INR&tn=${encodeURIComponent(cleanNote)}`;
+  const targetUpi = (upiId || DEFAULT_PRIEST_UPI_ID).trim();
+  const tr = trRef || `BAG${Date.now()}`;
+  return `upi://pay?pa=${encodeURIComponent(targetUpi)}&pn=${encodeURIComponent(DEFAULT_PRIEST_UPI_NAME)}&am=${cleanAm}&cu=INR&tn=${encodeURIComponent(cleanNote)}&tr=${encodeURIComponent(tr)}`;
 }
 
 /**
- * PhonePe Direct Intent URI
+ * PhonePe Direct Intent URI (Universal NPCI compliant with tr ref)
  */
-export function generatePhonePeUri(amountInr: number, note: string = "PanchangaSeva"): string {
-  const cleanAm = Math.max(1, amountInr).toFixed(2);
-  const cleanNote = note.replace(/[^a-zA-Z0-9_]/g, "").slice(0, 30) || "PanchangaSeva";
-  return `phonepe://pay?pa=${encodeURIComponent(DEFAULT_PRIEST_UPI_ID)}&pn=${encodeURIComponent(DEFAULT_PRIEST_UPI_NAME)}&am=${cleanAm}&cu=INR&tn=${encodeURIComponent(cleanNote)}`;
+export function generatePhonePeUri(
+  amountInr: number,
+  note: string = "PanchangaSeva",
+  upiId: string = DEFAULT_PRIEST_UPI_ID
+): string {
+  return generateUpiPayUri(amountInr, note, upiId, `PH${Date.now()}`);
 }
 
 /**
- * Google Pay Direct Intent URI
+ * Google Pay Direct Intent URI (Universal NPCI compliant with tr ref)
  */
-export function generateGPayUri(amountInr: number, note: string = "PanchangaSeva"): string {
-  const cleanAm = Math.max(1, amountInr).toFixed(2);
-  const cleanNote = note.replace(/[^a-zA-Z0-9_]/g, "").slice(0, 30) || "PanchangaSeva";
-  return `gpay://upi/pay?pa=${encodeURIComponent(DEFAULT_PRIEST_UPI_ID)}&pn=${encodeURIComponent(DEFAULT_PRIEST_UPI_NAME)}&am=${cleanAm}&cu=INR&tn=${encodeURIComponent(cleanNote)}`;
+export function generateGPayUri(
+  amountInr: number,
+  note: string = "PanchangaSeva",
+  upiId: string = DEFAULT_PRIEST_UPI_ID
+): string {
+  return generateUpiPayUri(amountInr, note, upiId, `GP${Date.now()}`);
 }
 
 /**
- * Paytm Direct Intent URI
+ * Paytm Direct Intent URI (Universal NPCI compliant with tr ref)
  */
-export function generatePaytmUri(amountInr: number, note: string = "PanchangaSeva"): string {
-  const cleanAm = Math.max(1, amountInr).toFixed(2);
-  const cleanNote = note.replace(/[^a-zA-Z0-9_]/g, "").slice(0, 30) || "PanchangaSeva";
-  return `paytmmp://pay?pa=${encodeURIComponent(DEFAULT_PRIEST_UPI_ID)}&pn=${encodeURIComponent(DEFAULT_PRIEST_UPI_NAME)}&am=${cleanAm}&cu=INR&tn=${encodeURIComponent(cleanNote)}`;
+export function generatePaytmUri(
+  amountInr: number,
+  note: string = "PanchangaSeva",
+  upiId: string = DEFAULT_PRIEST_UPI_ID
+): string {
+  return generateUpiPayUri(amountInr, note, upiId, `PT${Date.now()}`);
 }
 
 export type AvailableModuleKey = "panchanga" | "sankhyashastra" | "diksuchi" | "purva_janma" | "vahana_muhurtha" | "public_kundli";

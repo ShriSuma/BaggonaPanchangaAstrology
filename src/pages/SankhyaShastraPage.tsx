@@ -49,46 +49,72 @@ export default function SankhyaShastraPage(): JSX.Element {
   const geminiApiKey = useAppStore((s) => s.geminiApiKey);
   const session = useKundliViewerStore((s) => s.session);
 
-  // Language selector state (defaults to appLanguage or kn)
-  const [selectedLang, setSelectedLang] = useState<string>(appLanguage || "kn");
+  // ----------------------------------------------------------------------
+  // SESSION PERSISTENCE FOR PUBLIC SANKHYA SHASTRA
+  // ----------------------------------------------------------------------
+  const PUBLIC_SANKHYA_STORAGE_KEY = "baggona_public_sankhya_active_session";
+  const [savedSankhyaSession] = useState<any>(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const raw = localStorage.getItem(PUBLIC_SANKHYA_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  // Language selector state (defaults to appLanguage or kn or saved session)
+  const [selectedLang, setSelectedLang] = useState<string>(() => savedSankhyaSession?.selectedLang || appLanguage || "kn");
   const isKn = selectedLang === "kn";
 
   const devoteeName = session?.input?.name || (isKn ? "ಶ್ರೀಯುತ ಭಕ್ತರು" : "Devotee");
 
-  // Tab State (Default to new Vedic Grid & Dasha Bhavishya)
-  const [activeTab, setActiveTab] = useState<TabType>("vedic_grid");
+  // Tab State (Default to saved tab or new Vedic Grid & Dasha Bhavishya)
+  const [activeTab, setActiveTab] = useState<TabType>(() => savedSankhyaSession?.activeTab || "vedic_grid");
 
   // ----------------------------------------------------------------------
   // TAB 1: PRASHNA ORACLE STATES
   // ----------------------------------------------------------------------
-  const [questionInput, setQuestionInput] = useState<string>("");
-  const [userNumberInput, setUserNumberInput] = useState<number | string>(108);
-  const [followUpInput, setFollowUpInput] = useState<string>("");
+  const [questionInput, setQuestionInput] = useState<string>(() => savedSankhyaSession?.questionInput || "");
+  const [userNumberInput, setUserNumberInput] = useState<number | string>(() =>
+    savedSankhyaSession?.userNumberInput !== undefined ? savedSankhyaSession.userNumberInput : 108
+  );
+  const [followUpInput, setFollowUpInput] = useState<string>(() => savedSankhyaSession?.followUpInput || "");
   const [isListening, setIsListening] = useState<boolean>(false);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);
-  const [activeResult, setActiveResult] = useState<SankhyaShastraResult | null>(null);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [activeResult, setActiveResult] = useState<SankhyaShastraResult | null>(() => savedSankhyaSession?.activeResult || null);
+  const [messages, setMessages] = useState<ChatMessage[]>(() => savedSankhyaSession?.messages || []);
 
   // ----------------------------------------------------------------------
   // TAB 5: LUCKY NAME NUMEROLOGY STATES
   // ----------------------------------------------------------------------
-  const [nameInput, setNameInput] = useState<string>(() => session?.input?.name || "Shreeram Pandit");
-  const [nameTargetNumber, setNameTargetNumber] = useState<number>(5);
+  const [nameInput, setNameInput] = useState<string>(() => savedSankhyaSession?.nameInput || session?.input?.name || "Shreeram Pandit");
+  const [nameTargetNumber, setNameTargetNumber] = useState<number>(() => savedSankhyaSession?.nameTargetNumber || 5);
   const [isAiValidatingName, setIsAiValidatingName] = useState<boolean>(false);
-  const [aiNameSuggestions, setAiNameSuggestions] = useState<NameCorrectionSuggestion[] | null>(null);
+  const [aiNameSuggestions, setAiNameSuggestions] = useState<NameCorrectionSuggestion[] | null>(() => savedSankhyaSession?.aiNameSuggestions || null);
   const [copiedName, setCopiedName] = useState<string | null>(null);
 
   // ----------------------------------------------------------------------
   // TAB 6: PHONE / VEHICLE / HOUSE CALCULATOR STATES
   // ----------------------------------------------------------------------
-  const [itemType, setItemType] = useState<"phone" | "vehicle" | "house">("phone");
-  const [itemNumberInput, setItemNumberInput] = useState<string>("9972339362");
+  const [itemType, setItemType] = useState<"phone" | "vehicle" | "house">(
+    () => savedSankhyaSession?.itemType || "phone"
+  );
+  const [itemNumberInput, setItemNumberInput] = useState<string>(
+    () => savedSankhyaSession?.itemNumberInput || "9972339362"
+  );
 
   // ----------------------------------------------------------------------
   // TAB 7: MULANK & BHAGYANK STATES
   // ----------------------------------------------------------------------
   const [birthDatePicker, setBirthDatePicker] = useState<Date | null>(() => {
+    if (savedSankhyaSession?.birthDateYmd) {
+      const parts = savedSankhyaSession.birthDateYmd.split("-").map(Number);
+      if (parts.length === 3 && parts[0] && parts[1] && parts[2]) {
+        return new Date(parts[0], parts[1] - 1, parts[2]);
+      }
+    }
     const rawDob = session?.birthDateYmd || session?.input?.birthDate;
     if (rawDob) {
       const parts = rawDob.split("-").map(Number);
@@ -98,6 +124,133 @@ export default function SankhyaShastraPage(): JSX.Element {
     }
     return new Date(1993, 4, 15);
   });
+
+  // Auto-persist Sankhya Shastra state to localStorage whenever inputs change
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const birthYmd = birthDatePicker instanceof Date
+        ? `${birthDatePicker.getFullYear()}-${String(birthDatePicker.getMonth() + 1).padStart(2, "0")}-${String(birthDatePicker.getDate()).padStart(2, "0")}`
+        : "1993-05-15";
+
+      const stateToSave = {
+        selectedLang,
+        activeTab,
+        questionInput,
+        userNumberInput,
+        followUpInput,
+        activeResult,
+        messages,
+        nameInput,
+        nameTargetNumber,
+        aiNameSuggestions,
+        itemType,
+        itemNumberInput,
+        birthDateYmd: birthYmd
+      };
+      localStorage.setItem(PUBLIC_SANKHYA_STORAGE_KEY, JSON.stringify(stateToSave));
+    } catch (err) {
+      console.warn("[SankhyaShastra] Storage persist notice:", err);
+    }
+  }, [
+    selectedLang,
+    activeTab,
+    questionInput,
+    userNumberInput,
+    followUpInput,
+    activeResult,
+    messages,
+    nameInput,
+    nameTargetNumber,
+    aiNameSuggestions,
+    itemType,
+    itemNumberInput,
+    birthDatePicker
+  ]);
+
+  // Flush on visibility change / pagehide (incoming calls, app switch, browser minimize)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const flushState = () => {
+      try {
+        const birthYmd = birthDatePicker instanceof Date
+          ? `${birthDatePicker.getFullYear()}-${String(birthDatePicker.getMonth() + 1).padStart(2, "0")}-${String(birthDatePicker.getDate()).padStart(2, "0")}`
+          : "1993-05-15";
+
+        const stateToSave = {
+          selectedLang,
+          activeTab,
+          questionInput,
+          userNumberInput,
+          followUpInput,
+          activeResult,
+          messages,
+          nameInput,
+          nameTargetNumber,
+          aiNameSuggestions,
+          itemType,
+          itemNumberInput,
+          birthDateYmd: birthYmd
+        };
+        localStorage.setItem(PUBLIC_SANKHYA_STORAGE_KEY, JSON.stringify(stateToSave));
+      } catch {}
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        flushState();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("pagehide", flushState);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("pagehide", flushState);
+    };
+  }, [
+    selectedLang,
+    activeTab,
+    questionInput,
+    userNumberInput,
+    followUpInput,
+    activeResult,
+    messages,
+    nameInput,
+    nameTargetNumber,
+    aiNameSuggestions,
+    itemType,
+    itemNumberInput,
+    birthDatePicker
+  ]);
+
+  // Reset / Clear Sankhya Shastra Form & Session
+  const handleResetSankhya = () => {
+    if (typeof window !== "undefined") {
+      const confirmed = window.confirm(
+        isKn
+          ? "ಖಚಿತವಾಗಿ ಎಲ್ಲಾ ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ವಿವರಗಳನ್ನು ತೆರವುಗೊಳಿಸಿ ಹೊಸದಾಗಿ ಆರಂಭಿಸಬೇಕೇ?"
+          : "Are you sure you want to clear all data and reset Sankhya Shastra?"
+      );
+      if (!confirmed) return;
+      try {
+        localStorage.removeItem(PUBLIC_SANKHYA_STORAGE_KEY);
+      } catch {}
+    }
+    setQuestionInput("");
+    setUserNumberInput(108);
+    setFollowUpInput("");
+    setActiveResult(null);
+    setMessages([]);
+    setNameInput("Shreeram Pandit");
+    setNameTargetNumber(5);
+    setAiNameSuggestions(null);
+    setItemType("phone");
+    setItemNumberInput("9972339362");
+    setBirthDatePicker(new Date(1993, 4, 15));
+    setActiveTab("vedic_grid");
+  };
 
   useEffect(() => {
     if (session) {
@@ -360,17 +513,29 @@ export default function SankhyaShastraPage(): JSX.Element {
             </p>
           </div>
 
-          {activeResult && activeTab === "prashna" && (
+          <div className="flex items-center gap-2">
+            {activeResult && activeTab === "prashna" && (
+              <button
+                type="button"
+                onClick={handleDownloadPdf}
+                disabled={isGeneratingPdf}
+                className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-700 to-amber-800 px-5 py-2.5 text-xs font-bold text-amber-50 shadow-md transition hover:from-amber-800 hover:to-amber-900 disabled:opacity-50 cursor-pointer"
+              >
+                <span>📄</span>
+                <span>{isGeneratingPdf ? (isKn ? "⌛ PDF ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : "Generating PDF...") : (isKn ? "ಪ್ರಶ್ನಾ ಫಲ PDF ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ" : "Download Prashna PDF Report")}</span>
+              </button>
+            )}
+
             <button
               type="button"
-              onClick={handleDownloadPdf}
-              disabled={isGeneratingPdf}
-              className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-700 to-amber-800 px-5 py-2.5 text-xs font-bold text-amber-50 shadow-md transition hover:from-amber-800 hover:to-amber-900 disabled:opacity-50"
+              onClick={handleResetSankhya}
+              className="flex items-center gap-1.5 rounded-xl border border-amber-300 bg-white/90 hover:bg-red-50 hover:text-red-700 hover:border-red-300 px-3.5 py-2 text-xs font-bold text-amber-950 shadow-2xs transition active:scale-95 cursor-pointer"
+              title="ಎಲ್ಲಾ ವಿವರಗಳನ್ನು ತೆರವುಗೊಳಿಸಿ ಹೊಸದಾಗಿ ಆರಂಭಿಸಿ (Reset Form)"
             >
-              <span>📄</span>
-              <span>{isGeneratingPdf ? (isKn ? "⌛ PDF ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : "Generating PDF...") : (isKn ? "ಪ್ರಶ್ನಾ ಫಲ PDF ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ" : "Download Prashna PDF Report")}</span>
+              <span>🔄</span>
+              <span>{isKn ? "ಮರುಹೊಂದಿಸಿ (Reset)" : "Reset"}</span>
             </button>
-          )}
+          </div>
         </div>
       </div>
 

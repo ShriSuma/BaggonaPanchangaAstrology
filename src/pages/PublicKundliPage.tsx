@@ -74,9 +74,25 @@ export default function PublicKundliPage(): JSX.Element {
   const pdfDownloadCost = getCoins("PUBLIC_KUNDLI_PDF_DOWNLOAD", 500);
   const customQuestionCost = getCoins("PUBLIC_CUSTOM_QUESTION_QA", 500);
 
-  // 1. Language State (default Kannada)
-  const [selectedLang, setSelectedLang] = useState<PublicKundliLang>("kn");
-  const [pdfLang, setPdfLang] = useState<PublicKundliLang>("kn");
+  // 0.1 Session Persistence Key & Loader
+  const PUBLIC_KUNDLI_STORAGE_KEY = "baggona_public_kundli_active_session";
+  const [savedSession] = useState<any>(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const raw = localStorage.getItem(PUBLIC_KUNDLI_STORAGE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object") return parsed;
+      return null;
+    } catch (e) {
+      console.warn("[PublicKundli] Failed to parse saved session:", e);
+      return null;
+    }
+  });
+
+  // 1. Language State (default Kannada or saved session)
+  const [selectedLang, setSelectedLang] = useState<PublicKundliLang>(() => savedSession?.selectedLang || "kn");
+  const [pdfLang, setPdfLang] = useState<PublicKundliLang>(() => savedSession?.pdfLang || "kn");
 
   // 2. Real-time Online/Offline Connectivity Guard
   const [isOnline, setIsOnline] = useState<boolean>(
@@ -162,8 +178,8 @@ export default function PublicKundliPage(): JSX.Element {
     return res;
   };
 
-  // 4. Form State (Janma Kundali Input)
-  const [form, setForm] = useState<KundliInput>({
+  // 4. Form State (Janma Kundali Input with persistence)
+  const [form, setForm] = useState<KundliInput>(() => savedSession?.form || {
     name: "",
     birthDate: "1995-05-15",
     birthTime: "10:30",
@@ -174,30 +190,43 @@ export default function PublicKundliPage(): JSX.Element {
     pincode: "581326"
   });
 
-  const [birthDatePicker, setBirthDatePicker] = useState<Date | null>(new Date(1995, 4, 15, 12, 0, 0));
-  const [birthTimeHm, setBirthTimeHm] = useState<string>("10:30");
-  const [locationCore, setLocationCore] = useState<string>("Gokarna (581326)");
-  const [homePlaceName, setHomePlaceName] = useState<string>("");
+  const [birthDatePicker, setBirthDatePicker] = useState<Date | null>(() => {
+    if (savedSession?.form?.birthDate) {
+      const parts = savedSession.form.birthDate.split("-").map(Number);
+      if (parts.length === 3 && parts[0] && parts[1] && parts[2]) {
+        return new Date(parts[0], parts[1] - 1, parts[2], 12, 0, 0);
+      }
+    }
+    return new Date(1995, 4, 15, 12, 0, 0);
+  });
+  const [birthTimeHm, setBirthTimeHm] = useState<string>(() => savedSession?.birthTimeHm || "10:30");
+  const [locationCore, setLocationCore] = useState<string>(() => savedSession?.locationCore || "Gokarna (581326)");
+  const [homePlaceName, setHomePlaceName] = useState<string>(() => savedSession?.homePlaceName || "");
   const [pinResolving, setPinResolving] = useState<boolean>(false);
 
-  // 5. Calculation State & Comprehensive Profile
+  // 5. Calculation State & Comprehensive Profile with persistence
   const [isCalculating, setIsCalculating] = useState<boolean>(false);
-  const [result, setResult] = useState<KundliOutput | null>(null);
-  const [dashaList, setDashaList] = useState<DashaEntry[]>([]);
-  const [publicProfile, setPublicProfile] = useState<PublicKundliProfile | null>(null);
+  const [result, setResult] = useState<KundliOutput | null>(() => savedSession?.result || null);
+  const [dashaList, setDashaList] = useState<DashaEntry[]>(() => savedSession?.dashaList || []);
+  const [publicProfile, setPublicProfile] = useState<PublicKundliProfile | null>(() => savedSession?.publicProfile || null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // 6. Interactive 3 Restructured Tabs (Patrika default, Dasha-Bhukti, Personality locked 1000 coins)
   const [activeTab, setActiveTab] = useState<
     "patrika" | "dasha" | "personality"
-  >("patrika");
-  const [isPersonalityUnlocked, setIsPersonalityUnlocked] = useState<boolean>(false);
+  >(() => savedSession?.activeTab || "patrika");
+  const [isPersonalityUnlocked, setIsPersonalityUnlocked] = useState<boolean>(() => Boolean(savedSession?.isPersonalityUnlocked));
   const [showUnlockModal, setShowUnlockModal] = useState<boolean>(false);
   const [isUnlocking, setIsUnlocking] = useState<boolean>(false);
   const [expandedMahaPlanet, setExpandedMahaPlanet] = useState<string | null>(null);
 
   // Set of unlocked Kundli keys: `${name}_${birthDate}_${birthTime}` so once unlocked, this particular Kundli stays unlocked
-  const [unlockedKundliKeys, setUnlockedKundliKeys] = useState<Set<string>>(new Set());
+  const [unlockedKundliKeys, setUnlockedKundliKeys] = useState<Set<string>>(() => {
+    if (savedSession?.unlockedKundliKeys && Array.isArray(savedSession.unlockedKundliKeys)) {
+      return new Set(savedSession.unlockedKundliKeys);
+    }
+    return new Set();
+  });
 
   // Refill Modal & Active Balance State
   const [isRechargeOpen, setIsRechargeOpen] = useState<boolean>(false);
@@ -238,6 +267,129 @@ export default function PublicKundliPage(): JSX.Element {
     setTimeout(() => {
       useWalletStore.getState().clearRecentDeduction(animId);
     }, 3200);
+  };
+
+  // Auto-persist Public Kundli state to localStorage whenever state changes
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const stateToSave = {
+        form,
+        birthTimeHm,
+        locationCore,
+        homePlaceName,
+        result,
+        dashaList,
+        publicProfile,
+        activeTab,
+        isPersonalityUnlocked,
+        unlockedKundliKeys: Array.from(unlockedKundliKeys),
+        selectedLang,
+        pdfLang
+      };
+      localStorage.setItem(PUBLIC_KUNDLI_STORAGE_KEY, JSON.stringify(stateToSave));
+    } catch (err) {
+      console.warn("[PublicKundli] Storage persist notice:", err);
+    }
+  }, [
+    form,
+    birthTimeHm,
+    locationCore,
+    homePlaceName,
+    result,
+    dashaList,
+    publicProfile,
+    activeTab,
+    isPersonalityUnlocked,
+    unlockedKundliKeys,
+    selectedLang,
+    pdfLang
+  ]);
+
+  // Handle visibility change and pagehide events (browser minimize, incoming phone call, app switch)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const flushState = () => {
+      try {
+        const stateToSave = {
+          form,
+          birthTimeHm,
+          locationCore,
+          homePlaceName,
+          result,
+          dashaList,
+          publicProfile,
+          activeTab,
+          isPersonalityUnlocked,
+          unlockedKundliKeys: Array.from(unlockedKundliKeys),
+          selectedLang,
+          pdfLang
+        };
+        localStorage.setItem(PUBLIC_KUNDLI_STORAGE_KEY, JSON.stringify(stateToSave));
+      } catch {}
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        flushState();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("pagehide", flushState);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("pagehide", flushState);
+    };
+  }, [
+    form,
+    birthTimeHm,
+    locationCore,
+    homePlaceName,
+    result,
+    dashaList,
+    publicProfile,
+    activeTab,
+    isPersonalityUnlocked,
+    unlockedKundliKeys,
+    selectedLang,
+    pdfLang
+  ]);
+
+  // Reset / Clear Form & Session (Only on explicit reset click)
+  const handleResetKundli = () => {
+    if (typeof window !== "undefined") {
+      const confirmed = window.confirm(
+        selectedLang === "kn"
+          ? "ಖಚಿತವಾಗಿ ಎಲ್ಲಾ ವಿವರಗಳನ್ನು ತೆರವುಗೊಳಿಸಿ ಹೊಸ ಕುಂಡಲಿ ಆರಂಭಿಸಬೇಕೇ?"
+          : "Are you sure you want to clear all data and start a new Janma Kundli?"
+      );
+      if (!confirmed) return;
+      try {
+        localStorage.removeItem(PUBLIC_KUNDLI_STORAGE_KEY);
+      } catch {}
+    }
+    setForm({
+      name: "",
+      birthDate: "1995-05-15",
+      birthTime: "10:30",
+      latitude: 14.5479,
+      longitude: 74.3188,
+      gothra: "",
+      gender: "Male",
+      pincode: "581326"
+    });
+    setBirthDatePicker(new Date(1995, 4, 15, 12, 0, 0));
+    setBirthTimeHm("10:30");
+    setLocationCore("Gokarna (581326)");
+    setHomePlaceName("");
+    setResult(null);
+    setDashaList([]);
+    setPublicProfile(null);
+    setActiveTab("patrika");
+    setIsPersonalityUnlocked(false);
+    setErrorMessage(null);
   };
 
 
@@ -920,13 +1072,24 @@ ${publicProfile.name}`;
           /* STEP 1: INPUT FORM                                               */
           /* ================================================================ */
           <div className="bg-slate-900/90 border border-amber-500/30 rounded-3xl p-6 md:p-10 shadow-2xl backdrop-blur-sm relative overflow-hidden">
-            <div className="border-b border-amber-500/20 pb-5 mb-6 text-center md:text-left">
-              <h2 className="text-xl md:text-2xl font-bold text-amber-300 flex items-center justify-center md:justify-start gap-2">
-                <span>✨</span> {txt("formHeader")}
-              </h2>
-              <p className="text-xs md:text-sm text-slate-400 mt-1">
-                {txt("formDesc")}
-              </p>
+            <div className="border-b border-amber-500/20 pb-5 mb-6 flex items-center justify-between flex-wrap gap-3 text-center md:text-left">
+              <div>
+                <h2 className="text-xl md:text-2xl font-bold text-amber-300 flex items-center justify-center md:justify-start gap-2">
+                  <span>✨</span> {txt("formHeader")}
+                </h2>
+                <p className="text-xs md:text-sm text-slate-400 mt-1">
+                  {txt("formDesc")}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleResetKundli}
+                className="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-red-950/60 hover:text-red-300 hover:border-red-500/50 text-slate-400 text-xs font-bold border border-slate-700 transition-all flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+                title="ಎಲ್ಲಾ ವಿವರಗಳನ್ನು ತೆರವುಗೊಳಿಸಿ ಹೊಸ ಕುಂಡಲಿ ಆರಂಭಿಸಿ (Clear Form & Session)"
+              >
+                <span>🔄</span>
+                <span>{selectedLang === "kn" ? "ಮರುಹೊಂದಿಸಿ (Reset)" : "Reset Form"}</span>
+              </button>
             </div>
 
             <form onSubmit={handleGenerateKundali} className="space-y-6">
@@ -1087,10 +1250,9 @@ ${publicProfile.name}`;
                   type="button"
                   onClick={() => {
                     handleStopNarration();
-                    setResult(null);
-                    setPublicProfile(null);
+                    handleResetKundli();
                   }}
-                  className="px-4 py-2 text-xs font-bold rounded-xl bg-slate-800 text-amber-300 border border-amber-500/30 hover:bg-slate-700 transition-all flex items-center gap-1.5"
+                  className="px-4 py-2 text-xs font-bold rounded-xl bg-slate-800 text-amber-300 border border-amber-500/30 hover:bg-slate-700 transition-all flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
                 >
                   <span>↺</span> {txt("resetFormBtn")}
                 </button>

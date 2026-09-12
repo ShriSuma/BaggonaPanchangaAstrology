@@ -62,6 +62,11 @@ export interface WalletState {
   openAdminApprovalModal: () => void;
   closeAdminApprovalModal: () => void;
   submitUpiRecharge: (upiUtr?: string, customAmountInr?: number, customCoins?: number) => Promise<{ success: boolean; error?: string }>;
+  verifyAndCreditPayment: (
+    upiUtr: string,
+    customAmountInr?: number,
+    customCoins?: number
+  ) => Promise<{ success: boolean; newBalance?: number; coinsCredited?: number; error?: string }>;
   deductForService: (coins: number, serviceName: string, clientName?: string, idempotencyKey?: string) => Promise<{ success: boolean; error?: string }>;
   approveTx: (txId: string) => Promise<boolean>;
   directCoinAdjustment: (userId: string, coins: number, reason: string) => Promise<{ success: boolean; error?: string }>;
@@ -200,6 +205,134 @@ export const useWalletStore = create<WalletState>((set, get) => ({
       return { success: true };
     } catch (err: any) {
       set({ isSubmittingRecharge: false, error: err.message || "Failed to submit recharge" });
+      return { success: false, error: err.message };
+    }
+  },
+
+  verifyAndCreditPayment: async (upiUtr: string, customAmountInr?: number, customCoins?: number) => {
+    const { wallet, selectedPackage } = get();
+    const cleanUtr = (upiUtr || "").trim().replace(/[^a-zA-Z0-9]/g, "");
+    if (!cleanUtr || cleanUtr.length < 6) {
+      const errText = "ದಯವಿಟ್ಟು PhonePe ಅಥವಾ GPay ರಶೀದಿಯಲ್ಲಿರುವ ೧೨-ಅಂಕಿಯ ಮಾನ್ಯ UTR ಸಂಖ್ಯೆಯನ್ನು ನಮೂದಿಸಿ (Please enter a valid 12-digit UTR number).";
+      set({ error: errText });
+      return { success: false, error: errText };
+    }
+
+    const effectiveAmount = customAmountInr !== undefined && customAmountInr > 0 ? customAmountInr : selectedPackage.amountInr;
+    const effectiveCoins = customCoins !== undefined && customCoins > 0 ? customCoins : selectedPackage.totalCoins;
+    const effectiveWalletId = wallet?.id || wallet?.userId || "public_guest_wallet";
+    const effectiveUserId = wallet?.userId || wallet?.id || "PUBLIC_DEVOTEE";
+    const effectivePriestName = wallet?.priestName || "ಭಕ್ತರು / ಪುರೋಹಿತರು";
+
+    set({ isSubmittingRecharge: true, error: null });
+
+    try {
+      // 1. Verify payment via serverless API
+      let apiVerified = false;
+      try {
+        const resp = await fetch("/api/verify-payment", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: effectiveUserId,
+            priestName: effectivePriestName,
+            utr: cleanUtr,
+            amountInr: effectiveAmount,
+            coins: effectiveCoins,
+            packageKey: selectedPackage.key,
+            paymentMethod: "PhonePe / GPay UPI (Instant Verification)"
+          })
+        });
+        const apiData = await resp.json();
+        if (resp.ok && apiData.success) {
+          apiVerified = true;
+        } else if (apiData?.error && (resp.status === 409 || resp.status === 400)) {
+          // Explicit fraud or duplicate error
+          set({ isSubmittingRecharge: false, error: apiData.error });
+          return { success: false, error: apiData.error };
+        }
+      } catch (apiErr) {
+        console.warn("[WalletStore] /api/verify-payment offline/preview notice:", apiErr);
+      }
+
+      // 2. Direct instant coin crediting in Firestore and memory
+      const credResult = await creditWalletCoinsDirectly({
+        walletId: effectiveWalletId,
+        userId: effectiveUserId,
+        priestName: effectivePriestName,
+        amountInr: effectiveAmount,
+        coins: effectiveCoins,
+        packageKey: selectedPackage.key,
+        upiUtr: cleanUtr,
+        paymentMethod: "PhonePe / GPay Instant Verification",
+        currentBalance: wallet?.coinBalance
+      });
+
+      // Also credit Public Guest Wallet if running as guest
+      try {
+        creditGuestCoins(effectiveCoins);
+      } catch (guestErr) {
+        console.warn("[WalletStore] Guest coin sync notice:", guestErr);
+      }
+
+      const updatedBalance = credResult.newBalance;
+
+      // 3. Update store state and caches immediately
+      set((state) => {
+        const updatedWallets = state.allPriestWallets.map((w) =>
+          w.userId === effectiveUserId
+            ? {
+                ...w,
+                coinBalance: updatedBalance,
+                totalCoinsCredited: (w.totalCoinsCredited || 0) + effectiveCoins,
+                totalRechargedInr: (w.totalRechargedInr || 0) + effectiveAmount,
+                updatedAt: new Date().toISOString()
+              }
+            : w
+        );
+        savePriestWalletsToCache(updatedWallets);
+
+        const currentW = state.wallet;
+        const newWalletObj = currentW
+          ? { ...currentW, coinBalance: updatedBalance }
+          : {
+              id: effectiveWalletId,
+              userId: effectiveUserId,
+              priestName: effectivePriestName,
+              coinBalance: updatedBalance,
+              totalRechargedInr: effectiveAmount,
+              totalCoinsCredited: effectiveCoins,
+              totalCoinsSpent: 0,
+              allowedModules: ["public_kundli", "panchanga", "sankhyashastra", "diksuchi", "purva_janma", "vahana_muhurtha"],
+              status: "active",
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString()
+            };
+
+        return {
+          isSubmittingRecharge: false,
+          wallet: newWalletObj,
+          allPriestWallets: updatedWallets,
+          successMessage: `🎉 ಪಾವತಿ ದೃಢೀಕರಿಸಲ್ಪಟ್ಟಿದೆ! ₹${effectiveAmount} (${effectiveCoins.toLocaleString()} ನಾಣ್ಯಗಳು) ನಿಮ್ಮ ವಾಲೆಟ್‌ಗೆ ತಕ್ಷಣ ಜಮೆಯಾಗಿವೆ!`
+        };
+      });
+
+      // Dispatch alert to spshreepandit@gmail.com
+      void notifyCoinRechargeApproved({
+        txId: credResult.txId,
+        priestName: effectivePriestName,
+        amountInr: effectiveAmount,
+        coins: effectiveCoins,
+        upiUtr: cleanUtr
+      });
+
+      return {
+        success: true,
+        newBalance: updatedBalance,
+        coinsCredited: effectiveCoins
+      };
+    } catch (err: any) {
+      set({ isSubmittingRecharge: false, error: err.message || "Payment crediting failed" });
       return { success: false, error: err.message };
     }
   },

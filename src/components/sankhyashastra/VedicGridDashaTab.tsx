@@ -23,15 +23,44 @@ export const VedicGridDashaTab: React.FC<VedicGridDashaTabProps> = ({
 }) => {
   const isKn = selectedLang === "kn";
 
-  const [devoteeName, setDevoteeName] = useState<string>(initialDevoteeName);
-  const [birthDateStr, setBirthDateStr] = useState<string>(initialBirthDate);
-  const [targetDateStr, setTargetDateStr] = useState<string>(
-    new Date().toISOString().split("T")[0]
+  const VEDIC_GRID_STORAGE_KEY = "baggona_vedic_grid_active_session";
+  const [savedGridSession] = useState<any>(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const raw = localStorage.getItem(VEDIC_GRID_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [devoteeName, setDevoteeName] = useState<string>(() => savedGridSession?.devoteeName || initialDevoteeName);
+  const [birthDateStr, setBirthDateStr] = useState<string>(() => savedGridSession?.birthDateStr || initialBirthDate);
+  const [targetDateStr, setTargetDateStr] = useState<string>(() =>
+    savedGridSession?.targetDateStr || new Date().toISOString().split("T")[0]
   );
-  const [userQuery, setUserQuery] = useState<string>("");
+  const [userQuery, setUserQuery] = useState<string>(() => savedGridSession?.userQuery || "");
   const [isAiGenerating, setIsAiGenerating] = useState<boolean>(false);
-  const [aiAnalysisText, setAiAnalysisText] = useState<string | null>(null);
-  const [selectedYogaFilter, setSelectedYogaFilter] = useState<"all" | "positive" | "challenging">("all");
+  const [aiAnalysisText, setAiAnalysisText] = useState<string | null>(() => savedGridSession?.aiAnalysisText || null);
+  const [selectedYogaFilter, setSelectedYogaFilter] = useState<"all" | "positive" | "challenging">(
+    () => savedGridSession?.selectedYogaFilter || "all"
+  );
+
+  // Auto-persist Vedic Grid state to localStorage
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const stateToSave = {
+        devoteeName,
+        birthDateStr,
+        targetDateStr,
+        userQuery,
+        aiAnalysisText,
+        selectedYogaFilter
+      };
+      localStorage.setItem(VEDIC_GRID_STORAGE_KEY, JSON.stringify(stateToSave));
+    } catch {}
+  }, [devoteeName, birthDateStr, targetDateStr, userQuery, aiAnalysisText, selectedYogaFilter]);
 
   // Parse Birth Date into Day, Month, Year
   const { day, month, year } = useMemo(() => {

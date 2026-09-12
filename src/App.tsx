@@ -174,6 +174,9 @@ export default function App(): JSX.Element {
             // Explicit reset requested: clear session cache
             localStorage.removeItem("baggona_priest_kundli_active_session");
             localStorage.removeItem("baggona_priest_sankhya_active_session");
+            localStorage.removeItem("baggona_public_kundli_active_session");
+            localStorage.removeItem("baggona_public_sankhya_active_session");
+            localStorage.removeItem("baggona_vedic_grid_active_session");
           }
 
           // If coming from a deep link URL (token, portal, or reset flag), validate URL once and bypass recurring popups

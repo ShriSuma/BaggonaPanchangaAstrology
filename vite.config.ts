@@ -254,6 +254,92 @@ export default defineConfig(({ mode }) => {
           }
         });
 
+        server.middlewares.use("/api/verify-payment", async (req, res) => {
+          try {
+            if (req.method === "OPTIONS") {
+              res.statusCode = 204;
+              res.end();
+              return;
+            }
+            const chunks: Buffer[] = [];
+            for await (const chunk of req) {
+              chunks.push(chunk as Buffer);
+            }
+            const bodyStr = Buffer.concat(chunks).toString("utf8");
+            let parsedBody: any = {};
+            try {
+              parsedBody = bodyStr ? JSON.parse(bodyStr) : {};
+            } catch {
+              parsedBody = bodyStr;
+            }
+            (req as any).body = parsedBody;
+
+            // @ts-expect-error local dev proxy for Vercel API
+            const handlerModule = await import("./api/verify-payment.ts");
+            (res as any).status = (code: number) => {
+              res.statusCode = code;
+              return res;
+            };
+            (res as any).json = (body: any) => {
+              if (res.writableEnded || res.finished) return res;
+              res.setHeader("Content-Type", "application/json");
+              res.end(JSON.stringify(body));
+              return res;
+            };
+
+            await handlerModule.default(req, res);
+          } catch (e) {
+            if (!res.writableEnded && !res.finished) {
+              res.statusCode = 500;
+              res.setHeader("Content-Type", "application/json");
+              res.end(JSON.stringify({ error: e instanceof Error ? e.message : String(e) }));
+            }
+          }
+        });
+
+        server.middlewares.use("/api/payment-webhook", async (req, res) => {
+          try {
+            if (req.method === "OPTIONS") {
+              res.statusCode = 204;
+              res.end();
+              return;
+            }
+            const chunks: Buffer[] = [];
+            for await (const chunk of req) {
+              chunks.push(chunk as Buffer);
+            }
+            const bodyStr = Buffer.concat(chunks).toString("utf8");
+            let parsedBody: any = {};
+            try {
+              parsedBody = bodyStr ? JSON.parse(bodyStr) : {};
+            } catch {
+              parsedBody = bodyStr;
+            }
+            (req as any).body = parsedBody;
+
+            // @ts-expect-error local dev proxy for Vercel API
+            const handlerModule = await import("./api/payment-webhook.ts");
+            (res as any).status = (code: number) => {
+              res.statusCode = code;
+              return res;
+            };
+            (res as any).json = (body: any) => {
+              if (res.writableEnded || res.finished) return res;
+              res.setHeader("Content-Type", "application/json");
+              res.end(JSON.stringify(body));
+              return res;
+            };
+
+            await handlerModule.default(req, res);
+          } catch (e) {
+            if (!res.writableEnded && !res.finished) {
+              res.statusCode = 500;
+              res.setHeader("Content-Type", "application/json");
+              res.end(JSON.stringify({ error: e instanceof Error ? e.message : String(e) }));
+            }
+          }
+        });
+
         server.middlewares.use("/api/indic-tts", async (req, res) => {
           if (req.method === "OPTIONS") {
             res.statusCode = 204;
