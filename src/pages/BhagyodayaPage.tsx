@@ -124,6 +124,23 @@ export default function BhagyodayaPage(): JSX.Element {
 
   return (
     <div className="mx-auto max-w-5xl px-3 sm:px-4 py-6 space-y-6 text-slate-900 dark:text-amber-100">
+      {/* ── TOP BACK NAVIGATION ── */}
+      <div className="flex items-center justify-between gap-3">
+        <button
+          type="button"
+          onClick={() => setPage("kundli")}
+          className="inline-flex items-center gap-2.5 rounded-2xl border-2 border-amber-500/70 bg-gradient-to-r from-amber-950 via-neutral-900 to-stone-900 px-5 py-2.5 text-xs md:text-sm font-black text-amber-200 shadow-xl hover:scale-105 hover:border-amber-400 hover:text-amber-100 transition-all"
+        >
+          <span className="text-base font-black">←</span>
+          <span>{reportLang === "kn" ? "ಕುಂಡಲಿಗೆ ಹಿಂತಿರುಗಿ (Back to Kundali)" : "Back to Kundali"}</span>
+        </button>
+
+        <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/40 bg-amber-950/70 px-3.5 py-1.5 text-xs font-bold text-amber-300">
+          <span>☸️</span>
+          <span>{report.devoteeName} ({report.lagnaRashi} ಲಗ್ನ)</span>
+        </div>
+      </div>
+
       {/* ── TOP HERO HEADER ── */}
       <div className="relative overflow-hidden rounded-3xl border-2 border-amber-500/60 bg-gradient-to-br from-amber-950 via-slate-950 to-amber-900 p-6 md:p-8 text-white shadow-2xl">
         <div className="absolute -right-12 -top-12 h-64 w-64 rounded-full bg-amber-500/10 blur-3xl pointer-events-none" />
@@ -667,6 +684,26 @@ export default function BhagyodayaPage(): JSX.Element {
           </div>
         </div>
       )}
+
+      {/* ── BOTTOM RETURN TO KUNDALI BAR ── */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-6 rounded-3xl border-2 border-amber-500/50 bg-gradient-to-r from-neutral-950 via-amber-950 to-stone-950 text-white shadow-2xl">
+        <div>
+          <h4 className="text-base font-black text-amber-200">
+            {reportLang === "kn" ? "ಕುಂಡಲಿ ಪುಟಕ್ಕೆ ಹಿಂತಿರುಗಲು ಇಲ್ಲಿ ಕ್ಲಿಕ್ ಮಾಡಿ" : "Ready to view full chart & other insights?"}
+          </h4>
+          <p className="text-xs text-amber-300/80 mt-0.5">
+            {reportLang === "kn" ? "ಜನ್ಮ ಕುಂಡಲಿ, ದಶಾ-ಭುಕ್ತಿ ಹಾಗೂ ತ್ವರಿತ ಭವಿಷ್ಯ ಪರೀಕ್ಷಿಸಲು ಹಿಂತಿರುಗಿ" : "Return to Janma Kundali, Dasha-Bhukti and Instant Astrologer Reading"}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setPage("kundli")}
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 px-7 py-3.5 text-xs md:text-sm font-black text-neutral-950 shadow-xl hover:scale-105 transition-all"
+        >
+          <span className="text-base font-black">←</span>
+          <span>{reportLang === "kn" ? "ಕುಂಡಲಿಗೆ ಹಿಂತಿರುಗಿ (Back to Kundali)" : "Back to Kundali"}</span>
+        </button>
+      </div>
 
       {/* ── HIDDEN 7-PAGE PRINTABLE / EXPORTABLE PDF CONTAINER ── */}
       <div className="fixed -left-[9999px] top-0 pointer-events-none">

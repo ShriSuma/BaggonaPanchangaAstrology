@@ -122,7 +122,7 @@ describe("Instant Reading Dynamic 6-Field Astrologer Verbal Prompts & Synthesis 
     expect(allText).toMatch(/\d+/);
   });
 
-  it("generates COMPLETE 4 DENSE PARAGRAPHS for each sub-level question in 100% pure Kannada", () => {
+  it("generates CRISP 4-BULLET POINT Q&A for each sub-level question in 100% pure Kannada with zero insomnia boilerplate", () => {
     const devoteeName = "Pramod";
     const output = generatePanchangaAngaSynthesis(kundli2, {
       birthDate: sampleBirth2.birthDate,
@@ -137,12 +137,15 @@ describe("Instant Reading Dynamic 6-Field Astrologer Verbal Prompts & Synthesis 
     expect(qaList.length).toBeGreaterThanOrEqual(8);
 
     for (const q of qaList) {
-      // Must have exactly 4 dense paragraphs
-      const paragraphs = q.panditScriptKn.split("\n\n");
-      expect(paragraphs.length).toBe(4);
+      // Must contain conversational spoken greeting with devotee's name
+      expect(q.panditScriptKn).toContain(`ನಮಸ್ಕಾರ ${devoteeName}`);
+      expect(q.panditScriptKn).toContain("ನಾನ್ ನಿಮ್ಮ ಜಾತಕ ನೋಡಿದೆ");
 
-      // Total script length must be substantial (>600 characters for 4 dense paragraphs)
-      expect(q.panditScriptKn.length).toBeGreaterThan(600);
+      // Must contain crisp 4-bullet points
+      expect(q.panditScriptKn).toContain("• 🎯 ಗ್ರಹ ಸ್ಥಿತಿ:");
+      expect(q.panditScriptKn).toMatch(/• ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ/);
+      expect(q.panditScriptKn).toContain("• ⏳ ನಿಖರ ಕಾಲಾವಧಿ:");
+      expect(q.panditScriptKn).toContain("• 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪೂಜೆ:");
 
       // Must NOT contain raw English planet names
       expect(q.panditScriptKn).not.toMatch(/\bMars\b/i);
@@ -157,17 +160,17 @@ describe("Instant Reading Dynamic 6-Field Astrologer Verbal Prompts & Synthesis 
       expect(q.astrologicalBasisKn).toBeTruthy();
       expect(q.immediateRemedyKn).toBeTruthy();
 
-      // Verifies conversational spoken greeting with devotee's name
-      expect(q.panditScriptKn).toContain(`ನಮಸ್ಕಾರ ${devoteeName}`);
+      // Zero fake crisis / insomnia boilerplate
+      expect(q.panditScriptKn).not.toContain("2:00");
+      expect(q.panditScriptKn).not.toContain("4:30");
+      expect(q.panditScriptKn).not.toContain("ನಿದ್ರಾಹೀನತೆಯಾಗಿ");
     }
 
-    // Question 7 specifically verifies the insomnia & spoken slang audio pattern
+    // Question specifically verifies mental calm and authentic planetary remedy
     const qMind = qaList.find((q) => q.id === "q_mind_1");
     expect(qMind).toBeDefined();
     expect(qMind?.panditScriptKn).toContain("ನಾನ್ ನಿಮ್ಮ ಜಾತಕ ನೋಡಿದೆ");
-    expect(qMind?.panditScriptKn).toContain("ನಿದ್ರಾಹೀನತೆಯಾಗಿ");
-    expect(qMind?.panditScriptKn).toContain("2:00");
-    expect(qMind?.panditScriptKn).toContain("4:30");
+    expect(qMind?.panditScriptKn).toContain("ನೆಮ್ಮದಿ");
   });
 
   it("cleanAstrologyText sanitizer strips markdown bold asterisks and normalizes text", () => {

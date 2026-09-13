@@ -43,7 +43,7 @@ export default function InstantReadingPage(): JSX.Element {
   } | null>(null);
 
   // Selected Category & Active Question Drawer
-  const [activeCategory, setActiveCategory] = useState<"all" | "career" | "marriage" | "mind" | "wealth">("all");
+  const [activeCategory, setActiveCategory] = useState<"all" | "career" | "marriage" | "children" | "mind" | "wealth">("all");
   const [selectedQA, setSelectedQA] = useState<InstantQAQuestion | null>(null);
 
   // Custom Q&A State
@@ -77,7 +77,8 @@ export default function InstantReadingPage(): JSX.Element {
       latitude: lat,
       longitude: lon,
       lang: i18n.language,
-      devoteeName: session.input.name || "Devotee"
+      devoteeName: session.input.name || "Devotee",
+      gender: session.input.gender
     });
 
     setSynthesisData(data);
@@ -110,21 +111,16 @@ Technical Astrological Placements:
 - Prescriptions: ${data.prescriptions.rudraksha.nameKn}, ${data.prescriptions.gemstoneRing.primaryGemstoneKn} (${data.prescriptions.gemstoneRing.caratWeight}) on ${data.prescriptions.gemstoneRing.fingerKn}.
 
 STRICT WRITING & ASTROLOGER PERSONA RULES:
-1. Speak DIRECTLY to the devotee in authoritative, deeply empathetic, face-to-face Vedic Astrologer spoken voice in 100% PURE ${isKn ? "Kannada" : "English"}. NO English words or foreign language mix-up (e.g. NEVER write 'Leo', 'Cancer', 'Pushya', 'Mars', 'Sun' inside Kannada sentences).
-2. Use standard traditional Vedic planetary terminology:
-   - Use 'ರವಿ' (Ravi) for Sun (NEVER 'Sun' or 'ಸೂರ್ಯ').
-   - Use 'ಕುಜ' (Kuja) for Mars (NEVER 'Mars' or 'ಮಂಗಳ').
-   - Use 'ಗುರು' for Jupiter, 'ಶುಕ್ರ' for Venus, 'ಶನಿ' for Saturn, 'ಬುಧ' for Mercury, 'ಚಂದ್ರ' for Moon, 'ರಾಹು' for Rahu, 'ಕೇತು' for Ketu.
-   - Use pure Kannada Rashi names: ಮೇಷ, ವೃಷಭ, ಮಿಥುನ, ಕರ್ಕಾಟಕ, ಸಿಂಹ, ಕನ್ಯಾ, ತುಲಾ, ವೃಶ್ಚಿಕ, ಧನುಸ್ಸು, ಮಕರ, ಕುಂಭ, ಮೀನ.
-   - Use pure Kannada Nakshatra names with perfect Vathakshara: ಅಶ್ವಿನಿ, ಭರಣಿ, ಕೃತ್ತಿಕಾ, ರೋಹಿಣಿ, ಮೃಗಶಿರಾ, ಆರಿದ್ರಾ, ಪುನರ್ವಸು, ಪುಷ್ಯ, ಆಶ್ಲೇಷ, ಮಖಾ, ಪುಬ್ಬಾ, ಉತ್ತರಾ, ಹಸ್ತಾ, ಚಿತ್ತಾ, ಸ್ವಾತಿ, ವಿಶಾಖಾ, ಅನೂರಾಧಾ, ಜ್ಯೇಷ್ಠಾ, ಮೂಲಾ, ಪೂರ್ವಾಷಾಢಾ, ಉತ್ತರಾಷಾಢಾ, ಶ್ರವಣ, ಧನಿಷ್ಠಾ, ಶತಭಿಷಾ, ಪೂರ್ವಾಭಾದ್ರಾ, ಉತ್ತರಾಭಾದ್ರಾ, ರೇವತಿ.
-3. Every sub-level reading and question response MUST have COMPLETE 4 DETAILED DENSE PARAGRAPHS (at least 6 to 7 lines per paragraph), 100% accurate to their Kundali, running Dasha-Bhukti, and Gochara.
-2. Must write EXACTLY 4 comprehensive, dense paragraphs:
-   - Paragraph 1: Address the devotee directly. Reveal that you know why they came today—an unexpected incident or turmoil recently disturbed their peace. Mention their 4th house and Moon's sensitive placement causing late-night overthinking (2:00 AM to 4:30 AM) and unspoken inner burden.
-   - Paragraph 2: Explain the exact active friction in their life right now (${data.currentDiagnosis.primaryLifeChallenge.area} & ${data.currentDiagnosis.primaryLifeChallenge.description}). Explain how their good intentions have been misunderstood, or how their efforts are being delayed despite immense dedication.
-   - Paragraph 3: Explain the astrological planetary reality (10th/7th/4th house aspects & running Dasha-Bhukti). Give an exact turning-point timeline (e.g. Next 3 to 5 Months) using ENGLISH DIGITS when the cloud lifts and breakthroughs occur.
+1. Speak DIRECTLY to the devotee in authoritative, deeply empathetic, face-to-face Vedic Astrologer spoken voice in 100% PURE ${isKn ? "Kannada" : "English"}. NO English words or foreign language mix-up.
+2. Use standard traditional Vedic planetary terminology: 'ರವಿ' (Ravi), 'ಕುಜ' (Kuja), 'ಗುರು' (Guru), 'ಶುಕ್ರ' (Shukra), 'ಶನಿ' (Shani), 'ಬುಧ' (Budha), 'ಚಂದ್ರ' (Chandra), 'ರಾಹು' (Rahu), 'ಕೇತು' (Ketu).
+3. ZERO CRISIS ASSUMPTIONS: DO NOT assume a tragedy, severe turmoil, or late-night 2:00 to 4:30 AM insomnia. Focus on genuine personality (dignified ego, unyielding conviction, refusal to bow to arbitrary commands), age-appropriate intellectual focus, career independence, and explicit Dosha analysis for relationships & children.
+4. Structure your response into 4 comprehensive paragraphs:
+   - Paragraph 1: Direct greeting ("ನಮಸ್ಕಾರ ${session.input.name || "ಭಕ್ತರೇ"}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕ ನೋಡಿದೆ."). Reveal their Lagna, Moon, 4th house and authentic dignified personality traits.
+   - Paragraph 2: Explain their current life focus and active challenge (${data.currentDiagnosis.primaryLifeChallenge.area} & ${data.currentDiagnosis.primaryLifeChallenge.description}) without generic misery assumptions.
+   - Paragraph 3: Explain the astrological planetary reality (10th/7th/4th house aspects & running Dasha-Bhukti). Give an exact turning-point timeline (e.g. Next 3 to 6 Months) using ENGLISH DIGITS when breakthroughs occur.
    - Paragraph 4: Prescribe the exact remedies with precision: ${data.prescriptions.gemstoneRing.primaryGemstoneKn} (${data.prescriptions.gemstoneRing.caratWeight}), ${data.prescriptions.rudraksha.nameKn}, daily morning rituals, and Gokarna Mahabaleshwara Kshetra blessings.
-3. DO NOT use markdown bold asterisks (no ** or *). Use clean, plain text.
-4. ALL NUMBERS MUST BE IN ENGLISH DIGITS (e.g. 1, 2, 3, 4.25 - 6.5 Carat, 9 Mukhi, 7th house, 10th house, 3 to 5 months).
+5. DO NOT use markdown bold asterisks (no ** or *). Use clean, plain text.
+6. ALL NUMBERS MUST BE IN ENGLISH DIGITS (e.g. 1, 2, 3, 4.25 - 6.5 Carat, 9 Mukhi, 7th house, 10th house, 3 to 6 months).
 `;
 
         const promptContextWithJson = `${promptContext}
@@ -132,15 +128,9 @@ STRICT WRITING & ASTROLOGER PERSONA RULES:
 OUTPUT FORMAT INSTRUCTIONS:
 Return a valid JSON object matching this schema:
 {
-  "openingIceBreaker": "2 dense paragraphs starting with 'ನೋಡಿ...' naming their Lagna, Nakshatra, uncovering their core personality and revealing the recent trigger incident/turmoil that disturbed their peace.",
-  "hiddenSubconsciousWorry": "2 dense paragraphs describing their unspoken inner anxiety, late-night overthinking (2:00 ರಿಂದ 4:30), emotional dilemma, and feelings of being misunderstood.",
-  "maandiKarmicImpact": "2 dense paragraphs in pure Kannada analyzing shadow planet Maandi in their house, its karmic influence, and Gokarna Maandi Shanti remedy.",
-  "karmaFinancialReality": "2 dense paragraphs detailing their 10th house karma, workplace struggle, why rewards are delayed despite 100% dedication, and money leakage.",
-  "immediateTurningPoint": "2 dense paragraphs detailing the exact turning point timeline (Next 3 to 5 Months) using ENGLISH DIGITS, explaining the Dasha-Bhukti and Gochara planetary shift.",
-  "siddhaPariharaRemedy": "2 dense paragraphs detailing the exact Gemstone (${data.prescriptions.gemstoneRing.primaryGemstoneKn}, ${data.prescriptions.gemstoneRing.caratWeight}), Rudraksha (${data.prescriptions.rudraksha.nameKn}), daily rituals, and Gokarna Kshetra Sankalpa.",
   "executiveReadingParagraphs": [
-    "Paragraph 1 (The Trigger Incident & Persona)",
-    "Paragraph 2 (Current Conflict & Good Intentions Misunderstood)",
+    "Paragraph 1 (Direct Greeting, Lagna & Dignified Persona)",
+    "Paragraph 2 (Current Focus & Active Challenge)",
     "Paragraph 3 (Planetary Reality & Turning Point Timeline in English digits)",
     "Paragraph 4 (Practical Remedies & Blessings)"
   ]
@@ -234,6 +224,7 @@ STRICT RULES:
     try {
       const contextData = `
 Devotee: ${session.input.name || "Devotee"}
+Gender: ${session.input.gender || "Not Specified"}
 Lagna: ${session.result.lagnaRashi.english} | Moon: ${session.result.moonSign.english} | Nakshatra: ${session.result.planets.find(p => p.name === "Moon")?.nakshatra.english}
 Panchanga 5-Angas: Vara=${synthesisData.panchanga.vara.nameKn}, Tithi=${synthesisData.panchanga.tithi.nameKn}, Yoga=${synthesisData.panchanga.yoga.nameKn}, Karana=${synthesisData.panchanga.karana.nameKn}
 Technical Placements: 4th=${synthesisData.currentDiagnosis.technicalAspects.fourthHouseDetail}, 7th=${synthesisData.currentDiagnosis.technicalAspects.seventhHouseDetail}, 10th=${synthesisData.currentDiagnosis.technicalAspects.tenthHouseDetail}.
@@ -243,15 +234,17 @@ Prescriptions: ${synthesisData.prescriptions.rudraksha.nameKn}, ${synthesisData.
 Question from Devotee: "${q}"
 
 Task: Give a deep, face-to-face conversational Vedic Pandit consultation response in natural spoken ${isKn ? "Kannada" : "English"} adopting this exact conversational spoken tone:
-"ನಮಸ್ಕಾರ ${session.input.name || "ಭಕ್ತರೇ"}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕ ನೋಡಿದೆ. ನೋಡಿದ್ರೆ ಇದರಲ್ಲಿ ಇರುವಂತಹ..."
+"ನಮಸ್ಕಾರ ${session.input.name || "ಭಕ್ತರೇ"}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕ ನೋಡಿದೆ."
 
-Structure your response into 3-4 detailed dense paragraphs:
-1. Paragraph 1 (Direct Spoken Hook & Planetary Placement): Start with "ನಮಸ್ಕಾರ ${session.input.name || "ಭಕ್ತರೇ"}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕ ನೋಡಿದೆ...". Identify the exact house/planet combination (4th/7th/10th house) and validate their mental state/frustration.
-2. Paragraph 2 (Day-to-day Struggle & Insomnia): Describe their late-night overthinking (2:00 AM to 4:30 AM), sleeplessness, lack of appreciation, and emotional weight.
-3. Paragraph 3 (Astrological Turning Point & Exact Timeline): Explain the Dasha-Bhukti and Gochara transit shift, giving concrete timing in ENGLISH DIGITS (e.g. Next 3 to 5 Months) when relief and breakthrough manifest.
-4. Paragraph 4 (Practical Remedies & Divine Blessing): Prescribe ${synthesisData.prescriptions.gemstoneRing.primaryGemstoneKn} (${synthesisData.prescriptions.gemstoneRing.caratWeight}), ${synthesisData.prescriptions.rudraksha.nameKn}, daily morning rituals, and Gokarna Mahabaleshwara Kshetra blessings.
+Respond in crisp, structured bullet points directly answering the devotee's specific question:
+• 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: Exact planetary positions, houses, dasha-bhukti, and gochara transits influencing this question.
+• ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ನೈಜ ಕಾರಣ: State the exact Dosha (e.g. Kuja Dosha, Shani Drishti delay, Naga/Sarpa Dosha, Putrakaraka affliction) and the real astrological reason without generic fluff.
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ: Exact turning point timeline in English digits (e.g. Next 3 to 6 Months) when relief and breakthroughs materialize.
+• 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪೂಜೆ: Prescribe the devotee's authentic Beeja Mantra, daily calming Japa, and Sri Kshetra Gokarna Mahabaleshwara Shanti Pooja.
+
 STRICT RULES:
-- DO NOT use markdown asterisks (no ** or *). Use clean, natural text.
+- DO NOT invent tragedies, crises, or false insomnia.
+- DO NOT use markdown bold asterisks (no ** or *). Use clean, natural text.
 - ALL numbers must be in ENGLISH DIGITS (1, 2, 3, 4, 5, etc.).
 `;
 
@@ -311,13 +304,13 @@ STRICT RULES:
       <div className="flex flex-wrap items-center justify-between gap-3">
         <button
           onClick={() => setPage("kundli")}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 shadow-sm transition-all"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-500/20 to-yellow-500/10 border-2 border-amber-400 text-amber-950 font-black text-xs md:text-sm hover:scale-105 hover:bg-amber-400 hover:text-neutral-950 shadow-md transition-all cursor-pointer"
         >
           <span>←</span>
-          <span>{isKn ? "ಕುಂಡಲಿಗೆ ಹಿಂತಿರುಗಿ" : "Back to Birth Chart"}</span>
+          <span>{isKn ? "ಕುಂಡಲಿಗೆ ಹಿಂತಿರುಗಿ (Back to Kundali)" : "Back to Kundali"}</span>
         </button>
 
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-900 text-xs font-bold">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-900 text-xs font-bold">
           <span>🔮</span>
           <span>{isKn ? "ದೈವಜ್ಞ ನೇರ ಸಮಾಲೋಚನೆ & ತ್ವರಿತ ದರ್ಶನ" : "Live Astrologer Consultation Desk"}</span>
         </div>
@@ -354,151 +347,86 @@ STRICT RULES:
         </Card>
       ) : (
         <>
-          {/* 🌟 1. SECRET TALKING POINTS FOR THE ASTROLOGER (ದೈವಜ್ಞ ಮಾರ್ಗದರ್ಶಿ / 5 Master Verbal Prompts) 🌟 */}
-          {activeTalkingPoints && (
-            <div className="rounded-3xl border-2 border-emerald-500/80 bg-gradient-to-r from-emerald-950 via-slate-950 to-neutral-900 p-6 md:p-8 text-white shadow-2xl space-y-6">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-emerald-500/30 pb-4">
+          {/* 🌟 1. 10 MASTER ASTROLOGICAL LIFE & PERSONALITY REVELATIONS (೧೦ ಪ್ರಮುಖ ಮುಖಾಮುಖಿ ಜ್ಯೋತಿಷ್ಯ ಸತ್ಯಾಂಶಗಳು) 🌟 */}
+          {synthesisData?.tenLifeAspectBullets && (
+            <div className="rounded-3xl border-2 border-amber-400/80 bg-gradient-to-r from-stone-950 via-neutral-900 to-amber-950 p-6 md:p-8 text-white shadow-2xl space-y-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-amber-500/30 pb-4">
                 <div className="flex items-center gap-3">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-300 text-2xl shadow-inner border border-emerald-500/40">
-                    🗣️
+                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-600 text-neutral-950 text-2xl shadow-lg border border-amber-300">
+                    👑
                   </span>
                   <div>
-                    <span className="text-[11px] font-black uppercase tracking-wider text-emerald-400 block">
-                      ದೈವಜ್ಞರ ನೇರ ನುಡಿ ಮಾರ್ಗದರ್ಶಿ (Astrologer's Direct Verbal Prompts)
+                    <span className="text-[11px] font-black uppercase tracking-wider text-amber-400 block">
+                      ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ದೈವಜ್ಞ ಮುಖಾಮುಖಿ ದರ್ಶನ ॥
                     </span>
-                    <h3 className="text-base md:text-lg font-black text-emerald-100">
-                      {isKn ? "ಕ್ಲೈಂಟ್‌ಗೆ ನೇರವಾಗಿ ಹೇಳಬೇಕಾದ ೬ ಪ್ರಮುಖ ಸತ್ಯಾಂಶಗಳು (Say these directly)" : "6 Master Authoritative Speaking Points"}
+                    <h3 className="text-base md:text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-300 font-serif">
+                      {isKn ? "೧೦ ಪ್ರಮುಖ ಜ್ಯೋತಿಷ್ಯ ಸತ್ಯಾಂಶಗಳು & ವ್ಯಕ್ತಿತ್ವ ದರ್ಶನ" : "10 Master Astrological Life & Personality Revelations"}
                     </h3>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-black border border-emerald-500/40">
-                    {isKn ? "೬ ರಹಸ್ಯ ದೈವಜ್ಞ ನುಡಿಗಳು" : "6 Secret Astrologer Cues"}
+                  <span className="px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-black border border-amber-500/40">
+                    {isKn ? "೧೦೦% ನೈಜ ಜಾತಕ ಫಲಿತ" : "100% Dynamic Vedic Truth"}
                   </span>
                 </div>
               </div>
 
-              {/* 6 Dynamic Multi-Paragraph Cards Grid */}
+              {/* 10 Dynamic Cards Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs md:text-sm">
-                {/* 1. Opening Icebreaker / The Grill */}
-                <div className="p-5 rounded-2xl bg-white/[0.07] border border-emerald-500/30 space-y-2.5 md:col-span-2 shadow-lg">
-                  <div className="flex items-center justify-between border-b border-emerald-500/20 pb-2">
-                    <span className="text-emerald-300 font-black text-sm flex items-center gap-1.5">
-                      <span>🔥</span>
-                      <span>{isKn ? "೧. ಆರಂಭಿಕ ಮುಖಾಮುಖಿ ಸತ್ಯ (ನೇರ ದೈವಿಕ ನುಡಿ):" : "1. Opening Icebreaker & Direct Hook:"}</span>
-                    </span>
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">
-                      {isKn ? "ಮುಖಾಮುಖಿ ವಿಶ್ಲೇಷಣೆ" : "The Grill"}
-                    </span>
-                  </div>
-                  <div className="text-slate-100 leading-relaxed space-y-2">
-                    {activeTalkingPoints.openingIceBreakerKn.split("\n\n").map((p, i) => (
-                      <p key={i} className="italic bg-black/20 p-3 rounded-xl border border-white/5">
-                        "{cleanAstrologyText(p)}"
-                      </p>
-                    ))}
-                  </div>
-                </div>
+                {synthesisData.tenLifeAspectBullets.map((bullet) => (
+                  <div
+                    key={bullet.id}
+                    className={`p-5 rounded-2xl border space-y-3 shadow-lg transition-all ${
+                      bullet.id === 1 || bullet.id === 10
+                        ? "md:col-span-2 bg-gradient-to-r from-amber-950/40 via-white/[0.08] to-amber-950/40 border-amber-400/60 ring-1 ring-amber-400/30"
+                        : bullet.doshaSpecifics?.hasDosha
+                        ? "bg-white/[0.08] border-rose-400/50 ring-1 ring-rose-400/30"
+                        : "bg-white/[0.06] border-emerald-500/30 hover:border-amber-400/40"
+                    }`}
+                  >
+                    {/* CARD HEADER */}
+                    <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
+                      <span className="font-black text-sm flex items-center gap-2 text-amber-300">
+                        <span className="text-lg">{bullet.icon}</span>
+                        <span>{bullet.id}. {isKn ? bullet.titleKn : bullet.titleEn}</span>
+                      </span>
+                      <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-200 font-bold border border-amber-400/30">
+                        {isKn ? bullet.badgeKn : bullet.badgeEn}
+                      </span>
+                    </div>
 
-                {/* 2. Hidden Subconscious Worry */}
-                <div className="p-5 rounded-2xl bg-white/[0.07] border border-emerald-500/30 space-y-2.5 shadow-lg">
-                  <div className="flex items-center justify-between border-b border-emerald-500/20 pb-2">
-                    <span className="text-emerald-300 font-black text-sm flex items-center gap-1.5">
-                      <span>🧠</span>
-                      <span>{isKn ? "೨. ಆಂತರಿಕ ಸುಪ್ತ ಆತಂಕ & ನಿದ್ರಾಹೀನತೆ:" : "2. Hidden Subconscious Worry & Mental State:"}</span>
-                    </span>
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">
-                      {isKn ? "ಮನಸ್ಸು & ನಿದ್ರೆ" : "Mind & Sleep"}
-                    </span>
-                  </div>
-                  <div className="text-slate-100 leading-relaxed space-y-2">
-                    {activeTalkingPoints.hiddenSubconsciousWorryKn.split("\n\n").map((p, i) => (
-                      <p key={i} className="italic bg-black/20 p-3 rounded-xl border border-white/5">
-                        "{cleanAstrologyText(p)}"
-                      </p>
-                    ))}
-                  </div>
-                </div>
+                    {/* READING BODY */}
+                    <p className="text-slate-100 leading-relaxed font-medium bg-black/25 p-3.5 rounded-xl border border-white/5">
+                      "{cleanAstrologyText(isKn ? bullet.readingKn : bullet.readingEn)}"
+                    </p>
 
-                {/* 3. Maandi Sthiti & Karmic Node Impact (3RD PLACE) */}
-                <div className="p-5 rounded-2xl bg-white/[0.07] border border-amber-400/50 space-y-2.5 shadow-lg ring-1 ring-amber-400/30">
-                  <div className="flex items-center justify-between border-b border-amber-400/30 pb-2">
-                    <span className="text-amber-300 font-black text-sm flex items-center gap-1.5">
-                      <span>🪐</span>
-                      <span>{isKn ? "೩. ಮಾಂದಿ ಗ್ರಹ ಸ್ಥಿತಿ & ಸೂಕ್ಷ್ಮ ಛಾಯಾ ಕರ್ಮ ಪ್ರಭಾವ:" : "3. Maandi Sthiti & Karmic Node Impact:"}</span>
-                    </span>
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-amber-400/20 text-amber-200 font-bold">
-                      {isKn ? "ಮಾಂದಿ ಸ್ಥಿತಿ" : "Maandi Node"}
-                    </span>
-                  </div>
-                  <div className="text-slate-100 leading-relaxed space-y-2">
-                    {activeTalkingPoints.maandiKarmicImpactKn.split("\n\n").map((p, i) => (
-                      <p key={i} className="italic bg-black/20 p-3 rounded-xl border border-white/5">
-                        "{cleanAstrologyText(p)}"
-                      </p>
-                    ))}
-                  </div>
-                </div>
+                    {/* ASTROLOGICAL FOUNDATION FOOTER */}
+                    <div className="text-[11px] text-amber-200/90 flex items-center gap-1.5 px-1">
+                      <span>🎯</span>
+                      <span><b>{isKn ? "ಶಾಸ್ತ್ರೀಯ ಆಧಾರ:" : "Astrological Basis:"}</b> {cleanAstrologyText(isKn ? bullet.astrologicalBasisKn : bullet.astrologicalBasisEn)}</span>
+                    </div>
 
-                {/* 4. Karma & Career Bottleneck */}
-                <div className="p-5 rounded-2xl bg-white/[0.07] border border-emerald-500/30 space-y-2.5 shadow-lg">
-                  <div className="flex items-center justify-between border-b border-emerald-500/20 pb-2">
-                    <span className="text-emerald-300 font-black text-sm flex items-center gap-1.5">
-                      <span>💼</span>
-                      <span>{isKn ? "೪. ಕರ್ಮ & ಆರ್ಥಿಕ ವಾಸ್ತವಿಕತೆ:" : "4. Karma & Financial Reality:"}</span>
-                    </span>
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">
-                      {isKn ? "ವೃತ್ತಿ & ಧನ" : "Career & Wealth"}
-                    </span>
+                    {/* DEDICATED DOSHA & REMEDY BOX IF AFFLICTED */}
+                    {bullet.doshaSpecifics?.hasDosha && (
+                      <div className="p-3.5 rounded-xl bg-gradient-to-r from-rose-950/60 to-amber-950/60 border border-rose-400/50 space-y-2 text-xs text-stone-200">
+                        <div className="flex items-center justify-between border-b border-rose-400/30 pb-1.5">
+                          <span className="text-rose-300 font-black text-xs flex items-center gap-1.5">
+                            <span>⚠️</span>
+                            <span>{isKn ? "ನಿರ್ದಿಷ್ಟ ದೋಷ:" : "Detected Dosha:"} {isKn ? bullet.doshaSpecifics.doshaNameKn : bullet.doshaSpecifics.doshaNameEn}</span>
+                          </span>
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-rose-500/20 text-rose-200 font-bold">
+                            {isKn ? "ಪರಿಹಾರ ಅಗತ್ಯ" : "Remedy Recommended"}
+                          </span>
+                        </div>
+                        <div className="space-y-1 text-[11px]">
+                          <p><b>{isKn ? "ಮೂಲ ಕಾರಣ & ಸ್ಥಾನ:" : "Root Cause & House:"}</b> {isKn ? bullet.doshaSpecifics.rootCauseHouseKn : bullet.doshaSpecifics.rootCauseHouseEn} ({isKn ? bullet.doshaSpecifics.afflictedPlanetKn : bullet.doshaSpecifics.afflictedPlanetEn})</p>
+                          <p className="text-amber-300"><b>{isKn ? "ದೈವಿಕ ಬೀಜ ಮಂತ್ರ:" : "Beeja Mantra:"}</b> {isKn ? bullet.doshaSpecifics.mantraKn : bullet.doshaSpecifics.mantraEn}</p>
+                          <p className="text-emerald-300"><b>{isKn ? "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಪೂಜೆ:" : "Gokarna Kshetra Pooja:"}</b> {isKn ? bullet.doshaSpecifics.pujaKn : bullet.doshaSpecifics.pujaEn}</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <div className="text-slate-100 leading-relaxed space-y-2">
-                    {activeTalkingPoints.karmaFinancialRealityKn.split("\n\n").map((p, i) => (
-                      <p key={i} className="italic bg-black/20 p-3 rounded-xl border border-white/5">
-                        "{cleanAstrologyText(p)}"
-                      </p>
-                    ))}
-                  </div>
-                </div>
-
-                {/* 5. Turning Point Timeline */}
-                <div className="p-5 rounded-2xl bg-white/[0.07] border border-emerald-500/30 space-y-2.5 shadow-lg">
-                  <div className="flex items-center justify-between border-b border-emerald-500/20 pb-2">
-                    <span className="text-emerald-300 font-black text-sm flex items-center gap-1.5">
-                      <span>⏳</span>
-                      <span>{isKn ? "೫. ತಿರುವು ನೀಡುವ ಕಾಲಾವಧಿ:" : "5. Turning Point Timeline:"}</span>
-                    </span>
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">
-                      {isKn ? "ದಶಾ & ಗೋಚಾರ" : "Dasha & Gochara"}
-                    </span>
-                  </div>
-                  <div className="text-slate-100 leading-relaxed space-y-2">
-                    {activeTalkingPoints.immediateTurningPointKn.split("\n\n").map((p, i) => (
-                      <p key={i} className="italic bg-black/20 p-3 rounded-xl border border-white/5">
-                        "{cleanAstrologyText(p)}"
-                      </p>
-                    ))}
-                  </div>
-                </div>
-
-                {/* 6. Siddha Parihara & Shield */}
-                <div className="p-5 rounded-2xl bg-white/[0.07] border border-emerald-500/30 space-y-2.5 shadow-lg">
-                  <div className="flex items-center justify-between border-b border-emerald-500/20 pb-2">
-                    <span className="text-emerald-300 font-black text-sm flex items-center gap-1.5">
-                      <span>🪔</span>
-                      <span>{isKn ? "೬. ಸಿದ್ಧ ಪರಿಹಾರ & ರಕ್ಷಾ ಕವಚ:" : "6. Siddha Remedies & Sacred Shield:"}</span>
-                    </span>
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">
-                      {isKn ? "ರತ್ನ & ಕ್ಷೇತ್ರ ಸಂಕಲ್ಪ" : "Gem & Temple"}
-                    </span>
-                  </div>
-                  <div className="text-slate-100 leading-relaxed space-y-2">
-                    {activeTalkingPoints.siddhaPariharaRemedyKn.split("\n\n").map((p, i) => (
-                      <p key={i} className="italic bg-black/20 p-3 rounded-xl border border-white/5">
-                        "{cleanAstrologyText(p)}"
-                      </p>
-                    ))}
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
           )}
@@ -567,6 +495,7 @@ STRICT RULES:
                   { id: "all", label: isKn ? "ಎಲ್ಲವೂ" : "All" },
                   { id: "career", label: isKn ? "💼 ಉದ್ಯೋಗ" : "Career" },
                   { id: "marriage", label: isKn ? "💍 ವಿವಾಹ" : "Marriage" },
+                  { id: "children", label: isKn ? "👶 ಸಂತಾನ" : "Children" },
                   { id: "mind", label: isKn ? "🧠 ಮನಸ್ಸು" : "Mind" },
                   { id: "wealth", label: isKn ? "💰 ಆರ್ಥಿಕತೆ" : "Wealth" }
                 ].map((tab) => (
@@ -1080,6 +1009,17 @@ STRICT RULES:
                 ))}
               </div>
             )}
+          </div>
+
+          {/* BOTTOM RETURN TO KUNDLI BAR */}
+          <div className="flex items-center justify-center pt-6">
+            <button
+              onClick={() => setPage("kundli")}
+              className="inline-flex items-center gap-3 px-8 py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-neutral-950 font-black text-sm md:text-base shadow-xl hover:scale-105 transition-all border-2 border-amber-300 cursor-pointer"
+            >
+              <span>←</span>
+              <span>{isKn ? "ಕುಂಡಲಿಗೆ ಹಿಂತಿರುಗಿ (Back to Kundali)" : "Back to Kundali Chart"}</span>
+            </button>
           </div>
         </>
       )}

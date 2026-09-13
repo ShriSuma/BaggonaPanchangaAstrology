@@ -186,6 +186,42 @@ describe("PanchangaAngaSynthesisEngine", () => {
       expect(output.instantQAList[0].panditScriptKn).toBeTruthy();
       expect(output.multiParagraphExecutiveReading.length).toBe(4);
       expect(output.multiParagraphExecutiveReading[0]).toContain("ನಾನ್ ನಿಮ್ಮ ಜಾತಕ ನೋಡಿದೆ");
+      
+      // 10 Master Life Aspects assertion
+      expect(output.tenLifeAspectBullets).toBeDefined();
+      expect(output.tenLifeAspectBullets.length).toBe(10);
+      const categories = output.tenLifeAspectBullets.map(b => b.category);
+      expect(categories).toEqual([
+        "personality",
+        "education",
+        "social",
+        "mind",
+        "career",
+        "wealth",
+        "marriage",
+        "health",
+        "dasha_gochara",
+        "remedy"
+      ]);
+      output.tenLifeAspectBullets.forEach(b => {
+        expect(b.titleKn).toBeTruthy();
+        expect(b.readingKn).toBeTruthy();
+        expect(b.astrologicalBasisKn).toBeTruthy();
+        expect(b.badgeKn).toBeTruthy();
+      });
+
+      // Marriage dosha check
+      const marriagePoint = output.tenLifeAspectBullets.find(b => b.category === "marriage");
+      expect(marriagePoint?.doshaSpecifics).toBeDefined();
+
+      // Q&A bullet points assertion
+      const childQ = output.instantQAList.find(q => q.id === "q_children_1");
+      expect(childQ).toBeDefined();
+      expect(childQ?.panditScriptKn).toContain("• 🎯 ಗ್ರಹ ಸ್ಥಿತಿ:");
+      expect(childQ?.panditScriptKn).toContain("• ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ನೈಜ ಕಾರಣ:");
+      expect(childQ?.panditScriptKn).toContain("• ⏳ ನಿಖರ ಕಾಲಾವಧಿ:");
+      expect(childQ?.panditScriptKn).toContain("• 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪೂಜೆ:");
     });
   });
 });
+
