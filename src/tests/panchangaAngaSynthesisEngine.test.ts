@@ -187,9 +187,9 @@ describe("PanchangaAngaSynthesisEngine", () => {
       expect(output.multiParagraphExecutiveReading.length).toBe(4);
       expect(output.multiParagraphExecutiveReading[0]).toContain("ನಾನ್ ನಿಮ್ಮ ಜಾತಕ ನೋಡಿದೆ");
       
-      // 10 Master Life Aspects assertion
+      // 11 Master Life Aspects assertion (including shadow & secret tendencies)
       expect(output.tenLifeAspectBullets).toBeDefined();
-      expect(output.tenLifeAspectBullets.length).toBe(10);
+      expect(output.tenLifeAspectBullets.length).toBe(11);
       const categories = output.tenLifeAspectBullets.map(b => b.category);
       expect(categories).toEqual([
         "personality",
@@ -201,7 +201,8 @@ describe("PanchangaAngaSynthesisEngine", () => {
         "marriage",
         "health",
         "dasha_gochara",
-        "remedy"
+        "remedy",
+        "shadow"
       ]);
       output.tenLifeAspectBullets.forEach(b => {
         expect(b.titleKn).toBeTruthy();
@@ -209,6 +210,13 @@ describe("PanchangaAngaSynthesisEngine", () => {
         expect(b.astrologicalBasisKn).toBeTruthy();
         expect(b.badgeKn).toBeTruthy();
       });
+
+      // Good and Bad Traits Analysis assertion
+      expect(output.goodBadAnalysis).toBeDefined();
+      expect(output.goodBadAnalysis.goodTraits.length).toBeGreaterThanOrEqual(5);
+      expect(output.goodBadAnalysis.badTraits.length).toBeGreaterThanOrEqual(6);
+      expect(output.goodBadAnalysis.secrecyHabitKn).toBeTruthy();
+      expect(output.goodBadAnalysis.gokarnaPrayashchittaKn).toContain("ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ");
 
       // Marriage dosha check
       const marriagePoint = output.tenLifeAspectBullets.find(b => b.category === "marriage");

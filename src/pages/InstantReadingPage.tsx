@@ -316,24 +316,24 @@ STRICT RULES:
         </div>
       </div>
 
-      {/* DEVOTEE PROFILE BANNER */}
-      <div className="relative overflow-hidden rounded-3xl border-2 border-amber-400 bg-gradient-to-r from-neutral-950 via-stone-900 to-amber-950 p-6 text-white shadow-2xl">
-        <div className="absolute -right-16 -top-16 h-44 w-44 rounded-full bg-amber-500/10 blur-2xl" />
+      {/* DEVOTEE PROFILE BANNER - 100% WHITE & GOLD THEME */}
+      <div className="relative overflow-hidden rounded-3xl border-2 border-amber-400 bg-gradient-to-r from-amber-100 via-amber-50 to-yellow-100 p-6 text-stone-950 shadow-xl">
+        <div className="absolute -right-16 -top-16 h-44 w-44 rounded-full bg-amber-300/20 blur-2xl pointer-events-none" />
         <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
-            <span className="inline-block px-3 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[11px] font-black uppercase tracking-wider mb-1.5 border border-amber-500/30">
+            <span className="inline-block px-3 py-0.5 rounded-full bg-amber-500/20 text-amber-950 text-[11px] font-black uppercase tracking-wider mb-1.5 border border-amber-400/60">
               ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ದೈವಜ್ಞ ಸಮಾಲೋಚನೆ ಮಂಡಲ ॥
             </span>
-            <h1 className="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-200 to-amber-400 font-serif">
+            <h1 className="text-2xl md:text-3xl font-black text-amber-950 font-serif">
               {session.input.name || "Devotee"} {isKn ? "ಅವರ ಪ್ರಸ್ತುತ ಜೀವನ ಸ್ಥಿತಿ & ಫಲಿತ ದರ್ಶನ" : "- Live Life Situation Reading"}
             </h1>
-            <p className="text-xs text-stone-300 mt-1">
-              ಲಗ್ನ: <b className="text-amber-200">{toKannadaRashi(session.result.lagnaRashi.english)}</b> • ರಾಶಿ: <b className="text-amber-200">{toKannadaRashi(session.result.moonSign.english)}</b> • ನಕ್ಷತ್ರ: <b className="text-amber-200">{toKannadaNakshatra(session.result.planets.find(p => p.name === "Moon")?.nakshatra.english)} (ಪಾದ {session.result.moonPada})</b> • ಪ್ರಸ್ತುತ ದಶಾ: <b className="text-yellow-300">{cleanAstrologyText(currentDiagnosis?.prasthuthaSthiti.runningDashaSummary.split("|")[0] || "")}</b>
+            <p className="text-xs text-stone-700 mt-1">
+              ಲಗ್ನ: <b className="text-amber-900">{toKannadaRashi(session.result.lagnaRashi.english)}</b> • ರಾಶಿ: <b className="text-amber-900">{toKannadaRashi(session.result.moonSign.english)}</b> • ನಕ್ಷತ್ರ: <b className="text-amber-900">{toKannadaNakshatra(session.result.planets.find(p => p.name === "Moon")?.nakshatra.english)} (ಪಾದ {session.result.moonPada})</b> • ಪ್ರಸ್ತುತ ದಶಾ: <b className="text-amber-800">{cleanAstrologyText(currentDiagnosis?.prasthuthaSthiti.runningDashaSummary.split("|")[0] || "")}</b>
             </p>
           </div>
-          <div className="px-4 py-2 rounded-2xl bg-amber-900/40 border border-amber-400/40 text-right">
-            <span className="text-[10px] text-amber-300 uppercase font-bold block">ಪಂಚಾಂಗ ವಿಶ್ಲೇಷಣೆ</span>
-            <span className="text-sm font-black text-white">100% ಶಾಸ್ತ್ರೋಕ್ತ ಫಲಿತ</span>
+          <div className="px-4 py-2 rounded-2xl bg-amber-200/70 border border-amber-400 text-right">
+            <span className="text-[10px] text-amber-900 uppercase font-black block">ಪಂಚಾಂಗ ವಿಶ್ಲೇಷಣೆ</span>
+            <span className="text-sm font-black text-stone-950">100% ಶಾಸ್ತ್ರೋಕ್ತ ಫಲಿತ</span>
           </div>
         </div>
       </div>
@@ -341,87 +341,223 @@ STRICT RULES:
       {loading ? (
         <Card className="flex flex-col items-center justify-center py-16">
           <GrahaSpinner />
-          <p className="mt-4 text-xs font-semibold text-indigo-950 animate-pulse">
+          <p className="mt-4 text-xs font-semibold text-amber-950 animate-pulse">
             {isKn ? "ಪಂಚಾಂಗದ ಪಂಚ ಅಂಗಗಳು ಹಾಗೂ ದಶಾ-ಗೋಚರ ಸ್ಥಿತಿಯನ್ನು ಲೆಕ್ಕಾಚಾರ ಮಾಡಲಾಗುತ್ತಿದೆ..." : "Computing 5-Angas, Dasha, and Gochara transits..."}
           </p>
         </Card>
       ) : (
         <>
-          {/* 🌟 1. 10 MASTER ASTROLOGICAL LIFE & PERSONALITY REVELATIONS (೧೦ ಪ್ರಮುಖ ಮುಖಾಮುಖಿ ಜ್ಯೋತಿಷ್ಯ ಸತ್ಯಾಂಶಗಳು) 🌟 */}
-          {synthesisData?.tenLifeAspectBullets && (
-            <div className="rounded-3xl border-2 border-amber-400/80 bg-gradient-to-r from-stone-950 via-neutral-900 to-amber-950 p-6 md:p-8 text-white shadow-2xl space-y-6">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-amber-500/30 pb-4">
+          {/* 🌟 1. DEDICATED SECTION: GOOD THINGS ABOUT HIM (ವ್ಯಕ್ತಿಯ ಉತ್ತಮ ಗುಣಗಳು & ದೈವಿಕ ಸಾಮರ್ಥ್ಯಗಳು) 🌟 */}
+          {currentDiagnosis?.goodBadAnalysis?.goodTraits && (
+            <div className="rounded-3xl border-2 border-amber-400 bg-gradient-to-b from-amber-50/70 via-white to-amber-50/40 p-6 md:p-8 text-stone-950 shadow-xl space-y-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-amber-300 pb-4">
                 <div className="flex items-center gap-3">
-                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-600 text-neutral-950 text-2xl shadow-lg border border-amber-300">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-500 text-neutral-950 text-2xl shadow-md border border-amber-300">
+                    🌟
+                  </span>
+                  <div>
+                    <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block">
+                      ॥ ಸದ್ಗುಣ, ಧೈರ್ಯ & ದೈವಿಕ ಆತ್ಮಬಲ ದರ್ಶನ ॥
+                    </span>
+                    <h3 className="text-base md:text-xl font-black text-amber-950 font-serif">
+                      {isKn ? "ವ್ಯಕ್ತಿಯ ಉತ್ತಮ ಗುಣಗಳು & ದೈವಿಕ ಸಾಮರ್ಥ್ಯಗಳು (Good Things & Divine Strengths)" : "Good Things & Divine Strengths"}
+                    </h3>
+                  </div>
+                </div>
+                <span className="px-3.5 py-1.5 rounded-full bg-amber-200/80 text-amber-950 text-xs font-black border border-amber-400 shadow-sm">
+                  {isKn ? "೫ ಪ್ರಮುಖ ಸದ್ಗುಣಗಳು" : "5 Master Virtues"}
+                </span>
+              </div>
+
+              {/* Good Traits Cards Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs md:text-sm">
+                {currentDiagnosis.goodBadAnalysis.goodTraits.map((trait) => (
+                  <div
+                    key={trait.id}
+                    className={`p-5 rounded-2xl border-2 border-amber-300 bg-white space-y-3 shadow-md transition-all hover:border-amber-500 ${
+                      trait.id === 1 ? "md:col-span-2 bg-gradient-to-r from-amber-50/70 via-white to-amber-50/70 border-amber-400" : ""
+                    }`}
+                  >
+                    <div className="flex items-center justify-between border-b border-amber-100 pb-2">
+                      <span className="font-black text-sm flex items-center gap-2 text-amber-950">
+                        <span className="text-lg">{trait.icon}</span>
+                        <span>{trait.id}. {isKn ? trait.titleKn : trait.titleEn}</span>
+                      </span>
+                      <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 font-bold border border-amber-300">
+                        {isKn ? trait.badgeKn : trait.badgeEn}
+                      </span>
+                    </div>
+
+                    <p className="text-stone-800 leading-relaxed font-medium bg-amber-50/50 p-3.5 rounded-xl border border-amber-200/60">
+                      "{cleanAstrologyText(isKn ? trait.bulletKn : trait.bulletEn)}"
+                    </p>
+
+                    <div className="text-[11px] text-amber-900 flex items-center gap-1.5 px-1 font-semibold">
+                      <span>🎯</span>
+                      <span><b>{isKn ? "ಶಾಸ್ತ್ರೀಯ ಆಧಾರ:" : "Astrological Basis:"}</b> {cleanAstrologyText(isKn ? trait.astrologicalBasisKn : trait.astrologicalBasisEn)}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ⚠️ 2. DEDICATED SECTION: BAD THINGS, SHADOW SECRETS & ADDICTIONS (ದೋಷಗಳು, ದುರ್ಬಲತೆಗಳು & ರಹಸ್ಯ ನೆರಳು ಪ್ರವೃತ್ತಿಗಳು) ⚠️ */}
+          {currentDiagnosis?.goodBadAnalysis?.badTraits && (
+            <div className="rounded-3xl border-2 border-rose-300 bg-gradient-to-b from-rose-50/50 via-white to-amber-50/40 p-6 md:p-8 text-stone-950 shadow-xl space-y-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-rose-200 pb-4">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-400 to-amber-500 text-neutral-950 text-2xl shadow-md border border-rose-300">
+                    ⚠️
+                  </span>
+                  <div>
+                    <span className="text-[11px] font-black uppercase tracking-wider text-rose-900 block">
+                      ॥ ನೆರಳು ಕರ್ಮ, ರಹಸ್ಯ ಕಾಮನೆಗಳು & ಪ್ರಾಯಶ್ಚಿತ್ತ ದರ್ಶನ ॥
+                    </span>
+                    <h3 className="text-base md:text-xl font-black text-rose-950 font-serif">
+                      {isKn ? "ವ್ಯಕ್ತಿಯ ದುರ್ಬಲತೆಗಳು, ದೋಷಗಳು & ರಹಸ್ಯ ನೆರಳು ಪ್ರವೃತ್ತಿಗಳು (Bad Things, Shadow Vices & Addictions)" : "Bad Things, Shadow Secrets & Vulnerabilities"}
+                    </h3>
+                  </div>
+                </div>
+                <span className="px-3.5 py-1.5 rounded-full bg-rose-100 text-rose-950 text-xs font-black border border-rose-300 shadow-sm">
+                  {isKn ? "ಎಚ್ಚರಿಕೆ & ಪ್ರಾಯಶ್ಚಿತ್ತ ಸಂಕಲ್ಪ" : "Shadow Pitfalls & Remedies"}
+                </span>
+              </div>
+
+              {/* HIGHLIGHT BANNER 1: SECRET LIFE HABIT (ರಹಸ್ಯ ಜೀವನದ ವರ್ತನೆ) */}
+              {currentDiagnosis.goodBadAnalysis.secrecyHabitKn && (
+                <div className="p-4 rounded-2xl bg-amber-100/70 border-2 border-amber-400 space-y-1.5 shadow-sm">
+                  <div className="flex items-center gap-2 text-amber-950 font-black text-xs md:text-sm">
+                    <span>🎭</span>
+                    <span>{isKn ? "ರಹಸ್ಯ ಜೀವನದ ನಡವಳಿಕೆ & ಸಂವಹನ ಪ್ರವೃತ್ತಿ (Secret Life Habit):" : "Secret Life Expression Dynamic:"}</span>
+                  </div>
+                  <p className="text-xs md:text-sm text-stone-800 leading-relaxed font-medium">
+                    {cleanAstrologyText(isKn ? currentDiagnosis.goodBadAnalysis.secrecyHabitKn : (currentDiagnosis.goodBadAnalysis.secrecyHabitEn || currentDiagnosis.goodBadAnalysis.secrecyHabitKn))}
+                  </p>
+                </div>
+              )}
+
+              {/* HIGHLIGHT BANNER 2: GOKARNA PRAYASHCHITTA (ಶಾಸ್ತ್ರೋಕ್ತ ಪ್ರಾಯಶ್ಚಿತ್ತ ಪರಿಹಾರ) */}
+              {currentDiagnosis.goodBadAnalysis.gokarnaPrayashchittaKn && (
+                <div className="p-4 rounded-2xl bg-gradient-to-r from-yellow-100 via-amber-100 to-amber-50 border-2 border-amber-400 space-y-1.5 shadow-sm">
+                  <div className="flex items-center gap-2 text-amber-950 font-black text-xs md:text-sm">
+                    <span>🕉️</span>
+                    <span>{isKn ? "ಶಾಸ್ತ್ರೋಕ್ತ ಪ್ರಾಯಶ್ಚಿತ್ತ & ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಮುಕ್ತಿ ಪರಿಹಾರ:" : "Authentic Vedic Prayashchitta at Gokarna Kshetra:"}</span>
+                  </div>
+                  <p className="text-xs md:text-sm text-stone-800 leading-relaxed font-medium">
+                    {cleanAstrologyText(isKn ? currentDiagnosis.goodBadAnalysis.gokarnaPrayashchittaKn : (currentDiagnosis.goodBadAnalysis.gokarnaPrayashchittaEn || currentDiagnosis.goodBadAnalysis.gokarnaPrayashchittaKn))}
+                  </p>
+                </div>
+              )}
+
+              {/* Bad Traits Cards Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs md:text-sm">
+                {currentDiagnosis.goodBadAnalysis.badTraits.map((trait) => (
+                  <div
+                    key={trait.id}
+                    className={`p-5 rounded-2xl border-2 border-rose-200 bg-white space-y-3 shadow-md transition-all hover:border-rose-400 ${
+                      trait.id === 6 || trait.id === 7 ? "md:col-span-2 bg-gradient-to-r from-amber-50/80 via-white to-amber-50/80 border-amber-400" : ""
+                    }`}
+                  >
+                    <div className="flex items-center justify-between border-b border-rose-100 pb-2">
+                      <span className="font-black text-sm flex items-center gap-2 text-rose-950">
+                        <span className="text-lg">{trait.icon}</span>
+                        <span>{trait.id}. {isKn ? trait.titleKn : trait.titleEn}</span>
+                      </span>
+                      <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-900 font-bold border border-rose-300">
+                        {isKn ? trait.badgeKn : trait.badgeEn}
+                      </span>
+                    </div>
+
+                    <p className="text-stone-800 leading-relaxed font-medium bg-rose-50/40 p-3.5 rounded-xl border border-rose-100">
+                      "{cleanAstrologyText(isKn ? trait.bulletKn : trait.bulletEn)}"
+                    </p>
+
+                    <div className="text-[11px] text-amber-900 flex items-center gap-1.5 px-1 font-semibold">
+                      <span>🎯</span>
+                      <span><b>{isKn ? "ಶಾಸ್ತ್ರೀಯ ಆಧಾರ:" : "Astrological Basis:"}</b> {cleanAstrologyText(isKn ? trait.astrologicalBasisKn : trait.astrologicalBasisEn)}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 🌟 3. 11 MASTER ASTROLOGICAL LIFE & PERSONALITY REVELATIONS (೧೧ ಪ್ರಮುಖ ಮುಖಾಮುಖಿ ಜ್ಯೋತಿಷ್ಯ ಸತ್ಯಾಂಶಗಳು) 🌟 */}
+          {synthesisData?.tenLifeAspectBullets && (
+            <div className="rounded-3xl border-2 border-amber-400 bg-gradient-to-b from-amber-50/70 via-white to-amber-50/40 p-6 md:p-8 text-stone-950 shadow-xl space-y-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-amber-300 pb-4">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-500 text-neutral-950 text-2xl shadow-md border border-amber-300">
                     👑
                   </span>
                   <div>
-                    <span className="text-[11px] font-black uppercase tracking-wider text-amber-400 block">
+                    <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block">
                       ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ದೈವಜ್ಞ ಮುಖಾಮುಖಿ ದರ್ಶನ ॥
                     </span>
-                    <h3 className="text-base md:text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-300 font-serif">
-                      {isKn ? "೧೦ ಪ್ರಮುಖ ಜ್ಯೋತಿಷ್ಯ ಸತ್ಯಾಂಶಗಳು & ವ್ಯಕ್ತಿತ್ವ ದರ್ಶನ" : "10 Master Astrological Life & Personality Revelations"}
+                    <h3 className="text-base md:text-xl font-black text-amber-950 font-serif">
+                      {isKn ? `${synthesisData.tenLifeAspectBullets.length} ಪ್ರಮುಖ ಜ್ಯೋತಿಷ್ಯ ಸತ್ಯಾಂಶಗಳು & ವ್ಯಕ್ತಿತ್ವ ದರ್ಶನ` : `${synthesisData.tenLifeAspectBullets.length} Master Astrological Life & Personality Revelations`}
                     </h3>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-black border border-amber-500/40">
+                  <span className="px-3.5 py-1.5 rounded-full bg-amber-200/80 text-amber-950 text-xs font-black border border-amber-400 shadow-sm">
                     {isKn ? "೧೦೦% ನೈಜ ಜಾತಕ ಫಲಿತ" : "100% Dynamic Vedic Truth"}
                   </span>
                 </div>
               </div>
 
-              {/* 10 Dynamic Cards Grid */}
+              {/* Dynamic Cards Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs md:text-sm">
                 {synthesisData.tenLifeAspectBullets.map((bullet) => (
                   <div
                     key={bullet.id}
-                    className={`p-5 rounded-2xl border space-y-3 shadow-lg transition-all ${
-                      bullet.id === 1 || bullet.id === 10
-                        ? "md:col-span-2 bg-gradient-to-r from-amber-950/40 via-white/[0.08] to-amber-950/40 border-amber-400/60 ring-1 ring-amber-400/30"
+                    className={`p-5 rounded-2xl border-2 space-y-3 shadow-md transition-all ${
+                      bullet.id === 1 || bullet.id === 10 || bullet.id === 11
+                        ? "md:col-span-2 bg-gradient-to-r from-amber-50/90 via-white to-amber-50/90 border-amber-400 ring-1 ring-amber-300"
                         : bullet.doshaSpecifics?.hasDosha
-                        ? "bg-white/[0.08] border-rose-400/50 ring-1 ring-rose-400/30"
-                        : "bg-white/[0.06] border-emerald-500/30 hover:border-amber-400/40"
+                        ? "bg-white border-rose-300 ring-1 ring-rose-200"
+                        : "bg-white border-amber-200 hover:border-amber-400"
                     }`}
                   >
                     {/* CARD HEADER */}
-                    <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
-                      <span className="font-black text-sm flex items-center gap-2 text-amber-300">
+                    <div className="flex items-center justify-between border-b border-amber-100 pb-2.5">
+                      <span className="font-black text-sm flex items-center gap-2 text-amber-950">
                         <span className="text-lg">{bullet.icon}</span>
                         <span>{bullet.id}. {isKn ? bullet.titleKn : bullet.titleEn}</span>
                       </span>
-                      <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-200 font-bold border border-amber-400/30">
+                      <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 font-bold border border-amber-300">
                         {isKn ? bullet.badgeKn : bullet.badgeEn}
                       </span>
                     </div>
 
                     {/* READING BODY */}
-                    <p className="text-slate-100 leading-relaxed font-medium bg-black/25 p-3.5 rounded-xl border border-white/5">
+                    <p className="text-stone-800 leading-relaxed font-medium bg-amber-50/60 p-3.5 rounded-xl border border-amber-200/60">
                       "{cleanAstrologyText(isKn ? bullet.readingKn : bullet.readingEn)}"
                     </p>
 
                     {/* ASTROLOGICAL FOUNDATION FOOTER */}
-                    <div className="text-[11px] text-amber-200/90 flex items-center gap-1.5 px-1">
+                    <div className="text-[11px] text-amber-900 flex items-center gap-1.5 px-1 font-semibold">
                       <span>🎯</span>
                       <span><b>{isKn ? "ಶಾಸ್ತ್ರೀಯ ಆಧಾರ:" : "Astrological Basis:"}</b> {cleanAstrologyText(isKn ? bullet.astrologicalBasisKn : bullet.astrologicalBasisEn)}</span>
                     </div>
 
                     {/* DEDICATED DOSHA & REMEDY BOX IF AFFLICTED */}
                     {bullet.doshaSpecifics?.hasDosha && (
-                      <div className="p-3.5 rounded-xl bg-gradient-to-r from-rose-950/60 to-amber-950/60 border border-rose-400/50 space-y-2 text-xs text-stone-200">
-                        <div className="flex items-center justify-between border-b border-rose-400/30 pb-1.5">
-                          <span className="text-rose-300 font-black text-xs flex items-center gap-1.5">
+                      <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-300 space-y-2 text-xs text-stone-800 shadow-sm">
+                        <div className="flex items-center justify-between border-b border-rose-200 pb-1.5">
+                          <span className="text-rose-900 font-black text-xs flex items-center gap-1.5">
                             <span>⚠️</span>
                             <span>{isKn ? "ನಿರ್ದಿಷ್ಟ ದೋಷ:" : "Detected Dosha:"} {isKn ? bullet.doshaSpecifics.doshaNameKn : bullet.doshaSpecifics.doshaNameEn}</span>
                           </span>
-                          <span className="text-[10px] px-2 py-0.5 rounded bg-rose-500/20 text-rose-200 font-bold">
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-rose-200 text-rose-950 font-bold">
                             {isKn ? "ಪರಿಹಾರ ಅಗತ್ಯ" : "Remedy Recommended"}
                           </span>
                         </div>
                         <div className="space-y-1 text-[11px]">
                           <p><b>{isKn ? "ಮೂಲ ಕಾರಣ & ಸ್ಥಾನ:" : "Root Cause & House:"}</b> {isKn ? bullet.doshaSpecifics.rootCauseHouseKn : bullet.doshaSpecifics.rootCauseHouseEn} ({isKn ? bullet.doshaSpecifics.afflictedPlanetKn : bullet.doshaSpecifics.afflictedPlanetEn})</p>
-                          <p className="text-amber-300"><b>{isKn ? "ದೈವಿಕ ಬೀಜ ಮಂತ್ರ:" : "Beeja Mantra:"}</b> {isKn ? bullet.doshaSpecifics.mantraKn : bullet.doshaSpecifics.mantraEn}</p>
-                          <p className="text-emerald-300"><b>{isKn ? "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಪೂಜೆ:" : "Gokarna Kshetra Pooja:"}</b> {isKn ? bullet.doshaSpecifics.pujaKn : bullet.doshaSpecifics.pujaEn}</p>
+                          <p className="text-amber-900"><b>{isKn ? "ದೈವಿಕ ಬೀಜ ಮಂತ್ರ:" : "Beeja Mantra:"}</b> {isKn ? bullet.doshaSpecifics.mantraKn : bullet.doshaSpecifics.mantraEn}</p>
+                          <p className="text-emerald-900"><b>{isKn ? "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಪೂಜೆ:" : "Gokarna Kshetra Pooja:"}</b> {isKn ? bullet.doshaSpecifics.pujaKn : bullet.doshaSpecifics.pujaEn}</p>
                         </div>
                       </div>
                     )}
@@ -654,36 +790,36 @@ STRICT RULES:
             </div>
           )}
 
-          {/* 5. YAJNA, HAWANA, SANDHI & PITRU DOSHA PARIHARA HUB */}
+          {/* 5. YAJNA, HAWANA, SANDHI & PITRU DOSHA PARIHARA HUB - WHITE & GOLD THEME */}
           {yajnaHawanaPlan && (
-            <div className="rounded-3xl border-2 border-amber-500/80 bg-gradient-to-b from-stone-950 via-neutral-900 to-stone-950 p-6 md:p-8 text-white shadow-2xl space-y-7">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-amber-500/30 pb-4">
+            <div className="rounded-3xl border-2 border-amber-400 bg-gradient-to-b from-amber-50/80 via-white to-amber-50/40 p-6 md:p-8 text-stone-950 shadow-xl space-y-7">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-amber-300 pb-4">
                 <div className="flex items-center gap-3">
-                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/20 text-amber-300 text-3xl shadow-inner border border-amber-500/40">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-500 text-neutral-950 text-3xl shadow-md border border-amber-300">
                     🔥
                   </span>
                   <div>
-                    <span className="text-[11px] font-black uppercase tracking-wider text-amber-400 block">
+                    <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block">
                       {isKn ? "॥ ದೈವಿಕ ಯಜ್ಞ, ಹವನ, ಸಂಧಿ & ಪಿತೃ ಮುಕ್ತಿ ಸಂಕಲ್ಪ ಮಂಡಲ ॥" : "Vedic Yajna, Hawana & Ancestral Liberation Hub"}
                     </span>
-                    <h3 className="text-lg md:text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-200 to-amber-400 font-serif">
+                    <h3 className="text-lg md:text-xl font-black text-amber-950 font-serif">
                       {isKn ? "ಜಾತಕ ಶಾಸ್ತ್ರೋಕ್ತ ಪಿತೃ ಕಾರ್ಯ & ದೇವತಾ ಯಜ್ಞ-ಹವನಗಳು" : "Chart-Specific Pitru Karya & Deva Yajna Prescriptions"}
                     </h3>
                   </div>
                 </div>
-                <span className="px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-black border border-amber-500/40">
+                <span className="px-3.5 py-1.5 rounded-full bg-amber-200/80 text-amber-950 text-xs font-black border border-amber-400 shadow-sm">
                   {isKn ? "ಶಾಸ್ತ್ರೋಕ್ತ ಪ್ರತ್ಯೇಕ ವಿಭಾಗಗಳು" : "Vedic Separate Domains"}
                 </span>
               </div>
 
               {/* SHASTRA RULE ALERT BANNER */}
-              <div className="p-4 rounded-2xl bg-amber-950/30 border border-amber-500/40 flex items-start gap-3 text-xs text-amber-200">
+              <div className="p-4 rounded-2xl bg-amber-100/70 border-2 border-amber-400 flex items-start gap-3 text-xs text-amber-950 shadow-sm">
                 <span className="text-xl">📜</span>
                 <div>
-                  <b className="block text-amber-300 font-bold mb-0.5">
+                  <b className="block text-amber-950 font-bold mb-0.5">
                     {isKn ? "ಧರ್ಮಶಾಸ್ತ್ರದ ಕಟ್ಟುನಿಟ್ಟಿನ ನಿಯಮ (Strict Shastra Separation Rule):" : "Vedic Shastra Rule on Pitru vs Deva Karya:"}
                   </b>
-                  <p className="text-stone-300 leading-relaxed text-[11px]">
+                  <p className="text-stone-800 leading-relaxed text-[11px]">
                     {cleanAstrologyText(yajnaHawanaPlan.pitruDoshaAssessment.shastraSeparationRuleKn)}
                   </p>
                 </div>
@@ -692,44 +828,44 @@ STRICT RULES:
               {/* ---------------------------------------------------- */}
               {/* SECTION A: PITRU KARYA SANCTUARY (ಪಿತೃ ಮುಕ್ತಿ & ಅಪರ ಕರ್ಮ) */}
               {/* ---------------------------------------------------- */}
-              <div className="rounded-2xl border border-amber-500/40 bg-black/40 p-5 space-y-4">
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-500/20 pb-3">
+              <div className="rounded-2xl border-2 border-amber-300 bg-amber-50/50 p-5 space-y-4 shadow-sm">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-200 pb-3">
                   <div className="flex items-center gap-2">
                     <span className="text-2xl">🌾</span>
                     <div>
-                      <span className="text-[10px] font-black uppercase text-amber-400 tracking-wider block">
+                      <span className="text-[10px] font-black uppercase text-amber-900 tracking-wider block">
                         {isKn ? "ವಿಭಾಗ ೧: ಅಪರ ಕರ್ಮ / ಮುಕ್ತಿ" : "Domain 1: Ancestral Mukti"}
                       </span>
-                      <h4 className="text-base font-black text-amber-200 font-serif">
+                      <h4 className="text-base font-black text-amber-950 font-serif">
                         {isKn ? "ಪಿತೃ ಮುಕ್ತಿ & ಪೂರ್ವಜರ ಶಾಂತಿ ಸಂಕಲ್ಪ (ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥ)" : "Pitru Mukti & Ancestral Peace Seva"}
                       </h4>
                     </div>
                   </div>
-                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${yajnaHawanaPlan.pitruDoshaAssessment.hasPitruDosha ? "bg-amber-500/20 text-amber-300 border border-amber-500/40" : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"}`}>
+                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${yajnaHawanaPlan.pitruDoshaAssessment.hasPitruDosha ? "bg-amber-200 text-amber-950 border border-amber-400" : "bg-emerald-100 text-emerald-950 border border-emerald-300"}`}>
                     {yajnaHawanaPlan.pitruDoshaAssessment.severityLabelKn}
                   </span>
                 </div>
 
-                <p className="text-xs md:text-sm text-stone-200 leading-relaxed">
+                <p className="text-xs md:text-sm text-stone-700 leading-relaxed">
                   {cleanAstrologyText(yajnaHawanaPlan.pitruDoshaAssessment.detailedExplanationKn)}
                 </p>
 
                 {yajnaHawanaPlan.pitruDoshaAssessment.hasPitruDosha && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1 text-xs">
-                    <div className="p-3 rounded-xl bg-stone-900/80 border border-amber-500/20">
-                      <b className="text-amber-300 block mb-1">🔍 ಜಾತಕದಲ್ಲಿ ಕಂಡ ಕಾರಣಗಳು:</b>
-                      <ul className="list-disc list-inside space-y-1 text-stone-300 text-[11px]">
+                    <div className="p-3 rounded-xl bg-white border border-amber-300 shadow-sm">
+                      <b className="text-amber-950 block mb-1">🔍 ಜಾತಕದಲ್ಲಿ ಕಂಡ ಕಾರಣಗಳು:</b>
+                      <ul className="list-disc list-inside space-y-1 text-stone-700 text-[11px]">
                         {yajnaHawanaPlan.pitruDoshaAssessment.reasonsKn.map((r, i) => (
                           <li key={i}>{cleanAstrologyText(r)}</li>
                         ))}
                       </ul>
                     </div>
-                    <div className="p-3 rounded-xl bg-stone-900/80 border border-amber-500/20">
-                      <b className="text-amber-300 block mb-1">🪔 ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಸೂಚಿಸಿದ ವಿಧಿ:</b>
-                      <p className="text-amber-100 font-semibold text-[11px]">
+                    <div className="p-3 rounded-xl bg-white border border-amber-300 shadow-sm">
+                      <b className="text-amber-950 block mb-1">🪔 ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಸೂಚಿಸಿದ ವಿಧಿ:</b>
+                      <p className="text-amber-950 font-semibold text-[11px]">
                         {cleanAstrologyText(yajnaHawanaPlan.pitruDoshaAssessment.suggestedKaryaKn)}
                       </p>
-                      <p className="text-[10px] text-stone-400 mt-1">
+                      <p className="text-[10px] text-stone-600 mt-1">
                         {cleanAstrologyText(yajnaHawanaPlan.pitruDoshaAssessment.gokarnaSignificanceKn)}
                       </p>
                     </div>
@@ -742,34 +878,34 @@ STRICT RULES:
                     {yajnaHawanaPlan.pitruKaryas.map((item) => (
                       <div
                         key={item.id}
-                        className="p-4 rounded-xl border border-amber-500/30 bg-stone-900/60 space-y-2.5 text-xs shadow"
+                        className="p-4 rounded-xl border-2 border-amber-300 bg-white space-y-2.5 text-xs shadow-sm"
                       >
                         <div className="flex items-center gap-2">
                           <span className="text-xl">{item.icon}</span>
                           <div>
-                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold uppercase block">
+                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 font-bold uppercase block">
                               {cleanAstrologyText(item.categoryLabelKn)}
                             </span>
-                            <h5 className="text-xs font-black text-white font-serif mt-0.5">
+                            <h5 className="text-xs font-black text-amber-950 font-serif mt-0.5">
                               {cleanAstrologyText(item.nameKn)}
                             </h5>
                           </div>
                         </div>
 
                         <div className="space-y-1.5 text-[11px]">
-                          <div className="p-2 rounded-lg bg-black/40 border border-white/5">
-                            <b className="text-amber-300 block text-[10px]">📌 ಜಾತಕ ಕಾರಣ:</b>
-                            <p className="text-stone-300">{cleanAstrologyText(item.astrologicalRootCauseKn)}</p>
+                          <div className="p-2 rounded-lg bg-amber-50/60 border border-amber-200">
+                            <b className="text-amber-950 block text-[10px]">📌 ಜಾತಕ ಕಾರಣ:</b>
+                            <p className="text-stone-700">{cleanAstrologyText(item.astrologicalRootCauseKn)}</p>
                           </div>
-                          <div className="p-2 rounded-lg bg-black/40 border border-white/5">
-                            <b className="text-amber-300 block text-[10px]">🪔 ಗೋಕರ್ಣ ವಿಧಿ:</b>
-                            <p className="text-stone-300">{cleanAstrologyText(item.sacredProcedureKn)}</p>
+                          <div className="p-2 rounded-lg bg-amber-50/60 border border-amber-200">
+                            <b className="text-amber-950 block text-[10px]">🪔 ಗೋಕರ್ಣ ವಿಧಿ:</b>
+                            <p className="text-stone-700">{cleanAstrologyText(item.sacredProcedureKn)}</p>
                           </div>
-                          <div className="p-2 rounded-lg bg-emerald-950/40 border border-emerald-500/20">
-                            <b className="text-emerald-300 block text-[10px]">✨ ನಿರೀಕ್ಷಿತ ಫಲ:</b>
-                            <p className="text-emerald-100">{cleanAstrologyText(item.expectedShiftsAfterPoojaKn)}</p>
+                          <div className="p-2 rounded-lg bg-emerald-50 border border-emerald-200">
+                            <b className="text-emerald-950 block text-[10px]">✨ ನಿರೀಕ್ಷಿತ ಫಲ:</b>
+                            <p className="text-emerald-900">{cleanAstrologyText(item.expectedShiftsAfterPoojaKn)}</p>
                           </div>
-                          <p className="text-[10px] text-stone-400 italic pt-0.5">
+                          <p className="text-[10px] text-stone-600 italic pt-0.5">
                             {cleanAstrologyText(item.priestSecretNoteKn)}
                           </p>
                         </div>
@@ -782,14 +918,14 @@ STRICT RULES:
               {/* ---------------------------------------------------- */}
               {/* SECTION B: DEVA KARYA SANCTUARY (ದೇವತಾ ಯಜ್ಞ & ಶುಭ ಹವನ) */}
               {/* ---------------------------------------------------- */}
-              <div className="rounded-2xl border border-indigo-500/40 bg-black/40 p-5 space-y-4">
-                <div className="flex items-center gap-2 border-b border-indigo-500/20 pb-3">
+              <div className="rounded-2xl border-2 border-amber-300 bg-amber-50/50 p-5 space-y-4 shadow-sm">
+                <div className="flex items-center gap-2 border-b border-amber-200 pb-3">
                   <span className="text-2xl">🔱</span>
                   <div>
-                    <span className="text-[10px] font-black uppercase text-indigo-400 tracking-wider block">
+                    <span className="text-[10px] font-black uppercase text-amber-900 tracking-wider block">
                       {isKn ? "ವಿಭಾಗ ೨: ಶುಭ ಕರ್ಮ / ದೈವ ಯಜ್ಞ" : "Domain 2: Divine Yajna"}
                     </span>
-                    <h4 className="text-base font-black text-indigo-200 font-serif">
+                    <h4 className="text-base font-black text-amber-950 font-serif">
                       {isKn ? "ದೇವತಾ ಯಜ್ಞ, ಶುಭ ಹವನಗಳು & ಮಹಾಬಲೇಶ್ವರ ರುದ್ರಾಭಿಷೇಕ" : "Divine Yajna, Hawana & Atmalinga Abhisheka"}
                     </h4>
                   </div>
@@ -800,44 +936,44 @@ STRICT RULES:
                   {yajnaHawanaPlan.devaHomas.map((homa) => (
                     <div
                       key={homa.id}
-                      className={`p-5 rounded-2xl border ${homa.isUrgentPrimary ? "border-indigo-400/80 bg-gradient-to-br from-indigo-950/40 via-neutral-900 to-black ring-1 ring-indigo-400/30" : "border-white/10 bg-white/[0.04]"} space-y-3 shadow-lg`}
+                      className={`p-5 rounded-2xl border-2 ${homa.isUrgentPrimary ? "border-amber-400 bg-gradient-to-br from-amber-50 via-white to-amber-50 ring-1 ring-amber-300 shadow-md" : "border-amber-200 bg-white shadow-sm"} space-y-3`}
                     >
-                      <div className="flex items-start justify-between gap-2 border-b border-white/10 pb-2.5">
+                      <div className="flex items-start justify-between gap-2 border-b border-amber-100 pb-2.5">
                         <div className="flex items-center gap-2">
                           <span className="text-2xl">{homa.icon}</span>
                           <div>
-                            <span className="text-[10px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-bold uppercase block mb-1">
+                            <span className="text-[10px] px-2 py-0.5 rounded bg-amber-100 text-amber-900 font-bold uppercase block mb-1 border border-amber-300">
                               {cleanAstrologyText(homa.categoryLabelKn)}
                             </span>
-                            <h5 className="text-sm font-black text-white font-serif">
+                            <h5 className="text-sm font-black text-amber-950 font-serif">
                               {cleanAstrologyText(homa.nameKn)}
                             </h5>
                           </div>
                         </div>
                         {homa.isUrgentPrimary && (
-                          <span className="px-2 py-0.5 rounded bg-indigo-500/30 text-indigo-200 text-[10px] font-bold border border-indigo-500/50 whitespace-nowrap">
+                          <span className="px-2 py-0.5 rounded bg-amber-200 text-amber-950 text-[10px] font-bold border border-amber-400 whitespace-nowrap">
                             {isKn ? "ಮುಖ್ಯ ಯಜ್ಞ" : "Primary"}
                           </span>
                         )}
                       </div>
 
                       <div className="space-y-2 text-xs">
-                        <div className="p-2.5 rounded-xl bg-black/30 border border-white/5">
-                          <b className="text-indigo-300 block text-[11px] mb-0.5">📌 ಜಾತಕದ ಶಾಸ್ತ್ರೀಯ ಕಾರಣ:</b>
-                          <p className="text-stone-300 leading-relaxed">{cleanAstrologyText(homa.astrologicalRootCauseKn)}</p>
+                        <div className="p-2.5 rounded-xl bg-amber-50/60 border border-amber-200">
+                          <b className="text-amber-950 block text-[11px] mb-0.5">📌 ಜಾತಕದ ಶಾಸ್ತ್ರೀಯ ಕಾರಣ:</b>
+                          <p className="text-stone-700 leading-relaxed">{cleanAstrologyText(homa.astrologicalRootCauseKn)}</p>
                         </div>
 
-                        <div className="p-2.5 rounded-xl bg-black/30 border border-white/5">
-                          <b className="text-indigo-300 block text-[11px] mb-0.5">🪔 ದೈವಿಕ ಸಂಕಲ್ಪ & ಹವನ ವಿಧಾನ:</b>
-                          <p className="text-stone-300 leading-relaxed">{cleanAstrologyText(homa.sacredProcedureKn)}</p>
+                        <div className="p-2.5 rounded-xl bg-amber-50/60 border border-amber-200">
+                          <b className="text-amber-950 block text-[11px] mb-0.5">🪔 ದೈವಿಕ ಸಂಕಲ್ಪ & ಹವನ ವಿಧಾನ:</b>
+                          <p className="text-stone-700 leading-relaxed">{cleanAstrologyText(homa.sacredProcedureKn)}</p>
                         </div>
 
-                        <div className="p-2.5 rounded-xl bg-emerald-950/30 border border-emerald-500/20">
-                          <b className="text-emerald-300 block text-[11px] mb-0.5">✨ ನಿರೀಕ್ಷಿಸಬಹುದಾದ ಬದಲಾವಣೆಗಳು:</b>
-                          <p className="text-emerald-100 leading-relaxed">{cleanAstrologyText(homa.expectedShiftsAfterPoojaKn)}</p>
+                        <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200">
+                          <b className="text-emerald-950 block text-[11px] mb-0.5">✨ ನಿರೀಕ್ಷಿಸಬಹುದಾದ ಬದಲಾವಣೆಗಳು:</b>
+                          <p className="text-emerald-900 leading-relaxed">{cleanAstrologyText(homa.expectedShiftsAfterPoojaKn)}</p>
                         </div>
 
-                        <div className="pt-1 text-[11px] text-stone-400 italic">
+                        <div className="pt-1 text-[11px] text-stone-600 italic">
                           {cleanAstrologyText(homa.priestSecretNoteKn)}
                         </div>
                       </div>
@@ -849,17 +985,17 @@ STRICT RULES:
               {/* ---------------------------------------------------- */}
               {/* SECTION C: 2-STAGE SACRED SCHEDULE TIMELINE */}
               {/* ---------------------------------------------------- */}
-              <div className="p-5 rounded-2xl border border-yellow-500/50 bg-gradient-to-r from-amber-950/60 via-yellow-950/40 to-neutral-900 space-y-4">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-yellow-500/30 pb-2">
+              <div className="p-5 rounded-2xl border-2 border-amber-400 bg-gradient-to-r from-amber-100/80 via-yellow-50 to-amber-100/80 space-y-4 shadow-sm">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-amber-300 pb-2">
                   <div>
-                    <span className="text-[10px] uppercase tracking-wider text-yellow-400 font-bold block">
+                    <span className="text-[10px] uppercase tracking-wider text-amber-950 font-bold block">
                       {isKn ? "॥ ಶಾಸ್ತ್ರೋಕ್ತ ಬಹು-ದಿನದ ಸಂಪುಟ ಯೋಜನೆ ॥" : "Vedic Multi-Day Sacred Schedule"}
                     </span>
-                    <h4 className="text-base font-black text-yellow-200 font-serif">
+                    <h4 className="text-base font-black text-amber-950 font-serif">
                       {cleanAstrologyText(yajnaHawanaPlan.combinedSchedule.titleKn)}
                     </h4>
                   </div>
-                  <span className="text-xs px-3 py-1 rounded-full bg-yellow-500/20 text-yellow-300 font-bold border border-yellow-500/40">
+                  <span className="text-xs px-3 py-1 rounded-full bg-amber-200 text-amber-950 font-bold border border-amber-400 shadow-sm">
                     {yajnaHawanaPlan.combinedSchedule.scheduleType === "two_stage_multi_day" ? (isKn ? "೨-ಹಂತದ ಶಾಸ್ತ್ರೀಯ ಯೋಜನೆ" : "2-Stage Schedule") : (isKn ? "ಏಕದಿನ ದೇವತಾ ಸಂಪುಟ" : "1-Day Samputa")}
                   </span>
                 </div>
@@ -868,89 +1004,89 @@ STRICT RULES:
                 {yajnaHawanaPlan.combinedSchedule.scheduleType === "two_stage_multi_day" && yajnaHawanaPlan.combinedSchedule.stage1PitruKarya && (
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
                     {/* STAGE 1: PITRU KARYA */}
-                    <div className="p-3.5 rounded-xl bg-black/50 border border-amber-500/40 space-y-2">
+                    <div className="p-3.5 rounded-xl bg-white border-2 border-amber-300 space-y-2 shadow-sm">
                       <div className="flex items-center justify-between">
-                        <span className="px-2 py-0.5 rounded bg-amber-500/30 text-amber-200 font-bold text-[10px]">
+                        <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-950 font-bold text-[10px] border border-amber-300">
                           {cleanAstrologyText(yajnaHawanaPlan.combinedSchedule.stage1PitruKarya.dayLabelKn)}
                         </span>
                         <span>🌾</span>
                       </div>
-                      <b className="text-amber-300 block text-xs">{cleanAstrologyText(yajnaHawanaPlan.combinedSchedule.stage1PitruKarya.placeKn)}</b>
+                      <b className="text-amber-950 block text-xs">{cleanAstrologyText(yajnaHawanaPlan.combinedSchedule.stage1PitruKarya.placeKn)}</b>
                       <div className="flex flex-wrap gap-1">
                         {yajnaHawanaPlan.combinedSchedule.stage1PitruKarya.ritualsKn.map((r, i) => (
-                          <span key={i} className="px-2 py-0.5 rounded bg-amber-950 border border-amber-500/30 text-amber-100 text-[10px]">
+                          <span key={i} className="px-2 py-0.5 rounded bg-amber-50 border border-amber-300 text-amber-950 text-[10px]">
                             {cleanAstrologyText(r)}
                           </span>
                         ))}
                       </div>
-                      <p className="text-[11px] text-stone-300 leading-relaxed">
+                      <p className="text-[11px] text-stone-700 leading-relaxed">
                         {cleanAstrologyText(yajnaHawanaPlan.combinedSchedule.stage1PitruKarya.descriptionKn)}
                       </p>
                     </div>
 
                     {/* REST & SHUDDHI DAY */}
                     {yajnaHawanaPlan.combinedSchedule.restPeriodShuddhi && (
-                      <div className="p-3.5 rounded-xl bg-stone-900/90 border border-white/20 space-y-2">
+                      <div className="p-3.5 rounded-xl bg-white border-2 border-stone-300 space-y-2 shadow-sm">
                         <div className="flex items-center justify-between">
-                          <span className="px-2 py-0.5 rounded bg-stone-700 text-stone-200 font-bold text-[10px]">
+                          <span className="px-2 py-0.5 rounded bg-stone-100 text-stone-800 font-bold text-[10px] border border-stone-300">
                             {cleanAstrologyText(yajnaHawanaPlan.combinedSchedule.restPeriodShuddhi.dayLabelKn)}
                           </span>
                           <span>🌊</span>
                         </div>
-                        <b className="text-stone-300 block text-xs">ಆಶೌಚ ನಿವೃತ್ತಿ & ಸಾಗರ ತೀರ್ಥ ಸ್ನಾನ</b>
-                        <p className="text-[11px] text-stone-300 leading-relaxed">
+                        <b className="text-stone-900 block text-xs">ಆಶೌಚ ನಿವೃತ್ತಿ & ಸಾಗರ ತೀರ್ಥ ಸ್ನಾನ</b>
+                        <p className="text-[11px] text-stone-700 leading-relaxed">
                           {cleanAstrologyText(yajnaHawanaPlan.combinedSchedule.restPeriodShuddhi.descriptionKn)}
                         </p>
-                        <p className="text-[10px] text-amber-300 font-semibold italic border-t border-white/10 pt-1">
+                        <p className="text-[10px] text-amber-900 font-semibold italic border-t border-stone-200 pt-1">
                           {cleanAstrologyText(yajnaHawanaPlan.combinedSchedule.restPeriodShuddhi.shastraRuleKn)}
                         </p>
                       </div>
                     )}
 
                     {/* STAGE 2: DEVA KARYA */}
-                    <div className="p-3.5 rounded-xl bg-black/50 border border-indigo-500/40 space-y-2">
+                    <div className="p-3.5 rounded-xl bg-white border-2 border-amber-300 space-y-2 shadow-sm">
                       <div className="flex items-center justify-between">
-                        <span className="px-2 py-0.5 rounded bg-indigo-500/30 text-indigo-200 font-bold text-[10px]">
+                        <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-950 font-bold text-[10px] border border-amber-300">
                           {cleanAstrologyText(yajnaHawanaPlan.combinedSchedule.stage2DevaKarya.dayLabelKn)}
                         </span>
                         <span>🔱</span>
                       </div>
-                      <b className="text-indigo-300 block text-xs">{cleanAstrologyText(yajnaHawanaPlan.combinedSchedule.stage2DevaKarya.placeKn)}</b>
+                      <b className="text-amber-950 block text-xs">{cleanAstrologyText(yajnaHawanaPlan.combinedSchedule.stage2DevaKarya.placeKn)}</b>
                       <div className="flex flex-wrap gap-1">
                         {yajnaHawanaPlan.combinedSchedule.stage2DevaKarya.ritualsKn.map((r, i) => (
-                          <span key={i} className="px-2 py-0.5 rounded bg-indigo-950 border border-indigo-500/30 text-indigo-100 text-[10px]">
+                          <span key={i} className="px-2 py-0.5 rounded bg-amber-50 border border-amber-300 text-amber-950 text-[10px]">
                             {cleanAstrologyText(r)}
                           </span>
                         ))}
                       </div>
-                      <p className="text-[11px] text-stone-300 leading-relaxed">
+                      <p className="text-[11px] text-stone-700 leading-relaxed">
                         {cleanAstrologyText(yajnaHawanaPlan.combinedSchedule.stage2DevaKarya.descriptionKn)}
                       </p>
                     </div>
                   </div>
                 )}
 
-                <p className="text-xs md:text-sm text-stone-200 leading-relaxed">
+                <p className="text-xs md:text-sm text-stone-700 leading-relaxed">
                   {cleanAstrologyText(yajnaHawanaPlan.combinedSchedule.synergyExplanationKn)}
                 </p>
 
-                <p className="text-xs text-yellow-300 font-medium">
+                <p className="text-xs text-amber-950 font-bold">
                   🗓️ <b>{isKn ? "ಶಿಫಾರಸು ಮಾಡಿದ ಶುಭ ಮುಹೂರ್ತ:" : "Recommended Muhurtha:"}</b> {cleanAstrologyText(yajnaHawanaPlan.combinedSchedule.recommendedMuhurthaKn)}
                 </p>
               </div>
             </div>
           )}
 
-          {/* 6. INTERACTIVE VOICE & CUSTOM QUESTION BOX */}
-          <div className="rounded-3xl border border-indigo-200 bg-gradient-to-b from-indigo-950 to-slate-950 p-6 md:p-8 text-white shadow-2xl space-y-5">
+          {/* 6. INTERACTIVE VOICE & CUSTOM QUESTION BOX - WHITE & GOLD THEME */}
+          <div className="rounded-3xl border-2 border-amber-400 bg-gradient-to-b from-amber-100/70 via-white to-amber-50 p-6 md:p-8 text-stone-950 shadow-xl space-y-5">
             <div>
-              <span className="inline-block px-3 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-black uppercase tracking-wider mb-1.5 border border-amber-500/30">
+              <span className="inline-block px-3 py-0.5 rounded-full bg-amber-200 text-amber-950 text-[10px] font-black uppercase tracking-wider mb-1.5 border border-amber-400">
                 🎙️ {isKn ? "ದೈವಜ್ಞ ನೇರ ಪ್ರಶ್ನೋತ್ತರ ಪೆಟ್ಟಿಗೆ" : "Direct Astrologer Q&A"}
               </span>
-              <h3 className="text-xl md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-300 font-serif">
+              <h3 className="text-xl md:text-2xl font-black text-amber-950 font-serif">
                 {isKn ? "ಯಾವುದೇ ಹೊಸ ಪ್ರಶ್ನೆಯನ್ನು ಕೇಳಿ (ಧ್ವನಿ ಅಥವಾ ಟೈಪ್ ಮೂಲಕ)" : "Ask Any Specific Follow-up Question"}
               </h3>
-              <p className="text-xs text-slate-300 mt-1">
+              <p className="text-xs text-stone-700 mt-1">
                 {isKn 
                   ? "ಕ್ಲೈಂಟ್ ಕೇಳುವ ಯಾವುದೇ ಅನಿರೀಕ್ಷಿತ ಪ್ರಶ್ನೆಗೆ ಮೈಕ್ ಮೂಲಕ ಅಥವಾ ಟೈಪ್ ಮಾಡಿ 100% ಶಾಸ್ತ್ರೋಕ್ತ ಉತ್ತರ ಪಡೆಯಿರಿ."
                   : "Get accurate, direct answers for any client follow-up question based on their chart."}
@@ -958,7 +1094,7 @@ STRICT RULES:
             </div>
 
             {/* INPUT BOX */}
-            <div className="flex items-center gap-2 bg-white/10 p-2 rounded-2xl border border-white/20 focus-within:border-amber-400">
+            <div className="flex items-center gap-2 bg-white p-2 rounded-2xl border-2 border-amber-300 focus-within:border-amber-500 shadow-sm">
               <input
                 type="text"
                 value={questionInput}
@@ -967,7 +1103,7 @@ STRICT RULES:
                   if (e.key === "Enter" && !answering) void handleAskQuestion();
                 }}
                 placeholder={isKn ? "ನಿಮ್ಮ ಪ್ರಶ್ನೆಯನ್ನು ಇಲ್ಲಿ ಟೈಪ್ ಮಾಡಿ ಅಥವಾ ಮೈಕ್ ಕ್ಲಿಕ್ ಮಾಡಿ..." : "Type your question or click mic..."}
-                className="flex-1 bg-transparent px-3 py-2 text-sm text-white placeholder-slate-400 focus:outline-none"
+                className="flex-1 bg-transparent px-3 py-2 text-sm text-stone-900 placeholder-stone-400 focus:outline-none"
               />
               
               <button
@@ -976,7 +1112,7 @@ STRICT RULES:
                 className={`p-3 rounded-xl transition-all flex items-center justify-center ${
                   isListening
                     ? "bg-rose-500 text-white animate-pulse"
-                    : "bg-amber-500/20 text-amber-300 hover:bg-amber-500 hover:text-neutral-950"
+                    : "bg-amber-100 text-amber-900 hover:bg-amber-400 hover:text-neutral-950 border border-amber-300"
                 }`}
                 title={isListening ? "Listening..." : "Click to speak"}
               >
@@ -987,7 +1123,7 @@ STRICT RULES:
                 type="button"
                 onClick={() => void handleAskQuestion()}
                 disabled={answering || !questionInput.trim()}
-                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 text-neutral-950 text-xs font-black uppercase tracking-wider hover:opacity-90 disabled:opacity-50 transition-all"
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 text-neutral-950 text-xs font-black uppercase tracking-wider hover:opacity-90 disabled:opacity-50 transition-all shadow-sm"
               >
                 {answering ? (isKn ? "ಉತ್ತರಿಸಲಾಗುತ್ತಿದೆ..." : "Answering...") : (isKn ? "ಕೇಳಿ" : "Ask")}
               </button>
@@ -995,14 +1131,14 @@ STRICT RULES:
 
             {/* Q&A HISTORY */}
             {qaHistory.length > 0 && (
-              <div className="space-y-3 pt-3 border-t border-white/10">
+              <div className="space-y-3 pt-3 border-t border-amber-200">
                 {qaHistory.map((item, i) => (
-                  <div key={i} className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2">
-                    <p className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                  <div key={i} className="p-4 rounded-2xl bg-white border-2 border-amber-200 space-y-2 shadow-sm text-stone-900">
+                    <p className="text-xs font-bold text-amber-950 flex items-center gap-1.5">
                       <span>❓</span>
                       <span>{item.question}</span>
                     </p>
-                    <p className="text-xs md:text-sm text-slate-100 leading-relaxed bg-black/40 p-3 rounded-xl border border-white/5 whitespace-pre-line">
+                    <p className="text-xs md:text-sm text-stone-800 leading-relaxed bg-amber-50/70 p-3 rounded-xl border border-amber-200 whitespace-pre-line">
                       {cleanAstrologyText(item.answer)}
                     </p>
                   </div>
