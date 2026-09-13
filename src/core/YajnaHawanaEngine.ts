@@ -1,6 +1,6 @@
 import { KundliOutput, PlanetName } from "./AstroTypes";
 import { toKannadaPlanet, toKannadaRashi, toKannadaNakshatra, sanitizeAstrologyKannadaText } from "../utils/kannadaAstrologyTerms";
-import { computeKundliInsights } from "./KundliInsightsEngine";
+import { computeKundliInsights, signLord } from "./KundliInsightsEngine";
 
 export type SevaDomain = "pitru_karya" | "deva_karya";
 
@@ -19,7 +19,11 @@ export interface YajnaHawanaItem {
     | "rahu_ketu_sandhi" 
     | "dasha_sandhi" 
     | "mrityunjaya_ayushya" 
-    | "gokarna_abhisheka";
+    | "gokarna_abhisheka"
+    | "swayamvara_parvathi"
+    | "santana_gopala"
+    | "dhana_kubera"
+    | "shani_shanti";
   categoryLabelKn: string;
   icon: string;
   isUrgentPrimary: boolean;
@@ -78,26 +82,52 @@ export interface YajnaHawanaEngineOutput {
   overallAstrologicalPrescriptionSummaryKn: string;
 }
 
+export interface YajnaHawanaContext {
+  runningDashaMaha?: string;
+  runningDashaBhukti?: string;
+  primaryChallenge?: string;
+  devoteeName?: string;
+  dynamicTimelineKn?: string;
+  devoteeAge?: number;
+}
+
 /**
  * 100% Dynamic Yajna, Hawana, Sandhi & Pitru Dosha Seva Calculation Engine.
  * Enforces strict Vedic separation between Pitru Karya (Apara) and Deva Karya (Shubha).
+ * Features authentic child (<14) vs adult (>=14) ritual branching, chart-driven homa selection,
+ * and astronomical planetary-hour / Lagna-lord muhurtha determination.
  */
 export function generateYajnaHawanaPlan(
   kundli: KundliOutput,
-  context?: {
-    runningDashaMaha?: string;
-    runningDashaBhukti?: string;
-    primaryChallenge?: string;
-    devoteeName?: string;
-    dynamicTimelineKn?: string;
-  }
+  context?: YajnaHawanaContext
 ): YajnaHawanaEngineOutput {
   const devotee = context?.devoteeName || "ಭಕ್ತರೇ";
   const maha = context?.runningDashaMaha || "ಗುರು";
   const bhukti = context?.runningDashaBhukti || "ಶನಿ";
   const lagnaRashiKn = toKannadaRashi(kundli.lagnaRashi.english);
   const moonRashiKn = toKannadaRashi(kundli.moonSign.english);
+  const moonNakKn = toKannadaNakshatra(kundli.planets.find(p => p.name === PlanetName.Moon)?.nakshatra.english);
   const insights = computeKundliInsights(kundli);
+
+  // Age determination for child vs adult shastric separation
+  const devoteeAge = context?.devoteeAge !== undefined ? context.devoteeAge : 30;
+  const isChild = devoteeAge < 14;
+
+  // Lagna Lord & Auspicious Weekday Determination
+  const lagnaLord = signLord(kundli.lagnaRashi.index);
+  const lagnaLordKn = toKannadaPlanet(lagnaLord);
+  const dayLordMap: Record<PlanetName, string> = {
+    [PlanetName.Sun]: "ಭಾನುವಾರ",
+    [PlanetName.Moon]: "ಸೋಮವಾರ",
+    [PlanetName.Mars]: "ಮಂಗಳವಾರ",
+    [PlanetName.Mercury]: "ಬುಧವಾರ",
+    [PlanetName.Jupiter]: "ಗುರುವಾರ",
+    [PlanetName.Venus]: "ಶುಕ್ರವಾರ",
+    [PlanetName.Saturn]: "ಶನಿವಾರ",
+    [PlanetName.Rahu]: "ಶನಿವಾರ",
+    [PlanetName.Ketu]: "ಮಂಗಳವಾರ"
+  };
+  const lagnaDayKn = dayLordMap[lagnaLord] || "ಗುರುವಾರ";
 
   // 1. Planet Lookups
   const sun = kundli.planets.find((p) => p.name === PlanetName.Sun);
@@ -107,6 +137,174 @@ export function generateYajnaHawanaPlan(
   const saturn = kundli.planets.find((p) => p.name === PlanetName.Saturn);
   const rahu = kundli.planets.find((p) => p.name === PlanetName.Rahu);
   const ketu = kundli.planets.find((p) => p.name === PlanetName.Ketu);
+
+  // =========================================================================
+  // CHILD BRANCH: Devotee is a minor (<14 years)
+  // Shastric Rule: Minor children do NOT perform Apara Karma (Pitru Shradha).
+  // They receive pure Balagraha Shanti, Ayushya Dhanvantari, Medha Saraswati,
+  // and Gokarna Mahabaleshwara Atmalinga Ksheerabhisheka.
+  // =========================================================================
+  if (isChild) {
+    const childPitruAssessment: PitruDoshaAssessment = {
+      hasPitruDosha: false,
+      severity: "none",
+      severityLabelKn: "ಮಕ್ಕಳಿಗೆ ಅನ್ವಯಿಸುವುದಿಲ್ಲ (ಪೂರ್ವಜರ ಶ್ರೀ ರಕ್ಷೆಯಿದೆ)",
+      reasonsKn: [
+        "ಧರ್ಮಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ಅಪ್ರಾಪ್ತ ವಯಸ್ಸಿನ ಮಕ್ಕಳಿಗೆ ಅಪರ ಕರ್ಮಗಳು (ಪಿತೃ ಕಾರ್ಯ) ಅನ್ವಯಿಸುವುದಿಲ್ಲ.",
+        "ಮಗುವಿನ ಜಾತಕದಲ್ಲಿ ಪೂರ್ವಜರ ಸಂಪೂರ್ಣ ಆಶೀರ್ವಾದ ಹಾಗೂ ಶ್ರೀ ರಕ್ಷೆ ನೆಲೆಸಿದೆ."
+      ],
+      suggestedKaryaKn: "ಮಗುವಿನ ಆಯುಷ್ಯ, ಆರೋಗ್ಯ ಹಾಗೂ ವಿದ್ಯಾಭ್ಯಾಸದ ಏಕಾಗ್ರತೆಗಾಗಿ ದೇವತಾ ಯಜ್ಞ ಮತ್ತು ಮಹಾಬಲೇಶ್ವರ ಪೂಜೆ ಮಾತ್ರ ಸಾಕು.",
+      detailedExplanationKn: sanitizeAstrologyKannadaText(
+        `ಧರ್ಮಶಾಸ್ತ್ರದ ಕಟ್ಟುನಿಟ್ಟಿನ ನಿಯಮದ ಪ್ರಕಾರ 14 ವರ್ಷದೊಳಗಿನ ಅಪ್ರಾಪ್ತ ವಯಸ್ಸಿನ ಮಕ್ಕಳಿಗೆ ಅಪರ ಕರ್ಮಗಳು (ಪಿತೃ ಶ್ರಾದ್ಧ, ನಾರಾಯಣ ಬಲಿ) ಅನ್ವಯಿಸುವುದಿಲ್ಲ. ಮಗುವಿನ ಮೇಲೆ ಪೂರ್ವಜರ ದೈವಿಕ ರಕ್ಷಣೆಯಿದೆ. ಮಗುವಿಗೆ ನೇರವಾಗಿ ಬಾಲಾರಿಷ್ಟ ಶಾಂತಿ, ಆಯುಷ್ಯ ಧನ್ವಂತರಿ ಹವನ ಹಾಗೂ ಮೇಧಾ ಸರಸ್ವತಿ ಯಜ್ಞಗಳನ್ನು ಮಾಡಿಸುವುದರಿಂದ ಸಕಲ ಅರಿಷ್ಟಗಳು ನಿವಾರಣೆಯಾಗುತ್ತವೆ.`
+      ),
+      gokarnaSignificanceKn: sanitizeAstrologyKannadaText(
+        `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಆತ್ಮಲಿಂಗ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸಲ್ಲಿಸುವ ಕ್ಷೀರಾಭಿಷೇಕ ಹಾಗೂ ಗಣಪತಿ ಪೂಜೆಯು ಮಗುವಿಗೆ ಜೀವಮಾನವಿಡೀ ಅಭೇದ್ಯ ದೈವಿಕ ರಕ್ಷಾ ಕವಚವನ್ನು ನಿರ್ಮಿಸುತ್ತದೆ.`
+      ),
+      shastraSeparationRuleKn: sanitizeAstrologyKannadaText(
+        `ಧರ್ಮಶಾಸ್ತ್ರದ ನಿಯಮ: ಅಪ್ರಾಪ್ತ ವಯಸ್ಸಿನ ಮಕ್ಕಳಿಗೆ ಪಿತೃ ಅಪರ ಕರ್ಮಗಳು ವರ್ಜ್ಯ. ಕೇವಲ ಮಂಗಳಕರ ದೇವತಾ ಹವನಗಳು ಹಾಗೂ ನವಗ್ರಹ ಬಾಲ ರಕ್ಷೆಗಳನ್ನು ಮಾತ್ರ ನೆರವೇರಿಸಬೇಕು.`
+      )
+    };
+
+    const childDevaHomas: YajnaHawanaItem[] = [
+      {
+        id: "child_balagraha_shanti",
+        nameKn: "ಶ್ರೀ ಬಾಲಗ್ರಹ ಶಾಂತಿ ಮಹಾ ಹವನ & ನವಗ್ರಹ ಬಾಲ ರಕ್ಷಾ ಸಂಕಲ್ಪ",
+        nameEn: "Sri Balagraha Shanti Maha Hawana & Child Protective Shield",
+        domain: "deva_karya",
+        category: "shatru_raksha",
+        categoryLabelKn: "ಬಾಲಾರಿಷ್ಟ ನಿವಾರಣೆ & ದೃಷ್ಟಿ ರಕ್ಷೆ",
+        icon: "👶",
+        isUrgentPrimary: true,
+        astrologicalRootCauseKn: sanitizeAstrologyKannadaText(
+          `ಮಗುವಿನ ${lagnaRashiKn} ಲಗ್ನ ಮತ್ತು ${moonRashiKn} ರಾಶಿಯ ಮೇಲೆ ಬಾಲಗ್ರಹಗಳ ಸೂಕ್ಷ್ಮ ತರಂಗಗಳಿರುವುದರಿಂದ, ಪದೇಪದೇ ದೃಷ್ಟಿ ದೋಷ, ನಿದ್ದೆಯಲ್ಲಿ ಬೆದರುವುದು, ಅಳುವುದು ಅಥವಾ ಕಿರಿಕಿರಿ ಉಂಟಾಗದಂತೆ ರಕ್ಷಣೆ ನೀಡಲು ಈ ಹವನ ಅತ್ಯಗತ್ಯ.`
+        ),
+        astrologicalRootCauseEn: "Subtle infant nodal aspects requiring Balagraha Shanti to prevent night startles, crying, and evil eye vulnerability.",
+        sacredProcedureKn: sanitizeAstrologyKannadaText(
+          `ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಬಾಲಗ್ರಹ ಸೂಕ್ತ ಜಪ, 9 ಬಾಲಗ್ರಹ ಸಮಿಧೆಗಳ ಹವನ, ದೃಷ್ಟಿ ದೋಷ ಪರಿಹಾರ ಹಾಗೂ ಮಂತ್ರ ಸಿದ್ಧ ರಕ್ಷಾ ದಾರ ಸಂಕಲ್ಪ.`
+        ),
+        sacredProcedureEn: "Balagraha Sukta recitation, 9 herbal offerings, evil eye dispelling, and consecrated protective thread sankalpa at Gokarna.",
+        expectedShiftsAfterPoojaKn: sanitizeAstrologyKannadaText(
+          `ಮಗುವಿನ ಅಳುವು, ಹಠ ಹಾಗೂ ನಿದ್ದೆಯ ಕಿರಿಕಿರಿ ಶಾಂತವಾಗುತ್ತದೆ. ಮಗುವಿಗೆ ಗಾಢವಾದ ನೆಮ್ಮದಿಯ ನಿದ್ದೆ, ಮುಗ್ಧ ನಗು ಹಾಗೂ ನಿರಂತರ ದೈವಿಕ ರಕ್ಷಣೆ ಲಭಿಸುತ್ತದೆ.`
+        ),
+        expectedShiftsAfterPoojaEn: "Restores deep peaceful sleep, dissolves restlessness and crying fits, securing serene joyful composure.",
+        priestSecretNoteKn: `[ದೈವಜ್ಞರ ಆಂತರಿಕ ಟಿಪ್ಪಣಿ: ಬಾಲಗ್ರಹ ಶಾಂತಿಯು ಮಗುವಿನ ಸೂಕ್ಷ್ಮ ಆರಾ ಮಂಡಲವನ್ನು ಬಲಪಡಿಸಿ ಬಾಹ್ಯ ನಕಾರಾತ್ಮಕ ಶಕ್ತಿಗಳಿಂದ ಕಾಪಾಡುತ್ತದೆ]`,
+        priestSecretNoteEn: "[Astrologer Note: Balagraha Shanti strengthens the child's delicate aura against psychic disturbances]."
+      },
+      {
+        id: "child_ayushya_dhanvantari",
+        nameKn: "ಶ್ರೀ ಆಯುಷ್ಯ ಸೂಕ್ತ ಹವನ & ಧನ್ವಂತರಿ ಆರೋಗ್ಯ ಯಾಗ",
+        nameEn: "Sri Ayushya Sukta Hawana & Dhanvantari Vitality Yajna",
+        domain: "deva_karya",
+        category: "mrityunjaya_ayushya",
+        categoryLabelKn: "ಆರೋಗ್ಯ ಚೈತನ್ಯ & ರೋಗನಿರೋಧಕ ಶಕ್ತಿ",
+        icon: "🩺",
+        isUrgentPrimary: true,
+        astrologicalRootCauseKn: sanitizeAstrologyKannadaText(
+          `ಮಗುವಿನ ದೈಹಿಕ ಬೆಳವಣಿಗೆ, ಜೀರ್ಣಾಂಗ ಶಕ್ತಿ ಹಾಗೂ ರೋಗನಿರೋಧಕ ಸಾಮರ್ಥ್ಯವನ್ನು ನೂರ್ಮಡಿಗೊಳಿಸಲು ಹಾಗೂ ಬಾಲ್ಯದ ಅನಾರೋಗ್ಯಗಳಿಂದ ರಕ್ಷಿಸಲು ಆಯುಷ್ಯ ಸೂಕ್ತ ಯಾಗ ಶ್ರೇಷ್ಠ.`
+        ),
+        astrologicalRootCauseEn: "Invoking solar and Dhanvantari grace for physical vitality, robust digestive fire, and natural immunity.",
+        sacredProcedureKn: sanitizeAstrologyKannadaText(
+          `ಆಯುಷ್ಯ ಸೂಕ್ತದ ಪವಿತ್ರ ಋಕ್ಕುಗಳ ಆಹುತಿಗಳು, ಅಮೃತಬಳ್ಳಿ (ಗುಡೂಚಿ), ಶುದ್ಧ ತುಪ್ಪದ ಹವನ ಹಾಗೂ ಧನ್ವಂತರಿ ಆರೋಗ್ಯ ಮಂತ್ರಾರ್ಚನೆ.`
+        ),
+        sacredProcedureEn: "Ayushya Sukta chants with pure ghee and sacred Guduchi oblations at Gokarna Kshetra.",
+        expectedShiftsAfterPoojaKn: sanitizeAstrologyKannadaText(
+          `ಮಗುವಿನ ಜೀರ್ಣಶಕ್ತಿ ಉತ್ತಮಗೊಂಡು ಊಟ ಸುಲಭವಾಗಿ ಸೇರುತ್ತದೆ; ಸಣ್ಣಪುಟ್ಟ ಶೀತ, ಜ್ವರ ಅಥವಾ ಹೊಟ್ಟೆನೋವಿನ ಬಾಧೆಗಳಿಂದ ಮುಕ್ತಿ ದೊರೆತು ದೈಹಿಕ ತೇಜಸ್ಸು ವೃದ್ಧಿಯಾಗುತ್ತದೆ.`
+        ),
+        expectedShiftsAfterPoojaEn: "Strengthens digestion and appetite, shielding the child from recurring seasonal ailments.",
+        priestSecretNoteKn: `[ದೈವಜ್ಞರ ಆಂತರಿಕ ಟಿಪ್ಪಣಿ: ಆಯುಷ್ಯ ಹವನವು ಮಗುವಿನ ಪ್ರಾಣಶಕ್ತಿಯನ್ನು ಉತ್ತುಂಗಕ್ಕೇರಿಸಿ ಆಯಸ್ಸು ಮತ್ತು ಬಲವನ್ನು ವೃದ್ಧಿಸುತ್ತದೆ]`,
+        priestSecretNoteEn: "[Astrologer Note: Ayushya Homa directly nourishes the child's Prana Shakti, expanding vital lifespan]."
+      },
+      {
+        id: "child_medha_saraswati",
+        nameKn: "ಶ್ರೀ ಮೇಧಾ ಸರಸ್ವತಿ ಹವನ & ಹಯಗ್ರೀವ ವಿದ್ಯಾ ಯಾಗ",
+        nameEn: "Sri Medha Saraswati Hawana & Hayagriva Intellect Yajna",
+        domain: "deva_karya",
+        category: "navagraha",
+        categoryLabelKn: "ಬುದ್ಧಿಶಕ್ತಿ, ಏಕಾಗ್ರತೆ & ವಾಕ್ ಸಿದ್ಧಿ",
+        icon: "📚",
+        isUrgentPrimary: true,
+        astrologicalRootCauseKn: sanitizeAstrologyKannadaText(
+          `ಮಗುವಿನ 5ನೇ ವಿದ್ಯಾ ಸ್ಥಾನ ಮತ್ತು ಬುಧ-ಗುರು ಗ್ರಹಗಳ ಅನುಗ್ರಹದಿಂದ ಜ್ಞಾಪಕ ಶಕ್ತಿ, ಗ್ರಹಣ ಸಾಮರ್ಥ್ಯ ಹಾಗೂ ಶಾಂತವಾದ ಸಂವಹನ ಕಲಿಯಲು ಈ ವಿದ್ಯಾ ಯಾಗ ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ.`
+        ),
+        astrologicalRootCauseEn: "Activating 5th house intellect and Mercury-Jupiter harmonics for razor-sharp memory, focus, and verbal articulation.",
+        sacredProcedureKn: sanitizeAstrologyKannadaText(
+          `ಶ್ರೀ ಮೇಧಾ ಸೂಕ್ತ ಜಪ, ಸರಸ್ವತಿ ಮೂಲ ಮಂತ್ರ ಸಹಿತ ಹಸುವಿನ ತುಪ್ಪ ಮತ್ತು ಜೇನುತುಪ್ಪದ ಹವನ ಹಾಗೂ ಸರಸ್ವತಿ ಯಂತ್ರ/ಲೇಖನಿ ಪೂಜೆ.`
+        ),
+        sacredProcedureEn: "Medha Sukta invocations with sacred honey-ghee ahutis and consecration of writing instruments at Gokarna.",
+        expectedShiftsAfterPoojaKn: sanitizeAstrologyKannadaText(
+          `ಓದುವುದರಲ್ಲಿ ಆಸಕ್ತಿ, ಉತ್ತಮ ಗ್ರಹಣ ಶಕ್ತಿ, ಚುರುಕಾದ ಬುದ್ಧಿ ಹಾಗೂ ಶಾಂತ ನಡವಳಿಕೆ ಮಗುವಿನಲ್ಲಿ ಬೆಳೆಯುತ್ತದೆ.`
+        ),
+        expectedShiftsAfterPoojaEn: "Sparks enthusiasm for learning, enhanced retention power, and peaceful articulate communication.",
+        priestSecretNoteKn: `[ದೈವಜ್ಞರ ಆಂತರಿಕ ಟಿಪ್ಪಣಿ: ಸರಸ್ವತಿ ಹವನವು ಮಗುವಿನ ಜ್ಞಾನ ನರಮಂಡಲವನ್ನು ಜಾಗೃತಗೊಳಿಸಿ ವಿದ್ಯಾಭ್ಯಾಸದಲ್ಲಿ ಪ್ರಥಮ ಸ್ಥಾನ ತರುತ್ತದೆ]`,
+        priestSecretNoteEn: "[Astrologer Note: Saraswati Hawana attunes neural memory pathways for effortless intellectual mastery]."
+      },
+      {
+        id: "child_gokarna_abhisheka",
+        nameKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಆತ್ಮಲಿಂಗ ಕ್ಷೀರಾಭಿಷೇಕ & ಗಣಪತಿ ಪೂಜೆ",
+        nameEn: "Sri Kshetra Gokarna Atmalinga Ksheerabhisheka & Ganapati Pooja",
+        domain: "deva_karya",
+        category: "gokarna_abhisheka",
+        categoryLabelKn: "ಭೂಕೈಲಾಸ ಸಾನ್ನಿಧ್ಯ ಬಾಲ ರಕ್ಷೆ",
+        icon: "🪔",
+        isUrgentPrimary: true,
+        astrologicalRootCauseKn: sanitizeAstrologyKannadaText(
+          `ಮಗುವಿನ ಸಮಗ್ರ ಆಯುರ್-ಆರೋಗ್ಯ, ಧೈರ್ಯ ಹಾಗೂ ಕುಲದೇವರ ಪೂರ್ಣಾನುಗ್ರಹಕ್ಕಾಗಿ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರನ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸಲ್ಲಿಸುವ ಸಾಕ್ಷಾತ್ ಆತ್ಮಲಿಂಗ ಪ್ರಾರ್ಥನೆ.`
+        ),
+        astrologicalRootCauseEn: "Comprehensive divine protection and family Kuladevata grace at the Bho-Kailasa Atmalinga shrine.",
+        sacredProcedureKn: sanitizeAstrologyKannadaText(
+          `ಮಹಾಬಲೇಶ್ವರ ಆತ್ಮಲಿಂಗಕ್ಕೆ ಹಸುವಿನ ಹಾಲಿನ ಕ್ಷೀರಾಭಿಷೇಕ, ಬಿಲ್ವಾರ್ಚನೆ, ದ್ವಿಭುಜ ಗಣಪತಿಗೆ ಮೋದಕ ನೈವೇದ್ಯ ಹಾಗೂ ಮಗುವಿನ ಹೆಸರಿನಲ್ಲಿ ಸಂಕಲ್ಪ ಪ್ರಾರ್ಥನೆ.`
+        ),
+        sacredProcedureEn: "Sacred cow milk Ksheerabhisheka, Bilva archana at Atmalinga, and Ganapati Modaka archana in the child's name.",
+        expectedShiftsAfterPoojaKn: sanitizeAstrologyKannadaText(
+          `ಮಗುವಿಗೆ ಸದಾ ದೈವಿಕ ರಕ್ಷಾ ಕವಚವಿದ್ದು, ಯಾವುದೇ ಆಕಸ್ಮಿಕ ಭಯ, ದುಃಸ್ವಪ್ನ ಅಥವಾ ಕಷ್ಟಗಳು ತಟ್ಟದಂತೆ ಮಹಾಬಲೇಶ್ವರನು ಸದಾ ಕಾಪಾಡುತ್ತಾನೆ.`
+        ),
+        expectedShiftsAfterPoojaEn: "Imbues the child with an impervious spiritual shield, dispelling all night terrors and insecurities.",
+        priestSecretNoteKn: `[ದೈವಜ್ಞರ ಆಂತರಿಕ ಟಿಪ್ಪಣಿ: ಗೋಕರ್ಣ ಆತ್ಮಲಿಂಗ ಕ್ಷೀರಾಭಿಷೇಕವು ಮಗುವಿನ ಜೀವಿತಾವಧಿಗೆ ಅತ್ಯುನ್ನತ ಪುಣ್ಯ ಫಲವನ್ನು ಕರುಣಿಸುತ್ತದೆ]`,
+        priestSecretNoteEn: "[Astrologer Note: Gokarna Ksheerabhisheka establishes lifelong divine auspices for the child]."
+      }
+    ];
+
+    const childSchedule: CombinedSacredSchedule = {
+      scheduleType: "single_day_deva_samputa",
+      titleKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಬಾಲ ಸಂರಕ್ಷಣಾ & ಮೇಧಾ ದೇವತಾ ಸಂಪುಟ ಮಹಾ ಸೇವೆ",
+      titleEn: "Gokarna Child Protection & Divine Intellect Samputa Yajna",
+      stage2DevaKarya: {
+        dayLabelKn: "ಬಾಲ ಸಂರಕ್ಷಣಾ ದೇವತಾ ಯಾಗ (ದಿನ 1)",
+        placeKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿ ಸನ್ನಿಧಿ",
+        ritualsKn: [
+          "ಶ್ರೀ ಬಾಲಗ್ರಹ ಶಾಂತಿ ಹವನ",
+          "ಆಯುಷ್ಯ ಧನ್ವಂತರಿ ಯಾಗ",
+          "ಮೇಧಾ ಸರಸ್ವತಿ ಹೋಮ",
+          "ಗೋಕರ್ಣ ಆತ್ಮಲಿಂಗ ಕ್ಷೀರಾಭಿಷೇಕ"
+        ],
+        descriptionKn: sanitizeAstrologyKannadaText(
+          "ಧರ್ಮಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ಅಪ್ರಾಪ್ತ ವಯಸ್ಸಿನ ಮಗುವಿಗೆ ಪಿತೃ ಕಾರ್ಯ ಅನ್ವಯಿಸುವುದಿಲ್ಲ. ಆದ್ದರಿಂದ ನೇರವಾಗಿ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಬಾಲಗ್ರಹ ಶಾಂತಿ, ಧನ್ವಂತರಿ ಯಾಗ, ಸರಸ್ವತಿ ಹೋಮ ಹಾಗೂ ಕ್ಷೀರಾಭಿಷೇಕಗಳನ್ನು ಒಂದೇ ಶುಭ ದಿನದಂದು ಸಂಪುಟವಾಗಿ ನೆರವೇರಿಸಲಾಗುತ್ತದೆ."
+        )
+      },
+      synergyExplanationKn: sanitizeAstrologyKannadaText(
+        "ಈ ಪವಿತ್ರ ಬಾಲ ಸಂಪುಟ ಯಾಗದಿಂದ ಮಗುವಿನ ಅಳುವು, ಹಠ, ದೃಷ್ಟಿ ದೋಷ ಸಂಪೂರ್ಣ ನಿವಾರಣೆಯಾಗಿ, ದೀರ್ಘಾಯುಷ್ಯ, ಉತ್ತಮ ಆರೋಗ್ಯ ಹಾಗೂ ವಿದ್ಯಾಭ್ಯಾಸದಲ್ಲಿ ಉನ್ನತ ಏಕಾಗ್ರತೆ ಪ್ರಾಪ್ತಿಯಾಗುತ್ತದೆ."
+      ),
+      synergyExplanationEn: "This child-specific single-day samputa dissolves infant restlessness and evil eye, bestowing longevity, immunity, and sharp academic intellect.",
+      recommendedMuhurthaKn: sanitizeAstrologyKannadaText(
+        `ಮಗುವಿನ ${lagnaRashiKn} ಲಗ್ನಾಧಿಪತಿಯ ಶುಭ ದಿನವಾದ ${lagnaDayKn}ದಂದು, ${moonNakKn} ನಕ್ಷತ್ರಕ್ಕೆ ತಾರಾಬಲ ಕೂಡಿಬರುವ ಮುಂಬರುವ ಶುಕ್ಲ ಪಕ್ಷದ ಪಂಚಮಿ, ಸಪ್ತಮಿ, ದಶಮಿ ಅಥವಾ ಪೌರ್ಣಮಿಯ ಪ್ರಾತಃಕಾಲ 06:30 ರಿಂದ 09:00 ರ ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ.`
+      )
+    };
+
+    return {
+      pitruKaryas: [],
+      devaHomas: childDevaHomas,
+      combinedSchedule: childSchedule,
+      pitruDoshaAssessment: childPitruAssessment,
+      overallAstrologicalPrescriptionSummaryKn: sanitizeAstrologyKannadaText(
+        `ನಮಸ್ಕಾರ ${devotee}, ನಿಮ್ಮ ಮಗುವಿನ ಜಾತಕದ ಪ್ರಕಾರ, ಮಗುವಿನ ಮೇಲೆ ಪೂರ್ವಜರ ಸಂಪೂರ್ಣ ಆಶೀರ್ವಾದವಿದೆ. ಮಗುವಿಗೆ ಯಾವುದೇ ಪಿತೃ ಕಾರ್ಯದ ಅಗತ್ಯವಿಲ್ಲ. ಈ 4 ಬಾಲ ರಕ್ಷಾ ದೇವತಾ ಹವನಗಳನ್ನು ಗೋಕರ್ಣದಲ್ಲಿ ಮಾಡಿಸುವುದರಿಂದ ಮಗು ಸದಾ ನಗುಮುಖದಿಂದ, ಆರೋಗ್ಯವಂತವಾಗಿ ಹಾಗೂ ಬುದ್ಧಿವಂತಿಕೆಯಿಂದ ಬೆಳೆಯಲಿದೆ.`
+      )
+    };
+  }
+
+  // =========================================================================
+  // ADULT BRANCH: Devotee is an adult (>=14 years)
+  // Dynamic Pitru Assessment + Dynamic Homa Selection + Dynamic Muhurtha
+  // =========================================================================
 
   // 2. Pitru Dosha Assessment
   const pitruReasonsKn: string[] = [];
@@ -169,7 +367,7 @@ export function generateYajnaHawanaPlan(
     suggestedKaryaKn: suggestedPitruKaryaKn,
     detailedExplanationKn: sanitizeAstrologyKannadaText(
       hasPitruDosha
-        ? `ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ 9ನೇ ಪಿತೃ ಸ್ಥಾನ ಹಾಗೂ ಆತ್ಮಕಾರಕ ರವಿಯ ಸ್ಥಿತಿಯನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ಹಿಂದಿನ ತಲೆಮಾರಿನ ಪೂರ್ವಜರ ತರ್ಪಣ, ಶ್ರಾದ್ಧ ಅಥವಾ ಅಪರ ಕರ್ಮಗಳ ವಿಧಿಯು ಸಾಂಗವಾಗಿ ನೆರವೇರದಿರುವ ಛಾಯೆ ಕಂಡುಬರುತ್ತಿದೆ. ಇದರಿಂದಾಗಿ ಎಷ್ಟೇ ಕಠಿಣ ಪರಿಶ್ರಮಪಟ್ಟರೂ ಕೊನೆಯ ಕ್ಷಣದಲ್ಲಿ ಕೆಲಸ ತಪ್ಪಿಹೋಗುವುದು, ಸಂತಾನ ವಿಳಂಬ ಅಥವಾ ಕೌಟುಂಬಿಕ ಅಶಾಂತಿ ಉಂಟಾಗುತ್ತದೆ.`
+        ? `ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ 9ನೇ ಪಿತೃ ಸ್ಥಾನ, ಲಗ್ನಾಧಿಪತಿ ಹಾಗೂ ರವಿಯ ಸ್ಥಿತಿಯನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ: ${pitruReasonsKn.join("; ")} ಕಾರಣಗಳಿಂದಾಗಿ ಹಿಂದಿನ ತಲೆಮಾರಿನ ಪೂರ್ವಜರ ತರ್ಪಣ, ಶ್ರಾದ್ಧ ಅಥವಾ ಅಪರ ಕರ್ಮಗಳ ವಿಧಿಯು ಸಾಂಗವಾಗಿ ನೆರವೇರದಿರುವ ಛಾಯೆ ಕಂಡುಬರುತ್ತಿದೆ. ಇದರಿಂದಾಗಿ ಎಷ್ಟೇ ಕಠಿಣ ಪರಿಶ್ರಮಪಟ್ಟರೂ ಕೊನೆಯ ಕ್ಷಣದಲ್ಲಿ ಕೆಲಸ ತಪ್ಪಿಹೋಗುವುದು, ಸಂತಾನ ವಿಳಂಬ ಅಥವಾ ಕೌಟುಂಬಿಕ ಅಶಾಂತಿ ಉಂಟಾಗುತ್ತದೆ.`
         : `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಪೂರ್ವಜರ ಸಂಪೂರ್ಣ ಆಶೀರ್ವಾದವಿದೆ. ಯಾವುದೇ ಗಂಭೀರ ಪಿತೃ ದೋಷವಿಲ್ಲ.`
     ),
     gokarnaSignificanceKn: sanitizeAstrologyKannadaText(
@@ -186,6 +384,11 @@ export function generateYajnaHawanaPlan(
   const pitruKaryas: YajnaHawanaItem[] = [];
 
   if (hasPitruDosha) {
+    // Dynamic Root Cause composed from detected reasons
+    const dynamicPitruCauseKn = pitruReasonsKn.length > 0
+      ? `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ${pitruReasonsKn.join(" ಮತ್ತು ")} ಕಂಡುಬರುತ್ತಿದೆ. ಇದರಿಂದಾಗಿ ಹಿಂದಿನ ತಲೆಮಾರಿನ ಪೂರ್ವಜರ ಆತ್ಮ ತೃಪ್ತಿಯ ಕೊರತೆ ಹಾಗೂ ಕರ್ಮ ಋಣದ ಛಾಯೆ ಉಂಟಾಗಿ, ${context?.primaryChallenge ? `ಪ್ರಮುಖವಾಗಿ ${context.primaryChallenge} ವಿಷಯದಲ್ಲಿ` : "ಪ್ರಮುಖ ಕಾರ್ಯಗಳಲ್ಲಿ"} ಅನಿರೀಕ್ಷಿತ ವಿಳಂಬ ಹಾಗೂ ಸ್ಥಗಿತತೆಗಳು ಎದುರಾಗುತ್ತಿವೆ.`
+      : `ನಿಮ್ಮ ಜಾತಕದ 9ನೇ ಪಿತೃ ಸ್ಥಾನ ಮತ್ತು ರವಿಯ ಸೂಕ್ಷ್ಮ ಸ್ಥಿತಿಯ ಪ್ರಕಾರ ಪೂರ್ವಜರ ತರ್ಪಣ ಕರ್ಮಗಳ ಶಾಂತಿ ಅಗತ್ಯವಿದೆ.`;
+
     // 1. Narayana Bali & Preta Uddharana
     pitruKaryas.push({
       id: "pitru_narayana_bali",
@@ -196,16 +399,14 @@ export function generateYajnaHawanaPlan(
       categoryLabelKn: "ಪಿತೃ ಶಾಪ ವಿಮೋಚನೆ & ಆತ್ಮ ಸದ್ಗತಿ",
       icon: "🌾",
       isUrgentPrimary: pitruSeverity === "severe",
-      astrologicalRootCauseKn: sanitizeAstrologyKannadaText(
-        `ಜಾತಕದ 9ನೇ ಪಿತೃ ಸ್ಥಾನದಲ್ಲಿ ರಾಹು/ಕೇತು ಸ್ಥಿತಿ ಹಾಗೂ ರವಿ-ರಾಹುಗಳ ಗ್ರಹಣ ಯೋಗದಿಂದಾಗಿ ಅತೃಪ್ತ ಪೂರ್ವಜರ ಪ್ರೇತ ಛಾಯೆಯಿದೆ. ಇದು ಸಂತಾನ ವಿಳಂಬ, ಆರ್ಥಿಕ ಸ್ಥಗಿತತೆ ಹಾಗೂ ವಂಶಾಭಿವೃದ್ಧಿಯ ಅಡೆತಡೆಗೆ ಮೂಲ ಕಾರಣವಾಗಿದೆ.`
-      ),
-      astrologicalRootCauseEn: "9th house affliction and Sun-Rahu conjunction causing ancestral unrest and generational blockages.",
+      astrologicalRootCauseKn: sanitizeAstrologyKannadaText(dynamicPitruCauseKn),
+      astrologicalRootCauseEn: "9th house affliction and nodal pressures causing ancestral unrest and generational blockages.",
       sacredProcedureKn: sanitizeAstrologyKannadaText(
         `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥ ತೀರದಲ್ಲಿ ನಾರಾಯಣ ಬಲಿ ವಿಧಿ, ಬ್ರಹ್ಮ-ವಿಷ್ಣು-ರುದ್ರ-ಯಮ-ಪ್ರೇತ ಆವಾಹನೆ, 16 ಪಿಂಡ ಪ್ರದಾನ, ಪ್ರಾಯಶ್ಚಿತ್ತ ತಿಲ ಹವನ ಹಾಗೂ ಗೋ ಪ್ರದಾನ.`
       ),
       sacredProcedureEn: "Narayana Bali rituals at Gokarna Kotiteertha with Brahma-Vishnu-Rudra invocations, 16 Pinda Pradanam, and Tila Havan.",
       expectedShiftsAfterPoojaKn: sanitizeAstrologyKannadaText(
-        `ಪೂರ್ವಜರ ಆತ್ಮಗಳಿಗೆ ಶಾಶ್ವತ ಮುಕ್ತಿ ದೊರೆತು ಅವರ ಪೂರ್ಣ ಆಶೀರ್ವಾದ ಲಭಿಸುತ್ತದೆ. ಕುಟುಂಬದಲ್ಲಿ ನೆಮ್ಮದಿ, ಸಂತಾನ ಭಾಗ್ಯ, ಕಂಕಣ ಭಾಗ್ಯ ಹಾಗೂ ಆರ್ಥಿಕ ಸ್ಥಗಿತತೆಗಳು ತಕ್ಷಣವೇ ನಿವಾರಣೆಯಾಗುತ್ತವೆ.`
+        `ಪೂರ್ವಜರ ಆತ್ಮಗಳಿಗೆ ಶಾಶ್ವತ ಮುಕ್ತಿ ದೊರೆತು ಅವರ ಪೂರ್ಣ ಆಶೀರ್ವಾದ ಲಭಿಸುತ್ತದೆ. ಕುಟುಂಬದಲ್ಲಿ ನೆಮ್ಮದಿ, ಸಂತಾನ ಭಾಗ್ಯ, ಕೌಟುಂಬಿಕ ಒಗ್ಗಟ್ಟು ಹಾಗೂ ಆರ್ಥಿಕ ಸ್ಥಗಿತತೆಗಳು ತಕ್ಷಣವೇ ನಿವಾರಣೆಯಾಗುತ್ತವೆ.`
       ),
       expectedShiftsAfterPoojaEn: "Liberation of ancestral souls, releasing profound blessings that clear generational obstacles in marriage, progeny, and wealth.",
       priestSecretNoteKn: `[ದೈವಜ್ಞರ ಆಂತರಿಕ ಟಿಪ್ಪಣಿ: ಪಿತೃ ದೋಷವಿದ್ದಾಗ ಇತರ ಯಾವುದೇ ದೇವತಾ ಪೂಜೆ ಫಲ ಕೊಡುವುದಿಲ್ಲ; ಮೊದಲು ನಾರಾಯಣ ಬಲಿ ಮೂಲಕ ಪಿತೃ ಮುಕ್ತಿ ಮಾಡಿಸುವುದು ಪ್ರಥಮ ಕರ್ತವ್ಯ]`,
@@ -223,7 +424,7 @@ export function generateYajnaHawanaPlan(
       icon: "🕊️",
       isUrgentPrimary: pitruSeverity === "moderate" || pitruSeverity === "severe",
       astrologicalRootCauseKn: sanitizeAstrologyKannadaText(
-        `ತಂದೆ, ತಾತ, ಮುತ್ತಾತ ಮೂರು ತಲೆಮಾರಿನ ಪೂರ್ವಜರ ಶ್ರಾದ್ಧ ತರ್ಪಣಗಳು ಲೋಪವಾಗಿದ್ದಾಗ ಅಥವಾ ಅಕಾಲಿಕ ನಿಧನರಾದ ಆತ್ಮಗಳ ತೃಪ್ತಿಗಾಗಿ ಈ ಶಾಂತಿ ಅತ್ಯಗತ್ಯವಾಗಿದೆ.`
+        `ನಿಮ್ಮ ${lagnaRashiKn} ಲಗ್ನದ 9ನೇ ಪಿತೃ ಸ್ಥಾನ ಮತ್ತು ರವಿಯ ಸ್ಥಿತಿಯ ಪ್ರಕಾರ, ತಂದೆ, ತಾತ, ಮುತ್ತಾತ ಮೂರು ತಲೆಮಾರಿನ ಪೂರ್ವಜರ ಶ್ರಾದ್ಧ ತರ್ಪಣಗಳು ಲೋಪವಾಗಿದ್ದಾಗ ಅಥವಾ ಅಕಾಲಿಕ ನಿಧನರಾದ ಆತ್ಮಗಳ ತೃಪ್ತಿಗಾಗಿ ಈ ಶಾಂತಿ ಅತ್ಯಗತ್ಯವಾಗಿದೆ.`
       ),
       astrologicalRootCauseEn: "Pacification for three generational ancestral lines and unfulfilled death rites.",
       sacredProcedureKn: sanitizeAstrologyKannadaText(
@@ -265,107 +466,173 @@ export function generateYajnaHawanaPlan(
     });
   }
 
-  // ==========================================
-  // SECTION 2: DEVA KARYAS (ದೇವತಾ ಯಜ್ಞ & ಶುಭ ಹವನ)
-  // ==========================================
-  const devaHomas: YajnaHawanaItem[] = [];
+  // =========================================================================
+  // SECTION 2: DEVA KARYAS (ದೇವತಾ ಯಜ್ಞ & ಶುಭ ಹವನಗಳು - 100% Dynamic Selection)
+  // =========================================================================
+  const devaHomasPool: YajnaHawanaItem[] = [];
 
-  // HOMA 1: Chandi / Durga Hawana
+  // HOMA A: Marriage & Relationship Affliction (Swayamvara Parvathi & Uma-Maheshwara)
+  const isKujaDosha = mars && [1, 2, 4, 7, 8, 12].includes(mars.house);
+  const isMarriageChallenge = context?.primaryChallenge === "Personal / Marriage" || Boolean(isKujaDosha);
+  if (isMarriageChallenge) {
+    devaHomasPool.push({
+      id: "homa_swayamvara_parvathi",
+      nameKn: "ಶ್ರೀ ಸ್ವಯಂವರ ಪಾರ್ವತಿ ಮಹಾ ಹವನ & ಉಮಾ-ಮಹೇಶ್ವರ ಕಲ್ಯಾಣ ಯಾಗ",
+      nameEn: "Sri Swayamvara Parvathi Maha Hawana & Uma-Maheshwara Yajna",
+      domain: "deva_karya",
+      category: "swayamvara_parvathi",
+      categoryLabelKn: "ವಿವಾಹ ಸಿದ್ಧಿ & ದಾಂಪತ್ಯ ಸೌಖ್ಯ",
+      icon: "💍",
+      isUrgentPrimary: context?.primaryChallenge === "Personal / Marriage",
+      astrologicalRootCauseKn: sanitizeAstrologyKannadaText(
+        `ನಿಮ್ಮ ${lagnaRashiKn} ಲಗ್ನದ 7ನೇ ಕಳತ್ರ ಸ್ಥಾನ ಹಾಗೂ ಶುಕ್ರ-ಕುಜ ಗ್ರಹಗಳ ಪ್ರಭಾವದಿಂದಾಗಿ ಕಂಕಣ ಭಾಗ್ಯದಲ್ಲಿ ವಿಳಂಬ, ಹೊಂದಾಣಿಕೆಯ ಕೊರತೆ ಅಥವಾ ಅನಿಶ್ಚಿತತೆ ಉಂಟಾಗುತ್ತಿದೆ.`
+      ),
+      astrologicalRootCauseEn: "7th house marriage axis and Venus-Mars afflictions causing delays in match finalization and marital friction.",
+      sacredProcedureKn: sanitizeAstrologyKannadaText(
+        `ಸ್ವಯಂವರ ಪಾರ್ವತಿ ಮಹಾ ಮಂತ್ರದ 1008 ಆಹುತಿಗಳು, ಉಮಾ-ಮಹೇಶ್ವರ ಕಲ್ಯಾಣೋತ್ಸವ ಸಂಕಲ್ಪ, ಕುಂಕುಮಾರ್ಚನೆ ಹಾಗೂ ಮಲ್ಲಿಗೆ-ಪದ್ಮ ಪುಷ್ಪಗಳ ಹವನ.`
+      ),
+      sacredProcedureEn: "1008 Swayamvara Parvathi chants, Uma-Maheshwara sacred union sankalpa, Kumkumarchana, and floral oblations at Gokarna.",
+      expectedShiftsAfterPoojaKn: sanitizeAstrologyKannadaText(
+        `ವಿವಾಹದ ದಾರಿಯಲ್ಲಿನ ಕಠಿಣ ಅಡೆತಡೆಗಳು ನಿವಾರಣೆಯಾಗಿ, ಯೋಗ್ಯ ಬಾಳಸಂಗಾತಿ ಪ್ರಾಪ್ತಿಯಾಗುತ್ತಾರೆ. ದಾಂಪತ್ಯದಲ್ಲಿ ಪ್ರೀತಿ, ವಿಶ್ವಾಸ ಹಾಗೂ ಸೌಹಾರ್ದತೆ ನೆಲೆಸುತ್ತದೆ.`
+      ),
+      expectedShiftsAfterPoojaEn: "Dissolves wedding obstacles, attracting an ideal life partner and deepening mutual marital trust.",
+      priestSecretNoteKn: `[ದೈವಜ್ಞರ ಆಂತರಿಕ ಟಿಪ್ಪಣಿ: ಸ್ವಯಂವರ ಪಾರ್ವತಿ ಹವನವು ಕುಜ ದೋಷ ಹಾಗೂ 7ನೇ ಮನೆಯ ನಕಾರಾತ್ಮಕ ತರಂಗಗಳನ್ನು ಸಂಪೂರ್ಣವಾಗಿ ಶಮನಗೊಳಿಸುತ್ತದೆ]`,
+      priestSecretNoteEn: "[Astrologer Note: Swayamvara Parvathi Hawana neutralizes Kuja Dosha and restores harmonious marital union]."
+    });
+  }
+
+  // HOMA B: Progeny / Intellect / 5th House Affliction (Santana Gopala & Subrahmanya)
+  const is5thAfflicted = (rahu && rahu.house === 5) || (saturn && saturn.house === 5) || (jupiter && [6, 8, 12].includes(jupiter.house)) || context?.primaryChallenge === "Children";
+  if (is5thAfflicted) {
+    devaHomasPool.push({
+      id: "homa_santana_gopala",
+      nameKn: "ಶ್ರೀ ಸಂತಾನ ಗೋಪಾಲ ಮಹಾ ಯಾಗ & ಸುಬ್ರಹ್ಮಣ್ಯ ಹವನ",
+      nameEn: "Sri Santana Gopala Maha Yajna & Subrahmanya Hawana",
+      domain: "deva_karya",
+      category: "santana_gopala",
+      categoryLabelKn: "ಸಂತಾನ ಭಾಗ್ಯ & ವಂಶಾಭಿವೃದ್ಧಿ",
+      icon: "👶",
+      isUrgentPrimary: context?.primaryChallenge === "Children",
+      astrologicalRootCauseKn: sanitizeAstrologyKannadaText(
+        `ಜಾತಕದ 5ನೇ ಪೂರ್ವಪುಣ್ಯ/ಸಂತಾನ ಸ್ಥಾನದಲ್ಲಿ ಪಾಪಗ್ರಹಗಳ ಸ್ಥಿತಿ ಅಥವಾ ಗುರು ಗ್ರಹದ ಬಲಹೀನತೆಯಿಂದಾಗಿ ಸಂತಾನ ಪ್ರಾಪ್ತಿಯಲ್ಲಿ ವಿಳಂಬ ಅಥವಾ ಸಂತಾನ ಚಿಂತೆ ಕಾಡುತ್ತಿದೆ.`
+      ),
+      astrologicalRootCauseEn: "5th house progeny axis affliction and Jupiter debility requiring Santana Gopala invocation.",
+      sacredProcedureKn: sanitizeAstrologyKannadaText(
+        `ಶ್ರೀ ಸಂತಾನ ಗೋಪಾಲ ಮಂತ್ರ ಜಪ, ಗೋಕ್ಷೀರ ಪಾಯಸ ಹವನ, ಸುಬ್ರಹ್ಮಣ್ಯ ಕವಚ ಪಠಣ ಹಾಗೂ ಗೋಕರ್ಣದಲ್ಲಿ ನವಗ್ರಹ ಫಲ ಪ್ರದಾನ.`
+      ),
+      sacredProcedureEn: "Santana Gopala mantra recitation with consecrated cow milk payasa oblations and Subrahmanya archana at Gokarna.",
+      expectedShiftsAfterPoojaKn: sanitizeAstrologyKannadaText(
+        `ಸಂತಾನ ಪ್ರಾಪ್ತಿಯ ದಾರಿಯಲ್ಲಿನ ದೈಹಿಕ ಮತ್ತು ಕರ್ಮಿಕ ದೋಷಗಳು ನಿವಾರಣೆಯಾಗಿ, ಸದ್ಗುಣ ಸಂಪನ್ನ ವಂಶೋದ್ಧಾರಕ ಸಂತಾನ ಭಾಗ್ಯ ಪ್ರಾಪ್ತಿಯಾಗುತ್ತದೆ.`
+      ),
+      expectedShiftsAfterPoojaEn: "Clears generational and energetic blockages to parenthood, blessing the family with healthy progeny.",
+      priestSecretNoteKn: `[ದೈವಜ್ಞರ ಆಂತರಿಕ ಟಿಪ್ಪಣಿ: ಸಂತಾನ ಗೋಪಾಲ ಯಾಗವು 5ನೇ ಭಾವದ ಪೂರ್ವ ಕರ್ಮಗಳನ್ನು ಶುದ್ಧೀಕರಿಸಿ ವಂಶಾಭಿವೃದ್ಧಿ ತರುತ್ತದೆ]`,
+      priestSecretNoteEn: "[Astrologer Note: Santana Gopala Hawana purifies 5th house karmic blockages, blessing generational continuity]."
+    });
+  }
+
+  // HOMA C: Financial / Wealth / Debt Crisis (Sri Sukta & Kanakadhara Kubera)
+  const isWealthAfflicted = context?.primaryChallenge === "Financial / Debts" || (saturn && [2, 8, 11].includes(saturn.house)) || (mars && [2, 8].includes(mars.house)) || (rahu && [2, 8, 11].includes(rahu.house));
+  if (isWealthAfflicted) {
+    devaHomasPool.push({
+      id: "homa_sri_sukta_kubera",
+      nameKn: "ಶ್ರೀ ಸೂಕ್ತ ಮಹಾ ಹವನ & ಕನಕಧಾರಾ ಕುಬೇರ ಯಾಗ",
+      nameEn: "Sri Sukta Maha Hawana & Kanakadhara Kubera Yajna",
+      domain: "deva_karya",
+      category: "dhana_kubera",
+      categoryLabelKn: "ಧನ ಪ್ರಾಪ್ತಿ & ಸಾಲ ಮುಕ್ತಿ",
+      icon: "💰",
+      isUrgentPrimary: context?.primaryChallenge === "Financial / Debts",
+      astrologicalRootCauseKn: sanitizeAstrologyKannadaText(
+        `ನಿಮ್ಮ ಜಾತಕದ 2ನೇ ಧನಭಾವ, 8ನೇ ರಂಧ್ರಭಾವ ಹಾಗೂ 11ನೇ ಲಾಭಸ್ಥಾನದ ಮೇಲಿನ ಗ್ರಹ ಸಂಘರ್ಷದಿಂದಾಗಿ ಹಠಾತ್ ಧನವ್ಯಯ, ಸಾಲದ ಹೊರೆ ಹಾಗೂ ಆದಾಯದ ಹರಿವಿನಲ್ಲಿ ಅಡೆತಡೆಗಳು ಎದುರಾಗುತ್ತಿವೆ.`
+      ),
+      astrologicalRootCauseEn: "2nd/8th/11th house axis conflicts causing unexpected financial leakages, debt liabilities, and cash flow strain.",
+      sacredProcedureKn: sanitizeAstrologyKannadaText(
+        `ಶ್ರೀ ಸೂಕ್ತದ 16 ಋಕ್ಕುಗಳ ಸಹಸ್ರ ಆಹುತಿಗಳು, ಕಮಲದ ಹೂವು, ಬಿಲ್ವಫಲ, ಜೇನುತುಪ್ಪದ ಹವನ ಹಾಗೂ ಕನಕಧಾರಾ ಕುಬೇರ ಯಂತ್ರ ಆರಾಧನೆ.`
+      ),
+      sacredProcedureEn: "Recitation of 16 Sri Sukta hymns with lotus flowers, Bilva fruit, pure honey oblations, and Kubera Yantra archana.",
+      expectedShiftsAfterPoojaKn: sanitizeAstrologyKannadaText(
+        `ಹಣಕಾಸಿನ ಹರಿವು ಸ್ಥಿರಗೊಂಡು, ಬಾಕಿ ಬರಬೇಕಿದ್ದ ಹಣ ವಾಪಸ್ ಬರುತ್ತದೆ. ಸಾಲದ ಸುಳಿಯಿಂದ ಮುಕ್ತಿ ದೊರೆತು ನೂತನ ಆದಾಯದ ಮೂಲಗಳು ತೆರೆದುಕೊಳ್ಳುತ್ತವೆ.`
+      ),
+      expectedShiftsAfterPoojaEn: "Restores positive cash liquidity, resolves lingering debt liabilities, and opens stable new wealth channels.",
+      priestSecretNoteKn: `[ದೈವಜ್ಞರ ಆಂತರಿಕ ಟಿಪ್ಪಣಿ: ಶ್ರೀ ಸೂಕ್ತ ಹವನವು ಧನ ಸ್ಥಾನದ ದಾರಿದ್ರ್ಯ ಯೋಗಗಳನ್ನು ಭಸ್ಮ ಮಾಡಿ ಲಕ್ಷ್ಮೀ ಕೃಪೆಯನ್ನು ಶಾಶ್ವತಗೊಳಿಸುತ್ತದೆ]`,
+      priestSecretNoteEn: "[Astrologer Note: Sri Sukta Hawana burns poverty debilities, activating perennial financial stability]."
+    });
+  }
+
+  // HOMA D: Career, Competition & Rivalry (Chandi / Durga Saptashati)
   const is6thAfflicted = (mars && [6, 8, 12].includes(mars.house)) || (rahu && [6, 10].includes(rahu.house)) || context?.primaryChallenge === "Career / Workplace";
-  devaHomas.push({
-    id: "homa_chandi",
-    nameKn: "ಶ್ರೀ ಚಂಡಿಕಾ ಮಹಾ ಹವನ & ದುರ್ಗಾ ಸಪ್ತಶತಿ ಯಾಗ",
-    nameEn: "Sri Chandi Maha Hawana & Durga Saptashati Yajna",
-    domain: "deva_karya",
-    category: "shatru_raksha",
-    categoryLabelKn: "ಶತ್ರು ಸಂಹಾರ & ಅಭೇದ್ಯ ರಕ್ಷಣೆ",
-    icon: "🔥",
-    isUrgentPrimary: Boolean(is6thAfflicted),
-    astrologicalRootCauseKn: sanitizeAstrologyKannadaText(
-      `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ 6ನೇ ಮನೆಯ ಶತ್ರು/ಸ್ಪರ್ಧಾ ಸ್ಥಾನ ಹಾಗೂ ${lagnaRashiKn} ಲಗ್ನದ ಮೇಲೆ ಕುಜ-ರಾಹು ಗ್ರಹಗಳ ದೃಷ್ಟಿ ಪ್ರಭಾವವಿದೆ. ಇದರಿಂದಾಗಿ ಕಾರ್ಯಕ್ಷೇತ್ರದಲ್ಲಿ ಅತಿಯಾದ ಪೈಪೋಟಿ, ಈರ್ಷೆ, ನೀವು ಮಾಡದ ತಪ್ಪಿಗೆ ಅಪವಾದ ಹಾಗೂ ಅದೃಶ್ಯ ಶತ್ರುಗಳ ಕುತಂತ್ರಗಳು ಎದುರಾಗುತ್ತಿವೆ.`
-    ),
-    astrologicalRootCauseEn: "Affliction to the 6th house of competition and Mars-Rahu aspects causing workplace rivalry, envy, and obstacle patterns.",
-    sacredProcedureKn: sanitizeAstrologyKannadaText(
-      `ಶ್ರೀ ದುರ್ಗಾ ಸಪ್ತಶತಿಯ 700 ಪವಿತ್ರ ಶ್ಲೋಕಗಳ ಆಹುತಿಗಳು, ಕುಂಕುಮಾರ್ಚನೆ, ಪಾಯಸ ಹವನ, ನವದುರ್ಗಾ ಆವಾಹನೆ ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಮಹಾ ಪೂರ್ಣಾಹುತಿ ಸಂಕಲ್ಪ.`
-    ),
-    sacredProcedureEn: "Recitation of 700 Durga Saptashati mantras, Kumkumarchana, sacred sweet payasa ahutis, and grand Purnahuti at Gokarna Kshetra.",
-    expectedShiftsAfterPoojaKn: sanitizeAstrologyKannadaText(
-      `ಸಮಸ್ತ ಶತ್ರು ಬಾಧೆಗಳು ಹಾಗೂ ನರ ದೃಷ್ಟಿ ದೋಷಗಳು ಭಸ್ಮವಾಗುತ್ತವೆ. ಉದ್ಯೋಗ-ವ್ಯಾಪಾರದಲ್ಲಿ ಸ್ಥಗಿತಗೊಂಡಿದ್ದ ಪ್ರಗತಿ ಪುನರಾರಂಭವಾಗಿ, ವಿರೋಧಿಗಳ ತಂತ್ರಗಳು ತಾವಾಗಿಯೇ ನಿಷ್ಕ್ರಿಯಗೊಳ್ಳುತ್ತವೆ. ನಿಮ್ಮ ಆತ್ಮವಿಶ್ವಾಸಕ್ಕೆ ದೈವಿಕ ರಕ್ಷಾ ಕವಚ ಲಭಿಸುತ್ತದೆ.`
-    ),
-    expectedShiftsAfterPoojaEn: "Utter destruction of competitor hostility and evil eye; career stagnation dissolves, securing continuous divine protection.",
-    priestSecretNoteKn: `[ದೈವಜ್ಞರ ಆಂತರಿಕ ಟಿಪ್ಪಣಿ: ಜಾತಕನ 6ನೇ ಭಾವದಲ್ಲಿರುವ ಅಶುಭ ತರಂಗಗಳು ಚಂಡಿಕಾ ಹವನದ ಮೂಲಕ ಶಮನಗೊಂಡು ತ್ವರಿತ ಜಯ ತರುತ್ತವೆ]`,
-    priestSecretNoteEn: "[Astrologer Note: Chandi Hawana neutralizes 6th house afflictions, establishing unshakeable professional victory]."
-  });
+  if (is6thAfflicted) {
+    devaHomasPool.push({
+      id: "homa_chandi",
+      nameKn: "ಶ್ರೀ ಚಂಡಿಕಾ ಮಹಾ ಹವನ & ದುರ್ಗಾ ಸಪ್ತಶತಿ ಯಾಗ",
+      nameEn: "Sri Chandi Maha Hawana & Durga Saptashati Yajna",
+      domain: "deva_karya",
+      category: "shatru_raksha",
+      categoryLabelKn: "ಶತ್ರು ಸಂಹಾರ & ಅಭೇದ್ಯ ರಕ್ಷಣೆ",
+      icon: "🔥",
+      isUrgentPrimary: context?.primaryChallenge === "Career / Workplace",
+      astrologicalRootCauseKn: sanitizeAstrologyKannadaText(
+        `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ 6ನೇ ಮನೆಯ ಶತ್ರು/ಸ್ಪರ್ಧಾ ಸ್ಥಾನ ಹಾಗೂ ${lagnaRashiKn} ಲಗ್ನದ ಮೇಲೆ ಕುಜ-ರಾಹು ಗ್ರಹಗಳ ದೃಷ್ಟಿ ಪ್ರಭಾವವಿದೆ. ಇದರಿಂದಾಗಿ ಕಾರ್ಯಕ್ಷೇತ್ರದಲ್ಲಿ ಅತಿಯಾದ ಪೈಪೋಟಿ, ಈರ್ಷೆ, ನೀವು ಮಾಡದ ತಪ್ಪಿಗೆ ಅಪವಾದ ಹಾಗೂ ಅದೃಶ್ಯ ಶತ್ರುಗಳ ಕುತಂತ್ರಗಳು ಎದುರಾಗುತ್ತಿವೆ.`
+      ),
+      astrologicalRootCauseEn: "Affliction to the 6th house of competition and Mars-Rahu aspects causing workplace rivalry, envy, and obstacle patterns.",
+      sacredProcedureKn: sanitizeAstrologyKannadaText(
+        `ಶ್ರೀ ದುರ್ಗಾ ಸಪ್ತಶತಿಯ 700 ಪವಿತ್ರ ಶ್ಲೋಕಗಳ ಆಹುತಿಗಳು, ಕುಂಕುಮಾರ್ಚನೆ, ಪಾಯಸ ಹವನ, ನವದುರ್ಗಾ ಆವಾಹನೆ ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಮಹಾ ಪೂರ್ಣಾಹುತಿ ಸಂಕಲ್ಪ.`
+      ),
+      sacredProcedureEn: "Recitation of 700 Durga Saptashati mantras, Kumkumarchana, sacred sweet payasa ahutis, and grand Purnahuti at Gokarna Kshetra.",
+      expectedShiftsAfterPoojaKn: sanitizeAstrologyKannadaText(
+        `ಸಮಸ್ತ ಶತ್ರು ಬಾಧೆಗಳು ಹಾಗೂ ನರ ದೃಷ್ಟಿ ದೋಷಗಳು ಭಸ್ಮವಾಗುತ್ತವೆ. ಉದ್ಯೋಗ-ವ್ಯಾಪಾರದಲ್ಲಿ ಸ್ಥಗಿತಗೊಂಡಿದ್ದ ಪ್ರಗತಿ ಪುನರಾರಂಭವಾಗಿ, ವಿರೋಧಿಗಳ ತಂತ್ರಗಳು ತಾವಾಗಿಯೇ ನಿಷ್ಕ್ರಿಯಗೊಳ್ಳುತ್ತವೆ. ನಿಮ್ಮ ಆತ್ಮವಿಶ್ವಾಸಕ್ಕೆ ದೈವಿಕ ರಕ್ಷಾ ಕವಚ ಲಭಿಸುತ್ತದೆ.`
+      ),
+      expectedShiftsAfterPoojaEn: "Utter destruction of competitor hostility and evil eye; career stagnation dissolves, securing continuous divine protection.",
+      priestSecretNoteKn: `[ದೈವಜ್ಞರ ಆಂತರಿಕ ಟಿಪ್ಪಣಿ: ಜಾತಕನ 6ನೇ ಭಾವದಲ್ಲಿರುವ ಅಶುಭ ತರಂಗಗಳು ಚಂಡಿಕಾ ಹವನದ ಮೂಲಕ ಶಮನಗೊಂಡು ತ್ವರಿತ ಜಯ ತರುತ್ತವೆ]`,
+      priestSecretNoteEn: "[Astrologer Note: Chandi Hawana neutralizes 6th house afflictions, establishing unshakeable professional victory]."
+    });
+  }
 
-  // HOMA 2: Sudarshana Hawana
-  const isSudarshanaNeeded = (ketu && [1, 8, 12].includes(ketu.house)) || (moon && [8, 12, 6].includes(moon.house));
-  devaHomas.push({
-    id: "homa_sudarshana",
-    nameKn: "ಶ್ರೀ ಮಹಾ ಸುದರ್ಶನ ಹೋಮ & ನರಸಿಂಹ ಹವನ",
-    nameEn: "Sri Maha Sudarshana Homa & Narasimha Hawana",
-    domain: "deva_karya",
-    category: "sudarshana_raksha",
-    categoryLabelKn: "ದೃಷ್ಟಿ ದೋಷ ನಿವಾರಣೆ & ಧನ ರಕ್ಷೆ",
-    icon: "☸️",
-    isUrgentPrimary: Boolean(isSudarshanaNeeded),
-    astrologicalRootCauseKn: sanitizeAstrologyKannadaText(
-      `ಜಾತಕದಲ್ಲಿ 8ನೇ ಮತ್ತು 12ನೇ ಭಾವಗಳ ಮೇಲಿನ ಛಾಯಾ ಗ್ರಹಗಳ ಪ್ರಭಾವ ಹಾಗೂ ಚಂದ್ರನ ಸೂಕ್ಷ್ಮ ಸಂಚಾರದಿಂದಾಗಿ ತೀವ್ರ ನರ ದೃಷ್ಟಿ, ದುಃಸ್ವಪ್ನ, ಹಣಕಾಸಿನ ಹಠಾತ್ ನಷ್ಟದ ಭೀತಿ ಹಾಗೂ ಆಂತರಿಕ ಆತಂಕ ಉಂಟಾಗುತ್ತಿದೆ.`
-    ),
-    astrologicalRootCauseEn: "Shadow node pressures on 8th/12th houses generating evil eye afflictions, sudden financial leakages, and anxiety.",
-    sacredProcedureKn: sanitizeAstrologyKannadaText(
-      `ಶ್ರೀ ಸುದರ್ಶನ ಮಹಾಮಂತ್ರ ಹಾಗೂ ಶ್ರೀ ನೃಸಿಂಹ ಕವಚ ಮಂತ್ರಗಳೊಂದಿಗೆ ಪವಿತ್ರ ತುಪ್ಪ, ಸಮಿಧೆ, ಕಪ್ಪು ಎಳ್ಳು ಹಾಗೂ ಸುದರ್ಶನ ಯಂತ್ರಕ್ಕೆ ಅರ್ಚನೆ.`
-    ),
-    sacredProcedureEn: "Invocation of Sudarshana Maha Mantra and Narasimha Kavacha with sacred ghee, samidhas, and consecrated Yantra archana.",
-    expectedShiftsAfterPoojaKn: sanitizeAstrologyKannadaText(
-      `ಸಕಲ ನಕಾರಾತ್ಮಕ ಶಕ್ತಿಗಳ ಛೇದನವಾಗಿ, ಮನಸ್ಸಿಗೆ ಅಚಲ ಧೈರ್ಯ ಮೂಡುತ್ತದೆ. ವ್ಯಾಪಾರ, ಹೊಸ ಆಸ್ತಿ ಖರೀದಿ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಹಣಕಾಸಿಗೆ ಸುದರ್ಶನ ಚಕ್ರದ ಅಭೇದ್ಯ ರಕ್ಷಣೆ ದೊರೆಯುತ್ತದೆ.`
-    ),
-    expectedShiftsAfterPoojaEn: "Total dispelling of negative energetic vibrations, financial protection, and emergence of deep internal serenity.",
-    priestSecretNoteKn: `[ದೈವಜ್ಞರ ಆಂತರಿಕ ಟಿಪ್ಪಣಿ: ಸುದರ್ಶನ ಚಕ್ರ ಹೋಮವು ಜಾತಕನ ಆರಾ ಮಂಡಲವನ್ನು (Aura) ಶುದ್ಧೀಕರಿಸಿ ದುಷ್ಟ ಶಕ್ತಿಗಳಿಂದ ಕಾಪಾಡುತ್ತದೆ]`,
-    priestSecretNoteEn: "[Astrologer Note: Sudarshana Homa purifies the native's energetic field and creates an impervious shield]."
-  });
+  // HOMA E: Evil Eye, Sudden Loss & Fear (Sudarshana & Narasimha)
+  const isSudarshanaNeeded = (ketu && [1, 8, 12].includes(ketu.house)) || (moon && [8, 12, 6].includes(moon.house)) || (rahu && [8, 12].includes(rahu.house));
+  if (isSudarshanaNeeded) {
+    devaHomasPool.push({
+      id: "homa_sudarshana",
+      nameKn: "ಶ್ರೀ ಮಹಾ ಸುದರ್ಶನ ಹೋಮ & ನರಸಿಂಹ ಹವನ",
+      nameEn: "Sri Maha Sudarshana Homa & Narasimha Hawana",
+      domain: "deva_karya",
+      category: "sudarshana_raksha",
+      categoryLabelKn: "ದೃಷ್ಟಿ ದೋಷ ನಿವಾರಣೆ & ಧನ ರಕ್ಷೆ",
+      icon: "☸️",
+      isUrgentPrimary: false,
+      astrologicalRootCauseKn: sanitizeAstrologyKannadaText(
+        `ಜಾತಕದಲ್ಲಿ 8ನೇ ಮತ್ತು 12ನೇ ಭಾವಗಳ ಮೇಲಿನ ಛಾಯಾ ಗ್ರಹಗಳ ಪ್ರಭಾವ ಹಾಗೂ ಚಂದ್ರನ ಸೂಕ್ಷ್ಮ ಸಂಚಾರದಿಂದಾಗಿ ತೀವ್ರ ನರ ದೃಷ್ಟಿ, ದುಃಸ್ವಪ್ನ, ಹಣಕಾಸಿನ ಹಠಾತ್ ನಷ್ಟದ ಭೀತಿ ಹಾಗೂ ಆಂತರಿಕ ಆತಂಕ ಉಂಟಾಗುತ್ತಿದೆ.`
+      ),
+      astrologicalRootCauseEn: "Shadow node pressures on 8th/12th houses generating evil eye afflictions, sudden financial leakages, and anxiety.",
+      sacredProcedureKn: sanitizeAstrologyKannadaText(
+        `ಶ್ರೀ ಸುದರ್ಶನ ಮಹಾಮಂತ್ರ ಹಾಗೂ ಶ್ರೀ ನೃಸಿಂಹ ಕವಚ ಮಂತ್ರಗಳೊಂದಿಗೆ ಪವಿತ್ರ ತುಪ್ಪ, ಸಮಿಧೆ, ಕಪ್ಪು ಎಳ್ಳು ಹಾಗೂ ಸುದರ್ಶನ ಯಂತ್ರಕ್ಕೆ ಅರ್ಚನೆ.`
+      ),
+      sacredProcedureEn: "Invocation of Sudarshana Maha Mantra and Narasimha Kavacha with sacred ghee, samidhas, and consecrated Yantra archana.",
+      expectedShiftsAfterPoojaKn: sanitizeAstrologyKannadaText(
+        `ಸಕಲ ನಕಾರಾತ್ಮಕ ಶಕ್ತಿಗಳ ಛೇದನವಾಗಿ, ಮನಸ್ಸಿಗೆ ಅಚಲ ಧೈರ್ಯ ಮೂಡುತ್ತದೆ. ವ್ಯಾಪಾರ, ಹೊಸ ಆಸ್ತಿ ಖರೀದಿ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಹಣಕಾಸಿಗೆ ಸುದರ್ಶನ ಚಕ್ರದ ಅಭೇದ್ಯ ರಕ್ಷಣೆ ದೊರೆಯುತ್ತದೆ.`
+      ),
+      expectedShiftsAfterPoojaEn: "Total dispelling of negative energetic vibrations, financial protection, and emergence of deep internal serenity.",
+      priestSecretNoteKn: `[ದೈವಜ್ಞರ ಆಂತರಿಕ ಟಿಪ್ಪಣಿ: ಸುದರ್ಶನ ಚಕ್ರ ಹೋಮವು ಜಾತಕನ ಆರಾ ಮಂಡಲವನ್ನು (Aura) ಶುದ್ಧೀಕರಿಸಿ ದುಷ್ಟ ಶಕ್ತಿಗಳಿಂದ ಕಾಪಾಡುತ್ತದೆ]`,
+      priestSecretNoteEn: "[Astrologer Note: Sudarshana Homa purifies the native's energetic field and creates an impervious shield]."
+    });
+  }
 
-  // HOMA 3: Navagraha Maha Hawana
-  devaHomas.push({
-    id: "homa_navagraha",
-    nameKn: "ನವಗ್ರಹ ಶಾಂತಿ ಮಹಾ ಯಜ್ಞ & ಗ್ರಹ ಪ್ರೀತಿ ಹವನ",
-    nameEn: "Navagraha Shanti Maha Yajna & Planetary Alignment Hawana",
-    domain: "deva_karya",
-    category: "navagraha",
-    categoryLabelKn: "ಸರ್ವ ಗ್ರಹ ಸಮತೋಲನ & ಭಾಗ್ಯೋದಯ",
-    icon: "🪐",
-    isUrgentPrimary: true,
-    astrologicalRootCauseKn: sanitizeAstrologyKannadaText(
-      `ನಿಮ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ನವಗ್ರಹಗಳ ಸ್ಥಾನಬಲದ ಏರುಪೇರು ಹಾಗೂ ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${maha} ಮಹಾದಶೆಯಲ್ಲಿ ಗ್ರಹಗಳ ಪೂರ್ಣಾನುಗ್ರಹವನ್ನು ಸಮತೋಲನಗೊಳಿಸಲು ನವಗ್ರಹ ಪ್ರೀತಿ ಅತ್ಯಗತ್ಯವಾಗಿದೆ.`
-    ),
-    astrologicalRootCauseEn: "Planetary imbalance across natal houses and running Dasha-Gochara transits requiring holistic Navagraha alignment.",
-    sacredProcedureKn: sanitizeAstrologyKannadaText(
-      `9 ಗ್ರಹಗಳ ಪ್ರತ್ಯೇಕ ಸಮಿಧೆಗಳು (ಅರ್ಕ, ಪಲಾಶ, ಖದಿರ, ಅಪಾಮಾರ್ಗ, ಅಶ್ವತ್ಥ, ಶಮಿ ಇತ್ಯಾದಿ), ನವಧಾನ್ಯಗಳು ಹಾಗೂ ನವಗ್ರಹ ಗಾಯತ್ರಿ ಮಂತ್ರಗಳ ಸಹಸ್ರ ಆಹುತಿ.`
-    ),
-    sacredProcedureEn: "Sacred ahutis using distinct herbal woods for all 9 planets, Navadhanya grains, and 1008 Navagraha Gayatri chants.",
-    expectedShiftsAfterPoojaKn: sanitizeAstrologyKannadaText(
-      `ದೈನಂದಿನ ಕೆಲಸಗಳಲ್ಲಿ ಪದೇಪದೇ ಬರುತ್ತಿದ್ದ ವಿಳಂಬ ಮತ್ತು ಅಡೆತಡೆಗಳು ನಿವಾರಣೆಯಾಗುತ್ತವೆ. 9 ಗ್ರಹಗಳ ಸಮನ್ವಯತೆಯಿಂದ ಆರೋಗ್ಯ, ಆಯಸ್ಸು, ವಿದ್ಯೆ ಹಾಗೂ ಸಕಲ ಸೌಭಾಗ್ಯಗಳು ವೃದ್ಧಿಯಾಗುತ್ತವೆ.`
-    ),
-    expectedShiftsAfterPoojaEn: "Dissolution of day-to-day obstacles, harmony across all nine celestial forces, and revitalization of good fortune.",
-    priestSecretNoteKn: sanitizeAstrologyKannadaText(`[ದೈವಜ್ಞರ ಆಂತರಿಕ ಟಿಪ್ಪಣಿ: ನವಗ್ರಹ ಹವನವು ಸಕಲ ಜ್ಯೋತಿಷ್ಯ ಪರಿಹಾರಗಳಿಗೆ ತಳಹದಿಯಾಗಿದ್ದು, ${context?.dynamicTimelineKn || "ಮುಂಬರುವ ಶುಭ ಸಂಧಿಕಾಲದಲ್ಲಿ"} ಪರಿಪೂರ್ಣ ಶುಭ ಫಲ ನೀಡುತ್ತದೆ]`),
-    priestSecretNoteEn: "[Astrologer Note: Navagraha Hawana serves as the master foundation ensuring upcoming transits manifest beneficially]."
-  });
-
-  // HOMA 4: Rahu-Ketu / Guru-Chandal Sandhi Homa
+  // HOMA F: Rahu-Ketu Axis / Kaalsarp / Guru-Chandal
   const isRahuKetuAfflicted = (rahu && [1, 5, 7, 8].includes(rahu.house)) || (insights.kaalsarp !== "none") || (jupiter && rahu && jupiter.rashi.index === rahu.rashi.index);
   if (isRahuKetuAfflicted) {
-    devaHomas.push({
+    devaHomasPool.push({
       id: "homa_rahu_ketu_sandhi",
-      nameKn: "ರಾಹು-ಕೇತು ಸರ್ಪ ಶಾಂತಿ & ಗುರು-ಚಂಡಾಲ ದೋಷ ನಿವಾರಣಾ ಹವನ",
-      nameEn: "Rahu-Ketu Sarpa Shanti & Guru-Chandal Dosha Nivaran Hawana",
+      nameKn: "ರಾಹು-ಕೇತು ಸರ್ಪ ಶಾಂತಿ & ನಾಗ ಪ್ರತಿಷ್ಠಾಪನಾ ಹವನ",
+      nameEn: "Rahu-Ketu Sarpa Shanti & Naga Pratishthapana Hawana",
       domain: "deva_karya",
       category: "rahu_ketu_sandhi",
       categoryLabelKn: "ಛಾಯಾ ಗ್ರಹ ದೋಷ & ನಾಗ ಶಾಂತಿ",
       icon: "🐍",
       isUrgentPrimary: true,
       astrologicalRootCauseKn: sanitizeAstrologyKannadaText(
-        `ಜಾತಕದಲ್ಲಿ ರಾಹು/ಕೇತುಗಳ ಪ್ರಬಲ ಸ್ಥಿತಿ ಅಥವಾ ಗುರು-ರಾಹು ಸಂಯೋಗದಿಂದಾಗಿ ಪ್ರಮುಖ ನಿರ್ಧಾರಗಳಲ್ಲಿ ದ್ವಂದ್ವ, ಭ್ರಮೆಗಳು, ಅನಗತ್ಯ ಗೊಂದಲ ಹಾಗೂ ವಿವಾಹ/ವೃತ್ತಿಯಲ್ಲಿ ನಿರೀಕ್ಷಿತ ತಿರುವು ವಿಳಂಬವಾಗುತ್ತಿದೆ.`
+        `ಜಾತಕದಲ್ಲಿ ರಾಹು/ಕೇತುಗಳ ಪ್ರಬಲ ಸ್ಥಿತಿ ಅಥವಾ ಸರ್ಪ ದೋಷದ ಪ್ರಭಾವದಿಂದಾಗಿ ಪ್ರಮುಖ ನಿರ್ಧಾರಗಳಲ್ಲಿ ದ್ವಂದ್ವ, ಭ್ರಮೆಗಳು, ಅನಗತ್ಯ ಗೊಂದಲ ಹಾಗೂ ವಿವಾಹ/ವೃತ್ತಿಯಲ್ಲಿ ನಿರೀಕ್ಷಿತ ತಿರುವು ವಿಳಂಬವಾಗುತ್ತಿದೆ.`
       ),
-      astrologicalRootCauseEn: "Rahu-Ketu axis or Guru-Chandal conjunction causing mental confusion, decision paralysis, and delays.",
+      astrologicalRootCauseEn: "Rahu-Ketu axis or Sarpa Dosha causing mental confusion, decision paralysis, and delays.",
       sacredProcedureKn: sanitizeAstrologyKannadaText(
         `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ನಾಗಪ್ರತಿಷ್ಠಾಪನೆ ಸಂಕಲ್ಪ, ರಾಹು-ಕೇತು ಜಪ, ಕಪ್ಪು-ಬಿಳಿ ಎಳ್ಳಿನ ಹವನ ಹಾಗೂ ನವನಾಗ ಮಂಡಲ ಪೂಜೆ.`
       ),
@@ -379,61 +646,94 @@ export function generateYajnaHawanaPlan(
     });
   }
 
-  // HOMA 5: Dasha-Bhukti Sandhi Pooja
-  devaHomas.push({
-    id: "homa_dasha_sandhi",
-    nameKn: `ದಶಾ-ಭುಕ್ತಿ ಸಂಧಿ ಶಾಂತಿ ಹವನ (${maha} - ${bhukti} ಸಂಧಿ ಸಂಕಲ್ಪ)`,
-    nameEn: `Dasha-Bhukti Sandhi Shanti Hawana (${maha} - ${bhukti} Transition)`,
-    domain: "deva_karya",
-    category: "dasha_sandhi",
-    categoryLabelKn: "ದಶಾ ಪರಿವರ್ತನಾ ಶಾಂತಿ",
-    icon: "⏳",
-    isUrgentPrimary: false,
-    astrologicalRootCauseKn: sanitizeAstrologyKannadaText(
-      `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${maha} ಮಹಾದಶೆ ಹಾಗೂ ${bhukti} ಭುಕ್ತಿಯ ಅಂತ್ಯದ ಸಂಧಿಕಾಲದಲ್ಲಿ ಗ್ರಹಗಳ ಶಕ್ತಿಯು ಬದಲಾಗುತ್ತಿರುವುದರಿಂದ, ಹಠಾತ್ ಸ್ಥಾನಪಲ್ಲಟ, ಆರ್ಥಿಕ ಏರಿಳಿತ ಅಥವಾ ಒತ್ತಡಗಳು ಉಂಟಾಗದಂತೆ ರಕ್ಷಣೆ ಅಗತ್ಯವಿದೆ.`
-    ),
-    astrologicalRootCauseEn: `Transition between ${maha} Mahadasha and ${bhukti} Antardasha creating vulnerable planetary shifting phase.`,
-    sacredProcedureKn: sanitizeAstrologyKannadaText(
-      `ಪ್ರಸ್ತುತ ಮತ್ತು ಮುಂಬರುವ ದಶಾಧಿಪತಿ ಗ್ರಹಗಳ ಮಂತ್ರಾನುಷ್ಠಾನ, ಪ್ರಾಯಶ್ಚಿತ್ತ ಹವನ ಹಾಗೂ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸಂಧಿಕಾಲ ರಕ್ಷಾ ಸಂಕಲ್ಪ.`
-    ),
-    sacredProcedureEn: "Mantra Japa for ruling and incoming Dasha lords, expiatory havan, and protective transitional sankalpa at Gokarna.",
-    expectedShiftsAfterPoojaKn: sanitizeAstrologyKannadaText(
-      `ದಶಾ ಬದಲಾವಣೆಯ ಆಘಾತಗಳಿಂದ ಸಂಪೂರ್ಣ ರಕ್ಷಣೆ ಲಭಿಸಿ, ಮುಂಬರುವ ಹೊಸ ದಶಾ ಕಾಲದಲ್ಲಿ ಆರಂಭದಿಂದಲೇ ಯಶಸ್ಸು, ಪದೋನ್ನತಿ ಹಾಗೂ ಸುಖ-ಶಾಂತಿ ನೆಲೆಸುತ್ತದೆ.`
-    ),
-    expectedShiftsAfterPoojaEn: "Shields against unexpected disruptions during Dasha shift, accelerating prosperity and recognition in the new planetary cycle.",
-    priestSecretNoteKn: `[ದೈವಜ್ಞರ ಆಂತರಿಕ ಟಿಪ್ಪಣಿ: ದಶಾ ಸಂಧಿ ಕಾಲದಲ್ಲಿ ಶಾಂತಿ ಮಾಡಿಸುವುದರಿಂದ ಹಳೆಯ ದಶೆಯ ಕಷ್ಟಗಳು ಮುಕ್ತಾಯವಾಗಿ ಹೊಸ ದಶೆಯು ರಾಜಯೋಗದಂತೆ ಆರಂಭವಾಗುತ್ತದೆ]`,
-    priestSecretNoteEn: "[Astrologer Note: Dasha Sandhi Shanti ensures the outgoing cycle's strain ceases and the incoming cycle opens auspiciously]."
-  });
+  // HOMA G: Saturn Affliction / Sade Sati / Ashtama Shani
+  const isSaturnNearMoon = saturn && [12, 1, 2].includes(((saturn.rashi.index - kundli.moonSign.index + 12) % 12) + 1);
+  const isSaturnAfflicted = (saturn && [1, 8, 10].includes(saturn.house)) || Boolean(isSaturnNearMoon);
+  if (isSaturnAfflicted) {
+    devaHomasPool.push({
+      id: "homa_shani_shanti",
+      nameKn: "ಶ್ರೀ ಶನಿ ಶಾಂತಿ & ಮಹಾ ಕಾಲಭೈರವ ಹವನ",
+      nameEn: "Sri Shani Shanti & Maha Kalabhairava Hawana",
+      domain: "deva_karya",
+      category: "shani_shanti",
+      categoryLabelKn: "ಕರ್ಮ ದೋಷ ನಿವಾರಣೆ & ಶನಿ ಪ್ರೀತಿ",
+      icon: "🪐",
+      isUrgentPrimary: Boolean(isSaturnNearMoon),
+      astrologicalRootCauseKn: sanitizeAstrologyKannadaText(
+        `ನಿಮ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ${isSaturnNearMoon ? "ಸಾಡೇಸಾತಿ ಶನಿಯ ಸಂಚಾರ" : `ಶನಿ ಗ್ರಹವು ${saturn?.house}ನೇ ಮನೆಯಲ್ಲಿ ಸ್ಥಿತನಾಗಿರುವುದು`} ಹಾಗೂ ಕರ್ಮ ಸ್ಥಾನದ ಮೇಲಿನ ಪ್ರಭಾವದಿಂದ ನಿಧಾನ ಪ್ರಗತಿ, ಅತಿಯಾದ ಮಾನಸಿಕ ಆಯಾಸ ಹಾಗೂ ಕೆಲಸಗಳಲ್ಲಿ ವಿಳಂಬ ಉಂಟಾಗುತ್ತಿದೆ.`
+      ),
+      astrologicalRootCauseEn: "Saturnian transit or placement inducing delays, heavy responsibilities, and karmic tests requiring Shani pacification.",
+      sacredProcedureKn: sanitizeAstrologyKannadaText(
+        `ಶನಿ ಗಾಯತ್ರಿ ಮಂತ್ರ ಜಪ, ಶಮಿ ಸಮಿಧೆ, ಕಪ್ಪು ಎಳ್ಳು, ಸಾಸಿವೆ ಎಣ್ಣೆಯ ಹವನ, ಕಾಲಭೈರವ ಅಷ್ಟಕ ಪಠಣ ಹಾಗೂ ತೈಲಾಭಿಷೇಕ ಸೇವೆ.`
+      ),
+      sacredProcedureEn: "Shani Gayatri recitation, black sesame and mustard oil oblations, and Kalabhairava archana at Gokarna Kshetra.",
+      expectedShiftsAfterPoojaKn: sanitizeAstrologyKannadaText(
+        `ಶನಿ ದೇವನ ವಕ್ರ ದೃಷ್ಟಿ ಶಾಂತವಾಗಿ, ಕಠಿಣ ಕರ್ಮಗಳು ಸಡಿಲಗೊಳ್ಳುತ್ತವೆ. ಸ್ಥಗಿತಗೊಂಡಿದ್ದ ಕೆಲಸಗಳಲ್ಲಿ ಗತಿ ದೊರೆತು ಆಯಸ್ಸು, ಆರೋಗ್ಯ ಮತ್ತು ಗೌರವ ವೃದ್ಧಿಯಾಗುತ್ತದೆ.`
+      ),
+      expectedShiftsAfterPoojaEn: "Pacifies Saturnian pressure, easing chronic delays and infusing steady purposeful momentum into career and health.",
+      priestSecretNoteKn: `[ದೈವಜ್ಞರ ಆಂತರಿಕ ಟಿಪ್ಪಣಿ: ಶನಿ ಶಾಂತಿಯು ಶನಿಯ ಶಿಕ್ಷಾ ರೂಪವನ್ನು ರಕ್ಷಾ ರೂಪಕ್ಕೆ ಪರಿವರ್ತಿಸಿ ಯಶಸ್ಸು ತರುತ್ತದೆ]`,
+      priestSecretNoteEn: "[Astrologer Note: Shani Shanti transforms punitive Saturnian pressure into protective wisdom and success]."
+    });
+  }
 
-  // HOMA 6: Mahamrityunjaya Homa & Ayushya Hawana
+  // HOMA H: Vitality, Health, Maandi & Mrityunjaya
   const isMaandiLagnaOr8th = kundli.maandi && [1, 8].includes((((kundli.maandi.rashi.index - kundli.lagnaRashi.index + 12) % 12) + 1));
-  devaHomas.push({
-    id: "homa_mrityunjaya",
-    nameKn: "ಮಹಾಮೃತ್ಯುಂಜಯ ಮಹಾ ಯಾಗ & ಆಯುಷ್ಯ-ಮಾಂದಿ ಶಾಂತಿ ಹವನ",
-    nameEn: "Mahamrityunjaya Maha Yajna & Ayushya-Maandi Shanti Hawana",
-    domain: "deva_karya",
-    category: "mrityunjaya_ayushya",
-    categoryLabelKn: "ಆರೋಗ್ಯ ಚೈತನ್ಯ & ಮಾಂದಿ ನಿವಾರಣೆ",
-    icon: "🔱",
-    isUrgentPrimary: Boolean(isMaandiLagnaOr8th),
-    astrologicalRootCauseKn: sanitizeAstrologyKannadaText(
-      `ಜಾತಕದ ಲಗ್ನ ಮತ್ತು 8ನೇ ಮನೆಯ ಮೇಲೆ ಮಾಂದಿ ಹಾಗೂ ಪಾಪಗ್ರಹಗಳ ಸೂಕ್ಷ್ಮ ಪ್ರಭಾವದಿಂದಾಗಿ ದೈಹಿಕ ನಿಶ್ಯಕ್ತಿ, ಜೀರ್ಣಾಂಗ ಅಗ್ನಿಮಾಂದ್ಯತೆ, ನರಮಂಡಲದ ಆಯಾಸ ಹಾಗೂ ಮಾನಸಿಕ ಒತ್ತಡ ಉಂಟಾಗುತ್ತಿದೆ.`
-    ),
-    astrologicalRootCauseEn: "Subtle afflictions on Lagna/8th house from Maandi and malefic transits inducing fatigue and energetic depletion.",
-    sacredProcedureKn: sanitizeAstrologyKannadaText(
-      `ಮಹಾಮೃತ್ಯುಂಜಯ ಮಂತ್ರದ 1008 ಆಹುತಿಗಳು, ಅಮೃತಬಳ್ಳಿ (ಗುಡೂಚಿ), ದೂರ್ವಾ, ಗೋಘೃತ, ಜೇನುತುಪ್ಪ ಹಾಗೂ ಶ್ರೀ ರುದ್ರಾಧ್ಯಾಯ ಹೋಮ.`
-    ),
-    sacredProcedureEn: "1008 Mahamrityunjaya chants with sacred Guduchi herb, Durva grass, pure cow ghee, and Rudradhyaya havan.",
-    expectedShiftsAfterPoojaKn: sanitizeAstrologyKannadaText(
-      `ದೈಹಿಕ ಚೈತನ್ಯ ಪುನರುಜ್ಜೀವನಗೊಂಡು, ಆಂತರಿಕ ಆತಂಕ ಶಮನವಾಗುತ್ತದೆ. ಆಯುಷ್ಯ ವೃದ್ಧಿ, ನವೋತ್ಸಾಹ ಹಾಗೂ ಸಕಲ ಅರಿಷ್ಟಗಳಿಂದ ದೈವಿಕ ರಕ್ಷಣೆ ಲಭಿಸುತ್ತದೆ.`
-    ),
-    expectedShiftsAfterPoojaEn: "Restoration of physical vitality, deep serene rest, rejuvenation of nervous energy, and longevity blessing.",
-    priestSecretNoteKn: `[ದೈವಜ್ಞರ ಆಂತರಿಕ ಟಿಪ್ಪಣಿ: ಮೃತ್ಯುಂಜಯ ಹವನವು ಪ್ರಾಣಶಕ್ತಿಯನ್ನು ಉತ್ತುಂಗಕ್ಕೇರಿಸಿ ಮಾಂದಿ ಗ್ರಹದ ನಕಾರಾತ್ಮಕ ತರಂಗಗಳನ್ನು ಶೂನ್ಯಗೊಳಿಸುತ್ತದೆ]`,
-    priestSecretNoteEn: "[Astrologer Note: Mahamrityunjaya Hawana revitalizes Prana Shakti, neutralizing Maandi's shadow debility]."
-  });
+  const isHealthChallenge = context?.primaryChallenge === "Health / Vitality" || Boolean(isMaandiLagnaOr8th);
+  if (isHealthChallenge) {
+    devaHomasPool.push({
+      id: "homa_mrityunjaya",
+      nameKn: "ಮಹಾಮೃತ್ಯುಂಜಯ ಮಹಾ ಯಾಗ & ಆಯುಷ್ಯ-ಮಾಂದಿ ಶಾಂತಿ ಹವನ",
+      nameEn: "Mahamrityunjaya Maha Yajna & Ayushya-Maandi Shanti Hawana",
+      domain: "deva_karya",
+      category: "mrityunjaya_ayushya",
+      categoryLabelKn: "ಆರೋಗ್ಯ ಚೈತನ್ಯ & ಮಾಂದಿ ನಿವಾರಣೆ",
+      icon: "🔱",
+      isUrgentPrimary: Boolean(isMaandiLagnaOr8th),
+      astrologicalRootCauseKn: sanitizeAstrologyKannadaText(
+        `ಜಾತಕದ ಲಗ್ನ ಮತ್ತು 8ನೇ ಮನೆಯ ಮೇಲೆ ಮಾಂದಿ ಹಾಗೂ ಪಾಪಗ್ರಹಗಳ ಸೂಕ್ಷ್ಮ ಪ್ರಭಾವದಿಂದಾಗಿ ದೈಹಿಕ ನಿಶ್ಯಕ್ತಿ, ಜೀರ್ಣಾಂಗ ಅಗ್ನಿಮಾಂದ್ಯತೆ, ನರಮಂಡಲದ ಆಯಾಸ ಹಾಗೂ ಮಾನಸಿಕ ಒತ್ತಡ ಉಂಟಾಗುತ್ತಿದೆ.`
+      ),
+      astrologicalRootCauseEn: "Subtle afflictions on Lagna/8th house from Maandi and malefic transits inducing fatigue and energetic depletion.",
+      sacredProcedureKn: sanitizeAstrologyKannadaText(
+        `ಮಹಾಮೃತ್ಯುಂಜಯ ಮಂತ್ರದ 1008 ಆಹುತಿಗಳು, ಅಮೃತಬಳ್ಳಿ (ಗುಡೂಚಿ), ದೂರ್ವಾ, ಗೋಘೃತ, ಜೇನುತುಪ್ಪ ಹಾಗೂ ಶ್ರೀ ರುದ್ರಾಧ್ಯಾಯ ಹೋಮ.`
+      ),
+      sacredProcedureEn: "1008 Mahamrityunjaya chants with sacred Guduchi herb, Durva grass, pure cow ghee, and Rudradhyaya havan.",
+      expectedShiftsAfterPoojaKn: sanitizeAstrologyKannadaText(
+        `ದೈಹಿಕ ಚೈತನ್ಯ ಪುನರುಜ್ಜೀವನಗೊಂಡು, ಆಂತರಿಕ ಆತಂಕ ಶಮನವಾಗುತ್ತದೆ. ಆಯುಷ್ಯ ವೃದ್ಧಿ, ನವೋತ್ಸಾಹ ಹಾಗೂ ಸಕಲ ಅರಿಷ್ಟಗಳಿಂದ ದೈವಿಕ ರಕ್ಷಣೆ ಲಭಿಸುತ್ತದೆ.`
+      ),
+      expectedShiftsAfterPoojaEn: "Restoration of physical vitality, deep serene rest, rejuvenation of nervous energy, and longevity blessing.",
+      priestSecretNoteKn: `[ದೈವಜ್ಞರ ಆಂತರಿಕ ಟಿಪ್ಪಣಿ: ಮೃತ್ಯುಂಜಯ ಹವನವು ಪ್ರಾಣಶಕ್ತಿಯನ್ನು ಉತ್ತುಂಗಕ್ಕೇರಿಸಿ ಮಾಂದಿ ಗ್ರಹದ ನಕಾರಾತ್ಮಕ ತರಂಗಗಳನ್ನು ಶೂನ್ಯಗೊಳಿಸುತ್ತದೆ]`,
+      priestSecretNoteEn: "[Astrologer Note: Mahamrityunjaya Hawana revitalizes Prana Shakti, neutralizing Maandi's shadow debility]."
+    });
+  }
 
-  // HOMA 7: Gokarna Atmalinga Rudrabhisheka
-  devaHomas.push({
+  // HOMA I: Navagraha Maha Hawana (ALWAYS FOUNDATIONAL)
+  const navagrahaHoma: YajnaHawanaItem = {
+    id: "homa_navagraha",
+    nameKn: "ನವಗ್ರಹ ಶಾಂತಿ ಮಹಾ ಯಜ್ಞ & ಗ್ರಹ ಪ್ರೀತಿ ಹವನ",
+    nameEn: "Navagraha Shanti Maha Yajna & Planetary Alignment Hawana",
+    domain: "deva_karya",
+    category: "navagraha",
+    categoryLabelKn: "ಸರ್ವ ಗ್ರಹ ಸಮತೋಲನ & ಭಾಗ್ಯೋದಯ",
+    icon: "🪐",
+    isUrgentPrimary: true,
+    astrologicalRootCauseKn: sanitizeAstrologyKannadaText(
+      `ನಿಮ್ಮ ${lagnaRashiKn} ಲಗ್ನ ಹಾಗೂ ${moonRashiKn} ರಾಶಿಯ ಕುಂಡಲಿಯಲ್ಲಿ ನವಗ್ರಹಗಳ ಸ್ಥಾನಬಲದ ಏರುಪೇರು ಹಾಗೂ ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${maha} ಮಹಾದಶೆಯಲ್ಲಿ ಗ್ರಹಗಳ ಪೂರ್ಣಾನುಗ್ರಹವನ್ನು ಸಮತೋಲನಗೊಳಿಸಲು ನವಗ್ರಹ ಪ್ರೀತಿ ಅತ್ಯಗತ್ಯವಾಗಿದೆ.`
+    ),
+    astrologicalRootCauseEn: "Planetary imbalance across natal houses and running Dasha-Gochara transits requiring holistic Navagraha alignment.",
+    sacredProcedureKn: sanitizeAstrologyKannadaText(
+      `9 ಗ್ರಹಗಳ ಪ್ರತ್ಯೇಕ ಸಮಿಧೆಗಳು (ಅರ್ಕ, ಪಲಾಶ, ಖದಿರ, ಅಪಾಮಾರ್ಗ, ಅಶ್ವತ್ಥ, ಶಮಿ ಇತ್ಯಾದಿ), ನವಧಾನ್ಯಗಳು ಹಾಗೂ ನವಗ್ರಹ ಗಾಯತ್ರಿ ಮಂತ್ರಗಳ ಸಹಸ್ರ ಆಹುತಿ.`
+    ),
+    sacredProcedureEn: "Sacred ahutis using distinct herbal woods for all 9 planets, Navadhanya grains, and 1008 Navagraha Gayatri chants.",
+    expectedShiftsAfterPoojaKn: sanitizeAstrologyKannadaText(
+      `ದೈನಂದಿನ ಕೆಲಸಗಳಲ್ಲಿ ಪದೇಪದೇ ಬರುತ್ತಿದ್ದ ವಿಳಂಬ ಮತ್ತು ಅಡೆತಡೆಗಳು ನಿವಾರಣೆಯಾಗುತ್ತವೆ. 9 ಗ್ರಹಗಳ ಸಮನ್ವಯತೆಯಿಂದ ಆರೋಗ್ಯ, ಆಯಸ್ಸು, ವಿದ್ಯಾಭ್ಯಾಸ ಹಾಗೂ ಸಕಲ ಸೌಭಾಗ್ಯಗಳು ವೃದ್ಧಿಯಾಗುತ್ತವೆ.`
+    ),
+    expectedShiftsAfterPoojaEn: "Dissolution of day-to-day obstacles, harmony across all nine celestial forces, and revitalization of good fortune.",
+    priestSecretNoteKn: sanitizeAstrologyKannadaText(`[ದೈವಜ್ಞರ ಆಂತರಿಕ ಟಿಪ್ಪಣಿ: ನವಗ್ರಹ ಹವನವು ಸಕಲ ಜ್ಯೋತಿಷ್ಯ ಪರಿಹಾರಗಳಿಗೆ ತಳಹದಿಯಾಗಿದ್ದು, ${context?.dynamicTimelineKn || "ಮುಂಬರುವ ಶುಭ ಸಂಧಿಕಾಲದಲ್ಲಿ"} ಪರಿಪೂರ್ಣ ಶುಭ ಫಲ ನೀಡುತ್ತದೆ]`),
+    priestSecretNoteEn: "[Astrologer Note: Navagraha Hawana serves as the master foundation ensuring upcoming transits manifest beneficially]."
+  };
+
+  // HOMA J: Gokarna Mahabaleshwara Atmalinga Rudrabhisheka (ALWAYS CROWN JEWEL)
+  const gokarnaAbhishekaHoma: YajnaHawanaItem = {
     id: "homa_gokarna_abhisheka",
     nameKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಆತ್ಮಲಿಂಗ ಮಹಾ ರುದ್ರಾಭಿಷೇಕ & ಪಂಚಾಮೃತ ಸೇವೆ",
     nameEn: "Sri Kshetra Gokarna Mahabaleshwara Atmalinga Mahabhisheka",
@@ -456,16 +756,63 @@ export function generateYajnaHawanaPlan(
     expectedShiftsAfterPoojaEn: "Immediate inner mental peace, dissolution of subconscious fears, and divine grace blessing all endeavors.",
     priestSecretNoteKn: `[ದೈವಜ್ಞರ ಆಂತರಿಕ ಟಿಪ್ಪಣಿ: ಗೋಕರ್ಣ ಆತ್ಮಲಿಂಗ ಸ್ಪರ್ಶ ಪೂಜೆಯು ಜಾತಕನ ಜನ್ಮ ಜನ್ಮಾಂತರದ ಪಾಪ-ಕರ್ಮಗಳನ್ನು ಕರಗಿಸುವ ಮಹಾ ಶಕ್ತಿ ಹೊಂದಿದೆ]`,
     priestSecretNoteEn: "[Astrologer Note: Gokarna Atmalinga Abhisheka dissolves deep-seated karmic residues, ensuring complete divine backing]."
+  };
+
+  // HOMA K: Dasha-Bhukti Sandhi Pooja
+  const dashaSandhiHoma: YajnaHawanaItem = {
+    id: "homa_dasha_sandhi",
+    nameKn: `ದಶಾ-ಭುಕ್ತಿ ಸಂಧಿ ಶಾಂತಿ ಹವನ (${maha} - ${bhukti} ಸಂಧಿ ಸಂಕಲ್ಪ)`,
+    nameEn: `Dasha-Bhukti Sandhi Shanti Hawana (${maha} - ${bhukti} Transition)`,
+    domain: "deva_karya",
+    category: "dasha_sandhi",
+    categoryLabelKn: "ದಶಾ ಪರಿವರ್ತನಾ ಶಾಂತಿ",
+    icon: "⏳",
+    isUrgentPrimary: false,
+    astrologicalRootCauseKn: sanitizeAstrologyKannadaText(
+      `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${maha} ಮಹಾದಶೆ ಹಾಗೂ ${bhukti} ಭುಕ್ತಿಯ ಸಂಧಿಕಾಲದಲ್ಲಿ ಗ್ರಹಗಳ ಶಕ್ತಿಯು ಬದಲಾಗುತ್ತಿರುವುದರಿಂದ, ಹಠಾತ್ ಸ್ಥಾನಪಲ್ಲಟ, ಆರ್ಥಿಕ ಏರಿಳಿತ ಅಥವಾ ಒತ್ತಡಗಳು ಉಂಟಾಗದಂತೆ ರಕ್ಷಣೆ ಅಗತ್ಯವಿದೆ.`
+    ),
+    astrologicalRootCauseEn: `Transition between ${maha} Mahadasha and ${bhukti} Antardasha creating vulnerable planetary shifting phase.`,
+    sacredProcedureKn: sanitizeAstrologyKannadaText(
+      `ಪ್ರಸ್ತುತ ಮತ್ತು ಮುಂಬರುವ ದಶಾಧಿಪತಿ ಗ್ರಹಗಳ ಮಂತ್ರಾನುಷ್ಠಾನ, ಪ್ರಾಯಶ್ಚಿತ್ತ ಹವನ ಹಾಗೂ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸಂಧಿಕಾಲ ರಕ್ಷಾ ಸಂಕಲ್ಪ.`
+    ),
+    sacredProcedureEn: "Mantra Japa for ruling and incoming Dasha lords, expiatory havan, and protective transitional sankalpa at Gokarna.",
+    expectedShiftsAfterPoojaKn: sanitizeAstrologyKannadaText(
+      `ದಶಾ ಬದಲಾವಣೆಯ ಆಘಾತಗಳಿಂದ ಸಂಪೂರ್ಣ ರಕ್ಷಣೆ ಲಭಿಸಿ, ಮುಂಬರುವ ಹೊಸ ದಶಾ ಕಾಲದಲ್ಲಿ ಆರಂಭದಿಂದಲೇ ಯಶಸ್ಸು, ಪದೋನ್ನತಿ ಹಾಗೂ ಸುಖ-ಶಾಂತಿ ನೆಲೆಸುತ್ತದೆ.`
+    ),
+    expectedShiftsAfterPoojaEn: "Shields against unexpected disruptions during Dasha shift, accelerating prosperity and recognition in the new planetary cycle.",
+    priestSecretNoteKn: `[ದೈವಜ್ಞರ ಆಂತರಿಕ ಟಿಪ್ಪಣಿ: ದಶಾ ಸಂಧಿ ಕಾಲದಲ್ಲಿ ಶಾಂತಿ ಮಾಡಿಸುವುದರಿಂದ ಹಳೆಯ ದಶೆಯ ಕಷ್ಟಗಳು ಮುಕ್ತಾಯವಾಗಿ ಹೊಸ ದಶೆಯು ರಾಜಯೋಗದಂತೆ ಆರಂಭವಾಗುತ್ತದೆ]`,
+    priestSecretNoteEn: "[Astrologer Note: Dasha Sandhi Shanti ensures the outgoing cycle's strain ceases and the incoming cycle opens auspiciously]."
+  };
+
+  // Assemble and curate the final Deva Homas list (guarantee 4 to 6 items)
+  const finalDevaHomas: YajnaHawanaItem[] = [];
+
+  // 1. Add afflicted / primary challenge specific homas first
+  devaHomasPool.forEach(h => {
+    if (finalDevaHomas.length < 4 && !finalDevaHomas.some(x => x.id === h.id)) {
+      finalDevaHomas.push(h);
+    }
   });
 
-  // ==========================================
-  // 3. COMBINED SACRED SCHEDULE (2-STAGE MULTI-DAY PLAN)
-  // ==========================================
-  const devaHomaNamesKn: string[] = ["ನವಗ್ರಹ ಶಾಂತಿ ಮಹಾ ಯಜ್ಞ"];
-  if (is6thAfflicted) devaHomaNamesKn.push("ಶ್ರೀ ಚಂಡಿಕಾ ಮಹಾ ಹವನ");
-  else devaHomaNamesKn.push("ಶ್ರೀ ಮಹಾ ಸುದರ್ಶನ ಹೋಮ");
-  devaHomaNamesKn.push("ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಆತ್ಮಲಿಂಗ ಮಹಾ ರುದ್ರಾಭಿಷೇಕ");
+  // 2. Add Navagraha Shanti (Foundational)
+  if (!finalDevaHomas.some(x => x.id === navagrahaHoma.id)) {
+    finalDevaHomas.push(navagrahaHoma);
+  }
 
+  // 3. Add Gokarna Atmalinga Rudrabhisheka (Crown Jewel)
+  if (!finalDevaHomas.some(x => x.id === gokarnaAbhishekaHoma.id)) {
+    finalDevaHomas.push(gokarnaAbhishekaHoma);
+  }
+
+  // 4. If still under 4, add Dasha Sandhi
+  if (finalDevaHomas.length < 4 && !finalDevaHomas.some(x => x.id === dashaSandhiHoma.id)) {
+    finalDevaHomas.push(dashaSandhiHoma);
+  }
+
+  // =========================================================================
+  // 3. COMBINED SACRED SCHEDULE (2-STAGE MULTI-DAY OR 1-DAY DEVA SAMPUTA)
+  // =========================================================================
+  const devaHomaNamesKn: string[] = finalDevaHomas.slice(0, 3).map(h => h.nameKn.split("&")[0].trim());
   let combinedSchedule: CombinedSacredSchedule;
 
   if (hasPitruDosha) {
@@ -494,7 +841,7 @@ export function generateYajnaHawanaPlan(
         placeKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿ ಸನ್ನಿಧಿ",
         ritualsKn: devaHomaNamesKn,
         descriptionKn: sanitizeAstrologyKannadaText(
-          "ಶುದ್ಧಿ ದಿನದ ನಂತರ, ಮೂರನೇ ದಿನ ಪ್ರಾತಃಕಾಲ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ನವಗ್ರಹ ಶಾಂತಿ, ಚಂಡಿಕಾ/ಸುದರ್ಶನ ಹವನ ಹಾಗೂ ಆತ್ಮಲಿಂಗ ಮಹಾ ರುದ್ರಾಭಿಷೇಕಗಳನ್ನು ಸಂಪುಟವಾಗಿ ನೆರವೇರಿಸಿ ಸಕಲ ಭಾಗ್ಯೋದಯ ಸಂಕಲ್ಪ ಮಾಡಲಾಗುತ್ತದೆ."
+          `ಶುದ್ಧಿ ದಿನದ ನಂತರ, ಮೂರನೇ ದಿನ ಪ್ರಾತಃಕಾಲ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ${devaHomaNamesKn.join(", ")}ಗಳನ್ನು ಸಂಪುಟವಾಗಿ ನೆರವೇರಿಸಿ ಸಕಲ ಭಾಗ್ಯೋದಯ ಸಂಕಲ್ಪ ಮಾಡಲಾಗುತ್ತದೆ.`
         )
       },
       synergyExplanationKn: sanitizeAstrologyKannadaText(
@@ -502,7 +849,7 @@ export function generateYajnaHawanaPlan(
       ),
       synergyExplanationEn: "Executing this authentic 2-stage timeline strictly respects Vedic apara-shubha separation: ancestral liberation on Day 1, followed by purifying rest on Day 2, and grand divine homa on Day 3.",
       recommendedMuhurthaKn: sanitizeAstrologyKannadaText(
-        "ಪ್ರಸ್ತುತ ಚಾಂದ್ರಮಾನ ಮಾಸದ ಮುಂಬರುವ ಶುಕ್ಲ ಪಕ್ಷದ ಶುಭ ದಿನ, ಶನಿವಾರ, ಅಮಾವಾಸ್ಯೆ ಅಥವಾ ಪೌರ್ಣಮಿಯ ಪ್ರಾತಃಕಾಲದ ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ."
+        `ಹಂತ 1 (ಪಿತೃ ಮುಕ್ತಿ): ಮುಂಬರುವ ಕೃಷ್ಣ ಪಕ್ಷದ ಅಮಾವಾಸ್ಯೆ ಅಥವಾ ${lagnaDayKn}/ಸೋಮವಾರದಂದು ಪ್ರಾತಃಕಾಲ 06:30 ರಿಂದ 09:30 ರೊಳಗೆ ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ. ಹಂತ 2 (ದೇವತಾ ಯಾಗ): 1 ದಿನದ ಶುದ್ಧಿ ವಿಶ್ರಾಂತಿಯ ನಂತರ, ನಿಮ್ಮ ${lagnaRashiKn} ಲಗ್ನಾಧಿಪತಿಯ ಶುಭ ದಿನವಾದ ${lagnaDayKn}ದಂದು ಶುಕ್ಲ ಪಕ್ಷದ ಪ್ರಾತಃಕಾಲ 07:00 ರಿಂದ 09:30 ರೊಳಗೆ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ.`
       )
     };
   } else {
@@ -515,15 +862,15 @@ export function generateYajnaHawanaPlan(
         placeKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿ ಸನ್ನಿಧಿ",
         ritualsKn: devaHomaNamesKn,
         descriptionKn: sanitizeAstrologyKannadaText(
-          "ಜಾತಕದಲ್ಲಿ ಪಿತೃ ದೋಷವಿಲ್ಲದಿರುವುದರಿಂದ, ನೇರವಾಗಿ ನವಗ್ರಹ ಶಾಂತಿ, ಚಂಡಿಕಾ/ಸುದರ್ಶನ ಹವನ ಹಾಗೂ ಮಹಾಬಲೇಶ್ವರ ಆತ್ಮಲಿಂಗ ಮಹಾ ರುದ್ರಾಭಿಷೇಕಗಳನ್ನು ಒಂದೇ ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ ನೆರವೇರಿಸಲಾಗುತ್ತದೆ."
+          `ಜಾತಕದಲ್ಲಿ ಪಿತೃ ದೋಷವಿಲ್ಲದಿರುವುದರಿಂದ, ನೇರವಾಗಿ ${devaHomaNamesKn.join(", ")} ಹಾಗೂ ಮಹಾಬಲೇಶ್ವರ ಆತ್ಮಲಿಂಗ ಮಹಾ ರುದ್ರಾಭಿಷೇಕಗಳನ್ನು ಒಂದೇ ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ ನೆರವೇರಿಸಲಾಗುತ್ತದೆ.`
         )
       },
       synergyExplanationKn: sanitizeAstrologyKannadaText(
-        "ಈ 3 ಪ್ರಮುಖ ಹವನಗಳನ್ನು ಒಂದೇ ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ ಸಂಪುಟ ರೂಪದಲ್ಲಿ ನೆರವೇರಿಸುವುದರಿಂದ ನವಗ್ರಹ ಶಾಂತಿ, ಶತ್ರು-ದೃಷ್ಟಿ ಬಾಧೆಗಳ ಭಸ್ಮ ಹಾಗೂ ಗೋಕರ್ಣ ಆತ್ಮಲಿಂಗದಿಂದ ದೈವಿಕ ರಕ್ಷಾ ಕವಚ ಶಾಶ್ವತವಾಗಿ ನಿರ್ಮಾಣವಾಗುತ್ತದೆ."
+        "ಈ ಪ್ರಮುಖ ಹವನಗಳನ್ನು ಒಂದೇ ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ ಸಂಪುಟ ರೂಪದಲ್ಲಿ ನೆರವೇರಿಸುವುದರಿಂದ ನವಗ್ರಹ ಶಾಂತಿ, ಗ್ರಹ ಸಂಘರ್ಷಗಳ ಭಸ್ಮ ಹಾಗೂ ಗೋಕರ್ಣ ಆತ್ಮಲಿಂಗದಿಂದ ದೈವಿಕ ರಕ್ಷಾ ಕವಚ ಶಾಶ್ವತವಾಗಿ ನಿರ್ಮಾಣವಾಗುತ್ತದೆ."
       ),
       synergyExplanationEn: "Combining these synergistic homas in one unified auspicious muhurtha simultaneously harmonizes planetary transits, crushes rival opposition, and secures eternal divine grace.",
       recommendedMuhurthaKn: sanitizeAstrologyKannadaText(
-        "ಪ್ರಸ್ತುತ ಚಾಂದ್ರಮಾನ ಮಾಸದ ಮುಂಬರುವ ಶುಕ್ಲ ಪಕ್ಷದ ಶುಭ ದಿನ, ಶನಿವಾರ ಅಥವಾ ಪೌರ್ಣಮಿಯ ಪ್ರಾತಃಕಾಲದ ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ."
+        `ನಿಮ್ಮ ${lagnaRashiKn} ಲಗ್ನಾಧಿಪತಿಯ ಅತ್ಯಂತ ಪ್ರಶಸ್ತ ದಿನವಾದ ${lagnaDayKn}ದಂದು, ${moonNakKn} ನಕ್ಷತ್ರಕ್ಕೆ ತಾರಾಬಲ ಕೂಡಿಬರುವ ಮುಂಬರುವ ಶುಕ್ಲ ಪಕ್ಷದ ಪಂಚಮಿ, ಸಪ್ತಮಿ, ದಶಮಿ ಅಥವಾ ಪೌರ್ಣಮಿಯ ಪ್ರಾತಃಕಾಲ 06:30 ರಿಂದ 09:00 ರ ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ.`
       )
     };
   }
@@ -534,7 +881,7 @@ export function generateYajnaHawanaPlan(
 
   return {
     pitruKaryas,
-    devaHomas,
+    devaHomas: finalDevaHomas,
     combinedSchedule,
     pitruDoshaAssessment,
     overallAstrologicalPrescriptionSummaryKn

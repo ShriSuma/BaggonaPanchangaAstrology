@@ -25,23 +25,6 @@ export function cleanAstrologyText(text: string): string {
   return sanitizeAstrologyKannadaText(text);
 }
 
-const CHILD_SUGGESTED_QUESTIONS = [
-  { icon: "😭", kn: "ಮಗು ಬೆಳಿಗ್ಗೆಯಿಂದ ಸಂಜೆವರೆಗೆ ಅಳುವುದು ಮತ್ತು ಕಿರಿಕಿರಿ ಏಕೆ ಮಾಡುತ್ತದೆ?", en: "Why does the child cry and throw tantrums all day?" },
-  { icon: "⚔️", kn: "ಮಗು ಸದಾ ಜಗಳ, ಹಠ ಮತ್ತು ಸಾಮಾನುಗಳನ್ನು ಎಸೆಯುವುದು ಏಕೆ?", en: "Why is the child aggressive, fighting and throwing toys?" },
-  { icon: "🥣", kn: "ಮಗು ಊಟ ತಿನ್ನಲು ನಿರಾಕರಿಸುವುದು ಮತ್ತು ಹೊಟ್ಟೆ ನೋವು ಏಕೆ?", en: "Why does the child refuse food and get stomach colic?" },
-  { icon: "👁️", kn: "ಮಗುವಿಗೆ ದೃಷ್ಟಿ ದೋಷ ಮತ್ತು ನಿದ್ದೆಯಲ್ಲಿ ಬೆದರುವುದು ಉಂಟಾಗುತ್ತಿದೆಯೇ?", en: "Is evil eye causing disturbed sleep and night startles?" },
-  { icon: "🪔", kn: "ಮಗುವಿನ ಆರೋಗ್ಯ ಮತ್ತು ನೆಮ್ಮದಿಗೆ ಗೋಕರ್ಣದಲ್ಲಿ ಯಾವ ಶಾಂತಿ ಮಾಡಿಸಬೇಕು?", en: "What Gokarna Shanti should be performed for the child?" }
-];
-
-const ADULT_SUGGESTED_QUESTIONS = [
-  { icon: "🍷", kn: "ಮದ್ಯಪಾನ ಮತ್ತು ದುಶ್ಚಟಗಳ ನೈಜ ಸ್ಥಿತಿ ಹಾಗೂ ಬಿಡುವ ಪರಿಹಾರವೇನು?", en: "What is the reality of drinking addiction and the remedy?" },
-  { icon: "👩‍❤️‍👨", kn: "ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧ ಅಥವಾ ಬಾಹ್ಯ ಆಕರ್ಷಣೆಯ ಅಪಾಯ ಜಾತಕದಲ್ಲಿದೆಯೇ?", en: "Is there a risk of external affairs or secret attractions?" },
-  { icon: "⚖️", kn: "ಅಕ್ರಮ ವ್ಯವಹಾರ, ಕಳ್ಳಸಾಗಣೆ (ಸ್ಮಗ್ಲಿಂಗ್) ಅಥವಾ ಅಡ್ಡದಾರಿ ಹಣದ ರಿಸ್ಕ್ ಇದೆಯೇ?", en: "Is there a risk of unethical trade or illicit shortcuts?" },
-  { icon: "💰", kn: "ನನ್ನ ಜೀವನದ ದೊಡ್ಡ ತಿರುವು ಹಾಗೂ ಆರ್ಥಿಕ ಮುನ್ನಡೆ ಯಾವಾಗ ಬರುತ್ತದೆ?", en: "When will my major financial turning point occur?" },
-  { icon: "💼", kn: "ಸರ್ಕಾರಿ ಕೆಲಸ ಅಥವಾ ವ್ಯಾಪಾರದಲ್ಲಿ ಯಾವ ಕ್ಷೇತ್ರ ನನಗೆ ಶ್ರೇಷ್ಠ?", en: "Which career or business path is best for me?" },
-  { icon: "🕉️", kn: "ಜಾತಕದ ನೆರಳು ಕರ್ಮಗಳನ್ನು ಕರಗಿಸಲು ಗೋಕರ್ಣದಲ್ಲಿ ಯಾವ ಪೂಜೆ ಮಾಡಿಸಬೇಕು?", en: "Which Gokarna Shanti dissolves shadow karmas?" }
-];
-
 export default function InstantReadingPage(): JSX.Element {
   const { t, i18n } = useTranslation();
   const setPage = useAppStore((s) => s.setPage);
@@ -82,13 +65,21 @@ export default function InstantReadingPage(): JSX.Element {
 
   useEffect(() => {
     if (!session || !session.result) {
+      setLoading(false);
       return;
     }
 
-    const birthDate = session.birthDateYmd || session.input.birthDate || "1990-01-01";
-    const birthTime = session.birthTimeHm || session.input.birthTime || "12:00";
-    const lat = session.input.latitude || 14.5479;
-    const lon = session.input.longitude || 74.3187;
+    const birthDate = session.birthDateYmd || session.input?.birthDate;
+    const birthTime = session.birthTimeHm || session.input?.birthTime || "12:00";
+    const lat = session.input?.latitude;
+    const lon = session.input?.longitude;
+
+    if (!birthDate || typeof lat !== "number" || typeof lon !== "number") {
+      setLoading(false);
+      return;
+    }
+
+    const devoteeAge = calculateDevoteeAge(birthDate);
 
     const data = generatePanchangaAngaSynthesis(session.result, {
       birthDate,
@@ -97,7 +88,8 @@ export default function InstantReadingPage(): JSX.Element {
       longitude: lon,
       lang: i18n.language,
       devoteeName: session.input.name || "Devotee",
-      gender: session.input.gender
+      gender: session.input.gender,
+      devoteeAge
     });
 
     setSynthesisData(data);
@@ -301,7 +293,8 @@ STRICT RULES:
           session.input.name,
           isKn,
           devoteeAge,
-          session.input.gender
+          session.input.gender,
+          synthesisData.panchanga.sunset
         );
       }
 
@@ -317,7 +310,8 @@ STRICT RULES:
         session.input.name,
         isKn,
         devoteeAge,
-        session.input.gender
+        session.input.gender,
+        synthesisData.panchanga.sunset
       );
       setQaHistory((prev) => [{ question: q, answer: fallbackAns }, ...prev]);
       setQuestionInput("");
@@ -326,7 +320,7 @@ STRICT RULES:
     }
   };
 
-  if (!session || !session.result) {
+  if (!session || !session.result || (!loading && !synthesisData)) {
     return (
       <div className="container mx-auto px-4 py-12 max-w-4xl text-center space-y-4">
         <Card className="p-8">
@@ -431,7 +425,9 @@ STRICT RULES:
                         : "॥ Primary Acute Life Crisis & Astrological Exit Strategy ॥"}
                     </span>
                     <h3 className="text-base md:text-xl font-black text-rose-950 font-serif">
-                      {cleanAstrologyText(isKn ? (currentDiagnosis.primaryLifeChallenge.areaKn || currentDiagnosis.primaryLifeChallenge.area) : currentDiagnosis.primaryLifeChallenge.area)}
+                      {isKn 
+                        ? `${toKannadaRashi(session.result.lagnaRashi.english)} ಲಗ್ನ • ${cleanAstrologyText(currentDiagnosis.primaryLifeChallenge.areaKn || currentDiagnosis.primaryLifeChallenge.area)}`
+                        : `${session.result.lagnaRashi.english} Ascendant • ${cleanAstrologyText(currentDiagnosis.primaryLifeChallenge.area)}`}
                     </h3>
                   </div>
                 </div>
@@ -451,8 +447,8 @@ STRICT RULES:
                 </div>
                 <p className="text-xs md:text-sm text-stone-800 leading-relaxed font-medium">
                   {isKn
-                    ? `ನಮಸ್ಕಾರ ${session.input.name || "ಭಕ್ತರೇ"}, ನಿಮ್ಮ ಜಾತಕವನ್ನು ಆಳವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ಉಳಿದೆಲ್ಲ ವಿಷಯಗಳಿಗಿಂತ ಮೊದಲು ನಿಮ್ಮನ್ನು ಪ್ರಸ್ತುತ ತೀವ್ರವಾಗಿ ಕಾಡುತ್ತಿರುವ ಈ ಪ್ರಮುಖ ಜೀವಿತ ಬಿಕ್ಕಟ್ಟಿನ ಬಗ್ಗೆ ನಾವು ಮಾತನಾಡಲೇಬೇಕು. ಈ ಕಷ್ಟದಿಂದ ಶೀಘ್ರವಾಗಿ ಹೊರಬರಲು ಗ್ರಹಗಳ ನೈಜ ಸ್ಥಿತಿ, ಬಿಕ್ಕಟ್ಟು ಮುಕ್ತವಾಗುವ ನಿಖರ ಕಾಲಾವಧಿ ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಮಾರ್ಗೋಪಾಯ ಇಲ್ಲಿದೆ:`
-                    : `Namaskara ${session.input.name || "Devotee"}, reviewing your birth chart deeply, before discussing other life areas, we must first address this acute life challenge that is causing you immediate distress. Here is the astrological diagnosis, relief timeline, and sacred exit strategy to overcome this:`}
+                    ? `ನಮಸ್ಕಾರ ${session.input.name || (isChild ? "ಮಗುವಿನ ಪೋಷಕರೇ" : "ಭಕ್ತರೇ")}, ನಿಮ್ಮ ${toKannadaRashi(session.result.lagnaRashi.english)} ಲಗ್ನ ಮತ್ತು ${toKannadaRashi(session.result.moonSign.english)} ರಾಶಿಯ ಜಾತಕವನ್ನು ಆಳವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ಉಳಿದೆಲ್ಲ ವಿಷಯಗಳಿಗಿಂತ ಮೊದಲು ನಿಮ್ಮನ್ನು ಪ್ರಸ್ತುತ ಕಾಡುತ್ತಿರುವ ಈ ${cleanAstrologyText(currentDiagnosis.primaryLifeChallenge.areaKn || currentDiagnosis.primaryLifeChallenge.area)} ವಿಷಯದ ಬಗ್ಗೆ ನಾವು ಮಾತನಾಡಲೇಬೇಕು. ಈ ಕಷ್ಟದಿಂದ ಶೀಘ್ರವಾಗಿ ಹೊರಬರಲು ಗ್ರಹಗಳ ನೈಜ ಸ್ಥಿತಿ, ಬಿಕ್ಕಟ್ಟು ಮುಕ್ತವಾಗುವ ನಿಖರ ಕಾಲಾವಧಿ ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಮಾರ್ಗೋಪಾಯ ಇಲ್ಲಿದೆ:`
+                    : `Namaskara ${session.input.name || (isChild ? "Parents" : "Devotee")}, reviewing your ${session.result.lagnaRashi.english} Ascendant and ${session.result.moonSign.english} Moon sign deeply, before discussing other life areas, here is the astrological root cause, relief timeline, and sacred exit strategy for your current ${cleanAstrologyText(currentDiagnosis.primaryLifeChallenge.area)} challenge:`}
                 </p>
               </div>
 
@@ -531,8 +527,10 @@ STRICT RULES:
                     </span>
                     <h3 className="text-base md:text-xl font-black text-amber-950 font-serif">
                       {isKn
-                        ? (isChild ? "ಮಗುವಿನ ಉತ್ತಮ ಗುಣಗಳು & ದೈವಿಕ ಸಾಮರ್ಥ್ಯಗಳು (Child Strengths & Divine Qualities)" : "ವ್ಯಕ್ತಿಯ ಉತ್ತಮ ಗುಣಗಳು & ದೈವಿಕ ಸಾಮರ್ಥ್ಯಗಳು (Good Things & Divine Strengths)")
-                        : (isChild ? "Child Strengths & Divine Qualities" : "Good Things & Divine Strengths")}
+                        ? (isChild
+                          ? `${session.input.name || "ಮಗುವಿನ"} (${toKannadaRashi(session.result.lagnaRashi.english)} ಲಗ್ನ, ${toKannadaRashi(session.result.moonSign.english)} ರಾಶಿ) ಉತ್ತಮ ಗುಣಗಳು & ದೈವಿಕ ಸಾಮರ್ಥ್ಯಗಳು`
+                          : `${session.input.name || "ಜಾತಕರ"} (${toKannadaRashi(session.result.lagnaRashi.english)} ಲಗ್ನ, ${toKannadaRashi(session.result.moonSign.english)} ರಾಶಿ) ಉತ್ತಮ ಗುಣಗಳು & ದೈವಿಕ ಸಾಮರ್ಥ್ಯಗಳು`)
+                        : `${session.input.name || "Devotee"}'s (${session.result.lagnaRashi.english} Ascendant, ${session.result.moonSign.english} Moon) Divine Strengths & Virtues`}
                     </h3>
                   </div>
                 </div>
@@ -589,9 +587,9 @@ STRICT RULES:
                     <h3 className="text-base md:text-xl font-black text-rose-950 font-serif">
                       {isKn
                         ? (isChild
-                          ? "ಮಗುವಿನ ನಡವಳಿಕೆಯ ಸವಾಲುಗಳು, ಕಿರಿಕಿರಿ & ಬಾಲಾರಿಷ್ಟ ದೋಷಗಳು (Childhood Tantrums, Crying & Afflictions)"
-                          : "ವ್ಯಕ್ತಿಯ ದುರ್ಬಲತೆಗಳು, ದೋಷಗಳು & ರಹಸ್ಯ ನೆರಳು ಪ್ರವೃತ್ತಿಗಳು (Bad Things, Shadow Vices & Addictions)")
-                        : (isChild ? "Childhood Behavioral Challenges, Crying & Afflictions" : "Bad Things, Shadow Secrets & Vulnerabilities")}
+                          ? `${session.input.name || "ಮಗುವಿನ"} (${toKannadaRashi(session.result.lagnaRashi.english)} ಲಗ್ನ) ನಡವಳಿಕೆಯ ಸವಾಲುಗಳು, ಕಿರಿಕಿರಿ & ಬಾಲಾರಿಷ್ಟ ದೋಷಗಳು`
+                          : `${session.input.name || "ಜಾತಕರ"} (${toKannadaRashi(session.result.lagnaRashi.english)} ಲಗ್ನ) ದುರ್ಬಲತೆಗಳು, ದೋಷಗಳು & ನೆರಳು ಪ್ರವೃತ್ತಿಗಳು`)
+                        : `${session.input.name || "Devotee"}'s (${session.result.lagnaRashi.english} Ascendant) Behavioral Challenges & Shadow Vulnerabilities`}
                     </h3>
                   </div>
                 </div>
@@ -672,7 +670,9 @@ STRICT RULES:
                       ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ದೈವಜ್ಞ ಮುಖಾಮುಖಿ ದರ್ಶನ ॥
                     </span>
                     <h3 className="text-base md:text-xl font-black text-amber-950 font-serif">
-                      {isKn ? `${synthesisData.tenLifeAspectBullets.length} ಪ್ರಮುಖ ಜ್ಯೋತಿಷ್ಯ ಸತ್ಯಾಂಶಗಳು & ವ್ಯಕ್ತಿತ್ವ ದರ್ಶನ` : `${synthesisData.tenLifeAspectBullets.length} Master Astrological Life & Personality Revelations`}
+                      {isKn
+                        ? `${session.input.name || (isChild ? "ಮಗುವಿನ" : "ಜಾತಕರ")} (${toKannadaRashi(session.result.lagnaRashi.english)} ಲಗ್ನ, ${toKannadaRashi(session.result.moonSign.english)} ರಾಶಿ) ${synthesisData.tenLifeAspectBullets.length} ಪ್ರಮುಖ ಜ್ಯೋತಿಷ್ಯ ಸತ್ಯಾಂಶಗಳು & ವ್ಯಕ್ತಿತ್ವ ದರ್ಶನ`
+                        : `${session.input.name ? `${session.input.name}'s ` : ""}(${session.result.lagnaRashi.english} Asc, ${session.result.moonSign.english} Moon) ${synthesisData.tenLifeAspectBullets.length} Master Astrological Life & Personality Revelations`}
                     </h3>
                   </div>
                 </div>
@@ -748,7 +748,11 @@ STRICT RULES:
             <div className="flex items-center justify-between pb-3 border-b border-stone-100">
               <h2 className="text-lg md:text-xl font-black text-indigo-950 flex items-center gap-2 font-serif">
                 <span>🪔</span>
-                <span>{isKn ? "ಪ್ರಸ್ತುತ ಜೀವನ ಸ್ಥಿತಿ & ಪಂಚಾಂಗ ಗ್ರಹ ಪ್ರಭಾವಗಳ ನೇರ ವಿಶ್ಲೇಷಣೆ" : "Live Astrological Situation & Life Overview"}</span>
+                <span>
+                  {isKn
+                    ? `${session.input.name || (isChild ? "ಮಗುವಿನ" : "ಜಾತಕರ")} (${toKannadaRashi(session.result.lagnaRashi.english)} ಲಗ್ನ) ಪ್ರಸ್ತುತ ಜೀವನ ಸ್ಥಿತಿ & ಗ್ರಹ ಪ್ರಭಾವಗಳ ನೇರ ವಿಶ್ಲೇಷಣೆ`
+                    : `${session.input.name ? `${session.input.name}'s ` : ""}(${session.result.lagnaRashi.english} Ascendant) Live Astrological Situation & Planetary Influences`}
+                </span>
               </h2>
               {aiLoading && (
                 <span className="text-xs text-amber-700 font-semibold animate-pulse flex items-center gap-1.5">
@@ -794,10 +798,14 @@ STRICT RULES:
             <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-indigo-100 gap-2">
               <div>
                 <span className="text-[10px] font-black uppercase text-indigo-900 tracking-wider block">
-                  ಕ್ಲೈಂಟ್ ಕೇಳಬಹುದಾದ ಪ್ರಮುಖ ಪ್ರಶ್ನೆಗಳು (1-Click Instant Answers)
+                  {isKn
+                    ? `॥ ${session.input.name || (isChild ? "ಮಗುವಿನ" : "ಜಾತಕರ")} ${toKannadaRashi(session.result.lagnaRashi.english)} ಲಗ್ನ • ${toKannadaRashi(session.result.moonSign.english)} ರಾಶಿ ನಿರ್ದಿಷ್ಟ ಪ್ರಶ್ನೆಗಳು ॥`
+                    : `॥ ${session.input.name || "Native"} ${session.result.lagnaRashi.english} Asc • ${session.result.moonSign.english} Moon Specific Questions ॥`}
                 </span>
                 <h3 className="text-base md:text-lg font-black text-indigo-950 font-serif">
-                  {isKn ? "ತ್ವರಿತ ಪ್ರಶ್ನೋತ್ತರ ಪಟ್ಟಿ (ಪ್ರಶ್ನೆಯ ಮೇಲೆ ಕ್ಲಿಕ್ ಮಾಡಿ ಉತ್ತರ ಪಡೆಯಿರಿ)" : "Common Devotee Questions (1-Click Pandit Response)"}
+                  {isKn
+                    ? `${session.input.name || (isChild ? "ಮಗುವಿನ" : "ಜಾತಕರ")} (${toKannadaRashi(session.result.lagnaRashi.english)} ಲಗ್ನ) ತ್ವರಿತ ಪ್ರಶ್ನೋತ್ತರ ಪಟ್ಟಿ (ಪ್ರಶ್ನೆಯ ಮೇಲೆ ಕ್ಲಿಕ್ ಮಾಡಿ ಉತ್ತರ ಪಡೆಯಿರಿ)`
+                    : `${session.input.name ? `${session.input.name}'s ` : ""}(${session.result.lagnaRashi.english} Ascendant) 1-Click Instant Astrological Answers`}
                 </h3>
               </div>
 
@@ -890,7 +898,9 @@ STRICT RULES:
                     ॥ ಪಂಚಾಂಗ ಸಮಗ್ರ ರಕ್ಷಾ ಕವಚ ॥
                   </span>
                   <h3 className="text-lg md:text-xl font-black text-amber-950 font-serif">
-                    {isKn ? "ಜಾತಕ & ಪಂಚಾಂಗಾಧಾರಿತ 100% ನಿಖರ ರತ್ನ, ರುದ್ರಾಕ್ಷಿ & ಅದೃಷ್ಟ ವಾಹನ ಬಣ್ಣಗಳು" : "Panchanga Unified Astrological Prescriptions (100% Accurate)"}
+                    {isKn
+                      ? `${session.input.name || (isChild ? "ಮಗುವಿನ" : "ಜಾತಕರ")} (${toKannadaRashi(session.result.lagnaRashi.english)} ಲಗ್ನ) ರತ್ನ, ರುದ್ರಾಕ್ಷಿ & ಅದೃಷ್ಟ ವಾಹನ ಬಣ್ಣಗಳು`
+                      : `${session.input.name ? `${session.input.name}'s ` : ""}(${session.result.lagnaRashi.english} Ascendant) Prescriptions (Gems, Rudraksha & Colors)`}
                   </h3>
                 </div>
                 <span className="text-2xl">💍</span>
@@ -979,7 +989,9 @@ STRICT RULES:
                       {isKn ? "॥ ದೈವಿಕ ಯಜ್ಞ, ಹವನ, ಸಂಧಿ & ಪಿತೃ ಮುಕ್ತಿ ಸಂಕಲ್ಪ ಮಂಡಲ ॥" : "Vedic Yajna, Hawana & Ancestral Liberation Hub"}
                     </span>
                     <h3 className="text-lg md:text-xl font-black text-amber-950 font-serif">
-                      {isKn ? "ಜಾತಕ ಶಾಸ್ತ್ರೋಕ್ತ ಪಿತೃ ಕಾರ್ಯ & ದೇವತಾ ಯಜ್ಞ-ಹವನಗಳು" : "Chart-Specific Pitru Karya & Deva Yajna Prescriptions"}
+                      {isKn
+                        ? `${session.input.name || (isChild ? "ಮಗುವಿನ" : "ಜಾತಕರ")} (${toKannadaRashi(session.result.lagnaRashi.english)} ಲಗ್ನ) ಪಿತೃ ಕಾರ್ಯ & ದೇವತಾ ಯಜ್ಞ-ಹವನಗಳು`
+                        : `${session.input.name ? `${session.input.name}'s ` : ""}(${session.result.lagnaRashi.english} Ascendant) Pitru Karya & Deva Yajna Prescriptions`}
                     </h3>
                   </div>
                 </div>
@@ -1004,29 +1016,29 @@ STRICT RULES:
               {/* ---------------------------------------------------- */}
               {/* SECTION A: PITRU KARYA SANCTUARY (ಪಿತೃ ಮುಕ್ತಿ & ಅಪರ ಕರ್ಮ) */}
               {/* ---------------------------------------------------- */}
-              <div className="rounded-2xl border-2 border-amber-300 bg-amber-50/50 p-5 space-y-4 shadow-sm">
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-200 pb-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">🌾</span>
-                    <div>
-                      <span className="text-[10px] font-black uppercase text-amber-900 tracking-wider block">
-                        {isKn ? "ವಿಭಾಗ 1: ಅಪರ ಕರ್ಮ / ಮುಕ್ತಿ" : "Domain 1: Ancestral Mukti"}
-                      </span>
-                      <h4 className="text-base font-black text-amber-950 font-serif">
-                        {isKn ? "ಪಿತೃ ಮುಕ್ತಿ & ಪೂರ್ವಜರ ಶಾಂತಿ ಸಂಕಲ್ಪ (ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥ)" : "Pitru Mukti & Ancestral Peace Seva"}
-                      </h4>
+              {yajnaHawanaPlan.pitruDoshaAssessment.hasPitruDosha && !isChild ? (
+                <div className="rounded-2xl border-2 border-amber-300 bg-amber-50/50 p-5 space-y-4 shadow-sm">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-200 pb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">🌾</span>
+                      <div>
+                        <span className="text-[10px] font-black uppercase text-amber-900 tracking-wider block">
+                          {isKn ? "ವಿಭಾಗ 1: ಅಪರ ಕರ್ಮ / ಮುಕ್ತಿ" : "Domain 1: Ancestral Mukti"}
+                        </span>
+                        <h4 className="text-base font-black text-amber-950 font-serif">
+                          {isKn ? "ಪಿತೃ ಮುಕ್ತಿ & ಪೂರ್ವಜರ ಶಾಂತಿ ಸಂಕಲ್ಪ (ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥ)" : "Pitru Mukti & Ancestral Peace Seva"}
+                        </h4>
+                      </div>
                     </div>
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-200 text-amber-950 border border-amber-400">
+                      {yajnaHawanaPlan.pitruDoshaAssessment.severityLabelKn}
+                    </span>
                   </div>
-                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${yajnaHawanaPlan.pitruDoshaAssessment.hasPitruDosha ? "bg-amber-200 text-amber-950 border border-amber-400" : "bg-emerald-100 text-emerald-950 border border-emerald-300"}`}>
-                    {yajnaHawanaPlan.pitruDoshaAssessment.severityLabelKn}
-                  </span>
-                </div>
 
-                <p className="text-xs md:text-sm text-stone-700 leading-relaxed">
-                  {cleanAstrologyText(yajnaHawanaPlan.pitruDoshaAssessment.detailedExplanationKn)}
-                </p>
+                  <p className="text-xs md:text-sm text-stone-700 leading-relaxed">
+                    {cleanAstrologyText(yajnaHawanaPlan.pitruDoshaAssessment.detailedExplanationKn)}
+                  </p>
 
-                {yajnaHawanaPlan.pitruDoshaAssessment.hasPitruDosha && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1 text-xs">
                     <div className="p-3 rounded-xl bg-white border border-amber-300 shadow-sm">
                       <b className="text-amber-950 block mb-1">🔍 ಜಾತಕದಲ್ಲಿ ಕಂಡ ಕಾರಣಗಳು:</b>
@@ -1046,50 +1058,81 @@ STRICT RULES:
                       </p>
                     </div>
                   </div>
-                )}
 
-                {/* PITRU KARYAS GRID */}
-                {yajnaHawanaPlan.pitruKaryas.length > 0 && (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
-                    {yajnaHawanaPlan.pitruKaryas.map((item) => (
-                      <div
-                        key={item.id}
-                        className="p-4 rounded-xl border-2 border-amber-300 bg-white space-y-2.5 text-xs shadow-sm"
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className="text-xl">{item.icon}</span>
-                          <div>
-                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 font-bold uppercase block">
-                              {cleanAstrologyText(item.categoryLabelKn)}
-                            </span>
-                            <h5 className="text-xs font-black text-amber-950 font-serif mt-0.5">
-                              {cleanAstrologyText(item.nameKn)}
-                            </h5>
+                  {/* PITRU KARYAS GRID */}
+                  {yajnaHawanaPlan.pitruKaryas.length > 0 && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
+                      {yajnaHawanaPlan.pitruKaryas.map((item) => (
+                        <div
+                          key={item.id}
+                          className="p-4 rounded-xl border-2 border-amber-300 bg-white space-y-2.5 text-xs shadow-sm"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="text-xl">{item.icon}</span>
+                            <div>
+                              <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 font-bold uppercase block">
+                                {cleanAstrologyText(item.categoryLabelKn)}
+                              </span>
+                              <h5 className="text-xs font-black text-amber-950 font-serif mt-0.5">
+                                {cleanAstrologyText(item.nameKn)}
+                              </h5>
+                            </div>
+                          </div>
+
+                          <div className="space-y-1.5 text-[11px]">
+                            <div className="p-2 rounded-lg bg-amber-50/60 border border-amber-200">
+                              <b className="text-amber-950 block text-[10px]">📌 ಜಾತಕ ಕಾರಣ:</b>
+                              <p className="text-stone-700">{cleanAstrologyText(item.astrologicalRootCauseKn)}</p>
+                            </div>
+                            <div className="p-2 rounded-lg bg-amber-50/60 border border-amber-200">
+                              <b className="text-amber-950 block text-[10px]">🪔 ಗೋಕರ್ಣ ವಿಧಿ:</b>
+                              <p className="text-stone-700">{cleanAstrologyText(item.sacredProcedureKn)}</p>
+                            </div>
+                            <div className="p-2 rounded-lg bg-emerald-50 border border-emerald-200">
+                              <b className="text-emerald-950 block text-[10px]">✨ ನಿರೀಕ್ಷಿತ ಫಲ:</b>
+                              <p className="text-emerald-900">{cleanAstrologyText(item.expectedShiftsAfterPoojaKn)}</p>
+                            </div>
+                            <p className="text-[10px] text-stone-600 italic pt-0.5">
+                              {cleanAstrologyText(item.priestSecretNoteKn)}
+                            </p>
                           </div>
                         </div>
-
-                        <div className="space-y-1.5 text-[11px]">
-                          <div className="p-2 rounded-lg bg-amber-50/60 border border-amber-200">
-                            <b className="text-amber-950 block text-[10px]">📌 ಜಾತಕ ಕಾರಣ:</b>
-                            <p className="text-stone-700">{cleanAstrologyText(item.astrologicalRootCauseKn)}</p>
-                          </div>
-                          <div className="p-2 rounded-lg bg-amber-50/60 border border-amber-200">
-                            <b className="text-amber-950 block text-[10px]">🪔 ಗೋಕರ್ಣ ವಿಧಿ:</b>
-                            <p className="text-stone-700">{cleanAstrologyText(item.sacredProcedureKn)}</p>
-                          </div>
-                          <div className="p-2 rounded-lg bg-emerald-50 border border-emerald-200">
-                            <b className="text-emerald-950 block text-[10px]">✨ ನಿರೀಕ್ಷಿತ ಫಲ:</b>
-                            <p className="text-emerald-900">{cleanAstrologyText(item.expectedShiftsAfterPoojaKn)}</p>
-                          </div>
-                          <p className="text-[10px] text-stone-600 italic pt-0.5">
-                            {cleanAstrologyText(item.priestSecretNoteKn)}
-                          </p>
-                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="rounded-2xl border-2 border-emerald-300 bg-emerald-50/60 p-5 space-y-3 shadow-sm">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-emerald-200 pb-2.5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">🕊️</span>
+                      <div>
+                        <span className="text-[10px] font-black uppercase text-emerald-900 tracking-wider block">
+                          {isKn ? "ಪೂರ್ವಜರ ಪೂರ್ಣ ಆಶೀರ್ವಾದ & ಶ್ರೀ ರಕ್ಷೆ" : "Ancestral Blessings & Protection"}
+                        </span>
+                        <h4 className="text-base font-black text-emerald-950 font-serif">
+                          {isKn
+                            ? `${session.input.name || (isChild ? "ಮಗುವಿನ" : "ಜಾತಕರ")} ಕುಂಡಲಿಯಲ್ಲಿ ಪಿತೃ ದೋಷವಿಲ್ಲ (ಪೂರ್ವಜರ ಆಶೀರ್ವಾದವಿದೆ)`
+                            : `Ancestral Blessings Intact (No Pitru Dosha)`}
+                        </h4>
                       </div>
-                    ))}
+                    </div>
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-200 text-emerald-950 border border-emerald-400">
+                      {isKn ? "ದೋಷಮುಕ್ತ ಶುಭ ಜಾತಕ" : "Auspicious"}
+                    </span>
                   </div>
-                )}
-              </div>
+
+                  <p className="text-xs md:text-sm text-stone-800 leading-relaxed font-medium">
+                    {cleanAstrologyText(yajnaHawanaPlan.pitruDoshaAssessment.detailedExplanationKn)}
+                  </p>
+
+                  <div className="p-3 rounded-xl bg-white border border-emerald-200 text-xs text-stone-700">
+                    <p className="text-emerald-950 font-semibold text-[11px]">
+                      ✨ <b>ಶಾಸ್ತ್ರೀಯ ಮಾರ್ಗದರ್ಶನ:</b> {isKn ? "ನಿಮಗೆ ಯಾವುದೇ ಅಪರ ಕರ್ಮ ಅಥವಾ ಶ್ರಾದ್ಧ ಕಾರ್ಯಗಳ ಅಗತ್ಯವಿಲ್ಲ. ನಿಮ್ಮ ಸಕಲ ಕಾರ್ಯಸಿದ್ಧಿಗಾಗಿ ನೇರವಾಗಿ ಕೆಳಗಿನ ವಿಭಾಗ 2ರಲ್ಲಿರುವ ಮಂಗಳಕರ ದೇವತಾ ಯಜ್ಞ-ಹವನಗಳು ಹಾಗೂ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ರುದ್ರಾಭಿಷೇಕವನ್ನು ನೆರವೇರಿಸುವುದು ಅತ್ಯುನ್ನತ ಫಲ ನೀಡುತ್ತದೆ." : "You do not require any ancestral expiation rites. You may proceed directly to the auspicious divine homas and Gokarna Atmalinga Rudrabhisheka in Domain 2."}
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* ---------------------------------------------------- */}
               {/* SECTION B: DEVA KARYA SANCTUARY (ದೇವತಾ ಯಜ್ಞ & ಶುಭ ಹವನ) */}
@@ -1260,7 +1303,9 @@ STRICT RULES:
                 🎙️ {isKn ? "ದೈವಜ್ಞ ನೇರ ಪ್ರಶ್ನೋತ್ತರ ಪೆಟ್ಟಿಗೆ" : "Direct Astrologer Q&A"}
               </span>
               <h3 className="text-xl md:text-2xl font-black text-amber-950 font-serif">
-                {isKn ? "ಯಾವುದೇ ಹೊಸ ಪ್ರಶ್ನೆಯನ್ನು ಕೇಳಿ (ಧ್ವನಿ ಅಥವಾ ಟೈಪ್ ಮೂಲಕ)" : "Ask Any Specific Follow-up Question"}
+                {isKn
+                  ? `${session.input.name || (isChild ? "ಮಗುವಿನ" : "ಜಾತಕರ")} (${toKannadaRashi(session.result.lagnaRashi.english)} ಲಗ್ನ) ಯಾವುದೇ ಹೊಸ ಪ್ರಶ್ನೆ ಕೇಳಿ (ಧ್ವನಿ ಅಥವಾ ಟೈಪ್ ಮೂಲಕ)`
+                  : `Ask Any Specific Follow-up Question for ${session.input.name || "Native"}'s Chart (${session.result.lagnaRashi.english} Asc)`}
               </h3>
               <p className="text-xs text-stone-700 mt-1">
                 {isKn 
@@ -1276,7 +1321,11 @@ STRICT RULES:
                 <span>{isKn ? (isChild ? "ಮಗುವಿನ ನಡವಳಿಕೆ & ಆರೋಗ್ಯ ಪ್ರಶ್ನೆಗಳು (ಕ್ಲಿಕ್ ಮಾಡಿ):" : "ಸಾಮಾನ್ಯ ಪ್ರಮುಖ ಪ್ರಶ್ನೆಗಳು (ಕ್ಲಿಕ್ ಮಾಡಿ):") : "Quick Question Suggestions (Click for instant answer):"}</span>
               </span>
               <div className="flex flex-wrap gap-2">
-                {(isChild ? CHILD_SUGGESTED_QUESTIONS : ADULT_SUGGESTED_QUESTIONS).map((sq, idx) => (
+                {(instantQAList || []).slice(0, 6).map((q) => ({
+                  icon: q.category === "career" ? "💼" : q.category === "marriage" ? "💍" : q.category === "children" ? "👶" : q.category === "wealth" ? "💰" : "🧠",
+                  kn: q.questionKn,
+                  en: q.questionEn
+                })).map((sq, idx) => (
                   <button
                     key={idx}
                     type="button"

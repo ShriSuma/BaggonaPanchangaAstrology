@@ -296,6 +296,8 @@ export interface PanchangaSynthesisOutput {
     nakshatra: { nameKn: string; nameEn: string; lord: PlanetName; deity: string };
     yoga: { nameKn: string; nameEn: string; rule: YogaRule };
     karana: { nameKn: string; nameEn: string; rule: KaranaRule };
+    sunrise?: string;
+    sunset?: string;
   };
   prescriptions: AstrologicalPrescriptions;
   currentDiagnosis: CurrentLifeDiagnosis;
@@ -417,6 +419,10 @@ export const generateAstrologicalPrescriptions = (
     shantiKn = "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಸೂರ್ಯ ನಮಸ್ಕಾರ ಸಂಕಲ್ಪ & ಮಹಾ ರುದ್ರಾಭಿಷೇಕ";
     shantiEn = "Surya Sankalpa & Maha Rudrabhisheka at Gokarna Kshetra";
     shantiPurpose = "ಆತ್ಮಬಲ ವೃದ್ಧಿ, ಪಿತೃ ಕೃಪೆ, ತೇಜಸ್ಸು ಮತ್ತು ಆರೋಗ್ಯ ಭಾಗ್ಯ.";
+  } else if (lagnaLord === PlanetName.Jupiter) {
+    shantiKn = "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಗುರು ಶಾಂತಿ, ಬೃಹಸ್ಪತಿ ಯಾಗ & ಮೇಧಾ ದಕ್ಷಿಣಾಮೂರ್ತಿ ಪೂಜೆ";
+    shantiEn = "Guru Shanti, Brihaspati Yajna & Medha Dakshinamurthy Pooja at Gokarna";
+    shantiPurpose = "ಗುರು ಬಲವರ್ಧನೆ, ಜ್ಞಾನ ಸಿದ್ಧಿ, ದೈವಾನುಗ್ರಹ ಮತ್ತು ಗೌರವಯುತ ಯಶಸ್ಸು.";
   }
 
   // 3. Lucky Attributes (English Digits)
@@ -490,6 +496,200 @@ export function calculateDevoteeAge(birthDate: string): number {
     age--;
   }
   return Math.max(1, age);
+}
+
+/**
+ * Dynamic scale text for financial loss and debt liabilities.
+ * Calculates dynamic loss and debt scale text based on the native's 2nd, 5th, 8th, and 11th houses.
+ * Eliminates all hardcoded monetary estimates (e.g. "40-50 lakhs") with authentic horoscope-derived reality.
+ */
+export function getDynamicLossScaleText(kundli: KundliOutput): {
+  lossKn: string;
+  lossEn: string;
+  basisKn: string;
+  basisEn: string;
+} {
+  const lagnaIdx = kundli.lagnaRashi.index;
+  const secondLord = signLord((lagnaIdx + 1) % 12);
+  const fifthLord = signLord((lagnaIdx + 4) % 12);
+  const eighthLord = signLord((lagnaIdx + 7) % 12);
+  const eleventhLord = signLord((lagnaIdx + 10) % 12);
+
+  const secondLordKn = toKannadaPlanet(secondLord);
+  const fifthLordKn = toKannadaPlanet(fifthLord);
+  const eighthLordKn = toKannadaPlanet(eighthLord);
+  const eleventhLordKn = toKannadaPlanet(eleventhLord);
+
+  const rahu = kundli.planets.find(p => p.name === PlanetName.Rahu);
+  const saturn = kundli.planets.find(p => p.name === PlanetName.Saturn);
+  const mars = kundli.planets.find(p => p.name === PlanetName.Mars);
+
+  const isEighthAfflicted = saturn?.house === 8 || mars?.house === 8 || rahu?.house === 8;
+  const isSecondAfflicted = saturn?.house === 2 || mars?.house === 2 || rahu?.house === 2;
+  const isEleventhAfflicted = saturn?.house === 11 || rahu?.house === 11;
+
+  if (isEighthAfflicted && isSecondAfflicted) {
+    return {
+      lossKn: `2ನೇ ಧನಭಾವ ಮತ್ತು 8ನೇ ರಂಧ್ರಭಾವದ ತೀವ್ರ ಗ್ರಹ ಸಂಘರ್ಷದಿಂದಾಗಿ ಜೀವನದ ಬಹುಪಾಲು ಉಳಿತಾಯ, ಸ್ಥಿರ ಠೇವಣಿ ಹಾಗೂ ಆಸ್ತಿಯನ್ನೇ ಕರಗಿಸಿ ಬೃಹತ್ ಸಾಲದ ಸುಳಿಗೆ ಸಿಲುಕುವ`,
+      lossEn: `catastrophic erosion of accumulated life savings, fixed assets, and liquid capital driven by severe 2nd and 8th house afflictions`,
+      basisKn: `2ನೇ ಧನಾಧಿಪತಿ ${secondLordKn} ಹಾಗೂ 8ನೇ ಅಷ್ಟಮ ಸ್ಥಾನದಲ್ಲಿ ಪಾಪಗ್ರಹಗಳ ಸಂಯೋಗ`,
+      basisEn: `Affliction of 2nd lord ${secondLord} and malefic concentration in 8th house`
+    };
+  } else if (isEleventhAfflicted || rahu?.house === 5) {
+    return {
+      lossKn: `5ನೇ ರಾಹುವಿನ ಅತಿಯಾದ ಆಸೆ ಹಾಗೂ 11ನೇ ಲಾಭಸ್ಥಾನದ ಕುಸಿತದಿಂದಾಗಿ ವರ್ಷಗಳ ಕಾಲ ದುಡಿದು ಕೂಡಿಟ್ಟ ಸಮಗ್ರ ಬಂಡವಾಳ ಮತ್ತು ಹೂಡಿಕೆಯನ್ನು ಸಂಪೂರ್ಣ ಕಳೆದುಕೊಳ್ಳುವ`,
+      lossEn: `devastating capital wipeout depleting multi-year savings and borrowed speculative margins driven by the 5th-11th axis affliction`,
+      basisKn: `5ನೇ ಪಂಚಮದಲ್ಲಿ ರಾಹು ಹಾಗೂ 11ನೇ ಲಾಭಾಧಿಪತಿ ${eleventhLordKn}ನ ದುರ್ಬಲತೆ`,
+      basisEn: `5th house Rahu speculation illusion combined with weakened 11th lord ${eleventhLord}`
+    };
+  } else {
+    return {
+      lossKn: `ಬುದ್ಧಿಸ್ಥಾನದ ಪಂಚಮಾಧಿಪತಿ ${fifthLordKn} ಹಾಗೂ ಧನಸ್ಥಾನದ ಅಸ್ಥಿರತೆಯಿಂದಾಗಿ ಗಳಿಸಿದ ಆದಾಯಕ್ಕಿಂತ ಹತ್ತು ಪಟ್ಟು ಹೆಚ್ಚಿನ ಸಾಲದ ಹೊರೆಯನ್ನು ಮೈಮೇಲೆ ಎಳೆದುಕೊಳ್ಳುವ`,
+      lossEn: `severe financial regression where debt obligations heavily outstrip earning capacity due to afflicted 5th and 2nd house lords`,
+      basisKn: `ಪಂಚಮಾಧಿಪತಿ ${fifthLordKn} ಮತ್ತು ಧನಾಧಿಪತಿ ${secondLordKn}ನ ಅಸಮತೋಲನ`,
+      basisEn: `Instability of 5th lord ${fifthLord} and 2nd lord ${secondLord}`
+    };
+  }
+}
+
+export interface ShadripuAnalysis {
+  dominantRipu: "kama" | "krodha" | "lobha" | "moha" | "mada" | "matsarya";
+  ripuNameKn: string;
+  ripuNameEn: string;
+  detailKn: string;
+  detailEn: string;
+  planetaryCauseKn: string;
+  planetaryCauseEn: string;
+  hasKama: boolean;
+  hasKrodha: boolean;
+  hasLobha: boolean;
+  hasMoha: boolean;
+  hasMada: boolean;
+  hasMatsarya: boolean;
+}
+
+/**
+ * Detects native's primary Shadripu vulnerabilities (Kama, Krodha, Lobha, Moha, Mada, Matsarya)
+ * through classical Jyotisha planetary placement analysis.
+ */
+export function detectNativeShadripuAfflictions(kundli: KundliOutput): ShadripuAnalysis {
+  const sun = kundli.planets.find(p => p.name === PlanetName.Sun);
+  const moon = kundli.planets.find(p => p.name === PlanetName.Moon);
+  const mars = kundli.planets.find(p => p.name === PlanetName.Mars);
+  const jupiter = kundli.planets.find(p => p.name === PlanetName.Jupiter);
+  const venus = kundli.planets.find(p => p.name === PlanetName.Venus);
+  const saturn = kundli.planets.find(p => p.name === PlanetName.Saturn);
+  const rahu = kundli.planets.find(p => p.name === PlanetName.Rahu);
+  const ketu = kundli.planets.find(p => p.name === PlanetName.Ketu);
+
+  // 1. Kama (Passion / Sensual desire / Unbridled longing)
+  let kamaScore = 0;
+  if (venus && mars && Math.abs(venus.house - mars.house) <= 1) kamaScore += 3.0;
+  if (venus && rahu && Math.abs(venus.house - rahu.house) <= 1) kamaScore += 2.5;
+  if (venus && [7, 8, 12].includes(venus.house)) kamaScore += 2.0;
+  if (mars && [7, 8, 12].includes(mars.house)) kamaScore += 1.5;
+
+  // 2. Krodha (Anger / Rage / Impatience)
+  let krodhaScore = 0;
+  if (mars && [1, 2, 7, 8].includes(mars.house)) krodhaScore += 3.0;
+  if (mars && sun && Math.abs(mars.house - sun.house) <= 1) krodhaScore += 2.5;
+  if (mars && ketu && Math.abs(mars.house - ketu.house) <= 1) krodhaScore += 2.5;
+  if (saturn && mars && Math.abs(saturn.house - mars.house) <= 2) krodhaScore += 2.0;
+
+  // 3. Lobha (Greed / Speculation / Obsessive Accumulation)
+  let lobhaScore = 0;
+  if (rahu && [2, 5, 11].includes(rahu.house)) lobhaScore += 3.5;
+  if (saturn && [2, 11].includes(saturn.house)) lobhaScore += 2.0;
+  if (rahu && jupiter && Math.abs(rahu.house - jupiter.house) === 0) lobhaScore += 2.0;
+
+  // 4. Moha (Delusion / Attachment / Emotional Fog / Overthinking)
+  let mohaScore = 0;
+  if (moon && [6, 8, 12].includes(moon.house)) mohaScore += 3.0;
+  if (moon && rahu && Math.abs(moon.house - rahu.house) === 0) mohaScore += 3.0;
+  if (moon && saturn && Math.abs(moon.house - saturn.house) === 0) mohaScore += 2.5;
+  if (ketu && [4, 8, 12].includes(ketu.house)) mohaScore += 1.5;
+
+  // 5. Mada (Pride / Arrogance / Egotism)
+  let madaScore = 0;
+  if (sun && sun.house === 1) madaScore += 3.0;
+  if (sun && sun.house === 10) madaScore += 2.5;
+  if (sun && rahu && Math.abs(sun.house - rahu.house) === 0) madaScore += 2.5;
+  if (mars && mars.house === 10) madaScore += 2.0;
+
+  // 6. Matsarya (Envy / Jealousy / Paranoia of Others' Growth)
+  let matsaryaScore = 0;
+  if (saturn && saturn.house === 6) matsaryaScore += 3.0;
+  if (rahu && saturn && Math.abs(rahu.house - saturn.house) === 0) matsaryaScore += 3.0;
+  if (rahu && [6, 8].includes(rahu.house)) matsaryaScore += 2.0;
+  if (ketu && ketu.house === 6) matsaryaScore += 1.5;
+
+  const scores = [
+    { ripu: "krodha" as const, score: krodhaScore, nameKn: "ಕ್ರೋಧ (ಆವೇಶ & ಸಿಟ್ಟು)", nameEn: "Krodha (Anger & Impatience)" },
+    { ripu: "lobha" as const, score: lobhaScore, nameKn: "ಲೋಭ (ದುರಾಸೆ & ಸ್ಪೆಕ್ಯುಲೇಶನ್)", nameEn: "Lobha (Greed & Speculation)" },
+    { ripu: "kama" as const, score: kamaScore, nameKn: "ಕಾಮ (ಅತಿಯಾದ ಆಸೆ & ಬಾಹ್ಯ ಸೆಳೆತ)", nameEn: "Kama (Desire & Sensory Clinging)" },
+    { ripu: "moha" as const, score: mohaScore, nameKn: "ಮೋಹ (ಭ್ರಮೆ & ಅತಿಯಾದ ಆಲೋಚನೆ)", nameEn: "Moha (Attachment & Overthinking)" },
+    { ripu: "mada" as const, score: madaScore, nameKn: "ಮದ (ಸ್ವಾಭಿಮಾನ & ಅಹಂಕಾರ)", nameEn: "Mada (Ego & Authority Clashes)" },
+    { ripu: "matsarya" as const, score: matsaryaScore, nameKn: "ಮತ್ಸರ್ಯ (ಅಸೂಯೆ & ಶತ್ರು ಬಾಧೆ)", nameEn: "Matsarya (Envy & Competitive Paranoia)" }
+  ];
+
+  scores.sort((a, b) => b.score - a.score);
+  const dominant = scores[0]!;
+
+  return {
+    dominantRipu: dominant.ripu,
+    ripuNameKn: dominant.nameKn,
+    ripuNameEn: dominant.nameEn,
+    detailKn: dominant.ripu === "krodha"
+      ? "ಕುಜನ ಅಗ್ನಿ ತತ್ವವು ಆವೇಶ, ಹಠಾತ್ ಕೋಪ ಹಾಗೂ ಸಹನೆ ಕಳೆದುಕೊಳ್ಳುವ ಪ್ರವೃತ್ತಿಯನ್ನು ತಂದು ಸಂಬಂಧಗಳನ್ನು ಅಸ್ಥಿರಗೊಳಿಸುತ್ತದೆ."
+      : dominant.ripu === "lobha"
+      ? "ರಾಹುವಿನ ತ್ವರಿತ ಧನಾರ್ಜನೆಯ ಆಮಿಷವು ಷೇರು ಮಾರುಕಟ್ಟೆ ಅಥವಾ ಶಾರ್ಟ್‌ಕಟ್ ದುರಾಸೆಗೆ ದೂಡಿ ಬಂಡವಾಳ ಕಳೆದುಕೊಳ್ಳುವ ಅಪಾಯ ತರುತ್ತದೆ."
+      : dominant.ripu === "kama"
+      ? "ಶುಕ್ರ-ಕುಜ/ರಾಹು ಸಂಯೋಗವು ಇಂದ್ರಿಯ ಸುಖದ ಹಪಹಪಿ ಹಾಗೂ ದಾಂಪತ್ಯದ ಹೊರಗಿನ ಬಾಹ್ಯ ಸೆಳೆತಗಳ ದುರ್ಬಲತೆಯನ್ನು ಸೃಷ್ಟಿಸುತ್ತದೆ."
+      : dominant.ripu === "moha"
+      ? "ಚಂದ್ರನ ಪೀಡಿತ ಸ್ಥಿತಿಯು ಹಳೆಯ ಘಟನೆಗಳ ವ್ಯಾಮೋಹ, ಅತಿಯಾದ ಯೋಚನೆ (Overthinking) ಹಾಗೂ ಭ್ರಮಾತ್ಮಕ ಆತಂಕವನ್ನುಂಟುಮಾಡುತ್ತದೆ."
+      : dominant.ripu === "mada"
+      ? "ರವಿಯ ಪ್ರಭಾವವು ಅತಿಯಾದ ಸ್ವಾಭಿಮಾನ, ಅಹಂಕಾರದ ಘರ್ಷಣೆ ಹಾಗೂ ಇತರರ ಮಾತಿಗೆ ಕಿವಿಗೊಡದ ಮೊಂಡುತನಕ್ಕೆ ಕಾರಣವಾಗುತ್ತದೆ."
+      : "6ನೇ ಭಾವದ ಶನಿ-ರಾಹು ಸ್ಥಿತಿಯು ಇತರರ ಏಳಿಗೆ ನೋಡಿ ಅಂತರಂಗದಲ್ಲಿ ತಳಮಳ ಅಥವಾ ಶತ್ರು-ದೃಷ್ಟಿ ಭಯವನ್ನು ಸೃಷ್ಟಿಸುತ್ತದೆ.",
+    detailEn: dominant.ripu === "krodha"
+      ? "Martian fire sparks sudden anger and loss of composure, straining family and business bonds."
+      : dominant.ripu === "lobha"
+      ? "Rahu's illusion of instant wealth tempts speculative risks, endangering core financial solvency."
+      : dominant.ripu === "kama"
+      ? "Venusian agitation triggers sensual restlessness and emotional vulnerabilities outside marriage."
+      : dominant.ripu === "moha"
+      ? "Afflicted lunar alignment creates deep emotional attachments, overthinking, and anxiety."
+      : dominant.ripu === "mada"
+      ? "Solar ego dominance provokes conflicts with authority and unyielding stubbornness."
+      : "Saturnian 6th house tension fosters competitive anxiety and vulnerability to evil eye.",
+    planetaryCauseKn: dominant.ripu === "krodha"
+      ? "ಕುಜ-ರವಿಯ ತೀಕ್ಷ್ಣ ಅಗ್ನಿ ತತ್ವ"
+      : dominant.ripu === "lobha"
+      ? "ರಾಹುವಿನ 5/11ನೇ ಭಾವದ ಸಂಚಾರ"
+      : dominant.ripu === "kama"
+      ? "ಶುಕ್ರ-ಕುಜ/ರಾಹುವಿನ ಕಾಮ ತತ್ವ"
+      : dominant.ripu === "moha"
+      ? "ಚಂದ್ರನ ಗ್ರಹಣ ಅಥವಾ ವಿಷ ಯೋಗ"
+      : dominant.ripu === "mada"
+      ? "ಲಗ್ನ ಅಥವಾ 10ನೇ ಮನೆಯ ರವಿ ಪ್ರಭಾವ"
+      : "6ನೇ ಶತ್ರು ಭಾವದಲ್ಲಿ ಶನಿ-ರಾಹು ಸ್ಥಿತಿ",
+    planetaryCauseEn: dominant.ripu === "krodha"
+      ? "Martian fire tension"
+      : dominant.ripu === "lobha"
+      ? "Rahu on 5th/11th house axis"
+      : dominant.ripu === "kama"
+      ? "Venus-Mars/Rahu sensual conjunction"
+      : dominant.ripu === "moha"
+      ? "Moon affliction (Grahana/Visha)"
+      : dominant.ripu === "mada"
+      ? "Sun in 1st/10th ego axis"
+      : "Saturn/Rahu 6th house tension",
+    hasKama: kamaScore >= 2.0,
+    hasKrodha: krodhaScore >= 2.0,
+    hasLobha: lobhaScore >= 2.0,
+    hasMoha: mohaScore >= 2.0,
+    hasMada: madaScore >= 2.0,
+    hasMatsarya: matsaryaScore >= 2.0
+  };
 }
 
 export const calculateDynamicDashaTiming = (
@@ -1618,6 +1818,7 @@ export const generateGoodAndBadTraits = (
   if (ketu && ketu.house === 11) speculationScore += 1.5;
 
   const isSpeculationLoss = speculationScore >= 2.5;
+  const lossInfo = getDynamicLossScaleText(kundli);
 
   // Unethical Work / Smuggling evaluation (if not already speculation loss)
   let illegalScore = 0;
@@ -1830,12 +2031,12 @@ export const generateGoodAndBadTraits = (
         ? "5th Rahu • Afflicted 5th Lord • 8th Malefic"
         : (hasIllegal ? "8th & 11th Houses • Illicit Wealth Risk" : "Dharma-Karma Axis • Clean Wealth"),
       bulletKn: isSpeculationLoss
-        ? `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ 5ನೇ ಸ್ಪೆಕ್ಯುಲೇಶನ್/ಬುದ್ಧಿ ಸ್ಥಾನದಲ್ಲಿ ನೆರಳು ಗ್ರಹ ರಾಹುವಿದ್ದು, ಪಂಚಮಾಧಿಪತಿ ${fifthLordKn} ನೀಚ/ದುಃಸ್ಥಾನದಲ್ಲಿದ್ದಾನೆ ಹಾಗೂ 8ನೇ ಮನೆಯಲ್ಲಿ ಅಷ್ಟಮ ಶನಿ/ಕುಜ ಪ್ರಭಾವವಿದೆ. ವೇದ ಜ್ಯೋತಿಷ್ಯದ ಪ್ರಕಾರ ಇದು ಷೇರು ಮಾರುಕಟ್ಟೆ (Share Market), ಇಂಟ್ರಾಡೇ/F&O ಆಪ್ಷನ್ಸ್ ಟ್ರೇಡಿಂಗ್, ಬೆಟ್ಟಿಂಗ್ ಅಥವಾ ತ್ವರಿತ ಹಣದ ಆಮಿಷಗಳಿಗೆ ಬೀಳುವ ತೀವ್ರ ಗೀಳನ್ನು ಉಂಟುಮಾಡುತ್ತದೆ. ದಿನನಿತ್ಯ ಷೇರು ವಹಿವಾಟು ನಡೆಸುವ ವ್ಯಸನ ಹತ್ತಿ, ಆರಂಭದಲ್ಲಿ ಸಣ್ಣ ಲಾಭ ಕಂಡರೂ ಅಂತಿಮವಾಗಿ 40 ರಿಂದ 50 ಲಕ್ಷಕ್ಕೂ ಅಧಿಕ ಮೊತ್ತದ ಬೃಹತ್ ಬಂಡವಾಳವನ್ನು ಕಳೆದುಕೊಂಡು ತೀವ್ರ ಸಾಲದ ಸುಳಿಗೆ ಸಿಲುಕುವ ಸ್ಪಷ್ಟ ಯೋಗ ಜಾತಕದಲ್ಲಿದೆ. ಕಳೆದುಕೊಂಡ ಹಣವನ್ನು ಮತ್ತೆ ಷೇರಿನಲ್ಲೇ ವಾಪಸ್ ಪಡೆಯಬೇಕೆಂಬ ಹಠದ ಭ್ರಮೆಯಲ್ಲಿ ಮತ್ತಷ್ಟು ಹಣ ಕಳೆದುಕೊಳ್ಳುವ ಅಪಾಯವಿದ್ದು, ಇಂದೇ ಸ್ಪೆಕ್ಯುಲೇಶನ್ ಸಂಪೂರ್ಣವಾಗಿ ನಿಲ್ಲಿಸುವುದು ಜೀವ ರಕ್ಷೆ.`
+        ? `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ 5ನೇ ಸ್ಪೆಕ್ಯುಲೇಶನ್/ಬುದ್ಧಿ ಸ್ಥಾನದಲ್ಲಿ ನೆರಳು ಗ್ರಹ ರಾಹುವಿದ್ದು, ಪಂಚಮಾಧಿಪತಿ ${fifthLordKn} ನೀಚ/ದುಃಸ್ಥಾನದಲ್ಲಿದ್ದಾನೆ ಹಾಗೂ 8ನೇ ಮನೆಯಲ್ಲಿ ಅಷ್ಟಮ ಶನಿ/ಕುಜ ಪ್ರಭಾವವಿದೆ. ವೇದ ಜ್ಯೋತಿಷ್ಯದ ಪ್ರಕಾರ ಇದು ಷೇರು ಮಾರುಕಟ್ಟೆ (Share Market), ಇಂಟ್ರಾಡೇ/F&O ಆಪ್ಷನ್ಸ್ ಟ್ರೇಡಿಂಗ್, ಬೆಟ್ಟಿಂಗ್ ಅಥವಾ ತ್ವರಿತ ಹಣದ ಆಮಿಷಗಳಿಗೆ ಬೀಳುವ ತೀವ್ರ ಗೀಳನ್ನು ಉಂಟುಮಾಡುತ್ತದೆ. ದಿನನಿತ್ಯ ಷೇರು ವಹಿವಾಟು ನಡೆಸುವ ವ್ಯಸನ ಹತ್ತಿ, ಆರಂಭದಲ್ಲಿ ಸಣ್ಣ ಲಾಭ ಕಂಡರೂ ಅಂತಿಮವಾಗಿ ${lossInfo.lossKn} ಸ್ಪಷ್ಟ ಯೋಗ ಜಾತಕದಲ್ಲಿದೆ. ಕಳೆದುಕೊಂಡ ಹಣವನ್ನು ಮತ್ತೆ ಷೇರಿನಲ್ಲೇ ವಾಪಸ್ ಪಡೆಯಬೇಕೆಂಬ ಹಠದ ಭ್ರಮೆಯಲ್ಲಿ ಮತ್ತಷ್ಟು ಹಣ ಕಳೆದುಕೊಳ್ಳುವ ಅಪಾಯವಿದ್ದು, ಇಂದೇ ಸ್ಪೆಕ್ಯುಲೇಶನ್ ಸಂಪೂರ್ಣವಾಗಿ ನಿಲ್ಲಿಸುವುದು ಜೀವ ರಕ್ಷೆ.`
         : (hasIllegal
           ? `ಜಾತಕದಲ್ಲಿ 8ನೇ ರಹಸ್ಯ ಸ್ಥಾನ ಅಥವಾ 11ನೇ ಲಾಭ ಭಾವದಲ್ಲಿ ನೆರಳು ಗ್ರಹ ರಾಹುವಿನ ಪ್ರಭಾವವಿರುವುದರಿಂದ, ಶ್ರಮವಿಲ್ಲದೆ ತ್ವರಿತವಾಗಿ ಕೋಟಿಗಟ್ಟಲೆ ಹಣ ಗಳಿಸುವ ಅಡ್ಡದಾರಿ, ಕಳ್ಳಸಾಗಣೆ (ಸ್ಮಗ್ಲಿಂಗ್), ಬೆಟ್ಟಿಂಗ್, ಹವಾಲಾ ಅಥವಾ ಅಕ್ರಮ ವ್ಯವಹಾರಗಳ ದುಸ್ಸಾಹಸಕ್ಕೆ ಮನಸ್ಸು ಹಾತೊರೆಯುವ ಪ್ರವೃತ್ತಿ ಇದೆ. ಇದರಿಂದ ಆರಂಭದಲ್ಲಿ ಭಾರಿ ಲಾಭ ಕಂಡರೂ, ಅಂತಿಮವಾಗಿ ಪೊಲೀಸ್ ಕೇಸ್, ಕಾನೂನು ಸಂಕೋಲೆ, ಜೈಲು ಭಯ ಹಾಗೂ ಸಾರ್ವಜನಿಕ ಮಾನಹಾನಿಯ ಅಪಾಯ ತಂದೊಡ್ಡಬಹುದು; ಪ್ರಾಮಾಣಿಕ ದುಡಿಮೆಯೇ ಶಾಶ್ವತ ರಕ್ಷೆ.`
           : `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಧರ್ಮ ಮತ್ತು ಕರ್ಮ ಸ್ಥಾನಗಳು ಶುದ್ಧವಾಗಿದ್ದು, ಸ್ವಂತ ಪರಿಶ್ರಮ ಮತ್ತು ಸತ್ಯ ಮಾರ್ಗದ ಸಂಪಾದನೆಯಲ್ಲೇ ನೀವು ನೆಮ್ಮದಿ ಕಾಣುತ್ತೀರಿ. ಅಡ್ಡದಾರಿ, ಬೆಟ್ಟಿಂಗ್, ಅಕ್ರಮ ಆಮಿಷಗಳು ಅಥವಾ ಶಾರ್ಟ್‌ಕಟ್‌ಗಳಿಗೆ ಮರುಳಾಗದೆ ಕಾನೂನುಬದ್ಧವಾಗಿ ಬೆಳೆಯುವ ಪ್ರಾಮಾಣಿಕತೆ ನಿಮ್ಮ ವ್ಯಕ್ತಿತ್ವದ ದೊಡ್ಡ ಶಕ್ತಿ.`),
       bulletEn: isSpeculationLoss
-        ? "Rahu situated in the 5th house of speculation, coupled with an afflicted 5th lord and malefic tension in the 8th house, fuels an uncontrollable drive toward daily stock market trading (intraday, F&O options), betting, and high-risk shortcut wealth. The initial illusion of quick wealth leads to devastating capital wipeouts—often exceeding 40 to 50 Lakhs in accumulated losses and debt. The obsessive urge to recover lost funds through more trading is Rahu's classic trap. Immediate cessation of speculative ventures and debt-mitigation remedies are essential."
+        ? `Rahu situated in the 5th house of speculation, coupled with an afflicted 5th lord and malefic tension in the 8th house, fuels an uncontrollable drive toward daily stock market trading (intraday, F&O options), betting, and high-risk shortcut wealth. The initial illusion of quick wealth leads to ${lossInfo.lossEn}—dragging the native into severe financial distress. The obsessive urge to recover lost funds through more trading is Rahu's classic trap. Immediate cessation of speculative ventures and debt-mitigation remedies are essential.`
         : (hasIllegal
           ? "Rahu's presence or aspect on the 8th and 11th houses sparks reckless ambition toward illegal shortcut wealth, smuggling, speculative betting, or shadow trading, carrying severe legal liability and public disgrace."
           : "An unblemished dharma-karma axis grounds your pursuit of prosperity in honest labor and strict ethical compliance, rejecting unlawful shortcut temptations."),
@@ -2241,9 +2442,11 @@ export const generateInstantQAList = (
   kundli: KundliOutput,
   diagnosis: CurrentLifeDiagnosis,
   prescriptions: AstrologicalPrescriptions,
-  devoteeName?: string
+  devoteeName?: string,
+  devoteeAge: number = 30
 ): InstantQAQuestion[] => {
   const name = devoteeName || "ಭಕ್ತರೇ";
+  const isChild = devoteeAge < 14;
   const lagnaKn = toKannadaRashi(kundli.lagnaRashi.english);
   const moon = kundli.planets.find((p) => p.name === PlanetName.Moon);
   const moonRashiKn = toKannadaRashi(kundli.moonSign.english);
@@ -2251,30 +2454,37 @@ export const generateInstantQAList = (
   const moonHouse = moon?.house ?? 1;
 
   const lagnaIdx = kundli.lagnaRashi.index;
-  const tenthLord = signLord((lagnaIdx + 9) % 12);
-  const tenthLordKn = toKannadaPlanet(tenthLord);
-  const seventhLord = signLord((lagnaIdx + 6) % 12);
-  const seventhLordKn = toKannadaPlanet(seventhLord);
-  const fifthLord = signLord((lagnaIdx + 4) % 12);
-  const fifthLordKn = toKannadaPlanet(fifthLord);
   const secondLord = signLord((lagnaIdx + 1) % 12);
   const secondLordKn = toKannadaPlanet(secondLord);
-  const eleventhLord = signLord((lagnaIdx + 10) % 12);
-  const eleventhLordKn = toKannadaPlanet(eleventhLord);
-  const sixthLord = signLord((lagnaIdx + 5) % 12);
-  const sixthLordKn = toKannadaPlanet(sixthLord);
+  const thirdLord = signLord((lagnaIdx + 2) % 12);
+  const thirdLordKn = toKannadaPlanet(thirdLord);
   const fourthLord = signLord((lagnaIdx + 3) % 12);
   const fourthLordKn = toKannadaPlanet(fourthLord);
+  const fifthLord = signLord((lagnaIdx + 4) % 12);
+  const fifthLordKn = toKannadaPlanet(fifthLord);
+  const sixthLord = signLord((lagnaIdx + 5) % 12);
+  const sixthLordKn = toKannadaPlanet(sixthLord);
+  const seventhLord = signLord((lagnaIdx + 6) % 12);
+  const seventhLordKn = toKannadaPlanet(seventhLord);
+  const eighthLord = signLord((lagnaIdx + 7) % 12);
+  const eighthLordKn = toKannadaPlanet(eighthLord);
+  const ninthLord = signLord((lagnaIdx + 8) % 12);
+  const ninthLordKn = toKannadaPlanet(ninthLord);
+  const tenthLord = signLord((lagnaIdx + 9) % 12);
+  const tenthLordKn = toKannadaPlanet(tenthLord);
+  const eleventhLord = signLord((lagnaIdx + 10) % 12);
+  const eleventhLordKn = toKannadaPlanet(eleventhLord);
 
   const h4PlanetsKn = kundli.planets.filter((p) => p.house === 4).map((p) => toKannadaPlanet(p.name)).join(", ") || `${fourthLordKn} ಅಧಿಪತ್ಯ`;
   const h5PlanetsKn = kundli.planets.filter((p) => p.house === 5).map((p) => toKannadaPlanet(p.name)).join(", ") || `${fifthLordKn} ಅಧಿಪತ್ಯ`;
   const h7PlanetsKn = kundli.planets.filter((p) => p.house === 7).map((p) => toKannadaPlanet(p.name)).join(", ") || `${seventhLordKn} ಅಧಿಪತ್ಯ`;
+  const h8PlanetsKn = kundli.planets.filter((p) => p.house === 8).map((p) => toKannadaPlanet(p.name)).join(", ") || `${eighthLordKn} ಅಧಿಪತ್ಯ`;
   const h10PlanetsKn = kundli.planets.filter((p) => p.house === 10).map((p) => toKannadaPlanet(p.name)).join(", ") || `${tenthLordKn} ಅಧಿಪತ್ಯ`;
 
   const dashaMaha = diagnosis.prasthuthaSthiti.runningDashaSummary.split("|")[0]?.replace("ಪ್ರಸ್ತುತ ಮಹಾದಶಾ:", "").trim() || "ದಶಾ ಕಾಲ";
   const dashaMahaKn = toKannadaPlanet(dashaMaha);
 
-  const dashaTiming = diagnosis.dashaTiming || calculateDynamicDashaTiming(kundli, 30);
+  const dashaTiming = diagnosis.dashaTiming || calculateDynamicDashaTiming(kundli, devoteeAge);
   const remM = dashaTiming.remainingMonths;
 
   const gemName = prescriptions?.gemstoneRing?.primaryGemstoneKn || "ಮಾಣಿಕ್ಯ";
@@ -2329,6 +2539,214 @@ export const generateInstantQAList = (
   if (mars && mars.house === 8) specScore += 2.0;
   const isSpeculationLoss = specScore >= 4.0;
 
+  const shadripus = detectNativeShadripuAfflictions(kundli);
+  const lossInfo = getDynamicLossScaleText(kundli);
+
+  const isBalarishta = moon && [6, 8, 12].includes(moon.house);
+  const hasPittaColic = (mars && (mars.house === 1 || mars.house === 2 || mars.house === 5)) || isKujaDosha;
+
+  if (isChild) {
+    return [
+      // 1. CHILD COLIC & CRYING
+      {
+        id: "q_child_1",
+        category: "mind",
+        categoryLabelKn: "👶 ಅಳು & ಪಿತ್ತ ಶೂಲೆ",
+        questionKn: "ಮಗು ದಿನವಿಡೀ ಅಳುವುದು, ಹಠ ಮತ್ತು ಕಿರಿಕಿರಿ ಮಾಡಲು ನೈಜ ಜಾತಕ ಕಾರಣವೇನು?",
+        questionEn: "Why does the child persistently cry and throw tantrums all day?",
+        panditScriptKn: sanitizeAstrologyKannadaText(`ನಮಸ್ಕಾರ ${name}, ನಾನ್ ನಿಮ್ಮ ಮಗುವಿನ ಜಾತಕ ನೋಡಿದೆ.
+
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ಹೌದು, ಮಗುವಿನ ಅಳು ಮತ್ತು ಕಿರಿಕಿರಿ ಸಾಮಾನ್ಯ ಹಠವಲ್ಲ; ಇದು ಜಾತಕದಲ್ಲಿರುವ ಜಠರದ ತೀವ್ರ ಪಿತ್ತ ಶೂಲೆ (Pitta Colic) ಹಾಗೂ ಬಾಲಗ್ರಹ ದೃಷ್ಟಿ ದೋಷದಿಂದ ಉಂಟಾಗುತ್ತಿದೆ.
+• 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: ಮಗುವಿನ ಜಾತಕದಲ್ಲಿ ಲಗ್ನ ${lagnaKn}, ಚಂದ್ರ ರಾಶಿ ${moonRashiKn} (${moonNakKn} ನಕ್ಷತ್ರ). ${isBalarishta ? "ಚಂದ್ರನು ದುಃಸ್ಥಾನದಲ್ಲಿದ್ದು ಬಾಲಾರಿಷ್ಟ ಯೋಗವನ್ನು ಉಂಟುಮಾಡುತ್ತಿದ್ದಾನೆ." : "ಚಂದ್ರನ ಮೇಲೆ ನೆರಳು ಗ್ರಹಗಳ ಪ್ರಭಾವವಿದೆ."} ${hasPittaColic ? "ಕುಜ ಗ್ರಹದ ಉಗ್ರ ಪಿತ್ತ ತತ್ವವು 2ನೇ ಮುಖ ಮತ್ತು 5ನೇ ಜಠರ ಸ್ಥಾನದ ಮೇಲೆ ಒತ್ತಡ ತರುತ್ತಿದೆ." : "ಲಗ್ನದ ಮೇಲೆ ತೀಕ್ಷ್ಣ ಗ್ರಹಗಳ ದೃಷ್ಟಿ ಇದೆ."}
+• ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ಕಾರಣ: ಮಗುವಿಗೆ ಹೊಟ್ಟೆಯ ತೀವ್ರ ಪಿತ್ತದ ಉರಿ ಮತ್ತು ಅಸಹನೀಯ ಶೂಲೆ ನೋವನ್ನು ಮಾತಿನಲ್ಲಿ ಹೇಳಲು ತಿಳಿಯದೆ ಅಳು ಮತ್ತು ರೋದನದ ಮೂಲಕ ಹೊರಹಾಕುತ್ತದೆ.
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ ${Math.max(1, Math.min(3, Math.round(remM / 2)))} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${Math.max(1, Math.min(3, Math.round(remM / 2)))} Month${Math.max(1, Math.min(3, Math.round(remM / 2))) > 1 ? "s" : ""}) ಗ್ರಹಗಳ ಶಾಂತಿಯಿಂದ ಮಗುವಿನ ಕಿರಿಕಿರಿ ಗಣನೀಯವಾಗಿ ಉಪಶಮನಗೊಳ್ಳಲಿದೆ.
+• 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪೂಜೆ: ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ಬಾಲಗ್ರಹ ಶಾಂತಿ ಹಾಗೂ ಮಹಾಮೃತ್ಯುಂಜಯ ಸಂಕಲ್ಪ ಸೇವೆ ಸಲ್ಲಿಸಿ, ರಕ್ಷಾ ಭಸ್ಮವನ್ನು ಮಗುವಿನ ಹಣೆಗೆ ನಿತ್ಯ ಧಾರಣೆ ಮಾಡಿಸಿ.`),
+        astrologicalBasisKn: `ಚಂದ್ರನ ${moonHouse}ನೇ ಸ್ಥಾನ, ಕುಜ-ರಾಹು ದೃಷ್ಟಿ ಮತ್ತು ಜಠರ ಸ್ಥಾನದ ಗ್ರಹ ಸ್ಥಿತಿ.`,
+        immediateRemedyKn: `ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ರಕ್ಷಾ ಭಸ್ಮ ಧಾರಣೆ ಮಾಡಿಸಿ ಮತ್ತು ಬಾಲಗ್ರಹ ಶಾಂತಿ ಸೇವೆ ಮಾಡಿಸಿ.`
+      },
+
+      // 2. FOOD REFUSAL & APPETITE
+      {
+        id: "q_child_2",
+        category: "children",
+        categoryLabelKn: "🥣 ಆಹಾರ & ಜೀರ್ಣಶಕ್ತಿ",
+        questionKn: "ಮಗು ಸರಿಯಾಗಿ ಊಟ ಮಾಡದೆ ಹಠ ಮಾಡುವುದು ಮತ್ತು ಆಹಾರ ನಿರಾಕರಣೆಗೆ ಕಾರಣವೇನು?",
+        questionEn: "Why does the child refuse food and show poor appetite?",
+        panditScriptKn: sanitizeAstrologyKannadaText(`ನಮಸ್ಕಾರ ${name}, ನಾನ್ ನಿಮ್ಮ ಮಗುವಿನ ಜಾತಕ ನೋಡಿದೆ.
+
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ಮಗುವಿಗೆ ಹಸಿವಿನ ಕೊರತೆಯಲ್ಲ, 2ನೇ ಮುಖ ಮತ್ತು ಆಹಾರ ಸ್ಥಾನ ಹಾಗೂ 5ನೇ ಜೀರ್ಣಾಂಗದಲ್ಲಿ ಅಗ್ನಿಮಾಂದ್ಯ ಇರುವುದರಿಂದ ಆಹಾರವನ್ನು ಜಗಿಯಲು ಕಷ್ಟಪಡುತ್ತಿದೆ.
+• 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: 2ನೇ ಆಹಾರ ಸ್ಥಾನದಲ್ಲಿ ${secondLordKn} ಅಧಿಪತ್ಯವಿದ್ದು, 5ನೇ ಜಠರ ಸ್ಥಾನದ ಮೇಲೆ ${fifthLordKn} ಮತ್ತು ಕುಜ ಗ್ರಹದ ಪ್ರಭಾವವಿದೆ.
+• ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ಕಾರಣ: ಆಹಾರ ಸೇವಿಸಿದ ತಕ್ಷಣ ಹೊಟ್ಟೆಯಲ್ಲಿ ಉರಿ ಅಥವಾ ವಾಯು ಪ್ರಕೋಪ ಉಂಟಾಗುವುದರಿಂದ ಮಗು ಆಹಾರವನ್ನು ಕಂಡರೆ ಭಯಪಟ್ಟು ನಾಲಿಗೆಯಿಂದ ಹೊರದೂಡುತ್ತದೆ.
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ ${Math.max(1, Math.min(3, Math.round(remM / 2)))} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${Math.max(1, Math.min(3, Math.round(remM / 2)))} Month${Math.max(1, Math.min(3, Math.round(remM / 2))) > 1 ? "s" : ""}) ಜೀರ್ಣಶಕ್ತಿ ಸಮತೋಲನಗೊಂಡು ಮಗು ಸಂತೋಷದಿಂದ ಆಹಾರ ಸೇವಿಸಲಿದೆ.
+• 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪೂಜೆ: ಅನ್ನಪೂರ್ಣಾ ಸ್ತೋತ್ರ ಪಠಿಸಿ ಮಗುವಿಗೆ ತೀರ್ಥ ಪ್ರಾಶನ ಮಾಡಿಸಿ. ಗೋಕರ್ಣ ಮಹಾಗಣಪತಿ ಸನ್ನಿಧಿಯಲ್ಲಿ ಮೋದಕ ಸಮರ್ಪಿಸಿ ಪ್ರಾರ್ಥಿಸಿ.`),
+        astrologicalBasisKn: `2ನೇ ಮನೆ (ಆಹಾರ) ಮತ್ತು 5ನೇ ಮನೆ (ಜಠರ ಅಗ್ನಿ) ಗ್ರಹ ಪ್ರಭಾವ.`,
+        immediateRemedyKn: `ದಿನನಿತ್ಯ ಪ್ರಾತಃಕಾಲ ಅನ್ನಪೂರ್ಣಾ ಅಷ್ಟಕ ಪಠಿಸಿ ಮತ್ತು ತುಳಸಿ ತೀರ್ಥ ನೀಡಿ.`
+      },
+
+      // 3. SUNSET EVIL EYE & NIGHT STARTLES
+      {
+        id: "q_child_3",
+        category: "mind",
+        categoryLabelKn: "👁️ ಸಂಜೆ ದೃಷ್ಟಿ ದೋಷ",
+        questionKn: "ಸಂಜೆ ಸೂರ್ಯಾಸ್ತದ ಸಮಯದಲ್ಲಿ ಮಗು ಹೆಚ್ಚು ಕಿರಿಕಿರಿ ಮತ್ತು ರಾತ್ರಿ ನಿದ್ದೆಯಲ್ಲಿ ಬೆದರುವುದು ಏಕೆ?",
+        questionEn: "Why does the child become fussy at sunset and startle in sleep?",
+        panditScriptKn: sanitizeAstrologyKannadaText(`ನಮಸ್ಕಾರ ${name}, ನಾನ್ ನಿಮ್ಮ ಮಗುವಿನ ಜಾತಕ ನೋಡಿದೆ.
+
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ಹೌದು, ಸಂಜೆ ಸೂರ್ಯಾಸ್ತದ ಗೋಧೂಳಿ ಸಂಧ್ಯಾ ಕಾಲದಲ್ಲಿ ಹೊರಗಿನ ದೃಷ್ಟಿ ದೋಷ ಮತ್ತು ವಾತಾವರಣದ ಋಣಾತ್ಮಕ ಶಕ್ತಿಗಳ ಸ್ಪರ್ಶದಿಂದ ಮಗುವಿಗೆ ಭೀತಿ ಉಂಟಾಗುತ್ತಿದೆ.
+• 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: ಲಗ್ನದ ಮೇಲೆ ಛಾಯಾಗ್ರಹಗಳ ಸೂಕ್ಷ್ಮ ಪ್ರಭಾವವಿದ್ದು, ಮನಃಕಾರಕ ಚಂದ್ರನಿಗೆ ${moonNakKn} ನಕ್ಷತ್ರದ ಸೂಕ್ಷ್ಮ ಸಂವೇದನಾಶೀಲತೆಯಿದೆ.
+• ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ಕಾರಣ: ಸಾರ್ವಜನಿಕರ ದೃಷ್ಟಿ ಬಾಧೆ (Evil Eye) ಹಾಗೂ ಸಂಧ್ಯಾ ಕಾಲದ ತಮೋಗುಣದ ಪರಿಣಾಮವಾಗಿ ಮಗು ರಾತ್ರಿ ಗಾಢ ನಿದ್ದೆಯಲ್ಲಿ ಬೆದರಿ ಚೀರುತ್ತಾ ಎಚ್ಚರಗೊಳ್ಳುತ್ತದೆ.
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ 1 ತಿಂಗಳಿನಲ್ಲಿ (Next 1 Month) ನಿರಂತರ ದೃಷ್ಟಿ ನಿವಾರಣೆ ಹಾಗೂ ರಕ್ಷಾ ಕವಚದಿಂದ ಮಗುವಿನ ಭೀತಿ ನಿವಾರಣೆಯಾಗಲಿದೆ.
+• 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪೂಜೆ: ಸಂಜೆ ಸೂರ್ಯಾಸ್ತದ ಗೋಧೂಳಿ ಸಂಧ್ಯಾ ಸಮಯದಲ್ಲಿ ಕಲ್ಲುಪ್ಪು ಮತ್ತು ಸಾಸಿವೆಯಿಂದ ಮಗುವಿಗೆ ದೃಷ್ಟಿ ತೆಗೆಯಿರಿ. ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ರಕ್ಷಾ ದಾರವನ್ನು ಮಗುವಿನ ಕೈಗೆ ಕಟ್ಟಿ.`),
+        astrologicalBasisKn: `8ನೇ ಗೂಢ ಭಾವ ಮತ್ತು ಚಂದ್ರನ ನಕ್ಷತ್ರದ ಮೇಲಿನ ಛಾಯಾಗ್ರಹ ಪ್ರಭಾವ.`,
+        immediateRemedyKn: `ಸಂಜೆ ಸೂರ್ಯಾಸ್ತದ ಸಮಯದಲ್ಲಿ ಕಲ್ಲುಪ್ಪು-ಸಾಸಿವೆ ದೃಷ್ಟಿ ತೆಗೆದು ಬೆಂಕಿಗೆ ಹಾಕಿ.`
+      },
+
+      // 4. SCHOOLING & FOCUS
+      {
+        id: "q_child_4",
+        category: "career",
+        categoryLabelKn: "📚 ವಿದ್ಯಾಭ್ಯಾಸ & ಏಕಾಗ್ರತೆ",
+        questionKn: "ಮಗುವಿನ ವಿದ್ಯಾಭ್ಯಾಸದಲ್ಲಿ ಗಮನ, ಶಾಲಾ ಏಕಾಗ್ರತೆ ಮತ್ತು ಚಂಚಲತೆ ನಿವಾರಣೆ ಹೇಗೆ?",
+        questionEn: "How to improve child's schooling focus and overcome distraction?",
+        panditScriptKn: sanitizeAstrologyKannadaText(`ನಮಸ್ಕಾರ ${name}, ನಾನ್ ನಿಮ್ಮ ಮಗುವಿನ ಜಾತಕ ನೋಡಿದೆ.
+
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ಮಗುವಿಗೆ ಅಪಾರ ಜಾಣ್ಮೆ ಮತ್ತು ಗ್ರಹಣ ಶಕ್ತಿಯಿದೆ; ಆದರೆ ಒಂದೆಡೆ ಸ್ಥಿರವಾಗಿ ಕೂತು ಓದುವ ಏಕಾಗ್ರತೆಯಲ್ಲಿ ತಾತ್ಕಾಲಿಕ ಚಂಚಲತೆ ಕಾಣಿಸುತ್ತಿದೆ.
+• 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: 4ನೇ ವಿದ್ಯಾ ಸ್ಥಾನದಲ್ಲಿ ${fourthLordKn} ಅಧಿಪತ್ಯವಿದ್ದು, ಬುದ್ಧಿಕಾರಕ ಬುಧ ಗ್ರಹದ ಸಂಚಾರ ಬಲವಿದೆ.
+• ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ಕಾರಣ: ಮನಃಕಾರಕ ಚಂದ್ರನ ಚಂಚಲ ಗುಣದಿಂದಾಗಿ ಮಗುವಿನ ಗಮನವು ಬೇಗನೆ ಬೇರೆಡೆಗೆ ಹರಿಯುತ್ತದೆ ಮತ್ತು ಓದುವುದಕ್ಕಿಂತ ಆಟದತ್ತ ಹೆಚ್ಚು ಆಕರ್ಷಿತವಾಗುತ್ತದೆ.
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ ${Math.max(2, remM)} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${Math.max(2, remM)} Month${Math.max(2, remM) > 1 ? "s" : ""}) ಬುಧನ ಅನುಗ್ರಹದಿಂದ ಏಕಾಗ್ರತೆ ಹೆಚ್ಚಿ ಶಾಲಾ ಪರೀಕ್ಷೆಗಳಲ್ಲಿ ಉತ್ತಮ ಸಾಧನೆ ತೋರಲಿದೆ.
+• 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪೂಜೆ: ದಿನನಿತ್ಯ ಹಯಗ್ರೀವ ಸ್ತೋತ್ರ ಅಥವಾ 'ಓಂ ಸರಸ್ವತ್ಯೈ ನಮಃ' ಜಪಿಸಿ. ಗೋಕರ್ಣ ವಿದ್ಯಾ ಗಣಪತಿ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸರಸ್ವತಿ ಸಂಕಲ್ಪ ಪೂಜೆ ನೆರವೇರಿಸಿ.`),
+        astrologicalBasisKn: `4ನೇ ಮನೆ (ವಿದ್ಯಾ ಸ್ಥಾನ) ಮತ್ತು ಬುದ್ಧಿಕಾರಕ ಬುಧನ ಸ್ಥಿತಿ.`,
+        immediateRemedyKn: `ದಿನನಿತ್ಯ ಪ್ರಾತಃಕಾಲ ಸರಸ್ವತಿ ಮಂತ್ರ ಪಠಿಸಿ ಮತ್ತು ಹಸಿರು ಬಟ್ಟೆಯಲ್ಲಿ ಏಲಕ್ಕಿ ಇಡಿ.`
+      },
+
+      // 5. SIBLING FIGHTS & ANGER
+      {
+        id: "q_child_5",
+        category: "children",
+        categoryLabelKn: "⚔️ ಜಗಳ & ಹಠದ ಸಿಟ್ಟು",
+        questionKn: "ಮಗು ಸದಾ ಜಗಳ, ಸಾಮಾನುಗಳನ್ನು ಎಸೆಯುವುದು ಮತ್ತು ಅತಿಯಾದ ಸಿಟ್ಟು ಪ್ರದರ್ಶಿಸುವುದು ಏಕೆ?",
+        questionEn: "Why is the child aggressive, fighting with siblings and showing fiery anger?",
+        panditScriptKn: sanitizeAstrologyKannadaText(`ನಮಸ್ಕಾರ ${name}, ನಾನ್ ನಿಮ್ಮ ಮಗುವಿನ ಜಾತಕ ನೋಡಿದೆ.
+
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ಜಾತಕದಲ್ಲಿ ಅಗ್ನಿ ತತ್ವದ ಕುಜ ಗ್ರಹದ ತೀಕ್ಷ್ಣ ಪ್ರಭಾವವಿರುವುದರಿಂದ ಮಗುವಿನಲ್ಲಿ ಹಠ, ಸಿಟ್ಟು ಮತ್ತು ವಸ್ತುಗಳನ್ನು ಎಸೆಯುವ ಆಕ್ರಮಣಕಾರಿ ಪ್ರವೃತ್ತಿ ಕಂಡುಬರುತ್ತಿದೆ.
+• 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: ಲಗ್ನ ಅಥವಾ 3ನೇ ಪರಾಕ್ರಮ ಭಾವದ ಮೇಲೆ ಕುಜ ಗ್ರಹದ ತೀಕ್ಷ್ಣ ದೃಷ್ಟಿ ಬೀಳುತ್ತಿದೆ.
+• ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ಕಾರಣ: ದೇಹದಲ್ಲಿ ಪಿತ್ತ ದೋಷ ಹೆಚ್ಚಾದಾಗ ಮಗುವಿಗೆ ತನ್ನ ಆವೇಗವನ್ನು ತಡೆಯಲು ಸಾಧ್ಯವಾಗದೆ ಸಣ್ಣ ವಿಷಯಕ್ಕೂ ಕಿರುಚಾಡಿ ಜಗಳ ಮಾಡುತ್ತದೆ.
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ ${Math.max(2, remM)} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${Math.max(2, remM)} Month${Math.max(2, remM) > 1 ? "s" : ""}) ಶಾಂತ ಸ್ವಭಾವ ಮರಳಿ ಬಂದು ಸಹೋದರರು ಮತ್ತು ಸ್ನೇಹಿತರೊಂದಿಗೆ ಪ್ರೀತಿಯಿಂದ ಬೆರೆಯಲಿದೆ.
+• 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪೂಜೆ: ಪ್ರತಿದಿನ ಸುಬ್ರಹ್ಮಣ್ಯ ಗಾಯತ್ರಿ ಮಂತ್ರ ಜಪಿಸಿ. ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ಶಾಂತಿ ಅಭಿಷೇಕ ಸಮರ್ಪಿಸಿ.`),
+        astrologicalBasisKn: `3ನೇ ಮನೆ (ಧೈರ್ಯ/ಸಹೋದರ) ಮತ್ತು ಕುಜ ಗ್ರಹದ ಅಗ್ನಿ ತತ್ವ.`,
+        immediateRemedyKn: `ಮಗುವಿಗೆ ಬೆಳ್ಳಿಯ ಕಡಗ ಅಥವಾ ಸರ ಧರಿಸಿ ಮತ್ತು ತಂಪಾದ ಹಾಲು-ತುಪ್ಪ ನೀಡಿ.`
+      },
+
+      // 6. IMMUNITY & RECURRING COLD/FEVER
+      {
+        id: "q_child_6",
+        category: "mind",
+        categoryLabelKn: "🩺 ಆರೋಗ್ಯ & ರೋಗನಿರೋಧಕತೆ",
+        questionKn: "ಮಗುವಿಗೆ ಪದೇ ಪದೇ ಶೀತ, ಜ್ವರ ಮತ್ತು ರೋಗನಿರೋಧಕ ಶಕ್ತಿ ಕೊರತೆ ನಿವಾರಣೆ ಹೇಗೆ?",
+        questionEn: "How to strengthen child's immunity and prevent recurring seasonal illness?",
+        panditScriptKn: sanitizeAstrologyKannadaText(`ನಮಸ್ಕಾರ ${name}, ನಾನ್ ನಿಮ್ಮ ಮಗುವಿನ ಜಾತಕ ನೋಡಿದೆ.
+
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ಜಾತಕದಲ್ಲಿ ಲಗ್ನಾಧಿಪತಿಯ ಬಲವರ್ಧನೆಯಿಂದ ಮಗುವಿನ ರೋಗನಿರೋಧಕ ಶಕ್ತಿ (Immunity) ಬಲಗೊಂಡು ಪದೇ ಪದೇ ಬರುವ ಶೀತ-ಜ್ವರದಿಂದ ಮುಕ್ತಿ ಸಿಗಲಿದೆ.
+• 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: ಲಗ್ನಾಧಿಪತಿ ಮತ್ತು 6ನೇ ರೋಗ ಸ್ಥಾನದ ಅಧಿಪತಿಯ ಮೇಲೆ ಜಲ-ಕಫ ರಾಶಿಗಳ ಪ್ರಭಾವವಿದೆ.
+• ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ಕಾರಣ: ಋತು ಬದಲಾದಾಗ ವಾತಾವರಣದ ತೇವಾಂಶ ಮತ್ತು ಶೀತ ಮಗುವಿನ ಶ್ವಾಸಕೋಶ ಹಾಗೂ ಗಂಟಲಿನಲ್ಲಿ ಕಫ ಸಂಚಯಕ್ಕೆ ಕಾರಣವಾಗುತ್ತದೆ.
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ ${Math.max(1, Math.min(3, Math.round(remM / 2)))} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${Math.max(1, Math.min(3, Math.round(remM / 2)))} Month${Math.max(1, Math.min(3, Math.round(remM / 2))) > 1 ? "s" : ""}) ದೈಹಿಕ ರೋಗನಿರೋಧಕತೆ ಸುಧಾರಿಸಿ ಮಗು ಲವಲವಿಕೆಯಿಂದ ಇರಲಿದೆ.
+• 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪೂಜೆ: ಧನ್ವಂತರಿ ಮಂತ್ರ 'ಓಂ ನಮೋ ಭಗವತೇ ವಾಸುದೇವಾಯ ಧನ್ವಂತರಯೇ ನಮಃ' ಪಠಿಸಿ. ಗೋಕರ್ಣದಲ್ಲಿ ಆಯುಷ್ಯ ಹೋಮ ಹಾಗೂ ಮೃತ್ಯುಂಜಯ ಜಪ ಸಂಕಲ್ಪ ಮಾಡಿಸಿ.`),
+        astrologicalBasisKn: `ಲಗ್ನ (ಆರೋಗ್ಯ) ಮತ್ತು 6ನೇ ಭಾವದ (ರೋಗ ಪರಿಹಾರ) ಗ್ರಹ ಸ್ಥಿತಿ.`,
+        immediateRemedyKn: `ಧನ್ವಂತರಿ ಮಂತ್ರ ಪಠಿಸಿ ತುಳಸಿ ರಸ ಮತ್ತು ಜೇನುತುಪ್ಪ ಪ್ರಾಶನ ಮಾಡಿಸಿ.`
+      },
+
+      // 7. SEPARATION ANXIETY & FEAR OF DARK
+      {
+        id: "q_child_7",
+        category: "mind",
+        categoryLabelKn: "🤱 ತಾಯಿ ಸಾಮೀಪ್ಯ & ಭಯ",
+        questionKn: "ಮಗು ತಾಯಿಯನ್ನು ಬಿಟ್ಟಿರಲು ನಿರಾಕರಿಸುವುದು ಮತ್ತು ಒಂಟಿಯಾಗಿ ಮಲಗಲು ಹೆದರುವುದು ಏಕೆ?",
+        questionEn: "Why does child cling to mother and fear sleeping alone in the dark?",
+        panditScriptKn: sanitizeAstrologyKannadaText(`ನಮಸ್ಕಾರ ${name}, ನಾನ್ ನಿಮ್ಮ ಮಗುವಿನ ಜಾತಕ ನೋಡಿದೆ.
+
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: 4ನೇ ಮಾತೃ ಸ್ಥಾನ ಮತ್ತು ಚಂದ್ರನ ಸೂಕ್ಷ್ಮತೆಯಿಂದಾಗಿ ಮಗುವಿನಲ್ಲಿ ತಾಯಿಯ ಅಗಲಿಕೆಯ ಆತಂಕ (Separation Anxiety) ಹಾಗೂ ಕತ್ತಲೆಯ ಭಯ ಉಂಟಾಗುತ್ತಿದೆ.
+• 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: 4ನೇ ಮನೆಯಲ್ಲಿ ${fourthLordKn} ಅಧಿಪತ್ಯವಿದ್ದು, ಚಂದ್ರನು ತಾಯಿಯ ಕಾರಕ ಗ್ರಹವಾಗಿದ್ದಾನೆ.
+• ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ಕಾರಣ: ಚಂದ್ರನ ಮೇಲಿನ ನೆರಳು ಗ್ರಹಗಳ ಪ್ರಭಾವದಿಂದಾಗಿ ಮಗು ಒಂಟಿಯಾದಾಗ ಅಸುರಕ್ಷಿತ ಭಾವನೆ ಅನುಭವಿಸುತ್ತದೆ.
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ 1 ತಿಂಗಳಿನಲ್ಲಿ (Next 1 Month) ರಕ್ಷಾ ಕವಚ ಹಾಗೂ ದೈವಿಕ ಸಂಕಲ್ಪದಿಂದ ಮಗುವಿನ ಮನಸ್ಸಿನ ಅಂಜಿಕೆ ಸಂಪೂರ್ಣವಾಗಿ ದೂರವಾಗಲಿದೆ.
+• 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪೂಜೆ: ರಾತ್ರಿ ಮಲಗುವ ಮುನ್ನ 11 ಬಾರಿ 'ಶ್ರೀ ರಾಮ ರಕ್ಷಾ ಸ್ತೋತ್ರ' ಪಠಿಸಿ. ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ಶ್ರೀ ಚಕ್ರ ತೀರ್ಥವನ್ನು ಮಗುವಿಗೆ ಪ್ರೋಕ್ಷಣೆ ಮಾಡಿ.`),
+        astrologicalBasisKn: `4ನೇ ಮನೆ (ಮಾತೃ ಸ್ಥಾನ) ಮತ್ತು ಮನಃಕಾರಕ ಚಂದ್ರನ ಸ್ಥಿತಿ.`,
+        immediateRemedyKn: `ರಾತ್ರಿ ಮಲಗುವಾಗ ಶ್ರೀ ರಾಮ ಜಯ ರಾಮ ಮಂತ್ರ ಪಠಿಸಿ ಮತ್ತು ತಲೆಯ ಬಳಿ ನವಿಲುಗರಿ ಇಡಿ.`
+      },
+
+      // 8. GOKARNA BALAGRAHA SHANTI
+      {
+        id: "q_child_8",
+        category: "mind",
+        categoryLabelKn: "🪔 ಗೋಕರ್ಣ ಬಾಲಗ್ರಹ ಶಾಂತಿ",
+        questionKn: "ಮಗುವಿನ ದೀರ್ಘಾಯುಷ್ಯ ಮತ್ತು ಸಕಲ ದೋಷ ನಿವಾರಣೆಗೆ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಯಾವ ಸೇವೆ ಶ್ರೇಷ್ಠ?",
+        questionEn: "Which Gokarna Seva is supreme for child's longevity and dosha clearance?",
+        panditScriptKn: sanitizeAstrologyKannadaText(`ನಮಸ್ಕಾರ ${name}, ನಾನ್ ನಿಮ್ಮ ಮಗುವಿನ ಜಾತಕ ನೋಡಿದೆ.
+
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ನೆರವೇರಿಸುವ 'ಬಾಲಗ್ರಹ ಶಾಂತಿ' ಮತ್ತು 'ಮೃತ್ಯುಂಜಯ ಹೋಮ'ವು ಮಗುವಿನ ಸಕಲ ಗ್ರಹ ಪೀಡೆಗಳನ್ನು ಶಮನಗೊಳಿಸಲು ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ.
+• 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: ಜಾತಕದ ಲಗ್ನ ಮತ್ತು ಚಂದ್ರನ ರಕ್ಷಣೆಗಾಗಿ ಆಯುಃಕಾರಕ ಶನಿ ಹಾಗೂ ಮೃತ್ಯುಂಜಯ ಈಶ್ವರನ ಅನುಗ್ರಹ ಅಗತ್ಯವಿದೆ.
+• ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ಕಾರಣ: ಜನನ ಕಾಲದ ಗ್ರಹ ಮೈತ್ರಿ ಕೊರತೆ ಹಾಗೂ ಬಾಲಾರಿಷ್ಟದ ಸೂಕ್ಷ್ಮ ನೆರಳು ನಿವಾರಣೆಯಾಗಲು ತೀರ್ಥ ಕ್ಷೇತ್ರದ ದೈವಿಕ ಶಕ್ತಿ ಫಲಕಾರಿಯಾಗಿದೆ.
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ 1 ತಿಂಗಳಿನಲ್ಲಿ (Next 1 Month) ಗೋಕರ್ಣ ಸಂಕಲ್ಪ ಪೂಜೆ ನೆರವೇರಿಸುವುದರಿಂದ ಮಗುವಿನ ಜೀವನದಲ್ಲಿ ಸಕಾರಾತ್ಮಕ ಪರಿವರ್ತನೆ ಕಾಣಲಿದೆ.
+• 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪೂಜೆ: ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ಆತ್ಮಲಿಂಗ ಸ್ಪರ್ಶ ಪೂಜೆ ಹಾಗೂ ಮೃತ್ಯುಂಜಯ ಸಂಕಲ್ಪ ಸೇವೆ ಸಮರ್ಪಿಸಿ.`),
+        astrologicalBasisKn: `ಲಗ್ನ ಬಲವರ್ಧನೆ ಮತ್ತು ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ತೀರ್ಥ ಮಹಾತ್ಮೆ.`,
+        immediateRemedyKn: `ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ರಕ್ಷಾ ಭಸ್ಮ ಮತ್ತು ತೀರ್ಥ ಧಾರಣೆ ಮಾಡಿಸಿ.`
+      },
+
+      // 9. SCREEN ADDICTION & TV OBSESSION
+      {
+        id: "q_child_9",
+        category: "wealth",
+        categoryLabelKn: "📱 ಮೊಬೈಲ್ & ಪರದೆಯ ಗೀಳು",
+        questionKn: "ಮಗುವಿಗೆ ಮೊಬೈಲ್, ಟಿವಿ ಪರದೆಯ ಅತಿಯಾದ ಗೀಳು ಬಿಡಿಸಿ ನೈಜ ಆಟ-ಪಾಠಗಳಲ್ಲಿ ಆಸಕ್ತಿ ಮೂಡಿಸುವುದು ಹೇಗೆ?",
+        questionEn: "How to cure child's mobile screen addiction and stimulate real play?",
+        panditScriptKn: sanitizeAstrologyKannadaText(`ನಮಸ್ಕಾರ ${name}, ನಾನ್ ನಿಮ್ಮ ಮಗುವಿನ ಜಾತಕ ನೋಡಿದೆ.
+
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ರಾಹು ಗ್ರಹದ ಭ್ರಮಾತ್ಮಕ ತಂತ್ರಜ್ಞಾನ ಆಕರ್ಷಣೆಯಿಂದ ಮಗು ಮೊಬೈಲ್-ಟಿವಿ ಪರದೆಗೆ ಮಾರುಹೋಗಿದೆ; ಬೌದ್ಧಿಕ ಚಟುವಟಿಕೆಗಳ ಮೂಲಕ ಇದನ್ನು ಹಂತಹಂತವಾಗಿ ಬಿಡಿಸಬಹುದು.
+• 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: 5ನೇ ಬುದ್ಧಿ ಸ್ಥಾನ ಹಾಗೂ 2ನೇ ದೃಷ್ಟಿ/ನೇತ್ರ ಭಾವದ ಮೇಲೆ ರಾಹುವಿನ ಸೂಕ್ಷ್ಮ ನೆರಳು ಇದೆ.
+• ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ಕಾರಣ: ಪರದೆಯ ಬೆಳಕು ಮತ್ತು ವೇಗದ ದೃಶ್ಯಗಳು ಮಗುವಿನ ಮೆದುಳಿನಲ್ಲಿ ಡೋಪಮೈನ್ ಭ್ರಮೆ ಹುಟ್ಟಿಸಿ ನೈಜ ಜಗತ್ತಿನಿಂದ ವಿಮುಖವಾಗುವಂತೆ ಮಾಡುತ್ತವೆ.
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ ${Math.max(1, Math.min(3, Math.round(remM / 2)))} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${Math.max(1, Math.min(3, Math.round(remM / 2)))} Month${Math.max(1, Math.min(3, Math.round(remM / 2))) > 1 ? "s" : ""}) ರಾಹುವಿನ ಶಾಂತಿಯಿಂದ ಮಗು ಪರದೆಯ ಗೀಳಿನಿಂದ ಹೊರಬರಲಿದೆ.
+• 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪೂಜೆ: ಮನೆಯಲ್ಲಿ ಸಾಂಬ್ರಾಣಿ ಧೂಪ ಹಾಕಿ 'ಓಂ ಗಂ ಗಣಪತಯೇ ನಮಃ' ಜಪಿಸಿ. ಗೋಕರ್ಣದಲ್ಲಿ ಗಣೇಶ ಸಂಕಲ್ಪ ಪೂಜೆ ಸಲ್ಲಿಸಿ.`),
+        astrologicalBasisKn: `5ನೇ (ಬುದ್ಧಿ/ಆಕರ್ಷಣೆ) ಮತ್ತು ರಾಹು ಗ್ರಹದ ಮಾಯಾ ಪ್ರಭಾವ.`,
+        immediateRemedyKn: `ಸಂಜೆ ಸಮಯದಲ್ಲಿ ಮೊಬೈಲ್ ಬದಲು ಮಣ್ಣಿನ ಆಟ ಅಥವಾ ಚಿತ್ರಕಲೆಯಲ್ಲಿ ತೊಡಗಿಸಿ.`
+      },
+
+      // 10. MEMORY POWER & SPEECH CLARITY
+      {
+        id: "q_child_10",
+        category: "career",
+        categoryLabelKn: "🧠 ಜ್ಞಾಪಕಶಕ್ತಿ & ವಾಕ್ ಶುದ್ಧಿ",
+        questionKn: "ಮಗುವಿನ ಬುದ್ಧಿಶಕ್ತಿ, ನೆನಪಿನ ಶಕ್ತಿ ಮತ್ತು ಸ್ಪಷ್ಟ ಮಾತು-ಉಚ್ಚಾರಣೆ ವೃದ್ಧಿಗೆ ಪರಿಹಾರವೇನು?",
+        questionEn: "How to enhance child's memory retention and articulate speech clarity?",
+        panditScriptKn: sanitizeAstrologyKannadaText(`ನಮಸ್ಕಾರ ${name}, ನಾನ್ ನಿಮ್ಮ ಮಗುವಿನ ಜಾತಕ ನೋಡಿದೆ.
+
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ಬುಧ ಮತ್ತು ಗುರು ಗ್ರಹಗಳ ಬಲವರ್ಧನೆಯಿಂದ ಮಗುವಿನ ನೆನಪಿನ ಶಕ್ತಿ ಅಗಾಧವಾಗಿ ಹೆಚ್ಚಿ, ಸ್ಪಷ್ಟ ಮತ್ತು ಶುದ್ಧ ವಾಕ್ ಸಾಮರ್ಥ್ಯ ಸಿದ್ಧಿಸಲಿದೆ.
+• 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: 2ನೇ ವಾಕ್ ಸ್ಥಾನದಲ್ಲಿ ${secondLordKn} ಹಾಗೂ 5ನೇ ಮೇಧಾ ಸ್ಥಾನದಲ್ಲಿ ${fifthLordKn} ಶುಭ ಯೋಗವಿದೆ.
+• ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ಕಾರಣ: ನಾಲಿಗೆಯಲ್ಲಿ ಸೂಕ್ಷ್ಮ ಕಫ ದೋಷ ಅಥವಾ ಆತುರದ ಮಾತುಗಾರಿಕೆಯಿಂದ ಕೆಲವು ಅಕ್ಷರಗಳ ಉಚ್ಚಾರಣೆಯಲ್ಲಿ ಸ್ವಲ್ಪ ತೊದಲು ಅಥವಾ ವಿಳಂಬ ಕಾಣಿಸಬಹುದು.
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ ${Math.max(2, remM)} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${Math.max(2, remM)} Month${Math.max(2, remM) > 1 ? "s" : ""}) ಬುಧನ ಅನುಗ್ರಹದಿಂದ ವಾಕ್ ಶುದ್ಧಿ ಹಾಗೂ ಅದ್ಭುತ ಜ್ಞಾಪಕ ಶಕ್ತಿ ಪ್ರಕಟವಾಗಲಿದೆ.
+• 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪೂಜೆ: ದಿನನಿತ್ಯ ಬ್ರಾಹ್ಮೀ ಘೃತ ಸೇವನೆ ಮಾಡಿಸಿ ಹಾಗೂ 'ಓಂ ಐಂ ಸರಸ್ವತ್ಯೈ ನಮಃ' ಮಂತ್ರ 11 ಬಾರಿ ಪಠಿಸಿ. ಗೋಕರ್ಣದಲ್ಲಿ ಮೇಧಾ ದಕ್ಷಿಣಾಮೂರ್ತಿ ಪೂಜೆ ನೆರವೇರಿಸಿ.`),
+        astrologicalBasisKn: `2ನೇ ಮನೆ (ವಾಕ್ ಸ್ಥಾನ) ಮತ್ತು 5ನೇ ಮನೆ (ಮೇಧಾ ಶಕ್ತಿ) ಗ್ರಹ ಸ್ಥಿತಿ.`,
+        immediateRemedyKn: `ದಿನನಿತ್ಯ ಬೆಳಿಗ್ಗೆ ಬ್ರಾಹ್ಮೀ ಘೃತ ನೀಡಿ ಮತ್ತು ಸರಸ್ವತಿ ಮಂತ್ರ ಪಠಿಸಿ.`
+      },
+
+      // 11. PROTECTIVE AMULET & TALISMAN
+      {
+        id: "q_child_11",
+        category: "mind",
+        categoryLabelKn: "🛡️ ರಕ್ಷಾ ಕವಚ & ಪಂಚಲೋಹ",
+        questionKn: "ಮಗುವಿನ ಸರ್ವತೋಮುಖ ರಕ್ಷಣೆಗೆ ಯಾವ ತಾಯಿತ, ರತ್ನ ಅಥವಾ ಬೆಳ್ಳಿ ಧಾರಣೆ ಮಾಡಿಸಬೇಕು?",
+        questionEn: "Which sacred amulet, silver or talisman offers complete divine protection?",
+        panditScriptKn: sanitizeAstrologyKannadaText(`ನಮಸ್ಕಾರ ${name}, ನಾನ್ ನಿಮ್ಮ ಮಗುವಿನ ಜಾತಕ ನೋಡಿದೆ.
+
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ಮಗುವಿನ ಜಾತಕಕ್ಕೆ ಶುದ್ಧ ಬೆಳ್ಳಿಯಲ್ಲಿ ಮಾಡಿಸಿದ ರಕ್ಷಾ ಕವಚ ಅಥವಾ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ಪವಿತ್ರ ರಕ್ಷಾ ಸೂತ್ರ ಧಾರಣೆ ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ ರಕ್ಷಣೆ ನೀಡಲಿದೆ.
+• 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: ಮಗುವಿನ ಲಗ್ನ ${lagnaKn} ಮತ್ತು ಚಂದ್ರ ರಾಶಿ ${moonRashiKn} ರಕ್ಷಣೆಗೆ ಬೆಳ್ಳಿ (ಚಂದ್ರನ ಲೋಹ) ಅತ್ಯಂತ ಸಾತ್ವಿಕ ಫಲ ನೀಡುತ್ತದೆ.
+• ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ಕಾರಣ: ಬಾಲ್ಯಾವಸ್ಥೆಯಲ್ಲಿ ಗ್ರಹಗಳ ತೀಕ್ಷ್ಣ ಕಿರಣಗಳಿಂದ ಮೃದುವಾದ ಶರೀರವನ್ನು ರಕ್ಷಿಸಲು ಲೋಹ ಮತ್ತು ಮಂತ್ರ ಸಂಸ್ಕಾರದ ಕವಚ ಅಗತ್ಯ.
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ 1 ತಿಂಗಳಿನಲ್ಲಿ (Next 1 Month) ರಕ್ಷಾ ಕವಚ ಧಾರಣೆಯ ನಂತರ ಮಗುವಿನ ಆರೋಗ್ಯ ಮತ್ತು ನಡವಳಿಕೆಯಲ್ಲಿ ಸ್ಥಿರತೆ ಕಾಣಲಿದೆ.
+• 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪೂಜೆ: ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಅಭಿಷೇಕ ಮಾಡಿಸಿದ ರಕ್ಷಾ ತಾಯಿತ ಅಥವಾ ಕಪ್ಪು-ಕೆಂಪು ದಾರವನ್ನು ಮಗುವಿನ ಕುತ್ತಿಗೆ ಅಥವಾ ಬಲಗೈಗೆ ಕಟ್ಟಿ.`),
+        astrologicalBasisKn: `ಲಗ್ನ ರಕ್ಷಣೆ ಮತ್ತು ಲೋಹ ತತ್ವ ಶಾಸ್ತ್ರ.`,
+        immediateRemedyKn: `ಶುದ್ಧ ಬೆಳ್ಳಿಯ ಸರದಲ್ಲಿ ಗೋಕರ್ಣ ರಕ್ಷಾ ತಾಯಿತ ಧಾರಣೆ ಮಾಡಿಸಿ.`
+      }
+    ];
+  }
+
   return [
     // 1. CAREER PROGRESS
     {
@@ -2366,7 +2784,7 @@ export const generateInstantQAList = (
       immediateRemedyKn: `ವ್ಯಾಪಾರ ಸ್ಥಳದಲ್ಲಿ ಶ್ರೀ ಯಂತ್ರ ಸ್ಥಾಪಿಸಿ ಮತ್ತು ಶುಕ್ರವಾರ ಲಕ್ಷ್ಮೀ ಪೂಜೆ ಮಾಡಿ.`
     },
 
-    // 3. WORKPLACE POLITICS
+    // 3. WORKPLACE POLITICS & JEALOUSY (MATSARYA)
     {
       id: "q_career_3",
       category: "career",
@@ -2414,7 +2832,7 @@ export const generateInstantQAList = (
       immediateRemedyKn: `ಗುರುವಾರ ದಕ್ಷಿಣಾಮೂರ್ತಿಗೆ ತುಪ್ಪದ ದೀಪ ಬೆಳಗಿಸಿ ಮತ್ತು ಗೋಕರ್ಣದಲ್ಲಿ ಕಲ್ಯಾಣ ಸೇವೆ ಮಾಡಿಸಿ.`
     },
 
-    // 5. MARITAL HARMONY
+    // 5. MARITAL HARMONY (KRODHA / EGO CONFLICT RESOLUTION)
     {
       id: "q_marriage_2",
       category: "marriage",
@@ -2432,7 +2850,7 @@ export const generateInstantQAList = (
       immediateRemedyKn: `ದಂಪತಿ ಸಮೇತರಾಗಿ ಗೋಕರ್ಣದಲ್ಲಿ ಶಿವ-ಪಾರ್ವತಿ ಪೂಜೆ ಅಥವಾ ರುದ್ರಾಭಿಷೇಕ ಮಾಡಿಸಿ.`
     },
 
-    // 6. MARITAL FIDELITY & AFFAIRS (EXPLICIT DIRECT VERDICT)
+    // 6. MARITAL FIDELITY & AFFAIRS (EXPLICIT DIRECT VERDICT - KAMA)
     {
       id: "q_marriage_3",
       category: "marriage",
@@ -2453,7 +2871,7 @@ export const generateInstantQAList = (
     : "7ನೇ ಕಳತ್ರ ಸ್ಥಾನವು ಶುಭ ರಕ್ಷಣೆಯಲ್ಲಿದ್ದು, ಸಾತ್ವಿಕ ಸಂಸ್ಕಾರವು ಬಾಹ್ಯ ಆಕರ್ಷಣೆಗಳಿಗೆ ಜಾರದಂತೆ ನಿಮ್ಮನ್ನು ರಕ್ಷಿಸುತ್ತಿದೆ."
 }
 • ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ ${remM} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${remM} Month${remM > 1 ? "s" : ""}) ದಾಂಪತ್ಯದಲ್ಲಿನ ಬಾಹ್ಯ ಅನುಮಾನಗಳು ಸಂಪೂರ್ಣವಾಗಿ ದೂರವಾಗಿ ಪರಸ್ಪರ ಗೌರವ ಗಟ್ಟಿಯಾಗಲಿದೆ.
-• 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪೂಜೆ: ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಉಮಾ-ಮಹೇಶ್ವರ ಕಲ್ಯಾಣ ಸಂಕಲ್ಪ ಪೂಜೆ ಸಲ್ಲಿಸಿ ಮತ್ತು 2 ಮುಖಿ ರುದ್ರಾಕ್ಷಿ ಧಾರಣೆ ಮಾಡಿ.`),
+• 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪೂಜೆ: ಶ್ರೀ ক্ষেত্র ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಉಮಾ-ಮಹೇಶ್ವರ ಕಲ್ಯಾಣ ಸಂಕಲ್ಪ ಪೂಜೆ ಸಲ್ಲಿಸಿ ಮತ್ತು 2 ಮುಖಿ ರುದ್ರಾಕ್ಷಿ ಧಾರಣೆ ಮಾಡಿ.`),
       astrologicalBasisKn: `7ನೇ ಮನೆ (ಕಳತ್ರ ಸ್ಥಾನ ${seventhLordKn}) ಮತ್ತು ಶುಕ್ರ-ರಾಹು ಸ್ಥಿತಿ.`,
       immediateRemedyKn: `ಗೋಕರ್ಣದಲ್ಲಿ ಉಮಾ-ಮಹೇಶ್ವರ ಕಲ್ಯಾಣ ಪೂಜೆ ಮಾಡಿಸಿ ಮತ್ತು 2 ಮುಖಿ ರುದ್ರಾಕ್ಷಿ ಧರಿಸಿ.`
     },
@@ -2482,7 +2900,7 @@ export const generateInstantQAList = (
       immediateRemedyKn: `ದಿನನಿತ್ಯ ಸಂತಾನ ಗೋಪಾಲ ಮಂತ್ರ ಜಪಿಸಿ ಮತ್ತು ಗೋಕರ್ಣದಲ್ಲಿ ಸೇವೆ ಮಾಡಿಸಿ.`
     },
 
-    // 8. MENTAL PEACE & EMOTIONAL BALANCE
+    // 8. MENTAL PEACE, EMOTIONAL BALANCE & SHADRIPU ALLEVIATION
     {
       id: "q_mind_1",
       category: "mind",
@@ -2493,14 +2911,14 @@ export const generateInstantQAList = (
 
 • 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ಮುಂದಿನ ${Math.max(1, Math.min(3, Math.round(remM / 2)))} ತಿಂಗಳಲ್ಲಿ ಮಾನಸಿಕ ಒತ್ತಡ, ಅತಿಯಾದ ಯೋಚನೆ ಹಾಗೂ ಆತಂಕ ಸಂಪೂರ್ಣ ಉಪಶಮನಗೊಳ್ಳಲಿದೆ.
 • 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಮನಃಕಾರಕ ಚಂದ್ರನು ${moonHouse}ನೇ ಮನೆಯಲ್ಲಿ (${moonRashiKn} ರಾಶಿ, ${moonNakKn} ನಕ್ಷತ್ರ) ಸ್ಥಿತನಾಗಿದ್ದಾನೆ.
-• ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ಕಾರಣ: ಚಂದ್ರನ ಮೇಲಿನ ಗ್ರಹ ಪ್ರಭಾವದಿಂದಾಗಿ ನೀವು ಹೊರಗೆ ಧೈರ್ಯವಾಗಿ ಕಂಡರೂ ಒಳಗೆ ಎಲ್ಲವನ್ನೂ ಅತಿಯಾಗಿ ಆಲೋಚಿಸುವ (Overthinking) ಮತ್ತು ಭಾವನೆಗಳನ್ನು ಅದುಮಿಟ್ಟುಕೊಳ್ಳುವ ಪ್ರವೃತ್ತಿ ಇದೆ.
+• ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ಕಾರಣ: ಜಾತಕದಲ್ಲಿ ಷಡ್ರಿಪುಗಳ ಪೈಕಿ ಮುಖ್ಯವಾಗಿ ${shadripus.ripuNameKn} ಪ್ರಭಾವ ಹೆಚ್ಚಿದ್ದು, ಚಂದ್ರನ ಮೇಲಿನ ಗ್ರಹ ಪ್ರಭಾವದಿಂದಾಗಿ ನೀವು ಹೊರಗೆ ಧೈರ್ಯವಾಗಿ ಕಂಡರೂ ಒಳಗೆ ಎಲ್ಲವನ್ನೂ ಅತಿಯಾಗಿ ಆಲೋಚಿಸುವ ಮತ್ತು ಭಾವನೆಗಳನ್ನು ಅದುಮಿಟ್ಟುಕೊಳ್ಳುವ ಪ್ರವೃತ್ತಿ ಇದೆ.
 • ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ ${Math.max(1, Math.min(3, Math.round(remM / 2)))} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${Math.max(1, Math.min(3, Math.round(remM / 2)))} Month${Math.max(1, Math.min(3, Math.round(remM / 2))) > 1 ? "s" : ""}) ಚಂದ್ರನ ಗೋಚಾರ ಬಲ ಸುಧಾರಿಸಲಿದ್ದು ಮನಸ್ಸಿಗೆ ಅಪಾರ ನೆಮ್ಮದಿ ಮರಳಲಿದೆ.
 • 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪೂಜೆ: ಪ್ರತಿದಿನ ರಾತ್ರಿ 11 ಬಾರಿ 'ಓಂ ನಮಃ ಶಿವಾಯ' ಜಪಿಸಿ. ಕಂಠದಲ್ಲಿ ${rudraName} ಧರಿಸಿ ಮತ್ತು ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರನಿಗೆ ಕ್ಷೀರಾಭಿಷೇಕ ಪ್ರಾರ್ಥನೆ ಸಲ್ಲಿಸಿ.`),
       astrologicalBasisKn: `ಚಂದ್ರನ ${moonHouse}ನೇ ಸ್ಥಾನ ಮತ್ತು 4ನೇ ಭಾವದ ${fourthLordKn} ಪ್ರಭಾವ.`,
       immediateRemedyKn: `${rudraName} ಧರಿಸಿ ಮತ್ತು ರಾತ್ರಿ 11 ಬಾರಿ 'ಓಂ ನಮಃ ಶಿವಾಯ' ಜಪಿಸಿ.`
     },
 
-    // 9. EVIL EYE & PROTECTION
+    // 9. EVIL EYE & PROTECTION (MATSARYA OF ENEMIES)
     {
       id: "q_mind_2",
       category: "mind",
@@ -2518,7 +2936,7 @@ export const generateInstantQAList = (
       immediateRemedyKn: `ಮನೆಯಲ್ಲಿ ಸಾಂಬ್ರಾಣಿ ಧೂಪ ಹಾಕಿ ಮತ್ತು ಸುದರ್ಶನ ಗಾಯತ್ರಿ ಮಂತ್ರ ಜಪಿಸಿ.`
     },
 
-    // 10. WEALTH & DEBT RELIEF
+    // 10. WEALTH & DEBT RELIEF (DYNAMIC LOSS SCALE)
     {
       id: "q_wealth_1",
       category: "wealth",
@@ -2527,7 +2945,7 @@ export const generateInstantQAList = (
       questionEn: "When will debt pressure ease and finances stabilize?",
       panditScriptKn: sanitizeAstrologyKannadaText(`ನಮಸ್ಕಾರ ${name}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕ ನೋಡಿದೆ.
 
-• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ಇನ್ನು ಮುಂದಿನ ${remM} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${remM} Month${remM > 1 ? "s" : ""}) ನೂತನ ಆದಾಯದ ಮಾರ್ಗ ತೆರೆದುಕೊಂಡು ಸಾಲದ ಬಹುಪಾಲು ಹೊರೆ ಇಳಿಯಲಿದೆ.
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ಇನ್ನು ಮುಂದಿನ ${remM} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${remM} Month${remM > 1 ? "s" : ""}) ನೂತನ ಆದಾಯದ ಮಾರ್ಗ ತೆರೆದುಕೊಂಡು ಸಾಲದ ಬಹುಪಾಲು ಹೊರೆ (${lossInfo.lossKn}) ಇಳಿಯಲಿದೆ.
 • 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: ನಿಮ್ಮ 6ನೇ ಋಣ ಸ್ಥಾನದಲ್ಲಿ ${sixthLordKn} ಮತ್ತು 2ನೇ ಧನ ಸ್ಥಾನದಲ್ಲಿ ${secondLordKn} ಗ್ರಹ ಪ್ರಭಾವವಿದೆ.
 • ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ಕಾರಣ: ಕೈಗೆ ಬಂದ ಹಣ ನಿಲ್ಲದೆ ಅನಿರೀಕ್ಷಿತ ತುರ್ತು ವೆಚ್ಚಗಳಿಗೆ ಸೋರಿಹೋಗುತ್ತಿರುವುದು ಸಾಲದ ಹೊರೆಯನ್ನು ಹೆಚ್ಚಿಸಿದೆ.
 • ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ ${remM} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${remM} Month${remM > 1 ? "s" : ""}) ಹೊಸ ಆದಾಯದ ಮಾರ್ಗ ತೆರೆದುಕೊಂಡು ಸಾಲದ ಬಹುಪಾಲು ಹೊರೆ ಇಳಿಯಲಿದೆ.
@@ -2536,7 +2954,7 @@ export const generateInstantQAList = (
       immediateRemedyKn: `ಪ್ರತಿದಿನ ಋಣವಿಮೋಚಕ ನರಸಿಂಹ ಸ್ತೋತ್ರ ಪಠಿಸಿ ಮತ್ತು ಗೋಕರ್ಣದಲ್ಲಿ ಸೇವೆ ಮಾಡಿಸಿ.`
     },
 
-    // 11. SPECULATION & SHARE MARKET (DIRECT VERDICT)
+    // 11. SPECULATION & SHARE MARKET (DIRECT VERDICT & DYNAMIC LOSS SCALE)
     {
       id: "q_wealth_2",
       category: "wealth",
@@ -2547,7 +2965,7 @@ export const generateInstantQAList = (
 
 • 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ${
   isSpeculationLoss
-    ? "ಇಲ್ಲ, ಲಾಭ ಸಾಧ್ಯವೇ ಇಲ್ಲ! ಜಾತಕದಲ್ಲಿ ಷೇರು ಮಾರುಕಟ್ಟೆ, ದಿನದ ಇಂಟ್ರಾಡೇ/ಆಪ್ಷನ್ಸ್ ಟ್ರೇಡಿಂಗ್ ಹಾಗೂ ಬೆಟ್ಟಿಂಗ್‌ನಲ್ಲಿ ಭಾರಿ ಬಂಡವಾಳ ನಷ್ಟ ಹಾಗೂ ಸಾಲದ ಸುಳಿಗೆ ಸಿಲುಕುವ ಸ್ಪಷ್ಟ ದುರ್ಯೋಗವಿದೆ; ತಕ್ಷಣವೇ ನಿಲ್ಲಿಸಬೇಕು."
+    ? `ಇಲ್ಲ, ಲಾಭ ಸಾಧ್ಯವೇ ಇಲ್ಲ! ಜಾತಕದಲ್ಲಿ ಷೇರು ಮಾರುಕಟ್ಟೆ, ದಿನದ ಇಂಟ್ರಾಡೇ/ಆಪ್ಷನ್ಸ್ ಟ್ರೇಡಿಂಗ್ ಹಾಗೂ ಬೆಟ್ಟಿಂಗ್‌ನಲ್ಲಿ ಭಾರಿ ಬಂಡವಾಳ ನಷ್ಟ (${lossInfo.lossKn}) ಹಾಗೂ ಸಾಲದ ಸುಳಿಗೆ ಸಿಲುಕುವ ಸ್ಪಷ್ಟ ದುರ್ಯೋಗವಿದೆ; ತಕ್ಷಣವೇ ನಿಲ್ಲಿಸಬೇಕು.`
     : "ದಿನನಿತ್ಯದ ಜೂಜು/ಟ್ರೇಡಿಂಗ್ ಬೇಡ; ಆದರೆ ದೀರ್ಘಕಾಲೀನ ಸುರಕ್ಷಿತ ಹೂಡಿಕೆಯಲ್ಲಿ (Mutual Funds/SIP) ಮಾತ್ರ ಹಂತ ಹಂತವಾಗಿ ಲಾಭ ಗಳಿಸುವ ಯೋಗವಿದೆ."
 }
 • 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: ನಿಮ್ಮ 5ನೇ ಸ್ಪೆಕ್ಯುಲೇಶನ್ ಸ್ಥಾನದಲ್ಲಿ ${fifthLordKn} ಹಾಗೂ 8ನೇ ಅಷ್ಟಮ ಸ್ಥಾನಗಳ ಮೇಲೆ ಗ್ರಹ ಪ್ರಭಾವವಿದೆ.
@@ -2566,7 +2984,7 @@ export const generateInstantQAList = (
 
 export const generatePanchangaAngaSynthesis = (
   kundli: KundliOutput,
-  context: { birthDate: string; birthTime: string; latitude: number; longitude: number; lang?: string; devoteeName?: string; gender?: string }
+  context: { birthDate: string; birthTime: string; latitude: number; longitude: number; lang?: string; devoteeName?: string; gender?: string; devoteeAge?: number }
 ): PanchangaSynthesisOutput => {
   const tradPanchanga = calculateTraditionalBaggona(context.birthDate, context.birthTime, context.latitude, context.longitude);
   
@@ -2595,9 +3013,10 @@ export const generatePanchangaAngaSynthesis = (
   const karanaKey = Object.keys(KARANA_RULES).find((k) => k.toLowerCase() === tradPanchanga.karana.toLowerCase()) || "Bava";
   const karanaRule = KARANA_RULES[karanaKey]!;
 
+  const devoteeAge = context.devoteeAge !== undefined ? context.devoteeAge : calculateDevoteeAge(context.birthDate);
   const prescriptions = generateAstrologicalPrescriptions(kundli, yogaRule, karanaRule);
   const currentDiagnosis = generateCurrentLifeDiagnosis(kundli, context, prescriptions);
-  const instantQAList = generateInstantQAList(kundli, currentDiagnosis, prescriptions, context.devoteeName);
+  const instantQAList = generateInstantQAList(kundli, currentDiagnosis, prescriptions, context.devoteeName, devoteeAge);
 
   // Build Multi-Paragraph Astrologer Reading in Pure Pristine Kannada with English Digits
   const moon = kundli.planets.find((p) => p.name === PlanetName.Moon);
@@ -2620,7 +3039,8 @@ export const generatePanchangaAngaSynthesis = (
     runningDashaBhukti: currentDiagnosis.prasthuthaSthiti.runningDashaSummary.split("|")[1]?.trim(),
     primaryChallenge: currentDiagnosis.primaryLifeChallenge.area,
     devoteeName: context.devoteeName,
-    dynamicTimelineKn: currentDiagnosis.dashaTiming?.timelineKn
+    dynamicTimelineKn: currentDiagnosis.dashaTiming?.timelineKn,
+    devoteeAge
   });
 
   return {
@@ -2629,7 +3049,9 @@ export const generatePanchangaAngaSynthesis = (
       tithi: { nameKn: tradPanchanga.tithiKn || tradPanchanga.tithi, nameEn: tradPanchanga.tithi, paksha: tradPanchanga.paksha, jalTatvaQuality: "Nourishes emotional relationships and desire fulfillment" },
       nakshatra: { nameKn: tradPanchanga.moonNakshatraKn || moonNakKn, nameEn: moon?.nakshatra.english ?? "Ashwini", lord: calculateKpSubLord(moon?.degree ?? 0).nakshatraLord, deity: "Presiding Divine Guardian" },
       yoga: { nameKn: yogaRule.sanskrit, nameEn: yogaRule.english, rule: yogaRule },
-      karana: { nameKn: karanaRule.nameKn, nameEn: karanaRule.nameEn, rule: karanaRule }
+      karana: { nameKn: karanaRule.nameKn, nameEn: karanaRule.nameEn, rule: karanaRule },
+      sunrise: tradPanchanga.sunrise,
+      sunset: tradPanchanga.sunset
     },
     prescriptions,
     currentDiagnosis,
@@ -2659,7 +3081,8 @@ export const generateVedicConsultationAnswer = (
   devoteeName?: string,
   isKn: boolean = true,
   devoteeAge?: number,
-  gender?: string
+  gender?: string,
+  sunsetTime?: string
 ): string => {
   const devoteeNameFormatted = devoteeName?.trim() || (isKn ? "ಭಕ್ತರೇ" : "Devotee");
   const age = devoteeAge !== undefined ? devoteeAge : 30;
@@ -2719,6 +3142,8 @@ export const generateVedicConsultationAnswer = (
   const sixthLord = signLord((kundli.lagnaRashi.index + 5) % 12);
   const sixthLordPlanet = kundli.planets.find((p) => p.name === sixthLord);
   const sixthLordKn = toKannadaPlanet(sixthLord);
+
+  const lossInfo = getDynamicLossScaleText(kundli);
 
   // Deep Astrological Metrics
   // Alcohol / Addiction
@@ -2804,7 +3229,7 @@ export const generateVedicConsultationAnswer = (
 
 • ⏳ ನಿಖರ ಕಾಲಾವಧಿ / ತಿರುವು: ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ಅವಧಿಯ ಲೆಕ್ಕಾಚಾರದಂತೆ, ಮುಂದಿನ 3 ರಿಂದ 6 ತಿಂಗಳಲ್ಲಿ ಗ್ರಹಗಳ ಗೋಚಾರ ಶಾಂತವಾಗುತ್ತಿದ್ದಂತೆ ಮಗುವಿನ ಈ ಅಳು ಮತ್ತು ಕಿರಿಕಿರಿ ಗಣನೀಯವಾಗಿ ಉಪಶಮನಗೊಳ್ಳಲಿದೆ.
 
-• 🪔 ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಪರಿಹಾರ & ಮಾರ್ಗೋಪಾಯ: ಪರಮ ಪವಿತ್ರ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ಬಾಲಗ್ರಹ ಶಾಂತಿ ಹಾಗೂ ಮಹಾಮೃತ್ಯುಂಜಯ ಸಂಕಲ್ಪ ಸೇವೆ ಸಲ್ಲಿಸಿ, ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯ ರಕ್ಷಾ ಭಸ್ಮವನ್ನು ಮಗುವಿನ ಹಣೆಗೆ ನಿತ್ಯ ಧಾರಣೆ ಮಾಡಿಸಿ. ಮನೆಯಲ್ಲಿ ಪ್ರತಿದಿನ ಸಂಜೆ 7 ಗಂಟೆಗೆ ಸ್ವಲ್ಪ ಕಲ್ಲುಪ್ಪು ಹಾಗೂ ಸಾಸಿವೆಯಿಂದ ಮಗುವಿಗೆ ದೃಷ್ಟಿ ತೆಗೆದು ಬೆಂಕಿಗೆ ಹಾಕಿ. ಇದರಿಂದ ಮಗು ಸುಖವಾಗಿ ನಿದ್ರಿಸಿ ಹರ್ಷಚಿತ್ತದಿಂದ ನಲಿಯಲಿದೆ.`
+• 🪔 ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಪರಿಹಾರ & ಮಾರ್ಗೋಪಾಯ: ಪರಮ ಪವಿತ್ರ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ಬಾಲಗ್ರಹ ಶಾಂತಿ ಹಾಗೂ ಮಹಾಮೃತ್ಯುಂಜಯ ಸಂಕಲ್ಪ ಸೇವೆ ಸಲ್ಲಿಸಿ, ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯ ರಕ್ಷಾ ಭಸ್ಮವನ್ನು ಮಗುವಿನ ಹಣೆಗೆ ನಿತ್ಯ ಧಾರಣೆ ಮಾಡಿಸಿ. ಮನೆಯಲ್ಲಿ ಪ್ರತಿದಿನ ${sunsetTime ? `ಸಂಜೆ ${sunsetTime}ರ ಗೋಧೂಳಿ ಸಂಧ್ಯಾ ಕಾಲದಲ್ಲಿ` : "ಸಂಜೆ ಸೂರ್ಯಾಸ್ತದ ಗೋಧೂಳಿ ಸಂಧ್ಯಾ ಕಾಲದಲ್ಲಿ"} ಸ್ವಲ್ಪ ಕಲ್ಲುಪ್ಪು ಹಾಗೂ ಸಾಸಿವೆಯಿಂದ ಮಗುವಿಗೆ ದೃಷ್ಟಿ ತೆಗೆದು ಬೆಂಕಿಗೆ ಹಾಕಿ. ಇದರಿಂದ ಮಗು ಸುಖವಾಗಿ ನಿದ್ರಿಸಿ ಹರ್ಷಚಿತ್ತದಿಂದ ನಲಿಯಲಿದೆ.`
       );
     } else {
       return (
@@ -2816,7 +3241,7 @@ export const generateVedicConsultationAnswer = (
 
 • ⏳ Accurate Timeline / Turning Point: Under the ongoing ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary}, planetary gochara will soften over the next 3 to 6 months, bringing noticeable calmness and peaceful sleep.
 
-• 🪔 Prescribed Remedies & Solution: Perform Balagraha Shanti and Mahamrityunjaya Sankalpa Seva at holy Sri Kshetra Gokarna Kotiteertha. Apply sacred Gokarna Mahabaleshwara Raksha Bhasma daily on the child's forehead. At home, rotate rock salt and mustard seeds around the child at 7:00 PM daily to dispel lingering evil eye afflictions.`
+• 🪔 Prescribed Remedies & Solution: Perform Balagraha Shanti and Mahamrityunjaya Sankalpa Seva at holy Sri Kshetra Gokarna Kotiteertha. Apply sacred Gokarna Mahabaleshwara Raksha Bhasma daily on the child's forehead. At home, rotate rock salt and mustard seeds around the child at ${sunsetTime ? `sunset twilight (${sunsetTime})` : "sunset twilight (Godhuli Sandhya)"} daily to dispel lingering evil eye afflictions.`
       );
     }
   }
@@ -2953,7 +3378,7 @@ export const generateVedicConsultationAnswer = (
 
 • 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ${
   isSpeculationLoss
-    ? "ಇಲ್ಲ, ಲಾಭ ಸಾಧ್ಯವೇ ಇಲ್ಲ! ಜಾತಕದಲ್ಲಿ ಷೇರು ಮಾರುಕಟ್ಟೆ, ಇಂಟ್ರಾಡೇ/ಆಪ್ಷನ್ಸ್ ಟ್ರೇಡಿಂಗ್ ಹಾಗೂ ಬೆಟ್ಟಿಂಗ್‌ನಲ್ಲಿ ಭಾರಿ ಬಂಡವಾಳ ನಷ್ಟ (40 ರಿಂದ 50 ಲಕ್ಷಕ್ಕೂ ಅಧಿಕ ನಷ್ಟ) ಹಾಗೂ ಸಾಲದ ಸುಳಿಗೆ ಸಿಲುಕುವ ಸ್ಪಷ್ಟ ದುರ್ಯೋಗವಿದೆ; ತಕ್ಷಣವೇ ಟ್ರೇಡಿಂಗ್ ನಿಲ್ಲಿಸಬೇಕು."
+    ? `ಇಲ್ಲ, ಲಾಭ ಸಾಧ್ಯವೇ ಇಲ್ಲ! ಜಾತಕದಲ್ಲಿ ಷೇರು ಮಾರುಕಟ್ಟೆ, ಇಂಟ್ರಾಡೇ/ಆಪ್ಷನ್ಸ್ ಟ್ರೇಡಿಂಗ್ ಹಾಗೂ ಬೆಟ್ಟಿಂಗ್‌ನಲ್ಲಿ ಭಾರಿ ಬಂಡವಾಳ ನಷ್ಟ (${lossInfo.lossKn}ಕ್ಕೂ ಅಧಿಕ ನಷ್ಟ) ಹಾಗೂ ಸಾಲದ ಸುಳಿಗೆ ಸಿಲುಕುವ ಸ್ಪಷ್ಟ ದುರ್ಯೋಗವಿದೆ; ತಕ್ಷಣವೇ ಟ್ರೇಡಿಂಗ್ ನಿಲ್ಲಿಸಬೇಕು.`
     : "ದಿನನಿತ್ಯದ ಜೂಜು ಅಥವಾ ಟ್ರೇಡಿಂಗ್ ಬೇಡ; ಆದರೆ ದೀರ್ಘಕಾಲೀನ ಸುರಕ್ಷಿತ ಹೂಡಿಕೆಗಳಲ್ಲಿ (Long-term SIP/Mutual Funds) ಹಂತ ಹಂತವಾಗಿ ಲಾಭ ಗಳಿಸುವ ಯೋಗವಿದೆ."
 }
 
@@ -2969,7 +3394,7 @@ export const generateVedicConsultationAnswer = (
 
 • 🔮 Direct Daivajna Verdict: ${
   isSpeculationLoss
-    ? "NO PROFIT! The horoscope carries a severe affliction for share market day trading, F&O options, and betting, resulting in catastrophic capital wipeout (40-50+ Lakhs) and crushing debt trap. Cease trading immediately."
+    ? `NO PROFIT! The horoscope carries a severe affliction for share market day trading, F&O options, and betting, resulting in catastrophic capital wipeout (${lossInfo.lossEn}) and crushing debt trap. Cease trading immediately.`
     : "AVOID day trading and quick speculation; however, disciplined long-term safe investments (SIP, real assets) will yield steady financial returns."
 }
 

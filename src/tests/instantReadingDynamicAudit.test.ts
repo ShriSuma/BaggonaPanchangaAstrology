@@ -1,6 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { calculateKundli } from "../core/KundliEngine";
-import { generatePanchangaAngaSynthesis, generateVedicConsultationAnswer } from "../core/PanchangaAngaSynthesisEngine";
+import {
+  generatePanchangaAngaSynthesis,
+  generateVedicConsultationAnswer,
+  getDynamicLossScaleText,
+  detectNativeShadripuAfflictions
+} from "../core/PanchangaAngaSynthesisEngine";
 
 describe("Instant Reading 100% Dynamic & Zero-Hardcoded Audit", () => {
   it("verifies 100% dynamic calculations, personalized Dasha timelines, and zero hardcoded dates", () => {
@@ -303,5 +308,208 @@ describe("Instant Reading 100% Dynamic & Zero-Hardcoded Audit", () => {
     // Dynamic timeline should reflect Suresh's running Dasha, not Pramod's
     expect(synthesisMesha.currentDiagnosis.dashaTiming).toBeDefined();
     expect(synthesisMesha.currentDiagnosis.dashaTiming?.timelineKn).toMatch(/^ಮುಂದಿನ \d+ ತಿಂಗಳುಗಳಲ್ಲಿ$/);
+  });
+
+  it("verifies Panchanga sunrise and sunset are dynamically populated and non-empty", () => {
+    const context = {
+      birthDate: "1993-05-31",
+      birthTime: "09:25",
+      latitude: 14.5479,
+      longitude: 74.3188,
+      devoteeName: "Pramod",
+      gender: "Male"
+    };
+
+    const kundli = calculateKundli({
+      name: context.devoteeName,
+      birthDate: context.birthDate,
+      birthTime: context.birthTime,
+      latitude: context.latitude,
+      longitude: context.longitude
+    });
+
+    const synthesis = generatePanchangaAngaSynthesis(kundli, context);
+    expect(synthesis.panchanga.sunrise).toBeDefined();
+    expect(synthesis.panchanga.sunset).toBeDefined();
+    expect(synthesis.panchanga.sunrise).toMatch(/^\d{1,2}:\d{2}$/);
+    expect(synthesis.panchanga.sunset).toMatch(/^\d{1,2}:\d{2}$/);
+  });
+
+  it("verifies Child Kundali (<14) generates exactly 11 child-specific questions with 4-bullet structure", () => {
+    const childContext = {
+      birthDate: "2021-08-20", // 5-year-old child
+      birthTime: "10:30",
+      latitude: 14.5479,
+      longitude: 74.3188,
+      devoteeName: "Aarav",
+      gender: "Male"
+    };
+
+    const childKundli = calculateKundli({
+      name: childContext.devoteeName,
+      birthDate: childContext.birthDate,
+      birthTime: childContext.birthTime,
+      latitude: childContext.latitude,
+      longitude: childContext.longitude
+    });
+
+    const childSynthesis = generatePanchangaAngaSynthesis(childKundli, childContext);
+    const childQAs = childSynthesis.instantQAList;
+
+    expect(childQAs.length).toBe(11);
+    expect(childQAs[0].id).toBe("q_child_1");
+    expect(childQAs[10].id).toBe("q_child_11");
+
+    for (const qa of childQAs) {
+      expect(qa.panditScriptKn).toContain("• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ:");
+      expect(qa.panditScriptKn).toContain("• 🎯 ಗ್ರಹ ಸ್ಥಿತಿ:");
+      expect(qa.panditScriptKn).toMatch(/• ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ/);
+      expect(qa.panditScriptKn).toContain("• ⏳ ನಿಖರ ಕಾಲಾವಧಿ:");
+      expect(qa.panditScriptKn).toContain("• 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪೂಜೆ:");
+      expect(qa.panditScriptKn).not.toMatch(/[೦೧೨೩೪೫೬೭೮೯]/);
+      // Zero adult vices in child questions
+      expect(qa.panditScriptKn).not.toContain("ಮದ್ಯಪಾನ");
+      expect(qa.panditScriptKn).not.toContain("ಪರಸ್ತ್ರೀ ವ್ಯಾಮೋಹ");
+    }
+
+    // Question 3: Sunset evil eye dynamically mentions sunset Sandhya
+    const qEye = childQAs.find(q => q.id === "q_child_3");
+    expect(qEye).toBeDefined();
+    expect(qEye?.panditScriptKn).toMatch(/ಗೋಧೂಳಿ ಸಂಧ್ಯಾ ಸಮಯ|ಸೂರ್ಯಾಸ್ತ/);
+  });
+
+  it("verifies generateVedicConsultationAnswer uses dynamic sunset Sandhya and zero hardcoded '7:00 PM' / '40 ರಿಂದ 50 ಲಕ್ಷ'", () => {
+    const context = {
+      birthDate: "1993-05-31",
+      birthTime: "09:25",
+      latitude: 14.5479,
+      longitude: 74.3188,
+      devoteeName: "Pramod",
+      gender: "Male"
+    };
+
+    const kundli = calculateKundli({
+      name: context.devoteeName,
+      birthDate: context.birthDate,
+      birthTime: context.birthTime,
+      latitude: context.latitude,
+      longitude: context.longitude
+    });
+
+    const synthesis = generatePanchangaAngaSynthesis(kundli, context);
+
+    // 1. Evil eye inquiry with dynamic sunset time
+    const evilEyeAns = generateVedicConsultationAnswer(
+      kundli,
+      synthesis.currentDiagnosis,
+      synthesis.prescriptions,
+      "ಸಂಜೆ ಸಮಯದಲ್ಲಿ ಮಗು ಅಳುವುದು ಮತ್ತು ದೃಷ್ಟಿ ಬಾಧೆಗೆ ಕಾರಣವೇನು?",
+      "Pramod",
+      true,
+      5,
+      "Male",
+      "06:38"
+    );
+    expect(evilEyeAns).toContain("06:38");
+    expect(evilEyeAns).not.toContain("7:00 PM");
+    expect(evilEyeAns).not.toContain("ಸಂಜೆ 7 ಗಂಟೆಗೆ");
+
+    // 2. Speculation inquiry uses dynamic loss text and zero hardcoded '40 ರಿಂದ 50 ಲಕ್ಷ'
+    const specAns = generateVedicConsultationAnswer(
+      kundli,
+      synthesis.currentDiagnosis,
+      synthesis.prescriptions,
+      "ಷೇರು ಮಾರುಕಟ್ಟೆಯಲ್ಲಿ ಹೂಡಿಕೆ ಮಾಡಿದರೆ ಎಷ್ಟು ನಷ್ಟವಾಗಬಹುದು?",
+      "Pramod",
+      true,
+      33,
+      "Male"
+    );
+    expect(specAns).not.toContain("40 ರಿಂದ 50 ಲಕ್ಷ");
+    expect(specAns).not.toContain("40-50+ Lakhs");
+
+    const dynamicLoss = getDynamicLossScaleText(kundli);
+    expect(specAns).toContain(dynamicLoss.lossKn);
+  });
+
+  it("verifies getDynamicLossScaleText and detectNativeShadripuAfflictions produce dynamic, horoscope-grounded results", () => {
+    const context = {
+      birthDate: "1993-05-31",
+      birthTime: "09:25",
+      latitude: 14.5479,
+      longitude: 74.3188,
+      devoteeName: "Pramod",
+      gender: "Male"
+    };
+
+    const kundli = calculateKundli({
+      name: context.devoteeName,
+      birthDate: context.birthDate,
+      birthTime: context.birthTime,
+      latitude: context.latitude,
+      longitude: context.longitude
+    });
+
+    const lossScale = getDynamicLossScaleText(kundli);
+    expect(lossScale.lossKn).toBeTruthy();
+    expect(lossScale.lossEn).toBeTruthy();
+    expect(lossScale.basisKn).toBeTruthy();
+    expect(lossScale.lossKn).not.toContain("40 ರಿಂದ 50 ಲಕ್ಷ");
+
+    const shadripu = detectNativeShadripuAfflictions(kundli);
+    expect(shadripu.dominantRipu).toBeDefined();
+    expect(shadripu.ripuNameKn).toBeTruthy();
+    expect(shadripu.detailKn).toBeTruthy();
+    expect(shadripu.planetaryCauseKn).toBeTruthy();
+  });
+
+  it("verifies Jupiter Lagna Lord produces dedicated Guru Shanti and Child Kundali produces child yajnaHawanaPlan in synthesis", () => {
+    // 1. Child Synthesis Test: Age 7 child
+    const childContext = {
+      birthDate: "2017-06-15",
+      birthTime: "11:20",
+      latitude: 14.5479,
+      longitude: 74.3188,
+      devoteeName: "Aditi",
+      gender: "Female" as const,
+      devoteeAge: 7
+    };
+
+    const childKundli = calculateKundli({
+      name: childContext.devoteeName,
+      birthDate: childContext.birthDate,
+      birthTime: childContext.birthTime,
+      latitude: childContext.latitude,
+      longitude: childContext.longitude
+    });
+
+    const childSynthesis = generatePanchangaAngaSynthesis(childKundli, childContext);
+    expect(childSynthesis.yajnaHawanaPlan).toBeDefined();
+    expect(childSynthesis.yajnaHawanaPlan.pitruDoshaAssessment.hasPitruDosha).toBe(false);
+    expect(childSynthesis.yajnaHawanaPlan.pitruKaryas).toHaveLength(0);
+    expect(childSynthesis.yajnaHawanaPlan.devaHomas).toHaveLength(4);
+    expect(childSynthesis.yajnaHawanaPlan.devaHomas.map(h => h.id)).toContain("child_balagraha_shanti");
+    expect(childSynthesis.yajnaHawanaPlan.combinedSchedule.scheduleType).toBe("single_day_deva_samputa");
+
+    // 2. Jupiter Lagna Lord Test (Meena or Dhanu Lagna)
+    // Birth with Dhanu Lagna (approx 07:00 AM on 1990-12-25 in Bangalore)
+    const jupiterContext = {
+      name: "Guru Devotee",
+      birthDate: "1990-12-25",
+      birthTime: "07:00",
+      latitude: 12.9716,
+      longitude: 77.5946,
+      devoteeName: "Guru Devotee",
+      gender: "Male" as const
+    };
+    const jupiterKundli = calculateKundli(jupiterContext);
+    const jupiterSynthesis = generatePanchangaAngaSynthesis(jupiterKundli, jupiterContext);
+    
+    // If Lagna Lord is Jupiter, shantiPooja must be Guru Shanti & Brihaspati Yajna
+    const lagnaLord = jupiterSynthesis.prescriptions.rudraksha.planet;
+    if (lagnaLord === "Jupiter") {
+      expect(jupiterSynthesis.prescriptions.shantiPooja.nameKn).toContain("ಗುರು ಶಾಂತಿ, ಬೃಹಸ್ಪತಿ ಯಾಗ & ಮೇಧಾ ದಕ್ಷಿಣಾಮೂರ್ತಿ ಪೂಜೆ");
+      expect(jupiterSynthesis.prescriptions.shantiPooja.nameEn).toContain("Guru Shanti, Brihaspati Yajna");
+    }
   });
 });

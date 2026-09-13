@@ -21,6 +21,15 @@ describe("YajnaHawanaEngine (ಪಿತೃ ಕಾರ್ಯ & ದೇವತಾ ಯ�
     pincode: "600001"
   };
 
+  const sampleChild = {
+    name: "Aarav",
+    birthDate: "2018-03-10",
+    birthTime: "10:30",
+    latitude: 14.5479,
+    longitude: 74.3188,
+    pincode: "581326"
+  };
+
   it("strictly separates Pitru Karya from Deva Karya and builds a 2-stage multi-day schedule for Pitru Dosha", () => {
     const kundli = calculateKundli(sampleBirth1);
 
@@ -28,7 +37,8 @@ describe("YajnaHawanaEngine (ಪಿತೃ ಕಾರ್ಯ & ದೇವತಾ ಯ�
       runningDashaMaha: "ಗುರು",
       runningDashaBhukti: "ಶನಿ",
       primaryChallenge: "Career / Workplace",
-      devoteeName: "ಶ್ರೀರಾಮ್"
+      devoteeName: "ಶ್ರೀರಾಮ್",
+      devoteeAge: 34
     });
 
     expect(plan).toBeDefined();
@@ -63,7 +73,8 @@ describe("YajnaHawanaEngine (ಪಿತೃ ಕಾರ್ಯ & ದೇವತಾ ಯ�
     const plan = generateYajnaHawanaPlan(kundli, {
       runningDashaMaha: "ರಾಹು",
       runningDashaBhukti: "ಗುರು",
-      primaryChallenge: "Personal / Marriage"
+      primaryChallenge: "Personal / Marriage",
+      devoteeAge: 38
     });
 
     expect(plan.pitruDoshaAssessment.hasPitruDosha).toBe(true);
@@ -72,5 +83,64 @@ describe("YajnaHawanaEngine (ಪಿತೃ ಕಾರ್ಯ & ದೇವತಾ ಯ�
     expect(plan.pitruKaryas.some((k) => k.id === "pitru_tripindi")).toBe(true);
     expect(plan.combinedSchedule.scheduleType).toBe("two_stage_multi_day");
     expect(plan.combinedSchedule.restPeriodShuddhi?.shastraRuleKn).toContain("1 ದಿನದ ಶೌಚ-ಶುದ್ಧಿ");
+
+    // Root cause must dynamically reflect the detected reasons
+    const nb = plan.pitruKaryas.find((k) => k.id === "pitru_narayana_bali");
+    expect(nb?.astrologicalRootCauseKn).toBeTruthy();
+    expect(nb?.astrologicalRootCauseKn).not.toContain("40 ರಿಂದ 50 ಲಕ್ಷ");
+  });
+
+  it("child devotee (<14 years) receives zero Pitru Karyas and 4 dedicated child Deva Homas in 1-day Samputa", () => {
+    const kundli = calculateKundli(sampleChild);
+
+    const plan = generateYajnaHawanaPlan(kundli, {
+      devoteeName: "ಆರವ್",
+      devoteeAge: 6
+    });
+
+    // Shastric rule: Children have zero Pitru Dosha
+    expect(plan.pitruDoshaAssessment.hasPitruDosha).toBe(false);
+    expect(plan.pitruDoshaAssessment.severityLabelKn).toContain("ಮಕ್ಕಳಿಗೆ ಅನ್ವಯಿಸುವುದಿಲ್ಲ");
+    expect(plan.pitruKaryas).toHaveLength(0);
+
+    // Single day deva samputa
+    expect(plan.combinedSchedule.scheduleType).toBe("single_day_deva_samputa");
+    expect(plan.combinedSchedule.titleKn).toContain("ಬಾಲ ಸಂರಕ್ಷಣಾ");
+
+    // 4 Child specific homas
+    expect(plan.devaHomas).toHaveLength(4);
+    const homaIds = plan.devaHomas.map(h => h.id);
+    expect(homaIds).toContain("child_balagraha_shanti");
+    expect(homaIds).toContain("child_ayushya_dhanvantari");
+    expect(homaIds).toContain("child_medha_saraswati");
+    expect(homaIds).toContain("child_gokarna_abhisheka");
+
+    // Dynamic Muhurtha includes Lagna lord weekday
+    expect(plan.combinedSchedule.recommendedMuhurthaKn).toMatch(/ವಾರದಂದು|ಮುಹೂರ್ತದಲ್ಲಿ/);
+  });
+
+  it("dynamically prescribes Swayamvara Parvathi for marriage challenges and Sri Sukta Kubera for financial challenges", () => {
+    const kundli = calculateKundli(sampleBirth1);
+
+    // 1. Marriage challenge
+    const marriagePlan = generateYajnaHawanaPlan(kundli, {
+      primaryChallenge: "Personal / Marriage",
+      devoteeAge: 29
+    });
+    expect(marriagePlan.devaHomas.some(h => h.id === "homa_swayamvara_parvathi")).toBe(true);
+
+    // 2. Financial challenge
+    const financePlan = generateYajnaHawanaPlan(kundli, {
+      primaryChallenge: "Financial / Debts",
+      devoteeAge: 40
+    });
+    expect(financePlan.devaHomas.some(h => h.id === "homa_sri_sukta_kubera")).toBe(true);
+
+    // 3. Career challenge
+    const careerPlan = generateYajnaHawanaPlan(kundli, {
+      primaryChallenge: "Career / Workplace",
+      devoteeAge: 35
+    });
+    expect(careerPlan.devaHomas.some(h => h.id === "homa_chandi")).toBe(true);
   });
 });
