@@ -134,6 +134,18 @@ const PLANET_EN: Record<string, string> = {
   Jupiter: "Jupiter", Venus: "Venus", Saturn: "Saturn", Rahu: "Rahu", Ketu: "Ketu"
 };
 
+const EXALTATION_SIGNS: Record<PlanetName, number> = {
+  [PlanetName.Sun]: 0,        // Mesha (Aries)
+  [PlanetName.Moon]: 1,       // Vrishabha (Taurus)
+  [PlanetName.Mars]: 9,       // Makara (Capricorn)
+  [PlanetName.Mercury]: 5,    // Kanya (Virgo)
+  [PlanetName.Jupiter]: 3,    // Karka (Cancer)
+  [PlanetName.Venus]: 11,     // Meena (Pisces)
+  [PlanetName.Saturn]: 6,     // Tula (Libra)
+  [PlanetName.Rahu]: 1,       // Vrishabha (Taurus)
+  [PlanetName.Ketu]: 7        // Vrischika (Scorpio)
+};
+
 export const signLord = (signIndex: number): PlanetName => {
   const lords: PlanetName[] = [
     PlanetName.Mars, PlanetName.Venus, PlanetName.Mercury, PlanetName.Moon,
@@ -280,16 +292,35 @@ export function diagnoseCurrentLifeSituation(
   if (context.maritalStatus === "married") {
     marriageDelayScore = 0;
   }
-  // Parashari Protective Exemption:
-  // When 7th lord is Exalted Venus (Pisces) aspected by Jupiter with Ashtama Kuja or Ketu in 7th,
-  // the marriage has already occurred and the acute struggle is Marital Discord, not Marriage Delay.
-  const isExaltedVenusWithDiscord = Boolean(
-    seventhLordPlanet?.rashi.index === 11 &&
-    seventhLordPlanet.name === PlanetName.Venus &&
-    jupiter && [1, 5, 7, 9].includes(houseDistance(jupiter.house, seventhLordPlanet.house)) &&
-    (ketu?.house === 7 || (mars && mars.house === 8))
+  // Parashari Classical Marriage Certainty & Discord Priority Principle across all 12 Lagnas:
+  // When the 7th lord is Exalted (in its respective exaltation sign index for any planet),
+  // in its Own Sign (Swakshetra), or placed in a Kendra/Trikona under Jupiter's benefic aspect,
+  // Vivaha Yoga is fulfilled and marriage is assured.
+  // If the chart simultaneously contains severe domestic strife afflictions:
+  // (Ketu in 7th, Mars in 8th [Ashtama Kuja], 7th lord in Dusthana 6/8/12, or Saturn in 7th/8th),
+  // the acute life struggle is Marital Discord (ದಾಂಪತ್ಯ ಬಿಕ್ಕಟ್ಟು & ಸಂಸಾರದಲ್ಲಿ ಕಲಹ), NOT Marriage Delay.
+  const isSeventhLordExalted = Boolean(
+    seventhLordPlanet && EXALTATION_SIGNS[seventhLordPlanet.name] === seventhLordPlanet.rashi.index
   );
-  if (isExaltedVenusWithDiscord && context.maritalStatus !== "unmarried") {
+  const isSeventhLordOwnSign = Boolean(
+    seventhLordPlanet && signLord(seventhLordPlanet.rashi.index) === seventhLordPlanet.name
+  );
+  const isSeventhLordJupiterGuarded = Boolean(
+    seventhLordPlanet &&
+    jupiter &&
+    [1, 5, 7, 9].includes(houseDistance(jupiter.house, seventhLordPlanet.house)) &&
+    [1, 4, 5, 7, 9, 10, 11].includes(seventhLordPlanet.house)
+  );
+  const hasStrongSeventhLord = isSeventhLordExalted || isSeventhLordOwnSign || isSeventhLordJupiterGuarded;
+
+  const hasSevereDiscordAfflictions = Boolean(
+    (ketu && ketu.house === 7) ||
+    (mars && mars.house === 8) ||
+    (seventhLordPlanet && [6, 8, 12].includes(seventhLordPlanet.house)) ||
+    (mars && mars.house === 7 && saturn && saturn.house === 8)
+  );
+
+  if (hasStrongSeventhLord && hasSevereDiscordAfflictions && context.maritalStatus !== "unmarried") {
     marriageDelayScore = 0;
   }
 
@@ -530,8 +561,26 @@ export function diagnoseCurrentLifeSituation(
         headlineEn: `Volatile Marital Arguments, Emotional Estrangement with ${isFemale ? "Husband" : "Wife"} & Samsara Friction`,
         detailedRealityKn: `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಸಂಸಾರದಲ್ಲಿ ಅಶಾಂತಿ ಮತ್ತು ${spouseKn} ಹೊಂದಾಣಿಕೆಯಿಲ್ಲದ ಗಂಭೀರ ಮನಸ್ತಾಪಗಳು ಕಾಡುತ್ತಿವೆ. ಸಣ್ಣ ಮಾತೂ ಕೂಡ ದೊಡ್ಡ ಜಗಳವಾಗಿ ಪರಿವರ್ತನೆಗೊಳ್ಳುವುದು, ಸಂಗಾತಿಯ ಕಡೆಯಿಂದ ಕಟುವಾದ ಮಾತುಗಳು, ಪರಸ್ಪರ ಅಂತರ ಹಾಗೂ ಮನೆಯೊಳಗೆ ನೆಮ್ಮದಿಯಿಲ್ಲದ ವಾತಾವರಣ ಉಂಟಾಗಿದೆ. ಹೊರಗೆ ಎಲ್ಲವೂ ಸರಿಯಾಗಿದೆ ಎಂದು ತೋರಿಸಿಕೊಂಡರೂ, ಮನೆಯೊಳಗೆ ನೆಮ್ಮದಿಯೇ ಇಲ್ಲದ ತೀವ್ರ ಸಂಕಟ ನಿಮ್ಮನ್ನು ದಹಿಸುತ್ತಿದೆ. 7ನೇ ಕಳತ್ರಾಧಿಪತಿ 8ನೇ ಮನೆಯಲ್ಲಿರುವುದು ಅಥವಾ ಲಗ್ನ-ಕಳತ್ರಕ್ಕೆ ಶನಿ-ಕುಜರ ಕ್ರೂರ ದೃಷ್ಟಿಯಿರುವುದರಿಂದ, ಸಂಸಾರಿಕ ಸುಖದಲ್ಲಿ ಕೊರತೆ ಮತ್ತು ಮಾನಸಿಕ ಕಿರಿಕಿರಿ ನಿರಂತರವಾಗಿದೆ.`,
         detailedRealityEn: `Currently, you are enduring acute marital friction and emotional alienation with your ${spouseEn}. Small domestic sparks erupt into bitter arguments, cold silence replaces affection, and lack of mental harmony creates an unbearable atmosphere at home despite outward appearances.`,
-        planetaryCulpritKn: "7ನೇ ಕಳತ್ರ ಸ್ಥಾನ/ಕಳತ್ರಾಧಿಪತಿಯ ಮೇಲೆ ಕುಜ-ಶನಿಗಳ ಕ್ರೂರ ದೃಷ್ಟಿ ಅಥವಾ 8ನೇ ಮನೆಯ ಅಶುಭ ಸಂಚಾರ.",
-        planetaryCulpritEn: "Afflictions to 7th house/lord by Mars-Saturn or 7th lord placement in 8th house.",
+        planetaryCulpritKn: (() => {
+          const reasons: string[] = [];
+          if (ketu && ketu.house === 7) reasons.push("7ನೇ ಕಳತ್ರ ಸ್ಥಾನದಲ್ಲಿ ಕೇತು (ಶೀತಲ ಅಂತರ & ವೈರಾಗ್ಯ)");
+          if (mars && mars.house === 8) reasons.push("8ನೇ ಮನೆಯಲ್ಲಿ ಅಷ್ಟಮ ಕುಜ (ಮಾಂಗಲ್ಯ ಕ್ಲೇಶ & ಕೋಪೋದ್ರೇಕ)");
+          if (seventhLordPlanet && seventhLordPlanet.house === 8) reasons.push("7ನೇ ಕಳತ್ರಾಧಿಪತಿ 8ನೇ ಅಷ್ಟಮ ಸ್ಥಾನದಲ್ಲಿರುವುದು");
+          if (saturn && (saturn.house === 7 || saturn.house === 8)) reasons.push("7ನೇ/8ನೇ ಮನೆಯಲ್ಲಿ ಶನಿಯ ಮಂದಗತಿ ಹಾಗೂ ದಾಂಪತ್ಯ ವಿರಸ");
+          if (hasKujaDosha && !reasons.some(r => r.includes("ಕುಜ"))) reasons.push("ಕುಜ ದೋಷದ ಪ್ರಭಾವ");
+          if (reasons.length === 0) reasons.push("7ನೇ ಕಳತ್ರ ಸ್ಥಾನ/ಕಳತ್ರಾಧಿಪತಿಯ ಮೇಲೆ ಕುಜ-ಶನಿಗಳ ಕ್ರೂರ ದೃಷ್ಟಿ ಅಥವಾ 8ನೇ ಮನೆಯ ಅಶುಭ ಸಂಚಾರ");
+          return reasons.join(", ") + ".";
+        })(),
+        planetaryCulpritEn: (() => {
+          const reasonsEn: string[] = [];
+          if (ketu && ketu.house === 7) reasonsEn.push("7th house Ketu causing emotional distance and detachment");
+          if (mars && mars.house === 8) reasonsEn.push("8th house Ashtama Kuja fueling temperamental friction and Mangalya affliction");
+          if (seventhLordPlanet && seventhLordPlanet.house === 8) reasonsEn.push("7th lord placed in the 8th house of strife");
+          if (saturn && (saturn.house === 7 || saturn.house === 8)) reasonsEn.push("Saturn in 7th/8th house casting cold delay and friction");
+          if (hasKujaDosha && !reasonsEn.some(r => r.includes("Mars"))) reasonsEn.push("Kuja Dosha tension");
+          if (reasonsEn.length === 0) reasonsEn.push("Afflictions to 7th house/lord by Mars-Saturn or 8th house placement");
+          return reasonsEn.join(", ") + ".";
+        })(),
         symptomsChecklistKn: [
           `ಪ್ರತಿನಿತ್ಯ ಕ್ಷುಲ್ಲಕ ಕಾರಣಗಳಿಗೂ ಮನೆಯಲ್ಲಿ ${spouseKn} ಕಿರಿಕಿರಿ ಮತ್ತು ವಾಗ್ವಾದ`,
           "ಸಂಗಾತಿಯ ಕಠಿಣ ವರ್ತನೆ, ಮಾತುಕತೆಯಿಲ್ಲದ ಅಂತರ ಮತ್ತು ಹೊಂದಾಣಿಕೆ ಮಾಡಿಕೊಳ್ಳಲು ನಿರಾಕರಣೆ",
@@ -939,15 +988,15 @@ export function determineAccurateProfession(
     }
   }
 
-  // Signature E: Parashara DHARMA-KARMADHIPATI RAJA YOGA in 5th/9th/10th or Jupiter's signs (Pisces / Sagittarius)
+  // Signature E: Parashara DHARMA-KARMADHIPATI RAJA YOGA in 1st/4th/5th/7th/9th/10th or Jupiter's signs (Pisces / Sagittarius) or Cancer
   // 9th Lord of Dharma (Temple, Shastras, Deities) conjunct 10th Lord of Karma (Livelihood)
   const hasDharmaKarmaYoga = Boolean(
     ninthLordPlanet && tenthLordPlanet &&
     ninthLordPlanet.house === tenthLordPlanet.house &&
-    [1, 5, 9, 10].includes(tenthLordPlanet.house)
+    [1, 4, 5, 7, 9, 10].includes(tenthLordPlanet.house)
   );
   const isDharmaKarmaInJupiterSign = Boolean(
-    hasDharmaKarmaYoga && tenthLordPlanet && [8, 11].includes(tenthLordPlanet.rashi.index)
+    hasDharmaKarmaYoga && tenthLordPlanet && [3, 8, 11].includes(tenthLordPlanet.rashi.index)
   );
   const isJupiterAspectingDharmaKarma = Boolean(
     hasDharmaKarmaYoga && jupiter && tenthLordPlanet && [1, 5, 7, 9].includes(houseDistance(jupiter.house, tenthLordPlanet.house))
@@ -957,17 +1006,17 @@ export function determineAccurateProfession(
     scores.priest_vedic_astrology += 6.5;
     if (isDharmaKarmaInJupiterSign) scores.priest_vedic_astrology += 4.5;
     if (isJupiterAspectingDharmaKarma) scores.priest_vedic_astrology += 4.5;
-    // When 10th lord Sun is conjunct 9th lord Moon in 5th house in Jupiter's sign Pisces under Jupiter's drishti:
+    // When 10th lord is Sun, Moon, or Jupiter in Jupiter's signs or Cancer:
     // This is the quintessential Vedic Temple Archaka / Purohita / Vedic Scholar signature.
-    // Penalize government_civil_police, because Sun here is divine/sattvik altar radiance, not police/military force.
-    if (tenthLord === PlanetName.Sun && [8, 11].includes(tenthLordPlanet?.rashi.index ?? -1)) {
+    // Penalize government_civil_police, because planetary energy here is divine/sattvik altar radiance, not police/military force.
+    if (tenthLordPlanet && [PlanetName.Sun, PlanetName.Moon, PlanetName.Jupiter].includes(tenthLordPlanet.name) && [3, 8, 11].includes(tenthLordPlanet.rashi.index)) {
       scores.priest_vedic_astrology += 4.0;
       scores.government_civil_police -= 6.0;
     }
   }
 
-  // 10th lord Sun in 5th house of Mantras/Rituals in Jupiter's sign Pisces/Sagittarius
-  if (tenthLord === PlanetName.Sun && tenthLordPlanet?.house === 5 && [8, 11].includes(tenthLordPlanet.rashi.index)) {
+  // 10th lord in 5th or 9th house of Mantras/Rituals in Jupiter's signs (Pisces/Sagittarius/Cancer)
+  if (tenthLordPlanet && [5, 9].includes(tenthLordPlanet.house) && [3, 8, 11].includes(tenthLordPlanet.rashi.index)) {
     scores.priest_vedic_astrology += 4.0;
     scores.government_civil_police -= 5.0;
   }
@@ -1132,12 +1181,21 @@ export function determineAccurateProfession(
       };
 
     case "priest_vedic_astrology": {
+      const ninthLordKn = ninthLordPlanet ? PLANET_KN[ninthLordPlanet.name] : "9ನೇ ಅಧಿಪತಿ";
+      const tenthLordKn = tenthLordPlanet ? PLANET_KN[tenthLordPlanet.name] : "10ನೇ ಅಧಿಪತಿ";
+      const ninthLordEn = ninthLordPlanet ? PLANET_EN[ninthLordPlanet.name] : "9th lord";
+      const tenthLordEn = tenthLordPlanet ? PLANET_EN[tenthLordPlanet.name] : "10th lord";
+      const houseTextKn = tenthLordPlanet ? `${tenthLordPlanet.house}ನೇ ಮಂತ್ರ-ಧರ್ಮ ಭಾವದಲ್ಲಿ` : "ಕೇಂದ್ರ-ತ್ರಿಕೋನ ಭಾವದಲ್ಲಿ";
+      const houseTextEn = tenthLordPlanet ? `${tenthLordPlanet.house}th house` : "Kendra-Trikona";
+      const signNameKn = tenthLordPlanet ? RASHI_KN[tenthLordPlanet.rashi.index] : "ಗುರುಕ್ಷೇತ್ರ";
+      const signNameEn = tenthLordPlanet ? RASHI_EN[tenthLordPlanet.rashi.index] : "Jupiter's sign";
+
       const priestAstrologicalBasisKn = hasDharmaKarmaYoga
-        ? `9ನೇ ಧರ್ಮಾಧಿಪತಿ (${ninthLordPlanet ? PLANET_KN[ninthLordPlanet.name] : "ಚಂದ್ರ"}) ಹಾಗೂ 10ನೇ ಕರ್ಮಾಧಿಪತಿ (${tenthLordPlanet ? PLANET_KN[tenthLordPlanet.name] : "ಸೂರ್ಯ"}) 5ನೇ ಮಂತ್ರ-ಪೂರ್ವಪುಣ್ಯ ಭಾವದಲ್ಲಿ ಗುರುಕ್ಷೇತ್ರದಲ್ಲಿ (ಮೀನ) ಒಟ್ಟಿಗೆ ನೆಲೆಸಿ (ಧರ್ಮ-ಕರ್ಮಾಧಿಪತಿ ರಾಜಯೋಗ), ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಪೂರ್ಣ ದೃಷ್ಟಿ ಪಡೆದಿರುವುದು ನಿಮ್ಮನ್ನು ದೇವಸ್ಥಾನದ ಪೂಜೆ, ಪ್ರಧಾನ ಅರ್ಚಕ ವೃತ್ತಿ, ಪೌರೋಹಿತ್ಯ ಹಾಗೂ ವೈದಿಕ ಹೋಮ-ಹವನಗಳಲ್ಲಿ ಅಗ್ರಗಣ್ಯರನ್ನಾಗಿ ಮಾಡಿದೆ.`
+        ? `9ನೇ ಧರ್ಮಾಧಿಪತಿ (${ninthLordKn}) ಹಾಗೂ 10ನೇ ಕರ್ಮಾಧಿಪತಿ (${tenthLordKn}) ${houseTextKn} ಗುರುಕ್ಷೇತ್ರದಲ್ಲಿ (${signNameKn}) ಒಟ್ಟಿಗೆ ನೆಲೆಸಿ (ಧರ್ಮ-ಕರ್ಮಾಧಿಪತಿ ರಾಜಯೋಗ), ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಪೂರ್ಣ ದೃಷ್ಟಿ ಪಡೆದಿರುವುದು ನಿಮ್ಮನ್ನು ದೇವಸ್ಥಾನದ ಪೂಜೆ, ಪ್ರಧಾನ ಅರ್ಚಕ ವೃತ್ತಿ, ಪೌರೋಹಿತ್ಯ ಹಾಗೂ ವೈದಿಕ ಹೋಮ-ಹವನಗಳಲ್ಲಿ ಅಗ್ರಗಣ್ಯರನ್ನಾಗಿ ಮಾಡಿದೆ.`
         : `9ನೇ ಧರ್ಮ ಸ್ಥಾನದ ಅಧಿಪತಿ ಗುರುವು ತನ್ನದೇ ಸ್ವಕ್ಷೇತ್ರವನ್ನು ವೀಕ್ಷಿಸುತ್ತಿರುವುದು, 11ನೇ ಲಾಭ ಸ್ಥಾನದಲ್ಲಿ ಸೂರ್ಯ-ಕೇತುಗಳ ಯಜ್ಞ-ಅಗ್ನಿ ಸಂಯೋಗ ಹಾಗೂ 10ನೇ ಕರ್ಮ ಸ್ಥಾನಕ್ಕೆ ಅಗ್ನಿಕಾರಕ ಕುಜ ಮತ್ತು ಕೇತುವಿನ ನಕ್ಷತ್ರ ಬಲವಿರುವುದು ನಿಮ್ಮನ್ನು ದೇವಸ್ಥಾನದ ಪೂಜೆ, ಹೋಮ-ಹವನ, ವೈದಿಕ ಪೌರೋಹಿತ್ಯದ ಧರ್ಮ ಮಾರ್ಗದಲ್ಲಿ ನಿಲ್ಲಿಸಿದೆ.`;
 
       const priestAstrologicalBasisEn = hasDharmaKarmaYoga
-        ? `The supreme Dharma-Karmadhipati Raja Yoga formed by the 9th lord of Dharma (${ninthLordPlanet ? PLANET_EN[ninthLordPlanet.name] : "Moon"}) and 10th lord of Karma (${tenthLordPlanet ? PLANET_EN[tenthLordPlanet.name] : "Sun"}) conjunct in the 5th house of Mantras in Jupiter's sign Pisces under Jupiter's direct aspect ordains your supreme life calling as a Temple Archaka, Vedic Purohita, and Sacred Ritualist.`
+        ? `The supreme Dharma-Karmadhipati Raja Yoga formed by the 9th lord of Dharma (${ninthLordEn}) and 10th lord of Karma (${tenthLordEn}) conjunct in the ${houseTextEn} in ${signNameEn} under Jupiter's direct aspect ordains your supreme life calling as a Temple Archaka, Vedic Purohita, and Sacred Ritualist.`
         : `9th lord of Dharma Jupiter aspecting its own sacred 9th house, combined with the Surya-Ketu Yajna-Agni yoga in the 11th house of livelihood and 10th house karmic alignment with Ketu's star, ordains your life calling as a Temple Archaka and Homa-Havana Vedic Purohita.`;
 
       return {
