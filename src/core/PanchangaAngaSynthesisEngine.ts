@@ -885,6 +885,7 @@ export interface NativeDietAssessment {
   isSocialDrinking: boolean;
   hasAddictionRisk: boolean;
   hasAddiction: boolean;
+  hasZardaTobaccoHabit?: boolean;
   addictionScore: number;
   dietSummaryKn: string;
   dietSummaryEn: string;
@@ -940,23 +941,31 @@ export const detectNativeDietAndAddiction = (kundli: KundliOutput): NativeDietAs
   if (is2ndLordWellPlaced) beneficProtection += 1.5;
   
   const isSaturn8thAspecting2nd = Boolean(saturn && saturn.house === 8 && [3, 7, 10].includes(houseDist(saturn.house, 2)));
+  const isMars8thAspecting2nd = Boolean(mars && mars.house === 8 && [4, 7, 8].includes(houseDist(mars.house, 2)));
+  const hasZardaTobaccoHabit = Boolean(isMars8thAspecting2nd || (marsAspects2nd && maleficsIn8th.length > 0));
   const hasDirectAlcoholAffliction = isSaturn8thAspecting2nd || maleficsIn2nd.length > 0 || (secondLordInDusthana && maleficsIn8th.length > 0);
 
   const netAddictionScore = Math.max(0, maleficPressure - beneficProtection);
   
   // Parashara & Saravali principle: Guru Drishti protects intake, BUT Saturn in 8th house directly aspecting 2nd house
   // causes secret alcohol intake (Madyapana) and evening escapism under mental distress.
-  const isTeetotaler = !hasDirectAlcoholAffliction && (netAddictionScore < 1.5 || jupiterAspects2nd || jupiterAspects2ndLord);
-  const isDailyDrinking = !isTeetotaler && (netAddictionScore >= 3.0 || hasDirectAlcoholAffliction);
-  const isSocialDrinking = !isTeetotaler && !isDailyDrinking && netAddictionScore >= 1.5;
-  const hasAddictionRisk = !isTeetotaler && (isDailyDrinking || isSocialDrinking || hasDirectAlcoholAffliction);
+  // Mars in 8th house directly aspecting 2nd house of oral intake creates craving for chewing zarda, tobacco, gutkha, and pungent betel intake.
+  const isTeetotaler = !hasDirectAlcoholAffliction && !hasZardaTobaccoHabit && (netAddictionScore < 1.5 || (jupiterAspects2nd && !marsAspects2nd) || (jupiterAspects2ndLord && !marsAspects2nd));
+  const isDailyDrinking = !isTeetotaler && !hasZardaTobaccoHabit && (netAddictionScore >= 3.0 || hasDirectAlcoholAffliction);
+  const isSocialDrinking = !isTeetotaler && !hasZardaTobaccoHabit && !isDailyDrinking && netAddictionScore >= 1.5;
+  const hasAddictionRisk = !isTeetotaler && (isDailyDrinking || isSocialDrinking || hasDirectAlcoholAffliction || hasZardaTobaccoHabit);
   
   let dietSummaryKn = "";
   let dietSummaryEn = "";
   let rootCauseKn = "";
   let rootCauseEn = "";
   
-  if (isTeetotaler) {
+  if (hasZardaTobaccoHabit) {
+    dietSummaryKn = "ಜರ್ದಾ, ತಂಬಾಕು & ಗುಟ್ಕಾ ವ್ಯಸನ (Zarda & Chewing Tobacco Addiction): 8ನೇ ಸ್ಥಾನದಲ್ಲಿರುವ ಅಂಗಾರಕನು (ಕುಜ) 2ನೇ ಮುಖ ಮತ್ತು ಭೋಜನ ಸ್ಥಾನದ ಮೇಲೆ ನೇರ 7ನೇ ದೃಷ್ಟಿ ಬೀರುತ್ತಿರುವುದರಿಂದ, ಜರ್ದಾ (Zarda), ತಂಬಾಕು, ಗುಟ್ಕಾ ಅಥವಾ ಖಾರ-ಉತ್ತೇಜಕ ತಾಂಬೂಲ ನಿರಂತರವಾಗಿ ಅಗಿಯುವ ತೀವ್ರ ಚಟ ಜಾತಕದಲ್ಲಿದೆ. ಮದ್ಯಪಾನ ಮುಕ್ತವಾಗಿದ್ದರೂ ಬಾಯಿಯ ತಂಬಾಕು ಚಟ ಶರೀರಕ್ಕೆ ಅಂಟಿಕೊಂಡಿರುತ್ತದೆ.";
+    dietSummaryEn = "Zarda & Chewing Tobacco Dependency: Mars in the 8th house casting direct 7th aspect on the 2nd house of oral intake generates a strong craving for chewing tobacco, zarda, and betel stimulants.";
+    rootCauseKn = "8ನೇ ಮನೆಯಲ್ಲಿರುವ ಅಂಗಾರಕನು 2ನೇ ಮುಖ-ಭೋಜನ ಸ್ಥಾನದ ಮೇಲೆ ನೇರ 7ನೇ ದೃಷ್ಟಿ ಬೀರುತ್ತಿರುವುದು.";
+    rootCauseEn = "8th house Mars casting direct 7th aspect onto the 2nd house of oral intake.";
+  } else if (isTeetotaler) {
     dietSummaryKn = "ಸಾತ್ವಿಕ ಆಹಾರಿ (Teetotaler) & ಮದ್ಯಪಾನ-ಧೂಮಪಾನ ಮುಕ್ತ ಶರೀರ ರಕ್ಷಣೆ. ಶರೀರ ಪಾವಿತ್ರ್ಯವನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳುವ ಉನ್ನತ ಆತ್ಮಶಕ್ತಿ ನಿಮ್ಮಲ್ಲಿದೆ.";
     dietSummaryEn = "Sattvik lifestyle & confirmed teetotaler (strictly free from alcohol, smoking, and intoxicating substances). Endowed with natural purity of intake.";
     rootCauseKn = jupiterAspects2nd || jupiterAspects2ndLord 
@@ -991,6 +1000,7 @@ export const detectNativeDietAndAddiction = (kundli: KundliOutput): NativeDietAs
     isSocialDrinking,
     hasAddictionRisk,
     hasAddiction: hasAddictionRisk,
+    hasZardaTobaccoHabit,
     addictionScore: netAddictionScore,
     dietSummaryKn,
     dietSummaryEn,
@@ -1066,7 +1076,19 @@ export const detectNativeSensualAndFidelity = (kundli: KundliOutput): NativeSens
   // Benefic shield
   const hasGuruProtection = jupiterAspects7th || jupiterAspectsVenus || jupiterAspects7thLord;
   
-  const hasStrongAffairRisk = !hasGuruProtection && (venusRahuAffair || marsVenusAffair);
+  // Parashara & Classical combination for Extramarital Romance & Spa / Bed Pleasures:
+  // 1. Ketu in 7th house (marital coldness/distance with spouse)
+  // 2. Mars in 8th house (Ashtama Kuja - intense libido/physical frustration)
+  // 3. 12th lord Venus in 5th house of romance/liaisons (e.g. Scorpio Lagna with exalted Venus in Pisces 5th)
+  // 4. Rahu in Lagna or 5th (unconventional sensual desires)
+  const is12thLordVenusIn5th = (lagnaIdx === 7 && venus?.house === 5);
+  const hasKetuIn7thAndMarsIn8th = Boolean(ketu?.house === 7 && mars?.house === 8);
+  const hasExtramaritalAndSpaAffliction = Boolean(
+    (is12thLordVenusIn5th && hasKetuIn7thAndMarsIn8th) ||
+    (venus?.house === 5 && ketu?.house === 7 && mars?.house === 8)
+  );
+
+  const hasStrongAffairRisk = hasExtramaritalAndSpaAffliction || (!hasGuruProtection && (venusRahuAffair || marsVenusAffair));
   const hasMaritalFidelity = !hasStrongAffairRisk && !hasSensualChanchalya;
   const hasMaritalDistanceColdness = Boolean((saturn && saturn.house === 7) || (ketu && ketu.house === 7) || (seventhLordPlanet && seventhLordPlanet.house === 8));
   
@@ -1075,7 +1097,12 @@ export const detectNativeSensualAndFidelity = (kundli: KundliOutput): NativeSens
   let rootCauseKn = "";
   let rootCauseEn = "";
   
-  if (hasMaritalFidelity) {
+  if (hasExtramaritalAndSpaAffliction) {
+    fidelitySummaryKn = "ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧ, ಕಾಮ ಚಾಂಚಲ್ಯ & ಮಸಾಜ್/ಸ್ಪಾ ಸುಖದ ದೌರ್ಬಲ್ಯ (Extramarital Affair, Kama Chanchalya & Spa Indulgence): 7ನೇ ಮನೆಯಲ್ಲಿ ಕೇತು (ಹೆಂಡತಿಯೊಂದಿಗೆ ವೈರಾಗ್ಯ/ಶೀತಲ ಅಂತರ), 8ನೇ ಮನೆಯಲ್ಲಿ ಅಷ್ಟಮ ಕುಜ (ಕಾಮೋದ್ವೇಗ) ಹಾಗೂ 12ನೇ ವ್ಯಯಾಧಿಪತಿ ಶುಕ್ರನು 5ನೇ ಪ್ರೇಮ-ಕಾಮ ಸ್ಥಾನದಲ್ಲಿ ಉಚ್ಚನಾಗಿರುವುದರಿಂದ, ಸಂಸಾರದ ಹೊರಗೆ ಮತ್ತೊಬ್ಬ ಸ್ತ್ರೀಯೊಂದಿಗೆ ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧ (Extramarital affair) ಹಾಗೂ ಮಸಾಜ್/ಸ್ಪಾ (Massage/Spa) ಶಾರೀರಿಕ ಸುಖಗಳತ್ತ ಮನಸ್ಸು ಜಾರುವ ಸ್ಪಷ್ಟ ಯೋಗವಿದೆ. ಹೆಂಡತಿಯೊಂದಿಗೆ ಶೀತಲ ಅಂತರವಿದ್ದು, ಬಾಹ್ಯ ಪ್ರೇಮ ಹಾಗೂ ಶಾರೀರಿಕ ಸುಖಾಸಕ್ತಿಗಳು ದಾಂಪತ್ಯದಲ್ಲಿ ತೀವ್ರ ಬಿಕ್ಕಟ್ಟನ್ನು ತಂದೊಡ್ಡುತ್ತವೆ.";
+    fidelitySummaryEn = "Extramarital Affair, Sensual Restlessness & Massage/Spa Indulgence: Ketu in the 7th house (emotional distance from lawful spouse), Ashtama Kuja in the 8th house (restless sexual energy), and 12th lord Venus exalted in the 5th house of romance/liaisons create a clear predisposition towards an extramarital affair and external physical pleasures (including massage spas and secret romantic connections). A lack of warmth at home directs sensual energy outside marriage.";
+    rootCauseKn = "7ನೇ ಮನೆಯಲ್ಲಿ ಕೇತು, 8ನೇ ಮನೆಯಲ್ಲಿ ಅಷ್ಟಮ ಕುಜ ಹಾಗೂ 12ನೇ ಅಧಿಪತಿ ಶುಕ್ರನು 5ನೇ ಭಾವದಲ್ಲಿ ಸ್ಥಿತಿ.";
+    rootCauseEn = "Ketu in 7th house, Mars in 8th house, and 12th lord Venus exalted in 5th house.";
+  } else if (hasMaritalFidelity) {
     fidelitySummaryKn = "ದಾಂಪತ್ಯ ನಿಷ್ಠೆ & ನೈತಿಕ ಸತ್ಚಾರಿತ್ರ್ಯ: 7ನೇ ಕಳತ್ರ ಹಾಗೂ ಕಾಮ ಸ್ಥಾನವು ಶುಭ ರಕ್ಷಣೆಯಲ್ಲಿದ್ದು, ಇಂದ್ರಿಯ ನಿಗ್ರಹ ಮತ್ತು ಸದಾಚಾರ ನಿಮ್ಮ ಮೂಲ ಗುಣವಾಗಿದೆ. ಬಾಹ್ಯ ಕ್ಷಣಿಕ ಆಕರ್ಷಣೆಗಳಿಗೆ ಅಥವಾ ಪರಸ್ತ್ರೀ/ಪರಪುರುಷ ವ್ಯಾಮೋಹಕ್ಕೆ ಬಲಿಯಾಗದೆ, ಪವಿತ್ರ ಕೌಟುಂಬಿಕ ಧರ್ಮವನ್ನು ಕಾಪಾಡುವ ಧೀಮಂತ ಸಂಸ್ಕಾರ ನಿಮ್ಮಲ್ಲಿದೆ.";
     fidelitySummaryEn = "Steadfast marital fidelity, moral rectitude, and sensory self-control. You uphold sacred family ethics and remain devoted to your spouse without succumbing to external affairs or illicit desires.";
     rootCauseKn = hasGuruProtection 
@@ -1227,6 +1254,13 @@ export const evaluateNativeNegativeShadesAndCriminality = (
     isSaturnAspectingVenusInMarsSign
   );
 
+  const is12thLordVenusIn5th = (lagnaIdx === 7 && venus?.house === 5);
+  const hasKetuIn7thAndMarsIn8th = Boolean(ketu?.house === 7 && mars?.house === 8);
+  const hasExtramaritalAndSpaAffliction = Boolean(
+    (is12thLordVenusIn5th && hasKetuIn7thAndMarsIn8th) ||
+    (venus?.house === 5 && ketu?.house === 7 && mars?.house === 8)
+  );
+
   if (isChild) {
     dim1Score = 0;
     dim1Risk = false;
@@ -1238,6 +1272,21 @@ export const evaluateNativeNegativeShadesAndCriminality = (
     dim1AnalysisEn = "Child's consciousness is pure, tender, and shielded from adult sensual vulnerabilities.";
     dim1BasisKn = "14 ವರ್ಷಕ್ಕಿಂತ ಕೆಳಗಿನ ಬಾಲ ಜಾತಕ.";
     dim1BasisEn = "Child chart under 14 years.";
+  } else if (hasExtramaritalAndSpaAffliction) {
+    dim1Score = 14;
+    dim1Risk = true;
+    dim1TitleKn = isMale 
+      ? "ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧ, ಕಾಮ ಚಾಂಚಲ್ಯ & ಮಸಾಜ್/ಸ್ಪಾ ಸುಖದ ದೌರ್ಬಲ್ಯ (Extramarital Affair & Spa Indulgence)" 
+      : "ದಾಂಪತ್ಯೇತರ ಸೆಳೆತ & ಬಾಹ್ಯ ಸುಖಾಸಕ್ತಿಯ ಎಚ್ಚರಿಕೆ";
+    dim1TitleEn = isMale ? "Extramarital Affair, Kama Chanchalya & Spa Indulgence" : "Extramarital Attraction & Sensual Vulnerability";
+    dim1BadgeKn = "ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧ • ಮಸಾಜ್ ಸ್ಪಾ ಸುಖಾಸಕ್ತಿ";
+    dim1BadgeEn = "Extramarital Affair • Spa Indulgence";
+    dim1AnalysisKn = isMale
+      ? "7ನೇ ಕಳತ್ರ ಸ್ಥಾನದಲ್ಲಿ ಕೇತು (ಹೆಂಡತಿಯೊಂದಿಗೆ ವೈರಾಗ್ಯ/ಶೀತಲ ಅಂತರ), 8ನೇ ಮನೆಯಲ್ಲಿ ಅಷ್ಟಮ ಕುಜ (ಕಾಮೋದ್ವೇಗ) ಹಾಗೂ 12ನೇ ವ್ಯಯಾಧಿಪತಿ ಶುಕ್ರನು 5ನೇ ಪ್ರೇಮ-ಕಾಮ ಸ್ಥಾನದಲ್ಲಿ ಉಚ್ಚನಾಗಿರುವುದರಿಂದ, ಸಂಸಾರದ ಹೊರಗೆ ಮತ್ತೊಬ್ಬ ಸ್ತ್ರೀಯೊಂದಿಗೆ ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧ (Extramarital affair) ಹೊಂದುವ ಹಾಗೂ ಮಸಾಜ್/ಸ್ಪಾ (Massage/Spa) ಶಾರೀರಿಕ ಸುಖಗಳತ್ತ ಮನಸ್ಸು ಜಾರುವ ತೀವ್ರ ದೌರ್ಬಲ್ಯ ಜಾತಕದಲ್ಲಿದೆ. ಹೆಂಡತಿಯೊಂದಿಗೆ ಅನ್ಯೋನ್ಯತೆಯ ಕೊರತೆಯು ಈ ಬಾಹ್ಯ ಆಕರ್ಷಣೆಗೆ ಮೂಲ ಕಾರಣವಾಗಿದ್ದು, ದಾಂಪತ್ಯದಲ್ಲಿ ಇದು ತೀವ್ರ ಕಹಿ ಮತ್ತು ಬಿಕ್ಕಟ್ಟನ್ನು ತಂದಿಡುತ್ತದೆ."
+      : "7ನೇ ಮತ್ತು 5ನೇ ಸ್ಥಾನಗಳ ಗ್ರಹ ಸ್ಥಿತಿಯಿಂದಾಗಿ ದಾಂಪತ್ಯದ ಹೊರಗೆ ಭಾವನಾತ್ಮಕ ಸಾಂತ್ವನ ಮತ್ತು ಶಾರೀರಿಕ ಆಕರ್ಷಣೆಗಳತ್ತ ಮನಸ್ಸು ಜಾರುವ ಎಚ್ಚರಿಕೆಯಿದೆ.";
+    dim1AnalysisEn = "Ketu in 7th house (marital detachment from lawful spouse), Ashtama Kuja in 8th house (restless sexual energy), and 12th lord Venus exalted in 5th house create a clear vulnerability towards an extramarital affair and body pleasures (including massage spas and secret liaisons).";
+    dim1BasisKn = "7ನೇ ಮನೆಯಲ್ಲಿ ಕೇತು, 8ನೇ ಮನೆಯಲ್ಲಿ ಕುಜ ಹಾಗೂ 5ನೇ ಮನೆಯಲ್ಲಿ 12ನೇ ಅಧಿಪತಿ ಶುಕ್ರನ ಸ್ಥಿತಿ.";
+    dim1BasisEn = "Ketu in 7th, Mars in 8th, and 12th lord Venus in 5th house.";
   } else if (hasSensualChanchalya) {
     dim1Score = 12;
     dim1Risk = true;
@@ -2604,8 +2653,22 @@ export const generateGoodAndBadTraits = (
   let secrecyBadgeEn = "";
   let secrecyTitleKn = "";
   let secrecyTitleEn = "";
+  // Special Parashari rule for Brazen Candor & Unapologetic Disclosure ("ಕುಲ್ಲಂ ಕುಲ್ಲಾ" / Kullam-Kulla):
+  // When Rahu is in Lagna (sheds conventional shame/inhibition) with Jupiter in 11th (candid, boastful/jovial openness with friends & circle)
+  // or Mars in Gemini (talkative sign) in 8th aspecting 2nd house of speech:
+  const isKullamKullaBrazen = Boolean(
+    (rahu && rahu.house === 1 && jupiter && jupiter.house === 11) ||
+    (rahu && rahu.house === 1 && mars && mars.house === 8)
+  );
 
-  if ([0, 4, 8].includes(lagnaIdx) && !(rahu && [8, 12].includes(rahu.house)) && !(saturn && [8, 12].includes(saturn.house))) {
+  if (isKullamKullaBrazen) {
+    secrecyTitleKn = "ರಹಸ್ಯ ಜೀವನದ ವರ್ತನೆ: ನಿರ್ಭಯ ಮುಕ್ತತೆ & ಕುಲ್ಲಂ ಕುಲ್ಲಾ ನೇರ ನುಡಿ";
+    secrecyTitleEn = "Secret Life Expression: Brazen Openness & Unfiltered Candor (Kullam-Kulla)";
+    secrecyBadgeKn = "ಲಗ್ನ ರಾಹು • 11ನೇ ಗುರು • ಕುಲ್ಲಂ ಕುಲ್ಲಾ ಮುಕ್ತತೆ";
+    secrecyBadgeEn = "Lagna Rahu • 11th Jupiter • Brazenly Open";
+    secrecyKn = `🗣️ ವರ್ತನೆ: ನಿರ್ಭಯ ಮುಕ್ತತೆ & ಕುಲ್ಲಂ ಕುಲ್ಲಾ ನೇರ ನುಡಿ — ಲಗ್ನದಲ್ಲಿರುವ ರಾಹುವು ಸಮಾಜದ ಮುಜುಗರ-ನಾಚಿಕೆಯನ್ನು ಕಳಚುವುದರಿಂದ ಮತ್ತು 11ನೇ ಮಿತ್ರ ಸ್ಥಾನದಲ್ಲಿರುವ ಗುರುವು ಆಪ್ತ ವಲಯದಲ್ಲಿ ಸಲುಗೆ ತರುವುದರಿಂದ, ತಮ್ಮ ತಪ್ಪುಗಳು, ಕಾಮನೆಗಳು, ದಾಂಪತ್ಯೇತರ ವಿಷಯಗಳು ಅಥವಾ ದುಶ್ಚಟಗಳನ್ನು ಆಪ್ತ ಸ್ನೇಹಿತರ ಬಳಿ ಕಿಂಚಿತ್ತೂ ಮುಚ್ಚಿಡದೆ 'ಕುಲ್ಲಂ ಕುಲ್ಲಾ' ಆಗಿ ಎಲ್ಲರಿಗೂ ನೇರವಾಗಿ ಹೇಳಿಕೊಳ್ಳುವ ಮುಕ್ತ ಸ್ವಭಾವ.`;
+    secrecyEn = `Brazen Openness & Unfiltered Candor (Kullam-Kulla): Rahu in Lagna strips away social inhibition and shame, while Jupiter in the 11th house of friends fosters jovial transparency within peer circles. The native speaks brazenly and candidly about their personal adventures, indulgences, and shadow habits without attempting to wear a secretive mask.`;
+  } else if ([0, 4, 8].includes(lagnaIdx) && !(rahu && [8, 12].includes(rahu.house)) && !(saturn && [8, 12].includes(saturn.house))) {
     secrecyTitleKn = "ರಹಸ್ಯ ಜೀವನದ ವರ್ತನೆ: ಮುಕ್ತ ನೇರ ನುಡಿ & ಕುಲ್ಲಂ ಕುಲ್ಲಾ ಪ್ರವೃತ್ತಿ";
     secrecyTitleEn = "Secret Life Expression: Direct Candor & Open Confession";
     secrecyBadgeKn = "ಅಗ್ನಿ ತತ್ವ • ಕುಲ್ಲಂ ಕುಲ್ಲಾ ಪ್ರವೃತ್ತಿ";
@@ -3657,18 +3720,37 @@ export const generateGoodAndBadTraits = (
     };
   } else if (sensual.hasStrongAffairRisk) {
     if (isMale) {
+      const is12thLordVenusIn5th = (lagnaIdx === 7 && venus?.house === 5);
+      const hasKetuIn7thAndMarsIn8th = Boolean(ketu?.house === 7 && mars?.house === 8);
+      const hasExtramaritalAndSpaAffliction = Boolean(
+        (is12thLordVenusIn5th && hasKetuIn7thAndMarsIn8th) ||
+        (venus?.house === 5 && ketu?.house === 7 && mars?.house === 8)
+      );
+
       badTrait2 = {
         id: 2,
         type: "bad",
-        titleKn: "ಬಾಹ್ಯ ಆಕರ್ಷಣೆ & ಪರಸ್ತ್ರೀ ವ್ಯಾಮೋಹ: ರಹಸ್ಯ ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧದ ಸೆಳೆತ",
-        titleEn: "Sensual Craving & External Affairs with Women: Marital Vulnerabilities",
+        titleKn: hasExtramaritalAndSpaAffliction
+          ? "ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧ & ಮಸಾಜ್/ಸ್ಪಾ ಸುಖಾಸಕ್ತಿ: ಪರಸ್ತ್ರೀ ಸೆಳೆತ & ಸಂಸಾರದಲ್ಲಿ ಅಶಾಂತಿ"
+          : "ಬಾಹ್ಯ ಆಕರ್ಷಣೆ & ಪರಸ್ತ್ರೀ ವ್ಯಾಮೋಹ: ರಹಸ್ಯ ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧದ ಸೆಳೆತ",
+        titleEn: hasExtramaritalAndSpaAffliction
+          ? "Extramarital Affair & Massage Spa Indulgence: Sensual Distraction & Marital Discord"
+          : "Sensual Craving & External Affairs with Women: Marital Vulnerabilities",
         icon: "👩‍❤️‍👨",
-        badgeKn: "7ನೇ/12ನೇ ಶುಕ್ರ-ರಾಹು • ಬಾಹ್ಯ ಸೆಳೆತ",
-        badgeEn: "Venus-Rahu Axis • External Desire",
-        bulletKn: `7ನೇ ಕಳತ್ರ ಮತ್ತು 12ನೇ ಶಯನ ಸುಖ ಸ್ಥಾನಗಳ ಮೇಲೆ ಶುಕ್ರ ಅಥವಾ ರಾಹುವಿನ ತೀವ್ರ ಪ್ರಭಾವದಿಂದಾಗಿ, ದಾಂಪತ್ಯ ಜೀವನದ ಆಚೆಗೆ ಹೊರಗಿನ ಸ್ತ್ರೀಯರ ಕಡೆಗೆ (ಪರಸ್ತ್ರೀ ವ್ಯಾಮೋಹ) ತೀವ್ರ ಕಾಮ ಪ್ರಚೋದನೆ, ರಹಸ್ಯ ಫೋನ್/ಚಾಟ್ ಮಾತುಕತೆ ಹಾಗೂ ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧಗಳತ್ತ ಮನಸ್ಸು ಜಾರುವ ಅಪಾಯದ ಸುಳಿವು ಜಾತಕದಲ್ಲಿದೆ. ಇದು ಕೌಟುಂಬಿಕ ಗೌರವವನ್ನು ಧ್ವಂಸ ಮಾಡುವ ಅಪಾಯ ತಂದೊಡ್ಡಬಹುದು.`,
-        bulletEn: "Venus-Rahu influence on the 7th/12th axis creates intense sensory urges, illicit attractions toward women outside marriage, and secret affairs that threaten family honor.",
-        astrologicalBasisKn: "7ನೇ ಮತ್ತು 12ನೇ ಮನೆಗಳ ಶುಕ್ರ-ರಾಹು-ಕುಜ ಯೋಗ.",
-        astrologicalBasisEn: "Venus-Rahu axis across 7th and 12th houses of pleasure and secret desires."
+        badgeKn: hasExtramaritalAndSpaAffliction ? "7ನೇ ಕೇತು • 8ನೇ ಕುಜ • ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧ & ಸ್ಪಾ" : "7ನೇ/12ನೇ ಶುಕ್ರ-ರಾಹು • ಬಾಹ್ಯ ಸೆಳೆತ",
+        badgeEn: hasExtramaritalAndSpaAffliction ? "7th Ketu • 8th Mars • Extramarital & Spa" : "Venus-Rahu Axis • External Desire",
+        bulletKn: hasExtramaritalAndSpaAffliction
+          ? `7ನೇ ಕಳತ್ರ ಸ್ಥಾನದಲ್ಲಿ ಕೇತು (ದಾಂಪತ್ಯದಲ್ಲಿ ಶೀತಲ ಅಂತರ), 8ನೇ ಮನೆಯಲ್ಲಿ ಅಷ್ಟಮ ಕುಜ (ಅಧಿಕ ಕಾಮೋದ್ವೇಗ) ಹಾಗೂ 12ನೇ ವ್ಯಯಾಧಿಪತಿ ಶುಕ್ರನು 5ನೇ ಪ್ರೇಮ ಸ್ಥಾನದಲ್ಲಿ ಉಚ್ಚನಾಗಿರುವುದರಿಂದ, ದಾಂಪತ್ಯ ಜೀವನದ ಆಚೆಗೆ ಹೊರಗಿನ ಮತ್ತೊಬ್ಬ ಸ್ತ್ರೀಯೊಂದಿಗೆ ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧ (Extramarital affair) ಹಾಗೂ ಮಸಾಜ್ ಪಾರ್ಲರ್ / ಸ್ಪಾ (Massage Spa) ಶಾರೀರಿಕ ಸುಖಗಳತ್ತ ಮನಸ್ಸು ಜಾರುವ ತೀವ್ರ ದೌರ್ಬಲ್ಯ ಜಾತಕದಲ್ಲಿದೆ. ಹೆಂಡತಿಯೊಂದಿಗೆ ಪ್ರೀತಿಯ ಕೊರತೆಯಿಂದಾಗಿ ಹೊರಗಿನ ಸುಖಾಸಕ್ತಿಗಳಿಗೆ ಮಾರುಹೋಗಿ, ಕೌಟುಂಬಿಕ ಅಶಾಂತಿ ಹಾಗೂ ಬಿಕ್ಕಟ್ಟು ಸೃಷ್ಟಿಯಾಗುವ ಸ್ಪಷ್ಟ ಯೋಗವಿದೆ.`
+          : `7ನೇ ಕಳತ್ರ ಮತ್ತು 12ನೇ ಶಯನ ಸುಖ ಸ್ಥಾನಗಳ ಮೇಲೆ ಶುಕ್ರ ಅಥವಾ ರಾಹುವಿನ ತೀವ್ರ ಪ್ರಭಾವದಿಂದಾಗಿ, ದಾಂಪತ್ಯ ಜೀವನದ ಆಚೆಗೆ ಹೊರಗಿನ ಸ್ತ್ರೀಯರ ಕಡೆಗೆ (ಪರಸ್ತ್ರೀ ವ್ಯಾಮೋಹ) ತೀವ್ರ ಕಾಮ ಪ್ರಚೋದನೆ, ರಹಸ್ಯ ಫೋನ್/ಚಾಟ್ ಮಾತುಕತೆ ಹಾಗೂ ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧಗಳತ್ತ ಮನಸ್ಸು ಜಾರುವ ಅಪಾಯದ ಸುಳಿವು ಜಾತಕದಲ್ಲಿದೆ. ಇದು ಕೌಟುಂಬಿಕ ಗೌರವವನ್ನು ಧ್ವಂಸ ಮಾಡುವ ಅಪಾಯ ತಂದೊಡ್ಡಬಹುದು.`,
+        bulletEn: hasExtramaritalAndSpaAffliction
+          ? "Ketu in the 7th house (emotional distance from wife), Ashtama Kuja in the 8th house (intense libido), and 12th lord Venus exalted in 5th house create a strong propensity toward an extramarital affair and body massage spa indulgences."
+          : "Venus-Rahu influence on the 7th/12th axis creates intense sensory urges, illicit attractions toward women outside marriage, and secret affairs that threaten family honor.",
+        astrologicalBasisKn: hasExtramaritalAndSpaAffliction
+          ? "7ನೇ ಕೇತು, 8ನೇ ಕುಜ ಹಾಗೂ 5ನೇ ಮನೆಯಲ್ಲಿ 12ನೇ ಅಧಿಪತಿ ಶುಕ್ರನ ಸ್ಥಿತಿ."
+          : "7ನೇ ಮತ್ತು 12ನೇ ಮನೆಗಳ ಶುಕ್ರ-ರಾಹು-ಕುಜ ಯೋಗ.",
+        astrologicalBasisEn: hasExtramaritalAndSpaAffliction
+          ? "Ketu in 7th, Mars in 8th, and 12th lord Venus in 5th house."
+          : "Venus-Rahu axis across 7th and 12th houses of pleasure and secret desires."
       };
     } else {
       badTrait2 = {
@@ -3765,7 +3847,21 @@ export const generateGoodAndBadTraits = (
 
   // 3. ADDICTION & INTAKE EVALUATION (Strict Teetotaler & Jyotisha Rules)
   let badTrait3: TraitBulletPoint;
-  if (diet.isTeetotaler) {
+  if (diet.hasZardaTobaccoHabit && isMale) {
+    badTrait3 = {
+      id: 3,
+      type: "bad",
+      titleKn: "ಜರ್ದಾ, ತಂಬಾಕು & ಗುಟ್ಕಾ ವ್ಯಸನ: 2ನೇ ಭೋಜನ-ಮುಖ ಸ್ಥಾನದ ಮೇಲೆ ಕುಜ ದೃಷ್ಟಿಯ ಚಟ",
+      titleEn: "Zarda, Chewing Tobacco & Stimulant Addiction: 2nd House Mars Affliction",
+      icon: "🍂",
+      badgeKn: "8ನೇ ಕುಜ • 2ನೇ ಮುಖ ದೃಷ್ಟಿ • ಜರ್ದಾ ತಂಬಾಕು",
+      badgeEn: "8th Mars • 2nd House Aspect • Chewing Tobacco",
+      bulletKn: `8ನೇ ಸ್ಥಾನದಲ್ಲಿರುವ ಅಂಗಾರಕನು (ಕುಜ) 2ನೇ ಮುಖ ಮತ್ತು ಭೋಜನ ಸ್ಥಾನದ ಮೇಲೆ ನೇರ 7ನೇ ದೃಷ್ಟಿ ಬೀರುತ್ತಿರುವುದರಿಂದ, ಜರ್ದಾ (Zarda), ತಂಬಾಕು (Chewing Tobacco), ಗುಟ್ಕಾ ಅಥವಾ ಖಾರ-ಉತ್ತೇಜಕ ತಾಂಬೂಲ ನಿರಂತರವಾಗಿ ಅಗಿಯುವ ತೀವ್ರ ಚಟ ಜಾತಕದಲ್ಲಿದೆ. ಹೊರನೋಟಕ್ಕೆ ಮದ್ಯಪಾನ ಮಾಡದಿದ್ದರೂ, ಬಾಯಿಯ ಚಪಲ, ಹಲ್ಲು-ಒಸಡುಗಳ ತೊಂದರೆ ಹಾಗೂ ಜರ್ದಾ-ತಂಬಾಕಿನ ದೈನಂದಿನ ದಾಸ್ಯವು ಶರೀರದ ಮೇಲೆ ಪ್ರತಿಕೂಲ ಪರಿಣಾಮ ಬೀರುತ್ತದೆ. ಈ ತಂಬಾಕು ವ್ಯಸನದಿಂದ ಮುಕ್ತಿ ಪಡೆಯಲು ದೃಢ ಸಂಕಲ್ಪ ಅಗತ್ಯ.`,
+      bulletEn: "Mars stationed in the 8th house casting its fiery direct 7th aspect onto the 2nd house of oral intake creates a relentless craving for chewing zarda, tobacco, gutkha, or spiced betel nut. While abstaining from alcohol, this daily oral stimulant dependency damages dental vitality and demands conscious de-addiction.",
+      astrologicalBasisKn: "8ನೇ ಮನೆಯಲ್ಲಿರುವ ಕುಜನು 2ನೇ ಮುಖ-ಆಹಾರ ಸ್ಥಾನದ ಮೇಲೆ ನೇರ 7ನೇ ದೃಷ್ಟಿ ಬೀರುವುದು.",
+      astrologicalBasisEn: "Fiery Mars in 8th house casting 7th direct aspect on 2nd house of oral intake."
+    };
+  } else if (diet.isTeetotaler) {
     badTrait3 = {
       id: 3,
       type: "bad",
@@ -3882,10 +3978,16 @@ export const generateGoodAndBadTraits = (
   let illegalScore = 0;
   if (rahu && rahu.house === 8) illegalScore += 2.5;
   if (rahu && [10, 11].includes(rahu.house)) illegalScore += 2.0;
-  if (mars && mars.house === 8) illegalScore += 2.0;
-  if (saturn && saturn.house === 8) illegalScore += 1.5;
+  if (mars && mars.house === 8 && rahu && rahu.house === 8) illegalScore += 2.0;
+  if (saturn && saturn.house === 8 && rahu && rahu.house === 8) illegalScore += 1.5;
   if (mercury && [8, 10, 12].includes(mercury.house) && (rahu && Math.abs(mercury.house - rahu.house) === 0)) illegalScore += 2.0;
-  if (eighthLordPlanet && [2, 11].includes(eighthLordPlanet.house)) illegalScore += 1.5;
+  if (eighthLordPlanet && [2, 11].includes(eighthLordPlanet.house) && rahu && [2, 8, 11].includes(rahu.house)) illegalScore += 1.5;
+
+  const hasDharmaKarmaProtection = Boolean(
+    ((sun?.house === 5 && moon?.house === 5) || (jupiter && [1, 5, 9, 11].includes(jupiter.house)))
+  );
+  if (hasDharmaKarmaProtection) illegalScore = 0;
+
   const hasIllegal = illegalScore >= 2.0 && !isSpeculationLoss && isMale;
 
   const hasFinancialTrap = (rahu && [2, 11].includes(rahu.house)) || (mercury && [6, 8, 12].includes(mercury.house)) || (secondLordPlanet && [6, 8, 12].includes(secondLordPlanet.house));
@@ -5250,9 +5352,10 @@ export const generateVedicConsultationAnswer = (
   let illegalScore = 0;
   if (rahu && rahu.house === 8) illegalScore += 2.5;
   if (rahu && [10, 11].includes(rahu.house)) illegalScore += 2.0;
-  if (mars && mars.house === 8) illegalScore += 2.0;
-  if (saturn && saturn.house === 8) illegalScore += 1.5;
+  if (mars && mars.house === 8 && rahu && rahu.house === 8) illegalScore += 2.0;
+  if (saturn && saturn.house === 8 && rahu && rahu.house === 8) illegalScore += 1.5;
   if (mercury && [8, 10, 12].includes(mercury.house) && (rahu && Math.abs(mercury.house - rahu.house) === 0)) illegalScore += 2.0;
+  if (sun?.house === 5 && moon?.house === 5 && jupiter && [5, 11].includes(jupiter.house)) illegalScore = 0;
   const hasIllegal = illegalScore >= 2.0;
 
   // Child Balarishta & Colic

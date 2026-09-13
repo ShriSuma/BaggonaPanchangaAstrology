@@ -280,6 +280,18 @@ export function diagnoseCurrentLifeSituation(
   if (context.maritalStatus === "married") {
     marriageDelayScore = 0;
   }
+  // Parashari Protective Exemption:
+  // When 7th lord is Exalted Venus (Pisces) aspected by Jupiter with Ashtama Kuja or Ketu in 7th,
+  // the marriage has already occurred and the acute struggle is Marital Discord, not Marriage Delay.
+  const isExaltedVenusWithDiscord = Boolean(
+    seventhLordPlanet?.rashi.index === 11 &&
+    seventhLordPlanet.name === PlanetName.Venus &&
+    jupiter && [1, 5, 7, 9].includes(houseDistance(jupiter.house, seventhLordPlanet.house)) &&
+    (ketu?.house === 7 || (mars && mars.house === 8))
+  );
+  if (isExaltedVenusWithDiscord && context.maritalStatus !== "unmarried") {
+    marriageDelayScore = 0;
+  }
 
   // -------------------------------------------------------------
   // CRITERION 4: MARITAL DISCORD / SAMSARA STRIFE (ದಾಂಪತ್ಯ ಬಿಕ್ಕಟ್ಟು & ಸಂಸಾರದಲ್ಲಿ ಕಲಹ)
@@ -291,6 +303,9 @@ export function diagnoseCurrentLifeSituation(
   if (hasKujaDosha && (saturn?.house === 7 || saturn?.house === 8)) maritalDiscordScore += 4.5;
   if (seventhLordPlanet && [6, 8, 12].includes(seventhLordPlanet.house) && mars && [1, 7, 8].includes(mars.house)) maritalDiscordScore += 4.5;
   if (rahu && rahu.house === 7 && saturn && [3, 7, 10].includes(houseDistance(saturn.house, 7))) maritalDiscordScore += 3.5;
+  if (ketu && ketu.house === 7) maritalDiscordScore += 4.0; // Ketu in 7th brings emotional coldness, detachment, and marital alienation
+  if (rahu && rahu.house === 1) maritalDiscordScore += 3.0; // Rahu in Lagna aspecting 7th creates marital restlessness & wanderlust
+  if (mars && mars.house === 8) maritalDiscordScore += 3.5; // Ashtama Kuja severely afflicts Mangalya sthana / domestic peace
   if (hasKujaDosha) maritalDiscordScore += 2.5;
   if (saturn && (saturn.house === 7 || saturn.house === 8)) maritalDiscordScore += 2.5;
   if (context.maritalStatus === "married") {
@@ -924,6 +939,39 @@ export function determineAccurateProfession(
     }
   }
 
+  // Signature E: Parashara DHARMA-KARMADHIPATI RAJA YOGA in 5th/9th/10th or Jupiter's signs (Pisces / Sagittarius)
+  // 9th Lord of Dharma (Temple, Shastras, Deities) conjunct 10th Lord of Karma (Livelihood)
+  const hasDharmaKarmaYoga = Boolean(
+    ninthLordPlanet && tenthLordPlanet &&
+    ninthLordPlanet.house === tenthLordPlanet.house &&
+    [1, 5, 9, 10].includes(tenthLordPlanet.house)
+  );
+  const isDharmaKarmaInJupiterSign = Boolean(
+    hasDharmaKarmaYoga && tenthLordPlanet && [8, 11].includes(tenthLordPlanet.rashi.index)
+  );
+  const isJupiterAspectingDharmaKarma = Boolean(
+    hasDharmaKarmaYoga && jupiter && tenthLordPlanet && [1, 5, 7, 9].includes(houseDistance(jupiter.house, tenthLordPlanet.house))
+  );
+
+  if (hasDharmaKarmaYoga) {
+    scores.priest_vedic_astrology += 6.5;
+    if (isDharmaKarmaInJupiterSign) scores.priest_vedic_astrology += 4.5;
+    if (isJupiterAspectingDharmaKarma) scores.priest_vedic_astrology += 4.5;
+    // When 10th lord Sun is conjunct 9th lord Moon in 5th house in Jupiter's sign Pisces under Jupiter's drishti:
+    // This is the quintessential Vedic Temple Archaka / Purohita / Vedic Scholar signature.
+    // Penalize government_civil_police, because Sun here is divine/sattvik altar radiance, not police/military force.
+    if (tenthLord === PlanetName.Sun && [8, 11].includes(tenthLordPlanet?.rashi.index ?? -1)) {
+      scores.priest_vedic_astrology += 4.0;
+      scores.government_civil_police -= 6.0;
+    }
+  }
+
+  // 10th lord Sun in 5th house of Mantras/Rituals in Jupiter's sign Pisces/Sagittarius
+  if (tenthLord === PlanetName.Sun && tenthLordPlanet?.house === 5 && [8, 11].includes(tenthLordPlanet.rashi.index)) {
+    scores.priest_vedic_astrology += 4.0;
+    scores.government_civil_police -= 5.0;
+  }
+
   // 7. Government Officer, Civil Services (IAS/KAS), Police & Defense
   if ([4, 0].includes(tenthSignIndex)) scores.government_civil_police += 4.0;
   if (planetsIn10thNames.includes(PlanetName.Sun)) scores.government_civil_police += 4.0;
@@ -1083,7 +1131,15 @@ export function determineAccurateProfession(
         amatyakarakaPlanetEn: amkEn
       };
 
-    case "priest_vedic_astrology":
+    case "priest_vedic_astrology": {
+      const priestAstrologicalBasisKn = hasDharmaKarmaYoga
+        ? `9ನೇ ಧರ್ಮಾಧಿಪತಿ (${ninthLordPlanet ? PLANET_KN[ninthLordPlanet.name] : "ಚಂದ್ರ"}) ಹಾಗೂ 10ನೇ ಕರ್ಮಾಧಿಪತಿ (${tenthLordPlanet ? PLANET_KN[tenthLordPlanet.name] : "ಸೂರ್ಯ"}) 5ನೇ ಮಂತ್ರ-ಪೂರ್ವಪುಣ್ಯ ಭಾವದಲ್ಲಿ ಗುರುಕ್ಷೇತ್ರದಲ್ಲಿ (ಮೀನ) ಒಟ್ಟಿಗೆ ನೆಲೆಸಿ (ಧರ್ಮ-ಕರ್ಮಾಧಿಪತಿ ರಾಜಯೋಗ), ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಪೂರ್ಣ ದೃಷ್ಟಿ ಪಡೆದಿರುವುದು ನಿಮ್ಮನ್ನು ದೇವಸ್ಥಾನದ ಪೂಜೆ, ಪ್ರಧಾನ ಅರ್ಚಕ ವೃತ್ತಿ, ಪೌರೋಹಿತ್ಯ ಹಾಗೂ ವೈದಿಕ ಹೋಮ-ಹವನಗಳಲ್ಲಿ ಅಗ್ರಗಣ್ಯರನ್ನಾಗಿ ಮಾಡಿದೆ.`
+        : `9ನೇ ಧರ್ಮ ಸ್ಥಾನದ ಅಧಿಪತಿ ಗುರುವು ತನ್ನದೇ ಸ್ವಕ್ಷೇತ್ರವನ್ನು ವೀಕ್ಷಿಸುತ್ತಿರುವುದು, 11ನೇ ಲಾಭ ಸ್ಥಾನದಲ್ಲಿ ಸೂರ್ಯ-ಕೇತುಗಳ ಯಜ್ಞ-ಅಗ್ನಿ ಸಂಯೋಗ ಹಾಗೂ 10ನೇ ಕರ್ಮ ಸ್ಥಾನಕ್ಕೆ ಅಗ್ನಿಕಾರಕ ಕುಜ ಮತ್ತು ಕೇತುವಿನ ನಕ್ಷತ್ರ ಬಲವಿರುವುದು ನಿಮ್ಮನ್ನು ದೇವಸ್ಥಾನದ ಪೂಜೆ, ಹೋಮ-ಹವನ, ವೈದಿಕ ಪೌರೋಹಿತ್ಯದ ಧರ್ಮ ಮಾರ್ಗದಲ್ಲಿ ನಿಲ್ಲಿಸಿದೆ.`;
+
+      const priestAstrologicalBasisEn = hasDharmaKarmaYoga
+        ? `The supreme Dharma-Karmadhipati Raja Yoga formed by the 9th lord of Dharma (${ninthLordPlanet ? PLANET_EN[ninthLordPlanet.name] : "Moon"}) and 10th lord of Karma (${tenthLordPlanet ? PLANET_EN[tenthLordPlanet.name] : "Sun"}) conjunct in the 5th house of Mantras in Jupiter's sign Pisces under Jupiter's direct aspect ordains your supreme life calling as a Temple Archaka, Vedic Purohita, and Sacred Ritualist.`
+        : `9th lord of Dharma Jupiter aspecting its own sacred 9th house, combined with the Surya-Ketu Yajna-Agni yoga in the 11th house of livelihood and 10th house karmic alignment with Ketu's star, ordains your life calling as a Temple Archaka and Homa-Havana Vedic Purohita.`;
+
       return {
         code: "priest_vedic_astrology",
         titleKn: "ದೇವಸ್ಥಾನದ ಅರ್ಚಕರು, ಪೌರೋಹಿತ್ಯ, ಹೋಮ-ಹವನ, ವೇದ ವಿದ್ವಾಂಸರು & ವೈದಿಕ ಧರ್ಮಕರ್ತರು (Vedic Priesthood & Temple Archaka)",
@@ -1092,8 +1148,8 @@ export function determineAccurateProfession(
         specificRoleEn: "Temple Priest (Archaka), Vedic Scholar / Pandit, Homa & Havana Conductor, Vedic Purohita & Sacred Ritualist",
         workEnvironmentKn: "ದೇವಸ್ಥಾನಗಳು, ಯಾಗಶಾಲೆ, ಹೋಮ ಕುಂಡ ಮಂಟಪಗಳು, ಧಾರ್ಮಿಕ ಪುಣ್ಯ ಕ್ಷೇತ್ರಗಳು ಹಾಗೂ ಭಕ್ತರ ಗೃಹ ಪೂಜೆಗಳು",
         workEnvironmentEn: "Temples, Yagashalas, Homa-Havana altars, sacred pilgrim centers, and auspicious ritual sanctums",
-        astrologicalBasisKn: `9ನೇ ಧರ್ಮ ಸ್ಥಾನದ ಅಧಿಪತಿ ಗುರುವು ತನ್ನದೇ ಸ್ವಕ್ಷೇತ್ರವನ್ನು ವೀಕ್ಷಿಸುತ್ತಿರುವುದು, 11ನೇ ಲಾಭ ಸ್ಥಾನದಲ್ಲಿ ಸೂರ್ಯ-ಕೇತುಗಳ ಯಜ್ಞ-ಅಗ್ನಿ ಸಂಯೋಗ ಹಾಗೂ 10ನೇ ಕರ್ಮ ಸ್ಥಾನಕ್ಕೆ ಅಗ್ನಿಕಾರಕ ಕುಜ ಮತ್ತು ಕೇತುವಿನ ನಕ್ಷತ್ರ ಬಲವಿರುವುದು ನಿಮ್ಮನ್ನು ದೇವಸ್ಥಾನದ ಪೂಜೆ, ಹೋಮ-ಹವನ, ವೈದಿಕ ಪೌರೋಹಿತ್ಯದ ಧರ್ಮ ಮಾರ್ಗದಲ್ಲಿ ನಿಲ್ಲಿಸಿದೆ.`,
-        astrologicalBasisEn: `9th lord of Dharma Jupiter aspecting its own sacred 9th house, combined with the Surya-Ketu Yajna-Agni yoga in the 11th house of livelihood and 10th house karmic alignment with Ketu's star, ordains your life calling as a Temple Archaka and Homa-Havana Vedic Purohita.`,
+        astrologicalBasisKn: priestAstrologicalBasisKn,
+        astrologicalBasisEn: priestAstrologicalBasisEn,
         secondaryAlternativeKn: "ಧಾರ್ಮಿಕ ಟ್ರಸ್ಟ್ ನಿರ್ವಾಹಕರು, ಸಂಸ್ಕೃತ ಅಧ್ಯಾಪಕರು",
         secondaryAlternativeEn: "Spiritual Trust Director or Sanskrit Shastra Professor",
         confidenceScore,
@@ -1104,6 +1160,7 @@ export function determineAccurateProfession(
         amatyakarakaPlanetKn: amkKn,
         amatyakarakaPlanetEn: amkEn
       };
+    }
 
     case "government_civil_police":
       return {
