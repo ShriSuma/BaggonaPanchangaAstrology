@@ -19,7 +19,8 @@ import {
   type CoinPackage,
   RECHARGE_PACKAGES,
   DEFAULT_PRIEST_UPI_ID,
-  DEFAULT_PRIEST_NAME
+  DEFAULT_PRIEST_NAME,
+  isCoinDeductionExemptUser
 } from "./walletTypes";
 import { notifyCoinRechargeRequested, notifyCoinRechargeApproved, notifyWalletCoinChange } from "../notifications/notificationService";
 import { creditGuestCoins } from "../../utils/publicKundliSecurity";
@@ -344,6 +345,26 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     }
     if (!wallet) {
       return { success: false, error: "Wallet not connected" };
+    }
+
+    // Zero Coin Deduction: Master profiles (SuperAdmin & Baggona) are 100% exempt from deduction across all screens
+    let isExempt = isCoinDeductionExemptUser(wallet.userId) || isCoinDeductionExemptUser(wallet.priestName);
+    if (!isExempt && typeof window !== "undefined") {
+      try {
+        const authData = localStorage.getItem("baggona_auth_session");
+        if (authData) {
+          const parsed = JSON.parse(authData);
+          if (isCoinDeductionExemptUser(parsed?.username, parsed?.role)) {
+            isExempt = true;
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
+    if (isExempt) {
+      console.log(`[WalletStore] Zero deduction applied for master profile (${serviceName})`);
+      return { success: true };
     }
 
     if (wallet.coinBalance < coins) {

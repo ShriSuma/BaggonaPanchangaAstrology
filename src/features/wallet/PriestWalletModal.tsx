@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import QRCode from "qrcode";
 import { useWalletStore } from "./walletStore";
 import {
@@ -32,29 +32,48 @@ export const PriestWalletModal: React.FC = () => {
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>("");
   const [copiedUpi, setCopiedUpi] = useState(false);
 
+  // Stable session transaction reference that does not change across component re-renders
+  const [txSessionId] = useState<string>(() => `BAG_${Date.now().toString(36)}`);
+
   const amountInr = selectedPackage.amountInr;
   const upiId = DEFAULT_PRIEST_UPI_ID;
   const payeeName = DEFAULT_PRIEST_UPI_NAME;
   const note = `PanchangaSeva`;
 
   // NPCI standard UPI Payment URI
-  const upiUri = generateUpiPayUri(amountInr, note);
-  const phonePeUri = generatePhonePeUri(amountInr, note);
-  const gPayUri = generateGPayUri(amountInr, note);
+  const upiUri = useMemo(
+    () => generateUpiPayUri(amountInr, note, upiId, txSessionId),
+    [amountInr, note, upiId, txSessionId]
+  );
+  const phonePeUri = useMemo(
+    () => generatePhonePeUri(amountInr, note, upiId, `PH_${txSessionId}`),
+    [amountInr, note, upiId, txSessionId]
+  );
+  const gPayUri = useMemo(
+    () => generateGPayUri(amountInr, note, upiId, `GP_${txSessionId}`),
+    [amountInr, note, upiId, txSessionId]
+  );
 
   useEffect(() => {
-    if (isRechargeModalOpen) {
-      QRCode.toDataURL(upiUri, {
-        width: 220,
-        margin: 1,
-        color: {
-          dark: "#000000",
-          light: "#ffffff"
-        }
+    if (!isRechargeModalOpen) return;
+    let isMounted = true;
+
+    QRCode.toDataURL(upiUri, {
+      width: 220,
+      margin: 1,
+      color: {
+        dark: "#000000",
+        light: "#ffffff"
+      }
+    })
+      .then((url) => {
+        if (isMounted) setQrCodeDataUrl(url);
       })
-        .then((url) => setQrCodeDataUrl(url))
-        .catch((err) => console.error("QR Code Error:", err));
-    }
+      .catch((err) => console.error("QR Code Error:", err));
+
+    return () => {
+      isMounted = false;
+    };
   }, [upiUri, isRechargeModalOpen]);
 
   if (!isRechargeModalOpen) return null;

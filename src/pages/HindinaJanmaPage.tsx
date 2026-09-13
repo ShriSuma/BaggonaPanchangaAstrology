@@ -19,8 +19,9 @@ import {
 } from "../features/hindinajanma/hindinaJanmaLocale";
 import { HindinaJanmaPdfTemplate } from "../components/hindinajanma/HindinaJanmaPdfTemplate";
 import { useAppStore } from "../stores/appStore";
+import { useAuthStore } from "../features/auth/authStore";
 import { useWalletStore } from "../features/wallet/walletStore";
-import { SERVICE_COIN_COSTS } from "../features/wallet/walletTypes";
+import { SERVICE_COIN_COSTS, isCoinDeductionExemptUser } from "../features/wallet/walletTypes";
 import { usePricingConfigStore } from "../features/wallet/pricingConfigStore";
 import { CoinDeductionModal } from "../components/wallet/CoinDeductionModal";
 import { FallingCoinsRefillModal } from "../components/wallet/FallingCoinsRefillModal";
@@ -40,6 +41,9 @@ export const HindinaJanmaPage: React.FC = () => {
 
   const wallet = useWalletStore((s) => s.wallet);
   const deductForService = useWalletStore((s) => s.deductForService);
+  const currentUser = useAuthStore((s) => s.currentUser);
+  const role = useAuthStore((s) => s.role);
+  const isExempt = isCoinDeductionExemptUser(wallet?.userId) || isCoinDeductionExemptUser(wallet?.priestName) || isCoinDeductionExemptUser(currentUser, role);
   const coinBalance = wallet?.coinBalance ?? 0;
   const purvaJanmaCost = usePricingConfigStore((s) => s.getCoins("PURVA_JANMA_QUESTION", 200));
 
@@ -166,9 +170,17 @@ export const HindinaJanmaPage: React.FC = () => {
     }
   };
 
-  const handleCalculate = (e: React.FormEvent) => {
+  const handleCalculate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!dob) return;
+
+    if (isExempt) {
+      // 100% Zero Coin Deduction for Master Profiles (SuperAdmin & Baggona)
+      console.log(`[HindinaJanma] Zero deduction applied for master profile: ${currentUser || wallet?.userId}`);
+      await executeCalculation();
+      return;
+    }
+
     const cost = purvaJanmaCost;
 
     setPendingDeduction({
@@ -292,11 +304,11 @@ export const HindinaJanmaPage: React.FC = () => {
           </div>
           <div className="flex items-center gap-2 self-end sm:self-auto">
             <span className={`text-xs font-mono font-black px-3 py-1 rounded-xl border-2 ${
-              coinBalance < purvaJanmaCost
+              !isExempt && coinBalance < purvaJanmaCost
                 ? "bg-red-100 text-red-900 border-red-400 animate-pulse"
                 : "bg-amber-100 text-amber-950 border-amber-400"
             }`}>
-              {coinBalance < purvaJanmaCost ? `⚠️ ${coinBalance} 🪙 (ಕೊರತೆ)` : `${coinBalance} 🪙`}
+              {isExempt ? "♾️ ಮುಕ್ತ ಪ್ರವೇಶ (Zero Cost)" : (coinBalance < purvaJanmaCost ? `⚠️ ${coinBalance} 🪙 (ಕೊರತೆ)` : `${coinBalance} 🪙`)}
             </span>
             <button
               type="button"

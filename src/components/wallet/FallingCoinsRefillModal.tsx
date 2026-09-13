@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import QRCode from "qrcode";
 import { useWalletStore } from "../../features/wallet/walletStore";
 import {
@@ -51,6 +51,9 @@ export const FallingCoinsRefillModal: React.FC<FallingCoinsRefillModalProps> = (
   const [rechargeSubmitted, setRechargeSubmitted] = useState<boolean>(false);
   const [instantVerified, setInstantVerified] = useState<{ creditedCoins: number; newBalance: number } | null>(null);
 
+  // Stable session transaction reference that does not change across component re-renders
+  const [txSessionId] = useState<string>(() => `BAG_${Date.now().toString(36)}`);
+
   // Compute effective INR amount and Coins
   const parsedCustom = parseInt(customAmount, 10);
   const effectiveAmountInr = isCustomMode && !isNaN(parsedCustom) && parsedCustom > 0
@@ -65,26 +68,45 @@ export const FallingCoinsRefillModal: React.FC<FallingCoinsRefillModalProps> = (
   const payeeName = DEFAULT_PRIEST_UPI_NAME;
   const note = `PanchangaSeva`;
 
-  const upiUri = generateUpiPayUri(effectiveAmountInr, note, upiId);
-  const phonePeUri = generatePhonePeUri(effectiveAmountInr, note, upiId);
-  const gPayUri = generateGPayUri(effectiveAmountInr, note, upiId);
-  const paytmUri = generatePaytmUri(effectiveAmountInr, note, upiId);
+  const upiUri = useMemo(
+    () => generateUpiPayUri(effectiveAmountInr, note, upiId, txSessionId),
+    [effectiveAmountInr, note, upiId, txSessionId]
+  );
+  const phonePeUri = useMemo(
+    () => generatePhonePeUri(effectiveAmountInr, note, upiId, `PH_${txSessionId}`),
+    [effectiveAmountInr, note, upiId, txSessionId]
+  );
+  const gPayUri = useMemo(
+    () => generateGPayUri(effectiveAmountInr, note, upiId, `GP_${txSessionId}`),
+    [effectiveAmountInr, note, upiId, txSessionId]
+  );
+  const paytmUri = useMemo(
+    () => generatePaytmUri(effectiveAmountInr, note, upiId, `PT_${txSessionId}`),
+    [effectiveAmountInr, note, upiId, txSessionId]
+  );
 
   // Generate Scannable Dynamic PhonePe / Google Pay QR Code
   useEffect(() => {
-    if (isOpen) {
-      QRCode.toDataURL(upiUri, {
-        width: 240,
-        margin: 1,
-        color: {
-          dark: "#0a0a0a",
-          light: "#ffffff"
-        },
-        errorCorrectionLevel: "H"
+    if (!isOpen) return;
+    let isMounted = true;
+
+    QRCode.toDataURL(upiUri, {
+      width: 240,
+      margin: 1,
+      color: {
+        dark: "#0a0a0a",
+        light: "#ffffff"
+      },
+      errorCorrectionLevel: "H"
+    })
+      .then((url) => {
+        if (isMounted) setQrCodeDataUrl(url);
       })
-        .then((url) => setQrCodeDataUrl(url))
-        .catch((err) => console.error("QR Code Error:", err));
-    }
+      .catch((err) => console.error("QR Code Error:", err));
+
+    return () => {
+      isMounted = false;
+    };
   }, [upiUri, isOpen]);
 
   if (!isOpen) return null;

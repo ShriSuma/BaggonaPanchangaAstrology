@@ -115,7 +115,7 @@ export default function Layout({ children }: Props): JSX.Element {
     currentUser?.toLowerCase() === "superadmin";
 
   const coinBalance = wallet?.coinBalance ?? 0;
-  const isLowCoins = coinBalance < 100;
+  const isLowCoins = !isMasterOrSuperAdmin && coinBalance < 100;
 
   // Module access permissions
   const allowedModules: string[] = isMasterOrSuperAdmin
@@ -207,20 +207,30 @@ export default function Layout({ children }: Props): JSX.Element {
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all text-xs font-semibold shadow-sm ${
                 isLowCoins
                   ? "bg-red-950/90 border-2 border-red-500 text-red-200 hover:bg-red-900 shadow-red-900/40 animate-pulse ring-2 ring-red-500/40"
+                  : isMasterOrSuperAdmin
+                  ? "bg-amber-500/20 border border-amber-400 text-amber-200 hover:bg-amber-500/30"
                   : "bg-amber-500/15 border border-amber-500/40 text-amber-300 hover:bg-amber-500/25 hover:border-amber-400"
               }`}
-              title={isLowCoins ? "⚠️ ನಾಣ್ಯಗಳ ಕೊರತೆ! Click to refill coins" : "Priest Coin Wallet • Click to recharge"}
+              title={
+                isLowCoins
+                  ? "⚠️ ನಾಣ್ಯಗಳ ಕೊರತೆ! Click to refill coins"
+                  : isMasterOrSuperAdmin
+                  ? "👑 ಮಾಸ್ಟರ್ ಖಾತೆ • ಅನಿಯಮಿತ ಮುಕ್ತ ಪ್ರವೇಶ (Zero Deduction Master Profile)"
+                  : "Priest Coin Wallet • Click to recharge"
+              }
             >
-              <span className="text-sm">{isLowCoins ? "⚠️" : "🪙"}</span>
+              <span className="text-sm">{isLowCoins ? "⚠️" : isMasterOrSuperAdmin ? "👑" : "🪙"}</span>
               <span className={`font-mono font-black ${isLowCoins ? "text-red-200" : "text-amber-200"}`}>
-                {coinBalance.toLocaleString()} {isLowCoins ? "🪙" : ""}
+                {isMasterOrSuperAdmin ? "♾️ ಮುಕ್ತ" : coinBalance.toLocaleString()} {isLowCoins ? "🪙" : ""}
               </span>
               <span className={`hidden sm:inline text-[9px] font-extrabold px-1.5 py-0.5 rounded-md uppercase ${
                 isLowCoins
                   ? "bg-gradient-to-r from-red-600 to-rose-600 text-white animate-bounce"
+                  : isMasterOrSuperAdmin
+                  ? "bg-gradient-to-r from-emerald-600 to-teal-500 text-white"
                   : "bg-gradient-to-r from-amber-600 to-amber-500 text-slate-950"
               }`}>
-                {isLowCoins ? "+ ರೀಫಿಲ್" : "+ Recharge"}
+                {isLowCoins ? "+ ರೀಫಿಲ್" : isMasterOrSuperAdmin ? "UNLIMITED" : "+ Recharge"}
               </span>
             </button>
           </div>

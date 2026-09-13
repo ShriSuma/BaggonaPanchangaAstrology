@@ -43,6 +43,7 @@ import BirthTimePicker from "../components/BirthTimePicker";
 import { decodeDevoteeToken } from "../utils/tokenCipher";
 import { notifyPublicPremiumPdfRequested, notifyWalletCoinChange } from "../features/notifications/notificationService";
 import { KundliChakraLoader } from "../components/loaders/KundliChakraLoader";
+import { isCoinDeductionExemptUser } from "../features/wallet/walletTypes";
 import { BhavishyaMasterLoader } from "../components/loaders/BhavishyaMasterLoader";
 import { FallingCoinsRefillModal } from "../components/wallet/FallingCoinsRefillModal";
 import {
@@ -58,7 +59,7 @@ import {
 
 export default function PublicKundliPage(): JSX.Element {
   // 0. Auth & Dynamic Pricing Configuration from Super Admin
-  const { currentUser, isAuthenticated } = useAuthStore();
+  const { currentUser, isAuthenticated, role } = useAuthStore();
   const { getCoins, initSubscription } = usePricingConfigStore();
 
   useEffect(() => {

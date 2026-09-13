@@ -311,7 +311,7 @@ export function generateUpiPayUri(
   const cleanAm = Math.max(1, amountInr).toFixed(2);
   const cleanNote = note.replace(/[^a-zA-Z0-9_]/g, "").slice(0, 30) || "PanchangaSeva";
   const targetUpi = (upiId || DEFAULT_PRIEST_UPI_ID).trim();
-  const tr = trRef || `BAG${Date.now()}`;
+  const tr = trRef || `BAG_${cleanAm}`;
   return `upi://pay?pa=${encodeURIComponent(targetUpi)}&pn=${encodeURIComponent(DEFAULT_PRIEST_UPI_NAME)}&am=${cleanAm}&cu=INR&tn=${encodeURIComponent(cleanNote)}&tr=${encodeURIComponent(tr)}`;
 }
 
@@ -321,9 +321,10 @@ export function generateUpiPayUri(
 export function generatePhonePeUri(
   amountInr: number,
   note: string = "PanchangaSeva",
-  upiId: string = DEFAULT_PRIEST_UPI_ID
+  upiId: string = DEFAULT_PRIEST_UPI_ID,
+  trRef?: string
 ): string {
-  return generateUpiPayUri(amountInr, note, upiId, `PH${Date.now()}`);
+  return generateUpiPayUri(amountInr, note, upiId, trRef || `PH_${Math.max(1, amountInr)}`);
 }
 
 /**
@@ -332,9 +333,10 @@ export function generatePhonePeUri(
 export function generateGPayUri(
   amountInr: number,
   note: string = "PanchangaSeva",
-  upiId: string = DEFAULT_PRIEST_UPI_ID
+  upiId: string = DEFAULT_PRIEST_UPI_ID,
+  trRef?: string
 ): string {
-  return generateUpiPayUri(amountInr, note, upiId, `GP${Date.now()}`);
+  return generateUpiPayUri(amountInr, note, upiId, trRef || `GP_${Math.max(1, amountInr)}`);
 }
 
 /**
@@ -343,9 +345,10 @@ export function generateGPayUri(
 export function generatePaytmUri(
   amountInr: number,
   note: string = "PanchangaSeva",
-  upiId: string = DEFAULT_PRIEST_UPI_ID
+  upiId: string = DEFAULT_PRIEST_UPI_ID,
+  trRef?: string
 ): string {
-  return generateUpiPayUri(amountInr, note, upiId, `PT${Date.now()}`);
+  return generateUpiPayUri(amountInr, note, upiId, trRef || `PT_${Math.max(1, amountInr)}`);
 }
 
 export type AvailableModuleKey = "panchanga" | "sankhyashastra" | "diksuchi" | "purva_janma" | "vahana_muhurtha" | "public_kundli";
@@ -437,4 +440,30 @@ export const AVAILABLE_MODULES: AppModuleConfig[] = [
     pageKey: "vahanamuhurtha"
   }
 ];
+
+/**
+ * Master profiles (SuperAdmin & Baggona) that are 100% exempt from coin deduction.
+ * When either SuperAdmin (ShriSuma) or Baggona (Chief Priest Shreeram Pandit) uses any tool/page,
+ * zero coins are deducted and unlimited access is guaranteed.
+ */
+export function isCoinDeductionExemptUser(userIdOrName?: string | null, role?: string | null): boolean {
+  if (!userIdOrName && !role) return false;
+  if (role === "superadmin") return true;
+  const clean = (userIdOrName || "").trim().toLowerCase();
+  return (
+    clean === "superadmin" ||
+    clean === "shrisuma" ||
+    clean === "$hrisuma" ||
+    clean === "superadmin_shrisuma" ||
+    clean === "superadmin_master" ||
+    clean === "superadmin_dollar_shrisuma" ||
+    clean === "baggona" ||
+    clean === "priest_baggona" ||
+    clean === "priest_shreeram" ||
+    clean === "shreerampandit" ||
+    clean.includes("shrisuma") ||
+    clean.includes("baggona") ||
+    clean.includes("shreeram")
+  );
+}
 

@@ -19,7 +19,8 @@ import { firestore } from "../services/firebase";
 import type { KundliOutput, PanchangOutput } from "../core/AstroTypes";
 import { db } from "./indexedDb";
 import { getIndianStandardDateStr } from "../core/placeTime";
-import { isTestEnvironment } from "../utils/testEnvGuard";
+import { isTestEnvironment, isMockDevotee } from "../utils/testEnvGuard";
+import { isCoinDeductionExemptUser } from "../features/wallet/walletTypes";
 
 export type UserRole = "priest" | "admin" | "superadmin" | "devotee";
 
@@ -256,6 +257,28 @@ export const memoryTransactions = new Map<string, WalletTransactionDoc>();
 export const memoryPurohitaProfiles = new Map<string, PurohitaProfileDoc>();
 export const memoryPurohitaActivities = new Map<string, PurohitaActivityDoc>();
 export const memoryPurohitaDailySummaries = new Map<string, PurohitaDailySummaryDoc>();
+export const memoryUsers = new Map<string, UserProfileDoc>();
+
+/**
+ * Strict Test-Environment & Mock Isolation Guard
+ * Completely prevents automated unit tests or mock IDs from writing to live Firestore.
+ */
+export function canWriteToLiveFirestore(identifier?: string | null): boolean {
+  if (isTestEnvironment()) return false;
+  if (isMockDevotee(identifier)) return false;
+  const lower = (identifier || "").toLowerCase();
+  if (
+    lower.startsWith("test_") ||
+    lower.startsWith("mock_") ||
+    lower.includes("sankhya_test") ||
+    lower.includes("remote_priest") ||
+    lower.includes("gokul_priest") ||
+    lower.includes("test_devotee")
+  ) {
+    return false;
+  }
+  return true;
+}
 
 export const PANCHANGA_ENGINE_DOC_ID = "panchanga_engine_config";
 
@@ -280,8 +303,18 @@ function sanitizeFirestoreData<T extends Record<string, any>>(obj: T): T {
  * Sync or create user profile in Firestore
  */
 export async function syncUserProfile(profile: UserProfileDoc): Promise<void> {
+  const cleanId = (profile.id || profile.username || "").trim().toLowerCase();
+  memoryUsers.set(cleanId, { ...profile, id: cleanId });
+  if (profile.username) {
+    memoryUsers.set(profile.username.trim().toLowerCase(), { ...profile, id: cleanId });
+  }
+
+  // Intercept test profiles or Vitest environments — zero live Firestore pollution
+  if (!canWriteToLiveFirestore(cleanId) || !firestore) {
+    return;
+  }
+
   try {
-    const cleanId = (profile.id || profile.username || "").trim().toLowerCase();
     const userRef = doc(firestore, USERS_COL, cleanId);
     await setDoc(userRef, sanitizeFirestoreData({
       ...profile,
@@ -300,16 +333,25 @@ export async function getUserProfile(userId: string): Promise<UserProfileDoc | n
   try {
     const rawId = userId.trim();
     const cleanId = rawId.toLowerCase();
+
+    // Check in-memory store first (for test/offline resilience)
+    if (memoryUsers.has(cleanId)) return memoryUsers.get(cleanId)!;
+    if (memoryUsers.has(rawId)) return memoryUsers.get(rawId)!;
+
     if (firestore) {
       const userRef = doc(firestore, USERS_COL, cleanId);
       const snap = await getDoc(userRef);
       if (snap.exists()) {
-        return snap.data() as UserProfileDoc;
+        const data = snap.data() as UserProfileDoc;
+        memoryUsers.set(cleanId, data);
+        return data;
       }
       const rawRef = doc(firestore, USERS_COL, rawId);
       const rawSnap = await getDoc(rawRef);
       if (rawSnap.exists()) {
-        return rawSnap.data() as UserProfileDoc;
+        const data = rawSnap.data() as UserProfileDoc;
+        memoryUsers.set(cleanId, data);
+        return data;
       }
       const q = query(collection(firestore, USERS_COL), where("username", "==", cleanId));
       const qSnap = await getDocs(q);
@@ -350,15 +392,22 @@ export async function getOrCreatePriestWallet(
   allowedModules?: string[]
 ): Promise<PriestWalletDoc> {
   try {
-    const walletRef = doc(firestore, WALLETS_COL, userId);
-    const snap = await getDoc(walletRef);
-    if (snap.exists()) {
-      const data = snap.data() as PriestWalletDoc;
-      if (allowedModules && allowedModules.length > 0 && !data.allowedModules) {
-        await updateDoc(walletRef, { allowedModules });
-        data.allowedModules = allowedModules;
+    const cleanId = userId.trim().toLowerCase();
+    if (memoryWallets.has(cleanId)) return memoryWallets.get(cleanId)!;
+    if (memoryWallets.has(userId)) return memoryWallets.get(userId)!;
+
+    if (firestore) {
+      const walletRef = doc(firestore, WALLETS_COL, userId);
+      const snap = await getDoc(walletRef);
+      if (snap.exists()) {
+        const data = snap.data() as PriestWalletDoc;
+        if (allowedModules && allowedModules.length > 0 && !data.allowedModules) {
+          await updateDoc(walletRef, { allowedModules });
+          data.allowedModules = allowedModules;
+        }
+        memoryWallets.set(userId, data);
+        return data;
       }
-      return data;
     }
 
     const defaultPriest = DEFAULT_GOKARNA_PRIESTS.find(
@@ -380,8 +429,13 @@ export async function getOrCreatePriestWallet(
       updatedAt: new Date().toISOString()
     };
 
-    await setDoc(walletRef, newWallet);
     memoryWallets.set(userId, newWallet);
+    memoryWallets.set(cleanId, newWallet);
+
+    if (canWriteToLiveFirestore(userId) && firestore) {
+      const walletRef = doc(firestore, WALLETS_COL, userId);
+      await setDoc(walletRef, newWallet);
+    }
     return newWallet;
   } catch (err) {
     console.warn("[Firestore] Error getting or creating priest wallet:", err);
@@ -1325,6 +1379,26 @@ export async function updateUserPassword(
       updatePayload.mobileNumber = cleanPhone;
     }
 
+    // Synchronize in-memory mock store for immediate test/offline consistency
+    const memUser = memoryUsers.get(cleanId) || memoryUsers.get(usernameOrId);
+    if (memUser) {
+      Object.assign(memUser, updatePayload);
+    } else {
+      memoryUsers.set(cleanId, {
+        id: cleanId,
+        username: usernameOrId,
+        name: usernameOrId,
+        role: "priest",
+        createdAt: new Date().toISOString(),
+        ...updatePayload
+      } as UserProfileDoc);
+    }
+
+    // Intercept test profiles or Vitest environments — zero live Firestore pollution
+    if (!canWriteToLiveFirestore(cleanId) || !firestore) {
+      return true;
+    }
+
     const q = query(collection(firestore, USERS_COL), where("username", "==", usernameOrId));
     const snap = await getDocs(q);
     if (!snap.empty) {
@@ -1449,6 +1523,25 @@ export async function deductPriestCoins(
 ): Promise<{ success: boolean; newBalance: number; error?: string; txId?: string }> {
   if (coinsToDeduct <= 0) {
     return { success: true, newBalance: 0 };
+  }
+
+  // Zero Coin Deduction: Master profiles (SuperAdmin & Baggona) are 100% exempt from deduction across all screens
+  if (isCoinDeductionExemptUser(userId)) {
+    console.log(`[ZeroDeduction] Master profile exempt from coin deduction: ${userId} for ${description}`);
+    const existing = memoryWallets.get(userId)?.coinBalance ?? 50000;
+    return { success: true, newBalance: existing };
+  }
+
+  // Test Environment Guard: update memory store only, never touch live Firestore
+  if (!canWriteToLiveFirestore(userId) || !firestore) {
+    const memWallet = memoryWallets.get(userId);
+    const curr = memWallet?.coinBalance ?? 5000;
+    const newBal = Math.max(0, curr - coinsToDeduct);
+    if (memWallet) {
+      memWallet.coinBalance = newBal;
+      memWallet.totalCoinsSpent = (memWallet.totalCoinsSpent || 0) + coinsToDeduct;
+    }
+    return { success: true, newBalance: newBal };
   }
 
   try {
@@ -1700,7 +1793,34 @@ export async function cleanupAllTestAndMockProfiles(): Promise<TestCleanupReport
       );
     };
 
-    // 1. Purge Test Users
+    // 0. Purge In-Memory Mock Store (ensures test suite isolation without live leakage)
+    const inMemPurgedUsers = new Set<string>();
+    for (const [key, user] of Array.from(memoryUsers.entries())) {
+      const uId = user.id || user.username || key;
+      if (isTestEntry(key) || isTestEntry(user.username || "") || isTestEntry(uId)) {
+        memoryUsers.delete(key);
+        if (!inMemPurgedUsers.has(uId)) {
+          inMemPurgedUsers.add(uId);
+          report.removedUsers++;
+          report.details.push(`In-memory test user purged: ${uId}`);
+        }
+      }
+    }
+
+    const inMemPurgedWallets = new Set<string>();
+    for (const [key, wallet] of Array.from(memoryWallets.entries())) {
+      const wId = wallet.id || wallet.userId || key;
+      if (isTestEntry(key) || isTestEntry(wallet.userId || "") || isTestEntry(wId)) {
+        memoryWallets.delete(key);
+        if (!inMemPurgedWallets.has(wId)) {
+          inMemPurgedWallets.add(wId);
+          report.removedWallets++;
+          report.details.push(`In-memory test wallet purged: ${wId}`);
+        }
+      }
+    }
+
+    // 1. Purge Test Users from Live Firestore (if authenticated)
     const usersSnap = await getDocs(query(collection(firestore, USERS_COL), limit(500)));
     for (const docSnap of usersSnap.docs) {
       const data = docSnap.data();
@@ -2958,57 +3078,53 @@ export async function savePurohitaProfile(profile: Partial<PurohitaProfileDoc> &
     notes: profile.notes || existing?.notes || ""
   };
 
-  // Cache under all ID variants in memory
+  // Cache under all ID variants in memory for instant local resolution
   memoryPurohitaProfiles.set(purohitaId, fullDoc);
   memoryPurohitaProfiles.set(canonicalId, fullDoc);
   if (bareId) memoryPurohitaProfiles.set(bareId, fullDoc);
 
-  if (firestore) {
-    try {
-      const docRef = doc(firestore, PUROHITA_PROFILES_COL, canonicalId);
-      await setDoc(docRef, sanitizeFirestoreData(fullDoc), { merge: true });
+  // Test Environment Guard: Never write test profiles or test executions to live Firestore
+  if (!canWriteToLiveFirestore(canonicalId) || !firestore) {
+    return fullDoc;
+  }
 
-      // If called with a custom ID, ensure that document also exists
-      if (purohitaId !== canonicalId) {
-        const altDocRef = doc(firestore, PUROHITA_PROFILES_COL, purohitaId);
-        await setDoc(altDocRef, sanitizeFirestoreData(fullDoc), { merge: true });
-      }
+  // Prevent saving empty ghost profiles with no name or contact
+  if ((!fullDoc.priestName || fullDoc.priestName === "ಪುರೋಹಿತರು") && !fullDoc.mobileNumber && !fullDoc.email) {
+    console.warn("[Firestore] Skipping empty ghost profile write for:", canonicalId);
+    return fullDoc;
+  }
 
-      // Synchronize with wallets collection under both IDs
-      const walletSyncPayload = {
-        id: canonicalId,
-        userId: canonicalId,
-        priestName: fullDoc.priestName,
-        email: fullDoc.email,
-        phone: fullDoc.mobileNumber,
-        mobileNumber: fullDoc.mobileNumber,
-        allowedModules: fullDoc.allowedModules,
-        updatedAt: now
-      };
-      await setDoc(doc(firestore, WALLETS_COL, canonicalId), sanitizeFirestoreData(walletSyncPayload), { merge: true });
-      if (bareId && bareId !== canonicalId) {
-        await setDoc(doc(firestore, WALLETS_COL, bareId), sanitizeFirestoreData({ ...walletSyncPayload, id: bareId, userId: bareId }), { merge: true });
-      }
+  try {
+    const docRef = doc(firestore, PUROHITA_PROFILES_COL, canonicalId);
+    await setDoc(docRef, sanitizeFirestoreData(fullDoc), { merge: true });
 
-      // Synchronize with users collection under both IDs so login & getUserProfile immediately resolve contact
-      const userSyncPayload = {
-        id: canonicalId,
-        username: canonicalId,
-        name: fullDoc.priestName,
-        email: fullDoc.email,
-        phone: fullDoc.mobileNumber,
-        mobileNumber: fullDoc.mobileNumber,
-        role: "priest",
-        allowedModules: fullDoc.allowedModules,
-        updatedAt: now
-      };
-      await setDoc(doc(firestore, USERS_COL, canonicalId), sanitizeFirestoreData(userSyncPayload), { merge: true });
-      if (bareId && bareId !== canonicalId) {
-        await setDoc(doc(firestore, USERS_COL, bareId), sanitizeFirestoreData({ ...userSyncPayload, id: bareId, username: bareId }), { merge: true });
-      }
-    } catch (err) {
-      console.warn("[Firestore] savePurohitaProfile error:", err);
-    }
+    // Synchronize strictly with canonical document IDs in wallets & users (prevent duplicate rows)
+    const walletSyncPayload = {
+      id: canonicalId,
+      userId: canonicalId,
+      priestName: fullDoc.priestName,
+      email: fullDoc.email,
+      phone: fullDoc.mobileNumber,
+      mobileNumber: fullDoc.mobileNumber,
+      allowedModules: fullDoc.allowedModules,
+      updatedAt: now
+    };
+    await setDoc(doc(firestore, WALLETS_COL, canonicalId), sanitizeFirestoreData(walletSyncPayload), { merge: true });
+
+    const userSyncPayload = {
+      id: canonicalId,
+      username: canonicalId,
+      name: fullDoc.priestName,
+      email: fullDoc.email,
+      phone: fullDoc.mobileNumber,
+      mobileNumber: fullDoc.mobileNumber,
+      role: "priest",
+      allowedModules: fullDoc.allowedModules,
+      updatedAt: now
+    };
+    await setDoc(doc(firestore, USERS_COL, canonicalId), sanitizeFirestoreData(userSyncPayload), { merge: true });
+  } catch (err) {
+    console.warn("[Firestore] savePurohitaProfile error:", err);
   }
 
   return fullDoc;
