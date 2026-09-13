@@ -86,11 +86,14 @@ describe("Instant Reading 100% Dynamic & Zero-Hardcoded Audit", () => {
     expect(goodBad.goodTraits.length).toBe(5);
     expect(goodBad.badTraits.length).toBe(7);
 
-    // Pramod has Saturn in the 8th house casting 7th direct aspect onto 2nd house (Simha)
-    // Classical Parashara rule: Saturn aspecting 2nd house of oral intake triggers daily alcohol/substance habit
+    // Pramod has Jupiter in Virgo casting a 9th trine aspect onto 2nd lord Sun in Taurus
+    // Classical Parashara rule: Benefic Jupiter aspect on 2nd lord purifies oral intake (ಸಾತ್ವಿಕ ಆಹಾರಿ / Teetotaler)
     const trait3 = goodBad.badTraits.find((t) => t.id === 3);
-    expect(trait3?.titleKn).toContain("ದಿನನಿತ್ಯದ ಮದ್ಯಪಾನ");
-    expect(trait3?.bulletKn).toContain("ದಿನನಿತ್ಯದ ಮದ್ಯಪಾನ (Daily Drinking)");
+    expect(goodBad.isTeetotaler).toBe(true);
+    expect(trait3?.titleKn).toContain("ಸಾತ್ವಿಕ ಜೀವನಶೈಲಿ");
+    expect(trait3?.badgeKn).toContain("ಸಾತ್ವಿಕ ಆಹಾರಿ (Teetotaler)");
+    expect(trait3?.bulletKn).toContain("ಸಾತ್ವಿಕ ಆಹಾರ ಸಂಸ್ಕಾರ");
+    expect(trait3?.bulletKn).not.toContain("ದಿನನಿತ್ಯದ ಮದ್ಯಪಾನ (Daily Drinking)");
 
     // Pramod has Rahu in 5th and 5th lord Mars debilitated in Lagna -> triggers dynamic speculation loss trait
     const trait4 = goodBad.badTraits.find((t) => t.id === 4);
@@ -217,7 +220,7 @@ describe("Instant Reading 100% Dynamic & Zero-Hardcoded Audit", () => {
     expect(childAns).toContain("ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ಬಾಲಗ್ರಹ ಶಾಂತಿ");
     expect(childAns).not.toMatch(/[೦೧೨೩೪೫೬೭೮೯]/);
 
-    // 2. Adult drinking addiction question
+    // 2. Adult drinking addiction question for a verified Teetotaler (Must give authoritative 'ಇಲ್ಲ!' verdict)
     const drinkAns = generateVedicConsultationAnswer(
       kundli,
       synthesis.currentDiagnosis,
@@ -228,10 +231,11 @@ describe("Instant Reading 100% Dynamic & Zero-Hardcoded Audit", () => {
       33,
       "Male"
     );
-    expect(drinkAns).toContain("• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ಹೌದು!");
-    expect(drinkAns).toContain("ಮದ್ಯಪಾನ ಹಾಗೂ ವ್ಯಸನಗಳ");
-    expect(drinkAns).toContain("ನಿತ್ಯ ಮದ್ಯಪಾನ");
-    expect(drinkAns).toContain("ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ಆತ್ಮಲಿಂಗ ಸ್ಪರ್ಶ");
+    expect(drinkAns).toContain("• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ಇಲ್ಲ!");
+    expect(drinkAns).toContain("ಮದ್ಯಪಾನ ಅಥವಾ ದುಶ್ಚಟಗಳ ಯಾವುದೇ ಲಕ್ಷಣಗಳಿಲ್ಲ");
+    expect(drinkAns).toContain("ಸಾತ್ವಿಕ ಆಹಾರ ಸಂಸ್ಕಾರ");
+    expect(drinkAns).not.toContain("• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ಹೌದು!");
+    expect(drinkAns).not.toContain("ನಿತ್ಯ ಮದ್ಯಪಾನ");
 
     // 3. Affairs / Sensual inquiry (Must have direct verdict 'ಇಲ್ಲ!' and ZERO contradiction)
     const affairAns = generateVedicConsultationAnswer(
@@ -512,4 +516,192 @@ describe("Instant Reading 100% Dynamic & Zero-Hardcoded Audit", () => {
       expect(jupiterSynthesis.prescriptions.shantiPooja.nameEn).toContain("Guru Shanti, Brihaspati Yajna");
     }
   });
+
+  it("verifies two different charts (Male vs Female, different Lagnas & Moon signs) produce 100% distinct Good Traits, Bad Traits, and Gender-Tailored Secrecy Habits", () => {
+    // Chart 1: Male, Leo/Aries (1985-04-14 at 14:30)
+    const contextA = {
+      name: "Chart A Male",
+      birthDate: "1985-04-14",
+      birthTime: "14:30",
+      latitude: 12.9716,
+      longitude: 77.5946,
+      devoteeName: "Chart A Male",
+      gender: "Male" as const
+    };
+    const kundliA = calculateKundli(contextA);
+    const synthesisA = generatePanchangaAngaSynthesis(kundliA, contextA);
+
+    // Chart 2: Female, Kumbha/Meena Lagna & Moon (1995-07-15 at 21:30)
+    const contextB = {
+      name: "Chart B Female",
+      birthDate: "1995-07-15",
+      birthTime: "21:30",
+      latitude: 15.3173,
+      longitude: 75.7139,
+      devoteeName: "Chart B Female",
+      gender: "Female" as const
+    };
+    const kundliB = calculateKundli(contextB);
+    const synthesisB = generatePanchangaAngaSynthesis(kundliB, contextB);
+
+    const goodA = synthesisA.goodBadAnalysis.goodTraits;
+    const goodB = synthesisB.goodBadAnalysis.goodTraits;
+    const badA = synthesisA.goodBadAnalysis.badTraits;
+    const badB = synthesisB.goodBadAnalysis.badTraits;
+
+    // 1. Good Trait 1 (Lagna-driven): Must be completely different titles and descriptions
+    expect(goodA[0].titleKn).not.toBe(goodB[0].titleKn);
+    expect(goodA[0].bulletKn).not.toBe(goodB[0].bulletKn);
+
+    // 2. Good Trait 2 (Moon-driven): Must be completely different titles and descriptions
+    expect(goodA[1].titleKn).not.toBe(goodB[1].titleKn);
+    expect(goodA[1].bulletKn).not.toBe(goodB[1].bulletKn);
+
+    // 3. Good Trait 5 (Gender-tailored):
+    // Male must have protective masculine dharma; Female must have womanly gruhalakshmi grace
+    expect(goodA[4].titleKn).toContain("ಕುಟುಂಬ ರಕ್ಷಣಾ ಧರ್ಮ");
+    expect(goodB[4].titleKn).toContain("ಗೃಹಲಕ್ಷ್ಮಿ ಸೌಭಾಗ್ಯ");
+
+    // 4. Secrecy habit must be strictly gender-aware (never say "wife" to a woman)
+    expect(synthesisA.goodBadAnalysis.secrecyHabitKn).toMatch(/ಪತ್ನಿ|ಹೆಂಡತಿ/);
+    expect(synthesisB.goodBadAnalysis.secrecyHabitKn).toMatch(/ಪತಿ|ಗಂಡ/);
+    expect(synthesisB.goodBadAnalysis.secrecyHabitKn).not.toContain("ಹೆಂಡತಿ");
+
+    // 5. Bad Traits must not be identical across the two charts
+    expect(badA[0].titleKn).not.toBe(badB[0].titleKn);
+  });
+
+  it("verifies dynamic Teetotaler detection, marital fidelity, child innocence, and Section 0 non-generic dynamic life phases", () => {
+    // 1. Teetotaler verification on Pramod's chart
+    const pramodContext = {
+      name: "Pramod Teetotaler",
+      birthDate: "1993-05-31",
+      birthTime: "09:25",
+      latitude: 14.8135,
+      longitude: 74.1298,
+      devoteeName: "Pramod Teetotaler",
+      gender: "Male" as const
+    };
+    const pramodKundli = calculateKundli(pramodContext);
+    const pramodSynthesis = generatePanchangaAngaSynthesis(pramodKundli, pramodContext);
+
+    // Teetotaler flag must be true
+    expect(pramodSynthesis.goodBadAnalysis.isTeetotaler).toBe(true);
+
+    // Card 11 must be clean (hasDosha: false)
+    const card11 = pramodSynthesis.tenLifeAspectBullets.find(b => b.id === 11);
+    expect(card11).toBeDefined();
+    expect(card11?.doshaSpecifics).toBeDefined();
+    expect(card11?.doshaSpecifics?.hasDosha).toBe(false);
+    expect(card11?.readingKn).toContain("ಸಾತ್ವಿಕ ಆಹಾರಿ");
+    expect(card11?.readingKn).toContain("ಮದ್ಯಪಾನ, ಧೂಮಪಾನ ಅಥವಾ ಯಾವುದೇ ಮಾದಕ ವಸ್ತುಗಳ ವ್ಯಸನದಿಂದ ಸಂಪೂರ್ಣ ಮುಕ್ತರಾಗಿದ್ದೀರಿ");
+    expect(card11?.readingKn).not.toContain("ಮದ್ಯಪಾನ ವ್ಯಸನವಿದೆ");
+
+    // Section 0 for Pramod: Authentically detects acute marital tension due to Kuja Dosha and Saturn in 8th
+    const pChallenge = pramodSynthesis.currentDiagnosis.primaryLifeChallenge;
+    expect(pChallenge.area).toBe("Personal / Marriage");
+    expect(pChallenge.description).not.toContain("ಪ್ರಸ್ತುತ ಜೀವನದಲ್ಲಿ ಸ್ಥಿರತೆಯನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳುವುದು ಮತ್ತು ಹೊಸ ಯೋಜನೆಗಳಿಗೆ ಅಡಿಪಾಯ ಹಾಕುವ ಹಂತ");
+    expect(pChallenge.description).toContain("ದಾಂಪತ್ಯದಲ್ಲಿ ತೀವ್ರವಾದ ಮಾನಸಿಕ ಸಂಕಷ್ಟ");
+
+    // Youth chart (age 18): Verifies age-bracketed dynamic life phase (Education & Career Foundation)
+    const youthContext = {
+      name: "Youth Devotee",
+      birthDate: "2008-05-15",
+      birthTime: "11:30",
+      latitude: 12.9716,
+      longitude: 77.5946,
+      devoteeName: "Youth Devotee",
+      gender: "Male" as const
+    };
+    const youthKundli = calculateKundli(youthContext);
+    const youthSynthesis = generatePanchangaAngaSynthesis(youthKundli, youthContext);
+    const youthChallenge = youthSynthesis.currentDiagnosis.primaryLifeChallenge;
+    expect(youthChallenge.areaKn).toContain("ಉನ್ನತ ಶಿಕ್ಷಣ, ಕೌಶಲ್ಯ ವೃದ್ಧಿ & ವೃತ್ತಿ ಬುನಾದಿ");
+    expect(youthChallenge.description).not.toContain("ಪ್ರಸ್ತುತ ಜೀವನದಲ್ಲಿ ಸ್ಥಿರತೆಯನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳುವುದು ಮತ್ತು ಹೊಸ ಯೋಜನೆಗಳಿಗೆ ಅಡಿಪಾಯ ಹಾಕುವ ಹಂತ");
+    expect(youthChallenge.description).toMatch(/18 ವರ್ಷ|ಮಹಾದಶಾ|ಭುಕ್ತಿ/);
+
+    // 2. Child chart (<14 years): Innocence preservation
+    const childContext = {
+      name: "Master Aarav",
+      birthDate: "2018-06-10",
+      birthTime: "10:15",
+      latitude: 12.9716,
+      longitude: 77.5946,
+      devoteeName: "Master Aarav",
+      gender: "Male" as const
+    };
+    const childKundli = calculateKundli(childContext);
+    const childSynthesis = generatePanchangaAngaSynthesis(childKundli, childContext);
+
+    // Child must be teetotaler and fidelity clean
+    expect(childSynthesis.goodBadAnalysis.isTeetotaler).toBe(true);
+    expect(childSynthesis.goodBadAnalysis.hasMaritalFidelity).toBe(true);
+
+    // Child Card 11 must be innocent (no adult vices or affairs)
+    const childCard11 = childSynthesis.tenLifeAspectBullets.find(b => b.id === 11);
+    expect(childCard11?.doshaSpecifics?.hasDosha).toBe(false);
+    expect(childCard11?.readingKn).toContain("ಅತ್ಯಂತ ಮುಗ್ಧ, ಪವಿತ್ರ ಹಾಗೂ ಕಪಟವಿಲ್ಲದ ಪ್ರಕೃತಿಯನ್ನು ಹೊಂದಿದೆ");
+    expect(childCard11?.readingKn).not.toContain("ಕಾಮನೆ");
+    expect(childCard11?.readingKn).not.toContain("ಮದ್ಯಪಾನ");
+
+    // Child Section 0 must be Academic & Growth Focus
+    const childChallenge = childSynthesis.currentDiagnosis.primaryLifeChallenge;
+    expect(childChallenge.areaKn).toContain("ಬಾಲ್ಯದ ಸಮಗ್ರ ವಿಕಾಸ, ವಿದ್ಯಾಭ್ಯಾಸ");
+    expect(childChallenge.description).toContain("ಪ್ರಾಥಮಿಕ ಶಿಕ್ಷಣ");
+
+    // Child Q&A regarding alcohol must be gentle and pure
+    const childDrinkQ = generateVedicConsultationAnswer(
+      childKundli,
+      childSynthesis.currentDiagnosis,
+      childSynthesis.prescriptions,
+      "ಮಗುವಿಗೆ ಮದ್ಯಪಾನ ಅಭ್ಯಾಸವಿದೆಯೇ?",
+      "Master Aarav",
+      true,
+      8,
+      "Male"
+    );
+    expect(childDrinkQ).toContain("• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ಇಲ್ಲ!");
+    expect(childDrinkQ).toContain("ಮುಗ್ಧ ಬಾಲಕ");
+
+    // 3. Female native: Zero usage of 'ಹೆಂಡತಿ' in fidelity praise
+    const femaleContext = {
+      name: "Smt Ananya",
+      birthDate: "1994-08-20",
+      birthTime: "15:45",
+      latitude: 15.3173,
+      longitude: 75.7139,
+      devoteeName: "Smt Ananya",
+      gender: "Female" as const
+    };
+    const femaleKundli = calculateKundli(femaleContext);
+    const femaleSynthesis = generatePanchangaAngaSynthesis(femaleKundli, femaleContext);
+
+    const trait2Female = femaleSynthesis.goodBadAnalysis.badTraits.find(t => t.id === 2);
+    if (trait2Female && trait2Female.bulletKn.includes("ನಿಷ್ಠೆ")) {
+      expect(trait2Female.bulletKn).not.toContain("ಏಕಪತ್ನಿ");
+      expect(trait2Female.bulletKn).not.toContain("ಹೆಂಡತಿ");
+      expect(trait2Female.bulletKn).toMatch(/ಏಕಪತಿ|ಪತಿಗೆ/);
+    }
+
+    // 4. Afflicted native test
+    const afflictedDiagnosis = {
+      ...pramodSynthesis.currentDiagnosis,
+      goodBadAnalysis: {
+        ...pramodSynthesis.goodBadAnalysis,
+        isTeetotaler: false
+      }
+    };
+    const afflictedDrinkQ = generateVedicConsultationAnswer(
+      pramodKundli,
+      afflictedDiagnosis,
+      pramodSynthesis.prescriptions,
+      "ಮದ್ಯಪಾನ ದುಶ್ಚಟದ ಬಗ್ಗೆ ಹೇಳಿ",
+      "Addicted Native",
+      true,
+      35,
+      "Male"
+    );
+    expect(afflictedDrinkQ).toContain("• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ:");
+  });
 });
+

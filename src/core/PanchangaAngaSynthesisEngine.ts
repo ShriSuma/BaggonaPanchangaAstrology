@@ -7,11 +7,20 @@ import { computeSubDivisionalAmsha } from "./subDivisions";
 import { calculateHoroscopeRashmi } from "./rashmiChinthaEngine";
 import { findBhuktiAtAge, generateBhuktiTimeline, type BhuktiSpan } from "./DashaBhuktiEngine";
 import { ageDecimalYearsAt } from "./birthTime";
-import { calculateTraditionalBaggona } from "./TraditionalBaggonaEngine";
 import { calculateKundli } from "./KundliEngine";
+import { calculateTraditionalBaggona } from "./TraditionalBaggonaEngine";
+import {
+  diagnoseCurrentLifeSituation,
+  determineAccurateProfession,
+  type CurrentLifeSituationDiagnosis,
+  type AccurateProfessionProfile
+} from "./CurrentLifeAndCareerDiagnosticEngine";
 
 /** Calculate distance between houses (1-indexed, 1 to 12) */
 export const houseDist = (fromH: number, toH: number): number => ((toH - fromH + 12) % 12) + 1;
+
+/** Cleans markdown and normalizes astrology text */
+const cleanAstrologyText = (t: string | undefined | null): string => sanitizeAstrologyKannadaText(t || "");
 
 /* ==========================================================================
    1. 27 SOLAR-LUNAR YOGAS TAXONOMY & ENCYCLOPEDIC RULES
@@ -173,7 +182,7 @@ export interface CurrentLifeDiagnosis {
     diagnosis: string;
   };
   primaryLifeChallenge: {
-    area: "Personal / Marriage" | "Career / Workplace" | "Progeny / Children" | "Financial / Debts" | "Health / Vitality" | "Health / Physical" | "General Transition";
+    area: "Personal / Marriage" | "Career / Workplace" | "Progeny / Children" | "Financial / Debts" | "Health / Vitality" | "Health / Physical" | "General Transition" | "Career & Financial Elevation" | "Academic & Growth Focus" | "Education & Career Foundation" | "Spiritual Peace & Family Harmony";
     description: string;
     planetaryRootCause: string;
     areaKn?: string;
@@ -208,6 +217,59 @@ export interface CurrentLifeDiagnosis {
   goodBadAnalysis: GoodBadTraitAnalysis;
   dashaTiming?: DynamicDashaTiming;
   liveGochara?: LiveGocharaAnalysis;
+  isTeetotaler?: boolean;
+  hasMaritalFidelity?: boolean;
+  negativeShades?: NegativeShadeAssessment;
+  currentLifeSituation?: CurrentLifeSituationDiagnosis;
+  accurateProfession?: AccurateProfessionProfile;
+}
+
+export interface NegativeShadeDimension {
+  id: number;
+  score: number; // 0 to 20
+  hasRisk: boolean;
+  severity: "none" | "mild" | "moderate" | "severe";
+  titleKn: string;
+  titleEn: string;
+  badgeKn: string;
+  badgeEn: string;
+  analysisKn: string;
+  analysisEn: string;
+  astrologicalBasisKn: string;
+  astrologicalBasisEn: string;
+}
+
+export interface NegativeShadeAssessment {
+  overallScore: number; // 0 to 100
+  category: "purity" | "mild_flaws" | "moderate_caution" | "severe_conflict" | "critical_danger";
+  categoryTitleKn: string;
+  categoryTitleEn: string;
+  categoryDescriptionKn: string;
+  categoryDescriptionEn: string;
+  isChildShielded: boolean;
+  isJupiterProtected: boolean;
+  hasBeneficKendraShield: boolean;
+  
+  // 5 Core Classical Dimensions
+  sensualMarital: NegativeShadeDimension;
+  financialIntegrity: NegativeShadeDimension;
+  violenceAggression: NegativeShadeDimension;
+  legalBandhana: NegativeShadeDimension;
+  conductDownwardPath: NegativeShadeDimension;
+  
+  // Real-time Planetary Triggers
+  activeDashaTriggerKn: string;
+  activeDashaTriggerEn: string;
+  activeGocharaTriggerKn: string;
+  activeGocharaTriggerEn: string;
+  
+  // Panchanga 5-Anga Influence
+  panchangaInfluenceKn: string;
+  panchangaInfluenceEn: string;
+  
+  // Gokarna Kshetra Shastric Remedy
+  protectionRemedyKn: string;
+  protectionRemedyEn: string;
 }
 
 export interface TraitBulletPoint {
@@ -238,6 +300,8 @@ export interface GoodBadTraitAnalysis {
   isSpeculationLoss?: boolean;
   speculationWarningKn?: string;
   speculationWarningEn?: string;
+  isTeetotaler?: boolean;
+  hasMaritalFidelity?: boolean;
 }
 
 export interface MasterLifeBulletPoint {
@@ -811,6 +875,901 @@ export const calculateLiveGochara = (
   };
 };
 
+export interface NativeDietAssessment {
+  isTeetotaler: boolean;
+  isDailyDrinking: boolean;
+  isSocialDrinking: boolean;
+  hasAddictionRisk: boolean;
+  hasAddiction: boolean;
+  addictionScore: number;
+  dietSummaryKn: string;
+  dietSummaryEn: string;
+  rootCauseKn: string;
+  rootCauseEn: string;
+}
+
+export const detectNativeDietAndAddiction = (kundli: KundliOutput): NativeDietAssessment => {
+  const lagnaIdx = kundli.lagnaRashi.index;
+  const secondLord = signLord((lagnaIdx + 1) % 12);
+  const secondLordPlanet = kundli.planets.find(p => p.name === secondLord);
+  
+  const houseDist = (fromH: number, toH: number) => ((toH - fromH + 12) % 12) + 1;
+  
+  const jupiter = kundli.planets.find(p => p.name === PlanetName.Jupiter);
+  const venus = kundli.planets.find(p => p.name === PlanetName.Venus);
+  const mercury = kundli.planets.find(p => p.name === PlanetName.Mercury);
+  const saturn = kundli.planets.find(p => p.name === PlanetName.Saturn);
+  const rahu = kundli.planets.find(p => p.name === PlanetName.Rahu);
+  const mars = kundli.planets.find(p => p.name === PlanetName.Mars);
+  const ketu = kundli.planets.find(p => p.name === PlanetName.Ketu);
+  
+  // Jupiter's aspects (1st = in house, 5th, 7th, 9th)
+  const jupiterAspects2nd = jupiter ? [1, 5, 7, 9].includes(houseDist(jupiter.house, 2)) : false;
+  const jupiterAspects2ndLord = (jupiter && secondLordPlanet) ? [1, 5, 7, 9].includes(houseDist(jupiter.house, secondLordPlanet.house)) : false;
+  const beneficsIn2nd = [jupiter, venus, mercury].some(p => p && p.house === 2);
+  const is2ndLordWellPlaced = secondLordPlanet ? [1, 2, 4, 5, 7, 9, 10, 11].includes(secondLordPlanet.house) : true;
+  
+  // Malefic influences on 2nd house of oral intake
+  const maleficsIn2nd = [saturn, rahu, mars, ketu].filter(p => p && p.house === 2);
+  const saturnAspects2nd = saturn ? [3, 7, 10].includes(houseDist(saturn.house, 2)) : false;
+  const marsAspects2nd = mars ? [4, 7, 8].includes(houseDist(mars.house, 2)) : false;
+  const rahuAspects2nd = rahu ? [5, 7, 9].includes(houseDist(rahu.house, 2)) : false;
+  const maleficsIn8th = [saturn, rahu, mars].filter(p => p && p.house === 8);
+  const maleficsIn12th = [saturn, rahu, mars].filter(p => p && p.house === 12);
+  const secondLordInDusthana = secondLordPlanet ? [6, 8, 12].includes(secondLordPlanet.house) : false;
+  
+  // Calculate malefic pressure score
+  let maleficPressure = 0;
+  if (maleficsIn2nd.length > 0) maleficPressure += 3.0;
+  if (saturnAspects2nd) maleficPressure += 1.5;
+  if (marsAspects2nd) maleficPressure += 1.0;
+  if (rahuAspects2nd) maleficPressure += 1.0;
+  if (maleficsIn8th.length > 0) maleficPressure += 1.0;
+  if (maleficsIn12th.length > 0) maleficPressure += 1.0;
+  if (secondLordInDusthana) maleficPressure += 1.5;
+  
+  // Benefic mitigation / cancellation
+  let beneficProtection = 0;
+  if (jupiterAspects2nd) beneficProtection += 3.0;
+  if (jupiterAspects2ndLord) beneficProtection += 2.5;
+  if (beneficsIn2nd) beneficProtection += 2.5;
+  if (is2ndLordWellPlaced) beneficProtection += 1.5;
+  
+  const netAddictionScore = Math.max(0, maleficPressure - beneficProtection);
+  
+  // Parashara principle: Guru Drishti or benefic occupation completely removes addiction/vice tendencies and ensures Sattvik diet
+  const isTeetotaler = netAddictionScore < 1.5 || jupiterAspects2nd || jupiterAspects2ndLord;
+  const isDailyDrinking = !isTeetotaler && netAddictionScore >= 3.0;
+  const isSocialDrinking = !isTeetotaler && !isDailyDrinking && netAddictionScore >= 1.5;
+  const hasAddictionRisk = !isTeetotaler && (isDailyDrinking || isSocialDrinking);
+  
+  let dietSummaryKn = "";
+  let dietSummaryEn = "";
+  let rootCauseKn = "";
+  let rootCauseEn = "";
+  
+  if (isTeetotaler) {
+    dietSummaryKn = "ಸಾತ್ವಿಕ ಆಹಾರಿ (Teetotaler) & ಮದ್ಯಪಾನ-ಧೂಮಪಾನ ಮುಕ್ತ ಶರೀರ ರಕ್ಷಣೆ. ಶರೀರ ಪಾವಿತ್ರ್ಯವನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳುವ ಉನ್ನತ ಆತ್ಮಶಕ್ತಿ ನಿಮ್ಮಲ್ಲಿದೆ.";
+    dietSummaryEn = "Sattvik lifestyle & confirmed teetotaler (strictly free from alcohol, smoking, and intoxicating substances). Endowed with natural purity of intake.";
+    rootCauseKn = jupiterAspects2nd || jupiterAspects2ndLord 
+      ? "2ನೇ ಭೋಜನ ಸ್ಥಾನ ಅಥವಾ ಧನಾಧಿಪತಿಯ ಮೇಲೆ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಸಾತ್ವಿಕ ದೃಷ್ಟಿಯ ಶ್ರೀರಕ್ಷೆ." 
+      : "2ನೇ ಮುಖ ಸ್ಥಾನ ಹಾಗೂ ಲಗ್ನವು ಶುಭ ಸ್ಥಿತಿಯಲ್ಲಿದ್ದು ದುಶ್ಚಟಗಳ ಸೋಂಕಿಲ್ಲದಿರುವುದು.";
+    rootCauseEn = jupiterAspects2nd || jupiterAspects2ndLord 
+      ? "Jupiter's divine protective aspect purifying the 2nd house of oral intake and dietary restraint." 
+      : "Clean 2nd house shielded from malefic addictions.";
+  } else if (isDailyDrinking) {
+    dietSummaryKn = "2ನೇ ಮುಖ ಹಾಗೂ 8ನೇ ರಹಸ್ಯ ಸ್ಥಾನಗಳ ಮೇಲೆ ಪಾಪಗ್ರಹಗಳ ತೀವ್ರ ಪ್ರಭಾವದಿಂದಾಗಿ ಸಂಜೆಯ ಸಮಯದಲ್ಲಿ ಅಥವಾ ಮಾನಸಿಕ ಒತ್ತಡದಲ್ಲಿ ಮದ್ಯಪಾನ ಅಥವಾ ವ್ಯಸನಗಳ ಕಡೆಗೆ ಜಾರುವ ಅಪಾಯವಿದೆ.";
+    dietSummaryEn = "Vulnerability to recurring evening alcohol or substance intake under severe emotional distress or fatigue.";
+    rootCauseKn = "2ನೇ ಆಹಾರ ಸ್ಥಾನ ಮತ್ತು 8ನೇ ರಹಸ್ಯ ಭಾವದಲ್ಲಿ ಶನಿ-ರಾಹುಗಳ ಅಶುಭ ಪ್ರಭಾವ.";
+    rootCauseEn = "2nd house of intake afflicted by Saturn-Rahu malefic axis without benefic cancellation.";
+  } else {
+    dietSummaryKn = "ಸಾಮಾಜಿಕ ಸಹವಾಸ ಅಥವಾ ಪಾರ್ಟಿಗಳ ಸಮಯದಲ್ಲಿ ಪಾನೀಯ ಅಥವಾ ತಂಪು ಪದಾರ್ಥಗಳ ಕ್ಷಣಿಕ ಚಪಲ ಕಾಡಬಹುದು; ಸ್ನೇಹಿತರ ಒತ್ತಾಯಕ್ಕೆ ಮಣಿಯದಂತೆ ಮುನ್ನೆಚ್ಚರಿಕೆ ಅಗತ್ಯ.";
+    dietSummaryEn = "Occasional vulnerability to social drinking under peer pressure during celebrations; requires conscious dietary boundaries.";
+    rootCauseKn = "2ನೇ ಸ್ಥಾನಕ್ಕೆ ಪಾಪಗ್ರಹಗಳ ಗೋಚಾರ ಅಥವಾ ಸೌಮ್ಯ ದೃಷ್ಟಿ ಪ್ರಭಾವ.";
+    rootCauseEn = "Mild malefic aspect on 2nd house of intake.";
+  }
+  
+  return {
+    isTeetotaler,
+    isDailyDrinking,
+    isSocialDrinking,
+    hasAddictionRisk,
+    hasAddiction: hasAddictionRisk,
+    addictionScore: netAddictionScore,
+    dietSummaryKn,
+    dietSummaryEn,
+    rootCauseKn,
+    rootCauseEn
+  };
+};
+
+export interface NativeSensualAssessment {
+  hasMaritalFidelity: boolean;
+  hasStrongAffairRisk: boolean;
+  hasSameGenderAffinity: boolean;
+  hasMaritalDistanceColdness: boolean;
+  fidelitySummaryKn: string;
+  fidelitySummaryEn: string;
+  rootCauseKn: string;
+  rootCauseEn: string;
+}
+
+export const detectNativeSensualAndFidelity = (kundli: KundliOutput): NativeSensualAssessment => {
+  const lagnaIdx = kundli.lagnaRashi.index;
+  const seventhLord = signLord((lagnaIdx + 6) % 12);
+  const seventhLordPlanet = kundli.planets.find(p => p.name === seventhLord);
+  
+  const houseDist = (fromH: number, toH: number) => ((toH - fromH + 12) % 12) + 1;
+  
+  const jupiter = kundli.planets.find(p => p.name === PlanetName.Jupiter);
+  const venus = kundli.planets.find(p => p.name === PlanetName.Venus);
+  const mercury = kundli.planets.find(p => p.name === PlanetName.Mercury);
+  const saturn = kundli.planets.find(p => p.name === PlanetName.Saturn);
+  const rahu = kundli.planets.find(p => p.name === PlanetName.Rahu);
+  const mars = kundli.planets.find(p => p.name === PlanetName.Mars);
+  const ketu = kundli.planets.find(p => p.name === PlanetName.Ketu);
+  
+  const venusH = venus?.house ?? 1;
+  const venusSign = venus?.rashi.index ?? 0;
+  const neuterSigns = [2, 5, 10]; // Gemini, Virgo, Aquarius
+  
+  const hasSameGenderAffinity = Boolean(
+    (venus && mercury && Math.abs(venus.house - mercury.house) === 0 && (saturn?.house === 7 || saturn?.house === 8 || rahu?.house === 7 || ketu?.house === 7)) ||
+    (venus && [7, 8].includes(venusH) && mercury && [7, 8].includes(mercury.house) && neuterSigns.includes(venusSign)) ||
+    (ketu && [7, 8].includes(ketu.house) && mercury && [7, 8].includes(mercury.house) && venus && [saturn, ketu].some(p => p && Math.abs(p.house - venus.house) === 0))
+  );
+  
+  // Jupiter aspects (1st, 5th, 7th, 9th)
+  const jupiterAspects7th = jupiter ? [1, 5, 7, 9].includes(houseDist(jupiter.house, 7)) : false;
+  const jupiterAspectsVenus = (jupiter && venus) ? [1, 5, 7, 9].includes(houseDist(jupiter.house, venus.house)) : false;
+  const jupiterAspects7thLord = (jupiter && seventhLordPlanet) ? [1, 5, 7, 9].includes(houseDist(jupiter.house, seventhLordPlanet.house)) : false;
+  
+  // Severe affair affliction in classical Jyotisha: Venus conjunct Rahu tightly in 7, 8, 12 with NO Jupiter aspect
+  const venusRahuAffair = Boolean(
+    venus && rahu && Math.abs(venus.house - rahu.house) === 0 && [7, 8, 12].includes(venusH)
+  );
+  const marsVenusAffair = Boolean(
+    venus && mars && Math.abs(venus.house - mars.house) === 0 && [7, 8, 12].includes(venusH)
+  );
+  
+  // Benefic shield
+  const hasGuruProtection = jupiterAspects7th || jupiterAspectsVenus || jupiterAspects7thLord;
+  
+  const hasStrongAffairRisk = !hasGuruProtection && (venusRahuAffair || marsVenusAffair);
+  const hasMaritalFidelity = !hasStrongAffairRisk;
+  const hasMaritalDistanceColdness = Boolean((saturn && saturn.house === 7) || (ketu && ketu.house === 7));
+  
+  let fidelitySummaryKn = "";
+  let fidelitySummaryEn = "";
+  let rootCauseKn = "";
+  let rootCauseEn = "";
+  
+  if (hasMaritalFidelity) {
+    fidelitySummaryKn = "ದಾಂಪತ್ಯ ನಿಷ್ಠೆ & ನೈತಿಕ ಸತ್ಚಾರಿತ್ರ್ಯ: 7ನೇ ಕಳತ್ರ ಹಾಗೂ ಕಾಮ ಸ್ಥಾನವು ಶುಭ ರಕ್ಷಣೆಯಲ್ಲಿದ್ದು, ಇಂದ್ರಿಯ ನಿಗ್ರಹ ಮತ್ತು ಸದಾಚಾರ ನಿಮ್ಮ ಮೂಲ ಗುಣವಾಗಿದೆ. ಬಾಹ್ಯ ಕ್ಷಣಿಕ ಆಕರ್ಷಣೆಗಳಿಗೆ ಅಥವಾ ಪರಸ್ತ್ರೀ/ಪರಪುರುಷ ವ್ಯಾಮೋಹಕ್ಕೆ ಬಲಿಯಾಗದೆ, ಪವಿತ್ರ ಕೌಟುಂಬಿಕ ಧರ್ಮವನ್ನು ಕಾಪಾಡುವ ಧೀಮಂತ ಸಂಸ್ಕಾರ ನಿಮ್ಮಲ್ಲಿದೆ.";
+    fidelitySummaryEn = "Steadfast marital fidelity, moral rectitude, and sensory self-control. You uphold sacred family ethics and remain devoted to your spouse without succumbing to external affairs or illicit desires.";
+    rootCauseKn = hasGuruProtection 
+      ? "7ನೇ ಕಳತ್ರ ಅಥವಾ ಕಾಮಕಾರಕ ಶುಕ್ರನ ಮೇಲೆ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಸಾತ್ವಿಕ ದೃಷ್ಟಿಯ ರಕ್ಷಣೆ." 
+      : "7ನೇ ಮತ್ತು 12ನೇ ಸ್ಥಾನಗಳಲ್ಲಿ ಶುಭ ಗ್ರಹ ಸ್ಥಿತಿ ಹಾಗೂ ಶುಕ್ರನ ಸೌಮ್ಯತೆ.";
+    rootCauseEn = hasGuruProtection 
+      ? "Jupiter's auspicious aspect protecting 7th house and Venus, bestowing high moral conscience." 
+      : "Clean 7th and 12th houses preserving marital devotion.";
+  } else {
+    fidelitySummaryKn = "ಶುಕ್ರ-ರಾಹುಗಳ ತೀವ್ರ ಸಂಚಾರದಿಂದಾಗಿ ಬಾಹ್ಯ ಕ್ಷಣಿಕ ಆಕರ್ಷಣೆಗಳು ಅಥವಾ ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧಗಳತ್ತ ಮನಸ್ಸು ಜಾರದಂತೆ ಆತ್ಮಸಂಯಮ ಕಾಯ್ದುಕೊಳ್ಳುವುದು ಕ್ಷೇಮ.";
+    fidelitySummaryEn = "Venus-Rahu tension creates vulnerability to external sensual attractions; conscious commitment to marital boundary is advised.";
+    rootCauseKn = "7ನೇ/12ನೇ ಕಾಮ ಸ್ಥಾನದಲ್ಲಿ ಶುಕ್ರ-ರಾಹು-ಕುಜ ಯೋಗದ ನೆರಳು ಪ್ರಭಾವ.";
+    rootCauseEn = "Venus-Rahu conjunction in relationship/kama houses.";
+  }
+  
+  return {
+    hasMaritalFidelity,
+    hasStrongAffairRisk,
+    hasSameGenderAffinity,
+    hasMaritalDistanceColdness,
+    fidelitySummaryKn,
+    fidelitySummaryEn,
+    rootCauseKn,
+    rootCauseEn
+  };
+};
+
+/**
+ * Classical Jyotisha Diagnostic Engine for Negative Character Shades & Criminal Propensity
+ * Derived strictly from:
+ * 1. Dr. B.V. Raman: "300 Important Combinations" (Chora Yoga #189, Bandhana Yoga #196, Asura & Pisaacha Yogas)
+ * 2. Brihat Parashara Hora Shastra (Kama, Stree Jataka & Artha chapters)
+ * 3. Saravali (Ch. 30: Chora Yogas & Illicit Wealth)
+ * 4. Phaladeepika (Ch. 6 & Ch. 14: Bandhana and Malefic Yogas)
+ *
+ * Implements 100% Anti-False-Positive Shield:
+ * - Jupiter's aspect on Lagna, Lagna Lord, Moon, or 2nd house cancels criminal/theft/predatory propensities.
+ * - Benefics in Kendras (1, 4, 7, 10) protect moral conscience (Dharma Viveka).
+ * - Minor children (< 14) are 100% shielded with child innocence.
+ */
+export const evaluateNativeNegativeShadesAndCriminality = (
+  kundli: KundliOutput,
+  context: { birthDate: string; birthTime: string; latitude: number; longitude: number; gender?: string; devoteeAge?: number; devoteeName?: string },
+  dashaTiming?: DynamicDashaTiming,
+  liveGochara?: LiveGocharaAnalysis
+): NegativeShadeAssessment => {
+  const devoteeAge = context.devoteeAge ?? calculateDevoteeAge(context.birthDate);
+  const isChild = devoteeAge < 14;
+  const isMale = (context.gender || "Male").toLowerCase() === "male";
+  
+  // Extract traditional 5-Anga Panchanga safely
+  let tradPanchanga: any = null;
+  try {
+    if (context.birthDate && context.birthTime) {
+      tradPanchanga = calculateTraditionalBaggona(context.birthDate, context.birthTime, context.latitude || 14.54, context.longitude || 74.31);
+    }
+  } catch (_e) {
+    tradPanchanga = null;
+  }
+  
+  const lagnaIdx = kundli.lagnaRashi.index;
+  const lagnaLord = signLord(lagnaIdx);
+  const lagnaLordPlanet = kundli.planets.find(p => p.name === lagnaLord);
+  
+  const secondLord = signLord((lagnaIdx + 1) % 12);
+  const secondLordPlanet = kundli.planets.find(p => p.name === secondLord);
+  const sixthLord = signLord((lagnaIdx + 5) % 12);
+  const sixthLordPlanet = kundli.planets.find(p => p.name === sixthLord);
+  const seventhLord = signLord((lagnaIdx + 6) % 12);
+  const seventhLordPlanet = kundli.planets.find(p => p.name === seventhLord);
+  const eighthLord = signLord((lagnaIdx + 7) % 12);
+  const eighthLordPlanet = kundli.planets.find(p => p.name === eighthLord);
+  const ninthLord = signLord((lagnaIdx + 8) % 12);
+  const ninthLordPlanet = kundli.planets.find(p => p.name === ninthLord);
+  const eleventhLord = signLord((lagnaIdx + 10) % 12);
+  const eleventhLordPlanet = kundli.planets.find(p => p.name === eleventhLord);
+  const twelfthLord = signLord((lagnaIdx + 11) % 12);
+  const twelfthLordPlanet = kundli.planets.find(p => p.name === twelfthLord);
+
+  const sun = kundli.planets.find(p => p.name === PlanetName.Sun);
+  const moon = kundli.planets.find(p => p.name === PlanetName.Moon);
+  const mars = kundli.planets.find(p => p.name === PlanetName.Mars);
+  const mercury = kundli.planets.find(p => p.name === PlanetName.Mercury);
+  const jupiter = kundli.planets.find(p => p.name === PlanetName.Jupiter);
+  const venus = kundli.planets.find(p => p.name === PlanetName.Venus);
+  const saturn = kundli.planets.find(p => p.name === PlanetName.Saturn);
+  const rahu = kundli.planets.find(p => p.name === PlanetName.Rahu);
+  const ketu = kundli.planets.find(p => p.name === PlanetName.Ketu);
+
+  // -------------------------------------------------------------
+  // 1. JUPITER & BENEFIC PROTECTIVE SHIELDS (ದೇವಗುರು ಬೃಹಸ್ಪತಿ ಅಮೃತ ರಕ್ಷೆ)
+  // -------------------------------------------------------------
+  const jupiterAspectsLagna = jupiter ? [1, 5, 7, 9].includes(houseDist(jupiter.house, 1)) : false;
+  const jupiterAspectsLagnaLord = (jupiter && lagnaLordPlanet) ? [1, 5, 7, 9].includes(houseDist(jupiter.house, lagnaLordPlanet.house)) : false;
+  const jupiterAspectsMoon = (jupiter && moon) ? [1, 5, 7, 9].includes(houseDist(jupiter.house, moon.house)) : false;
+  const jupiterAspects2nd = jupiter ? [1, 5, 7, 9].includes(houseDist(jupiter.house, 2)) : false;
+  const jupiterAspects2ndLord = (jupiter && secondLordPlanet) ? [1, 5, 7, 9].includes(houseDist(jupiter.house, secondLordPlanet.house)) : false;
+  const jupiterAspects7th = jupiter ? [1, 5, 7, 9].includes(houseDist(jupiter.house, 7)) : false;
+  const jupiterAspects7thLord = (jupiter && seventhLordPlanet) ? [1, 5, 7, 9].includes(houseDist(jupiter.house, seventhLordPlanet.house)) : false;
+  const jupiterAspectsVenus = (jupiter && venus) ? [1, 5, 7, 9].includes(houseDist(jupiter.house, venus.house)) : false;
+  const jupiterAspectsMercury = (jupiter && mercury) ? [1, 5, 7, 9].includes(houseDist(jupiter.house, mercury.house)) : false;
+  const jupiterAspects9th = jupiter ? [1, 5, 7, 9].includes(houseDist(jupiter.house, 9)) : false;
+
+  const isJupiterProtected = Boolean(
+    jupiterAspectsLagna ||
+    jupiterAspectsLagnaLord ||
+    jupiterAspectsMoon ||
+    jupiterAspects2nd ||
+    jupiterAspects2ndLord
+  );
+
+  const hasBeneficKendraShield = [jupiter, venus].some(p => p && [1, 4, 7, 10, 5, 9].includes(p.house));
+
+  // -------------------------------------------------------------
+  // 2. DIMENSION 1: SENSUAL & MARITAL RECTITUDE (ವೈವಾಹಿಕ ನಿಷ್ಠೆ vs ಜಾರತ್ವ & ಕಾಮ ವಿಕೃತಿ)
+  // -------------------------------------------------------------
+  let dim1Score = 0;
+  let dim1Risk = false;
+  let dim1TitleKn = "";
+  let dim1TitleEn = "";
+  let dim1BadgeKn = "";
+  let dim1BadgeEn = "";
+  let dim1AnalysisKn = "";
+  let dim1AnalysisEn = "";
+  let dim1BasisKn = "";
+  let dim1BasisEn = "";
+
+  const venusH = venus?.house ?? 1;
+  const isVenusRahuAfflicted = Boolean(venus && rahu && Math.abs(venus.house - rahu.house) === 0 && [7, 8, 12].includes(venusH));
+  const isVenusMarsAfflicted = Boolean(venus && mars && Math.abs(venus.house - mars.house) === 0 && [7, 8, 12].includes(venusH));
+  const is7thLordAfflicted = Boolean(seventhLordPlanet && [6, 8, 12].includes(seventhLordPlanet.house) && (rahu?.house === 7 || ketu?.house === 7));
+  const isExtremePredatoryAffliction = Boolean(
+    venus && mars && rahu && Math.abs(venus.house - rahu.house) === 0 && Math.abs(venus.house - mars.house) === 0 && [7, 8].includes(venusH) &&
+    moon && [6, 8, 12].includes(moon.house) && !jupiterAspectsVenus && !jupiterAspects7th
+  );
+
+  if (isChild) {
+    dim1Score = 0;
+    dim1Risk = false;
+    dim1TitleKn = "ಬಾಲ್ಯ ಪಾವಿತ್ರ್ಯ & ಅಂತರಂಗದ ಮುಗ್ಧತೆ";
+    dim1TitleEn = "Child Innocence & Emotional Sanctity";
+    dim1BadgeKn = "ಬಾಲ್ಯ ಮುಗ್ಧತೆ • ದೋಷರಹಿತ";
+    dim1BadgeEn = "Child Innocence • Shielded";
+    dim1AnalysisKn = "ಮಗುವಿನ ಅಂತರಂಗವು ಅತ್ಯಂತ ಪವಿತ್ರ, ನಿರ್ಮಲ ಹಾಗೂ ಮುಗ್ಧವಾಗಿದೆ. ಯಾವುದೇ ವಯಸ್ಕರ ಲೈಂಗಿಕ ಅಥವಾ ನೈತಿಕ ದೋಷಗಳು ಅನ್ವಯಿಸುವುದಿಲ್ಲ.";
+    dim1AnalysisEn = "Child's consciousness is pure, tender, and shielded from adult sensual vulnerabilities.";
+    dim1BasisKn = "14 ವರ್ಷಕ್ಕಿಂತ ಕೆಳಗಿನ ಬಾಲ ಜಾತಕ.";
+    dim1BasisEn = "Child chart under 14 years.";
+  } else if (isJupiterProtected || jupiterAspects7th || jupiterAspects7thLord || jupiterAspectsVenus) {
+    dim1Score = 0;
+    dim1Risk = false;
+    dim1TitleKn = isMale 
+      ? "ಪವಿತ್ರ ದಾಂಪತ್ಯ ನಿಷ್ಠೆ & ಏಕಪತ್ನಿ ವ್ರತ (High Marital Fidelity)" 
+      : "ಪವಿತ್ರ ದಾಂಪತ್ಯ ನಿಷ್ಠೆ & ಏಕಪತಿ ವ್ರತ (High Marital Fidelity)";
+    dim1TitleEn = isMale ? "Steadfast Marital Fidelity (Single Wife Vow)" : "Steadfast Marital Fidelity (Devoted Wife Vow)";
+    dim1BadgeKn = isMale ? "ಏಕಪತ್ನಿ ವ್ರತ • ಸದಾಚಾರ" : "ಏಕಪತಿ ನಿಷ್ಠೆ • ಗೃಹಲಕ್ಷ್ಮಿ";
+    dim1BadgeEn = "Marital Fidelity • Pure 7th";
+    dim1AnalysisKn = isMale
+      ? "7ನೇ ಕಳತ್ರ ಹಾಗೂ ಕಾಮ ಸ್ಥಾನವು ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ರಕ್ಷಣೆಯಲ್ಲಿದ್ದು, ಇಂದ್ರಿಯ ನಿಗ್ರಹ ಮತ್ತು ಸದಾಚಾರ ನಿಮ್ಮ ಮೂಲ ಸ್ವಭಾವವಾಗಿದೆ. ಯಾವುದೇ ಪರಸ್ತ್ರೀ ವ್ಯಾಮೋಹ, ಅನೈತಿಕ ಆಕರ್ಷಣೆ ಅಥವಾ ರಹಸ್ಯ ಕಾಮ ಚಪಲಗಳಿಗೆ ಬಲಿಯಾಗದೆ, ಪವಿತ್ರ ದಾಂಪತ್ಯ ನಿಷ್ಠೆ (ಏಕಪತ್ನಿ ವ್ರತ) ಪಾಲಿಸುವ ಧೀಮಂತ ಸಂಸ್ಕಾರ ನಿಮ್ಮಲ್ಲಿದೆ."
+      : "7ನೇ ಕಳತ್ರ ಹಾಗೂ ಕಾಮ ಸ್ಥಾನವು ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ರಕ್ಷಣೆಯಲ್ಲಿದ್ದು, ಇಂದ್ರಿಯ ನಿಗ್ರಹ ಮತ್ತು ಸದಾಚಾರ ನಿಮ್ಮ ಮೂಲ ಸ್ವಭಾವವಾಗಿದೆ. ಯಾವುದೇ ಪರಪುರುಷ ವ್ಯಾಮೋಹ, ಅನೈತಿಕ ಆಕರ್ಷಣೆ ಅಥವಾ ರಹಸ್ಯ ಸಂಬಂಧಗಳಿಗೆ ಬಲಿಯಾಗದೆ, ಪವಿತ್ರ ದಾಂಪತ್ಯ ನಿಷ್ಠೆ (ಏಕಪತಿ ನಿಷ್ಠೆ / ಪತಿವ್ರತಾ ಧರ್ಮ) ಪಾಲಿಸುವ ಧೀಮಂತ ಸಂಸ್ಕಾರ ನಿಮ್ಮಲ್ಲಿದೆ.";
+    dim1AnalysisEn = isMale
+      ? "7th house of marriage and Venus are blessed by Jupiter's divine shield. Endowed with sensory self-restraint and moral conscience, you observe steadfast marital fidelity free of external affairs."
+      : "7th house of marriage and Venus are shielded by Jupiter's grace. Endowed with natural modesty and marital loyalty, you uphold sacred family boundaries free of external entanglements.";
+    dim1BasisKn = "7ನೇ ಮನೆ ಮತ್ತು ಶುಕ್ರನಿಗೆ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಶುಭ ದೃಷ್ಟಿಯ ರಕ್ಷಣೆ.";
+    dim1BasisEn = "Jupiterian benefic aspect shielding the 7th house and Venus.";
+  } else {
+    // Afflicted
+    if (isExtremePredatoryAffliction) {
+      dim1Score = 18;
+      dim1Risk = true;
+      dim1TitleKn = "ತೀವ್ರ ಕಾಮ ವಿಕಾರ & ನೈತಿಕ ಗಡಿಗಳ ಉಲ್ಲಂಘನೆಯ ಅಪಾಯ (Extreme Sensual Transgression)";
+      dim1TitleEn = "Extreme Sensual Transgression & Boundary Breach Vulnerability";
+      dim1BadgeKn = "ಶುಕ್ರ-ರಾಹು-ಕುಜ • ಕಾಮ ವಿಕಾರ";
+      dim1BadgeEn = "Venus-Mars-Rahu Affliction";
+      dim1AnalysisKn = "7ನೇ/8ನೇ ಸ್ಥಾನದಲ್ಲಿ ಶುಕ್ರ, ಕುಜ ಮತ್ತು ರಾಹುಗಳ ತೀವ್ರ ಸಂಯೋಗವಿದ್ದು, ಗುರುವಿನ ಶುಭ ದೃಷ್ಟಿಯ ಕೊರತೆಯಿರುವುದರಿಂದ, ಕಾಮ ವಿಕೃತಿ, ಅನಿಯಂತ್ರಿತ ಇಂದ್ರಿಯ ಚಪಲ ಹಾಗೂ ಎದುರಿನವರ ಸಮ್ಮತಿ-ಗೌರವವನ್ನು ಕಡೆಗಣಿಸುವ ನೈತಿಕ ಪತನದ ತೀವ್ರ ಸುಳಿವು ಜಾತಕದಲ್ಲಿದೆ. ಇದು ಸಾಮಾಜಿಕ ಗೌರವ ಮತ್ತು ಕುಟುಂಬವನ್ನು ಧ್ವಂಸ ಮಾಡುವ ಅಪಾಯ ತಂದೊಡ್ಡಬಹುದು.";
+      dim1AnalysisEn = "Triple conjunction of Venus, Mars, and Rahu across marital/hidden houses without benefic mitigation generates predatory impulses and boundary violations requiring severe restraint.";
+      dim1BasisKn = "7ನೇ/8ನೇ ಭಾವದಲ್ಲಿ ಶುಕ್ರ-ಕುಜ-ರಾಹುಗಳ ತೀವ್ರ ಗ್ರಹ ಸಂಯೋಗ.";
+      dim1BasisEn = "Venus-Mars-Rahu affliction in 7th/8th house.";
+    } else if (isVenusRahuAfflicted || isVenusMarsAfflicted || is7thLordAfflicted) {
+      dim1Score = 14;
+      dim1Risk = true;
+      dim1TitleKn = isMale
+        ? "ಪರಸ್ತ್ರೀ ವ್ಯಾಮೋಹ & ರಹಸ್ಯ ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧದ ಸೆಳೆತ (Extramarital Temptation)"
+        : "ಪರಪುರುಷ ವ್ಯಾಮೋಹ & ಬಾಹ್ಯ ಭಾವನಾತ್ಮಕ ಸಾಂತ್ವನದ ಸೆಳೆತ (External Romance Vulnerability)";
+      dim1TitleEn = isMale ? "Extramarital Temptation & Secret Affair Risk" : "External Romantic Vulnerability";
+      dim1BadgeKn = "ಶುಕ್ರ-ರಾಹು • ದಾಂಪತ್ಯೇತರ ಸೆಳೆತ";
+      dim1BadgeEn = "Venus-Rahu Affair Vulnerability";
+      dim1AnalysisKn = isMale
+        ? "7ನೇ ಕಳತ್ರ ಮತ್ತು 12ನೇ ಶಯನ ಸುಖ ಸ್ಥಾನಗಳ ಮೇಲೆ ಶುಕ್ರ ಅಥವಾ ರಾಹುವಿನ ತೀವ್ರ ಪ್ರಭಾವದಿಂದಾಗಿ, ದಾಂಪತ್ಯ ಜೀವನದ ಆಚೆಗೆ ಹೊರಗಿನ ಸ್ತ್ರೀಯರ ಕಡೆಗೆ (ಪರಸ್ತ್ರೀ ವ್ಯಾಮೋಹ) ರಹಸ್ಯ ಚಾಟ್ ಮಾತುಕತೆ ಹಾಗೂ ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧಗಳತ್ತ ಮನಸ್ಸು ಜಾರುವ ಎಚ್ಚರಿಕೆ ಜಾತಕದಲ್ಲಿದೆ."
+        : "7ನೇ ಕಳತ್ರ ಹಾಗೂ 12ನೇ ಸ್ಥಾನಗಳ ಮೇಲೆ ಶುಕ್ರ-ರಾಹುವಿನ ಪ್ರಭಾವದಿಂದಾಗಿ, ದಾಂಪತ್ಯದಲ್ಲಿ ಪತಿಯಿಂದ ನಿರೀಕ್ಷಿತ ಪ್ರೀತಿ ಸಿಗದಿದ್ದಾಗ ಹೊರಗಿನ ಇತರ ಪುರುಷರ ಕಡೆಗೆ ಭಾವನಾತ್ಮಕ ಸಾಂತ್ವನ ಹಾಗೂ ರಹಸ್ಯ ಸಂಬಂಧಗಳತ್ತ ಮನಸ್ಸು ಜಾರುವ ಎಚ್ಚರಿಕೆಯಿದೆ.";
+      dim1AnalysisEn = "Venus-Rahu tension creates vulnerability to external romantic validation and secret liaisons when emotional intimacy feels absent at home.";
+      dim1BasisKn = "7ನೇ/12ನೇ ಕಾಮ ಸ್ಥಾನದಲ್ಲಿ ಶುಕ್ರ-ರಾಹು ನೆರಳು ಪ್ರಭಾವ.";
+      dim1BasisEn = "Venus-Rahu affliction across 7th/12th axis.";
+    } else {
+      dim1Score = 4;
+      dim1Risk = false;
+      dim1TitleKn = "ದಾಂಪತ್ಯದಲ್ಲಿ ಸೌಮ್ಯ ಭಾವನಾತ್ಮಕ ಅಂತರ (Mild Marital Sensitivity)";
+      dim1TitleEn = "Mild Marital Communication Gap";
+      dim1BadgeKn = "ಸೌಮ್ಯ ಸಂವಹನ ಅಂತರ";
+      dim1BadgeEn = "Mild Communication Gap";
+      dim1AnalysisKn = "ದಾಂಪತ್ಯದಲ್ಲಿ ಯಾವುದೇ ಅನೈತಿಕ ಅಥವಾ ದಾಂಪತ್ಯೇತರ ಅಪಾಯಗಳಿಲ್ಲ; ಕೇವಲ ಕೆಲಸದ ಒತ್ತಡದಿಂದ ಉಂಟಾಗುವ ಸೌಮ್ಯ ಭಾವನಾತ್ಮಕ ಅಂತರ ಮಾತ್ರ ಕಾಣಿಸುತ್ತದೆ.";
+      dim1AnalysisEn = "Free of extramarital risks; occasional communication gaps arise solely from work fatigue.";
+      dim1BasisKn = "7ನೇ ಮನೆಯ ಸಾಮಾನ್ಯ ಗ್ರಹ ಸ್ಥಿತಿ.";
+      dim1BasisEn = "Stable 7th house with mild work stress.";
+    }
+  }
+
+  // -------------------------------------------------------------
+  // 3. DIMENSION 2: FINANCIAL INTEGRITY VS THEFT / FRAUD / EMBEZZLEMENT (ಆರ್ಥಿಕ ಪ್ರಾಮಾಣಿಕತೆ vs ಚೋರ ಯೋಗ & ವಂಚನೆ)
+  // -------------------------------------------------------------
+  let dim2Score = 0;
+  let dim2Risk = false;
+  let dim2TitleKn = "";
+  let dim2TitleEn = "";
+  let dim2BadgeKn = "";
+  let dim2BadgeEn = "";
+  let dim2AnalysisKn = "";
+  let dim2AnalysisEn = "";
+  let dim2BasisKn = "";
+  let dim2BasisEn = "";
+
+  // Classical B.V. Raman Chora Yoga & Saravali Ch. 30
+  const isMercuryAfflicted = Boolean(mercury && [6, 8, 12].includes(mercury.house) && (rahu?.house === mercury.house || mars?.house === mercury.house));
+  const is2ndLordDusthanaWithRahu = Boolean(secondLordPlanet && [6, 8, 12].includes(secondLordPlanet.house) && (rahu?.house === secondLordPlanet.house || rahu?.house === 2));
+  const isSaravaliIllicitWealth = Boolean(eleventhLordPlanet && eleventhLordPlanet.house === 8 && eighthLordPlanet && eighthLordPlanet.house === 11);
+  const isMaandiInMoneyHousesWithMalefic = Boolean(
+    kundli.maandi && [2, 11].includes(houseDist(lagnaIdx + 1, kundli.maandi.rashi.index + 1)) &&
+    [saturn, rahu, mars].some(m => m && [2, 11].includes(m.house))
+  );
+
+  if (isChild) {
+    dim2Score = 0;
+    dim2Risk = false;
+    dim2TitleKn = "ನಿಷ್ಕಲ್ಮಶ ಮುಗ್ಧತೆ & ಸ್ವಾರ್ಥರಹಿತ ಮನಸ್ಸು";
+    dim2TitleEn = "Pure Innocence & Selfless Heart";
+    dim2BadgeKn = "ಮುಗ್ಧ ಮನಸ್ಸು • ಚೋರಮುಕ್ತ";
+    dim2BadgeEn = "Innocent • Defect Free";
+    dim2AnalysisKn = "ಮಗುವಿನ ಮನಸ್ಸು ನಿರ್ಮಲವಾಗಿದ್ದು, ಯಾವುದೇ ಆರ್ಥಿಕ ಅಥವಾ ಸ್ವಾರ್ಥ ದುರಾಸೆಯಿಲ್ಲ.";
+    dim2AnalysisEn = "Child's mind is untouched by financial greed or deceptive motives.";
+    dim2BasisKn = "ಬಾಲ್ಯ ಪಾವಿತ್ರ್ಯ.";
+    dim2BasisEn = "Child innocence.";
+  } else if (jupiterAspects2nd || jupiterAspects2ndLord || jupiterAspectsMercury || isJupiterProtected) {
+    dim2Score = 0;
+    dim2Risk = false;
+    dim2TitleKn = "ಧರ್ಮನಿಷ್ಠ ಆರ್ಥಿಕ ಪ್ರಾಮಾಣಿಕತೆ & ಕಳಂಕ ರಹಿತ ದ್ರವ್ಯಾರ್ಜನೆ (High Financial Integrity)";
+    dim2TitleEn = "Impeccable Financial Honesty & Clean Wealth (Zero Theft/Fraud Risk)";
+    dim2BadgeKn = "ನ್ಯಾಯ ಸಂಪತ್ತು • ಚೋರ ದೋಷ ಮುಕ್ತ";
+    dim2BadgeEn = "Righteous Wealth • Zero Fraud";
+    dim2AnalysisKn = "2ನೇ ಧನ ಸ್ಥಾನ ಮತ್ತು ಬುದ್ಧಿಕಾರಕ ಬುಧನ ಮೇಲೆ ದೇವಗುರು ಬೃಹಸ್ಪತಿ ಹಾಗೂ ಶುಭ ಗ್ರಹಗಳ ಪರಿಪೂರ್ಣ ರಕ್ಷಣೆ ಇದೆ. ನಿಮ್ಮಲ್ಲಿ ಪರರ ಹಣದ ದುರಾಸೆ, ವಂಚನೆ, ಕಳ್ಳತನ ಅಥವಾ ಭ್ರಷ್ಟಾಚಾರದ ಲವಲೇಶವೂ ಇಲ್ಲ. ಕಷ್ಟಪಟ್ಟು ನ್ಯಾಯಯುತವಾಗಿ ಸಂಪಾದಿಸುವ ಹಾಗೂ ಅಗತ್ಯವಿದ್ದಾಗ ದಾನ ಧರ್ಮ ಮಾಡುವ ಪ್ರಾಮಾಣಿಕ ವ್ಯಕ್ತಿತ್ವ ನಿಮ್ಮದು. ಚೋರ ಯೋಗ ಅಥವಾ ಆರ್ಥಿಕ ವಂಚನೆಯ ಕಳಂಕ ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಸಂಪೂರ್ಣ ಶೂನ್ಯವಾಗಿದೆ.";
+    dim2AnalysisEn = "The 2nd house of wealth and Mercury are shielded by Jupiter and benefic auspices. Endowed with impeccable honesty, you strictly reject illicit wealth, theft, or embezzlement. Chora Yoga is completely absent.";
+    dim2BasisKn = "2ನೇ ಧನ ಸ್ಥಾನ ಮತ್ತು ಬುಧನಿಗೆ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಶುಭ ದೃಷ್ಟಿಯ ರಕ್ಷಣೆ.";
+    dim2BasisEn = "Jupiter's protective aspect purifying the 2nd house of wealth and Mercury.";
+  } else {
+    // Afflicted
+    if (isMercuryAfflicted || is2ndLordDusthanaWithRahu) {
+      dim2Score = (isMercuryAfflicted && is2ndLordDusthanaWithRahu) ? 17 : 14;
+      dim2Risk = true;
+      dim2TitleKn = "ಚೋರ ಯೋಗ, ವಂಚನೆ & ಆರ್ಥಿಕ ದುರ್ವರ್ತನೆಯ ಅಪಾಯ (Chora Yoga & Financial Fraud Risk)";
+      dim2TitleEn = "Chora Yoga & Financial Embezzlement Risk";
+      dim2BadgeKn = "ಚೋರ ಯೋಗ • ಆರ್ಥಿಕ ಮೋಸ";
+      dim2BadgeEn = "Chora Yoga • Fraud Risk";
+      dim2AnalysisKn = "ಶಾಸ್ತ್ರೋಕ್ತ ಚೋರ ಯೋಗ (B.V. Raman Chora Yoga): ಬುದ್ಧಿಕಾರಕ ಬುಧ ಮತ್ತು 2ನೇ ಧನಾಧಿಪತಿಯು ರಾಹು-ಕುಜರೊಂದಿಗೆ ತ್ರಿಕ ಸ್ಥಾನದಲ್ಲಿರುವುದರಿಂದ, ಹಣಕಾಸಿನ ಮುಗ್ಗಟ್ಟು ಅಥವಾ ಸಾಲದ ಒತ್ತಡದಲ್ಲಿ ಕಳ್ಳತನ, ನಂಬಿಕೆದ್ರೋಹ, ಖೊಟ್ಟಿ ಲೆಕ್ಕಪತ್ರ ಅಥವಾ ವಂಚನೆಯ ಮೂಲಕ ಹಣ ಲಪಟಾಯಿಸುವ ಅಪಾಯದ ಸುಳಿವು ಜಾತಕದಲ್ಲಿದೆ.";
+      dim2AnalysisEn = "Classical Chora Yoga: Affliction to Mercury and 2nd lord by Rahu-Mars in dusthanas indicates vulnerability to financial embezzlement, breach of fiduciary trust, or deceptive shortcuts under financial panic.";
+      dim2BasisKn = "ಬುಧ ಮತ್ತು 2ನೇ ಧನಾಧಿಪತಿಯ ಮೇಲೆ ರಾಹು-ಕುಜರ ಚೋರ ಯೋಗ.";
+      dim2BasisEn = "Chora Yoga: Mercury and 2nd lord afflicted by Rahu/Mars in dusthana.";
+    } else if (isSaravaliIllicitWealth || isMaandiInMoneyHousesWithMalefic) {
+      dim2Score = 12;
+      dim2Risk = true;
+      dim2TitleKn = "ಅನೈತಿಕ ಹಣಕಾಸಿನ ಆಮಿಷ & ಕಮಿಷನ್ ದಂಧೆಯ ಎಚ್ಚರಿಕೆ (Illicit Financial Temptation)";
+      dim2TitleEn = "Illicit Wealth & Commission Shortcut Vulnerability";
+      dim2BadgeKn = "ಅಕ್ರಮ ಧನಾರ್ಜನೆ ಎಚ್ಚರಿಕೆ";
+      dim2BadgeEn = "Illicit Gain Warning";
+      dim2AnalysisKn = "ಸಾರಾವಳಿ ಗ್ರಂಥದ ಪ್ರಕಾರ 11ನೇ ಮತ್ತು 8ನೇ ಮನೆಗಳ ಅಶುಭ ಗ್ರಹ ಸಂಬಂಧದಿಂದಾಗಿ, ಸುಲಭವಾಗಿ ಹಣ ಮಾಡುವ ಅಕ್ರಮ ದಂಧೆಗಳು ಅಥವಾ ತೆರಿಗೆ/ಲೆಕ್ಕ ತಪ್ಪಿಸುವ ಆಮಿಷಗಳು ಕಾಡಬಹುದು; ಪ್ರಾಮಾಣಿಕತೆಯಿಂದ ಮಾತ್ರ ಗೌರವ ಉಳಿಯುತ್ತದೆ.";
+      dim2AnalysisEn = "Saravali principle: 11th and 8th house nexus brings temptation for illicit earnings or grey-market shortcuts that threaten legal trouble.";
+      dim2BasisKn = "11ನೇ ಮತ್ತು 8ನೇ ಅಧಿಪತಿಗಳ ಅಶುಭ ವಿನಿಮಯ.";
+      dim2BasisEn = "11th-8th lord affliction triggering illicit wealth attraction.";
+    } else {
+      dim2Score = 3;
+      dim2Risk = false;
+      dim2TitleKn = "ಸಾಮಾನ್ಯ ಆರ್ಥಿಕ ಜಾಗ್ರತೆ (Normal Financial Caution)";
+      dim2TitleEn = "Normal Financial Caution";
+      dim2BadgeKn = "ಆರ್ಥಿಕ ಭದ್ರತೆ";
+      dim2BadgeEn = "Financial Stability";
+      dim2AnalysisKn = "ಆರ್ಥಿಕ ವ್ಯವಹಾರಗಳಲ್ಲಿ ಯಾವುದೇ ಚೋರ ಅಥವಾ ವಂಚನೆಯ ದೋಷಗಳಿಲ್ಲ; ಹಣದ ಹೂಡಿಕೆಯಲ್ಲಿ ಸಾಧಾರಣ ಜಾಗ್ರತೆ ವಹಿಸಿದರೆ ಸಾಕು.";
+      dim2AnalysisEn = "Zero theft or fraud tendencies; ordinary commercial prudence is sufficient.";
+      dim2BasisKn = "2ನೇ ಮನೆಯ ಸಾಮಾನ್ಯ ಶುಭ ಸ್ಥಿತಿ.";
+      dim2BasisEn = "Stable 2nd house of income.";
+    }
+  }
+
+  // -------------------------------------------------------------
+  // 4. DIMENSION 3: PEACEFULNESS VS CRUELTY / VIOLENCE / MURDEROUS RAGE (ಶಾಂತಿ & ಅಹಿಂಸೆ vs ಹತ್ಯಾ ಯೋಗ & ಕ್ರೌರ್ಯ)
+  // -------------------------------------------------------------
+  let dim3Score = 0;
+  let dim3Risk = false;
+  let dim3TitleKn = "";
+  let dim3TitleEn = "";
+  let dim3BadgeKn = "";
+  let dim3BadgeEn = "";
+  let dim3AnalysisKn = "";
+  let dim3AnalysisEn = "";
+  let dim3BasisKn = "";
+  let dim3BasisEn = "";
+
+  // Classical BPHS Ch. 45 & B.V. Raman Asura / Angaraka Yoga
+  const isMarsRahuAngaraka = Boolean(mars && rahu && Math.abs(mars.house - rahu.house) === 0 && [1, 8, 10].includes(mars.house));
+  const isSunMarsSaturnAfflicted = Boolean(sun && mars && [8, 12].includes(mars.house) && saturn && [3, 7, 10].includes(houseDist(saturn.house, mars.house)));
+  const isColdCrueltyMoon = Boolean(moon && [mars, ketu].some(m => m && Math.abs(m.house - moon.house) === 0) && moon.house === 8 && saturn && [3, 7, 10].includes(houseDist(saturn.house, 8)));
+
+  if (isChild) {
+    dim3Score = 0;
+    dim3Risk = false;
+    dim3TitleKn = "ಕೋಮಲ ಹೃದಯ & ದಯಾಪರತೆ";
+    dim3TitleEn = "Gentle Heart & Tender Nature";
+    dim3BadgeKn = "ಕೋಮಲ ಹೃದಯ • ಅಹಿಂಸೆ";
+    dim3BadgeEn = "Tender • Non-violent";
+    dim3AnalysisKn = "ಮಗುವಿನ ಮನಸ್ಸು ಅತ್ಯಂತ ಮೃದುವಾಗಿದ್ದು, ಯಾವುದೇ ಕ್ರೌರ್ಯ ಅಥವಾ ಹಿಂಸಾ ಪ್ರವೃತ್ತಿಯಿಲ್ಲ.";
+    dim3AnalysisEn = "Child possesses a tender, gentle heart free from violence.";
+    dim3BasisKn = "ಬಾಲ್ಯ ಮುಗ್ಧತೆ.";
+    dim3BasisEn = "Child innocence.";
+  } else if (jupiterAspectsLagna || jupiterAspectsLagnaLord || jupiterAspectsMoon || isJupiterProtected) {
+    dim3Score = 0;
+    dim3Risk = false;
+    dim3TitleKn = "ಅಹಿಂಸಾ ಧರ್ಮ, ಶಾಂತಿ ಪ್ರವೃತ್ತಿ & ಸೌಜನ್ಯ (Noble Non-Violence & Compassion)";
+    dim3TitleEn = "Noble Non-Violence, Compassion & Peace (Zero Cruelty/Assault Risk)";
+    dim3BadgeKn = "ಅಹಿಂಸಾ ಧರ್ಮ • ಶಾಂತ ಸ್ವಭಾವ";
+    dim3BadgeEn = "Ahimsa Dharma • Peaceful Mind";
+    dim3AnalysisKn = "ಲಗ್ನ, ಲಗ್ನಾಧಿಪತಿ ಮತ್ತು ಮನಃಕಾರಕ ಚಂದ್ರನ ಮೇಲೆ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಸಾತ್ವಿಕ ದೃಷ್ಟಿಯಿದೆ. ನಿಮ್ಮ ಹೃದಯದಲ್ಲಿ ಸಹಜ ಕರುಣೆ, ಸೌಜನ್ಯ ಮತ್ತು ಅಹಿಂಸಾ ಧರ್ಮ ನೆಲೆಸಿದೆ. ಎಂತಹ ಸಿಟ್ಟಿನ ಅಥವಾ ಪ್ರಚೋದನೆಯ ಸಂದರ್ಭದಲ್ಲೂ ಜೀವಹಿಂಸೆ, ಹಲ್ಲೆ, ಮಾರಣಾಂತಿಕ ಕ್ರೌರ್ಯ ಅಥವಾ ದೈಹಿಕ ದೌರ್ಜನ್ಯಕ್ಕೆ ಕೈಹಾಕದ ಪ್ರಬುದ್ಧ ಸಂಯಮ ನಿಮ್ಮಲ್ಲಿದೆ. ಹತ್ಯಾ ಯೋಗ ಅಥವಾ ಹಿಂಸಾ ಪ್ರವೃತ್ತಿಯು ಸಂಪೂರ್ಣ ಶೂನ್ಯವಾಗಿದೆ.";
+    dim3AnalysisEn = "Lagna and the Moon receive Jupiter's divine protective drishti. Grounded in compassion and Ahimsa (non-violence), you naturally refrain from physical cruelty, assault, or lethal aggression. Hatya/Asura Yoga is completely absent.";
+    dim3BasisKn = "ಲಗ್ನ ಮತ್ತು ಚಂದ್ರನಿಗೆ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಸಾತ್ವಿಕ ದೃಷ್ಟಿಯ ಶ್ರೀರಕ್ಷೆ.";
+    dim3BasisEn = "Jupiter's compassionate aspect on Lagna and Moon guaranteeing peaceful temperament.";
+  } else {
+    // Afflicted
+    if (isSunMarsSaturnAfflicted || (isMarsRahuAngaraka && !jupiterAspectsLagna)) {
+      dim3Score = 18;
+      dim3Risk = true;
+      dim3TitleKn = "ಕ್ರೂರ ಯೋಗ, ಉಗ್ರ ಹಿಂಸಾ ಪ್ರವೃತ್ತಿ & ಹತ್ಯಾ ವಿಕೋಪದ ಅಪಾಯ (Asura Yoga & Destructive Rage)";
+      dim3TitleEn = "Asura Yoga: Destructive Aggression & Violent Assault Risk";
+      dim3BadgeKn = "ಅಂಗಾರಕ ಯೋಗ • ಉಗ್ರ ಕ್ರೌರ್ಯ";
+      dim3BadgeEn = "Angaraka Yoga • Violent Rage";
+      dim3AnalysisKn = "ಪರಾಶರ ಶಾಸ್ತ್ರದ ಅಂಗಾರಕ-ಅಸುರ ಯೋಗ (Angaraka & Asura Yoga): ಲಗ್ನ ಅಥವಾ ಅಷ್ಟಮದಲ್ಲಿ ಕುಜ-ರಾಹುವಿನ ತೀವ್ರ ಅಗ್ನಿ ಪ್ರಭಾವವಿದ್ದು, ಗುರುವಿನ ಶಾಂತ ದೃಷ್ಟಿ ಇಲ್ಲದಿರುವುದರಿಂದ, ವಿಪರೀತ ಕೋಪದಲ್ಲಿ ವಿವೇಕ ಕಳೆದುಕೊಂಡು ದೈಹಿಕ ಹಲ್ಲೆ, ಮಾರಣಾಂತಿಕ ಕ್ರೌರ್ಯ, ಆಯುಧ ಪ್ರಯೋಗ ಅಥವಾ ಹಿಂಸಾತ್ಮಕ ದಾಳಿಗೆ ಕೈಹಾಕುವ ವಿನಾಶಕಾರಿ ನೆರಳು ಜಾತಕದಲ್ಲಿದೆ.";
+      dim3AnalysisEn = "Classical Asura & Angaraka Yoga: Mars-Rahu conjunction in Lagna/8th without Jupiterian restraint indicates dangerous boiling rage, violent physical assault, and destructive wrath when provoked.";
+      dim3BasisKn = "ಲಗ್ನ/ಅಷ್ಟಮದಲ್ಲಿ ಕುಜ-ರಾಹುಗಳ ಉಗ್ರ ಅಂಗಾರಕ ಯೋಗ.";
+      dim3BasisEn = "Mars-Rahu Angaraka Yoga in Lagna/8th generating explosive violence.";
+    } else if (isColdCrueltyMoon) {
+      dim3Score = 14;
+      dim3Risk = true;
+      dim3TitleKn = "ಭಾವಶೂನ್ಯ ಕ್ರೌರ್ಯ & ಆಂತರಿಕ ಸೇಡಿನ ಪ್ರವೃತ್ತಿ (Cold Vindictiveness & Cruelty)";
+      dim3TitleEn = "Cold Vindictiveness & Lack of Empathy";
+      dim3BadgeKn = "ಮನಸ್ತಾಪ • ಸೇಡಿನ ಗುಣ";
+      dim3BadgeEn = "Cold Revenge Warning";
+      dim3AnalysisKn = "ಅಷ್ಟಮ ಚಂದ್ರನ ಮೇಲೆ ಶನಿ-ಕೇತುಗಳ ಪ್ರಭಾವದಿಂದಾಗಿ, ಮನಸ್ಸಿನಲ್ಲಿ ತೀವ್ರ ಸೇಡು, ಸಹಾನುಭೂತಿಯ ಕೊರತೆ ಹಾಗೂ ಎದುರಾಳಿಗಳನ್ನು ನಿರ್ದಯವಾಗಿ ತುಳಿಯುವ ತಂಪು ಕ್ರೌರ್ಯ ಕಾಡಬಹುದು; ನಿತ್ಯ ಶಿವೋಪಾಸನೆ ಅಗತ್ಯ.";
+      dim3AnalysisEn = "Affliction of the Moon in the 8th house generates vindictive detachment and cold cruelty requiring spiritual purification.";
+      dim3BasisKn = "ಅಷ್ಟಮದಲ್ಲಿ ಚಂದ್ರ-ಕೇತು-ಶನಿಗಳ ಕ್ರೂರ ದೋಷ.";
+      dim3BasisEn = "Afflicted Moon in 8th house triggering emotional numbness.";
+    } else {
+      dim3Score = 4;
+      dim3Risk = false;
+      dim3TitleKn = "ಕ್ಷಣಿಕ ಆವೇಶದ ಸಿಟ್ಟು (Temporary Situational Anger)";
+      dim3TitleEn = "Temporary Situational Anger";
+      dim3BadgeKn = "ಸಾಮಾನ್ಯ ಸಿಟ್ಟು";
+      dim3BadgeEn = "Normal Irritability";
+      dim3AnalysisKn = "ಕೇವಲ ಕ್ಷಣಿಕ ಸಿಟ್ಟು ಅಥವಾ ಮಾತಿನ ಚಕಮಕಿ ಮಾತ್ರ ಕಾಣಿಸುತ್ತದೆ; ಯಾವುದೇ ದೈಹಿಕ ಹಿಂಸೆ ಅಥವಾ ಕ್ರೌರ್ಯದ ಲಕ್ಷಣಗಳಿಲ್ಲ.";
+      dim3AnalysisEn = "Normal transient irritability under pressure; strictly free from violent or criminal impulses.";
+      dim3BasisKn = "ಕುಜನ ಸಾಮಾನ್ಯ ಸಂಚಾರ.";
+      dim3BasisEn = "Ordinary Mars placement.";
+    }
+  }
+
+  // -------------------------------------------------------------
+  // 5. DIMENSION 4: LEGAL RESPECT VS CRIMINALITY & IMPRISONMENT (ಕಾನೂನು ಗೌರವ vs ಅಪರಾಧ & ಬಂಧನ ಯೋಗ)
+  // -------------------------------------------------------------
+  let dim4Score = 0;
+  let dim4Risk = false;
+  let dim4TitleKn = "";
+  let dim4TitleEn = "";
+  let dim4BadgeKn = "";
+  let dim4BadgeEn = "";
+  let dim4AnalysisKn = "";
+  let dim4AnalysisEn = "";
+  let dim4BasisKn = "";
+  let dim4BasisEn = "";
+
+  // Classical B.V. Raman Combination #196 Bandhana Yoga & Phaladeepika Ch. 6
+  const isRamanBandhanaYoga = Boolean(
+    saturn && rahu &&
+    ([2, 12, 5, 9].includes(saturn.house) && [2, 12, 5, 9].includes(rahu.house))
+  );
+  const is6th12thCustodyAffliction = Boolean(
+    sixthLordPlanet && sixthLordPlanet.house === 12 && (rahu?.house === 12 || saturn?.house === 12)
+  );
+  const isLagnaLord6thLordAfflicted = Boolean(
+    lagnaLordPlanet && sixthLordPlanet && Math.abs(lagnaLordPlanet.house - sixthLordPlanet.house) === 0 && [saturn, rahu].some(p => p && p.house === lagnaLordPlanet.house)
+  );
+
+  if (isChild) {
+    dim4Score = 0;
+    dim4Risk = false;
+    dim4TitleKn = "ಪೂರ್ಣ ಸ್ವಾತಂತ್ರ್ಯ & ಪೋಷಕರ ರಕ್ಷಣೆ";
+    dim4TitleEn = "Total Freedom & Parental Shield";
+    dim4BadgeKn = "ಪೋಷಕರ ರಕ್ಷಣೆ • ಮುಕ್ತ";
+    dim4BadgeEn = "Parental Shield";
+    dim4AnalysisKn = "ಮಗುವು ಪೋಷಕರ ಪ್ರೀತಿಯ ರಕ್ಷಣೆಯಲ್ಲಿದ್ದು ಯಾವುದೇ ಕಾನೂನು ಅಥವಾ ಬಂಧನ ದೋಷಗಳಿಲ್ಲ.";
+    dim4AnalysisEn = "Child enjoys complete innocence under loving parental protection.";
+    dim4BasisKn = "ಬಾಲ್ಯ ಜಾತಕ.";
+    dim4BasisEn = "Child horoscope.";
+  } else if (isJupiterProtected || (sun && [10, 11].includes(sun.house))) {
+    dim4Score = 0;
+    dim4Risk = false;
+    dim4TitleKn = "ಕಾನೂನು ಗೌರವ, ಸಮಾಜ ಮರ್ಯಾದೆ & ಬಂಧನ ಮುಕ್ತ ಸೌಭಾಗ್ಯ (Law-Abiding & Civic Honor)";
+    dim4TitleEn = "Law-Abiding Citizen & High Civic Honor (Zero Imprisonment/Bandhana Risk)";
+    dim4BadgeKn = "ಕಾನೂನು ಗೌರವ • ಬಂಧನ ಮುಕ್ತ";
+    dim4BadgeEn = "Civic Honor • Free of Custody";
+    dim4AnalysisKn = "9ನೇ ಧರ್ಮ ಸ್ಥಾನ ಮತ್ತು ರಾಜಕಾರಕ ಸೂರ್ಯನ ಬಲವು ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿದೆ. ನೀವು ಸಮಾಜದ ನಿಯಮಗಳನ್ನು ಗೌರವಿಸುವ, ಕಾನೂನಿನ ಚೌಕಟ್ಟಿನಲ್ಲಿ ಬದುಕುವ ಆದರ್ಶ ಪ್ರಜೆಯಾಗಿದ್ದೀರಿ. ಯಾವುದೇ ಪೊಲೀಸ್ ಕೇಸು, ಕೋರ್ಟು ಶಿಕ್ಷೆ, ಕಳಂಕ ಅಥವಾ ಕಾರಾಗೃಹ ವಾಸದ (ಬಂಧನ ಯೋಗ) ಲವಲೇಶವೂ ನಿಮ್ಮ ಜಾತಕಕ್ಕಿಲ್ಲ. ನಿಮ್ಮ ನಾಗರಿಕ ಸ್ವಾತಂತ್ರ್ಯ ಮತ್ತು ಗೌರವವನ್ನು ಸದಾ ಕಾಪಾಡುವ ದೈವಿಕ ರಕ್ಷಣೆ ನಿಮ್ಮ ಬೆನ್ನಿಗಿದೆ.";
+    dim4AnalysisEn = "The 9th house of Dharma and the Sun protect your civic honor. You are an upright, law-abiding citizen. Bandhana Yoga (imprisonment, police custody, or criminal record) is completely non-existent.";
+    dim4BasisKn = "9ನೇ ಧರ್ಮ ಸ್ಥಾನ ಮತ್ತು ಸೂರ್ಯನ ಶುಭ ಬಲದಿಂದಾಗಿ ಬಂಧನ ಯೋಗ ನಾಶ.";
+    dim4BasisEn = "Sun and 9th house of dharma protecting civil liberty and civic standing.";
+  } else {
+    // Afflicted
+    if (isRamanBandhanaYoga || is6th12thCustodyAffliction || isLagnaLord6thLordAfflicted) {
+      dim4Score = 16;
+      dim4Risk = true;
+      dim4TitleKn = "ಶಾಸ್ತ್ರೋಕ್ತ ಬಂಧನ ಯೋಗ & ಕಾನೂನು ಸಂಘರ್ಷದ ಎಚ್ಚರಿಕೆ (B.V. Raman Bandhana Yoga)";
+      dim4TitleEn = "Bandhana Yoga: Legal Confinement & Police Custody Risk";
+      dim4BadgeKn = "ಬಂಧನ ಯೋಗ • ಕೋರ್ಟ್/ಪೊಲೀಸ್";
+      dim4BadgeEn = "Bandhana Yoga • Confinement";
+      dim4AnalysisKn = "ಡಾ. ಬಿ.ವಿ. ರಾಮನ್ ಅವರ 300 ಪ್ರಮುಖ ಯೋಗಗಳ 'ಬಂಧನ ಯೋಗ' (Bandhana Yoga #196): 2, 12, 5 ಮತ್ತು 9ನೇ ಸ್ಥಾನಗಳಲ್ಲಿ ಶನಿ-ರಾಹುಗಳ ಸಂಚಾರ ಅಥವಾ 6 ಮತ್ತು 12ನೇ ಅಧಿಪತಿಗಳ ಅಶುಭ ಸಂಯೋಗದಿಂದಾಗಿ, ಕಾನೂನುಬಾಹಿರ ಕೃತ್ಯಗಳಲ್ಲಿ ಸಿಲುಕಿ ಪೊಲೀಸ್ ತನಿಖೆ, ಕೋರ್ಟು ವ್ಯಾಜ್ಯ, ದಂಡ ಅಥವಾ ಕಾರಾಗೃಹ ವಾಸದ (ಬಂಧನ) ಅಪಾಯದ ಸುಳಿವು ಜಾತಕದಲ್ಲಿದೆ. ಸರ್ಕಾರದ ನಿಯಮಗಳನ್ನು ಚಾಚೂ ತಪ್ಪದೆ ಪಾಲಿಸಬೇಕು.";
+      dim4AnalysisEn = "Dr. B.V. Raman's Bandhana Yoga (#196): Saturn and Rahu afflicting the 2nd/12th axis or 6th-12th lords in confinement houses indicates vulnerability to state penalties, litigation, or imprisonment if engaged in unlawful activity.";
+      dim4BasisKn = "2ನೇ, 12ನೇ, 6ನೇ ಭಾವಗಳಲ್ಲಿ ಶನಿ-ರಾಹುಗಳ ಬಂಧನ ಯೋಗ.";
+      dim4BasisEn = "B.V. Raman Bandhana Yoga across 2nd/12th and 6th houses.";
+    } else {
+      dim4Score = 4;
+      dim4Risk = false;
+      dim4TitleKn = "ಸಾಮಾನ್ಯ ದಾಖಲೆ ಜಾಗ್ರತೆ (Standard Contractual Prudence)";
+      dim4TitleEn = "Standard Contractual Prudence";
+      dim4BadgeKn = "ದಾಖಲೆ ಎಚ್ಚರಿಕೆ";
+      dim4BadgeEn = "Legal Caution";
+      dim4AnalysisKn = "ಕಾನೂನು ಅಥವಾ ಸರ್ಕಾರದ ವಿಷಯಗಳಲ್ಲಿ ಯಾವುದೇ ಕ್ರಿಮಿನಲ್ ಅಥವಾ ಬಂಧನ ದೋಷಗಳಿಲ್ಲ; ಕೇವಲ ಒಪ್ಪಂದಗಳಿಗೆ ಸಹಿ ಮಾಡುವಾಗ ಸರಿಯಾಗಿ ಪರಿಶೀಲಿಸಿದರೆ ಸಾಕು.";
+      dim4AnalysisEn = "Free from criminal or imprisonment afflictions; standard scrutiny in paperwork is sufficient.";
+      dim4BasisKn = "6ನೇ ಮನೆಯ ಸಾಮಾನ್ಯ ಸ್ಥಿತಿ.";
+      dim4BasisEn = "Ordinary 6th house status.";
+    }
+  }
+
+  // -------------------------------------------------------------
+  // 6. DIMENSION 5: MORAL COMPASS & SATSANGA VS DOWNWARD SPIRAL (ಸತ್ಸಂಗ & ಸನ್ಮಾರ್ಗ vs ಕುಸಂಗ & ದುರ್ಮಾರ್ಗ)
+  // -------------------------------------------------------------
+  let dim5Score = 0;
+  let dim5Risk = false;
+  let dim5TitleKn = "";
+  let dim5TitleEn = "";
+  let dim5BadgeKn = "";
+  let dim5BadgeEn = "";
+  let dim5AnalysisKn = "";
+  let dim5AnalysisEn = "";
+  let dim5BasisKn = "";
+  let dim5BasisEn = "";
+
+  const is9thHouseAfflicted = Boolean(rahu && rahu.house === 9 && !jupiterAspects9th);
+  const isMoonRahuDusthana = Boolean(moon && rahu && Math.abs(moon.house - rahu.house) === 0 && [6, 8].includes(moon.house));
+
+  if (isChild) {
+    dim5Score = 0;
+    dim5Risk = false;
+    dim5TitleKn = "ಸಂಸ್ಕಾರವಂತ ಮುಗ್ಧ ಬಾಲ ನಡತೆ";
+    dim5TitleEn = "Noble Child Upbringing";
+    dim5BadgeKn = "ಉತ್ತಮ ಸಂಸ್ಕಾರ";
+    dim5BadgeEn = "Pure Upbringing";
+    dim5AnalysisKn = "ಮಗುವು ಉತ್ತಮ ಸಂಸ್ಕಾರ ಮತ್ತು ಒಳ್ಳೆಯ ಹವ್ಯಾಸಗಳೊಂದಿಗೆ ಬೆಳೆಯುವ ಶುಭ ಯೋಗವಿದೆ.";
+    dim5AnalysisEn = "Child is blessed with noble values and tender innocence.";
+    dim5BasisKn = "ಬಾಲ್ಯ ಸೌಭಾಗ್ಯ.";
+    dim5BasisEn = "Child fortune.";
+  } else if (isJupiterProtected || (ninthLordPlanet && [1, 4, 5, 9, 10].includes(ninthLordPlanet.house))) {
+    dim5Score = 0;
+    dim5Risk = false;
+    dim5TitleKn = "ಸತ್ಸಂಗ ಸಂಸ್ಕಾರ & ಸನ್ಮಾರ್ಗ ಪ್ರವೃತ್ತಿ (Righteous Path & Noble Association)";
+    dim5TitleEn = "Noble Association & Righteous Path (Zero Downward Drift)";
+    dim5BadgeKn = "ಸನ್ಮಾರ್ಗ • ಸತ್ಸಂಗ";
+    dim5BadgeEn = "Satsanga • Pure Path";
+    dim5AnalysisKn = "9ನೇ ಭಾಗ್ಯ ಸ್ಥಾನ ಮತ್ತು ಕುಲದೇವರ ಅನುಗ್ರಹದಿಂದಾಗಿ ನಿಮ್ಮಲ್ಲಿ ಧರ್ಮ ಮಾರ್ಗದಲ್ಲಿ ಸಾಗುವ ದೃಢ ಮನಸ್ಸಿದೆ. ಕೆಟ್ಟ ಸ್ನೇಹಿತರ ಸಹವಾಸಕ್ಕೆ (ಕುಸಂಗ), ದುರಾಭ್ಯಾಸಗಳಿಗೆ ಅಥವಾ ದುರ್ಮಾರ್ಗಕ್ಕೆ ಬಲಿಯಾಗದೆ, ಕುಟುಂಬದ ಕೀರ್ತಿಯನ್ನು ಹೆಚ್ಚಿಸುವ ಹಾಗೂ ಹಿರಿಯರಿಗೆ ಗೌರವ ತರುವ ಸನ್ಮಾರ್ಗದಲ್ಲಿ ಮುನ್ನಡೆಯುವ ಸಂಸ್ಕಾರ ನಿಮ್ಮ ರಕ್ತದಲ್ಲಿದೆ.";
+    dim5AnalysisEn = "Grounded in dharma and ancestral blessings, you walk an upright life path. Immune to toxic peer pressure or downward spirals, you uphold family honor and wholesome company.";
+    dim5BasisKn = "9ನೇ ಭಾಗ್ಯ ಸ್ಥಾನ ಹಾಗೂ ಗುರುವಿನ ಸಾತ್ವಿಕ ಮಾರ್ಗದರ್ಶನ.";
+    dim5BasisEn = "9th house of fortune and Jupiter's guidance ensuring noble association.";
+  } else {
+    // Afflicted
+    if (is9thHouseAfflicted || isMoonRahuDusthana) {
+      dim5Score = 14;
+      dim5Risk = true;
+      dim5TitleKn = "ಕುಸಂಗ, ದುರ್ಮಾರ್ಗ & ಹಾದಿ ತಪ್ಪಿಸುವ ಸ್ನೇಹಿತರ ಎಚ್ಚರಿಕೆ (Bad Company & Downward Spiral Warning)";
+      dim5TitleEn = "Bad Company & Misdirection Warning";
+      dim5BadgeKn = "ಕುಸಂಗ ಎಚ್ಚರಿಕೆ • ದುರ್ಮಾರ್ಗ";
+      dim5BadgeEn = "Negative Peer Vulnerability";
+      dim5AnalysisKn = "9ನೇ ಧರ್ಮ ಸ್ಥಾನದಲ್ಲಿ ರಾಹುವಿನ ಸಂಚಾರ ಅಥವಾ 6/8ನೇ ಮನೆಯಲ್ಲಿ ಚಂದ್ರ-ರಾಹು ಸಂಯೋಗದಿಂದಾಗಿ, ಹಾದಿ ತಪ್ಪಿಸುವ ನಕಲಿ ಸ್ನೇಹಿತರು, ದುರಾಭ್ಯಾಸಗಳುಳ್ಳ ವ್ಯಕ್ತಿಗಳ ಸಹವಾಸ ಅಥವಾ ಆಮಿಷಗಳ ಜಾಲಕ್ಕೆ ಸಿಲುಕಿ ಜೀವನದ ಗುರಿ ತಪ್ಪುವ ಗಂಭೀರ ಅಪಾಯವಿದೆ. ತಕ್ಷಣವೇ ಸತ್ಸಂಗವನ್ನು ಆಶ್ರಯಿಸುವುದು ಅಗತ್ಯ.";
+      dim5AnalysisEn = "9th house affliction by Rahu and Moon-Rahu tension creates vulnerability to toxic associates, shady mentors, or peer-led downward spirals.";
+      dim5BasisKn = "9ನೇ ಧರ್ಮ ಸ್ಥಾನದಲ್ಲಿ ರಾಹುವಿನ ನೆರಳು.";
+      dim5BasisEn = "Rahu affliction in 9th house of dharma.";
+    } else {
+      dim5Score = 3;
+      dim5Risk = false;
+      dim5TitleKn = "ಸಾಮಾನ್ಯ ಸ್ನೇಹ ಜಾಗ್ರತೆ (General Peer Discretion)";
+      dim5TitleEn = "General Peer Discretion";
+      dim5BadgeKn = "ಸ್ನೇಹ ವಿವೇಚನೆ";
+      dim5BadgeEn = "Peer Discretion";
+      dim5AnalysisKn = "ಜೀವನದಲ್ಲಿ ಯಾವುದೇ ದುರ್ಮಾರ್ಗದ ದೋಷಗಳಿಲ್ಲ; ಕೇವಲ ಹೊಸ ಪರಿಚಯಸ್ಥರೊಂದಿಗೆ ಗಡಿಗಳನ್ನು ಕಾಯ್ದುಕೊಳ್ಳುವುದು ಕ್ಷೇಮ.";
+      dim5AnalysisEn = "Free from downward paths; standard discretion in friendships is sufficient.";
+      dim5BasisKn = "9ನೇ ಮನೆಯ ಸಮತೋಲನ.";
+      dim5BasisEn = "Balanced 9th house.";
+    }
+  }
+
+  // -------------------------------------------------------------
+  // 7. SEVERITY ASSIGNMENT & OVERALL SCORE CALCULATION
+  // -------------------------------------------------------------
+  const getSeverity = (s: number): "none" | "mild" | "moderate" | "severe" => {
+    if (s <= 3) return "none";
+    if (s <= 8) return "mild";
+    if (s <= 14) return "moderate";
+    return "severe";
+  };
+
+  const sensualMarital: NegativeShadeDimension = {
+    id: 1,
+    score: dim1Score,
+    hasRisk: dim1Risk,
+    severity: getSeverity(dim1Score),
+    titleKn: dim1TitleKn,
+    titleEn: dim1TitleEn,
+    badgeKn: dim1BadgeKn,
+    badgeEn: dim1BadgeEn,
+    analysisKn: dim1AnalysisKn,
+    analysisEn: dim1AnalysisEn,
+    astrologicalBasisKn: dim1BasisKn,
+    astrologicalBasisEn: dim1BasisEn
+  };
+
+  const financialIntegrity: NegativeShadeDimension = {
+    id: 2,
+    score: dim2Score,
+    hasRisk: dim2Risk,
+    severity: getSeverity(dim2Score),
+    titleKn: dim2TitleKn,
+    titleEn: dim2TitleEn,
+    badgeKn: dim2BadgeKn,
+    badgeEn: dim2BadgeEn,
+    analysisKn: dim2AnalysisKn,
+    analysisEn: dim2AnalysisEn,
+    astrologicalBasisKn: dim2BasisKn,
+    astrologicalBasisEn: dim2BasisEn
+  };
+
+  const violenceAggression: NegativeShadeDimension = {
+    id: 3,
+    score: dim3Score,
+    hasRisk: dim3Risk,
+    severity: getSeverity(dim3Score),
+    titleKn: dim3TitleKn,
+    titleEn: dim3TitleEn,
+    badgeKn: dim3BadgeKn,
+    badgeEn: dim3BadgeEn,
+    analysisKn: dim3AnalysisKn,
+    analysisEn: dim3AnalysisEn,
+    astrologicalBasisKn: dim3BasisKn,
+    astrologicalBasisEn: dim3BasisEn
+  };
+
+  const legalBandhana: NegativeShadeDimension = {
+    id: 4,
+    score: dim4Score,
+    hasRisk: dim4Risk,
+    severity: getSeverity(dim4Score),
+    titleKn: dim4TitleKn,
+    titleEn: dim4TitleEn,
+    badgeKn: dim4BadgeKn,
+    badgeEn: dim4BadgeEn,
+    analysisKn: dim4AnalysisKn,
+    analysisEn: dim4AnalysisEn,
+    astrologicalBasisKn: dim4BasisKn,
+    astrologicalBasisEn: dim4BasisEn
+  };
+
+  const conductDownwardPath: NegativeShadeDimension = {
+    id: 5,
+    score: dim5Score,
+    hasRisk: dim5Risk,
+    severity: getSeverity(dim5Score),
+    titleKn: dim5TitleKn,
+    titleEn: dim5TitleEn,
+    badgeKn: dim5BadgeKn,
+    badgeEn: dim5BadgeEn,
+    analysisKn: dim5AnalysisKn,
+    analysisEn: dim5AnalysisEn,
+    astrologicalBasisKn: dim5BasisKn,
+    astrologicalBasisEn: dim5BasisEn
+  };
+
+  let overallScore = 0;
+  if (isChild) {
+    overallScore = 0;
+  } else {
+    const rawTotal = dim1Score + dim2Score + dim3Score + dim4Score + dim5Score;
+    if (isJupiterProtected || hasBeneficKendraShield) {
+      // Benefic cap ensuring clean charts never falsely accused!
+      overallScore = Math.min(15, Math.round(rawTotal * 0.2));
+    } else {
+      overallScore = Math.min(100, rawTotal);
+    }
+  }
+
+  let category: NegativeShadeAssessment["category"] = "purity";
+  let categoryTitleKn = "";
+  let categoryTitleEn = "";
+  let categoryDescriptionKn = "";
+  let categoryDescriptionEn = "";
+
+  if (overallScore <= 15) {
+    category = "purity";
+    categoryTitleKn = "ಪರಿಶುದ್ಧ ಸತ್ಚಾರಿತ್ರ್ಯ & ಅಪರಾಧ-ಕಳಂಕ ಮುಕ್ತ ಶ್ರೀರಕ್ಷೆ";
+    categoryTitleEn = "Impeccable Moral Integrity & Certified Defect-Free";
+    categoryDescriptionKn = isChild
+      ? "ಮಗುವಿನ ಜಾತಕವು ದೈವಿಕ ಮುಗ್ಧತೆಯಿಂದ ಕೂಡಿದ್ದು, ಯಾವುದೇ ವಯಸ್ಕರ ಅಪರಾಧ, ಚೋರ, ಹಿಂಸಾ ಅಥವಾ ನೈತಿಕ ದೋಷಗಳಿಲ್ಲ."
+      : "ಜಾತಕದಲ್ಲಿ ಯಾವುದೇ ಅಪರಾಧ, ಕಳ್ಳತನ (ಚೋರ ಯೋಗ), ವಂಚನೆ, ಹಲ್ಲೆ/ಕ್ರೌರ್ಯ, ಅತ್ಯಾಚಾರ ಅಥವಾ ದಾಂಪತ್ಯೇತರ ನೆರಳುಗಳಿಲ್ಲ. ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಸಾತ್ವಿಕ ದೃಷ್ಟಿ ಹಾಗೂ ಕೇಂದ್ರ ಶುಭಗ್ರಹಗಳ ರಕ್ಷಣೆಯಿಂದ ಪರಿಶುದ್ಧ ನಡತೆ, ಪ್ರಾಮಾಣಿಕತೆ ಮತ್ತು ಸದಾಚಾರವುಳ್ಳ ಧೀಮಂತ ವ್ಯಕ್ತಿತ್ವ.";
+    categoryDescriptionEn = isChild
+      ? "Child chart endowed with divine innocence and tender purity. Absolutely free from adult criminal, theft, violent, or moral blemishes."
+      : "Certified 100% free from criminal, theft, violent, predatory, or extramarital propensities. Protected by Jupiterian drishti and benefic auspices ensuring spotless integrity.";
+  } else if (overallScore <= 35) {
+    category = "mild_flaws";
+    categoryTitleKn = "ಸೌಮ್ಯ ಮಾನವೀಯ ಕೊರತೆಗಳು & ಒತ್ತಡದ ಎಚ್ಚರಿಕೆ";
+    categoryTitleEn = "Mild Human Flaws & Situational Stress";
+    categoryDescriptionKn = "ಯಾವುದೇ ಕ್ರಿಮಿನಲ್ ಅಥವಾ ವಿನಾಶಕಾರಿ ಅಪರಾಧ ದೋಷಗಳಿಲ್ಲ. ಕೇವಲ ಕೆಲಸದ ಆಯಾಸ ಅಥವಾ ಮಾನಸಿಕ ಒತ್ತಡದ ಸಮಯದಲ್ಲಿ ಉಂಟಾಗುವ ಸೌಮ್ಯ ಸಿಟ್ಟು, ಹಠ ಅಥವಾ ಸಂವಹನ ಕೊರತೆ ಮಾತ್ರ ಕಾಣಿಸುತ್ತದೆ.";
+    categoryDescriptionEn = "Free from serious criminal or legal afflictions; minor behavioral vulnerabilities manifest purely under acute fatigue or stress.";
+  } else if (overallScore <= 60) {
+    category = "moderate_caution";
+    categoryTitleKn = "ಮಧ್ಯಮ ನೆರಳು / ದುಸ್ಸಂಗ & ಒತ್ತಡದ ಎಚ್ಚರಿಕೆ";
+    categoryTitleEn = "Moderate Shadow Tendencies & Peer Influence Warning";
+    categoryDescriptionKn = "ಕೆಟ್ಟ ಸ್ನೇಹಿತರ ಸಹವಾಸ, ಆರ್ಥಿಕ ಸಾಲದ ಒತ್ತಡ ಅಥವಾ ಬಾಹ್ಯ ಆಕರ್ಷಣೆಗಳ ಸಂದರ್ಭದಲ್ಲಿ ನೈತಿಕ ಮೌಲ್ಯಗಳನ್ನು ಕಾಯ್ದುಕೊಳ್ಳಲು ಎಚ್ಚರಿಕೆ ಅಗತ್ಯವಿರುವ ಹಂತ.";
+    categoryDescriptionEn = "Planetary tension indicates vulnerability to external peer pressure, bad company, or financial stress requiring conscious boundaries.";
+  } else if (overallScore <= 80) {
+    category = "severe_conflict";
+    categoryTitleKn = "ತೀವ್ರ ನೈತಿಕ & ಕಾನೂನು ಸಂಘರ್ಷದ ಎಚ್ಚರಿಕೆ";
+    categoryTitleEn = "Significant Moral & Legal Conflict Vulnerability";
+    categoryDescriptionKn = "ಶಾಸ್ತ್ರೋಕ್ತ ಗ್ರಹ ಯೋಗಗಳು ನಂಬಿಕೆದ್ರೋಹ, ಚೋರ ಯೋಗ, ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧ ಅಥವಾ ಕಾನೂನು ಸಂಘರ್ಷಗಳ ಅಪಾಯವನ್ನು ಎಚ್ಚರಿಸುತ್ತಿವೆ; ತಕ್ಷಣವೇ ಸದಾಚಾರ ಮತ್ತು ಪ್ರಾಯಶ್ಚಿತ್ತ ಅಗತ್ಯ.";
+    categoryDescriptionEn = "Pronounced planetary afflictions indicate vulnerability to deception, breach of trust, or legal disputes during afflicted transit periods.";
+  } else {
+    category = "critical_danger";
+    categoryTitleKn = "ಅಪರಾಧ & ವಿನಾಶಕಾರಿ ನೆರಳು (ಅತ್ಯುಗ್ರ ಎಚ್ಚರಿಕೆ)";
+    categoryTitleEn = "Severe Malefic Affliction & Criminal Vulnerability";
+    categoryDescriptionKn = "ಅಸುರ ಯೋಗ, ಅಂಗಾರಕ ದೋಷ ಹಾಗೂ ಬಂಧನ ಯೋಗಗಳ ತೀವ್ರ ಪ್ರಭಾವವಿದ್ದು, ಹಿಂಸೆ, ಚೋರ ಅಥವಾ ಕಾನೂನು ಶಿಕ್ಷೆಯ ತೀವ್ರ ಅಪಾಯವಿದೆ; ತುರ್ತು ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಶಾಂತಿ ಸೇವೆ ಅತ್ಯಗತ್ಯ.";
+    categoryDescriptionEn = "Severe unmitigated malefic yogas (Asura, Angaraka, Bandhana) indicating dangerous aggressive or criminal vulnerability requiring urgent remedial intervention.";
+  }
+
+  // -------------------------------------------------------------
+  // 8. RUNNING DASHA & GOCHARA DYNAMIC TRIGGERS
+  // -------------------------------------------------------------
+  const dashaMaha = dashaTiming?.currentMaha || PlanetName.Jupiter;
+  const dashaBhukti = dashaTiming?.currentBhukti || PlanetName.Moon;
+  const isMaleficDasha = [PlanetName.Rahu, PlanetName.Saturn, PlanetName.Mars, sixthLord, eighthLord, twelfthLord].includes(dashaMaha);
+
+  let activeDashaTriggerKn = "";
+  let activeDashaTriggerEn = "";
+
+  if (overallScore <= 15) {
+    activeDashaTriggerKn = `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${toKannadaPlanet(dashaMaha)} ಮಹಾದಶೆಯ ${toKannadaPlanet(dashaBhukti)} ಭುಕ್ತಿಯು ನಿಮ್ಮ ವಿವೇಕ, ಸತ್ಯದ ನಡೆ ಹಾಗೂ ಸದಾಚಾರವನ್ನು ಜಾಗೃತವಾಗಿರಿಸಿದ್ದು, ಯಾವುದೇ ನಕಾರಾತ್ಮಕ ನೆರಳುಗಳು ತಲೆದೋರದಂತೆ ದೈವಿಕ ರಕ್ಷಾ ಕವಚ ಒದಗಿಸಿದೆ.`;
+    activeDashaTriggerEn = `The ongoing ${dashaMaha} Mahadasha with ${dashaBhukti} Antardasha reinforces your moral compass and provides an auric shield preventing negative impulses.`;
+  } else if (isMaleficDasha) {
+    activeDashaTriggerKn = `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${toKannadaPlanet(dashaMaha)} ಮಹಾದಶೆಯ ${toKannadaPlanet(dashaBhukti)} ಭುಕ್ತಿಯ ಕಾಲಾವಧಿಯು ನೈತಿಕ ಮತ್ತು ಇಂದ್ರಿಯ ಶಿಸ್ತನ್ನು ಪರೀಕ್ಷಿಸುವ ಸೂಕ್ಷ್ಮ ಸಂಧಿಕಾಲವಾಗಿದೆ. ಆವೇಶದ ನಿರ್ಧಾರಗಳು ಅಥವಾ ಕುಸಂಗಕ್ಕೆ ಬಲಿಯಾಗದಂತೆ ಎಚ್ಚರಿಕೆ ಅಗತ್ಯ.`;
+    activeDashaTriggerEn = `The ongoing ${dashaMaha} Mahadasha and ${dashaBhukti} Antardasha represents a karmic testing phase requiring conscious self-restraint and vigilance against bad influences.`;
+  } else {
+    activeDashaTriggerKn = `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ಶುಭ ಗ್ರಹ ದಶೆಯು ನಿಮ್ಮಲ್ಲಿ ಸಂಯಮ ಮತ್ತು ಸತ್ಚಿಂತನೆಯನ್ನು ಕಾಪಾಡುತ್ತಿದ್ದು, ನೆರಳು ದೋಷಗಳು ಶಮನಗೊಳ್ಳಲು ಸಹಕಾರಿಯಾಗಿದೆ.`;
+    activeDashaTriggerEn = `The ongoing benefic Dasha stabilizes inner temperament and prevents shadow vulnerabilities from taking root.`;
+  }
+
+  const activeGocharaTriggerKn = liveGochara
+    ? `ಗೋಚಾರದಲ್ಲಿ ಶನಿಯ ${liveGochara.shaniStatusKn} ಹಾಗೂ ಗುರುವಿನ ${liveGochara.guruStatusKn} ಪ್ರಭಾವವು ನಿಮ್ಮ ಕರ್ಮ ಸಂಸ್ಕಾರಗಳನ್ನು ಶುದ್ಧೀಕರಿಸುವ ಕಾಲಾವಧಿಯಾಗಿದೆ.`
+    : `ಗೋಚಾರದ ಗ್ರಹ ಸ್ಥಿತಿಯು ಸದಾಚಾರದ ರಕ್ಷಣೆಗೆ ಪೂರಕವಾಗಿದೆ.`;
+  const activeGocharaTriggerEn = liveGochara
+    ? `Live Gochara transits of Saturn (${liveGochara.shaniStatusEn}) and Jupiter (${liveGochara.guruStatusEn}) demand inner discipline.`
+    : `Current planetary transits support personal boundaries.`;
+
+  // -------------------------------------------------------------
+  // 9. PANCHANGA INFLUENCE & REMEDY
+  // -------------------------------------------------------------
+  const moonPlanet = kundli.planets.find(p => p.name === PlanetName.Moon);
+  const moonNakKn = toKannadaNakshatra(moonPlanet?.nakshatra.english);
+  const nakNameKn = tradPanchanga?.moonNakshatraKn || moonNakKn || "ಅಶ್ವಿನಿ";
+  const nakNameEn = tradPanchanga?.moonNakshatra || moonPlanet?.nakshatra.english || "Ashwini";
+  const yogaNameKn = tradPanchanga?.yogaKn || tradPanchanga?.yoga || "ಸಿದ್ಧ";
+  const yogaNameEn = tradPanchanga?.yoga || "Siddha";
+  const karanaNameKn = tradPanchanga?.karanaKn || tradPanchanga?.karana || "ಬವ";
+  const karanaNameEn = tradPanchanga?.karana || "Bava";
+
+  const panchangaInfluenceKn = `ನಿಮ್ಮ ಜನ್ಮ ಪಂಚಾಂಗದ ನಕ್ಷತ್ರ ${nakNameKn}, ಯೋಗ ${yogaNameKn} ಹಾಗೂ ಕರಣ ${karanaNameKn}ಗಳ ಸಂಯೋಗವು ಆಂತರಿಕ ಶಕ್ತಿಯನ್ನು ಧರ್ಮದ ಹಾದಿಯಲ್ಲಿ ಮುನ್ನಡೆಸುವ ದೈವಿಕ ಸಂಸ್ಕಾರವನ್ನು ನೀಡಿದೆ.`;
+  const panchangaInfluenceEn = `Birth Panchanga elements (Nakshatra: ${nakNameEn}, Yoga: ${yogaNameEn}, Karana: ${karanaNameEn}) influence your foundational karmic imprint.`;
+
+  const protectionRemedyKn = overallScore <= 15
+    ? "ಈ ಸಾತ್ವಿಕ ಸದಾಚಾರ ಮತ್ತು ದೈವಿಕ ರಕ್ಷಣೆ ಸದಾ ಮುಂದುವರಿಯಲು ಪರಮ ಪವಿತ್ರ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ಆತ್ಮಲಿಂಗ ಸ್ಪರ್ಶ ಹಾಗೂ ನವಗ್ರಹ ಕೃತಜ್ಞತಾ ಸಂಕಲ್ಪ ಸೇವೆ ಸಮರ್ಪಿಸುವುದು ಶ್ರೇಯಸ್ಕರ."
+    : "ಅಂತರಂಗದ ನೆರಳು ದೋಷಗಳ ಶಮನಕ್ಕಾಗಿ ಹಾಗೂ ಆಪತ್ತುಗಳಿಂದ ಮುಕ್ತಿ ಪಡೆಯಲು ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಪ್ರಾಯಶ್ಚಿತ್ತ ಸಂಕಲ್ಪ, ಆತ್ಮಲಿಂಗ ಸ್ಪರ್ಶ, ಗಣಪತಿ ಪೂಜೆ ಹಾಗೂ ರಾಹು-ಶನಿ ಶಾಂತಿ ಹವನ ಸೇವೆ ಸಲ್ಲಿಸುವುದು ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ.";
+  const protectionRemedyEn = overallScore <= 15
+    ? "To sustain this pure aura and divine shield, sponsor gratitude Sankalpa Pooja and Atma Linga Sparsha at holy Sri Kshetra Gokarna Mahabaleshwara."
+    : "To dissolve shadow karma and negative planetary influences, perform authentic Prayashchitta Sankalpa Pooja, Atma Linga Sparsha, and Navagraha Shanti Homa at Gokarna Kshetra.";
+
+  return {
+    overallScore,
+    category,
+    categoryTitleKn,
+    categoryTitleEn,
+    categoryDescriptionKn,
+    categoryDescriptionEn,
+    isChildShielded: isChild,
+    isJupiterProtected,
+    hasBeneficKendraShield,
+    sensualMarital,
+    financialIntegrity,
+    violenceAggression,
+    legalBandhana,
+    conductDownwardPath,
+    activeDashaTriggerKn,
+    activeDashaTriggerEn,
+    activeGocharaTriggerKn,
+    activeGocharaTriggerEn,
+    panchangaInfluenceKn,
+    panchangaInfluenceEn,
+    protectionRemedyKn,
+    protectionRemedyEn
+  };
+};
+
 export const generate10MasterLifeBulletPoints = (
   kundli: KundliOutput,
   context: { birthDate: string; birthTime: string; latitude: number; longitude: number; gender?: string; devoteeName?: string },
@@ -1123,58 +2082,149 @@ export const generate10MasterLifeBulletPoints = (
 
   const p10ReadingEn = `Mathematical calculations project a major positive astrological turning point ${dt.timelineEn}. ${nextBhuktiNoticeEn} To accelerate this breakthrough, wear an energized ${gemEn} (${gemCarat}) in ${prescriptions?.gemstoneRing?.metalEn || "Gold"} on the ${prescriptions?.gemstoneRing?.fingerEn || "Ring finger"} and adorn ${rudraEn}. Performing ${prescriptions?.shantiPooja?.nameEn || "Sankalpa Pooja"} at Sri Kshetra Gokarna Mahabaleshwara dissolves obstacles and brings deep serenity and progress.`;
 
-  // 11. Secret Life, Hidden Desires, Addictions & Shadow Tendencies
+  // 11. Secret Life, Inner Character, Dietary Sanctity & Moral Rectitude (100% Dynamic, Age & Gender Aware)
+  const isChild = age < 14;
+  const isMale = (context.gender || "Male").toLowerCase() === "male";
+  const spouseKn = isMale ? "ಪತ್ನಿ/ಕುಟುಂಬ" : "ಪತಿ/ಕುಟುಂಬ";
+  const spouseEn = isMale ? "spouse/family" : "spouse/family";
+
+  const dietAssessment = detectNativeDietAndAddiction(kundli);
+  const sensualAssessment = detectNativeSensualAndFidelity(kundli);
+
   const isOpenLagna = [0, 2, 4, 8].includes(lagnaIdx);
   const isSecretLagna = [3, 7, 11].includes(lagnaIdx) || (rahu && [8, 12].includes(rahu.house)) || (saturn && [8, 12].includes(saturn.house));
-  const venusH = venus?.house ?? 1;
-  const hasSensualAffliction = [7, 8, 12].includes(venusH) || (rahu && [7, 8, 12].includes(rahu.house)) || (mars && venus && Math.abs(mars.house - venus.house) <= 1);
-  const hasAddictionRisk = (rahu && [2, 8, 12].includes(rahu.house)) || (saturn && [2, 8].includes(saturn.house));
-  const hasIllegalRisk = (rahu && [8, 11].includes(rahu.house)) || (mars && mars.house === 8);
   const hasDarkThoughtLoops = (moon && [6, 8, 12].includes(moon.house)) || (moon && rahu && Math.abs(moon.house - rahu.house) === 0) || (moon && saturn && Math.abs(moon.house - saturn.house) === 0);
 
   const secrecyHabitTextKn = isOpenLagna && !isSecretLagna
-    ? "ವರ್ತನೆಯ ಸ್ವಭಾವ: ಕುಲ್ಲಂ ಕುಲ್ಲಾ ಪ್ರವೃತ್ತಿ — ಯಾವುದೇ ತಪ್ಪು ಹೆಜ್ಜೆ, ದುಶ್ಚಟ ಅಥವಾ ರಹಸ್ಯಗಳನ್ನು ಮನಸ್ಸಿನಲ್ಲಿ ಮುಚ್ಚಿಡಲಾರದೆ, ಆಪ್ತ ಸ್ನೇಹಿತರ ಬಳಿ ಮುಕ್ತವಾಗಿ ಹಂಚಿಕೊಳ್ಳುವ ಸ್ವಭಾವವಿದೆ."
-    : "ವರ್ತನೆಯ ಸ್ವಭಾವ: ಅತ್ಯಂತ ಗೌಪ್ಯ — ಸಮಾಜದಲ್ಲಿ ಸಭ್ಯ ಮತ್ತು ಶಾಂತ ಮುಖವಾಡ ಧರಿಸಿ, ಒಳಗಿನ ಕಾಮನೆಗಳು, ದುಶ್ಚಟ ಅಥವಾ ತಪ್ಪುಗಳನ್ನು ಹೆಂಡತಿ ಮತ್ತು ಪರಮ ಆಪ್ತರಿಗೂ ಕಿಂಚಿತ್ತೂ ಸುಳಿವು ನೀಡದೆ ಮುಚ್ಚಿಡುವ ಚಾಣಾಕ್ಷತೆ ಇದೆ.";
+    ? `ಕುಲ್ಲಂ ಕುಲ್ಲಾ ಪ್ರವೃತ್ತಿ — ಯಾವುದೇ ತಪ್ಪು ಹೆಜ್ಜೆ, ರಹಸ್ಯಗಳನ್ನು ಮನಸ್ಸಿನಲ್ಲಿ ಮುಚ್ಚಿಡಲಾರದೆ, ${spouseKn} ಅಥವಾ ಆಪ್ತ ಸ್ನೇಹಿತರ ಬಳಿ ಮುಕ್ತವಾಗಿ ಹಂಚಿಕೊಳ್ಳುವ ನೇರ ಸ್ವಭಾವ.`
+    : isSecretLagna
+    ? `ಆಳವಾದ ಸಂಯಮ — ವೈಯಕ್ತಿಕ ನೋವು, ಸಂಕಟ ಅಥವಾ ಅಂತರಂಗದ ಭಾವನೆಗಳನ್ನು ಅನಗತ್ಯವಾಗಿ ಸಾರ್ವಜನಿಕವಾಗಿ ಹಂಚಿಕೊಳ್ಳದೆ, ಕುಟುಂಬದ ನೆಮ್ಮದಿಯ ಹಿತದೃಷ್ಟಿಯಿಂದ ಅಂತರಂಗದಲ್ಲೇ ನಿಭಾಯಿಸುವ ಗೌಪ್ಯತೆ.`
+    : `ಪ್ರಾಯೋಗಿಕ ಗಾಂಭೀರ್ಯ — ಸಮಾಜದಲ್ಲಿ ಸಭ್ಯ ಮತ್ತು ಶಾಂತ ಶಿಸ್ತು ಕಾಪಾಡಿಕೊಳ್ಳುತ್ತಾ, ಆಪ್ತರೊಂದಿಗೆ ಮಾತ್ರ ಅವಶ್ಯಕ ವಿಚಾರಗಳನ್ನು ಗೌಪ್ಯವಾಗಿಡುವ ಸಮತೋಲನ.`;
 
   const secrecyHabitTextEn = isOpenLagna && !isSecretLagna
-    ? "Behavioral Pattern: Open & Expressive — Cannot keep secrets long; shares mistakes, vices, or relations openly with friends."
-    : "Behavioral Pattern: Deep Concealment — Keeps sensual attractions, vices, and shadow thoughts strictly hidden from spouse and friends.";
+    ? `Open & Candid — Expresses thoughts transparently without keeping covert secrets from ${spouseEn} or close peers.`
+    : isSecretLagna
+    ? `Deep Emotional Reserve — Holds private feelings, vulnerabilities, and pain with dignified introspection away from public drama.`
+    : `Pragmatic Boundary — Balances social discretion and family boundaries with quiet composure.`;
 
-  const p11ReadingKn = `ನಿಮ್ಮ ಕುಂಡಲಿಯ 8ನೇ (ಗುಪ್ತ/ರಹಸ್ಯ), 12ನೇ (ಶಯನ ಸುಖ/ವ್ಯಸನ) ಹಾಗೂ 7ನೇ ಕಾಮ ಸ್ಥಾನದ ಸೂಕ್ಷ್ಮ ಗ್ರಹಸ್ಥಿತಿಯನ್ನು ನೋಡಿದಾಗ: ${
-    hasSensualAffliction 
-      ? "ಶುಕ್ರ-ರಾಹುಗಳ ಸಂಚಾರದಿಂದಾಗಿ ಹೊರಗಿನ ವ್ಯಕ್ತಿಗಳ ಕಡೆಗೆ ಲೈಂಗಿಕ ಆಕರ್ಷಣೆ, ಪರಸ್ತ್ರೀ/ಪರಪುರುಷ ಸಂಬಂಧಗಳ ವ್ಯಾಮೋಹ ಅಥವಾ ಅತಿಯಾದ ಕಾಮ ಪ್ರಚೋದನೆಗಳ ಆಂತರಿಕ ಸೆಳೆತ ಉಂಟಾಗಬಹುದು. " 
-      : "ದಾಂಪತ್ಯದಲ್ಲಿ ಗೌರವ ಕಾಪಾಡಿಕೊಳ್ಳುವ ಇಚ್ಛೆ ಇದ್ದರೂ ಲೈಂಗಿಕ ಅಸಮಾಧಾನ ಮೂಡಿದಾಗ ಬಾಹ್ಯ ಆಕರ್ಷಣೆಯ ತೀವ್ರ ಹಂಬಲ ಮೂಡುತ್ತದೆ. "
-  }${
-    hasAddictionRisk
-      ? "2ನೇ ಮುಖ ಸ್ಥಾನದಲ್ಲಿ ರಾಹು-ಶನಿಯ ಪ್ರಭಾವದಿಂದ ಮಾನಸಿಕ ಒತ್ತಡದ ಸಮಯದಲ್ಲಿ ಮದ್ಯಪಾನ, ಧೂಮಪಾನ, ಮಾದಕ ವಸ್ತುಗಳು ಅಥವಾ ದುಶ್ಚಟಗಳಿಗೆ ಸುಲಭವಾಗಿ ಜಾರುವ ಪ್ರವೃತ್ತಿ ಕಾಣಿಸುತ್ತದೆ. "
-      : "ಸ್ನೇಹಿತರ ಸಹವಾಸ ಅಥವಾ ಒತ್ತಡದಿಂದ ದುಂದುವೆಚ್ಚ ಮತ್ತು ಕ್ಷಣಿಕ ಸುಖದ ದುಶ್ಚಟಗಳ ಸೆಳೆತ ಉಂಟಾಗಬಹುದು. "
-  }${
-    hasIllegalRisk
-      ? "8ನೇ ಭಾವದ ನೆರಳು ಗ್ರಹಗಳ ಪ್ರಭಾವದಿಂದ ಸುಲಭವಾಗಿ ಹಣ ಗಳಿಸುವ ಅಕ್ರಮ, ಕಳ್ಳಸಾಗಾಣಿಕೆ ಅಥವಾ ರಿಸ್ಕ್ ವ್ಯವಹಾರಗಳ ದುಸ್ಸಾಹಸಕ್ಕೆ ಮನಸ್ಸು ಹಾತೊರೆಯಬಹುದು; ಇದರಿಂದ ದೂರವಿರುವುದು ಲೇಸು. "
-      : ""
-  }${
-    hasDarkThoughtLoops
-      ? "ಮನಃಕಾರಕ ಚಂದ್ರನ ಮೇಲಿನ ರಾಹು-ಶನಿ ಪ್ರಭಾವದಿಂದ ಮನಸ್ಸಿನಲ್ಲಿ ಕತ್ತಲೆಯ ನಕಾರಾತ್ಮಕ ಆಲೋಚನೆಗಳು, ಅನುಮಾನ ಹಾಗೂ ಸೇಡಿನ ಚಿಂತನೆಗಳು ಸುಳಿಯಬಹುದು. "
-      : ""
-  }${secrecyHabitTextKn} ಈ ನೆರಳು ದೋಷಗಳ ಶಮನಕ್ಕಾಗಿ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಆತ್ಮಲಿಂಗ ಸ್ಪರ್ಶ, ಪ್ರಾಯಶ್ಚಿತ್ತ ಸಂಕಲ್ಪ ಪೂಜೆ ಸಲ್ಲಿಸುವುದು ಅತ್ಯಗತ್ಯ.`;
+  let p11ReadingKn = "";
+  let p11ReadingEn = "";
+  let card11TitleKn = "";
+  let card11TitleEn = "";
+  let card11BadgeKn = "";
+  let card11BadgeEn = "";
+  let card11Icon = "💎";
+  let card11BasisKn = "";
+  let card11BasisEn = "";
+  let card11Dosha: MasterLifeBulletPoint["doshaSpecifics"];
 
-  const p11ReadingEn = `Planetary scrutiny of the 8th (secrets), 12th (bed pleasures/substances), and 7th (sensual desires) houses reveals: ${
-    hasSensualAffliction
-      ? "Venus-Rahu tensions generate vulnerability to external sensual attractions, clandestine affairs, or intense erotic impulses. "
-      : "Sensual impulses are kept bounded by social reputation though romantic restlessness surfaces during marital friction. "
-  }${
-    hasAddictionRisk
-      ? "2nd house affliction induces escapism through alcohol, smoking, or intoxicating substances under emotional duress. "
-      : "Social peer pressure occasionally tempts impulsive indulgences. "
-  }${
-    hasIllegalRisk
-      ? "The 8th house shadow triggers dangerous curiosity toward high-risk, speculative, or illicit shortcut wealth. "
-      : ""
-  }${
-    hasDarkThoughtLoops
-      ? "Lunar afflictions generate cyclical brooding, suspicion, and dark thoughts. "
-      : ""
-  }${secrecyHabitTextEn} Remedial Atma Linga Prayashchitta Sankalpa Pooja at Sri Kshetra Gokarna Mahabaleshwara cleanses these shadow karmas.`;
+  if (isChild) {
+    card11TitleKn = "ಮಗುವಿನ ಅಂತರಂಗದ ಮುಗ್ಧತೆ, ನಿದ್ರಾ ಸುಖ & ದೈವಿಕ ರಕ್ಷಾ ಕವಚ";
+    card11TitleEn = "Child's Inner Innocence, Restful Sleep & Divine Protective Shield";
+    card11BadgeKn = "12ನೇ ಶಯನ ಸುಖ • ದೈವಿಕ ರಕ್ಷೆ";
+    card11BadgeEn = "12th Restful Sleep • Divine Shield";
+    card11Icon = "🛡️";
+    p11ReadingKn = `ಮಗುವಿನ ಜಾತಕದ 12ನೇ (ನಿದ್ರಾ ಸುಖ) ಹಾಗೂ 8ನೇ ರಕ್ಷಾ ಸ್ಥಾನಗಳ ಸೂಕ್ಷ್ಮ ಗ್ರಹಸ್ಥಿತಿಯ ಪ್ರಕಾರ: ಮಗುವಿನ ಅಂತರಂಗವು ಅತ್ಯಂತ ಮುಗ್ಧ, ಪವಿತ್ರ ಹಾಗೂ ಕಪಟವಿಲ್ಲದ ಪ್ರಕೃತಿಯನ್ನು ಹೊಂದಿದೆ. ಯಾವುದೇ ದುಷ್ಟ ಶಕ್ತಿಗಳು ಅಥವಾ ಬಾಲಾರಿಷ್ಟ ಬಾಧೆಗಳಿಲ್ಲದೆ, ದೈವಿಕ ರಕ್ಷಾ ಕವಚವು ಮಗುವಿನ ನಿದ್ರೆ ಹಾಗೂ ಆರೋಗ್ಯವನ್ನು ಸದಾ ಕಾಪಾಡುತ್ತದೆ. ಪೋಷಕರ ವಾತ್ಸಲ್ಯದ ಮಡಿಲಲ್ಲಿ ಮಗು ಸುಖಕರವಾಗಿ ಬೆಳೆಯುವ ಸುಯೋಗವಿದೆ.`;
+    p11ReadingEn = `Planetary scrutiny of the 12th (restful sleep) and 8th (protection) houses reveals an innocent, pure auric core. Free from balarishta affliction, a divine protective shield guards the child's sleep and vitality under tender parental care.`;
+    card11BasisKn = "12ನೇ ಶಯನ ಸುಖ ಸ್ಥಾನ ಹಾಗೂ ಪೂರ್ವಪುಣ್ಯದ ಶುಭ ರಕ್ಷಾ ಕವಚ.";
+    card11BasisEn = "12th house of restful sleep and auspicious protective grace.";
+    card11Dosha = {
+      hasDosha: false,
+      doshaNameKn: "ದೈವಿಕ ರಕ್ಷಾ ಕವಚ & ಬಾಲ ಶಾಂತಿ",
+      doshaNameEn: "Divine Protective Shield & Child Serenity",
+      rootCauseHouseKn: "12ನೇ ಶಯನ ಸುಖ & 4ನೇ ಮಾತೃ ರಕ್ಷೆ",
+      rootCauseHouseEn: "12th Restful Sleep & 4th Nurturing",
+      afflictedPlanetKn: "ಶುಭ ಗ್ರಹ ಆಶೀರ್ವಾದ",
+      afflictedPlanetEn: "Benefic Planetary Auspices",
+      mantraKn: "ದಿನನಿತ್ಯ ಮಹಾಮೃತ್ಯುಂಜಯ ಜಪ & ಗಾಯತ್ರಿ ಮಂತ್ರ",
+      mantraEn: "Daily Maha Mrityunjaya Japa & Gayatri Mantra",
+      pujaKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ಬಾಲಗ್ರಹ ರಕ್ಷಾ ಸಂಕಲ್ಪ ಪೂಜೆ",
+      pujaEn: "Balagraha Raksha Sankalpa Pooja at Sri Kshetra Gokarna"
+    };
+  } else {
+    // Adult
+    const isCleanCharacter = dietAssessment.isTeetotaler && sensualAssessment.hasMaritalFidelity;
+    card11TitleKn = isCleanCharacter
+      ? "ಅಂತರಂಗದ ನೈಜ ಸ್ವಭಾವ, ಆಹಾರ ಸಂಸ್ಕಾರ & ನೈತಿಕ ಚಾರಿತ್ರ್ಯ"
+      : "ಅಂತರಂಗದ ನೈಜ ಸ್ವಭಾವ, ಆಹಾರ ಸಂಸ್ಕಾರ & ಆಂತರಿಕ ಸಂಯಮ";
+    card11TitleEn = isCleanCharacter
+      ? "Inner Character, Dietary Sanctity & Moral Rectitude"
+      : "Inner Character, Dietary Discipline & Restraint";
+    card11BadgeKn = isCleanCharacter
+      ? "ಸಾತ್ವಿಕ ಆಹಾರಿ • ದಾಂಪತ್ಯ ನಿಷ್ಠೆ"
+      : "8ನೇ & 12ನೇ ಭಾವ • ಅಂತರಂಗ ಸಂಸ್ಕಾರ";
+    card11BadgeEn = isCleanCharacter
+      ? "Sattvik Lifestyle • Marital Fidelity"
+      : "8th & 12th Houses • Inner Discipline";
+    card11Icon = isCleanCharacter ? "💎" : "🔒";
+
+    p11ReadingKn = `ನಿಮ್ಮ ಜಾತಕದ 8ನೇ (ಅಂತರಂಗ), 12ನೇ (ಶಯನ/ಆಹಾರ ಶಿಸ್ತು) ಹಾಗೂ 7ನೇ ಕಾಮ ಸ್ಥಾನಗಳ ಸೂಕ್ಷ್ಮ ಗ್ರಹಸ್ಥಿತಿಯನ್ನು ನೋಡಿದಾಗ: ${
+      dietAssessment.isTeetotaler
+        ? "• ಆಹಾರ & ಶರೀರ ಪಾವಿತ್ರ್ಯ: ನಿಮ್ಮ 2ನೇ ಮುಖ/ಆಹಾರ ಸ್ಥಾನವು ಗುರು ದೃಷ್ಟಿಯಲ್ಲಿದ್ದು, ನೀವು ಸಾತ್ವಿಕ ಆಹಾರಿ (Teetotaler) ಹಾಗೂ ಮದ್ಯಪಾನ, ಧೂಮಪಾನ ಅಥವಾ ಯಾವುದೇ ಮಾದಕ ವಸ್ತುಗಳ ವ್ಯಸನದಿಂದ ಸಂಪೂರ್ಣ ಮುಕ್ತರಾಗಿದ್ದೀರಿ. ಶರೀರ ಪಾವಿತ್ರ್ಯವನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳುವ ಉನ್ನತ ಆತ್ಮಶಕ್ತಿ ನಿಮ್ಮಲ್ಲಿದೆ. "
+        : "• ಆಹಾರ & ಶರೀರ ಎಚ್ಚರಿಕೆ: 2ನೇ ಮುಖ ಸ್ಥಾನದ ಮೇಲೆ ಪಾಪಗ್ರಹಗಳ ಪ್ರಭಾವವಿರುವುದರಿಂದ, ಮಾನಸಿಕ ಒತ್ತಡದ ಸಮಯದಲ್ಲಿ ತಂಪು ಪಾನೀಯ ಅಥವಾ ವ್ಯಸನಗಳ ಕಡೆಗೆ ಜಾರದಂತೆ ಸಂಯಮ ಕಾಯ್ದುಕೊಳ್ಳುವುದು ಅಗತ್ಯ. "
+    }${
+      sensualAssessment.hasMaritalFidelity
+        ? "• ದಾಂಪತ್ಯ ನಿಷ್ಠೆ & ಸತ್ಚಾರಿತ್ರ್ಯ: 7ನೇ ಕಳತ್ರ ಹಾಗೂ ಕಾಮ ಸ್ಥಾನವು ಶುಭ ರಕ್ಷಣೆಯಲ್ಲಿದ್ದು, ಇಂದ್ರಿಯ ನಿಗ್ರಹ ಮತ್ತು ಸದಾಚಾರ ನಿಮ್ಮ ಮೂಲ ಗುಣವಾಗಿದೆ. ಬಾಹ್ಯ ಕ್ಷಣಿಕ ಆಕರ್ಷಣೆಗಳಿಗೆ ಅಥವಾ ಪರಸ್ತ್ರೀ/ಪರಪುರುಷ ವ್ಯಾಮೋಹಕ್ಕೆ ಬಲಿಯಾಗದೆ, ಪವಿತ್ರ ಕೌಟುಂಬಿಕ ಧರ್ಮ ಹಾಗೂ ದಾಂಪತ್ಯ ನಿಷ್ಠೆಯನ್ನು ಕಾಪಾಡುವ ಧೀಮಂತ ಸಂಸ್ಕಾರ ನಿಮ್ಮಲ್ಲಿದೆ. "
+        : "• ಭಾವನಾತ್ಮಕ ಎಚ್ಚರಿಕೆ: ಶುಕ್ರ-ರಾಹುಗಳ ಸಂಚಾರದ ಸಮಯದಲ್ಲಿ ಬಾಹ್ಯ ಆಕರ್ಷಣೆಗಳು ಕೌಟುಂಬಿಕ ಶಾಂತಿಯನ್ನು ಕೆಡಿಸದಂತೆ ಆತ್ಮಸಂಯಮ ಕಾಯ್ದುಕೊಳ್ಳುವುದು ಕ್ಷೇಮ. "
+    }${
+      hasDarkThoughtLoops
+        ? "• ಮನಸ್ಸಿನ ಚಿಂತನೆ: ಮನಃಕಾರಕ ಚಂದ್ರನ ಮೇಲಿನ ರಾಹು-ಶನಿ ಪ್ರಭಾವದಿಂದ ಅತಿಯಾದ ಯೋಚನೆಗಳು ಸುಳಿಯಬಹುದು; ನಿತ್ಯ ಧ್ಯಾನ ಶಾಂತಿ ತರಲಿದೆ. "
+        : ""
+    }• ವರ್ತನೆಯ ಸ್ವಭಾವ: ${secrecyHabitTextKn}${
+      isCleanCharacter
+        ? " ಈ ಸಾತ್ವಿಕ ಸದಾಚಾರವನ್ನು ಇನ್ನಷ್ಟು ಬಲಪಡಿಸಲು ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಕೃತಜ್ಞತಾ ಸಂಕಲ್ಪ ಪೂಜೆ ಸಲ್ಲಿಸುವುದು ಶ್ರೇಯಸ್ಕರ."
+        : " ಈ ನೆರಳು ದೋಷಗಳ ಶಮನಕ್ಕಾಗಿ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಆತ್ಮಲಿಂಗ ಸ್ಪರ್ಶ, ಪ್ರಾಯಶ್ಚಿತ್ತ ಸಂಕಲ್ಪ ಪೂಜೆ ಸಲ್ಲಿಸುವುದು ಅತ್ಯಗತ್ಯ."
+    }`;
+
+    p11ReadingEn = `Planetary scrutiny of the 8th (inner self), 12th (sleep & sensory intake), and 7th (marital bonds) reveals: ${
+      dietAssessment.isTeetotaler
+        ? "• Dietary Sanctity: Auspicious 2nd house alignment confirms you are a teetotaler, naturally free from alcohol, smoking, or intoxicating dependencies with high bodily purity. "
+        : "• Dietary Mindfulness: 2nd house malefic aspects advise conscious boundaries against stress-induced intake. "
+    }${
+      sensualAssessment.hasMaritalFidelity
+        ? "• Marital Fidelity: The 7th house and Venus are shielded by benefic graces, upholding high moral rectitude, sensory restraint, and faithful marital devotion without external affairs. "
+        : "• Relationship Restraint: Venus-Rahu transits advise conscious fidelity and emotional self-control. "
+    }• Behavioral Expression: ${secrecyHabitTextEn}${
+      isCleanCharacter
+        ? " Offering gratitude prayers at sacred Sri Kshetra Gokarna Mahabaleshwara amplifies this auspicious character."
+        : " Remedial Atma Linga Prayashchitta Sankalpa Pooja at Sri Kshetra Gokarna Mahabaleshwara cleanses shadow tendencies."
+    }`;
+
+    card11BasisKn = isCleanCharacter
+      ? `${dietAssessment.rootCauseKn} ${sensualAssessment.rootCauseKn} ${lagnaKn} ಲಗ್ನದ ನೈಜ ಸತ್ಚಾರಿತ್ರ್ಯ.`
+      : "8ನೇ (ಅಂತರಂಗ), 12ನೇ (ಶಯನ/ಆಹಾರ ಶಿಸ್ತು), 7ನೇ ಭಾವ ಹಾಗೂ ಗ್ರಹ ಸಂಚಾರ.";
+    card11BasisEn = isCleanCharacter
+      ? `${dietAssessment.rootCauseEn} ${sensualAssessment.rootCauseEn} Ascendant intrinsic moral conduct.`
+      : "8th (secrets), 12th (intake/sleep), 7th (relationships), and planetary transits.";
+
+    card11Dosha = isCleanCharacter
+      ? {
+          hasDosha: false,
+          doshaNameKn: "ಸದಾಚಾರ & ಸಾತ್ವಿಕ ರಕ್ಷಾ ಕವಚ",
+          doshaNameEn: "Moral Integrity & Sattvik Shield",
+          rootCauseHouseKn: "ಗುರು ಕೃಪೆ & ಶುಭ ಗ್ರಹ ರಕ್ಷಣೆ",
+          rootCauseHouseEn: "Jupiter Grace & Benefic Alignment",
+          afflictedPlanetKn: "ಶುಭ ಗ್ರಹ ಬಲ",
+          afflictedPlanetEn: "Benefic Planetary Strength",
+          mantraKn: "ದಿನನಿತ್ಯ ಗಾಯತ್ರಿ ಮಂತ್ರ & ಮಹಾಮೃತ್ಯುಂಜಯ ಜಪ (108 ಬಾರಿ)",
+          mantraEn: "Daily Gayatri Mantra & Maha Mrityunjaya Japa (108 times)",
+          pujaKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಕೃತಜ್ಞತಾ ಸಂಕಲ್ಪ ಪೂಜೆ",
+          pujaEn: "Gratitude Sankalpa Pooja at Sri Kshetra Gokarna Mahabaleshwara"
+        }
+      : {
+          hasDosha: true,
+          doshaNameKn: "ಅಂತರ್ಗತ ನೆರಳು & ಗ್ರಹ ದೋಷ",
+          doshaNameEn: "Shadow Impulses & Planetary Tension",
+          rootCauseHouseKn: "2ನೇ/8ನೇ ಭಾವದಲ್ಲಿ ಗ್ರಹ ಪ್ರಭಾವ",
+          rootCauseHouseEn: "2nd/8th House Afflictions by Malefics",
+          afflictedPlanetKn: "ರಾಹು-ಶನಿ",
+          afflictedPlanetEn: "Rahu-Saturn",
+          mantraKn: "ಓಂ ನಮಃ ಶಿವಾಯ (ದಿನನಿತ್ಯ 108 ಬಾರಿ) & ಮಹಾಮೃತ್ಯುಂಜಯ ಮಂತ್ರ",
+          mantraEn: "Om Namah Shivaya (Daily 108 Times) & Maha Mrityunjaya Mantra",
+          pujaKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಆತ್ಮಲಿಂಗ ಸ್ಪರ್ಶ & ಪ್ರಾಯಶ್ಚಿತ್ತ ಸಂಕಲ್ಪ ಪೂಜೆ",
+          pujaEn: "Atma Linga Sparsha & Prayashchitta Sankalpa Seva at Gokarna Mahabaleshwara"
+        };
+  }
 
   return [
     {
@@ -1401,37 +2451,25 @@ export const generate10MasterLifeBulletPoints = (
     {
       id: 11,
       category: "shadow",
-      titleKn: "ರಹಸ್ಯ ನಡವಳಿಕೆ, ಅಂತರ್ಗತ ಕಾಮನೆಗಳು & ನೆರಳು ಪ್ರವೃತ್ತಿಗಳು",
-      titleEn: "Secret Life, Hidden Desires, Addictions & Shadow Tendencies",
-      titleHi: "गुप्त जीवन, गुप्त कामनाएं और व्यसन",
-      titleTe: "రహస్య జీవితం, అంతర్గత కోరికలు & వ్యసనాలు",
-      titleTa: "ரகசிய வாழ்க்கை மற்றும் மறைக்கப்பட்ட ஆசைகள்",
-      badgeKn: "8ನೇ & 12ನೇ ರಹಸ್ಯ ಭಾವ • ನೆರಳು ಗ್ರಹಗಳು",
-      badgeEn: "8th & 12th Houses • Shadow Grahas",
-      badgeHi: "अष्टम एवं द्वादश भाव",
-      badgeTe: "8వ & 12వ స్థానాలు",
-      badgeTa: "8 & 12ஆம் இடங்கள்",
-      icon: "🔒",
+      titleKn: card11TitleKn,
+      titleEn: card11TitleEn,
+      titleHi: card11TitleEn,
+      titleTe: card11TitleEn,
+      titleTa: card11TitleEn,
+      badgeKn: card11BadgeKn,
+      badgeEn: card11BadgeEn,
+      badgeHi: card11BadgeEn,
+      badgeTe: card11BadgeEn,
+      badgeTa: card11BadgeEn,
+      icon: card11Icon,
       readingKn: p11ReadingKn,
       readingEn: p11ReadingEn,
       readingHi: p11ReadingEn,
       readingTe: p11ReadingEn,
       readingTa: p11ReadingEn,
-      astrologicalBasisKn: "8ನೇ (ಗುಪ್ತ/ರಹಸ್ಯ), 12ನೇ (ಶಯನ ಸುಖ/ವ್ಯಸನ), 7ನೇ ಭಾವ (ಕಾಮನೆ) ಹಾಗೂ ರಾಹು-ಶುಕ್ರ-ಶನಿ ಗ್ರಹಸ್ಥಿತಿ.",
-      astrologicalBasisEn: "8th (secrets), 12th (bed pleasures/substances), 7th (sensual desires), and Rahu-Venus-Saturn transit tension.",
-      doshaSpecifics: {
-        hasDosha: true,
-        doshaNameKn: "ಅಂತರ್ಗತ ನೆರಳು & ರಹಸ್ಯ ದೋಷ",
-        doshaNameEn: "Shadow Impulses & Secret Vulnerabilities",
-        rootCauseHouseKn: "8ನೇ & 12ನೇ ಭಾವದಲ್ಲಿ ನೆರಳು ಗ್ರಹಗಳ ಪ್ರಭಾವ",
-        rootCauseHouseEn: "8th & 12th House Afflictions by Malefics",
-        afflictedPlanetKn: "ರಾಹು-ಶುಕ್ರ-ಶನಿ",
-        afflictedPlanetEn: "Rahu-Venus-Saturn",
-        mantraKn: "ಓಂ ನಮಃ ಶಿವಾಯ (ದಿನನಿತ್ಯ 108 ಬಾರಿ) & ಮಹಾಮೃತ್ಯುಂಜಯ ಮಂತ್ರ",
-        mantraEn: "Om Namah Shivaya (Daily 108 Times) & Maha Mrityunjaya Mantra",
-        pujaKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಆತ್ಮಲಿಂಗ ಸ್ಪರ್ಶ & ಪ್ರಾಯಶ್ಚಿತ್ತ ಸಂಕಲ್ಪ ಪೂಜೆ",
-        pujaEn: "Atma Linga Sparsha & Prayashchitta Sankalpa Seva at Gokarna Mahabaleshwara"
-      }
+      astrologicalBasisKn: card11BasisKn,
+      astrologicalBasisEn: card11BasisEn,
+      doshaSpecifics: card11Dosha
     }
   ];
 };
@@ -1491,33 +2529,155 @@ export const generateGoodAndBadTraits = (
   const isChild = devoteeAge < 14;
   const isMale = (context.gender || "Male").toLowerCase() === "male";
 
-  // Secrecy determination: Fiery/Open signs [0, 2, 4, 8] vs Watery/Secret signs [3, 7, 11] or 8th/12th
-  const isOpenSign = [0, 2, 4, 8].includes(lagnaIdx);
-  const isSecretSign = [3, 7, 11].includes(lagnaIdx) || (rahu && [8, 12].includes(rahu.house)) || (saturn && [8, 12].includes(saturn.house));
+  // Dynamic Secrecy Determination:
+  // Fire signs [0, 4, 8]: Aries, Leo, Sagittarius -> Open, candid, spontaneous
+  // Earth signs [1, 5, 9]: Taurus, Virgo, Capricorn -> Quiet, pragmatic discretion, self-contained
+  // Air signs [2, 6, 10]: Gemini, Libra, Aquarius -> Intellectual deflection, communicative masking
+  // Water signs [3, 7, 11]: Cancer, Scorpio, Pisces -> Deep emotional vaults, absolute private concealment
+  const spouseKn = isMale ? "ಪತ್ನಿ/ಹೆಂಡತಿ" : "ಪತಿ/ಗಂಡ";
+  const spouseEn = isMale ? "wife" : "husband";
 
-  const secrecyKn = isOpenSign && !isSecretSign
-    ? "🗣️ ವರ್ತನೆ: ಕುಲ್ಲಂ ಕುಲ್ಲಾ ಪ್ರವೃತ್ತಿ — ಯಾವುದೇ ತಪ್ಪು ಹೆಜ್ಜೆ, ದುಶ್ಚಟ ಅಥವಾ ರಹಸ್ಯಗಳನ್ನು ಮನಸ್ಸಿನಲ್ಲಿ ಹೆಚ್ಚು ಕಾಲ ಅದುಮಿಟ್ಟುಕೊಳ್ಳಲು ಸಾಧ್ಯವಾಗದೆ, ಆಪ್ತ ಸ್ನೇಹಿತರ ಬಳಿ ಮುಕ್ತವಾಗಿ ಹೇಳಿಕೊಳ್ಳುವ ಸ್ವಭಾವ."
-    : "🔒 ವರ್ತನೆ: ಸಂಪೂರ್ಣ ಗೌಪ್ಯ ಪ್ರವೃತ್ತಿ — ಸಮಾಜದಲ್ಲಿ ಸಭ್ಯ ಮತ್ತು ಶಾಂತ ಮುಖವಾಡ ಧರಿಸಿ, ಒಳಗಿನ ಕಾಮನೆಗಳು, ದುಶ್ಚಟ ಅಥವಾ ತಪ್ಪು ಹೆಜ್ಜೆಗಳನ್ನು ಹೆಂಡತಿ, ಪೋಷಕರು ಮತ್ತು ಆಪ್ತ ಸ್ನೇಹಿತರಿಗೂ ಕಿಂಚಿತ್ತೂ ತಿಳಿಯದಂತೆ ಅತ್ಯಂತ ಗುಪ್ತವಾಗಿ ಮುಚ್ಚಿಡುವ ಚಾಣಾಕ್ಷತೆ.";
+  let secrecyKn = "";
+  let secrecyEn = "";
+  let secrecyBadgeKn = "";
+  let secrecyBadgeEn = "";
+  let secrecyTitleKn = "";
+  let secrecyTitleEn = "";
 
-  const secrecyEn = isOpenSign && !isSecretSign
-    ? "Open & Expressive Habit: Cannot hold vices or secrets inside; confesses or shares openly with close friends."
-    : "Deep Concealment Habit: Maintains a pristine social mask while keeping shadow indulgences, affairs, or vices strictly concealed from spouse and closest friends.";
+  if ([0, 4, 8].includes(lagnaIdx) && !(rahu && [8, 12].includes(rahu.house)) && !(saturn && [8, 12].includes(saturn.house))) {
+    secrecyTitleKn = "ರಹಸ್ಯ ಜೀವನದ ವರ್ತನೆ: ಮುಕ್ತ ನೇರ ನುಡಿ & ಕುಲ್ಲಂ ಕುಲ್ಲಾ ಪ್ರವೃತ್ತಿ";
+    secrecyTitleEn = "Secret Life Expression: Direct Candor & Open Confession";
+    secrecyBadgeKn = "ಅಗ್ನಿ ತತ್ವ • ಕುಲ್ಲಂ ಕುಲ್ಲಾ ಪ್ರವೃತ್ತಿ";
+    secrecyBadgeEn = "Fiery Expression • Open & Candid";
+    secrecyKn = `🗣️ ವರ್ತನೆ: ಮುಕ್ತ & ನೇರ ನುಡಿಯ ಕುಲ್ಲಂ ಕುಲ್ಲಾ ಪ್ರವೃತ್ತಿ — ಯಾವುದೇ ತಪ್ಪು ಹೆಜ್ಜೆ, ದುಶ್ಚಟ ಅಥವಾ ರಹಸ್ಯಗಳನ್ನು ಮನಸ್ಸಿನಲ್ಲಿ ಹೆಚ್ಚು ಕಾಲ ಅದುಮಿಟ್ಟುಕೊಳ್ಳಲು ಸಾಧ್ಯವಾಗದೆ, ${spouseKn} ಅಥವಾ ಆಪ್ತರ ಬಳಿ ಮುಕ್ತವಾಗಿ ಹೇಳಿಕೊಳ್ಳುವ ನೇರ ಸ್ವಭಾವ.`;
+    secrecyEn = `Open & Candid Habit: Incapable of holding shadow secrets inside for long; expresses or confesses transparently to ${spouseEn} and trusted allies.`;
+  } else if ([1, 5, 9].includes(lagnaIdx) && !(rahu && [8, 12].includes(rahu.house))) {
+    secrecyTitleKn = "ರಹಸ್ಯ ಜೀವನದ ವರ್ತನೆ: ಪ್ರಾಯೋಗಿಕ ಮೌನ & ಶಿಸ್ತುಬದ್ಧ ಗೌಪ್ಯತೆ";
+    secrecyTitleEn = "Secret Life Expression: Pragmatic Discretion & Composed Boundary";
+    secrecyBadgeKn = "ಪೃಥ್ವಿ ತತ್ವ • ಪ್ರಾಯೋಗಿಕ ಶಿಸ್ತುಬದ್ಧ ಗೌಪ್ಯತೆ";
+    secrecyBadgeEn = "Earthy Discretion • Pragmatic Boundary";
+    secrecyKn = `🔒 ವರ್ತನೆ: ಪ್ರಾಯೋಗಿಕ ಮೌನ & ಶಿಸ್ತುಬದ್ಧ ಗೌಪ್ಯತೆ — ವೈಯಕ್ತಿಕ ದುರ್ಬಲತೆ, ಆರ್ಥಿಕ ತಾಪತ್ರಯ ಅಥವಾ ತಪ್ಪು ಹೆಜ್ಜೆಗಳನ್ನು ಸಮಾಜದಲ್ಲಿ ಆಡಂಬರವಿಲ್ಲದೆ ನಿಯಂತ್ರಿಸಿ, ${spouseKn} ಹಾಗೂ ಆಪ್ತರಿಗೂ ಅನಗತ್ಯವಾಗಿ ಬಹಿರಂಗಪಡಿಸದೆ ಅಂತರಂಗದಲ್ಲೇ ಇಟ್ಟುಕೊಳ್ಳುವ ಸಂಯಮ.`;
+    secrecyEn = `Pragmatic Discretion: Maintains quiet self-control; keeps personal strains, vulnerabilities, and private matters guarded within, avoiding overt drama.`;
+  } else if ([2, 6, 10].includes(lagnaIdx) && !(rahu && [8, 12].includes(rahu.house))) {
+    secrecyTitleKn = "ರಹಸ್ಯ ಜೀವನದ ವರ್ತನೆ: ಬೌದ್ಧಿಕ ಚಾಣಾಕ್ಷತೆ & ನಯವಾದ ಮರೆಮಾಚುವಿಕೆ";
+    secrecyTitleEn = "Secret Life Expression: Diplomatic Deflection & Intellectual Mask";
+    secrecyBadgeKn = "ವಾಯು ತತ್ವ • ಬೌದ್ಧಿಕ ಚಾಣಾಕ್ಷ ಗೌಪ್ಯತೆ";
+    secrecyBadgeEn = "Airy Diplomacy • Strategic Masking";
+    secrecyKn = `🎭 ವರ್ತನೆ: ಬೌದ್ಧಿಕ ಚತುರತೆ & ನಯವಾದ ಮರೆಮಾಚುವಿಕೆ — ಮಾತಿನಲ್ಲೇ ಇತರರ ಗಮನವನ್ನು ಬೇರೆಡೆ ಸೆಳೆದು, ತಮ್ಮ ರಹಸ್ಯ ಆಸೆಗಳು, ತಪ್ಪು ಹೆಜ್ಜೆಗಳು ಅಥವಾ ದುಶ್ಚಟಗಳನ್ನು ${spouseKn} ಹಾಗೂ ಕುಟುಂಬಕ್ಕೆ ಕಿಂಚಿತ್ತೂ ಸಂಶಯ ಬಾರದಂತೆ ಅತ್ಯಂತ ಜಾಣ್ಮೆಯಿಂದ ನಿಭಾಯಿಸುವ ಚಾಣಾಕ್ಷತೆ.`;
+    secrecyEn = `Diplomatic Deflection: Uses communicative charm and wit to keep personal indulgences and shadow habits deftly masked from suspicion.`;
+  } else {
+    secrecyTitleKn = "ರಹಸ್ಯ ಜೀವನದ ವರ್ತನೆ: ಸಂಪೂರ್ಣ ಭಾವನಾತ್ಮಕ ಗೌಪ್ಯತೆ & ರಹಸ್ಯ ಮುಖವಾಡ";
+    secrecyTitleEn = "Secret Life Expression: Deep Emotional Vault & Strict Mask";
+    secrecyBadgeKn = "ಜಲ ತತ್ವ / 8ನೇ-12ನೇ ನೆರಳು • ಸಂಪೂರ್ಣ ಗೌಪ್ಯತೆ";
+    secrecyBadgeEn = "Water Sign / 8th-12th Shadow • Deep Concealment";
+    secrecyKn = `🌊 ವರ್ತನೆ: ಸಂಪೂರ್ಣ ಭಾವನಾತ್ಮಕ ಗೌಪ್ಯತೆ & ರಹಸ್ಯ ಮುಖವಾಡ — ಸಮಾಜದಲ್ಲಿ ಸಭ್ಯ ಹಾಗೂ ಶಾಂತ ಮುಖವಾಡ ಧರಿಸಿ, ಒಳಗಿನ ಕಾಮನೆಗಳು, ನೋವು ಅಥವಾ ರಹಸ್ಯಗಳನ್ನು ${spouseKn}, ಪೋಷಕರು ಮತ್ತು ಆಪ್ತ ಸ್ನೇಹಿತರಿಗೂ ಕಿಂಚಿತ್ತೂ ತಿಳಿಯದಂತೆ ಅತ್ಯಂತ ಆಳವಾಗಿ ಮುಚ್ಚಿಡುವ ಪ್ರವೃತ್ತಿ.`;
+    secrecyEn = `Deep Emotional Vault: Wears a serene social mask while keeping intense inner feelings, secret desires, or vices buried in deep psychological vaults away from ${spouseEn} and family.`;
+  }
 
   // =========================================================================
-  // CHILD PROFILE (< 14 Years): Focus on Balarishta, Crying, Tantrums & Schooling
+  // CHILD PROFILE (< 14 Years): 100% Dynamic by Child Lagna & Age
   // =========================================================================
   if (isChild) {
+    const childLagnaProfiles = [
+      {
+        icon: "⚡",
+        titleKn: "ಸಾಹಸಿ ಆಟೋಟ & ಚುರುಕುತನ: ಅಂಜದೆ ಮುನ್ನುಗ್ಗುವ ಮುದ್ದಾದ ಕಂದ",
+        titleEn: "Spirited Playfulness & Boldness: Fearless Active Child",
+        bulletKn: `ಮಗುವಿನ ಮೇಷ ಲಗ್ನದ ಅಗ್ನಿ ತತ್ವದ ಬಲದಿಂದಾಗಿ, ಮಗು ಅತ್ಯಂತ ಚುರುಕು, ಸಾಹಸಿ ಹಾಗೂ ಆಟೋಟಗಳಲ್ಲಿ ಅಂಜದೆ ಮುನ್ನುಗ್ಗುವ ನಾಯಕತ್ವದ ಗುಣಗಳನ್ನು ಪ್ರದರ್ಶಿಸುತ್ತದೆ.`,
+        bulletEn: `Endowed with Aries ascendant energy, the child displays active vitality, playful bravery, and natural exploratory leadership.`
+      },
+      {
+        icon: "🌱",
+        titleKn: "ಶಾಂತ ಮುಖಭಾವ, ಮುದ್ದಾದ ನಗು & ಅಕ್ಕರೆ: ಎಲ್ಲರನ್ನೂ ತಣಿಸುವ ಸುಕುಮಾರ ಕಂದ",
+        titleEn: "Serene Smile & Affectionate Demeanor: Sweet Gentle Child",
+        bulletKn: `ಮಗುವಿನ ವೃಷಭ ಲಗ್ನದ ಪೃಥ್ವಿ ತತ್ವದಿಂದಾಗಿ, ಮುಖದಲ್ಲಿ ಸದಾ ಮುಗ್ಧ ಪ್ರಶಾಂತತೆ, ಅಕ್ಕರೆ ಹಾಗೂ ಮುದ್ದಾದ ನಗು ತುಂಬಿರುತ್ತದೆ. ಕುಟುಂಬದ ಎಲ್ಲರ ಪ್ರೀತಿಯನ್ನು ಸೆಳೆಯುವ ಸೌಮ್ಯ ಸ್ವಭಾವ ಮಗುವಿನಲ್ಲಿದೆ.`,
+        bulletEn: `Governed by Taurus, the child radiates calm gentleness, endearing smiles, and affectionate bonding with family elders.`
+      },
+      {
+        icon: "💡",
+        titleKn: "ಕುತೂಹಲದ ಮಾತುಗಾರಿಕೆ & ಚುರುಕು ಕಣ್ಣುಗಳು: ಕ್ಷಣಕ್ಷಣಕ್ಕೂ ಪ್ರಶ್ನೆ ಕೇಳುವ ಜಾಣ ಮಗು",
+        titleEn: "Curious Questions & Quick Observational Eyes: Inquisitive Mind",
+        bulletKn: `ಮಗುವಿನ ಮಿಥುನ ಲಗ್ನದ ಬುಧ ಬಲದಿಂದಾಗಿ, ಸುತ್ತಲಿನ ಜಗತ್ತನ್ನು ನೋಡುವ ಕಣ್ಣುಗಳಲ್ಲಿ ಅಪಾರ ಕುತೂಹಲವಿದೆ. ಹೊಸ ಶಬ್ದಗಳನ್ನು ವೇಗವಾಗಿ ಕಲಿಯುವ ಹಾಗೂ ಆಟಿಕೆಯ ಜೊತೆ ಸಂವಹನ ನಡೆಸುವ ಜಾಣ್ಮೆ ಮಗುವಿನಲ್ಲಿದೆ.`,
+        bulletEn: `With Gemini ascendant, the child possesses curious observation, lively babbling, and rapid imitation of words and actions.`
+      },
+      {
+        icon: "❤️",
+        titleKn: "ತಾಯಿಯ ಮಡಿಲ ಪ್ರೀತಿ, ಮುಗ್ಧ ವಾತ್ಸಲ್ಯ & ಮೃದು ಹೃದಯ: ಆಪ್ತರನ್ನು ಅಪ್ಪಿಕೊಳ್ಳುವ ಅಕ್ಕರೆ",
+        titleEn: "Deep Affection for Parents & Tender Empathy: Sweet Loving Child",
+        bulletKn: `ಮಗುವಿನ ಕರ್ಕಾಟಕ ಲಗ್ನದ ಜಲ ತತ್ವದಿಂದಾಗಿ, ಮಗುವಿನ ಹೃದಯ ಅತ್ಯಂತ ಕೋಮಲ. ತಾಯಿಯ ಸಾಮೀಪ್ಯ ಮತ್ತು ಪ್ರೀತಿಯನ್ನು ಆಳವಾಗಿ ಬಯಸುತ್ತಾ, ಕುಟುಂಬದವರನ್ನು ಪ್ರೀತಿಯಿಂದ ಅಪ್ಪಿಕೊಳ್ಳುವ ಮುಗ್ಧತೆ ಮಗುವಿನಲ್ಲಿದೆ.`,
+        bulletEn: `With Cancer ascendant, the child has a deeply tender heart, blooming under maternal care and offering pure unconditional affection.`
+      },
+      {
+        icon: "🌟",
+        titleKn: "ದೈವಿಕ ತೇಜಸ್ಸು, ಆಕರ್ಷಕ ಮುಖಲಕ್ಷಣ & ರಾಜಕಳೆ: ಎಲ್ಲರನ್ನೂ ಸೆಳೆಯುವ ಮುದ್ದಾದ ಕಂದ",
+        titleEn: "Divine Radiance, Endearing Charm & Majestic Spark",
+        bulletKn: `ಮಗುವಿನ ಸಿಂಹ ಲಗ್ನದ ಸೂರ್ಯ ತೇಜಸ್ಸಿನಿಂದಾಗಿ ಮುಖದಲ್ಲಿ ಸಹಜ ದೈವಿಕ ಆಕರ್ಷಣೆ ಇದೆ. ಕುಟುಂಬದ ಹಿರಿಯರು ಮತ್ತು ಬಂಧುಗಳನ್ನು ತನ್ನತ್ತ ಸೆಳೆಯುವ ಮುಗ್ಧತೆ ಹಾಗೂ ರಾಜಗಾಂಭೀರ್ಯದ ಕಳೆ ಮಗುವಿನಲ್ಲಿದೆ.`,
+        bulletEn: `Endowed with the natural brilliance of Leo Ascendant, the child possesses an endearing charm that effortlessly attracts affection from family and elders.`
+      },
+      {
+        icon: "🔍",
+        titleKn: "ಅಚ್ಚುಕಟ್ಟಾದ ಆಟಿಕೆಗಳ ಜೋಡಣೆ & ಸೂಕ್ಷ್ಮ ಗ್ರಹಿಕೆ: ವ್ಯವಸ್ಥಿತ ಜಾಣ್ಮೆಯ ಕಂದ",
+        titleEn: "Careful Toy Arrangement & Sharp Observation: Methodical Learner",
+        bulletKn: `ಮಗುವಿನ ಕನ್ಯಾ ಲಗ್ನದ ಪ್ರಭಾವದಿಂದಾಗಿ, ಮಗು ಆಟಿಕೆಗಳನ್ನು ತನ್ನದೇ ಆದ ಕ್ರಮದಲ್ಲಿ ಜೋಡಿಸುವ, ವಿವರಗಳನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಗಮನಿಸುವ ಆಶ್ಚರ್ಯಕರ ಗ್ರಹಿಕೆ ಮತ್ತು ಶಿಸ್ತನ್ನು ಪ್ರದರ್ಶಿಸುತ್ತದೆ.`,
+        bulletEn: `With Virgo ascendant, the child shows remarkable attentiveness to shapes, patterns, and careful organization during play.`
+      },
+      {
+        icon: "🌸",
+        titleKn: "ಸೌಮ್ಯ ನಗು, ಸಿಹಿ ಮಾತು & ಸ್ನೇಹಿತರ ಜೊತೆ ಹೊಂದಾಣಿಕೆ: ಎಲ್ಲರ ಪ್ರೀತಿಪಾತ್ರ ಮಗು",
+        titleEn: "Sweet Demeanor & Friendly Harmony: Delightful Playmate",
+        bulletKn: `ಮಗುವಿನ ತುಲಾ ಲಗ್ನದ ಸೌಮ್ಯತೆಯಿಂದಾಗಿ, ಎಲ್ಲರೊಂದಿಗೂ ನಗುನಗುತ್ತಾ ಬೆರೆಯುವ, ಆಟಿಕೆಗಳನ್ನು ಹಂಚಿಕೊಳ್ಳುವ ಮಧುರ ಪ್ರವೃತ್ತಿ ಇದೆ. ಯಾವುದೇ ಜಗಳವಿಲ್ಲದೆ ಶಾಂತವಾಗಿ ಆಟವಾಡುವ ಸದ್ಗುಣ ಮಗುವಿನಲ್ಲಿದೆ.`,
+        bulletEn: `Governed by Libra, the child is naturally sweet-tempered, cooperative, and loves harmonious sharing of toys and smiles.`
+      },
+      {
+        icon: "🦅",
+        titleKn: "ತೀಕ್ಷ್ಣ ದೃಷ್ಟಿ, ಆಳವಾದ ಮುಗ್ಧತೆ & ಅಚಲ ಹಠ: ಅಸಾಧಾರಣ ಗ್ರಹಿಕೆಯ ಕಂದ",
+        titleEn: "Piercing Intuitive Eyes & Determined Will: Deep Sensitive Child",
+        bulletKn: `ಮಗುವಿನ ವೃಶ್ಚಿಕ ಲಗ್ನದ ಗಂಭೀರ ತತ್ವದಿಂದಾಗಿ, ಮಗುವಿನ ಕಣ್ಣುಗಳು ಅಸಾಧಾರಣ ತೀಕ್ಷ್ಣತೆ ಹೊಂದಿವೆ. ಹೊಸಬರನ್ನು ಮೊದಲು ದೂರದಿಂದಲೇ ಪರೀಕ್ಷಿಸಿ, ನಂಬಿಕೆ ಬಂದ ನಂತರವಷ್ಟೇ ಮುದ್ದು ಮಾಡುವ ವಿಶೇಷ ಗುಣ ಮಗುವಿನಲ್ಲಿದೆ.`,
+        bulletEn: `With Scorpio ascendant, the child has intensely observant eyes, taking time to assess strangers before offering trust and deep affection.`
+      },
+      {
+        icon: "🏹",
+        titleKn: "ಉಲ್ಲಾಸಭರಿತ ನಗು & ಮುಗ್ಧ ಉತ್ಸಾಹ: ಮನೆಯೆಲ್ಲ ಸಂತಸ ತುಂಬುವ ಪುಟ್ಟ ಕಂದ",
+        titleEn: "Joyful Laughter & Buoyant Energy: Sunshine of the Household",
+        bulletKn: `ಮಗುವಿನ ಧನು ಲಗ್ನದ ಗುರು ಕೃಪೆಯಿಂದಾಗಿ, ಮನೆಯಲ್ಲಿ ಸದಾ ನಗು, ಸಂತೋಷ ಮತ್ತು ಲವಲವಿಕೆ ತುಂಬಿರುತ್ತದೆ. ಹೊಸ ಆಟಿಕೆಗಳು ಹಾಗೂ ತೆರೆದ ಪರಿಸರದಲ್ಲಿ ಉತ್ಸಾಹದಿಂದ ಕಲಿಯುವ ಕಂದ.`,
+        bulletEn: `Ruled by Jupiter in Sagittarius, the child is cheerful, energetic, and a source of radiant joy throughout the household.`
+      },
+      {
+        icon: "⏳",
+        titleKn: "ಶಾಂತ ಚಿತ್ತ, ತಾಳ್ಮೆಯ ನಡವಳಿಕೆ & ಹಿರಿಯರ ಮಾತು ಕೇಳುವಿಕೆ: ಪ್ರಬುದ್ಧ ಮುದ್ದಾದ ಮಗು",
+        titleEn: "Patient Temperament & Attentive Listening: Mature Well-Behaved Child",
+        bulletKn: `ಮಗುವಿನ ಮಕರ ಲಗ್ನದ ಶಿಸ್ತಿನಿಂದಾಗಿ, ಮಗು ಅತಿಯಾಗಿ ರಂಪಾಟ ಮಾಡದೆ ಸಮಾಧಾನದಿಂದ ಆಟವಾಡುವ ಹಾಗೂ ಹಿರಿಯರ ಮಾತಿಗೆ ಕಿವಿಗೊಡುವ ಪ್ರಬುದ್ಧ ನಡವಳಿಕೆಯನ್ನು ಪ್ರದರ್ಶಿಸುತ್ತದೆ.`,
+        bulletEn: `With Capricorn ascendant, the child is patient, steady, and displays admirable composure and cooperative discipline.`
+      },
+      {
+        icon: "🌐",
+        titleKn: "ಸ್ವತಂತ್ರ ಆಲೋಚನೆ, ಹೊಸ ಆಟಿಕೆಗಳ ಅನ್ವೇಷಣೆ & ಸ್ನೇಹಶೀಲತೆ: ವಿಶಿಷ್ಟ ಕಲ್ಪನೆಯ ಕಂದ",
+        titleEn: "Inventive Play & Unique Curiosity: Independent Little Thinker",
+        bulletKn: `ಮಗುವಿನ ಕುಂಭ ಲಗ್ನದ ಪ್ರಭಾವದಿಂದಾಗಿ, ಮಗು ಸಿದ್ಧ ಆಟಿಕೆಗಳಿಗಿಂತ ಸ್ವತಃ ಹೊಸ ರೀತಿಯಲ್ಲಿ ಆಟವಾಡಲು ಇಷ್ಟಪಡುತ್ತದೆ. ಇತರ ಮಕ್ಕಳ ಜೊತೆ ಬೇಧ-ಭಾವವಿಲ್ಲದೆ ಸುಲಭವಾಗಿ ಸ್ನೇಹ ಬೆಳೆಸುವ ಗುಣ ಮಗುವಿನಲ್ಲಿದೆ.`,
+        bulletEn: `Governed by Aquarius, the child exhibits creative independence in play and makes friends with effortless warmth.`
+      },
+      {
+        icon: "🪷",
+        titleKn: "ದೈವಿಕ ಮುಗ್ಧತೆ, ಕರುಣೆಯ ಕಣ್ಣುಗಳು & ಮೃದು ಸ್ಪರ್ಶ: ದೇವರ ಪ್ರಸಾದದಂತಿರುವ ಕಂದ",
+        titleEn: "Pure Angelic Innocence & Gentle Sensitivity: Divine Blessing",
+        bulletKn: `ಮಗುವಿನ ಮೀನ ಲಗ್ನದ ಸಾತ್ವಿಕತೆಯಿಂದಾಗಿ, ಮಗುವಿನಲ್ಲಿ ದೈವಿಕ ಮುಗ್ಧತೆ ಮತ್ತು ಅತಿಯಾದ ಮೃದುತ್ವವಿದೆ. ಪ್ರಾಣಿ-ಪಕ್ಷಿಗಳು ಹಾಗೂ ಸಂಗೀತವನ್ನು ಕೇಳಿದರೆ ಮುಖದಲ್ಲಿ ವಿಶೇಷ ಆನಂದ ಮೂಡುತ್ತದೆ.`,
+        bulletEn: `With Pisces ascendant, the child radiates serene angelic sweetness, deeply responsive to soothing music, nature, and loving touch.`
+      }
+    ];
+
+    const childLagnaP = childLagnaProfiles[lagnaIdx] || childLagnaProfiles[0];
+
     const childGoodTraits: TraitBulletPoint[] = [
       {
         id: 1,
         type: "good",
-        titleKn: "ದೈವಿಕ ತೇಜಸ್ಸು & ಆಕರ್ಷಕ ಮುಖಲಕ್ಷಣ: ಎಲ್ಲರನ್ನೂ ಸೆಳೆಯುವ ಮುದ್ದಾದ ಕಂದ",
-        titleEn: "Divine Radiance & Inherent Charm",
-        icon: "🌟",
+        titleKn: childLagnaP.titleKn,
+        titleEn: childLagnaP.titleEn,
+        icon: childLagnaP.icon,
         badgeKn: `ಲಗ್ನ: ${lagnaKn} • ${lagnaLordKn}`,
         badgeEn: `Lagna: ${lagnaEn} • ${lagnaLord}`,
-        bulletKn: `ಮಗುವಿನ ${lagnaKn} ಲಗ್ನದ ತೇಜಸ್ಸಿನಿಂದಾಗಿ ಮುಖದಲ್ಲಿ ಸಹಜ ದೈವಿಕ ಆಕರ್ಷಣೆ ಇದೆ. ಕುಟುಂಬದ ಹಿರಿಯರು ಮತ್ತು ಬಂಧುಗಳನ್ನು ತನ್ನತ್ತ ಸೆಳೆಯುವ ಮುಗ್ಧತೆ ಹಾಗೂ ಅಕ್ಕರೆಯ ಸದ್ಗುಣ ಮಗುವಿನಲ್ಲಿದೆ.`,
-        bulletEn: `Endowed with the natural brilliance of ${lagnaEn} Ascendant, the child possesses an endearing charm that effortlessly attracts affection from family and elders.`,
+        bulletKn: childLagnaP.bulletKn,
+        bulletEn: childLagnaP.bulletEn,
         astrologicalBasisKn: `1ನೇ ಲಗ್ನ ಭಾವ ಹಾಗೂ ಲಗ್ನಾಧಿಪತಿ ${lagnaLordKn} ಗ್ರಹಬಲ.`,
         astrologicalBasisEn: `Ascendant lord ${lagnaLord} strength in 1st house.`
       },
@@ -1576,7 +2736,6 @@ export const generateGoodAndBadTraits = (
     ];
 
     // Child Behavioral & Dosha Analysis
-    const moonH = moon?.house ?? 1;
     const hasCryingTantrums = (moon && [6, 8, 12].includes(moon.house)) || (mars && [1, 4, 7, 8].includes(mars.house)) || (rahu && [1, 5, 8].includes(rahu.house));
     const hasEvilEyeDrishti = (rahu && [1, 4, 7, 10].includes(rahu.house)) || (ketu && [1, 7].includes(ketu.house)) || (moon && rahu && Math.abs(moon.house - rahu.house) <= 1);
     const hasAggressionFights = (mars && [1, 3, 6, 8].includes(mars.house)) || (mars && sun && Math.abs(mars.house - sun.house) === 0);
@@ -1725,81 +2884,892 @@ export const generateGoodAndBadTraits = (
       secrecyHabitKn: secrecyKn,
       secrecyHabitEn: secrecyEn,
       gokarnaPrayashchittaKn: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥ ಸನ್ನಿಧಿಯಲ್ಲಿ ಬಾಲಗ್ರಹ ಶಾಂತಿ, ಮಹಾಮೃತ್ಯುಂಜಯ ರಕ್ಷಾ ಸಂಕಲ್ಪ ಮತ್ತು ಮಹಾಬಲೇಶ್ವರ ಆತ್ಮಲಿಂಗ ಸ್ಪರ್ಶ ಭಸ್ಮ ಧಾರಣೆಯಿಂದ ಮಗುವಿನ ಅಳು, ಕಿರಿಕಿರಿ ಹಾಗೂ ದೃಷ್ಟಿ ದೋಷ ಸಂಪೂರ್ಣ ಶಾಂತವಾಗಲಿದೆ.`,
-      gokarnaPrayashchittaEn: `Perform Balagraha Shanti and Mahamrityunjaya Sankalpa Pooja at Sri Kshetra Gokarna Kotiteertha to pacify child colic, crying, and evil eye afflictions.`
+      gokarnaPrayashchittaEn: `Perform Balagraha Shanti and Mahamrityunjaya Sankalpa Pooja at Sri Kshetra Gokarna Kotiteertha to pacify child colic, crying, and evil eye afflictions.`,
+      isTeetotaler: true,
+      hasMaritalFidelity: true
     };
   }
 
   // =========================================================================
-  // ADULT PROFILE (>= 14 Years): 100% Classical Vedic Criteria
+  // ADULT PROFILE (>= 14 Years): 100% Dynamic, Chart-Specific & Gender-Aware
   // =========================================================================
 
-  // 1. ANGER & EGO EVALUATION
-  const marsHouse = mars?.house ?? 1;
-  let angerScore = 0;
-  if ([1, 7, 8].includes(marsHouse)) angerScore += 2.0;
-  if (sun && [1, 8].includes(sun.house)) angerScore += 1.5;
-  if (mars && sun && Math.abs(mars.house - sun.house) === 0) angerScore += 2.0;
-  if (mars && [4, 7, 8].includes(houseDist(mars.house, 1))) angerScore += 1.5;
-  const hasAnger = angerScore >= 2.0;
+  // 12 DISTINCT LAGNA GOOD PROFILES (Trait 1)
+  const lagnaGoodProfiles = [
+    {
+      icon: "⚡",
+      badgeKn: `ಮೇಷ ಲಗ್ನ • ಕುಜ ಬಲ`,
+      badgeEn: `Aries Ascendant • Mars`,
+      titleKn: "ಸಾಹಸ ಪ್ರವೃತ್ತಿ & ಅಪ್ರತಿಮ ನಾಯಕತ್ವ: ಸವಾಲುಗಳಿಗೆ ಎದೆಯೊಡ್ಡಿ ಮುನ್ನುಗ್ಗುವ ಛಲ",
+      titleEn: "Dynamic Leadership & Bold Initiative: Fearless Pioneering Drive",
+      bulletKn: `ನಿಮ್ಮ ಮೇಷ ಲಗ್ನದ ಅಧಿಪತಿ ಕುಜನ ಅಗ್ನಿ ತತ್ವದ ಬಲದಿಂದಾಗಿ, ನೀವು ಎಂತಹ ಕಠಿಣ ಸವಾಲುಗಳು ಎದುರಾದರೂ ಅಂಜದೆ ನೇರವಾಗಿ ಮುನ್ನುಗ್ಗುವ ಅದಮ್ಯ ಸಾಹಸಿಗರು. ಯಾರ ಮುಂದೆಯೂ ಅನಗತ್ಯವಾಗಿ ತಲೆಬಾಗದೆ, ಸ್ವಂತ ಪರಿಶ್ರಮ ಹಾಗೂ ನಾಯಕತ್ವದಿಂದ ಹೊಸ ಹಾದಿಯನ್ನು ಸೃಷ್ಟಿಸುವ ಅಪ್ರತಿಮ ಛಲಗಾರಿಕೆ ನಿಮ್ಮ ರಕ್ತದಲ್ಲಿದೆ. ಸಮಾಜದಲ್ಲಿ ಮುಖಸ್ತುತಿಯನ್ನು ಮಾಡದೆ ಪ್ರಾಮಾಣಿಕವಾಗಿ ಮುನ್ನಡೆಯುತ್ತೀರಿ.`,
+      bulletEn: `With your Aries Ascendant ruled by Mars, you possess an unstoppable pioneering drive and fearless executive courage. You never yield to coercion, preferring to forge your own path with dynamic independence.`,
+      astrologicalBasisKn: `1ನೇ ಲಗ್ನ ಭಾವ ಮೇಷ ಹಾಗೂ ಲಗ್ನಾಧಿಪತಿ ಕುಜನ ಅಗ್ನಿ ತತ್ವ.`,
+      astrologicalBasisEn: `1st house Aries ruled by martial fiery energy.`
+    },
+    {
+      icon: "🌱",
+      badgeKn: `ವೃಷಭ ಲಗ್ನ • ಶುಕ್ರ ಬಲ`,
+      badgeEn: `Taurus Ascendant • Venus`,
+      titleKn: "ಅಚಲ ಸ್ಥಿರತೆ, ತಾಳ್ಮೆ & ಕಲಾಭಿರುಚಿ: ಬಿರುಗಾಳಿಯಲ್ಲೂ ಅಲುಗಾಡದ ಸಹನೆ",
+      titleEn: "Steadfast Stability, Patience & Aesthetic Grace: Grounded Resilience",
+      bulletKn: `ನಿಮ್ಮ ವೃಷಭ ಲಗ್ನದ ಅಧಿಪತಿ ಶುಕ್ರನ ಪೃಥ್ವಿ ತತ್ವದಿಂದಾಗಿ, ನೀವು ಅಪಾರ ತಾಳ್ಮೆ, ಶಾಂತತೆ ಹಾಗೂ ಸ್ಥಿರತೆಯ ಪ್ರತಿರೂಪ. ಕಷ್ಟಗಳು ಬಂದಾಗ ಆತುರದ ನಿರ್ಧಾರಗಳನ್ನು ಕೈಗೊಳ್ಳದೆ, ಯೋಚಿಸಿ ಗಟ್ಟಿಯಾದ ಅಡಿಪಾಯ ಕಟ್ಟುವ ಸಂಯಮ ನಿಮ್ಮಲ್ಲಿದೆ. ಸುಂದರ ಪರಿಸರ, ಕಲೆ, ಕುಟುಂಬ ಸುಖ ಹಾಗೂ ಪ್ರಾಮಾಣಿಕ ಸಂಬಂಧಗಳಿಗೆ ನಿಮ್ಮ ಮೊದಲ ಆದ್ಯತೆ.`,
+      bulletEn: `Governed by Venus in earthy Taurus, your core strength lies in unshakeable patience, aesthetic refinement, and practical endurance. You build lasting foundations without reckless impulses.`,
+      astrologicalBasisKn: `1ನೇ ಲಗ್ನ ಭಾವ ವೃಷಭ ಹಾಗೂ ಲಗ್ನಾಧಿಪತಿ ಶುಕ್ರನ ಸ್ಥಿರ ಪೃಥ್ವಿ ತತ್ವ.`,
+      astrologicalBasisEn: `1st house Taurus ruled by steadfast Venusian earth.`
+    },
+    {
+      icon: "💡",
+      badgeKn: `ಮಿಥುನ ಲಗ್ನ • ಬುಧ ಬಲ`,
+      badgeEn: `Gemini Ascendant • Mercury`,
+      titleKn: "ಚತುರ ವಾಕ್ಚಾತುರ್ಯ, ಬುದ್ಧಿಮತ್ತೆ & ಬಹುಮುಖ ಪ್ರತಿಭೆ: ಯಾವುದೇ ಸನ್ನಿವೇಶಕ್ಕೂ ಒಗ್ಗಿಕೊಳ್ಳುವ ಜಾಣ್ಮೆ",
+      titleEn: "Brilliant Articulation, Wit & Versatility: Quick-Witted Adaptability",
+      bulletKn: `ನಿಮ್ಮ ಮಿಥುನ ಲಗ್ನದ ಅಧಿಪತಿ ಬುಧನ ವಾಯು ತತ್ವದ ಪ್ರಭಾವದಿಂದಾಗಿ, ನಿಮ್ಮ ಮಾತುಗಾರಿಕೆ ಮತ್ತು ಗ್ರಹಿಕೆ ಶಕ್ತಿ ಅತ್ಯಂತ ಚುರುಕು. ಜಟಿಲ ಸಮಸ್ಯೆಗಳನ್ನೂ ಹಸನ್ಮುಖಿಯಾಗಿ, ಮಾತಿನ ಚಾತುರ್ಯದಿಂದ ಬಗೆಹರಿಸುವ ಕೌಶಲ್ಯ ನಿಮ್ಮಲ್ಲಿದೆ. ಹೊಸ ವಿಷಯಗಳನ್ನು ಕ್ಷಣಾರ್ಧದಲ್ಲಿ ಕಲಿಯುವ ಬಹುಮುಖ ಪ್ರತಿಭೆ ಹಾಗೂ ಹೊಂದಾಣಿಕೆಯ ಗುಣ ನಿಮ್ಮ ವ್ಯಕ್ತಿತ್ವದ ದೊಡ್ಡ ಆಸ್ತಿ.`,
+      bulletEn: `With Gemini Ascendant governed by Mercury, your quick wit, brilliant conversational diplomacy, and intellectual versatility allow you to adapt effortlessly to diverse challenges.`,
+      astrologicalBasisKn: `1ನೇ ಲಗ್ನ ಭಾವ ಮಿಥುನ ಹಾಗೂ ಲಗ್ನಾಧಿಪತಿ ಬುಧನ ವಾಯು ತತ್ವ.`,
+      astrologicalBasisEn: `1st house Gemini ruled by communicative Mercury.`
+    },
+    {
+      icon: "🌊",
+      badgeKn: `ಕರ್ಕಾಟಕ ಲಗ್ನ • ಚಂದ್ರ ಬಲ`,
+      badgeEn: `Cancer Ascendant • Moon`,
+      titleKn: "ಮಾತೃ ವಾತ್ಸಲ್ಯ, ಆಳವಾದ ಅಂತಃಕರಣ & ಅಚಲ ನಿಷ್ಠೆ: ಆಪ್ತರನ್ನು ಕಾಯುವ ಪ್ರೇಮ ಕವಚ",
+      titleEn: "Deep Empathy, Intuitive Nurturing & Devoted Loyalty: Protective Care",
+      bulletKn: `ನಿಮ್ಮ ಕರ್ಕಾಟಕ ಲಗ್ನದ ಅಧಿಪತಿ ಚಂದ್ರನ ಜಲ ತತ್ವದ ಬಲದಿಂದಾಗಿ, ನಿಮ್ಮಲ್ಲಿ ಅಪಾರ ಅಂತಃಕರಣ, ಕರುಣೆ ಹಾಗೂ ಪೋಷಣೆಯ ಸಹಜ ಶಕ್ತಿ ಇದೆ. ನಿಮ್ಮನ್ನು ನಂಬಿದವರನ್ನು ಮತ್ತು ಕುಟುಂಬವನ್ನು ರಕ್ಷಿಸಲು ನೀವು ಎಂತಹ ತ್ಯಾಗಕ್ಕೂ ಸಿದ್ಧ. ಇತರರ ಮನಸ್ಸಿನ ನೋವನ್ನು ಸುಲಭವಾಗಿ ಗ್ರಹಿಸುವ ಅತೀಂದ್ರಿಯ ಭಾವನಾತ್ಮಕ ಶಕ್ತಿ ನಿಮ್ಮಲ್ಲಿದೆ.`,
+      bulletEn: `Governed by the Moon in watery Cancer, you radiate maternal warmth, deep emotional loyalty, and intuitive insight. You serve as an unwavering emotional shield for those you love.`,
+      astrologicalBasisKn: `1ನೇ ಲಗ್ನ ಭಾವ ಕರ್ಕಾಟಕ ಹಾಗೂ ಲಗ್ನಾಧಿಪತಿ ಚಂದ್ರನ ಜಲ ತತ್ವ.`,
+      astrologicalBasisEn: `1st house Cancer governed by the nurturing Moon.`
+    },
+    {
+      icon: "👑",
+      badgeKn: `ಸಿಂಹ ಲಗ್ನ • ಸೂರ್ಯ ಬಲ`,
+      badgeEn: `Leo Ascendant • Sun`,
+      titleKn: "ರಾಜಗಾಂಭೀರ್ಯ, ಉದಾರ ಹೃದಯ & ಅಪ್ರತಿಮ ಸ್ವಾಭಿಮಾನ: ಯಾರ ಮುಂದೆಯೂ ತಲೆಬಾಗದ ಛಲ",
+      titleEn: "Majestic Nobility, Magnanimous Heart & Royal Self-Respect: Unyielding Dignity",
+      bulletKn: `ನಿಮ್ಮ ಸಿಂಹ ಲಗ್ನದ ಅಧಿಪತಿ ಸೂರ್ಯನ ತೇಜಸ್ಸಿನಿಂದಾಗಿ, ನಿಮ್ಮ ನಡೆ-ನುಡಿಯಲ್ಲಿ ಸಹಜ ರಾಜಗಾಂಭೀರ್ಯ ಮತ್ತು ಅಪ್ರತಿಮ ಸ್ವಾಭಿಮಾನವಿದೆ. ಯಾರ ಮುಂದೆಯೂ ಮುಖಸ್ತುತಿ ಮಾಡದೆ, ಸತ್ಯ ಮತ್ತು ಧರ್ಮದ ಪರವಾಗಿ ಮುನ್ನಡೆಯುವ ನೇರ ನಡೆ ನಿಮ್ಮ ರಕ್ತದಲ್ಲಿದೆ. ಆಶ್ರಯ ಬೇಡಿ ಬಂದವರನ್ನು ಉದಾರ ಮನಸ್ಸಿನಿಂದ ರಕ್ಷಿಸುವ ನಾಯಕತ್ವ ನಿಮ್ಮದು.`,
+      bulletEn: `Endowed with Leo Ascendant ruled by the Sun, you exude sovereign dignity, absolute self-respect, and radiant magnanimity. You never bow to sycophancy, leading with majestic honor.`,
+      astrologicalBasisKn: `1ನೇ ಲಗ್ನ ಭಾವ ಸಿಂಹ ಹಾಗೂ ಲಗ್ನಾಧಿಪತಿ ಸೂರ್ಯನ ತೇಜೋಗುಣ.`,
+      astrologicalBasisEn: `1st house Leo ruled by the radiant Sun.`
+    },
+    {
+      icon: "🔍",
+      badgeKn: `ಕನ್ಯಾ ಲಗ್ನ • ಬುಧ ಬಲ`,
+      badgeEn: `Virgo Ascendant • Mercury`,
+      titleKn: "ನಿಖರ ವಿಶ್ಲೇಷಣೆ, ಸುವ್ಯವಸ್ಥೆ & ಕರ್ತವ್ಯ ನಿಷ್ಠೆ: ಪರಿಪೂರ್ಣತೆಯತ್ತ ಅವಿರತ ಶ್ರಮ",
+      titleEn: "Analytical Precision, Methodical Order & Flawless Duty: Perfectionist Work Ethic",
+      bulletKn: `ನಿಮ್ಮ ಕನ್ಯಾ ಲಗ್ನದ ಅಧಿಪತಿ ಬುಧನ ಪೃಥ್ವಿ ತತ್ವದಿಂದಾಗಿ, ನೀವು ಯಾವುದೇ ಕೆಲಸದಲ್ಲೂ ತಪ್ಪುಗಳಿಗೆ ಆಸ್ಪದ ನೀಡದ ನಿಖರತೆ ಮತ್ತು ಶಿಸ್ತನ್ನು ಕಾಪಾಡುತ್ತೀರಿ. ವ್ಯವಸ್ಥಿತ ಯೋಜನೆ, ಪ್ರಾಯೋಗಿಕ ಚಿಂತನೆ ಹಾಗೂ ಇತರರಿಗೆ ನಿಸ್ವಾರ್ಥವಾಗಿ ನೆರವಾಗುವ ಕರ್ತವ್ಯ ಪ್ರಜ್ಞೆ ನಿಮ್ಮನ್ನು ಸಮಾಜದಲ್ಲಿ ಗೌರವಾನ್ವಿತರನ್ನಾಗಿ ಮಾಡುತ್ತದೆ.`,
+      bulletEn: `With Virgo Ascendant governed by Mercury, your analytical eye, meticulous discipline, and dedication to practical service ensure flawless execution and high reliability in every duty.`,
+      astrologicalBasisKn: `1ನೇ ಲಗ್ನ ಭಾವ ಕನ್ಯಾ ಹಾಗೂ ಲಗ್ನಾಧಿಪತಿ ಬುಧನ ವಿಶ್ಲೇಷಣಾ ಶಕ್ತಿ.`,
+      astrologicalBasisEn: `1st house Virgo ruled by analytical Mercury.`
+    },
+    {
+      icon: "⚖️",
+      badgeKn: `ತುಲಾ ಲಗ್ನ • ಶುಕ್ರ ಬಲ`,
+      badgeEn: `Libra Ascendant • Venus`,
+      titleKn: "ನ್ಯಾಯಪ್ರಿಯತೆ, ಸಾಮರಸ್ಯ & ಸೌಹಾರ್ದ ಸಮನ್ವಯ: ಸಕಲರನ್ನೂ ಗೌರವದಿಂದ ನಡೆಸಿಕೊಳ್ಳುವ ವಿವೇಕ",
+      titleEn: "Equitable Justice, Harmonious Balance & Diplomatic Grace: Uniting Hearts",
+      bulletKn: `ನಿಮ್ಮ ತುಲಾ ಲಗ್ನದ ಅಧಿಪತಿ ಶುಕ್ರನ ವಾಯು ತತ್ವದ ಸಮತೋಲನದಿಂದಾಗಿ, ನೀವು ಅತ್ಯಂತ ನ್ಯಾಯಪ್ರಿಯರು ಮತ್ತು ಸೌಹಾರ್ದಯುತ ವ್ಯಕ್ತಿತ್ವದವರು. ಎಷ್ಟೇ ಕಠಿಣ ವಾದ-ವಿವಾದಗಳಿದ್ದರೂ ಶಾಂತವಾಗಿ ಎಲ್ಲರನ್ನೂ ಜೊತೆಗೂಡಿಸಿ, ಒಮ್ಮತದ ನಿರ್ಧಾರಕ್ಕೆ ತರುವ ಅದ್ಭುತ ಸಮನ್ವಯ ಕಲೆ ಮತ್ತು ಆಕರ್ಷಕ ವ್ಯಕ್ತಿತ್ವ ನಿಮ್ಮಲ್ಲಿದೆ.`,
+      bulletEn: `Governed by Venus in harmonious Libra, your supreme virtue is an innate sense of fairness, diplomatic tact, and aesthetic poise, harmonizing discord into shared consensus.`,
+      astrologicalBasisKn: `1ನೇ ಲಗ್ನ ಭಾವ ತುಲಾ ಹಾಗೂ ಲಗ್ನಾಧಿಪತಿ ಶುಕ್ರನ ನ್ಯಾಯ ತತ್ವ.`,
+      astrologicalBasisEn: `1st house Libra ruled by fair and diplomatic Venus.`
+    },
+    {
+      icon: "🦅",
+      badgeKn: `ವೃಶ್ಚಿಕ ಲಗ್ನ • ಕುಜ-ಕೇತು ಬಲ`,
+      badgeEn: `Scorpio Ascendant • Mars-Ketu`,
+      titleKn: "ಅಚಲ ಸಂಕಲ್ಪ, ರಹಸ್ಯ ಭೇದಿಸುವ ದೃಷ್ಟಿ & ತೀವ್ರ ನಿಷ್ಠೆ: ಬಿರುಗಾಳಿಯಲ್ಲೂ ಮಣಿಯದ ಆತ್ಮಬಲ",
+      titleEn: "Unyielding Willpower, Penetrating Intuition & Fierce Devotion: Formidable Inner Power",
+      bulletKn: `ನಿಮ್ಮ ವೃಶ್ಚಿಕ ಲಗ್ನದ ಅಧಿಪತಿ ಕುಜ ಮತ್ತು ಕೇತುಗಳ ಗಂಭೀರ ಜಲ ತತ್ವದಿಂದಾಗಿ, ನಿಮ್ಮಲ್ಲಿ ಅಪಾರ ಆಂತರಿಕ ಸಂಕಲ್ಪ ಮತ್ತು ಛಲವಿದೆ. ಸತ್ಯವನ್ನು ಮರೆಮಾಚಿದರೂ ಕಣ್ಣಿನಲ್ಲೇ ಪತ್ತೆಹಚ್ಚುವ ತೀಕ್ಷ್ಣ ಗ್ರಹಿಕೆ ನಿಮ್ಮಲ್ಲಿದೆ. ನಂಬಿದವರಿಗೆ ಜೀವವನ್ನೇ ಕೊಡುವ ನಿಷ್ಠೆ ಹಾಗೂ ಸೋತರೂ ಮತ್ತೆ ಪುಟಿದೆದ್ದು ಗೆಲ್ಲುವ ಅದ್ಭುತ ಚೇತರಿಕೆಯ ಶಕ್ತಿ ನಿಮ್ಮ ರಕ್ತದಲ್ಲಿದೆ.`,
+      bulletEn: `Ruled by Mars and Ketu in Scorpio, your personality holds immense transformative power, unwavering loyalty, and piercing psychic intuition that sees through surface deceptions.`,
+      astrologicalBasisKn: `1ನೇ ಲಗ್ನ ಭಾವ ವೃಶ್ಚಿಕ ಹಾಗೂ ಲಗ್ನಾಧಿಪತಿ ಕುಜ-ಕೇತುಗಳ ಗಂಭೀರ ತತ್ವ.`,
+      astrologicalBasisEn: `1st house Scorpio ruled by transformative Mars and Ketu.`
+    },
+    {
+      icon: "🏹",
+      badgeKn: `ಧನು ಲಗ್ನ • ಗುರು ಬಲ`,
+      badgeEn: `Sagittarius Ascendant • Jupiter`,
+      titleKn: "ಧರ್ಮ ನಿಷ್ಠೆ, ದೂರದರ್ಶಿತ್ವ & ಜ್ಞಾನದಾಹ: ಸತ್ಯದ ಹಾದಿಯಲ್ಲಿ ಮುನ್ನಡೆಸುವ ಗುರುಬಲ",
+      titleEn: "Righteous Ideals, Philosophical Vision & Thirst for Truth: Wise Optimism",
+      bulletKn: `ನಿಮ್ಮ ಧನು ಲಗ್ನದ ಅಧಿಪತಿ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಅಗ್ನಿ ತತ್ವದ ಬಲದಿಂದಾಗಿ, ನೀವು ಉನ್ನತ ಮೌಲ್ಯಗಳು ಮತ್ತು ಸತ್ಯನಿಷ್ಠೆಯ ಪ್ರತಿಪಾದಕರು. ಜೀವನವನ್ನು ವಿಶಾಲ ದೃಷ್ಟಿಕೋನದಿಂದ ನೋಡುವ ಆಶಾವಾದ ಹಾಗೂ ಇತರರಿಗೆ ದಾರಿದೀಪವಾಗುವ ಮಾರ್ಗದರ್ಶನ ಸಾಮರ್ಥ್ಯ ನಿಮ್ಮಲ್ಲಿದೆ. ಯಾವುದೇ ಆಮಿಷಕ್ಕೂ ಮಣಿಯದೆ ಸದಾ ಧರ್ಮದ ಪರವಾಗಿ ನಿಲ್ಲುತ್ತೀರಿ.`,
+      bulletEn: `With Sagittarius Ascendant ruled by Jupiter, your soul thrives on philosophical truth, expansive optimism, and righteous ideals. You inspire others as a beacon of vision and integrity.`,
+      astrologicalBasisKn: `1ನೇ ಲಗ್ನ ಭಾವ ಧನು ಹಾಗೂ ಲಗ್ನಾಧಿಪತಿ ಗುರುವಿನ ಧರ್ಮ ತತ್ವ.`,
+      astrologicalBasisEn: `1st house Sagittarius ruled by benevolent Jupiter.`
+    },
+    {
+      icon: "🏔️",
+      badgeKn: `ಮಕರ ಲಗ್ನ • ಶನಿ ಬಲ`,
+      badgeEn: `Capricorn Ascendant • Saturn`,
+      titleKn: "ಕಠಿಣ ಪರಿಶ್ರಮ, ಕರ್ಮ ಬದ್ಧತೆ & ಶಿಸ್ತು: ಶೂನ್ಯದಿಂದ ಶಿಖರ ಮುಟ್ಟುವ ಅದ್ಭುತ ಸಹನೆ",
+      titleEn: "Tireless Endurance, Karmic Discipline & Pragmatic Mastery: Reaching the Summit",
+      bulletKn: `ನಿಮ್ಮ ಮಕರ ಲಗ್ನದ ಅಧಿಪತಿ ಕರ್ಮಕಾರಕ ಶನಿಯ ಪೃಥ್ವಿ ತತ್ವದ ಪ್ರಭಾವದಿಂದಾಗಿ, ನೀವು ಅಪ್ರತಿಮ ಪರಿಶ್ರಮಿ ಮತ್ತು ಶಿಸ್ತುಬದ್ಧ ವ್ಯಕ್ತಿ. ಆಡಂಬರದ ಮಾತುಗಳಿಗಿಂತ ಶಾಂತವಾಗಿ ದುಡಿದು ಫಲಿತಾಂಶ ತೋರಿಸುವುದರಲ್ಲಿ ನಂಬಿಕೆ ಇಟ್ಟಿದ್ದೀರಿ. ಎಷ್ಟೇ ಕಠಿಣ ಸಂದರ್ಭಗಳಲ್ಲೂ ಎದೆಗುಂದದೆ, ಶೂನ್ಯದಿಂದ ಯಶಸ್ಸಿನ ಶಿಖರವನ್ನು ಏರುವ ತಾಳ್ಮೆ ನಿಮ್ಮಲ್ಲಿದೆ.`,
+      bulletEn: `Governed by Saturn in disciplined Capricorn, your signature strength is quiet, relentless perseverance. You master obstacles through pragmatic patience and construct enduring success from zero.`,
+      astrologicalBasisKn: `1ನೇ ಲಗ್ನ ಭಾವ ಮಕರ ಹಾಗೂ ಲಗ್ನಾಧಿಪತಿ ಶನಿಯ ಕರ್ಮ ತತ್ವ.`,
+      astrologicalBasisEn: `1st house Capricorn ruled by disciplined Saturn.`
+    },
+    {
+      icon: "🌐",
+      badgeKn: `ಕುಂಭ ಲಗ್ನ • ಶನಿ-ರಾಹು ಬಲ`,
+      badgeEn: `Aquarius Ascendant • Saturn-Rahu`,
+      titleKn: "ಮಾನವೀಯತೆ, ನವೀನ ವೈಚಾರಿಕತೆ & ನಿಸ್ವಾರ್ಥತೆ: ಸಮಾಜದ ಹಿತ ಕಾಪಾಡುವ ಉನ್ನತ ಚಿಂತನೆ",
+      titleEn: "Humanitarian Vision, Progressive Intellect & Selfless Independence",
+      bulletKn: `ನಿಮ್ಮ ಕುಂಭ ಲಗ್ನದ ಅಧಿಪತಿ ಶನಿ ಮತ್ತು ರಾಹುವಿನ ವಾಯು ತತ್ವದ ಬಲದಿಂದಾಗಿ, ನೀವು ಸಾಂಪ್ರದಾಯಿಕ ಸಂಕೋಲೆಗಳನ್ನು ಮೀರಿ ಯೋಚಿಸುವ ನವೀನ ಸಮಾಜ ಸುಧಾರಕ ಮನೋಭಾವದವರು. ಸ್ವಾರ್ಥಕ್ಕಿಂತ ಸಮಾಜದ ಮತ್ತು ಎಲ್ಲರ ಒಳಿತಿಗಾಗಿ ಶ್ರಮಿಸುವ ವಿಶಾಲ ಹೃದಯ ನಿಮ್ಮದು. ನಿಮ್ಮ ಸ್ವತಂತ್ರ ವೈಚಾರಿಕ ಚಿಂತನೆ ಇತರರಿಗೆ ಸದಾ ಪ್ರೇರಣೆ.`,
+      bulletEn: `Ruled by Saturn and Rahu in Aquarius, you possess a progressive intellect, egalitarian compassion, and visionary humanitarian outlook that transcends narrow boundaries.`,
+      astrologicalBasisKn: `1ನೇ ಲಗ್ನ ಭಾವ ಕುಂಭ ಹಾಗೂ ಲಗ್ನಾಧಿಪತಿ ಶನಿ-ರಾಹುಗಳ ವಾಯು ತತ್ವ.`,
+      astrologicalBasisEn: `1st house Aquarius ruled by innovative Saturn and Rahu.`
+    },
+    {
+      icon: "✨",
+      badgeKn: `ಮೀನ ಲಗ್ನ • ಗುರು ಬಲ`,
+      badgeEn: `Pisces Ascendant • Jupiter`,
+      titleKn: "ಅಪಾರ ಕರುಣೆ, ಆಧ್ಯಾತ್ಮಿಕ ತ್ಯಾಗ & ದೈವಿಕ ಅಂತಃಪ್ರಜ್ಞೆ: ಜಗತ್ತನ್ನೇ ಪ್ರೀತಿಸುವ ಪವಿತ್ರ ಮನಸ್ಸು",
+      titleEn: "Boundless Compassion, Spiritual Intuition & Divine Surrender: Pure Radiance",
+      bulletKn: `ನಿಮ್ಮ ಮೀನ ಲಗ್ನದ ಅಧಿಪತಿ ಗುರುವಿನ ಸಾತ್ವಿಕ ಜಲ ತತ್ವದಿಂದಾಗಿ, ನಿಮ್ಮ ಅಂತರಂಗವು ಅಪಾರ ದೈವಭಕ್ತಿ, ಕರುಣೆ ಮತ್ತು ತ್ಯಾಗ ಮನೋಭಾವದಿಂದ ಕೂಡಿದೆ. ಸಂಕಷ್ಟದಲ್ಲಿರುವವರನ್ನು ಕಂಡರೆ ತಕ್ಷಣ ಕರಗುವ ಮೃದು ಹೃದಯ ನಿಮ್ಮದು. ಐಹಿಕ ಸ್ವಾರ್ಥಕ್ಕಿಂತ ಆಧ್ಯಾತ್ಮಿಕ ನೆಮ್ಮದಿ ಮತ್ತು ದೈವ ಕೃಪೆಯನ್ನು ನಂಬಿ ಮುನ್ನಡೆಯುವ ಸದ್ಗುಣ ನಿಮ್ಮಲ್ಲಿದೆ.`,
+      bulletEn: `With Pisces Ascendant governed by Jupiter, your essence radiates mystic compassion, selflessness, and profound spiritual intuition. You move through life guided by faith and empathy.`,
+      astrologicalBasisKn: `1ನೇ ಲಗ್ನ ಭಾವ ಮೀನ ಹಾಗೂ ಲಗ್ನಾಧಿಪತಿ ಗುರುವಿನ ಮೋಕ್ಷ ತತ್ವ.`,
+      astrologicalBasisEn: `1st house Pisces ruled by spiritual Jupiter.`
+    }
+  ];
 
-  // 2. SENSUAL ATTRACTIONS, GENDER AFFINITY & EXTERNAL AFFAIRS EVALUATION
+  const chosenLagnaP = lagnaGoodProfiles[lagnaIdx] || lagnaGoodProfiles[0];
+
+  // 12 DISTINCT MOON SIGN GOOD PROFILES (Trait 2)
+  const moonSignGoodProfiles = [
+    {
+      icon: "🔥",
+      badgeKn: "ಮೇಷ ಚಂದ್ರ • ಕ್ಷಿಪ್ರ ಸಾಹಸ",
+      badgeEn: "Aries Moon • Swift Courage",
+      titleKn: "ತ್ವರಿತ ಸ್ಪಂದನೆ & ಉತ್ಸಾಹಭರಿತ ಧೈರ್ಯ: ಯಾವುದೇ ಆತಂಕಕ್ಕೂ ಹೆದರದ ಮನೋಸ್ಥೈರ್ಯ",
+      titleEn: "Swift Response & Spirited Courage: Fearless Emotional Fortitude",
+      bulletKn: `ನಿಮ್ಮ ಚಂದ್ರನು ಮೇಷ ರಾಶಿಯಲ್ಲಿರುವುದರಿಂದ ನಿಮ್ಮ ಭಾವನಾತ್ಮಕ ಶಕ್ತಿಯು ಸದಾ ಚೈತನ್ಯದಾಯಕ ಮತ್ತು ಧೈರ್ಯಶಾಲಿ. ಯಾವುದೇ ಅನಿಶ್ಚಿತತೆ ಅಥವಾ ತುರ್ತು ಪರಿಸ್ಥಿತಿಯಲ್ಲಿ ತಬ್ಬಿಬ್ಬಾಗದೆ, ತಕ್ಷಣ ಸ್ಪಂದಿಸಿ ಕಾರ್ಯಪ್ರವೃತ್ತರಾಗುವ ಅದ್ಭುತ ಮನೋಬಲ ನಿಮ್ಮಲ್ಲಿದೆ.`,
+      bulletEn: `With Moon in Aries, your emotional nature is buoyant, daring, and swiftly decisive. You meet sudden adversities with immediate courage and proactive resolve.`,
+      astrologicalBasisKn: `ಚಂದ್ರ ರಾಶಿ ಮೇಷ (ಕುಜ ಕ್ಷೇತ್ರ) ಹಾಗೂ ಅಗ್ನಿ ತತ್ವದ ಚೈತನ್ಯ.`,
+      astrologicalBasisEn: `Moon in martial Aries conferring fearless emotional agility.`
+    },
+    {
+      icon: "💎",
+      badgeKn: "ಉಚ್ಚ ವೃಷಭ ಚಂದ್ರ • ಅಚಲ ಶಾಂತಿ",
+      badgeEn: "Exalted Taurus Moon • Unshakeable Calm",
+      titleKn: "ಅಚಲ ಮಾನಸಿಕ ಸ್ಥೈರ್ಯ & ಶಾಂತ ಚಿತ್ತ: ಭಾವನಾತ್ಮಕ ಬಿರುಗಾಳಿಯಲ್ಲೂ ಅಲುಗಾಡದ ಸಮಚಿತ್ತ",
+      titleEn: "Unshakeable Mental Fortitude & Calm Composure: Serene Emotional Anchor",
+      bulletKn: `ವೃಷಭ ರಾಶಿಯಲ್ಲಿ ಚಂದ್ರನು ಪರಮೋಚ್ಚ (Exalted) ಬಲ ಹೊಂದಿರುವುದರಿಂದ, ನಿಮ್ಮ ಮನಸ್ಸು ಅಸಾಧಾರಣ ಶಾಂತತೆ, ಸ್ಥೈರ್ಯ ಮತ್ತು ಸಹನೆಯ ಆಗರ. ಇತರರು ಗಾಬರಿಯಾಗುವ ಪರಿಸ್ಥಿತಿಯಲ್ಲೂ ನಿಮ್ಮ ಸಮಚಿತ್ತವನ್ನು ಕಳೆದುಕೊಳ್ಳದೆ, ಪರಿಸ್ಥಿತಿಯನ್ನು ಸಮಾಧಾನವಾಗಿ ನಿಭಾಯಿಸುವ ಅಪರೂಪದ ಶಕ್ತಿ ನಿಮ್ಮಲ್ಲಿದೆ.`,
+      bulletEn: `With an exalted Moon in Taurus, your emotional foundation is grounded in supreme calmness, patience, and unwavering composure even amidst turbulent crises.`,
+      astrologicalBasisKn: `ವೃಷಭ ರಾಶಿಯಲ್ಲಿ ಉಚ್ಚ ಚಂದ್ರ ಬಲ ಹಾಗೂ ಶುಕ್ರನ ಸೌಮ್ಯ ತತ್ವ.`,
+      astrologicalBasisEn: `Exalted Moon in Taurus bestowing deep emotional stability.`
+    },
+    {
+      icon: "🧠",
+      badgeKn: "ಮಿಥುನ ಚಂದ್ರ • ಬೌದ್ಧಿಕ ಚುರುಕು",
+      badgeEn: "Gemini Moon • Quick Intellect",
+      titleKn: "ಬೌದ್ಧಿಕ ಚುರುಕು, ನವೀನ ಜಿಜ್ಞಾಸೆ & ಹಾಸ್ಯ ಪ್ರಜ್ಞೆ: ಮನಸ್ಸನ್ನು ಸದಾ ಲವಲವಿಕೆಯಲ್ಲಿಡುವ ಕಲೆ",
+      titleEn: "Intellectual Curiosity, Quick Wit & Playful Charm: Vivacious Mind",
+      bulletKn: `ನಿಮ್ಮ ಚಂದ್ರನು ಮಿಥುನ ರಾಶಿಯಲ್ಲಿರುವುದರಿಂದ, ನಿಮ್ಮ ಮನಸ್ಸು ಹೊಸ ವಿಷಯಗಳನ್ನು ತಿಳಿಯಲು ಸದಾ ಹಾತೊರೆಯುತ್ತದೆ. ಎಂತಹ ಉದ್ವಿಗ್ನ ಸಂದರ್ಭಗಳಲ್ಲೂ ಹಾಸ್ಯ ಪ್ರಜ್ಞೆ ಹಾಗೂ ಸಮಯಪ್ರಜ್ಞೆಯಿಂದ ವಾತಾವರಣವನ್ನು ಹಗುರಗೊಳಿಸುವ ಕಲೆ ನಿಮ್ಮಲ್ಲಿದೆ.`,
+      bulletEn: `With Moon in Gemini, your mental spirit is inquisitive, communicative, and lively, effortlessly lightening tense situations with witty perspective.`,
+      astrologicalBasisKn: `ಮಿಥುನ ರಾಶಿಯ ಬುಧ-ಚಂದ್ರ ಸಂಪರ್ಕ ಹಾಗೂ ವಾಯು ತತ್ವ.`,
+      astrologicalBasisEn: `Moon in Gemini governed by intellectual Mercury.`
+    },
+    {
+      icon: "❤️",
+      badgeKn: "ಸ್ವಕ್ಷೇತ್ರ ಕರ್ಕ ಚಂದ್ರ • ಅಂತಃಸ್ಫುರಣೆ",
+      badgeEn: "Swakshetra Cancer Moon • Deep Intuition",
+      titleKn: "ಅಪಾರ ಮಾತೃ ವಾತ್ಸಲ್ಯ, ಅಂತಃಸ್ಫುರಣೆ & ನಿಷ್ಠೆ: ಹೃದಯದ ಆಳದಿಂದ ಪ್ರೀತಿಸುವ ಗುಣ",
+      titleEn: "Profound Empathy, Intuitive Sensing & Devotion: Unconditional Warmth",
+      bulletKn: `ಕರ್ಕಾಟಕ ರಾಶಿಯಲ್ಲಿ ಚಂದ್ರನು ಸ್ವಕ್ಷೇತ್ರ ಬಲ ಹೊಂದಿರುವುದರಿಂದ, ನಿಮ್ಮ ಅಂತಃಪ್ರಜ್ಞೆ (Intuition) ಅತ್ಯಂತ ಶಕ್ತಿಶಾಲಿ. ಇತರರು ಹೇಳದ ನೋವನ್ನೂ ಅವರ ಕಣ್ಣಿನಲ್ಲೇ ಗ್ರಹಿಸಿ, ಸಾಂತ್ವನ ನೀಡುವ ಅಪಾರ ಕರುಣೆ ಮತ್ತು ಆಪ್ತರನ್ನು ಕಾಯುವ ರಕ್ಷಣಾ ಪ್ರವೃತ್ತಿ ನಿಮ್ಮ ಹೃದಯದಲ್ಲಿದೆ.`,
+      bulletEn: `With Moon in its own sign Cancer, your intuitive radar is profound. You sense emotional undercurrents instantly and nurture loved ones with unconditional protective warmth.`,
+      astrologicalBasisKn: `ಕರ್ಕಾಟಕ ರಾಶಿಯಲ್ಲಿ ಸ್ವಕ್ಷೇತ್ರ ಚಂದ್ರ ಬಲ ಹಾಗೂ ಪರಿಶುದ್ಧ ಜಲ ತತ್ವ.`,
+      astrologicalBasisEn: `Swakshetra Moon in Cancer conferring deep psychological intuition.`
+    },
+    {
+      icon: "🦁",
+      badgeKn: "ಸಿಂಹ ಚಂದ್ರ • ಹೃದಯ ವೈಶಾಲ್ಯ",
+      badgeEn: "Leo Moon • Magnanimous Heart",
+      titleKn: "ಹೃದಯ ವೈಶಾಲ್ಯ, ಆತ್ಮವಿಶ್ವಾಸ & ಉದಾರತೆ: ಎಲ್ಲರನ್ನೂ ಪ್ರೀತಿಸಿ ಹರಸುವ ರಾಜಮನಸ್ಸು",
+      titleEn: "Warm Magnanimity, Radiant Confidence & Generosity: Sovereign Heart",
+      bulletKn: `ಸಿಂಹ ರಾಶಿಯಲ್ಲಿ ಚಂದ್ರನಿರುವುದರಿಂದ ನಿಮ್ಮ ಮನಸ್ಸು ಅತ್ಯಂತ ದೊಡ್ಡದು. ಇತರರ ತಪ್ಪುಗಳನ್ನು ಕ್ಷಮಿಸಿ ಉದಾರವಾಗಿ ಸಹಾಯ ಮಾಡುವ ಗುಣ, ನಾಯಕತ್ವದ ಆತ್ಮವಿಶ್ವಾಸ ಹಾಗೂ ಪ್ರೀತಿಪಾತ್ರರಿಗೆ ಸದಾ ನೆರಳಾಗಿ ನಿಲ್ಲುವ ರಾಜಗಾಂಭೀರ್ಯದ ಮನೋಭಾವ ನಿಮ್ಮದು.`,
+      bulletEn: `With Moon in radiant Leo, your heart is noble, confident, and forgiving. You uplift others with generous patronage and provide a warm shelter for your circle.`,
+      astrologicalBasisKn: `ಸಿಂಹ ರಾಶಿಯ ಸೂರ್ಯ-ಚಂದ್ರ ತೇಜೋಗುಣ.`,
+      astrologicalBasisEn: `Moon in Leo governed by the radiant Sun.`
+    },
+    {
+      icon: "📋",
+      badgeKn: "ಕನ್ಯಾ ಚಂದ್ರ • ವಿವೇಕ & ಶಿಸ್ತು",
+      badgeEn: "Virgo Moon • Discernment & Order",
+      titleKn: "ವ್ಯವಸ್ಥಿತ ಯೋಜನೆ, ವಿವೇಚನೆ & ಪ್ರಾಯೋಗಿಕ ಜಾಣ್ಮೆ: ಭಾವನೆಗಳಿಗಿಂತ ಕರ್ತವ್ಯಕ್ಕೆ ಪ್ರಾಶಸ್ತ್ಯ",
+      titleEn: "Methodical Planning, Prudent Discernment & Duty: Practical Composure",
+      bulletKn: `ಕನ್ಯಾ ರಾಶಿಯ ಚಂದ್ರನ ಪ್ರಭಾವದಿಂದಾಗಿ, ನೀವು ಭಾವನಾತ್ಮಕ ಆವೇಶಕ್ಕೆ ಒಳಗಾಗದೆ, ಪ್ರತಿಯೊಂದು ವಿಷಯದಲ್ಲೂ ಸಾಧಕ-ಬಾಧಕಗಳನ್ನು ವಿಶ್ಲೇಷಿಸಿ ಮುನ್ನಡೆಯುತ್ತೀರಿ. ವ್ಯವಸ್ಥಿತ ಯೋಜನೆ ಹಾಗೂ ಕರ್ತವ್ಯ ನಿಷ್ಠೆಯಿಂದ ಮನಸ್ಸನ್ನು ಸಮತೋಲನದಲ್ಲಿ ಇಟ್ಟುಕೊಳ್ಳುತ್ತೀರಿ.`,
+      bulletEn: `Governed by Moon in analytical Virgo, you navigate emotions with practical discernment and order, prioritizing constructive duty over sentimental turbulence.`,
+      astrologicalBasisKn: `ಕನ್ಯಾ ರಾಶಿಯ ಬುಧ-ಚಂದ್ರ ಪ್ರಾಯೋಗಿಕ ತತ್ವ.`,
+      astrologicalBasisEn: `Moon in Virgo grounded in earthy analytical intellect.`
+    },
+    {
+      icon: "🕊️",
+      badgeKn: "ತುಲಾ ಚಂದ್ರ • ಸಾಮರಸ್ಯ ಸಮಚಿತ್ತ",
+      badgeEn: "Libra Moon • Harmonious Composure",
+      titleKn: "ಸಾಮರಸ್ಯ ಪ್ರಿಯತೆ, ಸಮಚಿತ್ತ & ಮಧುರ ಸಂವಹನ: ಮನಸ್ಸನ್ನು ಸದಾ ತಣ್ಣಗಿಡುವ ಸೌಹಾರ್ದತೆ",
+      titleEn: "Harmonious Temperament, Poise & Sweet Demeanor: Peaceful Balance",
+      bulletKn: `ತುಲಾ ರಾಶಿಯಲ್ಲಿ ಚಂದ್ರನಿರುವುದರಿಂದ ನಿಮ್ಮ ಮನಸ್ಸು ಸದಾ ಶಾಂತಿ ಮತ್ತು ಸೌಹಾರ್ದತೆಯನ್ನು ಬಯಸುತ್ತದೆ. ಯಾರೊಂದಿಗೂ ಅನಗತ್ಯ ಕಹಿ ಬೆಳೆಸಿಕೊಳ್ಳದೆ, ಮಧುರ ಮಾತುಗಳಿಂದ ವಿವಾದಗಳನ್ನು ಬಗೆಹರಿಸಿ ಎಲ್ಲರನ್ನೂ ಒಟ್ಟಿಗೆ ಕೊಂಡೊಯ್ಯುವ ಸಮಚಿತ್ತ ನಿಮ್ಮಲ್ಲಿದೆ.`,
+      bulletEn: `With Moon in balanced Libra, you possess a naturally soothing temperament, seeking harmony in relationships and dissolving tension with graceful tact.`,
+      astrologicalBasisKn: `ತುಲಾ ರಾಶಿಯ ಶುಕ್ರ-ಚಂದ್ರ ಸೌಮ್ಯ ಸಮನ್ವಯ.`,
+      astrologicalBasisEn: `Moon in Libra ruled by peacemaking Venus.`
+    },
+    {
+      icon: "🛡️",
+      badgeKn: "ವೃಶ್ಚಿಕ ಚಂದ್ರ • ಅದಮ್ಯ ಚೇತರಿಕೆ",
+      badgeEn: "Scorpio Moon • Resilient Will",
+      titleKn: "ಅಂತರಂಗದ ಆಳ, ಅಂತಃಪ್ರಜ್ಞೆಯ ಗ್ರಹಿಕೆ & ಅದಮ್ಯ ಚೇತರಿಕೆ: ನೋವಿನಲ್ಲೂ ಅಲುಗಾಡದ ಸಂಕಲ್ಪ",
+      titleEn: "Emotional Depth, Psychological Insight & Resilience: Unshakeable Will",
+      bulletKn: `ವೃಶ್ಚಿಕ ರಾಶಿಯ ಚಂದ್ರನ ಪ್ರಭಾವದಿಂದ ನಿಮ್ಮ ಭಾವನಾತ್ಮಕ ಶಕ್ತಿಯು ಅಸಾಧಾರಣ ಆಳವನ್ನು ಹೊಂದಿದೆ. ಜೀವನದ ಎಂತಹ ಕಠಿಣ ನೋವುಗಳನ್ನೂ ಅಂತರಂಗದಲ್ಲೇ ಜೀರ್ಣಿಸಿಕೊಂಡು, ಮೌನವಾಗಿಯೇ ಪುಟಿದೆದ್ದು ಗೆಲ್ಲುವ ಅಪ್ರತಿಮ ಚೇತರಿಕೆಯ ಶಕ್ತಿ ನಿಮ್ಮಲ್ಲಿದೆ.`,
+      bulletEn: `With Moon in Scorpio, your emotional reserves run extraordinarily deep. You possess fierce psychological resilience, transforming pain into unstoppable personal power.`,
+      astrologicalBasisKn: `ವೃಶ್ಚಿಕ ರಾಶಿಯ ಕುಜ-ಕೇತು ಜಲ ತತ್ವ ಹಾಗೂ ಚಂದ್ರನ ಆಂತರಿಕ ಶಕ್ತಿ.`,
+      astrologicalBasisEn: `Moon in Scorpio conferring profound transformative inner strength.`
+    },
+    {
+      icon: "☀️",
+      badgeKn: "ಧನು ಚಂದ್ರ • ಆಶಾವಾದ & ಶ್ರದ್ಧೆ",
+      badgeEn: "Sagittarius Moon • Faith & Optimism",
+      titleKn: "ಆಶಾವಾದ, ಧಾರ್ಮಿಕ ಶ್ರದ್ಧೆ & ಉನ್ನತ ಮೌಲ್ಯಗಳು: ಕತ್ತಲಲ್ಲೂ ಬೆಳಕು ಕಾಣುವ ಮನೋಬಲ",
+      titleEn: "Spiritual Faith, High Ideals & Visionary Cheer: Uplifting Optimism",
+      bulletKn: `ಧನು ರಾಶಿಯ ಚಂದ್ರನ ಬಲದಿಂದಾಗಿ ನಿಮ್ಮ ಮನಸ್ಸಿನಲ್ಲಿ ಸಹಜ ಆಶಾವಾದ ಮತ್ತು ದೈವಶ್ರದ್ಧೆ ಮನೆಮಾಡಿದೆ. ಎಷ್ಟೇ ಕತ್ತಲೆಯ ಸಂದರ್ಭ ಬಂದರೂ ಒಳ್ಳೆಯ ದಿನಗಳು ಬರುತ್ತವೆ ಎಂಬ ಅಚಲ ವಿಶ್ವಾಸದಿಂದ ಇತರರಲ್ಲೂ ಉತ್ಸಾಹ ತುಂಬುವ ದಿವ್ಯ ಗುಣ ನಿಮ್ಮಲ್ಲಿದೆ.`,
+      bulletEn: `With Moon in Jupiter's sign Sagittarius, you carry an infectious spiritual optimism. Your faith transforms despair into expansive hope and moral clarity.`,
+      astrologicalBasisKn: `ಧನು ರಾಶಿಯ ಗುರು-ಚಂದ್ರ ಸಾತ್ವಿಕ ಧರ್ಮ ತತ್ವ.`,
+      astrologicalBasisEn: `Moon in Sagittarius ruled by benevolent Jupiter.`
+    },
+    {
+      icon: "⏳",
+      badgeKn: "ಮಕರ ಚಂದ್ರ • ಪ್ರಬುದ್ಧ ಸಂಯಮ",
+      badgeEn: "Capricorn Moon • Stoic Maturity",
+      titleKn: "ಸಂಯಮದ ಹೊಣೆಗಾರಿಕೆ, ತಾಳ್ಮೆ & ಕರ್ತವ್ಯ ಪ್ರಜ್ಞೆ: ಜವಾಬ್ದಾರಿಯನ್ನು ನಗುನಗುತ್ತಾ ಹೊರಬಲ್ಲ ಶಕ್ತಿ",
+      titleEn: "Pragmatic Responsibility, Stoic Patience & Duty: Dependable Rock",
+      bulletKn: `ಮಕರ ರಾಶಿಯ ಚಂದ್ರನ ಪ್ರಭಾವದಿಂದ ನಿಮ್ಮ ಮನಸ್ಸು ಅಕಾಲಿಕ ಪ್ರಬುದ್ಧತೆ ಮತ್ತು ಸಂಯಮವನ್ನು ಹೊಂದಿದೆ. ಸುಖ-ದುಃಖಗಳಿಗೆ ವಿಚಲಿತರಾಗದೆ, ಕುಟುಂಬದ ಹೊಣೆಗಾರಿಕೆಯನ್ನು ಗಟ್ಟಿಯಾಗಿ ಹೊತ್ತು ಮುನ್ನಡೆಸುವ ನಂಬಿಕಾರ್ಹ ವ್ಯಕ್ತಿತ್ವ ನಿಮ್ಮದು.`,
+      bulletEn: `Governed by Moon in Saturnian Capricorn, you hold remarkable stoic endurance, carrying responsibilities with patient dignity without seeking pity.`,
+      astrologicalBasisKn: `ಮಕರ ರಾಶಿಯ ಶನಿ-ಚಂದ್ರ ಕರ್ಮ ತತ್ವ.`,
+      astrologicalBasisEn: `Moon in Capricorn conferring seasoned emotional maturity.`
+    },
+    {
+      icon: "🌌",
+      badgeKn: "ಕುಂಭ ಚಂದ್ರ • ವಿಶಾಲ ದೃಷ್ಟಿ",
+      badgeEn: "Aquarius Moon • Universal Vision",
+      titleKn: "ವಿಶಾಲ ದೃಷ್ಟಿಕೋನ, ಸಾಮುದಾಯಿಕ ಹಿತಾಸಕ್ತಿ & ಹೊಸ ಆಲೋಚನೆಗಳು: ನಿಸ್ವಾರ್ಥ ಮನೋಭಾವ",
+      titleEn: "Universal Benevolence, Broadminded Intellect & Altruism: Clear Equanimity",
+      bulletKn: `ಕುಂಭ ರಾಶಿಯ ಚಂದ್ರನ ಪ್ರಭಾವದಿಂದ ನಿಮ್ಮ ಭಾವನೆಗಳು ಸಂಕುಚಿತವಾಗಿರದೆ, ಸಮಸ್ತ ಮಾನವಕುಲದ ಹಿತವನ್ನು ಬಯಸುವ ವಿಶಾಲತೆಯನ್ನು ಹೊಂದಿವೆ. ಸ್ವಾರ್ಥ ರಹಿತವಾಗಿ ಯೋಚಿಸುವ ಹಾಗೂ ಇತರರಿಗೆ ನಿಸ್ವಾರ್ಥವಾಗಿ ನೆರವಾಗುವ ನಿರ್ಮಲ ಮನಸ್ಸು ನಿಮ್ಮದು.`,
+      bulletEn: `With Moon in Aquarius, your emotional focus is objective, generous, and humanitarian, viewing challenges with panoramic clarity and goodwill for all.`,
+      astrologicalBasisKn: `ಕುಂಭ ರಾಶಿಯ ಶನಿ-ರಾಹು ವಾಯು ತತ್ವ ಹಾಗೂ ಚಂದ್ರನ ವಿಶಾಲತೆ.`,
+      astrologicalBasisEn: `Moon in Aquarius conferring objective, altruistic broadmindedness.`
+    },
+    {
+      icon: "🪷",
+      badgeKn: "ಮೀನ ಚಂದ್ರ • ದೈವಿಕ ಕರುಣೆ",
+      badgeEn: "Pisces Moon • Divine Compassion",
+      titleKn: "ಆಧ್ಯಾತ್ಮಿಕ ಅಂತಃಸ್ಫುರಣೆ, ಕಲ್ಪನಾ ಶಕ್ತಿ & ದೈವಿಕ ಕರುಣೆ: ದೈವ ಸಂಕಲ್ಪಕ್ಕೆ ಶರಣಾಗುವ ಭಕ್ತಿ",
+      titleEn: "Mystic Compassion, Intuitive Grace & Surrender: Pure Devotion",
+      bulletKn: `ಮೀನ ರಾಶಿಯ ಚಂದ್ರನ ಪ್ರಭಾವದಿಂದಾಗಿ ನಿಮ್ಮ ಹೃದಯವು ಅಪಾರ ಕರುಣೆ, ಕಾವ್ಯಮಯ ಕಲ್ಪನೆ ಮತ್ತು ದೈವಿಕ ಭಕ್ತಿಯ ಸಾಗರ. ಇತರರ ನೋವನ್ನು ತನ್ನದೇ ನೋವೆಂದು ಭಾವಿಸಿ ಸ್ಪಂದಿಸುವ ನಿಮ್ಮ ಪವಿತ್ರ ಗುಣವು ನಿಮಗೆ ದೈವ ಕೃಪೆಯನ್ನು ಸದಾ ತಂದುಕೊಡುತ್ತದೆ.`,
+      bulletEn: `With Moon in Jupiter's watery sign Pisces, your essence is steeped in mystic empathy, artistic sensitivity, and soulful surrender to divine grace.`,
+      astrologicalBasisKn: `ಮೀನ ರಾಶಿಯ ಗುರು-ಚಂದ್ರ ಮೋಕ್ಷ ತತ್ವ.`,
+      astrologicalBasisEn: `Moon in Pisces bestowing boundless spiritual compassion.`
+    }
+  ];
+
+  const moonSignIdx = kundli.moonSign.index;
+  const chosenMoonP = moonSignGoodProfiles[moonSignIdx] || moonSignGoodProfiles[0];
+
+  // 5TH LORD INTELLECT PROFILES (Trait 3)
+  const fifthLordProfiles: Record<PlanetName, {
+    icon: string;
+    badgeKn: string;
+    badgeEn: string;
+    titleKn: string;
+    titleEn: string;
+    bulletKn: string;
+    bulletEn: string;
+    astrologicalBasisKn: string;
+    astrologicalBasisEn: string;
+  }> = {
+    [PlanetName.Mercury]: {
+      icon: "🧠",
+      badgeKn: `5ನೇ ಬುಧ • ${fifthLordKn}`,
+      badgeEn: `5th Mercury • ${fifthLord}`,
+      titleKn: "ತಾರ್ಕಿಕ ವಿಶ್ಲೇಷಣೆ, ಗಣಿತ-ವಾಣಿಜ್ಯ ಜಾಣ್ಮೆ & ಚತುರ ಸಂವಹನ: ಪ್ರಾಯೋಗಿಕ ಸಮಸ್ಯೆಗಳ ತ್ವರಿತ ಪರಿಹಾರ",
+      titleEn: "Analytical Logic, Commercial Acumen & Articulation: Quick Solutions",
+      bulletKn: `5ನೇ ಬುದ್ಧಿ ಸ್ಥಾನದಲ್ಲಿ ಬುಧನ ಆಧಿಪತ್ಯವಿರುವುದರಿಂದ, ನಿಮ್ಮ ಮೆದುಳು ಲೆಕ್ಕಾಚಾರ, ತರ್ಕ ಮತ್ತು ವಾಣಿಜ್ಯ ವಿಷಯಗಳಲ್ಲಿ ಮಿಂಚಿನಂತೆ ಕೆಲಸ ಮಾಡುತ್ತದೆ. ಜಟಿಲ ಸವಾಲುಗಳನ್ನು ಸರಳ ಹಂತಗಳಾಗಿ ವಿಂಗಡಿಸಿ, ಪ್ರಾಯೋಗಿಕವಾಗಿ ಬಗೆಹರಿಸುವ ಚಾಣಾಕ್ಷತೆ ನಿಮ್ಮಲ್ಲಿದೆ.`,
+      bulletEn: `Governed by 5th lord Mercury, your intellect is finely tuned for practical logic, commerce, and problem-solving, turning complex issues into clear steps.`,
+      astrologicalBasisKn: `5ನೇ ಬುದ್ಧಿ ಭಾವ ಬುಧನ ತರ್ಕ ಶಕ್ತಿ.`,
+      astrologicalBasisEn: `5th house ruled by analytical Mercury.`
+    },
+    [PlanetName.Jupiter]: {
+      icon: "📚",
+      badgeKn: `5ನೇ ಗುರು • ${fifthLordKn}`,
+      badgeEn: `5th Jupiter • ${fifthLord}`,
+      titleKn: "ಉನ್ನತ ವಿವೇಕ, ಧರ್ಮಶಾಸ್ತ್ರ ಗ್ರಹಿಕೆ & ಮಾರ್ಗದರ್ಶನ ಕೌಶಲ್ಯ: ಇತರರಿಗೆ ದಾರಿದೀಪವಾಗುವ ಬುದ್ಧಿ",
+      titleEn: "Profound Wisdom, Philosophical Grasp & Mentorship: Guiding Intellect",
+      bulletKn: `5ನೇ ಪೂರ್ವಪುಣ್ಯ ಭಾವದಲ್ಲಿ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಆಧಿಪತ್ಯವಿರುವುದರಿಂದ, ನಿಮ್ಮ ಆಲೋಚನೆಗಳು ಗಂಭೀರ, ಮೌಲ್ಯಾಧಾರಿತ ಮತ್ತು ದೂರದೃಷ್ಟಿಯುಳ್ಳವು. ಇತರರಿಗೆ ಸೂಕ್ತ ಸಲಹೆ ನೀಡಿ ಸನ್ಮಾರ್ಗದಲ್ಲಿ ಮುನ್ನಡೆಸುವ ಸಹಜ ಗುರುತ್ವದ ಕೌಶಲ್ಯ ನಿಮ್ಮಲ್ಲಿದೆ.`,
+      bulletEn: `With 5th house ruled by Jupiter, your intellect operates with ethical depth, broad perspective, and natural advisory wisdom that inspires others.`,
+      astrologicalBasisKn: `5ನೇ ಪೂರ್ವಪುಣ್ಯ ಭಾವ ಗುರುವಿನ ಸಾತ್ವಿಕ ವಿವೇಕ.`,
+      astrologicalBasisEn: `5th house ruled by wise Jupiter.`
+    },
+    [PlanetName.Venus]: {
+      icon: "🎨",
+      badgeKn: `5ನೇ ಶುಕ್ರ • ${fifthLordKn}`,
+      badgeEn: `5th Venus • ${fifthLord}`,
+      titleKn: "ಕಲಾತ್ಮಕ ಸೃಜನಶೀಲತೆ, ಕಲ್ಪನಾ ಶಕ್ತಿ & ಸೌಂದರ್ಯ ಪ್ರಜ್ಞೆ: ನವೀನ ಆವಿಷ್ಕಾರಗಳ ಸೃಷ್ಟಿ",
+      titleEn: "Artistic Creativity, Aesthetic Vision & Design Acuity: Innovative Flair",
+      bulletKn: `5ನೇ ಭಾವದಲ್ಲಿ ಕಲಾಕಾರಕ ಶುಕ್ರನ ಆಧಿಪತ್ಯವಿರುವುದರಿಂದ, ನೀವು ಯಾವುದೇ ಕೆಲಸದಲ್ಲೂ ಸೌಂದರ್ಯ, ನಾವೀನ್ಯತೆ ಹಾಗೂ ಆಕರ್ಷಕ ವಿನ್ಯಾಸವನ್ನು ತರಬಲ್ಲ ಸೃಜನಶೀಲ ಬುದ್ಧಿಶಕ್ತಿಯನ್ನು ಹೊಂದಿದ್ದೀರಿ. ಕಲೆ, ಸಾಹಿತ್ಯ ಅಥವಾ ಕಲಾತ್ಮಕ ಯೋಜನೆಗಳಲ್ಲಿ ನಿಮ್ಮ ಪ್ರತಿಭೆ ಹೊಳೆಯುತ್ತದೆ.`,
+      bulletEn: `With 5th house governed by Venus, your intellect excels in creative imagination, aesthetic design, and harmonious innovation, producing refined solutions.`,
+      astrologicalBasisKn: `5ನೇ ಬುದ್ಧಿ ಭಾವ ಶುಕ್ರನ ಕಲಾತ್ಮಕ ತತ್ವ.`,
+      astrologicalBasisEn: `5th house ruled by aesthetic Venus.`
+    },
+    [PlanetName.Mars]: {
+      icon: "⚙️",
+      badgeKn: `5ನೇ ಕುಜ • ${fifthLordKn}`,
+      badgeEn: `5th Mars • ${fifthLord}`,
+      titleKn: "ತಾಂತ್ರಿಕ ಕುಶಲತೆ, ತ್ವರಿತ ನಿರ್ಧಾರ & ರಕ್ಷಣಾತ್ಮಕ ಕಾರ್ಯತಂತ್ರ: ಬಿಕ್ಕಟ್ಟಿನ ಸಮಯದ ಚಾಣಾಕ್ಷತೆ",
+      titleEn: "Technical Mastery, Decisive Execution & Crisis Strategy: Tactical Brilliance",
+      bulletKn: `5ನೇ ಭಾವದಲ್ಲಿ ಕುಜನ ಪ್ರಭಾವವಿರುವುದರಿಂದ, ಯಂತ್ರೋಪಕರಣ, ತಂತ್ರಜ್ಞಾನ ಅಥವಾ ತುರ್ತು ಸನ್ನಿವೇಶಗಳಲ್ಲಿ ನಿಮ್ಮ ಬುದ್ಧಿ ಅಸಾಧಾರಣ ವೇಗದಲ್ಲಿ ಕೆಲಸ ಮಾಡುತ್ತದೆ. ಬಿಕ್ಕಟ್ಟು ಎದುರಾದಾಗ ಹಿಂಜರಿಯದೆ ತಕ್ಷಣ ಸರಿಯಾದ ನಿರ್ಧಾರ ಕೈಗೊಳ್ಳುವ ಧೈರ್ಯಶಾಲಿ ಬುದ್ಧಿ ನಿಮ್ಮದು.`,
+      bulletEn: `Governed by 5th lord Mars, your mind thrives under crisis pressure, executing decisive tactical responses and commanding technical or strategic challenges.`,
+      astrologicalBasisKn: `5ನೇ ಭಾವ ಕುಜನ ತಾಂತ್ರಿಕ ಹಾಗೂ ಕ್ಷಿಪ್ರ ನಿರ್ಧಾರ ಶಕ್ತಿ.`,
+      astrologicalBasisEn: `5th house ruled by strategic Mars.`
+    },
+    [PlanetName.Sun]: {
+      icon: "☀️",
+      badgeKn: `5ನೇ ಸೂರ್ಯ • ${fifthLordKn}`,
+      badgeEn: `5th Sun • ${fifthLord}`,
+      titleKn: "ಆಡಳಿತಾತ್ಮಕ ದೂರದರ್ಶಿತ್ವ, ನಾಯಕತ್ವದ ನಿರ್ಧಾರ & ತೇಜಸ್ವಿ ಗ್ರಹಿಕೆ: ಅಧಿಕಾರಯುತ ವಿವೇಕ",
+      titleEn: "Executive Vision, Authoritative Leadership & Clear Decision-Making",
+      bulletKn: `5ನೇ ಭಾವದಲ್ಲಿ ಸೂರ್ಯನ ಆಧಿಪತ್ಯವಿರುವುದರಿಂದ, ನಿಮ್ಮ ಬುದ್ಧಿಯಲ್ಲಿ ಅಧಿಕಾರ, ಸ್ಪಷ್ಟತೆ ಹಾಗೂ ಸಂಸ್ಥೆಯನ್ನು ಮುನ್ನಡೆಸುವ ನಾಯಕತ್ವದ ದೃಷ್ಟಿಕೋನವಿದೆ. ಗೊಂದಲಗಳಿಗೆ ಕಿವಿಗೊಡದೆ ಸತ್ಯಾಸತ್ಯತೆಗಳನ್ನು ಗ್ರಹಿಸಿ ದೃಢ ತೀರ್ಪು ನೀಡುವ ಸಾಮರ್ಥ್ಯ ನಿಮ್ಮಲ್ಲಿದೆ.`,
+      bulletEn: `With Sun governing the 5th house, your intellect carries innate executive clarity and command, cutting through ambiguity with authoritative conviction.`,
+      astrologicalBasisKn: `5ನೇ ಬುದ್ಧಿ ಭಾವ ಸೂರ್ಯನ ತೇಜೋಗುಣ.`,
+      astrologicalBasisEn: `5th house ruled by the radiant Sun.`
+    },
+    [PlanetName.Saturn]: {
+      icon: "🔍",
+      badgeKn: `5ನೇ ಶನಿ • ${fifthLordKn}`,
+      badgeEn: `5th Saturn • ${fifthLord}`,
+      titleKn: "ಆಳವಾದ ಸಂಶೋಧನಾ ಶಕ್ತಿ, ಅಪಾರ ತಾಳ್ಮೆ & ದೀರ್ಘಕಾಲೀನ ಕಾರ್ಯತಂತ್ರ: ಹಂತ-ಹಂತವಾಗಿ ಗುರಿ ಮುಟ್ಟುವ ಶಿಸ್ತು",
+      titleEn: "Deep Investigative Focus, Patient Strategy & Enduring Discipline",
+      bulletKn: `5ನೇ ಭಾವದಲ್ಲಿ ಶನಿಯ ಆಧಿಪತ್ಯವಿರುವುದರಿಂದ, ನಿಮ್ಮ ಬುದ್ಧಿ ಆಳವಾದ ಅಧ್ಯಯನ, ಸಂಶೋಧನೆ ಮತ್ತು ದೀರ್ಘಾವಧಿಯ ಯೋಜನೆಗಳಲ್ಲಿ ಅಪಾರ ಸಾಮರ್ಥ್ಯ ತೋರುತ್ತದೆ. ಮೇಲ್ನೋಟದ ತೀರ್ಮಾನಗಳಿಗೆ ಹೋಗದೆ, ಆಳಕ್ಕೆ ಇಳಿದು ಶಾಶ್ವತ ಪರಿಹಾರ ಕಂಡುಹಿಡಿಯುವ ಶಿಸ್ತು ನಿಮ್ಮದು.`,
+      bulletEn: `Governed by Saturn in the 5th house, your mind possesses relentless depth, patient investigative stamina, and structured foresight that masters long-term goals.`,
+      astrologicalBasisKn: `5ನೇ ಭಾವ ಶನಿಯ ಆಳವಾದ ಸಂಶೋಧನಾ ತತ್ವ.`,
+      astrologicalBasisEn: `5th house ruled by methodical Saturn.`
+    },
+    [PlanetName.Moon]: {
+      icon: "🌊",
+      badgeKn: `5ನೇ ಚಂದ್ರ • ${fifthLordKn}`,
+      badgeEn: `5th Moon • ${fifthLord}`,
+      titleKn: "ಅಂತಃಪ್ರಜ್ಞಾಶಕ್ತಿ, ಮಾನಸಿಕ ಗ್ರಹಿಕೆ & ಭಾವನಾತ್ಮಕ ಜಾಣ್ಮೆ: ಜನರ ಮನಸ್ಸನ್ನು ತಕ್ಷಣ ಓದುವ ಕೌಶಲ್ಯ",
+      titleEn: "Intuitive Grasp, Emotional Intelligence & People Reading: Psychological Acuity",
+      bulletKn: `5ನೇ ಭಾವದಲ್ಲಿ ಚಂದ್ರನ ಪ್ರಭಾವವಿರುವುದರಿಂದ, ನಿಮ್ಮ ಬುದ್ಧಿಯು ಜನರ ನಾಡಿಮಿಡಿತವನ್ನು ಅರಿಯುವಲ್ಲಿ ಅಪ್ರತಿಮ. ಇತರರ ಭಾವನೆಗಳು, ಅಗತ್ಯಗಳು ಹಾಗೂ ಮುಚ್ಚಿಟ್ಟ ಉದ್ದೇಶಗಳನ್ನು ಕಣ್ಣಿನಲ್ಲೇ ಗ್ರಹಿಸಿ ಸೂಕ್ತವಾಗಿ ವ್ಯವಹರಿಸುವ ಮನೋವೈಜ್ಞಾನಿಕ ಜಾಣ್ಮೆ ನಿಮ್ಮಲ್ಲಿದೆ.`,
+      bulletEn: `With Moon governing the 5th house, your intellect possesses profound psychological intelligence, reading people's unspoken feelings and motives with natural empathy.`,
+      astrologicalBasisKn: `5ನೇ ಬುದ್ಧಿ ಭಾವ ಚಂದ್ರನ ಅಂತಃಪ್ರಜ್ಞಾ ಶಕ್ತಿ.`,
+      astrologicalBasisEn: `5th house ruled by intuitive Moon.`
+    },
+    [PlanetName.Rahu]: {
+      icon: "💡",
+      badgeKn: `5ನೇ ರಾಹು • ನವೀನ ತತ್ವ`,
+      badgeEn: `5th Rahu • Out-of-Box Thinking`,
+      titleKn: "ಸಾಂಪ್ರದಾಯಿಕತೆಯನ್ನು ಮೀರಿದ ನವೀನ ಚಿಂತನೆ & ಆವಿಷ್ಕಾರ: ಹೊಸ ಅವಕಾಶಗಳ ಗ್ರಹಿಕೆ",
+      titleEn: "Out-of-the-Box Innovation & Unconventional Genius: Modern Solutions",
+      bulletKn: `5ನೇ ಭಾವದಲ್ಲಿ ನವೀನ ಗ್ರಹದ ಪ್ರಭಾವವಿರುವುದರಿಂದ, ನಿಮ್ಮ ಬುದ್ಧಿ ಸಾಂಪ್ರದಾಯಿಕ ಚೌಕಟ್ಟನ್ನು ಮೀರಿ ವಿಶಿಷ್ಟವಾಗಿ ಯೋಚಿಸುತ್ತದೆ. ಆಧುನಿಕ ತಂತ್ರಜ್ಞಾನ ಹಾಗೂ ಹೊಸ ಮಾರ್ಗಗಳನ್ನು ಕಂಡುಕೊಳ್ಳುವ ಸೃಜನಶೀಲ ಪ್ರತಿಭೆ ನಿಮ್ಮಲ್ಲಿದೆ.`,
+      bulletEn: `Unconventional intellect with out-of-the-box innovative acuity and forward-looking adaptability.`,
+      astrologicalBasisKn: `5ನೇ ಭಾವದ ನವೀನ ಚಿಂತನಾ ತತ್ವ.`,
+      astrologicalBasisEn: `5th house unconventional intellect.`
+    },
+    [PlanetName.Ketu]: {
+      icon: "🪔",
+      badgeKn: `5ನೇ ಕೇತು • ಅತೀಂದ್ರಿಯ ಒಳನೋಟ`,
+      badgeEn: `5th Ketu • Mystic Intuition`,
+      titleKn: "ಅತೀಂದ್ರಿಯ ಗ್ರಹಿಕೆ, ಸೂಕ್ಷ್ಮ ಸಂಶೋಧನೆ & ಆಧ್ಯಾತ್ಮಿಕ ಒಳನೋಟ: ಗೂಢ ವಿಷಯಗಳ ರಹಸ್ಯ ಭೇದನೆ",
+      titleEn: "Mystic Intuition, Esoteric Insight & Abstract Analysis: Deep Subtlety",
+      bulletKn: `5ನೇ ಭಾವದಲ್ಲಿ ಕೇತುವಿನ ಪ್ರಭಾವವಿರುವುದರಿಂದ, ಸಾಮಾನ್ಯರಿಗೆ ಅರ್ಥವಾಗದ ಗೂಢ ವಿಷಯಗಳು, ಆಧ್ಯಾತ್ಮಿಕ ತತ್ವಗಳು ಹಾಗೂ ಸೂಕ್ಷ್ಮ ಸತ್ಯಗಳನ್ನು ಸುಲಭವಾಗಿ ಗ್ರಹಿಸುವ ಅತೀಂದ್ರಿಯ ಒಳನೋಟ ನಿಮ್ಮಲ್ಲಿದೆ.`,
+      bulletEn: `Esoteric and abstract intellectual depth capable of penetrating subtle truths and spiritual mysteries.`,
+      astrologicalBasisKn: `5ನೇ ಭಾವದ ಸೂಕ್ಷ್ಮ ಜ್ಞಾನ ತತ್ವ.`,
+      astrologicalBasisEn: `5th house subtle intuitive perception.`
+    }
+  };
+
+  const chosenFifthP = fifthLordProfiles[fifthLord] || fifthLordProfiles[PlanetName.Mercury];
+
+  // 2ND & 11TH HOUSE WEALTH ELEMENT PROFILES (Trait 4)
+  const secondLordSign = (lagnaIdx + 1) % 12;
+  const eleventhLordSign = (lagnaIdx + 10) % 12;
+  const isEarthWealth = [1, 5, 9].includes(secondLordSign) || [1, 5, 9].includes(eleventhLordSign);
+  const isFireWealth = [0, 4, 8].includes(secondLordSign) || [0, 4, 8].includes(eleventhLordSign);
+  const isAirWealth = [2, 6, 10].includes(secondLordSign) || [2, 6, 10].includes(eleventhLordSign);
+
+  let trait4: TraitBulletPoint;
+  if (isEarthWealth) {
+    trait4 = {
+      id: 4,
+      type: "good",
+      titleKn: "ಸ್ಥಿರಾಸ್ತಿ, ವ್ಯಾಪಾರ ಶಿಸ್ತು & ವ್ಯವಸ್ಥಿತ ಸಂಪತ್ತು: ಭದ್ರವಾದ ಆರ್ಥಿಕ ಸಾಮ್ರಾಜ್ಯ ಕಟ್ಟುವ ಕಲೆ",
+      titleEn: "Tangible Assets, Commercial Prudence & Steady Wealth: Enduring Security",
+      icon: "🏛️",
+      badgeKn: `2ನೇ ಧನ & 11ನೇ ಲಾಭ • ಪೃಥ್ವಿ ತತ್ವ (${secondLordKn})`,
+      badgeEn: `2nd & 11th Houses • Earth Wealth (${secondLord})`,
+      bulletKn: `ನಿಮ್ಮ ಧನಕೋಶದ 2ನೇ ಭಾವ ಮತ್ತು ಲಾಭದ 11ನೇ ಸ್ಥಾನಗಳಲ್ಲಿ ಪೃಥ್ವಿ ತತ್ವದ ಬಲವಿರುವುದರಿಂದ, ನೀವು ಕ್ಷಣಿಕ ಆಕರ್ಷಣೆಗಿಂತ ಸ್ಥಿರವಾದ ಆಸ್ತಿ (ಭೂಮಿ, ಮನೆ, ಬಂಗಾರ, ಠೇವಣಿ) ನಿರ್ಮಿಸುವುದರಲ್ಲಿ ಜಾಣರು. ವ್ಯವಸ್ಥಿತ ಹಣಕಾಸು ಶಿಸ್ತಿನಿಂದ ಹಂತ-ಹಂತವಾಗಿ ದೃಢವಾದ ಸಂಪತ್ತನ್ನು ನಿರ್ಮಿಸುತ್ತೀರಿ.`,
+      bulletEn: `Governed by earthy stability in the 2nd and 11th houses, your wealth style focuses on tangible assets, prudent investment, and building lasting financial security.`,
+      astrologicalBasisKn: `2ನೇ ಧನ ಸ್ಥಾನ (${secondLordKn}) ಮತ್ತು 11ನೇ ಲಾಭ ಸ್ಥಾನದ ಪೃಥ್ವಿ ತತ್ವ.`,
+      astrologicalBasisEn: `2nd and 11th houses grounded in enduring wealth creation.`
+    };
+  } else if (isFireWealth) {
+    trait4 = {
+      id: 4,
+      type: "good",
+      titleKn: "ಸ್ವತಂತ್ರ ಉದ್ಯಮ, ನಾಯಕತ್ವದ ಆದಾಯ & ಆರ್ಥಿಕ ಪುಟಿದೇಳುವಿಕೆ: ಶೂನ್ಯದಿಂದಲೂ ಸಾಮ್ರಾಜ್ಯ ಕಟ್ಟುವ ಶಕ್ತಿ",
+      titleEn: "Bold Enterprise, Leadership Earnings & Financial Resilience: Rebuilding Wealth",
+      icon: "💰",
+      badgeKn: `2ನೇ ಧನ & 11ನೇ ಲಾಭ • ಅಗ್ನಿ ತತ್ವ (${secondLordKn})`,
+      badgeEn: `2nd & 11th Houses • Fiery Enterprise (${secondLord})`,
+      bulletKn: `ನಿಮ್ಮ ಧನ ಮತ್ತು ಲಾಭ ಸ್ಥಾನಗಳಲ್ಲಿ ಅಗ್ನಿ ತತ್ವದ ನಾಯಕತ್ವವಿರುವುದರಿಂದ, ಸ್ವಂತ ಪರಿಶ್ರಮ ಮತ್ತು ಸ್ವತಂತ್ರ ವ್ಯಾಪಾರ-ವ್ಯವಹಾರದಿಂದ ಭಾರಿ ಸಂಪಾದನೆ ಮಾಡುವ ಶಕ್ತಿ ನಿಮ್ಮಲ್ಲಿದೆ. ಆರ್ಥಿಕವಾಗಿ ಎಷ್ಟೇ ಏರಿಳಿತಗಳು ಬಂದರೂ, ಶೂನ್ಯದಿಂದ ಪುನಃ ಸಾಮ್ರಾಜ್ಯ ಕಟ್ಟಿ ನಿಲ್ಲಿಸುವ ಅದ್ಭುತ ಚೇತರಿಕೆ ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿದೆ.`,
+      bulletEn: `Governed by fiery initiative across 2nd and 11th houses, your income thrives through independent enterprise and bold vision, capable of rebuilding fortune from any setback.`,
+      astrologicalBasisKn: `2ನೇ ಧನಕೋಶದ ${secondLordKn} ಹಾಗೂ 11ನೇ ಲಾಭ ಸ್ಥಾನದ ಸಾಹಸ ಬಲ.`,
+      astrologicalBasisEn: `2nd and 11th houses aligned with dynamic enterprise.`
+    };
+  } else if (isAirWealth) {
+    trait4 = {
+      id: 4,
+      type: "good",
+      titleKn: "ತಂತ್ರಜ್ಞಾನ, ಸಲಹಾ ವಾಣಿಜ್ಯ & ಬೌದ್ಧಿಕ ಸಂಪಾದನೆ: ವಿಸ್ತಾರವಾದ ಸಂಪರ್ಕ ಜಾಲದ ಮೂಲಕ ಧನಯೋಗ",
+      titleEn: "Intellectual Enterprise, Consulting & Commercial Networks: Dynamic Inflow",
+      icon: "🌐",
+      badgeKn: `2ನೇ ಧನ & 11ನೇ ಲಾಭ • ವಾಯು ತತ್ವ (${secondLordKn})`,
+      badgeEn: `2nd & 11th Houses • Networked Wealth (${secondLord})`,
+      bulletKn: `ನಿಮ್ಮ ಧನ ಮತ್ತು ಲಾಭ ಭಾವಗಳಲ್ಲಿ ವಾಯು ತತ್ವದ ಪ್ರಭಾವವಿರುವುದರಿಂದ, ನಿಮ್ಮ ಸಂಪಾದನೆಯು ಕೇವಲ ಶಾರೀರಿಕ ಶ್ರಮಕ್ಕಿಂತ ಹೆಚ್ಚಾಗಿ ಬುದ್ಧಿಮತ್ತೆ, ತಂತ್ರಜ್ಞಾನ, ಸಂವಹನ, ಸಲಹಾ ವೃತ್ತಿ ಅಥವಾ ವಿಸ್ತಾರವಾದ ಸಾರ್ವಜನಿಕ ಸಂಪರ್ಕ ಜಾಲದ ಮೂಲಕ ಸಮೃದ್ಧವಾಗಿ ಹರಿದುಬರುತ್ತದೆ.`,
+      bulletEn: `Governed by airy intellect and communication networks in the 2nd and 11th houses, your prosperity flows through consultancy, technology, and widespread professional alliances.`,
+      astrologicalBasisKn: `2ನೇ ಧನ ಸ್ಥಾನ (${secondLordKn}) ಮತ್ತು 11ನೇ ಲಾಭ ಸ್ಥಾನದ ವಾಯು ತತ್ವ.`,
+      astrologicalBasisEn: `2nd and 11th houses empowered by intellectual commerce.`
+    };
+  } else {
+    trait4 = {
+      id: 4,
+      type: "good",
+      titleKn: "ಸೃಜನಶೀಲ ಮಾಧ್ಯಮ, ವಿದೇಶಿ ವಿನಿಮಯ & ದೈವಬಲದ ಸಂಪತ್ತು: ನಿರಂತರ ಹರಿದುಬರುವ ಧನಲಕ್ಷ್ಮಿ ಕೃಪೆ",
+      titleEn: "Creative Enterprise, Distant Commerce & Grace-Driven Wealth: Fluid Inflow",
+      icon: "🌊",
+      badgeKn: `2ನೇ ಧನ & 11ನೇ ಲಾಭ • ಜಲ ತತ್ವ (${secondLordKn})`,
+      badgeEn: `2nd & 11th Houses • Fluid Wealth (${secondLord})`,
+      bulletKn: `ನಿಮ್ಮ ಧನ ಮತ್ತು ಲಾಭ ಸ್ಥಾನಗಳಲ್ಲಿ ಜಲ ತತ್ವದ ಬಲವಿರುವುದರಿಂದ, ದೂರದ ಊರುಗಳು, ವಿದೇಶಿ ವಿನಿಮಯ, ಆತಿಥ್ಯ, ಸೇವಾ ಕ್ಷೇತ್ರ ಅಥವಾ ಸೃಜನಶೀಲ ಕೌಶಲ್ಯಗಳ ಮೂಲಕ ಧನ ಸಂಪತ್ತು ಹರಿದುಬರುತ್ತದೆ. ದೈವಾನುಗ್ರಹದಿಂದ ಸಂಕಷ್ಟದ ಸಮಯದಲ್ಲೂ ಆರ್ಥಿಕ ದಾರಿಗಳು ತಾವಾಗಿಯೇ ತೆರೆದುಕೊಳ್ಳುತ್ತವೆ.`,
+      bulletEn: `Governed by fluid water signs in the 2nd and 11th houses, wealth flows through distant connections, creative services, and divine grace that opens doors during crises.`,
+      astrologicalBasisKn: `2ನೇ ಧನ ಸ್ಥಾನ (${secondLordKn}) ಮತ್ತು 11ನೇ ಲಾಭ ಸ್ಥಾನದ ಜಲ ತತ್ವ.`,
+      astrologicalBasisEn: `2nd and 11th houses supported by fluid prosperity.`
+    };
+  }
+
+  // 9TH HOUSE DHARMA & GENDER-TAILORED PROFILE (Trait 5)
+  let trait5: TraitBulletPoint;
+  if (!isMale) {
+    trait5 = {
+      id: 5,
+      type: "good",
+      titleKn: "ಸ್ತ್ರೀ ಸಹಜ ಧೀಮಂತಿಕೆ, ಗೃಹಲಕ್ಷ್ಮಿ ಸೌಭಾಗ್ಯ & ಸಾತ್ವಿಕ ಸತ್ಚಾರಿತ್ರ್ಯ: ಕುಟುಂಬಕ್ಕೆ ದೈವಿಕ ಆಸರೆ",
+      titleEn: "Womanly Grace, Domestic Auspiciousness & Moral Fortitude: Sacred Pillar",
+      icon: "🪔",
+      badgeKn: "ಗೃಹಲಕ್ಷ್ಮಿ ಸೌಭಾಗ್ಯ • 9ನೇ ಧರ್ಮ",
+      badgeEn: "Gruhalakshmi Grace • 9th Dharma",
+      bulletKn: `ಮಹಿಳೆಯಾಗಿ ನಿಮ್ಮಲ್ಲಿರುವ ಸಹಜ ಗೃಹಲಕ್ಷ್ಮಿ ಕಳೆ, ಪಾವಿತ್ರ್ಯ ಮತ್ತು ಸಾತ್ವಿಕ ಸಂಸ್ಕಾರವು ನಿಮ್ಮ ಕುಟುಂಬಕ್ಕೆ ದೊಡ್ಡ ರಕ್ಷಾ ಕವಚ. ಎಂತಹ ಕಷ್ಟದ ಸನ್ನಿವೇಶದಲ್ಲೂ ಧೃತಿಗೆಡದೆ, ತಾಳ್ಮೆಯಿಂದ ಮನೆಯ ನೆಮ್ಮದಿಯನ್ನು ಕಾಪಾಡುವ ಅದ್ಭುತ ಸಹನೆ ನಿಮ್ಮಲ್ಲಿದೆ. ನಿಮ್ಮ ಸತ್ಯ ನಡೆ ಮತ್ತು ಕುಲದೇವರ ಮೇಲಿನ ಅಚಲ ಭಕ್ತಿಯು ನಿಮ್ಮನ್ನು ಸಕಲ ಆಪತ್ತುಗಳಿಂದ ಕಾಪಾಡುತ್ತದೆ.`,
+      bulletEn: `As an auspicious pillar of domestic grace, your moral integrity and spiritual patience create a sacred sanctuary for your family. Divine Mother's blessings shield you from adversity.`,
+      astrologicalBasisKn: `9ನೇ ಧರ್ಮ-ಭಾಗ್ಯ ಸ್ಥಾನ ಹಾಗೂ ಶುಕ್ರ-ಗುರುಗಳ ಸಾತ್ವಿಕ ಸ್ತ್ರೀ ಕಾರಕತ್ವ.`,
+      astrologicalBasisEn: `9th house of dharma and Jupiter-Venus benefic feminine auspices.`
+    };
+  } else {
+    trait5 = {
+      id: 5,
+      type: "good",
+      titleKn: "ಕುಟುಂಬ ರಕ್ಷಣಾ ಧರ್ಮ, ನಂಬಿಕಾರ್ಹತೆ & ಪೂರ್ವಪುಣ್ಯ ಶ್ರೀರಕ್ಷೆ: ಆಪ್ತರ ಬದುಕಿಗೆ ಗಟ್ಟಿ ಆಸರೆ",
+      titleEn: "Protective Duty, Trustworthiness & Ancestral Shield: Rock of Support",
+      icon: "🛡️",
+      badgeKn: "ಕುಟುಂಬ ರಕ್ಷಣಾ ಧರ್ಮ • 9ನೇ ಭಾಗ್ಯ",
+      badgeEn: "Protective Dharma • 9th Fortune",
+      bulletKn: `ಕುಟುಂಬದ ಹಿತ ಮತ್ತು ಆಪ್ತರ ರಕ್ಷಣೆಗೆ ಬೆನ್ನೆಲುಬಾಗಿ ನಿಲ್ಲುವ ಧರ್ಮ ಪ್ರಜ್ಞೆ ನಿಮ್ಮ ರಕ್ತದಲ್ಲಿದೆ. ಸಮಾಜದಲ್ಲಿ ಮಾತಿಗೆ ತಪ್ಪದ ಪ್ರಾಮಾಣಿಕತೆ ಮತ್ತು ನಂಬಿಕಾರ್ಹತೆಯಿಂದ ಗೌರವ ಸಂಪಾದಿಸುತ್ತೀರಿ. ಪೂರ್ವಜರ ಆಶೀರ್ವಾದ ಮತ್ತು ಕುಲದೇವರ ಕೃಪೆಯು ಅತ್ಯಂತ ಇಕ್ಕಟ್ಟಿನ ಕ್ಷಣಗಳಲ್ಲೂ ಅದೃಶ್ಯ ರಕ್ಷಾಕವಚದಂತೆ ನಿಮ್ಮನ್ನು ಅಪಾಯಗಳಿಂದ ಪಾರುಮಾಡುತ್ತದೆ.`,
+      bulletEn: `Embodying the protective masculine archetype, you serve as a dependable rock of security for your family. Honoring your word and ancestral traditions ensures divine protection at critical turns.`,
+      astrologicalBasisKn: `9ನೇ ಧರ್ಮ-ಭಾಗ್ಯ ಸ್ಥಾನ ಹಾಗೂ ಸೂರ್ಯ-ಗುರು ದೈವಿಕ ರಕ್ಷಾ ಕವಚ.`,
+      astrologicalBasisEn: `9th house of fortune and Jupiter-Sun ancestral protection.`
+    };
+  }
+
+  const adultGoodTraits: TraitBulletPoint[] = [
+    {
+      id: 1,
+      type: "good",
+      titleKn: chosenLagnaP.titleKn,
+      titleEn: chosenLagnaP.titleEn,
+      icon: chosenLagnaP.icon,
+      badgeKn: chosenLagnaP.badgeKn,
+      badgeEn: chosenLagnaP.badgeEn,
+      bulletKn: chosenLagnaP.bulletKn,
+      bulletEn: chosenLagnaP.bulletEn,
+      astrologicalBasisKn: chosenLagnaP.astrologicalBasisKn,
+      astrologicalBasisEn: chosenLagnaP.astrologicalBasisEn
+    },
+    {
+      id: 2,
+      type: "good",
+      titleKn: chosenMoonP.titleKn,
+      titleEn: chosenMoonP.titleEn,
+      icon: chosenMoonP.icon,
+      badgeKn: chosenMoonP.badgeKn,
+      badgeEn: chosenMoonP.badgeEn,
+      bulletKn: chosenMoonP.bulletKn,
+      bulletEn: chosenMoonP.bulletEn,
+      astrologicalBasisKn: chosenMoonP.astrologicalBasisKn,
+      astrologicalBasisEn: chosenMoonP.astrologicalBasisEn
+    },
+    {
+      id: 3,
+      type: "good",
+      titleKn: chosenFifthP.titleKn,
+      titleEn: chosenFifthP.titleEn,
+      icon: chosenFifthP.icon,
+      badgeKn: chosenFifthP.badgeKn,
+      badgeEn: chosenFifthP.badgeEn,
+      bulletKn: chosenFifthP.bulletKn,
+      bulletEn: chosenFifthP.bulletEn,
+      astrologicalBasisKn: chosenFifthP.astrologicalBasisKn,
+      astrologicalBasisEn: chosenFifthP.astrologicalBasisEn
+    },
+    trait4,
+    trait5
+  ];
+
+  // =========================================================================
+  // ADULT BAD TRAITS & SHADOW TENDENCIES (7 traits, 100% Dynamic & Calibrated)
+  // =========================================================================
+
+  // 1. ANGER, EGO & STUBBORNNESS EVALUATION
+  const marsHouse = mars?.house ?? 1;
+  const isFierySign = [0, 4, 8].includes(lagnaIdx);
+  const isEarthySign = [1, 5, 9].includes(lagnaIdx);
+  const isAirySign = [2, 6, 10].includes(lagnaIdx);
+  const isWaterySign = [3, 7, 11].includes(lagnaIdx);
+
+  const hasDirectMarsAffliction = [1, 7, 8].includes(marsHouse) || (mars && sun && Math.abs(mars.house - sun.house) === 0);
+  const hasSaturnAffliction = saturn && [1, 7, 8].includes(saturn.house);
+
+  let badTrait1: TraitBulletPoint;
+  if (marsHouse === 8) {
+    badTrait1 = {
+      id: 1,
+      type: "bad",
+      titleKn: "ಅಷ್ಟಮ ಕುಜ ದೋಷ & ಆಂತರಿಕ ಉದ್ವೇಗ: ಹಠಾತ್ ಆವೇಶದಲ್ಲಿ ಸಂಬಂಧಗಳಿಗೆ ಧಕ್ಕೆ",
+      titleEn: "8th House Mars & Volatile Reactivity: Sudden Inner Agitation",
+      icon: "⚡",
+      badgeKn: "ಅಷ್ಟಮ ಕುಜ • ಆಂತರಿಕ ಉದ್ವೇಗ",
+      badgeEn: "8th Mars • Volatile Reactivity",
+      bulletKn: isMale
+        ? `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ 8ನೇ ಅಷ್ಟಮ ಸ್ಥಾನದಲ್ಲಿ ಕುಜನ ತೀಕ್ಷ್ಣ ಪ್ರಭಾವವಿರುವುದರಿಂದ, ಮನಸ್ಸಿನಲ್ಲಿ ಹಠಾತ್ ಆಂತರಿಕ ಉದ್ವೇಗ ಹಾಗೂ ಅಸಹನೆ ಮೂಡುತ್ತದೆ. ಒಮ್ಮೆ ಸಿಟ್ಟು ಬಂದರೆ ಕಟು ಮಾತುಗಳನ್ನಾಡಿ ಹತ್ತಿರದವರನ್ನು ನೋಯಿಸುವ ಮತ್ತು ನಂತರ ಪಶ್ಚಾತ್ತಾಪ ಪಡುವ ಪ್ರವೃತ್ತಿ ಇದೆ; ನಿತ್ಯ ಸುಬ್ರಹ್ಮಣ್ಯ ಅಥವಾ ನರಸಿಂಹ ಸ್ಮರಣೆ ನಿಮಗೆ ಶಾಂತಿ ತರಲಿದೆ.`
+        : `8ನೇ ಅಷ್ಟಮ ಸ್ಥಾನದ ಕುಜನ ಪ್ರಭಾವದಿಂದಾಗಿ, ಮನಸ್ಸಿನಲ್ಲಿ ಅಸಹನೆ ಮತ್ತು ಹಠಾತ್ ಆವೇಶ ಭುಗಿಲೇಳುತ್ತದೆ. ಕುಟುಂಬದಲ್ಲಿ ನಿಮ್ಮ ಮಾತಿಗೆ ಸ್ಪಂದನೆ ಸಿಗದಿದ್ದಾಗ ತೀವ್ರ ಅಸಮಾಧಾನ ಮತ್ತು ಮುನಿಸು ಉಂಟಾಗುತ್ತದೆ; ಶಾಂತ ಸಂಯಮ ಮತ್ತು ದುರ್ಗಾ ಪೂಜೆಯೇ ನಿಮಗೆ ಶ್ರೇಷ್ಠ ರಕ್ಷೆ.`,
+      bulletEn: "Mars residing in the 8th house creates sudden inner volatility and acute impatience, occasionally provoking sharp reactions during periods of high stress.",
+      astrologicalBasisKn: "8ನೇ ಅಷ್ಟಮ ಭಾವದಲ್ಲಿ ಕುಜನ ಸ್ಥಿತಿ (ಕುಜ ದೋಷ).",
+      astrologicalBasisEn: "Mars located in the 8th house of emotional turbulence."
+    };
+  } else if (marsHouse === 7) {
+    badTrait1 = {
+      id: 1,
+      type: "bad",
+      titleKn: "ಸಪ್ತಮ ಕುಜ ದೋಷ & ಪಾಲುದಾರಿಕೆಯಲ್ಲಿ ಹಠ: ದಾಂಪತ್ಯದಲ್ಲಿ ಅಹಂಕಾರದ ಘರ್ಷಣೆ",
+      titleEn: "7th House Mars & Partnership Friction: Unyielding Stance",
+      icon: "⚔️",
+      badgeKn: "ಸಪ್ತಮ ಕುಜ • ದಾಂಪತ್ಯ ಹಠ",
+      badgeEn: "7th Mars • Partnership Friction",
+      bulletKn: isMale
+        ? `7ನೇ ಕಳತ್ರ ಸ್ಥಾನದಲ್ಲಿ ಕುಜನ ಪ್ರಭಾವವಿರುವುದರಿಂದ, ಪಾಲುದಾರಿಕೆ ಹಾಗೂ ದಾಂಪತ್ಯ ವಿಷಯಗಳಲ್ಲಿ ಅನಗತ್ಯ ಹಠ ಹಾಗೂ ತನ್ನದೇ ಮಾತೇ ನಡೆಯಬೇಕೆಂಬ ಪಟ್ಟು ಹಿಡಿಯುವ ಪ್ರವೃತ್ತಿ ಇದೆ. ಪರಸ್ಪರ ಗೌರವದಿಂದ ನಡೆದುಕೊಂಡರೆ ಸಾಮರಸ್ಯ ನೆಲೆಸುತ್ತದೆ.`
+        : `7ನೇ ಕಳತ್ರ ಸ್ಥಾನದಲ್ಲಿ ಕುಜನ ಪ್ರಭಾವವಿರುವುದರಿಂದ, ಸಂಬಂಧಗಳಲ್ಲಿ ಸಣ್ಣ ವಿಷಯಗಳಿಗೂ ಅಹಂಕಾರದ ಘರ್ಷಣೆ ಅಥವಾ ಹಠದ ನಡವಳಿಕೆ ಮೂಡುವ ಅಪಾಯವಿದೆ; ಹೊಂದಾಣಿಕೆಯ ಮನೋಭಾವವೇ ನಿಮಗೆ ಬಲ.`,
+      bulletEn: "Mars in the 7th house triggers sharp reactive friction and dominance struggles in close partnerships, requiring conscious flexibility.",
+      astrologicalBasisKn: "7ನೇ ಕಳತ್ರ ಭಾವದಲ್ಲಿ ಕುಜನ ಪ್ರಭಾವ.",
+      astrologicalBasisEn: "7th house Mars placement in relationship axis."
+    };
+  } else if (marsHouse === 1 || (mars && sun && Math.abs(mars.house - sun.house) === 0)) {
+    badTrait1 = {
+      id: 1,
+      type: "bad",
+      titleKn: "ಲಗ್ನ ಕುಜ-ರವಿ ದೋಷ & ಉಗ್ರ ಸಿಟ್ಟು: ಯಾರಿಗೂ ಮಣಿಯದ ಅಪ್ರತಿಮ ಹಠ",
+      titleEn: "Lagna Mars-Sun Fire & Dominant Ego: Fiery Volatility",
+      icon: "🔥",
+      badgeKn: "ಲಗ್ನ ಕುಜ-ರವಿ • ತೀಕ್ಷ್ಣ ಕೋಪ",
+      badgeEn: "Lagna Mars-Sun • Fierce Anger",
+      bulletKn: isMale
+        ? `ಲಗ್ನದ ಮೇಲೆ ಕುಜ-ರವಿಗಳ ತೀಕ್ಷ್ಣ ಪ್ರಭಾವದಿಂದಾಗಿ ಒಮ್ಮೆ ಒಂದು ನಿರ್ಧಾರ ಕೈಗೊಂಡರೆ ಇತರರು ಎಷ್ಟು ಬುದ್ಧಿವಾದ ಹೇಳಿದರೂ ಕೇಳದ ಹಠಮಾರಿ ಸ್ವಭಾವವಿದೆ. ನಿಮ್ಮ ಸ್ವಾಭಿಮಾನಕ್ಕೆ ಸಣ್ಣ ಧಕ್ಕೆ ಬಂದರೂ ಹಠಾತ್ ಸಿಟ್ಟು ಭುಗಿಲೆದ್ದು ಕಟು ಮಾತುಗಳನ್ನಾಡಿ ಹತ್ತಿರದವರನ್ನು ದೂರ ಮಾಡಿಕೊಳ್ಳುವ ಅಪಾಯವಿದೆ.`
+        : `ಲಗ್ನದ ಮೇಲೆ ಕುಜ-ರವಿಗಳ ತೇಜಸ್ಸಿನಿಂದಾಗಿ, ಸ್ವಾಭಿಮಾನಕ್ಕೆ ಸಣ್ಣ ಧಕ್ಕೆ ಬಂದರೂ ಹಠಾತ್ ಆವೇಶ ಭುಗಿಲೇಳುತ್ತದೆ. ಸಿಟ್ಟಿನಲ್ಲಿ ಕಟು ಮಾತುಗಳನ್ನಾಡಿ ನಂತರ ಪಶ್ಚಾತ್ತಾಪ ಪಡುವ ಸ್ವಭಾವವಿದೆ; ಶಾಂತ ಸಂಯಮವೇ ನಿಮಗೆ ಶ್ರೇಷ್ಠ ರಕ್ಷೆ.`,
+      bulletEn: "Intense Mars-Sun fiery influence on the ascendant triggers stubborn refusal to compromise once resolved, accompanied by abrupt fiery outbursts.",
+      astrologicalBasisKn: "ಲಗ್ನದಲ್ಲಿ ಕುಜ-ರವಿಗಳ ಅಗ್ನಿ ತತ್ವ ಹಾಗೂ ಪಿತ್ತ ಪ್ರಕೋಪ.",
+      astrologicalBasisEn: "Martial/Solar fire aspect influencing the ascendant directly."
+    };
+  } else if (isFierySign) {
+    badTrait1 = {
+      id: 1,
+      type: "bad",
+      titleKn: "ಅಗ್ನಿ ತತ್ವದ ಹಠಮಾರಿತನ & ಹಠಾತ್ ಕೋಪದ ಜ್ವಾಲೆ: ಸಿಟ್ಟಿನಲ್ಲಿ ಸಂಬಂಧ ಕಡಿದುಕೊಳ್ಳುವ ಅಪಾಯ",
+      titleEn: "Fiery Ascendant Temper & Impulsive Anger: Risk to Trusted Alliances",
+      icon: "🔥",
+      badgeKn: "ಅಗ್ನಿ ತತ್ವ • ಪಿತ್ತ ಪ್ರಕೋಪ",
+      badgeEn: "Fiery Ascendant • Pitta Flare",
+      bulletKn: isMale
+        ? `ನಿಮ್ಮ ಜಾತಕದ ಲಗ್ನದ ಅಗ್ನಿ ತತ್ವದಿಂದಾಗಿ, ಸಿಟ್ಟು ಬಂದಾಗ ಕ್ಷಿಪ್ರವಾಗಿ ಭುಗಿಲೆದ್ದು ನೇರ ನಿಷ್ಠುರ ಮಾತುಗಳನ್ನಾಡುವ ಪ್ರವೃತ್ತಿ ಇದೆ. ತಕ್ಷಣವೇ ತಣ್ಣಗಾದರೂ, ಸಿಟ್ಟಿನಲ್ಲಿ ಆಡಿದ ಮಾತುಗಳು ಆಪ್ತರ ಮನಸ್ಸಿಗೆ ತಾಗದಂತೆ ಎಚ್ಚರವಿರಲಿ.`
+        : `ಲಗ್ನದ ಅಗ್ನಿ ತತ್ವದ ಪ್ರಭಾವದಿಂದಾಗಿ, ಅನ್ಯಾಯ ಅಥವಾ ಉಪೇಕ್ಷೆಯನ್ನು ಸಹಿಸದೆ ಹಠಾತ್ ಆವೇಶ ತೋರುವ ಸ್ವಭಾವವಿದೆ; ತಾಳ್ಮೆಯ ಮಾತುಗಳು ನಿಮ್ಮ ಕುಟುಂಬದ ಗೌರವವನ್ನು ಹೆಚ್ಚಿಸುತ್ತವೆ.`,
+      bulletEn: "Fiery ascendant energy creates sudden surges of anger over perceived injustice or disrespect, though tempers cool just as swiftly.",
+      astrologicalBasisKn: "ಲಗ್ನದ ಅಗ್ನಿ ತತ್ವದ ನೇರ ಪ್ರಭಾವ.",
+      astrologicalBasisEn: "Fiery ascendant element triggering sudden temper flare-ups."
+    };
+  } else if (hasSaturnAffliction || isEarthySign) {
+    badTrait1 = {
+      id: 1,
+      type: "bad",
+      titleKn: "ಮೌನ ಹಠಮಾರಿತನ & ಗಂಭೀರ ಅಸಹನೆ: ಸಮಾಧಾನವಾಗದ ಒಳಗಿನ ಮುನಿಸು",
+      titleEn: "Silent Stubbornness & Stoic Resentment: Prolonged Grudges",
+      icon: "🗿",
+      badgeKn: "ಶನಿ/ಪೃಥ್ವಿ ತತ್ವ • ಮೌನ ಪ್ರತಿರೋಧ",
+      badgeEn: "Saturn/Earth Element • Stoic Resistance",
+      bulletKn: `ಪೃಥ್ವಿ ತತ್ವ ಮತ್ತು ಶನಿಯ ಪ್ರಭಾವದಿಂದಾಗಿ, ನೀವು ಬಹಿರಂಗವಾಗಿ ಕಿರುಚಾಡಿ ಜಗಳ ಮಾಡುವುದಿಲ್ಲ; ಆದರೆ ತೀವ್ರ ಮೌನ, ಮುನಿಸು ಹಾಗೂ ಹಠದ ಮೂಲಕ ಅಸಮಾಧಾನ ಹೊರಹಾಕುತ್ತೀರಿ. ಒಮ್ಮೆ ಯಾರ ಮೇಲಾದರೂ ಮನಸ್ಸು ಮುರಿದರೆ ಸುಲಭವಾಗಿ ಕ್ಷಮಿಸದೆ ತಿಂಗಳುಗಟ್ಟಲೆ ಅಂತರ ಕಾಯ್ದುಕೊಳ್ಳುವ ಗಂಭೀರ ಹಠಮಾರಿತನ ನಿಮ್ಮಲ್ಲಿದೆ.`,
+      bulletEn: "Earthy Saturnian disposition leads to unyielding passive resistance, holding onto quiet grudges and withdrawing communication rather than expressing explosive anger.",
+      astrologicalBasisKn: "ಶನಿಯ ದೃಷ್ಟಿ ಹಾಗೂ ಪೃಥ್ವಿ ತತ್ವದ ಸ್ಥಿರ ಹಠ.",
+      astrologicalBasisEn: "Saturnian cold aspect conferring unyielding stubborn resistance."
+    };
+  } else if (isAirySign || (mercury && rahu && Math.abs(mercury.house - rahu.house) === 0)) {
+    badTrait1 = {
+      id: 1,
+      type: "bad",
+      titleKn: "ತೀಕ್ಷ್ಣ ವಾದ-ವಿವಾದ & ವ್ಯಂಗ್ಯದ ಮಾತುಗಳು: ಮಾತಿನಲ್ಲೇ ಮನಸ್ಸಿಗೆ ಘಾಸಿ ಮಾಡುವ ಅಪಾಯ",
+      titleEn: "Sharp Sarcasm & Relentless Argumentation: Verbal Discord",
+      icon: "⚡",
+      badgeKn: "ಬುಧ-ರಾಹು ವಾಯು ತತ್ವ • ವಾಕ್ ತೀಕ್ಷ್ಣತೆ",
+      badgeEn: "Mercury-Rahu Air Element • Incisive Tongue",
+      bulletKn: `ಬುಧ-ರಾಹುವಿನ ವಾಯು ತತ್ವದ ಪ್ರಭಾವದಿಂದಾಗಿ, ಕೋಪ ಬಂದಾಗ ಶಾರೀರಿಕ ಆಕ್ರೋಶಕ್ಕಿಂತ ಹೆಚ್ಚಾಗಿ ತೀಕ್ಷ್ಣ ವ್ಯಂಗ್ಯದ ಮಾತುಗಳಿಂದ ಎದುರಾಳಿಯ ಮರ್ಮಕ್ಕೆ ತಿವಿಯುವ ಪ್ರವೃತ್ತಿ ಇದೆ. ತಾರ್ಕಿಕವಾಗಿ ವಾದ ಗೆಲ್ಲುವ ಭರದಲ್ಲಿ ಆಪ್ತರ ಭಾವನೆಗಳಿಗೆ ಘಾಸಿ ಮಾಡದಂತೆ ಮುನ್ನೆಚ್ಚರಿಕೆ ವಹಿಸಬೇಕು.`,
+      bulletEn: "Airy intellectual friction channels anger through cutting verbal sarcasm and unyielding debate, risking emotional hurt to family and colleagues.",
+      astrologicalBasisKn: "ಬುಧ-ರಾಹುಗಳ ವಾಯು ತತ್ವ ಹಾಗೂ ವಾಕ್ ಸ್ಥಾನದ ತೀಕ್ಷ್ಣತೆ.",
+      astrologicalBasisEn: "Mercurial airy argumentation amplifying verbal friction."
+    };
+  } else if (isWaterySign || (moon && mars && Math.abs(moon.house - mars.house) === 0)) {
+    badTrait1 = {
+      id: 1,
+      type: "bad",
+      titleKn: "ಒಳಮುಖ ಮುನಿಸು & ಭಾವನಾತ್ಮಕ ನಿಷ್ಠುರತೆ: ಸಣ್ಣ ವಿಷಯಕ್ಕೂ ಮನಸ್ಸು ಮುರಿಯುವಿಕೆ",
+      titleEn: "Emotional Sulking & Sensitive Withdrawal: Hurtful Rumination",
+      icon: "🌧️",
+      badgeKn: "ಜಲ ತತ್ವ • ಭಾವನಾತ್ಮಕ ಮುನಿಸು",
+      badgeEn: "Water Element • Emotional Sulking",
+      bulletKn: `ಜಲ ತತ್ವದ ಸಂವೇದನೆಯಿಂದಾಗಿ, ಯಾರಾದರೂ ಸಣ್ಣ ಕಹಿ ಮಾತುಗಳನ್ನಾಡಿದರೂ ಮನಸ್ಸಿಗೆ ಆಳವಾಗಿ ತಗುಲಿ ಊಟ ಬಿಡುವುದು, ಒಂಟಿಯಾಗಿ ಕೊರಗುವುದು ಅಥವಾ ಭಾವನಾತ್ಮಕವಾಗಿ ಕಠಿಣರಾಗುವ ಪ್ರವೃತ್ತಿ ಕಾಣಿಸುತ್ತದೆ. ನೋವನ್ನು ಮುಕ್ತವಾಗಿ ವ್ಯಕ್ತಪಡಿಸಿ ಹಗುರವಾಗುವುದು ಅಗತ್ಯ.`,
+      bulletEn: "Water sign sensitivity creates recurring cycles of silent sulking, brooding in isolation, and nursing emotional hurt over perceived slights.",
+      astrologicalBasisKn: "ಜಲ ತತ್ವದ ಚಂದ್ರ-ಕುಜರ ಭಾವನಾತ್ಮಕ ಸಂವೇದನೆ.",
+      astrologicalBasisEn: "Water element Moon-Mars sensitivity causing emotional brooding."
+    };
+  } else {
+    badTrait1 = {
+      id: 1,
+      type: "bad",
+      titleKn: "ಸಂಯಮದ ವಿವೇಚನೆ & ಶಾಂತ ನಡೆ: ಸಮಚಿತ್ತದ ಧೀಮಂತ ನಡವಳಿಕೆ",
+      titleEn: "Measured Patience & Composure: Balanced Emotional Fortitude",
+      icon: "🕊️",
+      badgeKn: "ಸೌಮ್ಯ ಗ್ರಹ ದೃಷ್ಟಿ • ಶಾಂತ ಮನೋಭಾವ",
+      badgeEn: "Benefic Aspect • Composed Mind",
+      bulletKn: `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಕುಜ-ರವಿಗಳ ಉಗ್ರ ದೋಷವಿಲ್ಲದಿರುವುದರಿಂದ, ನೀವು ಸಹಜವಾಗಿ ಸಂಯಮ ಮತ್ತು ಶಾಂತ ಸ್ವಭಾವವನ್ನು ಹೊಂದಿದ್ದೀರಿ. ಅನಗತ್ಯ ಕೋಪಕ್ಕೆ ಆಸ್ಪದ ನೀಡದೆ ತಾಳ್ಮೆಯಿಂದ ಸಮಸ್ಯೆಗಳನ್ನು ಪರಿಹರಿಸುವ ವಿವೇಕ ನಿಮ್ಮಲ್ಲಿದೆ; ಆದರೂ ನಿಮ್ಮ ಮೃದು ಸ್ವಭಾವವನ್ನು ಇತರರು ದುರುಪಯೋಗಪಡಿಸಿಕೊಳ್ಳದಂತೆ ಎಚ್ಚರವಿರಲಿ.`,
+      bulletEn: "Benefic alignment shields your chart from destructive anger, endowing you with measured patience and emotional composure; stay vigilant only to ensure others do not exploit your gentle nature.",
+      astrologicalBasisKn: "ಶುಭ ಗ್ರಹಗಳ ಸೌಮ್ಯ ದೃಷ್ಟಿ ಹಾಗೂ ಶಾಂತ ತತ್ವ.",
+      astrologicalBasisEn: "Benefic aspect moderating aggressive impulse."
+    };
+  }
+
+  // 2. SENSUAL DESIRES, GENDER AFFINITY & MARITAL DYNAMICS (Strictly Calibrated)
+  const diet = detectNativeDietAndAddiction(kundli);
+  const sensual = detectNativeSensualAndFidelity(kundli);
+
   const venusH = venus?.house ?? 1;
   const venusSign = venus?.rashi.index ?? 0;
-  const neuterSigns = [2, 5, 10]; // Gemini, Virgo, Aquarius (Mercury & Saturn signs)
+  const neuterSigns = [2, 5, 10]; // Gemini, Virgo, Aquarius
 
-  // Unconventional / Same-Gender Affinity (ಪುರುಷರತ್ತ ಆಕರ್ಷಣೆ - Male attracted to Men, or Female to Women)
-  // Governed by Mercury (neuter) + Saturn (neuter) conjunct Venus in 7th/8th or neuter signs
   const hasSameGenderAffinity = (
     (venus && mercury && Math.abs(venus.house - mercury.house) === 0 && (saturn?.house === 7 || saturn?.house === 8 || rahu?.house === 7 || ketu?.house === 7)) ||
     (venus && [7, 8].includes(venusH) && mercury && [7, 8].includes(mercury.house) && neuterSigns.includes(venusSign)) ||
     (ketu && [7, 8].includes(ketu.house) && mercury && [7, 8].includes(mercury.house) && venus && [saturn, ketu].some(p => p && Math.abs(p.house - venus.house) === 0))
   );
 
-  let sensualScore = 0;
-  if (venus && mars && Math.abs(venus.house - mars.house) <= 1) sensualScore += 2.0; // Shukra-Mangala passionate fire
-  if (venus && rahu && Math.abs(venus.house - rahu.house) <= 1) sensualScore += 2.0; // Shukra-Rahu boundary-breaking desire
-  if ([7, 8, 12].includes(venusH)) sensualScore += 1.5;
-  if (seventhLordPlanet && [6, 8, 12].includes(seventhLordPlanet.house)) sensualScore += 1.5;
-  if ([rahu, ketu, mars, saturn].some(p => p && p.house === 7)) sensualScore += 1.5;
-  if ([rahu, ketu, mars, saturn].some(p => p && p.house === 12)) sensualScore += 1.5;
-  if (mars && [4, 7, 8].includes(houseDist(mars.house, 7))) sensualScore += 1.5;
-  if (rahu && [5, 7, 9].includes(houseDist(rahu.house, 7))) sensualScore += 1.5;
-  if (saturn && [3, 7, 10].includes(houseDist(saturn.house, 7))) sensualScore += 1.0;
-  if ([2, 5, 8, 11].includes(lagnaIdx) && sensualScore >= 1.5) sensualScore += 1.0; // Dual sign vulnerability
-  const hasSensual = sensualScore >= 2.0;
-
-  // 3. ALCOHOL & SUBSTANCE ADDICTION EVALUATION (100% Comprehensive Classical Check)
-  let addictionScore = 0;
-  // House 2 (Mouth / Oral intake) occupants
-  if ([saturn, rahu, mars, ketu].some(p => p && p.house === 2)) addictionScore += 2.0;
-  // Saturn aspect on 2nd house (3rd, 7th, 10th - including Saturn in 8th casting 7th aspect!)
-  if (saturn && [3, 7, 10].includes(houseDist(saturn.house, 2))) addictionScore += 2.0;
-  // Mars aspect on 2nd house (4th, 7th, 8th)
-  if (mars && [4, 7, 8].includes(houseDist(mars.house, 2))) addictionScore += 1.5;
-  // Rahu aspect on 2nd house (5th, 7th, 9th)
-  if (rahu && [5, 7, 9].includes(houseDist(rahu.house, 2))) addictionScore += 1.5;
-  // 2nd Lord in Dusthana or conjunct malefics
-  if (secondLordPlanet && [6, 8, 12].includes(secondLordPlanet.house)) addictionScore += 1.5;
-  if (secondLordPlanet && [saturn, rahu, mars].some(m => m && m.name !== secondLord && m.house === secondLordPlanet.house)) addictionScore += 1.5;
-  // 8th house (intoxicants / poisons / secret habits)
-  if ([saturn, rahu, mars].some(p => p && p.house === 8)) addictionScore += 1.5;
-  // 12th house (escapism / substance loss)
-  if ([saturn, rahu, mars].some(p => p && p.house === 12)) addictionScore += 1.5;
-  // Moon afflicted in water signs (Cancer, Scorpio, Pisces) or dusthanas
-  const moonInWaterOrDusthana = moon && ([6, 8, 12].includes(moon.house) || [3, 7, 11].includes(kundli.moonSign.index));
-  if (moonInWaterOrDusthana && ((rahu && Math.abs(moon.house - rahu.house) === 0) || (saturn && [3, 7, 10].includes(houseDist(saturn.house, moon.house))))) {
-    addictionScore += 1.5;
+  let badTrait2: TraitBulletPoint;
+  if (hasSameGenderAffinity) {
+    badTrait2 = {
+      id: 2,
+      type: "bad",
+      titleKn: `ಕಾಮನೆ & ಆಕರ್ಷಣೆಯ ನೈಜತೆ: ${isMale ? "ಪುರುಷರತ್ತ" : "ಮಹಿಳೆಯರತ್ತ"} ವಿಶಿಷ್ಟ ಆಕರ್ಷಣೆ & ಅಂತರಂಗದ ಸೆಳೆತ`,
+      titleEn: `Sexual Attraction & Core Desire: ${isMale ? "Same-Gender Male" : "Same-Gender Female"} Affinity`,
+      icon: "🌈",
+      badgeKn: "7ನೇ/8ನೇ ಬುಧ-ಶನಿ • ವಿಶಿಷ್ಟ ಕಾಮನೆ",
+      badgeEn: "Mercury-Saturn 7th/8th • Unconventional",
+      bulletKn: `ನಿಮ್ಮ ಜಾತಕದ 7ನೇ (ಕಾಮ) ಮತ್ತು 8ನೇ (ರಹಸ್ಯ) ಸ್ಥಾನಗಳ ಮೇಲೆ ಬುಧ-ಶನಿ ಮತ್ತು ಶುಕ್ರ ಗ್ರಹಗಳ ವಿಶೇಷ ತತ್ವವಿರುವುದರಿಂದ, ನಿಮ್ಮ ಅಂತರಂಗದ ಲೈಂಗಿಕ ಆಕರ್ಷಣೆ ಮತ್ತು ಕಾಮನೆಯು ${isMale ? "ಪುರುಷರ ಕಡೆಗೆ (Same-Gender Affinity)" : "ಮಹಿಳೆಯರ ಕಡೆಗೆ"} ವಿಶಿಷ್ಟವಾಗಿ ಸೆಳೆಯುವ ಪ್ರಬಲ ಲಕ್ಷಣಗಳಿವೆ. ಸಮಾಜದ ಸಾಂಪ್ರದಾಯಿಕ ನಿರೀಕ್ಷೆಗಳ ನಡುವೆ ಈ ಆಕರ್ಷಣೆಯನ್ನು ಅತ್ಯಂತ ಗುಪ್ತವಾಗಿ ಇಟ್ಟುಕೊಳ್ಳುವ ಪ್ರವೃತ್ತಿ ಇದೆ.`,
+      bulletEn: `Vedic configurations in the 7th and 8th houses influenced by Mercury and Saturn reveal an authentic internal attraction toward ${isMale ? "men (same-gender orientation)" : "women"}, maintained with extreme personal privacy.`,
+      astrologicalBasisKn: "7ನೇ/8ನೇ ಭಾವಗಳಲ್ಲಿ ಬುಧ-ಶನಿ ಮತ್ತು ಶುಕ್ರ ಗ್ರಹಗಳ ತತ್ವ.",
+      astrologicalBasisEn: "Mercury-Saturn neuter influence in kama/secret houses."
+    };
+  } else if (sensual.hasStrongAffairRisk) {
+    if (isMale) {
+      badTrait2 = {
+        id: 2,
+        type: "bad",
+        titleKn: "ಬಾಹ್ಯ ಆಕರ್ಷಣೆ & ಪರಸ್ತ್ರೀ ವ್ಯಾಮೋಹ: ರಹಸ್ಯ ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧದ ಸೆಳೆತ",
+        titleEn: "Sensual Craving & External Affairs with Women: Marital Vulnerabilities",
+        icon: "👩‍❤️‍👨",
+        badgeKn: "7ನೇ/12ನೇ ಶುಕ್ರ-ರಾಹು • ಬಾಹ್ಯ ಸೆಳೆತ",
+        badgeEn: "Venus-Rahu Axis • External Desire",
+        bulletKn: `7ನೇ ಕಳತ್ರ ಮತ್ತು 12ನೇ ಶಯನ ಸುಖ ಸ್ಥಾನಗಳ ಮೇಲೆ ಶುಕ್ರ ಅಥವಾ ರಾಹುವಿನ ತೀವ್ರ ಪ್ರಭಾವದಿಂದಾಗಿ, ದಾಂಪತ್ಯ ಜೀವನದ ಆಚೆಗೆ ಹೊರಗಿನ ಸ್ತ್ರೀಯರ ಕಡೆಗೆ (ಪರಸ್ತ್ರೀ ವ್ಯಾಮೋಹ) ತೀವ್ರ ಕಾಮ ಪ್ರಚೋದನೆ, ರಹಸ್ಯ ಫೋನ್/ಚಾಟ್ ಮಾತುಕತೆ ಹಾಗೂ ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧಗಳತ್ತ ಮನಸ್ಸು ಜಾರುವ ಅಪಾಯದ ಸುಳಿವು ಜಾತಕದಲ್ಲಿದೆ. ಇದು ಕೌಟುಂಬಿಕ ಗೌರವವನ್ನು ಧ್ವಂಸ ಮಾಡುವ ಅಪಾಯ ತಂದೊಡ್ಡಬಹುದು.`,
+        bulletEn: "Venus-Rahu influence on the 7th/12th axis creates intense sensory urges, illicit attractions toward women outside marriage, and secret affairs that threaten family honor.",
+        astrologicalBasisKn: "7ನೇ ಮತ್ತು 12ನೇ ಮನೆಗಳ ಶುಕ್ರ-ರಾಹು-ಕುಜ ಯೋಗ.",
+        astrologicalBasisEn: "Venus-Rahu axis across 7th and 12th houses of pleasure and secret desires."
+      };
+    } else {
+      badTrait2 = {
+        id: 2,
+        type: "bad",
+        titleKn: "ಭಾವನಾತ್ಮಕ ಅತೃಪ್ತಿ & ಬಾಹ್ಯ ಆಕರ್ಷಣೆಯ ಸೆಳೆತ: ದಾಂಪತ್ಯದಲ್ಲಿ ಅಂತರ & ರಹಸ್ಯ ಪ್ರೇಮದ ಅಪಾಯ",
+        titleEn: "Emotional Loneliness & Romantic Craving: Vulnerability to Outside Men",
+        icon: "👩‍❤️‍👨",
+        badgeKn: "7ನೇ/8ನೇ ಶುಕ್ರ-ರಾಹು • ಭಾವನಾತ್ಮಕ ಸೆಳೆತ",
+        badgeEn: "Venus-Rahu 7th/8th • Romantic Craving",
+        bulletKn: `7ನೇ ಕಳತ್ರ ಹಾಗೂ 12ನೇ ಸ್ಥಾನಗಳ ಮೇಲೆ ಶುಕ್ರ-ರಾಹುವಿನ ಪ್ರಭಾವದಿಂದಾಗಿ, ದಾಂಪತ್ಯದಲ್ಲಿ ಪತಿಯಿಂದ ನಿರೀಕ್ಷಿತ ಪ್ರೀತಿ ಅಥವಾ ಮೆಚ್ಚುಗೆ ಸಿಗದಿದ್ದಾಗ ಹೊರಗಿನ ಇತರ ಪುರುಷರ ಕಡೆಗೆ (ಪರಪುರುಷ ವ್ಯಾಮೋಹ) ಭಾವನಾತ್ಮಕ ಸಾಂತ್ವನ, ರಹಸ್ಯ ಚಾಟ್ ಮಾತುಕತೆ ಹಾಗೂ ಪ್ರೇಮ ಸಂಬಂಧಗಳತ್ತ ಮನಸ್ಸು ಜಾರುವ ಅಪಾಯವಿದೆ. ಇದು ಕೌಟುಂಬಿಕ ಶಾಂತಿಯನ್ನು ಕೆಡಿಸದಂತೆ ಎಚ್ಚರವಹಿಸಬೇಕು.`,
+        bulletEn: "Venus-Rahu tension on marital axis generates vulnerability to external romantic validation, secret conversations, or attachments when emotional intimacy feels absent at home.",
+        astrologicalBasisKn: "7ನೇ ಕಳತ್ರ ಹಾಗೂ 12ನೇ ಶಯನ ಸ್ಥಾನದಲ್ಲಿ ಶುಕ್ರ-ರಾಹು ದೋಷ.",
+        astrologicalBasisEn: "Venus-Rahu affliction triggering external romantic craving."
+      };
+    }
+  } else if (sensual.hasMaritalDistanceColdness) {
+    if (isMale) {
+      badTrait2 = {
+        id: 2,
+        type: "bad",
+        titleKn: "ದಾಂಪತ್ಯದಲ್ಲಿ ಭಾವನಾತ್ಮಕ ನೀರಸತೆ & ಸಂವಹನ ಕೊರತೆ: ಪತ್ನಿಯೊಂದಿಗೆ ಅಂತರದ ಅಪಾಯ",
+        titleEn: "Marital Distance & Emotional Dryness: Communication Gap with Wife",
+        icon: "❄️",
+        badgeKn: "7ನೇ ಶನಿ/ಕೇತು • ನೀರಸತೆ",
+        badgeEn: "7th Saturn/Ketu • Emotional Dryness",
+        bulletKn: `7ನೇ ಕಳತ್ರ ಭಾವದಲ್ಲಿ ಶನಿ ಅಥವಾ ಕೇತುವಿನ ಪ್ರಭಾವದಿಂದಾಗಿ, ದಾಂಪತ್ಯದಲ್ಲಿ ಉತ್ಸಾಹದ ಕೊರತೆ, ಅತಿಯಾದ ಕೆಲಸದ ಒತ್ತಡ ಹಾಗೂ ಪತ್ನಿಯೊಂದಿಗೆ ಮುಕ್ತವಾಗಿ ಪ್ರೀತಿ ಹಂಚಿಕೊಳ್ಳಲು ಬಾರದಿರುವ ನೀರಸತೆ ಕಾಣಿಸುತ್ತದೆ. ಇದರಿಂದಾಗಿ ಮನೆಯಲ್ಲಿ ಸಂವಹನ ಕೊರತೆ ಮತ್ತು ಅಂತರ ಹೆಚ್ಚಾಗುವ ಅಪಾಯವಿದೆ.`,
+        bulletEn: "Saturn or Ketu in the 7th house creates emotional reserve, workaholic detachment, and lack of romantic warmth toward spouse, causing an emotional gulf.",
+        astrologicalBasisKn: "7ನೇ ಕಳತ್ರ ಸ್ಥಾನದಲ್ಲಿ ಶನಿ-ಕೇತುಗಳ ಪ್ರಭಾವ.",
+        astrologicalBasisEn: "Saturn or Ketu in the 7th house causing marital reserve."
+      };
+    } else {
+      badTrait2 = {
+        id: 2,
+        type: "bad",
+        titleKn: "ದಾಂಪತ್ಯದಲ್ಲಿ ಏಕಾಂಗಿತನ & ಪತಿಯಿಂದ ಅಸಡ್ಡೆ: ಪ್ರೀತಿ-ವಾತ್ಸಲ್ಯದ ತೀವ್ರ ಕೊರಗು",
+        titleEn: "Marital Isolation & Emotional Neglect: Craving Affection & Support",
+        icon: "❄️",
+        badgeKn: "7ನೇ ಶನಿ/ಕೇತು • ಏಕಾಂಗಿತನ",
+        badgeEn: "7th Saturn/Ketu • Marital Loneliness",
+        bulletKn: `7ನೇ ಕಳತ್ರ ಭಾವದಲ್ಲಿ ಶನಿ ಅಥವಾ ಕೇತುವಿನ ಪ್ರಭಾವದಿಂದಾಗಿ, ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿ ಪತಿಯಿಂದ ನಿರೀಕ್ಷಿತ ಅಕ್ಕರೆ, ಪ್ರಶಂಸೆ ಸಿಗದೆ ಒಳಗೊಳಗೇ ಒಂಟಿತನ ಅನುಭವಿಸುವ ಸ್ಥಿತಿ ಉಂಟಾಗಬಹುದು. ಮನಸ್ಸಿನ ನೋವನ್ನು ಹೊರಹಾಕದೆ ಕಣ್ಣೀರು ಹಾಕುವ ಪ್ರವೃತ್ತಿ ಕಾಣಿಸುತ್ತದೆ.`,
+        bulletEn: "Saturn or Ketu in the 7th house subjects the native to emotional isolation and unexpressed longing for appreciation and warmth within marriage.",
+        astrologicalBasisKn: "7ನೇ ಭಾವದಲ್ಲಿ ಶನಿ-ಕೇತುಗಳ ನೀರಸ ದೋಷ.",
+        astrologicalBasisEn: "Saturn-Ketu in 7th house causing emotional isolation."
+      };
+    }
+  } else {
+    badTrait2 = {
+      id: 2,
+      type: "bad",
+      titleKn: "ನೈತಿಕ ಚಾರಿತ್ರ್ಯ & ದಾಂಪತ್ಯ ನಿಷ್ಠೆ: ಸದಾಚಾರದ ರಕ್ಷಾ ಕವಚ",
+      titleEn: "Moral Rectitude, Sensory Restraint & Marital Loyalty",
+      icon: "💎",
+      badgeKn: "ಶುಭ ಕಳತ್ರ • ಸದಾಚಾರ ರಕ್ಷಣೆ",
+      badgeEn: "Auspicious 7th • Ethical Shield",
+      bulletKn: isMale
+        ? `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಕಳತ್ರ ಸ್ಥಾನ ಹಾಗೂ ಶುಕ್ರನಿಗೆ ಶುಭ ಗ್ರಹಗಳ ರಕ್ಷಣೆಯಿರುವುದರಿಂದ, ನೈತಿಕ ಶಿಸ್ತು, ಇಂದ್ರಿಯ ನಿಗ್ರಹ ಮತ್ತು ಏಕಪತ್ನೀ ವ್ರತಸ್ಥ ನಿಷ್ಠೆ ನಿಮ್ಮ ಶ್ರೇಷ್ಠ ಗುಣವಾಗಿದೆ. ಬಾಹ್ಯ ಪ್ರಲೋಭನೆಗಳಿಗೆ ಸುಲಭವಾಗಿ ಮಾರುಹೋಗದೆ, ಸಂಸ್ಕಾರಯುತ ದಾಂಪತ್ಯ ಜೀವನಕ್ಕೆ ಬದ್ಧರಾಗಿರುವ ಸದ್ಗುಣ ನಿಮ್ಮಲ್ಲಿದೆ.`
+        : `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಕಳತ್ರ ಸ್ಥಾನ ಹಾಗೂ ಶುಕ್ರನಿಗೆ ಶುಭ ಗ್ರಹಗಳ ರಕ್ಷಣೆಯಿರುವುದರಿಂದ, ನೈತಿಕ ಶಿಸ್ತು, ಇಂದ್ರಿಯ ನಿಗ್ರಹ ಮತ್ತು ಪತಿವ್ರತಾ ನಿಷ್ಠೆ (ಏಕಪತಿ ನಿಷ್ಠೆ) ನಿಮ್ಮ ಶ್ರೇಷ್ಠ ಗುಣವಾಗಿದೆ. ಕುಟುಂಬ ಗೌರವ ಮತ್ತು ಸಂಸ್ಕಾರಯುತ ದಾಂಪತ್ಯ ಜೀವನವನ್ನು ಕಾಪಾಡಿಕೊಂಡು ಪತಿಗೆ ನಿಷ್ಠೆಯಿಂದ ಮುನ್ನಡೆಯುವ ಸಚ್ಚಾರಿತ್ರ್ಯ ನಿಮ್ಮಲ್ಲಿದೆ.`,
+      bulletEn: "Benefic planetary alignment shields your marital house, conferring strong moral rectitude, sensory restraint, and faithful devotion to marriage.",
+      astrologicalBasisKn: "7ನೇ ಕಳತ್ರ ಸ್ಥಾನ ಹಾಗೂ ಶುಕ್ರನಿಗೆ ಗುರು-ಶುಭ ಗ್ರಹಗಳ ರಕ್ಷಣೆ.",
+      astrologicalBasisEn: "Auspicious Jupiter/benefic aspect protecting marital boundaries."
+    };
   }
 
-  const isDailyDrinking = addictionScore >= 2.5;
-  const isSocialDrinking = addictionScore >= 1.0 && addictionScore < 2.5;
-  const hasAddiction = addictionScore >= 1.0;
+  // 3. ADDICTION & INTAKE EVALUATION (Strict Teetotaler & Jyotisha Rules)
+  let badTrait3: TraitBulletPoint;
+  if (diet.isTeetotaler) {
+    badTrait3 = {
+      id: 3,
+      type: "bad",
+      titleKn: "ಸಾತ್ವಿಕ ಜೀವನಶೈಲಿ & ಆಹಾರ ಸಂಸ್ಕಾರ: ದುಶ್ಚಟ ಮುಕ್ತ ಶರೀರ ರಕ್ಷಣೆ (Teetotaler)",
+      titleEn: "Sattvic Lifestyle, Pure Dietary Sanctity & Teetotaler Demeanor",
+      icon: "🌿",
+      badgeKn: "ಸಾತ್ವಿಕ ಆಹಾರಿ (Teetotaler)",
+      badgeEn: "Pure 2nd House • Sattvic & Teetotaler",
+      bulletKn: isMale
+        ? `ನಿಮ್ಮ 2ನೇ ಮುಖ/ಆಹಾರ ಸ್ಥಾನಕ್ಕೆ ಅಥವಾ ದ್ವಿತೀಯಾಧಿಪತಿಗೆ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ದೈವಿಕ ದೃಷ್ಟಿಯಿರುವುದರಿಂದ, ನೀವು ನೈಸರ್ಗಿಕವಾಗಿ ಸಾತ್ವಿಕ ಆಹಾರ ಪ್ರಿಯರು (Teetotaler). ಮದ್ಯಪಾನ, ಧೂಮಪಾನ ಅಥವಾ ಯಾವುದೇ ಮಾದಕ ದ್ರವ್ಯಗಳ ದುಶ್ಚಟವಿಲ್ಲದೆ, ಶರೀರವನ್ನು ದೇವಸ್ಥಾನದಂತೆ ಪರಿಶುದ್ಧವಾಗಿಟ್ಟುಕೊಳ್ಳುವ ಸಾತ್ವಿಕ ಆಹಾರ ಸಂಸ್ಕಾರ ಹಾಗೂ ದುಶ್ಚಟ ಮುಕ್ತ ಶರೀರ ರಕ್ಷಣೆಯ ಆತ್ಮಶಿಸ್ತು ನಿಮ್ಮ ರಕ್ತದಲ್ಲಿದೆ.`
+        : `ನಿಮ್ಮ 2ನೇ ಮುಖ/ಆಹಾರ ಸ್ಥಾನಕ್ಕೆ ಅಥವಾ ದ್ವಿತೀಯಾಧಿಪತಿಗೆ ಗುರುವಿನ ಪವಿತ್ರ ದೃಷ್ಟಿಯಿರುವುದರಿಂದ, ನೀವು ಶುದ್ಧ ಸಾತ್ವಿಕ ಆಹಾರ ಪ್ರಿಯರು. ಯಾವುದೇ ದುಶ್ಚಟಗಳಿಗೆ ಆಸ್ಪದ ನೀಡದೆ, ಮಧುರ ಸಂಭಾಷಣೆ ಮತ್ತು ಪರಿಶುದ್ಧ ಸಾತ್ವಿಕ ಆಹಾರ ಸಂಸ್ಕಾರದಿಂದ ಶರೀರ ಹಾಗೂ ಕುಟುಂಬದ ಆರೋಗ್ಯವನ್ನು ಕಾಪಾಡುವ ಶ್ರೇಷ್ಠ ಗುಣ ನಿಮ್ಮಲ್ಲಿದೆ.`,
+      bulletEn: "Divine Jupiter aspect on the 2nd house of intake and its lord bestows natural aversion to toxic substances, making the native a disciplined teetotaler with clean dietary habits.",
+      astrologicalBasisKn: "2ನೇ ಆಹಾರ ಸ್ಥಾನ/ದ್ವಿತೀಯಾಧಿಪತಿಗೆ ಗುರುವಿನ ದೃಷ್ಟಿ ಹಾಗೂ ಸಾತ್ವಿಕ ಗ್ರಹ ಪ್ರಭಾವ.",
+      astrologicalBasisEn: "Guru aspect on 2nd lord or 2nd house protecting dietary purity."
+    };
+  } else if (isMale) {
+    if (diet.isDailyDrinking) {
+      badTrait3 = {
+        id: 3,
+        type: "bad",
+        titleKn: "ಮದ್ಯಪಾನ & ದುಶ್ಚಟಗಳ ನೈಜ ಸ್ಥಿತಿ: ದಿನನಿತ್ಯದ ಮದ್ಯಪಾನ & ತೀವ್ರ ವ್ಯಸನದ ಸೆಳೆತ",
+        titleEn: "Addictions & Drinking Reality: Daily Alcohol Habit & Intense Substance Urge",
+        icon: "🍷",
+        badgeKn: "2ನೇ ಮುಖ & 8ನೇ ಛಾಯಾ • ದಿನನಿತ್ಯದ ಮದ್ಯಪಾನ",
+        badgeEn: "2nd Face & 8th Secret • Daily Alcohol",
+        bulletKn: `ನಿಮ್ಮ 2ನೇ ಆಹಾರ/ಮುಖ ಸ್ಥಾನ ಹಾಗೂ 8ನೇ ರಹಸ್ಯ ವ್ಯಸನ ಸ್ಥಾನಗಳ ಮೇಲೆ ಶನಿ ಮತ್ತು ರಾಹುವಿನ ನೇರ ಪ್ರಭಾವವಿರುವುದರಿಂದ, ದಿನನಿತ್ಯದ ಮದ್ಯಪಾನ (Daily Drinking), ಧೂಮಪಾನ ಅಥವಾ ಅಮಲು ಪದಾರ್ಥಗಳ ವ್ಯಸನದ ಪ್ರಬಲ ಸೆಳೆತ ಜಾತಕದಲ್ಲಿ ಸ್ಪಷ್ಟವಾಗಿ ಗೋಚರಿಸುತ್ತದೆ. ಸಂಜೆಯ ವೇಳೆಯಲ್ಲಿ ಅಥವಾ ಮಾನಸಿಕ ಒತ್ತಡದಲ್ಲಿ ಈ ಚಟ ನಿಯಂತ್ರಣ ತಪ್ಪಿ, ಯಕೃತ್ತು (Liver), ಜೀರ್ಣಾಂಗ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಶಾಂತಿಯನ್ನು ಕ್ಷೀಣಿಸಬಹುದು. ಇದಕ್ಕೆ ಗೋಕರ್ಣ ಆತ್ಮಲಿಂಗ ಸಂಕಲ್ಪ ಮುಕ್ತಿ ಅತ್ಯಗತ್ಯ.`,
+        bulletEn: "Affliction across the 2nd house of oral intake and 8th house of secret vices manifests as a regular or daily alcohol habit, demanding conscious detox and spiritual intervention before liver health is compromised.",
+        astrologicalBasisKn: "2ನೇ (ಆಹಾರ/ಮುಖ) ಮತ್ತು 8ನೇ (ರಹಸ್ಯ ವ್ಯಸನ) ಭಾವದ ರಾಹು-ಶನಿ-ಕುಜ ಪ್ರಭಾವ.",
+        astrologicalBasisEn: "Affliction to 2nd house of intake and 8th hidden house by malefics."
+      };
+    } else if (diet.isSocialDrinking) {
+      badTrait3 = {
+        id: 3,
+        type: "bad",
+        titleKn: "ಮದ್ಯಪಾನ & ದುಶ್ಚಟಗಳ ನೈಜ ಸ್ಥಿತಿ: ಪಾರ್ಟಿ & ಸಹವಾಸದ ಮದ್ಯಪಾನದ ಅಪಾಯ",
+        titleEn: "Addiction Tendency: Social & Peer-Induced Drinking Vulnerability",
+        icon: "🍺",
+        badgeKn: "2ನೇ ಭಾವ ರಾಹು/ಶನಿ • ಪಾರ್ಟಿ ಮದ್ಯಪಾನ",
+        badgeEn: "2nd House Aspect • Social Drinking",
+        bulletKn: `2ನೇ ವಾಕ್/ಆಹಾರ ಸ್ಥಾನಕ್ಕೆ ಶನಿ-ರಾಹುಗಳ ದೃಷ್ಟಿ ಇರುವುದರಿಂದ, ಸ್ನೇಹಿತರ ಸಹವಾಸ ಅಥವಾ ಪಾರ್ಟಿಗಳ ಸಮಯದಲ್ಲಿ ಮದ್ಯಪಾನ, ಧೂಮಪಾನದಂತಹ ದುಶ್ಚಟಗಳ ಸೆಳೆತ ಉಂಟಾಗುತ್ತದೆ. ಆರಂಭದಲ್ಲಿ ಮನರಂಜನೆಯಾಗಿದ್ದದ್ದು ಕ್ರಮೇಣ ಅಭ್ಯಾಸವಾಗಿ ಬದಲಾಗದಂತೆ ಮುನ್ನೆಚ್ಚರಿಕೆ ವಹಿಸಬೇಕು.`,
+        bulletEn: "Planetary aspects on the 2nd house create periodic vulnerability to social drinking, smoking, or intoxicating indulgences under peer influence.",
+        astrologicalBasisKn: "2ನೇ ವಾಕ್/ಆಹಾರ ಸ್ಥಾನಕ್ಕೆ ಶನಿ-ರಾಹುಗಳ ದೃಷ್ಟಿ.",
+        astrologicalBasisEn: "Malefic aspect on 2nd house of oral consumption."
+      };
+    } else {
+      badTrait3 = {
+        id: 3,
+        type: "bad",
+        titleKn: "ಸಾತ್ವಿಕ ಜೀವನಶೈಲಿ & ಆಹಾರ ಸಂಸ್ಕಾರ: ದುಶ್ಚಟ ಮುಕ್ತ ಶರೀರ ರಕ್ಷಣೆ",
+        titleEn: "Sattvic Lifestyle & Clean Habits: Freedom from Addictions",
+        icon: "🌿",
+        badgeKn: "2ನೇ ಶುಭ ಸ್ಥಾನ • ಸಾತ್ವಿಕ ಶಿಸ್ತು",
+        badgeEn: "Pure 2nd House • Sattvic Habits",
+        bulletKn: `ನಿಮ್ಮ 2ನೇ ಆಹಾರ ಸ್ಥಾನವು ಶುಭ ಗ್ರಹಗಳ ನಿಯಂತ್ರಣದಲ್ಲಿದ್ದು, ದುಶ್ಚಟಗಳಿಂದ ದೂರವಿರುವ ಸಾತ್ವಿಕ ಸಂಸ್ಕಾರ ನಿಮ್ಮಲ್ಲಿದೆ. ಮದ್ಯಪಾನ, ಧೂಮಪಾನ ಅಥವಾ ವ್ಯಸನಗಳ ಜಾಲಕ್ಕೆ ಬೀಳದೆ ಶರೀರ ಆರೋಗ್ಯವನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳುವ ಇಚ್ಛಾಶಕ್ತಿ ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿದೆ.`,
+        bulletEn: "A clean 2nd house of intake grants natural resistance to toxic substances, supporting clean dietary habits and wholesome physical well-being.",
+        astrologicalBasisKn: "2ನೇ ಮನೆಗೆ ಶುಭ ದೃಷ್ಟಿ ಹಾಗೂ ಸಾತ್ವಿಕ ಗ್ರಹ ಪ್ರಭಾವ.",
+        astrologicalBasisEn: "Clean 2nd house and absence of malefics from intake house."
+      };
+    }
+  } else {
+    // Female
+    if (diet.hasAddiction) {
+      badTrait3 = {
+        id: 3,
+        type: "bad",
+        titleKn: "ಒತ್ತಡದ ಆಹಾರ ಚಪಲ, ಸಿಹಿ ವ್ಯಸನ & ವಾಕ್ ದೋಷ: ಕೋಪದಲ್ಲಿ ಕಟು ಮಾತುಗಳ ಆಡುವಿಕೆ",
+        titleEn: "Stress Eating, Sugar Craving & Incisive Speech: Emotional Intake Vulnerability",
+        icon: "🧁",
+        badgeKn: "2ನೇ ಭೋಜನ & ವಾಕ್ • ಒತ್ತಡದ ಆಹಾರ",
+        badgeEn: "2nd House Intake • Emotional Eating",
+        bulletKn: `2ನೇ ಭೋಜನ ಹಾಗೂ ವಾಕ್ ಸ್ಥಾನದ ಮೇಲೆ ಶನಿ-ರಾಹು ಅಥವಾ ಕುಜನ ಪ್ರಭಾವವಿರುವುದರಿಂದ, ಮಾನಸಿಕ ಒತ್ತಡ ಅಥವಾ ಆತಂಕವಾದಾಗ ಸಿಹಿ ಪದಾರ್ಥಗಳು, ಜಂಕ್ ಫುಡ್ ಅಥವಾ ಅತಿಯಾದ ಆಹಾರ ಸೇವನೆಯ ಚಪಲ ಕಾಡಬಹುದು. ಜೊತೆಗೆ ಕೋಪ ಬಂದಾಗ ನಾಲಿಗೆಯ ಮೇಲೆ ನಿಯಂತ್ರಣ ತಪ್ಪಿ ಕಟು ಮಾತುಗಳನ್ನಾಡಿ ಆಪ್ತರ ಮನಸ್ಸನ್ನು ನೋಯಿಸುವ ವಾಕ್ ದೋಷದ ಸುಳಿವು ಜಾತಕದಲ್ಲಿದೆ.`,
+        bulletEn: "Planetary tension in the 2nd house of intake and speech manifests as stress eating, sugar cravings, and sharp outbursts during moments of emotional exhaustion.",
+        astrologicalBasisKn: "2ನೇ ಭೋಜನ ಹಾಗೂ ವಾಕ್ ಸ್ಥಾನದ ಮೇಲೆ ಶನಿ-ರಾಹು ಪ್ರಭಾವ.",
+        astrologicalBasisEn: "2nd house affliction affecting dietary intake and verbal restraint."
+      };
+    } else {
+      badTrait3 = {
+        id: 3,
+        type: "bad",
+        titleKn: "ಸಾತ್ವಿಕ ಆಹಾರ ಪದ್ಧತಿ & ಮಧುರ ಸಂಭಾಷಣೆ: ಸಂಸ್ಕಾರಯುತ ಜೀವನಶೈಲಿ",
+        titleEn: "Wholesome Dietary Habits & Sweet Speech: Dignified Demeanor",
+        icon: "🌿",
+        badgeKn: "2ನೇ ಶುಭ ಸ್ಥಾನ • ಮಧುರ ವಾಕ್",
+        badgeEn: "Benefic 2nd House • Sweet Speech",
+        bulletKn: `ನಿಮ್ಮ 2ನೇ ವಾಕ್ ಮತ್ತು ಆಹಾರ ಸ್ಥಾನವು ಶುಭ ಗ್ರಹಗಳ ರಕ್ಷಣೆಯಲ್ಲಿದ್ದು, ಸಾತ್ವಿಕ ಆಹಾರ ಶಿಸ್ತು ಹಾಗೂ ಇತರರಿಗೆ ನೋವಾಗದಂತೆ ಮಧುರವಾಗಿ ಮಾತನಾಡುವ ಸಂಸ್ಕಾರಯುತ ವ್ಯಕ್ತಿತ್ವ ನಿಮ್ಮಲ್ಲಿದೆ. ಆರೋಗ್ಯಕರ ಜೀವನಶೈಲಿ ನಿಮ್ಮ ದೊಡ್ಡ ಶಕ್ತಿ.`,
+        bulletEn: "An unblemished 2nd house bestows disciplined nutritional habits, gentle sweet speech, and wholesome domestic balance.",
+        astrologicalBasisKn: "2ನೇ ಮನೆಗೆ ಶುಭ ದೃಷ್ಟಿ ಹಾಗೂ ಸಾತ್ವಿಕ ಗ್ರಹ ಪ್ರಭಾವ.",
+        astrologicalBasisEn: "Auspicious 2nd house supporting wholesome speech and intake."
+      };
+    }
+  }
 
-  // 4. SPECULATION, SHARE MARKET TRADING & SHORTCUT WEALTH LOSS
+  // 4. SPECULATION, WEALTH LOSS & TRAPS EVALUATION
   let speculationScore = 0;
-  // Rahu in 5th house: Classic Vedic signature of Stock Market, Intraday, F&O Options, Betting, Speculation greed
   if (rahu && rahu.house === 5) speculationScore += 3.5;
-  // 5th lord debilitated (e.g. Mars in Cancer) or in dusthana (6, 8, 12) -> destruction of speculative capital
   if (fifthLordPlanet) {
     const isFifthLordNeecha = (fifthLordPlanet.name === PlanetName.Mars && fifthLordPlanet.rashi.index === 3) ||
       (fifthLordPlanet.name === PlanetName.Sun && fifthLordPlanet.rashi.index === 6) ||
@@ -1811,291 +3781,202 @@ export const generateGoodAndBadTraits = (
     if (isFifthLordNeecha) speculationScore += 2.5;
     if ([6, 8, 12].includes(fifthLordPlanet.house)) speculationScore += 2.0;
   }
-  // Saturn or Mars in 8th house: Catastrophic sudden losses, tens of lakhs debt
   if (saturn && saturn.house === 8) speculationScore += 2.0;
   if (mars && mars.house === 8) speculationScore += 1.5;
-  // Ketu in 11th house: Dissolution of gains, profits vanishing into deficit
   if (ketu && ketu.house === 11) speculationScore += 1.5;
 
   const isSpeculationLoss = speculationScore >= 2.5;
   const lossInfo = getDynamicLossScaleText(kundli);
 
-  // Unethical Work / Smuggling evaluation (if not already speculation loss)
   let illegalScore = 0;
-  if (rahu && rahu.house === 8) illegalScore += 2.5; // Classic smuggling & contraband signature
-  if (rahu && [10, 11].includes(rahu.house)) illegalScore += 2.0; // Shadow trade / commission games
-  if (mars && mars.house === 8) illegalScore += 2.0; // Aggressive illegal adventures
-  if (saturn && saturn.house === 8) illegalScore += 1.5; // Unearned secret money
-  if (mercury && [8, 10, 12].includes(mercury.house) && (rahu && Math.abs(mercury.house - rahu.house) === 0)) illegalScore += 2.0; // Cyber/tax/forgery
+  if (rahu && rahu.house === 8) illegalScore += 2.5;
+  if (rahu && [10, 11].includes(rahu.house)) illegalScore += 2.0;
+  if (mars && mars.house === 8) illegalScore += 2.0;
+  if (saturn && saturn.house === 8) illegalScore += 1.5;
+  if (mercury && [8, 10, 12].includes(mercury.house) && (rahu && Math.abs(mercury.house - rahu.house) === 0)) illegalScore += 2.0;
   if (eighthLordPlanet && [2, 11].includes(eighthLordPlanet.house)) illegalScore += 1.5;
-  if (rahu && [5, 7, 9].includes(houseDist(rahu.house, 8))) illegalScore += 1.0;
-  const hasIllegal = illegalScore >= 2.0 && !isSpeculationLoss;
+  const hasIllegal = illegalScore >= 2.0 && !isSpeculationLoss && isMale;
 
-  // 5. DARK THOUGHT LOOPS & DEPRESSION EVALUATION
-  let darkScore = 0;
-  if (moon && [6, 8, 12].includes(moon.house)) darkScore += 2.0;
-  if (moon && rahu && Math.abs(moon.house - rahu.house) === 0) darkScore += 2.0;
-  if (moon && saturn && Math.abs(moon.house - saturn.house) === 0) darkScore += 2.0;
-  if (saturn && [3, 7, 10].includes(houseDist(saturn.house, moon?.house ?? 1))) darkScore += 1.5;
-  if (rahu && [5, 7, 9].includes(houseDist(rahu.house, moon?.house ?? 1))) darkScore += 1.5;
-  const hasDarkLoops = darkScore >= 2.0;
+  const hasFinancialTrap = (rahu && [2, 11].includes(rahu.house)) || (mercury && [6, 8, 12].includes(mercury.house)) || (secondLordPlanet && [6, 8, 12].includes(secondLordPlanet.house));
 
-  // ADULT GOOD TRAITS (Crisp Single-Point Attracting Headings)
-  const adultGoodTraits: TraitBulletPoint[] = [
-    {
-      id: 1,
-      type: "good",
-      titleKn: "ಅಪ್ರತಿಮ ಸ್ವಾಭಿಮಾನ & ಸತ್ಯದ ನಡೆ: ಯಾರ ಮುಂದೆಯೂ ತಲೆಬಾಗದ ಛಲ",
-      titleEn: "Dignified Self-Respect & Inherent Leadership: Unyielding Honor",
-      icon: "👑",
-      badgeKn: `ಲಗ್ನ: ${lagnaKn} • ${lagnaLordKn}`,
-      badgeEn: `Lagna: ${lagnaEn} • ${lagnaLord}`,
-      bulletKn: `ನಿಮ್ಮ ${lagnaKn} ಲಗ್ನದ ಬಲದಿಂದಾಗಿ ನೀವು ಎಂದಿಗೂ ಯಾರ ಮುಂದೆಯೂ ಅನಗತ್ಯವಾಗಿ ಕೈಚಾಚುವವರಲ್ಲ ಅಥವಾ ತಲೆಬಾಗುವವರಲ್ಲ. ತತ್ವ ಮತ್ತು ಆತ್ಮಗೌರವಕ್ಕೆ ಧಕ್ಕೆ ಬಂದರೆ ಎಷ್ಟು ದೊಡ್ಡ ಲಾಭವಿದ್ದರೂ ತಕ್ಷಣ ತಿರಸ್ಕರಿಸುವ ಅಚಲ ಛಲಗಾರಿಕೆ ನಿಮ್ಮ ರಕ್ತದಲ್ಲಿದೆ. ಸಮಾಜದಲ್ಲಿ ಮುಖಸ್ತುತಿಯನ್ನು ಮಾಡದೆ ಪ್ರಾಮಾಣಿಕವಾಗಿ ಮುನ್ನಡೆಯುತ್ತೀರಿ.`,
-      bulletEn: `With your ${lagnaEn} Ascendant governed by ${lagnaLord}, you hold an unshakeable sense of honor and executive dignity. You never tolerate sycophancy or arbitrary coercion, valuing principle over expedience.`,
-      astrologicalBasisKn: `1ನೇ ಲಗ್ನ ಭಾವ ಹಾಗೂ ಲಗ್ನಾಧಿಪತಿ ${lagnaLordKn} ಗ್ರಹಬಲ.`,
-      astrologicalBasisEn: `Ascendant lord ${lagnaLord} strength in 1st house.`
-    },
-    {
-      id: 2,
-      type: "good",
-      titleKn: "ತೀಕ್ಷ್ಣ ಬುದ್ಧಿ & ವಾಸ್ತವಿಕ ವಿವೇಕ: ಪ್ರಾಯೋಗಿಕ ಸಮಸ್ಯೆಗಳ ತ್ವರಿತ ಪರಿಹಾರ",
-      titleEn: "Sharp Practical Logic & Intellect: Rapid Problem Solving",
-      icon: "🧠",
-      badgeKn: `5ನೇ ಬುದ್ಧಿ ಭಾವ • ${fifthLordKn}`,
-      badgeEn: `5th Intellect • ${fifthLord}`,
-      bulletKn: `5ನೇ ಭಾವದಲ್ಲಿ ${fifthLordKn} ಅಧಿಪತ್ಯವಿರುವುದರಿಂದ ಸೈದ್ಧಾಂತಿಕ ಬಾಯಿಪಾಠಕ್ಕಿಂತ ವಾಸ್ತವಿಕ, ಪ್ರಾಯೋಗಿಕ ಮತ್ತು ತಾರ್ಕಿಕ ವಿಷಯಗಳಲ್ಲಿ ನಿಮ್ಮ ಬುದ್ಧಿ ತೀಕ್ಷ್ಣವಾಗಿ ಕೆಲಸ ಮಾಡುತ್ತದೆ. ಜಟಿಲ ಸವಾಲುಗಳಿಗೆ ತ್ವರಿತವಾಗಿ ಸರಳ ಪರಿಹಾರಗಳನ್ನು ಹುಡುಕುವ ಸೃಜನಶೀಲ ಕೌಶಲ್ಯ ನಿಮ್ಮಲ್ಲಿದೆ.`,
-      bulletEn: `Governed by 5th lord ${fifthLord}, your intellect is sharp in practical logic and strategic problem-solving. You master skills by hands-on execution rather than rote memorization.`,
-      astrologicalBasisKn: `5ನೇ ಭಾವ (ಬುದ್ಧಿ/ಪೂರ್ವಪುಣ್ಯ) ಹಾಗೂ ಬುಧ-ಗುರು ಕಾರಕತ್ವ.`,
-      astrologicalBasisEn: `5th house of intellect and Mercury-Jupiter disposition.`
-    },
-    {
-      id: 3,
-      type: "good",
-      titleKn: "ಸಾಮಾಜಿಕ ಒಡನಾಟ & ಕುಟುಂಬ ನಿಷ್ಠೆ: ಆಪ್ತರ ರಕ್ಷಣೆಗೆ ನಿಲ್ಲುವ ಧರ್ಮಬಲ",
-      titleEn: "Social Circle & Family Loyalty: Steadfast Protective Shield",
-      icon: "🛡️",
-      badgeKn: `4ನೇ ಸುಖ ಭಾವ • ${fourthLordKn}`,
-      badgeEn: `4th House of Home • ${fourthLord}`,
-      bulletKn: `ಹೊರಗಡೆ ನೀವು ಎಷ್ಟೇ ಗಟ್ಟಿಯಾಗಿ ಅಥವಾ ನಿಷ್ಠುರವಾಗಿ ಕಂಡರೂ, ನಿಮ್ಮ ಕುಟುಂಬ ಮತ್ತು ಆಪ್ತರ ವಿಷಯದಲ್ಲಿ ಅಪಾರ ವಾತ್ಸಲ್ಯ ಹೊಂದಿದ್ದೀರಿ. ನಿಮ್ಮವರ ಮೇಲೆ ಯಾವುದೇ ಆಪತ್ತು ಬರದಂತೆ ರಕ್ಷಿಸಲು ನಿಮ್ಮ ಸ್ವಂತ ಆಸೆಗಳನ್ನು ತ್ಯಾಗ ಮಾಡಲು ಸಿದ್ಧರಿರುತ್ತೀರಿ.`,
-      bulletEn: `While maintaining a stoic exterior, your dedication to protecting family honor and providing for loved ones is absolute and protective.`,
-      astrologicalBasisKn: `4ನೇ ಮನೆ (ಮಾತೃ/ಸುಖ ಸ್ಥಾನ ${fourthLordKn}) ಮತ್ತು ಚಂದ್ರನ ಪ್ರಭಾವ.`,
-      astrologicalBasisEn: `4th house of home (${fourthLord}) and Moon placement.`
-    },
-    {
+  let badTrait4: TraitBulletPoint;
+  if (isSpeculationLoss) {
+    badTrait4 = {
       id: 4,
-      type: "good",
-      titleKn: "ಆರ್ಥಿಕ ಪುಟಿದೇಳುವಿಕೆ & ಧನ ಯೋಗ: ಶೂನ್ಯದಿಂದ ಸಾಮ್ರಾಜ್ಯ ಕಟ್ಟುವ ಶಕ್ತಿ",
-      titleEn: "Financial Resilience & Wealth Inflow: Rebuilding from Zero",
-      icon: "💰",
-      badgeKn: `2ನೇ ಧನ & 11ನೇ ಲಾಭ • ${secondLordKn}`,
-      badgeEn: `2nd & 11th Houses • ${secondLord}`,
-      bulletKn: `ಜೀವನದಲ್ಲಿ ಆರ್ಥಿಕವಾಗಿ ಎಷ್ಟೇ ಏರಿಳಿತಗಳು ಬಂದರೂ, ಶೂನ್ಯದಿಂದ ಪುನಃ ಸಂಪತ್ತು ಮತ್ತು ವ್ಯವಹಾರವನ್ನು ಕಟ್ಟಿ ನಿಲ್ಲಿಸುವ ಅದ್ಭುತ ಚೇತರಿಕೆಯ ಶಕ್ತಿ (Resilience) ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿದೆ. ನಿಮ್ಮ ಪರಿಶ್ರಮಕ್ಕೆ ತಕ್ಕಂತೆ ಧನ ಸಂಪತ್ತು ಹರಿದುಬರುತ್ತದೆ.`,
-      bulletEn: `Governed by 2nd lord ${secondLord} and 11th lord ${eleventhLord}, your financial resilience allows you to rebuild wealth and stability even after major downturns.`,
-      astrologicalBasisKn: `2ನೇ ಧನಕೋಶದ ${secondLordKn} ಮತ್ತು 11ನೇ ಲಾಭ ಸ್ಥಾನದ ಗ್ರಹಯೋಗ.`,
-      astrologicalBasisEn: `2nd house of treasury and 11th house of enterprise.`
-    },
-    {
-      id: 5,
-      type: "good",
-      titleKn: "ಪೂರ್ವಪುಣ್ಯ ರಕ್ಷಣೆ & ದೈವಬಲ: ಅಪಾಯಗಳಿಂದ ಪಾರುಮಾಡುವ ಅದೃಶ್ಯ ಶ್ರೀರಕ್ಷೆ",
-      titleEn: "Divine Ancestral Shield & Fortune: Invisible Protection",
-      icon: "🪔",
-      badgeKn: `9ನೇ ಭಾಗ್ಯ ಭಾವ • ಗುರು ಕೃಪೆ`,
-      badgeEn: `9th Fortune • Jupiter Grace`,
-      bulletKn: `ನಿಮ್ಮ ಪೂರ್ವಪುಣ್ಯ ಮತ್ತು ಕುಲದೇವರ ಕೃಪೆಯು ಅತ್ಯಂತ ಕಠಿಣ ಸಂದರ್ಭಗಳಲ್ಲೂ ನಿಮ್ಮನ್ನು ಅದೃಶ್ಯ ರಕ್ಷಾಕವಚದಂತೆ ಕಾಪಾಡಿದೆ. ಕಷ್ಟಗಳು ಬಂದರೂ ಕೊನೆಯ ಕ್ಷಣದಲ್ಲಿ ಸೂಕ್ತ ದಾರಿ ಗೋಚರಿಸಿ ಪಾರಾಗುವ ದೈವಬಲ ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿದೆ.`,
-      bulletEn: `The 9th house of fortune ensures divine providence and ancestral protection shield you at critical junctures, turning impending crises into safe passage.`,
-      astrologicalBasisKn: `9ನೇ ಧರ್ಮ ಸ್ಥಾನ ಹಾಗೂ ಗುರು-ಸೂರ್ಯ ದೈವಿಕ ತತ್ವ.`,
-      astrologicalBasisEn: `9th house of dharma and Jupiter's protective trine.`
-    }
-  ];
+      type: "bad",
+      titleKn: "ಷೇರು ಮಾರುಕಟ್ಟೆ, ಬೆಟ್ಟಿಂಗ್ & ಹಠಾತ್ ಧನ ನಷ್ಟ: ಸ್ಪೆಕ್ಯುಲೇಶನ್ ದುರಾಸೆ & ಲಕ್ಷಾಂತರ ರೂಪಾಯಿ ನಷ್ಟದ ಬಲೆ",
+      titleEn: "Stock Market Speculation & Trading Ruin: Gambler's Trap & Heavy Financial Losses",
+      icon: "📉",
+      badgeKn: "5ನೇ ರಾಹು • ನೀಚ ಪಂಚಮ • ಅಷ್ಟಮ ಶನಿ",
+      badgeEn: "5th Rahu • Afflicted 5th Lord • 8th Malefic",
+      bulletKn: `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ 5ನೇ ಸ್ಪೆಕ್ಯುಲೇಶನ್/ಬುದ್ಧಿ ಸ್ಥಾನದಲ್ಲಿ ನೆರಳು ಗ್ರಹ ರಾಹುವಿದ್ದು, ಪಂಚಮಾಧಿಪತಿ ${fifthLordKn} ನೀಚ/ದುಃಸ್ಥಾನದಲ್ಲಿದ್ದಾನೆ ಹಾಗೂ 8ನೇ ಮನೆಯಲ್ಲಿ ಅಷ್ಟಮ ಶನಿ/ಕುಜ ಪ್ರಭಾವವಿದೆ. ವೇದ ಜ್ಯೋತಿಷ್ಯದ ಪ್ರಕಾರ ಇದು ಷೇರು ಮಾರುಕಟ್ಟೆ (Share Market), ಇಂಟ್ರಾಡೇ/F&O ಆಪ್ಷನ್ಸ್ ಟ್ರೇಡಿಂಗ್, ಬೆಟ್ಟಿಂಗ್ ಅಥವಾ ತ್ವರಿತ ಹಣದ ಆಮಿಷಗಳಿಗೆ ಬೀಳುವ ತೀವ್ರ ಗೀಳನ್ನು ಉಂಟುಮಾಡುತ್ತದೆ. ದಿನನಿತ್ಯ ಷೇರು ವಹಿವಾಟು ನಡೆಸುವ ವ್ಯಸನ ಹತ್ತಿ, ಆರಂಭದಲ್ಲಿ ಸಣ್ಣ ಲಾಭ ಕಂಡರೂ ಅಂತಿಮವಾಗಿ ${lossInfo.lossKn} ಸ್ಪಷ್ಟ ಯೋಗ ಜಾತಕದಲ್ಲಿದೆ. ಕಳೆದುಕೊಂಡ ಹಣವನ್ನು ಮತ್ತೆ ಷೇರಿನಲ್ಲೇ ವಾಪಸ್ ಪಡೆಯಬೇಕೆಂಬ ಹಠದ ಭ್ರಮೆಯಲ್ಲಿ ಮತ್ತಷ್ಟು ಹಣ ಕಳೆದುಕೊಳ್ಳುವ ಅಪಾಯವಿದ್ದು, ಇಂದೇ ಸ್ಪೆಕ್ಯುಲೇಶನ್ ಸಂಪೂರ್ಣವಾಗಿ ನಿಲ್ಲಿಸುವುದು ಜೀವ ರಕ್ಷೆ.`,
+      bulletEn: `Rahu situated in the 5th house of speculation, coupled with an afflicted 5th lord and malefic tension in the 8th house, fuels an uncontrollable drive toward daily stock market trading (intraday, F&O options), betting, and high-risk shortcut wealth. The initial illusion of quick wealth leads to ${lossInfo.lossEn}—dragging the native into severe financial distress. The obsessive urge to recover lost funds through more trading is Rahu's classic trap. Immediate cessation of speculative ventures and debt-mitigation remedies are essential.`,
+      astrologicalBasisKn: `5ನೇ ಮನೆಯಲ್ಲಿ ರಾಹು (ಸ್ಪೆಕ್ಯುಲೇಶನ್ ಗೀಳು), ನೀಚ/ಪೀಡಿತ ಪಂಚಮಾಧಿಪತಿ ${fifthLordKn} (ಬಂಡವಾಳ ನಷ್ಟ) ಹಾಗೂ 8ನೇ ಅಷ್ಟಮ ಶನಿ (ಭಾರಿ ಸಾಲ/ಹಠಾತ್ ವಿನಾಶ).`,
+      astrologicalBasisEn: "5th house Rahu (speculative addiction), afflicted 5th lord (loss of capital), and 8th house Saturn (crushing sudden debts)."
+    };
+  } else if (hasIllegal) {
+    badTrait4 = {
+      id: 4,
+      type: "bad",
+      titleKn: "ಅಡ್ಡದಾರಿ ಹಣ & ಕಳ್ಳಸಾಗಣೆ (ಸ್ಮಗ್ಲಿಂಗ್): ಅಕ್ರಮ ಲಾಭ & ರಿಸ್ಕ್ ವ್ಯವಹಾರದ ಸೆಳೆತ",
+      titleEn: "Unethical Shortcuts & Smuggling: Illicit Money & High-Risk Trade",
+      icon: "⚖️",
+      badgeKn: "8ನೇ & 11ನೇ ಭಾವ • ಅಕ್ರಮ ರಿಸ್ಕ್ ಯೋಗ",
+      badgeEn: "8th & 11th Houses • Illicit Wealth Risk",
+      bulletKn: `ಜಾತಕದಲ್ಲಿ 8ನೇ ರಹಸ್ಯ ಸ್ಥಾನ ಅಥವಾ 11ನೇ ಲಾಭ ಭಾವದಲ್ಲಿ ನೆರಳು ಗ್ರಹ ರಾಹುವಿನ ಪ್ರಭಾವವಿರುವುದರಿಂದ, ಶ್ರಮವಿಲ್ಲದೆ ತ್ವರಿತವಾಗಿ ಕೋಟಿಗಟ್ಟಲೆ ಹಣ ಗಳಿಸುವ ಅಡ್ಡದಾರಿ, ಕಳ್ಳಸಾಗಣೆ (ಸ್ಮಗ್ಲಿಂಗ್), ಬೆಟ್ಟಿಂಗ್, ಹವಾಲಾ ಅಥವಾ ಅಕ್ರಮ ವ್ಯವಹಾರಗಳ ದುಸ್ಸಾಹಸಕ್ಕೆ ಮನಸ್ಸು ಹಾತೊರೆಯುವ ಪ್ರವೃತ್ತಿ ಇದೆ. ಇದರಿಂದ ಆರಂಭದಲ್ಲಿ ಭಾರಿ ಲಾಭ ಕಂಡರೂ, ಅಂತಿಮವಾಗಿ ಪೊಲೀಸ್ ಕೇಸ್, ಕಾನೂನು ಸಂಕೋಲೆ, ಜೈಲು ಭಯ ಹಾಗೂ ಸಾರ್ವಜನಿಕ ಮಾನಹಾನಿಯ ಅಪಾಯ ತಂದೊಡ್ಡಬಹುದು; ಪ್ರಾಮಾಣಿಕ ದುಡಿಮೆಯೇ ಶಾಶ್ವತ ರಕ್ಷೆ.`,
+      bulletEn: "Rahu's presence or aspect on the 8th and 11th houses sparks reckless ambition toward illegal shortcut wealth, smuggling, speculative betting, or shadow trading, carrying severe legal liability and public disgrace.",
+      astrologicalBasisKn: "8ನೇ ಅಕ್ರಮ ಲಾಭ ಮತ್ತು 11ನೇ ದುರಾಸೆಯ ಸ್ಥಾನದಲ್ಲಿ ರಾಹುವಿನ ಪ್ರಭಾವ.",
+      astrologicalBasisEn: "8th house unearned wealth and Rahu temptation."
+    };
+  } else if (hasFinancialTrap) {
+    badTrait4 = {
+      id: 4,
+      type: "bad",
+      titleKn: "ಚಿಟ್‌ಫಂಡ್, ಆನ್‌ಲೈನ್ ಆಮಿಷ & ಕೈಸಾಲದ ನಷ್ಟ: ಇತರರನ್ನು ನಂಬಿ ಮೋಸಹೋಗುವ ಅಪಾಯ",
+      titleEn: "Chit Funds, Online Schemes & Unsecured Loans: Financial Gullibility Risk",
+      icon: "💸",
+      badgeKn: "11ನೇ/2ನೇ ಭಾವ ರಾಹು-ಬುಧ • ನಂಬಿಕೆಯ ನಷ್ಟ",
+      badgeEn: "11th/2nd Axis • Financial Misjudgment",
+      bulletKn: `11ನೇ ಲಾಭ ಹಾಗೂ 2ನೇ ಧನ ಸ್ಥಾನದಲ್ಲಿ ರಾಹು-ಬುಧರ ಚಂಚಲತೆಯಿಂದಾಗಿ, ಹೆಚ್ಚು ಲಾಭ ಕೊಡುವ ಆನ್‌ಲೈನ್ ಸ್ಕೀಮ್‌ಗಳು, ಚಿಟ್‌ಫಂಡ್‌ಗಳು ಅಥವಾ ಆಪ್ತರಿಗೆ/ಸಂಬಂಧಿಕರಿಗೆ ಜಾಮೀನು ಇಲ್ಲದೆ ಕೈಸಾಲ ಕೊಟ್ಟು ಹಣ ವಾಪಸ್ ಬಾರದೆ ಕೈಸುಟ್ಟುಕೊಳ್ಳುವ ಅಪಾಯವಿದೆ. ಆರ್ಥಿಕ ವಿಷಯಗಳಲ್ಲಿ ಯಾರನ್ನೂ ಕಣ್ಮುಚ್ಚಿ ನಂಬದೆ ಲಿಖಿತ ದಾಖಲೆ ಇಟ್ಟುಕೊಳ್ಳುವುದು ಅತ್ಯಗತ್ಯ.`,
+      bulletEn: "Afflictions between 2nd and 11th houses induce financial misjudgment through speculative chit funds, online investment lures, or lending money to friends without collateral.",
+      astrologicalBasisKn: "11ನೇ ಲಾಭ ಹಾಗೂ 2ನೇ ಧನ ಸ್ಥಾನದ ರಾಹು-ಬುಧ ಚಂಚಲತೆ.",
+      astrologicalBasisEn: "Rahu-Mercury tension across wealth and enterprise houses."
+    };
+  } else {
+    badTrait4 = {
+      id: 4,
+      type: "bad",
+      titleKn: "ನ್ಯಾಯನಿಷ್ಠ ಸಂಪಾದನೆ & ಸತ್ಯ ಮಾರ್ಗ: ಪರಿಶ್ರಮದ ಧರ್ಮ ಸಂಪತ್ತು",
+      titleEn: "Righteous Livelihood & Integrity: Hard-Earned Ethical Wealth",
+      icon: "🏛️",
+      badgeKn: "ಧರ್ಮ-ಕರ್ಮ ಯೋಗ • ಸತ್ಯ ಸಂಪಾದನೆ",
+      badgeEn: "Dharma-Karma Axis • Clean Wealth",
+      bulletKn: `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಧರ್ಮ ಮತ್ತು ಕರ್ಮ ಸ್ಥಾನಗಳು ಶುದ್ಧವಾಗಿದ್ದು, ಸ್ವಂತ ಪರಿಶ್ರಮ ಮತ್ತು ಸತ್ಯ ಮಾರ್ಗದ ಸಂಪಾದನೆಯಲ್ಲೇ ನೀವು ನೆಮ್ಮದಿ ಕಾಣುತ್ತೀರಿ. ಅಡ್ಡದಾರಿ, ಬೆಟ್ಟಿಂಗ್, ಅಕ್ರಮ ಆಮಿಷಗಳು ಅಥವಾ ಶಾರ್ಟ್‌ಕಟ್‌ಗಳಿಗೆ ಮರುಳಾಗದೆ ಕಾನೂನುಬದ್ಧವಾಗಿ ಬೆಳೆಯುವ ಪ್ರಾಮಾಣಿಕತೆ ನಿಮ್ಮ ವ್ಯಕ್ತಿತ್ವದ ದೊಡ್ಡ ಶಕ್ತಿ.`,
+      bulletEn: "An unblemished dharma-karma axis grounds your pursuit of prosperity in honest labor and strict ethical compliance, rejecting unlawful shortcut temptations.",
+      astrologicalBasisKn: "ಧರ್ಮ-ಕರ್ಮ ಸ್ಥಾನಗಳ ಸಾತ್ವಿಕ ಬಲ.",
+      astrologicalBasisEn: "Pure 9th and 10th houses ensuring ethical earnings."
+    };
+  }
 
-  // ADULT BAD TRAITS (100% Dynamic, Single-Point Attracting Headings)
+  // 5. MENTAL SHADOW & THOUGHT LOOPS EVALUATION
+  const hasMoonSaturnVish = moon && saturn && (Math.abs(moon.house - saturn.house) === 0 || [3, 7, 10].includes(houseDist(saturn.house, moon.house)));
+  const hasMoonRahuGrahan = moon && rahu && (Math.abs(moon.house - rahu.house) === 0 || [5, 7, 9].includes(houseDist(rahu.house, moon.house)));
+  const hasMoonMarsPitta = moon && mars && (Math.abs(moon.house - mars.house) === 0 || [4, 7, 8].includes(houseDist(mars.house, moon.house)));
+  const hasMoonDusthana = moon && [6, 8, 12].includes(moon.house);
+
+  let badTrait5: TraitBulletPoint;
+  if (hasMoonSaturnVish) {
+    badTrait5 = {
+      id: 5,
+      type: "bad",
+      titleKn: "ವಿಷ ಯೋಗದ ನೆರಳು: ಕೀಳರಿಮೆ, ಒಂಟಿತನದ ಭೀತಿ & ಹಳೆಯ ಕಹಿ ನೆನಪುಗಳ ಕಾಟ",
+      titleEn: "Vish Yoga Shadow: Melancholy, Isolation Fears & Rumination on Past Pain",
+      icon: "🌑",
+      badgeKn: "ಚಂದ್ರ-ಶನಿ ಸಂಪರ್ಕ • ವಿಷ ಯೋಗ",
+      badgeEn: "Moon-Saturn • Vish Yoga",
+      bulletKn: `ಮನಃಕಾರಕ ಚಂದ್ರನಿಗೆ ಶನಿಯ ಯುತಿ ಅಥವಾ ದೃಷ್ಟಿ ಇರುವುದರಿಂದ, ಹಳೆಯ ಕಹಿ ಘಟನೆಗಳನ್ನು ಪದೇಪದೇ ನೆನೆದು ಕೊರಗುವುದು, 'ನನ್ನನ್ನು ಯಾರೂ ಅರ್ಥಮಾಡಿಕೊಳ್ಳುವುದಿಲ್ಲ' ಎಂಬ ಕೀಳರಿಮೆ ಮತ್ತು ಒಂಟಿತನದ ಭೀತಿ ಮನಸ್ಸನ್ನು ಕಾಡುತ್ತದೆ. ನಿಯಮಿತ ಧ್ಯಾನ ಮತ್ತು ಶಿವಾರಾಧನೆ ಇದಕ್ಕೆ ರಾಮಬಾಣ.`,
+      bulletEn: "Moon-Saturn alignment induces recurring cycles of depressive overthinking, chronic melancholy, and persistent rumination over past emotional hurts.",
+      astrologicalBasisKn: "ಮನಃಕಾರಕ ಚಂದ್ರನಿಗೆ ಶನಿಯ ದೃಷ್ಟಿ/ಯುತಿ ಹಾಗೂ ವಿಷ ಯೋಗ.",
+      astrologicalBasisEn: "Chandra-Shani Vish Yoga conferring chronic mental melancholy."
+    };
+  } else if (hasMoonRahuGrahan) {
+    badTrait5 = {
+      id: 5,
+      type: "bad",
+      titleKn: "ಗ್ರಹಣ ಯೋಗದ ಆತಂಕ: ಇಲ್ಲದ ಊಹೆಗಳು, ನಿದ್ರಾಹೀನತೆ & ಅತಿಯಾದ ಭ್ರಮೆಗಳು",
+      titleEn: "Grahan Yoga Shadow: Unfounded Anxieties, Insomnia & Restless Thoughts",
+      icon: "🌪️",
+      badgeKn: "ಚಂದ್ರ-ರಾಹು ಸಂಪರ್ಕ • ಗ್ರಹಣ ಯೋಗ",
+      badgeEn: "Moon-Rahu • Grahan Yoga",
+      bulletKn: `ಚಂದ್ರ-ರಾಹುವಿನ ಗ್ರಹಣ ದೋಷದಿಂದಾಗಿ, ಮನಸ್ಸಿನಲ್ಲಿ ಇಲ್ಲದ ಆತಂಕಗಳು, ರಾತ್ರಿಯ ನಿದ್ರಾಹೀನತೆ ಹಾಗೂ ಭವಿಷ್ಯದ ಬಗ್ಗೆ ಅತಿಯಾದ ಊಹೆಗಳಿಂದ ಮನಸ್ಸು ತತ್ತರಿಸುವ ಪ್ರವೃತ್ತಿ ಕಾಣಿಸುತ್ತದೆ. ವಾಸ್ತವಕ್ಕಿಂತ ಊಹೆಗಳೇ ನಿಮ್ಮನ್ನು ಹೆಚ್ಚು ಕಾಡುತ್ತವೆ.`,
+      bulletEn: "Moon-Rahu nodal tension creates erratic psychic restlessness, irrational phobias, nocturnal anxiety, and insomnia.",
+      astrologicalBasisKn: "ಚಂದ್ರ-ರಾಹುವಿನ ಗ್ರಹಣ ಯೋಗ ಹಾಗೂ ವಾಯು ತತ್ವದ ಚಂಚಲತೆ.",
+      astrologicalBasisEn: "Chandra-Rahu Grahan Dosha causing nocturnal anxiety."
+    };
+  } else if (hasMoonMarsPitta) {
+    badTrait5 = {
+      id: 5,
+      type: "bad",
+      titleKn: "ಮಾನಸಿಕ ಉದ್ವೇಗ & ಚಡಪಡಿಕೆ: ತತ್ಕ್ಷಣದ ಅಸಹನೆ & ನರಗಳ ಆಶಾಂತಿ",
+      titleEn: "Mental Agitation & Impatience: High-Strung Nervous Tension",
+      icon: "⚡",
+      badgeKn: "ಚಂದ್ರ-ಕುಜ ಸಂಪರ್ಕ • ಪಿತ್ತ ಉದ್ವೇಗ",
+      badgeEn: "Moon-Mars • Emotional Agitation",
+      bulletKn: `ಚಂದ್ರನ ಮೇಲೆ ಕುಜನ ತೀಕ್ಷ್ಣ ದೃಷ್ಟಿಯಿಂದಾಗಿ, ಮನಸ್ಸಿನಲ್ಲಿ ಅತಿಯಾದ ಆತುರ, ಶಾಂತಿಯ ಕೊರತೆ ಹಾಗೂ ಸಣ್ಣ ವಿಷಯಗಳಿಗೂ ಅತಿಯಾಗಿ ಚಡಪಡಿಸುವ ಉದ್ವೇಗ ಕಾಣಿಸುತ್ತದೆ. ಇದರಿಂದ ರಕ್ತದೊತ್ತಡ ಮತ್ತು ಮಾನಸಿಕ ಶಾಂತಿಗೆ ಧಕ್ಕೆಯಾಗದಂತೆ ಸಂಯಮ ರೂಢಿಸಿಕೊಳ್ಳಬೇಕು.`,
+      bulletEn: "Moon-Mars friction generates emotional agitation, high-strung nervousness, and restless impatience under pressure.",
+      astrologicalBasisKn: "ಚಂದ್ರನ ಮೇಲೆ ಕುಜನ ತೀಕ್ಷ್ಣ ದೃಷ್ಟಿ.",
+      astrologicalBasisEn: "Martial aspect on the Moon causing visceral nervous agitation."
+    };
+  } else if (hasMoonDusthana) {
+    badTrait5 = {
+      id: 5,
+      type: "bad",
+      titleKn: "ಭಾವನಾತ್ಮಕ ಅಸ್ಥಿರತೆ & ಆಂತರಿಕ ತುಮುಲ: ಏಕಾಂತದಲ್ಲಿ ಮನಸ್ಸನ್ನು ಕಾಡುವ ಚಿಂತೆಗಳು",
+      titleEn: "Emotional Instability & Dusthana Turbulence: Internal Solitude",
+      icon: "🌫️",
+      badgeKn: "ಚಂದ್ರ ದುಃಸ್ಥಾನ • ಭಾವನಾತ್ಮಕ ತುಮುಲ",
+      badgeEn: "Moon in Dusthana • Internal Turbulence",
+      bulletKn: `ಚಂದ್ರನು ದುಃಸ್ಥಾನದಲ್ಲಿರುವುದರಿಂದ, ಹೊರಗಡೆ ಸಮಾಧಾನವಾಗಿ ಕಂಡರೂ ಅಂತರಂಗದಲ್ಲಿ ಸದಾ ಏನೋ ಒಂದು ಅತೃಪ್ತಿ ಅಥವಾ ಚಿಂತೆ ಕಾಡುತ್ತಿರುತ್ತದೆ. ಏಕಾಂತದಲ್ಲಿ ನಕಾರಾತ್ಮಕ ಯೋಚನೆಗಳು ಮನಸ್ಸನ್ನು ಆವರಿಸದಂತೆ ಸದಾ ಸತ್ಸಂಗ ಮತ್ತು ದೈವ ಪ್ರಾರ್ಥನೆಯಲ್ಲಿ ತೊಡಗಬೇಕು.`,
+      bulletEn: "Moon placed in dusthana triggers recurrent feelings of isolation and mood swings during solitary moments.",
+      astrologicalBasisKn: "ಚಂದ್ರನ ದುಃಸ್ಥಾನ ಸ್ಥಿತಿ.",
+      astrologicalBasisEn: "Natal Moon placed in 6th, 8th, or 12th house."
+    };
+  } else {
+    badTrait5 = {
+      id: 5,
+      type: "bad",
+      titleKn: "ಮಾನಸಿಕ ಸ್ಥೈರ್ಯ & ಧನಾತ್ಮಕ ಚಿಂತನೆ: ಆಶಾವಾದದ ಮನೋಬಲ",
+      titleEn: "Mental Fortitude & Constructive Optimism: Inner Resilience",
+      icon: "☀️",
+      badgeKn: "ಶುಭ ಚಂದ್ರ ಬಲ • ಧನಾತ್ಮಕ ಚಿತ್ತ",
+      badgeEn: "Benefic Moon Strength • Resilient Mind",
+      bulletKn: `ನಿಮ್ಮ ಚಂದ್ರ ಬಲವು ಸ್ಥಿರವಾಗಿದ್ದು, ಎಂತಹ ಕಠಿಣ ಸನ್ನಿವೇಶದಲ್ಲೂ ಧೃತಿಗೆಡದೆ ಸಕಾರಾತ್ಮಕವಾಗಿ ಮುನ್ನಡೆಯುವ ಮನೋಸ್ಥೈರ್ಯ ನಿಮ್ಮಲ್ಲಿದೆ. ಸುಖ-ದುಃಖಗಳನ್ನು ಸಮಚಿತ್ತದಿಂದ ಸ್ವೀಕರಿಸಿ, ಆಶಾವಾದದೊಂದಿಗೆ ಕರ್ತವ್ಯ ನಿರ್ವಹಿಸುವ ಗುಣ ನಿಮ್ಮ ಮನಸ್ಸನ್ನು ಸದೃಢವಾಗಿಟ್ಟಿದೆ.`,
+      bulletEn: "Stable lunar alignment endows you with emotional resilience, steady equanimity during hardship, and constructive optimism that shields against mental despondency.",
+      astrologicalBasisKn: "ಸ್ಥಿರ ಚಂದ್ರ ಬಲ ಹಾಗೂ ಸಕಾರಾತ್ಮಕ ಗ್ರಹ ದೃಷ್ಟಿ.",
+      astrologicalBasisEn: "Unafflicted Moon conferring emotional stability."
+    };
+  }
+
+  // 6. SECRET LIFE EXPRESSION
+  const badTrait6: TraitBulletPoint = {
+    id: 6,
+    type: "bad",
+    titleKn: secrecyTitleKn,
+    titleEn: secrecyTitleEn,
+    icon: "🎭",
+    badgeKn: secrecyBadgeKn,
+    badgeEn: secrecyBadgeEn,
+    bulletKn: secrecyKn,
+    bulletEn: secrecyEn,
+    astrologicalBasisKn: "3ನೇ ಭಾವ (ಬಹಿರಂಗ ಅಭಿವ್ಯಕ್ತಿ) ಮತ್ತು 8ನೇ ಭಾವ (ಅತ್ಯಂತ ಗುಪ್ತ ಮುಚ್ಚಿಡುವಿಕೆ).",
+    astrologicalBasisEn: "3rd house of expression vs 8th house of absolute concealment.",
+    secrecyHabitKn: secrecyKn,
+    secrecyHabitEn: secrecyEn
+  };
+
+  // 7. PRAYASHCHITTA & GOKARNA SHANTI
+  const badTrait7: TraitBulletPoint = {
+    id: 7,
+    type: "bad",
+    titleKn: "ಶಾಸ್ತ್ರೋಕ್ತ ಪ್ರಾಯಶ್ಚಿತ್ತ & ಗೋಕರ್ಣ ಮುಕ್ತಿ: ಆತ್ಮಲಿಂಗ ಸ್ಪರ್ಶ & ದೋಷ ಪರಿಹಾರ",
+    titleEn: "Authentic Vedic Prayashchitta & Sri Kshetra Gokarna Shanti",
+    icon: "🕉️",
+    badgeKn: "ಗೋಕರ್ಣ ಆತ್ಮಲಿಂಗ • ಪ್ರಾಯಶ್ಚಿತ್ತ",
+    badgeEn: "Gokarna Atma Linga • Purification",
+    bulletKn: `ಜಾತಕದಲ್ಲಿ ಕಂಡ ಈ ನೆರಳು ಪ್ರವೃತ್ತಿಗಳನ್ನು ಮತ್ತು ಪಾಪಕರ್ಮಗಳ ತೀವ್ರತೆಯನ್ನು ಕರಗಿಸಲು, ಪರಮ ಪವಿತ್ರ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ಆತ್ಮಲಿಂಗ ಸ್ಪರ್ಶ, ಪ್ರಾಯಶ್ಚಿತ್ತ ಮಹಾಸಂಕಲ್ಪ ಪೂಜೆ, ರಾಹು-ಕೇತು ಶಾಂತಿ ಸೇವೆ ಸಲ್ಲಿಸುವುದು ಅತ್ಯಗತ್ಯ. ಇದು ನಿಮ್ಮ ಅಂತರಂಗದ ಕಲ್ಮಶಗಳನ್ನು ಭಸ್ಮ ಮಾಡಿ, ಮನಸ್ಸಿಗೆ ಪರಿಶುದ್ಧ ನೆಮ್ಮದಿ ಮತ್ತು ದೈವಿಕ ಶ್ರೀರಕ್ಷೆಯನ್ನು ಕರುಣಿಸಲಿದೆ.`,
+    bulletEn: `To dissolve these shadow karmic impulses, performing Atma Linga Sparsha, Prayashchitta Sankalpa Pooja, and Rahu-Ketu Shanti at Sri Kshetra Gokarna Mahabaleshwara cleanses psychic toxins and restores moral fortitude.`,
+    astrologicalBasisKn: "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಕ್ಷೇತ್ರ ಮಹಿಮೆ ಹಾಗೂ ಪ್ರಾಯಶ್ಚಿತ್ತ ವಿಧಿ.",
+    astrologicalBasisEn: "Gokarna Mahabaleshwara sacred Atma Linga purification rite."
+  };
+
   const adultBadTraits: TraitBulletPoint[] = [
-    {
-      id: 1,
-      type: "bad",
-      titleKn: hasAnger
-        ? "ಹಠಮಾರಿತನ & ಹಠಾತ್ ಕೋಪದ ಜ್ವಾಲೆ: ಸಿಟ್ಟಿನಲ್ಲಿ ಸಂಬಂಧ ಕಡಿದುಕೊಳ್ಳುವ ಅಪಾಯ"
-        : "ಸಂಯಮದ ವಿವೇಚನೆ & ಶಾಂತ ನಡೆ: ಸಮಚಿತ್ತದ ಧೀಮಂತ ನಡವಳಿಕೆ",
-      titleEn: hasAnger
-        ? "Stubborn Pride & Explosive Anger: Threat to Trusted Alliances"
-        : "Measured Patience & Composure: Balanced Emotional Fortitude",
-      icon: hasAnger ? "🔥" : "🕊️",
-      badgeKn: hasAnger ? `ಕುಜ/ರವಿ ಪ್ರಭಾವ • ಪಿತ್ತ ತತ್ವ` : `ಸೌಮ್ಯ ಗ್ರಹ ದೃಷ್ಟಿ • ಶಾಂತ ಮನೋಭಾವ`,
-      badgeEn: hasAnger ? `Mars/Sun Influence • Pitta Fire` : `Benefic Aspect • Composed Mind`,
-      bulletKn: hasAnger
-        ? `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಕುಜ-ರವಿಗಳ ತೀಕ್ಷ್ಣ ಪ್ರಭಾವದಿಂದಾಗಿ ಒಮ್ಮೆ ಒಂದು ನಿರ್ಧಾರ ಕೈಗೊಂಡರೆ ಇತರರು ಎಷ್ಟು ಬುದ್ಧಿವಾದ ಹೇಳಿದರೂ ಕೇಳದ ಹಠಮಾರಿ ಸ್ವಭಾವವಿದೆ. ನಿಮ್ಮ ಸ್ವಾಭಿಮಾನಕ್ಕೆ ಸಣ್ಣ ಧಕ್ಕೆ ಬಂದರೂ ಹಠಾತ್ ಸಿಟ್ಟು ಭುಗಿಲೆದ್ದು ಕಟು ಮಾತುಗಳನ್ನಾಡಿ ಹತ್ತಿರದವರನ್ನು ದೂರ ಮಾಡಿಕೊಳ್ಳುವ ಅಪಾಯವಿದೆ.`
-        : `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಕುಜ-ರವಿಗಳ ಉಗ್ರ ದೋಷವಿಲ್ಲದಿರುವುದರಿಂದ, ನೀವು ಸಹಜವಾಗಿ ಸಂಯಮ ಮತ್ತು ಶಾಂತ ಸ್ವಭಾವವನ್ನು ಹೊಂದಿದ್ದೀರಿ. ಅನಗತ್ಯ ಕೋಪಕ್ಕೆ ಆಸ್ಪದ ನೀಡದೆ ತಾಳ್ಮೆಯಿಂದ ಸಮಸ್ಯೆಗಳನ್ನು ಪರಿಹರಿಸುವ ವಿವೇಕ ನಿಮ್ಮಲ್ಲಿದೆ; ಆದರೂ ನಿಮ್ಮ ಮೃದು ಸ್ವಭಾವವನ್ನು ಇತರರು ದುರುಪಯೋಗಪಡಿಸಿಕೊಳ್ಳದಂತೆ ಎಚ್ಚರವಿರಲಿ.`,
-      bulletEn: hasAnger
-        ? `Intense Mars-Sun influence triggers stubborn refusal to heed advice once resolved, along with sudden fiery outbursts that can alienate trusted allies.`
-        : `Benefic alignment shields your chart from destructive anger, endowing you with measured patience and emotional composure; stay vigilant only to ensure others do not exploit your gentle nature.`,
-      astrologicalBasisKn: hasAnger ? `ಕುಜ-ರವಿಗಳ ಸ್ಥಿತಿ ಹಾಗೂ ಪಿತ್ತ ಪ್ರಕೋಪ.` : `ಶುಭ ಗ್ರಹಗಳ ಸೌಮ್ಯ ದೃಷ್ಟಿ ಹಾಗೂ ಶಾಂತ ತತ್ವ.`,
-      astrologicalBasisEn: hasAnger ? `Mars-Sun fire aspect and Pitta constitution.` : `Benefic aspect moderating aggressive impulse.`
-    },
-    {
-      id: 2,
-      type: "bad",
-      titleKn: hasSameGenderAffinity
-        ? "ಕಾಮನೆ & ಆಕರ್ಷಣೆಯ ನೈಜತೆ: ಪುರುಷರತ್ತ ವಿಶಿಷ್ಟ ಆಕರ್ಷಣೆ & ಅಂತರಂಗದ ಸೆಳೆತ"
-        : hasSensual
-        ? (isMale
-          ? "ಬಾಹ್ಯ ಆಕರ್ಷಣೆ & ಪರಸ್ತ್ರೀ ವ್ಯಾಮೋಹ: ರಹಸ್ಯ ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧದ ಸೆಳೆತ"
-          : "ಬಾಹ್ಯ ಆಕರ್ಷಣೆ & ಪರಪುರುಷ ವ್ಯಾಮೋಹ: ರಹಸ್ಯ ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧದ ಸೆಳೆತ")
-        : "ನೈತಿಕ ಚಾರಿತ್ರ್ಯ & ದಾಂಪತ್ಯ ನಿಷ್ಠೆ: ಸದಾಚಾರದ ರಕ್ಷಾ ಕವಚ",
-      titleEn: hasSameGenderAffinity
-        ? "Sexual Attraction & Core Desire: Same-Gender / Unconventional Affinity"
-        : hasSensual
-        ? (isMale
-          ? "Sensual Craving & External Affairs with Women: Marital Vulnerabilities"
-          : "Sensual Craving & External Affairs with Men: Marital Vulnerabilities")
-        : "Moral Rectitude, Sensory Restraint & Marital Loyalty",
-      icon: hasSameGenderAffinity ? "🌈" : (hasSensual ? "👩‍❤️‍👨" : "💎"),
-      badgeKn: hasSameGenderAffinity
-        ? "7ನೇ/8ನೇ ಬುಧ-ಶನಿ • ವಿಶಿಷ್ಟ ಕಾಮನೆ"
-        : (hasSensual ? "7ನೇ/12ನೇ ಶುಕ್ರ-ರಾಹು • ಬಾಹ್ಯ ಸೆಳೆತ" : "ಶುಭ ಕಳತ್ರ • ಸದಾಚಾರ ರಕ್ಷಣೆ"),
-      badgeEn: hasSameGenderAffinity
-        ? "Mercury-Saturn 7th/8th • Unconventional"
-        : (hasSensual ? "Venus-Rahu Axis • External Desire" : "Auspicious 7th • Ethical Shield"),
-      bulletKn: hasSameGenderAffinity
-        ? `ನಿಮ್ಮ ಜಾತಕದ 7ನೇ (ಕಾಮ) ಮತ್ತು 8ನೇ (ರಹಸ್ಯ) ಸ್ಥಾನಗಳ ಮೇಲೆ ಬುಧ-ಶನಿ ಮತ್ತು ಶುಕ್ರ ಗ್ರಹಗಳ ವಿಶೇಷ ತತ್ವವಿರುವುದರಿಂದ, ನಿಮ್ಮ ಅಂತರಂಗದ ಲೈಂಗಿಕ ಆಕರ್ಷಣೆ ಮತ್ತು ಕಾಮನೆಯು ${isMale ? "ಪುರುಷರ ಕಡೆಗೆ (Same-Gender Affinity)" : "ಮಹಿಳೆಯರ ಕಡೆಗೆ"} ವಿಶಿಷ್ಟವಾಗಿ ಸೆಳೆಯುವ ಪ್ರಬಲ ಲಕ್ಷಣಗಳಿವೆ. ಸಮಾಜದ ಸಾಂಪ್ರದಾಯಿಕ ನಿರೀಕ್ಷೆಗಳ ನಡುವೆ ಈ ಆಕರ್ಷಣೆಯನ್ನು ಅತ್ಯಂತ ಗುಪ್ತವಾಗಿ ಇಟ್ಟುಕೊಳ್ಳುವ ಪ್ರವೃತ್ತಿ ಇದೆ.`
-        : (hasSensual
-          ? (isMale
-            ? `7ನೇ ಕಳತ್ರ ಮತ್ತು 12ನೇ ಶಯನ ಸುಖ ಸ್ಥಾನಗಳ ಮೇಲೆ ಶುಕ್ರ ಅಥವಾ ರಾಹುವಿನ ತೀವ್ರ ಪ್ರಭಾವದಿಂದಾಗಿ, ದಾಂಪತ್ಯ ಜೀವನದ ಆಚೆಗೆ ಹೊರಗಿನ ಸ್ತ್ರೀಯರ ಕಡೆಗೆ (ಪರಸ್ತ್ರೀ ವ್ಯಾಮೋಹ) ತೀವ್ರ ಕಾಮ ಪ್ರಚೋದನೆ, ರಹಸ್ಯ ಫೋನ್/ಚಾಟ್ ಮಾತುಕತೆ ಹಾಗೂ ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧಗಳತ್ತ ಮನಸ್ಸು ಜಾರುವ ಅಪಾಯದ ಸುಳಿವು ಜಾತಕದಲ್ಲಿದೆ. ಇದು ಕೌಟುಂಬಿಕ ಗೌರವವನ್ನು ಧ್ವಂಸ ಮಾಡುವ ಅಪಾಯ ತಂದೊಡ್ಡಬಹುದು.`
-            : `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ 7ನೇ ಕಳತ್ರ ಮತ್ತು 8ನೇ ರಹಸ್ಯ ಭಾವಗಳ ಮೇಲೆ ಕುಜ-ರಾಹುವಿನ ಪ್ರಭಾವದಿಂದಾಗಿ, ದಾಂಪತ್ಯದಲ್ಲಿ ಅಸಮಾಧಾನ ಮೂಡಿದಾಗ ಹೊರಗಿನ ಪುರುಷರತ್ತ (ಪರಪುರುಷ ವ್ಯಾಮೋಹ) ಭಾವನಾತ್ಮಕ ಮತ್ತು ರಹಸ್ಯ ಪ್ರೇಮ ಸೆಳೆತ ಉಂಟಾಗುವ ಅಪಾಯವಿದೆ.`)
-          : `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಶುಕ್ರ-ರಾಹುಗಳ ಅಶುಭ ಯೋಗವಿಲ್ಲದಿರುವುದರಿಂದ, ನೈತಿಕ ಶಿಸ್ತು, ಇಂದ್ರಿಯ ನಿಗ್ರಹ ಮತ್ತು ಕೌಟುಂಬಿಕ ನಿಷ್ಠೆ ನಿಮ್ಮ ಬಲವಾದ ಗುಣಗಳಾಗಿವೆ. ಬಾಹ್ಯ ಆಕರ್ಷಣೆಗಳಿಗೆ ಸುಲಭವಾಗಿ ಮಾರುಹೋಗದೆ, ಸಂಸ್ಕಾರಯುತ ದಾಂಪತ್ಯ ಜೀವನಕ್ಕೆ ಬದ್ಧರಾಗಿರುವ ಸದ್ಗುಣ ನಿಮ್ಮಲ್ಲಿದೆ.`),
-      bulletEn: hasSameGenderAffinity
-        ? `Vedic configurations in the 7th and 8th houses influenced by Mercury and Saturn reveal an authentic internal attraction toward ${isMale ? "men (same-gender orientation)" : "women"}, maintained with extreme personal privacy.`
-        : (hasSensual
-          ? (isMale
-            ? "Venus-Rahu influence on the 7th/12th axis creates intense sensory urges, illicit attractions toward women outside marriage, and secret affairs that threaten family honor."
-            : "Mars-Rahu tension on the 7th/8th axis generates vulnerability to external romantic attractions and extramarital liaisons with men.")
-          : "Benefic planetary alignment shields your marital house, conferring strong moral rectitude, self-control, and faithful commitment to family values."),
-      astrologicalBasisKn: hasSameGenderAffinity
-        ? "7ನೇ/8ನೇ ಭಾವಗಳಲ್ಲಿ ಬುಧ-ಶನಿ ಮತ್ತು ಶುಕ್ರ ಗ್ರಹಗಳ ತತ್ವ."
-        : (hasSensual ? "7ನೇ (ಕಳತ್ರ) ಮತ್ತು 12ನೇ (ಶಯನ/ರಹಸ್ಯ ಭೋಗ) ಮನೆಗಳ ಶುಕ್ರ-ರಾಹು-ಕುಜ ಯೋಗ." : "7ನೇ ಮತ್ತು 12ನೇ ಮನೆಗಳ ಮೇಲೆ ಶುಭ ಗ್ರಹ ರಕ್ಷಣೆ."),
-      astrologicalBasisEn: hasSameGenderAffinity
-        ? "Mercury-Saturn neuter influence in kama/secret houses."
-        : (hasSensual ? "Venus-Rahu axis across 7th and 12th houses of pleasure and secret desires." : "Auspicious aspect protecting marital boundaries.")
-    },
-    {
-      id: 3,
-      type: "bad",
-      titleKn: isDailyDrinking
-        ? "ಮದ್ಯಪಾನ & ದುಶ್ಚಟಗಳ ನೈಜ ಸ್ಥಿತಿ: ದಿನನಿತ್ಯದ ಮದ್ಯಪಾನ & ತೀವ್ರ ವ್ಯಸನದ ಸೆಳೆತ"
-        : (isSocialDrinking
-          ? "ಮದ್ಯಪಾನ & ದುಶ್ಚಟಗಳ ನೈಜ ಸ್ಥಿತಿ: ಪಾರ್ಟಿ & ಸಹವಾಸದ ಮದ್ಯಪಾನದ ಅಪಾಯ"
-          : "ಸಾತ್ವಿಕ ಜೀವನಶೈಲಿ & ಆಹಾರ ಸಂಸ್ಕಾರ: ದುಶ್ಚಟ ಮುಕ್ತ ಶರೀರ ರಕ್ಷಣೆ"),
-      titleEn: isDailyDrinking
-        ? "Addictions & Drinking Reality: Daily Alcohol Habit & Intense Substance Urge"
-        : (isSocialDrinking
-          ? "Addiction Tendency: Social & Peer-Induced Drinking Vulnerability"
-          : "Sattvic Lifestyle & Clean Habits: Freedom from Addictions"),
-      icon: hasAddiction ? "🍷" : "🌿",
-      badgeKn: isDailyDrinking
-        ? "2ನೇ ಮುಖ & 8ನೇ ಛಾಯಾ • ದಿನನಿತ್ಯದ ಮದ್ಯಪಾನ"
-        : (isSocialDrinking ? "2ನೇ ಭಾವ ರಾಹು/ಶನಿ • ಪಾರ್ಟಿ ಮದ್ಯಪಾನ" : "2ನೇ ಶುಭ ಸ್ಥಾನ • ಸಾತ್ವಿಕ ಶಿಸ್ತು"),
-      badgeEn: isDailyDrinking
-        ? "2nd Face & 8th Secret • Daily Alcohol"
-        : (isSocialDrinking ? "2nd House Aspect • Social Drinking" : "Pure 2nd House • Sattvic Habits"),
-      bulletKn: isDailyDrinking
-        ? `ನಿಮ್ಮ 2ನೇ ಆಹಾರ/ಮುಖ ಸ್ಥಾನ ಹಾಗೂ 8ನೇ ರಹಸ್ಯ ವ್ಯಸನ ಸ್ಥಾನಗಳ ಮೇಲೆ ಶನಿ ಮತ್ತು ರಾಹುವಿನ ನೇರ ಪ್ರಭಾವವಿರುವುದರಿಂದ, ದಿನನಿತ್ಯದ ಮದ್ಯಪಾನ (Daily Drinking), ಧೂಮಪಾನ ಅಥವಾ ಅಮಲು ಪದಾರ್ಥಗಳ ವ್ಯಸನದ ಪ್ರಬಲ ಸೆಳೆತ ಜಾತಕದಲ್ಲಿ ಸ್ಪಷ್ಟವಾಗಿ ಗೋಚರಿಸುತ್ತದೆ. ಸಂಜೆಯ ವೇಳೆಯಲ್ಲಿ ಅಥವಾ ಮಾನಸಿಕ ಒತ್ತಡದಲ್ಲಿ ಈ ಚಟ ನಿಯಂತ್ರಣ ತಪ್ಪಿ, ಯಕೃತ್ತು (Liver), ಜೀರ್ಣಾಂಗ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಶಾಂತಿಯನ್ನು ಕ್ಷೀಣಿಸಬಹುದು. ಇದಕ್ಕೆ ಗೋಕರ್ಣ ಆತ್ಮಲಿಂಗ ಸಂಕಲ್ಪ ಮುಕ್ತಿ ಅತ್ಯಗತ್ಯ.`
-        : (isSocialDrinking
-          ? `2ನೇ ವಾಕ್/ಆಹಾರ ಸ್ಥಾನಕ್ಕೆ ಶನಿ-ರಾಹುಗಳ ದೃಷ್ಟಿ ಇರುವುದರಿಂದ, ಸ್ನೇಹಿತರ ಸಹವಾಸ ಅಥವಾ ಪಾರ್ಟಿಗಳ ಸಮಯದಲ್ಲಿ ಮದ್ಯಪಾನ, ಧೂಮಪಾನದಂತಹ ದುಶ್ಚಟಗಳ ಸೆಳೆತ ಉಂಟಾಗುತ್ತದೆ. ಆರಂಭದಲ್ಲಿ ಮನರಂಜನೆಯಾಗಿದ್ದದ್ದು ಕ್ರಮೇಣ ಅಭ್ಯಾಸವಾಗಿ ಬದಲಾಗದಂತೆ ಮುನ್ನೆಚ್ಚರಿಕೆ ವಹಿಸಬೇಕು.`
-          : `ನಿಮ್ಮ 2ನೇ ಆಹಾರ ಸ್ಥಾನವು ಶುಭ ಗ್ರಹಗಳ ನಿಯಂತ್ರಣದಲ್ಲಿದ್ದು, ದುಶ್ಚಟಗಳಿಂದ ದೂರವಿರುವ ಸಾತ್ವಿಕ ಸಂಸ್ಕಾರ ನಿಮ್ಮಲ್ಲಿದೆ. ಮದ್ಯಪಾನ, ಧೂಮಪಾನ ಅಥವಾ ವ್ಯಸನಗಳ ಜಾಲಕ್ಕೆ ಬೀಳದೆ ಶರೀರ ಆರೋಗ್ಯವನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳುವ ಇಚ್ಛಾಶಕ್ತಿ ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿದೆ.`),
-      bulletEn: isDailyDrinking
-        ? "Affliction across the 2nd house of oral intake and 8th house of secret vices manifests as a regular or daily alcohol habit, demanding conscious detox and spiritual intervention before liver health is compromised."
-        : (isSocialDrinking
-          ? "Planetary aspects on the 2nd house create periodic vulnerability to social drinking, smoking, or intoxicating indulgences under peer influence."
-          : "A clean 2nd house of intake grants natural resistance to toxic substances, supporting clean dietary habits and wholesome physical well-being."),
-      astrologicalBasisKn: hasAddiction ? `2ನೇ (ಆಹಾರ/ಮುಖ) ಮತ್ತು 8ನೇ (ರಹಸ್ಯ ವ್ಯಸನ) ಭಾವದ ರಾಹು-ಶನಿ-ಕುಜ ಪ್ರಭಾವ.` : `2ನೇ ಮನೆಗೆ ಶುಭ ದೃಷ್ಟಿ ಹಾಗೂ ಸಾತ್ವಿಕ ಗ್ರಹ ಪ್ರಭಾವ.`,
-      astrologicalBasisEn: hasAddiction ? `Affliction to 2nd house of intake and 8th hidden house by malefics.` : `Clean 2nd house and absence of malefics from intake house.`
-    },
-    {
-      id: 4,
-      type: "bad",
-      titleKn: isSpeculationLoss
-        ? "ಷೇರು ಮಾರುಕಟ್ಟೆ, ಬೆಟ್ಟಿಂಗ್ & ಹಠಾತ್ ಧನ ನಷ್ಟ: ಸ್ಪೆಕ್ಯುಲೇಶನ್ ದುರಾಸೆ & ಲಕ್ಷಾಂತರ ರೂಪಾಯಿ ನಷ್ಟದ ಬಲೆ"
-        : (hasIllegal
-          ? "ಅಡ್ಡದಾರಿ ಹಣ & ಕಳ್ಳಸಾಗಣೆ (ಸ್ಮಗ್ಲಿಂಗ್): ಅಕ್ರಮ ಲಾಭ & ರಿಸ್ಕ್ ವ್ಯವಹಾರದ ಸೆಳೆತ"
-          : "ನ್ಯಾಯನಿಷ್ಠ ಸಂಪಾದನೆ & ಸತ್ಯ ಮಾರ್ಗ: ಪರಿಶ್ರಮದ ಧರ್ಮ ಸಂಪತ್ತು"),
-      titleEn: isSpeculationLoss
-        ? "Stock Market Speculation & Trading Ruin: Gambler's Trap & Heavy Financial Losses"
-        : (hasIllegal
-          ? "Unethical Shortcuts & Smuggling: Illicit Money & High-Risk Trade"
-          : "Righteous Livelihood & Integrity: Hard-Earned Ethical Wealth"),
-      icon: isSpeculationLoss ? "📉" : (hasIllegal ? "⚖️" : "🏛️"),
-      badgeKn: isSpeculationLoss
-        ? "5ನೇ ರಾಹು • ನೀಚ ಪಂಚಮ • ಅಷ್ಟಮ ಶನಿ"
-        : (hasIllegal ? "8ನೇ & 11ನೇ ಭಾವ • ಅಕ್ರಮ ರಿಸ್ಕ್ ಯೋಗ" : "ಧರ್ಮ-ಕರ್ಮ ಯೋಗ • ಸತ್ಯ ಸಂಪಾದನೆ"),
-      badgeEn: isSpeculationLoss
-        ? "5th Rahu • Afflicted 5th Lord • 8th Malefic"
-        : (hasIllegal ? "8th & 11th Houses • Illicit Wealth Risk" : "Dharma-Karma Axis • Clean Wealth"),
-      bulletKn: isSpeculationLoss
-        ? `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ 5ನೇ ಸ್ಪೆಕ್ಯುಲೇಶನ್/ಬುದ್ಧಿ ಸ್ಥಾನದಲ್ಲಿ ನೆರಳು ಗ್ರಹ ರಾಹುವಿದ್ದು, ಪಂಚಮಾಧಿಪತಿ ${fifthLordKn} ನೀಚ/ದುಃಸ್ಥಾನದಲ್ಲಿದ್ದಾನೆ ಹಾಗೂ 8ನೇ ಮನೆಯಲ್ಲಿ ಅಷ್ಟಮ ಶನಿ/ಕುಜ ಪ್ರಭಾವವಿದೆ. ವೇದ ಜ್ಯೋತಿಷ್ಯದ ಪ್ರಕಾರ ಇದು ಷೇರು ಮಾರುಕಟ್ಟೆ (Share Market), ಇಂಟ್ರಾಡೇ/F&O ಆಪ್ಷನ್ಸ್ ಟ್ರೇಡಿಂಗ್, ಬೆಟ್ಟಿಂಗ್ ಅಥವಾ ತ್ವರಿತ ಹಣದ ಆಮಿಷಗಳಿಗೆ ಬೀಳುವ ತೀವ್ರ ಗೀಳನ್ನು ಉಂಟುಮಾಡುತ್ತದೆ. ದಿನನಿತ್ಯ ಷೇರು ವಹಿವಾಟು ನಡೆಸುವ ವ್ಯಸನ ಹತ್ತಿ, ಆರಂಭದಲ್ಲಿ ಸಣ್ಣ ಲಾಭ ಕಂಡರೂ ಅಂತಿಮವಾಗಿ ${lossInfo.lossKn} ಸ್ಪಷ್ಟ ಯೋಗ ಜಾತಕದಲ್ಲಿದೆ. ಕಳೆದುಕೊಂಡ ಹಣವನ್ನು ಮತ್ತೆ ಷೇರಿನಲ್ಲೇ ವಾಪಸ್ ಪಡೆಯಬೇಕೆಂಬ ಹಠದ ಭ್ರಮೆಯಲ್ಲಿ ಮತ್ತಷ್ಟು ಹಣ ಕಳೆದುಕೊಳ್ಳುವ ಅಪಾಯವಿದ್ದು, ಇಂದೇ ಸ್ಪೆಕ್ಯುಲೇಶನ್ ಸಂಪೂರ್ಣವಾಗಿ ನಿಲ್ಲಿಸುವುದು ಜೀವ ರಕ್ಷೆ.`
-        : (hasIllegal
-          ? `ಜಾತಕದಲ್ಲಿ 8ನೇ ರಹಸ್ಯ ಸ್ಥಾನ ಅಥವಾ 11ನೇ ಲಾಭ ಭಾವದಲ್ಲಿ ನೆರಳು ಗ್ರಹ ರಾಹುವಿನ ಪ್ರಭಾವವಿರುವುದರಿಂದ, ಶ್ರಮವಿಲ್ಲದೆ ತ್ವರಿತವಾಗಿ ಕೋಟಿಗಟ್ಟಲೆ ಹಣ ಗಳಿಸುವ ಅಡ್ಡದಾರಿ, ಕಳ್ಳಸಾಗಣೆ (ಸ್ಮಗ್ಲಿಂಗ್), ಬೆಟ್ಟಿಂಗ್, ಹವಾಲಾ ಅಥವಾ ಅಕ್ರಮ ವ್ಯವಹಾರಗಳ ದುಸ್ಸಾಹಸಕ್ಕೆ ಮನಸ್ಸು ಹಾತೊರೆಯುವ ಪ್ರವೃತ್ತಿ ಇದೆ. ಇದರಿಂದ ಆರಂಭದಲ್ಲಿ ಭಾರಿ ಲಾಭ ಕಂಡರೂ, ಅಂತಿಮವಾಗಿ ಪೊಲೀಸ್ ಕೇಸ್, ಕಾನೂನು ಸಂಕೋಲೆ, ಜೈಲು ಭಯ ಹಾಗೂ ಸಾರ್ವಜನಿಕ ಮಾನಹಾನಿಯ ಅಪಾಯ ತಂದೊಡ್ಡಬಹುದು; ಪ್ರಾಮಾಣಿಕ ದುಡಿಮೆಯೇ ಶಾಶ್ವತ ರಕ್ಷೆ.`
-          : `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಧರ್ಮ ಮತ್ತು ಕರ್ಮ ಸ್ಥಾನಗಳು ಶುದ್ಧವಾಗಿದ್ದು, ಸ್ವಂತ ಪರಿಶ್ರಮ ಮತ್ತು ಸತ್ಯ ಮಾರ್ಗದ ಸಂಪಾದನೆಯಲ್ಲೇ ನೀವು ನೆಮ್ಮದಿ ಕಾಣುತ್ತೀರಿ. ಅಡ್ಡದಾರಿ, ಬೆಟ್ಟಿಂಗ್, ಅಕ್ರಮ ಆಮಿಷಗಳು ಅಥವಾ ಶಾರ್ಟ್‌ಕಟ್‌ಗಳಿಗೆ ಮರುಳಾಗದೆ ಕಾನೂನುಬದ್ಧವಾಗಿ ಬೆಳೆಯುವ ಪ್ರಾಮಾಣಿಕತೆ ನಿಮ್ಮ ವ್ಯಕ್ತಿತ್ವದ ದೊಡ್ಡ ಶಕ್ತಿ.`),
-      bulletEn: isSpeculationLoss
-        ? `Rahu situated in the 5th house of speculation, coupled with an afflicted 5th lord and malefic tension in the 8th house, fuels an uncontrollable drive toward daily stock market trading (intraday, F&O options), betting, and high-risk shortcut wealth. The initial illusion of quick wealth leads to ${lossInfo.lossEn}—dragging the native into severe financial distress. The obsessive urge to recover lost funds through more trading is Rahu's classic trap. Immediate cessation of speculative ventures and debt-mitigation remedies are essential.`
-        : (hasIllegal
-          ? "Rahu's presence or aspect on the 8th and 11th houses sparks reckless ambition toward illegal shortcut wealth, smuggling, speculative betting, or shadow trading, carrying severe legal liability and public disgrace."
-          : "An unblemished dharma-karma axis grounds your pursuit of prosperity in honest labor and strict ethical compliance, rejecting unlawful shortcut temptations."),
-      astrologicalBasisKn: isSpeculationLoss
-        ? `5ನೇ ಮನೆಯಲ್ಲಿ ರಾಹು (ಸ್ಪೆಕ್ಯುಲೇಶನ್ ಗೀಳು), ನೀಚ/ಪೀಡಿತ ಪಂಚಮಾಧಿಪತಿ ${fifthLordKn} (ಬಂಡವಾಳ ನಷ್ಟ) ಹಾಗೂ 8ನೇ ಅಷ್ಟಮ ಶನಿ (ಭಾರಿ ಸಾಲ/ಹಠಾತ್ ವಿನಾಶ).`
-        : (hasIllegal ? `8ನೇ ಅಕ್ರಮ ಲಾಭ ಮತ್ತು 11ನೇ ದುರಾಸೆಯ ಸ್ಥಾನದಲ್ಲಿ ರಾಹುವಿನ ಪ್ರಭಾವ.` : `ಧರ್ಮ-ಕರ್ಮ ಸ್ಥಾನಗಳ ಸಾತ್ವಿಕ ಬಲ.`),
-      astrologicalBasisEn: isSpeculationLoss
-        ? "5th house Rahu (speculative addiction), afflicted 5th lord (loss of capital), and 8th house Saturn (crushing sudden debts)."
-        : (hasIllegal ? `8th house unearned wealth and Rahu temptation.` : `Pure 9th and 10th houses ensuring ethical earnings.`)
-    },
-    {
-      id: 5,
-      type: "bad",
-      titleKn: hasDarkLoops
-        ? "ನಕಾರಾತ್ಮಕ ಯೋಚನೆಗಳು & ಖಿನ್ನತೆ: ಮನಸ್ಸನ್ನು ಕಾಡುವ ಕತ್ತಲೆಯ ಆಲೋಚನೆಗಳು"
-        : "ಮಾನಸಿಕ ಸ್ಥೈರ್ಯ & ಧನಾತ್ಮಕ ಚಿಂತನೆ: ಆಶಾವಾದದ ಮನೋಬಲ",
-      titleEn: hasDarkLoops
-        ? "Negative Thought Loops & Depressive Anxiety: Brooding Solitude"
-        : "Mental Fortitude & Constructive Optimism: Inner Resilience",
-      icon: hasDarkLoops ? "🌑" : "☀️",
-      badgeKn: hasDarkLoops ? "ಚಂದ್ರ-ರಾಹು/ಶನಿ ಪ್ರಭಾವ • ವಿಷ ಯೋಗ" : "ಶುಭ ಚಂದ್ರ ಬಲ • ಧನಾತ್ಮಕ ಚಿತ್ತ",
-      badgeEn: hasDarkLoops ? "Moon-Rahu/Saturn • Mental Shadow" : "Benefic Moon Strength • Resilient Mind",
-      bulletKn: hasDarkLoops
-        ? `ಚಂದ್ರನ ಮೇಲೆ ಶನಿ ಅಥವಾ ರಾಹುವಿನ ಪ್ರಭಾವವಿರುವುದರಿಂದ, ಮನಸ್ಸು ಅತ್ಯಂತ ಬೇಗನೆ ನಕಾರಾತ್ಮಕ ಯೋಚನೆಗಳ ಸುಳಿಯಲ್ಲಿ ಸಿಲುಕುತ್ತದೆ. 'ನನ್ನ ಜೀವನ ವ್ಯರ್ಥ', 'ನನ್ನನ್ನು ಯಾರೂ ಅರ್ಥಮಾಡಿಕೊಳ್ಳುವುದಿಲ್ಲ' ಎಂಬ ಕೀಳರಿಮೆ, ಒಂಟಿತನದ ಭಯ ಹಾಗೂ ತೀವ್ರ ಖಿನ್ನತೆ (Depression) ನಿಮ್ಮನ್ನು ಕಾಡಬಹುದು. ಇಂತಹ ಸಂದರ್ಭಗಳಲ್ಲಿ ಧ್ಯಾನ ಮತ್ತು ದೈವ ಪ್ರಾರ್ಥನೆ ಅತ್ಯಗತ್ಯ.`
-        : `ನಿಮ್ಮ ಚಂದ್ರ ಬಲವು ಸ್ಥಿರವಾಗಿದ್ದು, ಎಂತಹ ಕಠಿಣ ಸನ್ನಿವೇಶದಲ್ಲೂ ಧೃತಿಗೆಡದೆ ಸಕಾರಾತ್ಮಕವಾಗಿ ಮುನ್ನಡೆಯುವ ಮನೋಸ್ಥೈರ್ಯ ನಿಮ್ಮಲ್ಲಿದೆ. ಸುಖ-ದುಃಖಗಳನ್ನು ಸಮಚಿತ್ತದಿಂದ ಸ್ವೀಕರಿಸಿ, ಆಶಾವಾದದೊಂದಿಗೆ ಕರ್ತವ್ಯ ನಿರ್ವಹಿಸುವ ಗುಣ ನಿಮ್ಮ ಮನಸ್ಸನ್ನು ಸದೃಢವಾಗಿಟ್ಟಿದೆ.`,
-      bulletEn: hasDarkLoops
-        ? "Affliction to the Moon (Saturn/Rahu association) produces recurring cycles of depressive overthinking, chronic self-doubt, and fear of abandonment."
-        : "Stable lunar alignment endows you with emotional resilience, steady equanimity during hardship, and constructive optimism that shields against mental despondency.",
-      astrologicalBasisKn: hasDarkLoops ? `ಮನಃಕಾರಕ ಚಂದ್ರನ ಮೇಲಿನ ರಾಹು/ಶನಿಯ ಪ್ರಭಾವ ಹಾಗೂ ದುಃಸ್ಥಾನ ಸ್ಥಿತಿ.` : `ಸ್ಥಿರ ಚಂದ್ರ ಬಲ ಹಾಗೂ ಸಕಾರಾತ್ಮಕ ಗ್ರಹ ದೃಷ್ಟಿ.`,
-      astrologicalBasisEn: hasDarkLoops ? `Afflicted natal Moon position in Dusthana or with nodal shadow.` : `Unafflicted Moon conferring emotional stability.`
-    },
-    {
-      id: 6,
-      type: "bad",
-      titleKn: "ರಹಸ್ಯ ಜೀವನದ ವರ್ತನೆ: ಕುಲ್ಲಂ ಕುಲ್ಲಾ ಪ್ರವೃತ್ತಿ vs ಸಂಪೂರ್ಣ ಮುಚ್ಚಿಡುವ ಗೌಪ್ಯತೆ",
-      titleEn: "Secret Life Expression: Open Confession vs Strict Concealment",
-      icon: "🎭",
-      badgeKn: `3ನೇ & 8ನೇ ಭಾವ • ${isSecretSign ? "ಸಂಪೂರ್ಣ ಗೌಪ್ಯತೆ" : "ಕುಲ್ಲಂ ಕುಲ್ಲಾ"}`,
-      badgeEn: `3rd & 8th Houses • Secrecy Dynamic`,
-      bulletKn: secrecyKn,
-      bulletEn: secrecyEn,
-      astrologicalBasisKn: `3ನೇ ಭಾವ (ಬಹಿರಂಗ ಅಭಿವ್ಯಕ್ತಿ) ಮತ್ತು 8ನೇ ಭಾವ (ಅತ್ಯಂತ ಗುಪ್ತ ಮುಚ್ಚಿಡುವಿಕೆ).`,
-      astrologicalBasisEn: `3rd house of expression vs 8th house of absolute concealment.`,
-      secrecyHabitKn: secrecyKn,
-      secrecyHabitEn: secrecyEn
-    },
-    {
-      id: 7,
-      type: "bad",
-      titleKn: "ಶಾಸ್ತ್ರೋಕ್ತ ಪ್ರಾಯಶ್ಚಿತ್ತ & ಗೋಕರ್ಣ ಮುಕ್ತಿ: ಆತ್ಮಲಿಂಗ ಸ್ಪರ್ಶ & ದೋಷ ಪರಿಹಾರ",
-      titleEn: "Authentic Vedic Prayashchitta & Sri Kshetra Gokarna Shanti",
-      icon: "🕉️",
-      badgeKn: "ಗೋಕರ್ಣ ಆತ್ಮಲಿಂಗ • ಪ್ರಾಯಶ್ಚಿತ್ತ",
-      badgeEn: "Gokarna Atma Linga • Purification",
-      bulletKn: `ಜಾತಕದಲ್ಲಿ ಕಂಡ ಈ ನೆರಳು ಪ್ರವೃತ್ತಿಗಳನ್ನು ಮತ್ತು ಪಾಪಕರ್ಮಗಳ ತೀವ್ರತೆಯನ್ನು ಕರಗಿಸಲು, ಪರಮ ಪವಿತ್ರ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ಆತ್ಮಲಿಂಗ ಸ್ಪರ್ಶ, ಪ್ರಾಯಶ್ಚಿತ್ತ ಮಹಾಸಂಕಲ್ಪ ಪೂಜೆ, ರಾಹು-ಕೇತು ಶಾಂತಿ ಸೇವೆ ಸಲ್ಲಿಸುವುದು ಅತ್ಯಗತ್ಯ. ಇದು ನಿಮ್ಮ ಅಂತರಂಗದ ಕಲ್ಮಶಗಳನ್ನು ಭಸ್ಮ ಮಾಡಿ, ಮನಸ್ಸಿಗೆ ಪರಿಶುದ್ಧ ನೆಮ್ಮದಿ ಮತ್ತು ದೈವಿಕ ಶ್ರೀರಕ್ಷೆಯನ್ನು ಕರುಣಿಸಲಿದೆ.`,
-      bulletEn: `To dissolve these shadow karmic impulses, performing Atma Linga Sparsha, Prayashchitta Sankalpa Pooja, and Rahu-Ketu Shanti at Sri Kshetra Gokarna Mahabaleshwara cleanses psychic toxins and restores moral fortitude.`,
-      astrologicalBasisKn: `ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಕ್ಷೇತ್ರ ಮಹಿಮೆ ಹಾಗೂ ಪ್ರಾಯಶ್ಚಿತ್ತ ವಿಧಿ.`,
-      astrologicalBasisEn: `Gokarna Mahabaleshwara sacred Atma Linga purification rite.`
-    }
+    badTrait1,
+    badTrait2,
+    badTrait3,
+    badTrait4,
+    badTrait5,
+    badTrait6,
+    badTrait7
   ];
 
   return {
@@ -2107,7 +3988,9 @@ export const generateGoodAndBadTraits = (
     gokarnaPrayashchittaEn: `Perform Prayashchitta Sankalpa Pooja, Atma Linga Sparsha, and Rahu-Ketu Shanti at holy Gokarna Mahabaleshwara Kshetra to burn away shadow karma and cleanse unconscious tendencies.`,
     isSpeculationLoss,
     speculationWarningKn: isSpeculationLoss ? `5ನೇ ರಾಹು & ನೀಚ ಪಂಚಮಾಧಿಪತಿಯಿಂದಾಗಿ ಷೇರು ಮಾರುಕಟ್ಟೆ / ಟ್ರೇಡಿಂಗ್‌ನಲ್ಲಿ ಭಾರಿ ಬಂಡವಾಳ ನಷ್ಟವಾಗಿದ್ದು, ಯಾವುದೇ ಕಾರಣಕ್ಕೂ ಮತ್ತೆ ಸ್ಪೆಕ್ಯುಲೇಶನ್ ಅಥವಾ ಬೆಟ್ಟಿಂಗ್‌ಗೆ ಕೈಹಾಕಬೇಡಿ.` : undefined,
-    speculationWarningEn: isSpeculationLoss ? `5th house Rahu and afflicted 5th lord trigger heavy trading losses; cease all day trading and speculative betting immediately.` : undefined
+    speculationWarningEn: isSpeculationLoss ? `5th house Rahu and afflicted 5th lord trigger heavy trading losses; cease all day trading and speculative betting immediately.` : undefined,
+    isTeetotaler: diet.isTeetotaler,
+    hasMaritalFidelity: sensual.hasMaritalFidelity
   };
 };
 
@@ -2301,6 +4184,45 @@ export const generateCurrentLifeDiagnosis = (
     rootCauseEn = "Lagna lord in Dusthana and Moon under malefic aspects.";
     solutionKn = "ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ಮಹಾಮೃತ್ಯುಂಜಯ ಹೋಮ ಮತ್ತು ಆಯುಷ್ಯ ಶಾಂತಿ ಸಂಕಲ್ಪ ಸೇವೆ ನೆರವೇರಿಸಿ, ಪವಿತ್ರ ರಕ್ಷಾ ಭಸ್ಮ ಧಾರಣೆ ಮಾಡಿ.";
     solutionEn = "Sponsor Mahamrityunjaya Homa at Gokarna Kotiteertha and apply sacred Raksha Bhasma daily.";
+  } else {
+    // Dynamic Age-Bracketed & Dasha-Gochara Driven Life Focus (Zero Generic Fallback)
+    if (devoteeAge < 14) {
+      challengeArea = "Academic & Growth Focus";
+      challengeAreaKn = "ಬಾಲ್ಯದ ಸಮಗ್ರ ವಿಕಾಸ, ವಿದ್ಯಾಭ್ಯಾಸ & ರಕ್ಷಾ ಕವಚ";
+      challengeDesc = `ಪ್ರಸ್ತುತ ಮಗುವಿಗೆ ${devoteeAge} ವರ್ಷ ಪ್ರಾಯವಿದ್ದು, ${toKannadaPlanet(maha)} ಮಹಾದಶಾ ಮತ್ತು ${toKannadaPlanet(bhukti)} ಭುಕ್ತಿಯ ಪ್ರಭಾವದಲ್ಲಿ ಬೌದ್ಧಿಕ ಬೆಳವಣಿಗೆ ಹಾಗೂ ಪ್ರಾಥಮಿಕ ಶಿಕ್ಷಣದ ಹಂತದಲ್ಲಿದೆ. ಚಂದ್ರನಿಂದ ಗೋಚಾರ ಶನಿ ${liveGochara.shaniHouseFromMoon}ನೇ ಮನೆಯಲ್ಲಿದ್ದು ಮತ್ತು ಗುರು ${liveGochara.guruHouseFromMoon}ನೇ ಮನೆಯಲ್ಲಿ ಸಂಚರಿಸುತ್ತಿದ್ದು, ಮಗುವಿನ ರೋಗನಿರೋಧಕ ಶಕ್ತಿ, ಸುಖನಿದ್ರೆ ಮತ್ತು ಸಾತ್ವಿಕ ನಡವಳಿಕೆಗೆ ಪೋಷಕರ ಪ್ರೀತಿಯ ಮಾರ್ಗದರ್ಶನ ಅಗತ್ಯ.`;
+      challengeDescEn = `At age ${devoteeAge}, the child is progressing through primary intellectual development and schooling under ${maha} Mahadasha and ${bhukti} Bhukti, requiring nurturing guidance.`;
+      rootCause = `ಮಗುವಿನ ಜನ್ಮ ಲಗ್ನಕ್ಕೆ ${toKannadaPlanet(maha)} ಮಹಾದಶಾ ಹಾಗೂ ಗೋಚಾರ ಶನಿ-ಗುರುಗಳ ಪ್ರಭಾವ.`;
+      rootCauseEn = `Current ${maha} Mahadasha and Gochara transits shaping childhood learning.`;
+      solutionKn = "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ಬಾಲಗ್ರಹ ಶಾಂತಿ ಮತ್ತು ಮಹಾಮೃತ್ಯುಂಜಯ ರಕ್ಷಾ ಸಂಕಲ್ಪ ಸೇವೆ ನೆರವೇರಿಸಿ.";
+      solutionEn = "Sponsor Balagraha Shanti and Mahamrityunjaya Raksha Sankalpa at holy Gokarna Kotiteertha.";
+    } else if (devoteeAge <= 23) {
+      challengeArea = "Education & Career Foundation";
+      challengeAreaKn = "ಉನ್ನತ ಶಿಕ್ಷಣ, ಕೌಶಲ್ಯ ವೃದ್ಧಿ & ವೃತ್ತಿ ಬುನಾದಿ";
+      challengeDesc = `ಪ್ರಸ್ತುತ ${devoteeAge} ವರ್ಷದ ಪ್ರಾಯದಲ್ಲಿ ಉನ್ನತ ವಿದ್ಯಾಭ್ಯಾಸ, ಕೌಶಲ್ಯ ವೃದ್ಧಿ ಹಾಗೂ ಭವಿಷ್ಯದ ವೃತ್ತಿ ಜೀವನಕ್ಕೆ ಭದ್ರ ಅಡಿಪಾಯ ಹಾಕುವ ಸುವರ್ಣ ಕಾಲಘಟ್ಟ. ಜನ್ಮ ಲಗ್ನದ ${toKannadaRashi(kundli.lagnaRashi.english)} ತತ್ವ ಹಾಗೂ ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${toKannadaPlanet(maha)} ಮಹಾದಶಾ - ${toKannadaPlanet(bhukti)} ಭುಕ್ತಿಯು ನಿಮ್ಮಲ್ಲಿ ಹೊಸ ಜ್ಞಾನಾರ್ಜನೆ ಮತ್ತು ಸ್ಪರ್ಧಾತ್ಮಕ ಸಾಮರ್ಥ್ಯವನ್ನು ಜಾಗೃತಗೊಳಿಸುತ್ತಿವೆ. ಗೋಚಾರ ಗುರು ${liveGochara.guruHouseFromMoon}ನೇ ಮನೆಯ ಅನುಗ್ರಹದಿಂದ ಅಧ್ಯಯನದಲ್ಲಿ ದೃಢ ಏಕಾಗ್ರತೆ ಕಾಯ್ದುಕೊಳ್ಳುವುದು ಈ ಹಂತದ ಮುಖ್ಯ ಕಾರ್ಯ.`;
+      challengeDescEn = `At age ${devoteeAge}, this prime youth phase is dedicated to higher education, competitive skill development, and career foundation under ${maha} Mahadasha and ${bhukti} Bhukti.`;
+      rootCause = `ಲಗ್ನಾಧಿಪತಿಯ ಬಲ ಹಾಗೂ ${toKannadaPlanet(maha)} ಮಹಾದಶಾ ಮತ್ತು ${toKannadaPlanet(bhukti)} ಭುಕ್ತಿಯ ವಿದ್ಯಾಕಾರಕ ಸಂಚಾರ.`;
+      rootCauseEn = `Ascendant lord strength and academic transit under ${maha} Mahadasha and ${bhukti} Bhukti.`;
+      solutionKn = "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಮೇಧಾ ದಕ್ಷಿಣಾಮೂರ್ತಿ ಸಂಕಲ್ಪ ಪೂಜೆ ಮತ್ತು ವಿದ್ಯಾ ಗಣಪತಿ ಸೇವೆ ನೆರವೇರಿಸಿ.";
+      solutionEn = "Perform Medha Dakshinamurthy and Vidya Ganapati Sankalpa Pooja at Sri Kshetra Gokarna.";
+    } else if (devoteeAge <= 58) {
+      challengeArea = "Career & Financial Elevation";
+      challengeAreaKn = "ವೃತ್ತಿ ವಿಕಾಸ, ಆರ್ಥಿಕ ಸ್ಥಿರತೆ & ದಶಾ-ಗೋಚಾರ ಸಮನ್ವಯ";
+      challengeDesc = `ಪ್ರಸ್ತುತ ${devoteeAge} ವರ್ಷದ ಪ್ರಬುದ್ಧ ಜೀವಿತ ಘಟ್ಟದಲ್ಲಿ ನೀವು ವೃತ್ತಿಪರ ಜವಾಬ್ದಾರಿ, ಕುಟುಂಬದ ಆರ್ಥಿಕ ಭದ್ರತೆ ಮತ್ತು ದೀರ್ಘಕಾಲೀನ ಹೂಡಿಕೆಗಳ ಮಹತ್ವದ ಹಂತದಲ್ಲಿದ್ದೀರಿ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${toKannadaPlanet(maha)} ಮಹಾದಶೆಯಲ್ಲಿ ${toKannadaPlanet(bhukti)} ಭುಕ್ತಿಯು ಕರ್ಮ-ಧನ ಕ್ಷೇತ್ರಗಳಲ್ಲಿ ಹೊಸ ಸಾಧ್ಯತೆಗಳನ್ನು ತೆರೆಯುತ್ತಿದ್ದು, ಚಂದ್ರನಿಂದ ${liveGochara.shaniHouseFromMoon}ನೇ ಮನೆಯ ಶನಿ ಮತ್ತು ${liveGochara.guruHouseFromMoon}ನೇ ಮನೆಯ ಗುರುವಿನ ಗೋಚಾರ ಸಂಚಾರವು ಯಾವುದೇ ಆತುರದ ನಿರ್ಧಾರಗಳಿಗೆ ಆಸ್ಪದ ನೀಡದೆ, ತಾಳ್ಮೆಯ ಕಾರ್ಯತಂತ್ರದಿಂದ ಮುನ್ನಡೆಯಲು ಸೂಚಿಸುತ್ತಿದೆ.`;
+      challengeDescEn = `At age ${devoteeAge}, your primary focus is professional elevation, family financial consolidation, and strategic career growth under running ${maha} Mahadasha and ${bhukti} Bhukti with transit Jupiter and Saturn.`;
+      rootCause = `10ನೇ ಕರ್ಮ ಸ್ಥಾನ ಹಾಗೂ 2ನೇ/11ನೇ ಧನ ಸ್ಥಾನಗಳ ಮೇಲೆ ${toKannadaPlanet(maha)} ಮಹಾದಶಾ, ${toKannadaPlanet(bhukti)} ಭುಕ್ತಿ ಮತ್ತು ಗೋಚಾರ ಶನಿ-ಗುರುಗಳ ಪ್ರಭಾವ.`;
+      rootCauseEn = `10th house of career and 2nd/11th houses of wealth energized by ${maha} Mahadasha and transiting Saturn/Jupiter.`;
+      solutionKn = "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಕರ್ಮ ಸಿದ್ಧಿ ಸಂಕಲ್ಪ ಪೂಜೆ ಹಾಗೂ ಮಹಾಗಣಪತಿ ಹೋಮ ನೆರವೇರಿಸಿ.";
+      solutionEn = "Perform Karma Siddhi Sankalpa Pooja and Mahaganapati Homa at holy Gokarna Mahabaleshwara Kshetra.";
+    } else {
+      challengeArea = "Spiritual Peace & Family Harmony";
+      challengeAreaKn = "ಆಧ್ಯಾತ್ಮಿಕ ನೆಮ್ಮದಿ, ಆರೋಗ್ಯ ರಕ್ಷಣೆ & ವಾನಪ್ರಸ್ಥ ಶಾಂತಿ";
+      challengeDesc = `ಪ್ರಸ್ತುತ ${devoteeAge} ವರ್ಷದ ಪ್ರಾಯದಲ್ಲಿ ಲೌಕಿಕ ಜವಾಬ್ದಾರಿಗಳನ್ನು ಸಮರ್ಥವಾಗಿ ಮುಗಿಸಿ, ಆಂತರಿಕ ಶಾಂತಿ, ನಿಯಮಿತ ಆರೋಗ್ಯ ಶಿಸ್ತು ಮತ್ತು ಆಧ್ಯಾತ್ಮಿಕ ಚಿಂತನೆಗೆ ಆದ್ಯತೆ ನೀಡುವ ಪ್ರಶಾಂತ ಕಾಲಘಟ್ಟ. ${toKannadaPlanet(maha)} ಮಹಾದಶಾ ಹಾಗೂ ${toKannadaPlanet(bhukti)} ಭುಕ್ತಿಯ ದೈವಿಕ ಪ್ರಭಾವದಲ್ಲಿ ಪೂರ್ವಪುಣ್ಯ ಸ್ಮರಣೆ, ಸತ್ಸಂಗ ಹಾಗೂ ಪವಿತ್ರ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ದರ್ಶನವು ಮನಸ್ಸಿಗೆ ಅಖಂಡ ಧನ್ಯತೆಯನ್ನು ನೀಡಲಿದೆ.`;
+      challengeDescEn = `At age ${devoteeAge}, this gracious life phase prioritizes inner spiritual tranquility, holistic vitality, and family legacy under ${maha} Mahadasha and ${bhukti} Bhukti.`;
+      rootCause = `9ನೇ ಧರ್ಮ ಸ್ಥಾನ ಹಾಗೂ ಮೋಕ್ಷ ಸ್ಥಾನಗಳ ಮೇಲೆ ${toKannadaPlanet(maha)} ಮಹಾದಶಾ ಹಾಗೂ ಚಂದ್ರನ ಗೋಚಾರ ಸಂಚಾರ.`;
+      rootCauseEn = `9th house of dharma and moksha houses activated by ${maha} Mahadasha and planetary transits.`;
+      solutionKn = "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಆಯುಷ್ಯ ಶಾಂತಿ, ಮೃತ್ಯುಂಜಯ ಹೋಮ ಹಾಗೂ ಆತ್ಮಲಿಂಗ ಬಿಲ್ವಾರ್ಚನೆ ಸಮರ್ಪಿಸಿ.";
+      solutionEn = "Sponsor Ayushya Shanti, Mahamrityunjaya Homa, and Atma Linga Bilvarchana at Sri Kshetra Gokarna.";
+    }
   }
 
   // 4. Immediate Remedies (English Digits)
@@ -2430,7 +4352,12 @@ export const generateCurrentLifeDiagnosis = (
     },
     technicalAspects,
     tenLifeAspectBullets,
-    goodBadAnalysis
+    goodBadAnalysis,
+    isTeetotaler: goodBadAnalysis.isTeetotaler,
+    hasMaritalFidelity: goodBadAnalysis.hasMaritalFidelity,
+    negativeShades: evaluateNativeNegativeShadesAndCriminality(kundli, context, dashaTiming, liveGochara),
+    currentLifeSituation: diagnoseCurrentLifeSituation(kundli, context, dashaTiming, liveGochara),
+    accurateProfession: determineAccurateProfession(kundli, context)
   };
 };
 
@@ -2978,6 +4905,32 @@ export const generateInstantQAList = (
 • 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪೂಜೆ: ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಮಹಾಗಣಪತಿ ಹೋಮ ಹಾಗೂ ಲಕ್ಷ್ಮೀ-ಕುಬೇರ ಸಂಕಲ್ಪ ಸೇವೆ ನೆರವೇರಿಸಿ, ಸಾಲ ಮುಕ್ತಿಗಾಗಿ ಪ್ರಾರ್ಥಿಸಿ.`),
       astrologicalBasisKn: `5ನೇ (ಸ್ಪೆಕ್ಯುಲೇಶನ್/ಬುದ್ಧಿ) ಮತ್ತು 8ನೇ (ಹಠಾತ್ ನಷ್ಟ) ಮನೆಗಳ ಗ್ರಹ ಸ್ಥಿತಿ.`,
       immediateRemedyKn: `ಸ್ಪೆಕ್ಯುಲೇಶನ್ ಟ್ರೇಡಿಂಗ್ ನಿಲ್ಲಿಸಿ ಮತ್ತು ಗೋಕರ್ಣದಲ್ಲಿ ಗಣಪತಿ ಹೋಮ ಮಾಡಿಸಿ.`
+    },
+
+    // 12. MORAL INTEGRITY, REPUTATION & CRIMINALITY AUDIT
+    {
+      id: "q_integrity_1",
+      category: "mind",
+      categoryLabelKn: "🧭 ಸತ್ಚಾರಿತ್ರ್ಯ & ಅಪರಾಧ ಮುಕ್ತತೆ",
+      questionKn: "ನನ್ನ ಜಾತಕದಲ್ಲಿ ಸತ್ಚಾರಿತ್ರ್ಯ, ಅಪರಾಧ ಮುಕ್ತತೆ ಹಾಗೂ ಸಾರ್ವಜನಿಕ ಗೌರವ ಹೇಗಿದೆ?",
+      questionEn: "How is my moral integrity, character purity, and freedom from legal/criminal blemishes?",
+      panditScriptKn: sanitizeAstrologyKannadaText(`ನಮಸ್ಕಾರ ${name}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕ ನೋಡಿದೆ.
+
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ${
+  diagnosis.negativeShades?.overallScore && diagnosis.negativeShades.overallScore > 35
+    ? "ಜಾತಕದಲ್ಲಿ ಶನಿ-ರಾಹುಗಳ ಗೋಚಾರ ಅಥವಾ ದಶಾ ಪ್ರಭಾವದಿಂದಾಗಿ ಸಾರ್ವಜನಿಕ ಅಪವಾದ, ವಿವಾದ ಅಥವಾ ಕಾನೂನು ತೊಡಕುಗಳ ಬಗ್ಗೆ ಎಚ್ಚರ ವಹಿಸಬೇಕು."
+    : "ನಿಮ್ಮ ಜಾತಕವು ಅತ್ಯುನ್ನತ ಸತ್ಚಾರಿತ್ರ್ಯ ಹಾಗೂ ಸದಾಚಾರದಿಂದ ಕೂಡಿದೆ! ಯಾವುದೇ ಕಳ್ಳತನ, ವಂಚನೆ, ಕ್ರಿಮಿನಲ್ ಚಟುವಟಿಕೆ ಅಥವಾ ಕಾರಾಗೃಹ ದೋಷಗಳಿಲ್ಲದೆ ದೈವಿಕ ರಕ್ಷಣೆಯಲ್ಲಿದೆ (ಸರ್ವದೋಷ ವಿನಾಶನಃ)."
+}
+• 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: ನಿಮ್ಮ ಲಗ್ನ, 2ನೇ ಧನ-ವಾಕ್, 9ನೇ ಧರ್ಮ ಹಾಗೂ 10ನೇ ಕೀರ್ತಿ ಸ್ಥಾನಗಳ ಮೇಲೆ ${diagnosis.negativeShades?.isJupiterProtected ? "ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಪೂರ್ಣ ರಕ್ಷಣಾತ್ಮಕ ದೃಷ್ಟಿ" : "ಶುಭ ಗ್ರಹಗಳ ಪ್ರಭಾವ"} ಇದೆ.
+• ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ಕಾರಣ: ${
+  diagnosis.negativeShades?.overallScore && diagnosis.negativeShades.overallScore > 35
+    ? "ಗ್ರಹಗಳ ಸಂಚಾರದಿಂದಾಗಿ ಅಪವಾದಗಳು ಬಾರದಂತೆ ಎಚ್ಚರಿಕೆಯ ನಡವಳಿಕೆ ಅಗತ್ಯ."
+    : "ಜಾತಕದಲ್ಲಿ ಶುಭ ಗ್ರಹಗಳ ಬಲವಿರುವುದರಿಂದ ಶತ್ರುಗಳು ಅಪಪ್ರಚಾರ ಮಾಡಲು ಯತ್ನಿಸಿದರೂ ನಿಮ್ಮ ಪರಿಶುದ್ಧ ವ್ಯಕ್ತಿತ್ವಕ್ಕೆ ಯಾವುದೇ ಕಳಂಕ ತಟ್ಟುವುದಿಲ್ಲ."
+}
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ ${remM} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${remM} Month${remM > 1 ? "s" : ""}) ಸಮಾಜದಲ್ಲಿ ನಿಮ್ಮ ಗೌರವ, ಪ್ರತಿಷ್ಠೆ ಮತ್ತು ವಿಶ್ವಾಸಾರ್ಹತೆ ಇನ್ನಷ್ಟು ಉನ್ನತ ಹಂತಕ್ಕೆ ಏರಲಿದೆ.
+• 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪೂಜೆ: ${diagnosis.negativeShades?.protectionRemedyKn || "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ರಕ್ಷಾ ಸಂಕಲ್ಪ ಸೇವೆ ನೆರವೇರಿಸಿ."}`),
+      astrologicalBasisKn: `ಲಗ್ನ, 2ನೇ ಧನ-ವಾಕ್, 9ನೇ ಧರ್ಮ ಸ್ಥಾನ ಮತ್ತು ಗುರು ದೃಷ್ಟಿ.`,
+      immediateRemedyKn: `ಧರ್ಮ ಮಾರ್ಗದಲ್ಲಿ ಸಾಗುತ್ತಾ ಸತ್ಯ ಮತ್ತು ನ್ಯಾಯವನ್ನು ಪಾಲಿಸಿ.`
     }
   ];
 };
@@ -3024,15 +4977,26 @@ export const generatePanchangaAngaSynthesis = (
   const moonRashiKn = toKannadaRashi(kundli.moonSign.english);
   const lagnaKn = toKannadaRashi(kundli.lagnaRashi.english);
 
+  const cls = currentDiagnosis.currentLifeSituation;
+  const prof = currentDiagnosis.accurateProfession;
+
   const devoteeNameFormatted = context.devoteeName || "ಭಕ್ತರೇ";
-  const p1 = sanitizeAstrologyKannadaText(`ನಮಸ್ಕಾರ ${devoteeNameFormatted}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕ ನೋಡಿದೆ. ನೋಡಿದ್ರೆ ಇದರಲ್ಲಿ ಇರುವಂತಹ ನಿಮ್ಮ ${lagnaKn} ಲಗ್ನ ಹಾಗೂ ${moonRashiKn} ರಾಶಿಯ ${moonNakKn} ನಕ್ಷತ್ರದ ಗ್ರಹ ಸಂಯೋಗವನ್ನು ನೋಡಿದರೆ, ${currentDiagnosis.technicalAspects.fourthHouseDetail}. ನಿಮ್ಮ ಮೂಲ ಪ್ರಕೃತಿ ಅತ್ಯಂತ ಸ್ವಾಭಿಮಾನಿ ಮತ್ತು ಸ್ವತಂತ್ರ ವಿಚಾರಶೀಲತೆಯನ್ನು ಹೊಂದಿದೆ.`);
+  const p1 = sanitizeAstrologyKannadaText(
+    `ನಮಸ್ಕಾರ ${devoteeNameFormatted}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕ ನೋಡಿದೆ. ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಪ್ರಸ್ತುತ ಅತ್ಯಂತ ಪ್ರಮುಖವಾಗಿ ಎದ್ದು ಕಾಣುವ ಸಂಗತಿಯೆಂದರೆ — ${cls?.headlineKn || currentDiagnosis.primaryLifeChallenge.description}. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ಕಾಲಘಟ್ಟದಲ್ಲಿ, ${cls?.detailedRealityKn || currentDiagnosis.primaryLifeChallenge.description}. ${cls?.planetaryCulpritKn || currentDiagnosis.primaryLifeChallenge.planetaryRootCause}. ಉಳಿದೆಲ್ಲ ವಿಷಯಗಳಿಗಿಂತ ಮೊದಲು ಈ ನೈಜ ಸವಾಲಿಗೆ ನಿಮಗೆ ಸ್ಪಷ್ಟ ದೈವಿಕ ಮುಕ್ತಿ ಮಾರ್ಗ ಬೇಕಾಗಿದೆ.`
+  );
   
-  const p2 = sanitizeAstrologyKannadaText(`ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜೀವನದ ಮುಖ್ಯ ಗಮನ: ${currentDiagnosis.primaryLifeChallenge.description}. ನಿಮ್ಮ ಸಾಮರ್ಥ್ಯಕ್ಕೆ ತಕ್ಕಂತೆ ಮುನ್ನಡೆಯಲು ಗ್ರಹ ಸ್ಥಿತಿಗಳು ಹದಗೊಳ್ಳುತ್ತಿವೆ. ${currentDiagnosis.technicalAspects.tenthHouseDetail} ಮತ್ತು ${currentDiagnosis.technicalAspects.seventhHouseDetail}. ${currentDiagnosis.primaryLifeChallenge.planetaryRootCause}`);
+  const p2 = sanitizeAstrologyKannadaText(
+    `ನಿಮ್ಮ ಜಾತಕದ 10ನೇ ಕರ್ಮ ಸ್ಥಾನ (${prof?.tenthHouseSignKn || "ಕರ್ಮ"} ರಾಶಿ) ಹಾಗೂ ಜೈಮಿನಿ ಅಮಾತ್ಯಕಾರಕ (${prof?.amatyakarakaPlanetKn || "ಅಮಾತ್ಯಕಾರಕ"}) ಗ್ರಹಗಳ ಬಲವನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ನಿಮ್ಮ ನಿಖರ ವೃತ್ತಿ ರಂಗವು: ${prof?.titleKn || "ವೃತ್ತಿಪರ ಕಾರ್ಯಕ್ಷೇತ್ರ"}. ನಿರ್ದಿಷ್ಟವಾಗಿ ನೀವು ${prof?.specificRoleKn || "ವೃತ್ತಿಪರರು"} ಆಗಿ ${prof?.workEnvironmentKn || "ಸಂಸ್ಥೆ"}ದಲ್ಲಿ ಕಾರ್ಯನಿರ್ವಹಿಸುವಂತಹ ಬಲವಾದ ಗ್ರಹ ಸಂಯೋಜನೆ ಇದೆ. ${prof?.astrologicalBasisKn || currentDiagnosis.technicalAspects.tenthHouseDetail}. ${prof?.secondaryAlternativeKn ? `ಪರ್ಯಾಯವಾಗಿ ಇದರಲ್ಲಿ ${prof.secondaryAlternativeKn} ಅವಕಾಶಗಳೂ ಪೂರಕವಾಗಿವೆ.` : ""}`
+  );
 
-  const dashaTimeText = currentDiagnosis.dashaTiming?.timelineKn || "ಮುಂದಿನ ಕೆಲವೇ ತಿಂಗಳುಗಳಲ್ಲಿ";
-  const p3 = sanitizeAstrologyKannadaText(`ನೀವು ಯಾವುದೇ ಕಾರಣಕ್ಕೂ ಧೃತಿಗೆಡಬೇಕಾಗಿಲ್ಲ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ಲೆಕ್ಕಾಚಾರದ ಪ್ರಕಾರ, ಇನ್ನು ${dashaTimeText} ಗ್ರಹಗಳ ಗೋಚಾರ ಸಂಚಾರವು ನಿಮ್ಮ ಪರವಾಗಿ ತಿರುಗಲಿದ್ದು, ನೂತನ ಅವಕಾಶಗಳು ಗೋಚರಿಸಲಿವೆ. ನಿಮ್ಮ ಪರಿಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಮನ್ನಣೆ ಹಾಗೂ ಗೌರವಯುತ ಯಶಸ್ಸು ಖಚಿತವಾಗಿ ಲಭಿಸಲಿದೆ.`);
+  const dashaTimeText = currentDiagnosis.dashaTiming?.timelineKn || "ಮುಂದಿನ 3 ರಿಂದ 6 ತಿಂಗಳುಗಳಲ್ಲಿ";
+  const p3 = sanitizeAstrologyKannadaText(
+    `ನೀವು ಯಾವುದೇ ಕಾರಣಕ್ಕೂ ಧೃತಿಗೆಡಬೇಕಾಗಿಲ್ಲ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ಲೆಕ್ಕಾಚಾರದ ಪ್ರಕಾರ, ಇನ್ನು ${dashaTimeText} ಗ್ರಹಗಳ ಗೋಚಾರ ಸಂಚಾರವು ನಿಮ್ಮ ಪರವಾಗಿ ತಿರುಗಲಿದ್ದು, ${cls?.reliefTimelineKn || "ನೂತನ ಅವಕಾಶಗಳು ಗೋಚರಿಸಲಿವೆ"}. ನಿಮ್ಮ ಪರಿಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಮನ್ನಣೆ ಹಾಗೂ ಗೌರವಯುತ ಯಶಸ್ಸು ಖಚಿತವಾಗಿ ಲಭಿಸಲಿದೆ.`
+  );
 
-  const p4 = sanitizeAstrologyKannadaText(`ನಿಮ್ಮ ಲಗ್ನಾಧಿಪತಿಯ ಬಲವರ್ಧನೆಗಾಗಿ ${prescriptions.gemstoneRing.primaryGemstoneKn} (${prescriptions.gemstoneRing.caratWeight}) ರತ್ನವನ್ನು ${prescriptions.gemstoneRing.metalKn}ದಲ್ಲಿ ಮಾಡಿಸಿ ${prescriptions.gemstoneRing.fingerKn}ಕ್ಕೆ ${prescriptions.gemstoneRing.activationDay} ದಿನ ಧಾರಣೆ ಮಾಡುವುದು ಅತ್ಯಂತ ಶ್ರೇಯಸ್ಕರ. ಇದರೊಂದಿಗೆ ಮಾನಸಿಕ ಶಾಂತಿಗಾಗಿ ${prescriptions.rudraksha.nameKn} ಧಾರಣೆ ಹಾಗೂ ${currentDiagnosis.prasthuthaSthiti.immediateRemedies.join(" ")}. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರನ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸಮರ್ಪಿಸುವ ಸಂಕಲ್ಪ ಪ್ರಾರ್ಥನೆಯು ನಿಮ್ಮ ಸಕಲ ವಿಘ್ನಗಳನ್ನು ನಿವಾರಿಸಲಿದೆ.`);
+  const p4 = sanitizeAstrologyKannadaText(
+    `ನಿಮ್ಮ ಲಗ್ನಾಧಿಪತಿಯ ಬಲವರ್ಧನೆಗಾಗಿ ${prescriptions.gemstoneRing.primaryGemstoneKn} (${prescriptions.gemstoneRing.caratWeight}) ರತ್ನವನ್ನು ${prescriptions.gemstoneRing.metalKn}ದಲ್ಲಿ ಮಾಡಿಸಿ ${prescriptions.gemstoneRing.fingerKn}ಕ್ಕೆ ${prescriptions.gemstoneRing.activationDay} ದಿನ ಧಾರಣೆ ಮಾಡುವುದು ಅತ್ಯಂತ ಶ್ರೇಯಸ್ಕರ. ಇದರೊಂದಿಗೆ ಮಾನಸಿಕ ಶಾಂತಿಗಾಗಿ ${prescriptions.rudraksha.nameKn} ಧಾರಣೆ ಹಾಗೂ ${currentDiagnosis.prasthuthaSthiti.immediateRemedies.join(" ")}. ${cls?.gokarnaRemedyKn || "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರನ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸಮರ್ಪಿಸುವ ಸಂಕಲ್ಪ ಪ್ರಾರ್ಥನೆಯು ನಿಮ್ಮ ಸಕಲ ವಿಘ್ನಗಳನ್ನು ನಿವಾರಿಸಲಿದೆ."}`
+  );
 
   const yajnaHawanaPlan = generateYajnaHawanaPlan(kundli, {
     runningDashaMaha: currentDiagnosis.prasthuthaSthiti.runningDashaSummary.split("|")[0]?.trim(),
@@ -3109,13 +5073,21 @@ export const generateVedicConsultationAnswer = (
   const ketu = kundli.planets.find(p => p.name === PlanetName.Ketu);
 
   // Question Intent Categorization
+  const isCurrentStruggleQuery = /ಪ್ರಸ್ತುತ.*(ಕಷ್ಟ|ಸಮಸ್ಯೆ|ಸ್ಥಿತಿ|ಸವಾಲು|ವಾಸ್ತವ)|ಹಾಲಿ.*(ಕಷ್ಟ|ಸಮಸ್ಯೆ|ಸ್ಥಿತಿ|ಅನುಭವ)|ಯಾವ ಕಷ್ಟ|ಯಾವ ಸಮಸ್ಯೆ|ಈಗೇನು.*(ಆಗುತ್ತಿದೆ|ನಡೆಯುತ್ತಿದೆ)|ನನ್ನ.*(ಕಷ್ಟ|ಸಮಸ್ಯೆ|ಹಾಲಿ ಸ್ಥಿತಿ)|current.*(problem|issue|struggle|situation|going through)|what am i going through|my current life|present condition/.test(qLower);
+  const isSpecificProfessionQuery = /ಯಾವ.*(ಉದ್ಯೋಗ|ಕೆಲಸ|ವೃತ್ತಿ|ಜಾಬ್)|ವೃತ್ತಿ.*(ಯಾವುದು|ಹೇಳಿ|ನಿರ್ಣಯ)|ಉದ್ಯೋಗ.*(ಯಾವುದು|ಹೇಳಿ|ನಿರ್ಣಯ)|ಕೆಲಸ.*(ಯಾವುದು|ಹೇಳಿ)|which work|what work|exact profession|my job|my profession|which career|what career am i doing|current profession/.test(qLower);
+  const isPartnerBetrayalQuery = /ಪಾಲುದಾರ|ನಂಬಿಕೆದ್ರೋಹ|ವಂಚನೆ.*ಪಾಲುದಾರ|ಪಾಲುಗಾರ|business partner|partner.*(cheat|trust|betray|distrust|fraud)/.test(qLower);
+  const isPropertyDisputeQuery = /ಆಸ್ತಿ|ಪಾಲು(?!ದಾರ|ಗಾರ)|ಮನೆಯ ಹಕ್ಕು|ಭಾಗ|ವಿಭಾಗ|ಭೂಮಿ.*ವಿವಾದ|property|inheritance|ancestral|partition|share in home|land dispute|house dispute/.test(qLower);
   const isChildQuery = /ಅಳು|ಕಿರಿಕಿರಿ|ಜಗಳ|ಹಠ|ಊಟ|ನಿದ್ರೆ|ಮಗು|ಬಾಲ|cry|crying|tantrum|fight|quarrel|stubborn|food|eat|colic|balarishta|child|baby/.test(qLower);
   const isAddictionQuery = /ಮದ್ಯ|ಕುಡಿ|ವ್ಯಸನ|ದುಶ್ಚಟ|ಡ್ರಿಂಕ್|ಆಲ್ಕೋಹಾಲ್|ಸಿಗರೇಟು|ಧೂಮಪಾನ|drink|drinking|alcohol|addiction|liquor|smoke|substance/.test(qLower);
   const isAffairQuery = /ಅಫೇರ್|ಪರಸ್ತ್ರೀ|ಪರಪುರುಷ|ದಾಂಪತ್ಯೇತರ|ಕಾಮನೆ|ಲೈಂಗಿಕ ಆಕರ್ಷಣೆ|ಗುಪ್ತ ಪ್ರೇಮ|ವ್ಯಾಮೋಹ|ಕಾಮ|ಬಾಹ್ಯ ಆಕರ್ಷಣೆ|affair|extramarital|secret romance|sensual craving|outside attraction/.test(qLower);
   const isSpeculationQuery = /ಷೇರು|ಟ್ರೇಡಿಂಗ್|ಆಪ್ಷನ್ಸ್|ಇಂಟ್ರಾಡೇ|ಬೆಟ್ಟಿಂಗ್|ಲಾಟರಿ|ಸ್ಪೆಕ್ಯುಲೇಶನ್|ಜೂಜು|share|stock|trading|intraday|option|f&o|betting|lottery|gamble|speculat/.test(qLower);
-  const isIllegalQuery = /ಕಳ್ಳಸಾಗಣೆ|ಸ್ಮಗ್ಲಿಂಗ್|ಅಕ್ರಮ|ಅಡ್ಡದಾರಿ|ಹವಾಲಾ|ಕಪ್ಪು ಹಣ|ಜೈಲು|ಕಾನೂನು|smuggle|smuggling|illegal|unethical|black money|shortcut|police|court/.test(qLower);
+  const isIllegalQuery = /ಕಳ್ಳಸಾಗಣೆ|ಸ್ಮಗ್ಲಿಂಗ್|ಅಕ್ರಮ|ಅಡ್ಡದಾರಿ|ಹವಾಲಾ|ಕಪ್ಪು ಹಣ|smuggle|smuggling|illegal|unethical|black money|shortcut/.test(qLower);
+  const isTheftFraudQuery = /ಕಳ್ಳತನ|ಚೋರ|ವಂಚನೆ|ಮೋಸ|ಲಪಟಾಯಿಸ|ಖೊಟ್ಟಿ|theft|thief|fraud|embezzle|cheat|steal|rob/.test(qLower);
+  const isViolenceMurderQuery = /ಹತ್ಯಾ|ಕೊಲೆ|ಕ್ರೌರ್ಯ|ಹಲ್ಲೆ|ಹಿಂಸೆ|ದೌರ್ಜನ್ಯ|ಕ್ರಿಮಿನಲ್|ಅಪರಾಧ|ಅತ್ಯಾಚಾರ|ವಿಕೃತಿ|murder|kill|assault|violence|cruelty|criminal|rapist/.test(qLower);
+  const isLegalBandhanaQuery = /ಜೈಲು|ಪೊಲೀಸ್|ಕೋರ್ಟು|ಕೇಸು|ಬಂಧನ|ಶಿಕ್ಷೆ|ಕಾರಾಗೃಹ|jail|prison|custody|arrest|court|police|confinement|case/.test(qLower);
+  const isBadCompanyQuery = /ಕುಸಂಗ|ದುರ್ಮಾರ್ಗ|ಕೆಟ್ಟ ಸ್ನೇಹಿತ|ಹಾದಿ ತಪ್ಪ|bad company|wrong path|mislead/.test(qLower);
   const isMaritalConflictQuery = /ಸಾಮರಸ್ಯ|ಜಗಳ|ಮನಸ್ತಾಪ|ಹೊಂದಾಣಿಕೆ|ಬಿರುಕು|ವಿಚ್ಛೇದನ|ದಾಂಪತ್ಯ|ಸಂಸಾರ|dispute|conflict|friction|quarrel|divorce|harmony|marital tension|misunderstanding/.test(qLower);
-  const isMarriageQuery = /ವಿವಾಹ|ಮದುವೆ|ಕಳತ್ರ|ವರ|ವಧು|ಕಂಕಣ|ಮದುವೆಯಾಗ|marriage|wedding|spouse|partner|match|kankana/.test(qLower);
+  const isMarriageQuery = /ವಿವಾಹ|ಮದುವೆ|ಕಳತ್ರ|ಕಂಕಣ|ಮದುವೆಯಾಗ|marriage|wedding|spouse|partner|match|kankana|ವರ ಹೊಂದಾಣಿಕೆ|ವರನ|ವರನಿಗೆ|ವಧು|ವರಾನ್ವೇಷಣೆ/.test(qLower);
   const isDebtQuery = /ಸಾಲ|ಋಣ|ಹೊರೆ|ತೀರಿಸ|ಬಾಕಿ|debt|loan|repay|borrow/.test(qLower);
   const isFinanceCareerQuery = /ಹಣ|ಆರ್ಥಿಕ|ದುಡ್ಡು|ಸಂಪತ್ತು|ಉದ್ಯೋಗ|ಕೆಲಸ|ವ್ಯಾಪಾರ|ತಿರುವು|ಅಭಿವೃದ್ಧಿ|ಪ್ರಮೋಷನ್|money|wealth|finance|job|career|business|turning point|promotion/.test(qLower);
 
@@ -3146,16 +5118,11 @@ export const generateVedicConsultationAnswer = (
   const lossInfo = getDynamicLossScaleText(kundli);
 
   // Deep Astrological Metrics
-  // Alcohol / Addiction
-  let addictionScore = 0;
-  if ([saturn, rahu, mars, ketu].some(p => p && p.house === 2)) addictionScore += 2.0;
-  if (saturn && [3, 7, 10].includes(houseDist(saturn.house, 2))) addictionScore += 2.0;
-  if (mars && [4, 7, 8].includes(houseDist(mars.house, 2))) addictionScore += 1.5;
-  if (rahu && [5, 7, 9].includes(houseDist(rahu.house, 2))) addictionScore += 1.5;
-  if ([saturn, rahu, mars].some(p => p && p.house === 8)) addictionScore += 1.5;
-  if ([saturn, rahu, mars].some(p => p && p.house === 12)) addictionScore += 1.5;
-  const isDailyDrinking = addictionScore >= 2.5;
-  const isSocialDrinking = addictionScore >= 1.0 && addictionScore < 2.5;
+  const diet = detectNativeDietAndAddiction(kundli);
+  const sensual = detectNativeSensualAndFidelity(kundli);
+  const isDailyDrinking = diet.isDailyDrinking;
+  const isSocialDrinking = diet.isSocialDrinking;
+  const isTeetotaler = diet.isTeetotaler;
 
   // Sensual & Affairs
   const neuterSigns = [2, 5, 10]; // Gemini, Virgo, Aquarius
@@ -3164,13 +5131,8 @@ export const generateVedicConsultationAnswer = (
     (venus && mercury && Math.abs(venus.house - mercury.house) === 0 && (saturn?.house === 7 || saturn?.house === 8 || rahu?.house === 7 || ketu?.house === 7)) ||
     (venus && [7, 8].includes(venus?.house ?? 1) && mercury && [7, 8].includes(mercury.house) && neuterSigns.includes(venusSign))
   );
-  let sensualScore = 0;
-  if (venus && mars && Math.abs(venus.house - mars.house) <= 1) sensualScore += 2.0;
-  if (venus && rahu && Math.abs(venus.house - rahu.house) <= 1) sensualScore += 2.0;
-  if ([7, 8, 12].includes(venus?.house ?? 1)) sensualScore += 1.5;
-  if ([rahu, ketu, mars, saturn].some(p => p && p.house === 7)) sensualScore += 1.5;
-  if ([rahu, ketu, mars, saturn].some(p => p && p.house === 12)) sensualScore += 1.5;
-  const hasSensual = sensualScore >= 2.0;
+  const hasSensual = sensual.hasStrongAffairRisk;
+  const hasMaritalFidelity = sensual.hasMaritalFidelity;
 
   // Speculation Loss
   let specScore = 0;
@@ -3217,8 +5179,180 @@ export const generateVedicConsultationAnswer = (
   const hasSarpa7th = (rahu && rahu.house === 7) || (ketu && ketu.house === 7);
   const isMaritalCrisis = (seventhLordPlanet && [6, 8, 12].includes(seventhLordPlanet.house)) || isKujaDosha || hasShani7th || hasSarpa7th;
 
+  // Ensure robust fallback for current life diagnostic and accurate profession
+  const cls = currentDiagnosis.currentLifeSituation ?? diagnoseCurrentLifeSituation(kundli, { birthDate: "", birthTime: "", latitude: 0, longitude: 0, devoteeAge: age, gender });
+  const prof = currentDiagnosis.accurateProfession ?? determineAccurateProfession(kundli, { birthDate: "", birthTime: "", latitude: 0, longitude: 0, devoteeAge: age, gender });
+
+  // 0A. CURRENT LIFE SITUATION & ACUTE STRUGGLES (ಹಾಲಿ ಅನುಭವಿಸುತ್ತಿರುವ ವಾಸ್ತವ ಜೀವನ ಸ್ಥಿತಿ & ಸಂಕಷ್ಟಗಳು)
+  if (isCurrentStruggleQuery) {
+    if (isKn) {
+      const symptomsText = cls.symptomsChecklistKn.length > 0
+        ? `\n\n• 📋 ಪ್ರಸ್ತುತ ನೀವು ಅನುಭವಿಸುತ್ತಿರುವ ನೈಜ ಲಕ್ಷಣಗಳು:\n${cls.symptomsChecklistKn.map((s, idx) => `  ${idx + 1}. ${s}`).join("\n")}`
+        : "";
+      return sanitizeAstrologyKannadaText(
+`ನಮಸ್ಕಾರ ${devoteeNameFormatted}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕ ಹಾಗೂ ಪ್ರಸ್ತುತ ಗ್ರಹ ಗೋಚಾರವನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದೆ.
+
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ${cls.headlineKn}
+
+• 🎯 ವಾಸ್ತವ ಜೀವನ ಸ್ಥಿತಿ & ಗ್ರಹಗಳ ಕೈವಾಡ: ${cls.detailedRealityKn}
+
+${cls.planetaryCulpritKn}${symptomsText}
+
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ / ತಿರುವು: ${cls.reliefTimelineKn}
+
+• 🪔 ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಪರಿಹಾರ & ಮಾರ್ಗೋಪಾಯ: ${cls.gokarnaRemedyKn} ${prescriptions.gemstoneRing.primaryGemstoneKn} (${prescriptions.gemstoneRing.caratWeight}) ರತ್ನ ಹಾಗೂ ${prescriptions.rudraksha.nameKn} ಧಾರಣೆ ಮಾಡುವುದರಿಂದ ಮಾನಸಿಕ ಧೈರ್ಯ ಹೆಚ್ಚಿ ಸಂಕಷ್ಟಗಳಿಂದ ಶೀಘ್ರ ಮುಕ್ತಿ ದೊರೆಯಲಿದೆ.`
+      );
+    } else {
+      const symptomsText = cls.symptomsChecklistEn.length > 0
+        ? `\n\n• 📋 Real-Life Symptoms Native is Currently Experiencing:\n${cls.symptomsChecklistEn.map((s, idx) => `  ${idx + 1}. ${s}`).join("\n")}`
+        : "";
+      return (
+`Namaskara ${devoteeNameFormatted}, I have scrutinized your birth chart and current Gochara transits.
+
+• 🔮 Direct Daivajna Verdict: ${cls.headlineEn}
+
+• 🎯 Current Life Reality & Astrological Culprits: ${cls.detailedRealityEn}
+
+${cls.planetaryCulpritEn}${symptomsText}
+
+• ⏳ Accurate Timeline / Turning Point: ${cls.reliefTimelineEn}
+
+• 🪔 Prescribed Remedies & Solution: ${cls.gokarnaRemedyEn} Wearing ${prescriptions.gemstoneRing.primaryGemstoneEn} (${prescriptions.gemstoneRing.caratWeight}) and ${prescriptions.rudraksha.nameEn} will reinforce inner resilience and accelerate relief.`
+      );
+    }
+  }
+
+  // 0B. BUSINESS PARTNER DISTRUST & BETRAYAL (ಪಾಲುದಾರರ ವಂಚನೆ / ನಂಬಿಕೆದ್ರೋಹ) - evaluated before property dispute to avoid 'ಪಾಲು' collision
+  if (isPartnerBetrayalQuery) {
+    const isPartnerRisk = (seventhLordPlanet && [6, 8, 12].includes(seventhLordPlanet.house)) ||
+      (rahu && [7, 8].includes(rahu.house)) ||
+      cls.category === "partner_distrust_betrayal";
+    if (isKn) {
+      return sanitizeAstrologyKannadaText(
+`ನಮಸ್ಕಾರ ${devoteeNameFormatted}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕವನ್ನು ವ್ಯಾಪಾರ ಪಾಲುದಾರಿಕೆ, ಲೆಕ್ಕಪತ್ರ ಹಾಗೂ ನಂಬಿಕೆಯ ದೃಷ್ಟಿಯಿಂದ ನೋಡಿದೆ.
+
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ${isPartnerRisk
+  ? "ಹೌದು! ವ್ಯಾಪಾರದಲ್ಲಿ ಪಾಲುದಾರರ ನಂಬಿಕೆದ್ರೋಹ, ಗುಪ್ತ ಲೆಕ್ಕಪತ್ರ ಮುಚ್ಚಿಡುವಿಕೆ, ಆರ್ಥಿಕ ವಂಚನೆ ಅಥವಾ ಒಪ್ಪಂದ ಮುರಿದು ಮೋಸ ಮಾಡುವ ಗಂಭೀರ ಸಂಕಷ್ಟ ಜಾತಕದಲ್ಲಿದೆ; ತಕ್ಷಣವೇ ಲೆಕ್ಕ ಪರಿಶೀಲನೆ ಅಗತ್ಯ."
+  : "ಪಾಲುದಾರಿಕೆಯಲ್ಲಿ ಸಣ್ಣಪುಟ್ಟ ಸಂವಹನ ಕೊರತೆ ಇರಬಹುದಾದರೂ, ವ್ಯವಹಾರದಲ್ಲಿ ದೊಡ್ಡ ವಂಚನೆ ಅಥವಾ ನಂಬಿಕೆದ್ರೋಹದ ಅಪಾಯವಿಲ್ಲ."
+}
+
+• 🎯 ಶಾಸ್ತ್ರೀಯ ಕಾರಣ & ಗ್ರಹ ಸ್ಥಿತಿ: ನಿಮ್ಮ 7ನೇ ಪಾಲುದಾರಿಕೆ/ವಾಣಿಜ್ಯ ಸ್ಥಾನದಲ್ಲಿ ${seventhLordKn} ಹಾಗೂ ಬುಧ-ರಾಹುವಿನ ನೆರಳು ಪ್ರಭಾವವಿದೆ. ${
+  isPartnerRisk
+    ? "ಪಾಲುದಾರರು ನಿಮ್ಮ ಬೆನ್ನಹಿಂದೆ ರಹಸ್ಯ ವ್ಯವಹಾರ ನಡೆಸುವುದು, ಜಂಟಿ ಖಾತೆಯ ಹಣವನ್ನು ದುರುಪಯೋಗಪಡಿಸಿಕೊಳ್ಳುವುದು ಅಥವಾ ಹೂಡಿಕೆಯ ಪಾಲಿನಲ್ಲಿ ಅನ್ಯಾಯ ಮಾಡುವ ಅಪಾಯವಿದೆ. ಕುರುಡು ನಂಬಿಕೆ ಬಿಟ್ಟು ಪ್ರತಿಯೊಂದು ವಹಿವಾಟನ್ನು ಕಾನೂನುಬದ್ಧ ದಾಖಲೆಗಳೊಂದಿಗೆ ಪರಿಶೀಲಿಸಿ."
+    : "ಪಾಲುದಾರಿಕೆ ನಿಯಮಗಳನ್ನು ಸ್ಪಷ್ಟವಾಗಿ ದಾಖಲಿಸಿಕೊಂಡು ಮುನ್ನಡೆದರೆ ವ್ಯಾಪಾರ ಸುರಕ್ಷಿತವಾಗಿರಲಿದೆ."
+}
+
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ / ತಿರುವು: ಪ್ರಸ್ತುತ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ಅವಧಿಯಲ್ಲಿ, ಇನ್ನು ${cls.reliefTimelineKn} ಪಾಲುದಾರಿಕೆ ಒಪ್ಪಂದವನ್ನು ಪುನರ್ವಿಮರ್ಶಿಸಲು ಅಥವಾ ಪ್ರತ್ಯೇಕ ಸ್ವತಂತ್ರ ವ್ಯಾಪಾರ ಆರಂಭಿಸಲು ಶುಭ ಯೋಗವಿದೆ.
+
+• 🪔 ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಪರಿಹಾರ & ಮಾರ್ಗೋಪಾಯ: ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಮಹಾಗಣಪತಿ ಸಂಕಲ್ಪ ಪೂಜೆ ಮತ್ತು ಬುಧ ಶಾಂತಿ ನೆರವೇರಿಸಿ. ವ್ಯಾಪಾರ ಸ್ಥಳದಲ್ಲಿ ನಿತ್ಯ ಗಣಪತಿ ಅಥರ್ವಶೀರ್ಷ ಪಠಿಸಿ.`
+      );
+    } else {
+      return (
+`Namaskara ${devoteeNameFormatted}, I have analyzed your birth chart regarding business partnerships, accounts, and trust dynamics.
+
+• 🔮 Direct Daivajna Verdict: ${isPartnerRisk
+  ? "YES. Severe risk of business partner betrayal, undisclosed parallel bookkeeping, diversion of revenues, and breach of contractual trust. Immediate auditing is imperative."
+  : "NO deep malicious fraud detected; minor transparency frictions can be reconciled through formalized contracts."
+}
+
+• 🎯 Astrological Root Cause & Planetary Alignment: The 7th house of partnerships (${seventhLordKn}) and Mercury (commerce) are under affliction, prompting covert maneuvers and unequal profit-sharing.
+
+• ⏳ Accurate Timeline / Turning Point: Under ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary}, contractual restructuring or a transition toward independent enterprise is recommended within ${cls.reliefTimelineEn}.
+
+• 🪔 Prescribed Remedies & Solution: Perform Mahaganapati Sankalpa Pooja and Mercury Shanti at holy Sri Kshetra Gokarna.`
+      );
+    }
+  }
+
+  // 0C. PROPERTY SHARE & ANCESTRAL PARTITION DISPUTE (ಆಸ್ತಿ ಪಾಲು / ಮನೆಯ ಹಕ್ಕು / ವಿಭಾಗ ಕಲಹ)
+  if (isPropertyDisputeQuery) {
+    const isMarsSaturnAfflicted = mars && saturn && (
+      [4, 8, 12].includes(mars.house) || [4, 8, 12].includes(saturn.house) ||
+      Math.abs(mars.house - saturn.house) === 0 ||
+      (fourthLordPlanet && [6, 8, 12].includes(fourthLordPlanet.house))
+    );
+    if (isKn) {
+      return sanitizeAstrologyKannadaText(
+`ನಮಸ್ಕಾರ ${devoteeNameFormatted}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕವನ್ನು ಆಸ್ತಿ ಪಾಲು, ಪಿತ್ರಾರ್ಜಿತ ಭೂಮಿ ಹಾಗೂ ಮನೆಯ ವಿಭಾಗದ ವಿಷಯದಲ್ಲಿ ಕೂಲಂಕಷವಾಗಿ ನೋಡಿದೆ.
+
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ${isMarsSaturnAfflicted || cls.category === "property_share_dispute"
+  ? "ಹೌದು! ಜಾತಕದಲ್ಲಿ ಪಿತ್ರಾರ್ಜಿತ ಆಸ್ತಿ ಪಾಲು, ಜಮೀನು ಅಥವಾ ಮನೆಯ ಹಕ್ಕಿನ ವಿಷಯದಲ್ಲಿ ತೀವ್ರ ವಿವಾದ, ಸಹೋದರರು/ಜ್ಞಾತಿಗಳಿಂದ ಅಡೆತಡೆ ಹಾಗೂ ಕಾನೂನು ಅಥವಾ ಪಂಚಾಯಿತಿ ಜಟಾಪಟಿಯ ಸ್ಪಷ್ಟ ಲಕ್ಷಣಗಳಿವೆ."
+  : "ಆಸ್ತಿ ಪಾಲಿನಲ್ಲಿ ಆರಂಭಿಕ ಮಾತಿನ ಚಕಮಕಿ ಇದ್ದರೂ, ಮಧ್ಯಸ್ಥಿಕೆ ಅಥವಾ ಹಿರಿಯರ ಸಮ್ಮುಖದಲ್ಲಿ ನ್ಯಾಯಯುತವಾಗಿ ಪಾಲು ಇತ್ಯರ್ಥವಾಗುವ ಯೋಗವಿದೆ."
+}
+
+• 🎯 ಶಾಸ್ತ್ರೀಯ ಕಾರಣ & ಗ್ರಹ ಸ್ಥಿತಿ: ಭೂಮಿ-ಕಾರಕ ಕುಜ (${mars ? toKannadaPlanet(mars.name) : "ಕುಜ"}), 4ನೇ ಗೃಹ/ಮಾತೃ ಸ್ಥಾನಾಧಿಪತಿ ${fourthLordKn} ಮತ್ತು ಶನಿಯ ದೃಷ್ಟಿಯು ಆಸ್ತಿ ವಿಭಾಗದ ಶಾಂತಿಯನ್ನು ಕದಡುತ್ತಿದೆ. ${
+  isMarsSaturnAfflicted || cls.category === "property_share_dispute"
+    ? "ದಾಖಲೆಗಳಲ್ಲಿನ ಲೋಪದೋಷಗಳು, ಸಹೋದರರಲ್ಲಿನ ಜಿಪುಣತನ ಅಥವಾ ಹಕ್ಕಿನ ತಿಕ್ಕಾಟದಿಂದಾಗಿ ಆಸ್ತಿ ಮಾರಾಟ ಅಥವಾ ವಿಭಾಗಕ್ಕೆ ಕೃತಕ ಅಡೆತಡೆ ಉಂಟಾಗುತ್ತಿದೆ."
+    : "ಗ್ರಹಗಳು ಶುಭ ಸ್ಥಾನದಲ್ಲಿರುವುದರಿಂದ ಸೌಹಾರ್ದಯುತ ಮಾತುಕತೆಯಿಂದ ಆಸ್ತಿ ಪಾಲು ಇತ್ಯರ್ಥ ಸಾಧ್ಯ."
+}
+
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ / ತಿರುವು: ಪ್ರಸ್ತುತ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ಅವಧಿಯಲ್ಲಿ, ಇನ್ನು ${cls.reliefTimelineKn} ಆಸ್ತಿ ವಿವಾದದಲ್ಲಿ ಮಹತ್ವದ ಒಡಂಬಡಿಕೆ ಅಥವಾ ನಿರ್ಣಾಯಕ ತಿರುವು ಲಭಿಸಲಿದೆ.
+
+• 🪔 ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಪರಿಹಾರ & ಮಾರ್ಗೋಪಾಯ: ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ಭೂ-ವರಾಹ & ಸುಬ್ರಹ್ಮಣ್ಯ ಶಾಂತಿ ಸೇವೆ ಸಲ್ಲಿಸಿ. ಮನೆಯಲ್ಲಿ ಪ್ರತಿದಿನ ಭೂಮಿ ಸೂಕ್ತ ಅಥವಾ ಸುಬ್ರಹ್ಮಣ್ಯ ಅಷ್ಟಕಂ ಪಠಿಸಿ.`
+      );
+    } else {
+      return (
+`Namaskara ${devoteeNameFormatted}, I have analyzed your birth chart regarding property division, ancestral land, and family house share.
+
+• 🔮 Direct Daivajna Verdict: ${isMarsSaturnAfflicted || cls.category === "property_share_dispute"
+  ? "YES. The horoscope indicates severe contention, sibling/kinsmen friction, and legal or mediation bottlenecks over ancestral property, home partition, or land titles."
+  : "While minor initial disputes exist, ancestral property will partition amicably through elders' mediation without permanent loss."
+}
+
+• 🎯 Astrological Root Cause & Planetary Alignment: Bhoomi-karaka Mars, 4th lord of landed estates ${fourthLordKn}, and Saturnian friction afflict title settlement and family consensus.
+
+• ⏳ Accurate Timeline / Turning Point: Under ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary}, decisive property breakthrough and settlement materialize within ${cls.reliefTimelineEn}.
+
+• 🪔 Prescribed Remedies & Solution: Perform Bhu-Varaha and Subrahmanya Shanti at holy Sri Kshetra Gokarna Kotiteertha to dissolve land encumbrances.`
+      );
+    }
+  }
+
+  // 0D. ACCURATE SPECIFIC PROFESSION DETERMINATION (ನಿಖರ ವೃತ್ತಿ & ಕಾರ್ಯಕ್ಷೇತ್ರ ನಿರ್ಣಯ - Which work is he doing?)
+  if (isSpecificProfessionQuery) {
+    if (isKn) {
+      return sanitizeAstrologyKannadaText(
+`ನಮಸ್ಕಾರ ${devoteeNameFormatted}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕದ 10ನೇ ಕರ್ಮ ಸ್ಥಾನ, ಜೈಮಿನಿ ಅಮಾತ್ಯಕಾರಕ ಹಾಗೂ ನವಾಂಶವನ್ನು ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಪರಿಶೀಲಿಸಿ ನಿಮ್ಮ ನಿಖರ ವೃತ್ತಿಯನ್ನು ನಿರ್ಣಯಿಸಿದ್ದೇನೆ.
+
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ಜಾತಕರ ನಿಖರ ವೃತ್ತಿ & ಕಾರ್ಯಕ್ಷೇತ್ರ: ${prof.titleKn} (${prof.specificRoleKn}) — ${prof.confidenceScore}% ನಿಖರ ಶಾಸ್ತ್ರೀಯ ಹೊಂದಾಣಿಕೆ.
+
+• 🎯 ಶಾಸ್ತ್ರೀಯ ಕರ್ಮ ಸ್ಥಾನ & ಗ್ರಹ ಸಂಯೋಗ: ${prof.astrologicalBasisKn}
+
+• 🏢 ದಿನನಿತ್ಯದ ಕಾರ್ಯಕ್ಷೇತ್ರ & ಪರಿಸರ: ${prof.workEnvironmentKn}
+
+• 🪐 ಶಾಸ್ತ್ರೀಯ ಆಧಾರ ಸ್ತಂಭಗಳು:
+  1. ಜೈಮಿನಿ ಅಮಾತ್ಯಕಾರಕ (AmK): ${prof.amatyakarakaPlanetKn} — ಜೀವನಾಧಾರ ಕೌಶಲ್ಯ ಹಾಗೂ ವೃತ್ತಿ ಕರ್ಮದ ಅಧಿಪತಿ.
+  2. 10ನೇ ಕರ್ಮ ಸ್ಥಾನ: ${prof.tenthHouseSignKn} ರಾಶಿ (ಅಧಿಪತಿ ${prof.primaryPlanetKn}).
+${prof.secondaryAlternativeKn ? `• 🔄 ಪರ್ಯಾಯ / ಉಪ-ವೃತ್ತಿ ಅವಕಾಶ: ${prof.secondaryAlternativeKn}.` : ""}
+
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ / ತಿರುವು: ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ಕಾಲದಲ್ಲಿ, ಇನ್ನು ${dashaTimeText} ನಿಮ್ಮ ವೃತ್ತಿ ಕ್ಷೇತ್ರದಲ್ಲಿ ಉನ್ನತ ಸ್ಥಾನಮಾನ, ನೂತನ ಜವಾಬ್ದಾರಿ ಹಾಗೂ ಆರ್ಥಿಕ ಮನ್ನಣೆ ದೊರೆಯಲಿದೆ.
+
+• 🪔 ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಪರಿಹಾರ & ಮಾರ್ಗೋಪಾಯ: ವೃತ್ತಿ ಕ್ಷೇತ್ರದ ನಿರಂತರ ಯಶಸ್ಸಿಗಾಗಿ ನಿಮ್ಮ ಭಾಗ್ಯಾಧಿಪತಿಯ ${prescriptions.gemstoneRing.primaryGemstoneKn} (${prescriptions.gemstoneRing.caratWeight}) ರತ್ನವನ್ನು ${prescriptions.gemstoneRing.metalKn}ದಲ್ಲಿ ಧಾರಣೆ ಮಾಡಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ರುದ್ರಾಭಿಷೇಕ ಮತ್ತು ಗಣಪತಿ ಹವನ ಸಮರ್ಪಿಸಿ.`
+      );
+    } else {
+      return (
+`Namaskara ${devoteeNameFormatted}, I have analyzed your 10th house of vocation, Jaimini Amatyakaraka, and Navamsha to pinpoint your accurate profession.
+
+• 🔮 Direct Daivajna Verdict: Native's Accurate Profession: ${prof.titleEn} (${prof.specificRoleEn}) — [${prof.confidenceScore}% Classical Alignment].
+
+• 🎯 Astrological Root Cause & Planetary Alignment: ${prof.astrologicalBasisEn}
+
+• 🏢 Daily Work Environment: ${prof.workEnvironmentEn}
+
+• 🪐 Classical Astrological Pillars:
+  1. Jaimini Amatyakaraka (AmK): ${prof.amatyakarakaPlanetEn} — prime significator of vocational craft and livelihood.
+  2. 10th House of Career: ${prof.tenthHouseSignEn} (governed by ${prof.primaryPlanetEn}).
+${prof.secondaryAlternativeEn ? `• 🔄 Secondary / Alternative Vocation: ${prof.secondaryAlternativeEn}.` : ""}
+
+• ⏳ Accurate Timeline / Turning Point: Under ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary}, major vocational acceleration and recognition unfold within ${dashaTimeTextEn}.
+
+• 🪔 Prescribed Remedies & Solution: Wear ${prescriptions.gemstoneRing.primaryGemstoneEn} (${prescriptions.gemstoneRing.caratWeight}) set in ${prescriptions.gemstoneRing.metalEn} and sponsor Rudrabhisheka at Sri Kshetra Gokarna Mahabaleshwara.`
+      );
+    }
+  }
+
   // 1. CHILD BEHAVIOR & CRYING CONSULTATION
-  if (isChild || isChildQuery) {
+  if ((isChildQuery || isChild) && !isAddictionQuery && !isAffairQuery && !isSpeculationQuery && !isIllegalQuery && !isMarriageQuery && !isDebtQuery && !isFinanceCareerQuery) {
     if (isKn) {
       return sanitizeAstrologyKannadaText(
 `ನಮಸ್ಕಾರ ${devoteeNameFormatted}, ನಾನ್ ನಿಮ್ಮ ಮಗುವಿನ ಜಾತಕವನ್ನು ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದೆ.
@@ -3246,36 +5380,44 @@ export const generateVedicConsultationAnswer = (
     }
   }
 
-  // 2. ALCOHOL & ADDICTIONS CONSULTATION
+  // 2. ALCOHOL & ADDICTIONS CONSULTATION (Teetotaler Guaranteed)
   if (isAddictionQuery) {
     if (isKn) {
       return sanitizeAstrologyKannadaText(
 `ನಮಸ್ಕಾರ ${devoteeNameFormatted}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕವನ್ನು ಮದ್ಯಪಾನ ಹಾಗೂ ವ್ಯಸನಗಳ ನೈಜ ಸ್ಥಿತಿಯ ದೃಷ್ಟಿಯಿಂದ ನಿಖರವಾಗಿ ನೋಡಿದೆ.
 
 • 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ${
-  isDailyDrinking
+  isChild
+    ? `ಇಲ್ಲ! ಇದು ಕೇವಲ ${devoteeAge} ವರ್ಷದ ಮುಗ್ಧ ಬಾಲಕನ ಜಾತಕವಾಗಿದ್ದು, ಮದ್ಯಪಾನ ಅಥವಾ ಯಾವುದೇ ದುಶ್ಚಟಗಳ ಲಕ್ಷಣಗಳಿಲ್ಲ. ಮಗು ನೈಸರ್ಗಿಕವಾಗಿ ಸಾತ್ವಿಕ ಆಹಾರ ಸಂಸ್ಕಾರವುಳ್ಳ ಮುಗ್ಧ ಬಾಲಕ.`
+    : isTeetotaler
+    ? "ಇಲ್ಲ! ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಮದ್ಯಪಾನ ಅಥವಾ ದುಶ್ಚಟಗಳ ಯಾವುದೇ ಲಕ್ಷಣಗಳಿಲ್ಲ. ನೀವು ನೈಸರ್ಗಿಕವಾಗಿ ಸಾತ್ವಿಕ ಆಹಾರ ಪ್ರಿಯರು (Teetotaler) ಹಾಗೂ ಸಾತ್ವಿಕ ಆಹಾರ ಸಂಸ್ಕಾರವುಳ್ಳ ಪರಿಶುದ್ಧ ವ್ಯಕ್ತಿ."
+    : isDailyDrinking
     ? "ಹೌದು! ಜಾತಕದಲ್ಲಿ ನಿತ್ಯ ಮದ್ಯಪಾನ (Daily Drinking Habit) ಹಾಗೂ ಸಂಜೆಯಾಗುತ್ತಿದ್ದಂತೆ ಅಮಲು ಪದಾರ್ಥಗಳ ಸೆಳೆತಕ್ಕೆ ಒಳಗಾಗುವ ಗಂಭೀರ ವ್ಯಸನದ ಲಕ್ಷಣಗಳಿವೆ."
     : isSocialDrinking
     ? "ಭಾಗಶಃ ಹೌದು. ಇದು ದಿನನಿತ್ಯದ ಚಟವಲ್ಲದಿದ್ದರೂ ಸ್ನೇಹಿತರ ಸಹವಾಸ ಹಾಗೂ ಪಾರ್ಟಿಗಳಲ್ಲಿ ಸಾಮಾಜಿಕ ಮದ್ಯಪಾನ (Social Drinking) ಅಭ್ಯಾಸವಾಗಿ ಬೆಳೆಯುವ ಅಪಾಯವಿದೆ."
     : "ಇಲ್ಲ! ನಿಮ್ಮ 2ನೇ ಮುಖ/ಆಹಾರ ಸ್ಥಾನ ಹಾಗೂ ಲಗ್ನವು ಸಾತ್ವಿಕವಾಗಿದ್ದು, ಜಾತಕದಲ್ಲಿ ಮದ್ಯಪಾನ ಅಥವಾ ಅಮಲು ಪದಾರ್ಥಗಳ ಯಾವುದೇ ಗಂಭೀರ ವ್ಯಸನದ ಲಕ್ಷಣಗಳಿಲ್ಲ."
 }
 
-• 🎯 ಶಾಸ್ತ್ರೀಯ ಕಾರಣ & ಗ್ರಹ ಸ್ಥಿತಿ: ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ 2ನೇ ಆಹಾರ/ಮುಖ ಸ್ಥಾನ ${saturn?.house === 8 ? "8ನೇ ಮನೆಯಲ್ಲಿರುವ ಶನಿಯ 7ನೇ ನೇರ ದೃಷ್ಟಿಗೆ ಒಳಗಾಗಿದೆ — ಇದು ಶಾಸ್ತ್ರದಲ್ಲಿ ನಿತ್ಯ ಮದ್ಯಪಾನದ ಪ್ರಬಲ ಸಂಕೇತ." : ([saturn, rahu, mars, ketu].some(p => p && p.house === 2) ? "2ನೇ ಮನೆಯಲ್ಲೇ ಪಾಪಗ್ರಹಗಳು ಸ್ಥಿತವಾಗಿದ್ದು ಮುಖದ ಸೇವನೆಯನ್ನು ಕೆಡಿಸುತ್ತಿವೆ." : "ಮತ್ತು 8ನೇ ರಹಸ್ಯ ಸ್ಥಾನಗಳ ಮೇಲೆ ಪಾಪಗ್ರಹಗಳ ನೆರಳು ಪ್ರಭಾವವಿದೆ.")} ${
-  isDailyDrinking
-    ? "ಸಂಜೆಯಾಗುತ್ತಿದ್ದಂತೆ ಅಥವಾ ಮಾನಸಿಕ ಒತ್ತಡ ಎದುರಾದಾಗ ಮದ್ಯದ ಸೆಳೆತ ನಿಯಂತ್ರಣ ಮೀರುತ್ತದೆ. ಇದರಿಂದ ಯಕೃತ್ತು (Liver), ನರಮಂಡಲ ಹಾಗೂ ಕೌಟುಂಬಿಕ ನೆಮ್ಮದಿ ಕ್ಷೀಣಿಸುವ ಅಪಾಯವಿದೆ."
-    : isSocialDrinking
-    ? "ಸ್ನೇಹಿತರ ಒತ್ತಾಯ ಅಥವಾ ಮನರಂಜನೆಯ ನೆಪದಲ್ಲಿ ಆರಂಭವಾಗುವ ಪಾನೀಯ ಸೇವನೆ ಕ್ರಮೇಣ ಅಭ್ಯಾಸವಾಗದಂತೆ ಎಚ್ಚರಿಕೆ ಅಗತ್ಯ."
-    : "ನಿಮ್ಮ 2ನೇ ಸ್ಥಾನವು ಸಾತ್ವಿಕವಾಗಿದ್ದು, ಆತ್ಮಬಲದಿಂದ ಆರೋಗ್ಯಕರ ಜೀವನಶೈಲಿಯನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳುತ್ತಿದ್ದೀರಿ."
+• 🎯 ಶಾಸ್ತ್ರೀಯ ಕಾರಣ & ಗ್ರಹ ಸ್ಥಿತಿ: ${
+  isTeetotaler
+    ? "ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ 2ನೇ ಮುಖ/ಆಹಾರ ಸ್ಥಾನ ಹಾಗೂ ದ್ವಿತೀಯಾಧಿಪತಿಗೆ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ದೈವಿಕ ದೃಷ್ಟಿ ಹಾಗೂ ಸಾತ್ವಿಕ ಗ್ರಹಗಳ ರಕ್ಷಣೆಯಿದೆ. ಇದು ನೈಸರ್ಗಿಕವಾಗಿ ಯಾವುದೇ ಮಾದಕ ವ್ಯಸನಗಳಿಂದ ದೂರವಿರುವ ಶುದ್ಧ ಸಂಸ್ಕಾರ ಹಾಗೂ ಇಂದ್ರಿಯ ನಿಗ್ರಹವನ್ನು ಕರುಣಿಸಿದೆ."
+    : `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ 2ನೇ ಆಹಾರ/ಮುಖ ಸ್ಥಾನ ${saturn?.house === 8 ? "8ನೇ ಮನೆಯಲ್ಲಿರುವ ಶನಿಯ 7ನೇ ನೇರ ದೃಷ್ಟಿಗೆ ಒಳಗಾಗಿದೆ — ಇದು ಶಾಸ್ತ್ರದಲ್ಲಿ ನಿತ್ಯ ಮದ್ಯಪಾನದ ಪ್ರಬಲ ಸಂಕೇತ." : ([saturn, rahu, mars, ketu].some(p => p && p.house === 2) ? "2ನೇ ಮನೆಯಲ್ಲೇ ಪಾಪಗ್ರಹಗಳು ಸ್ಥಿತವಾಗಿದ್ದು ಮುಖದ ಸೇವನೆಯನ್ನು ಕೆಡಿಸುತ್ತಿವೆ." : "ಮತ್ತು 8ನೇ ರಹಸ್ಯ ಸ್ಥಾನಗಳ ಮೇಲೆ ಪಾಪಗ್ರಹಗಳ ನೆರಳು ಪ್ರಭಾವವಿದೆ.")} ${
+      isDailyDrinking
+        ? "ಸಂಜೆಯಾಗುತ್ತಿದ್ದಂತೆ ಅಥವಾ ಮಾನಸಿಕ ಒತ್ತಡ ಎದುರಾದಾಗ ಮದ್ಯದ ಸೆಳೆತ ನಿಯಂತ್ರಣ ಮೀರುತ್ತದೆ. ಇದರಿಂದ ಯಕೃತ್ತು (Liver), ನರಮಂಡಲ ಹಾಗೂ ಕೌಟುಂಬಿಕ ನೆಮ್ಮದಿ ಕ್ಷೀಣಿಸುವ ಅಪಾಯವಿದೆ."
+        : isSocialDrinking
+        ? "ಸ್ನೇಹಿತರ ಒತ್ತಾಯ ಅಥವಾ ಮನರಂಜನೆಯ ನೆಪದಲ್ಲಿ ಆರಂಭವಾಗುವ ಪಾನೀಯ ಸೇವನೆ ಕ್ರಮೇಣ ಅಭ್ಯಾಸವಾಗದಂತೆ ಎಚ್ಚರಿಕೆ ಅಗತ್ಯ."
+        : "ನಿಮ್ಮ 2ನೇ ಸ್ಥಾನವು ಸಾತ್ವಿಕವಾಗಿದ್ದು, ಆತ್ಮಬಲದಿಂದ ಆರೋಗ್ಯಕರ ಜೀವನಶೈಲಿಯನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳುತ್ತಿದ್ದೀರಿ."
+    }`
 }
 
 • ⏳ ನಿಖರ ಕಾಲಾವಧಿ / ತಿರುವು: ${
-  isDailyDrinking || isSocialDrinking
+  !isTeetotaler && (isDailyDrinking || isSocialDrinking)
     ? `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ಅವಧಿಯಲ್ಲಿ, ${dashaTimeText} ದೈವಿಕ ಸಂಕಲ್ಪ ಕೈಗೊಂಡರೆ ಈ ವ್ಯಸನದ ಸೆಳೆತದಿಂದ ಸಂಪೂರ್ಣ ಶಾಶ್ವತ ಮುಕ್ತಿ ಹೊಂದಲು ಸಾಧ್ಯ.`
     : `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ಅವಧಿಯಲ್ಲಿ ನಿಮ್ಮ ಸಾತ್ವಿಕ ಆತ್ಮಬಲ ಸದಾ ಸುರಕ್ಷಿತವಾಗಿರಲಿದೆ.`
 }
 
 • 🪔 ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಪರಿಹಾರ & ಮಾರ್ಗೋಪಾಯ: ${
-  isDailyDrinking || isSocialDrinking
+  !isTeetotaler && (isDailyDrinking || isSocialDrinking)
     ? "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ಆತ್ಮಲಿಂಗ ಸ್ಪರ್ಶ, ಪ್ರಾಯಶ್ಚಿತ್ತ ಮಹಾಸಂಕಲ್ಪ ಪೂಜೆ ಮತ್ತು ರಾಹು-ಕೇತು ಶಾಂತಿ ಸೇವೆ ಸಲ್ಲಿಸಿ. ಪ್ರತಿದಿನ ಪ್ರಾತಃಕಾಲ 'ಓಂ ನಮಃ ಶಿವಾಯ' ಪಂಚಾಕ್ಷರಿ ಮಂತ್ರವನ್ನು 108 ಬಾರಿ ಜಪಿಸಿ ಪವಿತ್ರ ತೀರ್ಥ ಸೇವಿಸುವುದರಿಂದ ಮದ್ಯದ ಅಮಲು ಸೆಳೆತ ಕ್ರಮೇಣ ನಾಶವಾಗಲಿದೆ."
     : "ದಿನನಿತ್ಯ ಪ್ರಾತಃಕಾಲ ಸೂರ್ಯ ಗಾಯತ್ರಿ ಜಪಿಸಿ ಹಾಗೂ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರನಿಗೆ ಕ್ಷೀರಾಭಿಷೇಕ ಸೇವೆ ಸಲ್ಲಿಸಿ ಸದಾ ಸಾತ್ವಿಕ ತೇಜಸ್ಸನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳಿ."
 }`
@@ -3285,18 +5427,32 @@ export const generateVedicConsultationAnswer = (
 `Namaskara ${devoteeNameFormatted}, I have analyzed your birth chart specifically regarding alcohol and substance tendencies.
 
 • 🔮 Direct Daivajna Verdict: ${
-  isDailyDrinking
+  isTeetotaler
+    ? "NO! There is absolutely NO signature of alcohol, smoking, or substance addiction in your horoscope. You are a natural teetotaler with wholesome sattvic dietary sanctity."
+    : isDailyDrinking
     ? "YES. The horoscope clearly indicates an authentic daily drinking habit and vulnerability to evening substance cravings."
     : isSocialDrinking
     ? "PARTIAL RISK. While not a constant daily addiction, peer-driven social drinking at gatherings carries a strong risk of developing into a recurring dependency."
     : "NO. Your 2nd house of oral intake and ascendant are sattvic; there is no astrological signature of chronic alcohol or substance addiction."
 }
 
-• 🎯 Astrological Root Cause & Planetary Alignment: The 2nd house of oral intake ${saturn?.house === 8 ? "receives the direct 7th aspect from Saturn in the 8th house — the classical signature of daily alcohol consumption." : ([saturn, rahu, mars, ketu].some(p => p && p.house === 2) ? "is directly occupied by malefics, corrupting dietary restraint." : "is under nodal and dusthana afflictions.")}
+• 🎯 Astrological Root Cause & Planetary Alignment: ${
+  isTeetotaler
+    ? "The 2nd house of oral intake and its lord receive the divine protective aspect of Jupiter, bestowing innate aversion to intoxicating substances and sustaining dietary purity."
+    : `The 2nd house of oral intake ${saturn?.house === 8 ? "receives the direct 7th aspect from Saturn in the 8th house — the classical signature of daily alcohol consumption." : ([saturn, rahu, mars, ketu].some(p => p && p.house === 2) ? "is directly occupied by malefics, corrupting dietary restraint." : "is under nodal and dusthana afflictions.")}`
+}
 
-• ⏳ Accurate Timeline / Turning Point: Under the current ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary}, committing to detox ${dashaTimeTextEn} will permanently dissolve the substance grip.
+• ⏳ Accurate Timeline / Turning Point: ${
+  !isTeetotaler && (isDailyDrinking || isSocialDrinking)
+    ? `Under the current ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary}, committing to detox ${dashaTimeTextEn} will permanently dissolve the substance grip.`
+    : `Under the current ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary}, your wholesome vitality and clean habits will continue to protect you.`
+}
 
-• 🪔 Prescribed Remedies & Solution: Perform Atma Linga Sparsha, Prayashchitta Sankalpa Pooja, and Rahu-Ketu Shanti at Sri Kshetra Gokarna Mahabaleshwara. Chant the Shiva Panchakshari Mantra 108 times at dawn to purify oral impulses.`
+• 🪔 Prescribed Remedies & Solution: ${
+  !isTeetotaler && (isDailyDrinking || isSocialDrinking)
+    ? "Perform Atma Linga Sparsha, Prayashchitta Sankalpa Pooja, and Rahu-Ketu Shanti at Sri Kshetra Gokarna Mahabaleshwara. Chant the Shiva Panchakshari Mantra 108 times at dawn to purify oral impulses."
+    : "Chant the Surya Gayatri Mantra at dawn and sponsor Ksheerabhisheka at Sri Kshetra Gokarna Mahabaleshwara to sustain your spiritual radiance."
+}`
       );
     }
   }
@@ -3443,7 +5599,159 @@ export const generateVedicConsultationAnswer = (
 
 • ⏳ Accurate Timeline / Turning Point: Under the running ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary}, maintain strict regulatory compliance within ${dashaTimeTextEn} to avoid severe legal penalties.
 
-• 🪔 Prescribed Remedies & Solution: Perform Rahu-Kala Sarpa Shanti and Subrahmanya Ashlesha Bali at Sri Kshetra Gokarna Kotiteertha. Channel your entrepreneurial fire into fully transparent, licensed enterprises.`
+• 🪔 Prescribed Remedies & Solution: Perform Rahu-Kalasarpa Shanti at Gokarna Kotiteertha and pursue only righteous, legally compliant ventures.`
+      );
+    }
+  }
+
+  // 5B. THEFT, FRAUD & EMBEZZLEMENT (Chora Yoga)
+  if (isTheftFraudQuery) {
+    const shades = currentDiagnosis.negativeShades ?? evaluateNativeNegativeShadesAndCriminality(kundli, { birthDate: "", birthTime: "", latitude: 0, longitude: 0, devoteeAge: age, gender });
+    if (isKn) {
+      return sanitizeAstrologyKannadaText(
+`ನಮಸ್ಕಾರ ${devoteeNameFormatted}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕವನ್ನು ಆರ್ಥಿಕ ಪ್ರಾಮಾಣಿಕತೆ ಹಾಗೂ ಚೋರ ಯೋಗದ ನೈಜ ಸ್ಥಿತಿಯ ದೃಷ್ಟಿಯಿಂದ ನೋಡಿದೆ.
+
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ${
+  !shades.financialIntegrity.hasRisk
+    ? "ಇಲ್ಲ! ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಕಳ್ಳತನ (ಚೋರ ಯೋಗ), ವಂಚನೆ, ಆರ್ಥಿಕ ನಂಬಿಕೆದ್ರೋಹ ಅಥವಾ ಅಕ್ರಮ ಸಂಪಾದನೆಯ ಯಾವುದೇ ಲಕ್ಷಣಗಳಿಲ್ಲ. ನೀವು ಅತ್ಯಂತ ಪ್ರಾಮಾಣಿಕ, ನ್ಯಾಯಯುತ ದುಡಿಮೆಯನ್ನು ನಂಬುವ ಪರಿಶುದ್ಧ ವ್ಯಕ್ತಿತ್ವ."
+    : "ಹೌದು, ಎಚ್ಚರಿಕೆ ಅಗತ್ಯ! ಶಾಸ್ತ್ರೋಕ್ತ ಚೋರ ಯೋಗ ಅಥವಾ ಆರ್ಥಿಕ ವಂಚನೆಯ ದುರ್ಬುದ್ಧಿ ಕಾಡುವ ಗ್ರಹ ಸ್ಥಿತಿ ಜಾತಕದಲ್ಲಿದೆ; ಯಾವುದೇ ಅಕ್ರಮ ಆಮಿಷಗಳಿಗೆ ಬಲಿಯಾಗಬಾರದು."
+}
+
+• 🎯 ಶಾಸ್ತ್ರೀಯ ಕಾರಣ & ಗ್ರಹ ಸ್ಥಿತಿ: ${cleanAstrologyText(shades.financialIntegrity.analysisKn)}
+
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ / ತಿರುವು: ${cleanAstrologyText(shades.activeDashaTriggerKn)}
+
+• 🪔 ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಪರಿಹಾರ & ಮಾರ್ಗೋಪಾಯ: ${cleanAstrologyText(shades.protectionRemedyKn)}`
+      );
+    } else {
+      return (
+`Namaskara ${devoteeNameFormatted}, I have scrutinized your birth chart regarding financial honesty and Chora Yoga.
+
+• 🔮 Direct Daivajna Verdict: ${
+  !shades.financialIntegrity.hasRisk
+    ? "NO! There is absolutely NO signature of theft, embezzlement, cheating, or financial fraud in your horoscope. You are an upright person dedicated to honest earnings."
+    : "CAUTION REQUIRED. Astrological indicators show vulnerability to financial fraud or theft tendencies under acute stress; maintain strict fiduciary ethics."
+}
+
+• 🎯 Astrological Root Cause & Planetary Alignment: ${cleanAstrologyText(shades.financialIntegrity.analysisEn)}
+
+• ⏳ Accurate Timeline / Turning Point: ${cleanAstrologyText(shades.activeDashaTriggerEn)}
+
+• 🪔 Prescribed Remedies & Solution: ${cleanAstrologyText(shades.protectionRemedyEn)}`
+      );
+    }
+  }
+
+  // 5C. VIOLENCE, ASSAULT & CRUELTY (Asura / Angaraka Yoga)
+  if (isViolenceMurderQuery) {
+    const shades = currentDiagnosis.negativeShades ?? evaluateNativeNegativeShadesAndCriminality(kundli, { birthDate: "", birthTime: "", latitude: 0, longitude: 0, devoteeAge: age, gender });
+    if (isKn) {
+      return sanitizeAstrologyKannadaText(
+`ನಮಸ್ಕಾರ ${devoteeNameFormatted}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕವನ್ನು ಶಾಂತಿ ಪ್ರವೃತ್ತಿ, ಕೋಪ ಹಾಗೂ ಕ್ರೌರ್ಯದ ನೈಜ ಸ್ಥಿತಿಯ ದೃಷ್ಟಿಯಿಂದ ನೋಡಿದೆ.
+
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ${
+  !shades.violenceAggression.hasRisk
+    ? "ಇಲ್ಲ! ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಹತ್ಯಾ ಯೋಗ, ಕ್ರೌರ್ಯ, ಮಾರಣಾಂತಿಕ ಹಲ್ಲೆ ಅಥವಾ ಹಿಂಸಾತ್ಮಕ ಅಪರಾಧದ ಯಾವುದೇ ಲವಲೇಶವೂ ಇಲ್ಲ. ನಿಮ್ಮ ಹೃದಯದಲ್ಲಿ ಸಹಜ ಕರುಣೆ, ಸೌಜನ್ಯ ಮತ್ತು ಅಹಿಂಸಾ ಧರ್ಮ ನೆಲೆಸಿದೆ."
+    : "ಹೌದು, ಉಗ್ರ ಕೋಪದ ಎಚ್ಚರಿಕೆ! ಜಾತಕದಲ್ಲಿ ಅಂಗಾರಕ-ಅಸುರ ಯೋಗದ ಪ್ರಭಾವವಿದ್ದು, ಆವೇಶದ ಕ್ಷಣದಲ್ಲಿ ಹಿಂಸೆ ಅಥವಾ ಮಾರಣಾಂತಿಕ ಹಲ್ಲೆಗೆ ಕೈಹಾಕುವ ವಿನಾಶಕಾರಿ ನೆರಳಿದೆ; ತಕ್ಷಣವೇ ಮನಸ್ಸನ್ನು ನಿಯಂತ್ರಿಸಿಕೊಳ್ಳುವುದು ಅಗತ್ಯ."
+}
+
+• 🎯 ಶಾಸ್ತ್ರೀಯ ಕಾರಣ & ಗ್ರಹ ಸ್ಥಿತಿ: ${cleanAstrologyText(shades.violenceAggression.analysisKn)}
+
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ / ತಿರುವು: ${cleanAstrologyText(shades.activeDashaTriggerKn)}
+
+• 🪔 ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಪರಿಹಾರ & ಮಾರ್ಗೋಪಾಯ: ${cleanAstrologyText(shades.protectionRemedyKn)}`
+      );
+    } else {
+      return (
+`Namaskara ${devoteeNameFormatted}, I have scrutinized your birth chart regarding temperamental aggression and violence.
+
+• 🔮 Direct Daivajna Verdict: ${
+  !shades.violenceAggression.hasRisk
+    ? "NO! There is absolutely NO signature of murderous violence, physical cruelty, or criminal assault in your horoscope. You are grounded in non-violence (Ahimsa) and compassion."
+    : "SEVERE CAUTION! Mars-Rahu affliction indicates volcanic explosive rage and violent confrontation when provoked; emotional self-restraint is paramount."
+}
+
+• 🎯 Astrological Root Cause & Planetary Alignment: ${cleanAstrologyText(shades.violenceAggression.analysisEn)}
+
+• ⏳ Accurate Timeline / Turning Point: ${cleanAstrologyText(shades.activeDashaTriggerEn)}
+
+• 🪔 Prescribed Remedies & Solution: ${cleanAstrologyText(shades.protectionRemedyEn)}`
+      );
+    }
+  }
+
+  // 5D. LEGAL CONFINEMENT & IMPRISONMENT (Bandhana Yoga)
+  if (isLegalBandhanaQuery) {
+    const shades = currentDiagnosis.negativeShades ?? evaluateNativeNegativeShadesAndCriminality(kundli, { birthDate: "", birthTime: "", latitude: 0, longitude: 0, devoteeAge: age, gender });
+    if (isKn) {
+      return sanitizeAstrologyKannadaText(
+`ನಮಸ್ಕಾರ ${devoteeNameFormatted}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕವನ್ನು ಕಾನೂನು ಗೌರವ ಹಾಗೂ ಬಂಧನ ಯೋಗದ (ಕಾರಾಗೃಹ ವಾಸ) ದೃಷ್ಟಿಯಿಂದ ನೋಡಿದೆ.
+
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ${
+  !shades.legalBandhana.hasRisk
+    ? "ಇಲ್ಲ! ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಬಂಧನ ಯೋಗ, ಪೊಲೀಸ್ ಕೇಸು ಅಥವಾ ಕಾರಾಗೃಹ ವಾಸದ ಯಾವುದೇ ಗ್ರಹ ದೋಷಗಳಿಲ್ಲ. ನೀವು ಸಮಾಜದಲ್ಲಿ ಕಾನೂನಿನ ಚೌಕಟ್ಟನ್ನು ಗೌರವಿಸುವ ಗೌರವಾನ್ವಿತ ಸತ್ಪ್ರಜೆ."
+    : "ಹೌದು, ಕಾನೂನು ಎಚ್ಚರಿಕೆ! ಡಾ. ಬಿ.ವಿ. ರಾಮನ್ ಅವರ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ಜಾತಕದಲ್ಲಿ ಬಂಧನ ಯೋಗದ (Bandhana Yoga #196) ಪ್ರಭಾವವಿದ್ದು, ಕಾನೂನು ಉಲ್ಲಂಘನೆ ಮಾಡಿದರೆ ಪೊಲೀಸ್ ತನಿಖೆ ಅಥವಾ ಕಾರಾಗೃಹ ವಾಸದ ಅಪಾಯವಿದೆ."
+}
+
+• 🎯 ಶಾಸ್ತ್ರೀಯ ಕಾರಣ & ಗ್ರಹ ಸ್ಥಿತಿ: ${cleanAstrologyText(shades.legalBandhana.analysisKn)}
+
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ / ತಿರುವು: ${cleanAstrologyText(shades.activeDashaTriggerKn)}
+
+• 🪔 ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಪರಿಹಾರ & ಮಾರ್ಗೋಪಾಯ: ${cleanAstrologyText(shades.protectionRemedyKn)}`
+      );
+    } else {
+      return (
+`Namaskara ${devoteeNameFormatted}, I have analyzed your birth chart regarding civic standing and legal confinement (Bandhana Yoga).
+
+• 🔮 Direct Daivajna Verdict: ${
+  !shades.legalBandhana.hasRisk
+    ? "NO! There is absolutely NO signature of imprisonment, arrest, or police custody in your horoscope. You are an upright, law-abiding citizen."
+    : "LEGAL CAUTION REQUIRED. Classical Bandhana Yoga signatures suggest vulnerability to state penalties, litigation, or confinement if involved in unlawful activities."
+}
+
+• 🎯 Astrological Root Cause & Planetary Alignment: ${cleanAstrologyText(shades.legalBandhana.analysisEn)}
+
+• ⏳ Accurate Timeline / Turning Point: ${cleanAstrologyText(shades.activeDashaTriggerEn)}
+
+• 🪔 Prescribed Remedies & Solution: ${cleanAstrologyText(shades.protectionRemedyEn)}`
+      );
+    }
+  }
+
+  // 5E. BAD COMPANY & DOWNWARD SPIRAL (Kusanga & Durmarga)
+  if (isBadCompanyQuery) {
+    const shades = currentDiagnosis.negativeShades ?? evaluateNativeNegativeShadesAndCriminality(kundli, { birthDate: "", birthTime: "", latitude: 0, longitude: 0, devoteeAge: age, gender });
+    if (isKn) {
+      return sanitizeAstrologyKannadaText(
+`ನಮಸ್ಕಾರ ${devoteeNameFormatted}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕವನ್ನು ಸತ್ಸಂಗ ಹಾಗೂ ಜೀವನದ ಹಾದಿಯ ದೃಷ್ಟಿಯಿಂದ ನೋಡಿದೆ.
+
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ${
+  !shades.conductDownwardPath.hasRisk
+    ? "ಇಲ್ಲ! ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ದುರ್ಮಾರ್ಗ ಅಥವಾ ಕುಸಂಗಕ್ಕೆ ಬಲಿಯಾಗುವ ದೋಷವಿಲ್ಲ. ನೀವು ಸತ್ಸಂಗ ಹಾಗೂ ಉತ್ತಮ ಸಂಸ್ಕಾರದಲ್ಲಿ ಮುನ್ನಡೆಯುವ ದೃಢ ಮನಸ್ಸಿನವರು."
+    : "ಹೌದು, ಎಚ್ಚರಿಕೆ ಅಗತ್ಯ! 9ನೇ ಧರ್ಮ ಸ್ಥಾನದಲ್ಲಿ ರಾಹುವಿನ ಪ್ರಭಾವದಿಂದಾಗಿ ಹಾದಿ ತಪ್ಪಿಸುವ ನಕಲಿ ಸ್ನೇಹಿತರು ಅಥವಾ ದುರ್ಮಾರ್ಗದ ಸೆಳೆತಕ್ಕೆ ಒಳಗಾಗುವ ಅಪಾಯವಿದೆ."
+}
+
+• 🎯 ಶಾಸ್ತ್ರೀಯ ಕಾರಣ & ಗ್ರಹ ಸ್ಥಿತಿ: ${cleanAstrologyText(shades.conductDownwardPath.analysisKn)}
+
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ / ತಿರುವು: ${cleanAstrologyText(shades.activeDashaTriggerKn)}
+
+• 🪔 ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಪರಿಹಾರ & ಮಾರ್ಗೋಪಾಯ: ${cleanAstrologyText(shades.protectionRemedyKn)}`
+      );
+    } else {
+      return (
+`Namaskara ${devoteeNameFormatted}, I have analyzed your birth chart regarding personal conduct and peer influences.
+
+• 🔮 Direct Daivajna Verdict: ${
+  !shades.conductDownwardPath.hasRisk
+    ? "NO! You are shielded from downward spirals and toxic peer influence; you walk an upright, dharmic path."
+    : "PEER CAUTION REQUIRED. Planetary tension in the 9th house cautions against toxic companions and illicit temptations that derail life goals."
+}
+
+• 🎯 Astrological Root Cause & Planetary Alignment: ${cleanAstrologyText(shades.conductDownwardPath.analysisEn)}
+
+• ⏳ Accurate Timeline / Turning Point: ${cleanAstrologyText(shades.activeDashaTriggerEn)}
+
+• 🪔 Prescribed Remedies & Solution: ${cleanAstrologyText(shades.protectionRemedyEn)}`
       );
     }
   }

@@ -100,8 +100,19 @@ export default function InstantReadingPage(): JSX.Element {
     void (async () => {
       setAiLoading(true);
       try {
+        const isFemale = session.input.gender === "Female";
+        const isTeetotaler = data.currentDiagnosis.goodBadAnalysis?.isTeetotaler ?? false;
+        const hasMaritalFidelity = data.currentDiagnosis.goodBadAnalysis?.hasMaritalFidelity ?? false;
+        const spouseTerm = isFemale ? "ಪತಿ (ಗಂಡ)" : "ಪತ್ನಿ (ಹೆಂಡತಿ)";
+        const negShades = data.currentDiagnosis.negativeShades;
+        const isNegClean = !negShades || negShades.overallScore <= 15 || negShades.isJupiterProtected || negShades.isChildShielded;
+        const cls = data.currentDiagnosis.currentLifeSituation;
+        const prof = data.currentDiagnosis.accurateProfession;
+
         const promptContext = `
 Devotee Name: ${session.input.name || "Devotee"}
+Gender: ${session.input.gender || "Not Specified"} (${isFemale ? "Female/ಸ್ತ್ರೀ" : "Male/ಪುರುಷ"})
+Age: ${devoteeAge} (${devoteeAge < 14 ? "Child / Minor (<14 years) - Protect innocence" : "Adult"})
 Birth Details: ${birthDate} at ${birthTime} (Lat: ${lat}, Lon: ${lon})
 Lagna: ${session.result.lagnaRashi.english} (${session.result.lagnaRashi.sanskrit})
 Moon Rashi: ${session.result.moonSign.english} (${session.result.moonSign.sanskrit})
@@ -118,20 +129,50 @@ Technical Astrological Placements:
 - 7th House (Partnership/Marriage): ${data.currentDiagnosis.technicalAspects.seventhHouseDetail}
 - 10th House (Career/Karma): ${data.currentDiagnosis.technicalAspects.tenthHouseDetail}
 - Running Dasha & Gochara: ${data.currentDiagnosis.prasthuthaSthiti.runningDashaSummary}
-- Current Challenge: ${data.currentDiagnosis.primaryLifeChallenge.area} -> ${data.currentDiagnosis.primaryLifeChallenge.description} (${data.currentDiagnosis.primaryLifeChallenge.planetaryRootCause})
+- Acute Current Life Reality (ಹಾಲಿ ಅನುಭವಿಸುತ್ತಿರುವ ವಾಸ್ತವ ಜೀವನ ಸ್ಥಿತಿ & ಸಂಕಷ್ಟಗಳು):
+  * Headline: ${cls?.headlineKn || data.currentDiagnosis.primaryLifeChallenge.description} (${cls?.headlineEn || data.currentDiagnosis.primaryLifeChallenge.descriptionEn})
+  * Detailed Reality: ${cls?.detailedRealityKn || data.currentDiagnosis.primaryLifeChallenge.description}
+  * Planetary Culprit: ${cls?.planetaryCulpritKn || data.currentDiagnosis.primaryLifeChallenge.planetaryRootCause}
+  * Key Daily Life Symptoms: ${cls?.symptomsChecklistKn.join(" | ") || ""}
+- Accurate Specific Profession Determination (ನಿಖರ ವೃತ್ತಿ & ಕಾರ್ಯಕ್ಷೇತ್ರ ನಿರ್ಣಯ - Which work is he doing?):
+  * Title: ${prof?.titleKn || ""} (${prof?.titleEn || ""})
+  * Specific Role: ${prof?.specificRoleKn || ""} (${prof?.specificRoleEn || ""})
+  * Work Environment: ${prof?.workEnvironmentKn || ""} (${prof?.workEnvironmentEn || ""})
+  * Classical Basis: ${prof?.astrologicalBasisKn || ""}
+  * Jaimini Amatyakaraka (AmK): ${prof?.amatyakarakaPlanetKn || ""}
+  * 10th House Sign: ${prof?.tenthHouseSignKn || ""} (Lord: ${prof?.primaryPlanetKn || ""})
+- Character & Dietary Verification:
+  * Diet / Substance: ${isTeetotaler ? "STRICT TEETOTALER (ಸಾತ್ವಿಕ ಆಹಾರಿ - Zero alcohol, zero drugs, clean vegetarian intake due to benefic/Guru protection on 2nd house). NEVER accuse of alcohol or drugs!" : "Prone to dietary imbalances under stress."}
+  * Marital Fidelity: ${hasMaritalFidelity ? `HIGH MARITAL FIDELITY (ದಾಂಪತ್ಯ ನಿಷ್ಠೆ - Pure 7th house). NEVER accuse of extramarital affairs! Always refer to spouse as '${spouseTerm}'.` : "Sensual vulnerabilities."}
+- Moral Integrity & Criminality Assessment:
+  * Overall Negative Shade Score: ${negShades ? negShades.overallScore : 0}/100 (${negShades?.categoryTitleEn || "Moral Purity"})
+  * Clean / Purity Status: ${isNegClean ? "100% CLEAN & MORALLY PURE (ಸರ್ವದೋಷ ವಿನಾಶನಃ - Protected by Jupiter/benefics. Absolutely ZERO criminal, theft, murder, violence, sexual assault, fraud, or prison yogas!). NEVER ACCUSE THIS NATIVE OF ANY CRIME, THEFT, VIOLENCE, EXTRAMARITAL SINS, OR FRAUD!" : "Has certain shadow propensities under malefic dasha/gochara"}
+  * 5 Dimension Details:
+    1. Sensual/Marital: ${negShades?.sensualMarital.analysisEn || "Clean"}
+    2. Financial/Theft: ${negShades?.financialIntegrity.analysisEn || "Clean"}
+    3. Violence/Cruelty: ${negShades?.violenceAggression.analysisEn || "Clean"}
+    4. Legal/Imprisonment: ${negShades?.legalBandhana.analysisEn || "Clean"}
+    5. Conduct/Bad Company: ${negShades?.conductDownwardPath.analysisEn || "Clean"}
 - Prescriptions: ${data.prescriptions.rudraksha.nameKn}, ${data.prescriptions.gemstoneRing.primaryGemstoneKn} (${data.prescriptions.gemstoneRing.caratWeight}) on ${data.prescriptions.gemstoneRing.fingerKn}.
 
 STRICT WRITING & ASTROLOGER PERSONA RULES:
 1. Speak DIRECTLY to the devotee in authoritative, deeply empathetic, face-to-face Vedic Astrologer spoken voice in 100% PURE ${isKn ? "Kannada" : "English"}. NO English words or foreign language mix-up.
 2. Use standard traditional Vedic planetary terminology: 'ರವಿ' (Ravi), 'ಕುಜ' (Kuja), 'ಗುರು' (Guru), 'ಶುಕ್ರ' (Shukra), 'ಶನಿ' (Shani), 'ಬುಧ' (Budha), 'ಚಂದ್ರ' (Chandra), 'ರಾಹು' (Rahu), 'ಕೇತು' (Ketu).
-3. ZERO CRISIS ASSUMPTIONS: DO NOT assume a tragedy, severe turmoil, or late-night 2:00 to 4:30 AM insomnia. Focus on genuine personality (dignified ego, unyielding conviction, refusal to bow to arbitrary commands), age-appropriate intellectual focus, career independence, and explicit Dosha analysis for relationships & children.
-4. Structure your response into 4 comprehensive paragraphs:
-   - Paragraph 1: Direct greeting ("ನಮಸ್ಕಾರ ${session.input.name || "ಭಕ್ತರೇ"}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕ ನೋಡಿದೆ."). Reveal their Lagna, Moon, 4th house and authentic dignified personality traits.
-   - Paragraph 2: Explain their current life focus and active challenge (${data.currentDiagnosis.primaryLifeChallenge.area} & ${data.currentDiagnosis.primaryLifeChallenge.description}) without generic misery assumptions.
-   - Paragraph 3: Explain the astrological planetary reality (10th/7th/4th house aspects & running Dasha-Bhukti). Give an exact turning-point timeline based on running Dasha-Bhukti remaining duration (${data.currentDiagnosis.dashaTiming?.timelineKn || "ಮುಂದಿನ ಕೆಲವೇ ತಿಂಗಳುಗಳಲ್ಲಿ"}) using ENGLISH DIGITS when breakthroughs occur.
+3. MANDATORY PARAGRAPH 1 DIRECT REALITY: The very first paragraph MUST start with what the person is currently going through in their real life right now (${cls?.headlineKn || data.currentDiagnosis.primaryLifeChallenge.description}). Reveal their running Dasha (${data.currentDiagnosis.prasthuthaSthiti.runningDashaSummary}), acute life reality, and planetary cause.
+4. MANDATORY PARAGRAPH 2 ACCURATE PROFESSION: Accurately declare which work the native is doing (${prof?.titleKn || ""} - ${prof?.specificRoleKn || ""}). Detail their day-to-day work environment and astrological foundation.
+5. Structure your response into 4 comprehensive paragraphs:
+   - Paragraph 1: Direct greeting ("ನಮಸ್ಕಾರ ${session.input.name || "ಭಕ್ತರೇ"}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕ ನೋಡಿದೆ."). IMMEDIATELY state what they are going through in their actual life (${cls?.headlineKn || data.currentDiagnosis.primaryLifeChallenge.description}), running Dasha, and acute planetary tension.
+   - Paragraph 2: State their accurate profession & vocation (${prof?.titleKn || ""}), specific role (${prof?.specificRoleKn || ""}), work environment (${prof?.workEnvironmentKn || ""}), and 10th house / Jaimini AmK basis.
+   - Paragraph 3: Explain the astrological planetary reality and give an exact turning-point timeline (${cls?.reliefTimelineKn || data.currentDiagnosis.dashaTiming?.timelineKn || "ಮುಂದಿನ ಕೆಲವೇ ತಿಂಗಳುಗಳಲ್ಲಿ"}) using ENGLISH DIGITS when breakthroughs occur.
    - Paragraph 4: Prescribe the exact remedies with precision: ${data.prescriptions.gemstoneRing.primaryGemstoneKn} (${data.prescriptions.gemstoneRing.caratWeight}), ${data.prescriptions.rudraksha.nameKn}, daily morning rituals, and Gokarna Mahabaleshwara Kshetra blessings.
-5. DO NOT use markdown bold asterisks (no ** or *). Use clean, plain text.
-6. ALL NUMBERS MUST BE IN ENGLISH DIGITS (e.g. 1, 2, 3, 4.25 - 6.5 Carat, 9 Mukhi, 7th house, 10th house, 3 to 6 months).
+6. DO NOT use markdown bold asterisks (no ** or *). Use clean, plain text.
+7. ALL NUMBERS MUST BE IN ENGLISH DIGITS (e.g. 1, 2, 3, 4.25 - 6.5 Carat, 9 Mukhi, 7th house, 10th house, 3 to 6 months).
+8. CHARACTER & GENDER ACCURACY:
+   - If Diet is TEETOTALER, highlight their clean, pure lifestyle (ಸಾತ್ವಿಕ ಆಹಾರ); NEVER accuse of alcohol, smoking, or drug habits.
+   - If Relationship is MARITAL FIDELITY, praise their devotion to family and spouse; NEVER accuse of cheating or extramarital affairs.
+   - If devotee is Female, NEVER use 'ಹೆಂಡತಿ' or 'ಪತ್ನಿ' to describe the native.
+   - If devotee is a Child (<14), focus purely on education, health, and parent guidance without adult topics.
+   - CRITICAL ZERO FALSE ACCUSATION OF CRIMINALITY/THEFT/VIOLENCE: If native has score <= 15 or Jupiter/benefic shield, you MUST NEVER accuse them of crime, theft, violence, murder, imprisonment, cheating, or sexual misconduct. Acknowledge and praise their clean moral integrity and character shield.
 `;
 
         const promptContextWithJson = `${promptContext}
@@ -140,10 +181,10 @@ OUTPUT FORMAT INSTRUCTIONS:
 Return a valid JSON object matching this schema:
 {
   "executiveReadingParagraphs": [
-    "Paragraph 1 (Direct Greeting, Lagna & Dignified Persona)",
-    "Paragraph 2 (Current Focus & Active Challenge)",
+    "Paragraph 1 (Direct Greeting & Acute Current Life Situation - ಹಾಲಿ ಅನುಭವಿಸುತ್ತಿರುವ ವಾಸ್ತವ ಜೀವನ ಸ್ಥಿತಿ)",
+    "Paragraph 2 (Accurate Specific Profession - ನಿಖರ ವೃತ್ತಿ & ಕಾರ್ಯಕ್ಷೇತ್ರ ನಿರ್ಣಯ: Which work is he doing?)",
     "Paragraph 3 (Planetary Reality & Turning Point Timeline in English digits)",
-    "Paragraph 4 (Practical Remedies & Blessings)"
+    "Paragraph 4 (Practical Remedies, Gemstone, Rudraksha & Gokarna Blessings)"
   ]
 }
 
@@ -241,14 +282,33 @@ STRICT RULES:
 
       if (geminiApiKey) {
         try {
+          const isFemaleQ = session.input.gender === "Female";
+          const spouseTermQ = isFemaleQ ? "ಪತಿ (ಗಂಡ)" : "ಪತ್ನಿ (ಹೆಂಡತಿ)";
+          const isTeetotalerQ = synthesisData.currentDiagnosis.goodBadAnalysis?.isTeetotaler ?? false;
+          const hasMaritalFidelityQ = synthesisData.currentDiagnosis.goodBadAnalysis?.hasMaritalFidelity ?? false;
+          const negShadesQ = synthesisData.currentDiagnosis.negativeShades;
+          const isNegCleanQ = !negShadesQ || negShadesQ.overallScore <= 15 || negShadesQ.isJupiterProtected || negShadesQ.isChildShielded;
+
           const contextData = `
 Devotee: ${session.input.name || "Devotee"}
-Gender: ${session.input.gender || "Not Specified"}
+Gender: ${session.input.gender || "Not Specified"} (${isFemaleQ ? "Female/ಸ್ತ್ರೀ" : "Male/ಪುರುಷ"})
 Age: ${devoteeAge} (${isChild ? "Child / Minor (<14 years)" : "Adult (>=14 years)"})
 Lagna: ${session.result.lagnaRashi.english} | Moon: ${session.result.moonSign.english} | Nakshatra: ${session.result.planets.find(p => p.name === "Moon")?.nakshatra.english}
 Panchanga 5-Angas: Vara=${synthesisData.panchanga.vara.nameKn}, Tithi=${synthesisData.panchanga.tithi.nameKn}, Yoga=${synthesisData.panchanga.yoga.nameKn}, Karana=${synthesisData.panchanga.karana.nameKn}
 Technical Placements: 4th=${synthesisData.currentDiagnosis.technicalAspects.fourthHouseDetail}, 7th=${synthesisData.currentDiagnosis.technicalAspects.seventhHouseDetail}, 10th=${synthesisData.currentDiagnosis.technicalAspects.tenthHouseDetail}.
 Dasha: ${synthesisData.currentDiagnosis.prasthuthaSthiti.runningDashaSummary}.
+Character & Morality Verification:
+- Dietary Intake / Addictions: ${isTeetotalerQ ? "STRICT TEETOTALER (ಸಾತ್ವಿಕ ಆಹಾರಿ - Zero alcohol, zero drugs, clean diet due to Guru/benefic protection on 2nd house). If asked about alcohol, drugs, or intoxicants, give an authoritative 'ಇಲ್ಲ!' verdict and celebrate their pure lifestyle." : "Prone to dietary imbalances or vices."}
+- Relationship Fidelity: ${hasMaritalFidelityQ ? `HIGH MARITAL FIDELITY (ದಾಂಪತ್ಯ ನಿಷ್ಠೆ - Pure 7th house). If asked about extramarital affairs/infidelity, give an authoritative 'ಇಲ್ಲ!' verdict praising their steadfast devotion to ${spouseTermQ}.` : "Sensual vulnerabilities."}
+- Moral Integrity & Criminality Assessment:
+  * Overall Negative Shade Score: ${negShadesQ ? negShadesQ.overallScore : 0}/100 (${negShadesQ?.categoryTitleEn || "Moral Purity"})
+  * Purity Shield: ${isNegCleanQ ? "100% CLEAN & FREE FROM CRIME, THEFT, FRAUD, VIOLENCE, MURDER, SEXUAL ASSAULT, IMPRISONMENT (Protected by Guru/benefics - ಸರ್ವದೋಷ ವಿನಾಶನಃ)" : "Shadow tendencies active"}
+  * Theft/Fraud Risk: ${negShadesQ?.financialIntegrity.hasRisk ? "Yes" : "NO (100% Honest/Clean)"}
+  * Violence/Murder Risk: ${negShadesQ?.violenceAggression.hasRisk ? "Yes" : "NO (100% Peaceful/Non-violent)"}
+  * Prison/Bandhana Risk: ${negShadesQ?.legalBandhana.hasRisk ? "Yes" : "NO (100% Law-abiding)"}
+  * Extramarital/Sensual Risk: ${negShadesQ?.sensualMarital.hasRisk ? "Yes" : "NO (100% Faithful)"}
+  * Bad Company/Downward Risk: ${negShadesQ?.conductDownwardPath.hasRisk ? "Yes" : "NO (100% Righteous Path)"}
+- Gender Awareness: ${isFemaleQ ? "Female native - NEVER use 'ಹೆಂಡತಿ' or 'ಪತ್ನಿ' for the native; spouse is husband ('ಪತಿ')" : "Male native - spouse is wife ('ಪತ್ನಿ')"}
 Prescriptions: ${synthesisData.prescriptions.rudraksha.nameKn}, ${synthesisData.prescriptions.gemstoneRing.primaryGemstoneKn} (${synthesisData.prescriptions.gemstoneRing.caratWeight}).
 
 Question from Devotee: "${q}"
@@ -257,14 +317,15 @@ Task: Give a deep, face-to-face conversational Vedic Pandit consultation respons
 "ನಮಸ್ಕಾರ ${session.input.name || "ಭಕ್ತರೇ"}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕ ನೋಡಿದೆ."
 
 Respond in crisp, structured bullet points directly answering the devotee's specific question. The very FIRST bullet point MUST be the direct verdict/answer:
-• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: Direct, unambiguous verdict in 1-2 powerful sentences (e.g., if asked about extramarital attraction: state clearly "ಇಲ್ಲ! ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಕಳತ್ರ ಸ್ಥಾನವು ಶುಭ ರಕ್ಷಣೆಯಲ್ಲಿದೆ..." or "ಹೌದು...", if marriage timing: give exact months, if debt: state clear clearance timeline). MUST be the 1st bullet point!
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: Direct, unambiguous verdict in 1-2 powerful sentences (e.g., if asked about extramarital attraction: state clearly "ಇಲ್ಲ! ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಕಳತ್ರ ಸ್ಥಾನವು ಶುಭ ರಕ್ಷಣೆಯಲ್ಲಿದೆ..." or "ಹೌದು...", if drinking/addiction asked for a teetotaler: state clearly "ಇಲ್ಲ! ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ 2ನೇ ಸ್ಥಾನವು ಗುರು ರಕ್ಷಣೆಯಲ್ಲಿದ್ದು, ಸಾತ್ವಿಕ ಆಹಾರ ಸಂಸ್ಕಾರವಿದೆ...", if crime/theft/violence asked for a clean native: state clearly "ಇಲ್ಲ! ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಶುಭ ಗ್ರಹಗಳ ಶ್ರೀರಕ್ಷೆಯಿದ್ದು, ಯಾವುದೇ ಕಳ್ಳತನ, ವಂಚನೆ, ಹಿಂಸೆ ಅಥವಾ ಅಪರಾಧದ ಕಳಂಕವಿಲ್ಲ...", if marriage timing: give exact months, if debt: state clear clearance timeline). MUST be the 1st bullet point!
 • 🎯 ಶಾಸ್ತ್ರೀಯ ಕಾರಣ & ಗ್ರಹ ಸ್ಥಿತಿ: Exact planetary positions, houses, dasha-bhukti, and gochara transits influencing this question and explaining why this verdict is true.
 • ⏳ ನಿಖರ ಕಾಲಾವಧಿ / ತಿರುವು: Exact turning point timeline in English digits calculated from running Dasha-Bhukti remaining duration (${synthesisData.currentDiagnosis.dashaTiming?.timelineKn || "ಮುಂದಿನ ಕೆಲವೇ ತಿಂಗಳುಗಳಲ್ಲಿ"}).
 • 🪔 ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಪರಿಹಾರ & ಮಾರ್ಗೋಪಾಯ: Prescribe authentic Vedic remedies, Gokarna Mahabaleshwara Shanti Pooja, and sacred practices to resolve this issue.
 
 STRICT RULES:
-- ZERO CONTRADICTIONS: If the answer is "ಇಲ್ಲ" (e.g. no extramarital affairs, morality is intact), DO NOT contradict yourself in subsequent bullets by warning about secret affairs leaking or prescribing lust suppression!
+- ZERO FALSE ACCUSATIONS & CONTRADICTIONS: If the native is a verified Teetotaler (ಸಾತ್ವಿಕ ಆಹಾರಿ), queries regarding alcohol/drugs MUST receive an authoritative 'ಇಲ್ಲ!' verdict. If verified Marital Fidelity, queries regarding infidelity MUST receive an authoritative 'ಇಲ್ಲ!' verdict. If verified Clean from crime/theft/violence, queries regarding criminality, theft, murder, violence, rape, or jail MUST receive an authoritative 'ಇಲ್ಲ!' verdict celebrating their moral purity. DO NOT contradict yourself in subsequent bullets!
 - DO NOT invent tragedies, crimes, or fake scandals.
+- Respect gender: For female natives, use '${isFemaleQ ? "ಪತಿ" : "ಪತ್ನಿ"}' for spouse.
 - DO NOT use markdown bold asterisks (no ** or *). Use clean, natural text.
 - ALL numbers must be in ENGLISH DIGITS (1, 2, 3, 4, 5, etc.).
 `;
@@ -402,116 +463,272 @@ STRICT RULES:
         </Card>
       ) : (
         <>
-          {/* 🚨 0. PRIMARY ACUTE LIFE CRISIS & IMMEDIATE EXIT STRATEGY (ಮುಖ್ಯ ಪ್ರಸ್ತುತ ಬಿಕ್ಕಟ್ಟು & ತ್ವರಿತ ಪರಿಹಾರ) 🚨 */}
-          {currentDiagnosis?.primaryLifeChallenge && (
-            <div className="rounded-3xl border-2 border-rose-400 bg-gradient-to-br from-rose-50/95 via-amber-50/70 to-white p-6 md:p-8 text-stone-950 shadow-xl space-y-5 ring-1 ring-rose-300">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-rose-200 pb-4">
-                <div className="flex items-center gap-3">
-                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-amber-500 text-white text-2xl shadow-md border border-rose-300">
-                    {currentDiagnosis.primaryLifeChallenge.area === "Personal / Marriage"
-                      ? "💍"
-                      : currentDiagnosis.primaryLifeChallenge.area === "Financial / Debts"
-                      ? "💰"
-                      : currentDiagnosis.primaryLifeChallenge.area === "Career / Workplace"
-                      ? "💼"
-                      : currentDiagnosis.primaryLifeChallenge.area === "Health / Vitality" || currentDiagnosis.primaryLifeChallenge.area === "Health / Physical"
-                      ? "🩺"
-                      : "⚡"}
-                  </span>
-                  <div>
-                    <span className="text-[11px] font-black uppercase tracking-wider text-rose-900 block">
-                      {isKn
-                        ? "॥ ಪ್ರಸ್ತುತ ತಕ್ಷಣದ ಜೀವಿತ ಬಿಕ್ಕಟ್ಟು & ಮುಕ್ತಿ ಮಾರ್ಗ (Primary Acute Life Crisis & Exit Strategy) ॥"
-                        : "॥ Primary Acute Life Crisis & Astrological Exit Strategy ॥"}
+          {/* 🚨 0. PRIMARY LIFE FOCUS, CRISIS RESOLUTION OR LIFE PHASE STRATEGY 🚨 */}
+          {currentDiagnosis?.primaryLifeChallenge && (() => {
+            const cls = currentDiagnosis.currentLifeSituation;
+            const isAcuteCrisis = cls
+              ? (cls.severity === "critical" || cls.severity === "high")
+              : [
+                  "Personal / Marriage",
+                  "Financial / Debts",
+                  "Career / Workplace",
+                  "Health / Vitality",
+                  "Health / Physical"
+                ].includes(currentDiagnosis.primaryLifeChallenge.area);
+
+            return (
+              <div
+                className={`rounded-3xl border-2 p-6 md:p-8 text-stone-950 shadow-xl space-y-5 transition-all ${
+                  isAcuteCrisis
+                    ? "border-rose-400 bg-gradient-to-br from-rose-50/95 via-amber-50/70 to-white ring-1 ring-rose-300"
+                    : "border-amber-400 bg-gradient-to-br from-amber-50/90 via-white to-amber-50/50 ring-1 ring-amber-300"
+                }`}
+              >
+                <div
+                  className={`flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b pb-4 ${
+                    isAcuteCrisis ? "border-rose-200" : "border-amber-200"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`flex h-12 w-12 items-center justify-center rounded-2xl text-2xl shadow-md border ${
+                        isAcuteCrisis
+                          ? "bg-gradient-to-br from-rose-500 to-amber-500 text-white border-rose-300"
+                          : "bg-gradient-to-br from-amber-400 to-yellow-500 text-amber-950 border-amber-300"
+                      }`}
+                    >
+                      {currentDiagnosis.primaryLifeChallenge.area === "Personal / Marriage"
+                        ? "💍"
+                        : currentDiagnosis.primaryLifeChallenge.area === "Financial / Debts"
+                        ? "💰"
+                        : currentDiagnosis.primaryLifeChallenge.area === "Career / Workplace"
+                        ? "💼"
+                        : currentDiagnosis.primaryLifeChallenge.area === "Health / Vitality" || currentDiagnosis.primaryLifeChallenge.area === "Health / Physical"
+                        ? "🩺"
+                        : "🧭"}
                     </span>
-                    <h3 className="text-base md:text-xl font-black text-rose-950 font-serif">
-                      {isKn 
-                        ? `${toKannadaRashi(session.result.lagnaRashi.english)} ಲಗ್ನ • ${cleanAstrologyText(currentDiagnosis.primaryLifeChallenge.areaKn || currentDiagnosis.primaryLifeChallenge.area)}`
-                        : `${session.result.lagnaRashi.english} Ascendant • ${cleanAstrologyText(currentDiagnosis.primaryLifeChallenge.area)}`}
-                    </h3>
+                    <div>
+                      <span
+                        className={`text-[11px] font-black uppercase tracking-wider block ${
+                          isAcuteCrisis ? "text-rose-900" : "text-amber-900"
+                        }`}
+                      >
+                        {isKn
+                          ? isAcuteCrisis
+                            ? "॥ ಪ್ರಸ್ತುತ ತಕ್ಷಣದ ಜೀವಿತ ಬಿಕ್ಕಟ್ಟು & ಮುಕ್ತಿ ಮಾರ್ಗ (Primary Acute Life Crisis & Exit Strategy) ॥"
+                            : "॥ ಪ್ರಸ್ತುತ ಜೀವಿತ ಘಟ್ಟ, ದಶಾ-ಗೋಚಾರ ಪ್ರಭಾವ & ಮುನ್ನಡೆ ಮಾರ್ಗ (Current Life Phase & Astrological Strategy) ॥"
+                          : isAcuteCrisis
+                          ? "॥ Primary Acute Life Crisis & Astrological Exit Strategy ॥"
+                          : "॥ Current Life Phase & Astrological Strategy ॥"}
+                      </span>
+                      <h3
+                        className={`text-base md:text-xl font-black font-serif ${
+                          isAcuteCrisis ? "text-rose-950" : "text-amber-950"
+                        }`}
+                      >
+                        {isKn
+                          ? (cls?.headlineKn || `${toKannadaRashi(session.result.lagnaRashi.english)} ಲಗ್ನ • ${cleanAstrologyText(currentDiagnosis.primaryLifeChallenge.areaKn || currentDiagnosis.primaryLifeChallenge.area)}`)
+                          : (cls?.headlineEn || `${session.result.lagnaRashi.english} Ascendant • ${cleanAstrologyText(currentDiagnosis.primaryLifeChallenge.area)}`)}
+                      </h3>
+                    </div>
+                  </div>
+                  <span
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-black border shadow-sm flex items-center gap-1.5 ${
+                      isAcuteCrisis
+                        ? "bg-rose-100 text-rose-950 border-rose-300"
+                        : "bg-amber-100 text-amber-950 border-amber-300"
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-2 w-2 rounded-full ${
+                        isAcuteCrisis ? "bg-rose-600 animate-ping" : "bg-emerald-600 animate-pulse"
+                      }`}
+                    />
+                    <span>
+                      {isKn
+                        ? isAcuteCrisis
+                          ? "ತಕ್ಷಣದ ಗಮನ ಅಗತ್ಯ (Top Priority)"
+                          : "ಪ್ರಸ್ತುತ ಜೀವಿತ ಘಟ್ಟ (Current Life Phase)"
+                        : isAcuteCrisis
+                        ? "Top Priority Life Focus"
+                        : "Current Life Phase"}
+                    </span>
+                  </span>
+                </div>
+
+                {/* Pandit Direct Empathetic Spoken Voice */}
+                <div
+                  className={`p-4 rounded-2xl border text-stone-900 space-y-2 ${
+                    isAcuteCrisis ? "bg-rose-100/70 border-rose-200/90" : "bg-amber-100/70 border-amber-300/80"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">🗣️</span>
+                    <b
+                      className={`text-xs uppercase tracking-wider ${
+                        isAcuteCrisis ? "text-rose-950" : "text-amber-950"
+                      }`}
+                    >
+                      {isKn
+                        ? isAcuteCrisis
+                          ? "ದೈವಜ್ಞರ ಮೊದಲ ನೇರ ಮಾತು (Astrologer's Immediate Spoken Counsel):"
+                          : "ದೈವಜ್ಞರ ನೇರ ಮಾರ್ಗದರ್ಶನ (Astrologer's Direct Guidance):"
+                        : isAcuteCrisis
+                        ? "Astrologer's Primary Spoken Counsel:"
+                        : "Astrologer's Direct Life Guidance:"}
+                    </b>
+                  </div>
+                  <p className="text-xs md:text-sm text-stone-800 leading-relaxed font-medium">
+                    {isKn
+                      ? cls
+                        ? `ನಮಸ್ಕಾರ ${session.input.name || (isChild ? "ಮಗುವಿನ ಪೋಷಕರೇ" : "ಭಕ್ತರೇ")}, ನಿಮ್ಮ ${toKannadaRashi(session.result.lagnaRashi.english)} ಲಗ್ನ ಮತ್ತು ${toKannadaRashi(session.result.moonSign.english)} ರಾಶಿಯ ಜಾತಕವನ್ನು ಆಳವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಅತ್ಯಂತ ಪ್ರಮುಖವಾಗಿ ಗೋಚರಿಸುತ್ತಿರುವ ವಾಸ್ತವ ಪರಿಸ್ಥಿತಿ: ${cleanAstrologyText(cls.headlineKn)}. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ಅವಧಿಯಲ್ಲಿ, ${cleanAstrologyText(cls.detailedRealityKn)}. ಈ ಸಂಕಷ್ಟದಿಂದ ಶೀಘ್ರವಾಗಿ ಹೊರಬರಲು ಗ್ರಹಗಳ ನೈಜ ಸ್ಥಿತಿ, ಬಿಕ್ಕಟ್ಟು ಮುಕ್ತವಾಗುವ ನಿಖರ ಕಾಲಾವಧಿ ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಮಾರ್ಗೋಪಾಯ ಇಲ್ಲಿದೆ:`
+                        : (isAcuteCrisis
+                          ? `ನಮಸ್ಕಾರ ${session.input.name || (isChild ? "ಮಗುವಿನ ಪೋಷಕರೇ" : "ಭಕ್ತರೇ")}, ನಿಮ್ಮ ${toKannadaRashi(session.result.lagnaRashi.english)} ಲಗ್ನ ಮತ್ತು ${toKannadaRashi(session.result.moonSign.english)} ರಾಶಿಯ ಜಾತಕವನ್ನು ಆಳವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ಉಳಿದೆಲ್ಲ ವಿಷಯಗಳಿಗಿಂತ ಮೊದಲು ನಿಮ್ಮನ್ನು ಪ್ರಸ್ತುತ ಕಾಡುತ್ತಿರುವ ಈ ${cleanAstrologyText(currentDiagnosis.primaryLifeChallenge.areaKn || currentDiagnosis.primaryLifeChallenge.area)} ವಿಷಯದ ಬಗ್ಗೆ ನಾವು ಮಾತನಾಡಲೇಬೇಕು. ಈ ಕಷ್ಟದಿಂದ ಶೀಘ್ರವಾಗಿ ಹೊರಬರಲು ಗ್ರಹಗಳ ನೈಜ ಸ್ಥಿತಿ, ಬಿಕ್ಕಟ್ಟು ಮುಕ್ತವಾಗುವ ನಿಖರ ಕಾಲಾವಧಿ ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಮಾರ್ಗೋಪಾಯ ಇಲ್ಲಿದೆ:`
+                          : `ನಮಸ್ಕಾರ ${session.input.name || (isChild ? "ಮಗುವಿನ ಪೋಷಕರೇ" : "ಭಕ್ತರೇ")}, ನಿಮ್ಮ ${toKannadaRashi(session.result.lagnaRashi.english)} ಲಗ್ನ ಮತ್ತು ${toKannadaRashi(session.result.moonSign.english)} ರಾಶಿಯ (${toKannadaNakshatra(session.result.planets.find(p => p.name === "Moon")?.nakshatra.english) || ""} ನಕ್ಷತ್ರ) ಜಾತಕವನ್ನು ಆಳವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ಪ್ರಸ್ತುತ ಜೀವಿತ ಘಟ್ಟದಲ್ಲಿ ನಿಮ್ಮ ದಶಾ-ಗೋಚಾರ ಸ್ಥಿತಿ ಹಾಗೂ ಮುನ್ನಡೆಯ ಮಾರ್ಗೋಪಾಯ ಇಲ್ಲಿದೆ:`)
+                      : cls
+                      ? `Namaskara ${session.input.name || (isChild ? "Parents" : "Devotee")}, reviewing your ${session.result.lagnaRashi.english} Ascendant and ${session.result.moonSign.english} Moon sign deeply, your paramount real-life situation is: ${cleanAstrologyText(cls.headlineEn)}. Under ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary}, ${cleanAstrologyText(cls.detailedRealityEn)}. Here is the astrological root cause, relief timeline, and sacred exit strategy:`
+                      : (isAcuteCrisis
+                        ? `Namaskara ${session.input.name || (isChild ? "Parents" : "Devotee")}, reviewing your ${session.result.lagnaRashi.english} Ascendant and ${session.result.moonSign.english} Moon sign deeply, before discussing other life areas, here is the astrological root cause, relief timeline, and sacred exit strategy for your current ${cleanAstrologyText(currentDiagnosis.primaryLifeChallenge.area)} challenge:`
+                        : `Namaskara ${session.input.name || (isChild ? "Parents" : "Devotee")}, reviewing your ${session.result.lagnaRashi.english} Ascendant and ${session.result.moonSign.english} Moon sign deeply, here is your planetary guidance, upcoming turning points, and strategic path forward for your current life phase:`)}
+                  </p>
+                </div>
+
+                {/* 4 Diagnostic & Resolution Cards Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs md:text-sm">
+                  {/* 1. Core Focus / Nature */}
+                  <div
+                    className={`p-4 rounded-2xl border-2 bg-white space-y-2 shadow-sm ${
+                      isAcuteCrisis ? "border-rose-200" : "border-amber-200"
+                    }`}
+                  >
+                    <div
+                      className={`flex items-center gap-2 font-bold border-b pb-1.5 text-xs ${
+                        isAcuteCrisis ? "text-rose-900 border-rose-100" : "text-amber-900 border-amber-100"
+                      }`}
+                    >
+                      <span>{isAcuteCrisis ? "💥" : "🎯"}</span>
+                      <span>
+                        {isKn
+                          ? isAcuteCrisis
+                            ? "ಪ್ರಸ್ತುತ ಬಿಕ್ಕಟ್ಟಿನ ನೈಜ ಸ್ವರೂಪ"
+                            : "ಪ್ರಸ್ತುತ ಜೀವಿತ ಘಟ್ಟದ ನೈಜ ಸ್ವರೂಪ"
+                          : isAcuteCrisis
+                          ? "Nature of Current Crisis"
+                          : "Nature of Current Life Phase"}
+                      </span>
+                    </div>
+                    <p className="text-stone-800 leading-relaxed text-xs">
+                      {cleanAstrologyText(
+                        isKn
+                          ? cls?.detailedRealityKn || currentDiagnosis.primaryLifeChallenge.description
+                          : cls?.detailedRealityEn || currentDiagnosis.primaryLifeChallenge.descriptionEn || currentDiagnosis.primaryLifeChallenge.description
+                      )}
+                    </p>
+                  </div>
+
+                  {/* 2. Astrological Alignment / Root Cause */}
+                  <div
+                    className={`p-4 rounded-2xl border-2 bg-white space-y-2 shadow-sm ${
+                      isAcuteCrisis ? "border-amber-200" : "border-indigo-200"
+                    }`}
+                  >
+                    <div
+                      className={`flex items-center gap-2 font-bold border-b pb-1.5 text-xs ${
+                        isAcuteCrisis ? "text-amber-900 border-amber-100" : "text-indigo-900 border-indigo-100"
+                      }`}
+                    >
+                      <span>🪐</span>
+                      <span>
+                        {isKn
+                          ? isAcuteCrisis
+                            ? "ಗ್ರಹಗಳ ಶಾಸ್ತ್ರೀಯ ಮೂಲ ಕಾರಣ"
+                            : "ದಶಾ-ಗೋಚಾರ ಗ್ರಹ ಪ್ರಭಾವ"
+                          : isAcuteCrisis
+                          ? "Astrological Root Cause"
+                          : "Dasha & Gochara Planetary Alignment"}
+                      </span>
+                    </div>
+                    <p className="text-stone-800 leading-relaxed text-xs">
+                      {cleanAstrologyText(
+                        isKn
+                          ? cls?.planetaryCulpritKn || currentDiagnosis.primaryLifeChallenge.planetaryRootCause
+                          : cls?.planetaryCulpritEn || currentDiagnosis.primaryLifeChallenge.planetaryRootCauseEn || currentDiagnosis.primaryLifeChallenge.planetaryRootCause
+                      )}
+                    </p>
+                  </div>
+
+                  {/* 3. Timeline of Relief / Turning Point */}
+                  <div className="p-4 rounded-2xl border-2 border-blue-200 bg-white space-y-2 shadow-sm">
+                    <div className="flex items-center gap-2 text-blue-900 font-bold border-b border-blue-100 pb-1.5 text-xs">
+                      <span>⏳</span>
+                      <span>
+                        {isKn
+                          ? isAcuteCrisis
+                            ? "ಬಿಕ್ಕಟ್ಟು ಕರಗುವ ನಿಖರ ಕಾಲಾವಧಿ"
+                            : "ಮುಂದಿನ ಪ್ರಮುಖ ಸಕಾರಾತ್ಮಕ ತಿರುವು"
+                          : isAcuteCrisis
+                          ? "Turning Point & Relief Timeline"
+                          : "Upcoming Positive Turning Point"}
+                      </span>
+                    </div>
+                    <p className="text-stone-800 leading-relaxed text-xs">
+                      {cleanAstrologyText(
+                        isKn
+                          ? cls?.reliefTimelineKn || currentDiagnosis.dashaTiming?.timelineKn || "ಪ್ರಸ್ತುತ ದಶಾ-ಭುಕ್ತಿಯ ಕಾಲಾವಧಿಯಲ್ಲಿ ಪ್ರಮುಖ ಸಕಾರಾತ್ಮಕ ತಿರುವು ಮೂಡಿಬರಲಿದೆ."
+                          : cls?.reliefTimelineEn || currentDiagnosis.dashaTiming?.timelineEn || "Progress unfolds as the ongoing Dasha-Bhukti completes."
+                      )}
+                    </p>
+                  </div>
+
+                  {/* 4. Astrological Remedy & Gokarna Seva */}
+                  <div className="p-4 rounded-2xl border-2 border-emerald-200 bg-white space-y-2 shadow-sm">
+                    <div className="flex items-center gap-2 text-emerald-900 font-bold border-b border-emerald-100 pb-1.5 text-xs">
+                      <span>🪔</span>
+                      <span>
+                        {isKn
+                          ? isAcuteCrisis
+                            ? "ಈ ಬಿಕ್ಕಟ್ಟಿನಿಂದ ಹೊರಬರಲು ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಪರಿಹಾರ"
+                            : "ಸಿದ್ಧ ಮಾರ್ಗದರ್ಶನ & ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಸೇವೆ"
+                          : isAcuteCrisis
+                          ? "Exit Strategy & Gokarna Remedy"
+                          : "Astrological Guidance & Gokarna Remedy"}
+                      </span>
+                    </div>
+                    <p className="text-emerald-950 font-medium leading-relaxed text-xs">
+                      {cleanAstrologyText(
+                        isKn
+                          ? cls?.gokarnaRemedyKn || currentDiagnosis.primaryLifeChallenge.solutionKn || "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸಂಕಲ್ಪ ಪೂಜೆ ನೆರವೇರಿಸಿ."
+                          : cls?.gokarnaRemedyEn || currentDiagnosis.primaryLifeChallenge.solutionEn || "Perform Sankalpa Pooja at Sri Kshetra Gokarna."
+                      )}
+                    </p>
                   </div>
                 </div>
-                <span className="px-3.5 py-1.5 rounded-full bg-rose-100 text-rose-950 text-xs font-black border border-rose-300 shadow-sm flex items-center gap-1.5">
-                  <span className="inline-block h-2 w-2 rounded-full bg-rose-600 animate-ping" />
-                  <span>{isKn ? "ತಕ್ಷಣದ ಗಮನ ಅಗತ್ಯ (Top Priority)" : "Top Priority Life Focus"}</span>
-                </span>
+
+                {/* 📋 Real-Life Symptoms Native is Currently Experiencing */}
+                {cls?.symptomsChecklistKn && cls.symptomsChecklistKn.length > 0 && (
+                  <div className="mt-4 p-4 rounded-2xl border-2 border-amber-300 bg-amber-50/70 shadow-sm space-y-2">
+                    <div className="flex items-center justify-between border-b border-amber-200 pb-1.5">
+                      <span className="text-xs font-black text-amber-950 flex items-center gap-2">
+                        <span>📋</span>
+                        <span>{isKn ? "ಪ್ರಸ್ತುತ ನೀವು ದಿನನಿತ್ಯ ಅನುಭವಿಸುತ್ತಿರುವ ವಾಸ್ತವ ಲಕ್ಷಣಗಳು (Symptoms Checklist):" : "Daily Life Symptoms Native is Currently Experiencing:"}</span>
+                      </span>
+                      <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900 font-bold border border-amber-300">
+                        {isKn ? "100% ವಾಸ್ತವ ಅನುಭವ" : "100% Real-World Reality"}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 pt-1 text-xs">
+                      {(isKn ? cls.symptomsChecklistKn : cls.symptomsChecklistEn).map((sym, sIdx) => (
+                        <div key={sIdx} className="flex items-start gap-2 p-2.5 rounded-xl bg-white border border-amber-200 text-stone-800 font-medium shadow-xs">
+                          <span className="text-amber-600 font-bold text-sm">✓</span>
+                          <span>{cleanAstrologyText(sym)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-
-              {/* Pandit Direct Empathetic Spoken Voice */}
-              <div className="p-4 rounded-2xl bg-rose-100/70 border border-rose-200/90 text-stone-900 space-y-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm">🗣️</span>
-                  <b className="text-xs uppercase tracking-wider text-rose-950">
-                    {isKn ? "ದೈವಜ್ಞರ ಮೊದಲ ನೇರ ಮಾತು (Astrologer's Immediate Spoken Counsel):" : "Astrologer's Primary Spoken Counsel:"}
-                  </b>
-                </div>
-                <p className="text-xs md:text-sm text-stone-800 leading-relaxed font-medium">
-                  {isKn
-                    ? `ನಮಸ್ಕಾರ ${session.input.name || (isChild ? "ಮಗುವಿನ ಪೋಷಕರೇ" : "ಭಕ್ತರೇ")}, ನಿಮ್ಮ ${toKannadaRashi(session.result.lagnaRashi.english)} ಲಗ್ನ ಮತ್ತು ${toKannadaRashi(session.result.moonSign.english)} ರಾಶಿಯ ಜಾತಕವನ್ನು ಆಳವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ಉಳಿದೆಲ್ಲ ವಿಷಯಗಳಿಗಿಂತ ಮೊದಲು ನಿಮ್ಮನ್ನು ಪ್ರಸ್ತುತ ಕಾಡುತ್ತಿರುವ ಈ ${cleanAstrologyText(currentDiagnosis.primaryLifeChallenge.areaKn || currentDiagnosis.primaryLifeChallenge.area)} ವಿಷಯದ ಬಗ್ಗೆ ನಾವು ಮಾತನಾಡಲೇಬೇಕು. ಈ ಕಷ್ಟದಿಂದ ಶೀಘ್ರವಾಗಿ ಹೊರಬರಲು ಗ್ರಹಗಳ ನೈಜ ಸ್ಥಿತಿ, ಬಿಕ್ಕಟ್ಟು ಮುಕ್ತವಾಗುವ ನಿಖರ ಕಾಲಾವಧಿ ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಮಾರ್ಗೋಪಾಯ ಇಲ್ಲಿದೆ:`
-                    : `Namaskara ${session.input.name || (isChild ? "Parents" : "Devotee")}, reviewing your ${session.result.lagnaRashi.english} Ascendant and ${session.result.moonSign.english} Moon sign deeply, before discussing other life areas, here is the astrological root cause, relief timeline, and sacred exit strategy for your current ${cleanAstrologyText(currentDiagnosis.primaryLifeChallenge.area)} challenge:`}
-                </p>
-              </div>
-
-              {/* 4 Diagnostic & Resolution Cards Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs md:text-sm">
-                {/* 1. Core Crisis Nature */}
-                <div className="p-4 rounded-2xl border-2 border-rose-200 bg-white space-y-2 shadow-sm">
-                  <div className="flex items-center gap-2 text-rose-900 font-bold border-b border-rose-100 pb-1.5 text-xs">
-                    <span>💥</span>
-                    <span>{isKn ? "ಪ್ರಸ್ತುತ ಬಿಕ್ಕಟ್ಟಿನ ನೈಜ ಸ್ವರೂಪ" : "Nature of Current Crisis"}</span>
-                  </div>
-                  <p className="text-stone-800 leading-relaxed text-xs">
-                    {cleanAstrologyText(isKn ? currentDiagnosis.primaryLifeChallenge.description : (currentDiagnosis.primaryLifeChallenge.descriptionEn || currentDiagnosis.primaryLifeChallenge.description))}
-                  </p>
-                </div>
-
-                {/* 2. Astrological Root Cause */}
-                <div className="p-4 rounded-2xl border-2 border-amber-200 bg-white space-y-2 shadow-sm">
-                  <div className="flex items-center gap-2 text-amber-900 font-bold border-b border-amber-100 pb-1.5 text-xs">
-                    <span>🪐</span>
-                    <span>{isKn ? "ಗ್ರಹಗಳ ಶಾಸ್ತ್ರೀಯ ಮೂಲ ಕಾರಣ" : "Astrological Root Cause"}</span>
-                  </div>
-                  <p className="text-stone-800 leading-relaxed text-xs">
-                    {cleanAstrologyText(isKn ? currentDiagnosis.primaryLifeChallenge.planetaryRootCause : (currentDiagnosis.primaryLifeChallenge.planetaryRootCauseEn || currentDiagnosis.primaryLifeChallenge.planetaryRootCause))}
-                  </p>
-                </div>
-
-                {/* 3. Timeline of Relief */}
-                <div className="p-4 rounded-2xl border-2 border-blue-200 bg-white space-y-2 shadow-sm">
-                  <div className="flex items-center gap-2 text-blue-900 font-bold border-b border-blue-100 pb-1.5 text-xs">
-                    <span>⏳</span>
-                    <span>{isKn ? "ಬಿಕ್ಕಟ್ಟು ಕರಗುವ ನಿಖರ ಕಾಲಾವಧಿ" : "Turning Point & Relief Timeline"}</span>
-                  </div>
-                  <p className="text-stone-800 leading-relaxed text-xs">
-                    {cleanAstrologyText(
-                      isKn
-                        ? (currentDiagnosis.dashaTiming?.timelineKn
-                          ? `ಪ್ರಸ್ತುತ ದಶಾ-ಭುಕ್ತಿಯ ಪ್ರಕಾರ, ಇನ್ನು ${currentDiagnosis.dashaTiming.timelineKn} ಒಳಗೆ ಈ ಬಿಕ್ಕಟ್ಟಿನಿಂದ ಹೊರಬರಲು ಪ್ರಮುಖ ಸಕಾರಾತ್ಮಕ ತಿರುವು ಮತ್ತು ದಾರಿ ಗೋಚರಿಸಲಿದೆ.`
-                          : "ಪ್ರಸ್ತುತ ದಶಾ-ಭುಕ್ತಿ ಮುಕ್ತಾಯವಾಗುವ ಹೊತ್ತಿಗೆ ಈ ಬಿಕ್ಕಟ್ಟು ಶಾಂತವಾಗಲಿದೆ.")
-                        : (currentDiagnosis.dashaTiming?.timelineEn
-                          ? `According to ongoing Dasha-Bhukti, a decisive relief turning point will manifest within ${currentDiagnosis.dashaTiming.timelineEn}.`
-                          : "Relief unfolds as the ongoing Dasha-Bhukti completes.")
-                    )}
-                  </p>
-                </div>
-
-                {/* 4. Immediate Exit Strategy & Gokarna Seva */}
-                <div className="p-4 rounded-2xl border-2 border-emerald-200 bg-white space-y-2 shadow-sm">
-                  <div className="flex items-center gap-2 text-emerald-900 font-bold border-b border-emerald-100 pb-1.5 text-xs">
-                    <span>🪔</span>
-                    <span>{isKn ? "ಈ ಬಿಕ್ಕಟ್ಟಿನಿಂದ ಹೊರಬರಲು ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಪರಿಹಾರ" : "Exit Strategy & Gokarna Remedy"}</span>
-                  </div>
-                  <p className="text-emerald-950 font-medium leading-relaxed text-xs">
-                    {cleanAstrologyText(
-                      isKn
-                        ? (currentDiagnosis.primaryLifeChallenge.solutionKn || "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸಂಕಲ್ಪ ಪೂಜೆ ನೆರವೇರಿಸಿ.")
-                        : (currentDiagnosis.primaryLifeChallenge.solutionEn || "Perform Sankalpa Pooja at Sri Kshetra Gokarna.")
-                    )}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* 🌟 1. DEDICATED SECTION: GOOD THINGS ABOUT HIM (ವ್ಯಕ್ತಿಯ ಉತ್ತಮ ಗುಣಗಳು & ದೈವಿಕ ಸಾಮರ್ಥ್ಯಗಳು) 🌟 */}
           {currentDiagnosis?.goodBadAnalysis?.goodTraits && (
@@ -572,6 +789,97 @@ STRICT RULES:
             </div>
           )}
 
+          {/* 💼 1C. DEDICATED SECTION: ACCURATE PROFESSION & VOCATION DETERMINATION (ನಿಖರ ವೃತ್ತಿ & ಕಾರ್ಯಕ್ಷೇತ್ರ ನಿರ್ಣಯ) 💼 */}
+          {currentDiagnosis?.accurateProfession && (() => {
+            const prof = currentDiagnosis.accurateProfession;
+            return (
+              <div className="rounded-3xl border-2 border-indigo-400 bg-gradient-to-b from-indigo-50/70 via-white to-amber-50/40 p-6 md:p-8 text-stone-950 shadow-xl space-y-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-indigo-300 pb-4">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-amber-500 text-white text-2xl shadow-md border border-indigo-300">
+                      💼
+                    </span>
+                    <div>
+                      <span className="text-[11px] font-black uppercase tracking-wider text-indigo-900 block">
+                        ॥ ಜಾತಕರ ನಿಖರ ವೃತ್ತಿ & ಕಾರ್ಯಕ್ಷೇತ್ರ ನಿರ್ಣಯ ॥
+                      </span>
+                      <h3 className="text-base md:text-xl font-black text-indigo-950 font-serif">
+                        {isKn
+                          ? `${session.input.name || "ಜಾತಕರ"} ನಿಖರ ಉದ್ಯೋಗ / ಕಾರ್ಯಕ್ಷೇತ್ರ: ${prof.titleKn}`
+                          : `${session.input.name || "Devotee"}'s Accurate Vocation: ${prof.titleEn}`}
+                      </h3>
+                    </div>
+                  </div>
+                  <span className="px-3.5 py-1.5 rounded-full bg-indigo-100 text-indigo-950 text-xs font-black border border-indigo-400 shadow-sm flex items-center gap-1.5">
+                    <span className="inline-block h-2 w-2 rounded-full bg-indigo-600 animate-pulse" />
+                    <span>{isKn ? `${prof.confidenceScore}% ನಿಖರ ಹೊಂದಾಣಿಕೆ` : `${prof.confidenceScore}% Classical Alignment`}</span>
+                  </span>
+                </div>
+
+                {/* Main Profession Summary Box */}
+                <div className="p-5 rounded-2xl border-2 border-indigo-200 bg-gradient-to-r from-indigo-50/80 via-white to-amber-50/60 shadow-md space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Specific Role */}
+                    <div className="p-4 rounded-xl bg-white border border-indigo-200 shadow-xs space-y-1.5">
+                      <div className="flex items-center gap-2 text-indigo-900 font-bold text-xs">
+                        <span>🎯</span>
+                        <span>{isKn ? "ನಿರ್ದಿಷ್ಟ ವೃತ್ತಿ ಪಾತ್ರ & ಜವಾಬ್ದಾರಿ (Specific Role):" : "Specific Role & Responsibilities:"}</span>
+                      </div>
+                      <p className="text-stone-900 font-semibold text-sm leading-relaxed">
+                        {cleanAstrologyText(isKn ? prof.specificRoleKn : prof.specificRoleEn)}
+                      </p>
+                    </div>
+
+                    {/* Work Environment */}
+                    <div className="p-4 rounded-xl bg-white border border-indigo-200 shadow-xs space-y-1.5">
+                      <div className="flex items-center gap-2 text-indigo-900 font-bold text-xs">
+                        <span>🏢</span>
+                        <span>{isKn ? "ದಿನನಿತ್ಯದ ಕಾರ್ಯಕ್ಷೇತ್ರ & ಪರಿಸರ (Work Environment):" : "Daily Work Environment:"}</span>
+                      </div>
+                      <p className="text-stone-900 font-semibold text-sm leading-relaxed">
+                        {cleanAstrologyText(isKn ? prof.workEnvironmentKn : prof.workEnvironmentEn)}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Classical Astrological Basis */}
+                  <div className="p-4 rounded-xl bg-indigo-50/60 border border-indigo-300/80 text-xs text-stone-800 leading-relaxed space-y-2">
+                    <div className="flex items-center gap-2 font-bold text-indigo-950">
+                      <span>🪐</span>
+                      <span>{isKn ? "ಶಾಸ್ತ್ರೀಯ ಕರ್ಮ ಸ್ಥಾನ & ಗ್ರಹ ಸಂಯೋಗ (Astrological Basis):" : "Classical Astrological Basis:"}</span>
+                    </div>
+                    <p className="font-medium">
+                      {cleanAstrologyText(isKn ? prof.astrologicalBasisKn : prof.astrologicalBasisEn)}
+                    </p>
+                  </div>
+
+                  {/* Classical Pillars Badges */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1 text-xs">
+                    <div className="p-2.5 rounded-xl bg-white border border-indigo-200 text-stone-800 shadow-xs">
+                      <span className="text-[10px] text-indigo-900 font-bold block uppercase">{isKn ? "ಜೈಮಿನಿ ಅಮಾತ್ಯಕಾರಕ (AmK)" : "Jaimini Amatyakaraka"}</span>
+                      <b className="text-indigo-950 text-sm">{isKn ? prof.amatyakarakaPlanetKn : prof.amatyakarakaPlanetEn}</b>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-white border border-indigo-200 text-stone-800 shadow-xs">
+                      <span className="text-[10px] text-indigo-900 font-bold block uppercase">{isKn ? "10ನೇ ಕರ್ಮ ಸ್ಥಾನ" : "10th House of Career"}</span>
+                      <b className="text-indigo-950 text-sm">{isKn ? `${prof.tenthHouseSignKn} ರಾಶಿ` : prof.tenthHouseSignEn}</b>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-white border border-indigo-200 text-stone-800 shadow-xs col-span-2 sm:col-span-1">
+                      <span className="text-[10px] text-indigo-900 font-bold block uppercase">{isKn ? "ಕರ್ಮೇಶ ಗ್ರಹ" : "10th House Lord"}</span>
+                      <b className="text-indigo-950 text-sm">{isKn ? prof.primaryPlanetKn : prof.primaryPlanetEn}</b>
+                    </div>
+                  </div>
+
+                  {prof.secondaryAlternativeKn && (
+                    <div className="text-[11px] text-indigo-900 bg-indigo-50/50 px-3.5 py-2 rounded-xl border border-indigo-200 flex items-center gap-2 font-medium">
+                      <span>🔄</span>
+                      <span><b>{isKn ? "ಪರ್ಯಾಯ / ಪೂರಕ ಅವಕಾಶಗಳು:" : "Alternative / Complementary Opportunities:"}</b> {cleanAstrologyText(isKn ? prof.secondaryAlternativeKn : prof.secondaryAlternativeEn)}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+
           {/* ⚠️ 2. DEDICATED SECTION: BAD THINGS, SHADOW SECRETS & ADDICTIONS (ದೋಷಗಳು, ದುರ್ಬಲತೆಗಳು & ರಹಸ್ಯ ನೆರಳು ಪ್ರವೃತ್ತಿಗಳು) ⚠️ */}
           {currentDiagnosis?.goodBadAnalysis?.badTraits && (
             <div className="rounded-3xl border-2 border-rose-300 bg-gradient-to-b from-rose-50/50 via-white to-amber-50/40 p-6 md:p-8 text-stone-950 shadow-xl space-y-6">
@@ -597,6 +905,21 @@ STRICT RULES:
                   {isKn ? "ಎಚ್ಚರಿಕೆ & ಪ್ರಾಯಶ್ಚಿತ್ತ ಸಂಕಲ್ಪ" : "Shadow Pitfalls & Remedies"}
                 </span>
               </div>
+
+              {/* HIGHLIGHT BANNER 0: PURE CHARACTER & TEETOTALER/FIDELITY PRAISE */}
+              {(currentDiagnosis.goodBadAnalysis.isTeetotaler || currentDiagnosis.goodBadAnalysis.hasMaritalFidelity) && (
+                <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-100/90 via-teal-50 to-emerald-50 border-2 border-emerald-400 space-y-1.5 shadow-sm">
+                  <div className="flex items-center gap-2 text-emerald-950 font-black text-xs md:text-sm">
+                    <span>✨</span>
+                    <span>{isKn ? "ಚಾರಿತ್ರ್ಯ & ಸದಾಚಾರ ದೃಢೀಕರಣ (Character Purity & Moral Integrity):" : "Character Purity & Moral Integrity:"}</span>
+                  </div>
+                  <p className="text-xs md:text-sm text-stone-800 leading-relaxed font-medium">
+                    {isKn
+                      ? `${currentDiagnosis.goodBadAnalysis.isTeetotaler ? "🍃 ಜಾತಕರ 2ನೇ ಧನ-ಆಹಾರ ಸ್ಥಾನದ ಮೇಲೆ ಗುರು/ಶುಭ ಗ್ರಹ ದೃಷ್ಟಿ ರಕ್ಷಣೆ ಇರುವುದರಿಂದ ಸಾತ್ವಿಕ ಆಹಾರ ಪದ್ಧತಿ ಹೊಂದಿದ್ದು, ಮದ್ಯಪಾನ-ದುಶ್ಚಟಗಳಿಂದ ಮುಕ್ತವಾದ ಶುದ್ಧ ಶರೀರ ಹೊಂದಿದ್ದಾರೆ (Teetotaler). " : ""}${currentDiagnosis.goodBadAnalysis.hasMaritalFidelity ? `💍 7ನೇ ಕಳತ್ರ ಸ್ಥಾನದಲ್ಲಿ ಶುಭ ಗ್ರಹ ಕವಚವಿರುವುದರಿಂದ ದಾಂಪತ್ಯದಲ್ಲಿ ಅಚಲ ನಿಷ್ಠೆ ಹೊಂದಿದ್ದು, ಅನೈತಿಕ ಸಂಬಂಧಗಳಿಂದ ಸಂಪೂರ್ಣ ದೂರವಿದ್ದಾರೆ (${session.input.gender === "Female" ? "ಏಕಪತಿ ವ್ರತ" : "ಏಕಪತ್ನಿ ವ್ರತ"}).` : ""}`
+                      : `${currentDiagnosis.goodBadAnalysis.isTeetotaler ? "🍃 Benefic and Jupiterian aspects on the 2nd house protect dietary purity, ensuring a clean teetotaler lifestyle free of alcohol or intoxicants. " : ""}${currentDiagnosis.goodBadAnalysis.hasMaritalFidelity ? "💍 Divine protection on the 7th house ensures steadfast marital fidelity and pure moral character." : ""}`}
+                  </p>
+                </div>
+              )}
 
               {/* HIGHLIGHT BANNER 1: SECRET LIFE HABIT (ರಹಸ್ಯ ಜೀವನದ ವರ್ತನೆ) */}
               {currentDiagnosis.goodBadAnalysis.secrecyHabitKn && (
@@ -626,36 +949,294 @@ STRICT RULES:
 
               {/* Bad Traits Cards Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs md:text-sm">
-                {currentDiagnosis.goodBadAnalysis.badTraits.map((trait) => (
-                  <div
-                    key={trait.id}
-                    className={`p-5 rounded-2xl border-2 border-rose-200 bg-white space-y-3 shadow-md transition-all hover:border-rose-400 ${
-                      trait.id === 6 || trait.id === 7 ? "md:col-span-2 bg-gradient-to-r from-amber-50/80 via-white to-amber-50/80 border-amber-400" : ""
-                    }`}
-                  >
-                    <div className="flex items-center justify-between border-b border-rose-100 pb-2">
-                      <span className="font-black text-sm flex items-center gap-2 text-rose-950">
-                        <span className="text-lg">{trait.icon}</span>
-                        <span>{trait.id}. {isKn ? trait.titleKn : trait.titleEn}</span>
-                      </span>
-                      <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-900 font-bold border border-rose-300">
-                        {isKn ? trait.badgeKn : trait.badgeEn}
-                      </span>
-                    </div>
+                {currentDiagnosis.goodBadAnalysis.badTraits.map((trait) => {
+                  const isVirtuousTrait =
+                    trait.badgeKn?.includes("ಸಾತ್ವಿಕ") ||
+                    trait.badgeKn?.includes("ನಿಷ್ಠೆ") ||
+                    trait.badgeEn?.toLowerCase().includes("teetotaler") ||
+                    trait.badgeEn?.toLowerCase().includes("fidelity") ||
+                    trait.titleKn?.includes("ಸಾತ್ವಿಕ") ||
+                    trait.titleKn?.includes("ದಾಂಪತ್ಯ ನಿಷ್ಠೆ");
 
-                    <p className="text-stone-800 leading-relaxed font-medium bg-rose-50/40 p-3.5 rounded-xl border border-rose-100">
-                      "{cleanAstrologyText(isKn ? trait.bulletKn : trait.bulletEn)}"
-                    </p>
+                  return (
+                    <div
+                      key={trait.id}
+                      className={`p-5 rounded-2xl border-2 space-y-3 shadow-md transition-all ${
+                        isVirtuousTrait
+                          ? "border-emerald-300 bg-white hover:border-emerald-500 ring-1 ring-emerald-200"
+                          : trait.id === 6 || trait.id === 7
+                          ? "md:col-span-2 bg-gradient-to-r from-amber-50/80 via-white to-amber-50/80 border-amber-400"
+                          : "border-rose-200 bg-white hover:border-rose-400"
+                      }`}
+                    >
+                      <div className={`flex items-center justify-between border-b pb-2 ${isVirtuousTrait ? "border-emerald-100" : "border-rose-100"}`}>
+                        <span className={`font-black text-sm flex items-center gap-2 ${isVirtuousTrait ? "text-emerald-950" : "text-rose-950"}`}>
+                          <span className="text-lg">{trait.icon}</span>
+                          <span>{trait.id}. {isKn ? trait.titleKn : trait.titleEn}</span>
+                        </span>
+                        <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold border ${
+                          isVirtuousTrait ? "bg-emerald-100 text-emerald-900 border-emerald-300" : "bg-rose-100 text-rose-900 border-rose-300"
+                        }`}>
+                          {isKn ? trait.badgeKn : trait.badgeEn}
+                        </span>
+                      </div>
 
-                    <div className="text-[11px] text-amber-900 flex items-center gap-1.5 px-1 font-semibold">
-                      <span>🎯</span>
-                      <span><b>{isKn ? "ಶಾಸ್ತ್ರೀಯ ಆಧಾರ:" : "Astrological Basis:"}</b> {cleanAstrologyText(isKn ? trait.astrologicalBasisKn : trait.astrologicalBasisEn)}</span>
+                      <p className={`text-stone-800 leading-relaxed font-medium p-3.5 rounded-xl border ${
+                        isVirtuousTrait ? "bg-emerald-50/40 border-emerald-100" : "bg-rose-50/40 border-rose-100"
+                      }`}>
+                        "{cleanAstrologyText(isKn ? trait.bulletKn : trait.bulletEn)}"
+                      </p>
+
+                      <div className="text-[11px] text-amber-900 flex items-center gap-1.5 px-1 font-semibold">
+                        <span>🎯</span>
+                        <span><b>{isKn ? "ಶಾಸ್ತ್ರೀಯ ಆಧಾರ:" : "Astrological Basis:"}</b> {cleanAstrologyText(isKn ? trait.astrologicalBasisKn : trait.astrologicalBasisEn)}</span>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
+
+          {/* 🧭 2B. MORAL INTEGRITY, CRIMINALITY VERIFICATION & SHADOW ANALYSIS (ನೈತಿಕ ಚಾರಿತ್ರ್ಯ, ಅಪರಾಧ ಮುಕ್ತತೆ & ಜಾತಕದ ನೆರಳುಗಳ ವಿಶ್ಲೇಷಣೆ) 🧭 */}
+          {currentDiagnosis?.negativeShades && (() => {
+            const shades = currentDiagnosis.negativeShades;
+            const isClean = shades.overallScore <= 15 || shades.isJupiterProtected || shades.isChildShielded;
+
+            const scoreColor =
+              shades.overallScore <= 15
+                ? "text-emerald-700 bg-emerald-100 border-emerald-300"
+                : shades.overallScore <= 35
+                ? "text-sky-700 bg-sky-100 border-sky-300"
+                : shades.overallScore <= 60
+                ? "text-amber-800 bg-amber-100 border-amber-300"
+                : shades.overallScore <= 80
+                ? "text-orange-700 bg-orange-100 border-orange-300"
+                : "text-rose-800 bg-rose-100 border-rose-300";
+
+            const progressGradient =
+              shades.overallScore <= 15
+                ? "bg-gradient-to-r from-emerald-400 to-emerald-600"
+                : shades.overallScore <= 35
+                ? "bg-gradient-to-r from-sky-400 to-emerald-500"
+                : shades.overallScore <= 60
+                ? "bg-gradient-to-r from-amber-400 to-orange-500"
+                : shades.overallScore <= 80
+                ? "bg-gradient-to-r from-orange-500 to-rose-600"
+                : "bg-gradient-to-r from-rose-600 to-red-800";
+
+            const dimensions = [
+              { key: "sensualMarital", data: shades.sensualMarital, icon: "💍" },
+              { key: "financialIntegrity", data: shades.financialIntegrity, icon: "⚖️" },
+              { key: "violenceAggression", data: shades.violenceAggression, icon: "🛡️" },
+              { key: "legalBandhana", data: shades.legalBandhana, icon: "🏛️" },
+              { key: "conductDownwardPath", data: shades.conductDownwardPath, icon: "🧭" },
+            ];
+
+            return (
+              <div
+                className={`rounded-3xl border-2 p-6 md:p-8 text-stone-950 shadow-xl space-y-6 transition-all ${
+                  isClean
+                    ? "border-emerald-400 bg-gradient-to-b from-emerald-50/70 via-white to-emerald-50/30"
+                    : "border-amber-400 bg-gradient-to-b from-amber-50/60 via-white to-amber-50/30"
+                }`}
+              >
+                {/* SECTION HEADER */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-stone-200 pb-4">
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`flex h-12 w-12 items-center justify-center rounded-2xl text-2xl shadow-md border ${
+                        isClean
+                          ? "bg-gradient-to-br from-emerald-400 to-teal-500 text-white border-emerald-300"
+                          : "bg-gradient-to-br from-amber-400 to-orange-500 text-neutral-950 border-amber-300"
+                      }`}
+                    >
+                      {isClean ? "✨" : "🧭"}
+                    </span>
+                    <div>
+                      <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block">
+                        ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಶಾಸ್ತ್ರೀಯ ಚಾರಿತ್ರ್ಯ ಹಾಗೂ ನೆರಳುಗಳ ಪರೀಕ್ಷೆ ॥
+                      </span>
+                      <h3 className="text-base md:text-xl font-black text-stone-950 font-serif">
+                        {isKn
+                          ? `ನೈತಿಕ ಚಾರಿತ್ರ್ಯ, ಅಪರಾಧ ಮುಕ್ತತೆ & ಜಾತಕದ ನೆರಳುಗಳ ವಿಶ್ಲೇಷಣೆ`
+                          : `Moral Integrity, Criminality Verification & Shadow Analysis`}
+                      </h3>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`px-3.5 py-1.5 rounded-full text-xs font-black border shadow-xs ${scoreColor}`}>
+                      {isKn ? shades.categoryTitleKn : shades.categoryTitleEn}
+                    </span>
+                  </div>
+                </div>
+
+                {/* EMERALD CERTIFICATE OF PURITY (When score <= 15 or Jupiter/Child Shielded) */}
+                {isClean && (
+                  <div className="rounded-2xl border-2 border-emerald-400 bg-gradient-to-r from-emerald-50 via-white to-emerald-50 p-5 shadow-sm space-y-2.5 ring-1 ring-emerald-300">
+                    <div className="flex items-center gap-2 text-emerald-950 font-black text-sm md:text-base">
+                      <span className="text-xl">🛡️</span>
+                      <span>
+                        {isKn
+                          ? "ಪರಿಶುದ್ಧ ಸತ್ಚಾರಿತ್ರ್ಯ & ಅಪರಾಧ-ಕಳಂಕ ಮುಕ್ತ ದೃಢೀಕರಣ (100% Free from Criminal / Deceptive Shadows)"
+                          : "Certified 100% Free from Criminal & Deceptive Shadows"}
+                      </span>
+                    </div>
+                    <p className="text-xs md:text-sm text-emerald-900 leading-relaxed font-medium">
+                      {isKn
+                        ? shades.isChildShielded
+                          ? "ಈ ಜಾತಕವು ಮಗುವಿನ ಜಾತಕವಾಗಿದ್ದು (14 ವರ್ಷಕ್ಕಿಂತ ಕಡಿಮೆ ವಯಸ್ಸು), ನೈಸರ್ಗಿಕ ಬಾಲ್ಯದ ಮುಗ್ಧತೆ ಹಾಗೂ ಸಾತ್ವಿಕತೆಯ ರಕ್ಷಣೆಯಲ್ಲಿದೆ. ಯಾವುದೇ ಅಪರಾಧ ಅಥವಾ ನಕಾರಾತ್ಮಕ ನೆರಳುಗಳಿಲ್ಲ."
+                          : "ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಲಗ್ನ, ಲಗ್ನಾಧಿಪತಿ, ಚಂದ್ರ ಅಥವಾ 2ನೇ ಭಾವದ ಮೇಲೆ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ದೃಷ್ಟಿ / ಕೇಂದ್ರ ಶುಭ ಗ್ರಹಗಳ ಶ್ರೀರಕ್ಷೆ ಇರುವುದರಿಂದ (ಸರ್ವದೋಷ ವಿನಾಶನಃ), ಈ ಜಾತಕದಲ್ಲಿ ಕಳ್ಳತನ, ವಂಚನೆ, ಕ್ರಿಮಿನಲ್ ಚಟುವಟಿಕೆ, ಹಿಂಸಾ ಪ್ರವೃತ್ತಿ, ಜಾರತ್ವ ಅಥವಾ ಕಾರಾಗೃಹ ವಾಸದಂತಹ ಯಾವುದೇ ಕಳಂಕಗಳಿಲ್ಲ. ಇದು ಪರಿಶುದ್ಧ ನೈತಿಕ ಸತ್ಚಾರಿತ್ರ್ಯದ ಜಾತಕವಾಗಿದೆ."
+                        : shades.categoryDescriptionEn}
+                    </p>
+                  </div>
+                )}
+
+                {/* QUANTITATIVE SCORE GAUGE (0 to 100) */}
+                <div className="bg-white rounded-2xl border border-stone-200 p-4 md:p-5 shadow-xs space-y-3">
+                  <div className="flex items-center justify-between text-xs md:text-sm">
+                    <span className="font-bold text-stone-800 flex items-center gap-1.5">
+                      <span>📊</span>
+                      <span>{isKn ? "ನಕಾರಾತ್ಮಕ ನೆರಳುಗಳ ಪ್ರಮಾಣ ಸೂಚ್ಯಂಕ (Shadow Vulnerability Score):" : "Shadow Vulnerability Score:"}</span>
+                    </span>
+                    <span className="font-black text-sm md:text-base text-stone-900">
+                      <span className={shades.overallScore <= 15 ? "text-emerald-700 font-extrabold" : shades.overallScore <= 35 ? "text-sky-700" : "text-amber-800"}>
+                        {shades.overallScore}
+                      </span>
+                      <span className="text-stone-400 text-xs"> / 100</span>
+                    </span>
+                  </div>
+
+                  {/* PROGRESS BAR */}
+                  <div className="w-full bg-stone-100 rounded-full h-3 overflow-hidden border border-stone-200">
+                    <div
+                      className={`h-full transition-all duration-700 ${progressGradient}`}
+                      style={{ width: `${Math.max(4, shades.overallScore)}%` }}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between text-[11px] text-stone-500 font-medium">
+                    <span className="text-emerald-700 font-bold">0 - 15: ಪರಿಶುದ್ಧ (Purity)</span>
+                    <span className="text-sky-700">16 - 35: ಸಾಮಾನ್ಯ (Mild)</span>
+                    <span className="text-amber-700">36 - 60: ಎಚ್ಚರಿಕೆ (Caution)</span>
+                    <span className="text-rose-700">61 - 100: ಗಂಭೀರ (Critical)</span>
+                  </div>
+
+                  <p className="text-xs text-stone-700 leading-relaxed pt-1 border-t border-stone-100">
+                    {isKn ? shades.categoryDescriptionKn : shades.categoryDescriptionEn}
+                  </p>
+                </div>
+
+                {/* 5 CLASSICAL DIMENSION CARDS GRID */}
+                <div className="space-y-3">
+                  <div className="text-xs font-bold text-stone-900 uppercase tracking-wide flex items-center gap-1.5">
+                    <span>🔍</span>
+                    <span>{isKn ? "5 ಶಾಸ್ತ್ರೀಯ ಆಯಾಮಗಳ ನಿಖರ ಪರಿಶೀಲನೆ (Brihat Parashara, Saravali & Raman Yogas):" : "5 Classical Dimensions Audit:"}</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs md:text-sm">
+                    {dimensions.map((dim, idx) => {
+                      const d = dim.data;
+                      const isDimClean = !d.hasRisk || d.score <= 3;
+
+                      return (
+                        <div
+                          key={d.id}
+                          className={`p-5 rounded-2xl border-2 space-y-3 shadow-sm transition-all ${
+                            idx === 4 ? "md:col-span-2" : ""
+                          } ${
+                            isDimClean
+                              ? "bg-white border-emerald-200 hover:border-emerald-400 ring-1 ring-emerald-100"
+                              : "bg-white border-rose-200 hover:border-rose-400 ring-1 ring-rose-100"
+                          }`}
+                        >
+                          {/* Card Header */}
+                          <div className={`flex items-center justify-between border-b pb-2 ${isDimClean ? "border-emerald-100" : "border-rose-100"}`}>
+                            <span className={`font-black text-sm flex items-center gap-2 ${isDimClean ? "text-emerald-950" : "text-rose-950"}`}>
+                              <span className="text-lg">{dim.icon}</span>
+                              <span>{isKn ? d.titleKn : d.titleEn}</span>
+                            </span>
+                            <div className="flex items-center gap-1.5">
+                              <span
+                                className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold border ${
+                                  isDimClean ? "bg-emerald-100 text-emerald-900 border-emerald-300" : "bg-rose-100 text-rose-900 border-rose-300"
+                                }`}
+                              >
+                                {isKn ? d.badgeKn : d.badgeEn}
+                              </span>
+                              <span className="text-[11px] font-bold text-stone-500">({d.score}/20)</span>
+                            </div>
+                          </div>
+
+                          {/* Analysis */}
+                          <p
+                            className={`text-stone-800 leading-relaxed font-medium p-3 rounded-xl border ${
+                              isDimClean ? "bg-emerald-50/40 border-emerald-100" : "bg-rose-50/40 border-rose-100"
+                            }`}
+                          >
+                            "{cleanAstrologyText(isKn ? d.analysisKn : d.analysisEn)}"
+                          </p>
+
+                          {/* Astrological Basis */}
+                          <div className="text-[11px] text-amber-950 flex items-center gap-1.5 px-1 font-semibold">
+                            <span>🎯</span>
+                            <span>
+                              <b>{isKn ? "ಶಾಸ್ತ್ರೀಯ ಆಧಾರ:" : "Astrological Basis:"}</b>{" "}
+                              {cleanAstrologyText(isKn ? d.astrologicalBasisKn : d.astrologicalBasisEn)}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* REAL-TIME PLANETARY & PANCHANGA TRIGGERS */}
+                <div className="bg-amber-50/70 rounded-2xl border border-amber-300 p-4 md:p-5 space-y-3">
+                  <div className="text-xs font-bold text-amber-950 uppercase tracking-wide flex items-center gap-1.5">
+                    <span>⚡</span>
+                    <span>{isKn ? "ನೈಜ-ಸಮಯದ ಗೋಚಾರ, ದಶಾ ಪ್ರಚೋದನೆ & ಪಂಚಾಂಗ 5-ಅಂಗ ಪ್ರಭಾವ:" : "Real-time Gochara, Dasha & Panchanga Root Influence:"}</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                    <div className="p-3 bg-white rounded-xl border border-amber-200 space-y-1">
+                      <span className="font-bold text-amber-900 block">⏳ {isKn ? "ಪ್ರಸ್ತುತ ದಶಾ-ಭುಕ್ತಿ ಪ್ರಭಾವ:" : "Active Dasha-Bhukti Influence:"}</span>
+                      <p className="text-stone-700 leading-relaxed">
+                        {cleanAstrologyText(isKn ? shades.activeDashaTriggerKn : shades.activeDashaTriggerEn)}
+                      </p>
+                    </div>
+
+                    <div className="p-3 bg-white rounded-xl border border-amber-200 space-y-1">
+                      <span className="font-bold text-amber-900 block">🪐 {isKn ? "ಪ್ರಸ್ತುತ ಗ್ರಹ ಗೋಚಾರ ಸಂಚಾರ:" : "Live Gochara Transit Status:"}</span>
+                      <p className="text-stone-700 leading-relaxed">
+                        {cleanAstrologyText(isKn ? shades.activeGocharaTriggerKn : shades.activeGocharaTriggerEn)}
+                      </p>
+                    </div>
+
+                    <div className="p-3 bg-white rounded-xl border border-amber-200 space-y-1 md:col-span-2">
+                      <span className="font-bold text-amber-900 block">
+                        🕉️ {isKn ? "ಪಂಚಾಂಗ 5-ಅಂಗ ಮೂಲ ಪ್ರಭಾವ (ತಿಥಿ, ವಾರ, ನಕ್ಷತ್ರ, ಯೋಗ, ಕರಣ):" : "Panchanga 5-Anga Root Influence:"}
+                      </span>
+                      <p className="text-stone-700 leading-relaxed">
+                        {cleanAstrologyText(isKn ? shades.panchangaInfluenceKn : shades.panchangaInfluenceEn)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* GOKARNA SHANTRIC PRAYASHCHITTA & PROTECTION REMEDY */}
+                <div className="rounded-2xl border-2 border-emerald-400 bg-gradient-to-r from-emerald-50/80 via-white to-emerald-50/80 p-5 shadow-xs space-y-2">
+                  <div className="flex items-center gap-2 text-emerald-950 font-bold text-xs uppercase tracking-wider">
+                    <span>🪔</span>
+                    <span>{isKn ? "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಶಾಸ್ತ್ರೋಕ್ತ ರಕ್ಷಾ ಕವಚ & ದೈವಿಕ ಪರಿಹಾರ ಮಾರ್ಗ:" : "Gokarna Kshetra Shastric Protection & Remedial Strategy:"}</span>
+                  </div>
+                  <p className="text-xs md:text-sm text-stone-800 leading-relaxed font-medium">
+                    {cleanAstrologyText(isKn ? shades.protectionRemedyKn : shades.protectionRemedyEn)}
+                  </p>
+                </div>
+              </div>
+            );
+          })()}
 
           {/* 🌟 3. 11 MASTER ASTROLOGICAL LIFE & PERSONALITY REVELATIONS (11 ಪ್ರಮುಖ ಮುಖಾಮುಖಿ ಜ್ಯೋತಿಷ್ಯ ಸತ್ಯಾಂಶಗಳು) 🌟 */}
           {synthesisData?.tenLifeAspectBullets && (
@@ -685,60 +1266,90 @@ STRICT RULES:
 
               {/* Dynamic Cards Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs md:text-sm">
-                {synthesisData.tenLifeAspectBullets.map((bullet) => (
-                  <div
-                    key={bullet.id}
-                    className={`p-5 rounded-2xl border-2 space-y-3 shadow-md transition-all ${
-                      bullet.id === 1 || bullet.id === 10 || bullet.id === 11
-                        ? "md:col-span-2 bg-gradient-to-r from-amber-50/90 via-white to-amber-50/90 border-amber-400 ring-1 ring-amber-300"
-                        : bullet.doshaSpecifics?.hasDosha
-                        ? "bg-white border-rose-300 ring-1 ring-rose-200"
-                        : "bg-white border-amber-200 hover:border-amber-400"
-                    }`}
-                  >
-                    {/* CARD HEADER */}
-                    <div className="flex items-center justify-between border-b border-amber-100 pb-2.5">
-                      <span className="font-black text-sm flex items-center gap-2 text-amber-950">
-                        <span className="text-lg">{bullet.icon}</span>
-                        <span>{bullet.id}. {isKn ? bullet.titleKn : bullet.titleEn}</span>
-                      </span>
-                      <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 font-bold border border-amber-300">
-                        {isKn ? bullet.badgeKn : bullet.badgeEn}
-                      </span>
-                    </div>
+                {synthesisData.tenLifeAspectBullets.map((bullet) => {
+                  const isCleanCard11 = bullet.id === 11 && bullet.doshaSpecifics && !bullet.doshaSpecifics.hasDosha;
 
-                    {/* READING BODY */}
-                    <p className="text-stone-800 leading-relaxed font-medium bg-amber-50/60 p-3.5 rounded-xl border border-amber-200/60">
-                      "{cleanAstrologyText(isKn ? bullet.readingKn : bullet.readingEn)}"
-                    </p>
-
-                    {/* ASTROLOGICAL FOUNDATION FOOTER */}
-                    <div className="text-[11px] text-amber-900 flex items-center gap-1.5 px-1 font-semibold">
-                      <span>🎯</span>
-                      <span><b>{isKn ? "ಶಾಸ್ತ್ರೀಯ ಆಧಾರ:" : "Astrological Basis:"}</b> {cleanAstrologyText(isKn ? bullet.astrologicalBasisKn : bullet.astrologicalBasisEn)}</span>
-                    </div>
-
-                    {/* DEDICATED DOSHA & REMEDY BOX IF AFFLICTED */}
-                    {bullet.doshaSpecifics?.hasDosha && (
-                      <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-300 space-y-2 text-xs text-stone-800 shadow-sm">
-                        <div className="flex items-center justify-between border-b border-rose-200 pb-1.5">
-                          <span className="text-rose-900 font-black text-xs flex items-center gap-1.5">
-                            <span>⚠️</span>
-                            <span>{isKn ? "ನಿರ್ದಿಷ್ಟ ದೋಷ:" : "Detected Dosha:"} {isKn ? bullet.doshaSpecifics.doshaNameKn : bullet.doshaSpecifics.doshaNameEn}</span>
-                          </span>
-                          <span className="text-[10px] px-2 py-0.5 rounded bg-rose-200 text-rose-950 font-bold">
-                            {isKn ? "ಪರಿಹಾರ ಅಗತ್ಯ" : "Remedy Recommended"}
-                          </span>
-                        </div>
-                        <div className="space-y-1 text-[11px]">
-                          <p><b>{isKn ? "ಮೂಲ ಕಾರಣ & ಸ್ಥಾನ:" : "Root Cause & House:"}</b> {isKn ? bullet.doshaSpecifics.rootCauseHouseKn : bullet.doshaSpecifics.rootCauseHouseEn} ({isKn ? bullet.doshaSpecifics.afflictedPlanetKn : bullet.doshaSpecifics.afflictedPlanetEn})</p>
-                          <p className="text-amber-900"><b>{isKn ? "ದೈವಿಕ ಬೀಜ ಮಂತ್ರ:" : "Beeja Mantra:"}</b> {isKn ? bullet.doshaSpecifics.mantraKn : bullet.doshaSpecifics.mantraEn}</p>
-                          <p className="text-emerald-900"><b>{isKn ? "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಪೂಜೆ:" : "Gokarna Kshetra Pooja:"}</b> {isKn ? bullet.doshaSpecifics.pujaKn : bullet.doshaSpecifics.pujaEn}</p>
-                        </div>
+                  return (
+                    <div
+                      key={bullet.id}
+                      className={`p-5 rounded-2xl border-2 space-y-3 shadow-md transition-all ${
+                        bullet.id === 1 || bullet.id === 10 || bullet.id === 11
+                          ? isCleanCard11
+                            ? "md:col-span-2 bg-gradient-to-r from-emerald-50/90 via-white to-emerald-50/90 border-emerald-400 ring-1 ring-emerald-300"
+                            : "md:col-span-2 bg-gradient-to-r from-amber-50/90 via-white to-amber-50/90 border-amber-400 ring-1 ring-amber-300"
+                          : bullet.doshaSpecifics?.hasDosha
+                          ? "bg-white border-rose-300 ring-1 ring-rose-200"
+                          : "bg-white border-amber-200 hover:border-amber-400"
+                      }`}
+                    >
+                      {/* CARD HEADER */}
+                      <div className={`flex items-center justify-between border-b pb-2.5 ${isCleanCard11 ? "border-emerald-100" : "border-amber-100"}`}>
+                        <span className={`font-black text-sm flex items-center gap-2 ${isCleanCard11 ? "text-emerald-950" : "text-amber-950"}`}>
+                          <span className="text-lg">{bullet.icon}</span>
+                          <span>{bullet.id}. {isKn ? bullet.titleKn : bullet.titleEn}</span>
+                        </span>
+                        <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold border ${
+                          isCleanCard11 ? "bg-emerald-100 text-emerald-900 border-emerald-300" : "bg-amber-100 text-amber-900 border-amber-300"
+                        }`}>
+                          {isKn ? bullet.badgeKn : bullet.badgeEn}
+                        </span>
                       </div>
-                    )}
-                  </div>
-                ))}
+
+                      {/* READING BODY */}
+                      <p className={`text-stone-800 leading-relaxed font-medium p-3.5 rounded-xl border ${
+                        isCleanCard11 ? "bg-emerald-50/60 border-emerald-200/60" : "bg-amber-50/60 border-amber-200/60"
+                      }`}>
+                        "{cleanAstrologyText(isKn ? bullet.readingKn : bullet.readingEn)}"
+                      </p>
+
+                      {/* ASTROLOGICAL FOUNDATION FOOTER */}
+                      <div className="text-[11px] text-amber-900 flex items-center gap-1.5 px-1 font-semibold">
+                        <span>🎯</span>
+                        <span><b>{isKn ? "ಶಾಸ್ತ್ರೀಯ ಆಧಾರ:" : "Astrological Basis:"}</b> {cleanAstrologyText(isKn ? bullet.astrologicalBasisKn : bullet.astrologicalBasisEn)}</span>
+                      </div>
+
+                      {/* DEDICATED DOSHA & REMEDY BOX IF AFFLICTED */}
+                      {bullet.doshaSpecifics?.hasDosha && (
+                        <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-300 space-y-2 text-xs text-stone-800 shadow-sm">
+                          <div className="flex items-center justify-between border-b border-rose-200 pb-1.5">
+                            <span className="text-rose-900 font-black text-xs flex items-center gap-1.5">
+                              <span>⚠️</span>
+                              <span>{isKn ? "ನಿರ್ದಿಷ್ಟ ದೋಷ:" : "Detected Dosha:"} {isKn ? bullet.doshaSpecifics.doshaNameKn : bullet.doshaSpecifics.doshaNameEn}</span>
+                            </span>
+                            <span className="text-[10px] px-2 py-0.5 rounded bg-rose-200 text-rose-950 font-bold">
+                              {isKn ? "ಪರಿಹಾರ ಅಗತ್ಯ" : "Remedy Recommended"}
+                            </span>
+                          </div>
+                          <div className="space-y-1 text-[11px]">
+                            <p><b>{isKn ? "ಮೂಲ ಕಾರಣ & ಸ್ಥಾನ:" : "Root Cause & House:"}</b> {isKn ? bullet.doshaSpecifics.rootCauseHouseKn : bullet.doshaSpecifics.rootCauseHouseEn} ({isKn ? bullet.doshaSpecifics.afflictedPlanetKn : bullet.doshaSpecifics.afflictedPlanetEn})</p>
+                            <p className="text-amber-900"><b>{isKn ? "ದೈವಿಕ ಬೀಜ ಮಂತ್ರ:" : "Beeja Mantra:"}</b> {isKn ? bullet.doshaSpecifics.mantraKn : bullet.doshaSpecifics.mantraEn}</p>
+                            <p className="text-emerald-900"><b>{isKn ? "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಪೂಜೆ:" : "Gokarna Kshetra Pooja:"}</b> {isKn ? bullet.doshaSpecifics.pujaKn : bullet.doshaSpecifics.pujaEn}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* DEDICATED BLESSING BOX IF DOSHA FREE & VIRTUOUS */}
+                      {bullet.doshaSpecifics && !bullet.doshaSpecifics.hasDosha && (
+                        <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-300 space-y-2 text-xs text-stone-800 shadow-sm">
+                          <div className="flex items-center justify-between border-b border-emerald-200 pb-1.5">
+                            <span className="text-emerald-900 font-black text-xs flex items-center gap-1.5">
+                              <span>✨</span>
+                              <span>{isKn ? "ಸದಾಚಾರ & ಶುಭ ರಕ್ಷಣೆ:" : "Virtuous Protection:"} {isKn ? bullet.doshaSpecifics.doshaNameKn : bullet.doshaSpecifics.doshaNameEn}</span>
+                            </span>
+                            <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-200 text-emerald-950 font-bold">
+                              {isKn ? "ದೋಷ ಮುಕ್ತ" : "Dosha Free"}
+                            </span>
+                          </div>
+                          <div className="space-y-1 text-[11px]">
+                            <p><b>{isKn ? "ಶುಭ ಗ್ರಹ ಕವಚ & ಸ್ಥಾನ:" : "Benefic Aspect & House:"}</b> {isKn ? bullet.doshaSpecifics.rootCauseHouseKn : bullet.doshaSpecifics.rootCauseHouseEn} ({isKn ? bullet.doshaSpecifics.afflictedPlanetKn : bullet.doshaSpecifics.afflictedPlanetEn})</p>
+                            <p className="text-amber-900"><b>{isKn ? "ದೈವಿಕ ಅನುಗ್ರಹ ಮಂತ್ರ:" : "Auspicious Mantra:"}</b> {isKn ? bullet.doshaSpecifics.mantraKn : bullet.doshaSpecifics.mantraEn}</p>
+                            <p className="text-emerald-900"><b>{isKn ? "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಆಶೀರ್ವಾದ:" : "Gokarna Kshetra Blessing:"}</b> {isKn ? bullet.doshaSpecifics.pujaKn : bullet.doshaSpecifics.pujaEn}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
