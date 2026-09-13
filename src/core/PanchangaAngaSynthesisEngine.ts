@@ -10,6 +10,9 @@ import { ageDecimalYearsAt } from "./birthTime";
 import { calculateTraditionalBaggona } from "./TraditionalBaggonaEngine";
 import { calculateKundli } from "./KundliEngine";
 
+/** Calculate distance between houses (1-indexed, 1 to 12) */
+export const houseDist = (fromH: number, toH: number): number => ((toH - fromH + 12) % 12) + 1;
+
 /* ==========================================================================
    1. 27 SOLAR-LUNAR YOGAS TAXONOMY & ENCYCLOPEDIC RULES
    ========================================================================== */
@@ -170,9 +173,14 @@ export interface CurrentLifeDiagnosis {
     diagnosis: string;
   };
   primaryLifeChallenge: {
-    area: "Personal / Marriage" | "Career / Workplace" | "Progeny / Children" | "Financial / Debts" | "Health / Vitality" | "General Transition";
+    area: "Personal / Marriage" | "Career / Workplace" | "Progeny / Children" | "Financial / Debts" | "Health / Vitality" | "Health / Physical" | "General Transition";
     description: string;
     planetaryRootCause: string;
+    areaKn?: string;
+    descriptionEn?: string;
+    planetaryRootCauseEn?: string;
+    solutionKn?: string;
+    solutionEn?: string;
   };
   prasthuthaSthiti: {
     runningDashaSummary: string;
@@ -227,6 +235,9 @@ export interface GoodBadTraitAnalysis {
   secrecyHabitEn?: string;
   gokarnaPrayashchittaKn?: string;
   gokarnaPrayashchittaEn?: string;
+  isSpeculationLoss?: boolean;
+  speculationWarningKn?: string;
+  speculationWarningEn?: string;
 }
 
 export interface MasterLifeBulletPoint {
@@ -1271,6 +1282,7 @@ export const generateGoodAndBadTraits = (
   const secondLordPlanet = kundli.planets.find((p) => p.name === secondLord);
   const seventhLordPlanet = kundli.planets.find((p) => p.name === seventhLord);
   const eighthLordPlanet = kundli.planets.find((p) => p.name === eighthLord);
+  const fifthLordPlanet = kundli.planets.find((p) => p.name === fifthLord);
 
   // Exact Vedic house distance helper (1 to 12)
   const houseDist = (fromH: number, toH: number) => ((toH - fromH + 12) % 12) + 1;
@@ -1583,7 +1595,31 @@ export const generateGoodAndBadTraits = (
   const isSocialDrinking = addictionScore >= 1.0 && addictionScore < 2.5;
   const hasAddiction = addictionScore >= 1.0;
 
-  // 4. UNETHICAL WORK, SMUGGLING & SHORTCUT WEALTH EVALUATION
+  // 4. SPECULATION, SHARE MARKET TRADING & SHORTCUT WEALTH LOSS
+  let speculationScore = 0;
+  // Rahu in 5th house: Classic Vedic signature of Stock Market, Intraday, F&O Options, Betting, Speculation greed
+  if (rahu && rahu.house === 5) speculationScore += 3.5;
+  // 5th lord debilitated (e.g. Mars in Cancer) or in dusthana (6, 8, 12) -> destruction of speculative capital
+  if (fifthLordPlanet) {
+    const isFifthLordNeecha = (fifthLordPlanet.name === PlanetName.Mars && fifthLordPlanet.rashi.index === 3) ||
+      (fifthLordPlanet.name === PlanetName.Sun && fifthLordPlanet.rashi.index === 6) ||
+      (fifthLordPlanet.name === PlanetName.Moon && fifthLordPlanet.rashi.index === 7) ||
+      (fifthLordPlanet.name === PlanetName.Jupiter && fifthLordPlanet.rashi.index === 9) ||
+      (fifthLordPlanet.name === PlanetName.Venus && fifthLordPlanet.rashi.index === 5) ||
+      (fifthLordPlanet.name === PlanetName.Saturn && fifthLordPlanet.rashi.index === 0) ||
+      (fifthLordPlanet.name === PlanetName.Mercury && fifthLordPlanet.rashi.index === 11);
+    if (isFifthLordNeecha) speculationScore += 2.5;
+    if ([6, 8, 12].includes(fifthLordPlanet.house)) speculationScore += 2.0;
+  }
+  // Saturn or Mars in 8th house: Catastrophic sudden losses, tens of lakhs debt
+  if (saturn && saturn.house === 8) speculationScore += 2.0;
+  if (mars && mars.house === 8) speculationScore += 1.5;
+  // Ketu in 11th house: Dissolution of gains, profits vanishing into deficit
+  if (ketu && ketu.house === 11) speculationScore += 1.5;
+
+  const isSpeculationLoss = speculationScore >= 2.5;
+
+  // Unethical Work / Smuggling evaluation (if not already speculation loss)
   let illegalScore = 0;
   if (rahu && rahu.house === 8) illegalScore += 2.5; // Classic smuggling & contraband signature
   if (rahu && [10, 11].includes(rahu.house)) illegalScore += 2.0; // Shadow trade / commission games
@@ -1592,7 +1628,7 @@ export const generateGoodAndBadTraits = (
   if (mercury && [8, 10, 12].includes(mercury.house) && (rahu && Math.abs(mercury.house - rahu.house) === 0)) illegalScore += 2.0; // Cyber/tax/forgery
   if (eighthLordPlanet && [2, 11].includes(eighthLordPlanet.house)) illegalScore += 1.5;
   if (rahu && [5, 7, 9].includes(houseDist(rahu.house, 8))) illegalScore += 1.0;
-  const hasIllegal = illegalScore >= 2.0;
+  const hasIllegal = illegalScore >= 2.0 && !isSpeculationLoss;
 
   // 5. DARK THOUGHT LOOPS & DEPRESSION EVALUATION
   let darkScore = 0;
@@ -1776,23 +1812,39 @@ export const generateGoodAndBadTraits = (
     {
       id: 4,
       type: "bad",
-      titleKn: hasIllegal
-        ? "ಅಡ್ಡದಾರಿ ಹಣ & ಕಳ್ಳಸಾಗಣೆ (ಸ್ಮಗ್ಲಿಂಗ್): ಅಕ್ರಮ ಲಾಭ & ರಿಸ್ಕ್ ವ್ಯವಹಾರದ ಸೆಳೆತ"
-        : "ನ್ಯಾಯನಿಷ್ಠ ಸಂಪಾದನೆ & ಸತ್ಯ ಮಾರ್ಗ: ಪರಿಶ್ರಮದ ಧರ್ಮ ಸಂಪತ್ತು",
-      titleEn: hasIllegal
-        ? "Unethical Shortcuts & Smuggling: Illicit Money & High-Risk Trade"
-        : "Righteous Livelihood & Integrity: Hard-Earned Ethical Wealth",
-      icon: hasIllegal ? "⚖️" : "🏛️",
-      badgeKn: hasIllegal ? "8ನೇ & 11ನೇ ಭಾವ • ಅಕ್ರಮ ರಿಸ್ಕ್ ಯೋಗ" : "ಧರ್ಮ-ಕರ್ಮ ಯೋಗ • ಸತ್ಯ ಸಂಪಾದನೆ",
-      badgeEn: hasIllegal ? "8th & 11th Houses • Illicit Wealth Risk" : "Dharma-Karma Axis • Clean Wealth",
-      bulletKn: hasIllegal
-        ? `ಜಾತಕದಲ್ಲಿ 8ನೇ ರಹಸ್ಯ ಸ್ಥಾನ ಅಥವಾ 11ನೇ ಲಾಭ ಭಾವದಲ್ಲಿ ನೆರಳು ಗ್ರಹ ರಾಹುವಿನ ಪ್ರಭಾವವಿರುವುದರಿಂದ, ಶ್ರಮವಿಲ್ಲದೆ ತ್ವರಿತವಾಗಿ ಕೋಟಿಗಟ್ಟಲೆ ಹಣ ಗಳಿಸುವ ಅಡ್ಡದಾರಿ, ಕಳ್ಳಸಾಗಣೆ (ಸ್ಮಗ್ಲಿಂಗ್), ಬೆಟ್ಟಿಂಗ್, ಹವಾಲಾ ಅಥವಾ ಅಕ್ರಮ ವ್ಯವಹಾರಗಳ ದುಸ್ಸಾಹಸಕ್ಕೆ ಮನಸ್ಸು ಹಾತೊರೆಯುವ ಪ್ರವೃತ್ತಿ ಇದೆ. ಇದರಿಂದ ಆರಂಭದಲ್ಲಿ ಭಾರಿ ಲಾಭ ಕಂಡರೂ, ಅಂತಿಮವಾಗಿ ಪೊಲೀಸ್ ಕೇಸ್, ಕಾನೂನು ಸಂಕೋಲೆ, ಜೈಲು ಭಯ ಹಾಗೂ ಸಾರ್ವಜನಿಕ ಮಾನಹಾನಿಯ ಅಪಾಯ ತಂದೊಡ್ಡಬಹುದು; ಪ್ರಾಮಾಣಿಕ ದುಡಿಮೆಯೇ ಶಾಶ್ವತ ರಕ್ಷೆ.`
-        : `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಧರ್ಮ ಮತ್ತು ಕರ್ಮ ಸ್ಥಾನಗಳು ಶುದ್ಧವಾಗಿದ್ದು, ಸ್ವಂತ ಪರಿಶ್ರಮ ಮತ್ತು ಸತ್ಯ ಮಾರ್ಗದ ಸಂಪಾದನೆಯಲ್ಲೇ ನೀವು ನೆಮ್ಮದಿ ಕಾಣುತ್ತೀರಿ. ಅಡ್ಡದಾರಿ, ಬೆಟ್ಟಿಂಗ್, ಅಕ್ರಮ ಆಮಿಷಗಳು ಅಥವಾ ಶಾರ್ಟ್‌ಕಟ್‌ಗಳಿಗೆ ಮರುಳಾಗದೆ ಕಾನೂನುಬದ್ಧವಾಗಿ ಬೆಳೆಯುವ ಪ್ರಾಮಾಣಿಕತೆ ನಿಮ್ಮ ವ್ಯಕ್ತಿತ್ವದ ದೊಡ್ಡ ಶಕ್ತಿ.`,
-      bulletEn: hasIllegal
-        ? "Rahu's presence or aspect on the 8th and 11th houses sparks reckless ambition toward illegal shortcut wealth, smuggling, speculative betting, or shadow trading, carrying severe legal liability and public disgrace."
-        : "An unblemished dharma-karma axis grounds your pursuit of prosperity in honest labor and strict ethical compliance, rejecting unlawful shortcut temptations.",
-      astrologicalBasisKn: hasIllegal ? `8ನೇ ಅಕ್ರಮ ಲಾಭ ಮತ್ತು 11ನೇ ದುರಾಸೆಯ ಸ್ಥಾನದಲ್ಲಿ ರಾಹುವಿನ ಪ್ರಭಾವ.` : `ಧರ್ಮ-ಕರ್ಮ ಸ್ಥಾನಗಳ ಸಾತ್ವಿಕ ಬಲ.`,
-      astrologicalBasisEn: hasIllegal ? `8th house unearned wealth and Rahu temptation.` : `Pure 9th and 10th houses ensuring ethical earnings.`
+      titleKn: isSpeculationLoss
+        ? "ಷೇರು ಮಾರುಕಟ್ಟೆ, ಬೆಟ್ಟಿಂಗ್ & ಹಠಾತ್ ಧನ ನಷ್ಟ: ಸ್ಪೆಕ್ಯುಲೇಶನ್ ದುರಾಸೆ & ಲಕ್ಷಾಂತರ ರೂಪಾಯಿ ನಷ್ಟದ ಬಲೆ"
+        : (hasIllegal
+          ? "ಅಡ್ಡದಾರಿ ಹಣ & ಕಳ್ಳಸಾಗಣೆ (ಸ್ಮಗ್ಲಿಂಗ್): ಅಕ್ರಮ ಲಾಭ & ರಿಸ್ಕ್ ವ್ಯವಹಾರದ ಸೆಳೆತ"
+          : "ನ್ಯಾಯನಿಷ್ಠ ಸಂಪಾದನೆ & ಸತ್ಯ ಮಾರ್ಗ: ಪರಿಶ್ರಮದ ಧರ್ಮ ಸಂಪತ್ತು"),
+      titleEn: isSpeculationLoss
+        ? "Stock Market Speculation & Trading Ruin: Gambler's Trap & Heavy Financial Losses"
+        : (hasIllegal
+          ? "Unethical Shortcuts & Smuggling: Illicit Money & High-Risk Trade"
+          : "Righteous Livelihood & Integrity: Hard-Earned Ethical Wealth"),
+      icon: isSpeculationLoss ? "📉" : (hasIllegal ? "⚖️" : "🏛️"),
+      badgeKn: isSpeculationLoss
+        ? "5ನೇ ರಾಹು • ನೀಚ ಪಂಚಮ • ಅಷ್ಟಮ ಶನಿ"
+        : (hasIllegal ? "8ನೇ & 11ನೇ ಭಾವ • ಅಕ್ರಮ ರಿಸ್ಕ್ ಯೋಗ" : "ಧರ್ಮ-ಕರ್ಮ ಯೋಗ • ಸತ್ಯ ಸಂಪಾದನೆ"),
+      badgeEn: isSpeculationLoss
+        ? "5th Rahu • Afflicted 5th Lord • 8th Malefic"
+        : (hasIllegal ? "8th & 11th Houses • Illicit Wealth Risk" : "Dharma-Karma Axis • Clean Wealth"),
+      bulletKn: isSpeculationLoss
+        ? `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ 5ನೇ ಸ್ಪೆಕ್ಯುಲೇಶನ್/ಬುದ್ಧಿ ಸ್ಥಾನದಲ್ಲಿ ನೆರಳು ಗ್ರಹ ರಾಹುವಿದ್ದು, ಪಂಚಮಾಧಿಪತಿ ${fifthLordKn} ನೀಚ/ದುಃಸ್ಥಾನದಲ್ಲಿದ್ದಾನೆ ಹಾಗೂ 8ನೇ ಮನೆಯಲ್ಲಿ ಅಷ್ಟಮ ಶನಿ/ಕುಜ ಪ್ರಭಾವವಿದೆ. ವೇದ ಜ್ಯೋತಿಷ್ಯದ ಪ್ರಕಾರ ಇದು ಷೇರು ಮಾರುಕಟ್ಟೆ (Share Market), ಇಂಟ್ರಾಡೇ/F&O ಆಪ್ಷನ್ಸ್ ಟ್ರೇಡಿಂಗ್, ಬೆಟ್ಟಿಂಗ್ ಅಥವಾ ತ್ವರಿತ ಹಣದ ಆಮಿಷಗಳಿಗೆ ಬೀಳುವ ತೀವ್ರ ಗೀಳನ್ನು ಉಂಟುಮಾಡುತ್ತದೆ. ದಿನನಿತ್ಯ ಷೇರು ವಹಿವಾಟು ನಡೆಸುವ ವ್ಯಸನ ಹತ್ತಿ, ಆರಂಭದಲ್ಲಿ ಸಣ್ಣ ಲಾಭ ಕಂಡರೂ ಅಂತಿಮವಾಗಿ 40 ರಿಂದ 50 ಲಕ್ಷಕ್ಕೂ ಅಧಿಕ ಮೊತ್ತದ ಬೃಹತ್ ಬಂಡವಾಳವನ್ನು ಕಳೆದುಕೊಂಡು ತೀವ್ರ ಸಾಲದ ಸುಳಿಗೆ ಸಿಲುಕುವ ಸ್ಪಷ್ಟ ಯೋಗ ಜಾತಕದಲ್ಲಿದೆ. ಕಳೆದುಕೊಂಡ ಹಣವನ್ನು ಮತ್ತೆ ಷೇರಿನಲ್ಲೇ ವಾಪಸ್ ಪಡೆಯಬೇಕೆಂಬ ಹಠದ ಭ್ರಮೆಯಲ್ಲಿ ಮತ್ತಷ್ಟು ಹಣ ಕಳೆದುಕೊಳ್ಳುವ ಅಪಾಯವಿದ್ದು, ಇಂದೇ ಸ್ಪೆಕ್ಯುಲೇಶನ್ ಸಂಪೂರ್ಣವಾಗಿ ನಿಲ್ಲಿಸುವುದು ಜೀವ ರಕ್ಷೆ.`
+        : (hasIllegal
+          ? `ಜಾತಕದಲ್ಲಿ 8ನೇ ರಹಸ್ಯ ಸ್ಥಾನ ಅಥವಾ 11ನೇ ಲಾಭ ಭಾವದಲ್ಲಿ ನೆರಳು ಗ್ರಹ ರಾಹುವಿನ ಪ್ರಭಾವವಿರುವುದರಿಂದ, ಶ್ರಮವಿಲ್ಲದೆ ತ್ವರಿತವಾಗಿ ಕೋಟಿಗಟ್ಟಲೆ ಹಣ ಗಳಿಸುವ ಅಡ್ಡದಾರಿ, ಕಳ್ಳಸಾಗಣೆ (ಸ್ಮಗ್ಲಿಂಗ್), ಬೆಟ್ಟಿಂಗ್, ಹವಾಲಾ ಅಥವಾ ಅಕ್ರಮ ವ್ಯವಹಾರಗಳ ದುಸ್ಸಾಹಸಕ್ಕೆ ಮನಸ್ಸು ಹಾತೊರೆಯುವ ಪ್ರವೃತ್ತಿ ಇದೆ. ಇದರಿಂದ ಆರಂಭದಲ್ಲಿ ಭಾರಿ ಲಾಭ ಕಂಡರೂ, ಅಂತಿಮವಾಗಿ ಪೊಲೀಸ್ ಕೇಸ್, ಕಾನೂನು ಸಂಕೋಲೆ, ಜೈಲು ಭಯ ಹಾಗೂ ಸಾರ್ವಜನಿಕ ಮಾನಹಾನಿಯ ಅಪಾಯ ತಂದೊಡ್ಡಬಹುದು; ಪ್ರಾಮಾಣಿಕ ದುಡಿಮೆಯೇ ಶಾಶ್ವತ ರಕ್ಷೆ.`
+          : `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಧರ್ಮ ಮತ್ತು ಕರ್ಮ ಸ್ಥಾನಗಳು ಶುದ್ಧವಾಗಿದ್ದು, ಸ್ವಂತ ಪರಿಶ್ರಮ ಮತ್ತು ಸತ್ಯ ಮಾರ್ಗದ ಸಂಪಾದನೆಯಲ್ಲೇ ನೀವು ನೆಮ್ಮದಿ ಕಾಣುತ್ತೀರಿ. ಅಡ್ಡದಾರಿ, ಬೆಟ್ಟಿಂಗ್, ಅಕ್ರಮ ಆಮಿಷಗಳು ಅಥವಾ ಶಾರ್ಟ್‌ಕಟ್‌ಗಳಿಗೆ ಮರುಳಾಗದೆ ಕಾನೂನುಬದ್ಧವಾಗಿ ಬೆಳೆಯುವ ಪ್ರಾಮಾಣಿಕತೆ ನಿಮ್ಮ ವ್ಯಕ್ತಿತ್ವದ ದೊಡ್ಡ ಶಕ್ತಿ.`),
+      bulletEn: isSpeculationLoss
+        ? "Rahu situated in the 5th house of speculation, coupled with an afflicted 5th lord and malefic tension in the 8th house, fuels an uncontrollable drive toward daily stock market trading (intraday, F&O options), betting, and high-risk shortcut wealth. The initial illusion of quick wealth leads to devastating capital wipeouts—often exceeding 40 to 50 Lakhs in accumulated losses and debt. The obsessive urge to recover lost funds through more trading is Rahu's classic trap. Immediate cessation of speculative ventures and debt-mitigation remedies are essential."
+        : (hasIllegal
+          ? "Rahu's presence or aspect on the 8th and 11th houses sparks reckless ambition toward illegal shortcut wealth, smuggling, speculative betting, or shadow trading, carrying severe legal liability and public disgrace."
+          : "An unblemished dharma-karma axis grounds your pursuit of prosperity in honest labor and strict ethical compliance, rejecting unlawful shortcut temptations."),
+      astrologicalBasisKn: isSpeculationLoss
+        ? `5ನೇ ಮನೆಯಲ್ಲಿ ರಾಹು (ಸ್ಪೆಕ್ಯುಲೇಶನ್ ಗೀಳು), ನೀಚ/ಪೀಡಿತ ಪಂಚಮಾಧಿಪತಿ ${fifthLordKn} (ಬಂಡವಾಳ ನಷ್ಟ) ಹಾಗೂ 8ನೇ ಅಷ್ಟಮ ಶನಿ (ಭಾರಿ ಸಾಲ/ಹಠಾತ್ ವಿನಾಶ).`
+        : (hasIllegal ? `8ನೇ ಅಕ್ರಮ ಲಾಭ ಮತ್ತು 11ನೇ ದುರಾಸೆಯ ಸ್ಥಾನದಲ್ಲಿ ರಾಹುವಿನ ಪ್ರಭಾವ.` : `ಧರ್ಮ-ಕರ್ಮ ಸ್ಥಾನಗಳ ಸಾತ್ವಿಕ ಬಲ.`),
+      astrologicalBasisEn: isSpeculationLoss
+        ? "5th house Rahu (speculative addiction), afflicted 5th lord (loss of capital), and 8th house Saturn (crushing sudden debts)."
+        : (hasIllegal ? `8th house unearned wealth and Rahu temptation.` : `Pure 9th and 10th houses ensuring ethical earnings.`)
     },
     {
       id: 5,
@@ -1851,7 +1903,10 @@ export const generateGoodAndBadTraits = (
     secrecyHabitKn: secrecyKn,
     secrecyHabitEn: secrecyEn,
     gokarnaPrayashchittaKn: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಆತ್ಮಲಿಂಗ ಸ್ಪರ್ಶ, ಪ್ರಾಯಶ್ಚಿತ್ತ ಸಂಕಲ್ಪ ಪೂಜೆ ಮತ್ತು ರಾಹು-ಕೇತು ಶಾಂತಿ ಸೇವೆ ಸಮರ್ಪಿಸುವುದರಿಂದ ಈ ಸಕಲ ನೆರಳು ಕರ್ಮಗಳು ಮತ್ತು ತಪ್ಪು ಪ್ರವೃತ್ತಿಗಳು ಭಸ್ಮವಾಗಿ ಆತ್ಮಶುದ್ಧಿ ದೊರೆಯಲಿದೆ.`,
-    gokarnaPrayashchittaEn: `Perform Prayashchitta Sankalpa Pooja, Atma Linga Sparsha, and Rahu-Ketu Shanti at holy Gokarna Mahabaleshwara Kshetra to burn away shadow karma and cleanse unconscious tendencies.`
+    gokarnaPrayashchittaEn: `Perform Prayashchitta Sankalpa Pooja, Atma Linga Sparsha, and Rahu-Ketu Shanti at holy Gokarna Mahabaleshwara Kshetra to burn away shadow karma and cleanse unconscious tendencies.`,
+    isSpeculationLoss,
+    speculationWarningKn: isSpeculationLoss ? `5ನೇ ರಾಹು & ನೀಚ ಪಂಚಮಾಧಿಪತಿಯಿಂದಾಗಿ ಷೇರು ಮಾರುಕಟ್ಟೆ / ಟ್ರೇಡಿಂಗ್‌ನಲ್ಲಿ ಭಾರಿ ಬಂಡವಾಳ ನಷ್ಟವಾಗಿದ್ದು, ಯಾವುದೇ ಕಾರಣಕ್ಕೂ ಮತ್ತೆ ಸ್ಪೆಕ್ಯುಲೇಶನ್ ಅಥವಾ ಬೆಟ್ಟಿಂಗ್‌ಗೆ ಕೈಹಾಕಬೇಡಿ.` : undefined,
+    speculationWarningEn: isSpeculationLoss ? `5th house Rahu and afflicted 5th lord trigger heavy trading losses; cease all day trading and speculative betting immediately.` : undefined
   };
 };
 
@@ -1939,28 +1994,112 @@ export const generateCurrentLifeDiagnosis = (
     mentalDiagnosis = "ಶನಿ-ಚಂದ್ರ (ವಿಷ ಯೋಗ) ಪ್ರಭಾವದಿಂದ ಹೊಣೆಗಾರಿಕೆಯ ಹೊರೆ ಹೆಚ್ಚಾಗಿ ಮನಸ್ಸಿಗೆ ವಿಶ್ರಾಂತಿ ಸಿಗುತ್ತಿಲ್ಲ.";
   }
 
-  // 3. Primary Life Challenge Assessment
+  // 3. Primary Life Challenge Assessment (Dynamic 4-Domain Scoring for ANY Kundali)
   let challengeArea: CurrentLifeDiagnosis["primaryLifeChallenge"]["area"] = "General Transition";
+  let challengeAreaKn = "ಜೀವನದ ಸ್ಥಿತ್ಯಂತರ & ನೂತನ ಆರಂಭ";
   let challengeDesc = "ಪ್ರಸ್ತುತ ಜೀವನದಲ್ಲಿ ಸ್ಥಿರತೆಯನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳುವ ಮತ್ತು ಹೊಸ ಯೋಜನೆಗಳಿಗೆ ಅಡಿಪಾಯ ಹಾಕುವ ಹಂತ.";
+  let challengeDescEn = "A life phase focused on consolidating personal stability and laying the foundation for upcoming endeavors.";
   let rootCause = `ಪ್ರಸ್ತುತ ${maha} ಮಹಾದಶಾ ಮತ್ತು ${bhukti} ಭುಕ್ತಿಯ ಸಂಚಾರ.`;
+  let rootCauseEn = `Ongoing transit under ${maha} Mahadasha and ${bhukti} Bhukti.`;
+  let solutionKn = "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸಂಕಲ್ಪ ಪೂಜೆ ಮತ್ತು ನವಗ್ರಹ ಶಾಂತಿ ಸೇವೆ ಸಮರ್ಪಿಸಿ.";
+  let solutionEn = "Sponsor Navagraha Shanti and Sankalpa Pooja at Sri Kshetra Gokarna Mahabaleshwara.";
 
   const seventhLord = signLord((kundli.lagnaRashi.index + 6) % 12);
   const seventhLordPlanet = kundli.planets.find((p) => p.name === seventhLord);
   const tenthLord = signLord((kundli.lagnaRashi.index + 9) % 12);
   const tenthLordPlanet = kundli.planets.find((p) => p.name === tenthLord);
+  const secondLord = signLord((kundli.lagnaRashi.index + 1) % 12);
+  const secondLordPlanet = kundli.planets.find((p) => p.name === secondLord);
+  const fifthLord = signLord((kundli.lagnaRashi.index + 4) % 12);
+  const fifthLordPlanet = kundli.planets.find((p) => p.name === fifthLord);
 
-  if (devoteeAge >= 24 && devoteeAge <= 58 && tenthLordPlanet && [6, 8, 12].includes(tenthLordPlanet.house)) {
-    challengeArea = "Career / Workplace";
-    challengeDesc = "ಉದ್ಯೋಗದಲ್ಲಿ ನಿರೀಕ್ಷಿತ ಮನ್ನಣೆ ವಿಳಂಬ, ಹಿರಿಯ ಅಧಿಕಾರಿಗಳೊಂದಿಗೆ ಸಣ್ಣಪುಟ್ಟ ಭಿನ್ನಾಭಿಪ್ರಾಯ ಅಥವಾ ಹೊಸ ಉದ್ಯೋಗದ ಹುಡುಕಾಟ.";
-    rootCause = `10ನೇ ಮನೆಯ ಅಧಿಪತಿಯಾದ ${toKannadaPlanet(tenthLord)} ಗ್ರಹವು ${tenthLordPlanet.house}ನೇ ಮನೆಯಲ್ಲಿರುವುದು.`;
-  } else if (seventhLordPlanet && [6, 8].includes(seventhLordPlanet.house)) {
+  // Domain 1: Marital Affliction Score
+  let marriageAfflictionScore = 0;
+  if (seventhLordPlanet && [6, 8, 12].includes(seventhLordPlanet.house)) marriageAfflictionScore += 3.5;
+  if (mars && [1, 2, 4, 7, 8, 12].includes(mars.house)) marriageAfflictionScore += 2.5; // Kuja Dosha
+  if (rahu && rahu.house === 7) marriageAfflictionScore += 2.5;
+  if (saturn && (saturn.house === 7 || [1, 5, 10].includes(saturn.house))) marriageAfflictionScore += 2.0;
+  if (mars && seventhLordPlanet && [4, 7, 8].includes(houseDist(mars.house, seventhLordPlanet.house))) marriageAfflictionScore += 2.0;
+
+  // Domain 2: Debt / Speculation Financial Affliction Score
+  let debtAfflictionScore = 0;
+  const is5thRahu = rahu && rahu.house === 5;
+  const is5thLordNeecha = fifthLordPlanet && (
+    (fifthLordPlanet.name === PlanetName.Mars && fifthLordPlanet.rashi.index === 3) ||
+    (fifthLordPlanet.name === PlanetName.Sun && fifthLordPlanet.rashi.index === 6) ||
+    (fifthLordPlanet.name === PlanetName.Moon && fifthLordPlanet.rashi.index === 7) ||
+    (fifthLordPlanet.name === PlanetName.Jupiter && fifthLordPlanet.rashi.index === 9) ||
+    (fifthLordPlanet.name === PlanetName.Venus && fifthLordPlanet.rashi.index === 5) ||
+    (fifthLordPlanet.name === PlanetName.Saturn && fifthLordPlanet.rashi.index === 0) ||
+    (fifthLordPlanet.name === PlanetName.Mercury && fifthLordPlanet.rashi.index === 11)
+  );
+  if (is5thRahu && (is5thLordNeecha || (fifthLordPlanet && [6, 8, 12].includes(fifthLordPlanet.house)))) {
+    debtAfflictionScore += 4.5;
+  }
+  if (secondLordPlanet && [6, 8, 12].includes(secondLordPlanet.house)) debtAfflictionScore += 2.5;
+  if (saturn && saturn.house === 8) debtAfflictionScore += 2.0;
+  if (kundli.maandi && [1, 7, 8].includes(kundli.maandi.rashi.index - kundli.lagnaRashi.index + 1)) debtAfflictionScore += 2.0;
+
+  // Domain 3: Career Affliction Score
+  let careerAfflictionScore = 0;
+  if (tenthLordPlanet && [6, 8, 12].includes(tenthLordPlanet.house)) careerAfflictionScore += 3.5;
+  if (rahu && rahu.house === 10) careerAfflictionScore += 2.0;
+  if (saturn && saturn.house === 10) careerAfflictionScore += 2.0;
+
+  // Domain 4: Health Affliction Score
+  let healthAfflictionScore = 0;
+  const lagnaLord = signLord(kundli.lagnaRashi.index);
+  const lagnaLordPlanet = kundli.planets.find(p => p.name === lagnaLord);
+  if (lagnaLordPlanet && [6, 8, 12].includes(lagnaLordPlanet.house)) healthAfflictionScore += 3.5;
+  if (moon && [6, 8, 12].includes(moon.house)) healthAfflictionScore += 2.5;
+
+  // Determine Priority Authentically for the Native's Chart
+  if (devoteeAge >= 20 && marriageAfflictionScore >= 3.0 && marriageAfflictionScore >= careerAfflictionScore) {
     challengeArea = "Personal / Marriage";
-    challengeDesc = "ದಾಂಪತ್ಯದಲ್ಲಿ ಅಥವಾ ಕುಟುಂಬದಲ್ಲಿ ಅನಗತ್ಯ ಮಾತುಕತೆಗಳಿಂದ ವೈಮನಸ್ಸು, ಸಂಗಾತಿಯ ಹಠಮಾರಿತನ ಅಥವಾ ವಿವಾಹ ನಿಶ್ಚಯದಲ್ಲಿ ಅಡೆತಡೆ.";
-    rootCause = `7ನೇ ಮನೆಯ ಅಧಿಪತಿ ${toKannadaPlanet(seventhLord)} ಗ್ರಹದ ಸ್ಥಾನ ಬಲದಲ್ಲಿ ಸೂಕ್ಷ್ಮ ದೋಷ.`;
-  } else if (kundli.maandi && [1, 7, 8].includes(kundli.maandi.rashi.index - kundli.lagnaRashi.index + 1)) {
+    challengeAreaKn = "ದಾಂಪತ್ಯದಲ್ಲಿ ತೀವ್ರ ಬಿಕ್ಕಟ್ಟು & ತಪ್ಪು ತಿಳುವಳಿಕೆಗಳ ಸಂಕಷ್ಟ (Acute Marital Crisis & Misunderstandings)";
+    challengeDesc = "ದಾಂಪತ್ಯದಲ್ಲಿ ತೀವ್ರವಾದ ಮಾನಸಿಕ ಸಂಕಷ್ಟ, ಪರಸ್ಪರ ಅಸಹನೀಯ ತಪ್ಪು ತಿಳುವಳಿಕೆಗಳು (Misunderstandings), ಸಣ್ಣ ಮಾತಿಗೂ ಭುಗಿಲೇಳುವ ಮನಸ್ತಾಪ, ಹೊಂದಾಣಿಕೆಯಿಲ್ಲದೆ ಮಾತುಕತೆ ಕಡಿದುಹೋಗಿರುವುದು ಅಥವಾ ದೂರವಾಗುವಂತಹ ಕಠಿಣ ಬಿಕ್ಕಟ್ಟಿನಿಂದ ನೀವು ಪ್ರಸ್ತುತ ಬಳಲುತ್ತಿದ್ದೀರಿ.";
+    challengeDescEn = "You are currently suffering from acute marital distress, severe misunderstandings, constant friction triggered by trivial matters, emotional distance, and breakdown of marital communication.";
+    rootCause = `7ನೇ ಕಳತ್ರಾಧಿಪತಿ ${toKannadaPlanet(seventhLord)} ${seventhLordPlanet?.house ?? 8}ನೇ ಸಂಕಟ ಭಾವದಲ್ಲಿದ್ದು, ${mars ? `ಲಗ್ನದ ${toKannadaPlanet(mars.name)} ದೋಷದ` : "ಗ್ರಹಗಳ"} ತೀವ್ರ ದೃಷ್ಟಿ ಪ್ರಭಾವವಿದೆ.`;
+    rootCauseEn = "7th house lord placed in dusthana with adverse aspects from Mars/Saturn creating persistent friction.";
+    solutionKn = "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಉಮಾ-ಮಹೇಶ್ವರ ಕಲ್ಯಾಣ ಸಂಕಲ್ಪ ಪೂಜೆ ನೆರವೇರಿಸಿ, ಪರಸ್ಪರ ತಪ್ಪು ತಿಳುವಳಿಕೆಗಳನ್ನು ಮರೆತು ಒಂದಾಗಲು ಪ್ರಾಯಶ್ಚಿತ್ತ ಸಂಕಲ್ಪ ಮಾಡಿ ಮತ್ತು 2 ಮುಖಿ ರುದ್ರಾಕ್ಷಿ ಧಾರಣೆ ಮಾಡಿ.";
+    solutionEn = "Sponsor Uma-Maheshwara Kalyana Sankalpa Pooja at Sri Kshetra Gokarna to dissolve misunderstandings and restore matrimonial union, and wear a 2-Mukhi Rudraksha.";
+  } else if (debtAfflictionScore >= 3.5) {
     challengeArea = "Financial / Debts";
-    challengeDesc = "ಆದಾಯಕ್ಕಿಂತ ಖರ್ಚು ಹೆಚ್ಚು, ಕೈಗೆ ಬಂದ ಹಣ ನಿಲ್ಲದಿರುವುದು ಅಥವಾ ಸಾಲ ತೀರಿಸುವ ಒತ್ತಡ.";
-    rootCause = "ಮಾಂದಿಯ ಸೂಕ್ಷ್ಮ ಸಂಚಾರ ಮತ್ತು ಹಣದ ಸೋರಿಕೆ ನೋಡ್ ಸಕ್ರಿಯವಾಗಿರುವುದು.";
+    challengeAreaKn = is5thRahu
+      ? "ಷೇರು ಮಾರುಕಟ್ಟೆ ನಷ್ಟ, ಸ್ಪೆಕ್ಯುಲೇಶನ್ & ಭಾರಿ ಸಾಲದ ಬಿಕ್ಕಟ್ಟು (Stock Market Speculation & Debt Crisis)"
+      : "ಆರ್ಥಿಕ ಬಿಕ್ಕಟ್ಟು & ಸಾಲದ ಸುಳಿ (Financial Strain & Debt Pressure)";
+    challengeDesc = is5thRahu
+      ? "ಷೇರು ಮಾರುಕಟ್ಟೆ, ಇಂಟ್ರಾಡೇ ಟ್ರೇಡಿಂಗ್ ಹಾಗೂ ಸ್ಪೆಕ್ಯುಲೇಶನ್‌ನಲ್ಲಿ ಭಾರಿ ಬಂಡವಾಳ ಕಳೆದುಕೊಂಡು ಸಾಲದ ಸುಳಿಗೆ ಸಿಲುಕಿರುವ ತೀವ್ರ ಆರ್ಥಿಕ ಬಿಕ್ಕಟ್ಟು."
+      : "ಆದಾಯಕ್ಕಿಂತ ಖರ್ಚು ಹೆಚ್ಚು, ಕೈಗೆ ಬಂದ ಹಣ ನಿಲ್ಲದಿರುವುದು ಅಥವಾ ಸಾಲ ತೀರಿಸುವ ಆರ್ಥಿಕ ಒತ್ತಡ.";
+    challengeDescEn = is5thRahu
+      ? "Acute financial crisis from devastating capital losses in stock market intraday/options trading and speculation, leading to crushing debt trap."
+      : "Severe financial stress from mounting debt obligations and unexpected expenditure outpacing income.";
+    rootCause = is5thRahu
+      ? "5ನೇ ಮನೆಯಲ್ಲಿ ರಾಹು (ಸ್ಪೆಕ್ಯುಲೇಶನ್ ಗೀಳು), ನೀಚ ಪಂಚಮಾಧಿಪತಿ ಹಾಗೂ 8ನೇ ಅಷ್ಟಮ ಶನಿ."
+      : "2ನೇ ಧನ ಸ್ಥಾನದ ಅಧಿಪತಿ ದುಃಸ್ಥಾನದಲ್ಲಿರುವುದು ಹಾಗೂ ಹಣದ ಸೋರಿಕೆ ನೋಡ್ ಸಕ್ರಿಯವಾಗಿರುವುದು.";
+    rootCauseEn = is5thRahu
+      ? "Rahu in 5th house triggering speculative trading obsession combined with afflicted 5th lord and 8th house Saturn."
+      : "2nd house lord placed in Dusthana triggering financial leakage.";
+    solutionKn = "ಷೇರು ಟ್ರೇಡಿಂಗ್ ಮತ್ತು ಸ್ಪೆಕ್ಯುಲೇಶನ್ ಅನ್ನು ಇಂದೇ ಸಂಪೂರ್ಣವಾಗಿ ನಿಲ್ಲಿಸಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಮಹಾಗಣಪತಿ ಹೋಮ, ಕುಬೇರ ಸಂಕಲ್ಪ ಪೂಜೆ ಸಲ್ಲಿಸಿ, ಸಾಲ ವಿಮೋಚನೆಗಾಗಿ ಪ್ರಾಯಶ್ಚಿತ್ತ ಮಾಡಿ.";
+    solutionEn = "Cease all speculative trading immediately. Perform Mahaganapati Homa and Kubera Sankalpa at Sri Kshetra Gokarna to systematically eliminate debt burden.";
+  } else if (devoteeAge >= 24 && devoteeAge <= 58 && careerAfflictionScore >= 3.0) {
+    challengeArea = "Career / Workplace";
+    challengeAreaKn = "ಉದ್ಯೋಗದಲ್ಲಿ ಅಸ್ಥಿರತೆ & ಕಚೇರಿ ರಾಜಕೀಯ (Workplace Politics & Career Delays)";
+    challengeDesc = "ಉದ್ಯೋಗದಲ್ಲಿ ನಿರೀಕ್ಷಿತ ಮನ್ನಣೆ ವಿಳಂಬ, ಹಿರಿಯ ಅಧಿಕಾರಿಗಳೊಂದಿಗೆ ಸಣ್ಣಪುಟ್ಟ ಭಿನ್ನಾಭಿಪ್ರಾಯ ಅಥವಾ ಹೊಸ ಉದ್ಯೋಗದ ಹುಡುಕಾಟ.";
+    challengeDescEn = "Lack of recognition at work, career stagnation, and workplace politics impeding professional growth despite sincere dedication.";
+    rootCause = `10ನೇ ಮನೆಯ ಅಧಿಪತಿಯಾದ ${toKannadaPlanet(tenthLord)} ಗ್ರಹವು ${tenthLordPlanet?.house ?? 6}ನೇ ಮನೆಯಲ್ಲಿರುವುದು.`;
+    rootCauseEn = "10th lord placed in dusthana under Saturn's slow transit.";
+    solutionKn = "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಕರ್ಮ ಸಿದ್ಧಿ ಸಂಕಲ್ಪ ಪೂಜೆ ಸಲ್ಲಿಸಿ, ರವಿ ಗಾಯತ್ರಿ ಮಂತ್ರ ಜಪಿಸಿ ಮತ್ತು ಶಿಫಾರಸು ಮಾಡಿದ ರತ್ನ ಧಾರಣೆ ಮಾಡಿ.";
+    solutionEn = "Perform Karma Siddhi Sankalpa Pooja at Sri Kshetra Gokarna and wear the prescribed gemstone.";
+  } else if (healthAfflictionScore >= 3.0) {
+    challengeArea = "Health / Vitality";
+    challengeAreaKn = "ದೈಹಿಕ ಬಳಲಿಕೆ & ನರಗಳ ಅಶಾಂತಿ (Physical Exhaustion & Health Vulnerability)";
+    challengeDesc = "ದೈಹಿಕ ಬಳಲಿಕೆ, ರೋಗನಿರೋಧಕ ಶಕ್ತಿಯ ಕೊರತೆ ಅಥವಾ ಅನಿರೀಕ್ಷಿತ ಅನಾರೋಗ್ಯದ ಕ್ಲೇಶ.";
+    challengeDescEn = "Chronic physical exhaustion, low vitality, sleep disturbance, or sudden health vulnerabilities.";
+    rootCause = `ಲಗ್ನಾಧಿಪತಿ ${toKannadaPlanet(lagnaLord)} ದುಃಸ್ಥಾನದಲ್ಲಿರುವುದು ಹಾಗೂ ಚಂದ್ರನ ಮೇಲಿನ ಪಾಪಗ್ರಹ ಪ್ರಭಾವ.`;
+    rootCauseEn = "Lagna lord in Dusthana and Moon under malefic aspects.";
+    solutionKn = "ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ಮಹಾಮೃತ್ಯುಂಜಯ ಹೋಮ ಮತ್ತು ಆಯುಷ್ಯ ಶಾಂತಿ ಸಂಕಲ್ಪ ಸೇವೆ ನೆರವೇರಿಸಿ, ಪವಿತ್ರ ರಕ್ಷಾ ಭಸ್ಮ ಧಾರಣೆ ಮಾಡಿ.";
+    solutionEn = "Sponsor Mahamrityunjaya Homa at Gokarna Kotiteertha and apply sacred Raksha Bhasma daily.";
   }
 
   // 4. Immediate Remedies (English Digits)
@@ -2059,8 +2198,13 @@ export const generateCurrentLifeDiagnosis = (
     },
     primaryLifeChallenge: {
       area: challengeArea,
+      areaKn: challengeAreaKn,
       description: challengeDesc,
-      planetaryRootCause: rootCause
+      descriptionEn: challengeDescEn,
+      planetaryRootCause: rootCause,
+      planetaryRootCauseEn: rootCauseEn,
+      solutionKn,
+      solutionEn
     },
     prasthuthaSthiti: {
       runningDashaSummary: `ಪ್ರಸ್ತುತ ಮಹಾದಶಾ: ${toKannadaPlanet(maha)} | ಪ್ರಸ್ತುತ ಭುಕ್ತಿ: ${toKannadaPlanet(bhukti)} (${dashaTiming.timelineKn} ಪೂರ್ಣ). ಈ ಕಾಲಾವಧಿಯು ನಿಮ್ಮ ಜೀವನದ ಪ್ರಮುಖ ನಿರ್ಧಾರಗಳನ್ನು ತೆಗೆದುಕೊಳ್ಳುವ ಸಮಯ.`,
@@ -2144,12 +2288,46 @@ export const generateInstantQAList = (
   const saturn = kundli.planets.find((p) => p.name === PlanetName.Saturn);
   const rahu = kundli.planets.find((p) => p.name === PlanetName.Rahu);
   const ketu = kundli.planets.find((p) => p.name === PlanetName.Ketu);
+  const venus = kundli.planets.find((p) => p.name === PlanetName.Venus);
+  const mercury = kundli.planets.find((p) => p.name === PlanetName.Mercury);
 
   const marsHouse = mars?.house ?? 1;
   const isKujaDosha = [1, 2, 4, 7, 8, 12].includes(marsHouse);
   const hasShani7th = saturn && (saturn.house === 7 || [1, 5, 10].includes(saturn.house));
   const hasSarpa7th = (rahu && rahu.house === 7) || (ketu && ketu.house === 7);
   const hasSarpa5th = (rahu && rahu.house === 5) || (ketu && ketu.house === 5);
+
+  const neuterSigns = [2, 5, 10];
+  const venusSign = venus?.rashi.index ?? 0;
+  const hasSameGenderAffinity = (
+    (venus && mercury && Math.abs(venus.house - mercury.house) === 0 && (saturn?.house === 7 || saturn?.house === 8 || rahu?.house === 7 || ketu?.house === 7)) ||
+    (venus && [7, 8].includes(venus?.house ?? 1) && mercury && [7, 8].includes(mercury.house) && neuterSigns.includes(venusSign))
+  );
+  let sensualScore = 0;
+  if (venus && mars && Math.abs(venus.house - mars.house) <= 1) sensualScore += 2.0;
+  if (venus && rahu && Math.abs(venus.house - rahu.house) <= 1) sensualScore += 2.0;
+  if ([7, 8, 12].includes(venus?.house ?? 1)) sensualScore += 1.5;
+  if ([rahu, ketu, mars, saturn].some(p => p && p.house === 7)) sensualScore += 1.5;
+  if ([rahu, ketu, mars, saturn].some(p => p && p.house === 12)) sensualScore += 1.5;
+  const hasSensual = sensualScore >= 2.0;
+
+  const fifthLordPlanet = kundli.planets.find((p) => p.name === fifthLord);
+
+  let specScore = 0;
+  if (rahu && rahu.house === 5) specScore += 3.5;
+  const isFifthLordNeecha = fifthLordPlanet && (
+    (fifthLordPlanet.name === PlanetName.Mars && fifthLordPlanet.rashi.index === 3) ||
+    (fifthLordPlanet.name === PlanetName.Sun && fifthLordPlanet.rashi.index === 6) ||
+    (fifthLordPlanet.name === PlanetName.Moon && fifthLordPlanet.rashi.index === 7) ||
+    (fifthLordPlanet.name === PlanetName.Jupiter && fifthLordPlanet.rashi.index === 9) ||
+    (fifthLordPlanet.name === PlanetName.Venus && fifthLordPlanet.rashi.index === 5) ||
+    (fifthLordPlanet.name === PlanetName.Saturn && fifthLordPlanet.rashi.index === 0) ||
+    (fifthLordPlanet.name === PlanetName.Mercury && fifthLordPlanet.rashi.index === 11)
+  );
+  if (fifthLordPlanet && (isFifthLordNeecha || [6, 8, 12].includes(fifthLordPlanet.house))) specScore += 2.5;
+  if (saturn && saturn.house === 8) specScore += 2.0;
+  if (mars && mars.house === 8) specScore += 2.0;
+  const isSpeculationLoss = specScore >= 4.0;
 
   return [
     // 1. CAREER PROGRESS
@@ -2161,9 +2339,10 @@ export const generateInstantQAList = (
       questionEn: "When will I get career progress or a new job opportunity?",
       panditScriptKn: sanitizeAstrologyKannadaText(`ನಮಸ್ಕಾರ ${name}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕ ನೋಡಿದೆ.
 
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ಮುಂದಿನ ${remM} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${remM} Month${remM > 1 ? "s" : ""}) ನೂತನ ಉದ್ಯೋಗಾವಕಾಶ, ಬಡ್ತಿ ಹಾಗೂ ಅಧಿಕಾರ ಪ್ರಾಪ್ತಿಯ ಶುಭ ಯೋಗ ಕೂಡಿಬರಲಿದೆ.
 • 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: ನಿಮ್ಮ ${lagnaKn} ಲಗ್ನದ 10ನೇ ಕರ್ಮ ಸ್ಥಾನದಲ್ಲಿ ${tenthLordKn} ಅಧಿಪತ್ಯವಿದ್ದು, ಪ್ರಸ್ತುತ ${dashaMahaKn} ಮಹಾದಶಾ ಸಂಚಾರ ನಡೆಯುತ್ತಿದೆ. 10ನೇ ಮನೆಯಲ್ಲಿ ${h10PlanetsKn} ಪ್ರಭಾವವಿದೆ.
 • ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ಕಾರಣ: ಕರ್ಮ ಸ್ಥಾನದ ಮೇಲೆ ಗೋಚಾರ ಶನಿ-ರಾಹುಗಳ ಸೂಕ್ಷ್ಮ ದೃಷ್ಟಿಯಿಂದಾಗಿ ನಿಮ್ಮ ಪರಿಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಮನ್ನಣೆ ಸಿಗುವುದು ತಾತ್ಕಾಲಿಕವಾಗಿ ವಿಳಂಬವಾಗುತ್ತಿದೆ.
-• ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ ${remM} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${remM} Month${remM > 1 ? "s" : ""}) ಗೋಚಾರ ಗುರುವಿನ ಪೂರ್ಣ ದೃಷ್ಟಿ ಕರ್ಮ ಸ್ಥಾನದ ಮೇಲೆ ಬೀಳಲಿದ್ದು, ನೂತನ ಉದ್ಯೋಗಾವಕಾಶ ಅಥವಾ ಬಡ್ತಿಯ ಶುಭ ಯೋಗ ಕೂಡಿಬರಲಿದೆ.
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ ${remM} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${remM} Month${remM > 1 ? "s" : ""}) ಗೋಚಾರ ಗುರುವಿನ ಪೂರ್ಣ ದೃಷ್ಟಿ ಕರ್ಮ ಸ್ಥಾನದ ಮೇಲೆ ಬೀಳಲಿದ್ದು, ಉದ್ಯೋಗದಲ್ಲಿ ದೊಡ್ಡ ತಿರುವು ದೊರೆಯಲಿದೆ.
 • 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪೂಜೆ: ಪ್ರತಿದಿನ ಪ್ರಾತಃಕಾಲ ರವಿ ಗಾಯತ್ರಿ ಮಂತ್ರ 11 ಬಾರಿ ಪಠಿಸಿ. ${gemName} (${gemCarat}) ರತ್ನ ಧರಿಸಿ ಮತ್ತು ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಕರ್ಮ ಸಿದ್ಧಿ ಸಂಕಲ್ಪ ಪೂಜೆ ಸಲ್ಲಿಸಿ.`),
       astrologicalBasisKn: `10ನೇ ಮನೆ (ಕರ್ಮ ಸ್ಥಾನ ${tenthLordKn}) ಮತ್ತು ಗುರು-ಶನಿ ಗೋಚಾರ ಫಲ.`,
       immediateRemedyKn: `ಪ್ರತಿದಿನ ಪ್ರಾತಃಕಾಲ ರವಿ ಗಾಯತ್ರಿ ಪಠಿಸಿ ಮತ್ತು ${gemName} ಧರಿಸಿ.`
@@ -2178,6 +2357,7 @@ export const generateInstantQAList = (
       questionEn: "When will business turn profitable and overcome loss?",
       panditScriptKn: sanitizeAstrologyKannadaText(`ನಮಸ್ಕಾರ ${name}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕ ನೋಡಿದೆ.
 
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ಇನ್ನು ಮುಂದಿನ ${Math.max(2, remM)} ತಿಂಗಳುಗಳಲ್ಲಿ ನಷ್ಟದ ಹರಿವು ನಿಂತು ಹೊಸ ಗ್ರಾಹಕರಿಂದ ವ್ಯಾಪಾರದಲ್ಲಿ ಲಾಭ ವೃದ್ಧಿಯಾಗಲಿದೆ.
 • 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: ನಿಮ್ಮ 2ನೇ ಧನಕೋಶ ಮತ್ತು 11ನೇ ಲಾಭ ಸ್ಥಾನದಲ್ಲಿ ${eleventhLordKn} ಗ್ರಹದ ಪ್ರಭಾವವಿದೆ.
 • ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ಕಾರಣ: ವ್ಯಾಪಾರದಲ್ಲಿ ಇತ್ತೀಚೆಗೆ ಬಂದ ಅನಿರೀಕ್ಷಿತ ಧನವ್ಯಯ ಅಥವಾ ಮಾರುಕಟ್ಟೆಯಲ್ಲಿ ಹಳೆಯ ಬಾಕಿ ಹಣ ನಿಲ್ಲದಿರುವುದು ಬಂಡವಾಳದ ಸರಾಗ ಹರಿವಿಗೆ ಅಡ್ಡಿಯಾಗಿದೆ.
 • ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ ${Math.max(2, remM)} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${Math.max(2, remM)} Month${Math.max(2, remM) > 1 ? "s" : ""}) ಹೊಸ ಗ್ರಾಹಕರ ಸಂಪರ್ಕ ಮತ್ತು ಹಳೆಯ ಬಾಕಿ ಹಣದ ವಸೂಲಿ ಆರಂಭವಾಗಿ ವ್ಯಾಪಾರ ಲಾಭದಾಯಕ ಹಳಿಗೆ ಮರಳಲಿದೆ.
@@ -2195,6 +2375,7 @@ export const generateInstantQAList = (
       questionEn: "How to overcome workplace politics and lack of recognition?",
       panditScriptKn: sanitizeAstrologyKannadaText(`ನಮಸ್ಕಾರ ${name}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕ ನೋಡಿದೆ.
 
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ಮುಂದಿನ ${Math.max(1, Math.min(4, Math.round(remM * 0.75)))} ತಿಂಗಳಲ್ಲಿ ಕಚೇರಿ ಕಿರುಕುಳ ಮತ್ತು ರಾಜಕೀಯ ತಾನಾಗಿಯೇ ಉಪಶಮನಗೊಂಡು ನಿಮ್ಮ ಸ್ಥಾನಮಾನ ಮರುಸ್ಥಾಪನೆಯಾಗಲಿದೆ.
 • 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: ನಿಮ್ಮ 6ನೇ ಶತ್ರು/ಸ್ಪರ್ಧಾ ಸ್ಥಾನದಲ್ಲಿ ${sixthLordKn} ಅಧಿಪತ್ಯವಿದೆ ಹಾಗೂ ಲಗ್ನದ ನೇರ ನಿಷ್ಠುರ ಗುಣವಿದೆ.
 • ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ಕಾರಣ: ನಿಮ್ಮ ಪ್ರಾಮಾಣಿಕತೆ ಮತ್ತು ನಿಷ್ಠೆಯನ್ನು ಕೆಲವರು ತಮ್ಮ ಅನುಕೂಲಕ್ಕೆ ಬಳಸಿಕೊಳ್ಳುತ್ತಿದ್ದು, ನೀವು ಮಾಡಿದ ಕೆಲಸದ ಕೀರ್ತಿಯನ್ನು ಇತರರು ಪಡೆಯುವ ಸನ್ನಿವೇಶ ಸೃಷ್ಟಿಯಾಗಿದೆ.
 • ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ ${Math.max(1, Math.min(4, Math.round(remM * 0.75)))} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${Math.max(1, Math.min(4, Math.round(remM * 0.75)))} Month${Math.max(1, Math.min(4, Math.round(remM * 0.75))) > 1 ? "s" : ""}) ಸತ್ಯಾಂಶವು ಹಿರಿಯ ಅಧಿಕಾರಿಗಳಿಗೆ ಮನವರಿಕೆಯಾಗಿ ನಿಮ್ಮ ಸ್ಥಾನಮಾನ ಮರುಸ್ಥಾಪನೆಯಾಗಲಿದೆ.
@@ -2212,6 +2393,7 @@ export const generateInstantQAList = (
       questionEn: "When will marriage alliance finalize? What is the exact reason for delay?",
       panditScriptKn: sanitizeAstrologyKannadaText(`ನಮಸ್ಕಾರ ${name}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕ ನೋಡಿದೆ.
 
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ಇನ್ನು ಮುಂದಿನ ${Math.max(3, remM)} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${Math.max(3, remM)} Month${Math.max(3, remM) > 1 ? "s" : ""}) ಕಂಕಣ ಭಾಗ್ಯ ಖಚಿತವಾಗಿ ಕೂಡಿಬರಲಿದ್ದು, ಸಂಸ್ಕಾರಯುತ ಕುಟುಂಬದಿಂದ ವಿವಾಹ ನಿಶ್ಚಯವಾಗಲಿದೆ.
 • 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: ನಿಮ್ಮ 7ನೇ ಕಳತ್ರ ಸ್ಥಾನದ ಅಧಿಪತಿ ${seventhLordKn} ಆಗಿದ್ದು, 7ನೇ ಮನೆಯಲ್ಲಿ ${h7PlanetsKn} ಪ್ರಭಾವವಿದೆ.
 • ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ನೈಜ ಕಾರಣ: ${
   isKujaDosha
@@ -2222,7 +2404,7 @@ export const generateInstantQAList = (
     ? `7ನೇ ಮನೆಯಲ್ಲಿ ರಾಹು/ಕೇತುಗಳಿರುವುದರಿಂದ 'ಸರ್ಪ ದೋಷ' ಉಂಟಾಗಿದೆ; ಇದು ವಿವಾಹ ಪ್ರಸ್ತಾಪಗಳು ಅರ್ಧಕ್ಕೆ ನಿಲ್ಲಲು ಕಾರಣವಾಗಿದೆ.`
     : `7ನೇ ಅಧಿಪತಿ ${seventhLordKn} ಗ್ರಹದ ಗೋಚಾರ ಸಂಚಾರದಲ್ಲಿ ತಾತ್ಕಾಲಿಕ ಬಲಹೀನತೆಯಿದೆ.`
 }
-• ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ ${Math.max(3, remM)} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${Math.max(3, remM)} Month${Math.max(3, remM) > 1 ? "s" : ""}) ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಅನುಗ್ರಹದಿಂದ ಯೋಗ್ಯ, ಸಂಸ್ಕಾರಯುತ ಕುಟುಂಬದಿಂದ ವಿವಾಹ ಪ್ರಸ್ತಾಪ ಖಚಿತವಾಗಿ ಕೂಡಿಬರಲಿದೆ.
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ ${Math.max(3, remM)} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${Math.max(3, remM)} Month${Math.max(3, remM) > 1 ? "s" : ""}) ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಅನುಗ್ರಹದಿಂದ ಯೋಗ್ಯ ವಿವಾಹ ಪ್ರಸ್ತಾಪ ಖಚಿತವಾಗಿ ಕೂಡಿಬರಲಿದೆ.
 • 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪೂಜೆ: ${
   isKujaDosha
     ? "ದಿನನಿತ್ಯ ಕುಜ ಗಾಯತ್ರಿ ಜಪಿಸಿ ('ಓಂ ಕ್ರಾಂ ಕ್ರೀಂ ಕ್ರೌಂ ಸಃ ಭೌಮಾಯ ನಮಃ'). ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸುಬ್ರಹ್ಮಣ್ಯ ಕುಜ ಶಾಂತಿ ಪೂಜೆ ನೆರವೇರಿಸಿ."
@@ -2241,6 +2423,7 @@ export const generateInstantQAList = (
       questionEn: "How to resolve marital tension and restore domestic peace?",
       panditScriptKn: sanitizeAstrologyKannadaText(`ನಮಸ್ಕಾರ ${name}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕ ನೋಡಿದೆ.
 
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ಇನ್ನು ಮುಂದಿನ ${Math.max(2, Math.min(5, remM))} ತಿಂಗಳುಗಳಲ್ಲಿ ಪರಸ್ಪರ ತಪ್ಪು ತಿಳುವಳಿಕೆಗಳು ಬಗೆಹರಿದು ದಾಂಪತ್ಯದಲ್ಲಿ ಪ್ರೀತಿ ಮತ್ತು ಸಾಮರಸ್ಯ ಮರಳಲಿದೆ.
 • 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: ನಿಮ್ಮ 7ನೇ ಕಳತ್ರ ಸ್ಥಾನ ಮತ್ತು 4ನೇ ಸುಖ ಸ್ಥಾನದ ಮೇಲೆ ${seventhLordKn} ಹಾಗೂ ${fourthLordKn} ಗ್ರಹಗಳ ಪ್ರಭಾವವಿದೆ.
 • ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ಕಾರಣ: ಇತ್ತೀಚೆಗೆ ನಡೆದ ಸಣ್ಣ ಮಾತುಕತೆ ಅಥವಾ ಅಹಂಕಾರದ ಘರ್ಷಣೆಯು ದಾಂಪತ್ಯದಲ್ಲಿ ಸೂಕ್ಷ್ಮ ಅಂತರ ತಂದಿದೆ. ಪರಸ್ಪರ ಪ್ರೀತಿ ಇದ್ದರೂ ಮುಕ್ತ ಸಂವಹನದ ಕೊರತೆ ಕಾಣಿಸುತ್ತಿದೆ.
 • ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ ${Math.max(2, Math.min(5, remM))} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${Math.max(2, Math.min(5, remM))} Month${Math.max(2, Math.min(5, remM)) > 1 ? "s" : ""}) ಗ್ರಹಗಳ ಶುಭ ಸಂಚಾರದಿಂದ ಪರಸ್ಪರ ತಿಳುವಳಿಕೆ ಮರಳಿ ಬಂದು ದಾಂಪತ್ಯದಲ್ಲಿ ಶಾಂತಿ ನೆಲೆಸಲಿದೆ.
@@ -2249,7 +2432,33 @@ export const generateInstantQAList = (
       immediateRemedyKn: `ದಂಪತಿ ಸಮೇತರಾಗಿ ಗೋಕರ್ಣದಲ್ಲಿ ಶಿವ-ಪಾರ್ವತಿ ಪೂಜೆ ಅಥವಾ ರುದ್ರಾಭಿಷೇಕ ಮಾಡಿಸಿ.`
     },
 
-    // 6. PROGENY DELAY (EXPLICIT DOSHA REASON)
+    // 6. MARITAL FIDELITY & AFFAIRS (EXPLICIT DIRECT VERDICT)
+    {
+      id: "q_marriage_3",
+      category: "marriage",
+      categoryLabelKn: "💍 ದಾಂಪತ್ಯ ನಿಷ್ಠೆ & ನಂಬಿಕೆ",
+      questionKn: "ದಾಂಪತ್ಯದಲ್ಲಿ ಪರಸ್ಪರ ನಂಬಿಕೆ & ಬಾಹ್ಯ ಆಕರ್ಷಣೆಯ ಅಪಾಯ ಜಾತಕದಲ್ಲಿದೆಯೇ?",
+      questionEn: "Is there any risk of extramarital attraction or trust breach in marriage?",
+      panditScriptKn: sanitizeAstrologyKannadaText(`ನಮಸ್ಕಾರ ${name}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕ ನೋಡಿದೆ.
+
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ${
+  hasSensual || hasSameGenderAffinity
+    ? "ಹೌದು! ಜಾತಕದಲ್ಲಿ ಶುಕ್ರ-ರಾಹು/ಕುಜ ಸಂಯೋಗದಿಂದಾಗಿ ಬಾಹ್ಯ ಆಕರ್ಷಣೆ ಹಾಗೂ ಗೌಪ್ಯ ಸಂಬಂಧಗಳತ್ತ ಮನಸ್ಸು ಜಾರುವ ಅಪಾಯದ ಲಕ್ಷಣಗಳಿವೆ; ಎಚ್ಚರ ವಹಿಸಬೇಕು."
+    : "ಇಲ್ಲ! ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧ, ಪರಸ್ತ್ರೀ/ಪರಪುರುಷ ವ್ಯಾಮೋಹ ಅಥವಾ ಬಾಹ್ಯ ಆಕರ್ಷಣೆಯ ಯಾವುದೇ ಅಪಾಯವಿಲ್ಲ. ನಿಮ್ಮಲ್ಲಿ ಅತ್ಯುನ್ನತ ಇಂದ್ರಿಯ ನಿಗ್ರಹ ಮತ್ತು ನೈತಿಕ ಸದಾಚಾರದ ರಕ್ಷಣೆ ಇದೆ."
+}
+• 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: ನಿಮ್ಮ 7ನೇ ಕಳತ್ರ, 8ನೇ ರಹಸ್ಯ ಹಾಗೂ 12ನೇ ಶಯನ ಸುಖ ಸ್ಥಾನಗಳ ಮೇಲೆ ${toKannadaPlanet(seventhLord)} ಮತ್ತು ಶುಕ್ರ ಗ್ರಹಗಳ ಪ್ರಭಾವವಿದೆ.
+• ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ಕಾರಣ: ${
+  hasSensual || hasSameGenderAffinity
+    ? "ಶುಕ್ರ-ರಾಹುವಿನ ಸೂಕ್ಷ್ಮ ಸೆಳೆತದಿಂದಾಗಿ ದಾಂಪತ್ಯದ ಹೊರಗೆ ಭಾವನಾತ್ಮಕ ಆಕರ್ಷಣೆ ಉಂಟಾಗುವ ಸನ್ನಿವೇಶಗಳಿವೆ."
+    : "7ನೇ ಕಳತ್ರ ಸ್ಥಾನವು ಶುಭ ರಕ್ಷಣೆಯಲ್ಲಿದ್ದು, ಸಾತ್ವಿಕ ಸಂಸ್ಕಾರವು ಬಾಹ್ಯ ಆಕರ್ಷಣೆಗಳಿಗೆ ಜಾರದಂತೆ ನಿಮ್ಮನ್ನು ರಕ್ಷಿಸುತ್ತಿದೆ."
+}
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ ${remM} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${remM} Month${remM > 1 ? "s" : ""}) ದಾಂಪತ್ಯದಲ್ಲಿನ ಬಾಹ್ಯ ಅನುಮಾನಗಳು ಸಂಪೂರ್ಣವಾಗಿ ದೂರವಾಗಿ ಪರಸ್ಪರ ಗೌರವ ಗಟ್ಟಿಯಾಗಲಿದೆ.
+• 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪೂಜೆ: ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಉಮಾ-ಮಹೇಶ್ವರ ಕಲ್ಯಾಣ ಸಂಕಲ್ಪ ಪೂಜೆ ಸಲ್ಲಿಸಿ ಮತ್ತು 2 ಮುಖಿ ರುದ್ರಾಕ್ಷಿ ಧಾರಣೆ ಮಾಡಿ.`),
+      astrologicalBasisKn: `7ನೇ ಮನೆ (ಕಳತ್ರ ಸ್ಥಾನ ${seventhLordKn}) ಮತ್ತು ಶುಕ್ರ-ರಾಹು ಸ್ಥಿತಿ.`,
+      immediateRemedyKn: `ಗೋಕರ್ಣದಲ್ಲಿ ಉಮಾ-ಮಹೇಶ್ವರ ಕಲ್ಯಾಣ ಪೂಜೆ ಮಾಡಿಸಿ ಮತ್ತು 2 ಮುಖಿ ರುದ್ರಾಕ್ಷಿ ಧರಿಸಿ.`
+    },
+
+    // 7. PROGENY DELAY (EXPLICIT DOSHA REASON)
     {
       id: "q_children_1",
       category: "children",
@@ -2258,6 +2467,7 @@ export const generateInstantQAList = (
       questionEn: "Why delay in childbirth? Which dosha is responsible and what is the Vedic remedy?",
       panditScriptKn: sanitizeAstrologyKannadaText(`ನಮಸ್ಕಾರ ${name}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕ ನೋಡಿದೆ.
 
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ಮುಂದಿನ ${Math.max(4, remM + 2)} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${Math.max(4, remM + 2)} Month${Math.max(4, remM + 2) > 1 ? "s" : ""}) ಸಂತಾನ ಪ್ರಾಪ್ತಿಯ ಶುಭ ಸುದ್ದಿ ಖಚಿತವಾಗಿ ಲಭಿಸಲಿದೆ.
 • 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: ನಿಮ್ಮ 5ನೇ ಸಂತಾನ/ಪುತ್ರ ಸ್ಥಾನದಲ್ಲಿ ${fifthLordKn} ಅಧಿಪತ್ಯವಿದ್ದು, 5ನೇ ಮನೆಯಲ್ಲಿ ${h5PlanetsKn} ಪ್ರಭಾವವಿದೆ. ಪುತ್ರಕಾರಕ ಗುರುವಿನ ಸಂಚಾರವಿದೆ.
 • ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ನೈಜ ಕಾರಣ: ${
   hasSarpa5th
@@ -2272,7 +2482,7 @@ export const generateInstantQAList = (
       immediateRemedyKn: `ದಿನನಿತ್ಯ ಸಂತಾನ ಗೋಪಾಲ ಮಂತ್ರ ಜಪಿಸಿ ಮತ್ತು ಗೋಕರ್ಣದಲ್ಲಿ ಸೇವೆ ಮಾಡಿಸಿ.`
     },
 
-    // 7. MENTAL PEACE & EMOTIONAL BALANCE
+    // 8. MENTAL PEACE & EMOTIONAL BALANCE
     {
       id: "q_mind_1",
       category: "mind",
@@ -2281,6 +2491,7 @@ export const generateInstantQAList = (
       questionEn: "What is the divine astrological remedy for mental anxiety and emotional strain?",
       panditScriptKn: sanitizeAstrologyKannadaText(`ನಮಸ್ಕಾರ ${name}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕ ನೋಡಿದೆ.
 
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ಮುಂದಿನ ${Math.max(1, Math.min(3, Math.round(remM / 2)))} ತಿಂಗಳಲ್ಲಿ ಮಾನಸಿಕ ಒತ್ತಡ, ಅತಿಯಾದ ಯೋಚನೆ ಹಾಗೂ ಆತಂಕ ಸಂಪೂರ್ಣ ಉಪಶಮನಗೊಳ್ಳಲಿದೆ.
 • 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಮನಃಕಾರಕ ಚಂದ್ರನು ${moonHouse}ನೇ ಮನೆಯಲ್ಲಿ (${moonRashiKn} ರಾಶಿ, ${moonNakKn} ನಕ್ಷತ್ರ) ಸ್ಥಿತನಾಗಿದ್ದಾನೆ.
 • ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ಕಾರಣ: ಚಂದ್ರನ ಮೇಲಿನ ಗ್ರಹ ಪ್ರಭಾವದಿಂದಾಗಿ ನೀವು ಹೊರಗೆ ಧೈರ್ಯವಾಗಿ ಕಂಡರೂ ಒಳಗೆ ಎಲ್ಲವನ್ನೂ ಅತಿಯಾಗಿ ಆಲೋಚಿಸುವ (Overthinking) ಮತ್ತು ಭಾವನೆಗಳನ್ನು ಅದುಮಿಟ್ಟುಕೊಳ್ಳುವ ಪ್ರವೃತ್ತಿ ಇದೆ.
 • ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ ${Math.max(1, Math.min(3, Math.round(remM / 2)))} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${Math.max(1, Math.min(3, Math.round(remM / 2)))} Month${Math.max(1, Math.min(3, Math.round(remM / 2))) > 1 ? "s" : ""}) ಚಂದ್ರನ ಗೋಚಾರ ಬಲ ಸುಧಾರಿಸಲಿದ್ದು ಮನಸ್ಸಿಗೆ ಅಪಾರ ನೆಮ್ಮದಿ ಮರಳಲಿದೆ.
@@ -2289,7 +2500,7 @@ export const generateInstantQAList = (
       immediateRemedyKn: `${rudraName} ಧರಿಸಿ ಮತ್ತು ರಾತ್ರಿ 11 ಬಾರಿ 'ಓಂ ನಮಃ ಶಿವಾಯ' ಜಪಿಸಿ.`
     },
 
-    // 8. EVIL EYE & PROTECTION
+    // 9. EVIL EYE & PROTECTION
     {
       id: "q_mind_2",
       category: "mind",
@@ -2298,6 +2509,7 @@ export const generateInstantQAList = (
       questionEn: "How to neutralize evil eye, negative energy, and obstacles?",
       panditScriptKn: sanitizeAstrologyKannadaText(`ನಮಸ್ಕಾರ ${name}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕ ನೋಡಿದೆ.
 
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: 1 ತಿಂಗಳ ರಕ್ಷಾ ಕವಚ ಹಾಗೂ ದೈವಿಕ ಸಂಕಲ್ಪದಿಂದ ಸಕಲ ದೃಷ್ಟಿ ದೋಷ, ನರದೃಷ್ಟಿ ಹಾಗೂ ನಕಾರಾತ್ಮಕ ಶಕ್ತಿಗಳು ಭಸ್ಮವಾಗಲಿವೆ.
 • 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: ನಿಮ್ಮ ${lagnaKn} ಲಗ್ನದ ತೇಜಸ್ಸು ಹಾಗೂ 8ನೇ ಗೂಢ ಸ್ಥಾನದ ಮೇಲೆ ಛಾಯಾಗ್ರಹಗಳ ದೃಷ್ಟಿ ಇದೆ.
 • ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ಕಾರಣ: ನಿಮ್ಮ ಪ್ರಗತಿ ಮತ್ತು ವ್ಯಕ್ತಿತ್ವವನ್ನು ನೋಡಿ ಕೆಲವರಿಗೆ ಉಂಟಾಗುವ ಅಸೂಯೆ ಮತ್ತು ನರದೃಷ್ಟಿಯಿಂದಾಗಿ ಹೊಸ ಕೆಲಸಗಳಲ್ಲಿ ಆರಂಭಿಕ ಅಡೆತಡೆಗಳು ಎದುರಾಗುತ್ತಿವೆ.
 • ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ 1 ತಿಂಗಳಿನಲ್ಲಿ (Next 1 Month) ರಕ್ಷಾ ಕವಚದ ಪ್ರಭಾವದಿಂದ ಸಕಲ ದೃಷ್ಟಿ ದೋಷಗಳು ಭಸ್ಮವಾಗಲಿವೆ.
@@ -2306,7 +2518,7 @@ export const generateInstantQAList = (
       immediateRemedyKn: `ಮನೆಯಲ್ಲಿ ಸಾಂಬ್ರಾಣಿ ಧೂಪ ಹಾಕಿ ಮತ್ತು ಸುದರ್ಶನ ಗಾಯತ್ರಿ ಮಂತ್ರ ಜಪಿಸಿ.`
     },
 
-    // 9. WEALTH & DEBT RELIEF
+    // 10. WEALTH & DEBT RELIEF
     {
       id: "q_wealth_1",
       category: "wealth",
@@ -2315,12 +2527,39 @@ export const generateInstantQAList = (
       questionEn: "When will debt pressure ease and finances stabilize?",
       panditScriptKn: sanitizeAstrologyKannadaText(`ನಮಸ್ಕಾರ ${name}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕ ನೋಡಿದೆ.
 
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ಇನ್ನು ಮುಂದಿನ ${remM} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${remM} Month${remM > 1 ? "s" : ""}) ನೂತನ ಆದಾಯದ ಮಾರ್ಗ ತೆರೆದುಕೊಂಡು ಸಾಲದ ಬಹುಪಾಲು ಹೊರೆ ಇಳಿಯಲಿದೆ.
 • 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: ನಿಮ್ಮ 6ನೇ ಋಣ ಸ್ಥಾನದಲ್ಲಿ ${sixthLordKn} ಮತ್ತು 2ನೇ ಧನ ಸ್ಥಾನದಲ್ಲಿ ${secondLordKn} ಗ್ರಹ ಪ್ರಭಾವವಿದೆ.
 • ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ಕಾರಣ: ಕೈಗೆ ಬಂದ ಹಣ ನಿಲ್ಲದೆ ಅನಿರೀಕ್ಷಿತ ತುರ್ತು ವೆಚ್ಚಗಳಿಗೆ ಸೋರಿಹೋಗುತ್ತಿರುವುದು ಸಾಲದ ಹೊರೆಯನ್ನು ಹೆಚ್ಚಿಸಿದೆ.
 • ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ ${remM} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${remM} Month${remM > 1 ? "s" : ""}) ಹೊಸ ಆದಾಯದ ಮಾರ್ಗ ತೆರೆದುಕೊಂಡು ಸಾಲದ ಬಹುಪಾಲು ಹೊರೆ ಇಳಿಯಲಿದೆ.
 • 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪೂಜೆ: ಪ್ರತಿದಿನ ಪ್ರಾತಃಕಾಲ ಋಣವಿಮೋಚಕ ನರಸಿಂಹ ಸ್ತೋತ್ರ ಪಠಿಸಿ. ${gemName} ಧರಿಸಿ ಮತ್ತು ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಮಹಾಗಣಪತಿ ಹೋಮ ಸಂಕಲ್ಪ ಸೇವೆ ಸಮರ್ಪಿಸಿ.`),
       astrologicalBasisKn: `6ನೇ (ಋಣ) ಮತ್ತು 11ನೇ (ಲಾಭ) ಮನೆಗಳ ಮೇಲಿನ ಗೋಚಾರ ಗ್ರಹ ಸಂಚಾರ.`,
       immediateRemedyKn: `ಪ್ರತಿದಿನ ಋಣವಿಮೋಚಕ ನರಸಿಂಹ ಸ್ತೋತ್ರ ಪಠಿಸಿ ಮತ್ತು ಗೋಕರ್ಣದಲ್ಲಿ ಸೇವೆ ಮಾಡಿಸಿ.`
+    },
+
+    // 11. SPECULATION & SHARE MARKET (DIRECT VERDICT)
+    {
+      id: "q_wealth_2",
+      category: "wealth",
+      categoryLabelKn: "💰 ಷೇರು & ಸ್ಪೆಕ್ಯುಲೇಶನ್",
+      questionKn: "ಷೇರು ಮಾರುಕಟ್ಟೆ, ಟ್ರೇಡಿಂಗ್ ಅಥವಾ ಸ್ಪೆಕ್ಯುಲೇಶನ್‌ನಲ್ಲಿ ಲಾಭ ಸಿಗುವುದೇ? ಅಥವಾ ನಷ್ಟದ ಅಪಾಯವಿದೆಯೇ?",
+      questionEn: "Will stock market day trading or speculation bring profit or loss?",
+      panditScriptKn: sanitizeAstrologyKannadaText(`ನಮಸ್ಕಾರ ${name}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕ ನೋಡಿದೆ.
+
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ${
+  isSpeculationLoss
+    ? "ಇಲ್ಲ, ಲಾಭ ಸಾಧ್ಯವೇ ಇಲ್ಲ! ಜಾತಕದಲ್ಲಿ ಷೇರು ಮಾರುಕಟ್ಟೆ, ದಿನದ ಇಂಟ್ರಾಡೇ/ಆಪ್ಷನ್ಸ್ ಟ್ರೇಡಿಂಗ್ ಹಾಗೂ ಬೆಟ್ಟಿಂಗ್‌ನಲ್ಲಿ ಭಾರಿ ಬಂಡವಾಳ ನಷ್ಟ ಹಾಗೂ ಸಾಲದ ಸುಳಿಗೆ ಸಿಲುಕುವ ಸ್ಪಷ್ಟ ದುರ್ಯೋಗವಿದೆ; ತಕ್ಷಣವೇ ನಿಲ್ಲಿಸಬೇಕು."
+    : "ದಿನನಿತ್ಯದ ಜೂಜು/ಟ್ರೇಡಿಂಗ್ ಬೇಡ; ಆದರೆ ದೀರ್ಘಕಾಲೀನ ಸುರಕ್ಷಿತ ಹೂಡಿಕೆಯಲ್ಲಿ (Mutual Funds/SIP) ಮಾತ್ರ ಹಂತ ಹಂತವಾಗಿ ಲಾಭ ಗಳಿಸುವ ಯೋಗವಿದೆ."
+}
+• 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: ನಿಮ್ಮ 5ನೇ ಸ್ಪೆಕ್ಯುಲೇಶನ್ ಸ್ಥಾನದಲ್ಲಿ ${fifthLordKn} ಹಾಗೂ 8ನೇ ಅಷ್ಟಮ ಸ್ಥಾನಗಳ ಮೇಲೆ ಗ್ರಹ ಪ್ರಭಾವವಿದೆ.
+• ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ಕಾರಣ: ${
+  isSpeculationLoss
+    ? "5ನೇ ಮನೆಯಲ್ಲಿ ರಾಹುವಿನ ಭ್ರಮೆ ಮತ್ತು ನೀಚ/ಪೀಡಿತ ಪಂಚಮಾಧಿಪತಿಯು ಬಂಡವಾಳ ವಿನಾಶ ಹಾಗೂ ಕಳೆದುಕೊಂಡ ಹಣ ವಾಪಸ್ ಪಡೆಯುವ ಹಠದ ಗೀಳನ್ನು ಉಂಟುಮಾಡುತ್ತದೆ."
+    : "ಧನ ಸ್ಥಾನವು ಸ್ಥಿರವಾಗಿದ್ದು, ಶ್ರಮದ ದುಡಿಮೆ ಮತ್ತು ದೀರ್ಘಕಾಲೀನ ಆಸ್ತಿಗಳಲ್ಲಿ ಹೂಡಿಕೆ ಮಾಡುವುದು ಸುರಕ್ಷಿತ."
+}
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ ${remM} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${remM} Month${remM > 1 ? "s" : ""}) ಸ್ಪೆಕ್ಯುಲೇಶನ್‌ನಿಂದ ದೂರವಿದ್ದರೆ ಆರ್ಥಿಕ ಬಿಕ್ಕಟ್ಟು ತಿಳಿಯಾಗಿ ಹಣ ಉಳಿಯಲಿದೆ.
+• 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪೂಜೆ: ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಮಹಾಗಣಪತಿ ಹೋಮ ಹಾಗೂ ಲಕ್ಷ್ಮೀ-ಕುಬೇರ ಸಂಕಲ್ಪ ಸೇವೆ ನೆರವೇರಿಸಿ, ಸಾಲ ಮುಕ್ತಿಗಾಗಿ ಪ್ರಾರ್ಥಿಸಿ.`),
+      astrologicalBasisKn: `5ನೇ (ಸ್ಪೆಕ್ಯುಲೇಶನ್/ಬುದ್ಧಿ) ಮತ್ತು 8ನೇ (ಹಠಾತ್ ನಷ್ಟ) ಮನೆಗಳ ಗ್ರಹ ಸ್ಥಿತಿ.`,
+      immediateRemedyKn: `ಸ್ಪೆಕ್ಯುಲೇಶನ್ ಟ್ರೇಡಿಂಗ್ ನಿಲ್ಲಿಸಿ ಮತ್ತು ಗೋಕರ್ಣದಲ್ಲಿ ಗಣಪತಿ ಹೋಮ ಮಾಡಿಸಿ.`
     }
   ];
 };
@@ -2449,10 +2688,37 @@ export const generateVedicConsultationAnswer = (
   // Question Intent Categorization
   const isChildQuery = /ಅಳು|ಕಿರಿಕಿರಿ|ಜಗಳ|ಹಠ|ಊಟ|ನಿದ್ರೆ|ಮಗು|ಬಾಲ|cry|crying|tantrum|fight|quarrel|stubborn|food|eat|colic|balarishta|child|baby/.test(qLower);
   const isAddictionQuery = /ಮದ್ಯ|ಕುಡಿ|ವ್ಯಸನ|ದುಶ್ಚಟ|ಡ್ರಿಂಕ್|ಆಲ್ಕೋಹಾಲ್|ಸಿಗರೇಟು|ಧೂಮಪಾನ|drink|drinking|alcohol|addiction|liquor|smoke|substance/.test(qLower);
-  const isIllegalQuery = /ಕಳ್ಳಸಾಗಣೆ|ಸ್ಮಗ್ಲಿಂಗ್|ಅಕ್ರಮ|ಅಡ್ಡದಾರಿ|ಬೆಟ್ಟಿಂಗ್|ಹವಾಲಾ|ಕಪ್ಪು ಹಣ|ಜೈಲು|ಕಾನೂನು|smuggle|smuggling|illegal|unethical|black money|betting|gambling|shortcut|police|court/.test(qLower);
-  const isAffairQuery = /ಅಫೇರ್|ಪರಸ್ತ್ರೀ|ಪರಪುರುಷ|ದಾಂಪತ್ಯೇತರ|ಕಾಮನೆ|ಲೈಂಗಿಕ ಆಕರ್ಷಣೆ|ಗುಪ್ತ ಪ್ರೇಮ|ವ್ಯಾಮೋಹ|ಕಾಮ|affair|extramarital|secret romance|sensual craving/.test(qLower);
-  const isFinanceCareerQuery = /ಹಣ|ಆರ್ಥಿಕ|ದುಡ್ಡು|ಸಂಪತ್ತು|ಸಾಲ|ಉದ್ಯೋಗ|ಕೆಲಸ|ವ್ಯಾಪಾರ|ತಿರುವು|ಅಭಿವೃದ್ಧಿ|ಪ್ರಮೋಷನ್|money|wealth|finance|debt|job|career|business|turning point|promotion/.test(qLower);
-  const isMarriageQuery = /ವಿವಾಹ|ಮದುವೆ|ಕಳತ್ರ|ವರ|ವಧು|marriage|wedding|spouse|partner|match/.test(qLower);
+  const isAffairQuery = /ಅಫೇರ್|ಪರಸ್ತ್ರೀ|ಪರಪುರುಷ|ದಾಂಪತ್ಯೇತರ|ಕಾಮನೆ|ಲೈಂಗಿಕ ಆಕರ್ಷಣೆ|ಗುಪ್ತ ಪ್ರೇಮ|ವ್ಯಾಮೋಹ|ಕಾಮ|ಬಾಹ್ಯ ಆಕರ್ಷಣೆ|affair|extramarital|secret romance|sensual craving|outside attraction/.test(qLower);
+  const isSpeculationQuery = /ಷೇರು|ಟ್ರೇಡಿಂಗ್|ಆಪ್ಷನ್ಸ್|ಇಂಟ್ರಾಡೇ|ಬೆಟ್ಟಿಂಗ್|ಲಾಟರಿ|ಸ್ಪೆಕ್ಯುಲೇಶನ್|ಜೂಜು|share|stock|trading|intraday|option|f&o|betting|lottery|gamble|speculat/.test(qLower);
+  const isIllegalQuery = /ಕಳ್ಳಸಾಗಣೆ|ಸ್ಮಗ್ಲಿಂಗ್|ಅಕ್ರಮ|ಅಡ್ಡದಾರಿ|ಹವಾಲಾ|ಕಪ್ಪು ಹಣ|ಜೈಲು|ಕಾನೂನು|smuggle|smuggling|illegal|unethical|black money|shortcut|police|court/.test(qLower);
+  const isMaritalConflictQuery = /ಸಾಮರಸ್ಯ|ಜಗಳ|ಮನಸ್ತಾಪ|ಹೊಂದಾಣಿಕೆ|ಬಿರುಕು|ವಿಚ್ಛೇದನ|ದಾಂಪತ್ಯ|ಸಂಸಾರ|dispute|conflict|friction|quarrel|divorce|harmony|marital tension|misunderstanding/.test(qLower);
+  const isMarriageQuery = /ವಿವಾಹ|ಮದುವೆ|ಕಳತ್ರ|ವರ|ವಧು|ಕಂಕಣ|ಮದುವೆಯಾಗ|marriage|wedding|spouse|partner|match|kankana/.test(qLower);
+  const isDebtQuery = /ಸಾಲ|ಋಣ|ಹೊರೆ|ತೀರಿಸ|ಬಾಕಿ|debt|loan|repay|borrow/.test(qLower);
+  const isFinanceCareerQuery = /ಹಣ|ಆರ್ಥಿಕ|ದುಡ್ಡು|ಸಂಪತ್ತು|ಉದ್ಯೋಗ|ಕೆಲಸ|ವ್ಯಾಪಾರ|ತಿರುವು|ಅಭಿವೃದ್ಧಿ|ಪ್ರಮೋಷನ್|money|wealth|finance|job|career|business|turning point|promotion/.test(qLower);
+
+  const seventhLord = signLord((kundli.lagnaRashi.index + 6) % 12);
+  const seventhLordPlanet = kundli.planets.find((p) => p.name === seventhLord);
+  const seventhLordKn = toKannadaPlanet(seventhLord);
+
+  const fifthLord = signLord((kundli.lagnaRashi.index + 4) % 12);
+  const fifthLordPlanet = kundli.planets.find((p) => p.name === fifthLord);
+  const fifthLordKn = toKannadaPlanet(fifthLord);
+
+  const secondLord = signLord((kundli.lagnaRashi.index + 1) % 12);
+  const secondLordPlanet = kundli.planets.find((p) => p.name === secondLord);
+  const secondLordKn = toKannadaPlanet(secondLord);
+
+  const tenthLord = signLord((kundli.lagnaRashi.index + 9) % 12);
+  const tenthLordPlanet = kundli.planets.find((p) => p.name === tenthLord);
+  const tenthLordKn = toKannadaPlanet(tenthLord);
+
+  const fourthLord = signLord((kundli.lagnaRashi.index + 3) % 12);
+  const fourthLordPlanet = kundli.planets.find((p) => p.name === fourthLord);
+  const fourthLordKn = toKannadaPlanet(fourthLord);
+
+  const sixthLord = signLord((kundli.lagnaRashi.index + 5) % 12);
+  const sixthLordPlanet = kundli.planets.find((p) => p.name === sixthLord);
+  const sixthLordKn = toKannadaPlanet(sixthLord);
 
   // Deep Astrological Metrics
   // Alcohol / Addiction
@@ -2481,6 +2747,23 @@ export const generateVedicConsultationAnswer = (
   if ([rahu, ketu, mars, saturn].some(p => p && p.house === 12)) sensualScore += 1.5;
   const hasSensual = sensualScore >= 2.0;
 
+  // Speculation Loss
+  let specScore = 0;
+  if (rahu && rahu.house === 5) specScore += 3.5;
+  const isFifthLordNeecha = fifthLordPlanet && (
+    (fifthLordPlanet.name === PlanetName.Mars && fifthLordPlanet.rashi.index === 3) ||
+    (fifthLordPlanet.name === PlanetName.Sun && fifthLordPlanet.rashi.index === 6) ||
+    (fifthLordPlanet.name === PlanetName.Moon && fifthLordPlanet.rashi.index === 7) ||
+    (fifthLordPlanet.name === PlanetName.Jupiter && fifthLordPlanet.rashi.index === 9) ||
+    (fifthLordPlanet.name === PlanetName.Venus && fifthLordPlanet.rashi.index === 5) ||
+    (fifthLordPlanet.name === PlanetName.Saturn && fifthLordPlanet.rashi.index === 0) ||
+    (fifthLordPlanet.name === PlanetName.Mercury && fifthLordPlanet.rashi.index === 11)
+  );
+  if (fifthLordPlanet && (isFifthLordNeecha || [6, 8, 12].includes(fifthLordPlanet.house))) specScore += 2.5;
+  if (saturn && saturn.house === 8) specScore += 2.0;
+  if (mars && mars.house === 8) specScore += 2.0;
+  const isSpeculationLoss = specScore >= 4.0;
+
   // Unethical & Smuggling
   let illegalScore = 0;
   if (rahu && rahu.house === 8) illegalScore += 2.5;
@@ -2501,6 +2784,13 @@ export const generateVedicConsultationAnswer = (
 
   const dashaTimeText = currentDiagnosis.dashaTiming?.timelineKn || "ಮುಂದಿನ 4 ರಿಂದ 6 ತಿಂಗಳುಗಳಲ್ಲಿ";
   const dashaTimeTextEn = currentDiagnosis.dashaTiming?.timelineEn || "in the upcoming 4 to 6 months";
+  const remM = currentDiagnosis.dashaTiming?.remainingMonths || 5;
+
+  const marsHouse = mars?.house ?? 1;
+  const isKujaDosha = [1, 2, 4, 7, 8, 12].includes(marsHouse);
+  const hasShani7th = saturn && (saturn.house === 7 || [1, 5, 10].includes(saturn.house));
+  const hasSarpa7th = (rahu && rahu.house === 7) || (ketu && ketu.house === 7);
+  const isMaritalCrisis = (seventhLordPlanet && [6, 8, 12].includes(seventhLordPlanet.house)) || isKujaDosha || hasShani7th || hasSarpa7th;
 
   // 1. CHILD BEHAVIOR & CRYING CONSULTATION
   if (isChild || isChildQuery) {
@@ -2508,25 +2798,25 @@ export const generateVedicConsultationAnswer = (
       return sanitizeAstrologyKannadaText(
 `ನಮಸ್ಕಾರ ${devoteeNameFormatted}, ನಾನ್ ನಿಮ್ಮ ಮಗುವಿನ ಜಾತಕವನ್ನು ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದೆ.
 
-• 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: ಮಗುವಿನ ಜಾತಕದಲ್ಲಿ ಲಗ್ನ ${lagnaKn}, ಚಂದ್ರ ರಾಶಿ ${moonRashiKn} (${moonNakKn} ನಕ್ಷತ್ರ). ${isBalarishta ? "ಚಂದ್ರನು 6/8/12ನೇ ದುಃಸ್ಥಾನದಲ್ಲಿದ್ದು ಬಾಲಾರಿಷ್ಟ ಹಾಗೂ ಸೂಕ್ಷ್ಮ ಬಾಲಗ್ರಹ ಪ್ರಭಾವವನ್ನು ಉಂಟುಮಾಡುತ್ತಿದ್ದಾನೆ." : "ಚಂದ್ರನ ಮೇಲೆ ನೆರಳು ಗ್ರಹಗಳ ಪ್ರಭಾವವಿದೆ."} ${hasPittaColic ? "ಕುಜ ಗ್ರಹದ ಉಗ್ರ ಪಿತ್ತ ತತ್ವವು 2ನೇ ಮುಖ/ಆಹಾರ ಹಾಗೂ 5ನೇ ಜಠರ ಸ್ಥಾನದ ಮೇಲೆ ಒತ್ತಡ ತರುತ್ತಿದೆ." : "ಲಗ್ನದ ಮೇಲೆ ತೀಕ್ಷ್ಣ ಗ್ರಹಗಳ ದೃಷ್ಟಿ ಇದೆ."}
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ಹೌದು, ಮಗುವಿನ ಅಳು, ಕಿರಿಕಿರಿ ಮತ್ತು ಹಠವು ಸಾಮಾನ್ಯ ಮೊಂಡುತನವಲ್ಲ; ಇದು ಜಾತಕದಲ್ಲಿರುವ ಜಠರದ ತೀವ್ರ ಪಿತ್ತ ಶೂಲೆ (Pitta Colic) ಹಾಗೂ ಬಾಲಗ್ರಹ ದೃಷ್ಟಿ ದೋಷದಿಂದ ಉಂಟಾಗುತ್ತಿದೆ.
 
-• ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ನೈಜ ಕಾರಣ: ಮಗು ಬೆಳಿಗ್ಗೆಯಿಂದ ಸಂಜೆವರೆಗೆ ನಿರಂತರವಾಗಿ ಅಳುವುದು, ಸಣ್ಣ ವಿಷಯಕ್ಕೂ ಕಿರಿಕಿರಿ ಮಾಡುವುದು, ಇತರ ಮಕ್ಕಳೊಂದಿಗೆ ಜಗಳವಾಡುವುದು ಹಾಗೂ ಸಾಮಾನುಗಳನ್ನು ಎಸೆಯುವುದು ಕೇವಲ ಹಠಮಾರಿತನವಲ್ಲ. ಇದು ಶಾಸ್ತ್ರದಲ್ಲಿ ಹೇಳಲಾದ 'ಬಾಲಗ್ರಹ ಪೀಡೆ' ಹಾಗೂ ಜಠರದಲ್ಲಿ ಉಂಟಾಗುವ ತೀವ್ರ ಪಿತ್ತ ಶೂಲೆ (Pitta Colic / Gastric Spasm). ಮಗುವಿಗೆ ತನ್ನ ಹೊಟ್ಟೆಯ ಅಸಹನೀಯ ಉರಿ ಮತ್ತು ನೋವನ್ನು ಹೇಳಲು ತಿಳಿಯದೆ, ನಿರಂತರ ಅಳು, ಕಿರಿಕಿರಿ ಮತ್ತು ಕೈಗೆ ಸಿಕ್ಕ ಸಾಮಾನುಗಳನ್ನು ಎಸೆಯುವ ಆಕ್ರೋಶದ ರೂಪದಲ್ಲಿ ಹೊರಹಾಕುತ್ತದೆ. ಅಲ್ಲದೆ, ${hasDrishtiDosha ? "ಸಾರ್ವಜನಿಕರ ದೃಷ್ಟಿ ದೋಷದಿಂದ (Evil Eye) ರಾತ್ರಿ ನಿದ್ದೆಯಲ್ಲಿ ಹಠಾತ್ ಬೆದರಿ ಎಚ್ಚರಗೊಂಡು ಅಳುವ ಲಕ್ಷಣಗಳಿವೆ." : "ಸಂಜೆ ವೇಳೆಯಲ್ಲಿ ನಕಾರಾತ್ಮಕ ಶಕ್ತಿಗಳ ಸ್ಪರ್ಶದಿಂದ ಕಿರಿಕಿರಿ ಹೆಚ್ಚಾಗುತ್ತದೆ."}
+• 🎯 ಶಾಸ್ತ್ರೀಯ ಕಾರಣ & ಗ್ರಹ ಸ್ಥಿತಿ: ಮಗುವಿನ ಜಾತಕದಲ್ಲಿ ಲಗ್ನ ${lagnaKn}, ಚಂದ್ರ ರಾಶಿ ${moonRashiKn} (${moonNakKn} ನಕ್ಷತ್ರ). ${isBalarishta ? "ಚಂದ್ರನು 6/8/12ನೇ ದುಃಸ್ಥಾನದಲ್ಲಿದ್ದು ಬಾಲಾರಿಷ್ಟ ಹಾಗೂ ಸೂಕ್ಷ್ಮ ಬಾಲಗ್ರಹ ಪ್ರಭಾವವನ್ನು ಉಂಟುಮಾಡುತ್ತಿದ್ದಾನೆ." : "ಚಂದ್ರನ ಮೇಲೆ ನೆರಳು ಗ್ರಹಗಳ ಪ್ರಭಾವವಿದೆ."} ${hasPittaColic ? "ಕುಜ ಗ್ರಹದ ಉಗ್ರ ಪಿತ್ತ ತತ್ವವು 2ನೇ ಮುಖ/ಆಹಾರ ಹಾಗೂ 5ನೇ ಜಠರ ಸ್ಥಾನದ ಮೇಲೆ ಒತ್ತಡ ತರುತ್ತಿದೆ." : "ಲಗ್ನದ ಮೇಲೆ ತೀಕ್ಷ್ಣ ಗ್ರಹಗಳ ದೃಷ್ಟಿ ಇದೆ."} ಮಗುವಿಗೆ ಹೊಟ್ಟೆಯ ಅಸಹನೀಯ ಉರಿ ಮತ್ತು ನೋವನ್ನು ಹೇಳಲು ತಿಳಿಯದೆ, ನಿರಂತರ ಅಳು ಮತ್ತು ರೋದನದ ಮೂಲಕ ಹೊರಹಾಕುತ್ತದೆ. ಅಲ್ಲದೆ, ${hasDrishtiDosha ? "ಸಾರ್ವಜನಿಕರ ದೃಷ್ಟಿ ದೋಷದಿಂದ (Evil Eye) ರಾತ್ರಿ ನಿದ್ದೆಯಲ್ಲಿ ಹಠಾತ್ ಬೆದರಿ ಎಚ್ಚರಗೊಳ್ಳುವ ಲಕ್ಷಣಗಳಿವೆ." : "ಸಂಧ್ಯಾ ಕಾಲದಲ್ಲಿ ನಕಾರಾತ್ಮಕ ಶಕ್ತಿಗಳ ಸ್ಪರ್ಶದಿಂದ ಕಿರಿಕಿರಿ ಹೆಚ್ಚಾಗುತ್ತದೆ."}
 
-• ⏳ ನಿಖರ ಪರಿಹಾರ ಕಾಲಾವಧಿ: ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ಅವಧಿಯ ಲೆಕ್ಕಾಚಾರದಂತೆ, ಮುಂದಿನ 3 ರಿಂದ 6 ತಿಂಗಳಲ್ಲಿ ಗ್ರಹಗಳ ಗೋಚಾರ ಶಾಂತವಾಗುತ್ತಿದ್ದಂತೆ ಮಗುವಿನ ಈ ಅಳು ಮತ್ತು ಕಿರಿಕಿರಿ ಗಣನೀಯವಾಗಿ ಉಪಶಮನಗೊಳ್ಳಲಿದೆ.
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ / ತಿರುವು: ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ಅವಧಿಯ ಲೆಕ್ಕಾಚಾರದಂತೆ, ಮುಂದಿನ 3 ರಿಂದ 6 ತಿಂಗಳಲ್ಲಿ ಗ್ರಹಗಳ ಗೋಚಾರ ಶಾಂತವಾಗುತ್ತಿದ್ದಂತೆ ಮಗುವಿನ ಈ ಅಳು ಮತ್ತು ಕಿರಿಕಿರಿ ಗಣನೀಯವಾಗಿ ಉಪಶಮನಗೊಳ್ಳಲಿದೆ.
 
-• 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪರಿಹಾರ: ಮಗುವಿನ ಈ ದೋಷ ಶಮನಕ್ಕಾಗಿ, ಪರಮ ಪವಿತ್ರ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ಬಾಲಗ್ರಹ ಶಾಂತಿ ಹಾಗೂ ಮಹಾಮೃತ್ಯುಂಜಯ ಸಂಕಲ್ಪ ಸೇವೆ ಸಲ್ಲಿಸಿ, ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯ ರಕ್ಷಾ ಭಸ್ಮವನ್ನು ಮಗುವಿನ ಹಣೆಗೆ ನಿತ್ಯ ಧಾರಣೆ ಮಾಡಿಸಿ. ಮನೆಯಲ್ಲಿ ಪ್ರತಿದಿನ ಸಂಜೆ 7 ಗಂಟೆಗೆ ಸ್ವಲ್ಪ ಕಲ್ಲುಪ್ಪು ಹಾಗೂ ಸಾಸಿವೆಯಿಂದ ಮಗುವಿಗೆ ದೃಷ್ಟಿ ತೆಗೆದು ಬೆಂಕಿಗೆ ಹಾಕಿ. ಇದರಿಂದ ಮಗು ಸುಖವಾಗಿ ನಿದ್ರಿಸಿ ಹರ್ಷಚಿತ್ತದಿಂದ ನಲಿಯಲಿದೆ.`
+• 🪔 ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಪರಿಹಾರ & ಮಾರ್ಗೋಪಾಯ: ಪರಮ ಪವಿತ್ರ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ಬಾಲಗ್ರಹ ಶಾಂತಿ ಹಾಗೂ ಮಹಾಮೃತ್ಯುಂಜಯ ಸಂಕಲ್ಪ ಸೇವೆ ಸಲ್ಲಿಸಿ, ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯ ರಕ್ಷಾ ಭಸ್ಮವನ್ನು ಮಗುವಿನ ಹಣೆಗೆ ನಿತ್ಯ ಧಾರಣೆ ಮಾಡಿಸಿ. ಮನೆಯಲ್ಲಿ ಪ್ರತಿದಿನ ಸಂಜೆ 7 ಗಂಟೆಗೆ ಸ್ವಲ್ಪ ಕಲ್ಲುಪ್ಪು ಹಾಗೂ ಸಾಸಿವೆಯಿಂದ ಮಗುವಿಗೆ ದೃಷ್ಟಿ ತೆಗೆದು ಬೆಂಕಿಗೆ ಹಾಕಿ. ಇದರಿಂದ ಮಗು ಸುಖವಾಗಿ ನಿದ್ರಿಸಿ ಹರ್ಷಚಿತ್ತದಿಂದ ನಲಿಯಲಿದೆ.`
       );
     } else {
       return (
 `Namaskara ${devoteeNameFormatted}, I have examined the child's birth chart with rigorous Vedic scrutiny.
 
-• 🎯 Planetary Alignment: Ascendant ${lagnaEn}, Moon Sign ${moonRashiEn}. ${isBalarishta ? "The Moon occupies the 6th/8th/12th Dusthana, triggering classic Balarishta sensitivities and Balagraha influences." : "The Moon is under nodal tension."} ${hasPittaColic ? "Mars casts intense Pitta fire onto the 2nd house of intake and 5th house of digestion." : ""}
+• 🔮 Direct Daivajna Verdict: YES. The child's persistent crying, irritation, and tantrums are not mere behavioral stubbornness; they stem directly from intense abdominal Pitta colic and Balagraha ocular sensitivities.
 
-• ⚠️ Astrological Root Cause: The child's persistent crying from morning to evening, frequent tantrums, fighting with peers, and throwing toys is not mere behavioral disobedience. It is caused by Balagraha sensitivity combined with severe abdominal Pitta colic (gastrointestinal spasms). Because the child cannot verbally articulate internal stomach burns, it erupts as inconsolable screams and aggressive irritability. Furthermore, ${hasDrishtiDosha ? "ocular vulnerability (evil eye / Drishti dosha) causes abrupt frights and startles during sleep." : "twilight transitions agitate sensory comfort."}
+• 🎯 Astrological Root Cause & Planetary Alignment: Ascendant ${lagnaEn}, Moon Sign ${moonRashiEn}. ${isBalarishta ? "The Moon occupies the 6th/8th/12th Dusthana, triggering classic Balarishta sensitivities and Balagraha influences." : "The Moon is under nodal tension."} ${hasPittaColic ? "Mars casts intense Pitta fire onto the 2nd house of intake and 5th house of digestion." : ""} The child cannot verbally articulate internal stomach discomfort, manifesting as inconsolable screams. Furthermore, ${hasDrishtiDosha ? "ocular vulnerability (evil eye / Drishti dosha) triggers abrupt frights during sleep." : "twilight transitions agitate sensory comfort."}
 
-• ⏳ Accurate Relief Timeline: Under the ongoing ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary}, planetary gochara will soften over the next 3 to 6 months, bringing noticeable calmness and peaceful sleep.
+• ⏳ Accurate Timeline / Turning Point: Under the ongoing ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary}, planetary gochara will soften over the next 3 to 6 months, bringing noticeable calmness and peaceful sleep.
 
-• 🪔 Prescribed Mantra & Gokarna Shanti: Perform Balagraha Shanti and Mahamrityunjaya Sankalpa Seva at holy Sri Kshetra Gokarna Kotiteertha. Apply sacred Gokarna Mahabaleshwara Raksha Bhasma daily on the child's forehead. At home, rotate rock salt and mustard seeds around the child at 7:00 PM daily to dispel lingering evil eye afflictions.`
+• 🪔 Prescribed Remedies & Solution: Perform Balagraha Shanti and Mahamrityunjaya Sankalpa Seva at holy Sri Kshetra Gokarna Kotiteertha. Apply sacred Gokarna Mahabaleshwara Raksha Bhasma daily on the child's forehead. At home, rotate rock salt and mustard seeds around the child at 7:00 PM daily to dispel lingering evil eye afflictions.`
       );
     }
   }
@@ -2537,169 +2827,356 @@ export const generateVedicConsultationAnswer = (
       return sanitizeAstrologyKannadaText(
 `ನಮಸ್ಕಾರ ${devoteeNameFormatted}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕವನ್ನು ಮದ್ಯಪಾನ ಹಾಗೂ ವ್ಯಸನಗಳ ನೈಜ ಸ್ಥಿತಿಯ ದೃಷ್ಟಿಯಿಂದ ನಿಖರವಾಗಿ ನೋಡಿದೆ.
 
-• 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ 2ನೇ ಆಹಾರ/ಮುಖ ಸ್ಥಾನ ${saturn?.house === 8 ? "8ನೇ ಮನೆಯಲ್ಲಿರುವ ಶನಿಯ 7ನೇ ನೇರ ದೃಷ್ಟಿಗೆ ಒಳಗಾಗಿದೆ — ಇದು ಶಾಸ್ತ್ರದಲ್ಲಿ ನಿತ್ಯ ಮದ್ಯಪಾನದ ಪ್ರಬಲ ಸಂಕೇತ." : ([saturn, rahu, mars, ketu].some(p => p && p.house === 2) ? "2ನೇ ಮನೆಯಲ್ಲೇ ಪಾಪಗ್ರಹಗಳು ಸ್ಥಿತವಾಗಿದ್ದು ಮುಖದ ಸೇವನೆಯನ್ನು ಕೆಡಿಸುತ್ತಿವೆ." : "ಮತ್ತು 8ನೇ ರಹಸ್ಯ ಸ್ಥಾನಗಳ ಮೇಲೆ ಪಾಪಗ್ರಹಗಳ ನೆರಳು ಪ್ರಭಾವವಿದೆ.")}
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ${
+  isDailyDrinking
+    ? "ಹೌದು! ಜಾತಕದಲ್ಲಿ ನಿತ್ಯ ಮದ್ಯಪಾನ (Daily Drinking Habit) ಹಾಗೂ ಸಂಜೆಯಾಗುತ್ತಿದ್ದಂತೆ ಅಮಲು ಪದಾರ್ಥಗಳ ಸೆಳೆತಕ್ಕೆ ಒಳಗಾಗುವ ಗಂಭೀರ ವ್ಯಸನದ ಲಕ್ಷಣಗಳಿವೆ."
+    : isSocialDrinking
+    ? "ಭಾಗಶಃ ಹೌದು. ಇದು ದಿನನಿತ್ಯದ ಚಟವಲ್ಲದಿದ್ದರೂ ಸ್ನೇಹಿತರ ಸಹವಾಸ ಹಾಗೂ ಪಾರ್ಟಿಗಳಲ್ಲಿ ಸಾಮಾಜಿಕ ಮದ್ಯಪಾನ (Social Drinking) ಅಭ್ಯಾಸವಾಗಿ ಬೆಳೆಯುವ ಅಪಾಯವಿದೆ."
+    : "ಇಲ್ಲ! ನಿಮ್ಮ 2ನೇ ಮುಖ/ಆಹಾರ ಸ್ಥಾನ ಹಾಗೂ ಲಗ್ನವು ಸಾತ್ವಿಕವಾಗಿದ್ದು, ಜಾತಕದಲ್ಲಿ ಮದ್ಯಪಾನ ಅಥವಾ ಅಮಲು ಪದಾರ್ಥಗಳ ಯಾವುದೇ ಗಂಭೀರ ವ್ಯಸನದ ಲಕ್ಷಣಗಳಿಲ್ಲ."
+}
 
-• ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ನೈಜ ಕಾರಣ: ${isDailyDrinking ? "ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಇದು ಸಾಂದರ್ಭಿಕವಲ್ಲ; ಬದಲಿಗೆ ದಿನನಿತ್ಯದ ಮದ್ಯಪಾನ (Daily Alcohol Habit) ಹಾಗೂ ಅಮಲು ಪದಾರ್ಥಗಳ ತೀವ್ರ ವ್ಯಸನದ ರೂಪದಲ್ಲಿದೆ. ಸಂಜೆಯಾಗುತ್ತಿದ್ದಂತೆ ಅಥವಾ ಮಾನಸಿಕ ಒತ್ತಡ ಎದುರಾದಾಗ ಮದ್ಯದ ಸೆಳೆತ ನಿಯಂತ್ರಣ ಮೀರುತ್ತದೆ. ಇದರಿಂದ ಯಕೃತ್ತು (Liver), ನರಮಂಡಲ ಹಾಗೂ ಕೌಟುಂಬಿಕ ನೆಮ್ಮದಿ ಕ್ಷೀಣಿಸುವ ತೀವ್ರ ಅಪಾಯವಿದೆ. ಇದಕ್ಕೆ ಶಾಸ್ತ್ರೋಕ್ತ ಸಂಕಲ್ಪ ಮುಕ್ತಿ ಅನಿವಾರ್ಯ." : (isSocialDrinking ? "ಇದು ಸ್ನೇಹಿತರ ಸಹವಾಸ, ಪಾರ್ಟಿ ಹಾಗೂ ಮನರಂಜನೆಯ ನೆಪದಲ್ಲಿ ಆರಂಭವಾಗಿ ಕ್ರಮೇಣ ಚಟವಾಗಿ ಬದಲಾಗುವ ಸಾಮಾಜಿಕ ಮದ್ಯಪಾನದ (Social Drinking) ಅಪಾಯವನ್ನು ಸೂಚಿಸುತ್ತದೆ. ಆತ್ಮನಿಯಂತ್ರಣ ತಪ್ಪದಂತೆ ತಕ್ಷಣ ಎಚ್ಚೆತ್ತುಕೊಳ್ಳಬೇಕು." : "ನಿಮ್ಮ 2ನೇ ಸ್ಥಾನವು ಸಾತ್ವಿಕವಾಗಿದ್ದು, ಮನಸ್ಸನ್ನು ದೃಢವಾಗಿಟ್ಟುಕೊಂಡರೆ ಯಾವುದೇ ದುಶ್ಚಟಗಳಿಗೆ ಬಲಿಯಾಗದೆ ಸಂಪೂರ್ಣ ಆರೋಗ್ಯಕರವಾಗಿ ಮುನ್ನಡೆಯುವ ಆತ್ಮಬಲ ನಿಮ್ಮಲ್ಲಿದೆ.")}
+• 🎯 ಶಾಸ್ತ್ರೀಯ ಕಾರಣ & ಗ್ರಹ ಸ್ಥಿತಿ: ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ 2ನೇ ಆಹಾರ/ಮುಖ ಸ್ಥಾನ ${saturn?.house === 8 ? "8ನೇ ಮನೆಯಲ್ಲಿರುವ ಶನಿಯ 7ನೇ ನೇರ ದೃಷ್ಟಿಗೆ ಒಳಗಾಗಿದೆ — ಇದು ಶಾಸ್ತ್ರದಲ್ಲಿ ನಿತ್ಯ ಮದ್ಯಪಾನದ ಪ್ರಬಲ ಸಂಕೇತ." : ([saturn, rahu, mars, ketu].some(p => p && p.house === 2) ? "2ನೇ ಮನೆಯಲ್ಲೇ ಪಾಪಗ್ರಹಗಳು ಸ್ಥಿತವಾಗಿದ್ದು ಮುಖದ ಸೇವನೆಯನ್ನು ಕೆಡಿಸುತ್ತಿವೆ." : "ಮತ್ತು 8ನೇ ರಹಸ್ಯ ಸ್ಥಾನಗಳ ಮೇಲೆ ಪಾಪಗ್ರಹಗಳ ನೆರಳು ಪ್ರಭಾವವಿದೆ.")} ${
+  isDailyDrinking
+    ? "ಸಂಜೆಯಾಗುತ್ತಿದ್ದಂತೆ ಅಥವಾ ಮಾನಸಿಕ ಒತ್ತಡ ಎದುರಾದಾಗ ಮದ್ಯದ ಸೆಳೆತ ನಿಯಂತ್ರಣ ಮೀರುತ್ತದೆ. ಇದರಿಂದ ಯಕೃತ್ತು (Liver), ನರಮಂಡಲ ಹಾಗೂ ಕೌಟುಂಬಿಕ ನೆಮ್ಮದಿ ಕ್ಷೀಣಿಸುವ ಅಪಾಯವಿದೆ."
+    : isSocialDrinking
+    ? "ಸ್ನೇಹಿತರ ಒತ್ತಾಯ ಅಥವಾ ಮನರಂಜನೆಯ ನೆಪದಲ್ಲಿ ಆರಂಭವಾಗುವ ಪಾನೀಯ ಸೇವನೆ ಕ್ರಮೇಣ ಅಭ್ಯಾಸವಾಗದಂತೆ ಎಚ್ಚರಿಕೆ ಅಗತ್ಯ."
+    : "ನಿಮ್ಮ 2ನೇ ಸ್ಥಾನವು ಸಾತ್ವಿಕವಾಗಿದ್ದು, ಆತ್ಮಬಲದಿಂದ ಆರೋಗ್ಯಕರ ಜೀವನಶೈಲಿಯನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳುತ್ತಿದ್ದೀರಿ."
+}
 
-• ⏳ ನಿಖರ ಮುಕ್ತಿ ಕಾಲಾವಧಿ: ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ಅವಧಿಯಲ್ಲಿ, ${dashaTimeText} ದೈವಿಕ ಸಂಕಲ್ಪ ಕೈಗೊಂಡರೆ ಈ ವ್ಯಸನದ ಸೆಳೆತದಿಂದ ಸಂಪೂರ್ಣ ಶಾಶ್ವತ ಮುಕ್ತಿ ಹೊಂದಲು ಸಾಧ್ಯ.
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ / ತಿರುವು: ${
+  isDailyDrinking || isSocialDrinking
+    ? `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ಅವಧಿಯಲ್ಲಿ, ${dashaTimeText} ದೈವಿಕ ಸಂಕಲ್ಪ ಕೈಗೊಂಡರೆ ಈ ವ್ಯಸನದ ಸೆಳೆತದಿಂದ ಸಂಪೂರ್ಣ ಶಾಶ್ವತ ಮುಕ್ತಿ ಹೊಂದಲು ಸಾಧ್ಯ.`
+    : `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ಅವಧಿಯಲ್ಲಿ ನಿಮ್ಮ ಸಾತ್ವಿಕ ಆತ್ಮಬಲ ಸದಾ ಸುರಕ್ಷಿತವಾಗಿರಲಿದೆ.`
+}
 
-• 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪ್ರಾಯಶ್ಚಿತ್ತ: ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ಆತ್ಮಲಿಂಗ ಸ್ಪರ್ಶ, ಪ್ರಾಯಶ್ಚಿತ್ತ ಮಹಾಸಂಕಲ್ಪ ಪೂಜೆ ಮತ್ತು ರಾಹು-ಕೇತು ಶಾಂತಿ ಸೇವೆ ಸಲ್ಲಿಸಿ. ಪ್ರತಿದಿನ ಪ್ರಾತಃಕಾಲ 'ಓಂ ನಮಃ ಶಿವಾಯ' ಪಂಚಾಕ್ಷರಿ ಮಂತ್ರವನ್ನು 108 ಬಾರಿ ಜಪಿಸಿ ಪವಿತ್ರ ತೀರ್ಥ ಸೇವಿಸುವುದರಿಂದ ಮದ್ಯದ ಅಮಲು ಸೆಳೆತ ಕ್ರಮೇಣ ನಾಶವಾಗಲಿದೆ.`
+• 🪔 ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಪರಿಹಾರ & ಮಾರ್ಗೋಪಾಯ: ${
+  isDailyDrinking || isSocialDrinking
+    ? "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ಆತ್ಮಲಿಂಗ ಸ್ಪರ್ಶ, ಪ್ರಾಯಶ್ಚಿತ್ತ ಮಹಾಸಂಕಲ್ಪ ಪೂಜೆ ಮತ್ತು ರಾಹು-ಕೇತು ಶಾಂತಿ ಸೇವೆ ಸಲ್ಲಿಸಿ. ಪ್ರತಿದಿನ ಪ್ರಾತಃಕಾಲ 'ಓಂ ನಮಃ ಶಿವಾಯ' ಪಂಚಾಕ್ಷರಿ ಮಂತ್ರವನ್ನು 108 ಬಾರಿ ಜಪಿಸಿ ಪವಿತ್ರ ತೀರ್ಥ ಸೇವಿಸುವುದರಿಂದ ಮದ್ಯದ ಅಮಲು ಸೆಳೆತ ಕ್ರಮೇಣ ನಾಶವಾಗಲಿದೆ."
+    : "ದಿನನಿತ್ಯ ಪ್ರಾತಃಕಾಲ ಸೂರ್ಯ ಗಾಯತ್ರಿ ಜಪಿಸಿ ಹಾಗೂ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರನಿಗೆ ಕ್ಷೀರಾಭಿಷೇಕ ಸೇವೆ ಸಲ್ಲಿಸಿ ಸದಾ ಸಾತ್ವಿಕ ತೇಜಸ್ಸನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳಿ."
+}`
       );
     } else {
       return (
 `Namaskara ${devoteeNameFormatted}, I have analyzed your birth chart specifically regarding alcohol and substance tendencies.
 
-• 🎯 Planetary Alignment: The 2nd house of oral intake ${saturn?.house === 8 ? "receives the direct 7th aspect from Saturn in the 8th house — the quintessential classical signature of daily alcohol consumption." : ([saturn, rahu, mars, ketu].some(p => p && p.house === 2) ? "is directly occupied by malefics, corrupting dietary restraint." : "is under nodal and dusthana afflictions.")}
+• 🔮 Direct Daivajna Verdict: ${
+  isDailyDrinking
+    ? "YES. The horoscope clearly indicates an authentic daily drinking habit and vulnerability to evening substance cravings."
+    : isSocialDrinking
+    ? "PARTIAL RISK. While not a constant daily addiction, peer-driven social drinking at gatherings carries a strong risk of developing into a recurring dependency."
+    : "NO. Your 2nd house of oral intake and ascendant are sattvic; there is no astrological signature of chronic alcohol or substance addiction."
+}
 
-• ⚠️ Astrological Root Cause: ${isDailyDrinking ? "This indicates an authentic, daily drinking habit and deep-seated substance craving. Under evening solitude or stressful triggers, sensory control deteriorates, posing a severe threat to liver vitality and familial peace." : (isSocialDrinking ? "Planetary aspects indicate episodic peer-driven and party drinking vulnerability, where casual indulgence risks sliding into habitual dependency." : "Your 2nd house exhibits sattvic resilience, granting natural immunity against toxic addictions when mental resolve is maintained.")}
+• 🎯 Astrological Root Cause & Planetary Alignment: The 2nd house of oral intake ${saturn?.house === 8 ? "receives the direct 7th aspect from Saturn in the 8th house — the classical signature of daily alcohol consumption." : ([saturn, rahu, mars, ketu].some(p => p && p.house === 2) ? "is directly occupied by malefics, corrupting dietary restraint." : "is under nodal and dusthana afflictions.")}
 
-• ⏳ Accurate Relief Timeline: Under the current ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary}, committing to detox ${dashaTimeTextEn} will permanently dissolve the substance grip.
+• ⏳ Accurate Timeline / Turning Point: Under the current ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary}, committing to detox ${dashaTimeTextEn} will permanently dissolve the substance grip.
 
-• 🪔 Prescribed Mantra & Gokarna Shanti: Perform Atma Linga Sparsha, Prayashchitta Sankalpa Pooja, and Rahu-Ketu Shanti at Sri Kshetra Gokarna Mahabaleshwara. Chant the Shiva Panchakshari Mantra 108 times at dawn to purify oral impulses.`
+• 🪔 Prescribed Remedies & Solution: Perform Atma Linga Sparsha, Prayashchitta Sankalpa Pooja, and Rahu-Ketu Shanti at Sri Kshetra Gokarna Mahabaleshwara. Chant the Shiva Panchakshari Mantra 108 times at dawn to purify oral impulses.`
       );
     }
   }
 
-  // 3. EXTERNAL AFFAIRS, GENDER ATTRACTIONS & SENSUAL REALITY
+  // 3. EXTERNAL AFFAIRS, GENDER ATTRACTIONS & SENSUAL REALITY (ZERO CONTRADICTION)
   if (isAffairQuery) {
     if (isKn) {
       return sanitizeAstrologyKannadaText(
 `ನಮಸ್ಕಾರ ${devoteeNameFormatted}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕವನ್ನು ಕಾಮನೆ, ಆಕರ್ಷಣೆ ಹಾಗೂ ದಾಂಪತ್ಯ ರಹಸ್ಯಗಳ ವಿಷಯದಲ್ಲಿ ಸೂಕ್ಷ್ಮವಾಗಿ ನೋಡಿದೆ.
 
-• 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: ನಿಮ್ಮ 7ನೇ ಕಳತ್ರ (ಕಾಮ), 8ನೇ ರಹಸ್ಯ ಹಾಗೂ 12ನೇ ಶಯನ ಸುಖ ಸ್ಥಾನಗಳ ಮೇಲೆ ಶುಕ್ರ, ರಾಹು, ಬುಧ ಮತ್ತು ಶನಿ ಗ್ರಹಗಳ ಸಂಯೋಗ ಹಾಗೂ ದೃಷ್ಟಿ ಪ್ರಭಾವವಿದೆ.
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ${
+  hasSameGenderAffinity
+    ? `ಹೌದು. ಜಾತಕದ ಬುಧ-ಶನಿ ಮತ್ತು ಶುಕ್ರರ ವಿಶಿಷ್ಟ ತತ್ವದಿಂದಾಗಿ, ಲೈಂಗಿಕ ಆಕರ್ಷಣೆಯು ${isMale ? "ಪುರುಷರತ್ತ (Same-Gender Attraction)" : "ಮಹಿಳೆಯರತ್ತ"} ಸೆಳೆಯುವ ರಹಸ್ಯ ಪ್ರವೃತ್ತಿ ಜಾತಕದಲ್ಲಿದೆ.`
+    : hasSensual
+    ? `ಹೌದು! ಜಾತಕದಲ್ಲಿ ಶುಕ್ರ-ರಾಹು/ಕುಜರ ತೀವ್ರ ಪ್ರಭಾವದಿಂದಾಗಿ, ದಾಂಪತ್ಯದ ಆಚೆಗೆ ಹೊರಗಿನ ${isMale ? "ಸ್ತ್ರೀಯರತ್ತ (ಪರಸ್ತ್ರೀ ವ್ಯಾಮೋಹ)" : "ಪುರುಷರತ್ತ"} ಆಕರ್ಷಣೆ ಹಾಗೂ ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧಗಳತ್ತ ಮನಸ್ಸು ಜಾರುವ ತೀವ್ರ ಅಪಾಯದ ಲಕ್ಷಣಗಳಿವೆ.`
+    : "ಇಲ್ಲ! ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧ, ಪರಸ್ತ್ರೀ/ಪರಪುರುಷ ವ್ಯಾಮೋಹ ಅಥವಾ ಬಾಹ್ಯ ಆಕರ್ಷಣೆಯ ಯಾವುದೇ ಅಪಾಯವಿಲ್ಲ. ನಿಮ್ಮಲ್ಲಿ ಅತ್ಯುನ್ನತ ಇಂದ್ರಿಯ ನಿಗ್ರಹ ಮತ್ತು ನೈತಿಕ ಸದಾಚಾರದ ರಕ್ಷಣೆ ಇದೆ."
+}
 
-• ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ನೈಜ ಕಾರಣ: ${hasSameGenderAffinity ? `ನಿಮ್ಮ ಜಾತಕದ 7ನೇ ಮತ್ತು 8ನೇ ಭಾವಗಳಲ್ಲಿ ಬುಧ-ಶನಿ ಮತ್ತು ಶುಕ್ರರ ವಿಶಿಷ್ಟ ತತ್ವ ಇರುವುದರಿಂದ, ನಿಮ್ಮ ಅಂತರಂಗದ ಲೈಂಗಿಕ ಆಕರ್ಷಣೆ ಮತ್ತು ಕಾಮನೆಯು ${isMale ? "ಪುರುಷರತ್ತ (Same-Gender Attraction)" : "ಮಹಿಳೆಯರತ್ತ"} ಸೆಳೆಯುವ ಪ್ರಬಲ ಲಕ್ಷಣಗಳಿವೆ. ಸಮಾಜದ ಸಾಂಪ್ರದಾಯಿಕ ನಿರೀಕ್ಷೆಗಳಿಗೆ ಹೆದರಿ ಈ ಆಕರ್ಷಣೆಯನ್ನು ಅಂತರಂಗದಲ್ಲೇ ಅತ್ಯಂತ ಗೌಪ್ಯವಾಗಿ ಮುಚ್ಚಿಡುವ ಪ್ರವೃತ್ತಿ ಇದೆ.` : (hasSensual ? (isMale ? "7ನೇ ಕಳತ್ರ ಮತ್ತು 12ನೇ ಶಯನ ಸುಖ ಸ್ಥಾನಗಳ ಮೇಲೆ ಶುಕ್ರ-ರಾಹುವಿನ ತೀವ್ರ ಪ್ರಭಾವದಿಂದಾಗಿ, ದಾಂಪತ್ಯದ ಆಚೆಗೆ ಹೊರಗಿನ ಸ್ತ್ರೀಯರತ್ತ (ಪರಸ್ತ್ರೀ ವ್ಯಾಮೋಹ), ರಹಸ್ಯ ಫೋನ್ ಕರೆಗಳು ಹಾಗೂ ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧಗಳತ್ತ ಮನಸ್ಸು ಜಾರುವ ತೀವ್ರ ಅಪಾಯದ ಸುಳಿವು ಜಾತಕದಲ್ಲಿದೆ. ಇದು ನಿಮ್ಮ ಕೌಟುಂಬಿಕ ಶಾಂತಿ ಹಾಗೂ ಸಾಮಾಜಿಕ ಗೌರವಕ್ಕೆ ನೇರ ಕುತ್ತು ತರಬಹುದು." : "7ನೇ ಮತ್ತು 8ನೇ ಭಾವಗಳಲ್ಲಿ ಕುಜ-ರಾಹುವಿನ ಸೆಳೆತದಿಂದಾಗಿ, ದಾಂಪತ್ಯದಲ್ಲಿ ಅತೃಪ್ತಿ ಉಂಟಾದಾಗ ಹೊರಗಿನ ಪರಪುರುಷರತ್ತ ಭಾವನಾತ್ಮಕ ಹಾಗೂ ರಹಸ್ಯ ಪ್ರೇಮ ಸೆಳೆತ ಉಂಟಾಗುವ ಅಪಾಯವಿದೆ.") : "ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಕಳತ್ರ ಸ್ಥಾನವು ಶುಭ ರಕ್ಷಣೆಯಲ್ಲಿದ್ದು, ಇಂದ್ರಿಯ ನಿಗ್ರಹ ಮತ್ತು ಕೌಟುಂಬಿಕ ಸದಾಚಾರದ ಬಲವಾದ ಶಕ್ತಿ ನಿಮ್ಮಲ್ಲಿದೆ. ಬಾಹ್ಯ ಆಕರ್ಷಣೆಗಳಿಗೆ ಜಾರದ ಸಾತ್ವಿಕ ಸಂಸ್ಕಾರ ನಿಮ್ಮಲ್ಲಿದೆ.")}
+• 🎯 ಶಾಸ್ತ್ರೀಯ ಕಾರಣ & ಗ್ರಹ ಸ್ಥಿತಿ: ನಿಮ್ಮ 7ನೇ ಕಳತ್ರ (ಕಾಮ), 8ನೇ ರಹಸ್ಯ ಹಾಗೂ 12ನೇ ಶಯನ ಸುಖ ಸ್ಥಾನಗಳ ಮೇಲೆ ${toKannadaPlanet(seventhLord)} ಮತ್ತು ಶುಕ್ರ ಗ್ರಹಗಳ ಪ್ರಭಾವವಿದೆ. ${
+  hasSameGenderAffinity
+    ? `7ನೇ ಮತ್ತು 8ನೇ ಭಾವಗಳಲ್ಲಿ ಬುಧ-ಶನಿ ಮತ್ತು ಶುಕ್ರರ ನಪುಂಸಕ/ವಿಶಿಷ್ಟ ತತ್ವ ಇರುವುದರಿಂದ, ಸಮಾಜದ ಸಾಂಪ್ರದಾಯಿಕ ನಿರೀಕ್ಷೆಗಳಿಗೆ ಹೆದರಿ ಈ ಆಕರ್ಷಣೆಯನ್ನು ಅಂತರಂಗದಲ್ಲೇ ಅತ್ಯಂತ ಗೌಪ್ಯವಾಗಿ ಮುಚ್ಚಿಡುವ ಪ್ರವೃತ್ತಿ ಇದೆ.`
+    : hasSensual
+    ? (isMale ? "7ನೇ ಕಳತ್ರ ಮತ್ತು 12ನೇ ಶಯನ ಸುಖ ಸ್ಥಾನಗಳ ಮೇಲೆ ಶುಕ್ರ-ರಾಹುವಿನ ತೀವ್ರ ಪ್ರಭಾವದಿಂದಾಗಿ, ರಹಸ್ಯ ಫೋನ್ ಕರೆಗಳು ಹಾಗೂ ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧಗಳತ್ತ ಮನಸ್ಸು ಜಾರುವ ಅಪಾಯವಿದೆ. ಇದು ಕೌಟುಂಬಿಕ ಶಾಂತಿಗೆ ಕುತ್ತು ತರಬಹುದು." : "7ನೇ ಮತ್ತು 8ನೇ ಭಾವಗಳಲ್ಲಿ ಕುಜ-ರಾಹುವಿನ ಸೆಳೆತದಿಂದಾಗಿ, ದಾಂಪತ್ಯದಲ್ಲಿ ಅತೃಪ್ತಿ ಉಂಟಾದಾಗ ಹೊರಗಿನ ವ್ಯಕ್ತಿಗಳತ್ತ ಭಾವನಾತ್ಮಕ ಸೆಳೆತ ಉಂಟಾಗುವ ಅಪಾಯವಿದೆ.")
+    : "ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಕಳತ್ರ ಸ್ಥಾನವು ಶುಭ ರಕ್ಷಣೆಯಲ್ಲಿದ್ದು, ಇಂದ್ರಿಯ ನಿಗ್ರಹ ಮತ್ತು ಕೌಟುಂಬಿಕ ಸದಾಚಾರದ ಬಲವಾದ ಶಕ್ತಿ ನಿಮ್ಮಲ್ಲಿದೆ. ಬಾಹ್ಯ ಆಕರ್ಷಣೆಗಳಿಗೆ ಜಾರದ ಸಾತ್ವಿಕ ಸಂಸ್ಕಾರ ನಿಮ್ಮಲ್ಲಿದೆ."
+}
 
-• ⏳ ಎಚ್ಚರಿಕೆಯ ಕಾಲಾವಧಿ: ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ಸಮಯದಲ್ಲಿ ನೈತಿಕ ಶಿಸ್ತು ಹಾಗೂ ರಹಸ್ಯ ಸಂವಹನಗಳಿಂದ ದೂರವಿರುವುದು ಅತ್ಯಗತ್ಯ; ಇಲ್ಲದಿದ್ದರೆ ಗುಪ್ತ ಸಂಬಂಧಗಳು ಸಾರ್ವಜನಿಕವಾಗಿ ಬಯಲಾಗಿ ತೀವ್ರ ಮಾನಹಾನಿ ಉಂಟಾಗುವ ಗ್ರಹಗತಿಯಿದೆ.
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ / ತಿರುವು: ${
+  hasSensual || hasSameGenderAffinity
+    ? `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ಸಮಯದಲ್ಲಿ ನೈತಿಕ ಶಿಸ್ತು ಹಾಗೂ ರಹಸ್ಯ ಸಂವಹನಗಳಿಂದ ದೂರವಿರುವುದು ಅತ್ಯಗತ್ಯ; ಇಲ್ಲದಿದ್ದರೆ ಗುಪ್ತ ಸಂಬಂಧಗಳು ಸಾರ್ವಜನಿಕವಾಗಿ ಬಯಲಾಗಿ ತೀವ್ರ ಮಾನಹಾನಿ ಉಂಟಾಗುವ ಗ್ರಹಗತಿಯಿದೆ.`
+    : `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ಅವಧಿಯಲ್ಲಿ ನಿಮ್ಮ ನೈತಿಕ ನಿಷ್ಠೆ ಅಚಲವಾಗಿದ್ದು, ಇನ್ನು ${dashaTimeText} ದಾಂಪತ್ಯದಲ್ಲಿನ ಬಾಹ್ಯ ಅನುಮಾನಗಳು ಸಂಪೂರ್ಣವಾಗಿ ದೂರವಾಗಿ ಪರಸ್ಪರ ವಿಶ್ವಾಸ ಮತ್ತು ಗೌರವ ಗಟ್ಟಿಯಾಗಲಿದೆ.`
+}
 
-• 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪರಿಹಾರ: ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಉಮಾ-ಮಹೇಶ್ವರ ಕಲ್ಯಾಣ ಸಂಕಲ್ಪ ಪೂಜೆ ಸಲ್ಲಿಸಿ, ಶುಕ್ರ-ರಾಹು ಶಾಂತಿ ಮಾಡಿಸಿ. ${prescriptions.rudraksha.nameKn} ಧಾರಣೆಯಿಂದ ಮನಸ್ಸಿನ ಕಾಮ ಪ್ರಚೋದನೆ ಶಾಂತವಾಗಿ ದಾಂಪತ್ಯ ನಿಷ್ಠೆ ರಕ್ಷಿಸಲ್ಪಡುತ್ತದೆ.`
+• 🪔 ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಪರಿಹಾರ & ಮಾರ್ಗೋಪಾಯ: ${
+  hasSensual || hasSameGenderAffinity
+    ? `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಉಮಾ-ಮಹೇಶ್ವರ ಕಲ್ಯಾಣ ಸಂಕಲ್ಪ ಪೂಜೆ ಸಲ್ಲಿಸಿ, ಶುಕ್ರ-ರಾಹು ಶಾಂತಿ ಮಾಡಿಸಿ. ${prescriptions.rudraksha.nameKn} ಧಾರಣೆಯಿಂದ ಮನಸ್ಸಿನ ಕಾಮ ಪ್ರಚೋದನೆ ಶಾಂತವಾಗಿ ದಾಂಪತ್ಯ ನಿಷ್ಠೆ ರಕ್ಷಿಸಲ್ಪಡುತ್ತದೆ.`
+    : "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಉಮಾ-ಮಹೇಶ್ವರ ಕಲ್ಯಾಣ ಸಂಕಲ್ಪ ಪೂಜೆ ಸಲ್ಲಿಸಿ, ದಾಂಪತ್ಯದಲ್ಲಿ ಸುಖ, ಶಾಂತಿ ಮತ್ತು ಪರಸ್ಪರ ಪ್ರೀತಿ-ವಿಶ್ವಾಸ ಸದಾ ನೆಲೆಸಿರಲು ಶಿವ-ಪಾರ್ವತಿಯರ ಕೃಪಾಶೀರ್ವಾದ ಪಡೆಯಿರಿ."
+}`
       );
     } else {
       return (
 `Namaskara ${devoteeNameFormatted}, I have analyzed your birth chart regarding sensual desires and relationship boundaries.
 
-• 🎯 Planetary Alignment: The 7th house of partnership, 8th house of secret liaisons, and 12th house of pleasure reflect configurations involving Venus, Rahu, Mars, Mercury, and Saturn.
+• 🔮 Direct Daivajna Verdict: ${
+  hasSameGenderAffinity
+    ? `YES. Specific planetary yogas involving Mercury, Saturn, and Venus indicate internal sexual attraction toward ${isMale ? "men (same-gender orientation)" : "women"}, maintained with strict confidentiality.`
+    : hasSensual
+    ? `YES. Powerful Venus-Rahu/Mars alignment creates high vulnerability toward extramarital attraction and outside liaisons.`
+    : "NO! There is absolutely NO risk of extramarital affairs, illicit liaisons, or outside attraction in your horoscope. Your chart possesses strong moral rectitude and marital fidelity."
+}
 
-• ⚠️ Astrological Root Cause: ${hasSameGenderAffinity ? `Vedic yogas involving Mercury and Saturn across kama and secret houses indicate internal sexual affinity toward ${isMale ? "men (same-gender orientation)" : "women"}, maintained with strict confidentiality.` : (hasSensual ? (isMale ? "Venus-Rahu proximity on the 7th/12th axis creates intense vulnerability toward women outside marriage (extramarital liaisons and secret conversations), posing a direct threat to marital honor." : "Mars-Rahu tension on the 7th/8th axis generates vulnerability toward outside men during relationship disputes.") : "A protected 7th house shields you with moral rectitude, sensual discipline, and faithful commitment to marital sanctity.")}
+• 🎯 Astrological Root Cause & Planetary Alignment: The 7th house of partnership, 8th house of secret liaisons, and 12th house of pleasure reflect configurations involving Venus and the 7th lord. ${
+  hasSameGenderAffinity
+    ? `Vedic yogas involving Mercury and Saturn across kama and secret houses indicate internal sexual affinity toward ${isMale ? "men (same-gender orientation)" : "women"}, maintained with strict confidentiality.`
+    : hasSensual
+    ? (isMale ? "Venus-Rahu proximity on the 7th/12th axis creates vulnerability toward women outside marriage, posing a threat to marital honor." : "Mars-Rahu tension creates vulnerability toward outside men during disputes.")
+    : "A protected 7th house shields you with moral rectitude, sensual discipline, and faithful commitment to marital sanctity."
+}
 
-• ⏳ Critical Caution Timeline: During the ongoing ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary}, exercise strict boundaries to prevent confidential indiscretions from exploding into public embarrassment.
+• ⏳ Accurate Timeline / Turning Point: ${
+  hasSensual || hasSameGenderAffinity
+    ? `Under ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary}, maintain strict ethical discipline and distance from secret communication to avoid public embarrassment.`
+    : `Under ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary}, your moral integrity remains firm; within ${dashaTimeTextEn}, lingering marital doubts dissolve, cementing mutual trust.`
+}
 
-• 🪔 Prescribed Mantra & Gokarna Shanti: Perform Uma-Maheshwara Pooja and Venus-Rahu Shanti at Sri Kshetra Gokarna. Wearing the prescribed ${prescriptions.rudraksha.nameEn} calms sensual agitation and anchors ethical integrity.`
+• 🪔 Prescribed Remedies & Solution: ${
+  hasSensual || hasSameGenderAffinity
+    ? `Perform Uma-Maheshwara Pooja and Venus-Rahu Shanti at Sri Kshetra Gokarna. Wearing the prescribed ${prescriptions.rudraksha.nameEn} calms sensual agitation and anchors ethical integrity.`
+    : "Sponsor an auspicious Uma-Maheshwara Kalyana Sankalpa Pooja at Sri Kshetra Gokarna Mahabaleshwara to invoke lifelong harmony, peace, and mutual love in marriage."
+}`
       );
     }
   }
 
-  // 4. UNETHICAL WORK, SMUGGLING & SHORTCUT WEALTH
+  // 4. SPECULATION, SHARE MARKET TRADING & SHORTCUT LOSS
+  if (isSpeculationQuery) {
+    if (isKn) {
+      return sanitizeAstrologyKannadaText(
+`ನಮಸ್ಕಾರ ${devoteeNameFormatted}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕವನ್ನು ಷೇರು ಮಾರುಕಟ್ಟೆ, ಟ್ರೇಡಿಂಗ್ ಹಾಗೂ ಸ್ಪೆಕ್ಯುಲೇಶನ್ ನಷ್ಟದ ದೃಷ್ಟಿಯಿಂದ ನೋಡಿದೆ.
+
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ${
+  isSpeculationLoss
+    ? "ಇಲ್ಲ, ಲಾಭ ಸಾಧ್ಯವೇ ಇಲ್ಲ! ಜಾತಕದಲ್ಲಿ ಷೇರು ಮಾರುಕಟ್ಟೆ, ಇಂಟ್ರಾಡೇ/ಆಪ್ಷನ್ಸ್ ಟ್ರೇಡಿಂಗ್ ಹಾಗೂ ಬೆಟ್ಟಿಂಗ್‌ನಲ್ಲಿ ಭಾರಿ ಬಂಡವಾಳ ನಷ್ಟ (40 ರಿಂದ 50 ಲಕ್ಷಕ್ಕೂ ಅಧಿಕ ನಷ್ಟ) ಹಾಗೂ ಸಾಲದ ಸುಳಿಗೆ ಸಿಲುಕುವ ಸ್ಪಷ್ಟ ದುರ್ಯೋಗವಿದೆ; ತಕ್ಷಣವೇ ಟ್ರೇಡಿಂಗ್ ನಿಲ್ಲಿಸಬೇಕು."
+    : "ದಿನನಿತ್ಯದ ಜೂಜು ಅಥವಾ ಟ್ರೇಡಿಂಗ್ ಬೇಡ; ಆದರೆ ದೀರ್ಘಕಾಲೀನ ಸುರಕ್ಷಿತ ಹೂಡಿಕೆಗಳಲ್ಲಿ (Long-term SIP/Mutual Funds) ಹಂತ ಹಂತವಾಗಿ ಲಾಭ ಗಳಿಸುವ ಯೋಗವಿದೆ."
+}
+
+• 🎯 ಶಾಸ್ತ್ರೀಯ ಕಾರಣ & ಗ್ರಹ ಸ್ಥಿತಿ: 5ನೇ ಸ್ಪೆಕ್ಯುಲೇಶನ್/ಬುದ್ಧಿ ಸ್ಥಾನದಲ್ಲಿ ${rahu?.house === 5 ? "ನೆರಳು ಗ್ರಹ ರಾಹುವಿದ್ದು" : "ಗ್ರಹಗಳ ಸಂಚಾರವಿದ್ದು"}, ಪಂಚಮಾಧಿಪತಿ ${fifthLordKn} ${isFifthLordNeecha ? "ನೀಚ ಸ್ಥಾನದಲ್ಲಿದ್ದಾನೆ" : "ದುಃಸ್ಥಾನದಲ್ಲಿದ್ದಾನೆ"} ಹಾಗೂ 8ನೇ ಮನೆಯಲ್ಲಿ ${saturn?.house === 8 ? "ಅಷ್ಟಮ ಶನಿ" : "ಅಷ್ಟಮ ಗ್ರಹ"} ಪ್ರಭಾವವಿದೆ. ಇದು ಷೇರು ಮಾರುಕಟ್ಟೆಯಲ್ಲಿ ಕಳೆದುಕೊಂಡ ಹಣವನ್ನು ಮತ್ತೆ ಟ್ರೇಡಿಂಗ್‌ನಲ್ಲೇ ವಾಪಸ್ ಪಡೆಯಬೇಕೆಂಬ ಹಠದ ಭ್ರಮೆಯನ್ನು ಉಂಟುಮಾಡಿ, ಸಾಲದ ಸುಳಿಯನ್ನು ವಿಸ್ತರಿಸುತ್ತದೆ.
+
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ / ತಿರುವು: ಪ್ರಸ್ತುತ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ಕಾಲದಲ್ಲಿ ಇನ್ನು ${dashaTimeText} ಸ್ಪೆಕ್ಯುಲೇಶನ್ ಸಂಪೂರ್ಣವಾಗಿ ನಿಲ್ಲಿಸಿದರೆ ಮಾತ್ರ ಸಾಲದ ಸುಳಿಯಿಂದ ಪಾರಾಗಿ ಆರ್ಥಿಕ ಸ್ಥಿರತೆ ಮರಳಿ ಪಡೆಯಬಹುದು.
+
+• 🪔 ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಪರಿಹಾರ & ಮಾರ್ಗೋಪಾಯ: ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಮಹಾಗಣಪತಿ & ಕುಬೇರ ಸಂಕಲ್ಪ ಪೂಜೆ ಸಲ್ಲಿಸಿ, ರಾಹು ಶಾಂತಿ ಮಾಡಿಸಿ. ${prescriptions.gemstoneRing.primaryGemstoneKn} ಧರಿಸಿ ಕೇವಲ ನೈಜ ಪರಿಶ್ರಮದ ವ್ಯಾಪಾರ ಅಥವಾ ಉದ್ಯೋಗದಲ್ಲಿ ತೊಡಗಿಸಿಕೊಳ್ಳಿ.`
+      );
+    } else {
+      return (
+`Namaskara ${devoteeNameFormatted}, I have analyzed your birth chart regarding stock market day trading and speculation.
+
+• 🔮 Direct Daivajna Verdict: ${
+  isSpeculationLoss
+    ? "NO PROFIT! The horoscope carries a severe affliction for share market day trading, F&O options, and betting, resulting in catastrophic capital wipeout (40-50+ Lakhs) and crushing debt trap. Cease trading immediately."
+    : "AVOID day trading and quick speculation; however, disciplined long-term safe investments (SIP, real assets) will yield steady financial returns."
+}
+
+• 🎯 Astrological Root Cause & Planetary Alignment: 5th house of speculation is afflicted by Rahu, coupled with an afflicted 5th lord ${fifthLordKn} and 8th house Saturn tension. This fuels an obsessive urge to recover lost funds through more trading, leading to severe debt entrapment.
+
+• ⏳ Accurate Timeline / Turning Point: Under ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary}, stopping speculation completely within ${dashaTimeTextEn} will arrest capital drainage and restore solvency.
+
+• 🪔 Prescribed Remedies & Solution: Perform Mahaganapati and Kubera Sankalpa Pooja and Rahu Shanti at Sri Kshetra Gokarna. Channel your energy into legitimate business or employment.`
+      );
+    }
+  }
+
+  // 5. UNETHICAL WORK, SMUGGLING & SHORTCUT WEALTH
   if (isIllegalQuery) {
     if (isKn) {
       return sanitizeAstrologyKannadaText(
 `ನಮಸ್ಕಾರ ${devoteeNameFormatted}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕವನ್ನು ಧನಾರ್ಜನೆ, ಅಕ್ರಮ ವ್ಯವಹಾರ ಹಾಗೂ ಕಳ್ಳಸಾಗಣೆ (ಸ್ಮಗ್ಲಿಂಗ್) ರಿಸ್ಕ್ ದೃಷ್ಟಿಯಿಂದ ನೋಡಿದೆ.
 
-• 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: ನಿಮ್ಮ ಜಾತಕದ 8ನೇ ರಹಸ್ಯ/ಅಕ್ರಮ ಸ್ಥಾನ ಅಥವಾ 11ನೇ ಲಾಭ ಭಾವದಲ್ಲಿ ನೆರಳು ಗ್ರಹ ರಾಹುವಿನ ಪ್ರಬಲ ಪ್ರಭಾವವಿದೆ.
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ${
+  hasIllegal
+    ? "ಹೌದು! ಜಾತಕದಲ್ಲಿ ಅಡ್ಡದಾರಿ ಹಣ, ಕಳ್ಳಸಾಗಣೆ (ಸ್ಮಗ್ಲಿಂಗ್), ಹವಾಲಾ ಅಥವಾ ಅಕ್ರಮ ಆಮಿಷಗಳಿಗೆ ಮನಸ್ಸು ಸೆಳೆಯುವ ತೀವ್ರ ದುಸ್ಸಾಹಸ ಯೋಗವಿದೆ; ಆದರೆ ಇದರ ಅಂತಿಮ ಫಲ ಪೊಲೀಸ್ ಕೇಸ್ ಮತ್ತು ಜೈಲು ಭಯ."
+    : "ಇಲ್ಲ! ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಧರ್ಮ ಮತ್ತು ಕರ್ಮ ಸ್ಥಾನಗಳು ಶುದ್ಧವಾಗಿದ್ದು, ಅಕ್ರಮ ವ್ಯವಹಾರ ಅಥವಾ ಕಳ್ಳಸಾಗಣೆಯ ಯಾವುದೇ ಕಳಂಕವಿಲ್ಲ. ಪ್ರಾಮಾಣಿಕ ದುಡಿಮೆಯೇ ನಿಮ್ಮ ಶಕ್ತಿ."
+}
 
-• ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ನೈಜ ಕಾರಣ: ${hasIllegal ? "ಜಾತಕದಲ್ಲಿ ಶ್ರಮವಿಲ್ಲದೆ ತ್ವರಿತವಾಗಿ ಕೋಟಿಗಟ್ಟಲೆ ಹಣ ಗಳಿಸುವ ಅಡ್ಡದಾರಿ, ಕಳ್ಳಸಾಗಣೆ (Smuggling), ಬೆಟ್ಟಿಂಗ್, ಹವಾಲಾ ಅಥವಾ ಅಕ್ರಮ ಕಪ್ಪು ಹಣದ ವ್ಯವಹಾರಗಳತ್ತ ಮನಸ್ಸು ತೀವ್ರವಾಗಿ ಆಕರ್ಷಿತವಾಗುವ ದುಸ್ಸಾಹಸ ಯೋಗವಿದೆ. ಆರಂಭದಲ್ಲಿ ದೊಡ್ಡ ಪ್ರಮಾಣದ ಅಕ್ರಮ ಲಾಭ ಕಂಡರೂ, ಅಂತಿಮವಾಗಿ ಪೊಲೀಸ್ ಕೇಸ್, ಕಸ್ಟಮ್ಸ್/ಐಟಿ ದಾಳಿ, ಕೋರ್ಟ್ ಸಂಕೋಲೆ, ಜೈಲು ಭಯ ಹಾಗೂ ಸಾರ್ವಜನಿಕ ಮಾನಹಾನಿಯ ಅಪಾಯ ತಂದೊಡ್ಡಲಿದೆ. ಅಡ್ಡದಾರಿ ಹಣ ಎಂದಿಗೂ ನೆಮ್ಮದಿ ಕೊಡುವುದಿಲ್ಲ." : "ನಿಮ್ಮ ಧರ್ಮ-ಕರ್ಮ ಸ್ಥಾನಗಳು ಶುದ್ಧವಾಗಿದ್ದು, ಅಕ್ರಮ ವ್ಯವಹಾರ ಅಥವಾ ಕಳ್ಳಸಾಗಣೆಯ ದುಸ್ಸಾಹಸಕ್ಕೆ ಕೈಹಾಕದೆ ಸ್ವಂತ ಪರಿಶ್ರಮ ಮತ್ತು ಪ್ರಾಮಾಣಿಕ ದುಡಿಮೆಯಲ್ಲಿ ಬೆಳೆಯುವ ಸದ್ಬುದ್ಧಿ ನಿಮ್ಮಲ್ಲಿದೆ. ಯಾವುದೇ ಶಾರ್ಟ್‌ಕಟ್ ಆಮಿಷಗಳಿಗೆ ಮರುಳಾಗಬೇಡಿ."}
+• 🎯 ಶಾಸ್ತ್ರೀಯ ಕಾರಣ & ಗ್ರಹ ಸ್ಥಿತಿ: ನಿಮ್ಮ ಜಾತಕದ 8ನೇ ರಹಸ್ಯ/ಅಕ್ರಮ ಸ್ಥಾನ ಅಥವಾ 11ನೇ ಲಾಭ ಭಾವದಲ್ಲಿ ನೆರಳು ಗ್ರಹ ರಾಹುವಿನ ಪ್ರಬಲ ಪ್ರಭಾವವಿದೆ. ${
+  hasIllegal
+    ? "ಶ್ರಮವಿಲ್ಲದೆ ತ್ವರಿತವಾಗಿ ಕೋಟಿಗಟ್ಟಲೆ ಹಣ ಗಳಿಸುವ ಅಡ್ಡದಾರಿ, ಬೆಟ್ಟಿಂಗ್ ಅಥವಾ ಅಕ್ರಮ ಕಪ್ಪು ಹಣದ ವ್ಯವಹಾರಗಳತ್ತ ಮನಸ್ಸು ಆಕರ್ಷಿತವಾಗುವ ದುಸ್ಸಾಹಸ ಯೋಗವಿದೆ. ಆರಂಭದಲ್ಲಿ ದೊಡ್ಡ ಅಕ್ರಮ ಲಾಭ ಕಂಡರೂ, ಅಂತಿಮವಾಗಿ ಪೊಲೀಸ್ ಕೇಸ್, ಕಸ್ಟಮ್ಸ್/ಐಟಿ ದಾಳಿ, ಕೋರ್ಟ್ ಸಂಕೋಲೆ ಹಾಗೂ ಮಾನಹಾನಿಯ ಅಪಾಯವಿದೆ."
+    : "ನಿಮ್ಮ ಧರ್ಮ-ಕರ್ಮ ಸ್ಥಾನಗಳು ಶುದ್ಧವಾಗಿದ್ದು, ಅಕ್ರಮ ವ್ಯವಹಾರ ಅಥವಾ ಕಳ್ಳಸಾಗಣೆಯ ದುಸ್ಸಾಹಸಕ್ಕೆ ಕೈಹಾಕದೆ ಸ್ವಂತ ಪರಿಶ್ರಮ ಮತ್ತು ಪ್ರಾಮಾಣಿಕ ದುಡಿಮೆಯಲ್ಲಿ ಬೆಳೆಯುವ ಸದ್ಬುದ್ಧಿ ನಿಮ್ಮಲ್ಲಿದೆ."
+}
 
-• ⏳ ನಿರ್ಣಾಯಕ ಎಚ್ಚರಿಕೆಯ ಅವಧಿ: ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ಅವಧಿಯಲ್ಲಿ ಕಾನೂನುಬಾಹಿರ ಕೃತ್ಯಗಳಿಂದ ಸಂಪೂರ್ಣ ದೂರವಿರಿ; ಇಲ್ಲದಿದ್ದರೆ ಅನಿರೀಕ್ಷಿತ ಕಾನೂನಿನ ಬಲೆಗೆ ಸಿಲುಕುವ ಸಾಧ್ಯತೆ ಹೆಚ್ಚು.
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ / ತಿರುವು: ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ಅವಧಿಯಲ್ಲಿ ಕಾನೂನುಬಾಹಿರ ಕೃತ್ಯಗಳಿಂದ ಸಂಪೂರ್ಣ ದೂರವಿರಿ; ಇಲ್ಲದಿದ್ದರೆ ಅನಿರೀಕ್ಷಿತ ಕಾನೂನಿನ ಬಲೆಗೆ ಸಿಲುಕುವ ಸಾಧ್ಯತೆ ಹೆಚ್ಚು.
 
-• 🪔 ಗೋಕರ್ಣ ಪ್ರಾಯಶ್ಚಿತ್ತ & ರಕ್ಷೆ: ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ರಾಹು-ಕಾಲಸರ್ಪ ಶಾಂತಿ, ಸುಬ್ರಹ್ಮಣ್ಯ ಆಶ್ಲೇಷ ಬಲಿ ಸೇವೆ ಸಲ್ಲಿಸಿ, ಅಕ್ರಮ ಸಂಪಾದನೆಯ ದುರಾಸೆಯನ್ನು ತ್ಯಜಿಸಿ ಸನ್ಮಾರ್ಗದ ಪ್ರಾಮಾಣಿಕ ವ್ಯಾಪಾರದಲ್ಲಿ ತೊಡಗಿಸಿಕೊಳ್ಳಿ.`
+• 🪔 ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಪರಿಹಾರ & ಮಾರ್ಗೋಪಾಯ: ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ರಾಹು-ಕಾಲಸರ್ಪ ಶಾಂತಿ, ಸುಬ್ರಹ್ಮಣ್ಯ ಆಶ್ಲೇಷ ಬಲಿ ಸೇವೆ ಸಲ್ಲಿಸಿ, ಅಕ್ರಮ ಸಂಪಾದನೆಯ ದುರಾಸೆಯನ್ನು ತ್ಯಜಿಸಿ ಸನ್ಮಾರ್ಗದ ಪ್ರಾಮಾಣಿಕ ವ್ಯಾಪಾರದಲ್ಲಿ ತೊಡಗಿಸಿಕೊಳ್ಳಿ.`
       );
     } else {
       return (
 `Namaskara ${devoteeNameFormatted}, I have examined your birth chart regarding unearned wealth, smuggling, and high-risk shortcuts.
 
-• 🎯 Planetary Alignment: Rahu heavily influences the 8th house of illicit wealth and the 11th house of rapid speculation.
+• 🔮 Direct Daivajna Verdict: ${
+  hasIllegal
+    ? "HIGH RISK. The chart reflects strong temptation toward illicit shortcut wealth, smuggling, or grey-market deals, carrying critical risks of legal arrest and public disgrace."
+    : "NO. Your dharma-karma axis is untainted; you possess strong natural resistance to illegal shortcuts and contraband ventures."
+}
 
-• ⚠️ Astrological Root Cause: ${hasIllegal ? "Rahu in the 8th/11th axis instigates a reckless appetite for quick-money schemes, smuggling, contraband trade, hawala, or grey-market betting. While initial cash surges may appear tempting, the eventual outcome triggers police arrests, customs raids, criminal litigation, and public disgrace. Illicit money never brings lasting peace." : "Your dharma and karma houses remain uncorrupted, anchoring your prosperity in legitimate labor and ethical commerce. Continue resisting unlawful shortcuts."}
+• 🎯 Astrological Root Cause & Planetary Alignment: Rahu heavily influences the 8th house of illicit wealth and the 11th house of rapid speculation. Unlawful shortcuts carry severe litigation and regulatory liabilities.
 
-• ⏳ Critical Caution Timeline: Under the running ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary}, maintain strict regulatory compliance to avoid severe legal penalties.
+• ⏳ Accurate Timeline / Turning Point: Under the running ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary}, maintain strict regulatory compliance within ${dashaTimeTextEn} to avoid severe legal penalties.
 
-• 🪔 Prescribed Mantra & Gokarna Shanti: Perform Rahu-Kala Sarpa Shanti and Subrahmanya Ashlesha Bali at Sri Kshetra Gokarna Kotiteertha. Channel your entrepreneurial fire into fully transparent, licensed enterprises.`
+• 🪔 Prescribed Remedies & Solution: Perform Rahu-Kala Sarpa Shanti and Subrahmanya Ashlesha Bali at Sri Kshetra Gokarna Kotiteertha. Channel your entrepreneurial fire into fully transparent, licensed enterprises.`
       );
     }
   }
 
-  // 5. FINANCE, CAREER & TURNING POINT
+  // 6. MARITAL HARMONY & DISPUTES
+  if (isMaritalConflictQuery) {
+    if (isKn) {
+      return sanitizeAstrologyKannadaText(
+`ನಮಸ್ಕಾರ ${devoteeNameFormatted}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕವನ್ನು ದಾಂಪತ್ಯ ಸಾಮರಸ್ಯ ಮತ್ತು ಮನಸ್ತಾಪಗಳ ನಿವಾರಣೆಯ ದೃಷ್ಟಿಯಿಂದ ನೋಡಿದೆ.
+
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ${
+  isMaritalCrisis
+    ? "ಹೌದು. ಪ್ರಸ್ತುತ ದಾಂಪತ್ಯದಲ್ಲಿ ತೀವ್ರವಾದ ಮಾನಸಿಕ ಕ್ಲೇಶ, ಹೊಂದಾಣಿಕೆಯ ಕೊರತೆ, ಪರಸ್ಪರ ಅಸಹನೀಯ ತಪ್ಪು ತಿಳುವಳಿಕೆಗಳು (Misunderstandings) ಹಾಗೂ ಮಾತುಕತೆ ನಿಲ್ಲುವಂತಹ ಕಠಿಣ ಬಿಕ್ಕಟ್ಟು ಎದುರಾಗಿದೆ."
+    : "ಇಲ್ಲ, ದಾಂಪತ್ಯದಲ್ಲಿ ಶಾಶ್ವತ ಬಿರುಕಿನ ಅಪಾಯವಿಲ್ಲ. ಸಣ್ಣಪುಟ್ಟ ಸಾಂದರ್ಭಿಕ ಮಾತುಕತೆಯ ಭಿನ್ನಾಭಿಪ್ರಾಯಗಳಿದ್ದು ಶೀಘ್ರದಲ್ಲೇ ತಿಳಿಯಾಗಲಿವೆ."
+}
+
+• 🎯 ಶಾಸ್ತ್ರೀಯ ಕಾರಣ & ಗ್ರಹ ಸ್ಥಿತಿ: ನಿಮ್ಮ 7ನೇ ಕಳತ್ರ ಸ್ಥಾನ (${currentDiagnosis.technicalAspects.seventhHouseDetail}) ಹಾಗೂ 4ನೇ ಸುಖ ಸ್ಥಾನಗಳ ಮೇಲೆ ${seventhLordKn} ಹಾಗೂ ${fourthLordKn} ಗ್ರಹಗಳ ಪ್ರಭಾವವಿದೆ. ${
+  isMaritalCrisis
+    ? `7ನೇ ಕಳತ್ರಾಧಿಪತಿ ${seventhLordKn} ದುಃಸ್ಥಾನದಲ್ಲಿದ್ದು, ${isKujaDosha ? "ಕುಜ ದೋಷ ಹಾಗೂ" : ""} ಶನಿ-ರಾಹು ದೃಷ್ಟಿಯಿಂದಾಗಿ ಸಣ್ಣ ಮಾತಿಗೂ ಅಹಂಕಾರದ ಘರ್ಷಣೆ ಭುಗಿಲೇಳುತ್ತಿದೆ.`
+    : "ಕಳತ್ರ ಸ್ಥಾನವು ಶುಭ ದೃಷ್ಟಿಯಲ್ಲಿದ್ದು, ತಾಳ್ಮೆಯಿಂದ ವರ್ತಿಸಿದರೆ ಸಮಸ್ಯೆಗಳು ತಾನಾಗಿಯೇ ಪರಿಹಾರವಾಗಲಿವೆ."
+}
+
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ / ತಿರುವು: ಇನ್ನು ಮುಂದಿನ ${Math.max(2, Math.min(5, remM))} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${Math.max(2, Math.min(5, remM))} Month${Math.max(2, Math.min(5, remM)) > 1 ? "s" : ""}) ಗ್ರಹಗಳ ಶುಭ ಸಂಚಾರದಿಂದ ಪರಸ್ಪರ ತಿಳುವಳಿಕೆ ಮರಳಿ ಬಂದು ದಾಂಪತ್ಯದಲ್ಲಿ ಶಾಂತಿ ನೆಲೆಸಲಿದೆ.
+
+• 🪔 ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಪರಿಹಾರ & ಮಾರ್ಗೋಪಾಯ: ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಉಮಾ-ಮಹೇಶ್ವರ ಕಲ್ಯಾಣ ಸಂಕಲ್ಪ ಪೂಜೆ ಸಲ್ಲಿಸಿ, 2 ಮುಖಿ ರುದ್ರಾಕ್ಷಿ ಧಾರಣೆ ಮಾಡಿ ಮತ್ತು ಮನೆಯಲ್ಲಿ ಮಂಗಳವಾರ-ಶುಕ್ರವಾರ ಸಾಂಬ್ರಾಣಿ ಧೂಪ ಹಾಕಿ.`
+      );
+    } else {
+      return (
+`Namaskara ${devoteeNameFormatted}, I have analyzed your birth chart regarding marital harmony and relationship disputes.
+
+• 🔮 Direct Daivajna Verdict: ${
+  isMaritalCrisis
+    ? "YES. You are currently experiencing acute marital distress, severe misunderstandings, constant friction, and communication breakdown."
+    : "NO. There is no irreparable rupture in marriage; temporary frictions will resolve smoothly."
+}
+
+• 🎯 Astrological Root Cause & Planetary Alignment: 7th house of marriage (${currentDiagnosis.technicalAspects.seventhHouseDetail}) and 4th house of domestic peace are afflicted by malefic aspects, triggering ego clashes over trivial matters.
+
+• ⏳ Accurate Timeline / Turning Point: Within ${dashaTimeTextEn}, planetary transits soften, facilitating emotional reconciliation and renewed understanding.
+
+• 🪔 Prescribed Remedies & Solution: Sponsor Uma-Maheshwara Kalyana Sankalpa Pooja at Sri Kshetra Gokarna, and wear a 2-Mukhi Rudraksha to restore domestic tranquility.`
+      );
+    }
+  }
+
+  // 7. MARRIAGE TIMING & ALLIANCE
+  if (isMarriageQuery) {
+    if (isKn) {
+      return sanitizeAstrologyKannadaText(
+`ನಮಸ್ಕಾರ ${devoteeNameFormatted}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕವನ್ನು ವಿವಾಹ ಯೋಗ ಮತ್ತು ಕಂಕಣ ಭಾಗ್ಯದ ದೃಷ್ಟಿಯಿಂದ ನೋಡಿದೆ.
+
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ಇನ್ನು ಮುಂದಿನ ${Math.max(3, remM)} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${Math.max(3, remM)} Month${Math.max(3, remM) > 1 ? "s" : ""}) ಕಂಕಣ ಭಾಗ್ಯ ಖಚಿತವಾಗಿ ಕೂಡಿಬರಲಿದ್ದು, ಸಂಸ್ಕಾರಯುತ ಕುಟುಂಬದಿಂದ ವಿವಾಹ ನಿಶ್ಚಯವಾಗಲಿದೆ.
+
+• 🎯 ಶಾಸ್ತ್ರೀಯ ಕಾರಣ & ಗ್ರಹ ಸ್ಥಿತಿ: ನಿಮ್ಮ 7ನೇ ಕಳತ್ರ ಸ್ಥಾನ (${currentDiagnosis.technicalAspects.seventhHouseDetail}) ಹಾಗೂ ಕಳತ್ರಕಾರಕ ಶುಕ್ರ/ಗುರುಗಳ ಸ್ಥಿತಿ ವಿವಾಹ ಕಾಲವನ್ನು ನಿರ್ಧರಿಸುತ್ತಿದೆ. ${
+  isKujaDosha ? "ಕುಜ ದೋಷದ ಪ್ರಭಾವದಿಂದ ಮಾತುಕತೆಗಳಲ್ಲಿ ತಾತ್ಕಾಲಿಕ ಅಡೆತಡೆ ಉಂಟಾಗುತ್ತಿದೆ." : "ಗೋಚಾರ ಗುರುವಿನ ಬಲ ಕೂಡಿಬರುತ್ತಿದೆ."
+}
+
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ / ತಿರುವು: ಪ್ರಸ್ತುತ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ಕಾಲದಲ್ಲಿ, ಇನ್ನು ${dashaTimeText} ಶುಭ ಮುಹೂರ್ತ ಹಾಗೂ ವಿವಾಹ ಮಾತುಕತೆಗಳಲ್ಲಿ ಸಫಲತೆ ದೊರೆಯಲಿದೆ.
+
+• 🪔 ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಪರಿಹಾರ & ಮಾರ್ಗೋಪಾಯ: ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಕಲ್ಯಾಣ ಸಂಕಲ್ಪ ಸೇವೆ ನೆರವೇರಿಸಿ, ಗುರುವಾರ ದಕ್ಷಿಣಾಮೂರ್ತಿಗೆ ತುಪ್ಪದ ದೀಪ ಬೆಳಗಿಸಿ.`
+      );
+    } else {
+      return (
+`Namaskara ${devoteeNameFormatted}, I have analyzed your birth chart regarding marriage timing and matrimonial alliance.
+
+• 🔮 Direct Daivajna Verdict: A favorable marriage alliance will finalize within the upcoming ${Math.max(3, remM)} months.
+
+• 🎯 Astrological Root Cause & Planetary Alignment: 7th house of marriage (${currentDiagnosis.technicalAspects.seventhHouseDetail}) and Kalatrakaraka govern relationship dynamics.
+
+• ⏳ Accurate Timeline / Turning Point: Under ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary}, favorable matrimonial progress materializes ${dashaTimeTextEn}.
+
+• 🪔 Prescribed Remedies & Solution: Sponsor Kalyana Sankalpa Seva at Sri Kshetra Gokarna Mahabaleshwara.`
+      );
+    }
+  }
+
+  // 8. DEBT RELIEF & FINANCIAL STABILITY
+  if (isDebtQuery) {
+    if (isKn) {
+      return sanitizeAstrologyKannadaText(
+`ನಮಸ್ಕಾರ ${devoteeNameFormatted}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕವನ್ನು ಸಾಲ ಮುಕ್ತಿ ಮತ್ತು ಆರ್ಥಿಕ ಸ್ಥಿರತೆಯ ದೃಷ್ಟಿಯಿಂದ ನೋಡಿದೆ.
+
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ಇನ್ನು ಮುಂದಿನ ${remM} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${remM} Month${remM > 1 ? "s" : ""}) ನೂತನ ಆದಾಯದ ಮಾರ್ಗ ತೆರೆದುಕೊಂಡು ಸಾಲದ ಬಹುಪಾಲು ಹೊರೆ ಇಳಿಯಲಿದೆ.
+
+• 🎯 ಶಾಸ್ತ್ರೀಯ ಕಾರಣ & ಗ್ರಹ ಸ್ಥಿತಿ: ನಿಮ್ಮ 6ನೇ ಋಣ ಸ್ಥಾನದಲ್ಲಿ ${sixthLordKn} ಮತ್ತು 2ನೇ ಧನ ಸ್ಥಾನದಲ್ಲಿ ${secondLordKn} ಗ್ರಹ ಪ್ರಭಾವವಿದೆ. ಕೈಗೆ ಬಂದ ಹಣ ನಿಲ್ಲದೆ ಅನಿರೀಕ್ಷಿತ ತುರ್ತು ವೆಚ್ಚಗಳಿಗೆ ಸೋರಿಹೋಗುತ್ತಿರುವುದು ಸಾಲದ ಹೊರೆಯನ್ನು ಹೆಚ್ಚಿಸಿದೆ.
+
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ / ತಿರುವು: ಪ್ರಸ್ತುತ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ಅವಧಿಯಲ್ಲಿ, ಇನ್ನು ${dashaTimeText} ಹೊಸ ಆದಾಯದ ಹರಿವು ಆರಂಭವಾಗಿ ಸಾಲ ತೀರಿಸಲು ದಾರಿ ಸುಲಭವಾಗಲಿದೆ.
+
+• 🪔 ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಪರಿಹಾರ & ಮಾರ್ಗೋಪಾಯ: ಪ್ರತಿದಿನ ಪ್ರಾತಃಕಾಲ ಋಣವಿಮೋಚಕ ನರಸಿಂಹ ಸ್ತೋತ್ರ ಪಠಿಸಿ. ${prescriptions.gemstoneRing.primaryGemstoneKn} ಧರಿಸಿ ಮತ್ತು ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಮಹಾಗಣಪತಿ ಹೋಮ ಸಂಕಲ್ಪ ಸೇವೆ ಸಮರ್ಪಿಸಿ.`
+      );
+    } else {
+      return (
+`Namaskara ${devoteeNameFormatted}, I have analyzed your birth chart regarding debt relief and financial stabilization.
+
+• 🔮 Direct Daivajna Verdict: New financial relief channels will manifest within ${dashaTimeTextEn} to systematically clear outstanding debts.
+
+• 🎯 Astrological Root Cause & Planetary Alignment: 6th house of debt (${sixthLordKn}) and 2nd house of income (${secondLordKn}) govern fiscal liquidity. Unexpected expenses have strained repayment.
+
+• ⏳ Accurate Timeline / Turning Point: Under ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary}, financial momentum turns favorable within ${dashaTimeTextEn}.
+
+• 🪔 Prescribed Remedies & Solution: Recite Rinamochana Narasimha Stotra daily and sponsor Mahaganapati Homa at Sri Kshetra Gokarna.`
+      );
+    }
+  }
+
+  // 9. FINANCE, CAREER & TURNING POINT
   if (isFinanceCareerQuery) {
     if (isKn) {
       return sanitizeAstrologyKannadaText(
 `ನಮಸ್ಕಾರ ${devoteeNameFormatted}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕವನ್ನು ಆರ್ಥಿಕ ಪ್ರಗತಿ, ಉದ್ಯೋಗ ಹಾಗೂ ಧನ ಯೋಗದ ದೃಷ್ಟಿಯಿಂದ ನೋಡಿದೆ.
 
-• 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: ನಿಮ್ಮ 10ನೇ ಕರ್ಮ ಸ್ಥಾನ (${currentDiagnosis.technicalAspects.tenthHouseDetail}) ಹಾಗೂ 2ನೇ ಧನಕೋಶದ ಮೇಲೆ ಗ್ರಹಗಳ ಸಮ್ಮಿಶ್ರ ಪ್ರಭಾವವಿದೆ.
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ಮುಂದಿನ ${dashaTimeText} ಅವಧಿಯಲ್ಲಿ ವೃತ್ತಿ ಮತ್ತು ಆರ್ಥಿಕತೆಯಲ್ಲಿ ಮಹತ್ವದ ಶುಭ ತಿರುವು ಲಭಿಸಲಿದ್ದು, ಹೊಸ ಆದಾಯದ ಮಾರ್ಗಗಳು ತೆರೆದುಕೊಳ್ಳಲಿವೆ.
 
-• ⚠️ ನೈಜ ಸವಾಲು & ಕಾರಣ: ${currentDiagnosis.primaryLifeChallenge.description}. ${currentDiagnosis.primaryLifeChallenge.planetaryRootCause}.
+• 🎯 ಶಾಸ್ತ್ರೀಯ ಕಾರಣ & ಗ್ರಹ ಸ್ಥಿತಿ: ನಿಮ್ಮ 10ನೇ ಕರ್ಮ ಸ್ಥಾನ (${currentDiagnosis.technicalAspects.tenthHouseDetail}) ಹಾಗೂ 2ನೇ ಧನಕೋಶದ ಮೇಲೆ ಗ್ರಹಗಳ ಸಮ್ಮಿಶ್ರ ಪ್ರಭಾವವಿದೆ. ${currentDiagnosis.primaryLifeChallenge.planetaryRootCause}.
 
-• ⏳ ನಿಖರ ತಿರುವು ಕಾಲಾವಧಿ: ಪ್ರಸ್ತುತ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ದಶಾ ಕಾಲದಲ್ಲಿ, ಇನ್ನು ${dashaTimeText} ನಿಮ್ಮ ಜೀವನದ ದೊಡ್ಡ ಆರ್ಥಿಕ ತಿರುವು ಗೋಚರಿಸಲಿದ್ದು, ನೂತನ ಆದಾಯ ಮಾರ್ಗಗಳು ತೆರೆದುಕೊಳ್ಳಲಿವೆ.
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ / ತಿರುವು: ಪ್ರಸ್ತುತ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ದಶಾ ಕಾಲದಲ್ಲಿ, ಇನ್ನು ${dashaTimeText} ನಿಮ್ಮ ಜೀವನದ ದೊಡ್ಡ ಆರ್ಥಿಕ ತಿರುವು ಗೋಚರಿಸಲಿದೆ.
 
-• 🪔 ಅಭಿವೃದ್ಧಿ ಪರಿಹಾರ & ಗೋಕರ್ಣ ಸೇವೆ: ನಿಮ್ಮ ಲಗ್ನಾಧಿಪತಿಯ ${prescriptions.gemstoneRing.primaryGemstoneKn} (${prescriptions.gemstoneRing.caratWeight}) ರತ್ನವನ್ನು ${prescriptions.gemstoneRing.metalKn}ದಲ್ಲಿ ಧಾರಣೆ ಮಾಡಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ರುದ್ರಾಭಿಷೇಕ ಮತ್ತು ಗಣಪತಿ ಹವನ ಸಮರ್ಪಿಸುವುದರಿಂದ ಸಕಲ ಆರ್ಥಿಕ ವಿಘ್ನಗಳು ಪರಿಹಾರವಾಗಲಿವೆ.`
+• 🪔 ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಪರಿಹಾರ & ಮಾರ್ಗೋಪಾಯ: ನಿಮ್ಮ ಲಗ್ನಾಧಿಪತಿಯ ${prescriptions.gemstoneRing.primaryGemstoneKn} (${prescriptions.gemstoneRing.caratWeight}) ರತ್ನವನ್ನು ${prescriptions.gemstoneRing.metalKn}ದಲ್ಲಿ ಧಾರಣೆ ಮಾಡಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ರುದ್ರಾಭಿಷೇಕ ಮತ್ತು ಗಣಪತಿ ಹವನ ಸಮರ್ಪಿಸಿ.`
       );
     } else {
       return (
 `Namaskara ${devoteeNameFormatted}, I have analyzed your birth chart regarding career trajectory and financial momentum.
 
-• 🎯 Planetary Alignment: 10th house of career (${currentDiagnosis.technicalAspects.tenthHouseDetail}) and 2nd house of wealth dictate your professional elevation.
+• 🔮 Direct Daivajna Verdict: A decisive financial and career breakthrough unfolds within ${dashaTimeTextEn}, opening stable revenue channels.
 
-• ⚠️ Astrological Root Cause: ${currentDiagnosis.primaryLifeChallenge.description}. ${currentDiagnosis.primaryLifeChallenge.planetaryRootCause}.
+• 🎯 Astrological Root Cause & Planetary Alignment: 10th house of career (${currentDiagnosis.technicalAspects.tenthHouseDetail}) and 2nd house of wealth dictate your professional elevation.
 
-• ⏳ Accurate Turning Point Timeline: Under ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary}, a decisive breakthrough unfolds ${dashaTimeTextEn}, opening stable revenue channels.
+• ⏳ Accurate Timeline / Turning Point: Under ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary}, a decisive breakthrough unfolds ${dashaTimeTextEn}.
 
-• 🪔 Prescribed Gemstone & Gokarna Seva: Wear ${prescriptions.gemstoneRing.primaryGemstoneEn} (${prescriptions.gemstoneRing.caratWeight}) set in ${prescriptions.gemstoneRing.metalEn}. Sponsor Rudrabhisheka and Ganapati Homa at Sri Kshetra Gokarna Mahabaleshwara.`
+• 🪔 Prescribed Remedies & Solution: Wear ${prescriptions.gemstoneRing.primaryGemstoneEn} (${prescriptions.gemstoneRing.caratWeight}) set in ${prescriptions.gemstoneRing.metalEn}. Sponsor Rudrabhisheka and Ganapati Homa at Sri Kshetra Gokarna Mahabaleshwara.`
       );
     }
   }
 
-  // 6. MARRIAGE & PARTNERSHIP
-  if (isMarriageQuery) {
-    if (isKn) {
-      return sanitizeAstrologyKannadaText(
-`ನಮಸ್ಕಾರ ${devoteeNameFormatted}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕವನ್ನು ವಿವಾಹ ಯೋಗ ಮತ್ತು ದಾಂಪತ್ಯ ಬಾಂಧವ್ಯದ ದೃಷ್ಟಿಯಿಂದ ನೋಡಿದೆ.
-
-• 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: ನಿಮ್ಮ 7ನೇ ಕಳತ್ರ ಸ್ಥಾನ (${currentDiagnosis.technicalAspects.seventhHouseDetail}) ಹಾಗೂ ಕಳತ್ರಕಾರಕ ಶುಕ್ರ/ಗುರುಗಳ ಸ್ಥಿತಿ ವಿವಾಹ ಕಾಲವನ್ನು ನಿರ್ಧರಿಸುತ್ತಿದೆ.
-
-• ⚠️ ನೈಜ ಸವಾಲು & ಕಾರಣ: ${currentDiagnosis.technicalAspects.seventhHouseDetail}. ಮಾಂಗಲ್ಯ ಅಥವಾ ಶನಿ-ಕುಜರ ದೃಷ್ಟಿ ಪ್ರಭಾವದಿಂದ ವಿವಾಹದಲ್ಲಿ ಅಡೆತಡೆ ಅಥವಾ ದಾಂಪತ್ಯದಲ್ಲಿ ಭಿನ್ನಾಭಿಪ್ರಾಯ ಉಂಟಾಗುತ್ತಿದೆ.
-
-• ⏳ ನಿಖರ ವಿವಾಹ/ಶಾಂತಿ ಕಾಲಾವಧಿ: ಪ್ರಸ್ತುತ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ಕಾಲದಲ್ಲಿ, ಇನ್ನು ${dashaTimeText} ಶುಭ ಮುಹೂರ್ತ ಹಾಗೂ ವಿವಾಹ ಮಾತುಕತೆಗಳಲ್ಲಿ ಸಫಲತೆ ದೊರೆಯಲಿದೆ.
-
-• 🪔 ದಾಂಪತ್ಯ ಶಾಂತಿ & ಗೋಕರ್ಣ ಸೇವೆ: ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಉಮಾ-ಮಹೇಶ್ವರ ಕಲ್ಯಾಣ ಪೂಜೆ ಹಾಗೂ ನವಗ್ರಹ ಶಾಂತಿ ನೆರವೇರಿಸಿ. ${prescriptions.rudraksha.nameKn} ಧಾರಣೆ ಮಾಡುವುದರಿಂದ ದಾಂಪತ್ಯದಲ್ಲಿ ಶಾಂತಿ ನೆಲೆಸಲಿದೆ.`
-      );
-    } else {
-      return (
-`Namaskara ${devoteeNameFormatted}, I have analyzed your birth chart regarding marriage timing and matrimonial harmony.
-
-• 🎯 Planetary Alignment: 7th house of marriage (${currentDiagnosis.technicalAspects.seventhHouseDetail}) and Kalatrakaraka govern relationship dynamics.
-
-• ⚠️ Astrological Root Cause: ${currentDiagnosis.technicalAspects.seventhHouseDetail}. Saturn-Mars aspects or Kuja Dosha factors require pacification to remove marriage delays.
-
-• ⏳ Accurate Matrimonial Timeline: Under ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary}, favorable matrimonial progress materializes ${dashaTimeTextEn}.
-
-• 🪔 Prescribed Remedies & Gokarna Seva: Sponsor Uma-Maheshwara Pooja and Navagraha Shanti at Sri Kshetra Gokarna Mahabaleshwara, and wear ${prescriptions.rudraksha.nameEn}.`
-      );
-    }
-  }
-
-  // 7. GENERAL / FALLBACK INQUIRY
+  // 10. GENERAL / FALLBACK INQUIRY
   if (isKn) {
     return sanitizeAstrologyKannadaText(
 `ನಮಸ್ಕಾರ ${devoteeNameFormatted}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕವನ್ನು ನಿಮ್ಮ ಪ್ರಶ್ನೆಯ ಹಿನ್ನೆಲೆಯಲ್ಲಿ ಕೂಲಂಕಷವಾಗಿ ನೋಡಿದೆ.
 
-• 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: ನಿಮ್ಮ ${lagnaKn} ಲಗ್ನ ಹಾಗೂ ${moonRashiKn} ರಾಶಿಯ (${moonNakKn} ನಕ್ಷತ್ರ) ಜಾತಕದಲ್ಲಿ, ಪ್ರಸ್ತುತ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ದಶಾ ಕಾಲ ನಡೆಯುತ್ತಿದೆ.
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ನಿಮ್ಮ ಪ್ರಶ್ನೆಗೆ ಸಂಬಂಧಿಸಿದಂತೆ, ಗ್ರಹಗಳ ಪ್ರಸ್ತುತ ಸ್ಥಿತಿಯು ಸವಾಲಿನದ್ದಾಗಿದ್ದರೂ ಮುಂದಿನ ${dashaTimeText} ಅವಧಿಯಲ್ಲಿ ಪರಿಸ್ಥಿತಿ ತಿಳಿಯಾಗಿ ಧನಾತ್ಮಕ ಫಲ ದೊರೆಯಲಿದೆ.
 
-• ⚠️ ಶಾಸ್ತ್ರೋಕ್ತ ವಿಶ್ಲೇಷಣೆ: ${currentDiagnosis.primaryLifeChallenge.description}. ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿರುವ ಗ್ರಹಗಳ ಸ್ಥಿತಿ ಮತ್ತು ಗೋಚಾರ ಬಲವು ನಿಮ್ಮ ತಾಳ್ಮೆ ಹಾಗೂ ಕರ್ಮ ಬಲವನ್ನು ಪರೀಕ್ಷಿಸುತ್ತಿದೆ.
+• 🎯 ಶಾಸ್ತ್ರೀಯ ಕಾರಣ & ಗ್ರಹ ಸ್ಥಿತಿ: ನಿಮ್ಮ ${lagnaKn} ಲಗ್ನ ಹಾಗೂ ${moonRashiKn} ರಾಶಿಯ (${moonNakKn} ನಕ್ಷತ್ರ) ಜಾತಕದಲ್ಲಿ, ಪ್ರಸ್ತುತ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ದಶಾ ಕಾಲ ನಡೆಯುತ್ತಿದೆ. ${currentDiagnosis.primaryLifeChallenge.description}.
 
-• ⏳ ನಿಖರ ಪರಿಹಾರ ಕಾಲಾವಧಿ: ಇನ್ನು ${dashaTimeText} ಗ್ರಹಗಳ ಗೋಚಾರವು ನಿಮ್ಮ ಪರವಾಗಿ ತಿರುಗಲಿದ್ದು, ಕಠಿಣ ಪರಿಸ್ಥಿತಿಗಳು ತಿಳಿಯಾಗಲಿವೆ.
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ / ತಿರುವು: ಇನ್ನು ${dashaTimeText} ಗ್ರಹಗಳ ಗೋಚಾರವು ನಿಮ್ಮ ಪರವಾಗಿ ತಿರುಗಲಿದ್ದು, ಕಠಿಣ ಪರಿಸ್ಥಿತಿಗಳು ತಿಳಿಯಾಗಲಿವೆ.
 
-• 🪔 ಸಿದ್ಧ ಪರಿಹಾರ: ${prescriptions.gemstoneRing.primaryGemstoneKn} (${prescriptions.gemstoneRing.caratWeight}) ರತ್ನ ಹಾಗೂ ${prescriptions.rudraksha.nameKn} ಧಾರಣೆ ಮಾಡಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ಪ್ರಾಯಶ್ಚಿತ್ತ ಹಾಗೂ ಸಂಕಲ್ಪ ಪೂಜೆ ಸಲ್ಲಿಸುವುದು ಸಕಲ ವಿಘ್ನಗಳನ್ನು ನಿವಾರಿಸಲಿದೆ.`
+• 🪔 ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಪರಿಹಾರ & ಮಾರ್ಗೋಪಾಯ: ${prescriptions.gemstoneRing.primaryGemstoneKn} (${prescriptions.gemstoneRing.caratWeight}) ರತ್ನ ಹಾಗೂ ${prescriptions.rudraksha.nameKn} ಧಾರಣೆ ಮಾಡಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ಪ್ರಾಯಶ್ಚಿತ್ತ ಹಾಗೂ ಸಂಕಲ್ಪ ಪೂಜೆ ಸಲ್ಲಿಸುವುದು ಸಕಲ ವಿಘ್ನಗಳನ್ನು ನಿವಾರಿಸಲಿದೆ.`
     );
   } else {
     return (
 `Namaskara ${devoteeNameFormatted}, I have carefully analyzed your chart in relation to your inquiry.
 
-• 🎯 Planetary Alignment: Born in ${lagnaEn} Ascendant and ${moonRashiEn} Moon Sign, you are currently operating under ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary}.
+• 🔮 Direct Daivajna Verdict: Regarding your inquiry, while current planetary alignments present testing challenges, a favorable breakthrough unfolds within ${dashaTimeTextEn}.
 
-• ⚠️ Astrological Analysis: ${currentDiagnosis.primaryLifeChallenge.description}. Transits are testing your resilience and karmic equilibrium.
+• 🎯 Astrological Root Cause & Planetary Alignment: Born in ${lagnaEn} Ascendant and ${moonRashiEn} Moon Sign, you are operating under ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary}. ${currentDiagnosis.primaryLifeChallenge.description}.
 
-• ⏳ Accurate Timeline: Within ${dashaTimeTextEn}, planetary transits turn favorably, resolving lingering obstacles.
+• ⏳ Accurate Timeline / Turning Point: Within ${dashaTimeTextEn}, planetary transits turn favorably, resolving lingering obstacles.
 
-• 🪔 Prescribed Remedies: Wear ${prescriptions.gemstoneRing.primaryGemstoneEn} (${prescriptions.gemstoneRing.caratWeight}) and ${prescriptions.rudraksha.nameEn}. Sponsor a dedicated Sankalpa Pooja at holy Sri Kshetra Gokarna Mahabaleshwara to dissolve pending afflictions.`
+• 🪔 Prescribed Remedies & Solution: Wear ${prescriptions.gemstoneRing.primaryGemstoneEn} (${prescriptions.gemstoneRing.caratWeight}) and ${prescriptions.rudraksha.nameEn}. Sponsor a dedicated Sankalpa Pooja at holy Sri Kshetra Gokarna Mahabaleshwara.`
     );
   }
 };

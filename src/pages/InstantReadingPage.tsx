@@ -264,14 +264,15 @@ Question from Devotee: "${q}"
 Task: Give a deep, face-to-face conversational Vedic Pandit consultation response in natural spoken ${isKn ? "Kannada" : "English"} adopting this exact conversational spoken tone:
 "ನಮಸ್ಕಾರ ${session.input.name || "ಭಕ್ತರೇ"}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕ ನೋಡಿದೆ."
 
-Respond in crisp, structured bullet points directly answering the devotee's specific question:
-• 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: Exact planetary positions, houses, dasha-bhukti, and gochara transits influencing this question.
-• ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ನೈಜ ಕಾರಣ: State the exact Dosha (e.g. Balarishta / Pitta Colic for children crying or fighting; Saturn-2nd house drinking habit / Venus-Rahu affairs / Rahu-8th smuggling for adults) and the real astrological reason without generic fluff.
-• ⏳ ನಿಖರ ಕಾಲಾವಧಿ: Exact turning point timeline in English digits calculated from running Dasha-Bhukti remaining duration (${synthesisData.currentDiagnosis.dashaTiming?.timelineKn || "ಮುಂದಿನ ಕೆಲವೇ ತಿಂಗಳುಗಳಲ್ಲಿ"}) when relief and breakthroughs materialize.
-• 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪೂಜೆ: Prescribe the devotee's authentic Beeja Mantra, daily calming Japa, and Sri Kshetra Gokarna Mahabaleshwara Shanti Pooja.
+Respond in crisp, structured bullet points directly answering the devotee's specific question. The very FIRST bullet point MUST be the direct verdict/answer:
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: Direct, unambiguous verdict in 1-2 powerful sentences (e.g., if asked about extramarital attraction: state clearly "ಇಲ್ಲ! ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಕಳತ್ರ ಸ್ಥಾನವು ಶುಭ ರಕ್ಷಣೆಯಲ್ಲಿದೆ..." or "ಹೌದು...", if marriage timing: give exact months, if debt: state clear clearance timeline). MUST be the 1st bullet point!
+• 🎯 ಶಾಸ್ತ್ರೀಯ ಕಾರಣ & ಗ್ರಹ ಸ್ಥಿತಿ: Exact planetary positions, houses, dasha-bhukti, and gochara transits influencing this question and explaining why this verdict is true.
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ / ತಿರುವು: Exact turning point timeline in English digits calculated from running Dasha-Bhukti remaining duration (${synthesisData.currentDiagnosis.dashaTiming?.timelineKn || "ಮುಂದಿನ ಕೆಲವೇ ತಿಂಗಳುಗಳಲ್ಲಿ"}).
+• 🪔 ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಪರಿಹಾರ & ಮಾರ್ಗೋಪಾಯ: Prescribe authentic Vedic remedies, Gokarna Mahabaleshwara Shanti Pooja, and sacred practices to resolve this issue.
 
 STRICT RULES:
-- DO NOT invent tragedies, crises, or false insomnia.
+- ZERO CONTRADICTIONS: If the answer is "ಇಲ್ಲ" (e.g. no extramarital affairs, morality is intact), DO NOT contradict yourself in subsequent bullets by warning about secret affairs leaking or prescribing lust suppression!
+- DO NOT invent tragedies, crimes, or fake scandals.
 - DO NOT use markdown bold asterisks (no ** or *). Use clean, natural text.
 - ALL numbers must be in ENGLISH DIGITS (1, 2, 3, 4, 5, etc.).
 `;
@@ -407,6 +408,115 @@ STRICT RULES:
         </Card>
       ) : (
         <>
+          {/* 🚨 0. PRIMARY ACUTE LIFE CRISIS & IMMEDIATE EXIT STRATEGY (ಮುಖ್ಯ ಪ್ರಸ್ತುತ ಬಿಕ್ಕಟ್ಟು & ತ್ವರಿತ ಪರಿಹಾರ) 🚨 */}
+          {currentDiagnosis?.primaryLifeChallenge && (
+            <div className="rounded-3xl border-2 border-rose-400 bg-gradient-to-br from-rose-50/95 via-amber-50/70 to-white p-6 md:p-8 text-stone-950 shadow-xl space-y-5 ring-1 ring-rose-300">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-rose-200 pb-4">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-amber-500 text-white text-2xl shadow-md border border-rose-300">
+                    {currentDiagnosis.primaryLifeChallenge.area === "Personal / Marriage"
+                      ? "💍"
+                      : currentDiagnosis.primaryLifeChallenge.area === "Financial / Debts"
+                      ? "💰"
+                      : currentDiagnosis.primaryLifeChallenge.area === "Career / Workplace"
+                      ? "💼"
+                      : currentDiagnosis.primaryLifeChallenge.area === "Health / Vitality" || currentDiagnosis.primaryLifeChallenge.area === "Health / Physical"
+                      ? "🩺"
+                      : "⚡"}
+                  </span>
+                  <div>
+                    <span className="text-[11px] font-black uppercase tracking-wider text-rose-900 block">
+                      {isKn
+                        ? "॥ ಪ್ರಸ್ತುತ ತಕ್ಷಣದ ಜೀವಿತ ಬಿಕ್ಕಟ್ಟು & ಮುಕ್ತಿ ಮಾರ್ಗ (Primary Acute Life Crisis & Exit Strategy) ॥"
+                        : "॥ Primary Acute Life Crisis & Astrological Exit Strategy ॥"}
+                    </span>
+                    <h3 className="text-base md:text-xl font-black text-rose-950 font-serif">
+                      {cleanAstrologyText(isKn ? (currentDiagnosis.primaryLifeChallenge.areaKn || currentDiagnosis.primaryLifeChallenge.area) : currentDiagnosis.primaryLifeChallenge.area)}
+                    </h3>
+                  </div>
+                </div>
+                <span className="px-3.5 py-1.5 rounded-full bg-rose-100 text-rose-950 text-xs font-black border border-rose-300 shadow-sm flex items-center gap-1.5">
+                  <span className="inline-block h-2 w-2 rounded-full bg-rose-600 animate-ping" />
+                  <span>{isKn ? "ತಕ್ಷಣದ ಗಮನ ಅಗತ್ಯ (Top Priority)" : "Top Priority Life Focus"}</span>
+                </span>
+              </div>
+
+              {/* Pandit Direct Empathetic Spoken Voice */}
+              <div className="p-4 rounded-2xl bg-rose-100/70 border border-rose-200/90 text-stone-900 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">🗣️</span>
+                  <b className="text-xs uppercase tracking-wider text-rose-950">
+                    {isKn ? "ದೈವಜ್ಞರ ಮೊದಲ ನೇರ ಮಾತು (Astrologer's Immediate Spoken Counsel):" : "Astrologer's Primary Spoken Counsel:"}
+                  </b>
+                </div>
+                <p className="text-xs md:text-sm text-stone-800 leading-relaxed font-medium">
+                  {isKn
+                    ? `ನಮಸ್ಕಾರ ${session.input.name || "ಭಕ್ತರೇ"}, ನಿಮ್ಮ ಜಾತಕವನ್ನು ಆಳವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ಉಳಿದೆಲ್ಲ ವಿಷಯಗಳಿಗಿಂತ ಮೊದಲು ನಿಮ್ಮನ್ನು ಪ್ರಸ್ತುತ ತೀವ್ರವಾಗಿ ಕಾಡುತ್ತಿರುವ ಈ ಪ್ರಮುಖ ಜೀವಿತ ಬಿಕ್ಕಟ್ಟಿನ ಬಗ್ಗೆ ನಾವು ಮಾತನಾಡಲೇಬೇಕು. ಈ ಕಷ್ಟದಿಂದ ಶೀಘ್ರವಾಗಿ ಹೊರಬರಲು ಗ್ರಹಗಳ ನೈಜ ಸ್ಥಿತಿ, ಬಿಕ್ಕಟ್ಟು ಮುಕ್ತವಾಗುವ ನಿಖರ ಕಾಲಾವಧಿ ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಮಾರ್ಗೋಪಾಯ ಇಲ್ಲಿದೆ:`
+                    : `Namaskara ${session.input.name || "Devotee"}, reviewing your birth chart deeply, before discussing other life areas, we must first address this acute life challenge that is causing you immediate distress. Here is the astrological diagnosis, relief timeline, and sacred exit strategy to overcome this:`}
+                </p>
+              </div>
+
+              {/* 4 Diagnostic & Resolution Cards Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs md:text-sm">
+                {/* 1. Core Crisis Nature */}
+                <div className="p-4 rounded-2xl border-2 border-rose-200 bg-white space-y-2 shadow-sm">
+                  <div className="flex items-center gap-2 text-rose-900 font-bold border-b border-rose-100 pb-1.5 text-xs">
+                    <span>💥</span>
+                    <span>{isKn ? "ಪ್ರಸ್ತುತ ಬಿಕ್ಕಟ್ಟಿನ ನೈಜ ಸ್ವರೂಪ" : "Nature of Current Crisis"}</span>
+                  </div>
+                  <p className="text-stone-800 leading-relaxed text-xs">
+                    {cleanAstrologyText(isKn ? currentDiagnosis.primaryLifeChallenge.description : (currentDiagnosis.primaryLifeChallenge.descriptionEn || currentDiagnosis.primaryLifeChallenge.description))}
+                  </p>
+                </div>
+
+                {/* 2. Astrological Root Cause */}
+                <div className="p-4 rounded-2xl border-2 border-amber-200 bg-white space-y-2 shadow-sm">
+                  <div className="flex items-center gap-2 text-amber-900 font-bold border-b border-amber-100 pb-1.5 text-xs">
+                    <span>🪐</span>
+                    <span>{isKn ? "ಗ್ರಹಗಳ ಶಾಸ್ತ್ರೀಯ ಮೂಲ ಕಾರಣ" : "Astrological Root Cause"}</span>
+                  </div>
+                  <p className="text-stone-800 leading-relaxed text-xs">
+                    {cleanAstrologyText(isKn ? currentDiagnosis.primaryLifeChallenge.planetaryRootCause : (currentDiagnosis.primaryLifeChallenge.planetaryRootCauseEn || currentDiagnosis.primaryLifeChallenge.planetaryRootCause))}
+                  </p>
+                </div>
+
+                {/* 3. Timeline of Relief */}
+                <div className="p-4 rounded-2xl border-2 border-blue-200 bg-white space-y-2 shadow-sm">
+                  <div className="flex items-center gap-2 text-blue-900 font-bold border-b border-blue-100 pb-1.5 text-xs">
+                    <span>⏳</span>
+                    <span>{isKn ? "ಬಿಕ್ಕಟ್ಟು ಕರಗುವ ನಿಖರ ಕಾಲಾವಧಿ" : "Turning Point & Relief Timeline"}</span>
+                  </div>
+                  <p className="text-stone-800 leading-relaxed text-xs">
+                    {cleanAstrologyText(
+                      isKn
+                        ? (currentDiagnosis.dashaTiming?.timelineKn
+                          ? `ಪ್ರಸ್ತುತ ದಶಾ-ಭುಕ್ತಿಯ ಪ್ರಕಾರ, ಇನ್ನು ${currentDiagnosis.dashaTiming.timelineKn} ಒಳಗೆ ಈ ಬಿಕ್ಕಟ್ಟಿನಿಂದ ಹೊರಬರಲು ಪ್ರಮುಖ ಸಕಾರಾತ್ಮಕ ತಿರುವು ಮತ್ತು ದಾರಿ ಗೋಚರಿಸಲಿದೆ.`
+                          : "ಪ್ರಸ್ತುತ ದಶಾ-ಭುಕ್ತಿ ಮುಕ್ತಾಯವಾಗುವ ಹೊತ್ತಿಗೆ ಈ ಬಿಕ್ಕಟ್ಟು ಶಾಂತವಾಗಲಿದೆ.")
+                        : (currentDiagnosis.dashaTiming?.timelineEn
+                          ? `According to ongoing Dasha-Bhukti, a decisive relief turning point will manifest within ${currentDiagnosis.dashaTiming.timelineEn}.`
+                          : "Relief unfolds as the ongoing Dasha-Bhukti completes.")
+                    )}
+                  </p>
+                </div>
+
+                {/* 4. Immediate Exit Strategy & Gokarna Seva */}
+                <div className="p-4 rounded-2xl border-2 border-emerald-200 bg-white space-y-2 shadow-sm">
+                  <div className="flex items-center gap-2 text-emerald-900 font-bold border-b border-emerald-100 pb-1.5 text-xs">
+                    <span>🪔</span>
+                    <span>{isKn ? "ಈ ಬಿಕ್ಕಟ್ಟಿನಿಂದ ಹೊರಬರಲು ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಪರಿಹಾರ" : "Exit Strategy & Gokarna Remedy"}</span>
+                  </div>
+                  <p className="text-emerald-950 font-medium leading-relaxed text-xs">
+                    {cleanAstrologyText(
+                      isKn
+                        ? (currentDiagnosis.primaryLifeChallenge.solutionKn || "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸಂಕಲ್ಪ ಪೂಜೆ ನೆರವೇರಿಸಿ.")
+                        : (currentDiagnosis.primaryLifeChallenge.solutionEn || "Perform Sankalpa Pooja at Sri Kshetra Gokarna.")
+                    )}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* 🌟 1. DEDICATED SECTION: GOOD THINGS ABOUT HIM (ವ್ಯಕ್ತಿಯ ಉತ್ತಮ ಗುಣಗಳು & ದೈವಿಕ ಸಾಮರ್ಥ್ಯಗಳು) 🌟 */}
           {currentDiagnosis?.goodBadAnalysis?.goodTraits && (
             <div className="rounded-3xl border-2 border-amber-400 bg-gradient-to-b from-amber-50/70 via-white to-amber-50/40 p-6 md:p-8 text-stone-950 shadow-xl space-y-6">
