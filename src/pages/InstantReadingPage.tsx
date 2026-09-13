@@ -101,8 +101,11 @@ export default function InstantReadingPage(): JSX.Element {
       setAiLoading(true);
       try {
         const isFemale = session.input.gender === "Female";
-        const isTeetotaler = data.currentDiagnosis.goodBadAnalysis?.isTeetotaler ?? false;
-        const hasMaritalFidelity = data.currentDiagnosis.goodBadAnalysis?.hasMaritalFidelity ?? false;
+        const gba = data.currentDiagnosis.goodBadAnalysis;
+        const isTeetotaler = gba?.isTeetotaler ?? false;
+        const hasMaritalFidelity = gba?.hasMaritalFidelity ?? false;
+        const dietSummaryEn = gba?.dietSummaryEn || "";
+        const fidelitySummaryEn = gba?.fidelitySummaryEn || "";
         const spouseTerm = isFemale ? "ಪತಿ (ಗಂಡ)" : "ಪತ್ನಿ (ಹೆಂಡತಿ)";
         const negShades = data.currentDiagnosis.negativeShades;
         const isNegClean = !negShades || negShades.overallScore <= 15 || negShades.isJupiterProtected || negShades.isChildShielded;
@@ -142,8 +145,8 @@ Technical Astrological Placements:
   * Jaimini Amatyakaraka (AmK): ${prof?.amatyakarakaPlanetKn || ""}
   * 10th House Sign: ${prof?.tenthHouseSignKn || ""} (Lord: ${prof?.primaryPlanetKn || ""})
 - Character & Dietary Verification:
-  * Diet / Substance: ${isTeetotaler ? "STRICT TEETOTALER (ಸಾತ್ವಿಕ ಆಹಾರಿ - Zero alcohol, zero drugs, clean vegetarian intake due to benefic/Guru protection on 2nd house). NEVER accuse of alcohol or drugs!" : "Prone to dietary imbalances under stress."}
-  * Marital Fidelity: ${hasMaritalFidelity ? `HIGH MARITAL FIDELITY (ದಾಂಪತ್ಯ ನಿಷ್ಠೆ - Pure 7th house). NEVER accuse of extramarital affairs! Always refer to spouse as '${spouseTerm}'.` : "Sensual vulnerabilities."}
+  * Diet / Substance: ${isTeetotaler ? "STRICT TEETOTALER (ಸಾತ್ವಿಕ ಆಹಾರಿ - Zero alcohol, zero drugs, clean vegetarian intake due to benefic/Guru protection on 2nd house). NEVER accuse of alcohol or drugs!" : `PRONE TO ALCOHOL/INTAKE VULNERABILITY (ಮದ್ಯಪಾನದ ಸೆಳೆತ): ${dietSummaryEn || "Has evening alcohol habit under stress / 2nd house aspect from 8th house Saturn"}. Tactfully address their private struggle with evening alcohol/detox without harshness.`}
+  * Marital Fidelity & Sensual Reality: ${hasMaritalFidelity ? `HIGH MARITAL FIDELITY (ದಾಂಪತ್ಯ ನಿಷ್ಠೆ - Pure 7th house). NEVER accuse of extramarital affairs! Always refer to spouse as '${spouseTerm}'.` : `SENSUAL RESTLESSNESS & ROVING EYE (ಕಾಮ ಚಾಂಚಲ್ಯ & ಪರಸ್ತ್ರೀ ಆಕರ್ಷಣೆ): ${fidelitySummaryEn || "Sensual restlessness and roving eye toward other women causing marital friction with spouse"}. Address their private inner distractions and how it is causing domestic discord with ${spouseTerm}, counseling sensory restraint.`}
 - Moral Integrity & Criminality Assessment:
   * Overall Negative Shade Score: ${negShades ? negShades.overallScore : 0}/100 (${negShades?.categoryTitleEn || "Moral Purity"})
   * Clean / Purity Status: ${isNegClean ? "100% CLEAN & MORALLY PURE (ಸರ್ವದೋಷ ವಿನಾಶನಃ - Protected by Jupiter/benefics. Absolutely ZERO criminal, theft, murder, violence, sexual assault, fraud, or prison yogas!). NEVER ACCUSE THIS NATIVE OF ANY CRIME, THEFT, VIOLENCE, EXTRAMARITAL SINS, OR FRAUD!" : "Has certain shadow propensities under malefic dasha/gochara"}
@@ -169,7 +172,9 @@ STRICT WRITING & ASTROLOGER PERSONA RULES:
 7. ALL NUMBERS MUST BE IN ENGLISH DIGITS (e.g. 1, 2, 3, 4.25 - 6.5 Carat, 9 Mukhi, 7th house, 10th house, 3 to 6 months).
 8. CHARACTER & GENDER ACCURACY:
    - If Diet is TEETOTALER, highlight their clean, pure lifestyle (ಸಾತ್ವಿಕ ಆಹಾರ); NEVER accuse of alcohol, smoking, or drug habits.
+   - If Diet indicates ALCOHOL VULNERABILITY, compassionately address their private evening alcohol habit under stress (ಮದ್ಯಪಾನದ ಸೆಳೆತ) and advise conscious detox and spiritual discipline.
    - If Relationship is MARITAL FIDELITY, praise their devotion to family and spouse; NEVER accuse of cheating or extramarital affairs.
+   - If Relationship indicates SENSUAL RESTLESSNESS / ROVING EYE, honestly address their inner wandering gaze and distractions (ಕಾಮ ಚಾಂಚಲ್ಯ & ಪರಸ್ತ್ರೀ ಆಕರ್ಷಣೆ) causing friction in marriage with ${spouseTerm}, guiding them toward sensory self-control and marital harmony.
    - If devotee is Female, NEVER use 'ಹೆಂಡತಿ' or 'ಪತ್ನಿ' to describe the native.
    - If devotee is a Child (<14), focus purely on education, health, and parent guidance without adult topics.
    - CRITICAL ZERO FALSE ACCUSATION OF CRIMINALITY/THEFT/VIOLENCE: If native has score <= 15 or Jupiter/benefic shield, you MUST NEVER accuse them of crime, theft, violence, murder, imprisonment, cheating, or sexual misconduct. Acknowledge and praise their clean moral integrity and character shield.
@@ -284,8 +289,11 @@ STRICT RULES:
         try {
           const isFemaleQ = session.input.gender === "Female";
           const spouseTermQ = isFemaleQ ? "ಪತಿ (ಗಂಡ)" : "ಪತ್ನಿ (ಹೆಂಡತಿ)";
-          const isTeetotalerQ = synthesisData.currentDiagnosis.goodBadAnalysis?.isTeetotaler ?? false;
-          const hasMaritalFidelityQ = synthesisData.currentDiagnosis.goodBadAnalysis?.hasMaritalFidelity ?? false;
+          const gbaQ = synthesisData.currentDiagnosis.goodBadAnalysis;
+          const isTeetotalerQ = gbaQ?.isTeetotaler ?? false;
+          const hasMaritalFidelityQ = gbaQ?.hasMaritalFidelity ?? false;
+          const dietSummaryEnQ = gbaQ?.dietSummaryEn || "";
+          const fidelitySummaryEnQ = gbaQ?.fidelitySummaryEn || "";
           const negShadesQ = synthesisData.currentDiagnosis.negativeShades;
           const isNegCleanQ = !negShadesQ || negShadesQ.overallScore <= 15 || negShadesQ.isJupiterProtected || negShadesQ.isChildShielded;
 
@@ -298,8 +306,8 @@ Panchanga 5-Angas: Vara=${synthesisData.panchanga.vara.nameKn}, Tithi=${synthesi
 Technical Placements: 4th=${synthesisData.currentDiagnosis.technicalAspects.fourthHouseDetail}, 7th=${synthesisData.currentDiagnosis.technicalAspects.seventhHouseDetail}, 10th=${synthesisData.currentDiagnosis.technicalAspects.tenthHouseDetail}.
 Dasha: ${synthesisData.currentDiagnosis.prasthuthaSthiti.runningDashaSummary}.
 Character & Morality Verification:
-- Dietary Intake / Addictions: ${isTeetotalerQ ? "STRICT TEETOTALER (ಸಾತ್ವಿಕ ಆಹಾರಿ - Zero alcohol, zero drugs, clean diet due to Guru/benefic protection on 2nd house). If asked about alcohol, drugs, or intoxicants, give an authoritative 'ಇಲ್ಲ!' verdict and celebrate their pure lifestyle." : "Prone to dietary imbalances or vices."}
-- Relationship Fidelity: ${hasMaritalFidelityQ ? `HIGH MARITAL FIDELITY (ದಾಂಪತ್ಯ ನಿಷ್ಠೆ - Pure 7th house). If asked about extramarital affairs/infidelity, give an authoritative 'ಇಲ್ಲ!' verdict praising their steadfast devotion to ${spouseTermQ}.` : "Sensual vulnerabilities."}
+- Dietary Intake / Addictions: ${isTeetotalerQ ? "STRICT TEETOTALER (ಸಾತ್ವಿಕ ಆಹಾರಿ - Zero alcohol, zero drugs, clean diet due to Guru/benefic protection on 2nd house). If asked about alcohol, drugs, or intoxicants, give an authoritative 'ಇಲ್ಲ!' verdict and celebrate their pure lifestyle." : `ALCOHOL VULNERABILITY (ಮದ್ಯಪಾನ / ಶನಿ-ರಾಹು ದೃಷ್ಟಿ): ${dietSummaryEnQ || "Prone to evening alcohol consumption under stress"}. If asked about drinking or habits, state clearly that stress triggers alcohol intake and urge detox.`}
+- Relationship Fidelity: ${hasMaritalFidelityQ ? `HIGH MARITAL FIDELITY (ದಾಂಪತ್ಯ ನಿಷ್ಠೆ - Pure 7th house). If asked about extramarital affairs/infidelity, give an authoritative 'ಇಲ್ಲ!' verdict praising their steadfast devotion to ${spouseTermQ}.` : `SENSUAL RESTLESSNESS & ROVING EYE (ಕಾಮ ಚಾಂಚಲ್ಯ & ಪರಸ್ತ್ರೀ ಆಕರ್ಷಣೆ): ${fidelitySummaryEnQ || "Prone to sensual restlessness and roving eye"}. If asked about marriage or fidelity, state honestly that inner distractions and roving eyes create friction with ${spouseTermQ}, and urge sensory restraint.`}
 - Moral Integrity & Criminality Assessment:
   * Overall Negative Shade Score: ${negShadesQ ? negShadesQ.overallScore : 0}/100 (${negShadesQ?.categoryTitleEn || "Moral Purity"})
   * Purity Shield: ${isNegCleanQ ? "100% CLEAN & FREE FROM CRIME, THEFT, FRAUD, VIOLENCE, MURDER, SEXUAL ASSAULT, IMPRISONMENT (Protected by Guru/benefics - ಸರ್ವದೋಷ ವಿನಾಶನಃ)" : "Shadow tendencies active"}
@@ -917,6 +925,21 @@ STRICT RULES:
                     {isKn
                       ? `${currentDiagnosis.goodBadAnalysis.isTeetotaler ? "🍃 ಜಾತಕರ 2ನೇ ಧನ-ಆಹಾರ ಸ್ಥಾನದ ಮೇಲೆ ಗುರು/ಶುಭ ಗ್ರಹ ದೃಷ್ಟಿ ರಕ್ಷಣೆ ಇರುವುದರಿಂದ ಸಾತ್ವಿಕ ಆಹಾರ ಪದ್ಧತಿ ಹೊಂದಿದ್ದು, ಮದ್ಯಪಾನ-ದುಶ್ಚಟಗಳಿಂದ ಮುಕ್ತವಾದ ಶುದ್ಧ ಶರೀರ ಹೊಂದಿದ್ದಾರೆ (Teetotaler). " : ""}${currentDiagnosis.goodBadAnalysis.hasMaritalFidelity ? `💍 7ನೇ ಕಳತ್ರ ಸ್ಥಾನದಲ್ಲಿ ಶುಭ ಗ್ರಹ ಕವಚವಿರುವುದರಿಂದ ದಾಂಪತ್ಯದಲ್ಲಿ ಅಚಲ ನಿಷ್ಠೆ ಹೊಂದಿದ್ದು, ಅನೈತಿಕ ಸಂಬಂಧಗಳಿಂದ ಸಂಪೂರ್ಣ ದೂರವಿದ್ದಾರೆ (${session.input.gender === "Female" ? "ಏಕಪತಿ ವ್ರತ" : "ಏಕಪತ್ನಿ ವ್ರತ"}).` : ""}`
                       : `${currentDiagnosis.goodBadAnalysis.isTeetotaler ? "🍃 Benefic and Jupiterian aspects on the 2nd house protect dietary purity, ensuring a clean teetotaler lifestyle free of alcohol or intoxicants. " : ""}${currentDiagnosis.goodBadAnalysis.hasMaritalFidelity ? "💍 Divine protection on the 7th house ensures steadfast marital fidelity and pure moral character." : ""}`}
+                  </p>
+                </div>
+              )}
+
+              {/* HIGHLIGHT BANNER 0B: SELF-RESTRAINT & MARITAL VIGILANCE CAUTION */}
+              {(!currentDiagnosis.goodBadAnalysis.isTeetotaler || !currentDiagnosis.goodBadAnalysis.hasMaritalFidelity) && (
+                <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-100/80 via-rose-50 to-orange-50 border-2 border-amber-400 space-y-1.5 shadow-sm">
+                  <div className="flex items-center gap-2 text-amber-950 font-black text-xs md:text-sm">
+                    <span>⚠️</span>
+                    <span>{isKn ? "ಇಂದ್ರಿಯ ಸಂಯಮ & ಸಾಂಸಾರಿಕ ರಕ್ಷಾ ಎಚ್ಚರಿಕೆ (Self-Restraint & Marital Vigilance):" : "Sensual Restraint & Marital Vigilance:"}</span>
+                  </div>
+                  <p className="text-xs md:text-sm text-stone-800 leading-relaxed font-medium">
+                    {isKn
+                      ? `${!currentDiagnosis.goodBadAnalysis.isTeetotaler ? "🍷 2ನೇ ಆಹಾರ/ಮುಖ ಸ್ಥಾನಕ್ಕೆ ಶನಿ-ರಾಹು ದೃಷ್ಟಿ ಇರುವುದರಿಂದ, ಒತ್ತಡದ ಸಮಯದಲ್ಲಿ ಮದ್ಯಪಾನ ಅಥವಾ ವ್ಯಸನಗಳ ಪ್ರಲೋಭನೆಗೆ ಒಳಗಾಗುವ ಸೂಕ್ಷ್ಮತೆ ಇದೆ; ಸಾತ್ವಿಕ ಶಿಸ್ತು ಅತ್ಯಗತ್ಯ. " : ""}${!currentDiagnosis.goodBadAnalysis.hasMaritalFidelity ? `👀 5ನೇ ರಾಹು ಮತ್ತು ನೀಚ ಕುಜನಿಂದಾಗಿ ಮನಸ್ಸಿನಲ್ಲಿ ಕಾಮ ಚಾಂಚಲ್ಯ ಮತ್ತು ಪರಸ್ತ್ರೀ ಆಕರ್ಷಣೆಯ ಪ್ರವೃತ್ತಿ ಕಾಡಬಹುದು; ಇದು ಸಂಸಾರದಲ್ಲಿ ಹೆಂಡತಿಯೊಂದಿಗೆ ಕಲಹ ತರದಂತೆ ಇಂದ್ರಿಯ ನಿಗ್ರಹ ಕಾಯ್ದುಕೊಳ್ಳುವುದು ಅನಿವಾರ್ಯ.` : ""}`
+                      : `${!currentDiagnosis.goodBadAnalysis.isTeetotaler ? "🍷 Saturn/Rahu aspect on the 2nd house creates vulnerability to alcohol consumption during periods of stress; dietary detox is recommended. " : ""}${!currentDiagnosis.goodBadAnalysis.hasMaritalFidelity ? "👀 Rahu in the 5th and afflicted Mars trigger sensual restlessness and roving eyes; practicing strict sensory self-control is essential to preserve marital peace." : ""}`}
                   </p>
                 </div>
               )}

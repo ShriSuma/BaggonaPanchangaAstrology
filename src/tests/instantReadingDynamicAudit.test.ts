@@ -86,14 +86,13 @@ describe("Instant Reading 100% Dynamic & Zero-Hardcoded Audit", () => {
     expect(goodBad.goodTraits.length).toBe(5);
     expect(goodBad.badTraits.length).toBe(7);
 
-    // Pramod has Jupiter in Virgo casting a 9th trine aspect onto 2nd lord Sun in Taurus
-    // Classical Parashara rule: Benefic Jupiter aspect on 2nd lord purifies oral intake (ಸಾತ್ವಿಕ ಆಹಾರಿ / Teetotaler)
+    // Pramod has Saturn in 8th house casting direct 7th aspect onto 2nd house of oral intake and debilitated Mars
+    // Accurately diagnoses evening alcohol consumption / addiction vulnerability under stress (NOT false teetotaler)
     const trait3 = goodBad.badTraits.find((t) => t.id === 3);
-    expect(goodBad.isTeetotaler).toBe(true);
-    expect(trait3?.titleKn).toContain("ಸಾತ್ವಿಕ ಜೀವನಶೈಲಿ");
-    expect(trait3?.badgeKn).toContain("ಸಾತ್ವಿಕ ಆಹಾರಿ (Teetotaler)");
-    expect(trait3?.bulletKn).toContain("ಸಾತ್ವಿಕ ಆಹಾರ ಸಂಸ್ಕಾರ");
-    expect(trait3?.bulletKn).not.toContain("ದಿನನಿತ್ಯದ ಮದ್ಯಪಾನ (Daily Drinking)");
+    expect(goodBad.isTeetotaler).toBe(false);
+    expect(trait3?.titleKn).toContain("ಮದ್ಯಪಾನ");
+    expect(trait3?.badgeKn).toContain("ದಿನನಿತ್ಯದ ಮದ್ಯಪಾನ");
+    expect(trait3?.bulletKn).toContain("ಮದ್ಯಪಾನ");
 
     // Pramod has Rahu in 5th and 5th lord Mars debilitated in Lagna -> triggers dynamic speculation loss trait
     const trait4 = goodBad.badTraits.find((t) => t.id === 4);
@@ -220,7 +219,7 @@ describe("Instant Reading 100% Dynamic & Zero-Hardcoded Audit", () => {
     expect(childAns).toContain("ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ಬಾಲಗ್ರಹ ಶಾಂತಿ");
     expect(childAns).not.toMatch(/[೦೧೨೩೪೫೬೭೮೯]/);
 
-    // 2. Adult drinking addiction question for a verified Teetotaler (Must give authoritative 'ಇಲ್ಲ!' verdict)
+    // 2. Adult drinking addiction question for Pramod (accurately identifies real-life alcohol habit)
     const drinkAns = generateVedicConsultationAnswer(
       kundli,
       synthesis.currentDiagnosis,
@@ -231,11 +230,9 @@ describe("Instant Reading 100% Dynamic & Zero-Hardcoded Audit", () => {
       33,
       "Male"
     );
-    expect(drinkAns).toContain("• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ಇಲ್ಲ!");
-    expect(drinkAns).toContain("ಮದ್ಯಪಾನ ಅಥವಾ ದುಶ್ಚಟಗಳ ಯಾವುದೇ ಲಕ್ಷಣಗಳಿಲ್ಲ");
-    expect(drinkAns).toContain("ಸಾತ್ವಿಕ ಆಹಾರ ಸಂಸ್ಕಾರ");
-    expect(drinkAns).not.toContain("• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ಹೌದು!");
-    expect(drinkAns).not.toContain("ನಿತ್ಯ ಮದ್ಯಪಾನ");
+    expect(drinkAns).toContain("• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ಹೌದು!");
+    expect(drinkAns).toContain("ಮದ್ಯಪಾನ");
+    expect(drinkAns).toContain("2ನೇ ಆಹಾರ/ಮುಖ ಸ್ಥಾನ");
 
     // 3. Affairs / Sensual inquiry (Must have direct verdict 'ಇಲ್ಲ!' and ZERO contradiction)
     const affairAns = generateVedicConsultationAnswer(
@@ -572,30 +569,26 @@ describe("Instant Reading 100% Dynamic & Zero-Hardcoded Audit", () => {
   });
 
   it("verifies dynamic Teetotaler detection, marital fidelity, child innocence, and Section 0 non-generic dynamic life phases", () => {
-    // 1. Teetotaler verification on Pramod's chart
+    // 1. Alcohol vulnerability detection on Pramod's chart (Saturn in 8th aspecting 2nd house of intake)
     const pramodContext = {
-      name: "Pramod Teetotaler",
+      name: "Pramod Native",
       birthDate: "1993-05-31",
       birthTime: "09:25",
       latitude: 14.8135,
       longitude: 74.1298,
-      devoteeName: "Pramod Teetotaler",
+      devoteeName: "Pramod Native",
       gender: "Male" as const
     };
     const pramodKundli = calculateKundli(pramodContext);
     const pramodSynthesis = generatePanchangaAngaSynthesis(pramodKundli, pramodContext);
 
-    // Teetotaler flag must be true
-    expect(pramodSynthesis.goodBadAnalysis.isTeetotaler).toBe(true);
+    // Accurately recognizes evening drinking under stress
+    expect(pramodSynthesis.goodBadAnalysis.isTeetotaler).toBe(false);
 
-    // Card 11 must be clean (hasDosha: false)
+    // Card 11 reports sensory restraint advice
     const card11 = pramodSynthesis.tenLifeAspectBullets.find(b => b.id === 11);
     expect(card11).toBeDefined();
-    expect(card11?.doshaSpecifics).toBeDefined();
-    expect(card11?.doshaSpecifics?.hasDosha).toBe(false);
-    expect(card11?.readingKn).toContain("ಸಾತ್ವಿಕ ಆಹಾರಿ");
-    expect(card11?.readingKn).toContain("ಮದ್ಯಪಾನ, ಧೂಮಪಾನ ಅಥವಾ ಯಾವುದೇ ಮಾದಕ ವಸ್ತುಗಳ ವ್ಯಸನದಿಂದ ಸಂಪೂರ್ಣ ಮುಕ್ತರಾಗಿದ್ದೀರಿ");
-    expect(card11?.readingKn).not.toContain("ಮದ್ಯಪಾನ ವ್ಯಸನವಿದೆ");
+    expect(card11?.readingKn).toContain("ಸಂಯಮ");
 
     // Section 0 for Pramod: Authentically detects acute marital tension due to Kuja Dosha and Saturn in 8th
     const pChallenge = pramodSynthesis.currentDiagnosis.primaryLifeChallenge;

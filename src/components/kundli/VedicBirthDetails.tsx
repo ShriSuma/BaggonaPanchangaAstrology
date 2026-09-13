@@ -44,14 +44,13 @@ export default function VedicBirthDetails({
     return `${String(displayH).padStart(2, "0")}:${String(em).padStart(2, "0")} ${ampm}`;
   };
 
-  const isTest = birthDate === "1993-05-31" && birthTime === "09:25";
   const dashaBal = useMemo(() => vimshottariBalanceAtBirth(kundli), [kundli]);
   const dashaBalYmd = useMemo(() => vimshottariBalanceYmdPatrika(dashaBal.balanceYears), [dashaBal.balanceYears]);
 
-  const dashaYears = isTest ? 4 : dashaBalYmd.y;
-  const dashaMonths = isTest ? 0 : dashaBalYmd.m;
-  const dashaDays = isTest ? 7 : dashaBalYmd.d;
-  const dashaLord = isTest ? "Moon" : dashaBal.lord;
+  const dashaYears = dashaBalYmd.y;
+  const dashaMonths = dashaBalYmd.m;
+  const dashaDays = dashaBalYmd.d;
+  const dashaLord = dashaBal.lord;
 
   const detailItem = (label: string, value: string, icon: string) => (
     <div className="flex items-center gap-3 rounded-xl border border-amber-500/10 bg-white/70 p-3 shadow-sm transition-all hover:border-amber-500/20 hover:bg-white">

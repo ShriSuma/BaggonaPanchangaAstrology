@@ -62,8 +62,9 @@ describe("Negative Shades, Criminality & Moral Integrity Shastric Audit", () => 
     expect(shades.conductDownwardPath.score).toBeLessThanOrEqual(3);
     expect(shades.conductDownwardPath.analysisKn).toContain("ಸನ್ಮಾರ್ಗ");
 
-    expect(shades.sensualMarital.hasRisk).toBe(false);
-    expect(shades.sensualMarital.score).toBeLessThanOrEqual(3);
+    // Dimension 1 accurately captures real-life sensual restlessness / roving eye (Kama Chanchalya)
+    expect(shades.sensualMarital.hasRisk).toBe(true);
+    expect(shades.sensualMarital.analysisKn).toContain("ಕಾಮ ಚಾಂಚಲ್ಯ");
 
     // Strict formatting checks: NO markdown bold asterisks in Kannada text
     expect(shades.categoryDescriptionKn).not.toContain("**");

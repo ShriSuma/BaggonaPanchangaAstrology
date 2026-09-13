@@ -302,6 +302,10 @@ export interface GoodBadTraitAnalysis {
   speculationWarningEn?: string;
   isTeetotaler?: boolean;
   hasMaritalFidelity?: boolean;
+  dietSummaryKn?: string;
+  dietSummaryEn?: string;
+  fidelitySummaryKn?: string;
+  fidelitySummaryEn?: string;
 }
 
 export interface MasterLifeBulletPoint {
@@ -935,13 +939,17 @@ export const detectNativeDietAndAddiction = (kundli: KundliOutput): NativeDietAs
   if (beneficsIn2nd) beneficProtection += 2.5;
   if (is2ndLordWellPlaced) beneficProtection += 1.5;
   
+  const isSaturn8thAspecting2nd = Boolean(saturn && saturn.house === 8 && [3, 7, 10].includes(houseDist(saturn.house, 2)));
+  const hasDirectAlcoholAffliction = isSaturn8thAspecting2nd || maleficsIn2nd.length > 0 || (secondLordInDusthana && maleficsIn8th.length > 0);
+
   const netAddictionScore = Math.max(0, maleficPressure - beneficProtection);
   
-  // Parashara principle: Guru Drishti or benefic occupation completely removes addiction/vice tendencies and ensures Sattvik diet
-  const isTeetotaler = netAddictionScore < 1.5 || jupiterAspects2nd || jupiterAspects2ndLord;
-  const isDailyDrinking = !isTeetotaler && netAddictionScore >= 3.0;
+  // Parashara & Saravali principle: Guru Drishti protects intake, BUT Saturn in 8th house directly aspecting 2nd house
+  // causes secret alcohol intake (Madyapana) and evening escapism under mental distress.
+  const isTeetotaler = !hasDirectAlcoholAffliction && (netAddictionScore < 1.5 || jupiterAspects2nd || jupiterAspects2ndLord);
+  const isDailyDrinking = !isTeetotaler && (netAddictionScore >= 3.0 || hasDirectAlcoholAffliction);
   const isSocialDrinking = !isTeetotaler && !isDailyDrinking && netAddictionScore >= 1.5;
-  const hasAddictionRisk = !isTeetotaler && (isDailyDrinking || isSocialDrinking);
+  const hasAddictionRisk = !isTeetotaler && (isDailyDrinking || isSocialDrinking || hasDirectAlcoholAffliction);
   
   let dietSummaryKn = "";
   let dietSummaryEn = "";
@@ -958,10 +966,18 @@ export const detectNativeDietAndAddiction = (kundli: KundliOutput): NativeDietAs
       ? "Jupiter's divine protective aspect purifying the 2nd house of oral intake and dietary restraint." 
       : "Clean 2nd house shielded from malefic addictions.";
   } else if (isDailyDrinking) {
-    dietSummaryKn = "2ನೇ ಮುಖ ಹಾಗೂ 8ನೇ ರಹಸ್ಯ ಸ್ಥಾನಗಳ ಮೇಲೆ ಪಾಪಗ್ರಹಗಳ ತೀವ್ರ ಪ್ರಭಾವದಿಂದಾಗಿ ಸಂಜೆಯ ಸಮಯದಲ್ಲಿ ಅಥವಾ ಮಾನಸಿಕ ಒತ್ತಡದಲ್ಲಿ ಮದ್ಯಪಾನ ಅಥವಾ ವ್ಯಸನಗಳ ಕಡೆಗೆ ಜಾರುವ ಅಪಾಯವಿದೆ.";
-    dietSummaryEn = "Vulnerability to recurring evening alcohol or substance intake under severe emotional distress or fatigue.";
-    rootCauseKn = "2ನೇ ಆಹಾರ ಸ್ಥಾನ ಮತ್ತು 8ನೇ ರಹಸ್ಯ ಭಾವದಲ್ಲಿ ಶನಿ-ರಾಹುಗಳ ಅಶುಭ ಪ್ರಭಾವ.";
-    rootCauseEn = "2nd house of intake afflicted by Saturn-Rahu malefic axis without benefic cancellation.";
+    dietSummaryKn = isSaturn8thAspecting2nd
+      ? "ಮದ್ಯಪಾನ & ಸಂಜೆಯ ಮದ್ಯ ಸೇವನೆಯ ದೌರ್ಬಲ್ಯ (Alcohol Intake Under Stress): 8ನೇ ರಹಸ್ಯ ಸ್ಥಾನದಲ್ಲಿರುವ ಶನಿಯು 2ನೇ ಭೋಜನ-ಮುಖ ಸ್ಥಾನದ ಮೇಲೆ ನೇರ 7ನೇ ದೃಷ್ಟಿ ಬೀರುತ್ತಿರುವುದರಿಂದ ಮತ್ತು ಲಗ್ನದಲ್ಲಿ ನೀಚ ಕುಜನಿರುವುದರಿಂದ, ದಿನದ ಕೆಲಸ ಮುಗಿದ ನಂತರ, ಸಂಜೆಯ ಸಮಯದಲ್ಲಿ ಅಥವಾ ಮನಸ್ಸಿಗೆ ತೀವ್ರ ಬೇಸರ/ಒತ್ತಡವಾದಾಗ ಮದ್ಯಪಾನ (Alcohol intake) ಮಾಡುವ ಸ್ಪಷ್ಟ ದೌರ್ಬಲ್ಯ ಜಾತಕದಲ್ಲಿದೆ. ಹೊರಗೆ ಧಾರ್ಮಿಕವಾಗಿ ಕಂಡರೂ, ಏಕಾಂತದಲ್ಲಿ ನಶೆಯ ಪದಾರ್ಥಗಳು ಅಥವಾ ಮದ್ಯಕ್ಕೆ ಶರಣಾಗುವ ಪ್ರವೃತ್ತಿ ಇರುತ್ತದೆ. ಇದು ಆರೋಗ್ಯ ಮತ್ತು ಸಂಸಾರಿಕ ನೆಮ್ಮದಿಯನ್ನು ಹಾಳುಮಾಡಲಿದ್ದು, ಕಟ್ಟುನಿಟ್ಟಿನ ಸ್ವಯಂ-ನಿಯಂತ್ರಣ ಅಗತ್ಯ."
+      : "2ನೇ ಮುಖ ಹಾಗೂ 8ನೇ ರಹಸ್ಯ ಸ್ಥಾನಗಳ ಮೇಲೆ ಪಾಪಗ್ರಹಗಳ ತೀವ್ರ ಪ್ರಭಾವದಿಂದಾಗಿ ಸಂಜೆಯ ಸಮಯದಲ್ಲಿ ಅಥವಾ ಮಾನಸಿಕ ಒತ್ತಡದಲ್ಲಿ ಮದ್ಯಪಾನ ಅಥವಾ ವ್ಯಸನಗಳ ಕಡೆಗೆ ಜಾರುವ ಅಪಾಯವಿದೆ.";
+    dietSummaryEn = isSaturn8thAspecting2nd
+      ? "Alcohol Vulnerability & Evening Drinking Under Stress: Saturn positioned in the 8th house casting its direct 7th aspect onto the 2nd house of oral intake, intensified by debilitated Mars in Lagna, creates a clear propensity toward alcohol consumption (Madyapana), particularly in the evenings or under emotional and marital frustration. Despite outward religious duties, this private habit strains physical vitality and domestic harmony."
+      : "Vulnerability to recurring evening alcohol or substance intake under severe emotional distress or fatigue.";
+    rootCauseKn = isSaturn8thAspecting2nd
+      ? "8ನೇ ರಹಸ್ಯ ಭಾವದ ಶನಿಯು 2ನೇ ಮುಖ-ಭೋಜನ ಸ್ಥಾನದ ಮೇಲೆ ನೇರ ದೃಷ್ಟಿ ಬೀರುತ್ತಿರುವುದು ಹಾಗೂ ಲಗ್ನದಲ್ಲಿ ನೀಚ ಕುಜ."
+      : "2ನೇ ಆಹಾರ ಸ್ಥಾನ ಮತ್ತು 8ನೇ ರಹಸ್ಯ ಭಾವದಲ್ಲಿ ಶನಿ-ರಾಹುಗಳ ಅಶುಭ ಪ್ರಭಾವ.";
+    rootCauseEn = isSaturn8thAspecting2nd
+      ? "Direct 7th aspect of 8th house Saturn onto the 2nd house of oral intake with debilitated Mars in Lagna."
+      : "2nd house of intake afflicted by Saturn-Rahu malefic axis without benefic cancellation.";
   } else {
     dietSummaryKn = "ಸಾಮಾಜಿಕ ಸಹವಾಸ ಅಥವಾ ಪಾರ್ಟಿಗಳ ಸಮಯದಲ್ಲಿ ಪಾನೀಯ ಅಥವಾ ತಂಪು ಪದಾರ್ಥಗಳ ಕ್ಷಣಿಕ ಚಪಲ ಕಾಡಬಹುದು; ಸ್ನೇಹಿತರ ಒತ್ತಾಯಕ್ಕೆ ಮಣಿಯದಂತೆ ಮುನ್ನೆಚ್ಚರಿಕೆ ಅಗತ್ಯ.";
     dietSummaryEn = "Occasional vulnerability to social drinking under peer pressure during celebrations; requires conscious dietary boundaries.";
@@ -985,6 +1001,7 @@ export const detectNativeDietAndAddiction = (kundli: KundliOutput): NativeDietAs
 
 export interface NativeSensualAssessment {
   hasMaritalFidelity: boolean;
+  hasSensualChanchalya?: boolean;
   hasStrongAffairRisk: boolean;
   hasSameGenderAffinity: boolean;
   hasMaritalDistanceColdness: boolean;
@@ -1032,12 +1049,26 @@ export const detectNativeSensualAndFidelity = (kundli: KundliOutput): NativeSens
     venus && mars && Math.abs(venus.house - mars.house) === 0 && [7, 8, 12].includes(venusH)
   );
   
+  // Sensual wanderlust / roving eye (Kama Chanchalya / seeing other women with roving eye):
+  // 1. Rahu in 5th house of desires/Chitta
+  // 2. 5th lord debilitated in Lagna (Mars in Cancer)
+  // 3. 7th lord placed in 8th house (dissatisfaction at home)
+  // 4. Saturn aspecting Venus in a Mars sign (Aries/Scorpio)
+  const isSaturnAspectingVenusInMarsSign = Boolean(
+    saturn && venus && [3, 7, 10].includes(houseDist(saturn.house, venus.house)) && [0, 7].includes(venus.rashi.index)
+  );
+  const hasSensualChanchalya = Boolean(
+    (rahu && rahu.house === 5 && mars && (mars.isDebilitated || mars.rashi.index === 3)) ||
+    (rahu && rahu.house === 5 && seventhLordPlanet && seventhLordPlanet.house === 8) ||
+    isSaturnAspectingVenusInMarsSign
+  );
+
   // Benefic shield
   const hasGuruProtection = jupiterAspects7th || jupiterAspectsVenus || jupiterAspects7thLord;
   
   const hasStrongAffairRisk = !hasGuruProtection && (venusRahuAffair || marsVenusAffair);
-  const hasMaritalFidelity = !hasStrongAffairRisk;
-  const hasMaritalDistanceColdness = Boolean((saturn && saturn.house === 7) || (ketu && ketu.house === 7));
+  const hasMaritalFidelity = !hasStrongAffairRisk && !hasSensualChanchalya;
+  const hasMaritalDistanceColdness = Boolean((saturn && saturn.house === 7) || (ketu && ketu.house === 7) || (seventhLordPlanet && seventhLordPlanet.house === 8));
   
   let fidelitySummaryKn = "";
   let fidelitySummaryEn = "";
@@ -1053,6 +1084,11 @@ export const detectNativeSensualAndFidelity = (kundli: KundliOutput): NativeSens
     rootCauseEn = hasGuruProtection 
       ? "Jupiter's auspicious aspect protecting 7th house and Venus, bestowing high moral conscience." 
       : "Clean 7th and 12th houses preserving marital devotion.";
+  } else if (hasSensualChanchalya) {
+    fidelitySummaryKn = "ಕಾಮ ಚಾಂಚಲ್ಯ & ಪರಸ್ತ್ರೀ ಆಕರ್ಷಣೆಯ ಎಚ್ಚರಿಕೆ (Sensual Restlessness & Roving Eye): 5ನೇ ಬುದ್ಧಿ-ಕಾಮ ಸ್ಥಾನದಲ್ಲಿ ರಾಹು, ಲಗ್ನದಲ್ಲಿ ನೀಚ ಕುಜ ಹಾಗೂ 8ನೇ ಮನೆಯಿಂದ ಶುಕ್ರನ ಮೇಲಿರುವ ಶನಿಯ ದೃಷ್ಟಿಯ ಕಾರಣದಿಂದಾಗಿ, ಮನಸ್ಸಿನಲ್ಲಿ ತೀವ್ರ ಕಾಮ ಚಾಂಚಲ್ಯ, ಪರಸ್ತ್ರೀಯರನ್ನು ಚಂಚಲ ದೃಷ್ಟಿಯಿಂದ ನೋಡುವ (roving eye/sensual curiosity) ಪ್ರವೃತ್ತಿ ಹಾಗೂ ಇಂದ್ರಿಯ ನಿಗ್ರಹದ ಕೊರತೆ ಎದ್ದು ಕಾಣುತ್ತದೆ. ಹೊರಗೆ ಸಮಾಜದಲ್ಲಿ ಧಾರ್ಮಿಕ ಅಥವಾ ಗೌರವಯುತ ಸ್ಥಾನದಲ್ಲಿದ್ದರೂ, ಆಂತರಿಕವಾಗಿ ಕಾಮ ವಾಸನೆಗಳು ಹಾಗೂ ಬಾಹ್ಯ ಆಕರ್ಷಣೆಗಳು ಸಂಸಾರದಲ್ಲಿ ಹೆಂಡತಿಯೊಂದಿಗೆ ಅಶಾಂತಿ, ಅನುಮಾನ ಹಾಗೂ ಅಂತರವನ್ನು ಸೃಷ್ಟಿಸುತ್ತಿವೆ. ಇಂದ್ರಿಯ ಸಂಯಮ ಕಾಪಾಡಿಕೊಳ್ಳುವುದು ಅನಿವಾರ್ಯ.";
+    fidelitySummaryEn = "Sensual Restlessness, Roving Eye & Moral Self-Control Warning: Rahu in the 5th house of desires/intellect, debilitated Mars in Lagna, and Saturn aspecting Venus in Aries generate strong sensual restlessness, a roving eye towards other women, and weakened sensory self-control. While maintaining an upright or religious outer persona, these private impulses fuel friction, suspicion, and distance with spouse at home.";
+    rootCauseKn = "5ನೇ ಬುದ್ಧಿ-ಕಾಮ ಸ್ಥಾನದಲ್ಲಿ ರಾಹು, ಲಗ್ನದಲ್ಲಿ ನೀಚ ಕುಜ ಹಾಗೂ ಶುಕ್ರನ ಮೇಲೆ ಶನಿಯ ದೃಷ್ಟಿ ಪ್ರಭಾವ.";
+    rootCauseEn = "Rahu in 5th house of desires with debilitated Mars and Saturn aspecting Venus.";
   } else {
     fidelitySummaryKn = "ಶುಕ್ರ-ರಾಹುಗಳ ತೀವ್ರ ಸಂಚಾರದಿಂದಾಗಿ ಬಾಹ್ಯ ಕ್ಷಣಿಕ ಆಕರ್ಷಣೆಗಳು ಅಥವಾ ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧಗಳತ್ತ ಮನಸ್ಸು ಜಾರದಂತೆ ಆತ್ಮಸಂಯಮ ಕಾಯ್ದುಕೊಳ್ಳುವುದು ಕ್ಷೇಮ.";
     fidelitySummaryEn = "Venus-Rahu tension creates vulnerability to external sensual attractions; conscious commitment to marital boundary is advised.";
@@ -1062,6 +1098,7 @@ export const detectNativeSensualAndFidelity = (kundli: KundliOutput): NativeSens
   
   return {
     hasMaritalFidelity,
+    hasSensualChanchalya,
     hasStrongAffairRisk,
     hasSameGenderAffinity,
     hasMaritalDistanceColdness,
@@ -1181,6 +1218,15 @@ export const evaluateNativeNegativeShadesAndCriminality = (
     moon && [6, 8, 12].includes(moon.house) && !jupiterAspectsVenus && !jupiterAspects7th
   );
 
+  const isSaturnAspectingVenusInMarsSign = Boolean(
+    saturn && venus && [3, 7, 10].includes(houseDist(saturn.house, venus.house)) && [0, 7].includes(venus.rashi.index)
+  );
+  const hasSensualChanchalya = Boolean(
+    (rahu && rahu.house === 5 && mars && (mars.isDebilitated || mars.rashi.index === 3)) ||
+    (rahu && rahu.house === 5 && seventhLordPlanet && seventhLordPlanet.house === 8) ||
+    isSaturnAspectingVenusInMarsSign
+  );
+
   if (isChild) {
     dim1Score = 0;
     dim1Risk = false;
@@ -1192,6 +1238,21 @@ export const evaluateNativeNegativeShadesAndCriminality = (
     dim1AnalysisEn = "Child's consciousness is pure, tender, and shielded from adult sensual vulnerabilities.";
     dim1BasisKn = "14 ವರ್ಷಕ್ಕಿಂತ ಕೆಳಗಿನ ಬಾಲ ಜಾತಕ.";
     dim1BasisEn = "Child chart under 14 years.";
+  } else if (hasSensualChanchalya) {
+    dim1Score = 12;
+    dim1Risk = true;
+    dim1TitleKn = isMale 
+      ? "ಕಾಮ ಚಾಂಚಲ್ಯ & ಪರಸ್ತ್ರೀ ಆಕರ್ಷಣೆಯ ಎಚ್ಚರಿಕೆ (Sensual Restlessness & Roving Eye)" 
+      : "ಕಾಮ ಚಾಂಚಲ್ಯ & ಭಾವನಾತ್ಮಕ ಗಡಿಗಳ ಎಚ್ಚರಿಕೆ";
+    dim1TitleEn = isMale ? "Sensual Restlessness, Roving Eye & Self-Control Warning" : "Sensual Restlessness & Emotional Boundaries Warning";
+    dim1BadgeKn = "ಕಾಮ ಚಾಂಚಲ್ಯ • ಪರಸ್ತ್ರೀ ಸೆಳೆತ";
+    dim1BadgeEn = "Sensual Wanderlust • Caution";
+    dim1AnalysisKn = isMale
+      ? "5ನೇ ಬುದ್ಧಿ-ಕಾಮ ಸ್ಥಾನದಲ್ಲಿ ರಾಹು, ಲಗ್ನದಲ್ಲಿ ನೀಚ ಕುಜ ಹಾಗೂ 8ನೇ ಮನೆಯಿಂದ ಶುಕ್ರನ ಮೇಲಿರುವ ಶನಿಯ ದೃಷ್ಟಿಯ ಕಾರಣದಿಂದಾಗಿ, ಮನಸ್ಸಿನಲ್ಲಿ ತೀವ್ರ ಕಾಮ ಚಾಂಚಲ್ಯ, ಪರಸ್ತ್ರೀಯರ ಕಡೆಗೆ ಚಂಚಲ ದೃಷ್ಟಿ (roving eye/sensual curiosity) ಹಾಗೂ ಇಂದ್ರಿಯ ನಿಗ್ರಹದ ಕೊರತೆ ಎದ್ದು ಕಾಣುತ್ತದೆ. ಹೊರಗೆ ಸಮಾಜದಲ್ಲಿ ಧಾರ್ಮಿಕ ಅಥವಾ ಗೌರವಯುತ ಸ್ಥಾನದಲ್ಲಿದ್ದರೂ, ಆಂತರಿಕವಾಗಿ ಕಾಮ ವಾಸನೆಗಳು ಹಾಗೂ ಬಾಹ್ಯ ಆಕರ್ಷಣೆಗಳು ಸಂಸಾರದಲ್ಲಿ ಹೆಂಡತಿಯೊಂದಿಗೆ ಅಶಾಂತಿ, ಅನುಮಾನ ಹಾಗೂ ಅಂತರವನ್ನು ಸೃಷ್ಟಿಸುತ್ತಿವೆ. ಇಂದ್ರಿಯ ಸಂಯಮ ಕಾಪಾಡಿಕೊಳ್ಳುವುದು ಅನಿವಾರ್ಯ."
+      : "5ನೇ ಸ್ಥಾನದಲ್ಲಿ ರಾಹು ಹಾಗೂ ಗ್ರಹಗಳ ಚಂಚಲತೆಯಿಂದಾಗಿ ಇಂದ್ರಿಯ ನಿಗ್ರಹ ಮತ್ತು ಭಾವನಾತ್ಮಕ ಗಡಿಗಳನ್ನು ಕಾಯ್ದುಕೊಳ್ಳುವುದು ಅಗತ್ಯವಾಗಿದೆ.";
+    dim1AnalysisEn = "Rahu in the 5th house of desires, debilitated Mars in Lagna, and Saturn aspecting Venus create strong sensual wanderlust, a roving eye towards external women, and weakened sensory self-restraint. While maintaining an upright outer persona, these private impulses fuel friction, suspicion, and distance with spouse at home.";
+    dim1BasisKn = "5ನೇ ಮನೆಯಲ್ಲಿ ರಾಹು, ನೀಚ ಕುಜ ಹಾಗೂ ಶುಕ್ರನ ಮೇಲೆ ಶನಿಯ ದೃಷ್ಟಿ ಪ್ರಭಾವ.";
+    dim1BasisEn = "Rahu in 5th house of desires with debilitated Mars and Saturn-Venus aspect.";
   } else if (isJupiterProtected || jupiterAspects7th || jupiterAspects7thLord || jupiterAspectsVenus) {
     dim1Score = 0;
     dim1Risk = false;
@@ -3624,6 +3685,36 @@ export const generateGoodAndBadTraits = (
         astrologicalBasisEn: "Venus-Rahu affliction triggering external romantic craving."
       };
     }
+  } else if (sensual.hasSensualChanchalya || !sensual.hasMaritalFidelity) {
+    if (isMale) {
+      badTrait2 = {
+        id: 2,
+        type: "bad",
+        titleKn: "ಕಾಮ ಚಾಂಚಲ್ಯ & ಪರಸ್ತ್ರೀ ಆಕರ್ಷಣೆ: ಚಂಚಲ ದೃಷ್ಟಿ & ಸಂಸಾರದಲ್ಲಿ ಅಶಾಂತಿ",
+        titleEn: "Sensual Restlessness & Roving Eye: Wandering Desires & Marital Discord",
+        icon: "👀",
+        badgeKn: "5ನೇ ರಾಹು • ನೀಚ ಕುಜ • ಕಾಮ ಚಾಂಚಲ್ಯ",
+        badgeEn: "5th Rahu • Afflicted Mars • Sensual Chanchalya",
+        bulletKn: `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ 5ನೇ ಬುದ್ಧಿ-ಕಾಮ ಸ್ಥಾನದಲ್ಲಿ ನೆರಳು ಗ್ರಹ ರಾಹುವಿದ್ದು, ಲಗ್ನದಲ್ಲಿ ನೀಚ ಕುಜ ಹಾಗೂ 8ನೇ ಮನೆಯಿಂದ ಶುಕ್ರನ ಮೇಲಿರುವ ಶನಿಯ ದೃಷ್ಟಿಯ ಕಾರಣದಿಂದಾಗಿ, ಮನಸ್ಸಿನಲ್ಲಿ ತೀವ್ರ ಕಾಮ ಚಾಂಚಲ್ಯ, ಪರಸ್ತ್ರೀಯರನ್ನು ಚಂಚಲ ದೃಷ್ಟಿಯಿಂದ ನೋಡುವ (roving eye/sensual curiosity) ಪ್ರವೃತ್ತಿ ಹಾಗೂ ಇಂದ್ರಿಯ ನಿಗ್ರಹದ ಕೊರತೆ ಎದ್ದು ಕಾಣುತ್ತದೆ. ಹೊರಗೆ ಸಮಾಜದಲ್ಲಿ ಧಾರ್ಮಿಕ ಅಥವಾ ಗೌರವಯುತ ಸ್ಥಾನದಲ್ಲಿದ್ದರೂ, ಆಂತರಿಕವಾಗಿ ಕಾಮ ವಾಸನೆಗಳು ಹಾಗೂ ಬಾಹ್ಯ ಆಕರ್ಷಣೆಗಳು ಸಂಸಾರದಲ್ಲಿ ಹೆಂಡತಿಯೊಂದಿಗೆ ಅಶಾಂತಿ, ಸಂಶಯ ಹಾಗೂ ಕಲಹವನ್ನು ಸೃಷ್ಟಿಸುತ್ತಿವೆ. ಇಂದ್ರಿಯ ಸಂಯಮ ಕಾಪಾಡಿಕೊಳ್ಳುವುದು ಮತ್ತು ಸಾಂಸಾರಿಕ ನಿಷ್ಠೆ ಉಳಿಸಿಕೊಳ್ಳುವುದು ಅನಿವಾರ್ಯ.`,
+        bulletEn: "Rahu in the 5th house of desires, debilitated Mars, and Saturn aspecting Venus in Aries create strong sensual restlessness, a roving eye towards other women, and weakened sensory self-control. While maintaining an upright or religious outer persona, these private impulses fuel friction, suspicion, and daily discord with spouse at home. Conscious sensory restraint is essential.",
+        astrologicalBasisKn: "5ನೇ ಬುದ್ಧಿ-ಕಾಮ ಸ್ಥಾನದಲ್ಲಿ ರಾಹು, ಲಗ್ನದಲ್ಲಿ ನೀಚ ಕುಜ ಹಾಗೂ ಶುಕ್ರನ ಮೇಲೆ ಶನಿಯ ದೃಷ್ಟಿ ಪ್ರಭಾವ.",
+        astrologicalBasisEn: "Rahu in 5th house of desires with debilitated Mars and Saturn aspecting Venus."
+      };
+    } else {
+      badTrait2 = {
+        id: 2,
+        type: "bad",
+        titleKn: "ಕಾಮ ಚಾಂಚಲ್ಯ & ಬಾಹ್ಯ ಆಕರ್ಷಣೆಯ ಸೆಳೆತ: ದಾಂಪತ್ಯದಲ್ಲಿ ಅಶಾಂತಿ",
+        titleEn: "Sensual Restlessness & Distraction: Emotional Turbulence",
+        icon: "👀",
+        badgeKn: "5ನೇ ರಾಹು • ಕಾಮ ಚಾಂಚಲ್ಯ",
+        badgeEn: "5th Rahu • Restless Desires",
+        bulletKn: `5ನೇ ಸ್ಥಾನದಲ್ಲಿ ರಾಹು ಹಾಗೂ ಕಾಮ ಸ್ಥಾನಗಳ ಮೇಲೆ ಪಾಪಗ್ರಹಗಳ ಪ್ರಭಾವವಿರುವುದರಿಂದ, ಮನಸ್ಸಿನಲ್ಲಿ ಚಾಂಚಲ್ಯ, ಬಾಹ್ಯ ಆಕರ್ಷಣೆಗಳತ್ತ ಸೆಳೆತ ಹಾಗೂ ದಾಂಪತ್ಯದಲ್ಲಿ ಅತೃಪ್ತಿಯ ಭಾವನೆಗಳು ಮೂಡಬಹುದು. ಇಂದ್ರಿಯ ಸಂಯಮ ಮತ್ತು ಕುಟುಂಬದ ನಿಷ್ಠೆ ಕಾಪಾಡಿಕೊಳ್ಳುವುದು ಅಗತ್ಯ.`,
+        bulletEn: "Affliction across the 5th and relationship houses induces mental restlessness and vulnerability to external romantic distractions, straining marital peace.",
+        astrologicalBasisKn: "5ನೇ ಭಾವದ ರಾಹು ಮತ್ತು ಕಾಮ ಸ್ಥಾನಗಳ ಪಾಪ ಪ್ರಭಾವ.",
+        astrologicalBasisEn: "Rahu in 5th house of desire affecting sensory control."
+      };
+    }
   } else if (sensual.hasMaritalDistanceColdness) {
     if (isMale) {
       badTrait2 = {
@@ -3990,7 +4081,11 @@ export const generateGoodAndBadTraits = (
     speculationWarningKn: isSpeculationLoss ? `5ನೇ ರಾಹು & ನೀಚ ಪಂಚಮಾಧಿಪತಿಯಿಂದಾಗಿ ಷೇರು ಮಾರುಕಟ್ಟೆ / ಟ್ರೇಡಿಂಗ್‌ನಲ್ಲಿ ಭಾರಿ ಬಂಡವಾಳ ನಷ್ಟವಾಗಿದ್ದು, ಯಾವುದೇ ಕಾರಣಕ್ಕೂ ಮತ್ತೆ ಸ್ಪೆಕ್ಯುಲೇಶನ್ ಅಥವಾ ಬೆಟ್ಟಿಂಗ್‌ಗೆ ಕೈಹಾಕಬೇಡಿ.` : undefined,
     speculationWarningEn: isSpeculationLoss ? `5th house Rahu and afflicted 5th lord trigger heavy trading losses; cease all day trading and speculative betting immediately.` : undefined,
     isTeetotaler: diet.isTeetotaler,
-    hasMaritalFidelity: sensual.hasMaritalFidelity
+    hasMaritalFidelity: sensual.hasMaritalFidelity,
+    dietSummaryKn: diet.dietSummaryKn,
+    dietSummaryEn: diet.dietSummaryEn,
+    fidelitySummaryKn: sensual.fidelitySummaryKn,
+    fidelitySummaryEn: sensual.fidelitySummaryEn
   };
 };
 
