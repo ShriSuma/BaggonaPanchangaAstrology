@@ -117,7 +117,7 @@ STRICT WRITING & ASTROLOGER PERSONA RULES:
 4. Structure your response into 4 comprehensive paragraphs:
    - Paragraph 1: Direct greeting ("ನಮಸ್ಕಾರ ${session.input.name || "ಭಕ್ತರೇ"}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕ ನೋಡಿದೆ."). Reveal their Lagna, Moon, 4th house and authentic dignified personality traits.
    - Paragraph 2: Explain their current life focus and active challenge (${data.currentDiagnosis.primaryLifeChallenge.area} & ${data.currentDiagnosis.primaryLifeChallenge.description}) without generic misery assumptions.
-   - Paragraph 3: Explain the astrological planetary reality (10th/7th/4th house aspects & running Dasha-Bhukti). Give an exact turning-point timeline (e.g. Next 3 to 6 Months) using ENGLISH DIGITS when breakthroughs occur.
+   - Paragraph 3: Explain the astrological planetary reality (10th/7th/4th house aspects & running Dasha-Bhukti). Give an exact turning-point timeline based on running Dasha-Bhukti remaining duration (${data.currentDiagnosis.dashaTiming?.timelineKn || "ಮುಂದಿನ ಕೆಲವೇ ತಿಂಗಳುಗಳಲ್ಲಿ"}) using ENGLISH DIGITS when breakthroughs occur.
    - Paragraph 4: Prescribe the exact remedies with precision: ${data.prescriptions.gemstoneRing.primaryGemstoneKn} (${data.prescriptions.gemstoneRing.caratWeight}), ${data.prescriptions.rudraksha.nameKn}, daily morning rituals, and Gokarna Mahabaleshwara Kshetra blessings.
 5. DO NOT use markdown bold asterisks (no ** or *). Use clean, plain text.
 6. ALL NUMBERS MUST BE IN ENGLISH DIGITS (e.g. 1, 2, 3, 4.25 - 6.5 Carat, 9 Mukhi, 7th house, 10th house, 3 to 6 months).
@@ -239,7 +239,7 @@ Task: Give a deep, face-to-face conversational Vedic Pandit consultation respons
 Respond in crisp, structured bullet points directly answering the devotee's specific question:
 • 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: Exact planetary positions, houses, dasha-bhukti, and gochara transits influencing this question.
 • ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ನೈಜ ಕಾರಣ: State the exact Dosha (e.g. Kuja Dosha, Shani Drishti delay, Naga/Sarpa Dosha, Putrakaraka affliction) and the real astrological reason without generic fluff.
-• ⏳ ನಿಖರ ಕಾಲಾವಧಿ: Exact turning point timeline in English digits (e.g. Next 3 to 6 Months) when relief and breakthroughs materialize.
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ: Exact turning point timeline in English digits calculated from running Dasha-Bhukti remaining duration (${synthesisData.currentDiagnosis.dashaTiming?.timelineKn || "ಮುಂದಿನ ಕೆಲವೇ ತಿಂಗಳುಗಳಲ್ಲಿ"}) when relief and breakthroughs materialize.
 • 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪೂಜೆ: Prescribe the devotee's authentic Beeja Mantra, daily calming Japa, and Sri Kshetra Gokarna Mahabaleshwara Shanti Pooja.
 
 STRICT RULES:
@@ -365,7 +365,7 @@ STRICT RULES:
                   </div>
                 </div>
                 <span className="px-3.5 py-1.5 rounded-full bg-amber-200/80 text-amber-950 text-xs font-black border border-amber-400 shadow-sm">
-                  {isKn ? "೫ ಪ್ರಮುಖ ಸದ್ಗುಣಗಳು" : "5 Master Virtues"}
+                  {isKn ? "5 ಪ್ರಮುಖ ಸದ್ಗುಣಗಳು" : "5 Master Virtues"}
                 </span>
               </div>
 
@@ -483,7 +483,7 @@ STRICT RULES:
             </div>
           )}
 
-          {/* 🌟 3. 11 MASTER ASTROLOGICAL LIFE & PERSONALITY REVELATIONS (೧೧ ಪ್ರಮುಖ ಮುಖಾಮುಖಿ ಜ್ಯೋತಿಷ್ಯ ಸತ್ಯಾಂಶಗಳು) 🌟 */}
+          {/* 🌟 3. 11 MASTER ASTROLOGICAL LIFE & PERSONALITY REVELATIONS (11 ಪ್ರಮುಖ ಮುಖಾಮುಖಿ ಜ್ಯೋತಿಷ್ಯ ಸತ್ಯಾಂಶಗಳು) 🌟 */}
           {synthesisData?.tenLifeAspectBullets && (
             <div className="rounded-3xl border-2 border-amber-400 bg-gradient-to-b from-amber-50/70 via-white to-amber-50/40 p-6 md:p-8 text-stone-950 shadow-xl space-y-6">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-amber-300 pb-4">
@@ -502,7 +502,7 @@ STRICT RULES:
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="px-3.5 py-1.5 rounded-full bg-amber-200/80 text-amber-950 text-xs font-black border border-amber-400 shadow-sm">
-                    {isKn ? "೧೦೦% ನೈಜ ಜಾತಕ ಫಲಿತ" : "100% Dynamic Vedic Truth"}
+                    {isKn ? "100% ನೈಜ ಜಾತಕ ಫಲಿತ" : "100% Dynamic Vedic Truth"}
                   </span>
                 </div>
               </div>
@@ -834,7 +834,7 @@ STRICT RULES:
                     <span className="text-2xl">🌾</span>
                     <div>
                       <span className="text-[10px] font-black uppercase text-amber-900 tracking-wider block">
-                        {isKn ? "ವಿಭಾಗ ೧: ಅಪರ ಕರ್ಮ / ಮುಕ್ತಿ" : "Domain 1: Ancestral Mukti"}
+                        {isKn ? "ವಿಭಾಗ 1: ಅಪರ ಕರ್ಮ / ಮುಕ್ತಿ" : "Domain 1: Ancestral Mukti"}
                       </span>
                       <h4 className="text-base font-black text-amber-950 font-serif">
                         {isKn ? "ಪಿತೃ ಮುಕ್ತಿ & ಪೂರ್ವಜರ ಶಾಂತಿ ಸಂಕಲ್ಪ (ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥ)" : "Pitru Mukti & Ancestral Peace Seva"}
@@ -923,7 +923,7 @@ STRICT RULES:
                   <span className="text-2xl">🔱</span>
                   <div>
                     <span className="text-[10px] font-black uppercase text-amber-900 tracking-wider block">
-                      {isKn ? "ವಿಭಾಗ ೨: ಶುಭ ಕರ್ಮ / ದೈವ ಯಜ್ಞ" : "Domain 2: Divine Yajna"}
+                      {isKn ? "ವಿಭಾಗ 2: ಶುಭ ಕರ್ಮ / ದೈವ ಯಜ್ಞ" : "Domain 2: Divine Yajna"}
                     </span>
                     <h4 className="text-base font-black text-amber-950 font-serif">
                       {isKn ? "ದೇವತಾ ಯಜ್ಞ, ಶುಭ ಹವನಗಳು & ಮಹಾಬಲೇಶ್ವರ ರುದ್ರಾಭಿಷೇಕ" : "Divine Yajna, Hawana & Atmalinga Abhisheka"}
@@ -996,7 +996,7 @@ STRICT RULES:
                     </h4>
                   </div>
                   <span className="text-xs px-3 py-1 rounded-full bg-amber-200 text-amber-950 font-bold border border-amber-400 shadow-sm">
-                    {yajnaHawanaPlan.combinedSchedule.scheduleType === "two_stage_multi_day" ? (isKn ? "೨-ಹಂತದ ಶಾಸ್ತ್ರೀಯ ಯೋಜನೆ" : "2-Stage Schedule") : (isKn ? "ಏಕದಿನ ದೇವತಾ ಸಂಪುಟ" : "1-Day Samputa")}
+                    {yajnaHawanaPlan.combinedSchedule.scheduleType === "two_stage_multi_day" ? (isKn ? "2-ಹಂತದ ಶಾಸ್ತ್ರೀಯ ಯೋಜನೆ" : "2-Stage Schedule") : (isKn ? "ಏಕದಿನ ದೇವತಾ ಸಂಪುಟ" : "1-Day Samputa")}
                   </span>
                 </div>
 

@@ -71,6 +71,6 @@ describe("YajnaHawanaEngine (ಪಿತೃ ಕಾರ್ಯ & ದೇವತಾ ಯ�
     expect(plan.pitruKaryas.some((k) => k.id === "pitru_narayana_bali")).toBe(true);
     expect(plan.pitruKaryas.some((k) => k.id === "pitru_tripindi")).toBe(true);
     expect(plan.combinedSchedule.scheduleType).toBe("two_stage_multi_day");
-    expect(plan.combinedSchedule.restPeriodShuddhi?.shastraRuleKn).toContain("೧ ದಿನದ ಶೌಚ-ಶುದ್ಧಿ");
+    expect(plan.combinedSchedule.restPeriodShuddhi?.shastraRuleKn).toContain("1 ದಿನದ ಶೌಚ-ಶುದ್ಧಿ");
   });
 });

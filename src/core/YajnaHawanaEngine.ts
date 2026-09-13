@@ -89,6 +89,7 @@ export function generateYajnaHawanaPlan(
     runningDashaBhukti?: string;
     primaryChallenge?: string;
     devoteeName?: string;
+    dynamicTimelineKn?: string;
   }
 ): YajnaHawanaEngineOutput {
   const devotee = context?.devoteeName || "ಭಕ್ತರೇ";
@@ -175,7 +176,7 @@ export function generateYajnaHawanaPlan(
       `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣವು ದಕ್ಷಿಣ ಕಾಶಿ ಎಂದೇ ಪ್ರಸಿದ್ಧವಾಗಿದ್ದು, ಮಹಾಬಲೇಶ್ವರ ಆತ್ಮಲಿಂಗ ಹಾಗೂ ಪವಿತ್ರ ಕೋಟಿತೀರ್ಥದ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸಲ್ಲಿಸುವ ನಾರಾಯಣ ಬಲಿ, ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ ಮತ್ತು ತಿಲ ಹವನವು 21 ತಲೆಮಾರಿನ ಪೂರ್ವಜರ ಆತ್ಮಗಳಿಗೆ ಶಾಶ್ವತ ಮುಕ್ತಿ ನೀಡಿ, ಕುಟುಂಬಕ್ಕೆ ಸಕಲ ಭಾಗ್ಯೋದಯವನ್ನು ಕರುಣಿಸುತ್ತದೆ.`
     ),
     shastraSeparationRuleKn: sanitizeAstrologyKannadaText(
-      `ಧರ್ಮಶಾಸ್ತ್ರದ ಕಟ್ಟುನಿಟ್ಟಿನ ನಿಯಮ: ಪಿತೃ ಕಾರ್ಯ (ಅಪರ ಕರ್ಮ) ಮತ್ತು ದೇವತಾ ಕಾರ್ಯ (ಶುಭ ಹವನ) ಎರಡನ್ನೂ ಎಂದಿಗೂ ಒಂದೇ ದಿನ ಅಥವಾ ಒಂದೇ ಮುಹೂರ್ತದಲ್ಲಿ ಜೊತೆಯಾಗಿ ಮಾಡಬಾರದು. ಮೊದಲು ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ಪಿತೃ ಮುಕ್ತಿ ನೆರವೇರಿಸಿ, ೧ ದಿನದ ಶೌಚ-ಶುದ್ಧಿ & ವಿಶ್ರಾಂತಿ ಪಡೆದ ನಂತರವೇ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಶುಭ ದೇವತಾ ಹವನಗಳನ್ನು ನೆರವೇರಿಸಬೇಕು.`
+      `ಧರ್ಮಶಾಸ್ತ್ರದ ಕಟ್ಟುನಿಟ್ಟಿನ ನಿಯಮ: ಪಿತೃ ಕಾರ್ಯ (ಅಪರ ಕರ್ಮ) ಮತ್ತು ದೇವತಾ ಕಾರ್ಯ (ಶುಭ ಹವನ) ಎರಡನ್ನೂ ಎಂದಿಗೂ ಒಂದೇ ದಿನ ಅಥವಾ ಒಂದೇ ಮುಹೂರ್ತದಲ್ಲಿ ಜೊತೆಯಾಗಿ ಮಾಡಬಾರದು. ಮೊದಲು ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ಪಿತೃ ಮುಕ್ತಿ ನೆರವೇರಿಸಿ, 1 ದಿನದ ಶೌಚ-ಶುದ್ಧಿ & ವಿಶ್ರಾಂತಿ ಪಡೆದ ನಂತರವೇ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಶುಭ ದೇವತಾ ಹವನಗಳನ್ನು ನೆರವೇರಿಸಬೇಕು.`
     )
   };
 
@@ -226,7 +227,7 @@ export function generateYajnaHawanaPlan(
       ),
       astrologicalRootCauseEn: "Pacification for three generational ancestral lines and unfulfilled death rites.",
       sacredProcedureKn: sanitizeAstrologyKannadaText(
-        `ಬ್ರಹ್ಮ, ವಿಷ್ಣು ಮತ್ತು ರುದ್ರ ದೇವತೆಗಳಿಗೆ ೩ ಪಿಂಡಗಳ ಅರ್ಪಣೆ (ತಾಮ್ರ, ಬೆಳ್ಳಿ, ಬಂಗಾರ ಸಂಕಲ್ಪ), ಯವ-ತಿಲ ತರ್ಪಣ ಹಾಗೂ ಗೋಕರ್ಣ ಪುಣ್ಯ ಸ್ನಾನ.`
+        `ಬ್ರಹ್ಮ, ವಿಷ್ಣು ಮತ್ತು ರುದ್ರ ದೇವತೆಗಳಿಗೆ 3 ಪಿಂಡಗಳ ಅರ್ಪಣೆ (ತಾಮ್ರ, ಬೆಳ್ಳಿ, ಬಂಗಾರ ಸಂಕಲ್ಪ), ಯವ-ತಿಲ ತರ್ಪಣ ಹಾಗೂ ಗೋಕರ್ಣ ಪುಣ್ಯ ಸ್ನಾನ.`
       ),
       sacredProcedureEn: "Three sacred Pinda offerings to Brahma, Vishnu, and Rudra with barley and sesame oblations at Gokarna.",
       expectedShiftsAfterPoojaKn: sanitizeAstrologyKannadaText(
@@ -345,7 +346,7 @@ export function generateYajnaHawanaPlan(
       `ದೈನಂದಿನ ಕೆಲಸಗಳಲ್ಲಿ ಪದೇಪದೇ ಬರುತ್ತಿದ್ದ ವಿಳಂಬ ಮತ್ತು ಅಡೆತಡೆಗಳು ನಿವಾರಣೆಯಾಗುತ್ತವೆ. 9 ಗ್ರಹಗಳ ಸಮನ್ವಯತೆಯಿಂದ ಆರೋಗ್ಯ, ಆಯಸ್ಸು, ವಿದ್ಯೆ ಹಾಗೂ ಸಕಲ ಸೌಭಾಗ್ಯಗಳು ವೃದ್ಧಿಯಾಗುತ್ತವೆ.`
     ),
     expectedShiftsAfterPoojaEn: "Dissolution of day-to-day obstacles, harmony across all nine celestial forces, and revitalization of good fortune.",
-    priestSecretNoteKn: `[ದೈವಜ್ಞರ ಆಂತರಿಕ ಟಿಪ್ಪಣಿ: ನವಗ್ರಹ ಹವನವು ಸಕಲ ಜ್ಯೋತಿಷ್ಯ ಪರಿಹಾರಗಳಿಗೆ ತಳಹದಿಯಾಗಿದ್ದು, ಮುಂಬರುವ 3 ರಿಂದ 5 ತಿಂಗಳುಗಳಲ್ಲಿ ಶುಭ ಫಲ ನೀಡುತ್ತದೆ]`,
+    priestSecretNoteKn: sanitizeAstrologyKannadaText(`[ದೈವಜ್ಞರ ಆಂತರಿಕ ಟಿಪ್ಪಣಿ: ನವಗ್ರಹ ಹವನವು ಸಕಲ ಜ್ಯೋತಿಷ್ಯ ಪರಿಹಾರಗಳಿಗೆ ತಳಹದಿಯಾಗಿದ್ದು, ${context?.dynamicTimelineKn || "ಮುಂಬರುವ ಶುಭ ಸಂಧಿಕಾಲದಲ್ಲಿ"} ಪರಿಪೂರ್ಣ ಶುಭ ಫಲ ನೀಡುತ್ತದೆ]`),
     priestSecretNoteEn: "[Astrologer Note: Navagraha Hawana serves as the master foundation ensuring upcoming transits manifest beneficially]."
   });
 
@@ -416,17 +417,17 @@ export function generateYajnaHawanaPlan(
     icon: "🔱",
     isUrgentPrimary: Boolean(isMaandiLagnaOr8th),
     astrologicalRootCauseKn: sanitizeAstrologyKannadaText(
-      `ಜಾತಕದ ಲಗ್ನ ಮತ್ತು 8ನೇ ಮನೆಯ ಮೇಲೆ ಮಾಂದಿ ಹಾಗೂ ಪಾಪಗ್ರಹಗಳ ಸೂಕ್ಷ್ಮ ಪ್ರಭಾವದಿಂದಾಗಿ ದೈಹಿಕ ನಿಶ್ಯಕ್ತಿ, ಜೀರ್ಣಾಂಗ ಅಗ್ನಿಮಾಂದ್ಯತೆ, ರಾತ್ರಿ ನಿದ್ರಾಹೀನತೆ (2:00 ರಿಂದ 4:30) ಹಾಗೂ ಮಾನಸಿಕ ಆಯಾಸ ಉಂಟಾಗುತ್ತಿದೆ.`
+      `ಜಾತಕದ ಲಗ್ನ ಮತ್ತು 8ನೇ ಮನೆಯ ಮೇಲೆ ಮಾಂದಿ ಹಾಗೂ ಪಾಪಗ್ರಹಗಳ ಸೂಕ್ಷ್ಮ ಪ್ರಭಾವದಿಂದಾಗಿ ದೈಹಿಕ ನಿಶ್ಯಕ್ತಿ, ಜೀರ್ಣಾಂಗ ಅಗ್ನಿಮಾಂದ್ಯತೆ, ನರಮಂಡಲದ ಆಯಾಸ ಹಾಗೂ ಮಾನಸಿಕ ಒತ್ತಡ ಉಂಟಾಗುತ್ತಿದೆ.`
     ),
-    astrologicalRootCauseEn: "Subtle afflictions on Lagna/8th house from Maandi and malefic transits inducing fatigue and sleep disturbances.",
+    astrologicalRootCauseEn: "Subtle afflictions on Lagna/8th house from Maandi and malefic transits inducing fatigue and energetic depletion.",
     sacredProcedureKn: sanitizeAstrologyKannadaText(
       `ಮಹಾಮೃತ್ಯುಂಜಯ ಮಂತ್ರದ 1008 ಆಹುತಿಗಳು, ಅಮೃತಬಳ್ಳಿ (ಗುಡೂಚಿ), ದೂರ್ವಾ, ಗೋಘೃತ, ಜೇನುತುಪ್ಪ ಹಾಗೂ ಶ್ರೀ ರುದ್ರಾಧ್ಯಾಯ ಹೋಮ.`
     ),
     sacredProcedureEn: "1008 Mahamrityunjaya chants with sacred Guduchi herb, Durva grass, pure cow ghee, and Rudradhyaya havan.",
     expectedShiftsAfterPoojaKn: sanitizeAstrologyKannadaText(
-      `ದೈಹಿಕ ಚೈತನ್ಯ ಪುನರುಜ್ಜೀವನಗೊಂಡು, ದೀರ್ಘಕಾಲದ ನಿದ್ರಾಹೀನತೆ ಮತ್ತು ಆತಂಕ ಶಮನವಾಗುತ್ತದೆ. ಆಯುಷ್ಯ ವೃದ್ಧಿ, ನವೋತ್ಸಾಹ ಹಾಗೂ ಅಪಮೃತ್ಯು ದೋಷಗಳಿಂದ ದೈವಿಕ ರಕ್ಷಣೆ ಲಭಿಸುತ್ತದೆ.`
+      `ದೈಹಿಕ ಚೈತನ್ಯ ಪುನರುಜ್ಜೀವನಗೊಂಡು, ಆಂತರಿಕ ಆತಂಕ ಶಮನವಾಗುತ್ತದೆ. ಆಯುಷ್ಯ ವೃದ್ಧಿ, ನವೋತ್ಸಾಹ ಹಾಗೂ ಸಕಲ ಅರಿಷ್ಟಗಳಿಂದ ದೈವಿಕ ರಕ್ಷಣೆ ಲಭಿಸುತ್ತದೆ.`
     ),
-    expectedShiftsAfterPoojaEn: "Restoration of physical vitality, deep sound sleep, rejuvenation of nervous energy, and longevity blessing.",
+    expectedShiftsAfterPoojaEn: "Restoration of physical vitality, deep serene rest, rejuvenation of nervous energy, and longevity blessing.",
     priestSecretNoteKn: `[ದೈವಜ್ಞರ ಆಂತರಿಕ ಟಿಪ್ಪಣಿ: ಮೃತ್ಯುಂಜಯ ಹವನವು ಪ್ರಾಣಶಕ್ತಿಯನ್ನು ಉತ್ತುಂಗಕ್ಕೇರಿಸಿ ಮಾಂದಿ ಗ್ರಹದ ನಕಾರಾತ್ಮಕ ತರಂಗಗಳನ್ನು ಶೂನ್ಯಗೊಳಿಸುತ್ತದೆ]`,
     priestSecretNoteEn: "[Astrologer Note: Mahamrityunjaya Hawana revitalizes Prana Shakti, neutralizing Maandi's shadow debility]."
   });
@@ -471,10 +472,10 @@ export function generateYajnaHawanaPlan(
     const pitruRitualsKn = ["ಶ್ರೀ ನಾರಾಯಣ ಬಲಿ", "ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ", "ತಿಲ ಹವನ & ಪಿಂಡ ಪ್ರದಾನ"];
     combinedSchedule = {
       scheduleType: "two_stage_multi_day",
-      titleKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ೨-ಹಂತದ ಪಿತೃ ಮುಕ್ತಿ & ದೇವತಾ ಸಂಪುಟ ಮಹಾ ಸೇವೆ",
+      titleKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ 2-ಹಂತದ ಪಿತೃ ಮುಕ್ತಿ & ದೇವತಾ ಸಂಪುಟ ಮಹಾ ಸೇವೆ",
       titleEn: "Gokarna 2-Stage Ancestral Liberation & Divine Samputa Yajna",
       stage1PitruKarya: {
-        dayLabelKn: "ಹಂತ ೧ (ದಿನ ೧): ಪಿತೃ ಮುಕ್ತಿ ಅಪರ ಸಂಕಲ್ಪ",
+        dayLabelKn: "ಹಂತ 1 (ದಿನ 1): ಪಿತೃ ಮುಕ್ತಿ ಅಪರ ಸಂಕಲ್ಪ",
         placeKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಪವಿತ್ರ ಕೋಟಿತೀರ್ಥ ತೀರ",
         ritualsKn: pitruRitualsKn,
         descriptionKn: sanitizeAstrologyKannadaText(
@@ -482,14 +483,14 @@ export function generateYajnaHawanaPlan(
         )
       },
       restPeriodShuddhi: {
-        dayLabelKn: "ವಿಶ್ರಾಂತಿ & ಶುದ್ಧಿ (ದಿನ ೨): ೧ ದಿನದ ಆಶೌಚ ನಿವೃತ್ತಿ & ದೈವಿಕ ಶುದ್ಧಿ ಕಾಲ",
+        dayLabelKn: "ವಿಶ್ರಾಂತಿ & ಶುದ್ಧಿ (ದಿನ 2): 1 ದಿನದ ಆಶೌಚ ನಿವೃತ್ತಿ & ದೈವಿಕ ಶುದ್ಧಿ ಕಾಲ",
         descriptionKn: sanitizeAstrologyKannadaText(
-          "ಧರ್ಮಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ಪಿತೃ ಕಾರ್ಯ ಮತ್ತು ದೇವತಾ ಕಾರ್ಯವನ್ನು ಒಂದೇ ದಿನ ಮಾಡಬಾರದು. ಪಿತೃ ಮುಕ್ತಿಯ ನಂತರ ೧ ದಿನದ ಪೂರ್ಣ ವಿಶ್ರಾಂತಿ ಹಾಗೂ ಸಾಗರ ಸ್ನಾನ / ಪುಣ್ಯ ತೀರ್ಥ ಸ್ನಾನದಿಂದ ದೇಹ-ಮನಸ್ಸಿನ ಶುದ್ಧಿ ಪಡೆಯಬೇಕು."
+          "ಧರ್ಮಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ಪಿತೃ ಕಾರ್ಯ ಮತ್ತು ದೇವತಾ ಕಾರ್ಯವನ್ನು ಒಂದೇ ದಿನ ಮಾಡಬಾರದು. ಪಿತೃ ಮುಕ್ತಿಯ ನಂತರ 1 ದಿನದ ಪೂರ್ಣ ವಿಶ್ರಾಂತಿ ಹಾಗೂ ಸಾಗರ ಸ್ನಾನ / ಪುಣ್ಯ ತೀರ್ಥ ಸ್ನಾನದಿಂದ ದೇಹ-ಮನಸ್ಸಿನ ಶುದ್ಧಿ ಪಡೆಯಬೇಕು."
         ),
-        shastraRuleKn: "ಶಾಸ್ತ್ರ ನಿಯಮ: ಪಿತೃ ಕರ್ಮದ ನಂತರ ೧ ದಿನದ ಶೌಚ-ಶುದ್ಧಿ ವಿಶ್ರಾಂತಿ ಕಡ್ಡಾಯ."
+        shastraRuleKn: "ಶಾಸ್ತ್ರ ನಿಯಮ: ಪಿತೃ ಕರ್ಮದ ನಂತರ 1 ದಿನದ ಶೌಚ-ಶುದ್ಧಿ ವಿಶ್ರಾಂತಿ ಕಡ್ಡಾಯ."
       },
       stage2DevaKarya: {
-        dayLabelKn: "ಹಂತ ೨ (ದಿನ ೩): ದೇವತಾ ಮಹಾ ಸಂಪುಟ ಯಜ್ಞ & ರುದ್ರಾಭಿಷೇಕ",
+        dayLabelKn: "ಹಂತ 2 (ದಿನ 3): ದೇವತಾ ಮಹಾ ಸಂಪುಟ ಯಜ್ಞ & ರುದ್ರಾಭಿಷೇಕ",
         placeKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿ ಸನ್ನಿಧಿ",
         ritualsKn: devaHomaNamesKn,
         descriptionKn: sanitizeAstrologyKannadaText(
@@ -497,11 +498,11 @@ export function generateYajnaHawanaPlan(
         )
       },
       synergyExplanationKn: sanitizeAstrologyKannadaText(
-        "ಈ ೨-ಹಂತದ ಶಾಸ್ತ್ರೋಕ್ತ ಯೋಜನೆಯಿಂದ: ಮೊದಲಿಗೆ ಪಿತೃ ಶಾಪ ವಿಮೋಚನೆಯಾಗಿ ಪೂರ್ವಜರ ಪೂರ್ಣ ಆಶೀರ್ವಾದ ಲಭಿಸುತ್ತದೆ; ನಂತರ ಶುದ್ಧ ಮನಸ್ಸಿನಿಂದ ಮಾಡುವ ದೇವತಾ ಯಜ್ಞದಿಂದ ನವಗ್ರಹ ಶಾಂತಿ, ಶತ್ರು ನಾಶ ಹಾಗೂ ಮಹಾಬಲೇಶ್ವರನ ಶಾಶ್ವತ ರಕ್ಷಾ ಕವಚ ಪ್ರಾಪ್ತಿಯಾಗುತ್ತದೆ."
+        "ಈ 2-ಹಂತದ ಶಾಸ್ತ್ರೋಕ್ತ ಯೋಜನೆಯಿಂದ: ಮೊದಲಿಗೆ ಪಿತೃ ಶಾಪ ವಿಮೋಚನೆಯಾಗಿ ಪೂರ್ವಜರ ಪೂರ್ಣ ಆಶೀರ್ವಾದ ಲಭಿಸುತ್ತದೆ; ನಂತರ ಶುದ್ಧ ಮನಸ್ಸಿನಿಂದ ಮಾಡುವ ದೇವತಾ ಯಜ್ಞದಿಂದ ನವಗ್ರಹ ಶಾಂತಿ, ಶತ್ರು ನಾಶ ಹಾಗೂ ಮಹಾಬಲೇಶ್ವರನ ಶಾಶ್ವತ ರಕ್ಷಾ ಕವಚ ಪ್ರಾಪ್ತಿಯಾಗುತ್ತದೆ."
       ),
       synergyExplanationEn: "Executing this authentic 2-stage timeline strictly respects Vedic apara-shubha separation: ancestral liberation on Day 1, followed by purifying rest on Day 2, and grand divine homa on Day 3.",
       recommendedMuhurthaKn: sanitizeAstrologyKannadaText(
-        "ಮುಂಬರುವ ಶುಕ್ಲ ಪಕ್ಷದ ಶುಭ ದಿನ, ಶನಿವಾರ, ಅಮಾವಾಸ್ಯೆ ಅಥವಾ ಪೌರ್ಣಮಿಯ ಪ್ರಾತಃಕಾಲದ ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ."
+        "ಪ್ರಸ್ತುತ ಚಾಂದ್ರಮಾನ ಮಾಸದ ಮುಂಬರುವ ಶುಕ್ಲ ಪಕ್ಷದ ಶುಭ ದಿನ, ಶನಿವಾರ, ಅಮಾವಾಸ್ಯೆ ಅಥವಾ ಪೌರ್ಣಮಿಯ ಪ್ರಾತಃಕಾಲದ ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ."
       )
     };
   } else {
@@ -510,7 +511,7 @@ export function generateYajnaHawanaPlan(
       titleKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಚತುರ್ಮುಖ ದೇವತಾ ಮಹಾ ಸಂಪುಟ ಯಾಗ",
       titleEn: "Gokarna Chaturmukha Divine Samputa Yajna",
       stage2DevaKarya: {
-        dayLabelKn: "ದೇವತಾ ಮಹಾ ಸಂಪುಟ ಯಾಗ (ದಿನ ೧)",
+        dayLabelKn: "ದೇವತಾ ಮಹಾ ಸಂಪುಟ ಯಾಗ (ದಿನ 1)",
         placeKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿ ಸನ್ನಿಧಿ",
         ritualsKn: devaHomaNamesKn,
         descriptionKn: sanitizeAstrologyKannadaText(
@@ -518,17 +519,17 @@ export function generateYajnaHawanaPlan(
         )
       },
       synergyExplanationKn: sanitizeAstrologyKannadaText(
-        "ಈ ೩ ಪ್ರಮುಖ ಹವನಗಳನ್ನು ಒಂದೇ ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ ಸಂಪುಟ ರೂಪದಲ್ಲಿ ನೆರವೇರಿಸುವುದರಿಂದ ನವಗ್ರಹ ಶಾಂತಿ, ಶತ್ರು-ದೃಷ್ಟಿ ಬಾಧೆಗಳ ಭಸ್ಮ ಹಾಗೂ ಗೋಕರ್ಣ ಆತ್ಮಲಿಂಗದಿಂದ ದೈವಿಕ ರಕ್ಷಾ ಕವಚ ಶಾಶ್ವತವಾಗಿ ನಿರ್ಮಾಣವಾಗುತ್ತದೆ."
+        "ಈ 3 ಪ್ರಮುಖ ಹವನಗಳನ್ನು ಒಂದೇ ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ ಸಂಪುಟ ರೂಪದಲ್ಲಿ ನೆರವೇರಿಸುವುದರಿಂದ ನವಗ್ರಹ ಶಾಂತಿ, ಶತ್ರು-ದೃಷ್ಟಿ ಬಾಧೆಗಳ ಭಸ್ಮ ಹಾಗೂ ಗೋಕರ್ಣ ಆತ್ಮಲಿಂಗದಿಂದ ದೈವಿಕ ರಕ್ಷಾ ಕವಚ ಶಾಶ್ವತವಾಗಿ ನಿರ್ಮಾಣವಾಗುತ್ತದೆ."
       ),
       synergyExplanationEn: "Combining these synergistic homas in one unified auspicious muhurtha simultaneously harmonizes planetary transits, crushes rival opposition, and secures eternal divine grace.",
       recommendedMuhurthaKn: sanitizeAstrologyKannadaText(
-        "ಮುಂಬರುವ ಶುಕ್ಲ ಪಕ್ಷದ ಶುಭ ದಿನ, ಶನಿವಾರ ಅಥವಾ ಪೌರ್ಣಮಿಯ ಪ್ರಾತಃಕಾಲದ ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ."
+        "ಪ್ರಸ್ತುತ ಚಾಂದ್ರಮಾನ ಮಾಸದ ಮುಂಬರುವ ಶುಕ್ಲ ಪಕ್ಷದ ಶುಭ ದಿನ, ಶನಿವಾರ ಅಥವಾ ಪೌರ್ಣಮಿಯ ಪ್ರಾತಃಕಾಲದ ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ."
       )
     };
   }
 
   const overallAstrologicalPrescriptionSummaryKn = sanitizeAstrologyKannadaText(
-    `ನಮಸ್ಕಾರ ${devotee}, ನಿಮ್ಮ ಜಾತಕದ ಪ್ರಸ್ತುತ ಗ್ರಹಗತಿಯ ಪ್ರಕಾರ, ಈ ನಿರ್ದಿಷ್ಟ ಯಜ್ಞ-ಹವನಗಳು ನಿಮ್ಮ ಜೀವನದ ಪ್ರಮುಖ ತಿರುವನ್ನು ನಿರ್ಧರಿಸಲಿವೆ. ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಇವುಗಳನ್ನು ನೆರವೇರಿಸುವುದರಿಂದ ಮುಂಬರುವ 3 ರಿಂದ 5 ತಿಂಗಳುಗಳಲ್ಲಿ ನಿಮ್ಮ ಸಕಲ ಕಷ್ಟಗಳು ಕರಗಿ ಭಾಗ್ಯೋದಯವಾಗಲಿದೆ.`
+    `ನಮಸ್ಕಾರ ${devotee}, ನಿಮ್ಮ ಜಾತಕದ ಪ್ರಸ್ತುತ ಗ್ರಹಗತಿಯ ಪ್ರಕಾರ, ಈ ನಿರ್ದಿಷ್ಟ ಯಜ್ಞ-ಹವನಗಳು ನಿಮ್ಮ ಜೀವನದ ಪ್ರಮುಖ ತಿರುವನ್ನು ನಿರ್ಧರಿಸಲಿವೆ. ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಇವುಗಳನ್ನು ನೆರವೇರಿಸುವುದರಿಂದ ${context?.dynamicTimelineKn || "ಮುಂಬರುವ ಶುಭ ಸಂಧಿಕಾಲದಲ್ಲಿ"} ನಿಮ್ಮ ಸಕಲ ಕಷ್ಟಗಳು ಕರಗಿ ಭಾಗ್ಯೋದಯವಾಗಲಿದೆ.`
   );
 
   return {

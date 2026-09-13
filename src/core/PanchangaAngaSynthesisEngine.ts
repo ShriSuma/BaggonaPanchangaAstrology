@@ -5,9 +5,10 @@ import { signLord } from "./KundliInsightsEngine";
 import { calculateKpSubLord } from "./kpSubLordEngine";
 import { computeSubDivisionalAmsha } from "./subDivisions";
 import { calculateHoroscopeRashmi } from "./rashmiChinthaEngine";
-import { findBhuktiAtAge } from "./DashaBhuktiEngine";
+import { findBhuktiAtAge, generateBhuktiTimeline, type BhuktiSpan } from "./DashaBhuktiEngine";
 import { ageDecimalYearsAt } from "./birthTime";
 import { calculateTraditionalBaggona } from "./TraditionalBaggonaEngine";
+import { calculateKundli } from "./KundliEngine";
 
 /* ==========================================================================
    1. 27 SOLAR-LUNAR YOGAS TAXONOMY & ENCYCLOPEDIC RULES
@@ -135,6 +136,32 @@ export interface TechnicalKundliAspects {
   trikaAfflictionsDetail: string;
 }
 
+export interface DynamicDashaTiming {
+  remainingMonths: number;
+  currentBhuktiEndAge: number;
+  currentMaha: PlanetName;
+  currentBhukti: PlanetName;
+  nextMaha?: PlanetName;
+  nextBhukti?: PlanetName;
+  timelineKn: string;
+  timelineEn: string;
+  badgeTimelineKn: string;
+  badgeTimelineEn: string;
+}
+
+export interface LiveGocharaAnalysis {
+  guruHouseFromMoon: number;
+  shaniHouseFromMoon: number;
+  rahuHouseFromMoon: number;
+  ketuHouseFromMoon: number;
+  guruStatusKn: string;
+  guruStatusEn: string;
+  shaniStatusKn: string;
+  shaniStatusEn: string;
+  summaryKn: string;
+  summaryEn: string;
+}
+
 export interface CurrentLifeDiagnosis {
   mentalStateIssue: {
     hasIssue: boolean;
@@ -171,6 +198,8 @@ export interface CurrentLifeDiagnosis {
   technicalAspects: TechnicalKundliAspects;
   tenLifeAspectBullets: MasterLifeBulletPoint[];
   goodBadAnalysis: GoodBadTraitAnalysis;
+  dashaTiming?: DynamicDashaTiming;
+  liveGochara?: LiveGocharaAnalysis;
 }
 
 export interface TraitBulletPoint {
@@ -298,22 +327,86 @@ export const generateAstrologicalPrescriptions = (
 
   const selectedRudraksha = rudrakshaMap[lagnaLord] || rudrakshaMap[PlanetName.Jupiter];
 
+  // Dynamic Rudraksha Wearing Day and Method
+  const rudrakshaWearingMap: Record<PlanetName, string> = {
+    [PlanetName.Sun]: "ಭಾನುವಾರ ಪ್ರಾತಃಕಾಲ ಸೂರ್ಯೋದಯದ ಸಮಯದಲ್ಲಿ ಹಸಿ ಹಾಲಿನಲ್ಲಿ ಮತ್ತು ಗಂಗಾಜಲದಲ್ಲಿ ಶುದ್ಧೀಕರಿಸಿ 'ಓಂ ನಮಃ ಶಿವಾಯ' 108 ಬಾರಿ ಜಪಿಸಿ ಧರಿಸಬೇಕು.",
+    [PlanetName.Moon]: "ಸೋಮವಾರ ಪ್ರಾತಃಕಾಲ (ಶುಕ್ಲಪಕ್ಷ) ಹಸಿ ಹಾಲಿನಲ್ಲಿ ಮತ್ತು ಗಂಗಾಜಲದಲ್ಲಿ ಶುದ್ಧೀಕರಿಸಿ 'ಓಂ ನಮಃ ಶಿವಾಯ' 108 ಬಾರಿ ಜಪಿಸಿ ಧರಿಸಬೇಕು.",
+    [PlanetName.Mars]: "ಮಂಗಳವಾರ ಪ್ರಾತಃಕಾಲ ಕುಜ ಹೋರೆಯಲ್ಲಿ ಶುದ್ಧೀಕರಿಸಿ ಕುಜ ಗಾಯತ್ರಿ ಮತ್ತು 'ಓಂ ನಮಃ ಶಿವಾಯ' ಜಪಿಸಿ ಧರಿಸಬೇಕು.",
+    [PlanetName.Mercury]: "ಬುಧವಾರ ಪ್ರಾತಃಕಾಲ ಬುಧ ಹೋರೆಯಲ್ಲಿ ಶುದ್ಧೀಕರಿಸಿ ಬುಧ ಮಂತ್ರ ಮತ್ತು 'ಓಂ ನಮಃ ಶಿವಾಯ' ಜಪಿಸಿ ಧರಿಸಬೇಕು.",
+    [PlanetName.Jupiter]: "ಗುರುವಾರ ಪ್ರಾತಃಕಾಲ ಗುರು ಹೋರೆಯಲ್ಲಿ ಶುದ್ಧೀಕರಿಸಿ ಗುರು ಗಾಯತ್ರಿ ಮತ್ತು 'ಓಂ ನಮಃ ಶಿವಾಯ' 108 ಬಾರಿ ಜಪಿಸಿ ಧರಿಸಬೇಕು.",
+    [PlanetName.Venus]: "ಶುಕ್ರವಾರ ಪ್ರಾತಃಕಾಲ ಶುಕ್ರ ಹೋರೆಯಲ್ಲಿ ಹಾಲಿನಲ್ಲಿ ಶುದ್ಧೀಕರಿಸಿ 'ಓಂ ನಮಃ ಶಿವಾಯ' ಜಪಿಸಿ ಧರಿಸಬೇಕು.",
+    [PlanetName.Saturn]: "ಶನಿವಾರ ಪ್ರಾತಃಕಾಲ ಅಥವಾ ಸಂಜೆ ಶನಿ ಹೋರೆಯಲ್ಲಿ ಶುದ್ಧೀಕರಿಸಿ ಮಹಾಮೃತ್ಯುಂಜಯ ಮಂತ್ರ ಜಪಿಸಿ ಧರಿಸಬೇಕು.",
+    [PlanetName.Rahu]: "ಶನಿವಾರ ಸಂಜೆ ರಾಹುಕಾಲ ಕಳೆದು ಗಂಗಾಜಲದಲ್ಲಿ ಶುದ್ಧೀಕರಿಸಿ 'ಓಂ ನಮಃ ಶಿವಾಯ' 108 ಬಾರಿ ಜಪಿಸಿ ಧರಿಸಬೇಕು.",
+    [PlanetName.Ketu]: "ಗುರುವಾರ ಅಥವಾ ಮಂಗಳವಾರ ಪ್ರಾತಃಕಾಲ ಗಂಗಾಜಲದಲ್ಲಿ ಶುದ್ಧೀಕರಿಸಿ ಗಣೇಶ ಸ್ತೋತ್ರ ಪಠಿಸಿ ಧರಿಸಬೇಕು."
+  };
+
+  // Dynamic Carat calculation based on Ascendant degree
+  const ascDegree = kundli.ascendant ?? 15;
+  const minCarat = Number((4.0 + (ascDegree % 8) * 0.25).toFixed(2));
+  const maxCarat = Number((minCarat + 1.25).toFixed(2));
+  const dynamicCaratKn = `${minCarat} ರಿಂದ ${maxCarat} ಕ್ಯಾರಟ್`;
+
   // 2. Gemstone Ring Selection (ಉಂಗುರ / ರತ್ನ - English Digits)
   const gemstoneMap: Record<PlanetName, {
-    kn: string; en: string; sanskrit: string; carat: string; metalKn: string; metalEn: string; fingerKn: string; fingerEn: string;
+    kn: string; en: string; sanskrit: string; metalKn: string; metalEn: string; fingerKn: string; fingerEn: string;
   }> = {
-    [PlanetName.Sun]: { kn: "ಮಾಣಿಕ್ಯ", en: "Ruby", sanskrit: "Manikya", carat: "3.5 ರಿಂದ 5.25 ಕ್ಯಾರಟ್", metalKn: "ಅಪ್ಪಟ ಚಿನ್ನ ಅಥವಾ ಶುದ್ಧ ತಾಮ್ರ", metalEn: "Gold or Copper", fingerKn: "ಉಂಗುರದ ಬೆರಳು (ಅನಾಮಿಕಾ)", fingerEn: "Ring Finger of Right Hand" },
-    [PlanetName.Moon]: { kn: "ನೈಸರ್ಗಿಕ ಮುತ್ತು", en: "Natural Pearl", sanskrit: "Mukta", carat: "4.25 ರಿಂದ 6.5 ಕ್ಯಾರಟ್", metalKn: "ಶುದ್ಧ ಬೆಳ್ಳಿ", metalEn: "Pure Silver", fingerKn: "ಕಿರುಬೆರಳು (ಕನಿಷ್ಠಿಕಾ)", fingerEn: "Little Finger of Right Hand" },
-    [PlanetName.Mars]: { kn: "ಹವಳ", en: "Red Coral", sanskrit: "Pravala", carat: "5.25 ರಿಂದ 7.5 ಕ್ಯಾರಟ್", metalKn: "ಶುದ್ಧ ತಾಮ್ರ ಅಥವಾ ಚಿನ್ನ", metalEn: "Copper or Gold", fingerKn: "ಉಂಗುರದ ಬೆರಳು (ಅನಾಮಿಕಾ)", fingerEn: "Ring Finger of Right Hand" },
-    [PlanetName.Mercury]: { kn: "ಪಚ್ಚೆ", en: "Emerald", sanskrit: "Marakata", carat: "3.25 ರಿಂದ 5.0 ಕ್ಯಾರಟ್", metalKn: "ಚಿನ್ನ ಅಥವಾ ಪಂಚಧಾತು", metalEn: "Gold or Panchadhatu", fingerKn: "ಕಿರುಬೆರಳು (ಕನಿಷ್ಠಿಕಾ)", fingerEn: "Little Finger of Right Hand" },
-    [PlanetName.Jupiter]: { kn: "ಪುಷ್ಪರಾಗ", en: "Yellow Sapphire", sanskrit: "Pushparaga", carat: "4.25 ರಿಂದ 6.0 ಕ್ಯಾರಟ್", metalKn: "ಅಪ್ಪಟ ಶುದ್ಧ ಚಿನ್ನ", metalEn: "Pure Gold", fingerKn: "ತೋರುಬೆರಳು (ತರ್ಜನಿ)", fingerEn: "Index Finger of Right Hand" },
-    [PlanetName.Venus]: { kn: "ವಜ್ರ ಅಥವಾ ಶ್ವೇತ ಜಿರ್ಕಾನ್", en: "Diamond or White Zircon", sanskrit: "Vajra / Heera", carat: "0.75 ರಿಂದ 1.5 ಕ್ಯಾರಟ್", metalKn: "ಶುದ್ಧ ಬೆಳ್ಳಿ ಅಥವಾ ಪ್ಲಾಟಿನಂ", metalEn: "Silver or Platinum", fingerKn: "ಮಧ್ಯದ ಬೆರಳು ಅಥವಾ ಉಂಗುರದ ಬೆರಳು", fingerEn: "Middle or Ring Finger" },
-    [PlanetName.Saturn]: { kn: "ಇಂದ್ರನೀಲಂ (ನೀಲಂ)", en: "Blue Sapphire (Neelam)", sanskrit: "Neelam", carat: "4.5 ರಿಂದ 6.25 ಕ್ಯಾರಟ್", metalKn: "ಪಂಚಧಾತು ಅಥವಾ ಬೆಳ್ಳಿ", metalEn: "Panchadhatu or Silver", fingerKn: "ಮಧ್ಯದ ಬೆರಳು (ಮಧ್ಯಮಾ)", fingerEn: "Middle Finger of Right Hand" },
-    [PlanetName.Rahu]: { kn: "ಗೋಮೇಧಿಕ", en: "Hessonite (Gomed)", sanskrit: "Gomedhika", carat: "4.25 ರಿಂದ 6.0 ಕ್ಯಾರಟ್", metalKn: "ಶುದ್ಧ ಬೆಳ್ಳಿ ಅಥವಾ ಪಂಚಧಾತು", metalEn: "Silver or Panchadhatu", fingerKn: "ಮಧ್ಯದ ಬೆರಳು (ಮಧ್ಯಮಾ)", fingerEn: "Middle Finger of Right Hand" },
-    [PlanetName.Ketu]: { kn: "ವೈಢೂರ್ಯ", en: "Cat's Eye (Vaidurya)", sanskrit: "Vaidurya", carat: "3.5 ರಿಂದ 5.5 ಕ್ಯಾರಟ್", metalKn: "ಶುದ್ಧ ಬೆಳ್ಳಿ ಅಥವಾ ಪಂಚಧಾತು", metalEn: "Silver or Panchadhatu", fingerKn: "ಉಂಗುರದ ಬೆರಳು ಅಥವಾ ಕಿರುಬೆರಳು", fingerEn: "Ring or Little Finger" }
+    [PlanetName.Sun]: { kn: "ಮಾಣಿಕ್ಯ", en: "Ruby", sanskrit: "Manikya", metalKn: "ಅಪ್ಪಟ ಚಿನ್ನ ಅಥವಾ ಶುದ್ಧ ತಾಮ್ರ", metalEn: "Gold or Copper", fingerKn: "ಉಂಗುರದ ಬೆರಳು (ಅನಾಮಿಕಾ)", fingerEn: "Ring Finger of Right Hand" },
+    [PlanetName.Moon]: { kn: "ನೈಸರ್ಗಿಕ ಮುತ್ತು", en: "Natural Pearl", sanskrit: "Mukta", metalKn: "ಶುದ್ಧ ಬೆಳ್ಳಿ", metalEn: "Pure Silver", fingerKn: "ಕಿರುಬೆರಳು (ಕನಿಷ್ಠಿಕಾ)", fingerEn: "Little Finger of Right Hand" },
+    [PlanetName.Mars]: { kn: "ಹವಳ", en: "Red Coral", sanskrit: "Pravala", metalKn: "ಶುದ್ಧ ತಾಮ್ರ ಅಥವಾ ಚಿನ್ನ", metalEn: "Copper or Gold", fingerKn: "ಉಂಗುರದ ಬೆರಳು (ಅನಾಮಿಕಾ)", fingerEn: "Ring Finger of Right Hand" },
+    [PlanetName.Mercury]: { kn: "ಪಚ್ಚೆ", en: "Emerald", sanskrit: "Marakata", metalKn: "ಚಿನ್ನ ಅಥವಾ ಪಂಚಧಾತು", metalEn: "Gold or Panchadhatu", fingerKn: "ಕಿರುಬೆರಳು (ಕನಿಷ್ಠಿಕಾ)", fingerEn: "Little Finger of Right Hand" },
+    [PlanetName.Jupiter]: { kn: "ಪುಷ್ಪರಾಗ", en: "Yellow Sapphire", sanskrit: "Pushparaga", metalKn: "ಅಪ್ಪಟ ಶುದ್ಧ ಚಿನ್ನ", metalEn: "Pure Gold", fingerKn: "ತೋರುಬೆರಳು (ತರ್ಜನಿ)", fingerEn: "Index Finger of Right Hand" },
+    [PlanetName.Venus]: { kn: "ವಜ್ರ ಅಥವಾ ಶ್ವೇತ ಜಿರ್ಕಾನ್", en: "Diamond or White Zircon", sanskrit: "Vajra / Heera", metalKn: "ಶುದ್ಧ ಬೆಳ್ಳಿ ಅಥವಾ ಪ್ಲಾಟಿನಂ", metalEn: "Silver or Platinum", fingerKn: "ಮಧ್ಯದ ಬೆರಳು ಅಥವಾ ಉಂಗುರದ ಬೆರಳು", fingerEn: "Middle or Ring Finger" },
+    [PlanetName.Saturn]: { kn: "ಇಂದ್ರನೀಲಂ (ನೀಲಂ)", en: "Blue Sapphire (Neelam)", sanskrit: "Neelam", metalKn: "ಪಂಚಧಾತು ಅಥವಾ ಬೆಳ್ಳಿ", metalEn: "Panchadhatu or Silver", fingerKn: "ಮಧ್ಯದ ಬೆರಳು (ಮಧ್ಯಮಾ)", fingerEn: "Middle Finger of Right Hand" },
+    [PlanetName.Rahu]: { kn: "ಗೋಮೇಧಿಕ", en: "Hessonite (Gomed)", sanskrit: "Gomedhika", metalKn: "ಶುದ್ಧ ಬೆಳ್ಳಿ ಅಥವಾ ಪಂಚಧಾತು", metalEn: "Silver or Panchadhatu", fingerKn: "ಮಧ್ಯದ ಬೆರಳು (ಮಧ್ಯಮಾ)", fingerEn: "Middle Finger of Right Hand" },
+    [PlanetName.Ketu]: { kn: "ವೈಢೂರ್ಯ", en: "Cat's Eye (Vaidurya)", sanskrit: "Vaidurya", metalKn: "ಶುದ್ಧ ಬೆಳ್ಳಿ ಅಥವಾ ಪಂಚಧಾತು", metalEn: "Silver or Panchadhatu", fingerKn: "ಉಂಗುರದ ಬೆರಳು ಅಥವಾ ಕಿರುಬೆರಳು", fingerEn: "Ring or Little Finger" }
   };
 
   const selectedGem = gemstoneMap[lagnaLord] || gemstoneMap[PlanetName.Jupiter];
+
+  // Dynamic Activation Day per Lagna Lord
+  const activationDayMap: Record<PlanetName, string> = {
+    [PlanetName.Sun]: "ಭಾನುವಾರ ಪ್ರಾತಃಕಾಲ (ಸೂರ್ಯೋದಯ ಕಾಲದಲ್ಲಿ)",
+    [PlanetName.Moon]: "ಸೋಮವಾರ ಪ್ರಾತಃಕಾಲ (ಶುಕ್ಲಪಕ್ಷದಲ್ಲಿ)",
+    [PlanetName.Mars]: "ಮಂಗಳವಾರ ಪ್ರಾತಃಕಾಲ (ಕುಜ ಹೋರೆಯಲ್ಲಿ)",
+    [PlanetName.Mercury]: "ಬುಧವಾರ ಪ್ರಾತಃಕಾಲ (ಬುಧ ಹೋರೆಯಲ್ಲಿ)",
+    [PlanetName.Jupiter]: "ಗುರುವಾರ ಪ್ರಾತಃಕಾಲ (ಗುರು ಹೋರೆಯಲ್ಲಿ)",
+    [PlanetName.Venus]: "ಶುಕ್ರವಾರ ಪ್ರಾತಃಕಾಲ (ಶುಕ್ರ ಹೋರೆಯಲ್ಲಿ)",
+    [PlanetName.Saturn]: "ಶನಿವಾರ ಪ್ರಾತಃಕಾಲ ಅಥವಾ ಸಂಜೆ (ಶನಿ ಹೋರೆಯಲ್ಲಿ)",
+    [PlanetName.Rahu]: "ಶನಿವಾರ ಸಂಜೆ (ರಾಹುಕಾಲ ಕಳೆದು)",
+    [PlanetName.Ketu]: "ಗುರುವಾರ ಅಥವಾ ಮಂಗಳವಾರ ಪ್ರಾತಃಕಾಲ"
+  };
+  const dynamicActivationDay = activationDayMap[lagnaLord] || "ಗುರುವಾರ ಪ್ರಾತಃಕಾಲ (ಗುರು ಹೋರೆಯಲ್ಲಿ)";
+
+  // Dynamic Shanti Pooja based on Lagna Lord & Affliction
+  let shantiKn = "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಗಣಪತಿ & ಮೃತ್ಯುಂಜಯ ಸಂಪುಟ ನವಗ್ರಹ ಶಾಂತಿ";
+  let shantiEn = "Gokarna Maha Ganapati & Mrityunjaya Navagraha Shanti";
+  let shantiPurpose = "ಲಗ್ನ ಬಲವರ್ಧನೆ, ದಶಾ ಸಂಧಿಯ ಅಡೆತಡೆಗಳ ನಿವಾರಣೆ ಮತ್ತು ಆಯುರ್-ಆರೋಗ್ಯ ವೃದ್ಧಿ.";
+
+  if (lagnaLord === PlanetName.Mars) {
+    shantiKn = "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಸುಬ್ರಹ್ಮಣ್ಯ ಕುಜ ಶಾಂತಿ ಪೂಜೆ & ಬಿಲ್ವಾರ್ಚನೆ";
+    shantiEn = "Subrahmanya Kuja Shanti & Bilvarchana at Gokarna Kshetra";
+    shantiPurpose = "ಕುಜ ಬಲವರ್ಧನೆ, ಕಾರ್ಯ ಸಿದ್ಧಿ ಮತ್ತು ರಕ್ತದೊತ್ತಡ/ಅಗ್ನಿ ದೋಷ ಶಮನ.";
+  } else if (lagnaLord === PlanetName.Saturn) {
+    shantiKn = "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಶನಿ ಶಾಂತಿ, ಮಹಾ ಮೃತ್ಯುಂಜಯ ಜಪ & ತೈಲಾಭಿಷೇಕ";
+    shantiEn = "Shani Shanti & Maha Mrityunjaya Japa at Gokarna Kshetra";
+    shantiPurpose = "ಶನಿ ಪೀಡಾ ನಿವಾರಣೆ, ಆಯುಷ್ಯ ವೃದ್ಧಿ ಮತ್ತು ಕರ್ಮ ಸಿದ್ಧಿ.";
+  } else if (lagnaLord === PlanetName.Moon) {
+    shantiKn = "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಚಂದ್ರ ಶಾಂತಿ, ಕ್ಷೀರಾಭಿಷೇಕ & ರುದ್ರಾಭಿಷೇಕ ಸೇವೆ";
+    shantiEn = "Chandra Shanti, Ksheerabhisheka & Rudrabhisheka at Gokarna";
+    shantiPurpose = "ಮಾನಸಿಕ ಶಾಂತಿ, ಭಾವನಾತ್ಮಕ ಸ್ಥೈರ್ಯ ಮತ್ತು ಮಾತೃ ಸುಖ ವೃದ್ಧಿ.";
+  } else if (lagnaLord === PlanetName.Mercury) {
+    shantiKn = "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಮಹಾಗಣಪತಿ ಹೋಮ & ಬುಧ ಶಾಂತಿ ಸೇವೆ";
+    shantiEn = "Maha Ganapati Homa & Budha Shanti Seva at Gokarna";
+    shantiPurpose = "ಬುದ್ಧಿ ಸ್ಥೈರ್ಯ, ವ್ಯಾಪಾರ-ವಿದ್ಯಾಭ್ಯಾಸ ಅಭಿವೃದ್ಧಿ ಮತ್ತು ವಾಕ್ ಸಿದ್ಧಿ.";
+  } else if (lagnaLord === PlanetName.Venus) {
+    shantiKn = "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಶ್ರೀ ಸೂಕ್ತ ಹವನ & ಲಕ್ಷ್ಮೀ-ಪಾರ್ವತಿ ಪೂಜೆ";
+    shantiEn = "Shree Sukta Hawana & Lakshmi-Parvati Pooja at Gokarna";
+    shantiPurpose = "ಸೌಭಾಗ್ಯ ವೃದ್ಧಿ, ದಾಂಪತ್ಯ ಸುಖ ಮತ್ತು ಆರ್ಥಿಕ ಸ್ಥಿರತೆ.";
+  } else if (lagnaLord === PlanetName.Sun) {
+    shantiKn = "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಸೂರ್ಯ ನಮಸ್ಕಾರ ಸಂಕಲ್ಪ & ಮಹಾ ರುದ್ರಾಭಿಷೇಕ";
+    shantiEn = "Surya Sankalpa & Maha Rudrabhisheka at Gokarna Kshetra";
+    shantiPurpose = "ಆತ್ಮಬಲ ವೃದ್ಧಿ, ಪಿತೃ ಕೃಪೆ, ತೇಜಸ್ಸು ಮತ್ತು ಆರೋಗ್ಯ ಭಾಗ್ಯ.";
+  }
 
   // 3. Lucky Attributes (English Digits)
   const colorMap: Record<number, { car: string[]; cloth: string[]; avoid: string[]; dir: string[]; nums: number[] }> = {
@@ -340,21 +433,21 @@ export const generateAstrologicalPrescriptions = (
       nameEn: selectedRudraksha.nameEn,
       deity: selectedRudraksha.deity,
       planet: lagnaLord,
-      astrologicalReason: `ನಿಮ್ಮ ಲಗ್ನಾಧಿಪತಿಯಾದ ${lagnaLord} ಹಾಗೂ ಜನ್ಮ ನಕ್ಷತ್ರದ ತರಂಗಾಂತರವನ್ನು ಶುದ್ಧೀಕರಿಸಲು, ಪ್ರಾಣಶಕ್ತಿಯನ್ನು ವೃದ್ಧಿಸಲು ಈ ${selectedRudraksha.mukhi} ಮುಖಿ ರುದ್ರಾಕ್ಷಿಯು ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ.`,
-      wearingMethod: "ಸೋಮವಾರ ಅಥವಾ ಗುರುವಾರ ಪ್ರಾತಃಕಾಲ ಹಸಿ ಹಾಲಿನಲ್ಲಿ ಮತ್ತು ಗಂಗಾಜಲದಲ್ಲಿ ಶುದ್ಧೀಕರಿಸಿ 'ಓಂ ನಮಃ ಶಿವಾಯ' 108 ಬಾರಿ ಜಪಿಸಿ ಧರಿಸಬೇಕು.",
+      astrologicalReason: `ನಿಮ್ಮ ಲಗ್ನಾಧಿಪತಿಯಾದ ${toKannadaPlanet(lagnaLord)} ಹಾಗೂ ಜನ್ಮ ನಕ್ಷತ್ರದ ತರಂಗಾಂತರವನ್ನು ಶುದ್ಧೀಕರಿಸಲು, ಪ್ರಾಣಶಕ್ತಿಯನ್ನು ವೃದ್ಧಿಸಲು ಈ ${selectedRudraksha.mukhi} ಮುಖಿ ರುದ್ರಾಕ್ಷಿಯು ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ.`,
+      wearingMethod: rudrakshaWearingMap[lagnaLord] || rudrakshaWearingMap[PlanetName.Jupiter],
       panchangaSynergy: `ಜನ್ಮ ನಕ್ಷತ್ರಾಧಿಪತಿ (${nakLord}) ಮತ್ತು ಕರಣ ತತ್ವದ (${kRule.tatva}) ಜೊತೆಗೆ ಅದ್ಭುತ ಸಮನ್ವಯ ಸಾಧಿಸುತ್ತದೆ.`
     },
     gemstoneRing: {
       primaryGemstoneKn: selectedGem.kn,
       primaryGemstoneEn: selectedGem.en,
       sanskritName: selectedGem.sanskrit,
-      caratWeight: selectedGem.carat,
+      caratWeight: dynamicCaratKn,
       metalKn: selectedGem.metalKn,
       metalEn: selectedGem.metalEn,
       fingerKn: selectedGem.fingerKn,
       fingerEn: selectedGem.fingerEn,
-      astrologicalReason: `ಲಗ್ನ ಬಲವನ್ನು ಸ್ಥಿರಗೊಳಿಸಿ, ಪ್ರಸ್ತುತ ಗೋಚಾರ ಮತ್ತು ದಶಾ ಸಂಧಿಕಾಲದ ಅಡೆತಡೆಗಳಿಂದ ನಿಮ್ಮನ್ನು ರಕ್ಷಿಸಲು ಈ ${selectedGem.kn} (${selectedGem.carat}) ಭಾಗ್ಯ ರತ್ನ ಉಂಗುರವನ್ನು ನಿಗದಿಪಡಿಸಲಾಗಿದೆ.`,
-      activationDay: lagnaLord === PlanetName.Jupiter ? "ಗುರುವಾರ ಪ್ರಾತಃಕಾಲ" : lagnaLord === PlanetName.Venus ? "ಶುಕ್ರವಾರ ಪ್ರಾತಃಕಾಲ" : lagnaLord === PlanetName.Sun ? "ಭಾನುವಾರ ಪ್ರಾತಃಕಾಲ" : "ಬುಧವಾರ / ಶನಿವಾರ ಪ್ರಾತಃಕಾಲ",
+      astrologicalReason: `ಲಗ್ನ ಬಲವನ್ನು ಸ್ಥಿರಗೊಳಿಸಿ, ಪ್ರಸ್ತುತ ಗೋಚಾರ ಮತ್ತು ದಶಾ ಸಂಧಿಕಾಲದ ಅಡೆತಡೆಗಳಿಂದ ನಿಮ್ಮನ್ನು ರಕ್ಷಿಸಲು ಈ ${selectedGem.kn} (${dynamicCaratKn}) ಭಾಗ್ಯ ರತ್ನ ಉಂಗುರವನ್ನು ನಿಗದಿಪಡಿಸಲಾಗಿದೆ.`,
+      activationDay: dynamicActivationDay,
       panchangaSynergy: `ಯೋಗದ ಪ್ರಭಾವವನ್ನು (${yRule.sanskrit}) ಶುಭ ಫಲಕ್ಕೆ ತಿರುಗಿಸಲು ಹಾಗೂ ಲಗ್ನ ಬಲವನ್ನು ಹೆಚ್ಚಿಸಲು ಸಹಕಾರಿಯಾಗಿದೆ.`
     },
     luckyAttributes: {
@@ -365,9 +458,9 @@ export const generateAstrologicalPrescriptions = (
       numbers: lucky.nums
     },
     shantiPooja: {
-      nameKn: "ಗೋಕರ್ಣ ಮಹಾಗಣಪತಿ & ಮೃತ್ಯುಂಜಯ ಸಂಪುಟ ನವಗ್ರಹ ಶಾಂತಿ",
-      nameEn: "Gokarna Maha Ganapati & Mrityunjaya Navagraha Shanti",
-      purpose: "ದಶಾ ಸಂಧಿಯ ನಕಾರಾತ್ಮಕ ಶಕ್ತಿ ನಿವಾರಣೆ ಮತ್ತು ಆಯುರ್-ಆರೋಗ್ಯ ವೃದ್ಧಿ."
+      nameKn: shantiKn,
+      nameEn: shantiEn,
+      purpose: shantiPurpose
     }
   };
 };
@@ -388,6 +481,125 @@ export function calculateDevoteeAge(birthDate: string): number {
   return Math.max(1, age);
 }
 
+export const calculateDynamicDashaTiming = (
+  kundli: KundliOutput,
+  ageDecimal: number
+): DynamicDashaTiming => {
+  const bhuktiTimeline = generateBhuktiTimeline(kundli);
+  const currentSpanIdx = bhuktiTimeline.findIndex(
+    (s) => ageDecimal >= s.startAge - 1e-6 && ageDecimal < s.endAge - 1e-6
+  );
+  const currentSpan = currentSpanIdx >= 0 ? bhuktiTimeline[currentSpanIdx] : bhuktiTimeline[0]!;
+  const nextSpan = currentSpanIdx >= 0 && currentSpanIdx + 1 < bhuktiTimeline.length ? bhuktiTimeline[currentSpanIdx + 1] : undefined;
+
+  const currentMaha = currentSpan.maha;
+  const currentBhukti = currentSpan.bhukti;
+  const nextMaha = nextSpan?.maha;
+  const nextBhukti = nextSpan?.bhukti;
+
+  const remainingYears = Math.max(0.08, currentSpan.endAge - ageDecimal);
+  const remainingMonths = Math.max(1, Math.round(remainingYears * 12));
+
+  const timelineKn = `ಮುಂದಿನ ${remainingMonths} ತಿಂಗಳುಗಳಲ್ಲಿ`;
+  const timelineEn = `over the Next ${remainingMonths} Month${remainingMonths > 1 ? "s" : ""}`;
+  const badgeTimelineKn = `ಮುಂದಿನ ${remainingMonths} ತಿಂಗಳುಗಳು`;
+  const badgeTimelineEn = `Next ${remainingMonths} Month${remainingMonths > 1 ? "s" : ""}`;
+
+  return {
+    remainingMonths,
+    currentBhuktiEndAge: currentSpan.endAge,
+    currentMaha,
+    currentBhukti,
+    nextMaha,
+    nextBhukti,
+    timelineKn,
+    timelineEn,
+    badgeTimelineKn,
+    badgeTimelineEn
+  };
+};
+
+export const calculateLiveGochara = (
+  kundli: KundliOutput,
+  context: { latitude: number; longitude: number }
+): LiveGocharaAnalysis => {
+  const today = new Date();
+  const todayYmd = today.toISOString().slice(0, 10);
+  const todayHours = String(today.getHours()).padStart(2, "0");
+  const todayMins = String(today.getMinutes()).padStart(2, "0");
+
+  const transitKundli = calculateKundli({
+    name: "Gochara Transit",
+    birthDate: todayYmd,
+    birthTime: `${todayHours}:${todayMins}`,
+    latitude: context.latitude,
+    longitude: context.longitude
+  });
+
+  const nativeMoonRashiIdx = kundli.moonSign.index;
+
+  const transitJupiter = transitKundli.planets.find((p) => p.name === PlanetName.Jupiter);
+  const transitSaturn = transitKundli.planets.find((p) => p.name === PlanetName.Saturn);
+  const transitRahu = transitKundli.planets.find((p) => p.name === PlanetName.Rahu);
+  const transitKetu = transitKundli.planets.find((p) => p.name === PlanetName.Ketu);
+
+  const jupiterTransitSignIdx = transitJupiter ? transitJupiter.rashi.index : 1;
+  const saturnTransitSignIdx = transitSaturn ? transitSaturn.rashi.index : 10;
+  const rahuTransitSignIdx = transitRahu ? transitRahu.rashi.index : 11;
+  const ketuTransitSignIdx = transitKetu ? transitKetu.rashi.index : 5;
+
+  const guruHouseFromMoon = ((jupiterTransitSignIdx - nativeMoonRashiIdx + 12) % 12) + 1;
+  const shaniHouseFromMoon = ((saturnTransitSignIdx - nativeMoonRashiIdx + 12) % 12) + 1;
+  const rahuHouseFromMoon = ((rahuTransitSignIdx - nativeMoonRashiIdx + 12) % 12) + 1;
+  const ketuHouseFromMoon = ((ketuTransitSignIdx - nativeMoonRashiIdx + 12) % 12) + 1;
+
+  // Interpret Jupiter Gochara (Houses 2, 5, 7, 9, 11 are Auspicious / Shubha)
+  const isGuruShubha = [2, 5, 7, 9, 11].includes(guruHouseFromMoon);
+  const guruStatusKn = isGuruShubha
+    ? `ಗೋಚಾರ ಗುರುವು ಜನ್ಮ ರಾಶಿಯಿಂದ ${guruHouseFromMoon}ನೇ ಶುಭ ಸ್ಥಾನದಲ್ಲಿದ್ದು ಭಾಗ್ಯೋದಯ, ದೈವಿಕ ರಕ್ಷಣೆ ಮತ್ತು ಆರ್ಥಿಕ ವೃದ್ಧಿಗೆ ಪೂರಕವಾಗಿದ್ದಾನೆ.`
+    : `ಗೋಚಾರ ಗುರುವು ಜನ್ಮ ರಾಶಿಯಿಂದ ${guruHouseFromMoon}ನೇ ಸ್ಥಾನದಲ್ಲಿದ್ದು ಆಧ್ಯಾತ್ಮಿಕ ಚಿಂತನೆ, ಜ್ಞಾನಾರ್ಜನೆ ಮತ್ತು ಪರಿಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಶುಭ ಫಲ ನೀಡಲಿದ್ದಾನೆ.`;
+  const guruStatusEn = isGuruShubha
+    ? `Transiting Jupiter is posited in auspicious House ${guruHouseFromMoon} from your Moon, conferring divine protection, fortune, and prosperity.`
+    : `Transiting Jupiter is in House ${guruHouseFromMoon} from your Moon, requiring patience and spiritual focus for desired fruition.`;
+
+  // Interpret Saturn Gochara (12, 1, 2 = Sade Sati; 8 = Ashtama; 4 = Kantaka; 3, 6, 11 = Upachaya)
+  let shaniStatusKn = "";
+  let shaniStatusEn = "";
+  if ([12, 1, 2].includes(shaniHouseFromMoon)) {
+    const phase = shaniHouseFromMoon === 12 ? "ಆದಿ ಹಂತ" : shaniHouseFromMoon === 1 ? "ಜನ್ಮ/ಮಧ್ಯ ಹಂತ" : "ಅಂತ್ಯ ಹಂತ";
+    shaniStatusKn = `ಶನಿಯು ಜನ್ಮ ರಾಶಿಯಿಂದ ${shaniHouseFromMoon}ನೇ ಮನೆಯಲ್ಲಿ ಚಲಿಸುತ್ತಿದ್ದು, ಸಾಡೇ ಸಾತಿ (ಏಳೂವರೆ ಶನಿ - ${phase}) ಪ್ರಭಾವವಿದೆ. ಇದು ಪರಿಶ್ರಮ ಮತ್ತು ಕರ್ಮ ಶುದ್ಧಿಯ ಕಾಲವಾಗಿದೆ.`;
+    shaniStatusEn = `Saturn is transiting House ${shaniHouseFromMoon} from your Moon (Sade Sati phase), demanding disciplined karma and patience.`;
+  } else if (shaniHouseFromMoon === 8) {
+    shaniStatusKn = `ಶನಿಯು ಜನ್ಮ ರಾಶಿಯಿಂದ 8ನೇ ಸ್ಥಾನದಲ್ಲಿ (ಅಷ್ಟಮ ಶನಿ) ಸಂಚರಿಸುತ್ತಿದ್ದು, ಆರೋಗ್ಯ ಮತ್ತು ವಾಹನ ಚಾಲನೆಯಲ್ಲಿ ಜಾಗರೂಕತೆ ಹಾಗೂ ಶಾಂತಿ ಪೂಜೆ ಅಗತ್ಯ.`;
+    shaniStatusEn = `Saturn is transiting House 8 from Moon (Ashtama Shani), requiring protective remedies and health vigilance.`;
+  } else if (shaniHouseFromMoon === 4) {
+    shaniStatusKn = `ಶನಿಯು ಜನ್ಮ ರಾಶಿಯಿಂದ 4ನೇ ಮನೆಯಲ್ಲಿ (ಅರ್ಧಾಷ್ಟಮ / ಕಂಟಕ ಶನಿ) ಸ್ಥಿತನಾಗಿದ್ದು, ಕೌಟುಂಬಿಕ ಹಾಗೂ ಗೃಹ ವಿಚಾರಗಳಲ್ಲಿ ಸಂಯಮದ ಅಗತ್ಯವಿದೆ.`;
+    shaniStatusEn = `Saturn is transiting House 4 from Moon (Kantaka Shani), calling for domestic patience and mindfulness.`;
+  } else if ([3, 6, 11].includes(shaniHouseFromMoon)) {
+    shaniStatusKn = `ಶನಿಯು ಜನ್ಮ ರಾಶಿಯಿಂದ ${shaniHouseFromMoon}ನೇ ಉಪಚಯ ಸ್ಥಾನದಲ್ಲಿದ್ದು ಶತ್ರು ಜಯ, ಕಾರ್ಯಸಿದ್ಧಿ ಮತ್ತು ದೃಢ ಸಂಕಲ್ಪಕ್ಕೆ ಅಪಾರ ಬಲ ನೀಡುತ್ತಿದ್ದಾನೆ.`;
+    shaniStatusEn = `Saturn is transiting House ${shaniHouseFromMoon} from Moon (Upachaya strength), granting victory over challenges and enduring success.`;
+  } else {
+    shaniStatusKn = `ಶನಿಯು ಜನ್ಮ ರಾಶಿಯಿಂದ ${shaniHouseFromMoon}ನೇ ಭಾವದಲ್ಲಿ ಸಂಚರಿಸುತ್ತಿದ್ದು ಕರ್ತವ್ಯ ನಿಷ್ಠೆ ಮತ್ತು ಸತ್ಯವನ್ನು ಪರೀಕ್ಷಿಸುತ್ತಿದ್ದಾನೆ.`;
+    shaniStatusEn = `Saturn is transiting House ${shaniHouseFromMoon} from Moon, strengthening responsibility and ethical resolve.`;
+  }
+
+  const summaryKn = `${guruStatusKn} ${shaniStatusKn}`;
+  const summaryEn = `${guruStatusEn} ${shaniStatusEn}`;
+
+  return {
+    guruHouseFromMoon,
+    shaniHouseFromMoon,
+    rahuHouseFromMoon,
+    ketuHouseFromMoon,
+    guruStatusKn,
+    guruStatusEn,
+    shaniStatusKn,
+    shaniStatusEn,
+    summaryKn,
+    summaryEn
+  };
+};
+
 export const generate10MasterLifeBulletPoints = (
   kundli: KundliOutput,
   context: { birthDate: string; birthTime: string; latitude: number; longitude: number; gender?: string; devoteeName?: string },
@@ -395,8 +607,13 @@ export const generate10MasterLifeBulletPoints = (
   age: number,
   maha: PlanetName,
   bhukti: PlanetName,
-  tradPanchanga?: any
+  dashaTiming?: DynamicDashaTiming,
+  liveGochara?: LiveGocharaAnalysis
 ): MasterLifeBulletPoint[] => {
+  const ageDecimal = ageDecimalYearsAt(context.birthDate, context.birthTime, context.latitude, context.longitude, new Date());
+  const dt = dashaTiming || calculateDynamicDashaTiming(kundli, ageDecimal);
+  const lg = liveGochara || calculateLiveGochara(kundli, context);
+
   const lagnaIdx = kundli.lagnaRashi.index;
   const lagnaLord = signLord(lagnaIdx);
   const lagnaKn = toKannadaRashi(kundli.lagnaRashi.english);
@@ -506,14 +723,19 @@ export const generate10MasterLifeBulletPoints = (
     ? `Governed by 5th lord ${fifthLord} with ${h5PlanetsKn} influence, your mind is razor-sharp in disciplines of natural curiosity (logic, technology, or creative mastery). However, when forced into rote memorization or coerced study routines, restlessness and procrastination set in. You excel through hands-on practical application rather than forced theory.`
     : `Your 5th house dynamics combined with Mercury-Jupiter intellect grant strategic acumen, quick problem-solving, and continuous professional mastery.`;
 
-  // 3. Social & Family Dynamics
+  // 3. Social & Family Dynamics (Dynamic 3rd & 11th House Integration)
+  const h3Planets = kundli.planets.filter((p) => p.house === 3);
+  const h11Planets = kundli.planets.filter((p) => p.house === 11);
+  const h3PlanetsKn = h3Planets.map((p) => toKannadaPlanet(p.name)).join(", ") || `${toKannadaPlanet(thirdLord)} ಅಧಿಪತ್ಯ`;
+  const h11PlanetsKn = h11Planets.map((p) => toKannadaPlanet(p.name)).join(", ") || `${toKannadaPlanet(eleventhLord)} ಅಧಿಪತ್ಯ`;
+
   const p3ReadingKn = age < 23
-    ? `ನಿಮ್ಮ 3ನೇ ಮತ್ತು 11ನೇ ಭಾವಗಳ ಗ್ರಹ ಪ್ರಭಾವದಿಂದ, ನೀವು ಮನೆಯ ನಾಲ್ಕು ಗೋಡೆಗಳ ಮಧ್ಯೆ ಕುಳಿತುಕೊಳ್ಳುವುದಕ್ಕಿಂತ ಸ್ನೇಹಿತರೊಂದಿಗೆ ಹೊರಾಂಗಣದಲ್ಲಿ ಬೆರೆಯಲು ಹೆಚ್ಚು ಇಷ್ಟಪಡುತ್ತೀರಿ. ಸಮಾನ ಮನಸ್ಕ ಗೆಳೆಯರ ಜೊತೆ ಕಾಲ ಕಳೆಯುವುದು ನಿಮಗೆ ಅಪಾರ ಉತ್ಸಾಹ ನೀಡುತ್ತದೆ. ಮನೆಯಲ್ಲಿ ಪೋಷಕರು ನಿಮ್ಮ ದಿನಚರಿ ಅಥವಾ ಗೆಳೆತನದ ಬಗ್ಗೆ ಪ್ರಶ್ನಿಸಿದಾಗ ತಕ್ಷಣ ಸಿಟ್ಟು ಅಥವಾ ಭಿನ್ನಾಭಿಪ್ರಾಯ ಮೂಡುವುದು ಸಹಜ; ಆದರೆ ನೀವು ನಂಬಿದ ಸ್ನೇಹಿತರಿಗೆ ಯಾವುದೇ ಕಾರಣಕ್ಕೂ ದ್ರೋಹ ಬಗೆಯುವುದಿಲ್ಲ.`
-    : `ನಿಮ್ಮ ಸಾಮಾಜಿಕ ವಲಯದಲ್ಲಿ ನೀವು ಎಲ್ಲರೊಂದಿಗೂ ಬೆರೆಯುವ ಬದಲು ಕೆಲವೇ ಆಪ್ತ ಹಾಗೂ ವಿಶ್ವಾಸಾರ್ಹ ವ್ಯಕ್ತಿಗಳನ್ನು ಮಾತ್ರ ಹತ್ತಿರ ಸೇರಿಸುತ್ತೀರಿ. ಕುಟುಂಬದ ಸದಸ್ಯರಿಗೆ ಸದಾ ರಕ್ಷಾ ಕವಚವಾಗಿ ನಿಲ್ಲುವ ನೀವು, ನಿಮ್ಮ ಮನೆಯ ಆಂತರಿಕ ಸ್ವಾತಂತ್ರ್ಯದಲ್ಲಿ ಹೊರಗಿನವರ ಹಸ್ತಕ್ಷೇಪವನ್ನು ಎಂದಿಗೂ ಸಹಿಸುವುದಿಲ್ಲ.`;
+    ? `ನಿಮ್ಮ 3ನೇ ಸಹೋದರ/ಮಿತ್ರ ಸ್ಥಾನದಲ್ಲಿ ${h3PlanetsKn} ಹಾಗೂ 11ನೇ ಲಾಭ ಸ್ಥಾನದಲ್ಲಿ ${h11PlanetsKn} ಪ್ರಭಾವವಿದೆ. ನೀವು ಮನೆಯಲ್ಲಿ ಕೇವಲ ಸೀಮಿತವಾಗಿ ಕುಳಿತುಕೊಳ್ಳುವುದಕ್ಕಿಂತ ಸಮಾನ ಮನಸ್ಕ ಸ್ನೇಹಿತರೊಂದಿಗೆ ಬೆರೆಯಲು ಹೆಚ್ಚು ಇಷ್ಟಪಡುತ್ತೀರಿ. ಮನೆಯಲ್ಲಿ ಹಿರಿಯರು ನಿಮ್ಮ ಗೆಳೆತನ ಅಥವಾ ದಿನಚರಿಯ ಬಗ್ಗೆ ಪ್ರಶ್ನಿಸಿದಾಗ ಸಣ್ಣ ಸಿಟ್ಟು ಅಥವಾ ಭಿನ್ನಾಭಿಪ್ರಾಯ ಮೂಡುವುದು ಸಹಜ; ಆದರೆ ನಂಬಿದ ಸ್ನೇಹಿತರಿಗೆ ಎಂದಿಗೂ ದ್ರೋಹ ಮಾಡದ ಅಪಾರ ನಿಷ್ಠೆ ನಿಮ್ಮಲ್ಲಿದೆ.`
+    : `ನಿಮ್ಮ 3ನೇ ಭಾವದ (${h3PlanetsKn}) ಧೈರ್ಯ ಮತ್ತು 11ನೇ ಭಾವದ (${h11PlanetsKn}) ಸಾಮಾಜಿಕ ಬಲದಿಂದ, ನೀವು ಎಲ್ಲರೊಂದಿಗೂ ಬೆರೆಯುವ ಬದಲು ಕೆಲವೇ ಆಪ್ತ ಹಾಗೂ ವಿಶ್ವಾಸಾರ್ಹ ವ್ಯಕ್ತಿಗಳನ್ನು ಮಾತ್ರ ಹತ್ತಿರ ಸೇರಿಸುತ್ತೀರಿ. ಕುಟುಂಬದ ಗೌರವಕ್ಕೆ ಸದಾ ರಕ್ಷಾ ಕವಚವಾಗಿ ನಿಲ್ಲುವ ನೀವು, ನಿಮ್ಮ ಮನೆಯ ಆಂತರಿಕ ಸ್ವಾತಂತ್ರ್ಯದಲ್ಲಿ ಹೊರಗಿನವರ ಹಸ್ತಕ್ಷೇಪವನ್ನು ಎಂದಿಗೂ ಸಹಿಸುವುದಿಲ್ಲ.`;
 
   const p3ReadingEn = age < 23
-    ? `Influenced by your 3rd and 11th houses, you naturally gravitate towards peer circles and outdoor activities rather than remaining confined at home. When family members question your schedule, friction or defensive reactions may arise, yet your loyalty to trusted peers is absolute.`
-    : `You maintain a selective, trusted social circle rather than superficial networking. Fiercely protective of household autonomy, you never tolerate third-party interference in personal family matters.`;
+    ? `Influenced by 3rd house (${h3Planets.map(p => p.name).join(", ") || thirdLord}) and 11th house (${h11Planets.map(p => p.name).join(", ") || eleventhLord}), you naturally gravitate towards peer circles and active pursuits rather than remaining confined indoors. While family inquiries may cause quick defensive reactions, your loyalty to genuine peers is absolute.`
+    : `Governed by 3rd and 11th houses (${thirdLord}/${eleventhLord}), you maintain a selective, deeply trusted inner circle. Fiercely protective of household autonomy, you never tolerate external intrusion into personal affairs.`;
 
   // 4. Inner Mind & Emotional Temperament
   const p4ReadingKn = isMoonTrika
@@ -531,10 +753,22 @@ export const generate10MasterLifeBulletPoints = (
 
   const p5ReadingEn = `Governed by 10th lord ${tenthLord} with ${h10PlanetsKn} influence, you thrive where you command operational freedom. You despise micromanagement. Though recognition may occasionally be delayed, your unwavering consistency guarantees eventual leadership and distinction.`;
 
-  // 6. Wealth & Finances
-  const p6ReadingKn = `ನಿಮ್ಮ 2ನೇ ಧನ ಸ್ಥಾನದ ಅಧಿಪತಿ ${secondLordKn} ಮತ್ತು 11ನೇ ಲಾಭ ಸ್ಥಾನದ ಅಧಿಪತಿ ${eleventhLordKn} ಆಗಿದ್ದಾರೆ. ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಧನಾಗಮನದ ಶಕ್ತಿ ದೃಢವಾಗಿದೆ; ಆದಾಗ್ಯೂ ಕೈಗೆ ಬಂದ ಹಣವು ಅನಿರೀಕ್ಷಿತ ಕೌಟುಂಬಿಕ ಅಗತ್ಯಗಳು, ವಾಹನ ಅಥವಾ ಆಪ್ತರ ಸಹಾಯಕ್ಕಾಗಿ ನೀರಿನಂತೆ ಖರ್ಚಾಗುವ (ಧನ ಸೋರಿಕೆ) ಪ್ರವೃತ್ತಿ ಇದೆ. ನಗದನ್ನು ಹಾಗೆಯೇ ಇಟ್ಟುಕೊಳ್ಳುವ ಬದಲು ಸ್ಥಿರ ಆಸ್ತಿ, ಬಂಗಾರ ಅಥವಾ ದೀರ್ಘಕಾಲಿಕ ಹೂಡಿಕೆಯಲ್ಲಿ ಪರಿವರ್ತಿಸುವುದರಿಂದ ನಿಮ್ಮ ಧನಕೋಶವು ಸದಾ ತುಂಬಿರುತ್ತದೆ.`;
+  // 6. Wealth & Finances (Dynamic Dhana Yoga vs Leakage Check)
+  const secondLordPlanet = kundli.planets.find((p) => p.name === secondLord);
+  const eleventhLordPlanet = kundli.planets.find((p) => p.name === eleventhLord);
+  const isDhanaAuspicious = (secondLordPlanet && [1, 2, 4, 5, 7, 9, 10, 11].includes(secondLordPlanet.house)) ||
+                            (eleventhLordPlanet && [1, 2, 4, 5, 7, 9, 10, 11].includes(eleventhLordPlanet.house));
+  const hasWealthLeakage = (secondLordPlanet && [6, 8, 12].includes(secondLordPlanet.house)) ||
+                           (eleventhLordPlanet && [6, 8, 12].includes(eleventhLordPlanet.house)) ||
+                           (rahu && [2, 12].includes(rahu.house));
 
-  const p6ReadingEn = `With 2nd lord ${secondLord} and 11th lord ${eleventhLord}, your earning capability is strong, but capital tends to disperse into unexpected expenditures or generous support for others. Channeling liquidity into tangible real estate or gold safeguards long-term prosperity.`;
+  const p6ReadingKn = isDhanaAuspicious && !hasWealthLeakage
+    ? `ನಿಮ್ಮ 2ನೇ ಧನ ಸ್ಥಾನದ ಅಧಿಪತಿ ${secondLordKn} ಹಾಗೂ 11ನೇ ಲಾಭ ಸ್ಥಾನದ ಅಧಿಪತಿ ${eleventhLordKn} ಶುಭ ಕೇಂದ್ರ/ತ್ರಿಕೋಣ ಬಲದಲ್ಲಿದ್ದಾರೆ. ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ನಿರಂತರ ಧನಾರ್ಜನೆ ಹಾಗೂ ಆಸ್ತಿ ನಿರ್ಮಾಣದ ಪ್ರಬಲ ಧನ ಯೋಗವಿದೆ. ನಿಮ್ಮ ದೃಢ ಪರಿಶ್ರಮ ಮತ್ತು ಆರ್ಥಿಕ ಶಿಸ್ತಿನಿಂದಾಗಿ ದೀರ್ಘಕಾಲಿಕ ಹೂಡಿಕೆಗಳು, ಸ್ಥಿರ ಆಸ್ತಿ ಮತ್ತು ಬಂಗಾರದ ರೂಪದಲ್ಲಿ ಸಂಪತ್ತು ಸಮೃದ್ಧವಾಗಿ ವೃದ್ಧಿಯಾಗಲಿದೆ.`
+    : `ನಿಮ್ಮ 2ನೇ ಧನ ಸ್ಥಾನದ ಅಧಿಪತಿ ${secondLordKn} ಮತ್ತು 11ನೇ ಲಾಭ ಸ್ಥಾನದ ಅಧಿಪತಿ ${eleventhLordKn} ಆಗಿದ್ದಾರೆ. ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಧನಾಗಮನದ ಶಕ್ತಿ ದೃಢವಾಗಿದೆ; ಆದಾಗ್ಯೂ ಕೈಗೆ ಬಂದ ಹಣವು ಅನಿರೀಕ್ಷಿತ ಕೌಟುಂಬಿಕ ಅಗತ್ಯಗಳು, ವಾಹನ ಅಥವಾ ಆಪ್ತರ ಸಹಾಯಕ್ಕಾಗಿ ಖರ್ಚಾಗುವ (ಧನ ಸೋರಿಕೆ) ಪ್ರವೃತ್ತಿ ಇದೆ. ನಗದನ್ನು ಹಾಗೆಯೇ ಇಟ್ಟುಕೊಳ್ಳುವ ಬದಲು ಸ್ಥಿರ ಆಸ್ತಿ, ಬಂಗಾರ ಅಥವಾ ದೀರ್ಘಕಾಲಿಕ ಉಳಿತಾಯದಲ್ಲಿ ಪರಿವರ್ತಿಸುವುದರಿಂದ ನಿಮ್ಮ ಧನಕೋಶವು ಸದಾ ತುಂಬಿರುತ್ತದೆ.`;
+
+  const p6ReadingEn = isDhanaAuspicious && !hasWealthLeakage
+    ? `With 2nd lord ${secondLord} and 11th lord ${eleventhLord} situated in favorable Kendra/Trikona houses, your horoscope forms a potent Dhana Yoga ensuring continuous capital accretion and steady asset building through long-term real estate or precious investments.`
+    : `With 2nd lord ${secondLord} and 11th lord ${eleventhLord}, your earning capability is strong, but capital tends to disperse into unexpected family obligations. Converting liquid savings into tangible real estate or gold safeguards long-term security.`;
 
   // 7. Marriage, Relationship & Children (Dosha Specifics)
   let doshaTitleKn = "ಸಾಮರಸ್ಯದ ದಾಂಪತ್ಯ ಯೋಗ";
@@ -629,20 +863,54 @@ export const generate10MasterLifeBulletPoints = (
     };
   }
 
-  // 8. Health & Physical Vitality
-  const p8ReadingKn = `ನಿಮ್ಮ ಲಗ್ನಾಧಿಪತಿ ${lagnaLordKn} ಮತ್ತು 6ನೇ ರೋಗ ಸ್ಥಾನದ ${sixthLordKn} ಗ್ರಹಬಲದ ಪ್ರಕಾರ, ನಿಮ್ಮ ಮೂಲ ಪ್ರಕೃತಿಯು ಪಿತ್ತ ಮತ್ತು ವಾತ ತತ್ವಗಳ ಮಿಶ್ರಣವಾಗಿದೆ. ತಲೆಬಿಸಿ, ಜೀರ್ಣಾಂಗ ಅಗ್ನಿಮಾಂದ್ಯತೆ, ಆಮ್ಲಪಿತ್ತ ಅಥವಾ ನಿಶ್ಯಕ್ತಿ ಆಗಾಗ ಕಾಣಿಸಿಕೊಳ್ಳಬಹುದು. ದಿನನಿತ್ಯ ಸಾಕಷ್ಟು ನೀರು ಕುಡಿಯುವುದು, ಪ್ರಾತಃಕಾಲ ಸೂರ್ಯ ನಮಸ್ಕಾರ ಹಾಗೂ ಸರಿಯಾದ ಸಮಯಕ್ಕೆ ಸಾತ್ವಿಕ ಊಟ ಮಾಡುವುದರಿಂದ ನಿಮ್ಮ ದೇಹಬಲವು ಸದಾ ಉಲ್ಲಾಸಭರಿತವಾಗಿರುತ್ತದೆ.`;
+  // 8. Health & Physical Vitality (Dynamic Tatva Constitution)
+  const tatvaIndex = lagnaIdx % 4; // 0: Agni, 1: Prithvi, 2: Vayu, 3: Jala
+  const tatvaDetails = [
+    {
+      tatvaKn: "ಅಗ್ನಿ ತತ್ವ (ಪಿತ್ತ ಪ್ರಧಾನ)",
+      tatvaEn: "Agni / Fire (Pitta Predominant)",
+      healthAdviceKn: "ದೇಹದಲ್ಲಿ ಉಷ್ಣಾಧಿಕ್ಯ, ತಲೆಬಿಸಿ, ಆಮ್ಲಪಿತ್ತ ಅಥವಾ ರಕ್ತದೊತ್ತಡದ ಏರಿಳಿತಗಳು ಕಾಣಿಸಿಕೊಳ್ಳಬಹುದು. ನಿತ್ಯ ಶೀತಲೀ ಪ್ರಾಣಾಯಾಮ, ಸಾಕಷ್ಟು ನೀರು ಕುಡಿಯುವುದು ಹಾಗೂ ಪ್ರಾತಃಕಾಲ ಸೂರ್ಯ ನಮಸ್ಕಾರದಿಂದ ಆರೋಗ್ಯ ಸದೃಢವಾಗಿರುತ್ತದೆ.",
+      healthAdviceEn: "Predominance of fiery Pitta element indicates occasional acidity, heat intolerance, or stress headaches. Morning hydration and cooling breathwork ensure vitality."
+    },
+    {
+      tatvaKn: "ಪೃಥ್ವಿ ತತ್ವ (ಕಫ-ವಾತ ಮಿಶ್ರಣ)",
+      tatvaEn: "Prithvi / Earth (Kapha-Vata Balance)",
+      healthAdviceKn: "ದೇಹವು ಸ್ವಾಭಾವಿಕವಾಗಿ ಗಟ್ಟಿಮುಟ್ಟಾಗಿದ್ದರೂ, ಮೈಭಾರ, ಕೀಲುಗಳಲ್ಲಿ ಜಡತ್ವ ಅಥವಾ ಜೀರ್ಣಾಂಗ ಅಗ್ನಿಮಾಂದ್ಯತೆ ಆಗಾಗ ಕಾಣಿಸಿಕೊಳ್ಳಬಹುದು. ನಿತ್ಯ ಲಘು ನಡಿಗೆ, ಸಾತ್ವಿಕ ಬಿಸಿ ಆಹಾರ ಹಾಗೂ ಸಕಾಲಿಕ ದಿನಚರಿ ಅತ್ಯಂತ ಹಿತಕರ.",
+      healthAdviceEn: "Earthy constitution confers solid stamina though sluggish digestion or joint stiffness requires active physical exercise and light, warm meals."
+    },
+    {
+      tatvaKn: "ವಾಯು ತತ್ವ (ವಾತ ಪ್ರಧಾನ)",
+      tatvaEn: "Vayu / Air (Vata Predominant)",
+      healthAdviceKn: "ಅತಿಯಾದ ಆಲೋಚನೆ, ನರಗಳ ಆಯಾಸ, ವಾಯು ಬಾಧೆ (Gas/Bloating) ಅಥವಾ ಅನಿಶ್ಚಿತ ನಿದ್ರೆ ಉಂಟಾಗಬಹುದು. ಎಣ್ಣೆ ಮಸಾಜ್ (ಅಭ್ಯಂಗ), ನಿಯಮಿತ ಸಮಯಕ್ಕೆ ಊಟ ಮತ್ತು ಧ್ಯಾನದಿಂದ ನರಮಂಡಲವು ಶಾಂತವಾಗುತ್ತದೆ.",
+      healthAdviceEn: "Airy Vata constitution predisposes to restless mental energy, nervous strain, or irregular sleep. Warm oil massages and regular grounding routines restore balance."
+    },
+    {
+      tatvaKn: "ಜಲ ತತ್ವ (ಜಲ-ಕಫ ಪ್ರಧಾನ)",
+      tatvaEn: "Jala / Water (Kapha-Pitta Dominance)",
+      healthAdviceKn: "ಭಾವನಾತ್ಮಕ ಸೂಕ್ಷ್ಮತೆ, ಶೀತ, ಕಫ ಅಥವಾ ನೀರಿನಂಶದ ವ್ಯತ್ಯಾಸಗಳು ಶರೀರವನ್ನು ಬಾಧಿಸಬಹುದು. ಸೂರ್ಯ ಪ್ರಕಾಶದಲ್ಲಿ ವ್ಯಾಯಾಮ, ಜೇನುತುಪ್ಪದೊಂದಿಗೆ ಬೆಚ್ಚಗಿನ ನೀರು ಸೇವನೆ ನಿಮ್ಮ ರೋಗನಿರೋಧಕ ಶಕ್ತಿಯನ್ನು ಹೆಚ್ಚಿಸುತ್ತದೆ.",
+      healthAdviceEn: "Watery constitution brings emotional sensitivity and fluid retention tendencies. Sun exposure, warm herbal infusions, and brisk exercise boost immunity."
+    }
+  ][tatvaIndex]!;
 
-  const p8ReadingEn = `Governed by Lagna lord ${lagnaLord} and 6th lord ${sixthLord}, your constitutional balance is predominantly Pitta-Vata. Maintaining disciplined digestive fire (Jatharagni), morning hydration, and walking ensures radiant vitality.`;
+  const p8ReadingKn = `ನಿಮ್ಮ ಲಗ್ನಾಧಿಪತಿ ${lagnaLordKn} ಮತ್ತು 6ನೇ ರೋಗ ಸ್ಥಾನದ ${sixthLordKn} ಗ್ರಹಬಲದ ಪ್ರಕಾರ, ನಿಮ್ಮ ಮೂಲ ಪ್ರಕೃತಿಯು ${tatvaDetails.tatvaKn} ಆಗಿದೆ. ${tatvaDetails.healthAdviceKn}`;
+  const p8ReadingEn = `Governed by Lagna lord ${lagnaLord} and 6th lord ${sixthLord}, your constitutional balance is predominantly ${tatvaDetails.tatvaEn}. ${tatvaDetails.healthAdviceEn}`;
 
-  // 9. Active Dasha-Bhukti & Gochara
-  const p9ReadingKn = `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${toKannadaPlanet(maha)} ಮಹಾದಶೆಯ ${toKannadaPlanet(bhukti)} ಭುಕ್ತಿಯ ಕಾಲಾವಧಿಯು ನಿಮ್ಮ ಜೀವನದ ಅತ್ಯಂತ ಮಹತ್ವದ ಪರಿವರ್ತನಾ ಹಂತವಾಗಿದೆ. ಗೋಚಾರ ಗುರುವು ಭಾಗ್ಯ ಮತ್ತು ರಕ್ಷಣೆಯನ್ನು ನೀಡುತ್ತಿದ್ದರೆ, ಶನಿಯು ಕಠಿಣ ಪರಿಶ್ರಮ ಮತ್ತು ಸತ್ಯನಿಷ್ಠೆಯನ್ನು ಪರೀಕ್ಷಿಸುತ್ತಿದ್ದಾನೆ. ಈ ಗ್ರಹ ಸ್ಥಿತಿಯು ನಿಮ್ಮ ಹಳೆಯ ಸಂಕೋಲೆಗಳನ್ನು ಕಳಚಿ ಹೊಸ ಶಕ್ತಿಯನ್ನು ತುಂಬುವ ಪವಿತ್ರ ಸಂಧಿಕಾಲವಾಗಿದೆ.`;
+  // 9. Active Dasha-Bhukti & Gochara (100% Live & Dynamic)
+  const p9ReadingKn = `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${toKannadaPlanet(maha)} ಮಹಾದಶೆಯ ${toKannadaPlanet(bhukti)} ಭುಕ್ತಿಯ ಕಾಲಾವಧಿಯು (${dt.timelineKn} ಮುಕ್ತಾಯ) ನಿಮ್ಮ ಜೀವನದ ಪ್ರಮುಖ ಪರಿವರ್ತನಾ ಸಂಧಿಕಾಲವಾಗಿದೆ. ${lg.summaryKn} ಈ ಗ್ರಹ ಸ್ಥಿತಿಯು ನಿಮ್ಮ ಹಳೆಯ ಸಂಕೋಲೆಗಳನ್ನು ಕಳಚಿ ನೂತನ ಶಕ್ತಿಯನ್ನು ತುಂಬುವ ಪವಿತ್ರ ಸಂಧಿಕಾಲವಾಗಿದೆ.`;
 
-  const p9ReadingEn = `The ongoing ${maha} Mahadasha with ${bhukti} Antardasha represents a pivotal transformative threshold. With transiting Jupiter offering divine guidance while Saturn demands steadfast discipline, this phase clears karmic backlogs to usher in newfound strength.`;
+  const p9ReadingEn = `The ongoing ${maha} Mahadasha with ${bhukti} Antardasha (${dt.timelineEn}) represents a pivotal transformative threshold. ${lg.summaryEn} This planetary alignment clears karmic backlogs to usher in renewed clarity.`;
 
-  // 10. Turning Point Timeline & Authentic Vedic Remedies
-  const p10ReadingKn = `ನಿಮ್ಮ ಜಾತಕ ಗಣಿತದ ಪ್ರಕಾರ, ಇನ್ನು ಮುಂದಿನ 3 ರಿಂದ 6 ತಿಂಗಳುಗಳಲ್ಲಿ ಬೃಹತ್ ಸಕಾರಾತ್ಮಕ ಗ್ರಹಗತಿಯ ತಿರುವು ನಿಖರವಾಗಿ ಘಟಿಸಲಿದೆ. ಈ ಶುಭ ಕಾಲದ ಸಿದ್ಧಿಗಾಗಿ, ನಿಮ್ಮ ${lagnaKn} ಲಗ್ನಾಧಿಪತಿಯ ${gemName} (${gemCarat}) ರತ್ನವನ್ನು ${gemMetal}ದಲ್ಲಿ ಮಾಡಿಸಿ ${gemFinger}ದಲ್ಲಿ ಧರಿಸಿ. ಇದರೊಂದಿಗೆ ${rudraName} ಧಾರಣೆ ಮಾಡಿ ಹಾಗೂ ಪರಮ ಪವಿತ್ರ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ನಿಮ್ಮ ನಕ್ಷತ್ರದ ಹೆಸರಿನಲ್ಲಿ ದೋಷ ನಿವಾರಣಾ ಸಂಕಲ್ಪ ಪೂಜೆ ಸಲ್ಲಿಸಿ. ಈ ದೈವಿಕ ಜಪ ಮತ್ತು ಪೂಜೆಯು ನಿಮ್ಮ ಮನಸ್ಸಿಗೆ ತಕ್ಷಣದ ಪರಮ ಶಾಂತಿ ಹಾಗೂ ಪ್ರಗತಿಯನ್ನು ತರಲಿದೆ.`;
+  // 10. Turning Point Timeline & Authentic Vedic Remedies (100% Dynamic)
+  const nextBhuktiNoticeKn = dt.nextBhukti
+    ? `ಪ್ರಸ್ತುತ ${toKannadaPlanet(bhukti)} ಭುಕ್ತಿಯು ಮುಕ್ತಾಯವಾಗಿ ಮುಂಬರುವ ${toKannadaPlanet(dt.nextBhukti)} ಭುಕ್ತಿಯ ನೂತನ ಶಕ್ತಿಯು ಆರಂಭವಾಗಲಿದೆ.`
+    : `ಪ್ರಸ್ತುತ ದಶಾ ಸಂಧಿಕಾಲವು ಮುಕ್ತಾಯವಾಗಿ ನೂತನ ಗ್ರಹಬಲ ಆರಂಭವಾಗಲಿದೆ.`;
+  const nextBhuktiNoticeEn = dt.nextBhukti
+    ? `As the current ${bhukti} Antardasha concludes, the incoming ${dt.nextBhukti} Antardasha will unleash fresh breakthrough energy.`
+    : `As the transition culminates, incoming planetary forces will activate fresh opportunities.`;
 
-  const p10ReadingEn = `Mathematical calculations project a major positive astrological turning point over the Next 3 to 6 Months. To accelerate this breakthrough, wear an energized ${gemEn} (${gemCarat}) in ${prescriptions?.gemstoneRing?.metalEn || "Gold"} on the ${prescriptions?.gemstoneRing?.fingerEn || "Ring finger"} and adorn ${rudraEn}. Performing a sacred Sankalpa Pooja at Sri Kshetra Gokarna Mahabaleshwara dissolves obstacles and brings deep serenity and progress.`;
+  const p10ReadingKn = `ನಿಮ್ಮ ಜಾತಕ ಗಣಿತದ ಪ್ರಕಾರ, ${dt.timelineKn} (${dt.timelineEn}) ಬೃಹತ್ ಸಕಾರಾತ್ಮಕ ಗ್ರಹಗತಿಯ ತಿರುವು ನಿಖರವಾಗಿ ಘಟಿಸಲಿದೆ. ${nextBhuktiNoticeKn} ಈ ಶುಭ ಕಾಲದ ಸಿದ್ಧಿಗಾಗಿ, ನಿಮ್ಮ ${lagnaKn} ಲಗ್ನಾಧಿಪತಿಯ ${gemName} (${gemCarat}) ರತ್ನವನ್ನು ${gemMetal}ದಲ್ಲಿ ಮಾಡಿಸಿ ${gemFinger}ದಲ್ಲಿ ${prescriptions?.gemstoneRing?.activationDay || "ಶುಭ ದಿನ"} ಧರಿಸಿ. ಇದರೊಂದಿಗೆ ${rudraName} ಧಾರಣೆ ಮಾಡಿ ಹಾಗೂ ಪರಮ ಪವಿತ್ರ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ನಿಮ್ಮ ನಕ್ಷತ್ರದ ಹೆಸರಿನಲ್ಲಿ ${prescriptions?.shantiPooja?.nameKn || "ದೋಷ ನಿವಾರಣಾ ಸಂಕಲ್ಪ ಪೂಜೆ"} ಸಲ್ಲಿಸಿ. ಈ ದೈವಿಕ ಜಪ ಮತ್ತು ಪೂಜೆಯು ನಿಮ್ಮ ಮನಸ್ಸಿಗೆ ತಕ್ಷಣದ ಪರಮ ಶಾಂತಿ ಹಾಗೂ ಪ್ರಗತಿಯನ್ನು ತರಲಿದೆ.`;
+
+  const p10ReadingEn = `Mathematical calculations project a major positive astrological turning point ${dt.timelineEn}. ${nextBhuktiNoticeEn} To accelerate this breakthrough, wear an energized ${gemEn} (${gemCarat}) in ${prescriptions?.gemstoneRing?.metalEn || "Gold"} on the ${prescriptions?.gemstoneRing?.fingerEn || "Ring finger"} and adorn ${rudraEn}. Performing ${prescriptions?.shantiPooja?.nameEn || "Sankalpa Pooja"} at Sri Kshetra Gokarna Mahabaleshwara dissolves obstacles and brings deep serenity and progress.`;
 
   // 11. Secret Life, Hidden Desires, Addictions & Shadow Tendencies
   const isOpenLagna = [0, 2, 4, 8].includes(lagnaIdx);
@@ -861,8 +1129,8 @@ export const generate10MasterLifeBulletPoints = (
       titleHi: "स्वास्थ्य, शारीरिक बल और दिनचर्या",
       titleTe: "ఆరోగ్యం, శారీరక బలం మరియు దినచర్య",
       titleTa: "ஆரோக்கியம் மற்றும் உடல் பலம்",
-      badgeKn: `ಲಗ್ನ & 6ನೇ ಭಾವ`,
-      badgeEn: `Lagna & 6th House`,
+      badgeKn: `${lagnaKn} ಲಗ್ನ • ${tatvaDetails.tatvaKn}`,
+      badgeEn: `${lagnaEn} Lagna • ${tatvaDetails.tatvaEn}`,
       badgeHi: "लग्न एवं षष्ठ भाव",
       badgeTe: "లగ్నం & 6వ స్థానం",
       badgeTa: "லக்னம் & 6ஆம் இடம்",
@@ -905,11 +1173,11 @@ export const generate10MasterLifeBulletPoints = (
       titleHi: "परिवर्तन काल, रत्न, रुद्राक्ष और गोकर्ण पूजा",
       titleTe: "మలుపు కాలం, రత్నం, రుద్రాక్ష & గోకర్ణ పూజ",
       titleTa: "திருப்பம் தரும் காலம், ரத்தினம், ருத்ராட்சம் & பூஜை",
-      badgeKn: `ಮುಂದಿನ 3-6 ತಿಂಗಳುಗಳು • ಗೋಕರ್ಣ ಸೇವೆ`,
-      badgeEn: `Next 3 to 6 Months • Gokarna Seva`,
-      badgeHi: "आगामी 3 से 6 माह",
-      badgeTe: "వచ్చే 3 నుండి 6 నెలలు",
-      badgeTa: "அடுத்த 3-6 மாதங்கள்",
+      badgeKn: `${dt.badgeTimelineKn} • ಗೋಕರ್ಣ ಸೇವೆ`,
+      badgeEn: `${dt.badgeTimelineEn} • Gokarna Seva`,
+      badgeHi: dt.badgeTimelineEn,
+      badgeTe: dt.badgeTimelineEn,
+      badgeTa: dt.badgeTimelineEn,
       icon: "🪔",
       readingKn: p10ReadingKn,
       readingEn: p10ReadingEn,
@@ -1074,105 +1342,127 @@ export const generateGoodAndBadTraits = (
     }
   ];
 
-  // BAD TRAITS & SHADOW PITFALLS
+  // BAD TRAITS & SHADOW PITFALLS (Classical Vedic Criteria)
   const marsHouse = mars?.house ?? 1;
   const sunHouse = sun?.house ?? 1;
-  const hasAnger = [1, 7, 8].includes(marsHouse) || [1, 7].includes(sunHouse);
+  const hasAnger = [1, 7, 8].includes(marsHouse) || ([1, 8].includes(sunHouse) && mars && Math.abs(mars.house - sunHouse) === 0);
 
   const venusHouse = venus?.house ?? 1;
   const rahuHouse = rahu?.house ?? 1;
-  const hasSensual = [7, 8, 12].includes(venusHouse) || [7, 8, 12].includes(rahuHouse) || (mars && venus && Math.abs(mars.house - venus.house) <= 1);
+  const hasSensual = (venus && rahu && Math.abs(venus.house - rahu.house) === 0) || (venus && rahu && [7, 12].includes(venus.house) && [7, 12].includes(rahu.house));
 
-  const hasAddiction = (rahu && [2, 8, 12].includes(rahu.house)) || (saturn && [2, 8].includes(saturn.house)) || (rahu && mars && Math.abs(rahu.house - mars.house) === 0);
-  const hasIllegal = (rahu && [8, 11].includes(rahu.house)) || (saturn && [8, 11].includes(saturn.house)) || (mars && [8].includes(mars.house));
+  // 2nd house of oral intake afflicted by Rahu
+  const hasAddiction = (rahu && rahu.house === 2) || (saturn && rahu && saturn.house === 2 && rahu.house === 2);
+  // 8th house shortcut wealth afflicted by Rahu-Mars conjunction
+  const hasIllegal = (rahu && rahu.house === 8 && mars && mars.house === 8);
   const moonHouse = moon?.house ?? 1;
-  const hasDarkLoops = [6, 8, 12].includes(moonHouse) || (moon && rahu && Math.abs(moon.house - rahu.house) === 0) || (moon && saturn && Math.abs(moon.house - saturn.house) === 0);
+  const hasDarkLoops = (moon && rahu && moon.house === rahu.house) || (moon && saturn && moon.house === saturn.house);
 
   const badTraits: TraitBulletPoint[] = [
     {
       id: 1,
       type: "bad",
-      titleKn: "ಹಠಮಾರಿತನ, ಅಹಂಕಾರದ ಘರ್ಷಣೆ & ಹಠಾತ್ ಕೋಪದ ಜ್ವಾಲೆ",
-      titleEn: "Stubborn Ego, Unyielding Pride & Explosive Anger",
-      icon: "🔥",
-      badgeKn: `ಕುಜ/ರವಿ ಪ್ರಭಾವ • ಪಿತ್ತ ತತ್ವ`,
-      badgeEn: `Mars/Sun Influence • Pitta Fire`,
+      titleKn: hasAnger
+        ? "ಹಠಮಾರಿತನ, ಅಹಂಕಾರದ ಘರ್ಷಣೆ & ಹಠಾತ್ ಕೋಪದ ಜ್ವಾಲೆ"
+        : "ಸಂಯಮದ ವಿವೇಚನೆ, ಶಾಂತ ಸ್ವಭಾವ & ತಾಳ್ಮೆಯ ನಡೆ",
+      titleEn: hasAnger
+        ? "Stubborn Ego, Unyielding Pride & Explosive Anger"
+        : "Self-Restraint, Peaceful Demeanor & Measured Patience",
+      icon: hasAnger ? "🔥" : "🕊️",
+      badgeKn: hasAnger ? `ಕುಜ/ರವಿ ಪ್ರಭಾವ • ಪಿತ್ತ ತತ್ವ` : `ಸೌಮ್ಯ ಗ್ರಹ ದೃಷ್ಟಿ • ಶಾಂತ ಮನೋಭಾವ`,
+      badgeEn: hasAnger ? `Mars/Sun Influence • Pitta Fire` : `Benefic Aspect • Composed Mind`,
       bulletKn: hasAnger
         ? `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಕುಜ-ರವಿಗಳ ತೀಕ್ಷ್ಣ ಪ್ರಭಾವದಿಂದಾಗಿ ಒಮ್ಮೆ ಒಂದು ನಿರ್ಧಾರ ಕೈಗೊಂಡರೆ ಇತರರು ಎಷ್ಟು ಬುದ್ಧಿವಾದ ಹೇಳಿದರೂ ಕೇಳದ ಹಠಮಾರಿ ಸ್ವಭಾವವಿದೆ. ನಿಮ್ಮ ಸ್ವಾಭಿಮಾನಕ್ಕೆ ಸಣ್ಣ ಧಕ್ಕೆ ಬಂದರೂ ಹಠಾತ್ ಸಿಟ್ಟು ಭುಗಿಲೆದ್ದು ಕಟು ಮಾತುಗಳನ್ನಾಡಿ ಹತ್ತಿರದವರನ್ನು ದೂರ ಮಾಡಿಕೊಳ್ಳುವ ಅಪಾಯವಿದೆ.`
-        : `ಸ್ವಾಭಿಮಾನವು ಕೆಲವೊಮ್ಮೆ ಅಹಂಕಾರವಾಗಿ ಬದಲಾಗಿ ಸಣ್ಣಪುಟ್ಟ ವಿಷಯಗಳಿಗೂ ಸಿಡುಕುತನ ತೋರಿಸುವ ಸಾಧ್ಯತೆಯಿದೆ. ಕೋಪದ ಕೈಗೆ ಬುದ್ಧಿ ಕೊಟ್ಟರೆ ನಿಮ್ಮ ಕೈಯಾರೆ ಉತ್ತಮ ಅವಕಾಶಗಳನ್ನು ಕಳೆದುಕೊಳ್ಳುವ ಅಪಾಯವಿದೆ.`,
+        : `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಕುಜ-ರವಿಗಳ ಉಗ್ರ ದೋಷವಿಲ್ಲದಿರುವುದರಿಂದ, ನೀವು ಸಹಜವಾಗಿ ಸಂಯಮ ಮತ್ತು ಶಾಂತ ಸ್ವಭಾವವನ್ನು ಹೊಂದಿದ್ದೀರಿ. ಅನಗತ್ಯ ಕೋಪಕ್ಕೆ ಆಸ್ಪದ ನೀಡದೆ ತಾಳ್ಮೆಯಿಂದ ಸಮಸ್ಯೆಗಳನ್ನು ಪರಿಹರಿಸುವ ವಿವೇಕ ನಿಮ್ಮಲ್ಲಿದೆ; ಆದರೂ ನಿಮ್ಮ ಮೃದು ಸ್ವಭಾವವನ್ನು ಇತರರು ದುರುಪಯೋಗಪಡಿಸಿಕೊಳ್ಳದಂತೆ ಎಚ್ಚರವಿರಲಿ.`,
       bulletEn: hasAnger
         ? `Intense Mars-Sun influence triggers stubborn refusal to heed advice once resolved, along with sudden fiery outbursts that can alienate trusted allies.`
-        : `Self-respect risks tipping into rigid stubbornness or quick irritation, burning bridge opportunities if anger is unrestrained.`,
-      astrologicalBasisKn: `ಕುಜ-ರವಿಗಳ ಸ್ಥಿತಿ ಹಾಗೂ ಪಿತ್ತ ಪ್ರಕೋಪ.`,
-      astrologicalBasisEn: `Mars-Sun fire aspect and Pitta constitution.`
+        : `Benefic alignment shields your chart from destructive anger, endowing you with measured patience and emotional composure; stay vigilant only to ensure others do not exploit your gentle nature.`,
+      astrologicalBasisKn: hasAnger ? `ಕುಜ-ರವಿಗಳ ಸ್ಥಿತಿ ಹಾಗೂ ಪಿತ್ತ ಪ್ರಕೋಪ.` : `ಶುಭ ಗ್ರಹಗಳ ಸೌಮ್ಯ ದೃಷ್ಟಿ ಹಾಗೂ ಶಾಂತ ತತ್ವ.`,
+      astrologicalBasisEn: hasAnger ? `Mars-Sun fire aspect and Pitta constitution.` : `Benefic aspect moderating aggressive impulse.`
     },
     {
       id: 2,
       type: "bad",
-      titleKn: "ಕಾಮನೆಗಳ ಆಕರ್ಷಣೆ, ಪರಸ್ತ್ರೀ/ಪರಪುರುಷ ವ್ಯಾಮೋಹ & ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧದ ಸೆಳೆತ",
-      titleEn: "Sensual Craving, External Attractions & Marital Vulnerabilities",
-      icon: "⚡",
-      badgeKn: `7ನೇ/12ನೇ ಭಾವ • ಶುಕ್ರ-ರಾಹು ಪ್ರಭಾವ`,
-      badgeEn: `7th/12th Houses • Venus-Rahu Dynamic`,
+      titleKn: hasSensual
+        ? "ಕಾಮನೆಗಳ ಆಕರ್ಷಣೆ, ಪರಸ್ತ್ರೀ/ಪರಪುರುಷ ವ್ಯಾಮೋಹ & ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧದ ಸೆಳೆತ"
+        : "ನೈತಿಕ ಚಾರಿತ್ರ್ಯ, ಇಂದ್ರಿಯ ನಿಗ್ರಹ & ಕೌಟುಂಬಿಕ ನಿಷ್ಠೆ",
+      titleEn: hasSensual
+        ? "Sensual Craving, External Attractions & Marital Vulnerabilities"
+        : "Moral Rectitude, Sensory Restraint & Marital Loyalty",
+      icon: hasSensual ? "⚡" : "💎",
+      badgeKn: hasSensual ? `7ನೇ/12ನೇ ಭಾವ • ಶುಕ್ರ-ರಾಹು ಪ್ರಭಾವ` : `ಶುಭ ಕಳತ್ರ • ಸದಾಚಾರ ರಕ್ಷಣೆ`,
+      badgeEn: hasSensual ? `7th/12th Houses • Venus-Rahu Dynamic` : `Auspicious 7th • Ethical Shield`,
       bulletKn: hasSensual
         ? `7ನೇ ಮತ್ತು 12ನೇ ಕಾಮ-ಶಯನ ಸ್ಥಾನಗಳ ಮೇಲೆ ಶುಕ್ರ ಅಥವಾ ರಾಹುವಿನ ತೀವ್ರ ಪ್ರಭಾವದಿಂದಾಗಿ, ದಾಂಪತ್ಯ ಜೀವನವನ್ನು ಮೀರಿ ಹೊರಗಿನ ವ್ಯಕ್ತಿಗಳತ್ತ ಅತಿಯಾದ ಆಕರ್ಷಣೆ, ಪ್ರೇಮ ವ್ಯಾಮೋಹ ಅಥವಾ ರಹಸ್ಯ ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧಗಳತ್ತ ಮನಸ್ಸು ಜಾರುವ ಅಪಾಯದ ಸುಳಿವು ಜಾತಕದಲ್ಲಿದೆ. ಇದು ನಿಮ್ಮ ಕೌಟುಂಬಿಕ ಗೌರವವನ್ನು ಧ್ವಂಸ ಮಾಡುವ ಅಪಾಯ ತಂದೊಡ್ಡಬಹುದು.`
-        : `ಶುಕ್ರನ ಚಂಚಲತೆಯಿಂದಾಗಿ ಸೌಂದರ್ಯ ಮತ್ತು ಕಾಮನೆಗಳ ಆಕರ್ಷಣೆಗೆ ಒಳಗಾಗುವ ಪ್ರವೃತ್ತಿ ಇದೆ. ಇಂದ್ರಿಯ ನಿಗ್ರಹವಿಲ್ಲದಿದ್ದರೆ ಗೌಪ್ಯ ಸ್ನೇಹ ಸಂಬಂಧಗಳು ದಾಂಪತ್ಯ ನೆಮ್ಮದಿಯನ್ನು ಹಾಳುಮಾಡಬಹುದು.`,
+        : `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಶುಕ್ರ-ರಾಹುಗಳ ಅಶುಭ ಯೋಗವಿಲ್ಲದಿರುವುದರಿಂದ, ನೈತಿಕ ಶಿಸ್ತು, ಇಂದ್ರಿಯ ನಿಗ್ರಹ ಮತ್ತು ಕೌಟುಂಬಿಕ ನಿಷ್ಠೆ ನಿಮ್ಮ ಬಲವಾದ ಗುಣಗಳಾಗಿವೆ. ಬಾಹ್ಯ ಆಕರ್ಷಣೆಗಳಿಗೆ ಸುಲಭವಾಗಿ ಮಾರುಹೋಗದೆ, ಸಂಸ್ಕಾರಯುತ ದಾಂಪತ್ಯ ಜೀವನಕ್ಕೆ ಬದ್ಧರಾಗಿರುವ ಸದ್ಗುಣ ನಿಮ್ಮಲ್ಲಿದೆ.`,
       bulletEn: hasSensual
         ? `Venus-Rahu influence on the 7th/12th axis creates intense sensory urges, illicit attractions, or secret affairs that threaten family honor.`
-        : `Sensory desires and casual romantic impulses require disciplined moral boundaries to protect marital stability.`,
-      astrologicalBasisKn: `7ನೇ (ಕಳತ್ರ) ಮತ್ತು 12ನೇ (ಶಯನ/ರಹಸ್ಯ ಭೋಗ) ಮನೆಗಳ ಶುಕ್ರ-ರಾಹು ಯೋಗ.`,
-      astrologicalBasisEn: `Venus-Rahu axis across 7th and 12th houses of pleasure and secret desires.`
+        : `Benefic planetary alignment shields your marital house, conferring strong moral rectitude, self-control, and faithful commitment to family values.`,
+      astrologicalBasisKn: hasSensual ? `7ನೇ (ಕಳತ್ರ) ಮತ್ತು 12ನೇ (ಶಯನ/ರಹಸ್ಯ ಭೋಗ) ಮನೆಗಳ ಶುಕ್ರ-ರಾಹು ಯೋಗ.` : `7ನೇ ಮತ್ತು 12ನೇ ಮನೆಗಳ ಮೇಲೆ ಶುಭ ಗ್ರಹ ರಕ್ಷಣೆ.`,
+      astrologicalBasisEn: hasSensual ? `Venus-Rahu axis across 7th and 12th houses of pleasure and secret desires.` : `Auspicious aspect protecting marital boundaries.`
     },
     {
       id: 3,
       type: "bad",
-      titleKn: "ದುಶ್ಚಟಗಳ ಅಪಾಯ, ಮದ್ಯಪಾನ/ಧೂಮಪಾನ/ವ್ಯಸನಗಳ ಜಾಲ & ಆರೋಗ್ಯ ಕ್ಷೀಣತೆ",
-      titleEn: "Vulnerability to Addictions, Alcohol/Substances & Health Erosion",
-      icon: "🍷",
-      badgeKn: `2ನೇ ಮುಖ & 8ನೇ ಛಾಯಾ • ರಾಹು-ಶನಿ ಪ್ರಭಾವ`,
-      badgeEn: `2nd Face & 8th Secret • Rahu-Saturn Influence`,
+      titleKn: hasAddiction
+        ? "ದುಶ್ಚಟಗಳ ಅಪಾಯ, ಮದ್ಯಪಾನ/ಧೂಮಪಾನ/ವ್ಯಸನಗಳ ಜಾಲ & ಆರೋಗ್ಯ ಕ್ಷೀಣತೆ"
+        : "ಸಾತ್ವಿಕ ಜೀವನಶೈಲಿ, ದುಶ್ಚಟ ಮುಕ್ತ ಶರೀರ ರಕ್ಷಣೆ & ಶುದ್ಧ ಆಹಾರ ನಿಯಮ",
+      titleEn: hasAddiction
+        ? "Vulnerability to Addictions, Alcohol/Substances & Health Erosion"
+        : "Sattvic Lifestyle, Freedom from Addictions & Pure Intake",
+      icon: hasAddiction ? "🍷" : "🌿",
+      badgeKn: hasAddiction ? `2ನೇ ಮುಖ & 8ನೇ ಛಾಯಾ • ರಾಹು-ಶನಿ ಪ್ರಭಾವ` : `2ನೇ ಶುಭ ಸ್ಥಾನ • ಸಾತ್ವಿಕ ಶಿಸ್ತು`,
+      badgeEn: hasAddiction ? `2nd Face & 8th Secret • Rahu-Saturn Influence` : `Pure 2nd House • Sattvic Habits`,
       bulletKn: hasAddiction
         ? `2ನೇ ವಾಕ್/ಆಹಾರ ಸ್ಥಾನ ಹಾಗೂ 8ನೇ ಮನೆಗೆ ರಾಹು-ಶನಿಗಳ ದೃಷ್ಟಿ ಇರುವುದರಿಂದ, ಸ್ನೇಹಿತರ ಸಹವಾಸದಿಂದ ಮದ್ಯಪಾನ, ಧೂಮಪಾನ ಅಥವಾ ಅಮಲು ಪದಾರ್ಥಗಳ ವ್ಯಸನಕ್ಕೆ (Substance Addictions) ಬೀಳುವ ಅಪಾಯ ಹೆಚ್ಚಾಗಿದೆ. ಆರಂಭದಲ್ಲಿ ಮನರಂಜನೆಯಾಗಿದ್ದದ್ದು ಕ್ರಮೇಣ ನಿಯಂತ್ರಣ ತಪ್ಪಿ ಲಿವರ್, ಜೀರ್ಣಾಂಗ ಹಾಗೂ ನರಮಂಡಲದ ಆರೋಗ್ಯವನ್ನು ಕ್ಷೀಣಿಸಬಹುದು.`
-        : `ಮಾನಸಿಕ ಒತ್ತಡ ಕಡಿಮೆ ಮಾಡಿಕೊಳ್ಳಲು ಚಟಗಳ ಆಶ್ರಯ ಪಡೆಯುವ ದುರ್ಬಲತೆ ಇದೆ. ದುಶ್ಚಟಗಳಿಂದ ದೂರವಿರಲು ಕಠಿಣ ಸಂಕಲ್ಪ ಅಗತ್ಯ.`,
+        : `ನಿಮ್ಮ 2ನೇ ಆಹಾರ ಸ್ಥಾನವು ಶುಭ ಗ್ರಹಗಳ ನಿಯಂತ್ರಣದಲ್ಲಿದ್ದು, ದುಶ್ಚಟಗಳಿಂದ ದೂರವಿರುವ ಸಾತ್ವಿಕ ಸಂಸ್ಕಾರ ನಿಮ್ಮಲ್ಲಿದೆ. ಮದ್ಯಪಾನ, ಧೂಮಪಾನ ಅಥವಾ ವ್ಯಸನಗಳ ಜಾಲಕ್ಕೆ ಬೀಳದೆ ಶರೀರ ಆರೋಗ್ಯವನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳುವ ಇಚ್ಛಾಶಕ್ತಿ ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿದೆ.`,
       bulletEn: hasAddiction
         ? `Rahu-Saturn affliction to 2nd house of intake and 8th house creates heightened vulnerability to alcohol, smoking, or intoxicating substances under stress or peer pressure.`
-        : `Stress-induced reliance on stimulants or unhealthy habits risks bodily depletion if unchecked.`,
-      astrologicalBasisKn: `2ನೇ (ಆಹಾರ/ವ್ಯಸನ) ಮತ್ತು 8ನೇ (ರಹಸ್ಯ ರೋಗ) ಭಾವದ ರಾಹು-ಶನಿ ಪ್ರಭಾವ.`,
-      astrologicalBasisEn: `Rahu-Saturn affliction to 2nd house of intake and 8th hidden house.`
+        : `A clean 2nd house of intake grants natural resistance to toxic substances, supporting clean dietary habits and wholesome physical well-being.`,
+      astrologicalBasisKn: hasAddiction ? `2ನೇ (ಆಹಾರ/ವ್ಯಸನ) ಮತ್ತು 8ನೇ (ರಹಸ್ಯ ರೋಗ) ಭಾವದ ರಾಹು-ಶನಿ ಪ್ರಭಾವ.` : `2ನೇ ಮನೆಗೆ ಶುಭ ದೃಷ್ಟಿ ಹಾಗೂ ಸಾತ್ವಿಕ ಗ್ರಹ ಪ್ರಭಾವ.`,
+      astrologicalBasisEn: hasAddiction ? `Rahu-Saturn affliction to 2nd house of intake and 8th hidden house.` : `Clean 2nd house and saturn/rahu absence from intake house.`
     },
     {
       id: 4,
       type: "bad",
-      titleKn: "ಅಡ್ಡದಾರಿ ಹಣದ ಸೆಳೆತ, ಕಳ್ಳಸಾಗಣೆ (ಸ್ಮಗ್ಲಿಂಗ್) / ಅಕ್ರಮ ಲಾಭದ ದುರಾಸೆ & ಮೋಸದ ಅಪಾಯ",
-      titleEn: "Shortcuts, Smuggling/Illegal Money Temptation & Deception Risk",
-      icon: "⚖️",
-      badgeKn: `8ನೇ & 11ನೇ ಭಾವ • ರಾಹುವಿನ ಅಕ್ರಮ ಯೋಗ`,
-      badgeEn: `8th & 11th Houses • Rahu Shadow Wealth`,
+      titleKn: hasIllegal
+        ? "ಅಡ್ಡದಾರಿ ಹಣದ ಸೆಳೆತ, ಕಳ್ಳಸಾಗಣೆ (ಸ್ಮಗ್ಲಿಂಗ್) / ಅಕ್ರಮ ಲಾಭದ ದುರಾಸೆ & ಮೋಸದ ಅಪಾಯ"
+        : "ನ್ಯಾಯನಿಷ್ಠ ಸಂಪಾದನೆ, ಪ್ರಾಮಾಣಿಕತೆ & ಧರ್ಮ ಮಾರ್ಗದ ಆರ್ಥಿಕತೆ",
+      titleEn: hasIllegal
+        ? "Shortcuts, Smuggling/Illegal Money Temptation & Deception Risk"
+        : "Righteous Livelihood, Uncompromising Integrity & Ethical Wealth",
+      icon: hasIllegal ? "⚖️" : "🏛️",
+      badgeKn: hasIllegal ? `8ನೇ & 11ನೇ ಭಾವ • ರಾಹುವಿನ ಅಕ್ರಮ ಯೋಗ` : `ಧರ್ಮ-ಕರ್ಮ ಯೋಗ • ಸತ್ಯ ಸಂಪಾದನೆ`,
+      badgeEn: hasIllegal ? `8th & 11th Houses • Rahu Shadow Wealth` : `Dharma-Karma Axis • Clean Wealth`,
       bulletKn: hasIllegal
         ? `ಜಾತಕದಲ್ಲಿ ರಾಹುವು 8ನೇ ಅಥವಾ 11ನೇ ಸ್ಥಾನದಲ್ಲಿದ್ದು ತ್ವರಿತವಾಗಿ ಕೋಟ್ಯಧಿಪತಿಯಾಗುವ ದುರಾಸೆ ಹುಟ್ಟಿಸುತ್ತಾನೆ. ಕಳ್ಳಸಾಗಣೆ (ಸ್ಮಗ್ಲಿಂಗ್), ಅಕ್ರಮ ವ್ಯವಹಾರ, ಬೆಟ್ಟಿಂಗ್ ಅಥವಾ ಕಪ್ಪುಹಣದಂತಹ ಅಡ್ಡದಾರಿಗಳಲ್ಲಿ ಹಣ ಗಳಿಸುವ ದುಸ್ಸಾಹಸಕ್ಕೆ ಇಳಿದರೆ, ಕಾನೂನಿನ ಸಂಕೋಲೆಗೆ ಸಿಲುಕಿ ಮಾನಹಾನಿ ಮತ್ತು ಜೈಲುವಾಸದ ಅಪಾಯ ಎದುರಾಗಬಹುದು. ಪ್ರಾಮಾಣಿಕ ದುಡಿಮೆಯಷ್ಟೇ ಶಾಶ್ವತ.`
-        : `ಕಡಿಮೆ ಸಮಯದಲ್ಲಿ ಸುಲಭವಾಗಿ ಹೆಚ್ಚು ಹಣ ಮಾಡುವ ಆಮಿಷಗಳಿಗೆ ಒಳಗಾಗಿ ಹಣ ಕಳೆದುಕೊಳ್ಳುವ ಅಥವಾ ಅಡ್ಡದಾರಿಯ ಆಲೋಚನೆಗಳು ಸುಳಿಯುವ ಅಪಾಯವಿದೆ. ಎಚ್ಚರಿಕೆ ವಹಿಸಿ.`,
+        : `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಧರ್ಮ ಮತ್ತು ಕರ್ಮ ಸ್ಥಾನಗಳು ಶುದ್ಧವಾಗಿದ್ದು, ಸ್ವಂತ ಪರಿಶ್ರಮ ಮತ್ತು ಸತ್ಯ ಮಾರ್ಗದ ಸಂಪಾದನೆಯಲ್ಲೇ ನೀವು ನೆಮ್ಮದಿ ಕಾಣುತ್ತೀರಿ. ಅಡ್ಡದಾರಿ, ಬೆಟ್ಟಿಂಗ್, ಅಕ್ರಮ ಆಮಿಷಗಳು ಅಥವಾ ಶಾರ್ಟ್‌ಕಟ್‌ಗಳಿಗೆ ಮರುಳಾಗದೆ ಕಾನೂನುಬದ್ಧವಾಗಿ ಬೆಳೆಯುವ ಪ್ರಾಮಾಣಿಕತೆ ನಿಮ್ಮ ವ್ಯಕ್ತಿತ್ವದ ದೊಡ್ಡ ಶಕ್ತಿ.`,
       bulletEn: hasIllegal
         ? `Rahu's shadow trine sparks dangerous temptations toward illegal shortcut wealth, smuggling, speculative betting, or shadow trading, carrying severe legal liability and public disgrace.`
-        : `Vulnerability to get-rich-quick schemes requires steadfast adherence to ethical and lawful earnings.`,
-      astrologicalBasisKn: `8ನೇ ಅಕ್ರಮ ಲಾಭ ಮತ್ತು 11ನೇ ದುರಾಸೆಯ ಸ್ಥಾನದಲ್ಲಿ ರಾಹುವಿನ ಪ್ರಭಾವ.`,
-      astrologicalBasisEn: `8th house unearned wealth and Rahu temptation.`
+        : `An unblemished dharma-karma axis grounds your pursuit of prosperity in honest labor and strict ethical compliance, rejecting unlawful shortcut temptations.`,
+      astrologicalBasisKn: hasIllegal ? `8ನೇ ಅಕ್ರಮ ಲಾಭ ಮತ್ತು 11ನೇ ದುರಾಸೆಯ ಸ್ಥಾನದಲ್ಲಿ ರಾಹುವಿನ ಪ್ರಭಾವ.` : `ಧರ್ಮ-ಕರ್ಮ ಸ್ಥಾನಗಳ ಸಾತ್ವಿಕ ಬಲ.`,
+      astrologicalBasisEn: hasIllegal ? `8th house unearned wealth and Rahu temptation.` : `Pure 9th and 10th houses ensuring ethical earnings.`
     },
     {
       id: 5,
       type: "bad",
-      titleKn: "ನಕಾರಾತ್ಮಕ ಯೋಚನೆಗಳು, ಖಿನ್ನತೆ, ಆತ್ಮವಿಶ್ವಾಸ ಕುಸಿತ & ಒಂಟಿತನದ ಭೀತಿ",
-      titleEn: "Negative Thought Loops, Depressive Anxiety & Solitude Dread",
-      icon: "🌑",
-      badgeKn: `ಚಂದ್ರ-ರಾಹು/ಶನಿ ಪ್ರಭಾವ • ವಿಷ ಯೋಗ`,
-      badgeEn: `Moon-Rahu/Saturn • Mental Shadow`,
+      titleKn: hasDarkLoops
+        ? "ನಕಾರಾತ್ಮಕ ಯೋಚನೆಗಳು, ಖಿನ್ನತೆ, ಆತ್ಮವಿಶ್ವಾಸ ಕುಸಿತ & ಒಂಟಿತನದ ಭೀತಿ"
+        : "ಮಾನಸಿಕ ಸ್ಥೈರ್ಯ, ಧನಾತ್ಮಕ ಚಿಂತನೆ & ಆಶಾವಾದ",
+      titleEn: hasDarkLoops
+        ? "Negative Thought Loops, Depressive Anxiety & Solitude Dread"
+        : "Mental Fortitude, Positive Outlook & Inner Optimism",
+      icon: hasDarkLoops ? "🌑" : "☀️",
+      badgeKn: hasDarkLoops ? `ಚಂದ್ರ-ರಾಹು/ಶನಿ ಪ್ರಭಾವ • ವಿಷ ಯೋಗ` : `ಶುಭ ಚಂದ್ರ ಬಲ • ಧನಾತ್ಮಕ ಚಿತ್ತ`,
+      badgeEn: hasDarkLoops ? `Moon-Rahu/Saturn • Mental Shadow` : `Benefic Moon Strength • Resilient Mind`,
       bulletKn: hasDarkLoops
         ? `ಚಂದ್ರನ ಮೇಲೆ ಶನಿ ಅಥವಾ ರಾಹುವಿನ ಪ್ರಭಾವವಿರುವುದರಿಂದ, ಮನಸ್ಸು ಅತ್ಯಂತ ಬೇಗನೆ ನಕಾರಾತ್ಮಕ ಯೋಚನೆಗಳ ಸುಳಿಯಲ್ಲಿ ಸಿಲುಕುತ್ತದೆ. 'ನನ್ನ ಜೀವನ ವ್ಯರ್ಥ', 'ನನ್ನನ್ನು ಯಾರೂ ಅರ್ಥಮಾಡಿಕೊಳ್ಳುವುದಿಲ್ಲ' ಎಂಬ ಕೀಳರಿಮೆ, ಒಂಟಿತನದ ಭಯ ಹಾಗೂ ತೀವ್ರ ಖಿನ್ನತೆ (Depression) ನಿಮ್ಮನ್ನು ಕಾಡಬಹುದು. ಇಂತಹ ಸಂದರ್ಭಗಳಲ್ಲಿ ಧ್ಯಾನ ಮತ್ತು ದೈವ ಪ್ರಾರ್ಥನೆ ಅತ್ಯಗತ್ಯ.`
-        : `ಪ್ರತಿಕೂಲ ಸನ್ನಿವೇಶಗಳಲ್ಲಿ ಮನಸ್ಸು ಬೇಗ ನಿರಾಶಾವಾದಕ್ಕೆ (Pessimism) ಜಾರುವ ಅಪಾಯವಿದೆ. ಧನಾತ್ಮಕ ಚಿಂತನೆ ಬೆಳೆಸಿಕೊಳ್ಳುವುದು ಅನಿವಾರ್ಯ.`,
+        : `ನಿಮ್ಮ ಚಂದ್ರ ಬಲವು ಸ್ಥಿರವಾಗಿದ್ದು, ಎಂತಹ ಕಠಿಣ ಸನ್ನಿವೇಶದಲ್ಲೂ ಧೃತಿಗೆಡದೆ ಸಕಾರಾತ್ಮಕವಾಗಿ ಮುನ್ನಡೆಯುವ ಮನೋಸ್ಥೈರ್ಯ ನಿಮ್ಮಲ್ಲಿದೆ. ಸುಖ-ದುಃಖಗಳನ್ನು ಸಮಚಿತ್ತದಿಂದ ಸ್ವೀಕರಿಸಿ, ಆಶಾವಾದದೊಂದಿಗೆ ಕರ್ತವ್ಯ ನಿರ್ವಹಿಸುವ ಗುಣ ನಿಮ್ಮ ಮನಸ್ಸನ್ನು ಸದೃಢವಾಗಿಟ್ಟಿದೆ.`,
       bulletEn: hasDarkLoops
         ? `Affliction to the Moon (Saturn/Rahu association) produces recurring cycles of depressive overthinking, chronic self-doubt, and fear of abandonment.`
-        : `Susceptibility to pessimistic mood swings requires proactive mindfulness and spiritual grounding.`,
-      astrologicalBasisKn: `ಮನಃಕಾರಕ ಚಂದ್ರನ ಮೇಲಿನ ರಾಹು/ಶನಿಯ ಪ್ರಭಾವ ಹಾಗೂ ದುಃಸ್ಥಾನ ಸ್ಥಿತಿ.`,
-      astrologicalBasisEn: `Afflicted natal Moon position in Dusthana or with nodal shadow.`
+        : `Stable lunar alignment endows you with emotional resilience, steady equanimity during hardship, and constructive optimism that shields against mental despondency.`,
+      astrologicalBasisKn: hasDarkLoops ? `ಮನಃಕಾರಕ ಚಂದ್ರನ ಮೇಲಿನ ರಾಹು/ಶನಿಯ ಪ್ರಭಾವ ಹಾಗೂ ದುಃಸ್ಥಾನ ಸ್ಥಿತಿ.` : `ಸ್ಥಿರ ಚಂದ್ರ ಬಲ ಹಾಗೂ ಸಕಾರಾತ್ಮಕ ಗ್ರಹ ದೃಷ್ಟಿ.`,
+      astrologicalBasisEn: hasDarkLoops ? `Afflicted natal Moon position in Dusthana or with nodal shadow.` : `Unafflicted Moon conferring emotional stability.`
     },
     {
       id: 6,
@@ -1221,9 +1511,10 @@ export const generateCurrentLifeDiagnosis = (
 ): CurrentLifeDiagnosis => {
   const ageDecimal = ageDecimalYearsAt(context.birthDate, context.birthTime, context.latitude, context.longitude, new Date());
   const devoteeAge = calculateDevoteeAge(context.birthDate);
-  const dasha = findBhuktiAtAge(kundli, ageDecimal);
-  const maha = dasha?.maha.planet ?? PlanetName.Sun;
-  const bhukti = dasha?.bhukti ?? PlanetName.Sun;
+  const dashaTiming = calculateDynamicDashaTiming(kundli, ageDecimal);
+  const liveGochara = calculateLiveGochara(kundli, context);
+  const maha = dashaTiming.currentMaha;
+  const bhukti = dashaTiming.currentBhukti;
 
   const moon = kundli.planets.find((p) => p.name === PlanetName.Moon);
   const sun = kundli.planets.find((p) => p.name === PlanetName.Sun);
@@ -1362,9 +1653,9 @@ export const generateCurrentLifeDiagnosis = (
   const karmaP2 = `ಕೈಗೆ ಬಂದ ಆದಾಯವು ಸದ್ವಿನಿಯೋಗವಾಗುವಂತೆ ಸ್ಥಿರ ಆಸ್ತಿಯಲ್ಲಿ ತೊಡಗಿಸುವುದು ಉತ್ತಮ. ನಿಮ್ಮ ಕರ್ಮ ಸ್ಥಾನದ ಅಧಿಪತಿಯು ನಿಮ್ಮನ್ನು ವೃತ್ತಿಪರವಾಗಿ ಹದಗೊಳಿಸುತ್ತಿದ್ದಾನೆ; ಈ ಅನುಭವಗಳು ನಿಮ್ಮ ಮಹತ್ತರ ಜಯಕ್ಕೆ ಅಡಿಪಾಯವಾಗಲಿವೆ.`;
   const karmaFinancialRealityKn = `${karmaP1}\n\n${karmaP2}`;
 
-  // Turning Point Timeline
-  const turningP1 = `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${toKannadaPlanet(maha)} ಮಹಾದಶೆಯ ${toKannadaPlanet(bhukti)} ಭುಕ್ತಿ ಮತ್ತು ಮುಂಬರುವ ಗೋಚಾರ ಗ್ರಹಗಳ ಚಲನೆಯ ಪ್ರಕಾರ, ಇನ್ನು ಮುಂದಿನ 3 ರಿಂದ 6 ತಿಂಗಳುಗಳಲ್ಲಿ (Next 3 to 6 Months) ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಪ್ರಮುಖ ಸಕಾರಾತ್ಮಕ ತಿರುವು ನಿಖರವಾಗಿ ಘಟಿಸಲಿದೆ.`;
-  const turningP2 = `ಗೋಚಾರ ಗುರುವಿನ ಶುಭ ದೃಷ್ಟಿಯು ನಿಮ್ಮ ಕಾರ್ಯಕ್ಷೇತ್ರ ಹಾಗೂ ಧನ ಸ್ಥಾನದ ಮೇಲೆ ಬೀಳಲಾರಂಭಿಸಿದ ತಕ್ಷಣ ನಿಮ್ಮ ಪ್ರಯತ್ನಗಳಿಗೆ ಅತ್ಯುತ್ತಮ ಪ್ರತಿಫಲ ಮತ್ತು ನೂತನ ಅವಕಾಶಗಳು ಒದಗಿಬರಲಿವೆ.`;
+  // Turning Point Timeline (100% Dynamic from running Dasha-Bhukti remaining duration & live transits)
+  const turningP1 = `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${toKannadaPlanet(maha)} ಮಹಾದಶೆಯ ${toKannadaPlanet(bhukti)} ಭುಕ್ತಿ ಮತ್ತು ಮುಂಬರುವ ಗೋಚಾರ ಗ್ರಹಗಳ ಚಲನೆಯ ಪ್ರಕಾರ, ಇನ್ನು ${dashaTiming.timelineKn} (${dashaTiming.badgeTimelineEn}) ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಪ್ರಮುಖ ಸಕಾರಾತ್ಮಕ ತಿರುವು ನಿಖರವಾಗಿ ಘಟಿಸಲಿದೆ.`;
+  const turningP2 = `${liveGochara.summaryKn} ನಿಮ್ಮ ಪ್ರಯತ್ನಗಳಿಗೆ ಅತ್ಯುತ್ತಮ ಪ್ರತಿಫಲ ಮತ್ತು ನೂತನ ಅವಕಾಶಗಳು ಒದಗಿಬರಲಿವೆ.`;
   const immediateTurningPointKn = `${turningP1}\n\n${turningP2}`;
 
   // Siddha Remedies
@@ -1383,7 +1674,7 @@ export const generateCurrentLifeDiagnosis = (
   const openingIceBreakerEn = `Looking deeply into your chart, your ${lagnaEng} Ascendant and Moon in ${kundli.moonSign.english} with ${moonNakName} Nakshatra creates a fiercely independent, highly principled, and self-respecting character. You rely on your own diligence and never bow to forced coercion. You have come today to understand your genuine planetary strengths and prepare for your upcoming astrological breakthrough.`;
   const hiddenSubconsciousWorryEn = `Your 4th house and Moon indicate deep introspective awareness. While courageous on the surface, you process experiences with thoughtful contemplation. Spiritual grounding provides you with enduring inner peace.`;
   const karmaFinancialRealityEn = `Governed by your 10th house of profession and 2nd/11th houses of wealth, your sustained dedication is building the foundation for enduring career stability and financial growth.`;
-  const immediateTurningPointEn = `Calculating the running ${maha} Mahadasha and ${bhukti} Antardasha with transits, a major positive turning point will unfold over the Next 3 to 6 Months.`;
+  const immediateTurningPointEn = `Calculating the running ${maha} Mahadasha and ${bhukti} Antardasha with transits, a major positive turning point will unfold ${dashaTiming.timelineEn}. ${liveGochara.summaryEn}`;
   const siddhaPariharaRemedyEn = `To energize your Lagna Lord, wear an energized ${prescriptions?.gemstoneRing?.primaryGemstoneEn || "Ruby"} (${gemCaratVal}) and adorn sacred ${prescriptions?.rudraksha?.nameEn || "Rudraksha"}. Offer prayers at holy Gokarna Mahabaleshwara Kshetra for lasting grace.`;
 
   const tenLifeAspectBullets = generate10MasterLifeBulletPoints(
@@ -1392,7 +1683,9 @@ export const generateCurrentLifeDiagnosis = (
     prescriptions || ({} as any),
     devoteeAge,
     maha,
-    bhukti
+    bhukti,
+    dashaTiming,
+    liveGochara
   );
 
   const goodBadAnalysis = generateGoodAndBadTraits(
@@ -1405,6 +1698,8 @@ export const generateCurrentLifeDiagnosis = (
   );
 
   return {
+    dashaTiming,
+    liveGochara,
     mentalStateIssue: {
       hasIssue: mentalIssue,
       domain: mentalIssue ? "Manassu (Mental Peace)" : "Peaceful",
@@ -1417,8 +1712,8 @@ export const generateCurrentLifeDiagnosis = (
       planetaryRootCause: rootCause
     },
     prasthuthaSthiti: {
-      runningDashaSummary: `ಪ್ರಸ್ತುತ ಮಹಾದಶಾ: ${toKannadaPlanet(maha)} | ಪ್ರಸ್ತುತ ಭುಕ್ತಿ: ${toKannadaPlanet(bhukti)}. ಈ ಕಾಲಾವಧಿಯು ನಿಮ್ಮ ಜೀವನದ ಪ್ರಮುಖ ನಿರ್ಧಾರಗಳನ್ನು ತೆಗೆದುಕೊಳ್ಳುವ ಸಮಯ.`,
-      runningGocharaSummary: `ಗೋಚಾರ ಗುರುವು ಜ್ಞಾನ ಮತ್ತು ರಕ್ಷಣೆಯನ್ನು ನೀಡುತ್ತಿದ್ದರೆ, ಶನಿಯು ತಾಳ್ಮೆ ಮತ್ತು ಕಠಿಣ ಪರಿಶ್ರಮವನ್ನು ಪರೀಕ್ಷಿಸುತ್ತಿದ್ದಾನೆ.`,
+      runningDashaSummary: `ಪ್ರಸ್ತುತ ಮಹಾದಶಾ: ${toKannadaPlanet(maha)} | ಪ್ರಸ್ತುತ ಭುಕ್ತಿ: ${toKannadaPlanet(bhukti)} (${dashaTiming.timelineKn} ಪೂರ್ಣ). ಈ ಕಾಲಾವಧಿಯು ನಿಮ್ಮ ಜೀವನದ ಪ್ರಮುಖ ನಿರ್ಧಾರಗಳನ್ನು ತೆಗೆದುಕೊಳ್ಳುವ ಸಮಯ.`,
+      runningGocharaSummary: liveGochara.summaryKn,
       activeTithiSthiti: `ಪಂಚಾಂಗ ತತ್ವಗಳ ಸಮತೋಲನಕ್ಕಾಗಿ ದೇವತಾ ಪ್ರಾರ್ಥನೆ ಅಗತ್ಯ.`,
       immediateRemedies
     },
@@ -1484,6 +1779,9 @@ export const generateInstantQAList = (
   const dashaMaha = diagnosis.prasthuthaSthiti.runningDashaSummary.split("|")[0]?.replace("ಪ್ರಸ್ತುತ ಮಹಾದಶಾ:", "").trim() || "ದಶಾ ಕಾಲ";
   const dashaMahaKn = toKannadaPlanet(dashaMaha);
 
+  const dashaTiming = diagnosis.dashaTiming || calculateDynamicDashaTiming(kundli, 30);
+  const remM = dashaTiming.remainingMonths;
+
   const gemName = prescriptions?.gemstoneRing?.primaryGemstoneKn || "ಮಾಣಿಕ್ಯ";
   const gemCarat = prescriptions?.gemstoneRing?.caratWeight || "4.25 - 5.50 ಕ್ಯಾರಟ್";
   const gemMetal = prescriptions?.gemstoneRing?.metalKn || "ಚಿನ್ನ ಅಥವಾ ಪಂಚಲೋಹ";
@@ -1514,7 +1812,7 @@ export const generateInstantQAList = (
 
 • 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: ನಿಮ್ಮ ${lagnaKn} ಲಗ್ನದ 10ನೇ ಕರ್ಮ ಸ್ಥಾನದಲ್ಲಿ ${tenthLordKn} ಅಧಿಪತ್ಯವಿದ್ದು, ಪ್ರಸ್ತುತ ${dashaMahaKn} ಮಹಾದಶಾ ಸಂಚಾರ ನಡೆಯುತ್ತಿದೆ. 10ನೇ ಮನೆಯಲ್ಲಿ ${h10PlanetsKn} ಪ್ರಭಾವವಿದೆ.
 • ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ಕಾರಣ: ಕರ್ಮ ಸ್ಥಾನದ ಮೇಲೆ ಗೋಚಾರ ಶನಿ-ರಾಹುಗಳ ಸೂಕ್ಷ್ಮ ದೃಷ್ಟಿಯಿಂದಾಗಿ ನಿಮ್ಮ ಪರಿಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಮನ್ನಣೆ ಸಿಗುವುದು ತಾತ್ಕಾಲಿಕವಾಗಿ ವಿಳಂಬವಾಗುತ್ತಿದೆ.
-• ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ 3 ರಿಂದ 5 ತಿಂಗಳುಗಳಲ್ಲಿ (Next 3 to 5 Months) ಗೋಚಾರ ಗುರುವಿನ ಪೂರ್ಣ ದೃಷ್ಟಿ ಕರ್ಮ ಸ್ಥಾನದ ಮೇಲೆ ಬೀಳಲಿದ್ದು, ನೂತನ ಉದ್ಯೋಗಾವಕಾಶ ಅಥವಾ ಬಡ್ತಿಯ ಶುಭ ಯೋಗ ಕೂಡಿಬರಲಿದೆ.
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ ${remM} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${remM} Month${remM > 1 ? "s" : ""}) ಗೋಚಾರ ಗುರುವಿನ ಪೂರ್ಣ ದೃಷ್ಟಿ ಕರ್ಮ ಸ್ಥಾನದ ಮೇಲೆ ಬೀಳಲಿದ್ದು, ನೂತನ ಉದ್ಯೋಗಾವಕಾಶ ಅಥವಾ ಬಡ್ತಿಯ ಶುಭ ಯೋಗ ಕೂಡಿಬರಲಿದೆ.
 • 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪೂಜೆ: ಪ್ರತಿದಿನ ಪ್ರಾತಃಕಾಲ ರವಿ ಗಾಯತ್ರಿ ಮಂತ್ರ 11 ಬಾರಿ ಪಠಿಸಿ. ${gemName} (${gemCarat}) ರತ್ನ ಧರಿಸಿ ಮತ್ತು ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಕರ್ಮ ಸಿದ್ಧಿ ಸಂಕಲ್ಪ ಪೂಜೆ ಸಲ್ಲಿಸಿ.`),
       astrologicalBasisKn: `10ನೇ ಮನೆ (ಕರ್ಮ ಸ್ಥಾನ ${tenthLordKn}) ಮತ್ತು ಗುರು-ಶನಿ ಗೋಚಾರ ಫಲ.`,
       immediateRemedyKn: `ಪ್ರತಿದಿನ ಪ್ರಾತಃಕಾಲ ರವಿ ಗಾಯತ್ರಿ ಪಠಿಸಿ ಮತ್ತು ${gemName} ಧರಿಸಿ.`
@@ -1531,7 +1829,7 @@ export const generateInstantQAList = (
 
 • 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: ನಿಮ್ಮ 2ನೇ ಧನಕೋಶ ಮತ್ತು 11ನೇ ಲಾಭ ಸ್ಥಾನದಲ್ಲಿ ${eleventhLordKn} ಗ್ರಹದ ಪ್ರಭಾವವಿದೆ.
 • ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ಕಾರಣ: ವ್ಯಾಪಾರದಲ್ಲಿ ಇತ್ತೀಚೆಗೆ ಬಂದ ಅನಿರೀಕ್ಷಿತ ಧನವ್ಯಯ ಅಥವಾ ಮಾರುಕಟ್ಟೆಯಲ್ಲಿ ಹಳೆಯ ಬಾಕಿ ಹಣ ನಿಲ್ಲದಿರುವುದು ಬಂಡವಾಳದ ಸರಾಗ ಹರಿವಿಗೆ ಅಡ್ಡಿಯಾಗಿದೆ.
-• ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ 4 ರಿಂದ 6 ತಿಂಗಳುಗಳಲ್ಲಿ (Next 4 to 6 Months) ಹೊಸ ಗ್ರಾಹಕರ ಸಂಪರ್ಕ ಮತ್ತು ಹಳೆಯ ಬಾಕಿ ಹಣದ ವಸೂಲಿ ಆರಂಭವಾಗಿ ವ್ಯಾಪಾರ ಲಾಭದಾಯಕ ಹಳಿಗೆ ಮರಳಲಿದೆ.
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ ${Math.max(2, remM)} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${Math.max(2, remM)} Month${Math.max(2, remM) > 1 ? "s" : ""}) ಹೊಸ ಗ್ರಾಹಕರ ಸಂಪರ್ಕ ಮತ್ತು ಹಳೆಯ ಬಾಕಿ ಹಣದ ವಸೂಲಿ ಆರಂಭವಾಗಿ ವ್ಯಾಪಾರ ಲಾಭದಾಯಕ ಹಳಿಗೆ ಮರಳಲಿದೆ.
 • 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪೂಜೆ: ವ್ಯಾಪಾರ ಸ್ಥಳದಲ್ಲಿ ಶ್ರೀ ಯಂತ್ರ ಸ್ಥಾಪಿಸಿ 'ಓಂ ಶ್ರೀಂ ಮಹಾಲಕ್ಷ್ಮ್ಯೈ ನಮಃ' ಮಂತ್ರ ಪಠಿಸಿ. ಗೋಕರ್ಣದಲ್ಲಿ ಲಕ್ಷ್ಮೀ-ವೆಂಕಟರಮಣ ಪೂಜಾ ಸಂಕಲ್ಪ ಸಮರ್ಪಿಸಿ.`),
       astrologicalBasisKn: `2ನೇ (ಧನ ಕೋಶ) ಮತ್ತು 11ನೇ (ಲಾಭ ಸ್ಥಾನ) ಮನೆಗಳ ಮೇಲಿನ ಗೋಚಾರ ಗ್ರಹ ದೃಷ್ಟಿ.`,
       immediateRemedyKn: `ವ್ಯಾಪಾರ ಸ್ಥಳದಲ್ಲಿ ಶ್ರೀ ಯಂತ್ರ ಸ್ಥಾಪಿಸಿ ಮತ್ತು ಶುಕ್ರವಾರ ಲಕ್ಷ್ಮೀ ಪೂಜೆ ಮಾಡಿ.`
@@ -1548,7 +1846,7 @@ export const generateInstantQAList = (
 
 • 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: ನಿಮ್ಮ 6ನೇ ಶತ್ರು/ಸ್ಪರ್ಧಾ ಸ್ಥಾನದಲ್ಲಿ ${sixthLordKn} ಅಧಿಪತ್ಯವಿದೆ ಹಾಗೂ ಲಗ್ನದ ನೇರ ನಿಷ್ಠುರ ಗುಣವಿದೆ.
 • ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ಕಾರಣ: ನಿಮ್ಮ ಪ್ರಾಮಾಣಿಕತೆ ಮತ್ತು ನಿಷ್ಠೆಯನ್ನು ಕೆಲವರು ತಮ್ಮ ಅನುಕೂಲಕ್ಕೆ ಬಳಸಿಕೊಳ್ಳುತ್ತಿದ್ದು, ನೀವು ಮಾಡಿದ ಕೆಲಸದ ಕೀರ್ತಿಯನ್ನು ಇತರರು ಪಡೆಯುವ ಸನ್ನಿವೇಶ ಸೃಷ್ಟಿಯಾಗಿದೆ.
-• ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ 2 ರಿಂದ 4 ತಿಂಗಳುಗಳಲ್ಲಿ (Next 2 to 4 Months) ಸತ್ಯಾಂಶವು ಹಿರಿಯ ಅಧಿಕಾರಿಗಳಿಗೆ ಮನವರಿಕೆಯಾಗಿ ನಿಮ್ಮ ಸ್ಥಾನಮಾನ ಮರುಸ್ಥಾಪನೆಯಾಗಲಿದೆ.
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ ${Math.max(1, Math.min(4, Math.round(remM * 0.75)))} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${Math.max(1, Math.min(4, Math.round(remM * 0.75)))} Month${Math.max(1, Math.min(4, Math.round(remM * 0.75))) > 1 ? "s" : ""}) ಸತ್ಯಾಂಶವು ಹಿರಿಯ ಅಧಿಕಾರಿಗಳಿಗೆ ಮನವರಿಕೆಯಾಗಿ ನಿಮ್ಮ ಸ್ಥಾನಮಾನ ಮರುಸ್ಥಾಪನೆಯಾಗಲಿದೆ.
 • 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪೂಜೆ: ಮಂಗಳವಾರ ಸುಬ್ರಹ್ಮಣ್ಯ ಅಷ್ಟಕ ಪಠಿಸಿ. ಕಂಠದಲ್ಲಿ ${rudraName} ಧಾರಣೆ ಮಾಡಿ ಮತ್ತು ಗೋಕರ್ಣದಲ್ಲಿ ಶತ್ರು ಸಂಹಾರ ತ್ರಿಶೂಲ ಪೂಜೆ ನೆರವೇರಿಸಿ.`),
       astrologicalBasisKn: `6ನೇ (ಶತ್ರು ಜಯ) ಮತ್ತು 10ನೇ ಮನೆಯ ಮೇಲಿನ ಗ್ರಹ ಪ್ರಭಾವ.`,
       immediateRemedyKn: `ಪ್ರತಿ ಮಂಗಳವಾರ ಸುಬ್ರಹ್ಮಣ್ಯ ಅಷ್ಟಕ ಪಠಿಸಿ ಮತ್ತು ${rudraName} ಧರಿಸಿ.`
@@ -1573,7 +1871,7 @@ export const generateInstantQAList = (
     ? `7ನೇ ಮನೆಯಲ್ಲಿ ರಾಹು/ಕೇತುಗಳಿರುವುದರಿಂದ 'ಸರ್ಪ ದೋಷ' ಉಂಟಾಗಿದೆ; ಇದು ವಿವಾಹ ಪ್ರಸ್ತಾಪಗಳು ಅರ್ಧಕ್ಕೆ ನಿಲ್ಲಲು ಕಾರಣವಾಗಿದೆ.`
     : `7ನೇ ಅಧಿಪತಿ ${seventhLordKn} ಗ್ರಹದ ಗೋಚಾರ ಸಂಚಾರದಲ್ಲಿ ತಾತ್ಕಾಲಿಕ ಬಲಹೀನತೆಯಿದೆ.`
 }
-• ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ 4 ರಿಂದ 7 ತಿಂಗಳುಗಳಲ್ಲಿ (Next 4 to 7 Months) ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಅನುಗ್ರಹದಿಂದ ಯೋಗ್ಯ, ಸಂಸ್ಕಾರಯುತ ಕುಟುಂಬದಿಂದ ವಿವಾಹ ಪ್ರಸ್ತಾಪ ಖಚಿತವಾಗಿ ಕೂಡಿಬರಲಿದೆ.
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ ${Math.max(3, remM)} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${Math.max(3, remM)} Month${Math.max(3, remM) > 1 ? "s" : ""}) ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಅನುಗ್ರಹದಿಂದ ಯೋಗ್ಯ, ಸಂಸ್ಕಾರಯುತ ಕುಟುಂಬದಿಂದ ವಿವಾಹ ಪ್ರಸ್ತಾಪ ಖಚಿತವಾಗಿ ಕೂಡಿಬರಲಿದೆ.
 • 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪೂಜೆ: ${
   isKujaDosha
     ? "ದಿನನಿತ್ಯ ಕುಜ ಗಾಯತ್ರಿ ಜಪಿಸಿ ('ಓಂ ಕ್ರಾಂ ಕ್ರೀಂ ಕ್ರೌಂ ಸಃ ಭೌಮಾಯ ನಮಃ'). ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸುಬ್ರಹ್ಮಣ್ಯ ಕುಜ ಶಾಂತಿ ಪೂಜೆ ನೆರವೇರಿಸಿ."
@@ -1594,7 +1892,7 @@ export const generateInstantQAList = (
 
 • 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: ನಿಮ್ಮ 7ನೇ ಕಳತ್ರ ಸ್ಥಾನ ಮತ್ತು 4ನೇ ಸುಖ ಸ್ಥಾನದ ಮೇಲೆ ${seventhLordKn} ಹಾಗೂ ${fourthLordKn} ಗ್ರಹಗಳ ಪ್ರಭಾವವಿದೆ.
 • ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ಕಾರಣ: ಇತ್ತೀಚೆಗೆ ನಡೆದ ಸಣ್ಣ ಮಾತುಕತೆ ಅಥವಾ ಅಹಂಕಾರದ ಘರ್ಷಣೆಯು ದಾಂಪತ್ಯದಲ್ಲಿ ಸೂಕ್ಷ್ಮ ಅಂತರ ತಂದಿದೆ. ಪರಸ್ಪರ ಪ್ರೀತಿ ಇದ್ದರೂ ಮುಕ್ತ ಸಂವಹನದ ಕೊರತೆ ಕಾಣಿಸುತ್ತಿದೆ.
-• ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ 2 ರಿಂದ 4 ತಿಂಗಳುಗಳಲ್ಲಿ (Next 2 to 4 Months) ಗ್ರಹಗಳ ಶುಭ ಸಂಚಾರದಿಂದ ಪರಸ್ಪರ ತಿಳುವಳಿಕೆ ಮರಳಿ ಬಂದು ದಾಂಪತ್ಯದಲ್ಲಿ ಶಾಂತಿ ನೆಲೆಸಲಿದೆ.
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ ${Math.max(2, Math.min(5, remM))} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${Math.max(2, Math.min(5, remM))} Month${Math.max(2, Math.min(5, remM)) > 1 ? "s" : ""}) ಗ್ರಹಗಳ ಶುಭ ಸಂಚಾರದಿಂದ ಪರಸ್ಪರ ತಿಳುವಳಿಕೆ ಮರಳಿ ಬಂದು ದಾಂಪತ್ಯದಲ್ಲಿ ಶಾಂತಿ ನೆಲೆಸಲಿದೆ.
 • 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪೂಜೆ: ಮಂಗಳವಾರ ಮತ್ತು ಶುಕ್ರವಾರ ಮನೆಯಲ್ಲಿ ಸಾಂಬ್ರಾಣಿ ಧೂಪ ಹಾಕಿ. ದಂಪತಿ ಸಮೇತರಾಗಿ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಶಿವ-ಪಾರ್ವತಿ ಪೂಜೆ ಅಥವಾ ರುದ್ರಾಭಿಷೇಕ ಮಾಡಿಸಿ.`),
       astrologicalBasisKn: `7ನೇ ಮನೆ ಮತ್ತು 4ನೇ ಮನೆಯ ಮೇಲಿನ ಗೋಚಾರ ಗ್ರಹ ಪ್ರಭಾವ.`,
       immediateRemedyKn: `ದಂಪತಿ ಸಮೇತರಾಗಿ ಗೋಕರ್ಣದಲ್ಲಿ ಶಿವ-ಪಾರ್ವತಿ ಪೂಜೆ ಅಥವಾ ರುದ್ರಾಭಿಷೇಕ ಮಾಡಿಸಿ.`
@@ -1617,7 +1915,7 @@ export const generateInstantQAList = (
     ? `ಕುಜ ಗ್ರಹದ ತೀಕ್ಷ್ಣ ದೃಷ್ಟಿಯಿಂದಾಗಿ ಗರ್ಭಕೋಶದಲ್ಲಿ ಉಷ್ಣಾಧಿಕ್ಯ ಅಥವಾ ಪಿತ್ತ ದೋಷ ಉಂಟಾಗಿ ಸಂತಾನ ವಿಳಂಬವಾಗುತ್ತಿದೆ.`
     : `5ನೇ ಮನೆಯ ಅಧಿಪತಿ ${fifthLordKn} ಮತ್ತು ಪುತ್ರಕಾರಕ ಗುರುವಿನ ಮೇಲೆ ಸೂಕ್ಷ್ಮ ಗ್ರಹಣ ದೋಷದ ಪ್ರಭಾವವಿದೆ.`
 }
-• ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ 6 ರಿಂದ 9 ತಿಂಗಳುಗಳಲ್ಲಿ (Next 6 to 9 Months) ಗೋಚಾರ ಗುರುವಿನ ಅನುಗ್ರಹದಿಂದ ಸಂತಾನ ಭಾಗ್ಯದ ಶುಭ ಸುದ್ದಿ ಮನೆತುಂಬುವ ಪ್ರಬಲ ಯೋಗವಿದೆ.
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ ${Math.max(4, remM + 2)} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${Math.max(4, remM + 2)} Month${Math.max(4, remM + 2) > 1 ? "s" : ""}) ಗೋಚಾರ ಗುರುವಿನ ಅನುಗ್ರಹದಿಂದ ಸಂತಾನ ಭಾಗ್ಯದ ಶುಭ ಸುದ್ದಿ ಮನೆತುಂಬುವ ಪ್ರಬಲ ಯೋಗವಿದೆ.
 • 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪೂಜೆ: ದಿನನಿತ್ಯ ಪ್ರಾತಃಕಾಲ ಸಂತಾನ ಗೋಪಾಲ ಮಂತ್ರ ಜಪಿಸಿ: 'ಓಂ ಕ್ಲೀಂ ದೇವಕೀಸುತ ಗೋವಿಂದ ವಾಸುದೇವ ಜಗತ್ಪತೇ ದೇಹಿ ಮೇ ತನಯಂ ಕೃಷ್ಣ ತ್ವಾಮಹಂ ಶರಣಂ ಗತಃ'. ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ನಾಗಬಲಿ / ಸುಬ್ರಹ್ಮಣ್ಯ ಶಾಂತಿ ಸೇವೆ ಸಮರ್ಪಿಸಿ.`),
       astrologicalBasisKn: `5ನೇ ಮನೆ (ಪುತ್ರ ಸ್ಥಾನ ${fifthLordKn}) ಮತ್ತು ಪುತ್ರಕಾರಕ ಗುರುವಿನ ಸ್ಥಿತಿ.`,
       immediateRemedyKn: `ದಿನನಿತ್ಯ ಸಂತಾನ ಗೋಪಾಲ ಮಂತ್ರ ಜಪಿಸಿ ಮತ್ತು ಗೋಕರ್ಣದಲ್ಲಿ ಸೇವೆ ಮಾಡಿಸಿ.`
@@ -1634,7 +1932,7 @@ export const generateInstantQAList = (
 
 • 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಮನಃಕಾರಕ ಚಂದ್ರನು ${moonHouse}ನೇ ಮನೆಯಲ್ಲಿ (${moonRashiKn} ರಾಶಿ, ${moonNakKn} ನಕ್ಷತ್ರ) ಸ್ಥಿತನಾಗಿದ್ದಾನೆ.
 • ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ಕಾರಣ: ಚಂದ್ರನ ಮೇಲಿನ ಗ್ರಹ ಪ್ರಭಾವದಿಂದಾಗಿ ನೀವು ಹೊರಗೆ ಧೈರ್ಯವಾಗಿ ಕಂಡರೂ ಒಳಗೆ ಎಲ್ಲವನ್ನೂ ಅತಿಯಾಗಿ ಆಲೋಚಿಸುವ (Overthinking) ಮತ್ತು ಭಾವನೆಗಳನ್ನು ಅದುಮಿಟ್ಟುಕೊಳ್ಳುವ ಪ್ರವೃತ್ತಿ ಇದೆ.
-• ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ 2 ರಿಂದ 3 ತಿಂಗಳುಗಳಲ್ಲಿ (Next 2 to 3 Months) ಚಂದ್ರನ ಗೋಚಾರ ಬಲ ಸುಧಾರಿಸಲಿದ್ದು ಮನಸ್ಸಿಗೆ ಅಪಾರ ನೆಮ್ಮದಿ ಮರಳಲಿದೆ.
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ ${Math.max(1, Math.min(3, Math.round(remM / 2)))} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${Math.max(1, Math.min(3, Math.round(remM / 2)))} Month${Math.max(1, Math.min(3, Math.round(remM / 2))) > 1 ? "s" : ""}) ಚಂದ್ರನ ಗೋಚಾರ ಬಲ ಸುಧಾರಿಸಲಿದ್ದು ಮನಸ್ಸಿಗೆ ಅಪಾರ ನೆಮ್ಮದಿ ಮರಳಲಿದೆ.
 • 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪೂಜೆ: ಪ್ರತಿದಿನ ರಾತ್ರಿ 11 ಬಾರಿ 'ಓಂ ನಮಃ ಶಿವಾಯ' ಜಪಿಸಿ. ಕಂಠದಲ್ಲಿ ${rudraName} ಧರಿಸಿ ಮತ್ತು ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರನಿಗೆ ಕ್ಷೀರಾಭಿಷೇಕ ಪ್ರಾರ್ಥನೆ ಸಲ್ಲಿಸಿ.`),
       astrologicalBasisKn: `ಚಂದ್ರನ ${moonHouse}ನೇ ಸ್ಥಾನ ಮತ್ತು 4ನೇ ಭಾವದ ${fourthLordKn} ಪ್ರಭಾವ.`,
       immediateRemedyKn: `${rudraName} ಧರಿಸಿ ಮತ್ತು ರಾತ್ರಿ 11 ಬಾರಿ 'ಓಂ ನಮಃ ಶಿವಾಯ' ಜಪಿಸಿ.`
@@ -1651,7 +1949,7 @@ export const generateInstantQAList = (
 
 • 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: ನಿಮ್ಮ ${lagnaKn} ಲಗ್ನದ ತೇಜಸ್ಸು ಹಾಗೂ 8ನೇ ಗೂಢ ಸ್ಥಾನದ ಮೇಲೆ ಛಾಯಾಗ್ರಹಗಳ ದೃಷ್ಟಿ ಇದೆ.
 • ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ಕಾರಣ: ನಿಮ್ಮ ಪ್ರಗತಿ ಮತ್ತು ವ್ಯಕ್ತಿತ್ವವನ್ನು ನೋಡಿ ಕೆಲವರಿಗೆ ಉಂಟಾಗುವ ಅಸೂಯೆ ಮತ್ತು ನರದೃಷ್ಟಿಯಿಂದಾಗಿ ಹೊಸ ಕೆಲಸಗಳಲ್ಲಿ ಆರಂಭಿಕ ಅಡೆತಡೆಗಳು ಎದುರಾಗುತ್ತಿವೆ.
-• ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ 1 ರಿಂದ 2 ತಿಂಗಳುಗಳಲ್ಲಿ (Next 1 to 2 Months) ರಕ್ಷಾ ಕವಚದ ಪ್ರಭಾವದಿಂದ ಸಕಲ ದೃಷ್ಟಿ ದೋಷಗಳು ಭಸ್ಮವಾಗಲಿವೆ.
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ 1 ತಿಂಗಳಿನಲ್ಲಿ (Next 1 Month) ರಕ್ಷಾ ಕವಚದ ಪ್ರಭಾವದಿಂದ ಸಕಲ ದೃಷ್ಟಿ ದೋಷಗಳು ಭಸ್ಮವಾಗಲಿವೆ.
 • 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪೂಜೆ: ಮಂಗಳವಾರ-ಶುಕ್ರವಾರ ಮುಖ್ಯದ್ವಾರಕ್ಕೆ ಕಲ್ಲುಪ್ಪು-ನಿಂಬೆಹಣ್ಣಿನ ದೃಷ್ಟಿ ತೆಗೆಯಿರಿ. ಶ್ರೀ ಸುದರ್ಶನ ಕವಚ ಅಥವಾ ನರಸಿಂಹ ಮಂತ್ರ ಜಪಿಸಿ ಮತ್ತು ಗೋಕರ್ಣದಲ್ಲಿ ರಕ್ಷಾ ಸಂಕಲ್ಪ ಸೇವೆ ನೆರವೇರಿಸಿ.`),
       astrologicalBasisKn: `ಲಗ್ನ ಮತ್ತು 8ನೇ ಮನೆಯ ಮೇಲಿನ ಛಾಯಾಗ್ರಹಗಳ ಗೋಚಾರ ಪ್ರಭಾವ.`,
       immediateRemedyKn: `ಮನೆಯಲ್ಲಿ ಸಾಂಬ್ರಾಣಿ ಧೂಪ ಹಾಕಿ ಮತ್ತು ಸುದರ್ಶನ ಗಾಯತ್ರಿ ಮಂತ್ರ ಜಪಿಸಿ.`
@@ -1668,7 +1966,7 @@ export const generateInstantQAList = (
 
 • 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: ನಿಮ್ಮ 6ನೇ ಋಣ ಸ್ಥಾನದಲ್ಲಿ ${sixthLordKn} ಮತ್ತು 2ನೇ ಧನ ಸ್ಥಾನದಲ್ಲಿ ${secondLordKn} ಗ್ರಹ ಪ್ರಭಾವವಿದೆ.
 • ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ಕಾರಣ: ಕೈಗೆ ಬಂದ ಹಣ ನಿಲ್ಲದೆ ಅನಿರೀಕ್ಷಿತ ತುರ್ತು ವೆಚ್ಚಗಳಿಗೆ ಸೋರಿಹೋಗುತ್ತಿರುವುದು ಸಾಲದ ಹೊರೆಯನ್ನು ಹೆಚ್ಚಿಸಿದೆ.
-• ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ 4 ರಿಂದ 7 ತಿಂಗಳುಗಳಲ್ಲಿ (Next 4 to 7 Months) ಹೊಸ ಆದಾಯದ ಮಾರ್ಗ ತೆರೆದುಕೊಂಡು ಸಾಲದ ಬಹುಪಾಲು ಹೊರೆ ಇಳಿಯಲಿದೆ.
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ ${remM} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${remM} Month${remM > 1 ? "s" : ""}) ಹೊಸ ಆದಾಯದ ಮಾರ್ಗ ತೆರೆದುಕೊಂಡು ಸಾಲದ ಬಹುಪಾಲು ಹೊರೆ ಇಳಿಯಲಿದೆ.
 • 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪೂಜೆ: ಪ್ರತಿದಿನ ಪ್ರಾತಃಕಾಲ ಋಣವಿಮೋಚಕ ನರಸಿಂಹ ಸ್ತೋತ್ರ ಪಠಿಸಿ. ${gemName} ಧರಿಸಿ ಮತ್ತು ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಮಹಾಗಣಪತಿ ಹೋಮ ಸಂಕಲ್ಪ ಸೇವೆ ಸಮರ್ಪಿಸಿ.`),
       astrologicalBasisKn: `6ನೇ (ಋಣ) ಮತ್ತು 11ನೇ (ಲಾಭ) ಮನೆಗಳ ಮೇಲಿನ ಗೋಚಾರ ಗ್ರಹ ಸಂಚಾರ.`,
       immediateRemedyKn: `ಪ್ರತಿದಿನ ಋಣವಿಮೋಚಕ ನರಸಿಂಹ ಸ್ತೋತ್ರ ಪಠಿಸಿ ಮತ್ತು ಗೋಕರ್ಣದಲ್ಲಿ ಸೇವೆ ಮಾಡಿಸಿ.`
@@ -1722,7 +2020,8 @@ export const generatePanchangaAngaSynthesis = (
   
   const p2 = sanitizeAstrologyKannadaText(`ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜೀವನದ ಮುಖ್ಯ ಗಮನ: ${currentDiagnosis.primaryLifeChallenge.description}. ನಿಮ್ಮ ಸಾಮರ್ಥ್ಯಕ್ಕೆ ತಕ್ಕಂತೆ ಮುನ್ನಡೆಯಲು ಗ್ರಹ ಸ್ಥಿತಿಗಳು ಹದಗೊಳ್ಳುತ್ತಿವೆ. ${currentDiagnosis.technicalAspects.tenthHouseDetail} ಮತ್ತು ${currentDiagnosis.technicalAspects.seventhHouseDetail}. ${currentDiagnosis.primaryLifeChallenge.planetaryRootCause}`);
 
-  const p3 = sanitizeAstrologyKannadaText(`ನೀವು ಯಾವುದೇ ಕಾರಣಕ್ಕೂ ಧೃತಿಗೆಡಬೇಕಾಗಿಲ್ಲ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ಲೆಕ್ಕಾಚಾರದ ಪ್ರಕಾರ, ಇನ್ನು ಮುಂದಿನ 3 ರಿಂದ 6 ತಿಂಗಳುಗಳಲ್ಲಿ ಗ್ರಹಗಳ ಗೋಚಾರ ಸಂಚಾರವು ನಿಮ್ಮ ಪರವಾಗಿ ತಿರುಗಲಿದ್ದು, ನೂತನ ಅವಕಾಶಗಳು ಗೋಚರಿಸಲಿವೆ. ನಿಮ್ಮ ಪರಿಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಮನ್ನಣೆ ಹಾಗೂ ಗೌರವಯುತ ಯಶಸ್ಸು ಖಚಿತವಾಗಿ ಲಭಿಸಲಿದೆ.`);
+  const dashaTimeText = currentDiagnosis.dashaTiming?.timelineKn || "ಮುಂದಿನ ಕೆಲವೇ ತಿಂಗಳುಗಳಲ್ಲಿ";
+  const p3 = sanitizeAstrologyKannadaText(`ನೀವು ಯಾವುದೇ ಕಾರಣಕ್ಕೂ ಧೃತಿಗೆಡಬೇಕಾಗಿಲ್ಲ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ಲೆಕ್ಕಾಚಾರದ ಪ್ರಕಾರ, ಇನ್ನು ${dashaTimeText} ಗ್ರಹಗಳ ಗೋಚಾರ ಸಂಚಾರವು ನಿಮ್ಮ ಪರವಾಗಿ ತಿರುಗಲಿದ್ದು, ನೂತನ ಅವಕಾಶಗಳು ಗೋಚರಿಸಲಿವೆ. ನಿಮ್ಮ ಪರಿಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಮನ್ನಣೆ ಹಾಗೂ ಗೌರವಯುತ ಯಶಸ್ಸು ಖಚಿತವಾಗಿ ಲಭಿಸಲಿದೆ.`);
 
   const p4 = sanitizeAstrologyKannadaText(`ನಿಮ್ಮ ಲಗ್ನಾಧಿಪತಿಯ ಬಲವರ್ಧನೆಗಾಗಿ ${prescriptions.gemstoneRing.primaryGemstoneKn} (${prescriptions.gemstoneRing.caratWeight}) ರತ್ನವನ್ನು ${prescriptions.gemstoneRing.metalKn}ದಲ್ಲಿ ಮಾಡಿಸಿ ${prescriptions.gemstoneRing.fingerKn}ಕ್ಕೆ ${prescriptions.gemstoneRing.activationDay} ದಿನ ಧಾರಣೆ ಮಾಡುವುದು ಅತ್ಯಂತ ಶ್ರೇಯಸ್ಕರ. ಇದರೊಂದಿಗೆ ಮಾನಸಿಕ ಶಾಂತಿಗಾಗಿ ${prescriptions.rudraksha.nameKn} ಧಾರಣೆ ಹಾಗೂ ${currentDiagnosis.prasthuthaSthiti.immediateRemedies.join(" ")}. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರನ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸಮರ್ಪಿಸುವ ಸಂಕಲ್ಪ ಪ್ರಾರ್ಥನೆಯು ನಿಮ್ಮ ಸಕಲ ವಿಘ್ನಗಳನ್ನು ನಿವಾರಿಸಲಿದೆ.`);
 
@@ -1730,7 +2029,8 @@ export const generatePanchangaAngaSynthesis = (
     runningDashaMaha: currentDiagnosis.prasthuthaSthiti.runningDashaSummary.split("|")[0]?.trim(),
     runningDashaBhukti: currentDiagnosis.prasthuthaSthiti.runningDashaSummary.split("|")[1]?.trim(),
     primaryChallenge: currentDiagnosis.primaryLifeChallenge.area,
-    devoteeName: context.devoteeName
+    devoteeName: context.devoteeName,
+    dynamicTimelineKn: currentDiagnosis.dashaTiming?.timelineKn
   });
 
   return {
