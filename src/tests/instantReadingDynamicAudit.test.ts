@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { calculateKundli } from "../core/KundliEngine";
-import { generatePanchangaAngaSynthesis } from "../core/PanchangaAngaSynthesisEngine";
+import { generatePanchangaAngaSynthesis, generateVedicConsultationAnswer } from "../core/PanchangaAngaSynthesisEngine";
 
 describe("Instant Reading 100% Dynamic & Zero-Hardcoded Audit", () => {
   it("verifies 100% dynamic calculations, personalized Dasha timelines, and zero hardcoded dates", () => {
@@ -81,11 +81,13 @@ describe("Instant Reading 100% Dynamic & Zero-Hardcoded Audit", () => {
     expect(goodBad.goodTraits.length).toBe(5);
     expect(goodBad.badTraits.length).toBe(7);
 
-    // Pramod has no addiction or smuggling afflictions - check constructive, non-offensive titles
+    // Pramod has Saturn in the 8th house casting 7th direct aspect onto 2nd house (Simha)
+    // Classical Parashara rule: Saturn aspecting 2nd house of oral intake triggers daily alcohol/substance habit
     const trait3 = goodBad.badTraits.find((t) => t.id === 3);
-    expect(trait3?.titleKn).toContain("ಸಾತ್ವಿಕ ಜೀವನಶೈಲಿ");
-    expect(trait3?.titleKn).not.toContain("ಮದ್ಯಪಾನ/ಧೂಮಪಾನ/ವ್ಯಸನಗಳ ಜಾಲ");
+    expect(trait3?.titleKn).toContain("ದಿನನಿತ್ಯದ ಮದ್ಯಪಾನ");
+    expect(trait3?.bulletKn).toContain("ದಿನನಿತ್ಯದ ಮದ್ಯಪಾನ (Daily Drinking)");
 
+    // Pramod does not have Rahu in 8th or 11th - so ethical livelihood is preserved
     const trait4 = goodBad.badTraits.find((t) => t.id === 4);
     expect(trait4?.titleKn).toContain("ನ್ಯಾಯನಿಷ್ಠ ಸಂಪಾದನೆ");
     expect(trait4?.titleKn).not.toContain("ಕಳ್ಳಸಾಗಣೆ (ಸ್ಮಗ್ಲಿಂಗ್)");
@@ -122,6 +124,134 @@ describe("Instant Reading 100% Dynamic & Zero-Hardcoded Audit", () => {
     // 9. Zero Kannada numerals audit across entire output
     const jsonString = JSON.stringify(synthesis);
     expect(jsonString).not.toMatch(/[೦೧೨೩೪೫೬೭೮೯]/);
+  });
+
+  it("verifies Child Kundali (<14 years) generates age-appropriate behavioral traits (crying, tantrums, fighting) with zero adult vices", () => {
+    const childContext = {
+      birthDate: "2021-08-20", // ~5 years old child
+      birthTime: "10:30",
+      latitude: 14.5479,
+      longitude: 74.3188,
+      devoteeName: "Aarav",
+      gender: "Male"
+    };
+
+    const childKundli = calculateKundli({
+      name: childContext.devoteeName,
+      birthDate: childContext.birthDate,
+      birthTime: childContext.birthTime,
+      latitude: childContext.latitude,
+      longitude: childContext.longitude
+    });
+
+    const childSynthesis = generatePanchangaAngaSynthesis(childKundli, childContext);
+    const badTraits = childSynthesis.goodBadAnalysis.badTraits;
+
+    // Must have exactly 7 child-tailored bad traits
+    expect(badTraits.length).toBe(7);
+
+    // Trait 1: Crying and day-long screams
+    expect(badTraits[0].titleKn).toContain("ಕಿರಿಕಿರಿ & ಅಳು");
+    expect(badTraits[0].bulletKn).toContain("ಪಿತ್ತಾಧಿಕ್ಯ");
+
+    // Trait 2: Evil eye / divine shield dynamic
+    expect(badTraits[1].titleKn).toMatch(/ದೃಷ್ಟಿ ಬಾಧೆ|ದೃಷ್ಟಿ ದೋಷ/);
+
+    // Trait 3: Aggressive fighting or gentle play dynamic
+    expect(badTraits[2].titleKn).toMatch(/ಜಗಳಗಂಟ ಪ್ರವೃತ್ತಿ|ಹೊಡೆದಾಟ|ಸೌಮ್ಯ ಸಹಯೋಗ/);
+
+    // Trait 4: Refusing food or healthy appetite dynamic
+    expect(badTraits[3].titleKn).toMatch(/ಆಹಾರ ನಕಾರ|ಊಟದ ನಿರಾಕರಣೆ|ಆಹಾರ ತೃಪ್ತಿ/);
+
+    // Trait 7: Gokarna Balarishta Shanti
+    expect(badTraits[6].titleKn).toContain("ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ರಕ್ಷಾ ಕವಚ");
+
+    // ZERO adult vice leakage (no adult alcohol addiction, affairs, or smuggling)
+    const allTextKn = JSON.stringify(badTraits);
+    expect(allTextKn).not.toContain("ಮದ್ಯಪಾನ");
+    expect(allTextKn).not.toContain("ಪರಸ್ತ್ರೀ ವ್ಯಾಮೋಹ");
+    expect(allTextKn).not.toContain("ಕಳ್ಳಸಾಗಣೆ (ಸ್ಮಗ್ಲಿಂಗ್)");
+  });
+
+  it("verifies generateVedicConsultationAnswer provides authoritative answers for child behavior, drinking, affairs, and smuggling", () => {
+    const context = {
+      birthDate: "1993-05-31",
+      birthTime: "09:25",
+      latitude: 14.5479,
+      longitude: 74.3188,
+      devoteeName: "Pramod",
+      gender: "Male"
+    };
+
+    const kundli = calculateKundli({
+      name: context.devoteeName,
+      birthDate: context.birthDate,
+      birthTime: context.birthTime,
+      latitude: context.latitude,
+      longitude: context.longitude
+    });
+
+    const synthesis = generatePanchangaAngaSynthesis(kundli, context);
+
+    // 1. Child crying question
+    const childAns = generateVedicConsultationAnswer(
+      kundli,
+      synthesis.currentDiagnosis,
+      synthesis.prescriptions,
+      "ಮಗು ಬೆಳಿಗ್ಗೆಯಿಂದ ಸಂಜೆವರೆಗೆ ಅಳುವುದು ಮತ್ತು ಕಿರಿಕಿರಿ ಏಕೆ ಮಾಡುತ್ತದೆ?",
+      "Pramod",
+      true,
+      4, // 4 years old child
+      "Male"
+    );
+    expect(childAns).toContain("ಮಗುವಿನ ಜಾತಕವನ್ನು");
+    expect(childAns).toContain("ಬಾಲಗ್ರಹ ಪೀಡೆ");
+    expect(childAns).toContain("ಪಿತ್ತ ಶೂಲೆ");
+    expect(childAns).toContain("ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ಬಾಲಗ್ರಹ ಶಾಂತಿ");
+    expect(childAns).not.toMatch(/[೦೧೨೩೪೫೬೭೮೯]/);
+
+    // 2. Adult drinking addiction question
+    const drinkAns = generateVedicConsultationAnswer(
+      kundli,
+      synthesis.currentDiagnosis,
+      synthesis.prescriptions,
+      "ಮದ್ಯಪಾನ ಮತ್ತು ದುಶ್ಚಟಗಳ ನೈಜ ಸ್ಥಿತಿ ಹಾಗೂ ಬಿಡುವ ಪರಿಹಾರವೇನು?",
+      "Pramod",
+      true,
+      33,
+      "Male"
+    );
+    expect(drinkAns).toContain("ಮದ್ಯಪಾನ ಹಾಗೂ ವ್ಯಸನಗಳ");
+    expect(drinkAns).toContain("ದಿನನಿತ್ಯದ ಮದ್ಯಪಾನ (Daily Alcohol Habit)");
+    expect(drinkAns).toContain("ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ಆತ್ಮಲಿಂಗ ಸ್ಪರ್ಶ");
+
+    // 3. Affairs / Sensual inquiry
+    const affairAns = generateVedicConsultationAnswer(
+      kundli,
+      synthesis.currentDiagnosis,
+      synthesis.prescriptions,
+      "ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧ ಅಥವಾ ಬಾಹ್ಯ ಆಕರ್ಷಣೆಯ ಅಪಾಯ ಜಾತಕದಲ್ಲಿದೆಯೇ?",
+      "Pramod",
+      true,
+      33,
+      "Male"
+    );
+    expect(affairAns).toContain("ಕಾಮನೆ, ಆಕರ್ಷಣೆ ಹಾಗೂ ದಾಂಪತ್ಯ ರಹಸ್ಯಗಳ");
+    expect(affairAns).toContain("ಗೋಕರ್ಣದಲ್ಲಿ ಉಮಾ-ಮಹೇಶ್ವರ");
+
+    // 4. Smuggling / unethical work inquiry
+    const smuggleAns = generateVedicConsultationAnswer(
+      kundli,
+      synthesis.currentDiagnosis,
+      synthesis.prescriptions,
+      "ಅಕ್ರಮ ವ್ಯವಹಾರ, ಕಳ್ಳಸಾಗಣೆ (ಸ್ಮಗ್ಲಿಂಗ್) ಅಥವಾ ಅಡ್ಡದಾರಿ ಹಣದ ರಿಸ್ಕ್ ಇದೆಯೇ?",
+      "Pramod",
+      true,
+      33,
+      "Male"
+    );
+    expect(smuggleAns).toContain("ಧನಾರ್ಜನೆ, ಅಕ್ರಮ ವ್ಯವಹಾರ ಹಾಗೂ ಕಳ್ಳಸಾಗಣೆ (ಸ್ಮಗ್ಲಿಂಗ್)");
+    expect(smuggleAns).toContain("ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ");
   });
 
   it("verifies different birth charts get distinctly different, dynamic calculations", () => {

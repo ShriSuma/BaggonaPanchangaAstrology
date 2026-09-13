@@ -5,6 +5,8 @@ import { useAppStore } from "../stores/appStore";
 import { useKundliViewerStore } from "../stores/kundliViewerStore";
 import {
   generatePanchangaAngaSynthesis,
+  generateVedicConsultationAnswer,
+  calculateDevoteeAge,
   type PanchangaSynthesisOutput,
   type InstantQAQuestion
 } from "../core/PanchangaAngaSynthesisEngine";
@@ -22,6 +24,23 @@ import GrahaSpinner from "../components/ui/GrahaSpinner";
 export function cleanAstrologyText(text: string): string {
   return sanitizeAstrologyKannadaText(text);
 }
+
+const CHILD_SUGGESTED_QUESTIONS = [
+  { icon: "😭", kn: "ಮಗು ಬೆಳಿಗ್ಗೆಯಿಂದ ಸಂಜೆವರೆಗೆ ಅಳುವುದು ಮತ್ತು ಕಿರಿಕಿರಿ ಏಕೆ ಮಾಡುತ್ತದೆ?", en: "Why does the child cry and throw tantrums all day?" },
+  { icon: "⚔️", kn: "ಮಗು ಸದಾ ಜಗಳ, ಹಠ ಮತ್ತು ಸಾಮಾನುಗಳನ್ನು ಎಸೆಯುವುದು ಏಕೆ?", en: "Why is the child aggressive, fighting and throwing toys?" },
+  { icon: "🥣", kn: "ಮಗು ಊಟ ತಿನ್ನಲು ನಿರಾಕರಿಸುವುದು ಮತ್ತು ಹೊಟ್ಟೆ ನೋವು ಏಕೆ?", en: "Why does the child refuse food and get stomach colic?" },
+  { icon: "👁️", kn: "ಮಗುವಿಗೆ ದೃಷ್ಟಿ ದೋಷ ಮತ್ತು ನಿದ್ದೆಯಲ್ಲಿ ಬೆದರುವುದು ಉಂಟಾಗುತ್ತಿದೆಯೇ?", en: "Is evil eye causing disturbed sleep and night startles?" },
+  { icon: "🪔", kn: "ಮಗುವಿನ ಆರೋಗ್ಯ ಮತ್ತು ನೆಮ್ಮದಿಗೆ ಗೋಕರ್ಣದಲ್ಲಿ ಯಾವ ಶಾಂತಿ ಮಾಡಿಸಬೇಕು?", en: "What Gokarna Shanti should be performed for the child?" }
+];
+
+const ADULT_SUGGESTED_QUESTIONS = [
+  { icon: "🍷", kn: "ಮದ್ಯಪಾನ ಮತ್ತು ದುಶ್ಚಟಗಳ ನೈಜ ಸ್ಥಿತಿ ಹಾಗೂ ಬಿಡುವ ಪರಿಹಾರವೇನು?", en: "What is the reality of drinking addiction and the remedy?" },
+  { icon: "👩‍❤️‍👨", kn: "ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧ ಅಥವಾ ಬಾಹ್ಯ ಆಕರ್ಷಣೆಯ ಅಪಾಯ ಜಾತಕದಲ್ಲಿದೆಯೇ?", en: "Is there a risk of external affairs or secret attractions?" },
+  { icon: "⚖️", kn: "ಅಕ್ರಮ ವ್ಯವಹಾರ, ಕಳ್ಳಸಾಗಣೆ (ಸ್ಮಗ್ಲಿಂಗ್) ಅಥವಾ ಅಡ್ಡದಾರಿ ಹಣದ ರಿಸ್ಕ್ ಇದೆಯೇ?", en: "Is there a risk of unethical trade or illicit shortcuts?" },
+  { icon: "💰", kn: "ನನ್ನ ಜೀವನದ ದೊಡ್ಡ ತಿರುವು ಹಾಗೂ ಆರ್ಥಿಕ ಮುನ್ನಡೆ ಯಾವಾಗ ಬರುತ್ತದೆ?", en: "When will my major financial turning point occur?" },
+  { icon: "💼", kn: "ಸರ್ಕಾರಿ ಕೆಲಸ ಅಥವಾ ವ್ಯಾಪಾರದಲ್ಲಿ ಯಾವ ಕ್ಷೇತ್ರ ನನಗೆ ಶ್ರೇಷ್ಠ?", en: "Which career or business path is best for me?" },
+  { icon: "🕉️", kn: "ಜಾತಕದ ನೆರಳು ಕರ್ಮಗಳನ್ನು ಕರಗಿಸಲು ಗೋಕರ್ಣದಲ್ಲಿ ಯಾವ ಪೂಜೆ ಮಾಡಿಸಬೇಕು?", en: "Which Gokarna Shanti dissolves shadow karmas?" }
+];
 
 export default function InstantReadingPage(): JSX.Element {
   const { t, i18n } = useTranslation();
@@ -215,6 +234,10 @@ STRICT RULES:
     recognition.start();
   };
 
+  // Devotee age computation for child vs adult behavior handling
+  const devoteeAge = session?.input?.birthDate ? calculateDevoteeAge(session.input.birthDate) : 30;
+  const isChild = devoteeAge < 14;
+
   // Handle Asking Custom Astrologer Question
   const handleAskQuestion = async (customQ?: string) => {
     const q = (customQ || questionInput).trim();
@@ -222,9 +245,14 @@ STRICT RULES:
 
     setAnswering(true);
     try {
-      const contextData = `
+      let ansText = "";
+
+      if (geminiApiKey) {
+        try {
+          const contextData = `
 Devotee: ${session.input.name || "Devotee"}
 Gender: ${session.input.gender || "Not Specified"}
+Age: ${devoteeAge} (${isChild ? "Child / Minor (<14 years)" : "Adult (>=14 years)"})
 Lagna: ${session.result.lagnaRashi.english} | Moon: ${session.result.moonSign.english} | Nakshatra: ${session.result.planets.find(p => p.name === "Moon")?.nakshatra.english}
 Panchanga 5-Angas: Vara=${synthesisData.panchanga.vara.nameKn}, Tithi=${synthesisData.panchanga.tithi.nameKn}, Yoga=${synthesisData.panchanga.yoga.nameKn}, Karana=${synthesisData.panchanga.karana.nameKn}
 Technical Placements: 4th=${synthesisData.currentDiagnosis.technicalAspects.fourthHouseDetail}, 7th=${synthesisData.currentDiagnosis.technicalAspects.seventhHouseDetail}, 10th=${synthesisData.currentDiagnosis.technicalAspects.tenthHouseDetail}.
@@ -238,7 +266,7 @@ Task: Give a deep, face-to-face conversational Vedic Pandit consultation respons
 
 Respond in crisp, structured bullet points directly answering the devotee's specific question:
 • 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: Exact planetary positions, houses, dasha-bhukti, and gochara transits influencing this question.
-• ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ನೈಜ ಕಾರಣ: State the exact Dosha (e.g. Kuja Dosha, Shani Drishti delay, Naga/Sarpa Dosha, Putrakaraka affliction) and the real astrological reason without generic fluff.
+• ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ನೈಜ ಕಾರಣ: State the exact Dosha (e.g. Balarishta / Pitta Colic for children crying or fighting; Saturn-2nd house drinking habit / Venus-Rahu affairs / Rahu-8th smuggling for adults) and the real astrological reason without generic fluff.
 • ⏳ ನಿಖರ ಕಾಲಾವಧಿ: Exact turning point timeline in English digits calculated from running Dasha-Bhukti remaining duration (${synthesisData.currentDiagnosis.dashaTiming?.timelineKn || "ಮುಂದಿನ ಕೆಲವೇ ತಿಂಗಳುಗಳಲ್ಲಿ"}) when relief and breakthroughs materialize.
 • 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪೂಜೆ: Prescribe the devotee's authentic Beeja Mantra, daily calming Japa, and Sri Kshetra Gokarna Mahabaleshwara Shanti Pooja.
 
@@ -248,18 +276,50 @@ STRICT RULES:
 - ALL numbers must be in ENGLISH DIGITS (1, 2, 3, 4, 5, etc.).
 `;
 
-      const ans = await askGemini(
-        q,
-        contextData,
-        geminiApiKey,
-        isKn ? "kn" : "en",
-        { temperature: 0.2 }
-      );
+          const aiAns = await askGemini(
+            q,
+            contextData,
+            geminiApiKey,
+            isKn ? "kn" : "en",
+            { temperature: 0.2 }
+          );
+          if (aiAns && aiAns.trim().length > 30) {
+            ansText = cleanAstrologyText(aiAns);
+          }
+        } catch (geminiErr) {
+          console.warn("Gemini question call failed, falling back to deterministic Vedic response:", geminiErr);
+        }
+      }
 
-      setQaHistory((prev) => [{ question: q, answer: cleanAstrologyText(ans) }, ...prev]);
+      if (!ansText) {
+        ansText = generateVedicConsultationAnswer(
+          session.result,
+          synthesisData.currentDiagnosis,
+          synthesisData.prescriptions,
+          q,
+          session.input.name,
+          isKn,
+          devoteeAge,
+          session.input.gender
+        );
+      }
+
+      setQaHistory((prev) => [{ question: q, answer: ansText }, ...prev]);
       setQuestionInput("");
     } catch (err: any) {
-      alert(isKn ? "ಪ್ರತಿಕ್ರಿಯೆ ಪಡೆಯಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ. ದಯವಿಟ್ಟು ಮತ್ತೊಮ್ಮೆ ಪ್ರಯತ್ನಿಸಿ." : "Failed to get answer. Please check network/API key and try again.");
+      console.error("Consultation answer fallback:", err);
+      const fallbackAns = generateVedicConsultationAnswer(
+        session.result,
+        synthesisData.currentDiagnosis,
+        synthesisData.prescriptions,
+        q,
+        session.input.name,
+        isKn,
+        devoteeAge,
+        session.input.gender
+      );
+      setQaHistory((prev) => [{ question: q, answer: fallbackAns }, ...prev]);
+      setQuestionInput("");
     } finally {
       setAnswering(false);
     }
@@ -360,7 +420,9 @@ STRICT RULES:
                       ॥ ಸದ್ಗುಣ, ಧೈರ್ಯ & ದೈವಿಕ ಆತ್ಮಬಲ ದರ್ಶನ ॥
                     </span>
                     <h3 className="text-base md:text-xl font-black text-amber-950 font-serif">
-                      {isKn ? "ವ್ಯಕ್ತಿಯ ಉತ್ತಮ ಗುಣಗಳು & ದೈವಿಕ ಸಾಮರ್ಥ್ಯಗಳು (Good Things & Divine Strengths)" : "Good Things & Divine Strengths"}
+                      {isKn
+                        ? (isChild ? "ಮಗುವಿನ ಉತ್ತಮ ಗುಣಗಳು & ದೈವಿಕ ಸಾಮರ್ಥ್ಯಗಳು (Child Strengths & Divine Qualities)" : "ವ್ಯಕ್ತಿಯ ಉತ್ತಮ ಗುಣಗಳು & ದೈವಿಕ ಸಾಮರ್ಥ್ಯಗಳು (Good Things & Divine Strengths)")
+                        : (isChild ? "Child Strengths & Divine Qualities" : "Good Things & Divine Strengths")}
                     </h3>
                   </div>
                 </div>
@@ -415,7 +477,11 @@ STRICT RULES:
                       ॥ ನೆರಳು ಕರ್ಮ, ರಹಸ್ಯ ಕಾಮನೆಗಳು & ಪ್ರಾಯಶ್ಚಿತ್ತ ದರ್ಶನ ॥
                     </span>
                     <h3 className="text-base md:text-xl font-black text-rose-950 font-serif">
-                      {isKn ? "ವ್ಯಕ್ತಿಯ ದುರ್ಬಲತೆಗಳು, ದೋಷಗಳು & ರಹಸ್ಯ ನೆರಳು ಪ್ರವೃತ್ತಿಗಳು (Bad Things, Shadow Vices & Addictions)" : "Bad Things, Shadow Secrets & Vulnerabilities"}
+                      {isKn
+                        ? (isChild
+                          ? "ಮಗುವಿನ ನಡವಳಿಕೆಯ ಸವಾಲುಗಳು, ಕಿರಿಕಿರಿ & ಬಾಲಾರಿಷ್ಟ ದೋಷಗಳು (Childhood Tantrums, Crying & Afflictions)"
+                          : "ವ್ಯಕ್ತಿಯ ದುರ್ಬಲತೆಗಳು, ದೋಷಗಳು & ರಹಸ್ಯ ನೆರಳು ಪ್ರವೃತ್ತಿಗಳು (Bad Things, Shadow Vices & Addictions)")
+                        : (isChild ? "Childhood Behavioral Challenges, Crying & Afflictions" : "Bad Things, Shadow Secrets & Vulnerabilities")}
                     </h3>
                   </div>
                 </div>
@@ -1091,6 +1157,32 @@ STRICT RULES:
                   ? "ಕ್ಲೈಂಟ್ ಕೇಳುವ ಯಾವುದೇ ಅನಿರೀಕ್ಷಿತ ಪ್ರಶ್ನೆಗೆ ಮೈಕ್ ಮೂಲಕ ಅಥವಾ ಟೈಪ್ ಮಾಡಿ 100% ಶಾಸ್ತ್ರೋಕ್ತ ಉತ್ತರ ಪಡೆಯಿರಿ."
                   : "Get accurate, direct answers for any client follow-up question based on their chart."}
               </p>
+            </div>
+
+            {/* QUICK SUGGESTION CHIPS */}
+            <div className="space-y-1.5">
+              <span className="text-[11px] font-bold text-amber-950 uppercase tracking-wide flex items-center gap-1">
+                <span>💡</span>
+                <span>{isKn ? (isChild ? "ಮಗುವಿನ ನಡವಳಿಕೆ & ಆರೋಗ್ಯ ಪ್ರಶ್ನೆಗಳು (ಕ್ಲಿಕ್ ಮಾಡಿ):" : "ಸಾಮಾನ್ಯ ಪ್ರಮುಖ ಪ್ರಶ್ನೆಗಳು (ಕ್ಲಿಕ್ ಮಾಡಿ):") : "Quick Question Suggestions (Click for instant answer):"}</span>
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {(isChild ? CHILD_SUGGESTED_QUESTIONS : ADULT_SUGGESTED_QUESTIONS).map((sq, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    disabled={answering}
+                    onClick={() => {
+                      const qText = isKn ? sq.kn : sq.en;
+                      setQuestionInput(qText);
+                      void handleAskQuestion(qText);
+                    }}
+                    className="px-3 py-1.5 rounded-xl bg-white border border-amber-300 hover:border-amber-600 hover:bg-amber-100/70 text-amber-950 text-xs font-medium text-left shadow-xs transition-all flex items-center gap-1.5 group cursor-pointer disabled:opacity-50"
+                  >
+                    <span>{sq.icon}</span>
+                    <span className="group-hover:underline">{isKn ? sq.kn : sq.en}</span>
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* INPUT BOX */}
