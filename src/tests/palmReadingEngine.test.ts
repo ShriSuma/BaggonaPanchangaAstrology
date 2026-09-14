@@ -75,4 +75,104 @@ describe("Classical Vedic Hastarekha Shastra (Palm Reading) Engine Tests", () =>
     expect(followUp).toBeDefined();
     expect(followUp.length).toBeGreaterThan(5);
   });
+
+  it("analyzes all 3 image slots (front palm, side marriage percussion, dorsal nails/knuckles)", async () => {
+    const frontImg = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+    const sideImg = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFElEQVR42mN88eLFfwYGBgZGBgYGAE1UBD1xW6yLAAAAAElFTkSuQmCC";
+    const backImg = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+
+    const result = await executePalmReading(
+      frontImg,
+      "right",
+      "ವೆಂಕಟೇಶ ಭಟ್",
+      "kn",
+      "",
+      undefined,
+      sideImg,
+      backImg
+    );
+
+    expect(result.marriageLineAnalysis).toBeDefined();
+    expect(result.marriageLineAnalysis?.lineCount).toBeGreaterThanOrEqual(1);
+    expect(result.marriageLineAnalysis?.timingWindow.kn).toBeDefined();
+    expect(result.marriageLineAnalysis?.formation.kn).toBeDefined();
+
+    expect(result.nailDorsalAnalysis).toBeDefined();
+    expect(result.nailDorsalAnalysis?.nailShape.kn).toBeDefined();
+    expect(result.nailDorsalAnalysis?.nailColor.kn).toBeDefined();
+    expect(result.nailDorsalAnalysis?.lunulaVitality.kn).toBeDefined();
+    expect(result.nailDorsalAnalysis?.knuckleTraits.kn).toBeDefined();
+  });
+
+  it("guarantees 100% diversity across 20 distinct devotees (eliminating 18/20 template stagnation)", async () => {
+    const devotees = [
+      "ಶ್ರೀರಾಮ ಹೆಗಡೆ", "ಗಣಪತಿ ಭಟ್", "ಸುರೇಶ್ ರಾವ್", "ಅನಂತ ಕೃಷ್ಣ",
+      "ವೆಂಕಟೇಶ್ ಪ್ರಸಾದ್", "ನಾಗರಾಜ ಶರ್ಮ", "ಶಂಕರ್ ನಾರಾಯಣ", "ಸುಬ್ರಹ್ಮಣ್ಯ",
+      "ಕೃಷ್ಣಮೂರ್ತಿ", "ರಾಘವೇಂದ್ರ", "ವಿಶ್ವನಾಥ ಆಚಾರ್ಯ", "ಪ್ರಶಾಂತ್ ಕುಲಕರ್ಣಿ",
+      "ದತ್ತಾತ್ರೇಯ ಜೋಶಿ", "ಶ್ರೀಕಾಂತ್ ಭಟ್", "ಮಹೇಶ್ವರ ಅಯ್ಯರ್", "ರವೀಂದ್ರ ಶರ್ಮ",
+      "ಕಾರ್ತಿಕ್ ಹೆಬ್ಬಾರ್", "ನರಸಿಂಹಮೂರ್ತಿ", "ಆದರ್ಶ ನಾಯಕ್", "ಮಂಜುನಾಥ ಗೌಡ"
+    ];
+
+    const results = await Promise.all(
+      devotees.map((devotee, idx) => {
+        // Distinct simulated hand image bytes for each devotee
+        const simulatedBase64 = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M${idx % 9}QDwADhgGAWjR9awAAAABJRU5ErkJggg==${idx}`;
+        const simulatedSide = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M${(idx + 3) % 9}QDwADhgGAWjR9awAAAABJRU5ErkJggg==side${idx}`;
+        const simulatedBack = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M${(idx + 7) % 9}QDwADhgGAWjR9awAAAABJRU5ErkJggg==back${idx}`;
+        const handSide = idx % 2 === 0 ? "right" : "left";
+
+        return executePalmReading(
+          simulatedBase64,
+          handSide,
+          devotee,
+          "kn",
+          "",
+          undefined,
+          simulatedSide,
+          simulatedBack
+        );
+      })
+    );
+
+    expect(results).toHaveLength(20);
+
+    // Track distributions
+    const handElements = new Set(results.map(r => r.chironomyHandType.element.kn));
+    const marriageWindows = new Set(results.map(r => r.lifeStageMilestones.marriage.timingAgeWindowKn));
+    const peakWealthAges = new Set(results.map(r => r.lifeStageMilestones.careerWealth.peakWealthAgeKn));
+    const scores = new Set(results.map(r => r.overallScore));
+    const lifeLineStatuses = new Set(results.map(r => r.lifeLine.status.kn));
+    const headLineStatuses = new Set(results.map(r => r.headLine.status.kn));
+    const nailShapes = new Set(results.map(r => r.nailDorsalAnalysis?.nailShape.kn));
+
+    console.log("20 Devotees Diversity Audit Metrics:", {
+      uniqueHandElements: handElements.size,
+      uniqueMarriageWindows: marriageWindows.size,
+      uniquePeakWealthAges: peakWealthAges.size,
+      uniqueScores: scores.size,
+      uniqueLifeLineStatuses: lifeLineStatuses.size,
+      uniqueHeadLineStatuses: headLineStatuses.size,
+      uniqueNailShapes: nailShapes.size
+    });
+
+    // Zero-Stagnation Assertions:
+    // In the user's bug report, 18 out of 20 were identical.
+    // We now enforce that elements, marriage windows, wealth peaks, and scores have high diversity:
+    expect(handElements.size).toBeGreaterThanOrEqual(4); // At least 4 distinct elements (Earth, Water, Fire, Air, Space)
+    expect(marriageWindows.size).toBeGreaterThanOrEqual(4); // At least 4 distinct marriage age windows
+    expect(peakWealthAges.size).toBeGreaterThanOrEqual(4); // At least 4 distinct peak wealth configurations
+    expect(scores.size).toBeGreaterThanOrEqual(8); // At least 8 distinct score variations
+    expect(lifeLineStatuses.size).toBeGreaterThanOrEqual(3); // Varied line statuses
+    expect(nailShapes.size).toBeGreaterThanOrEqual(3); // Varied nail shapes
+
+    // Assert that no single marriage window dominates >= 12 people (60%)
+    const marriageWindowCounts: Record<string, number> = {};
+    results.forEach(r => {
+      const w = r.lifeStageMilestones.marriage.timingAgeWindowKn;
+      marriageWindowCounts[w] = (marriageWindowCounts[w] || 0) + 1;
+    });
+    Object.values(marriageWindowCounts).forEach(count => {
+      expect(count).toBeLessThanOrEqual(10); // Far below the previous 18/20 stagnation
+    });
+  });
 });

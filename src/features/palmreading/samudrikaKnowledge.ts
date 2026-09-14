@@ -964,3 +964,126 @@ export const VEDIC_REMEDIES_CATALOG_L5 = {
   ]
 };
 
+export const VEDIC_NAKHA_LAKSHANA_RULES = {
+  tamra: {
+    key: "tamra",
+    nameKn: "ತಾಮ್ರ ನಖ (Tamra Nakha - Rosy Copper / Almond)",
+    nameEn: "Tamra Nakha (Copper-Reddish & Rosy Almond)",
+    traitsKn: "ರಕ್ತಕಾಂತಿಯುಕ್ತ, ನಯವಾದ ಹಾಗೂ ಬಾದಾಮಿ ಆಕಾರದ ಉಗುರುಗಳು. ರಾಜಲಕ್ಷಣ, ಅತ್ಯುತ್ತಮ ರಕ್ತ ಪರಿಚಲನೆ, ಸತ್ವಗುಣ ಹಾಗೂ ನಾಯಕತ್ವ ತೇಜಸ್ಸು.",
+    traitsEn: "Lustrous copper-rosy hue with smooth almond contours. Signifies regal fortune, robust cardiac vitality, Sattvic purity, and commanding leadership.",
+    traitsHi: "ताम्रवर्णी, चिकने व बादामी नाखून। राजलक्षण, उत्तम रक्त संचार, सत्वगुण एवं प्रखर नेतृत्व शक्ति।",
+    traitsTe: "రాగి రంగు కాంతి, మృదువైన బాదామి ఆకారపు గోళ్ళు. రాజలక్షణం, ఉత్తమ ఆరోగ్యం & నాయకత్వ తేజస్సు.",
+    traitsTa: "செம்பவள பளபளப்பு கொண்ட பாதாம் வடிவ நகங்கள். ராஜலக்ஷணம், சிறந்த இரத்த ஓட்டம் மற்றும் தலைமைத் தகுதி."
+  },
+  vartula: {
+    key: "vartula",
+    nameKn: "ವರ್ತುಲ / ಚತುರಸ್ರ ನಖ (Square / Broad Nails)",
+    nameEn: "Chaturasra Nakha (Square & Broad Nails)",
+    traitsKn: "ಚೌಕಾಕಾರದ ಅಥವಾ ಅಗಲವಾದ ದೃಢ ಉಗುರುಗಳು. ಪ್ರಾಯೋಗಿಕ ಮನಸ್ಥಿತಿ, ಸ್ಥಿರ ಕಾರ್ಯಕ್ಷಮತೆ, ತಾಳ್ಮೆ, ಸತ್ಯನಿಷ್ಠೆ ಹಾಗೂ ವಾಸ್ತವವಾದಿ ದೃಷ್ಟಿಕೋನ.",
+    traitsEn: "Square or broad sturdy nails. Reflects pragmatism, grounded endurance, unwavering patience, high dependability, and realistic execution.",
+    traitsHi: "चौकोर या चौड़े सुदृढ़ नाखून। व्यावहारिक सोच, कार्यनिष्ठा, गहन धैर्य एवं यथार्थवादी दृष्टिकोण।",
+    traitsTe: "చతురస్ర లేదా వెడల్పైన గోళ్ళు. ఆచరణాత్మక ఆలోచన, సహనం, నిబద్ధత & వాస్తవవాదం.",
+    traitsTa: "சதுர அல்லது அகன்ற நகங்கள். நடைமுறை புத்தி, உழைக்கும் ஆர்வம், பொறுமை மற்றும் நேர்மை."
+  },
+  dheergha: {
+    key: "dheergha",
+    nameKn: "ದೀರ್ಘ ನಖ (Long Slender Nails)",
+    nameEn: "Dheergha Nakha (Long & Slender Nails)",
+    traitsKn: "ಉದ್ದನೆಯ ಸುಂದರ ಉಗುರುಗಳು. ಅಗಾಧ ಕಲ್ಪನಾಶಕ್ತಿ, ಕಲಾಪ್ರೇಮ, ಸೂಕ್ಷ್ಮ ಸಂವೇದನೆ, ತತ್ತ್ವಶಾಸ್ತ್ರಜ್ಞ ಒಲವು ಹಾಗೂ ಅಂತಃಸ್ಫೂರ್ತಿ.",
+    traitsEn: "Elongated aesthetic nails. Indicates profound imagination, artistic refinement, intuitive sensitivity, and philosophical inclinations.",
+    traitsHi: "लंबे व सुंदर नाखून। अगाध कल्पनाशीलता, कलात्मक रुचि, सूक्ष्म संवेदनशीलता एवं दार्शनिक विचार।",
+    traitsTe: "పొడవైన అందమైన గోళ్ళు. గొప్ప ఊహాశక్తి, కళాభిరుచి, సున్నితమైన మనస్తత్వం & తత్త్వచింతన.",
+    traitsTa: "நீண்ட அழகான நகங்கள். கற்பனை வளம், கலை ஆர்வம், நுண்ணுணர்வு மற்றும் தத்துவ ஞானம்."
+  },
+  kurmaprishta: {
+    key: "kurmaprishta",
+    nameKn: "ಕೂರ್ಮಪೃಷ್ಠ ನಖ (Vaulted Tortoise-Shell Nails)",
+    nameEn: "Kurmaprishta Nakha (Convex Vaulted Nails)",
+    traitsKn: "ಆಮೆಯ ಬೆನ್ನಿನಂತೆ ಸ್ವಲ್ಪ ಉಬ್ಬಿದ ಗಟ್ಟಿಯಾದ ಉಗುರುಗಳು. ಅದ್ಭುತ ರೋಗನಿರೋಧಕ ಶಕ್ತಿ, ದೀರ್ಘಾಯುಷ್ಯ, ದೃಢ ಸಂಕಲ್ಪ ಹಾಗೂ ಕಷ್ಟಗಳನ್ನು ಎದುರಿಸುವ ಸಾಮರ್ಥ್ಯ.",
+    traitsEn: "Convex vaulted nails resembling a tortoise shell. Bestows deep constitutional immunity, exceptional longevity, and resilient crisis endurance.",
+    traitsHi: "कच्छप पृष्ठवत् उत्तल नाखून। अद्भुत रोग प्रतिरोधक क्षमता, दीर्घायु, दृढ़ संकल्प एवं संकट-सहिष्णुता।",
+    traitsTe: "కూర్మ పృష్టాకారపు గోళ్ళు. రోగనిరోధక శక్తి, దీర్ఘాయుష్షు & సంక్షోభాలను తట్టుకునే మనోబలం.",
+    traitsTa: "ஆமையின் முதுகைப் போன்ற குவிந்த நகங்கள். அபார நோய் எதிர்ப்பு சக்தி, நீண்ட ஆயுள் மற்றும் மன உறுதி."
+  }
+};
+
+export const VEDIC_LUNULA_CHANDRAKARA_RULES = {
+  prominent: {
+    key: "prominent",
+    nameKn: "ಸ್ಪಷ್ಟ ಅರ್ಧಚಂದ್ರಾಕಾರ (Prominent Chandrakara / Lunula)",
+    nameEn: "Prominent Chandrakara (Well-Formed Lunula)",
+    descKn: "ಉಗುರಿನ ಬುಡದಲ್ಲಿ ಸ್ಪಷ್ಟ ಅರ್ಧಚಂದ್ರಾಕಾರವು ಅತ್ಯುತ್ತಮ ಜಠರಾಗ್ನಿ (ಜೀರ್ಣ ಶಕ್ತಿ), ಚುರುಕಾದ ನರಮಂಡಲ ಹಾಗೂ ಸಮೃದ್ಧ ಪ್ರಾಣಶಕ್ತಿಯನ್ನು ದೃಢೀಕರಿಸುತ್ತದೆ.",
+    descEn: "Clear crescent half-moons at nail bases indicate powerful digestive Agni, vibrant circulatory energy, and peak metabolic vitality.",
+    descHi: "नाखूनों के आधार पर स्पष्ट अर्धचंद्राकार चिह्न प्रखर जठराग्नि, उत्तम चयापचय एवं स्फूर्तिवान प्राणशक्ति का परिचायक है।",
+    descTe: "గోళ్ళ మొదట్లో స్పష్టమైన అర్ధచంద్రాకారాలు ఉత్తమ జీర్ణశక్తి, చురుకైన నాడీమండలం & అమిత ప్రాణశక్తిని సూచిస్తాయి.",
+    descTa: "நகங்களின் அடியில் தெளிவான பிறைச்சந்திரன் வடிவம் சிறந்த செரிமான சக்தி, சுறுசுறுப்பான நரம்பு மண்டலம் மற்றும் ஆரோக்கியத்தை உறுதி செய்கிறது."
+  },
+  moderate: {
+    key: "moderate",
+    nameKn: "ಸಮತೋಲಿತ ಚಂದ್ರಾಕಾರ (Balanced Lunula)",
+    nameEn: "Balanced Lunula (Normal Crescent)",
+    descKn: "ಹೆಬ್ಬೆರಳು ಹಾಗೂ ಮಧ್ಯದ ಬೆರಳುಗಳಲ್ಲಿ ಸಮತೋಲಿತ ಚಂದ್ರಾಕಾರವಿದ್ದು, ಶಾಂತ ಮನಸ್ಸು ಹಾಗೂ ಸ್ಥಿರ ರಕ್ತದೊತ್ತಡವನ್ನು ಸೂಚಿಸುತ್ತದೆ.",
+    descEn: "Balanced crescents primarily on thumb and major fingers reflect emotional composure and steady nervous equilibrium.",
+    descHi: "संतुलित अर्धचंद्र चिह्न शांत मन, स्थिर रक्तचाप एवं संतुलित ऊर्जा का संकेत है।",
+    descTe: "సమతుల్య చంద్ర చిహ్నం ప్రశాంత మనస్సు & స్థిరమైన రక్తపోటును సూచిస్తుంది.",
+    descTa: "சமநிலையான பிறை வடிவம் அமைதியான மனம் மற்றும் சீரான உடல் ஆற்றலைக் காட்டுகிறது."
+  }
+};
+
+export const VEDIC_VIVAHA_REKHA_DETAILED_RULES = {
+  single_deep: {
+    key: "single_deep",
+    nameKn: "ಏಕ ಶುಭ ವಿವಾಹ ರೇಖೆ (Single Deep Union Line)",
+    nameEn: "Single Deep Union Line (Lifelong Devoted Bond)",
+    descKn: "ಬುಧ ಪರ್ವತದ ಪಾರ್ಶ್ವದಲ್ಲಿ ಸ್ಪಷ್ಟ ಹಾಗೂ ಆಳವಾದ ಏಕ ರೇಖೆ. ಅನನ್ಯ ಪ್ರೇಮ, ಜೀವಮಾನವಿಡೀ ಜೊತೆಗಿಡುವ ನಿಷ್ಠಾವಂತ ಸಂಗಾತಿ ಹಾಗೂ ಅಖಂಡ ಸಾಂಸಾರಿಕ ಸೌಖ್ಯ.",
+    descEn: "A single, deep and clear horizontal line on the Mercury percussion edge. Confirms an unwavering, soulmate partnership of lifelong devotion.",
+    descHi: "बुध पर्वत के पार्श्व पर गहरी व स्पष्ट एकल रेखा। निष्ठावान जीवनसाथी, अटूट प्रेम एवं अखंड वैवाहिक सुख।",
+    descTe: "బుధ పర్వత పక్కన స్పష్టమైన ఒకే లోతైన రేఖ. నిబద్ధత గల జీవిత భాగస్వామి & శాశ్వత దాంపత్య సుఖం.",
+    descTa: "புதன் மேட்டின் பக்கவாட்டில் தெளிவான ஒற்றை ஆழமான ரேகை. உண்மையான அன்பு, வாழ்நாள் துணை மற்றும் குடும்ப அமைதி."
+  },
+  curving_to_sun: {
+    key: "curving_to_sun",
+    nameKn: "ರವಿ ಪರ್ವತದತ್ತ ಏರುವ ವಿವಾಹ ರೇಖೆ (Ascending to Apollo / Sun)",
+    nameEn: "Ascending to Sun Mount (High Status Alliance)",
+    descKn: "ಮೇಲ್ಮುಖವಾಗಿ ಸೂರ್ಯ ಪರ್ವತದತ್ತ ವಾಲುವ ವಿವಾಹ ರೇಖೆ. ಶ್ರೀಮಂತ, ಉನ್ನತ ಸಮಾಜದ ಅಥವಾ ಪ್ರಸಿದ್ಧ ಕುಟುಂಬದ ಸಂಗಾತಿಯೊಂದಿಗೆ ವಿವಾಹ ಭಾಗ್ಯ.",
+    descEn: "A union line gently ascending towards Apollo/Sun mount. Bestows marriage into an illustrious, wealthy, or highly respected noble family.",
+    descHi: "सूर्य पर्वत की ओर ऊपर उठती विवाह रेखा। प्रतिष्ठित, संपन्न एवं सम्मानित परिवार में वैवाहिक संबंध।",
+    descTe: "సూర్య పర్వతం వైపు పైకెగసే వివాహ రేఖ. సంపన్నమైన & ఉన్నత వంశపు భాగస్వామితో వివాహ భాగ్యం.",
+    descTa: "சூரிய மேட்டை நோக்கி எழும் திருமண ரேகை. வசதியான, புகழ்பெற்ற குடும்பத்தில் சிறந்த வரன் அமையும் யோகம்."
+  },
+  multiple_lines: {
+    key: "multiple_lines",
+    nameKn: "ದ್ವಿ-ರೇಖಾ ಬಾಂಧವ್ಯ (Two Union Lines - Deep Mature Bond)",
+    nameEn: "Dual Lines (Early Learning & Mature Soulmate)",
+    descKn: "ಆರಂಭದಲ್ಲಿ ಸಣ್ಣ ರೇಖೆ ಹಾಗೂ ನಂತರ ಬಲವಾದ ಪ್ರಧಾನ ರೇಖೆ. ಮೊದಲಿನ ಅಸ್ಥಿರತೆಗಳ ನಂತರ ಪರಸ್ಪರ ಗೌರವ ನೀಡುವ ಪ್ರಬುದ್ಧ, ಗಟ್ಟಿಯಾದ ದಾಂಪತ್ಯ ಯೋಗ.",
+    descEn: "A lighter early affection line followed by a strong, prominent line. Represents relationship maturity leading to a deeply loyal, lasting marriage.",
+    descHi: "प्रारंभिक हल्की रेखा के बाद गहरी प्रधान रेखा। परिपक्व समझदारी से संचालित स्थायी एवं समर्पित दांपत्य जीवन।",
+    descTe: "మొదట చిన్న రేఖ, తర్వాత బలమైన ప్రధాన రేఖ. పరిపక్వ ఆలోచనలతో సాగే శాశ్వత వివాహ బంధం.",
+    descTa: "ஆரம்பத்தில் மெல்லிய ரேகை, பின்னர் ஆழமான முக்கிய ரேகை. பக்குவப்பட்ட புரிதலுடன் கூடிய நிலையான இல்வாழ்க்கை."
+  }
+};
+
+export const VEDIC_ANGULI_SANDHI_RULES = {
+  granthila: {
+    key: "granthila",
+    nameKn: "ಗ್ರಂಥಿಲ ಪರ್ವ (Philosophical Knots - Granthila)",
+    nameEn: "Philosophical Knots (Analytical & Methodical)",
+    traitsKn: "ಬೆರಳುಗಳ ಸಂಧಿಗಳಲ್ಲಿ ದೃಢ ಗಂಟುಗಳ ರಚನೆ. ಯಾವುದೇ ನಿರ್ಧಾರಕ್ಕೂ ಮುನ್ನ ಆಳವಾದ ಚಿಂತನೆ, ತಾರ್ಕಿಕ ವಿಶ್ಲೇಷಣೆ ಹಾಗೂ ಪಾಂಡಿತ್ಯಪೂರ್ಣ ನಿರ್ವಹಣೆ.",
+    traitsEn: "Well-defined knots at finger joints. Indicates philosophical deliberation, rigorous analytical logic, methodical study, and cautious intellect.",
+    traitsHi: "अंगुलियों के जोड़ों पर स्पष्ट ग्रंथियां (गांठें)। गहन विचारशीलता, तार्किक विश्लेषण एवं विद्वतापूर्ण कार्यशैली।",
+    traitsTe: "వేళ్ళ కీళ్ళ వద్ద స్పష్టమైన ముడులు. లోతైన విశ్లేషణ, తార్కిక ఆలోచన & శాస్త్రీయ దృక్పథం.",
+    traitsTa: "விரல் மூட்டுகளில் உள்ள முடிச்சுகள். ஆழ்ந்த சிந்தனை, தர்க்க ரீதியான பகுப்பாய்வு மற்றும் விவேகம்."
+  },
+  agaditha: {
+    key: "agaditha",
+    nameKn: "ಅಗದಿತ ನಯ ಪರ್ವ (Smooth Joints - Intuitive & Artistic)",
+    nameEn: "Smooth Joints (Intuitive, Spontaneous & Artistic)",
+    traitsKn: "ನಯವಾದ ನೇರ ಬೆರಳುಗಳ ಸಂಧಿಗಳು. ಕ್ಷಿಪ್ರ ಗ್ರಹಣ ಶಕ್ತಿ, ಕಲಾತ್ಮಕ ಸೌಂದರ್ಯಪ್ರಜ್ಞೆ, ಅಂತಃಸ್ಫೂರ್ತಿ ಹಾಗೂ ತಕ್ಷಣದ ಸ್ಪಂದನೆ.",
+    traitsEn: "Smooth, tapering finger joints. Bestows rapid intuitive reception, artistic aesthetics, spontaneous creativity, and emotional agility.",
+    traitsHi: "चिकने व सीधे अंगुली जोड़। तीव्र अंतर्ज्ञान, कलात्मक सौंदर्यबोध, सहज रचनात्मकता एवं त्वरित निर्णय क्षमता।",
+    traitsTe: "మృదువైన వేళ్ళ కీళ్ళు. శీఘ్ర గ్రహణశక్తి, కళాత్మక సౌందర్యం & అంతర్దృష్టి.",
+    traitsTa: "மென்மையான விரல் மூட்டுகள். விரைவான புரிந்து கொள்ளும் திறன், கலை ரசனை மற்றும் படைப்பாற்றல்."
+  }
+};
+
+

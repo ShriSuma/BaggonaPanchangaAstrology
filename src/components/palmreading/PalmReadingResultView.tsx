@@ -376,6 +376,129 @@ export const PalmReadingResultView: React.FC<PalmReadingResultViewProps> = ({
         </Card>
       </div>
 
+      {/* 💍 & 💅 MULTI-ANGLE DEEP INSPECTION: SLOT 2 (MARRIAGE PERCUSSION) & SLOT 3 (NAILS & KNUCKLES) */}
+      {(result.marriageLineAnalysis || result.nailDorsalAnalysis) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Marriage Line Percussion Card */}
+          {result.marriageLineAnalysis && (
+            <Card className="border-2 border-rose-300 bg-gradient-to-br from-rose-50/60 via-white to-orange-50/40 p-5 shadow-sm space-y-3">
+              <div className="flex items-center justify-between border-b border-rose-200 pb-2">
+                <div>
+                  <div className="text-[10px] font-extrabold uppercase tracking-wider text-rose-800">
+                    {isKn ? "॥ ಪಾರ್ಶ್ವ ಹಸ್ತ (ಬುಧ ಪರ್ವತ ಕಿನಾರೆ) ॥" : "Slot 2: Mercury Edge Percussion"}
+                  </div>
+                  <h3 className="font-serif text-sm font-bold text-rose-950 flex items-center gap-2 mt-0.5">
+                    <span>💍</span>
+                    <span>{isKn ? "ವಿವಾಹ ರೇಖಾ ಸೂಕ್ಷ್ಮ ದರ್ಶನ (Marriage & Union)" : "Marriage Line Analysis (Vivaha Rekha)"}</span>
+                  </h3>
+                </div>
+                <span className="text-[11px] bg-rose-100 text-rose-900 font-extrabold px-2.5 py-0.5 rounded-full border border-rose-200">
+                  {isKn ? `${result.marriageLineAnalysis.lineCount} ರೇಖೆಗಳು` : `${result.marriageLineAnalysis.lineCount} Line(s)`}
+                </span>
+              </div>
+
+              <div className="space-y-2.5 text-xs">
+                <div className="rounded-xl bg-white/90 p-3 border border-rose-200/80 space-y-1">
+                  <span className="text-rose-900 font-bold block text-[11px]">
+                    ⏳ {isKn ? "ವಿವಾಹ ವಯೋಮಾನ ಕಾಲಾವಧಿ:" : "Marriage Age Timing:"}
+                  </span>
+                  <span className="text-rose-950 font-extrabold text-sm block">
+                    {result.marriageLineAnalysis.timingWindow[lang] || result.marriageLineAnalysis.timingWindow.kn}
+                  </span>
+                </div>
+
+                <div className="rounded-xl bg-white/90 p-3 border border-rose-200/80 space-y-1">
+                  <span className="text-rose-900 font-bold block text-[11px]">
+                    🔍 {isKn ? "ರೇಖಾ ಸ್ವರೂಪ & ಆಳ:" : "Formation & Depth:"}
+                  </span>
+                  <span className="text-slate-800 font-semibold text-xs leading-relaxed block">
+                    {result.marriageLineAnalysis.formation[lang] || result.marriageLineAnalysis.formation.kn}
+                  </span>
+                </div>
+
+                <div className="rounded-xl bg-rose-100/60 p-3 border border-rose-300/80 space-y-1">
+                  <span className="text-rose-900 font-bold block text-[11px]">
+                    ❤️ {isKn ? "ಸಂಗಾತಿಯ ಸ್ವಭಾವ & ದಾಂಪತ್ಯ ಸುಖ:" : "Spouse Nature & Harmony:"}
+                  </span>
+                  <span className="text-rose-950 font-semibold text-xs leading-relaxed block">
+                    {result.marriageLineAnalysis.spouseNature[lang] || result.marriageLineAnalysis.spouseNature.kn}
+                  </span>
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {/* Nail & Dorsal Analysis Card */}
+          {result.nailDorsalAnalysis && (
+            <Card className="border-2 border-amber-300 bg-gradient-to-br from-amber-50/60 via-white to-amber-100/40 p-5 shadow-sm space-y-3">
+              <div className="flex items-center justify-between border-b border-amber-200 pb-2">
+                <div>
+                  <div className="text-[10px] font-extrabold uppercase tracking-wider text-amber-800">
+                    {isKn ? "॥ ಪೃಷ್ಠ ಹಸ್ತ & ನಖ ಲಕ್ಷಣ ॥" : "Slot 3: Dorsal & Nakha Lakshana"}
+                  </div>
+                  <h3 className="font-serif text-sm font-bold text-amber-950 flex items-center gap-2 mt-0.5">
+                    <span>💅</span>
+                    <span>{isKn ? "ನಖ & ಬೆರಳು ಕೀಲು ಲಕ್ಷಣ (Nails & Knuckles)" : "Nails & Knuckles Analysis"}</span>
+                  </h3>
+                </div>
+                <span className="text-[11px] bg-amber-100 text-amber-900 font-extrabold px-2.5 py-0.5 rounded-full border border-amber-200">
+                  Brihat Samhita
+                </span>
+              </div>
+
+              <div className="space-y-2.5 text-xs">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="rounded-xl bg-white/90 p-2.5 border border-amber-200/80 space-y-0.5">
+                    <span className="text-amber-800 font-bold block text-[11px]">
+                      🛡️ {isKn ? "ಉಗುರಿನ ಆಕಾರ:" : "Nail Shape:"}
+                    </span>
+                    <span className="text-amber-950 font-extrabold text-xs block">
+                      {result.nailDorsalAnalysis.nailShape[lang] || result.nailDorsalAnalysis.nailShape.kn}
+                    </span>
+                  </div>
+
+                  <div className="rounded-xl bg-white/90 p-2.5 border border-amber-200/80 space-y-0.5">
+                    <span className="text-amber-800 font-bold block text-[11px]">
+                      🌸 {isKn ? "ನಖ ವರ್ಣ (ಕಾಂತಿ):" : "Nail Color:"}
+                    </span>
+                    <span className="text-amber-950 font-extrabold text-xs block">
+                      {result.nailDorsalAnalysis.nailColor[lang] || result.nailDorsalAnalysis.nailColor.kn}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="rounded-xl bg-white/90 p-3 border border-amber-200/80 space-y-1">
+                  <span className="text-amber-800 font-bold block text-[11px]">
+                    🌙 {isKn ? "ಚಂದ್ರಾಕಾರ (ಲುನುಲಾ / ಅರ್ಧಚಂದ್ರ):" : "Lunula / Half-Moon Vitality:"}
+                  </span>
+                  <span className="text-slate-800 font-semibold text-xs leading-relaxed block">
+                    {result.nailDorsalAnalysis.lunulaVitality[lang] || result.nailDorsalAnalysis.lunulaVitality.kn}
+                  </span>
+                </div>
+
+                <div className="rounded-xl bg-white/90 p-3 border border-amber-200/80 space-y-1">
+                  <span className="text-amber-800 font-bold block text-[11px]">
+                    ✋ {isKn ? "ಬೆರಳಿನ ಗಂಟುಗಳು (ಸಂಧಿ ಲಕ್ಷಣ):" : "Knuckle Joints (Sandhi):"}
+                  </span>
+                  <span className="text-slate-800 font-medium text-xs leading-relaxed block">
+                    {result.nailDorsalAnalysis.knuckleTraits[lang] || result.nailDorsalAnalysis.knuckleTraits.kn}
+                  </span>
+                </div>
+
+                <div className="rounded-xl bg-amber-100/60 p-3 border border-amber-300/80 space-y-1">
+                  <span className="text-amber-900 font-bold block text-[11px]">
+                    🧬 {isKn ? "ಶಾರೀರಿಕ ಪ್ರಕೃತಿ & ಮನೋಧರ್ಮ:" : "Temperament & Constitution:"}
+                  </span>
+                  <span className="text-amber-950 font-semibold text-xs leading-relaxed block">
+                    {result.nailDorsalAnalysis.temperament[lang] || result.nailDorsalAnalysis.temperament.kn}
+                  </span>
+                </div>
+              </div>
+            </Card>
+          )}
+        </div>
+      )}
+
       {/* ⏳ SECTION 3: 4 AGE-STRATIFIED LIFE MILESTONES */}
       {ms && (
         <Card className="border-2 border-amber-400 bg-gradient-to-br from-amber-50/80 via-white to-orange-50/60 p-5 shadow-md space-y-4">

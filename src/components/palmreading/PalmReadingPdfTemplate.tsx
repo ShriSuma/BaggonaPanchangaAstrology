@@ -242,6 +242,45 @@ export const PalmReadingPdfTemplate: React.FC<PalmReadingPdfTemplateProps> = ({
             </div>
           </div>
 
+          {/* Multi-Angle Inspection: Slot 2 (Marriage Line) & Slot 3 (Nails & Knuckles) */}
+          {(result.marriageLineAnalysis || result.nailDorsalAnalysis) && (
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+              {/* Marriage Line Card */}
+              {result.marriageLineAnalysis && (
+                <div style={{ background: "#FFFFFF", border: "1.5px solid #FDA4AF", borderRadius: "10px", padding: "8px 10px" }}>
+                  <div style={{ fontSize: "11px", fontWeight: 800, color: "#9F1239", marginBottom: "4px", display: "flex", justifyContent: "space-between" }}>
+                    <span>💍 {code === "kn" ? "ಪಾರ್ಶ್ವ ಹಸ್ತ: ವಿವಾಹ ರೇಖೆ:" : "Mercury Edge: Marriage Line:"}</span>
+                    <span style={{ fontSize: "10px", background: "#FFE4E6", padding: "1px 5px", borderRadius: "4px", color: "#9F1239" }}>
+                      {result.marriageLineAnalysis.lineCount} {code === "kn" ? "ರೇಖೆಗಳು" : "Line(s)"}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: "10px", color: "#881337", lineHeight: "1.4" }}>
+                    <div><strong>{code === "kn" ? "ವಿವಾಹ ಕಾಲ:" : "Timing:"}</strong> <span style={{ fontWeight: 800, color: "#BE123C" }}>{result.marriageLineAnalysis.timingWindow[code] || result.marriageLineAnalysis.timingWindow.kn}</span></div>
+                    <div style={{ marginTop: "2px" }}><strong>{code === "kn" ? "ರೇಖಾ ಸ್ವರೂಪ:" : "Formation:"}</strong> {result.marriageLineAnalysis.formation[code] || result.marriageLineAnalysis.formation.kn}</div>
+                    <div style={{ marginTop: "2px" }}><strong>{code === "kn" ? "ಸಂಗಾತಿ ಗುಣ:" : "Spouse Traits:"}</strong> {result.marriageLineAnalysis.spouseNature[code] || result.marriageLineAnalysis.spouseNature.kn}</div>
+                  </div>
+                </div>
+              )}
+
+              {/* Nail & Knuckles Card */}
+              {result.nailDorsalAnalysis && (
+                <div style={{ background: "#FFFFFF", border: "1.5px solid #FCD34D", borderRadius: "10px", padding: "8px 10px" }}>
+                  <div style={{ fontSize: "11px", fontWeight: 800, color: "#92400E", marginBottom: "4px", display: "flex", justifyContent: "space-between" }}>
+                    <span>💅 {code === "kn" ? "ಪೃಷ್ಠ ಹಸ್ತ: ನಖ & ಸಂಧಿ ಲಕ್ಷಣ:" : "Dorsal: Nails & Knuckles:"}</span>
+                    <span style={{ fontSize: "10px", background: "#FEF3C7", padding: "1px 5px", borderRadius: "4px", color: "#92400E" }}>
+                      Brihat Samhita
+                    </span>
+                  </div>
+                  <div style={{ fontSize: "10px", color: "#78350F", lineHeight: "1.4" }}>
+                    <div><strong>{code === "kn" ? "ನಖ ವರ್ಣ & ಆಕಾರ:" : "Nail Shape/Color:"}</strong> <span style={{ fontWeight: 800 }}>{result.nailDorsalAnalysis.nailColor[code] || result.nailDorsalAnalysis.nailColor.kn}</span> ({result.nailDorsalAnalysis.nailShape[code] || result.nailDorsalAnalysis.nailShape.kn})</div>
+                    <div style={{ marginTop: "2px" }}><strong>{code === "kn" ? "ಚಂದ್ರಾಕಾರ (ಲುನುಲಾ):" : "Lunula Vitality:"}</strong> {result.nailDorsalAnalysis.lunulaVitality[code] || result.nailDorsalAnalysis.lunulaVitality.kn}</div>
+                    <div style={{ marginTop: "2px" }}><strong>{code === "kn" ? "ಪ್ರಕೃತಿ & ಮನೋಧರ್ಮ:" : "Temperament:"}</strong> {result.nailDorsalAnalysis.temperament[code] || result.nailDorsalAnalysis.temperament.kn}</div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Natal Kundali Sync Badge if attached */}
           {result.kundliData && (
             <div style={{ background: "linear-gradient(90deg, #FFFBEB 0%, #FEF3C7 100%)", border: "1.5px solid #F59E0B", borderRadius: "8px", padding: "8px 12px", fontSize: "11px", color: "#78350F" }}>
