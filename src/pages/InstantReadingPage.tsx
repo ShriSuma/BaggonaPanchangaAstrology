@@ -48,6 +48,7 @@ export default function InstantReadingPage(): JSX.Element {
   const [activeCategory, setActiveCategory] = useState<"all" | "career" | "marriage" | "children" | "mind" | "wealth">("all");
   const [selectedQA, setSelectedQA] = useState<InstantQAQuestion | null>(null);
   const [personalityTab, setPersonalityTab] = useState<"all" | "strengths" | "challenges" | "integrity">("all");
+  const [selectedBhuktiTab, setSelectedBhuktiTab] = useState<number>(0);
 
   // Custom Q&A State
   const [questionInput, setQuestionInput] = useState("");
@@ -735,6 +736,363 @@ STRICT RULES:
                     </div>
                   </div>
                 )}
+              </div>
+            );
+          })()}
+
+          {/* ⚡ 2. DEDICATED SECTION: DASHA-BHUKTI SANDHI ALERT & NEXT 2 BHUKTIS ROADMAP (ದಶಾ-ಭುಕ್ತಿ ಸಂಧಿ ಎಚ್ಚರಿಕೆ & ಮುಂದಿನ 2 ಭುಕ್ತಿಗಳ ಫಲಿತ ದರ್ಶನ) ⚡ */}
+          {currentDiagnosis?.dashaSandhiAndRoadmap && (() => {
+            const dsr = currentDiagnosis.dashaSandhiAndRoadmap;
+            const sandhi = dsr.primarySandhiDisplay;
+            const activeBhukti = dsr.roadmapList[selectedBhuktiTab] || dsr.currentBhukti;
+            const isFemale = session.input.gender === "Female";
+
+            return (
+              <div className="rounded-3xl border-2 border-amber-400 bg-gradient-to-b from-amber-50/80 via-white to-orange-50/50 p-6 md:p-8 text-stone-950 shadow-xl space-y-6">
+                {/* Header Banner */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-amber-300 pb-4">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500 to-rose-500 text-white text-2xl shadow-md border border-amber-300">
+                      ⚡
+                    </span>
+                    <div>
+                      <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block">
+                        {isKn ? "॥ ದಶಾ-ಭುಕ್ತಿ ಸಂಧಿ ಎಚ್ಚರಿಕೆ & ಮುಂದಿನ 2 ವರ್ಷಗಳ ಫಲಿತ ದರ್ಶನ ॥" : "॥ Dasha-Bhukti Sandhi Alert & Next 2 Years Roadmap ॥"}
+                      </span>
+                      <h3 className="text-base md:text-xl font-black text-amber-950 font-serif">
+                        {isKn
+                          ? `${session.input.name || "ಜಾತಕರ"} ದಶಾ ಸಂಧಿ ಎಚ್ಚರಿಕೆ & ಮುಂದಿನ 2 ಭುಕ್ತಿಗಳ ನಿಖರ ಮುನ್ನೋಟ`
+                          : `${session.input.name || "Devotee"}'s Dasha Sandhi Alert & Next 2 Bhuktis Forecast`}
+                      </h3>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="px-3.5 py-1.5 rounded-full bg-amber-100 text-amber-950 text-xs font-black border border-amber-400 shadow-sm flex items-center gap-1.5">
+                      <span className="inline-block h-2 w-2 rounded-full bg-rose-600 animate-pulse" />
+                      <span>{isKn ? "100% ಪರಾಶರ ನಿಖರತೆ" : "100% Parashari Precision"}</span>
+                    </span>
+                  </div>
+                </div>
+
+                {/* --- A. DASHA SANDHI ALERT CARD --- */}
+                {sandhi && (
+                  <div
+                    className={`rounded-2xl border-2 p-5 shadow-sm space-y-4 ${
+                      sandhi.alertLevel === "critical"
+                        ? "border-rose-400 bg-rose-50/60"
+                        : sandhi.alertLevel === "high"
+                        ? "border-orange-400 bg-orange-50/50"
+                        : "border-amber-300 bg-amber-50/50"
+                    }`}
+                  >
+                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-2 border-b border-rose-200/80 pb-3">
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-xl">
+                          {sandhi.sandhiCode === "venus_sun" ? "🌸" : sandhi.sandhiCode === "mars_rahu" ? "🔥" : "🪐"}
+                        </span>
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h4 className="text-sm md:text-base font-black text-stone-900 font-serif">
+                              {isKn ? sandhi.titleKn : sandhi.titleEn}
+                            </h4>
+                            <span
+                              className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border shadow-xs ${
+                                sandhi.status === "active"
+                                  ? "bg-rose-600 text-white border-rose-700 animate-pulse"
+                                  : "bg-amber-500 text-white border-amber-600"
+                              }`}
+                            >
+                              {sandhi.status === "active"
+                                ? (isKn ? "ಪ್ರಸ್ತುತ ಚಾಲ್ತಿಯಲ್ಲಿದೆ (Active Sandhi)" : "Active Sandhi Phase")
+                                : (isKn ? "ಶೀಘ್ರದಲ್ಲೇ ಆರಂಭ (Upcoming Sandhi)" : "Upcoming Sandhi Phase")}
+                            </span>
+                            {sandhi.isSpecialForWomen && (
+                              <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-purple-700 text-white border border-purple-800 shadow-xs">
+                                {isKn ? "ಸ್ತ್ರೀಯರಿಗೆ ವಿಶೇಷ ಎಚ್ಚರಿಕೆ" : "Vital Alert for Women"}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-stone-600 font-medium mt-0.5">
+                            {isKn
+                              ? `${sandhi.outgoingPlanetKn} ಮಹಾದಶೆಯಿಂದ ${sandhi.incomingPlanetKn} ಮಹಾದಶೆಗೆ ಪರಿವರ್ತನೆ`
+                              : `Transition from ${sandhi.outgoingPlanetEn} to ${sandhi.incomingPlanetEn} Mahadasha`}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Countdown & Dates */}
+                      <div className="flex items-center gap-2 text-right self-end md:self-auto">
+                        <div className="px-3 py-1.5 rounded-xl bg-white border border-rose-200 shadow-xs text-right">
+                          <div className="text-[10px] text-stone-500 font-bold uppercase tracking-wider">
+                            {sandhi.status === "active"
+                              ? (isKn ? "ಉಳಿದಿರುವ ದಿನಗಳು" : "Days Remaining")
+                              : (isKn ? "ಆರಂಭಕ್ಕೆ ದಿನಗಳು" : "Days Until Start")}
+                          </div>
+                          <div className="text-sm md:text-base font-black text-rose-700 font-mono">
+                            {sandhi.daysRemainingOrUntil} {isKn ? "ದಿನಗಳು" : "Days"}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Special Lady Banner if Shukraditya Sandhi */}
+                    {sandhi.isSpecialForWomen && (
+                      <div className="p-3.5 rounded-xl bg-purple-100/90 border-2 border-purple-300 text-purple-950 text-xs leading-relaxed space-y-1 shadow-xs">
+                        <div className="font-black flex items-center gap-1.5 text-purple-900">
+                          <span>🌸</span>
+                          <span>{isKn ? "ಸ್ತ್ರೀಯರಿಗೆ ಪರಮ ಎಚ್ಚರಿಕೆಯ ಶಾಸ್ತ್ರೋಕ್ತ ರಹಸ್ಯ:" : "Vital Classical Advisory for Women:"}</span>
+                        </div>
+                        <p>
+                          {isKn
+                            ? "ಶುಕ್ರನು ಸ್ತ್ರೀ ಶರೀರದ ಸೌಂದರ್ಯ, ಹಾರ್ಮೋನ್, ರಕ್ತಪರಿಚಲನೆ ಮತ್ತು ದಾಂಪತ್ಯ ಸೌಖ್ಯದ ಕಾರಕನಾಗಿದ್ದು, ಸೂರ್ಯನು ತೀಕ್ಷ್ಣ ಉಷ್ಣಕಾರಕನಾಗಿದ್ದಾನೆ. ಈ ಶುಕ್ರಾಧಿತ್ಯ ಸಂಧಿಕಾಲದಲ್ಲಿ ಹಾರ್ಮೋನ್ ಏರುಪೇರು, ಗರ್ಭಾಶಯ/ಥೈರಾಯ್ಡ್ ಸೂಕ್ಷ್ಮತೆ, ನೇತ್ರದೋಷ, ದಾಂಪತ್ಯದಲ್ಲಿ ಅಹಂ ಸಂಘರ್ಷ ಹಾಗೂ ಅತ್ತೆ-ಮಾವಂದಿರೊಂದಿಗಿನ ಹೊಂದಾಣಿಕೆಯಲ್ಲಿ ಅನಿರೀಕ್ಷಿತ ತೊಡಕುಗಳು ಕಾಣಿಸಿಕೊಳ್ಳುತ್ತವೆ. ಶಾಸ್ತ್ರೋಕ್ತ ಸಂಧಿ ಶಾಂತಿ ಪೂಜೆ ಅತ್ಯಗತ್ಯ."
+                            : "Venus governs feminine vitality, hormones, and marital harmony, while Sun is intense solar heat. In Shukraditya Sandhi, women face heightened risk of hormonal/thyroid fluctuations, uterine sensitivities, eye fatigue, and marital ego clashes. Prescribed Vedic Shanti is strongly recommended."}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Explanation */}
+                    <p className="text-xs md:text-sm text-stone-800 leading-relaxed font-medium">
+                      {cleanAstrologyText(isKn ? sandhi.descriptionKn : sandhi.descriptionEn)}
+                    </p>
+
+                    {/* Dates Summary Bar */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                      <div className="p-2.5 rounded-xl bg-white border border-rose-200 text-stone-800 font-medium">
+                        <span className="text-stone-500 block text-[10px] font-bold">{isKn ? "ಸಂಧಿ ಆರಂಭ ದಿನಾಂಕ" : "Sandhi Start Date"}</span>
+                        <span className="font-bold text-stone-900 font-mono">{sandhi.startDateStr}</span>
+                      </div>
+                      <div className="p-2.5 rounded-xl bg-white border border-rose-200 text-stone-800 font-medium">
+                        <span className="text-stone-500 block text-[10px] font-bold">{isKn ? "ಸಂಧಿ ಮುಕ್ತಾಯ ದಿನಾಂಕ" : "Sandhi End Date"}</span>
+                        <span className="font-bold text-stone-900 font-mono">{sandhi.endDateStr}</span>
+                      </div>
+                      <div className="p-2.5 rounded-xl bg-white border border-rose-200 text-stone-800 font-medium">
+                        <span className="text-stone-500 block text-[10px] font-bold">{isKn ? "ಒಟ್ಟು ಸಂಧಿಕಾಲದ ಅವಧಿ" : "Total Sandhi Span"}</span>
+                        <span className="font-bold text-rose-800">{isKn ? sandhi.durationFormattedKn : sandhi.durationFormattedEn}</span>
+                      </div>
+                    </div>
+
+                    {/* Warning Symptoms Checklist */}
+                    {sandhi.warningSymptomsKn && sandhi.warningSymptomsKn.length > 0 && (
+                      <div className="space-y-1.5 pt-1">
+                        <span className="text-[11px] font-black text-stone-900 flex items-center gap-1.5">
+                          <span>⚠️</span>
+                          <span>{isKn ? "ಸಂಧಿಕಾಲದಲ್ಲಿ ಕಾಣಿಸಿಕೊಳ್ಳುವ ಪ್ರಮುಖ ಲಕ್ಷಣಗಳು (Warning Symptoms):" : "Key Warning Symptoms in this Sandhi:"}</span>
+                        </span>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
+                          {(isKn ? sandhi.warningSymptomsKn : sandhi.warningSymptomsEn).map((sym, idx) => (
+                            <div key={idx} className="flex items-start gap-2 p-2.5 rounded-xl bg-white border border-rose-200 text-stone-800 font-medium shadow-2xs">
+                              <span className="text-rose-600 font-black">!</span>
+                              <span>{cleanAstrologyText(sym)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Remedial Solutions & Gokarna Seva */}
+                    <div className="p-3.5 rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-300 text-emerald-950 text-xs space-y-2 shadow-xs">
+                      <div className="font-black text-emerald-900 flex items-center gap-1.5">
+                        <span>🪔</span>
+                        <span>{isKn ? "ಶಾಸ್ತ್ರೋಕ್ತ ಸಂಧಿ ಶಾಂತಿ & ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮುಕ್ತಿ ಸೇವೆ:" : "Classical Sandhi Shanti & Sri Kshetra Gokarna Seva:"}</span>
+                      </div>
+                      <ul className="space-y-1 font-medium pl-1">
+                        {(isKn ? sandhi.recommendedShantiRemediesKn : sandhi.recommendedShantiRemediesEn).map((rem, rIdx) => (
+                          <li key={rIdx} className="flex items-start gap-1.5">
+                            <span className="text-emerald-700 font-bold">✓</span>
+                            <span>{cleanAstrologyText(rem)}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="mt-2 pt-2 border-t border-emerald-200 text-emerald-900 font-bold flex items-center gap-2">
+                        <span>🚩</span>
+                        <span>{isKn ? sandhi.gokarnaSevaKn : sandhi.gokarnaSevaEn}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* --- B. NEXT 2 BHUKTIS DEEP ROADMAP (ಮುಂದಿನ 2 ಭುಕ್ತಿಗಳ ಫಲಿತ & ನಿರೀಕ್ಷೆ) --- */}
+                <div className="space-y-4 pt-2">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-amber-200 pb-2">
+                    <div>
+                      <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
+                        <span>🧭</span>
+                        <span>{isKn ? "ಮುಂದಿನ 2 ವರ್ಷಗಳ ದಶಾ-ಭುಕ್ತಿ ಮುನ್ನೋಟ (Roadmap for Next 2+ Years)" : "Next 2+ Years Dasha-Bhukti Roadmap"}</span>
+                      </span>
+                      <h4 className="text-sm md:text-base font-black text-amber-950 font-serif">
+                        {isKn ? "ಪ್ರಸ್ತುತ & ಮುಂದಿನ 2 ಭುಕ್ತಿಗಳಲ್ಲಿ ಏನನ್ನು ನಿರೀಕ್ಷಿಸಬೇಕು?" : "What to Expect in Current & Next 2 Bhuktis?"}
+                      </h4>
+                    </div>
+                    <span className="text-[10px] text-stone-600 bg-amber-100 font-bold px-2.5 py-1 rounded-full border border-amber-300">
+                      {isKn ? "ನಿಖರ ದಿನಗಳ ಲೆಕ್ಕಾಚಾರ" : "Exact Days & Dates"}
+                    </span>
+                  </div>
+
+                  {/* 3-Tab Navigator / Timeline Selector */}
+                  <div className="grid grid-cols-3 gap-2">
+                    {dsr.roadmapList.map((item, idx) => {
+                      const isSelected = selectedBhuktiTab === idx;
+                      return (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setSelectedBhuktiTab(idx)}
+                          className={`p-3 rounded-2xl border-2 text-left transition-all shadow-xs cursor-pointer ${
+                            isSelected
+                              ? "bg-amber-950 text-white border-amber-700 shadow-md scale-[1.02]"
+                              : "bg-white text-stone-800 border-amber-200 hover:border-amber-400 hover:bg-amber-50/50"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-1 mb-1">
+                            <span
+                              className={`text-[9px] md:text-[10px] font-black px-2 py-0.5 rounded-full ${
+                                isSelected ? "bg-amber-500 text-stone-950" : idx === 0 ? "bg-rose-100 text-rose-800" : "bg-stone-100 text-stone-700"
+                              }`}
+                            >
+                              {idx === 0
+                                ? (isKn ? "ಪ್ರಸ್ತುತ ಭುಕ್ತಿ" : "Current Bhukti")
+                                : idx === 1
+                                ? (isKn ? "ಮುಂದಿನ ಭುಕ್ತಿ 1" : "Next Bhukti 1")
+                                : (isKn ? "ಮುಂದಿನ ಭುಕ್ತಿ 2" : "Next Bhukti 2")}
+                            </span>
+                          </div>
+                          <div className={`text-xs md:text-sm font-black font-serif truncate ${isSelected ? "text-amber-200" : "text-stone-900"}`}>
+                            {isKn ? `${item.mahaPlanetKn}-${item.bhuktiPlanetKn}` : `${item.mahaPlanetEn}-${item.bhuktiPlanetEn}`}
+                          </div>
+                          <div className={`text-[10px] font-medium truncate mt-0.5 ${isSelected ? "text-amber-300" : "text-stone-500"}`}>
+                            {item.totalDays} {isKn ? "ದಿನಗಳು" : "days"}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Active Selected Bhukti Card */}
+                  {activeBhukti && (
+                    <div className="rounded-2xl border-2 border-amber-300 bg-white p-5 shadow-sm space-y-4">
+                      {/* Bhukti Header */}
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-amber-100 pb-3">
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-xs font-black px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
+                              {selectedBhuktiTab === 0
+                                ? (isKn ? "ಹಂತ 1: ಪ್ರಸ್ತುತ ಭುಕ್ತಿ" : "Phase 1: Current Bhukti")
+                                : selectedBhuktiTab === 1
+                                ? (isKn ? "ಹಂತ 2: ಮುಂದಿನ ಭುಕ್ತಿ 1" : "Phase 2: Next Bhukti 1")
+                                : (isKn ? "ಹಂತ 3: ಮುಂದಿನ ಭುಕ್ತಿ 2" : "Phase 3: Next Bhukti 2")}
+                            </span>
+                            <h5 className="text-base md:text-lg font-black text-amber-950 font-serif">
+                              {isKn ? activeBhukti.titleKn : activeBhukti.titleEn}
+                            </h5>
+                          </div>
+                          <p className="text-xs text-stone-600 font-medium mt-1">
+                            {isKn
+                              ? `${activeBhukti.startDateStr} ರಿಂದ ${activeBhukti.endDateStr} ರವರೆಗೆ (${activeBhukti.daysCountFormattedKn})`
+                              : `${activeBhukti.startDateStr} to ${activeBhukti.endDateStr} (${activeBhukti.daysCountFormattedEn})`}
+                          </p>
+                        </div>
+                        <div className="px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 font-black text-xs">
+                          {isKn ? activeBhukti.statusCountdownKn : activeBhukti.statusCountdownEn}
+                        </div>
+                      </div>
+
+                      {/* Parashari Astrological Foundation Badges */}
+                      <div className="flex flex-wrap gap-2 text-xs">
+                        <span className="px-2.5 py-1 rounded-lg bg-stone-100 border border-stone-300 text-stone-800 font-bold flex items-center gap-1">
+                          <span>🪐</span>
+                          <span>{isKn ? activeBhukti.relationshipKn : activeBhukti.relationshipEn}</span>
+                        </span>
+                        <span className="px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-900 font-bold flex items-center gap-1">
+                          <span>📐</span>
+                          <span>{isKn ? activeBhukti.houseDistanceLabelKn : activeBhukti.houseDistanceLabelEn}</span>
+                        </span>
+                        <span className="px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-900 font-bold flex items-center gap-1">
+                          <span>👑</span>
+                          <span>{isKn ? activeBhukti.bhuktiLordHousesKn : activeBhukti.bhuktiLordHousesEn}</span>
+                        </span>
+                        <span className="px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 font-bold flex items-center gap-1">
+                          <span>📍</span>
+                          <span>{isKn ? activeBhukti.bhuktiLordPlacementKn : activeBhukti.bhuktiLordPlacementEn}</span>
+                        </span>
+                      </div>
+
+                      {/* Headline & Overview */}
+                      <div className="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200 text-xs md:text-sm space-y-1">
+                        <div className="font-black text-amber-950 font-serif">
+                          {cleanAstrologyText(isKn ? activeBhukti.headlineKn : activeBhukti.headlineEn)}
+                        </div>
+                        <p className="text-stone-800 leading-relaxed font-medium">
+                          {cleanAstrologyText(isKn ? activeBhukti.whatToExpectOverviewKn : activeBhukti.whatToExpectOverviewEn)}
+                        </p>
+                      </div>
+
+                      {/* 5-Pillar Detailed What To Expect Grid */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                        {/* 1. Career & Business */}
+                        <div className="p-3.5 rounded-xl bg-white border border-indigo-200 space-y-1 shadow-2xs">
+                          <div className="font-bold text-indigo-900 flex items-center gap-1.5 border-b border-indigo-100 pb-1">
+                            <span>💼</span>
+                            <span>{isKn ? "ವೃತ್ತಿ & ವ್ಯಾಪಾರ (Career & Business)" : "Career & Profession"}</span>
+                          </div>
+                          <p className="text-stone-700 leading-relaxed font-medium">
+                            {cleanAstrologyText(isKn ? activeBhukti.careerProspectsKn : activeBhukti.careerProspectsEn)}
+                          </p>
+                        </div>
+
+                        {/* 2. Finances & Wealth */}
+                        <div className="p-3.5 rounded-xl bg-white border border-emerald-200 space-y-1 shadow-2xs">
+                          <div className="font-bold text-emerald-900 flex items-center gap-1.5 border-b border-emerald-100 pb-1">
+                            <span>💰</span>
+                            <span>{isKn ? "ಆರ್ಥಿಕತೆ & ಹೂಡಿಕೆ (Finances & Wealth)" : "Finances & Assets"}</span>
+                          </div>
+                          <p className="text-stone-700 leading-relaxed font-medium">
+                            {cleanAstrologyText(isKn ? activeBhukti.financialProspectsKn : activeBhukti.financialProspectsEn)}
+                          </p>
+                        </div>
+
+                        {/* 3. Family & Marriage */}
+                        <div className="p-3.5 rounded-xl bg-white border border-rose-200 space-y-1 shadow-2xs">
+                          <div className="font-bold text-rose-900 flex items-center gap-1.5 border-b border-rose-100 pb-1">
+                            <span>🏡</span>
+                            <span>{isKn ? "ಕುಟುಂಬ & ದಾಂಪತ್ಯ (Family & Marriage)" : "Family & Relationships"}</span>
+                          </div>
+                          <p className="text-stone-700 leading-relaxed font-medium">
+                            {cleanAstrologyText(isKn ? activeBhukti.familyMarriageProspectsKn : activeBhukti.familyMarriageProspectsEn)}
+                          </p>
+                        </div>
+
+                        {/* 4. Health & Mind */}
+                        <div className="p-3.5 rounded-xl bg-white border border-teal-200 space-y-1 shadow-2xs">
+                          <div className="font-bold text-teal-900 flex items-center gap-1.5 border-b border-teal-100 pb-1">
+                            <span>🌿</span>
+                            <span>{isKn ? "ಆರೋಗ್ಯ & ಮನಃಸ್ಥಿತಿ (Health & Mind)" : "Health & Mental Peace"}</span>
+                          </div>
+                          <p className="text-stone-700 leading-relaxed font-medium">
+                            {cleanAstrologyText(isKn ? activeBhukti.healthMindProspectsKn : activeBhukti.healthMindProspectsEn)}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Precautions & Gokarna Remedy Footer */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1 text-xs">
+                        <div className="p-3 rounded-xl bg-stone-50 border border-stone-200 text-stone-800 space-y-1">
+                          <span className="font-bold text-stone-900 flex items-center gap-1">
+                            <span>🛡️</span>
+                            <span>{isKn ? "ಶಾಸ್ತ್ರೋಕ್ತ ಮುನ್ನೆಚ್ಚರಿಕೆ (Precautions):" : "Vedic Precautions:"}</span>
+                          </span>
+                          <p className="leading-relaxed">{cleanAstrologyText(isKn ? activeBhukti.precautionsKn : activeBhukti.precautionsEn)}</p>
+                        </div>
+                        <div className="p-3 rounded-xl bg-amber-50/90 border border-amber-300 text-amber-950 space-y-1">
+                          <span className="font-bold text-amber-900 flex items-center gap-1">
+                            <span>🪔</span>
+                            <span>{isKn ? "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಪರಿಹಾರ ಸೇವೆ:" : "Sri Kshetra Gokarna Seva:"}</span>
+                          </span>
+                          <p className="leading-relaxed">{cleanAstrologyText(isKn ? activeBhukti.gokarnaPariharaKn : activeBhukti.gokarnaPariharaEn)}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             );
           })()}

@@ -15,6 +15,10 @@ import {
   type CurrentLifeSituationDiagnosis,
   type AccurateProfessionProfile
 } from "./CurrentLifeAndCareerDiagnosticEngine";
+import {
+  generateDashaSandhiAndRoadmap,
+  type DashaSandhiAndRoadmapOutput
+} from "./DashaSandhiAndRoadmapEngine";
 
 /** Calculate distance between houses (1-indexed, 1 to 12) */
 export const houseDist = (fromH: number, toH: number): number => ((toH - fromH + 12) % 12) + 1;
@@ -294,6 +298,7 @@ export interface CurrentLifeDiagnosis {
   negativeShades?: NegativeShadeAssessment;
   currentLifeSituation?: CurrentLifeSituationDiagnosis;
   accurateProfession?: AccurateProfessionProfile;
+  dashaSandhiAndRoadmap?: DashaSandhiAndRoadmapOutput;
 }
 
 export interface NegativeShadeDimension {
@@ -5008,7 +5013,13 @@ export const generateCurrentLifeDiagnosis = (
     hasMaritalFidelity: goodBadAnalysis.hasMaritalFidelity,
     negativeShades: evaluateNativeNegativeShadesAndCriminality(kundli, context, dashaTiming, liveGochara),
     currentLifeSituation: diagnoseCurrentLifeSituation(kundli, context, dashaTiming, liveGochara),
-    accurateProfession: determineAccurateProfession(kundli, context)
+    accurateProfession: determineAccurateProfession(kundli, context),
+    dashaSandhiAndRoadmap: generateDashaSandhiAndRoadmap(kundli, {
+      birthDate: context.birthDate,
+      birthTime: context.birthTime,
+      gender: context.gender,
+      devoteeName: context.devoteeName
+    })
   };
 };
 
