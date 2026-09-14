@@ -883,6 +883,8 @@ export interface NativeDietAssessment {
   isTeetotaler: boolean;
   isDailyDrinking: boolean;
   isSocialDrinking: boolean;
+  hasWeedCannabisHabit?: boolean;
+  hasSmokingHabit?: boolean;
   hasAddictionRisk: boolean;
   hasAddiction: boolean;
   hasZardaTobaccoHabit?: boolean;
@@ -900,6 +902,8 @@ export const detectNativeDietAndAddiction = (kundli: KundliOutput): NativeDietAs
   
   const houseDist = (fromH: number, toH: number) => ((toH - fromH + 12) % 12) + 1;
   
+  const sun = kundli.planets.find(p => p.name === PlanetName.Sun);
+  const moon = kundli.planets.find(p => p.name === PlanetName.Moon);
   const jupiter = kundli.planets.find(p => p.name === PlanetName.Jupiter);
   const venus = kundli.planets.find(p => p.name === PlanetName.Venus);
   const mercury = kundli.planets.find(p => p.name === PlanetName.Mercury);
@@ -952,16 +956,78 @@ export const detectNativeDietAndAddiction = (kundli: KundliOutput): NativeDietAs
     mars && mars.house === 8 && mars.rashi.index === 2 && !jupiterAspects2nd && !beneficsIn2nd
   );
 
-  // PRECISE ALCOHOL CONDITION:
-  // Only severe unmitigated Saturn in 8th aspecting 2nd with debilitated Mars, or extreme double malefic in 2nd without benefic aspect:
-  const hasDirectAlcoholAffliction = Boolean(
-    (isSaturn8thAspecting2nd && (mars?.isDebilitated || mars?.rashi.index === 3) && !jupiterAspects2nd) ||
-    (maleficsIn2nd.length >= 2 && !beneficsIn2nd && !jupiterAspects2nd && secondLordInDusthana)
+  // PRECISE WEED / CANNABIS (ಗಾಂಜಾ/ವೀಡ್) & DHUMA SUBSTANCE CONDITION:
+  // Rahu is classical Dhuma Karaka (smoke, cannabis, weed, intoxicants).
+  // Activates when Rahu influences 2nd house (oral intake/mouth), 2nd lord, 8th/12th houses, or Moon without Jupiter protection:
+  const hasWeedCannabisHabit = Boolean(
+    !hasZardaTobaccoHabit && !jupiterAspects2nd && !jupiterAspects2ndLord && (
+      (rahu && rahu.house === 2) ||
+      rahuAspects2nd ||
+      (rahu && secondLordPlanet && rahu.house === secondLordPlanet.house) ||
+      (rahu && rahu.house === 8 && (saturnAspects2nd || marsAspects2nd || secondLordInDusthana)) ||
+      (rahu && moon && rahu.house === moon.house && (secondLordInDusthana || saturnAspects2nd || marsAspects2nd || [2, 8, 12].includes(rahu.house))) ||
+      (rahu && rahu.house === 12 && secondLordInDusthana)
+    )
   );
 
-  const isTeetotaler = !hasDirectAlcoholAffliction && !hasZardaTobaccoHabit;
-  const isDailyDrinking = !isTeetotaler && !hasZardaTobaccoHabit && hasDirectAlcoholAffliction;
-  const isSocialDrinking = false;
+  // PRECISE SMOKING HABIT:
+  const hasSmokingHabit = Boolean(
+    hasWeedCannabisHabit ||
+    (!jupiterAspects2nd && !jupiterAspects2ndLord && (
+      (rahuAspects2nd && (marsAspects2nd || saturnAspects2nd)) ||
+      (maleficsIn2nd.some(p => p && [PlanetName.Rahu, PlanetName.Mars].includes(p.name)) && !beneficsIn2nd)
+    ))
+  );
+
+  // PRECISE DAILY ALCOHOL CONDITION:
+  // Severe Saturn/Rahu/Mars affliction on 2nd house or 2nd lord in Dusthana without direct Jupiter shield on 2nd house:
+  const hasDirectAlcoholAffliction = Boolean(
+    !hasZardaTobaccoHabit && !jupiterAspects2nd && (
+      (isSaturn8thAspecting2nd && (mars?.isDebilitated || mars?.rashi.index === 3 || marsAspects2nd || secondLordInDusthana)) ||
+      (!jupiterAspects2ndLord && (
+        (saturn && saturn.house === 2 && (rahuAspects2nd || marsAspects2nd || secondLordInDusthana)) ||
+        (maleficsIn2nd.length >= 2 && secondLordInDusthana) ||
+        (saturnAspects2nd && rahuAspects2nd && (secondLordInDusthana || (moon && [6, 8, 12].includes(moon.house)))) ||
+        (saturn && saturn.house === 8 && secondLordInDusthana && maleficsIn2nd.length > 0)
+      ))
+    )
+  );
+
+  const isDailyDrinking = hasDirectAlcoholAffliction;
+
+  // PRECISE SOCIAL / PEER-INDUCED DRINKING & SUBSTANCE USE:
+  // Moderate malefic affliction (Saturn or Rahu or Mars affecting 2nd/8th without strong Jupiter shield)
+  const isSocialDrinking = Boolean(
+    !isDailyDrinking && !hasZardaTobaccoHabit && (
+      hasWeedCannabisHabit ||
+      (!jupiterAspects2nd && !jupiterAspects2ndLord && (
+        saturnAspects2nd ||
+        rahuAspects2nd ||
+        marsAspects2nd ||
+        (saturn && saturn.house === 2) ||
+        (rahu && rahu.house === 2) ||
+        (secondLordInDusthana && maleficsIn8th.length > 0) ||
+        (saturn && saturn.house === 12 && rahuAspects2nd)
+      ))
+    )
+  );
+
+  const hasAnyHabitOrAffliction = Boolean(
+    isDailyDrinking ||
+    isSocialDrinking ||
+    hasZardaTobaccoHabit ||
+    hasWeedCannabisHabit ||
+    hasSmokingHabit
+  );
+
+  // Authentic Teetotaler: ONLY when protected by Jupiter's aspect or totally clean 2nd house/lord
+  const isTeetotaler = !hasAnyHabitOrAffliction && Boolean(
+    jupiterAspects2nd ||
+    jupiterAspects2ndLord ||
+    (beneficsIn2nd && maleficsIn2nd.length === 0 && !saturnAspects2nd && !rahuAspects2nd && !marsAspects2nd) ||
+    (maleficPressure === 0 && is2ndLordWellPlaced)
+  );
+
   const hasAddictionRisk = !isTeetotaler;
   const netAddictionScore = isTeetotaler ? 0 : Math.max(0, maleficPressure - beneficProtection);
   
@@ -987,27 +1053,23 @@ export const detectNativeDietAndAddiction = (kundli: KundliOutput): NativeDietAs
       ? "2ನೇ ಮುಖ-ಭೋಜನ ಸ್ಥಾನದಲ್ಲಿ ಅಂಗಾರಕನ ನೇರ ಸ್ಥಿತಿ."
       : "2ನೇ ಮುಖ-ಭೋಜನ ಸ್ಥಾನದ ಮೇಲೆ ಅಂಗಾರಕನ (ಕುಜ) ದೃಷ್ಟಿ ಪ್ರಭಾವ.";
 
-    dietSummaryKn = `ಜರ್ದಾ, ತಂಬಾಕು & ಗುಟ್ಕಾ ವ್ಯಸನ (Zarda & Chewing Tobacco Addiction): ${marsImpactKn}, ಜರ್ದಾ (Zarda), ತಂಬಾಕು, ಗುಟ್ಕಾ ಅಥವಾ ಖಾರ-ಉತ್ತೇಜಕ ತಾಂಬೂಲ ನಿರಂತರವಾಗಿ ಅಗಿಯುವ ತೀವ್ರ ಚಟ ಜಾತಕದಲ್ಲಿದೆ. ಮದ್ಯಪಾನ ಮುಕ್ತವಾಗಿದ್ದರೂ ಬಾಯಿಯ ತಂಬಾಕು ಚಟ ಶರೀರಕ್ಕೆ ಅಂಟಿಕೊಂಡಿರುತ್ತದೆ.`;
+    dietSummaryKn = `ಜರ್ದಾ, ತಂಬಾಕು & ಗುಟ್ಕಾ ವ್ಯಸನ: ${marsImpactKn}, ಜರ್ದಾ, ತಂಬಾಕು, ಗುಟ್ಕಾ ಅಥವಾ ಖಾರ-ಉತ್ತೇಜಕ ತಾಂಬೂಲ ನಿರಂತರವಾಗಿ ಅಗಿಯುವ ತೀವ್ರ ಚಟ ಜಾತಕದಲ್ಲಿದೆ. ಮದ್ಯಪಾನ ಮುಕ್ತವಾಗಿದ್ದರೂ ಬಾಯಿಯ ತಂಬಾಕು ಚಟ ಶರೀರಕ್ಕೆ ಅಂಟಿಕೊಂಡಿರುತ್ತದೆ.`;
     dietSummaryEn = "Zarda & Chewing Tobacco Dependency: Mars in the 8th house casting direct 7th aspect on the 2nd house of oral intake generates a strong craving for chewing tobacco, zarda, and betel stimulants.";
     rootCauseKn = marsRootKn;
     rootCauseEn = mars?.house === 8
       ? "8th house Mars casting direct 7th aspect onto the 2nd house of oral intake."
       : "Mars influencing the 2nd house of oral intake.";
-  } else if (isTeetotaler) {
-    dietSummaryKn = "ಸಾತ್ವಿಕ ಆಹಾರಿ (Teetotaler) & ಮದ್ಯಪಾನ-ಧೂಮಪಾನ ಮುಕ್ತ ಶರೀರ ರಕ್ಷಣೆ. ಶರೀರ ಪಾವಿತ್ರ್ಯವನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳುವ ಉನ್ನತ ಆತ್ಮಶಕ್ತಿ ನಿಮ್ಮಲ್ಲಿದೆ.";
-    dietSummaryEn = "Sattvik lifestyle & confirmed teetotaler (strictly free from alcohol, smoking, and intoxicating substances). Endowed with natural purity of intake.";
-    rootCauseKn = jupiterAspects2nd || jupiterAspects2ndLord 
-      ? "2ನೇ ಭೋಜನ ಸ್ಥಾನ ಅಥವಾ ಧನಾಧಿಪತಿಯ ಮೇಲೆ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಸಾತ್ವಿಕ ದೃಷ್ಟಿಯ ಶ್ರೀರಕ್ಷೆ." 
-      : "2ನೇ ಮುಖ ಸ್ಥಾನ ಹಾಗೂ ಲಗ್ನವು ಶುಭ ಸ್ಥಿತಿಯಲ್ಲಿದ್ದು ದುಶ್ಚಟಗಳ ಸೋಂಕಿಲ್ಲದಿರುವುದು.";
-    rootCauseEn = jupiterAspects2nd || jupiterAspects2ndLord 
-      ? "Jupiter's divine protective aspect purifying the 2nd house of oral intake and dietary restraint." 
-      : "Clean 2nd house shielded from malefic addictions.";
+  } else if (hasWeedCannabisHabit) {
+    dietSummaryKn = "ಮದ್ಯಪಾನ, ಧೂಮಪಾನ ಹಾಗೂ ಗಾಂಜಾ/ವೀಡ್ (Weed/Cannabis) ಅಮಲು ಪದಾರ್ಥಗಳ ಎಚ್ಚರಿಕೆ: 2ನೇ ಭೋಜನ-ಮುಖ ಸ್ಥಾನ ಹಾಗೂ ಛಾಯಾಗ್ರಹ ರಾಹುವಿನ ಧೂಮ್ರ ಪ್ರಭಾವದಿಂದಾಗಿ, ಮದ್ಯಪಾನ, ಧೂಮಪಾನ ಅಥವಾ ಗಾಂಜಾ/ವೀಡ್ ಸೇರಿದಂತೆ ಅಮಲು ಪದಾರ್ಥಗಳತ್ತ ಮನಸ್ಸು ಜಾರುವ ಪ್ರಬಲ ದೌರ್ಬಲ್ಯ ಜಾತಕದಲ್ಲಿದೆ. ಮಾನಸಿಕ ಒತ್ತಡ ಅಥವಾ ಸ್ನೇಹಿತರ ಸಹವಾಸದಲ್ಲಿ ಈ ಚಟಗಳು ಆವರಿಸುವ ಅಪಾಯವಿದ್ದು, ಶರೀರ ಪಾವಿತ್ರ್ಯ ಹಾಗೂ ನರಮಂಡಲದ ಆರೋಗ್ಯಕ್ಕಾಗಿ ಕಟ್ಟುನಿಟ್ಟಿನ ಸ್ವಯಂ-ನಿಯಂತ್ರಣ ಮತ್ತು ವ್ಯಸನಮುಕ್ತಿ ಅಗತ್ಯ.";
+    dietSummaryEn = "Cannabis/Weed, Smoking & Alcohol Dependency Warning: Rahu's intense smoky affliction on the 2nd house of oral intake and hidden axis creates strong cravings for weed/cannabis, smoking, and alcohol under emotional strain or peer influence. Strict discipline and de-addiction are vital.";
+    rootCauseKn = "2ನೇ ಮುಖ-ಭೋಜನ ಸ್ಥಾನ ಹಾಗೂ ಮನಃಕಾರಕ ಚಂದ್ರನ ಮೇಲೆ ಧೂಮ್ರಕಾರಕ ರಾಹುವಿನ ಅಶುಭ ಪ್ರಭಾವ.";
+    rootCauseEn = "Rahu's smoky affliction on 2nd house of oral intake and lunar axis.";
   } else if (isDailyDrinking) {
     dietSummaryKn = isSaturn8thAspecting2nd
-      ? "ಮದ್ಯಪಾನ & ಸಂಜೆಯ ಮದ್ಯ ಸೇವನೆಯ ದೌರ್ಬಲ್ಯ (Alcohol Intake Under Stress): 8ನೇ ರಹಸ್ಯ ಸ್ಥಾನದಲ್ಲಿರುವ ಶನಿಯು 2ನೇ ಭೋಜನ-ಮುಖ ಸ್ಥಾನದ ಮೇಲೆ ನೇರ 7ನೇ ದೃಷ್ಟಿ ಬೀರುತ್ತಿರುವುದರಿಂದ ಮತ್ತು ಲಗ್ನದಲ್ಲಿ ನೀಚ ಕುಜನಿರುವುದರಿಂದ, ದಿನದ ಕೆಲಸ ಮುಗಿದ ನಂತರ, ಸಂಜೆಯ ಸಮಯದಲ್ಲಿ ಅಥವಾ ಮನಸ್ಸಿಗೆ ತೀವ್ರ ಬೇಸರ/ಒತ್ತಡವಾದಾಗ ಮದ್ಯಪಾನ (Alcohol intake) ಮಾಡುವ ಸ್ಪಷ್ಟ ದೌರ್ಬಲ್ಯ ಜಾತಕದಲ್ಲಿದೆ. ಹೊರಗೆ ಧಾರ್ಮಿಕವಾಗಿ ಕಂಡರೂ, ಏಕಾಂತದಲ್ಲಿ ನಶೆಯ ಪದಾರ್ಥಗಳು ಅಥವಾ ಮದ್ಯಕ್ಕೆ ಶರಣಾಗುವ ಪ್ರವೃತ್ತಿ ಇರುತ್ತದೆ. ಇದು ಆರೋಗ್ಯ ಮತ್ತು ಸಂಸಾರಿಕ ನೆಮ್ಮದಿಯನ್ನು ಹಾಳುಮಾಡಲಿದ್ದು, ಕಟ್ಟುನಿಟ್ಟಿನ ಸ್ವಯಂ-ನಿಯಂತ್ರಣ ಅಗತ್ಯ."
+      ? "ಮದ್ಯಪಾನ & ಸಂಜೆಯ ಮದ್ಯ ಸೇವನೆಯ ದೌರ್ಬಲ್ಯ: 8ನೇ ರಹಸ್ಯ ಸ್ಥಾನದಲ್ಲಿರುವ ಶನಿಯು 2ನೇ ಭೋಜನ-ಮುಖ ಸ್ಥಾನದ ಮೇಲೆ ನೇರ 7ನೇ ದೃಷ್ಟಿ ಬೀರುತ್ತಿರುವುದರಿಂದ ಮತ್ತು ಲಗ್ನದಲ್ಲಿ ನೀಚ ಕುಜನಿರುವುದರಿಂದ, ದಿನದ ಕೆಲಸ ಮುಗಿದ ನಂತರ, ಸಂಜೆಯ ಸಮಯದಲ್ಲಿ ಅಥವಾ ಮನಸ್ಸಿಗೆ ತೀವ್ರ ಬೇಸರ/ಒತ್ತಡವಾದಾಗ ಮದ್ಯಪಾನ ಮಾಡುವ ಸ್ಪಷ್ಟ ದೌರ್ಬಲ್ಯ ಜಾತಕದಲ್ಲಿದೆ. ಹೊರಗೆ ಧಾರ್ಮಿಕವಾಗಿ ಕಂಡರೂ, ಏಕಾಂತದಲ್ಲಿ ನಶೆಯ ಪದಾರ್ಥಗಳು ಅಥವಾ ಮದ್ಯಕ್ಕೆ ಶರಣಾಗುವ ಪ್ರವೃತ್ತಿ ಇರುತ್ತದೆ. ಇದು ಆರೋಗ್ಯ ಮತ್ತು ಸಂಸಾರಿಕ ನೆಮ್ಮದಿಯನ್ನು ಹಾಳುಮಾಡಲಿದ್ದು, ಕಟ್ಟುನಿಟ್ಟಿನ ಸ್ವಯಂ-ನಿಯಂತ್ರಣ ಅಗತ್ಯ."
       : "2ನೇ ಮುಖ ಹಾಗೂ 8ನೇ ರಹಸ್ಯ ಸ್ಥಾನಗಳ ಮೇಲೆ ಪಾಪಗ್ರಹಗಳ ತೀವ್ರ ಪ್ರಭಾವದಿಂದಾಗಿ ಸಂಜೆಯ ಸಮಯದಲ್ಲಿ ಅಥವಾ ಮಾನಸಿಕ ಒತ್ತಡದಲ್ಲಿ ಮದ್ಯಪಾನ ಅಥವಾ ವ್ಯಸನಗಳ ಕಡೆಗೆ ಜಾರುವ ಅಪಾಯವಿದೆ.";
     dietSummaryEn = isSaturn8thAspecting2nd
-      ? "Alcohol Vulnerability & Evening Drinking Under Stress: Saturn positioned in the 8th house casting its direct 7th aspect onto the 2nd house of oral intake, intensified by debilitated Mars in Lagna, creates a clear propensity toward alcohol consumption (Madyapana), particularly in the evenings or under emotional and marital frustration. Despite outward religious duties, this private habit strains physical vitality and domestic harmony."
+      ? "Alcohol Vulnerability & Evening Drinking Under Stress: Saturn positioned in the 8th house casting its direct 7th aspect onto the 2nd house of oral intake, intensified by debilitated Mars in Lagna, creates a clear propensity toward alcohol consumption, particularly in the evenings or under emotional and marital frustration. Despite outward religious duties, this private habit strains physical vitality and domestic harmony."
       : "Vulnerability to recurring evening alcohol or substance intake under severe emotional distress or fatigue.";
     rootCauseKn = isSaturn8thAspecting2nd
       ? "8ನೇ ರಹಸ್ಯ ಭಾವದ ಶನಿಯು 2ನೇ ಮುಖ-ಭೋಜನ ಸ್ಥಾನದ ಮೇಲೆ ನೇರ ದೃಷ್ಟಿ ಬೀರುತ್ತಿರುವುದು ಹಾಗೂ ಲಗ್ನದಲ್ಲಿ ನೀಚ ಕುಜ."
@@ -1015,17 +1077,33 @@ export const detectNativeDietAndAddiction = (kundli: KundliOutput): NativeDietAs
     rootCauseEn = isSaturn8thAspecting2nd
       ? "Direct 7th aspect of 8th house Saturn onto the 2nd house of oral intake with debilitated Mars in Lagna."
       : "2nd house of intake afflicted by Saturn-Rahu malefic axis without benefic cancellation.";
-  } else {
-    dietSummaryKn = "ಸಾಮಾಜಿಕ ಸಹವಾಸ ಅಥವಾ ಪಾರ್ಟಿಗಳ ಸಮಯದಲ್ಲಿ ಪಾನೀಯ ಅಥವಾ ತಂಪು ಪದಾರ್ಥಗಳ ಕ್ಷಣಿಕ ಚಪಲ ಕಾಡಬಹುದು; ಸ್ನೇಹಿತರ ಒತ್ತಾಯಕ್ಕೆ ಮಣಿಯದಂತೆ ಮುನ್ನೆಚ್ಚರಿಕೆ ಅಗತ್ಯ.";
-    dietSummaryEn = "Occasional vulnerability to social drinking under peer pressure during celebrations; requires conscious dietary boundaries.";
-    rootCauseKn = "2ನೇ ಸ್ಥಾನಕ್ಕೆ ಪಾಪಗ್ರಹಗಳ ಗೋಚಾರ ಅಥವಾ ಸೌಮ್ಯ ದೃಷ್ಟಿ ಪ್ರಭಾವ.";
+  } else if (isSocialDrinking) {
+    dietSummaryKn = "ಸಾಮಾಜಿಕ ಸಹವಾಸ, ಪಾರ್ಟಿಗಳು ಅಥವಾ ಮಾನಸಿಕ ಒತ್ತಡದ ಸಮಯದಲ್ಲಿ ಮದ್ಯಪಾನ ಅಥವಾ ಧೂಮಪಾನದಂತಹ ಕ್ಷಣಿಕ ಚಪಲ ಕಾಡುವ ಅಪಾಯವಿದೆ; ಸ್ನೇಹಿತರ ಒತ್ತಾಯಕ್ಕೆ ಮಣಿಯದಂತೆ ಹಾಗೂ ಇದು ನಿತ್ಯದ ಅಭ್ಯಾಸವಾಗದಂತೆ ಕಟ್ಟುನಿಟ್ಟಿನ ಮುನ್ನೆಚ್ಚರಿಕೆ ಅಗತ್ಯ.";
+    dietSummaryEn = "Occasional vulnerability to social drinking, smoking, or intoxicating indulgences under peer influence during celebrations; requires conscious dietary boundaries.";
+    rootCauseKn = "2ನೇ ಭೋಜನ ಸ್ಥಾನಕ್ಕೆ ಶನಿ-ರಾಹುಗಳ ಗೋಚಾರ ಅಥವಾ ಸೌಮ್ಯ ದೃಷ್ಟಿ ಪ್ರಭಾವ.";
     rootCauseEn = "Mild malefic aspect on 2nd house of intake.";
+  } else if (isTeetotaler) {
+    dietSummaryKn = "ಸಾತ್ವಿಕ ಆಹಾರಿ & ಮದ್ಯಪಾನ-ಧೂಮಪಾನ ಮುಕ್ತ ಶರೀರ ರಕ್ಷಣೆ. ಶರೀರ ಪಾವಿತ್ರ್ಯವನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳುವ ಉನ್ನತ ಆತ್ಮಶಕ್ತಿ ನಿಮ್ಮಲ್ಲಿದೆ.";
+    dietSummaryEn = "Sattvik lifestyle & confirmed teetotaler (strictly free from alcohol, smoking, and intoxicating substances). Endowed with natural purity of intake.";
+    rootCauseKn = jupiterAspects2nd || jupiterAspects2ndLord 
+      ? "2ನೇ ಭೋಜನ ಸ್ಥಾನ ಅಥವಾ ಧನಾಧಿಪತಿಯ ಮೇಲೆ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಸಾತ್ವಿಕ ದೃಷ್ಟಿಯ ಶ್ರೀರಕ್ಷೆ." 
+      : "2ನೇ ಮುಖ ಸ್ಥಾನ ಹಾಗೂ ಲಗ್ನವು ಶುಭ ಸ್ಥಿತಿಯಲ್ಲಿದ್ದು ದುಶ್ಚಟಗಳ ಸೋಂಕಿಲ್ಲದಿರುವುದು.";
+    rootCauseEn = jupiterAspects2nd || jupiterAspects2ndLord 
+      ? "Jupiter's divine protective aspect purifying the 2nd house of oral intake and dietary restraint." 
+      : "Clean 2nd house shielded from malefic addictions.";
+  } else {
+    dietSummaryKn = "ಸಾತ್ವಿಕ ಆಹಾರ ಪದ್ಧತಿಯನ್ನು ಅಳವಡಿಸಿಕೊಂಡು, ಹೊರಗಿನ ಕರಿದ ಹಾಗೂ ತೀಕ್ಷ್ಣ ಪದಾರ್ಥಗಳಿಂದ ದೂರವಿದ್ದು ಶರೀರ ಪಾವಿತ್ರ್ಯವನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳುವುದು ಕ್ಷೇಮ.";
+    dietSummaryEn = "Wholesome dietary habits advised with restraint on sharp or heavy outside foods.";
+    rootCauseKn = "2ನೇ ಭೋಜನ ಸ್ಥಾನದ ಸಾಮಾನ್ಯ ಗ್ರಹ ಸ್ಥಿತಿ.";
+    rootCauseEn = "General 2nd house alignment requiring standard dietary care.";
   }
   
   return {
     isTeetotaler,
     isDailyDrinking,
     isSocialDrinking,
+    hasWeedCannabisHabit,
+    hasSmokingHabit,
     hasAddictionRisk,
     hasAddiction: hasAddictionRisk,
     hasZardaTobaccoHabit,
@@ -1930,7 +2008,7 @@ export const evaluateNativeNegativeShadesAndCriminality = (
 
 export const generate10MasterLifeBulletPoints = (
   kundli: KundliOutput,
-  context: { birthDate: string; birthTime: string; latitude: number; longitude: number; gender?: string; devoteeName?: string },
+  context: { birthDate: string; birthTime: string; latitude: number; longitude: number; gender?: string; devoteeName?: string; maritalStatus?: string },
   prescriptions: AstrologicalPrescriptions,
   age: number,
   maha: PlanetName,
@@ -2098,7 +2176,11 @@ export const generate10MasterLifeBulletPoints = (
     ? `With 2nd lord ${secondLord} and 11th lord ${eleventhLord} situated in favorable Kendra/Trikona houses, your horoscope forms a potent Dhana Yoga ensuring continuous capital accretion and steady asset building through long-term real estate or precious investments.`
     : `With 2nd lord ${secondLord} and 11th lord ${eleventhLord}, your earning capability is strong, but capital tends to disperse into unexpected family obligations. Converting liquid savings into tangible real estate or gold safeguards long-term security.`;
 
-  // 7. Marriage, Relationship & Children (Dosha Specifics)
+  // 7. Marriage, Relationship & Children (Lifecycle-Aware & Dosha Specifics)
+  const isChildNative = age < 16;
+  const isSeniorNative = age >= 55;
+  const isMarriedNative = (context.maritalStatus || "").toLowerCase() === "married";
+
   let doshaTitleKn = "ಸಾಮರಸ್ಯದ ದಾಂಪತ್ಯ ಯೋಗ";
   let doshaTitleEn = "Marital Harmony & Lineage Synergy";
   let doshaDescKn = `7ನೇ ಕಳತ್ರ ಸ್ಥಾನದಲ್ಲಿ ${seventhLordKn} ಗ್ರಹದ ಶುಭ ಸ್ಥಿತಿಯಿದೆ. ಜೀವನ ಸಂಗಾತಿಯು ಸಂಸ್ಕಾರಯುತ ಹಾಗೂ ಗೌರವಾನ್ವಿತ ವ್ಯಕ್ತಿಯಾಗಿರುತ್ತಾರೆ.`;
@@ -2117,81 +2199,187 @@ export const generate10MasterLifeBulletPoints = (
     pujaEn: "Bilvarchana at Gokarna Mahabaleshwara Kshetra"
   };
 
-  if (isKujaDosha) {
-    doshaTitleKn = "ಕುಜ ದೋಷ & ವಿವಾಹ ಹೊಂದಾಣಿಕೆ ಪರಿಹಾರ";
-    doshaTitleEn = "Kuja (Manglik) Dosha & Alliance Resolution";
-    doshaDescKn = `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಕುಜ ಗ್ರಹವು ${marsHouse}ನೇ ಭಾವದಲ್ಲಿ ಸ್ಥಿತನಾಗಿರುವುದರಿಂದ ಕುಜ (ಮಂಗಳ) ದೋಷ ಉಂಟಾಗಿದೆ. ಇದು ವಿವಾಹ ಮಾತುಕತೆಗಳಲ್ಲಿ ಅನಿರೀಕ್ಷಿತ ವಿಳಂಬ, ಸಂಗಾತಿಯೊಂದಿಗೆ ಅಹಂಕಾರದ ಸಣ್ಣಪುಟ್ಟ ಘರ್ಷಣೆಗಳು ಅಥವಾ ಹೊಂದಾಣಿಕೆಯ ಪರೀಕ್ಷೆಯನ್ನು ತರಬಹುದು. ಶಾಸ್ತ್ರೋಕ್ತ ಕುಜ ಶಾಂತಿಯು ದಾಂಪತ್ಯದಲ್ಲಿ ಅಖಂಡ ಸುಖ ನೀಡುತ್ತದೆ.`;
-    doshaDescEn = `Mars is posited in House ${marsHouse}, forming Kuja Dosha. This indicates tests of patience in alliance finalization or ego friction if unaddressed. Authentic propitiation completely neutralizes this influence.`;
+  if (isChildNative) {
+    doshaTitleKn = "ಕೌಟುಂಬಿಕ ವಾತ್ಸಲ್ಯ, ಪೋಷಕರ ಪ್ರೀತಿ & ಸುಖಮಯ ಬಾಲ್ಯ";
+    doshaTitleEn = "Family Affection, Parental Care & Joyous Childhood";
+    doshaDescKn = "ಮಗುವಿನ ಜಾತಕದಲ್ಲಿ 4ನೇ ಮಾತೃ-ಪಿತೃ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಸ್ಥಾನಗಳು ಶುಭವಾಗಿದ್ದು, ತಂದೆ-ತಾಯಿಯ ವಾತ್ಸಲ್ಯದ ಮಡಿಲಲ್ಲಿ ಉತ್ತಮ ಸಂಸ್ಕಾರಗಳೊಂದಿಗೆ ಬೆಳೆಯುವ ಸುಯೋಗವಿದೆ. ವಿದ್ಯಾಭ್ಯಾಸ ಹಾಗೂ ಸುಖಮಯ ಬಾಲ್ಯಕ್ಕೆ ಪೂರ್ಣ ಗ್ರಹಬಲವಿದೆ.";
+    doshaDescEn = "Auspicious 4th and domestic houses bestow deep parental affection, safe nurturing, and joyful childhood growth under family protection.";
     specificDosha = {
-      hasDosha: true,
-      doshaNameKn: `ಕುಜ ದೋಷ (${marsHouse}ನೇ ಮನೆ)`,
-      doshaNameEn: `Kuja Dosha (House ${marsHouse})`,
-      rootCauseHouseKn: `${marsHouse}ನೇ ಭಾವದಲ್ಲಿ ಕುಜ ಸ್ಥಿತಿ`,
-      rootCauseHouseEn: `Mars situated in House ${marsHouse}`,
-      afflictedPlanetKn: "ಕುಜ (ಮಂಗಳ)",
-      afflictedPlanetEn: "Mars (Kuja)",
-      mantraKn: "ಓಂ ಕ್ರಾಂ ಕ್ರೀಂ ಕ್ರೌಂ ಸಃ ಭೌಮಾಯ ನಮಃ",
-      mantraEn: "Om Kraam Kreem Kroum Sah Bhaumaya Namah",
-      pujaKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಸುಬ್ರಹ್ಮಣ್ಯ ಕುಜ ಶಾಂತಿ ಪೂಜೆ",
-      pujaEn: "Subrahmanya Kuja Shanti Puja at Gokarna Kshetra"
+      hasDosha: false,
+      doshaNameKn: "ಬಾಲ ಸಂಸ್ಕಾರ & ಮಾತೃ-ಪಿತೃ ರಕ್ಷೆ",
+      doshaNameEn: "Childhood Serenity & Parental Protection",
+      rootCauseHouseKn: "4ನೇ ಮಾತೃ ಸುಖ & 9ನೇ ಪಿತೃ ಭಾಗ್ಯ",
+      rootCauseHouseEn: "4th Maternal & 9th Paternal House",
+      afflictedPlanetKn: "ಶುಭ ಗ್ರಹ ಬಲ",
+      afflictedPlanetEn: "Benefic Planetary Strength",
+      mantraKn: "ದಿನನಿತ್ಯ ಗಾಯತ್ರಿ ಮಂತ್ರ & ಸರಸ್ವತೀ ಸ್ತೋತ್ರ",
+      mantraEn: "Daily Gayatri Mantra & Saraswati Stotram",
+      pujaKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಬಾಲ ಸರಸ್ವತಿ ಮೇಧಾ ಸಂಕಲ್ಪ ಸೇವೆ",
+      pujaEn: "Bala Saraswati Medha Sankalpa Seva at Gokarna Kshetra"
     };
-  } else if (hasShaniDelay) {
-    doshaTitleKn = "ಶನಿ ದೃಷ್ಟಿ & ಕಲ್ಯಾಣ ಕಾಲಾವಧಿ";
-    doshaTitleEn = "Saturnine Aspect & Marriage Alliance Timing";
-    doshaDescKn = `7ನೇ ಕಳತ್ರ ಸ್ಥಾನದ ಮೇಲೆ ಶನಿ ಗ್ರಹದ ${isSaturnIn7th ? "ಸ್ಥಿತಿ" : "ದೃಷ್ಟಿ"} ಇರುವುದರಿಂದ ವಿವಾಹ ಯೋಗದಲ್ಲಿ ತಾಳ್ಮೆಯ ಪರೀಕ್ಷೆ ಉಂಟಾಗುತ್ತಿದೆ. ಶನಿಯು ಪಕ್ವ ವಯಸ್ಸಿನಲ್ಲಿ ಅತ್ಯಂತ ಸ್ಥಿರ, ಗಂಭೀರ ಹಾಗೂ ನಂಬಿಕಸ್ಥ ಸಂಗಾತಿಯನ್ನು ಕರುಣಿಸಲಿದ್ದಾನೆ.`;
-    doshaDescEn = `Saturn's ${isSaturnIn7th ? "presence" : "aspect"} on the 7th house delays alliance finalization until maturity, ensuring a deeply enduring and responsible union.`;
+  } else if (isSeniorNative) {
+    doshaTitleKn = "ದಾಂಪತ್ಯ ಪರಿಪಕ್ವತೆ, ವಾನಪ್ರಸ್ಥ ಸಾಮರಸ್ಯ & ಮೊಮ್ಮಕ್ಕಳ ಭಾಗ್ಯ";
+    doshaTitleEn = "Marital Maturity, Lifelong Companionship & Grandchildren's Blessing";
+    doshaDescKn = "ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ 7ನೇ ಕಳತ್ರ ಹಾಗೂ 9ನೇ ಧರ್ಮ ಸ್ಥಾನಗಳ ಪರಿಪಕ್ವತೆಯಿಂದಾಗಿ, ಜೀವನ ಸಂಗಾತಿಯೊಂದಿಗೆ ದೀರ್ಘಕಾಲೀನ ಅನ್ಯೋನ್ಯತೆ, ಪರಸ್ಪರ ಗೌರವ ಹಾಗೂ ಮೊಮ್ಮಕ್ಕಳ ಸುಖವನ್ನು ಕಾಣುವ ಧನ್ಯತಾ ಯೋಗವಿದೆ. ಆಧ್ಯಾತ್ಮಿಕ ಚಿಂತನೆ ಮತ್ತು ತೀರ್ಥಕ್ಷೇತ್ರ ದರ್ಶನಗಳು ಜೀವನಕ್ಕೆ ನೆಮ್ಮದಿ ತರಲಿವೆ.";
+    doshaDescEn = "Matured 7th house and 9th house dharma bestow enduring spousal respect, domestic harmony, and the joy of children and grandchildren, enriched by spiritual fulfillment.";
     specificDosha = {
-      hasDosha: true,
-      doshaNameKn: "ಶನಿ ದೃಷ್ಟಿ ವಿಳಂಬ ಯೋಗ",
-      doshaNameEn: "Saturnine Delay Influence",
-      rootCauseHouseKn: "7ನೇ ಭಾವದ ಮೇಲೆ ಶನಿ ಗ್ರಹದ ಪ್ರಭಾವ",
-      rootCauseHouseEn: "Saturn aspecting/occupying 7th house",
-      afflictedPlanetKn: "ಶನಿ",
-      afflictedPlanetEn: "Saturn",
-      mantraKn: "ಓಂ ಪ್ರಾಂ ಪ್ರೀಂ ಪ್ರೌಂ ಸಃ ಶನೈಶ್ಚರಾಯ ನಮಃ",
-      mantraEn: "Om Praam Preem Proum Sah Shanaishcharaya Namah",
-      pujaKn: "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರನಿಗೆ ತೈಲಾಭಿಷೇಕ ಮತ್ತು ರುದ್ರಾಭಿಷೇಕ",
-      pujaEn: "Tailabhisheka & Rudrabhisheka at Gokarna Mahabaleshwara"
+      hasDosha: false,
+      doshaNameKn: "ದಾಂಪತ್ಯ ಪರಿಪಕ್ವತೆ & ಕೌಟುಂಬಿಕ ಶಾಂತಿ",
+      doshaNameEn: "Marital Maturity & Domestic Harmony",
+      rootCauseHouseKn: "7ನೇ ಕಳತ್ರ & 9ನೇ ಧರ್ಮ ಭಾವ ಪರಿಪಕ್ವತೆ",
+      rootCauseHouseEn: "Matured 7th & 9th House Alignment",
+      afflictedPlanetKn: "ಶುಭ ಗ್ರಹ ಬಲ",
+      afflictedPlanetEn: "Benefic Planetary Strength",
+      mantraKn: "ದಿನನಿತ್ಯ ಓಂ ನಮಃ ಶಿವಾಯ & ವಿಷ್ಣು ಸಹಸ್ರನಾಮ",
+      mantraEn: "Daily Om Namah Shivaya & Vishnu Sahasranama",
+      pujaKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಆಯುರಾರೋಗ್ಯ ಧನ್ಯತಾ ಸಂಕಲ್ಪ ಪೂಜೆ",
+      pujaEn: "Ayur Arogya Dhanyata Sankalpa Pooja at Sri Kshetra Gokarna"
     };
-  } else if (hasSarpaDosha7th || hasSarpaDosha5th) {
-    doshaTitleKn = "ಸರ್ಪ / ನಾಗ ದೋಷ & ಕಲ್ಯಾಣ-ಸಂತಾನ ಶಮನ";
-    doshaTitleEn = "Naga / Sarpa Dosha & Progeny Harmony";
-    doshaDescKn = `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ರಾಹು/ಕೇತುಗಳು ${hasSarpaDosha7th ? "7ನೇ (ವಿವಾಹ)" : "5ನೇ (ಸಂತಾನ)"} ಭಾವದಲ್ಲಿ ಸ್ಥಿತವಾಗಿರುವುದರಿಂದ ಸರ್ಪ ದೋಷದ ಪ್ರಭಾವವಿದೆ. ಇದು ಮಾತುಕತೆಯ ಅಂತಿಮ ಕ್ಷಣದಲ್ಲಿ ಸಂಬಂಧ ತಪ್ಪಿಹೋಗುವುದು ಅಥವಾ ಸಂತಾನ ವಿಚಾರದಲ್ಲಿ ಸೂಕ್ಷ್ಮ ವಿಳಂಬವನ್ನು ಉಂಟುಮಾಡಬಹುದು. ಗೋಕರ್ಣ ಸರ್ಪಶಾಂತಿಯಿಂದ ಈ ವಿಘ್ನ ಪರಿಹಾರವಾಗುತ್ತದೆ.`;
-    doshaDescEn = `Rahu/Ketu occupying House ${hasSarpaDosha7th ? 7 : 5} forms Sarpa Dosha, creating obstacles at closing stages of alliances or progeny delays. Dedicated Gokarna Naga Shanti dissolves this knot completely.`;
-    specificDosha = {
-      hasDosha: true,
-      doshaNameKn: `ಸರ್ಪ ದೋಷ (${hasSarpaDosha7th ? "7ನೇ ಕಳತ್ರ" : "5ನೇ ಸಂತಾನ"} ಭಾವ)`,
-      doshaNameEn: `Sarpa Dosha (House ${hasSarpaDosha7th ? 7 : 5})`,
-      rootCauseHouseKn: `${hasSarpaDosha7th ? "7ನೇ" : "5ನೇ"} ಮನೆಯಲ್ಲಿ ರಾಹು/ಕೇತು ಸ್ಥಿತಿ`,
-      rootCauseHouseEn: `Rahu/Ketu situated in House ${hasSarpaDosha7th ? 7 : 5}`,
-      afflictedPlanetKn: "ರಾಹು-ಕೇತು",
-      afflictedPlanetEn: "Rahu-Ketu",
-      mantraKn: "ಓಂ ನಮಃ ಶಿವಾಯ & ಓಂ ಭ್ರಾಂ ಭ್ರೀಂ ಭ್ರೌಂ ಸಃ ರಾಹವೇ ನಮಃ",
-      mantraEn: "Om Namah Shivaya & Om Bhraam Bhreem Bhroum Sah Rahave Namah",
-      pujaKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ನಾಗಬಲಿ / ಸರ್ಪ ಸಂಸ್ಕಾರ ಸೇವೆ",
-      pujaEn: "Nagabali & Sarpa Samskara Seva at Gokarna Kshetra"
-    };
-  } else if (is5thAfflicted) {
-    doshaTitleKn = "ಸಂತಾನ ಪ್ರತಿಬಂಧಕ & ಪುತ್ರಕಾರಕ ಪರಿಹಾರ";
-    doshaTitleEn = "Progeny Harmonization & Putrakaraka Remedy";
-    doshaDescKn = `5ನೇ ಭಾವದಲ್ಲಿ ${h5PlanetsKn} ಇರುವ ಕಾರಣ ಅಥವಾ ಪುತ್ರಕಾರಕ ಗುರುವಿನ ಸಂಚಾರದಿಂದ ಸಂತಾನ ಭಾಗ್ಯದಲ್ಲಿ ಸೂಕ್ಷ್ಮ ವಿಳಂಬ ಕಾಣಿಸುತ್ತಿದೆ. ಸಂತಾನ ಗೋಪಾಲ ಮಂತ್ರ ಜಪ ಮತ್ತು ಗೋಕರ್ಣ ಸೇವೆಗಳಿಂದ ಶೀಘ್ರ ಸಂತಾನ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ.`;
-    doshaDescEn = `Affliction to the 5th house or Putrakaraka Jupiter introduces temporary delay in childbirth. Chanting the Santana Gopala Mantra delivers divine fruition.`;
-    specificDosha = {
-      hasDosha: true,
-      doshaNameKn: "ಸಂತಾನ ಪ್ರತಿಬಂಧಕ ಯೋಗ",
-      doshaNameEn: "Progeny Delay Influence",
-      rootCauseHouseKn: "5ನೇ ಭಾವದ ಮೇಲೆ ಪಾಪಗ್ರಹ ಪ್ರಭಾವ",
-      rootCauseHouseEn: "5th House / Putrakaraka Affliction",
-      afflictedPlanetKn: fifthLordKn,
-      afflictedPlanetEn: fifthLord,
-      mantraKn: "ಓಂ ಕ್ಲೀಂ ದೇವಕೀಸುತ ಗೋವಿಂದ ವಾಸುದೇವ ಜಗತ್ಪತೇ ದೇಹಿ ಮೇ ತನಯಂ ಕೃಷ್ಣ ತ್ವಾಮಹಂ ಶರಣಂ ಗತಃ",
-      mantraEn: "Om Kleem Devakisuta Govinda Vasudeva Jagatpate Dehi Me Tanayam Krishna Tvamaham Sharanam Gatah",
-      pujaKn: "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸಂತಾನ ಗೋಪಾಲ ಸೇವೆ",
-      pujaEn: "Santana Gopala Seva at Gokarna Mahabaleshwara"
-    };
+  } else if (isMarriedNative) {
+    if (isKujaDosha) {
+      doshaTitleKn = "ಕುಜ ದೋಷ & ದಾಂಪತ್ಯ ಸಾಮರಸ್ಯ ರಕ್ಷಣೆ";
+      doshaTitleEn = "Kuja Dosha & Marital Harmony Protection";
+      doshaDescKn = `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಕುಜ ಗ್ರಹವು ${marsHouse}ನೇ ಭಾವದಲ್ಲಿ ಸ್ಥಿತನಾಗಿರುವುದರಿಂದ, ದಾಂಪತ್ಯದಲ್ಲಿ ಸಣ್ಣಪುಟ್ಟ ವಿಷಯಗಳಿಗೆ ಅಹಂಕಾರದ ಘರ್ಷಣೆ ಅಥವಾ ಭಿನ್ನಾಭಿಪ್ರಾಯಗಳು ಮೂಡದಂತೆ ಪರಸ್ಪರ ಸಂಯಮ ವಹಿಸುವುದು ಕ್ಷೇಮ. ಶಾಸ್ತ್ರೋಕ್ತ ಕುಜ ಶಾಂತಿಯು ಕುಟುಂಬದಲ್ಲಿ ಶಾಶ್ವತ ಪ್ರೇಮ ಮತ್ತು ಸಾಮರಸ್ಯವನ್ನು ಕಾಪಾಡುತ್ತದೆ.`;
+      doshaDescEn = `Mars in House ${marsHouse} advises emotional balance and mutual patience to prevent domestic ego friction. Authentic Kuja Shanti ensures enduring marital peace.`;
+      specificDosha = {
+        hasDosha: true,
+        doshaNameKn: `ಕುಜ ದೋಷ (${marsHouse}ನೇ ಮನೆ)`,
+        doshaNameEn: `Kuja Dosha (House ${marsHouse})`,
+        rootCauseHouseKn: `${marsHouse}ನೇ ಭಾವದಲ್ಲಿ ಕುಜ ಸ್ಥಿತಿ`,
+        rootCauseHouseEn: `Mars situated in House ${marsHouse}`,
+        afflictedPlanetKn: "ಕುಜ (ಮಂಗಳ)",
+        afflictedPlanetEn: "Mars (Kuja)",
+        mantraKn: "ಓಂ ಕ್ರಾಂ ಕ್ರೀಂ ಕ್ರೌಂ ಸಃ ಭೌಮಾಯ ನಮಃ",
+        mantraEn: "Om Kraam Kreem Kroum Sah Bhaumaya Namah",
+        pujaKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಸುಬ್ರಹ್ಮಣ್ಯ ಕುಜ ಶಾಂತಿ ಪೂಜೆ",
+        pujaEn: "Subrahmanya Kuja Shanti Puja at Gokarna Kshetra"
+      };
+    } else if (hasShaniDelay) {
+      doshaTitleKn = "ಶನಿ ಪ್ರಭಾವ & ದಾಂಪತ್ಯ ಜವಾಬ್ದಾರಿ";
+      doshaTitleEn = "Saturnine Influence & Marital Responsibility";
+      doshaDescKn = `7ನೇ ಕಳತ್ರ ಸ್ಥಾನದ ಮೇಲೆ ಶನಿಯ ${isSaturnIn7th ? "ಸ್ಥಿತಿ" : "ದೃಷ್ಟಿ"} ಇರುವುದರಿಂದ, ಕರ್ತವ್ಯಗಳ ಹೊರೆ ಅಥವಾ ಕೆಲಸದ ಒತ್ತಡದಿಂದ ಸಂಗಾತಿಯೊಂದಿಗೆ ಸಮಯ ಕಳೆಯಲು ಆಗಾಗ ಕೊರತೆಯಾಗಬಹುದು. ಮುಕ್ತ ಸಂಭಾಷಣೆ ಮತ್ತು ಪರಸ್ಪರ ಸಹಕಾರವು ಸಂಸಾರವನ್ನು ಆನಂದಮಯವಾಗಿಸುತ್ತದೆ.`;
+      doshaDescEn = `Saturn's ${isSaturnIn7th ? "presence" : "aspect"} on the 7th house brings heavy professional responsibilities; conscious spousal communication ensures enduring domestic harmony.`;
+      specificDosha = {
+        hasDosha: true,
+        doshaNameKn: "ಶನಿ ಪ್ರಭಾವ ಯೋಗ",
+        doshaNameEn: "Saturnine Marital Influence",
+        rootCauseHouseKn: "7ನೇ ಭಾವದ ಮೇಲೆ ಶನಿ ಗ್ರಹದ ಪ್ರಭಾವ",
+        rootCauseHouseEn: "Saturn aspecting/occupying 7th house",
+        afflictedPlanetKn: "ಶನಿ",
+        afflictedPlanetEn: "Saturn",
+        mantraKn: "ಓಂ ಪ್ರಾಂ ಪ್ರೀಂ ಪ್ರೌಂ ಸಃ ಶನೈಶ್ಚರಾಯ ನಮಃ",
+        mantraEn: "Om Praam Preem Proum Sah Shanaishcharaya Namah",
+        pujaKn: "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರನಿಗೆ ತೈಲಾಭಿಷೇಕ ಮತ್ತು ರುದ್ರಾಭಿಷೇಕ",
+        pujaEn: "Tailabhisheka & Rudrabhisheka at Gokarna Mahabaleshwara"
+      };
+    } else if (hasSarpaDosha7th || hasSarpaDosha5th) {
+      doshaTitleKn = "ಸರ್ಪ ದೋಷ & ಕೌಟುಂಬಿಕ ಶಾಂತಿ ಪರಿಹಾರ";
+      doshaTitleEn = "Sarpa Dosha & Domestic Harmony Remedy";
+      doshaDescKn = `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ರಾಹು/ಕೇತುಗಳ ಪ್ರಭಾವದಿಂದಾಗಿ ಕೌಟುಂಬಿಕ ನೆಮ್ಮದಿಯಲ್ಲಿ ಅಥವಾ ಸಂತಾನದ ಏಳಿಗೆಯಲ್ಲಿ ಆಗಾಗ ಸಣ್ಣ ಅಶಾಂತಿ ಕಾಣಿಸಿಕೊಳ್ಳಬಹುದು. ಗೋಕರ್ಣ ಸರ್ಪಶಾಂತಿಯಿಂದ ಮನೆಯಲ್ಲಿ ಅಖಂಡ ಸುಖ-ಶಾಂತಿ ನೆಲೆಸುತ್ತದೆ.`;
+      doshaDescEn = `Rahu/Ketu influence creates occasional domestic restlessness or progeny concerns. Dedicated Gokarna Naga Shanti restores complete family serenity.`;
+      specificDosha = {
+        hasDosha: true,
+        doshaNameKn: `ಸರ್ಪ ದೋಷ (${hasSarpaDosha7th ? "7ನೇ ಕಳತ್ರ" : "5ನೇ ಸಂತಾನ"} ಭಾವ)`,
+        doshaNameEn: `Sarpa Dosha (House ${hasSarpaDosha7th ? 7 : 5})`,
+        rootCauseHouseKn: `${hasSarpaDosha7th ? "7ನೇ" : "5ನೇ"} ಮನೆಯಲ್ಲಿ ರಾಹು/ಕೇತು ಸ್ಥಿತಿ`,
+        rootCauseHouseEn: `Rahu/Ketu situated in House ${hasSarpaDosha7th ? 7 : 5}`,
+        afflictedPlanetKn: "ರಾಹು-ಕೇತು",
+        afflictedPlanetEn: "Rahu-Ketu",
+        mantraKn: "ಓಂ ನಮಃ ಶಿವಾಯ & ಓಂ ಭ್ರಾಂ ಭ್ರೀಂ ಭ್ರೌಂ ಸಃ ರಾಹವೇ ನಮಃ",
+        mantraEn: "Om Namah Shivaya & Om Bhraam Bhreem Bhroum Sah Rahave Namah",
+        pujaKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ನಾಗಬಲಿ / ಸರ್ಪ ಸಂಸ್ಕಾರ ಸೇವೆ",
+        pujaEn: "Nagabali & Sarpa Samskara Seva at Gokarna Kshetra"
+      };
+    } else {
+      doshaTitleKn = "ಸಾಮರಸ್ಯದ ದಾಂಪತ್ಯ ಯೋಗ";
+      doshaTitleEn = "Marital Harmony & Lineage Synergy";
+      doshaDescKn = `7ನೇ ಕಳತ್ರ ಸ್ಥಾನದಲ್ಲಿ ${seventhLordKn} ಗ್ರಹದ ಶುಭ ಸ್ಥಿತಿಯಿದೆ. ಜೀವನ ಸಂಗಾತಿಯು ಸಂಸ್ಕಾರಯುತ ಹಾಗೂ ಗೌರವಾನ್ವಿತ ವ್ಯಕ್ತಿಯಾಗಿದ್ದು, ಪರಸ್ಪರ ಸಹಕಾರದಿಂದ ಸಂಸಾರವು ನೆಮ್ಮದಿಯಿಂದ ಸಾಗಲಿದೆ.`;
+      doshaDescEn = `Benefic 7th house influences support a cultured, respectful life partner with strong domestic companionship.`;
+    }
+  } else {
+    // Unmarried adult (age 16 to 54)
+    if (isKujaDosha) {
+      doshaTitleKn = "ಕುಜ ದೋಷ & ವಿವಾಹ ಹೊಂದಾಣಿಕೆ ಪರಿಹಾರ";
+      doshaTitleEn = "Kuja (Manglik) Dosha & Alliance Resolution";
+      doshaDescKn = `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಕುಜ ಗ್ರಹವು ${marsHouse}ನೇ ಭಾವದಲ್ಲಿ ಸ್ಥಿತನಾಗಿರುವುದರಿಂದ ಕುಜ (ಮಂಗಳ) ದೋಷ ಉಂಟಾಗಿದೆ. ಇದು ವಿವಾಹ ಮಾತುಕತೆಗಳಲ್ಲಿ ಅನಿರೀಕ್ಷಿತ ವಿಳಂಬ, ಸಂಗಾತಿಯೊಂದಿಗೆ ಅಹಂಕಾರದ ಸಣ್ಣಪುಟ್ಟ ಘರ್ಷಣೆಗಳು ಅಥವಾ ಹೊಂದಾಣಿಕೆಯ ಪರೀಕ್ಷೆಯನ್ನು ತರಬಹುದು. ಶಾಸ್ತ್ರೋಕ್ತ ಕುಜ ಶಾಂತಿಯು ದಾಂಪತ್ಯದಲ್ಲಿ ಅಖಂಡ ಸುಖ ನೀಡುತ್ತದೆ.`;
+      doshaDescEn = `Mars is posited in House ${marsHouse}, forming Kuja Dosha. This indicates tests of patience in alliance finalization or ego friction if unaddressed. Authentic propitiation completely neutralizes this influence.`;
+      specificDosha = {
+        hasDosha: true,
+        doshaNameKn: `ಕುಜ ದೋಷ (${marsHouse}ನೇ ಮನೆ)`,
+        doshaNameEn: `Kuja Dosha (House ${marsHouse})`,
+        rootCauseHouseKn: `${marsHouse}ನೇ ಭಾವದಲ್ಲಿ ಕುಜ ಸ್ಥಿತಿ`,
+        rootCauseHouseEn: `Mars situated in House ${marsHouse}`,
+        afflictedPlanetKn: "ಕುಜ (ಮಂಗಳ)",
+        afflictedPlanetEn: "Mars (Kuja)",
+        mantraKn: "ಓಂ ಕ್ರಾಂ ಕ್ರೀಂ ಕ್ರೌಂ ಸಃ ಭೌಮಾಯ ನಮಃ",
+        mantraEn: "Om Kraam Kreem Kroum Sah Bhaumaya Namah",
+        pujaKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಸುಬ್ರಹ್ಮಣ್ಯ ಕುಜ ಶಾಂತಿ ಪೂಜೆ",
+        pujaEn: "Subrahmanya Kuja Shanti Puja at Gokarna Kshetra"
+      };
+    } else if (hasShaniDelay) {
+      doshaTitleKn = "ಶನಿ ದೃಷ್ಟಿ & ಕಲ್ಯಾಣ ಕಾಲಾವಧಿ";
+      doshaTitleEn = "Saturnine Aspect & Marriage Alliance Timing";
+      doshaDescKn = `7ನೇ ಕಳತ್ರ ಸ್ಥಾನದ ಮೇಲೆ ಶನಿ ಗ್ರಹದ ${isSaturnIn7th ? "ಸ್ಥಿತಿ" : "ದೃಷ್ಟಿ"} ಇರುವುದರಿಂದ ವಿವಾಹ ಯೋಗದಲ್ಲಿ ತಾಳ್ಮೆಯ ಪರೀಕ್ಷೆ ಉಂಟಾಗುತ್ತಿದೆ. ಶನಿಯು ಪಕ್ವ ವಯಸ್ಸಿನಲ್ಲಿ ಅತ್ಯಂತ ಸ್ಥಿರ, ಗಂಭೀರ ಹಾಗೂ ನಂಬಿಕಸ್ಥ ಸಂಗಾತಿಯನ್ನು ಕರುಣಿಸಲಿದ್ದಾನೆ.`;
+      doshaDescEn = `Saturn's ${isSaturnIn7th ? "presence" : "aspect"} on the 7th house delays alliance finalization until maturity, ensuring a deeply enduring and responsible union.`;
+      specificDosha = {
+        hasDosha: true,
+        doshaNameKn: "ಶನಿ ದೃಷ್ಟಿ ವಿಳಂಬ ಯೋಗ",
+        doshaNameEn: "Saturnine Delay Influence",
+        rootCauseHouseKn: "7ನೇ ಭಾವದ ಮೇಲೆ ಶನಿ ಗ್ರಹದ ಪ್ರಭಾವ",
+        rootCauseHouseEn: "Saturn aspecting/occupying 7th house",
+        afflictedPlanetKn: "ಶನಿ",
+        afflictedPlanetEn: "Saturn",
+        mantraKn: "ಓಂ ಪ್ರಾಂ ಪ್ರೀಂ ಪ್ರೌಂ ಸಃ ಶನೈಶ್ಚರಾಯ ನಮಃ",
+        mantraEn: "Om Praam Preem Proum Sah Shanaishcharaya Namah",
+        pujaKn: "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರನಿಗೆ ತೈಲಾಭಿಷೇಕ ಮತ್ತು ರುದ್ರಾಭಿಷೇಕ",
+        pujaEn: "Tailabhisheka & Rudrabhisheka at Gokarna Mahabaleshwara"
+      };
+    } else if (hasSarpaDosha7th || hasSarpaDosha5th) {
+      doshaTitleKn = "ಸರ್ಪ / ನಾಗ ದೋಷ & ಕಲ್ಯಾಣ-ಸಂತಾನ ಶಮನ";
+      doshaTitleEn = "Naga / Sarpa Dosha & Progeny Harmony";
+      doshaDescKn = `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ರಾಹು/ಕೇತುಗಳು ${hasSarpaDosha7th ? "7ನೇ (ವಿವಾಹ)" : "5ನೇ (ಸಂತಾನ)"} ಭಾವದಲ್ಲಿ ಸ್ಥಿತವಾಗಿರುವುದರಿಂದ ಸರ್ಪ ದೋಷದ ಪ್ರಭಾವವಿದೆ. ಇದು ಮಾತುಕತೆಯ ಅಂತಿಮ ಕ್ಷಣದಲ್ಲಿ ಸಂಬಂಧ ತಪ್ಪಿಹೋಗುವುದು ಅಥವಾ ಸಂತಾನ ವಿಚಾರದಲ್ಲಿ ಸೂಕ್ಷ್ಮ ವಿಳಂಬವನ್ನು ಉಂಟುಮಾಡಬಹುದು. ಗೋಕರ್ಣ ಸರ್ಪಶಾಂತಿಯಿಂದ ಈ ವಿಘ್ನ ಪರಿಹಾರವಾಗುತ್ತದೆ.`;
+      doshaDescEn = `Rahu/Ketu occupying House ${hasSarpaDosha7th ? 7 : 5} forms Sarpa Dosha, creating obstacles at closing stages of alliances or progeny delays. Dedicated Gokarna Naga Shanti dissolves this knot completely.`;
+      specificDosha = {
+        hasDosha: true,
+        doshaNameKn: `ಸರ್ಪ ದೋಷ (${hasSarpaDosha7th ? "7ನೇ ಕಳತ್ರ" : "5ನೇ ಸಂತಾನ"} ಭಾವ)`,
+        doshaNameEn: `Sarpa Dosha (House ${hasSarpaDosha7th ? 7 : 5})`,
+        rootCauseHouseKn: `${hasSarpaDosha7th ? "7ನೇ" : "5ನೇ"} ಮನೆಯಲ್ಲಿ ರಾಹು/ಕೇತು ಸ್ಥಿತಿ`,
+        rootCauseHouseEn: `Rahu/Ketu situated in House ${hasSarpaDosha7th ? 7 : 5}`,
+        afflictedPlanetKn: "ರಾಹು-ಕೇತು",
+        afflictedPlanetEn: "Rahu-Ketu",
+        mantraKn: "ಓಂ ನಮಃ ಶಿವಾಯ & ಓಂ ಭ್ರಾಂ ಭ್ರೀಂ ಭ್ರೌಂ ಸಃ ರಾಹವೇ ನಮಃ",
+        mantraEn: "Om Namah Shivaya & Om Bhraam Bhreem Bhroum Sah Rahave Namah",
+        pujaKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ನಾಗಬಲಿ / ಸರ್ಪ ಸಂಸ್ಕಾರ ಸೇವೆ",
+        pujaEn: "Nagabali & Sarpa Samskara Seva at Gokarna Kshetra"
+      };
+    } else if (is5thAfflicted) {
+      doshaTitleKn = "ಸಂತಾನ ಪ್ರತಿಬಂಧಕ & ಪುತ್ರಕಾರಕ ಪರಿಹಾರ";
+      doshaTitleEn = "Progeny Harmonization & Putrakaraka Remedy";
+      doshaDescKn = `5ನೇ ಭಾವದಲ್ಲಿ ${h5PlanetsKn} ಇರುವ ಕಾರಣ ಅಥವಾ ಪುತ್ರಕಾರಕ ಗುರುವಿನ ಸಂಚಾರದಿಂದ ಸಂತಾನ ಭಾಗ್ಯದಲ್ಲಿ ಸೂಕ್ಷ್ಮ ವಿಳಂಬ ಕಾಣಿಸುತ್ತಿದೆ. ಸಂತಾನ ಗೋಪಾಲ ಮಂತ್ರ ಜಪ ಮತ್ತು ಗೋಕರ್ಣ ಸೇವೆಗಳಿಂದ ಶೀಘ್ರ ಸಂತಾನ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ.`;
+      doshaDescEn = `Affliction to the 5th house or Putrakaraka Jupiter introduces temporary delay in childbirth. Chanting the Santana Gopala Mantra delivers divine fruition.`;
+      specificDosha = {
+        hasDosha: true,
+        doshaNameKn: "ಸಂತಾನ ಪ್ರತಿಬಂಧಕ ಯೋಗ",
+        doshaNameEn: "Progeny Delay Influence",
+        rootCauseHouseKn: "5ನೇ ಭಾವದ ಮೇಲೆ ಪಾಪಗ್ರಹ ಪ್ರಭಾವ",
+        rootCauseHouseEn: "5th House / Putrakaraka Affliction",
+        afflictedPlanetKn: fifthLordKn,
+        afflictedPlanetEn: fifthLord,
+        mantraKn: "ಓಂ ಕ್ಲೀಂ ದೇವಕೀಸುತ ಗೋವಿಂದ ವಾಸುದೇವ ಜಗತ್ಪತೇ ದೇಹಿ ಮೇ ತನಯಂ ಕೃಷ್ಣ ತ್ವಾಮಹಂ ಶರಣಂ ಗತಃ",
+        mantraEn: "Om Kleem Devakisuta Govinda Vasudeva Jagatpate Dehi Me Tanayam Krishna Tvamaham Sharanam Gatah",
+        pujaKn: "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸಂತಾನ ಗೋಪಾಲ ಸೇವೆ",
+        pujaEn: "Santana Gopala Seva at Gokarna Mahabaleshwara"
+      };
+    }
   }
 
-  // 8. Health & Physical Vitality (Dynamic Tatva Constitution)
+  // 8. Health & Physical Vitality (Dynamic Tatva Constitution & Planetary Lords)
+  const lagnaLordPlanet = kundli.planets.find(p => p.name === lagnaLord);
+  const sixthLordPlanet = kundli.planets.find(p => p.name === sixthLord);
+  const sixthSignIdx = (lagnaIdx + 5) % 12;
+  const sixthSignKn = RASHI_NAMES_KN[sixthSignIdx] || "ಕನ್ಯಾ";
+  const sixthSignEn = RASHI_NAMES_EN[sixthSignIdx] || "Virgo";
+
   const tatvaIndex = lagnaIdx % 4; // 0: Agni, 1: Prithvi, 2: Vayu, 3: Jala
   const tatvaDetails = [
     {
@@ -2220,8 +2408,11 @@ export const generate10MasterLifeBulletPoints = (
     }
   ][tatvaIndex]!;
 
-  const p8ReadingKn = `ನಿಮ್ಮ ಲಗ್ನಾಧಿಪತಿ ${lagnaLordKn} ಮತ್ತು 6ನೇ ರೋಗ ಸ್ಥಾನದ ${sixthLordKn} ಗ್ರಹಬಲದ ಪ್ರಕಾರ, ನಿಮ್ಮ ಮೂಲ ಪ್ರಕೃತಿಯು ${tatvaDetails.tatvaKn} ಆಗಿದೆ. ${tatvaDetails.healthAdviceKn}`;
-  const p8ReadingEn = `Governed by Lagna lord ${lagnaLord} and 6th lord ${sixthLord}, your constitutional balance is predominantly ${tatvaDetails.tatvaEn}. ${tatvaDetails.healthAdviceEn}`;
+  const lagnaLordH = lagnaLordPlanet?.house ?? 1;
+  const sixthLordH = sixthLordPlanet?.house ?? 6;
+
+  const p8ReadingKn = `ನಿಮ್ಮ ${lagnaKn} ಲಗ್ನದ ಅಧಿಪತಿ ${lagnaLordKn} ಗ್ರಹವು ${lagnaLordH}ನೇ ಮನೆಯಲ್ಲಿದ್ದು, ${moonSignKn} ರಾಶಿಯ ಚಂದ್ರನ ಸ್ಥಿತಿ ಹಾಗೂ 6ನೇ ರೋಗ ಸ್ಥಾನವಾದ ${sixthSignKn} ರಾಶಿಯ ಅಧಿಪತಿ ${sixthLordKn} ಗ್ರಹವು ${sixthLordH}ನೇ ಭಾವದಲ್ಲಿದೆ. ನಿಮ್ಮ ಶಾರೀರಿಕ ಮೂಲ ಪ್ರಕೃತಿಯು ${tatvaDetails.tatvaKn} ಆಗಿದೆ. ${tatvaDetails.healthAdviceKn}`;
+  const p8ReadingEn = `Governed by ${lagnaEn} Lagna lord ${lagnaLord} (in House ${lagnaLordH}), your ${moonSignEn} Moon in House ${moonHouse}, and 6th disease house ${sixthSignEn} ruled by ${sixthLord} (in House ${sixthLordH}), your constitutional balance is predominantly ${tatvaDetails.tatvaEn}. ${tatvaDetails.healthAdviceEn}`;
 
   // 9. Active Dasha-Bhukti & Gochara (100% Live & Dynamic)
   const p9ReadingKn = `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${toKannadaPlanet(maha)} ಮಹಾದಶೆಯ ${toKannadaPlanet(bhukti)} ಭುಕ್ತಿಯ ಕಾಲಾವಧಿಯು (${dt.timelineKn} ಮುಕ್ತಾಯ) ನಿಮ್ಮ ಜೀವನದ ಪ್ರಮುಖ ಪರಿವರ್ತನಾ ಸಂಧಿಕಾಲವಾಗಿದೆ. ${lg.summaryKn} ಈ ಗ್ರಹ ಸ್ಥಿತಿಯು ನಿಮ್ಮ ಹಳೆಯ ಸಂಕೋಲೆಗಳನ್ನು ಕಳಚಿ ನೂತನ ಶಕ್ತಿಯನ್ನು ತುಂಬುವ ಪವಿತ್ರ ಸಂಧಿಕಾಲವಾಗಿದೆ.`;
@@ -2301,26 +2492,67 @@ export const generate10MasterLifeBulletPoints = (
     };
   } else {
     // Adult
+    const secondSignKn = RASHI_NAMES_KN[(lagnaIdx + 1) % 12] || "ವೃಷಭ";
+    const secondSignEn = RASHI_NAMES_EN[(lagnaIdx + 1) % 12] || "Taurus";
     const isCleanCharacter = dietAssessment.isTeetotaler && sensualAssessment.hasMaritalFidelity;
-    card11TitleKn = isCleanCharacter
+    
+    card11TitleKn = dietAssessment.hasWeedCannabisHabit
+      ? "ಅಂತರಂಗದ ನೈಜ ಸ್ವಭಾವ, ಅಮಲು/ವೀಡ್ ಎಚ್ಚರಿಕೆ & ಆಂತರಿಕ ಸಂಯಮ"
+      : dietAssessment.isDailyDrinking
+      ? "ಅಂತರಂಗದ ನೈಜ ಸ್ವಭಾವ, ಮದ್ಯಪಾನ ಎಚ್ಚರಿಕೆ & ಆಂತರಿಕ ಸಂಯಮ"
+      : isCleanCharacter
       ? "ಅಂತರಂಗದ ನೈಜ ಸ್ವಭಾವ, ಆಹಾರ ಸಂಸ್ಕಾರ & ನೈತಿಕ ಚಾರಿತ್ರ್ಯ"
       : "ಅಂತರಂಗದ ನೈಜ ಸ್ವಭಾವ, ಆಹಾರ ಸಂಸ್ಕಾರ & ಆಂತರಿಕ ಸಂಯಮ";
-    card11TitleEn = isCleanCharacter
+    card11TitleEn = dietAssessment.hasWeedCannabisHabit
+      ? "Inner Character, Cannabis/Weed Warning & Sensory Discipline"
+      : dietAssessment.isDailyDrinking
+      ? "Inner Character, Alcohol Warning & Sensory Discipline"
+      : isCleanCharacter
       ? "Inner Character, Dietary Sanctity & Moral Rectitude"
       : "Inner Character, Dietary Discipline & Restraint";
-    card11BadgeKn = isCleanCharacter
+    card11BadgeKn = dietAssessment.hasWeedCannabisHabit
+      ? "ವೀಡ್/ಮದ್ಯಪಾನ ಎಚ್ಚರಿಕೆ • ರಾಹು ಪ್ರಭಾವ"
+      : dietAssessment.isDailyDrinking
+      ? "ಮದ್ಯಪಾನ ಎಚ್ಚರಿಕೆ • ಶನಿ-ರಾಹು"
+      : dietAssessment.isSocialDrinking
+      ? "ಪಾರ್ಟಿ ಮದ್ಯಪಾನ ಎಚ್ಚರಿಕೆ • 2ನೇ ಭಾವ"
+      : isCleanCharacter
       ? "ಸಾತ್ವಿಕ ಆಹಾರಿ • ದಾಂಪತ್ಯ ನಿಷ್ಠೆ"
       : "8ನೇ & 12ನೇ ಭಾವ • ಅಂತರಂಗ ಸಂಸ್ಕಾರ";
-    card11BadgeEn = isCleanCharacter
+    card11BadgeEn = dietAssessment.hasWeedCannabisHabit
+      ? "Cannabis/Alcohol Warning • Rahu"
+      : dietAssessment.isDailyDrinking
+      ? "Daily Alcohol • Saturn-Rahu"
+      : dietAssessment.isSocialDrinking
+      ? "Social Drinking • 2nd House"
+      : isCleanCharacter
       ? "Sattvik Lifestyle • Marital Fidelity"
       : "8th & 12th Houses • Inner Discipline";
     card11Icon = isCleanCharacter ? "💎" : "🔒";
 
-    p11ReadingKn = `ನಿಮ್ಮ ಜಾತಕದ 8ನೇ (ಅಂತರಂಗ), 12ನೇ (ಶಯನ/ಆಹಾರ ಶಿಸ್ತು) ಹಾಗೂ 7ನೇ ಕಾಮ ಸ್ಥಾನಗಳ ಸೂಕ್ಷ್ಮ ಗ್ರಹಸ್ಥಿತಿಯನ್ನು ನೋಡಿದಾಗ: ${
-      dietAssessment.isTeetotaler
-        ? "• ಆಹಾರ & ಶರೀರ ಪಾವಿತ್ರ್ಯ: ನಿಮ್ಮ 2ನೇ ಮುಖ/ಆಹಾರ ಸ್ಥಾನವು ಗುರು ದೃಷ್ಟಿಯಲ್ಲಿದ್ದು, ನೀವು ಸಾತ್ವಿಕ ಆಹಾರಿ (Teetotaler) ಹಾಗೂ ಮದ್ಯಪಾನ, ಧೂಮಪಾನ ಅಥವಾ ಯಾವುದೇ ಮಾದಕ ವಸ್ತುಗಳ ವ್ಯಸನದಿಂದ ಸಂಪೂರ್ಣ ಮುಕ್ತರಾಗಿದ್ದೀರಿ. ಶರೀರ ಪಾವಿತ್ರ್ಯವನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳುವ ಉನ್ನತ ಆತ್ಮಶಕ್ತಿ ನಿಮ್ಮಲ್ಲಿದೆ. "
-        : "• ಆಹಾರ & ಶರೀರ ಎಚ್ಚರಿಕೆ: 2ನೇ ಮುಖ ಸ್ಥಾನದ ಮೇಲೆ ಪಾಪಗ್ರಹಗಳ ಪ್ರಭಾವವಿರುವುದರಿಂದ, ಮಾನಸಿಕ ಒತ್ತಡದ ಸಮಯದಲ್ಲಿ ತಂಪು ಪಾನೀಯ ಅಥವಾ ವ್ಯಸನಗಳ ಕಡೆಗೆ ಜಾರದಂತೆ ಸಂಯಮ ಕಾಯ್ದುಕೊಳ್ಳುವುದು ಅಗತ್ಯ. "
-    }${
+    let dietBulletKn = "";
+    let dietBulletEn = "";
+    if (dietAssessment.hasWeedCannabisHabit) {
+      dietBulletKn = "• ಆಹಾರ & ನಶೆಯ ಎಚ್ಚರಿಕೆ: ನಿಮ್ಮ 2ನೇ ಮುಖ-ಭೋಜನ ಸ್ಥಾನ ಹಾಗೂ ರಾಹುವಿನ ಧೂಮ್ರ ಪ್ರಭಾವದಿಂದಾಗಿ, ಮದ್ಯಪಾನ, ಧೂಮಪಾನ ಅಥವಾ ಗಾಂಜಾ/ವೀಡ್ (Weed/Cannabis) ಅಮಲು ಪದಾರ್ಥಗಳತ್ತ ಮನಸ್ಸು ಜಾರದಂತೆ ತೀವ್ರ ಮುನ್ನೆಚ್ಚರಿಕೆ ವಹಿಸಬೇಕು. ಸ್ನೇಹಿತರ ಸಹವಾಸ ಅಥವಾ ಸಂಜೆಯ ಮಾನಸಿಕ ಒತ್ತಡದಲ್ಲಿ ಈ ಚಟಗಳು ಆವರಿಸುವ ಅಪಾಯವಿದ್ದು, ಶರೀರ ಪಾವಿತ್ರ್ಯ ಹಾಗೂ ನರಮಂಡಲದ ಆರೋಗ್ಯಕ್ಕಾಗಿ ಕಟ್ಟುನಿಟ್ಟಿನ ಸ್ವಯಂ-ನಿಯಂತ್ರಣ ಅಗತ್ಯ. ";
+      dietBulletEn = "• Dietary & Substance Warning: Rahu's smoky affliction on the 2nd house of oral intake alerts against tendencies toward cannabis/weed, smoking, and alcohol under emotional stress or peer pressure. Conscious detoxification and discipline are imperative. ";
+    } else if (dietAssessment.isDailyDrinking) {
+      dietBulletKn = "• ಆಹಾರ & ಮದ್ಯಪಾನ ಎಚ್ಚರಿಕೆ: 2ನೇ ಮುಖ ಹಾಗೂ 8ನೇ ರಹಸ್ಯ ಸ್ಥಾನಗಳ ಮೇಲೆ ಶನಿ ಮತ್ತು ರಾಹುವಿನ ತೀವ್ರ ಪ್ರಭಾವದಿಂದಾಗಿ, ಸಂಜೆಯ ಸಮಯದಲ್ಲಿ ಅಥವಾ ಮಾನಸಿಕ ಜಂಜಾಟದ ವೇಳೆಯಲ್ಲಿ ದಿನನಿತ್ಯದ ಮದ್ಯಪಾನದ (Alcohol) ಸೆಳೆತ ಉಂಟಾಗುವ ಅಪಾಯವಿದೆ. ಇದು ಯಕೃತ್ತು ಹಾಗೂ ಕೌಟುಂಬಿಕ ಶಾಂತಿಯನ್ನು ಬಾಧಿಸದಂತೆ ತಕ್ಷಣವೇ ವ್ಯಸನಮುಕ್ತ ಸಂಕಲ್ಪ ಮಾಡುವುದು ಕ್ಷೇಮ. ";
+      dietBulletEn = "• Alcohol Vulnerability Warning: Saturn-Rahu pressure on the 2nd and 8th houses warns against regular evening drinking or substance dependence under emotional strain. Remedial de-addiction is advised to safeguard vitality and family peace. ";
+    } else if (dietAssessment.isSocialDrinking) {
+      dietBulletKn = "• ಆಹಾರ & ಸಾಮಾಜಿಕ ಎಚ್ಚರಿಕೆ: 2ನೇ ವಾಕ್-ಭೋಜನ ಸ್ಥಾನದ ಮೇಲೆ ಪಾಪಗ್ರಹಗಳ ಪ್ರಭಾವವಿರುವುದರಿಂದ, ಪಾರ್ಟಿ, ಸಮಾರಂಭಗಳು ಅಥವಾ ಸ್ನೇಹಿತರ ಒತ್ತಾಯಕ್ಕೆ ಮಣಿದು ಮದ್ಯಪಾನ, ಧೂಮಪಾನದಂತಹ ದುಶ್ಚಟಗಳತ್ತ ಜಾರದಂತೆ ಸಂಯಮ ಕಾಯ್ದುಕೊಳ್ಳುವುದು ಅಗತ್ಯ. ";
+      dietBulletEn = "• Social Dietary Mindfulness: Malefic transit aspects advise conscious boundaries against social drinking and peer-induced indulgences. ";
+    } else if (dietAssessment.hasZardaTobaccoHabit) {
+      dietBulletKn = "• ಆಹಾರ & ತಂಬಾಕು ಎಚ್ಚರಿಕೆ: 8ನೇ ಮನೆಯಲ್ಲಿರುವ ಕುಜನು 2ನೇ ಮುಖ-ಭೋಜನ ಸ್ಥಾನವನ್ನು ವೀಕ್ಷಿಸುತ್ತಿರುವುದರಿಂದ, ಜರ್ದಾ, ತಂಬಾಕು, ಗುಟ್ಕಾ ಅಥವಾ ಖಾರ-ಉತ್ತೇಜಕಗಳ ಚಟದಿಂದ ಬಾಯಿ ಹಾಗೂ ಒಸಡುಗಳ ಆರೋಗ್ಯ ಬಾಧಿಸದಂತೆ ಸ್ವಯಂ-ನಿಯಂತ್ರಣ ಅಗತ್ಯ. ";
+      dietBulletEn = "• Tobacco & Chewing Dependency: Fiery Mars aspect on 2nd house generates intense cravings for chewing tobacco, zarda, and stimulants requiring dental vigilance and de-addiction. ";
+    } else if (dietAssessment.isTeetotaler) {
+      dietBulletKn = `• ಆಹಾರ & ಶರೀರ ಪಾವಿತ್ರ್ಯ: ನಿಮ್ಮ 2ನೇ ಮುಖ-ಭೋಜನ ಸ್ಥಾನವಾದ ${secondSignKn} ರಾಶಿ ಹಾಗೂ ದ್ವಿತೀಯಾಧಿಪತಿ ${secondLordKn} ಗ್ರಹಕ್ಕೆ ${dietAssessment.rootCauseKn.includes("ಗುರು") ? "ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಸಾತ್ವಿಕ ದೃಷ್ಟಿಯ ಶ್ರೀರಕ್ಷೆ ಇರುವುದರಿಂದ" : "ಶುಭ ಗ್ರಹಗಳ ಬಲವಿರುವುದರಿಂದ"}, ನೀವು ನೈಸರ್ಗಿಕವಾಗಿ ಪರಿಶುದ್ಧ ಸಾತ್ವಿಕ ಆಹಾರಿಗಳು ಹಾಗೂ ಮದ್ಯಪಾನ, ಧೂಮಪಾನ ಅಥವಾ ಯಾವುದೇ ಮಾದಕ ವಸ್ತುಗಳ ವ್ಯಸನದಿಂದ ಸಂಪೂರ್ಣ ಮುಕ್ತರಾಗಿದ್ದೀರಿ. ಶರೀರ ಪಾವಿತ್ರ್ಯವನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳುವ ಉನ್ನತ ಆತ್ಮಶಕ್ತಿ ನಿಮ್ಮಲ್ಲಿದೆ. `;
+      dietBulletEn = `• Dietary Sanctity: Auspicious 2nd house alignment in ${RASHI_NAMES_EN[(lagnaIdx + 1) % 12] || "Taurus"} confirms you are a teetotaler, naturally free from alcohol, smoking, or intoxicating dependencies with high bodily purity. `;
+    } else {
+      dietBulletKn = "• ಆಹಾರ & ಶರೀರ ಎಚ್ಚರಿಕೆ: 2ನೇ ಮುಖ ಸ್ಥಾನದ ಮೇಲೆ ಗ್ರಹಗಳ ಸೌಮ್ಯ ಪ್ರಭಾವವಿರುವುದರಿಂದ, ಮಾನಸಿಕ ಒತ್ತಡದ ಸಮಯದಲ್ಲಿ ತಂಪು ಪಾನೀಯ ಅಥವಾ ಅನಾರೋಗ್ಯಕರ ಆಹಾರಗಳ ಕಡೆಗೆ ಜಾರದಂತೆ ಸಂಯಮ ಕಾಯ್ದುಕೊಳ್ಳುವುದು ಅಗತ್ಯ. ";
+      dietBulletEn = "• Dietary Mindfulness: 2nd house aspects advise conscious boundaries against stress-induced intake. ";
+    }
+
+    p11ReadingKn = `ನಿಮ್ಮ ${lagnaKn} ಲಗ್ನ ಮತ್ತು ${moonSignKn} ರಾಶಿಯ 2ನೇ (${secondSignKn}), 8ನೇ ಹಾಗೂ 12ನೇ ಸ್ಥಾನಗಳ ಸೂಕ್ಷ್ಮ ಗ್ರಹಸ್ಥಿತಿಯನ್ನು ನೋಡಿದಾಗ: ${dietBulletKn}${
       sensualAssessment.hasMaritalFidelity
         ? "• ದಾಂಪತ್ಯ ನಿಷ್ಠೆ & ಸತ್ಚಾರಿತ್ರ್ಯ: 7ನೇ ಕಳತ್ರ ಹಾಗೂ ಕಾಮ ಸ್ಥಾನವು ಶುಭ ರಕ್ಷಣೆಯಲ್ಲಿದ್ದು, ಇಂದ್ರಿಯ ನಿಗ್ರಹ ಮತ್ತು ಸದಾಚಾರ ನಿಮ್ಮ ಮೂಲ ಗುಣವಾಗಿದೆ. ಬಾಹ್ಯ ಕ್ಷಣಿಕ ಆಕರ್ಷಣೆಗಳಿಗೆ ಅಥವಾ ಪರಸ್ತ್ರೀ/ಪರಪುರುಷ ವ್ಯಾಮೋಹಕ್ಕೆ ಬಲಿಯಾಗದೆ, ಪವಿತ್ರ ಕೌಟುಂಬಿಕ ಧರ್ಮ ಹಾಗೂ ದಾಂಪತ್ಯ ನಿಷ್ಠೆಯನ್ನು ಕಾಪಾಡುವ ಧೀಮಂತ ಸಂಸ್ಕಾರ ನಿಮ್ಮಲ್ಲಿದೆ. "
         : "• ಭಾವನಾತ್ಮಕ ಎಚ್ಚರಿಕೆ: ಶುಕ್ರ-ರಾಹುಗಳ ಸಂಚಾರದ ಸಮಯದಲ್ಲಿ ಬಾಹ್ಯ ಆಕರ್ಷಣೆಗಳು ಕೌಟುಂಬಿಕ ಶಾಂತಿಯನ್ನು ಕೆಡಿಸದಂತೆ ಆತ್ಮಸಂಯಮ ಕಾಯ್ದುಕೊಳ್ಳುವುದು ಕ್ಷೇಮ. "
@@ -2334,11 +2566,7 @@ export const generate10MasterLifeBulletPoints = (
         : " ಈ ನೆರಳು ದೋಷಗಳ ಶಮನಕ್ಕಾಗಿ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಆತ್ಮಲಿಂಗ ಸ್ಪರ್ಶ, ಪ್ರಾಯಶ್ಚಿತ್ತ ಸಂಕಲ್ಪ ಪೂಜೆ ಸಲ್ಲಿಸುವುದು ಅತ್ಯಗತ್ಯ."
     }`;
 
-    p11ReadingEn = `Planetary scrutiny of the 8th (inner self), 12th (sleep & sensory intake), and 7th (marital bonds) reveals: ${
-      dietAssessment.isTeetotaler
-        ? "• Dietary Sanctity: Auspicious 2nd house alignment confirms you are a teetotaler, naturally free from alcohol, smoking, or intoxicating dependencies with high bodily purity. "
-        : "• Dietary Mindfulness: 2nd house malefic aspects advise conscious boundaries against stress-induced intake. "
-    }${
+    p11ReadingEn = `Planetary scrutiny of your ${lagnaEn} Lagna and ${moonSignEn} Moon across the 2nd (${secondSignEn}), 8th, and 12th houses reveals: ${dietBulletEn}${
       sensualAssessment.hasMaritalFidelity
         ? "• Marital Fidelity: The 7th house and Venus are shielded by benefic graces, upholding high moral rectitude, sensory restraint, and faithful marital devotion without external affairs. "
         : "• Relationship Restraint: Venus-Rahu transits advise conscious fidelity and emotional self-control. "
@@ -2355,33 +2583,49 @@ export const generate10MasterLifeBulletPoints = (
       ? `${dietAssessment.rootCauseEn} ${sensualAssessment.rootCauseEn} Ascendant intrinsic moral conduct.`
       : "8th (secrets), 12th (intake/sleep), 7th (relationships), and planetary transits.";
 
-    card11Dosha = isCleanCharacter
-      ? {
-          hasDosha: false,
-          doshaNameKn: "ಸದಾಚಾರ & ಸಾತ್ವಿಕ ರಕ್ಷಾ ಕವಚ",
-          doshaNameEn: "Moral Integrity & Sattvik Shield",
-          rootCauseHouseKn: "ಗುರು ಕೃಪೆ & ಶುಭ ಗ್ರಹ ರಕ್ಷಣೆ",
-          rootCauseHouseEn: "Jupiter Grace & Benefic Alignment",
-          afflictedPlanetKn: "ಶುಭ ಗ್ರಹ ಬಲ",
-          afflictedPlanetEn: "Benefic Planetary Strength",
-          mantraKn: "ದಿನನಿತ್ಯ ಗಾಯತ್ರಿ ಮಂತ್ರ & ಮಹಾಮೃತ್ಯುಂಜಯ ಜಪ (108 ಬಾರಿ)",
-          mantraEn: "Daily Gayatri Mantra & Maha Mrityunjaya Japa (108 times)",
-          pujaKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಕೃತಜ್ಞತಾ ಸಂಕಲ್ಪ ಪೂಜೆ",
-          pujaEn: "Gratitude Sankalpa Pooja at Sri Kshetra Gokarna Mahabaleshwara"
-        }
-      : {
-          hasDosha: true,
-          doshaNameKn: "ಅಂತರ್ಗತ ನೆರಳು & ಗ್ರಹ ದೋಷ",
-          doshaNameEn: "Shadow Impulses & Planetary Tension",
-          rootCauseHouseKn: "2ನೇ/8ನೇ ಭಾವದಲ್ಲಿ ಗ್ರಹ ಪ್ರಭಾವ",
-          rootCauseHouseEn: "2nd/8th House Afflictions by Malefics",
-          afflictedPlanetKn: "ರಾಹು-ಶನಿ",
-          afflictedPlanetEn: "Rahu-Saturn",
-          mantraKn: "ಓಂ ನಮಃ ಶಿವಾಯ (ದಿನನಿತ್ಯ 108 ಬಾರಿ) & ಮಹಾಮೃತ್ಯುಂಜಯ ಮಂತ್ರ",
-          mantraEn: "Om Namah Shivaya (Daily 108 Times) & Maha Mrityunjaya Mantra",
-          pujaKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಆತ್ಮಲಿಂಗ ಸ್ಪರ್ಶ & ಪ್ರಾಯಶ್ಚಿತ್ತ ಸಂಕಲ್ಪ ಪೂಜೆ",
-          pujaEn: "Atma Linga Sparsha & Prayashchitta Sankalpa Seva at Gokarna Mahabaleshwara"
-        };
+    if (dietAssessment.hasWeedCannabisHabit) {
+      card11Dosha = {
+        hasDosha: true,
+        doshaNameKn: "ರಾಹು ಧೂಮ್ರ ದೋಷ & ಅಮಲು/ವ್ಯಸನ ಎಚ್ಚರಿಕೆ",
+        doshaNameEn: "Rahu Dhuma Dosha & Intoxicant Vulnerability",
+        rootCauseHouseKn: "2ನೇ ಮುಖ-ಆಹಾರ ಸ್ಥಾನದಲ್ಲಿ ರಾಹು ಪ್ರಭಾವ",
+        rootCauseHouseEn: "2nd House of Intake Afflicted by Rahu",
+        afflictedPlanetKn: "ರಾಹು ಗ್ರಹ",
+        afflictedPlanetEn: "Rahu",
+        mantraKn: "ಓಂ ರಾಂ ರಹವೇ ನಮಃ (ದಿನನಿತ್ಯ 108 ಬಾರಿ) & ಮಹಾಮೃತ್ಯುಂಜಯ ಜಪ",
+        mantraEn: "Om Raam Rahave Namah (108 times daily) & Maha Mrityunjaya Japa",
+        pujaKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ನಾಗ-ರಾಹು ಶಾಂತಿ ಹಾಗೂ ವ್ಯಸನಮುಕ್ತಿ ಸಂಕಲ್ಪ ಪೂಜೆ",
+        pujaEn: "Naga Rahu Shanti & Substance Liberation Sankalpa at Sri Kshetra Gokarna"
+      };
+    } else if (isCleanCharacter) {
+      card11Dosha = {
+        hasDosha: false,
+        doshaNameKn: "ಸದಾಚಾರ & ಸಾತ್ವಿಕ ರಕ್ಷಾ ಕವಚ",
+        doshaNameEn: "Moral Integrity & Sattvik Shield",
+        rootCauseHouseKn: "ಗುರು ಕೃಪೆ & ಶುಭ ಗ್ರಹ ರಕ್ಷಣೆ",
+        rootCauseHouseEn: "Jupiter Grace & Benefic Alignment",
+        afflictedPlanetKn: "ಶುಭ ಗ್ರಹ ಬಲ",
+        afflictedPlanetEn: "Benefic Planetary Strength",
+        mantraKn: "ದಿನನಿತ್ಯ ಗಾಯತ್ರಿ ಮಂತ್ರ & ಮಹಾಮೃತ್ಯುಂಜಯ ಜಪ (108 ಬಾರಿ)",
+        mantraEn: "Daily Gayatri Mantra & Maha Mrityunjaya Japa (108 times)",
+        pujaKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಕೃತಜ್ಞತಾ ಸಂಕಲ್ಪ ಪೂಜೆ",
+        pujaEn: "Gratitude Sankalpa Pooja at Sri Kshetra Gokarna Mahabaleshwara"
+      };
+    } else {
+      card11Dosha = {
+        hasDosha: true,
+        doshaNameKn: "ಅಂತರ್ಗತ ನೆರಳು & ಗ್ರಹ ದೋಷ",
+        doshaNameEn: "Shadow Impulses & Planetary Tension",
+        rootCauseHouseKn: "2ನೇ/8ನೇ ಭಾವದಲ್ಲಿ ಗ್ರಹ ಪ್ರಭಾವ",
+        rootCauseHouseEn: "2nd/8th House Afflictions by Malefics",
+        afflictedPlanetKn: "ರಾಹು-ಶನಿ",
+        afflictedPlanetEn: "Rahu-Saturn",
+        mantraKn: "ಓಂ ನಮಃ ಶಿವಾಯ (ದಿನನಿತ್ಯ 108 ಬಾರಿ) & ಮಹಾಮೃತ್ಯುಂಜಯ ಮಂತ್ರ",
+        mantraEn: "Om Namah Shivaya (Daily 108 Times) & Maha Mrityunjaya Mantra",
+        pujaKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಆತ್ಮಲಿಂಗ ಸ್ಪರ್ಶ & ಪ್ರಾಯಶ್ಚಿತ್ತ ಸಂಕಲ್ಪ ಪೂಜೆ",
+        pujaEn: "Atma Linga Sparsha & Prayashchitta Sankalpa Seva at Gokarna Mahabaleshwara"
+      };
+    }
   }
 
   return [
@@ -3613,6 +3857,7 @@ export const generateGoodAndBadTraits = (
   const isEarthySign = [1, 5, 9].includes(lagnaIdx);
   const isAirySign = [2, 6, 10].includes(lagnaIdx);
   const isWaterySign = [3, 7, 11].includes(lagnaIdx);
+  const moonSignKn = moon ? toKannadaRashi(moon.rashi.english) : "";
 
   const hasDirectMarsAffliction = [1, 7, 8].includes(marsHouse) || (mars && sun && Math.abs(mars.house - sun.house) === 0);
   const hasSaturnAffliction = saturn && [1, 7, 8].includes(saturn.house);
@@ -3622,120 +3867,120 @@ export const generateGoodAndBadTraits = (
     badTrait1 = {
       id: 1,
       type: "bad",
-      titleKn: "ಅಷ್ಟಮ ಕುಜ ದೋಷ & ಆಂತರಿಕ ಉದ್ವೇಗ: ಹಠಾತ್ ಆವೇಶದಲ್ಲಿ ಸಂಬಂಧಗಳಿಗೆ ಧಕ್ಕೆ",
+      titleKn: `${lagnaKn} ಲಗ್ನದ ಅಷ್ಟಮ ಕುಜ ದೋಷ & ಆಂತರಿಕ ಉದ್ವೇಗ: ಹಠಾತ್ ಆವೇಶದಲ್ಲಿ ಸಂಬಂಧಗಳಿಗೆ ಧಕ್ಕೆ`,
       titleEn: "8th House Mars & Volatile Reactivity: Sudden Inner Agitation",
       icon: "⚡",
-      badgeKn: "ಅಷ್ಟಮ ಕುಜ • ಆಂತರಿಕ ಉದ್ವೇಗ",
+      badgeKn: `${lagnaKn} • ಅಷ್ಟಮ ಕುಜ • ಉದ್ವೇಗ`,
       badgeEn: "8th Mars • Volatile Reactivity",
       bulletKn: isMale
-        ? `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ 8ನೇ ಅಷ್ಟಮ ಸ್ಥಾನದಲ್ಲಿ ಕುಜನ ತೀಕ್ಷ್ಣ ಪ್ರಭಾವವಿರುವುದರಿಂದ, ಮನಸ್ಸಿನಲ್ಲಿ ಹಠಾತ್ ಆಂತರಿಕ ಉದ್ವೇಗ ಹಾಗೂ ಅಸಹನೆ ಮೂಡುತ್ತದೆ. ಒಮ್ಮೆ ಸಿಟ್ಟು ಬಂದರೆ ಕಟು ಮಾತುಗಳನ್ನಾಡಿ ಹತ್ತಿರದವರನ್ನು ನೋಯಿಸುವ ಮತ್ತು ನಂತರ ಪಶ್ಚಾತ್ತಾಪ ಪಡುವ ಪ್ರವೃತ್ತಿ ಇದೆ; ನಿತ್ಯ ಸುಬ್ರಹ್ಮಣ್ಯ ಅಥವಾ ನರಸಿಂಹ ಸ್ಮರಣೆ ನಿಮಗೆ ಶಾಂತಿ ತರಲಿದೆ.`
-        : `8ನೇ ಅಷ್ಟಮ ಸ್ಥಾನದ ಕುಜನ ಪ್ರಭಾವದಿಂದಾಗಿ, ಮನಸ್ಸಿನಲ್ಲಿ ಅಸಹನೆ ಮತ್ತು ಹಠಾತ್ ಆವೇಶ ಭುಗಿಲೇಳುತ್ತದೆ. ಕುಟುಂಬದಲ್ಲಿ ನಿಮ್ಮ ಮಾತಿಗೆ ಸ್ಪಂದನೆ ಸಿಗದಿದ್ದಾಗ ತೀವ್ರ ಅಸಮಾಧಾನ ಮತ್ತು ಮುನಿಸು ಉಂಟಾಗುತ್ತದೆ; ಶಾಂತ ಸಂಯಮ ಮತ್ತು ದುರ್ಗಾ ಪೂಜೆಯೇ ನಿಮಗೆ ಶ್ರೇಷ್ಠ ರಕ್ಷೆ.`,
+        ? `ನಿಮ್ಮ ${lagnaKn} ಲಗ್ನದ ಜಾತಕದಲ್ಲಿ 8ನೇ ಅಷ್ಟಮ ಸ್ಥಾನದಲ್ಲಿ ಕುಜನ ತೀಕ್ಷ್ಣ ಪ್ರಭಾವವಿರುವುದರಿಂದ, ಮನಸ್ಸಿನಲ್ಲಿ ಹಠಾತ್ ಆಂತರಿಕ ಉದ್ವೇಗ ಹಾಗೂ ಅಸಹನೆ ಮೂಡುತ್ತದೆ. ಒಮ್ಮೆ ಸಿಟ್ಟು ಬಂದರೆ ಕಟು ಮಾತುಗಳನ್ನಾಡಿ ಹತ್ತಿರದವರನ್ನು ನೋಯಿಸುವ ಮತ್ತು ನಂತರ ಪಶ್ಚಾತ್ತಾಪ ಪಡುವ ಪ್ರವೃತ್ತಿ ಇದೆ; ನಿತ್ಯ ಸುಬ್ರಹ್ಮಣ್ಯ ಅಥವಾ ನರಸಿಂಹ ಸ್ಮರಣೆ ನಿಮಗೆ ಶಾಂತಿ ತರಲಿದೆ.`
+        : `${lagnaKn} ಲಗ್ನದ 8ನೇ ಅಷ್ಟಮ ಸ್ಥಾನದ ಕುಜನ ಪ್ರಭಾವದಿಂದಾಗಿ, ಮನಸ್ಸಿನಲ್ಲಿ ಅಸಹನೆ ಮತ್ತು ಹಠಾತ್ ಆವೇಶ ಭುಗಿಲೇಳುತ್ತದೆ. ಕುಟುಂಬದಲ್ಲಿ ನಿಮ್ಮ ಮಾತಿಗೆ ಸ್ಪಂದನೆ ಸಿಗದಿದ್ದಾಗ ತೀವ್ರ ಅಸಮಾಧಾನ ಮತ್ತು ಮುನಿಸು ಉಂಟಾಗುತ್ತದೆ; ಶಾಂತ ಸಂಯಮ ಮತ್ತು ದುರ್ಗಾ ಪೂಜೆಯೇ ನಿಮಗೆ ಶ್ರೇಷ್ಠ ರಕ್ಷೆ.`,
       bulletEn: "Mars residing in the 8th house creates sudden inner volatility and acute impatience, occasionally provoking sharp reactions during periods of high stress.",
-      astrologicalBasisKn: "8ನೇ ಅಷ್ಟಮ ಭಾವದಲ್ಲಿ ಕುಜನ ಸ್ಥಿತಿ (ಕುಜ ದೋಷ).",
+      astrologicalBasisKn: `${lagnaKn} ಲಗ್ನದ 8ನೇ ಅಷ್ಟಮ ಭಾವದಲ್ಲಿ ಕುಜನ ಸ್ಥಿತಿ (ಕುಜ ದೋಷ).`,
       astrologicalBasisEn: "Mars located in the 8th house of emotional turbulence."
     };
   } else if (marsHouse === 7) {
     badTrait1 = {
       id: 1,
       type: "bad",
-      titleKn: "ಸಪ್ತಮ ಕುಜ ದೋಷ & ಪಾಲುದಾರಿಕೆಯಲ್ಲಿ ಹಠ: ದಾಂಪತ್ಯದಲ್ಲಿ ಅಹಂಕಾರದ ಘರ್ಷಣೆ",
+      titleKn: `${lagnaKn} ಲಗ್ನದ ಸಪ್ತಮ ಕುಜ ದೋಷ & ಪಾಲುದಾರಿಕೆಯಲ್ಲಿ ಹಠ: ದಾಂಪತ್ಯದಲ್ಲಿ ಅಹಂಕಾರದ ಘರ್ಷಣೆ`,
       titleEn: "7th House Mars & Partnership Friction: Unyielding Stance",
       icon: "⚔️",
-      badgeKn: "ಸಪ್ತಮ ಕುಜ • ದಾಂಪತ್ಯ ಹಠ",
+      badgeKn: `${lagnaKn} • ಸಪ್ತಮ ಕುಜ • ದಾಂಪತ್ಯ ಹಠ`,
       badgeEn: "7th Mars • Partnership Friction",
       bulletKn: isMale
-        ? `7ನೇ ಕಳತ್ರ ಸ್ಥಾನದಲ್ಲಿ ಕುಜನ ಪ್ರಭಾವವಿರುವುದರಿಂದ, ಪಾಲುದಾರಿಕೆ ಹಾಗೂ ದಾಂಪತ್ಯ ವಿಷಯಗಳಲ್ಲಿ ಅನಗತ್ಯ ಹಠ ಹಾಗೂ ತನ್ನದೇ ಮಾತೇ ನಡೆಯಬೇಕೆಂಬ ಪಟ್ಟು ಹಿಡಿಯುವ ಪ್ರವೃತ್ತಿ ಇದೆ. ಪರಸ್ಪರ ಗೌರವದಿಂದ ನಡೆದುಕೊಂಡರೆ ಸಾಮರಸ್ಯ ನೆಲೆಸುತ್ತದೆ.`
-        : `7ನೇ ಕಳತ್ರ ಸ್ಥಾನದಲ್ಲಿ ಕುಜನ ಪ್ರಭಾವವಿರುವುದರಿಂದ, ಸಂಬಂಧಗಳಲ್ಲಿ ಸಣ್ಣ ವಿಷಯಗಳಿಗೂ ಅಹಂಕಾರದ ಘರ್ಷಣೆ ಅಥವಾ ಹಠದ ನಡವಳಿಕೆ ಮೂಡುವ ಅಪಾಯವಿದೆ; ಹೊಂದಾಣಿಕೆಯ ಮನೋಭಾವವೇ ನಿಮಗೆ ಬಲ.`,
+        ? `ನಿಮ್ಮ ${lagnaKn} ಲಗ್ನದ ಜಾತಕದ 7ನೇ ಕಳತ್ರ ಸ್ಥಾನದಲ್ಲಿ ಕುಜನ ಪ್ರಭಾವವಿರುವುದರಿಂದ, ಪಾಲುದಾರಿಕೆ ಹಾಗೂ ದಾಂಪತ್ಯ ವಿಷಯಗಳಲ್ಲಿ ಅನಗತ್ಯ ಹಠ ಹಾಗೂ ತನ್ನದೇ ಮಾತೇ ನಡೆಯಬೇಕೆಂಬ ಪಟ್ಟು ಹಿಡಿಯುವ ಪ್ರವೃತ್ತಿ ಇದೆ. ಪರಸ್ಪರ ಗೌರವದಿಂದ ನಡೆದುಕೊಂಡರೆ ಸಾಮರಸ್ಯ ನೆಲೆಸುತ್ತದೆ.`
+        : `${lagnaKn} ಲಗ್ನದ 7ನೇ ಕಳತ್ರ ಸ್ಥಾನದಲ್ಲಿ ಕುಜನ ಪ್ರಭಾವವಿರುವುದರಿಂದ, ಸಂಬಂಧಗಳಲ್ಲಿ ಸಣ್ಣ ವಿಷಯಗಳಿಗೂ ಅಹಂಕಾರದ ಘರ್ಷಣೆ ಅಥವಾ ಹಠದ ನಡವಳಿಕೆ ಮೂಡುವ ಅಪಾಯವಿದೆ; ಹೊಂದಾಣಿಕೆಯ ಮನೋಭಾವವೇ ನಿಮಗೆ ಬಲ.`,
       bulletEn: "Mars in the 7th house triggers sharp reactive friction and dominance struggles in close partnerships, requiring conscious flexibility.",
-      astrologicalBasisKn: "7ನೇ ಕಳತ್ರ ಭಾವದಲ್ಲಿ ಕುಜನ ಪ್ರಭಾವ.",
+      astrologicalBasisKn: `${lagnaKn} ಲಗ್ನದ 7ನೇ ಕಳತ್ರ ಭಾವದಲ್ಲಿ ಕುಜನ ಪ್ರಭಾವ.`,
       astrologicalBasisEn: "7th house Mars placement in relationship axis."
     };
   } else if (marsHouse === 1 || (mars && sun && Math.abs(mars.house - sun.house) === 0)) {
     badTrait1 = {
       id: 1,
       type: "bad",
-      titleKn: "ಲಗ್ನ ಕುಜ-ರವಿ ದೋಷ & ಉಗ್ರ ಸಿಟ್ಟು: ಯಾರಿಗೂ ಮಣಿಯದ ಅಪ್ರತಿಮ ಹಠ",
+      titleKn: `${lagnaKn} ಲಗ್ನ ಕುಜ-ರವಿ ದೋಷ & ಉಗ್ರ ಸಿಟ್ಟು: ಯಾರಿಗೂ ಮಣಿಯದ ಅಪ್ರತಿಮ ಹಠ`,
       titleEn: "Lagna Mars-Sun Fire & Dominant Ego: Fiery Volatility",
       icon: "🔥",
-      badgeKn: "ಲಗ್ನ ಕುಜ-ರವಿ • ತೀಕ್ಷ್ಣ ಕೋಪ",
+      badgeKn: `${lagnaKn} • ಕುಜ-ರವಿ • ತೀಕ್ಷ್ಣ ಕೋಪ`,
       badgeEn: "Lagna Mars-Sun • Fierce Anger",
       bulletKn: isMale
-        ? `ಲಗ್ನದ ಮೇಲೆ ಕುಜ-ರವಿಗಳ ತೀಕ್ಷ್ಣ ಪ್ರಭಾವದಿಂದಾಗಿ ಒಮ್ಮೆ ಒಂದು ನಿರ್ಧಾರ ಕೈಗೊಂಡರೆ ಇತರರು ಎಷ್ಟು ಬುದ್ಧಿವಾದ ಹೇಳಿದರೂ ಕೇಳದ ಹಠಮಾರಿ ಸ್ವಭಾವವಿದೆ. ನಿಮ್ಮ ಸ್ವಾಭಿಮಾನಕ್ಕೆ ಸಣ್ಣ ಧಕ್ಕೆ ಬಂದರೂ ಹಠಾತ್ ಸಿಟ್ಟು ಭುಗಿಲೆದ್ದು ಕಟು ಮಾತುಗಳನ್ನಾಡಿ ಹತ್ತಿರದವರನ್ನು ದೂರ ಮಾಡಿಕೊಳ್ಳುವ ಅಪಾಯವಿದೆ.`
-        : `ಲಗ್ನದ ಮೇಲೆ ಕುಜ-ರವಿಗಳ ತೇಜಸ್ಸಿನಿಂದಾಗಿ, ಸ್ವಾಭಿಮಾನಕ್ಕೆ ಸಣ್ಣ ಧಕ್ಕೆ ಬಂದರೂ ಹಠಾತ್ ಆವೇಶ ಭುಗಿಲೇಳುತ್ತದೆ. ಸಿಟ್ಟಿನಲ್ಲಿ ಕಟು ಮಾತುಗಳನ್ನಾಡಿ ನಂತರ ಪಶ್ಚಾತ್ತಾಪ ಪಡುವ ಸ್ವಭಾವವಿದೆ; ಶಾಂತ ಸಂಯಮವೇ ನಿಮಗೆ ಶ್ರೇಷ್ಠ ರಕ್ಷೆ.`,
+        ? `ನಿಮ್ಮ ${lagnaKn} ಲಗ್ನದ ಮೇಲೆ ಕುಜ-ರವಿಗಳ ತೀಕ್ಷ್ಣ ಪ್ರಭಾವದಿಂದಾಗಿ ಒಮ್ಮೆ ಒಂದು ನಿರ್ಧಾರ ಕೈಗೊಂಡರೆ ಇತರರು ಎಷ್ಟು ಬುದ್ಧಿವಾದ ಹೇಳಿದರೂ ಕೇಳದ ಹಠಮಾರಿ ಸ್ವಭಾವವಿದೆ. ನಿಮ್ಮ ಸ್ವಾಭಿಮಾನಕ್ಕೆ ಸಣ್ಣ ಧಕ್ಕೆ ಬಂದರೂ ಹಠಾತ್ ಸಿಟ್ಟು ಭುಗಿಲೆದ್ದು ಕಟು ಮಾತುಗಳನ್ನಾಡಿ ಹತ್ತಿರದವರನ್ನು ದೂರ ಮಾಡಿಕೊಳ್ಳುವ ಅಪಾಯವಿದೆ.`
+        : `${lagnaKn} ಲಗ್ನದ ಮೇಲೆ ಕುಜ-ರವಿಗಳ ತೇಜಸ್ಸಿನಿಂದಾಗಿ, ಸ್ವಾಭಿಮಾನಕ್ಕೆ ಸಣ್ಣ ಧಕ್ಕೆ ಬಂದರೂ ಹಠಾತ್ ಆವೇಶ ಭುಗಿಲೇಳುತ್ತದೆ. ಸಿಟ್ಟಿನಲ್ಲಿ ಕಟು ಮಾತುಗಳನ್ನಾಡಿ ನಂತರ ಪಶ್ಚಾತ್ತಾಪ ಪಡುವ ಸ್ವಭಾವವಿದೆ; ಶಾಂತ ಸಂಯಮವೇ ನಿಮಗೆ ಶ್ರೇಷ್ಠ ರಕ್ಷೆ.`,
       bulletEn: "Intense Mars-Sun fiery influence on the ascendant triggers stubborn refusal to compromise once resolved, accompanied by abrupt fiery outbursts.",
-      astrologicalBasisKn: "ಲಗ್ನದಲ್ಲಿ ಕುಜ-ರವಿಗಳ ಅಗ್ನಿ ತತ್ವ ಹಾಗೂ ಪಿತ್ತ ಪ್ರಕೋಪ.",
+      astrologicalBasisKn: `${lagnaKn} ಲಗ್ನದಲ್ಲಿ ಕುಜ-ರವಿಗಳ ಅಗ್ನಿ ತತ್ವ ಹಾಗೂ ಪಿತ್ತ ಪ್ರಕೋಪ.`,
       astrologicalBasisEn: "Martial/Solar fire aspect influencing the ascendant directly."
     };
   } else if (isFierySign) {
     badTrait1 = {
       id: 1,
       type: "bad",
-      titleKn: "ಅಗ್ನಿ ತತ್ವದ ಹಠಮಾರಿತನ & ಹಠಾತ್ ಕೋಪದ ಜ್ವಾಲೆ: ಸಿಟ್ಟಿನಲ್ಲಿ ಸಂಬಂಧ ಕಡಿದುಕೊಳ್ಳುವ ಅಪಾಯ",
+      titleKn: `${lagnaKn} ಲಗ್ನದ ಅಗ್ನಿ ತತ್ವದ ಹಠಮಾರಿತನ & ಕೋಪದ ಜ್ವಾಲೆ: ಸಿಟ್ಟಿನಲ್ಲಿ ಸಂಬಂಧ ಕಡಿದುಕೊಳ್ಳುವ ಅಪಾಯ`,
       titleEn: "Fiery Ascendant Temper & Impulsive Anger: Risk to Trusted Alliances",
       icon: "🔥",
-      badgeKn: "ಅಗ್ನಿ ತತ್ವ • ಪಿತ್ತ ಪ್ರಕೋಪ",
+      badgeKn: `${lagnaKn} ಅಗ್ನಿ ತತ್ವ • ಪಿತ್ತ ಪ್ರಕೋಪ`,
       badgeEn: "Fiery Ascendant • Pitta Flare",
       bulletKn: isMale
-        ? `ನಿಮ್ಮ ಜಾತಕದ ಲಗ್ನದ ಅಗ್ನಿ ತತ್ವದಿಂದಾಗಿ, ಸಿಟ್ಟು ಬಂದಾಗ ಕ್ಷಿಪ್ರವಾಗಿ ಭುಗಿಲೆದ್ದು ನೇರ ನಿಷ್ಠುರ ಮಾತುಗಳನ್ನಾಡುವ ಪ್ರವೃತ್ತಿ ಇದೆ. ತಕ್ಷಣವೇ ತಣ್ಣಗಾದರೂ, ಸಿಟ್ಟಿನಲ್ಲಿ ಆಡಿದ ಮಾತುಗಳು ಆಪ್ತರ ಮನಸ್ಸಿಗೆ ತಾಗದಂತೆ ಎಚ್ಚರವಿರಲಿ.`
-        : `ಲಗ್ನದ ಅಗ್ನಿ ತತ್ವದ ಪ್ರಭಾವದಿಂದಾಗಿ, ಅನ್ಯಾಯ ಅಥವಾ ಉಪೇಕ್ಷೆಯನ್ನು ಸಹಿಸದೆ ಹಠಾತ್ ಆವೇಶ ತೋರುವ ಸ್ವಭಾವವಿದೆ; ತಾಳ್ಮೆಯ ಮಾತುಗಳು ನಿಮ್ಮ ಕುಟುಂಬದ ಗೌರವವನ್ನು ಹೆಚ್ಚಿಸುತ್ತವೆ.`,
+        ? `ನಿಮ್ಮ ಜಾತಕದ ${lagnaKn} ಲಗ್ನದ ಅಗ್ನಿ ತತ್ವ ಹಾಗೂ ${moonSignKn} ರಾಶಿಯ ಪ್ರಭಾವದಿಂದಾಗಿ, ಸಿಟ್ಟು ಬಂದಾಗ ಕ್ಷಿಪ್ರವಾಗಿ ಭುಗಿಲೆದ್ದು ನೇರ ನಿಷ್ಠುರ ಮಾತುಗಳನ್ನಾಡುವ ಪ್ರವೃತ್ತಿ ಇದೆ. ತಕ್ಷಣವೇ ತಣ್ಣಗಾದರೂ, ಸಿಟ್ಟಿನಲ್ಲಿ ಆಡಿದ ಮಾತುಗಳು ಆಪ್ತರ ಮನಸ್ಸಿಗೆ ತಾಗದಂತೆ ಎಚ್ಚರವಿರಲಿ.`
+        : `${lagnaKn} ಲಗ್ನದ ಅಗ್ನಿ ತತ್ವ ಹಾಗೂ ${moonSignKn} ರಾಶಿಯ ಪ್ರಭಾವದಿಂದಾಗಿ, ಅನ್ಯಾಯ ಅಥವಾ ಉಪೇಕ್ಷೆಯನ್ನು ಸಹಿಸದೆ ಹಠಾತ್ ಆವೇಶ ತೋರುವ ಸ್ವಭಾವವಿದೆ; ತಾಳ್ಮೆಯ ಮಾತುಗಳು ನಿಮ್ಮ ಕುಟುಂಬದ ಗೌರವವನ್ನು ಹೆಚ್ಚಿಸುತ್ತವೆ.`,
       bulletEn: "Fiery ascendant energy creates sudden surges of anger over perceived injustice or disrespect, though tempers cool just as swiftly.",
-      astrologicalBasisKn: "ಲಗ್ನದ ಅಗ್ನಿ ತತ್ವದ ನೇರ ಪ್ರಭಾವ.",
+      astrologicalBasisKn: `${lagnaKn} ಲಗ್ನದ ಅಗ್ನಿ ತತ್ವದ ನೇರ ಪ್ರಭಾವ.`,
       astrologicalBasisEn: "Fiery ascendant element triggering sudden temper flare-ups."
     };
   } else if (hasSaturnAffliction || isEarthySign) {
     badTrait1 = {
       id: 1,
       type: "bad",
-      titleKn: "ಮೌನ ಹಠಮಾರಿತನ & ಗಂಭೀರ ಅಸಹನೆ: ಸಮಾಧಾನವಾಗದ ಒಳಗಿನ ಮುನಿಸು",
+      titleKn: `${lagnaKn} ಪೃಥ್ವಿ ತತ್ವದ ಮೌನ ಹಠಮಾರಿತನ & ಗಂಭೀರ ಅಸಹನೆ: ಸಮಾಧಾನವಾಗದ ಮುನಿಸು`,
       titleEn: "Silent Stubbornness & Stoic Resentment: Prolonged Grudges",
       icon: "🗿",
-      badgeKn: "ಶನಿ/ಪೃಥ್ವಿ ತತ್ವ • ಮೌನ ಪ್ರತಿರೋಧ",
+      badgeKn: `${lagnaKn} • ಮೌನ ಪ್ರತಿರೋಧ`,
       badgeEn: "Saturn/Earth Element • Stoic Resistance",
-      bulletKn: `ಪೃಥ್ವಿ ತತ್ವ ಮತ್ತು ಶನಿಯ ಪ್ರಭಾವದಿಂದಾಗಿ, ನೀವು ಬಹಿರಂಗವಾಗಿ ಕಿರುಚಾಡಿ ಜಗಳ ಮಾಡುವುದಿಲ್ಲ; ಆದರೆ ತೀವ್ರ ಮೌನ, ಮುನಿಸು ಹಾಗೂ ಹಠದ ಮೂಲಕ ಅಸಮಾಧಾನ ಹೊರಹಾಕುತ್ತೀರಿ. ಒಮ್ಮೆ ಯಾರ ಮೇಲಾದರೂ ಮನಸ್ಸು ಮುರಿದರೆ ಸುಲಭವಾಗಿ ಕ್ಷಮಿಸದೆ ತಿಂಗಳುಗಟ್ಟಲೆ ಅಂತರ ಕಾಯ್ದುಕೊಳ್ಳುವ ಗಂಭೀರ ಹಠಮಾರಿತನ ನಿಮ್ಮಲ್ಲಿದೆ.`,
+      bulletKn: `ನಿಮ್ಮ ${lagnaKn} ಲಗ್ನದ ಪೃಥ್ವಿ ತತ್ವ ಹಾಗೂ ${moonSignKn} ರಾಶಿಯ ಶನಿಯ ಪ್ರಭಾವದಿಂದಾಗಿ, ನೀವು ಬಹಿರಂಗವಾಗಿ ಕಿರುಚಾಡಿ ಜಗಳ ಮಾಡುವುದಿಲ್ಲ; ಆದರೆ ತೀವ್ರ ಮೌನ, ಮುನಿಸು ಹಾಗೂ ಹಠದ ಮೂಲಕ ಅಸಮಾಧಾನ ಹೊರಹಾಕುತ್ತೀರಿ. ಒಮ್ಮೆ ಯಾರ ಮೇಲಾದರೂ ಮನಸ್ಸು ಮುರಿದರೆ ಸುಲಭವಾಗಿ ಕ್ಷಮಿಸದೆ ತಿಂಗಳುಗಟ್ಟಲೆ ಅಂತರ ಕಾಯ್ದುಕೊಳ್ಳುವ ಗಂಭೀರ ಹಠಮಾರಿತನ ನಿಮ್ಮಲ್ಲಿದೆ.`,
       bulletEn: "Earthy Saturnian disposition leads to unyielding passive resistance, holding onto quiet grudges and withdrawing communication rather than expressing explosive anger.",
-      astrologicalBasisKn: "ಶನಿಯ ದೃಷ್ಟಿ ಹಾಗೂ ಪೃಥ್ವಿ ತತ್ವದ ಸ್ಥಿರ ಹಠ.",
+      astrologicalBasisKn: `${lagnaKn} ಲಗ್ನಕ್ಕೆ ಶನಿಯ ದೃಷ್ಟಿ ಹಾಗೂ ಪೃಥ್ವಿ ತತ್ವದ ಸ್ಥಿರ ಹಠ.`,
       astrologicalBasisEn: "Saturnian cold aspect conferring unyielding stubborn resistance."
     };
   } else if (isAirySign || (mercury && rahu && Math.abs(mercury.house - rahu.house) === 0)) {
     badTrait1 = {
       id: 1,
       type: "bad",
-      titleKn: "ತೀಕ್ಷ್ಣ ವಾದ-ವಿವಾದ & ವ್ಯಂಗ್ಯದ ಮಾತುಗಳು: ಮಾತಿನಲ್ಲೇ ಮನಸ್ಸಿಗೆ ಘಾಸಿ ಮಾಡುವ ಅಪಾಯ",
+      titleKn: `${lagnaKn} ವಾಯು ತತ್ವದ ತೀಕ್ಷ್ಣ ವಾದ-ವಿವಾದ & ವ್ಯಂಗ್ಯ: ಮಾತಿನಲ್ಲೇ ಮನಸ್ಸಿಗೆ ಘಾಸಿ ಮಾಡುವ ಅಪಾಯ`,
       titleEn: "Sharp Sarcasm & Relentless Argumentation: Verbal Discord",
       icon: "⚡",
-      badgeKn: "ಬುಧ-ರಾಹು ವಾಯು ತತ್ವ • ವಾಕ್ ತೀಕ್ಷ್ಣತೆ",
+      badgeKn: `${lagnaKn} • ವಾಕ್ ತೀಕ್ಷ್ಣತೆ`,
       badgeEn: "Mercury-Rahu Air Element • Incisive Tongue",
-      bulletKn: `ಬುಧ-ರಾಹುವಿನ ವಾಯು ತತ್ವದ ಪ್ರಭಾವದಿಂದಾಗಿ, ಕೋಪ ಬಂದಾಗ ಶಾರೀರಿಕ ಆಕ್ರೋಶಕ್ಕಿಂತ ಹೆಚ್ಚಾಗಿ ತೀಕ್ಷ್ಣ ವ್ಯಂಗ್ಯದ ಮಾತುಗಳಿಂದ ಎದುರಾಳಿಯ ಮರ್ಮಕ್ಕೆ ತಿವಿಯುವ ಪ್ರವೃತ್ತಿ ಇದೆ. ತಾರ್ಕಿಕವಾಗಿ ವಾದ ಗೆಲ್ಲುವ ಭರದಲ್ಲಿ ಆಪ್ತರ ಭಾವನೆಗಳಿಗೆ ಘಾಸಿ ಮಾಡದಂತೆ ಮುನ್ನೆಚ್ಚರಿಕೆ ವಹಿಸಬೇಕು.`,
+      bulletKn: `ನಿಮ್ಮ ${lagnaKn} ಲಗ್ನದ ವಾಯು ತತ್ವ ಹಾಗೂ ${moonSignKn} ರಾಶಿಯ ಬುಧ-ರಾಹುವಿನ ಪ್ರಭಾವದಿಂದಾಗಿ, ಕೋಪ ಬಂದಾಗ ಶಾರೀರಿಕ ಆಕ್ರೋಶಕ್ಕಿಂತ ಹೆಚ್ಚಾಗಿ ತೀಕ್ಷ್ಣ ವ್ಯಂಗ್ಯದ ಮಾತುಗಳಿಂದ ಎದುರಾಳಿಯ ಮರ್ಮಕ್ಕೆ ತಿವಿಯುವ ಪ್ರವೃತ್ತಿ ಇದೆ. ತಾರ್ಕಿಕವಾಗಿ ವಾದ ಗೆಲ್ಲುವ ಭರದಲ್ಲಿ ಆಪ್ತರ ಭಾವನೆಗಳಿಗೆ ಘಾಸಿ ಮಾಡದಂತೆ ಮುನ್ನೆಚ್ಚರಿಕೆ ವಹಿಸಬೇಕು.`,
       bulletEn: "Airy intellectual friction channels anger through cutting verbal sarcasm and unyielding debate, risking emotional hurt to family and colleagues.",
-      astrologicalBasisKn: "ಬುಧ-ರಾಹುಗಳ ವಾಯು ತತ್ವ ಹಾಗೂ ವಾಕ್ ಸ್ಥಾನದ ತೀಕ್ಷ್ಣತೆ.",
+      astrologicalBasisKn: `${lagnaKn} ಲಗ್ನದ ಬುಧ-ರಾಹುಗಳ ವಾಯು ತತ್ವ ಹಾಗೂ ವಾಕ್ ಸ್ಥಾನದ ತೀಕ್ಷ್ಣತೆ.`,
       astrologicalBasisEn: "Mercurial airy argumentation amplifying verbal friction."
     };
   } else if (isWaterySign || (moon && mars && Math.abs(moon.house - mars.house) === 0)) {
     badTrait1 = {
       id: 1,
       type: "bad",
-      titleKn: "ಒಳಮುಖ ಮುನಿಸು & ಭಾವನಾತ್ಮಕ ನಿಷ್ಠುರತೆ: ಸಣ್ಣ ವಿಷಯಕ್ಕೂ ಮನಸ್ಸು ಮುರಿಯುವಿಕೆ",
+      titleKn: `${lagnaKn} ಜಲ ತತ್ವದ ಒಳಮುಖ ಮುನಿಸು & ಭಾವನಾತ್ಮಕ ನಿಷ್ಠುರತೆ: ಸಣ್ಣ ವಿಷಯಕ್ಕೂ ಮನಸ್ಸು ಮುರಿಯುವಿಕೆ`,
       titleEn: "Emotional Sulking & Sensitive Withdrawal: Hurtful Rumination",
       icon: "🌧️",
-      badgeKn: "ಜಲ ತತ್ವ • ಭಾವನಾತ್ಮಕ ಮುನಿಸು",
+      badgeKn: `${lagnaKn} • ಭಾವನಾತ್ಮಕ ಮುನಿಸು`,
       badgeEn: "Water Element • Emotional Sulking",
-      bulletKn: `ಜಲ ತತ್ವದ ಸಂವೇದನೆಯಿಂದಾಗಿ, ಯಾರಾದರೂ ಸಣ್ಣ ಕಹಿ ಮಾತುಗಳನ್ನಾಡಿದರೂ ಮನಸ್ಸಿಗೆ ಆಳವಾಗಿ ತಗುಲಿ ಊಟ ಬಿಡುವುದು, ಒಂಟಿಯಾಗಿ ಕೊರಗುವುದು ಅಥವಾ ಭಾವನಾತ್ಮಕವಾಗಿ ಕಠಿಣರಾಗುವ ಪ್ರವೃತ್ತಿ ಕಾಣಿಸುತ್ತದೆ. ನೋವನ್ನು ಮುಕ್ತವಾಗಿ ವ್ಯಕ್ತಪಡಿಸಿ ಹಗುರವಾಗುವುದು ಅಗತ್ಯ.`,
+      bulletKn: `ನಿಮ್ಮ ${lagnaKn} ಲಗ್ನದ ಜಲ ತತ್ವ ಹಾಗೂ ${moonSignKn} ಚಂದ್ರನ ಸಂವೇದನೆಯಿಂದಾಗಿ, ಯಾರಾದರೂ ಸಣ್ಣ ಕಹಿ ಮಾತುಗಳನ್ನಾಡಿದರೂ ಮನಸ್ಸಿಗೆ ಆಳವಾಗಿ ತಗುಲಿ ಊಟ ಬಿಡುವುದು, ಒಂಟಿಯಾಗಿ ಕೊರಗುವುದು ಅಥವಾ ಭಾವನಾತ್ಮಕವಾಗಿ ಕಠಿಣರಾಗುವ ಪ್ರವೃತ್ತಿ ಕಾಣಿಸುತ್ತದೆ. ನೋವನ್ನು ಮುಕ್ತವಾಗಿ ವ್ಯಕ್ತಪಡಿಸಿ ಹಗುರವಾಗುವುದು ಅಗತ್ಯ.`,
       bulletEn: "Water sign sensitivity creates recurring cycles of silent sulking, brooding in isolation, and nursing emotional hurt over perceived slights.",
-      astrologicalBasisKn: "ಜಲ ತತ್ವದ ಚಂದ್ರ-ಕುಜರ ಭಾವನಾತ್ಮಕ ಸಂವೇದನೆ.",
+      astrologicalBasisKn: `${lagnaKn} ಲಗ್ನದ ಜಲ ತತ್ವದ ಚಂದ್ರ-ಕುಜರ ಭಾವನಾತ್ಮಕ ಸಂವೇದನೆ.`,
       astrologicalBasisEn: "Water element Moon-Mars sensitivity causing emotional brooding."
     };
   } else {
     badTrait1 = {
       id: 1,
       type: "bad",
-      titleKn: "ಸಂಯಮದ ವಿವೇಚನೆ & ಶಾಂತ ನಡೆ: ಸಮಚಿತ್ತದ ಧೀಮಂತ ನಡವಳಿಕೆ",
+      titleKn: `${lagnaKn} ಲಗ್ನದ ಸಂಯಮದ ವಿವೇಚನೆ & ಶಾಂತ ನಡೆ: ಸಮಚಿತ್ತದ ಧೀಮಂತ ನಡವಳಿಕೆ`,
       titleEn: "Measured Patience & Composure: Balanced Emotional Fortitude",
       icon: "🕊️",
-      badgeKn: "ಸೌಮ್ಯ ಗ್ರಹ ದೃಷ್ಟಿ • ಶಾಂತ ಮನೋಭಾವ",
+      badgeKn: `${lagnaKn} • ಶಾಂತ ಮನೋಭಾವ`,
       badgeEn: "Benefic Aspect • Composed Mind",
-      bulletKn: `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಕುಜ-ರವಿಗಳ ಉಗ್ರ ದೋಷವಿಲ್ಲದಿರುವುದರಿಂದ, ನೀವು ಸಹಜವಾಗಿ ಸಂಯಮ ಮತ್ತು ಶಾಂತ ಸ್ವಭಾವವನ್ನು ಹೊಂದಿದ್ದೀರಿ. ಅನಗತ್ಯ ಕೋಪಕ್ಕೆ ಆಸ್ಪದ ನೀಡದೆ ತಾಳ್ಮೆಯಿಂದ ಸಮಸ್ಯೆಗಳನ್ನು ಪರಿಹರಿಸುವ ವಿವೇಕ ನಿಮ್ಮಲ್ಲಿದೆ; ಆದರೂ ನಿಮ್ಮ ಮೃದು ಸ್ವಭಾವವನ್ನು ಇತರರು ದುರುಪಯೋಗಪಡಿಸಿಕೊಳ್ಳದಂತೆ ಎಚ್ಚರವಿರಲಿ.`,
+      bulletKn: `ನಿಮ್ಮ ${lagnaKn} ಲಗ್ನದ ಜಾತಕದಲ್ಲಿ ಕುಜ-ರವಿಗಳ ಉಗ್ರ ದೋಷವಿಲ್ಲದಿರುವುದರಿಂದ, ನೀವು ಸಹಜವಾಗಿ ಸಂಯಮ ಮತ್ತು ಶಾಂತ ಸ್ವಭಾವವನ್ನು ಹೊಂದಿದ್ದೀರಿ. ಅನಗತ್ಯ ಕೋಪಕ್ಕೆ ಆಸ್ಪದ ನೀಡದೆ ತಾಳ್ಮೆಯಿಂದ ಸಮಸ್ಯೆಗಳನ್ನು ಪರಿಹರಿಸುವ ವಿವೇಕ ನಿಮ್ಮಲ್ಲಿದೆ; ಆದರೂ ನಿಮ್ಮ ಮೃದು ಸ್ವಭಾವವನ್ನು ಇತರರು ದುರುಪಯೋಗಪಡಿಸಿಕೊಳ್ಳದಂತೆ ಎಚ್ಚರವಿರಲಿ.`,
       bulletEn: "Benefic alignment shields your chart from destructive anger, endowing you with measured patience and emotional composure; stay vigilant only to ensure others do not exploit your gentle nature.",
-      astrologicalBasisKn: "ಶುಭ ಗ್ರಹಗಳ ಸೌಮ್ಯ ದೃಷ್ಟಿ ಹಾಗೂ ಶಾಂತ ತತ್ವ.",
+      astrologicalBasisKn: `${lagnaKn} ಲಗ್ನಕ್ಕೆ ಶುಭ ಗ್ರಹಗಳ ಸೌಮ್ಯ ದೃಷ್ಟಿ ಹಾಗೂ ಶಾಂತ ತತ್ವ.`,
       astrologicalBasisEn: "Benefic aspect moderating aggressive impulse."
     };
   }
@@ -3925,97 +4170,102 @@ export const generateGoodAndBadTraits = (
         : "2ನೇ ಮುಖ-ಆಹಾರ ಸ್ಥಾನದ ಮೇಲೆ ಕುಜ ಗ್ರಹದ ಪ್ರಭಾವ.",
       astrologicalBasisEn: "Fiery Mars in 8th house casting 7th direct aspect on 2nd house of oral intake."
     };
+  } else if (diet.hasWeedCannabisHabit || diet.hasSmokingHabit) {
+    badTrait3 = {
+      id: 3,
+      type: "bad",
+      titleKn: diet.hasWeedCannabisHabit
+        ? "ಮದ್ಯಪಾನ, ಧೂಮಪಾನ & ಗಾಂಜಾ/ವೀಡ್ ಚಟ: ಛಾಯಾಗ್ರಹ ರಾಹುವಿನ ಧೂಮ್ರ ಪ್ರಭಾವ"
+        : "ಧೂಮಪಾನ & ತಂಬಾಕು/ಮದ್ಯಪಾನದ ಸೆಳೆತ: 2ನೇ ಭೋಜನ ಸ್ಥಾನದ ಮೇಲೆ ಪಾಪಗ್ರಹ ಪ್ರಭಾವ",
+      titleEn: diet.hasWeedCannabisHabit
+        ? "Cannabis/Weed & Smoking Substance Addiction: Rahu's Smoky Affliction"
+        : "Smoking & Oral Substance Craving: Malefic Affliction on 2nd House",
+      icon: "💨",
+      badgeKn: diet.hasWeedCannabisHabit ? "ರಾಹು ಧೂಮ್ರ • ಗಾಂಜಾ/ವೀಡ್ & ಧೂಮಪಾನ" : "2ನೇ ಸ್ಥಾನ • ಧೂಮಪಾನ & ಚಟ",
+      badgeEn: diet.hasWeedCannabisHabit ? "Rahu Dhuma • Weed/Smoking" : "2nd House • Smoking Habit",
+      bulletKn: isMale
+        ? `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ 2ನೇ ಮುಖ/ಭೋಜನ ಸ್ಥಾನ ಅಥವಾ ಮನಃಕಾರಕ ಚಂದ್ರನ ಮೇಲೆ ಧೂಮ್ರಕಾರಕ ರಾಹುವಿನ ಅಶುಭ ಪ್ರಭಾವವಿರುವುದರಿಂದ, ಗಾಂಜಾ/ವೀಡ್ (Weed/Cannabis), ಧೂಮಪಾನ (Cigarette Smoking) ಅಥವಾ ಮದ್ಯಪಾನದಂತಹ ಅಮಲು ಪದಾರ್ಥಗಳ ತೀವ್ರ ಚಟ ಹಾಗೂ ಆಕರ್ಷಣೆ ಜಾತಕದಲ್ಲಿ ಸ್ಪಷ್ಟವಾಗಿ ಗೋಚರಿಸುತ್ತದೆ. ಆರಂಭದಲ್ಲಿ ಸ್ನೇಹಿತರ ಒತ್ತಾಯ ಅಥವಾ ಮಾನಸಿಕ ಒತ್ತಡ ಕಡಿಮೆ ಮಾಡಲು ಆರಂಭವಾದರೂ, ಇದು ನರಮಂಡಲ, ಶ್ವಾಸಕೋಶ ಹಾಗೂ ಬೌದ್ಧಿಕ ತೇಜಸ್ಸನ್ನು ಕ್ಷೀಣಿಸುವ ಅಪಾಯವಿದೆ; ಶರೀರ ಪಾವಿತ್ರ್ಯ ಹಾಗೂ ವ್ಯಸನಮುಕ್ತಿಗೆ ದೃಢ ಸಂಕಲ್ಪ ಅಗತ್ಯ.`
+        : `ಜಾತಕದಲ್ಲಿ 2ನೇ ಸ್ಥಾನ ಹಾಗೂ ರಾಹುವಿನ ಪ್ರಭಾವದಿಂದಾಗಿ, ಮಾನಸಿಕ ಒತ್ತಡ ಅಥವಾ ಆತಂಕದ ಸಮಯದಲ್ಲಿ ನಶೆ, ಧೂಮಪಾನ ಅಥವಾ ತೀಕ್ಷ್ಣ ಅಮಲು ಪದಾರ್ಥಗಳತ್ತ ಮನಸ್ಸು ಜಾರುವ ಅಪಾಯದ ಸುಳಿವು ಇದೆ; ಆತ್ಮಸಂಯಮ ಮತ್ತು ಆರೋಗ್ಯಕರ ಜೀವನಶೈಲಿ ಕಾಪಾಡಿಕೊಳ್ಳುವುದು ಅಗತ್ಯ.`,
+      bulletEn: "Rahu's intense smoky affliction on the 2nd house of oral intake and mind creates vulnerability to cannabis/weed, cigarette smoking, or alcoholic substances under stress or peer pressure. Conscious de-addiction is essential to safeguard nervous vitality.",
+      astrologicalBasisKn: "2ನೇ ಮುಖ-ಭೋಜನ ಸ್ಥಾನ ಹಾಗೂ ಮನಃಕಾರಕ ಚಂದ್ರನ ಮೇಲೆ ಧೂಮ್ರಕಾರಕ ರಾಹುವಿನ ಅಶುಭ ಪ್ರಭಾವ.",
+      astrologicalBasisEn: "Rahu's smoky affliction on the 2nd house of oral intake and lunar axis."
+    };
+  } else if (diet.isDailyDrinking) {
+    badTrait3 = {
+      id: 3,
+      type: "bad",
+      titleKn: "ಮದ್ಯಪಾನ & ದುಶ್ಚಟಗಳ ನೈಜ ಸ್ಥಿತಿ: ದಿನನಿತ್ಯದ ಮದ್ಯಪಾನ & ತೀವ್ರ ವ್ಯಸನದ ಸೆಳೆತ",
+      titleEn: "Addictions & Drinking Reality: Daily Alcohol Habit & Intense Substance Urge",
+      icon: "🍷",
+      badgeKn: "2ನೇ ಮುಖ & 8ನೇ ಛಾಯಾ • ದಿನನಿತ್ಯದ ಮದ್ಯಪಾನ",
+      badgeEn: "2nd Face & 8th Secret • Daily Alcohol",
+      bulletKn: isMale
+        ? `ನಿಮ್ಮ 2ನೇ ಆಹಾರ/ಮುಖ ಸ್ಥಾನ ಹಾಗೂ 8ನೇ ರಹಸ್ಯ ವ್ಯಸನ ಸ್ಥಾನಗಳ ಮೇಲೆ ಶನಿ ಮತ್ತು ರಾಹುವಿನ ನೇರ ಪ್ರಭಾವವಿರುವುದರಿಂದ, ದಿನನಿತ್ಯದ ಮದ್ಯಪಾನ (Daily Drinking), ಧೂಮಪಾನ ಅಥವಾ ಅಮಲು ಪದಾರ್ಥಗಳ ವ್ಯಸನದ ಪ್ರಬಲ ಸೆಳೆತ ಜಾತಕದಲ್ಲಿ ಸ್ಪಷ್ಟವಾಗಿ ಗೋಚರಿಸುತ್ತದೆ. ಸಂಜೆಯ ವೇಳೆಯಲ್ಲಿ ಅಥವಾ ಮಾನಸಿಕ ಒತ್ತಡದಲ್ಲಿ ಈ ಚಟ ನಿಯಂತ್ರಣ ತಪ್ಪಿ, ಯಕೃತ್ತು (Liver), ಜೀರ್ಣಾಂಗ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಶಾಂತಿಯನ್ನು ಕ್ಷೀಣಿಸಬಹುದು. ಇದಕ್ಕೆ ಗೋಕರ್ಣ ಆತ್ಮಲಿಂಗ ಸಂಕಲ್ಪ ಮುಕ್ತಿ ಅತ್ಯಗತ್ಯ.`
+        : `2ನೇ ಆಹಾರ/ಮುಖ ಸ್ಥಾನ ಹಾಗೂ 8ನೇ ರಹಸ್ಯ ಸ್ಥಾನಗಳ ಮೇಲೆ ಶನಿ-ರಾಹುವಿನ ಪ್ರಭಾವದಿಂದಾಗಿ, ಮಾನಸಿಕ ಒತ್ತಡ ಅಥವಾ ಒಂಟಿತನದಲ್ಲಿ ಮದ್ಯಪಾನ ಅಥವಾ ಅಮಲು ಪದಾರ್ಥಗಳ ವ್ಯಸನದತ್ತ ಮನಸ್ಸು ಜಾರುವ ಅಪಾಯವಿದೆ; ಆರೋಗ್ಯ ರಕ್ಷಣೆಗೆ ಸ್ವಯಂ-ನಿಯಂತ್ರಣ ಅತ್ಯಗತ್ಯ.`,
+      bulletEn: "Affliction across the 2nd house of oral intake and 8th house of secret vices manifests as a regular or daily alcohol habit, demanding conscious detox and spiritual intervention before liver health is compromised.",
+      astrologicalBasisKn: "2ನೇ (ಆಹಾರ/ಮುಖ) ಮತ್ತು 8ನೇ (ರಹಸ್ಯ ವ್ಯಸನ) ಭಾವದ ರಾಹು-ಶನಿ-ಕುಜ ಪ್ರಭಾವ.",
+      astrologicalBasisEn: "Affliction to 2nd house of intake and 8th hidden house by malefics."
+    };
+  } else if (diet.isSocialDrinking) {
+    badTrait3 = {
+      id: 3,
+      type: "bad",
+      titleKn: "ಮದ್ಯಪಾನ & ದುಶ್ಚಟಗಳ ನೈಜ ಸ್ಥಿತಿ: ಪಾರ್ಟಿ & ಸಹವಾಸದ ಮದ್ಯಪಾನದ ಅಪಾಯ",
+      titleEn: "Addiction Tendency: Social & Peer-Induced Drinking Vulnerability",
+      icon: "🍺",
+      badgeKn: "2ನೇ ಭಾವ ರಾಹು/ಶನಿ • ಪಾರ್ಟಿ ಮದ್ಯಪಾನ",
+      badgeEn: "2nd House Aspect • Social Drinking",
+      bulletKn: isMale
+        ? `2ನೇ ವಾಕ್/ಆಹಾರ ಸ್ಥಾನಕ್ಕೆ ಶನಿ-ರಾಹುಗಳ ದೃಷ್ಟಿ ಇರುವುದರಿಂದ, ಸ್ನೇಹಿತರ ಸಹವಾಸ ಅಥವಾ ಪಾರ್ಟಿಗಳ ಸಮಯದಲ್ಲಿ ಮದ್ಯಪಾನ, ಧೂಮಪಾನದಂತಹ ದುಶ್ಚಟಗಳ ಸೆಳೆತ ಉಂಟಾಗುತ್ತದೆ. ಆರಂಭದಲ್ಲಿ ಮನರಂಜನೆಯಾಗಿದ್ದದ್ದು ಕ್ರಮೇಣ ಅಭ್ಯಾಸವಾಗಿ ಬದಲಾಗದಂತೆ ಮುನ್ನೆಚ್ಚರಿಕೆ ವಹಿಸಬೇಕು.`
+        : `2ನೇ ವಾಕ್/ಆಹಾರ ಸ್ಥಾನಕ್ಕೆ ಶನಿ-ರಾಹುಗಳ ದೃಷ್ಟಿಯಿರುವುದರಿಂದ, ಸ್ನೇಹಿತರ ಸಹವಾಸ ಅಥವಾ ಕೂಟಗಳಲ್ಲಿ ಮದ್ಯಪಾನದಂತಹ ಚಪಲ ಕಾಡುವ ಸಾಧ್ಯತೆಯಿದೆ; ಮುನ್ನೆಚ್ಚರಿಕೆ ವಹಿಸುವುದು ಕ್ಷೇಮ.`,
+      bulletEn: "Planetary aspects on the 2nd house create periodic vulnerability to social drinking, smoking, or intoxicating indulgences under peer influence.",
+      astrologicalBasisKn: "2ನೇ ವಾಕ್/ಆಹಾರ ಸ್ಥಾನಕ್ಕೆ ಶನಿ-ರಾಹುಗಳ ದೃಷ್ಟಿ.",
+      astrologicalBasisEn: "Malefic aspect on 2nd house of oral consumption."
+    };
   } else if (diet.isTeetotaler) {
     badTrait3 = {
       id: 3,
       type: "bad",
-      titleKn: "ಸಾತ್ವಿಕ ಜೀವನಶೈಲಿ & ಆಹಾರ ಸಂಸ್ಕಾರ: ದುಶ್ಚಟ ಮುಕ್ತ ಶರೀರ ರಕ್ಷಣೆ (Teetotaler)",
+      titleKn: "ಸಾತ್ವಿಕ ಜೀವನಶೈಲಿ & ಆಹಾರ ಸಂಸ್ಕಾರ: ದುಶ್ಚಟ ಮುಕ್ತ ಶರೀರ ರಕ್ಷಣೆ",
       titleEn: "Sattvic Lifestyle, Pure Dietary Sanctity & Teetotaler Demeanor",
       icon: "🌿",
-      badgeKn: "ಸಾತ್ವಿಕ ಆಹಾರಿ (Teetotaler)",
-      badgeEn: "Pure 2nd House • Sattvic & Teetotaler",
+      badgeKn: "ಸಾತ್ವಿಕ ಆಹಾರಿ • ಶುದ್ಧ ಆಹಾರ",
+      badgeEn: "Pure 2nd House • Sattvic & Clean Habits",
       bulletKn: isMale
-        ? `ನಿಮ್ಮ 2ನೇ ಮುಖ/ಆಹಾರ ಸ್ಥಾನಕ್ಕೆ ಅಥವಾ ದ್ವಿತೀಯಾಧಿಪತಿಗೆ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ದೈವಿಕ ದೃಷ್ಟಿಯಿರುವುದರಿಂದ, ನೀವು ನೈಸರ್ಗಿಕವಾಗಿ ಸಾತ್ವಿಕ ಆಹಾರ ಪ್ರಿಯರು (Teetotaler). ಮದ್ಯಪಾನ, ಧೂಮಪಾನ ಅಥವಾ ಯಾವುದೇ ಮಾದಕ ದ್ರವ್ಯಗಳ ದುಶ್ಚಟವಿಲ್ಲದೆ, ಶರೀರವನ್ನು ದೇವಸ್ಥಾನದಂತೆ ಪರಿಶುದ್ಧವಾಗಿಟ್ಟುಕೊಳ್ಳುವ ಸಾತ್ವಿಕ ಆಹಾರ ಸಂಸ್ಕಾರ ಹಾಗೂ ದುಶ್ಚಟ ಮುಕ್ತ ಶರೀರ ರಕ್ಷಣೆಯ ಆತ್ಮಶಿಸ್ತು ನಿಮ್ಮ ರಕ್ತದಲ್ಲಿದೆ.`
+        ? `ನಿಮ್ಮ 2ನೇ ಮುಖ/ಆಹಾರ ಸ್ಥಾನಕ್ಕೆ ಅಥವಾ ದ್ವಿತೀಯಾಧಿಪತಿಗೆ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ದೈವಿಕ ದೃಷ್ಟಿಯಿರುವುದರಿಂದ, ನೀವು ನೈಸರ್ಗಿಕವಾಗಿ ಸಾತ್ವಿಕ ಆಹಾರ ಪ್ರಿಯರು. ಮದ್ಯಪಾನ, ಧೂಮಪಾನ ಅಥವಾ ಯಾವುದೇ ಮಾದಕ ದ್ರವ್ಯಗಳ ದುಶ್ಚಟವಿಲ್ಲದೆ, ಶರೀರವನ್ನು ದೇವಸ್ಥಾನದಂತೆ ಪರಿಶುದ್ಧವಾಗಿಟ್ಟುಕೊಳ್ಳುವ ಸಾತ್ವಿಕ ಆಹಾರ ಸಂಸ್ಕಾರ ಹಾಗೂ ದುಶ್ಚಟ ಮುಕ್ತ ಶರೀರ ರಕ್ಷಣೆಯ ಆತ್ಮಶಿಸ್ತು ನಿಮ್ಮ ರಕ್ತದಲ್ಲಿದೆ.`
         : `ನಿಮ್ಮ 2ನೇ ಮುಖ/ಆಹಾರ ಸ್ಥಾನಕ್ಕೆ ಅಥವಾ ದ್ವಿತೀಯಾಧಿಪತಿಗೆ ಗುರುವಿನ ಪವಿತ್ರ ದೃಷ್ಟಿಯಿರುವುದರಿಂದ, ನೀವು ಶುದ್ಧ ಸಾತ್ವಿಕ ಆಹಾರ ಪ್ರಿಯರು. ಯಾವುದೇ ದುಶ್ಚಟಗಳಿಗೆ ಆಸ್ಪದ ನೀಡದೆ, ಮಧುರ ಸಂಭಾಷಣೆ ಮತ್ತು ಪರಿಶುದ್ಧ ಸಾತ್ವಿಕ ಆಹಾರ ಸಂಸ್ಕಾರದಿಂದ ಶರೀರ ಹಾಗೂ ಕುಟುಂಬದ ಆರೋಗ್ಯವನ್ನು ಕಾಪಾಡುವ ಶ್ರೇಷ್ಠ ಗುಣ ನಿಮ್ಮಲ್ಲಿದೆ.`,
       bulletEn: "Divine Jupiter aspect on the 2nd house of intake and its lord bestows natural aversion to toxic substances, making the native a disciplined teetotaler with clean dietary habits.",
       astrologicalBasisKn: "2ನೇ ಆಹಾರ ಸ್ಥಾನ/ದ್ವಿತೀಯಾಧಿಪತಿಗೆ ಗುರುವಿನ ದೃಷ್ಟಿ ಹಾಗೂ ಸಾತ್ವಿಕ ಗ್ರಹ ಪ್ರಭಾವ.",
       astrologicalBasisEn: "Guru aspect on 2nd lord or 2nd house protecting dietary purity."
     };
-  } else if (isMale) {
-    if (diet.isDailyDrinking) {
-      badTrait3 = {
-        id: 3,
-        type: "bad",
-        titleKn: "ಮದ್ಯಪಾನ & ದುಶ್ಚಟಗಳ ನೈಜ ಸ್ಥಿತಿ: ದಿನನಿತ್ಯದ ಮದ್ಯಪಾನ & ತೀವ್ರ ವ್ಯಸನದ ಸೆಳೆತ",
-        titleEn: "Addictions & Drinking Reality: Daily Alcohol Habit & Intense Substance Urge",
-        icon: "🍷",
-        badgeKn: "2ನೇ ಮುಖ & 8ನೇ ಛಾಯಾ • ದಿನನಿತ್ಯದ ಮದ್ಯಪಾನ",
-        badgeEn: "2nd Face & 8th Secret • Daily Alcohol",
-        bulletKn: `ನಿಮ್ಮ 2ನೇ ಆಹಾರ/ಮುಖ ಸ್ಥಾನ ಹಾಗೂ 8ನೇ ರಹಸ್ಯ ವ್ಯಸನ ಸ್ಥಾನಗಳ ಮೇಲೆ ಶನಿ ಮತ್ತು ರಾಹುವಿನ ನೇರ ಪ್ರಭಾವವಿರುವುದರಿಂದ, ದಿನನಿತ್ಯದ ಮದ್ಯಪಾನ (Daily Drinking), ಧೂಮಪಾನ ಅಥವಾ ಅಮಲು ಪದಾರ್ಥಗಳ ವ್ಯಸನದ ಪ್ರಬಲ ಸೆಳೆತ ಜಾತಕದಲ್ಲಿ ಸ್ಪಷ್ಟವಾಗಿ ಗೋಚರಿಸುತ್ತದೆ. ಸಂಜೆಯ ವೇಳೆಯಲ್ಲಿ ಅಥವಾ ಮಾನಸಿಕ ಒತ್ತಡದಲ್ಲಿ ಈ ಚಟ ನಿಯಂತ್ರಣ ತಪ್ಪಿ, ಯಕೃತ್ತು (Liver), ಜೀರ್ಣಾಂಗ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಶಾಂತಿಯನ್ನು ಕ್ಷೀಣಿಸಬಹುದು. ಇದಕ್ಕೆ ಗೋಕರ್ಣ ಆತ್ಮಲಿಂಗ ಸಂಕಲ್ಪ ಮುಕ್ತಿ ಅತ್ಯಗತ್ಯ.`,
-        bulletEn: "Affliction across the 2nd house of oral intake and 8th house of secret vices manifests as a regular or daily alcohol habit, demanding conscious detox and spiritual intervention before liver health is compromised.",
-        astrologicalBasisKn: "2ನೇ (ಆಹಾರ/ಮುಖ) ಮತ್ತು 8ನೇ (ರಹಸ್ಯ ವ್ಯಸನ) ಭಾವದ ರಾಹು-ಶನಿ-ಕುಜ ಪ್ರಭಾವ.",
-        astrologicalBasisEn: "Affliction to 2nd house of intake and 8th hidden house by malefics."
-      };
-    } else if (diet.isSocialDrinking) {
-      badTrait3 = {
-        id: 3,
-        type: "bad",
-        titleKn: "ಮದ್ಯಪಾನ & ದುಶ್ಚಟಗಳ ನೈಜ ಸ್ಥಿತಿ: ಪಾರ್ಟಿ & ಸಹವಾಸದ ಮದ್ಯಪಾನದ ಅಪಾಯ",
-        titleEn: "Addiction Tendency: Social & Peer-Induced Drinking Vulnerability",
-        icon: "🍺",
-        badgeKn: "2ನೇ ಭಾವ ರಾಹು/ಶನಿ • ಪಾರ್ಟಿ ಮದ್ಯಪಾನ",
-        badgeEn: "2nd House Aspect • Social Drinking",
-        bulletKn: `2ನೇ ವಾಕ್/ಆಹಾರ ಸ್ಥಾನಕ್ಕೆ ಶನಿ-ರಾಹುಗಳ ದೃಷ್ಟಿ ಇರುವುದರಿಂದ, ಸ್ನೇಹಿತರ ಸಹವಾಸ ಅಥವಾ ಪಾರ್ಟಿಗಳ ಸಮಯದಲ್ಲಿ ಮದ್ಯಪಾನ, ಧೂಮಪಾನದಂತಹ ದುಶ್ಚಟಗಳ ಸೆಳೆತ ಉಂಟಾಗುತ್ತದೆ. ಆರಂಭದಲ್ಲಿ ಮನರಂಜನೆಯಾಗಿದ್ದದ್ದು ಕ್ರಮೇಣ ಅಭ್ಯಾಸವಾಗಿ ಬದಲಾಗದಂತೆ ಮುನ್ನೆಚ್ಚರಿಕೆ ವಹಿಸಬೇಕು.`,
-        bulletEn: "Planetary aspects on the 2nd house create periodic vulnerability to social drinking, smoking, or intoxicating indulgences under peer influence.",
-        astrologicalBasisKn: "2ನೇ ವಾಕ್/ಆಹಾರ ಸ್ಥಾನಕ್ಕೆ ಶನಿ-ರಾಹುಗಳ ದೃಷ್ಟಿ.",
-        astrologicalBasisEn: "Malefic aspect on 2nd house of oral consumption."
-      };
-    } else {
-      badTrait3 = {
-        id: 3,
-        type: "bad",
-        titleKn: "ಸಾತ್ವಿಕ ಜೀವನಶೈಲಿ & ಆಹಾರ ಸಂಸ್ಕಾರ: ದುಶ್ಚಟ ಮುಕ್ತ ಶರೀರ ರಕ್ಷಣೆ",
-        titleEn: "Sattvic Lifestyle & Clean Habits: Freedom from Addictions",
-        icon: "🌿",
-        badgeKn: "2ನೇ ಶುಭ ಸ್ಥಾನ • ಸಾತ್ವಿಕ ಶಿಸ್ತು",
-        badgeEn: "Pure 2nd House • Sattvic Habits",
-        bulletKn: `ನಿಮ್ಮ 2ನೇ ಆಹಾರ ಸ್ಥಾನವು ಶುಭ ಗ್ರಹಗಳ ನಿಯಂತ್ರಣದಲ್ಲಿದ್ದು, ದುಶ್ಚಟಗಳಿಂದ ದೂರವಿರುವ ಸಾತ್ವಿಕ ಸಂಸ್ಕಾರ ನಿಮ್ಮಲ್ಲಿದೆ. ಮದ್ಯಪಾನ, ಧೂಮಪಾನ ಅಥವಾ ವ್ಯಸನಗಳ ಜಾಲಕ್ಕೆ ಬೀಳದೆ ಶರೀರ ಆರೋಗ್ಯವನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳುವ ಇಚ್ಛಾಶಕ್ತಿ ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿದೆ.`,
-        bulletEn: "A clean 2nd house of intake grants natural resistance to toxic substances, supporting clean dietary habits and wholesome physical well-being.",
-        astrologicalBasisKn: "2ನೇ ಮನೆಗೆ ಶುಭ ದೃಷ್ಟಿ ಹಾಗೂ ಸಾತ್ವಿಕ ಗ್ರಹ ಪ್ರಭಾವ.",
-        astrologicalBasisEn: "Clean 2nd house and absence of malefics from intake house."
-      };
-    }
+  } else if (!isMale && diet.hasAddiction) {
+    badTrait3 = {
+      id: 3,
+      type: "bad",
+      titleKn: "ಒತ್ತಡದ ಆಹಾರ ಚಪಲ, ಸಿಹಿ ವ್ಯಸನ & ವಾಕ್ ದೋಷ: ಕೋಪದಲ್ಲಿ ಕಟು ಮಾತುಗಳ ಆಡುವಿಕೆ",
+      titleEn: "Stress Eating, Sugar Craving & Incisive Speech: Emotional Intake Vulnerability",
+      icon: "🧁",
+      badgeKn: "2ನೇ ಭೋಜನ & ವಾಕ್ • ಒತ್ತಡದ ಆಹಾರ",
+      badgeEn: "2nd House Intake • Emotional Eating",
+      bulletKn: `2ನೇ ಭೋಜನ ಹಾಗೂ ವಾಕ್ ಸ್ಥಾನದ ಮೇಲೆ ಶನಿ-ರಾಹು ಅಥವಾ ಕುಜನ ಪ್ರಭಾವವಿರುವುದರಿಂದ, ಮಾನಸಿಕ ಒತ್ತಡ ಅಥವಾ ಆತಂಕವಾದಾಗ ಸಿಹಿ ಪದಾರ್ಥಗಳು, ಜಂಕ್ ಫುಡ್ ಅಥವಾ ಅತಿಯಾದ ಆಹಾರ ಸೇವನೆಯ ಚಪಲ ಕಾಡಬಹುದು. ಜೊತೆಗೆ ಕೋಪ ಬಂದಾಗ ನಾಲಿಗೆಯ ಮೇಲೆ ನಿಯಂತ್ರಣ ತಪ್ಪಿ ಕಟು ಮಾತುಗಳನ್ನಾಡಿ ಆಪ್ತರ ಮನಸ್ಸನ್ನು ನೋಯಿಸುವ ವಾಕ್ ದೋಷದ ಸುಳಿವು ಜಾತಕದಲ್ಲಿದೆ.`,
+      bulletEn: "Planetary tension in the 2nd house of intake and speech manifests as stress eating, sugar cravings, and sharp outbursts during moments of emotional exhaustion.",
+      astrologicalBasisKn: "2ನೇ ಭೋಜನ ಹಾಗೂ ವಾಕ್ ಸ್ಥಾನದ ಮೇಲೆ ಶನಿ-ರಾಹು ಪ್ರಭಾವ.",
+      astrologicalBasisEn: "2nd house affliction affecting dietary intake and verbal restraint."
+    };
   } else {
-    // Female
-    if (diet.hasAddiction) {
-      badTrait3 = {
-        id: 3,
-        type: "bad",
-        titleKn: "ಒತ್ತಡದ ಆಹಾರ ಚಪಲ, ಸಿಹಿ ವ್ಯಸನ & ವಾಕ್ ದೋಷ: ಕೋಪದಲ್ಲಿ ಕಟು ಮಾತುಗಳ ಆಡುವಿಕೆ",
-        titleEn: "Stress Eating, Sugar Craving & Incisive Speech: Emotional Intake Vulnerability",
-        icon: "🧁",
-        badgeKn: "2ನೇ ಭೋಜನ & ವಾಕ್ • ಒತ್ತಡದ ಆಹಾರ",
-        badgeEn: "2nd House Intake • Emotional Eating",
-        bulletKn: `2ನೇ ಭೋಜನ ಹಾಗೂ ವಾಕ್ ಸ್ಥಾನದ ಮೇಲೆ ಶನಿ-ರಾಹು ಅಥವಾ ಕುಜನ ಪ್ರಭಾವವಿರುವುದರಿಂದ, ಮಾನಸಿಕ ಒತ್ತಡ ಅಥವಾ ಆತಂಕವಾದಾಗ ಸಿಹಿ ಪದಾರ್ಥಗಳು, ಜಂಕ್ ಫುಡ್ ಅಥವಾ ಅತಿಯಾದ ಆಹಾರ ಸೇವನೆಯ ಚಪಲ ಕಾಡಬಹುದು. ಜೊತೆಗೆ ಕೋಪ ಬಂದಾಗ ನಾಲಿಗೆಯ ಮೇಲೆ ನಿಯಂತ್ರಣ ತಪ್ಪಿ ಕಟು ಮಾತುಗಳನ್ನಾಡಿ ಆಪ್ತರ ಮನಸ್ಸನ್ನು ನೋಯಿಸುವ ವಾಕ್ ದೋಷದ ಸುಳಿವು ಜಾತಕದಲ್ಲಿದೆ.`,
-        bulletEn: "Planetary tension in the 2nd house of intake and speech manifests as stress eating, sugar cravings, and sharp outbursts during moments of emotional exhaustion.",
-        astrologicalBasisKn: "2ನೇ ಭೋಜನ ಹಾಗೂ ವಾಕ್ ಸ್ಥಾನದ ಮೇಲೆ ಶನಿ-ರಾಹು ಪ್ರಭಾವ.",
-        astrologicalBasisEn: "2nd house affliction affecting dietary intake and verbal restraint."
-      };
-    } else {
-      badTrait3 = {
-        id: 3,
-        type: "bad",
-        titleKn: "ಸಾತ್ವಿಕ ಆಹಾರ ಪದ್ಧತಿ & ಮಧುರ ಸಂಭಾಷಣೆ: ಸಂಸ್ಕಾರಯುತ ಜೀವನಶೈಲಿ",
-        titleEn: "Wholesome Dietary Habits & Sweet Speech: Dignified Demeanor",
-        icon: "🌿",
-        badgeKn: "2ನೇ ಶುಭ ಸ್ಥಾನ • ಮಧುರ ವಾಕ್",
-        badgeEn: "Benefic 2nd House • Sweet Speech",
-        bulletKn: `ನಿಮ್ಮ 2ನೇ ವಾಕ್ ಮತ್ತು ಆಹಾರ ಸ್ಥಾನವು ಶುಭ ಗ್ರಹಗಳ ರಕ್ಷಣೆಯಲ್ಲಿದ್ದು, ಸಾತ್ವಿಕ ಆಹಾರ ಶಿಸ್ತು ಹಾಗೂ ಇತರರಿಗೆ ನೋವಾಗದಂತೆ ಮಧುರವಾಗಿ ಮಾತನಾಡುವ ಸಂಸ್ಕಾರಯುತ ವ್ಯಕ್ತಿತ್ವ ನಿಮ್ಮಲ್ಲಿದೆ. ಆರೋಗ್ಯಕರ ಜೀವನಶೈಲಿ ನಿಮ್ಮ ದೊಡ್ಡ ಶಕ್ತಿ.`,
-        bulletEn: "An unblemished 2nd house bestows disciplined nutritional habits, gentle sweet speech, and wholesome domestic balance.",
-        astrologicalBasisKn: "2ನೇ ಮನೆಗೆ ಶುಭ ದೃಷ್ಟಿ ಹಾಗೂ ಸಾತ್ವಿಕ ಗ್ರಹ ಪ್ರಭಾವ.",
-        astrologicalBasisEn: "Auspicious 2nd house supporting wholesome speech and intake."
-      };
-    }
+    badTrait3 = {
+      id: 3,
+      type: "bad",
+      titleKn: "ಸಾತ್ವಿಕ ಜೀವನಶೈಲಿ & ಆಹಾರ ಸಂಸ್ಕಾರ: ದುಶ್ಚಟ ಮುಕ್ತ ಶರೀರ ರಕ್ಷಣೆ",
+      titleEn: "Sattvic Lifestyle & Clean Habits: Freedom from Addictions",
+      icon: "🌿",
+      badgeKn: "2ನೇ ಶುಭ ಸ್ಥಾನ • ಸಾತ್ವಿಕ ಶಿಸ್ತು",
+      badgeEn: "Pure 2nd House • Sattvic Habits",
+      bulletKn: `ನಿಮ್ಮ 2ನೇ ಆಹಾರ ಸ್ಥಾನವು ಶುಭ ಗ್ರಹಗಳ ನಿಯಂತ್ರಣದಲ್ಲಿದ್ದು, ದುಶ್ಚಟಗಳಿಂದ ದೂರವಿರುವ ಸಾತ್ವಿಕ ಸಂಸ್ಕಾರ ನಿಮ್ಮಲ್ಲಿದೆ. ಮದ್ಯಪಾನ, ಧೂಮಪಾನ ಅಥವಾ ವ್ಯಸನಗಳ ಜಾಲಕ್ಕೆ ಬೀಳದೆ ಶರೀರ ಆರೋಗ್ಯವನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳುವ ಇಚ್ಛಾಶಕ್ತಿ ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿದೆ.`,
+      bulletEn: "A clean 2nd house of intake grants natural resistance to toxic substances, supporting clean dietary habits and wholesome physical well-being.",
+      astrologicalBasisKn: "2ನೇ ಮನೆಗೆ ಶುಭ ದೃಷ್ಟಿ ಹಾಗೂ ಸಾತ್ವಿಕ ಗ್ರಹ ಪ್ರಭಾವ.",
+      astrologicalBasisEn: "Clean 2nd house and absence of malefics from intake house."
+    };
   }
 
   // 4. SPECULATION, WEALTH LOSS & TRAPS EVALUATION
@@ -5385,6 +5635,9 @@ export const generateVedicConsultationAnswer = (
   const sensual = detectNativeSensualAndFidelity(kundli);
   const isDailyDrinking = diet.isDailyDrinking;
   const isSocialDrinking = diet.isSocialDrinking;
+  const hasWeedCannabisHabit = diet.hasWeedCannabisHabit;
+  const hasSmokingHabit = diet.hasSmokingHabit;
+  const hasZardaTobaccoHabit = diet.hasZardaTobaccoHabit;
   const isTeetotaler = diet.isTeetotaler;
 
   // Sensual & Affairs
@@ -5659,11 +5912,15 @@ ${prof.secondaryAlternativeEn ? `• 🔄 Secondary / Alternative Vocation: ${pr
   isChild
     ? `ಇಲ್ಲ! ಇದು ಕೇವಲ ${devoteeAge} ವರ್ಷದ ಮುಗ್ಧ ಬಾಲಕನ ಜಾತಕವಾಗಿದ್ದು, ಮದ್ಯಪಾನ ಅಥವಾ ಯಾವುದೇ ದುಶ್ಚಟಗಳ ಲಕ್ಷಣಗಳಿಲ್ಲ. ಮಗು ನೈಸರ್ಗಿಕವಾಗಿ ಸಾತ್ವಿಕ ಆಹಾರ ಸಂಸ್ಕಾರವುಳ್ಳ ಮುಗ್ಧ ಬಾಲಕ.`
     : isTeetotaler
-    ? "ಇಲ್ಲ! ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಮದ್ಯಪಾನ ಅಥವಾ ದುಶ್ಚಟಗಳ ಯಾವುದೇ ಲಕ್ಷಣಗಳಿಲ್ಲ. ನೀವು ನೈಸರ್ಗಿಕವಾಗಿ ಸಾತ್ವಿಕ ಆಹಾರ ಪ್ರಿಯರು (Teetotaler) ಹಾಗೂ ಸಾತ್ವಿಕ ಆಹಾರ ಸಂಸ್ಕಾರವುಳ್ಳ ಪರಿಶುದ್ಧ ವ್ಯಕ್ತಿ."
+    ? "ಇಲ್ಲ! ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಮದ್ಯಪಾನ ಅಥವಾ ದುಶ್ಚಟಗಳ ಯಾವುದೇ ಲಕ್ಷಣಗಳಿಲ್ಲ. ನೀವು ನೈಸರ್ಗಿಕವಾಗಿ ಸಾತ್ವಿಕ ಆಹಾರ ಪ್ರಿಯರು ಹಾಗೂ ಮದ್ಯಪಾನ-ದುಶ್ಚಟ ಮುಕ್ತವಾದ ಸಾತ್ವಿಕ ಆಹಾರ ಸಂಸ್ಕಾರವುಳ್ಳ ಪರಿಶುದ್ಧ ವ್ಯಕ್ತಿ."
+    : hasWeedCannabisHabit
+    ? "ಹೌದು! ಜಾತಕದಲ್ಲಿ 2ನೇ/8ನೇ ರಾಹು-ಶನಿ ಗ್ರಹಗಳ ಧೂಮ ಪ್ರಭಾವದಿಂದಾಗಿ ಗಾಂಜಾ, ವೀಡ್ (ಧೂಮಪಾನ) ಅಥವಾ ಮಾದಕ ಪದಾರ್ಥಗಳ ಸೇವನೆಯ ಗಂಭೀರ ದುಶ್ಚಟದ ಪ್ರಭಾವವಿದೆ."
     : isDailyDrinking
-    ? "ಹೌದು! ಜಾತಕದಲ್ಲಿ ನಿತ್ಯ ಮದ್ಯಪಾನ (Daily Drinking Habit) ಹಾಗೂ ಸಂಜೆಯಾಗುತ್ತಿದ್ದಂತೆ ಅಮಲು ಪದಾರ್ಥಗಳ ಸೆಳೆತಕ್ಕೆ ಒಳಗಾಗುವ ಗಂಭೀರ ವ್ಯಸನದ ಲಕ್ಷಣಗಳಿವೆ."
+    ? "ಹೌದು! ಜಾತಕದಲ್ಲಿ ನಿತ್ಯ ಮದ್ಯಪಾನ ಹಾಗೂ ಸಂಜೆಯಾಗುತ್ತಿದ್ದಂತೆ ಅಮಲು ಪದಾರ್ಥಗಳ ಸೆಳೆತಕ್ಕೆ ಒಳಗಾಗುವ ಗಂಭೀರ ವ್ಯಸನದ ಲಕ್ಷಣಗಳಿವೆ."
     : isSocialDrinking
-    ? "ಭಾಗಶಃ ಹೌದು. ಇದು ದಿನನಿತ್ಯದ ಚಟವಲ್ಲದಿದ್ದರೂ ಸ್ನೇಹಿತರ ಸಹವಾಸ ಹಾಗೂ ಪಾರ್ಟಿಗಳಲ್ಲಿ ಸಾಮಾಜಿಕ ಮದ್ಯಪಾನ (Social Drinking) ಅಭ್ಯಾಸವಾಗಿ ಬೆಳೆಯುವ ಅಪಾಯವಿದೆ."
+    ? "ಭಾಗಶಃ ಹೌದು. ಇದು ದಿನನಿತ್ಯದ ಚಟವಲ್ಲದಿದ್ದರೂ ಸ್ನೇಹಿತರ ಸಹವಾಸ ಹಾಗೂ ಪಾರ್ಟಿಗಳಲ್ಲಿ ಸಾಮಾಜಿಕ ಮದ್ಯಪಾನದ ಅಭ್ಯಾಸವಾಗಿ ಬೆಳೆಯುವ ಅಪಾಯವಿದೆ."
+    : (hasSmokingHabit || hasZardaTobaccoHabit)
+    ? "ಹೌದು! ಜಾತಕದಲ್ಲಿ ಮದ್ಯಪಾನಕ್ಕಿಂತ ಹೆಚ್ಚಾಗಿ ಧೂಮಪಾನ, ಜರ್ದಾ ಅಥವಾ ತಂಬಾಕು ಸೇವನೆಯ ದುಶ್ಚಟದ ಸೆಳೆತವಿದೆ."
     : "ಇಲ್ಲ! ನಿಮ್ಮ 2ನೇ ಮುಖ/ಆಹಾರ ಸ್ಥಾನ ಹಾಗೂ ಲಗ್ನವು ಸಾತ್ವಿಕವಾಗಿದ್ದು, ಜಾತಕದಲ್ಲಿ ಮದ್ಯಪಾನ ಅಥವಾ ಅಮಲು ಪದಾರ್ಥಗಳ ಯಾವುದೇ ಗಂಭೀರ ವ್ಯಸನದ ಲಕ್ಷಣಗಳಿಲ್ಲ."
 }
 
@@ -5671,23 +5928,27 @@ ${prof.secondaryAlternativeEn ? `• 🔄 Secondary / Alternative Vocation: ${pr
   isTeetotaler
     ? "ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ 2ನೇ ಮುಖ/ಆಹಾರ ಸ್ಥಾನ ಹಾಗೂ ದ್ವಿತೀಯಾಧಿಪತಿಗೆ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ದೈವಿಕ ದೃಷ್ಟಿ ಹಾಗೂ ಸಾತ್ವಿಕ ಗ್ರಹಗಳ ರಕ್ಷಣೆಯಿದೆ. ಇದು ನೈಸರ್ಗಿಕವಾಗಿ ಯಾವುದೇ ಮಾದಕ ವ್ಯಸನಗಳಿಂದ ದೂರವಿರುವ ಶುದ್ಧ ಸಂಸ್ಕಾರ ಹಾಗೂ ಇಂದ್ರಿಯ ನಿಗ್ರಹವನ್ನು ಕರುಣಿಸಿದೆ."
     : `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ 2ನೇ ಆಹಾರ/ಮುಖ ಸ್ಥಾನ ${saturn?.house === 8 ? "8ನೇ ಮನೆಯಲ್ಲಿರುವ ಶನಿಯ 7ನೇ ನೇರ ದೃಷ್ಟಿಗೆ ಒಳಗಾಗಿದೆ — ಇದು ಶಾಸ್ತ್ರದಲ್ಲಿ ನಿತ್ಯ ಮದ್ಯಪಾನದ ಪ್ರಬಲ ಸಂಕೇತ." : ([saturn, rahu, mars, ketu].some(p => p && p.house === 2) ? "2ನೇ ಮನೆಯಲ್ಲೇ ಪಾಪಗ್ರಹಗಳು ಸ್ಥಿತವಾಗಿದ್ದು ಮುಖದ ಸೇವನೆಯನ್ನು ಕೆಡಿಸುತ್ತಿವೆ." : "ಮತ್ತು 8ನೇ ರಹಸ್ಯ ಸ್ಥಾನಗಳ ಮೇಲೆ ಪಾಪಗ್ರಹಗಳ ನೆರಳು ಪ್ರಭಾವವಿದೆ.")} ${
-      isDailyDrinking
-        ? "ಸಂಜೆಯಾಗುತ್ತಿದ್ದಂತೆ ಅಥವಾ ಮಾನಸಿಕ ಒತ್ತಡ ಎದುರಾದಾಗ ಮದ್ಯದ ಸೆಳೆತ ನಿಯಂತ್ರಣ ಮೀರುತ್ತದೆ. ಇದರಿಂದ ಯಕೃತ್ತು (Liver), ನರಮಂಡಲ ಹಾಗೂ ಕೌಟುಂಬಿಕ ನೆಮ್ಮದಿ ಕ್ಷೀಣಿಸುವ ಅಪಾಯವಿದೆ."
+      hasWeedCannabisHabit
+        ? "ರಾಹುವಿನ ಧೂಮ ಪ್ರಭಾವವು ಮನಸ್ಸಿಗೆ ಭ್ರಮೆ ತರುವ ಗಾಂಜಾ, ವೀಡ್ ಅಥವಾ ಮಾದಕ ಹೊಗೆಯ ಸೆಳೆತವನ್ನು ಹೆಚ್ಚಿಸುತ್ತದೆ; ಇದರಿಂದ ಮಾನಸಿಕ ಏಕಾಗ್ರತೆ ಹಾಗೂ ಆರೋಗ್ಯಕ್ಕೆ ಧಕ್ಕೆ ಬರುವ ಅಪಾಯವಿದೆ."
+        : isDailyDrinking
+        ? "ಸಂಜೆಯಾಗುತ್ತಿದ್ದಂತೆ ಅಥವಾ ಮಾನಸಿಕ ಒತ್ತಡ ಎದುರಾದಾಗ ಮದ್ಯದ ಸೆಳೆತ ನಿಯಂತ್ರಣ ಮೀರುತ್ತದೆ. ಇದರಿಂದ ಯಕೃತ್ತು, ನರಮಂಡಲ ಹಾಗೂ ಕೌಟುಂಬಿಕ ನೆಮ್ಮದಿ ಕ್ಷೀಣಿಸುವ ಅಪಾಯವಿದೆ."
         : isSocialDrinking
         ? "ಸ್ನೇಹಿತರ ಒತ್ತಾಯ ಅಥವಾ ಮನರಂಜನೆಯ ನೆಪದಲ್ಲಿ ಆರಂಭವಾಗುವ ಪಾನೀಯ ಸೇವನೆ ಕ್ರಮೇಣ ಅಭ್ಯಾಸವಾಗದಂತೆ ಎಚ್ಚರಿಕೆ ಅಗತ್ಯ."
+        : (hasSmokingHabit || hasZardaTobaccoHabit)
+        ? "ಧೂಮಪಾನ ಅಥವಾ ತಂಬಾಕು ಸೇವನೆಯು ಶ್ವಾಸಕೋಶ ಹಾಗೂ ನರಗಳ ಮೇಲೆ ತೀವ್ರ ಪರಿಣಾಮ ಬೀರುವ ಸಾಧ್ಯತೆಯಿದೆ."
         : "ನಿಮ್ಮ 2ನೇ ಸ್ಥಾನವು ಸಾತ್ವಿಕವಾಗಿದ್ದು, ಆತ್ಮಬಲದಿಂದ ಆರೋಗ್ಯಕರ ಜೀವನಶೈಲಿಯನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳುತ್ತಿದ್ದೀರಿ."
     }`
 }
 
 • ⏳ ನಿಖರ ಕಾಲಾವಧಿ / ತಿರುವು: ${
-  !isTeetotaler && (isDailyDrinking || isSocialDrinking)
+  !isTeetotaler && (isDailyDrinking || isSocialDrinking || hasWeedCannabisHabit || hasSmokingHabit || hasZardaTobaccoHabit)
     ? `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ಅವಧಿಯಲ್ಲಿ, ${dashaTimeText} ದೈವಿಕ ಸಂಕಲ್ಪ ಕೈಗೊಂಡರೆ ಈ ವ್ಯಸನದ ಸೆಳೆತದಿಂದ ಸಂಪೂರ್ಣ ಶಾಶ್ವತ ಮುಕ್ತಿ ಹೊಂದಲು ಸಾಧ್ಯ.`
     : `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ಅವಧಿಯಲ್ಲಿ ನಿಮ್ಮ ಸಾತ್ವಿಕ ಆತ್ಮಬಲ ಸದಾ ಸುರಕ್ಷಿತವಾಗಿರಲಿದೆ.`
 }
 
 • 🪔 ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಪರಿಹಾರ & ಮಾರ್ಗೋಪಾಯ: ${
-  !isTeetotaler && (isDailyDrinking || isSocialDrinking)
-    ? "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ಆತ್ಮಲಿಂಗ ಸ್ಪರ್ಶ, ಪ್ರಾಯಶ್ಚಿತ್ತ ಮಹಾಸಂಕಲ್ಪ ಪೂಜೆ ಮತ್ತು ರಾಹು-ಕೇತು ಶಾಂತಿ ಸೇವೆ ಸಲ್ಲಿಸಿ. ಪ್ರತಿದಿನ ಪ್ರಾತಃಕಾಲ 'ಓಂ ನಮಃ ಶಿವಾಯ' ಪಂಚಾಕ್ಷರಿ ಮಂತ್ರವನ್ನು 108 ಬಾರಿ ಜಪಿಸಿ ಪವಿತ್ರ ತೀರ್ಥ ಸೇವಿಸುವುದರಿಂದ ಮದ್ಯದ ಅಮಲು ಸೆಳೆತ ಕ್ರಮೇಣ ನಾಶವಾಗಲಿದೆ."
+  !isTeetotaler && (isDailyDrinking || isSocialDrinking || hasWeedCannabisHabit || hasSmokingHabit || hasZardaTobaccoHabit)
+    ? "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ಆತ್ಮಲಿಂಗ ಸ್ಪರ್ಶ, ಪ್ರಾಯಶ್ಚಿತ್ತ ಮಹಾಸಂಕಲ್ಪ ಪೂಜೆ ಮತ್ತು ರಾಹು-ಕೇತು ಶಾಂತಿ ಸೇವೆ ಸಲ್ಲಿಸಿ. ಪ್ರತಿದಿನ ಪ್ರಾತಃಕಾಲ 'ಓಂ ನಮಃ ಶಿವಾಯ' ಪಂಚಾಕ್ಷರಿ ಮಂತ್ರವನ್ನು 108 ಬಾರಿ ಜಪಿಸಿ ಪವಿತ್ರ ತೀರ್ಥ ಸೇವಿಸುವುದರಿಂದ ಅಮಲು ಹಾಗೂ ಧೂಮದ ಸೆಳೆತ ಕ್ರಮೇಣ ನಾಶವಾಗಲಿದೆ."
     : "ದಿನನಿತ್ಯ ಪ್ರಾತಃಕಾಲ ಸೂರ್ಯ ಗಾಯತ್ರಿ ಜಪಿಸಿ ಹಾಗೂ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರನಿಗೆ ಕ್ಷೀರಾಭಿಷೇಕ ಸೇವೆ ಸಲ್ಲಿಸಿ ಸದಾ ಸಾತ್ವಿಕ ತೇಜಸ್ಸನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳಿ."
 }`
       );
@@ -5698,10 +5959,14 @@ ${prof.secondaryAlternativeEn ? `• 🔄 Secondary / Alternative Vocation: ${pr
 • 🔮 Direct Daivajna Verdict: ${
   isTeetotaler
     ? "NO! There is absolutely NO signature of alcohol, smoking, or substance addiction in your horoscope. You are a natural teetotaler with wholesome sattvic dietary sanctity."
+    : hasWeedCannabisHabit
+    ? "YES. The horoscope clearly indicates Rahu-Saturn smoke affliction causing cannabis, weed, and intoxicant dependency."
     : isDailyDrinking
     ? "YES. The horoscope clearly indicates an authentic daily drinking habit and vulnerability to evening substance cravings."
     : isSocialDrinking
     ? "PARTIAL RISK. While not a constant daily addiction, peer-driven social drinking at gatherings carries a strong risk of developing into a recurring dependency."
+    : (hasSmokingHabit || hasZardaTobaccoHabit)
+    ? "YES. The horoscope indicates smoking, tobacco, or zarda dependency rather than hard liquor."
     : "NO. Your 2nd house of oral intake and ascendant are sattvic; there is no astrological signature of chronic alcohol or substance addiction."
 }
 
@@ -5712,13 +5977,13 @@ ${prof.secondaryAlternativeEn ? `• 🔄 Secondary / Alternative Vocation: ${pr
 }
 
 • ⏳ Accurate Timeline / Turning Point: ${
-  !isTeetotaler && (isDailyDrinking || isSocialDrinking)
+  !isTeetotaler && (isDailyDrinking || isSocialDrinking || hasWeedCannabisHabit || hasSmokingHabit || hasZardaTobaccoHabit)
     ? `Under the current ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary}, committing to detox ${dashaTimeTextEn} will permanently dissolve the substance grip.`
     : `Under the current ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary}, your wholesome vitality and clean habits will continue to protect you.`
 }
 
 • 🪔 Prescribed Remedies & Solution: ${
-  !isTeetotaler && (isDailyDrinking || isSocialDrinking)
+  !isTeetotaler && (isDailyDrinking || isSocialDrinking || hasWeedCannabisHabit || hasSmokingHabit || hasZardaTobaccoHabit)
     ? "Perform Atma Linga Sparsha, Prayashchitta Sankalpa Pooja, and Rahu-Ketu Shanti at Sri Kshetra Gokarna Mahabaleshwara. Chant the Shiva Panchakshari Mantra 108 times at dawn to purify oral impulses."
     : "Chant the Surya Gayatri Mantra at dawn and sponsor Ksheerabhisheka at Sri Kshetra Gokarna Mahabaleshwara to sustain your spiritual radiance."
 }`

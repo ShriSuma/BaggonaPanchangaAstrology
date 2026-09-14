@@ -2823,14 +2823,40 @@ export async function getComprehensiveKundaliPrediction(
     }
   }
 
-  // 3. Career & Saturn
+  // 3. Career & Saturn (All 12 Signs Dynamic)
   const saturn = k.planets.find(p => p.name === PN.Saturn);
   let careerSaturn = "";
   if (saturn) {
     const saturnRashi = saturn.rashi.index;
-    if ([1, 6].includes(saturnRashi)) careerSaturn = isKn ? "ಆರ್ಥಿಕ ಅಥವಾ ಆಹಾರ ಉದ್ಯಮದಲ್ಲಿ ಯಶಸ್ಸು." : "Success in finance or food industry.";
-    else if ([2, 5].includes(saturnRashi)) careerSaturn = isKn ? "ಬರವಣಿಗೆ, ಲೆಕ್ಕಪತ್ರ ಅಥವಾ ಶಿಕ್ಷಣದಲ್ಲಿ ಯಶಸ್ಸು." : "Success in writing, accounting, or education.";
-    else careerSaturn = isKn ? "ಶನಿಯ ರಾಶಿಯ ಆಧಾರದ ಮೇಲೆ ವೃತ್ತಿ (ಸಾಧಾರಣ ಫಲ)." : "Career path influenced by Saturn's sign.";
+    const careerByRashiKn: Record<number, string> = {
+      0: "ಮೇಷದಲ್ಲಿ ಶನಿ: ತಾಂತ್ರಿಕ ಪರಿಶ್ರಮ, ಯಂತ್ರೋಪಕರಣ, ಸ್ವಯಂ-ಉದ್ಯೋಗ ಅಥವಾ ಕಠಿಣ ಶ್ರಮದ ರಂಗದಲ್ಲಿ ಹಂತ-ಹಂತದ ಯಶಸ್ಸು.",
+      1: "ವೃಷಭದಲ್ಲಿ ಶನಿ: ಆರ್ಥಿಕ ನಿರ್ವಹಣೆ, ಬ್ಯಾಂಕಿಂಗ್, ಕೃಷಿ-ಆಹಾರ ಅಥವಾ ಸ್ಥಿರಾಸ್ತಿ ಉದ್ಯಮದಲ್ಲಿ ಸ್ಥಿರ ಯಶಸ್ಸು.",
+      2: "ಮಿಥುನದಲ್ಲಿ ಶನಿ: ಬರವಣಿಗೆ, ಲೆಕ್ಕಪತ್ರ, ಐಟಿ ತಂತ್ರಜ್ಞಾನ, ಮಾಧ್ಯಮ ಅಥವಾ ಸಂವಹನ ರಂಗದಲ್ಲಿ ಯಶಸ್ಸು.",
+      3: "ಕರ್ಕಾಟಕದಲ್ಲಿ ಶನಿ: ಸಮಾಜ ಸೇವೆ, ಆರೋಗ್ಯ ರಕ್ಷಣೆ, ಆಡಳಿತ ಅಥವಾ ಜನರ ಸಂಪರ್ಕದ ಉದ್ಯೋಗದಲ್ಲಿ ಯಶಸ್ಸು.",
+      4: "ಸಿಂಹದಲ್ಲಿ ಶನಿ: ಸರ್ಕಾರಿ ಗುತ್ತಿಗೆ, ಆಡಳಿತಾತ್ಮಕ ಉಸ್ತುವಾರಿ, ಮೇಲ್ವಿಚಾರಣೆ ಅಥವಾ ಸಂಘಟನಾ ರಂಗದಲ್ಲಿ ಯಶಸ್ಸು.",
+      5: "ಕನ್ಯಾದಲ್ಲಿ ಶನಿ: ಡೇಟಾ ವಿಶ್ಲೇಷಣೆ, ಲೆಕ್ಕಪರಿಶೋಧನೆ (Audit/CA), ಶಿಕ್ಷಣ ಅಥವಾ ತಾಂತ್ರಿಕ ವೃತ್ತಿಯಲ್ಲಿ ನಿಪುಣತೆ.",
+      6: "ತುಲಾದಲ್ಲಿ ಉಚ್ಚ ಶನಿ: ನ್ಯಾಯಾಂಗ, ವಕೀಲ ವೃತ್ತಿ, ದೊಡ್ಡ ಉದ್ಯಮ ಪಾಲುದಾರಿಕೆ ಅಥವಾ ಕೈಗಾರಿಕಾ ರಂಗದಲ್ಲಿ ಉನ್ನತ ಯಶಸ್ಸು.",
+      7: "ವೃಶ್ಚಿಕದಲ್ಲಿ ಶನಿ: ರಹಸ್ಯ ಸಂಶೋಧನೆ, ಗಣಿಗಾರಿಕೆ, ತನಿಖೆ, ಔಷಧ ಅಥವಾ ಯಂತ್ರ ವಿಜ್ಞಾನದಲ್ಲಿ ಯಶಸ್ಸು.",
+      8: "ಧನುಸ್ಸಿನಲ್ಲಿ ಶನಿ: ಕಾನೂನು ಸಲಹೆ, ಶೈಕ್ಷಣಿಕ ಆಡಳಿತ, ಧಾರ್ಮಿಕ ಸಂಸ್ಥೆಗಳ ನಿರ್ವಹಣೆ ಅಥವಾ ಮಾರ್ಗದರ್ಶನ.",
+      9: "ಮಕರದಲ್ಲಿ ಸ್ವಕ್ಷೇತ್ರ ಶನಿ: ಬೃಹತ್ ಕೈಗಾರಿಕೆ, ಸಿವಿಲ್ ನಿರ್ಮಾಣ, ಸರ್ಕಾರಿ ಸೇವೆ ಅಥವಾ ಪ್ರಾಜೆಕ್ಟ್ ಮ್ಯಾನೇಜ್‌ಮೆಂಟ್.",
+      10: "ಕುಂಭದಲ್ಲಿ ಮೂಲತ್ರಿಕೋಣ ಶನಿ: ನೂತನ ವಿಜ್ಞಾನ, ಐಟಿ ತಂತ್ರಜ್ಞಾನ, ಸಮಾಜ ಕಲ್ಯಾಣ ಅಥವಾ ಬೃಹತ್ ಸಂಸ್ಥೆಗಳ ನೇತೃತ್ವ.",
+      11: "ಮೀನದಲ್ಲಿ ಶನಿ: ವಿದೇಶಿ ವ್ಯಾಪಾರ, ಆಧ್ಯಾತ್ಮಿಕ ಕ್ಷೇತ್ರ, ದತ್ತಿ ಸಂಸ್ಥೆಗಳು, ಆಸ್ಪತ್ರೆ ಅಥವಾ ಜಲ ಸಾರಿಗೆಯಲ್ಲಿ ಯಶಸ್ಸು."
+    };
+    const careerByRashiEn: Record<number, string> = {
+      0: "Saturn in Aries: Technical perseverance, mechanics, or self-employment through sustained grit.",
+      1: "Saturn in Taurus: Enduring success in finance, banking, agriculture-food, or real estate.",
+      2: "Saturn in Gemini: Achievement in writing, accounting, IT systems, media, or commercial communication.",
+      3: "Saturn in Cancer: Success in social services, healthcare, administration, or public welfare sectors.",
+      4: "Saturn in Leo: Government liaison, administrative governance, supervisory control, or corporate management.",
+      5: "Saturn in Virgo: Data analytics, auditing/CA, education, or methodical technical execution.",
+      6: "Exalted Saturn in Libra: High distinction in judiciary, legal advocacy, industrial manufacturing, or partnerships.",
+      7: "Saturn in Scorpio: Deep research, mining, forensics, pharmaceuticals, surgery, or technical troubleshooting.",
+      8: "Saturn in Sagittarius: Legal counsel, educational leadership, advisory governance, or institutional stewardship.",
+      9: "Own-sign Saturn in Capricorn: Heavy industries, civil infrastructure, public works, or massive project execution.",
+      10: "Moolatrikona Saturn in Aquarius: Scientific innovation, software engineering, social reforms, or institutional leadership.",
+      11: "Saturn in Pisces: Foreign commerce, philanthropic institutions, healthcare administration, or spiritual services."
+    };
+    careerSaturn = isKn ? (careerByRashiKn[saturnRashi] || "ಶನಿಯ ರಾಶಿಯ ಆಧಾರದ ಮೇಲೆ ವೃತ್ತಿ ಪ್ರಗತಿ.") : (careerByRashiEn[saturnRashi] || "Career path guided by Saturn's sign.");
   }
 
   // 4. Saturn Conjunctions
@@ -2838,28 +2864,54 @@ export async function getComprehensiveKundaliPrediction(
   if (saturn) {
     const conjunctPlanets = k.planets.filter(p => p.name !== PN.Saturn && p.house === saturn.house);
     for (const cp of conjunctPlanets) {
-      if (cp.name === PN.Sun) saturnConjunctions.push(isKn ? "ಶನಿ-ರವಿ ಯುತಿ: ತಂದೆಯೊಂದಿಗೆ ಭಿನ್ನಾಭಿಪ್ರಾಯ." : "Saturn-Sun conjunction: Conflicts with authority or father.");
-      if (cp.name === PN.Moon) saturnConjunctions.push(isKn ? "ಶನಿ-ಚಂದ್ರ ಯುತಿ (ಪುನರ್ಫೂ ದೋಷ): ಮಾನಸಿಕ ಒತ್ತಡ." : "Saturn-Moon conjunction (Punaphoo Dosha): Mental stress.");
-      if (cp.name === PN.Mercury) saturnConjunctions.push(isKn ? "ಶನಿ-ಬುಧ ಯುತಿ: ತಾಂತ್ರಿಕ ಅಥವಾ ಲೆಕ್ಕಪತ್ರ ವೃತ್ತಿ." : "Saturn-Mercury conjunction: Technical or accounting profession.");
-      if (cp.name === PN.Rahu) saturnConjunctions.push(isKn ? "ಶನಿ-ರಾಹು ಯುತಿ (ಶಾಪಿತ ದೋಷ): ಅಡೆತಡೆಗಳು." : "Saturn-Rahu conjunction (Shrapit Dosha): Obstacles.");
-      if (cp.name === PN.Ketu) saturnConjunctions.push(isKn ? "ಶನಿ-ಕೇತು ಯುತಿ: ವೈರಾಗ್ಯ ಅಥವಾ ಆಧ್ಯಾತ್ಮಿಕ ಒಲವು." : "Saturn-Ketu conjunction: Detachment or spiritual inclination.");
+      if (cp.name === PN.Sun) saturnConjunctions.push(isKn ? "ಶನಿ-ರವಿ ಯುತಿ: ತಂದೆಯೊಂದಿಗೆ ಭಿನ್ನಾಭಿಪ್ರಾಯ ಅಥವಾ ಅಧಿಕಾರದ ಸಂಘರ್ಷ." : "Saturn-Sun conjunction: Conflicts with authority or father.");
+      if (cp.name === PN.Moon) saturnConjunctions.push(isKn ? "ಶನಿ-ಚಂದ್ರ ಯುತಿ (ಪುನರ್ಫೂ ದೋಷ): ಮಾನಸಿಕ ಒತ್ತಡ & ಭಾವನಾತ್ಮಕ ಏರಿಳಿತ." : "Saturn-Moon conjunction (Punaphoo Dosha): Mental stress.");
+      if (cp.name === PN.Mercury) saturnConjunctions.push(isKn ? "ಶನಿ-ಬುಧ ಯುತಿ: ತಾಂತ್ರಿಕ, ಗಣಿತ ಅಥವಾ ಲೆಕ್ಕಪತ್ರ ವೃತ್ತಿ." : "Saturn-Mercury conjunction: Technical or accounting profession.");
+      if (cp.name === PN.Rahu) saturnConjunctions.push(isKn ? "ಶನಿ-ರಾಹು ಯುತಿ (ಶಾಪಿತ ದೋಷ): ಆರಂಭಿಕ ಕಾರ್ಯಗಳಲ್ಲಿ ಅಡೆತಡೆಗಳು." : "Saturn-Rahu conjunction (Shrapit Dosha): Obstacles.");
+      if (cp.name === PN.Ketu) saturnConjunctions.push(isKn ? "ಶನಿ-ಕೇತು ಯುತಿ: ವೈರಾಗ್ಯ, ತತ್ವಚಿಂತನೆ ಅಥವಾ ಆಧ್ಯಾತ್ಮಿಕ ಒಲವು." : "Saturn-Ketu conjunction: Detachment or spiritual inclination.");
     }
   }
 
-  // 5. Saturn Aspects & Vipareeta Shani
+  // 5. Saturn Aspects & Vipareeta Shani (All 12 Houses Dynamic)
   const saturnAspects: string[] = [];
   let vipareetaShani: string | null = null;
   if (saturn) {
     const aspect3 = (saturn.house + 2) % 12 || 12;
     const aspect7 = (saturn.house + 6) % 12 || 12;
     const aspect10 = (saturn.house + 9) % 12 || 12;
-    saturnAspects.push(isKn ? `${aspect3}ನೇ ಮನೆಗೆ ದೃಷ್ಟಿ (ವಿಳಂಬ).` : `Aspect on ${aspect3}th house (delays).`);
-    saturnAspects.push(isKn ? `${aspect7}ನೇ ಮನೆಗೆ ದೃಷ್ಟಿ (ವಿಳಂಬ).` : `Aspect on ${aspect7}th house (delays).`);
-    saturnAspects.push(isKn ? `${aspect10}ನೇ ಮನೆಗೆ ದೃಷ್ಟಿ (ವಿಳಂಬ).` : `Aspect on ${aspect10}th house (delays).`);
+    saturnAspects.push(isKn ? `${aspect3}ನೇ ಮನೆಗೆ ದೃಷ್ಟಿ (ವಿಳಂಬ & ಶ್ರಮ).` : `Aspect on ${aspect3}th house (delays & disciplined effort).`);
+    saturnAspects.push(isKn ? `${aspect7}ನೇ ಮನೆಗೆ ದೃಷ್ಟಿ (ವಿಳಂಬ & ಪರೀಕ್ಷೆ).` : `Aspect on ${aspect7}th house (delays & relationship tests).`);
+    saturnAspects.push(isKn ? `${aspect10}ನೇ ಮನೆಗೆ ದೃಷ್ಟಿ (ವಿಳಂಬ & ಕರ್ಮ ಸಿದ್ಧಿ).` : `Aspect on ${aspect10}th house (delays & eventual karma siddhi).`);
 
-    if ([2, 4, 5, 7, 9, 10].includes(saturn.house)) {
-      vipareetaShani = isKn ? "ವಿಪರೀತ ಶನಿ: ಆರಂಭದಲ್ಲಿ ಕಷ್ಟ, ನಂತರ ಅದ್ಭುತ ಯಶಸ್ಸು." : "Vipareeta Shani: Initial struggles followed by great success.";
-    }
+    const vipareetaByHouseKn: Record<number, string> = {
+      1: "1ನೇ ಲಗ್ನದಲ್ಲಿ ಶನಿ: ಆರಂಭಿಕ ಜೀವನದಲ್ಲಿ ಅತಿಯಾದ ಹೋರಾಟ, ಮಧ್ಯವಯಸ್ಸಿನ ನಂತರ ಅಪ್ರತಿಮ ಗೌರವ, ಸ್ಥಿರ ಕೀರ್ತಿ & ದೃಢ ನಾಯಕತ್ವ.",
+      2: "2ನೇ ಧನ ಸ್ಥಾನದಲ್ಲಿ ಶನಿ: ಆರಂಭದಲ್ಲಿ ಕುಟುಂಬ ಆರ್ಥಿಕ ಸಂಕಷ್ಟ, ಸ್ವಂತ ಪರಿಶ್ರಮದಿಂದ ನಂತರದ ವರ್ಷಗಳಲ್ಲಿ ಅಗಾಧ ಸ್ಥಿರಾಸ್ತಿ & ಶಾಶ್ವತ ಉಳಿತಾಯ.",
+      3: "3ನೇ ಭ್ರಾತೃ ಸ್ಥಾನದಲ್ಲಿ ಶನಿ: ಸ್ವಪ್ರಯತ್ನದಿಂದ ಸ್ವಂತ ಸಾಮ್ರಾಜ್ಯ ನಿರ್ಮಾಣ, ಅದಮ್ಯ ಸಾಹಸ, ಸ್ಪರ್ಧಾತ್ಮಕ ಜಯ & ಸ್ವಾವಲಂಬನೆ.",
+      4: "4ನೇ ಸುಖ ಸ್ಥಾನದಲ್ಲಿ ಶನಿ: ಆರಂಭದಲ್ಲಿ ಗೃಹಸುಖದ ಕೊರತೆ & ಸ್ಥಳ ಬದಲಾವಣೆ, 36ರ ನಂತರ ಸ್ವಂತ ಗೃಹ, ಕೃಷಿ ಭೂಮಿ & ಶಾಶ್ವತ ನೆಮ್ಮದಿ.",
+      5: "5ನೇ ಬುದ್ಧಿ ಸ್ಥಾನದಲ್ಲಿ ಶನಿ: ಅಧ್ಯಯನ ಹಾಗೂ ಸಂತಾನ ವಿಚಾರದಲ್ಲಿ ಆರಂಭಿಕ ವಿಳಂಬ, ತೀಕ್ಷ್ಣ ವಿವೇಚನೆ, ಗಂಭೀರ ಚಿಂತನೆ & ಶಾಶ್ವತ ಕೀರ್ತಿ.",
+      6: "6ನೇ ಶತ್ರು ಸ್ಥಾನದಲ್ಲಿ ಶನಿ: ಶತ್ರು ಸಂಹಾರ ಯೋಗ, ಸಕಲ ರೋಗ ಹಾಗೂ ಸಾಲಗಳನ್ನು ಮೆಟ್ಟಿ ನಿಲ್ಲುವ ಅದ್ಭುತ ಚೇತರಿಕೆಯ ಶಕ್ತಿ & ಅಧಿಕಾರ.",
+      7: "7ನೇ ಕಳತ್ರ ಸ್ಥಾನದಲ್ಲಿ ಶನಿ: ದಾಂಪತ್ಯ ಅಥವಾ ಪಾಲುದಾರಿಕೆಯಲ್ಲಿ ಆರಂಭಿಕ ಶೀತಲ ವಿಳಂಬ, ಪ್ರಬುದ್ಧ ಹೊಂದಾಣಿಕೆಯ ನಂತರ ಶಾಶ್ವತ ಸ್ಥಿರ ದಾಂಪತ್ಯ.",
+      8: "8ನೇ ಅಷ್ಟಮ ಸ್ಥಾನದಲ್ಲಿ ಶನಿ: ದೀರ್ಘಾಯುಷ್ಯ ಪ್ರಾಪ್ತಿ, ಜೀವನದ ಹಠಾತ್ ಏರಿಳಿತಗಳನ್ನು ಜೀರ್ಣಿಸಿಕೊಳ್ಳುವ ಅಪ್ರತಿಮ ಸಹಿಷ್ಣುತೆ & ಆಧ್ಯಾತ್ಮಿಕ ಪರಿವರ್ತನೆ.",
+      9: "9ನೇ ಭಾಗ್ಯ ಸ್ಥಾನದಲ್ಲಿ ಶನಿ: ಆರಂಭಿಕ ಭಾಗ್ಯೋದಯದಲ್ಲಿ ವಿಳಂಬ, 36ನೇ ವಯಸ್ಸಿನಿಂದ ದೈವಾನುಗ್ರಹ, ತೀರ್ಥಯಾತ್ರೆ & ಸಮಾಜದಲ್ಲಿ ಸನ್ಮಾನ.",
+      10: "10ನೇ ಕರ್ಮ ಸ್ಥಾನದಲ್ಲಿ ಶನಿ: ಶ್ರಮಜೀವಿ ನಾಯಕತ್ವ, ಆರಂಭಿಕ ಉದ್ಯೋಗ ಅಸ್ಥಿರತೆ ನಂತರ ಉತ್ತುಂಗ ಸ್ಥಾನ, ಸಾರ್ವಜನಿಕ ಅಧಿಕಾರ & ಕರ್ಮ ಯಶಸ್ಸು.",
+      11: "11ನೇ ಲಾಭ ಸ್ಥಾನದಲ್ಲಿ ಶನಿ: ಸರ್ವ ಲಾಭ ಸಿದ್ಧಿ, ನಿರಂತರ ಆದಾಯದ ಮೂಲ, ಹಿರಿಯ ಸ್ನೇಹಿತರ ಬೆಂಬಲ & ಮಹತ್ವಾಕಾಂಕ್ಷೆಗಳ ಪರಿಪೂರ್ಣ ಈಡೇರಿಕೆ.",
+      12: "12ನೇ ವ್ಯಯ ಸ್ಥಾನದಲ್ಲಿ ಶನಿ: ವಿದೇಶ ವಾಸ ಅಥವಾ ದೂರದ ನೆಲೆಯಲ್ಲಿ ಯಶಸ್ಸು, ಅಪ್ರಯೋಜಕ ವೆಚ್ಚಗಳ ನಿಯಂತ್ರಣ ಹಾಗೂ ಆಧ್ಯಾತ್ಮಿಕ ಮುಕ್ತಿ ಸಾಧನೆ."
+    };
+    const vipareetaByHouseEn: Record<number, string> = {
+      1: "1st House Saturn: Rigorous early struggles yielding profound maturity, commanding stature, and unshakeable authority in mid-life.",
+      2: "2nd House Saturn: Early financial constraints transforming into enduring wealth, prudent capital preservation, and massive landed assets.",
+      3: "3rd House Saturn: Self-made enterprise built on relentless personal grit, independent courage, and eventual triumphs over all odds.",
+      4: "4th House Saturn: Early domestic disruptions or relocations leading to solid landed properties and permanent security post-36.",
+      5: "5th House Saturn: Deliberate intellectual depth with initial delays, blossoming into profound strategic discernment and long-term legacy.",
+      6: "6th House Saturn: Formidable Shatru Samhara Yoga, effortlessly crushing rivals, overcoming debts, and emerging victorious through crises.",
+      7: "7th House Saturn: Delays in marriage or serious partnerships, ultimately yielding a pragmatic, enduring, and deeply grounded alliance.",
+      8: "8th House Saturn: Bestows exceptional longevity, profound resilience against sudden shocks, and occult or spiritual transformation.",
+      9: "9th House Saturn: Measured fortunes maturing post age 36, cultivating deep philosophical conviction, dharmic pilgrimages, and respect.",
+      10: "10th House Saturn: Unyielding professional ascent, rising from humble beginnings to executive authority and enduring influence.",
+      11: "11th House Saturn: Enduring cashflows, solid returns from patient investments, and fulfilling grand aspirations through dedication.",
+      12: "12th House Saturn: Foreign settlement or remote career success, detachment from materialism, and profound spiritual introspection."
+    };
+    vipareetaShani = isKn ? (vipareetaByHouseKn[saturn.house] || null) : (vipareetaByHouseEn[saturn.house] || null);
   }
 
   // 6. Health (Roga Vichara)

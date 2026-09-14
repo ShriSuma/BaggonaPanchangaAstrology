@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { calculateKundli } from "../core/KundliEngine";
+import { PlanetName } from "../core/AstroTypes";
 import {
   generatePanchangaAngaSynthesis,
   generateVedicConsultationAnswer,
@@ -155,5 +156,64 @@ describe("Universal Parashari Generalization & Multi-Chart Calibration Audit", (
     expect(diet.hasZardaTobaccoHabit).toBe(true);
     expect(diet.rootCauseKn).toContain("8ನೇ ಮನೆಯಲ್ಲಿರುವ ಅಂಗಾರಕನು 2ನೇ ಮುಖ-ಭೋಜನ ಸ್ಥಾನದ ಮೇಲೆ ನೇರ 7ನೇ ದೃಷ್ಟಿ");
     expect(diet.dietSummaryKn).toContain("ಜರ್ದಾ, ತಂಬಾಕು & ಗುಟ್ಕಾ ವ್ಯಸನ");
+  });
+
+  it("Chart 6 (Weed / Cannabis & Addiction Audit): Native with Rahu in 2nd house is accurately diagnosed with cannabis/weed habit and NEVER proclaimed Teetotaler", () => {
+    const weedKundli = calculateKundli({
+      name: "ಆನಂದ",
+      birthDate: "1993-05-31",
+      birthTime: "09:25",
+      latitude: 14.5479,
+      longitude: 74.3188
+    });
+    // Position Rahu in 2nd house (oral intake/mouth) and Jupiter in 4th (no aspect on 2nd)
+    const pRahu = weedKundli.planets.find(p => p.name === PlanetName.Rahu)!;
+    const pJupiter = weedKundli.planets.find(p => p.name === PlanetName.Jupiter)!;
+    pRahu.house = 2;
+    pJupiter.house = 4;
+
+    const diet = detectNativeDietAndAddiction(weedKundli);
+    expect(diet.hasWeedCannabisHabit).toBe(true);
+    expect(diet.isTeetotaler).toBe(false);
+    expect(diet.hasAddiction).toBe(true);
+    expect(diet.dietSummaryKn).toContain("ಗಾಂಜಾ");
+    expect(diet.dietSummaryKn).toContain("ಧೂಮಪಾನ");
+    expect(diet.dietSummaryKn).not.toContain("(Teetotaler)");
+
+    const context = {
+      birthDate: "1993-05-31",
+      birthTime: "09:25",
+      latitude: 14.5479,
+      longitude: 74.3188,
+      devoteeName: "ಆನಂದ",
+      gender: "Male" as const,
+      devoteeAge: 31
+    };
+
+    const synth = generatePanchangaAngaSynthesis(weedKundli, context);
+    expect(synth.currentDiagnosis.goodBadAnalysis.isTeetotaler).toBe(false);
+
+    const trait3 = synth.currentDiagnosis.goodBadAnalysis.badTraits.find(t => t.id === 3);
+    expect(trait3).toBeDefined();
+    expect(trait3?.badgeKn).toContain("ಗಾಂಜಾ/ವೀಡ್");
+    expect(trait3?.titleKn).toContain("ಗಾಂಜಾ/ವೀಡ್");
+    expect(trait3?.bulletKn).toContain("ಗಾಂಜಾ/ವೀಡ್");
+    expect(trait3?.bulletKn).not.toContain("(Teetotaler)");
+
+    const answer = generateVedicConsultationAnswer(
+      weedKundli,
+      synth.currentDiagnosis,
+      synth.prescriptions,
+      "ನನಗೆ ಮದ್ಯಪಾನ ಅಥವಾ ಗಾಂಜಾ ವ್ಯಸನವಿದೆಯೇ?",
+      "ಆನಂದ",
+      true,
+      31,
+      "kn"
+    );
+    expect(answer).toContain("• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ಹೌದು!");
+    expect(answer).toContain("ಗಾಂಜಾ, ವೀಡ್");
+    expect(answer).not.toContain("(Teetotaler)");
+    expect(answer).not.toContain("(Daily Drinking Habit)");
+    expect(answer).not.toContain("(Social Drinking)");
   });
 });

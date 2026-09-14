@@ -250,14 +250,24 @@ export function diagnoseCurrentLifeSituation(
   // Evaluates Houses 4 (land/home), 3 (brothers/shares), 8 (litigation), 6 (court battles)
   // -------------------------------------------------------------
   let propertyDisputeScore = 0;
-  if (mars && [4, 8].includes(mars.house)) propertyDisputeScore += 3.5;
-  if (fourthLordPlanet && [6, 8, 12].includes(fourthLordPlanet.house)) propertyDisputeScore += 3.0;
-  if (saturn && [4, 8, 10].includes(saturn.house)) propertyDisputeScore += 2.0;
-  if (mars && saturn && [1, 4, 7, 8, 10].includes(houseDistance(saturn.house, mars.house))) propertyDisputeScore += 2.5;
-  if (thirdLordPlanet && [6, 8, 12].includes(thirdLordPlanet.house)) propertyDisputeScore += 2.0;
-  if (sixthLordPlanet && sixthLordPlanet.house === 4) propertyDisputeScore += 2.5;
-  if (rahu && (rahu.house === 4 || rahu.house === 8)) propertyDisputeScore += 2.0;
-  if (shaniMoon === 4 || isAshtamaShani) propertyDisputeScore += 2.0;
+  const is4thHouseAfflicted = Boolean(
+    (mars && mars.house === 4) ||
+    (saturn && saturn.house === 4) ||
+    (rahu && rahu.house === 4) ||
+    (fourthLordPlanet && [6, 8, 12].includes(fourthLordPlanet.house)) ||
+    (sixthLordPlanet && sixthLordPlanet.house === 4)
+  );
+
+  if (is4thHouseAfflicted) {
+    if (mars && mars.house === 4) propertyDisputeScore += 3.5;
+    if (fourthLordPlanet && [6, 8, 12].includes(fourthLordPlanet.house)) propertyDisputeScore += 3.0;
+    if (sixthLordPlanet && sixthLordPlanet.house === 4) propertyDisputeScore += 2.5;
+    if (saturn && saturn.house === 4) propertyDisputeScore += 2.5;
+    if (rahu && rahu.house === 4) propertyDisputeScore += 2.0;
+    if (thirdLordPlanet && [6, 8, 12].includes(thirdLordPlanet.house)) propertyDisputeScore += 1.5;
+    if (mars && saturn && [1, 4, 7, 10].includes(houseDistance(saturn.house, mars.house)) && (mars.house === 4 || saturn.house === 4 || fourthLordPlanet?.house === mars.house || fourthLordPlanet?.house === saturn.house)) propertyDisputeScore += 2.0;
+    if (shaniMoon === 4 || (isAshtamaShani && (mars?.house === 4 || fourthLordPlanet?.house === 8))) propertyDisputeScore += 1.5;
+  }
 
   // -------------------------------------------------------------
   // CRITERION 2: BUSINESS PARTNER DISTRUST / BETRAYAL (ಪಾಲುದಾರರ ವಂಚನೆ / ನಂಬಿಕೆದ್ರೋಹ)
@@ -287,8 +297,8 @@ export function diagnoseCurrentLifeSituation(
   if (seventhLordPlanet?.isDebilitated) marriageDelayScore += 2.5;
   if (hasKujaDosha) marriageDelayScore += 2.0;
   if (venus && [6, 8, 12].includes(venus.house)) marriageDelayScore += 1.5;
-  if (shaniMoon === 7) marriageDelayScore += 2.0;
   if (age >= 26 && age <= 42) marriageDelayScore += 2.5; // Prime matrimonial anxiety age bracket
+  if (age >= 32 && age <= 45 && context.maritalStatus === "unmarried") marriageDelayScore += 2.5; // Acute unmarried anxiety bracket
 
   // CRITICAL PARASHARI SAFEGUARD:
   // If native is explicitly marked "married", delay is 0.
@@ -503,7 +513,7 @@ export function diagnoseCurrentLifeSituation(
   }
 
   // C. Property / Family Share Dispute (ಆಸ್ತಿ ಪಾಲು / ಮನೆಯ ಹಕ್ಕು ವಿವಾದ)
-  if (age >= 24 && propertyDisputeScore >= 5.0) {
+  if (age >= 24 && age < 59 && propertyDisputeScore >= 6.0 && is4thHouseAfflicted) {
     candidates.push({
       category: "property_share_dispute",
       score: propertyDisputeScore,
@@ -571,7 +581,7 @@ export function diagnoseCurrentLifeSituation(
   }
 
   // E. Marital Discord / Samsara Strife (ದಾಂಪತ್ಯ ಬಿಕ್ಕಟ್ಟು & ಸಂಸಾರದಲ್ಲಿ ಕಲಹ)
-  if (age >= 24 && context.maritalStatus !== "unmarried" && maritalDiscordScore >= 4.0) {
+  if (age >= 24 && age < 59 && context.maritalStatus !== "unmarried" && maritalDiscordScore >= 4.0) {
     const spouseKn = isFemale ? "ಪತಿಯೊಂದಿಗೆ" : "ಹೆಂಡತಿಯೊಂದಿಗೆ";
     const spouseEn = isFemale ? "husband" : "wife";
     candidates.push({
@@ -798,7 +808,7 @@ export function diagnoseCurrentLifeSituation(
   if (age >= 59) {
     candidates.push({
       category: "elderly_peace_legacy",
-      score: 5.5,
+      score: 8.5,
       profile: {
         category: "elderly_peace_legacy",
         titleKn: "ವಾನಪ್ರಸ್ಥ ಶಾಂತಿ, ಕುಟುಂಬದ ಭವಿಷ್ಯ, ಆಸ್ತಿ ವಿಲೇವಾರಿ & ಆಧ್ಯಾತ್ಮಿಕ ನೆಮ್ಮದಿ",
@@ -829,19 +839,24 @@ export function diagnoseCurrentLifeSituation(
   }
 
   // L. Default Baseline: Career & Financial Growth Focus
+  const tenthSignIdx = (lagnaIndex + 9) % 12;
+  const tenthSignNameKn = RASHI_KN[tenthSignIdx] || "ದಶಮ";
+  const tenthLordNameKn = PLANET_KN[tenthLord] || "ದಶಮಾಧಿಪತಿ";
+  const runningMahaKn = dashaTiming?.maha ? (PLANET_KN[dashaTiming.maha] || dashaTiming.maha) : "";
+
   candidates.push({
     category: "career_financial_growth",
-    score: age >= 23 && age <= 58 ? 7.5 : 2.0,
+    score: age >= 23 && age <= 58 ? 2.5 : 1.5,
     profile: {
       category: "career_financial_growth",
-      titleKn: "ವೃತ್ತಿ ವಿಕಾಸ, ಆರ್ಥಿಕ ಉನ್ನತಿ & ನೂತನ ಯೋಜನೆಗಳ ಅಡಿಪಾಯ",
-      titleEn: "Career Elevation, Financial Consolidation & Strategic Expansion",
-      headlineKn: "ವೃತ್ತಿಪರ ಉನ್ನತಿ, ಆರ್ಥಿಕ ಸ್ಥಿರತೆ & ಮಹತ್ವಾಕಾಂಕ್ಷೆಯ ನೂತನ ಹೆಜ್ಜೆಗಳು",
-      headlineEn: "Professional Consolidation, Financial Growth & Strategic Strides",
-      detailedRealityKn: `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಯಾವುದೇ ಗಂಭೀರ ಆಪತ್ತುಗಳಿಲ್ಲ; ಬದಲಾಗಿ ನಿಮ್ಮ ಸಂಪೂರ್ಣ ಗಮನವು ವೃತ್ತಿಪರ ಬೆಳವಣಿಗೆ, ಆರ್ಥಿಕ ಭದ್ರತೆ ಹಾಗೂ ಭವಿಷ್ಯದ ನೂತನ ಯೋಜನೆಗಳ ಮೇಲೆ ಕೇಂದ್ರೀಕೃತವಾಗಿದೆ. ನಿಮ್ಮ ಕಠಿಣ ಪರಿಶ್ರಮ ಮತ್ತು ಸಾಮರ್ಥ್ಯವನ್ನು ಮುಂದಿನ ಹಂತಕ್ಕೆ ಕೊಂಡೊಯ್ಯಲು ಸರಿಯಾದ ಕಾಲಾವಕಾಶಕ್ಕಾಗಿ ಕಾಯುತ್ತಿದ್ದೀರಿ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ದಶಾ ಸಂಚಾರವು ನಿಮಗೆ ಹೊಸ ಶಕ್ತಿ ತುಂಬಲಿದೆ.`,
-      detailedRealityEn: `Currently, you are free from acute crises; your focus is geared toward strategic career progress, financial consolidation, and laying foundations for larger achievements.`,
-      planetaryCulpritKn: "10ನೇ ಕರ್ಮ ಸ್ಥಾನ ಹಾಗೂ 2ನೇ/11ನೇ ಧನ ಸ್ಥಾನಗಳ ಸಮತೋಲನ ಸ್ಥಿತಿ.",
-      planetaryCulpritEn: "Balanced alignment across 10th house of career and 2nd/11th houses of wealth.",
+      titleKn: `${tenthSignNameKn} 10ನೇ ಕರ್ಮ ಸ್ಥಾನ: ವೃತ್ತಿ ವಿಕಾಸ, ಆರ್ಥಿಕ ಉನ್ನತಿ & ನೂತನ ಯೋಜನೆಗಳು`,
+      titleEn: `10th House (${RASHI_EN[tenthSignIdx] || 'Karma'}) Career Elevation & Strategic Expansion`,
+      headlineKn: `${tenthSignNameKn} 10ನೇ ಸ್ಥಾನ (${tenthLordNameKn} ಪ್ರಭಾವ): ವೃತ್ತಿಪರ ಉನ್ನತಿ, ಆರ್ಥಿಕ ಸ್ಥಿರತೆ & ನೂತನ ಹೆಜ್ಜೆಗಳು`,
+      headlineEn: `${RASHI_EN[tenthSignIdx] || '10th House'} (${PLANET_EN[tenthLord] || '10th Lord'}): Professional Consolidation & Strategic Strides`,
+      detailedRealityKn: `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಯಾವುದೇ ಗಂಭೀರ ಆಪತ್ತುಗಳಿಲ್ಲ; 10ನೇ ${tenthSignNameKn} ಕರ್ಮ ಭಾವ ಹಾಗೂ ದಶಮಾಧಿಪತಿ ${tenthLordNameKn}ನ ಬಲದಿಂದಾಗಿ ನಿಮ್ಮ ಸಂಪೂರ್ಣ ಗಮನವು ವೃತ್ತಿಪರ ಬೆಳವಣಿಗೆ, ಆರ್ಥಿಕ ಭದ್ರತೆ ಹಾಗೂ ಭವಿಷ್ಯದ ನೂತನ ಯೋಜನೆಗಳ ಮೇಲೆ ಕೇಂದ್ರೀಕೃತವಾಗಿದೆ. ನಿಮ್ಮ ಕಠಿಣ ಪರಿಶ್ರಮ ಮತ್ತು ಸಾಮರ್ಥ್ಯವನ್ನು ಮುಂದಿನ ಹಂತಕ್ಕೆ ಕೊಂಡೊಯ್ಯಲು ಸರಿಯಾದ ಕಾಲಾವಕಾಶಕ್ಕಾಗಿ ಕಾಯುತ್ತಿದ್ದೀರಿ.${runningMahaKn ? ` ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${runningMahaKn} ದಶಾ ಕಾಲಾವಧಿಯು ನಿಮಗೆ ಹೊಸ ಶಕ್ತಿ ತುಂಬಲಿದೆ.` : ""}`,
+      detailedRealityEn: `Currently, you are free from acute crises; your focus is geared toward strategic career progress, financial consolidation, and laying foundations for larger achievements under 10th lord ${PLANET_EN[tenthLord] || tenthLord}.`,
+      planetaryCulpritKn: `10ನೇ ಕರ್ಮ ಸ್ಥಾನ (${tenthSignNameKn}) ಹಾಗೂ ದಶಮಾಧಿಪತಿ ${tenthLordNameKn}ನ ಸಮತೋಲನ ಸ್ಥಿತಿ.`,
+      planetaryCulpritEn: `Balanced alignment across 10th house of career (${RASHI_EN[tenthSignIdx]}) and 2nd/11th houses of wealth.`,
       symptomsChecklistKn: [
         "ಮುಂದಿನ ಭವಿಷ್ಯಕ್ಕಾಗಿ ಹೊಸ ಹೂಡಿಕೆ ಅಥವಾ ವ್ಯವಹಾರ ವಿಸ್ತರಣೆಯ ಯೋಜನೆಗಳು",
         "ವೃತ್ತಿ ರಂಗದಲ್ಲಿ ಹೆಚ್ಚಿನ ಜವಾಬ್ದಾರಿ ಮತ್ತು ಗೌರವ ಪಡೆಯುವ ನಿರಂತರ ಶ್ರಮ",
@@ -942,7 +957,7 @@ export function determineAccurateProfession(
   if (planetsIn10thNames.includes(PlanetName.Rahu)) scores.it_software += 3.5;
   if (amkName === PlanetName.Mercury || amkName === PlanetName.Rahu) scores.it_software += 3.0;
   if ([PlanetName.Mercury, PlanetName.Rahu].includes(tenthFromMoonLord)) scores.it_software += 2.0;
-  if (navTenthLord === PlanetName.Mercury || navTenthLord === PlanetName.Saturn) scores.it_software += 2.0;
+  if (navTenthLord === PlanetName.Mercury || (navTenthLord === PlanetName.Saturn && [PlanetName.Mercury, PlanetName.Rahu].includes(tenthLord))) scores.it_software += 2.0;
 
   // 2. Banking, Finance, Accounts & CA
   if ([1, 5, 2, 8, 11].includes(tenthSignIndex)) scores.banking_finance += 3.0;
@@ -952,6 +967,7 @@ export function determineAccurateProfession(
   if (amkName === PlanetName.Jupiter || amkName === PlanetName.Mercury) scores.banking_finance += 3.0;
   if ([PlanetName.Mercury, PlanetName.Jupiter].includes(tenthLord)) scores.banking_finance += 2.5;
   if (tenthLordPlanet && [2, 11].includes(tenthLordPlanet.house)) scores.banking_finance += 2.5;
+  if (jupiter && venus && jupiter.house === 11 && venus.house === 11) scores.banking_finance += 4.5;
 
   // 3. Teaching, Academics & College Professor
   if ([8, 11, 3, 2].includes(tenthSignIndex)) scores.teaching_academics += 3.5;
@@ -960,7 +976,8 @@ export function determineAccurateProfession(
   if (amkName === PlanetName.Jupiter) scores.teaching_academics += 3.5;
   if (tenthFromMoonLord === PlanetName.Jupiter) scores.teaching_academics += 2.5;
   if (navTenthLord === PlanetName.Jupiter) scores.teaching_academics += 2.0;
-  if (planetsIn10thNames.includes(PlanetName.Ketu)) scores.teaching_academics -= 3.0;
+  if (jupiter && [1, 5, 7, 9].includes(houseDistance(jupiter.house, 9))) scores.teaching_academics += 3.5;
+  if (sun && mercury && sun.house === 1 && mercury.house === 1) scores.teaching_academics += 3.0;
 
   // 4. Medical, Healthcare, Surgery & Pharma
   if (planetsIn10thNames.includes(PlanetName.Sun) && planetsIn10thNames.includes(PlanetName.Mars)) scores.medical_healthcare += 8.0;
@@ -978,38 +995,55 @@ export function determineAccurateProfession(
   if (amkName === PlanetName.Saturn || amkName === PlanetName.Jupiter) scores.legal_judiciary += 3.0;
 
   // 6. Priest, Vedic Scholar, Temple Archaka, Homa-Havana & Astrologer
-  if ([8, 11, 3, 7].includes(tenthSignIndex)) scores.priest_vedic_astrology += 3.5;
-  if (planetsIn10thNames.includes(PlanetName.Jupiter)) scores.priest_vedic_astrology += 3.0;
-  if (planetsIn10thNames.includes(PlanetName.Ketu)) scores.priest_vedic_astrology += 4.5;
-  if (planetsIn10thNames.includes(PlanetName.Jupiter) && planetsIn10thNames.includes(PlanetName.Ketu)) scores.priest_vedic_astrology += 5.5;
   const ninthLord = signLord((lagnaIndex + 8) % 12);
   const ninthLordPlanet = kundli.planets.find(p => p.name === ninthLord);
-  if (ninthLord === tenthLord || (ninthLord && tenthLordPlanet && tenthLordPlanet.house === 9)) scores.priest_vedic_astrology += 3.0;
-  if ([PlanetName.Sun, PlanetName.Jupiter, PlanetName.Ketu].includes(ninthLord) || (sun && sun.house === 9)) scores.priest_vedic_astrology += 2.5;
-  if (amkName === PlanetName.Jupiter) scores.priest_vedic_astrology += 2.5;
-  if (navTenthLord === PlanetName.Jupiter) scores.priest_vedic_astrology += 2.5;
 
   // Classical Vedic signatures for Temple Archaka, Purohita & Homa-Havana:
-  // Signature A: 9th Lord (Dharma/Temple) aspecting its own 9th house of Dharma/Devata
-  if (ninthLordPlanet && [1, 5, 7, 9].includes(houseDistance(ninthLordPlanet.house, 9))) scores.priest_vedic_astrology += 3.5;
-  if (jupiter && ninthLordPlanet?.name !== PlanetName.Jupiter && [1, 5, 7, 9].includes(houseDistance(jupiter.house, 9))) scores.priest_vedic_astrology += 2.5;
-
-  // Signature B: Sun (Devata/Agni/Gayatri) conjunct Ketu (Yajna, Temple, Moksha) -> Classical Agnihotri / Temple Archaka yoga
+  // Signature A: Sun (Devata/Agni/Gayatri) conjunct Ketu (Yajna, Temple, Moksha) -> Classical Agnihotri / Temple Archaka yoga
   const hasSunKetuYajna = Boolean(sun && ketu && sun.house === ketu.house);
-  if (hasSunKetuYajna) scores.priest_vedic_astrology += 5.0;
-  if (ketu && [9, 10].includes(ketu.house)) scores.priest_vedic_astrology += 3.5;
+  if (hasSunKetuYajna) scores.priest_vedic_astrology += 6.0;
+
+  // Signature B: Ketu in 10th or 9th house with Jupiter aspect or in Jupiter's signs (Sagittarius/Pisces)
+  if (ketu && [9, 10].includes(ketu.house)) {
+    if ([8, 11].includes(ketu.rashi.index) || (jupiter && [1, 5, 7, 9].includes(houseDistance(jupiter.house, ketu.house)))) {
+      scores.priest_vedic_astrology += 5.5;
+    }
+    // Guru-Ketu Brahma-Jnana Yoga: Jupiter conjunct Ketu in 10th or 9th house (Supreme Vedic Scholarship & Temple Priesthood)
+    if (jupiter && jupiter.house === ketu.house) {
+      scores.priest_vedic_astrology += 12.0;
+    }
+    if (sun && [9, 10].includes(sun.house)) {
+      scores.priest_vedic_astrology += 3.5;
+    }
+  }
 
   // Signature C: 10th house planet occupying Ketu-ruled Nakshatra (Ashwini, Magha, Moola)
   const ketuNakshatras = [0, 9, 18];
   const hasKetuIn10thStar = planetsIn10th.some(p => ketuNakshatras.includes(p.nakshatra.index));
-  if (hasKetuIn10thStar) scores.priest_vedic_astrology += 4.5;
+  if (hasKetuIn10thStar && (hasSunKetuYajna || (jupiter && [1, 5, 7, 9].includes(houseDistance(jupiter.house, 10))))) {
+    scores.priest_vedic_astrology += 4.5;
+  }
 
-  // Signature D: 10th Lord is Mars (Agni/Fire) channeling sacred fire rituals (Homa, Havana, Agnihotra) when linked with Ketu/Yajna
-  const isMarsDebilitatedOrWater = Boolean(mars?.isDebilitated || (mars && [3, 7, 11].includes(mars.rashi.index)));
-  if (tenthLord === PlanetName.Mars && (hasSunKetuYajna || hasKetuIn10thStar || isMarsDebilitatedOrWater)) {
+  // Signature D: 10th Lord is Mars (Agni/Fire) channeling sacred fire rituals strictly when linked with Ketu/Yajna
+  if (tenthLord === PlanetName.Mars && (hasSunKetuYajna || hasKetuIn10thStar || (ketu && [9, 10].includes(ketu.house)))) {
     if (ninthLord === PlanetName.Jupiter || (jupiter && [1, 5, 7, 9].includes(houseDistance(jupiter.house, 9)))) {
       scores.priest_vedic_astrology += 4.0;
     }
+  }
+
+  // Signature E: 9th Lord (Dharma/Temple) aspecting its own 9th house of Dharma/Devata
+  if (ninthLordPlanet && [1, 5, 7, 9].includes(houseDistance(ninthLordPlanet.house, 9))) {
+    if (ninthLord === PlanetName.Jupiter) {
+      scores.teaching_academics += 3.5;
+      scores.banking_finance += 2.5;
+    } else {
+      scores.teaching_academics += 2.0;
+    }
+  }
+
+  if (ninthLord === PlanetName.Jupiter && !hasSunKetuYajna && (!ketu || ![9, 10].includes(ketu.house))) {
+    scores.teaching_academics += 3.5;
+    scores.banking_finance += 2.5;
   }
 
   // Signature E: Parashara DHARMA-KARMADHIPATI RAJA YOGA
@@ -1066,6 +1100,8 @@ export function determineAccurateProfession(
   if (tenthLord === PlanetName.Sun) scores.government_civil_police += 3.5;
   if (amkName === PlanetName.Sun) scores.government_civil_police += 3.5;
   if (planetsIn10thNames.includes(PlanetName.Mars)) scores.government_civil_police += 2.5;
+  if (tenthLordPlanet && tenthLordPlanet.house === 9) scores.government_civil_police += 3.0;
+  if (sun && sun.house === 1) scores.government_civil_police += 2.5;
 
   // 8. Business, Real Estate, Merchant & Contractor
   if ([1, 6, 7, 9].includes(tenthSignIndex)) scores.business_realestate += 3.0;
@@ -1085,12 +1121,21 @@ export function determineAccurateProfession(
   if (isMarsDebilitated) {
     scores.engineering_core -= 7.0;
   }
+  if (tenthLordPlanet && [6, 8, 12].includes(tenthLordPlanet.house)) {
+    scores.engineering_core -= 3.5;
+  }
 
   // 10. Creative Arts, Media, Journalism & Design
   if ([1, 6, 2].includes(tenthSignIndex)) scores.creative_media += 3.5;
   if (planetsIn10thNames.includes(PlanetName.Venus)) scores.creative_media += 3.5;
   if (tenthLord === PlanetName.Venus) scores.creative_media += 3.0;
-  if (amkName === PlanetName.Venus) scores.creative_media += 3.0;
+  if (amkName === PlanetName.Venus) scores.creative_media += 3.5;
+  if (venus && [1, 6, 11].includes(venus.rashi.index) && [1, 4, 5, 9, 10, 11].includes(venus.house)) scores.creative_media += 3.5;
+
+  // Gender & Religious Guard: Female charts are disqualified from male temple priesthood / homa-havana
+  if (context.gender === "Female") {
+    scores.priest_vedic_astrology = -999;
+  }
 
   const sortedCodes = (Object.keys(scores) as AccurateProfessionCode[]).sort(
     (a, b) => scores[b] - scores[a]

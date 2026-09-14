@@ -971,11 +971,11 @@ STRICT RULES:
                     <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-100/90 via-teal-50 to-emerald-50 border-2 border-emerald-400 space-y-1.5 shadow-sm">
                       <div className="flex items-center gap-2 text-emerald-950 font-black text-xs md:text-sm">
                         <span>✨</span>
-                        <span>{isKn ? "ಚಾರಿತ್ರ್ಯ & ಸದಾಚಾರ ದೃಢೀಕರಣ (Character Purity & Moral Integrity):" : "Character Purity & Moral Integrity:"}</span>
+                        <span>{isKn ? "ಚಾರಿತ್ರ್ಯ & ಸದಾಚಾರ ದೃಢೀಕರಣ:" : "Character Purity & Moral Integrity:"}</span>
                       </div>
                       <p className="text-xs md:text-sm text-stone-800 leading-relaxed font-medium">
                         {isKn
-                          ? `${currentDiagnosis.goodBadAnalysis.isTeetotaler ? "🍃 ಜಾತಕರ 2ನೇ ಧನ-ಆಹಾರ ಸ್ಥಾನದ ಮೇಲೆ ಗುರು/ಶುಭ ಗ್ರಹ ದೃಷ್ಟಿ ರಕ್ಷಣೆ ಇರುವುದರಿಂದ ಸಾತ್ವಿಕ ಆಹಾರ ಪದ್ಧತಿ ಹೊಂದಿದ್ದು, ಮದ್ಯಪಾನ-ದುಶ್ಚಟಗಳಿಂದ ಮುಕ್ತವಾದ ಶುದ್ಧ ಶರೀರ ಹೊಂದಿದ್ದಾರೆ (Teetotaler). " : ""}${currentDiagnosis.goodBadAnalysis.hasMaritalFidelity ? `💍 7ನೇ ಕಳತ್ರ ಸ್ಥಾನದಲ್ಲಿ ಶುಭ ಗ್ರಹ ಕವಚವಿರುವುದರಿಂದ ದಾಂಪತ್ಯದಲ್ಲಿ ಅಚಲ ನಿಷ್ಠೆ ಹೊಂದಿದ್ದು, ಅನೈತಿಕ ಸಂಬಂಧಗಳಿಂದ ಸಂಪೂರ್ಣ ದೂರವಿದ್ದಾರೆ (${session.input.gender === "Female" ? "ಏಕಪತಿ ವ್ರತ" : "ಏಕಪತ್ನಿ ವ್ರತ"}).` : ""}`
+                          ? `${currentDiagnosis.goodBadAnalysis.isTeetotaler ? "🍃 ಜಾತಕರ 2ನೇ ಧನ-ಆಹಾರ ಸ್ಥಾನದ ಮೇಲೆ ಗುರು/ಶುಭ ಗ್ರಹ ದೃಷ್ಟಿ ರಕ್ಷಣೆ ಇರುವುದರಿಂದ ಸಾತ್ವಿಕ ಆಹಾರ ಪದ್ಧತಿ ಹೊಂದಿದ್ದು, ಮದ್ಯಪಾನ-ದುಶ್ಚಟಗಳಿಂದ ಮುಕ್ತವಾದ ಪರಿಶುದ್ಧ ಸಾತ್ವಿಕ ಶರೀರ ರಕ್ಷಣೆ ಹೊಂದಿದ್ದಾರೆ. " : ""}${currentDiagnosis.goodBadAnalysis.hasMaritalFidelity ? `💍 7ನೇ ಕಳತ್ರ ಸ್ಥಾನದಲ್ಲಿ ಶುಭ ಗ್ರಹ ಕವಚವಿರುವುದರಿಂದ ದಾಂಪತ್ಯದಲ್ಲಿ ಅಚಲ ನಿಷ್ಠೆ ಹೊಂದಿದ್ದು, ಅನೈತಿಕ ಸಂಬಂಧಗಳಿಂದ ಸಂಪೂರ್ಣ ದೂರವಿದ್ದಾರೆ (${session.input.gender === "Female" ? "ಏಕಪತಿ ವ್ರತ" : "ಏಕಪತ್ನಿ ವ್ರತ"}).` : ""}`
                           : `${currentDiagnosis.goodBadAnalysis.isTeetotaler ? "🍃 Benefic and Jupiterian aspects on the 2nd house protect dietary purity, ensuring a clean teetotaler lifestyle free of alcohol or intoxicants. " : ""}${currentDiagnosis.goodBadAnalysis.hasMaritalFidelity ? "💍 Divine protection on the 7th house ensures steadfast marital fidelity and pure moral character." : ""}`}
                       </p>
                     </div>
