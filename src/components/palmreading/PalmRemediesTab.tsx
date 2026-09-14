@@ -103,8 +103,87 @@ export const PalmRemediesTab: React.FC<PalmRemediesTabProps> = ({
         </div>
       </div>
 
-      {/* Dynamic Personalized Prescription Card (from AI result) */}
-      {personalizedAiRemedy && (
+      {/* Dynamic Personalized Divine Prescription (from AI / Classical Vedic Engine) */}
+      {result?.personalizedRemedy && (
+        <div className="rounded-2xl border-2 border-amber-400 bg-gradient-to-r from-amber-100 via-amber-50 to-orange-100 p-5 shadow-md space-y-4">
+          <div className="flex items-center justify-between border-b border-amber-300/80 pb-2">
+            <div className="flex items-center gap-2 font-serif text-base font-bold text-amber-950">
+              <span className="text-2xl select-none">🪔</span>
+              <span>{getT("personalRemedyTitle")}</span>
+            </div>
+            <span className="text-[10px] bg-amber-200/80 text-amber-900 font-extrabold px-3 py-1 rounded-full border border-amber-300">
+              {langKey === "kn" ? "ವೈಯಕ್ತಿಕ ದೈವಿಕ ಸಂಕಲ್ಪ" : "Individualized Prescription"}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+            {/* 1. Primary Gemstone */}
+            <div className="rounded-xl bg-white p-3.5 border border-amber-200 shadow-xs space-y-1.5">
+              <div className="flex items-center justify-between text-amber-900 font-extrabold">
+                <span>💎 {langKey === "kn" ? "ಪ್ರಧಾನ ರತ್ನ" : "Prescribed Gem"}</span>
+                <span className="text-[10px] bg-amber-100 text-amber-950 px-2 py-0.5 rounded font-bold">
+                  {result.personalizedRemedy.primaryGemstone.finger[langKey] || result.personalizedRemedy.primaryGemstone.finger.kn}
+                </span>
+              </div>
+              <div className="font-serif text-sm font-bold text-amber-950">
+                {result.personalizedRemedy.primaryGemstone.name[langKey] || result.personalizedRemedy.primaryGemstone.name.kn}
+              </div>
+              <div className="text-[11px] text-amber-900 font-medium">
+                <strong>{langKey === "kn" ? "ಲೋಹ:" : "Metal:"}</strong> {result.personalizedRemedy.primaryGemstone.metal[langKey] || result.personalizedRemedy.primaryGemstone.metal.kn}
+              </div>
+              <p className="text-[11px] text-slate-800 leading-relaxed font-medium pt-0.5">
+                {result.personalizedRemedy.primaryGemstone.benefit[langKey] || result.personalizedRemedy.primaryGemstone.benefit.kn}
+              </p>
+              {result.personalizedRemedy.primaryGemstone.mantra && (
+                <div className="mt-1 rounded-lg bg-amber-50 p-2 border border-amber-200 text-[11px] font-mono text-amber-950 font-bold">
+                  📿 {result.personalizedRemedy.primaryGemstone.mantra}
+                </div>
+              )}
+            </div>
+
+            {/* 2. Primary Rudraksha */}
+            <div className="rounded-xl bg-white p-3.5 border border-amber-200 shadow-xs space-y-1.5">
+              <div className="flex items-center justify-between text-amber-900 font-extrabold">
+                <span>📿 {langKey === "kn" ? "ಪವಿತ್ರ ರುದ್ರಾಕ್ಷಿ" : "Prescribed Rudraksha"}</span>
+                <span className="text-[10px] bg-emerald-100 text-emerald-950 px-2 py-0.5 rounded font-bold">
+                  {result.personalizedRemedy.primaryRudraksha.mukhi} Mukhi
+                </span>
+              </div>
+              <div className="font-serif text-sm font-bold text-amber-950">
+                {result.personalizedRemedy.primaryRudraksha.name[langKey] || result.personalizedRemedy.primaryRudraksha.name.kn}
+              </div>
+              <div className="text-[11px] text-amber-900 font-medium">
+                <strong>{langKey === "kn" ? "ಅಧಿದೇವತೆ:" : "Deity:"}</strong> {result.personalizedRemedy.primaryRudraksha.deity[langKey] || result.personalizedRemedy.primaryRudraksha.deity.kn}
+              </div>
+              <p className="text-[11px] text-slate-800 leading-relaxed font-medium pt-0.5">
+                {result.personalizedRemedy.primaryRudraksha.benefit[langKey] || result.personalizedRemedy.primaryRudraksha.benefit.kn}
+              </p>
+            </div>
+
+            {/* 3. Temple Seva */}
+            <div className="rounded-xl bg-white p-3.5 border border-amber-200 shadow-xs space-y-1.5">
+              <div className="flex items-center justify-between text-amber-900 font-extrabold">
+                <span>🪔 {langKey === "kn" ? "ಕ್ಷೇತ್ರ ಸೇವಾ ಸಂಕಲ್ಪ" : "Temple Seva"}</span>
+                <span className="text-[10px] bg-orange-100 text-orange-950 px-2 py-0.5 rounded font-bold">
+                  Gokarna
+                </span>
+              </div>
+              <div className="font-serif text-sm font-bold text-amber-950">
+                {result.personalizedRemedy.templeSeva.templeName[langKey] || result.personalizedRemedy.templeSeva.templeName.kn}
+              </div>
+              <div className="text-[11px] text-emerald-900 font-bold">
+                {result.personalizedRemedy.templeSeva.sevaName[langKey] || result.personalizedRemedy.templeSeva.sevaName.kn}
+              </div>
+              <p className="text-[11px] text-slate-800 leading-relaxed font-medium pt-0.5">
+                <strong>{langKey === "kn" ? "ಸಂಕಲ್ಪ:" : "Sankalpa:"}</strong> {result.personalizedRemedy.templeSeva.sankalpa[langKey] || result.personalizedRemedy.templeSeva.sankalpa.kn}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fallback Dynamic Prescription Text if no structured remedy */}
+      {!result?.personalizedRemedy && personalizedAiRemedy && (
         <div className="rounded-2xl border-2 border-amber-400 bg-gradient-to-r from-amber-100 via-amber-50 to-orange-100 p-4 shadow-sm space-y-2">
           <div className="flex items-center gap-2 font-serif text-sm font-bold text-amber-950 border-b border-amber-300/80 pb-1.5">
             <span className="text-xl">🪔</span>

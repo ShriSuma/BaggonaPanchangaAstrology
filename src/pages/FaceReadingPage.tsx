@@ -227,6 +227,34 @@ const FACE_PAGE_DICT: Record<string, Record<string, string>> = {
     te: "👁️ సప్త ముఖ లక్షణాల విశ్లేషణ (7 Facial Contours):",
     ta: "👁️ ஏழு முக லட்சண பகுப்பாய்வு (7 Facial Contours):"
   },
+  quickStatsHeading: {
+    kn: "✨ ಮುಖ ಸಾಮುದ್ರಿಕ ಪ್ರಮುಖ ಮುಖ್ಯಾಂಶಗಳು (Quick Highlights):",
+    en: "✨ Vedic Face Reading Key Highlights:",
+    hi: "✨ मुख सामुद्रिक मुख्य सारांश:",
+    te: "✨ ముఖ సాముద్రిక ప్రధాన ముఖ్యాంశాలు:",
+    ta: "✨ வேத முக சாமுத்ரிகா முக்கிய சிறப்பம்சங்கள்:"
+  },
+  ageEstimateLabel: {
+    kn: "ಅಂದಾಜು ರೇಖಾ ವಯಸ್ಸು:",
+    en: "Contour Age:",
+    hi: "रेखा आयु:",
+    te: "రేఖ వయస్సు:",
+    ta: "ரேகை வயது:"
+  },
+  archetypeLabel: {
+    kn: "ಮಹಾಪುರುಷ ಯೋಗ:",
+    en: "Mahapurusha Archetype:",
+    hi: "महापुरुष योग:",
+    te: "మహాపురుష యోగం:",
+    ta: "மகாபுருஷ யோகம்:"
+  },
+  exploreDeepTabs: {
+    kn: "👉 ಪೂರ್ಣ ಸಪ್ತ ಮುಖ ಲಕ್ಷಣಗಳು, ೧೦೦-ವರ್ಷ ಕಾಲಚಕ್ರ ಹಾಗೂ ಮಚ್ಚೆ ಶಾಸ್ತ್ರವನ್ನು ಮೇಲಿನ ಟ್ಯಾಬ್‌ಗಳಲ್ಲಿ ವೀಕ್ಷಿಸಿ.",
+    en: "👉 Deep dive into all 7 Features, 100-Year Age Map, and Moles in the tabs above.",
+    hi: "👉 संपूर्ण 7 लक्षण, 100-वर्षीय कालचक्र व तिल शास्त्र ऊपर के टैब में देखें।",
+    te: "👉 సంపూర్ణ 7 లక్షణాలు, 100-సంవత్సరాల కాలచక్రం & మచ్చల వివరాలు పై ట్యాబ్‌లలో చూడండి.",
+    ta: "👉 முழுமையான 7 லட்சணங்கள், 100-ஆண்டு காலச்சக்கரம் மற்றும் மச்சங்களை மேலே உள்ள பகுதிகளில் காண்க."
+  },
   guidanceHeading: {
     kn: "📜 ಪೂರ್ಣ ಮುಖ ಸಾಮುದ್ರಿಕ ಭವಿಷ್ಯ (Vedic Guidance):",
     en: "📜 Complete Vedic Face Reading Guidance:",
@@ -432,7 +460,7 @@ export default function FaceReadingPage(): JSX.Element {
         result
       };
 
-      setMessages((prev) => [...prev, priestMsg]);
+      setMessages([priestMsg]);
       setActiveTab("reading");
     } catch (err) {
       console.error("Face reading error:", err);
@@ -837,20 +865,54 @@ export default function FaceReadingPage(): JSX.Element {
                             </div>
                           </div>
 
-                          {/* 7 Facial Features Summary Matrix */}
-                          <div className="rounded-xl border border-amber-300 bg-white p-3.5 shadow-sm space-y-2">
-                            <div className="text-xs font-bold text-amber-950 border-b border-amber-200 pb-1">
-                              {t("contoursHeading", selectedLang)}
+                          {/* Quick Highlights Card (Replaced duplicate 7 features matrix with high-level summary & tab switchers) */}
+                          <div className="rounded-xl border border-amber-300 bg-white p-3.5 shadow-sm space-y-2.5">
+                            <div className="text-xs font-bold text-amber-950 border-b border-amber-200 pb-1 flex items-center justify-between">
+                              <span>{t("quickStatsHeading", selectedLang)}</span>
+                              <span className="text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full border border-amber-200">
+                                🕉️ Brihat Samhita
+                              </span>
                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                              {msg.result.features.map((f, i) => (
-                                <div key={i} className="rounded-lg bg-amber-50/70 p-2 border border-amber-200/60">
-                                  <div className="font-bold text-amber-900">
-                                    {f.name[selectedLang] || f.name.kn} ({f.planetaryRuler[selectedLang] || f.planetaryRuler.kn}):
-                                  </div>
-                                  <div className="text-amber-950">{f.vedicIndication[selectedLang] || f.vedicIndication.kn}</div>
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                              <div className="rounded-lg bg-amber-50/70 p-2 border border-amber-200/60">
+                                <div className="text-[10px] font-bold text-amber-800 uppercase">
+                                  {t("ageEstimateLabel", selectedLang)}
                                 </div>
-                              ))}
+                                <div className="text-sm font-extrabold text-amber-950 mt-0.5">
+                                  ~{msg.result.estimatedAge} {selectedLang === "kn" ? "ವರ್ಷಗಳು" : "Years"}
+                                </div>
+                              </div>
+                              <div className="rounded-lg bg-amber-50/70 p-2 border border-amber-200/60">
+                                <div className="text-[10px] font-bold text-amber-800 uppercase">
+                                  {t("archetypeLabel", selectedLang)}
+                                </div>
+                                <div className="text-xs font-extrabold text-amber-950 mt-0.5 truncate">
+                                  {msg.result.facialConstitution.mahapurushaArchetype[selectedLang] || msg.result.facialConstitution.mahapurushaArchetype.kn}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Deep Dive Action Prompts */}
+                            <div className="rounded-lg bg-gradient-to-r from-amber-50 via-amber-100/50 to-orange-50 p-2.5 border border-amber-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
+                              <span className="text-amber-900 font-semibold">
+                                {t("exploreDeepTabs", selectedLang)}
+                              </span>
+                              <div className="flex gap-1.5 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => setActiveTab("features")}
+                                  className="px-2.5 py-1 bg-amber-800 hover:bg-amber-900 text-amber-50 font-bold rounded-lg text-[11px] shadow-sm transition"
+                                >
+                                  {t("tabFeatures", selectedLang)} →
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setActiveTab("chronology")}
+                                  className="px-2.5 py-1 bg-amber-100 hover:bg-amber-200 text-amber-950 font-bold rounded-lg text-[11px] border border-amber-300 transition"
+                                >
+                                  {t("tabChronology", selectedLang)} →
+                                </button>
+                              </div>
                             </div>
                           </div>
 
@@ -934,7 +996,11 @@ export default function FaceReadingPage(): JSX.Element {
 
       {/* TAB 4: Moles & Remedies */}
       {activeTab === "moles" && (
-        <FaceMolesTab moles={activeResult?.moles} lang={selectedLang} />
+        <FaceMolesTab
+          moles={activeResult?.moles}
+          remedyRecommendation={activeResult?.remedyRecommendation}
+          lang={selectedLang}
+        />
       )}
 
       {/* Hidden Container for PDF Export */}

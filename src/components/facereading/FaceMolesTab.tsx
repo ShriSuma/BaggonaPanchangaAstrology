@@ -1,10 +1,14 @@
 import React, { useState } from "react";
 import Card from "../ui/Card";
 import type { FacialMoleResult } from "../../features/facereading/faceReadingEngine";
-import { VEDIC_12_FACIAL_MOLE_ZONES_L5 } from "../../features/facereading/samudrikaFaceKnowledge";
+import {
+  VEDIC_12_FACIAL_MOLE_ZONES_L5,
+  VEDIC_NISHKALANKA_TEJAS
+} from "../../features/facereading/samudrikaFaceKnowledge";
 
 type Props = {
   moles?: FacialMoleResult[];
+  remedyRecommendation?: Record<string, string> | string;
   lang: string;
 };
 
@@ -110,7 +114,7 @@ function formatText(value: Record<string, string> | string | undefined, lang: st
   return value[lang] || value.kn || value.en || "";
 }
 
-export const FaceMolesTab: React.FC<Props> = ({ moles, lang }) => {
+export const FaceMolesTab: React.FC<Props> = ({ moles, remedyRecommendation, lang }) => {
   const [selectedMoleZone, setSelectedMoleZone] = useState<string>("forehead-center");
   const activeZoneData = VEDIC_12_FACIAL_MOLE_ZONES_L5.find((z) => z.id === selectedMoleZone) || VEDIC_12_FACIAL_MOLE_ZONES_L5[0];
 
@@ -180,8 +184,8 @@ export const FaceMolesTab: React.FC<Props> = ({ moles, lang }) => {
         </div>
       </Card>
 
-      {/* Detected Moles from Devotee Image if any */}
-      {moles && moles.length > 0 && (
+      {/* Detected Moles OR Vedic Nishkalanka Tejas (Spotless Canvas) */}
+      {moles && moles.length > 0 ? (
         <Card className="border border-amber-300 bg-white p-5 shadow-sm space-y-3">
           <div className="font-serif text-sm font-bold text-amber-950 border-b border-amber-200 pb-2 flex items-center gap-2">
             <span>✨</span>
@@ -206,6 +210,24 @@ export const FaceMolesTab: React.FC<Props> = ({ moles, lang }) => {
             ))}
           </div>
         </Card>
+      ) : (
+        <Card className="border-2 border-emerald-400/80 bg-gradient-to-br from-emerald-50/60 via-amber-50/40 to-white p-5 shadow-sm space-y-3">
+          <div className="flex items-center justify-between border-b border-emerald-200 pb-2">
+            <h4 className="font-serif text-sm font-bold text-emerald-950 flex items-center gap-2">
+              <span>🪔</span>
+              <span>{formatText(VEDIC_NISHKALANKA_TEJAS.title, lang)}</span>
+            </h4>
+            <span className="text-[10px] bg-emerald-100 text-emerald-900 font-extrabold px-2.5 py-0.5 rounded-full border border-emerald-300">
+              {lang === "kn" ? "ಶುದ್ಧ ಸಾತ್ವಿಕ ಕಾಂತಿ" : "Sattvic Aura"}
+            </span>
+          </div>
+          <p className="text-xs text-emerald-950/90 leading-relaxed font-medium">
+            {formatText(VEDIC_NISHKALANKA_TEJAS.significance, lang)}
+          </p>
+          <div className="rounded-xl bg-white/90 p-3 border border-emerald-200/80 text-xs text-emerald-900 font-semibold">
+            ✨ {formatText(VEDIC_NISHKALANKA_TEJAS.spiritualBlessing, lang)}
+          </div>
+        </Card>
       )}
 
       {/* Gokarna Kshetra Sacred Remedy Card */}
@@ -219,7 +241,7 @@ export const FaceMolesTab: React.FC<Props> = ({ moles, lang }) => {
 
         <div className="text-xs text-amber-950 leading-relaxed font-medium space-y-2">
           <p>
-            {REMEDY_TEXTS[lang] || REMEDY_TEXTS.en}
+            {remedyRecommendation ? formatText(remedyRecommendation, lang) : (REMEDY_TEXTS[lang] || REMEDY_TEXTS.en)}
           </p>
           <div className="rounded-xl bg-white p-3 border border-amber-300 text-amber-900 font-bold">
             🙏 {PRIEST_CONTACT_LABELS[lang] || PRIEST_CONTACT_LABELS.en}

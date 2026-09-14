@@ -219,25 +219,39 @@ export const PalmReadingPdfTemplate: React.FC<PalmReadingPdfTemplateProps> = ({
                 🪐 {code === "kn" ? "೨. ಸಪ್ತ ಗ್ರಹ ಪರ್ವತ ಶಕ್ತಿ:" : "2. Key Planetary Mounts:"}
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "4px", fontSize: "10.5px" }}>
-                {result.mounts.slice(0, 3).map((m, idx) => (
+                {result.mounts.slice(0, 4).map((m, idx) => (
                   <div key={idx} style={{ background: "#FFFBEB", padding: "4px 6px", borderRadius: "4px", border: "1px solid #FDE68A" }}>
-                    <strong>{m.mountName[code] || m.mountName.kn}:</strong> <span style={{ color: "#065F46", fontWeight: 700 }}>[{m.strength[code] || m.strength.kn}]</span> - {m.indication[code] || m.indication.kn}
+                    <strong>{m.mountName[code] || m.mountName.kn}:</strong> <span style={{ color: "#065F46", fontWeight: 700 }}>[{m.strength[code] || m.strength.kn}]</span>
+                    {m.markings && (
+                      <span style={{ color: "#78350F", fontWeight: 600, marginLeft: "4px" }}>
+                        · {m.markings[code] || m.markings.kn}
+                      </span>
+                    )}
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Auspicious Marks */}
+            {/* Auspicious Marks & Yogas */}
             <div style={{ background: "#FFFFFF", border: "1.5px solid #F59E0B", borderRadius: "10px", padding: "10px" }}>
               <div style={{ fontSize: "11.5px", fontWeight: 800, color: "#78350F", marginBottom: "5px" }}>
-                🌟 {code === "kn" ? "೩. ಅಪರೂಪದ ಶುಭ ಚಿಹ್ನೆಗಳು & ಯೋಗ:" : "3. Sacred Marks & Yogas:"}
+                🌟 {code === "kn" ? "೩. ಸಾಮುದ್ರಿಕ ಯೋಗಗಳು & ಶುಭ ಚಿಹ್ನೆಗಳು:" : "3. Sacred Yogas & Marks:"}
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "4px", fontSize: "10.5px" }}>
-                {result.specialMarks.slice(0, 3).map((sm, idx) => (
-                  <div key={idx} style={{ background: "#FFFBEB", padding: "4px 6px", borderRadius: "4px", border: "1px solid #FDE68A" }}>
-                    <strong style={{ color: "#92400E" }}>{sm.mark[code] || sm.mark.kn}:</strong> {sm.meaning[code] || sm.meaning.kn}
-                  </div>
-                ))}
+                {result.detectedYogas && result.detectedYogas.length > 0 ? (
+                  result.detectedYogas.filter(y => y.isPresent).slice(0, 3).map((y, idx) => (
+                    <div key={idx} style={{ background: "#FFFBEB", padding: "4px 6px", borderRadius: "4px", border: "1px solid #FDE68A" }}>
+                      <strong style={{ color: "#92400E" }}>{y.yogaName[code] || y.yogaName.kn}:</strong>{" "}
+                      <span style={{ color: "#047857", fontWeight: 700 }}>[{y.confidence}%]</span> - {y.fruit[code] || y.fruit.kn}
+                    </div>
+                  ))
+                ) : (
+                  result.specialMarks.slice(0, 3).map((sm, idx) => (
+                    <div key={idx} style={{ background: "#FFFBEB", padding: "4px 6px", borderRadius: "4px", border: "1px solid #FDE68A" }}>
+                      <strong style={{ color: "#92400E" }}>{sm.mark[code] || sm.mark.kn}:</strong> {sm.meaning[code] || sm.meaning.kn}
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </div>
@@ -414,6 +428,19 @@ export const PalmReadingPdfTemplate: React.FC<PalmReadingPdfTemplateProps> = ({
             <div style={{ marginTop: "10px", background: "linear-gradient(180deg, #FFFBEB 0%, #FEF3C7 100%)", padding: "8px 12px", borderRadius: "8px", border: "1.5px solid #FCD34D", fontSize: "11px", color: "#78350F" }}>
               <strong style={{ color: "#92400E" }}>🪔 {code === "kn" ? "೬. ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ದೈವಿಕ ಪರಿಹಾರ & ಮಂತ್ರ:" : "6. Sacred Gokarna Kshetra Remedy & Mantra:"}</strong>{" "}
               <div style={{ fontWeight: 600, marginTop: "2px" }}>{result.remedyRecommendation[code] || result.remedyRecommendation.kn}</div>
+              {result.personalizedRemedy && (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "6px", marginTop: "6px", fontSize: "10px", borderTop: "1px solid #FDE68A", paddingTop: "6px" }}>
+                  <div>
+                    <strong>💎 {code === "kn" ? "ರತ್ನ:" : "Gem:"}</strong> {result.personalizedRemedy.primaryGemstone.name[code] || result.personalizedRemedy.primaryGemstone.name.kn} ({result.personalizedRemedy.primaryGemstone.finger[code] || result.personalizedRemedy.primaryGemstone.finger.kn})
+                  </div>
+                  <div>
+                    <strong>📿 {code === "kn" ? "ರುದ್ರಾಕ್ಷಿ:" : "Rudraksha:"}</strong> {result.personalizedRemedy.primaryRudraksha.name[code] || result.personalizedRemedy.primaryRudraksha.name.kn}
+                  </div>
+                  <div>
+                    <strong>🏛️ {code === "kn" ? "ಸೇವೆ:" : "Seva:"}</strong> {result.personalizedRemedy.templeSeva.sevaName[code] || result.personalizedRemedy.templeSeva.sevaName.kn}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

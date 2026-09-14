@@ -1,6 +1,7 @@
 import React from "react";
 import Card from "../ui/Card";
 import type { FacialAgeMilestone } from "../../features/facereading/faceReadingEngine";
+import { VEDIC_CHRONOLOGY_PHASES_L5 } from "../../features/facereading/samudrikaFaceKnowledge";
 
 type Props = {
   milestones?: FacialAgeMilestone[];
@@ -8,128 +9,20 @@ type Props = {
   estimatedAge?: number;
 };
 
-const DEFAULT_MILESTONES: FacialAgeMilestone[] = [
-  {
-    agePhase: {
-      kn: "೧. ಯೌವನ & ವಿದ್ಯಾಭ್ಯಾಸ",
-      en: "1. Youth & Foundation",
-      hi: "१. यौवन एवं विद्याभ्यास",
-      te: "౧. యవ్వనం & విద్యాభ్యాసం",
-      ta: "1. இளமை & கல்விப் பருவம்"
-    },
-    ageWindow: {
-      kn: "೧೫ ರಿಂದ ೩೦ ವರ್ಷ",
-      en: "15 to 30 Years",
-      hi: "15 से 30 वर्ष",
-      te: "15 నుండి 30 సంవత్సరాలు",
-      ta: "15 முதல் 30 ஆண்டுகள்"
-    },
-    facialArea: {
-      kn: "ಲಲಾಟ & ಹಣೆಯ ರೇಖೆಗಳು (Forehead)",
-      en: "Forehead & Brow Lines",
-      hi: "ललाट व भाल रेखाएं",
-      te: "లలాటం & నుదుటి రేఖలు",
-      ta: "நெற்றி & புருவ ரேகைகள்"
-    },
+const buildDefaultMilestones = (): FacialAgeMilestone[] => {
+  return VEDIC_CHRONOLOGY_PHASES_L5.map((p) => ({
+    agePhase: p.title,
+    ageWindow: p.defaultWindow,
+    facialArea: p.facialArea,
     prediction: {
-      kn: "ಶಿಕ್ಷಣದಲ್ಲಿ ಉತ್ತಮ ಸಾಧನೆ, ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆಗಳಲ್ಲಿ ಯಶಸ್ಸು ಹಾಗೂ ಸ್ವಂತ ಪರಿಶ್ರಮದಿಂದ ವೃತ್ತಿ ಪ್ರವೇಶ.",
-      en: "Academic achievements, rapid skill acquisition, competitive exam success, and solid career entry.",
-      hi: "शिक्षा में उत्कृष्ट सफलता, प्रतियोगी परीक्षाओं में विजय एवं स्वावलंबन से आजीविका प्रारंभ।",
-      te: "విద్యలో విశేష ప్రతిభ, పోటీ పరీక్షలలో విజయం & స్వశక్తితో వృత్తి జీవిత ప్రారంభం.",
-      ta: "கல்வியில் சிறந்த வெற்றி, போட்டித் தேர்வுகளில் தேர்ச்சி & சுய உழைப்பில் தொழில் தொடக்கம்."
+      kn: "ಮುಖದ ದೈವಿಕ ರೇಖೆಗಳ ಆಧಾರದಲ್ಲಿ ಜೀವನದ ಈ ಹಂತದಲ್ಲಿ ಶುಭ ಫಲಗಳು ಪ್ರಾಪ್ತಿಯಾಗುತ್ತವೆ.",
+      en: "Favorable results unfold during this life phase based on authentic facial contours.",
+      hi: "मुख के दिव्य लक्षणों के आधार पर इस जीवन चरण में शुभ फल प्राप्त होंगे।",
+      te: "ముఖ దివ్య లక్షణాల ఆధారంగా ఈ జీవిత దశలో శుభ ఫలితాలు సిద్ధిస్తాయి.",
+      ta: "முகத்தின் தெய்வீக லட்சணங்களின் அடிப்படையில் இந்த காலகட்டத்தில் நற்பலன்கள் உண்டாகும்."
     }
-  },
-  {
-    agePhase: {
-      kn: "೨. ವೃತ್ತಿ ಉನ್ನತಿ & ವಿವಾಹ",
-      en: "2. Career & Marriage",
-      hi: "२. करियर उन्नति एवं विवाह",
-      te: "౨. వృత్తి ఉన్నతి & వివాహం",
-      ta: "2. தொழில் உயர்வு & திருமணம்"
-    },
-    ageWindow: {
-      kn: "೩೧ ರಿಂದ ೪೦ ವರ್ಷ",
-      en: "31 to 40 Years",
-      hi: "31 से 40 वर्ष",
-      te: "31 నుండి 40 సంవత్సరాలు",
-      ta: "31 முதல் 40 ஆண்டுகள்"
-    },
-    facialArea: {
-      kn: "ನೇತ್ರ & ಭ್ರೂಮಧ್ಯ (Eyes & Brow Ridge)",
-      en: "Eyes & Ajna Center",
-      hi: "नेत्र व भौंहों का मध्य (आज्ञा चक्र)",
-      te: "నేత్రాలు & భ్రూమధ్యం",
-      ta: "கண்கள் & புருவ மத்தி (ஆக்ஞா)"
-    },
-    prediction: {
-      kn: "ವಿವಾಹ ಯೋಗ, ಸಾಮಾಜಿಕ ಮನ್ನಣೆ, ವಿದೇಶ/ದೂರ ಪ್ರಯಾಣ ಹಾಗೂ ವೃತ್ತಿಪರ ಅಧಿಕಾರ ಪ್ರಾಪ್ತಿ.",
-      en: "Marital harmony, executive elevation, travel, influential networking, and leadership recognition.",
-      hi: "विवाह सुख, सामाजिक सम्मान, दूर यात्राएं एवं उच्च पद व नेतृत्व अधिकार प्राप्ति।",
-      te: "వివాహ యోగం, సామాజిక గౌరవం, దూర ప్రయాణాలు & ఉన్నత పదవీ బాధ్యతలు.",
-      ta: "திருமண யோகம், சமூக மதிப்பு, தூரப் பயணம் & உயர் நிர்வாகப் பதவி யோகம்."
-    }
-  },
-  {
-    agePhase: {
-      kn: "೩. ಧನ ಸಮೃದ್ಧಿ & ಭಾಗ್ಯೋದಯ",
-      en: "3. Peak Wealth & Assets",
-      hi: "३. धन समृद्धि एवं भाग्योदय",
-      te: "౩. ధన సమృద్ధి & భాగ్యోదయం",
-      ta: "3. தன வளம் & பாக்கியோதயம்"
-    },
-    ageWindow: {
-      kn: "೪೧ ರಿಂದ ೫೦ ವರ್ಷ",
-      en: "41 to 50 Years",
-      hi: "41 से 50 वर्ष",
-      te: "41 నుండి 50 సంవత్సరాలు",
-      ta: "41 முதல் 50 ஆண்டுகள்"
-    },
-    facialArea: {
-      kn: "ನಾಸಿಕ & ಗಂಡಸ್ಥಳ (Nose & Cheeks)",
-      en: "Nose Bridge & Cheeks",
-      hi: "नासिका एवं कपोल",
-      te: "నాసిక & చెంపలు",
-      ta: "மூக்கு & கன்னங்கள்"
-    },
-    prediction: {
-      kn: "ಕುಬೇರ ಯೋಗದ ಮೂಲಕ ಸ್ವಂತ ಮನೆ, ಭೂಮಿ ಖರೀದಿ, ಹೂಡಿಕೆಗಳಲ್ಲಿ ಲಾಭ ಹಾಗೂ ವ್ಯಾಪಾರ ವಿಸ್ತರಣೆ.",
-      en: "Peak wealth creation, property acquisition, investment returns, and business expansion through Kuber Yoga.",
-      hi: "कुबेर योग से स्वयं का भवन, भूमि क्रय, निवेश लाभ एवं व्यापार का बहुमुखी विस्तार।",
-      te: "కుబేర యోగంతో స్వంత ఇల్లు, భూమి కొనుగోలు, పెట్టుబడుల లాభం & వ్యాపార విస్తరణ.",
-      ta: "குபேர யோகத்தால் சொந்த வீடு, பூமி வாங்குதல், முதலீட்டு லாபம் & வியாபார விரிவாக்கம்."
-    }
-  },
-  {
-    agePhase: {
-      kn: "೪. ಕೀರ್ತಿ & ಆಧ್ಯಾತ್ಮಿಕ ಶಾಂತಿ",
-      en: "4. Legacy & Peace",
-      hi: "४. कीर्ति एवं आत्मिक शांति",
-      te: "౪. కీర్తి & ప్రశాంతత",
-      ta: "4. புகழ் & ஆத்ம சாந்தி"
-    },
-    ageWindow: {
-      kn: "೫೧ ರಿಂದ ೭೫+ ವರ್ಷ",
-      en: "51 to 75+ Years",
-      hi: "51 से 75+ वर्ष",
-      te: "51 నుండి 75+ సంవత్సరాలు",
-      ta: "51 முதல் 75+ ஆண்டுகள்"
-    },
-    facialArea: {
-      kn: "ಚಿಬುಕ & ಓಷ್ಠ (Chin & Lower Face)",
-      en: "Chin & Mouth Contour",
-      hi: "चिबुक एवं मुख परिधि",
-      te: "చిబుకం & పెదవులు",
-      ta: "தாடை & உதடுகள்"
-    },
-    prediction: {
-      kn: "ಮಕ್ಕಳಿಂದ ಅಪಾರ ನೆಮ್ಮದಿ, ಆಧ್ಯಾತ್ಮಿಕ ಸಿದ್ಧಿ, ಗೌರವಾನ್ವಿತ ಸ್ಥಾನ ಹಾಗೂ ಆರೋಗ್ಯಪೂರ್ಣ ದೀರ್ಘಾಯುಷ್ಯ.",
-      en: "Family joy from children, spiritual fulfillment, venerable social status, and healthy longevity.",
-      hi: "संतान सुख, आध्यात्मिक सिद्धि, परम सम्मान तथा रोगमुक्त दीर्घायुष्य।",
-      te: "పిల్లల వల్ల మనశ్శాంతి, ఆధ్యాత్మిక ఉన్నతి, గౌరవప్రదమైన స్థానం & ఆరోగ్యకర దీర్ఘాయుష్షు.",
-      ta: "பிள்ளைகளால் பெருமகிழ்ச்சி, ஆன்மீக பக்குவம், உயரிய மரியாதை & ஆரோக்கியமான நீண்ட ஆயுள்."
-    }
-  }
-];
+  }));
+};
 
 const CHRONOLOGY_SUBTITLES: Record<string, string> = {
   kn: "ಮುಖ ಲಕ್ಷಣ ಕಾಲಗಣನೆ",
@@ -193,19 +86,20 @@ function formatText(value: Record<string, string> | string | undefined, lang: st
   return value[lang] || value.kn || value.en || "";
 }
 
-function isAgeInPhase(idx: number, age: number): boolean {
+function isAgeInPhase(idx: number, age?: number): boolean {
+  if (typeof age !== "number" || isNaN(age)) return false;
   if (idx === 0) return age <= 30;
-  if (idx === 1) return age >= 31 && age <= 40;
-  if (idx === 2) return age >= 41 && age <= 50;
-  return age >= 51;
+  if (idx === 1) return age >= 31 && age <= 50;
+  if (idx === 2) return age >= 51 && age <= 70;
+  return age >= 71;
 }
 
 export const FaceChronologyTab: React.FC<Props> = ({
-  milestones = DEFAULT_MILESTONES,
+  milestones,
   lang,
-  estimatedAge = 29
+  estimatedAge
 }) => {
-  const list = milestones && milestones.length > 0 ? milestones : DEFAULT_MILESTONES;
+  const list = milestones && milestones.length > 0 ? milestones : buildDefaultMilestones();
   const ageFormatter = ESTIMATED_AGE_PREFIXES[lang] || ESTIMATED_AGE_PREFIXES.en;
 
   return (
@@ -217,7 +111,7 @@ export const FaceChronologyTab: React.FC<Props> = ({
             {CHRONOLOGY_SUBTITLES[lang] || CHRONOLOGY_SUBTITLES.en}
           </div>
           <h3 className="font-serif text-base font-bold text-amber-950 mt-0.5">
-            ⏳ {ageFormatter(estimatedAge)}
+            ⏳ {typeof estimatedAge === "number" ? ageFormatter(estimatedAge) : (lang === "kn" ? "ಮುಖದ ಕಾಲಗಣನೆ ನಕ್ಷೆ" : "Facial Chronology Map")}
           </h3>
         </div>
 

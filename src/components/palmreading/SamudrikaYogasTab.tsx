@@ -214,38 +214,57 @@ export const SamudrikaYogasTab: React.FC<SamudrikaYogasTabProps> = ({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {VEDIC_HASTAREKHA_YOGAS_L5.map((y) => (
-            <div
-              key={y.id}
-              className="rounded-2xl border-2 border-amber-200/80 bg-gradient-to-br from-amber-50/70 via-white to-amber-50/40 p-4 shadow-sm space-y-2 hover:border-amber-400 transition"
-            >
-              <div className="flex items-center justify-between border-b border-amber-200 pb-1.5">
-                <span className="font-serif text-sm font-bold text-amber-950">
-                  {y.name[langKey] || y.name.kn}
-                </span>
-                <span className="text-[10px] bg-emerald-100 text-emerald-900 font-bold px-2 py-0.5 rounded-full border border-emerald-300">
-                  {getT("auspiciousBadge")}
-                </span>
-              </div>
+          {VEDIC_HASTAREKHA_YOGAS_L5.map((y) => {
+            const detected = result?.detectedYogas?.find((dy) => dy.yogaId === y.id);
+            const isPresent = detected ? detected.isPresent : true;
+            const confidence = detected?.confidence || 90;
 
-              <div className="text-xs space-y-1.5 text-slate-800">
-                <div>
-                  <strong className="text-amber-900">{getT("formationLabel")}</strong>{" "}
-                  <span className="font-medium text-slate-900 leading-relaxed block pt-0.5">
-                    {y.formation[langKey] || y.formation.kn}
+            return (
+              <div
+                key={y.id}
+                className={`rounded-2xl border-2 p-4 shadow-sm space-y-2 transition ${
+                  isPresent
+                    ? "border-amber-400 bg-gradient-to-br from-amber-50/90 via-white to-emerald-50/40 hover:border-amber-500"
+                    : "border-slate-200 bg-slate-50/60 opacity-85 hover:border-slate-300"
+                }`}
+              >
+                <div className="flex items-center justify-between border-b border-amber-200/80 pb-1.5">
+                  <span className="font-serif text-sm font-bold text-amber-950">
+                    {detected?.yogaName?.[langKey] || y.name[langKey] || y.name.kn}
                   </span>
+                  {isPresent ? (
+                    <span className="text-[10px] bg-emerald-100 text-emerald-900 font-extrabold px-2.5 py-0.5 rounded-full border border-emerald-300 flex items-center gap-1">
+                      <span>🌟</span>
+                      <span>{langKey === "kn" ? "ಸಕ್ರಿಯ ಯೋಗ" : "Active Yoga"} ({confidence}%)</span>
+                    </span>
+                  ) : (
+                    <span className="text-[10px] bg-slate-200 text-slate-700 font-semibold px-2 py-0.5 rounded-full border border-slate-300">
+                      {langKey === "kn" ? "ಸುಪ್ತ ಯೋಗ" : "Latent Yoga"}
+                    </span>
+                  )}
                 </div>
-                <div className="rounded-xl bg-amber-100/60 p-2.5 border border-amber-200 mt-1">
-                  <strong className="text-amber-950 block text-[11px] mb-0.5">
-                    🪔 {getT("fruitLabel")}
-                  </strong>
-                  <span className="text-amber-900 font-medium leading-relaxed block">
-                    {y.fruit[langKey] || y.fruit.kn}
-                  </span>
+
+                <div className="text-xs space-y-1.5 text-slate-800">
+                  <div>
+                    <strong className="text-amber-900">{getT("formationLabel")}</strong>{" "}
+                    <span className="font-medium text-slate-900 leading-relaxed block pt-0.5">
+                      {detected?.formation?.[langKey] || y.formation[langKey] || y.formation.kn}
+                    </span>
+                  </div>
+                  <div className={`rounded-xl p-2.5 border mt-1 ${
+                    isPresent ? "bg-amber-100/70 border-amber-200" : "bg-slate-100 border-slate-200"
+                  }`}>
+                    <strong className="text-amber-950 block text-[11px] mb-0.5">
+                      🪔 {getT("fruitLabel")}
+                    </strong>
+                    <span className="text-amber-900 font-medium leading-relaxed block">
+                      {detected?.fruit?.[langKey] || y.fruit[langKey] || y.fruit.kn}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </Card>
 

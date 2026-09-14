@@ -242,5 +242,60 @@ describe("Classical Vedic Hastarekha Shastra (Palm Reading) Engine Tests", () =>
     expect(enResult.sunLine.lineName.en).not.toMatch(kannadaRegex);
     expect(enResult.handSideLabel.en).not.toMatch(kannadaRegex);
   });
+
+  it("dynamically generates all 7 planetary mounts, detected yogas, and personalized divine remedies for every devotee", async () => {
+    const devotees = [
+      { name: "ರಾಘವೇಂದ್ರ ಭಟ್", photo: dummyBase64 + "entropyA123" },
+      { name: "ಪ್ರಿಯಾಂಕಾ ಹೆಗಡೆ", photo: dummyBase64 + "entropyB456" },
+      { name: "ಸುರೇಶ್ ರಾವ್", photo: dummyBase64 + "entropyC789" },
+      { name: "ಅನಿತಾ ದೇಶಪಾಂಡೆ", photo: dummyBase64 + "entropyD101" },
+      { name: "ವೆಂಕಟೇಶ್ ಶರ್ಮಾ", photo: dummyBase64 + "entropyE202" }
+    ];
+
+    const results = await Promise.all(
+      devotees.map(d =>
+        executePalmReading(d.photo, "right", d.name, "kn", "")
+      )
+    );
+
+    const gemstones = new Set<string>();
+    const rudrakshas = new Set<number>();
+    const jupiterEnergies = new Set<number>();
+
+    results.forEach((res) => {
+      // All 7 planetary mounts must exist
+      expect(res.mounts).toHaveLength(7);
+      const mountKeys = res.mounts.map(m => m.mountKey);
+      expect(mountKeys).toEqual(["jupiter", "saturn", "sun", "mercury", "mars", "venus", "moon"]);
+
+      res.mounts.forEach((m) => {
+        expect(m.energyScore).toBeGreaterThanOrEqual(60);
+        expect(m.elevation).toBeDefined();
+        expect(m.markings).toBeDefined();
+      });
+
+      // Detected Yogas must be present
+      expect(res.detectedYogas).toBeDefined();
+      expect(res.detectedYogas!.length).toBeGreaterThanOrEqual(4);
+      expect(res.detectedYogas!.some(y => y.isPresent)).toBe(true);
+
+      // Personalized Remedy must be structured
+      expect(res.personalizedRemedy).toBeDefined();
+      expect(res.personalizedRemedy!.primaryGemstone.name.kn).toBeDefined();
+      expect(res.personalizedRemedy!.primaryGemstone.finger.kn).toBeDefined();
+      expect(res.personalizedRemedy!.primaryGemstone.mantra).toBeDefined();
+      expect(res.personalizedRemedy!.primaryRudraksha.mukhi).toBeGreaterThanOrEqual(1);
+      expect(res.personalizedRemedy!.templeSeva.templeName.kn).toContain("ಗೋಕರ್ಣ");
+
+      gemstones.add(res.personalizedRemedy!.primaryGemstone.name.kn);
+      rudrakshas.add(res.personalizedRemedy!.primaryRudraksha.mukhi);
+      jupiterEnergies.add(res.mounts[0].energyScore!);
+    });
+
+    // Verify diversity across devotees (no hardcoded identical values)
+    expect(gemstones.size).toBeGreaterThanOrEqual(2);
+    expect(rudrakshas.size).toBeGreaterThanOrEqual(2);
+    expect(jupiterEnergies.size).toBeGreaterThanOrEqual(2);
+  });
 });
 

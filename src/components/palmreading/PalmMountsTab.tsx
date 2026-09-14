@@ -216,8 +216,8 @@ export const PalmMountsTab: React.FC<PalmMountsTabProps> = ({
           ) || effectiveMounts[idx];
 
           // Compute dynamic personalized energy percentage
-          let dynamicEnergy = catDef.baseEnergy;
-          if (aiMount?.strength) {
+          let dynamicEnergy = aiMount?.energyScore ?? catDef.baseEnergy;
+          if (!aiMount?.energyScore && aiMount?.strength) {
             const strVal = Object.values(aiMount.strength).join(" ").toLowerCase();
             if (strVal.includes("prominent") || strVal.includes("elevated") || strVal.includes("ಉನ್ನತ") || strVal.includes("ಪ್ರಬಲ")) {
               dynamicEnergy = Math.min(96, catDef.baseEnergy + 4);
@@ -229,7 +229,7 @@ export const PalmMountsTab: React.FC<PalmMountsTabProps> = ({
           }
 
           // Modulation based on overall devotee score if present
-          if (result?.overallScore) {
+          if (!aiMount?.energyScore && result?.overallScore) {
             const delta = Math.round((result.overallScore - 85) / 4);
             dynamicEnergy = Math.min(98, Math.max(65, dynamicEnergy + delta));
           }
@@ -250,6 +250,11 @@ export const PalmMountsTab: React.FC<PalmMountsTabProps> = ({
             aiMount?.strength?.[langKey] ||
             aiMount?.strength?.en ||
             aiMount?.strength?.kn;
+
+          const localizedMarking =
+            aiMount?.markings?.[langKey] ||
+            aiMount?.markings?.en ||
+            aiMount?.markings?.kn;
 
           return (
             <Card
@@ -285,6 +290,15 @@ export const PalmMountsTab: React.FC<PalmMountsTabProps> = ({
                   <div className="flex justify-between">
                     <span className="text-amber-900 font-bold">{getT("statusLabel")}</span>
                     <span className="font-semibold text-emerald-800">{localizedStrengthStatus}</span>
+                  </div>
+                )}
+
+                {localizedMarking && (
+                  <div className="flex justify-between">
+                    <span className="text-amber-900 font-bold">
+                      {langKey === "kn" ? "ರೇಖಾ ಮುದ್ರೆ" : "Marking"}
+                    </span>
+                    <span className="font-semibold text-amber-950">{localizedMarking}</span>
                   </div>
                 )}
 

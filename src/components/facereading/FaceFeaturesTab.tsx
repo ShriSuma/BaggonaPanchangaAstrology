@@ -100,6 +100,22 @@ const METOPOSCOPY_TITLES: Record<string, string> = {
   ta: "நெற்றி சப்த கிரக ரேகை ஆய்வு (Metoposcopy)"
 };
 
+const OBSERVED_LALATA_TITLES: Record<string, string> = {
+  kn: "ನಿಮ್ಮ ಹಣೆಯಲ್ಲಿ ಗುರುತಿಸಲಾದ ಗ್ರಹ ರೇಖೆಗಳು (Observed Forehead Lines)",
+  en: "Planetary Lines Observed on Your Forehead",
+  hi: "आपके ललाट पर पहचानी गई ग्रह रेखाएं",
+  te: "మీ నుదుటిపై గుర్తించిన గ్రహ రేఖలు",
+  ta: "உங்கள் நெற்றியில் கண்டறியப்பட்ட கிரக ரேகைகள்"
+};
+
+const PHILTRUM_TITLES: Record<string, string> = {
+  kn: "ಬ್ರಹ್ಮ ರೇಖಾ (ನಾಸಿಕಾಧರ ಗರ್ತ - Philtrum Vitality & Ojas)",
+  en: "Brahma Rekha (Philtrum Vitality & Ojas)",
+  hi: "ब्रह्म रेखा (नासिकाधर गर्त - Philtrum Vitality)",
+  te: "బ్రహ్మ రేఖ (Philtrum Vitality & Ojas)",
+  ta: "பிரம்ம ரேகை (Philtrum Vitality & Ojas)"
+};
+
 const LALATA_BADGES: Record<string, string> = {
   kn: "ಲಲಾಟ ರೇಖಾ",
   en: "Lalata Rekha",
@@ -202,6 +218,55 @@ export const FaceFeaturesTab: React.FC<Props> = ({ result, features, lang }) => 
           </Card>
         ))}
       </div>
+
+      {/* Devotee's Observed Forehead Lines (if available) */}
+      {result?.foreheadLines && result.foreheadLines.length > 0 && (
+        <Card className="border-2 border-amber-400/90 bg-gradient-to-br from-amber-50/70 to-white p-5 shadow-sm space-y-3">
+          <div className="flex items-center justify-between border-b border-amber-200 pb-2">
+            <h4 className="font-serif text-sm font-bold text-amber-950 flex items-center gap-2">
+              <span>🌟</span>
+              <span>{OBSERVED_LALATA_TITLES[lang] || OBSERVED_LALATA_TITLES.en}</span>
+            </h4>
+            <span className="text-[10px] bg-amber-200/80 text-amber-950 font-extrabold px-2.5 py-0.5 rounded-full border border-amber-300">
+              {result.foreheadLines.length} {lang === "kn" ? "ರೇಖೆಗಳು ಪತ್ತೆಯಾಗಿವೆ" : "Lines Identified"}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            {result.foreheadLines.map((fl, idx) => (
+              <div key={idx} className="rounded-xl bg-white p-3 border border-amber-300 shadow-xs space-y-1.5">
+                <div className="flex items-center justify-between font-bold text-amber-950">
+                  <span className="text-sm text-amber-900">{formatText(fl.planet, lang)}</span>
+                  <span className="text-[10px] bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded font-extrabold border border-emerald-300">
+                    {formatText(fl.status, lang)}
+                  </span>
+                </div>
+                <p className="text-amber-900 font-medium leading-relaxed">
+                  {formatText(fl.indication, lang)}
+                </p>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {/* Brahma Rekha (Philtrum) Vitality Analysis (if available) */}
+      {result?.philtrumBrahmaRekha && (
+        <Card className="border border-amber-300 bg-white p-4 shadow-sm space-y-2">
+          <div className="flex items-center justify-between border-b border-amber-200 pb-2">
+            <h4 className="font-serif text-xs font-bold text-amber-950 flex items-center gap-1.5">
+              <span>🪔</span>
+              <span>{PHILTRUM_TITLES[lang] || PHILTRUM_TITLES.en}</span>
+            </h4>
+            <span className="text-[11px] bg-amber-100 text-amber-900 font-extrabold px-2.5 py-0.5 rounded-full border border-amber-300">
+              {formatText(result.philtrumBrahmaRekha.depth, lang)}
+            </span>
+          </div>
+          <div className="text-xs text-amber-950 leading-relaxed font-medium">
+            {formatText(result.philtrumBrahmaRekha.indication, lang)}
+          </div>
+        </Card>
+      )}
 
       {/* Metoposcopy: 7 Forehead Planetary Lines */}
       <Card className="border border-amber-300 bg-white p-5 shadow-sm space-y-4">

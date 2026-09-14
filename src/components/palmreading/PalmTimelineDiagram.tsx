@@ -214,7 +214,7 @@ export const PalmTimelineDiagram: React.FC<PalmTimelineDiagramProps> = ({
         }
       },
       {
-        age: 62,
+        age: Math.max(60, ms.estimatedAge > 55 ? ms.estimatedAge + 8 : 62),
         label: {
           kn: "ಆಧ್ಯಾತ್ಮಿಕ ತೇಜಸ್ಸು & ಶತಾಯುಷ್ಯ",
           en: "Spiritual Wisdom & Longevity",
@@ -313,7 +313,7 @@ export const PalmTimelineDiagram: React.FC<PalmTimelineDiagramProps> = ({
         }
       },
       {
-        age: 60,
+        age: Math.max(60, estimatedDevoteeAge > 55 ? estimatedDevoteeAge + 8 : 60),
         label: {
           kn: "ಆಧ್ಯಾತ್ಮಿಕ ತೇಜಸ್ಸು & ಪೂರ್ಣ ಶಾಂತಿ",
           en: "Spiritual Wisdom & Inner Peace",

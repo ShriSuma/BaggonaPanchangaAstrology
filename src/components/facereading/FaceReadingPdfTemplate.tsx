@@ -133,6 +133,21 @@ const DEFAULT_NAMES: Record<string, string> = {
   ta: "பக்தர்"
 };
 
+const CURRENT_PHASE_LABELS: Record<string, string> = {
+  kn: "⚡ ಪ್ರಸ್ತುತ",
+  en: "⚡ Active",
+  hi: "⚡ सक्रिय",
+  te: "⚡ ప్రస్తుత",
+  ta: "⚡ தற்போதைய"
+};
+
+function isAgeInPhase(idx: number, age: number): boolean {
+  if (idx === 0) return age <= 30;
+  if (idx === 1) return age >= 31 && age <= 40;
+  if (idx === 2) return age >= 41 && age <= 50;
+  return age >= 51;
+}
+
 function formatText(value: Record<string, string> | string | undefined, lang: string): string {
   if (!value) return "";
   if (typeof value === "string") return value;
@@ -225,6 +240,20 @@ export const FaceReadingPdfTemplate: React.FC<Props> = ({
                   {result.overallTejasScore}%
                 </span>
               </div>
+              <div>
+                <strong>{code === "kn" ? "ಪಂಚಭೂತ & ದೋಷ:" : "Element & Dosha:"}</strong>{" "}
+                <span style={{ color: "#78350F", fontWeight: 700 }}>
+                  {formatText(result.facialConstitution.primaryElement, code)} · {formatText(result.facialConstitution.ayurvedicDosha, code)}
+                </span>
+              </div>
+              <div>
+                <strong>{code === "kn" ? "ಮಚ್ಚೆ ಶಾಸ್ತ್ರ:" : "Moles / Tilaka:"}</strong>{" "}
+                <span style={{ color: result.moles && result.moles.length > 0 ? "#92400E" : "#065F46", fontWeight: 700 }}>
+                  {result.moles && result.moles.length > 0
+                    ? `${result.moles.length} ${code === "kn" ? "ಮಚ್ಚೆಗಳು ಗುರುತಿಸಲಾಗಿದೆ" : "Moles Identified"}`
+                    : (code === "kn" ? "✨ ನಿಷ್ಕಳಂಕ ತೇಜಸ್ಸು (ದೋಷರಹಿತ)" : "✨ Nishkalanka Tejas (Spotless)")}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -265,12 +294,30 @@ export const FaceReadingPdfTemplate: React.FC<Props> = ({
             {MILESTONES_HEADINGS[code] || MILESTONES_HEADINGS.en}
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px", color: "#92400E" }}>
-            {(result.ageMilestones || []).map((m, idx) => (
-              <div key={idx} style={{ background: "#FFFFFF", padding: "4px 6px", borderRadius: "4px", border: "1px solid #FDE68A" }}>
-                <strong>{formatText(m.agePhase, code)} ({formatText(m.ageWindow, code)}):</strong>{" "}
-                <span>{formatText(m.prediction, code)}</span>
-              </div>
-            ))}
+            {(result.ageMilestones || []).map((m, idx) => {
+              const isCurrent = isAgeInPhase(idx, result.estimatedAge);
+              return (
+                <div
+                  key={idx}
+                  style={{
+                    background: isCurrent ? "#FFFBEB" : "#FFFFFF",
+                    padding: "4px 6px",
+                    borderRadius: "4px",
+                    border: isCurrent ? "1.5px solid #D97706" : "1px solid #FDE68A"
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <strong>{formatText(m.agePhase, code)} ({formatText(m.ageWindow, code)}):</strong>
+                    {isCurrent && (
+                      <span style={{ fontSize: "8.5px", background: "#D97706", color: "#FFFFFF", padding: "0.5px 4px", borderRadius: "3px", fontWeight: 800 }}>
+                        {CURRENT_PHASE_LABELS[code] || CURRENT_PHASE_LABELS.en}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ marginTop: "2px" }}>{formatText(m.prediction, code)}</div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
