@@ -47,6 +47,7 @@ export default function InstantReadingPage(): JSX.Element {
   // Selected Category & Active Question Drawer
   const [activeCategory, setActiveCategory] = useState<"all" | "career" | "marriage" | "children" | "mind" | "wealth">("all");
   const [selectedQA, setSelectedQA] = useState<InstantQAQuestion | null>(null);
+  const [personalityTab, setPersonalityTab] = useState<"all" | "strengths" | "challenges" | "integrity">("all");
 
   // Custom Q&A State
   const [questionInput, setQuestionInput] = useState("");
@@ -738,66 +739,7 @@ STRICT RULES:
             );
           })()}
 
-          {/* 🌟 1. DEDICATED SECTION: GOOD THINGS ABOUT HIM (ವ್ಯಕ್ತಿಯ ಉತ್ತಮ ಗುಣಗಳು & ದೈವಿಕ ಸಾಮರ್ಥ್ಯಗಳು) 🌟 */}
-          {currentDiagnosis?.goodBadAnalysis?.goodTraits && (
-            <div className="rounded-3xl border-2 border-amber-400 bg-gradient-to-b from-amber-50/70 via-white to-amber-50/40 p-6 md:p-8 text-stone-950 shadow-xl space-y-6">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-amber-300 pb-4">
-                <div className="flex items-center gap-3">
-                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-500 text-neutral-950 text-2xl shadow-md border border-amber-300">
-                    🌟
-                  </span>
-                  <div>
-                    <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block">
-                      ॥ ಸದ್ಗುಣ, ಧೈರ್ಯ & ದೈವಿಕ ಆತ್ಮಬಲ ದರ್ಶನ ॥
-                    </span>
-                    <h3 className="text-base md:text-xl font-black text-amber-950 font-serif">
-                      {isKn
-                        ? (isChild
-                          ? `${session.input.name || "ಮಗುವಿನ"} (${toKannadaRashi(session.result.lagnaRashi.english)} ಲಗ್ನ, ${toKannadaRashi(session.result.moonSign.english)} ರಾಶಿ) ಉತ್ತಮ ಗುಣಗಳು & ದೈವಿಕ ಸಾಮರ್ಥ್ಯಗಳು`
-                          : `${session.input.name || "ಜಾತಕರ"} (${toKannadaRashi(session.result.lagnaRashi.english)} ಲಗ್ನ, ${toKannadaRashi(session.result.moonSign.english)} ರಾಶಿ) ಉತ್ತಮ ಗುಣಗಳು & ದೈವಿಕ ಸಾಮರ್ಥ್ಯಗಳು`)
-                        : `${session.input.name || "Devotee"}'s (${session.result.lagnaRashi.english} Ascendant, ${session.result.moonSign.english} Moon) Divine Strengths & Virtues`}
-                    </h3>
-                  </div>
-                </div>
-                <span className="px-3.5 py-1.5 rounded-full bg-amber-200/80 text-amber-950 text-xs font-black border border-amber-400 shadow-sm">
-                  {isKn ? "5 ಪ್ರಮುಖ ಸದ್ಗುಣಗಳು" : "5 Master Virtues"}
-                </span>
-              </div>
-
-              {/* Good Traits Cards Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs md:text-sm">
-                {currentDiagnosis.goodBadAnalysis.goodTraits.map((trait) => (
-                  <div
-                    key={trait.id}
-                    className={`p-5 rounded-2xl border-2 border-amber-300 bg-white space-y-3 shadow-md transition-all hover:border-amber-500 ${
-                      trait.id === 1 ? "md:col-span-2 bg-gradient-to-r from-amber-50/70 via-white to-amber-50/70 border-amber-400" : ""
-                    }`}
-                  >
-                    <div className="flex items-center justify-between border-b border-amber-100 pb-2">
-                      <span className="font-black text-sm flex items-center gap-2 text-amber-950">
-                        <span className="text-lg">{trait.icon}</span>
-                        <span>{trait.id}. {isKn ? trait.titleKn : trait.titleEn}</span>
-                      </span>
-                      <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 font-bold border border-amber-300">
-                        {isKn ? trait.badgeKn : trait.badgeEn}
-                      </span>
-                    </div>
-
-                    <p className="text-stone-800 leading-relaxed font-medium bg-amber-50/50 p-3.5 rounded-xl border border-amber-200/60">
-                      "{cleanAstrologyText(isKn ? trait.bulletKn : trait.bulletEn)}"
-                    </p>
-
-                    <div className="text-[11px] text-amber-900 flex items-center gap-1.5 px-1 font-semibold">
-                      <span>🎯</span>
-                      <span><b>{isKn ? "ಶಾಸ್ತ್ರೀಯ ಆಧಾರ:" : "Astrological Basis:"}</b> {cleanAstrologyText(isKn ? trait.astrologicalBasisKn : trait.astrologicalBasisEn)}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* 💼 1C. DEDICATED SECTION: ACCURATE PROFESSION & VOCATION DETERMINATION (ನಿಖರ ವೃತ್ತಿ & ಕಾರ್ಯಕ್ಷೇತ್ರ ನಿರ್ಣಯ) 💼 */}
+          {/* 💼 1. DEDICATED SECTION: ACCURATE PROFESSION & VOCATION DETERMINATION (ನಿಖರ ವೃತ್ತಿ & ಕಾರ್ಯಕ್ಷೇತ್ರ ನಿರ್ಣಯ) 💼 */}
           {currentDiagnosis?.accurateProfession && (() => {
             const prof = currentDiagnosis.accurateProfession;
             return (
@@ -888,380 +830,464 @@ STRICT RULES:
             );
           })()}
 
-          {/* ⚠️ 2. DEDICATED SECTION: BAD THINGS, SHADOW SECRETS & ADDICTIONS (ದೋಷಗಳು, ದುರ್ಬಲತೆಗಳು & ರಹಸ್ಯ ನೆರಳು ಪ್ರವೃತ್ತಿಗಳು) ⚠️ */}
-          {currentDiagnosis?.goodBadAnalysis?.badTraits && (
-            <div className="rounded-3xl border-2 border-rose-300 bg-gradient-to-b from-rose-50/50 via-white to-amber-50/40 p-6 md:p-8 text-stone-950 shadow-xl space-y-6">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-rose-200 pb-4">
+          {/* 🧘 2. MASTER SECTION: COMPREHENSIVE PERSONALITY, STRENGTHS & MORAL INTEGRITY (ಸಮಗ್ರ ವ್ಯಕ್ತಿತ್ವ, ಸಾಮರ್ಥ್ಯಗಳು & ನೈತಿಕ ಸದಾಚಾರ ದರ್ಶನ) 🧘 */}
+          {(currentDiagnosis?.goodBadAnalysis || currentDiagnosis?.negativeShades) && (
+            <div className="rounded-3xl border-2 border-amber-400 bg-gradient-to-b from-amber-50/70 via-white to-amber-50/40 p-6 md:p-8 text-stone-950 shadow-xl space-y-6">
+              {/* MASTER SECTION HEADER */}
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-amber-300 pb-4">
                 <div className="flex items-center gap-3">
-                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-400 to-amber-500 text-neutral-950 text-2xl shadow-md border border-rose-300">
-                    ⚠️
+                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-500 text-neutral-950 text-2xl shadow-md border border-amber-300">
+                    🧘
                   </span>
                   <div>
-                    <span className="text-[11px] font-black uppercase tracking-wider text-rose-900 block">
-                      ॥ ನೆರಳು ಕರ್ಮ, ರಹಸ್ಯ ಕಾಮನೆಗಳು & ಪ್ರಾಯಶ್ಚಿತ್ತ ದರ್ಶನ ॥
+                    <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block">
+                      ॥ ಸಮಗ್ರ ವ್ಯಕ್ತಿತ್ವ, ಸಾಮರ್ಥ್ಯಗಳು & ನೈತಿಕ ಸದಾಚಾರ ದರ್ಶನ ॥
                     </span>
-                    <h3 className="text-base md:text-xl font-black text-rose-950 font-serif">
+                    <h3 className="text-base md:text-xl font-black text-amber-950 font-serif">
                       {isKn
                         ? (isChild
-                          ? `${session.input.name || "ಮಗುವಿನ"} (${toKannadaRashi(session.result.lagnaRashi.english)} ಲಗ್ನ) ನಡವಳಿಕೆಯ ಸವಾಲುಗಳು, ಕಿರಿಕಿರಿ & ಬಾಲಾರಿಷ್ಟ ದೋಷಗಳು`
-                          : `${session.input.name || "ಜಾತಕರ"} (${toKannadaRashi(session.result.lagnaRashi.english)} ಲಗ್ನ) ದುರ್ಬಲತೆಗಳು, ದೋಷಗಳು & ನೆರಳು ಪ್ರವೃತ್ತಿಗಳು`)
-                        : `${session.input.name || "Devotee"}'s (${session.result.lagnaRashi.english} Ascendant) Behavioral Challenges & Shadow Vulnerabilities`}
+                          ? `${session.input.name || "ಮಗುವಿನ"} (${toKannadaRashi(session.result.lagnaRashi.english)} ಲಗ್ನ, ${toKannadaRashi(session.result.moonSign.english)} ರಾಶಿ) ವ್ಯಕ್ತಿತ್ವ, ನಡವಳಿಕೆ & ಚಾರಿತ್ರ್ಯ ವಿಶ್ಲೇಷಣೆ`
+                          : `${session.input.name || "ಜಾತಕರ"} (${toKannadaRashi(session.result.lagnaRashi.english)} ಲಗ್ನ, ${toKannadaRashi(session.result.moonSign.english)} ರಾಶಿ) ವ್ಯಕ್ತಿತ್ವ, ಸಾಮರ್ಥ್ಯಗಳು & ನೈತಿಕ ಸದಾಚಾರ`)
+                        : `${session.input.name ? `${session.input.name}'s ` : ""}(${session.result.lagnaRashi.english} Asc, ${session.result.moonSign.english} Moon) Personality, Strengths & Moral Integrity`}
                     </h3>
                   </div>
                 </div>
-                <span className="px-3.5 py-1.5 rounded-full bg-rose-100 text-rose-950 text-xs font-black border border-rose-300 shadow-sm">
-                  {isKn ? "ಎಚ್ಚರಿಕೆ & ಪ್ರಾಯಶ್ಚಿತ್ತ ಸಂಕಲ್ಪ" : "Shadow Pitfalls & Remedies"}
-                </span>
+
+                {/* FILTER TABS */}
+                <div className="flex flex-wrap items-center gap-1.5 bg-amber-100/90 p-1.5 rounded-2xl border border-amber-300 shadow-xs">
+                  <button
+                    type="button"
+                    onClick={() => setPersonalityTab("all")}
+                    className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      personalityTab === "all"
+                        ? "bg-amber-500 text-neutral-950 shadow-xs"
+                        : "text-amber-900 hover:bg-amber-200/60"
+                    }`}
+                  >
+                    {isKn ? "ಎಲ್ಲವೂ (All)" : "All"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPersonalityTab("strengths")}
+                    className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      personalityTab === "strengths"
+                        ? "bg-amber-500 text-neutral-950 shadow-xs"
+                        : "text-amber-900 hover:bg-amber-200/60"
+                    }`}
+                  >
+                    {isKn ? "🌟 ಉತ್ತಮ ಗುಣಗಳು" : "🌟 Strengths"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPersonalityTab("challenges")}
+                    className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      personalityTab === "challenges"
+                        ? "bg-amber-500 text-neutral-950 shadow-xs"
+                        : "text-amber-900 hover:bg-amber-200/60"
+                    }`}
+                  >
+                    {isKn ? "⚠️ ಎಚ್ಚರಿಕೆ & ಸವಾಲುಗಳು" : "⚠️ Challenges"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPersonalityTab("integrity")}
+                    className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      personalityTab === "integrity"
+                        ? "bg-amber-500 text-neutral-950 shadow-xs"
+                        : "text-amber-900 hover:bg-amber-200/60"
+                    }`}
+                  >
+                    {isKn ? "🛡️ ನೈತಿಕ ಸದಾಚಾರ" : "🛡️ Integrity"}
+                  </button>
+                </div>
               </div>
 
-              {/* HIGHLIGHT BANNER 0: PURE CHARACTER & TEETOTALER/FIDELITY PRAISE */}
-              {(currentDiagnosis.goodBadAnalysis.isTeetotaler || currentDiagnosis.goodBadAnalysis.hasMaritalFidelity) && (
-                <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-100/90 via-teal-50 to-emerald-50 border-2 border-emerald-400 space-y-1.5 shadow-sm">
-                  <div className="flex items-center gap-2 text-emerald-950 font-black text-xs md:text-sm">
-                    <span>✨</span>
-                    <span>{isKn ? "ಚಾರಿತ್ರ್ಯ & ಸದಾಚಾರ ದೃಢೀಕರಣ (Character Purity & Moral Integrity):" : "Character Purity & Moral Integrity:"}</span>
-                  </div>
-                  <p className="text-xs md:text-sm text-stone-800 leading-relaxed font-medium">
-                    {isKn
-                      ? `${currentDiagnosis.goodBadAnalysis.isTeetotaler ? "🍃 ಜಾತಕರ 2ನೇ ಧನ-ಆಹಾರ ಸ್ಥಾನದ ಮೇಲೆ ಗುರು/ಶುಭ ಗ್ರಹ ದೃಷ್ಟಿ ರಕ್ಷಣೆ ಇರುವುದರಿಂದ ಸಾತ್ವಿಕ ಆಹಾರ ಪದ್ಧತಿ ಹೊಂದಿದ್ದು, ಮದ್ಯಪಾನ-ದುಶ್ಚಟಗಳಿಂದ ಮುಕ್ತವಾದ ಶುದ್ಧ ಶರೀರ ಹೊಂದಿದ್ದಾರೆ (Teetotaler). " : ""}${currentDiagnosis.goodBadAnalysis.hasMaritalFidelity ? `💍 7ನೇ ಕಳತ್ರ ಸ್ಥಾನದಲ್ಲಿ ಶುಭ ಗ್ರಹ ಕವಚವಿರುವುದರಿಂದ ದಾಂಪತ್ಯದಲ್ಲಿ ಅಚಲ ನಿಷ್ಠೆ ಹೊಂದಿದ್ದು, ಅನೈತಿಕ ಸಂಬಂಧಗಳಿಂದ ಸಂಪೂರ್ಣ ದೂರವಿದ್ದಾರೆ (${session.input.gender === "Female" ? "ಏಕಪತಿ ವ್ರತ" : "ಏಕಪತ್ನಿ ವ್ರತ"}).` : ""}`
-                      : `${currentDiagnosis.goodBadAnalysis.isTeetotaler ? "🍃 Benefic and Jupiterian aspects on the 2nd house protect dietary purity, ensuring a clean teetotaler lifestyle free of alcohol or intoxicants. " : ""}${currentDiagnosis.goodBadAnalysis.hasMaritalFidelity ? "💍 Divine protection on the 7th house ensures steadfast marital fidelity and pure moral character." : ""}`}
-                  </p>
-                </div>
-              )}
-
-              {/* HIGHLIGHT BANNER 0B: SELF-RESTRAINT & MARITAL VIGILANCE CAUTION */}
-              {(!currentDiagnosis.goodBadAnalysis.isTeetotaler || !currentDiagnosis.goodBadAnalysis.hasMaritalFidelity) && (
-                <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-100/80 via-rose-50 to-orange-50 border-2 border-amber-400 space-y-1.5 shadow-sm">
-                  <div className="flex items-center gap-2 text-amber-950 font-black text-xs md:text-sm">
-                    <span>⚠️</span>
-                    <span>{isKn ? "ಇಂದ್ರಿಯ ಸಂಯಮ & ಸಾಂಸಾರಿಕ ರಕ್ಷಾ ಎಚ್ಚರಿಕೆ (Self-Restraint & Marital Vigilance):" : "Sensual Restraint & Marital Vigilance:"}</span>
-                  </div>
-                  <p className="text-xs md:text-sm text-stone-800 leading-relaxed font-medium">
-                    {isKn
-                      ? `${!currentDiagnosis.goodBadAnalysis.isTeetotaler ? "🍷 2ನೇ ಆಹಾರ/ಮುಖ ಸ್ಥಾನಕ್ಕೆ ಶನಿ-ರಾಹು ದೃಷ್ಟಿ ಇರುವುದರಿಂದ, ಒತ್ತಡದ ಸಮಯದಲ್ಲಿ ಮದ್ಯಪಾನ ಅಥವಾ ವ್ಯಸನಗಳ ಪ್ರಲೋಭನೆಗೆ ಒಳಗಾಗುವ ಸೂಕ್ಷ್ಮತೆ ಇದೆ; ಸಾತ್ವಿಕ ಶಿಸ್ತು ಅತ್ಯಗತ್ಯ. " : ""}${!currentDiagnosis.goodBadAnalysis.hasMaritalFidelity ? `👀 5ನೇ ರಾಹು ಮತ್ತು ನೀಚ ಕುಜನಿಂದಾಗಿ ಮನಸ್ಸಿನಲ್ಲಿ ಕಾಮ ಚಾಂಚಲ್ಯ ಮತ್ತು ಪರಸ್ತ್ರೀ ಆಕರ್ಷಣೆಯ ಪ್ರವೃತ್ತಿ ಕಾಡಬಹುದು; ಇದು ಸಂಸಾರದಲ್ಲಿ ಹೆಂಡತಿಯೊಂದಿಗೆ ಕಲಹ ತರದಂತೆ ಇಂದ್ರಿಯ ನಿಗ್ರಹ ಕಾಯ್ದುಕೊಳ್ಳುವುದು ಅನಿವಾರ್ಯ.` : ""}`
-                      : `${!currentDiagnosis.goodBadAnalysis.isTeetotaler ? "🍷 Saturn/Rahu aspect on the 2nd house creates vulnerability to alcohol consumption during periods of stress; dietary detox is recommended. " : ""}${!currentDiagnosis.goodBadAnalysis.hasMaritalFidelity ? "👀 Rahu in the 5th and afflicted Mars trigger sensual restlessness and roving eyes; practicing strict sensory self-control is essential to preserve marital peace." : ""}`}
-                  </p>
-                </div>
-              )}
-
-              {/* HIGHLIGHT BANNER 1: SECRET LIFE HABIT (ರಹಸ್ಯ ಜೀವನದ ವರ್ತನೆ) */}
-              {currentDiagnosis.goodBadAnalysis.secrecyHabitKn && (
-                <div className="p-4 rounded-2xl bg-amber-100/70 border-2 border-amber-400 space-y-1.5 shadow-sm">
-                  <div className="flex items-center gap-2 text-amber-950 font-black text-xs md:text-sm">
-                    <span>🎭</span>
-                    <span>{isKn ? "ರಹಸ್ಯ ಜೀವನದ ನಡವಳಿಕೆ & ಸಂವಹನ ಪ್ರವೃತ್ತಿ (Secret Life Habit):" : "Secret Life Expression Dynamic:"}</span>
-                  </div>
-                  <p className="text-xs md:text-sm text-stone-800 leading-relaxed font-medium">
-                    {cleanAstrologyText(isKn ? currentDiagnosis.goodBadAnalysis.secrecyHabitKn : (currentDiagnosis.goodBadAnalysis.secrecyHabitEn || currentDiagnosis.goodBadAnalysis.secrecyHabitKn))}
-                  </p>
-                </div>
-              )}
-
-              {/* HIGHLIGHT BANNER 2: GOKARNA PRAYASHCHITTA (ಶಾಸ್ತ್ರೋಕ್ತ ಪ್ರಾಯಶ್ಚಿತ್ತ ಪರಿಹಾರ) */}
-              {currentDiagnosis.goodBadAnalysis.gokarnaPrayashchittaKn && (
-                <div className="p-4 rounded-2xl bg-gradient-to-r from-yellow-100 via-amber-100 to-amber-50 border-2 border-amber-400 space-y-1.5 shadow-sm">
-                  <div className="flex items-center gap-2 text-amber-950 font-black text-xs md:text-sm">
-                    <span>🕉️</span>
-                    <span>{isKn ? "ಶಾಸ್ತ್ರೋಕ್ತ ಪ್ರಾಯಶ್ಚಿತ್ತ & ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಮುಕ್ತಿ ಪರಿಹಾರ:" : "Authentic Vedic Prayashchitta at Gokarna Kshetra:"}</span>
-                  </div>
-                  <p className="text-xs md:text-sm text-stone-800 leading-relaxed font-medium">
-                    {cleanAstrologyText(isKn ? currentDiagnosis.goodBadAnalysis.gokarnaPrayashchittaKn : (currentDiagnosis.goodBadAnalysis.gokarnaPrayashchittaEn || currentDiagnosis.goodBadAnalysis.gokarnaPrayashchittaKn))}
-                  </p>
-                </div>
-              )}
-
-              {/* Bad Traits Cards Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs md:text-sm">
-                {currentDiagnosis.goodBadAnalysis.badTraits.map((trait) => {
-                  const isVirtuousTrait =
-                    trait.badgeKn?.includes("ಸಾತ್ವಿಕ") ||
-                    trait.badgeKn?.includes("ನಿಷ್ಠೆ") ||
-                    trait.badgeEn?.toLowerCase().includes("teetotaler") ||
-                    trait.badgeEn?.toLowerCase().includes("fidelity") ||
-                    trait.titleKn?.includes("ಸಾತ್ವಿಕ") ||
-                    trait.titleKn?.includes("ದಾಂಪತ್ಯ ನಿಷ್ಠೆ");
-
-                  return (
-                    <div
-                      key={trait.id}
-                      className={`p-5 rounded-2xl border-2 space-y-3 shadow-md transition-all ${
-                        isVirtuousTrait
-                          ? "border-emerald-300 bg-white hover:border-emerald-500 ring-1 ring-emerald-200"
-                          : trait.id === 6 || trait.id === 7
-                          ? "md:col-span-2 bg-gradient-to-r from-amber-50/80 via-white to-amber-50/80 border-amber-400"
-                          : "border-rose-200 bg-white hover:border-rose-400"
-                      }`}
-                    >
-                      <div className={`flex items-center justify-between border-b pb-2 ${isVirtuousTrait ? "border-emerald-100" : "border-rose-100"}`}>
-                        <span className={`font-black text-sm flex items-center gap-2 ${isVirtuousTrait ? "text-emerald-950" : "text-rose-950"}`}>
-                          <span className="text-lg">{trait.icon}</span>
-                          <span>{trait.id}. {isKn ? trait.titleKn : trait.titleEn}</span>
-                        </span>
-                        <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold border ${
-                          isVirtuousTrait ? "bg-emerald-100 text-emerald-900 border-emerald-300" : "bg-rose-100 text-rose-900 border-rose-300"
-                        }`}>
-                          {isKn ? trait.badgeKn : trait.badgeEn}
-                        </span>
-                      </div>
-
-                      <p className={`text-stone-800 leading-relaxed font-medium p-3.5 rounded-xl border ${
-                        isVirtuousTrait ? "bg-emerald-50/40 border-emerald-100" : "bg-rose-50/40 border-rose-100"
-                      }`}>
-                        "{cleanAstrologyText(isKn ? trait.bulletKn : trait.bulletEn)}"
-                      </p>
-
-                      <div className="text-[11px] text-amber-900 flex items-center gap-1.5 px-1 font-semibold">
-                        <span>🎯</span>
-                        <span><b>{isKn ? "ಶಾಸ್ತ್ರೀಯ ಆಧಾರ:" : "Astrological Basis:"}</b> {cleanAstrologyText(isKn ? trait.astrologicalBasisKn : trait.astrologicalBasisEn)}</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* 🧭 2B. MORAL INTEGRITY, CRIMINALITY VERIFICATION & SHADOW ANALYSIS (ನೈತಿಕ ಚಾರಿತ್ರ್ಯ, ಅಪರಾಧ ಮುಕ್ತತೆ & ಜಾತಕದ ನೆರಳುಗಳ ವಿಶ್ಲೇಷಣೆ) 🧭 */}
-          {currentDiagnosis?.negativeShades && (() => {
-            const shades = currentDiagnosis.negativeShades;
-            const isClean = shades.overallScore <= 15 || shades.isJupiterProtected || shades.isChildShielded;
-
-            const scoreColor =
-              shades.overallScore <= 15
-                ? "text-emerald-700 bg-emerald-100 border-emerald-300"
-                : shades.overallScore <= 35
-                ? "text-sky-700 bg-sky-100 border-sky-300"
-                : shades.overallScore <= 60
-                ? "text-amber-800 bg-amber-100 border-amber-300"
-                : shades.overallScore <= 80
-                ? "text-orange-700 bg-orange-100 border-orange-300"
-                : "text-rose-800 bg-rose-100 border-rose-300";
-
-            const progressGradient =
-              shades.overallScore <= 15
-                ? "bg-gradient-to-r from-emerald-400 to-emerald-600"
-                : shades.overallScore <= 35
-                ? "bg-gradient-to-r from-sky-400 to-emerald-500"
-                : shades.overallScore <= 60
-                ? "bg-gradient-to-r from-amber-400 to-orange-500"
-                : shades.overallScore <= 80
-                ? "bg-gradient-to-r from-orange-500 to-rose-600"
-                : "bg-gradient-to-r from-rose-600 to-red-800";
-
-            const dimensions = [
-              { key: "sensualMarital", data: shades.sensualMarital, icon: "💍" },
-              { key: "financialIntegrity", data: shades.financialIntegrity, icon: "⚖️" },
-              { key: "violenceAggression", data: shades.violenceAggression, icon: "🛡️" },
-              { key: "legalBandhana", data: shades.legalBandhana, icon: "🏛️" },
-              { key: "conductDownwardPath", data: shades.conductDownwardPath, icon: "🧭" },
-            ];
-
-            return (
-              <div
-                className={`rounded-3xl border-2 p-6 md:p-8 text-stone-950 shadow-xl space-y-6 transition-all ${
-                  isClean
-                    ? "border-emerald-400 bg-gradient-to-b from-emerald-50/70 via-white to-emerald-50/30"
-                    : "border-amber-400 bg-gradient-to-b from-amber-50/60 via-white to-amber-50/30"
-                }`}
-              >
-                {/* SECTION HEADER */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-stone-200 pb-4">
-                  <div className="flex items-center gap-3">
-                    <span
-                      className={`flex h-12 w-12 items-center justify-center rounded-2xl text-2xl shadow-md border ${
-                        isClean
-                          ? "bg-gradient-to-br from-emerald-400 to-teal-500 text-white border-emerald-300"
-                          : "bg-gradient-to-br from-amber-400 to-orange-500 text-neutral-950 border-amber-300"
-                      }`}
-                    >
-                      {isClean ? "✨" : "🧭"}
-                    </span>
-                    <div>
-                      <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block">
-                        ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಶಾಸ್ತ್ರೀಯ ಚಾರಿತ್ರ್ಯ ಹಾಗೂ ನೆರಳುಗಳ ಪರೀಕ್ಷೆ ॥
-                      </span>
-                      <h3 className="text-base md:text-xl font-black text-stone-950 font-serif">
-                        {isKn
-                          ? `ನೈತಿಕ ಚಾರಿತ್ರ್ಯ, ಅಪರಾಧ ಮುಕ್ತತೆ & ಜಾತಕದ ನೆರಳುಗಳ ವಿಶ್ಲೇಷಣೆ`
-                          : `Moral Integrity, Criminality Verification & Shadow Analysis`}
-                      </h3>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className={`px-3.5 py-1.5 rounded-full text-xs font-black border shadow-xs ${scoreColor}`}>
-                      {isKn ? shades.categoryTitleKn : shades.categoryTitleEn}
-                    </span>
-                  </div>
-                </div>
-
-                {/* EMERALD CERTIFICATE OF PURITY (When score <= 15 or Jupiter/Child Shielded) */}
-                {isClean && (
-                  <div className="rounded-2xl border-2 border-emerald-400 bg-gradient-to-r from-emerald-50 via-white to-emerald-50 p-5 shadow-sm space-y-2.5 ring-1 ring-emerald-300">
-                    <div className="flex items-center gap-2 text-emerald-950 font-black text-sm md:text-base">
-                      <span className="text-xl">🛡️</span>
-                      <span>
-                        {isKn
-                          ? "ಪರಿಶುದ್ಧ ಸತ್ಚಾರಿತ್ರ್ಯ & ಅಪರಾಧ-ಕಳಂಕ ಮುಕ್ತ ದೃಢೀಕರಣ (100% Free from Criminal / Deceptive Shadows)"
-                          : "Certified 100% Free from Criminal & Deceptive Shadows"}
+              {/* SUB-BLOCK 1: STRENGTHS & VIRTUES */}
+              {(personalityTab === "all" || personalityTab === "strengths") && currentDiagnosis?.goodBadAnalysis?.goodTraits && (
+                <div className="space-y-4 pt-2">
+                  <div className="flex items-center justify-between border-b border-amber-200 pb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">🌟</span>
+                      <span className="text-xs font-black uppercase tracking-wider text-amber-950">
+                        {isKn ? "ಉತ್ತಮ ಗುಣಗಳು, ಸಾಮರ್ಥ್ಯಗಳು & ದೈವಿಕ ಆತ್ಮಬಲ (Divine Strengths & Virtues)" : "Divine Strengths & Virtues"}
                       </span>
                     </div>
-                    <p className="text-xs md:text-sm text-emerald-900 leading-relaxed font-medium">
-                      {isKn
-                        ? shades.isChildShielded
-                          ? "ಈ ಜಾತಕವು ಮಗುವಿನ ಜಾತಕವಾಗಿದ್ದು (14 ವರ್ಷಕ್ಕಿಂತ ಕಡಿಮೆ ವಯಸ್ಸು), ನೈಸರ್ಗಿಕ ಬಾಲ್ಯದ ಮುಗ್ಧತೆ ಹಾಗೂ ಸಾತ್ವಿಕತೆಯ ರಕ್ಷಣೆಯಲ್ಲಿದೆ. ಯಾವುದೇ ಅಪರಾಧ ಅಥವಾ ನಕಾರಾತ್ಮಕ ನೆರಳುಗಳಿಲ್ಲ."
-                          : "ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಲಗ್ನ, ಲಗ್ನಾಧಿಪತಿ, ಚಂದ್ರ ಅಥವಾ 2ನೇ ಭಾವದ ಮೇಲೆ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ದೃಷ್ಟಿ / ಕೇಂದ್ರ ಶುಭ ಗ್ರಹಗಳ ಶ್ರೀರಕ್ಷೆ ಇರುವುದರಿಂದ (ಸರ್ವದೋಷ ವಿನಾಶನಃ), ಈ ಜಾತಕದಲ್ಲಿ ಕಳ್ಳತನ, ವಂಚನೆ, ಕ್ರಿಮಿನಲ್ ಚಟುವಟಿಕೆ, ಹಿಂಸಾ ಪ್ರವೃತ್ತಿ, ಜಾರತ್ವ ಅಥವಾ ಕಾರಾಗೃಹ ವಾಸದಂತಹ ಯಾವುದೇ ಕಳಂಕಗಳಿಲ್ಲ. ಇದು ಪರಿಶುದ್ಧ ನೈತಿಕ ಸತ್ಚಾರಿತ್ರ್ಯದ ಜಾತಕವಾಗಿದೆ."
-                        : shades.categoryDescriptionEn}
-                    </p>
-                  </div>
-                )}
-
-                {/* QUANTITATIVE SCORE GAUGE (0 to 100) */}
-                <div className="bg-white rounded-2xl border border-stone-200 p-4 md:p-5 shadow-xs space-y-3">
-                  <div className="flex items-center justify-between text-xs md:text-sm">
-                    <span className="font-bold text-stone-800 flex items-center gap-1.5">
-                      <span>📊</span>
-                      <span>{isKn ? "ನಕಾರಾತ್ಮಕ ನೆರಳುಗಳ ಪ್ರಮಾಣ ಸೂಚ್ಯಂಕ (Shadow Vulnerability Score):" : "Shadow Vulnerability Score:"}</span>
+                    <span className="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-950 text-[10px] font-black border border-amber-300">
+                      {isKn ? "5 ಪ್ರಮುಖ ಸದ್ಗುಣಗಳು" : "5 Master Virtues"}
                     </span>
-                    <span className="font-black text-sm md:text-base text-stone-900">
-                      <span className={shades.overallScore <= 15 ? "text-emerald-700 font-extrabold" : shades.overallScore <= 35 ? "text-sky-700" : "text-amber-800"}>
-                        {shades.overallScore}
-                      </span>
-                      <span className="text-stone-400 text-xs"> / 100</span>
-                    </span>
-                  </div>
-
-                  {/* PROGRESS BAR */}
-                  <div className="w-full bg-stone-100 rounded-full h-3 overflow-hidden border border-stone-200">
-                    <div
-                      className={`h-full transition-all duration-700 ${progressGradient}`}
-                      style={{ width: `${Math.max(4, shades.overallScore)}%` }}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between text-[11px] text-stone-500 font-medium">
-                    <span className="text-emerald-700 font-bold">0 - 15: ಪರಿಶುದ್ಧ (Purity)</span>
-                    <span className="text-sky-700">16 - 35: ಸಾಮಾನ್ಯ (Mild)</span>
-                    <span className="text-amber-700">36 - 60: ಎಚ್ಚರಿಕೆ (Caution)</span>
-                    <span className="text-rose-700">61 - 100: ಗಂಭೀರ (Critical)</span>
-                  </div>
-
-                  <p className="text-xs text-stone-700 leading-relaxed pt-1 border-t border-stone-100">
-                    {isKn ? shades.categoryDescriptionKn : shades.categoryDescriptionEn}
-                  </p>
-                </div>
-
-                {/* 5 CLASSICAL DIMENSION CARDS GRID */}
-                <div className="space-y-3">
-                  <div className="text-xs font-bold text-stone-900 uppercase tracking-wide flex items-center gap-1.5">
-                    <span>🔍</span>
-                    <span>{isKn ? "5 ಶಾಸ್ತ್ರೀಯ ಆಯಾಮಗಳ ನಿಖರ ಪರಿಶೀಲನೆ (Brihat Parashara, Saravali & Raman Yogas):" : "5 Classical Dimensions Audit:"}</span>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs md:text-sm">
-                    {dimensions.map((dim, idx) => {
-                      const d = dim.data;
-                      const isDimClean = !d.hasRisk || d.score <= 3;
+                    {currentDiagnosis.goodBadAnalysis.goodTraits.map((trait) => (
+                      <div
+                        key={trait.id}
+                        className={`p-5 rounded-2xl border-2 border-amber-300 bg-white space-y-3 shadow-md transition-all hover:border-amber-500 ${
+                          trait.id === 1 ? "md:col-span-2 bg-gradient-to-r from-amber-50/70 via-white to-amber-50/70 border-amber-400" : ""
+                        }`}
+                      >
+                        <div className="flex items-center justify-between border-b border-amber-100 pb-2">
+                          <span className="font-black text-sm flex items-center gap-2 text-amber-950">
+                            <span className="text-lg">{trait.icon}</span>
+                            <span>{trait.id}. {isKn ? trait.titleKn : trait.titleEn}</span>
+                          </span>
+                          <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 font-bold border border-amber-300">
+                            {isKn ? trait.badgeKn : trait.badgeEn}
+                          </span>
+                        </div>
+
+                        <p className="text-stone-800 leading-relaxed font-medium bg-amber-50/50 p-3.5 rounded-xl border border-amber-200/60">
+                          "{cleanAstrologyText(isKn ? trait.bulletKn : trait.bulletEn)}"
+                        </p>
+
+                        <div className="text-[11px] text-amber-900 flex items-center gap-1.5 px-1 font-semibold">
+                          <span>🎯</span>
+                          <span><b>{isKn ? "ಶಾಸ್ತ್ರೀಯ ಆಧಾರ:" : "Astrological Basis:"}</b> {cleanAstrologyText(isKn ? trait.astrologicalBasisKn : trait.astrologicalBasisEn)}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* SUB-BLOCK 2: CHALLENGES, RESTRAINT & SHADOW CAUTIONS */}
+              {(personalityTab === "all" || personalityTab === "challenges") && currentDiagnosis?.goodBadAnalysis?.badTraits && (
+                <div className="space-y-4 pt-4 border-t border-amber-200">
+                  <div className="flex items-center justify-between border-b border-rose-200 pb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">⚠️</span>
+                      <span className="text-xs font-black uppercase tracking-wider text-rose-950">
+                        {isKn
+                          ? (isChild ? "ನಡವಳಿಕೆಯ ಸವಾಲುಗಳು, ಕಿರಿಕಿರಿ & ರಕ್ಷಾ ಎಚ್ಚರಿಕೆಗಳು" : "ನಡವಳಿಕೆಯ ಸವಾಲುಗಳು, ಇಂದ್ರಿಯ ಸಂಯಮ & ನೆರಳು ಎಚ್ಚರಿಕೆಗಳು")
+                          : "Behavioral Challenges, Restraint & Shadow Cautions"}
+                      </span>
+                    </div>
+                    <span className="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-950 text-[10px] font-black border border-rose-300">
+                      {isKn ? "ಎಚ್ಚರಿಕೆ & ಪ್ರಾಯಶ್ಚಿತ್ತ" : "Cautions & Remedies"}
+                    </span>
+                  </div>
+
+                  {/* HIGHLIGHT BANNER 0: PURE CHARACTER & TEETOTALER/FIDELITY PRAISE */}
+                  {(currentDiagnosis.goodBadAnalysis.isTeetotaler || currentDiagnosis.goodBadAnalysis.hasMaritalFidelity) && (
+                    <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-100/90 via-teal-50 to-emerald-50 border-2 border-emerald-400 space-y-1.5 shadow-sm">
+                      <div className="flex items-center gap-2 text-emerald-950 font-black text-xs md:text-sm">
+                        <span>✨</span>
+                        <span>{isKn ? "ಚಾರಿತ್ರ್ಯ & ಸದಾಚಾರ ದೃಢೀಕರಣ (Character Purity & Moral Integrity):" : "Character Purity & Moral Integrity:"}</span>
+                      </div>
+                      <p className="text-xs md:text-sm text-stone-800 leading-relaxed font-medium">
+                        {isKn
+                          ? `${currentDiagnosis.goodBadAnalysis.isTeetotaler ? "🍃 ಜಾತಕರ 2ನೇ ಧನ-ಆಹಾರ ಸ್ಥಾನದ ಮೇಲೆ ಗುರು/ಶುಭ ಗ್ರಹ ದೃಷ್ಟಿ ರಕ್ಷಣೆ ಇರುವುದರಿಂದ ಸಾತ್ವಿಕ ಆಹಾರ ಪದ್ಧತಿ ಹೊಂದಿದ್ದು, ಮದ್ಯಪಾನ-ದುಶ್ಚಟಗಳಿಂದ ಮುಕ್ತವಾದ ಶುದ್ಧ ಶರೀರ ಹೊಂದಿದ್ದಾರೆ (Teetotaler). " : ""}${currentDiagnosis.goodBadAnalysis.hasMaritalFidelity ? `💍 7ನೇ ಕಳತ್ರ ಸ್ಥಾನದಲ್ಲಿ ಶುಭ ಗ್ರಹ ಕವಚವಿರುವುದರಿಂದ ದಾಂಪತ್ಯದಲ್ಲಿ ಅಚಲ ನಿಷ್ಠೆ ಹೊಂದಿದ್ದು, ಅನೈತಿಕ ಸಂಬಂಧಗಳಿಂದ ಸಂಪೂರ್ಣ ದೂರವಿದ್ದಾರೆ (${session.input.gender === "Female" ? "ಏಕಪತಿ ವ್ರತ" : "ಏಕಪತ್ನಿ ವ್ರತ"}).` : ""}`
+                          : `${currentDiagnosis.goodBadAnalysis.isTeetotaler ? "🍃 Benefic and Jupiterian aspects on the 2nd house protect dietary purity, ensuring a clean teetotaler lifestyle free of alcohol or intoxicants. " : ""}${currentDiagnosis.goodBadAnalysis.hasMaritalFidelity ? "💍 Divine protection on the 7th house ensures steadfast marital fidelity and pure moral character." : ""}`}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* HIGHLIGHT BANNER 0B: SELF-RESTRAINT & MARITAL VIGILANCE CAUTION */}
+                  {(!currentDiagnosis.goodBadAnalysis.isTeetotaler || !currentDiagnosis.goodBadAnalysis.hasMaritalFidelity) && (
+                    <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-100/80 via-rose-50 to-orange-50 border-2 border-amber-400 space-y-1.5 shadow-sm">
+                      <div className="flex items-center gap-2 text-amber-950 font-black text-xs md:text-sm">
+                        <span>⚠️</span>
+                        <span>{isKn ? "ಇಂದ್ರಿಯ ಸಂಯಮ & ಸಾಂಸಾರಿಕ ರಕ್ಷಾ ಎಚ್ಚರಿಕೆ (Self-Restraint & Marital Vigilance):" : "Sensual Restraint & Marital Vigilance:"}</span>
+                      </div>
+                      <p className="text-xs md:text-sm text-stone-800 leading-relaxed font-medium">
+                        {isKn
+                          ? `${!currentDiagnosis.goodBadAnalysis.isTeetotaler ? "🍷 2ನೇ ಆಹಾರ/ಮುಖ ಸ್ಥಾನಕ್ಕೆ ಶನಿ-ರಾಹು ದೃಷ್ಟಿ ಇರುವುದರಿಂದ, ಒತ್ತಡದ ಸಮಯದಲ್ಲಿ ಮದ್ಯಪಾನ ಅಥವಾ ವ್ಯಸನಗಳ ಪ್ರಲೋಭನೆಗೆ ಒಳಗಾಗುವ ಸೂಕ್ಷ್ಮತೆ ಇದೆ; ಸಾತ್ವಿಕ ಶಿಸ್ತು ಅತ್ಯಗತ್ಯ. " : ""}${!currentDiagnosis.goodBadAnalysis.hasMaritalFidelity ? "👀 5ನೇ ರಾಹು ಮತ್ತು ನೀಚ ಕುಜನಿಂದಾಗಿ ಮನಸ್ಸಿನಲ್ಲಿ ಕಾಮ ಚಾಂಚಲ್ಯ ಮತ್ತು ಪರಸ್ತ್ರೀ ಆಕರ್ಷಣೆಯ ಪ್ರವೃತ್ತಿ ಕಾಡಬಹುದು; ಇದು ಸಂಸಾರದಲ್ಲಿ ಹೆಂಡತಿಯೊಂದಿಗೆ ಕಲಹ ತರದಂತೆ ಇಂದ್ರಿಯ ನಿಗ್ರಹ ಕಾಯ್ದುಕೊಳ್ಳುವುದು ಅನಿವಾರ್ಯ." : ""}`
+                          : `${!currentDiagnosis.goodBadAnalysis.isTeetotaler ? "🍷 Saturn/Rahu aspect on the 2nd house creates vulnerability to alcohol consumption during periods of stress; dietary detox is recommended. " : ""}${!currentDiagnosis.goodBadAnalysis.hasMaritalFidelity ? "👀 Rahu in the 5th and afflicted Mars trigger sensual restlessness and roving eyes; practicing strict sensory self-control is essential to preserve marital peace." : ""}`}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* HIGHLIGHT BANNER 1: SECRET LIFE HABIT */}
+                  {currentDiagnosis.goodBadAnalysis.secrecyHabitKn && (
+                    <div className="p-4 rounded-2xl bg-amber-100/70 border-2 border-amber-400 space-y-1.5 shadow-sm">
+                      <div className="flex items-center gap-2 text-amber-950 font-black text-xs md:text-sm">
+                        <span>🎭</span>
+                        <span>{isKn ? "ರಹಸ್ಯ ಜೀವನದ ನಡವಳಿಕೆ & ಸಂವಹನ ಪ್ರವೃತ್ತಿ (Secret Life Habit):" : "Secret Life Expression Dynamic:"}</span>
+                      </div>
+                      <p className="text-xs md:text-sm text-stone-800 leading-relaxed font-medium">
+                        {cleanAstrologyText(isKn ? currentDiagnosis.goodBadAnalysis.secrecyHabitKn : (currentDiagnosis.goodBadAnalysis.secrecyHabitEn || currentDiagnosis.goodBadAnalysis.secrecyHabitKn))}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* HIGHLIGHT BANNER 2: GOKARNA PRAYASHCHITTA */}
+                  {currentDiagnosis.goodBadAnalysis.gokarnaPrayashchittaKn && (
+                    <div className="p-4 rounded-2xl bg-gradient-to-r from-yellow-100 via-amber-100 to-amber-50 border-2 border-amber-400 space-y-1.5 shadow-sm">
+                      <div className="flex items-center gap-2 text-amber-950 font-black text-xs md:text-sm">
+                        <span>🕉️</span>
+                        <span>{isKn ? "ಶಾಸ್ತ್ರೋಕ್ತ ಪ್ರಾಯಶ್ಚಿತ್ತ & ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಮುಕ್ತಿ ಪರಿಹಾರ:" : "Authentic Vedic Prayashchitta at Gokarna Kshetra:"}</span>
+                      </div>
+                      <p className="text-xs md:text-sm text-stone-800 leading-relaxed font-medium">
+                        {cleanAstrologyText(isKn ? currentDiagnosis.goodBadAnalysis.gokarnaPrayashchittaKn : (currentDiagnosis.goodBadAnalysis.gokarnaPrayashchittaEn || currentDiagnosis.goodBadAnalysis.gokarnaPrayashchittaKn))}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Bad Traits Cards Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs md:text-sm">
+                    {currentDiagnosis.goodBadAnalysis.badTraits.map((trait) => {
+                      const isVirtuousTrait =
+                        trait.badgeKn?.includes("ಸಾತ್ವಿಕ") ||
+                        trait.badgeKn?.includes("ನಿಷ್ಠೆ") ||
+                        trait.badgeEn?.toLowerCase().includes("teetotaler") ||
+                        trait.badgeEn?.toLowerCase().includes("fidelity") ||
+                        trait.titleKn?.includes("ಸಾತ್ವಿಕ") ||
+                        trait.titleKn?.includes("ದಾಂಪತ್ಯ ನಿಷ್ಠೆ");
 
                       return (
                         <div
-                          key={d.id}
-                          className={`p-5 rounded-2xl border-2 space-y-3 shadow-sm transition-all ${
-                            idx === 4 ? "md:col-span-2" : ""
-                          } ${
-                            isDimClean
-                              ? "bg-white border-emerald-200 hover:border-emerald-400 ring-1 ring-emerald-100"
-                              : "bg-white border-rose-200 hover:border-rose-400 ring-1 ring-rose-100"
+                          key={trait.id}
+                          className={`p-5 rounded-2xl border-2 space-y-3 shadow-md transition-all ${
+                            isVirtuousTrait
+                              ? "border-emerald-300 bg-white hover:border-emerald-500 ring-1 ring-emerald-200"
+                              : trait.id === 6 || trait.id === 7
+                              ? "md:col-span-2 bg-gradient-to-r from-amber-50/80 via-white to-amber-50/80 border-amber-400"
+                              : "border-rose-200 bg-white hover:border-rose-400"
                           }`}
                         >
-                          {/* Card Header */}
-                          <div className={`flex items-center justify-between border-b pb-2 ${isDimClean ? "border-emerald-100" : "border-rose-100"}`}>
-                            <span className={`font-black text-sm flex items-center gap-2 ${isDimClean ? "text-emerald-950" : "text-rose-950"}`}>
-                              <span className="text-lg">{dim.icon}</span>
-                              <span>{isKn ? d.titleKn : d.titleEn}</span>
+                          <div className={`flex items-center justify-between border-b pb-2 ${isVirtuousTrait ? "border-emerald-100" : "border-rose-100"}`}>
+                            <span className={`font-black text-sm flex items-center gap-2 ${isVirtuousTrait ? "text-emerald-950" : "text-rose-950"}`}>
+                              <span className="text-lg">{trait.icon}</span>
+                              <span>{trait.id}. {isKn ? trait.titleKn : trait.titleEn}</span>
                             </span>
-                            <div className="flex items-center gap-1.5">
-                              <span
-                                className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold border ${
-                                  isDimClean ? "bg-emerald-100 text-emerald-900 border-emerald-300" : "bg-rose-100 text-rose-900 border-rose-300"
-                                }`}
-                              >
-                                {isKn ? d.badgeKn : d.badgeEn}
-                              </span>
-                              <span className="text-[11px] font-bold text-stone-500">({d.score}/20)</span>
-                            </div>
+                            <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold border ${
+                              isVirtuousTrait ? "bg-emerald-100 text-emerald-900 border-emerald-300" : "bg-rose-100 text-rose-900 border-rose-300"
+                            }`}>
+                              {isKn ? trait.badgeKn : trait.badgeEn}
+                            </span>
                           </div>
 
-                          {/* Analysis */}
-                          <p
-                            className={`text-stone-800 leading-relaxed font-medium p-3 rounded-xl border ${
-                              isDimClean ? "bg-emerald-50/40 border-emerald-100" : "bg-rose-50/40 border-rose-100"
-                            }`}
-                          >
-                            "{cleanAstrologyText(isKn ? d.analysisKn : d.analysisEn)}"
+                          <p className={`text-stone-800 leading-relaxed font-medium p-3.5 rounded-xl border ${
+                            isVirtuousTrait ? "bg-emerald-50/40 border-emerald-100" : "bg-rose-50/40 border-rose-100"
+                          }`}>
+                            "{cleanAstrologyText(isKn ? trait.bulletKn : trait.bulletEn)}"
                           </p>
 
-                          {/* Astrological Basis */}
-                          <div className="text-[11px] text-amber-950 flex items-center gap-1.5 px-1 font-semibold">
+                          <div className="text-[11px] text-amber-900 flex items-center gap-1.5 px-1 font-semibold">
                             <span>🎯</span>
-                            <span>
-                              <b>{isKn ? "ಶಾಸ್ತ್ರೀಯ ಆಧಾರ:" : "Astrological Basis:"}</b>{" "}
-                              {cleanAstrologyText(isKn ? d.astrologicalBasisKn : d.astrologicalBasisEn)}
-                            </span>
+                            <span><b>{isKn ? "ಶಾಸ್ತ್ರೀಯ ಆಧಾರ:" : "Astrological Basis:"}</b> {cleanAstrologyText(isKn ? trait.astrologicalBasisKn : trait.astrologicalBasisEn)}</span>
                           </div>
                         </div>
                       );
                     })}
                   </div>
                 </div>
+              )}
 
-                {/* REAL-TIME PLANETARY & PANCHANGA TRIGGERS */}
-                <div className="bg-amber-50/70 rounded-2xl border border-amber-300 p-4 md:p-5 space-y-3">
-                  <div className="text-xs font-bold text-amber-950 uppercase tracking-wide flex items-center gap-1.5">
-                    <span>⚡</span>
-                    <span>{isKn ? "ನೈಜ-ಸಮಯದ ಗೋಚಾರ, ದಶಾ ಪ್ರಚೋದನೆ & ಪಂಚಾಂಗ 5-ಅಂಗ ಪ್ರಭಾವ:" : "Real-time Gochara, Dasha & Panchanga Root Influence:"}</span>
-                  </div>
+              {/* SUB-BLOCK 3: MORAL INTEGRITY, CRIMINALITY VERIFICATION & 5 DIMENSIONS */}
+              {(personalityTab === "all" || personalityTab === "integrity") && currentDiagnosis?.negativeShades && (() => {
+                const shades = currentDiagnosis.negativeShades;
+                const isClean = shades.overallScore <= 15 || shades.isJupiterProtected || shades.isChildShielded;
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                    <div className="p-3 bg-white rounded-xl border border-amber-200 space-y-1">
-                      <span className="font-bold text-amber-900 block">⏳ {isKn ? "ಪ್ರಸ್ತುತ ದಶಾ-ಭುಕ್ತಿ ಪ್ರಭಾವ:" : "Active Dasha-Bhukti Influence:"}</span>
-                      <p className="text-stone-700 leading-relaxed">
-                        {cleanAstrologyText(isKn ? shades.activeDashaTriggerKn : shades.activeDashaTriggerEn)}
-                      </p>
-                    </div>
+                const scoreColor =
+                  shades.overallScore <= 15
+                    ? "text-emerald-700 bg-emerald-100 border-emerald-300"
+                    : shades.overallScore <= 35
+                    ? "text-sky-700 bg-sky-100 border-sky-300"
+                    : shades.overallScore <= 60
+                    ? "text-amber-800 bg-amber-100 border-amber-300"
+                    : shades.overallScore <= 80
+                    ? "text-orange-700 bg-orange-100 border-orange-300"
+                    : "text-rose-800 bg-rose-100 border-rose-300";
 
-                    <div className="p-3 bg-white rounded-xl border border-amber-200 space-y-1">
-                      <span className="font-bold text-amber-900 block">🪐 {isKn ? "ಪ್ರಸ್ತುತ ಗ್ರಹ ಗೋಚಾರ ಸಂಚಾರ:" : "Live Gochara Transit Status:"}</span>
-                      <p className="text-stone-700 leading-relaxed">
-                        {cleanAstrologyText(isKn ? shades.activeGocharaTriggerKn : shades.activeGocharaTriggerEn)}
-                      </p>
-                    </div>
+                const progressGradient =
+                  shades.overallScore <= 15
+                    ? "bg-gradient-to-r from-emerald-400 to-emerald-600"
+                    : shades.overallScore <= 35
+                    ? "bg-gradient-to-r from-sky-400 to-emerald-500"
+                    : shades.overallScore <= 60
+                    ? "bg-gradient-to-r from-amber-400 to-orange-500"
+                    : shades.overallScore <= 80
+                    ? "bg-gradient-to-r from-orange-500 to-rose-600"
+                    : "bg-gradient-to-r from-rose-600 to-red-800";
 
-                    <div className="p-3 bg-white rounded-xl border border-amber-200 space-y-1 md:col-span-2">
-                      <span className="font-bold text-amber-900 block">
-                        🕉️ {isKn ? "ಪಂಚಾಂಗ 5-ಅಂಗ ಮೂಲ ಪ್ರಭಾವ (ತಿಥಿ, ವಾರ, ನಕ್ಷತ್ರ, ಯೋಗ, ಕರಣ):" : "Panchanga 5-Anga Root Influence:"}
+                const dimensions = [
+                  { key: "sensualMarital", data: shades.sensualMarital, icon: "💍" },
+                  { key: "financialIntegrity", data: shades.financialIntegrity, icon: "⚖️" },
+                  { key: "violenceAggression", data: shades.violenceAggression, icon: "🛡️" },
+                  { key: "legalBandhana", data: shades.legalBandhana, icon: "🏛️" },
+                  { key: "conductDownwardPath", data: shades.conductDownwardPath, icon: "🧭" },
+                ];
+
+                return (
+                  <div className="space-y-5 pt-4 border-t border-amber-200">
+                    <div className="flex items-center justify-between border-b border-stone-200 pb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">🛡️</span>
+                        <span className="text-xs font-black uppercase tracking-wider text-stone-900">
+                          {isKn ? "ನೈತಿಕ ಚಾರಿತ್ರ್ಯ & 5 ಆಯಾಮಗಳ ಅಪರಾಧ ಮುಕ್ತತಾ ಪರೀಕ್ಷೆ" : "Moral Integrity & 5 Dimensions Audit"}
+                        </span>
+                      </div>
+                      <span className={`px-3 py-1 rounded-full text-xs font-black border shadow-xs ${scoreColor}`}>
+                        {isKn ? shades.categoryTitleKn : shades.categoryTitleEn}
                       </span>
-                      <p className="text-stone-700 leading-relaxed">
-                        {cleanAstrologyText(isKn ? shades.panchangaInfluenceKn : shades.panchangaInfluenceEn)}
+                    </div>
+
+                    {/* EMERALD CERTIFICATE OF PURITY */}
+                    {isClean && (
+                      <div className="rounded-2xl border-2 border-emerald-400 bg-gradient-to-r from-emerald-50 via-white to-emerald-50 p-5 shadow-sm space-y-2.5 ring-1 ring-emerald-300">
+                        <div className="flex items-center gap-2 text-emerald-950 font-black text-sm md:text-base">
+                          <span className="text-xl">🛡️</span>
+                          <span>
+                            {isKn
+                              ? "ಪರಿಶುದ್ಧ ಸತ್ಚಾರಿತ್ರ್ಯ & ಅಪರಾಧ-ಕಳಂಕ ಮುಕ್ತ ದೃಢೀಕರಣ (100% Free from Criminal / Deceptive Shadows)"
+                              : "Certified 100% Free from Criminal & Deceptive Shadows"}
+                          </span>
+                        </div>
+                        <p className="text-xs md:text-sm text-emerald-900 leading-relaxed font-medium">
+                          {isKn
+                            ? shades.isChildShielded
+                              ? "ಈ ಜಾತಕವು ಮಗುವಿನ ಜಾತಕವಾಗಿದ್ದು (14 ವರ್ಷಕ್ಕಿಂತ ಕಡಿಮೆ ವಯಸ್ಸು), ನೈಸರ್ಗಿಕ ಬಾಲ್ಯದ ಮುಗ್ಧತೆ ಹಾಗೂ ಸಾತ್ವಿಕತೆಯ ರಕ್ಷಣೆಯಲ್ಲಿದೆ. ಯಾವುದೇ ಅಪರಾಧ ಅಥವಾ ನಕಾರಾತ್ಮಕ ನೆರಳುಗಳಿಲ್ಲ."
+                              : "ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಲಗ್ನ, ಲಗ್ನಾಧಿಪತಿ, ಚಂದ್ರ ಅಥವಾ 2ನೇ ಭಾವದ ಮೇಲೆ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ದೃಷ್ಟಿ / ಕೇಂದ್ರ ಶುಭ ಗ್ರಹಗಳ ಶ್ರೀರಕ್ಷೆ ಇರುವುದರಿಂದ (ಸರ್ವದೋಷ ವಿನಾಶನಃ), ಈ ಜಾತಕದಲ್ಲಿ ಕಳ್ಳತನ, ವಂಚನೆ, ಕ್ರಿಮಿನಲ್ ಚಟುವಟಿಕೆ, ಹಿಂಸಾ ಪ್ರವೃತ್ತಿ, ಜಾರತ್ವ ಅಥವಾ ಕಾರಾಗೃಹ ವಾಸದಂತಹ ಯಾವುದೇ ಕಳಂಕಗಳಿಲ್ಲ. ಇದು ಪರಿಶುದ್ಧ ನೈತಿಕ ಸತ್ಚಾರಿತ್ರ್ಯದ ಜಾತಕವಾಗಿದೆ."
+                            : shades.categoryDescriptionEn}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* QUANTITATIVE SCORE GAUGE */}
+                    <div className="bg-white rounded-2xl border border-stone-200 p-4 md:p-5 shadow-xs space-y-3">
+                      <div className="flex items-center justify-between text-xs md:text-sm">
+                        <span className="font-bold text-stone-800 flex items-center gap-1.5">
+                          <span>📊</span>
+                          <span>{isKn ? "ನಕಾರಾತ್ಮಕ ನೆರಳುಗಳ ಪ್ರಮಾಣ ಸೂಚ್ಯಂಕ (Shadow Vulnerability Score):" : "Shadow Vulnerability Score:"}</span>
+                        </span>
+                        <span className="font-black text-sm md:text-base text-stone-900">
+                          <span className={shades.overallScore <= 15 ? "text-emerald-700 font-extrabold" : shades.overallScore <= 35 ? "text-sky-700" : "text-amber-800"}>
+                            {shades.overallScore}
+                          </span>
+                          <span className="text-stone-400 text-xs"> / 100</span>
+                        </span>
+                      </div>
+
+                      <div className="w-full bg-stone-100 rounded-full h-3 overflow-hidden border border-stone-200">
+                        <div
+                          className={`h-full transition-all duration-700 ${progressGradient}`}
+                          style={{ width: `${Math.max(4, shades.overallScore)}%` }}
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between text-[11px] text-stone-500 font-medium">
+                        <span className="text-emerald-700 font-bold">0 - 15: ಪರಿಶುದ್ಧ (Purity)</span>
+                        <span className="text-sky-700">16 - 35: ಸಾಮಾನ್ಯ (Mild)</span>
+                        <span className="text-amber-700">36 - 60: ಎಚ್ಚರಿಕೆ (Caution)</span>
+                        <span className="text-rose-700">61 - 100: ಗಂಭೀರ (Critical)</span>
+                      </div>
+
+                      <p className="text-xs text-stone-700 leading-relaxed pt-1 border-t border-stone-100">
+                        {isKn ? shades.categoryDescriptionKn : shades.categoryDescriptionEn}
+                      </p>
+                    </div>
+
+                    {/* 5 DIMENSIONS CARDS GRID */}
+                    <div className="space-y-3">
+                      <div className="text-xs font-bold text-stone-900 uppercase tracking-wide flex items-center gap-1.5">
+                        <span>🔍</span>
+                        <span>{isKn ? "5 ಶಾಸ್ತ್ರೀಯ ಆಯಾಮಗಳ ನಿಖರ ಪರಿಶೀಲನೆ (Brihat Parashara, Saravali & Raman Yogas):" : "5 Classical Dimensions Audit:"}</span>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs md:text-sm">
+                        {dimensions.map((dim, idx) => {
+                          const d = dim.data;
+                          const isDimClean = !d.hasRisk || d.score <= 3;
+
+                          return (
+                            <div
+                              key={d.id}
+                              className={`p-5 rounded-2xl border-2 space-y-3 shadow-sm transition-all ${
+                                idx === 4 ? "md:col-span-2" : ""
+                              } ${
+                                isDimClean
+                                  ? "bg-white border-emerald-200 hover:border-emerald-400 ring-1 ring-emerald-100"
+                                  : "bg-white border-rose-200 hover:border-rose-400 ring-1 ring-rose-100"
+                              }`}
+                            >
+                              <div className={`flex items-center justify-between border-b pb-2 ${isDimClean ? "border-emerald-100" : "border-rose-100"}`}>
+                                <span className={`font-black text-sm flex items-center gap-2 ${isDimClean ? "text-emerald-950" : "text-rose-950"}`}>
+                                  <span className="text-lg">{dim.icon}</span>
+                                  <span>{isKn ? d.titleKn : d.titleEn}</span>
+                                </span>
+                                <div className="flex items-center gap-1.5">
+                                  <span
+                                    className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold border ${
+                                      isDimClean ? "bg-emerald-100 text-emerald-900 border-emerald-300" : "bg-rose-100 text-rose-900 border-rose-300"
+                                    }`}
+                                  >
+                                    {isKn ? d.badgeKn : d.badgeEn}
+                                  </span>
+                                  <span className="text-[11px] font-bold text-stone-500">({d.score}/20)</span>
+                                </div>
+                              </div>
+
+                              <p
+                                className={`text-stone-800 leading-relaxed font-medium p-3 rounded-xl border ${
+                                  isDimClean ? "bg-emerald-50/40 border-emerald-100" : "bg-rose-50/40 border-rose-100"
+                                }`}
+                              >
+                                "{cleanAstrologyText(isKn ? d.analysisKn : d.analysisEn)}"
+                              </p>
+
+                              <div className="text-[11px] text-amber-950 flex items-center gap-1.5 px-1 font-semibold">
+                                <span>🎯</span>
+                                <span>
+                                  <b>{isKn ? "ಶಾಸ್ತ್ರೀಯ ಆಧಾರ:" : "Astrological Basis:"}</b>{" "}
+                                  {cleanAstrologyText(isKn ? d.astrologicalBasisKn : d.astrologicalBasisEn)}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* REAL-TIME PLANETARY & PANCHANGA TRIGGERS */}
+                    <div className="bg-amber-50/70 rounded-2xl border border-amber-300 p-4 md:p-5 space-y-3">
+                      <div className="text-xs font-bold text-amber-950 uppercase tracking-wide flex items-center gap-1.5">
+                        <span>⚡</span>
+                        <span>{isKn ? "ನೈಜ-ಸಮಯದ ಗೋಚಾರ, ದಶಾ ಪ್ರಚೋದನೆ & ಪಂಚಾಂಗ 5-ಅಂಗ ಪ್ರಭಾವ:" : "Real-time Gochara, Dasha & Panchanga Root Influence:"}</span>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                        <div className="p-3 bg-white rounded-xl border border-amber-200 space-y-1">
+                          <span className="font-bold text-amber-900 block">⏳ {isKn ? "ಪ್ರಸ್ತುತ ದಶಾ-ಭುಕ್ತಿ ಪ್ರಭಾವ:" : "Active Dasha-Bhukti Influence:"}</span>
+                          <p className="text-stone-700 leading-relaxed">
+                            {cleanAstrologyText(isKn ? shades.activeDashaTriggerKn : shades.activeDashaTriggerEn)}
+                          </p>
+                        </div>
+
+                        <div className="p-3 bg-white rounded-xl border border-amber-200 space-y-1">
+                          <span className="font-bold text-amber-900 block">🪐 {isKn ? "ಪ್ರಸ್ತುತ ಗ್ರಹ ಗೋಚಾರ ಸಂಚಾರ:" : "Live Gochara Transit Status:"}</span>
+                          <p className="text-stone-700 leading-relaxed">
+                            {cleanAstrologyText(isKn ? shades.activeGocharaTriggerKn : shades.activeGocharaTriggerEn)}
+                          </p>
+                        </div>
+
+                        <div className="p-3 bg-white rounded-xl border border-amber-200 space-y-1 md:col-span-2">
+                          <span className="font-bold text-amber-900 block">
+                            🕉️ {isKn ? "ಪಂಚಾಂಗ 5-ಅಂಗ ಮೂಲ ಪ್ರಭಾವ (ತಿಥಿ, ವಾರ, ನಕ್ಷತ್ರ, ಯೋಗ, ಕರಣ):" : "Panchanga 5-Anga Root Influence:"}
+                          </span>
+                          <p className="text-stone-700 leading-relaxed">
+                            {cleanAstrologyText(isKn ? shades.panchangaInfluenceKn : shades.panchangaInfluenceEn)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* GOKARNA SHANTRIC PRAYASHCHITTA */}
+                    <div className="rounded-2xl border-2 border-emerald-400 bg-gradient-to-r from-emerald-50/80 via-white to-emerald-50/80 p-5 shadow-xs space-y-2">
+                      <div className="flex items-center gap-2 text-emerald-950 font-bold text-xs uppercase tracking-wider">
+                        <span>🪔</span>
+                        <span>{isKn ? "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಶಾಸ್ತ್ರೋಕ್ತ ರಕ್ಷಾ ಕವಚ & ದೈವಿಕ ಪರಿಹಾರ ಮಾರ್ಗ:" : "Gokarna Kshetra Shastric Protection & Remedial Strategy:"}</span>
+                      </div>
+                      <p className="text-xs md:text-sm text-stone-800 leading-relaxed font-medium">
+                        {cleanAstrologyText(isKn ? shades.protectionRemedyKn : shades.protectionRemedyEn)}
                       </p>
                     </div>
                   </div>
-                </div>
+                );
+              })()}
+            </div>
+          )}
 
-                {/* GOKARNA SHANTRIC PRAYASHCHITTA & PROTECTION REMEDY */}
-                <div className="rounded-2xl border-2 border-emerald-400 bg-gradient-to-r from-emerald-50/80 via-white to-emerald-50/80 p-5 shadow-xs space-y-2">
-                  <div className="flex items-center gap-2 text-emerald-950 font-bold text-xs uppercase tracking-wider">
-                    <span>🪔</span>
-                    <span>{isKn ? "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಶಾಸ್ತ್ರೋಕ್ತ ರಕ್ಷಾ ಕವಚ & ದೈವಿಕ ಪರಿಹಾರ ಮಾರ್ಗ:" : "Gokarna Kshetra Shastric Protection & Remedial Strategy:"}</span>
-                  </div>
-                  <p className="text-xs md:text-sm text-stone-800 leading-relaxed font-medium">
-                    {cleanAstrologyText(isKn ? shades.protectionRemedyKn : shades.protectionRemedyEn)}
-                  </p>
-                </div>
-              </div>
-            );
-          })()}
-
-          {/* 🌟 3. 11 MASTER ASTROLOGICAL LIFE & PERSONALITY REVELATIONS (11 ಪ್ರಮುಖ ಮುಖಾಮುಖಿ ಜ್ಯೋತಿಷ್ಯ ಸತ್ಯಾಂಶಗಳು) 🌟 */}
+          {/* 🌟 3. 11 MASTER ASTROLOGICAL LIFE REVELATIONS (11 ಪ್ರಮುಖ ದೈವಜ್ಞ ಮುಖಾಮುಖಿ ಜ್ಯೋತಿಷ್ಯ ಸತ್ಯಾಂಶಗಳು) 🌟 */}
           {synthesisData?.tenLifeAspectBullets && (
             <div className="rounded-3xl border-2 border-amber-400 bg-gradient-to-b from-amber-50/70 via-white to-amber-50/40 p-6 md:p-8 text-stone-950 shadow-xl space-y-6">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-amber-300 pb-4">
@@ -1275,8 +1301,8 @@ STRICT RULES:
                     </span>
                     <h3 className="text-base md:text-xl font-black text-amber-950 font-serif">
                       {isKn
-                        ? `${session.input.name || (isChild ? "ಮಗುವಿನ" : "ಜಾತಕರ")} (${toKannadaRashi(session.result.lagnaRashi.english)} ಲಗ್ನ, ${toKannadaRashi(session.result.moonSign.english)} ರಾಶಿ) ${synthesisData.tenLifeAspectBullets.length} ಪ್ರಮುಖ ಜ್ಯೋತಿಷ್ಯ ಸತ್ಯಾಂಶಗಳು & ವ್ಯಕ್ತಿತ್ವ ದರ್ಶನ`
-                        : `${session.input.name ? `${session.input.name}'s ` : ""}(${session.result.lagnaRashi.english} Asc, ${session.result.moonSign.english} Moon) ${synthesisData.tenLifeAspectBullets.length} Master Astrological Life & Personality Revelations`}
+                        ? `${session.input.name || (isChild ? "ಮಗುವಿನ" : "ಜಾತಕರ")} (${toKannadaRashi(session.result.lagnaRashi.english)} ಲಗ್ನ, ${toKannadaRashi(session.result.moonSign.english)} ರಾಶಿ) ${synthesisData.tenLifeAspectBullets.length} ಪ್ರಮುಖ ಜ್ಯೋತಿಷ್ಯ ಸತ್ಯಾಂಶಗಳು`
+                        : `${session.input.name ? `${session.input.name}'s ` : ""}(${session.result.lagnaRashi.english} Asc, ${session.result.moonSign.english} Moon) ${synthesisData.tenLifeAspectBullets.length} Master Astrological Life Revelations`}
                     </h3>
                   </div>
                 </div>
@@ -1377,57 +1403,7 @@ STRICT RULES:
             </div>
           )}
 
-          {/* 2. CURRENT SITUATION MULTI-PARAGRAPH LIVE READING */}
-          <div className="rounded-3xl border border-stone-200 bg-white p-6 md:p-8 shadow-lg space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-stone-100">
-              <h2 className="text-lg md:text-xl font-black text-indigo-950 flex items-center gap-2 font-serif">
-                <span>🪔</span>
-                <span>
-                  {isKn
-                    ? `${session.input.name || (isChild ? "ಮಗುವಿನ" : "ಜಾತಕರ")} (${toKannadaRashi(session.result.lagnaRashi.english)} ಲಗ್ನ) ಪ್ರಸ್ತುತ ಜೀವನ ಸ್ಥಿತಿ & ಗ್ರಹ ಪ್ರಭಾವಗಳ ನೇರ ವಿಶ್ಲೇಷಣೆ`
-                    : `${session.input.name ? `${session.input.name}'s ` : ""}(${session.result.lagnaRashi.english} Ascendant) Live Astrological Situation & Planetary Influences`}
-                </span>
-              </h2>
-              {aiLoading && (
-                <span className="text-xs text-amber-700 font-semibold animate-pulse flex items-center gap-1.5">
-                  <GrahaSpinner size="sm" />
-                  <span>{isKn ? "ದೈವಜ್ಞ ವಿಶ್ಲೇಷಣೆ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : "Refining reading..."}</span>
-                </span>
-              )}
-            </div>
-
-            <div className="space-y-3.5 text-xs md:text-sm text-stone-700 leading-relaxed">
-              {aiNarration.map((para, idx) => (
-                <p key={idx} className="bg-stone-50/80 p-4 rounded-2xl border border-stone-100/90 text-stone-800">
-                  {cleanAstrologyText(para)}
-                </p>
-              ))}
-            </div>
-
-            {/* QUICK HIGHLIGHT BADGES */}
-            {currentDiagnosis && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
-                <div className="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200/80">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-amber-900 block mb-1">
-                    🧠 {isKn ? "ಮಾನಸಿಕ ಸ್ಥಿತಿ & ಅಂತರಂಗ ಶಾಂತಿ" : "Mind & Inner Peace"}
-                  </span>
-                  <p className="text-xs text-amber-950 font-medium">
-                    {cleanAstrologyText(currentDiagnosis.mentalStateIssue.diagnosis)}
-                  </p>
-                </div>
-                <div className="p-3.5 rounded-2xl bg-indigo-50/80 border border-indigo-200/80">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-indigo-900 block mb-1">
-                    🎯 {isKn ? `ಪ್ರಮುಖ ಜೀವನ ಸವಾಲು (${toKannadaChallengeArea(currentDiagnosis.primaryLifeChallenge.area)})` : `Primary Life Challenge (${currentDiagnosis.primaryLifeChallenge.area})`}
-                  </span>
-                  <p className="text-xs text-indigo-950 font-medium">
-                    {cleanAstrologyText(currentDiagnosis.primaryLifeChallenge.description)}
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* 3. ONE-TAP CATEGORIZED QUESTIONS (INSTANT CLIENT Q&A CARDS) */}
+          {/* 4. ONE-TAP CATEGORIZED QUESTIONS (INSTANT CLIENT Q&A CARDS) */}
           <div className="rounded-3xl border border-indigo-200 bg-white p-6 md:p-8 shadow-lg space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-indigo-100 gap-2">
               <div>

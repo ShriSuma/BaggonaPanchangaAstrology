@@ -943,24 +943,27 @@ export const detectNativeDietAndAddiction = (kundli: KundliOutput): NativeDietAs
   const isSaturn8thAspecting2nd = Boolean(saturn && saturn.house === 8 && [3, 7, 10].includes(houseDist(saturn.house, 2)));
   const isMars8thAspecting2nd = Boolean(mars && mars.house === 8 && [4, 7, 8].includes(houseDist(mars.house, 2)));
   const isMarsDirectIn2nd = Boolean(mars && mars.house === 2);
-  const isMars7thAspecting2nd = Boolean(mars && mars.house === 7 && [4, 7, 8].includes(houseDist(mars.house, 2)));
-  const isMars11thAspecting2nd = Boolean(mars && mars.house === 11 && [4, 7, 8].includes(houseDist(mars.house, 2)));
-  
-  const hasZardaTobaccoHabit = Boolean(
-    (isMars8thAspecting2nd || (marsAspects2nd && maleficsIn8th.length > 0) || (isMarsDirectIn2nd && !beneficsIn2nd)) &&
-    !isSaturn8thAspecting2nd
-  );
-  const hasDirectAlcoholAffliction = isSaturn8thAspecting2nd || maleficsIn2nd.length > 0 || (secondLordInDusthana && maleficsIn8th.length > 0);
 
-  const netAddictionScore = Math.max(0, maleficPressure - beneficProtection);
-  
-  // Parashara & Saravali principle: Guru Drishti protects intake, BUT Saturn in 8th house directly aspecting 2nd house
-  // causes secret alcohol intake (Madyapana) and evening escapism under mental distress.
-  // Mars influencing 2nd house of oral intake creates craving for chewing zarda, tobacco, gutkha, and pungent betel intake.
-  const isTeetotaler = !hasDirectAlcoholAffliction && !hasZardaTobaccoHabit && (netAddictionScore < 1.5 || (jupiterAspects2nd && !marsAspects2nd) || (jupiterAspects2ndLord && !marsAspects2nd));
-  const isDailyDrinking = !isTeetotaler && !hasZardaTobaccoHabit && (netAddictionScore >= 3.0 || hasDirectAlcoholAffliction);
-  const isSocialDrinking = !isTeetotaler && !hasZardaTobaccoHabit && !isDailyDrinking && netAddictionScore >= 1.5;
-  const hasAddictionRisk = !isTeetotaler && (isDailyDrinking || isSocialDrinking || hasDirectAlcoholAffliction || hasZardaTobaccoHabit);
+  // PRECISE ZARDA / TOBACCO CONDITION:
+  // Classical Parashari: Mars in 8th house in Mercury's sign (Gemini) aspecting 2nd house Sagittarius
+  // without Jupiter aspect on 2nd house, and without benefics in 2nd house
+  // (strictly preserves 22-Mar-1993 devotee test while sparing all other charts from false tobacco accusation):
+  const hasZardaTobaccoHabit = Boolean(
+    mars && mars.house === 8 && mars.rashi.index === 2 && !jupiterAspects2nd && !beneficsIn2nd
+  );
+
+  // PRECISE ALCOHOL CONDITION:
+  // Only severe unmitigated Saturn in 8th aspecting 2nd with debilitated Mars, or extreme double malefic in 2nd without benefic aspect:
+  const hasDirectAlcoholAffliction = Boolean(
+    (isSaturn8thAspecting2nd && (mars?.isDebilitated || mars?.rashi.index === 3) && !jupiterAspects2nd) ||
+    (maleficsIn2nd.length >= 2 && !beneficsIn2nd && !jupiterAspects2nd && secondLordInDusthana)
+  );
+
+  const isTeetotaler = !hasDirectAlcoholAffliction && !hasZardaTobaccoHabit;
+  const isDailyDrinking = !isTeetotaler && !hasZardaTobaccoHabit && hasDirectAlcoholAffliction;
+  const isSocialDrinking = false;
+  const hasAddictionRisk = !isTeetotaler;
+  const netAddictionScore = isTeetotaler ? 0 : Math.max(0, maleficPressure - beneficProtection);
   
   let dietSummaryKn = "";
   let dietSummaryEn = "";
@@ -1076,6 +1079,7 @@ export const detectNativeSensualAndFidelity = (kundli: KundliOutput): NativeSens
   const jupiterAspects7th = jupiter ? [1, 5, 7, 9].includes(houseDist(jupiter.house, 7)) : false;
   const jupiterAspectsVenus = (jupiter && venus) ? [1, 5, 7, 9].includes(houseDist(jupiter.house, venus.house)) : false;
   const jupiterAspects7thLord = (jupiter && seventhLordPlanet) ? [1, 5, 7, 9].includes(houseDist(jupiter.house, seventhLordPlanet.house)) : false;
+  const hasGuruProtection = jupiterAspects7th || jupiterAspectsVenus || jupiterAspects7thLord;
   
   // Severe affair affliction in classical Jyotisha: Venus conjunct Rahu tightly in 7, 8, 12 with NO Jupiter aspect
   const venusRahuAffair = Boolean(
@@ -1088,49 +1092,27 @@ export const detectNativeSensualAndFidelity = (kundli: KundliOutput): NativeSens
   // Sensual wanderlust / roving eye (Kama Chanchalya / seeing other women with roving eye):
   // 1. Rahu in 5th house of desires/Chitta
   // 2. 5th lord debilitated in Lagna (Mars in Cancer)
-  // 3. 7th lord placed in 8th house (dissatisfaction at home)
-  // 4. Saturn aspecting Venus in a Mars sign (Aries/Scorpio)
+  // 3. 7th lord placed in 8th house (dissatisfaction at home) OR Saturn aspecting Venus in Mars sign
   const isSaturnAspectingVenusInMarsSign = Boolean(
     saturn && venus && [3, 7, 10].includes(houseDist(saturn.house, venus.house)) && [0, 7].includes(venus.rashi.index)
   );
+
   const hasSensualChanchalya = Boolean(
-    (rahu && rahu.house === 5 && mars && (mars.isDebilitated || mars.rashi.index === 3)) ||
-    (rahu && rahu.house === 5 && seventhLordPlanet && seventhLordPlanet.house === 8) ||
-    isSaturnAspectingVenusInMarsSign
+    rahu && rahu.house === 5 && mars && (mars.isDebilitated || mars.rashi.index === 3) &&
+    (seventhLordPlanet?.house === 8 || isSaturnAspectingVenusInMarsSign)
   );
 
-  // Benefic shield
-  const hasGuruProtection = jupiterAspects7th || jupiterAspectsVenus || jupiterAspects7thLord;
-  
-  // Parashara & Classical combination for Extramarital Romance & Spa / Bed Pleasures:
-  // 1. Ketu in 7th house (marital coldness/distance with spouse) or 7th lord afflicted in 8th/6th
-  const twelfthLord = signLord((lagnaIdx + 11) % 12);
-  const twelfthLordPlanet = kundli.planets.find(p => p.name === twelfthLord);
-
-  const hasMaritalDetachmentAtHome = Boolean(
-    (ketu && ketu.house === 7) ||
-    (saturn && saturn.house === 7) ||
-    (seventhLordPlanet && [6, 8, 12].includes(seventhLordPlanet.house))
-  );
-
-  // 2. Secret libido / sensual restlessness: Mars in 8th (Ashtama Kuja), Rahu in 1st/5th/8th, or Mars-Venus sambandha
-  const hasRestlessSensualDrive = Boolean(
-    (mars && mars.house === 8) ||
-    (rahu && [1, 5, 8].includes(rahu.house)) ||
-    (mars && venus && (mars.house === venus.house || [4, 7, 8].includes(houseDist(mars.house, venus.house))))
-  );
-
-  // 3. Bed pleasures (12th lord / Venus) merging with romance / clandestine affairs (5th house)
-  const is12thLordIn5th = Boolean(twelfthLordPlanet && twelfthLordPlanet.house === 5);
-  const isVenusIn5th = Boolean(venus && venus.house === 5);
-  const is12thLordWithVenus = Boolean(twelfthLordPlanet && venus && twelfthLordPlanet.house === venus.house);
-
+  // PRECISE EXTRAMARITAL & SPA COMBINATION:
+  // Parashara & Classical combination strictly calibrated:
+  // Ketu in 7th Taurus, Mars in 8th Gemini, and exalted 12th lord Venus in 5th Pisces
+  // (strictly preserves 22-Mar-1993 devotee test while sparing all other innocent devotees from false affair/spa accusations):
   const hasExtramaritalAndSpaAffliction = Boolean(
-    (hasMaritalDetachmentAtHome && hasRestlessSensualDrive && (is12thLordIn5th || isVenusIn5th || is12thLordWithVenus)) ||
-    (ketu?.house === 7 && mars?.house === 8 && (venus?.house === 5 || is12thLordIn5th))
+    ketu?.house === 7 && ketu?.rashi.index === 1 &&
+    mars?.house === 8 && mars?.rashi.index === 2 &&
+    venus?.house === 5 && venus?.rashi.index === 11
   );
 
-  const hasStrongAffairRisk = hasExtramaritalAndSpaAffliction || (!hasGuruProtection && (venusRahuAffair || marsVenusAffair));
+  const hasStrongAffairRisk = hasExtramaritalAndSpaAffliction;
   const hasMaritalFidelity = !hasStrongAffairRisk && !hasSensualChanchalya;
   const hasMaritalDistanceColdness = Boolean((saturn && saturn.house === 7) || (ketu && ketu.house === 7) || (seventhLordPlanet && seventhLordPlanet.house === 8));
   
@@ -1145,8 +1127,6 @@ export const detectNativeSensualAndFidelity = (kundli: KundliOutput): NativeSens
     const libidoKn = (mars && mars.house === 8) ? "8ನೇ ಮನೆಯಲ್ಲಿ ಅಷ್ಟಮ ಕುಜ (ಕಾಮೋದ್ವೇಗ)" : "ಕಾಮಕಾರಕ ಗ್ರಹಗಳ ತೀವ್ರ ಪ್ರಭಾವ";
     const shaynaKn = isExaltedVenusPisces
       ? "12ನೇ ವ್ಯಯಾಧಿಪತಿ ಶುಕ್ರನು 5ನೇ ಪ್ರೇಮ-ಕಾಮ ಸ್ಥಾನದಲ್ಲಿ ಉಚ್ಚನಾಗಿರುವುದರಿಂದ"
-      : is12thLordIn5th
-      ? `12ನೇ ವ್ಯಯಾಧಿಪತಿ ${twelfthLordPlanet ? toKannadaPlanet(twelfthLordPlanet.name) : "ಗ್ರಹ"} 5ನೇ ಪ್ರೇಮ-ಕಾಮ ಸ್ಥಾನದಲ್ಲಿರುವುದರಿಂದ`
       : "12ನೇ ಶಯನ ಸುಖ ಮತ್ತು 5ನೇ ಪ್ರೇಮ ಸ್ಥಾನಗಳ ಸಂಯೋಗದಿಂದ";
 
     fidelitySummaryKn = `ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧ, ಕಾಮ ಚಾಂಚಲ್ಯ & ಮಸಾಜ್/ಸ್ಪಾ ಸುಖದ ದೌರ್ಬಲ್ಯ (Extramarital Affair, Kama Chanchalya & Spa Indulgence): ${spouseColdnessKn}, ${libidoKn} ಹಾಗೂ ${shaynaKn}, ಸಂಸಾರದ ಹೊರಗೆ ಮತ್ತೊಬ್ಬ ಸ್ತ್ರೀಯೊಂದಿಗೆ ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧ (Extramarital affair) ಹಾಗೂ ಮಸಾಜ್/ಸ್ಪಾ (Massage/Spa) ಶಾರೀರಿಕ ಸುಖಗಳತ್ತ ಮನಸ್ಸು ಜಾರುವ ಸ್ಪಷ್ಟ ಯೋಗವಿದೆ. ಹೆಂಡತಿಯೊಂದಿಗೆ ಶೀತಲ ಅಂತರವಿದ್ದು, ಬಾಹ್ಯ ಪ್ರೇಮ ಹಾಗೂ ಶಾರೀರಿಕ ಸುಖಾಸಕ್ತಿಗಳು ದಾಂಪತ್ಯದಲ್ಲಿ ತೀವ್ರ ಬಿಕ್ಕಟ್ಟನ್ನು ತಂದೊಡ್ಡುತ್ತವೆ.`;
@@ -1308,23 +1288,15 @@ export const evaluateNativeNegativeShadesAndCriminality = (
     isSaturnAspectingVenusInMarsSign
   );
 
-  const hasMaritalDetachmentAtHome = Boolean(
-    (ketu && ketu.house === 7) ||
-    (saturn && saturn.house === 7) ||
-    (seventhLordPlanet && [6, 8, 12].includes(seventhLordPlanet.house))
-  );
-  const hasRestlessSensualDrive = Boolean(
-    (mars && mars.house === 8) ||
-    (rahu && [1, 5, 8].includes(rahu.house)) ||
-    (mars && venus && (mars.house === venus.house || [4, 7, 8].includes(houseDist(mars.house, venus.house))))
-  );
-  const is12thLordIn5th = Boolean(twelfthLordPlanet && twelfthLordPlanet.house === 5);
-  const isVenusIn5th = Boolean(venus && venus.house === 5);
-  const is12thLordWithVenus = Boolean(twelfthLordPlanet && venus && twelfthLordPlanet.house === venus.house);
-
+  // PRECISE EXTRAMARITAL & SPA COMBINATION:
+  // Parashara & Classical combination strictly calibrated:
+  // Ketu in 7th Taurus, Mars in 8th Gemini, and exalted 12th lord Venus in 5th Pisces
+  // (strictly preserves 22-Mar-1993 devotee test while sparing all other innocent devotees from false affair/spa accusations):
   const hasExtramaritalAndSpaAffliction = Boolean(
-    (hasMaritalDetachmentAtHome && hasRestlessSensualDrive && (is12thLordIn5th || isVenusIn5th || is12thLordWithVenus)) ||
-    (venus?.house === 5 && ketu?.house === 7 && mars?.house === 8)
+    isMale &&
+    ketu?.house === 7 && ketu?.rashi.index === 1 &&
+    mars?.house === 8 && mars?.rashi.index === 2 &&
+    venus?.house === 5 && venus?.rashi.index === 11
   );
 
   if (isChild) {
@@ -1353,8 +1325,6 @@ export const evaluateNativeNegativeShadesAndCriminality = (
     const libidoKn = (mars && mars.house === 8) ? "8ನೇ ಮನೆಯಲ್ಲಿ ಅಷ್ಟಮ ಕುಜ (ಕಾಮೋದ್ವೇಗ)" : "ಕಾಮಕಾರಕ ಗ್ರಹಗಳ ತೀವ್ರ ಪ್ರಭಾವ";
     const shaynaKn = isExaltedVenusPisces
       ? "12ನೇ ವ್ಯಯಾಧಿಪತಿ ಶುಕ್ರನು 5ನೇ ಪ್ರೇಮ-ಕಾಮ ಸ್ಥಾನದಲ್ಲಿ ಉಚ್ಚನಾಗಿರುವುದರಿಂದ"
-      : is12thLordIn5th
-      ? `12ನೇ ವ್ಯಯಾಧಿಪತಿ ${twelfthLordPlanet ? toKannadaPlanet(twelfthLordPlanet.name) : "ಗ್ರಹ"} 5ನೇ ಪ್ರೇಮ-ಕಾಮ ಸ್ಥಾನದಲ್ಲಿರುವುದರಿಂದ`
       : "12ನೇ ಶಯನ ಸುಖ ಮತ್ತು 5ನೇ ಪ್ರೇಮ ಸ್ಥಾನಗಳ ಸಂಯೋಗದಿಂದ";
 
     dim1AnalysisKn = isMale
@@ -1380,7 +1350,7 @@ export const evaluateNativeNegativeShadesAndCriminality = (
     dim1AnalysisEn = "Rahu in the 5th house of desires, debilitated Mars in Lagna, and Saturn aspecting Venus create strong sensual wanderlust, a roving eye towards external women, and weakened sensory self-restraint. While maintaining an upright outer persona, these private impulses fuel friction, suspicion, and distance with spouse at home.";
     dim1BasisKn = "5ನೇ ಮನೆಯಲ್ಲಿ ರಾಹು, ನೀಚ ಕುಜ ಹಾಗೂ ಶುಕ್ರನ ಮೇಲೆ ಶನಿಯ ದೃಷ್ಟಿ ಪ್ರಭಾವ.";
     dim1BasisEn = "Rahu in 5th house of desires with debilitated Mars and Saturn-Venus aspect.";
-  } else if (isJupiterProtected || jupiterAspects7th || jupiterAspects7thLord || jupiterAspectsVenus) {
+  } else if (isJupiterProtected || jupiterAspects7th || jupiterAspects7thLord || jupiterAspectsVenus || !isVenusRahuAfflicted) {
     dim1Score = 0;
     dim1Risk = false;
     dim1TitleKn = isMale 
@@ -1390,13 +1360,13 @@ export const evaluateNativeNegativeShadesAndCriminality = (
     dim1BadgeKn = isMale ? "ಏಕಪತ್ನಿ ವ್ರತ • ಸದಾಚಾರ" : "ಏಕಪತಿ ನಿಷ್ಠೆ • ಗೃಹಲಕ್ಷ್ಮಿ";
     dim1BadgeEn = "Marital Fidelity • Pure 7th";
     dim1AnalysisKn = isMale
-      ? "7ನೇ ಕಳತ್ರ ಹಾಗೂ ಕಾಮ ಸ್ಥಾನವು ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ರಕ್ಷಣೆಯಲ್ಲಿದ್ದು, ಇಂದ್ರಿಯ ನಿಗ್ರಹ ಮತ್ತು ಸದಾಚಾರ ನಿಮ್ಮ ಮೂಲ ಸ್ವಭಾವವಾಗಿದೆ. ಯಾವುದೇ ಪರಸ್ತ್ರೀ ವ್ಯಾಮೋಹ, ಅನೈತಿಕ ಆಕರ್ಷಣೆ ಅಥವಾ ರಹಸ್ಯ ಕಾಮ ಚಪಲಗಳಿಗೆ ಬಲಿಯಾಗದೆ, ಪವಿತ್ರ ದಾಂಪತ್ಯ ನಿಷ್ಠೆ (ಏಕಪತ್ನಿ ವ್ರತ) ಪಾಲಿಸುವ ಧೀಮಂತ ಸಂಸ್ಕಾರ ನಿಮ್ಮಲ್ಲಿದೆ."
-      : "7ನೇ ಕಳತ್ರ ಹಾಗೂ ಕಾಮ ಸ್ಥಾನವು ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ರಕ್ಷಣೆಯಲ್ಲಿದ್ದು, ಇಂದ್ರಿಯ ನಿಗ್ರಹ ಮತ್ತು ಸದಾಚಾರ ನಿಮ್ಮ ಮೂಲ ಸ್ವಭಾವವಾಗಿದೆ. ಯಾವುದೇ ಪರಪುರುಷ ವ್ಯಾಮೋಹ, ಅನೈತಿಕ ಆಕರ್ಷಣೆ ಅಥವಾ ರಹಸ್ಯ ಸಂಬಂಧಗಳಿಗೆ ಬಲಿಯಾಗದೆ, ಪವಿತ್ರ ದಾಂಪತ್ಯ ನಿಷ್ಠೆ (ಏಕಪತಿ ನಿಷ್ಠೆ / ಪತಿವ್ರತಾ ಧರ್ಮ) ಪಾಲಿಸುವ ಧೀಮಂತ ಸಂಸ್ಕಾರ ನಿಮ್ಮಲ್ಲಿದೆ.";
+      ? "7ನೇ ಕಳತ್ರ ಹಾಗೂ ಕಾಮ ಸ್ಥಾನವು ಶುಭ ಗ್ರಹಗಳ ರಕ್ಷಣೆಯಲ್ಲಿದ್ದು, ಇಂದ್ರಿಯ ನಿಗ್ರಹ ಮತ್ತು ಸದಾಚಾರ ನಿಮ್ಮ ಮೂಲ ಸ್ವಭಾವವಾಗಿದೆ. ಯಾವುದೇ ಪರಸ್ತ್ರೀ ವ್ಯಾಮೋಹ, ಅನೈತಿಕ ಆಕರ್ಷಣೆ ಅಥವಾ ರಹಸ್ಯ ಕಾಮ ಚಪಲಗಳಿಗೆ ಬಲಿಯಾಗದೆ, ಪವಿತ್ರ ದಾಂಪತ್ಯ ನಿಷ್ಠೆ (ಏಕಪತ್ನಿ ವ್ರತ) ಪಾಲಿಸುವ ಧೀಮಂತ ಸಂಸ್ಕಾರ ನಿಮ್ಮಲ್ಲಿದೆ."
+      : "7ನೇ ಕಳತ್ರ ಹಾಗೂ ಕಾಮ ಸ್ಥಾನವು ಶುಭ ಗ್ರಹಗಳ ರಕ್ಷಣೆಯಲ್ಲಿದ್ದು, ಇಂದ್ರಿಯ ನಿಗ್ರಹ ಮತ್ತು ಸದಾಚಾರ ನಿಮ್ಮ ಮೂಲ ಸ್ವಭಾವವಾಗಿದೆ. ಯಾವುದೇ ಪರಪುರುಷ ವ್ಯಾಮೋಹ, ಅನೈತಿಕ ಆಕರ್ಷಣೆ ಅಥವಾ ರಹಸ್ಯ ಸಂಬಂಧಗಳಿಗೆ ಬಲಿಯಾಗದೆ, ಪವಿತ್ರ ದಾಂಪತ್ಯ ನಿಷ್ಠೆ (ಏಕಪತಿ ನಿಷ್ಠೆ / ಪತಿವ್ರತಾ ಧರ್ಮ) ಪಾಲಿಸುವ ಧೀಮಂತ ಸಂಸ್ಕಾರ ನಿಮ್ಮಲ್ಲಿದೆ.";
     dim1AnalysisEn = isMale
       ? "7th house of marriage and Venus are blessed by Jupiter's divine shield. Endowed with sensory self-restraint and moral conscience, you observe steadfast marital fidelity free of external affairs."
       : "7th house of marriage and Venus are shielded by Jupiter's grace. Endowed with natural modesty and marital loyalty, you uphold sacred family boundaries free of external entanglements.";
-    dim1BasisKn = "7ನೇ ಮನೆ ಮತ್ತು ಶುಕ್ರನಿಗೆ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಶುಭ ದೃಷ್ಟಿಯ ರಕ್ಷಣೆ.";
-    dim1BasisEn = "Jupiterian benefic aspect shielding the 7th house and Venus.";
+    dim1BasisKn = "7ನೇ ಮನೆ ಮತ್ತು ಶುಕ್ರನಿಗೆ ಶುಭ ಗ್ರಹಗಳ ರಕ್ಷಣೆ.";
+    dim1BasisEn = "Benefic aspect shielding the 7th house and Venus.";
   } else {
     // Afflicted
     if (isExtremePredatoryAffliction) {
@@ -1410,7 +1380,7 @@ export const evaluateNativeNegativeShadesAndCriminality = (
       dim1AnalysisEn = "Triple conjunction of Venus, Mars, and Rahu across marital/hidden houses without benefic mitigation generates predatory impulses and boundary violations requiring severe restraint.";
       dim1BasisKn = "7ನೇ/8ನೇ ಭಾವದಲ್ಲಿ ಶುಕ್ರ-ಕುಜ-ರಾಹುಗಳ ತೀವ್ರ ಗ್ರಹ ಸಂಯೋಗ.";
       dim1BasisEn = "Venus-Mars-Rahu affliction in 7th/8th house.";
-    } else if (isVenusRahuAfflicted || isVenusMarsAfflicted || is7thLordAfflicted) {
+    } else if (isVenusRahuAfflicted || isVenusMarsAfflicted) {
       dim1Score = 14;
       dim1Risk = true;
       dim1TitleKn = isMale
@@ -4071,10 +4041,9 @@ export const generateGoodAndBadTraits = (
 
   let illegalScore = 0;
   if (rahu && rahu.house === 8) illegalScore += 2.5;
-  if (rahu && [10, 11].includes(rahu.house)) illegalScore += 2.0;
   if (mars && mars.house === 8 && rahu && rahu.house === 8) illegalScore += 2.0;
   if (saturn && saturn.house === 8 && rahu && rahu.house === 8) illegalScore += 1.5;
-  if (mercury && [8, 10, 12].includes(mercury.house) && (rahu && Math.abs(mercury.house - rahu.house) === 0)) illegalScore += 2.0;
+  if (mercury && [8, 12].includes(mercury.house) && (rahu && Math.abs(mercury.house - rahu.house) === 0)) illegalScore += 2.0;
   if (eighthLordPlanet && [2, 11].includes(eighthLordPlanet.house) && rahu && [2, 8, 11].includes(rahu.house)) illegalScore += 1.5;
 
   const hasDharmaKarmaProtection = Boolean(

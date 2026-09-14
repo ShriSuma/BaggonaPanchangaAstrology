@@ -289,16 +289,25 @@ export function diagnoseCurrentLifeSituation(
   if (venus && [6, 8, 12].includes(venus.house)) marriageDelayScore += 1.5;
   if (shaniMoon === 7) marriageDelayScore += 2.0;
   if (age >= 26 && age <= 42) marriageDelayScore += 2.5; // Prime matrimonial anxiety age bracket
+
+  // CRITICAL PARASHARI SAFEGUARD:
+  // If native is explicitly marked "married", delay is 0.
+  // If native is explicitly "unmarried", evaluate full delay score.
+  // If marital status is unspecified:
+  // Only diagnose marriage delay if there is an ACUTE, undeniable 7th house affliction (score >= 8.0, e.g. Saturn + Rahu in 7th)
+  // for natives under 42. Otherwise do not assume an unspecified adult is unmarried!
   if (context.maritalStatus === "married") {
     marriageDelayScore = 0;
+  } else if (context.maritalStatus !== "unmarried") {
+    if (age >= 25 && marriageDelayScore < 8.0) {
+      marriageDelayScore = 0; // Guard against false marriage delay for unspecified married adults
+    }
   }
+
   // Parashari Classical Marriage Certainty & Discord Priority Principle across all 12 Lagnas:
   // When the 7th lord is Exalted (in its respective exaltation sign index for any planet),
   // in its Own Sign (Swakshetra), or placed in a Kendra/Trikona under Jupiter's benefic aspect,
   // Vivaha Yoga is fulfilled and marriage is assured.
-  // If the chart simultaneously contains severe domestic strife afflictions:
-  // (Ketu in 7th, Mars in 8th [Ashtama Kuja], 7th lord in Dusthana 6/8/12, or Saturn in 7th/8th),
-  // the acute life struggle is Marital Discord (ದಾಂಪತ್ಯ ಬಿಕ್ಕಟ್ಟು & ಸಂಸಾರದಲ್ಲಿ ಕಲಹ), NOT Marriage Delay.
   const isSeventhLordExalted = Boolean(
     seventhLordPlanet && EXALTATION_SIGNS[seventhLordPlanet.name] === seventhLordPlanet.rashi.index
   );
@@ -339,11 +348,17 @@ export function diagnoseCurrentLifeSituation(
   if (mars && mars.house === 8) maritalDiscordScore += 3.5; // Ashtama Kuja severely afflicts Mangalya sthana / domestic peace
   if (hasKujaDosha) maritalDiscordScore += 2.5;
   if (saturn && (saturn.house === 7 || saturn.house === 8)) maritalDiscordScore += 2.5;
+
   if (context.maritalStatus === "married") {
     maritalDiscordScore += 3.0;
-  }
-  if (context.maritalStatus === "unmarried") {
+  } else if (context.maritalStatus === "unmarried") {
     maritalDiscordScore = 0;
+  } else {
+    // When marital status is unspecified, only consider marital discord if there is a CONFIRMED extreme affliction
+    // (e.g. Ketu in 7th with Mars in 8th and Rahu in 1st). Otherwise do not assume fighting!
+    if (maritalDiscordScore < 8.5) {
+      maritalDiscordScore = 0;
+    }
   }
 
   // -------------------------------------------------------------
@@ -356,9 +371,18 @@ export function diagnoseCurrentLifeSituation(
   if (saturn && saturn.house === 5) childlessScore += 4.0;
   if (fifthLordPlanet && [6, 8, 12].includes(fifthLordPlanet.house)) childlessScore += 3.5;
   if (jupiter && [6, 8, 12].includes(jupiter.house)) childlessScore += 2.5;
+  if (childlessScore > 0 && age >= 28 && age <= 42) childlessScore += 3.0; // Active progeny planning window under 5th affliction
+
+  // If explicitly unmarried, childlessness is 0
+  const isExplicitlyCouple = Boolean(context.maritalStatus === "married" || context.devoteeName?.includes("ದಂಪತಿ"));
   if (context.maritalStatus === "unmarried") {
     childlessScore = 0;
+  } else if (!isExplicitlyCouple) {
+    if (age < 26 || childlessScore < 7.5) {
+      childlessScore = 0;
+    }
   }
+
 
   // -------------------------------------------------------------
   // CRITERION 6: WORKPLACE POLITICS, STAGNATION & LAYOFF RISK (ಉದ್ಯೋಗ ರಾಜಕೀಯ)
@@ -807,7 +831,7 @@ export function diagnoseCurrentLifeSituation(
   // L. Default Baseline: Career & Financial Growth Focus
   candidates.push({
     category: "career_financial_growth",
-    score: 2.0,
+    score: age >= 23 && age <= 58 ? 7.5 : 2.0,
     profile: {
       category: "career_financial_growth",
       titleKn: "ವೃತ್ತಿ ವಿಕಾಸ, ಆರ್ಥಿಕ ಉನ್ನತಿ & ನೂತನ ಯೋಜನೆಗಳ ಅಡಿಪಾಯ",
@@ -955,41 +979,41 @@ export function determineAccurateProfession(
 
   // 6. Priest, Vedic Scholar, Temple Archaka, Homa-Havana & Astrologer
   if ([8, 11, 3, 7].includes(tenthSignIndex)) scores.priest_vedic_astrology += 3.5;
-  if (planetsIn10thNames.includes(PlanetName.Jupiter)) scores.priest_vedic_astrology += 4.0;
+  if (planetsIn10thNames.includes(PlanetName.Jupiter)) scores.priest_vedic_astrology += 3.0;
   if (planetsIn10thNames.includes(PlanetName.Ketu)) scores.priest_vedic_astrology += 4.5;
   if (planetsIn10thNames.includes(PlanetName.Jupiter) && planetsIn10thNames.includes(PlanetName.Ketu)) scores.priest_vedic_astrology += 5.5;
   const ninthLord = signLord((lagnaIndex + 8) % 12);
   const ninthLordPlanet = kundli.planets.find(p => p.name === ninthLord);
-  if (ninthLord === tenthLord || (ninthLord && tenthLordPlanet && tenthLordPlanet.house === 9)) scores.priest_vedic_astrology += 4.0;
-  if ([PlanetName.Sun, PlanetName.Jupiter, PlanetName.Ketu].includes(ninthLord) || (sun && sun.house === 9)) scores.priest_vedic_astrology += 3.5;
-  if (amkName === PlanetName.Jupiter) scores.priest_vedic_astrology += 3.0;
-  if (navTenthLord === PlanetName.Jupiter) scores.priest_vedic_astrology += 3.0;
+  if (ninthLord === tenthLord || (ninthLord && tenthLordPlanet && tenthLordPlanet.house === 9)) scores.priest_vedic_astrology += 3.0;
+  if ([PlanetName.Sun, PlanetName.Jupiter, PlanetName.Ketu].includes(ninthLord) || (sun && sun.house === 9)) scores.priest_vedic_astrology += 2.5;
+  if (amkName === PlanetName.Jupiter) scores.priest_vedic_astrology += 2.5;
+  if (navTenthLord === PlanetName.Jupiter) scores.priest_vedic_astrology += 2.5;
 
   // Classical Vedic signatures for Temple Archaka, Purohita & Homa-Havana:
   // Signature A: 9th Lord (Dharma/Temple) aspecting its own 9th house of Dharma/Devata
-  if (ninthLordPlanet && [1, 5, 7, 9].includes(houseDistance(ninthLordPlanet.house, 9))) scores.priest_vedic_astrology += 4.5;
-  if (jupiter && ninthLordPlanet?.name !== PlanetName.Jupiter && [1, 5, 7, 9].includes(houseDistance(jupiter.house, 9))) scores.priest_vedic_astrology += 3.5;
+  if (ninthLordPlanet && [1, 5, 7, 9].includes(houseDistance(ninthLordPlanet.house, 9))) scores.priest_vedic_astrology += 3.5;
+  if (jupiter && ninthLordPlanet?.name !== PlanetName.Jupiter && [1, 5, 7, 9].includes(houseDistance(jupiter.house, 9))) scores.priest_vedic_astrology += 2.5;
 
   // Signature B: Sun (Devata/Agni/Gayatri) conjunct Ketu (Yajna, Temple, Moksha) -> Classical Agnihotri / Temple Archaka yoga
-  if (sun && ketu && sun.house === ketu.house) scores.priest_vedic_astrology += 6.0;
-  if (ketu && [9, 10, 11].includes(ketu.house)) scores.priest_vedic_astrology += 3.5;
+  const hasSunKetuYajna = Boolean(sun && ketu && sun.house === ketu.house);
+  if (hasSunKetuYajna) scores.priest_vedic_astrology += 5.0;
+  if (ketu && [9, 10].includes(ketu.house)) scores.priest_vedic_astrology += 3.5;
 
   // Signature C: 10th house planet occupying Ketu-ruled Nakshatra (Ashwini, Magha, Moola)
   const ketuNakshatras = [0, 9, 18];
-  if (planetsIn10th.some(p => ketuNakshatras.includes(p.nakshatra.index))) scores.priest_vedic_astrology += 4.5;
-
-  // Signature D: 10th Lord is Mars (Agni/Fire) channeling sacred fire rituals (Homa, Havana, Agnihotra) when linked with Ketu/Yajna or debilitated in water sign (Cancer)
-  const isMarsDebilitatedOrWater = Boolean(mars?.isDebilitated || (mars && [3, 7, 11].includes(mars.rashi.index)));
-  const hasSunKetuYajna = Boolean(sun && ketu && sun.house === ketu.house);
   const hasKetuIn10thStar = planetsIn10th.some(p => ketuNakshatras.includes(p.nakshatra.index));
+  if (hasKetuIn10thStar) scores.priest_vedic_astrology += 4.5;
+
+  // Signature D: 10th Lord is Mars (Agni/Fire) channeling sacred fire rituals (Homa, Havana, Agnihotra) when linked with Ketu/Yajna
+  const isMarsDebilitatedOrWater = Boolean(mars?.isDebilitated || (mars && [3, 7, 11].includes(mars.rashi.index)));
   if (tenthLord === PlanetName.Mars && (hasSunKetuYajna || hasKetuIn10thStar || isMarsDebilitatedOrWater)) {
     if (ninthLord === PlanetName.Jupiter || (jupiter && [1, 5, 7, 9].includes(houseDistance(jupiter.house, 9)))) {
-      scores.priest_vedic_astrology += 5.0;
+      scores.priest_vedic_astrology += 4.0;
     }
   }
 
-  // Signature E: Parashara DHARMA-KARMADHIPATI RAJA YOGA in 1st/4th/5th/7th/9th/10th or Jupiter's signs (Pisces / Sagittarius) or Cancer
-  // 9th Lord of Dharma (Temple, Shastras, Deities) conjunct 10th Lord of Karma (Livelihood)
+  // Signature E: Parashara DHARMA-KARMADHIPATI RAJA YOGA
+  // 9th Lord of Dharma conjunct 10th Lord of Karma in 1st/4th/5th/7th/9th/10th
   const hasDharmaKarmaYoga = Boolean(
     ninthLordPlanet && tenthLordPlanet &&
     ninthLordPlanet.house === tenthLordPlanet.house &&
@@ -1003,22 +1027,37 @@ export function determineAccurateProfession(
   );
 
   if (hasDharmaKarmaYoga) {
-    scores.priest_vedic_astrology += 6.5;
-    if (isDharmaKarmaInJupiterSign) scores.priest_vedic_astrology += 4.5;
-    if (isJupiterAspectingDharmaKarma) scores.priest_vedic_astrology += 4.5;
-    // When 10th lord is Sun, Moon, or Jupiter in Jupiter's signs or Cancer:
-    // This is the quintessential Vedic Temple Archaka / Purohita / Vedic Scholar signature.
-    // Penalize government_civil_police, because planetary energy here is divine/sattvik altar radiance, not police/military force.
-    if (tenthLordPlanet && [PlanetName.Sun, PlanetName.Moon, PlanetName.Jupiter].includes(tenthLordPlanet.name) && [3, 8, 11].includes(tenthLordPlanet.rashi.index)) {
-      scores.priest_vedic_astrology += 4.0;
-      scores.government_civil_police -= 6.0;
+    // In Parashari Jyotisha, Dharma-Karmadhipati Raja Yoga bestows executive status across vocations:
+    if ([PlanetName.Mercury, PlanetName.Rahu].includes(tenthLord)) scores.it_software += 3.5;
+    if ([PlanetName.Jupiter, PlanetName.Mercury].includes(tenthLord)) scores.banking_finance += 3.5;
+    if ([PlanetName.Mars, PlanetName.Saturn].includes(tenthLord)) scores.engineering_core += 3.5;
+    if (tenthLord === PlanetName.Sun) scores.government_civil_police += 3.5;
+
+    // Authentic Temple Archaka / Vedic Purohita alignment:
+    // Requires male gender, placement in 5th house of Mantras in Jupiter's sign Pisces, direct Jupiter aspect, and Ketu's involvement
+    if (context.gender !== "Female") {
+      if (isDharmaKarmaInJupiterSign && isJupiterAspectingDharmaKarma && tenthLordPlanet && [5, 9].includes(tenthLordPlanet.house)) {
+        scores.priest_vedic_astrology += 14.0;
+        scores.government_civil_police -= 6.0;
+      } else if (hasSunKetuYajna || hasKetuIn10thStar || (ketu && [9, 10].includes(ketu.house))) {
+        scores.priest_vedic_astrology += 6.0;
+      }
+    } else {
+      // For female natives with strong Dharma-Karma Raja Yoga:
+      // Manifests as academics, professorship, management, or civil leadership
+      scores.teaching_academics += 4.5;
+      scores.government_civil_police += 3.5;
     }
   }
 
   // 10th lord in 5th or 9th house of Mantras/Rituals in Jupiter's signs (Pisces/Sagittarius/Cancer)
   if (tenthLordPlanet && [5, 9].includes(tenthLordPlanet.house) && [3, 8, 11].includes(tenthLordPlanet.rashi.index)) {
-    scores.priest_vedic_astrology += 4.0;
-    scores.government_civil_police -= 5.0;
+    if (context.gender !== "Female" && (jupiter?.house === 11 || ketu?.house === 7 || ketu?.house === 9)) {
+      scores.priest_vedic_astrology += 3.5;
+      scores.government_civil_police -= 4.0;
+    } else {
+      scores.teaching_academics += 3.5;
+    }
   }
 
   // 7. Government Officer, Civil Services (IAS/KAS), Police & Defense
