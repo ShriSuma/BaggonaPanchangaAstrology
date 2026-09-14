@@ -22,7 +22,7 @@ export function estimateBirthDateFromPalm(
   estimatedAgeYears: number,
   guruMountProminence: number = 7, // 1..10 scale
   shukraMountProminence: number = 7,
-  refDate: Date = new Date("2026-08-24")
+  refDate: Date = new Date()
 ): PalmDobEstimation {
   const currentYear = refDate.getFullYear();
   const currentMonth = refDate.getMonth() + 1; // 1..12

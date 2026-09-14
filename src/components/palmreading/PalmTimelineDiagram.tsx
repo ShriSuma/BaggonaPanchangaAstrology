@@ -103,13 +103,38 @@ export const PalmTimelineDiagram: React.FC<PalmTimelineDiagramProps> = ({
     const ms = milestones as LifeStageMilestones;
     estimatedDevoteeAge = ms.estimatedAge || 30;
 
+    // Helper to reliably extract age digits from English, Kannada, Hindi, Telugu, Tamil strings
+    const parseAgeFromWindow = (enStr?: string, knStr?: string, fallback: number = 27): number => {
+      const indicMap: Record<string, string> = {
+        "೦": "0", "೧": "1", "೨": "2", "೩": "3", "೪": "4",
+        "೫": "5", "೬": "6", "೭": "7", "೮": "8", "೯": "9",
+        "०": "0", "१": "1", "२": "2", "३": "3", "४": "4",
+        "५": "5", "६": "6", "७": "7", "८": "8", "९": "9",
+        "౦": "0", "౧": "1", "౨": "2", "౩": "3", "౪": "4",
+        "౫": "5", "౬": "6", "౭": "7", "౮": "8", "౯": "9",
+        "௦": "0", "௧": "1", "௨": "2", "௩": "3", "௪": "4",
+        "௫": "5", "௬": "6", "௭": "7", "௮": "8", "௯": "9"
+      };
+      const normalize = (s: string) => s.replace(/[\u0C66-\u0C6F\u0966-\u096F\u0C00-\u0C7F\u0BE6-\u0BEF]/g, (c) => indicMap[c] || c);
+
+      if (enStr) {
+        const norm = normalize(enStr);
+        const m = norm.match(/\b(\d{2})\b/);
+        if (m) return parseInt(m[1], 10);
+      }
+      if (knStr) {
+        const norm = normalize(knStr);
+        const m = norm.match(/\b(\d{2})\b/);
+        if (m) return parseInt(m[1], 10);
+      }
+      return fallback;
+    };
+
     // Parse marriage age
-    const mMatch = (ms.marriage?.timingAgeWindowEn || "").match(/\b(\d{2})\b/);
-    const marriageAge = mMatch ? parseInt(mMatch[1], 10) : 27;
+    const marriageAge = parseAgeFromWindow(ms.marriage?.timingAgeWindowEn, ms.marriage?.timingAgeWindowKn, 27);
 
     // Parse peak wealth age
-    const wMatch = (ms.careerWealth?.peakWealthAgeEn || "").match(/\b(\d{2})\b/);
-    const wealthAge = wMatch ? parseInt(wMatch[1], 10) : 35;
+    const wealthAge = parseAgeFromWindow(ms.careerWealth?.peakWealthAgeEn, ms.careerWealth?.peakWealthAgeKn, 35);
 
     eventsList = [
       {

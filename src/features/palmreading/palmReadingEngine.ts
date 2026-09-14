@@ -26,7 +26,10 @@ import {
   VEDIC_NAKHA_LAKSHANA_RULES,
   VEDIC_LUNULA_CHANDRAKARA_RULES,
   VEDIC_VIVAHA_REKHA_DETAILED_RULES,
-  VEDIC_ANGULI_SANDHI_RULES
+  VEDIC_ANGULI_SANDHI_RULES,
+  VEDIC_GENDER_HAND_RULES,
+  VEDIC_SPECIAL_LINES_RULES,
+  VEDIC_DERMATOGLYPHIC_PATTERNS
 } from "./samudrikaKnowledge";
 import type { KundliOutput } from "../../core/AstroTypes";
 
@@ -256,14 +259,32 @@ export function generateDynamicOfflinePalmReading(
   lang: string,
   kundliData?: PalmReadingResult["kundliData"],
   sideImageDataUrl?: string,
-  backImageDataUrl?: string
+  backImageDataUrl?: string,
+  gender: "Male" | "Female" = "Male"
 ): PalmReadingResult {
   const langCode = (lang || "kn").slice(0, 2);
   const now = new Date();
-  const handLabel = HAND_SIDE_L5[handSide];
+  
+  // Classical Vedic Gender Hand Polarity (Brihat Samhita & Garuda Purana)
+  const handLabel = gender === "Female" ? {
+    left: {
+      kn: "ಎಡ ಹಸ್ತ (ಸ್ತ್ರೀ ಸಹಜ ಪ್ರಾರಬ್ಧ, ಆತ್ಮ ಶಕ್ತಿ & ಸಹಜ ಪ್ರತಿಭೆ)",
+      en: "Left Hand (Innate Potential, Intuitive Soul Force & Prarabdha)",
+      hi: "बायां हाथ (स्त्री सहज अंतर्ज्ञान व नैसर्गिक क्षमता)",
+      te: "ఎడమ చేయి (సహజ అంతర్దృష్టి & ఆత్మ శక్తి)",
+      ta: "இடது கை (இயற்கை திறன் & ஆத்ம சக்தி)"
+    },
+    right: {
+      kn: "ಬಲ ಹಸ್ತ (ಸ್ತ್ರೀ ಕರ್ಮ ಶಕ್ತಿ, ವೃತ್ತಿ ಸಾಧನೆ & ಪ್ರಸ್ತುತ ಭಾಗ್ಯ)",
+      en: "Right Hand (Active Career Karma & Self-Made Accomplishments)",
+      hi: "दायां हाथ (सक्रिय कर्म, आजीविका व वर्तमान भाग्य)",
+      te: "కుడి చేయి (కార్యరంగం & స్వయంకృషి)",
+      ta: "வலது கை (செயல் திறன் & சுய உழைப்பு)"
+    }
+  }[handSide] : HAND_SIDE_L5[handSide];
 
-  // High-entropy seed derived from devotee parameters, image signatures, and astrological coordinates
-  const entropyStr = `${devoteeName || "Devotee"}_${handSide}_${imageDataUrl.slice(30, 300)}_${sideImageDataUrl ? sideImageDataUrl.slice(30, 200) : "noside"}_${backImageDataUrl ? backImageDataUrl.slice(30, 200) : "noback"}_${kundliData?.rashi || ""}_${kundliData?.nakshatra || ""}_${kundliData?.lagna || ""}`;
+  // High-entropy seed derived from devotee parameters, gender, image signatures, and astrological coordinates
+  const entropyStr = `${devoteeName || "Devotee"}_${gender}_${handSide}_${imageDataUrl.slice(30, 300)}_${sideImageDataUrl ? sideImageDataUrl.slice(30, 200) : "noside"}_${backImageDataUrl ? backImageDataUrl.slice(30, 200) : "noback"}_${kundliData?.rashi || ""}_${kundliData?.nakshatra || ""}_${kundliData?.lagna || ""}`;
   const seed = hashData(entropyStr);
 
   // 1. Hand Elemental Chironomy (Earth, Air, Fire, Water, Sankirna)
@@ -620,7 +641,7 @@ export function generateDynamicOfflinePalmReading(
   const remedies = [
     { kn: "ಗೋಕರ್ಣ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಗೆ ಕ್ಷೀರಾಭಿಷೇಕ ಸೇವೆ ಸಲ್ಲಿಸಿ, ಪ್ರತಿದಿನ ಬೆಳಿಗ್ಗೆ 'ಓಂ ನಮಃ ಶಿವಾಯ' ಹಾಗೂ 'ಶ್ರೀ ಗಾಯತ್ರೀ ಮಹಾಮಂತ್ರ'ವನ್ನು ೧೦೮ ಬಾರಿ ಜಪಿಸಿ.", en: "Offer Ksheerabhishekam at Sri Gokarna Mahabaleshwara & chant Om Namah Shivaya daily.", hi: "श्री गोकर्ण महाबलेश्वर स्वामी को क्षीराभिषेक करें एवं 'ॐ नमः शिवाय' का जप करें।", te: "శ్రీ గోకర్ణ మహాబలేశ్వర స్వామికి క్షీరాభిషేకం చేయండి & ఓం నమః శివాయ జపించండి.", ta: "ஶ்ரீ கோகர்ண மகாபலேஸ்வரருக்கு பாலாபிஷேகம் செய்து 'ஓம் நமச்சிவாய' ஜபிக்கவும்." },
     { kn: "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದಲ್ಲಿ ಬಿಲ್ವಾರ್ಚನೆ ಸಮರ್ಪಿಸಿ, ಸಂಜೆ ವೇಳೆ ಋಣಮುಕ್ತ ಗಣೇಶ ಸ್ತೋತ್ರ ಹಾಗೂ ಮಹಾಮೃತ್ಯುಂಜಯ ಜಪ ಕೈಗೊಳ್ಳಿ.", en: "Offer Bilvarchana at Gokarna Kshetra & recite Rinamocharana Ganesha Stotram daily.", hi: "गोकर्ण क्षेत्र में बिल्वार्चन करें एवं सायं ऋणमोचन गणेश स्तोत्र का पाठ करें।", te: "గోకర్ణ క్షేత్రంలో బిల్వార్చన సమర్పించి గణపతి స్తోత్రం జపించండి.", ta: "கோகர்ணத்தில் வில்வார்ச்சனை சமர்ப்பித்து விநாயகர் துதி பாராயணம் செய்யவும்." },
-    { kn: "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ರುದ್ರಾಭಿಷೇಕ ಮಾಡಿಸಿ, ಬಡ ವಿದ್ಯಾರ್ಥಿಗಳಿಗೆ ಪುಸ್ತಕ ಅಥವಾ ಅನ್ನದಾನ ಸೇವೆ ಸಲ್ಲಿಸಿ.", en: "Perform Rudrabhishekam at Mahabaleshwara temple and support education of needy students.", hi: "श्री महाबलेश्वर संनिधि में रुद्राभिषेक कराएं एवं विद्यार्थियों को अन्नदान/विद्यादान करें।", te: "శ్రీ మహాబలేశ్వర సన్నిధిలో రుద్రాభిషేకం నిర్వహించి అన్నదానం చేయండి.", ta: "மகாபலேஸ்வரர் சன்னதியில் ருத்ராபிஷேகம் செய்து அன்னதானம் வழங்கவும்." }
+    { kn: "ಗೋಕರ್ಣ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ರುದ್ರಾಭಿಷೇಕ ಮಾಡಿಸಿ, ಬಡ ವಿದ್ಯಾರ್ಥಿಗಳಿಗೆ ಪುಸ್ತಕ ಅಥವಾ ಅನ್ನದಾನ ಸೇವೆ ಸಲ್ಲಿಸಿ.", en: "Perform Rudrabhishekam at Gokarna Mahabaleshwara temple and support education of needy students.", hi: "गोकर्ण श्री महाबलेश्वर संनिधि में रुद्राभिषेक कराएं एवं विद्यार्थियों को अन्नदान/विद्यादान करें।", te: "గోకర్ణ శ్రీ మహాబలేశ్వర సన్నిధిలో రుద్రాభిషేకం నిర్వహించి అన్నదానం చేయండి.", ta: "கோகர்ண மகாபலேஸ்வரர் சன்னதியில் ருத்ராபிஷேகம் செய்து அன்னதானம் வழங்கவும்." }
   ];
   const chosenRemedy = remedies[seed % remedies.length];
 
@@ -664,7 +685,8 @@ export async function executePalmReading(
   apiKey: string,
   kundliData?: PalmReadingResult["kundliData"],
   sideImageDataUrl?: string,
-  backImageDataUrl?: string
+  backImageDataUrl?: string,
+  gender: "Male" | "Female" = "Male"
 ): Promise<PalmReadingResult> {
   const langCode = (lang || "kn").slice(0, 2);
   const isTestMode = typeof process !== "undefined" && (process.env?.NODE_ENV === "test" || process.env?.VITEST === "true");
@@ -678,7 +700,8 @@ export async function executePalmReading(
     lang,
     kundliData,
     sideImageDataUrl,
-    backImageDataUrl
+    backImageDataUrl,
+    gender
   );
 
   if (!activeKey) {
@@ -695,6 +718,7 @@ You are Sri Shreeram Pandit, revered Master of Classical Vedic Hastarekha Shastr
 Perform an authentic, 100% personalized, image-derived Hastarekha Shastra inspection of the devotee's uploaded palm photo(s):
 - Hand Side: ${handSide.toUpperCase()} HAND
 - Devotee: ${devoteeName || "Devotee"}
+- Gender: ${gender === "Female" ? "Female (ಸ್ತ್ರೀ / ಮಹಿಳೆ)" : "Male (ಪುರುಷ)"}
 - Target Language: ${targetLangName}
 ${kundliData ? `
 NATAL ASTRONOMICAL KUNDALI INTEGRATION:
@@ -704,6 +728,18 @@ NATAL ASTRONOMICAL KUNDALI INTEGRATION:
 - Maandi House: ${kundliData.maandi}
 - Current Dasha: ${kundliData.dasha}
 ` : ""}
+
+CLASSICAL VEDIC SAMUDRIKA SHASTRA RULES & GENDER POLARITY:
+${gender === "Female" ? `
+* FEMALE DEVOTEE (STHREE SHASTRA):
+  - Right Hand governs active karmic manifestation, vocational leadership, financial autonomy, and present accomplishments.
+  - Left Hand governs innate spiritual prarabdha, subconscious intuition, ancestral health foundation, and domestic harmony.
+  - Evaluate Marriage & Mangalya from Vivaha Rekha (Mercury percussion), Venus mount fullness (Shukra), and Jupiter Mount purity.
+` : `
+* MALE DEVOTEE (PURUSHA SHASTRA):
+  - Right Hand embodies Surya Nadi (active karmic execution, leadership, state honors, professional enterprise).
+  - Left Hand embodies Chandra Nadi (inherited ancestral prarabdha, latent creative abilities, subconscious reservoir).
+`}
 
 EXACT MULTI-SLOT INSPECTION DIRECTIVES:
 Examine up to 3 image slots provided in this request:
@@ -717,24 +753,33 @@ SLOT 1 (IMAGE 1 - FRONT PALM / KARANTALA):
      * Long Rectangular Palm + Long Slender Fingers = Jala (Water Hand)
      * Conical / Balanced Contours = Sankirna (Royal Mixed Hand)
    Do NOT default to Earth Hand! Choose the genuine elemental type matching the image.
-2. ANGUSHTHA (THUMB):
+2. ANGUSHTHA (THUMB) & DERMATOGLYPHICS:
    - Inspect 1st phalanx (willpower length), 2nd phalanx (logic length), and whether there is an open or closed Yava / Eye of Shiva (Shiva Netra) on the joint.
-3. 5 MAJOR LINES MICRO-TOPOLOGY:
-   - Life Line (Ayur Rekha): Arcing radius around Venus, upward ambition branches to Jupiter, downward travel branches to Luna, Mars sister line.
+   - Inspect fingertip patterns for concentric Chakra whirls (Adhipati leadership) vs Shankha loops (adaptability and peace).
+3. 5 MAJOR LINES MICRO-TOPOLOGY & SPECIAL FORMATIONS:
+   - Life Line (Ayur Rekha): Arcing radius around Venus, upward ambition branches to Jupiter, downward travel branches to Luna.
+   - Mars Sister Line (Kuja Rekha / Mrityunjaya Raksha): Check for a parallel inner line running inside the Life Line from Lower Mars conferring divine accident protection and vitality.
    - Head Line (Buddhi Rekha): Straight across to Upper Mars (pragmatic/analytical), sloping gracefully to Moon (creative/intuitive), or Writer's Fork (Vyapara Mukha).
    - Heart Line (Hridaya Rekha): Terminating on Jupiter Mount (idealistic/sattvic), ending between Jupiter & Saturn (balanced devotion), or Guru Trishula trident.
+   - Simian Line (Markata / Eka Rekha): Inspect whether Head and Heart lines fuse into a single intense transverse crease across the entire palm (unyielding focus and executive drive).
    - Fate Line (Shani Rekha): Originating from wrist Manibandha (self-made), from Luna mount (public/spouse blessing), or from Life line.
    - Sun Line (Surya Rekha): Clarity on Apollo mount, star, or branches.
+   - Girdle of Venus (Shukra Valaya) & Ring of Solomon (Guru Mudrika): Note aesthetic sensitivity or sage-like counseling discernment.
+   - Travel Lines (Deshadana Rekha): Horizontal or diagonal branches emerging from Moon percussion indicating travels or distant prosperity.
 4. PLANETARY MOUNTS & SACRED MARKS:
    - Inspect elevation of Jupiter, Saturn, Sun, Mercury, Venus, Moon, and Mars.
    - Detect 2 to 3 genuinely visible sacred marks (e.g. Trishula, Matsya, Mystic Cross, Ring of Solomon, Dhana Trikona, Padma, Gopura, Shankha).
 
 ${sideImageDataUrl ? `
 SLOT 2 (IMAGE 2 - SIDE PERCUSSION / VIVAHA REKHA):
-- Inspect the percussion edge between Heart Line and base of pinky finger (Mercury mount).
+- 50-YEAR VERTICAL CHRONOLOGY SCALE:
+  * Baseline: Heart Line level corresponds to ~Age 14.
+  * Summit: Base crease of Little Finger (Kanishthika) corresponds to ~Age 50.
+  * Exact 50% Midpoint corresponds to ~Age 25.
+  * Lines in Lower Half (between Heart Line & midpoint) indicate early marriage (Ages 20-25).
+  * Lines in Upper Half (above midpoint towards pinky crease) indicate mature/deliberate marriage (Ages 26-36+).
 - Count exact visible horizontal marriage/union lines (1, 2, or 3+).
-- Determine vertical position: Lower 1/3 (early union: ages 21-24), Middle 1/3 (prime union: ages 25-29), Upper 1/3 (mature union: ages 30-36+).
-- Observe line topology: straight & deep (loyal bond), curved to Sun (high status), forked.
+- Inspect line topology: straight & deep (loyal bond), branch curved towards Sun line (distinguished partner), downward fork (initial emotional adjustment).
 ` : ""}
 
 ${backImageDataUrl ? `
@@ -742,7 +787,7 @@ SLOT 3 (IMAGE 3 - DORSAL / NAILS & KNUCKLES / NAKHA LAKSHANA):
 - Inspect nail shape: Almond (Tamra/regal), Square/broad (Chaturasra/earth), Long slender (Dheergha/artistic), Vaulted (Kurmaprishta/tortoise-back).
 - Inspect nail color/vitality (copper-rosy, pinkish, or pale).
 - Inspect Lunula (Chandrakara half-moons at nail base) indicating metabolic Agni.
-- Inspect knuckle joints: Granthila (philosophical knots - analytical) vs Agaditha (smooth joints - rapid artistic intuition).
+- Inspect knuckle joints (Anguli Sandhi): Granthila (philosophical knots - analytical) vs Agaditha (smooth joints - rapid artistic intuition).
 ` : ""}
 
 CRITICAL RULES:
@@ -854,151 +899,97 @@ Return ONLY a strict JSON object (no markdown wrapping) adhering to this schema:
     const cleanJson = responseText.replace(/```json/gi, "").replace(/```/g, "").trim();
     const parsedData = JSON.parse(cleanJson);
 
-    // Merge AI extracted data onto baseline
-    const chironomyHandType = {
-      element: {
-        kn: parsedData.handType || baseline.chironomyHandType.element.kn,
-        en: parsedData.handType || baseline.chironomyHandType.element.en,
-        hi: parsedData.handType || baseline.chironomyHandType.element.hi,
-        te: parsedData.handType || baseline.chironomyHandType.element.te,
-        ta: parsedData.handType || baseline.chironomyHandType.element.ta
-      },
-      traits: {
-        kn: parsedData.handTypeTraits || baseline.chironomyHandType.traits.kn,
-        en: parsedData.handTypeTraits || baseline.chironomyHandType.traits.en,
-        hi: parsedData.handTypeTraits || baseline.chironomyHandType.traits.hi,
-        te: parsedData.handTypeTraits || baseline.chironomyHandType.traits.te,
-        ta: parsedData.handTypeTraits || baseline.chironomyHandType.traits.ta
+    // Helper to safely assign AI output to current language while preserving pure localized baseline for other languages
+    const assignLocalizedField = (
+      aiValue: string | undefined,
+      baselineDict: Record<string, string>
+    ): Record<string, string> => {
+      const result: Record<string, string> = { ...baselineDict };
+      if (aiValue && typeof aiValue === "string" && aiValue.trim()) {
+        result[langCode] = aiValue.trim();
       }
+      return result;
+    };
+
+    // Match elemental hand type across languages if identifiable
+    const matchedElementKey = Object.keys(VEDIC_HAND_ELEMENTAL_TYPES).find((k) => {
+      const def = VEDIC_HAND_ELEMENTAL_TYPES[k as keyof typeof VEDIC_HAND_ELEMENTAL_TYPES];
+      const ht = (parsedData.handType || "").toLowerCase();
+      return (
+        ht.includes(k) ||
+        (parsedData.handType || "").includes(def.nameKn) ||
+        ht.includes(def.nameEn.toLowerCase())
+      );
+    }) as keyof typeof VEDIC_HAND_ELEMENTAL_TYPES | undefined;
+
+    const chironomyHandType = {
+      element: matchedElementKey
+        ? {
+            kn: VEDIC_HAND_ELEMENTAL_TYPES[matchedElementKey].nameKn,
+            en: VEDIC_HAND_ELEMENTAL_TYPES[matchedElementKey].nameEn,
+            hi: matchedElementKey === "earth" ? "पृथ्वी तत्त्व हस्त (Earth Hand)" : matchedElementKey === "air" ? "वायु तत्त्व हस्त (Air Hand)" : matchedElementKey === "fire" ? "अग्नि तत्त्व हस्त (Fire Hand)" : matchedElementKey === "water" ? "जल तत्त्व हस्त (Water Hand)" : "संकीर्ण राज हस्त (Royal Mixed Hand)",
+            te: matchedElementKey === "earth" ? "పృథ్వీ తత్త్వ హస్తం (Earth Hand)" : matchedElementKey === "air" ? "వాయు తత్త్వ హస్తం (Air Hand)" : matchedElementKey === "fire" ? "అగ్ని తత్త్వ హస్తం (Fire Hand)" : matchedElementKey === "water" ? "జల తత్త్వ హస్తం (Water Hand)" : "సంకీర్ణ రాజ హస్తం (Royal Mixed Hand)",
+            ta: matchedElementKey === "earth" ? "பிருத்வி தத்துவ கை (Earth Hand)" : matchedElementKey === "air" ? "வாயு தத்துவ கை (Air Hand)" : matchedElementKey === "fire" ? "அக்னி தத்துவ கை (Fire Hand)" : matchedElementKey === "water" ? "ஜல தத்துவ கை (Water Hand)" : "சங்கீர்ண ராஜ கை (Royal Mixed Hand)"
+          }
+        : assignLocalizedField(parsedData.handType, baseline.chironomyHandType.element),
+      traits: assignLocalizedField(parsedData.handTypeTraits, baseline.chironomyHandType.traits)
     };
 
     const thumbAnalysis = {
-      willpower: {
-        kn: parsedData.thumbWillpower || baseline.thumbAnalysis.willpower.kn,
-        en: parsedData.thumbWillpower || baseline.thumbAnalysis.willpower.en,
-        hi: parsedData.thumbWillpower || baseline.thumbAnalysis.willpower.hi,
-        te: parsedData.thumbWillpower || baseline.thumbAnalysis.willpower.te,
-        ta: parsedData.thumbWillpower || baseline.thumbAnalysis.willpower.ta
-      },
-      logic: {
-        kn: parsedData.thumbLogic || baseline.thumbAnalysis.logic.kn,
-        en: parsedData.thumbLogic || baseline.thumbAnalysis.logic.en,
-        hi: parsedData.thumbLogic || baseline.thumbAnalysis.logic.hi,
-        te: parsedData.thumbLogic || baseline.thumbAnalysis.logic.te,
-        ta: parsedData.thumbLogic || baseline.thumbAnalysis.logic.ta
-      },
-      yavaSign: {
-        kn: parsedData.thumbYavaSign || baseline.thumbAnalysis.yavaSign.kn,
-        en: parsedData.thumbYavaSign || baseline.thumbAnalysis.yavaSign.en,
-        hi: parsedData.thumbYavaSign || baseline.thumbAnalysis.yavaSign.hi,
-        te: parsedData.thumbYavaSign || baseline.thumbAnalysis.yavaSign.te,
-        ta: parsedData.thumbYavaSign || baseline.thumbAnalysis.yavaSign.ta
-      }
+      willpower: assignLocalizedField(parsedData.thumbWillpower, baseline.thumbAnalysis.willpower),
+      logic: assignLocalizedField(parsedData.thumbLogic, baseline.thumbAnalysis.logic),
+      yavaSign: assignLocalizedField(parsedData.thumbYavaSign, baseline.thumbAnalysis.yavaSign)
     };
 
     const lifeLine: PalmLineAnalysis = {
       lineName: LINE_NAMES_L5.life,
-      status: {
-        kn: parsedData.lifeLineStatus || baseline.lifeLine.status.kn,
-        en: parsedData.lifeLineStatus || baseline.lifeLine.status.en,
-        hi: parsedData.lifeLineStatus || baseline.lifeLine.status.hi,
-        te: parsedData.lifeLineStatus || baseline.lifeLine.status.te,
-        ta: parsedData.lifeLineStatus || baseline.lifeLine.status.ta
-      },
-      indication: {
-        kn: parsedData.lifeLineIndication || baseline.lifeLine.indication.kn,
-        en: parsedData.lifeLineIndication || baseline.lifeLine.indication.en,
-        hi: parsedData.lifeLineIndication || baseline.lifeLine.indication.hi,
-        te: parsedData.lifeLineIndication || baseline.lifeLine.indication.te,
-        ta: parsedData.lifeLineIndication || baseline.lifeLine.indication.ta
-      }
+      status: assignLocalizedField(parsedData.lifeLineStatus, baseline.lifeLine.status),
+      indication: assignLocalizedField(parsedData.lifeLineIndication, baseline.lifeLine.indication)
     };
 
     const headLine: PalmLineAnalysis = {
       lineName: LINE_NAMES_L5.head,
-      status: {
-        kn: parsedData.headLineStatus || baseline.headLine.status.kn,
-        en: parsedData.headLineStatus || baseline.headLine.status.en,
-        hi: parsedData.headLineStatus || baseline.headLine.status.hi,
-        te: parsedData.headLineStatus || baseline.headLine.status.te,
-        ta: parsedData.headLineStatus || baseline.headLine.status.ta
-      },
-      indication: {
-        kn: parsedData.headLineIndication || baseline.headLine.indication.kn,
-        en: parsedData.headLineIndication || baseline.headLine.indication.en,
-        hi: parsedData.headLineIndication || baseline.headLine.indication.hi,
-        te: parsedData.headLineIndication || baseline.headLine.indication.te,
-        ta: parsedData.headLineIndication || baseline.headLine.indication.ta
-      }
+      status: assignLocalizedField(parsedData.headLineStatus, baseline.headLine.status),
+      indication: assignLocalizedField(parsedData.headLineIndication, baseline.headLine.indication)
     };
 
     const heartLine: PalmLineAnalysis = {
       lineName: LINE_NAMES_L5.heart,
-      status: {
-        kn: parsedData.heartLineStatus || baseline.heartLine.status.kn,
-        en: parsedData.heartLineStatus || baseline.heartLine.status.en,
-        hi: parsedData.heartLineStatus || baseline.heartLine.status.hi,
-        te: parsedData.heartLineStatus || baseline.heartLine.status.te,
-        ta: parsedData.heartLineStatus || baseline.heartLine.status.ta
-      },
-      indication: {
-        kn: parsedData.heartLineIndication || baseline.heartLine.indication.kn,
-        en: parsedData.heartLineIndication || baseline.heartLine.indication.en,
-        hi: parsedData.heartLineIndication || baseline.heartLine.indication.hi,
-        te: parsedData.heartLineIndication || baseline.heartLine.indication.te,
-        ta: parsedData.heartLineIndication || baseline.heartLine.indication.ta
-      }
+      status: assignLocalizedField(parsedData.heartLineStatus, baseline.heartLine.status),
+      indication: assignLocalizedField(parsedData.heartLineIndication, baseline.heartLine.indication)
     };
 
     const fateLine: PalmLineAnalysis = {
       lineName: LINE_NAMES_L5.fate,
-      status: {
-        kn: parsedData.fateLineStatus || baseline.fateLine.status.kn,
-        en: parsedData.fateLineStatus || baseline.fateLine.status.en,
-        hi: parsedData.fateLineStatus || baseline.fateLine.status.hi,
-        te: parsedData.fateLineStatus || baseline.fateLine.status.te,
-        ta: parsedData.fateLineStatus || baseline.fateLine.status.ta
-      },
-      indication: {
-        kn: parsedData.fateLineIndication || baseline.fateLine.indication.kn,
-        en: parsedData.fateLineIndication || baseline.fateLine.indication.en,
-        hi: parsedData.fateLineIndication || baseline.fateLine.indication.hi,
-        te: parsedData.fateLineIndication || baseline.fateLine.indication.te,
-        ta: parsedData.fateLineIndication || baseline.fateLine.indication.ta
-      }
+      status: assignLocalizedField(parsedData.fateLineStatus, baseline.fateLine.status),
+      indication: assignLocalizedField(parsedData.fateLineIndication, baseline.fateLine.indication)
     };
 
     const sunLine: PalmLineAnalysis = {
       lineName: LINE_NAMES_L5.sun,
-      status: {
-        kn: parsedData.sunLineStatus || baseline.sunLine.status.kn,
-        en: parsedData.sunLineStatus || baseline.sunLine.status.en,
-        hi: parsedData.sunLineStatus || baseline.sunLine.status.hi,
-        te: parsedData.sunLineStatus || baseline.sunLine.status.te,
-        ta: parsedData.sunLineStatus || baseline.sunLine.status.ta
-      },
-      indication: {
-        kn: parsedData.sunLineIndication || baseline.sunLine.indication.kn,
-        en: parsedData.sunLineIndication || baseline.sunLine.indication.en,
-        hi: parsedData.sunLineIndication || baseline.sunLine.indication.hi,
-        te: parsedData.sunLineIndication || baseline.sunLine.indication.te,
-        ta: parsedData.sunLineIndication || baseline.sunLine.indication.ta
-      }
+      status: assignLocalizedField(parsedData.sunLineStatus, baseline.sunLine.status),
+      indication: assignLocalizedField(parsedData.sunLineIndication, baseline.sunLine.indication)
     };
 
     const mounts: PalmMountAnalysis[] = Array.isArray(parsedData.mounts) && parsedData.mounts.length > 0
-      ? parsedData.mounts.map((m: any) => ({
-          mountName: { kn: m.name, en: m.name, hi: m.name, te: m.name, ta: m.name },
-          strength: { kn: m.strength || "ಉನ್ನತ", en: m.strength || "Elevated", hi: m.strength || "उन्नत", te: m.strength || "ఉన్నతం", ta: m.strength || "உயர்வான" },
-          indication: { kn: m.indication || "", en: m.indication || "", hi: m.indication || "", te: m.indication || "", ta: m.indication || "" }
-        }))
+      ? parsedData.mounts.map((m: any, idx: number) => {
+          const baseM = baseline.mounts[idx] || baseline.mounts[0];
+          return {
+            mountName: assignLocalizedField(m.name, baseM.mountName),
+            strength: assignLocalizedField(m.strength, baseM.strength),
+            indication: assignLocalizedField(m.indication, baseM.indication)
+          };
+        })
       : baseline.mounts;
 
     const specialMarks = Array.isArray(parsedData.specialMarks) && parsedData.specialMarks.length > 0
-      ? parsedData.specialMarks.map((sm: any) => ({
-          mark: { kn: sm.mark, en: sm.mark, hi: sm.mark, te: sm.mark, ta: sm.mark },
-          meaning: { kn: sm.meaning, en: sm.meaning, hi: sm.meaning, te: sm.meaning, ta: sm.meaning }
-        }))
+      ? parsedData.specialMarks.map((sm: any, idx: number) => {
+          const baseSm = baseline.specialMarks[idx] || baseline.specialMarks[0];
+          return {
+            mark: assignLocalizedField(sm.mark, baseSm.mark),
+            meaning: assignLocalizedField(sm.meaning, baseSm.meaning)
+          };
+        })
       : baseline.specialMarks;
 
     const estAge = typeof parsedData.estimatedAge === "number" && parsedData.estimatedAge >= 14 && parsedData.estimatedAge <= 90
@@ -1041,68 +1032,20 @@ Return ONLY a strict JSON object (no markdown wrapping) adhering to this schema:
     if (parsedData.marriageLineAnalysis) {
       marriageLineAnalysis = {
         lineCount: parsedData.marriageLineAnalysis.lineCount || (baseline.marriageLineAnalysis?.lineCount ?? 1),
-        timingWindow: {
-          kn: parsedData.marriageLineAnalysis.timingWindow || baseline.lifeStageMilestones.marriage.timingAgeWindowKn,
-          en: parsedData.marriageLineAnalysis.timingWindow || baseline.lifeStageMilestones.marriage.timingAgeWindowEn,
-          hi: parsedData.marriageLineAnalysis.timingWindow || baseline.lifeStageMilestones.marriage.timingAgeWindowEn,
-          te: parsedData.marriageLineAnalysis.timingWindow || baseline.lifeStageMilestones.marriage.timingAgeWindowEn,
-          ta: parsedData.marriageLineAnalysis.timingWindow || baseline.lifeStageMilestones.marriage.timingAgeWindowEn
-        },
-        formation: {
-          kn: parsedData.marriageLineAnalysis.formation || (baseline.marriageLineAnalysis?.formation.kn ?? "ಸ್ಪಷ್ಟ ವಿವಾಹ ರೇಖೆ"),
-          en: parsedData.marriageLineAnalysis.formation || (baseline.marriageLineAnalysis?.formation.en ?? "Clear union line"),
-          hi: parsedData.marriageLineAnalysis.formation || (baseline.marriageLineAnalysis?.formation.hi ?? "स्पष्ट विवाह रेखा"),
-          te: parsedData.marriageLineAnalysis.formation || (baseline.marriageLineAnalysis?.formation.te ?? "వివాహ రేఖ"),
-          ta: parsedData.marriageLineAnalysis.formation || (baseline.marriageLineAnalysis?.formation.ta ?? "திருமண ரேகை")
-        },
-        spouseNature: {
-          kn: parsedData.marriageLineAnalysis.spouseNature || (baseline.marriageLineAnalysis?.spouseNature.kn ?? baseline.lifeStageMilestones.marriage.spouseTraitKn),
-          en: parsedData.marriageLineAnalysis.spouseNature || (baseline.marriageLineAnalysis?.spouseNature.en ?? baseline.lifeStageMilestones.marriage.spouseTraitEn),
-          hi: parsedData.marriageLineAnalysis.spouseNature || (baseline.marriageLineAnalysis?.spouseNature.hi ?? "सद्गुणी जीवनसाथी"),
-          te: parsedData.marriageLineAnalysis.spouseNature || (baseline.marriageLineAnalysis?.spouseNature.te ?? "సద్గుణ భాగస్వామి"),
-          ta: parsedData.marriageLineAnalysis.spouseNature || (baseline.marriageLineAnalysis?.spouseNature.ta ?? "நற்குண துணை")
-        }
+        timingWindow: assignLocalizedField(parsedData.marriageLineAnalysis.timingWindow, baseline.marriageLineAnalysis?.timingWindow || { kn: baseline.lifeStageMilestones.marriage.timingAgeWindowKn, en: baseline.lifeStageMilestones.marriage.timingAgeWindowEn, hi: baseline.lifeStageMilestones.marriage.timingAgeWindowEn, te: baseline.lifeStageMilestones.marriage.timingAgeWindowEn, ta: baseline.lifeStageMilestones.marriage.timingAgeWindowEn }),
+        formation: assignLocalizedField(parsedData.marriageLineAnalysis.formation, baseline.marriageLineAnalysis?.formation || { kn: "ಸ್ಪಷ್ಟ ವಿವಾಹ ರೇಖೆ", en: "Clear union line", hi: "स्पष्ट विवाह रेखा", te: "వివాహ రేఖ", ta: "திருமண ரேகை" }),
+        spouseNature: assignLocalizedField(parsedData.marriageLineAnalysis.spouseNature, baseline.marriageLineAnalysis?.spouseNature || { kn: baseline.lifeStageMilestones.marriage.spouseTraitKn, en: baseline.lifeStageMilestones.marriage.spouseTraitEn, hi: "सद्गुणी जीवनसाथी", te: "సద్గుణ భాగస్వామి", ta: "நற்குண துணை" })
       };
     }
 
     let nailDorsalAnalysis = baseline.nailDorsalAnalysis;
     if (parsedData.nailDorsalAnalysis) {
       nailDorsalAnalysis = {
-        nailShape: {
-          kn: parsedData.nailDorsalAnalysis.nailShape || (baseline.nailDorsalAnalysis?.nailShape.kn ?? "ಸುಂದರ ನಖ"),
-          en: parsedData.nailDorsalAnalysis.nailShape || (baseline.nailDorsalAnalysis?.nailShape.en ?? "Aesthetic nail contour"),
-          hi: parsedData.nailDorsalAnalysis.nailShape || "सुंदर नाखून",
-          te: parsedData.nailDorsalAnalysis.nailShape || "అందమైన గోళ్ళు",
-          ta: parsedData.nailDorsalAnalysis.nailShape || "அழகான நகம்"
-        },
-        nailColor: {
-          kn: parsedData.nailDorsalAnalysis.nailColor || (baseline.nailDorsalAnalysis?.nailColor.kn ?? "ಗುಲಾಬಿ ಕಾಂತಿ"),
-          en: parsedData.nailDorsalAnalysis.nailColor || (baseline.nailDorsalAnalysis?.nailColor.en ?? "Rosy health luster"),
-          hi: parsedData.nailDorsalAnalysis.nailColor || "गुलाबी कांति",
-          te: parsedData.nailDorsalAnalysis.nailColor || "గులాబీ రంగు",
-          ta: parsedData.nailDorsalAnalysis.nailColor || "ரோஜா பளபளப்பு"
-        },
-        lunulaVitality: {
-          kn: parsedData.nailDorsalAnalysis.lunulaVitality || (baseline.nailDorsalAnalysis?.lunulaVitality.kn ?? "ಅರ್ಧಚಂದ್ರಾಕಾರ"),
-          en: parsedData.nailDorsalAnalysis.lunulaVitality || (baseline.nailDorsalAnalysis?.lunulaVitality.en ?? "Prominent lunula crescent"),
-          hi: parsedData.nailDorsalAnalysis.lunulaVitality || "अर्धचंद्राकार",
-          te: parsedData.nailDorsalAnalysis.lunulaVitality || "అర్ధచంద్రాకారం",
-          ta: parsedData.nailDorsalAnalysis.lunulaVitality || "பிறைச்சந்திரன்"
-        },
-        knuckleTraits: {
-          kn: parsedData.nailDorsalAnalysis.knuckleTraits || (baseline.nailDorsalAnalysis?.knuckleTraits.kn ?? "ಸಮತೋಲಿತ ಪರ್ವ"),
-          en: parsedData.nailDorsalAnalysis.knuckleTraits || (baseline.nailDorsalAnalysis?.knuckleTraits.en ?? "Balanced knuckle nodes"),
-          hi: parsedData.nailDorsalAnalysis.knuckleTraits || "संतुलित पोर",
-          te: parsedData.nailDorsalAnalysis.knuckleTraits || "సమతుల్య కీళ్ళు",
-          ta: parsedData.nailDorsalAnalysis.knuckleTraits || "சமநிலையான மூட்டுகள்"
-        },
-        temperament: {
-          kn: parsedData.nailDorsalAnalysis.temperament || (baseline.nailDorsalAnalysis?.temperament.kn ?? "ಸ್ಥಿರ ಸ್ವಭಾವ"),
-          en: parsedData.nailDorsalAnalysis.temperament || (baseline.nailDorsalAnalysis?.temperament.en ?? "Steadfast & resilient temperament"),
-          hi: parsedData.nailDorsalAnalysis.temperament || "स्थिर स्वभाव",
-          te: parsedData.nailDorsalAnalysis.temperament || "స్థిర స్వభావం",
-          ta: parsedData.nailDorsalAnalysis.temperament || "நிலையான குணம்"
-        }
+        nailShape: assignLocalizedField(parsedData.nailDorsalAnalysis.nailShape, baseline.nailDorsalAnalysis?.nailShape || { kn: "ಸುಂದರ ನಖ", en: "Aesthetic nail contour", hi: "सुंदर नाखून", te: "అందమైన గోళ్ళు", ta: "அழகான நகம்" }),
+        nailColor: assignLocalizedField(parsedData.nailDorsalAnalysis.nailColor, baseline.nailDorsalAnalysis?.nailColor || { kn: "ಗುಲಾಬಿ ಕಾಂತಿ", en: "Rosy health luster", hi: "गुलाबी कांति", te: "గులాబీ రంగు", ta: "ரோஜா பளபளப்பு" }),
+        lunulaVitality: assignLocalizedField(parsedData.nailDorsalAnalysis.lunulaVitality, baseline.nailDorsalAnalysis?.lunulaVitality || { kn: "ಅರ್ಧಚಂದ್ರಾಕಾರ", en: "Prominent lunula crescent", hi: "अर्धचंद्राकार", te: "అర్ధచంద్రాకారం", ta: "பிறைச்சந்திரன்" }),
+        knuckleTraits: assignLocalizedField(parsedData.nailDorsalAnalysis.knuckleTraits, baseline.nailDorsalAnalysis?.knuckleTraits || { kn: "ಸಮತೋಲಿತ ಪರ್ವ", en: "Balanced knuckle nodes", hi: "संतुलित पोर", te: "సమతుల్య కీళ్ళు", ta: "சமநிலையான மூட்டுகள்" }),
+        temperament: assignLocalizedField(parsedData.nailDorsalAnalysis.temperament, baseline.nailDorsalAnalysis?.temperament || { kn: "ಸ್ಥಿರ ಸ್ವಭಾವ", en: "Steadfast & resilient temperament", hi: "स्थिर स्वभाव", te: "స్థిర స్వభావం", ta: "நிலையான குணம்" })
       };
     }
 
@@ -1110,21 +1053,8 @@ Return ONLY a strict JSON object (no markdown wrapping) adhering to this schema:
       ? parsedData.overallScore
       : baseline.overallScore;
 
-    const verdictTitle = {
-      kn: parsedData.verdictTitle || baseline.verdictTitle.kn,
-      en: parsedData.verdictTitle || baseline.verdictTitle.en,
-      hi: parsedData.verdictTitle || baseline.verdictTitle.hi,
-      te: parsedData.verdictTitle || baseline.verdictTitle.te,
-      ta: parsedData.verdictTitle || baseline.verdictTitle.ta
-    };
-
-    const remedyRecommendation = {
-      kn: parsedData.remedy || baseline.remedyRecommendation.kn,
-      en: parsedData.remedy || baseline.remedyRecommendation.en,
-      hi: parsedData.remedy || baseline.remedyRecommendation.hi,
-      te: parsedData.remedy || baseline.remedyRecommendation.te,
-      ta: parsedData.remedy || baseline.remedyRecommendation.ta
-    };
+    const verdictTitle = assignLocalizedField(parsedData.verdictTitle, baseline.verdictTitle);
+    const remedyRecommendation = assignLocalizedField(parsedData.remedy, baseline.remedyRecommendation);
 
     return {
       handSide,

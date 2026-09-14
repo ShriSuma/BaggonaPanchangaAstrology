@@ -1086,4 +1086,100 @@ export const VEDIC_ANGULI_SANDHI_RULES = {
   }
 };
 
+/**
+ * Classical Vedic Samudrika Shastra Gender Hand Rules (Brihat Samhita & Garuda Purana)
+ * Formulates the distinction between Active Manifestation (Surya Nadi) vs Passive Latent Prarabdha (Chandra Nadi).
+ */
+export const VEDIC_GENDER_HAND_RULES = {
+  male: {
+    dominantRoleKn: "ಪುರುಷ ಹಸ್ತ ತತ್ತ್ವ: ಬಲ ಹಸ್ತವು ಸೂರ್ಯ ನಾಡಿ (ಕ್ರಿಯಾಶೀಲ ಕರ್ಮ, ವೃತ್ತಿ, ಇಹಲೋಕದ ಸಾಧನೆ) ಹಾಗೂ ಎಡ ಹಸ್ತವು ಚಂದ್ರ ನಾಡಿ (ಪೂರ್ವಜನ್ಮದ ಸಂಚಿತ ಪ್ರಾರಬ್ಧ, ಸುಪ್ತ ಪ್ರತಿಭೆ).",
+    dominantRoleEn: "Purusha Shastra: Right hand embodies Surya Nadi (active karmic execution, career, self-made wealth); Left hand embodies Chandra Nadi (latent prarabdha, inherited ancestry, subconscious health blueprint).",
+    careerPrimaryHand: "right",
+    passiveHand: "left"
+  },
+  female: {
+    dominantRoleKn: "ಸ್ತ್ರೀ ಹಸ್ತ ತತ್ತ್ವ: ಕಾರ್ಯನಿರತ ಸ್ತ್ರೀಯರಿಗೆ ಪ್ರಧಾನ ಕೈಯು (ಸಾಮಾನ್ಯವಾಗಿ ಬಲ) ವೃತ್ತಿ-ಆರ್ಥಿಕ ಸಾರ್ವಭೌಮ ಕರ್ಮವನ್ನು, ಹಾಗೂ ಎಡ ಹಸ್ತವು ಕುಟುಂಬ ಕಲ್ಯಾಣ, ಮನೋಬಲ, ಸೌಭಾಗ್ಯ ಹಾಗೂ ಆಂತರಿಕ ದೈವಿಕ ಶಕ್ತಿಯನ್ನು ಸೂಚಿಸುತ್ತದೆ.",
+    dominantRoleEn: "Sthree Shastra: For working and self-reliant women, dominant hand governs vocational leadership and property; non-dominant hand governs domestic prosperity, mental peace, inner intuition, and ancestral blessings.",
+    careerPrimaryHand: "dominant",
+    passiveHand: "non-dominant"
+  }
+};
+
+/**
+ * Classical Vedic Rare & Specialized Palm Lines (Hastasanjeevini & Brihat Samhita)
+ */
+export const VEDIC_SPECIAL_LINES_RULES = {
+  simianLine: {
+    key: "simianLine",
+    nameKn: "ಮರ್ಕಟ ರೇಖಾ / ಏಕ ರೇಖಾ (Simian Line / Unified Crease)",
+    nameEn: "Simian Line (Unified Head-Heart Crease)",
+    descKn: "ಬುದ್ಧಿ ಹಾಗೂ ಹೃದಯ ರೇಖೆಗಳು ಒಂದಾಗಿ ಬೆರೆತು ಹಸ್ತದ ತುಂಬೆಲ್ಲ ಸಾಗುವ ಅಪರೂಪದ ಏಕ ರೇಖೆ. ಅಸಾಧಾರಣ ಏಕಾಗ್ರತೆ, ಗುರಿ ತಲುಪುವ ಅದಮ್ಯ ಹಠ, ಅದ್ಭುತ ನಾಯಕತ್ವ ಹಾಗೂ ಭಾವನೆ-ತರ್ಕಗಳ ತೀವ್ರ ಸಂಯೋಜನೆ.",
+    descEn: "Rare complete fusion of Head and Heart lines into a single transverse crease across the palm. Confers intense single-minded focus, fierce ambition, exceptional leadership, and passionate conviction.",
+    descHi: "मस्तिष्क एवं हृदय रेखा का दुर्लभ संगम (एकल रेखा)। असाधारण एकाग्रता, अदम्य संकल्प शक्ति एवं प्रखर नेतृत्व क्षमता।",
+    descTe: "మస్తిష్క & హృదయ రేఖల కలయిక (ఏక రేఖ). అద్భుతమైన ఏకాగ్రత, పట్టుదల & తిరుగులేని నాయకత్వ లక్షణాలు.",
+    descTa: "புத்தி மற்றும் இதய ரேகைகளின் அரிய சங்கமம். தீவிர கவனம், விடாமுயற்சி மற்றும் தனித்துவமான தலைமைப் பண்பு."
+  },
+  kujaRekha: {
+    key: "kujaRekha",
+    nameKn: "ಕುಜ ರೇಖಾ / ಮೃತ್ಯುಂಜಯ ಸಹೋದರಿ ರೇಖಾ (Mars Sister / Guardian Angel Line)",
+    nameEn: "Kuja Rekha (Mars Sister Line / Vitality Guardian)",
+    descKn: "ಆಯುರ್ ರೇಖೆಯ ಒಳಗಡೆಯೇ ಕೆಳ ಅಂಗಾರಕ (ಕುಜ) ಪರ್ವತದಿಂದ ಸಮಾನಾಂತರವಾಗಿ ಸಾಗುವ ರಕ್ಷಾ ರೇಖೆ. ಅಪಘಾತ ಹಾಗೂ ಕಠಿಣ ರೋಗಗಳಿಂದ ದೈವಿಕ ರಕ್ಷಣೆ, ಅದ್ಭುತ ರೋಗನಿರೋಧಕ ಶಕ್ತಿ ಹಾಗೂ ಪೂರ್ವಜರ ಆಶೀರ್ವಾದ.",
+    descEn: "A protective parallel line running inside the Life Line from Lower Mars. Classical Vedic 'Mrityunjaya Raksha': miraculous protection against accidents, robust immune resilience, and ancestral guardian grace.",
+    descHi: "जीवन रेखा के भीतर समानांतर चलने वाली मंगल रेखा। दुर्घटनाओं व गंभीर व्याधियों से दैवीय रक्षा एवं प्रबल रोग प्रतिरोधक क्षमता।",
+    descTe: "ఆయుష్షు రేఖ లోపల సమాంతరంగా సాగే కుజ రేఖ. ప్రమాదాల నుండి దైవిక రక్షణ, అద్భుత ఆరోగ్య రోగనిరోధక శక్తి.",
+    descTa: "ஆயுள் ரேகைக்கு இணையாக செல்லும் செவ்வாய் ரேகை. விபத்துகளிலிருந்து தெய்வீக பாதுகாப்பு மற்றும் அபார நோய் எதிர்ப்பு சக்தி."
+  },
+  shukraValaya: {
+    key: "shukraValaya",
+    nameKn: "ಶುಕ್ರ ವಲಯ (Girdle of Venus / Aesthetic Crescent)",
+    nameEn: "Girdle of Venus (Aesthetic & Emotional Genius)",
+    descKn: "ತೋರುಬೆರಳು ಹಾಗೂ ಕಿರುಬೆರಳಿನ ನಡುವೆ ಹೃದಯ ರೇಖೆಯ ಮೇಲ್ಭಾಗದಲ್ಲಿ ಮೂಡುವ ಅರ್ಧಚಂದ್ರಾಕಾರದ ರೇಖೆ. ಉನ್ನತ ಕಲಾಪ್ರೌಢಿಮೆ, ಸೂಕ್ಷ್ಮ ಸೌಂದರ್ಯಪ್ರಜ್ಞೆ, ಆಕರ್ಷಕ ವ್ಯಕ್ತಿತ್ವ ಹಾಗೂ ರಸಜ್ಞತೆ.",
+    descEn: "Semicircular crescent above the Heart Line between index and little finger. Signifies exquisite artistic refinement, heightened emotional sensitivity, creative genius, and magnetic charisma.",
+    descHi: "हृदय रेखा के ऊपर अर्धचंद्राकार शुक्र वलय। उच्च कलात्मक सौंदर्यबोध, भावुक संवेदनशीलता एवं सम्मोहक व्यक्तित्व।",
+    descTe: "హృదయ రేఖపై అర్ధచంద్రాకార శుక్ర వలయం. అపార కళా నైపుణ్యం, సున్నిత భావోద్వేగాలు & ఆకర్షణీయ వ్యక్తిత్వం.",
+    descTa: "இதய ரேகைக்கு மேல் பிறை போன்ற சுக்கிர வளையம். உயர்ந்த கலை ரசனை, நுண்ணிய உணர்வுகள் மற்றும் வசீகர ஆளுமை."
+  },
+  guruMudrika: {
+    key: "guruMudrika",
+    nameKn: "ಗುರು ಮುದ್ರಿಕಾ / ಸಾಲೋಮನ್ ಉಂಗುರ (Ring of Solomon / Sage Discernment)",
+    nameEn: "Ring of Solomon (Guru Mudrika / Sage Intuition)",
+    descKn: "ಗುರು ಪರ್ವತವನ್ನು ಸುತ್ತುವರೆದಿರುವ ಅರ್ಧವೃತ್ತ. ಗೂಢ ಶಾಸ್ತ್ರ ಜ್ಞಾನ, ಅಸಾಧಾರಣ ಅಂತಃಸ್ಫೂರ್ತಿ, ನ್ಯಾಯ ತೀರ್ಮಾನ ಸಾಮರ್ಥ್ಯ ಹಾಗೂ ಗುರು-ದೈವ ಕೃಪೆ.",
+    descEn: "A curved line encircling the Jupiter mount beneath the index finger. Confers occult wisdom, keen psychological insight, philosophical authority, and divine teacher grace.",
+    descHi: "गुरु पर्वत पर स्थित गुरु मुद्रिका। गुप्त विद्याओं का ज्ञान, प्रबल अंतर्दृष्टि, न्यायप्रियता एवं गुरु कृपा।",
+    descTe: "గురు పర్వతంపై గురు ముద్రిక. ఆధ్యాత్మిక జ్ఞానం, నిశిత అంతర్దృష్టి, న్యాయ విచక్షణ & గురు అనుగ్రహం.",
+    descTa: "குரு மேட்டில் உள்ள குரு முத்திரை. ஆன்மீக ஞானம், உள்ளுணர்வு, நீதி போதனை மற்றும் குரு அருள்."
+  },
+  deshadanaRekha: {
+    key: "deshadanaRekha",
+    nameKn: "ದೇಶಾಟನ ರೇಖೆಗಳು (Travel & Foreign Voyage Lines)",
+    nameEn: "Deshadana Rekha (Foreign Voyage & Pilgrimage Lines)",
+    descKn: "ಚಂದ್ರ ಪರ್ವತದ ಪಾರ್ಶ್ವದಿಂದ ಒಳಮುಖವಾಗಿ ಮೂಡುವ ಅಡ್ಡ ರೇಖೆಗಳು. ಪುಣ್ಯಕ್ಷೇತ್ರ ದರ್ಶನ, ವಿದೇಶ ಪ್ರಯಾಣ, ಸಮುದ್ರಯಾನ ಹಾಗೂ ದೂರದ ಊರುಗಳಲ್ಲಿ ಉದ್ಯೋಗ ಸಿದ್ಧಿ.",
+    descEn: "Horizontal lines traversing inward from the percussion of the Moon Mount. Signifies sacred pilgrimages, foreign travel, overseas education, and prosperity in distant lands.",
+    descHi: "चन्द्र पर्वत पर स्थित देशाटन रेखाएं। विदेश यात्रा, तीर्थाटन एवं सुदूर क्षेत्रों में भाग्योदय व व्यावसायिक सफलता।",
+    descTe: "చంద్ర పర్వతంపై దేశాటన రేఖలు. విదేశీ ప్రయాణం, తీర్థయాత్రలు & సుదూర ప్రాంతాలలో ఉద్యోగ విజయం.",
+    descTa: "சந்திர மேட்டில் உள்ள பயண ரேகைகள். வெளிநாட்டு பயணம், புனித யாத்திரைகள் மற்றும் வெளியூர் தொழில் யோகம்."
+  }
+};
+
+/**
+ * Classical Dermatoglyphics (Dasha Anguli Rekha - Brihat Samhita)
+ */
+export const VEDIC_DERMATOGLYPHIC_PATTERNS = {
+  chakra: {
+    symbol: "🌀",
+    nameKn: "ಚಕ್ರ ರೇಖೆ (Concentric Whirls - Sovereign Authority)",
+    nameEn: "Chakra Whirl (Sovereign Authority & Leadership)",
+    traitsKn: "ಬೆರಳುಗಳ ತುದಿಯಲ್ಲಿ ವೃತ್ತಾಕಾರದ ಸುರುಳಿಗಳು. ೫ ಅಥವಾ ಹೆಚ್ಚಿನ ಬೆರಳುಗಳಲ್ಲಿ ಚಕ್ರವಿದ್ದಲ್ಲಿ ಚಕ್ರವರ್ತಿ/ಅಧಿಪತಿ ಯೋಗ, ಸ್ವತಂತ್ರ ನಿರ್ಧಾರ ಶಕ್ತಿ ಹಾಗೂ ಅಧಿಕಾರ.",
+    traitsEn: "Concentric circular whirls on fingertips. 5+ Chakras confer Adhipati Yoga: executive independence, natural authority, and self-directed triumph."
+  },
+  shankha: {
+    symbol: "🐚",
+    nameKn: "ಶಂಖ ರೇಖೆ (Conch Loops - Wisdom & Adaptability)",
+    nameEn: "Shankha Loop (Wisdom, Adaptability & Harmony)",
+    traitsKn: "ಬೆರಳುಗಳ ತುದಿಯಲ್ಲಿ ಶಂಖದ ಆಕಾರದ ಲೂಪ್‌ಗಳು. ಶಾಂತ ಸ್ವಭಾವ, ಸಕಲರೊಂದಿಗೂ ಹೊಂದಿಕೊಳ್ಳುವ ಗುಣ, ಪಾಂಡಿತ್ಯ, ತತ್ವಜ್ಞಾನ ಹಾಗೂ ಆಂತರಿಕ ತೃಪ್ತಿ.",
+    traitsEn: "Loop patterns resembling a sacred conch shell. Bestows peace of mind, high intellectual adaptability, gracious empathy, and profound scholarship."
+  }
+};
+
+
 

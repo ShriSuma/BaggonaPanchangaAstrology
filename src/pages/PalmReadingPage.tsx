@@ -68,8 +68,12 @@ export default function PalmReadingPage(): JSX.Element {
   // Devotee Name & Details Inputs
   const [devoteeName, setDevoteeName] = useState<string>(() => session?.input?.name || "");
   const [gotraInput, setGotraInput] = useState<string>(() => session?.input?.gothra || "");
+  const [devoteeGender, setDevoteeGender] = useState<"Male" | "Female">(() => {
+    const g = (session?.input as any)?.gender;
+    return g === "Female" ? "Female" : "Male";
+  });
 
-  // Synchronize devotee name and gotra if session hydrates
+  // Synchronize devotee name, gotra and gender if session hydrates
   useEffect(() => {
     if (session?.input?.name && !devoteeName) {
       setDevoteeName(session.input.name);
@@ -77,7 +81,13 @@ export default function PalmReadingPage(): JSX.Element {
     if (session?.input?.gothra && !gotraInput) {
       setGotraInput(session.input.gothra);
     }
-  }, [session?.input?.name, session?.input?.gothra]);
+    if ((session?.input as any)?.gender) {
+      const g = (session?.input as any)?.gender;
+      if (g === "Male" || g === "Female") {
+        setDevoteeGender(g);
+      }
+    }
+  }, [session?.input?.name, session?.input?.gothra, (session?.input as any)?.gender]);
 
   const [handSide, setHandSide] = useState<HandSide>("right");
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
@@ -282,7 +292,7 @@ export default function PalmReadingPage(): JSX.Element {
 
     const kundli = await calculateKundliWithPlaceSun({
       name: devoteeName || "Devotee",
-      gender: "Male",
+      gender: devoteeGender,
       birthDate: dobStr,
       birthTime: birthTimeHm,
       latitude: lat,
@@ -355,7 +365,8 @@ export default function PalmReadingPage(): JSX.Element {
         geminiApiKey,
         generatedKundliData,
         sideImageDataUrl || undefined,
-        backImageDataUrl || undefined
+        backImageDataUrl || undefined,
+        devoteeGender
       );
 
       setActiveResult(result);
@@ -554,7 +565,7 @@ export default function PalmReadingPage(): JSX.Element {
 
       {/* Devotee Name & Language Selector Panel */}
       <Card className="border border-amber-300/80 bg-white p-4 shadow-sm space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-amber-950 mb-1.5">
               👤 {isKn ? "ಭಕ್ತರ ಹೆಸರು (Devotee Name)" : "Devotee Name"}
@@ -566,6 +577,38 @@ export default function PalmReadingPage(): JSX.Element {
               placeholder={isKn ? "ಉದಾ: ಶ್ರೀರಾಮ್ ಪಂಡಿತ್" : "e.g. Sri Shreeram Pandit"}
               className="w-full rounded-xl border border-amber-300 bg-amber-50/40 px-3.5 py-2 text-sm font-bold text-amber-950 shadow-inner focus:border-amber-600 focus:outline-none"
             />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-amber-950 mb-1.5">
+              🚻 {isKn ? "ಲಿಂಗ (Gender)" : "Gender"}
+            </label>
+            <div className="flex gap-2 h-[38px]">
+              <button
+                type="button"
+                onClick={() => setDevoteeGender("Male")}
+                className={`flex-1 rounded-xl font-bold text-xs flex items-center justify-center gap-1 transition-all cursor-pointer border ${
+                  devoteeGender === "Male"
+                    ? "bg-amber-800 text-amber-50 border-amber-900 shadow-sm"
+                    : "bg-amber-50/60 text-amber-900 border-amber-300 hover:bg-amber-100"
+                }`}
+              >
+                <span>👨</span>
+                <span>{isKn ? "ಪುರುಷ" : "Male"}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setDevoteeGender("Female")}
+                className={`flex-1 rounded-xl font-bold text-xs flex items-center justify-center gap-1 transition-all cursor-pointer border ${
+                  devoteeGender === "Female"
+                    ? "bg-amber-800 text-amber-50 border-amber-900 shadow-sm"
+                    : "bg-amber-50/60 text-amber-900 border-amber-300 hover:bg-amber-100"
+                }`}
+              >
+                <span>👩</span>
+                <span>{isKn ? "ಮಹಿಳೆ" : "Female"}</span>
+              </button>
+            </div>
           </div>
 
           <div>
@@ -1002,6 +1045,11 @@ export default function PalmReadingPage(): JSX.Element {
                       )}
                     </div>
 
+                    <div className="text-[10px] text-amber-800 font-bold bg-amber-100/80 border border-amber-300/80 px-2.5 py-1 rounded-lg flex items-center gap-1.5 shadow-2xs">
+                      <span>⭐</span>
+                      <span>{isKn ? "ಅತ್ಯಂತ ಶಿಫಾರಸು ಮಾಡಲಾಗಿದೆ (ವಿವಾಹ & ದಾಂಪತ್ಯ ನಿಖರತೆಗಾಗಿ)" : "Highly Recommended (For Marriage & Union Accuracy)"}</span>
+                    </div>
+
                     <p className="text-[11px] text-amber-900/90 leading-relaxed font-medium">
                       {isKn ? "ಕನಿಷ್ಠಿಕಾ (ಕಿರುಬೆರಳು) ಬುಡದ ಪಾರ್ಶ್ವ ಭಾಗ - ವಿವಾಹ ಹಾಗೂ ಸಂತಾನ ರೇಖೆಗಳ ಸ್ಪಷ್ಟತೆ." : "Side view under pinky for marriage & union lines."}
                     </p>
@@ -1118,6 +1166,11 @@ export default function PalmReadingPage(): JSX.Element {
                           Step 3
                         </span>
                       )}
+                    </div>
+
+                    <div className="text-[10px] text-amber-800 font-bold bg-amber-100/80 border border-amber-300/80 px-2.5 py-1 rounded-lg flex items-center gap-1.5 shadow-2xs">
+                      <span>⭐</span>
+                      <span>{isKn ? "ಅತ್ಯಂತ ಶಿಫಾರಸು ಮಾಡಲಾಗಿದೆ (ಆರೋಗ್ಯ & ಪ್ರಕೃತಿ ತತ್ತ್ವ ನಿಖರತೆಗಾಗಿ)" : "Highly Recommended (For Vitality & Constitutional Accuracy)"}</span>
                     </div>
 
                     <p className="text-[11px] text-amber-900/90 leading-relaxed font-medium">
@@ -1248,6 +1301,36 @@ export default function PalmReadingPage(): JSX.Element {
                 ) : null}
 
                 <div className="space-y-3 text-xs font-bold text-amber-950">
+                  <div>
+                    <label className="block mb-1">🚻 {isKn ? "ಲಿಂಗ (Gender)" : "Gender"}</label>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setDevoteeGender("Male")}
+                        className={`flex-1 py-1.5 rounded-lg font-bold text-xs flex items-center justify-center gap-1 border transition-all cursor-pointer ${
+                          devoteeGender === "Male"
+                            ? "bg-amber-800 text-white border-amber-900 shadow-sm"
+                            : "bg-amber-50 text-amber-900 border-amber-300 hover:bg-amber-100"
+                        }`}
+                      >
+                        <span>👨</span>
+                        <span>{isKn ? "ಪುರುಷ (Male)" : "Male"}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDevoteeGender("Female")}
+                        className={`flex-1 py-1.5 rounded-lg font-bold text-xs flex items-center justify-center gap-1 border transition-all cursor-pointer ${
+                          devoteeGender === "Female"
+                            ? "bg-amber-800 text-white border-amber-900 shadow-sm"
+                            : "bg-amber-50 text-amber-900 border-amber-300 hover:bg-amber-100"
+                        }`}
+                      >
+                        <span>👩</span>
+                        <span>{isKn ? "ಮಹಿಳೆ (Female)" : "Female"}</span>
+                      </button>
+                    </div>
+                  </div>
+
                   <div>
                     <label className="block mb-1">📅 {isKn ? "ಹುಟ್ಟಿದ ದಿನಾಂಕ (Date of Birth)" : "Birth Date"}</label>
                     <DatePicker selected={birthDatePicker} onChange={setBirthDatePicker} />

@@ -175,4 +175,72 @@ describe("Classical Vedic Hastarekha Shastra (Palm Reading) Engine Tests", () =>
       expect(count).toBeLessThanOrEqual(10); // Far below the previous 18/20 stagnation
     });
   });
+
+  it("applies authentic Vedic gender polarity rules (Purusha vs Sthree Shastra)", async () => {
+    const maleResult = await executePalmReading(
+      dummyBase64,
+      "right",
+      "ವೆಂಕಟೇಶ್ ಭಟ್",
+      "kn",
+      "",
+      undefined,
+      undefined,
+      undefined,
+      "Male"
+    );
+
+    const femaleResult = await executePalmReading(
+      dummyBase64,
+      "right",
+      "ಲಕ್ಷ್ಮೀ ಹೆಗಡೆ",
+      "kn",
+      "",
+      undefined,
+      undefined,
+      undefined,
+      "Female"
+    );
+
+    expect(maleResult.handSideLabel.kn).toContain("ಕರ್ಮ ಶಕ್ತಿ");
+    expect(femaleResult.handSideLabel.kn).toContain("ಸ್ತ್ರೀ ಕರ್ಮ ಶಕ್ತಿ");
+    expect(femaleResult.handSideLabel.en).toContain("Career Karma");
+
+    const femaleLeft = await executePalmReading(
+      dummyBase64,
+      "left",
+      "ಲಕ್ಷ್ಮೀ ಹೆಗಡೆ",
+      "kn",
+      "",
+      undefined,
+      undefined,
+      undefined,
+      "Female"
+    );
+    expect(femaleLeft.handSideLabel.kn).toContain("ಸ್ತ್ರೀ ಸಹಜ ಪ್ರಾರಬ್ಧ");
+    expect(femaleLeft.handSideLabel.en).toContain("Innate Potential, Intuitive Soul Force");
+  });
+
+  it("guarantees English view purity with zero Kannada character leakage", async () => {
+    const enResult = await executePalmReading(
+      dummyBase64,
+      "right",
+      "Shree Devotee",
+      "en",
+      "",
+      undefined,
+      undefined,
+      undefined,
+      "Male"
+    );
+
+    // Kannada Unicode Range: \u0C80-\u0CFF
+    const kannadaRegex = /[\u0C80-\u0CFF]/;
+    expect(enResult.lifeLine.lineName.en).not.toMatch(kannadaRegex);
+    expect(enResult.headLine.lineName.en).not.toMatch(kannadaRegex);
+    expect(enResult.heartLine.lineName.en).not.toMatch(kannadaRegex);
+    expect(enResult.fateLine.lineName.en).not.toMatch(kannadaRegex);
+    expect(enResult.sunLine.lineName.en).not.toMatch(kannadaRegex);
+    expect(enResult.handSideLabel.en).not.toMatch(kannadaRegex);
+  });
 });
+
