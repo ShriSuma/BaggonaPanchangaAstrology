@@ -38,6 +38,7 @@
 
 import { KundliOutput, PlanetName, PlanetPosition, Rashi } from "./AstroTypes";
 import { navamsaSignIndex } from "./Navamsa";
+import { toKannadaPlanet, toKannadaRashi, toKannadaNakshatra } from "../utils/kannadaAstrologyTerms";
 
 // -------------------------------------------------------------
 // TYPES & INTERFACES
@@ -174,16 +175,37 @@ export function diagnoseCurrentLifeSituation(
     gender?: "Male" | "Female" | "Other" | string;
     devoteeAge?: number;
     maritalStatus?: "married" | "unmarried" | string;
+    panchanga?: {
+      vara?: { nameKn: string; nameEn: string; lord: PlanetName; tatva: string };
+      tithi?: { nameKn: string; nameEn: string; paksha: string; deity?: string };
+      nakshatra?: { nameKn: string; nameEn: string; lord: PlanetName; pada?: number; gana?: string; yoni?: string; deity?: string };
+      yoga?: { nameKn: string; nameEn: string; isAuspicious?: boolean };
+      karana?: { nameKn: string; nameEn: string; type?: string };
+    };
   },
-  dashaTiming?: { timelineKn?: string; timelineEn?: string; maha?: string; bhukti?: string },
+  dashaTiming?: {
+    timelineKn?: string;
+    timelineEn?: string;
+    maha?: string;
+    bhukti?: string;
+    remainingMonths?: number;
+    remainingYears?: number;
+  },
   liveGochara?: {
     shaniHouseFromMoon?: number;
+    shaniHouseFromLagna?: number;
     guruHouseFromMoon?: number;
+    guruHouseFromLagna?: number;
     rahuHouseFromMoon?: number;
+    rahuHouseFromLagna?: number;
     ketuHouseFromMoon?: number;
+    ketuHouseFromLagna?: number;
     isSadeSati?: boolean;
     isAshtamaShani?: boolean;
     isKantakaShani?: boolean;
+    isGuruAnukula?: boolean;
+    summaryKn?: string;
+    summaryEn?: string;
   }
 ): CurrentLifeSituationDiagnosis {
   const age = context.devoteeAge ?? 30;
@@ -201,49 +223,123 @@ export function diagnoseCurrentLifeSituation(
   const ketu = kundli.planets.find(p => p.name === PlanetName.Ketu);
 
   const lagnaIndex = kundli.lagnaRashi.index;
-  const lagnaLordPlanet = kundli.planets.find(p => p.name === signLord(lagnaIndex));
+  const lagnaKn = RASHI_KN[lagnaIndex] || "ಲಗ್ನ";
+  const lagnaEn = RASHI_EN[lagnaIndex] || "Lagna";
+  const lagnaLord = signLord(lagnaIndex);
+  const lagnaLordKn = PLANET_KN[lagnaLord] || "ಲಗ್ನಾಧಿಪತಿ";
+  const lagnaLordEn = PLANET_EN[lagnaLord] || "Lagna Lord";
+  const lagnaLordPlanet = kundli.planets.find(p => p.name === lagnaLord);
+  const lagnaLordHouse = lagnaLordPlanet?.house ?? 1;
 
-  const secondLord = signLord((lagnaIndex + 1) % 12);
-  const secondLordPlanet = kundli.planets.find(p => p.name === secondLord);
+  const moonRashiIdx = kundli.moonSign.index;
+  const moonRashiKn = RASHI_KN[moonRashiIdx] || "ರಾಶಿ";
+  const moonRashiEn = RASHI_EN[moonRashiIdx] || "Moon Sign";
+  const moonNakKn = moon?.nakshatra?.english ? toKannadaNakshatra(moon.nakshatra.english) : (context.panchanga?.nakshatra?.nameKn || "ನಕ್ಷತ್ರ");
+  const moonPada = kundli.moonPada || 1;
 
-  const thirdLord = signLord((lagnaIndex + 2) % 12);
-  const thirdLordPlanet = kundli.planets.find(p => p.name === thirdLord);
+  // 12 House sign indices and lords
+  const getHouseSignIdx = (h: number) => (lagnaIndex + h - 1) % 12;
+  const getHouseSignKn = (h: number) => RASHI_KN[getHouseSignIdx(h)] || "";
+  const getHouseSignEn = (h: number) => RASHI_EN[getHouseSignIdx(h)] || "";
+  const getHouseLord = (h: number) => signLord(getHouseSignIdx(h));
+  const getHouseLordKn = (h: number) => PLANET_KN[getHouseLord(h)] || "";
+  const getHouseLordEn = (h: number) => PLANET_EN[getHouseLord(h)] || "";
+  const getHouseLordPlanet = (h: number) => kundli.planets.find(p => p.name === getHouseLord(h));
+  const getHouseLordHouse = (h: number) => getHouseLordPlanet(h)?.house ?? h;
 
-  const fourthLord = signLord((lagnaIndex + 3) % 12);
-  const fourthLordPlanet = kundli.planets.find(p => p.name === fourthLord);
+  const h1SignKn = getHouseSignKn(1);
+  const h2SignKn = getHouseSignKn(2);
+  const h2LordKn = getHouseLordKn(2);
+  const h3SignKn = getHouseSignKn(3);
+  const h3LordKn = getHouseLordKn(3);
+  const h4SignKn = getHouseSignKn(4);
+  const h4LordKn = getHouseLordKn(4);
+  const h4LordHouse = getHouseLordHouse(4);
+  const h5SignKn = getHouseSignKn(5);
+  const h5LordKn = getHouseLordKn(5);
+  const h5LordHouse = getHouseLordHouse(5);
+  const h6SignKn = getHouseSignKn(6);
+  const h6LordKn = getHouseLordKn(6);
+  const h7SignKn = getHouseSignKn(7);
+  const h7LordKn = getHouseLordKn(7);
+  const h7LordHouse = getHouseLordHouse(7);
+  const h8SignKn = getHouseSignKn(8);
+  const h8LordKn = getHouseLordKn(8);
+  const h8LordHouse = getHouseLordHouse(8);
+  const h9SignKn = getHouseSignKn(9);
+  const h9LordKn = getHouseLordKn(9);
+  const h10SignKn = getHouseSignKn(10);
+  const h10LordKn = getHouseLordKn(10);
+  const h10LordHouse = getHouseLordHouse(10);
+  const h11SignKn = getHouseSignKn(11);
+  const h11LordKn = getHouseLordKn(11);
+  const h12SignKn = getHouseSignKn(12);
+  const h12LordKn = getHouseLordKn(12);
 
-  const fifthLord = signLord((lagnaIndex + 4) % 12);
-  const fifthLordPlanet = kundli.planets.find(p => p.name === fifthLord);
+  const secondLord = getHouseLord(2);
+  const secondLordPlanet = getHouseLordPlanet(2);
+  const thirdLord = getHouseLord(3);
+  const thirdLordPlanet = getHouseLordPlanet(3);
+  const fourthLord = getHouseLord(4);
+  const fourthLordPlanet = getHouseLordPlanet(4);
+  const fifthLord = getHouseLord(5);
+  const fifthLordPlanet = getHouseLordPlanet(5);
+  const sixthLord = getHouseLord(6);
+  const sixthLordPlanet = getHouseLordPlanet(6);
+  const seventhLord = getHouseLord(7);
+  const seventhLordPlanet = getHouseLordPlanet(7);
+  const eighthLord = getHouseLord(8);
+  const eighthLordPlanet = getHouseLordPlanet(8);
+  const ninthLord = getHouseLord(9);
+  const ninthLordPlanet = getHouseLordPlanet(9);
+  const tenthLord = getHouseLord(10);
+  const tenthLordPlanet = getHouseLordPlanet(10);
+  const eleventhLord = getHouseLord(11);
+  const eleventhLordPlanet = getHouseLordPlanet(11);
+  const twelfthLord = getHouseLord(12);
+  const twelfthLordPlanet = getHouseLordPlanet(12);
 
-  const sixthLord = signLord((lagnaIndex + 5) % 12);
-  const sixthLordPlanet = kundli.planets.find(p => p.name === sixthLord);
+  // Running Dasha and Bhukti
+  const runningMahaRaw = dashaTiming?.maha || "";
+  const runningBhuktiRaw = dashaTiming?.bhukti || "";
+  const mahaKn = PLANET_KN[runningMahaRaw] || runningMahaRaw || "ಪ್ರಸ್ತುತ ಮಹಾದಶಾ";
+  const bhuktiKn = PLANET_KN[runningBhuktiRaw] || runningBhuktiRaw || "ಭುಕ್ತಿ";
+  const mahaEn = PLANET_EN[runningMahaRaw] || runningMahaRaw || "Mahadasha";
+  const bhuktiEn = PLANET_EN[runningBhuktiRaw] || runningBhuktiRaw || "Antardasha";
 
-  const seventhLord = signLord((lagnaIndex + 6) % 12);
-  const seventhLordPlanet = kundli.planets.find(p => p.name === seventhLord);
+  // Panchanga 5-Angas context values
+  const varaKn = context.panchanga?.vara?.nameKn || "";
+  const varaTatvaKn = context.panchanga?.vara?.tatva || "ಅಗ್ನಿ / ಜಲ";
+  const tithiKn = context.panchanga?.tithi?.nameKn || "";
+  const tithiPakshaKn = context.panchanga?.tithi?.paksha || "ಶುಕ್ಲ";
+  const nakDeityKn = context.panchanga?.nakshatra?.deity || "ಇಷ್ಟದೇವತೆ";
+  const yogaKn = context.panchanga?.yoga?.nameKn || "";
+  const karanaKn = context.panchanga?.karana?.nameKn || "";
 
-  const eighthLord = signLord((lagnaIndex + 7) % 12);
-  const eighthLordPlanet = kundli.planets.find(p => p.name === eighthLord);
-
-  const ninthLord = signLord((lagnaIndex + 8) % 12);
-  const ninthLordPlanet = kundli.planets.find(p => p.name === ninthLord);
-
-  const tenthLord = signLord((lagnaIndex + 9) % 12);
-  const tenthLordPlanet = kundli.planets.find(p => p.name === tenthLord);
-
-  const eleventhLord = signLord((lagnaIndex + 10) % 12);
-  const eleventhLordPlanet = kundli.planets.find(p => p.name === eleventhLord);
-
-  const twelfthLord = signLord((lagnaIndex + 11) % 12);
-  const twelfthLordPlanet = kundli.planets.find(p => p.name === twelfthLord);
-
-  const dashaTimeKn = dashaTiming?.timelineKn || "ಮುಂದಿನ 3 ರಿಂದ 6 ತಿಂಗಳುಗಳಲ್ಲಿ";
-  const dashaTimeEn = dashaTiming?.timelineEn || "within the next 3 to 6 months";
-
-  // Check Gochara transits
+  // Gochara transits
   const shaniMoon = liveGochara?.shaniHouseFromMoon ?? (saturn && moon ? houseDistance(moon.house, saturn.house) : 1);
+  const shaniLagna = liveGochara?.shaniHouseFromLagna ?? (saturn ? houseDistance(1, saturn.house) : 1);
+  const guruMoon = liveGochara?.guruHouseFromMoon ?? (jupiter && moon ? houseDistance(moon.house, jupiter.house) : 1);
+  const guruLagna = liveGochara?.guruHouseFromLagna ?? (jupiter ? houseDistance(1, jupiter.house) : 1);
   const isSadeSati = liveGochara?.isSadeSati ?? [12, 1, 2].includes(shaniMoon);
   const isAshtamaShani = liveGochara?.isAshtamaShani ?? (shaniMoon === 8);
   const isKantakaShani = liveGochara?.isKantakaShani ?? [4, 7, 10].includes(shaniMoon);
+  const isGuruAnukula = liveGochara?.isGuruAnukula ?? [2, 5, 7, 9, 11].includes(guruMoon);
+
+  const shaniGocharaTextKn = isSadeSati
+    ? `ಸಾಡೇ ಸಾತಿ (ಚಂದ್ರನಿಂದ ${shaniMoon}ನೇ ಮನೆ)`
+    : isAshtamaShani
+    ? "ಅಷ್ಟಮ ಶನಿ (ಚಂದ್ರನಿಂದ 8ನೇ ಮನೆ)"
+    : isKantakaShani
+    ? `ಕಂಟಕ ಶನಿ (ಚಂದ್ರನಿಂದ ${shaniMoon}ನೇ ಮನೆ)`
+    : `ಗೋಚಾರ ಶನಿ (ಚಂದ್ರನಿಂದ ${shaniMoon}ನೇ ಮನೆ)`;
+
+  const guruGocharaTextKn = isGuruAnukula
+    ? `ಗೋಚಾರ ಗುರುವಿನ ಶುಭ ದೃಷ್ಟಿ (ಚಂದ್ರನಿಂದ ${guruMoon}ನೇ ಅನುಕೂಲ ಸ್ಥಾನ)`
+    : `ಗೋಚಾರ ಗುರು (ಚಂದ್ರನಿಂದ ${guruMoon}ನೇ ಪರಿಶ್ರಮ ಸ್ಥಾನ)`;
+
+  const dashaTimeKn = dashaTiming?.timelineKn || "ಮುಂದಿನ 3 ರಿಂದ 6 ತಿಂಗಳುಗಳಲ್ಲಿ";
+  const dashaTimeEn = dashaTiming?.timelineEn || "within the next 3 to 6 months";
 
   // -------------------------------------------------------------
   // CRITERION 1: PROPERTY SHARE / FAMILY HOME DISPUTE (ಆಸ್ತಿ ಪಾಲು / ಮನೆಯ ಹಕ್ಕಿನ ಜಗಳ)
@@ -442,6 +538,19 @@ export function diagnoseCurrentLifeSituation(
     profile: CurrentLifeSituationDiagnosis;
   }
 
+  const getHouseOccupantsKn = (h: number) => {
+    const occupants = kundli.planets.filter(p => p.house === h).map(p => PLANET_KN[p.name] || p.name);
+    return occupants.length > 0 ? occupants.join(", ") : "";
+  };
+  const getHouseOccupantsEn = (h: number) => {
+    const occupants = kundli.planets.filter(p => p.house === h).map(p => PLANET_EN[p.name] || p.name);
+    return occupants.length > 0 ? occupants.join(", ") : "";
+  };
+  const h4OccupantsKn = getHouseOccupantsKn(4);
+  const h5OccupantsKn = getHouseOccupantsKn(5);
+  const h7OccupantsKn = getHouseOccupantsKn(7);
+  const h10OccupantsKn = getHouseOccupantsKn(10);
+
   const candidates: DiagnosticCandidate[] = [];
 
   // A. Child Stage (<14 years)
@@ -453,27 +562,27 @@ export function diagnoseCurrentLifeSituation(
         category: "student_academic_stress",
         titleKn: "ಬಾಲ್ಯದ ಬೆಳವಣಿಗೆ, ವಿದ್ಯಾಭ್ಯಾಸದ ಒತ್ತಡ & ಏಕಾಗ್ರತೆಯ ಕೊರತೆ",
         titleEn: "Childhood Development, Schooling Pressure & Focus",
-        headlineKn: "ಶಾಲಾ ವಿದ್ಯಾಭ್ಯಾಸದಲ್ಲಿ ಏಕಾಗ್ರತೆಯ ಕೊರತೆ & ಬಾಲಗ್ರಹ ಪ್ರಭಾವ",
-        headlineEn: "Academic Distraction, Screen Time & Formative Learning Pressure",
-        detailedRealityKn: `ಪ್ರಸ್ತುತ ${devoteeName} ಮಗುವಿಗೆ ${age} ವರ್ಷ ವಯಸ್ಸಾಗಿದ್ದು, ಶಾಲಾ ವಿದ್ಯಾಭ್ಯಾಸ, ಓದಿನಲ್ಲಿ ಗಮನ ಕೇಂದ್ರೀಕರಣ ಹಾಗೂ ಅತಿಯಾದ ಹಠ ಅಥವಾ ಡಿಜಿಟಲ್ ಪರದೆಯ ಗೀಳಿನಿಂದಾಗಿ ಪೋಷಕರಲ್ಲಿ ಸಣ್ಣ ಆತಂಕ ಮೂಡಿದೆ. ಮಗುವಿನ ಬುದ್ಧಿಕಾರಕ ಬುಧ ಹಾಗೂ 4ನೇ ಮನೆಯ ವಿದ್ಯಾ ಸ್ಥಾನದ ಮೇಲೆ ಗ್ರಹಗಳ ಚಂಚಲ ಸಂಚಾರವಿದ್ದು, ಓದಿನಲ್ಲಿ ಆಸಕ್ತಿ ಹೆಚ್ಚು ಮಾಡಲು ಪ್ರೀತಿಯ ಮಾರ್ಗದರ್ಶನ ಅಗತ್ಯವಾಗಿದೆ.`,
-        detailedRealityEn: `At age ${age}, the child is navigating primary schooling, concentration hurdles, and academic expectations. The 4th house of learning and Mercury reflect mental restlessness requiring patient nurturing.`,
-        planetaryCulpritKn: "4ನೇ ವಿದ್ಯಾ ಸ್ಥಾನದಲ್ಲಿ ಚಂಚಲ ಗ್ರಹಗಳ ಪ್ರಭಾವ ಹಾಗೂ ಬುಧನ ಸಾಧಾರಣ ಬಲ.",
-        planetaryCulpritEn: "Restless planetary influence on the 4th house of learning and Mercury.",
+        headlineKn: `${h4SignKn} 4ನೇ ವಿದ್ಯಾ ಸ್ಥಾನ (${h4LordKn} ಪ್ರಭಾವ): ಶಾಲಾ ವಿದ್ಯಾಭ್ಯಾಸದಲ್ಲಿ ಏಕಾಗ್ರತೆಯ ಕೊರತೆ & ಬಾಲಗ್ರಹ ಪ್ರಭಾವ`,
+        headlineEn: `${RASHI_EN[getHouseSignIdx(4)] || "4th House"} (${PLANET_EN[fourthLord] || "4th Lord"}): Formative Learning Pressure & Distraction`,
+        detailedRealityKn: `ಪ್ರಸ್ತುತ ${devoteeName} ಮಗುವಿಗೆ ${age} ವರ್ಷ ವಯಸ್ಸಾಗಿದ್ದು, ${lagnaKn} ಲಗ್ನ, ${moonRashiKn} ರಾಶಿ, ${moonNakKn} ನಕ್ಷತ್ರ ಪಾದ ${moonPada}ದಲ್ಲಿ ಜನಿಸಿದ ಈ ಮಗುವಿನ 4ನೇ ವಿದ್ಯಾ ಸ್ಥಾನವು ${h4SignKn} ರಾಶಿಯಾಗಿದ್ದು, ಅಧಿಪತಿ ${h4LordKn} ${h4LordHouse}ನೇ ಮನೆಯಲ್ಲಿದ್ದಾರೆ. ${h4OccupantsKn ? `4ನೇ ಮನೆಯಲ್ಲಿ ${h4OccupantsKn} ಗ್ರಹಗಳ ಪ್ರಭಾವವಿದ್ದು, ` : ""}ಬುಧನು ${mercury?.house ?? 4}ನೇ ಮನೆಯಲ್ಲಿದ್ದಾರೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${mahaKn} ಮಹಾದಶೆಯಲ್ಲಿ ${bhuktiKn} ಭುಕ್ತಿಯ ಅವಧಿಯಲ್ಲಿ ಶಾಲಾ ವಿದ್ಯಾಭ್ಯಾಸ, ಓದಿನಲ್ಲಿ ಗಮನ ಕೇಂದ್ರೀಕರಣ ಹಾಗೂ ಚಂಚಲತೆಯಿಂದಾಗಿ ಪೋಷಕರಲ್ಲಿ ಸಣ್ಣ ಕಾಳಜಿ ಮೂಡಿದೆ. ಗೋಚಾರದಲ್ಲಿ ${shaniGocharaTextKn} ಪ್ರಭಾವವಿದ್ದು, ${guruGocharaTextKn} ಬಲವರ್ಧನೆಯಾಗಬೇಕಿದೆ.`,
+        detailedRealityEn: `At age ${age}, with Lagna in ${lagnaEn} and Moon in ${moonRashiEn}, the child is navigating primary schooling, concentration hurdles, and academic expectations. The 4th house of learning (${RASHI_EN[getHouseSignIdx(4)]}) ruled by ${PLANET_EN[fourthLord]} and Mercury reflect formative development requiring patient nurturing under running ${mahaEn}-${bhuktiEn}.`,
+        planetaryCulpritKn: `4ನೇ ವಿದ್ಯಾ ಸ್ಥಾನ (${h4SignKn}, ಅಧಿಪತಿ ${h4LordKn} ${h4LordHouse}ನೇ ಮನೆಯಲ್ಲಿ) ಹಾಗೂ ಬುಧನ (${mercury?.house ?? 4}ನೇ ಮನೆ) ಸ್ಥಿತಿ ಮತ್ತು ${shaniGocharaTextKn}.`,
+        planetaryCulpritEn: `Restless planetary influence on the 4th house of learning (${RASHI_EN[getHouseSignIdx(4)]}) and Mercury in house ${mercury?.house ?? 4}.`,
         symptomsChecklistKn: [
-          "ಓದಲು ಕುಳಿತಾಗ ಬೇಗನೆ ಗಮನ ಬೇರೆಡೆ ಹರಿಯುವುದು",
-          "ತಿಂಡಿ-ಊಟದಲ್ಲಿ ಹಠ ಅಥವಾ ಸುಖನಿದ್ರೆಯ ವ್ಯತ್ಯಾಸ",
-          "ಅತಿಯಾದ ಕೋಪ ಅಥವಾ ಹಠಮಾರಿ ನಡವಳಿಕೆ"
+          `${h4SignKn} 4ನೇ ವಿದ್ಯಾ ಸ್ಥಾನದಲ್ಲಿ ${h4OccupantsKn || h4LordKn + "ನ"} ಸ್ಥಿತಿ ಹಾಗೂ ಬುಧ (${mercury?.house ?? 4}ನೇ ಮನೆ) ಪ್ರಭಾವದಿಂದ ಓದಲು ಕುಳಿತಾಗ ಏಕಾಗ್ರತೆ ಬೇಗನೆ ಚದುರುವುದು`,
+          `ಚಂದ್ರ (${moonRashiKn} ರಾಶಿ, ${moonNakKn}) ಸಂಚಾರದಿಂದಾಗಿ ತಿಂಡಿ-ಊಟದಲ್ಲಿ ಹಠ ಅಥವಾ ನಿದ್ರೆಯ ಸಮಯದಲ್ಲಿ ಚಂಚಲತೆ`,
+          `ಪ್ರಸ್ತುತ ${mahaKn}-${bhuktiKn} ಕಾಲದಲ್ಲಿ ವಿದ್ಯಾಭ್ಯಾಸದಲ್ಲಿ ಶ್ರಮಕ್ಕೆ ತಕ್ಕ ನಿರೀಕ್ಷೆಗಾಗಿ ಪೋಷಕರ ಮಾರ್ಗದರ್ಶನದ ಅಗತ್ಯ`
         ],
         symptomsChecklistEn: [
-          "Wandering attention during study hours",
-          "Picky eating habits or disturbed sleep cycles",
-          "Occasional stubbornness under parental commands"
+          `Wandering attention during study hours influenced by 4th house (${RASHI_EN[getHouseSignIdx(4)]}) and Mercury`,
+          `Picky eating habits or disturbed sleep cycles linked to Moon in ${moonRashiEn}`,
+          `Need for structured parental guidance during ongoing ${mahaEn}-${bhuktiEn} period`
         ],
         severity: "moderate",
-        reliefTimelineKn: `${dashaTimeKn} ಮಗುವಿನ ಗ್ರಹಣ ಶಕ್ತಿ ಮತ್ತು ಶಾಲಾ ಸಾಧನೆ ಗಮನಾರ್ಹವಾಗಿ ವೃದ್ಧಿಯಾಗಲಿದೆ.`,
-        reliefTimelineEn: `${dashaTimeEn}, memory power and academic engagement will improve markedly.`,
-        gokarnaRemedyKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ವಿದ್ಯಾ ಗಣಪತಿ ಪೂಜೆ ಮತ್ತು ಮೇಧಾ ದಕ್ಷಿಣಾಮೂರ್ತಿ ಸಂಕಲ್ಪ ಸೇವೆ ನೆರವೇರಿಸಿ.",
-        gokarnaRemedyEn: "Sponsor Vidya Ganapati and Medha Dakshinamurthy Pooja at Sri Kshetra Gokarna."
+        reliefTimelineKn: `ಪ್ರಸ್ತುತ ${mahaKn}-${bhuktiKn} ಸಂಚಾರದಡಿ ${dashaTimeKn} ಮಗುವಿನ ಗ್ರಹಣ ಶಕ್ತಿ, ಸ್ಮರಣ ಶಕ್ತಿ ಮತ್ತು ಶಾಲಾ ಶ್ರೇಣಿ ಗಮನಾರ್ಹವಾಗಿ ಸುಧಾರಿಸಲಿದೆ.`,
+        reliefTimelineEn: `Under ${mahaEn}-${bhuktiEn}, ${dashaTimeEn}, memory power and academic engagement will improve markedly.`,
+        gokarnaRemedyKn: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಮಗುವಿನ ಜನ್ಮ ನಕ್ಷತ್ರ (${moonNakKn}) ಹಾಗೂ ${h4LordKn}ನ ಪ್ರೀತ್ಯರ್ಥವಾಗಿ ಮೇಧಾ ದಕ್ಷಿಣಾಮೂರ್ತಿ ಸಂಕಲ್ಪ ಮತ್ತು ವಿದ್ಯಾ ಗಣಪತಿ ಪೂಜೆ ನೆರವೇರಿಸಿ.`,
+        gokarnaRemedyEn: `Sponsor Vidya Ganapati and Medha Dakshinamurthy Pooja at Sri Kshetra Gokarna for ${moonNakKn} nakshatra.`
       }
     });
   }
@@ -487,27 +596,27 @@ export function diagnoseCurrentLifeSituation(
         category: "student_academic_stress",
         titleKn: "ಉನ್ನತ ಶಿಕ್ಷಣ / ವಿದ್ಯಾಭ್ಯಾಸ, ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆಗಳ ಒತ್ತಡ & ಭವಿಷ್ಯದ ವೃತ್ತಿ ಗೊಂದಲ",
         titleEn: "Higher Education, Competitive Exams & Career Pathway Anxiety",
-        headlineKn: "ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆಗಳ ಒತ್ತಡ, ಉನ್ನತ ವಿದ್ಯಾಭ್ಯಾಸ ಪ್ರವೇಶ & ವೃತ್ತಿ ಗೊಂದಲ",
-        headlineEn: "Competitive Exam Strains, College Admissions & Career Crossroads",
-        detailedRealityKn: `ಪ್ರಸ್ತುತ ${age} ವರ್ಷದ ಈ ಪ್ರಮುಖ ತಾರುಣ್ಯದ ಘಟ್ಟದಲ್ಲಿ ನೀವು ಉನ್ನತ ವಿದ್ಯಾಭ್ಯಾಸ, ಕಾಲೇಜು ಪ್ರವೇಶ, ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆಗಳು ಅಥವಾ ಭವಿಷ್ಯದ ಉದ್ಯೋಗ ಬುನಾದಿಯ ತೀವ್ರ ಆಲೋಚನೆಯಲ್ಲಿದ್ದೀರಿ. ಶ್ರಮಕ್ಕೆ ತಕ್ಕಂತೆ ಅಂಕಗಳು ಬರುವುದೇ ಅಥವಾ ಇಷ್ಟಪಟ್ಟ ಕೋರ್ಸ್ ಸಿಗುವುದೇ ಎಂಬ ಅನಿಶ್ಚಿತತೆ ನಿಮ್ಮನ್ನು ಕಾಡುತ್ತಿದೆ. ಆದರೆ ನಿಮ್ಮ ಜಾತಕದ ಲಗ್ನಾಧಿಪತಿಯ ಬಲವು ಸರಿಯಾದ ದಿಕ್ಕು ತೋರಿಸಲಿದೆ.`,
-        detailedRealityEn: `At age ${age}, you are navigating crucial career foundation decisions, competitive exams, and college admissions with deep performance pressure.`,
-        planetaryCulpritKn: "5ನೇ ಬೌದ್ಧಿಕ ಭಾವ ಹಾಗೂ 10ನೇ ಕರ್ಮ ಸ್ಥಾನಕ್ಕೆ ಸಂಪರ್ಕ ಕಲ್ಪಿಸುವ ದಶಾ ಸಂಚಾರ.",
-        planetaryCulpritEn: "Transits activating 5th house of intellect and 10th house of career launch.",
+        headlineKn: `${h5SignKn} 5ನೇ ಬೌದ್ಧಿಕ ಸ್ಥಾನ & 10ನೇ ಸ್ಥಾನ (${h10LordKn} ಪ್ರಭಾವ): ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆಗಳ ಒತ್ತಡ & ವೃತ್ತಿ ಗೊಂದಲ`,
+        headlineEn: `5th House (${RASHI_EN[getHouseSignIdx(5)] || "Intellect"}) & 10th House: Competitive Exam Strains & Career Crossroads`,
+        detailedRealityKn: `ಪ್ರಸ್ತುತ ${age} ವರ್ಷದ ಈ ಮಹತ್ವದ ತಾರುಣ್ಯದ ಘಟ್ಟದಲ್ಲಿ, ${lagnaKn} ಲಗ್ನ ಮತ್ತು ${moonRashiKn} ರಾಶಿಯ ಜಾತಕರಾದ ನೀವು ಉನ್ನತ ವಿದ್ಯಾಭ್ಯಾಸ, ಕಾಲೇಜು ಪ್ರವೇಶ, ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆಗಳು ಅಥವಾ ಪ್ರಥಮ ಉದ್ಯೋಗಾವಕಾಶದ ಬುನಾದಿಯ ಆಲೋಚನೆಯಲ್ಲಿದ್ದೀರಿ. 5ನೇ ಬುದ್ಧಿ ಸ್ಥಾನ ${h5SignKn} (ಅಧಿಪತಿ ${h5LordKn} ${h5LordHouse}ನೇ ಮನೆಯಲ್ಲಿ) ಹಾಗೂ 10ನೇ ಕರ್ಮ ಸ್ಥಾನ ${h10SignKn} (ಅಧಿಪತಿ ${h10LordKn} ${h10LordHouse}ನೇ ಮನೆಯಲ್ಲಿ) ಸಕ್ರಿಯವಾಗಿದ್ದು, ಶ್ರಮಕ್ಕೆ ತಕ್ಕ ರಾಂಕ್ ಅಥವಾ ಇಷ್ಟಪಟ್ಟ ಕೋರ್ಸ್ ಸಿಗುವುದೇ ಎಂಬ ಅನಿಶ್ಚಿತತೆ ಕಾಡುತ್ತಿದೆ. ಪ್ರಸ್ತುತ ${mahaKn} ದಶೆಯಲ್ಲಿ ${bhuktiKn} ಭುಕ್ತಿಯು ನಡೆಯುತ್ತಿದ್ದು, ${guruGocharaTextKn} ಮಾರ್ಗದರ್ಶನ ನೀಡಲಿದೆ.`,
+        detailedRealityEn: `At age ${age}, with Lagna in ${lagnaEn} and Moon in ${moonRashiEn}, you are navigating crucial career foundation decisions, competitive exams, and college admissions under 5th lord ${PLANET_EN[fifthLord]} and 10th lord ${PLANET_EN[tenthLord]} during running ${mahaEn}-${bhuktiEn}.`,
+        planetaryCulpritKn: `5ನೇ ವಿದ್ಯಾ-ಬುದ್ಧಿ ಸ್ಥಾನ (${h5SignKn}, ಅಧಿಪತಿ ${h5LordKn} ${h5LordHouse}ನೇ ಮನೆಯಲ್ಲಿ) ಹಾಗೂ 10ನೇ ಕರ್ಮ ಸ್ಥಾನಕ್ಕೆ ಸಂಪರ್ಕ ಕಲ್ಪಿಸುವ ${mahaKn}-${bhuktiKn} ದಶಾ ಸಂಚಾರ ಮತ್ತು ${shaniGocharaTextKn}.`,
+        planetaryCulpritEn: `Transits activating 5th house of intellect (${RASHI_EN[getHouseSignIdx(5)]}) and 10th house of career launch (${RASHI_EN[getHouseSignIdx(10)]}) under ${mahaEn}-${bhuktiEn}.`,
         symptomsChecklistKn: [
-          "ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆಗಳು ಮತ್ತು ಫಲಿತಾಂಶದ ಆತಂಕ",
-          "ಯಾವ ವೃತ್ತಿ ರಂಗವನ್ನು ಆಯ್ಕೆ ಮಾಡಿಕೊಳ್ಳಬೇಕೆಂಬ ಆಂತರಿಕ ಗೊಂದಲ",
-          "ಸ್ನೇಹಿತರೊಂದಿಗೆ ಹೋಲಿಸಿಕೊಂಡು ಉಂಟಾಗುವ ಮಾನಸಿಕ ಒತ್ತಡ"
+          `5ನೇ ಬೌದ್ಧಿಕ ಸ್ಥಾನ (${h5SignKn}, ಅಧಿಪತಿ ${h5LordKn}) ಹಾಗೂ ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆಗಳ ಶ್ರೇಯಸ್ಸಿನ ಆತಂಕ`,
+          `10ನೇ ವೃತ್ತಿ ಸ್ಥಾನ (${h10SignKn}, ಅಧಿಪತಿ ${h10LordKn}) ಪ್ರಭಾವದಿಂದ ಯಾವ ಕಾಲೇಜು/ವಿಭಾಗ ಆಯ್ದುಕೊಳ್ಳಬೇಕೆಂಬ ತುಮುಲ`,
+          `ಪ್ರಸ್ತುತ ${mahaKn}-${bhuktiKn} ದಶಾ ಕಾಲದಲ್ಲಿ ಗೆಳೆಯರೊಂದಿಗೆ ಹೋಲಿಕೆ ಹಾಗೂ ಭವಿಷ್ಯದ ವೃತ್ತಿ ಗೊಂದಲ`
         ],
         symptomsChecklistEn: [
-          "Exam tension and anticipation of competitive rank results",
-          "Crossroads regarding optimal career stream selection",
-          "Peer performance comparisons generating transient anxiety"
+          `Exam tension and rank anticipation driven by 5th house (${RASHI_EN[getHouseSignIdx(5)]})`,
+          `Crossroads regarding optimal college stream selection governed by 10th house (${RASHI_EN[getHouseSignIdx(10)]})`,
+          `Peer comparisons and future direction queries under running ${mahaEn}-${bhuktiEn}`
         ],
         severity: "high",
-        reliefTimelineKn: `${dashaTimeKn} ನಿಮ್ಮ ಶ್ರಮಕ್ಕೆ ನಿರೀಕ್ಷಿತ ಯಶಸ್ಸು ಮತ್ತು ಸ್ಪಷ್ಟ ಪ್ರವೇಶಾವಕಾಶ ಸಿಗಲಿದೆ.`,
-        reliefTimelineEn: `${dashaTimeEn}, clear educational breakthroughs and admissions will materialize.`,
-        gokarnaRemedyKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಸರಸ್ವತಿ ಆರಾಧನೆ ಹಾಗೂ ಮಹಾಗಣಪತಿ ಹೋಮ ಸಮರ್ಪಿಸಿ.",
-        gokarnaRemedyEn: "Perform Saraswati Pooja and Mahaganapati Homa at Sri Kshetra Gokarna."
+        reliefTimelineKn: `ಪ್ರಸ್ತುತ ${mahaKn}-${bhuktiKn} ಸಂಚಾರದಲ್ಲಿ ${dashaTimeKn} ನಿಮ್ಮ ಶ್ರಮಕ್ಕೆ ನಿರೀಕ್ಷಿತ ಯಶಸ್ಸು, ಪರೀಕ್ಷಾ ಫಲಿತಾಂಶ ಮತ್ತು ಸ್ಪಷ್ಟ ಕಾಲೇಜು/ಉದ್ಯೋಗ ಪ್ರವೇಶಾವಕಾಶ ಒದಗಿಬರಲಿದೆ.`,
+        reliefTimelineEn: `Under ${mahaEn}-${bhuktiEn}, ${dashaTimeEn}, clear educational breakthroughs and admissions will materialize.`,
+        gokarnaRemedyKn: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ನಿಮ್ಮ ಜನ್ಮ ನಕ್ಷತ್ರ (${moonNakKn}) ಸಂಕಲ್ಪದೊಂದಿಗೆ ಸರಸ್ವತಿ ಆರಾಧನೆ ಹಾಗೂ ${h5LordKn} ಮತ್ತು ${h10LordKn} ಗ್ರಹಗಳ ಅನುಗ್ರಹಕ್ಕಾಗಿ ಮಹಾಗಣಪತಿ ಹೋಮ ಸಮರ್ಪಿಸಿ.`,
+        gokarnaRemedyEn: `Perform Saraswati Pooja and Mahaganapati Homa at Sri Kshetra Gokarna for ${moonNakKn} nakshatra.`
       }
     });
   }
@@ -521,27 +630,27 @@ export function diagnoseCurrentLifeSituation(
         category: "property_share_dispute",
         titleKn: "ಆಸ್ತಿ ಪಾಲು, ಮನೆಯ ಹಕ್ಕು ವಿವಾದ & ನ್ಯಾಯಯುತ ಪಾಲಿಗಾಗಿ ಕಠಿಣ ಹೋರಾಟ",
         titleEn: "Property Partition, Family Inheritance Dispute & Legal Share Struggle",
-        headlineKn: "ಕುಟುಂಬದ ಆಸ್ತಿ ಪಾಲು, ಮನೆಯ ಹಕ್ಕು ವಿವಾದ & ನಂಬಿಕೆದ್ರೋಹದ ಸಂಕಷ್ಟ",
-        headlineEn: "Ancestral Property Dispute, Delayed Family Partition & Rights Struggle",
-        detailedRealityKn: `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಅತ್ಯಂತ ತೀವ್ರವಾಗಿ ಕಾಡುತ್ತಿರುವ ವಾಸ್ತವವೆಂದರೆ — ಕುಟುಂಬದ ಪೂರ್ವಜರ ಆಸ್ತಿ ಪಾಲು, ಮನೆಯ ಹಕ್ಕು ಅಥವಾ ರಿಯಲ್ ಎಸ್ಟೇಟ್ ಭೂಮಿಯ ವಿಭಾಗದಲ್ಲಿ ನಡೆಯುತ್ತಿರುವ ವಿವಾದ. ನಿಮ್ಮ ನ್ಯಾಯಯುತವಾದ ಪಾಲನ್ನು ನೀಡದೆ ಸತಾಯಿಸುವುದು, ಸಹೋದರರು ಅಥವಾ ಹತ್ತಿರದ ಸಂಬಂಧಿಗಳಿಂದ ನಂಬಿಕೆದ್ರೋಹ, ದಾಖಲೆಪತ್ರಗಳ ಗೋಲ್‌ಮಾಲ್ ಅಥವಾ ಕೋರ್ಟು/ಪಂಚಾಯಿತಿ ವ್ಯಾಜ್ಯಗಳಂತಹ ಅಸಹನೀಯ ಸಂಕಷ್ಟವನ್ನು ನೀವು ಪ್ರಸ್ತುತ ಎದುರಿಸುತ್ತಿದ್ದೀರಿ. ನಿಮ್ಮ ಬೆವರು-ಶ್ರಮದ ಹಕ್ಕನ್ನು ಕಸಿದುಕೊಳ್ಳಲು ಕೆಲವರು ಸಂಚು ಮಾಡುತ್ತಿರುವ ನೋವು ನಿಮ್ಮನ್ನು ದಿನನಿತ್ಯ ಕಾಡುತ್ತಿದೆ.`,
-        detailedRealityEn: `Currently, the most pressing battle in your daily life is an agonizing family property dispute or ancestral inheritance partition. Unfair withholding of your rightful share, betrayal by brothers/relatives, disputed paperwork, or settlement delays are inflicting intense stress.`,
-        planetaryCulpritKn: "4ನೇ ಭೂಮಿ-ಗೃಹ ಸ್ಥಾನದಲ್ಲಿ ಕುಜ-ಶನಿಗಳ ತೀವ್ರ ಕಂಟಕ ದೋಷ ಹಾಗೂ 8ನೇ ಅಧಿಪತಿಯ ಪ್ರಭಾವ.",
-        planetaryCulpritEn: "Afflicted 4th house of property by Mars-Saturn opposition combined with 8th house lord tension.",
+        headlineKn: `${h4SignKn} 4ನೇ ಗೃಹ-ಭೂಮಿ ಸ್ಥಾನ (${h4LordKn} ಪ್ರಭಾವ): ಕುಟುಂಬದ ಆಸ್ತಿ ಪಾಲು & ನಂಬಿಕೆದ್ರೋಹದ ಸಂಕಷ್ಟ`,
+        headlineEn: `4th House (${RASHI_EN[getHouseSignIdx(4)] || "Property"}) Conflict: Ancestral Property Dispute & Family Partition Delay`,
+        detailedRealityKn: `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಅತ್ಯಂತ ತೀವ್ರವಾಗಿ ಕಾಡುತ್ತಿರುವ ವಾಸ್ತವವೆಂದರೆ — ಕುಟುಂಬದ ಪೂರ್ವಜರ ಆಸ್ತಿ ಪಾಲು, ಮನೆಯ ಹಕ್ಕು ಅಥವಾ ರಿಯಲ್ ಎಸ್ಟೇಟ್ ಭೂಮಿಯ ವಿಭಾಗದಲ್ಲಿ ನಡೆಯುತ್ತಿರುವ ವಿವಾದ. ${lagnaKn} ಲಗ್ನದ 4ನೇ ಭೂಮಿ-ಭವನ ಸ್ಥಾನವು ${h4SignKn} ರಾಶಿಯಾಗಿದ್ದು, ಅಧಿಪತಿ ${h4LordKn} ${h4LordHouse}ನೇ ಮನೆಯಲ್ಲಿದ್ದಾರೆ. ${mars ? `ಭೂಮಿಕಾರಕ ಕುಜನು ${mars.house}ನೇ ಮನೆಯಲ್ಲಿದ್ದು, ` : ""}3ನೇ ಭ್ರಾತೃ ಸ್ಥಾನಾಧಿಪತಿ ${h3LordKn} ಹಾಗೂ 8ನೇ ವ್ಯಾಜ್ಯ ಸ್ಥಾನಾಧಿಪತಿ ${h8LordKn}ನ ಪ್ರಭಾವದಿಂದ ನ್ಯಾಯಯುತ ಪಾಲನ್ನು ನೀಡದೆ ಸತಾಯಿಸುವುದು, ದಾಖಲೆಪತ್ರಗಳ ಗೋಲ್‌ಮಾಲ್ ಅಥವಾ ಮಾತುಕತೆಗಳಲ್ಲಿ ಅಡೆತಡೆಗಳು ಎದುರಾಗುತ್ತಿವೆ. ಪ್ರಸ್ತುತ ${mahaKn} ದಶೆಯಲ್ಲಿ ${bhuktiKn} ಭುಕ್ತಿ ಹಾಗೂ ${shaniGocharaTextKn} ಈ ಸಂಘರ್ಷವನ್ನು ತೀವ್ರಗೊಳಿಸಿವೆ.`,
+        detailedRealityEn: `Currently, the most pressing battle in your daily life is an agonizing family property dispute or ancestral inheritance partition. With 4th house (${RASHI_EN[getHouseSignIdx(4)]}) ruled by ${PLANET_EN[fourthLord]} and Mars in house ${mars?.house ?? 4}, unfair withholding of your rightful share, disputed paperwork, or settlement delays are inflicting intense stress under running ${mahaEn}-${bhuktiEn}.`,
+        planetaryCulpritKn: `4ನೇ ಭೂಮಿ-ಗೃಹ ಸ್ಥಾನ (${h4SignKn}, ಅಧಿಪತಿ ${h4LordKn} ${h4LordHouse}ನೇ ಮನೆಯಲ್ಲಿ) ಮೇಲೆ ಕುಜ (${mars?.house ?? 4}ನೇ ಮನೆ) ಮತ್ತು ಶನಿ (${saturn?.house ?? 4}ನೇ ಮನೆ) ಪ್ರಭಾವ ಹಾಗೂ 8ನೇ ಅಧಿಪತಿ ${h8LordKn}ನ ಸಂಚಾರ.`,
+        planetaryCulpritEn: `Afflicted 4th house of property (${RASHI_EN[getHouseSignIdx(4)]}) by Mars (house ${mars?.house ?? 4}) and Saturn (house ${saturn?.house ?? 4}) combined with 8th lord ${PLANET_EN[eighthLord]}.`,
         symptomsChecklistKn: [
-          "ನ್ಯಾಯಯುತವಾಗಿ ಸಿಗಬೇಕಾದ ಆಸ್ತಿ ಅಥವಾ ಮನೆಯ ಪಾಲನ್ನು ಹಂಚಲು ವಿಳಂಬ ಮತ್ತು ಕುಂಟು ನೆಪಗಳು",
-          "ಕುಟುಂಬದ ಆಪ್ತರು ಅಥವಾ ಪಾಲುದಾರರಿಂದ ಮುಖವಾಡದ ನಡವಳಿಕೆ ಮತ್ತು ನಂಬಿಕೆದ್ರೋಹ",
-          "ಆಸ್ತಿ ದಾಖಲೆಗಳು, ಸರ್ವೆ ಅಥವಾ ಖಾತಾ ಬದಲಾವಣೆಯಲ್ಲಿ ಎದುರಾಗುತ್ತಿರುವ ಕೃತಕ ತಡೆಗಳು"
+          `${h4SignKn} 4ನೇ ಗೃಹ-ಭೂಮಿ ಸ್ಥಾನದ ನ್ಯಾಯಯುತ ಪಾಲನ್ನು ಹಂಚಲು ಎದುರಾಗುತ್ತಿರುವ ಅಸಹಕಾರ ಮತ್ತು ವಿಳಂಬ`,
+          `3ನೇ ಭ್ರಾತೃ ಸ್ಥಾನ (${h3SignKn}, ಅಧಿಪತಿ ${h3LordKn}) ಹಾಗೂ ಆಪ್ತರ ನಂಬಿಕೆದ್ರೋಹ ಅಥವಾ ದಾಖಲೆಗಳ ಗೊಂದಲ`,
+          `8ನೇ ವಿವಾದ ಸ್ಥಾನ (${h8SignKn}, ಅಧಿಪತಿ ${h8LordKn}) ಅಥವಾ ಕೋರ್ಟು/ಪಂಚಾಯಿತಿ ಮಟ್ಟದ ಮಾತುಕತೆಗಳಲ್ಲಿ ಕೃತಕ ತಡೆಗಳು`
         ],
         symptomsChecklistEn: [
-          "Unwarranted delays and excuses in partitioning rightful ancestral/family property",
-          "Erosion of trust and deceptive maneuvers by relatives or co-owners",
-          "Paperwork, registry, or mutation hurdles engineered by opposing claimants"
+          `Unwarranted delays in partitioning rightful property in 4th house (${RASHI_EN[getHouseSignIdx(4)]})`,
+          `Trust erosion by relatives or co-owners linked to 3rd house (${RASHI_EN[getHouseSignIdx(3)]})`,
+          `Documentation and mutation hurdles engineered by opposing claimants under 8th house (${RASHI_EN[getHouseSignIdx(8)]})`
         ],
         severity: "critical",
-        reliefTimelineKn: `${dashaTimeKn} ಗೋಚಾರ ಗ್ರಹಗಳ ಬದಲಾವಣೆಯೊಂದಿಗೆ ಮಾತುಕತೆ ಅಥವಾ ಕಾನೂನಿನಲ್ಲಿ ನಿಮ್ಮ ಪರವಾದ ಮಹತ್ವದ ತಿರುವು ಸಿಗಲಿದೆ.`,
-        reliefTimelineEn: `${dashaTimeEn}, transit shifts will trigger a breakthrough in partition negotiations.`,
-        gokarnaRemedyKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಕಾಲಭೈರವ ಶಾಂತಿ, ಭೂಮಿ ಸೂಕ್ತ ಪಾರಾಯಣ ಹಾಗೂ ನವಗ್ರಹ ಕೃತಜ್ಞತಾ ಸಂಕಲ್ಪ ನೆರವೇರಿಸಿ.",
-        gokarnaRemedyEn: "Perform Kalabhairava Shanti and Bhoomi Sukta Archana at Sri Kshetra Gokarna Mahabaleshwara."
+        reliefTimelineKn: `ಪ್ರಸ್ತುತ ${mahaKn}-${bhuktiKn} ಸಂಚಾರ ಮತ್ತು ${shaniGocharaTextKn} ಬದಲಾವಣೆಯೊಂದಿಗೆ ${dashaTimeKn} ಮಾತುಕತೆ ಅಥವಾ ಕಾನೂನು ವ್ಯಾಜ್ಯದಲ್ಲಿ ನಿಮ್ಮ ಪರವಾದ ಮಹತ್ವದ ತಿರುವು ಸಿಗಲಿದೆ.`,
+        reliefTimelineEn: `Under ${mahaEn}-${bhuktiEn} and transit shifts, ${dashaTimeEn}, partition negotiations or legal steps will trigger a favorable turning point.`,
+        gokarnaRemedyKn: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ನಿಮ್ಮ ಜನ್ಮ ನಕ್ಷತ್ರ (${moonNakKn}) ಹಾಗೂ ಭೂಮಿಕಾರಕ ಕುಜ ಮತ್ತು 4ನೇ ಅಧಿಪತಿ ${h4LordKn}ನ ಶಾಂತಿಗಾಗಿ ಕಾಲಭೈರವ ಶಾಂತಿ, ಭೂಮಿ ಸೂಕ್ತ ಪಾರಾಯಣ ಹಾಗೂ ನವಗ್ರಹ ಕೃತಜ್ಞತಾ ಸಂಕಲ್ಪ ನೆರವೇರಿಸಿ.`,
+        gokarnaRemedyEn: `Perform Kalabhairava Shanti and Bhoomi Sukta Archana at Sri Kshetra Gokarna Mahabaleshwara for ${moonNakKn} nakshatra.`
       }
     });
   }
@@ -555,27 +664,27 @@ export function diagnoseCurrentLifeSituation(
         category: "partner_distrust_betrayal",
         titleKn: "ವ್ಯಾಪಾರ ಪಾಲುದಾರರ ವಂಚನೆ, ಲೆಕ್ಕಪತ್ರ ಗೋಲ್‌ಮಾಲ್ & ನಂಬಿಕೆದ್ರೋಹ",
         titleEn: "Business Partner Betrayal, Account Deception & Broken Trust",
-        headlineKn: "ಪಾಲುದಾರಿಕೆಯಲ್ಲಿ ನಂಬಿಕೆದ್ರೋಹ, ಹಣಕಾಸಿನ ವಂಚನೆ & ಸಂಶಯದ ವಾತಾವರಣ",
-        headlineEn: "Commercial Partner Friction, Fiduciary Concealment & Trust Deficit",
-        detailedRealityKn: `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ವೃತ್ತಿಪರ ಜೀವನದಲ್ಲಿ ಅತ್ಯಂತ ಆಘಾತಕಾರಿಯಾಗಿ ಕಾಡುತ್ತಿರುವ ಸತ್ಯವೆಂದರೆ — ನಿಮ್ಮೊಂದಿಗೆ ಕೈಜೋಡಿಸಿ ಕೆಲಸ ಮಾಡುತ್ತಿರುವ ವ್ಯಾಪಾರ ಪಾಲುದಾರರು (Business Partner) ಅಥವಾ ಆಪ್ತ ವ್ಯವಹಾರಸ್ಥರಿಂದ ಎದುರಾಗಿರುವ ಅಪನಂಬಿಕೆ ಮತ್ತು ವಂಚನೆ. ಹಣಕಾಸಿನ ಲೆಕ್ಕಪತ್ರಗಳನ್ನು ಮುಚ್ಚಿಡುವುದು, ನಿಮ್ಮನ್ನು ವಿಶ್ವಾಸಕ್ಕೆ ತೆಗೆದುಕೊಳ್ಳದೆ ಏಕಪಕ್ಷೀಯ ನಿರ್ಧಾರ ಕೈಗೊಳ್ಳುವುದು ಅಥವಾ ನಿಮ್ಮ ಶ್ರಮಕ್ಕೆ ಸಿಗಬೇಕಾದ ಲಾಭದ ಪಾಲನ್ನು ಮುಕ್ಕಾಗಿಸುವ ಕುತಂತ್ರಗಳಿಂದ ನೀವು ತೀವ್ರ ಆಕ್ರೋಶ ಮತ್ತು ಅಸಹಾಯಕತೆ ಅನುಭವಿಸುತ್ತಿದ್ದೀರಿ.`,
-        detailedRealityEn: `Currently, you are facing serious business partnership betrayal or commercial distrust. A business associate or co-venturer is withholding financial records, acting without transparency, or shortchanging your rightful dividends.`,
-        planetaryCulpritKn: "7ನೇ ಪಾಲುದಾರಿಕೆ ಭಾವದಲ್ಲಿ ರಾಹು ಅಥವಾ ಶನಿಯ ಕ್ರೂರ ಪ್ರಭಾವ ಹಾಗೂ ಬುಧನ ಅಶುಭ ಸ್ಥಿತಿ.",
-        planetaryCulpritEn: "Rahu/Saturn occupying the 7th house of partnerships afflicting business transparency.",
+        headlineKn: `${h7SignKn} 7ನೇ ಪಾಲುದಾರಿಕೆ ಸ್ಥಾನ (${h7LordKn} ಪ್ರಭಾವ): ಪಾಲುದಾರಿಕೆಯಲ್ಲಿ ನಂಬಿಕೆದ್ರೋಹ & ಹಣಕಾಸಿನ ವಂಚನೆ`,
+        headlineEn: `7th House (${RASHI_EN[getHouseSignIdx(7)] || "Partnerships"}): Commercial Partner Friction, Fiduciary Concealment & Trust Deficit`,
+        detailedRealityKn: `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ವೃತ್ತಿಪರ ಜೀವನದಲ್ಲಿ ಅತ್ಯಂತ ಆಘಾತಕಾರಿಯಾಗಿ ಕಾಡುತ್ತಿರುವ ಸತ್ಯವೆಂದರೆ — ನಿಮ್ಮೊಂದಿಗೆ ಕೈಜೋಡಿಸಿ ಕೆಲಸ ಮಾಡುತ್ತಿರುವ ವ್ಯಾಪಾರ ಪಾಲುದಾರರು (Business Partner) ಅಥವಾ ಆಪ್ತ ವ್ಯವಹಾರಸ್ಥರಿಂದ ಎದುರಾಗಿರುವ ಅಪನಂಬಿಕೆ ಮತ್ತು ವಂಚನೆ. ${lagnaKn} ಲಗ್ನದ 7ನೇ ವ್ಯವಹಾರ-ಪಾಲುದಾರಿಕೆ ಸ್ಥಾನವು ${h7SignKn} ಆಗಿದ್ದು, ಅಧಿಪತಿ ${h7LordKn} ${h7LordHouse}ನೇ ಮನೆಯಲ್ಲಿದ್ದಾರೆ. ${mercury ? `ವ್ಯವಹಾರ ಕಾರಕ ಬುಧನು ${mercury.house}ನೇ ಮನೆಯಲ್ಲಿದ್ದು, ` : ""}ಹಣಕಾಸಿನ ಲೆಕ್ಕಪತ್ರಗಳನ್ನು ಮುಚ್ಚಿಡುವುದು, ನಿಮ್ಮನ್ನು ವಿಶ್ವಾಸಕ್ಕೆ ತೆಗೆದುಕೊಳ್ಳದೆ ನಿರ್ಧಾರ ಕೈಗೊಳ್ಳುವುದು ಅಥವಾ ನಿಮ್ಮ ಪಾಲಿನ ಲಾಭವನ್ನು ಮುಕ್ಕಾಗಿಸುವ ಕುತಂತ್ರಗಳಿಂದ ನೀವು ತೀವ್ರ ಆಕ್ರೋಶ ಅನುಭವಿಸುತ್ತಿದ್ದೀರಿ. ಪ್ರಸ್ತುತ ${mahaKn} ದಶೆ ಮತ್ತು ${bhuktiKn} ಭುಕ್ತಿಯು ಸತ್ಯವನ್ನು ಮುನ್ನೆಲೆಗೆ ತರುತ್ತಿದೆ.`,
+        detailedRealityEn: `Currently, you are facing serious business partnership betrayal or commercial distrust. With 7th house (${RASHI_EN[getHouseSignIdx(7)]}) ruled by ${PLANET_EN[seventhLord]} and Mercury in house ${mercury?.house ?? 7}, an associate is concealing financial accounts and acting without transparency under ${mahaEn}-${bhuktiEn}.`,
+        planetaryCulpritKn: `7ನೇ ಪಾಲುದಾರಿಕೆ ಸ್ಥಾನ (${h7SignKn}, ಅಧಿಪತಿ ${h7LordKn} ${h7LordHouse}ನೇ ಮನೆಯಲ್ಲಿ) ರಾಹು (${rahu?.house ?? 7}ನೇ ಮನೆ) ಅಥವಾ ಶನಿ (${saturn?.house ?? 7}ನೇ ಮನೆ) ಪ್ರಭಾವ ಹಾಗೂ ಬುಧನ (${mercury?.house ?? 7}ನೇ ಮನೆ) ಸ್ಥಿತಿ.`,
+        planetaryCulpritEn: `Rahu/Saturn occupying or aspecting the 7th house (${RASHI_EN[getHouseSignIdx(7)]}) afflicting business transparency alongside Mercury.`,
         symptomsChecklistKn: [
-          "ವ್ಯಾಪಾರ ಪಾಲುದಾರರಿಂದ ಹಣದ ಲೆಕ್ಕಪತ್ರಗಳಲ್ಲಿ ಅಪಾರದರ್ಶಕತೆ ಮತ್ತು ಮುಚ್ಚಿಡುವ ಪ್ರವೃತ್ತಿ",
-          "ನಿಮ್ಮ ಅನುಮತಿಯಿಲ್ಲದೆ ಪ್ರಮುಖ ವಹಿವಾಟು ನಡೆಸಿ ನಿಮ್ಮನ್ನು ಮೂಲೆಗುಂಪು ಮಾಡುವ ಯತ್ನ",
-          "ಪಾಲುದಾರಿಕೆಯಿಂದ ಹೊರಬರಬೇಕೋ ಅಥವಾ ಕಾನೂನು ಹೋರಾಟ ನಡೆಸಬೇಕೋ ಎಂಬ ಅನಿಶ್ಚಿತತೆ"
+          `7ನೇ ಪಾಲುದಾರಿಕೆ ಸ್ಥಾನ (${h7SignKn}, ಅಧಿಪತಿ ${h7LordKn}) ವ್ಯಾಪಾರದಲ್ಲಿ ಲೆಕ್ಕಪತ್ರಗಳ ಅಪಾರದರ್ಶಕತೆ ಮತ್ತು ಗೋಲ್‌ಮಾಲ್`,
+          `ವ್ಯವಹಾರ ಕಾರಕ ಬುಧ (${mercury?.house ?? 7}ನೇ ಮನೆ) ಪ್ರಭಾವದಿಂದ ಪಾಲುದಾರರಿಂದ ಮುಚ್ಚಿಡುವ ಪ್ರವೃತ್ತಿ ಮತ್ತು ಏಕಪಕ್ಷೀಯ ನಿರ್ಧಾರ`,
+          `ಪ್ರಸ್ತುತ ${mahaKn}-${bhuktiKn} ಕಾಲದಲ್ಲಿ ಪಾಲುದಾರಿಕೆಯಿಂದ ಪ್ರತ್ಯೇಕವಾಗಬೇಕೋ ಅಥವಾ ಕಾನೂನು ರಕ್ಷಣೆ ಪಡೆಯಬೇಕೋ ಎಂಬ ದ್ವಂದ್ವ`
         ],
         symptomsChecklistEn: [
-          "Opaque account keeping and reluctance by partners to disclose full transactions",
-          "Attempts to sideline you from executive decision making despite your initial capital/effort",
-          "Dilemma between amicable exit or taking formal legal steps to safeguard your share"
+          `Opaque bookkeeping and reluctance by partners to disclose records in 7th house (${RASHI_EN[getHouseSignIdx(7)]})`,
+          `Unilateral decisions bypassing your executive consent influenced by Mercury in house ${mercury?.house ?? 7}`,
+          `Dilemma between amicable separation or formal legal action during ${mahaEn}-${bhuktiEn}`
         ],
         severity: "critical",
-        reliefTimelineKn: `${dashaTimeKn} ಸತ್ಯವು ಬಯಲಾಗಲಿದ್ದು, ನಿಮ್ಮ ಹಣ ಹಾಗೂ ಹಕ್ಕಿನ ರಕ್ಷಣೆಗೆ ದೃಢ ಮಾರ್ಗ ಗೋಚರಿಸಲಿದೆ.`,
-        reliefTimelineEn: `${dashaTimeEn}, truth will emerge allowing you to reclaim your assets with legal clarity.`,
-        gokarnaRemedyKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ರಾಹು ಶಾಂತಿ ಹಾಗೂ ಗಣಪತಿ ಸನ್ನಿಧಿಯಲ್ಲಿ ಶತ್ರು ಬಾಧಾ ನಿವಾರಣಾ ಸಂಕಲ್ಪ ಮಾಡಿ.",
-        gokarnaRemedyEn: "Perform Rahu Shanti and Shatru Badha Nivarana Sankalpa at Sri Kshetra Gokarna."
+        reliefTimelineKn: `ಪ್ರಸ್ತುತ ${mahaKn}-${bhuktiKn} ಸಂಚಾರದಡಿ ${dashaTimeKn} ಒಳಗಿನ ಗೋಲ್‌ಮಾಲ್ ಬಯಲಾಗಲಿದ್ದು, ನಿಮ್ಮ ಬಂಡವಾಳ ಹಾಗೂ ಹಕ್ಕಿನ ರಕ್ಷಣೆಗೆ ಕಾನೂನುಬದ್ಧ ಸ್ಪಷ್ಟ ಮಾರ್ಗ ಗೋಚರಿಸಲಿದೆ.`,
+        reliefTimelineEn: `Under ${mahaEn}-${bhuktiEn}, ${dashaTimeEn}, concealed facts will emerge, allowing you to reclaim your assets with legal clarity.`,
+        gokarnaRemedyKn: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ 7ನೇ ಅಧಿಪತಿ ${h7LordKn} ಹಾಗೂ ರಾಹು ಶಾಂತಿ ಜತೆಗೆ ಮಹಾಗಣಪತಿ ಸನ್ನಿಧಿಯಲ್ಲಿ ಶತ್ರು ಬಾಧಾ ನಿವಾರಣಾ ಸಂಕಲ್ಪ ಸೇವೆ ನೆರವೇರಿಸಿ.`,
+        gokarnaRemedyEn: `Perform Rahu Shanti and Shatru Badha Nivarana Sankalpa at Sri Kshetra Gokarna for ${moonNakKn} nakshatra.`
       }
     });
   }
@@ -591,45 +700,45 @@ export function diagnoseCurrentLifeSituation(
         category: "marital_discord",
         titleKn: "ದಾಂಪತ್ಯದಲ್ಲಿ ತೀವ್ರ ಬಿಕ್ಕಟ್ಟು, ಸಂಸಾರದಲ್ಲಿ ಹೊಂದಾಣಿಕೆಯಿಲ್ಲದ ಸಂಘರ್ಷ & ಅಶಾಂತಿ",
         titleEn: "Acute Marital Friction, Estrangement & Samsara Cohabitation Crisis",
-        headlineKn: `ದಾಂಪತ್ಯದಲ್ಲಿ ಸಣ್ಣ ಮಾತಿಗೂ ಭುಗಿಲೇಳುವ ಜಗಳ, ${spouseKn} ಹೊಂದಾಣಿಕೆಯಿಲ್ಲದ ಮನಸ್ತಾಪ & ಸಂಸಾರದಲ್ಲಿ ಅಶಾಂತಿ`,
-        headlineEn: `Volatile Marital Arguments, Emotional Estrangement with ${isFemale ? "Husband" : "Wife"} & Samsara Friction`,
-        detailedRealityKn: `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಸಂಸಾರದಲ್ಲಿ ಅಶಾಂತಿ ಮತ್ತು ${spouseKn} ಹೊಂದಾಣಿಕೆಯಿಲ್ಲದ ಗಂಭೀರ ಮನಸ್ತಾಪಗಳು ಕಾಡುತ್ತಿವೆ. ಸಣ್ಣ ಮಾತೂ ಕೂಡ ದೊಡ್ಡ ಜಗಳವಾಗಿ ಪರಿವರ್ತನೆಗೊಳ್ಳುವುದು, ಸಂಗಾತಿಯ ಕಡೆಯಿಂದ ಕಟುವಾದ ಮಾತುಗಳು, ಪರಸ್ಪರ ಅಂತರ ಹಾಗೂ ಮನೆಯೊಳಗೆ ನೆಮ್ಮದಿಯಿಲ್ಲದ ವಾತಾವರಣ ಉಂಟಾಗಿದೆ. ಹೊರಗೆ ಎಲ್ಲವೂ ಸರಿಯಾಗಿದೆ ಎಂದು ತೋರಿಸಿಕೊಂಡರೂ, ಮನೆಯೊಳಗೆ ನೆಮ್ಮದಿಯೇ ಇಲ್ಲದ ತೀವ್ರ ಸಂಕಟ ನಿಮ್ಮನ್ನು ದಹಿಸುತ್ತಿದೆ. 7ನೇ ಕಳತ್ರಾಧಿಪತಿ 8ನೇ ಮನೆಯಲ್ಲಿರುವುದು ಅಥವಾ ಲಗ್ನ-ಕಳತ್ರಕ್ಕೆ ಶನಿ-ಕುಜರ ಕ್ರೂರ ದೃಷ್ಟಿಯಿರುವುದರಿಂದ, ಸಂಸಾರಿಕ ಸುಖದಲ್ಲಿ ಕೊರತೆ ಮತ್ತು ಮಾನಸಿಕ ಕಿರಿಕಿರಿ ನಿರಂತರವಾಗಿದೆ.`,
-        detailedRealityEn: `Currently, you are enduring acute marital friction and emotional alienation with your ${spouseEn}. Small domestic sparks erupt into bitter arguments, cold silence replaces affection, and lack of mental harmony creates an unbearable atmosphere at home despite outward appearances.`,
+        headlineKn: `${h7SignKn} 7ನೇ ಕಳತ್ರ ಸ್ಥಾನ (${h7LordKn} ಪ್ರಭಾವ): ದಾಂಪತ್ಯದಲ್ಲಿ ${spouseKn} ಹೊಂದಾಣಿಕೆಯಿಲ್ಲದ ಮನಸ್ತಾಪ & ಸಂಸಾರದಲ್ಲಿ ಅಶಾಂತಿ`,
+        headlineEn: `7th House (${RASHI_EN[getHouseSignIdx(7)] || "Spouse"}): Volatile Marital Friction with ${isFemale ? "Husband" : "Wife"} & Samsara Discord`,
+        detailedRealityKn: `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಸಂಸಾರದಲ್ಲಿ ಅಶಾಂತಿ ಮತ್ತು ${spouseKn} ಹೊಂದಾಣಿಕೆಯಿಲ್ಲದ ಗಂಭೀರ ಮನಸ್ತಾಪಗಳು ಕಾಡುತ್ತಿವೆ. ${lagnaKn} ಲಗ್ನದ 7ನೇ ಕಳತ್ರ ಸ್ಥಾನವು ${h7SignKn} ರಾಶಿಯಾಗಿದ್ದು, ಅಧಿಪತಿ ${h7LordKn} ${h7LordHouse}ನೇ ಮನೆಯಲ್ಲಿದ್ದಾರೆ. 8ನೇ ಮಾಂಗಲ್ಯ ಸ್ಥಾನವು ${h8SignKn} ಆಗಿದ್ದು (ಅಧಿಪತಿ ${h8LordKn}), ${mars ? `ಕುಜನು ${mars.house}ನೇ ಮನೆಯಲ್ಲಿದ್ದು, ` : ""}${saturn ? `ಶನಿಯು ${saturn.house}ನೇ ಮನೆಯಲ್ಲಿದ್ದು, ` : ""}ಸಣ್ಣ ಮಾತೂ ದೊಡ್ಡ ಜಗಳವಾಗಿ ಪರಿವರ್ತನೆಗೊಳ್ಳುವುದು, ಸಂಗಾತಿಯ ಕಡೆಯಿಂದ ಕಟುವಾದ ಮಾತುಗಳು, ಪರಸ್ಪರ ಅಂತರ ಹಾಗೂ ಮನೆಯೊಳಗೆ ನೆಮ್ಮದಿಯಿಲ್ಲದ ವಾತಾವರಣ ಉಂಟಾಗಿದೆ. ಪ್ರಸ್ತುತ ${mahaKn} ಮಹಾದಶೆಯಲ್ಲಿ ${bhuktiKn} ಭುಕ್ತಿಯ ಅವಧಿಯಲ್ಲಿ ${shaniGocharaTextKn} ಸಂಸಾರಿಕ ಸುಖದಲ್ಲಿ ಏರುಪೇರು ಉಂಟುಮಾಡಿದೆ.`,
+        detailedRealityEn: `Currently, you are enduring acute marital friction and emotional alienation with your ${spouseEn}. The 7th house (${RASHI_EN[getHouseSignIdx(7)]}) ruled by ${PLANET_EN[seventhLord]} and 8th house (${RASHI_EN[getHouseSignIdx(8)]}) reflect temperamental clashes under ${mahaEn}-${bhuktiEn}.`,
         planetaryCulpritKn: (() => {
           const reasons: string[] = [];
           if (ketu && ketu.house === 7) reasons.push("7ನೇ ಕಳತ್ರ ಸ್ಥಾನದಲ್ಲಿ ಕೇತು (ಶೀತಲ ಅಂತರ & ವೈರಾಗ್ಯ)");
           if (mars && mars.house === 8) reasons.push("8ನೇ ಮನೆಯಲ್ಲಿ ಅಷ್ಟಮ ಕುಜ (ಮಾಂಗಲ್ಯ ಕ್ಲೇಶ & ಕೋಪೋದ್ರೇಕ)");
-          if (seventhLordPlanet && seventhLordPlanet.house === 8) reasons.push("7ನೇ ಕಳತ್ರಾಧಿಪತಿ 8ನೇ ಅಷ್ಟಮ ಸ್ಥಾನದಲ್ಲಿರುವುದು");
-          if (saturn && (saturn.house === 7 || saturn.house === 8)) reasons.push("7ನೇ/8ನೇ ಮನೆಯಲ್ಲಿ ಶನಿಯ ಮಂದಗತಿ ಹಾಗೂ ದಾಂಪತ್ಯ ವಿರಸ");
+          if (seventhLordPlanet && seventhLordPlanet.house === 8) reasons.push(`7ನೇ ಕಳತ್ರಾಧಿಪತಿ ${h7LordKn} 8ನೇ ಅಷ್ಟಮ ಸ್ಥಾನದಲ್ಲಿರುವುದು`);
+          if (saturn && (saturn.house === 7 || saturn.house === 8)) reasons.push(`7ನೇ/8ನೇ ಮನೆಯಲ್ಲಿ ಶನಿಯ (${saturn.house}ನೇ ಮನೆ) ಮಂದಗತಿ ಹಾಗೂ ದಾಂಪತ್ಯ ವಿರಸ`);
           if (hasKujaDosha && !reasons.some(r => r.includes("ಕುಜ"))) reasons.push("ಕುಜ ದೋಷದ ಪ್ರಭಾವ");
-          if (reasons.length === 0) reasons.push("7ನೇ ಕಳತ್ರ ಸ್ಥಾನ/ಕಳತ್ರಾಧಿಪತಿಯ ಮೇಲೆ ಕುಜ-ಶನಿಗಳ ಕ್ರೂರ ದೃಷ್ಟಿ ಅಥವಾ 8ನೇ ಮನೆಯ ಅಶುಭ ಸಂಚಾರ");
-          return reasons.join(", ") + ".";
+          if (reasons.length === 0) reasons.push(`7ನೇ ಕಳತ್ರ ಸ್ಥಾನ (${h7SignKn}, ಅಧಿಪತಿ ${h7LordKn} ${h7LordHouse}ನೇ ಮನೆಯಲ್ಲಿ) ಹಾಗೂ 8ನೇ ಸ್ಥಾನದ (${h8SignKn}) ಅಶುಭ ಸಂಚಾರ`);
+          return reasons.join(", ") + ` ಮತ್ತು ${shaniGocharaTextKn}.`;
         })(),
         planetaryCulpritEn: (() => {
           const reasonsEn: string[] = [];
-          if (ketu && ketu.house === 7) reasonsEn.push("7th house Ketu causing emotional distance and detachment");
-          if (mars && mars.house === 8) reasonsEn.push("8th house Ashtama Kuja fueling temperamental friction and Mangalya affliction");
-          if (seventhLordPlanet && seventhLordPlanet.house === 8) reasonsEn.push("7th lord placed in the 8th house of strife");
+          if (ketu && ketu.house === 7) reasonsEn.push("7th house Ketu causing emotional detachment");
+          if (mars && mars.house === 8) reasonsEn.push("8th house Ashtama Kuja fueling temperamental friction");
+          if (seventhLordPlanet && seventhLordPlanet.house === 8) reasonsEn.push(`7th lord ${PLANET_EN[seventhLord]} placed in 8th house`);
           if (saturn && (saturn.house === 7 || saturn.house === 8)) reasonsEn.push("Saturn in 7th/8th house casting cold delay and friction");
           if (hasKujaDosha && !reasonsEn.some(r => r.includes("Mars"))) reasonsEn.push("Kuja Dosha tension");
-          if (reasonsEn.length === 0) reasonsEn.push("Afflictions to 7th house/lord by Mars-Saturn or 8th house placement");
+          if (reasonsEn.length === 0) reasonsEn.push(`Afflictions to 7th house (${RASHI_EN[getHouseSignIdx(7)]}) and 8th house`);
           return reasonsEn.join(", ") + ".";
         })(),
         symptomsChecklistKn: [
-          `ಪ್ರತಿನಿತ್ಯ ಕ್ಷುಲ್ಲಕ ಕಾರಣಗಳಿಗೂ ಮನೆಯಲ್ಲಿ ${spouseKn} ಕಿರಿಕಿರಿ ಮತ್ತು ವಾಗ್ವಾದ`,
-          "ಸಂಗಾತಿಯ ಕಠಿಣ ವರ್ತನೆ, ಮಾತುಕತೆಯಿಲ್ಲದ ಅಂತರ ಮತ್ತು ಹೊಂದಾಣಿಕೆ ಮಾಡಿಕೊಳ್ಳಲು ನಿರಾಕರಣೆ",
-          "ಕುಟುಂಬದ ಮೂರನೇ ವ್ಯಕ್ತಿಗಳ ಹಸ್ತಕ್ಷೇಪ ಅಥವಾ ಸಂಶಯದಿಂದಾಗಿ ದಾಂಪತ್ಯದ ಸಂಬಂಧ ಇನ್ನಷ್ಟು ಹಳಸುವುದು"
+          `7ನೇ ಕಳತ್ರ ಸ್ಥಾನ (${h7SignKn}, ಅಧಿಪತಿ ${h7LordKn}) ಹಾಗೂ ಪ್ರತಿನಿತ್ಯ ಕ್ಷುಲ್ಲಕ ಕಾರಣಗಳಿಗೂ ಮನೆಯಲ್ಲಿ ${spouseKn} ಕಿರಿಕಿರಿ`,
+          `8ನೇ ಮಾಂಗಲ್ಯ ಸ್ಥಾನ (${h8SignKn}, ಅಧಿಪತಿ ${h8LordKn}) ಪ್ರಭಾವದಿಂದ ಮಾತುಕತೆಯಿಲ್ಲದ ಅಂತರ ಮತ್ತು ಹೊಂದಾಣಿಕೆಯ ಕೊರತೆ`,
+          `ಪ್ರಸ್ತುತ ${mahaKn}-${bhuktiKn} ದಶಾ ಕಾಲದಲ್ಲಿ ಮೂರನೇ ವ್ಯಕ್ತಿಗಳ ಹಸ್ತಕ್ಷೇಪ ಅಥವಾ ಸಂಶಯದಿಂದಾಗಿ ಮನಸ್ತಾಪ ಹೆಚ್ಚಾಗುವುದು`
         ],
         symptomsChecklistEn: [
-          `Daily arguments sparked by insignificant domestic disagreements with ${spouseEn}`,
-          "Ego clashes, emotional distance, and unwillingness to make mutual compromises",
-          "Toxic interference from third parties or suspicion aggravating marital tension"
+          `Daily domestic sparks and disagreements with ${spouseEn} connected to 7th house (${RASHI_EN[getHouseSignIdx(7)]})`,
+          `Ego clashes and emotional distance influenced by 8th house (${RASHI_EN[getHouseSignIdx(8)]})`,
+          `Aggravated tension from third-party interference during running ${mahaEn}-${bhuktiEn}`
         ],
         severity: "critical",
-        reliefTimelineKn: `${dashaTimeKn} ಗ್ರಹಗಳ ಶಾಂತಿಯ ನಂತರ ಸಂಗಾತಿಯ ಮನಸ್ಸು ಕರಗಿ ಮಾತುಕತೆ ಸುಧಾರಿಸಲಿದೆ.`,
-        reliefTimelineEn: `${dashaTimeEn}, remedial propitiation will soften tensions and reopen dialogue.`,
-        gokarnaRemedyKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಉಮಾ-ಮಹೇಶ್ವರ ಶಾಂತಿ ಹಾಗೂ 2 ಮುಖಿ ರುದ್ರಾಕ್ಷಿ ಧಾರಣೆ ಮಾಡಿ.",
-        gokarnaRemedyEn: "Perform Uma-Maheshwara Shanti at Sri Kshetra Gokarna and wear a 2-Mukhi Rudraksha."
+        reliefTimelineKn: `ಪ್ರಸ್ತುತ ${mahaKn}-${bhuktiKn} ಕಾಲಾವಧಿಯಲ್ಲಿ ${dashaTimeKn} ಗ್ರಹ ಶಾಂತಿ ಹಾಗೂ ಸಂವಾದದ ನಂತರ ಸಂಗಾತಿಯ ಮನಸ್ಸು ಕರಗಿ ದಾಂಪತ್ಯದಲ್ಲಿ ನೆಮ್ಮದಿ ಮರಳಲಿದೆ.`,
+        reliefTimelineEn: `Under ${mahaEn}-${bhuktiEn}, ${dashaTimeEn}, remedial propitiation will soften tensions and restore domestic harmony.`,
+        gokarnaRemedyKn: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ 7ನೇ ಅಧಿಪತಿ ${h7LordKn} ಮತ್ತು ಮಾಂಗಲ್ಯ ಕಾರಕರ ಪ್ರೀತ್ಯರ್ಥವಾಗಿ ಉಮಾ-ಮಹೇಶ್ವರ ಶಾಂತಿ ಹಾಗೂ 2 ಮುಖಿ ರುದ್ರಾಕ್ಷಿ ಧಾರಣೆ ಮಾಡಿ.`,
+        gokarnaRemedyEn: `Perform Uma-Maheshwara Shanti at Sri Kshetra Gokarna and wear a 2-Mukhi Rudraksha for ${moonNakKn} nakshatra.`
       }
     });
   }
@@ -643,27 +752,27 @@ export function diagnoseCurrentLifeSituation(
         category: "marriage_delay",
         titleKn: "ವಿವಾಹ ವಿಳಂಬ, ಬಂದ ಸಂಬಂಧಗಳು ಕೈತಪ್ಪುವುದು & ಕಂಕಣ ಭಾಗ್ಯದ ನಿರೀಕ್ಷೆ",
         titleEn: "Marriage Delay, Proposal Breakdowns & Matrimonial Longing",
-        headlineKn: "ವಿವಾಹ ವಿಳಂಬ, ಕೊನೆಕ್ಷಣದಲ್ಲಿ ಸಂಬಂಧಗಳು ಮುರಿದುಬೀಳುವುದು & ಕಂಕಣ ಭಾಗ್ಯದ ಕೊರಗು",
-        headlineEn: "Unexplained Marriage Delays, Broken Alliances & Matrimonial Longing",
-        detailedRealityKn: `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜೀವನದ ಅತ್ಯಂತ ಪ್ರಮುಖ ಚಿಂತೆಯೆಂದರೆ — ವಯಸ್ಸು ಮೀರುತ್ತಿದ್ದರೂ ಕಂಕಣ ಭಾಗ್ಯ ಕೂಡಿಬರದಿರುವುದು. ನೋಡಿದ ಸಂಬಂಧಗಳು ಆರಂಭದಲ್ಲಿ ಮೆಚ್ಚುಗೆಯಾಗಿ ಮಾತುಕತೆ ಮುಂದುವರಿದರೂ, ಅಂತಿಮ ಕ್ಷಣದಲ್ಲಿ ಸಣ್ಣಪುಟ್ಟ ಕಾರಣಗಳಿಗೆ ಮುರಿದುಬೀಳುತ್ತಿವೆ. ಜಾತಕ ಹೊಂದಾಣಿಕೆ ಇಲ್ಲವೆಂದು ತಿರಸ್ಕರಿಸುವುದು ಅಥವಾ ಮಾತುಕತೆ ನಡೆದು ಅರ್ಧಕ್ಕೆ ನಿಲ್ಲುವುದರಿಂದ, ಕುಟುಂಬದ ಹಿರಿಯರಲ್ಲೂ ಮತ್ತು ನಿಮ್ಮ ಮನಸ್ಸಿನಲ್ಲೂ ತೀವ್ರ ಖಿನ್ನತೆ ಮತ್ತು ಅವ್ಯಕ್ತ ನೋವು ಆವರಿಸಿದೆ.`,
-        detailedRealityEn: `Currently, marriage delay is your most deeply felt life struggle. Despite good character and qualifications, promising alliances fall apart at the final stage due to unforeseen matching roadblocks, causing heavy emotional distress.`,
-        planetaryCulpritKn: "7ನೇ ಕಳತ್ರ ಸ್ಥಾನದಲ್ಲಿ ಶನಿ/ರಾಹುಗಳ ವಿಳಂಬ ಯೋಗ ಹಾಗೂ ಕುಜ ದೋಷದ ಪ್ರಭಾವ.",
-        planetaryCulpritEn: "Saturn/Rahu delaying aspects on the 7th house of marriage combined with Kuja Dosha.",
+        headlineKn: `${h7SignKn} 7ನೇ ಕಳತ್ರ ಸ್ಥಾನ (${h7LordKn} ಪ್ರಭಾವ): ವಿವಾಹ ವಿಳಂಬ, ಸಂಬಂಧಗಳು ಮುರಿದುಬೀಳುವುದು & ಕಂಕಣ ಭಾಗ್ಯದ ಕೊರಗು`,
+        headlineEn: `7th House (${RASHI_EN[getHouseSignIdx(7)] || "Marriage"}): Unexplained Marriage Delays, Broken Alliances & Matrimonial Longing`,
+        detailedRealityKn: `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜೀವನದ ಅತ್ಯಂತ ಪ್ರಮುಖ ಕಾಳಜಿಯೆಂದರೆ — ವಯಸ್ಸು ಮೀರುತ್ತಿದ್ದರೂ ಕಂಕಣ ಭಾಗ್ಯ ಕೂಡಿಬರದಿರುವುದು. ${lagnaKn} ಲಗ್ನದ 7ನೇ ವಿವಾಹ ಸ್ಥಾನವು ${h7SignKn} ರಾಶಿಯಾಗಿದ್ದು, ಅಧಿಪತಿ ${h7LordKn} ${h7LordHouse}ನೇ ಮನೆಯಲ್ಲಿದ್ದಾರೆ. ${jupiter ? `ವಿವಾಹಕಾರಕ ಗುರುವು ${jupiter.house}ನೇ ಮನೆಯಲ್ಲಿದ್ದು, ` : ""}${venus ? `ಕಳತ್ರಕಾರಕ ಶುಕ್ರನು ${venus.house}ನೇ ಮನೆಯಲ್ಲಿದ್ದು, ` : ""}ನೋಡಿದ ಸಂಬಂಧಗಳು ಆರಂಭದಲ್ಲಿ ಒಪ್ಪಿಗೆಯಾದರೂ ಅಂತಿಮ ಕ್ಷಣದಲ್ಲಿ ಸಣ್ಣಪುಟ್ಟ ಕಾರಣಗಳಿಗೆ ತಪ್ಪಿಹೋಗುತ್ತಿವೆ. ಪ್ರಸ್ತುತ ${mahaKn} ದಶೆ, ${bhuktiKn} ಭುಕ್ತಿ ಹಾಗೂ ${shaniGocharaTextKn} ಪ್ರಭಾವದಿಂದಾಗಿ ಈ ವಿಳಂಬ ಸಂಭವಿಸುತ್ತಿದೆ. ಆದರೆ ${guruGocharaTextKn} ಕಂಕಣ ಬಲ ತರಲಿದೆ.`,
+        detailedRealityEn: `Currently, marriage delay is your most deeply felt life struggle. Despite your merits, 7th house (${RASHI_EN[getHouseSignIdx(7)]}) ruled by ${PLANET_EN[seventhLord]} alongside transits causes alliances to fall through during running ${mahaEn}-${bhuktiEn}.`,
+        planetaryCulpritKn: `7ನೇ ಕಳತ್ರ ಸ್ಥಾನ (${h7SignKn}, ಅಧಿಪತಿ ${h7LordKn} ${h7LordHouse}ನೇ ಮನೆಯಲ್ಲಿ) ಶನಿ/ರಾಹುಗಳ ವಿಳಂಬ ಯೋಗ, ${hasKujaDosha ? "ಕುಜ ದೋಷದ ಪ್ರಭಾವ" : "ಕಳತ್ರ ಕಾರಕನ ಸಂಚಾರ"} ಹಾಗೂ ${shaniGocharaTextKn}.`,
+        planetaryCulpritEn: `Delays affecting the 7th house (${RASHI_EN[getHouseSignIdx(7)]}) by Saturn/Rahu combined with ${hasKujaDosha ? "Kuja Dosha" : "planetary transits"}.`,
         symptomsChecklistKn: [
-          "ಬಂದ ಒಳ್ಳೆಯ ಮದುವೆ ಸಂಬಂಧಗಳು ಕೊನೆಯ ಹಂತದಲ್ಲಿ ಅನಿರೀಕ್ಷಿತವಾಗಿ ತಪ್ಪಿಹೋಗುವುದು",
-          "ಕುಟುಂಬದಲ್ಲಿ ಮದುವೆಯ ವಿಷಯವಾಗಿ ನಿರಂತರ ಆತಂಕ ಮತ್ತು ಸಮಾಜದ ಪ್ರಶ್ನೆಗಳಿಗೆ ಮುಜುಗರ",
-          "ಮನಸ್ಸಿಗೆ ಒಪ್ಪುವ ಸೂಕ್ತ ಗುಣವಂತ ಬಾಳಸಂಗಾತಿಗಾಗಿ ಸುದೀರ್ಘ ಕಾಯುವಿಕೆ"
+          `7ನೇ ಕಳತ್ರ ಸ್ಥಾನ (${h7SignKn}, ಅಧಿಪತಿ ${h7LordKn}) ಪ್ರಭಾವದಿಂದ ಬಂದ ಒಳ್ಳೆಯ ಸಂಬಂಧಗಳು ಕೊನೆಯ ಹಂತದಲ್ಲಿ ತಪ್ಪಿಹೋಗುವುದು`,
+          `ಗುರು (${jupiter?.house ?? 1}ನೇ ಮನೆ) ಮತ್ತು ಶುಕ್ರ (${venus?.house ?? 1}ನೇ ಮನೆ) ಬಲದ ವಿಳಂಬದಿಂದಾಗಿ ಕಂಕಣ ಭಾಗ್ಯ ಮುಂದೂಡಿಕೆ`,
+          `ಪ್ರಸ್ತುತ ${mahaKn}-${bhuktiKn} ಕಾಲದಲ್ಲಿ ಜಾತಕ ಹೊಂದಾಣಿಕೆಯ ಅಡೆತಡೆ ಹಾಗೂ ಕುಟುಂಬದಲ್ಲಿ ಕಳವಳ`
         ],
         symptomsChecklistEn: [
-          "Promising matrimonial proposals falling through abruptly at the negotiation stage",
-          "Persistent anxiety in the family and uncomfortable social inquiries regarding marriage",
-          "A deep internal wait for an understanding, compatible life partner"
+          `Promising matrimonial proposals falling through abruptly in 7th house (${RASHI_EN[getHouseSignIdx(7)]})`,
+          `Delays in planetary sanction from Jupiter (house ${jupiter?.house ?? 1}) and Venus (house ${venus?.house ?? 1})`,
+          `Persistent family anxiety and horoscope matching roadblocks under ${mahaEn}-${bhuktiEn}`
         ],
         severity: "high",
-        reliefTimelineKn: `${dashaTimeKn} ಕಂಕಣ ಬಲ ಕೂಡಿಬರಲಿದ್ದು, ಯೋಗ್ಯ ಸಂಬಂಧದ ನಿಶ್ಚಿತಾರ್ಥ ನೆರವೇರಲಿದೆ.`,
-        reliefTimelineEn: `${dashaTimeEn}, matrimonial obstacles will dissolve, inaugurating a promising alliance.`,
-        gokarnaRemedyKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಉಮಾ-ಮಹೇಶ್ವರ ಕಲ್ಯಾಣ ಸಂಕಲ್ಪ ಪೂಜೆ ಮತ್ತು ಸ್ವಯಂವರ ಪಾರ್ವತಿ ಹೋಮ ಸಮರ್ಪಿಸಿ.",
-        gokarnaRemedyEn: "Sponsor Uma-Maheshwara Kalyana and Swayamvara Parvati Homa at Sri Kshetra Gokarna."
+        reliefTimelineKn: `ಪ್ರಸ್ತುತ ${mahaKn}-${bhuktiKn} ಸಂಚಾರದಲ್ಲಿ ${dashaTimeKn} ಕಂಕಣ ಬಲ ಕೂಡಿಬರಲಿದ್ದು, ಯೋಗ್ಯ ಗುಣವಂತ ಸಂಬಂಧದ ನಿಶ್ಚಿತಾರ್ಥ ನೆರವೇರಲಿದೆ.`,
+        reliefTimelineEn: `Under ${mahaEn}-${bhuktiEn}, ${dashaTimeEn}, matrimonial obstacles will dissolve, inaugurating a promising alliance.`,
+        gokarnaRemedyKn: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ 7ನೇ ಅಧಿಪತಿ ${h7LordKn} ಹಾಗೂ ಜನ್ಮ ನಕ್ಷತ್ರ (${moonNakKn}) ಸಂಕಲ್ಪದೊಂದಿಗೆ ಉಮಾ-ಮಹೇಶ್ವರ ಕಲ್ಯಾಣ ಪೂಜೆ ಮತ್ತು ಸ್ವಯಂವರ ಪಾರ್ವತಿ ಹೋಮ ಸಮರ್ಪಿಸಿ.`,
+        gokarnaRemedyEn: `Sponsor Uma-Maheshwara Kalyana and Swayamvara Parvati Homa at Sri Kshetra Gokarna for ${moonNakKn} nakshatra.`
       }
     });
   }
@@ -677,27 +786,27 @@ export function diagnoseCurrentLifeSituation(
         category: "childless_anxiety",
         titleKn: "ಸಂತಾನ ಭಾಗ್ಯ ವಿಳಂಬ, ವಂಶೋದ್ಧಾರದ ಕೊರಗು & ದೈವಿಕ ರಕ್ಷೆಯ ನಿರೀಕ್ಷೆ",
         titleEn: "Delayed Childbirth, Progeny Anxiety & Spiritual Longing for an Offspring",
-        headlineKn: "ಸಂತಾನ ಪ್ರಾಪ್ತಿಯಲ್ಲಿ ವಿಳಂಬ, ವೈದ್ಯಕೀಯ ಚಿಕಿತ್ಸೆ ನಡುವೆಯೂ ಫಲ ಸಿಗದಿರುವ ಕೊರಗು",
-        headlineEn: "Delayed Childbirth Anxiety, Emotional Exhaustion & Longing for Progeny",
-        detailedRealityKn: `ಮದುವೆಯಾಗಿ ವರ್ಷಗಳು ಕಳೆದರೂ ಮುದ್ದಾದ ಮಗುವಿನ ಮುಖ ನೋಡುವ ಸೌಭಾಗ್ಯ ವಿಳಂಬವಾಗುತ್ತಿರುವುದು ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಕುಟುಂಬದ ಅತ್ಯಂತ ನೋವಿನ ವಾಸ್ತವವಾಗಿದೆ. ವೈದ್ಯಕೀಯ ಪರೀಕ್ಷೆಗಳು ಸಾಮಾನ್ಯವೆಂದು ತೋರಿಸಿದರೂ ಗರ್ಭಧಾರಣೆಯಾಗದಿರುವುದು, ನಿರಂತರ ಪ್ರಯತ್ನಗಳ ನಡುವೆಯೂ ನಿರಾಶೆಯಾಗುತ್ತಿರುವುದು ನಿಮ್ಮ ದಾಂಪತ್ಯದಲ್ಲಿ ಗಾಢವಾದ ನೋವನ್ನು ಉಂಟುಮಾಡಿದೆ. ಜಾತಕದಲ್ಲಿರುವ ಸರ್ಪ/ರಾಹು ದೋಷ ಹಾಗೂ ಪಿತೃ ಕರ್ಮದ ಅಡಚಣೆಯೇ ಇದಕ್ಕೆ ಮುಖ್ಯ ಕಾರಣ.`,
-        detailedRealityEn: `Currently, delayed conception is your most heartbreaking private struggle. Despite sincere prayers and medical efforts, the delay in blessing your home with a child weighs heavily on your spirit.`,
-        planetaryCulpritKn: "5ನೇ ಸಂತಾನ ಸ್ಥಾನದಲ್ಲಿ ರಾಹು/ಕೇತುಗಳ ನಾಗದೋಷ ಹಾಗೂ ಗುರು ಬಲದ ಕೊರತೆ.",
-        planetaryCulpritEn: "Naga Dosha from Rahu/Ketu afflicting the 5th house of progeny and Putrakaraka Jupiter.",
+        headlineKn: `${h5SignKn} 5ನೇ ಸಂತಾನ ಸ್ಥಾನ (${h5LordKn} ಪ್ರಭಾವ): ಸಂತಾನ ಪ್ರಾಪ್ತಿಯಲ್ಲಿ ವಿಳಂಬ & ಫಲ ಸಿಗದಿರುವ ಕೊರಗು`,
+        headlineEn: `5th House (${RASHI_EN[getHouseSignIdx(5)] || "Progeny"}): Delayed Childbirth Anxiety & Longing for Progeny`,
+        detailedRealityKn: `ಮದುವೆಯಾಗಿ ವರ್ಷಗಳು ಕಳೆದರೂ ಮುದ್ದಾದ ಮಗುವಿನ ಮುಖ ನೋಡುವ ಸೌಭಾಗ್ಯ ವಿಳಂಬವಾಗುತ್ತಿರುವುದು ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಕುಟುಂಬದ ಅತ್ಯಂತ ನೋವಿನ ವಾಸ್ತವವಾಗಿದೆ. ${lagnaKn} ಲಗ್ನದ 5ನೇ ಸಂತಾನ ಭಾವವು ${h5SignKn} ರಾಶಿಯಾಗಿದ್ದು, ಅಧಿಪತಿ ${h5LordKn} ${h5LordHouse}ನೇ ಮನೆಯಲ್ಲಿದ್ದಾರೆ. ${jupiter ? `ಪುತ್ರಕಾರಕ ಗುರುವು ${jupiter.house}ನೇ ಮನೆಯಲ್ಲಿದ್ದು, ` : ""}ವೈದ್ಯಕೀಯ ಪರೀಕ್ಷೆಗಳು ಸಹಜವಾಗಿದ್ದರೂ ಗರ್ಭಧಾರಣೆಯಾಗದಿರುವುದು ದಾಂಪತ್ಯದಲ್ಲಿ ಆಂತರಿಕ ಕೊರಗು ಮೂಡಿಸಿದೆ. ಪ್ರಸ್ತುತ ${mahaKn} ದಶೆಯಲ್ಲಿ ${bhuktiKn} ಭುಕ್ತಿಯ ಅವಧಿಯಲ್ಲಿ ಸರ್ಪ/ನಾಗ ಸಂಸ್ಕಾರ ಹಾಗೂ ದೈವಿಕ ರಕ್ಷೆಯು ಸಂತಾನ ಬಾಗಿಲನ್ನು ತೆರೆಯಲಿದೆ.`,
+        detailedRealityEn: `Currently, delayed conception is your heartbreaking struggle. With 5th house (${RASHI_EN[getHouseSignIdx(5)]}) ruled by ${PLANET_EN[fifthLord]} and Putrakaraka Jupiter in house ${jupiter?.house ?? 5}, medical efforts have yielded delays under ${mahaEn}-${bhuktiEn}.`,
+        planetaryCulpritKn: `5ನೇ ಸಂತಾನ ಸ್ಥಾನ (${h5SignKn}, ಅಧಿಪತಿ ${h5LordKn} ${h5LordHouse}ನೇ ಮನೆಯಲ್ಲಿ) ${rahu?.house === 5 || ketu?.house === 5 ? "ರಾಹು/ಕೇತುಗಳ ನಾಗದೋಷ" : "ಪಾಪಿಗಳ ಪ್ರಭಾವ"}, ಪುತ್ರಕಾರಕ ಗುರು (${jupiter?.house ?? 5}ನೇ ಮನೆ) ಹಾಗೂ ${shaniGocharaTextKn}.`,
+        planetaryCulpritEn: `Naga Dosha or transit tension afflicting the 5th house of progeny (${RASHI_EN[getHouseSignIdx(5)]}) and Jupiter.`,
         symptomsChecklistKn: [
-          "ವೈದ್ಯಕೀಯ ಚಿಕಿತ್ಸೆಗಳು ನಡೆದರೂ ಗರ್ಭಧಾರಣೆಯಲ್ಲಿ ಪುನರಾವರ್ತಿತ ಅಡೆತಡೆಗಳು",
-          "ಮನೆಯಲ್ಲಿ ಮಗುವಿನ ನಗುವಿಗಾಗಿ ಹಂಬಲಿಸುತ್ತಿರುವ ದಂಪತಿಯ ಆಂತರಿಕ ಮಾನಸಿಕ ಸಂಕಟ",
-          "ವಂಶವೃದ್ಧಿಯ ಬಗ್ಗೆ ಹಿರಿಯರ ಕಳವಳ ಹಾಗೂ ಶುಭ ಸಮಾರಂಭಗಳಲ್ಲಿ ಮುಜುಗರ"
+          `5ನೇ ಸಂತಾನ ಸ್ಥಾನ (${h5SignKn}, ಅಧಿಪತಿ ${h5LordKn}) ಹಾಗೂ ವೈದ್ಯಕೀಯ ಪರೀಕ್ಷೆಗಳು ಸಾಮಾನ್ಯವಿದ್ದರೂ ಗರ್ಭಧಾರಣೆಯಲ್ಲಿ ವಿಳಂಬ`,
+          `ಪುತ್ರಕಾರಕ ಗುರು (${jupiter?.house ?? 5}ನೇ ಮನೆ) ಮತ್ತು ರಾಹು/ಕೇತು ಪ್ರಭಾವದಿಂದ ದಂಪತಿಯಲ್ಲಿ ಆಂತರಿಕ ಕೊರಗು`,
+          `ಪ್ರಸ್ತುತ ${mahaKn}-${bhuktiKn} ಕಾಲದಲ್ಲಿ ವಂಶವೃದ್ಧಿಯ ಬಗ್ಗೆ ಹಿರಿಯರ ಕಳವಳ ಹಾಗೂ ಶುಭ ಸಮಾಚಾರದ ಕಾಯುವಿಕೆ`
         ],
         symptomsChecklistEn: [
-          "Medical investigations revealing no decisive defect yet conception eludes attempts",
-          "Deep emotional strain and yearning between the couple for their own child",
-          "Family pressure and social discomfort surrounding childbirth questions"
+          `Repeated conception delays despite normal medical tests under 5th house (${RASHI_EN[getHouseSignIdx(5)]})`,
+          `Deep emotional yearning between the couple linked to Jupiter (house ${jupiter?.house ?? 5})`,
+          `Family anticipation and yearning for progeny during running ${mahaEn}-${bhuktiEn}`
         ],
         severity: "high",
-        reliefTimelineKn: `${dashaTimeKn} ನಾಗದೋಷ ನಿವಾರಣೆಯಾದ ನಂತರ ಗರ್ಭಧಾರಣೆಯ ಶುಭ ಸುದ್ದಿ ಲಭಿಸಲಿದೆ.`,
-        reliefTimelineEn: `${dashaTimeEn}, after Naga Shanti, auspicious tidings of conception will arrive.`,
-        gokarnaRemedyKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ನಾಗ ಪ್ರತಿಷ್ಠಾಪನೆ, ಸಂತಾನ ಗೋಪಾಲ ಹೋಮ ಹಾಗೂ ಆಶ್ಲೇಷ ಬಲಿ ಸೇವೆ ನೆರವೇರಿಸಿ.",
-        gokarnaRemedyEn: "Perform Naga Pratishthapane and Santana Gopala Homa at holy Gokarna Kotiteertha."
+        reliefTimelineKn: `ಪ್ರಸ್ತುತ ${mahaKn}-${bhuktiKn} ಸಂಚಾರದಡಿ ನಾಗಶಾಂತಿ ಹಾಗೂ ಗುರು ಕೃಪೆಯಿಂದ ${dashaTimeKn} ಗರ್ಭಧಾರಣೆಯ ಶುಭ ಸುದ್ದಿ ಲಭಿಸಲಿದೆ.`,
+        reliefTimelineEn: `Under ${mahaEn}-${bhuktiEn}, after Naga Shanti, ${dashaTimeEn}, auspicious tidings of conception will arrive.`,
+        gokarnaRemedyKn: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ 5ನೇ ಅಧಿಪತಿ ${h5LordKn} ಹಾಗೂ ಸರ್ಪ ದೋಷ ನಿವಾರಣೆಗಾಗಿ ನಾಗ ಪ್ರತಿಷ್ಠಾಪನೆ, ಸಂತಾನ ಗೋಪಾಲ ಹೋಮ ಹಾಗೂ ಆಶ್ಲೇಷ ಬಲಿ ಸೇವೆ ನೆರವೇರಿಸಿ.`,
+        gokarnaRemedyEn: `Perform Naga Pratishthapane and Santana Gopala Homa at holy Gokarna Kotiteertha for ${moonNakKn} nakshatra.`
       }
     });
   }
@@ -711,27 +820,27 @@ export function diagnoseCurrentLifeSituation(
         category: "debt_financial_crisis",
         titleKn: "ಸಾಲದ ಹೊರೆ, ಷೇರು ಮಾರುಕಟ್ಟೆ ನಷ್ಟ & ಆದಾಯ-ವೆಚ್ಚದ ತೀವ್ರ ಬಿಕ್ಕಟ್ಟು",
         titleEn: "Crushing Debt Pressure, Trading Capital Losses & Cash Flow Crisis",
-        headlineKn: "ಆದಾಯಕ್ಕಿಂತ ಖರ್ಚು ಹೆಚ್ಚು, ಷೇರು/ವ್ಯಾಪಾರ ನಷ್ಟ ಹಾಗೂ ತೀರಿಸಲಾಗದ ಸಾಲದ ಸುಳಿ",
-        headlineEn: "Severe Debt Liabilities, Trading Capital Erosion & Liquid Cash Freeze",
-        detailedRealityKn: `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಹಣಕಾಸಿನ ಮುಗ್ಗಟ್ಟು ಉಸಿರುಗಟ್ಟಿಸುತ್ತಿದೆ. ಷೇರು ಮಾರುಕಟ್ಟೆ (Trading/Speculation), ಅತಿಯಾದ ನಂಬಿಕೆಯಿಂದ ಮಾಡಿದ ಹೂಡಿಕೆ ಅಥವಾ ವ್ಯವಹಾರದಲ್ಲಿ ಕೈಸುಟ್ಟುಕೊಂಡು ಭಾರಿ ಬಂಡವಾಳ ನಷ್ಟ ಅನುಭವಿಸಿದ್ದೀರಿ. ತಿಂಗಳ ಇಎಂಐಗಳು, ಸಾಲದ ಬಡ್ಡಿ ಹಾಗೂ ಬಾಕಿ ಪಾವತಿಸಲು ಕೈಯಲ್ಲಿ ಹಣವಿಲ್ಲದೆ ಸಾಲ ತೀರಿಸಲು ಮತ್ತೊಂದು ಸಾಲ ಮಾಡುವ ಸುಳಿಗೆ ಸಿಲುಕಿದ್ದೀರಿ. ಗೌರವ ಉಳಿಸಿಕೊಳ್ಳಲು ಹಣ ಹೊಂದಿಸುವುದು ದಿನನಿತ್ಯದ ಅತಿ ದೊಡ್ಡ ಸವಾಲಾಗಿದೆ.`,
-        detailedRealityEn: `Currently, financial obligations and speculative or business losses are suffocating your peace of mind. Mounting EMIs, unexpected cash drain, and debt recycling have created acute monetary stress.`,
-        planetaryCulpritKn: "5ನೇ ಮನೆಯಲ್ಲಿ ರಾಹು (ಸ್ಪೆಕ್ಯುಲೇಶನ್ ನಷ್ಟ) ಹಾಗೂ 2ನೇ ಧನ ಸ್ಥಾನದ ಮೇಲೆ ಶನಿಯ ಅಷ್ಟಮ ಪ್ರಭಾವ.",
-        planetaryCulpritEn: "Rahu in 5th driving speculative losses combined with 2nd lord dusthana affliction.",
+        headlineKn: `${h2SignKn} 2ನೇ ಧನ ಸ್ಥಾನ & 6ನೇ ಋಣ ಸ್ಥಾನ (${h6LordKn} ಪ್ರಭಾವ): ಆದಾಯಕ್ಕಿಂತ ಖರ್ಚು ಹೆಚ್ಚು & ಸಾಲದ ಸುಳಿ`,
+        headlineEn: `2nd House (${RASHI_EN[getHouseSignIdx(2)] || "Wealth"}) & 6th House (${RASHI_EN[getHouseSignIdx(6)] || "Debts"}): Severe Debt Liabilities & Liquid Cash Freeze`,
+        detailedRealityKn: `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಹಣಕಾಸಿನ ಮುಗ್ಗಟ್ಟು ಉಸಿರುಗಟ್ಟಿಸುತ್ತಿದೆ. ${lagnaKn} ಲಗ್ನದ 2ನೇ ಧನ ಸ್ಥಾನವು ${h2SignKn} (ಅಧಿಪತಿ ${h2LordKn}), 6ನೇ ಋಣ ಸ್ಥಾನವು ${h6SignKn} (ಅಧಿಪತಿ ${h6LordKn}) ಹಾಗೂ 11ನೇ ಲಾಭ ಸ್ಥಾನವು ${h11SignKn} ಆಗಿದೆ. ${rahu?.house === 5 ? "5ನೇ ಮನೆಯಲ್ಲಿ ರಾಹು ಇರುವುದರಿಂದ ಷೇರು ಮಾರುಕಟ್ಟೆ ಅಥವಾ ತ್ವರಿತ ಲಾಭದ ಹೂಡಿಕೆಯಲ್ಲಿ ನಷ್ಟ ಅನುಭವಿಸಿದ್ದೀರಿ. " : ""}ತಿಂಗಳ ಇಎಂಐಗಳು, ಸಾಲದ ಬಡ್ಡಿ ಹಾಗೂ ಅನಿರೀಕ್ಷಿತ ವೆಚ್ಚಗಳಿಂದಾಗಿ ಸಾಲ ತೀರಿಸಲು ಮತ್ತೊಂದು ಸಾಲ ಮಾಡುವ ಸುಳಿಗೆ ಸಿಲುಕುವಂತಾಗಿದೆ. ಪ್ರಸ್ತುತ ${mahaKn} ದಶೆ, ${bhuktiKn} ಭುಕ್ತಿ ಹಾಗೂ ${shaniGocharaTextKn} ಆರ್ಥಿಕ ಹರಿವನ್ನು ಸಂಕುಚಿತಗೊಳಿಸಿದೆ.`,
+        detailedRealityEn: `Currently, financial obligations and speculative or business losses are suffocating your peace of mind. With 2nd house (${RASHI_EN[getHouseSignIdx(2)]}) ruled by ${PLANET_EN[secondLord]} and 6th house (${RASHI_EN[getHouseSignIdx(6)]}) ruled by ${PLANET_EN[sixthLord]}, mounting EMIs create acute monetary stress under ${mahaEn}-${bhuktiEn}.`,
+        planetaryCulpritKn: `2ನೇ ಧನ ಸ್ಥಾನ (${h2SignKn}, ಅಧಿಪತಿ ${h2LordKn} ${getHouseLordHouse(2)}ನೇ ಮನೆಯಲ್ಲಿ), 6ನೇ ಋಣ ಸ್ಥಾನ (${h6SignKn}, ಅಧಿಪತಿ ${h6LordKn}) ಹಾಗೂ ${shaniGocharaTextKn}.`,
+        planetaryCulpritEn: `2nd house (${RASHI_EN[getHouseSignIdx(2)]}) lord in dusthana combined with 6th house (${RASHI_EN[getHouseSignIdx(6)]}) debt pressure.`,
         symptomsChecklistKn: [
-          "ಷೇರು ಮಾರುಕಟ್ಟೆ ಅಥವಾ ಅಪಾಯಕಾರಿ ಹೂಡಿಕೆಗಳಲ್ಲಿ ದೊಡ್ಡ ಮೊತ್ತದ ಹಣ ಕಳೆದುಕೊಂಡಿರುವುದು",
-          "ಬ್ಯಾಂಕ್ ಇಎಂಐ ಮತ್ತು ಸಾಲಿಗರ ಕರೆಗಳಿಗೆ ಉತ್ತರ ನೀಡಲು ದಿನನಿತ್ಯ ಮಾನಸಿಕ ಒತ್ತಡ",
-          "ಬಂದ ಹಣ ಕೈಯಲ್ಲಿ ನಿಲ್ಲದೆ ನಿಮಿಷಗಳಲ್ಲಿ ಖರ್ಚಾಗಿ ಹೋಗುವ ಧನ ಸೋರಿಕೆಯ ಸ್ಥಿತಿ"
+          `5ನೇ ಸ್ಥಾನದಲ್ಲಿ ರಾಹು (${rahu?.house ?? 5}ನೇ ಮನೆ) ಅಥವಾ ಷೇರು/ವ್ಯವಹಾರ ಹೂಡಿಕೆಯಲ್ಲಿ ಬಂಡವಾಳ ನಷ್ಟ`,
+          `6ನೇ ಋಣ ಸ್ಥಾನ (${h6SignKn}, ಅಧಿಪತಿ ${h6LordKn}) ಹಾಗೂ 2ನೇ ಧನ ಸ್ಥಾನ (${h2SignKn}) ಪ್ರಭಾವದಿಂದ ಸಾಲದ ಇಎಂಐ ತೀರಿಸಲು ಮತ್ತೊಂದು ಸಾಲ ಮಾಡುವ ಒತ್ತಡ`,
+          `ಪ್ರಸ್ತುತ ${mahaKn}-${bhuktiKn} ಕಾಲದಲ್ಲಿ ಬಂದ ಹಣ ಕೈಯಲ್ಲಿ ಉಳಿಯದೆ 12ನೇ ವ್ಯಯ ಸ್ಥಾನ (${h12SignKn}) ಮೂಲಕ ಸೋರಿಕೆಯಾಗುವುದು`
         ],
         symptomsChecklistEn: [
-          "Heavy capital losses incurred in stock options, crypto, or unvetted speculation",
-          "Anxiety over bank installment deadlines and mounting debt obligations",
-          "Rapid financial leakage where incoming income vanishes instantly into dues"
+          `Capital erosion in speculative trading or aggressive commitments (5th house ${RASHI_EN[getHouseSignIdx(5)]})`,
+          `Debt recycling pressure to honor bank installments linked to 6th house (${RASHI_EN[getHouseSignIdx(6)]})`,
+          `Income instantly drained by obligations under 12th house (${RASHI_EN[getHouseSignIdx(12)]}) during ${mahaEn}-${bhuktiEn}`
         ],
         severity: "critical",
-        reliefTimelineKn: `${dashaTimeKn} ಸಾಲದ ಮರುಹೊಂದಾಣಿಕೆ ಹಾಗೂ ಹೊಸ ಆದಾಯದ ಮೂಲ ತೆರೆದುಕೊಂಡು ಬಿಕ್ಕಟ್ಟು ತಗ್ಗಲಿದೆ.`,
-        reliefTimelineEn: `${dashaTimeEn}, debt restructuring and alternate revenue streams will bring vital respite.`,
-        gokarnaRemedyKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಮಹಾಗಣಪತಿ ಹೋಮ ಹಾಗೂ ಋಣವಿಮೋಚಕ ಕುಬೇರ ಸಂಕಲ್ಪ ಸೇವೆ ನೆರವೇರಿಸಿ.",
-        gokarnaRemedyEn: "Perform Mahaganapati Homa and Runa Vimochana Kubera Sankalpa at Sri Kshetra Gokarna."
+        reliefTimelineKn: `ಪ್ರಸ್ತುತ ${mahaKn}-${bhuktiKn} ಅವಧಿಯಲ್ಲಿ ${dashaTimeKn} ಸಾಲದ ಮರುಹೊಂದಾಣಿಕೆ ಹಾಗೂ ${h11LordKn} ಬಲದಿಂದ ಹೊಸ ಆದಾಯ ಮೂಲ ತೆರೆದುಕೊಂಡು ಬಿಕ್ಕಟ್ಟು ತಗ್ಗಲಿದೆ.`,
+        reliefTimelineEn: `Under ${mahaEn}-${bhuktiEn}, ${dashaTimeEn}, debt restructuring and alternate revenue streams will bring vital respite.`,
+        gokarnaRemedyKn: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ 2ನೇ ಅಧಿಪತಿ ${h2LordKn} ಹಾಗೂ ಋಣವಿಮೋಚನೆಗಾಗಿ ಮಹಾಗಣಪತಿ ಹೋಮ ಮತ್ತು ಕುಬೇರ ಧನಕರ್ಷಣ ಸಂಕಲ್ಪ ಸೇವೆ ನೆರವೇರಿಸಿ.`,
+        gokarnaRemedyEn: `Perform Mahaganapati Homa and Runa Vimochana Kubera Sankalpa at Sri Kshetra Gokarna for ${moonNakKn} nakshatra.`
       }
     });
   }
@@ -745,27 +854,27 @@ export function diagnoseCurrentLifeSituation(
         category: "career_politics_layoff",
         titleKn: "ಉದ್ಯೋಗದಲ್ಲಿ ಆಂತರಿಕ ರಾಜಕೀಯ, ಮನ್ನಣೆಯ ಕೊರತೆ & ಅನಿಶ್ಚಿತತೆ",
         titleEn: "Workplace Politics, Professional Stagnation & Stalled Growth",
-        headlineKn: "ಪರಿಶ್ರಮಕ್ಕೆ ಸಿಗದ ಮನ್ನಣೆ, ಕಚೇರಿ ರಾಜಕೀಯ, ಬಡ್ತಿ ವಿಳಂಬ & ಉದ್ಯೋಗ ಅಸ್ಥಿರತೆ",
-        headlineEn: "Unrecognized Sincere Effort, Corporate Politics & Promotion Delays",
-        detailedRealityKn: `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಉದ್ಯೋಗ ಕ್ಷೇತ್ರದಲ್ಲಿ ವಾತಾವರಣವು ಅತ್ಯಂತ ಕಿರಿಕಿರಿಯಿಂದ ಕೂಡಿದೆ. ನೀವು ಪ್ರಾಮಾಣಿಕವಾಗಿ ಕಷ್ಟಪಟ್ಟು ಕೆಲಸ ಮಾಡುತ್ತಿದ್ದರೂ, ನಿಮ್ಮ ಪರಿಶ್ರಮಕ್ಕೆ ಹಿರಿಯ ಅಧಿಕಾರಿಗಳಿಂದ ನಿರೀಕ್ಷಿತ ಮನ್ನಣೆ ಸಿಗುತ್ತಿಲ್ಲ; ಬದಲಾಗಿ ಇತರರು ನಿಮ್ಮ ಕೆಲಸದ ಕ್ರೆಡಿಟ್ ತೆಗೆದುಕೊಳ್ಳುತ್ತಿದ್ದಾರೆ. ಕಚೇರಿ ರಾಜಕೀಯ, ಬಡ್ತಿ ವಿಳಂಬ, ಅನಗತ್ಯ ಕೆಲಸದ ಒತ್ತಡ ಅಥವಾ ಸಂಸ್ಥೆಯ ಅನಿಶ್ಚಿತತೆಯಿಂದಾಗಿ ಉದ್ಯೋಗ ಬದಲಾಯಿಸಬೇಕೆಂಬ ಆಲೋಚನೆ ನಿಮ್ಮನ್ನು ಕಾಡುತ್ತಿದೆ.`,
-        detailedRealityEn: `Currently, your workplace environment is rife with unfair politics and lack of recognition. Despite your sincere dedication, credit is misappropriated by others, promotions stall, and career uncertainty causes anxiety.`,
-        planetaryCulpritKn: "10ನೇ ಕರ್ಮ ಸ್ಥಾನದಲ್ಲಿ ಶನಿ-ರಾಹುಗಳ ನೆರಳು ಹಾಗೂ ರವಿ ಗ್ರಹದ ಮೇಲಿನ ಪಾಪ ದೃಷ್ಟಿ.",
-        planetaryCulpritEn: "Saturn-Rahu tension afflicting the 10th house of career and Sun's professional status.",
+        headlineKn: `${h10SignKn} 10ನೇ ಕರ್ಮ ಸ್ಥಾನ (${h10LordKn} ಪ್ರಭಾವ): ಪರಿಶ್ರಮಕ್ಕೆ ಸಿಗದ ಮನ್ನಣೆ, ಕಚೇರಿ ರಾಜಕೀಯ & ಬಡ್ತಿ ವಿಳಂಬ`,
+        headlineEn: `10th House (${RASHI_EN[getHouseSignIdx(10)] || "Career"}): Unrecognized Effort, Corporate Politics & Promotion Delays`,
+        detailedRealityKn: `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಉದ್ಯೋಗ ಕ್ಷೇತ್ರದಲ್ಲಿ ವಾತಾವರಣವು ಕಿರಿಕಿರಿಯಿಂದ ಕೂಡಿದೆ. ${lagnaKn} ಲಗ್ನದ 10ನೇ ಕರ್ಮ ಸ್ಥಾನವು ${h10SignKn} ರಾಶಿಯಾಗಿದ್ದು, ಅಧಿಪತಿ ${h10LordKn} ${h10LordHouse}ನೇ ಮನೆಯಲ್ಲಿದ್ದಾರೆ. ${sun ? `ರಾಜಕಾರಕ ರವಿಯು ${sun.house}ನೇ ಮನೆಯಲ್ಲಿದ್ದು, ` : ""}ನೀವು ಪ್ರಾಮಾಣಿಕವಾಗಿ ಕಷ್ಟಪಟ್ಟು ದುಡಿಯುತ್ತಿದ್ದರೂ, ಕೆಲಸದ ಕ್ರೆಡಿಟ್ ಇತರರ ಪಾಲಾಗುತ್ತಿದೆ. 6ನೇ ಶತ್ರು ಸ್ಥಾನಾಧಿಪತಿ ${h6LordKn} ಹಾಗೂ ${shaniGocharaTextKn} ಪ್ರಭಾವದಿಂದ ಕಚೇರಿ ರಾಜಕೀಯ, ಬಡ್ತಿ ವಿಳಂಬ ಮತ್ತು ಅಸ್ಥಿರತೆ ಕಾಡುತ್ತಿದೆ. ಪ್ರಸ್ತುತ ${mahaKn} ದಶೆಯಲ್ಲಿ ${bhuktiKn} ಭುಕ್ತಿಯು ಹೊಸ ತಿರುವನ್ನು ಕರುಣಿಸಲಿದೆ.`,
+        detailedRealityEn: `Currently, your workplace environment is rife with unfair politics and lack of recognition. With 10th house (${RASHI_EN[getHouseSignIdx(10)]}) ruled by ${PLANET_EN[tenthLord]} and Sun in house ${sun?.house ?? 10}, peers misappropriate credit under ${mahaEn}-${bhuktiEn}.`,
+        planetaryCulpritKn: `10ನೇ ಕರ್ಮ ಸ್ಥಾನ (${h10SignKn}, ಅಧಿಪತಿ ${h10LordKn} ${h10LordHouse}ನೇ ಮನೆಯಲ್ಲಿ) ${saturn?.house === 10 || rahu?.house === 10 ? "ಶನಿ-ರಾಹುಗಳ ನೆರಳು" : "ಪಾಪಿಗಳ ವೀಕ್ಷಣೆ"}, ರವಿ (${sun?.house ?? 10}ನೇ ಮನೆ) ಹಾಗೂ ${shaniGocharaTextKn}.`,
+        planetaryCulpritEn: `Saturn-Rahu tension afflicting the 10th house of career (${RASHI_EN[getHouseSignIdx(10)]}) and Sun in house ${sun?.house ?? 10}.`,
         symptomsChecklistKn: [
-          "ರಾತ್ರಿ-ಹಗಲು ದುಡಿದರೂ ಮ್ಯಾನೇಜ್‌ಮೆಂಟ್ ಅಥವಾ ಮೇಲಧಿಕಾರಿಗಳಿಂದ ನಿರೀಕ್ಷಿತ ಪ್ರಶಂಸೆ ಸಿಗದಿರುವುದು",
-          "ಸಹೋದ್ಯೋಗಿಗಳ ಗುಂಪುಗಾರಿಕೆ ಹಾಗೂ ಕಚೇರಿ ರಾಜಕೀಯಕ್ಕೆ ಬಲಿಯಾಗುತ್ತಿರುವ ಭಾವನೆ",
-          "ಪ್ರಸ್ತುತ ಕೆಲಸ ಬಿಟ್ಟು ಹೊಸ ಉತ್ತಮ ಉದ್ಯೋಗಕ್ಕೆ ಬದಲಾಗುವ ತೀವ್ರ ತುಡಿತ"
+          `10ನೇ ಕರ್ಮ ಸ್ಥಾನ (${h10SignKn}, ಅಧಿಪತಿ ${h10LordKn}) ಪ್ರಾಮಾಣಿಕ ಪರಿಶ್ರಮಕ್ಕೆ ಹಿರಿಯ ಅಧಿಕಾರಿಗಳಿಂದ ಮನ್ನಣೆ ಸಿಗದಿರುವುದು`,
+          `6ನೇ ಶತ್ರು ಸ್ಥಾನ (${h6SignKn}, ಅಧಿಪತಿ ${h6LordKn}) ಪ್ರಭಾವದಿಂದ ಕಚೇರಿ ರಾಜಕೀಯ ಅಥವಾ ಸಹೋದ್ಯೋಗಿಗಳ ಅಪಪ್ರಚಾರ`,
+          `ಪ್ರಸ್ತುತ ${mahaKn}-${bhuktiKn} ದಶೆಯಲ್ಲಿ ಬಡ್ತಿ ವಿಳಂಬ ಹಾಗೂ ಉತ್ತಮ ಸಂಸ್ಥೆಗೆ ಉದ್ಯೋಗ ಬದಲಾವಣೆಯ ತುಡಿತ`
         ],
         symptomsChecklistEn: [
-          "Unrecognized hard work while peers take undue credit for team outcomes",
-          "Feeling targeted by workplace cliques or unsupportive managerial oversight",
-          "Strong urge to transition into a new job offer with better dignity and pay"
+          `Unrecognized hard work while peers take credit in 10th house (${RASHI_EN[getHouseSignIdx(10)]})`,
+          `Feeling targeted by workplace cliques linked to 6th house (${RASHI_EN[getHouseSignIdx(6)]})`,
+          `Strong urge to transition to a higher-dignity role during ${mahaEn}-${bhuktiEn}`
         ],
         severity: "high",
-        reliefTimelineKn: `${dashaTimeKn} ಉದ್ಯೋಗದಲ್ಲಿ ನೂತನ ಆಫರ್ ಅಥವಾ ನಿರೀಕ್ಷಿತ ಸ್ಥಾನಪಲ್ಲಟದಿಂದ ನೆಮ್ಮದಿ ಸಿಗಲಿದೆ.`,
-        reliefTimelineEn: `${dashaTimeEn}, an improved job offer or favorable department shift will restore peace.`,
-        gokarnaRemedyKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಕರ್ಮ ಸಿದ್ಧಿ ಸಂಕಲ್ಪ ಪೂಜೆ ಸಲ್ಲಿಸಿ, ಆದಿತ್ಯ ಹೃದಯ ಸ್ತೋತ್ರ ಪಠಿಸಿ.",
-        gokarnaRemedyEn: "Sponsor Karma Siddhi Sankalpa Pooja at Sri Kshetra Gokarna and chant Aditya Hridaya."
+        reliefTimelineKn: `ಪ್ರಸ್ತುತ ${mahaKn}-${bhuktiKn} ಸಂಚಾರದಡಿ ${dashaTimeKn} ಉದ್ಯೋಗದಲ್ಲಿ ನೂತನ ಆಫರ್, ಸ್ಥಾನಪಲ್ಲಟ ಅಥವಾ ನಿರೀಕ್ಷಿತ ಬಡ್ತಿಯಿಂದ ನೆಮ್ಮದಿ ಸಿಗಲಿದೆ.`,
+        reliefTimelineEn: `Under ${mahaEn}-${bhuktiEn}, ${dashaTimeEn}, an improved job offer or favorable department shift will restore peace.`,
+        gokarnaRemedyKn: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ 10ನೇ ಅಧಿಪತಿ ${h10LordKn} ಹಾಗೂ ಸೂರ್ಯನ ಅನುಗ್ರಹಕ್ಕಾಗಿ ಕರ್ಮ ಸಿದ್ಧಿ ಸಂಕಲ್ಪ ಪೂಜೆ ಸಲ್ಲಿಸಿ, ನಿತ್ಯ ಆದಿತ್ಯ ಹೃದಯ ಪಠಿಸಿ.`,
+        gokarnaRemedyEn: `Sponsor Karma Siddhi Sankalpa Pooja at Sri Kshetra Gokarna and chant Aditya Hridaya for ${moonNakKn} nakshatra.`
       }
     });
   }
@@ -779,27 +888,27 @@ export function diagnoseCurrentLifeSituation(
         category: "health_vitality_strain",
         titleKn: "ದೈಹಿಕ ಬಳಲಿಕೆ, ನರಗಳ ಅಶಾಂತಿ, ನಿದ್ರಾಹೀನತೆ & ಆರೋಗ್ಯ ಕ್ಲೇಶ",
         titleEn: "Physical Exhaustion, Nervous Tension, Insomnia & Vitality Strain",
-        headlineKn: "ದೀರ್ಘಕಾಲಿಕ ದೈಹಿಕ ಬಳಲಿಕೆ, ರೋಗನಿರೋಧಕ ಶಕ್ತಿಯ ಕುಸಿತ & ನಿದ್ರಾಹೀನತೆ",
-        headlineEn: "Chronic Fatigue, Sleep Disruption & Low Vitality",
-        detailedRealityKn: `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ದೇಹದಲ್ಲಿ ಚೈತನ್ಯದ ಕೊರತೆ ಎದ್ದು ಕಾಣುತ್ತಿದೆ. ರಾತ್ರಿ ಸರಿಯಾಗಿ ನಿದ್ರೆ ಬಾರದಿರುವುದು, ಸಣ್ಣ ಕೆಲಸಕ್ಕೂ ಅತಿಯಾದ ಸುಸ್ತು, ನರಗಳ ದೌರ್ಬಲ್ಯ ಅಥವಾ ಅನಿರೀಕ್ಷಿತ ಆರೋಗ್ಯ ಸಮಸ್ಯೆಗಳು ನಿಮ್ಮನ್ನು ಕಾಡುತ್ತಿವೆ. ವೈದ್ಯಕೀಯ ಔಷಧಿ ತೆಗೆದುಕೊಂಡರೂ ಸಂಪೂರ್ಣ ಚೇತರಿಕೆ ಕಾಣದೆ, ದಿನನಿತ್ಯದ ಕೆಲಸಗಳಲ್ಲಿ ಆಲಸ್ಯ ಮತ್ತು ನಿರುತ್ಸಾಹ ಆವರಿಸಿದೆ. ಜಾತಕದ ಲಗ್ನಾಧಿಪತಿಯ ಬಲಹೀನತೆಯೇ ಈ ಶಕ್ತಿಹೀನತೆಗೆ ಮೂಲ ಕಾರಣ.`,
-        detailedRealityEn: `Currently, physical vitality and restorative sleep are compromised. Low stamina, nervous tension, and nagging ailments drain your productivity, requiring vital spiritual and Ayurvedic rejuvenation.`,
-        planetaryCulpritKn: "ಲಗ್ನಾಧಿಪತಿ ದುಃಸ್ಥಾನದಲ್ಲಿರುವುದು ಹಾಗೂ ಚಂದ್ರನ ಮೇಲೆ ಶನಿಯ ದೃಷ್ಟಿ.",
-        planetaryCulpritEn: "Lagna lord placed in a Dusthana house combined with Saturn's aspect on the Moon.",
+        headlineKn: `${h1SignKn} ತನು ಸ್ಥಾನ & 6ನೇ ರೋಗ ಸ್ಥಾನ (${h6LordKn} ಪ್ರಭಾವ): ದೈಹಿಕ ಬಳಲಿಕೆ & ನಿದ್ರಾಹೀನತೆ`,
+        headlineEn: `1st House (${RASHI_EN[lagnaIndex] || "Lagna"}) & 6th House (${RASHI_EN[getHouseSignIdx(6)] || "Roga"}): Chronic Fatigue & Sleep Disruption`,
+        detailedRealityKn: `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ದೇಹದಲ್ಲಿ ಚೈತನ್ಯದ ಕೊರತೆ ಎದ್ದು ಕಾಣುತ್ತಿದೆ. ${lagnaKn} ಲಗ್ನದ ತನು ಭಾವಾಧಿಪತಿ ${lagnaLordKn} ${lagnaLordHouse}ನೇ ಮನೆಯಲ್ಲಿದ್ದು, 6ನೇ ರೋಗ ಸ್ಥಾನವು ${h6SignKn} (ಅಧಿಪತಿ ${h6LordKn}) ಆಗಿದೆ. ${moon ? `ಮನಃಕಾರಕ ಚಂದ್ರನು ${moon.house}ನೇ ಮನೆಯಲ್ಲಿದ್ದು, ` : ""}ರಾತ್ರಿ ಸರಿಯಾಗಿ ಗಾಢ ನಿದ್ರೆ ಬಾರದಿರುವುದು, ಸಣ್ಣ ಕೆಲಸಕ್ಕೂ ಅತಿಯಾದ ಸುಸ್ತು, ನರಗಳ ದೌರ್ಬಲ್ಯ ಅಥವಾ ವಯೋಸಹಜ/ಋತುಮಾನದ ಬಾಧೆಗಳು ಕಾಡುತ್ತಿವೆ. ಪ್ರಸ್ತುತ ${mahaKn} ದಶೆಯಲ್ಲಿ ${bhuktiKn} ಭುಕ್ತಿ ಹಾಗೂ ${shaniGocharaTextKn} ಪ್ರಭಾವದಿಂದ ಜೀರ್ಣಕ್ರಿಯೆ ಮತ್ತು ಶಕ್ತಿಯಲ್ಲಿ ಏರುಪೇರಾಗಿದೆ. ಆದರೆ ${guruGocharaTextKn} ಆಯುಷ್ಯ ರಕ್ಷಣೆ ನೀಡಲಿದೆ.`,
+        detailedRealityEn: `Currently, physical vitality and restorative sleep are compromised. With Lagna lord ${lagnaLordEn} in house ${lagnaLordHouse} and 6th house (${RASHI_EN[getHouseSignIdx(6)]}) active, fatigue and low stamina drain productivity under ${mahaEn}-${bhuktiEn}.`,
+        planetaryCulpritKn: `ಲಗ್ನಾಧಿಪತಿ ${lagnaLordKn} (${lagnaLordHouse}ನೇ ಮನೆಯಲ್ಲಿ) ದುಃಸ್ಥಾನ ಸಂಚಾರ, 6ನೇ ರೋಗ ಸ್ಥಾನ (${h6SignKn}, ಅಧಿಪತಿ ${h6LordKn}) ಹಾಗೂ ${shaniGocharaTextKn}.`,
+        planetaryCulpritEn: `Lagna lord in house ${lagnaLordHouse} combined with 6th house (${RASHI_EN[getHouseSignIdx(6)]}) tension and transit Saturn.`,
         symptomsChecklistKn: [
-          "ರಾತ್ರಿ ಹೊತ್ತು ಗಾಢ ನಿದ್ರೆ ಬಾರದೆ ಹೊರಳಾಡುವುದು ಅಥವಾ ಮಧ್ಯರಾತ್ರಿ ಎಚ್ಚರವಾಗುವುದು",
-          "ಬೆಳಿಗ್ಗೆ ಎದ್ದ ತಕ್ಷಣವೂ ದೇಹದಲ್ಲಿ ಸುಸ್ತು ಮತ್ತು ಅತಿಯಾದ ತಲೆನೋವು/ಮೈಕೈ ನೋವು",
-          "ಮಾನಸಿಕ ಆತಂಕದಿಂದಾಗಿ ಜೀರ್ಣಕ್ರಿಯೆ ಮತ್ತು ರೋಗನಿರೋಧಕ ಶಕ್ತಿಯ ಏರುಪೇರು"
+          `1ನೇ ತನು ಸ್ಥಾನ (${h1SignKn}, ಲಗ್ನಾಧಿಪತಿ ${lagnaLordKn}) ನಿರಂತರ ದೈಹಿಕ ಬಳಲಿಕೆ ಮತ್ತು ರೋಗನಿರೋಧಕ ಶಕ್ತಿಯ ಕುಸಿತ`,
+          `ಚಂದ್ರ (${moonRashiKn} ರಾಶಿ, ${moon?.house ?? 1}ನೇ ಮನೆ) ಸಂಚಾರದಿಂದಾಗಿ ರಾತ್ರಿ ನಿದ್ರಾಹೀನತೆ ಅಥವಾ ನರಗಳ ಅಶಾಂತಿ`,
+          `6ನೇ ರೋಗ ಸ್ಥಾನ (${h6SignKn}, ಅಧಿಪತಿ ${h6LordKn}) ಪ್ರಭಾವದಿಂದ ಜೀರ್ಣಕ್ರಿಯೆ ಅಥವಾ ವಾತ-ಪಿತ್ತ ದೋಷದ ಏರುಪೇರು`
         ],
         symptomsChecklistEn: [
-          "Fragmented sleep patterns and difficulty falling into deep restorative rest",
-          "Waking up feeling drained with muscular tightness or lethargy",
-          "Digestive irregularities driven by subconscious nervous anxiety"
+          `Fragmented sleep and fatigue connected to Lagna (${RASHI_EN[lagnaIndex]})`,
+          `Muscular tightness and restlessness influenced by Moon in ${moonRashiEn}`,
+          `Digestive irregularities under 6th house (${RASHI_EN[getHouseSignIdx(6)]}) during ${mahaEn}-${bhuktiEn}`
         ],
         severity: "high",
-        reliefTimelineKn: `${dashaTimeKn} ಔಷಧೋಪಚಾರ ಹಾಗೂ ಗ್ರಹ ಶಾಂತಿಯಿಂದ ಆರೋಗ್ಯದಲ್ಲಿ ನವಚೈತನ್ಯ ಮರಳಲಿದೆ.`,
-        reliefTimelineEn: `${dashaTimeEn}, vitality and immunity will rebound through medical and spiritual care.`,
-        gokarnaRemedyKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ಮಹಾಮೃತ್ಯುಂಜಯ ಹೋಮ ಹಾಗೂ ಆಯುಷ್ಯ ಶಾಂತಿ ನೆರವೇರಿಸಿ.",
-        gokarnaRemedyEn: "Perform Mahamrityunjaya Homa and Ayushya Shanti at Gokarna Kotiteertha."
+        reliefTimelineKn: `ಪ್ರಸ್ತುತ ${mahaKn}-${bhuktiKn} ಸಂಚಾರದಡಿ ${dashaTimeKn} ಸೂಕ್ತ ಚಿಕಿತ್ಸೆ, ಆಯುರ್ವೇದ ಹಾಗೂ ಗ್ರಹ ಶಾಂತಿಯಿಂದ ಆರೋಗ್ಯದಲ್ಲಿ ನವಚೈತನ್ಯ ಮರಳಲಿದೆ.`,
+        reliefTimelineEn: `Under ${mahaEn}-${bhuktiEn}, ${dashaTimeEn}, vitality and immunity will rebound through medical and spiritual care.`,
+        gokarnaRemedyKn: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ಲಗ್ನಾಧಿಪತಿ ${lagnaLordKn} ಹಾಗೂ ಆಯುಷ್ಯ ಕಾರಕರ ಪ್ರೀತ್ಯರ್ಥವಾಗಿ ಮಹಾಮೃತ್ಯುಂಜಯ ಹೋಮ ಹಾಗೂ ಆಯುಷ್ಯ ಶಾಂತಿ ನೆರವೇರಿಸಿ.`,
+        gokarnaRemedyEn: `Perform Mahamrityunjaya Homa and Ayushya Shanti at Gokarna Kotiteertha for ${moonNakKn} nakshatra.`
       }
     });
   }
@@ -813,27 +922,27 @@ export function diagnoseCurrentLifeSituation(
         category: "elderly_peace_legacy",
         titleKn: "ವಾನಪ್ರಸ್ಥ ಶಾಂತಿ, ಕುಟುಂಬದ ಭವಿಷ್ಯ, ಆಸ್ತಿ ವಿಲೇವಾರಿ & ಆಧ್ಯಾತ್ಮಿಕ ನೆಮ್ಮದಿ",
         titleEn: "Senior Tranquility, Family Legacy Settlement & Spiritual Peace",
-        headlineKn: "ಮಕ್ಕಳ ಭವಿಷ್ಯದ ಚಿಂತೆ, ಆಸ್ತಿ ಪಾಲು ವಿಲೇವಾರಿ & ವಯೋಸಹಜ ಆರೋಗ್ಯ ರಕ್ಷಣೆ",
-        headlineEn: "Family Estate Settlement, Offspring Well-being & Spiritual Consolidation",
-        detailedRealityKn: `ಪ್ರಸ್ತುತ ${age} ವರ್ಷದ ಈ ಹಿರಿಯ ಜೀವಿತ ಕಾಲಘಟ್ಟದಲ್ಲಿ ನಿಮ್ಮ ಲೌಕಿಕ ಜವಾಬ್ದಾರಿಗಳು ಬಹುತೇಕ ಮುಗಿದಿದ್ದು, ಮಕ್ಕಳ ನೆಲೆಗೊಳ್ಳುವಿಕೆ, ಕುಟುಂಬದ ಆಸ್ತಿ-ಪಾಸ್ತಿಗಳ ವಿಲೇವಾರಿ ಹಾಗೂ ವಯೋಸಹಜ ಆರೋಗ್ಯ ರಕ್ಷಣೆಯು ನಿಮ್ಮ ಮುಖ್ಯ ಕಾಳಜಿಯಾಗಿದೆ. ಕುಟುಂಬದಲ್ಲಿ ಎಲ್ಲರೂ ಒಗ್ಗಟ್ಟಾಗಿರಬೇಕೆಂಬ ನಿಮ್ಮ ಆಶಯ ಹಾಗೂ ಆಂತರಿಕ ಮಾನಸಿಕ ಪ್ರಶಾಂತತೆಗಾಗಿ ನೀವು ದೇವರ ಧ್ಯಾನ ಮತ್ತು ಸತ್ಸಂಗವನ್ನು ಆಶ್ರಯಿಸುತ್ತಿದ್ದೀರಿ.`,
-        detailedRealityEn: `At age ${age}, this senior chapter focuses on family legacy, harmonious asset distribution among children, holistic vitality, and spiritual tranquility.`,
-        planetaryCulpritKn: "9ನೇ ಧರ್ಮ ಸ್ಥಾನ ಹಾಗೂ ಮೋಕ್ಷ ತ್ರಿಕೋನದ ಸಕ್ರಿಯತೆ.",
-        planetaryCulpritEn: "Activation of the 9th dharma and 12th moksha spiritual houses.",
+        headlineKn: `${h9SignKn} 9ನೇ ಧರ್ಮ ಸ್ಥಾನ & 4ನೇ ಆಸ್ತಿ ಸ್ಥಾನ (${h9LordKn} ಪ್ರಭಾವ): ಆಸ್ತಿ ಪಾಲು ವಿಲೇವಾರಿ, ಕುಟುಂಬದ ಭವಿಷ್ಯ & ವಯೋಸಹಜ ಆರೋಗ್ಯ ರಕ್ಷಣೆ`,
+        headlineEn: `9th House (${RASHI_EN[getHouseSignIdx(9)] || "Dharma"}) & 12th House: Family Estate Settlement & Spiritual Consolidation`,
+        detailedRealityKn: `ಪ್ರಸ್ತುತ ${age} ವರ್ಷದ ಈ ಹಿರಿಯ ಜೀವಿತ ಕಾಲಘಟ್ಟದಲ್ಲಿ ನಿಮ್ಮ ಲೌಕಿಕ ಜವಾಬ್ದಾರಿಗಳು ಬಹುತೇಕ ಪೂರ್ಣಗೊಂಡಿದ್ದು, ${lagnaKn} ಲಗ್ನದ 9ನೇ ಧರ್ಮ ಸ್ಥಾನವು ${h9SignKn} ಹಾಗೂ 12ನೇ ಮೋಕ್ಷ ಸ್ಥಾನವು ${h12SignKn} ಆಗಿದೆ. 5ನೇ ಮಕ್ಕಳ ಸ್ಥಾನಾಧಿಪತಿ ${h5LordKn} ಹಾಗೂ 4ನೇ ಆಸ್ತಿ ಸ್ಥಾನಾಧಿಪತಿ ${h4LordKn} ಬಲದಿಂದ ಕುಟುಂಬದ ಆಸ್ತಿ ವಿಲೇವಾರಿ, ಮಕ್ಕಳ ನೆಲೆಗೊಳ್ಳುವಿಕೆ ಹಾಗೂ ವಯೋಸಹಜ ಆರೋಗ್ಯ ರಕ್ಷಣೆಯು ನಿಮ್ಮ ಮುಖ್ಯ ಧ್ಯೇಯವಾಗಿದೆ. ಪ್ರಸ್ತುತ ${mahaKn} ದಶೆ ಮತ್ತು ${bhuktiKn} ಭುಕ್ತಿಯ ಅವಧಿಯಲ್ಲಿ ಆಧ್ಯಾತ್ಮಿಕ ಶಾಂತಿಗಾಗಿ ತೀರ್ಥಕ್ಷೇತ್ರ ಯಾತ್ರೆ ಹಾಗೂ ದೈವ ಚಿಂತನೆಯೇ ಪರಮ ಆಶ್ರಯವಾಗಿದೆ.`,
+        detailedRealityEn: `At age ${age}, this senior chapter focuses on family legacy, harmonious asset distribution under 4th lord ${PLANET_EN[fourthLord]} and 5th lord ${PLANET_EN[fifthLord]}, and spiritual peace under 9th house (${RASHI_EN[getHouseSignIdx(9)]}).`,
+        planetaryCulpritKn: `9ನೇ ಧರ್ಮ ಸ್ಥಾನ (${h9SignKn}, ಅಧಿಪತಿ ${h9LordKn}) ಹಾಗೂ 12ನೇ ಮೋಕ್ಷ ಸ್ಥಾನ (${h12SignKn}, ಅಧಿಪತಿ ${h12LordKn}) ಸಕ್ರಿಯತೆ ಮತ್ತು ${guruGocharaTextKn}.`,
+        planetaryCulpritEn: `Activation of 9th dharma house (${RASHI_EN[getHouseSignIdx(9)]}) and 12th moksha house alongside transit Jupiter.`,
         symptomsChecklistKn: [
-          "ಮಕ್ಕಳು ಮತ್ತು ಮೊಮ್ಮಕ್ಕಳ ಸುಖ-ಕ್ಷೇಮದ ಬಗ್ಗೆ ನಿರಂತರ ಆಲೋಚನೆ",
-          "ಸಂಪಾದಿಸಿದ ಆಸ್ತಿ ನ್ಯಾಯಯುತವಾಗಿ ಮಕ್ಕಳಿಗೆ ಹಂಚಿಕೆಯಾಗಬೇಕೆಂಬ ಹಂಬಲ",
-          "ಆಧ್ಯಾತ್ಮಿಕ ತೀರ್ಥಕ್ಷೇತ್ರ ದರ್ಶನ ಮತ್ತು ಶಾಂತಿಯ ಜೀವನದ ತುಡಿತ"
+          `5ನೇ ಸಂತಾನ ಸ್ಥಾನ (${h5SignKn}, ಅಧಿಪತಿ ${h5LordKn}) ಮಕ್ಕಳು ಮತ್ತು ಮೊಮ್ಮಕ್ಕಳ ಸುಖ-ಕ್ಷೇಮದ ಬಗ್ಗೆ ಸದಾ ಆಲೋಚನೆ`,
+          `4ನೇ ಆಸ್ತಿ ಸ್ಥಾನ (${h4SignKn}, ಅಧಿಪತಿ ${h4LordKn}) ಸಂಪಾದಿಸಿದ ಆಸ್ತಿ-ಪಾಸ್ತಿ ನ್ಯಾಯಯುತವಾಗಿ ಮಕ್ಕಳಿಗೆ ವಿಲೇವಾರಿಯಾಗಬೇಕೆಂಬ ಹಂಬಲ`,
+          `9ನೇ ಧರ್ಮ ಸ್ಥಾನ (${h9SignKn}, ಅಧಿಪತಿ ${h9LordKn}) ಹಾಗೂ 12ನೇ ಮೋಕ್ಷ ಸ್ಥಾನ ಪ್ರಭಾವದಿಂದ ಆಧ್ಯಾತ್ಮಿಕ ತೀರ್ಥಕ್ಷೇತ್ರ ದರ್ಶನದ ತುಡಿತ`
         ],
         symptomsChecklistEn: [
-          "Thoughtful care for the happiness and unity of children and grandchildren",
-          "Desire for equitable and peaceful inheritance settlement",
-          "Yearning for sacred pilgrimage, temple visits, and contemplative peace"
+          `Thoughtful care for progeny well-being governed by 5th house (${RASHI_EN[getHouseSignIdx(5)]})`,
+          `Desire for equitable inheritance distribution under 4th house (${RASHI_EN[getHouseSignIdx(4)]})`,
+          `Yearning for sacred pilgrimage and contemplative peace under 9th house (${RASHI_EN[getHouseSignIdx(9)]})`
         ],
         severity: "peaceful",
-        reliefTimelineKn: `${dashaTimeKn} ಕುಟುಂಬದಲ್ಲಿ ಶಾಂತಿ ನೆಲೆಸಿ, ನಿಮ್ಮ ಆಶಯದಂತೆ ಸಕಲ ಕಾರ್ಯಗಳು ಸಾಂಗವಾಗಿ ನೆರವೇರಲಿವೆ.`,
-        reliefTimelineEn: `${dashaTimeEn}, peaceful family cohesion and graceful resolutions will prevail.`,
-        gokarnaRemedyKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರನ ಸನ್ನಿಧಿಯಲ್ಲಿ ಆತ್ಮಲಿಂಗ ಸ್ಪರ್ಶ ಹಾಗೂ ನವಗ್ರಹ ಕೃತಜ್ಞತಾ ಸಂಕಲ್ಪ ಸೇವೆ ಸಮರ್ಪಿಸಿ.",
-        gokarnaRemedyEn: "Perform Atma Linga Sparsha and Navagraha Gratitude Sankalpa at Sri Kshetra Gokarna."
+        reliefTimelineKn: `ಪ್ರಸ್ತುತ ${mahaKn}-${bhuktiKn} ಸಂಚಾರದಡಿ ${dashaTimeKn} ಕುಟುಂಬದಲ್ಲಿ ಶಾಂತಿ ನೆಲೆಸಿ, ನಿಮ್ಮ ಆಶಯದಂತೆ ಸಕಲ ಕಾರ್ಯಗಳು ಸಾಂಗವಾಗಿ ನೆರವೇರಲಿವೆ.`,
+        reliefTimelineEn: `Under ${mahaEn}-${bhuktiEn}, ${dashaTimeEn}, peaceful family cohesion and graceful resolutions will prevail.`,
+        gokarnaRemedyKn: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರನ ಸನ್ನಿಧಿಯಲ್ಲಿ ಆತ್ಮಲಿಂಗ ಸ್ಪರ್ಶ ಪೂಜೆ ಹಾಗೂ ನವಗ್ರಹ ಕೃತಜ್ಞತಾ ಸಂಕಲ್ಪ ಸೇವೆ ಸಮರ್ಪಿಸಿ.`,
+        gokarnaRemedyEn: `Perform Atma Linga Sparsha and Navagraha Gratitude Sankalpa at Sri Kshetra Gokarna for ${moonNakKn} nakshatra.`
       }
     });
   }
@@ -853,25 +962,25 @@ export function diagnoseCurrentLifeSituation(
       titleEn: `10th House (${RASHI_EN[tenthSignIdx] || 'Karma'}) Career Elevation & Strategic Expansion`,
       headlineKn: `${tenthSignNameKn} 10ನೇ ಸ್ಥಾನ (${tenthLordNameKn} ಪ್ರಭಾವ): ವೃತ್ತಿಪರ ಉನ್ನತಿ, ಆರ್ಥಿಕ ಸ್ಥಿರತೆ & ನೂತನ ಹೆಜ್ಜೆಗಳು`,
       headlineEn: `${RASHI_EN[tenthSignIdx] || '10th House'} (${PLANET_EN[tenthLord] || '10th Lord'}): Professional Consolidation & Strategic Strides`,
-      detailedRealityKn: `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಯಾವುದೇ ಗಂಭೀರ ಆಪತ್ತುಗಳಿಲ್ಲ; 10ನೇ ${tenthSignNameKn} ಕರ್ಮ ಭಾವ ಹಾಗೂ ದಶಮಾಧಿಪತಿ ${tenthLordNameKn}ನ ಬಲದಿಂದಾಗಿ ನಿಮ್ಮ ಸಂಪೂರ್ಣ ಗಮನವು ವೃತ್ತಿಪರ ಬೆಳವಣಿಗೆ, ಆರ್ಥಿಕ ಭದ್ರತೆ ಹಾಗೂ ಭವಿಷ್ಯದ ನೂತನ ಯೋಜನೆಗಳ ಮೇಲೆ ಕೇಂದ್ರೀಕೃತವಾಗಿದೆ. ನಿಮ್ಮ ಕಠಿಣ ಪರಿಶ್ರಮ ಮತ್ತು ಸಾಮರ್ಥ್ಯವನ್ನು ಮುಂದಿನ ಹಂತಕ್ಕೆ ಕೊಂಡೊಯ್ಯಲು ಸರಿಯಾದ ಕಾಲಾವಕಾಶಕ್ಕಾಗಿ ಕಾಯುತ್ತಿದ್ದೀರಿ.${runningMahaKn ? ` ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${runningMahaKn} ದಶಾ ಕಾಲಾವಧಿಯು ನಿಮಗೆ ಹೊಸ ಶಕ್ತಿ ತುಂಬಲಿದೆ.` : ""}`,
+      detailedRealityKn: `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಯಾವುದೇ ಗಂಭೀರ ಆಪತ್ತುಗಳಿಲ್ಲ; ${lagnaKn} ಲಗ್ನದ 10ನೇ ${tenthSignNameKn} ಕರ್ಮ ಭಾವ ಹಾಗೂ ದಶಮಾಧಿಪತಿ ${tenthLordNameKn}ನ (${h10LordHouse}ನೇ ಮನೆಯಲ್ಲಿದ್ದಾರೆ) ಬಲದಿಂದಾಗಿ ನಿಮ್ಮ ಸಂಪೂರ್ಣ ಗಮನವು ವೃತ್ತಿಪರ ಬೆಳವಣಿಗೆ, ಆರ್ಥಿಕ ಭದ್ರತೆ ಹಾಗೂ ಭವಿಷ್ಯದ ನೂತನ ಯೋಜನೆಗಳ ಮೇಲೆ ಕೇಂದ್ರೀಕೃತವಾಗಿದೆ. 2ನೇ ಧನ ಸ್ಥಾನ ${h2SignKn} (ಅಧಿಪತಿ ${h2LordKn}) ಹಾಗೂ 11ನೇ ಲಾಭ ಸ್ಥಾನ ${h11SignKn} (ಅಧಿಪತಿ ${h11LordKn}) ಪೂರಕವಾಗಿದ್ದು, ನಿಮ್ಮ ಶ್ರಮವನ್ನು ಮುಂದಿನ ಹಂತಕ್ಕೆ ಕೊಂಡೊಯ್ಯಲು ಸರಿಯಾದ ಕಾಲಾವಕಾಶಕ್ಕಾಗಿ ಕಾಯುತ್ತಿದ್ದೀರಿ.${runningMahaKn ? ` ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${runningMahaKn} ದಶಾ ಕಾಲಾವಧಿಯು ನಿಮಗೆ ಹೊಸ ಶಕ್ತಿ ತುಂಬಲಿದೆ.` : ""} ${guruGocharaTextKn}.`,
       detailedRealityEn: `Currently, you are free from acute crises; your focus is geared toward strategic career progress, financial consolidation, and laying foundations for larger achievements under 10th lord ${PLANET_EN[tenthLord] || tenthLord}.`,
-      planetaryCulpritKn: `10ನೇ ಕರ್ಮ ಸ್ಥಾನ (${tenthSignNameKn}) ಹಾಗೂ ದಶಮಾಧಿಪತಿ ${tenthLordNameKn}ನ ಸಮತೋಲನ ಸ್ಥಿತಿ.`,
+      planetaryCulpritKn: `10ನೇ ಕರ್ಮ ಸ್ಥಾನ (${tenthSignNameKn}) ಹಾಗೂ ದಶಮಾಧಿಪತಿ ${tenthLordNameKn} (${h10LordHouse}ನೇ ಮನೆ) ಮತ್ತು 2ನೇ/11ನೇ ಧನ-ಲಾಭ ಸ್ಥಾನಗಳ ಸಮತೋಲನ ಸ್ಥಿತಿ ಮತ್ತು ${guruGocharaTextKn}.`,
       planetaryCulpritEn: `Balanced alignment across 10th house of career (${RASHI_EN[tenthSignIdx]}) and 2nd/11th houses of wealth.`,
       symptomsChecklistKn: [
-        "ಮುಂದಿನ ಭವಿಷ್ಯಕ್ಕಾಗಿ ಹೊಸ ಹೂಡಿಕೆ ಅಥವಾ ವ್ಯವಹಾರ ವಿಸ್ತರಣೆಯ ಯೋಜನೆಗಳು",
-        "ವೃತ್ತಿ ರಂಗದಲ್ಲಿ ಹೆಚ್ಚಿನ ಜವಾಬ್ದಾರಿ ಮತ್ತು ಗೌರವ ಪಡೆಯುವ ನಿರಂತರ ಶ್ರಮ",
-        "ಕುಟುಂಬದ ಆರ್ಥಿಕ ಭದ್ರತೆಯನ್ನು ದೀರ್ಘಕಾಲೀನವಾಗಿ ಗಟ್ಟಿಗೊಳಿಸುವ ದೃಢ ಸಂಕಲ್ಪ"
+        `10ನೇ ಕರ್ಮ ಸ್ಥಾನ (${tenthSignNameKn}) ಹಾಗೂ 11ನೇ ಲಾಭ ಸ್ಥಾನ (${h11SignKn}) ಮೂಲಕ ಹೊಸ ವೃತ್ತಿ/ವ್ಯವಹಾರ ವಿಸ್ತರಣೆಯ ಯೋಜನೆ`,
+        `ದಶಮಾಧಿಪತಿ ${tenthLordNameKn} ಪ್ರಭಾವದಿಂದ ವೃತ್ತಿ ರಂಗದಲ್ಲಿ ಹೆಚ್ಚಿನ ಜವಾಬ್ದಾರಿ ಮತ್ತು ಗೌರವ ಪಡೆಯುವ ನಿರಂತರ ಶ್ರಮ`,
+        `2ನೇ ಧನ ಸ್ಥಾನ (${h2SignKn}, ಅಧಿಪತಿ ${h2LordKn}) ಆಧಾರದ ಮೇಲೆ ಕುಟುಂಬದ ಆರ್ಥಿಕ ಭದ್ರತೆಯನ್ನು ದೀರ್ಘಕಾಲೀನವಾಗಿ ಗಟ್ಟಿಗೊಳಿಸುವ ಸಂಕಲ್ಪ`
       ],
       symptomsChecklistEn: [
-        "Exploration of strategic investments or business expansion avenues",
-        "Striving for higher executive responsibility and professional stature",
-        "Steadfast dedication to fortifying family financial security"
+        `Exploration of strategic investments or business expansion avenues linked to 10th house (${RASHI_EN[tenthSignIdx]})`,
+        `Striving for higher executive responsibility and professional stature under 10th lord ${PLANET_EN[tenthLord] || 'Lord'}`,
+        `Steadfast dedication to fortifying family financial security under 2nd house (${RASHI_EN[getHouseSignIdx(2)]})`
       ],
       severity: "peaceful",
-      reliefTimelineKn: `${dashaTimeKn} ನೂತನ ಆರ್ಥಿಕ ಅವಕಾಶಗಳು ಕೈಗೂಡಿ, ನಿಮ್ಮ ಪ್ರಯತ್ನಗಳಿಗೆ ಯಶಸ್ಸು ಸಿಗಲಿದೆ.`,
-      reliefTimelineEn: `${dashaTimeEn}, progressive milestones and fruitful opportunities will materialize.`,
-      gokarnaRemedyKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಕರ್ಮ ಸಿದ್ಧಿ ಸಂಕಲ್ಪ ಪೂಜೆ ನೆರವೇರಿಸಿ.",
-      gokarnaRemedyEn: "Perform Karma Siddhi Sankalpa Pooja at Sri Kshetra Gokarna Mahabaleshwara."
+      reliefTimelineKn: `ಪ್ರಸ್ತುತ ${mahaKn}-${bhuktiKn} ಸಂಚಾರದಡಿ ${dashaTimeKn} ನೂತನ ಆರ್ಥಿಕ ಅವಕಾಶಗಳು ಕೈಗೂಡಿ, ನಿಮ್ಮ ಪ್ರಯತ್ನಗಳಿಗೆ ನಿರೀಕ್ಷಿತ ಪ್ರತಿಫಲ ಸಿಗಲಿದೆ.`,
+      reliefTimelineEn: `Under ${mahaEn}-${bhuktiEn}, ${dashaTimeEn}, progressive milestones and fruitful opportunities will materialize.`,
+      gokarnaRemedyKn: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ 10ನೇ ಅಧಿಪತಿ ${tenthLordNameKn} ಹಾಗೂ ಜನ್ಮ ನಕ್ಷತ್ರ (${moonNakKn}) ಸಂಕಲ್ಪದೊಂದಿಗೆ ಕರ್ಮ ಸಿದ್ಧಿ ಪೂಜೆ ನೆರವೇರಿಸಿ.`,
+      gokarnaRemedyEn: `Perform Karma Siddhi Sankalpa Pooja at Sri Kshetra Gokarna Mahabaleshwara for ${moonNakKn} nakshatra.`
     }
   });
 

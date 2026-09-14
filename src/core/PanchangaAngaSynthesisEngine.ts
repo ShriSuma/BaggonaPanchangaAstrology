@@ -98,6 +98,70 @@ export const KARANA_RULES: Record<string, KaranaRule> = {
 };
 
 /* ==========================================================================
+   2.1 27 NAKSHATRA PRESIDING DEITIES (AUTHENTIC VEDIC TAXONOMY)
+   ========================================================================== */
+
+export const NAKSHATRA_DEITIES_KN: Record<string, string> = {
+  Ashwini: "ಅಶ್ವಿನಿ ಕುಮಾರರು (ದೈವಿಕ ವೈದ್ಯರು)",
+  Bharani: "ಯಮ ಧರ್ಮರಾಜ (ಧರ್ಮ & ನಿಯಂತ್ರಣ)",
+  Krittika: "ಅಗ್ನಿ ದೇವ (ತೇಜಸ್ಸು & ಪಾವಿತ್ರ್ಯ)",
+  Rohini: "ಬ್ರಹ್ಮ ಪ್ರಜಾಪತಿ (ಸೃಷ್ಟಿಕರ್ತ)",
+  Mrigashira: "ಸೋಮ / ಚಂದ್ರ (ಅಮೃತ & ಮನಸ್ಸು)",
+  Ardra: "ರುದ್ರ / ಈಶ್ವರ (ವಿನಾಶಕ & ಸಂಹಾರಕ)",
+  Punarvasu: "ಅದಿತಿ ದೇವಿ (ದೇವತೆಗಳ ಮಾತೆ)",
+  Pushya: "ಬೃಹಸ್ಪತಿ (ದೇವಗುರು & ಧರ್ಮ)",
+  Ashlesha: "ಸರ್ಪ / ನಾಗ ದೇವತೆಗಳು (ಕುಂಡಲಿನಿ ಶಕ್ತಿ)",
+  Magha: "ಪಿತೃ ದೇವತೆಗಳು (ಪೂರ್ವಜರ ಆಶೀರ್ವಾದ)",
+  "Purva Phalguni": "ಭಗ ದೇವತೆ (ಸೌಭಾಗ್ಯ & ಸಮೃದ್ಧಿ)",
+  "Uttara Phalguni": "ಅರ್ಯಮ ದೇವತೆ (ಉದಾರತೆ & ಸತ್ಕರ್ಮ)",
+  Hasta: "ಸವಿತೃ / ಸೂರ್ಯ (ಚೈತನ್ಯ & ಸೃಷ್ಟಿ ಶಕ್ತಿ)",
+  Chitra: "ವಿಶ್ವಕರ್ಮ / ತ್ವಷ್ಟಾ (ದೈವಿಕ ಶಿಲ್ಪಿ)",
+  Swati: "ವಾಯು ದೇವ (ಪ್ರಾಣಶಕ್ತಿ & ಸ್ವಾತಂತ್ರ್ಯ)",
+  Vishakha: "ಇಂದ್ರ-ಅಗ್ನಿ (ವಿಜಯ & ತೇಜಸ್ಸು)",
+  Anuradha: "ಮಿತ್ರ ದೇವತೆ (ಸ್ನೇಹ & ಭಕ್ತಿ)",
+  Jyeshtha: "ಇಂದ್ರ ದೇವ (ದೇವತೆಗಳ ಅಧಿಪತಿ)",
+  Mula: "ನಿರೃತಿ / ಮಹಾಕಾಳಿ (ಮೂಲ ಪರಿವರ್ತನೆ)",
+  "Purva Ashadha": "ಆಪಃ / ವರುಣ (ಜಲ ದೇವತೆ & ತೃಪ್ತಿ)",
+  "Uttara Ashadha": "ವಿಶ್ವೇದೇವತೆಗಳು (ವಿಶ್ವ ಧರ್ಮ)",
+  Shravana: "ಮಹಾ ವಿಷ್ಣು (ಸ್ಥಿತಿಪಾಲಕ & ರಕ್ಷಕ)",
+  Dhanishta: "ಅಷ್ಟ ವಸುಗಳು (ಐಶ್ವರ್ಯ & ಸಕಲ ಭೋಗ)",
+  Shatabhisha: "ವರುಣ ದೇವ (ಸತ್ಯ & ರೋಗ ನಿವಾರಣೆ)",
+  "Purva Bhadrapada": "ಅಜೈಕಪಾದ (ಅಗ್ನಿ ರುದ್ರ ಶಕ್ತಿ)",
+  "Uttara Bhadrapada": "ಅಹಿರ್ಬುಧ್ನ್ಯ (ಆಳದ ರಕ್ಷಕ ಸರ್ಪ)",
+  Revati: "ಪೂಷನ್ ದೇವತೆ (ಪೋಷಕ & ಮಾರ್ಗದರ್ಶಕ)"
+};
+
+export const NAKSHATRA_DEITIES_EN: Record<string, string> = {
+  Ashwini: "Ashwini Kumaras (Divine Physicians)",
+  Bharani: "Yama Dharmaraja (Lord of Dharma & Restraint)",
+  Krittika: "Agni Deva (Sacred Fire of Purification)",
+  Rohini: "Brahma Prajapati (The Creator)",
+  Mrigashira: "Soma / Chandra (Nectar of Immortality & Mind)",
+  Ardra: "Rudra / Shiva (Transformative Tempest)",
+  Punarvasu: "Aditi (Cosmic Mother of Light)",
+  Pushya: "Brihaspati (Spiritual Guru & Wisdom)",
+  Ashlesha: "Nagas / Serpent Deities (Kundalini Power)",
+  Magha: "Pitrs (Ancestral Guardians)",
+  "Purva Phalguni": "Bhaga (Deity of Fortune & Bliss)",
+  "Uttara Phalguni": "Aryaman (Deity of Nobility & Righteous Deeds)",
+  Hasta: "Savitr / Surya (Divine Catalyst & Solar Power)",
+  Chitra: "Vishvakarma / Tvashtar (Celestial Architect)",
+  Swati: "Vayu Deva (Pranic Force & Independence)",
+  Vishakha: "Indragni (Triumph & Luminous Drive)",
+  Anuradha: "Mitra (Deity of Concord & Devotion)",
+  Jyeshtha: "Indra (Supreme King of Devas)",
+  Mula: "Nirriti / Mahakali (Root Transformation)",
+  "Purva Ashadha": "Apas / Varuna (Primordial Waters of Receptivity)",
+  "Uttara Ashadha": "Vishvedevas (Universal Dharma & Cosmic Laws)",
+  Shravana: "Maha Vishnu (Preserver & Sustainer)",
+  Dhanishta: "Ashta Vasus (Elemental Lords of Abundance)",
+  Shatabhisha: "Varuna (Cosmic Order & Mystic Healer)",
+  "Purva Bhadrapada": "Aja Ekapada (Fiery Ascetic Serpent)",
+  "Uttara Bhadrapada": "Ahirbudhnya (Serpent of Deep Wisdom)",
+  Revati: "Pushan (Nourisher of Safe Journeys)"
+};
+
+/* ==========================================================================
    3. PRESCRIPTION MODELS & TALKING POINTS
    ========================================================================== */
 
@@ -166,6 +230,14 @@ export interface LiveGocharaAnalysis {
   shaniHouseFromMoon: number;
   rahuHouseFromMoon: number;
   ketuHouseFromMoon: number;
+  guruHouseFromLagna?: number;
+  shaniHouseFromLagna?: number;
+  rahuHouseFromLagna?: number;
+  ketuHouseFromLagna?: number;
+  isSadeSati?: boolean;
+  isAshtamaShani?: boolean;
+  isKantakaShani?: boolean;
+  isGuruAnukula?: boolean;
   guruStatusKn: string;
   guruStatusEn: string;
   shaniStatusKn: string;
@@ -862,6 +934,17 @@ export const calculateLiveGochara = (
     shaniStatusEn = `Saturn is transiting House ${shaniHouseFromMoon} from Moon, strengthening responsibility and ethical resolve.`;
   }
 
+  const nativeLagnaRashiIdx = kundli.lagnaRashi.index;
+  const guruHouseFromLagna = ((jupiterTransitSignIdx - nativeLagnaRashiIdx + 12) % 12) + 1;
+  const shaniHouseFromLagna = ((saturnTransitSignIdx - nativeLagnaRashiIdx + 12) % 12) + 1;
+  const rahuHouseFromLagna = ((rahuTransitSignIdx - nativeLagnaRashiIdx + 12) % 12) + 1;
+  const ketuHouseFromLagna = ((ketuTransitSignIdx - nativeLagnaRashiIdx + 12) % 12) + 1;
+
+  const isSadeSati = [12, 1, 2].includes(shaniHouseFromMoon);
+  const isAshtamaShani = shaniHouseFromMoon === 8;
+  const isKantakaShani = [4, 7, 10].includes(shaniHouseFromMoon);
+  const isGuruAnukula = isGuruShubha;
+
   const summaryKn = `${guruStatusKn} ${shaniStatusKn}`;
   const summaryEn = `${guruStatusEn} ${shaniStatusEn}`;
 
@@ -870,6 +953,14 @@ export const calculateLiveGochara = (
     shaniHouseFromMoon,
     rahuHouseFromMoon,
     ketuHouseFromMoon,
+    guruHouseFromLagna,
+    shaniHouseFromLagna,
+    rahuHouseFromLagna,
+    ketuHouseFromLagna,
+    isSadeSati,
+    isAshtamaShani,
+    isKantakaShani,
+    isGuruAnukula,
     guruStatusKn,
     guruStatusEn,
     shaniStatusKn,
@@ -4506,11 +4597,27 @@ export const generateGoodAndBadTraits = (
 
 export const generateCurrentLifeDiagnosis = (
   kundli: KundliOutput,
-  context: { birthDate: string; birthTime: string; latitude: number; longitude: number; gender?: string; devoteeName?: string },
+  context: {
+    birthDate: string;
+    birthTime: string;
+    latitude: number;
+    longitude: number;
+    gender?: string;
+    devoteeName?: string;
+    devoteeAge?: number;
+    maritalStatus?: string;
+    panchanga?: {
+      vara?: { nameKn: string; nameEn: string; lord: PlanetName; tatva: string };
+      tithi?: { nameKn: string; nameEn: string; paksha: string; deity?: string };
+      nakshatra?: { nameKn: string; nameEn: string; lord: PlanetName; pada?: number; gana?: string; yoni?: string; deity?: string };
+      yoga?: { nameKn: string; nameEn: string; isAuspicious?: boolean };
+      karana?: { nameKn: string; nameEn: string; type?: string };
+    };
+  },
   prescriptions?: AstrologicalPrescriptions
 ): CurrentLifeDiagnosis => {
   const ageDecimal = ageDecimalYearsAt(context.birthDate, context.birthTime, context.latitude, context.longitude, new Date());
-  const devoteeAge = calculateDevoteeAge(context.birthDate);
+  const devoteeAge = context.devoteeAge !== undefined ? context.devoteeAge : calculateDevoteeAge(context.birthDate);
   const dashaTiming = calculateDynamicDashaTiming(kundli, ageDecimal);
   const liveGochara = calculateLiveGochara(kundli, context);
   const maha = dashaTiming.currentMaha;
@@ -4529,36 +4636,64 @@ export const generateCurrentLifeDiagnosis = (
   // House occupants mapping
   const getHousePlanets = (h: number) => kundli.planets.filter((p) => p.house === h).map((p) => toKannadaPlanet(p.name));
 
-  // 1. Technical House Aspects Breakdown
+  // 1. Technical House Aspects Breakdown (100% Dynamic Parashari Calculation)
+  const RASHI_NAMES_KN = ["ಮೇಷ", "ವೃಷಭ", "ಮಿಥುನ", "ಕರ್ಕಾಟಕ", "ಸಿಂಹ", "ಕನ್ಯಾ", "ತುಲಾ", "ವೃಶ್ಚಿಕ", "ಧನು", "ಮಕರ", "ಕುಂಭ", "ಮೀನ"];
+  const lagnaIdx = kundli.lagnaRashi.index;
+  const getHouseSignIdx = (h: number) => (lagnaIdx + h - 1) % 12;
+  const getHouseSignKn = (h: number) => RASHI_NAMES_KN[getHouseSignIdx(h)];
+  const getHouseLordPlanetName = (h: number) => signLord(getHouseSignIdx(h));
+  const getHouseLordKn = (h: number) => toKannadaPlanet(getHouseLordPlanetName(h));
+  const getHouseLordPlanet = (h: number) => kundli.planets.find((p) => p.name === getHouseLordPlanetName(h));
+
   const h4Planets = getHousePlanets(4);
   const h5Planets = getHousePlanets(5);
   const h7Planets = getHousePlanets(7);
   const h9Planets = getHousePlanets(9);
   const h10Planets = getHousePlanets(10);
 
+  const h4SignKn = getHouseSignKn(4);
+  const h4LordKn = getHouseLordKn(4);
+  const h4LordPl = getHouseLordPlanet(4);
   const fourthHouseDetail = h4Planets.length > 0 
-    ? `4ನೇ ಮನೆಯಲ್ಲಿ (ಸುಖ/ಮನಸ್ಸು ಸ್ಥಾನ) ${h4Planets.join(", ")} ಗ್ರಹ ಸ್ಥಿತನಾಗಿದೆ.` 
-    : `4ನೇ ಮನೆಯು ಶುಭ ಗ್ರಹಗಳ ಶುದ್ಧ ದೃಷ್ಟಿಯಲ್ಲಿದೆ.`;
+    ? `${h4SignKn} 4ನೇ ಸುಖ-ಭವನ ಸ್ಥಾನದಲ್ಲಿ ${h4Planets.join(", ")} ಗ್ರಹ ಸ್ಥಿತರಾಗಿದ್ದು, ಚತುರ್ಥಾಧಿಪತಿ ${h4LordKn} ${h4LordPl?.house ?? 4}ನೇ ಮನೆಯಲ್ಲಿದ್ದಾರೆ.` 
+    : `4ನೇ ಸುಖ-ಭವನ ಸ್ಥಾನವು ${h4SignKn} ರಾಶಿಯಾಗಿದ್ದು, ಅಧಿಪತಿ ${h4LordKn} ${h4LordPl?.house ?? 4}ನೇ ಮನೆಯಲ್ಲಿದ್ದಾರೆ.`;
 
+  const h5SignKn = getHouseSignKn(5);
+  const h5LordKn = getHouseLordKn(5);
+  const h5LordPl = getHouseLordPlanet(5);
   const fifthHouseDetail = h5Planets.length > 0
-    ? `5ನೇ ಮನೆಯಲ್ಲಿ (ಬುದ್ಧಿ/ಪೂರ್ವಪುಣ್ಯ ಸ್ಥಾನ) ${h5Planets.join(", ")} ಇರುವುದರಿಂದ ತೀಕ್ಷ್ಣ ಗ್ರಹಿಕೆ ಇದೆ.`
-    : `5ನೇ ಮನೆಯು ಗುರು/ಶುಭ ಗ್ರಹಗಳ ಕಾರಕತ್ವದಲ್ಲಿದೆ.`;
+    ? `${h5SignKn} 5ನೇ ಬುದ್ಧಿ-ಪೂರ್ವಪುಣ್ಯ ಸ್ಥಾನದಲ್ಲಿ ${h5Planets.join(", ")} ಗ್ರಹ ಸ್ಥಿತರಾಗಿದ್ದು, ಪಂಚಮಾಧಿಪತಿ ${h5LordKn} ${h5LordPl?.house ?? 5}ನೇ ಮನೆಯಲ್ಲಿದ್ದಾರೆ.`
+    : `5ನೇ ಬುದ್ಧಿ-ಪೂರ್ವಪುಣ್ಯ ಸ್ಥಾನವು ${h5SignKn} ರಾಶಿಯಾಗಿದ್ದು, ಅಧಿಪತಿ ${h5LordKn} ${h5LordPl?.house ?? 5}ನೇ ಮನೆಯಲ್ಲಿದ್ದಾರೆ.`;
 
+  const h7SignKn = getHouseSignKn(7);
+  const h7LordKn = getHouseLordKn(7);
+  const h7LordPl = getHouseLordPlanet(7);
   const seventhHouseDetail = h7Planets.length > 0
-    ? `7ನೇ ಮನೆಯಲ್ಲಿ (ಕಳತ್ರ/ದಾಂಪತ್ಯ ಸ್ಥಾನ) ${h7Planets.join(", ")} ಗ್ರಹದ ಪ್ರಭಾವವಿದೆ.`
-    : `7ನೇ ಮನೆಯ ಮೇಲೆ ಲಗ್ನಾಧಿಪತಿಯ 7ನೇ ಪೂರ್ಣ ದೃಷ್ಟಿ ಇದೆ.`;
+    ? `${h7SignKn} 7ನೇ ಕಳತ್ರ-ದಾಂಪತ್ಯ ಸ್ಥಾನದಲ್ಲಿ ${h7Planets.join(", ")} ಗ್ರಹ ಸ್ಥಿತರಾಗಿದ್ದು, ಸಪ್ತಮಾಧಿಪತಿ ${h7LordKn} ${h7LordPl?.house ?? 7}ನೇ ಮನೆಯಲ್ಲಿದ್ದಾರೆ.`
+    : `7ನೇ ಕಳತ್ರ-ದಾಂಪತ್ಯ ಸ್ಥಾನವು ${h7SignKn} ರಾಶಿಯಾಗಿದ್ದು, ಅಧಿಪತಿ ${h7LordKn} ${h7LordPl?.house ?? 7}ನೇ ಮನೆಯಲ್ಲಿದ್ದಾರೆ.`;
 
+  const h9SignKn = getHouseSignKn(9);
+  const h9LordKn = getHouseLordKn(9);
+  const h9LordPl = getHouseLordPlanet(9);
   const ninthHouseDetail = h9Planets.length > 0
-    ? `9ನೇ ಮನೆಯಲ್ಲಿ (ಭಾಗ್ಯ ಸ್ಥಾನ) ${h9Planets.join(", ")} ಇರುವುದರಿಂದ ದೈವಬಲ ಉತ್ತಮವಾಗಿದೆ.`
-    : `9ನೇ ಮನೆಯು ಧರ್ಮ ಮತ್ತು ಭಾಗ್ಯ ವೃದ್ಧಿಗೆ ಸಹಕಾರಿಯಾಗಿದೆ.`;
+    ? `${h9SignKn} 9ನೇ ಭಾಗ್ಯ-ಧರ್ಮ ಸ್ಥಾನದಲ್ಲಿ ${h9Planets.join(", ")} ಗ್ರಹ ಸ್ಥಿತರಾಗಿದ್ದು, ಭಾಗ್ಯಾಧಿಪತಿ ${h9LordKn} ${h9LordPl?.house ?? 9}ನೇ ಮನೆಯಲ್ಲಿದ್ದಾರೆ.`
+    : `9ನೇ ಭಾಗ್ಯ-ಧರ್ಮ ಸ್ಥಾನವು ${h9SignKn} ರಾಶಿಯಾಗಿದ್ದು, ಅಧಿಪತಿ ${h9LordKn} ${h9LordPl?.house ?? 9}ನೇ ಮನೆಯಲ್ಲಿದ್ದಾರೆ.`;
 
+  const h10SignKn = getHouseSignKn(10);
+  const h10LordKn = getHouseLordKn(10);
+  const h10LordPl = getHouseLordPlanet(10);
   const tenthHouseDetail = h10Planets.length > 0
-    ? `10ನೇ ಮನೆಯಲ್ಲಿ (ಕರ್ಮ/ವೃತ್ತಿ ಸ್ಥಾನ) ${h10Planets.join(", ")} ಗ್ರಹ ಸ್ಥಿತನಾಗಿದೆ.`
-    : `10ನೇ ಮನೆಯ ಅಧಿಪತಿಯು ವೃತ್ತಿ ಕ್ಷೇತ್ರದಲ್ಲಿ ಸ್ಥಿರತೆ ತರಲಿದ್ದಾನೆ.`;
+    ? `${h10SignKn} 10ನೇ ಕರ್ಮ ಸ್ಥಾನದಲ್ಲಿ ${h10Planets.join(", ")} ಗ್ರಹ ಸ್ಥಿತರಾಗಿದ್ದು, ದಶಮಾಧಿಪತಿ ${h10LordKn} ${h10LordPl?.house ?? 10}ನೇ ಮನೆಯಲ್ಲಿದ್ದಾರೆ.`
+    : `10ನೇ ಕರ್ಮ ಸ್ಥಾನವು ${h10SignKn} ರಾಶಿಯಾಗಿದ್ದು, ಅಧಿಪತಿ ${h10LordKn} ${h10LordPl?.house ?? 10}ನೇ ಮನೆಯಲ್ಲಿದ್ದಾರೆ.`;
 
+  const lagnaLord = signLord(kundli.lagnaRashi.index);
+  const lagnaLordKn = toKannadaPlanet(lagnaLord);
+  const lagnaLordPl = kundli.planets.find((p) => p.name === lagnaLord);
   const trikaAfflictionsDetail = moon && [6, 8, 12].includes(moon.house)
-    ? `ಚಂದ್ರನು ${moon.house}ನೇ ತ್ರಿಕ ಸ್ಥಾನದಲ್ಲಿರುವುದರಿಂದ ಮಾನಸಿಕ ಸೂಕ್ಷ್ಮತೆ ಹೆಚ್ಚಿದೆ.`
-    : `ತ್ರಿಕ ಸ್ಥಾನಗಳ ದೋಷಗಳು ಗೌಣವಾಗಿವೆ.`;
+    ? `ಚಂದ್ರನು ${moon.house}ನೇ ತ್ರಿಕ ಸ್ಥಾನದಲ್ಲಿದ್ದು (${toKannadaRashi(kundli.moonSign.english)}), ಮಾನಸಿಕ ಸೂಕ್ಷ್ಮತೆ ಮತ್ತು ಭಾವನಾತ್ಮಕ ಏರಿಳಿತ ಉಂಟುಮಾಡುತ್ತಿದ್ದಾನೆ.`
+    : lagnaLordPl && [6, 8, 12].includes(lagnaLordPl.house)
+    ? `ಲಗ್ನಾಧಿಪತಿ ${lagnaLordKn} ${lagnaLordPl.house}ನೇ ದುಃಸ್ಥಾನದಲ್ಲಿದ್ದು, ದೈಹಿಕ ಶ್ರಮ ಹಾಗೂ ಆರೋಗ್ಯ ಜಾಗರೂಕತೆ ಅಗತ್ಯ.`
+    : `6ನೇ (ಶತ್ರು/ರೋಗ), 8ನೇ (ಆಯುಷ್ಯ/ವ್ಯಾಜ್ಯ), 12ನೇ (ವ್ಯಯ) ತ್ರಿಕ ಸ್ಥಾನಗಳಲ್ಲಿ ಪಾಪಗ್ರಹಗಳ ನೇರ ಆಕ್ರಮಣವಿಲ್ಲದೆ, ತ್ರಿಕ ಸ್ಥಾನಗಳ ದೋಷಗಳು ಹತೋಟಿಯಲ್ಲಿವೆ.`;
 
   const technicalAspects: TechnicalKundliAspects = {
     fourthHouseDetail,
@@ -4642,8 +4777,7 @@ export const generateCurrentLifeDiagnosis = (
 
   // Domain 4: Health Affliction Score
   let healthAfflictionScore = 0;
-  const lagnaLord = signLord(kundli.lagnaRashi.index);
-  const lagnaLordPlanet = kundli.planets.find(p => p.name === lagnaLord);
+  const lagnaLordPlanet = lagnaLordPl;
   if (lagnaLordPlanet && [6, 8, 12].includes(lagnaLordPlanet.house)) healthAfflictionScore += 3.5;
   if (moon && [6, 8, 12].includes(moon.house)) healthAfflictionScore += 2.5;
 
@@ -4735,11 +4869,16 @@ export const generateCurrentLifeDiagnosis = (
     }
   }
 
-  // 4. Immediate Remedies (English Digits)
+  // 4. Immediate Remedies (100% Dynamic from Dasha-Bhukti, Lagna, Gochara, & Nakshatra)
+  const dashaLordKn = toKannadaPlanet(maha);
+  const bhuktiLordKn = toKannadaPlanet(bhukti);
+  const lagnaSignKn = toKannadaRashi(kundli.lagnaRashi.english);
+  const moonNakshatraKn = toKannadaNakshatra(moon?.nakshatra.english);
+
   const immediateRemedies = [
-    `ದಿನನಿತ್ಯ ಪ್ರಾತಃಕಾಲ: ಸೂರ್ಯ ಗಾಯತ್ರಿ ಅಥವಾ ಆದಿತ್ಯ ಹೃದಯ ಸ್ತೋತ್ರ ಪಠಿಸಿ.`,
-    `ಪ್ರತಿ ಶನಿವಾರ ಸಂಜೆ: ನೈಋತ್ಯ ದಿಕ್ಕಿನಲ್ಲಿ ಎಳ್ಳೆಣ್ಣೆ ದೀಪ ಬೆಳಗಿಸಿ.`,
-    `ದೈವಿಕ ಸಂಕಲ್ಪ: ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರನಿಗೆ ಬಿಲ್ವಾರ್ಚನೆ ಹಾಗೂ ನವಗ್ರಹ ಪ್ರಾರ್ಥನೆ ಸಲ್ಲಿಸಿ.`
+    `ಪ್ರತಿದಿನ ಪ್ರಾತಃಕಾಲ: ${dashaLordKn} ಮಹಾದಶಾ ಪ್ರೀತ್ಯರ್ಥವಾಗಿ ${dashaLordKn} ದೇವತಾ ಸ್ಮರಣೆ ಹಾಗೂ ${lagnaSignKn} ಲಗ್ನಾಧಿಪತಿಯ ಗಾಯತ್ರಿ ಮಂತ್ರ ಜಪಿಸಿ.`,
+    `ಪ್ರತಿ ಸಂಜೆ: ${bhuktiLordKn} ಭುಕ್ತಿ ಹಾಗೂ ${liveGochara.isSadeSati || liveGochara.isAshtamaShani ? "ಗೋಚಾರ ಶನಿಯ ಶಾಂತಿಗಾಗಿ ಪಶ್ಚಿಮ ದಿಕ್ಕಿನಲ್ಲಿ ಎಳ್ಳೆಣ್ಣೆ ದೀಪ ಬೆಳಗಿಸಿ" : "ಶುಭ ಗ್ರಹ ಬಲವರ್ಧನೆಗಾಗಿ ತುಳಸಿ ಸನ್ನಿಧಿಯಲ್ಲಿ ತುಪ್ಪದ ದೀಪ ಬೆಳಗಿಸಿ"}.`,
+    `ದೈವಿಕ ಸಂಕಲ್ಪ: ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ನಿಮ್ಮ ಜನ್ಮ ನಕ್ಷತ್ರ (${moonNakshatraKn}) ಸಂಕಲ್ಪದೊಂದಿಗೆ ಆತ್ಮಲಿಂಗ ಸ್ಪರ್ಶ ಪೂಜೆ ಹಾಗೂ ನವಗ್ರಹ ಕೃತಜ್ಞತಾ ಪ್ರಾರ್ಥನೆ ಸಲ್ಲಿಸಿ.`
   ];
 
   // 5. Astrologer Talking Points (Authentic, Zero Crisis Assumptions)
@@ -4842,7 +4981,9 @@ export const generateCurrentLifeDiagnosis = (
     prasthuthaSthiti: {
       runningDashaSummary: `ಪ್ರಸ್ತುತ ಮಹಾದಶಾ: ${toKannadaPlanet(maha)} | ಪ್ರಸ್ತುತ ಭುಕ್ತಿ: ${toKannadaPlanet(bhukti)} (${dashaTiming.timelineKn} ಪೂರ್ಣ). ಈ ಕಾಲಾವಧಿಯು ನಿಮ್ಮ ಜೀವನದ ಪ್ರಮುಖ ನಿರ್ಧಾರಗಳನ್ನು ತೆಗೆದುಕೊಳ್ಳುವ ಸಮಯ.`,
       runningGocharaSummary: liveGochara.summaryKn,
-      activeTithiSthiti: `ಪಂಚಾಂಗ ತತ್ವಗಳ ಸಮತೋಲನಕ್ಕಾಗಿ ದೇವತಾ ಪ್ರಾರ್ಥನೆ ಅಗತ್ಯ.`,
+      activeTithiSthiti: context.panchanga?.tithi?.nameKn
+        ? `ಜನ್ಮ ತಿಥಿ (${context.panchanga.tithi.paksha} ಪಕ್ಷದ ${context.panchanga.tithi.nameKn}): ಜಲ ತತ್ವದ ಸಮತೋಲನ, ಭಾವನಾತ್ಮಕ ಸುಖ & ಆಂತರಿಕ ಇಷ್ಟಾರ್ಥ ಸಿದ್ಧಿಗೆ ಇಷ್ಟದೇವತಾ ಆರಾಧನೆ ಪೂರಕ.`
+        : `ಜಾತಕದ ಜನ್ಮ ತಿಥಿಯ ಜಲ ತತ್ವ ಸಮತೋಲನಕ್ಕಾಗಿ ನಿತ್ಯ ಇಷ್ಟದೇವತಾ ಪ್ರಾರ್ಥನೆ ಹಾಗೂ ಪ್ರಶಾಂತ ಚಿತ್ತದ ಧ್ಯಾನ ಅಗತ್ಯ.`,
       immediateRemedies
     },
     astrologerTalkingPoints: {
@@ -5477,16 +5618,27 @@ export const generatePanchangaAngaSynthesis = (
   const karanaRule = KARANA_RULES[karanaKey]!;
 
   const devoteeAge = context.devoteeAge !== undefined ? context.devoteeAge : calculateDevoteeAge(context.birthDate);
-  const prescriptions = generateAstrologicalPrescriptions(kundli, yogaRule, karanaRule);
-  const currentDiagnosis = generateCurrentLifeDiagnosis(kundli, context, prescriptions);
-  const instantQAList = generateInstantQAList(kundli, currentDiagnosis, prescriptions, context.devoteeName, devoteeAge);
-
-  // Build Multi-Paragraph Astrologer Reading in Pure Pristine Kannada with English Digits
   const moon = kundli.planets.find((p) => p.name === PlanetName.Moon);
   const moonNakKn = toKannadaNakshatra(moon?.nakshatra.english);
   const moonRashiKn = toKannadaRashi(kundli.moonSign.english);
   const lagnaKn = toKannadaRashi(kundli.lagnaRashi.english);
+  const nakDeityKn = NAKSHATRA_DEITIES_KN[moon?.nakshatra.english ?? "Ashwini"] || "ಇಷ್ಟದೇವತೆ";
 
+  const enrichedPanchanga = {
+    vara: { nameKn: varaInfo.kn, nameEn: varaInfo.en, lord: varaLord, tatva: varaInfo.tatva },
+    tithi: { nameKn: tradPanchanga.tithiKn || tradPanchanga.tithi, nameEn: tradPanchanga.tithi, paksha: tradPanchanga.paksha, deity: "ಶ್ರೀ ಮಹಾಲಕ್ಷ್ಮಿ / ಇಷ್ಟದೇವತೆ", jalTatvaQuality: "ಭಾವನಾತ್ಮಕ ಸುಖ & ಇಷ್ಟಾರ್ಥ ಸಿದ್ಧಿ" },
+    nakshatra: { nameKn: tradPanchanga.moonNakshatraKn || moonNakKn, nameEn: moon?.nakshatra.english ?? "Ashwini", lord: calculateKpSubLord(moon?.degree ?? 0).nakshatraLord, pada: kundli.moonPada || 1, deity: nakDeityKn },
+    yoga: { nameKn: yogaRule.sanskrit, nameEn: yogaRule.english, rule: yogaRule },
+    karana: { nameKn: karanaRule.nameKn, nameEn: karanaRule.nameEn, rule: karanaRule },
+    sunrise: tradPanchanga.sunrise,
+    sunset: tradPanchanga.sunset
+  };
+
+  const prescriptions = generateAstrologicalPrescriptions(kundli, yogaRule, karanaRule);
+  const currentDiagnosis = generateCurrentLifeDiagnosis(kundli, { ...context, devoteeAge, panchanga: enrichedPanchanga }, prescriptions);
+  const instantQAList = generateInstantQAList(kundli, currentDiagnosis, prescriptions, context.devoteeName, devoteeAge);
+
+  // Build Multi-Paragraph Astrologer Reading in Pure Pristine Kannada with English Digits
   const cls = currentDiagnosis.currentLifeSituation;
   const prof = currentDiagnosis.accurateProfession;
 
@@ -5518,15 +5670,7 @@ export const generatePanchangaAngaSynthesis = (
   });
 
   return {
-    panchanga: {
-      vara: { nameKn: varaInfo.kn, nameEn: varaInfo.en, lord: varaLord, tatva: varaInfo.tatva },
-      tithi: { nameKn: tradPanchanga.tithiKn || tradPanchanga.tithi, nameEn: tradPanchanga.tithi, paksha: tradPanchanga.paksha, jalTatvaQuality: "Nourishes emotional relationships and desire fulfillment" },
-      nakshatra: { nameKn: tradPanchanga.moonNakshatraKn || moonNakKn, nameEn: moon?.nakshatra.english ?? "Ashwini", lord: calculateKpSubLord(moon?.degree ?? 0).nakshatraLord, deity: "Presiding Divine Guardian" },
-      yoga: { nameKn: yogaRule.sanskrit, nameEn: yogaRule.english, rule: yogaRule },
-      karana: { nameKn: karanaRule.nameKn, nameEn: karanaRule.nameEn, rule: karanaRule },
-      sunrise: tradPanchanga.sunrise,
-      sunset: tradPanchanga.sunset
-    },
+    panchanga: enrichedPanchanga,
     prescriptions,
     currentDiagnosis,
     tenLifeAspectBullets: currentDiagnosis.tenLifeAspectBullets,
