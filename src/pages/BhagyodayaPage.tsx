@@ -77,8 +77,8 @@ export default function BhagyodayaPage(): JSX.Element {
     setIsPlayingAudio(true);
     try {
       const summaryText = reportLang === "kn"
-        ? `ನಮಸ್ಕಾರ ${report.devoteeName} ಅವರೇ. ನಿಮ್ಮ ಜಾತಕದ ಮಹಾಭಾಗ್ಯೋದಯ ವಿಶ್ಲೇಷಣೆ. ನಿಮ್ಮ ಲಗ್ನ ${report.lagnaRashi}, ಜನ್ಮ ರಾಶಿ ${report.moonRashi}, ಹಾಗೂ ನಕ್ಷತ್ರ ${report.nakshatra}. ನಿಮ್ಮ ಧನಯೋಗ ಸ್ಕೋರ್ ನೂರಕ್ಕೆ ${report.wealth.dhanaYogaScore}. ${report.wealth.wealthVerdict} ನಿಮ್ಮ ಋಣ ವಿಮೋಚನೆ ಮತ್ತು ಅದೃಷ್ಟದ ಸುವರ್ಣ ಅವಧಿ ಶೀಘ್ರದಲ್ಲೇ ಆರಂಭವಾಗಲಿದೆ. ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರರ ಅನುಗ್ರಹವು ನಿಮ್ಮ ಕುಟುಂಬಕ್ಕೆ ಸದಾ ಇರಲಿ.`
-        : `Namaskara ${report.devoteeName}. Here is your Divine Bhagyodaya Life Reading. Your Ascendant is ${report.lagnaRashi}, Moon Sign is ${report.moonRashi}, and Birth Star is ${report.nakshatra}. Your Dhana Yoga score is ${report.wealth.dhanaYogaScore} out of 100. ${report.wealth.wealthVerdict} May Lord Mahabaleshwara bless your family with boundless prosperity.`;
+        ? `ನಮಸ್ಕಾರ ${report.devoteeName} ಅವರೇ. ನಿಮ್ಮ ಜಾತಕದ ಮಹಾಭಾಗ್ಯೋದಯ ವಿಶ್ಲೇಷಣೆ. ನಿಮ್ಮ ಲಗ್ನ ${report.lagnaRashi}, ಜನ್ಮ ರಾಶಿ ${report.moonRashi}, ಹಾಗೂ ನಕ್ಷತ್ರ ${report.nakshatra}. ನಿಮ್ಮ ಪ್ರಮುಖ ಭಾಗ್ಯೋದಯ ವಯಸ್ಸು ${report.bhagyodaya.primaryAge}. ${report.bhagyodaya.catalystTheme} ಮಾಧ್ಯಮದ ಮೂಲಕ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಮಹಾ ಭಾಗ್ಯೋದಯ ಉಂಟಾಗಲಿದೆ. ನಿಮ್ಮ ಧನಯೋಗ ಸ್ಕೋರ್ ನೂರಕ್ಕೆ ${report.wealth.dhanaYogaScore}. ${report.wealth.wealthVerdict} ನಿಮ್ಮ ಋಣ ವಿಮೋಚನೆ ಮತ್ತು ಅದೃಷ್ಟದ ಸುವರ್ಣ ಅವಧಿ ಶೀಘ್ರದಲ್ಲೇ ಆರಂಭವಾಗಲಿದೆ. ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರರ ಅನುಗ್ರಹವು ನಿಮ್ಮ ಕುಟುಂಬಕ್ಕೆ ಸದಾ ಇರಲಿ.`
+        : `Namaskara ${report.devoteeName}. Here is your Divine Bhagyodaya Life Reading. Your Ascendant is ${report.lagnaRashi}, Moon Sign is ${report.moonRashi}, and Birth Star is ${report.nakshatra}. Your primary Bhagyodaya maturation aligns at age ${report.bhagyodaya.primaryAge} catalyzed by ${report.bhagyodaya.catalystTheme}. Your Dhana Yoga score is ${report.wealth.dhanaYogaScore} out of 100. ${report.wealth.wealthVerdict} May Lord Mahabaleshwara bless your family with boundless prosperity.`;
 
       await synthesizeAndPlayClonedVoice(
         summaryText,
@@ -105,7 +105,7 @@ export default function BhagyodayaPage(): JSX.Element {
               ಭಾಗ್ಯೋದಯ ಮಹಾದರ್ಶನ & ಜೀವನ ಸಂಜೀವಿನಿ ರಹಸ್ಯ
             </h2>
             <p className="text-xs md:text-sm text-amber-200/80 max-w-xl mx-auto leading-relaxed">
-              ನಿಮ್ಮ ಜನ್ಮ ಜಾತಕದ ಆಧಾರದ ಮೇಲೆ ಧನ ಯೋಗ, ಸಾಲ ಮುಕ್ತಿ, ವಿವಾಹ ಕಾಲ, ಆಯುರ್ ರಕ್ಷೆ, ದೃಷ್ಟಿ ನಿವಾರಣೆ ಹಾಗೂ ೧೦ ವರ್ಷಗಳ ಸುವರ್ಣ ಮೈಲಿಗಲ್ಲುಗಳನ್ನು ಅರಿಯಲು ದಯವಿಟ್ಟು ಮೊದಲು ನಿಮ್ಮ ಜಾತಕವನ್ನು ರಚಿಸಿ.
+              ನಿಮ್ಮ ಜನ್ಮ ಜಾತಕದ ಆಧಾರದ ಮೇಲೆ ಧನ ಯೋಗ, ಸಾಲ ಮುಕ್ತಿ, ವಿವಾಹ ಕಾಲ, ಆಯುರ್ ರಕ್ಷೆ, ದೃಷ್ಟಿ ನಿವಾರಣೆ ಹಾಗೂ 10 ವರ್ಷಗಳ ಸುವರ್ಣ ಮೈಲಿಗಲ್ಲುಗಳನ್ನು ಅರಿಯಲು ದಯವಿಟ್ಟು ಮೊದಲು ನಿಮ್ಮ ಜಾತಕವನ್ನು ರಚಿಸಿ.
             </p>
           </div>
           <button
@@ -200,7 +200,7 @@ export default function BhagyodayaPage(): JSX.Element {
               ) : (
                 <span>📄</span>
               )}
-              <span>{isGeneratingPdf ? "PDF ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : "೭-ಪುಟಗಳ ಮಹಾ ವರದಿ ಡೌನ್‌ಲೋಡ್ (PDF)"}</span>
+              <span>{isGeneratingPdf ? "PDF ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : "7-ಪುಟಗಳ ಮಹಾ ವರದಿ ಡೌನ್‌ಲೋಡ್ (PDF)"}</span>
             </button>
           </div>
         </div>
@@ -233,6 +233,75 @@ export default function BhagyodayaPage(): JSX.Element {
         </div>
       </div>
 
+      {/* ── CLASSICAL BHAGYODAYA MATURATION & CATALYST CARD ── */}
+      <div className="rounded-3xl border-2 border-amber-400 bg-gradient-to-br from-amber-950/80 via-neutral-950 to-stone-900 p-6 md:p-8 text-white shadow-2xl space-y-5 relative overflow-hidden">
+        <div className="absolute -right-10 -bottom-10 h-48 w-48 rounded-full bg-amber-500/10 blur-3xl pointer-events-none" />
+        
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-500/30 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl border-2 border-amber-400 bg-amber-900/60 text-3xl shadow-inner">
+              🌟
+            </div>
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/40 bg-amber-950/70 px-3 py-0.5 text-[11px] font-black uppercase text-amber-300">
+                <span>👑</span>
+                <span>ಪರಾಶರ ಶಾಸ್ತ್ರೋಕ್ತ ಭಾಗ್ಯೋದಯ ಸಿದ್ಧಿ • Prime Destiny Awakening</span>
+              </div>
+              <h2 className="text-xl md:text-2xl font-black text-amber-200 mt-1">
+                {reportLang === "kn" ? "ಪ್ರಮುಖ ಭಾಗ್ಯೋದಯ ಮಹಾಸಿದ್ಧಿ ಕಾಲ & ಮೂಲ ಮಾಧ್ಯಮ" : "Prime Bhagyodaya Maturation Age & Destiny Catalyst"}
+              </h2>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-amber-400/60 bg-black/60 px-4 py-2 text-right">
+            <span className="text-[10px] uppercase font-bold text-amber-400">ಭಾಗ್ಯಾಧಿಪತಿ (9th Lord)</span>
+            <div className="text-sm md:text-base font-black text-yellow-300">
+              {report.bhagyodaya.bhagyeshPlanetLabel} ({report.bhagyodaya.bhagyeshHouse}ನೇ ಭಾವ)
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Maturation Age Box */}
+          <div className="rounded-2xl border border-amber-400/50 bg-black/60 p-4 space-y-2">
+            <span className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+              <span>⌛</span>
+              <span>{reportLang === "kn" ? "ಪ್ರಮುಖ ಭಾಗ್ಯೋದಯ ವಯಸ್ಸು:" : "Primary Maturation Age:"}</span>
+            </span>
+            <div className="text-2xl md:text-3xl font-black text-yellow-300">
+              {reportLang === "kn" ? `ವಯಸ್ಸು ${report.bhagyodaya.primaryAge}` : `Age ${report.bhagyodaya.primaryAge}`}
+            </div>
+            <p className="text-xs font-bold text-amber-200/90 pt-1">
+              {report.bhagyodaya.statusLabel}
+            </p>
+          </div>
+
+          {/* Catalyst Vehicle of Fortune */}
+          <div className="rounded-2xl border border-amber-400/50 bg-black/60 p-4 space-y-2 md:col-span-2">
+            <span className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+              <span>🚀</span>
+              <span>{reportLang === "kn" ? "ಭಾಗ್ಯೋದಯ ತರುವ ಪ್ರಮುಖ ಮಾಧ್ಯಮ:" : "Catalyst / Vehicle of Fortune:"}</span>
+              <span className="ml-auto text-[11px] rounded-lg bg-amber-900/60 px-2 py-0.5 border border-amber-500/40 text-amber-200">
+                {report.bhagyodaya.catalystTheme}
+              </span>
+            </span>
+            <p className="text-xs md:text-sm leading-relaxed text-amber-100/90 pt-1">
+              {report.bhagyodaya.catalystDescription}
+            </p>
+          </div>
+        </div>
+
+        {/* Dasha-Bhukti Golden Alignment */}
+        <div className="rounded-2xl border border-amber-500/40 bg-amber-950/40 p-3.5 text-xs text-amber-200 flex items-start gap-2.5">
+          <span className="text-base">☸️</span>
+          <div>
+            <strong className="text-amber-300">
+              {reportLang === "kn" ? "ದಶಾ ಸಕ್ರಿಯತೆ & ಸುವರ್ಣ ತಿರುವು:" : "Active Dasha Alignment & Projection:"}
+            </strong>
+            <span className="ml-1.5 text-amber-100/90">{report.bhagyodaya.dashaActivationForecast}</span>
+          </div>
+        </div>
+      </div>
+
       {/* ── 7-PILLAR TAB NAVIGATOR ── */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
         {[
@@ -241,7 +310,7 @@ export default function BhagyodayaPage(): JSX.Element {
           { id: "relationship", label: "❤️ ವಿವಾಹ & ಸಂತಾನ", icon: "💍" },
           { id: "health", label: "🌿 ಆಯುರ್ ಆರೋಗ್ಯ ರಕ್ಷೆ", icon: "🛡️" },
           { id: "protection", label: "🛡️ ದೃಷ್ಟಿ & ಗ್ರಹ ರಕ್ಷಾ ಕವಚ", icon: "⚡" },
-          { id: "milestones", label: "🌟 ೧೦-ವರ್ಷ ಸುವರ್ಣ ಮೈಲಿಗಲ್ಲು", icon: "🗓️" },
+          { id: "milestones", label: "🌟 10-ವರ್ಷ ಸುವರ್ಣ ಮೈಲಿಗಲ್ಲು", icon: "🗓️" },
           { id: "karma", label: "💎 ರತ್ನ & ನಿತ್ಯ ಕರ್ಮ", icon: "📿" },
           { id: "temple", label: "🪔 ಗೋಕರ್ಣ ಸಂಕಲ್ಪ ಸೇವೆ", icon: "🕉️" }
         ].map((tab) => (
@@ -271,7 +340,7 @@ export default function BhagyodayaPage(): JSX.Element {
               </div>
               <div>
                 <h3 className="text-lg md:text-xl font-black text-amber-200">
-                  ೧. ಧನ ಪ್ರಾಪ್ತಿ, ಮಹಾ ಯೋಗ & ಋಣ ವಿಮೋಚನ ರಹಸ್ಯ
+                  1. ಧನ ಪ್ರಾಪ್ತಿ, ಮಹಾ ಯೋಗ & ಋಣ ವಿಮೋಚನ ರಹಸ್ಯ
                 </h3>
                 <p className="text-xs text-amber-300/70">
                   Wealth Breakout Timeline, Dhana Yogas & Debt Liberation Blueprint
@@ -281,7 +350,7 @@ export default function BhagyodayaPage(): JSX.Element {
             <div className="text-right">
               <span className="text-[10px] uppercase font-bold text-amber-400">ಧನ ಯೋಗ ಸಾಮರ್ಥ್ಯ</span>
               <div className="text-xl md:text-2xl font-black text-yellow-300">
-                {report.wealth.dhanaYogaScore} / ೧೦೦
+                {report.wealth.dhanaYogaScore} / 100
               </div>
             </div>
           </div>
@@ -337,7 +406,7 @@ export default function BhagyodayaPage(): JSX.Element {
               </div>
               <div>
                 <h3 className="text-lg md:text-xl font-black text-rose-200">
-                  ೨. ವಿವಾಹ ಯೋಗ, ದಾಂಪತ್ಯ ಸುಖ & ಸಂತಾನ ಭಾಗ್ಯ
+                  2. ವಿವಾಹ ಯೋಗ, ದಾಂಪತ್ಯ ಸುಖ & ಸಂತಾನ ಭಾಗ್ಯ
                 </h3>
                 <p className="text-xs text-rose-300/70">
                   Marriage Timing Window, Soul Partner Attributes & Family Harmony
@@ -387,7 +456,7 @@ export default function BhagyodayaPage(): JSX.Element {
               </div>
               <div>
                 <h3 className="text-lg md:text-xl font-black text-teal-200">
-                  ೩. ಆಯುರ್ ಆರೋಗ್ಯ ರಕ್ಷಾ ಕವಚ & ದೀರ್ಘಾಯುಷ್ಯ ರಹಸ್ಯ
+                  3. ಆಯುರ್ ಆರೋಗ್ಯ ರಕ್ಷಾ ಕವಚ & ದೀರ್ಘಾಯುಷ್ಯ ರಹಸ್ಯ
                 </h3>
                 <p className="text-xs text-teal-300/70">
                   Health Constitution, Disease Prevention & Natural Herbal Vitality
@@ -437,7 +506,7 @@ export default function BhagyodayaPage(): JSX.Element {
               </div>
               <div>
                 <h3 className="text-lg md:text-xl font-black text-indigo-200">
-                  ೪. ದೃಷ್ಟಿ ದೋಷ, ಶತ್ರು ಬಾಧಾ & ಗ್ರಹ ದೋಷ ನಿವಾರಣಾ ಕವಚ
+                  4. ದೃಷ್ಟಿ ದೋಷ, ಶತ್ರು ಬಾಧಾ & ಗ್ರಹ ದೋಷ ನಿವಾರಣಾ ಕವಚ
                 </h3>
                 <p className="text-xs text-indigo-300/70">
                   Evil Eye Protection, Enemy Shield & Sudarshana Raksha Mantra
@@ -478,7 +547,7 @@ export default function BhagyodayaPage(): JSX.Element {
               </div>
               <div>
                 <h3 className="text-lg md:text-xl font-black text-amber-200">
-                  ೫. ಮುಂದಿನ ೧೦ ವರ್ಷಗಳ ಸುವರ್ಣ ಮೈಲಿಗಲ್ಲುಗಳು (2026 – 2036)
+                  5. ಮುಂದಿನ 10 ವರ್ಷಗಳ ಸುವರ್ಣ ಮೈಲಿಗಲ್ಲುಗಳು (2026 – 2036)
                 </h3>
                 <p className="text-xs text-amber-300/70">
                   Year-by-Year Turning Points, Breakthrough Opportunities & Life Guidance
@@ -578,7 +647,7 @@ export default function BhagyodayaPage(): JSX.Element {
               </div>
               <div>
                 <h3 className="text-lg md:text-xl font-black text-yellow-200">
-                  ೬. ಭಾಗ್ಯ ರತ್ನ, ರುದ್ರಾಕ್ಷಿ & ೫-ನಿಮಿಷದ ದೈನಂದಿನ ಕರ್ಮ ಸಂಕಲ್ಪ
+                  6. ಭಾಗ್ಯ ರತ್ನ, ರುದ್ರಾಕ್ಷಿ & 5-ನಿಮಿಷದ ದೈನಂದಿನ ಕರ್ಮ ಸಂಕಲ್ಪ
                 </h3>
                 <p className="text-xs text-amber-300/70">
                   Lucky Gemstone, Mukhi Rudraksha & 5-Minute Daily Morning Sanskrit Blueprint
@@ -655,7 +724,7 @@ export default function BhagyodayaPage(): JSX.Element {
               </div>
               <div>
                 <h3 className="text-lg md:text-xl font-black text-amber-200">
-                  ೭. ಗೋಕರ್ಣ ಮಹಾಕ್ಷೇತ್ರ ಅರ್ಚನಾ ಸಂಕಲ್ಪ & ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಸೇವೆ
+                  7. ಗೋಕರ್ಣ ಮಹಾಕ್ಷೇತ್ರ ಅರ್ಚನಾ ಸಂಕಲ್ಪ & ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಸೇವೆ
                 </h3>
                 <p className="text-xs text-amber-300/70">
                   Consecrated Temple Archana, Daily Prasada & 90-Day Ashirvada Pass
@@ -734,34 +803,57 @@ export default function BhagyodayaPage(): JSX.Element {
             <div>ಲಗ್ನಾಧಿಪತಿ: <strong>{report.lagnaLord}</strong></div>
           </div>
 
+          {/* Core Bhagyodaya Maturation Box in PDF */}
+          <div className="border-2 border-amber-600 rounded-2xl p-5 space-y-2 bg-amber-50/60">
+            <div className="flex justify-between items-center">
+              <h3 className="text-base font-black text-amber-950">
+                🌟 ಪ್ರಮುಖ ಭಾಗ್ಯೋದಯ ಮಹಾಸಿದ್ಧಿ ಕಾಲ & ಮೂಲ ಮಾಧ್ಯಮ
+              </h3>
+              <span className="text-xs font-bold text-amber-900">
+                ಭಾಗ್ಯಾಧಿಪತಿ: {report.bhagyodaya.bhagyeshPlanetLabel} ({report.bhagyodaya.bhagyeshHouse}ನೇ ಭಾವ)
+              </span>
+            </div>
+            <p className="text-xs font-bold text-amber-950">
+              ಪ್ರಮುಖ ಭಾಗ್ಯೋದಯ ವಯಸ್ಸು: ವಯಸ್ಸು {report.bhagyodaya.primaryAge} ({report.bhagyodaya.statusLabel})
+            </p>
+            <p className="text-xs leading-relaxed text-slate-800">
+              <strong>ಭಾಗ್ಯೋದಯ ತರುವ ಮಾಧ್ಯಮ:</strong> {report.bhagyodaya.catalystTheme} - {report.bhagyodaya.catalystDescription}
+            </p>
+            <p className="text-xs text-amber-900 italic">
+              <strong>ದಶಾ ತಿರುವು:</strong> {report.bhagyodaya.dashaActivationForecast}
+            </p>
+          </div>
+
           {/* 7 Pillars Print Cards */}
           <div className="border-2 border-amber-500 rounded-2xl p-5 space-y-2">
-            <h3 className="text-base font-black text-amber-950">೧. ಧನ ಪ್ರಾಪ್ತಿ & ಋಣ ವಿಮೋಚನ</h3>
+            <h3 className="text-base font-black text-amber-950">1. ಧನ ಪ್ರಾಪ್ತಿ & ಋಣ ವಿಮೋಚನ</h3>
             <p className="text-xs leading-relaxed text-slate-800">{report.wealth.wealthVerdict}</p>
             <p className="text-xs font-bold text-emerald-800">ಋಣ ಮುಕ್ತಿ ಕಾಲ: {report.wealth.runaVimochanaTimeline}</p>
+            <p className="text-xs text-slate-700">ಸೂಕ್ತ ಧನಾಗಮನ ದಿಕ್ಕು: <strong>{report.wealth.optimalWealthDirection}</strong></p>
           </div>
 
           <div className="border-2 border-rose-500 rounded-2xl p-5 space-y-2">
-            <h3 className="text-base font-black text-rose-950">೨. ವಿವಾಹ, ದಾಂಪತ್ಯ & ಸಂತಾನ</h3>
+            <h3 className="text-base font-black text-rose-950">2. ವಿವಾಹ, ದಾಂಪತ್ಯ & ಸಂತಾನ</h3>
             <p className="text-xs leading-relaxed text-slate-800">{report.relationship.spouseCharacteristics}</p>
             <p className="text-xs font-bold text-rose-900">ವಿವಾಹ ಕಾಲಾವಧಿ: {report.relationship.vivahaYogaWindow}</p>
+            <p className="text-xs text-slate-700">ಸಂಗಾತಿಯ ಬರುವ ದಿಕ್ಕು: <strong>{report.relationship.spouseDirection}</strong></p>
           </div>
 
           <div className="border-2 border-teal-500 rounded-2xl p-5 space-y-2">
-            <h3 className="text-base font-black text-teal-950">೩. ಆಯುರ್ ಆರೋಗ್ಯ & ದೀರ್ಘಾಯುಷ್ಯ</h3>
+            <h3 className="text-base font-black text-teal-950">3. ಆಯುರ್ ಆರೋಗ್ಯ & ದೀರ್ಘಾಯುಷ್ಯ</h3>
             <p className="text-xs text-slate-800">{report.health.mahaMrityunjayaShield}</p>
             <p className="text-xs font-bold text-teal-900">ಆಯುರ್ ಸಂಜೀವಿನಿ ಗಿಡಮೂಲಿಕೆಗಳು: {report.health.ayurSanjeeviniHerbs.join(", ")}</p>
           </div>
 
           <div className="border-2 border-indigo-500 rounded-2xl p-5 space-y-2">
-            <h3 className="text-base font-black text-indigo-950">೪. ದೃಷ್ಟಿ & ಶತ್ರು ಬಾಧಾ ನಿವಾರಣೆ</h3>
+            <h3 className="text-base font-black text-indigo-950">4. ದೃಷ್ಟಿ & ಶತ್ರು ಬಾಧಾ ನಿವಾರಣೆ</h3>
             <div className="font-serif text-xs font-bold bg-amber-50 p-2 border border-amber-300 rounded-lg">
               {report.protection.sudarshanaKavachaMantra}
             </div>
           </div>
 
           <div className="border-2 border-amber-500 rounded-2xl p-5 space-y-2">
-            <h3 className="text-base font-black text-amber-950">೫. ಮುಂದಿನ ೧೦ ವರ್ಷಗಳ ಸುವರ್ಣ ಮೈಲಿಗಲ್ಲುಗಳು</h3>
+            <h3 className="text-base font-black text-amber-950">5. ಮುಂದಿನ 10 ವರ್ಷಗಳ ಸುವರ್ಣ ಮೈಲಿಗಲ್ಲುಗಳು</h3>
             <div className="grid grid-cols-2 gap-2 text-xs">
               {report.milestones.slice(0, 6).map((m) => (
                 <div key={m.year} className="border border-amber-200 p-2 rounded-lg bg-amber-50/40">
@@ -772,7 +864,7 @@ export default function BhagyodayaPage(): JSX.Element {
           </div>
 
           <div className="border-2 border-yellow-500 rounded-2xl p-5 space-y-2">
-            <h3 className="text-base font-black text-yellow-950">೬. ರತ್ನ, ರುದ್ರಾಕ್ಷಿ & ನಿತ್ಯ ಸಂಕಲ್ಪ</h3>
+            <h3 className="text-base font-black text-yellow-950">6. ರತ್ನ, ರುದ್ರಾಕ್ಷಿ & ನಿತ್ಯ ಸಂಕಲ್ಪ</h3>
             <p className="text-xs">
               ಭಾಗ್ಯ ರತ್ನ: <strong>{report.karmaBlueprint.bhagyaGemstone.name}</strong> ({report.karmaBlueprint.bhagyaGemstone.weightRatti})
             </p>

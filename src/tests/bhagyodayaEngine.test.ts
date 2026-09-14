@@ -33,6 +33,15 @@ describe("BhagyodayaEngine", () => {
     expect(report.nakshatraPada).toBeGreaterThanOrEqual(1);
     expect(report.nakshatraPada).toBeLessThanOrEqual(4);
 
+    // Classical Bhagyodaya Maturation Pillar
+    expect(report.bhagyodaya.primaryAge).toBeGreaterThan(0);
+    expect(report.bhagyodaya.bhagyeshPlanet).toBeTruthy();
+    expect(report.bhagyodaya.bhagyeshHouse).toBeGreaterThanOrEqual(1);
+    expect(report.bhagyodaya.bhagyeshHouse).toBeLessThanOrEqual(12);
+    expect(report.bhagyodaya.catalystTheme).toBeTruthy();
+    expect(report.bhagyodaya.catalystDescription).toBeTruthy();
+    expect(report.bhagyodaya.dashaActivationForecast).toBeTruthy();
+
     // Pillar 1: Wealth & Debt
     expect(report.wealth.dhanaYogaScore).toBeGreaterThanOrEqual(60);
     expect(report.wealth.dhanaYogaScore).toBeLessThanOrEqual(100);
@@ -44,17 +53,20 @@ describe("BhagyodayaEngine", () => {
     // Pillar 2: Marriage & Children
     expect(report.relationship.vivahaYogaWindow).toBeTruthy();
     expect(report.relationship.spouseCharacteristics).toBeTruthy();
+    expect(report.relationship.spouseDirection).toBeTruthy();
     expect(report.relationship.santathiBlessingWindow).toBeTruthy();
 
     // Pillar 3: Health Vitality
     expect(report.health.vitalityScore).toBeGreaterThan(0);
     expect(report.health.constitutionDosha).toMatch(/Vata|Pitta|Kapha|Tridosha/);
+    expect(report.health.vulnerableOrgans.length).toBe(3);
     expect(report.health.ayurSanjeeviniHerbs.length).toBeGreaterThan(0);
     expect(report.health.mahaMrityunjayaShield).toBeTruthy();
 
     // Pillar 4: Protection
     expect(report.protection.drishtiSensitivityLevel).toMatch(/Low|Medium|High|Severe/);
     expect(report.protection.sudarshanaKavachaMantra).toContain("ಮಹಾಸುದರ್ಶನಾಯ");
+    expect(report.protection.activeTransitAfflictions.length).toBeGreaterThan(0);
 
     // Pillar 5: 10-Year Milestones (2026-2036)
     expect(report.milestones.length).toBe(10);
@@ -82,7 +94,7 @@ describe("BhagyodayaEngine", () => {
     expect(report.wealth.wealthVerdict).toContain("Ascendant");
     expect(report.milestones.length).toBe(10);
     expect(report.milestones[0].ratingLabel).toMatch(/Golden|Steady|Vigilance/);
-    expect(report.karmaBlueprint.fiveMinuteMorningRoutine.facingDirection).toContain("East");
+    expect(report.karmaBlueprint.fiveMinuteMorningRoutine.facingDirection).toMatch(/East|North|West|South/);
   });
 
   it("yields distinct, personalized reports and milestone timelines for different people", () => {
@@ -99,6 +111,21 @@ describe("BhagyodayaEngine", () => {
 
     expect(reportA.templeBlessing.specialSankalpaMantra).toContain("ವಸಿಷ್ಠ");
     expect(reportB.templeBlessing.specialSankalpaMantra).toContain("ವಿಶ್ವಾಮಿತ್ರ");
+
+    // Classical Bhagyodaya Maturation differences
+    expect(reportA.bhagyodaya.primaryAge).toBeGreaterThan(0);
+    expect(reportB.bhagyodaya.primaryAge).toBeGreaterThan(0);
+
+    // 100% Dynamic Direction differences
+    expect(reportA.wealth.optimalWealthDirection).not.toBe(reportB.wealth.optimalWealthDirection);
+    expect(reportA.relationship.spouseDirection).not.toBe(reportB.relationship.spouseDirection);
+
+    // 100% Dynamic Characteristics & Organs differences
+    expect(reportA.relationship.spouseCharacteristics).not.toBe(reportB.relationship.spouseCharacteristics);
+    expect(reportA.health.vulnerableOrgans).not.toEqual(reportB.health.vulnerableOrgans);
+
+    // 100% Dynamic Favorable Months differences
+    expect(reportA.milestones[0].favorableMonths).not.toEqual(reportB.milestones[0].favorableMonths);
 
     // Milestones must be distinct based on their differing age and running Dasha-Bhukti
     expect(reportA.milestones[0].age).not.toBe(reportB.milestones[0].age);
