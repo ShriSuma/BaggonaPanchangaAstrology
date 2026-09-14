@@ -77,28 +77,41 @@ export default function KundliPage(): JSX.Element {
   const [remedyPdfLanguage, setRemedyPdfLanguage] = useState<string>(i18n.language || "kn");
   const [isGeneratingRemedyPdf, setIsGeneratingRemedyPdf] = useState(false);
   const [isTranslating, setIsTranslating] = useState(false);
+  const initialSession = useKundliViewerStore.getState().session;
+  const initialDraft = useKundliViewerStore.getState().draftInput;
+
   const [dynamicValues, setDynamicValues] = useState<Record<string, string>>({});
   const [isGeneratingDashaPdf, setIsGeneratingDashaPdf] = useState(false);
-  const [includePriestCalendar, setIncludePriestCalendar] = useState(false);
-  const [form, setForm] = useState<KundliInput>({
-    name: "",
-    birthDate: "",
-    birthTime: "",
-    latitude: defaultLat,
-    longitude: defaultLng,
-    gothra: "",
-    gender: "Male",
-    pincode: pincodeStore || undefined
+  const [includePriestCalendar, setIncludePriestCalendar] = useState<boolean>(
+    () => initialSession?.includePriestCalendar ?? initialDraft?.includePriestCalendar ?? false
+  );
+  const [form, setForm] = useState<KundliInput>(() => {
+    if (initialSession) return initialSession.input;
+    if (initialDraft?.input) return initialDraft.input;
+    return {
+      name: "",
+      birthDate: "",
+      birthTime: "",
+      latitude: defaultLat,
+      longitude: defaultLng,
+      gothra: "",
+      gender: "Male",
+      pincode: pincodeStore || undefined
+    };
   });
-  const [result, setResult] = useState<KundliOutput | null>(null);
-  const [dailyPrediction, setDailyPrediction] = useState<string>("");
-  const [dasha, setDasha] = useState<DashaEntry[]>([]);
+  const [result, setResult] = useState<KundliOutput | null>(() => initialSession?.result ?? null);
+  const [dailyPrediction, setDailyPrediction] = useState<string>(() => initialSession?.dailyPrediction ?? "");
+  const [dasha, setDasha] = useState<DashaEntry[]>(() => initialSession?.dasha ?? []);
   const [error, setError] = useState("");
   const [savedId, setSavedId] = useState("");
-  const [birthDatePicker, setBirthDatePicker] = useState<Date | null>(null);
-  const [birthTimeHm, setBirthTimeHm] = useState("");
-  const [locationCore, setLocationCore] = useState<string>(placeLabelStore);
-  const [homePlaceName, setHomePlaceName] = useState("");
+  const [birthDatePicker, setBirthDatePicker] = useState<Date | null>(() => {
+    if (initialSession?.birthDateYmd) return parseYmdToDate(initialSession.birthDateYmd);
+    if (initialDraft?.birthDateYmd) return parseYmdToDate(initialDraft.birthDateYmd);
+    return null;
+  });
+  const [birthTimeHm, setBirthTimeHm] = useState<string>(() => initialSession?.birthTimeHm ?? initialDraft?.birthTimeHm ?? "");
+  const [locationCore, setLocationCore] = useState<string>(() => initialSession?.placeLabel ?? initialDraft?.placeLabel ?? placeLabelStore);
+  const [homePlaceName, setHomePlaceName] = useState<string>(() => initialSession?.homePlaceName ?? initialDraft?.homePlaceName ?? "");
   const [mapOpen, setMapOpen] = useState(false);
   const [narrative, setNarrative] = useState("");
   const [narrativeLoading, setNarrativeLoading] = useState(false);
@@ -117,9 +130,9 @@ export default function KundliPage(): JSX.Element {
   const [pinResolving, setPinResolving] = useState(false);
   const pinResolveGen = useRef(0);
   const [locationEpoch, setLocationEpoch] = useState(0);
-  const lastResolvedPinRef = useRef<string>(kundliSession?.input?.pincode || "");
+  const lastResolvedPinRef = useRef<string>(kundliSession?.input?.pincode || initialDraft?.input?.pincode || "");
 
-  /** When PIN changes, resolve village + lat/lng immediately (not only via dropdown). */
+  /** When PIN changes, resolve village + lat/lng immediately without wiping form fields or resetting chart. */
   useEffect(() => {
     const pin = form.pincode?.trim() ?? "";
     if (!/^[1-9]\d{5}$/.test(pin)) {
@@ -146,7 +159,6 @@ export default function KundliPage(): JSX.Element {
               pincode: "581326"
             }));
             setLocationCore(fallbackCore);
-            setResult(null);
             lastResolvedPinRef.current = "581326";
             void setDefaultLocation(
               14.5479,
@@ -167,7 +179,6 @@ export default function KundliPage(): JSX.Element {
           pincode: place.pincode
         }));
         setLocationCore(core);
-        setResult(null);
         lastResolvedPinRef.current = place.pincode;
         void setDefaultLocation(
           place.lat,
@@ -187,7 +198,6 @@ export default function KundliPage(): JSX.Element {
             pincode: "581326"
           }));
           setLocationCore(fallbackCore);
-          setResult(null);
           lastResolvedPinRef.current = "581326";
           void setDefaultLocation(
             14.5479,
@@ -212,7 +222,7 @@ export default function KundliPage(): JSX.Element {
     return t("kundli.birthTimeLocal");
   }, [form.pincode, form.latitude, form.longitude, t]);
 
-  /** Restore chart from in-memory session when returning to this tab. */
+  /** Restore chart from session/draft when store changes (e.g. returning to tab or sub-module navigation). */
   useEffect(() => {
     if (kundliSession) {
       lastResolvedPinRef.current = kundliSession.input.pincode || "";
@@ -225,6 +235,9 @@ export default function KundliPage(): JSX.Element {
       setLocationCore(kundliSession.placeLabel);
       setDasha(kundliSession.dasha);
       setDailyPrediction(kundliSession.dailyPrediction);
+      if (kundliSession.includePriestCalendar !== undefined) {
+        setIncludePriestCalendar(kundliSession.includePriestCalendar);
+      }
     } else if (draftInput) {
       if (draftInput.input) {
         lastResolvedPinRef.current = draftInput.input.pincode || "";
@@ -237,26 +250,26 @@ export default function KundliPage(): JSX.Element {
       if (draftInput.birthTimeHm) setBirthTimeHm(draftInput.birthTimeHm);
       if (draftInput.homePlaceName) setHomePlaceName(draftInput.homePlaceName);
       if (draftInput.placeLabel) setLocationCore(draftInput.placeLabel);
-    } else {
-      setResult(null);
-      setForm({
-        name: "",
-        birthDate: "",
-        birthTime: "",
-        latitude: defaultLat,
-        longitude: defaultLng,
-        gothra: "",
-        gender: "Male",
-        pincode: pincodeStore || undefined
-      });
-      setBirthDatePicker(null);
-      setBirthTimeHm("");
-      setHomePlaceName("");
-      setLocationCore(placeLabelStore);
-      setDasha([]);
-      setDailyPrediction("");
+      if (draftInput.includePriestCalendar !== undefined) {
+        setIncludePriestCalendar(draftInput.includePriestCalendar);
+      }
     }
-  }, [kundliSession, draftInput, defaultLat, defaultLng, pincodeStore, placeLabelStore]);
+  }, [kundliSession, draftInput]);
+
+  /** Persist draft inputs so unexpected browser refresh or incoming phone call doesn't wipe in-progress form inputs. */
+  useEffect(() => {
+    if (result) return;
+    const ymd = birthDatePicker ? formatPickerDateLocalYmd(birthDatePicker) : "";
+    if (!form.name && !ymd && !birthTimeHm && !form.pincode) return;
+    useKundliViewerStore.getState().setDraftInput({
+      input: form,
+      birthDateYmd: ymd,
+      birthTimeHm,
+      homePlaceName,
+      placeLabel: locationCore,
+      includePriestCalendar
+    });
+  }, [result, form, birthDatePicker, birthTimeHm, homePlaceName, locationCore, includePriestCalendar]);
 
   const [dictatingField, setDictatingField] = useState<"name" | "gothra" | "date" | "time" | null>(null);
   const startDictation = (field: "name" | "gothra" | "date" | "time") => {
@@ -384,17 +397,13 @@ export default function KundliPage(): JSX.Element {
     recognition.start();
   };
 
-  /** Sync default place from settings when no active chart session (skip while PIN is resolving). */
+  /** Sync default place from settings when no active chart session (skip while PIN is resolving or if user entered a PIN). */
   useEffect(() => {
     if (kundliSession || pinResolving) return;
     const pin = form.pincode?.trim() ?? "";
-    if (/^[1-9]\d{5}$/.test(pin)) return;
-    setForm((f) => ({
-      ...f,
-      latitude: defaultLat,
-      longitude: defaultLng
-    }));
-    setLocationCore(placeLabelStore);
+    if (pin.length > 0) return;
+    if (form.latitude !== defaultLat || form.longitude !== defaultLng) return;
+    setLocationCore((prev) => (prev ? prev : placeLabelStore));
   }, [kundliSession, pinResolving, form.pincode, defaultLat, defaultLng, placeLabelStore]);
 
   const onGenerate = async () => {
@@ -691,7 +700,10 @@ export default function KundliPage(): JSX.Element {
                 placeholder={t("kundli.name")}
                 className="w-full min-h-11 rounded-xl border border-slate-200 bg-white px-3 py-2 text-indigo-950 shadow-sm"
                 value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setForm((f) => ({ ...f, name: v }));
+                }}
               />
             </div>
             
@@ -711,7 +723,10 @@ export default function KundliPage(): JSX.Element {
                 aria-label={t("kundli.gothra")}
                 className="w-full jk-touch-input min-h-[3rem] rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-base text-indigo-950 shadow-sm"
                 value={form.gothra ?? ""}
-                onChange={(e) => setForm({ ...form, gothra: e.target.value })}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setForm((f) => ({ ...f, gothra: v }));
+                }}
               >
                 <option value="">{t("kundli.gotraNone")}</option>
                 {GOTRA_OPTIONS.map((id) => (
@@ -724,11 +739,11 @@ export default function KundliPage(): JSX.Element {
             <div className="md:col-span-2 flex gap-4 items-center">
               <label className="text-sm font-semibold text-indigo-950 mr-2">{t("kundli.gender", "Gender")}:</label>
               <label className="flex items-center gap-2 cursor-pointer">
-                <input type="radio" name="gender" value="Male" checked={form.gender === "Male"} onChange={() => setForm({ ...form, gender: "Male" })} className="text-indigo-600 focus:ring-indigo-500 w-4 h-4" />
+                <input type="radio" name="gender" value="Male" checked={form.gender === "Male"} onChange={() => setForm((f) => ({ ...f, gender: "Male" }))} className="text-indigo-600 focus:ring-indigo-500 w-4 h-4" />
                 <span className="text-sm text-slate-700">{t("gender.male", "Male")}</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
-                <input type="radio" name="gender" value="Female" checked={form.gender === "Female"} onChange={() => setForm({ ...form, gender: "Female" })} className="text-indigo-600 focus:ring-indigo-500 w-4 h-4" />
+                <input type="radio" name="gender" value="Female" checked={form.gender === "Female"} onChange={() => setForm((f) => ({ ...f, gender: "Female" }))} className="text-indigo-600 focus:ring-indigo-500 w-4 h-4" />
                 <span className="text-sm text-slate-700">{t("gender.female", "Female")}</span>
               </label>
             </div>
@@ -771,7 +786,7 @@ export default function KundliPage(): JSX.Element {
               value={form.pincode ?? ""}
               onChange={(e) => {
                 const v = e.target.value.replace(/\D/g, "").slice(0, 6);
-                setForm({ ...form, pincode: v.length ? v : undefined });
+                setForm((f) => ({ ...f, pincode: v.length ? v : undefined }));
               }}
             />
             <div className="flex min-h-11 items-center rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm text-slate-800">
@@ -801,10 +816,9 @@ export default function KundliPage(): JSX.Element {
               key={`loc-${form.pincode ?? ""}-${locationEpoch}`}
               filterPincode={form.pincode && /^\d{6}$/.test(form.pincode) ? form.pincode : undefined}
               onChange={(location: SelectedLocation) => {
-                setForm({ ...form, latitude: location.lat, longitude: location.lng, pincode: location.pincode });
+                setForm((f) => ({ ...f, latitude: location.lat, longitude: location.lng, pincode: location.pincode }));
                 const core = `${location.villageName} (${location.pincode})`;
                 setLocationCore(core);
-                setResult(null);
                 pushPlaceToStore(location.lat, location.lng, core, location.pincode);
               }}
             />
@@ -864,36 +878,50 @@ export default function KundliPage(): JSX.Element {
           <div className="text-center sm:text-left">
             <h3 className="text-xl font-extrabold text-indigo-950 capitalize">{form.name}</h3>
             <p className="text-xs font-semibold text-slate-600 mt-1 uppercase tracking-wider">
-              {formatPickerDateLocalYmd(birthDatePicker)} • {birthTimeHm}
+              {birthDatePicker ? formatPickerDateLocalYmd(birthDatePicker) : ""} • {birthTimeHm}
             </p>
             <p className="text-[10px] text-slate-500 mt-0.5">{placeDisplay}</p>
           </div>
-          <button
-            type="button"
-            className="jk-btn rounded-xl bg-rose-500 hover:bg-rose-600 px-6 py-2.5 text-sm font-bold tracking-wide text-white shadow-md transition-all scale-100 active:scale-95"
-            onClick={() => {
-              clearKundliSession();
-              setResult(null);
-              setForm({
-                name: "",
-                birthDate: "",
-                birthTime: "",
-                latitude: defaultLat,
-                longitude: defaultLng,
-                gothra: "",
-                gender: "Male",
-                pincode: pincodeStore || undefined
-              });
-              setBirthDatePicker(null);
-              setBirthTimeHm("");
-              setHomePlaceName("");
-              setLocationCore(placeLabelStore);
-              setDasha([]);
-              setDailyPrediction("");
-            }}
-          >
-            {i18n.language.startsWith("kn") ? "ಮತ್ತೆ ಪರಿಶೀಲಿಸಿ (Edit)" : "Edit / Reset"}
-          </button>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <button
+              type="button"
+              className="jk-btn rounded-xl bg-amber-500 hover:bg-amber-600 px-5 py-2.5 text-xs md:text-sm font-bold tracking-wide text-neutral-950 shadow-md transition-all scale-100 active:scale-95 flex items-center gap-1.5"
+              onClick={() => {
+                useKundliViewerStore.getState().resetResult();
+                setResult(null);
+              }}
+            >
+              <span>✏️</span>
+              <span>{i18n.language.startsWith("kn") ? "ವಿವರ ತಿದ್ದಿ (Edit Details)" : "Edit Details"}</span>
+            </button>
+            <button
+              type="button"
+              className="jk-btn rounded-xl bg-rose-500 hover:bg-rose-600 px-5 py-2.5 text-xs md:text-sm font-bold tracking-wide text-white shadow-md transition-all scale-100 active:scale-95 flex items-center gap-1.5"
+              onClick={() => {
+                clearKundliSession();
+                setResult(null);
+                setForm({
+                  name: "",
+                  birthDate: "",
+                  birthTime: "",
+                  latitude: defaultLat,
+                  longitude: defaultLng,
+                  gothra: "",
+                  gender: "Male",
+                  pincode: pincodeStore || undefined
+                });
+                setBirthDatePicker(null);
+                setBirthTimeHm("");
+                setHomePlaceName("");
+                setLocationCore(placeLabelStore);
+                setDasha([]);
+                setDailyPrediction("");
+              }}
+            >
+              <span>🔄</span>
+              <span>{i18n.language.startsWith("kn") ? "ಹೊಸ ಜಾತಕ / ರಿಸೆಟ್ (New / Reset)" : "New Kundali / Reset"}</span>
+            </button>
+          </div>
         </div>
       )}
       {/* Buttons removed as per user request */}

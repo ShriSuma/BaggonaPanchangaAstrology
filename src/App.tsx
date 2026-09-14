@@ -163,6 +163,22 @@ export default function App(): JSX.Element {
   }, [isAuthenticated, isMasterOrSuperAdmin, wallet?.allowedModules, currentPage]);
 
   useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      const pageFromState = e.state?.page;
+      if (pageFromState) {
+        useAppStore.getState().setPage(pageFromState, true);
+      } else if (window.location.hash) {
+        const hashPage = window.location.hash.replace(/^#\/?/, "") as any;
+        if (hashPage) {
+          useAppStore.getState().setPage(hashPage, true);
+        }
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  useEffect(() => {
     const run = async () => {
       // Check for URL parameters (?reset=true or ?reset=false)
       if (typeof window !== "undefined") {

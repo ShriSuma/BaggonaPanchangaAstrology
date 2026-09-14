@@ -43,7 +43,7 @@ type AppState = {
   ayanamsaModel: AyanamsaModel;
   nodeType: NodeType;
   geminiApiKey: string;
-  setPage: (page: AppPage) => void;
+  setPage: (page: AppPage, skipHistory?: boolean) => void;
   setLanguage: (language: SupportedLanguage) => Promise<void>;
   setChartStyle: (style: "north" | "south") => Promise<void>;
   setConsentResolved: (value: boolean) => void;
@@ -79,7 +79,19 @@ export const useAppStore = create<AppState>()(
       ayanamsaModel: "lahiri",
       nodeType: "mean",
       geminiApiKey: "",
-      setPage: (page) => set({ currentPage: page }),
+      setPage: (page, skipHistory = false) => {
+        if (!skipHistory && typeof window !== "undefined" && window.history?.pushState) {
+          try {
+            const currentHash = window.location.hash.replace(/^#\/?/, "");
+            if (currentHash !== page) {
+              window.history.pushState({ page }, "", `#${page}`);
+            }
+          } catch {
+            /* ignore sandbox */
+          }
+        }
+        set({ currentPage: page });
+      },
       setLanguage: async (language) => {
         localStorage.setItem("i18nextLng", language);
         await i18n.changeLanguage(language);
