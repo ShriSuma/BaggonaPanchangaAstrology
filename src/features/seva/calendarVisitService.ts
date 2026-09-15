@@ -1192,4 +1192,99 @@ export async function toggleDevoteeSubscriptionLock(devoteeId: string, lockState
   }
 }
 
+export interface DarshanaVisitStreakInfo {
+  currentStreak: number;
+  highestStreak: number;
+  lastVisitDate: string;
+  isVisitedToday: boolean;
+  totalVisits: number;
+}
+
+const DARSHANA_VISIT_STREAK_KEY = "baggona_darshana_visit_streak";
+
+export function getDarshanaVisitStreak(devoteeKey = "devotee_default"): DarshanaVisitStreakInfo {
+  if (typeof window === "undefined") {
+    return {
+      currentStreak: 1,
+      highestStreak: 1,
+      lastVisitDate: "",
+      isVisitedToday: false,
+      totalVisits: 1
+    };
+  }
+
+  try {
+    const raw = localStorage.getItem(`${DARSHANA_VISIT_STREAK_KEY}_${devoteeKey}`);
+    if (!raw) {
+      return {
+        currentStreak: 1,
+        highestStreak: 1,
+        lastVisitDate: "",
+        isVisitedToday: false,
+        totalVisits: 1
+      };
+    }
+
+    const data = JSON.parse(raw);
+    const today = getIndianStandardDateStr();
+    const isVisitedToday = data.lastVisitDate === today;
+
+    let currentStreak = data.currentStreak || 1;
+    if (data.lastVisitDate) {
+      const lastDate = new Date(data.lastVisitDate);
+      const todayDate = new Date(today);
+      const diffTime = Math.abs(todayDate.getTime() - lastDate.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      if (diffDays > 1 && !isVisitedToday) {
+        currentStreak = 1; // streak reset
+      }
+    }
+
+    return {
+      currentStreak,
+      highestStreak: Math.max(data.highestStreak || 1, currentStreak),
+      lastVisitDate: data.lastVisitDate || "",
+      isVisitedToday,
+      totalVisits: data.totalVisits || 1
+    };
+  } catch {
+    return {
+      currentStreak: 1,
+      highestStreak: 1,
+      lastVisitDate: "",
+      isVisitedToday: false,
+      totalVisits: 1
+    };
+  }
+}
+
+export function recordDarshanaVisitStreak(devoteeKey = "devotee_default"): DarshanaVisitStreakInfo {
+  const current = getDarshanaVisitStreak(devoteeKey);
+  const today = getIndianStandardDateStr();
+
+  if (current.isVisitedToday) {
+    return current;
+  }
+
+  const newStreak = (current.lastVisitDate && current.currentStreak) ? current.currentStreak + 1 : 1;
+  const newTotal = (current.totalVisits || 0) + 1;
+  const highestStreak = Math.max(current.highestStreak || 1, newStreak);
+
+  const updated: DarshanaVisitStreakInfo = {
+    currentStreak: newStreak,
+    highestStreak,
+    lastVisitDate: today,
+    isVisitedToday: true,
+    totalVisits: newTotal
+  };
+
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.setItem(`${DARSHANA_VISIT_STREAK_KEY}_${devoteeKey}`, JSON.stringify(updated));
+    } catch {}
+  }
+
+  return updated;
+}
+
 

@@ -50,7 +50,7 @@ import {
   buildDeterministicPriestBenediction,
   getDevoteeSalutation
 } from "./sevaPriestNarrativeEngine";
-import { encodeDevoteeToken } from "../../utils/tokenCipher";
+import { encodeDevoteeToken, encodeDateOnlyDevoteeToken } from "../../utils/tokenCipher";
 import { siderealLongitudes } from "../../core/EphemerisEngine";
 import { normalizeDegree } from "../../core/AstroMath";
 
@@ -414,32 +414,89 @@ export function getTaraBalaInfo(taraNum: number, lang: string): string {
 
 export function getChandraBalaInfo(house: number, isChandrashtama: boolean, lang: string): string {
   const code = (lang || "en").slice(0, 2);
-  if (isChandrashtama) {
-    if (code === "kn") return "8ನೇ ಮನೆ - 🔴 ಚಂದ್ರಾಷ್ಟಮ (ವಿಶ್ರಾಂತಿ & ದೈವ ಪ್ರಾರ್ಥನೆಗೆ ಸೂಕ್ತ)";
-    if (code === "hi") return "8वां भाव - 🔴 चंद्राष्टम (विश्राम व देव प्रार्थना हेतु उत्तम)";
-    if (code === "te") return "8వ ఇల్లు - 🔴 చంద్రాష్టమం (విశ్రాంతి & దైవ ప్రార్థనకు అనుకూలం)";
-    if (code === "ta") return "8ஆம் இடம் - 🔴 சந்திராஷ்டமம் (ஓய்வு & இறை பிரார்த்தனைக்கு நல்லது)";
-    return "8th House - 🔴 CHANDRASHTAMA (Ideal for rest & prayer)";
+
+  if (isChandrashtama || house === 8) {
+    if (code === "kn") return "8ನೇ ಮನೆ - 🔴 ಚಂದ್ರಾಷ್ಟಮ: ದೊಡ್ಡ ಹೂಡಿಕೆ & ವಾದ-ವಿವಾದ ತಪ್ಪಿಸಿ; ವಿಶ್ರಾಂತಿ ಹಾಗೂ ಶಿವನಾಮ ಜಪಿಸಿ.";
+    if (code === "hi") return "8वां भाव - 🔴 चंद्राष्टम: बड़े आर्थिक जोखिम व विवादों से बचें; विश्राम व शिव आराधना करें।";
+    if (code === "te") return "8వ ఇల్లు - 🔴 చంద్రాష్టమం: పెద్ద పెట్టుబడులు, వివాదాలు నివారించండి; ప్రశాంతంగా ఉంటూ శివారాధన చేయండి.";
+    if (code === "ta") return "8ஆம் இடம் - 🔴 சந்திராஷ்டமம்: பெரிய முதலீடுகளைத் தவிர்க்கவும்; சிவநாம ஜெபம் நல்லது.";
+    return "8th House - 🔴 CHANDRASHTAMA: Avoid risky stakes or arguments; focus on rest & prayer.";
   }
-  if (house === 11) {
-    if (code === "kn") return "11ನೇ ಮನೆ - 🟢 ಲಾಭ ಸ್ಥಾನ (ಅತ್ಯುತ್ತಮ ಧನ ಲಾಭ)";
-    if (code === "hi") return "11वां भाव - 🟢 लाभ स्थान (उत्तम धन लाभ)";
-    if (code === "te") return "11వ ఇల్లు - 🟢 లాభ స్థానం (అత్యుత్తమ ధన ప్రాప్తి)";
-    if (code === "ta") return "11ஆம் இடம் - 🟢 லாப ஸ்தானம் (தன லாபம்)";
-    return "11th House - 🟢 LABHA STHANA (High Gains)";
+
+  switch (house) {
+    case 1:
+      if (code === "kn") return "1ನೇ ಮನೆ - 🟢 ತನು ಸ್ಥಾನ: ಆತ್ಮವಿಶ್ವಾಸ, ಹೊಸ ಚಿಂತನೆ & ವೈಯಕ್ತಿಕ ಕಾರ್ಯಾರಂಭಕ್ಕೆ ಪ್ರಶಸ್ತ ದಿನ.";
+      if (code === "hi") return "1वां भाव - 🟢 तनु भाव: आत्मविश्वास, नई ऊर्जा एवं व्यक्तिगत कार्यों हेतु उत्तम दिन।";
+      if (code === "te") return "1వ ఇల్లు - 🟢 తను స్థానం: ఆత్మవిశ్వాసం, నూతన ఉత్సాహం & వ్యక్తిగత పనులకు అనుకూలం.";
+      if (code === "ta") return "1ஆம் இடம் - 🟢 தனு ஸ்தானம்: தன்னம்பிக்கை, புதிய உற்சாகம் & சுப தொடக்கத்திற்கு நன்று.";
+      return "1st House - 🟢 TANU STHANA: High vitality, confidence & ideal for personal initiatives.";
+    case 2:
+      if (code === "kn") return "2ನೇ ಮನೆ - 🟢 ಧನ ಸ್ಥಾನ: ಧನಾಗಮನ, ಕುಟುಂಬ ಸೌಖ್ಯ, ಹೂಡಿಕೆ & ಆರ್ಥಿಕ ಮಾತುಕತೆಗೆ ಶುಭ.";
+      if (code === "hi") return "2वां भाव - 🟢 धन भाव: धन आगमन, पारिवारिक सौहार्द एवं वित्तीय वार्ता हेतु शुभ।";
+      if (code === "te") return "2వ ఇల్లు - 🟢 ధన స్థానం: ధన లాభం, కుటుంబ సంతోషం & ఆర్థిక ఒప్పందాలకు శుభం.";
+      if (code === "ta") return "2ஆம் இடம் - 🟢 தன ஸ்தானம்: தன வரவு, குடும்ப மகிழ்ச்சி & நிதி பேச்சுவார்த்தைக்கு உகந்தது.";
+      return "2nd House - 🟢 DHANA STHANA: Wealth inflow, financial negotiations & family harmony.";
+    case 3:
+      if (code === "kn") return "3ನೇ ಮನೆ - 🟢 ಭ್ರಾತೃ ಸ್ಥಾನ: ಧೈರ್ಯ, ಸೋದರ ಸಹಕಾರ, ಕಿರು ಪ್ರಯಾಣ & ಸಂವಹನದಲ್ಲಿ ಯಶಸ್ಸು.";
+      if (code === "hi") return "3वां भाव - 🟢 भ्रातृ भाव: पराक्रम, भाई-बहनों का सहयोग, यात्रा व संवाद में सफलता।";
+      if (code === "te") return "3వ ఇల్లు - 🟢 భ్రాతృ స్థానం: ధైర్యం, తోబుట్టువుల సహకారం & ప్రయాణ విజయాలు.";
+      if (code === "ta") return "3ஆம் இடம் - 🟢 பிராத்ரு ஸ்தானம்: தைரியம், சகோதர ஆதரவு & பயண வெற்றி.";
+      return "3rd House - 🟢 BHRATRU STHANA: Courage, communication success & short journey triumphs.";
+    case 4:
+      if (code === "kn") return "4ನೇ ಮನೆ - 🟡 ಮಾತೃ ಸ್ಥಾನ: ಗೃಹ ಶಾಂತಿ, ವಾಹನ ಸೌಖ್ಯ, ತಾಯಿಯ ಆಶೀರ್ವಾದ; ನಿರ್ಧಾರದಲ್ಲಿ ತಾಳ್ಮೆ ಇರಲಿ.";
+      if (code === "hi") return "4वां भाव - 🟡 मातृ भाव: गृह सुख, वाहन लाभ, माता का आशीर्वाद; धैर्य बनाए रखें।";
+      if (code === "te") return "4వ ఇల్లు - 🟡 మాతృ స్థానం: గృహ శాంతి, వాహన సౌఖ్యం; తొందరపాటు నిర్ణయాలు వద్దు.";
+      if (code === "ta") return "4ஆம் இடம் - 🟡 மாத்ரு ஸ்தானம்: இல்ல அமைதி, வாகன சுகம்; நிதானம் தேவை.";
+      return "4th House - 🟡 MATRU STHANA: Domestic peace, vehicular comfort & maternal blessings.";
+    case 5:
+      if (code === "kn") return "5ನೇ ಮನೆ - 🟢 ಜ್ಞಾನ/ಸಂತಾನ ಸ್ಥಾನ: ಬುದ್ಧಿ ವಿಕಾಸ, ಸೃಜನಶೀಲತೆ, ಮಕ್ಕಳಿಂದ ಶುಭ ವಾರ್ತೆ & ಸಂತೋಷ.";
+      if (code === "hi") return "5वां भाव - 🟢 संतान/ज्ञान भाव: बौद्धिक विकास, रचनात्मकता एवं संतान सुख।";
+      if (code === "te") return "5వ ఇల్లు - 🟢 పుత్ర/జ్ఞాన స్థానం: మేధో వికాసం, సృజనాత్మకత & శుభవార్తలు.";
+      if (code === "ta") return "5ஆம் இடம் - 🟢 புத்திர/ஞான ஸ்தானம்: அறிவு வளர்ச்சி, படைப்பாற்றல் & சுப செய்தி.";
+      return "5th House - 🟢 JNANA STHANA: Intellect, creative breakthroughs & family joy.";
+    case 6:
+      if (code === "kn") return "6ನೇ ಮನೆ - 🟢 ಶತ್ರು ಜಯ ಸ್ಥಾನ: ಸಾಲ/ಆರೋಗ್ಯ ಸಮಸ್ಯೆ ಶಮನ, ಸ್ಪರ್ಧಾ ಜಯ & ಕಾರ್ಯ ಸಿದ್ಧಿ.";
+      if (code === "hi") return "6वां भाव - 🟢 शत्रु जय भाव: रोग-ऋण मुक्ति, प्रतिस्पर्धा में विजय एवं कार्य सिद्धि।";
+      if (code === "te") return "6వ ఇల్లు - 🟢 శత్రు జయ స్థానం: రుణ విముక్తి, పోటీల్లో విజయం & ఆరోగ్య లాభం.";
+      if (code === "ta") return "6ஆம் இடம் - 🟢 சத்ரு ஜெய ஸ்தானம்: நோய்-கடன் நிவர்த்தி, போட்டி வெற்றி & காரிய சித்தி.";
+      return "6th House - 🟢 SHATRU JAYA: Overcoming obstacles, debt relief & competitive success.";
+    case 7:
+      if (code === "kn") return "7ನೇ ಮನೆ - 🟢 ಕಳತ್ರ ಸ್ಥಾನ: ವ್ಯಾಪಾರ ಪಾಲುದಾರಿಕೆ, ಸಾರ್ವಜನಿಕ ಸಹಕಾರ & ದಾಂಪತ್ಯ ಪ್ರೀತಿ.";
+      if (code === "hi") return "7वां भाव - 🟢 कलत्र भाव: व्यापार साझेदारी, जनसमर्थन एवं दांपत्य सुख।";
+      if (code === "te") return "7వ ఇల్లు - 🟢 కళత్ర స్థానం: వ్యాపార భాగస్వామ్యం, ప్రజా మద్దతు & దాంపత్య సుఖం.";
+      if (code === "ta") return "7ஆம் இடம் - 🟢 களத்திர ஸ்தானம்: தொழில் கூட்டாண்மை & தாம்பத்திய மகிழ்ச்சி.";
+      return "7th House - 🟢 KALATRA STHANA: Business partnerships, public goodwill & marital bliss.";
+    case 9:
+      if (code === "kn") return "9ನೇ ಮನೆ - 🟢 ಭಾಗ್ಯ ಸ್ಥಾನ: ತಂದೆ/ಗುರುಗಳ ಕೃಪೆ, ಧಾರ್ಮಿಕ ಕಾರ್ಯ, ದೂರ ಪ್ರಯಾಣ & ಭಾಗ್ಯೋದಯ.";
+      if (code === "hi") return "9वां भाव - 🟢 भाग्य भाव: गुरु-पिता का आशीर्वाद, धार्मिक कार्य एवं भाग्योदय।";
+      if (code === "te") return "9వ ఇల్లు - 🟢 భాగ్య స్థానం: గురువుల ఆశీస్సులు, పుణ్య కార్యాలు & భాగ్యోదయం.";
+      if (code === "ta") return "9ஆம் இடம் - 🟢 பாக்ய ஸ்தானம்: தந்தை-குரு ஆசி, தர்ம காரியம் & பாக்யோதயம்.";
+      return "9th House - 🟢 BHAGYA STHANA: Fortune rises, father/guru blessings & spiritual travel.";
+    case 10:
+      if (code === "kn") return "10ನೇ ಮನೆ - 🟢 ಕರ್ಮ ಸ್ಥಾನ: ವೃತ್ತಿರಂಗದಲ್ಲಿ ಗೌರವ, ಉನ್ನತ ಅಧಿಕಾರಿಗಳ ಪ್ರಶಂಸೆ & ಅಧಿಕಾರ ಸಿದ್ಧಿ.";
+      if (code === "hi") return "10वां भाव - 🟢 कर्म भाव: कार्यक्षेत्र में मान-सम्मान, पदोन्नति एवं प्रशासनिक सफलता।";
+      if (code === "te") return "10వ ఇల్లు - 🟢 కర్మ స్థానం: ఉద్యోగంలో గౌరవం, అధికారుల ప్రశంస & పదోన్నతి.";
+      if (code === "ta") return "10ஆம் இடம் - 🟢 கர்ம ஸ்தானம்: தொழில் மேன்மை, அதிகாரிகளின் ஆதரவு & வெற்றி.";
+      return "10th House - 🟢 KARMA STHANA: Career recognition, executive authority & professional growth.";
+    case 11:
+      if (code === "kn") return "11ನೇ ಮನೆ - 🟢 ಲಾಭ ಸ್ಥಾನ: ಅತ್ಯುತ್ತಮ ಧನ ಲಾಭ, ಬಾಕಿ ಹಣ ವಸೂಲಾತಿ, ಮಿತ್ರರ ನೆರವು & ಕಾರ್ಯ ಜಯ.";
+      if (code === "hi") return "11वां भाव - 🟢 लाभ स्थान: उत्तम धन लाभ, बकाया वसूली, मित्रों का सहयोग व विजय।";
+      if (code === "te") return "11వ ఇల్లు - 🟢 లాభ స్థానం: అత్యుత్తమ ధన ప్రాప్తి, బకాయిల వసూలు & మిత్రుల సహాయం.";
+      if (code === "ta") return "11ஆம் இடம் - 🟢 லாப ஸ்தானம்: சிறந்த தன லாபம், நிலுவைத் தொகை வரவு & வெற்றி.";
+      return "11th House - 🟢 LABHA STHANA: Maximum financial gains, debt recovery & networking success.";
+    case 12:
+      if (code === "kn") return "12ನೇ ಮನೆ - 🟡 ವ್ಯಯ ಸ್ಥಾನ: ಶುಭ ವೆಚ್ಚಗಳು, ದಾನ-ಧರ್ಮ, ಆಧ್ಯಾತ್ಮಿಕ ಚಿಂತನೆ; ಖರ್ಚಿನಲ್ಲಿ ಮಿತಿ ಇರಲಿ.";
+      if (code === "hi") return "12वां भाव - 🟡 व्यय भाव: मांगलिक खर्च, दान-पुण्य एवं आध्यात्मिक चिंतन; व्यय नियंत्रित रखें।";
+      if (code === "te") return "12వ ఇల్లు - 🟡 వ్యయ స్థానం: శుభ ఖర్చులు, దానధర్మాలు; వ్యయాన్ని నియంత్రించండి.";
+      if (code === "ta") return "12ஆம் இடம் - 🟡 விரய ஸ்தானம்: சுப செலவுகள், தான தர்மம்; செலவுகளை கட்டுப்படுத்தவும்.";
+      return "12th House - 🟡 VYAYA STHANA: Auspicious expenditures, charity & introspective peace.";
+    default:
+      if (code === "kn") return `${house}ನೇ ಮನೆ - 🟡 ಸಾಮಾನ್ಯ ಚಂದ್ರಬಲ: ದೈನಂದಿನ ವಾಡಿಕೆಯ ಕಾರ್ಯಗಳಿಗೆ ಸೂಕ್ತ.`;
+      if (code === "hi") return `${house}वां भाव - 🟡 सामान्य चंद्रबल: दैनिक सामान्य कार्यों हेतु उपयुक्त।`;
+      if (code === "te") return `${house}వ ఇల్లు - 🟡 సాధారణ చంద్రబలం: సాధారణ పనులకు అనుకూలం.`;
+      if (code === "ta") return `${house}ஆம் இடம் - 🟡 சாதாரண சந்திரபலம்: அன்றாட பணிகளை தொடரவும்.`;
+      return `${house}th House - 🟡 Moderate Chandra Bala: Suitable for routine activities.`;
   }
-  if (house === 9 || house === 10 || house === 3 || house === 6) {
-    if (code === "kn") return `${house}ನೇ ಮನೆ - 🟢 ಶುಭ ಚಂದ್ರಬಲ`;
-    if (code === "hi") return `${house}वां भाव - 🟢 शुभ चंद्रबल`;
-    if (code === "te") return `${house}వ ఇల్లు - 🟢 శుభ చంద్రబలం`;
-    if (code === "ta") return `${house}ஆம் இடம் - 🟢 சுப சந்திரபலம்`;
-    return `${house}th House - 🟢 Auspicious Chandra Bala`;
-  }
-  if (code === "kn") return `${house}ನೇ ಮನೆ - 🟡 ಸಾಮಾನ್ಯ ಚಂದ್ರಬಲ`;
-  if (code === "hi") return `${house}वां भाव - 🟡 सामान्य चंद्रबल`;
-  if (code === "te") return `${house}వ ಇల్లు - 🟡 సాధారణ చంద్రబలం`;
-  if (code === "ta") return `${house}ஆம் இடம் - 🟡 சாதாரண சந்திரபலம்`;
-  return `${house}th House - 🟡 Moderate Chandra Bala`;
 }
 
 /**
@@ -1007,7 +1064,10 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
   const birthNakIdx = birthNakshatraIndex ?? (days[0] as any)?.janmaNakshatraIndex ?? (dob ? resolvedBirth.nakshatraIndex : undefined) ?? days[0]?.moonNakshatraIndex ?? resolvedBirth.nakshatraIndex ?? 18;
   const birthRashiIdx = birthRashiIndex ?? (days[0] as any)?.janmaRashiIndex ?? (dob ? resolvedBirth.rashiIndex : undefined) ?? days[0]?.moonRashiIndex ?? resolvedBirth.rashiIndex ?? 8;
 
-  const baseToken = encodeDevoteeToken({
+  const isDateOnlyMode = Boolean((options as any).isDateOnly || (!resolvedTob && Boolean(resolvedDob)));
+  const tokenEncoder = isDateOnlyMode ? encodeDateOnlyDevoteeToken : encodeDevoteeToken;
+
+  const baseToken = tokenEncoder({
     n: devoteeDisplayName,
     nk: birthNakIdx,
     r: birthRashiIdx,
@@ -1063,7 +1123,7 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
 
     const vibe = getEnergyMeterAndVibe(day, lang);
 
-    const dayToken = encodeDevoteeToken({
+    const dayToken = tokenEncoder({
       n: devoteeDisplayName,
       nk: birthNakIdx,
       r: birthRashiIdx,

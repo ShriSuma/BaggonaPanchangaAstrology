@@ -60,9 +60,19 @@ export interface DevoteeTokenPayload {
   vid?: string;
   includePriestCalendar?: boolean;
   ipc?: boolean | number;
+  shraddhaTithi?: string;
+  st?: string;
+  isDateOnly?: boolean;
+  mode?: "date_only" | "standard";
+  priestPhone?: string;
+  pp?: string;
+  priestWhatsApp?: string;
+  pw?: string;
+  priestName?: string;
 }
 
-const TOKEN_PREFIX = "bgn_v1_";
+export const TOKEN_PREFIX = "bgn_v1_";
+export const DATE_ONLY_TOKEN_PREFIX = "bgn_dob_";
 
 /** Simple deterministic rolling hash for token integrity check */
 function computeChecksum(str: string): string {
@@ -148,6 +158,9 @@ export function encodeDevoteeToken(payload: DevoteeTokenPayload): string {
     const rawStartDate = payload.startDate ?? payload.sd ?? "";
     const rawOverrideContact = Boolean(payload.overrideCalendarPhone ?? payload.ocp);
     const rawVoiceId = payload.voiceId ?? payload.vid ?? "";
+    const rawShraddhaTithi = payload.shraddhaTithi ?? payload.st ?? "";
+    const rawPriestPhone = payload.priestPhone ?? payload.pp ?? "";
+    const rawPriestWhatsApp = payload.priestWhatsApp ?? payload.pw ?? "";
 
     const rawDays = payload.days !== undefined ? payload.days : payload.dy !== undefined ? payload.dy : 90;
 
@@ -174,7 +187,10 @@ export function encodeDevoteeToken(payload: DevoteeTokenPayload): string {
       ...(rawEmail ? { em: rawEmail } : {}),
       ...(rawStartDate ? { sd: rawStartDate } : {}),
       ...(rawOverrideContact ? { ocp: 1 } : {}),
-      ...(rawVoiceId ? { vid: rawVoiceId } : {})
+      ...(rawVoiceId ? { vid: rawVoiceId } : {}),
+      ...(rawShraddhaTithi ? { st: rawShraddhaTithi } : {}),
+      ...(rawPriestPhone ? { pp: rawPriestPhone } : {}),
+      ...(rawPriestWhatsApp ? { pw: rawPriestWhatsApp } : {})
     };
 
     const jsonStr = JSON.stringify(compactObj);
@@ -188,7 +204,94 @@ export function encodeDevoteeToken(payload: DevoteeTokenPayload): string {
 }
 
 /**
- * Decodes and validates a devotee token.
+ * Encodes a devotee payload into a dedicated Date-Of-Birth-Only URL token (bgn_dob_...).
+ * Strictly isolated from standard bgn_v1_ tokens.
+ */
+export function encodeDateOnlyDevoteeToken(payload: DevoteeTokenPayload): string {
+  try {
+    const rawName = payload.name ?? payload.n ?? "";
+    const rawNak = payload.nakshatra !== undefined ? payload.nakshatra : payload.nk !== undefined ? payload.nk : -1;
+    const rawRashi = payload.rashi !== undefined ? payload.rashi : payload.r !== undefined ? payload.r : -1;
+    const rawGotra = payload.gotra ?? payload.g ?? "";
+    const rawPandit = payload.pandit ?? payload.p ?? "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್";
+    const rawDate = payload.date ?? payload.d ?? getIndianStandardDateStr(new Date());
+    const rawLang = payload.lang ?? payload.l ?? "kn";
+    const rawTime = payload.time ?? payload.tm ?? "08:00";
+    const rawSeva = payload.sevaType ?? payload.s ?? "";
+    const rawPlatform = payload.platform ?? payload.pl ?? "android";
+    const rawTarget = payload.target ?? payload.t ?? "sanctum";
+    const rawPin = payload.pincode ?? payload.pc ?? "581326";
+    const rawLat = payload.lat ?? payload.lt ?? 14.54;
+    const rawLng = payload.lng ?? payload.lg ?? 74.31;
+    const rawLoc = payload.locationName ?? payload.loc ?? "Gokarna";
+    const rawDob = payload.dob ?? "";
+    const rawTob = payload.tob ?? "";
+    const rawPhone = payload.phone ?? payload.ph ?? "";
+    const rawEmail = payload.email ?? payload.em ?? "";
+    const rawStartDate = payload.startDate ?? payload.sd ?? "";
+    const rawOverrideContact = Boolean(payload.overrideCalendarPhone ?? payload.ocp);
+    const rawVoiceId = payload.voiceId ?? payload.vid ?? "";
+    const rawDays = payload.days !== undefined ? payload.days : payload.dy !== undefined ? payload.dy : 90;
+    const rawShraddhaTithi = payload.shraddhaTithi ?? payload.st ?? "";
+    const rawPriestPhone = payload.priestPhone ?? payload.pp ?? "";
+    const rawPriestWhatsApp = payload.priestWhatsApp ?? payload.pw ?? "";
+
+    const compactObj = {
+      n: rawName,
+      nk: rawNak,
+      r: rawRashi,
+      g: rawGotra,
+      p: rawPandit,
+      d: rawDate,
+      dy: rawDays,
+      l: rawLang,
+      tm: rawTime,
+      s: rawSeva,
+      pl: rawPlatform,
+      t: rawTarget,
+      pc: rawPin,
+      lt: rawLat,
+      lg: rawLng,
+      loc: rawLoc,
+      isDobOnly: 1,
+      ...(rawDob ? { dob: rawDob } : {}),
+      ...(rawTob ? { tob: rawTob } : {}),
+      ...(rawPhone ? { ph: rawPhone } : {}),
+      ...(rawEmail ? { em: rawEmail } : {}),
+      ...(rawStartDate ? { sd: rawStartDate } : {}),
+      ...(rawOverrideContact ? { ocp: 1 } : {}),
+      ...(rawVoiceId ? { vid: rawVoiceId } : {}),
+      ...(rawShraddhaTithi ? { st: rawShraddhaTithi } : {}),
+      ...(rawPriestPhone ? { pp: rawPriestPhone } : {}),
+      ...(rawPriestWhatsApp ? { pw: rawPriestWhatsApp } : {})
+    };
+
+    const jsonStr = JSON.stringify(compactObj);
+    const checksum = computeChecksum(jsonStr);
+    const rawPayload = `${checksum}.${jsonStr}`;
+    return `${DATE_ONLY_TOKEN_PREFIX}${toBase64Url(rawPayload)}`;
+  } catch (err) {
+    console.error("Failed to encode date-only devotee token:", err);
+    return "";
+  }
+}
+
+/**
+ * Checks whether a given token is a Date-of-Birth-Only token.
+ */
+export function isDateOnlyToken(token: string): boolean {
+  if (!token || typeof token !== "string") return false;
+  if (token.startsWith(DATE_ONLY_TOKEN_PREFIX)) return true;
+  try {
+    const decoded = decodeDevoteeToken(token);
+    return Boolean(decoded?.isDateOnly);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Decodes and validates a devotee token (both bgn_v1_ and bgn_dob_ formats).
  * Returns null if the token is invalid or tampered with.
  */
 export function decodeDevoteeToken(token: string): (DevoteeTokenPayload & {
@@ -213,11 +316,17 @@ export function decodeDevoteeToken(token: string): (DevoteeTokenPayload & {
   ph?: string;
   overrideCalendarPhone?: boolean;
   ocp?: boolean;
+  isDateOnly?: boolean;
+  shraddhaTithi?: string;
+  st?: string;
 }) | null {
   if (!token || typeof token !== "string") return null;
 
   try {
-    const cleanToken = token.startsWith(TOKEN_PREFIX)
+    const isDateOnlyPrefix = token.startsWith(DATE_ONLY_TOKEN_PREFIX);
+    const cleanToken = isDateOnlyPrefix
+      ? token.slice(DATE_ONLY_TOKEN_PREFIX.length)
+      : token.startsWith(TOKEN_PREFIX)
       ? token.slice(TOKEN_PREFIX.length)
       : token;
 
@@ -234,7 +343,7 @@ export function decodeDevoteeToken(token: string): (DevoteeTokenPayload & {
         console.warn("Token checksum mismatch — continuing lenient decoding");
       }
     } else {
-      if (!token.startsWith(TOKEN_PREFIX)) return null;
+      if (!token.startsWith(TOKEN_PREFIX) && !token.startsWith(DATE_ONLY_TOKEN_PREFIX)) return null;
       jsonStr = rawPayload;
     }
 
@@ -271,7 +380,10 @@ export function decodeDevoteeToken(token: string): (DevoteeTokenPayload & {
         lg: extractNum("lg"),
         loc: extractStr("loc") || extractStr("lobhr") || extractStr("locationName"),
         dob: extractStr("dob"),
-        tob: extractStr("tob")
+        tob: extractStr("tob"),
+        st: extractStr("st"),
+        pp: extractStr("pp"),
+        pw: extractStr("pw")
       };
     }
 
@@ -310,6 +422,10 @@ export function decodeDevoteeToken(token: string): (DevoteeTokenPayload & {
     const overrideCalendarPhone = Boolean(parsed.ocp || parsed.overrideCalendarPhone);
     const rawVid = parsed.vid || parsed.voiceId;
     const voiceId = (!rawVid || rawVid === "voice_shrisuma_master") ? "voice_sriram_pandit" : rawVid;
+    const isDateOnly = isDateOnlyPrefix || Boolean(parsed.isDobOnly || parsed.dateOnly || (dob && !tob));
+    const shraddhaTithi = parsed.st || parsed.shraddhaTithi || undefined;
+    const priestPhone = parsed.pp || parsed.priestPhone || undefined;
+    const priestWhatsApp = parsed.pw || parsed.priestWhatsApp || undefined;
 
     return {
       name,
@@ -355,7 +471,14 @@ export function decodeDevoteeToken(token: string): (DevoteeTokenPayload & {
       overrideCalendarPhone,
       ocp: overrideCalendarPhone,
       voiceId,
-      vid: voiceId
+      vid: voiceId,
+      isDateOnly,
+      shraddhaTithi,
+      st: shraddhaTithi,
+      priestPhone,
+      pp: priestPhone,
+      priestWhatsApp,
+      pw: priestWhatsApp
     };
   } catch (err) {
     console.warn("Failed to decode token:", err);

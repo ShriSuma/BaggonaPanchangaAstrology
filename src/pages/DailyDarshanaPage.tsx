@@ -17,7 +17,8 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { getDevoteeSalutation, buildDeterministicPriestBenediction } from "../features/seva/sevaPriestNarrativeEngine";
 import { getDailyKaalaTimings, getEnergyMeterAndVibe, generateSevaICalendarString, downloadIcsFile, getDayLordIndex, calculateDeterministicRhythmDay, getTaraBalaInfo, getChandraBalaInfo } from "../features/seva/icsCalendarGenerator";
-import { decodeDevoteeToken } from "../utils/tokenCipher";
+import { decodeDevoteeToken, isDateOnlyToken } from "../utils/tokenCipher";
+import { calculateGokarnaPitruRaksha, evaluateShraddhaTithiStatus } from "../features/seva/gokarnaPitruRakshaEngine";
 import { resolveDevoteeToken, type ResolveTokenResult } from "../features/seva/devoteeTokenDbService";
 import { DailySatkarmaPracticeCard } from "../components/seva/DailySatkarmaPracticeCard";
 import { getUniversalBirthDetails } from "../utils/universalDevoteeKundli";
@@ -38,8 +39,11 @@ import {
   checkPassExpiration,
   getCalendarRegistration,
   is30DayDevotee,
+  recordDarshanaVisitStreak,
+  getDarshanaVisitStreak,
   type CalendarRegistrationDoc,
-  type PoojaStreakInfo
+  type PoojaStreakInfo,
+  type DarshanaVisitStreakInfo
 } from "../features/seva/calendarVisitService";
 import {
   checkAndRegisterDevoteeUser,
@@ -1663,6 +1667,9 @@ export default function DailyDarshanaPage(): JSX.Element {
   const localizedPandit = useMemo(() => getLocalizedPanditName(panditParam, lang), [panditParam, lang]);
 
   const activePanditPhone = useMemo(() => {
+    if (decoded?.pp || decoded?.priestPhone) {
+      return (decoded.pp || decoded.priestPhone)!.trim();
+    }
     if (decoded?.ocp && (decoded?.ph || decoded?.phone)) {
       return (decoded.ph || decoded.phone)!.trim();
     }
@@ -1672,7 +1679,20 @@ export default function DailyDarshanaPage(): JSX.Element {
     return "9972339362";
   }, [decoded, urlParams]);
 
+  const activePanditWhatsApp = useMemo(() => {
+    if (decoded?.pw || decoded?.priestWhatsApp) {
+      return (decoded.pw || decoded.priestWhatsApp)!.trim();
+    }
+    if (urlParams.get("overrideContact") === "true" && urlParams.get("priestWhatsApp")) {
+      return urlParams.get("priestWhatsApp")!.trim();
+    }
+    return activePanditPhone;
+  }, [decoded, urlParams, activePanditPhone]);
+
   const activePanditName = useMemo(() => {
+    if (decoded?.p || decoded?.pandit || decoded?.priestName) {
+      return (decoded.p || decoded.pandit || decoded.priestName)!.trim();
+    }
     if (decoded?.ocp && (decoded?.p || decoded?.pandit)) {
       return (decoded.p || decoded.pandit)!.trim();
     }
@@ -1867,6 +1887,37 @@ export default function DailyDarshanaPage(): JSX.Element {
   const benediction = useMemo(() => {
     return darshanaPersonalization.priestBenediction[lang] || darshanaPersonalization.priestBenediction.kn || buildDeterministicPriestBenediction(mockDay, lang, devoteeDisplayName);
   }, [darshanaPersonalization, mockDay, lang, devoteeDisplayName]);
+
+  const isDateOnlyMode = useMemo(() => {
+    return Boolean(
+      decoded?.isDateOnly ||
+      isDateOnlyToken(tokenParam || "") ||
+      (!resolvedBirth.tob && resolvedBirth.dob)
+    );
+  }, [decoded, tokenParam, resolvedBirth]);
+
+  const [darshanaStreak, setDarshanaStreak] = useState<DarshanaVisitStreakInfo>(() => {
+    return getDarshanaVisitStreak(devoteeDisplayName);
+  });
+
+  useEffect(() => {
+    const updated = recordDarshanaVisitStreak(devoteeDisplayName);
+    setDarshanaStreak(updated);
+  }, [devoteeDisplayName]);
+
+  const pitruRaksha = useMemo(() => {
+    return calculateGokarnaPitruRaksha(birthKundli, lang);
+  }, [birthKundli, lang]);
+
+  const currentTithiName = useMemo(() => {
+    const dt = (mockDay as any)?.detailedTithi as DetailedTithiInfo | undefined;
+    return dt?.tithiName?.[lang] || dt?.tithiName?.kn || (mockDay as any)?.tithiKn || "";
+  }, [mockDay, lang]);
+
+  const shraddhaStatus = useMemo(() => {
+    const regTithi = decoded?.st || decoded?.shraddhaTithi || (decoded as any)?.shraddha_tithi;
+    return evaluateShraddhaTithiStatus(regTithi, currentTithiName, lang);
+  }, [decoded, currentTithiName, lang]);
 
   // 100% 5-Language Actionable Guidance
   const actionableGuidance = useMemo(() => getDailyActionableGuidance(mockDay, lang), [mockDay, lang]);
@@ -2785,6 +2836,28 @@ export default function DailyDarshanaPage(): JSX.Element {
                 <span style={{ color: "#F59E0B" }}>•</span>
                 <span style={{ color: "#86EFAC", fontWeight: 700 }}>🛕 {dict.kshetraTitle}</span>
               </div>
+              {isDateOnlyMode && (
+                <div style={{
+                  background: "rgba(217, 119, 6, 0.25)",
+                  border: "1px solid #F59E0B",
+                  borderRadius: 8,
+                  padding: "4px 10px",
+                  marginTop: 6,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  fontSize: 11.5,
+                  fontWeight: 700,
+                  color: "#FDE68A"
+                }}>
+                  <span>🌕</span>
+                  <span>
+                    {lang === "kn"
+                      ? "ಜನನ ದಿನಾಂಕ ಆಧಾರಿತ ಪವಿತ್ರ ದರ್ಶನ (ಚಂದ್ರ ಕುಂಡಲಿ ಹಾಗೂ ಗೋಚಾರ)"
+                      : "Date-of-Birth Sanctum (Chandra Kundli & Gochara)"}
+                  </span>
+                </div>
+              )}
             </div>
             <div style={{
               background: "rgba(212, 175, 55, 0.15)",
@@ -2816,6 +2889,151 @@ export default function DailyDarshanaPage(): JSX.Element {
         {/* ── TAB 1: SACRED SANCTUM & DARSHANA ── */}
         {activeTab === "darshana" && (
           <div>
+            {/* 🌟 Sacred Abhijit Muhurtha Sanctum Spotlight (Exclusive Website Feature) */}
+            <div style={{
+              background: "linear-gradient(135deg, rgba(30, 27, 75, 0.95) 0%, rgba(67, 20, 7, 0.95) 100%)",
+              border: "2px solid #FCD34D",
+              borderRadius: 16,
+              padding: "14px 18px",
+              marginBottom: 16,
+              boxShadow: "0 6px 20px rgba(252, 211, 77, 0.2)",
+              display: "flex",
+              flexDirection: "column",
+              gap: 8
+            }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontSize: 24 }}>✨</span>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 900, color: "#FDE68A", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                      {lang === "kn" ? "ಇಂದಿನ ಶುಭ ಅಭಿಜಿತ್ ಮುಹೂರ್ತ" : "Today's Auspicious Abhijit Muhurtha"}
+                    </div>
+                    <div style={{ fontSize: 16, fontWeight: 900, color: "#FFFFFF", marginTop: 2 }}>
+                      ⏱️ {dinaBhavishyaData?.abhijitMuhurtha || "11:54 AM – 12:44 PM IST"}
+                    </div>
+                  </div>
+                </div>
+                <div style={{
+                  background: "rgba(245, 158, 11, 0.25)",
+                  border: "1px solid #F59E0B",
+                  borderRadius: 10,
+                  padding: "6px 12px",
+                  fontSize: 12,
+                  fontWeight: 800,
+                  color: "#FEF3C7",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6
+                }}>
+                  <span style={{ fontSize: 16 }}>🔥</span>
+                  <span>{darshanaStreak.currentStreak} {lang === "kn" ? "ದಿನಗಳ ದರ್ಶನ ದೀಕ್ಷೆ" : "Days Darshana Streak"}</span>
+                </div>
+              </div>
+              <div style={{ fontSize: 11.5, color: "#FEF3C7", lineHeight: 1.4, borderTop: "1px dashed rgba(252, 211, 77, 0.3)", paddingTop: 6 }}>
+                {lang === "kn"
+                  ? "🌟 ಅಭಿಜಿತ್ ಮುಹೂರ್ತವು ವೆಬ್‌ಸೈಟ್ ಸನ್ನಿಧಿಯ ವಿಶೇಷ ದರ್ಶನವಾಗಿದೆ. ಪ್ರತಿದಿನ ಭೇಟಿ ನೀಡಿ ನಿಮ್ಮ ದರ್ಶನ ಸಾಧನಾ ದೀಕ್ಷೆ (🔥) ಮುಂದುವರಿಸಿ!"
+                  : "🌟 Abhijit Muhurtha is an exclusive web sanctum feature. Visit daily to receive your darshana and maintain your visit streak (🔥)!"}
+              </div>
+            </div>
+
+            {/* 🙏 Parents' Annual Shraddha Tithi Alert Card */}
+            {shraddhaStatus.hasRegisteredTithi && (
+              <div style={{
+                background: shraddhaStatus.isToday
+                  ? "linear-gradient(135deg, rgba(153, 27, 27, 0.95) 0%, rgba(69, 10, 10, 0.98) 100%)"
+                  : "linear-gradient(135deg, rgba(67, 20, 7, 0.95) 0%, rgba(30, 10, 0, 0.95) 100%)",
+                border: shraddhaStatus.isToday ? "2px solid #EF4444" : "1.5px solid #D4AF37",
+                borderRadius: 16,
+                padding: "14px 18px",
+                marginBottom: 16,
+                boxShadow: shraddhaStatus.isToday ? "0 8px 25px rgba(239, 68, 68, 0.4)" : "0 4px 16px rgba(0,0,0,0.4)"
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ fontSize: 28 }}>{shraddhaStatus.isToday ? "🕯️" : "🕉️"}</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{
+                      fontSize: 13,
+                      fontWeight: 900,
+                      color: shraddhaStatus.isToday ? "#FCA5A5" : "#FDE68A",
+                      textTransform: "uppercase"
+                    }}>
+                      {lang === "kn" ? "ಪೋಷಕರ ವಾರ್ಷಿಕ ಶ್ರಾದ್ಧ ತಿಥಿ ಸ್ಮರಣೆ" : "Parents' Annual Shraddha Tithi Remembrance"}
+                    </div>
+                    <div style={{ fontSize: 13, color: "#FFFFFF", fontWeight: 800, marginTop: 2 }}>
+                      {lang === "kn" ? "ತಿಥಿ:" : "Tithi:"} {shraddhaStatus.tithiLabel}
+                    </div>
+                    {shraddhaStatus.alertText && (
+                      <div style={{ fontSize: 12, color: "#FEF3C7", marginTop: 4, lineHeight: 1.4 }}>
+                        {shraddhaStatus.alertText}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 🛡️ Gokarna Pitru Raksha & Vamsha Vriddhi Kavacha Card */}
+            <div style={{
+              background: "linear-gradient(135deg, rgba(45, 20, 7, 0.95) 0%, rgba(20, 8, 2, 0.98) 100%)",
+              border: "2px solid #D4AF37",
+              borderRadius: 16,
+              padding: "16px 18px",
+              marginBottom: 16,
+              boxShadow: "0 6px 20px rgba(0,0,0,0.5)"
+            }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8, flexWrap: "wrap", gap: 8 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontSize: 24 }}>🛡️</span>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 900, color: "#FDE68A" }}>
+                      {pitruRaksha.badgeTitle}
+                    </div>
+                    <div style={{ fontSize: 11, color: "#86EFAC", fontWeight: 700 }}>
+                      {pitruRaksha.statusText}
+                    </div>
+                  </div>
+                </div>
+                <span style={{
+                  background: "rgba(212, 175, 55, 0.2)",
+                  border: "1px solid #D4AF37",
+                  borderRadius: 10,
+                  padding: "4px 10px",
+                  fontSize: 12,
+                  fontWeight: 800,
+                  color: "#FDE68A"
+                }}>
+                  {pitruRaksha.score}% {lang === "kn" ? "ಕವಚ ರಕ್ಷಾ ಶಕ್ತಿ" : "Shield Aura"}
+                </span>
+              </div>
+
+              <div style={{ fontSize: 12, color: "#FEF3C7", lineHeight: 1.5, margin: "8px 0" }}>
+                <strong style={{ color: "#FCD34D" }}>{lang === "kn" ? "ಪಿತೃ ದೇವತೆ:" : "Ancestral Deity:"} </strong>
+                {pitruRaksha.pitruDevata}
+              </div>
+
+              <div style={{
+                background: "rgba(0,0,0,0.35)",
+                border: "1px dashed rgba(212, 175, 55, 0.4)",
+                borderRadius: 10,
+                padding: "8px 12px",
+                fontSize: 12,
+                fontWeight: 800,
+                color: "#FDE68A",
+                margin: "6px 0",
+                textAlign: "center"
+              }}>
+                "{pitruRaksha.kavachaMantra}"
+              </div>
+
+              <div style={{ fontSize: 11.5, color: "#D1D5DB", marginTop: 6, lineHeight: 1.4 }}>
+                <span style={{ color: "#F59E0B", fontWeight: 700 }}>📿 {lang === "kn" ? "ದೈನಂದಿನ ಸಾಧನೆ:" : "Daily Sadhana:"} </span>
+                {pitruRaksha.dailySadhana}
+              </div>
+
+              <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 6, fontStyle: "italic" }}>
+                {pitruRaksha.vamshaProtectionText}
+              </div>
+            </div>
             {/* Daily Priest-Guided 3-5 Minute Morning Deva Pooja & Sankalpa Banner */}
             <div style={{
               background: "linear-gradient(135deg, rgba(146, 64, 14, 0.95) 0%, rgba(69, 26, 3, 0.98) 100%)",
@@ -3534,8 +3752,8 @@ export default function DailyDarshanaPage(): JSX.Element {
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontSize: 11.5 }}>
                     <div style={{ background: "rgba(0,0,0,0.3)", padding: 8, borderRadius: 8 }}>
-                      <span style={{ color: "#F59E0B" }}>{dict.lagna}:</span>{" "}
-                      <strong>{RASHI_L5[ascendantRashiIdx]?.[lang] || RASHI_L5[ascendantRashiIdx]?.en}</strong>
+                      <span style={{ color: "#F59E0B" }}>{isDateOnlyMode ? (lang === "kn" ? "ಚಂದ್ರ ಲಗ್ನ:" : "Chandra Lagna:") : `${dict.lagna}:`}</span>{" "}
+                      <strong>{RASHI_L5[isDateOnlyMode ? moonRashiIdx : ascendantRashiIdx]?.[lang] || RASHI_L5[isDateOnlyMode ? moonRashiIdx : ascendantRashiIdx]?.en}</strong>
                     </div>
                     <div style={{ background: "rgba(0,0,0,0.3)", padding: 8, borderRadius: 8 }}>
                       <span style={{ color: "#F59E0B" }}>{dict.rashi}:</span>{" "}
@@ -3552,14 +3770,38 @@ export default function DailyDarshanaPage(): JSX.Element {
                   </div>
                 </div>
 
+                {/* Date-only mode Chandra Kundli explanatory banner */}
+                {isDateOnlyMode && (
+                  <div style={{
+                    background: "linear-gradient(135deg, rgba(120, 53, 15, 0.95), rgba(69, 26, 3, 0.95))",
+                    border: "1.5px solid #F59E0B",
+                    borderRadius: 12,
+                    padding: "10px 14px",
+                    marginBottom: 12,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10
+                  }}>
+                    <span style={{ fontSize: 22 }}>🌕</span>
+                    <div style={{ fontSize: 12, color: "#FEF3C7", lineHeight: 1.4 }}>
+                      <strong style={{ color: "#FDE68A", display: "block", fontSize: 13 }}>
+                        {lang === "kn" ? "ಚಂದ್ರ ಕುಂಡಲಿ ದರ್ಶನ (ಜನನ ದಿನಾಂಕ ಆಧಾರಿತ)" : "Chandra Kundli (Moon Chart - Date of Birth Mode)"}
+                      </strong>
+                      {lang === "kn"
+                        ? "ಜನನ ಸಮಯ ಲಭ್ಯವಿಲ್ಲದ ಕಾರಣ ಜನ್ಮ ರಾಶಿಯನ್ನು (ಚಂದ್ರ ಲಗ್ನ) ಪ್ರಥಮ ಭಾವವನ್ನಾಗಿ ಪರಿಗಣಿಸಿ ಈ ಕುಂಡಲಿಯನ್ನು ಸಿದ್ಧಪಡಿಸಲಾಗಿದೆ. ಸಾಂಪ್ರದಾಯಿಕ ಗೋಚಾರ ಫಲಗಳು ಚಂದ್ರ ಕುಂಡಲಿಯನ್ನೇ ಅವಲಂಬಿಸಿವೆ."
+                        : "Computed using Chandra Lagna (Moon Sign) as the 1st House since birth time was omitted. Transit Gochara is naturally reckoned from Chandra Lagna."}
+                    </div>
+                  </div>
+                )}
+
                 {/* Visual South-Indian Birth Kundali Chart */}
                 <SouthIndianKundaliGrid
                   lang={lang}
                   highlightRashiIndex={moonRashiIdx}
-                  lagnaRashiIndex={ascendantRashiIdx}
+                  lagnaRashiIndex={isDateOnlyMode ? moonRashiIdx : ascendantRashiIdx}
                   planetPlacements={birthPlacements}
                   devoteeName={devoteeDisplayName}
-                  title={(KUNDALI_CHART_TITLES[lang] || KUNDALI_CHART_TITLES.en).birth(devoteeDisplayName)}
+                  title={isDateOnlyMode ? (lang === "kn" ? `🌕 ${devoteeDisplayName} ಅವರ ಚಂದ್ರ ಕುಂಡಲಿ` : `🌕 Chandra Kundli of ${devoteeDisplayName}`) : (KUNDALI_CHART_TITLES[lang] || KUNDALI_CHART_TITLES.en).birth(devoteeDisplayName)}
                   isGochara={false}
                 />
 
@@ -3780,6 +4022,30 @@ export default function DailyDarshanaPage(): JSX.Element {
               >
                 📞 {dict.callNow}
               </a>
+
+              {activePanditWhatsApp && (
+                <a
+                  href={`https://wa.me/${activePanditWhatsApp.replace(/[^\d]/g, "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    background: "linear-gradient(135deg, #25D366, #128C7E)",
+                    color: "#FFFFFF",
+                    textDecoration: "none",
+                    padding: "12px",
+                    borderRadius: 12,
+                    fontSize: 13,
+                    fontWeight: 800,
+                    boxShadow: "0 4px 12px rgba(37, 211, 102, 0.3)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8
+                  }}
+                >
+                  <span>💬</span> {lang === "kn" ? "ವಾಟ್ಸಾಪ್ ಸಂದೇಶ ಕಳುಹಿಸಿ" : "WhatsApp Priest"}
+                </a>
+              )}
 
               <button
                 onClick={() => setShowContactModal(false)}

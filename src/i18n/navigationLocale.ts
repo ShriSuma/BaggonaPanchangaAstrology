@@ -190,6 +190,13 @@ export const T_DRAWER_NAV: Record<string, Record<SupportedNavLang, string>> = {
     te: "సార్వజనిక కుండలి & అంతరంగ దర్శనం",
     ta: "பொது ஜாதகம் & அந்தரங்க தரிசனம்"
   },
+  quick_calendar: {
+    kn: "ದಿನಾಂಕ ಪಂಚಾಂಗ & ಆಶೀರ್ವಾದ ಪತ್ರ",
+    en: "Quick Calendar & Ashirvada Patra",
+    hi: "दिनांक पंचांग एवं आशीर्वाद पत्र",
+    te: "తేదీ పంచాంగం & ఆశీర్వాద పత్రం",
+    ta: "தேதி பஞ்சாங்கம் & ஆசீர்வாத பத்திரம்"
+  },
   superadmindashboard: {
     kn: "ಪ್ರಧಾನ ಆಡಳಿತ ಕೇಂದ್ರ (Super Admin)",
     en: "Super Admin Control Center",
