@@ -5145,7 +5145,8 @@ export const generateInstantQAList = (
   diagnosis: CurrentLifeDiagnosis,
   prescriptions: AstrologicalPrescriptions,
   devoteeName?: string,
-  devoteeAge: number = 30
+  devoteeAge: number = 30,
+  context?: { maritalStatus?: string; gender?: string }
 ): InstantQAQuestion[] => {
   const name = devoteeName || "ಭಕ್ತರೇ";
   const isChild = devoteeAge < 14;
@@ -5718,6 +5719,18 @@ export const generateInstantQAList = (
     }
   ];
 
+  const isMarried = (context?.maritalStatus || "").toLowerCase() === "married";
+  const isUnmarried = (context?.maritalStatus || "").toLowerCase() === "unmarried";
+
+  let filteredAdultQuestions = allAdultQuestions;
+  if (isMarried) {
+    // Married native must NEVER be asked "When will you get married? (ಕಂಕಣ ಭಾಗ್ಯ / ವಿವಾಹ ವಿಳಂಬ)"!
+    filteredAdultQuestions = filteredAdultQuestions.filter((q) => q.id !== "q_marriage_1");
+  } else if (isUnmarried) {
+    // Unmarried native must NEVER be asked "How to resolve marital friction with spouse?"!
+    filteredAdultQuestions = filteredAdultQuestions.filter((q) => q.id !== "q_marriage_2");
+  }
+
   const primaryCategory = diagnosis.currentLifeSituation?.category;
   const primaryArea = diagnosis.primaryLifeChallenge?.area;
 
@@ -5735,12 +5748,19 @@ export const generateInstantQAList = (
   }
 
   if (priorityCategory) {
-    const priorityQuestions = allAdultQuestions.filter((q) => q.category === priorityCategory);
-    const otherQuestions = allAdultQuestions.filter((q) => q.category !== priorityCategory);
+    let priorityQuestions = filteredAdultQuestions.filter((q) => q.category === priorityCategory);
+    if (primaryCategory === "marital_discord") {
+      // For marital discord, q_marriage_2 (ದಾಂಪತ್ಯ ಸಾಮರಸ್ಯ) must be question #1, NOT q_marriage_1!
+      priorityQuestions.sort((a, b) => (a.id === "q_marriage_2" ? -1 : b.id === "q_marriage_2" ? 1 : 0));
+    } else if (primaryCategory === "marriage_delay") {
+      // For marriage delay, q_marriage_1 (ವಿವಾಹ ಯೋಗ) must be question #1!
+      priorityQuestions.sort((a, b) => (a.id === "q_marriage_1" ? -1 : b.id === "q_marriage_1" ? 1 : 0));
+    }
+    const otherQuestions = filteredAdultQuestions.filter((q) => q.category !== priorityCategory);
     return [...priorityQuestions, ...otherQuestions];
   }
 
-  return allAdultQuestions;
+  return filteredAdultQuestions;
 };
 
 export const generatePanchangaAngaSynthesis = (
@@ -5793,7 +5813,7 @@ export const generatePanchangaAngaSynthesis = (
 
   const prescriptions = generateAstrologicalPrescriptions(kundli, yogaRule, karanaRule);
   const currentDiagnosis = generateCurrentLifeDiagnosis(kundli, { ...context, devoteeAge, panchanga: enrichedPanchanga }, prescriptions);
-  const instantQAList = generateInstantQAList(kundli, currentDiagnosis, prescriptions, context.devoteeName, devoteeAge);
+  const instantQAList = generateInstantQAList(kundli, currentDiagnosis, prescriptions, context.devoteeName, devoteeAge, context);
 
   // Build Multi-Paragraph Astrologer Reading in Pure Pristine Kannada with English Digits
   const cls = currentDiagnosis.currentLifeSituation;

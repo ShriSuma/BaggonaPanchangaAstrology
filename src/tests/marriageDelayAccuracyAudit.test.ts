@@ -119,4 +119,59 @@ describe("Chart Diagnostics & Marriage Accuracy", () => {
     const synthesis = generatePanchangaAngaSynthesis(kundli, context);
     expect(synthesis.currentDiagnosis.currentLifeSituation?.category).toBe("elderly_peace_legacy");
   });
+
+  // Test Case 5: Explicitly MARRIED user must NEVER receive marriage delay, even with 7th house afflictions
+  it("strictly ensures an already married user NEVER gets marriage delay reading even if their chart has Saptama Kuja", () => {
+    const context = {
+      birthDate: "1993-03-16",
+      birthTime: "01:40",
+      latitude: 14.5479,
+      longitude: 74.3188,
+      devoteeName: "Married Man",
+      gender: "Male" as const,
+      maritalStatus: "married" as const
+    };
+
+    const kundli = calculateKundli({
+      name: context.devoteeName,
+      birthDate: context.birthDate,
+      birthTime: context.birthTime,
+      latitude: context.latitude,
+      longitude: context.longitude
+    });
+
+    const synthesis = generatePanchangaAngaSynthesis(kundli, context);
+    // Must NEVER diagnose marriage_delay for a married user!
+    expect(synthesis.currentDiagnosis.currentLifeSituation?.category).not.toBe("marriage_delay");
+    expect(synthesis.currentDiagnosis.primaryLifeChallenge.description).not.toContain("ಕಂಕಣ ಭಾಗ್ಯ");
+    expect(synthesis.currentDiagnosis.primaryLifeChallenge.description).not.toContain("ವಿವಾಹ ವಿಳಂಬ");
+    // Must NEVER offer 'When will you get married?' question to an already married native
+    expect(synthesis.instantQAList.some(q => q.id === "q_marriage_1")).toBe(false);
+  });
+
+  // Test Case 6: General user with unspecified status having only an ISOLATED 7th house placement does NOT trigger marriage delay
+  it("guards general users with isolated single 7th house placements against false marriage delay", () => {
+    // Normal career-oriented adult born 1988-11-20
+    const context = {
+      birthDate: "1988-11-20",
+      birthTime: "14:30",
+      latitude: 14.5479,
+      longitude: 74.3188,
+      devoteeName: "General Adult",
+      gender: "Male" as const
+    };
+
+    const kundli = calculateKundli({
+      name: context.devoteeName,
+      birthDate: context.birthDate,
+      birthTime: context.birthTime,
+      latitude: context.latitude,
+      longitude: context.longitude
+    });
+
+    const synthesis = generatePanchangaAngaSynthesis(kundli, context);
+    // Should focus on Career / Finance / Work, NOT marriage delay
+    expect(synthesis.currentDiagnosis.currentLifeSituation?.category).not.toBe("marriage_delay");
+  });
 });
+

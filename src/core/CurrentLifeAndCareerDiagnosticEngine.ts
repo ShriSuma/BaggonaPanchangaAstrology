@@ -443,18 +443,54 @@ export function diagnoseCurrentLifeSituation(
   }
 
   // CRITICAL PARASHARI SAFEGUARD:
-  // If native is explicitly marked "married", delay is 0.
-  // If native is explicitly "unmarried", evaluate full delay score.
-  // If marital status is unspecified:
-  // Must have concrete astrological affliction to 7th house / Kalatrakaraka, and score >= 5.5.
-  // Also, if acute commercial partner betrayal is detected (Mercury in 6/8/12 with Rahu/Saturn in 7th), prioritize commercial partnerships over marriage delay.
+  // 1. If native is explicitly marked "married", delay is strictly 0.
+  // 2. If native is explicitly "unmarried", evaluate full delay score (even single affliction is valid).
+  // 3. If marital status is UNSPECIFIED (default for general users):
+  //    To declare "Marriage Delay & Alliance Roadblocks" as the native's #1 life crisis without them asking,
+  //    Parashari rules require a CONFIRMED, COMPOUND multi-point Kalatra affliction:
+  //    a) Direct malefic occupation of 7th house itself (Saptama Kuja, Saptama Shani, Rahu/Ketu in 7th)
+  //    b) AND a confirmed compound Kalatra obstacle (7th lord retrograde/debilitated, or Venus retrograde)
+  //    c) AND total score >= 13.0 and age between 25 and 42.
+  //    General placements outside 7th (like Kuja in 1st, 2nd, 4th, 12th or 7th lord in 8th) are common in
+  //    normal married adults and must NEVER assume they are unmarried.
+  // Parashari Compound Kalatra Afflictions Count:
+  // Strictly count only direct 7th house occupants and severe planetary impairments.
+  // Note: Kuja in 1, 2, 4, 8, 12 and Dusthana placements outside 7th do NOT count,
+  // preventing false assumptions on normal married adults.
+  let distinctMarriageAfflictionCount = 0;
+  if (mars && mars.house === 7) distinctMarriageAfflictionCount += 1; // Saptama Kuja
+  if (saturn && saturn.house === 7) distinctMarriageAfflictionCount += 1; // Saptama Shani
+  if (rahu && rahu.house === 7) distinctMarriageAfflictionCount += 1; // Saptama Rahu
+  if (ketu && ketu.house === 7) distinctMarriageAfflictionCount += 1; // Saptama Ketu
+  if (seventhLordPlanet?.isDebilitated) distinctMarriageAfflictionCount += 1;
+  if (seventhLordPlanet?.isRetrograde) distinctMarriageAfflictionCount += 1;
+  if (isMale && venus?.isRetrograde) distinctMarriageAfflictionCount += 1;
+  if (isFemale && (jupiter?.isRetrograde || venus?.isRetrograde)) distinctMarriageAfflictionCount += 1;
+
+  const hasDirect7thHouseAffliction = Boolean(
+    (mars && mars.house === 7) ||
+    (saturn && saturn.house === 7) ||
+    (rahu && rahu.house === 7) ||
+    (ketu && ketu.house === 7) ||
+    seventhLordPlanet?.isRetrograde ||
+    seventhLordPlanet?.isDebilitated
+  );
+
   if (context.maritalStatus === "married") {
     marriageDelayScore = 0;
   } else if (context.maritalStatus !== "unmarried") {
-    if (!hasConcreteMarriageAffliction || marriageDelayScore < 5.5 || (partnerBetrayalScore >= 8.0 && partnerBetrayalScore >= marriageDelayScore - 2.0)) {
-      marriageDelayScore = 0; // Guard against false marriage delay for unspecified married adults without 7th afflictions or acute partner betrayal
+    const isConfirmedUnmarriedDelay =
+      hasDirect7thHouseAffliction &&
+      distinctMarriageAfflictionCount >= 2 &&
+      marriageDelayScore >= 12.0 &&
+      age >= 25 &&
+      age <= 45;
+
+    if (!isConfirmedUnmarriedDelay || (partnerBetrayalScore >= 8.0 && partnerBetrayalScore >= marriageDelayScore - 2.0)) {
+      marriageDelayScore = 0; // Guard against false marriage delay for unspecified married adults
     }
   }
+
 
   // Parashari Classical Marriage Certainty & Discord Priority Principle across all 12 Lagnas:
   // When the 7th lord is Exalted (in its respective exaltation sign index for any planet),
