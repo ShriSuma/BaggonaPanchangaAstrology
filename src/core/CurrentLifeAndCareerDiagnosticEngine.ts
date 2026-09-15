@@ -92,6 +92,36 @@ export type AccurateProfessionCode =
   | "engineering_core"
   | "creative_media";
 
+export interface CareerSuitabilityField {
+  fieldCode: AccurateProfessionCode;
+  fieldNameKn: string;
+  fieldNameEn: string;
+  suitabilityPercentage: number;
+  coreStrengthsKn: string;
+  coreStrengthsEn: string;
+  verdictKn: "ಅತ್ಯುತ್ತಮ ಯಶಸ್ಸು (Top Recommended)" | "ಉತ್ತಮ ಅನುಕೂಲ (High Suitability)" | "ಮಧ್ಯಮ (Moderate)";
+  verdictEn: "Top Recommended" | "High Suitability" | "Moderate";
+}
+
+export type SubjectCode =
+  | "maths_analytics"
+  | "science_technology"
+  | "rajakiya_governance"
+  | "commerce_banking"
+  | "arts_creativity"
+  | "history_law_dharma";
+
+export interface SubjectAptitude {
+  code: SubjectCode;
+  nameKn: string;
+  nameEn: string;
+  scorePercentage: number;
+  ratingKn: "ಅತ್ಯುನ್ನತ (Excellent)" | "ಉತ್ತಮ (Good)" | "ಸಾಧಾರಣ (Average)";
+  ratingEn: "Excellent" | "Good" | "Average";
+  planetaryIndicatorKn: string;
+  planetaryIndicatorEn: string;
+}
+
 export interface AccurateProfessionProfile {
   code: AccurateProfessionCode;
   titleKn: string;
@@ -111,6 +141,10 @@ export interface AccurateProfessionProfile {
   tenthHouseSignEn: string;
   amatyakarakaPlanetKn: string;
   amatyakarakaPlanetEn: string;
+  topSuitableFields?: CareerSuitabilityField[];
+  subjectAptitudes?: SubjectAptitude[];
+  bestFieldsSummaryKn?: string;
+  bestFieldsSummaryEn?: string;
 }
 
 // -------------------------------------------------------------
@@ -1564,9 +1598,259 @@ export function determineAccurateProfession(
   const amkKn = PLANET_KN[amkName] || "ಬುಧ";
   const amkEn = PLANET_EN[amkName] || "Mercury";
 
-  const confidenceScore = Math.min(96, Math.max(78, 80 + Math.round((scores[bestCode] - scores[secondCode]) * 3)));
+  const confidenceScore = Math.min(96, Math.max(78, 80 + Math.round((scores[bestCode] - (scores[secondCode] || 0)) * 3)));
 
-  switch (bestCode) {
+  // -------------------------------------------------------------
+  // FIELD SUITABILITY & PERCENTAGES ENGINE
+  // -------------------------------------------------------------
+  const FIELD_METADATA: Record<
+    AccurateProfessionCode,
+    {
+      nameKn: string;
+      nameEn: string;
+      strengthsKn: string;
+      strengthsEn: string;
+    }
+  > = {
+    it_software: {
+      nameKn: "ಸಾಫ್ಟ್‌ವೇರ್, ಐಟಿ & ಮಾಹಿತಿ ತಂತ್ರಜ್ಞಾನ",
+      nameEn: "Software, IT & Technology",
+      strengthsKn: "ಕೋಡಿಂಗ್, ಡೇಟಾ ಅನಾಲಿಸಿಸ್, ತಾರ್ಕಿಕ ಸಮಸ್ಯೆ ಪರಿಹಾರ & ಸಾಫ್ಟ್‌ವೇರ್ ಆರ್ಕಿಟೆಕ್ಚರ್",
+      strengthsEn: "Coding, Data Analytics, Algorithmic Logic & Software Architecture"
+    },
+    banking_finance: {
+      nameKn: "ಬ್ಯಾಂಕಿಂಗ್, ಹಣಕಾಸು, ಲೆಕ್ಕಪರಿಶೋಧನೆ (CA) & ಷೇರು ಮಾರುಕಟ್ಟೆ",
+      nameEn: "Banking, Finance, Accounts & CA",
+      strengthsKn: "ಲೆಕ್ಕಪತ್ರ ನಿಖರತೆ, ಆಡಿಟಿಂಗ್, ಬಂಡವಾಳ ನಿರ್ವಹಣೆ & ಬ್ಯಾಂಕ್ ಆಡಳಿತ",
+      strengthsEn: "Accounting Precision, Auditing, Capital Management & Banking"
+    },
+    government_civil_police: {
+      nameKn: "ರಾಜಕೀಯ, ಸರ್ಕಾರಿ ಆಡಳಿತ, ನಾಗರಿಕ ಸೇವೆಗಳು (IAS/KAS) & ಪೊಲೀಸ್",
+      nameEn: "Governance, Civil Administration (IAS/KAS) & Leadership",
+      strengthsKn: "ಆಡಳಿತಾತ್ಮಕ ಅಧಿಕಾರ, ಜನನಾಯಕತ್ವ, ನೀತಿ ನಿಯಂತ್ರಣ & ಸಾರ್ವಜನಿಕ ಸೇವೆ",
+      strengthsEn: "Executive Governance, Public Leadership, Policy Making & State Authority"
+    },
+    business_realestate: {
+      nameKn: "ಸ್ವಂತ ವ್ಯಾಪಾರ, ರಿಯಲ್ ಎಸ್ಟೇಟ್, ಉದ್ಯಮ & ಗುತ್ತಿಗೆದಾರಿಕೆ",
+      nameEn: "Private Enterprise, Real Estate & Business",
+      strengthsKn: "ಮಾರುಕಟ್ಟೆ ಜಾಣ್ಮೆ, ಹೂಡಿಕೆ ವಿಸ್ತರಣೆ, ಸ್ವತಂತ್ರ ನಿರ್ಧಾರ & ಉದ್ಯಮಶೀಲತೆ",
+      strengthsEn: "Market Acumen, Investment Expansion, Negotiation & Enterprise"
+    },
+    teaching_academics: {
+      nameKn: "ಶಿಕ್ಷಣ ಕ್ಷೇತ್ರ, ಕಾಲೇಜು ಉಪನ್ಯಾಸ, ಪ್ರೊಫೆಸರ್ & ಶೈಕ್ಷಣಿಕ ಸಂಶೋಧನೆ",
+      nameEn: "Teaching, University Academics & Research",
+      strengthsKn: "ಜ್ಞಾನ ದಾನ, ಆಳವಾದ ಅಧ್ಯಯನ, ವಿದ್ಯಾರ್ಥಿ ಮಾರ್ಗದರ್ಶನ & ಬೌದ್ಧಿಕ ಸಂಶೋಧನೆ",
+      strengthsEn: "Pedagogy, Deep Study, Academic Mentoring & Intellectual Research"
+    },
+    engineering_core: {
+      nameKn: "ಕೋರ್ ಇಂಜಿನಿಯರಿಂಗ್ (ಮೆಕ್ಯಾನಿಕಲ್/ಸಿವಿಲ್/ಎಲೆಕ್ಟ್ರಿಕಲ್) & ಕೈಗಾರಿಕೆ",
+      nameEn: "Core Engineering (Mechanical/Civil/Electrical) & Heavy Industry",
+      strengthsKn: "ಯಂತ್ರೋಪಕರಣ ವಿನ್ಯಾಸ, ತಾಂತ್ರಿಕ ನಿರ್ಮಾಣ & ಪ್ರಾಯೋಗಿಕ ಸಮಸ್ಯೆ ಪರಿಹಾರ",
+      strengthsEn: "Machinery Design, Technical Construction & Practical Engineering"
+    },
+    medical_healthcare: {
+      nameKn: "ವೈದ್ಯಕೀಯ ರಂಗ, ಆರೋಗ್ಯ ಸೇವೆ, ಶಸ್ತ್ರಚಿಕಿತ್ಸೆ & ಫಾರ್ಮಸಿ",
+      nameEn: "Medical Practice, Surgery, Healthcare & Pharmacy",
+      strengthsKn: "ರೋಗ ನಿವಾರಣೆ, ರೋಗಿ ಸಾಂತ್ವನ, ಔಷಧಿ ಜ್ಞಾನ & ಶಸ್ತ್ರಚಿಕಿತ್ಸಾ ಏಕಾಗ್ರತೆ",
+      strengthsEn: "Diagnostics, Patient Healing, Pharmacology & Clinical Focus"
+    },
+    legal_judiciary: {
+      nameKn: "ಕಾನೂನು, ವಕೀಲ ವೃತ್ತಿ, ಸಲಹೆಗಾರರು & ನ್ಯಾಯಾಂಗ ಸೇವೆ",
+      nameEn: "Law, Legal Practice, Advisory & Judiciary",
+      strengthsKn: "ಕಾನೂನು ವಾದ-ವಿವಾದ, ಸಾಕ್ಷ್ಯಾಧಾರ ವಿಶ್ಲೇಷಣೆ & ನ್ಯಾಯಪರ ತೀರ್ಪು",
+      strengthsEn: "Legal Advocacy, Evidence Analysis, Arbitration & Jurisprudence"
+    },
+    creative_media: {
+      nameKn: "ಕಲಾ ಮಾಧ್ಯಮ, ಪತ್ರಿಕೋದ್ಯಮ, ಸೃಜನಶೀಲತೆ & ಗ್ರಾಫಿಕ್ ಡಿಸೈನ್",
+      nameEn: "Creative Arts, Media, Journalism & Design",
+      strengthsKn: "ಸೃಜನಶೀಲ ಬರವಣಿಗೆ, ಕಲಾತ್ಮಕ ಕಲ್ಪನೆ, ಮಾಧ್ಯಮ ಪ್ರಸಾರ & ವಿನ್ಯಾಸ",
+      strengthsEn: "Creative Writing, Artistic Imagination, Media Broadcast & Visual Design"
+    },
+    priest_vedic_astrology: {
+      nameKn: "ವೇದ ಅಧ್ಯಯನ, ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರ, ಇತಿಹಾಸ & ಪೌರೋಹಿತ್ಯ",
+      nameEn: "Vedic Studies, Astrology, Philosophy & Priesthood",
+      strengthsKn: "ಸಂಸ್ಕೃತ-ವೇದ ಪಾಂಡಿತ್ಯ, ಜ್ಯೋತಿಷ್ಯ ಮಾರ್ಗದರ್ಶನ, ಧಾರ್ಮಿಕ ಪೂಜಾ ವಿಧಿ & ಪುರಾತನ ಇತಿಹಾಸ",
+      strengthsEn: "Vedic Scholarship, Astrological Guidance, Rituals & Ancient History"
+    }
+  };
+
+  const maxRawScore = Math.max(...Object.values(scores).filter(s => s > -500));
+  const topSuitabilityBase = Math.min(95, Math.max(88, 88 + Math.round((scores[bestCode] - (scores[secondCode] || 0)) * 1.5)));
+
+  const topSuitableFields: CareerSuitabilityField[] = sortedCodes
+    .filter(code => scores[code] > -500)
+    .map((code, idx) => {
+      const rawScore = scores[code];
+      let pct: number;
+      if (idx === 0) {
+        pct = topSuitabilityBase;
+      } else {
+        const ratio = Math.max(0, rawScore) / (maxRawScore || 1);
+        pct = Math.min(topSuitabilityBase - 3, Math.max(48, Math.round(52 + ratio * 38)));
+      }
+      const meta = FIELD_METADATA[code];
+      const verdictKn =
+        pct >= 85
+          ? "ಅತ್ಯುತ್ತಮ ಯಶಸ್ಸು (Top Recommended)"
+          : pct >= 72
+          ? "ಉತ್ತಮ ಅನುಕೂಲ (High Suitability)"
+          : "ಮಧ್ಯಮ (Moderate)";
+      const verdictEn =
+        pct >= 85
+          ? "Top Recommended"
+          : pct >= 72
+          ? "High Suitability"
+          : "Moderate";
+
+      return {
+        fieldCode: code,
+        fieldNameKn: meta.nameKn,
+        fieldNameEn: meta.nameEn,
+        suitabilityPercentage: pct,
+        coreStrengthsKn: meta.strengthsKn,
+        coreStrengthsEn: meta.strengthsEn,
+        verdictKn,
+        verdictEn
+      };
+    });
+
+  // -------------------------------------------------------------
+  // SUBJECT & ACADEMIC APTITUDES (6 CORE DISCIPLINES)
+  // Maths, Science/Tech, Rajakiya/Admin, Commerce, Arts, History/Law
+  // -------------------------------------------------------------
+  const fifthSignIndex = (lagnaIndex + 4) % 12;
+  const fifthLord = signLord(fifthSignIndex);
+  const fifthLordPlanet = kundli.planets.find(p => p.name === fifthLord);
+
+  // 1. Maths & Analytical Logic (Mercury, Mars, Ketu, 5th)
+  let mathsScore = 62;
+  if (mercury && [1, 2, 4, 5, 7, 9, 10, 11].includes(mercury.house)) mathsScore += 12;
+  if (mercury && [2, 5].includes(mercury.rashi.index)) mathsScore += 10;
+  if (mars && [1, 4, 7, 10].includes(houseDistance(mars.house, mercury?.house ?? 1))) mathsScore += 6;
+  if (fifthLordPlanet && [PlanetName.Mercury, PlanetName.Mars, PlanetName.Ketu].includes(fifthLord)) mathsScore += 8;
+  mathsScore = Math.min(96, Math.max(58, mathsScore));
+
+  // 2. Science & Technology (Mars, Rahu, Sun, Saturn)
+  let scienceScore = 60;
+  if (mars && [1, 4, 5, 7, 9, 10, 11].includes(mars.house)) scienceScore += 12;
+  if (rahu && [3, 6, 10, 11].includes(rahu.house)) scienceScore += 10;
+  if (sun && [1, 10].includes(sun.house)) scienceScore += 8;
+  if (saturn && [6, 7].includes(saturn.rashi.index)) scienceScore += 6;
+  scienceScore = Math.min(96, Math.max(58, scienceScore));
+
+  // 3. Rajakiya, Governance & Administration (Sun, Mars, 10th Kendra)
+  let rajakiyaScore = 58;
+  if (sun && sun.house === 10) rajakiyaScore += 18;
+  else if (sun && [1, 5, 9].includes(sun.house)) rajakiyaScore += 12;
+  if (sun && [0, 4].includes(sun.rashi.index)) rajakiyaScore += 10;
+  if (mars && [1, 10].includes(mars.house)) rajakiyaScore += 8;
+  if ([0, 4, 8].includes(tenthSignIndex)) rajakiyaScore += 6;
+  rajakiyaScore = Math.min(96, Math.max(52, rajakiyaScore));
+
+  // 4. Commerce, Banking & Trade (Mercury, Jupiter, 2nd & 11th)
+  let commerceScore = 60;
+  if (mercury && [1, 5].includes(mercury.rashi.index)) commerceScore += 10;
+  if (jupiter && [1, 2, 4, 5, 9, 10, 11].includes(jupiter.house)) commerceScore += 12;
+  if (jupiter && [3, 8, 11].includes(jupiter.rashi.index)) commerceScore += 8;
+  if (planetsIn10thNames.includes(PlanetName.Mercury) || planetsIn10thNames.includes(PlanetName.Jupiter)) commerceScore += 6;
+  commerceScore = Math.min(96, Math.max(55, commerceScore));
+
+  // 5. Arts, Creative Expression & Media (Venus, Moon, Mercury)
+  let artsScore = 58;
+  if (venus && [1, 6, 11].includes(venus.rashi.index)) artsScore += 14;
+  if (venus && [1, 4, 5, 9, 10, 11].includes(venus.house)) artsScore += 10;
+  if (moon && [1, 3, 11].includes(moon.rashi.index)) artsScore += 8;
+  if (planetsIn10thNames.includes(PlanetName.Venus)) artsScore += 6;
+  artsScore = Math.min(96, Math.max(52, artsScore));
+
+  // 6. History, Law, Philosophy & Vedic/Dharma (Jupiter, Saturn, Ketu)
+  let historyLawScore = 58;
+  if (jupiter && [8, 11, 3].includes(jupiter.rashi.index)) historyLawScore += 12;
+  if (saturn && [8, 9, 10].includes(saturn.house)) historyLawScore += 10;
+  if (ketu && [9, 10, 12].includes(ketu.house)) historyLawScore += 10;
+  if (ninthLordPlanet && [1, 5, 9, 10].includes(ninthLordPlanet.house)) historyLawScore += 6;
+  historyLawScore = Math.min(96, Math.max(52, historyLawScore));
+
+  const getRatingKn = (score: number): "ಅತ್ಯುನ್ನತ (Excellent)" | "ಉತ್ತಮ (Good)" | "ಸಾಧಾರಣ (Average)" =>
+    score >= 85 ? "ಅತ್ಯುನ್ನತ (Excellent)" : score >= 72 ? "ಉತ್ತಮ (Good)" : "ಸಾಧಾರಣ (Average)";
+  const getRatingEn = (score: number): "Excellent" | "Good" | "Average" =>
+    score >= 85 ? "Excellent" : score >= 72 ? "Good" : "Average";
+
+  const subjectAptitudes: SubjectAptitude[] = [
+    {
+      code: "maths_analytics" as SubjectCode,
+      nameKn: "ಗಣಿತ & ವಿಶ್ಲೇಷಣೆ (Maths & Analytics)",
+      nameEn: "Mathematics & Analytical Logic",
+      scorePercentage: mathsScore,
+      ratingKn: getRatingKn(mathsScore),
+      ratingEn: getRatingEn(mathsScore),
+      planetaryIndicatorKn: `ಬುಧ (${PLANET_KN[PlanetName.Mercury]}) ಹಾಗೂ ಕುಜ (${PLANET_KN[PlanetName.Mars]}) ಪ್ರಭಾವ`,
+      planetaryIndicatorEn: "Mercury & Mars analytical alignment"
+    },
+    {
+      code: "science_technology" as SubjectCode,
+      nameKn: "ವಿಜ್ಞಾನ & ತಂತ್ರಜ್ಞಾನ (Science & Technology)",
+      nameEn: "Science, Technology & Engineering",
+      scorePercentage: scienceScore,
+      ratingKn: getRatingKn(scienceScore),
+      ratingEn: getRatingEn(scienceScore),
+      planetaryIndicatorKn: `ಕುಜ (${PLANET_KN[PlanetName.Mars]}) ಹಾಗೂ ರಾಹು (${PLANET_KN[PlanetName.Rahu]}) ಪ್ರಭಾವ`,
+      planetaryIndicatorEn: "Mars & Rahu technological drive"
+    },
+    {
+      code: "rajakiya_governance" as SubjectCode,
+      nameKn: "ರಾಜಕೀಯ, ಆಡಳಿತ & ನಾಯಕತ್ವ (Politics & Administration)",
+      nameEn: "Politics, Governance & Leadership",
+      scorePercentage: rajakiyaScore,
+      ratingKn: getRatingKn(rajakiyaScore),
+      ratingEn: getRatingEn(rajakiyaScore),
+      planetaryIndicatorKn: `ರವಿ (${PLANET_KN[PlanetName.Sun]} ರಾಜಕಾರಕ) ಹಾಗೂ 10ನೇ ಸ್ಥಾನ`,
+      planetaryIndicatorEn: "Sun (Raja-karaka) & 10th house authority"
+    },
+    {
+      code: "commerce_banking" as SubjectCode,
+      nameKn: "ವಾಣಿಜ್ಯ & ಬ್ಯಾಂಕಿಂಗ್ (Commerce & Finance)",
+      nameEn: "Commerce, Banking & Economics",
+      scorePercentage: commerceScore,
+      ratingKn: getRatingKn(commerceScore),
+      ratingEn: getRatingEn(commerceScore),
+      planetaryIndicatorKn: `ಗುರು (${PLANET_KN[PlanetName.Jupiter]}) ಹಾಗೂ ಬುಧ (${PLANET_KN[PlanetName.Mercury]}) ಯೋಗ`,
+      planetaryIndicatorEn: "Jupiter & Mercury commercial conjunction"
+    },
+    {
+      code: "arts_creativity" as SubjectCode,
+      nameKn: "ಕಲೆ, ಸಾಹಿತ್ಯ & ಮಾಧ್ಯಮ (Arts & Creativity)",
+      nameEn: "Arts, Literature & Creative Media",
+      scorePercentage: artsScore,
+      ratingKn: getRatingKn(artsScore),
+      ratingEn: getRatingEn(artsScore),
+      planetaryIndicatorKn: `ಶುಕ್ರ (${PLANET_KN[PlanetName.Venus]} ಕಲಾಕಾರಕ) ಹಾಗೂ ಚಂದ್ರ`,
+      planetaryIndicatorEn: "Venus (Kala-karaka) & Moon aesthetics"
+    },
+    {
+      code: "history_law_dharma" as SubjectCode,
+      nameKn: "ಇತಿಹಾಸ, ಕಾನೂನು & ತತ್ವಶಾಸ್ತ್ರ (History, Law & Dharma)",
+      nameEn: "History, Law, Philosophy & Vedic Dharma",
+      scorePercentage: historyLawScore,
+      ratingKn: getRatingKn(historyLawScore),
+      ratingEn: getRatingEn(historyLawScore),
+      planetaryIndicatorKn: `ಗುರು (${PLANET_KN[PlanetName.Jupiter]} ಧರ್ಮಕಾರಕ) ಹಾಗೂ ಶನಿ-ಕೇತು`,
+      planetaryIndicatorEn: "Jupiter (Dharma) & Saturn-Ketu heritage"
+    }
+  ].sort((a, b) => b.scorePercentage - a.scorePercentage);
+
+  const top1 = topSuitableFields[0];
+  const top2 = topSuitableFields[1];
+  const top3 = topSuitableFields[2];
+  const topSub1 = subjectAptitudes[0];
+  const topSub2 = subjectAptitudes[1];
+
+  const bestFieldsSummaryKn = `ನಿಮ್ಮ ಜಾತಕಕ್ಕೆ ಗರಿಷ್ಠ ಯಶಸ್ಸು ಮತ್ತು ಉನ್ನತಿ ತರುವ ಪ್ರಮುಖ ವೃತ್ತಿ ರಂಗಗಳು: 1) ${top1.fieldNameKn} (${top1.suitabilityPercentage}% ಸೂಕ್ತತೆ), 2) ${top2.fieldNameKn} (${top2.suitabilityPercentage}% ಸೂಕ್ತತೆ), 3) ${top3.fieldNameKn} (${top3.suitabilityPercentage}% ಸೂಕ್ತತೆ). ಶೈಕ್ಷಣಿಕ ವಿಷಯಗಳಲ್ಲಿ ${topSub1.nameKn} (${topSub1.scorePercentage}%) ಮತ್ತು ${topSub2.nameKn} (${topSub2.scorePercentage}%) ಅತ್ಯುನ್ನತ ಕೌಶಲ್ಯವಿದೆ.`;
+
+  const bestFieldsSummaryEn = `Top career avenues for highest prosperity and growth: 1) ${top1.fieldNameEn} (${top1.suitabilityPercentage}% match), 2) ${top2.fieldNameEn} (${top2.suitabilityPercentage}% match), 3) ${top3.fieldNameEn} (${top3.suitabilityPercentage}% match). Natural academic strengths lie in ${topSub1.nameEn} (${topSub1.scorePercentage}%) and ${topSub2.nameEn} (${topSub2.scorePercentage}%).`;
+
+  const baseProfile: AccurateProfessionProfile = (() => {
+    switch (bestCode) {
     case "it_software":
       return {
         code: "it_software",
@@ -1805,5 +2089,14 @@ export function determineAccurateProfession(
         amatyakarakaPlanetKn: amkKn,
         amatyakarakaPlanetEn: amkEn
       };
-  }
+    }
+  })();
+
+  return {
+    ...baseProfile,
+    topSuitableFields,
+    subjectAptitudes,
+    bestFieldsSummaryKn,
+    bestFieldsSummaryEn
+  };
 }

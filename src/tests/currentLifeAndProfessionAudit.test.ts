@@ -423,4 +423,124 @@ describe("Current Life Situation & Accurate Profession Diagnostic Audit", () => 
       expect(answer).not.toContain("**");
     });
   });
+
+  // =========================================================================
+  // 5. CAREER FIELD SUITABILITY & SUBJECT APTITUDE ENGINE AUDIT
+  // =========================================================================
+  describe("Career Field Suitability & Subject Aptitude Engine Audit", () => {
+    const testContext = {
+      birthDate: "1993-05-31",
+      birthTime: "09:25",
+      latitude: 14.5479,
+      longitude: 74.3188,
+      devoteeName: "ಪ್ರಮೋದ್",
+      gender: "Male" as const,
+      devoteeAge: 31
+    };
+
+    const kundli = calculateKundli({
+      name: testContext.devoteeName,
+      birthDate: testContext.birthDate,
+      birthTime: testContext.birthTime,
+      latitude: testContext.latitude,
+      longitude: testContext.longitude
+    });
+
+    const synthesis = generatePanchangaAngaSynthesis(kundli, testContext);
+    const prof = synthesis.currentDiagnosis.accurateProfession!;
+
+    it("evaluates ranked topSuitableFields with percentages in descending order", () => {
+      expect(prof.topSuitableFields).toBeDefined();
+      expect(prof.topSuitableFields!.length).toBeGreaterThanOrEqual(5);
+
+      const topFields = prof.topSuitableFields!;
+      // Top field must have high suitability >= 85%
+      expect(topFields[0].suitabilityPercentage).toBeGreaterThanOrEqual(85);
+      expect(topFields[0].verdictKn).toBe("ಅತ್ಯುತ್ತಮ ಯಶಸ್ಸು (Top Recommended)");
+      expect(topFields[0].verdictEn).toBe("Top Recommended");
+
+      // Sorted descending
+      for (let i = 1; i < topFields.length; i++) {
+        expect(topFields[i - 1].suitabilityPercentage).toBeGreaterThanOrEqual(topFields[i].suitabilityPercentage);
+      }
+
+      // Metadata must have Kannada and English descriptions
+      topFields.forEach(field => {
+        expect(field.fieldNameKn).toBeTruthy();
+        expect(field.fieldNameEn).toBeTruthy();
+        expect(field.coreStrengthsKn).toBeTruthy();
+        expect(field.coreStrengthsEn).toBeTruthy();
+      });
+    });
+
+    it("evaluates 6 core Subject Aptitudes covering Maths, Science, Politics, Commerce, Arts, and Law", () => {
+      expect(prof.subjectAptitudes).toBeDefined();
+      expect(prof.subjectAptitudes!.length).toBe(6);
+
+      const aptitudes = prof.subjectAptitudes!;
+      const codes = aptitudes.map(a => a.code);
+      expect(codes).toContain("maths_analytics");
+      expect(codes).toContain("science_technology");
+      expect(codes).toContain("rajakiya_governance");
+      expect(codes).toContain("commerce_banking");
+      expect(codes).toContain("arts_creativity");
+      expect(codes).toContain("history_law_dharma");
+
+      // Scores must be realistic percentages between 50% and 98%
+      aptitudes.forEach(a => {
+        expect(a.scorePercentage).toBeGreaterThanOrEqual(50);
+        expect(a.scorePercentage).toBeLessThanOrEqual(98);
+        expect(a.nameKn).toBeTruthy();
+        expect(a.nameEn).toBeTruthy();
+        expect(a.ratingKn).toMatch(/(ಅತ್ಯುನ್ನತ|ಉತ್ತಮ|ಸಾಧಾರಣ)/);
+        expect(a.planetaryIndicatorKn).toBeTruthy();
+      });
+    });
+
+    it("synthesizes Paragraph 2 of Executive Reading with field percentages and subject aptitudes", () => {
+      const p2 = synthesis.multiParagraphExecutiveReading[1];
+      expect(p2).toContain("10ನೇ ಕರ್ಮ ಸ್ಥಾನ");
+      expect(p2).toContain("ಜೈಮಿನಿ ಅಮಾತ್ಯಕಾರಕ");
+      expect(p2).toContain("ನಿಖರ ವೃತ್ತಿ");
+      // Must contain percentages with % symbol
+      expect(p2).toMatch(/\d+%/);
+      // Must mention academic/subject aptitudes
+      expect(p2).toContain("ವಿಷಯವಾರು ಶೈಕ್ಷಣಿಕ ಅಭಿರುಚಿಯಲ್ಲಿ");
+      expect(p2).not.toContain("**");
+    });
+
+    it("evaluates custom profile 1993-03-16 with realistic career percentages and subject strengths", () => {
+      const profile1993 = {
+        birthDate: "1993-03-16",
+        birthTime: "01:40",
+        latitude: 14.5479,
+        longitude: 74.3188,
+        devoteeName: "ರಾಘವೇಂದ್ರ",
+        gender: "Male" as const,
+        devoteeAge: 32
+      };
+
+      const k1993 = calculateKundli({
+        name: profile1993.devoteeName,
+        birthDate: profile1993.birthDate,
+        birthTime: profile1993.birthTime,
+        latitude: profile1993.latitude,
+        longitude: profile1993.longitude
+      });
+
+      const s1993 = generatePanchangaAngaSynthesis(k1993, profile1993);
+      const p1993 = s1993.currentDiagnosis.accurateProfession!;
+
+      expect(p1993.topSuitableFields).toBeDefined();
+      expect(p1993.topSuitableFields![0].suitabilityPercentage).toBeGreaterThanOrEqual(85);
+      expect(p1993.subjectAptitudes).toBeDefined();
+      expect(p1993.subjectAptitudes!.length).toBe(6);
+
+      const p2_1993 = s1993.multiParagraphExecutiveReading[1];
+      expect(p2_1993).toMatch(/1\)/);
+      expect(p2_1993).toMatch(/2\)/);
+      expect(p2_1993).toMatch(/3\)/);
+      expect(p2_1993).toContain("%");
+    });
+  });
 });

@@ -5826,9 +5826,17 @@ export const generatePanchangaAngaSynthesis = (
     `ನಮಸ್ಕಾರ ${devoteeNameFormatted}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕ ನೋಡಿದೆ. ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಪ್ರಸ್ತುತ ಅತ್ಯಂತ ಪ್ರಮುಖವಾಗಿ ಎದ್ದು ಕಾಣುವ ಸಂಗತಿಯೆಂದರೆ — ${cls?.headlineKn || currentDiagnosis.primaryLifeChallenge.description}. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ಕಾಲಘಟ್ಟದಲ್ಲಿ, ${externalRealityText}.${mindsetText} ${cls?.planetaryCulpritKn || currentDiagnosis.primaryLifeChallenge.planetaryRootCause}. ಉಳಿದೆಲ್ಲ ವಿಷಯಗಳಿಗಿಂತ ಮೊದಲು ಈ ನೈಜ ಸವಾಲಿಗೆ ನಿಮಗೆ ಸ್ಪಷ್ಟ ದೈವಿಕ ಮುಕ್ತಿ ಮಾರ್ಗ ಬೇಕಾಗಿದೆ.`
   );
   
-  const p2 = sanitizeAstrologyKannadaText(
-    `ನಿಮ್ಮ ಜಾತಕದ 10ನೇ ಕರ್ಮ ಸ್ಥಾನ (${prof?.tenthHouseSignKn || "ಕರ್ಮ"} ರಾಶಿ) ಹಾಗೂ ಜೈಮಿನಿ ಅಮಾತ್ಯಕಾರಕ (${prof?.amatyakarakaPlanetKn || "ಅಮಾತ್ಯಕಾರಕ"}) ಗ್ರಹಗಳ ಬಲವನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ನಿಮ್ಮ ನಿಖರ ವೃತ್ತಿ ರಂಗವು: ${prof?.titleKn || "ವೃತ್ತಿಪರ ಕಾರ್ಯಕ್ಷೇತ್ರ"}. ನಿರ್ದಿಷ್ಟವಾಗಿ ನೀವು ${prof?.specificRoleKn || "ವೃತ್ತಿಪರರು"} ಆಗಿ ${prof?.workEnvironmentKn || "ಸಂಸ್ಥೆ"}ದಲ್ಲಿ ಕಾರ್ಯನಿರ್ವಹಿಸುವಂತಹ ಬಲವಾದ ಗ್ರಹ ಸಂಯೋಜನೆ ಇದೆ. ${prof?.astrologicalBasisKn || currentDiagnosis.technicalAspects.tenthHouseDetail}. ${prof?.secondaryAlternativeKn ? `ಪರ್ಯಾಯವಾಗಿ ಇದರಲ್ಲಿ ${prof.secondaryAlternativeKn} ಅವಕಾಶಗಳೂ ಪೂರಕವಾಗಿವೆ.` : ""}`
-  );
+  const topF1 = prof?.topSuitableFields?.[0];
+  const topF2 = prof?.topSuitableFields?.[1];
+  const topF3 = prof?.topSuitableFields?.[2];
+  const topS1 = prof?.subjectAptitudes?.[0];
+  const topS2 = prof?.subjectAptitudes?.[1];
+
+  const suitabilitySummaryKn = (topF1 && topF2 && topF3)
+    ? `ನಿಮ್ಮ ಜಾತಕದ 10ನೇ ಕರ್ಮ ಸ್ಥಾನ (${prof?.tenthHouseSignKn || "ಕರ್ಮ"} ರಾಶಿ), ಬುದ್ಧಿಕಾರಕ ಬುಧ, ಜ್ಞಾನಕಾರಕ ಗುರು ಹಾಗೂ ಜೈಮಿನಿ ಅಮಾತ್ಯಕಾರಕ (${prof?.amatyakarakaPlanetKn || "ಅಮಾತ್ಯಕಾರಕ"}) ಗ್ರಹಗಳ ಬಲವನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ನಿಮ್ಮ ಸಹಜ ಸಾಮರ್ಥ್ಯಕ್ಕೆ ಗರಿಷ್ಠ ಯಶಸ್ಸು ಮತ್ತು ಆರ್ಥಿಕ ಉನ್ನತಿ ತಂದುಕೊಡುವ ನಿಖರ ವೃತ್ತಿ ಕ್ಷೇತ್ರಗಳು: 1) ${topF1.fieldNameKn} (${topF1.suitabilityPercentage}%), 2) ${topF2.fieldNameKn} (${topF2.suitabilityPercentage}%), 3) ${topF3.fieldNameKn} (${topF3.suitabilityPercentage}%). ವಿಷಯವಾರು ಶೈಕ್ಷಣಿಕ ಅಭಿರುಚಿಯಲ್ಲಿ ನಿಮ್ಮ ಜಾತಕವು ${topS1 ? topS1.nameKn : "ಗಣಿತ & ವಿಶ್ಲೇಷಣೆ"} (${topS1?.scorePercentage || 85}%) ಹಾಗೂ ${topS2 ? topS2.nameKn : "ವಿಜ್ಞಾನ & ತಂತ್ರಜ್ಞಾನ"} (${topS2?.scorePercentage || 80}%) ಗಳಲ್ಲಿ ಅತ್ಯುನ್ನತ ನೈಸರ್ಗಿಕ ಕೌಶಲ್ಯವನ್ನು ಹೊಂದಿದೆ. ಪ್ರಮುಖವಾಗಿ ${prof?.specificRoleKn || "ವೃತ್ತಿಪರ ನಾಯಕತ್ವ"} ವಹಿಸುವಂತಹ ಗ್ರಹಬಲವಿದ್ದು, ${prof?.astrologicalBasisKn || currentDiagnosis.technicalAspects.tenthHouseDetail}. ${prof?.secondaryAlternativeKn ? `ಪರ್ಯಾಯವಾಗಿ ಇದರಲ್ಲಿ ${prof.secondaryAlternativeKn} ರಂಗವೂ ಉತ್ತಮ ಯಶಸ್ಸು ನೀಡಬಲ್ಲದು.` : ""}`
+    : `ನಿಮ್ಮ ಜಾತಕದ 10ನೇ ಕರ್ಮ ಸ್ಥಾನ (${prof?.tenthHouseSignKn || "ಕರ್ಮ"} ರಾಶಿ) ಹಾಗೂ ಜೈಮಿನಿ ಅಮಾತ್ಯಕಾರಕ (${prof?.amatyakarakaPlanetKn || "ಅಮಾತ್ಯಕಾರಕ"}) ಗ್ರಹಗಳ ಬಲವನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ನಿಮ್ಮ ನಿಖರ ವೃತ್ತಿ ರಂಗವು: ${prof?.titleKn || "ವೃತ್ತಿಪರ ಕಾರ್ಯಕ್ಷೇತ್ರ"}. ನಿರ್ದಿಷ್ಟವಾಗಿ ನೀವು ${prof?.specificRoleKn || "ವೃತ್ತಿಪರರು"} ಆಗಿ ಕಾರ್ಯನಿರ್ವಹಿಸುವಂತಹ ಬಲವಾದ ಗ್ರಹ ಸಂಯೋಜನೆ ಇದೆ. ${prof?.astrologicalBasisKn || currentDiagnosis.technicalAspects.tenthHouseDetail}. ${prof?.secondaryAlternativeKn ? `ಪರ್ಯಾಯವಾಗಿ ಇದರಲ್ಲಿ ${prof.secondaryAlternativeKn} ಅವಕಾಶಗಳೂ ಪೂರಕವಾಗಿವೆ.` : ""}`;
+
+  const p2 = sanitizeAstrologyKannadaText(suitabilitySummaryKn);
 
   const dashaTimeText = currentDiagnosis.dashaTiming?.timelineKn || "ಮುಂದಿನ 3 ರಿಂದ 6 ತಿಂಗಳುಗಳಲ್ಲಿ";
   const p3 = sanitizeAstrologyKannadaText(
@@ -6155,11 +6163,30 @@ ${cls.planetaryCulpritEn}${symptomsText}
 
   // 0D. ACCURATE SPECIFIC PROFESSION DETERMINATION (ನಿಖರ ವೃತ್ತಿ & ಕಾರ್ಯಕ್ಷೇತ್ರ ನಿರ್ಣಯ - Which work is he doing?)
   if (isSpecificProfessionQuery) {
+    const topF1 = prof.topSuitableFields?.[0];
+    const topF2 = prof.topSuitableFields?.[1];
+    const topF3 = prof.topSuitableFields?.[2];
+    const topS1 = prof.subjectAptitudes?.[0];
+    const topS2 = prof.subjectAptitudes?.[1];
+
     if (isKn) {
+      const topFieldsBlock = (topF1 && topF2 && topF3)
+        ? `\n\n• 📊 ಗರಿಷ್ಠ ಯಶಸ್ಸಿನ ಉನ್ನತ ವೃತ್ತಿ ಕ್ಷೇತ್ರಗಳು (% ಸೂಕ್ತತೆ):
+  1. ${topF1.fieldNameKn} — ${topF1.suitabilityPercentage}% [${topF1.verdictKn}]
+  2. ${topF2.fieldNameKn} — ${topF2.suitabilityPercentage}% [${topF2.verdictKn}]
+  3. ${topF3.fieldNameKn} — ${topF3.suitabilityPercentage}% [${topF3.verdictKn}]`
+        : "";
+
+      const subjectBlock = (topS1 && topS2)
+        ? `\n\n• 📚 ನೈಸರ್ಗಿಕ ಶೈಕ್ಷಣಿಕ & ವಿಷಯವಾರು ಕೌಶಲ್ಯಗಳು:
+  1. ${topS1.nameKn}: ${topS1.scorePercentage}% [${topS1.ratingKn}]
+  2. ${topS2.nameKn}: ${topS2.scorePercentage}% [${topS2.ratingKn}]`
+        : "";
+
       return sanitizeAstrologyKannadaText(
 `ನಮಸ್ಕಾರ ${devoteeNameFormatted}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕದ 10ನೇ ಕರ್ಮ ಸ್ಥಾನ, ಜೈಮಿನಿ ಅಮಾತ್ಯಕಾರಕ ಹಾಗೂ ನವಾಂಶವನ್ನು ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಪರಿಶೀಲಿಸಿ ನಿಮ್ಮ ನಿಖರ ವೃತ್ತಿಯನ್ನು ನಿರ್ಣಯಿಸಿದ್ದೇನೆ.
 
-• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ಜಾತಕರ ನಿಖರ ವೃತ್ತಿ & ಕಾರ್ಯಕ್ಷೇತ್ರ: ${prof.titleKn} (${prof.specificRoleKn}) — ${prof.confidenceScore}% ನಿಖರ ಶಾಸ್ತ್ರೀಯ ಹೊಂದಾಣಿಕೆ.
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ಜಾತಕರ ನಿಖರ ವೃತ್ತಿ & ಕಾರ್ಯಕ್ಷೇತ್ರ: ${prof.titleKn} (${prof.specificRoleKn}) — ${prof.confidenceScore}% ನಿಖರ ಶಾಸ್ತ್ರೀಯ ಹೊಂದಾಣಿಕೆ.${topFieldsBlock}${subjectBlock}
 
 • 🎯 ಶಾಸ್ತ್ರೀಯ ಕರ್ಮ ಸ್ಥಾನ & ಗ್ರಹ ಸಂಯೋಗ: ${prof.astrologicalBasisKn}
 
@@ -6175,10 +6202,23 @@ ${prof.secondaryAlternativeKn ? `• 🔄 ಪರ್ಯಾಯ / ಉಪ-ವೃತ�
 • 🪔 ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಪರಿಹಾರ & ಮಾರ್ಗೋಪಾಯ: ವೃತ್ತಿ ಕ್ಷೇತ್ರದ ನಿರಂತರ ಯಶಸ್ಸಿಗಾಗಿ ನಿಮ್ಮ ಭಾಗ್ಯಾಧಿಪತಿಯ ${prescriptions.gemstoneRing.primaryGemstoneKn} (${prescriptions.gemstoneRing.caratWeight}) ರತ್ನವನ್ನು ${prescriptions.gemstoneRing.metalKn}ದಲ್ಲಿ ಧಾರಣೆ ಮಾಡಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ರುದ್ರಾಭಿಷೇಕ ಮತ್ತು ಗಣಪತಿ ಹವನ ಸಮರ್ಪಿಸಿ.`
       );
     } else {
+      const topFieldsBlockEn = (topF1 && topF2 && topF3)
+        ? `\n\n• 📊 Top Ranked Career Fields (% Suitability):
+  1. ${topF1.fieldNameEn} — ${topF1.suitabilityPercentage}% [${topF1.verdictEn}]
+  2. ${topF2.fieldNameEn} — ${topF2.suitabilityPercentage}% [${topF2.verdictEn}]
+  3. ${topF3.fieldNameEn} — ${topF3.suitabilityPercentage}% [${topF3.verdictEn}]`
+        : "";
+
+      const subjectBlockEn = (topS1 && topS2)
+        ? `\n\n• 📚 Academic & Subject Aptitudes:
+  1. ${topS1.nameEn}: ${topS1.scorePercentage}% [${topS1.ratingEn}]
+  2. ${topS2.nameEn}: ${topS2.scorePercentage}% [${topS2.ratingEn}]`
+        : "";
+
       return (
 `Namaskara ${devoteeNameFormatted}, I have analyzed your 10th house of vocation, Jaimini Amatyakaraka, and Navamsha to pinpoint your accurate profession.
 
-• 🔮 Direct Daivajna Verdict: Native's Accurate Profession: ${prof.titleEn} (${prof.specificRoleEn}) — [${prof.confidenceScore}% Classical Alignment].
+• 🔮 Direct Daivajna Verdict: Native's Accurate Profession: ${prof.titleEn} (${prof.specificRoleEn}) — [${prof.confidenceScore}% Classical Alignment].${topFieldsBlockEn}${subjectBlockEn}
 
 • 🎯 Astrological Root Cause & Planetary Alignment: ${prof.astrologicalBasisEn}
 
