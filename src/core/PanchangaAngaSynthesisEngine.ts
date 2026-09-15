@@ -4874,150 +4874,117 @@ export const generateCurrentLifeDiagnosis = (
     mentalDiagnosis = "ಶನಿ-ಚಂದ್ರ (ವಿಷ ಯೋಗ) ಪ್ರಭಾವದಿಂದ ಹೊಣೆಗಾರಿಕೆಯ ಹೊರೆ ಹೆಚ್ಚಾಗಿ ಮನಸ್ಸಿಗೆ ವಿಶ್ರಾಂತಿ ಸಿಗುತ್ತಿಲ್ಲ.";
   }
 
-  // 3. Primary Life Challenge Assessment (Dynamic 4-Domain Scoring for ANY Kundali)
+  // 3. Current Life Situation & Primary Life Challenge (Unified Parashari Holistic 12-House Matrix)
+  const cls = diagnoseCurrentLifeSituation(kundli, context, dashaTiming, liveGochara);
+
   let challengeArea: CurrentLifeDiagnosis["primaryLifeChallenge"]["area"] = "General Transition";
-  let challengeAreaKn = "ಜೀವನದ ಸ್ಥಿತ್ಯಂತರ & ನೂತನ ಆರಂಭ";
-  let challengeDesc = "ಪ್ರಸ್ತುತ ಜೀವನದಲ್ಲಿ ಸ್ಥಿರತೆಯನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳುವ ಮತ್ತು ಹೊಸ ಯೋಜನೆಗಳಿಗೆ ಅಡಿಪಾಯ ಹಾಕುವ ಹಂತ.";
-  let challengeDescEn = "A life phase focused on consolidating personal stability and laying the foundation for upcoming endeavors.";
-  let rootCause = `ಪ್ರಸ್ತುತ ${maha} ಮಹಾದಶಾ ಮತ್ತು ${bhukti} ಭುಕ್ತಿಯ ಸಂಚಾರ.`;
-  let rootCauseEn = `Ongoing transit under ${maha} Mahadasha and ${bhukti} Bhukti.`;
-  let solutionKn = "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸಂಕಲ್ಪ ಪೂಜೆ ಮತ್ತು ನವಗ್ರಹ ಶಾಂತಿ ಸೇವೆ ಸಮರ್ಪಿಸಿ.";
-  let solutionEn = "Sponsor Navagraha Shanti and Sankalpa Pooja at Sri Kshetra Gokarna Mahabaleshwara.";
+  let challengeAreaKn = cls.titleKn || "ಜೀವನದ ಸ್ಥಿತ್ಯಂತರ & ನೂತನ ಆರಂಭ";
+  let challengeDesc = cls.detailedRealityKn || "ಪ್ರಸ್ತುತ ಜೀವನದಲ್ಲಿ ಸ್ಥಿರತೆಯನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳುವ ಮತ್ತು ಹೊಸ ಯೋಜನೆಗಳಿಗೆ ಅಡಿಪಾಯ ಹಾಕುವ ಹಂತ.";
+  let challengeDescEn = cls.detailedRealityEn || "A life phase focused on consolidating personal stability and laying the foundation for upcoming endeavors.";
+  let rootCause = cls.planetaryCulpritKn || `ಪ್ರಸ್ತುತ ${maha} ಮಹಾದಶಾ ಮತ್ತು ${bhukti} ಭುಕ್ತಿಯ ಸಂಚಾರ.`;
+  let rootCauseEn = cls.planetaryCulpritEn || `Ongoing transit under ${maha} Mahadasha and ${bhukti} Bhukti.`;
+  let solutionKn = cls.gokarnaRemedyKn || "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸಂಕಲ್ಪ ಪೂಜೆ ಮತ್ತು ನವಗ್ರಹ ಶಾಂತಿ ಸೇವೆ ಸಮರ್ಪಿಸಿ.";
+  let solutionEn = cls.gokarnaRemedyEn || "Sponsor Navagraha Shanti and Sankalpa Pooja at Sri Kshetra Gokarna Mahabaleshwara.";
 
-  const seventhLord = signLord((kundli.lagnaRashi.index + 6) % 12);
-  const seventhLordPlanet = kundli.planets.find((p) => p.name === seventhLord);
-  const tenthLord = signLord((kundli.lagnaRashi.index + 9) % 12);
-  const tenthLordPlanet = kundli.planets.find((p) => p.name === tenthLord);
-  const secondLord = signLord((kundli.lagnaRashi.index + 1) % 12);
-  const secondLordPlanet = kundli.planets.find((p) => p.name === secondLord);
-  const fifthLord = signLord((kundli.lagnaRashi.index + 4) % 12);
-  const fifthLordPlanet = kundli.planets.find((p) => p.name === fifthLord);
-
-  // Domain 1: Marital Affliction Score
-  let marriageAfflictionScore = 0;
-  if (seventhLordPlanet && [6, 8, 12].includes(seventhLordPlanet.house)) marriageAfflictionScore += 3.5;
-  if (mars && [1, 2, 4, 7, 8, 12].includes(mars.house)) marriageAfflictionScore += 2.5; // Kuja Dosha
-  if (rahu && rahu.house === 7) marriageAfflictionScore += 2.5;
-  if (saturn && (saturn.house === 7 || [1, 5, 10].includes(saturn.house))) marriageAfflictionScore += 2.0;
-  if (mars && seventhLordPlanet && [4, 7, 8].includes(houseDist(mars.house, seventhLordPlanet.house))) marriageAfflictionScore += 2.0;
-
-  // Domain 2: Debt / Speculation Financial Affliction Score
-  let debtAfflictionScore = 0;
-  const is5thRahu = rahu && rahu.house === 5;
-  const is5thLordNeecha = fifthLordPlanet && (
-    (fifthLordPlanet.name === PlanetName.Mars && fifthLordPlanet.rashi.index === 3) ||
-    (fifthLordPlanet.name === PlanetName.Sun && fifthLordPlanet.rashi.index === 6) ||
-    (fifthLordPlanet.name === PlanetName.Moon && fifthLordPlanet.rashi.index === 7) ||
-    (fifthLordPlanet.name === PlanetName.Jupiter && fifthLordPlanet.rashi.index === 9) ||
-    (fifthLordPlanet.name === PlanetName.Venus && fifthLordPlanet.rashi.index === 5) ||
-    (fifthLordPlanet.name === PlanetName.Saturn && fifthLordPlanet.rashi.index === 0) ||
-    (fifthLordPlanet.name === PlanetName.Mercury && fifthLordPlanet.rashi.index === 11)
-  );
-  if (is5thRahu && (is5thLordNeecha || (fifthLordPlanet && [6, 8, 12].includes(fifthLordPlanet.house)))) {
-    debtAfflictionScore += 4.5;
-  }
-  if (secondLordPlanet && [6, 8, 12].includes(secondLordPlanet.house)) debtAfflictionScore += 2.5;
-  if (saturn && saturn.house === 8) debtAfflictionScore += 2.0;
-  if (kundli.maandi && [1, 7, 8].includes(kundli.maandi.rashi.index - kundli.lagnaRashi.index + 1)) debtAfflictionScore += 2.0;
-
-  // Domain 3: Career Affliction Score
-  let careerAfflictionScore = 0;
-  if (tenthLordPlanet && [6, 8, 12].includes(tenthLordPlanet.house)) careerAfflictionScore += 3.5;
-  if (rahu && rahu.house === 10) careerAfflictionScore += 2.0;
-  if (saturn && saturn.house === 10) careerAfflictionScore += 2.0;
-
-  // Domain 4: Health Affliction Score
-  let healthAfflictionScore = 0;
-  const lagnaLordPlanet = lagnaLordPl;
-  if (lagnaLordPlanet && [6, 8, 12].includes(lagnaLordPlanet.house)) healthAfflictionScore += 3.5;
-  if (moon && [6, 8, 12].includes(moon.house)) healthAfflictionScore += 2.5;
-
-  // Determine Priority Authentically for the Native's Chart
-  if (devoteeAge >= 20 && marriageAfflictionScore >= 3.0 && marriageAfflictionScore >= careerAfflictionScore) {
+  if (cls.category === "marriage_delay") {
+    challengeArea = "Personal / Marriage";
+    challengeAreaKn = "ವಿವಾಹ ವಿಳಂಬ, ಬಂದ ಸಂಬಂಧಗಳು ಕೈತಪ್ಪುವುದು & ಕಂಕಣ ಭಾಗ್ಯದ ನಿರೀಕ್ಷೆ (Marriage Delay & Alliance Roadblocks)";
+    challengeDesc = cls.detailedRealityKn;
+    challengeDescEn = cls.detailedRealityEn;
+    rootCause = cls.planetaryCulpritKn;
+    rootCauseEn = cls.planetaryCulpritEn;
+    solutionKn = cls.gokarnaRemedyKn;
+    solutionEn = cls.gokarnaRemedyEn;
+  } else if (cls.category === "marital_discord") {
     challengeArea = "Personal / Marriage";
     challengeAreaKn = "ದಾಂಪತ್ಯದಲ್ಲಿ ತೀವ್ರ ಬಿಕ್ಕಟ್ಟು & ತಪ್ಪು ತಿಳುವಳಿಕೆಗಳ ಸಂಕಷ್ಟ (Acute Marital Crisis & Misunderstandings)";
     challengeDesc = "ದಾಂಪತ್ಯದಲ್ಲಿ ತೀವ್ರವಾದ ಮಾನಸಿಕ ಸಂಕಷ್ಟ, ಪರಸ್ಪರ ಅಸಹನೀಯ ತಪ್ಪು ತಿಳುವಳಿಕೆಗಳು (Misunderstandings), ಸಣ್ಣ ಮಾತಿಗೂ ಭುಗಿಲೇಳುವ ಮನಸ್ತಾಪ, ಹೊಂದಾಣಿಕೆಯಿಲ್ಲದೆ ಮಾತುಕತೆ ಕಡಿದುಹೋಗಿರುವುದು ಅಥವಾ ದೂರವಾಗುವಂತಹ ಕಠಿಣ ಬಿಕ್ಕಟ್ಟಿನಿಂದ ನೀವು ಪ್ರಸ್ತುತ ಬಳಲುತ್ತಿದ್ದೀರಿ.";
-    challengeDescEn = "You are currently suffering from acute marital distress, severe misunderstandings, constant friction triggered by trivial matters, emotional distance, and breakdown of marital communication.";
-    rootCause = `7ನೇ ಕಳತ್ರಾಧಿಪತಿ ${toKannadaPlanet(seventhLord)} ${seventhLordPlanet?.house ?? 8}ನೇ ಸಂಕಟ ಭಾವದಲ್ಲಿದ್ದು, ${mars ? `ಲಗ್ನದ ${toKannadaPlanet(mars.name)} ದೋಷದ` : "ಗ್ರಹಗಳ"} ತೀವ್ರ ದೃಷ್ಟಿ ಪ್ರಭಾವವಿದೆ.`;
-    rootCauseEn = "7th house lord placed in dusthana with adverse aspects from Mars/Saturn creating persistent friction.";
-    solutionKn = "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಉಮಾ-ಮಹೇಶ್ವರ ಕಲ್ಯಾಣ ಸಂಕಲ್ಪ ಪೂಜೆ ನೆರವೇರಿಸಿ, ಪರಸ್ಪರ ತಪ್ಪು ತಿಳುವಳಿಕೆಗಳನ್ನು ಮರೆತು ಒಂದಾಗಲು ಪ್ರಾಯಶ್ಚಿತ್ತ ಸಂಕಲ್ಪ ಮಾಡಿ ಮತ್ತು 2 ಮುಖಿ ರುದ್ರಾಕ್ಷಿ ಧಾರಣೆ ಮಾಡಿ.";
-    solutionEn = "Sponsor Uma-Maheshwara Kalyana Sankalpa Pooja at Sri Kshetra Gokarna to dissolve misunderstandings and restore matrimonial union, and wear a 2-Mukhi Rudraksha.";
-  } else if (debtAfflictionScore >= 3.5) {
+    challengeDescEn = cls.detailedRealityEn;
+    rootCause = cls.planetaryCulpritKn;
+    rootCauseEn = cls.planetaryCulpritEn;
+    solutionKn = cls.gokarnaRemedyKn;
+    solutionEn = cls.gokarnaRemedyEn;
+  } else if (cls.category === "debt_financial_crisis") {
     challengeArea = "Financial / Debts";
-    challengeAreaKn = is5thRahu
-      ? "ಷೇರು ಮಾರುಕಟ್ಟೆ ನಷ್ಟ, ಸ್ಪೆಕ್ಯುಲೇಶನ್ & ಭಾರಿ ಸಾಲದ ಬಿಕ್ಕಟ್ಟು (Stock Market Speculation & Debt Crisis)"
-      : "ಆರ್ಥಿಕ ಬಿಕ್ಕಟ್ಟು & ಸಾಲದ ಸುಳಿ (Financial Strain & Debt Pressure)";
-    challengeDesc = is5thRahu
-      ? "ಷೇರು ಮಾರುಕಟ್ಟೆ, ಇಂಟ್ರಾಡೇ ಟ್ರೇಡಿಂಗ್ ಹಾಗೂ ಸ್ಪೆಕ್ಯುಲೇಶನ್‌ನಲ್ಲಿ ಭಾರಿ ಬಂಡವಾಳ ಕಳೆದುಕೊಂಡು ಸಾಲದ ಸುಳಿಗೆ ಸಿಲುಕಿರುವ ತೀವ್ರ ಆರ್ಥಿಕ ಬಿಕ್ಕಟ್ಟು."
-      : "ಆದಾಯಕ್ಕಿಂತ ಖರ್ಚು ಹೆಚ್ಚು, ಕೈಗೆ ಬಂದ ಹಣ ನಿಲ್ಲದಿರುವುದು ಅಥವಾ ಸಾಲ ತೀರಿಸುವ ಆರ್ಥಿಕ ಒತ್ತಡ.";
-    challengeDescEn = is5thRahu
-      ? "Acute financial crisis from devastating capital losses in stock market intraday/options trading and speculation, leading to crushing debt trap."
-      : "Severe financial stress from mounting debt obligations and unexpected expenditure outpacing income.";
-    rootCause = is5thRahu
-      ? "5ನೇ ಮನೆಯಲ್ಲಿ ರಾಹು (ಸ್ಪೆಕ್ಯುಲೇಶನ್ ಗೀಳು), ನೀಚ ಪಂಚಮಾಧಿಪತಿ ಹಾಗೂ 8ನೇ ಅಷ್ಟಮ ಶನಿ."
-      : "2ನೇ ಧನ ಸ್ಥಾನದ ಅಧಿಪತಿ ದುಃಸ್ಥಾನದಲ್ಲಿರುವುದು ಹಾಗೂ ಹಣದ ಸೋರಿಕೆ ನೋಡ್ ಸಕ್ರಿಯವಾಗಿರುವುದು.";
-    rootCauseEn = is5thRahu
-      ? "Rahu in 5th house triggering speculative trading obsession combined with afflicted 5th lord and 8th house Saturn."
-      : "2nd house lord placed in Dusthana triggering financial leakage.";
-    solutionKn = "ಷೇರು ಟ್ರೇಡಿಂಗ್ ಮತ್ತು ಸ್ಪೆಕ್ಯುಲೇಶನ್ ಅನ್ನು ಇಂದೇ ಸಂಪೂರ್ಣವಾಗಿ ನಿಲ್ಲಿಸಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಮಹಾಗಣಪತಿ ಹೋಮ, ಕುಬೇರ ಸಂಕಲ್ಪ ಪೂಜೆ ಸಲ್ಲಿಸಿ, ಸಾಲ ವಿಮೋಚನೆಗಾಗಿ ಪ್ರಾಯಶ್ಚಿತ್ತ ಮಾಡಿ.";
-    solutionEn = "Cease all speculative trading immediately. Perform Mahaganapati Homa and Kubera Sankalpa at Sri Kshetra Gokarna to systematically eliminate debt burden.";
-  } else if (devoteeAge >= 24 && devoteeAge <= 58 && careerAfflictionScore >= 3.0) {
+    challengeAreaKn = "ಆರ್ಥಿಕ ಬಿಕ್ಕಟ್ಟು & ಸಾಲದ ಸುಳಿ (Financial Strain & Debt Pressure)";
+    challengeDesc = cls.detailedRealityKn;
+    challengeDescEn = cls.detailedRealityEn;
+    rootCause = cls.planetaryCulpritKn;
+    rootCauseEn = cls.planetaryCulpritEn;
+    solutionKn = cls.gokarnaRemedyKn;
+    solutionEn = cls.gokarnaRemedyEn;
+  } else if (cls.category === "career_politics_layoff") {
     challengeArea = "Career / Workplace";
     challengeAreaKn = "ಉದ್ಯೋಗದಲ್ಲಿ ಅಸ್ಥಿರತೆ & ಕಚೇರಿ ರಾಜಕೀಯ (Workplace Politics & Career Delays)";
-    challengeDesc = "ಉದ್ಯೋಗದಲ್ಲಿ ನಿರೀಕ್ಷಿತ ಮನ್ನಣೆ ವಿಳಂಬ, ಹಿರಿಯ ಅಧಿಕಾರಿಗಳೊಂದಿಗೆ ಸಣ್ಣಪುಟ್ಟ ಭಿನ್ನಾಭಿಪ್ರಾಯ ಅಥವಾ ಹೊಸ ಉದ್ಯೋಗದ ಹುಡುಕಾಟ.";
-    challengeDescEn = "Lack of recognition at work, career stagnation, and workplace politics impeding professional growth despite sincere dedication.";
-    rootCause = `10ನೇ ಮನೆಯ ಅಧಿಪತಿಯಾದ ${toKannadaPlanet(tenthLord)} ಗ್ರಹವು ${tenthLordPlanet?.house ?? 6}ನೇ ಮನೆಯಲ್ಲಿರುವುದು.`;
-    rootCauseEn = "10th lord placed in dusthana under Saturn's slow transit.";
-    solutionKn = "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಕರ್ಮ ಸಿದ್ಧಿ ಸಂಕಲ್ಪ ಪೂಜೆ ಸಲ್ಲಿಸಿ, ರವಿ ಗಾಯತ್ರಿ ಮಂತ್ರ ಜಪಿಸಿ ಮತ್ತು ಶಿಫಾರಸು ಮಾಡಿದ ರತ್ನ ಧಾರಣೆ ಮಾಡಿ.";
-    solutionEn = "Perform Karma Siddhi Sankalpa Pooja at Sri Kshetra Gokarna and wear the prescribed gemstone.";
-  } else if (healthAfflictionScore >= 3.0) {
+    challengeDesc = cls.detailedRealityKn;
+    challengeDescEn = cls.detailedRealityEn;
+    rootCause = cls.planetaryCulpritKn;
+    rootCauseEn = cls.planetaryCulpritEn;
+    solutionKn = cls.gokarnaRemedyKn;
+    solutionEn = cls.gokarnaRemedyEn;
+  } else if (cls.category === "career_financial_growth") {
+    challengeArea = "Career & Financial Elevation";
+    challengeAreaKn = "ವೃತ್ತಿ ವಿಕಾಸ, ಆರ್ಥಿಕ ಸ್ಥಿರತೆ & ದಶಾ-ಗೋಚಾರ ಸಮನ್ವಯ";
+    challengeDesc = cls.detailedRealityKn;
+    challengeDescEn = cls.detailedRealityEn;
+    rootCause = cls.planetaryCulpritKn;
+    rootCauseEn = cls.planetaryCulpritEn;
+    solutionKn = cls.gokarnaRemedyKn;
+    solutionEn = cls.gokarnaRemedyEn;
+  } else if (cls.category === "childless_anxiety") {
+    challengeArea = "Progeny / Children";
+    challengeAreaKn = "ಸಂತಾನ ಭಾಗ್ಯ ವಿಳಂಬ & ದೈವಿಕ ರಕ್ಷೆಯ ನಿರೀಕ್ಷೆ (Delayed Childbirth Anxiety)";
+    challengeDesc = cls.detailedRealityKn;
+    challengeDescEn = cls.detailedRealityEn;
+    rootCause = cls.planetaryCulpritKn;
+    rootCauseEn = cls.planetaryCulpritEn;
+    solutionKn = cls.gokarnaRemedyKn;
+    solutionEn = cls.gokarnaRemedyEn;
+  } else if (cls.category === "health_vitality_strain") {
     challengeArea = "Health / Vitality";
     challengeAreaKn = "ದೈಹಿಕ ಬಳಲಿಕೆ & ನರಗಳ ಅಶಾಂತಿ (Physical Exhaustion & Health Vulnerability)";
-    challengeDesc = "ದೈಹಿಕ ಬಳಲಿಕೆ, ರೋಗನಿರೋಧಕ ಶಕ್ತಿಯ ಕೊರತೆ ಅಥವಾ ಅನಿರೀಕ್ಷಿತ ಅನಾರೋಗ್ಯದ ಕ್ಲೇಶ.";
-    challengeDescEn = "Chronic physical exhaustion, low vitality, sleep disturbance, or sudden health vulnerabilities.";
-    rootCause = `ಲಗ್ನಾಧಿಪತಿ ${toKannadaPlanet(lagnaLord)} ದುಃಸ್ಥಾನದಲ್ಲಿರುವುದು ಹಾಗೂ ಚಂದ್ರನ ಮೇಲಿನ ಪಾಪಗ್ರಹ ಪ್ರಭಾವ.`;
-    rootCauseEn = "Lagna lord in Dusthana and Moon under malefic aspects.";
-    solutionKn = "ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ಮಹಾಮೃತ್ಯುಂಜಯ ಹೋಮ ಮತ್ತು ಆಯುಷ್ಯ ಶಾಂತಿ ಸಂಕಲ್ಪ ಸೇವೆ ನೆರವೇರಿಸಿ, ಪವಿತ್ರ ರಕ್ಷಾ ಭಸ್ಮ ಧಾರಣೆ ಮಾಡಿ.";
-    solutionEn = "Sponsor Mahamrityunjaya Homa at Gokarna Kotiteertha and apply sacred Raksha Bhasma daily.";
-  } else {
-    // Dynamic Age-Bracketed & Dasha-Gochara Driven Life Focus (Zero Generic Fallback)
-    if (devoteeAge < 14) {
-      challengeArea = "Academic & Growth Focus";
-      challengeAreaKn = "ಬಾಲ್ಯದ ಸಮಗ್ರ ವಿಕಾಸ, ವಿದ್ಯಾಭ್ಯಾಸ & ರಕ್ಷಾ ಕವಚ";
-      challengeDesc = `ಪ್ರಸ್ತುತ ಮಗುವಿಗೆ ${devoteeAge} ವರ್ಷ ಪ್ರಾಯವಿದ್ದು, ${toKannadaPlanet(maha)} ಮಹಾದಶಾ ಮತ್ತು ${toKannadaPlanet(bhukti)} ಭುಕ್ತಿಯ ಪ್ರಭಾವದಲ್ಲಿ ಬೌದ್ಧಿಕ ಬೆಳವಣಿಗೆ ಹಾಗೂ ಪ್ರಾಥಮಿಕ ಶಿಕ್ಷಣದ ಹಂತದಲ್ಲಿದೆ. ಚಂದ್ರನಿಂದ ಗೋಚಾರ ಶನಿ ${liveGochara.shaniHouseFromMoon}ನೇ ಮನೆಯಲ್ಲಿದ್ದು ಮತ್ತು ಗುರು ${liveGochara.guruHouseFromMoon}ನೇ ಮನೆಯಲ್ಲಿ ಸಂಚರಿಸುತ್ತಿದ್ದು, ಮಗುವಿನ ರೋಗನಿರೋಧಕ ಶಕ್ತಿ, ಸುಖನಿದ್ರೆ ಮತ್ತು ಸಾತ್ವಿಕ ನಡವಳಿಕೆಗೆ ಪೋಷಕರ ಪ್ರೀತಿಯ ಮಾರ್ಗದರ್ಶನ ಅಗತ್ಯ.`;
-      challengeDescEn = `At age ${devoteeAge}, the child is progressing through primary intellectual development and schooling under ${maha} Mahadasha and ${bhukti} Bhukti, requiring nurturing guidance.`;
-      rootCause = `ಮಗುವಿನ ಜನ್ಮ ಲಗ್ನಕ್ಕೆ ${toKannadaPlanet(maha)} ಮಹಾದಶಾ ಹಾಗೂ ಗೋಚಾರ ಶನಿ-ಗುರುಗಳ ಪ್ರಭಾವ.`;
-      rootCauseEn = `Current ${maha} Mahadasha and Gochara transits shaping childhood learning.`;
-      solutionKn = "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ಬಾಲಗ್ರಹ ಶಾಂತಿ ಮತ್ತು ಮಹಾಮೃತ್ಯುಂಜಯ ರಕ್ಷಾ ಸಂಕಲ್ಪ ಸೇವೆ ನೆರವೇರಿಸಿ.";
-      solutionEn = "Sponsor Balagraha Shanti and Mahamrityunjaya Raksha Sankalpa at holy Gokarna Kotiteertha.";
-    } else if (devoteeAge <= 23) {
-      challengeArea = "Education & Career Foundation";
-      challengeAreaKn = "ಉನ್ನತ ಶಿಕ್ಷಣ, ಕೌಶಲ್ಯ ವೃದ್ಧಿ & ವೃತ್ತಿ ಬುನಾದಿ";
-      challengeDesc = `ಪ್ರಸ್ತುತ ${devoteeAge} ವರ್ಷದ ಪ್ರಾಯದಲ್ಲಿ ಉನ್ನತ ವಿದ್ಯಾಭ್ಯಾಸ, ಕೌಶಲ್ಯ ವೃದ್ಧಿ ಹಾಗೂ ಭವಿಷ್ಯದ ವೃತ್ತಿ ಜೀವನಕ್ಕೆ ಭದ್ರ ಅಡಿಪಾಯ ಹಾಕುವ ಸುವರ್ಣ ಕಾಲಘಟ್ಟ. ಜನ್ಮ ಲಗ್ನದ ${toKannadaRashi(kundli.lagnaRashi.english)} ತತ್ವ ಹಾಗೂ ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${toKannadaPlanet(maha)} ಮಹಾದಶಾ - ${toKannadaPlanet(bhukti)} ಭುಕ್ತಿಯು ನಿಮ್ಮಲ್ಲಿ ಹೊಸ ಜ್ಞಾನಾರ್ಜನೆ ಮತ್ತು ಸ್ಪರ್ಧಾತ್ಮಕ ಸಾಮರ್ಥ್ಯವನ್ನು ಜಾಗೃತಗೊಳಿಸುತ್ತಿವೆ. ಗೋಚಾರ ಗುರು ${liveGochara.guruHouseFromMoon}ನೇ ಮನೆಯ ಅನುಗ್ರಹದಿಂದ ಅಧ್ಯಯನದಲ್ಲಿ ದೃಢ ಏಕಾಗ್ರತೆ ಕಾಯ್ದುಕೊಳ್ಳುವುದು ಈ ಹಂತದ ಮುಖ್ಯ ಕಾರ್ಯ.`;
-      challengeDescEn = `At age ${devoteeAge}, this prime youth phase is dedicated to higher education, competitive skill development, and career foundation under ${maha} Mahadasha and ${bhukti} Bhukti.`;
-      rootCause = `ಲಗ್ನಾಧಿಪತಿಯ ಬಲ ಹಾಗೂ ${toKannadaPlanet(maha)} ಮಹಾದಶಾ ಮತ್ತು ${toKannadaPlanet(bhukti)} ಭುಕ್ತಿಯ ವಿದ್ಯಾಕಾರಕ ಸಂಚಾರ.`;
-      rootCauseEn = `Ascendant lord strength and academic transit under ${maha} Mahadasha and ${bhukti} Bhukti.`;
-      solutionKn = "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಮೇಧಾ ದಕ್ಷಿಣಾಮೂರ್ತಿ ಸಂಕಲ್ಪ ಪೂಜೆ ಮತ್ತು ವಿದ್ಯಾ ಗಣಪತಿ ಸೇವೆ ನೆರವೇರಿಸಿ.";
-      solutionEn = "Perform Medha Dakshinamurthy and Vidya Ganapati Sankalpa Pooja at Sri Kshetra Gokarna.";
-    } else if (devoteeAge <= 58) {
-      challengeArea = "Career & Financial Elevation";
-      challengeAreaKn = "ವೃತ್ತಿ ವಿಕಾಸ, ಆರ್ಥಿಕ ಸ್ಥಿರತೆ & ದಶಾ-ಗೋಚಾರ ಸಮನ್ವಯ";
-      challengeDesc = `ಪ್ರಸ್ತುತ ${devoteeAge} ವರ್ಷದ ಪ್ರಬುದ್ಧ ಜೀವಿತ ಘಟ್ಟದಲ್ಲಿ ನೀವು ವೃತ್ತಿಪರ ಜವಾಬ್ದಾರಿ, ಕುಟುಂಬದ ಆರ್ಥಿಕ ಭದ್ರತೆ ಮತ್ತು ದೀರ್ಘಕಾಲೀನ ಹೂಡಿಕೆಗಳ ಮಹತ್ವದ ಹಂತದಲ್ಲಿದ್ದೀರಿ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${toKannadaPlanet(maha)} ಮಹಾದಶೆಯಲ್ಲಿ ${toKannadaPlanet(bhukti)} ಭುಕ್ತಿಯು ಕರ್ಮ-ಧನ ಕ್ಷೇತ್ರಗಳಲ್ಲಿ ಹೊಸ ಸಾಧ್ಯತೆಗಳನ್ನು ತೆರೆಯುತ್ತಿದ್ದು, ಚಂದ್ರನಿಂದ ${liveGochara.shaniHouseFromMoon}ನೇ ಮನೆಯ ಶನಿ ಮತ್ತು ${liveGochara.guruHouseFromMoon}ನೇ ಮನೆಯ ಗುರುವಿನ ಗೋಚಾರ ಸಂಚಾರವು ಯಾವುದೇ ಆತುರದ ನಿರ್ಧಾರಗಳಿಗೆ ಆಸ್ಪದ ನೀಡದೆ, ತಾಳ್ಮೆಯ ಕಾರ್ಯತಂತ್ರದಿಂದ ಮುನ್ನಡೆಯಲು ಸೂಚಿಸುತ್ತಿದೆ.`;
-      challengeDescEn = `At age ${devoteeAge}, your primary focus is professional elevation, family financial consolidation, and strategic career growth under running ${maha} Mahadasha and ${bhukti} Bhukti with transit Jupiter and Saturn.`;
-      rootCause = `10ನೇ ಕರ್ಮ ಸ್ಥಾನ ಹಾಗೂ 2ನೇ/11ನೇ ಧನ ಸ್ಥಾನಗಳ ಮೇಲೆ ${toKannadaPlanet(maha)} ಮಹಾದಶಾ, ${toKannadaPlanet(bhukti)} ಭುಕ್ತಿ ಮತ್ತು ಗೋಚಾರ ಶನಿ-ಗುರುಗಳ ಪ್ರಭಾವ.`;
-      rootCauseEn = `10th house of career and 2nd/11th houses of wealth energized by ${maha} Mahadasha and transiting Saturn/Jupiter.`;
-      solutionKn = "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಕರ್ಮ ಸಿದ್ಧಿ ಸಂಕಲ್ಪ ಪೂಜೆ ಹಾಗೂ ಮಹಾಗಣಪತಿ ಹೋಮ ನೆರವೇರಿಸಿ.";
-      solutionEn = "Perform Karma Siddhi Sankalpa Pooja and Mahaganapati Homa at holy Gokarna Mahabaleshwara Kshetra.";
-    } else {
-      challengeArea = "Spiritual Peace & Family Harmony";
-      challengeAreaKn = "ಆಧ್ಯಾತ್ಮಿಕ ನೆಮ್ಮದಿ, ಆರೋಗ್ಯ ರಕ್ಷಣೆ & ವಾನಪ್ರಸ್ಥ ಶಾಂತಿ";
-      challengeDesc = `ಪ್ರಸ್ತುತ ${devoteeAge} ವರ್ಷದ ಪ್ರಾಯದಲ್ಲಿ ಲೌಕಿಕ ಜವಾಬ್ದಾರಿಗಳನ್ನು ಸಮರ್ಥವಾಗಿ ಮುಗಿಸಿ, ಆಂತರಿಕ ಶಾಂತಿ, ನಿಯಮಿತ ಆರೋಗ್ಯ ಶಿಸ್ತು ಮತ್ತು ಆಧ್ಯಾತ್ಮಿಕ ಚಿಂತನೆಗೆ ಆದ್ಯತೆ ನೀಡುವ ಪ್ರಶಾಂತ ಕಾಲಘಟ್ಟ. ${toKannadaPlanet(maha)} ಮಹಾದಶಾ ಹಾಗೂ ${toKannadaPlanet(bhukti)} ಭುಕ್ತಿಯ ದೈವಿಕ ಪ್ರಭಾವದಲ್ಲಿ ಪೂರ್ವಪುಣ್ಯ ಸ್ಮರಣೆ, ಸತ್ಸಂಗ ಹಾಗೂ ಪವಿತ್ರ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ದರ್ಶನವು ಮನಸ್ಸಿಗೆ ಅಖಂಡ ಧನ್ಯತೆಯನ್ನು ನೀಡಲಿದೆ.`;
-      challengeDescEn = `At age ${devoteeAge}, this gracious life phase prioritizes inner spiritual tranquility, holistic vitality, and family legacy under ${maha} Mahadasha and ${bhukti} Bhukti.`;
-      rootCause = `9ನೇ ಧರ್ಮ ಸ್ಥಾನ ಹಾಗೂ ಮೋಕ್ಷ ಸ್ಥಾನಗಳ ಮೇಲೆ ${toKannadaPlanet(maha)} ಮಹಾದಶಾ ಹಾಗೂ ಚಂದ್ರನ ಗೋಚಾರ ಸಂಚಾರ.`;
-      rootCauseEn = `9th house of dharma and moksha houses activated by ${maha} Mahadasha and planetary transits.`;
-      solutionKn = "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಆಯುಷ್ಯ ಶಾಂತಿ, ಮೃತ್ಯುಂಜಯ ಹೋಮ ಹಾಗೂ ಆತ್ಮಲಿಂಗ ಬಿಲ್ವಾರ್ಚನೆ ಸಮರ್ಪಿಸಿ.";
-      solutionEn = "Sponsor Ayushya Shanti, Mahamrityunjaya Homa, and Atma Linga Bilvarchana at Sri Kshetra Gokarna.";
-    }
+    challengeDesc = cls.detailedRealityKn;
+    challengeDescEn = cls.detailedRealityEn;
+    rootCause = cls.planetaryCulpritKn;
+    rootCauseEn = cls.planetaryCulpritEn;
+    solutionKn = cls.gokarnaRemedyKn;
+    solutionEn = cls.gokarnaRemedyEn;
+  } else if (cls.category === "student_academic_stress") {
+    challengeArea = devoteeAge < 14 ? "Academic & Growth Focus" : "Education & Career Foundation";
+    challengeAreaKn = devoteeAge < 14 ? "ಬಾಲ್ಯದ ಸಮಗ್ರ ವಿಕಾಸ, ವಿದ್ಯಾಭ್ಯಾಸ & ರಕ್ಷಾ ಕವಚ" : "ಉನ್ನತ ಶಿಕ್ಷಣ, ಕೌಶಲ್ಯ ವೃದ್ಧಿ & ವೃತ್ತಿ ಬುನಾದಿ";
+    challengeDesc = cls.detailedRealityKn;
+    challengeDescEn = cls.detailedRealityEn;
+    rootCause = cls.planetaryCulpritKn;
+    rootCauseEn = cls.planetaryCulpritEn;
+    solutionKn = cls.gokarnaRemedyKn;
+    solutionEn = cls.gokarnaRemedyEn;
+  } else if (cls.category === "elderly_peace_legacy") {
+    challengeArea = "Spiritual Peace & Family Harmony";
+    challengeAreaKn = "ಆಧ್ಯಾತ್ಮಿಕ ನೆಮ್ಮದಿ, ಆರೋಗ್ಯ ರಕ್ಷಣೆ & ವಾನಪ್ರಸ್ಥ ಶಾಂತಿ";
+    challengeDesc = cls.detailedRealityKn;
+    challengeDescEn = cls.detailedRealityEn;
+    rootCause = cls.planetaryCulpritKn;
+    rootCauseEn = cls.planetaryCulpritEn;
+    solutionKn = cls.gokarnaRemedyKn;
+    solutionEn = cls.gokarnaRemedyEn;
+  } else if (cls.category === "property_share_dispute") {
+    challengeArea = "General Transition";
+    challengeAreaKn = "ಆಸ್ತಿ ಪಾಲು ವಿಲೇವಾರಿ & ಕೌಟುಂಬಿಕ ಹಕ್ಕುಗಳ ಸಮನ್ವಯ";
+    challengeDesc = cls.detailedRealityKn;
+    challengeDescEn = cls.detailedRealityEn;
+    rootCause = cls.planetaryCulpritKn;
+    rootCauseEn = cls.planetaryCulpritEn;
+    solutionKn = cls.gokarnaRemedyKn;
+    solutionEn = cls.gokarnaRemedyEn;
+  } else if (cls.category === "partner_distrust_betrayal") {
+    challengeArea = "Career / Workplace";
+    challengeAreaKn = "ವ್ಯಾಪಾರ ಪಾಲುದಾರರ ವಂಚನೆ & ಲೆಕ್ಕಪತ್ರ ಗೋಲ್‌ಮಾಲ್ (Business Partner Betrayal)";
+    challengeDesc = cls.detailedRealityKn;
+    challengeDescEn = cls.detailedRealityEn;
+    rootCause = cls.planetaryCulpritKn;
+    rootCauseEn = cls.planetaryCulpritEn;
+    solutionKn = cls.gokarnaRemedyKn;
+    solutionEn = cls.gokarnaRemedyEn;
   }
 
   // 4. Immediate Remedies (100% Dynamic from Dasha-Bhukti, Lagna, Gochara, & Nakshatra)
@@ -5235,6 +5202,9 @@ export const generateInstantQAList = (
   const ketu = kundli.planets.find((p) => p.name === PlanetName.Ketu);
   const venus = kundli.planets.find((p) => p.name === PlanetName.Venus);
   const mercury = kundli.planets.find((p) => p.name === PlanetName.Mercury);
+  const seventhLordPlanet = kundli.planets.find((p) => p.name === seventhLord);
+  const isSeventhLordRetro = Boolean(seventhLordPlanet?.isRetrograde);
+  const isVenusRetro = Boolean(venus?.isRetrograde);
 
   const marsHouse = mars?.house ?? 1;
   const isKujaDosha = [1, 2, 4, 7, 8, 12].includes(marsHouse);
@@ -5482,7 +5452,7 @@ export const generateInstantQAList = (
     ];
   }
 
-  return [
+  const allAdultQuestions: InstantQAQuestion[] = [
     // 1. CAREER PROGRESS
     {
       id: "q_career_1",
@@ -5549,8 +5519,12 @@ export const generateInstantQAList = (
 • 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ಇನ್ನು ಮುಂದಿನ ${Math.max(3, remM)} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${Math.max(3, remM)} Month${Math.max(3, remM) > 1 ? "s" : ""}) ಕಂಕಣ ಭಾಗ್ಯ ಖಚಿತವಾಗಿ ಕೂಡಿಬರಲಿದ್ದು, ಸಂಸ್ಕಾರಯುತ ಕುಟುಂಬದಿಂದ ವಿವಾಹ ನಿಶ್ಚಯವಾಗಲಿದೆ.
 • 🎯 ಗ್ರಹ ಸ್ಥಿತಿ: ನಿಮ್ಮ 7ನೇ ಕಳತ್ರ ಸ್ಥಾನದ ಅಧಿಪತಿ ${seventhLordKn} ಆಗಿದ್ದು, 7ನೇ ಮನೆಯಲ್ಲಿ ${h7PlanetsKn} ಪ್ರಭಾವವಿದೆ.
 • ⚠️ ನಿರ್ದಿಷ್ಟ ದೋಷ & ನೈಜ ಕಾರಣ: ${
-  isKujaDosha
-    ? `ಜಾತಕದಲ್ಲಿ ಕುಜನು ${marsHouse}ನೇ ಮನೆಯಲ್ಲಿರುವುದರಿಂದ 'ಕುಜ ದೋಷ' ಉಂಟಾಗಿದೆ. ಇದರಿಂದಾಗಿ ಕೊನೆಯ ಕ್ಷಣದಲ್ಲಿ ಮಾತುಕತೆ ನಿಲ್ಲುವುದು ಅಥವಾ ಹೊಂದಾಣಿಕೆಯ ಕೊರತೆ ಎದುರಾಗುತ್ತಿದೆ.`
+  marsHouse === 7
+    ? `ಜಾತಕದಲ್ಲಿ 7ನೇ ಕಳತ್ರ ಭಾವದಲ್ಲಿ ಕುಜ (${marsHouse}ನೇ ಮನೆ) ಸ್ಥಿತನಾಗಿದ್ದು 'ಸಪ್ತಮ ಕುಜ ದೋಷ' ಉಂಟುಮಾಡಿದ್ದಾನೆ.${isSeventhLordRetro ? ` 7ನೇ ಕಳತ್ರಾಧಿಪತಿ ${seventhLordKn} ವಕ್ರಿಯಾಗಿದ್ದು (Retrograde), ಆರಂಭದಲ್ಲಿ ಒಪ್ಪಿಗೆಯಾದ ಮಾತುಕತೆಗಳು ಅಂತಿಮ ಕ್ಷಣದಲ್ಲಿ ಸ್ಥಗಿತಗೊಳ್ಳುತ್ತಿವೆ.` : ""}${isVenusRetro ? " ಕಳತ್ರಕಾರಕ ಶುಕ್ರನು ವಕ್ರಿಯಾಗಿದ್ದು ಕಂಕಣ ಬಲ ತಡವಾಗುತ್ತಿದೆ." : ""}`
+    : isKujaDosha
+    ? `ಜಾತಕದಲ್ಲಿ ಕುಜನು ${marsHouse}ನೇ ಮನೆಯಲ್ಲಿರುವುದರಿಂದ 'ಕುಜ ದೋಷ' ಉಂಟಾಗಿದೆ. ಇದರಿಂದಾಗಿ ಕೊನೆಯ ಕ್ಷಣದಲ್ಲಿ ಮಾತುಕತೆ ನಿಲ್ಲುವುದು ಅಥವಾ ಹೊಂದಾಣಿಕೆಯ ಕೊರತೆ ಎದುರಾಗುತ್ತಿದೆ.${isSeventhLordRetro ? ` 7ನೇ ಅಧಿಪತಿ ${seventhLordKn} ವಕ್ರಿಯಾಗಿದ್ದಾರೆ.` : ""}`
+    : isSeventhLordRetro
+    ? `7ನೇ ಕಳತ್ರ ಸ್ಥಾನದ ಅಧಿಪತಿ ${seventhLordKn} ವಕ್ರಿಯಾಗಿದ್ದು (Retrograde), ಆರಂಭದಲ್ಲಿ ಒಪ್ಪಿಗೆಯಾದ ಸಂಬಂಧಗಳು ಅಂತಿಮ ಕ್ಷಣದಲ್ಲಿ ಸಣ್ಣಪುಟ್ಟ ಕಾರಣಗಳಿಗೆ ತಪ್ಪಿಹೋಗುತ್ತಿವೆ.`
     : hasShani7th
     ? `7ನೇ ಕಳತ್ರ ಸ್ಥಾನದ ಮೇಲೆ ಶನಿಯ ಪ್ರಭಾವವಿರುವುದರಿಂದ 'ಶನಿ ದೃಷ್ಟಿ ವಿಳಂಬ ಯೋಗ' ಉಂಟಾಗಿದೆ. ಶನಿಯು ಪಕ್ವ ವಯಸ್ಸಿನಲ್ಲಿ ಸುಭದ್ರ ಸಂಬಂಧವನ್ನು ಕರುಣಿಸಲಿದ್ದಾನೆ.`
     : hasSarpa7th
@@ -5559,8 +5533,10 @@ export const generateInstantQAList = (
 }
 • ⏳ ನಿಖರ ಕಾಲಾವಧಿ: ಇನ್ನು ಮುಂದಿನ ${Math.max(3, remM)} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${Math.max(3, remM)} Month${Math.max(3, remM) > 1 ? "s" : ""}) ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಅನುಗ್ರಹದಿಂದ ಯೋಗ್ಯ ವಿವಾಹ ಪ್ರಸ್ತಾಪ ಖಚಿತವಾಗಿ ಕೂಡಿಬರಲಿದೆ.
 • 🪔 ಸಿದ್ಧ ಮಂತ್ರ & ಗೋಕರ್ಣ ಪೂಜೆ: ${
-  isKujaDosha
-    ? "ದಿನನಿತ್ಯ ಕುಜ ಗಾಯತ್ರಿ ಜಪಿಸಿ ('ಓಂ ಕ್ರಾಂ ಕ್ರೀಂ ಕ್ರೌಂ ಸಃ ಭೌಮಾಯ ನಮಃ'). ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸುಬ್ರಹ್ಮಣ್ಯ ಕುಜ ಶಾಂತಿ ಪೂಜೆ ನೆರವೇರಿಸಿ."
+  marsHouse === 7 || isKujaDosha
+    ? "ದಿನನಿತ್ಯ ಕುಜ ಗಾಯತ್ರಿ ಜಪಿಸಿ ('ಓಂ ಕ್ರಾಂ ಕ್ರೀಂ ಕ್ರೌಂ ಸಃ ಭೌಮಾಯ ನಮಃ'). ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸುಬ್ರಹ್ಮಣ್ಯ ಕುಜ ಶಾಂತಿ ಪೂಜೆ ಹಾಗೂ ಉಮಾ-ಮಹೇಶ್ವರ ಕಲ್ಯಾಣ ಸೇವೆ ನೆರವೇರಿಸಿ."
+    : isSeventhLordRetro || isVenusRetro
+    ? `ದಿನನಿತ್ಯ 'ಓಂ ಕಾತ್ಯಾಯನಿ ಮಹಾಮಾಯೇ ಮಹಾಯೋಗಿನ್ಯಧೀಶ್ವರಿ' ಜಪಿಸಿ. ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ${seventhLordKn} ಹಾಗೂ ಶುಕ್ರ ಶಾಂತಿ ಜತೆಗೆ ಕಲ್ಯಾಣ ಸಂಕಲ್ಪ ಸೇವೆ ನೆರವೇರಿಸಿ.`
     : "ದಿನನಿತ್ಯ 'ಓಂ ಕಾತ್ಯಾಯನಿ ಮಹಾಮಾಯೇ ಮಹಾಯೋಗಿನ್ಯಧೀಶ್ವರಿ' ಅಥವಾ 'ಓಂ ನಮೋ ನಾರಾಯಣಾಯ' ಜಪಿಸಿ. ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದಲ್ಲಿ ಕಲ್ಯಾಣ ಸಂಕಲ್ಪ ಸೇವೆ ನೆರವೇರಿಸಿ."
 }`),
       astrologicalBasisKn: `7ನೇ ಮನೆ (ಕಳತ್ರ ಸ್ಥಾನ ${seventhLordKn}) ಮತ್ತು ಗುರು-ಕುಜ ಗೋಚಾರ ಬಲ.`,
@@ -5741,6 +5717,30 @@ export const generateInstantQAList = (
       immediateRemedyKn: `ಧರ್ಮ ಮಾರ್ಗದಲ್ಲಿ ಸಾಗುತ್ತಾ ಸತ್ಯ ಮತ್ತು ನ್ಯಾಯವನ್ನು ಪಾಲಿಸಿ.`
     }
   ];
+
+  const primaryCategory = diagnosis.currentLifeSituation?.category;
+  const primaryArea = diagnosis.primaryLifeChallenge?.area;
+
+  let priorityCategory: "career" | "marriage" | "children" | "wealth" | "mind" | null = null;
+  if (primaryCategory === "marriage_delay" || primaryCategory === "marital_discord" || primaryArea === "Personal / Marriage") {
+    priorityCategory = "marriage";
+  } else if (primaryCategory === "childless_anxiety" || primaryArea === "Progeny / Children") {
+    priorityCategory = "children";
+  } else if (primaryCategory === "debt_financial_crisis" || primaryArea === "Financial / Debts") {
+    priorityCategory = "wealth";
+  } else if (primaryCategory === "health_vitality_strain" || primaryArea === "Health / Vitality") {
+    priorityCategory = "mind";
+  } else if (primaryCategory === "career_politics_layoff" || primaryCategory === "partner_distrust_betrayal" || primaryArea === "Career / Workplace" || primaryCategory === "career_financial_growth") {
+    priorityCategory = "career";
+  }
+
+  if (priorityCategory) {
+    const priorityQuestions = allAdultQuestions.filter((q) => q.category === priorityCategory);
+    const otherQuestions = allAdultQuestions.filter((q) => q.category !== priorityCategory);
+    return [...priorityQuestions, ...otherQuestions];
+  }
+
+  return allAdultQuestions;
 };
 
 export const generatePanchangaAngaSynthesis = (

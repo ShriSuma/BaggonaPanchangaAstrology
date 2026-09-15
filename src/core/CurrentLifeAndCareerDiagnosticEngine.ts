@@ -214,6 +214,7 @@ export function diagnoseCurrentLifeSituation(
 ): CurrentLifeSituationDiagnosis {
   const age = context.devoteeAge ?? 30;
   const isFemale = context.gender === "Female";
+  const isMale = context.gender === "Male" || (!isFemale && context.gender !== "Other");
   const devoteeName = context.devoteeName || (isFemale ? "ಭಕ್ತೆಯವರೇ" : "ಭಕ್ತರೇ");
 
   const sun = kundli.planets.find(p => p.name === PlanetName.Sun);
@@ -382,6 +383,7 @@ export function diagnoseCurrentLifeSituation(
   if (saturn && saturn.house === 7 && hasBusinessAffliction) partnerBetrayalScore += 3.0;
   if (seventhLordPlanet && [6, 8, 12].includes(seventhLordPlanet.house) && hasBusinessAffliction) partnerBetrayalScore += 3.5;
   if (mercury && [6, 8, 12].includes(mercury.house) && (rahu?.house === 7 || (rahu && Math.abs(mercury.house - rahu.house) === 0))) partnerBetrayalScore += 4.0;
+  if (mercury && [6, 8, 12].includes(mercury.house) && saturn && saturn.house === 7 && hasBusinessAffliction) partnerBetrayalScore += 3.5;
   if (sixthLordPlanet && sixthLordPlanet.house === 7 && hasBusinessAffliction) partnerBetrayalScore += 2.5;
 
   // -------------------------------------------------------------
@@ -390,27 +392,67 @@ export function diagnoseCurrentLifeSituation(
   // -------------------------------------------------------------
   let marriageDelayScore = 0;
   const hasKujaDosha = Boolean(mars && [1, 2, 4, 7, 8, 12].includes(mars.house));
-  if (saturn && saturn.house === 7) marriageDelayScore += 3.5;
-  if (rahu && rahu.house === 7) marriageDelayScore += 3.0;
-  if (ketu && ketu.house === 7) marriageDelayScore += 3.0;
-  if (seventhLordPlanet && [6, 8, 12].includes(seventhLordPlanet.house)) marriageDelayScore += 2.5;
-  if (seventhLordPlanet?.isDebilitated) marriageDelayScore += 2.5;
-  if (hasKujaDosha) marriageDelayScore += 2.0;
-  if (venus && [6, 8, 12].includes(venus.house)) marriageDelayScore += 1.5;
-  if (age >= 26 && age <= 42) marriageDelayScore += 2.5; // Prime matrimonial anxiety age bracket
-  if (age >= 32 && age <= 45 && context.maritalStatus === "unmarried") marriageDelayScore += 2.5; // Acute unmarried anxiety bracket
+  
+  // 1. Saptama Kuja / Ashtama Kuja vs other Kuja houses
+  if (mars && mars.house === 7) {
+    marriageDelayScore += 5.0; // Saptama Kuja directly afflicts Kalatra Sthana (prime Parashari delay factor)
+  } else if (mars && mars.house === 8) {
+    marriageDelayScore += 3.5; // Ashtama Kuja
+  } else if (hasKujaDosha) {
+    marriageDelayScore += 2.0; // 1, 2, 4, 12 houses
+  }
+
+  // 2. Malefics occupying 7th house
+  if (saturn && saturn.house === 7) marriageDelayScore += 4.0;
+  if (rahu && rahu.house === 7) marriageDelayScore += 3.5;
+  if (ketu && ketu.house === 7) marriageDelayScore += 3.5;
+
+  // 3. 7th Lord Dignity (Dusthana, Debilitation, Retrograde)
+  if (seventhLordPlanet && [6, 8, 12].includes(seventhLordPlanet.house)) marriageDelayScore += 3.5;
+  if (seventhLordPlanet?.isDebilitated) marriageDelayScore += 3.0;
+  if (seventhLordPlanet?.isRetrograde) marriageDelayScore += 3.5; // Vakra 7th lord causes repeated proposal breakdown & delay
+
+  // 4. Kalatrakaraka (Venus for males, Jupiter/Venus for females) Retrograde, Dusthana or Affliction
+  if (isMale && venus?.isRetrograde) marriageDelayScore += 3.0; // Vakra Shukra for male delays bride finding & alliance finalization
+  if (isFemale && (jupiter?.isRetrograde || venus?.isRetrograde)) marriageDelayScore += 3.0;
+  if (!isMale && !isFemale && venus?.isRetrograde) marriageDelayScore += 2.5;
+  if (venus && [6, 8, 12].includes(venus.house)) marriageDelayScore += 2.0;
+  if (venus && sun && venus.house === sun.house) marriageDelayScore += 1.5; // Venus conjunct Sun
+
+  // 5. Mars in 7th aspecting 1st house Moon / Lagna
+  if (mars && mars.house === 7 && moon && moon.house === 1) marriageDelayScore += 2.5;
+
+  // Has concrete astrological cause for delay
+  const hasConcreteMarriageAffliction = Boolean(
+    (mars && [7, 8].includes(mars.house)) ||
+    (saturn && saturn.house === 7) ||
+    (rahu && rahu.house === 7) ||
+    (ketu && ketu.house === 7) ||
+    (seventhLordPlanet && [6, 8, 12].includes(seventhLordPlanet.house)) ||
+    seventhLordPlanet?.isDebilitated ||
+    seventhLordPlanet?.isRetrograde ||
+    venus?.isRetrograde ||
+    (venus && [6, 8, 12].includes(venus.house))
+  );
+
+  // 6. Age bracket weighting ONLY when concrete planetary affliction exists
+  if (hasConcreteMarriageAffliction) {
+    if (age >= 26 && age <= 42) marriageDelayScore += 2.5; // Prime matrimonial anxiety age bracket
+    if (age >= 28 && age <= 38) marriageDelayScore += 2.5; // Acute urgency window
+    if (age >= 32 && age <= 45 && context.maritalStatus === "unmarried") marriageDelayScore += 3.0;
+  }
 
   // CRITICAL PARASHARI SAFEGUARD:
   // If native is explicitly marked "married", delay is 0.
   // If native is explicitly "unmarried", evaluate full delay score.
   // If marital status is unspecified:
-  // Only diagnose marriage delay if there is an ACUTE, undeniable 7th house affliction (score >= 8.0, e.g. Saturn + Rahu in 7th)
-  // for natives under 42. Otherwise do not assume an unspecified adult is unmarried!
+  // Must have concrete astrological affliction to 7th house / Kalatrakaraka, and score >= 5.5.
+  // Also, if acute commercial partner betrayal is detected (Mercury in 6/8/12 with Rahu/Saturn in 7th), prioritize commercial partnerships over marriage delay.
   if (context.maritalStatus === "married") {
     marriageDelayScore = 0;
   } else if (context.maritalStatus !== "unmarried") {
-    if (age >= 25 && marriageDelayScore < 8.0) {
-      marriageDelayScore = 0; // Guard against false marriage delay for unspecified married adults
+    if (!hasConcreteMarriageAffliction || marriageDelayScore < 5.5 || (partnerBetrayalScore >= 8.0 && partnerBetrayalScore >= marriageDelayScore - 2.0)) {
+      marriageDelayScore = 0; // Guard against false marriage delay for unspecified married adults without 7th afflictions or acute partner betrayal
     }
   }
 
@@ -568,7 +610,7 @@ export function diagnoseCurrentLifeSituation(
         titleEn: "Childhood Development, Schooling Pressure & Focus",
         headlineKn: `${h4SignKn} 4ನೇ ವಿದ್ಯಾ ಸ್ಥಾನ (${h4LordKn} ಪ್ರಭಾವ): ಶಾಲಾ ವಿದ್ಯಾಭ್ಯಾಸದಲ್ಲಿ ಏಕಾಗ್ರತೆಯ ಕೊರತೆ & ಬಾಲಗ್ರಹ ಪ್ರಭಾವ`,
         headlineEn: `${RASHI_EN[getHouseSignIdx(4)] || "4th House"} (${PLANET_EN[fourthLord] || "4th Lord"}): Formative Learning Pressure & Distraction`,
-        detailedRealityKn: `ಪ್ರಸ್ತುತ ${devoteeName} ಮಗುವಿಗೆ ${age} ವರ್ಷ ವಯಸ್ಸಾಗಿದ್ದು, ${lagnaKn} ಲಗ್ನ, ${moonRashiKn} ರಾಶಿ, ${moonNakKn} ನಕ್ಷತ್ರ ಪಾದ ${moonPada}ದಲ್ಲಿ ಜನಿಸಿದ ಈ ಮಗುವಿನ 4ನೇ ವಿದ್ಯಾ ಸ್ಥಾನವು ${h4SignKn} ರಾಶಿಯಾಗಿದ್ದು, ಅಧಿಪತಿ ${h4LordKn} ${h4LordHouse}ನೇ ಮನೆಯಲ್ಲಿದ್ದಾರೆ. ${h4OccupantsKn ? `4ನೇ ಮನೆಯಲ್ಲಿ ${h4OccupantsKn} ಗ್ರಹಗಳ ಪ್ರಭಾವವಿದ್ದು, ` : ""}ಬುಧನು ${mercury?.house ?? 4}ನೇ ಮನೆಯಲ್ಲಿದ್ದಾರೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${mahaKn} ಮಹಾದಶೆಯಲ್ಲಿ ${bhuktiKn} ಭುಕ್ತಿಯ ಅವಧಿಯಲ್ಲಿ ಶಾಲಾ ವಿದ್ಯಾಭ್ಯಾಸ, ಓದಿನಲ್ಲಿ ಗಮನ ಕೇಂದ್ರೀಕರಣ ಹಾಗೂ ಚಂಚಲತೆಯಿಂದಾಗಿ ಪೋಷಕರಲ್ಲಿ ಸಣ್ಣ ಕಾಳಜಿ ಮೂಡಿದೆ. ಗೋಚಾರದಲ್ಲಿ ${shaniGocharaTextKn} ಪ್ರಭಾವವಿದ್ದು, ${guruGocharaTextKn} ಬಲವರ್ಧನೆಯಾಗಬೇಕಿದೆ.`,
+        detailedRealityKn: `ಪ್ರಸ್ತುತ ${devoteeName} ಮಗುವಿಗೆ ${age} ವರ್ಷ ವಯಸ್ಸಾಗಿದ್ದು, ${lagnaKn} ಲಗ್ನ, ${moonRashiKn} ರಾಶಿ, ${moonNakKn} ನಕ್ಷತ್ರ ಪಾದ ${moonPada}ದಲ್ಲಿ ಜನಿಸಿದ ಈ ಮಗುವಿನ 4ನೇ ವಿದ್ಯಾ ಸ್ಥಾನವು ${h4SignKn} ರಾಶಿಯಾಗಿದ್ದು, ಅಧಿಪತಿ ${h4LordKn} ${h4LordHouse}ನೇ ಮನೆಯಲ್ಲಿದ್ದಾರೆ. ${h4OccupantsKn ? `4ನೇ ಮನೆಯಲ್ಲಿ ${h4OccupantsKn} ಗ್ರಹಗಳ ಪ್ರಭಾವವಿದ್ದು, ` : ""}ಬುಧನು ${mercury?.house ?? 4}ನೇ ಮನೆಯಲ್ಲಿದ್ದಾರೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${mahaKn} ಮಹಾದಶೆಯಲ್ಲಿ ${bhuktiKn} ಭುಕ್ತಿಯ ಅವಧಿಯಲ್ಲಿ ಪ್ರಾಥಮಿಕ ಶಿಕ್ಷಣ, ಶಾಲಾ ವಿದ್ಯಾಭ್ಯಾಸ, ಓದಿನಲ್ಲಿ ಗಮನ ಕೇಂದ್ರೀಕರಣ ಹಾಗೂ ಚಂಚಲತೆಯಿಂದಾಗಿ ಪೋಷಕರಲ್ಲಿ ಸಣ್ಣ ಕಾಳಜಿ ಮೂಡಿದೆ. ಗೋಚಾರದಲ್ಲಿ ${shaniGocharaTextKn} ಪ್ರಭಾವವಿದ್ದು, ${guruGocharaTextKn} ಬಲವರ್ಧನೆಯಾಗಬೇಕಿದೆ.`,
         detailedRealityEn: `At age ${age}, with Lagna in ${lagnaEn} and Moon in ${moonRashiEn}, the child is navigating primary schooling, concentration hurdles, and academic expectations. The 4th house of learning (${RASHI_EN[getHouseSignIdx(4)]}) ruled by ${PLANET_EN[fourthLord]} and Mercury reflect formative development requiring patient nurturing under running ${mahaEn}-${bhuktiEn}.`,
         planetaryCulpritKn: `4ನೇ ವಿದ್ಯಾ ಸ್ಥಾನ (${h4SignKn}, ಅಧಿಪತಿ ${h4LordKn} ${h4LordHouse}ನೇ ಮನೆಯಲ್ಲಿ) ಹಾಗೂ ಬುಧನ (${mercury?.house ?? 4}ನೇ ಮನೆ) ಸ್ಥಿತಿ ಮತ್ತು ${shaniGocharaTextKn}.`,
         planetaryCulpritEn: `Restless planetary influence on the 4th house of learning (${RASHI_EN[getHouseSignIdx(4)]}) and Mercury in house ${mercury?.house ?? 4}.`,
@@ -758,10 +800,45 @@ export function diagnoseCurrentLifeSituation(
         titleEn: "Marriage Delay, Proposal Breakdowns & Matrimonial Longing",
         headlineKn: `${h7SignKn} 7ನೇ ಕಳತ್ರ ಸ್ಥಾನ (${h7LordKn} ಪ್ರಭಾವ): ವಿವಾಹ ವಿಳಂಬ, ಸಂಬಂಧಗಳು ಮುರಿದುಬೀಳುವುದು & ಕಂಕಣ ಭಾಗ್ಯದ ಕೊರಗು`,
         headlineEn: `7th House (${RASHI_EN[getHouseSignIdx(7)] || "Marriage"}): Unexplained Marriage Delays, Broken Alliances & Matrimonial Longing`,
-        detailedRealityKn: `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜೀವನದ ಅತ್ಯಂತ ಪ್ರಮುಖ ಕಾಳಜಿಯೆಂದರೆ — ವಯಸ್ಸು ಮೀರುತ್ತಿದ್ದರೂ ಕಂಕಣ ಭಾಗ್ಯ ಕೂಡಿಬರದಿರುವುದು. ${lagnaKn} ಲಗ್ನದ 7ನೇ ವಿವಾಹ ಸ್ಥಾನವು ${h7SignKn} ರಾಶಿಯಾಗಿದ್ದು, ಅಧಿಪತಿ ${h7LordKn} ${h7LordHouse}ನೇ ಮನೆಯಲ್ಲಿದ್ದಾರೆ. ${jupiter ? `ವಿವಾಹಕಾರಕ ಗುರುವು ${jupiter.house}ನೇ ಮನೆಯಲ್ಲಿದ್ದು, ` : ""}${venus ? `ಕಳತ್ರಕಾರಕ ಶುಕ್ರನು ${venus.house}ನೇ ಮನೆಯಲ್ಲಿದ್ದು, ` : ""}ನೋಡಿದ ಸಂಬಂಧಗಳು ಆರಂಭದಲ್ಲಿ ಒಪ್ಪಿಗೆಯಾದರೂ ಅಂತಿಮ ಕ್ಷಣದಲ್ಲಿ ಸಣ್ಣಪುಟ್ಟ ಕಾರಣಗಳಿಗೆ ತಪ್ಪಿಹೋಗುತ್ತಿವೆ. ಪ್ರಸ್ತುತ ${mahaKn} ದಶೆ, ${bhuktiKn} ಭುಕ್ತಿ ಹಾಗೂ ${shaniGocharaTextKn} ಪ್ರಭಾವದಿಂದಾಗಿ ಈ ವಿಳಂಬ ಸಂಭವಿಸುತ್ತಿದೆ. ಆದರೆ ${guruGocharaTextKn} ಕಂಕಣ ಬಲ ತರಲಿದೆ.`,
-        detailedRealityEn: `Currently, marriage delay is your most deeply felt life struggle. Despite your merits, 7th house (${RASHI_EN[getHouseSignIdx(7)]}) ruled by ${PLANET_EN[seventhLord]} alongside transits causes alliances to fall through during running ${mahaEn}-${bhuktiEn}.`,
-        planetaryCulpritKn: `7ನೇ ಕಳತ್ರ ಸ್ಥಾನ (${h7SignKn}, ಅಧಿಪತಿ ${h7LordKn} ${h7LordHouse}ನೇ ಮನೆಯಲ್ಲಿ) ಶನಿ/ರಾಹುಗಳ ವಿಳಂಬ ಯೋಗ, ${hasKujaDosha ? "ಕುಜ ದೋಷದ ಪ್ರಭಾವ" : "ಕಳತ್ರ ಕಾರಕನ ಸಂಚಾರ"} ಹಾಗೂ ${shaniGocharaTextKn}.`,
-        planetaryCulpritEn: `Delays affecting the 7th house (${RASHI_EN[getHouseSignIdx(7)]}) by Saturn/Rahu combined with ${hasKujaDosha ? "Kuja Dosha" : "planetary transits"}.`,
+        detailedRealityKn: (() => {
+          const culprits: string[] = [];
+          if (mars && mars.house === 7) culprits.push(`7ನೇ ಕಳತ್ರ ಭಾವದಲ್ಲಿ ಕುಜ (${mars.house}ನೇ ಮನೆ) ಸ್ಥಿತನಾಗಿದ್ದು ಸಪ್ತಮ ಕುಜ ದೋಷ ಉಂಟುಮಾಡಿದ್ದಾನೆ`);
+          else if (mars && mars.house === 8) culprits.push("8ನೇ ಮನೆಯಲ್ಲಿ ಅಷ್ಟಮ ಕುಜ ದೋಷವಿದ್ದು ಮಾಂಗಲ್ಯದಲ್ಲಿ ವಿಳಂಬ ತರುತ್ತಿದ್ದಾನೆ");
+          else if (hasKujaDosha) culprits.push(`ಕುಜನು ${mars?.house}ನೇ ಮನೆಯಲ್ಲಿದ್ದು ಕುಜ ದೋಷದ ಪ್ರಭಾವ ಬೀರಿದ್ದಾನೆ`);
+          if (saturn && saturn.house === 7) culprits.push("7ನೇ ಮನೆಯಲ್ಲಿ ಶನಿ ಸ್ಥಿತನಾಗಿದ್ದು ಮಂದಗತಿಯ ಕಂಕಣ ವಿಳಂಬ ಸೃಷ್ಟಿಸಿದ್ದಾನೆ");
+          if (rahu && rahu.house === 7) culprits.push("7ನೇ ಮನೆಯಲ್ಲಿ ರಾಹುವಿದ್ದು ಸಂಬಂಧಗಳಲ್ಲಿ ಗೊಂದಲ ಹಾಗೂ ಅನಿಶ್ಚಿತತೆ ತರುತ್ತಿದ್ದಾನೆ");
+          if (ketu && ketu.house === 7) culprits.push("7ನೇ ಮನೆಯಲ್ಲಿ ಕೇತುವಿದ್ದು ನಿರಾಸಕ್ತಿ ಅಥವಾ ಅಂತಿಮ ಕ್ಷಣದ ಹಿನ್ನಡೆ ತರುತ್ತಿದ್ದಾನೆ");
+          if (seventhLordPlanet?.isRetrograde) culprits.push(`7ನೇ ಕಳತ್ರಾಧಿಪತಿ ${h7LordKn} ವಕ್ರಿಯಾಗಿದ್ದು (Retrograde), ಆರಂಭದಲ್ಲಿ ಒಪ್ಪಿಗೆಯಾದ ಮಾತುಕತೆಗಳು ಅಂತಿಮ ಕ್ಷಣದಲ್ಲಿ ದಿಢೀರ್ ಸ್ಥಗಿತಗೊಳ್ಳುತ್ತಿವೆ`);
+          if (venus?.isRetrograde) culprits.push("ಕಳತ್ರಕಾರಕ ಶುಕ್ರನು ವಕ್ರಿಯಾಗಿದ್ದು (Retrograde) ಕಂಕಣ ಬಲ ತಡವಾಗುತ್ತಿದೆ");
+          const culpritText = culprits.length > 0 ? culprits.join("; ") : `${h7SignKn} 7ನೇ ಸ್ಥಾನ ಹಾಗೂ ಅಧಿಪತಿ ${h7LordKn}ನ ಸಂಚಾರ`;
+
+          return `ವಯಸ್ಸು ${age} ಮೀರುತ್ತಿದ್ದರೂ ಕಂಕಣ ಭಾಗ್ಯ ಕೂಡಿಬರದಿರುವುದು, ಆರಂಭದಲ್ಲಿ ಒಪ್ಪಿಗೆಯಾದ ಸಂಬಂಧಗಳು ಅಂತಿಮ ಕ್ಷಣದಲ್ಲಿ ಸಣ್ಣಪುಟ್ಟ ಕಾರಣಗಳಿಗೆ ತಪ್ಪಿಹೋಗುವುದು, ಜಾತಕ ಹೊಂದಾಣಿಕೆಯ ಅಡೆತಡೆಗಳು ಹಾಗೂ ವಿವಾಹ ವಿಳಂಬವಾಗುತ್ತಿರುವ ತೀವ್ರ ಆತಂಕ. ಉದ್ಯೋಗ ಮತ್ತು ವೃತ್ತಿ ಕ್ಷೇತ್ರದಲ್ಲಿ ಶ್ರಮವಿದ್ದರೂ (ವೃತ್ತಿ-ಉದ್ಯೋಗದಲ್ಲಿ ಶ್ರಮವಿದ್ದರೂ), ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಆಂತರಿಕ ಮನಸ್ಸು ಮತ್ತು ಕುಟುಂಬದ ಅತಿ ಮುಖ್ಯ ಕಾಳಜಿ ಕಂಕಣ ಬಲವಾಗಿದೆ. ${lagnaKn} ಲಗ್ನದ 7ನೇ ವಿವಾಹ ಸ್ಥಾನವು ${h7SignKn} ರಾಶಿಯಾಗಿದ್ದು, ಅಧಿಪತಿ ${h7LordKn} ${h7LordHouse}ನೇ ಮನೆಯಲ್ಲಿದ್ದಾರೆ. ಜಾತಕದಲ್ಲಿ ${culpritText}. ಪ್ರಸ್ತುತ ${mahaKn} ಮಹಾದಶೆ ಹಾಗೂ ${bhuktiKn} ಭುಕ್ತಿಯ ಅವಧಿಯಲ್ಲಿ ಸೂಕ್ತ ದೈವಿಕ ಶಾಂತಿ ಪೂಜೆಗಳ ಮೂಲಕ ${guruGocharaTextKn} ಕಂಕಣ ಬಲವನ್ನು ಕರುಣಿಸಲಿದೆ.`;
+        })(),
+        detailedRealityEn: `Currently, marriage delay is your most deeply felt life struggle. Despite your professional efforts and merits, afflictions to the 7th house (${RASHI_EN[getHouseSignIdx(7)]}) ruled by ${PLANET_EN[seventhLord]} alongside retrograde and transit influences cause alliances to stall at the final hour during running ${mahaEn}-${bhuktiEn}.`,
+        planetaryCulpritKn: (() => {
+          const reasons: string[] = [];
+          if (mars && mars.house === 7) reasons.push("7ನೇ ಮನೆಯಲ್ಲಿ ಸಪ್ತಮ ಕುಜ ದೋಷ");
+          else if (mars && mars.house === 8) reasons.push("8ನೇ ಮನೆಯಲ್ಲಿ ಅಷ್ಟಮ ಕುಜ ದೋಷ");
+          else if (hasKujaDosha) reasons.push("ಕುಜ ದೋಷದ ಪ್ರಭಾವ");
+          if (seventhLordPlanet?.isRetrograde) reasons.push(`7ನೇ ಅಧಿಪತಿ ${h7LordKn} ವಕ್ರಿಯಾಗಿದ್ದು (Retrograde)`);
+          if (venus?.isRetrograde) reasons.push("ಕಳತ್ರಕಾರಕ ಶುಕ್ರ ವಕ್ರಿಯಾಗಿರುವುದು");
+          if (saturn?.house === 7) reasons.push("7ನೇ ಮನೆಯಲ್ಲಿ ಶನಿ");
+          if (rahu?.house === 7) reasons.push("7ನೇ ಮನೆಯಲ್ಲಿ ರಾಹು");
+          if (ketu?.house === 7) reasons.push("7ನೇ ಮನೆಯಲ್ಲಿ ಕೇತು");
+          if (seventhLordPlanet && [6, 8, 12].includes(seventhLordPlanet.house)) reasons.push(`7ನೇ ಅಧಿಪತಿ ${h7LordKn} ದುಃಸ್ಥಾನದಲ್ಲಿರುವುದು`);
+          if (reasons.length === 0) reasons.push(`7ನೇ ಕಳತ್ರ ಸ್ಥಾನ (${h7SignKn}, ಅಧಿಪತಿ ${h7LordKn} ${h7LordHouse}ನೇ ಮನೆಯಲ್ಲಿ)`);
+          return reasons.join(", ") + ` ಹಾಗೂ ${shaniGocharaTextKn}.`;
+        })(),
+        planetaryCulpritEn: (() => {
+          const reasonsEn: string[] = [];
+          if (mars && [7, 8].includes(mars.house)) reasonsEn.push(`Mars in house ${mars.house} (Kuja Dosha)`);
+          if (seventhLordPlanet?.isRetrograde) reasonsEn.push(`Retrograde 7th lord ${PLANET_EN[seventhLord]}`);
+          if (venus?.isRetrograde) reasonsEn.push("Retrograde Venus (Kalatrakaraka)");
+          if (saturn?.house === 7) reasonsEn.push("Saturn in 7th house");
+          if (rahu?.house === 7) reasonsEn.push("Rahu in 7th house");
+          if (reasonsEn.length === 0) reasonsEn.push(`7th house (${RASHI_EN[getHouseSignIdx(7)]}) transit tensions`);
+          return reasonsEn.join(", ") + ".";
+        })(),
         symptomsChecklistKn: [
           `7ನೇ ಕಳತ್ರ ಸ್ಥಾನ (${h7SignKn}, ಅಧಿಪತಿ ${h7LordKn}) ಪ್ರಭಾವದಿಂದ ಬಂದ ಒಳ್ಳೆಯ ಸಂಬಂಧಗಳು ಕೊನೆಯ ಹಂತದಲ್ಲಿ ತಪ್ಪಿಹೋಗುವುದು`,
           `ಗುರು (${jupiter?.house ?? 1}ನೇ ಮನೆ) ಮತ್ತು ಶುಕ್ರ (${venus?.house ?? 1}ನೇ ಮನೆ) ಬಲದ ವಿಳಂಬದಿಂದಾಗಿ ಕಂಕಣ ಭಾಗ್ಯ ಮುಂದೂಡಿಕೆ`,
