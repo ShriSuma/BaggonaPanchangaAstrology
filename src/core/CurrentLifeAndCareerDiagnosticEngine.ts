@@ -74,6 +74,10 @@ export interface CurrentLifeSituationDiagnosis {
   reliefTimelineEn: string;
   gokarnaRemedyKn: string;
   gokarnaRemedyEn: string;
+  externalLifeRealityKn?: string;
+  externalLifeRealityEn?: string;
+  internalMindsetKn?: string;
+  internalMindsetEn?: string;
 }
 
 export type AccurateProfessionCode =
@@ -986,7 +990,194 @@ export function diagnoseCurrentLifeSituation(
 
   // Sort candidates by highest astrological affliction score
   candidates.sort((a, b) => b.score - a.score);
-  return candidates[0].profile;
+  const chosen = candidates[0].profile;
+
+  // Synthesize rich external life reality and internal mindset blocks
+  const synthesized = synthesizeMindsetAndLifeReality(chosen, kundli, context, dashaTiming, liveGochara);
+  chosen.externalLifeRealityKn = synthesized.externalLifeRealityKn;
+  chosen.externalLifeRealityEn = synthesized.externalLifeRealityEn;
+  chosen.internalMindsetKn = synthesized.internalMindsetKn;
+  chosen.internalMindsetEn = synthesized.internalMindsetEn;
+
+  return chosen;
+}
+
+function synthesizeMindsetAndLifeReality(
+  profile: CurrentLifeSituationDiagnosis,
+  kundli: KundliOutput,
+  context: {
+    devoteeAge?: number;
+    gender?: string;
+    devoteeName?: string;
+    panchanga?: any;
+  },
+  dashaTiming?: {
+    timelineKn?: string;
+    timelineEn?: string;
+    maha?: string;
+    bhukti?: string;
+    remainingMonths?: number;
+    remainingYears?: number;
+  },
+  liveGochara?: {
+    shaniHouseFromMoon?: number;
+    shaniHouseFromLagna?: number;
+    guruHouseFromMoon?: number;
+    guruHouseFromLagna?: number;
+    rahuHouseFromMoon?: number;
+    rahuHouseFromLagna?: number;
+    ketuHouseFromMoon?: number;
+    ketuHouseFromLagna?: number;
+    isSadeSati?: boolean;
+    isAshtamaShani?: boolean;
+    isKantakaShani?: boolean;
+    isGuruAnukula?: boolean;
+    summaryKn?: string;
+    summaryEn?: string;
+  }
+): {
+  externalLifeRealityKn: string;
+  externalLifeRealityEn: string;
+  internalMindsetKn: string;
+  internalMindsetEn: string;
+} {
+  const moon = kundli.planets.find(p => p.name === PlanetName.Moon);
+  const saturn = kundli.planets.find(p => p.name === PlanetName.Saturn);
+  const rahu = kundli.planets.find(p => p.name === PlanetName.Rahu);
+  const ketu = kundli.planets.find(p => p.name === PlanetName.Ketu);
+  const mars = kundli.planets.find(p => p.name === PlanetName.Mars);
+  const jupiter = kundli.planets.find(p => p.name === PlanetName.Jupiter);
+
+  const moonHouse = moon?.house ?? 1;
+  const moonRashiIdx = kundli.moonSign.index;
+  const moonRashiKn = RASHI_KN[moonRashiIdx] || "ರಾಶಿ";
+  const moonRashiEn = RASHI_EN[moonRashiIdx] || "Moon Sign";
+
+  // Check conjunctions with Moon
+  const conjunctWithMoon = kundli.planets
+    .filter(p => p.name !== PlanetName.Moon && p.house === moonHouse)
+    .map(p => p.name);
+  const isMoonWithSaturn = conjunctWithMoon.includes(PlanetName.Saturn);
+  const isMoonWithRahu = conjunctWithMoon.includes(PlanetName.Rahu);
+  const isMoonWithKetu = conjunctWithMoon.includes(PlanetName.Ketu);
+  const isMoonWithMars = conjunctWithMoon.includes(PlanetName.Mars);
+  const isMoonWithJupiter = conjunctWithMoon.includes(PlanetName.Jupiter);
+
+  // Check aspects on Moon (house difference from aspecting planet)
+  const houseDiff = (fromH: number, toH: number) => (toH - fromH + 12) % 12;
+  const saturnAspectsMoon = saturn ? [2, 6, 9].includes(houseDiff(saturn.house, moonHouse)) : false; // 3rd, 7th, 10th
+  const marsAspectsMoon = mars ? [3, 6, 7].includes(houseDiff(mars.house, moonHouse)) : false; // 4th, 7th, 8th
+  const jupiterAspectsMoon = jupiter ? [4, 6, 8].includes(houseDiff(jupiter.house, moonHouse)) : false; // 5th, 7th, 9th
+  const rahuAspectsMoon = rahu ? [4, 6, 8].includes(houseDiff(rahu.house, moonHouse)) : false;
+
+  const runningMahaKn = dashaTiming?.maha ? (PLANET_KN[dashaTiming.maha as PlanetName] || dashaTiming.maha) : "";
+  const runningBhuktiKn = dashaTiming?.bhukti ? (PLANET_KN[dashaTiming.bhukti as PlanetName] || dashaTiming.bhukti) : "";
+  const runningMahaEn = dashaTiming?.maha || "";
+  const runningBhuktiEn = dashaTiming?.bhukti || "";
+
+  // 1. External Life Reality (ಪ್ರಸ್ತುತ ಜೀವನದಲ್ಲಿ ನಡೆಯುತ್ತಿರುವ ನೈಜ ಸಂಗತಿಗಳು)
+  let externalLifeRealityKn = profile.detailedRealityKn;
+  if (!externalLifeRealityKn.includes("ನೈಜ ಸಂಗತಿ")) {
+    const dashaContext = runningMahaKn && runningBhuktiKn
+      ? `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${runningMahaKn} ಮಹಾದಶೆ - ${runningBhuktiKn} ಭುಕ್ತಿಯು ಬಾಹ್ಯ ಪ್ರಪಂಚದಲ್ಲಿ ನಿಮ್ಮ ಸ್ಥಾನಮಾನ, ಆರ್ಥಿಕ ಸ್ಥಿತಿ ಹಾಗೂ ವೃತ್ತಿಪರ ಜವಾಬ್ದಾರಿಗಳ ಮೇಲೆ ನೇರ ಪ್ರಭಾವ ಬೀರುತ್ತಿದೆ.`
+      : "";
+    const gocharaContext = liveGochara?.summaryKn
+      ? `ಗೋಚಾರ ಗತಿ: ${liveGochara.summaryKn}`
+      : "";
+    externalLifeRealityKn = `${profile.detailedRealityKn}\n\nಬಾಹ್ಯ ವಾಸ್ತವ ಸಂಗತಿಗಳು: ಪ್ರಸ್ತುತ ನಿಮ್ಮ ದೈನಂದಿನ ಜೀವನದಲ್ಲಿ ಜವಾಬ್ದಾರಿಗಳು ಹೆಚ್ಚಿದ್ದು, ವೃತ್ತಿ, ಆರ್ಥಿಕ ನಿರ್ವಹಣೆ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಕರ್ತವ್ಯಗಳ ನಡುವೆ ಸಮತೋಲನ ಸಾಧಿಸಲು ನಿರಂತರ ಶ್ರಮ ನಡೆಯುತ್ತಿದೆ. ${dashaContext} ${gocharaContext}`;
+  }
+
+  let externalLifeRealityEn = profile.detailedRealityEn;
+  const dashaContextEn = runningMahaEn && runningBhuktiEn
+    ? `The ongoing ${runningMahaEn} Mahadasha - ${runningBhuktiEn} Bhukti is actively shaping your external status, professional commitments, and financial obligations.`
+    : "";
+  const gocharaContextEn = liveGochara?.summaryEn ? `Transit Influence: ${liveGochara.summaryEn}` : "";
+  externalLifeRealityEn = `${profile.detailedRealityEn}\n\nExternal Realities: Day-to-day existence is dominated by expanding practical responsibilities, financial management, and navigating career milestones amidst family duties. ${dashaContextEn} ${gocharaContextEn}`;
+
+  // 2. Internal Mindset & Psychological Weather (ಪ್ರಸ್ತುತ ಆಂತರಿಕ ಮನಸ್ಥಿತಿ & ಯೋಚನಾ ಲಹರಿ)
+  const mindsetPartsKn: string[] = [];
+  const mindsetPartsEn: string[] = [];
+
+  mindsetPartsKn.push(`ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದಲ್ಲಿ ಚಂದ್ರನೇ ಮನಸ್ಸಿನ ಕಾರಕ (${moonRashiKn} ರಾಶಿ, ${moonHouse}ನೇ ಮನೆ).`);
+  mindsetPartsEn.push(`Astrologically, the Moon governs the psyche and emotional weather (${moonRashiEn}, House ${moonHouse}).`);
+
+  // House placement of Moon
+  if ([6, 8, 12].includes(moonHouse)) {
+    if (moonHouse === 6) {
+      mindsetPartsKn.push(`ಚಂದ್ರನು 6ನೇ ರೋಗ-ಶತ್ರು ಸ್ಥಾನದಲ್ಲಿರುವುದರಿಂದ ಮನಸ್ಸಿನಲ್ಲಿ ಸದಾ ಎಚ್ಚರಿಕೆಯ ಭಾವ, ಸ್ಪರ್ಧಾತ್ಮಕ ಆತಂಕ, ಮತ್ತು ಸಣ್ಣ ಲೋಪಗಳಿಗೂ ವಿಪರೀತ ಚಿಂತಿಸುವ ಪ್ರವೃತ್ತಿ ಇರುತ್ತದೆ.`);
+      mindsetPartsEn.push(`Moon in the 6th house creates persistent hyper-vigilance, performance anxiety, and a tendency to ruminate over minor flaws.`);
+    } else if (moonHouse === 8) {
+      mindsetPartsKn.push(`ಚಂದ್ರನು 8ನೇ ಆಯುಷ್ಯ/ಅಷ್ಟಮ ಭಾವದಲ್ಲಿರುವುದರಿಂದ ಆಂತರಿಕವಾಗಿ ನಿಗೂಢ ಅಶಾಂತಿ, ಮಾನಸಿಕ ಶಕ್ತಿ ಕುಂದುವಿಕೆ, ಭಾವನಾತ್ಮಕ ದುರ್ಬಲತೆ ಮತ್ತು ಭವಿಷ್ಯದ ಬಗ್ಗೆ ಅಜ್ಞಾತ ಆತಂಕ ಕಾಡುತ್ತದೆ.`);
+      mindsetPartsEn.push(`Moon in the 8th house stirs deep emotional turbulence, psychological vulnerability, and subconscious apprehension about the unknown.`);
+    } else {
+      mindsetPartsKn.push(`ಚಂದ್ರನು 12ನೇ ವ್ಯಯ ಭಾವದಲ್ಲಿರುವುದರಿಂದ ರಾತ್ರಿ ವೇಳೆಯಲ್ಲಿ ಅತಿಯಾದ ಯೋಚನೆಗಳು (Overthinking), ಏಕಾಂತ ಪ್ರಿಯತೆ, ನಿದ್ರಾಭಂಗ ಮತ್ತು ಎಲ್ಲದರಿಂದ ವಿಮುಖವಾಗುವ ಭಾವನೆ ಮೂಡುತ್ತದೆ.`);
+      mindsetPartsEn.push(`Moon in the 12th house induces late-night overthinking, longing for retreat or isolation, and periodic sleep disturbances.`);
+    }
+  } else if ([1, 4, 5, 9, 10].includes(moonHouse)) {
+    if (moonHouse === 1) {
+      mindsetPartsKn.push(`ಚಂದ್ರನು ಲಗ್ನದಲ್ಲಿದ್ದು ಮನಸ್ಸು ಅತೀವ ಸಂವೇದನಾಶೀಲವಾಗಿದ್ದು (sensitive), ಇತರರ ಮಾತುಗಳಿಗೆ ಬೇಗನೆ ನೊಂದುಕೊಳ್ಳುವ ಮತ್ತು ಅಷ್ಟೇ ಬೇಗನೆ ಪ್ರೀತಿಯನ್ನು ಬಯಸುವ ಸ್ವಭಾವ ನೀಡಿದ್ದಾನೆ.`);
+      mindsetPartsEn.push(`Moon in Lagna renders the mindset highly sensitive and empathetic, oscillating between fierce self-reliance and craving emotional warmth.`);
+    } else if (moonHouse === 4) {
+      mindsetPartsKn.push(`ಚಂದ್ರನು 4ನೇ ಸುಖ ಸ್ಥಾನದಲ್ಲಿರುವುದರಿಂದ ಮನಸ್ಸಿಗೆ ಕೌಟುಂಬಿಕ ನೆಮ್ಮದಿ ಮತ್ತು ಮಾನಸಿಕ ಶಾಂತಿಯೇ ಪ್ರಧಾನ; ಮನೆಯ ವಾತಾವರಣವು ನಿಮ್ಮ ಆಲೋಚನಾ ಶಕ್ತಿಯನ್ನು ನೇರವಾಗಿ ನಿಯಂತ್ರಿಸುತ್ತದೆ.`);
+      mindsetPartsEn.push(`Moon in the 4th house places domestic peace at the core of your mental equilibrium; emotional stability is tied directly to domestic harmony.`);
+    } else if (moonHouse === 5) {
+      mindsetPartsKn.push(`ಚಂದ್ರನು 5ನೇ ಬುದ್ಧಿ ಸ್ಥಾನದಲ್ಲಿದ್ದು ತೀಕ್ಷ್ಣ ಕಲ್ಪನಾಶಕ್ತಿಯನ್ನು ನೀಡಿದ್ದಾನೆ; ಆದರೆ ಪ್ರಮುಖ ನಿರ್ಧಾರಗಳನ್ನು ತೆಗೆದುಕೊಳ್ಳುವಾಗ ಮನಸ್ಸು ದ್ವಂದ್ವ ಮತ್ತು ಅನಿಶ್ಚಿತತೆಗೆ ಸಿಲುಕುತ್ತದೆ.`);
+      mindsetPartsEn.push(`Moon in the 5th house confers intuitive intellect, but critical life decisions often trigger internal doubt and analytical paralysis.`);
+    } else if (moonHouse === 9) {
+      mindsetPartsKn.push(`ಚಂದ್ರನು 9ನೇ ಭಾಗ್ಯ ಸ್ಥಾನದಲ್ಲಿರುವುದರಿಂದ ಧಾರ್ಮಿಕತೆ, ದೈವಭಕ್ತಿ ಮತ್ತು ನೈತಿಕತೆಯ ತುಡಿತವಿದ್ದರೂ, ನಿರೀಕ್ಷಿತ ಪ್ರತಿಫಲ ತಡವಾದಾಗ ಆಂತರಿಕವಾಗಿ ತಾಳ್ಮೆ ಕಳೆದುಕೊಳ್ಳುವ ಮನಸ್ಥಿತಿ ಉಂಟಾಗುತ್ತದೆ.`);
+      mindsetPartsEn.push(`Moon in the 9th house fuels philosophical introspection, yet delays in expected divine rewards test your internal patience.`);
+    } else {
+      mindsetPartsKn.push(`ಚಂದ್ರನು 10ನೇ ಕರ್ಮ ಸ್ಥಾನದಲ್ಲಿರುವುದರಿಂದ ನಿಮ್ಮ ಮನಸ್ಸು ದಿನದ 24 ಗಂಟೆಯೂ ಕೆಲಸ, ಜವಾಬ್ದಾರಿ ಹಾಗೂ ಸಾಮಾಜಿಕ ಗೌರವದ ಬಗೆಗಿನ ಯೋಚನೆಗಳಲ್ಲೇ ಮುಳುಗಿದ್ದು, ಮಾನಸಿಕ ವಿಶ್ರಾಂತಿ ಸಿಗುತ್ತಿಲ್ಲ.`);
+      mindsetPartsEn.push(`Moon in the 10th house keeps your mind relentlessly anchored on career, obligations, and societal reputation, starving you of restful pauses.`);
+    }
+  } else {
+    mindsetPartsKn.push(`ಚಂದ್ರನು ${moonHouse}ನೇ ಸ್ಥಾನದಲ್ಲಿದ್ದು ಆರ್ಥಿಕ ಭದ್ರತೆ, ಕುಟುಂಬ ಹಾಗೂ ಸಾಮಾಜಿಕ ಸಂಬಂಧಗಳ ನಡುವೆ ಸಮತೋಲನ ಕಾಯ್ದುಕೊಳ್ಳುವ ನಿರಂತರ ಚಿಂತನೆಯಲ್ಲಿದೆ.`);
+    mindsetPartsEn.push(`Moon in House ${moonHouse} keeps thoughts focused on pragmatic security, balancing obligations, and social standing.`);
+  }
+
+  // Planetary aspects & conjunctions on Moon
+  if (isMoonWithSaturn || saturnAspectsMoon) {
+    mindsetPartsKn.push(`ಶನಿ-ಚಂದ್ರರ ಸಂಬಂಧ (ವಿಷಯೋಗದ ಛಾಯೆ): ಮನಸ್ಸಿನಲ್ಲಿ ಅಗೋಚರ ಭಾರ, ಯಾರೂ ತನ್ನನ್ನು ಸಂಪೂರ್ಣವಾಗಿ ಅರ್ಥಮಾಡಿಕೊಳ್ಳುತ್ತಿಲ್ಲವೆಂಬ ಒಂಟಿತನದ ಭಾವನೆ ಮತ್ತು ಆಗಾಗ ಕಾಡುವ ನಿರಾಶಾವಾದ.`);
+    mindsetPartsEn.push(`Saturn-Moon connection (Vishadosha shade): Sensation of carrying unseen heavy burdens, feelings of emotional isolation, and periodic melancholic thoughts.`);
+  }
+  if (isMoonWithRahu || rahuAspectsMoon) {
+    mindsetPartsKn.push(`ರಾಹು-ಚಂದ್ರರ ಪ್ರಭಾವ (ಚಿತ್ತ ಭ್ರಮ / ಗ್ರಹಣ ಛಾಯೆ): ಮನಸ್ಸಿನಲ್ಲಿ ಅತಿಯಾದ ಆತಂಕ (Anxiety), ಸಣ್ಣ ಸಣ್ಣ ತೊಂದರೆಗಳನ್ನೂ ದೊಡ್ಡದಾಗಿ ಕಲ್ಪಿಸಿಕೊಳ್ಳುವ ಅಶಾಂತಿ ಹಾಗೂ ಅತಿಯಾದ ವೇಗದ ಯೋಚನಾ ಲಹರಿ.`);
+    mindsetPartsEn.push(`Rahu-Moon influence: Sudden spikes of acute anxiety, restless imagination, thought over-acceleration, and magnifying potential worst-case scenarios.`);
+  }
+  if (isMoonWithMars || marsAspectsMoon) {
+    mindsetPartsKn.push(`ಕುಜ-ಚಂದ್ರರ ಪ್ರಭಾವ (ಉದ್ವೇಗ / ಚಂದ್ರ-ಮಂಗಳ): ಆಂತರಿಕವಾಗಿ ಅಸಹನೆ, ಕೆಲಸಗಳು ನಿಧಾನವಾದಾಗ ಸಿಡುಕುತನ, ಮತ್ತು ಭಾವನಾತ್ಮಕವಾಗಿ ಬೇಗನೆ ಕೆರಳುವ ಪ್ರವೃತ್ತಿ.`);
+    mindsetPartsEn.push(`Mars-Moon influence: Emotional urgency, short-fused irritation when actions stall, and high internal restless drive.`);
+  }
+  if (isMoonWithKetu) {
+    mindsetPartsKn.push(`ಕೇತು-ಚಂದ್ರರ ಯುತಿ: ಮನಸ್ಸಿನಲ್ಲಿ ಲೌಕಿಕ ವಿಷಯಗಳ ಬಗ್ಗೆ ದಿಢೀರ್ ನಿರಾಸಕ್ತಿ, ಶೂನ್ಯ ಭಾವನೆ ಹಾಗೂ ಆಂತರಿಕ ಏಕಾಂತದ ಹಂಬಲ.`);
+    mindsetPartsEn.push(`Ketu-Moon conjunction: Periodic waves of worldly detachment, existential emptiness, and an inward pull toward spiritual solitude.`);
+  }
+  if (isMoonWithJupiter || jupiterAspectsMoon) {
+    mindsetPartsKn.push(`ಗುರುವಿನ ಶುಭ ದೃಷ್ಟಿ: ಎಷ್ಟೇ ಮಾನಸಿಕ ಒತ್ತಡ ಅಥವಾ ಗೊಂದಲಗಳಿದ್ದರೂ, ನಿಮ್ಮ ಅಂತಃಸತ್ವ ಮತ್ತು ಧರ್ಮನಿಷ್ಠೆಯಿಂದ ಮನಸ್ಸು ಮತ್ತೆ ಸಕಾರಾತ್ಮಕವಾಗಿ ಪುಟಿದೇಳುತ್ತದೆ.`);
+    mindsetPartsEn.push(`Benefic Jupiter aspect on Moon: Bestows innate resilience, philosophical grounding, and the psychological fortitude to rebound from mental dips.`);
+  }
+
+  // Transit (Gochara) impacts on mental weather
+  if (liveGochara?.isSadeSati) {
+    mindsetPartsKn.push(`ಗೋಚಾರದಲ್ಲಿ ಸಾಡೇಸಾತಿ (ಏಳೂವರೆ ಶನಿ) ಪ್ರಭಾವದಿಂದಾಗಿ ಮನಸ್ಸಿನಲ್ಲಿ ಅಕಾರಣ ಆತಂಕ, ಆತ್ಮವಿಶ್ವಾಸದಲ್ಲಿ ದಿಢೀರ್ ಇಳಿಕೆ ಹಾಗೂ ಭವಿಷ್ಯದ ಬಗ್ಗೆ ಅನಿಶ್ಚಿತತೆಯ ಭಯ ಆಗಾಗ ತಲೆದೋರುತ್ತದೆ.`);
+    mindsetPartsEn.push(`Transit Sade Sati induces recurring bouts of self-doubt, unprovoked anxiety, and heavy psychological headwinds regarding future security.`);
+  } else if (liveGochara?.isAshtamaShani) {
+    mindsetPartsKn.push(`ಅಷ್ಟಮ ಶನಿ ಸಂಚಾರದಿಂದಾಗಿ ಮಾನಸಿಕ ಶಕ್ತಿ ಬೇಗನೆ ಉಡುಗುವುದು ಮತ್ತು ಅನಿರೀಕ್ಷಿತ ಸಮಸ್ಯೆಗಳಿಂದ ಮನಸ್ಸು ಆಯಾಸಗೊಳ್ಳುವ ಲಕ್ಷಣಗಳಿವೆ.`);
+    mindsetPartsEn.push(`Ashtama Shani transit drains emotional reserves, triggering fatigue and mental strain when surprises arise.`);
+  } else if (liveGochara?.isKantakaShani) {
+    mindsetPartsKn.push(`ಕಂಟಕ ಶನಿಯ ಪ್ರಭಾವದಿಂದ ನಿರ್ಧಾರಗಳನ್ನು ತೆಗೆದುಕೊಳ್ಳುವಾಗ ಗೊಂದಲ ಮತ್ತು ಕಾರ್ಯಕ್ಷೇತ್ರದ ಒತ್ತಡದಿಂದಾಗಿ ಮಾನಸಿಕ ಉದ್ವೇಗ ಉಂಟಾಗಬಹುದು.`);
+    mindsetPartsEn.push(`Kantaka Shani transit creates friction in decision-making and workplace-induced mental restlessness.`);
+  }
+
+  const internalMindsetKn = mindsetPartsKn.join(" ");
+  const internalMindsetEn = mindsetPartsEn.join(" ");
+
+  return {
+    externalLifeRealityKn,
+    externalLifeRealityEn,
+    internalMindsetKn,
+    internalMindsetEn
+  };
 }
 
 // -------------------------------------------------------------

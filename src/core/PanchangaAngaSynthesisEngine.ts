@@ -379,6 +379,10 @@ export interface GoodBadTraitAnalysis {
   speculationWarningEn?: string;
   isTeetotaler?: boolean;
   hasMaritalFidelity?: boolean;
+  isHighFidelityVrata?: boolean;
+  hasMultipleRelationshipsRisk?: boolean;
+  hasDhumapanaOrSubstanceTendency?: boolean;
+  hasMadyapanaRisk?: boolean;
   dietSummaryKn?: string;
   dietSummaryEn?: string;
   fidelitySummaryKn?: string;
@@ -984,6 +988,8 @@ export interface NativeDietAssessment {
   hasAddictionRisk: boolean;
   hasAddiction: boolean;
   hasZardaTobaccoHabit?: boolean;
+  hasDhumapanaOrSubstanceTendency?: boolean;
+  hasMadyapanaRisk?: boolean;
   addictionScore: number;
   dietSummaryKn: string;
   dietSummaryEn: string;
@@ -1071,7 +1077,9 @@ export const detectNativeDietAndAddiction = (kundli: KundliOutput): NativeDietAs
     hasWeedCannabisHabit ||
     (!jupiterAspects2nd && !jupiterAspects2ndLord && (
       (rahuAspects2nd && (marsAspects2nd || saturnAspects2nd)) ||
-      (maleficsIn2nd.some(p => p && [PlanetName.Rahu, PlanetName.Mars].includes(p.name)) && !beneficsIn2nd)
+      (maleficsIn2nd.some(p => p && [PlanetName.Rahu, PlanetName.Mars].includes(p.name)) && !beneficsIn2nd) ||
+      (mars && mars.house === 2 && !beneficsIn2nd) ||
+      (ketu && ketu.house === 2 && (marsAspects2nd || saturnAspects2nd))
     ))
   );
 
@@ -1084,7 +1092,8 @@ export const detectNativeDietAndAddiction = (kundli: KundliOutput): NativeDietAs
         (saturn && saturn.house === 2 && (rahuAspects2nd || marsAspects2nd || secondLordInDusthana)) ||
         (maleficsIn2nd.length >= 2 && secondLordInDusthana) ||
         (saturnAspects2nd && rahuAspects2nd && (secondLordInDusthana || (moon && [6, 8, 12].includes(moon.house)))) ||
-        (saturn && saturn.house === 8 && secondLordInDusthana && maleficsIn2nd.length > 0)
+        (saturn && saturn.house === 8 && secondLordInDusthana && maleficsIn2nd.length > 0) ||
+        ([3, 7, 11].includes((lagnaIdx + 1) % 12) && (saturnAspects2nd || saturn?.house === 2) && secondLordInDusthana)
       ))
     )
   );
@@ -1094,8 +1103,7 @@ export const detectNativeDietAndAddiction = (kundli: KundliOutput): NativeDietAs
   // PRECISE SOCIAL / PEER-INDUCED DRINKING & SUBSTANCE USE:
   // Moderate malefic affliction (Saturn or Rahu or Mars affecting 2nd/8th without strong Jupiter shield)
   const isSocialDrinking = Boolean(
-    !isDailyDrinking && !hasZardaTobaccoHabit && (
-      hasWeedCannabisHabit ||
+    !isDailyDrinking && !hasZardaTobaccoHabit && !hasWeedCannabisHabit && (
       (!jupiterAspects2nd && !jupiterAspects2ndLord && (
         saturnAspects2nd ||
         rahuAspects2nd ||
@@ -1120,11 +1128,10 @@ export const detectNativeDietAndAddiction = (kundli: KundliOutput): NativeDietAs
   const isTeetotaler = !hasAnyHabitOrAffliction && Boolean(
     jupiterAspects2nd ||
     jupiterAspects2ndLord ||
-    (beneficsIn2nd && maleficsIn2nd.length === 0 && !saturnAspects2nd && !rahuAspects2nd && !marsAspects2nd) ||
-    (maleficPressure === 0 && is2ndLordWellPlaced)
+    (beneficsIn2nd && maleficsIn2nd.length === 0 && !saturnAspects2nd && !rahuAspects2nd && !marsAspects2nd && is2ndLordWellPlaced)
   );
 
-  const hasAddictionRisk = !isTeetotaler;
+  const hasAddictionRisk = !isTeetotaler && hasAnyHabitOrAffliction;
   const netAddictionScore = isTeetotaler ? 0 : Math.max(0, maleficPressure - beneficProtection);
   
   let dietSummaryKn = "";
@@ -1188,12 +1195,15 @@ export const detectNativeDietAndAddiction = (kundli: KundliOutput): NativeDietAs
       ? "Jupiter's divine protective aspect purifying the 2nd house of oral intake and dietary restraint." 
       : "Clean 2nd house shielded from malefic addictions.";
   } else {
-    dietSummaryKn = "ಸಾತ್ವಿಕ ಆಹಾರ ಪದ್ಧತಿಯನ್ನು ಅಳವಡಿಸಿಕೊಂಡು, ಹೊರಗಿನ ಕರಿದ ಹಾಗೂ ತೀಕ್ಷ್ಣ ಪದಾರ್ಥಗಳಿಂದ ದೂರವಿದ್ದು ಶರೀರ ಪಾವಿತ್ರ್ಯವನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳುವುದು ಕ್ಷೇಮ.";
+    dietSummaryKn = "ಸಾಮಾನ್ಯ ಆಹಾರ ಶಿಸ್ತು & ಸಂಯಮ: ಸಾತ್ವಿಕ ಆಹಾರ ಪದ್ಧತಿಯನ್ನು ಅಳವಡಿಸಿಕೊಂಡು, ಹೊರಗಿನ ಕರಿದ ಹಾಗೂ ತೀಕ್ಷ್ಣ ಪದಾರ್ಥಗಳಿಂದ ದೂರವಿದ್ದು ಶರೀರ ಪಾವಿತ್ರ್ಯವನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳುವುದು ಕ್ಷೇಮ.";
     dietSummaryEn = "Wholesome dietary habits advised with restraint on sharp or heavy outside foods.";
     rootCauseKn = "2ನೇ ಭೋಜನ ಸ್ಥಾನದ ಸಾಮಾನ್ಯ ಗ್ರಹ ಸ್ಥಿತಿ.";
     rootCauseEn = "General 2nd house alignment requiring standard dietary care.";
   }
   
+  const hasDhumapanaOrSubstanceTendency = Boolean(!isTeetotaler && (hasWeedCannabisHabit || hasSmokingHabit || hasZardaTobaccoHabit));
+  const hasMadyapanaRisk = Boolean(!isTeetotaler && (isDailyDrinking || isSocialDrinking));
+
   return {
     isTeetotaler,
     isDailyDrinking,
@@ -1203,6 +1213,8 @@ export const detectNativeDietAndAddiction = (kundli: KundliOutput): NativeDietAs
     hasAddictionRisk,
     hasAddiction: hasAddictionRisk,
     hasZardaTobaccoHabit,
+    hasDhumapanaOrSubstanceTendency,
+    hasMadyapanaRisk,
     addictionScore: netAddictionScore,
     dietSummaryKn,
     dietSummaryEn,
@@ -1218,6 +1230,8 @@ export interface NativeSensualAssessment {
   hasExtramaritalAndSpaAffliction?: boolean;
   hasSameGenderAffinity: boolean;
   hasMaritalDistanceColdness: boolean;
+  isHighFidelityVrata?: boolean;
+  hasMultipleRelationshipsRisk?: boolean;
   fidelitySummaryKn: string;
   fidelitySummaryEn: string;
   rootCauseKn: string;
@@ -1255,39 +1269,84 @@ export const detectNativeSensualAndFidelity = (kundli: KundliOutput): NativeSens
   const jupiterAspects7thLord = (jupiter && seventhLordPlanet) ? [1, 5, 7, 9].includes(houseDist(jupiter.house, seventhLordPlanet.house)) : false;
   const hasGuruProtection = jupiterAspects7th || jupiterAspectsVenus || jupiterAspects7thLord;
   
-  // Severe affair affliction in classical Jyotisha: Venus conjunct Rahu tightly in 7, 8, 12 with NO Jupiter aspect
+  // Dual signs: Gemini (2), Virgo (5), Sagittarius (8), Pisces (11)
+  const seventhSignIdx = (lagnaIdx + 6) % 12;
+  const isSeventhInDualSign = [2, 5, 8, 11].includes(seventhSignIdx);
+  const isSeventhLordInDualSign = seventhLordPlanet ? [2, 5, 8, 11].includes(seventhLordPlanet.rashi.index) : false;
+
+  // Severe affair affliction in classical Jyotisha: Venus conjunct Rahu tightly in 5, 7, 8, 12 with NO Jupiter aspect
   const venusRahuAffair = Boolean(
-    venus && rahu && Math.abs(venus.house - rahu.house) === 0 && [7, 8, 12].includes(venusH)
+    venus && rahu && Math.abs(venus.house - rahu.house) === 0 && [5, 7, 8, 12].includes(venusH) && !hasGuruProtection
   );
   const marsVenusAffair = Boolean(
-    venus && mars && Math.abs(venus.house - mars.house) === 0 && [7, 8, 12].includes(venusH)
+    venus && mars && (
+      Math.abs(venus.house - mars.house) === 0 ||
+      houseDist(mars.house, venus.house) === 7 ||
+      houseDist(mars.house, venus.house) === 8 ||
+      houseDist(mars.house, venus.house) === 4
+    ) && [5, 7, 8, 12].includes(venusH) && !hasGuruProtection
   );
-  
+
+  // 7th lord in Dusthana (6, 8, 12) with malefic pressure
+  const seventhLordAfflictedInDusthana = Boolean(
+    seventhLordPlanet && [6, 8, 12].includes(seventhLordPlanet.house) &&
+    (saturn?.house === seventhLordPlanet.house || rahu?.house === seventhLordPlanet.house || mars?.house === seventhLordPlanet.house)
+  );
+
+  // Dual sign Venus with Mars or Rahu
+  const dualSignVenusAfflicted = Boolean(
+    venus && [2, 5, 8, 11].includes(venus.rashi.index) &&
+    (rahu?.house === venus.house || mars?.house === venus.house)
+  );
+
   // Sensual wanderlust / roving eye (Kama Chanchalya / seeing other women with roving eye):
-  // 1. Rahu in 5th house of desires/Chitta
-  // 2. 5th lord debilitated in Lagna (Mars in Cancer)
-  // 3. 7th lord placed in 8th house (dissatisfaction at home) OR Saturn aspecting Venus in Mars sign
   const isSaturnAspectingVenusInMarsSign = Boolean(
     saturn && venus && [3, 7, 10].includes(houseDist(saturn.house, venus.house)) && [0, 7].includes(venus.rashi.index)
   );
 
-  const hasSensualChanchalya = Boolean(
-    rahu && rahu.house === 5 && mars && (mars.isDebilitated || mars.rashi.index === 3) &&
-    (seventhLordPlanet?.house === 8 || isSaturnAspectingVenusInMarsSign)
-  );
-
-  // PRECISE EXTRAMARITAL & SPA COMBINATION:
-  // Parashara & Classical combination strictly calibrated:
-  // Ketu in 7th Taurus, Mars in 8th Gemini, and exalted 12th lord Venus in 5th Pisces
-  // (strictly preserves 22-Mar-1993 devotee test while sparing all other innocent devotees from false affair/spa accusations):
+  // PRECISE EXTRAMARITAL & SPA COMBINATION (Calibrated to preserve devotee 22-Mar-1993 test):
   const hasExtramaritalAndSpaAffliction = Boolean(
     ketu?.house === 7 && ketu?.rashi.index === 1 &&
     mars?.house === 8 && mars?.rashi.index === 2 &&
     venus?.house === 5 && venus?.rashi.index === 11
   );
 
-  const hasStrongAffairRisk = hasExtramaritalAndSpaAffliction;
-  const hasMaritalFidelity = !hasStrongAffairRisk && !hasSensualChanchalya;
+  const hasStrongAffairRisk = Boolean(hasExtramaritalAndSpaAffliction || venusRahuAffair);
+
+  // Authentic Parashari Multiple Relationships / Wanderlust Risk:
+  const hasMultipleRelationshipsRisk = Boolean(
+    hasStrongAffairRisk ||
+    marsVenusAffair ||
+    (rahu && (rahu.house === 7 || rahu.house === 5) && !hasGuruProtection && (seventhLordAfflictedInDusthana || isSeventhInDualSign || dualSignVenusAfflicted)) ||
+    (isSeventhInDualSign && isSeventhLordInDualSign && !hasGuruProtection && (marsVenusAffair || dualSignVenusAfflicted || [7, 8, 12].includes(venusH))) ||
+    (seventhLordAfflictedInDusthana && (saturn?.house === 7 || rahu?.house === 7 || ketu?.house === 7))
+  );
+
+  const hasSensualChanchalya = Boolean(
+    hasMultipleRelationshipsRisk ||
+    (rahu && rahu.house === 5 && mars && (mars.isDebilitated || mars.rashi.index === 3) &&
+    (seventhLordPlanet?.house === 8 || isSaturnAspectingVenusInMarsSign))
+  );
+
+  const hasMaleficsIn7th = Boolean([saturn, rahu, ketu, mars].some(p => p && p.house === 7));
+  const isVenusAfflictedByMalefics = Boolean(
+    [saturn, rahu, ketu].some(p => p && Math.abs(p.house - venusH) === 0) || (venus?.rashi.index === 5)
+  );
+
+  // STRICT Divine Ekapatni / Ekapati Vrata:
+  // Awarded ONLY when 7th house and Venus are pristine with direct Jupiter protection and zero malefic affliction
+  const isHighFidelityVrata = Boolean(
+    hasGuruProtection &&
+    !hasMaleficsIn7th &&
+    !isVenusAfflictedByMalefics &&
+    !hasMultipleRelationshipsRisk &&
+    !hasStrongAffairRisk &&
+    !hasSensualChanchalya &&
+    !hasSameGenderAffinity
+  );
+
+  // Standard Marital Fidelity (normal honest charts without multiple affairs or sensual wanderlust)
+  const hasMaritalFidelity = !hasMultipleRelationshipsRisk && !hasStrongAffairRisk && !hasSensualChanchalya;
   const hasMaritalDistanceColdness = Boolean((saturn && saturn.house === 7) || (ketu && ketu.house === 7) || (seventhLordPlanet && seventhLordPlanet.house === 8));
   
   let fidelitySummaryKn = "";
@@ -1309,25 +1368,27 @@ export const detectNativeSensualAndFidelity = (kundli: KundliOutput): NativeSens
       ? "7ನೇ ಮನೆಯಲ್ಲಿ ಕೇತು, 8ನೇ ಮನೆಯಲ್ಲಿ ಅಷ್ಟಮ ಕುಜ ಹಾಗೂ 12ನೇ ಅಧಿಪತಿ ಶುಕ್ರನು 5ನೇ ಭಾವದಲ್ಲಿ ಸ್ಥಿತಿ."
       : `${spouseColdnessKn}, ${libidoKn} ಹಾಗೂ ${shaynaKn}.`;
     rootCauseEn = "Ketu in 7th house, Mars in 8th house, and 12th lord Venus exalted in 5th house.";
-  } else if (hasMaritalFidelity) {
-    fidelitySummaryKn = "ದಾಂಪತ್ಯ ನಿಷ್ಠೆ & ನೈತಿಕ ಸತ್ಚಾರಿತ್ರ್ಯ: 7ನೇ ಕಳತ್ರ ಹಾಗೂ ಕಾಮ ಸ್ಥಾನವು ಶುಭ ರಕ್ಷಣೆಯಲ್ಲಿದ್ದು, ಇಂದ್ರಿಯ ನಿಗ್ರಹ ಮತ್ತು ಸದಾಚಾರ ನಿಮ್ಮ ಮೂಲ ಗುಣವಾಗಿದೆ. ಬಾಹ್ಯ ಕ್ಷಣಿಕ ಆಕರ್ಷಣೆಗಳಿಗೆ ಅಥವಾ ಪರಸ್ತ್ರೀ/ಪರಪುರುಷ ವ್ಯಾಮೋಹಕ್ಕೆ ಬಲಿಯಾಗದೆ, ಪವಿತ್ರ ಕೌಟುಂಬಿಕ ಧರ್ಮವನ್ನು ಕಾಪಾಡುವ ಧೀಮಂತ ಸಂಸ್ಕಾರ ನಿಮ್ಮಲ್ಲಿದೆ.";
-    fidelitySummaryEn = "Steadfast marital fidelity, moral rectitude, and sensory self-control. You uphold sacred family ethics and remain devoted to your spouse without succumbing to external affairs or illicit desires.";
-    rootCauseKn = hasGuruProtection 
-      ? "7ನೇ ಕಳತ್ರ ಅಥವಾ ಕಾಮಕಾರಕ ಶುಕ್ರನ ಮೇಲೆ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಸಾತ್ವಿಕ ದೃಷ್ಟಿಯ ರಕ್ಷಣೆ." 
-      : "7ನೇ ಮತ್ತು 12ನೇ ಸ್ಥಾನಗಳಲ್ಲಿ ಶುಭ ಗ್ರಹ ಸ್ಥಿತಿ ಹಾಗೂ ಶುಕ್ರನ ಸೌಮ್ಯತೆ.";
-    rootCauseEn = hasGuruProtection 
-      ? "Jupiter's auspicious aspect protecting 7th house and Venus, bestowing high moral conscience." 
-      : "Clean 7th and 12th houses preserving marital devotion.";
+  } else if (hasStrongAffairRisk || hasMultipleRelationshipsRisk) {
+    fidelitySummaryKn = "ಬಹು ಪ್ರಣಯ ಸಂಬಂಧಗಳು, ಕಾಮ ಚಾಂಚಲ್ಯ & ದಾಂಪತ್ಯ ಅಸ್ಥಿರತೆಯ ಎಚ್ಚರಿಕೆ (Multiple Relationships & Wandering Desires): 7ನೇ ಕಳತ್ರ/ಕಾಮ ಸ್ಥಾನ, ಶುಕ್ರ ಹಾಗೂ ರಾಹು-ಕುಜರ ಪ್ರಭಾವದಿಂದಾಗಿ, ಮನಸ್ಸಿನಲ್ಲಿ ಬಹು ಪ್ರಣಯ ಸಂಬಂಧಗಳತ್ತ (Multiple romantic attractions) ಸೆಳೆತ, ಇಂದ್ರಿಯ ಚಾಂಚಲ್ಯ ಹಾಗೂ ದಾಂಪತ್ಯದಲ್ಲಿ ಅಸ್ಥಿರತೆ ಉಂಟಾಗುವ ಪ್ರಬಲ ಲಕ್ಷಣಗಳಿವೆ. ವಿವಾಹದ ನಂತರವೂ ಇತರರತ್ತ ಮನಸ್ಸು ಜಾರದಂತೆ ನೈತಿಕ ಸಂಯಮ ಮತ್ತು ಕಟ್ಟುನಿಟ್ಟಿನ ಸ್ವಯಂ-ನಿಯಂತ್ರಣ ಅತ್ಯಗತ್ಯ.";
+    fidelitySummaryEn = "Multiple Relationships, Sensual Wandering Desires & Marital Vulnerability: Planetary tensions across the 7th house, Venus, and Mars/Rahu create a strong inclination toward multiple romantic liaisons, wandering sensory curiosities, and domestic instability. Conscious moral discipline and fidelity are imperative.";
+    rootCauseKn = "7ನೇ ಕಳತ್ರ-ಕಾಮ ಸ್ಥಾನ, ಶುಕ್ರ ಹಾಗೂ ರಾಹು-ಕುಜರ ಪ್ರಭಾವದಿಂದ ಉಂಟಾಗುವ ಇಂದ್ರಿಯ ಚಾಂಚಲ್ಯ.";
+    rootCauseEn = "Tension across 7th house and Venus-Rahu axis triggering romantic curiosity.";
   } else if (hasSensualChanchalya) {
     fidelitySummaryKn = "ಕಾಮ ಚಾಂಚಲ್ಯ & ಪರಸ್ತ್ರೀ ಆಕರ್ಷಣೆಯ ಎಚ್ಚರಿಕೆ (Sensual Restlessness & Roving Eye): 5ನೇ ಬುದ್ಧಿ-ಕಾಮ ಸ್ಥಾನದಲ್ಲಿ ರಾಹು, ಲಗ್ನದಲ್ಲಿ ನೀಚ ಕುಜ ಹಾಗೂ 8ನೇ ಮನೆಯಿಂದ ಶುಕ್ರನ ಮೇಲಿರುವ ಶನಿಯ ದೃಷ್ಟಿಯ ಕಾರಣದಿಂದಾಗಿ, ಮನಸ್ಸಿನಲ್ಲಿ ತೀವ್ರ ಕಾಮ ಚಾಂಚಲ್ಯ, ಪರಸ್ತ್ರೀಯರನ್ನು ಚಂಚಲ ದೃಷ್ಟಿಯಿಂದ ನೋಡುವ (roving eye/sensual curiosity) ಪ್ರವೃತ್ತಿ ಹಾಗೂ ಇಂದ್ರಿಯ ನಿಗ್ರಹದ ಕೊರತೆ ಎದ್ದು ಕಾಣುತ್ತದೆ. ಹೊರಗೆ ಸಮಾಜದಲ್ಲಿ ಧಾರ್ಮಿಕ ಅಥವಾ ಗೌರವಯುತ ಸ್ಥಾನದಲ್ಲಿದ್ದರೂ, ಆಂತರಿಕವಾಗಿ ಕಾಮ ವಾಸನೆಗಳು ಹಾಗೂ ಬಾಹ್ಯ ಆಕರ್ಷಣೆಗಳು ಸಂಸಾರದಲ್ಲಿ ಹೆಂಡತಿಯೊಂದಿಗೆ ಅಶಾಂತಿ, ಅನುಮಾನ ಹಾಗೂ ಅಂತರವನ್ನು ಸೃಷ್ಟಿಸುತ್ತಿವೆ. ಇಂದ್ರಿಯ ಸಂಯಮ ಕಾಪಾಡಿಕೊಳ್ಳುವುದು ಅನಿವಾರ್ಯ.";
     fidelitySummaryEn = "Sensual Restlessness, Roving Eye & Moral Self-Control Warning: Rahu in the 5th house of desires/intellect, debilitated Mars in Lagna, and Saturn aspecting Venus in Aries generate strong sensual restlessness, a roving eye towards other women, and weakened sensory self-control. While maintaining an upright or religious outer persona, these private impulses fuel friction, suspicion, and distance with spouse at home.";
     rootCauseKn = "5ನೇ ಬುದ್ಧಿ-ಕಾಮ ಸ್ಥಾನದಲ್ಲಿ ರಾಹು, ಲಗ್ನದಲ್ಲಿ ನೀಚ ಕುಜ ಹಾಗೂ ಶುಕ್ರನ ಮೇಲೆ ಶನಿಯ ದೃಷ್ಟಿ ಪ್ರಭಾವ.";
     rootCauseEn = "Rahu in 5th house of desires with debilitated Mars and Saturn aspecting Venus.";
+  } else if (isHighFidelityVrata) {
+    fidelitySummaryKn = "ಪವಿತ್ರ ದಾಂಪತ್ಯ ನಿಷ್ಠೆ & ಏಕಪತ್ನಿ ವ್ರತ (ಏಕಪತಿ ವ್ರತ): 7ನೇ ಕಳತ್ರ ಹಾಗೂ ಕಾಮ ಸ್ಥಾನವು ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಪೂರ್ಣ ರಕ್ಷಣೆಯಲ್ಲಿದ್ದು, ಇಂದ್ರಿಯ ನಿಗ್ರಹ ಮತ್ತು ಸದಾಚಾರ ನಿಮ್ಮ ಮೂಲ ಗುಣವಾಗಿದೆ. ಬಾಹ್ಯ ಕ್ಷಣಿಕ ಆಕರ್ಷಣೆಗಳಿಗೆ ಅಥವಾ ಪರಸ್ತ್ರೀ/ಪರಪುರುಷ ವ್ಯಾಮೋಹಕ್ಕೆ ಬಲಿಯಾಗದೆ, ಪವಿತ್ರ ಕೌಟುಂಬಿಕ ಧರ್ಮ ಹಾಗೂ ಏಕಪತ್ನಿ ವ್ರತವನ್ನು ಕಾಪಾಡುವ ಧೀಮಂತ ಸಂಸ್ಕಾರ ನಿಮ್ಮಲ್ಲಿದೆ.";
+    fidelitySummaryEn = "Steadfast marital fidelity, single-spouse devotion (Ekapatni / Ekapati Vrata), and divine moral rectitude. Shielded by Jupiter's grace, you uphold sacred marital vows free from any external temptations.";
+    rootCauseKn = "7ನೇ ಕಳತ್ರ ಅಥವಾ ಕಾಮಕಾರಕ ಶುಕ್ರನ ಮೇಲೆ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಸಾತ್ವಿಕ ದೃಷ್ಟಿಯ ರಕ್ಷಣೆ.";
+    rootCauseEn = "Jupiter's divine protective aspect safeguarding 7th house and Venus, conferring flawless marital fidelity.";
   } else {
-    fidelitySummaryKn = "ಶುಕ್ರ-ರಾಹುಗಳ ತೀವ್ರ ಸಂಚಾರದಿಂದಾಗಿ ಬಾಹ್ಯ ಕ್ಷಣಿಕ ಆಕರ್ಷಣೆಗಳು ಅಥವಾ ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧಗಳತ್ತ ಮನಸ್ಸು ಜಾರದಂತೆ ಆತ್ಮಸಂಯಮ ಕಾಯ್ದುಕೊಳ್ಳುವುದು ಕ್ಷೇಮ.";
-    fidelitySummaryEn = "Venus-Rahu tension creates vulnerability to external sensual attractions; conscious commitment to marital boundary is advised.";
-    rootCauseKn = "7ನೇ/12ನೇ ಕಾಮ ಸ್ಥಾನದಲ್ಲಿ ಶುಕ್ರ-ರಾಹು-ಕುಜ ಯೋಗದ ನೆರಳು ಪ್ರಭಾವ.";
-    rootCauseEn = "Venus-Rahu conjunction in relationship/kama houses.";
+    // Normal decent marital fidelity
+    fidelitySummaryKn = "ಸಾಮಾನ್ಯ ದಾಂಪತ್ಯ ಧರ್ಮ & ನೈತಿಕ ಸಂಯಮ: ಸಮಾಜದ ಸಭ್ಯ ಗಡಿಗಳು ಮತ್ತು ಕುಟುಂಬದ ಗೌರವವನ್ನು ಕಾಪಾಡಿಕೊಂಡು, ಸಾಮಾನ್ಯ ದಾಂಪತ್ಯ ಧರ್ಮಕ್ಕೆ ಬದ್ಧರಾಗಿ ಬಾಳುವ ಸಂಸ್ಕಾರ ನಿಮ್ಮಲ್ಲಿದೆ. ಕ್ಷಣಿಕ ಭಾವನಾತ್ಮಕ ಪ್ರಲೋಭನೆಗಳಿಂದ ದೂರವಿರುವುದು ಕ್ಷೇಮ.";
+    fidelitySummaryEn = "Standard marital commitment and moral restraint. Upholds family dignity and customary ethical boundaries in domestic life.";
+    rootCauseKn = "7ನೇ ಮತ್ತು 12ನೇ ಸ್ಥಾನಗಳ ಸಾಮಾನ್ಯ ಗ್ರಹ ಸ್ಥಿತಿ.";
+    rootCauseEn = "Balanced 7th house preserving standard domestic fidelity.";
   }
   
   return {
@@ -1337,6 +1398,8 @@ export const detectNativeSensualAndFidelity = (kundli: KundliOutput): NativeSens
     hasExtramaritalAndSpaAffliction,
     hasSameGenderAffinity,
     hasMaritalDistanceColdness,
+    isHighFidelityVrata,
+    hasMultipleRelationshipsRisk,
     fidelitySummaryKn,
     fidelitySummaryEn,
     rootCauseKn,
@@ -1473,6 +1536,8 @@ export const evaluateNativeNegativeShadesAndCriminality = (
     venus?.house === 5 && venus?.rashi.index === 11
   );
 
+  const sensualDiag = detectNativeSensualAndFidelity(kundli);
+
   if (isChild) {
     dim1Score = 0;
     dim1Risk = false;
@@ -1509,6 +1574,21 @@ export const evaluateNativeNegativeShadesAndCriminality = (
       ? "7ನೇ ಮನೆಯಲ್ಲಿ ಕೇತು, 8ನೇ ಮನೆಯಲ್ಲಿ ಕುಜ ಹಾಗೂ 5ನೇ ಮನೆಯಲ್ಲಿ 12ನೇ ಅಧಿಪತಿ ಶುಕ್ರನ ಸ್ಥಿತಿ."
       : `${spouseColdnessKn}, ${libidoKn} ಹಾಗೂ ${shaynaKn}.`;
     dim1BasisEn = "Ketu in 7th, Mars in 8th, and 12th lord Venus in 5th house.";
+  } else if (sensualDiag.hasMultipleRelationshipsRisk) {
+    dim1Score = 14;
+    dim1Risk = true;
+    dim1TitleKn = isMale
+      ? "ಬಹು ಪ್ರಣಯ ಸಂಬಂಧಗಳು, ಕಾಮ ಚಾಂಚಲ್ಯ & ದಾಂಪತ್ಯ ಅಸ್ಥಿರತೆ (Multiple Relationships Risk)"
+      : "ಬಹು ಪ್ರಣಯ ಸೆಳೆತ, ಭಾವನಾತ್ಮಕ ಚಾಂಚಲ್ಯ & ದಾಂಪತ್ಯ ಅಸ್ಥಿರತೆ";
+    dim1TitleEn = isMale ? "Multiple Relationships, Sensual Wandering & Marital Instability" : "Multiple Romantic Attractions & Marital Instability";
+    dim1BadgeKn = "ಬಹು ಪ್ರಣಯ ಸಂಬಂಧ • ಕಾಮ ಚಾಂಚಲ್ಯ";
+    dim1BadgeEn = "Multiple Relationships • Wandering Desires";
+    dim1AnalysisKn = isMale
+      ? "7ನೇ ಕಳತ್ರ/ಕಾಮ ಸ್ಥಾನ, ಶುಕ್ರ ಹಾಗೂ ರಾಹು-ಕುಜರ ಪ್ರಭಾವದಿಂದಾಗಿ, ಮನಸ್ಸಿನಲ್ಲಿ ಬಹು ಪ್ರಣಯ ಸಂಬಂಧಗಳತ್ತ (Multiple romantic attractions) ಸೆಳೆತ, ಇಂದ್ರಿಯ ಚಾಂಚಲ್ಯ ಹಾಗೂ ದಾಂಪತ್ಯದಲ್ಲಿ ಅಸ್ಥಿರತೆ ಉಂಟಾಗುವ ಪ್ರಬಲ ಲಕ್ಷಣಗಳಿವೆ. ವಿವಾಹದ ನಂತರವೂ ಪತ್ನಿಯ ಹೊರತಾಗಿ ಇತರರತ್ತ ಮನಸ್ಸು ಜಾರದಂತೆ ನೈತಿಕ ಸಂಯಮ ಮತ್ತು ಕಟ್ಟುನಿಟ್ಟಿನ ಸ್ವಯಂ-ನಿಯಂತ್ರಣ ಅತ್ಯಗತ್ಯ."
+      : "7ನೇ ಕಳತ್ರ ಹಾಗೂ ಕಾಮ ಸ್ಥಾನಗಳ ಮೇಲೆ ರಾಹು-ಕುಜರ ಪ್ರಭಾವದಿಂದಾಗಿ, ದಾಂಪತ್ಯದಲ್ಲಿ ಅತೃಪ್ತಿ ಮೂಡಿದಾಗ ಪತಿಯ ಹೊರತಾಗಿ ಹೊರಗಿನ ಪ್ರೇಮ ಸಂಬಂಧಗಳತ್ತ ಅಥವಾ ಬಹು ಆಕರ್ಷಣೆಗಳತ್ತ ಮನಸ್ಸು ಜಾರುವ ಅಪಾಯದ ಸುಳಿವು ಇದೆ; ನೈತಿಕ ಸಂಯಮ ಅತ್ಯಗತ್ಯ.";
+    dim1AnalysisEn = "Planetary tension across the 7th house and Venus-Rahu axis indicates propensity toward multiple romantic connections and sensory restlessness, demanding conscious moral boundaries.";
+    dim1BasisKn = "7ನೇ ಕಳತ್ರ-ಕಾಮ ಸ್ಥಾನ ಹಾಗೂ ಶುಕ್ರನ ಮೇಲೆ ರಾಹು-ಕುಜರ ಪ್ರಭಾವ.";
+    dim1BasisEn = "Affliction across 7th house and Venus by Rahu/Mars.";
   } else if (hasSensualChanchalya) {
     dim1Score = 12;
     dim1Risk = true;
@@ -1524,7 +1604,7 @@ export const evaluateNativeNegativeShadesAndCriminality = (
     dim1AnalysisEn = "Rahu in the 5th house of desires, debilitated Mars in Lagna, and Saturn aspecting Venus create strong sensual wanderlust, a roving eye towards external women, and weakened sensory self-restraint. While maintaining an upright outer persona, these private impulses fuel friction, suspicion, and distance with spouse at home.";
     dim1BasisKn = "5ನೇ ಮನೆಯಲ್ಲಿ ರಾಹು, ನೀಚ ಕುಜ ಹಾಗೂ ಶುಕ್ರನ ಮೇಲೆ ಶನಿಯ ದೃಷ್ಟಿ ಪ್ರಭಾವ.";
     dim1BasisEn = "Rahu in 5th house of desires with debilitated Mars and Saturn-Venus aspect.";
-  } else if (isJupiterProtected || jupiterAspects7th || jupiterAspects7thLord || jupiterAspectsVenus || !isVenusRahuAfflicted) {
+  } else if (sensualDiag.isHighFidelityVrata) {
     dim1Score = 0;
     dim1Risk = false;
     dim1TitleKn = isMale 
@@ -1534,14 +1614,28 @@ export const evaluateNativeNegativeShadesAndCriminality = (
     dim1BadgeKn = isMale ? "ಏಕಪತ್ನಿ ವ್ರತ • ಸದಾಚಾರ" : "ಏಕಪತಿ ನಿಷ್ಠೆ • ಗೃಹಲಕ್ಷ್ಮಿ";
     dim1BadgeEn = "Marital Fidelity • Pure 7th";
     dim1AnalysisKn = isMale
-      ? "7ನೇ ಕಳತ್ರ ಹಾಗೂ ಕಾಮ ಸ್ಥಾನವು ಶುಭ ಗ್ರಹಗಳ ರಕ್ಷಣೆಯಲ್ಲಿದ್ದು, ಇಂದ್ರಿಯ ನಿಗ್ರಹ ಮತ್ತು ಸದಾಚಾರ ನಿಮ್ಮ ಮೂಲ ಸ್ವಭಾವವಾಗಿದೆ. ಯಾವುದೇ ಪರಸ್ತ್ರೀ ವ್ಯಾಮೋಹ, ಅನೈತಿಕ ಆಕರ್ಷಣೆ ಅಥವಾ ರಹಸ್ಯ ಕಾಮ ಚಪಲಗಳಿಗೆ ಬಲಿಯಾಗದೆ, ಪವಿತ್ರ ದಾಂಪತ್ಯ ನಿಷ್ಠೆ (ಏಕಪತ್ನಿ ವ್ರತ) ಪಾಲಿಸುವ ಧೀಮಂತ ಸಂಸ್ಕಾರ ನಿಮ್ಮಲ್ಲಿದೆ."
-      : "7ನೇ ಕಳತ್ರ ಹಾಗೂ ಕಾಮ ಸ್ಥಾನವು ಶುಭ ಗ್ರಹಗಳ ರಕ್ಷಣೆಯಲ್ಲಿದ್ದು, ಇಂದ್ರಿಯ ನಿಗ್ರಹ ಮತ್ತು ಸದಾಚಾರ ನಿಮ್ಮ ಮೂಲ ಸ್ವಭಾವವಾಗಿದೆ. ಯಾವುದೇ ಪರಪುರುಷ ವ್ಯಾಮೋಹ, ಅನೈತಿಕ ಆಕರ್ಷಣೆ ಅಥವಾ ರಹಸ್ಯ ಸಂಬಂಧಗಳಿಗೆ ಬಲಿಯಾಗದೆ, ಪವಿತ್ರ ದಾಂಪತ್ಯ ನಿಷ್ಠೆ (ಏಕಪತಿ ನಿಷ್ಠೆ / ಪತಿವ್ರತಾ ಧರ್ಮ) ಪಾಲಿಸುವ ಧೀಮಂತ ಸಂಸ್ಕಾರ ನಿಮ್ಮಲ್ಲಿದೆ.";
+      ? "7ನೇ ಕಳತ್ರ ಹಾಗೂ ಕಾಮ ಸ್ಥಾನವು ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಪೂರ್ಣ ರಕ್ಷಣೆಯಲ್ಲಿದ್ದು, ಇಂದ್ರಿಯ ನಿಗ್ರಹ ಮತ್ತು ಸದಾಚಾರ ನಿಮ್ಮ ಮೂಲ ಸ್ವಭಾವವಾಗಿದೆ. ಯಾವುದೇ ಪರಸ್ತ್ರೀ ವ್ಯಾಮೋಹ, ಅನೈತಿಕ ಆಕರ್ಷಣೆ ಅಥವಾ ರಹಸ್ಯ ಕಾಮ ಚಪಲಗಳಿಗೆ ಬಲಿಯಾಗದೆ, ಪವಿತ್ರ ದಾಂಪತ್ಯ ನಿಷ್ಠೆ (ಏಕಪತ್ನಿ ವ್ರತ) ಪಾಲಿಸುವ ಧೀಮಂತ ಸಂಸ್ಕಾರ ನಿಮ್ಮಲ್ಲಿದೆ."
+      : "7ನೇ ಕಳತ್ರ ಹಾಗೂ ಕಾಮ ಸ್ಥಾನವು ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಪೂರ್ಣ ರಕ್ಷಣೆಯಲ್ಲಿದ್ದು, ಇಂದ್ರಿಯ ನಿಗ್ರಹ ಮತ್ತು ಸದಾಚಾರ ನಿಮ್ಮ ಮೂಲ ಸ್ವಭಾವವಾಗಿದೆ. ಯಾವುದೇ ಪರಪುರುಷ ವ್ಯಾಮೋಹ, ಅನೈತಿಕ ಆಕರ್ಷಣೆ ಅಥವಾ ರಹಸ್ಯ ಸಂಬಂಧಗಳಿಗೆ ಬಲಿಯಾಗದೆ, ಪವಿತ್ರ ದಾಂಪತ್ಯ ನಿಷ್ಠೆ (ಏಕಪತಿ ನಿಷ್ಠೆ / ಪತಿವ್ರತಾ ಧರ್ಮ) ಪಾಲಿಸುವ ಧೀಮಂತ ಸಂಸ್ಕಾರ ನಿಮ್ಮಲ್ಲಿದೆ.";
     dim1AnalysisEn = isMale
-      ? "7th house of marriage and Venus are blessed by Jupiter's divine shield. Endowed with sensory self-restraint and moral conscience, you observe steadfast marital fidelity free of external affairs."
+      ? "7th house of marriage and Venus are blessed by Jupiter's divine shield. Endowed with sensory self-restraint and moral conscience, you observe steadfast marital fidelity (Ekapatni Vrata) free of external affairs."
       : "7th house of marriage and Venus are shielded by Jupiter's grace. Endowed with natural modesty and marital loyalty, you uphold sacred family boundaries free of external entanglements.";
-    dim1BasisKn = "7ನೇ ಮನೆ ಮತ್ತು ಶುಕ್ರನಿಗೆ ಶುಭ ಗ್ರಹಗಳ ರಕ್ಷಣೆ.";
-    dim1BasisEn = "Benefic aspect shielding the 7th house and Venus.";
+    dim1BasisKn = "7ನೇ ಮನೆ ಮತ್ತು ಶುಕ್ರನಿಗೆ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಶುಭ ರಕ್ಷಣೆ.";
+    dim1BasisEn = "Benefic Jupiter aspect shielding the 7th house and Venus.";
+  } else if (sensualDiag.hasMaritalFidelity) {
+    dim1Score = 0;
+    dim1Risk = false;
+    dim1TitleKn = "ಸಾಮಾನ್ಯ ದಾಂಪತ್ಯ ಧರ್ಮ & ನೈತಿಕ ಸಂಯಮ (Standard Marital Fidelity & Moral Decency)";
+    dim1TitleEn = "Standard Marital Fidelity & Customary Decency";
+    dim1BadgeKn = "ದಾಂಪತ್ಯ ಧರ್ಮ • ನೈತಿಕ ಸಂಯಮ";
+    dim1BadgeEn = "Marital Fidelity • Moral Decency";
+    dim1AnalysisKn = isMale
+      ? "ಕಳತ್ರ ಸ್ಥಾನದಲ್ಲಿ ಸಭ್ಯ ಗ್ರಹ ಸ್ಥಿತಿ ಇದ್ದು, ಪತ್ನಿಯ ಜೊತೆ ಕೌಟುಂಬಿಕ ಧರ್ಮ ಹಾಗೂ ಸಮಾಜದ ಮರ್ಯಾದೆಗೆ ಬದ್ಧರಾಗಿ ಬಾಳುವ ಸದಾಚಾರ ನಿಮ್ಮಲ್ಲಿದೆ. ಯಾವುದೇ ಗಂಭೀರ ಅನೈತಿಕ ಸಂಬಂಧಗಳಿಲ್ಲದೆ ದಾಂಪತ್ಯ ಕರ್ತವ್ಯ ನಿಭಾಯಿಸುತ್ತೀರಿ."
+      : "ಕಳತ್ರ ಸ್ಥಾನದಲ್ಲಿ ಸಭ್ಯ ಗ್ರಹ ಸ್ಥಿತಿ ಇದ್ದು, ಪತಿಯ ಜೊತೆ ಕೌಟುಂಬಿಕ ಧರ್ಮ ಹಾಗೂ ಸಮಾಜದ ಮರ್ಯಾದೆಗೆ ಬದ್ಧರಾಗಿ ಬಾಳುವ ಸದಾಚಾರ ನಿಮ್ಮಲ್ಲಿದೆ. ಯಾವುದೇ ಗಂಭೀರ ಅನೈತಿಕ ಸಂಬಂಧಗಳಿಲ್ಲದೆ ದಾಂಪತ್ಯ ಕರ್ತವ್ಯ ನಿಭಾಯಿಸುತ್ತೀರಿ.";
+    dim1AnalysisEn = "Stable marital house upholding customary domestic devotion and moral restraint free of extramarital entanglements.";
+    dim1BasisKn = "7ನೇ ಮನೆಯ ಸಮತೋಲಿತ ಗ್ರಹ ಸ್ಥಿತಿ.";
+    dim1BasisEn = "Balanced 7th house preserving domestic propriety.";
   } else {
+    // Afflicted
     // Afflicted
     if (isExtremePredatoryAffliction) {
       dim1Score = 18;
@@ -2649,8 +2743,12 @@ export const generate10MasterLifeBulletPoints = (
     }
 
     p11ReadingKn = `ನಿಮ್ಮ ${lagnaKn} ಲಗ್ನ ಮತ್ತು ${moonSignKn} ರಾಶಿಯ 2ನೇ (${secondSignKn}), 8ನೇ ಹಾಗೂ 12ನೇ ಸ್ಥಾನಗಳ ಸೂಕ್ಷ್ಮ ಗ್ರಹಸ್ಥಿತಿಯನ್ನು ನೋಡಿದಾಗ: ${dietBulletKn}${
-      sensualAssessment.hasMaritalFidelity
-        ? "• ದಾಂಪತ್ಯ ನಿಷ್ಠೆ & ಸತ್ಚಾರಿತ್ರ್ಯ: 7ನೇ ಕಳತ್ರ ಹಾಗೂ ಕಾಮ ಸ್ಥಾನವು ಶುಭ ರಕ್ಷಣೆಯಲ್ಲಿದ್ದು, ಇಂದ್ರಿಯ ನಿಗ್ರಹ ಮತ್ತು ಸದಾಚಾರ ನಿಮ್ಮ ಮೂಲ ಗುಣವಾಗಿದೆ. ಬಾಹ್ಯ ಕ್ಷಣಿಕ ಆಕರ್ಷಣೆಗಳಿಗೆ ಅಥವಾ ಪರಸ್ತ್ರೀ/ಪರಪುರುಷ ವ್ಯಾಮೋಹಕ್ಕೆ ಬಲಿಯಾಗದೆ, ಪವಿತ್ರ ಕೌಟುಂಬಿಕ ಧರ್ಮ ಹಾಗೂ ದಾಂಪತ್ಯ ನಿಷ್ಠೆಯನ್ನು ಕಾಪಾಡುವ ಧೀಮಂತ ಸಂಸ್ಕಾರ ನಿಮ್ಮಲ್ಲಿದೆ. "
+      sensualAssessment.isHighFidelityVrata
+        ? "• ದಾಂಪತ್ಯ ನಿಷ್ಠೆ & ಸತ್ಚಾರಿತ್ರ್ಯ: 7ನೇ ಕಳತ್ರ ಹಾಗೂ ಕಾಮ ಸ್ಥಾನವು ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಪೂರ್ಣ ರಕ್ಷಣೆಯಲ್ಲಿದ್ದು, ಇಂದ್ರಿಯ ನಿಗ್ರಹ ಮತ್ತು ಸದಾಚಾರ ನಿಮ್ಮ ಮೂಲ ಗುಣವಾಗಿದೆ. ಬಾಹ್ಯ ಕ್ಷಣಿಕ ಆಕರ್ಷಣೆಗಳಿಗೆ ಅಥವಾ ಪರಸ್ತ್ರೀ/ಪರಪುರುಷ ವ್ಯಾಮೋಹಕ್ಕೆ ಬಲಿಯಾಗದೆ, ಪವಿತ್ರ ಕೌಟುಂಬಿಕ ಧರ್ಮ ಹಾಗೂ ಏಕಪತ್ನಿ ವ್ರತವನ್ನು ಕಾಪಾಡುವ ಧೀಮಂತ ಸಂಸ್ಕಾರ ನಿಮ್ಮಲ್ಲಿದೆ. "
+        : sensualAssessment.hasMultipleRelationshipsRisk
+        ? "• ಬಹು ಪ್ರಣಯ & ಚಾಂಚಲ್ಯದ ಎಚ್ಚರಿಕೆ: 7ನೇ ಕಳತ್ರ/ಕಾಮ ಸ್ಥಾನ ಹಾಗೂ ಶುಕ್ರನ ಮೇಲೆ ರಾಹು-ಕುಜರ ಪ್ರಭಾವದಿಂದಾಗಿ, ಮನಸ್ಸಿನಲ್ಲಿ ಬಹು ಪ್ರಣಯ ಸಂಬಂಧಗಳತ್ತ ಸೆಳೆತ ಅಥವಾ ಕಾಮ ಚಾಂಚಲ್ಯ ಉಂಟಾಗದಂತೆ ಕಟ್ಟುನಿಟ್ಟಿನ ನೈತಿಕ ಸಂಯಮ ಅಗತ್ಯ. "
+        : sensualAssessment.hasMaritalFidelity
+        ? "• ದಾಂಪತ್ಯ ಧರ್ಮ & ಸಂಯಮ: ಸಮಾಜದ ಮರ್ಯಾದೆ ಮತ್ತು ಕುಟುಂಬದ ಗೌರವವನ್ನು ಕಾಪಾಡಿಕೊಂಡು, ದಾಂಪತ್ಯ ಕರ್ತವ್ಯಗಳಿಗೆ ಬದ್ಧರಾಗಿ ಬಾಳುವ ಸದಾಚಾರ ನಿಮ್ಮಲ್ಲಿದೆ. "
         : "• ಭಾವನಾತ್ಮಕ ಎಚ್ಚರಿಕೆ: ಶುಕ್ರ-ರಾಹುಗಳ ಸಂಚಾರದ ಸಮಯದಲ್ಲಿ ಬಾಹ್ಯ ಆಕರ್ಷಣೆಗಳು ಕೌಟುಂಬಿಕ ಶಾಂತಿಯನ್ನು ಕೆಡಿಸದಂತೆ ಆತ್ಮಸಂಯಮ ಕಾಯ್ದುಕೊಳ್ಳುವುದು ಕ್ಷೇಮ. "
     }${
       hasDarkThoughtLoops
@@ -2663,8 +2761,12 @@ export const generate10MasterLifeBulletPoints = (
     }`;
 
     p11ReadingEn = `Planetary scrutiny of your ${lagnaEn} Lagna and ${moonSignEn} Moon across the 2nd (${secondSignEn}), 8th, and 12th houses reveals: ${dietBulletEn}${
-      sensualAssessment.hasMaritalFidelity
-        ? "• Marital Fidelity: The 7th house and Venus are shielded by benefic graces, upholding high moral rectitude, sensory restraint, and faithful marital devotion without external affairs. "
+      sensualAssessment.isHighFidelityVrata
+        ? "• Marital Fidelity: The 7th house and Venus are blessed by divine Jupiterian shield, upholding sacred marital vows (single-spouse fidelity) and flawless moral conscience. "
+        : sensualAssessment.hasMultipleRelationshipsRisk
+        ? "• Multiple Relationship Warning: Tensions across the 7th house and Venus advise strict moral vigilance against roving romantic attractions. "
+        : sensualAssessment.hasMaritalFidelity
+        ? "• Domestic Loyalty: Upholding customary family ethics and marital boundaries with steady decency. "
         : "• Relationship Restraint: Venus-Rahu transits advise conscious fidelity and emotional self-control. "
     }• Behavioral Expression: ${secrecyHabitTextEn}${
       isCleanCharacter
@@ -3401,7 +3503,11 @@ export const generateGoodAndBadTraits = (
       gokarnaPrayashchittaKn: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥ ಸನ್ನಿಧಿಯಲ್ಲಿ ಬಾಲಗ್ರಹ ಶಾಂತಿ, ಮಹಾಮೃತ್ಯುಂಜಯ ರಕ್ಷಾ ಸಂಕಲ್ಪ ಮತ್ತು ಮಹಾಬಲೇಶ್ವರ ಆತ್ಮಲಿಂಗ ಸ್ಪರ್ಶ ಭಸ್ಮ ಧಾರಣೆಯಿಂದ ಮಗುವಿನ ಅಳು, ಕಿರಿಕಿರಿ ಹಾಗೂ ದೃಷ್ಟಿ ದೋಷ ಸಂಪೂರ್ಣ ಶಾಂತವಾಗಲಿದೆ.`,
       gokarnaPrayashchittaEn: `Perform Balagraha Shanti and Mahamrityunjaya Sankalpa Pooja at Sri Kshetra Gokarna Kotiteertha to pacify child colic, crying, and evil eye afflictions.`,
       isTeetotaler: true,
-      hasMaritalFidelity: true
+      hasMaritalFidelity: true,
+      isHighFidelityVrata: false,
+      hasMultipleRelationshipsRisk: false,
+      hasDhumapanaOrSubstanceTendency: false,
+      hasMadyapanaRisk: false
     };
   }
 
@@ -4214,21 +4320,57 @@ export const generateGoodAndBadTraits = (
         astrologicalBasisEn: "Saturn-Ketu in 7th house causing emotional isolation."
       };
     }
+  } else if (sensual.hasMultipleRelationshipsRisk) {
+    badTrait2 = {
+      id: 2,
+      type: "bad",
+      titleKn: isMale
+        ? "ಬಹು ಪ್ರಣಯ ಸಂಬಂಧಗಳು & ಕಾಮ ಚಾಂಚಲ್ಯ: ಇಂದ್ರಿಯ ಪ್ರಲೋಭನೆ & ದಾಂಪತ್ಯ ಅಸ್ಥಿರತೆ"
+        : "ಬಹು ಪ್ರಣಯ ಸೆಳೆತ & ಕಾಮ ಚಾಂಚಲ್ಯ: ದಾಂಪತ್ಯ ಅಸ್ಥಿರತೆಯ ಎಚ್ಚರಿಕೆ",
+      titleEn: "Multiple Relationships, Sensual Wandering & Marital Discord",
+      icon: "💔",
+      badgeKn: "ಬಹು ಪ್ರಣಯ • ಕಾಮ ಚಾಂಚಲ್ಯ",
+      badgeEn: "Multiple Relationships • Wandering Desires",
+      bulletKn: isMale
+        ? `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ 7ನೇ ಕಳತ್ರ ಸ್ಥಾನ, ಶುಕ್ರ ಹಾಗೂ ರಾಹು-ಕುಜರ ಪ್ರಭಾವದಿಂದಾಗಿ, ಮನಸ್ಸಿನಲ್ಲಿ ಬಹು ಪ್ರಣಯ ಸಂಬಂಧಗಳತ್ತ (Multiple romantic attractions) ಸೆಳೆತ, ಇಂದ್ರಿಯ ಚಾಂಚಲ್ಯ ಹಾಗೂ ದಾಂಪತ್ಯದಲ್ಲಿ ಅಸ್ಥಿರತೆ ಉಂಟಾಗುವ ಪ್ರಬಲ ಲಕ್ಷಣಗಳಿವೆ. ವಿವಾಹದ ನಂತರವೂ ಇತರರತ್ತ ಮನಸ್ಸು ಜಾರದಂತೆ ನೈತಿಕ ಸಂಯಮ ಮತ್ತು ಕಟ್ಟುನಿಟ್ಟಿನ ಸ್ವಯಂ-ನಿಯಂತ್ರಣ ಅತ್ಯಗತ್ಯ.`
+        : `7ನೇ ಕಳತ್ರ ಹಾಗೂ ಕಾಮ ಸ್ಥಾನಗಳ ಮೇಲೆ ರಾಹು-ಕುಜರ ಪ್ರಭಾವದಿಂದಾಗಿ, ದಾಂಪತ್ಯದಲ್ಲಿ ಅತೃಪ್ತಿ ಮೂಡಿದಾಗ ಹೊರಗಿನ ಪ್ರೇಮ ಸಂಬಂಧಗಳತ್ತ ಅಥವಾ ಬಹು ಆಕರ್ಷಣೆಗಳತ್ತ ಮನಸ್ಸು ಜಾರುವ ಅಪಾಯದ ಸುಳಿವು ಇದೆ; ನೈತಿಕ ಸಂಯಮ ಅತ್ಯಗತ್ಯ.`,
+      bulletEn: "Planetary tension across the 7th house and Venus-Rahu axis indicates a propensity toward multiple romantic connections and sensory restlessness, demanding conscious moral boundaries.",
+      astrologicalBasisKn: "7ನೇ ಕಳತ್ರ-ಕಾಮ ಸ್ಥಾನ ಹಾಗೂ ಶುಕ್ರನ ಮೇಲೆ ರಾಹು-ಕುಜರ ಪ್ರಭಾವ.",
+      astrologicalBasisEn: "Affliction across 7th house and Venus by Rahu/Mars."
+    };
+  } else if (sensual.isHighFidelityVrata) {
+    badTrait2 = {
+      id: 2,
+      type: "bad",
+      titleKn: isMale
+        ? "ಪವಿತ್ರ ದಾಂಪತ್ಯ ನಿಷ್ಠೆ & ಏಕಪತ್ನಿ ವ್ರತ: ಸದಾಚಾರದ ರಕ್ಷಾ ಕವಚ"
+        : "ಪವಿತ್ರ ದಾಂಪತ್ಯ ನಿಷ್ಠೆ & ಏಕಪತಿ ವ್ರತ: ಸದಾಚಾರದ ರಕ್ಷಾ ಕವಚ",
+      titleEn: "Sacred Marital Fidelity (Single-Spouse Vow) & Divine Rectitude",
+      icon: "💎",
+      badgeKn: isMale ? "ಏಕಪತ್ನಿ ವ್ರತ • ಸದಾಚಾರ" : "ಏಕಪತಿ ನಿಷ್ಠೆ • ಸದಾಚಾರ",
+      badgeEn: "Single-Spouse Vow • Divine Protection",
+      bulletKn: isMale
+        ? `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ 7ನೇ ಕಳತ್ರ ಸ್ಥಾನ ಹಾಗೂ ಶುಕ್ರನಿಗೆ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ನೇರ ಸಾತ್ವಿಕ ರಕ್ಷಣೆಯಿರುವುದರಿಂದ, ನೈತಿಕ ಶಿಸ್ತು, ಇಂದ್ರಿಯ ನಿಗ್ರಹ ಮತ್ತು ಏಕಪತ್ನೀ ವ್ರತಸ್ಥ ನಿಷ್ಠೆ ನಿಮ್ಮ ಶ್ರೇಷ್ಠ ಗುಣವಾಗಿದೆ. ಬಾಹ್ಯ ಪ್ರಲೋಭನೆಗಳಿಗೆ ಸುಲಭವಾಗಿ ಮಾರುಹೋಗದೆ, ಸಂಸ್ಕಾರಯುತ ದಾಂಪತ್ಯ ಜೀವನಕ್ಕೆ ಬದ್ಧರಾಗಿರುವ ದೈವಿಕ ಸದ್ಗುಣ ನಿಮ್ಮಲ್ಲಿದೆ.`
+        : `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ 7ನೇ ಕಳತ್ರ ಸ್ಥಾನ ಹಾಗೂ ಶುಕ್ರನಿಗೆ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ನೇರ ಸಾತ್ವಿಕ ರಕ್ಷಣೆಯಿರುವುದರಿಂದ, ನೈತಿಕ ಶಿಸ್ತು, ಇಂದ್ರಿಯ ನಿಗ್ರಹ ಮತ್ತು ಪತಿವ್ರತಾ ನಿಷ್ಠೆ (ಏಕಪತಿ ನಿಷ್ಠೆ) ನಿಮ್ಮ ಶ್ರೇಷ್ಠ ಗುಣವಾಗಿದೆ. ಕುಟುಂಬ ಗೌರವ ಮತ್ತು ಸಂಸ್ಕಾರಯುತ ದಾಂಪತ್ಯ ಜೀವನವನ್ನು ಕಾಪಾಡಿಕೊಂಡು ಪತಿಗೆ ನಿಷ್ಠೆಯಿಂದ ಮುನ್ನಡೆಯುವ ಸಚ್ಚಾರಿತ್ರ್ಯ ನಿಮ್ಮಲ್ಲಿದೆ.`,
+      bulletEn: "Benefic Jupiterian shield on the 7th house and Venus bestows absolute marital fidelity (Ekapatni / Ekapati Vrata) and divine sensory self-control.",
+      astrologicalBasisKn: "7ನೇ ಕಳತ್ರ ಸ್ಥಾನ ಹಾಗೂ ಶುಕ್ರನಿಗೆ ಗುರು-ಶುಭ ಗ್ರಹಗಳ ರಕ್ಷಣೆ.",
+      astrologicalBasisEn: "Auspicious Jupiterian aspect shielding marital boundaries."
+    };
   } else {
     badTrait2 = {
       id: 2,
       type: "bad",
-      titleKn: "ನೈತಿಕ ಚಾರಿತ್ರ್ಯ & ದಾಂಪತ್ಯ ನಿಷ್ಠೆ: ಸದಾಚಾರದ ರಕ್ಷಾ ಕವಚ",
-      titleEn: "Moral Rectitude, Sensory Restraint & Marital Loyalty",
-      icon: "💎",
-      badgeKn: "ಶುಭ ಕಳತ್ರ • ಸದಾಚಾರ ರಕ್ಷಣೆ",
-      badgeEn: "Auspicious 7th • Ethical Shield",
+      titleKn: "ಸಾಮಾನ್ಯ ದಾಂಪತ್ಯ ಧರ್ಮ & ನೈತಿಕ ಸಂಯಮ: ಸಭ್ಯ ಕೌಟುಂಬಿಕ ನಡೆ",
+      titleEn: "Standard Marital Loyalty & Customary Decency",
+      icon: "🛡️",
+      badgeKn: "ದಾಂಪತ್ಯ ಧರ್ಮ • ಸಂಯಮ",
+      badgeEn: "Marital Loyalty • Customary Decency",
       bulletKn: isMale
-        ? `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಕಳತ್ರ ಸ್ಥಾನ ಹಾಗೂ ಶುಕ್ರನಿಗೆ ಶುಭ ಗ್ರಹಗಳ ರಕ್ಷಣೆಯಿರುವುದರಿಂದ, ನೈತಿಕ ಶಿಸ್ತು, ಇಂದ್ರಿಯ ನಿಗ್ರಹ ಮತ್ತು ಏಕಪತ್ನೀ ವ್ರತಸ್ಥ ನಿಷ್ಠೆ ನಿಮ್ಮ ಶ್ರೇಷ್ಠ ಗುಣವಾಗಿದೆ. ಬಾಹ್ಯ ಪ್ರಲೋಭನೆಗಳಿಗೆ ಸುಲಭವಾಗಿ ಮಾರುಹೋಗದೆ, ಸಂಸ್ಕಾರಯುತ ದಾಂಪತ್ಯ ಜೀವನಕ್ಕೆ ಬದ್ಧರಾಗಿರುವ ಸದ್ಗುಣ ನಿಮ್ಮಲ್ಲಿದೆ.`
-        : `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಕಳತ್ರ ಸ್ಥಾನ ಹಾಗೂ ಶುಕ್ರನಿಗೆ ಶುಭ ಗ್ರಹಗಳ ರಕ್ಷಣೆಯಿರುವುದರಿಂದ, ನೈತಿಕ ಶಿಸ್ತು, ಇಂದ್ರಿಯ ನಿಗ್ರಹ ಮತ್ತು ಪತಿವ್ರತಾ ನಿಷ್ಠೆ (ಏಕಪತಿ ನಿಷ್ಠೆ) ನಿಮ್ಮ ಶ್ರೇಷ್ಠ ಗುಣವಾಗಿದೆ. ಕುಟುಂಬ ಗೌರವ ಮತ್ತು ಸಂಸ್ಕಾರಯುತ ದಾಂಪತ್ಯ ಜೀವನವನ್ನು ಕಾಪಾಡಿಕೊಂಡು ಪತಿಗೆ ನಿಷ್ಠೆಯಿಂದ ಮುನ್ನಡೆಯುವ ಸಚ್ಚಾರಿತ್ರ್ಯ ನಿಮ್ಮಲ್ಲಿದೆ.`,
-      bulletEn: "Benefic planetary alignment shields your marital house, conferring strong moral rectitude, sensory restraint, and faithful devotion to marriage.",
-      astrologicalBasisKn: "7ನೇ ಕಳತ್ರ ಸ್ಥಾನ ಹಾಗೂ ಶುಕ್ರನಿಗೆ ಗುರು-ಶುಭ ಗ್ರಹಗಳ ರಕ್ಷಣೆ.",
-      astrologicalBasisEn: "Auspicious Jupiter/benefic aspect protecting marital boundaries."
+        ? `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಕಳತ್ರ ಸ್ಥಾನವು ಸಮತೋಲಿತ ಸ್ಥಿತಿಯಲ್ಲಿದ್ದು, ಸಾಮಾಜಿಕ ಮರ್ಯಾದೆ ಮತ್ತು ಕೌಟುಂಬಿಕ ಧರ್ಮಕ್ಕೆ ಬದ್ಧರಾಗಿರುವ ಸದಾಚಾರ ನಿಮ್ಮಲ್ಲಿದೆ. ಕ್ಷಣಿಕ ಬಾಹ್ಯ ಆಕರ್ಷಣೆಗಳಿಂದ ದೂರವಿದ್ದು, ಗೃಹಸ್ಥಾಶ್ರಮದ ಧರ್ಮವನ್ನು ಪ್ರಾಮಾಣಿಕವಾಗಿ ನಿಭಾಯಿಸುವುದು ಶ್ರೇಯಸ್ಕರ.`
+        : `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಕಳತ್ರ ಸ್ಥಾನವು ಸಮತೋಲಿತವಾಗಿದ್ದು, ಕೌಟುಂಬಿಕ ಮರ್ಯಾದೆ ಮತ್ತು ದಾಂಪತ್ಯ ಕರ್ತವ್ಯಗಳಿಗೆ ಬದ್ಧರಾಗಿ ಬಾಳುವ ಸದಾಚಾರ ನಿಮ್ಮಲ್ಲಿದೆ. ಸಂಸಾರಿಕ ಸಾಮರಸ್ಯವನ್ನು ಕಾಪಾಡಿಕೊಂಡು ಮುನ್ನಡೆಯುವ ಸಂಸ್ಕಾರವಿದೆ.`,
+      bulletEn: "Standard marital balance upholds customary domestic fidelity and ethical boundaries.",
+      astrologicalBasisKn: "7ನೇ ಕಳತ್ರ ಭಾವದ ಸಾಮಾನ್ಯ ಗ್ರಹ ಸ್ಥಿತಿ.",
+      astrologicalBasisEn: "Balanced 7th house alignment preserving standard domestic loyalty."
     };
   }
 
@@ -4352,15 +4494,15 @@ export const generateGoodAndBadTraits = (
     badTrait3 = {
       id: 3,
       type: "bad",
-      titleKn: "ಸಾತ್ವಿಕ ಜೀವನಶೈಲಿ & ಆಹಾರ ಸಂಸ್ಕಾರ: ದುಶ್ಚಟ ಮುಕ್ತ ಶರೀರ ರಕ್ಷಣೆ",
-      titleEn: "Sattvic Lifestyle & Clean Habits: Freedom from Addictions",
-      icon: "🌿",
-      badgeKn: "2ನೇ ಶುಭ ಸ್ಥಾನ • ಸಾತ್ವಿಕ ಶಿಸ್ತು",
-      badgeEn: "Pure 2nd House • Sattvic Habits",
-      bulletKn: `ನಿಮ್ಮ 2ನೇ ಆಹಾರ ಸ್ಥಾನವು ಶುಭ ಗ್ರಹಗಳ ನಿಯಂತ್ರಣದಲ್ಲಿದ್ದು, ದುಶ್ಚಟಗಳಿಂದ ದೂರವಿರುವ ಸಾತ್ವಿಕ ಸಂಸ್ಕಾರ ನಿಮ್ಮಲ್ಲಿದೆ. ಮದ್ಯಪಾನ, ಧೂಮಪಾನ ಅಥವಾ ವ್ಯಸನಗಳ ಜಾಲಕ್ಕೆ ಬೀಳದೆ ಶರೀರ ಆರೋಗ್ಯವನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳುವ ಇಚ್ಛಾಶಕ್ತಿ ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿದೆ.`,
-      bulletEn: "A clean 2nd house of intake grants natural resistance to toxic substances, supporting clean dietary habits and wholesome physical well-being.",
-      astrologicalBasisKn: "2ನೇ ಮನೆಗೆ ಶುಭ ದೃಷ್ಟಿ ಹಾಗೂ ಸಾತ್ವಿಕ ಗ್ರಹ ಪ್ರಭಾವ.",
-      astrologicalBasisEn: "Clean 2nd house and absence of malefics from intake house."
+      titleKn: "ಸಾಮಾನ್ಯ ಆಹಾರ ಪದ್ಧತಿ & ಶರೀರ ಸಂಯಮ: ಸಮತೋಲಿತ ಜೀವನಶೈಲಿ",
+      titleEn: "Wholesome Dietary Balance & Physical Restraint",
+      icon: "🥗",
+      badgeKn: "ಸಾಮಾನ್ಯ ಆಹಾರ • ಶರೀರ ಸಂಯಮ",
+      badgeEn: "General 2nd House • Dietary Restraint",
+      bulletKn: `ನಿಮ್ಮ 2ನೇ ಮುಖ ಮತ್ತು ಭೋಜನ ಸ್ಥಾನವು ಸಮತೋಲಿತ ಸ್ಥಿತಿಯಲ್ಲಿದ್ದು, ಸಾತ್ವಿಕ ಆಹಾರ ಶಿಸ್ತನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳುವುದು ಕ್ಷೇಮ. ಅತಿಯಾದ ಕರಿದ ಪದಾರ್ಥಗಳು ಅಥವಾ ಹೊರಗಿನ ಆಹಾರ ಸೇವನೆಯಿಂದ ದೂರವಿದ್ದು ಶರೀರ ಆರೋಗ್ಯ ಮತ್ತು ಆಹಾರ ಸಂಸ್ಕಾರವನ್ನು ರಕ್ಷಿಸಿಕೊಳ್ಳುವ ಸಾಮಾನ್ಯ ಮುನ್ನೆಚ್ಚರಿಕೆ ಅಗತ್ಯ.`,
+      bulletEn: "General 2nd house alignment supports wholesome dietary discipline; maintaining moderation and avoiding excessive spicy or heavy outside food protects vitality.",
+      astrologicalBasisKn: "2ನೇ ಭೋಜನ ಸ್ಥಾನದ ಸಾಮಾನ್ಯ ಗ್ರಹ ಸ್ಥಿತಿ.",
+      astrologicalBasisEn: "Standard 2nd house alignment requiring balanced dietary care."
     };
   }
 
@@ -4593,6 +4735,10 @@ export const generateGoodAndBadTraits = (
     speculationWarningEn: isSpeculationLoss ? `5th house Rahu and afflicted 5th lord trigger heavy trading losses; cease all day trading and speculative betting immediately.` : undefined,
     isTeetotaler: diet.isTeetotaler,
     hasMaritalFidelity: sensual.hasMaritalFidelity,
+    isHighFidelityVrata: sensual.isHighFidelityVrata,
+    hasMultipleRelationshipsRisk: sensual.hasMultipleRelationshipsRisk,
+    hasDhumapanaOrSubstanceTendency: diet.hasDhumapanaOrSubstanceTendency,
+    hasMadyapanaRisk: diet.hasMadyapanaRisk,
     dietSummaryKn: diet.dietSummaryKn,
     dietSummaryEn: diet.dietSummaryEn,
     fidelitySummaryKn: sensual.fidelitySummaryKn,
@@ -5654,8 +5800,10 @@ export const generatePanchangaAngaSynthesis = (
   const prof = currentDiagnosis.accurateProfession;
 
   const devoteeNameFormatted = context.devoteeName || "ಭಕ್ತರೇ";
+  const externalRealityText = cls?.externalLifeRealityKn || cls?.detailedRealityKn || currentDiagnosis.primaryLifeChallenge.description;
+  const mindsetText = cls?.internalMindsetKn ? ` ಆಂತರಿಕ ಮಾನಸಿಕ ಸ್ಥಿತಿ: ${cls.internalMindsetKn}.` : "";
   const p1 = sanitizeAstrologyKannadaText(
-    `ನಮಸ್ಕಾರ ${devoteeNameFormatted}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕ ನೋಡಿದೆ. ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಪ್ರಸ್ತುತ ಅತ್ಯಂತ ಪ್ರಮುಖವಾಗಿ ಎದ್ದು ಕಾಣುವ ಸಂಗತಿಯೆಂದರೆ — ${cls?.headlineKn || currentDiagnosis.primaryLifeChallenge.description}. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ಕಾಲಘಟ್ಟದಲ್ಲಿ, ${cls?.detailedRealityKn || currentDiagnosis.primaryLifeChallenge.description}. ${cls?.planetaryCulpritKn || currentDiagnosis.primaryLifeChallenge.planetaryRootCause}. ಉಳಿದೆಲ್ಲ ವಿಷಯಗಳಿಗಿಂತ ಮೊದಲು ಈ ನೈಜ ಸವಾಲಿಗೆ ನಿಮಗೆ ಸ್ಪಷ್ಟ ದೈವಿಕ ಮುಕ್ತಿ ಮಾರ್ಗ ಬೇಕಾಗಿದೆ.`
+    `ನಮಸ್ಕಾರ ${devoteeNameFormatted}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕ ನೋಡಿದೆ. ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಪ್ರಸ್ತುತ ಅತ್ಯಂತ ಪ್ರಮುಖವಾಗಿ ಎದ್ದು ಕಾಣುವ ಸಂಗತಿಯೆಂದರೆ — ${cls?.headlineKn || currentDiagnosis.primaryLifeChallenge.description}. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ಕಾಲಘಟ್ಟದಲ್ಲಿ, ${externalRealityText}.${mindsetText} ${cls?.planetaryCulpritKn || currentDiagnosis.primaryLifeChallenge.planetaryRootCause}. ಉಳಿದೆಲ್ಲ ವಿಷಯಗಳಿಗಿಂತ ಮೊದಲು ಈ ನೈಜ ಸವಾಲಿಗೆ ನಿಮಗೆ ಸ್ಪಷ್ಟ ದೈವಿಕ ಮುಕ್ತಿ ಮಾರ್ಗ ಬೇಕಾಗಿದೆ.`
   );
   
   const p2 = sanitizeAstrologyKannadaText(

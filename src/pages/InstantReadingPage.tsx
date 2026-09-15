@@ -134,9 +134,10 @@ Technical Astrological Placements:
 - 7th House (Partnership/Marriage): ${data.currentDiagnosis.technicalAspects.seventhHouseDetail}
 - 10th House (Career/Karma): ${data.currentDiagnosis.technicalAspects.tenthHouseDetail}
 - Running Dasha & Gochara: ${data.currentDiagnosis.prasthuthaSthiti.runningDashaSummary}
-- Acute Current Life Reality (ಹಾಲಿ ಅನುಭವಿಸುತ್ತಿರುವ ವಾಸ್ತವ ಜೀವನ ಸ್ಥಿತಿ & ಸಂಕಷ್ಟಗಳು):
+- Acute Current Life Reality & Internal Mindset (ಹಾಲಿ ವಾಸ್ತವ ಜೀವನ ಸ್ಥಿತಿ & ಆಂತರಿಕ ಮನಸ್ಥಿತಿ):
   * Headline: ${cls?.headlineKn || data.currentDiagnosis.primaryLifeChallenge.description} (${cls?.headlineEn || data.currentDiagnosis.primaryLifeChallenge.descriptionEn})
-  * Detailed Reality: ${cls?.detailedRealityKn || data.currentDiagnosis.primaryLifeChallenge.description}
+  * External Life Reality (ಬಾಹ್ಯ ವಾಸ್ತವ ಸಂಗತಿಗಳು): ${cls?.externalLifeRealityKn || cls?.detailedRealityKn || data.currentDiagnosis.primaryLifeChallenge.description}
+  * Internal Mindset & Psychological Weather (ಆಂತರಿಕ ಮನಸ್ಥಿತಿ & ಯೋಚನಾ ಲಹರಿ): ${cls?.internalMindsetKn || "ಮಾನಸಿಕ ಚಿಂತನೆಗಳು ಹಾಗೂ ಕೌಟುಂಬಿಕ ಜವಾಬ್ದಾರಿಗಳ ಸಮನ್ವಯ."}
   * Planetary Culprit: ${cls?.planetaryCulpritKn || data.currentDiagnosis.primaryLifeChallenge.planetaryRootCause}
   * Key Daily Life Symptoms: ${cls?.symptomsChecklistKn.join(" | ") || ""}
 - Accurate Specific Profession Determination (ನಿಖರ ವೃತ್ತಿ & ಕಾರ್ಯಕ್ಷೇತ್ರ ನಿರ್ಣಯ - Which work is he doing?):
@@ -146,9 +147,9 @@ Technical Astrological Placements:
   * Classical Basis: ${prof?.astrologicalBasisKn || ""}
   * Jaimini Amatyakaraka (AmK): ${prof?.amatyakarakaPlanetKn || ""}
   * 10th House Sign: ${prof?.tenthHouseSignKn || ""} (Lord: ${prof?.primaryPlanetKn || ""})
-- Character & Dietary Verification:
-  * Diet / Substance: ${isTeetotaler ? "STRICT TEETOTALER (ಸಾತ್ವಿಕ ಆಹಾರಿ - Zero alcohol, zero drugs, clean vegetarian intake due to benefic/Guru protection on 2nd house). NEVER accuse of alcohol or drugs!" : `PRONE TO ALCOHOL/INTAKE VULNERABILITY (ಮದ್ಯಪಾನದ ಸೆಳೆತ): ${dietSummaryEn || "Has evening alcohol habit under stress / 2nd house aspect from 8th house Saturn"}. Tactfully address their private struggle with evening alcohol/detox without harshness.`}
-  * Marital Fidelity & Sensual Reality: ${hasMaritalFidelity ? `HIGH MARITAL FIDELITY (ದಾಂಪತ್ಯ ನಿಷ್ಠೆ - Pure 7th house). NEVER accuse of extramarital affairs! Always refer to spouse as '${spouseTerm}'.` : `SENSUAL RESTLESSNESS & ROVING EYE (ಕಾಮ ಚಾಂಚಲ್ಯ & ಪರಸ್ತ್ರೀ ಆಕರ್ಷಣೆ): ${fidelitySummaryEn || "Sensual restlessness and roving eye toward other women causing marital friction with spouse"}. Address their private inner distractions and how it is causing domestic discord with ${spouseTerm}, counseling sensory restraint.`}
+- Character & Dietary Verification (4-Tier Separation):
+  * Diet / Substance: ${isTeetotaler ? "STRICT TEETOTALER (ಸಾತ್ವಿಕ ಆಹಾರಿ - Zero alcohol, zero smoking, clean vegetarian intake due to benefic/Guru protection on 2nd house). NEVER accuse of alcohol or drugs!" : (data.currentDiagnosis.goodBadAnalysis?.hasDhumapanaOrSubstanceTendency ? `PRONE TO DHUMAPANA/SMOKING/WEED/TOBACCO (ಧೂಮಪಾನ / ಹುಕ್ಕಾ / ತಂಬಾಕು ಸೆಳೆತ): Rahu/Mars influence on 2nd/8th/12th houses. Address smoking/nicotine habit without harshness and advise respiratory care.` : (data.currentDiagnosis.goodBadAnalysis?.hasMadyapanaRisk ? `PRONE TO ALCOHOL/MADYAPANA (ಮದ್ಯಪಾನದ ಸೆಳೆತ): Saturn/Rahu or watery sign influence on 2nd/8th houses. Address evening alcohol habit under stress and advise detox.` : `BALANCED DIET / OCCASIONAL SOCIAL INTAKE: ${dietSummaryEn || "Normal diet without severe substance risks"}.`))}
+  * Marital Fidelity & Sensual Reality (3-Tier Separation): ${data.currentDiagnosis.goodBadAnalysis?.isHighFidelityVrata ? `SACRED EKAPATNI/EKAPATI VRATA (ಪವಿತ್ರ ಏಕಪತ್ನಿ ವ್ರತ - Pure 7th house and Venus under divine Jupiter protection). Unshakeable lifelong devotion to spouse '${spouseTerm}'. NEVER accuse of infidelity!` : (data.currentDiagnosis.goodBadAnalysis?.hasMultipleRelationshipsRisk ? `MULTIPLE RELATIONSHIPS / SENSUAL RESTLESSNESS (ಬಹು ಪ್ರಣಯ ಸಂಬಂಧಗಳು / ಕಾಮ ಚಾಂಚಲ್ಯ): Rahu in 7th/5th or Mars-Venus aspect. Address romantic wanderlust and attractions outside marriage, counseling strict ethical boundaries.` : (hasMaritalFidelity ? `STANDARD MARITAL FIDELITY (ಸಾಮಾನ್ಯ ದಾಂಪತ್ಯ ಧರ್ಮ & ನೈತಿಕ ಸಂಯಮ): Committed to family honor and marital norms.` : `SENSUAL RESTLESSNESS (ಕಾಮ ಚಾಂಚಲ್ಯ): Address private inner distractions causing friction with ${spouseTerm}, counseling sensory restraint.`))}
 - Moral Integrity & Criminality Assessment:
   * Overall Negative Shade Score: ${negShades ? negShades.overallScore : 0}/100 (${negShades?.categoryTitleEn || "Moral Purity"})
   * Clean / Purity Status: ${isNegClean ? "100% CLEAN & MORALLY PURE (ಸರ್ವದೋಷ ವಿನಾಶನಃ - Protected by Jupiter/benefics. Absolutely ZERO criminal, theft, murder, violence, sexual assault, fraud, or prison yogas!). NEVER ACCUSE THIS NATIVE OF ANY CRIME, THEFT, VIOLENCE, EXTRAMARITAL SINS, OR FRAUD!" : "Has certain shadow propensities under malefic dasha/gochara"}
@@ -163,10 +164,10 @@ Technical Astrological Placements:
 STRICT WRITING & ASTROLOGER PERSONA RULES:
 1. Speak DIRECTLY to the devotee in authoritative, deeply empathetic, face-to-face Vedic Astrologer spoken voice in 100% PURE ${isKn ? "Kannada" : "English"}. NO English words or foreign language mix-up.
 2. Use standard traditional Vedic planetary terminology: 'ರವಿ' (Ravi), 'ಕುಜ' (Kuja), 'ಗುರು' (Guru), 'ಶುಕ್ರ' (Shukra), 'ಶನಿ' (Shani), 'ಬುಧ' (Budha), 'ಚಂದ್ರ' (Chandra), 'ರಾಹು' (Rahu), 'ಕೇತು' (Ketu).
-3. MANDATORY PARAGRAPH 1 DIRECT REALITY: The very first paragraph MUST start with what the person is currently going through in their real life right now (${cls?.headlineKn || data.currentDiagnosis.primaryLifeChallenge.description}). Reveal their running Dasha (${data.currentDiagnosis.prasthuthaSthiti.runningDashaSummary}), acute life reality, and planetary cause.
+3. MANDATORY PARAGRAPH 1 DIRECT REALITY: The very first paragraph MUST start with what the person is currently experiencing in both: (A) External Real-Life Events (${cls?.externalLifeRealityKn || cls?.detailedRealityKn || data.currentDiagnosis.primaryLifeChallenge.description}), and (B) Internal Mindset & Psychological Weather (${cls?.internalMindsetKn || ""}). Reveal their running Dasha (${data.currentDiagnosis.prasthuthaSthiti.runningDashaSummary}) and planetary timing.
 4. MANDATORY PARAGRAPH 2 ACCURATE PROFESSION: Accurately declare which work the native is doing (${prof?.titleKn || ""} - ${prof?.specificRoleKn || ""}). Detail their day-to-day work environment and astrological foundation.
 5. Structure your response into 4 comprehensive paragraphs:
-   - Paragraph 1: Direct greeting ("ನಮಸ್ಕಾರ ${session.input.name || "ಭಕ್ತರೇ"}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕ ನೋಡಿದೆ."). IMMEDIATELY state what they are going through in their actual life (${cls?.headlineKn || data.currentDiagnosis.primaryLifeChallenge.description}), running Dasha, and acute planetary tension.
+   - Paragraph 1: Direct greeting ("ನಮಸ್ಕಾರ ${session.input.name || "ಭಕ್ತರೇ"}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕ ನೋಡಿದೆ."). Address both external real-life events and internal mindset/anxieties, running Dasha, and acute planetary timing.
    - Paragraph 2: State their accurate profession & vocation (${prof?.titleKn || ""}), specific role (${prof?.specificRoleKn || ""}), work environment (${prof?.workEnvironmentKn || ""}), and 10th house / Jaimini AmK basis.
    - Paragraph 3: Explain the astrological planetary reality and give an exact turning-point timeline (${cls?.reliefTimelineKn || data.currentDiagnosis.dashaTiming?.timelineKn || "ಮುಂದಿನ ಕೆಲವೇ ತಿಂಗಳುಗಳಲ್ಲಿ"}) using ENGLISH DIGITS when breakthroughs occur.
    - Paragraph 4: Prescribe the exact remedies with precision: ${data.prescriptions.gemstoneRing.primaryGemstoneKn} (${data.prescriptions.gemstoneRing.caratWeight}), ${data.prescriptions.rudraksha.nameKn}, daily morning rituals, and Gokarna Mahabaleshwara Kshetra blessings.
@@ -174,9 +175,11 @@ STRICT WRITING & ASTROLOGER PERSONA RULES:
 7. ALL NUMBERS MUST BE IN ENGLISH DIGITS (e.g. 1, 2, 3, 4.25 - 6.5 Carat, 9 Mukhi, 7th house, 10th house, 3 to 6 months).
 8. CHARACTER & GENDER ACCURACY:
    - If Diet is TEETOTALER, highlight their clean, pure lifestyle (ಸಾತ್ವಿಕ ಆಹಾರ); NEVER accuse of alcohol, smoking, or drug habits.
-   - If Diet indicates ALCOHOL VULNERABILITY, compassionately address their private evening alcohol habit under stress (ಮದ್ಯಪಾನದ ಸೆಳೆತ) and advise conscious detox and spiritual discipline.
-   - If Relationship is MARITAL FIDELITY, praise their devotion to family and spouse; NEVER accuse of cheating or extramarital affairs.
-   - If Relationship indicates SENSUAL RESTLESSNESS / ROVING EYE, honestly address their inner wandering gaze and distractions (ಕಾಮ ಚಾಂಚಲ್ಯ & ಪರಸ್ತ್ರೀ ಆಕರ್ಷಣೆ) causing friction in marriage with ${spouseTerm}, guiding them toward sensory self-control and marital harmony.
+   - If Diet indicates DHUMAPANA/SMOKING, address smoking/hookah/nicotine habit without harshness and advise lung protection.
+   - If Diet indicates ALCOHOL VULNERABILITY, compassionately address their private evening alcohol habit under stress (ಮದ್ಯಪಾನದ ಸೆಳೆತ) and advise conscious detox.
+   - If Relationship is SACRED EKAPATNI VRATA, praise their divine devotion to spouse; NEVER accuse of cheating or extramarital affairs.
+   - If Relationship indicates MULTIPLE RELATIONSHIPS, address their romantic wanderlust and attractions outside marriage, counseling strict moral discipline.
+   - If Relationship is STANDARD FIDELITY, acknowledge their commitment to normal family ethics and boundaries.
    - If devotee is Female, NEVER use 'ಹೆಂಡತಿ' or 'ಪತ್ನಿ' to describe the native.
    - If devotee is a Child (<14), focus purely on education, health, and parent guidance without adult topics.
    - CRITICAL ZERO FALSE ACCUSATION OF CRIMINALITY/THEFT/VIOLENCE: If native has score <= 15 or Jupiter/benefic shield, you MUST NEVER accuse them of crime, theft, violence, murder, imprisonment, cheating, or sexual misconduct. Acknowledge and praise their clean moral integrity and character shield.
@@ -293,6 +296,10 @@ STRICT RULES:
           const spouseTermQ = isFemaleQ ? "ಪತಿ (ಗಂಡ)" : "ಪತ್ನಿ (ಹೆಂಡತಿ)";
           const gbaQ = synthesisData.currentDiagnosis.goodBadAnalysis;
           const isTeetotalerQ = gbaQ?.isTeetotaler ?? false;
+          const hasDhumapanaQ = gbaQ?.hasDhumapanaOrSubstanceTendency ?? false;
+          const hasMadyapanaQ = gbaQ?.hasMadyapanaRisk ?? false;
+          const isHighFidelityQ = gbaQ?.isHighFidelityVrata ?? false;
+          const hasMultipleRelQ = gbaQ?.hasMultipleRelationshipsRisk ?? false;
           const hasMaritalFidelityQ = gbaQ?.hasMaritalFidelity ?? false;
           const dietSummaryEnQ = gbaQ?.dietSummaryEn || "";
           const fidelitySummaryEnQ = gbaQ?.fidelitySummaryEn || "";
@@ -308,8 +315,8 @@ Panchanga 5-Angas: Vara=${synthesisData.panchanga.vara.nameKn}, Tithi=${synthesi
 Technical Placements: 4th=${synthesisData.currentDiagnosis.technicalAspects.fourthHouseDetail}, 7th=${synthesisData.currentDiagnosis.technicalAspects.seventhHouseDetail}, 10th=${synthesisData.currentDiagnosis.technicalAspects.tenthHouseDetail}.
 Dasha: ${synthesisData.currentDiagnosis.prasthuthaSthiti.runningDashaSummary}.
 Character & Morality Verification:
-- Dietary Intake / Addictions: ${isTeetotalerQ ? "STRICT TEETOTALER (ಸಾತ್ವಿಕ ಆಹಾರಿ - Zero alcohol, zero drugs, clean diet due to Guru/benefic protection on 2nd house). If asked about alcohol, drugs, or intoxicants, give an authoritative 'ಇಲ್ಲ!' verdict and celebrate their pure lifestyle." : `ALCOHOL VULNERABILITY (ಮದ್ಯಪಾನ / ಶನಿ-ರಾಹು ದೃಷ್ಟಿ): ${dietSummaryEnQ || "Prone to evening alcohol consumption under stress"}. If asked about drinking or habits, state clearly that stress triggers alcohol intake and urge detox.`}
-- Relationship Fidelity: ${hasMaritalFidelityQ ? `HIGH MARITAL FIDELITY (ದಾಂಪತ್ಯ ನಿಷ್ಠೆ - Pure 7th house). If asked about extramarital affairs/infidelity, give an authoritative 'ಇಲ್ಲ!' verdict praising their steadfast devotion to ${spouseTermQ}.` : `SENSUAL RESTLESSNESS & ROVING EYE (ಕಾಮ ಚಾಂಚಲ್ಯ & ಪರಸ್ತ್ರೀ ಆಕರ್ಷಣೆ): ${fidelitySummaryEnQ || "Prone to sensual restlessness and roving eye"}. If asked about marriage or fidelity, state honestly that inner distractions and roving eyes create friction with ${spouseTermQ}, and urge sensory restraint.`}
+- Dietary Intake / Addictions (4-Tier Separation): ${isTeetotalerQ ? "STRICT TEETOTALER (ಸಾತ್ವಿಕ ಆಹಾರಿ - Zero alcohol, zero smoking, clean vegetarian intake due to Guru/benefic protection on 2nd house). If asked about alcohol, smoking, or intoxicants, give an authoritative 'ಇಲ್ಲ!' verdict and celebrate their pure lifestyle." : (hasDhumapanaQ ? `DHUMAPANA / SMOKING / WEED / TOBACCO VULNERABILITY (ಧೂಮಪಾನ / ಹುಕ್ಕಾ / ತಂಬಾಕು ಸೆಳೆತ): ${dietSummaryEnQ || "Prone to smoking/hookah/tobacco under stress"}. If asked about smoking/tobacco, state clearly this tendency and urge respiratory care, but DO NOT falsely accuse them of being an alcoholic.` : (hasMadyapanaQ ? `ALCOHOL VULNERABILITY (ಮದ್ಯಪಾನ / ಶನಿ-ರಾಹು ದೃಷ್ಟಿ): ${dietSummaryEnQ || "Prone to evening alcohol consumption under stress"}. If asked about drinking, state clearly that stress triggers alcohol intake and urge detox.` : `BALANCED DIET / OCCASIONAL SOCIAL INTAKE: ${dietSummaryEnQ || "Normal diet without severe substance risks"}. No severe addiction.`))}
+- Relationship Fidelity (3-Tier Separation): ${isHighFidelityQ ? `DIVINE MARITAL FIDELITY / EKAPATNI VRATA (ದೈವಿಕ ${isFemaleQ ? "ಏಕಪತಿ ವ್ರತ" : "ಏಕಪತ್ನಿ ವ್ರತ"} - Highest moral purity, 7th house and Venus strictly protected by Guru). If asked about extramarital affairs or wandering, give an authoritative 'ಇಲ್ಲ!' verdict celebrating their sacred loyalty.` : (hasMultipleRelQ ? `MULTIPLE RELATIONSHIPS / SENSUAL WANDERLUST RISK (ಕಾಮ ಚಾಂಚಲ್ಯ & ಬಹು ಪ್ರಣಯ ಸಂಬಂಧಗಳ ಸಾಧ್ಯತೆ): ${fidelitySummaryEnQ || "Prone to multiple romantic interests or wanderlust due to Rahu in 7th/5th or afflicted Venus"}. If asked about fidelity, address internal wandering honestly and urge sensory discipline to preserve marriage.` : (hasMaritalFidelityQ ? `STANDARD MARITAL FIDELITY (ಸಾಮಾನ್ಯ ದಾಂಪತ್ಯ ಧರ್ಮ & ನೈತಿಕ ಸಂಯಮ): Natural loyalty and ethical responsibility in domestic life. Clean marital character.` : `DOMESTIC ATTENTION NEEDED: ${fidelitySummaryEnQ || "Requires mutual communication and emotional care in marriage"}.`))}
 - Moral Integrity & Criminality Assessment:
   * Overall Negative Shade Score: ${negShadesQ ? negShadesQ.overallScore : 0}/100 (${negShadesQ?.categoryTitleEn || "Moral Purity"})
   * Purity Shield: ${isNegCleanQ ? "100% CLEAN & FREE FROM CRIME, THEFT, FRAUD, VIOLENCE, MURDER, SEXUAL ASSAULT, IMPRISONMENT (Protected by Guru/benefics - ಸರ್ವದೋಷ ವಿನಾಶನಃ)" : "Shadow tendencies active"}
@@ -333,7 +340,7 @@ Respond in crisp, structured bullet points directly answering the devotee's spec
 • 🪔 ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಪರಿಹಾರ & ಮಾರ್ಗೋಪಾಯ: Prescribe authentic Vedic remedies, Gokarna Mahabaleshwara Shanti Pooja, and sacred practices to resolve this issue.
 
 STRICT RULES:
-- ZERO FALSE ACCUSATIONS & CONTRADICTIONS: If the native is a verified Teetotaler (ಸಾತ್ವಿಕ ಆಹಾರಿ), queries regarding alcohol/drugs MUST receive an authoritative 'ಇಲ್ಲ!' verdict. If verified Marital Fidelity, queries regarding infidelity MUST receive an authoritative 'ಇಲ್ಲ!' verdict. If verified Clean from crime/theft/violence, queries regarding criminality, theft, murder, violence, rape, or jail MUST receive an authoritative 'ಇಲ್ಲ!' verdict celebrating their moral purity. DO NOT contradict yourself in subsequent bullets!
+- ZERO FALSE ACCUSATIONS & CONTRADICTIONS: If the native is a verified Teetotaler (ಸಾತ್ವಿಕ ಆಹಾರಿ), queries regarding alcohol/drugs/smoking MUST receive an authoritative 'ಇಲ್ಲ!' verdict. If verified High Fidelity Vrata or standard Marital Fidelity without multiple relationship risks, queries regarding infidelity MUST receive an authoritative 'ಇಲ್ಲ!' verdict. If prone to smoking/tobacco (Dhumapana), do NOT falsely accuse them of being an alcoholic (Madyapana). If verified Clean from crime/theft/violence, queries regarding criminality, theft, murder, violence, rape, or jail MUST receive an authoritative 'ಇಲ್ಲ!' verdict celebrating their moral purity. DO NOT contradict yourself in subsequent bullets!
 - DO NOT invent tragedies, crimes, or fake scandals.
 - Respect gender: For female natives, use '${isFemaleQ ? "ಪತಿ" : "ಪತ್ನಿ"}' for spouse.
 - DO NOT use markdown bold asterisks (no ** or *). Use clean, natural text.
@@ -524,12 +531,8 @@ STRICT RULES:
                         }`}
                       >
                         {isKn
-                          ? isAcuteCrisis
-                            ? "॥ ಪ್ರಸ್ತುತ ತಕ್ಷಣದ ಜೀವಿತ ಬಿಕ್ಕಟ್ಟು & ಮುಕ್ತಿ ಮಾರ್ಗ (Primary Acute Life Crisis & Exit Strategy) ॥"
-                            : "॥ ಪ್ರಸ್ತುತ ಜೀವಿತ ಘಟ್ಟ, ದಶಾ-ಗೋಚಾರ ಪ್ರಭಾವ & ಮುನ್ನಡೆ ಮಾರ್ಗ (Current Life Phase & Astrological Strategy) ॥"
-                          : isAcuteCrisis
-                          ? "॥ Primary Acute Life Crisis & Astrological Exit Strategy ॥"
-                          : "॥ Current Life Phase & Astrological Strategy ॥"}
+                          ? "॥ ಪ್ರಸ್ತುತ ಮನಸ್ಥಿತಿ ಮತ್ತು ಜೀವನ (Current Mindset & Real-Life Reality) ॥"
+                          : "॥ Current Mindset & Real-Life Reality (ಪ್ರಸ್ತುತ ಮನಸ್ಥಿತಿ ಮತ್ತು ಜೀವನ) ॥"}
                       </span>
                       <h3
                         className={`text-base md:text-xl font-black font-serif ${
@@ -603,40 +606,64 @@ STRICT RULES:
                   </p>
                 </div>
 
-                {/* 4 Diagnostic & Resolution Cards Grid */}
+                {/* TWO DISTINCT RICH BLOCKS: REAL-LIFE HAPPENINGS & INTERNAL MINDSET */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs md:text-sm">
-                  {/* 1. Core Focus / Nature */}
+                  {/* Block 1: Real-Life Reality & Happenings */}
                   <div
-                    className={`p-4 rounded-2xl border-2 bg-white space-y-2 shadow-sm ${
-                      isAcuteCrisis ? "border-rose-200" : "border-amber-200"
+                    className={`p-4 rounded-2xl border-2 bg-gradient-to-br from-amber-50/80 to-white space-y-2 shadow-sm ${
+                      isAcuteCrisis ? "border-rose-300" : "border-amber-300"
                     }`}
                   >
                     <div
                       className={`flex items-center gap-2 font-bold border-b pb-1.5 text-xs ${
-                        isAcuteCrisis ? "text-rose-900 border-rose-100" : "text-amber-900 border-amber-100"
+                        isAcuteCrisis ? "text-rose-950 border-rose-200" : "text-amber-950 border-amber-200"
                       }`}
                     >
-                      <span>{isAcuteCrisis ? "💥" : "🎯"}</span>
-                      <span>
+                      <span className="text-base">🌍</span>
+                      <span className="font-extrabold tracking-wide">
                         {isKn
-                          ? isAcuteCrisis
-                            ? "ಪ್ರಸ್ತುತ ಬಿಕ್ಕಟ್ಟಿನ ನೈಜ ಸ್ವರೂಪ"
-                            : "ಪ್ರಸ್ತುತ ಜೀವಿತ ಘಟ್ಟದ ನೈಜ ಸ್ವರೂಪ"
-                          : isAcuteCrisis
-                          ? "Nature of Current Crisis"
-                          : "Nature of Current Life Phase"}
+                          ? "ಪ್ರಸ್ತುತ ಜೀವನದಲ್ಲಿ ನಡೆಯುತ್ತಿರುವ ನೈಜ ಸಂಗತಿಗಳು (Current Life Reality & Happenings)"
+                          : "Current Life Reality & Happenings (ಪ್ರಸ್ತುತ ಜೀವನದಲ್ಲಿ ನಡೆಯುತ್ತಿರುವ ನೈಜ ಸಂಗತಿಗಳು)"}
                       </span>
                     </div>
-                    <p className="text-stone-800 leading-relaxed text-xs">
+                    <p className="text-stone-800 leading-relaxed text-xs whitespace-pre-line font-medium">
                       {cleanAstrologyText(
                         isKn
-                          ? cls?.detailedRealityKn || currentDiagnosis.primaryLifeChallenge.description
-                          : cls?.detailedRealityEn || currentDiagnosis.primaryLifeChallenge.descriptionEn || currentDiagnosis.primaryLifeChallenge.description
+                          ? cls?.externalLifeRealityKn || cls?.detailedRealityKn || currentDiagnosis.primaryLifeChallenge.description
+                          : cls?.externalLifeRealityEn || cls?.detailedRealityEn || currentDiagnosis.primaryLifeChallenge.descriptionEn || currentDiagnosis.primaryLifeChallenge.description
                       )}
                     </p>
                   </div>
 
-                  {/* 2. Astrological Alignment / Root Cause */}
+                  {/* Block 2: Current Mindset & Psychological Weather */}
+                  <div
+                    className={`p-4 rounded-2xl border-2 bg-gradient-to-br from-indigo-50/80 to-white space-y-2 shadow-sm ${
+                      isAcuteCrisis ? "border-indigo-300" : "border-amber-300"
+                    }`}
+                  >
+                    <div
+                      className="flex items-center gap-2 font-bold border-b pb-1.5 text-xs text-indigo-950 border-indigo-200"
+                    >
+                      <span className="text-base">🧠</span>
+                      <span className="font-extrabold tracking-wide">
+                        {isKn
+                          ? "ಪ್ರಸ್ತುತ ಆಂತರಿಕ ಮನಸ್ಥಿತಿ & ಯೋಚನಾ ಲಹರಿ (Current Mindset & Psychological Weather)"
+                          : "Current Mindset & Psychological Weather (ಪ್ರಸ್ತುತ ಆಂತರಿಕ ಮನಸ್ಥಿತಿ & ಯೋಚನಾ ಲಹರಿ)"}
+                      </span>
+                    </div>
+                    <p className="text-stone-800 leading-relaxed text-xs whitespace-pre-line font-medium">
+                      {cleanAstrologyText(
+                        isKn
+                          ? cls?.internalMindsetKn || "ಮನಸ್ಸಿನಲ್ಲಿ ಭವಿಷ್ಯದ ಯೋಜನೆಗಳು, ಕುಟುಂಬದ ಜವಾಬ್ದಾರಿ ಹಾಗೂ ಆಂತರಿಕ ಶಾಂತಿಯ ಹಂಬಲದ ಯೋಚನಾ ಲಹರಿ ಮುಂದುವರಿದಿದೆ."
+                          : cls?.internalMindsetEn || "Internal thoughts balance pragmatic duties, long-term aspirations, and emotional stability."
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+                {/* 3 Astrological Root Cause, Timeline & Remedy Cards Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs md:text-sm">
+                  {/* Card 1: Astrological Alignment / Root Cause */}
                   <div
                     className={`p-4 rounded-2xl border-2 bg-white space-y-2 shadow-sm ${
                       isAcuteCrisis ? "border-amber-200" : "border-indigo-200"
@@ -667,7 +694,7 @@ STRICT RULES:
                     </p>
                   </div>
 
-                  {/* 3. Timeline of Relief / Turning Point */}
+                  {/* Card 2: Timeline of Relief / Turning Point */}
                   <div className="p-4 rounded-2xl border-2 border-blue-200 bg-white space-y-2 shadow-sm">
                     <div className="flex items-center gap-2 text-blue-900 font-bold border-b border-blue-100 pb-1.5 text-xs">
                       <span>⏳</span>
@@ -690,7 +717,7 @@ STRICT RULES:
                     </p>
                   </div>
 
-                  {/* 4. Astrological Remedy & Gokarna Seva */}
+                  {/* Card 3: Astrological Remedy & Gokarna Seva */}
                   <div className="p-4 rounded-2xl border-2 border-emerald-200 bg-white space-y-2 shadow-sm">
                     <div className="flex items-center gap-2 text-emerald-900 font-bold border-b border-emerald-100 pb-1.5 text-xs">
                       <span>🪔</span>
@@ -1325,7 +1352,7 @@ STRICT RULES:
                   </div>
 
                   {/* HIGHLIGHT BANNER 0: PURE CHARACTER & TEETOTALER/FIDELITY PRAISE */}
-                  {(currentDiagnosis.goodBadAnalysis.isTeetotaler || currentDiagnosis.goodBadAnalysis.hasMaritalFidelity) && (
+                  {(currentDiagnosis.goodBadAnalysis.isTeetotaler || currentDiagnosis.goodBadAnalysis.isHighFidelityVrata || (currentDiagnosis.goodBadAnalysis.hasMaritalFidelity && !currentDiagnosis.goodBadAnalysis.hasMultipleRelationshipsRisk)) && (
                     <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-100/90 via-teal-50 to-emerald-50 border-2 border-emerald-400 space-y-1.5 shadow-sm">
                       <div className="flex items-center gap-2 text-emerald-950 font-black text-xs md:text-sm">
                         <span>✨</span>
@@ -1333,14 +1360,14 @@ STRICT RULES:
                       </div>
                       <p className="text-xs md:text-sm text-stone-800 leading-relaxed font-medium">
                         {isKn
-                          ? `${currentDiagnosis.goodBadAnalysis.isTeetotaler ? "🍃 ಜಾತಕರ 2ನೇ ಧನ-ಆಹಾರ ಸ್ಥಾನದ ಮೇಲೆ ಗುರು/ಶುಭ ಗ್ರಹ ದೃಷ್ಟಿ ರಕ್ಷಣೆ ಇರುವುದರಿಂದ ಸಾತ್ವಿಕ ಆಹಾರ ಪದ್ಧತಿ ಹೊಂದಿದ್ದು, ಮದ್ಯಪಾನ-ದುಶ್ಚಟಗಳಿಂದ ಮುಕ್ತವಾದ ಪರಿಶುದ್ಧ ಸಾತ್ವಿಕ ಶರೀರ ರಕ್ಷಣೆ ಹೊಂದಿದ್ದಾರೆ. " : ""}${currentDiagnosis.goodBadAnalysis.hasMaritalFidelity ? `💍 7ನೇ ಕಳತ್ರ ಸ್ಥಾನದಲ್ಲಿ ಶುಭ ಗ್ರಹ ಕವಚವಿರುವುದರಿಂದ ದಾಂಪತ್ಯದಲ್ಲಿ ಅಚಲ ನಿಷ್ಠೆ ಹೊಂದಿದ್ದು, ಅನೈತಿಕ ಸಂಬಂಧಗಳಿಂದ ಸಂಪೂರ್ಣ ದೂರವಿದ್ದಾರೆ (${session.input.gender === "Female" ? "ಏಕಪತಿ ವ್ರತ" : "ಏಕಪತ್ನಿ ವ್ರತ"}).` : ""}`
-                          : `${currentDiagnosis.goodBadAnalysis.isTeetotaler ? "🍃 Benefic and Jupiterian aspects on the 2nd house protect dietary purity, ensuring a clean teetotaler lifestyle free of alcohol or intoxicants. " : ""}${currentDiagnosis.goodBadAnalysis.hasMaritalFidelity ? "💍 Divine protection on the 7th house ensures steadfast marital fidelity and pure moral character." : ""}`}
+                          ? `${currentDiagnosis.goodBadAnalysis.isTeetotaler ? "🍃 ಜಾತಕರ 2ನೇ ಧನ-ಆಹಾರ ಸ್ಥಾನದ ಮೇಲೆ ಗುರು/ಶುಭ ಗ್ರಹ ದೃಷ್ಟಿ ರಕ್ಷಣೆ ಇರುವುದರಿಂದ ಸಾತ್ವಿಕ ಆಹಾರ ಪದ್ಧತಿ ಹೊಂದಿದ್ದು, ಧೂಮಪಾನ-ಮದ್ಯಪಾನಗಳಂತಹ ದುಶ್ಚಟಗಳಿಂದ ಮುಕ್ತವಾದ ಪರಿಶುದ್ಧ ಸಾತ್ವಿಕ ಶರೀರ ರಕ್ಷಣೆ ಹೊಂದಿದ್ದಾರೆ. " : ""}${currentDiagnosis.goodBadAnalysis.isHighFidelityVrata ? `💍 7ನೇ ಕಳತ್ರ ಸ್ಥಾನ ಮತ್ತು ಶುಕ್ರನ ಮೇಲೆ ಬೃಹಸ್ಪತಿಯ ಪೂರ್ಣ ದೃಷ್ಟಿ ಇರುವುದರಿಂದ, ಜಾತಕದಲ್ಲಿ ಅದ್ಭುತ ಚಾರಿತ್ರ್ಯ ಶುದ್ಧಿ ಹಾಗೂ ದೈವಿಕ ${session.input.gender === "Female" ? "ಏಕಪತಿ ವ್ರತ" : "ಏಕಪತ್ನಿ ವ್ರತ"} ಯೋಗವಿದೆ; ದಾಂಪತ್ಯ ಧರ್ಮದಲ್ಲಿ ಅಚಲ ನೈತಿಕ ನಿಷ್ಠೆ ರಕ್ಷಣೆಯಾಗಿದೆ.` : (currentDiagnosis.goodBadAnalysis.hasMaritalFidelity && !currentDiagnosis.goodBadAnalysis.hasMultipleRelationshipsRisk ? "💍 ದಾಂಪತ್ಯದಲ್ಲಿ ಸಾಮಾನ್ಯ ಧರ್ಮ, ನೈತಿಕ ಸಂಯಮ ಹಾಗೂ ಸಾಂಸಾರಿಕ ಜವಾಬ್ದಾರಿಯನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳುವ ಸದ್ಗುಣವಿದೆ." : "")}`
+                          : `${currentDiagnosis.goodBadAnalysis.isTeetotaler ? "🍃 Benefic and Jupiterian aspects on the 2nd house protect dietary purity, ensuring a clean teetotaler lifestyle free of alcohol or intoxicants. " : ""}${currentDiagnosis.goodBadAnalysis.isHighFidelityVrata ? `💍 Divine protection on the 7th house and Venus grants an exceptional vow of marital fidelity (${session.input.gender === "Female" ? "Ekapati Vrata" : "Ekapatni Vrata"}), ensuring sacred loyalty to the spouse.` : (currentDiagnosis.goodBadAnalysis.hasMaritalFidelity && !currentDiagnosis.goodBadAnalysis.hasMultipleRelationshipsRisk ? "💍 Upholds natural marital responsibility, ethical restraint, and commitment in domestic life." : "")}`}
                       </p>
                     </div>
                   )}
 
                   {/* HIGHLIGHT BANNER 0B: SELF-RESTRAINT & MARITAL VIGILANCE CAUTION */}
-                  {(!currentDiagnosis.goodBadAnalysis.isTeetotaler || !currentDiagnosis.goodBadAnalysis.hasMaritalFidelity) && (
+                  {(currentDiagnosis.goodBadAnalysis.hasDhumapanaOrSubstanceTendency || currentDiagnosis.goodBadAnalysis.hasMadyapanaRisk || currentDiagnosis.goodBadAnalysis.hasMultipleRelationshipsRisk || (!currentDiagnosis.goodBadAnalysis.isTeetotaler && !currentDiagnosis.goodBadAnalysis.isHighFidelityVrata)) && (
                     <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-100/80 via-rose-50 to-orange-50 border-2 border-amber-400 space-y-1.5 shadow-sm">
                       <div className="flex items-center gap-2 text-amber-950 font-black text-xs md:text-sm">
                         <span>⚠️</span>
@@ -1348,8 +1375,8 @@ STRICT RULES:
                       </div>
                       <p className="text-xs md:text-sm text-stone-800 leading-relaxed font-medium">
                         {isKn
-                          ? `${!currentDiagnosis.goodBadAnalysis.isTeetotaler ? "🍷 2ನೇ ಆಹಾರ/ಮುಖ ಸ್ಥಾನಕ್ಕೆ ಶನಿ-ರಾಹು ದೃಷ್ಟಿ ಇರುವುದರಿಂದ, ಒತ್ತಡದ ಸಮಯದಲ್ಲಿ ಮದ್ಯಪಾನ ಅಥವಾ ವ್ಯಸನಗಳ ಪ್ರಲೋಭನೆಗೆ ಒಳಗಾಗುವ ಸೂಕ್ಷ್ಮತೆ ಇದೆ; ಸಾತ್ವಿಕ ಶಿಸ್ತು ಅತ್ಯಗತ್ಯ. " : ""}${!currentDiagnosis.goodBadAnalysis.hasMaritalFidelity ? "👀 5ನೇ ರಾಹು ಮತ್ತು ನೀಚ ಕುಜನಿಂದಾಗಿ ಮನಸ್ಸಿನಲ್ಲಿ ಕಾಮ ಚಾಂಚಲ್ಯ ಮತ್ತು ಪರಸ್ತ್ರೀ ಆಕರ್ಷಣೆಯ ಪ್ರವೃತ್ತಿ ಕಾಡಬಹುದು; ಇದು ಸಂಸಾರದಲ್ಲಿ ಹೆಂಡತಿಯೊಂದಿಗೆ ಕಲಹ ತರದಂತೆ ಇಂದ್ರಿಯ ನಿಗ್ರಹ ಕಾಯ್ದುಕೊಳ್ಳುವುದು ಅನಿವಾರ್ಯ." : ""}`
-                          : `${!currentDiagnosis.goodBadAnalysis.isTeetotaler ? "🍷 Saturn/Rahu aspect on the 2nd house creates vulnerability to alcohol consumption during periods of stress; dietary detox is recommended. " : ""}${!currentDiagnosis.goodBadAnalysis.hasMaritalFidelity ? "👀 Rahu in the 5th and afflicted Mars trigger sensual restlessness and roving eyes; practicing strict sensory self-control is essential to preserve marital peace." : ""}`}
+                          ? `${currentDiagnosis.goodBadAnalysis.hasDhumapanaOrSubstanceTendency ? "🚭 2ನೇ ಮುಖ ಸ್ಥಾನ ಅಥವಾ ರಾಹು ಪ್ರಭಾವದಿಂದಾಗಿ ಧೂಮಪಾನ, ಹುಕ್ಕಾ ಅಥವಾ ತಂಬಾಕು/ವ್ಯಸನದ ಆಕರ್ಷಣೆಯ ಪ್ರವೃತ್ತಿ ಇರಬಹುದು; ಶ್ವಾಸಕೋಶ ಹಾಗೂ ನರಗಳ ಆರೋಗ್ಯಕ್ಕಾಗಿ ದುಶ್ಚಟದಿಂದ ದೂರವಿರುವುದು ಅತ್ಯಗತ್ಯ. " : (currentDiagnosis.goodBadAnalysis.hasMadyapanaRisk ? "🍷 2ನೇ ಆಹಾರ/ಮುಖ ಸ್ಥಾನಕ್ಕೆ ಶನಿ-ರಾಹು ದೃಷ್ಟಿ ಇರುವುದರಿಂದ, ಒತ್ತಡದ ಸಮಯದಲ್ಲಿ ಮದ್ಯಪಾನ ಪ್ರಲೋಭನೆಗೆ ಒಳಗಾಗುವ ಸೂಕ್ಷ್ಮತೆ ಇದೆ; ಸಾತ್ವಿಕ ಶಿಸ್ತು ಅತ್ಯಗತ್ಯ. " : (!currentDiagnosis.goodBadAnalysis.isTeetotaler ? "🍽️ ಆಹಾರ ಮತ್ತು ಜೀವನಶೈಲಿಯಲ್ಲಿ ಅತಿಯಾದ ಕರಿದ ಪದಾರ್ಥ ಅಥವಾ ಸಾಂದರ್ಭಿಕ ಶಿಸ್ತುಭಂಗದ ಕಡೆ ಗಮನವಿರಲಿ. " : ""))}${currentDiagnosis.goodBadAnalysis.hasMultipleRelationshipsRisk ? "👀 5ನೇ/7ನೇ ಭಾವದಲ್ಲಿ ರಾಹು ಅಥವಾ ಶುಕ್ರ-ಕುಜರ ತೀವ್ರ ಪ್ರಭಾವವಿರುವುದರಿಂದ ಕಾಮ ಚಾಂಚಲ್ಯ, ಏಕಕಾಲದಲ್ಲಿ ಒಂದಕ್ಕಿಂತ ಹೆಚ್ಚು ಪ್ರಣಯ ಸಂಬಂಧಗಳು ಅಥವಾ ಪರಸ್ತ್ರೀ/ಪರಪುರುಷ ಆಕರ್ಷಣೆಯ ತೀವ್ರ ಪರೀಕ್ಷೆ ಎದುರಾಗಬಹುದು; ದಾಂಪತ್ಯ ವಿಶ್ವಾಸಘಾತುಕತನ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಕಲಹ ತಡೆಯಲು ಕಠಿಣ ಇಂದ್ರಿಯ ನಿಗ್ರಹ ಅತ್ಯಗತ್ಯ." : (!currentDiagnosis.goodBadAnalysis.hasMaritalFidelity && !currentDiagnosis.goodBadAnalysis.isHighFidelityVrata ? "⚡ ದಾಂಪತ್ಯದಲ್ಲಿ ಸೂಕ್ಷ್ಮ ಸಂವಹನ ಕೊರತೆ ಹಾಗೂ ಸಾಂದರ್ಭಿಕ ಭಾವನಾತ್ಮಕ ಅಸಮಾಧಾನದ ಸಾಧ್ಯತೆ ಇರುವುದರಿಂದ ಪರಸ್ಪರ ನಂಬಿಕೆಯನ್ನು ಜತನದಿಂದ ರಕ್ಷಿಸಿಕೊಳ್ಳಿ." : "")}`
+                          : `${currentDiagnosis.goodBadAnalysis.hasDhumapanaOrSubstanceTendency ? "🚭 Rahu or 2nd house afflictions indicate vulnerability toward smoking, hookah, or tobacco; respiratory discipline and detox are advised. " : (currentDiagnosis.goodBadAnalysis.hasMadyapanaRisk ? "🍷 Afflictions to the 2nd house indicate vulnerability toward alcohol consumption under stress; moderation and detox are recommended. " : (!currentDiagnosis.goodBadAnalysis.isTeetotaler ? "🍽️ Occasional lifestyle and dietary irregularities require moderation. " : ""))}${currentDiagnosis.goodBadAnalysis.hasMultipleRelationshipsRisk ? "👀 Rahu in the 5th/7th or Venus-Mars tensions trigger sensual restlessness and romantic wanderlust; practicing strict sensory self-control is essential to preserve marital peace." : (!currentDiagnosis.goodBadAnalysis.hasMaritalFidelity && !currentDiagnosis.goodBadAnalysis.isHighFidelityVrata ? "⚡ Occasional marital miscommunication requires conscious effort and mutual trust." : "")}`}
                       </p>
                     </div>
                   )}
