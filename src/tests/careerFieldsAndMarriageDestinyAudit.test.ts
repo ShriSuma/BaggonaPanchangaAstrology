@@ -197,6 +197,35 @@ describe("Career Fields & Lifetime Marriage Destiny Engine Audit", () => {
       expect(destiny.badgeColor).toBe("emerald");
       expect(destiny.directAnswerKn).toContain("ಗೃಹಸ್ಥಾಶ್ರಮ");
     });
+
+    it("identifies Lifelong Celibacy & Unmarried Destiny (12th House Moon-Saturn Sayana Sukha Bhanga) for real-world devotee (DOB 1982-07-25, 12:05 PM, Pin 581326)", async () => {
+      const { calculateKundli } = await import("../core/KundliEngine");
+      const chart = calculateKundli({
+        name: "ಭಕ್ತ (ಉತ್ತರ ಕನ್ನಡ)",
+        birthDate: "1982-07-25",
+        birthTime: "12:05",
+        latitude: 14.5479,
+        longitude: 74.3188,
+        pincode: "581326"
+      });
+
+      const destiny = determineMarriageDestiny(chart, {
+        devoteeName: "ಭಕ್ತ (ಉತ್ತರ ಕನ್ನಡ)",
+        birthDate: "1982-07-25",
+        devoteeAge: 44,
+        gender: "Male"
+      });
+
+      expect(destiny.verdict).toBe("lifelong_celibacy_denial");
+      expect(destiny.badgeColor).toBe("purple");
+      expect(destiny.directAnswerKn).toContain("ಬ್ರಹ್ಮಚರ್ಯ");
+      expect(destiny.directAnswerKn).toContain("ಅವಿವಾಹ");
+      expect(destiny.directAnswerEn).toContain("Lifelong Celibacy");
+      expect(destiny.titleKn).toContain("12ರಲ್ಲಿ ಚಂದ್ರ-ಶನಿ ಯುತಿ");
+      expect(destiny.marriageTimingWindowKn).toContain("ಲೌಕಿಕ ಸಂಸಾರ ಬಂಧನವಿಲ್ಲ");
+      expect(destiny.astrologicalReasoningKn).toContain("ಶಯನಸುಖ ಭಂಗ");
+      expect(destiny.classicalRuleCitedKn).toContain("ಫಲದೀಪಿಕಾ");
+    });
   });
 
   // =========================================================================

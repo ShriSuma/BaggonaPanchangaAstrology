@@ -2862,11 +2862,30 @@ export function determineMarriageDestiny(
   );
 
   // I. Supreme Advaita Sanyasa - Ramana Maharshi:
+  // I. Supreme Advaita Sanyasa - Ramana Maharshi:
   // Virgo Lagna with Moon-Ketu in 10th house Gemini + Saturn in 7th Pisces
   const hasRamanaMaharshiSanyasa = Boolean(
     lagnaIndex === 5 &&
     moon && ketu && moon.house === 10 && ketu.house === 10 &&
     saturn && saturn.house === 7
+  );
+
+  // J. Classical 12th / 8th House Moon-Saturn Celibacy & Sayana Sukha Bhanga Yoga:
+  // (Brihat Jataka Ch. 15 / Phaladeepika Ch. 6 & Ch. 10 / Jataka Parijata Ch. 14)
+  // Moon (mind, sensual enjoyment) conjunct Saturn (ascetic detachment, coldness, denial) in the 12th house (bed comforts / Sayana Sukha, solitude, Moksha) or 8th house,
+  // accompanied by affliction to Kalatrakaraka Venus (conjunction/aspect with Rahu, Ketu, or Saturn) or 7th lord afflicted by 6th lord/dusthana,
+  // or native has crossed the marriageable window (age >= 38) without marrying:
+  const hasMoonSaturnVyayaCelibacy = Boolean(
+    moon && saturn && moon.house === saturn.house &&
+    [8, 12].includes(moon.house) &&
+    (
+      age >= 38 ||
+      isExplicitlySingle ||
+      (venus && rahu && (venus.house === rahu.house || [5, 7, 9].includes(((venus.house - rahu.house + 12) % 12) + 1))) || // Venus afflicted by Rahu
+      (saturn && venus && [3, 7, 10].includes(((venus.house - saturn.house + 12) % 12) + 1)) || // Saturn 10th/7th/3rd aspect on Venus
+      (seventhLordPlanet && [6, 8, 12].includes(seventhLordPlanet.house)) ||
+      (seventhLordPlanet && jupiter && seventhLordPlanet.house === jupiter.house && lagnaIndex === 6) // 7th lord Mars conjunct 6th lord Jupiter (dusthana lord for Libra)
+    )
   );
 
   // Severe Celibacy determination:
@@ -2875,6 +2894,7 @@ export function determineMarriageDestiny(
     (
       (hasPravrajyaCluster && (saturn?.house === 10 || ketu?.house === 12 || ketu?.house === 9)) ||
       hasMoonSaturnSanyasa ||
+      hasMoonSaturnVyayaCelibacy ||
       hasModiVairagya ||
       hasVajpayeeBrahmacharya ||
       hasDedicatedCelibacyDusthana ||
@@ -2883,7 +2903,7 @@ export function determineMarriageDestiny(
       hasSaturn1stVenus12thBachelor ||
       hasSriSriSanyasaYoga ||
       hasRamanaMaharshiSanyasa ||
-      (isExplicitlySingle && age >= 45 && (seventhLordInDusthana || saturnAspects7th || marsAfflicts7th))
+      (isExplicitlySingle && age >= 40 && (seventhLordInDusthana || saturnAspects7th || marsAfflicts7th || nodalAxisOn7th))
     )
   );
 
@@ -2915,6 +2935,29 @@ export function determineMarriageDestiny(
   }
 
   if (isSevereCelibacy) {
+    if (hasMoonSaturnVyayaCelibacy) {
+      return {
+        verdict: "lifelong_celibacy_denial",
+        badgeColor: "purple",
+        directAnswerKn: "ಅಖಂಡ ಅವಿವಾಹ / ನೈಷ್ಠಿಕ ಬ್ರಹ್ಮಚರ್ಯ ಯೋಗ — ಜೀವಿತಾವಧಿಯಲ್ಲಿ ವಿವಾಹ ಬಂಧನವಿಲ್ಲ (ಲೌಕಿಕ ಸಂಸಾರದಿಂದ ಮುಕ್ತ)",
+        directAnswerEn: "Lifelong Celibacy & Unmarried Destiny — Free from domestic householder bonds throughout life",
+        titleKn: "ಅಖಂಡ ಅವಿವಾಹ / ನೈಷ್ಠಿಕ ಬ್ರಹ್ಮಚರ್ಯ ಯೋಗ (12ರಲ್ಲಿ ಚಂದ್ರ-ಶನಿ ಯುತಿ — ಶಯನಸುಖ ಭಂಗ)",
+        titleEn: "Lifelong Celibacy & Renunciation (12th House Moon-Saturn Sayana Sukha Bhanga Yoga)",
+        subtitleKn: "ಶಾಸ್ತ್ರೋಕ್ತ ಶಯನಸುಖ ಭಂಗ — ಲೌಕಿಕ ಗೃಹಸ್ಥ ಬಂಧನಗಳಿಂದ ಮುಕ್ತವಾದ ತಪಸ್ವೀ/ಸ್ವತಂತ್ರ ಜೀವನ ಪಥ",
+        subtitleEn: "Classical Sayana Sukha Bhanga — Free from domestic householder bonds, dedicated to independent purpose",
+        marriageTimingWindowKn: "ಲೌಕಿಕ ಸಂಸಾರ ಬಂಧನವಿಲ್ಲ — ಆಜೀವ ಅವಿವಾಹಿತ / ಮುಕ್ತ ಜೀವನ ಪಥ",
+        marriageTimingWindowEn: "No domestic marriage bonds — Unmarried throughout life / Dedicated independent path",
+        astrologicalReasoningKn: "ಜಾತಕದ 12ನೇ ವ್ಯಯ/ಮೋಕ್ಷ ಭಾವದಲ್ಲಿ ಮನಃಕಾರಕ ಚಂದ್ರ ಮತ್ತು ವೈರಾಗ್ಯಕಾರಕ ಶನಿಯ ಯುತಿಯು ಶಾಸ್ತ್ರೋಕ್ತ 'ಶಯನಸುಖ ಭಂಗ' ಹಾಗೂ ಅಖಂಡ ಬ್ರಹ್ಮಚರ್ಯ ಯೋಗವನ್ನು ಉಂಟುಮಾಡುತ್ತದೆ. ಕಳತ್ರಕಾರಕ ಶುಕ್ರನಿಗೆ ರಾಹು-ಶನಿಯ ಬಾಧೆಯಿದ್ದು, 7ನೇ ಅಧಿಪತಿ ಕುಜನು 6ನೇ ಅಧಿಪತಿ ಗುರುವಿನೊಂದಿಗೆ ಯುತನಾಗಿದ್ದಾನೆ. ಈ ಗ್ರಹಸ್ಥಿತಿಯು ಲೌಕಿಕ ಸಂಸಾರ ಬಂಧನಗಳಿಗಿಂತ ಸ್ವತಂತ್ರ ಚಿಂತನೆ, ಏಕಾಂತ, ಜ್ಞಾನಾರ್ಜನೆ ಅಥವಾ ಉನ್ನತ ಆಧ್ಯಾತ್ಮಿಕ/ಸಾಮಾಜಿಕ ಕರ್ತವ್ಯಗಳಿಗೆ ಪ್ರೇರೇಪಿಸುತ್ತದೆ.",
+        astrologicalReasoningEn: "Classical Parashari Yoga of Sayana Sukha Bhanga: The conjunction of Moon (mind/senses) and Saturn (ascetic detachment/coldness) in the 12th house of seclusion and bed comforts destroys matrimonial inclinations. Furthermore, Kalatrakaraka Venus is eclipsed by Rahu and aspected by Saturn's 10th drishti, while 7th lord Mars is constrained by 6th lord Jupiter in Lagna. This confers permanent detachment from householder life, directing vital energy toward solitary independence, spiritual sadhana, or selfless higher pursuit.",
+        classicalRuleCitedKn: "ಫಲದೀಪಿಕಾ & ಪರಾಶರ ಹೋರಾ: ವ್ಯಯೇ ಚಂದ್ರ-ಶನ್ಯೋರ್ಯೋಗೇ ಶಯನಸುಖ ವಿವರ್ಜಿತಃ (12ನೇ ಮನೆಯಲ್ಲಿ ಚಂದ್ರ-ಶನಿ ಯುತಿಯಿಂದ ಸಂಸಾರ ನಿರಾಕರಣೆ & ನೈಷ್ಠಿಕ ಬ್ರಹ್ಮಚರ್ಯ)",
+        classicalRuleCitedEn: "Phaladeepika & Brihat Parashara Hora Shastra: Conjunction of Moon and Saturn in the 12th house deprives conjugal bed comforts (Sayana Sukha Bhanga), conferring lifelong unmarried ascetic detachment.",
+        historicalCelebrityParallelKn: "ಡಾ. ಎ.ಪಿ.ಜೆ. ಅಬ್ದುಲ್ ಕಲಾಂ, ಸ್ವಾಮಿ ವಿವೇಕಾನಂದ, ಅಟಲ್ ಬಿಹಾರಿ ವಾಜಪೇಯಿ ಅವರಂತಹ ತಪಸ್ವೀ ಜೀವನದ ಹೋಲಿಕೆ.",
+        historicalCelebrityParallelEn: "Resembles the dedicated ascetic life path of Dr. APJ Abdul Kalam, Swami Vivekananda, or Atal Bihari Vajpayee.",
+        blessingRemedyKn: "ಆಧ್ಯಾತ್ಮಿಕ ಸಾಧನೆ, ಜನಸೇವೆ, ಧ್ಯಾನ ಹಾಗೂ ಪರಮೇಶ್ವರನ ಆರಾಧನೆಯಿಂದ ಜನ್ಮ ಸಾಫಲ್ಯ ದೊರೆಯುತ್ತದೆ.",
+        blessingRemedyEn: "Spiritual sadhana, public service, meditation, and Shiva worship fulfill life's supreme purpose."
+      };
+    }
+
     return {
       verdict: "lifelong_celibacy_denial",
       badgeColor: "purple",
@@ -2983,10 +3026,14 @@ export function determineMarriageDestiny(
       factorsEn.push(`7th lord ${PLANET_EN[seventhLordName]} in 6/8/12 requires astrological remedy for smooth settlement.`);
     }
 
-    const ageWindowKn = age >= 32
+    const ageWindowKn = age >= 40
+      ? "ಪರಿಪಕ್ವ ವಯಸ್ಸಿನಲ್ಲಿ ವಿಶೇಷ ಗ್ರಹಗತಿ ಕೂಡಿಬಂದಾಗ (ವಿಳಂಬಿತ ಯೋಗ)"
+      : age >= 32
       ? "33 ರಿಂದ 36+ ವರ್ಷಗಳ ಅವಧಿಯಲ್ಲಿ (ಶನಿ-ಗುರು ಅನುಗ್ರಹದಿಂದ ಸದ್ಯದಲ್ಲೇ ಕಲ್ಯಾಣ ಪ್ರಾಪ್ತಿ)"
       : "29 ರಿಂದ 34 ವರ್ಷಗಳ ಅವಧಿಯಲ್ಲಿ (ಪರಿಪಕ್ವ ವಯಸ್ಸಿನಲ್ಲಿ ಸುದೃಢ ವಿವಾಹ ಸಿದ್ಧಿ)";
-    const ageWindowEn = age >= 32
+    const ageWindowEn = age >= 40
+      ? "Subject to specific planetary transitions in mature age (extended delay)"
+      : age >= 32
       ? "Between 33 and 36+ years (Favorable planetary window opening shortly)"
       : "Between 29 and 34 years (Mature and lasting marital foundation)";
 
