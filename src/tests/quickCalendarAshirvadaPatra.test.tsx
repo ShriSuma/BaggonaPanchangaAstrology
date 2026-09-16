@@ -152,7 +152,7 @@ describe("Baggona Quick Calendar & 5-Page Ashirvada Patra Suite", () => {
 
   describe("4. QuickCalendarPage Component & 5-Page Ashirvada Patra Container", () => {
     it("renders QuickCalendarPage with optional Time of Birth indicator and 5-page PDF container", () => {
-      render(<QuickCalendarPage />);
+      const { unmount } = render(<QuickCalendarPage />);
 
       // Verify title & optional TOB presence
       expect(screen.getByText(/ಜನ್ಮ ದಿನಾಂಕ ಆಧಾರಿತ ಪಂಚಾಂಗ ಕ್ಯಾಲೆಂಡರ್/i)).toBeInTheDocument();
@@ -163,6 +163,8 @@ describe("Baggona Quick Calendar & 5-Page Ashirvada Patra Suite", () => {
       const pdfContainer = document.getElementById("quick-seva-5page-pdf");
       expect(pdfContainer).not.toBeNull();
       expect(pdfContainer?.style.display).toBe("block");
+
+      unmount();
     });
   });
 });

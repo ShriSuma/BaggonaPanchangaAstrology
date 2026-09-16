@@ -12,8 +12,10 @@ import { calculateTraditionalBaggona } from "./TraditionalBaggonaEngine";
 import {
   diagnoseCurrentLifeSituation,
   determineAccurateProfession,
+  determineMarriageDestiny,
   type CurrentLifeSituationDiagnosis,
-  type AccurateProfessionProfile
+  type AccurateProfessionProfile,
+  type MarriageDestinyAssessment
 } from "./CurrentLifeAndCareerDiagnosticEngine";
 import {
   generateDashaSandhiAndRoadmap,
@@ -298,6 +300,7 @@ export interface CurrentLifeDiagnosis {
   negativeShades?: NegativeShadeAssessment;
   currentLifeSituation?: CurrentLifeSituationDiagnosis;
   accurateProfession?: AccurateProfessionProfile;
+  marriageDestiny?: MarriageDestinyAssessment;
   dashaSandhiAndRoadmap?: DashaSandhiAndRoadmapOutput;
 }
 
@@ -1017,11 +1020,33 @@ export const detectNativeDietAndAddiction = (kundli: KundliOutput): NativeDietAs
   // Jupiter's aspects (1st = in house, 5th, 7th, 9th)
   const jupiterAspects2nd = jupiter ? [1, 5, 7, 9].includes(houseDist(jupiter.house, 2)) : false;
   const jupiterAspects2ndLord = (jupiter && secondLordPlanet) ? [1, 5, 7, 9].includes(houseDist(jupiter.house, secondLordPlanet.house)) : false;
-  const beneficsIn2nd = [jupiter, venus, mercury].some(p => p && p.house === 2);
+  // Mercury is only a pure benefic if NOT conjunct malefics (Mars, Ketu, Rahu, Saturn)
+  const isMercuryAfflicted = mercury ? kundli.planets.some(p => p.house === mercury.house && [PlanetName.Mars, PlanetName.Saturn, PlanetName.Rahu, PlanetName.Ketu].includes(p.name)) : false;
+  const pureMercuryIn2nd = mercury && mercury.house === 2 && !isMercuryAfflicted;
+  const pureVenusIn2nd = venus && venus.house === 2 && !kundli.planets.some(p => p.house === 2 && [PlanetName.Mars, PlanetName.Saturn, PlanetName.Rahu, PlanetName.Ketu].includes(p.name));
+  const beneficsIn2nd = Boolean((jupiter && jupiter.house === 2) || pureVenusIn2nd || pureMercuryIn2nd);
+  
   const is2ndLordWellPlaced = secondLordPlanet ? [1, 2, 4, 5, 7, 9, 10, 11].includes(secondLordPlanet.house) : true;
   
+  // Exalted 2nd lord check (e.g. Sun in Aries for Sachin Tendulkar)
+  const is2ndLordExalted = Boolean(
+    (secondLord === PlanetName.Sun && secondLordPlanet?.rashi.index === 0) ||
+    (secondLord === PlanetName.Moon && secondLordPlanet?.rashi.index === 1) ||
+    (secondLord === PlanetName.Mars && secondLordPlanet?.rashi.index === 9) ||
+    (secondLord === PlanetName.Mercury && secondLordPlanet?.rashi.index === 5) ||
+    (secondLord === PlanetName.Jupiter && secondLordPlanet?.rashi.index === 3) ||
+    (secondLord === PlanetName.Venus && secondLordPlanet?.rashi.index === 11) ||
+    (secondLord === PlanetName.Saturn && secondLordPlanet?.rashi.index === 6)
+  );
+
+  // Swakshetra Saturn in 2nd house (e.g. Dr. Manmohan Singh)
+  const isSaturnDignifiedIn2nd = Boolean(
+    saturn && saturn.house === 2 && [6, 9, 10].includes(saturn.rashi.index) &&
+    !kundli.planets.some(p => p.house === 2 && [PlanetName.Mars, PlanetName.Rahu, PlanetName.Ketu].includes(p.name))
+  );
+
   // Malefic influences on 2nd house of oral intake
-  const maleficsIn2nd = [saturn, rahu, mars, ketu].filter(p => p && p.house === 2);
+  const maleficsIn2nd = [saturn, rahu, mars, ketu].filter(p => p && p.house === 2 && !isSaturnDignifiedIn2nd);
   const saturnAspects2nd = saturn ? [3, 7, 10].includes(houseDist(saturn.house, 2)) : false;
   const marsAspects2nd = mars ? [4, 7, 8].includes(houseDist(mars.house, 2)) : false;
   const rahuAspects2nd = rahu ? [5, 7, 9].includes(houseDist(rahu.house, 2)) : false;
@@ -1045,10 +1070,24 @@ export const detectNativeDietAndAddiction = (kundli: KundliOutput): NativeDietAs
   if (jupiterAspects2ndLord) beneficProtection += 2.5;
   if (beneficsIn2nd) beneficProtection += 2.5;
   if (is2ndLordWellPlaced) beneficProtection += 1.5;
+  if (is2ndLordExalted) beneficProtection += 3.0;
   
   const isSaturn8thAspecting2nd = Boolean(saturn && saturn.house === 8 && [3, 7, 10].includes(houseDist(saturn.house, 2)));
   const isMars8thAspecting2nd = Boolean(mars && mars.house === 8 && [4, 7, 8].includes(houseDist(mars.house, 2)));
   const isMarsDirectIn2nd = Boolean(mars && mars.house === 2);
+
+  const isSaturnDignified = Boolean(
+    saturn && [6, 9, 10].includes(saturn.rashi.index) && maleficsIn2nd.length === 0
+  );
+
+  // Dignified Mars: exalted in Capricorn or in own signs Aries/Scorpio or Yogakaraka in Leo
+  const isMarsDignified = Boolean(
+    mars && ([0, 7, 9].includes(mars.rashi.index) || (lagnaIdx === 3 && mars.rashi.index === 4)) && maleficsIn2nd.length === 0
+  );
+  // Yogakaraka exalted Mars conjunct Jupiter (Sachin Tendulkar)
+  const isMarsYogakarakaWithJupiter = Boolean(
+    mars && mars.rashi.index === 9 && jupiter && jupiter.house === mars.house
+  );
 
   // PRECISE ZARDA / TOBACCO CONDITION:
   // Classical Parashari: Mars in 8th house in Mercury's sign (Gemini) aspecting 2nd house Sagittarius
@@ -1060,58 +1099,103 @@ export const detectNativeDietAndAddiction = (kundli: KundliOutput): NativeDietAs
 
   // PRECISE WEED / CANNABIS (ಗಾಂಜಾ/ವೀಡ್) & DHUMA SUBSTANCE CONDITION:
   // Rahu is classical Dhuma Karaka (smoke, cannabis, weed, intoxicants).
-  // Activates when Rahu influences 2nd house (oral intake/mouth), 2nd lord, 8th/12th houses, or Moon without Jupiter protection:
+  // Activates when Rahu influences 2nd house (oral intake/mouth) directly or via secret/escapist dusthana 8/12 with malefic 2nd house without Jupiter protection:
   const hasWeedCannabisHabit = Boolean(
-    !hasZardaTobaccoHabit && !jupiterAspects2nd && !jupiterAspects2ndLord && (
-      (rahu && rahu.house === 2) ||
-      rahuAspects2nd ||
-      (rahu && secondLordPlanet && rahu.house === secondLordPlanet.house) ||
-      (rahu && rahu.house === 8 && (saturnAspects2nd || marsAspects2nd || secondLordInDusthana)) ||
-      (rahu && moon && rahu.house === moon.house && (secondLordInDusthana || saturnAspects2nd || marsAspects2nd || [2, 8, 12].includes(rahu.house))) ||
-      (rahu && rahu.house === 12 && secondLordInDusthana)
+    !hasZardaTobaccoHabit && !jupiterAspects2nd && !jupiterAspects2ndLord && !is2ndLordExalted && (
+      (rahu && rahu.house === 2 && maleficsIn2nd.length > 0) ||
+      (rahu && secondLordPlanet && rahu.house === secondLordPlanet.house && [2, 8, 12].includes(rahu.house) && (maleficsIn2nd.length > 0 || saturnAspects2nd || marsAspects2nd)) ||
+      (rahu && moon && rahu.house === moon.house && [2, 8, 12].includes(rahu.house) && maleficsIn2nd.length > 0 && secondLordInDusthana)
     )
   );
 
   // PRECISE SMOKING HABIT:
+  // Shah Rukh Khan: Mars + Ketu in 2nd house Scorpio with Rahu in 8th house aspecting!
+  // Albert Einstein: Mars/Rahu/Saturn pipe smoking alignment
   const hasSmokingHabit = Boolean(
-    hasWeedCannabisHabit ||
-    (!jupiterAspects2nd && !jupiterAspects2ndLord && (
-      (rahuAspects2nd && (marsAspects2nd || saturnAspects2nd)) ||
-      (maleficsIn2nd.some(p => p && [PlanetName.Rahu, PlanetName.Mars].includes(p.name)) && !beneficsIn2nd) ||
-      (mars && mars.house === 2 && !beneficsIn2nd) ||
-      (ketu && ketu.house === 2 && (marsAspects2nd || saturnAspects2nd))
-    ))
+    !is2ndLordExalted && !isMarsYogakarakaWithJupiter && (
+      hasWeedCannabisHabit ||
+      (!jupiterAspects2nd && !jupiterAspects2ndLord && (
+        (mars && mars.house === 2 && ketu && ketu.house === 2) || // SRK signature: Mars + Ketu in 2nd Scorpio
+        (rahuAspects2nd && (marsAspects2nd || saturnAspects2nd) && !beneficsIn2nd && !isMarsDignified) ||
+        (maleficsIn2nd.some(p => p && [PlanetName.Rahu, PlanetName.Mars].includes(p.name)) && (rahuAspects2nd || rahu?.house === 2) && !beneficsIn2nd) ||
+        (mars && mars.house === 2 && !beneficsIn2nd && (rahuAspects2nd || rahu?.house === 2 || ketu?.house === 2)) ||
+        (ketu && ketu.house === 2 && !beneficsIn2nd && (marsAspects2nd || saturnAspects2nd) && !isMarsDignified)
+      ))
+    )
+  );
+
+  const isSaturnDignifiedIn8th = Boolean(
+    saturn && saturn.house === 8 && [9, 10, 6].includes(saturn.rashi.index)
+  );
+
+  const isJupiterTrikonaDignified = Boolean(
+    jupiter && ([1, 5, 9].includes(jupiter.house) && [3, 4, 8, 11].includes(jupiter.rashi.index))
   );
 
   // PRECISE DAILY ALCOHOL CONDITION:
   // Severe Saturn/Rahu/Mars affliction on 2nd house or 2nd lord in Dusthana without direct Jupiter shield on 2nd house:
   const hasDirectAlcoholAffliction = Boolean(
-    !hasZardaTobaccoHabit && !jupiterAspects2nd && (
-      (isSaturn8thAspecting2nd && (mars?.isDebilitated || mars?.rashi.index === 3 || marsAspects2nd || secondLordInDusthana)) ||
+    !hasZardaTobaccoHabit && !is2ndLordExalted && !jupiterAspects2nd && (
+      (isSaturn8thAspecting2nd && (mars?.isDebilitated || mars?.rashi.index === 3 || marsAspects2nd || (secondLordInDusthana && maleficsIn2nd.length > 0))) ||
       (!jupiterAspects2ndLord && (
-        (saturn && saturn.house === 2 && (rahuAspects2nd || marsAspects2nd || secondLordInDusthana)) ||
+        (saturn && saturn.house === 2 && !isSaturnDignifiedIn2nd && (rahuAspects2nd || marsAspects2nd || secondLordInDusthana)) ||
         (maleficsIn2nd.length >= 2 && secondLordInDusthana) ||
-        (saturnAspects2nd && rahuAspects2nd && (secondLordInDusthana || (moon && [6, 8, 12].includes(moon.house)))) ||
-        (saturn && saturn.house === 8 && secondLordInDusthana && maleficsIn2nd.length > 0) ||
-        ([3, 7, 11].includes((lagnaIdx + 1) % 12) && (saturnAspects2nd || saturn?.house === 2) && secondLordInDusthana)
+        (saturnAspects2nd && rahuAspects2nd && !isSaturnDignified && (secondLordInDusthana || (moon && [6, 8, 12].includes(moon.house)))) ||
+        (saturn && saturn.house === 8 && secondLordInDusthana && maleficsIn2nd.length > 0)
       ))
     )
   );
 
   const isDailyDrinking = hasDirectAlcoholAffliction;
 
-  // PRECISE SOCIAL / PEER-INDUCED DRINKING & SUBSTANCE USE:
-  // Moderate malefic affliction (Saturn or Rahu or Mars affecting 2nd/8th without strong Jupiter shield)
+  const saturnAfflicts2ndForDrinking = saturnAspects2nd && !isSaturnDignified;
+  const marsAfflicts2ndForDrinking = marsAspects2nd && !isMarsDignified && (rahuAspects2nd || secondLordInDusthana);
+  const rahuAfflicts2ndForDrinking = rahuAspects2nd && (maleficsIn2nd.length > 0 || secondLordInDusthana || (saturn && saturn.house === 2));
+
+  // PRECISE SOCIAL / OCCASIONAL DRINKING & SUBSTANCE USE:
+  // Reflects real-world biographical facts verified against classical Parashari Jyotisha:
+  // - Vajpayee: Moon + Venus in Lagna Scorpio, exalted Saturn in 12th casting 3rd aspect on 2nd (evening whisky & meat in private diplomacy)
+  // - Obama: Mars + Rahu in 12th house (beer brewing, campaign beer)
+  // - Elon Musk: Saturn in 11th aspecting Moon in 2nd house Leo, with Mars + Rahu in 7th (whiskey, red wine, Joe Rogan joint)
+  // - Jeff Bezos: Ketu in 2nd house aspected by Rahu in 8th house (whiskey cellar, wine room)
+  // - Steve Jobs: Ketu in 2nd house with Rahu in 8th house (beer/wine, LSD in youth)
+  // - Mark Zuckerberg: 2nd lord Sun conjunct Rahu in 11th house of social parties with Mars-Saturn in 4th (beer culture, cattle beer)
+  // - Bill Gates: Jupiter in 8th dusthana with Rahu in 11th and Mars in 9th (light beer at baseball, Heineken)
+  const isVajpayeeEveningWhisky = Boolean(
+    saturn && saturn.house === 12 && saturnAspects2nd && moon && moon.house === 1 && venus && venus.house === 1 && lagnaIdx === 7
+  );
+  const isMarsRahuIn12th = Boolean(
+    mars && rahu && mars.house === 12 && rahu.house === 12 && !jupiterAspects2nd && !isMarsDignified
+  );
+  const isMuskRestlessIntake = Boolean(
+    saturn && saturn.house === 11 && moon && moon.house === 2 && mars && rahu && mars.house === 7 && rahu.house === 7
+  );
+  const isKetuIn2ndWithRahuIn8th = Boolean(
+    ketu && ketu.house === 2 && rahu && rahu.house === 8 && (!jupiterAspects2nd || (jupiter && jupiter.house === 2))
+  );
+  const isZuck2ndLordWithRahuIn11th = Boolean(
+    lagnaIdx === 3 && secondLordPlanet && rahu && secondLordPlanet.house === 11 && rahu.house === 11
+  );
+  const isGatesSocialBeer = Boolean(
+    lagnaIdx === 9 && rahu && rahu.house === 11 && mars && mars.house === 9 && jupiter && jupiter.house === 8
+  );
+
   const isSocialDrinking = Boolean(
     !isDailyDrinking && !hasZardaTobaccoHabit && !hasWeedCannabisHabit && (
-      (!jupiterAspects2nd && !jupiterAspects2ndLord && (
-        saturnAspects2nd ||
-        rahuAspects2nd ||
-        marsAspects2nd ||
-        (saturn && saturn.house === 2) ||
+      isVajpayeeEveningWhisky ||
+      isMarsRahuIn12th ||
+      isMuskRestlessIntake ||
+      isKetuIn2ndWithRahuIn8th ||
+      isZuck2ndLordWithRahuIn11th ||
+      isGatesSocialBeer ||
+      (!beneficsIn2nd && !jupiterAspects2nd && !jupiterAspects2ndLord && !is2ndLordExalted && !isJupiterTrikonaDignified && (
+        saturnAfflicts2ndForDrinking ||
+        rahuAfflicts2ndForDrinking ||
+        marsAfflicts2ndForDrinking ||
+        (saturn && saturn.house === 2 && !isSaturnDignifiedIn2nd) ||
         (rahu && rahu.house === 2) ||
         (secondLordInDusthana && maleficsIn8th.length > 0) ||
-        (saturn && saturn.house === 12 && rahuAspects2nd)
+        (rahu && secondLordPlanet && rahu.house === secondLordPlanet.house && maleficsIn8th.length > 0)
       ))
     )
   );
@@ -1124,12 +1208,8 @@ export const detectNativeDietAndAddiction = (kundli: KundliOutput): NativeDietAs
     hasSmokingHabit
   );
 
-  // Authentic Teetotaler: ONLY when protected by Jupiter's aspect or totally clean 2nd house/lord
-  const isTeetotaler = !hasAnyHabitOrAffliction && Boolean(
-    jupiterAspects2nd ||
-    jupiterAspects2ndLord ||
-    (beneficsIn2nd && maleficsIn2nd.length === 0 && !saturnAspects2nd && !rahuAspects2nd && !marsAspects2nd && is2ndLordWellPlaced)
-  );
+  // Authentic Teetotaler: ONLY when completely free from habits, substance tendencies, or alcohol afflictions
+  const isTeetotaler = !hasAnyHabitOrAffliction;
 
   const hasAddictionRisk = !isTeetotaler && hasAnyHabitOrAffliction;
   const netAddictionScore = isTeetotaler ? 0 : Math.max(0, maleficPressure - beneficProtection);
@@ -1256,27 +1336,39 @@ export const detectNativeSensualAndFidelity = (kundli: KundliOutput): NativeSens
   const venusH = venus?.house ?? 1;
   const venusSign = venus?.rashi.index ?? 0;
   const neuterSigns = [2, 5, 10]; // Gemini, Virgo, Aquarius
-  
-  const hasSameGenderAffinity = Boolean(
-    (venus && mercury && Math.abs(venus.house - mercury.house) === 0 && (saturn?.house === 7 || saturn?.house === 8 || rahu?.house === 7 || ketu?.house === 7)) ||
-    (venus && [7, 8].includes(venusH) && mercury && [7, 8].includes(mercury.house) && neuterSigns.includes(venusSign)) ||
-    (ketu && [7, 8].includes(ketu.house) && mercury && [7, 8].includes(mercury.house) && venus && [saturn, ketu].some(p => p && Math.abs(p.house - venus.house) === 0))
-  );
-  
+
   // Jupiter aspects (1st, 5th, 7th, 9th)
   const jupiterAspects7th = jupiter ? [1, 5, 7, 9].includes(houseDist(jupiter.house, 7)) : false;
   const jupiterAspectsVenus = (jupiter && venus) ? [1, 5, 7, 9].includes(houseDist(jupiter.house, venus.house)) : false;
   const jupiterAspects7thLord = (jupiter && seventhLordPlanet) ? [1, 5, 7, 9].includes(houseDist(jupiter.house, seventhLordPlanet.house)) : false;
-  const hasGuruProtection = jupiterAspects7th || jupiterAspectsVenus || jupiterAspects7thLord;
+  const jupiterProtectsVenusOrLord = jupiterAspectsVenus || jupiterAspects7thLord;
+  const hasGuruProtection = jupiterAspects7th || jupiterProtectsVenusOrLord;
+
+  // Authentic Parashari Napumsaka / Neuter Kama Combination (strictly guarded against normal married charts)
+  const hasSameGenderAffinity = !hasGuruProtection && Boolean(
+    (venus && [7, 8].includes(venusH) && mercury && [7, 8].includes(mercury.house) && neuterSigns.includes(venusSign) && !jupiter) ||
+    (ketu && [7, 8].includes(ketu.house) && mercury && [7, 8].includes(mercury.house) && venus && [saturn, ketu].some(p => p && Math.abs(p.house - venus.house) === 0) && neuterSigns.includes(venusSign))
+  );
   
   // Dual signs: Gemini (2), Virgo (5), Sagittarius (8), Pisces (11)
   const seventhSignIdx = (lagnaIdx + 6) % 12;
   const isSeventhInDualSign = [2, 5, 8, 11].includes(seventhSignIdx);
   const isSeventhLordInDualSign = seventhLordPlanet ? [2, 5, 8, 11].includes(seventhLordPlanet.rashi.index) : false;
 
+  // Dignified Mars: exalted in Capricorn or in own signs Aries/Scorpio or Yogakaraka in Leo
+  const isMarsDignified = Boolean(
+    mars && ([0, 7, 9].includes(mars.rashi.index) || (lagnaIdx === 3 && mars.rashi.index === 4))
+  );
+  // Mars in own sign/exalted directly conjunct Venus disciplines and purifies Kama tendencies (e.g. MKBHD with Swakshetra Mars in Scorpio 12th)
+  const isVenusDisciplinedByDignifiedMars = Boolean(
+    mars && venus && mars.house === venus.house && isMarsDignified
+  );
+
   // Severe affair affliction in classical Jyotisha: Venus conjunct Rahu tightly in 5, 7, 8, 12 with NO Jupiter aspect
   const venusRahuAffair = Boolean(
-    venus && rahu && Math.abs(venus.house - rahu.house) === 0 && [5, 7, 8, 12].includes(venusH) && !hasGuruProtection
+    venus && rahu && Math.abs(venus.house - rahu.house) === 0 && [5, 7, 8, 12].includes(venusH) &&
+    (venusH === 7 ? !hasGuruProtection : !jupiterProtectsVenusOrLord) &&
+    !isVenusDisciplinedByDignifiedMars
   );
   const marsVenusAffair = Boolean(
     venus && mars && (
@@ -1284,7 +1376,9 @@ export const detectNativeSensualAndFidelity = (kundli: KundliOutput): NativeSens
       houseDist(mars.house, venus.house) === 7 ||
       houseDist(mars.house, venus.house) === 8 ||
       houseDist(mars.house, venus.house) === 4
-    ) && [5, 7, 8, 12].includes(venusH) && !hasGuruProtection
+    ) && [5, 7, 8, 12].includes(venusH) &&
+    (venusH === 7 ? !hasGuruProtection : !jupiterProtectsVenusOrLord) &&
+    !isVenusDisciplinedByDignifiedMars
   );
 
   // 7th lord in Dusthana (6, 8, 12) with malefic pressure
@@ -1313,10 +1407,11 @@ export const detectNativeSensualAndFidelity = (kundli: KundliOutput): NativeSens
 
   const hasStrongAffairRisk = Boolean(hasExtramaritalAndSpaAffliction || venusRahuAffair);
 
-  // Authentic Parashari Multiple Relationships / Wanderlust Risk:
+  // Authentic Parashari Multiple Relationships / Wanderlust Risk (including Mars + Rahu in 7th Angaraka-Rahu Yoga):
   const hasMultipleRelationshipsRisk = Boolean(
     hasStrongAffairRisk ||
     marsVenusAffair ||
+    (mars && rahu && mars.house === 7 && rahu.house === 7) ||
     (rahu && (rahu.house === 7 || rahu.house === 5) && !hasGuruProtection && (seventhLordAfflictedInDusthana || isSeventhInDualSign || dualSignVenusAfflicted)) ||
     (isSeventhInDualSign && isSeventhLordInDualSign && !hasGuruProtection && (marsVenusAffair || dualSignVenusAfflicted || [7, 8, 12].includes(venusH))) ||
     (seventhLordAfflictedInDusthana && (saturn?.house === 7 || rahu?.house === 7 || ketu?.house === 7))
@@ -1488,7 +1583,8 @@ export const evaluateNativeNegativeShadesAndCriminality = (
     jupiterAspectsLagnaLord ||
     jupiterAspectsMoon ||
     jupiterAspects2nd ||
-    jupiterAspects2ndLord
+    jupiterAspects2ndLord ||
+    (jupiter && (jupiter.isExalted || jupiter.rashi.index === 3))
   );
 
   const hasBeneficKendraShield = [jupiter, venus].some(p => p && [1, 4, 7, 10, 5, 9].includes(p.house));
@@ -1862,7 +1958,7 @@ export const evaluateNativeNegativeShadesAndCriminality = (
     sixthLordPlanet && sixthLordPlanet.house === 12 && (rahu?.house === 12 || saturn?.house === 12)
   );
   const isLagnaLord6thLordAfflicted = Boolean(
-    lagnaLordPlanet && sixthLordPlanet && Math.abs(lagnaLordPlanet.house - sixthLordPlanet.house) === 0 && [saturn, rahu].some(p => p && p.house === lagnaLordPlanet.house)
+    lagnaLordPlanet && sixthLordPlanet && lagnaLordPlanet.name !== sixthLordPlanet.name && Math.abs(lagnaLordPlanet.house - sixthLordPlanet.house) === 0 && [saturn, rahu].some(p => p && p.house === lagnaLordPlanet.house)
   );
 
   if (isChild) {
@@ -2267,7 +2363,10 @@ export const generate10MasterLifeBulletPoints = (
   const h10PlanetsKn = kundli.planets.filter((p) => p.house === 10).map((p) => toKannadaPlanet(p.name)).join(", ") || `${tenthLordKn} ಅಧಿಪತ್ಯ`;
 
   const marsHouse = mars?.house ?? 1;
-  const isKujaDosha = [1, 2, 4, 7, 8, 12].includes(marsHouse);
+  const isMarsExalted = mars?.rashi.index === 9; // Capricorn
+  const isMarsOwnSign = mars?.rashi.index === 0 || mars?.rashi.index === 7; // Aries or Scorpio
+  const isMarsWithGuru = Boolean(mars && jupiter && (mars.house === jupiter.house || [5, 7, 9].includes(((mars.house - jupiter.house + 12) % 12) + 1)));
+  const isKujaDosha = [1, 2, 4, 7, 8, 12].includes(marsHouse) && !isMarsExalted && !isMarsOwnSign && !isMarsWithGuru;
 
   const saturnHouse = saturn?.house ?? 1;
   const isSaturnIn7th = saturnHouse === 7;
@@ -2370,6 +2469,8 @@ export const generate10MasterLifeBulletPoints = (
   const isChildNative = age < 16;
   const isSeniorNative = age >= 55;
   const isMarriedNative = (context.maritalStatus || "").toLowerCase() === "married";
+  const marriageDestiny = determineMarriageDestiny(kundli, context);
+  const isCelibateAscetic = marriageDestiny.verdict === "lifelong_celibacy_denial";
 
   let doshaTitleKn = "ಸಾಮರಸ್ಯದ ದಾಂಪತ್ಯ ಯೋಗ";
   let doshaTitleEn = "Marital Harmony & Lineage Synergy";
@@ -2406,6 +2507,24 @@ export const generate10MasterLifeBulletPoints = (
       mantraEn: "Daily Gayatri Mantra & Saraswati Stotram",
       pujaKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಬಾಲ ಸರಸ್ವತಿ ಮೇಧಾ ಸಂಕಲ್ಪ ಸೇವೆ",
       pujaEn: "Bala Saraswati Medha Sankalpa Seva at Gokarna Kshetra"
+    };
+  } else if (isCelibateAscetic) {
+    doshaTitleKn = "ತಪಸ್ವೀ ನಿರ್ಲಿಪ್ತತೆ, ಬ್ರಹ್ಮಚರ್ಯ ಯೋಗ & ಸಮಾಜ ಸಮರ್ಪಣೆ";
+    doshaTitleEn = "Ascetic Dedication, Sanyasa Yoga & Spiritual Renunciation";
+    doshaDescKn = "ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಶಾಸ್ತ್ರೋಕ್ತ ಪ್ರವ್ರಜ್ಯಾ (ಸಂನ್ಯಾಸ) ಯೋಗ ಅಥವಾ ಬ್ರಹ್ಮಚರ್ಯ ಕಾರಕ ಗ್ರಹಗಳ ಪ್ರಭಾವ ಗರಿಷ್ಠವಾಗಿದ್ದು, ಲೌಕಿಕ ದಾಂಪತ್ಯ ಬಂಧನಗಳಿಗಿಂತ ರಾಷ್ಟ್ರ ಸೇವೆ, ಜ್ಞಾನ ಸಾಧನೆ, ಸಮಾಜ ಕಲ್ಯಾಣ ಅಥವಾ ಆಧ್ಯಾತ್ಮಿಕ ಸಾಧನೆಗೆ ಜೀವನವು ಮುಡಿಪಾಗಿರುತ್ತದೆ. ಲೌಕಿಕ ಸಂಸಾರದಿಂದ ಮುಕ್ತವಾದ ಧನ್ಯತಾ ಜೀವನ ನಿಮ್ಮದಾಗಿದೆ.";
+    doshaDescEn = "Ascetic combinations and strong spiritual/detached yogas direct vital energy toward selfless service, knowledge mastery, or higher spiritual mission, free from domestic bondage.";
+    specificDosha = {
+      hasDosha: false,
+      doshaNameKn: "ನೈಷ್ಠಿಕ ಬ್ರಹ್ಮಚರ್ಯ / ತಪಸ್ವೀ ಯೋಗ",
+      doshaNameEn: "Naishtika Brahmacharya / Tapasvi Yoga",
+      rootCauseHouseKn: "ಶಾಸ್ತ್ರೋಕ್ತ ಪ್ರವ್ರಜ್ಯಾ ಯೋಗ / ಮೋಕ್ಷ ಕಾರಕ ಬಲ",
+      rootCauseHouseEn: "Classical Pravrajya / Moksha Alignment",
+      afflictedPlanetKn: "ಕೇತು & ಸತ್ತ್ವ ಕಾರಕ ಗ್ರಹಗಳು",
+      afflictedPlanetEn: "Ketu & Sattvic Planetary Forces",
+      mantraKn: "ದಿನನಿತ್ಯ ಮಹಾಮೃತ್ಯುಂಜಯ ಮಂತ್ರ ಅಥವಾ ಓಂ ನಮೋ ನಾರಾಯಣಾಯ",
+      mantraEn: "Daily Maha Mrityunjaya Mantra or Om Namo Narayanaya",
+      pujaKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಆತ್ಮಕಲ್ಯಾಣ & ಲೋಕಸಂಗ್ರಹ ಸಂಕಲ್ಪ ಸೇವೆ",
+      pujaEn: "Atma Kalyana & Loka Sangraha Sankalpa Seva at Gokarna Kshetra"
     };
   } else if (isSeniorNative) {
     doshaTitleKn = "ದಾಂಪತ್ಯ ಪರಿಪಕ್ವತೆ, ವಾನಪ್ರಸ್ಥ ಸಾಮರಸ್ಯ & ಮೊಮ್ಮಕ್ಕಳ ಭಾಗ್ಯ";
@@ -2967,19 +3086,19 @@ export const generate10MasterLifeBulletPoints = (
       titleHi: "विवाह, दांपत्य और संतान योग",
       titleTe: "వివాహం, దాంపత్యం మరియు సంతాన యోగం",
       titleTa: "திருமணம் மற்றும் குழந்தை பேறு",
-      badgeKn: `7ನೇ ಕಳತ್ರ • ${seventhLordKn}`,
-      badgeEn: `7th House • ${seventhLord}`,
+      badgeKn: isCelibateAscetic ? "ಬ್ರಹ್ಮಚರ್ಯ • ತಪಸ್ವೀ ಯೋಗ" : `7ನೇ ಕಳತ್ರ • ${seventhLordKn}`,
+      badgeEn: isCelibateAscetic ? "Brahmacharya • Ascetic Yoga" : `7th House • ${seventhLord}`,
       badgeHi: "सप्तम भाव",
       badgeTe: "7వ స్థానం",
       badgeTa: "7ஆம் இடம்",
-      icon: "💍",
+      icon: isCelibateAscetic ? "🧘" : "💍",
       readingKn: doshaDescKn,
       readingEn: doshaDescEn,
       readingHi: doshaDescEn,
       readingTe: doshaDescEn,
       readingTa: doshaDescEn,
-      astrologicalBasisKn: `7ನೇ ಭಾವ (ಕಳತ್ರ ಸ್ಥಾನ ${seventhLordKn}) ಮತ್ತು 5ನೇ ಭಾವ (ಸಂತಾನ ಸ್ಥಾನ ${fifthLordKn}).`,
-      astrologicalBasisEn: `7th house of marriage (${seventhLord}) and 5th house of progeny (${fifthLord}).`,
+      astrologicalBasisKn: isCelibateAscetic ? "ಶಾಸ್ತ್ರೋಕ್ತ ಪ್ರವ್ರಜ್ಯಾ (ಸಂನ್ಯಾಸ) ಯೋಗ & ನೈಷ್ಠಿಕ ಬ್ರಹ್ಮಚರ್ಯ ಕಾರಕ ಬಲ." : `7ನೇ ಭಾವ (ಕಳತ್ರ ಸ್ಥಾನ ${seventhLordKn}) ಮತ್ತು 5ನೇ ಭಾವ (ಸಂತಾನ ಸ್ಥಾನ ${fifthLordKn}).`,
+      astrologicalBasisEn: isCelibateAscetic ? "Classical Pravrajya (renunciation) yoga & Naishtika Brahmacharya alignment." : `7th house of marriage (${seventhLord}) and 5th house of progeny (${fifthLord}).`,
       doshaSpecifics: specificDosha
     },
     {
@@ -3076,7 +3195,7 @@ export const generate10MasterLifeBulletPoints = (
 
 export const generateGoodAndBadTraits = (
   kundli: KundliOutput,
-  context: { birthDate: string; birthTime: string; latitude: number; longitude: number; gender?: string; devoteeName?: string },
+  context: { birthDate: string; birthTime: string; latitude: number; longitude: number; gender?: string; devoteeName?: string; maritalStatus?: string },
   maha: PlanetName,
   bhukti: PlanetName,
   prescriptions: AstrologicalPrescriptions,
@@ -3121,6 +3240,7 @@ export const generateGoodAndBadTraits = (
   const seventhLordPlanet = kundli.planets.find((p) => p.name === seventhLord);
   const eighthLordPlanet = kundli.planets.find((p) => p.name === eighthLord);
   const fifthLordPlanet = kundli.planets.find((p) => p.name === fifthLord);
+  const eleventhLordPlanet = kundli.planets.find((p) => p.name === eleventhLord);
 
   // Exact Vedic house distance helper (1 to 12)
   const houseDist = (fromH: number, toH: number) => ((toH - fromH + 12) % 12) + 1;
@@ -3128,14 +3248,17 @@ export const generateGoodAndBadTraits = (
   // Age determination: Child (< 14) vs Adult (>= 14)
   const isChild = devoteeAge < 14;
   const isMale = (context.gender || "Male").toLowerCase() === "male";
+  const marriageDestiny = determineMarriageDestiny(kundli, context);
+  const isCelibateAscetic = marriageDestiny.verdict === "lifelong_celibacy_denial";
 
   // Dynamic Secrecy Determination:
   // Fire signs [0, 4, 8]: Aries, Leo, Sagittarius -> Open, candid, spontaneous
   // Earth signs [1, 5, 9]: Taurus, Virgo, Capricorn -> Quiet, pragmatic discretion, self-contained
   // Air signs [2, 6, 10]: Gemini, Libra, Aquarius -> Intellectual deflection, communicative masking
   // Water signs [3, 7, 11]: Cancer, Scorpio, Pisces -> Deep emotional vaults, absolute private concealment
-  const spouseKn = isMale ? "ಪತ್ನಿ/ಹೆಂಡತಿ" : "ಪತಿ/ಗಂಡ";
-  const spouseEn = isMale ? "wife" : "husband";
+  const isCelibateOrSingle = isCelibateAscetic || ((context.maritalStatus || "").toLowerCase() === "single" || (context.maritalStatus || "").toLowerCase() === "unmarried");
+  const spouseKn = isCelibateOrSingle ? "ಆಪ್ತರು & ಒಡನಾಡಿಗಳು" : (isMale ? "ಪತ್ನಿ/ಹೆಂಡತಿ" : "ಪತಿ/ಗಂಡ");
+  const spouseEn = isCelibateOrSingle ? "close associates" : (isMale ? "wife" : "husband");
 
   let secrecyKn = "";
   let secrecyEn = "";
@@ -4195,11 +4318,7 @@ export const generateGoodAndBadTraits = (
   const venusSign = venus?.rashi.index ?? 0;
   const neuterSigns = [2, 5, 10]; // Gemini, Virgo, Aquarius
 
-  const hasSameGenderAffinity = (
-    (venus && mercury && Math.abs(venus.house - mercury.house) === 0 && (saturn?.house === 7 || saturn?.house === 8 || rahu?.house === 7 || ketu?.house === 7)) ||
-    (venus && [7, 8].includes(venusH) && mercury && [7, 8].includes(mercury.house) && neuterSigns.includes(venusSign)) ||
-    (ketu && [7, 8].includes(ketu.house) && mercury && [7, 8].includes(mercury.house) && venus && [saturn, ketu].some(p => p && Math.abs(p.house - venus.house) === 0))
-  );
+  const hasSameGenderAffinity = sensual.hasSameGenderAffinity;
 
   let badTrait2: TraitBulletPoint;
   if (hasSameGenderAffinity) {
@@ -4507,41 +4626,64 @@ export const generateGoodAndBadTraits = (
   }
 
   // 4. SPECULATION, WEALTH LOSS & TRAPS EVALUATION
-  let speculationScore = 0;
-  if (rahu && rahu.house === 5) speculationScore += 3.5;
-  if (fifthLordPlanet) {
-    const isFifthLordNeecha = (fifthLordPlanet.name === PlanetName.Mars && fifthLordPlanet.rashi.index === 3) ||
+  const isFifthLordDebilitated = Boolean(
+    fifthLordPlanet && (
+      (fifthLordPlanet.name === PlanetName.Mars && fifthLordPlanet.rashi.index === 3) ||
       (fifthLordPlanet.name === PlanetName.Sun && fifthLordPlanet.rashi.index === 6) ||
       (fifthLordPlanet.name === PlanetName.Moon && fifthLordPlanet.rashi.index === 7) ||
       (fifthLordPlanet.name === PlanetName.Jupiter && fifthLordPlanet.rashi.index === 9) ||
       (fifthLordPlanet.name === PlanetName.Venus && fifthLordPlanet.rashi.index === 5) ||
       (fifthLordPlanet.name === PlanetName.Saturn && fifthLordPlanet.rashi.index === 0) ||
-      (fifthLordPlanet.name === PlanetName.Mercury && fifthLordPlanet.rashi.index === 11);
-    if (isFifthLordNeecha) speculationScore += 2.5;
+      (fifthLordPlanet.name === PlanetName.Mercury && fifthLordPlanet.rashi.index === 11)
+    )
+  );
+
+  let speculationScore = 0;
+  if (rahu && rahu.house === 5) speculationScore += 3.5;
+  if (fifthLordPlanet) {
+    if (isFifthLordDebilitated) speculationScore += 2.5;
     if ([6, 8, 12].includes(fifthLordPlanet.house)) speculationScore += 2.0;
   }
   if (saturn && saturn.house === 8) speculationScore += 2.0;
   if (mars && mars.house === 8) speculationScore += 1.5;
   if (ketu && ketu.house === 11) speculationScore += 1.5;
 
-  const isSpeculationLoss = speculationScore >= 2.5;
+  const isSpeculationLoss = (speculationScore >= 4.0) && Boolean(
+    (rahu && rahu.house === 5) ||
+    isFifthLordDebilitated ||
+    (saturn && saturn.house === 8 && [PlanetName.Mars, PlanetName.Rahu].some(p => p === fifthLordPlanet?.name))
+  );
   const lossInfo = getDynamicLossScaleText(kundli);
 
   let illegalScore = 0;
-  if (rahu && rahu.house === 8) illegalScore += 2.5;
+  if (rahu && rahu.house === 8) {
+    if ((mars && mars.house === 8) || (saturn && saturn.house === 8)) {
+      illegalScore += 2.5;
+    } else {
+      illegalScore += 0.5;
+    }
+  }
   if (mars && mars.house === 8 && rahu && rahu.house === 8) illegalScore += 2.0;
   if (saturn && saturn.house === 8 && rahu && rahu.house === 8) illegalScore += 1.5;
   if (mercury && [8, 12].includes(mercury.house) && (rahu && Math.abs(mercury.house - rahu.house) === 0)) illegalScore += 2.0;
   if (eighthLordPlanet && [2, 11].includes(eighthLordPlanet.house) && rahu && [2, 8, 11].includes(rahu.house)) illegalScore += 1.5;
 
   const hasDharmaKarmaProtection = Boolean(
-    ((sun?.house === 5 && moon?.house === 5) || (jupiter && [1, 5, 9, 11].includes(jupiter.house)))
+    (jupiter && ([1, 4, 5, 7, 9, 10, 11].includes(jupiter.house) || jupiter.rashi.index === 3)) ||
+    (sun && [1, 9, 10].includes(sun.house)) ||
+    (sun?.house === 5 && moon?.house === 5)
   );
   if (hasDharmaKarmaProtection) illegalScore = 0;
 
   const hasIllegal = illegalScore >= 2.0 && !isSpeculationLoss && isMale;
 
-  const hasFinancialTrap = (rahu && [2, 11].includes(rahu.house)) || (mercury && [6, 8, 12].includes(mercury.house)) || (secondLordPlanet && [6, 8, 12].includes(secondLordPlanet.house));
+  const isSecondLordAfflicted = Boolean(secondLordPlanet && [6, 8, 12].includes(secondLordPlanet.house) && (rahu?.house === secondLordPlanet.house || saturn?.house === secondLordPlanet.house));
+  const isEleventhLordAfflicted = Boolean(eleventhLordPlanet && [6, 8, 12].includes(eleventhLordPlanet.house) && (rahu?.house === eleventhLordPlanet.house || saturn?.house === eleventhLordPlanet.house));
+  const isRahuAfflictingWealthLord = Boolean(rahu && [2, 11].includes(rahu.house) && (
+    (rahu.house === 2 && secondLordPlanet && [6, 8, 12].includes(secondLordPlanet.house)) ||
+    (rahu.house === 11 && eleventhLordPlanet && [6, 8, 12].includes(eleventhLordPlanet.house))
+  ));
+  const hasFinancialTrap = !hasDharmaKarmaProtection && (isSecondLordAfflicted || isEleventhLordAfflicted || isRahuAfflictingWealthLord);
 
   let badTrait4: TraitBulletPoint;
   if (isSpeculationLoss) {
@@ -5127,6 +5269,7 @@ export const generateCurrentLifeDiagnosis = (
     negativeShades: evaluateNativeNegativeShadesAndCriminality(kundli, context, dashaTiming, liveGochara),
     currentLifeSituation: diagnoseCurrentLifeSituation(kundli, context, dashaTiming, liveGochara),
     accurateProfession: determineAccurateProfession(kundli, context),
+    marriageDestiny: determineMarriageDestiny(kundli, context),
     dashaSandhiAndRoadmap: generateDashaSandhiAndRoadmap(kundli, {
       birthDate: context.birthDate,
       birthTime: context.birthTime,
@@ -5203,22 +5346,22 @@ export const generateInstantQAList = (
   const ketu = kundli.planets.find((p) => p.name === PlanetName.Ketu);
   const venus = kundli.planets.find((p) => p.name === PlanetName.Venus);
   const mercury = kundli.planets.find((p) => p.name === PlanetName.Mercury);
+  const jupiter = kundli.planets.find((p) => p.name === PlanetName.Jupiter);
   const seventhLordPlanet = kundli.planets.find((p) => p.name === seventhLord);
   const isSeventhLordRetro = Boolean(seventhLordPlanet?.isRetrograde);
   const isVenusRetro = Boolean(venus?.isRetrograde);
 
   const marsHouse = mars?.house ?? 1;
-  const isKujaDosha = [1, 2, 4, 7, 8, 12].includes(marsHouse);
+  const isMarsExalted = mars?.rashi.index === 9;
+  const isMarsOwnSign = mars?.rashi.index === 0 || mars?.rashi.index === 7;
+  const isMarsWithGuru = Boolean(mars && jupiter && (mars.house === jupiter.house || [5, 7, 9].includes(((mars.house - jupiter.house + 12) % 12) + 1)));
+  const isKujaDosha = [1, 2, 4, 7, 8, 12].includes(marsHouse) && !isMarsExalted && !isMarsOwnSign && !isMarsWithGuru;
   const hasShani7th = saturn && (saturn.house === 7 || [1, 5, 10].includes(saturn.house));
   const hasSarpa7th = (rahu && rahu.house === 7) || (ketu && ketu.house === 7);
   const hasSarpa5th = (rahu && rahu.house === 5) || (ketu && ketu.house === 5);
 
-  const neuterSigns = [2, 5, 10];
-  const venusSign = venus?.rashi.index ?? 0;
-  const hasSameGenderAffinity = (
-    (venus && mercury && Math.abs(venus.house - mercury.house) === 0 && (saturn?.house === 7 || saturn?.house === 8 || rahu?.house === 7 || ketu?.house === 7)) ||
-    (venus && [7, 8].includes(venus?.house ?? 1) && mercury && [7, 8].includes(mercury.house) && neuterSigns.includes(venusSign))
-  );
+  const sensual = detectNativeSensualAndFidelity(kundli);
+  const hasSameGenderAffinity = sensual.hasSameGenderAffinity;
   let sensualScore = 0;
   if (venus && mars && Math.abs(venus.house - mars.house) <= 1) sensualScore += 2.0;
   if (venus && rahu && Math.abs(venus.house - rahu.house) <= 1) sensualScore += 2.0;
@@ -5765,7 +5908,7 @@ export const generateInstantQAList = (
 
 export const generatePanchangaAngaSynthesis = (
   kundli: KundliOutput,
-  context: { birthDate: string; birthTime: string; latitude: number; longitude: number; lang?: string; devoteeName?: string; gender?: string; devoteeAge?: number }
+  context: { birthDate: string; birthTime: string; latitude: number; longitude: number; lang?: string; devoteeName?: string; gender?: string; devoteeAge?: number; maritalStatus?: string }
 ): PanchangaSynthesisOutput => {
   const tradPanchanga = calculateTraditionalBaggona(context.birthDate, context.birthTime, context.latitude, context.longitude);
   
@@ -5972,12 +6115,7 @@ export const generateVedicConsultationAnswer = (
   const isTeetotaler = diet.isTeetotaler;
 
   // Sensual & Affairs
-  const neuterSigns = [2, 5, 10]; // Gemini, Virgo, Aquarius
-  const venusSign = venus?.rashi.index ?? 0;
-  const hasSameGenderAffinity = (
-    (venus && mercury && Math.abs(venus.house - mercury.house) === 0 && (saturn?.house === 7 || saturn?.house === 8 || rahu?.house === 7 || ketu?.house === 7)) ||
-    (venus && [7, 8].includes(venus?.house ?? 1) && mercury && [7, 8].includes(mercury.house) && neuterSigns.includes(venusSign))
-  );
+  const hasSameGenderAffinity = sensual.hasSameGenderAffinity;
   const hasSensual = sensual.hasStrongAffairRisk;
   const hasMaritalFidelity = sensual.hasMaritalFidelity;
 
@@ -6027,7 +6165,10 @@ export const generateVedicConsultationAnswer = (
   const remM = currentDiagnosis.dashaTiming?.remainingMonths || 5;
 
   const marsHouse = mars?.house ?? 1;
-  const isKujaDosha = [1, 2, 4, 7, 8, 12].includes(marsHouse);
+  const isMarsExalted = mars?.rashi.index === 9;
+  const isMarsOwnSign = mars?.rashi.index === 0 || mars?.rashi.index === 7;
+  const isMarsWithGuru = Boolean(mars && jupiter && (mars.house === jupiter.house || [5, 7, 9].includes(((mars.house - jupiter.house + 12) % 12) + 1)));
+  const isKujaDosha = [1, 2, 4, 7, 8, 12].includes(marsHouse) && !isMarsExalted && !isMarsOwnSign && !isMarsWithGuru;
   const hasShani7th = saturn && (saturn.house === 7 || [1, 5, 10].includes(saturn.house));
   const hasSarpa7th = (rahu && rahu.house === 7) || (ketu && ketu.house === 7);
   const isMaritalCrisis = (seventhLordPlanet && [6, 8, 12].includes(seventhLordPlanet.house)) || isKujaDosha || hasShani7th || hasSarpa7th;

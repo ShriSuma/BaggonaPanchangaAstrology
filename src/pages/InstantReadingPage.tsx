@@ -140,10 +140,13 @@ Technical Astrological Placements:
   * Internal Mindset & Psychological Weather (ಆಂತರಿಕ ಮನಸ್ಥಿತಿ & ಯೋಚನಾ ಲಹರಿ): ${cls?.internalMindsetKn || "ಮಾನಸಿಕ ಚಿಂತನೆಗಳು ಹಾಗೂ ಕೌಟುಂಬಿಕ ಜವಾಬ್ದಾರಿಗಳ ಸಮನ್ವಯ."}
   * Planetary Culprit: ${cls?.planetaryCulpritKn || data.currentDiagnosis.primaryLifeChallenge.planetaryRootCause}
   * Key Daily Life Symptoms: ${cls?.symptomsChecklistKn.join(" | ") || ""}
-- Accurate Specific Profession Determination (ನಿಖರ ವೃತ್ತಿ & ಕಾರ್ಯಕ್ಷೇತ್ರ ನಿರ್ಣಯ - Which work is he doing?):
-  * Title: ${prof?.titleKn || ""} (${prof?.titleEn || ""})
-  * Specific Role: ${prof?.specificRoleKn || ""} (${prof?.specificRoleEn || ""})
-  * Work Environment: ${prof?.workEnvironmentKn || ""} (${prof?.workEnvironmentEn || ""})
+- Accurate Career Fields Where Native Will Shine & Flourish (ಜಾತಕರು ಅತ್ಯುನ್ನತವಾಗಿ ಶೈನ್ ಆಗುವ & ಗರಿಷ್ಠ ಯಶಸ್ಸು ಕಾಣುವ ವೃತ್ತಿ ರಂಗಗಳು):
+  * Primary Field: ${prof?.titleKn || ""} (${prof?.titleEn || ""})
+  * Top Recommended Fields: ${prof?.topSuitableFields ? prof.topSuitableFields.slice(0, 4).map((f: any) => `${f.fieldNameKn} (${f.suitabilityPercentage}%)`).join(", ") : ""}
+  * Why Native Flourishes: ${prof?.whyNativeShinesKn || prof?.workEnvironmentKn || ""}
+  * Special Career Yogas: ${prof?.specialCareerYogasKn?.join(", ") || "ಕರ್ಮ ಸ್ಥಾನದ ಶುಭ ಯೋಗ"}
+  * Leadership Potential: ${prof?.leadershipPotentialKn || ""}
+  * Natural Academic / Subject Talents: ${prof?.subjectAptitudes ? prof.subjectAptitudes.map((s: any) => `${s.nameKn} (${s.ratingKn})`).join(", ") : ""}
   * Classical Basis: ${prof?.astrologicalBasisKn || ""}
   * Jaimini Amatyakaraka (AmK): ${prof?.amatyakarakaPlanetKn || ""}
   * 10th House Sign: ${prof?.tenthHouseSignKn || ""} (Lord: ${prof?.primaryPlanetKn || ""})
@@ -165,10 +168,10 @@ STRICT WRITING & ASTROLOGER PERSONA RULES:
 1. Speak DIRECTLY to the devotee in authoritative, deeply empathetic, face-to-face Vedic Astrologer spoken voice in 100% PURE ${isKn ? "Kannada" : "English"}. NO English words or foreign language mix-up.
 2. Use standard traditional Vedic planetary terminology: 'ರವಿ' (Ravi), 'ಕುಜ' (Kuja), 'ಗುರು' (Guru), 'ಶುಕ್ರ' (Shukra), 'ಶನಿ' (Shani), 'ಬುಧ' (Budha), 'ಚಂದ್ರ' (Chandra), 'ರಾಹು' (Rahu), 'ಕೇತು' (Ketu).
 3. MANDATORY PARAGRAPH 1 DIRECT REALITY: The very first paragraph MUST start with what the person is currently experiencing in both: (A) External Real-Life Events (${cls?.externalLifeRealityKn || cls?.detailedRealityKn || data.currentDiagnosis.primaryLifeChallenge.description}), and (B) Internal Mindset & Psychological Weather (${cls?.internalMindsetKn || ""}). Reveal their running Dasha (${data.currentDiagnosis.prasthuthaSthiti.runningDashaSummary}) and planetary timing.
-4. MANDATORY PARAGRAPH 2 ACCURATE PROFESSION: Accurately declare which work the native is doing (${prof?.titleKn || ""} - ${prof?.specificRoleKn || ""}). Detail their day-to-day work environment and astrological foundation.
+4. MANDATORY PARAGRAPH 2 CAREER FIELDS & NATURAL TALENTS: Highlight the prime career fields where the native is destined to shine and flourish (${prof?.topSuitableFields ? prof.topSuitableFields.slice(0, 3).map((f: any) => isKn ? f.fieldNameKn : f.fieldNameEn).join(", ") : prof?.titleKn || ""}). Mention their natural academic/intellectual aptitudes, leadership potential (${prof?.leadershipPotentialKn || ""}), and high-power career yogas (${prof?.specialCareerYogasKn?.join(", ") || ""}) based on the 10th house, Amatyakaraka, and planetary dignity. DO NOT guess or assert what temporary job they currently do today.
 5. Structure your response into 4 comprehensive paragraphs:
    - Paragraph 1: Direct greeting ("ನಮಸ್ಕಾರ ${session.input.name || "ಭಕ್ತರೇ"}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕ ನೋಡಿದೆ."). Address both external real-life events and internal mindset/anxieties, running Dasha, and acute planetary timing.
-   - Paragraph 2: State their accurate profession & vocation (${prof?.titleKn || ""}), specific role (${prof?.specificRoleKn || ""}), work environment (${prof?.workEnvironmentKn || ""}), and 10th house / Jaimini AmK basis.
+   - Paragraph 2: State their destined career fields where they achieve highest success (${prof?.topSuitableFields ? prof.topSuitableFields.slice(0, 3).map((f: any) => isKn ? f.fieldNameKn : f.fieldNameEn).join(", ") : prof?.titleKn || ""}), their natural academic & intellectual aptitudes, and classical yogas supporting growth.
    - Paragraph 3: Explain the astrological planetary reality and give an exact turning-point timeline (${cls?.reliefTimelineKn || data.currentDiagnosis.dashaTiming?.timelineKn || "ಮುಂದಿನ ಕೆಲವೇ ತಿಂಗಳುಗಳಲ್ಲಿ"}) using ENGLISH DIGITS when breakthroughs occur.
    - Paragraph 4: Prescribe the exact remedies with precision: ${data.prescriptions.gemstoneRing.primaryGemstoneKn} (${data.prescriptions.gemstoneRing.caratWeight}), ${data.prescriptions.rudraksha.nameKn}, daily morning rituals, and Gokarna Mahabaleshwara Kshetra blessings.
 6. DO NOT use markdown bold asterisks (no ** or *). Use clean, plain text.
@@ -192,7 +195,7 @@ Return a valid JSON object matching this schema:
 {
   "executiveReadingParagraphs": [
     "Paragraph 1 (Direct Greeting & Acute Current Life Situation - ಹಾಲಿ ಅನುಭವಿಸುತ್ತಿರುವ ವಾಸ್ತವ ಜೀವನ ಸ್ಥಿತಿ)",
-    "Paragraph 2 (Accurate Specific Profession - ನಿಖರ ವೃತ್ತಿ & ಕಾರ್ಯಕ್ಷೇತ್ರ ನಿರ್ಣಯ: Which work is he doing?)",
+    "Paragraph 2 (Destined Career Fields & Natural Talents - ಅತ್ಯುನ್ನತವಾಗಿ ಶೈನ್ ಆಗುವ ವೃತ್ತಿ ರಂಗಗಳು & ಪ್ರತಿಭೆ)",
     "Paragraph 3 (Planetary Reality & Turning Point Timeline in English digits)",
     "Paragraph 4 (Practical Remedies, Gemstone, Rudraksha & Gokarna Blessings)"
   ]
@@ -1124,71 +1127,151 @@ STRICT RULES:
             );
           })()}
 
-          {/* 💼 1. DEDICATED SECTION: ACCURATE PROFESSION & VOCATION DETERMINATION (ನಿಖರ ವೃತ್ತಿ & ಕಾರ್ಯಕ್ಷೇತ್ರ ನಿರ್ಣಯ) 💼 */}
+          {/* 🌟 1. DEDICATED SECTION: CAREER FIELDS WHERE NATIVE WILL SHINE & FLOURISH (ಜಾತಕರು ಅತ್ಯುನ್ನತವಾಗಿ ಶೈನ್ ಆಗುವ & ಗರಿಷ್ಠ ಯಶಸ್ಸು ಕಾಣುವ ವೃತ್ತಿ ರಂಗಗಳು) 🌟 */}
           {currentDiagnosis?.accurateProfession && (() => {
             const prof = currentDiagnosis.accurateProfession;
+            const fieldsToDisplay = prof.topSuitableFields && prof.topSuitableFields.length > 0
+              ? prof.topSuitableFields
+              : [
+                  {
+                    fieldCode: prof.code,
+                    fieldNameKn: prof.titleKn,
+                    fieldNameEn: prof.titleEn,
+                    suitabilityPercentage: prof.confidenceScore,
+                    coreStrengthsKn: prof.specificRoleKn,
+                    coreStrengthsEn: prof.specificRoleEn,
+                    whyNativeShinesKn: prof.astrologicalBasisKn,
+                    whyNativeShinesEn: prof.astrologicalBasisEn,
+                    verdictKn: "ಅತ್ಯುತ್ತಮ ಯಶಸ್ಸು (Top Recommended)" as const,
+                    verdictEn: "Top Recommended" as const
+                  }
+                ];
+
             return (
-              <div className="rounded-3xl border-2 border-indigo-400 bg-gradient-to-b from-indigo-50/70 via-white to-amber-50/40 p-6 md:p-8 text-stone-950 shadow-xl space-y-6">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-indigo-300 pb-4">
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-amber-500 text-white text-2xl shadow-md border border-indigo-300">
-                      💼
-                    </span>
-                    <div>
-                      <span className="text-[11px] font-black uppercase tracking-wider text-indigo-900 block">
-                        ॥ ಜಾತಕರ ನಿಖರ ವೃತ್ತಿ & ಕಾರ್ಯಕ್ಷೇತ್ರ ನಿರ್ಣಯ ॥
+              <div className="space-y-6">
+                <div className="rounded-3xl border-2 border-indigo-400 bg-gradient-to-b from-indigo-50/70 via-white to-amber-50/40 p-6 md:p-8 text-stone-950 shadow-xl space-y-6">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-indigo-300 pb-4">
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-amber-500 text-white text-2xl shadow-md border border-indigo-300">
+                        🌟
                       </span>
-                      <h3 className="text-base md:text-xl font-black text-indigo-950 font-serif">
-                        {isKn
-                          ? `${session.input.name || "ಜಾತಕರ"} ನಿಖರ ಉದ್ಯೋಗ / ಕಾರ್ಯಕ್ಷೇತ್ರ: ${prof.titleKn}`
-                          : `${session.input.name || "Devotee"}'s Accurate Vocation: ${prof.titleEn}`}
-                      </h3>
+                      <div>
+                        <span className="text-[11px] font-black uppercase tracking-wider text-indigo-900 block">
+                          ॥ ಜಾತಕರು ಅತ್ಯುನ್ನತವಾಗಿ ಶೈನ್ ಆಗುವ & ಗರಿಷ್ಠ ಯಶಸ್ಸು ಕಾಣುವ ವೃತ್ತಿ ರಂಗಗಳು ॥
+                        </span>
+                        <h3 className="text-base md:text-xl font-black text-indigo-950 font-serif">
+                          {isKn
+                            ? `${session.input.name || "ಜಾತಕರು"} ಅತ್ಯುನ್ನತವಾಗಿ ಶೈನ್ ಆಗುವ ವೃತ್ತಿ ರಂಗಗಳು`
+                            : `${session.input.name || "Devotee"}'s Destined Flourishing Career Fields`}
+                        </h3>
+                      </div>
                     </div>
+                    <span className="px-3.5 py-1.5 rounded-full bg-indigo-100 text-indigo-950 text-xs font-black border border-indigo-400 shadow-sm flex items-center gap-1.5">
+                      <span className="inline-block h-2 w-2 rounded-full bg-indigo-600 animate-pulse" />
+                      <span>{isKn ? `${prof.confidenceScore}% ಗ್ರಹಬಲ ಹೊಂದಾಣಿಕೆ` : `${prof.confidenceScore}% Planetary Alignment`}</span>
+                    </span>
                   </div>
-                  <span className="px-3.5 py-1.5 rounded-full bg-indigo-100 text-indigo-950 text-xs font-black border border-indigo-400 shadow-sm flex items-center gap-1.5">
-                    <span className="inline-block h-2 w-2 rounded-full bg-indigo-600 animate-pulse" />
-                    <span>{isKn ? `${prof.confidenceScore}% ನಿಖರ ಹೊಂದಾಣಿಕೆ` : `${prof.confidenceScore}% Classical Alignment`}</span>
-                  </span>
-                </div>
 
-                {/* Main Profession Summary Box */}
-                <div className="p-5 rounded-2xl border-2 border-indigo-200 bg-gradient-to-r from-indigo-50/80 via-white to-amber-50/60 shadow-md space-y-4">
+                  <p className="text-xs text-stone-700 leading-relaxed font-medium">
+                    {isKn
+                      ? "ಜನ್ಮ ಕುಂಡಲಿಯ 10ನೇ ಕರ್ಮ ಸ್ಥಾನ, ಕರ್ಮಾಧಿಪತಿ, ಜೈಮಿನಿ ಅಮಾತ್ಯಕಾರಕ ಹಾಗೂ ಕೇಂದ್ರ-ತ್ರಿಕೋಣ ಯೋಗಗಳ ಆಧಾರದ ಮೇಲೆ ಜಾತಕರು ಯಾವ ರಂಗಗಳಲ್ಲಿ ಅಪ್ರತಿಮ ಯಶಸ್ಸು ಗಳಿಸುತ್ತಾರೆ ಎಂಬುದರ ಶಾಸ್ತ್ರೀಯ ನಿರ್ಣಯ (ಯಾವುದೇ ಕಲ್ಪಿತ ಊಹೆಗಳಿಲ್ಲದೆ ಜನ್ಮಜಾತ ಪ್ರತಿಭೆಯ ಆಧಾರಿತ)."
+                      : "Classical determination of career fields where the native is destined to excel and flourish based on the 10th house, lord of vocation, Jaimini Amatyakaraka, and Kendra-Trikona yogas."}
+                  </p>
+
+                  {/* Top Suitable Fields Grid */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Specific Role */}
-                    <div className="p-4 rounded-xl bg-white border border-indigo-200 shadow-xs space-y-1.5">
-                      <div className="flex items-center gap-2 text-indigo-900 font-bold text-xs">
-                        <span>🎯</span>
-                        <span>{isKn ? "ನಿರ್ದಿಷ್ಟ ವೃತ್ತಿ ಪಾತ್ರ & ಜವಾಬ್ದಾರಿ (Specific Role):" : "Specific Role & Responsibilities:"}</span>
-                      </div>
-                      <p className="text-stone-900 font-semibold text-sm leading-relaxed">
-                        {cleanAstrologyText(isKn ? prof.specificRoleKn : prof.specificRoleEn)}
-                      </p>
-                    </div>
+                    {fieldsToDisplay.slice(0, 4).map((field, idx) => {
+                      const isTopRank = idx === 0;
+                      return (
+                        <div
+                          key={idx}
+                          className={`p-5 rounded-2xl border-2 transition-all space-y-3 ${
+                            isTopRank
+                              ? "bg-gradient-to-br from-amber-50/90 via-white to-indigo-50/70 border-amber-400 shadow-md"
+                              : "bg-white border-indigo-200/90 shadow-sm"
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <span className={`flex h-7 w-7 items-center justify-center rounded-lg text-xs font-black ${
+                                isTopRank ? "bg-amber-500 text-white shadow-xs" : "bg-indigo-100 text-indigo-900 border border-indigo-300"
+                              }`}>
+                                #{idx + 1}
+                              </span>
+                              <h4 className="font-black text-stone-950 text-sm sm:text-base font-serif">
+                                {isKn ? field.fieldNameKn : field.fieldNameEn}
+                              </h4>
+                            </div>
+                            <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-indigo-50 text-indigo-950 border border-indigo-300 whitespace-nowrap">
+                              {isKn ? field.verdictKn : field.verdictEn}
+                            </span>
+                          </div>
 
-                    {/* Work Environment */}
-                    <div className="p-4 rounded-xl bg-white border border-indigo-200 shadow-xs space-y-1.5">
-                      <div className="flex items-center gap-2 text-indigo-900 font-bold text-xs">
-                        <span>🏢</span>
-                        <span>{isKn ? "ದಿನನಿತ್ಯದ ಕಾರ್ಯಕ್ಷೇತ್ರ & ಪರಿಸರ (Work Environment):" : "Daily Work Environment:"}</span>
-                      </div>
-                      <p className="text-stone-900 font-semibold text-sm leading-relaxed">
-                        {cleanAstrologyText(isKn ? prof.workEnvironmentKn : prof.workEnvironmentEn)}
-                      </p>
-                    </div>
+                          {/* Progress Bar */}
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-xs font-bold text-stone-700">
+                              <span>{isKn ? "ಸೂಕ್ತತೆ ಪ್ರಮಾಣ" : "Suitability"}</span>
+                              <span className="text-indigo-950 font-black">{field.suitabilityPercentage}%</span>
+                            </div>
+                            <div className="w-full h-2.5 rounded-full bg-stone-100 overflow-hidden border border-stone-200">
+                              <div
+                                className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-amber-500 transition-all duration-700"
+                                style={{ width: `${field.suitabilityPercentage}%` }}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Core Strengths */}
+                          <div className="text-xs text-stone-800 space-y-1">
+                            <span className="font-bold text-indigo-900 block">{isKn ? "ಕೇಂದ್ರ ಸಾಮರ್ಥ್ಯ:" : "Core Strengths:"}</span>
+                            <p className="font-medium leading-relaxed">{cleanAstrologyText(isKn ? field.coreStrengthsKn : field.coreStrengthsEn)}</p>
+                          </div>
+
+                          {/* Why Native Shines */}
+                          <div className="p-3 rounded-xl bg-indigo-50/60 border border-indigo-200/80 text-[11px] text-stone-800 leading-relaxed space-y-1">
+                            <span className="font-bold text-indigo-950 block">✨ {isKn ? "ಈ ರಂಗದಲ್ಲಿ ಶೈನ್ ಆಗಲು ಗ್ರಹಗಳ ಕಾರಣ:" : "Astrological Driver for Success:"}</span>
+                            <p className="font-medium">{cleanAstrologyText(isKn ? field.whyNativeShinesKn : field.whyNativeShinesEn)}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
 
-                  {/* Classical Astrological Basis */}
-                  <div className="p-4 rounded-xl bg-indigo-50/60 border border-indigo-300/80 text-xs text-stone-800 leading-relaxed space-y-2">
-                    <div className="flex items-center gap-2 font-bold text-indigo-950">
-                      <span>🪐</span>
-                      <span>{isKn ? "ಶಾಸ್ತ್ರೀಯ ಕರ್ಮ ಸ್ಥಾನ & ಗ್ರಹ ಸಂಯೋಗ (Astrological Basis):" : "Classical Astrological Basis:"}</span>
+                  {/* High-Power Career Yogas */}
+                  {prof.specialCareerYogasKn && prof.specialCareerYogasKn.length > 0 && (
+                    <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-300/80 space-y-2.5">
+                      <div className="flex items-center gap-2 text-amber-950 font-black text-xs uppercase tracking-wider">
+                        <span>👑</span>
+                        <span>{isKn ? "ರಾಜಯೋಗ & ಕರ್ಮ ಸ್ಥಾನದ ವಿಶೇಷ ಯೋಗಗಳು (Special Career Yogas):" : "Special Career Yogas & Royal Combinations:"}</span>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {prof.specialCareerYogasKn.map((yoga, yIdx) => (
+                          <span
+                            key={yIdx}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-amber-300 text-amber-950 text-xs font-bold shadow-xs"
+                          >
+                            <span className="text-amber-600">✦</span>
+                            <span>{yoga}</span>
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                    <p className="font-medium">
-                      {cleanAstrologyText(isKn ? prof.astrologicalBasisKn : prof.astrologicalBasisEn)}
-                    </p>
-                  </div>
+                  )}
 
-                  {/* Classical Pillars Badges */}
+                  {/* Leadership Potential */}
+                  {prof.leadershipPotentialKn && (
+                    <div className="p-4 rounded-2xl bg-gradient-to-r from-indigo-50/90 to-amber-50/60 border border-indigo-200 space-y-1.5">
+                      <div className="flex items-center gap-2 text-indigo-950 font-bold text-xs uppercase tracking-wider">
+                        <span>🎖️</span>
+                        <span>{isKn ? "ನಾಯಕತ್ವ & ಆಡಳಿತಾತ್ಮಕ ಸಾಮರ್ಥ್ಯ (Leadership & Governance Potential):" : "Leadership & Governance Potential:"}</span>
+                      </div>
+                      <p className="text-stone-900 font-semibold text-xs sm:text-sm leading-relaxed">
+                        {cleanAstrologyText(isKn ? prof.leadershipPotentialKn : (prof.leadershipPotentialEn || prof.leadershipPotentialKn))}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Classical Astrological Pillars */}
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1 text-xs">
                     <div className="p-2.5 rounded-xl bg-white border border-indigo-200 text-stone-800 shadow-xs">
                       <span className="text-[10px] text-indigo-900 font-bold block uppercase">{isKn ? "ಜೈಮಿನಿ ಅಮಾತ್ಯಕಾರಕ (AmK)" : "Jaimini Amatyakaraka"}</span>
@@ -1210,6 +1293,246 @@ STRICT RULES:
                       <span><b>{isKn ? "ಪರ್ಯಾಯ / ಪೂರಕ ಅವಕಾಶಗಳು:" : "Alternative / Complementary Opportunities:"}</b> {cleanAstrologyText(isKn ? prof.secondaryAlternativeKn : prof.secondaryAlternativeEn)}</span>
                     </div>
                   )}
+                </div>
+
+                {/* 📚 2. DEDICATED SECTION: ACADEMIC & SUBJECT APTITUDES (ಶೈಕ್ಷಣಿಕ ವಿಷಯಗಳಲ್ಲಿ ಆಸಕ್ತಿ & ನೈಸರ್ಗಿಕ ಪ್ರತಿಭೆ) 📚 */}
+                {prof.subjectAptitudes && prof.subjectAptitudes.length > 0 && (
+                  <div className="rounded-3xl border-2 border-emerald-400 bg-gradient-to-b from-emerald-50/70 via-white to-amber-50/40 p-6 md:p-8 text-stone-950 shadow-xl space-y-6">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-emerald-300 pb-4">
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white text-2xl shadow-md border border-emerald-300">
+                          📚
+                        </span>
+                        <div>
+                          <span className="text-[11px] font-black uppercase tracking-wider text-emerald-900 block">
+                            ॥ ಶೈಕ್ಷಣಿಕ ವಿಷಯಗಳಲ್ಲಿ ಆಸಕ್ತಿ & ನೈಸರ್ಗಿಕ ಪ್ರತಿಭೆ ॥
+                          </span>
+                          <h3 className="text-base md:text-xl font-black text-emerald-950 font-serif">
+                            {isKn
+                              ? "ನೈಸರ್ಗಿಕ ಶೈಕ್ಷಣಿಕ & ಬೌದ್ಧಿಕ ಒಲವು (Academic & Subject Aptitudes)"
+                              : "Natural Academic & Subject Aptitudes"}
+                          </h3>
+                        </div>
+                      </div>
+                      <span className="px-3.5 py-1.5 rounded-full bg-emerald-100 text-emerald-950 text-xs font-black border border-emerald-400 shadow-sm flex items-center gap-1.5">
+                        <span className="inline-block h-2 w-2 rounded-full bg-emerald-600 animate-pulse" />
+                        <span>{isKn ? "5ನೇ ವಿದ್ಯಾ ಸ್ಥಾನ & ಬುಧ-ಗುರು ಬಲ" : "5th House & Mercury-Jupiter Strength"}</span>
+                      </span>
+                    </div>
+
+                    <p className="text-xs text-stone-700 leading-relaxed font-medium">
+                      {isKn
+                        ? "ಜಾತಕದ 5ನೇ ವಿದ್ಯಾ ಸ್ಥಾನ, ಬುದ್ಧಿಕಾರಕ ಬುಧ, ಜ್ಞಾನಕಾರಕ ಗುರು ಹಾಗೂ 2ನೇ ವಾಗ್ಸ್ಥಾನಗಳ ಆಧಾರದ ಮೇಲೆ ಜಾತಕರಿಗೆ ಯಾವ ವಿಷಯಗಳಲ್ಲಿ ಜನ್ಮತಃ ಆಸಕ್ತಿ ಮತ್ತು ಶ್ರೇಷ್ಠ ಗ್ರಹಣ ಶಕ್ತಿ ಇದೆ ಎಂಬ ಸಮಗ್ರ ಶಾಸ್ತ್ರೀಯ ವಿಶ್ಲೇಷಣೆ."
+                        : "Evaluation of natural intellectual inclinations, grasping ability, and academic strengths based on the 5th house of intellect, Mercury (intellect), and Jupiter (wisdom)."}
+                    </p>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {prof.subjectAptitudes.map((subj, sIdx) => {
+                        const isHigh = subj.scorePercentage >= 80;
+                        return (
+                          <div
+                            key={sIdx}
+                            className="p-4 rounded-2xl bg-white border-2 border-emerald-200/80 shadow-sm hover:shadow-md transition-all space-y-3"
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <h4 className="font-bold text-stone-900 text-xs sm:text-sm">
+                                {isKn ? subj.nameKn : subj.nameEn}
+                              </h4>
+                              <span
+                                className={`px-2 py-0.5 rounded-md text-[10px] font-black border whitespace-nowrap ${
+                                  isHigh
+                                    ? "bg-emerald-100 text-emerald-950 border-emerald-400"
+                                    : "bg-amber-100 text-amber-950 border-amber-400"
+                                }`}
+                              >
+                                {isKn ? subj.ratingKn : subj.ratingEn}
+                              </span>
+                            </div>
+
+                            <div className="space-y-1">
+                              <div className="flex justify-between text-[11px] font-bold text-stone-700">
+                                <span>{isKn ? "ಸಾಮರ್ಥ್ಯ ಸ್ಕೋರ್" : "Aptitude Score"}</span>
+                                <span className="text-emerald-950 font-black">{subj.scorePercentage}%</span>
+                              </div>
+                              <div className="w-full h-2.5 rounded-full bg-stone-100 overflow-hidden border border-stone-200">
+                                <div
+                                  className={`h-full rounded-full transition-all duration-700 ${
+                                    isHigh
+                                      ? "bg-gradient-to-r from-emerald-500 to-teal-500"
+                                      : "bg-gradient-to-r from-amber-400 to-yellow-500"
+                                  }`}
+                                  style={{ width: `${subj.scorePercentage}%` }}
+                                />
+                              </div>
+                            </div>
+
+                            <p className="text-[11px] text-stone-600 font-medium leading-relaxed">
+                              {cleanAstrologyText(isKn ? subj.planetaryIndicatorKn : subj.planetaryIndicatorEn)}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
+          {/* 💍 3. DEDICATED SECTION: LIFETIME MARRIAGE DESTINY DETERMINATION (ಜೀವಿತಾವಧಿಯ ವಿವಾಹ ಯೋಗ ನಿರ್ಣಯ: ಜೀವಿತಾವಧಿಯಲ್ಲಿ ವಿವಾಹ ಯೋಗವಿದೆಯೇ?) 💍 */}
+          {currentDiagnosis?.marriageDestiny && (() => {
+            const md = currentDiagnosis.marriageDestiny;
+            const isDelayed = md.verdict === "delayed_marriage";
+
+            const colorConfig: Record<string, { border: string; bg: string; badge: string; text: string; iconBg: string }> = {
+              emerald: {
+                border: "border-emerald-400",
+                bg: "bg-gradient-to-b from-emerald-50/70 via-white to-amber-50/40",
+                badge: "bg-emerald-100 text-emerald-950 border-emerald-400",
+                text: "text-emerald-950",
+                iconBg: "bg-gradient-to-br from-emerald-500 to-teal-600 text-white"
+              },
+              amber: {
+                border: "border-amber-400",
+                bg: "bg-gradient-to-b from-amber-50/70 via-white to-orange-50/40",
+                badge: "bg-amber-100 text-amber-950 border-amber-400",
+                text: "text-amber-950",
+                iconBg: "bg-gradient-to-br from-amber-500 to-orange-600 text-white"
+              },
+              purple: {
+                border: "border-purple-400",
+                bg: "bg-gradient-to-b from-purple-50/70 via-white to-indigo-50/40",
+                badge: "bg-purple-100 text-purple-950 border-purple-400",
+                text: "text-purple-950",
+                iconBg: "bg-gradient-to-br from-purple-600 to-indigo-700 text-white"
+              },
+              rose: {
+                border: "border-rose-400",
+                bg: "bg-gradient-to-b from-rose-50/70 via-white to-amber-50/40",
+                badge: "bg-rose-100 text-rose-950 border-rose-400",
+                text: "text-rose-950",
+                iconBg: "bg-gradient-to-br from-rose-500 to-red-600 text-white"
+              }
+            };
+
+            const style = colorConfig[md.badgeColor] || colorConfig.amber;
+
+            return (
+              <div className={`rounded-3xl border-2 ${style.border} ${style.bg} p-6 md:p-8 text-stone-950 shadow-xl space-y-6`}>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-stone-200 pb-4">
+                  <div className="flex items-center gap-3">
+                    <span className={`flex h-12 w-12 items-center justify-center rounded-2xl ${style.iconBg} text-2xl shadow-md`}>
+                      💍
+                    </span>
+                    <div>
+                      <span className="text-[11px] font-black uppercase tracking-wider text-stone-700 block">
+                        ॥ ಜೀವಿತಾವಧಿಯ ವಿವಾಹ ಯೋಗ ನಿರ್ಣಯ ॥
+                      </span>
+                      <h3 className="text-base md:text-xl font-black text-stone-950 font-serif">
+                        {isKn ? md.titleKn : md.titleEn}
+                      </h3>
+                    </div>
+                  </div>
+                  <span className={`px-3.5 py-1.5 rounded-full ${style.badge} text-xs font-black shadow-sm flex items-center gap-1.5`}>
+                    <span className="inline-block h-2 w-2 rounded-full bg-current animate-pulse" />
+                    <span>{isKn ? md.subtitleKn : md.subtitleEn}</span>
+                  </span>
+                </div>
+
+                {/* Hero Direct Answer Banner */}
+                <div className="p-5 rounded-2xl border-2 border-stone-300 bg-white/95 shadow-md space-y-3">
+                  <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-900">
+                    <span>🔮</span>
+                    <span>{isKn ? "ದೈವಜ್ಞ ನೇರ & ನಿಖರ ಉತ್ತರ (Definitive Astrological Verdict):" : "Definitive Astrological Verdict:"}</span>
+                  </div>
+                  <h4 className="text-lg md:text-2xl font-black text-stone-950 font-serif leading-tight">
+                    {cleanAstrologyText(isKn ? md.directAnswerKn : md.directAnswerEn)}
+                  </h4>
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
+                    <span className="px-3 py-1 rounded-xl bg-stone-100 border border-stone-300 text-stone-800 text-xs font-bold">
+                      ⏳ {cleanAstrologyText(isKn ? md.marriageTimingWindowKn : md.marriageTimingWindowEn)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Reassurance Banner for Delayed Marriage */}
+                {isDelayed && (
+                  <div className="p-4 rounded-2xl bg-amber-500/10 border-2 border-amber-400 shadow-sm space-y-2">
+                    <div className="flex items-center gap-2 text-amber-950 font-black text-sm">
+                      <span className="text-xl">🛡️</span>
+                      <span>{isKn ? "ಶಾಸ್ತ್ರೀಯ ಭರವಸೆ: ವಿಳಂಬವೇ ಹೊರತು ವಿವಾಹ ನಿರಾಕರಣೆಯಲ್ಲ! (Delay is NOT Denial!)" : "Classical Assurance: Delay is NOT Denial!"}</span>
+                    </div>
+                    <p className="text-stone-800 text-xs sm:text-sm leading-relaxed font-medium">
+                      {isKn
+                        ? "ಶನಿ, ರಾಹು ಅಥವಾ ಕೇತು ಗ್ರಹಗಳ ಪ್ರಭಾವದಿಂದ ಕಲ್ಯಾಣ ಕಾಲ ವಿಳಂಬವಾಗುತ್ತದೆಯೇ ವಿನಃ, ದಾಂಪತ್ಯ ಭಾಗ್ಯ ಶಾಶ್ವತವಾಗಿ ನಿರಾಕರಿಸಲ್ಪಟ್ಟಿಲ್ಲ. ಸೂಕ್ತ ವಯಸ್ಸಿನಲ್ಲಿ ದೈವಿಕ ಸಂಕಲ್ಪ, ಶಾಸ್ತ್ರೋಕ್ತ ಪರಿಹಾರ ಹಾಗೂ ಸಕಾಲದ ಪ್ರಯತ್ನದಿಂದ ದಾಂಪತ್ಯ ಜೀವನ ಸಿದ್ಧಿಸಲಿದೆ."
+                        : "Planetary aspects of Saturn, Rahu, or Ketu indicate a delayed timing window, not denial of marriage. With proper spiritual remedies and conscious effort, fruitful marital destiny manifests."}
+                    </p>
+                  </div>
+                )}
+
+                {/* Delay Factors if present */}
+                {md.delayFactorsKn && md.delayFactorsKn.length > 0 && (
+                  <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-300/80 space-y-2">
+                    <div className="flex items-center gap-2 text-amber-950 font-bold text-xs uppercase tracking-wider">
+                      <span>⚠️</span>
+                      <span>{isKn ? "ವಿವಾಹ ವಿಳಂಬಕ್ಕೆ ಕಾರಣವಾದ ಗ್ರಹ ಸ್ಥಿತಿಗಳು:" : "Planetary Factors Causing Delay:"}</span>
+                    </div>
+                    <ul className="space-y-1.5 pl-1">
+                      {(isKn ? md.delayFactorsKn : (md.delayFactorsEn || md.delayFactorsKn)).map((fac, fIdx) => (
+                        <li key={fIdx} className="text-xs text-stone-800 flex items-start gap-2 font-medium">
+                          <span className="text-amber-600 font-bold">•</span>
+                          <span>{cleanAstrologyText(fac)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Astrological Reasoning & Classical Rule */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 rounded-xl bg-white border border-stone-200 shadow-xs space-y-1.5">
+                    <div className="flex items-center gap-2 text-stone-900 font-bold text-xs">
+                      <span>🪐</span>
+                      <span>{isKn ? "7ನೇ ಸಪ್ತಮ ಸ್ಥಾನ & ಗ್ರಹಗಳ ಸ್ಥಿತಿ:" : "7th House & Astrological Reasoning:"}</span>
+                    </div>
+                    <p className="text-stone-800 font-medium text-xs sm:text-sm leading-relaxed">
+                      {cleanAstrologyText(isKn ? md.astrologicalReasoningKn : md.astrologicalReasoningEn)}
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-white border border-stone-200 shadow-xs space-y-1.5">
+                    <div className="flex items-center gap-2 text-stone-900 font-bold text-xs">
+                      <span>📜</span>
+                      <span>{isKn ? "ಶಾಸ್ತ್ರೀಯ ಪ್ರಮಾಣ ಗ್ರಂಥ & ನಿಯಮ:" : "Classical Shastric Citation:"}</span>
+                    </div>
+                    <p className="text-stone-800 font-medium text-xs sm:text-sm leading-relaxed">
+                      {cleanAstrologyText(isKn ? md.classicalRuleCitedKn : md.classicalRuleCitedEn)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Historical / Celebrity Parallel if present */}
+                {md.historicalCelebrityParallelKn && (
+                  <div className="p-4 rounded-2xl bg-purple-50/80 border border-purple-300 text-xs text-stone-900 space-y-1.5 shadow-xs">
+                    <div className="flex items-center gap-2 font-bold text-purple-950">
+                      <span>🏛️</span>
+                      <span>{isKn ? "ಇತಿಹಾಸ ಪ್ರಸಿದ್ಧ ಮಹನೀಯರ ಜಾತಕ ಸಾಮ್ಯತೆ:" : "Historical & Illustrious Chart Parallels:"}</span>
+                    </div>
+                    <p className="font-medium leading-relaxed">
+                      {cleanAstrologyText(isKn ? md.historicalCelebrityParallelKn : (md.historicalCelebrityParallelEn || md.historicalCelebrityParallelKn))}
+                    </p>
+                  </div>
+                )}
+
+                {/* Blessing Remedy */}
+                <div className="p-4 rounded-2xl bg-emerald-50/80 border border-emerald-300 text-xs text-stone-900 space-y-1.5 shadow-xs">
+                  <div className="flex items-center gap-2 font-bold text-emerald-950">
+                    <span>🪔</span>
+                    <span>{isKn ? "ದೈವಿಕ ಕಲ್ಯಾಣ ಸಂಕಲ್ಪ & ಶಾಸ್ತ್ರೋಕ್ತ ಪರಿಹಾರ:" : "Sacred Remedial Measures & Blessing Path:"}</span>
+                  </div>
+                  <p className="font-medium leading-relaxed">
+                    {cleanAstrologyText(isKn ? md.blessingRemedyKn : md.blessingRemedyEn)}
+                  </p>
                 </div>
               </div>
             );

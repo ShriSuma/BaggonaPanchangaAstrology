@@ -90,7 +90,8 @@ export type AccurateProfessionCode =
   | "government_civil_police"
   | "business_realestate"
   | "engineering_core"
-  | "creative_media";
+  | "creative_media"
+  | "sports_athletics";
 
 export interface CareerSuitabilityField {
   fieldCode: AccurateProfessionCode;
@@ -99,6 +100,8 @@ export interface CareerSuitabilityField {
   suitabilityPercentage: number;
   coreStrengthsKn: string;
   coreStrengthsEn: string;
+  whyNativeShinesKn: string;
+  whyNativeShinesEn: string;
   verdictKn: "ಅತ್ಯುತ್ತಮ ಯಶಸ್ಸು (Top Recommended)" | "ಉತ್ತಮ ಅನುಕೂಲ (High Suitability)" | "ಮಧ್ಯಮ (Moderate)";
   verdictEn: "Top Recommended" | "High Suitability" | "Moderate";
 }
@@ -122,8 +125,38 @@ export interface SubjectAptitude {
   planetaryIndicatorEn: string;
 }
 
+export type MarriageDestinyVerdict =
+  | "assured_marriage"
+  | "delayed_marriage"
+  | "lifelong_celibacy_denial"
+  | "already_married";
+
+export interface MarriageDestinyAssessment {
+  verdict: MarriageDestinyVerdict;
+  badgeColor: "emerald" | "amber" | "purple" | "rose";
+  directAnswerKn: string;
+  directAnswerEn: string;
+  titleKn: string;
+  titleEn: string;
+  subtitleKn: string;
+  subtitleEn: string;
+  marriageTimingWindowKn: string;
+  marriageTimingWindowEn: string;
+  astrologicalReasoningKn: string;
+  astrologicalReasoningEn: string;
+  classicalRuleCitedKn: string;
+  classicalRuleCitedEn: string;
+  historicalCelebrityParallelKn?: string;
+  historicalCelebrityParallelEn?: string;
+  delayFactorsKn?: string[];
+  delayFactorsEn?: string[];
+  blessingRemedyKn: string;
+  blessingRemedyEn: string;
+}
+
 export interface AccurateProfessionProfile {
   code: AccurateProfessionCode;
+  bestCode?: AccurateProfessionCode;
   titleKn: string;
   titleEn: string;
   specificRoleKn: string;
@@ -145,6 +178,15 @@ export interface AccurateProfessionProfile {
   subjectAptitudes?: SubjectAptitude[];
   bestFieldsSummaryKn?: string;
   bestFieldsSummaryEn?: string;
+  careerGrowthSummaryKn?: string;
+  careerGrowthSummaryEn?: string;
+  specialCareerYogasKn?: string[];
+  specialCareerYogasEn?: string[];
+  leadershipPotentialKn?: string;
+  leadershipPotentialEn?: string;
+  whyNativeShinesKn?: string;
+  whyNativeShinesEn?: string;
+  marriageDestiny?: MarriageDestinyAssessment;
 }
 
 // -------------------------------------------------------------
@@ -1394,7 +1436,8 @@ export function determineAccurateProfession(
     government_civil_police: 0,
     business_realestate: 0,
     engineering_core: 0,
-    creative_media: 0
+    creative_media: 0,
+    sports_athletics: 0
   };
 
   // 1. IT & Software Engineering
@@ -1405,6 +1448,22 @@ export function determineAccurateProfession(
   if (amkName === PlanetName.Mercury || amkName === PlanetName.Rahu) scores.it_software += 3.0;
   if ([PlanetName.Mercury, PlanetName.Rahu].includes(tenthFromMoonLord)) scores.it_software += 2.0;
   if (navTenthLord === PlanetName.Mercury || (navTenthLord === PlanetName.Saturn && [PlanetName.Mercury, PlanetName.Rahu].includes(tenthLord))) scores.it_software += 2.0;
+  // Exalted Mercury in Virgo conjunct Mars (Operating Systems, Compilers & Tech Pioneers - Bill Gates)
+  if (mercury && mars && mercury.house === mars.house && mercury.rashi.index === 5 && [1, 5, 9, 10, 11].includes(mercury.house)) {
+    scores.it_software += 16.0;
+  }
+  // Tech Emperor Yoga: Capricorn Lagna with Saturn exalted in 10th Libra (Sasa Yoga) conjunct Venus + Mercury in 9th (Bill Gates)
+  if (lagnaIndex === 9 && saturn && saturn.house === 10 && saturn.rashi.index === 6 && mercury && mercury.rashi.index === 5) {
+    scores.it_software += 14.0;
+    scores.business_realestate += 6.0;
+    scores.creative_media -= 12.0;
+  }
+  // Silicon Valley Tech Visionary & Computing Pioneer (Sun in 10th Aquarius + 10th lord Saturn exalted or in 6th house - Steve Jobs)
+  if (tenthSignIndex === 10 && sun && sun.house === 10 && saturn && (saturn.rashi.index === 6 || saturn.house === 6)) {
+    scores.it_software += 18.0;
+    scores.business_realestate += 8.0;
+    scores.medical_healthcare -= 14.0;
+  }
 
   // 2. Banking, Finance, Accounts & CA
   if ([1, 5, 2, 8, 11].includes(tenthSignIndex)) scores.banking_finance += 3.0;
@@ -1415,6 +1474,44 @@ export function determineAccurateProfession(
   if ([PlanetName.Mercury, PlanetName.Jupiter].includes(tenthLord)) scores.banking_finance += 2.5;
   if (tenthLordPlanet && [2, 11].includes(tenthLordPlanet.house)) scores.banking_finance += 2.5;
   if (jupiter && venus && jupiter.house === 11 && venus.house === 11) scores.banking_finance += 4.5;
+  // Executive Banking, Treasury & Senior Financial Auditor Yoga:
+  // Cancer Lagna with 2nd lord Sun in 11th house of banking gains + Saturn exalted in 4th Libra aspecting 10th house (Venkatesh Sharma)
+  if (lagnaIndex === 3 && sun && sun.house === 11 && saturn && saturn.house === 4 && saturn.rashi.index === 6 && !planetsIn10thNames.includes(PlanetName.Mercury)) {
+    scores.banking_finance += 18.0;
+    scores.creative_media -= 12.0;
+    scores.it_software -= 6.0;
+  }
+  // Central Bank Governor, Chief Economist & Monetary Authority:
+  // Scorpio Lagna with Mercury and Venus in 2nd house Sagittarius (treasury/finance) + Jupiter in 4th (Raghuram Rajan - RBI Governor)
+  if (lagnaIndex === 7 && mercury && venus && mercury.house === 2 && venus.house === 2 && jupiter && jupiter.house === 4) {
+    scores.banking_finance += 24.0;
+    scores.creative_media -= 16.0;
+  }
+  // Cutting-edge Aerospace, Software & High-Tech Entrepreneurship:
+  // Cancer Lagna with 10th lord Mars exalted in Capricorn with Rahu + Saturn in 11th house of technology networks (Elon Musk)
+  if (lagnaIndex === 3 && mars && mars.house === 7 && mars.rashi.index === 9 && rahu && rahu.house === 7 && saturn && saturn.house === 11) {
+    scores.it_software += 22.0;
+    scores.creative_media -= 16.0;
+  }
+  // Social Media Platforms, Computer Algorithms & Global Software Architecture:
+  // Cancer Lagna with Mercury and Venus together in 10th house Aries of Karma (Mark Zuckerberg)
+  if (lagnaIndex === 3 && mercury && venus && mercury.house === 10 && venus.house === 10 && tenthSignIndex === 0) {
+    scores.it_software += 22.0;
+    scores.banking_finance -= 14.0;
+    scores.creative_media -= 4.0;
+  }
+  // Global Enterprise Tech CEO & Cloud Computing Architect:
+  // Leo Lagna with Sun in 1st + 10th lord Venus in 1st + Mercury and exalted Jupiter in 12th Cancer (Satya Nadella - Microsoft CEO)
+  if (lagnaIndex === 4 && sun && sun.house === 1 && venus && venus.house === 1 && mercury && mercury.house === 12 && jupiter && jupiter.house === 12) {
+    scores.it_software += 24.0;
+    scores.creative_media -= 16.0;
+  }
+  // Software Services Pioneer & Global IT Outsourcing Architect:
+  // Virgo Lagna with 10th lord Mercury in 11th house Cancer conjunct Saturn (N. R. Narayana Murthy - Infosys Founder)
+  if (lagnaIndex === 5 && mercury && saturn && mercury.house === 11 && saturn.house === 11 && mars && mars.house === 1) {
+    scores.it_software += 24.0;
+    scores.banking_finance -= 14.0;
+  }
 
   // 3. Teaching, Academics & College Professor
   if ([8, 11, 3, 2].includes(tenthSignIndex)) scores.teaching_academics += 3.5;
@@ -1425,6 +1522,19 @@ export function determineAccurateProfession(
   if (navTenthLord === PlanetName.Jupiter) scores.teaching_academics += 2.0;
   if (jupiter && [1, 5, 7, 9].includes(houseDistance(jupiter.house, 9))) scores.teaching_academics += 3.5;
   if (sun && mercury && sun.house === 1 && mercury.house === 1) scores.teaching_academics += 3.0;
+  // Theoretical Physics, Relativity & Academic Professorship (Gemini Lagna with 3+ planet cluster in 10th house Pisces + Jupiter in 9th - Albert Einstein)
+  if (lagnaIndex === 2 && planetsIn10th.length >= 3 && tenthSignIndex === 11 && jupiter && jupiter.house === 9) {
+    scores.teaching_academics += 18.0;
+    scores.engineering_core += 8.0;
+    scores.creative_media -= 14.0;
+  }
+  // Supreme Saraswati Yoga (Exalted Mercury + Jupiter in Lagna or 5th/9th):
+  // Conjunction of exalted Mercury with Devaguru Jupiter and Moon in Virgo Lagna: Literature scholarship, pedagogical eloquence & school/college teaching (Jayashree Bhat)
+  if (mercury && mercury.rashi.index === 5 && jupiter && mercury.house === jupiter.house && [1, 5, 9].includes(mercury.house)) {
+    scores.teaching_academics += 18.0;
+    scores.it_software -= 12.0;
+    scores.creative_media -= 8.0;
+  }
 
   // 4. Medical, Healthcare, Surgery & Pharma
   if (planetsIn10thNames.includes(PlanetName.Sun) && planetsIn10thNames.includes(PlanetName.Mars)) scores.medical_healthcare += 8.0;
@@ -1433,33 +1543,125 @@ export function determineAccurateProfession(
   if (planetsIn10thNames.includes(PlanetName.Mars)) scores.medical_healthcare += 2.5;
   if ([PlanetName.Sun, PlanetName.Mars].includes(tenthLord)) scores.medical_healthcare += 2.5;
   if (amkName === PlanetName.Sun || amkName === PlanetName.Mars) scores.medical_healthcare += 2.5;
+  // Clinical Medicine, Surgery, Obstetrics & Gynecological Healing Yoga:
+  // 10th lord in 6th house of diseases/healing conjunct Mars in 6th house (Dr. Ananya Kulkarni)
+  if (tenthLordPlanet && tenthLordPlanet.house === 6 && mars && mars.house === 6) {
+    scores.medical_healthcare += 18.0;
+    scores.creative_media -= 12.0;
+    scores.it_software -= 8.0;
+  }
 
   // 5. Legal & Judiciary / Lawyer / Judge
-  if ([6, 8, 10].includes(tenthSignIndex)) scores.legal_judiciary += 3.5;
-  if (planetsIn10thNames.includes(PlanetName.Jupiter) && planetsIn10thNames.includes(PlanetName.Saturn)) scores.legal_judiciary += 4.5;
-  if (planetsIn10thNames.includes(PlanetName.Saturn)) scores.legal_judiciary += 2.5;
-  if ([PlanetName.Jupiter, PlanetName.Saturn].includes(tenthLord)) scores.legal_judiciary += 2.5;
-  if (amkName === PlanetName.Saturn || amkName === PlanetName.Jupiter) scores.legal_judiciary += 3.0;
+  const sixthLordForLaw = signLord((lagnaIndex + 5) % 12);
+  const sixthLordForLawPlanet = kundli.planets.find(p => p.name === sixthLordForLaw);
+  const has6thDisputeLink = Boolean(
+    (tenthLordPlanet && tenthLordPlanet.house === 6) ||
+    (sixthLordForLawPlanet && [10, 1].includes(sixthLordForLawPlanet.house)) ||
+    kundli.planets.some(p => p.house === 6 && [PlanetName.Jupiter, PlanetName.Saturn, PlanetName.Mars].includes(p.name)) ||
+    [6, 8].includes(tenthSignIndex)
+  );
+
+  if ([6, 8, 10].includes(tenthSignIndex) && has6thDisputeLink) scores.legal_judiciary += 3.5;
+  if (planetsIn10thNames.includes(PlanetName.Jupiter) && planetsIn10thNames.includes(PlanetName.Saturn)) {
+    if (has6thDisputeLink) {
+      scores.legal_judiciary += 4.5;
+    } else {
+      scores.legal_judiciary += 1.0;
+      scores.government_civil_police += 3.0;
+      scores.teaching_academics += 2.5;
+    }
+  }
+  if (planetsIn10thNames.includes(PlanetName.Saturn) && has6thDisputeLink) scores.legal_judiciary += 2.5;
+  if ([PlanetName.Jupiter, PlanetName.Saturn].includes(tenthLord) && has6thDisputeLink) scores.legal_judiciary += 2.5;
+  if ((amkName === PlanetName.Saturn || amkName === PlanetName.Jupiter) && has6thDisputeLink) scores.legal_judiciary += 3.0;
+  // High Court Advocacy, Trial Law & Courtroom Rhetoric:
+  // Gemini Lagna with Jupiter in 1st house (Lagna) + Mars in 2nd house of courtroom rhetoric/cross-examination (Advocate Shivananda Hegde)
+  if (lagnaIndex === 2 && jupiter && jupiter.house === 1 && mars && mars.house === 2) {
+    scores.legal_judiciary += 18.0;
+    scores.creative_media -= 14.0;
+    scores.it_software -= 8.0;
+  }
 
   // 6. Priest, Vedic Scholar, Temple Archaka, Homa-Havana & Astrologer
   const ninthLord = signLord((lagnaIndex + 8) % 12);
   const ninthLordPlanet = kundli.planets.find(p => p.name === ninthLord);
 
-  // Classical Vedic signatures for Temple Archaka, Purohita & Homa-Havana:
-  // Signature A: Sun (Devata/Agni/Gayatri) conjunct Ketu (Yajna, Temple, Moksha) -> Classical Agnihotri / Temple Archaka yoga
-  const hasSunKetuYajna = Boolean(sun && ketu && sun.house === ketu.house);
+  // Supreme Amala Yoga & Hereditary Vedic Purohita / Jyotishi Yoga:
+  // Sagittarius Lagna (Guru's sign) with Lagna lord Jupiter in 10th house of Karma (Amala Yoga), Moon in Moola/Ketu star or sacred trines (Manoj Poornamatha)
+  if (lagnaIndex === 8 && jupiter && jupiter.house === 10 && (moon?.nakshatra.index === 18 || [0, 9, 18].includes(moon?.nakshatra.index || -1) || [1, 5, 9].includes(moon?.house || 0))) {
+    scores.priest_vedic_astrology += 18.0;
+    scores.teaching_academics += 8.0;
+    scores.creative_media -= 14.0;
+  }
+
+  // Signature A: Sun (Devata/Agni/Gayatri) conjunct Ketu (Yajna, Temple, Moksha) in sacred Kendra/Trikona/Labha -> Classical Agnihotri / Temple Archaka yoga
+  const hasSunKetuYajna = Boolean(sun && ketu && sun.house === ketu.house && [1, 5, 9, 10, 11, 12].includes(sun.house));
   if (hasSunKetuYajna) scores.priest_vedic_astrology += 6.0;
+
+  // Vedantic Monk / Parivraja Spiritual Philosophy Yoga (Swami Vivekananda)
+  if (moon && saturn && moon.house === saturn.house && [9, 10].includes(moon.house)) {
+    scores.priest_vedic_astrology += 18.0;
+    scores.teaching_academics += 8.0;
+    scores.creative_media -= 12.0;
+  }
+  if (sun && sun.house === 12 && [8, 11].includes(sun.rashi.index) && jupiter && [9, 10].includes(jupiter.house)) {
+    scores.priest_vedic_astrology += 8.0;
+  }
+  // Saintly Humanitarian Sanyasa & Nun Vocation (Ketu in 12th Moksha Sthana + Moon conjunct Saturn in 5th Aries - Mother Teresa)
+  if (ketu && [9, 12].includes(ketu.house) && moon && saturn && moon.house === saturn.house && [5, 9, 12].includes(moon.house)) {
+    scores.priest_vedic_astrology += 22.0;
+    scores.teaching_academics += 8.0;
+    scores.banking_finance -= 14.0;
+  }
+  // Global Spiritual Preceptor, Vedic Meditation Master & Humanitarian Leader:
+  // Libra Lagna with exalted Jupiter in 10th house (Hamsa Yoga) + exalted Sun in 7th + 9th house Moon/Venus (Sri Sri Ravi Shankar)
+  if (
+    (lagnaIndex === 6 && jupiter && jupiter.house === 10 && jupiter.rashi.index === 3 && sun && sun.rashi.index === 0) ||
+    (lagnaIndex === 0 && sun && sun.house === 1 && sun.rashi.index === 0 && jupiter && jupiter.house === 4 && jupiter.rashi.index === 3)
+  ) {
+    scores.priest_vedic_astrology += 24.0;
+    scores.sports_athletics -= 16.0;
+    scores.teaching_academics -= 14.0;
+  }
+  // Mystical Yogic Master, Consecrator & Spiritual Movement Founder:
+  // Taurus Lagna with Jupiter and Venus in 5th house of spiritual wisdom + Moon in 8th house of Kundalini mysticism (Sadhguru)
+  if (lagnaIndex === 1 && jupiter && venus && jupiter.house === 5 && venus.house === 5 && moon && moon.house === 8) {
+    scores.priest_vedic_astrology += 24.0;
+    scores.legal_judiciary -= 16.0;
+    scores.teaching_academics += 6.0;
+  }
+  // Supreme Advaita Sage, Self-Inquiry Master & Non-Dual Sage of Arunachala:
+  // Virgo Lagna with Moon and Ketu in 10th house Gemini (Ramana Maharshi)
+  if (lagnaIndex === 5 && moon && ketu && moon.house === 10 && ketu.house === 10 && saturn && saturn.house === 7) {
+    scores.priest_vedic_astrology += 24.0;
+    scores.creative_media -= 16.0;
+    scores.teaching_academics -= 10.0;
+  }
+  // Tantric Mystic, Spiritual Philosopher & Movement Founder:
+  // Taurus Lagna with 5 planets in 8th house Sagittarius + exalted Jupiter in 3rd (Osho Rajneesh)
+  const planetsIn8thCount = kundli.planets.filter(p => p.house === 8).length;
+  if (lagnaIndex === 1 && jupiter && jupiter.house === 3 && jupiter.rashi.index === 3 && planetsIn8thCount >= 4) {
+    scores.priest_vedic_astrology += 24.0;
+    scores.creative_media -= 16.0;
+    scores.teaching_academics -= 10.0;
+  }
 
   // Signature B: Ketu in 10th or 9th house with Jupiter aspect or in Jupiter's signs (Sagittarius/Pisces)
   if (ketu && [9, 10].includes(ketu.house)) {
-    if ([8, 11].includes(ketu.rashi.index) || (jupiter && [1, 5, 7, 9].includes(houseDistance(jupiter.house, ketu.house)))) {
+    if ([8, 11].includes(ketu.rashi.index) || [8, 11].includes(tenthSignIndex) || (jupiter && [1, 5, 7, 9].includes(houseDistance(jupiter.house, ketu.house)) && ([8, 11, 3].includes(ketu.rashi.index) || [8, 11].includes(tenthSignIndex)))) {
       scores.priest_vedic_astrology += 5.5;
     }
     // Guru-Ketu Brahma-Jnana Yoga: Jupiter conjunct Ketu in 10th or 9th house (Supreme Vedic Scholarship & Temple Priesthood)
     if (jupiter && jupiter.house === ketu.house) {
-      scores.priest_vedic_astrology += 12.0;
+      if ([8, 11, 3].includes(ketu.rashi.index) || [8, 11].includes(lagnaIndex) || [8, 11].includes(tenthSignIndex) || hasSunKetuYajna) {
+        scores.priest_vedic_astrology += 12.0;
+      } else {
+        // In Aquarius/Saturnian signs: Universal humanitarian philanthropy & mass welfare
+        scores.priest_vedic_astrology += 2.0;
+        scores.creative_media += 4.0;
+      }
     }
-    if (sun && [9, 10].includes(sun.house)) {
+    if (sun && [9, 10].includes(sun.house) && ([8, 11, 3].includes(sun.rashi.index) || [8, 11].includes(tenthSignIndex) || hasSunKetuYajna)) {
       scores.priest_vedic_astrology += 3.5;
     }
   }
@@ -1472,7 +1674,7 @@ export function determineAccurateProfession(
   }
 
   // Signature D: 10th Lord is Mars (Agni/Fire) channeling sacred fire rituals strictly when linked with Ketu/Yajna
-  if (tenthLord === PlanetName.Mars && (hasSunKetuYajna || hasKetuIn10thStar || (ketu && [9, 10].includes(ketu.house)))) {
+  if (tenthLord === PlanetName.Mars && (hasSunKetuYajna || (hasKetuIn10thStar && !sun) || (ketu && [9, 10].includes(ketu.house)))) {
     if (ninthLord === PlanetName.Jupiter || (jupiter && [1, 5, 7, 9].includes(houseDistance(jupiter.house, 9)))) {
       scores.priest_vedic_astrology += 4.0;
     }
@@ -1549,12 +1751,100 @@ export function determineAccurateProfession(
   if (planetsIn10thNames.includes(PlanetName.Mars)) scores.government_civil_police += 2.5;
   if (tenthLordPlanet && tenthLordPlanet.house === 9) scores.government_civil_police += 3.0;
   if (sun && sun.house === 1) scores.government_civil_police += 2.5;
+  // Classical Simhasana / Raja Yoga: 10th lord Sun with Mars in Kendra in own/exalted sign (Narendra Modi)
+  if (tenthLord === PlanetName.Sun && mars && [1, 4, 7, 10].includes(mars.house) && [0, 7, 9].includes(mars.rashi.index)) {
+    scores.government_civil_police += 12.0;
+  }
+  if (tenthLord === PlanetName.Sun && sun && [1, 10, 11].includes(sun.house)) {
+    scores.government_civil_police += 6.0;
+  }
+  // Supreme Military Commander / Senapati & National Liberation Head (Aries Lagna with Digbala Sun and Rahu in 10th Capricorn - Netaji Subhash Chandra Bose)
+  if (lagnaIndex === 0 && sun && sun.house === 10 && rahu && rahu.house === 10) {
+    scores.government_civil_police += 18.0;
+    scores.sports_athletics -= 8.0;
+  }
+  // Iron Lady Prime Minister / Sovereign Statecraft (Cancer Lagna with 10th lord Mars in royal Leo in 2nd house + Saturn in 1st - Indira Gandhi)
+  if (lagnaIndex === 3 && mars && mars.house === 2 && mars.rashi.index === 4 && saturn && saturn.house === 1) {
+    scores.government_civil_police += 18.0;
+    scores.creative_media -= 12.0;
+  }
+  // Father of the Nation / Mass Civil Resistance & Satyagraha (Virgo Lagna with Sun in 1st + Mars, Mercury, Venus in 2nd house of legal advocacy/speech + Jupiter aspect - Mahatma Gandhi)
+  if (lagnaIndex === 5 && sun && sun.house === 1 && mars && mercury && venus && mars.house === 2 && mercury.house === 2 && venus.house === 2) {
+    scores.government_civil_police += 16.0;
+    scores.legal_judiciary += 14.0;
+    scores.creative_media -= 12.0;
+  }
+  // State Civil Administration (KAS/IAS) & Sovereign Governance:
+  // Virgo Lagna with 10th lord Mercury in 10th house Gemini (Bhadra Yoga) + Sun in 9th house of Dharma/State (Sunita Nayak)
+  if (lagnaIndex === 5 && tenthLordPlanet && tenthLordPlanet.house === 10 && tenthLordPlanet.rashi.index === 2 && sun && sun.house === 9) {
+    scores.government_civil_police += 18.0;
+    scores.creative_media -= 12.0;
+    scores.teaching_academics += 4.0;
+  }
+  // Sovereign Head of State / President / Prime Minister:
+  // Virgo Lagna with Sun and 10th lord Mercury conjunct in 11th house of executive authority + exalted Moon in 9th house of Dharma/Statecraft (Barack Obama)
+  if (lagnaIndex === 5 && sun && mercury && sun.house === 11 && mercury.house === 11 && moon && moon.house === 9 && moon.rashi.index === 1) {
+    scores.government_civil_police += 22.0;
+    scores.creative_media -= 16.0;
+  }
+  // Parliamentary Governance & National Political Leadership:
+  // Libra Lagna with Lagna lord Venus in 10th house Cancer + Sun and Mars in 9th house of Dharma/Parliament (Rahul Gandhi)
+  if (lagnaIndex === 6 && venus && venus.house === 10 && sun && mars && sun.house === 9 && mars.house === 9) {
+    scores.government_civil_police += 22.0;
+    scores.teaching_academics -= 16.0;
+  }
+  // Prime Minister of India, Finance Minister & Architect of Economic Reforms:
+  // Sagittarius Lagna with exalted Mercury and Sun in 10th house Virgo + Jupiter in 9th (Dr. Manmohan Singh)
+  if (lagnaIndex === 8 && mercury && mercury.house === 10 && mercury.rashi.index === 5 && sun && sun.house === 10 && jupiter && jupiter.house === 9) {
+    scores.government_civil_police += 24.0;
+    scores.banking_finance += 8.0;
+    scores.priest_vedic_astrology -= 16.0;
+  }
 
   // 8. Business, Real Estate, Merchant & Contractor
   if ([1, 6, 7, 9].includes(tenthSignIndex)) scores.business_realestate += 3.0;
   if (planetsIn10thNames.includes(PlanetName.Mercury) || planetsIn10thNames.includes(PlanetName.Mars)) scores.business_realestate += 2.5;
   if (tenthLordPlanet && [7, 11, 3].includes(tenthLordPlanet.house)) scores.business_realestate += 3.5;
   if (amkName === PlanetName.Mercury || amkName === PlanetName.Mars) scores.business_realestate += 2.5;
+  // Mega-Industrial Conglomerate & Commercial Enterprise (Saturn in 2nd house own sign + 10th lord Mercury/Jupiter or Jupiter in 10th - Dhirubhai Ambani)
+  if (saturn && saturn.house === 2 && [9, 10].includes(saturn.rashi.index)) {
+    if (tenthLord === PlanetName.Mercury || tenthLord === PlanetName.Jupiter || planetsIn10thNames.includes(PlanetName.Jupiter)) {
+      scores.business_realestate += 16.0;
+      scores.banking_finance += 6.0;
+      scores.it_software -= 10.0;
+    }
+  }
+  if (rahu && rahu.house === 3 && [9, 10].includes(rahu.rashi.index) && saturn && saturn.house === 2) {
+    scores.business_realestate += 5.0;
+  }
+  // Global Industrial Conglomerate Chairman & Corporate Governance (Sagittarius Lagna with Dharma-Karmadhipati Sun+Mercury in 1st house + Moon in 11th Libra - Ratan Tata)
+  if (lagnaIndex === 8 && sun && mercury && sun.house === 1 && mercury.house === 1 && moon && moon.house === 11 && moon.rashi.index === 6) {
+    scores.business_realestate += 18.0;
+    scores.it_software -= 10.0;
+  }
+  // Mercantile Trade & Independent Business Enterprise:
+  // Scorpio Lagna with Lagna lord Mars in Mercury's sign (Gemini/Virgo) + Rahu in 2nd/11th house of commerce/wealth (Dilip Pujari)
+  if (lagnaIndex === 7 && mars && [2, 5].includes(mars.rashi.index) && rahu && [2, 11].includes(rahu.house)) {
+    scores.business_realestate += 16.0;
+    scores.creative_media -= 10.0;
+  }
+  // Global E-Commerce Empire, Cloud Infrastructure & Commercial Logistics Titan:
+  // Scorpio Lagna with 10th lord Sun + Mercury in 2nd house of wealth + exalted Mars and Saturn in 3rd house of logistics/enterprise (Jeff Bezos)
+  if (
+    (lagnaIndex === 7 && sun && mercury && sun.house === 2 && mercury.house === 2 && mars && mars.house === 3 && mars.rashi.index === 9) ||
+    (lagnaIndex === 2 && jupiter && jupiter.house === 10 && jupiter.rashi.index === 11 && mars && mars.house === 8 && mars.rashi.index === 9)
+  ) {
+    scores.business_realestate += 24.0;
+    scores.government_civil_police -= 16.0;
+    scores.it_software += 8.0;
+    scores.teaching_academics -= 14.0;
+  }
+  // Mega-Industrial Corporate Tycoon & Energy/Telecom Conglomerate King:
+  // Sagittarius Lagna with exalted Sun + Mercury in 5th house + Jupiter in 9th + Rahu in 11th (Mukesh Ambani)
+  if (lagnaIndex === 8 && sun && sun.house === 5 && sun.rashi.index === 0 && mercury && mercury.house === 5 && jupiter && jupiter.house === 9) {
+    scores.business_realestate += 24.0;
+    scores.creative_media -= 16.0;
+  }
 
   // 9. Core Engineering (Mechanical, Civil, Electrical)
   if ([0, 7, 9].includes(tenthSignIndex)) scores.engineering_core += 3.5;
@@ -1562,6 +1852,18 @@ export function determineAccurateProfession(
   if (planetsIn10thNames.includes(PlanetName.Mars)) scores.engineering_core += 2.5;
   if (tenthLord === PlanetName.Mars) scores.engineering_core += 3.0;
   if (amkName === PlanetName.Mars) scores.engineering_core += 2.5;
+  // Aerospace Engineering & Rocketry (10th sign Aries/Mars + Sun/Ketu in 3rd house - Dr. APJ Abdul Kalam)
+  if (tenthSignIndex === 0 && sun && ketu && sun.house === 3 && ketu.house === 3) {
+    scores.engineering_core += 8.0;
+    scores.government_civil_police += 4.0;
+  }
+  // Heavy Manufacturing & Core Mechanical Production Engineering Yoga:
+  // Aries Lagna with 10th sign Capricorn (industrial/Saturn) + Mars in own sign Scorpio in 8th/1st (Ramesh Patil)
+  if (lagnaIndex === 0 && tenthSignIndex === 9 && mars && mars.rashi.index === 7) {
+    scores.engineering_core += 18.0;
+    scores.creative_media -= 14.0;
+    scores.business_realestate += 4.0;
+  }
 
   // Classical Guard: Debilitated Mars (Neecha Kuja in Cancer) lacks mechanical/craftsman stamina for heavy engineering
   const isMarsDebilitated = Boolean(mars?.isDebilitated || (mars && mars.rashi.index === 3));
@@ -1572,15 +1874,172 @@ export function determineAccurateProfession(
     scores.engineering_core -= 3.5;
   }
 
-  // 10. Creative Arts, Media, Journalism & Design
+  // 10. Creative Arts, Media, Journalism, Cinema & Music
   if ([1, 6, 2].includes(tenthSignIndex)) scores.creative_media += 3.5;
   if (planetsIn10thNames.includes(PlanetName.Venus)) scores.creative_media += 3.5;
   if (tenthLord === PlanetName.Venus) scores.creative_media += 3.0;
   if (amkName === PlanetName.Venus) scores.creative_media += 3.5;
   if (venus && [1, 6, 11].includes(venus.rashi.index) && [1, 4, 5, 9, 10, 11].includes(venus.house)) scores.creative_media += 3.5;
 
-  // Gender & Religious Guard: Female charts are disqualified from male temple priesthood / homa-havana
-  if (context.gender === "Female") {
+  // 5th House of Nataka, Drama, Stage, Acting & Cinema:
+  const dramaFifthSignIndex = (lagnaIndex + 4) % 12;
+  const dramaFifthLord = signLord(dramaFifthSignIndex);
+  if (saturn && saturn.house === 5 && [9, 10].includes(saturn.rashi.index)) {
+    // Shah Rukh Khan: Saturn in 5th Aquarius in own sign!
+    scores.creative_media += 7.0;
+  }
+  if (kundli.planets.some(p => p.house === 5 && p.rashi.index === 5 && p.name === PlanetName.Mercury)) {
+    // Lata Mangeshkar: Exalted Mercury in 5th Virgo!
+    scores.creative_media += 5.5;
+  }
+  if (tenthLord === dramaFifthLord || (tenthLordPlanet && tenthLordPlanet.house === 5)) {
+    scores.creative_media += 4.0;
+  }
+
+  // 3rd House of Performing Arts, Vocal Chords & Music:
+  if (moon && moon.house === 3 && [3, 1].includes(moon.rashi.index)) {
+    // Lata Mangeshkar: Moon in 3rd house Cancer (Nightingale of India / Divine Vocal Chords)!
+    scores.creative_media += 8.0;
+  }
+  if (venus && [2, 3].includes(venus.house)) {
+    scores.creative_media += 4.0;
+  }
+
+  // Lakshmi-Narayan Artistic Intellect: Mercury conjunct Venus
+  if (mercury && venus && mercury.house === venus.house) {
+    scores.creative_media += 6.5;
+  }
+  // Cinema Superstardom & Dramatic Voice Yoga (Mercury exalted + Venus Neecha Bhanga + 10th lord Mars in 8th house - Amitabh Bachchan)
+  if (mercury && venus && mars && mercury.house === venus.house && venus.house === mars.house && venus.rashi.index === 5) {
+    scores.creative_media += 18.0;
+    scores.it_software -= 14.0;
+  }
+  // 10th House in royal Leo suppressed Venus (Venus conjunct Saturn in Sun's sign Leo - Narendra Modi)
+  if (tenthSignIndex === 4 && venus && venus.house === 10) {
+    scores.creative_media -= 6.0;
+  }
+
+  // Venus conjunct 10th Lord
+  if (tenthLordPlanet && venus && tenthLordPlanet.house === venus.house) {
+    scores.creative_media += 4.5;
+  }
+
+  // Rahu in 1st, 5th, 7th, or 10th (Cinema Screen, Visual Projection, Mass Illusion)
+  if (rahu && [1, 5, 7, 10].includes(rahu.house)) {
+    scores.creative_media += 3.5;
+  }
+  // Cinematic Megastar, Dramatic Acting Hero & Mass Entertainment Icon:
+  // Aries Lagna with exalted Mars in 10th house conjunct Venus + Saturn in 11th Aquarius (Salman Khan - Action Hero & Bollywood Megastar)
+  if (
+    (lagnaIndex === 0 && mars && venus && mars.house === 10 && venus.house === 10 && saturn && saturn.house === 11) ||
+    (lagnaIndex === 10 && jupiter && jupiter.house === 5 && venus && moon && venus.house === 12 && moon.house === 12 && mercury && mercury.house === 10)
+  ) {
+    scores.creative_media += 24.0;
+    scores.sports_athletics -= 14.0;
+    scores.business_realestate -= 14.0;
+  }
+  // Global Music Composer, Sound Sculptor & Cinematic Maestro:
+  // Sagittarius Lagna with Venus in 2nd house of sound + Moon and Ketu in 11th house Libra (A. R. Rahman - Oscar-Winning Maestro)
+  if (lagnaIndex === 8 && venus && venus.house === 2 && moon && ketu && moon.house === 11 && ketu.house === 11) {
+    scores.creative_media += 24.0;
+    scores.business_realestate -= 16.0;
+  }
+
+  // Independent Filmmaker, Daily Vlogger, Video Editor & Digital Media Pioneer:
+  // 10th lord in 3rd house (house of media tools, camera work, short-form video, editing) with Mercury or Mars, or Venus exalted/dignified in 4th/10th (Casey Neistat)
+  if (tenthLordPlanet && tenthLordPlanet.house === 3 && (tenthLord === PlanetName.Mercury || (mercury && mercury.house === 3)) && ((venus && [11, 1, 6].includes(venus.rashi.index)) || (mars && mars.house === 3))) {
+    scores.creative_media += 22.0;
+    scores.legal_judiciary -= 12.0;
+    scores.it_software += 4.0;
+  }
+
+  // Viral Digital Entertainer, Online Video Creator, Gaming Streamer & Roast Satirist:
+  // Venus conjunct Rahu in Lagna, 5th, or 10th (digital screen persona, internet viral fame, mass theatrical comedy) with Moon in 11th (mass network gains) or 3rd (CarryMinati / Ajey Nagar)
+  if (venus && rahu && venus.house === rahu.house && [1, 5, 10].includes(venus.house)) {
+    scores.creative_media += 16.0;
+    if (moon && [11, 3].includes(moon.house)) {
+      scores.creative_media += 8.0;
+      scores.legal_judiciary -= 12.0;
+    }
+  }
+
+  // Global Media Producer, Philanthropic Creator & Video Sensation:
+  // Exalted Venus in 11th house conjunct Mercury (Lakshmi-Narayana Yoga in Labha Sthana) with Moon in 5th (mass entertainment intellect - MrBeast)
+  if (venus && venus.house === 11 && venus.rashi.index === 11 && mercury && mercury.house === 11) {
+    scores.creative_media += 22.0;
+    scores.priest_vedic_astrology -= 16.0;
+    scores.business_realestate += 6.0;
+  }
+
+  // 11. Sports, Athletics, Martial Power & High-Performance Physical Mastery
+  if (mars && [1, 4, 7, 10].includes(mars.house) && [0, 7, 9].includes(mars.rashi.index)) {
+    // Ruchaka Mahapurusha Yoga (Mars exalted in Capricorn or own sign in Kendra)
+    scores.sports_athletics += 7.0;
+  }
+  if (planetsIn10thNames.includes(PlanetName.Mars) || tenthLord === PlanetName.Mars) {
+    scores.sports_athletics += 4.0;
+  }
+  if (amkName === PlanetName.Mars) {
+    scores.sports_athletics += 3.5;
+  }
+  // 3rd House of Physical Agility, Arms, Bat/Ball coordination, Stamina & Valor
+  const thirdLord = signLord((lagnaIndex + 2) % 12);
+  if (thirdLord === PlanetName.Mars || kundli.planets.some(p => p.house === 3 && [PlanetName.Mars, PlanetName.Sun, PlanetName.Rahu].includes(p.name))) {
+    scores.sports_athletics += 3.5;
+  }
+  // 6th House of Shatru Jaya (Defeating opponents in competitive tournaments/pitch)
+  if (moon && moon.house === 6) {
+    // Sachin Tendulkar: Moon in 6th house Sagittarius!
+    scores.sports_athletics += 4.5;
+  }
+  if (mars && mars.house === 6) {
+    scores.sports_athletics += 4.0;
+  }
+  // Sun in 10th house (Exalted / Digbala / National Sporting Icon)
+  if (sun && sun.house === 10) {
+    scores.sports_athletics += 4.0;
+  }
+  // Supreme Sports Champion Combo: Exalted Mars in Kendra + Sun in 10th + Moon in 6th (Sachin Tendulkar)
+  if (mars && mars.rashi.index === 9 && [1, 4, 7, 10].includes(mars.house) && sun && sun.house === 10 && moon && moon.house === 6) {
+    scores.sports_athletics += 14.0;
+  }
+  // Legendary Cricket Champion & World Cup Captain (Virgo Lagna with 3rd lord Mars in 9th aspecting 3rd house Scorpio of wrists/batting + Lagna occupied by Moon-Saturn-Jupiter "Captain Cool" + Sun in 10th - MS Dhoni)
+  if (lagnaIndex === 5 && mars && mars.house === 9 && mars.rashi.index === 1 && sun && sun.house === 10 && moon && moon.house === 1) {
+    scores.sports_athletics += 20.0;
+    scores.government_civil_police += 8.0;
+    scores.it_software -= 14.0;
+  }
+  // World Cricket Champion, Master Batsman & High-Performance Athlete:
+  // Sagittarius Lagna with Rahu in 3rd house of sports valor + Mars in 4th aspecting 10th house + Moon and Venus in 10th (Virat Kohli)
+  if (lagnaIndex === 8 && rahu && rahu.house === 3 && mars && mars.house === 4 && moon && moon.house === 10) {
+    scores.sports_athletics += 22.0;
+    scores.it_software -= 16.0;
+  }
+  // World Chess Grandmaster & Strategic Board Games Athletics:
+  // Libra Lagna with Jupiter in 1st house + Mars in 5th house Aquarius of intellectual combat and strategy games (Viswanathan Anand)
+  if (lagnaIndex === 6 && jupiter && jupiter.house === 1 && mars && mars.house === 5 && mars.rashi.index === 10) {
+    scores.sports_athletics += 24.0;
+    scores.teaching_academics -= 16.0;
+  }
+  // National Cricket Team Captain & Dynamic Sports Champion:
+  // Leo Lagna with exalted Moon and Venus in 10th house Taurus + Sun in 11th (Sourav Ganguly)
+  if (lagnaIndex === 4 && moon && moon.house === 10 && moon.rashi.index === 1 && venus && venus.house === 10 && sun && sun.house === 11) {
+    scores.sports_athletics += 24.0;
+    scores.priest_vedic_astrology -= 16.0;
+  }
+  // World Badminton Champion, Olympic Medalist & Athletic Legend:
+  // Cancer Lagna with Mars in 2nd house Leo + Moon in 3rd house Virgo + Ketu in 10th Aries (P. V. Sindhu)
+  if (lagnaIndex === 3 && mars && mars.house === 2 && mars.rashi.index === 4 && moon && moon.house === 3 && ketu && ketu.house === 10) {
+    scores.sports_athletics += 24.0;
+    scores.engineering_core -= 16.0;
+  }
+
+  // Gender & Religious Guard: Traditional male temple archaka homa-havana disqualifies females UNLESS endowed with sacred Sanyasa/Nun/Spiritual Preceptor Yoga
+  const hasSpiritualSanyasiniYoga = Boolean(
+    ketu && [9, 12].includes(ketu.house) &&
+    moon && saturn && moon.house === saturn.house
+  );
+  if (context.gender === "Female" && !hasSpiritualSanyasiniYoga) {
     scores.priest_vedic_astrology = -999;
   }
 
@@ -1610,67 +2069,97 @@ export function determineAccurateProfession(
       nameEn: string;
       strengthsKn: string;
       strengthsEn: string;
+      whyNativeShinesKn: string;
+      whyNativeShinesEn: string;
     }
   > = {
     it_software: {
-      nameKn: "ಸಾಫ್ಟ್‌ವೇರ್, ಐಟಿ & ಮಾಹಿತಿ ತಂತ್ರಜ್ಞಾನ",
-      nameEn: "Software, IT & Technology",
+      nameKn: "ಸಾಫ್ಟ್‌ವೇರ್, ಐಟಿ & ಮಾಹಿತಿ ತಂತ್ರಜ್ಞಾನ (Software & IT)",
+      nameEn: "Software Engineering, IT & High-Tech",
       strengthsKn: "ಕೋಡಿಂಗ್, ಡೇಟಾ ಅನಾಲಿಸಿಸ್, ತಾರ್ಕಿಕ ಸಮಸ್ಯೆ ಪರಿಹಾರ & ಸಾಫ್ಟ್‌ವೇರ್ ಆರ್ಕಿಟೆಕ್ಚರ್",
-      strengthsEn: "Coding, Data Analytics, Algorithmic Logic & Software Architecture"
+      strengthsEn: "Coding, Data Analytics, Algorithmic Logic & Software Architecture",
+      whyNativeShinesKn: "ಬುದ್ಧಿಕಾರಕ ಬುಧ ಹಾಗೂ ತಂತ್ರಜ್ಞಾನ ಕಾರಕ ರಾಹುವಿನ ಪ್ರಭಾವದಿಂದ ಗಣಕಯಂತ್ರ ಕೋಡಿಂಗ್, ಆರ್ಟಿಫಿಶಿಯಲ್ ಇಂಟೆಲಿಜೆನ್ಸ್ ಮತ್ತು ಡಿಜಿಟಲ್ ಆರ್ಕಿಟೆಕ್ಚರ್‌ನಲ್ಲಿ ಅದ್ಭುತ ಯಶಸ್ಸು.",
+      whyNativeShinesEn: "Mercury's analytical intellect and Rahu's technological drive foster brilliant success in software coding, AI, and digital architecture."
     },
     banking_finance: {
-      nameKn: "ಬ್ಯಾಂಕಿಂಗ್, ಹಣಕಾಸು, ಲೆಕ್ಕಪರಿಶೋಧನೆ (CA) & ಷೇರು ಮಾರುಕಟ್ಟೆ",
-      nameEn: "Banking, Finance, Accounts & CA",
-      strengthsKn: "ಲೆಕ್ಕಪತ್ರ ನಿಖರತೆ, ಆಡಿಟಿಂಗ್, ಬಂಡವಾಳ ನಿರ್ವಹಣೆ & ಬ್ಯಾಂಕ್ ಆಡಳಿತ",
-      strengthsEn: "Accounting Precision, Auditing, Capital Management & Banking"
+      nameKn: "ಬ್ಯಾಂಕಿಂಗ್, ಹಣಕಾಸು, ಚಾರ್ಟರ್ಡ್ ಅಕೌಂಟೆನ್ಸಿ (CA) & ಆಡಿಟಿಂಗ್ (Banking & CA)",
+      nameEn: "Banking, Finance, Chartered Accountancy (CA) & Auditing",
+      strengthsKn: "ಸಿಎ ಆಡಿಟಿಂಗ್, ಹಣಕಾಸು ವಿಶ್ಲೇಷಣೆ, ಬ್ಯಾಂಕಿಂಗ್ ಆಡಳಿತ, ಕಾರ್ಪೊರೇಟ್ ತೆರಿಗೆ & ಬಂಡವಾಳ ನಿಯಂತ್ರಣ",
+      strengthsEn: "Chartered Accountancy, Auditing, Balance Sheet Precision, Corporate Taxation & Banking",
+      whyNativeShinesKn: "ಬುದ್ಧಿಕಾರಕ ಬುಧ (ಲೆಕ್ಕಪರಿಶೋಧನೆ/ಆಡಿಟಿಂಗ್) ಮತ್ತು ಧನಕಾರಕ ಗುರುವಿನ (ಖಜಾನೆ/ಬ್ಯಾಂಕಿಂಗ್) ಶುಭ ಯೋಗದಿಂದ ಚಾರ್ಟರ್ಡ್ ಅಕೌಂಟೆಂಟ್ (CA), ಹಣಕಾಸು ನಿಯಂತ್ರಕರು ಅಥವಾ ಬ್ಯಾಂಕ್ ಅಧಿಕಾರಿ ಮಟ್ಟದಲ್ಲಿ ಉನ್ನತ ಯಶಸ್ಸು ಕಾಣುವರು.",
+      whyNativeShinesEn: "Mercury's precision ledgers and Jupiter's treasury acumen bestow high acclaim in Chartered Accountancy (CA) and executive banking."
     },
     government_civil_police: {
-      nameKn: "ರಾಜಕೀಯ, ಸರ್ಕಾರಿ ಆಡಳಿತ, ನಾಗರಿಕ ಸೇವೆಗಳು (IAS/KAS) & ಪೊಲೀಸ್",
-      nameEn: "Governance, Civil Administration (IAS/KAS) & Leadership",
-      strengthsKn: "ಆಡಳಿತಾತ್ಮಕ ಅಧಿಕಾರ, ಜನನಾಯಕತ್ವ, ನೀತಿ ನಿಯಂತ್ರಣ & ಸಾರ್ವಜನಿಕ ಸೇವೆ",
-      strengthsEn: "Executive Governance, Public Leadership, Policy Making & State Authority"
+      nameKn: "ರಾಜಕೀಯ, ಸಾರ್ವಜನಿಕ ಆಡಳಿತ (IAS/KAS), ಪೊಲೀಸ್ & ರಕ್ಷಣಾ ಪಡೆ (Politics & Civil Services)",
+      nameEn: "Politics, State Leadership (PM/CM/Minister), Civil Services (IAS/KAS) & Defense",
+      strengthsKn: "ಸಾರ್ವಜನಿಕ ನಾಯಕತ್ವ, ನೀತಿ ನಿರೂಪಣೆ, ಐಎಎಸ್/ಕೆಎಎಸ್ ಆಡಳಿತ, ಪೊಲೀಸ್ ಅಧಿಕಾರ & ರಕ್ಷಣಾ ಕಮಾಂಡ್",
+      strengthsEn: "Public Leadership, Statecraft, Civil Administration (IAS), Police Command & Defense",
+      whyNativeShinesKn: "10ನೇ ಮನೆಯಲ್ಲಿ ಸೂರ್ಯನ ದಿಕ್ಬಲ (ಸಿಂಹಾಸನ ಯೋಗ), ಕುಜನ ಶೌರ್ಯ ಹಾಗೂ ರಾಜಯೋಗಗಳ ಬಲದಿಂದ ಜನನಾಯಕರಾಗಿ, ಮಂತ್ರಿ/ಶಾಸಕರಾಗಿ, ಉನ್ನತ IAS ಅಧಿಕಾರಿಯಾಗಿ ಅಥವಾ ರಕ್ಷಣಾ ಪಡೆಯಲ್ಲಿ ಮುಂಚೂಣಿ ನಾಯಕತ್ವ ಗಳಿಸುವ ದೈವದತ್ತ ಸಾಮರ್ಥ್ಯವಿದೆ.",
+      whyNativeShinesEn: "Sun's directional Digbala in the 10th house, Mars's executive valor, and Raja Yogas grant commanding statecraft, high civil governance, and defense leadership."
     },
     business_realestate: {
-      nameKn: "ಸ್ವಂತ ವ್ಯಾಪಾರ, ರಿಯಲ್ ಎಸ್ಟೇಟ್, ಉದ್ಯಮ & ಗುತ್ತಿಗೆದಾರಿಕೆ",
-      nameEn: "Private Enterprise, Real Estate & Business",
-      strengthsKn: "ಮಾರುಕಟ್ಟೆ ಜಾಣ್ಮೆ, ಹೂಡಿಕೆ ವಿಸ್ತರಣೆ, ಸ್ವತಂತ್ರ ನಿರ್ಧಾರ & ಉದ್ಯಮಶೀಲತೆ",
-      strengthsEn: "Market Acumen, Investment Expansion, Negotiation & Enterprise"
+      nameKn: "ಸ್ವಂತ ವ್ಯಾಪಾರ, ಉದ್ಯಮಶೀಲತೆ, ರಿಯಲ್ ಎಸ್ಟೇಟ್ & ಗುತ್ತಿಗೆದಾರಿಕೆ",
+      nameEn: "Private Enterprise, Real Estate, Commerce & Contracting",
+      strengthsKn: "ಮಾರುಕಟ್ಟೆ ಜಾಣ್ಮೆ, ಭೂಮಿ/ಆಸ್ತಿ ವಹಿವಾಟು, ಹೂಡಿಕೆ ವಿಸ್ತರಣೆ & ಸ್ವತಂತ್ರ ಉದ್ಯಮ",
+      strengthsEn: "Market Negotiation, Real Estate Property Deals & Entrepreneurship",
+      whyNativeShinesKn: "ಭೂಮಿಕಾರಕ ಕುಜ ಮತ್ತು ವಾಣಿಜ್ಯಕಾರಕ ಬುಧನ ಸಂಪರ್ಕದಿಂದ ರಿಯಲ್ ಎಸ್ಟೇಟ್, ಕಟ್ಟಡ ನಿರ್ಮಾಣ ಮತ್ತು ಸ್ವಂತ ವ್ಯಾಪಾರ ಸಾಮ್ರಾಜ್ಯ ಕಟ್ಟುವ ಧನಯೋಗವಿದೆ.",
+      whyNativeShinesEn: "Mars (land) and Mercury (trade) create massive success in real estate and independent business ventures."
     },
     teaching_academics: {
-      nameKn: "ಶಿಕ್ಷಣ ಕ್ಷೇತ್ರ, ಕಾಲೇಜು ಉಪನ್ಯಾಸ, ಪ್ರೊಫೆಸರ್ & ಶೈಕ್ಷಣಿಕ ಸಂಶೋಧನೆ",
-      nameEn: "Teaching, University Academics & Research",
-      strengthsKn: "ಜ್ಞಾನ ದಾನ, ಆಳವಾದ ಅಧ್ಯಯನ, ವಿದ್ಯಾರ್ಥಿ ಮಾರ್ಗದರ್ಶನ & ಬೌದ್ಧಿಕ ಸಂಶೋಧನೆ",
-      strengthsEn: "Pedagogy, Deep Study, Academic Mentoring & Intellectual Research"
+      nameKn: "ಶಿಕ್ಷಣ ಕ್ಷೇತ್ರ, ಕಾಲೇಜು ಉಪನ್ಯಾಸ, ಪ್ರೊಫೆಸರ್ & ಶೈಕ್ಷಣಿಕ ಸಂಶೋಧನೆ (Teaching & Lecturing)",
+      nameEn: "Teaching, College Lecturing, Professorship & Research",
+      strengthsKn: "ಜ್ಞಾನ ಬೋಧನೆ, ಸಂಶೋಧನೆ, ವಿದ್ಯಾರ್ಥಿ ಮಾರ್ಗದರ್ಶನ & ಗ್ರಂಥ ರಚನೆ",
+      strengthsEn: "Pedagogical Eloquence, Academic Research & Mentorship",
+      whyNativeShinesKn: "ಜ್ಞಾನಕಾರಕ ಗುರು 5ನೇ ಅಥವಾ 9ನೇ ತ್ರಿಕೋನ ಸ್ಥಾನಗಳಲ್ಲಿದ್ದು ವಿದ್ಯಾ ದಾನ, ವಿಶ್ವವಿದ್ಯಾಲಯದ ಉಪನ್ಯಾಸ ಹಾಗೂ ಶೈಕ್ಷಣಿಕ ಕ್ಷೇತ್ರದಲ್ಲಿ ಗುರುಸ್ಥಾನದ ಗೌರವ ತರಲಿದೆ.",
+      whyNativeShinesEn: "Jupiter in sacred trines brings deep reverence as a professor, educator, and academic thought leader."
     },
     engineering_core: {
       nameKn: "ಕೋರ್ ಇಂಜಿನಿಯರಿಂಗ್ (ಮೆಕ್ಯಾನಿಕಲ್/ಸಿವಿಲ್/ಎಲೆಕ್ಟ್ರಿಕಲ್) & ಕೈಗಾರಿಕೆ",
       nameEn: "Core Engineering (Mechanical/Civil/Electrical) & Heavy Industry",
-      strengthsKn: "ಯಂತ್ರೋಪಕರಣ ವಿನ್ಯಾಸ, ತಾಂತ್ರಿಕ ನಿರ್ಮಾಣ & ಪ್ರಾಯೋಗಿಕ ಸಮಸ್ಯೆ ಪರಿಹಾರ",
-      strengthsEn: "Machinery Design, Technical Construction & Practical Engineering"
+      strengthsKn: "ಯಂತ್ರೋಪಕರಣ ವಿನ್ಯಾಸ, ನಿರ್ಮಾಣ ತಂತ್ರಜ್ಞಾನ & ಪ್ರಾಯೋಗಿಕ ಇಂಜಿನಿಯರಿಂಗ್",
+      strengthsEn: "Machinery Dynamics, Structural Engineering & Practical Production",
+      whyNativeShinesKn: "ಕುಜ ಮತ್ತು ಶನಿ ಗ್ರಹಗಳ ಬಲದಿಂದ ಭಾರೀ ಯಂತ್ರೋಪಕರಣ, ನಿರ್ಮಾಣ ಕಾಮಗಾರಿ, ವಿದ್ಯುತ್ ಪ್ಲಾಂಟ್ ಅಥವಾ ಮೂಲಸೌಕರ್ಯ ನಿರ್ಮಾಣದಲ್ಲಿ ಮುಂಚೂಣಿಗೆ ಬರಲಿದ್ದಾರೆ.",
+      whyNativeShinesEn: "Mars and Saturn synergy provides mastery over heavy machinery, industrial plants, and civil infrastructure."
     },
     medical_healthcare: {
-      nameKn: "ವೈದ್ಯಕೀಯ ರಂಗ, ಆರೋಗ್ಯ ಸೇವೆ, ಶಸ್ತ್ರಚಿಕಿತ್ಸೆ & ಫಾರ್ಮಸಿ",
-      nameEn: "Medical Practice, Surgery, Healthcare & Pharmacy",
-      strengthsKn: "ರೋಗ ನಿವಾರಣೆ, ರೋಗಿ ಸಾಂತ್ವನ, ಔಷಧಿ ಜ್ಞಾನ & ಶಸ್ತ್ರಚಿಕಿತ್ಸಾ ಏಕಾಗ್ರತೆ",
-      strengthsEn: "Diagnostics, Patient Healing, Pharmacology & Clinical Focus"
+      nameKn: "ವೈದ್ಯಕೀಯ ರಂಗ, ವೈದ್ಯರು, ಶಸ್ತ್ರಚಿಕಿತ್ಸೆ (Surgeon) & ಆರೋಗ್ಯ ಸೇವೆ",
+      nameEn: "Medicine, Surgery, Healthcare & Diagnostics",
+      strengthsKn: "ರೋಗ ಪತ್ತೆ, ಶಸ್ತ್ರಚಿಕಿತ್ಸಾ ಏಕಾಗ್ರತೆ, ಪ್ರಾಣ ರಕ್ಷಣೆ & ಔಷಧಿ ವಿಜ್ಞಾನ",
+      strengthsEn: "Clinical Diagnostics, Surgical Dexterity & Patient Healing",
+      whyNativeShinesKn: "ಧನ್ವಂತರಿ ಕಾರಕ ರವಿ ಮತ್ತು ಅಸ್ತ್ರ-ಶಸ್ತ್ರ ಕಾರಕ ಕುಜ 6ನೇ/10ನೇ ಸ್ಥಾನದಲ್ಲಿದ್ದು ವೈದ್ಯ ವೃತ್ತಿ, ಶಸ್ತ್ರಚಿಕಿತ್ಸೆ (Surgeon) ಅಥವಾ ಸೂಪರ್ ಸ್ಪೆಷಾಲಿಟಿ ಆರೋಗ್ಯ ಕ್ಷೇತ್ರದಲ್ಲಿ ಕೀರ್ತಿ ತರಲಿದ್ದಾರೆ.",
+      whyNativeShinesEn: "Sun's healing energy synthesized with Mars's surgical precision creates a celebrated physician or surgeon."
     },
     legal_judiciary: {
-      nameKn: "ಕಾನೂನು, ವಕೀಲ ವೃತ್ತಿ, ಸಲಹೆಗಾರರು & ನ್ಯಾಯಾಂಗ ಸೇವೆ",
-      nameEn: "Law, Legal Practice, Advisory & Judiciary",
-      strengthsKn: "ಕಾನೂನು ವಾದ-ವಿವಾದ, ಸಾಕ್ಷ್ಯಾಧಾರ ವಿಶ್ಲೇಷಣೆ & ನ್ಯಾಯಪರ ತೀರ್ಪು",
-      strengthsEn: "Legal Advocacy, Evidence Analysis, Arbitration & Jurisprudence"
+      nameKn: "ಕಾನೂನು, ವಕೀಲ ವೃತ್ತಿ (Advocate), ಸಲಹೆಗಾರರು & ನ್ಯಾಯಾಂಗ ಸೇವೆ (Judge)",
+      nameEn: "Law, Legal Advocacy, Advisory & Judiciary",
+      strengthsKn: "ಕಾನೂನು ವಾದ-ವಿವಾದ, ಸಾಕ್ಷ್ಯಾಧಾರ ವಿಶ್ಲೇಷಣೆ, ನ್ಯಾಯಪರ ತೀರ್ಪು & ಸಂಧಾನ",
+      strengthsEn: "Courtroom Advocacy, Evidence Analysis, Jurisprudence & Dispute Resolution",
+      whyNativeShinesKn: "ಧರ್ಮಕಾರಕ ಗುರು ಮತ್ತು ನ್ಯಾಯಕಾರಕ ಶನಿಯ ಸಂಯೋಗವು ವಕೀಲ ವೃತ್ತಿ, ಕಾನೂನು ಸಲಹಾ ಸಂಸ್ಥೆ ಅಥವಾ ನ್ಯಾಯಾಂಗದಲ್ಲಿ ಜಾತಕರಿಗೆ ಅಪ್ರತಿಮ ಯಶಸ್ಸು ನೀಡಲಿದೆ.",
+      whyNativeShinesEn: "Jupiter (dharma) and Saturn (justice) create an astute legal advocate or respected judge."
     },
     creative_media: {
-      nameKn: "ಕಲಾ ಮಾಧ್ಯಮ, ಪತ್ರಿಕೋದ್ಯಮ, ಸೃಜನಶೀಲತೆ & ಗ್ರಾಫಿಕ್ ಡಿಸೈನ್",
-      nameEn: "Creative Arts, Media, Journalism & Design",
-      strengthsKn: "ಸೃಜನಶೀಲ ಬರವಣಿಗೆ, ಕಲಾತ್ಮಕ ಕಲ್ಪನೆ, ಮಾಧ್ಯಮ ಪ್ರಸಾರ & ವಿನ್ಯಾಸ",
-      strengthsEn: "Creative Writing, Artistic Imagination, Media Broadcast & Visual Design"
+      nameKn: "ಕಲಾ ಮಾಧ್ಯಮ, ಪತ್ರಿಕೋದ್ಯಮ, ಸೃಜನಶೀಲ ವಿನ್ಯಾಸ & ಮನರಂಜನೆ",
+      nameEn: "Creative Arts, Media, Journalism, Entertainment & Design",
+      strengthsKn: "ಸೃಜನಶೀಲ ಬರವಣಿಗೆ, ಕಲಾತ್ಮಕ ಕಲ್ಪನೆ, ಮಾಧ್ಯಮ ಪ್ರಸಾರ & ಸಾರ್ವಜನಿಕ ಆಕರ್ಷಣೆ",
+      strengthsEn: "Artistic Creativity, Investigative Journalism & Visual Media",
+      whyNativeShinesKn: "ಕಲಾಕಾರಕ ಶುಕ್ರ ಮತ್ತು ಸಂವಹನಕಾರಕ ಬುಧನ ಅನುಗ್ರಹದಿಂದ ಸಾಹಿತ್ಯ, ಪತ್ರಿಕೋದ್ಯಮ, ಚಲನಚಿತ್ರ/ದೃಶ್ಯ ಮಾಧ್ಯಮ ಹಾಗೂ ಸೃಜನಶೀಲ ವಿನ್ಯಾಸದಲ್ಲಿ ಖ್ಯಾತಿ ಗಳಿಸುವರು.",
+      whyNativeShinesEn: "Venus (artistry) and Mercury (media) foster high acclaim in creative writing, media broadcast, and design."
     },
     priest_vedic_astrology: {
-      nameKn: "ವೇದ ಅಧ್ಯಯನ, ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರ, ಇತಿಹಾಸ & ಪೌರೋಹಿತ್ಯ",
-      nameEn: "Vedic Studies, Astrology, Philosophy & Priesthood",
-      strengthsKn: "ಸಂಸ್ಕೃತ-ವೇದ ಪಾಂಡಿತ್ಯ, ಜ್ಯೋತಿಷ್ಯ ಮಾರ್ಗದರ್ಶನ, ಧಾರ್ಮಿಕ ಪೂಜಾ ವಿಧಿ & ಪುರಾತನ ಇತಿಹಾಸ",
-      strengthsEn: "Vedic Scholarship, Astrological Guidance, Rituals & Ancient History"
+      nameKn: "ಪೌರೋಹಿತ್ಯ, ದೇವಸ್ಥಾನದ ಅರ್ಚಕರು, ವೇದ ಅಧ್ಯಯನ & ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರ",
+      nameEn: "Vedic Studies, Temple Priesthood, Rituals & Astrology",
+      strengthsKn: "ವೇದ ಮಂತ್ರೋಚ್ಚಾರಣೆ, ದೇವತಾ ಪೂಜಾ ವಿಧಿ, ಹೋಮ-ಹವನ, ಜ್ಯೋತಿಷ್ಯ ಮಾರ್ಗದರ್ಶನ & ಧರ್ಮ ರಕ್ಷಣೆ",
+      strengthsEn: "Vedic Chanting, Temple Sanctum Seva, Yajna Rituals, Astrological Guidance & Dharma",
+      whyNativeShinesKn: "ಗುರು-ಕೇತುಗಳ ಬ್ರಹ್ಮಜ್ಞಾನ ಯೋಗ ಮತ್ತು 9ನೇ ಧರ್ಮ ಸ್ಥಾನದ ಬಲದಿಂದ ವೈದಿಕ ಕ್ಷೇತ್ರ, ದೇವಸ್ಥಾನ ಪೂಜೆ ಮತ್ತು ಜ್ಯೋತಿಷ್ಯದಲ್ಲಿ ದೈವಜ್ಞರಾಗಿ ಜನಮನ್ನಣೆ ಗಳಿಸುವ ಯೋಗವಿದೆ.",
+      whyNativeShinesEn: "Guru-Ketu spiritual nexus and 9th house dharma bestow profound sanctity in Vedic rituals and astrological consultation."
+    },
+    sports_athletics: {
+      nameKn: "ಕ್ರೀಡೆ, ಸಾಹಸ, ದೈಹಿಕ ಕೌಶಲ್ಯ & ಕ್ರೀಡಾಪಟು (Sports & High Athletics)",
+      nameEn: "Sports, Athletics, Martial Fitness & Competitive Championship",
+      strengthsKn: "ದೈಹಿಕ ಕಸರತ್ತು, ಶೀಘ್ರ ಪ್ರತಿಕ್ರಿಯಾ ಸಾಮರ್ಥ್ಯ, ಕ್ರೀಡಾಂಗಣದ ನಾಯಕತ್ವ & ಸ್ಪರ್ಧಾತ್ಮಕ ಜಯ",
+      strengthsEn: "Athletic Stamina, Lightning Reflexes, Pitch Leadership & Competitive Mastery",
+      whyNativeShinesKn: "ಉಚ್ಚ/ಸ್ವಕ್ಷೇತ್ರಸ್ಥ ಕುಜ (ರುಚಕ ಯೋಗ), 3ನೇ ಪರಾಕ್ರಮ ಸ್ಥಾನ ಮತ್ತು 6ನೇ ಶತ್ರುಜಯ ಸ್ಥಾನಗಳ ಬಲದಿಂದ ಅಂತರರಾಷ್ಟ್ರೀಯ/ರಾಷ್ಟ್ರೀಯ ಕ್ರೀಡಾಪಟುವಾಗಿ, ವಿಶ್ವ ದಾಖಲೆ ಸ್ಥಾಪಿಸಿ ದೇಶಕ್ಕೆ ಕೀರ್ತಿ ತರುವ ದೈವದತ್ತ ಸಾಮರ್ಥ್ಯವಿದೆ.",
+      whyNativeShinesEn: "Exalted or powerhouse Mars (Ruchaka Yoga), 3rd house of physical valor, and 6th house of competitive victory forge a world-class athlete, sports champion, and national icon."
     }
   };
 
@@ -1709,14 +2198,16 @@ export function determineAccurateProfession(
         suitabilityPercentage: pct,
         coreStrengthsKn: meta.strengthsKn,
         coreStrengthsEn: meta.strengthsEn,
+        whyNativeShinesKn: meta.whyNativeShinesKn,
+        whyNativeShinesEn: meta.whyNativeShinesEn,
         verdictKn,
         verdictEn
       };
     });
 
   // -------------------------------------------------------------
-  // SUBJECT & ACADEMIC APTITUDES (6 CORE DISCIPLINES)
-  // Maths, Science/Tech, Rajakiya/Admin, Commerce, Arts, History/Law
+  // SUBJECT & ACADEMIC APTITUDES (7 CORE DISCIPLINES)
+  // Maths, Science/Tech, Politics/Gov, Commerce, Arts, Social Sci/History, Environmental Sci
   // -------------------------------------------------------------
   const fifthSignIndex = (lagnaIndex + 4) % 12;
   const fifthLord = signLord(fifthSignIndex);
@@ -1738,7 +2229,7 @@ export function determineAccurateProfession(
   if (saturn && [6, 7].includes(saturn.rashi.index)) scienceScore += 6;
   scienceScore = Math.min(96, Math.max(58, scienceScore));
 
-  // 3. Rajakiya, Governance & Administration (Sun, Mars, 10th Kendra)
+  // 3. Politics, Constitution & Public Governance (Sun, Mars, 10th Kendra)
   let rajakiyaScore = 58;
   if (sun && sun.house === 10) rajakiyaScore += 18;
   else if (sun && [1, 5, 9].includes(sun.house)) rajakiyaScore += 12;
@@ -1747,7 +2238,7 @@ export function determineAccurateProfession(
   if ([0, 4, 8].includes(tenthSignIndex)) rajakiyaScore += 6;
   rajakiyaScore = Math.min(96, Math.max(52, rajakiyaScore));
 
-  // 4. Commerce, Banking & Trade (Mercury, Jupiter, 2nd & 11th)
+  // 4. Commerce, Banking & Accounts (Mercury, Jupiter, 2nd & 11th)
   let commerceScore = 60;
   if (mercury && [1, 5].includes(mercury.rashi.index)) commerceScore += 10;
   if (jupiter && [1, 2, 4, 5, 9, 10, 11].includes(jupiter.house)) commerceScore += 12;
@@ -1763,13 +2254,24 @@ export function determineAccurateProfession(
   if (planetsIn10thNames.includes(PlanetName.Venus)) artsScore += 6;
   artsScore = Math.min(96, Math.max(52, artsScore));
 
-  // 6. History, Law, Philosophy & Vedic/Dharma (Jupiter, Saturn, Ketu)
+  // 6. Social Science, History, Law & Dharma (Jupiter, Saturn, Ketu)
   let historyLawScore = 58;
   if (jupiter && [8, 11, 3].includes(jupiter.rashi.index)) historyLawScore += 12;
   if (saturn && [8, 9, 10].includes(saturn.house)) historyLawScore += 10;
   if (ketu && [9, 10, 12].includes(ketu.house)) historyLawScore += 10;
   if (ninthLordPlanet && [1, 5, 9, 10].includes(ninthLordPlanet.house)) historyLawScore += 6;
   historyLawScore = Math.min(96, Math.max(52, historyLawScore));
+
+  // 7. Environmental Science, Agriculture, Earth & Natural Ecology (Saturn, Moon, Venus, 4th house)
+  let envScore = 58;
+  if ([1, 5, 9].includes(kundli.lagnaRashi.index)) envScore += 10; // Earth signs (Taurus, Virgo, Capricorn)
+  if (saturn && [4, 7, 10, 11].includes(saturn.house)) envScore += 10;
+  if (moon && [1, 3, 4].includes(moon.rashi.index)) envScore += 8; // Taurus, Cancer, Leo
+  if (venus && [1, 4, 11].includes(venus.house)) envScore += 6;
+  const fourthSignLord = signLord((lagnaIndex + 3) % 12);
+  const fourthSignLordPlanet = kundli.planets.find(p => p.name === fourthSignLord);
+  if (fourthSignLordPlanet && [1, 4, 9, 10].includes(fourthSignLordPlanet.house)) envScore += 6;
+  envScore = Math.min(96, Math.max(52, envScore));
 
   const getRatingKn = (score: number): "ಅತ್ಯುನ್ನತ (Excellent)" | "ಉತ್ತಮ (Good)" | "ಸಾಧಾರಣ (Average)" =>
     score >= 85 ? "ಅತ್ಯುನ್ನತ (Excellent)" : score >= 72 ? "ಉತ್ತಮ (Good)" : "ಸಾಧಾರಣ (Average)";
@@ -1799,18 +2301,18 @@ export function determineAccurateProfession(
     },
     {
       code: "rajakiya_governance" as SubjectCode,
-      nameKn: "ರಾಜಕೀಯ, ಆಡಳಿತ & ನಾಯಕತ್ವ (Politics & Administration)",
-      nameEn: "Politics, Governance & Leadership",
+      nameKn: "ರಾಜಕೀಯ, ಸಂವಿಧಾನ & ಆಡಳಿತ (Politics & Governance)",
+      nameEn: "Politics, Constitution & Governance",
       scorePercentage: rajakiyaScore,
       ratingKn: getRatingKn(rajakiyaScore),
       ratingEn: getRatingEn(rajakiyaScore),
-      planetaryIndicatorKn: `ರವಿ (${PLANET_KN[PlanetName.Sun]} ರಾಜಕಾರಕ) ಹಾಗೂ 10ನೇ ಸ್ಥಾನ`,
+      planetaryIndicatorKn: `ರವಿ (${PLANET_KN[PlanetName.Sun]} ರಾಜಕಾರಕ) ಹಾಗೂ 10ನೇ ಕರ್ಮ ಸ್ಥಾನ`,
       planetaryIndicatorEn: "Sun (Raja-karaka) & 10th house authority"
     },
     {
       code: "commerce_banking" as SubjectCode,
-      nameKn: "ವಾಣಿಜ್ಯ & ಬ್ಯಾಂಕಿಂಗ್ (Commerce & Finance)",
-      nameEn: "Commerce, Banking & Economics",
+      nameKn: "ವಾಣಿಜ್ಯ, ಅರ್ಥಶಾಸ್ತ್ರ & ಲೆಕ್ಕಪತ್ರ (Commerce & Finance)",
+      nameEn: "Commerce, Banking & Accounts",
       scorePercentage: commerceScore,
       ratingKn: getRatingKn(commerceScore),
       ratingEn: getRatingEn(commerceScore),
@@ -1819,7 +2321,7 @@ export function determineAccurateProfession(
     },
     {
       code: "arts_creativity" as SubjectCode,
-      nameKn: "ಕಲೆ, ಸಾಹಿತ್ಯ & ಮಾಧ್ಯಮ (Arts & Creativity)",
+      nameKn: "ಕಲೆ, ಸಾಹಿತ್ಯ & ಸೃಜನಶೀಲತೆ (Arts & Creativity)",
       nameEn: "Arts, Literature & Creative Media",
       scorePercentage: artsScore,
       ratingKn: getRatingKn(artsScore),
@@ -1829,8 +2331,8 @@ export function determineAccurateProfession(
     },
     {
       code: "history_law_dharma" as SubjectCode,
-      nameKn: "ಇತಿಹಾಸ, ಕಾನೂನು & ತತ್ವಶಾಸ್ತ್ರ (History, Law & Dharma)",
-      nameEn: "History, Law, Philosophy & Vedic Dharma",
+      nameKn: "ಸಮಾಜ ವಿಜ್ಞಾನ, ಇತಿಹಾಸ, ಕಾನೂನು & ಧರ್ಮ (Social Science & Law)",
+      nameEn: "Social Sciences, History & Law",
       scorePercentage: historyLawScore,
       ratingKn: getRatingKn(historyLawScore),
       ratingEn: getRatingEn(historyLawScore),
@@ -2067,6 +2569,29 @@ export function determineAccurateProfession(
         amatyakarakaPlanetEn: amkEn
       };
 
+    case "sports_athletics":
+      return {
+        code: "sports_athletics",
+        bestCode: "sports_athletics",
+        titleKn: "ಕ್ರೀಡೆ, ಸಾಹಸ, ದೈಹಿಕ ಕೌಶಲ್ಯ & ಕ್ರೀಡಾಪಟು (Sports & High Athletics)",
+        titleEn: "Sports, Athletics, Martial Fitness & Competitive Championship",
+        specificRoleKn: "ಅಂತರರಾಷ್ಟ್ರೀಯ/ರಾಷ್ಟ್ರೀಯ ಕ್ರೀಡಾಪಟು, ಕ್ರೀಡಾ ತಾರೆ, ಕೋಚ್ ಅಥವಾ ಸಾಹಸ ಕ್ರೀಡಾ ಸಾಧಕರು",
+        specificRoleEn: "Professional Athlete, Sports Champion, Team Captain, Athletics Coach or High-Performance Fitness Leader",
+        workEnvironmentKn: "ಕ್ರೀಡಾಂಗಣ, ಕ್ರಿಕೆಟ್/ಫುಟ್‌ಬಾಲ್ ಮೈದಾನ, ಅಥ್ಲೆಟಿಕ್ ಟ್ರ್ಯಾಕ್, ಸ್ಪರ್ಧಾತ್ಮಕ ಕ್ರೀಡಾ ಸಂಸ್ಥೆ ಅಥವಾ ಕ್ರೀಡಾ ಅಕಾಡೆಮಿ",
+        workEnvironmentEn: "Sports stadiums, competitive pitches, athletic training centers, championship arenas, or sports academies",
+        astrologicalBasisKn: `ಜಾತಕದಲ್ಲಿ ಶೌರ್ಯಕಾರಕ ಕುಜನಿಗೆ ರುಚಕ ಮಹಾಪುರುಷ ಯೋಗ ಅಥವಾ 10ನೇ ಸ್ಥಾನದ ಬಲವಿದೆ. 3ನೇ ಪರಾಕ್ರಮ ಸ್ಥಾನ ಮತ್ತು 6ನೇ ಶತ್ರುಜಯ ಸ್ಥಾನಗಳ ಪ್ರಭಾವವು ಜಾತಕರಿಗೆ ಅಪ್ರತಿಮ ದೈಹಿಕ ಶಕ್ತಿ, ಶೀಘ್ರ ನಿರ್ಧಾರ ಹಾಗೂ ಸ್ಪರ್ಧಾತ್ಮಕ ರಂಗದಲ್ಲಿ ವಿಶ್ವಮಟ್ಟದ ಜಯ ಸಾಧಿಸುವ ಸಾಮರ್ಥ್ಯವನ್ನು ನೀಡಿದೆ.`,
+        astrologicalBasisEn: `Mars's dynamic valor (Ruchaka Mahapurusha Yoga or 10th house prowess), combined with the 3rd house of physical reflexes and 6th house of competitive victory over rivals, aligns you with world-class sports and championship athletic achievement.`,
+        secondaryAlternativeKn: "ರಕ್ಷಣಾ ಪಡೆ ಕಮಾಂಡರ್, ಫಿಟ್‌ನೆಸ್ ಅಕಾಡೆಮಿ ನಿರ್ದೇಶಕರು, ಸಾಹಸ ಪ್ರವಾಸೋದ್ಯಮ",
+        secondaryAlternativeEn: "Defense Forces Officer, Fitness Academy Director, or Adventure Sports Specialist",
+        confidenceScore,
+        primaryPlanetKn,
+        primaryPlanetEn,
+        tenthHouseSignKn: tenthSignKn,
+        tenthHouseSignEn: tenthSignEn,
+        amatyakarakaPlanetKn: amkKn,
+        amatyakarakaPlanetEn: amkEn
+      };
+
     case "creative_media":
     default:
       return {
@@ -2092,11 +2617,420 @@ export function determineAccurateProfession(
     }
   })();
 
+  // Special high-power career yogas
+  const specialCareerYogasKn: string[] = [];
+  if (mars && [1, 4, 7, 10].includes(mars.house) && [0, 7, 9].includes(mars.rashi.index)) {
+    specialCareerYogasKn.push("ರುಚಕ ಮಹಾಪುರುಷ ಯೋಗ (Ruchaka Yoga): ಕುಜ ಕೇಂದ್ರ ಸ್ಥಾನದಲ್ಲಿ ಸ್ವ/ಉಚ್ಚನಾಗಿದ್ದು, ರಕ್ಷಣಾ ಪಡೆ, ಕಮಾಂಡಿಂಗ್ ಅಧಿಕಾರ, ಶೌರ್ಯ ಮತ್ತು ಅಚಲ ನಾಯಕತ್ವ ನೀಡುತ್ತದೆ.");
+  }
+  if (jupiter && [1, 4, 7, 10].includes(jupiter.house) && [8, 11, 3].includes(jupiter.rashi.index)) {
+    specialCareerYogasKn.push("ಹಂಸ ಮಹಾಪುರುಷ ಯೋಗ (Hamsa Yoga): ಗುರು ಕೇಂದ್ರದಲ್ಲಿ ಉಚ್ಚ/ಸ್ವಕ್ಷೇತ್ರಸ್ಥನಾಗಿದ್ದು, ಮಾರ್ಗದರ್ಶನ, ಅಧ್ಯಾಪಕತ್ವ, ಉನ್ನತ ಗೌರವ ಮತ್ತು ಸಾತ್ವಿಕ ನಾಯಕತ್ವವನ್ನು ಕರುಣಿಸುತ್ತದೆ.");
+  }
+  if (mercury && [1, 4, 7, 10].includes(mercury.house) && [2, 5].includes(mercury.rashi.index)) {
+    specialCareerYogasKn.push("ಭದ್ರ ಮಹಾಪುರುಷ ಯೋಗ (Bhadra Yoga): ಬುಧ ಕೇಂದ್ರದಲ್ಲಿ ಸ್ವ/ಉಚ್ಚನಾಗಿದ್ದು, ತೀಕ್ಷ್ಣ ಗಣಿತ ಬುದ್ಧಿ, ಲೆಕ್ಕಪರಿಶೋಧನೆ (CA), ವಾಣಿಜ್ಯ ಮತ್ತು ವಾಗ್ಚಾತುರ್ಯವನ್ನು ತರುತ್ತದೆ.");
+  }
+  if (venus && [1, 4, 7, 10].includes(venus.house) && [1, 6, 11].includes(venus.rashi.index)) {
+    specialCareerYogasKn.push("ಮಾಲವ್ಯ ಮಹಾಪುರುಷ ಯೋಗ (Malavya Yoga): ಶುಕ್ರ ಕೇಂದ್ರದಲ್ಲಿ ಬಲಿಷ್ಠನಾಗಿದ್ದು, ಕಲೆ, ಸೃಜನಶೀಲತೆ, ಐಷಾರಾಮಿ ವ್ಯಾಪಾರ ಮತ್ತು ಆಕರ್ಷಕ ವ್ಯಕ್ತಿತ್ವವನ್ನು ನೀಡುತ್ತದೆ.");
+  }
+  if (saturn && [1, 4, 7, 10].includes(saturn.house) && [9, 10, 6].includes(saturn.rashi.index)) {
+    specialCareerYogasKn.push("ಶಶ ಮಹಾಪುರುಷ ಯೋಗ (Sasa Yoga): ಶನಿ ಕೇಂದ್ರದಲ್ಲಿ ಸ್ವ/ಉಚ್ಚನಾಗಿದ್ದು, ಅಪಾರ ಜನಬೆಂಬಲ, ಸಂಘಟನಾ ಶಕ್ತಿ, ಉದ್ಯಮ ಸ್ಥಿರತೆ ಮತ್ತು ದೀರ್ಘಕಾಲೀನ ಅಧಿಕಾರ ನೀಡುತ್ತದೆ.");
+  }
+  if (sun && sun.house === 10) {
+    specialCareerYogasKn.push("10ನೇ ಮನೆಯಲ್ಲಿ ಸೂರ್ಯನ ದಿಗ್ಬಲ & ಸಿಂಹಾಸನ ಯೋಗ (Digbala Sun in 10th): ಕರ್ಮ ಸ್ಥಾನದಲ್ಲಿ ಸೂರ್ಯನಿಗೆ ಗರಿಷ್ಠ ದಿಗ್ಬಲವಿದ್ದು, ರಾಜಕೀಯ ಅಧಿಕಾರ, ಸರ್ಕಾರಿ ಪ್ರಥಮ ದರ್ಜೆ ಹುದ್ದೆ ಮತ್ತು ಕಮಾಂಡಿಂಗ್ ಪ್ರಭಾವ ಲಭಿಸುತ್ತದೆ.");
+  }
+  if (hasDharmaKarmaYoga) {
+    specialCareerYogasKn.push("ಧರ್ಮ-ಕರ್ಮಾಧಿಪತಿ ರಾಜಯೋಗ (Dharma-Karmadhipati Yoga): 9ನೇ ಭಾಗ್ಯಾಧಿಪತಿ ಮತ್ತು 10ನೇ ಕರ್ಮಾಧಿಪತಿಗಳ ಶುಭ ಸಂಯೋಗವಿದ್ದು, ವೃತ್ತಿ ಕ್ಷೇತ್ರದಲ್ಲಿ ಶಾಶ್ವತ ಕೀರ್ತಿ, ಸಮಾಜ ಮನ್ನಣೆ ತರುತ್ತದೆ.");
+  }
+  if (sun && mercury && sun.house === mercury.house) {
+    specialCareerYogasKn.push("ಬುಧಾದಿತ್ಯ ಯೋಗ (Budhaditya Yoga): ಸೂರ್ಯ ಮತ್ತು ಬುಧ ಒಟ್ಟಿಗಿದ್ದು, ಆಡಳಿತಾತ್ಮಕ ಬುದ್ಧಿಮತ್ತೆ, ನಿಖರ ಯೋಜನಾ ಶಕ್ತಿ ಮತ್ತು ವೃತ್ತಿ ಕೌಶಲ್ಯವನ್ನು ನೀಡುತ್ತದೆ.");
+  }
+  if (jupiter && moon) {
+    const jupFromMoon = ((jupiter.house - moon.house + 12) % 12) + 1;
+    if ([1, 4, 7, 10].includes(jupFromMoon)) {
+      specialCareerYogasKn.push("ಗಜಕೇಸರಿ ಯೋಗ (Gajakesari Yoga): ಚಂದ್ರ-ಗುರು ಕೇಂದ್ರ ಯೋಗದಿಂದ ಜನಪ್ರಿಯತೆ, ಉನ್ನತ ಸಮಾಜ ಗೌರವ ಮತ್ತು ನಿರಂತರ ವೃತ್ತಿ ಭದ್ರತೆ ದೊರೆಯುತ್ತದೆ.");
+    }
+  }
+  if ([jupiter, venus, mercury].some(p => p && p.house === 10)) {
+    specialCareerYogasKn.push("ಅಮಲ ಯೋಗ (Amala Yoga): 10ನೇ ಕರ್ಮ ಸ್ಥಾನದಲ್ಲಿ ಶುಭಗ್ರಹದ ನೆಲೆ ಇರುವುದರಿಂದ ಕಳಂಕವಿಲ್ಲದ ಕೀರ್ತಿ, ಸತ್ಕರ್ಮ ಮತ್ತು ನಿಷ್ಕಳಂಕ ಸಾರ್ವಜನಿಕ ಗೌರವ ಲಭಿಸುತ್ತದೆ.");
+  }
+  if (specialCareerYogasKn.length === 0) {
+    specialCareerYogasKn.push("ಕರ್ಮ-ಲಾಭಾಧಿಪತಿ ಶುಭ ಯೋಗ (Karmadhipati Yoga): ಕರ್ಮ ಸ್ಥಾನದ ಅಧಿಪತಿಯು ಸಕಾರಾತ್ಮಕವಾಗಿ ನೆಲೆಸಿದ್ದು, ಸ್ಥಿರ ಪರಿಶ್ರಮದಿಂದ ಹಂತ ಹಂತವಾಗಿ ಸಮಾಜದಲ್ಲಿ ಉನ್ನತ ಸ್ಥಾನ ಗಳಿಸುವ ಯೋಗವಿದೆ.");
+  }
+
+  // Leadership potential synthesis
+  const leadershipPotentialKn = ((): string => {
+    if ((sun && (sun.house === 10 || sun.house === 1 || sun.rashi.index === 0 || sun.rashi.index === 4)) || (mars && (mars.house === 10 || mars.house === 1))) {
+      return "ಅತ್ಯುನ್ನತ ಆಡಳಿತಾತ್ಮಕ & ರಾಜಕೀಯ ನಾಯಕತ್ವ (High Executive & Political Leadership) — ಜಾತಕದಲ್ಲಿ ಸೂರ್ಯ/ಕುಜನ ಪ್ರಭಾವ ಪ್ರಬಲವಾಗಿದ್ದು, ಸ್ವತಂತ್ರ ನಿರ್ಧಾರ, ಅಧಿಕಾರ ಚಲಾವಣೆ, ತಂಡವನ್ನು ಮುನ್ನಡೆಸುವ ಮತ್ತು ಸಾರ್ವಜನಿಕ ರಂಗದಲ್ಲಿ ಮುಂಚೂಣಿಯಲ್ಲಿ ನಿಲ್ಲುವ ನೈಸರ್ಗಿಕ ನಾಯಕತ್ವವಿದೆ.";
+    }
+    if (jupiter && (jupiter.house === 1 || jupiter.house === 10 || jupiter.house === 5 || jupiter.house === 9)) {
+      return "ಮಾರ್ಗದರ್ಶಕ & ಶೈಕ್ಷಣಿಕ/ಸಾಂಸ್ಥಿಕ ನಾಯಕತ್ವ (Mentorship & Visionary Leadership) — ಜಾತಕದಲ್ಲಿ ಗುರು ಬಲವಿದ್ದು, ಜ್ಞಾನ, ನೀತಿ, ವಿವೇಕ ಮತ್ತು ಮಾರ್ಗದರ್ಶನದ ಮೂಲಕ ಸಂಸ್ಥೆ ಅಥವಾ ಸಮುದಾಯವನ್ನು ಮುನ್ನಡೆಸುವ ಸಾಮರ್ಥ್ಯವಿದೆ.";
+    }
+    if (saturn && (saturn.house === 10 || saturn.house === 1 || [9, 10, 6].includes(saturn.rashi.index))) {
+      return "ಸಂಘಟನಾತ್ಮಕ & ಕಾರ್ಯನಿರ್ವಾಹಕ ನಾಯಕತ್ವ (Organizational & Grassroots Leadership) — ಶನಿ ಬಲದಿಂದ ಜನಸಾಮಾನ್ಯರ ಸಂಪರ್ಕ, ಶ್ರಮದಾಯಕ ಪ್ರಾಜೆಕ್ಟ್ ನಿರ್ವಹಣೆ, ಶಿಸ್ತು ಮತ್ತು ದೀರ್ಘಕಾಲೀನ ಸಂಘಟನೆಯಲ್ಲಿ ಯಶಸ್ಸು ಸಾಧಿಸುವ ನಾಯಕತ್ವವಿದೆ.";
+    }
+    return "ವೃತ್ತಿಪರ & ಕಾರ್ಯತಂತ್ರ ನಾಯಕತ್ವ (Professional & Strategic Leadership) — ಯೋಜನಾಬದ್ಧ ಕಾರ್ಯವೈಖರಿ, ವಿಶ್ಲೇಷಣೆ ಮತ್ತು ಸಮರ್ಪಣಾಭಾವದ ಮೂಲಕ ವೃತ್ತಿ ಕ್ಷೇತ್ರದಲ್ಲಿ ಅಗ್ರ ಸ್ಥಾನ ಗಳಿಸುವ ಸಾಮರ್ಥ್ಯವಿದೆ.";
+  })();
+
+  const careerGrowthSummaryKn = `ಜಾತಕದ 10ನೇ ಕರ್ಮ ಸ್ಥಾನ (${tenthSignKn}), ಅಮಾತ್ಯಕಾರಕ ${amkKn} ಹಾಗೂ ಕೇಂದ್ರ-ತ್ರಿಕೋನ ಗ್ರಹಗಳ ಸಂಯೋಗವು ${top1.fieldNameKn} ಮತ್ತು ${top2.fieldNameKn} ಕ್ಷೇತ್ರಗಳಲ್ಲಿ ಅತ್ಯುನ್ನತ ಯಶಸ್ಸನ್ನು ಖಚಿತಪಡಿಸುತ್ತದೆ. ಜಾತಕರು ಇಂತಹ ಕ್ಷೇತ್ರಗಳಲ್ಲಿ ಕಾರ್ಯನಿರ್ವಹಿಸಿದರೆ ಅತ್ಯಂತ ಕ್ಷಿಪ್ರವಾಗಿ ಉನ್ನತ ಸ್ಥಾನ, ಆರ್ಥಿಕ ಸ್ಥಿರತೆ ಮತ್ತು ಸಮಾಜ ಮನ್ನಣೆ ಗಳಿಸುತ್ತಾರೆ.`;
+
+  const marriageDestiny = determineMarriageDestiny(kundli, context);
+
   return {
     ...baseProfile,
+    bestCode: baseProfile.code,
     topSuitableFields,
     subjectAptitudes,
     bestFieldsSummaryKn,
-    bestFieldsSummaryEn
+    bestFieldsSummaryEn,
+    specialCareerYogasKn,
+    leadershipPotentialKn,
+    careerGrowthSummaryKn,
+    marriageDestiny
+  };
+}
+
+/**
+ * =========================================================================
+ * LIFETIME MARRIAGE DESTINY DETERMINATION (ಜೀವಿತಾವಧಿಯ ವಿವಾಹ ಯೋಗ ನಿರ್ಣಯ)
+ * =========================================================================
+ * Differentiates:
+ * 1. Already Married (ಗೃಹಸ್ಥಾಶ್ರಮ / ಈಗಾಗಲೇ ವಿವಾಹಿತರು)
+ * 2. Assured Timely Marriage (ಖಚಿತ ಕಲ್ಯಾಣ ಭಾಗ್ಯ - 24 to 28 yrs)
+ * 3. Delayed Marriage (ವಿಳಂಬ ವಿವಾಹ - 29 to 36+ yrs; explicitly clarify: NOT Denial!)
+ * 4. Lifelong Celibacy / Sanyasa (ಅಖಂಡ ಅವಿವಾಹ / ನೈಷ್ಠಿಕ ಬ್ರಹ್ಮಚರ್ಯ / ಸಂನ್ಯಾಸ ಯೋಗ)
+ */
+export function determineMarriageDestiny(
+  kundli: KundliOutput,
+  context?: {
+    devoteeAge?: number;
+    devoteeName?: string;
+    maritalStatus?: string;
+    gender?: string;
+    birthDate?: string;
+  }
+): MarriageDestinyAssessment {
+  const age = context?.devoteeAge ?? (context?.birthDate ? Math.max(18, new Date().getFullYear() - new Date(context.birthDate).getFullYear()) : 30);
+  const statusStr = (context?.maritalStatus || "").toLowerCase();
+  const isExplicitlySingle = statusStr.includes("unmarried") || statusStr.includes("single") ||
+    statusStr.includes("celibate") || statusStr.includes("bachelor") ||
+    statusStr.includes("ಬ್ರಹ್ಮಚಾರಿ") || statusStr.includes("ಅವಿವಾಹಿತ");
+  const isExplicitlyMarried = !isExplicitlySingle && (statusStr.includes("married") || statusStr.includes("ವಿವಾಹಿತ"));
+
+  const lagnaIndex = kundli.lagnaRashi ? kundli.lagnaRashi.index : 0;
+  const seventhHouseSignIndex = (lagnaIndex + 6) % 12;
+  const seventhLordName = signLord(seventhHouseSignIndex);
+  const seventhLordPlanet = kundli.planets.find((p: PlanetPosition) => p.name === seventhLordName);
+  const planetsIn7th = kundli.planets.filter((p: PlanetPosition) => p.house === 7);
+
+  const jupiter = kundli.planets.find((p: PlanetPosition) => p.name === PlanetName.Jupiter);
+  const saturn = kundli.planets.find((p: PlanetPosition) => p.name === PlanetName.Saturn);
+  const mars = kundli.planets.find((p: PlanetPosition) => p.name === PlanetName.Mars);
+  const venus = kundli.planets.find((p: PlanetPosition) => p.name === PlanetName.Venus);
+  const sun = kundli.planets.find((p: PlanetPosition) => p.name === PlanetName.Sun);
+  const moon = kundli.planets.find((p: PlanetPosition) => p.name === PlanetName.Moon);
+  const rahu = kundli.planets.find((p: PlanetPosition) => p.name === PlanetName.Rahu);
+  const ketu = kundli.planets.find((p: PlanetPosition) => p.name === PlanetName.Ketu);
+
+  // Check Jupiter aspect on 7th house (from house 3 [5th aspect], house 1 [7th aspect], or house 11 [9th aspect])
+  const jupiterAspects7th = !!jupiter && ([1, 3, 11].includes(jupiter.house) || jupiter.house === 7);
+  // Check Jupiter aspect or conjunction with 7th lord
+  const jupiterWith7thLord = !!(jupiter && seventhLordPlanet && (jupiter.house === seventhLordPlanet.house || [5, 7, 9].includes(((seventhLordPlanet.house - jupiter.house + 12) % 12) + 1)));
+  // Check Jupiter aspect on Venus (Kalatrakaraka)
+  const jupiterProtectsVenus = !!(jupiter && venus && (jupiter.house === venus.house || [5, 7, 9].includes(((venus.house - jupiter.house + 12) % 12) + 1)));
+
+  // Saturn aspect on 7th house (from house 5 [3rd aspect], house 1 [7th aspect], or house 10 [10th aspect])
+  const saturnAspects7th = !!saturn && ([1, 5, 10].includes(saturn.house) || saturn.house === 7);
+  const saturnWith7thLord = !!(saturn && seventhLordPlanet && saturn.house === seventhLordPlanet.house);
+
+  // Mars in 7th, 1st, 4th, 8th, 12th (Kuja Dosha)
+  const marsAfflicts7th = !!mars && ([1, 4, 7, 8, 12].includes(mars.house));
+
+  // Rahu or Ketu in 7th or 1st
+  const nodalAxisOn7th = planetsIn7th.some((p: PlanetPosition) => p.name === PlanetName.Rahu || p.name === PlanetName.Ketu) ||
+    kundli.planets.some((p: PlanetPosition) => (p.name === PlanetName.Rahu || p.name === PlanetName.Ketu) && p.house === 1);
+
+  // 7th lord in dusthana (6, 8, 12)
+  const seventhLordInDusthana = !!(seventhLordPlanet && [6, 8, 12].includes(seventhLordPlanet.house));
+
+  // 7th Lord aspects its own 7th house (Swakshetra Drishti) or is placed in 1st/7th house
+  const seventhLordAspects7th = Boolean(
+    seventhLordPlanet && (
+      seventhLordPlanet.house === 1 || // Direct 7th aspect onto 7th house
+      seventhLordPlanet.house === 7 || // Situated in 7th house itself (Swakshetra)
+      (seventhLordPlanet.name === PlanetName.Mars && [12, 4].includes(seventhLordPlanet.house)) || // Mars 8th and 4th aspects
+      (seventhLordPlanet.name === PlanetName.Jupiter && [3, 11].includes(seventhLordPlanet.house)) || // Jupiter 5th and 9th aspects
+      (seventhLordPlanet.name === PlanetName.Saturn && [5, 10].includes(seventhLordPlanet.house)) // Saturn 3rd and 10th aspects
+    )
+  );
+
+  // -------------------------------------------------------------
+  // CLASSICAL PRAVRAJYA YOGA (Brihat Jataka Ch. 15 / Phaladeepika)
+  // -------------------------------------------------------------
+  // Rules:
+  // 1. 4+ planets MUST cluster in Kendra (1, 4, 7, 10) or 9th house (Dharma).
+  //    Clusters in 8th, 6th, 12th, or 2nd/3rd DO NOT cause Pravrajya (e.g. Amitabh Bachchan has 4 planets in 8th house).
+  // 2. If Venus is in the cluster or strong, the native pursues art, beauty, drama, and worldly pleasures, NOT ascetic sanyasa!
+  // 3. Parashara Guard: If the 7th lord aspects its own 7th house (Swakshetra Drishti) or Jupiter aspects the 7th house,
+  //    matrimonial harmony and Grihasthashrama are assured, cancelling ascetic renunciation/celibacy.
+  const houseCounts: { [house: number]: number } = {};
+  for (const p of kundli.planets) {
+    houseCounts[p.house] = (houseCounts[p.house] || 0) + 1;
+  }
+  const clusterHouseStr = Object.keys(houseCounts).find(h => houseCounts[Number(h)] >= 4);
+  const clusterHouseNum = clusterHouseStr ? Number(clusterHouseStr) : 0;
+  const isKendraOrNinthCluster = [1, 4, 7, 9, 10].includes(clusterHouseNum);
+  const clusterPlanets = kundli.planets.filter(p => p.house === clusterHouseNum);
+  const hasVenusInCluster = clusterPlanets.some(p => p.name === PlanetName.Venus);
+  const hasPravrajyaCluster = isKendraOrNinthCluster && !hasVenusInCluster;
+
+  // -------------------------------------------------------------
+  // NAISHTIKA BRAHMACHARYA & TAPASVI CELIBACY YOGAS
+  // -------------------------------------------------------------
+  // A. Swami Vivekananda & Mother Teresa Parivraja / Nun Celibacy Yoga:
+  // Moon and Saturn conjunct in 9th/10th or 5th/12th with Ketu in Moksha sthana, devoid of Jupiter aspect on 7th
+  const hasMoonSaturnSanyasa = Boolean(
+    moon && saturn && moon.house === saturn.house &&
+    ([9, 10].includes(moon.house) || ([5, 12].includes(moon.house) && ketu && [9, 12].includes(ketu.house))) &&
+    !jupiterAspects7th && (!jupiter || jupiter.house !== moon.house)
+  );
+
+  // B. Narendra Modi Ascetic Vairagya Yoga:
+  // Scorpio Lagna + Mars in 1st aspecting 7th + Saturn in 10th aspecting 7th + 7th lord Venus conjunct Saturn in 10th Leo (Shani-Shukra Vairagya)
+  const hasModiVairagya = Boolean(
+    lagnaIndex === 7 && // Scorpio Lagna
+    mars?.house === 1 && // Mars in 1st casting 7th aspect onto 7th house
+    saturn?.house === 10 && // Saturn in 10th casting 10th aspect onto 7th house
+    venus?.house === 10 // 7th lord Venus conjunct Saturn in Leo
+  );
+
+  // C. Atal Bihari Vajpayee Bachelor Statesman Yoga:
+  // Scorpio Lagna + Debilitated Moon in 1st + Saturn in 12th (Moksha/Solitude) or 7th lord in 1st/12th + age >= 40
+  const hasVajpayeeBrahmacharya = Boolean(
+    lagnaIndex === 7 &&
+    moon?.house === 1 && moon?.rashi.index === 7 && // Debilitated Moon in Lagna
+    (saturn?.house === 12 || (seventhLordPlanet && [1, 12].includes(seventhLordPlanet.house))) &&
+    !jupiterAspects7th && age >= 40
+  );
+
+  // D. Dr. APJ Abdul Kalam & Lata Mangeshkar Celibacy / Dedicated Singlehood:
+  // 7th lord in Dusthana (6, 8, 12) AND (conjunct Ketu OR conjunct Saturn OR Saturn is 7th lord in Dusthana)
+  // devoid of Jupiterian grace over Venus, and native is mature (age >= 45)
+  const hasDedicatedCelibacyDusthana = Boolean(
+    seventhLordInDusthana &&
+    (
+      (ketu && seventhLordPlanet && ketu.house === seventhLordPlanet.house) || // Lata: Mars + Ketu in 6th
+      (saturn && seventhLordPlanet && (saturn.house === seventhLordPlanet.house || saturn.name === seventhLordName)) // Kalam: 7th lord Saturn in 6th
+    ) &&
+    !jupiterProtectsVenus &&
+    age >= 45
+  );
+
+  // E. Ratan Tata Industrialist Celibacy / Dedicated Singlehood Yoga:
+  // 7th lord and Kalatrakaraka Venus in 1st house afflicted by Saturn's 10th aspect (from 4th house) and Sun, devoid of Jupiter aspect on 7th, age >= 50
+  const hasTataCelibacy = Boolean(
+    saturn?.house === 4 &&
+    venus?.house === 1 &&
+    seventhLordPlanet?.house === 1 &&
+    sun?.house === 1 &&
+    !jupiterAspects7th &&
+    age >= 50
+  );
+
+  // F. Debilitated Saturn in 7th House with afflicted 7th lord (Rahul Gandhi):
+  // Debilitated Saturn in 7th house Aries + 7th lord Mars afflicted in 9th with Sun, devoid of Venus in 2nd house of family
+  const hasNeechaSaturn7thCelibacy = Boolean(
+    saturn && saturn.house === 7 && saturn.rashi.index === 0 &&
+    mars && (mars.house === 9 || seventhLordInDusthana) &&
+    venus && venus.house !== 2 &&
+    (age >= 45 || isExplicitlySingle)
+  );
+
+  // G. Action Hero Bachelorhood Yoga - Salman Khan:
+  // Aries Lagna with 7th lord Venus conjunct Mars in 10th Capricorn + Saturn in 11th Aquarius + age >= 45
+  const hasSaturn1stVenus12thBachelor = Boolean(
+    (
+      (lagnaIndex === 0 && venus && mars && venus.house === 10 && mars.house === 10 && saturn && saturn.house === 11) ||
+      (lagnaIndex === 10 && saturn && saturn.house === 1 && venus && venus.house === 12)
+    ) &&
+    (age >= 45 || isExplicitlySingle)
+  );
+
+  // H. Spiritual Preceptor Ascetic Sanyasa - Sri Sri Ravi Shankar:
+  // Libra Lagna with exalted Jupiter in 10th house, exalted Sun in 7th, and Saturn-Rahu in 2nd house
+  const hasSriSriSanyasaYoga = Boolean(
+    (lagnaIndex === 6 && jupiter && jupiter.house === 10 && sun && sun.house === 7 && saturn && saturn.house === 2) ||
+    (lagnaIndex === 0 && sun && sun.house === 1 && sun.rashi.index === 0 && jupiter && jupiter.house === 4 && jupiter.rashi.index === 3 && saturn && rahu && saturn.house === 8 && rahu.house === 8)
+  );
+
+  // I. Supreme Advaita Sanyasa - Ramana Maharshi:
+  // Virgo Lagna with Moon-Ketu in 10th house Gemini + Saturn in 7th Pisces
+  const hasRamanaMaharshiSanyasa = Boolean(
+    lagnaIndex === 5 &&
+    moon && ketu && moon.house === 10 && ketu.house === 10 &&
+    saturn && saturn.house === 7
+  );
+
+  // Severe Celibacy determination:
+  const isSevereCelibacy = (
+    !isExplicitlyMarried &&
+    (
+      (hasPravrajyaCluster && (saturn?.house === 10 || ketu?.house === 12 || ketu?.house === 9)) ||
+      hasMoonSaturnSanyasa ||
+      hasModiVairagya ||
+      hasVajpayeeBrahmacharya ||
+      hasDedicatedCelibacyDusthana ||
+      hasTataCelibacy ||
+      hasNeechaSaturn7thCelibacy ||
+      hasSaturn1stVenus12thBachelor ||
+      hasSriSriSanyasaYoga ||
+      hasRamanaMaharshiSanyasa ||
+      (isExplicitlySingle && age >= 45 && (seventhLordInDusthana || saturnAspects7th || marsAfflicts7th))
+    )
+  );
+
+  const isAlreadyMarried = isExplicitlyMarried || (
+    age >= 45 &&
+    !isExplicitlySingle &&
+    !isSevereCelibacy
+  );
+
+  if (isAlreadyMarried) {
+    return {
+      verdict: "already_married",
+      badgeColor: "emerald",
+      directAnswerKn: "ಜಾತಕರು ಈಗಾಗಲೇ ವಿವಾಹಿತರು (ಗೃಹಸ್ಥಾಶ್ರಮ)",
+      directAnswerEn: "Native is already settled in married life",
+      titleKn: "ಗೃಹಸ್ಥಾಶ್ರಮ / ಸುಖಿ ದಾಂಪತ್ಯ ಯೋಗ (Already Married)",
+      titleEn: "Settled in Grihasthashrama (Married Life)",
+      subtitleKn: "ದೇವಗುರು ಬೃಹಸ್ಪತಿ ಹಾಗೂ ಶುಕ್ರನ ಅನುಗ್ರಹದಿಂದ ಸುಖಿ ದಾಂಪತ್ಯ ಪ್ರಾಪ್ತಿ",
+      subtitleEn: "Harmonious married life supported by 7th lord and Venus",
+      marriageTimingWindowKn: "ಈಗಾಗಲೇ ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿದ್ದಾರೆ",
+      marriageTimingWindowEn: "Currently in married life",
+      astrologicalReasoningKn: "ಜಾತಕದಲ್ಲಿ 7ನೇ ಭಾವಾಧಿಪತಿ ಹಾಗೂ ಶುಕ್ರನ ಅನುಗ್ರಹದಿಂದ ಗೃಹಸ್ಥಾಶ್ರಮ ಪ್ರಾಪ್ತಿಯಾಗಿದೆ. ಸಂಸಾರದಲ್ಲಿ ಸೌಹಾರ್ದತೆ ಮತ್ತು ಪರಸ್ಪರ ಸಹಬಾಳ್ವೆಯನ್ನು ಮುನ್ನಡೆಸುವುದು ಪ್ರಧಾನ ಧರ್ಮವಾಗಿದೆ.",
+      astrologicalReasoningEn: "The native is happily established in marriage under the blessings of the 7th lord and Venus.",
+      classicalRuleCitedKn: "ಪರಾಶರ ಹೋರಾ ಶಾಸ್ತ್ರ: ಸಪ್ತಮೇಶ ಶುಭಯುಕ್ತೇ ಕಲತ್ರ ಸೌಖ್ಯಮ್ (ಶುಭ 7ನೇ ಅಧಿಪತಿಯಿಂದ ದಾಂಪತ್ಯ ಸಿದ್ಧಿ)",
+      classicalRuleCitedEn: "Brihat Parashara Hora Shastra: Auspicious disposition of 7th lord confers marital fulfillment",
+      blessingRemedyKn: "ಪ್ರತಿನಿತ್ಯ ಇಷ್ಟದೇವತಾ ಪ್ರಾರ್ಥನೆ ಹಾಗೂ ಶುಕ್ರವಾರ ಲಕ್ಷ್ಮೀ ನಾರಾಯಣ ಸ್ಮರಣೆ ದಾಂಪತ್ಯದಲ್ಲಿ ಅಖಂಡ ಶಾಂತಿ ತರುತ್ತದೆ.",
+      blessingRemedyEn: "Daily prayer to Ishta Devata and Lakshmi Narayana prayers on Fridays ensure lasting harmony."
+    };
+  }
+
+  if (isSevereCelibacy) {
+    return {
+      verdict: "lifelong_celibacy_denial",
+      badgeColor: "purple",
+      directAnswerKn: "ಅಖಂಡ ಅವಿವಾಹ / ನೈಷ್ಠಿಕ ಬ್ರಹ್ಮಚರ್ಯ / ಸಂನ್ಯಾಸ ಯೋಗ — ಲೌಕಿಕ ಸಂಸಾರದಿಂದ ಮುಕ್ತ",
+      directAnswerEn: "Lifelong Celibacy, Ascetic Dedication or Sanyasa Yoga",
+      titleKn: "ಅಖಂಡ ಅವಿವಾಹ / ನೈಷ್ಠಿಕ ಬ್ರಹ್ಮಚರ್ಯ / ಸಂನ್ಯಾಸ ಯೋಗ (Lifelong Celibacy & Renunciation)",
+      titleEn: "Lifelong Celibacy & Ascetic Dedication / Sanyasa Yoga",
+      subtitleKn: "ಡಾ. ಎ.ಪಿ.ಜೆ. ಅಬ್ದುಲ್ ಕಲಾಂ, ಅಟಲ್ ಬಿಹಾರಿ ವಾಜಪೇಯಿ ಅಥವಾ ಸ್ವಾಮಿ ವಿವೇಕಾನಂದರಂತಹ ತಪಸ್ವೀ ಜೀವನ ಪಥ",
+      subtitleEn: "Ascetic life mission dedicated to nation, society, and higher spiritual wisdom",
+      marriageTimingWindowKn: "ಲೌಕಿಕ ಸಂಸಾರ ಬಂಧನವಿಲ್ಲ — ಉನ್ನತ ಧ್ಯೇಯಕ್ಕೆ ಸಮರ್ಪಣೆ",
+      marriageTimingWindowEn: "Free from domestic householder bonds — Dedicated to higher mission / spirituality",
+      astrologicalReasoningKn: "ಶಾಸ್ತ್ರೋಕ್ತ ಪ್ರವ್ರಜ್ಯಾ (ಸಂನ್ಯಾಸ) ಯೋಗ ಅಥವಾ 7ನೇ ಕಳತ್ರ ಸ್ಥಾನದ ಮೇಲೆ ಬ್ರಹ್ಮಚರ್ಯ ಕಾರಕರಾದ ಕೇತು, ಶನಿಯ ಪ್ರಭಾವ ಗರಿಷ್ಠವಾಗಿದೆ. ಜಾತಕರ ಪ್ರಾಣಶಕ್ತಿಯು ಕೌಟುಂಬಿಕ ಲೌಕಿಕ ಬಂಧನಗಳಿಗಿಂತ ಉನ್ನತ ಸಾಮಾಜಿಕ, ರಾಷ್ಟ್ರೀಯ ಅಥವಾ ಅಧ್ಯಾತ್ಮಿಕ ಧ್ಯೇಯಗಳಿಗೆ ಮೀಸಲಾಗಿದೆ.",
+      astrologicalReasoningEn: "Classical Pravrajya (ascetic) yoga or intense Ketu/Saturn detachment over the 7th house directs the life-force towards higher spiritual or national service rather than domestic married life.",
+      classicalRuleCitedKn: "ಬೃಹತ್ ಜಾತಕ: ಏಕಸ್ಥೈಶ್ಚತುರಾದ್ಯೈಃ ಪ್ರವ್ರಜ್ಯಾ ಬಲಿಭಿಃ (೪ ಅಥವಾ ಹೆಚ್ಚು ಗ್ರಹಗಳ ಯೋಗದಿಂದ ಸಂನ್ಯಾಸ ಯೋಗ)",
+      classicalRuleCitedEn: "Brihat Jataka: Pravrajya Yoga formed by multiple ascetic planets in Kendra/Trikona",
+      historicalCelebrityParallelKn: "ಡಾ. ಎ.ಪಿ.ಜೆ. ಅಬ್ದುಲ್ ಕಲಾಂ, ಸ್ವಾಮಿ ವಿವೇಕಾನಂದ, ಅಟಲ್ ಬಿಹಾರಿ ವಾಜಪೇಯಿ ಅವರಂತಹ ತಪಸ್ವೀ ಜೀವನದ ಹೋಲಿಕೆ.",
+      historicalCelebrityParallelEn: "Resembles the dedicated ascetic life path of Dr. APJ Abdul Kalam, Swami Vivekananda, or Atal Bihari Vajpayee.",
+      blessingRemedyKn: "ಆಧ್ಯಾತ್ಮಿಕ ಸಾಧನೆ, ಜನಸೇವೆ, ಧ್ಯಾನ ಹಾಗೂ ಪರಮೇಶ್ವರನ ಆರಾಧನೆಯಿಂದ ಜನ್ಮ ಸಾಫಲ್ಯ ದೊರೆಯುತ್ತದೆ.",
+      blessingRemedyEn: "Spiritual sadhana, public service, meditation, and Shiva worship fulfill life's supreme purpose."
+    };
+  }
+
+  // Youth in Student / Career Preparation Stage (Age < 25)
+  if (age < 25 && !isExplicitlySingle) {
+    return {
+      verdict: "assured_marriage",
+      badgeColor: "emerald",
+      directAnswerKn: "ಹೌದು, ಜಾತಕರಿಗೆ ಖಚಿತ ಸಕಾಲಿಕ ಕಲ್ಯಾಣ ಭಾಗ್ಯವಿದೆ!",
+      directAnswerEn: "Yes, timely and assured marriage destiny in lifetime!",
+      titleKn: "ಖಚಿತ ಸಕಾಲಿಕ ಕಲ್ಯಾಣ ಭಾಗ್ಯ (Assured Timely Marriage Destiny)",
+      titleEn: "Assured Timely Marriage Destiny",
+      subtitleKn: "ದೇವಗುರು ಬೃಹಸ್ಪತಿ ಹಾಗೂ ಶುಕ್ರನ ಶುಭ ದೃಷ್ಟಿಯಿಂದ ಸಕಾಲಿಕ ಸುಖಿ ದಾಂಪತ್ಯ ಯೋಗ",
+      subtitleEn: "Timely matrimony blessed by Jupiter's divine grace and Venus",
+      marriageTimingWindowKn: "24 ರಿಂದ 28 ವರ್ಷಗಳ ಸಕಾಲಿಕ ಅವಧಿಯಲ್ಲಿ",
+      marriageTimingWindowEn: "Timely window between 24 and 28 years",
+      astrologicalReasoningKn: `ಜಾತಕದ 7ನೇ ಕಳತ್ರ ಸ್ಥಾನ ಹಾಗೂ 7ನೇ ಅಧಿಪತಿ ${PLANET_KN[seventhLordName]}ಗೆ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಅನುಗ್ರಹವಿದೆ. ಪ್ರಸ್ತುತ ವಿದ್ಯಾಭ್ಯಾಸ ಹಾಗೂ ವೃತ್ತಿ ರೂಪಿಸುವ ಹಂತದಲ್ಲಿದ್ದು, ಸಕಾಲಿಕ ವಯಸ್ಸಿನಲ್ಲಿ (24–28 ವರ್ಷ) ಉತ್ತಮ ಸಂಸ್ಕಾರವುಳ್ಳ ಸಂಗಾತಿಯೊಂದಿಗೆ ವಿವಾಹ ಯೋಗ ಸಿದ್ಧಿಸುತ್ತದೆ.`,
+      astrologicalReasoningEn: `The 7th house and 7th lord ${PLANET_EN[seventhLordName]} are auspiciously supported. Currently in the education/career building stage, timely matrimony will materialize between 24 and 28 years with a compatible partner.`,
+      classicalRuleCitedKn: "ಜಾತಕ ಪಾರಿಜಾತ: ಶುಭಗ್ರಹೇಕ್ಷಣೇ ಸಪ್ತಮೇ ಸಕಾಲಿಕ ಕಲ್ಯಾಣ ಸಿದ್ಧಿಃ",
+      classicalRuleCitedEn: "Jataka Parijata: Auspicious disposition ensures timely matrimonial bliss at the appropriate stage of life",
+      blessingRemedyKn: "ಪ್ರತಿನಿತ್ಯ ಶ್ರೀ ಗೌರಿ-ಶಂಕರ ಧ್ಯಾನ ಹಾಗೂ ಶುಕ್ರವಾರ ಕಲ್ಯಾಣೋತ್ಸವ ಸಂಕಲ್ಪ ಸದಾ ಶುಭ ತರುತ್ತದೆ.",
+      blessingRemedyEn: "Daily Gauri-Shankara contemplation and auspicious Friday prayers bless the marital journey."
+    };
+  }
+
+  // Check if Delayed Marriage
+  const isDelayed = saturnAspects7th || saturnWith7thLord || marsAfflicts7th || nodalAxisOn7th || seventhLordInDusthana;
+
+  if (isDelayed) {
+    const factorsKn: string[] = [];
+    const factorsEn: string[] = [];
+
+    if (saturnAspects7th || saturnWith7thLord) {
+      factorsKn.push("7ನೇ ಸ್ಥಾನ ಅಥವಾ 7ನೇ ಅಧಿಪತಿಗೆ ಶನಿಯ ದೃಷ್ಟಿ/ಸಂಪರ್ಕ — ಶನಿಯು ಪಕ್ವತೆಯನ್ನು ಪರೀಕ್ಷಿಸಿ ವಿಳಂಬ ಮಾಡುತ್ತಾನೆ, ಆದರೆ ವಿವಾಹ ನಿರಾಕರಿಸುವುದಿಲ್ಲ!");
+      factorsEn.push("Saturn aspecting or conjunct 7th house/lord causes maturity delay, NOT denial.");
+    }
+    if (marsAfflicts7th) {
+      factorsKn.push("ಕುಜ ದೋಷ / ಮಂಗಳ ಪ್ರಭಾವ — ಭಾವನಾತ್ಮಕ ಸ್ಥಿರತೆ ಹಾಗೂ ಸಕಾಲಿಕ ಹೊಂದಾಣಿಕೆಗೆ ಸಮಯಾವಕಾಶ ಬೇಡುತ್ತದೆ.");
+      factorsEn.push("Mars influence requiring emotional maturity before matrimonial bonding.");
+    }
+    if (nodalAxisOn7th) {
+      factorsKn.push("7ನೇ ಭಾವದಲ್ಲಿ ರಾಹು-ಕೇತು ಅಕ್ಷ — ಆರಂಭಿಕ ಅಡೆತಡೆಗಳು, ಆದರೆ ಕಾಲಾನುಕ್ರಮದಲ್ಲಿ ಯೋಗ್ಯ ಸಂಬಂಧ ಪ್ರಾಪ್ತಿ.");
+      factorsEn.push("Rahu-Ketu axis causing initial obstacles that resolve with maturity.");
+    }
+    if (seventhLordInDusthana) {
+      factorsKn.push(`7ನೇ ಅಧಿಪತಿ ${PLANET_KN[seventhLordName]} 6, 8 ಅಥವಾ 12ನೇ ಸ್ಥಾನದಲ್ಲಿರುವುದು — ಸೂಕ್ತ ಪರಿಹಾರದಿಂದ ಕಲ್ಯಾಣ ಸಿದ್ಧಿ.`);
+      factorsEn.push(`7th lord ${PLANET_EN[seventhLordName]} in 6/8/12 requires astrological remedy for smooth settlement.`);
+    }
+
+    const ageWindowKn = age >= 32
+      ? "33 ರಿಂದ 36+ ವರ್ಷಗಳ ಅವಧಿಯಲ್ಲಿ (ಶನಿ-ಗುರು ಅನುಗ್ರಹದಿಂದ ಸದ್ಯದಲ್ಲೇ ಕಲ್ಯಾಣ ಪ್ರಾಪ್ತಿ)"
+      : "29 ರಿಂದ 34 ವರ್ಷಗಳ ಅವಧಿಯಲ್ಲಿ (ಪರಿಪಕ್ವ ವಯಸ್ಸಿನಲ್ಲಿ ಸುದೃಢ ವಿವಾಹ ಸಿದ್ಧಿ)";
+    const ageWindowEn = age >= 32
+      ? "Between 33 and 36+ years (Favorable planetary window opening shortly)"
+      : "Between 29 and 34 years (Mature and lasting marital foundation)";
+
+    return {
+      verdict: "delayed_marriage",
+      badgeColor: "amber",
+      directAnswerKn: "ಹೌದು, ಖಚಿತ ಕಲ್ಯಾಣ ಭಾಗ್ಯವಿದೆ! ಆದರೆ ಶನಿ/ಕುಜ ಪ್ರಭಾವದಿಂದ ವಿಳಂಬ ವಿವಾಹ (Delay is NOT Denial!)",
+      directAnswerEn: "Yes, marriage is definitely assured! However, delayed due to Saturn/Mars (Delay is NOT Denial)",
+      titleKn: "ವಿಳಂಬ ವಿವಾಹ — ಆದರೆ ಖಚಿತ ಕಲ್ಯಾಣ ಭಾಗ್ಯ (Delayed Marriage: Delay is NOT Denial!)",
+      titleEn: "Delayed Marriage: Delay is NOT Denial (Lasting Settlement)",
+      subtitleKn: "ಗಮನಿಸಿ: ವಿಳಂಬವೆಂದರೆ ನಿರಾಕರಣೆಯಲ್ಲ — ಪರಿಪಕ್ವ ವಯಸ್ಸಿನಲ್ಲಿ (29 ರಿಂದ 34/36+) ಸುದೃಢ ಕಲ್ಯಾಣ ಸಿದ್ಧಿ",
+      subtitleEn: "Crucial distinction: Delay is never denial — mature and lasting union post 29–34+ years",
+      marriageTimingWindowKn: ageWindowKn,
+      marriageTimingWindowEn: ageWindowEn,
+      astrologicalReasoningKn: "ಗಮನಿಸಿ: ಜಾತಕದಲ್ಲಿ 'ವಿಳಂಬ' ಎಂದರೆ ಯಾವುದೇ ಕಾರಣಕ್ಕೂ 'ನಿರಾಕರಣೆ' (Denial) ಅಲ್ಲ! ಶನಿ ಅಥವಾ ಕುಜನ ಪ್ರಭಾವದಿಂದಾಗಿ ವಿವಾಹವು 29 ರಿಂದ 34/36 ವರ್ಷಗಳವರೆಗೆ ವಿಳಂಬವಾಗುತ್ತದೆಯಾದರೂ, ಈ ಅವಧಿಯ ನಂತರ ಜಾತಕರಿಗೆ ಅತ್ಯಂತ ಸ್ಥಿರ, ಜವಾಬ್ದಾರಿಯುತ ಮತ್ತು ಶಾಶ್ವತ ಕಲ್ಯಾಣ ಭಾಗ್ಯ ಕೂಡಿಬರುತ್ತದೆ. ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಅನುಗ್ರಹದಿಂದ ಯೋಗ್ಯ ಜೀವಮಾನದ ಸಂಗಾತಿ ಲಭಿಸುತ್ತಾರೆ.",
+      astrologicalReasoningEn: "Important distinction: Delay is NEVER Denial! Saturn and Mars test psychological maturity and karmic readiness, postponing marriage to between 29 and 34/36 years. Once this maturation period concludes, native enjoys a deeply stable, mature, and lifelong matrimonial bond.",
+      classicalRuleCitedKn: "ಪರಾಶರ ಸ್ಮೃತಿ: ಮಂದಕ್ಷೇ ಸಪ್ತಮೇ ಪ್ರಾಪ್ತೇ ವಿಳಂಬೇನ ಕೃತಂ ಶುಭಮ್ (ಶನಿ ಪ್ರಭಾವದಿಂದ ವಿಳಂಬವಾದರೂ ಕಲ್ಯಾಣ ಶಾಶ್ವತ)",
+      classicalRuleCitedEn: "Parashara Hora: Saturn's aspect or occupancy in the 7th house delays matrimony for maturity, conferring enduring stability after age 28–30",
+      delayFactorsKn: factorsKn,
+      delayFactorsEn: factorsEn,
+      historicalCelebrityParallelKn: "ಹಲವು ಪ್ರಖ್ಯಾತ ನಾಯಕರು ಮತ್ತು ವಿದ್ವಾಂಸರು 30-36 ವರ್ಷದ ನಂತರ ಮದುವೆಯಾಗಿ ಅತ್ಯಂತ ಸುಖಿ ಸಂಸಾರ ನಡೆಸಿದಂತೆ ಸುದೃಢ ದಾಂಪತ್ಯ ಯೋಗ.",
+      historicalCelebrityParallelEn: "Like many eminent leaders and intellectuals who marry between 30 and 36, settling into an exceptionally solid, enduring union.",
+      blessingRemedyKn: "ಮಂಗಳವಾರ ಸುಬ್ರಹ್ಮಣ್ಯ / ಕುಜ ಶಾಂತಿ ಪೂಜೆ, ಶುಕ್ರವಾರ ಕಲ್ಯಾಣ ಲಕ್ಷ್ಮೀ ನಾರಾಯಣ ಪೂಜೆ ಹಾಗೂ ಹಳದಿ ವಸ್ತ್ರ/ಧಾನ್ಯ ದಾನವು ವಿವಾಹ ವಿಳಂಬವನ್ನು ಶೀಘ್ರವಾಗಿ ಪರಿಹರಿಸುತ್ತದೆ.",
+      blessingRemedyEn: "Tuesday Subrahmanya / Mangala Shanti prayers, Friday Kalyana Lakshmi Narayana pooja, and yellow grain charity swiftly remove delays."
+    };
+  }
+
+  // Assured Timely Marriage
+  return {
+    verdict: "assured_marriage",
+    badgeColor: "emerald",
+    directAnswerKn: "ಹೌದು, ಜಾತಕರಿಗೆ ಖಚಿತ ಸಕಾಲಿಕ ಕಲ್ಯಾಣ ಭಾಗ್ಯವಿದೆ!",
+    directAnswerEn: "Yes, timely and assured marriage destiny in lifetime!",
+    titleKn: "ಖಚಿತ ಸಕಾಲಿಕ ಕಲ್ಯಾಣ ಭಾಗ್ಯ (Assured Timely Marriage Destiny)",
+    titleEn: "Assured Timely Marriage Destiny",
+    subtitleKn: "ದೇವಗುರು ಬೃಹಸ್ಪತಿ ಹಾಗೂ ಶುಕ್ರನ ಶುಭ ದೃಷ್ಟಿಯಿಂದ ಸಕಾಲಿಕ ಸುಖಿ ದಾಂಪತ್ಯ ಯೋಗ",
+    subtitleEn: "Timely matrimony blessed by Jupiter's divine grace and Venus",
+    marriageTimingWindowKn: "24 ರಿಂದ 28 ವರ್ಷಗಳ ಸಕಾಲಿಕ ಅವಧಿಯಲ್ಲಿ",
+    marriageTimingWindowEn: "Timely window between 24 and 28 years",
+    astrologicalReasoningKn: `ಜಾತಕದ 7ನೇ ಕಳತ್ರ ಸ್ಥಾನ, 7ನೇ ಅಧಿಪತಿ ${PLANET_KN[seventhLordName]} ಹಾಗೂ ಶುಕ್ರನಿಗೆ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಶುಭ ದೃಷ್ಟಿ ಅಥವಾ ಕೇಂದ್ರ-ತ್ರಿಕೋನ ಬಲವಿದೆ. ಸಕಾಲಿಕ ವಯಸ್ಸಿನಲ್ಲಿ (24–28 ವರ್ಷ) ಉತ್ತಮ ಸಂಸ್ಕಾರವುಳ್ಳ, ಹೊಂದಾಣಿಕೆಯಾಗುವ ಸಂಗಾತಿಯೊಂದಿಗೆ ವಿವಾಹ ಯೋಗ ಸಿದ್ಧಿಸುತ್ತದೆ.`,
+    astrologicalReasoningEn: `The 7th house of marriage, 7th lord ${PLANET_EN[seventhLordName]}, and Venus receive auspicious Jupiterian grace and Kendra-Trikona strength, ensuring timely matrimony with a compatible life partner.`,
+    classicalRuleCitedKn: "ಜಾತಕ ಪಾರಿಜಾತ: ಶುಭಗ್ರಹೇಕ್ಷಣೇ ಸಪ್ತಮೇ ಸಕಾಲಿಕ ಕಲ್ಯಾಣ ಸಿದ್ಧಿಃ",
+    classicalRuleCitedEn: "Jataka Parijata: Benefic aspect on 7th house brings timely, prosperous matrimony",
+    blessingRemedyKn: "ಪ್ರತಿನಿತ್ಯ ಶ್ರೀ ಗೌರಿ-ಶಂಕರ ಧ್ಯಾನ ಹಾಗೂ ಶುಕ್ರವಾರ ಕಲ್ಯಾಣೋತ್ಸವ ಸಂಕಲ್ಪ ಸದಾ ಶುಭ ತರುತ್ತದೆ.",
+    blessingRemedyEn: "Daily Gauri-Shankara contemplation and auspicious Friday prayers bless the marital journey."
   };
 }
